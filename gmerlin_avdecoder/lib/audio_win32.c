@@ -358,7 +358,7 @@ static int init_w32(bgav_stream_t * s)
   /* Create input- and output formats */
   
   bgav_WAVEFORMAT_set_format(&_in_format, s);
-  bgav_WAVEFORMAT_dump(&_in_format);
+  //  bgav_WAVEFORMAT_dump(&_in_format);
 
   in_fmt_buffer = malloc(sizeof(*in_format) + s->ext_size);
 

@@ -119,7 +119,7 @@ static int open_sol(bgav_demuxer_context_t * ctx,
   
   
   ctx->tt = bgav_track_table_create(1);
-  s = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+  s = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
 
   s->data.audio.bits_per_sample = 16;
   s->fourcc = get_fourcc(magic, type, &s->data.audio.bits_per_sample);
@@ -137,7 +137,7 @@ static int next_packet_sol(bgav_demuxer_context_t * ctx)
   bgav_stream_t * s;
   bgav_packet_t * p;
 
-  s = bgav_track_find_stream(ctx->tt->current_track, 0);
+  s = bgav_track_find_stream(ctx->tt->cur, 0);
   p = bgav_stream_get_packet_write(s);
 
   bgav_packet_alloc(p, MAX_SIZE);

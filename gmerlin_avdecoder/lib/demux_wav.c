@@ -22,6 +22,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#define STREAM_ID 0
+
 
 /* WAV demuxer */
 
@@ -120,8 +122,10 @@ static int open_wav(bgav_demuxer_context_t * ctx,
   if(format_size <= 0)
     goto fail;
   
-  s = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+  s = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
 
+  s->stream_id = STREAM_ID;
+  
   buf = malloc(format_size);
   if(bgav_input_read_data(ctx->input, buf, format_size) < format_size)
     goto fail;
@@ -156,7 +160,7 @@ static int open_wav(bgav_demuxer_context_t * ctx,
 
   if(priv->info)
     {
-    bgav_RIFFINFO_get_metadata(priv->info, &(ctx->tt->current_track->metadata));
+    bgav_RIFFINFO_get_metadata(priv->info, &(ctx->tt->cur->metadata));
     }
 
   /* Packet size will be at least 1024 bytes */
@@ -167,9 +171,9 @@ static int open_wav(bgav_demuxer_context_t * ctx,
   if(ctx->input->input->seek_byte)
     ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
 
-  ctx->tt->current_track->duration
+  ctx->tt->cur->duration
     = ((int64_t)priv->data_size * (int64_t)GAVL_TIME_SCALE) / 
-    (ctx->tt->current_track->audio_streams[0].codec_bitrate / 8);
+    (ctx->tt->cur->audio_streams[0].codec_bitrate / 8);
 
   ctx->stream_description = bgav_sprintf("WAV Format");
   
@@ -186,7 +190,7 @@ static int next_packet_wav(bgav_demuxer_context_t * ctx)
   wav_priv_t * priv;
   priv = (wav_priv_t *)(ctx->priv);
   
-  s = bgav_track_find_stream(ctx->tt->current_track, 0);
+  s = bgav_track_find_stream(ctx->tt->cur, STREAM_ID);
   
   if(!s)
     return 1;
@@ -218,7 +222,7 @@ static void seek_wav(bgav_demuxer_context_t * ctx, gavl_time_t time)
   priv = (wav_priv_t *)(ctx->priv);
   bgav_stream_t * s;
 
-  s = ctx->tt->current_track->audio_streams;
+  s = ctx->tt->cur->audio_streams;
     
   file_position = (time * (s->codec_bitrate / 8)) /
     GAVL_TIME_SCALE;
@@ -238,8 +242,8 @@ static void close_wav(bgav_demuxer_context_t * ctx)
   wav_priv_t * priv;
   priv = (wav_priv_t *)(ctx->priv);
 
-  if(ctx->tt->current_track->audio_streams[0].ext_data)
-    free(ctx->tt->current_track->audio_streams[0].ext_data);
+  if(ctx->tt->cur->audio_streams[0].ext_data)
+    free(ctx->tt->cur->audio_streams[0].ext_data);
 
   if(priv->info)
     bgav_RIFFINFO_destroy(priv->info);

@@ -110,7 +110,7 @@ typedef struct
   uint8_t last_section_number;
 
   uint16_t pcr_pid;
-  char descriptor[4096];
+  uint8_t descriptor[4096];
   int descriptor_len;
   
   int num_streams;
@@ -119,7 +119,7 @@ typedef struct
     uint8_t type;
     uint16_t pid;
     
-    char descriptor[4096];
+    uint8_t descriptor[4096];
     int descriptor_len;
     int present; // Set by the demuxer to signal, that the stream is present
     } streams[MAX_STREAMS];

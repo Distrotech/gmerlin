@@ -116,7 +116,6 @@ typedef struct
   ogg_packet      op;
 
   int64_t end_pos;
-  int64_t data_start;
   //  int current_page_size;
 
   /* Serial  number of the last page of the entire file */
@@ -130,6 +129,9 @@ typedef struct
 
   /* Different timestamp handling if the stream is live */
   int is_live;
+  
+  /* Set to 1 to prevent new streamint tracks */
+  int nonbos_seen;
   } ogg_priv;
 
 /* Special header for OGM files */
@@ -444,7 +446,8 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
   ogg_priv * priv;
   ogm_header_t ogm_header;
   bgav_input_context_t * input_mem;
-    
+  int header_bytes = 0;
+  
   priv = (ogg_priv *)(ctx->priv);
 
   ogg_track = calloc(1, sizeof(*ogg_track));
@@ -477,7 +480,8 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
     ogg_stream_init(&ogg_stream->os, serialno);
     ogg_stream_pagein(&ogg_stream->os, &(priv->current_page));
     priv->page_valid = 0;
-    
+    header_bytes +=
+      priv->current_page.header_len + priv->current_page.body_len;
     if(ogg_stream_packetout(&ogg_stream->os, &priv->op) != 1)
       {
       return 0;
@@ -702,7 +706,9 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
       ogg_stream = (stream_priv_t*)(s->priv);
       ogg_stream_pagein(&(ogg_stream->os), &(priv->current_page));
       priv->page_valid = 0;
-  
+      header_bytes +=
+        priv->current_page.header_len + priv->current_page.body_len;
+      
       switch(ogg_stream->fourcc_priv)
         {
         case FOURCC_THEORA:
@@ -792,6 +798,8 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
     else /* no stream found */
       {
       priv->page_valid = 0;
+      header_bytes +=
+        priv->current_page.header_len + priv->current_page.body_len;
       }
     
     /* Check if we are done for all streams */
@@ -836,6 +844,12 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         return 0;
         }
       }
+    }
+
+  if(!(ctx->flags & BGAV_DEMUXER_HAS_DATA_START))
+    {
+    ctx->data_start += header_bytes;
+    ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
     }
   
   return 1;
@@ -1173,6 +1187,8 @@ static int open_ogg(bgav_demuxer_context_t * ctx,
   bgav_stream_t * s;
   stream_priv_t * stream_priv;
   int64_t result, last_granulepos;
+  bgav_input_context_t * input_save = (bgav_input_context_t*)0;
+  
   ogg_priv * priv;
   
   priv = calloc(1, sizeof(*priv));
@@ -1181,11 +1197,29 @@ static int open_ogg(bgav_demuxer_context_t * ctx,
   ogg_sync_init(&(priv->oy));
 
   ctx->tt = bgav_track_table_create(1);
-  priv->data_start = ctx->input->position;
+  
+  ctx->data_start = ctx->input->position;
+
+  if(!ctx->input->input->seek_byte)
+    {
+    input_save = ctx->input;
+    ctx->input = bgav_input_open_as_buffer(ctx->input);
+    }
   
   /* Set up the first track */
-  if(!setup_track(ctx, ctx->tt->current_track, priv->data_start))
+  if(!setup_track(ctx, ctx->tt->cur, ctx->data_start))
     return 0;
+
+  if(input_save)
+    {
+    bgav_input_close(ctx->input);
+    bgav_input_destroy(ctx->input);
+    ctx->input = input_save;
+    }
+  else
+    {
+    bgav_input_seek(ctx->input, ctx->data_start, SEEK_SET);
+    }
   
   if(ctx->input->input->seek_byte && ctx->input->total_bytes)
     {
@@ -1197,7 +1231,7 @@ static int open_ogg(bgav_demuxer_context_t * ctx,
       {
       return 0;
       }
-    result = priv->data_start;
+    result = ctx->data_start;
     while(1)
       {
       last_track = &(ctx->tt->tracks[ctx->tt->num_tracks-1]);
@@ -1338,12 +1372,12 @@ static int new_streaming_track(bgav_demuxer_context_t * ctx)
    */
 
   /* Right now, we accept at most 1 audio and 1 video stream. */
-  if((ctx->tt->current_track->num_audio_streams > 1) ||
-     (ctx->tt->current_track->num_video_streams > 1))
+  if((ctx->tt->cur->num_audio_streams > 1) ||
+     (ctx->tt->cur->num_video_streams > 1))
     return 0;
 
-  audio_done = ctx->tt->current_track->num_audio_streams ? 0 : 1;
-  video_done = ctx->tt->current_track->num_video_streams ? 0 : 1;
+  audio_done = ctx->tt->cur->num_audio_streams ? 0 : 1;
+  video_done = ctx->tt->cur->num_video_streams ? 0 : 1;
     
   /* Get the identification headers of the streams */
   while(ogg_page_bos(&priv->current_page))
@@ -1366,22 +1400,22 @@ static int new_streaming_track(bgav_demuxer_context_t * ctx)
     
     if(!audio_done)
       {
-      stream_priv = (stream_priv_t*)(ctx->tt->current_track->audio_streams->priv);
+      stream_priv = (stream_priv_t*)(ctx->tt->cur->audio_streams->priv);
       if(fourcc == stream_priv->fourcc_priv)
         {
         ogg_stream_init(&stream_priv->os, serialno);
-        ctx->tt->current_track->audio_streams->stream_id = serialno;
+        ctx->tt->cur->audio_streams->stream_id = serialno;
         done = 1;
         audio_done = 1;
         }
       }
     if(!done && !video_done)
       {
-      stream_priv = (stream_priv_t*)(ctx->tt->current_track->video_streams->priv);
+      stream_priv = (stream_priv_t*)(ctx->tt->cur->video_streams->priv);
       if(fourcc == stream_priv->fourcc_priv)
         {
         ogg_stream_init(&stream_priv->os, serialno);
-        ctx->tt->current_track->video_streams->stream_id = serialno;
+        ctx->tt->cur->video_streams->stream_id = serialno;
         done = 1;
         video_done = 1;
         }
@@ -1408,18 +1442,18 @@ static void metadata_changed(bgav_demuxer_context_t * ctx)
 
   if(ctx->opt->metadata_change_callback || ctx->opt->name_change_callback)
     {
-    get_metadata(ctx->tt->current_track);
-    bgav_metadata_merge2(&ctx->tt->current_track->metadata, &(ctx->input->metadata));
+    get_metadata(ctx->tt->cur);
+    bgav_metadata_merge2(&ctx->tt->cur->metadata, &(ctx->input->metadata));
     }
   
   if(ctx->opt->metadata_change_callback)
     {
     ctx->opt->metadata_change_callback(ctx->opt->metadata_change_callback_data,
-                                       &ctx->tt->current_track->metadata);
+                                       &ctx->tt->cur->metadata);
     }
   if(ctx->opt->name_change_callback)
     {
-    name = get_name(&ctx->tt->current_track->metadata);
+    name = get_name(&ctx->tt->cur->metadata);
     if(name)
       {
       ctx->opt->name_change_callback(ctx->opt->name_change_callback_data,
@@ -1449,18 +1483,24 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
   serialno   = ogg_page_serialno(&(priv->current_page));
   granulepos = ogg_page_granulepos(&(priv->current_page));
 
-  if(ogg_page_bos(&(priv->current_page)) && !ctx->input->input->seek_byte)
+  if(ogg_page_bos(&(priv->current_page)))
     {
-    if(!new_streaming_track(ctx))
-      return 0;
-    else
+    if(!ctx->input->input->seek_byte && priv->nonbos_seen)
       {
-      serialno = ogg_page_serialno(&(priv->current_page));
-      
+      if(!new_streaming_track(ctx))
+        return 0;
+      else
+        serialno = ogg_page_serialno(&(priv->current_page));
       }
     }
-
-  s = bgav_track_find_stream(ctx->tt->current_track,
+  else
+    {
+    serialno = ogg_page_serialno(&(priv->current_page));
+    priv->nonbos_seen = 1;
+    }
+  
+  
+  s = bgav_track_find_stream(ctx->tt->cur,
                              serialno);
 
   if(!s)
@@ -1731,8 +1771,6 @@ static void reset_track(bgav_track_t * track)
     stream_priv->frame_counter = -1;
     stream_priv->do_sync = 1;
     ogg_stream_reset(&stream_priv->os);
-    
-    track->audio_streams[i].time_scaled = -1;
     }
 
   for(i = 0; i < track->num_video_streams; i++)
@@ -1745,8 +1783,6 @@ static void reset_track(bgav_track_t * track)
     stream_priv->do_sync = 1;
     
     ogg_stream_reset(&stream_priv->os);
-    
-    track->video_streams[i].time_scaled = -1;
     }
   
   for(i = 0; i < track->num_subtitle_streams; i++)
@@ -1769,9 +1805,9 @@ static void seek_ogg(bgav_demuxer_context_t * ctx, gavl_time_t time)
   int64_t filepos;
   
   /* Seek to the file position */
-  track_priv = (track_priv_t*)(ctx->tt->current_track->priv);
+  track_priv = (track_priv_t*)(ctx->tt->cur->priv);
   filepos = track_priv->start_pos +
-    (int64_t)((double)(time) / (double)(ctx->tt->current_track->duration) *
+    (int64_t)((double)(time) / (double)(ctx->tt->cur->duration) *
               (track_priv->end_pos - track_priv->start_pos));
   if(filepos <= track_priv->start_pos)
     filepos = find_first_page(ctx, track_priv->start_pos, track_priv->end_pos,
@@ -1782,7 +1818,7 @@ static void seek_ogg(bgav_demuxer_context_t * ctx, gavl_time_t time)
   seek_byte(ctx, filepos);
 
   /* Reset all the streams and set the stream times to -1 */
-  reset_track(ctx->tt->current_track);
+  reset_track(ctx->tt->cur);
   
   /* Now, resync the streams (probably skipping lots of pages) */
 
@@ -1793,28 +1829,28 @@ static void seek_ogg(bgav_demuxer_context_t * ctx, gavl_time_t time)
       {
       filepos = find_last_page(ctx, track_priv->start_pos, filepos,
                                (int*)0, (int64_t*)0);
-      reset_track(ctx->tt->current_track);
+      reset_track(ctx->tt->cur);
       }
     
     done = 1;
 
-    for(i = 0; i < ctx->tt->current_track->num_audio_streams; i++)
+    for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
       {
       stream_priv =
-        (stream_priv_t*)(ctx->tt->current_track->audio_streams[i].priv);
+        (stream_priv_t*)(ctx->tt->cur->audio_streams[i].priv);
       
       if(stream_priv->do_sync &&
-         (ctx->tt->current_track->audio_streams[i].action != BGAV_STREAM_MUTE))
+         (ctx->tt->cur->audio_streams[i].action != BGAV_STREAM_MUTE))
         done = 0;
       }
     if(done)
       {
-      for(i = 0; i < ctx->tt->current_track->num_video_streams; i++)
+      for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
         {
         stream_priv =
-          (stream_priv_t*)(ctx->tt->current_track->video_streams[i].priv);
+          (stream_priv_t*)(ctx->tt->cur->video_streams[i].priv);
         if(stream_priv->do_sync &&
-           (ctx->tt->current_track->video_streams[i].action != BGAV_STREAM_MUTE))
+           (ctx->tt->cur->video_streams[i].action != BGAV_STREAM_MUTE))
           done = 0;
         }
       
@@ -1873,27 +1909,28 @@ static void close_ogg(bgav_demuxer_context_t * ctx)
   free(priv);
   }
 
-static void select_track_ogg(bgav_demuxer_context_t * ctx,
+static int select_track_ogg(bgav_demuxer_context_t * ctx,
                              int track)
   {
-  char * name;
+  //  char * name;
   ogg_priv * priv;
   track_priv_t * track_priv;
   
   priv = (ogg_priv *)(ctx->priv);
   
-  track_priv = (track_priv_t*)(ctx->tt->current_track->priv);
+  track_priv = (track_priv_t*)(ctx->tt->cur->priv);
   
-  if(ctx->input->input->seek_byte && ctx->input->total_bytes)
+  if(ctx->input->input->seek_byte)
     {
     seek_byte(ctx, track_priv->start_pos);
     priv->end_pos = track_priv->end_pos;
     }
-  else
+  reset_track(ctx->tt->cur);
+#if 0
     {
     if(ctx->opt->name_change_callback)
       {
-      name = get_name(&ctx->tt->current_track->metadata);
+      name = get_name(&ctx->tt->cur->metadata);
       if(name)
         {
         ctx->opt->name_change_callback(ctx->opt->name_change_callback_data,
@@ -1902,6 +1939,8 @@ static void select_track_ogg(bgav_demuxer_context_t * ctx,
         }
       }
     }
+#endif
+  return 1;
   }
 
 bgav_demuxer_t bgav_demuxer_ogg =

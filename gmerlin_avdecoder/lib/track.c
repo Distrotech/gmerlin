@@ -487,7 +487,7 @@ gavl_time_t bgav_track_resync_decoders(bgav_track_t * track)
       return GAVL_TIME_UNDEFINED;
       }
     test_time = gavl_time_unscale(s->timescale, s->time_scaled);
-    s->position =
+    s->out_position =
       gavl_time_to_samples(s->data.audio.format.samplerate,
                            test_time);
     if(test_time > ret)
@@ -527,7 +527,7 @@ gavl_time_t bgav_track_resync_decoders(bgav_track_t * track)
       }
     test_time = gavl_time_unscale(s->timescale, s->time_scaled);
     
-    s->position =
+    s->out_position =
       gavl_time_to_frames(s->data.video.format.timescale,
                           s->data.video.format.frame_duration,
                           test_time);

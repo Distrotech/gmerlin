@@ -198,7 +198,7 @@ static int open_sphere(bgav_demuxer_context_t * ctx,
   if(h.HeaderSize != HEADERSIZE)
     return 0;
   
-  as = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+  as = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
 
   as->data.audio.format.num_channels = h.Channels;
   
@@ -270,13 +270,13 @@ static int open_sphere(bgav_demuxer_context_t * ctx,
   if(ctx->input->total_bytes)
     {
     total_samples = (ctx->input->total_bytes - HEADERSIZE) / as->data.audio.block_align;
-    ctx->tt->current_track->duration =  gavl_samples_to_time(as->data.audio.format.samplerate, total_samples);
+    ctx->tt->cur->duration =  gavl_samples_to_time(as->data.audio.format.samplerate, total_samples);
     if(ctx->input->input->seek_byte)
       ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
     }
   else if(h.SampleCount)
     {
-    ctx->tt->current_track->duration =  gavl_samples_to_time(as->data.audio.format.samplerate, h.SampleCount);
+    ctx->tt->cur->duration =  gavl_samples_to_time(as->data.audio.format.samplerate, h.SampleCount);
     if(ctx->input->input->seek_byte)
       ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
     }
@@ -306,7 +306,7 @@ static int next_packet_sphere(bgav_demuxer_context_t * ctx)
   int bytes_read;
   int bytes_to_read;
 
-  s = &(ctx->tt->current_track->audio_streams[0]);
+  s = &(ctx->tt->cur->audio_streams[0]);
   p = bgav_stream_get_packet_write(s);
 
   bytes_to_read = samples_to_bytes(s, SAMPLES2READ);
@@ -338,7 +338,7 @@ static void seek_sphere(bgav_demuxer_context_t * ctx, gavl_time_t time)
   int64_t position;
   int64_t sample;
 
-  s = &(ctx->tt->current_track->audio_streams[0]);
+  s = &(ctx->tt->cur->audio_streams[0]);
 
   sample = gavl_time_to_samples(s->data.audio.format.samplerate, time);
     

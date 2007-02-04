@@ -159,7 +159,7 @@ static int open_gif(bgav_demuxer_context_t * ctx,
     }
 
   ctx->tt = bgav_track_table_create(1);
-  s = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
+  s = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
   s->fourcc = BGAV_MK_FOURCC('g','i','f',' ');
 
   s->data.video.format.image_width  = sd.width;
@@ -174,6 +174,10 @@ static int open_gif(bgav_demuxer_context_t * ctx,
   s->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
   s->data.video.depth = 32; // RGBA
   s->data.video.format.pixelformat = GAVL_RGBA_32;
+
+  ctx->data_start = ctx->input->position;
+  ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
+  
   return 1;
   }
 
@@ -256,7 +260,7 @@ static int next_packet_gif(bgav_demuxer_context_t * ctx)
     }
   
   /* Now assemble a valid GIF file (that's the hard part) */
-  s = ctx->tt->current_track->video_streams;
+  s = ctx->tt->cur->video_streams;
   
   p = bgav_stream_get_packet_write(s);
 
@@ -337,6 +341,14 @@ static int next_packet_gif(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
+static int select_track_gif(bgav_demuxer_context_t * ctx, int track)
+  {
+  gif_priv_t * priv;
+  priv = (gif_priv_t*)(ctx->priv);
+  priv->video_pts = 0;
+  return 1;
+  }
+
 
 static void close_gif(bgav_demuxer_context_t * ctx)
   {
@@ -348,8 +360,9 @@ static void close_gif(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_gif =
   {
-    probe:       probe_gif,
-    open:        open_gif,
-    next_packet: next_packet_gif,
-    close:       close_gif
+    probe:        probe_gif,
+    open:         open_gif,
+    select_track: select_track_gif,
+    next_packet:  next_packet_gif,
+    close:        close_gif
   };

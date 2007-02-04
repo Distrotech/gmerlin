@@ -72,11 +72,6 @@ static void dump_chunk_header(chunk_header_t * h)
 static const uint8_t roq_magic[6] =
   { 0x84, 0x10, 0xff, 0xff, 0xff, 0xff };
 
-typedef struct
-  {
-  uint32_t video_pts;
-  } roq_priv_t;
-
 static int probe_roq(bgav_input_context_t * input)
   {
   uint8_t data[6];
@@ -97,9 +92,6 @@ static int open_roq(bgav_demuxer_context_t * ctx,
   bgav_stream_t * s;
   uint16_t width = 0, height = 0, framerate;
   int num_channels = 0;
-  roq_priv_t * priv;
-  priv = calloc(1, sizeof(*priv));
-  ctx->priv = priv;
   
   
   /* We can play RoQ files only from seekable sources */
@@ -160,7 +152,7 @@ static int open_roq(bgav_demuxer_context_t * ctx,
 
   if(num_channels)
     {
-    s = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+    s = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
     s->stream_id = AUDIO_ID;
     s->fourcc = BGAV_MK_FOURCC('R','O','Q','A');
     s->data.audio.format.num_channels = num_channels;
@@ -171,7 +163,7 @@ static int open_roq(bgav_demuxer_context_t * ctx,
 
   if(width && height)
     {
-    s = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
+    s = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
     s->stream_id = VIDEO_ID;
     s->fourcc = BGAV_MK_FOURCC('R','O','Q','V');
     s->data.video.format.image_width = width;
@@ -187,6 +179,9 @@ static int open_roq(bgav_demuxer_context_t * ctx,
     s->data.video.format.frame_duration = 1;
     }
   ctx->stream_description = bgav_sprintf("ID Roq");
+
+  ctx->data_start = ctx->input->position;
+  ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
   
   return 1;
   }
@@ -197,12 +192,10 @@ static int next_packet_roq(bgav_demuxer_context_t * ctx)
   
   uint8_t preamble[PREAMBLE_SIZE];
   chunk_header_t h;
-  roq_priv_t * priv;
   int done = 0;
   bgav_packet_t * video_packet = (bgav_packet_t *)0;
   bgav_packet_t * audio_packet = (bgav_packet_t *)0;
   
-  priv = (roq_priv_t*)(ctx->priv);
 
   while(!done)
     {
@@ -215,7 +208,7 @@ static int next_packet_roq(bgav_demuxer_context_t * ctx)
         bgav_input_skip(ctx->input, h.size);
         break;
       case RoQ_QUAD_CODEBOOK:
-        s = bgav_track_find_stream(ctx->tt->current_track, VIDEO_ID);
+        s = bgav_track_find_stream(ctx->tt->cur, VIDEO_ID);
         if(!s)
           {
           bgav_input_skip(ctx->input, h.size);
@@ -236,7 +229,7 @@ static int next_packet_roq(bgav_demuxer_context_t * ctx)
         video_packet->data_size += h.size;
         break;
       case RoQ_QUAD_VQ:
-        s = bgav_track_find_stream(ctx->tt->current_track, VIDEO_ID);
+        s = bgav_track_find_stream(ctx->tt->cur, VIDEO_ID);
         if(!s)
           {
           bgav_input_skip(ctx->input, h.size);
@@ -261,14 +254,14 @@ static int next_packet_roq(bgav_demuxer_context_t * ctx)
           return 0;
 
         video_packet->data_size += h.size;
-        video_packet->pts = priv->video_pts++;
+        video_packet->pts = s->in_position;
         bgav_packet_done_write(video_packet);
         video_packet = (bgav_packet_t*)0;
         done = 1;
         break;
       case RoQ_SOUND_MONO:
       case RoQ_SOUND_STEREO:
-        s = bgav_track_find_stream(ctx->tt->current_track, AUDIO_ID);
+        s = bgav_track_find_stream(ctx->tt->cur, AUDIO_ID);
         if(!s)
           {
           bgav_input_skip(ctx->input, h.size);
@@ -300,9 +293,6 @@ static int next_packet_roq(bgav_demuxer_context_t * ctx)
 
 static void close_roq(bgav_demuxer_context_t * ctx)
   {
-  roq_priv_t * priv;
-  priv = (roq_priv_t*)(ctx->priv);
-  free(priv);
   }
 
 bgav_demuxer_t bgav_demuxer_roq =

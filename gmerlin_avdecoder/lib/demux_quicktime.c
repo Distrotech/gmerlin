@@ -145,7 +145,7 @@ static bgav_stream_t * find_stream(bgav_demuxer_context_t * ctx,
   //  qt_priv_t * priv; 
   stream_priv_t * priv;
   int i;
-  bgav_track_t * track = ctx->tt->current_track;
+  bgav_track_t * track = ctx->tt->cur;
   
   for(i = 0; i < track->num_audio_streams; i++)
     {
@@ -525,18 +525,18 @@ static void build_index(bgav_demuxer_context_t * ctx)
   }
 
 #define SET_UDTA_STRING(dst, src) \
-if(!(ctx->tt->current_track->metadata.dst) && moov->udta.src)\
+if(!(ctx->tt->cur->metadata.dst) && moov->udta.src)\
   {                                                                     \
   if(moov->udta.have_ilst) \
-    ctx->tt->current_track->metadata.dst = bgav_strdup(moov->udta.src); \
+    ctx->tt->cur->metadata.dst = bgav_strdup(moov->udta.src); \
   else \
-    ctx->tt->current_track->metadata.dst = bgav_convert_string(cnv, moov->udta.src, -1, NULL);\
+    ctx->tt->cur->metadata.dst = bgav_convert_string(cnv, moov->udta.src, -1, NULL);\
   }
 
 #define SET_UDTA_INT(dst, src) \
-  if(!(ctx->tt->current_track->metadata.dst) && moov->udta.src && isdigit(*(moov->udta.src))) \
+  if(!(ctx->tt->cur->metadata.dst) && moov->udta.src && isdigit(*(moov->udta.src))) \
     { \
-    ctx->tt->current_track->metadata.dst = atoi(moov->udta.src);\
+    ctx->tt->cur->metadata.dst = atoi(moov->udta.src);\
     }
 
 static void set_metadata(bgav_demuxer_context_t * ctx)
@@ -563,13 +563,13 @@ static void set_metadata(bgav_demuxer_context_t * ctx)
   SET_UDTA_STRING(comment,   inf);
   SET_UDTA_STRING(author,    aut);
 
-  if(!ctx->tt->current_track->metadata.track && moov->udta.trkn)
-    ctx->tt->current_track->metadata.track = moov->udta.trkn;
+  if(!ctx->tt->cur->metadata.track && moov->udta.trkn)
+    ctx->tt->cur->metadata.track = moov->udta.trkn;
 
   if(cnv)
     bgav_charset_converter_destroy(cnv);
 
-  //  bgav_metadata_dump(&ctx->tt->current_track->metadata);
+  //  bgav_metadata_dump(&ctx->tt->cur->metadata);
   }
 
 /*
@@ -734,7 +734,7 @@ static void setup_chapter_track(bgav_demuxer_context_t * ctx, qt_trak_t * trak)
              "Chapters detected but stream is not seekable");
     return;
     }
-  if(ctx->tt->current_track->chapter_list)
+  if(ctx->tt->cur->chapter_list)
     {
     bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
              "More than one chapter tracks, choosing first");
@@ -758,7 +758,7 @@ static void setup_chapter_track(bgav_demuxer_context_t * ctx, qt_trak_t * trak)
     }
   
   total_chapters = bgav_qt_trak_samples(trak);
-  ctx->tt->current_track->chapter_list =
+  ctx->tt->cur->chapter_list =
     bgav_chapter_list_create(trak->mdia.mdhd.time_scale, total_chapters);
   
   chunk_index = 0;
@@ -776,7 +776,7 @@ static void setup_chapter_track(bgav_demuxer_context_t * ctx, qt_trak_t * trak)
   
   for(i = 0; i < total_chapters; i++)
     {
-    ctx->tt->current_track->chapter_list->chapters[i].time = tics;
+    ctx->tt->cur->chapter_list->chapters[i].time = tics;
 
     /* Increase tics */
     tics += stts->entries[stts_index].duration;
@@ -805,7 +805,7 @@ static void setup_chapter_track(bgav_demuxer_context_t * ctx, qt_trak_t * trak)
     len = BGAV_PTR_2_16BE(buffer);
     if(len)
       {
-      ctx->tt->current_track->chapter_list->chapters[i].name =
+      ctx->tt->cur->chapter_list->chapters[i].name =
         bgav_convert_string(cnv, (char*)(buffer+2), len, (int*)0);
       }
     /* Increase file position */
@@ -847,9 +847,9 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
   qt_stsd_t * stsd;
   
   
-  track = ctx->tt->current_track;
+  track = ctx->tt->cur;
   
-  ctx->tt->current_track->duration = 0;
+  ctx->tt->cur->duration = 0;
 
   priv->streams = calloc(moov->num_tracks, sizeof(*(priv->streams)));
   
@@ -965,8 +965,8 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       bg_as->stream_id = i;
       
       stream_duration = stream_get_duration(bg_as);
-      if(ctx->tt->current_track->duration < stream_duration)
-        ctx->tt->current_track->duration = stream_duration;
+      if(ctx->tt->cur->duration < stream_duration)
+        ctx->tt->cur->duration = stream_duration;
 
       /* Check endianess */
 
@@ -1127,8 +1127,8 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       bg_vs->stream_id = i;
 
       stream_duration = stream_get_duration(bg_vs);
-      if(ctx->tt->current_track->duration < stream_duration)
-        ctx->tt->current_track->duration = stream_duration;
+      if(ctx->tt->cur->duration < stream_duration)
+        ctx->tt->cur->duration = stream_duration;
       //      bgav_qt_trak_dump(&moov->tracks[i]);
       }
     /* Quicktime subtitles */

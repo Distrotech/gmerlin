@@ -163,7 +163,7 @@ static int open_vqa(bgav_demuxer_context_t * ctx,
   ctx->tt = bgav_track_table_create(1);
 
   /* Initialize video stream */
-  s = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
+  s = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
   s->stream_id = VIDEO_ID;
   s->ext_data = priv->header;
   s->ext_size = VQA_HEADER_SIZE;
@@ -181,7 +181,7 @@ static int open_vqa(bgav_demuxer_context_t * ctx,
   /* Initialize audio stream */
   if(h.Freq || ((h.Version == 1) && (h.Flags == 1)))
     {
-    s = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+    s = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
 
     if(h.Version == 1)
       s->fourcc = BGAV_MK_FOURCC('w','s','p','1');
@@ -201,8 +201,11 @@ static int open_vqa(bgav_demuxer_context_t * ctx,
     s->data.audio.bits_per_sample = h.Bits;
     }
 
-  ctx->tt->current_track->duration =
+  ctx->tt->cur->duration =
     gavl_time_unscale(h.FrameRate, h.NumFrames);
+
+  ctx->data_start = ctx->input->position;
+  ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
   
   ctx->stream_description = bgav_sprintf("Westwood VQA");
   return 1;
@@ -223,9 +226,9 @@ static int next_packet_vqa(bgav_demuxer_context_t * ctx)
 
   /* Audio */
   if((type == SND2_TAG) || (type == SND1_TAG))
-    s = bgav_track_find_stream(ctx->tt->current_track, AUDIO_ID);
+    s = bgav_track_find_stream(ctx->tt->cur, AUDIO_ID);
   else if(type == VQFR_TAG)
-    s = bgav_track_find_stream(ctx->tt->current_track, VIDEO_ID);
+    s = bgav_track_find_stream(ctx->tt->cur, VIDEO_ID);
   
   if(!s)
     {
@@ -247,7 +250,7 @@ static int next_packet_vqa(bgav_demuxer_context_t * ctx)
     bgav_input_skip(ctx->input, 1);
   
   if(s->type == BGAV_STREAM_VIDEO)
-    p->pts = priv->video_pts++;
+    p->pts = s->in_position;
   bgav_packet_done_write(p);
   
   return 1;

@@ -847,7 +847,7 @@ static void select_track_dvd(bgav_input_context_t * ctx, int track)
   ctx->demuxer->flags &= ~BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET;
   
   ttsrpt = dvd->vmg_ifo->tt_srpt;
-  track_priv = (track_priv_t*)(ctx->tt->current_track->priv);
+  track_priv = (track_priv_t*)(ctx->tt->cur->priv);
 
   dvd->current_track_priv = track_priv;
   
@@ -873,11 +873,11 @@ static void select_track_dvd(bgav_input_context_t * ctx, int track)
   dvd->state = CELL_START;
   dvd->start_sector = dvd->pgc->cell_playback[dvd->next_cell].first_sector;
   /* Set the subtitle palettes */
-  for(i = 0; i < ctx->tt->current_track->num_subtitle_streams; i++)
+  for(i = 0; i < ctx->tt->cur->num_subtitle_streams; i++)
     {
-    ctx->tt->current_track->subtitle_streams[i].ext_data =
+    ctx->tt->cur->subtitle_streams[i].ext_data =
       (uint8_t*)(dvd->pgc->palette);
-    ctx->tt->current_track->subtitle_streams[i].ext_size =
+    ctx->tt->cur->subtitle_streams[i].ext_size =
       sizeof(dvd->pgc->palette);
     }
   
@@ -1001,12 +1001,12 @@ static void seek_time_dvd(bgav_input_context_t * ctx, gavl_time_t t)
   time_scaled = gavl_time_scale(90000, time);
   
   
-  for(i = 0; i < ctx->tt->current_track->num_audio_streams; i++)
-    ctx->tt->current_track->audio_streams[i].time_scaled = time_scaled;
-  for(i = 0; i < ctx->tt->current_track->num_video_streams; i++)
-    ctx->tt->current_track->video_streams[i].time_scaled = time_scaled;
-  for(i = 0; i < ctx->tt->current_track->num_subtitle_streams; i++)
-    ctx->tt->current_track->subtitle_streams[i].time_scaled = time_scaled;
+  for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
+    ctx->tt->cur->audio_streams[i].time_scaled = time_scaled;
+  for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
+    ctx->tt->cur->video_streams[i].time_scaled = time_scaled;
+  for(i = 0; i < ctx->tt->cur->num_subtitle_streams; i++)
+    ctx->tt->cur->subtitle_streams[i].time_scaled = time_scaled;
   
 
   ctx->demuxer->timestamp_offset = time_scaled - (int64_t)pci_pack.pci_gi.vobu_s_ptm;

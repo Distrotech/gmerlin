@@ -292,8 +292,6 @@ typedef struct
   
   int payload_follows; /* Header already read, payload follows */
 
-  int64_t frame_counter;
-
   int is_pcm;
   int need_pcm_format;
   } nsv_priv_t;
@@ -399,7 +397,8 @@ static int open_nsv(bgav_demuxer_context_t * ctx,
   nsv_sync_header_t sh;
   uint32_t fourcc;
   int done = 0;
-
+  bgav_input_context_t * input_save = (bgav_input_context_t*)0;
+  
   //  test_framerate();
   
   p = calloc(1, sizeof(*p));
@@ -446,7 +445,7 @@ static int open_nsv(bgav_demuxer_context_t * ctx,
 
   if(sh.vidfmt != BGAV_MK_FOURCC('N','O','N','E'))
     {
-    s = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
+    s = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
     s->vfr_timestamps = 1;
     
     s->fourcc = sh.vidfmt;
@@ -476,7 +475,7 @@ static int open_nsv(bgav_demuxer_context_t * ctx,
   
   if(sh.audfmt != BGAV_MK_FOURCC('N','O','N','E'))
     {
-    s = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+    s = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
     s->fourcc = sh.audfmt;
     s->stream_id = AUDIO_ID;
     if(sh.audfmt == BGAV_MK_FOURCC('P','C','M',' '))
@@ -492,22 +491,22 @@ static int open_nsv(bgav_demuxer_context_t * ctx,
     {
     /* Duration */
     if(p->fh.file_len != 0xFFFFFFFF)
-      ctx->tt->current_track->duration = gavl_time_unscale(1000, p->fh.file_len);
-    /* Metadata */
+      ctx->tt->cur->duration =
+        gavl_time_unscale(1000, p->fh.file_len);
 
+    /* Metadata */
     if(p->fh.metadata.title)
-      ctx->tt->current_track->metadata.title =
+      ctx->tt->cur->metadata.title =
         bgav_strdup(p->fh.metadata.title);
 
     if(p->fh.metadata.url)
-      ctx->tt->current_track->metadata.comment =
+      ctx->tt->cur->metadata.comment =
         bgav_strdup(p->fh.metadata.url);
     if(p->fh.metadata.creator)
-      ctx->tt->current_track->metadata.author =
+      ctx->tt->cur->metadata.author =
         bgav_strdup(p->fh.metadata.creator);
 
     /* Decide whether we can seek */
-
     if(ctx->input->input->seek_byte)
       {
       if(p->fh.toc.offsets)
@@ -523,6 +522,9 @@ static int open_nsv(bgav_demuxer_context_t * ctx,
   
   p->payload_follows = 1;
 
+  ctx->data_start = ctx->input->position;
+  ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
+  
   if(!ctx->tt->tracks[0].name && ctx->input->metadata.title)
     {
     ctx->tt->tracks[0].name = bgav_strdup(ctx->input->metadata.title);
@@ -530,11 +532,31 @@ static int open_nsv(bgav_demuxer_context_t * ctx,
 
   ctx->stream_description = bgav_sprintf("Nullsoft Video (NSV)");
 
-  while(p->need_pcm_format)
+  if(p->need_pcm_format)
     {
-    if(!next_packet_nsv(ctx)) /* This lets us get the format for PCM audio */
-      return 0;
+    
+    if(!ctx->input->input->seek_byte)
+      {
+      input_save = ctx->input;
+      ctx->input = bgav_input_open_as_buffer(ctx->input);
+      }
+    
+    while(p->need_pcm_format)
+      {
+      if(!next_packet_nsv(ctx)) /* This lets us get the format for PCM audio */
+        return 0;
+      }
+
+    if(input_save)
+      {
+      bgav_input_close(ctx->input);
+      bgav_input_destroy(ctx->input);
+      ctx->input = input_save;
+      }
+    else
+      bgav_input_seek(ctx->input, ctx->data_start, SEEK_SET);
     }
+  
   return 1;
   }
 
@@ -638,7 +660,7 @@ static int next_packet_nsv(bgav_demuxer_context_t * ctx)
   
   aux_plus_video_len = (aux_plus_video_len << 4) | (num_aux >> 4);
   num_aux &= 0x0f;
- video_len = aux_plus_video_len;
+  video_len = aux_plus_video_len;
 
   /* Skip aux packets */
   for(i = 0; i < num_aux; i++)
@@ -657,10 +679,10 @@ static int next_packet_nsv(bgav_demuxer_context_t * ctx)
   if(video_len)
     {
     if(priv->need_pcm_format)
-      s = ctx->tt->current_track->video_streams;
+      s = ctx->tt->cur->video_streams;
     else
-      s = bgav_track_find_stream(ctx->tt->current_track, VIDEO_ID);
-    if(s)
+      s = bgav_track_find_stream(ctx->tt->cur, VIDEO_ID);
+    if(s && !priv->need_pcm_format)
       {
       p = bgav_stream_get_packet_write(s);
       bgav_packet_alloc(p, video_len);
@@ -668,7 +690,7 @@ static int next_packet_nsv(bgav_demuxer_context_t * ctx)
         return 0;
       p->data_size = video_len;
       p->pts =
-        priv->frame_counter * s->data.video.format.frame_duration;
+        s->in_position * s->data.video.format.frame_duration;
 
       p->keyframe = 0;
       
@@ -689,7 +711,6 @@ static int next_packet_nsv(bgav_demuxer_context_t * ctx)
         }
       
       bgav_packet_done_write(p);
-      priv->frame_counter++;
       }
     else
       bgav_input_skip(ctx->input, video_len);
@@ -698,9 +719,9 @@ static int next_packet_nsv(bgav_demuxer_context_t * ctx)
   if(audio_len)
     {
     if(priv->need_pcm_format)
-      s = ctx->tt->current_track->audio_streams;
+      s = ctx->tt->cur->audio_streams;
     else
-      s = bgav_track_find_stream(ctx->tt->current_track, AUDIO_ID);
+      s = bgav_track_find_stream(ctx->tt->cur, AUDIO_ID);
     if(s)
       {
       /* Special treatment for PCM */
@@ -716,7 +737,7 @@ static int next_packet_nsv(bgav_demuxer_context_t * ctx)
           bgav_input_skip(ctx->input, 4);
         audio_len -= 4;
         }
-      if(audio_len)
+      if(audio_len && !priv->need_pcm_format)
         {
         p = bgav_stream_get_packet_write(s);
         bgav_packet_alloc(p, audio_len);
@@ -735,6 +756,7 @@ static int next_packet_nsv(bgav_demuxer_context_t * ctx)
 
 static void seek_nsv(bgav_demuxer_context_t * ctx, gavl_time_t time)
   {
+  int64_t frame_position;
   uint32_t index_position;
   int64_t file_position;
   nsv_priv_t * priv;
@@ -749,7 +771,7 @@ static void seek_nsv(bgav_demuxer_context_t * ctx, gavl_time_t time)
   if(!priv->fh.toc.frames) /* TOC version 1 */
     {
     index_position =
-      (uint32_t)((double)time / (double)(ctx->tt->current_track->duration) *
+      (uint32_t)((double)time / (double)(ctx->tt->cur->duration) *
                  priv->fh.toc_size + 0.5);
     if(index_position >= priv->fh.toc_size)
       index_position = priv->fh.toc_size - 1;
@@ -782,24 +804,32 @@ static void seek_nsv(bgav_demuxer_context_t * ctx, gavl_time_t time)
   /* We consider the video time to be exact and calculate the audio
      time from the sync offset */
 
-  vs = bgav_track_find_stream(ctx->tt->current_track, VIDEO_ID);
-  as = bgav_track_find_stream(ctx->tt->current_track, AUDIO_ID);
+  vs = bgav_track_find_stream(ctx->tt->cur, VIDEO_ID);
+  as = bgav_track_find_stream(ctx->tt->cur, AUDIO_ID);
 
   if(vs)
     {
-    priv->frame_counter =
+    frame_position =
       gavl_time_to_frames(vs->data.video.format.timescale,
                           vs->data.video.format.frame_duration,
                           sync_time);
     vs->time_scaled =
-      priv->frame_counter * vs->data.video.format.frame_duration;
+      frame_position * vs->data.video.format.frame_duration;
     }
   if(as)
     {
     as->time_scaled =
-      gavl_time_to_samples(as->data.audio.format.samplerate, sync_time) +
+      gavl_time_to_samples(as->data.audio.format.samplerate, sync_time)+
       gavl_time_rescale(1000, as->data.audio.format.samplerate, sh.syncoffs);
     }
+  }
+
+static int select_track_nsv(bgav_demuxer_context_t * ctx, int track)
+  {
+  nsv_priv_t * priv;
+  priv = (nsv_priv_t *)(ctx->priv);
+  priv->payload_follows = 1;
+  return 1;
   }
 
 static void close_nsv(bgav_demuxer_context_t * ctx)
@@ -811,10 +841,11 @@ static void close_nsv(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_nsv =
   {
-    probe:       probe_nsv,
-    open:        open_nsv,
-    next_packet: next_packet_nsv,
-    seek:        seek_nsv,
-    close:       close_nsv
+    probe:        probe_nsv,
+    open:         open_nsv,
+    select_track: select_track_nsv,
+    next_packet:  next_packet_nsv,
+    seek:         seek_nsv,
+    close:        close_nsv
   };
 

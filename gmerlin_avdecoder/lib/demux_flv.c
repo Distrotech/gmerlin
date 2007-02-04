@@ -127,7 +127,7 @@ static void flv_tag_dump(flv_tag * t)
 static void init_audio_stream(bgav_demuxer_context_t * ctx)
   {
   bgav_stream_t * as = (bgav_stream_t*)0;
-  as = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+  as = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
   as->stream_id = AUDIO_ID;
   as->timescale = 1000;
   }
@@ -135,7 +135,7 @@ static void init_audio_stream(bgav_demuxer_context_t * ctx)
 static void init_video_stream(bgav_demuxer_context_t * ctx)
   {
   bgav_stream_t * vs = (bgav_stream_t*)0;
-  vs = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
+  vs = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
   vs->vfr_timestamps = 1;
   
   vs->stream_id = VIDEO_ID;
@@ -407,54 +407,60 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
   if(!flv_tag_read(ctx->input, &t))
     return 0;
 
-  if(t.type == 0x12)
+  if((t.type == 0x12) && priv->init)
     {
-    /* onMetaData */
-    //    flv_tag_dump(&t);
-
-    if(bgav_input_get_data(ctx->input, header, 13) < 13)
-      return 0;
-
-    if(strncmp((char*)(&header[3]), "onMetaData", 10))
+    if(priv->init)
       {
+      /* onMetaData */
+      //    flv_tag_dump(&t);
+
+      if(bgav_input_get_data(ctx->input, header, 13) < 13)
+        return 0;
+
+      if(strncmp((char*)(&header[3]), "onMetaData", 10))
+        {
+        bgav_input_skip(ctx->input, t.data_size);
+        return 1;
+        }
+    
+      read_metadata(ctx, &t);
+
+      obj = priv->metadata.data.object.children;
+      num_obj = priv->metadata.data.object.num_children;
+    
+      /* Check if we can detect an audio stream */
+
+      if(!ctx->tt->cur->num_audio_streams)
+        {
+        if((meta_object_find_number(obj, num_obj, "audiodatarate", &number) && (number != 0.0)) ||
+           (meta_object_find_number(obj, num_obj, "audiosamplerate", &number) && (number != 0.0)) ||
+           (meta_object_find_number(obj, num_obj, "audiosamplesize", &number) && (number != 0.0)) ||
+           (meta_object_find_number(obj, num_obj, "audiosize", &number) && (number != 0.0)))
+          init_audio_stream(ctx);
+        }
+      if(!ctx->tt->cur->num_video_streams)
+        {
+        if((meta_object_find_number(obj, num_obj, "videodatarate", &number) && (number != 0.0)) ||
+           (meta_object_find_number(obj, num_obj, "width", &number) && (number != 0.0)) ||
+           (meta_object_find_number(obj, num_obj, "height", &number) && (number != 0.0)))
+          init_video_stream(ctx);
+        }
+    
+      //    dump_meta_object(&priv->metadata, 0);
+      //    bgav_input_skip_dump(ctx->input, t.data_size);
+      }
+    else
       bgav_input_skip(ctx->input, t.data_size);
-      return 1;
-      }
     
-    read_metadata(ctx, &t);
-
-    obj = priv->metadata.data.object.children;
-    num_obj = priv->metadata.data.object.num_children;
-    
-    /* Check if we can detect an audio stream */
-
-    if(!ctx->tt->current_track->num_audio_streams)
-      {
-      if((meta_object_find_number(obj, num_obj, "audiodatarate", &number) && (number != 0.0)) ||
-         (meta_object_find_number(obj, num_obj, "audiosamplerate", &number) && (number != 0.0)) ||
-         (meta_object_find_number(obj, num_obj, "audiosamplesize", &number) && (number != 0.0)) ||
-         (meta_object_find_number(obj, num_obj, "audiosize", &number) && (number != 0.0)))
-        init_audio_stream(ctx);
-      }
-    if(!ctx->tt->current_track->num_video_streams)
-      {
-      if((meta_object_find_number(obj, num_obj, "videodatarate", &number) && (number != 0.0)) ||
-         (meta_object_find_number(obj, num_obj, "width", &number) && (number != 0.0)) ||
-         (meta_object_find_number(obj, num_obj, "height", &number) && (number != 0.0)))
-        init_video_stream(ctx);
-      }
-    
-    //    dump_meta_object(&priv->metadata, 0);
-    //    bgav_input_skip_dump(ctx->input, t.data_size);
     return 1;
     }
 
   //  flv_tag_dump(&t);
   
   if(priv->init)
-    s = bgav_track_find_stream_all(ctx->tt->current_track, t.type);
+    s = bgav_track_find_stream_all(ctx->tt->cur, t.type);
   else
-    s = bgav_track_find_stream(ctx->tt->current_track, t.type);
+    s = bgav_track_find_stream(ctx->tt->cur, t.type);
 
   if(!s)
     {
@@ -534,22 +540,20 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
           break;
         case 4: /* VP6 (Flash 8?) */
           s->fourcc = BGAV_MK_FOURCC('V', 'P', '6', '2');
-#if 1
           if(bgav_input_get_data(ctx->input, header, 5) < 5)
             return 0;
           /* Get the video size. The image is flipped vertically,
              so we set a negative height */
-          s->data.video.format.image_height = -header[3] * 16;
+          s->data.video.format.image_height = header[3] * 16;
           s->data.video.format.image_width  = header[4] * 16;
           
-          s->data.video.format.frame_height = -s->data.video.format.image_height;
+          s->data.video.format.frame_height = s->data.video.format.image_height;
           s->data.video.format.frame_width  = s->data.video.format.image_width;
           
           /* Crop */
           s->data.video.format.image_width  -= (header[0] >> 4);
-          s->data.video.format.image_height += header[0] & 0x0f;
-          
-#endif
+          s->data.video.format.image_height -= header[0] & 0x0f;
+          s->data.video.flip_y = 1; 
           break;
         default: /* Set some nonsense so we can finish initializing */
           s->fourcc = BGAV_MK_FOURCC('?', '?', '?', '?');
@@ -586,20 +590,25 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
     return 0;
     }
 
-  p = bgav_stream_get_packet_write(s);
-  bgav_packet_alloc(p, packet_size);
-  p->data_size = bgav_input_read_data(ctx->input, p->data, packet_size);
-
-  if(p->data_size < packet_size) /* Got EOF in the middle of a packet */
-    return 0; 
-  
-  p->pts = t.timestamp;
-
-  if(s->time_scaled < 0)
-    s->time_scaled = p->pts;
-
-  p->keyframe = keyframe;
-  bgav_packet_done_write(p);
+  if(!priv->init)
+    {
+    p = bgav_stream_get_packet_write(s);
+    bgav_packet_alloc(p, packet_size);
+    p->data_size = bgav_input_read_data(ctx->input, p->data, packet_size);
+    
+    if(p->data_size < packet_size) /* Got EOF in the middle of a packet */
+      return 0; 
+    
+    p->pts = t.timestamp;
+    
+    if(s->time_scaled < 0)
+      s->time_scaled = p->pts;
+    
+    p->keyframe = keyframe;
+    bgav_packet_done_write(p);
+    }
+  else
+    bgav_input_skip(ctx->input, packet_size);
   
   return 1;
   }
@@ -618,13 +627,13 @@ static void handle_metadata(bgav_demuxer_context_t * ctx)
   /* Data rates */
   
   if(meta_object_find_number(obj, num_obj, "audiodatarate", &number) && (number != 0.0))
-    ctx->tt->current_track->audio_streams[0].container_bitrate = (int)(number*1000);
+    ctx->tt->cur->audio_streams[0].container_bitrate = (int)(number*1000);
 
   if(meta_object_find_number(obj, num_obj, "videodatarate", &number) && (number != 0.0))
-    ctx->tt->current_track->video_streams[0].container_bitrate = (int)(number*1000);
+    ctx->tt->cur->video_streams[0].container_bitrate = (int)(number*1000);
 
   if(meta_object_find_number(obj, num_obj, "duration", &number) && (number != 0.0))
-    ctx->tt->current_track->duration = gavl_seconds_to_time(number);
+    ctx->tt->cur->duration = gavl_seconds_to_time(number);
 
   if(ctx->input->input->seek_byte)
     {
@@ -695,11 +704,11 @@ static void seek_flv(bgav_demuxer_context_t * ctx, gavl_time_t time)
       {
       break;
       }
-    if(ctx->tt->current_track->num_audio_streams &&
-       ctx->tt->current_track->audio_streams[0].time_scaled < 0)
+    if(ctx->tt->cur->num_audio_streams &&
+       ctx->tt->cur->audio_streams[0].time_scaled < 0)
       continue;
-    else if(ctx->tt->current_track->num_video_streams &&
-            ctx->tt->current_track->video_streams[0].time_scaled < 0)
+    else if(ctx->tt->cur->num_video_streams &&
+            ctx->tt->cur->video_streams[0].time_scaled < 0)
       continue;
     else
       break;
@@ -715,7 +724,7 @@ static int open_flv(bgav_demuxer_context_t * ctx,
   int64_t pos;
   uint8_t flags;
   uint32_t data_offset, tmp;
-  
+  bgav_input_context_t * input_save = (bgav_input_context_t*)0;
   flv_priv_t * priv;
   flv_tag t;
   
@@ -749,9 +758,18 @@ static int open_flv(bgav_demuxer_context_t * ctx,
     bgav_input_skip(ctx->input, data_offset - ctx->input->position);
     }
 
+  ctx->data_start = ctx->input->position;
+  ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
+  
   /* Get packets until we saw each stream at least once */
   priv->init = 1;
 
+  if(!ctx->input->input->seek_byte)
+    {
+    input_save = ctx->input;
+    ctx->input = bgav_input_open_as_buffer(ctx->input);
+    }
+  
   /* Sometimes, the header flags might report zero streams
      but we can parse the metadata to get this info */
   
@@ -762,20 +780,31 @@ static int open_flv(bgav_demuxer_context_t * ctx,
     {
     if(!next_packet_flv(ctx))
       goto fail;
-    if((!ctx->tt->current_track->num_audio_streams ||
-        ctx->tt->current_track->audio_streams[0].fourcc) &&
-       (!ctx->tt->current_track->num_video_streams ||
-        ctx->tt->current_track->video_streams[0].fourcc))
+    if((!ctx->tt->cur->num_audio_streams ||
+        ctx->tt->cur->audio_streams[0].fourcc) &&
+       (!ctx->tt->cur->num_video_streams ||
+        ctx->tt->cur->video_streams[0].fourcc))
       break;
     }
   priv->init = 0;
 
+  if(input_save)
+    {
+    bgav_input_close(ctx->input);
+    bgav_input_destroy(ctx->input);
+    ctx->input = input_save;
+    }
+  else
+    {
+    bgav_input_seek(ctx->input, ctx->data_start, SEEK_SET);
+    }
+  
   handle_metadata(ctx);
   
   /* Get the duration from the timestamp of the last packet if
      the stream is seekable */
   
-  if((ctx->tt->current_track->duration != GAVL_TIME_UNDEFINED) &&
+  if((ctx->tt->cur->duration != GAVL_TIME_UNDEFINED) &&
      ctx->input->input->seek_byte)
     {
     pos = ctx->input->position;
@@ -786,7 +815,7 @@ static int open_flv(bgav_demuxer_context_t * ctx,
       
       if(flv_tag_read(ctx->input, &t))
         {
-        ctx->tt->current_track->duration =
+        ctx->tt->cur->duration =
           gavl_time_unscale(1000, t.timestamp);
         }
       else

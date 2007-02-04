@@ -348,7 +348,8 @@ static int get_next_startcode(bgav_demuxer_context_t * ctx,
   uint32_t length;
   while(1)
     {
-    if(ctx->input->position >= ctx->input->total_bytes - 31)
+    if(ctx->input->total_bytes &&
+       (ctx->input->position >= ctx->input->total_bytes - 31))
       return 0;
     if(peek_packet_header(ctx->input, &type, &length) &&
        (type == PKT_MEDIA))
@@ -432,7 +433,7 @@ static int open_gxf(bgav_demuxer_context_t * ctx,
 
   while(track_desc_length)
     {
-    track_desc_length -= parse_track(ctx->input, ctx->tt->current_track,
+    track_desc_length -= parse_track(ctx->input, ctx->tt->cur,
                                      ctx->opt);
     }
   ctx->stream_description = bgav_sprintf("GXF");
@@ -474,8 +475,11 @@ static int open_gxf(bgav_demuxer_context_t * ctx,
       }
     }
   
+  ctx->data_start = ctx->input->position;
+  ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
+  
   /* Get number of fields and timescales */
-  vs = ctx->tt->current_track->video_streams;
+  vs = ctx->tt->cur->video_streams;
 
   priv->timescale      = vs->data.video.format.timescale;
   priv->frame_duration = vs->data.video.format.frame_duration;
@@ -483,8 +487,8 @@ static int open_gxf(bgav_demuxer_context_t * ctx,
   if(vs)
     {
     /* Set audio timescales */
-    for(i = 0; i < ctx->tt->current_track->num_audio_streams; i++)
-      ctx->tt->current_track->audio_streams[i].timescale = priv->timescale;
+    for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
+      ctx->tt->cur->audio_streams[i].timescale = priv->timescale;
     
     if(vs->data.video.format.interlace_mode != GAVL_INTERLACE_NONE)
       priv->num_fields = 2;
@@ -506,7 +510,7 @@ static int open_gxf(bgav_demuxer_context_t * ctx,
       }
 
     if(priv->last_field > priv->first_field)
-      ctx->tt->current_track->duration =
+      ctx->tt->cur->duration =
         gavl_time_unscale(vs->data.video.format.timescale,
                           (int64_t)vs->data.video.format.frame_duration *
                           (priv->last_field - priv->first_field) /
@@ -541,7 +545,7 @@ static int next_packet_gxf(bgav_demuxer_context_t * ctx)
     length -= 16;
 
     //    dump_media_header(&mh);
-    s = bgav_track_find_stream(ctx->tt->current_track, mh.id);
+    s = bgav_track_find_stream(ctx->tt->cur, mh.id);
     
     if(!s)
       {
@@ -614,13 +618,13 @@ static void seek_gxf(bgav_demuxer_context_t * ctx, gavl_time_t time)
   priv->sync_field = field_index;
 
   
-  while(!bgav_track_has_sync(ctx->tt->current_track))
+  while(!bgav_track_has_sync(ctx->tt->cur))
     {
     if(!next_packet_gxf(ctx))
       break;
     }
   
-  //  if(bgav_track_has_sync(ctx->tt->current_track))
+  //  if(bgav_track_has_sync(ctx->tt->cur))
     
   priv->do_sync = 0;
   }

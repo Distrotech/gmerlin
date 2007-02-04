@@ -65,7 +65,6 @@ static uint8_t avs_sig[10] =
 typedef struct
   {
   int audio_bytes_remaining;
-  uint32_t video_pts;
   int need_audio_format;
   } avs_priv_t;
 
@@ -111,13 +110,13 @@ static int next_packet_avs(bgav_demuxer_context_t * ctx)
 
   if(priv->need_audio_format)
     {
-    as = bgav_track_find_stream_all(ctx->tt->current_track, AUDIO_ID);
-    vs = bgav_track_find_stream_all(ctx->tt->current_track, VIDEO_ID);
+    as = bgav_track_find_stream_all(ctx->tt->cur, AUDIO_ID);
+    vs = bgav_track_find_stream_all(ctx->tt->cur, VIDEO_ID);
     }
   else
     {
-    as = bgav_track_find_stream(ctx->tt->current_track, AUDIO_ID);
-    vs = bgav_track_find_stream(ctx->tt->current_track, VIDEO_ID);
+    as = bgav_track_find_stream(ctx->tt->cur, AUDIO_ID);
+    vs = bgav_track_find_stream(ctx->tt->cur, VIDEO_ID);
     }
   
   while(ctx->input->position - frame_start < frame_size)
@@ -152,7 +151,7 @@ static int next_packet_avs(bgav_demuxer_context_t * ctx)
                                 block_size - 4) < block_size - 4)
           return 0;
         vs->packet->data_size += (block_size - 4);
-        vs->packet->pts = priv->video_pts++;
+        vs->packet->pts = vs->in_position;
         bgav_packet_done_write(vs->packet);
         vs->packet = (bgav_packet_t*)0;
         break;
@@ -190,7 +189,7 @@ static int next_packet_avs(bgav_demuxer_context_t * ctx)
         if(priv->need_audio_format)
           {
           /* Initialize audio stream */
-          as = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+          as = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
           as->stream_id = AUDIO_ID;
           as->fourcc = BGAV_WAVID_2_FOURCC(0x0001);
           as->data.audio.bits_per_sample = 8;
@@ -263,6 +262,10 @@ static int next_packet_avs(bgav_demuxer_context_t * ctx)
         break;
       }
     }
+
+  ctx->data_start = ctx->input->position;
+  ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
+  
   return 1;
   }
 
@@ -282,7 +285,7 @@ static int open_avs(bgav_demuxer_context_t * ctx,
   ctx->tt = bgav_track_table_create(1);
   
   /* Initialize video stream */
-  s = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
+  s = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
   s->stream_id = VIDEO_ID;
   s->fourcc = BGAV_MK_FOURCC('A','V','S',' ');
   s->data.video.format.image_width = 318;
@@ -298,7 +301,7 @@ static int open_avs(bgav_demuxer_context_t * ctx,
   s->data.video.format.frame_duration = 1;
   s->data.video.depth = 8;
   
-  ctx->tt->current_track->duration =
+  ctx->tt->cur->duration =
     gavl_time_unscale(s->data.video.format.timescale,
                       BGAV_PTR_2_32LE(&header[12]));
 

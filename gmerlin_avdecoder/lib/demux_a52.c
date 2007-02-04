@@ -33,7 +33,6 @@ typedef struct
   int64_t frame_count;
   int samplerate;
 
-  int64_t data_start;
   int64_t data_size;
   } a52_priv_t;
 
@@ -75,7 +74,7 @@ static int open_a52(bgav_demuxer_context_t * ctx,
 
   ctx->tt = bgav_track_table_create(1);
   
-  s = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+  s = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
   s->container_bitrate = bitrate;
     
   /* We just set the fourcc, everything else will be set by the decoder */
@@ -83,18 +82,19 @@ static int open_a52(bgav_demuxer_context_t * ctx,
   s->fourcc = BGAV_MK_FOURCC('.', 'a', 'c', '3');
   
   //  bgav_stream_dump(s);
-
-  priv->data_start = ctx->input->position;
-
+  
+  ctx->data_start = ctx->input->position;
+  ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
+  
   if(ctx->input->total_bytes)
-    priv->data_size = ctx->input->total_bytes - priv->data_start;
+    priv->data_size = ctx->input->total_bytes - ctx->data_start;
   
   /* Packet size will be at least 1024 bytes */
   
   if(ctx->input->input->seek_byte)
     ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
 
-  ctx->tt->current_track->duration
+  ctx->tt->cur->duration
     = ((int64_t)priv->data_size * (int64_t)GAVL_TIME_SCALE) / 
     (s->container_bitrate / 8);
 
@@ -116,7 +116,7 @@ static int next_packet_a52(bgav_demuxer_context_t * ctx)
     
   priv = (a52_priv_t *)(ctx->priv);
   
-  s = ctx->tt->current_track->audio_streams;
+  s = ctx->tt->cur->audio_streams;
   
   p = bgav_stream_get_packet_write(s);
   
@@ -161,7 +161,7 @@ static void seek_a52(bgav_demuxer_context_t * ctx, gavl_time_t time)
   bgav_stream_t * s;
   
   
-  s = ctx->tt->current_track->audio_streams;
+  s = ctx->tt->cur->audio_streams;
     
   file_position = (time * (s->container_bitrate / 8)) /
     GAVL_TIME_SCALE;
@@ -173,8 +173,16 @@ static void seek_a52(bgav_demuxer_context_t * ctx, gavl_time_t time)
   s->time_scaled = gavl_time_to_samples(priv->samplerate, t);
   priv->frame_count = s->time_scaled / FRAME_SAMPLES;
   
-  file_position += priv->data_start;
+  file_position += ctx->data_start;
   bgav_input_seek(ctx->input, file_position, SEEK_SET);
+  }
+
+static int select_track_a52(bgav_demuxer_context_t * ctx, int track)
+  {
+  a52_priv_t * priv;
+  priv = (a52_priv_t *)(ctx->priv);
+  priv->frame_count = 0;
+  return 1;
   }
 
 static void close_a52(bgav_demuxer_context_t * ctx)
@@ -188,6 +196,7 @@ bgav_demuxer_t bgav_demuxer_a52 =
   {
     probe:       probe_a52,
     open:        open_a52,
+    select_track: select_track_a52,
     next_packet: next_packet_a52,
     seek:        seek_a52,
     close:       close_a52

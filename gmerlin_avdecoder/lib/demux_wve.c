@@ -111,7 +111,7 @@ static int open_wve(bgav_demuxer_context_t * ctx,
       {
       case 0xFD: // Audio subheader
         in_subheader = 1;
-        as = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+        as = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
         as->data.audio.format.samplerate = EA_SAMPLE_RATE;
         as->data.audio.bits_per_sample = EA_BITS_PER_SAMPLE;
         as->stream_id = AUDIO_ID;
@@ -142,7 +142,7 @@ static int open_wve(bgav_demuxer_context_t * ctx,
             case 0x85: // Num samples
               if(!read_arbitrary(ctx->input, &arbitrary))
                 return 0;
-              ctx->tt->current_track->duration =
+              ctx->tt->cur->duration =
                 gavl_time_unscale(as->data.audio.format.samplerate,
                                   arbitrary);
               break;
@@ -205,7 +205,7 @@ static int next_packet_wve(bgav_demuxer_context_t * ctx)
   switch(chunk_type)
     {
     case SCDl_TAG: // Audio data
-      s = bgav_track_find_stream(ctx->tt->current_track, AUDIO_ID);
+      s = bgav_track_find_stream(ctx->tt->cur, AUDIO_ID);
 
       if(!s)
         {

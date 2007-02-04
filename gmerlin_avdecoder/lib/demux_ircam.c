@@ -247,7 +247,7 @@ static int open_ircam(bgav_demuxer_context_t * ctx,
   ircam_header_dump(&h);
 #endif
   
-  as = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+  as = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
 
   switch(h.DataType)
     {
@@ -321,13 +321,11 @@ static int open_ircam(bgav_demuxer_context_t * ctx,
   if(ctx->input->total_bytes)
     {
     total_samples = (ctx->input->total_bytes - HEADER_SIZE) / as->data.audio.block_align;
-    ctx->tt->current_track->duration =  gavl_samples_to_time(as->data.audio.format.samplerate, total_samples);
+    ctx->tt->cur->duration =  gavl_samples_to_time(as->data.audio.format.samplerate, total_samples);
     if(ctx->input->input->seek_byte)
       ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
     }
-
-  bgav_input_skip(ctx->input, HEADER_SIZE - ctx->input->position);
-
+  
   switch(h.fourcc)
     {
     case VAXN:
@@ -355,6 +353,9 @@ static int open_ircam(bgav_demuxer_context_t * ctx,
       ctx->stream_description = bgav_sprintf("IRCAM: ...");
       break;
     }
+  bgav_input_skip(ctx->input, HEADER_SIZE - ctx->input->position);
+  ctx->data_start = ctx->input->position;
+  ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
   return 1;
   }
 
@@ -370,7 +371,7 @@ static int next_packet_ircam(bgav_demuxer_context_t * ctx)
   int bytes_read;
   int bytes_to_read;
 
-  s = &(ctx->tt->current_track->audio_streams[0]);
+  s = &(ctx->tt->cur->audio_streams[0]);
   p = bgav_stream_get_packet_write(s);
 
   bytes_to_read = samples_to_bytes(s, SAMPLES2READ);
@@ -401,7 +402,7 @@ static void seek_ircam(bgav_demuxer_context_t * ctx, gavl_time_t time)
   int64_t position;
   int64_t sample;
 
-  s = &(ctx->tt->current_track->audio_streams[0]);
+  s = &(ctx->tt->cur->audio_streams[0]);
 
   sample = gavl_time_to_samples(s->data.audio.format.samplerate, time);
     

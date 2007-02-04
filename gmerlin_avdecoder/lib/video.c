@@ -30,15 +30,15 @@ int bgav_num_video_streams(bgav_t *  bgav, int track)
 
 const gavl_video_format_t * bgav_get_video_format(bgav_t * bgav, int stream)
   {
-  return &(bgav->tt->current_track->video_streams[stream].data.video.format);
+  return &(bgav->tt->cur->video_streams[stream].data.video.format);
   }
 
 int bgav_set_video_stream(bgav_t * b, int stream, bgav_stream_action_t action)
   {
-  if((stream >= b->tt->current_track->num_video_streams) ||
+  if((stream >= b->tt->cur->num_video_streams) ||
      (stream < 0))
     return 0;
-  b->demuxer->tt->current_track->video_streams[stream].action = action;
+  b->demuxer->tt->cur->video_streams[stream].action = action;
   return 1;
   }
 
@@ -64,7 +64,8 @@ int bgav_video_start(bgav_stream_t * stream)
   stream->data.video.decoder = ctx;
   stream->data.video.decoder->decoder = dec;
 
-  stream->position = 0;
+  stream->out_position = 0;
+  stream->in_position = 0;
   stream->time_scaled = 0;
 
   if(!stream->timescale)
@@ -78,7 +79,7 @@ int bgav_video_start(bgav_stream_t * stream)
 
 const char * bgav_get_video_description(bgav_t * b, int s)
   {
-  return b->tt->current_track->video_streams[s].description;
+  return b->tt->cur->video_streams[s].description;
   }
 
 static int bgav_video_decode(bgav_stream_t * stream,
@@ -100,7 +101,7 @@ static int bgav_video_decode(bgav_stream_t * stream,
     if(frame->time_scaled < 0)
       frame->time_scaled = 0;
     }
-  stream->position++;
+  stream->out_position++;
   
   return result;
   }
@@ -109,7 +110,7 @@ int bgav_read_video(bgav_t * b, gavl_video_frame_t * frame, int s)
   {
   if(b->eof)
     return 0;
-  return bgav_video_decode(&(b->tt->current_track->video_streams[s]), frame);
+  return bgav_video_decode(&(b->tt->cur->video_streams[s]), frame);
   }
 
 void bgav_video_dump(bgav_stream_t * s)

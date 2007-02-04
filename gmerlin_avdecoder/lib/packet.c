@@ -52,6 +52,7 @@ void bgav_packet_alloc(bgav_packet_t * p, int size)
 void bgav_packet_done_write(bgav_packet_t * p)
   {
   p->valid = 1;
+  p->stream->in_position++;
   }
 
 void bgav_packet_set_text_subtitle(bgav_packet_t * p,

@@ -106,7 +106,6 @@ typedef struct
   {
   int is_aifc;
   
-  uint32_t data_start;
   uint32_t data_size;
   int samples_per_block;
   
@@ -118,10 +117,10 @@ static int64_t pos_2_time(bgav_demuxer_context_t * ctx, int64_t pos)
   {
   aiff_priv_t * priv;
   bgav_stream_t * s;
-  s = &(ctx->tt->current_track->audio_streams[0]);
+  s = &(ctx->tt->cur->audio_streams[0]);
   priv = (aiff_priv_t*)(ctx->priv);
   
-  return ((pos - priv->data_start)/s->data.audio.block_align) *
+  return ((pos - ctx->data_start)/s->data.audio.block_align) *
     priv->samples_per_block;
   }
 
@@ -131,9 +130,9 @@ static int64_t time_2_pos(bgav_demuxer_context_t * ctx, int64_t time)
   priv = (aiff_priv_t*)(ctx->priv);
 
   bgav_stream_t * s;
-  s = &(ctx->tt->current_track->audio_streams[0]);
+  s = &(ctx->tt->cur->audio_streams[0]);
   
-  return priv->data_start + (time/priv->samples_per_block)
+  return ctx->data_start + (time/priv->samples_per_block)
     * s->data.audio.block_align;
   }
 
@@ -185,7 +184,7 @@ static int open_aiff(bgav_demuxer_context_t * ctx,
   
   /* Create track */
   ctx->tt = bgav_track_table_create(1);
-  track = ctx->tt->current_track;
+  track = ctx->tt->cur;
   
   /* Check file magic */
   
@@ -350,32 +349,33 @@ static int open_aiff(bgav_demuxer_context_t * ctx,
           }
         break;
       case BGAV_MK_FOURCC('N','A','M','E'):
-        ctx->tt->current_track->metadata.title =
-        read_meta_string(ctx->tt->current_track->metadata.title, 
+        ctx->tt->cur->metadata.title =
+        read_meta_string(ctx->tt->cur->metadata.title, 
                          ctx->input, &ch);
         break;
       case BGAV_MK_FOURCC('A','U','T','H'):
-        ctx->tt->current_track->metadata.author =
-        read_meta_string(ctx->tt->current_track->metadata.author, 
+        ctx->tt->cur->metadata.author =
+        read_meta_string(ctx->tt->cur->metadata.author, 
                          ctx->input, &ch);
         break;
       case BGAV_MK_FOURCC('(','c',')',' '):
-        ctx->tt->current_track->metadata.copyright =
-        read_meta_string(ctx->tt->current_track->metadata.copyright, 
+        ctx->tt->cur->metadata.copyright =
+        read_meta_string(ctx->tt->cur->metadata.copyright, 
                          ctx->input, &ch);
         break;
       case BGAV_MK_FOURCC('A','N','N','O'):
-        ctx->tt->current_track->metadata.comment =
-        read_meta_string(ctx->tt->current_track->metadata.comment, 
+        ctx->tt->cur->metadata.comment =
+        read_meta_string(ctx->tt->cur->metadata.comment, 
                          ctx->input, &ch);
         break;
       case BGAV_MK_FOURCC('S','S','N','D'):
         bgav_input_skip(ctx->input, 4); /* Offset */
         bgav_input_skip(ctx->input, 4); /* Blocksize */
-        priv->data_start = ctx->input->position;
+        ctx->data_start = ctx->input->position;
+        ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
         priv->data_size = ch.size - 8;
         track->duration =
-          (pos_2_time(ctx, priv->data_size + priv->data_start) * GAVL_TIME_SCALE)/
+          (pos_2_time(ctx, priv->data_size + ctx->data_start) * GAVL_TIME_SCALE)/
           s->data.audio.format.samplerate;
         keep_going = 0;
         break;
@@ -404,7 +404,7 @@ static int next_packet_aiff(bgav_demuxer_context_t * ctx)
   bgav_stream_t * s;
   priv = (aiff_priv_t *)ctx->priv;
 
-  s = &(ctx->tt->current_track->audio_streams[0]);
+  s = &(ctx->tt->cur->audio_streams[0]);
   p = bgav_stream_get_packet_write(s);
   
   bytes_to_read =
@@ -432,14 +432,14 @@ static void seek_aiff(bgav_demuxer_context_t * ctx, gavl_time_t time)
   int64_t pos;
   int64_t time_scaled;
   time_scaled =
-    gavl_time_to_samples(ctx->tt->current_track->audio_streams[0].data.audio.format.samplerate,
+    gavl_time_to_samples(ctx->tt->cur->audio_streams[0].data.audio.format.samplerate,
                          time);
 
   priv = (aiff_priv_t *)ctx->priv;
 
   pos = time_2_pos(ctx, time_scaled);
   bgav_input_seek(ctx->input, pos, SEEK_SET);
-  ctx->tt->current_track->audio_streams[0].time_scaled = time_scaled;
+  ctx->tt->cur->audio_streams[0].time_scaled = time_scaled;
   }
 
 static void close_aiff(bgav_demuxer_context_t * ctx)

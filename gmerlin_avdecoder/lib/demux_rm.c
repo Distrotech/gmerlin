@@ -135,7 +135,7 @@ static void init_audio_stream(bgav_demuxer_context_t * ctx,
   bgav_stream_t * bg_as;
   rm_audio_stream_t * rm_as;
   uint8_t desc_len;
-  bgav_track_t * track = ctx->tt->current_track;
+  bgav_track_t * track = ctx->tt->cur;
 
   rm_private_t * priv;
   priv = (rm_private_t*)(ctx->priv);
@@ -313,7 +313,7 @@ static void init_audio_stream(bgav_demuxer_context_t * ctx,
 static void init_audio_stream_mp3(bgav_demuxer_context_t * ctx, bgav_rmff_stream_t * stream)
   {
   bgav_stream_t * bg_as;
-  bgav_track_t * track = ctx->tt->current_track;
+  bgav_track_t * track = ctx->tt->cur;
   rm_private_t * priv;
   rm_audio_stream_t * rm_as;
   rm_as = calloc(1, sizeof(*rm_as));
@@ -354,7 +354,7 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
   uint32_t version;
   rm_private_t * priv;
   
-  bgav_track_t * track = ctx->tt->current_track;
+  bgav_track_t * track = ctx->tt->cur;
 
   uint8_t * data = _data;
   
@@ -607,7 +607,7 @@ int bgav_demux_rm_open_with_header(bgav_demuxer_context_t * ctx,
   
   /* Create track */
   ctx->tt = bgav_track_table_create(1);
-  track = ctx->tt->current_track;
+  track = ctx->tt->cur;
 
   if(ctx->input->metadata.title)
     track->name = bgav_strdup(ctx->input->metadata.title);
@@ -629,6 +629,8 @@ int bgav_demux_rm_open_with_header(bgav_demuxer_context_t * ctx,
       else
         {
         priv->is_multirate = 1;
+        bgav_log(ctx->opt, BGAV_LOG_DEBUG, LOG_DOMAIN,
+                 "Detected multirate real");
         }
       continue;
       }
@@ -715,6 +717,9 @@ int bgav_demux_rm_open_with_header(bgav_demuxer_context_t * ctx,
                                                 priv->header->cont.comment_len,
                                                 NULL);
   bgav_charset_converter_destroy(cnv);
+
+  ctx->data_start = ctx->input->position;
+  ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
   
   return 1;
   }
@@ -1093,10 +1098,10 @@ static int process_audio_chunk(bgav_demuxer_context_t * ctx,
       case BGAV_MK_FOURCC('c', 'o', 'o', 'k'):
       case BGAV_MK_FOURCC('a', 't', 'r', 'c'):
         for (x = 0; x < w / sps; x++)
-        bgav_input_read_data(ctx->input,
-                             as->audio_buf + sps * (sph * x + ((sph + 1) / 2) * (spc & 1) +
-                                                    (spc >> 1)),
-                             sps);
+          bgav_input_read_data(ctx->input,
+                               as->audio_buf + sps * (sph * x + ((sph + 1) / 2) * (spc & 1) +
+                                                      (spc >> 1)),
+                               sps);
         break;
       case BGAV_MK_FOURCC( 's', 'i', 'p', 'r'):
         bgav_input_read_data(ctx->input, as->audio_buf + spc * w, w);
@@ -1146,6 +1151,9 @@ static int process_audio_chunk(bgav_demuxer_context_t * ctx,
           p->keyframe = 1;
         else
           p->keyframe = 0;
+        //        fprintf(stderr, "done_write: ");
+        //        bgav_hexdump(p->data, 16, 16);
+        //        fprintf(stderr, "\n");
         bgav_packet_done_write(p);
         }
       }
@@ -1164,7 +1172,7 @@ static int process_audio_chunk(bgav_demuxer_context_t * ctx,
       p->data[x] = p->data[x+1];
       p->data[x+1] = swp;
       }
-
+    
     p->data_size = packet_size;
     bgav_packet_done_write(p);
     }
@@ -1221,7 +1229,7 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
 
   if(!rm->is_multirate)
     {
-    track = ctx->tt->current_track;
+    track = ctx->tt->cur;
     if(rm->header->data_size && (ctx->input->position + 10 >=
                                  rm->header->data_start + rm->header->data_size))
       {
@@ -1266,9 +1274,9 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
     else
       {
       /* Find the first stream with empty packetbuffer */
-      for(i = 0; i < ctx->tt->current_track->num_audio_streams; i++)
+      for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
         {
-        stream = &(ctx->tt->current_track->audio_streams[i]);
+        stream = &(ctx->tt->cur->audio_streams[i]);
         rs = (rm_stream_t*)(stream->priv);
         
         if((stream->action == BGAV_STREAM_MUTE) ||
@@ -1285,9 +1293,9 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
         }
       if(!stream)
         {
-        for(i = 0; i < ctx->tt->current_track->num_video_streams; i++)
+        for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
           {
-          stream = &(ctx->tt->current_track->video_streams[i]);
+          stream = &(ctx->tt->cur->video_streams[i]);
           rs = (rm_stream_t*)(stream->priv);
           
           if((stream->action == BGAV_STREAM_MUTE) ||
@@ -1390,7 +1398,7 @@ static void seek_rmff(bgav_demuxer_context_t * ctx, gavl_time_t time)
   
   
   rm = (rm_private_t*)(ctx->priv);
-  track = ctx->tt->current_track;
+  track = ctx->tt->cur;
   
   real_time = (time * 1000) / GAVL_TIME_SCALE;
   
@@ -1446,7 +1454,7 @@ static void close_rmff(bgav_demuxer_context_t * ctx)
 
   if(ctx->tt)
     {
-    track = ctx->tt->current_track;
+    track = ctx->tt->cur;
     
     for(i = 0; i < track->num_audio_streams; i++)
       {
@@ -1473,12 +1481,52 @@ static void close_rmff(bgav_demuxer_context_t * ctx)
     free(priv);
     }
   }
+
+static int select_track_rmff(bgav_demuxer_context_t * ctx, int t)
+  {
+  rm_audio_stream_t * as;
+  rm_video_stream_t * vs;
+  rm_private_t * priv;
+  bgav_track_t * track;
+  int i;
+  priv = (rm_private_t *)ctx->priv;
   
+  priv->next_packet = 0;
+  
+  track = ctx->tt->cur;
+
+#if 1
+  
+  for(i = 0; i < track->num_audio_streams; i++)
+    {
+    as = (rm_audio_stream_t*)(track->audio_streams[i].priv);
+    if(as)
+      {
+      as->sub_packet_cnt = 0;
+      as->com.data_pos = as->com.data_start;
+      }
+    }
+  for(i = 0; i < track->num_video_streams; i++)
+    {
+    vs = (rm_video_stream_t*)(track->video_streams[i].priv);
+    if(vs)
+      {
+      vs->kf_pts = 0;
+      vs->kf_base = 0;
+      vs->com.data_pos = vs->com.data_start;
+      }
+    }
+#endif
+  return 1;
+  }
+
+
 bgav_demuxer_t bgav_demuxer_rmff =
   {
-    probe:       probe_rmff,
-    open:        open_rmff,
-    next_packet: next_packet_rmff,
-    seek:        seek_rmff,
-    close:       close_rmff
+    probe:        probe_rmff,
+    open:         open_rmff,
+    select_track: select_track_rmff,
+    next_packet:  next_packet_rmff,
+    seek:         seek_rmff,
+    close:        close_rmff
   };

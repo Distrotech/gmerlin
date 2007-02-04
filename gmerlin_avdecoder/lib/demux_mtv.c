@@ -95,7 +95,6 @@ typedef struct
   {
   mtv_header_t h;
   int do_audio;
-  uint32_t video_pts;
   uint32_t sync_size;
   int video_fps;
   } mtv_priv_t;
@@ -129,12 +128,12 @@ static int open_mtv(bgav_demuxer_context_t * ctx,
   ctx->tt = bgav_track_table_create(1);
 
   /* Initialize audio stream */  
-  s = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+  s = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
   s->fourcc = BGAV_MK_FOURCC('.','m','p','3');
   s->stream_id = AUDIO_ID;
   
   /* Initialize video stream */
-  s = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
+  s = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
   s->fourcc = BGAV_MK_FOURCC('M','T','V',' ');
   s->stream_id = VIDEO_ID;
   s->data.video.format.image_width = priv->h.width;
@@ -158,13 +157,16 @@ static int open_mtv(bgav_demuxer_context_t * ctx,
 
   if(ctx->input->total_bytes)
     {
-    ctx->tt->current_track->duration =
-      gavl_time_unscale(ctx->tt->current_track->video_streams[0].data.video.format.timescale,
+    ctx->tt->cur->duration =
+      gavl_time_unscale(ctx->tt->cur->video_streams[0].data.video.format.timescale,
                         (ctx->input->total_bytes - MTV_HEADER_SIZE) / priv->sync_size);
     if(ctx->input->input->seek_byte)
       ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
     }
   ctx->stream_description = bgav_sprintf("MTV format");
+
+  ctx->data_start = ctx->input->position;
+  ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
   
   return 1;
   }
@@ -179,7 +181,7 @@ static int next_packet_mtv(bgav_demuxer_context_t * ctx)
 
   if(priv->do_audio)
     {
-    s = bgav_track_find_stream(ctx->tt->current_track, AUDIO_ID);
+    s = bgav_track_find_stream(ctx->tt->cur, AUDIO_ID);
 
     if(!s)
       {
@@ -207,7 +209,7 @@ static int next_packet_mtv(bgav_demuxer_context_t * ctx)
     }
   else
     {
-    s = bgav_track_find_stream(ctx->tt->current_track, VIDEO_ID);
+    s = bgav_track_find_stream(ctx->tt->cur, VIDEO_ID);
 
     if(!s)
       {
@@ -223,7 +225,7 @@ static int next_packet_mtv(bgav_demuxer_context_t * ctx)
                               priv->h.img_segment_size) < priv->h.img_segment_size)
         return 0;
       p->data_size = priv->h.img_segment_size;
-      p->pts = priv->video_pts++;
+      p->pts = s->in_position;
       bgav_packet_done_write(p);
       }
     priv->do_audio = 1;
@@ -231,7 +233,6 @@ static int next_packet_mtv(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
-#if 1
 static void seek_mtv(bgav_demuxer_context_t * ctx, gavl_time_t time)
   {
   uint32_t file_position;
@@ -242,25 +243,31 @@ static void seek_mtv(bgav_demuxer_context_t * ctx, gavl_time_t time)
 
   frame_number = gavl_time_scale(priv->video_fps, time);
   file_position = MTV_HEADER_SIZE + priv->sync_size * frame_number;
-
-  priv->video_pts = frame_number;
   
   bgav_input_seek(ctx->input, file_position, SEEK_SET);
   
-  if(ctx->tt->current_track->num_audio_streams)
+  if(ctx->tt->cur->num_audio_streams)
     {
-    ctx->tt->current_track->audio_streams[0].time_scaled =
+    ctx->tt->cur->audio_streams[0].time_scaled =
       gavl_time_rescale(priv->video_fps,
-                        ctx->tt->current_track->audio_streams[0].data.audio.format.samplerate,
+                        ctx->tt->cur->audio_streams[0].data.audio.format.samplerate,
                         frame_number);
     }
-  if(ctx->tt->current_track->num_video_streams)
+  if(ctx->tt->cur->num_video_streams)
     {
-    ctx->tt->current_track->video_streams[0].time_scaled = frame_number;
+    ctx->tt->cur->video_streams[0].time_scaled = frame_number;
     }
   priv->do_audio = 1;
   }
-#endif
+
+static int select_track_mtv(bgav_demuxer_context_t * ctx, int track)
+  {
+  mtv_priv_t * priv;
+  priv = (mtv_priv_t*)(ctx->priv);
+  priv->do_audio = 1;
+  return 1;
+  }
+
 
 static void close_mtv(bgav_demuxer_context_t * ctx)
   {
@@ -273,6 +280,7 @@ bgav_demuxer_t bgav_demuxer_mtv =
   {
     probe:       probe_mtv,
     open:        open_mtv,
+    select_track: select_track_mtv,
     next_packet: next_packet_mtv,
     seek:        seek_mtv,
     close:       close_mtv

@@ -284,7 +284,8 @@ struct bgav_stream_s
 
   uint32_t subformat; /* Real flavors, sub_ids.... */
   
-  int64_t position; /* In samples/frames */
+  int64_t out_position; /* In samples/frames */
+  int64_t in_position;  /* In packets */
   
   /*
    *  Support for custom timescales
@@ -340,14 +341,13 @@ struct bgav_stream_s
 
   int not_aligned;
 
-  /* If non-NULL, the superindex read functions will call this */
-  void (*process_packet)(bgav_stream_t * s, bgav_packet_t * p);
-
   int has_first_timestamp;
   int64_t first_timestamp;
 
   /* The track, where this stream belongs */
   bgav_track_t * track;
+  
+  void (*process_packet)(bgav_stream_t * s, bgav_packet_t * p);
   
   union
     {
@@ -374,7 +374,8 @@ struct bgav_stream_s
       int depth;
       int planes;     /* For M$ formats only */
       int image_size; /* For M$ formats only */
-            
+      int flip_y;
+      
       bgav_video_decoder_context_t * decoder;
       gavl_video_format_t format;
       int palette_size;
@@ -553,7 +554,7 @@ typedef struct
   {
   int num_tracks;
   bgav_track_t * tracks;
-  bgav_track_t * current_track;
+  bgav_track_t * cur;
   int refcount;
   } bgav_track_table_t;
 
@@ -810,6 +811,9 @@ void bgav_input_destroy(bgav_input_context_t * ctx);
 
 void bgav_input_skip(bgav_input_context_t *, int64_t);
 
+/* Reopen  the input. Not all inputs can do this */
+int bgav_input_reopen(bgav_input_context_t*);
+
 bgav_input_context_t * bgav_input_create(const bgav_options_t * opt);
 
 /* For debugging purposes only: if you encounter data,
@@ -829,6 +833,8 @@ void bgav_input_seek_sector(bgav_input_context_t * ctx,
 
 void bgav_input_buffer(bgav_input_context_t * ctx);
 
+void bgav_input_ensure_buffer_size(bgav_input_context_t * ctx, int len);
+
 /* Input module to read from memory */
 
 bgav_input_context_t * bgav_input_open_memory(uint8_t * data,
@@ -836,6 +842,8 @@ bgav_input_context_t * bgav_input_open_memory(uint8_t * data,
                                               const bgav_options_t*);
 
 /* Reopen a memory input with new data and minimal CPU overhead */
+
+bgav_input_context_t * bgav_input_open_as_buffer(bgav_input_context_t * input);
 
 void bgav_input_reopen_memory(bgav_input_context_t * ctx,
                               uint8_t * data,
@@ -907,9 +915,10 @@ struct bgav_demuxer_s
   void (*seek)(bgav_demuxer_context_t*, gavl_time_t);
   void (*close)(bgav_demuxer_context_t*);
 
-  /* Some demuxer support multiple tracks */
+  /* Some demuxers support multiple tracks. This can fail e.g.
+     if the input must be seekable but isn't */
 
-  void (*select_track)(bgav_demuxer_context_t*, int track);
+  int (*select_track)(bgav_demuxer_context_t*, int track);
   };
 
 /* Demuxer flags */
@@ -922,6 +931,7 @@ struct bgav_demuxer_s
 #define BGAV_DEMUXER_SI_PRIVATE_FUNCS     (1<<5) /* We have a suprindex but use private seek/demux funcs */
 #define BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET (1<<6) /* Timestamp offset (from input) is valid */
 #define BGAV_DEMUXER_EOF                  (1<<7) /* Report EOF just once and not for each stream */
+#define BGAV_DEMUXER_HAS_DATA_START       (1<<8) /* Has data start */
 
 struct bgav_demuxer_context_s
   {
@@ -955,7 +965,13 @@ struct bgav_demuxer_context_s
 
   /* Human readable error string */
   char * error_msg;
- 
+
+  /* Data start (set in intially to -1, maybe set to
+     other values by demuxers). It can be used by the core to
+     seek to the position, where the demuxer can start working
+  */
+  int64_t data_start;
+    
   };
 
 /* demuxer.c */

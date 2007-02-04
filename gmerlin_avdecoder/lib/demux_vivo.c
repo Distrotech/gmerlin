@@ -149,6 +149,7 @@ static int check_key(char * buffer, const char * key, char ** pos)
   return 0;
   }
 
+#if DUMP_HEADERS
 static void vivo_header_dump(vivo_header_t * h)
   {
   bgav_dprintf( "Main VIVO header\n");
@@ -188,6 +189,8 @@ static void vivo_header_dump(vivo_header_t * h)
     }
   
   }
+
+#endif
 
 static int vivo_header_read(vivo_header_t * ret, bgav_input_context_t * input)
   {
@@ -361,9 +364,9 @@ static int vivo_header_read(vivo_header_t * ret, bgav_input_context_t * input)
     }
 
   result = 1;
-
+#if DUMP_HEADERS
   vivo_header_dump(ret);
-  
+#endif
   fail:
   if(buffer)
     free(buffer);
@@ -428,7 +431,7 @@ static int open_vivo(bgav_demuxer_context_t * ctx,
   
   /* Set up audio stream */
   
-  audio_stream = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+  audio_stream = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
   audio_stream->stream_id = AUDIO_STREAM_ID;
 
   if(priv->header.version == 1)
@@ -453,7 +456,7 @@ static int open_vivo(bgav_demuxer_context_t * ctx,
   audio_stream->codec_bitrate = audio_stream->container_bitrate;
   /* Set up video stream */
   
-  video_stream = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
+  video_stream = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
   video_stream->vfr_timestamps = 1;
 
   if(priv->header.version == 1)
@@ -486,15 +489,18 @@ static int open_vivo(bgav_demuxer_context_t * ctx,
     video_stream->data.video.format.image_height * 3;
   /* Set up metadata */
 
-  ctx->tt->current_track->metadata.title     = bgav_strdup(priv->header.title);
-  ctx->tt->current_track->metadata.author    = bgav_strdup(priv->header.author);
-  ctx->tt->current_track->metadata.copyright = bgav_strdup(priv->header.copyright);
-  ctx->tt->current_track->metadata.comment   = bgav_sprintf("Made with %s",
+  ctx->tt->cur->metadata.title     = bgav_strdup(priv->header.title);
+  ctx->tt->cur->metadata.author    = bgav_strdup(priv->header.author);
+  ctx->tt->cur->metadata.copyright = bgav_strdup(priv->header.copyright);
+  ctx->tt->cur->metadata.comment   = bgav_sprintf("Made with %s",
                                                             priv->header.producer);
 
   ctx->stream_description = bgav_sprintf("Vivo Version %d.x", priv->header.version);
 
-  ctx->tt->current_track->duration = (GAVL_TIME_SCALE * (int64_t)(priv->header.duration)) / 1000;
+  ctx->tt->cur->duration = (GAVL_TIME_SCALE * (int64_t)(priv->header.duration)) / 1000;
+
+  ctx->data_start = ctx->input->position;
+  ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
   
   return 1;
   
@@ -572,9 +578,9 @@ static int next_packet_vivo(bgav_demuxer_context_t * ctx)
     }
     
   if(do_audio)
-    stream = bgav_track_find_stream(ctx->tt->current_track, AUDIO_STREAM_ID);
+    stream = bgav_track_find_stream(ctx->tt->cur, AUDIO_STREAM_ID);
   else if(do_video)
-    stream = bgav_track_find_stream(ctx->tt->current_track, VIDEO_STREAM_ID);
+    stream = bgav_track_find_stream(ctx->tt->cur, VIDEO_STREAM_ID);
   
   if(!stream)
     {
@@ -592,7 +598,7 @@ static int next_packet_vivo(bgav_demuxer_context_t * ctx)
     if(do_video)
       {
       stream->packet->pts = (priv->audio_pos * 8000) /
-        ctx->tt->current_track->audio_streams[0].container_bitrate;
+        ctx->tt->cur->audio_streams[0].container_bitrate;
       }
 
     stream->packet = (bgav_packet_t*)0;
@@ -622,6 +628,14 @@ static int next_packet_vivo(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
+static int select_track_vivo(bgav_demuxer_context_t * ctx, int t)
+  {
+  vivo_priv_t * priv;
+  priv = (vivo_priv_t *)(ctx->priv);
+  priv->audio_pos = 0;
+  return 1;
+  }
+
 static void close_vivo(bgav_demuxer_context_t * ctx)
   {
   vivo_priv_t * priv;
@@ -633,9 +647,10 @@ static void close_vivo(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_vivo =
   {
-    probe:       probe_vivo,
-    open:        open_vivo,
-    next_packet: next_packet_vivo,
-    close:       close_vivo
+    probe:        probe_vivo,
+    open:         open_vivo,
+    select_track: select_track_vivo,
+    next_packet:  next_packet_vivo,
+    close:        close_vivo
   };
 

@@ -59,7 +59,7 @@ static int open_smjpeg(bgav_demuxer_context_t * ctx,
   if(!bgav_input_read_32_be(ctx->input, &tmp_32))
     return 0;
   
-  ctx->tt->current_track->duration = gavl_time_unscale(1000, tmp_32);
+  ctx->tt->cur->duration = gavl_time_unscale(1000, tmp_32);
 
   while(!done)
     {
@@ -76,7 +76,7 @@ static int open_smjpeg(bgav_demuxer_context_t * ctx,
         if(!bgav_input_read_32_be(ctx->input, &length))
           return 0;
 
-        s = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+        s = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
         s->stream_id = AUDIO_ID;
         s->timescale = 1000;
         
@@ -106,7 +106,7 @@ static int open_smjpeg(bgav_demuxer_context_t * ctx,
         if(!bgav_input_read_32_be(ctx->input, &length))
           return 0;
 
-        s = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
+        s = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
         s->stream_id = VIDEO_ID;
 
         bgav_input_skip(ctx->input, 4); // Number of frames
@@ -143,6 +143,8 @@ static int open_smjpeg(bgav_demuxer_context_t * ctx,
         break;
       }
     }
+  ctx->data_start = ctx->input->position;
+  ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
   return 1;
   }
 
@@ -161,9 +163,9 @@ static int next_packet_smjpeg(bgav_demuxer_context_t * ctx)
     return 0;
   
   if(fourcc == BGAV_MK_FOURCC('s','n','d','D'))
-    s = bgav_track_find_stream(ctx->tt->current_track, AUDIO_ID);
+    s = bgav_track_find_stream(ctx->tt->cur, AUDIO_ID);
   else if(fourcc == BGAV_MK_FOURCC('v','i','d','D'))
-    s = bgav_track_find_stream(ctx->tt->current_track, VIDEO_ID);
+    s = bgav_track_find_stream(ctx->tt->cur, VIDEO_ID);
   else
     return 0;
   

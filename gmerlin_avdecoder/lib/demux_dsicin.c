@@ -20,11 +20,6 @@
 #include <avdec_private.h>
 #include <stdlib.h>
 
-typedef struct
-  {
-  int video_pts;
-  } dsicin_priv_t;
-
 #define AUDIO_ID 0
 #define VIDEO_ID 1
 
@@ -128,10 +123,6 @@ static int open_dsicin(bgav_demuxer_context_t * ctx,
   {
   bgav_stream_t * s;
   file_header_t fh;
-  dsicin_priv_t * priv;
-
-  priv = calloc(1, sizeof(*priv));
-  ctx->priv = priv;
   
   if(!read_file_header(ctx->input, &fh))
     return 0;
@@ -140,7 +131,7 @@ static int open_dsicin(bgav_demuxer_context_t * ctx,
   ctx->tt = bgav_track_table_create(1);
 
   /* Set up video stream */
-  s = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
+  s = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
 
   s->data.video.format.image_width  = fh.video_width;
   s->data.video.format.image_height = fh.video_height;
@@ -155,7 +146,7 @@ static int open_dsicin(bgav_demuxer_context_t * ctx,
   s->data.video.format.frame_duration = 1;
   
   /* Set up audio stream */
-  s = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+  s = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
   s->data.audio.format.samplerate = fh.samplerate;
   s->data.audio.format.num_channels   = 1+fh.stereo;
   s->data.audio.bits_per_sample   = fh.bits_per_sample;
@@ -163,6 +154,10 @@ static int open_dsicin(bgav_demuxer_context_t * ctx,
   s->stream_id = AUDIO_ID;
 
   ctx->stream_description = bgav_sprintf("Delphine Software CIN");
+
+  ctx->data_start = ctx->input->position;
+  ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
+  
   return 1;
   }
 
@@ -172,9 +167,6 @@ static int next_packet_dsicin(bgav_demuxer_context_t * ctx)
   bgav_packet_t * p;
   frame_header_t frame_header;
   int palette_type, pkt_size;
-  dsicin_priv_t * priv;
-
-  priv = (dsicin_priv_t *)(ctx->priv);
   
   if(!read_frame_header(ctx->input, &frame_header))
     return 0;
@@ -194,7 +186,7 @@ static int next_packet_dsicin(bgav_demuxer_context_t * ctx)
   pkt_size = (palette_type + 3) *
     frame_header.num_palette_colors  + frame_header.video_size;
 
-  s = bgav_track_find_stream(ctx->tt->current_track, VIDEO_ID);
+  s = bgav_track_find_stream(ctx->tt->cur, VIDEO_ID);
   
   if(s)
     {
@@ -211,7 +203,7 @@ static int next_packet_dsicin(bgav_demuxer_context_t * ctx)
       return 0;
     
     p->data_size = pkt_size + 4;
-    p->pts += priv->video_pts++;
+    p->pts = s->in_position;
     
     bgav_packet_done_write(p);
     }
@@ -221,7 +213,7 @@ static int next_packet_dsicin(bgav_demuxer_context_t * ctx)
   if(!frame_header.audio_size)
     return 1;
   
-  s = bgav_track_find_stream(ctx->tt->current_track, AUDIO_ID);
+  s = bgav_track_find_stream(ctx->tt->cur, AUDIO_ID);
 
   if(s)
     {
@@ -242,12 +234,6 @@ static int next_packet_dsicin(bgav_demuxer_context_t * ctx)
 
 static void close_dsicin(bgav_demuxer_context_t * ctx)
   {
-  dsicin_priv_t * priv;
-
-  priv = (dsicin_priv_t *)(ctx->priv);
-
-  if(priv)
-    free(priv);
   }
 
 bgav_demuxer_t bgav_demuxer_dsicin =

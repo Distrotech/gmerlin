@@ -163,7 +163,6 @@ typedef struct
   {
   int type;
 
-  int64_t data_start;
   int64_t data_size;
   
   uint32_t seek_table_size;
@@ -213,7 +212,7 @@ static int open_adts(bgav_demuxer_context_t * ctx)
   priv = (aac_priv_t*)(ctx->priv);
   
   /* The first header will also be the streams extradata */
-  s = ctx->tt->current_track->audio_streams;
+  s = ctx->tt->cur->audio_streams;
 
   if(bgav_input_get_data(ctx->input, buf, ADTS_SIZE) < ADTS_SIZE)
     return 0;
@@ -277,7 +276,7 @@ static int open_adts(bgav_demuxer_context_t * ctx)
 
     sample_count = 0;
 
-    priv->seek_table[0].position = priv->data_start;
+    priv->seek_table[0].position = ctx->data_start;
     priv->seek_table[0].time_scaled     = 0;
     priv->seek_table_size = 1;
     
@@ -304,7 +303,7 @@ static int open_adts(bgav_demuxer_context_t * ctx)
       priv->seek_table[priv->seek_table_size].time_scaled = sample_count;
       priv->seek_table_size++;
 
-      priv->data_size = ctx->input->position - priv->data_start;
+      priv->data_size = ctx->input->position - ctx->data_start;
 
       if(bgav_input_get_data(ctx->input, buf, ADTS_SIZE) < ADTS_SIZE)
         break;
@@ -312,10 +311,10 @@ static int open_adts(bgav_demuxer_context_t * ctx)
       if(!adts_header_read(buf, &adts))
         break;
       }
-    bgav_input_seek(ctx->input, priv->data_start, SEEK_SET);
+    bgav_input_seek(ctx->input, ctx->data_start, SEEK_SET);
     ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
     
-    ctx->tt->current_track->duration =
+    ctx->tt->cur->duration =
       gavl_samples_to_time(adts.samplerate, sample_count);
     }
   
@@ -338,17 +337,17 @@ static int open_adif(bgav_demuxer_context_t * ctx)
 
   if(buf[4 + skip_size] & 0x10)
     {
-    ctx->tt->current_track->audio_streams[0].container_bitrate = BGAV_BITRATE_VBR;
+    ctx->tt->cur->audio_streams[0].container_bitrate = BGAV_BITRATE_VBR;
     }
   else
     {
-    ctx->tt->current_track->audio_streams[0].container_bitrate =
+    ctx->tt->cur->audio_streams[0].container_bitrate =
       ((unsigned int)(buf[4 + skip_size] & 0x0F)<<19) |
       ((unsigned int)buf[5 + skip_size]<<11) |
       ((unsigned int)buf[6 + skip_size]<<3) |
       ((unsigned int)buf[7 + skip_size] & 0xE0);
-    ctx->tt->current_track->duration = (GAVL_TIME_SCALE * (priv->data_size) * 8) /
-      (ctx->tt->current_track->audio_streams[0].container_bitrate);
+    ctx->tt->cur->duration = (GAVL_TIME_SCALE * (priv->data_size) * 8) /
+      (ctx->tt->cur->audio_streams[0].container_bitrate);
     }
   return 1;
   }
@@ -388,8 +387,9 @@ static int open_aac(bgav_demuxer_context_t * ctx,
   
   /* Create track */
 
-  priv->data_start = ctx->input->position;
-
+  ctx->data_start = ctx->input->position;
+  ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
+  
   ctx->tt = bgav_track_table_create(1);
 
   /* Check for id3v1 tag at the end */
@@ -401,7 +401,7 @@ static int open_aac(bgav_demuxer_context_t * ctx,
       {
       id3v1 = bgav_id3v1_read(ctx->input);
       }
-    bgav_input_seek(ctx->input, priv->data_start, SEEK_SET);
+    bgav_input_seek(ctx->input, ctx->data_start, SEEK_SET);
     }
 
   //  if(ctx->input->id3v2)
@@ -415,20 +415,20 @@ static int open_aac(bgav_demuxer_context_t * ctx,
     bgav_id3v2_2_metadata(ctx->input->id3v2, &id3v2_metadata);
     //    bgav_metadata_dump(&id3v2_metadata);
 
-    bgav_metadata_merge(&(ctx->tt->current_track->metadata),
+    bgav_metadata_merge(&(ctx->tt->cur->metadata),
                         &id3v2_metadata, &id3v1_metadata);
     bgav_metadata_free(&id3v1_metadata);
     bgav_metadata_free(&id3v2_metadata);
     }
   else if(ctx->input->id3v2)
     bgav_id3v2_2_metadata(ctx->input->id3v2,
-                          &(ctx->tt->current_track->metadata));
+                          &(ctx->tt->cur->metadata));
   else if(id3v1)
     bgav_id3v1_2_metadata(id3v1,
-                          &(ctx->tt->current_track->metadata));
+                          &(ctx->tt->cur->metadata));
 
   if(ctx->input->total_bytes)
-    priv->data_size = ctx->input->total_bytes - priv->data_start;
+    priv->data_size = ctx->input->total_bytes - ctx->data_start;
 
   if(id3v1)
     {
@@ -436,7 +436,7 @@ static int open_aac(bgav_demuxer_context_t * ctx,
     priv->data_size -= 128;
     }
 
-  s = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+  s = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
 
   /* This fourcc reminds the decoder to call a different init function */
 
@@ -480,7 +480,7 @@ static int next_packet_adts(bgav_demuxer_context_t * ctx)
   
   priv = (aac_priv_t *)(ctx->priv);
 
-  s = ctx->tt->current_track->audio_streams;
+  s = ctx->tt->cur->audio_streams;
 
   if(bgav_input_get_data(ctx->input, buf, ADTS_SIZE) < ADTS_SIZE)
     return 0;
@@ -516,7 +516,7 @@ static int next_packet_adif(bgav_demuxer_context_t * ctx)
   aac_priv_t * priv;
   int bytes_read;
   priv = (aac_priv_t *)(ctx->priv);
-  s = ctx->tt->current_track->audio_streams;
+  s = ctx->tt->cur->audio_streams;
   
   /* Just copy the bytes, we have no idea about
      aac frame boundaries or timestamps here */
@@ -557,7 +557,7 @@ static void seek_aac(bgav_demuxer_context_t * ctx, gavl_time_t time)
   uint32_t i;
   int64_t time_scaled;
   time_scaled =
-    gavl_time_to_samples(ctx->tt->current_track->audio_streams[0].data.audio.format.samplerate,
+    gavl_time_to_samples(ctx->tt->cur->audio_streams[0].data.audio.format.samplerate,
                          time);
   
   priv = (aac_priv_t *)(ctx->priv);
@@ -567,7 +567,15 @@ static void seek_aac(bgav_demuxer_context_t * ctx, gavl_time_t time)
     i--;
   
   bgav_input_seek(ctx->input, priv->seek_table[i].position, SEEK_SET);
-  ctx->tt->current_track->audio_streams->time_scaled = priv->seek_table[i].time_scaled;
+  ctx->tt->cur->audio_streams->time_scaled = priv->seek_table[i].time_scaled;
+  }
+
+static int select_track_aac(bgav_demuxer_context_t * ctx, int track)
+  {
+  aac_priv_t * priv;
+  priv = (aac_priv_t *)(ctx->priv);
+  priv->sample_count = 0;
+  return 1;
   }
 
 static void close_aac(bgav_demuxer_context_t * ctx)
@@ -585,6 +593,7 @@ bgav_demuxer_t bgav_demuxer_aac =
   {
     probe:       probe_aac,
     open:        open_aac,
+    select_track: select_track_aac,
     next_packet: next_packet_aac,
     seek:        seek_aac,
     close:       close_aac

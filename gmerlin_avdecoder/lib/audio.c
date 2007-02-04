@@ -31,14 +31,14 @@ int bgav_num_audio_streams(bgav_t * bgav, int track)
 
 const gavl_audio_format_t * bgav_get_audio_format(bgav_t *  bgav, int stream)
   {
-  return &(bgav->tt->current_track->audio_streams[stream].data.audio.format);
+  return &(bgav->tt->cur->audio_streams[stream].data.audio.format);
   }
 
 int bgav_set_audio_stream(bgav_t * b, int stream, bgav_stream_action_t action)
   {
-  if((stream >= b->tt->current_track->num_audio_streams) || (stream < 0))
+  if((stream >= b->tt->cur->num_audio_streams) || (stream < 0))
     return 0;
-  b->tt->current_track->audio_streams[stream].action = action;
+  b->tt->cur->audio_streams[stream].action = action;
   return 1;
   }
 
@@ -78,11 +78,11 @@ int bgav_audio_start(bgav_stream_t * stream)
 
   if(stream->has_first_timestamp && (stream->first_timestamp != BGAV_TIMESTAMP_UNDEFINED))
     {
-    stream->position =
+    stream->out_position =
       gavl_time_rescale(stream->timescale, stream->data.audio.format.samplerate,
                         stream->first_timestamp);
     bgav_log(stream->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Got initial audio timestamp: %lld",
-             stream->position);
+             stream->out_position);
     }
   return 1;
   }
@@ -100,26 +100,26 @@ void bgav_audio_stop(bgav_stream_t * s)
 
 const char * bgav_get_audio_description(bgav_t * b, int s)
   {
-  return b->tt->current_track->audio_streams[s].description;
+  return b->tt->cur->audio_streams[s].description;
   }
 
 const char * bgav_get_audio_info(bgav_t * b, int s)
   {
-  return b->tt->current_track->audio_streams[s].info;
+  return b->tt->cur->audio_streams[s].info;
   }
 
 
 const char * bgav_get_audio_language(bgav_t * b, int s)
   {
-  return (b->tt->current_track->audio_streams[s].language[0] != '\0') ?
-    b->tt->current_track->audio_streams[s].language : (char*)0;
+  return (b->tt->cur->audio_streams[s].language[0] != '\0') ?
+    b->tt->cur->audio_streams[s].language : (char*)0;
   }
 
 int bgav_read_audio(bgav_t * b, gavl_audio_frame_t * frame,
                     int stream, int num_samples)
   {
   int result;
-  bgav_stream_t * s = &(b->tt->current_track->audio_streams[stream]);
+  bgav_stream_t * s = &(b->tt->cur->audio_streams[stream]);
 
   if(b->eof)
     return 0;
@@ -127,9 +127,9 @@ int bgav_read_audio(bgav_t * b, gavl_audio_frame_t * frame,
   result = s->data.audio.decoder->decoder->decode(s, frame, num_samples);
   
   if(frame)
-    frame->time_scaled = s->position;
+    frame->time_scaled = s->out_position;
   
-  s->position += result;
+  s->out_position += result;
   return result;
   }
 

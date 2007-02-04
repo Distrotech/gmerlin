@@ -101,7 +101,6 @@ typedef struct
   pp_mode_t    *pp_mode;
 #endif
   
-  int flip_y;
   gavl_video_frame_t * flip_frame; /* Only used if we flip AND do postprocessing */
   
   /* Swap fields for MJPEG-A/B bottom first */
@@ -487,16 +486,9 @@ static int init(bgav_stream_t * s)
 
   /* Set up coded specific details */
   
-  if(s->data.video.format.image_height < 0)
-    {
-    s->data.video.format.image_height = -s->data.video.format.image_height;
-    priv->flip_y = 1;
-    }
-
   if(s->fourcc == BGAV_MK_FOURCC('W','V','1','F'))
-    priv->flip_y = 1;
-    
-
+    s->data.video.flip_y = 1;
+  
   priv->info = lookup_codec(s);
   codec = avcodec_find_decoder(priv->info->ffmpeg_id);
   priv->ctx = avcodec_alloc_context();
@@ -1587,7 +1579,7 @@ static void init_pp(bgav_stream_t * s)
         priv->pp_mode = pp_get_mode_by_name_and_quality("hb:a,vb:a,dr:a",
                                                         s->opt->pp_level);
 
-        if(priv->flip_y)
+        if(s->data.video.flip_y)
           priv->flip_frame = gavl_video_frame_create(&s->data.video.format);
             
         break;
@@ -1612,24 +1604,24 @@ static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f)
     if(s->data.video.format.pixelformat == GAVL_RGBA_32)
       pal8_to_rgba32(f, priv->frame,
                      s->data.video.format.image_width,
-                     s->data.video.format.image_height, priv->flip_y);
+                     s->data.video.format.image_height, s->data.video.flip_y);
     else
       pal8_to_rgb24(f, priv->frame,
                     s->data.video.format.image_width,
-                    s->data.video.format.image_height, priv->flip_y);
+                    s->data.video.format.image_height, s->data.video.flip_y);
     }
   else if(priv->ctx->pix_fmt == PIX_FMT_RGBA32)
     {
     rgba32_to_rgba32(f, priv->frame,
                      s->data.video.format.image_width,
-                     s->data.video.format.image_height, priv->flip_y);
+                     s->data.video.format.image_height, s->data.video.flip_y);
     }
   else if(!priv->do_convert)
     {
 #ifdef HAVE_LIBPOSTPROC
     if(priv->do_pp)
       {
-      if(priv->flip_y)
+      if(s->data.video.flip_y)
         {
         pp_postprocess(priv->frame->data, priv->frame->linesize,
                        priv->flip_frame->planes, priv->flip_frame->strides,
@@ -1659,7 +1651,7 @@ static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f)
       priv->gavl_frame->strides[1] = priv->frame->linesize[1];
       priv->gavl_frame->strides[2] = priv->frame->linesize[2];
 
-      if(priv->flip_y)
+      if(s->data.video.flip_y)
         gavl_video_frame_copy_flip_y(&(s->data.video.format), f, priv->gavl_frame);
       else if(priv->swap_fields)
         {

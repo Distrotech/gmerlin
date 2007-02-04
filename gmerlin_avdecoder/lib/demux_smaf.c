@@ -131,7 +131,7 @@ static int open_smaf(bgav_demuxer_context_t * ctx,
   /* Initialize generic things */
 
   ctx->tt = bgav_track_table_create(1);
-  s = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+  s = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
   
   /* Now, get the format */
    
@@ -212,7 +212,7 @@ static int next_packet_smaf(bgav_demuxer_context_t * ctx)
   if(bytes_to_read > MAX_BYTES)
     bytes_to_read = MAX_BYTES;
   
-  s = &(ctx->tt->current_track->audio_streams[0]);
+  s = &(ctx->tt->cur->audio_streams[0]);
   p = bgav_stream_get_packet_write(s);
 
   bgav_packet_alloc(p, bytes_to_read);

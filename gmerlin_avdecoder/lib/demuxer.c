@@ -284,19 +284,19 @@ static void check_missing_streams(bgav_demuxer_context_t * ctx)
   int i;
 
   i = 0;
-  while(i < ctx->tt->current_track->num_audio_streams)
+  while(i < ctx->tt->cur->num_audio_streams)
     {
-    if(ctx->tt->current_track->audio_streams[i].last_index_position < 0)
-      bgav_track_remove_audio_stream(ctx->tt->current_track, i);
+    if(ctx->tt->cur->audio_streams[i].last_index_position < 0)
+      bgav_track_remove_audio_stream(ctx->tt->cur, i);
     else
       i++;
     }
 
   i = 0;
-  while(i < ctx->tt->current_track->num_video_streams)
+  while(i < ctx->tt->cur->num_video_streams)
     {
-    if(ctx->tt->current_track->video_streams[i].last_index_position < 0)
-      bgav_track_remove_video_stream(ctx->tt->current_track, i);
+    if(ctx->tt->cur->video_streams[i].last_index_position < 0)
+      bgav_track_remove_video_stream(ctx->tt->cur, i);
     else
       i++;
     }
@@ -309,9 +309,9 @@ static void check_interleave(bgav_demuxer_context_t * ctx)
   int index, num_streams;
 
   num_streams =
-    ctx->tt->current_track->num_audio_streams +
-    ctx->tt->current_track->num_video_streams +
-    ctx->tt->current_track->num_subtitle_streams;
+    ctx->tt->cur->num_audio_streams +
+    ctx->tt->cur->num_video_streams +
+    ctx->tt->cur->num_subtitle_streams;
   
   if(num_streams <= 1)
     return;
@@ -319,14 +319,14 @@ static void check_interleave(bgav_demuxer_context_t * ctx)
   streams = malloc(num_streams * sizeof(*streams));
   index = 0;
   
-  for(i = 0; i < ctx->tt->current_track->num_audio_streams; i++)
-    streams[index++] = &(ctx->tt->current_track->audio_streams[i]);
+  for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
+    streams[index++] = &(ctx->tt->cur->audio_streams[i]);
 
-  for(i = 0; i < ctx->tt->current_track->num_video_streams; i++)
-    streams[index++] = &(ctx->tt->current_track->video_streams[i]);
+  for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
+    streams[index++] = &(ctx->tt->cur->video_streams[i]);
   
-  for(i = 0; i < ctx->tt->current_track->num_subtitle_streams; i++)
-    streams[index++] = &(ctx->tt->current_track->subtitle_streams[i]);
+  for(i = 0; i < ctx->tt->cur->num_subtitle_streams; i++)
+    streams[index++] = &(ctx->tt->cur->subtitle_streams[i]);
   
   if((streams[0]->last_index_position < streams[1]->first_index_position) ||
      (streams[1]->last_index_position < streams[0]->first_index_position))
@@ -414,7 +414,7 @@ static int next_packet_interleaved(bgav_demuxer_context_t * ctx)
     return 0;
     }
   stream =
-    bgav_track_find_stream(ctx->tt->current_track,
+    bgav_track_find_stream(ctx->tt->cur,
                            ctx->si->entries[ctx->si->current_position].stream_id);
   
   if(!stream) /* Skip unused stream */
@@ -525,21 +525,21 @@ static int demuxer_next_packet(bgav_demuxer_context_t * demuxer)
       /* Some demuxers have packets stored in the streams,
          we flush them here */
  
-      for(i = 0; i < demuxer->tt->current_track->num_audio_streams; i++)
+      for(i = 0; i < demuxer->tt->cur->num_audio_streams; i++)
         {
-        if(demuxer->tt->current_track->audio_streams[i].packet)
+        if(demuxer->tt->cur->audio_streams[i].packet)
           {
-          bgav_packet_done_write(demuxer->tt->current_track->audio_streams[i].packet);
-          demuxer->tt->current_track->audio_streams[i].packet = (bgav_packet_t*)0;
+          bgav_packet_done_write(demuxer->tt->cur->audio_streams[i].packet);
+          demuxer->tt->cur->audio_streams[i].packet = (bgav_packet_t*)0;
           ret = 1;
           }
         }
-      for(i = 0; i < demuxer->tt->current_track->num_video_streams; i++)
+      for(i = 0; i < demuxer->tt->cur->num_video_streams; i++)
         {
-        if(demuxer->tt->current_track->video_streams[i].packet)
+        if(demuxer->tt->cur->video_streams[i].packet)
           {
-          bgav_packet_done_write(demuxer->tt->current_track->video_streams[i].packet);
-          demuxer->tt->current_track->video_streams[i].packet = (bgav_packet_t*)0;
+          bgav_packet_done_write(demuxer->tt->cur->video_streams[i].packet);
+          demuxer->tt->cur->video_streams[i].packet = (bgav_packet_t*)0;
           ret = 1;
           }
         }
@@ -644,7 +644,7 @@ static void seek_si(bgav_demuxer_context_t * ctx, gavl_time_t time)
   int32_t end_packet;
   bgav_track_t * track;
     
-  track = ctx->tt->current_track;
+  track = ctx->tt->cur;
   
   /* Set the packet indices of the streams to -1 */
   for(j = 0; j < track->num_audio_streams; j++)
@@ -737,7 +737,7 @@ bgav_seek(bgav_t * b, gavl_time_t * time)
   gavl_time_t last_sync_time = GAVL_TIME_UNDEFINED;
   gavl_time_t last_sync_time_2nd = GAVL_TIME_UNDEFINED;
     
-  bgav_track_t * track = b->tt->current_track;
+  bgav_track_t * track = b->tt->cur;
   int num_iterations = 0;
   seek_time = *time;
 

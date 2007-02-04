@@ -278,7 +278,6 @@ typedef struct
   asf_main_header_t hdr;
   int packet_size;
   uint8_t * packet_buffer;
-  int64_t data_start;
   int64_t data_size;
   int do_sync;
 
@@ -346,7 +345,7 @@ static void update_stream_bitrates(bgav_demuxer_context_t * ctx)
 
   for(i = 0; i < asf->num_stream_bitrates; i++)
     {
-    stream = bgav_track_find_stream(ctx->tt->current_track, asf->stream_bitrates[i].stream_id);
+    stream = bgav_track_find_stream(ctx->tt->cur, asf->stream_bitrates[i].stream_id);
     if(stream)
       stream->container_bitrate = asf->stream_bitrates[i].bitrate;
     else
@@ -391,7 +390,7 @@ static int read_metadata(bgav_demuxer_context_t * ctx)
     {
     if(bgav_input_read_data(ctx->input, (uint8_t*)str, len1) < len1)
       goto fail;
-    ctx->tt->current_track->metadata.title = bgav_convert_string(cnv, str, len1,
+    ctx->tt->cur->metadata.title = bgav_convert_string(cnv, str, len1,
                                               NULL);
     }
 
@@ -401,7 +400,7 @@ static int read_metadata(bgav_demuxer_context_t * ctx)
     {
     if(bgav_input_read_data(ctx->input, (uint8_t*)str, len2) < len2)
       goto fail;
-    ctx->tt->current_track->metadata.author =
+    ctx->tt->cur->metadata.author =
       bgav_convert_string(cnv, str, len2, NULL);
     }
 
@@ -411,7 +410,7 @@ static int read_metadata(bgav_demuxer_context_t * ctx)
     {
     if(bgav_input_read_data(ctx->input, (uint8_t*)str, len3) < len3)
       goto fail;
-    ctx->tt->current_track->metadata.copyright =
+    ctx->tt->cur->metadata.copyright =
       bgav_convert_string(cnv, str, len3, NULL);
     }
 
@@ -421,7 +420,7 @@ static int read_metadata(bgav_demuxer_context_t * ctx)
     {
     if(bgav_input_read_data(ctx->input, (uint8_t*)str, len4) < len4)
       goto fail;
-    ctx->tt->current_track->metadata.comment =
+    ctx->tt->cur->metadata.comment =
       bgav_convert_string(cnv, str, len4, NULL);
     }
 
@@ -512,7 +511,7 @@ static int open_asf(bgav_demuxer_context_t * ctx,
         goto fail;
 
       if(asf->hdr.send_time)
-        ctx->tt->current_track->duration = (asf->hdr.send_time - asf->hdr.preroll) 
+        ctx->tt->cur->duration = (asf->hdr.send_time - asf->hdr.preroll) 
           / (10000000/GAVL_TIME_SCALE);
       }
     /* Stream properties */
@@ -546,7 +545,7 @@ static int open_asf(bgav_demuxer_context_t * ctx,
       if(bgav_GUID_equal(&guid, &guid_audio_media))
         {
         
-        bgav_as = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+        bgav_as = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
         bgav_as->stream_id = stream_number;
 
         asf_as  = calloc(1, sizeof(*asf_as));
@@ -607,7 +606,7 @@ static int open_asf(bgav_demuxer_context_t * ctx,
       /* Found video stream */
       else if(bgav_GUID_equal(&guid, &guid_video_media))
         {
-        bgav_vs = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
+        bgav_vs = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
         bgav_vs->vfr_timestamps = 1;
         
         bgav_vs->stream_id = stream_number;
@@ -702,8 +701,8 @@ static int open_asf(bgav_demuxer_context_t * ctx,
   asf->packet_size = asf->hdr.max_pktsize;
   asf->packet_buffer = malloc(asf->packet_size);
   
-  asf->data_start = ctx->input->position;
-  
+  ctx->data_start = ctx->input->position;
+  ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
 
   /* Update stream bitrates */
 
@@ -956,7 +955,7 @@ static void add_packet(bgav_demuxer_context_t * ctx,
   asf_audio_stream_t * as;
   asf_t * asf = (asf_t *)(ctx->priv);
 
-  s = bgav_track_find_stream(ctx->tt->current_track, id);
+  s = bgav_track_find_stream(ctx->tt->cur, id);
   
   if(!s)
     return;
@@ -1109,23 +1108,20 @@ static void seek_asf(bgav_demuxer_context_t * ctx, gavl_time_t time)
   asf->packets_read =
     (int64_t)((double)asf->hdr.packets_count *
               (gavl_time_to_seconds(time)/
-               gavl_time_to_seconds(ctx->tt->current_track->duration)));
+               gavl_time_to_seconds(ctx->tt->cur->duration)));
   
-  filepos = asf->data_start +
+  filepos = ctx->data_start +
     asf->packet_size * asf->packets_read;
   
-  //  while(1)
-  //    {
-
   bgav_input_seek(ctx->input, filepos, SEEK_SET);
 
-    asf->do_sync = 1;
-    while(!bgav_track_has_sync(ctx->tt->current_track))
-      {
-      next_packet_asf(ctx);
-      }
-    asf->do_sync = 0;
-    
+  asf->do_sync = 1;
+  while(!bgav_track_has_sync(ctx->tt->cur))
+    {
+    next_packet_asf(ctx);
+    }
+  asf->do_sync = 0;
+  
   }
 
 
@@ -1142,27 +1138,34 @@ static void close_asf(bgav_demuxer_context_t * ctx)
   if(asf->stream_bitrates)
     free(asf->stream_bitrates);
   
-  for(i = 0; i < ctx->tt->current_track->num_audio_streams; i++)
+  for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
     {
-    as = (asf_audio_stream_t*)ctx->tt->current_track->audio_streams[i].priv;
+    as = (asf_audio_stream_t*)ctx->tt->cur->audio_streams[i].priv;
 
-    if(ctx->tt->current_track->audio_streams[i].ext_data)
-      free(ctx->tt->current_track->audio_streams[i].ext_data);
+    if(ctx->tt->cur->audio_streams[i].ext_data)
+      free(ctx->tt->cur->audio_streams[i].ext_data);
 
     if(as->scramble_buffer)
       free(as->scramble_buffer);
-    if(ctx->tt->current_track->audio_streams[i].priv)
-      free(ctx->tt->current_track->audio_streams[i].priv);
+    if(ctx->tt->cur->audio_streams[i].priv)
+      free(ctx->tt->cur->audio_streams[i].priv);
     }
-  for(i = 0; i < ctx->tt->current_track->num_video_streams; i++)
+  for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
     {
-    if(ctx->tt->current_track->video_streams[i].ext_data)
-      free(ctx->tt->current_track->video_streams[i].ext_data);
+    if(ctx->tt->cur->video_streams[i].ext_data)
+      free(ctx->tt->cur->video_streams[i].ext_data);
     
-    if(ctx->tt->current_track->video_streams[i].priv)
-      free(ctx->tt->current_track->video_streams[i].priv);
+    if(ctx->tt->cur->video_streams[i].priv)
+      free(ctx->tt->cur->video_streams[i].priv);
     }
   free(ctx->priv);
+  }
+
+static int select_track_asf(bgav_demuxer_context_t * ctx, int track)
+  {
+  asf_t * asf = (asf_t *)(ctx->priv);
+  asf->packets_read = 0;
+  return 1;
   }
 
 
@@ -1170,6 +1173,7 @@ bgav_demuxer_t bgav_demuxer_asf =
   {
     probe:          probe_asf,
     open:           open_asf,
+    select_track:   select_track_asf,
     next_packet:    next_packet_asf,
     seek:           seek_asf,
     close:          close_asf

@@ -104,7 +104,7 @@ static int open_tta(bgav_demuxer_context_t * ctx,
 
   /* Set up generic stuff */
   ctx->tt = bgav_track_table_create(1);
-  s = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+  s = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
 
   s->data.audio.format.num_channels = h.num_channels;
   s->data.audio.format.samplerate = h.samplerate;
@@ -139,7 +139,7 @@ static int open_tta(bgav_demuxer_context_t * ctx,
     priv->seek_table[i] = BGAV_PTR_2_32LE(ptr); ptr+=4;
     }
 
-  ctx->tt->current_track->duration =
+  ctx->tt->cur->duration =
     gavl_time_unscale(s->data.audio.format.samplerate, h.data_length);
 
   if(ctx->input->input->seek_byte)
@@ -163,7 +163,7 @@ static int next_packet_tta(bgav_demuxer_context_t * ctx)
   if(priv->current_frame >= priv->total_frames)
     return 0; // EOF
 
-  s = &(ctx->tt->current_track->audio_streams[0]);
+  s = &(ctx->tt->cur->audio_streams[0]);
   p = bgav_stream_get_packet_write(s);
 
   bgav_packet_alloc(p, priv->seek_table[priv->current_frame]);
@@ -187,7 +187,7 @@ static void seek_tta(bgav_demuxer_context_t * ctx, gavl_time_t time)
   tta_priv_t * priv;
   priv = (tta_priv_t *)(ctx->priv);
   
-  s = &(ctx->tt->current_track->audio_streams[0]);
+  s = &(ctx->tt->cur->audio_streams[0]);
   time_scaled = gavl_time_scale(s->timescale, time);
 
   priv->current_frame = time_scaled / priv->samples_per_frame;
@@ -214,7 +214,7 @@ static void close_tta(bgav_demuxer_context_t * ctx)
       free(priv->seek_table);
     free(priv);
     }
-  s = &(ctx->tt->current_track->audio_streams[0]);
+  s = &(ctx->tt->cur->audio_streams[0]);
   if(s->ext_data)
     free(s->ext_data);
   }

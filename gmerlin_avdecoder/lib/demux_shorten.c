@@ -36,7 +36,7 @@ static int open_shorten(bgav_demuxer_context_t * ctx,
   bgav_stream_t * s;
   ctx->tt = bgav_track_table_create(1);
 
-  s = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+  s = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
   s->fourcc = BGAV_MK_FOURCC('.','s','h','n');
   s->stream_id = 0;
   ctx->stream_description = bgav_sprintf("Shorten");
@@ -49,7 +49,7 @@ static int next_packet_shorten(bgav_demuxer_context_t * ctx)
   {
   bgav_packet_t * p;
   bgav_stream_t * s;
-  s = bgav_track_find_stream(ctx->tt->current_track, 0);
+  s = bgav_track_find_stream(ctx->tt->cur, 0);
   if(!s)
     return 1;
 

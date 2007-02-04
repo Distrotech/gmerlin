@@ -1024,7 +1024,7 @@ static void select_track_dvb(bgav_input_context_t * ctx, int track)
   if(!tune_in(ctx, &priv->channels[track]))
     return;
   
-  if(!setup_filters(ctx, &priv->channels[track], ctx->tt->current_track))
+  if(!setup_filters(ctx, &priv->channels[track], ctx->tt->cur))
     return;
   
   priv->dvr_fd = open(priv->dvr_filename, O_RDONLY);

@@ -143,7 +143,7 @@ static int open_tiertex(bgav_demuxer_context_t * ctx,
   ctx->tt = bgav_track_table_create(1);
 
   /* Setup audio stream */
-  s = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+  s = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
   //  s->fourcc = BGAV_WAVID_2_FOURCC(0x0001);
   s->fourcc = BGAV_MK_FOURCC('t','w','o','s');
   s->data.audio.format.samplerate = SEQ_SAMPLE_RATE;
@@ -152,7 +152,7 @@ static int open_tiertex(bgav_demuxer_context_t * ctx,
   s->stream_id = AUDIO_ID;
   
   /* Setup video stream */
-  s = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
+  s = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
   s->fourcc = BGAV_MK_FOURCC('T','I','T','X');
   s->data.video.format.image_width  = SEQ_FRAME_W;
   s->data.video.format.image_height = SEQ_FRAME_H;
@@ -180,6 +180,9 @@ static int open_tiertex(bgav_demuxer_context_t * ctx,
   priv->num_frame_buffers = i;
 
   ctx->stream_description = bgav_sprintf("Tiertex SEQ");
+
+  ctx->data_start = ctx->input->position;
+  ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
   
   return 1;
   }
@@ -243,7 +246,7 @@ static int next_packet_tiertex(bgav_demuxer_context_t * ctx)
 
   if(video_size || palette_size)
     {
-    s = bgav_track_find_stream(ctx->tt->current_track, VIDEO_ID);
+    s = bgav_track_find_stream(ctx->tt->cur, VIDEO_ID);
     if(s)
       {
       p = bgav_stream_get_packet_write(s);
@@ -277,7 +280,7 @@ static int next_packet_tiertex(bgav_demuxer_context_t * ctx)
     
     //    dump_frame_header(&fh);
     
-    s = bgav_track_find_stream(ctx->tt->current_track, AUDIO_ID);
+    s = bgav_track_find_stream(ctx->tt->cur, AUDIO_ID);
     if(s)
       {
       p = bgav_stream_get_packet_write(s);
@@ -309,10 +312,27 @@ static void close_tiertex(bgav_demuxer_context_t * ctx)
   free(priv);
   }
 
+static int select_track_tiertex(bgav_demuxer_context_t * ctx, int t)
+  {
+  int i;
+  tiertex_priv_t * priv;
+  priv = (tiertex_priv_t*)(ctx->priv);
+
+  if(!priv)
+    return 0;
+
+  for(i = 0; i < SEQ_NUM_FRAME_BUFFERS; i++)
+    priv->frame_buffers[i].fill_size = 0;
+  
+  priv->video_pts = 0;
+  return 1;
+  }
+
 bgav_demuxer_t bgav_demuxer_tiertex =
   {
-    probe:       probe_tiertex,
-    open:        open_tiertex,
-    next_packet: next_packet_tiertex,
-    close:       close_tiertex
+    probe:        probe_tiertex,
+    open:         open_tiertex,
+    select_track: select_track_tiertex,
+    next_packet:  next_packet_tiertex,
+    close:        close_tiertex
   };

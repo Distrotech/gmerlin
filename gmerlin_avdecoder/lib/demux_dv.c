@@ -32,11 +32,9 @@
 typedef struct
   {
   bgav_dv_dec_t * d;
-  int have_frame;
   int64_t frame_pos;
   int frame_size;
   uint8_t * frame_buffer;
-  int frame_buffer_valid;
   } dv_priv_t;
 
 static int probe_dv(bgav_input_context_t * input)
@@ -87,11 +85,11 @@ static int open_dv(bgav_demuxer_context_t * ctx,
   ctx->tt = bgav_track_table_create(1);
   
   /* Set up streams */
-  as = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+  as = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
   bgav_dv_dec_init_audio(priv->d, as);
   as->stream_id = AUDIO_ID;
   
-  vs = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
+  vs = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
   bgav_dv_dec_init_video(priv->d, vs);
   vs->stream_id = VIDEO_ID;
   
@@ -100,7 +98,7 @@ static int open_dv(bgav_demuxer_context_t * ctx,
   if(ctx->input->total_bytes)
     {
     total_frames = ctx->input->total_bytes / priv->frame_size;
-    ctx->tt->current_track->duration =
+    ctx->tt->cur->duration =
       gavl_frames_to_time(vs->data.video.format.timescale, vs->data.video.format.frame_duration,
                           total_frames);
     }
@@ -109,6 +107,9 @@ static int open_dv(bgav_demuxer_context_t * ctx,
     ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
   
   ctx->stream_description = bgav_sprintf("DV Format");
+
+  ctx->data_start = ctx->input->position;
+  ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
   
   return 1;
   
@@ -126,8 +127,8 @@ static int next_packet_dv(bgav_demuxer_context_t * ctx)
    *  extract the audio data
    */
 
-  as = bgav_track_find_stream(ctx->tt->current_track, AUDIO_ID);
-  vs = bgav_track_find_stream(ctx->tt->current_track, VIDEO_ID);
+  as = bgav_track_find_stream(ctx->tt->cur, AUDIO_ID);
+  vs = bgav_track_find_stream(ctx->tt->cur, VIDEO_ID);
   
   if(vs)
     vp = bgav_stream_get_packet_write(vs);
@@ -147,7 +148,6 @@ static int next_packet_dv(bgav_demuxer_context_t * ctx)
 
   if(ap) bgav_packet_done_write(ap);
   if(vp) bgav_packet_done_write(vp);
-  
   return 1;
   }
 
@@ -155,12 +155,12 @@ static void seek_dv(bgav_demuxer_context_t * ctx, gavl_time_t time)
   {
   int64_t file_position;
   dv_priv_t * priv;
-  priv = (dv_priv_t *)(ctx->priv);
   bgav_stream_t * as, * vs;
   int64_t frame_pos;
-
-  vs = ctx->tt->current_track->video_streams;
-  as = ctx->tt->current_track->audio_streams;
+  
+  priv = (dv_priv_t *)(ctx->priv);
+  vs = ctx->tt->cur->video_streams;
+  as = ctx->tt->cur->audio_streams;
   
   frame_pos = gavl_time_to_frames(vs->data.video.format.timescale,
                                   vs->data.video.format.frame_duration,
@@ -172,9 +172,18 @@ static void seek_dv(bgav_demuxer_context_t * ctx, gavl_time_t time)
   bgav_input_seek(ctx->input, file_position, SEEK_SET);
 
   vs->time_scaled = frame_pos * vs->data.video.format.frame_duration;
-  as->time_scaled = (vs->time_scaled * as->data.audio.format.samplerate) / vs->data.video.format.timescale;
+  as->time_scaled =
+    gavl_time_rescale(vs->data.video.format.timescale,
+                      as->data.audio.format.samplerate,
+                      vs->time_scaled);
+  }
 
-  
+static int select_track_dv(bgav_demuxer_context_t * ctx, int track)
+  {
+  dv_priv_t * priv;
+  priv = (dv_priv_t *)(ctx->priv);
+  bgav_dv_dec_set_frame_counter(priv->d, 0);
+  return 1;
   }
 
 static void close_dv(bgav_demuxer_context_t * ctx)
@@ -191,10 +200,12 @@ static void close_dv(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_dv =
   {
-    probe:       probe_dv,
-    open:        open_dv,
-    next_packet: next_packet_dv,
-    seek:        seek_dv,
-    close:       close_dv
+    probe:        probe_dv,
+    open:         open_dv,
+    select_track: select_track_dv,
+    next_packet:  next_packet_dv,
+    
+    seek:         seek_dv,
+    close:        close_dv
   };
 

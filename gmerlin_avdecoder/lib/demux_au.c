@@ -38,7 +38,6 @@ typedef struct
 
 typedef struct
   {
-  uint32_t data_start;
   uint32_t data_size;
   int samples_per_block;
   int bytes_per_second;
@@ -79,17 +78,17 @@ static int64_t pos_2_time(bgav_demuxer_context_t * ctx, int64_t pos)
   au_priv_t * priv;
   priv = (au_priv_t*)(ctx->priv);
   
-  return ((pos - priv->data_start) * priv->samples_per_block) /
-    (ctx->tt->current_track->audio_streams[0].data.audio.block_align);
+  return ((pos - ctx->data_start) * priv->samples_per_block) /
+    (ctx->tt->cur->audio_streams[0].data.audio.block_align);
   }
 
 static int64_t time_2_pos(bgav_demuxer_context_t * ctx, int64_t time)
   {
   au_priv_t * priv;
   priv = (au_priv_t*)(ctx->priv);
-  return priv->data_start +
+  return ctx->data_start +
     (time *
-     ctx->tt->current_track->audio_streams[0].data.audio.block_align)/
+     ctx->tt->cur->audio_streams[0].data.audio.block_align)/
     (priv->samples_per_block);
   
   }
@@ -119,20 +118,20 @@ static int open_au(bgav_demuxer_context_t * ctx,
   switch(hdr.encoding)
     {
     case AUDIO_FILE_ENCODING_MULAW_8:      /* 8-bit ISDN u-law */
-      as = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+      as = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
       samples_per_block = 1;
       as->fourcc = BGAV_MK_FOURCC('u', 'l', 'a', 'w');
       as->data.audio.block_align = hdr.channels;
       break;
     case AUDIO_FILE_ENCODING_ALAW_8:       /* 8-bit ISDN A-law */
-      as = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+      as = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
       samples_per_block = 1;
       as->fourcc = BGAV_MK_FOURCC('a', 'l', 'a', 'w');
       as->data.audio.block_align = hdr.channels;
       
       break;
     case AUDIO_FILE_ENCODING_LINEAR_8:     /* 8-bit linear PCM */
-      as = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+      as = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
       samples_per_block = 1;
       as->fourcc = BGAV_MK_FOURCC('t', 'w', 'o', 's');
       as->data.audio.block_align = hdr.channels;
@@ -140,7 +139,7 @@ static int open_au(bgav_demuxer_context_t * ctx,
 
       break;
     case AUDIO_FILE_ENCODING_LINEAR_16:    /* 16-bit linear PCM */
-      as = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+      as = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
       samples_per_block = 1;
       as->fourcc = BGAV_MK_FOURCC('t', 'w', 'o', 's');
       as->data.audio.block_align = hdr.channels * 2;
@@ -181,16 +180,15 @@ static int open_au(bgav_demuxer_context_t * ctx,
 
   /* Get data start and duration */
 
-  priv->data_start = hdr.hdr_size;
   priv->data_size  = hdr.data_size;
 
   if(priv->data_size == 0xFFFFFFFF)
     priv->data_size = ctx->input->total_bytes;
   priv->samples_per_block = samples_per_block;
   if(priv->data_size)
-    ctx->tt->current_track->duration =
+    ctx->tt->cur->duration =
       gavl_samples_to_time(as->data.audio.format.samplerate,
-                          pos_2_time(ctx, priv->data_start + priv->data_size));
+                           pos_2_time(ctx, ctx->data_start + priv->data_size));
   
   if(ctx->input->input->seek_byte)
     ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
@@ -199,8 +197,10 @@ static int open_au(bgav_demuxer_context_t * ctx,
 
   if(hdr.hdr_size > 24)
     bgav_input_skip(ctx->input, hdr.hdr_size - 24);
-  priv->data_start = ctx->input->position;
+  ctx->data_start = ctx->input->position;
+  ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
 
+  
   ctx->stream_description = bgav_sprintf("AU/SND format");
 
   return 1;
@@ -212,7 +212,7 @@ static int next_packet_au(bgav_demuxer_context_t * ctx)
   bgav_stream_t * s;
   int bytes_read;
   au_priv_t * priv;
-  s = &(ctx->tt->current_track->audio_streams[0]);
+  s = &(ctx->tt->cur->audio_streams[0]);
   p = bgav_stream_get_packet_write(s);
 
   priv = (au_priv_t*)(ctx->priv);
@@ -235,14 +235,14 @@ static void seek_au(bgav_demuxer_context_t * ctx, gavl_time_t time)
   bgav_stream_t * s;
   int64_t position;
   au_priv_t * priv;
-  s = &(ctx->tt->current_track->audio_streams[0]);
+  s = &(ctx->tt->cur->audio_streams[0]);
   priv = (au_priv_t*)(ctx->priv);
   
   position = time_2_pos(ctx, time);
-  position -= priv->data_start;
+  position -= ctx->data_start;
   position /= s->data.audio.block_align;
   position *= s->data.audio.block_align;
-  position += priv->data_start;
+  position += ctx->data_start;
   bgav_input_seek(ctx->input, position, SEEK_SET);
   s->time_scaled = pos_2_time(ctx, position);
   }

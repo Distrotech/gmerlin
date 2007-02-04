@@ -55,7 +55,7 @@ static int open_gsm(bgav_demuxer_context_t * ctx,
   /* Create track */
   ctx->tt = bgav_track_table_create(1);
 
-  as = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+  as = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
   as->fourcc = BGAV_MK_FOURCC('G', 'S', 'M', ' ');
   as->data.audio.format.samplerate = 8000;
   as->data.audio.format.num_channels = 1;
@@ -66,7 +66,7 @@ static int open_gsm(bgav_demuxer_context_t * ctx,
   if(ctx->input->total_bytes)
     {
     total_samples = bytes_2_samples(ctx->input->total_bytes); 
-    ctx->tt->current_track->duration = 
+    ctx->tt->cur->duration = 
       gavl_samples_to_time(as->data.audio.format.samplerate, total_samples);
 
     if(ctx->input->input->seek_byte)
@@ -74,6 +74,9 @@ static int open_gsm(bgav_demuxer_context_t * ctx,
     }
 
   ctx->stream_description = bgav_sprintf("RAW GSM");
+
+  ctx->data_start = ctx->input->position;
+  ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
   
   return 1;
   }
@@ -84,7 +87,7 @@ static int next_packet_gsm(bgav_demuxer_context_t * ctx)
   bgav_stream_t * s;
   int bytes_read;
   
-  s = &(ctx->tt->current_track->audio_streams[0]);
+  s = &(ctx->tt->cur->audio_streams[0]);
   p = bgav_stream_get_packet_write(s);
 
   bgav_packet_alloc(p, s->data.audio.block_align);
@@ -108,7 +111,7 @@ static void seek_gsm(bgav_demuxer_context_t * ctx, gavl_time_t time)
   int64_t position;
   int64_t sample;
   
-  s = &(ctx->tt->current_track->audio_streams[0]);
+  s = &(ctx->tt->cur->audio_streams[0]);
   
   sample = gavl_time_to_samples(s->data.audio.format.samplerate, time); 
   sample /= GSM_FRAME_SIZE;

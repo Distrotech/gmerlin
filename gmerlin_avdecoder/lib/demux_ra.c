@@ -74,7 +74,7 @@ static int open_ra(bgav_demuxer_context_t * ctx,
 
   ctx->tt = bgav_track_table_create(1);
 
-  track = ctx->tt->current_track;
+  track = ctx->tt->cur;
     
   if(bgav_input_read_data(ctx->input, fh, RA_FILE_HEADER_PREV_SIZE) < RA_FILE_HEADER_PREV_SIZE)
     {
@@ -247,8 +247,23 @@ static int open_ra(bgav_demuxer_context_t * ctx,
     }
 
   
-  ctx->stream_description = bgav_sprintf("Real audio Version %d\n", version);
+  ctx->stream_description = bgav_sprintf("Real audio Version %d", version);
   return 1;
+  }
+
+static void swap_bytes_dnet(uint8_t * data, int len)
+  {
+  int i;
+  uint8_t swp;
+  
+  for(i = 0; i < len/2; i++)
+    {
+    swp = data[0];
+    data[0] = data[1];
+    data[1] = swp;
+    data += 2;
+    }
+  
   }
 
 static int next_packet_ra(bgav_demuxer_context_t * ctx)
@@ -259,24 +274,30 @@ static int next_packet_ra(bgav_demuxer_context_t * ctx)
   int len;
   priv = (ra_priv_t *)ctx->priv;
   
-  s = &(ctx->tt->current_track->audio_streams[0]);
+  s = &(ctx->tt->cur->audio_streams[0]);
   p = bgav_stream_get_packet_write(s);
 
   len = s->data.audio.block_align * priv->sub_packet_h;
   bgav_packet_alloc(p, len);
   if(bgav_input_read_data(ctx->input, p->data, len) < len)
     return 0;
-
+  
   p->data_size = len;
+
+  if(s->fourcc == BGAV_MK_FOURCC('d', 'n', 'e', 't'))
+    swap_bytes_dnet(p->data, p->data_size);
+  
   p->keyframe = 1;
   bgav_packet_done_write(p);
   return 1;
   }
 
+#if 0
 static void seek_ra(bgav_demuxer_context_t * ctx, gavl_time_t time)
   {
 
   }
+#endif
 
 static void close_ra(bgav_demuxer_context_t * ctx)
   {
@@ -289,6 +310,6 @@ bgav_demuxer_t bgav_demuxer_ra =
     probe:       probe_ra,
     open:        open_ra,
     next_packet: next_packet_ra,
-    seek:        seek_ra,
+    //    seek:        seek_ra,
     close:       close_ra
   };

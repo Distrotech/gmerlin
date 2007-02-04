@@ -1092,7 +1092,7 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
         }
       }
 #endif
-    s = bgav_track_find_stream(ctx->tt->current_track, priv->packet.pid);
+    s = bgav_track_find_stream(ctx->tt->cur, priv->packet.pid);
     
     if(!s)
       {
@@ -1227,20 +1227,20 @@ static void seek_mpegts(bgav_demuxer_context_t * ctx, gavl_time_t time)
   mpegts_t * priv;
   priv = (mpegts_t*)(ctx->priv);
 
-  reset_streams_priv(ctx->tt->current_track);
+  reset_streams_priv(ctx->tt->cur);
   
   total_packets =
     (ctx->input->total_bytes - priv->first_packet_pos) / priv->packet_size;
 
   packet =
     (int64_t)((double)total_packets *
-              (double)time / (double)(ctx->tt->current_track->duration)+0.5);
+              (double)time / (double)(ctx->tt->cur->duration)+0.5);
   
   position = priv->first_packet_pos + packet * priv->packet_size;
   bgav_input_seek(ctx->input, position, SEEK_SET);
 
   priv->do_sync = 1;
-  while(!bgav_track_has_sync(ctx->tt->current_track))
+  while(!bgav_track_has_sync(ctx->tt->cur))
     {
     if(!next_packet_mpegts(ctx))
       break;
@@ -1276,7 +1276,7 @@ static void close_mpegts(bgav_demuxer_context_t * ctx)
   free(priv);
   }
 
-static void select_track_mpegts(bgav_demuxer_context_t * ctx,
+static int select_track_mpegts(bgav_demuxer_context_t * ctx,
                                 int track)
   {
   mpegts_t * priv;
@@ -1295,8 +1295,11 @@ static void select_track_mpegts(bgav_demuxer_context_t * ctx,
     {
     bgav_input_seek(ctx->input, priv->first_packet_pos,
                     SEEK_SET);
+    return 1;
     }
-  
+  else
+    return 0;
+    
   }
 
 bgav_demuxer_t bgav_demuxer_mpegts =

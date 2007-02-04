@@ -144,7 +144,7 @@ static int setup_audio_stream(bgav_demuxer_context_t * ctx,
     switch(chunk.fourcc)
       {
       case ID_strk:
-        s = bgav_track_add_audio_stream(ctx->tt->current_track,
+        s = bgav_track_add_audio_stream(ctx->tt->cur,
                                         ctx->opt);
         // bytes 8-11   track number
         if(!bgav_input_read_32_le(ctx->input, &tmp_32))
@@ -208,7 +208,7 @@ static int setup_video_stream(bgav_demuxer_context_t * ctx,
     switch(chunk.fourcc)
       {
       case ID_vtrk:
-        s = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
+        s = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
         
         bgav_input_skip(ctx->input, 35-8+1); // bytes 8-35   unknown
 
@@ -299,10 +299,10 @@ static int open_4xm(bgav_demuxer_context_t * ctx,
                 switch(chunk.fourcc)
                   {
                   case ID_info:
-                    ctx->tt->current_track->metadata.comment =
+                    ctx->tt->cur->metadata.comment =
                       calloc(chunk.size+1, 1);
                     if(bgav_input_read_data(ctx->input,
-                                            (uint8_t*)ctx->tt->current_track->metadata.comment,
+                                            (uint8_t*)ctx->tt->cur->metadata.comment,
                                             chunk.size) < chunk.size)
                       return 0;
                     break;
@@ -356,7 +356,18 @@ static int open_4xm(bgav_demuxer_context_t * ctx,
         break;
       }
     }
+  ctx->data_start = ctx->input->position;
+  ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
+  
   ctx->stream_description = bgav_sprintf("4XM");
+  return 1;
+  }
+
+static int select_track_4xm(bgav_demuxer_context_t * ctx, int track)
+  {
+  fourxm_priv_t * priv;
+  priv = (fourxm_priv_t*)(ctx->priv);
+  priv->video_pts = 0;
   return 1;
   }
 
@@ -397,7 +408,7 @@ static int next_packet_4xm(bgav_demuxer_context_t * ctx)
       case ID_pfrm:
       case ID_cfrm:
         size = BGAV_PTR_2_32LE(&header[4]);
-        s = bgav_track_find_stream(ctx->tt->current_track, 0);
+        s = bgav_track_find_stream(ctx->tt->cur, 0);
 
         
         if(!s)
@@ -429,7 +440,7 @@ static int next_packet_4xm(bgav_demuxer_context_t * ctx)
         if(!bgav_input_read_32_le(ctx->input, &stream_id))
           return 0;
         bgav_input_skip(ctx->input, 4); // out_size
-        s = bgav_track_find_stream(ctx->tt->current_track,
+        s = bgav_track_find_stream(ctx->tt->cur,
                                    stream_id + AUDIO_STREAM_OFFSET);
 
         if(!s)
@@ -472,8 +483,9 @@ static void close_4xm(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_4xm =
   {
-    probe:       probe_4xm,
-    open:        open_4xm,
-    next_packet: next_packet_4xm,
-    close:       close_4xm
+    probe:        probe_4xm,
+    open:         open_4xm,
+    select_track: select_track_4xm,
+    next_packet:  next_packet_4xm,
+    close:        close_4xm
   };

@@ -33,6 +33,8 @@
  *  features (incl. seeking) without too much code duplication.
  */
 
+#define LOG_DOMAIN "musepack"
+
 
 typedef struct
   {
@@ -110,8 +112,17 @@ static int open_mpc(bgav_demuxer_context_t * ctx,
   bgav_stream_t * s;
   mpc_priv_t * priv;
 
+  if(!ctx->input->input->seek_byte)
+    {
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Cannot decode from nonseekable sources");
+    return 0;
+    }
+  
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;
+
+  /* Musepack is only readable from seekable sources */
   
   /* Setup reader */
 
@@ -171,7 +182,7 @@ static int open_mpc(bgav_demuxer_context_t * ctx,
     else if(apetag)
       bgav_ape_tag_2_metadata(apetag, &end_metadata);
     
-    bgav_metadata_merge(&(ctx->tt->current_track->metadata),
+    bgav_metadata_merge(&(ctx->tt->cur->metadata),
                         &start_metadata, &end_metadata);
     bgav_metadata_free(&start_metadata);
     bgav_metadata_free(&end_metadata);
@@ -179,13 +190,13 @@ static int open_mpc(bgav_demuxer_context_t * ctx,
   
   else if(ctx->input->id3v2)
     bgav_id3v2_2_metadata(ctx->input->id3v2,
-                          &(ctx->tt->current_track->metadata));
+                          &(ctx->tt->cur->metadata));
   else if(id3v1)
     bgav_id3v1_2_metadata(id3v1,
-                          &(ctx->tt->current_track->metadata));
+                          &(ctx->tt->cur->metadata));
   else if(apetag)
     bgav_ape_tag_2_metadata(apetag,
-                            &(ctx->tt->current_track->metadata));
+                            &(ctx->tt->cur->metadata));
   
   if(id3v1)
     bgav_id3v1_destroy(id3v1);
@@ -205,7 +216,7 @@ static int open_mpc(bgav_demuxer_context_t * ctx,
   if(!mpc_decoder_initialize(&(priv->dec), &(priv->si)))
     return 0;
   
-  s = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+  s = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
   
   s->data.audio.format.samplerate    = priv->si.sample_freq;
   s->data.audio.format.num_channels  = priv->si.channels;
@@ -220,7 +231,7 @@ static int open_mpc(bgav_demuxer_context_t * ctx,
 
   s->description = bgav_sprintf("Musepack");
   
-  ctx->tt->current_track->duration =
+  ctx->tt->cur->duration =
     gavl_samples_to_time(s->data.audio.format.samplerate,
                          mpc_streaminfo_get_length_samples(&(priv->si)));
 
@@ -240,7 +251,7 @@ static int next_packet_mpc(bgav_demuxer_context_t * ctx)
   mpc_priv_t * priv;
   priv = (mpc_priv_t *)(ctx->priv);
 
-  s = &(ctx->tt->current_track->audio_streams[0]);
+  s = &(ctx->tt->cur->audio_streams[0]);
 
   p = bgav_stream_get_packet_write(s);
 
@@ -270,7 +281,7 @@ static void seek_mpc(bgav_demuxer_context_t * ctx, gavl_time_t time)
   mpc_priv_t * priv;
   priv = (mpc_priv_t *)(ctx->priv);
 
-  s = &(ctx->tt->current_track->audio_streams[0]);
+  s = &(ctx->tt->cur->audio_streams[0]);
   
   sample = gavl_time_to_samples(s->data.audio.format.samplerate,
                                 time);

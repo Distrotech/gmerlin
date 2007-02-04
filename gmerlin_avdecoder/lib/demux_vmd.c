@@ -111,7 +111,7 @@ static int open_vmd(bgav_demuxer_context_t * ctx,
 
   /* Initialize video stream */
   
-  vs = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
+  vs = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
 
   vs->stream_id = VIDEO_ID;
   vs->fourcc = BGAV_MK_FOURCC('V','M','D','V');
@@ -130,7 +130,7 @@ static int open_vmd(bgav_demuxer_context_t * ctx,
 
   if(samplerate)
     {
-    as = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+    as = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
     as->stream_id = AUDIO_ID;
     as->fourcc = BGAV_MK_FOURCC('V','M','D','A');
     as->data.audio.format.samplerate = samplerate;
@@ -219,6 +219,9 @@ static int open_vmd(bgav_demuxer_context_t * ctx,
   ctx->stream_description = bgav_sprintf("Sierra VMD");
   ret = 1;
   
+  ctx->data_start = ctx->input->position;
+  ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
+
   fail:
   if(raw_frame_table)
     free(raw_frame_table);
@@ -241,7 +244,7 @@ static int next_packet_vmd(bgav_demuxer_context_t * ctx)
 
   frame = &priv->frame_table[priv->current_frame];
 
-  s = bgav_track_find_stream(ctx->tt->current_track, frame->stream_index);
+  s = bgav_track_find_stream(ctx->tt->cur, frame->stream_index);
   if(s)
     {
     bgav_input_seek(ctx->input, frame->frame_offset, SEEK_SET);
@@ -261,6 +264,14 @@ static int next_packet_vmd(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
+static int select_track_vmd(bgav_demuxer_context_t * ctx, int track)
+  {
+  vmd_priv_t * priv;
+  priv = (vmd_priv_t*)(ctx->priv);
+  priv->current_frame = 0;
+  return 1;
+  }
+
 static void close_vmd(bgav_demuxer_context_t * ctx)
   {
   vmd_priv_t * priv;
@@ -272,6 +283,7 @@ bgav_demuxer_t bgav_demuxer_vmd =
   {
     probe:       probe_vmd,
     open:        open_vmd,
+    select_track: select_track_vmd,
     next_packet: next_packet_vmd,
     close:       close_vmd
   };

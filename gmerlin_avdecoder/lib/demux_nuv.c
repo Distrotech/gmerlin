@@ -105,7 +105,7 @@ static int open_nuv(bgav_demuxer_context_t * ctx,
 
   if(v_packs)
     {
-    vs = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
+    vs = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
     vs->stream_id = VIDEO_ID;
     vs->fourcc = BGAV_MK_FOURCC('R', 'J', 'P', 'G');
     vs->timescale = 1000;
@@ -124,7 +124,7 @@ static int open_nuv(bgav_demuxer_context_t * ctx,
 
   if(a_packs)
     {
-    as = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+    as = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
     as->stream_id = AUDIO_ID;
     as->fourcc = BGAV_WAVID_2_FOURCC(0x0001);
     as->timescale = 1000;
@@ -230,7 +230,10 @@ static int open_nuv(bgav_demuxer_context_t * ctx,
     ctx->stream_description = bgav_sprintf("MythTV");
   else
     ctx->stream_description = bgav_sprintf("NuppelVideo");
-    
+  
+  ctx->data_start = ctx->input->position;
+  ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
+  
   return 1;
   }
 
@@ -254,7 +257,7 @@ static int next_packet_nuv(bgav_demuxer_context_t * ctx)
     {
     case NUV_VIDEO:
     case NUV_EXTRADATA:
-      s = bgav_track_find_stream(ctx->tt->current_track,
+      s = bgav_track_find_stream(ctx->tt->cur,
                                  VIDEO_ID);
       if(!s)
         {
@@ -275,7 +278,7 @@ static int next_packet_nuv(bgav_demuxer_context_t * ctx)
       bgav_packet_done_write(p);
       break;
     case NUV_AUDIO:
-      s = bgav_track_find_stream(ctx->tt->current_track,
+      s = bgav_track_find_stream(ctx->tt->cur,
                                  AUDIO_ID);
       if(!s)
         {
@@ -307,8 +310,8 @@ static int next_packet_nuv(bgav_demuxer_context_t * ctx)
 
 static void close_nuv(bgav_demuxer_context_t * ctx)
   {
-  if(ctx->tt->current_track->video_streams[0].ext_data)
-    free(ctx->tt->current_track->video_streams[0].ext_data);
+  if(ctx->tt->cur->video_streams[0].ext_data)
+    free(ctx->tt->cur->video_streams[0].ext_data);
   }
 
 bgav_demuxer_t bgav_demuxer_nuv =

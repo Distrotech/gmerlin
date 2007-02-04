@@ -184,7 +184,7 @@ static int open_mpegvideo(bgav_demuxer_context_t * ctx,
 
   ctx->tt = bgav_track_table_create(1);
   
-  s = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
+  s = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
 
   s->container_bitrate = priv->byte_rate * 8;
   
@@ -203,15 +203,18 @@ static int open_mpegvideo(bgav_demuxer_context_t * ctx,
 
   if(ctx->input->total_bytes && priv->byte_rate)
     {
-    ctx->tt->current_track->duration
+    ctx->tt->cur->duration
       = ((int64_t)priv->data_size * (int64_t)GAVL_TIME_SCALE) / 
       (priv->byte_rate);
     }
   else
-    ctx->tt->current_track->duration = GAVL_TIME_UNDEFINED;
+    ctx->tt->cur->duration = GAVL_TIME_UNDEFINED;
   
   ctx->stream_description = bgav_sprintf("Elementary MPEG-%d video stream",
                                          1 + mpeg2);
+
+  ctx->data_start = ctx->input->position;
+  ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
   
   bgav_input_destroy(input_mem);
   return 1;
@@ -232,7 +235,7 @@ static int next_packet_mpegvideo(bgav_demuxer_context_t * ctx)
     
   priv = (mpegvideo_priv_t *)(ctx->priv);
   
-  s = ctx->tt->current_track->video_streams;
+  s = ctx->tt->cur->video_streams;
   
   p = bgav_stream_get_packet_write(s);
 
@@ -265,7 +268,7 @@ static void seek_mpegvideo(bgav_demuxer_context_t * ctx, gavl_time_t time)
   priv = (mpegvideo_priv_t *)(ctx->priv);
   bgav_stream_t * s;
   
-  s = ctx->tt->current_track->video_streams;
+  s = ctx->tt->cur->video_streams;
     
   file_position = (time * (priv->byte_rate)) / GAVL_TIME_SCALE;
   

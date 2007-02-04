@@ -65,6 +65,9 @@ static int open_pnm(bgav_input_context_t * ctx, const char * url)
     free(host);
   if(path)
     free(path);
+
+  ctx->url = bgav_strdup(url);
+  
   return 1;
 
   fail:

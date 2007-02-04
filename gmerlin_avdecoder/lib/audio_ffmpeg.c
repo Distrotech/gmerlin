@@ -305,6 +305,10 @@ typedef struct
   uint8_t * packet_buffer_ptr;
   int packet_buffer_alloc;
   int bytes_in_packet_buffer;
+
+  /* ffmpeg changes the extradata sometimes,
+     so we save them locally here */
+  uint8_t * ext_data;
   } ffmpeg_audio_priv;
 
 static codec_info_t * lookup_codec(bgav_stream_t * s)
@@ -397,7 +401,7 @@ static int decode_frame(bgav_stream_t * s)
     }
   
 #ifdef DUMP_DECODE
-  bgav_dprintf("used %d bytes (frame size: %d)\n", bytes_used, frame_size);
+  bgav_dprintf("Used %d bytes (frame size: %d)\n", bytes_used, frame_size);
 #endif
   
   if(bytes_used <= 1)
@@ -460,9 +464,17 @@ static int init(bgav_stream_t * s)
 
   //  priv->ctx->width = s->format.frame_width;
   //  priv->ctx->height = s->format.frame_height;
+
+  if(s->ext_size)
+    {
+    priv->ext_data = calloc(1, s->ext_size +
+                            FF_INPUT_BUFFER_PADDING_SIZE);
+    memcpy(priv->ext_data, s->ext_data, s->ext_size);
+    
+    priv->ctx->extradata = priv->ext_data;
+    priv->ctx->extradata_size = s->ext_size;
+    }
   
-  priv->ctx->extradata = s->ext_data;
-  priv->ctx->extradata_size = s->ext_size;
 #ifdef DUMP_EXTRADATA
   bgav_dprintf("Adding extradata %d bytes\n", priv->ctx->extradata_size);
   bgav_hexdump(priv->ctx->extradata, priv->ctx->extradata_size, 16);
@@ -559,6 +571,9 @@ static void close_ffmpeg(bgav_stream_t * s)
   ffmpeg_audio_priv * priv;
   priv= (ffmpeg_audio_priv*)(s->data.audio.decoder->priv);
 
+  if(priv->ext_data)
+    free(priv->ext_data);
+  
   if(priv->frame)
     gavl_audio_frame_destroy(priv->frame);
   

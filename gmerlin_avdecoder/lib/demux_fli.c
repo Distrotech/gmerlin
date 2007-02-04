@@ -40,7 +40,6 @@ typedef struct
   uint8_t header[FLIC_HEADER_SIZE];
   int header_size;
   int skip_header;
-  int64_t frame_counter;
   } fli_priv_t;
 
 static int probe_fli(bgav_input_context_t * input)
@@ -82,7 +81,7 @@ static int open_fli(bgav_demuxer_context_t * ctx,
   ctx->tt = bgav_track_table_create(1);
   
   /* Create and set up stream */
-  s = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
+  s = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
   s->fourcc = BGAV_MK_FOURCC('F','L','I','C');
 
   s->data.video.format.image_width  = BGAV_PTR_2_16LE(&priv->header[0x08]);
@@ -145,7 +144,9 @@ static int open_fli(bgav_demuxer_context_t * ctx,
   ctx->stream_description = bgav_sprintf("FLI/FLC Animation");
 
   priv->skip_header = 1;
-
+  
+  ctx->data_start = ctx->input->position;
+  ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
   return 1;
   }
 
@@ -181,7 +182,7 @@ static int next_packet_fli(bgav_demuxer_context_t * ctx)
     if(((magic == FLIC_CHUNK_MAGIC_1) || (magic == FLIC_CHUNK_MAGIC_2)) &&
        (size > FLIC_PREAMBLE_SIZE))
       {
-      s = ctx->tt->current_track->video_streams;
+      s = ctx->tt->cur->video_streams;
       p = bgav_stream_get_packet_write(s);
       bgav_packet_alloc(p, size);
       
@@ -192,9 +193,8 @@ static int next_packet_fli(bgav_demuxer_context_t * ctx)
         return 0;
         }
       
-      p->pts = priv->frame_counter * s->data.video.format.frame_duration;
+      p->pts = s->in_position * s->data.video.format.frame_duration;
       p->data_size = size;
-      priv->frame_counter++;
       
       bgav_packet_done_write(p);
       return 1;

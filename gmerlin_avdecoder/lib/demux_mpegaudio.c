@@ -461,8 +461,8 @@ typedef struct
   int64_t frames;
   } mpegaudio_priv_t;
 
-static void select_track_mpegaudio(bgav_demuxer_context_t * ctx,
-                                   int track);
+static int select_track_mpegaudio(bgav_demuxer_context_t * ctx,
+                                  int track);
 
 #define MAX_BYTES 2885 /* Maximum size of an mpeg audio frame + 4 bytes for next header */
 
@@ -607,7 +607,7 @@ static int set_stream(bgav_demuxer_context_t * ctx)
     priv->have_xing = 0;
     }
 
-  s = ctx->tt->current_track->audio_streams;
+  s = ctx->tt->cur->audio_streams;
 
   /* Get audio format */
   
@@ -668,7 +668,7 @@ static int set_stream(bgav_demuxer_context_t * ctx)
 
   /* Get stream duration */
 
-  ctx->tt->current_track->duration = ctx->tt->current_track->duration;
+  ctx->tt->cur->duration = ctx->tt->cur->duration;
   return 1;
   }
 
@@ -866,7 +866,7 @@ static int next_packet_mpegaudio(bgav_demuxer_context_t * ctx)
     {
     return 0;
     }
-  s = ctx->tt->current_track->audio_streams;
+  s = ctx->tt->cur->audio_streams;
   p = bgav_stream_get_packet_write(s);
   bgav_packet_alloc(p, priv->header.frame_bytes);
 
@@ -893,21 +893,21 @@ static void seek_mpegaudio(bgav_demuxer_context_t * ctx, gavl_time_t time)
   bgav_stream_t * s;
   
   priv = (mpegaudio_priv_t*)(ctx->priv);
-  s = ctx->tt->current_track->audio_streams;
+  s = ctx->tt->cur->audio_streams;
   
   if(priv->have_xing) /* VBR */
     {
     pos =
       bgav_xing_get_seek_position(&(priv->xing),
-                                  100.0 * (float)time / (float)(ctx->tt->current_track->duration));
+                                  100.0 * (float)time / (float)(ctx->tt->cur->duration));
     }
   else /* CBR */
     {
-    pos = ((priv->data_end - priv->data_start) * time) / ctx->tt->current_track->duration;
+    pos = ((priv->data_end - priv->data_start) * time) / ctx->tt->cur->duration;
     }
 
   s->time_scaled =
-    gavl_time_to_samples(ctx->tt->current_track->audio_streams[0].data.audio.format.samplerate, time);
+    gavl_time_to_samples(ctx->tt->cur->audio_streams[0].data.audio.format.samplerate, time);
   
   pos += priv->data_start;
   bgav_input_seek(ctx->input, pos, SEEK_SET);
@@ -925,7 +925,7 @@ static void close_mpegaudio(bgav_demuxer_context_t * ctx)
   free(priv);
   }
 
-static void select_track_mpegaudio(bgav_demuxer_context_t * ctx,
+static int select_track_mpegaudio(bgav_demuxer_context_t * ctx,
                                    int track)
   {
   mpegaudio_priv_t * priv;
@@ -938,9 +938,15 @@ static void select_track_mpegaudio(bgav_demuxer_context_t * ctx,
     priv->data_end   = priv->albw->tracks[track].end_pos;
     }
   //  return;
-  if(ctx->input->input->seek_byte)
-    bgav_input_seek(ctx->input, priv->data_start, SEEK_SET);
+  if(ctx->input->position != priv->data_start)
+    {
+    if(ctx->input->input->seek_byte)
+      bgav_input_seek(ctx->input, priv->data_start, SEEK_SET);
+    else
+      return 0;
+    }
   set_stream(ctx);
+  return 1;
   }
 
 bgav_demuxer_t bgav_demuxer_mpegaudio =

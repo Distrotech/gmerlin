@@ -139,7 +139,7 @@ static int open_wavpack(bgav_demuxer_context_t * ctx,
   
   /* Create the track and the stream */
   ctx->tt = bgav_track_table_create(1);
-  s = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+  s = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
 
   s->data.audio.format.num_channels = 1 + !(h.flags & WV_MONO);
   s->data.audio.format.samplerate   = wv_rates[(h.flags >> 23) & 0xF];
@@ -147,7 +147,7 @@ static int open_wavpack(bgav_demuxer_context_t * ctx,
   s->data.audio.bits_per_sample = ((h.flags & 3) + 1) << 3;
   
   ctx->stream_description = bgav_sprintf("Wavpack");
-  ctx->tt->current_track->duration =
+  ctx->tt->cur->duration =
     gavl_time_unscale(s->data.audio.format.samplerate, h.total_samples);
 
   if(ctx->input->input->seek_byte)
@@ -167,7 +167,7 @@ static int next_packet_wavpack(bgav_demuxer_context_t * ctx)
   if(bgav_input_read_data(ctx->input, header, HEADER_SIZE) < HEADER_SIZE)
     return 0; // EOF
 
-  s = &(ctx->tt->current_track->audio_streams[0]);
+  s = &(ctx->tt->cur->audio_streams[0]);
   p = bgav_stream_get_packet_write(s);
 
   /* The last 12 bytes of the header must be copied to the
@@ -206,7 +206,7 @@ static void seek_wavpack(bgav_demuxer_context_t * ctx, gavl_time_t time)
   uint8_t header[HEADER_SIZE];
   wvpk_header_t h;
 
-  s = &(ctx->tt->current_track->audio_streams[0]);
+  s = &(ctx->tt->cur->audio_streams[0]);
 
   current_pos = 0;
   time_scaled = gavl_time_scale(s->timescale, time);

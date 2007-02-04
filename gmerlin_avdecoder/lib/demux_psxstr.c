@@ -48,11 +48,6 @@
 static uint8_t sync_header[12] =
 {0x00,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0x00};
 
-typedef struct
-  {
-  uint32_t video_pts;
-  } psxstr_priv_t;
-
 static int probe_psxstr(bgav_input_context_t * input)
   {
   uint8_t * ptr;
@@ -91,10 +86,6 @@ static int open_psxstr(bgav_demuxer_context_t * ctx,
   uint8_t * sector;
   int channel;
   bgav_stream_t * s;
-  psxstr_priv_t * priv;
-
-  priv = calloc(1, sizeof(*priv));
-  ctx->priv = priv;
   
   if(!bgav_input_get_fourcc(ctx->input, &fourcc))
     goto fail;
@@ -129,10 +120,10 @@ static int open_psxstr(bgav_demuxer_context_t * ctx,
         if(BGAV_PTR_2_32LE(&sector[0x18]) != STR_MAGIC)
           break;
 
-        if(bgav_track_find_stream_all(ctx->tt->current_track, channel + VIDEO_OFFSET))
+        if(bgav_track_find_stream_all(ctx->tt->cur, channel + VIDEO_OFFSET))
           break;
         
-        s = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
+        s = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
         s->fourcc = BGAV_MK_FOURCC('M','D','E','C');
 
         s->data.video.format.image_width  = BGAV_PTR_2_16LE(&sector[0x28]);
@@ -151,10 +142,10 @@ static int open_psxstr(bgav_demuxer_context_t * ctx,
                
         break;
       case CDXA_TYPE_AUDIO:
-        if(bgav_track_find_stream_all(ctx->tt->current_track, channel + AUDIO_OFFSET))
+        if(bgav_track_find_stream_all(ctx->tt->cur, channel + AUDIO_OFFSET))
           break;
         
-        s = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+        s = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
         s->fourcc = BGAV_MK_FOURCC('A','D','X','A');
         
         s->data.audio.format.samplerate      = (sector[0x13] & 0x04) ? 18900 : 37800;
@@ -168,6 +159,9 @@ static int open_psxstr(bgav_demuxer_context_t * ctx,
       }
     }
   ctx->stream_description = bgav_sprintf("Sony Playstation (PSX) STR");
+
+  ctx->data_start = ctx->input->position;
+  ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
   
   ret = 1;
   fail:
@@ -181,7 +175,6 @@ static int next_packet_psxstr(bgav_demuxer_context_t * ctx)
   {
   int channel;
   uint8_t sector[RAW_CD_SECTOR_SIZE];
-  psxstr_priv_t * priv;
   bgav_stream_t * s;
   bgav_packet_t * p;
   int current_sector;
@@ -189,7 +182,6 @@ static int next_packet_psxstr(bgav_demuxer_context_t * ctx)
   int frame_size;
   int bytes_to_copy;
   
-  priv = (psxstr_priv_t *)(ctx->priv);
 
   if(bgav_input_read_data(ctx->input, sector, RAW_CD_SECTOR_SIZE) < RAW_CD_SECTOR_SIZE)
     return 0;
@@ -201,7 +193,7 @@ static int next_packet_psxstr(bgav_demuxer_context_t * ctx)
     case CDXA_TYPE_DATA:
     case CDXA_TYPE_VIDEO:
 
-      s = bgav_track_find_stream(ctx->tt->current_track, channel + VIDEO_OFFSET);
+      s = bgav_track_find_stream(ctx->tt->cur, channel + VIDEO_OFFSET);
       if(!s)
         break;
       
@@ -228,14 +220,14 @@ static int next_packet_psxstr(bgav_demuxer_context_t * ctx)
       
       if(current_sector == sector_count-1)
         {
-        s->packet->pts = priv->video_pts++;
+        s->packet->pts = s->in_position;
         bgav_packet_done_write(s->packet);
         s->packet = (bgav_packet_t*)0;
         }
       break;
     case CDXA_TYPE_AUDIO:
       
-      s = bgav_track_find_stream(ctx->tt->current_track, channel + AUDIO_OFFSET);
+      s = bgav_track_find_stream(ctx->tt->cur, channel + AUDIO_OFFSET);
       if(!s)
         break;
 
@@ -254,9 +246,6 @@ static int next_packet_psxstr(bgav_demuxer_context_t * ctx)
 
 static void close_psxstr(bgav_demuxer_context_t * ctx)
   {
-  psxstr_priv_t * priv;
-  priv = (psxstr_priv_t *)(ctx->priv);
-  free(priv);
   }
 
 bgav_demuxer_t bgav_demuxer_psxstr =

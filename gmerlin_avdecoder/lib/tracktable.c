@@ -34,7 +34,7 @@ bgav_track_table_t * bgav_track_table_create(int num_tracks)
     for(i = 0; i < num_tracks; i++)
       ret->tracks[i].duration = GAVL_TIME_UNDEFINED;
     ret->num_tracks = num_tracks;
-    ret->current_track = ret->tracks;
+    ret->cur = ret->tracks;
     }
   ret->refcount = 1;
   return ret;
@@ -43,14 +43,14 @@ bgav_track_table_t * bgav_track_table_create(int num_tracks)
 bgav_track_t * bgav_track_table_append_track(bgav_track_table_t * t)
   {
   int track_index;
-  track_index = (int)(t->current_track - t->tracks);
+  track_index = (int)(t->cur - t->tracks);
   
   t->tracks = realloc(t->tracks, sizeof(*t->tracks) * (t->num_tracks+1));
   memset(&t->tracks[t->num_tracks], 0, sizeof(t->tracks[t->num_tracks]));
   t->tracks[t->num_tracks].duration = GAVL_TIME_UNDEFINED;
   t->num_tracks++;
 
-  t->current_track = t->tracks + track_index;
+  t->cur = t->tracks + track_index;
   
   return &(t->tracks[t->num_tracks-1]);
   }
@@ -76,7 +76,7 @@ void bgav_track_table_unref(bgav_track_table_t * t)
 
 void bgav_track_table_select_track(bgav_track_table_t * t, int track)
   {
-  t->current_track = &(t->tracks[track]);
+  t->cur = &(t->tracks[track]);
   }
 
 void bgav_track_table_dump(bgav_track_table_t * t)

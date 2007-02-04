@@ -211,9 +211,8 @@ int bgav_input_read_data(bgav_input_context_t * ctx, uint8_t * buffer, int len)
   return ret;
   }
 
-int bgav_input_get_data(bgav_input_context_t * ctx, uint8_t * buffer, int len)
+void bgav_input_ensure_buffer_size(bgav_input_context_t * ctx, int len)
   {
-  int bytes_gotten;
   int result;
   if(ctx->buffer_size < len)
     {
@@ -228,7 +227,22 @@ int bgav_input_get_data(bgav_input_context_t * ctx, uint8_t * buffer, int len)
     if(result < 0)
       result = 0;
     ctx->buffer_size += result;
+#if 0
+    if(ctx->do_buffer)
+      {
+      ctx->buffer_size +=
+        ctx->input->read_nonblock(ctx, ctx->buffer + ctx->buffer_size,
+                                  ctx->buffer_alloc - ctx->buffer_size);
+      }
+#endif
     }
+  }
+
+int bgav_input_get_data(bgav_input_context_t * ctx, uint8_t * buffer, int len)
+  {
+  int bytes_gotten;
+  bgav_input_ensure_buffer_size(ctx, len);
+  
   bytes_gotten = (len > ctx->buffer_size) ? ctx->buffer_size :
     len;
 
@@ -646,6 +660,19 @@ void bgav_inputs_dump()
 #define DVD_PATH "/video_ts/video_ts.ifo"
 #define DVD_PATH_LEN strlen(DVD_PATH)
 
+static void init_buffering(bgav_input_context_t * ctx)
+  {
+  /* Check if we should buffer data */
+
+  if(!ctx->opt->network_buffer_size || !ctx->input->read_nonblock)
+    ctx->do_buffer = 0;
+  if(ctx->do_buffer)
+    {
+    ctx->buffer_alloc = ctx->opt->network_buffer_size;
+    ctx->buffer = malloc(ctx->buffer_alloc);
+    }
+  }
+
 int bgav_input_open(bgav_input_context_t * ctx,
                     const char *url)
   {
@@ -727,15 +754,7 @@ int bgav_input_open(bgav_input_context_t * ctx,
     goto fail;
     }
 
-  /* Check if we should buffer data */
-
-  if(!ctx->opt->network_buffer_size || !ctx->input->read_nonblock)
-    ctx->do_buffer = 0;
-  if(ctx->do_buffer)
-    {
-    ctx->buffer_alloc = ctx->opt->network_buffer_size;
-    ctx->buffer = malloc(ctx->buffer_alloc);
-    }
+  init_buffering(ctx);
   
   ret = 1;
 
@@ -949,5 +968,44 @@ bgav_input_context_t * bgav_input_create(const bgav_options_t * opt)
   ret = calloc(1, sizeof(*ret));
 
   ret->opt = opt;
+  return ret;
+  }
+
+/* Reopen  the input. Not all inputs can do this */
+int bgav_input_reopen(bgav_input_context_t * ctx)
+  {
+  gavl_time_t delay_time = GAVL_TIME_SCALE / 2;
+  bgav_input_t * input;
+  char * url = (char*)0;
+  int ret = 0;
+  const bgav_options_t * opt;
+  if(ctx->url)
+    {
+    url = ctx->url;
+    input = ctx->input;
+    opt = ctx->opt;
+    
+    ctx->url = (char*)0;
+    
+    bgav_input_close(ctx);
+    
+    /* Give the server time to recreate */
+    gavl_time_delay(&delay_time);
+
+    ctx->input = input;
+    ctx->opt = opt;
+    
+    if(!ctx->input->open(ctx, url))
+      {
+      if(!ctx->error_msg)
+        ctx->error_msg = bgav_sprintf("Reopening %s failed", url);
+      goto fail;
+      }
+    init_buffering(ctx);
+    ret = 1;
+    }
+  fail:
+  if(url)
+    free(url);
   return ret;
   }

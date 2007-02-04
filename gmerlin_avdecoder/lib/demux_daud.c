@@ -19,6 +19,7 @@
 
 #include <avdec_private.h>
 #include <string.h>
+#include <stdio.h>
 
 static int probe_daud(bgav_input_context_t * input)
   {
@@ -52,6 +53,12 @@ static int open_daud(bgav_demuxer_context_t * ctx,
   s->container_bitrate = 3 * 6 * 96000 * 8;
   s->data.audio.block_align = 3 * 6;
   s->data.audio.bits_per_sample = 24;
+  ctx->stream_description = bgav_sprintf("D-Cinema audio format");
+  ctx->data_start = 0;
+  ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
+  if(ctx->input->input->seek_byte)
+    ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
+  
   return 1;
   }
 
@@ -65,7 +72,7 @@ static int next_packet_daud(bgav_demuxer_context_t * ctx)
     return 0;
   bgav_input_skip(ctx->input, 2); // Unknown
   
-  s = bgav_track_find_stream(ctx->tt->current_track, 0);
+  s = bgav_track_find_stream(ctx->tt->cur, 0);
   if(s)
     {
     p = bgav_stream_get_packet_write(s);
@@ -77,8 +84,6 @@ static int next_packet_daud(bgav_demuxer_context_t * ctx)
     }
   else
     bgav_input_skip(ctx->input, size);
-
-  ctx->stream_description = bgav_sprintf("D-Cinema audio format");
   
   return 1;
   }

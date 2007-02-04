@@ -129,17 +129,16 @@ int bgav_init(bgav_t * ret)
                                   &(ret->input->metadata));
 
   /* Check for subtitle file */
-
   
   if(ret->opt.seek_subtitles &&
-     (ret->opt.seek_subtitles + ret->tt->current_track->num_video_streams > 1))
+     (ret->opt.seek_subtitles + ret->tt->cur->num_video_streams > 1))
     {
     subreaders = bgav_subtitle_reader_open(ret->input);
     
     subreader = subreaders;
     while(subreader)
       {
-      bgav_track_attach_subtitle_reader(ret->tt->current_track,
+      bgav_track_attach_subtitle_reader(ret->tt->cur,
                                         &(ret->opt), subreader);
       subreader = subreader->next;
       }
@@ -226,7 +225,7 @@ void bgav_close(bgav_t * b)
   
   if(b->is_running)
     {
-    bgav_track_stop(b->tt->current_track);
+    bgav_track_stop(b->tt->cur);
     b->is_running = 0;
     }
 
@@ -253,7 +252,7 @@ void bgav_close(bgav_t * b)
 
 void bgav_dump(bgav_t * bgav)
   {
-  bgav_track_dump(bgav, bgav->tt->current_track);
+  bgav_track_dump(bgav, bgav->tt->cur);
   
   }
 
@@ -273,13 +272,17 @@ void bgav_stop(bgav_t * b)
 
 int bgav_select_track(bgav_t * b, int track)
   {
+  int was_running = 0;
+  int reset_input = 0;
+  int64_t data_start = -1;
   if((track < 0) || (track >= b->tt->num_tracks))
     return 0;
   
   if(b->is_running)
     {
-    bgav_track_stop(b->tt->current_track);
+    bgav_track_stop(b->tt->cur);
     b->is_running = 0;
+    was_running = 1;
     }
   
   if(b->input->input->select_track)
@@ -290,21 +293,103 @@ int bgav_select_track(bgav_t * b, int track)
     bgav_track_table_select_track(b->tt, track);
     b->input->input->select_track(b->input, track);
     bgav_demuxer_start(b->demuxer, &(b->redirector));
+    return 1;
     }
-  else if(b->demuxer && b->demuxer->demuxer->select_track)
+
+  if(b->demuxer)
     {
-    /* Demuxer switches track */
-    bgav_track_table_select_track(b->tt, track);
-    b->demuxer->demuxer->select_track(b->demuxer, track);
+    if(b->demuxer->flags & BGAV_DEMUXER_HAS_DATA_START)
+      {
+      if(b->demuxer->data_start < b->input->position)
+        {
+        if(b->input->input->seek_byte)
+          bgav_input_seek(b->input, b->demuxer->data_start, SEEK_SET);
+        else
+          {
+          data_start = b->demuxer->data_start;
+          reset_input = 1;
+          //        bgav_log(&b->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+          //                 "Cannot reset track when on a nonseekable source");
+          //        return 0;
+          }
+        }
+      else if(b->demuxer->data_start > b->input->position)
+        bgav_input_skip(b->input, b->demuxer->data_start - b->input->position);
+      }
+    // Enable this for inputs, which read sector based but have
+    // no track selection
+
+    //if(b->input->input->seek_sector)
+    //  bgav_input_seek_sector(b->input, 0);
+
+    if(!reset_input)
+      {
+      if(b->demuxer->si && was_running)
+        {
+        b->demuxer->si->current_position = 0;
+        if(b->input->input->seek_byte)
+          bgav_input_seek(b->input, b->demuxer->si->entries[0].offset,
+                          SEEK_SET);
+        else
+          {
+          data_start = b->demuxer->si->entries[0].offset;
+          reset_input = 1;
+          //        bgav_log(&b->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+          //                 "Cannot reset track when on a nonseekable source");
+          //        return 0;
+          }
+        }
+      }
+    
+    if(b->demuxer->demuxer->select_track)
+      {
+      /* Demuxer switches track */
+      bgav_track_table_select_track(b->tt, track);
+      
+      if(!b->demuxer->demuxer->select_track(b->demuxer, track))
+        reset_input = 1;
+      }
+    
+    if(reset_input)
+      {
+      /* Reset input. This will be done by closing and reopening the input */
+      bgav_log(&b->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Reopening input due to track reset");
+
+      if(data_start < 0)
+        {
+        if(b->tt)
+          {
+          bgav_track_table_unref(b->tt);
+          b->tt = (bgav_track_table_t*)0;
+          }
+        if(b->demuxer && b->demuxer->tt)
+          {
+          bgav_track_table_unref(b->demuxer->tt);
+          b->demuxer->tt = (bgav_track_table_t*)0;
+          }
+        bgav_demuxer_stop(b->demuxer);
+        }
+      
+      if(!bgav_input_reopen(b->input))
+        return 0;
+
+
+      if(data_start >= 0)
+        {
+        bgav_input_skip(b->input, data_start);
+        }
+      else
+        {
+        bgav_demuxer_start(b->demuxer, &(b->redirector));
+        
+        if(b->demuxer->tt)
+          {
+          b->tt = b->demuxer->tt;
+          bgav_track_table_ref(b->tt);
+          }
+        }
+      }
     }
-  else /* Try to seek to start and reopen the demuxer */
-    {
-    bgav_demuxer_stop(b->demuxer);
-    if(b->input->input->seek_byte)
-      bgav_input_seek(b->input, 0, SEEK_SET);
-    bgav_demuxer_start(b->demuxer, &(b->redirector));
-    }
-  
   return 1;
   }
 
@@ -313,7 +398,7 @@ int bgav_start(bgav_t * b)
   b->is_running = 1;
   /* Create buffers */
   bgav_input_buffer(b->input);
-  if(!bgav_track_start(b->tt->current_track, b->demuxer))
+  if(!bgav_track_start(b->tt->cur, b->demuxer))
     {
     if(b->demuxer->error_msg)
        b->error_msg = bgav_strdup(b->demuxer->error_msg);

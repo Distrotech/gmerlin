@@ -155,7 +155,6 @@ typedef struct
   {
   smacker_header_t h;
   uint32_t current_frame;
-  uint32_t video_pts;
 
   uint8_t pal[768];
   } smacker_priv_t;
@@ -193,7 +192,7 @@ static int open_smacker(bgav_demuxer_context_t * ctx,
   //  dump_header(&priv->h);
 
   /* Set up video stream */
-  s = bgav_track_add_video_stream(ctx->tt->current_track,
+  s = bgav_track_add_video_stream(ctx->tt->cur,
                                   ctx->opt);
   s->fourcc = priv->h.Signature;
   s->stream_id = VIDEO_ID;
@@ -231,7 +230,7 @@ static int open_smacker(bgav_demuxer_context_t * ctx,
     if((priv->h.AudioRate[i] & 0xffffff) &&
        !(priv->h.AudioRate[i] & SMK_AUD_BINKAUD))
       {
-      s = bgav_track_add_audio_stream(ctx->tt->current_track,
+      s = bgav_track_add_audio_stream(ctx->tt->cur,
                                       ctx->opt);
       if(priv->h.AudioRate[i] & SMK_AUD_PACKED)
         s->fourcc = BGAV_MK_FOURCC('S','M','K','A');
@@ -250,6 +249,8 @@ static int open_smacker(bgav_demuxer_context_t * ctx,
     }
 
   ctx->stream_description = bgav_sprintf("Smacker");
+  ctx->data_start = ctx->input->position;
+  ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
 
   return 1;
   }
@@ -324,6 +325,8 @@ static int read_palette(bgav_demuxer_context_t * ctx)
   
   if(start_pos + size > ctx->input->position)
     bgav_input_skip(ctx->input, start_pos + size - ctx->input->position);
+  
+  
   return 1;
   }
 
@@ -340,8 +343,7 @@ static int next_packet_smacker(bgav_demuxer_context_t * ctx)
 
   int64_t frame_end;
   priv = (smacker_priv_t*)(ctx->priv);
-
-    
+  
   frame_end = ctx->input->position + 
     (priv->h.frame_sizes[priv->current_frame] & (~3));
   
@@ -367,7 +369,7 @@ static int next_packet_smacker(bgav_demuxer_context_t * ctx)
 
       size -= 4; /* Size is including counter */
       /* Audio stream */
-      s = bgav_track_find_stream(ctx->tt->current_track, i + AUDIO_OFFSET);
+      s = bgav_track_find_stream(ctx->tt->cur, i + AUDIO_OFFSET);
       if(!s)
         bgav_input_skip(ctx->input, size);
       else
@@ -392,13 +394,14 @@ static int next_packet_smacker(bgav_demuxer_context_t * ctx)
     frame_flags >>= 1;
     }
   /* Video packet */
-  s = bgav_track_find_stream(ctx->tt->current_track, VIDEO_ID);
+  s = bgav_track_find_stream(ctx->tt->cur, VIDEO_ID);
   if(!s)
     {
     bgav_input_skip(ctx->input, frame_end - ctx->input->position);
+    priv->current_frame++;
     return 1;
     }
-
+  
   p = bgav_stream_get_packet_write(s);
 
   bgav_packet_alloc(p, frame_end - ctx->input->position + 769);
@@ -421,8 +424,7 @@ static int next_packet_smacker(bgav_demuxer_context_t * ctx)
 
   p->data_size = size + 769;
   
-  p->pts = priv->video_pts * s->data.video.format.frame_duration;
-  priv->video_pts++;
+  p->pts = s->in_position * s->data.video.format.frame_duration;
   
   bgav_packet_done_write(p);
 
@@ -430,6 +432,16 @@ static int next_packet_smacker(bgav_demuxer_context_t * ctx)
   
   return 1;
   }
+
+static int select_track_smacker(bgav_demuxer_context_t * ctx, int t)
+  {
+  smacker_priv_t * priv;
+  priv = (smacker_priv_t*)(ctx->priv);
+
+  priv->current_frame = 0;
+  return 1;
+  }
+
 
 static void close_smacker(bgav_demuxer_context_t * ctx)
   {
@@ -441,14 +453,15 @@ static void close_smacker(bgav_demuxer_context_t * ctx)
     free_header(&priv->h);
     free(priv);
     }
-  if(ctx->tt->current_track->video_streams[0].ext_data)
-    free(ctx->tt->current_track->video_streams[0].ext_data);
+  if(ctx->tt->cur->video_streams[0].ext_data)
+    free(ctx->tt->cur->video_streams[0].ext_data);
   }
 
 bgav_demuxer_t bgav_demuxer_smacker =
   {
-    probe:       probe_smacker,
-    open:        open_smacker,
-    next_packet: next_packet_smacker,
-    close:       close_smacker
+    probe:        probe_smacker,
+    open:         open_smacker,
+    select_track: select_track_smacker,
+    next_packet:  next_packet_smacker,
+    close:        close_smacker
   };

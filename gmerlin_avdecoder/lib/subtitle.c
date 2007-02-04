@@ -32,20 +32,20 @@ int bgav_num_subtitle_streams(bgav_t * bgav, int track)
 
 int bgav_set_subtitle_stream(bgav_t * b, int stream, bgav_stream_action_t action)
   {
-  if((stream >= b->tt->current_track->num_subtitle_streams) || (stream < 0))
+  if((stream >= b->tt->cur->num_subtitle_streams) || (stream < 0))
     return 0;
-  b->tt->current_track->subtitle_streams[stream].action = action;
+  b->tt->cur->subtitle_streams[stream].action = action;
   return 1;
   }
 
 const gavl_video_format_t * bgav_get_subtitle_format(bgav_t * bgav, int stream)
   {
-  return &(bgav->tt->current_track->subtitle_streams[stream].data.subtitle.format);
+  return &(bgav->tt->cur->subtitle_streams[stream].data.subtitle.format);
   }
 
 int bgav_subtitle_is_text(bgav_t * bgav, int stream)
   {
-  if(bgav->tt->current_track->subtitle_streams[stream].type == BGAV_STREAM_SUBTITLE_TEXT)
+  if(bgav->tt->cur->subtitle_streams[stream].type == BGAV_STREAM_SUBTITLE_TEXT)
     return 1;
   else
     return 0;
@@ -54,13 +54,13 @@ int bgav_subtitle_is_text(bgav_t * bgav, int stream)
 
 const char * bgav_get_subtitle_language(bgav_t * b, int s)
   {
-  return (b->tt->current_track->subtitle_streams[s].language[0] != '\0') ?
-    b->tt->current_track->subtitle_streams[s].language : (char*)0;
+  return (b->tt->cur->subtitle_streams[s].language[0] != '\0') ?
+    b->tt->cur->subtitle_streams[s].language : (char*)0;
   }
 
 int bgav_read_subtitle_overlay(bgav_t * b, gavl_overlay_t * ovl, int stream)
   {
-  bgav_stream_t * s = &(b->tt->current_track->subtitle_streams[stream]);
+  bgav_stream_t * s = &(b->tt->cur->subtitle_streams[stream]);
 
   if(bgav_has_subtitle(b, stream))
     {
@@ -100,7 +100,7 @@ int bgav_read_subtitle_text(bgav_t * b, char ** ret, int *ret_alloc,
   {
   int out_len;
   bgav_packet_t * p = (bgav_packet_t*)0;
-  bgav_stream_t * s = &(b->tt->current_track->subtitle_streams[stream]);
+  bgav_stream_t * s = &(b->tt->cur->subtitle_streams[stream]);
 
   if(bgav_has_subtitle(b, stream))
     {
@@ -160,7 +160,7 @@ int bgav_read_subtitle_text(bgav_t * b, char ** ret, int *ret_alloc,
 
 int bgav_has_subtitle(bgav_t * b, int stream)
   {
-  bgav_stream_t * s = &(b->tt->current_track->subtitle_streams[stream]);
+  bgav_stream_t * s = &(b->tt->cur->subtitle_streams[stream]);
 
   if(s->data.subtitle.eof)
     return 1;
@@ -308,5 +308,5 @@ int bgav_subtitle_skipto(bgav_stream_t * s, gavl_time_t * time)
 
 const char * bgav_get_subtitle_info(bgav_t * b, int s)
   {
-  return b->tt->current_track->subtitle_streams[s].info;
+  return b->tt->cur->subtitle_streams[s].info;
   }

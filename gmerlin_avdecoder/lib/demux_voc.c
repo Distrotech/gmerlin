@@ -153,7 +153,7 @@ static int open_voc(bgav_demuxer_context_t * ctx,
 
   /* Create generic data */
   ctx->tt = bgav_track_table_create(1);
-  s = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+  s = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
 
   /* Private data */
   priv = calloc(1, sizeof(*priv));
@@ -247,7 +247,7 @@ static int next_packet_voc(bgav_demuxer_context_t * ctx)
 
   priv = (voc_priv_t*)(ctx->priv);
 
-  s = &(ctx->tt->current_track->audio_streams[0]);
+  s = &(ctx->tt->cur->audio_streams[0]);
   
   while(!priv->remaining_bytes)
     {

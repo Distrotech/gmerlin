@@ -37,7 +37,6 @@
 
 typedef struct
   {
-  uint32_t data_start;
   uint32_t data_size;
   int samples_per_block;
   int bytes_per_second;
@@ -122,16 +121,16 @@ static int read_meta_data(bgav_demuxer_context_t * ctx, chunk_header_t * ret)
   switch(ret->fourcc)
     {
     case ID_NAME:
-      ctx->tt->current_track->metadata.title = buffer;
+      ctx->tt->cur->metadata.title = buffer;
       break;
     case ID_COPY:
-      ctx->tt->current_track->metadata.copyright = buffer;
+      ctx->tt->cur->metadata.copyright = buffer;
       break;
     case ID_AUTH:
-      ctx->tt->current_track->metadata.author = buffer;
+      ctx->tt->cur->metadata.author = buffer;
       break;
     case ID_ANNO:
-      ctx->tt->current_track->metadata.comment
+      ctx->tt->cur->metadata.comment
         = buffer;
       break;
     }
@@ -202,10 +201,12 @@ static int open_8svx(bgav_demuxer_context_t * ctx,
   if(hdr.sCompression > 0)
     return 0;
   
-  priv->data_start = ctx->input->position;
+  ctx->data_start = ctx->input->position;
+  ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
+
   priv->data_size  = chunk_header.size;
 
-  as = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+  as = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
   as->fourcc = BGAV_MK_FOURCC('t', 'w', 'o', 's');
   as->data.audio.format.samplerate = hdr.samplesPerSec;
   as->data.audio.format.num_channels = 1;
@@ -214,7 +215,7 @@ static int open_8svx(bgav_demuxer_context_t * ctx,
 
   total_samples = priv->data_size / as->data.audio.block_align;
   if(priv->data_size)
-    ctx->tt->current_track->duration =  gavl_samples_to_time(as->data.audio.format.samplerate, total_samples);
+    ctx->tt->cur->duration =  gavl_samples_to_time(as->data.audio.format.samplerate, total_samples);
 
   if(ctx->input->input->seek_byte)
       ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
@@ -236,14 +237,14 @@ static int next_packet_8svx(bgav_demuxer_context_t * ctx)
   int bytes_read;
   int bytes_to_read;
     
-  s = &(ctx->tt->current_track->audio_streams[0]);
+  s = &(ctx->tt->cur->audio_streams[0]);
 
   priv = (svx_priv_t *)(ctx->priv);
   
   bytes_to_read = samples_to_bytes(s, SAMPLES2READ);
   
-  if(ctx->input->position + bytes_to_read > priv->data_start + priv->data_size)
-    bytes_to_read = priv->data_start + priv->data_size - ctx->input->position;
+  if(ctx->input->position + bytes_to_read > ctx->data_start + priv->data_size)
+    bytes_to_read = ctx->data_start + priv->data_size - ctx->input->position;
 
   if(bytes_to_read <= 0)
     return 0;
@@ -252,7 +253,7 @@ static int next_packet_8svx(bgav_demuxer_context_t * ctx)
 
   bgav_packet_alloc(p, bytes_to_read);
 
-  p->pts = (ctx->input->position - priv->data_start) / s->data.audio.block_align;
+  p->pts = (ctx->input->position - ctx->data_start) / s->data.audio.block_align;
   p->keyframe = 1;
 
   bytes_read = bgav_input_read_data(ctx->input, p->data, bytes_to_read);
@@ -269,12 +270,12 @@ static void seek_8svx(bgav_demuxer_context_t * ctx, gavl_time_t time)
   int64_t position;
   int64_t sample;
   svx_priv_t * priv;
-  s = &(ctx->tt->current_track->audio_streams[0]);
+  s = &(ctx->tt->cur->audio_streams[0]);
   priv = (svx_priv_t*)(ctx->priv);
 
   sample = gavl_time_to_samples(s->data.audio.format.samplerate, time);
     
-  position =  samples_to_bytes(s, sample) + priv->data_start;
+  position =  samples_to_bytes(s, sample) + ctx->data_start;
   bgav_input_seek(ctx->input, position, SEEK_SET);
   s->time_scaled = sample;
   }

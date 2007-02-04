@@ -82,7 +82,7 @@ static int open_mms(bgav_input_context_t * ctx, const char * url)
 
   /* Check, what streams we have */
   
-  track = ctx->demuxer->tt->current_track;
+  track = ctx->demuxer->tt->cur;
     
   num_streams = track->num_audio_streams + track->num_video_streams;
   
@@ -109,7 +109,9 @@ static int open_mms(bgav_input_context_t * ctx, const char * url)
   /* The demuxer might think he can seek, but that's  not true */
 
   ctx->demuxer->flags &= ~BGAV_DEMUXER_CAN_SEEK;
-    
+  
+  ctx->url = bgav_strdup(url);
+  
   return 1;
   
   fail:
