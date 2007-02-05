@@ -234,7 +234,7 @@ dnl
 
 AC_DEFUN([GMERLIN_CHECK_VORBIS],[
 
-VORBIS_REQUIRED="1.0"
+VORBIS_REQUIRED="1.1"
 
 have_vorbis=false
 AH_TEMPLATE([HAVE_VORBIS], [Vorbis libraries are there])

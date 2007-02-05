@@ -105,7 +105,7 @@ dnl CFLAGS
 dnl
 
 LQT_OPT_CFLAGS($host_cpu, ["-O3 -funroll-all-loops -fomit-frame-pointer -ffast-math"])
-CFLAGS="-Wall -Wmissing-declarations -D_REENTRANT -D_FILE_OFFSET_BITS=64 $OPT_CFLAGS $GMERLIN_CFLAGS"
+CFLAGS="-Wall -Wmissing-declarations -Wdeclaration-after-statement -D_REENTRANT -D_FILE_OFFSET_BITS=64 $OPT_CFLAGS $GMERLIN_CFLAGS"
 
 dnl
 dnl LIBS

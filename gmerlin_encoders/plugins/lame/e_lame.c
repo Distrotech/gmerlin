@@ -627,8 +627,8 @@ static int close_lame(void * data, int do_delete)
   {
   int ret = 1;
   lame_priv_t * lame;
-  lame = (lame_priv_t*)data;
   int bytes_encoded;
+  lame = (lame_priv_t*)data;
 
   /* 1. Flush the buffer */
 

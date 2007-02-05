@@ -28,6 +28,10 @@
 #include <vorbis/vorbisenc.h>
 #include "ogg_common.h"
 
+#define BITRATE_MODE_VBR         0
+#define BITRATE_MODE_VBR_BITRATE 1
+#define BITRATE_MODE_MANAGED     2
+
 typedef struct
   {
   /* Ogg vorbis stuff */
@@ -45,6 +49,9 @@ typedef struct
   /* Options */
 
   int managed;
+
+  int bitrate_mode;
+  
   int min_bitrate;
   int nominal_bitrate;
   int max_bitrate;
@@ -76,9 +83,11 @@ static bg_parameter_info_t parameters[] =
       long_name:   "Bitrate mode",
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "VBR" },
-      multi_names: (char*[]){ "VBR", "Managed", (char*)0 },
+      multi_names: (char*[]){ "vbr", "vbr_bitrate", "managed", (char*)0 },
+      multi_labels: (char*[]){ "VBR", "VBR (bitrate)", "Managed", (char*)0 },
       help_string: "Bitrate mode:\n\
 VBR: You specify a quality and (optionally) a minimum and maximum bitrate\n\
+VBR (bitrate): The specified nominal bitrate will be used for selecting the encoder mode.\n\
 Managed: You specify a nominal bitrate and (optionally) a minimum and maximum bitrate\n\
 VBR is recommended, managed bitrate might result in a worse quality"
     },
@@ -173,12 +182,14 @@ static int init_vorbis(void * data, gavl_audio_format_t * format, bg_metadata_t 
   ogg_packet header_main;
   ogg_packet header_comments;
   ogg_packet header_codebooks;
-  struct ovectl_ratemanage_arg ai;
+  //  struct ovectl_ratemanage2_arg ai;
 
   vorbis_t * vorbis = (vorbis_t *)data;
 
   vorbis->format = format;
-
+  
+  vorbis->managed = 0;
+  
   /* Adjust the format */
 
   vorbis->format->interleave_mode = GAVL_INTERLEAVE_NONE;
@@ -187,41 +198,41 @@ static int init_vorbis(void * data, gavl_audio_format_t * format, bg_metadata_t 
   vorbis_info_init(&vorbis->enc_vi);
 
   /* VBR Initialization */
-  if(!vorbis->managed) 
-    {
-    vorbis_encode_setup_vbr(&vorbis->enc_vi, vorbis->format->num_channels,
-                            vorbis->format->samplerate, vorbis->quality);
-    
-    /* If we have additional bitrate rescrictions, set them here */
-    if((vorbis->min_bitrate > 0) || (vorbis->max_bitrate > 0))
-      {
-      vorbis_encode_ctl(&vorbis->enc_vi, OV_ECTL_RATEMANAGE_GET, &ai);
-      
-      ai.bitrate_hard_min=vorbis->min_bitrate;
-      ai.bitrate_hard_max=vorbis->max_bitrate;
-      ai.management_active=1;
-      
-      vorbis_encode_ctl(&vorbis->enc_vi, OV_ECTL_RATEMANAGE_SET, &ai);
-      }
-    }
-  else
-    {
-    vorbis_encode_setup_managed(&vorbis->enc_vi, vorbis->format->num_channels,
-                                vorbis->format->samplerate,
-                                vorbis->max_bitrate>0 ? vorbis->max_bitrate : -1,
-                                vorbis->nominal_bitrate,
-                                vorbis->min_bitrate>0 ? vorbis->min_bitrate : -1);
 
+  switch(vorbis->bitrate_mode)
+    {
+    case BITRATE_MODE_VBR:
+      vorbis_encode_init_vbr(&vorbis->enc_vi, vorbis->format->num_channels,
+                              vorbis->format->samplerate, vorbis->quality);
+      break;
+    case BITRATE_MODE_VBR_BITRATE:
+      vorbis_encode_setup_managed(&vorbis->enc_vi,
+                                  vorbis->format->num_channels,
+                                  vorbis->format->samplerate,-1,128000,-1);
+      vorbis_encode_ctl(&vorbis->enc_vi,OV_ECTL_RATEMANAGE2_SET,NULL);
+      vorbis_encode_setup_init(&vorbis->enc_vi);
+      break;
+    case BITRATE_MODE_MANAGED:
+      vorbis_encode_init(&vorbis->enc_vi, vorbis->format->num_channels,
+                         vorbis->format->samplerate,
+                         vorbis->max_bitrate>0 ? vorbis->max_bitrate : -1,
+                         vorbis->nominal_bitrate,
+                         vorbis->min_bitrate>0 ? vorbis->min_bitrate : -1);
+      vorbis->managed = 1;
+      break;
     }
-
+  
+#if 0  
   /* Turn off management entirely (if it was turned on). */
   if(!vorbis->max_bitrate && !vorbis->min_bitrate && !vorbis->managed)
     {
-    vorbis_encode_ctl(&vorbis->enc_vi, OV_ECTL_RATEMANAGE_SET, NULL);
+    vorbis_encode_ctl(&vorbis->enc_vi, OV_ECTL_RATEMANAGE2_SET, NULL);
+    vorbis->managed = 0;
     }
 
   vorbis_encode_setup_init(&vorbis->enc_vi);
-
+#endif
+  
   vorbis_analysis_init(&vorbis->enc_vd,&vorbis->enc_vi);
   vorbis_block_init(&vorbis->enc_vd,&vorbis->enc_vb);
 
@@ -290,40 +301,48 @@ static void set_parameter_vorbis(void * data, char * name,
     }
   else if(!strcmp(name, "bitrate_mode"))
     {
-    if(!strcmp(v->val_str, "VBR"))
-      vorbis->managed = 0;
-    else if(!strcmp(v->val_str, "Managed"))
-      vorbis->managed = 1;
+    if(!strcmp(v->val_str, "vbr"))
+      vorbis->bitrate_mode = BITRATE_MODE_VBR;
+    else if(!strcmp(v->val_str, "vbr_bitrate"))
+      vorbis->bitrate_mode = BITRATE_MODE_VBR_BITRATE;
+    else if(!strcmp(v->val_str, "managed"))
+      vorbis->bitrate_mode = BITRATE_MODE_MANAGED;
     }
-  
   }
 
-static int flush_data(vorbis_t * vorbis)
+static int flush_data(vorbis_t * vorbis, int force)
   {
   int result;
   ogg_packet op;
-    
+  memset(&op, 0, sizeof(op));
   /* While we can get enough data from the library to analyse, one
      block at a time... */
 
   while(vorbis_analysis_blockout(&vorbis->enc_vd,&vorbis->enc_vb)==1)
     {
-    
-    /* Do the main analysis, creating a packet */
-    vorbis_analysis(&(vorbis->enc_vb), NULL);
-    vorbis_bitrate_addblock(&vorbis->enc_vb);
-    
-    while(vorbis_bitrate_flushpacket(&vorbis->enc_vd, &op))
+    if(vorbis->managed)
       {
+      /* Do the main analysis, creating a packet */
+      vorbis_analysis(&(vorbis->enc_vb), NULL);
+      vorbis_bitrate_addblock(&vorbis->enc_vb);
+      
+      while(vorbis_bitrate_flushpacket(&vorbis->enc_vd, &op))
+        {
+        /* Add packet to bitstream */
+        ogg_stream_packetin(&vorbis->enc_os,&op);
+        
+        }
+      }
+    else
+      {
+      vorbis_analysis(&(vorbis->enc_vb), &op);
       /* Add packet to bitstream */
       ogg_stream_packetin(&vorbis->enc_os,&op);
-      
-      /* Flush pages if any */
-      
-      if((result = bg_ogg_flush(&vorbis->enc_os, vorbis->output, 0)) <= 0)
-        return result;
       }
     }
+  /* Flush pages if any */
+  if((result = bg_ogg_flush(&vorbis->enc_os, vorbis->output, force)) <= 0)
+    return result;
   return 1;
   }
 
@@ -346,7 +365,7 @@ static int write_audio_frame_vorbis(void * data, gavl_audio_frame_t * frame)
                         frame,
                         0, 0, frame->valid_samples, frame->valid_samples);
   vorbis_analysis_wrote(&(vorbis->enc_vd), frame->valid_samples);
-  if(flush_data(vorbis) < 0)
+  if(flush_data(vorbis, 0) < 0)
     return 0;
 
   vorbis->samples_read += frame->valid_samples;
@@ -357,12 +376,14 @@ static int close_vorbis(void * data)
   {
   int ret = 1;
   vorbis_t * vorbis;
+  int result;
   vorbis = (vorbis_t*)data;
 
   if(vorbis->samples_read)
     {
     vorbis_analysis_wrote(&(vorbis->enc_vd), 0);
-    if(flush_data(vorbis) < 0)
+    result = flush_data(vorbis, 1);
+    if(result < 0)
       ret = 0;
     }
   

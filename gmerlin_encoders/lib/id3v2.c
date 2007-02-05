@@ -238,8 +238,6 @@ static int write_frame(FILE * output, id3v2_frame_t * frame,
         return 0;
       cnv = bg_charset_converter_create("UTF-8", "UTF-16LE");
       str = bg_convert_string(cnv, frame->str, -1, &len);
-      fprintf(stderr, "Converted string:\n");
-      bg_hexdump(str, len, 16);
       if(fwrite(str, 1, len, output) < len)
         return 0;
       if(fwrite(terminator, 1, 2, output) < 2)
@@ -257,8 +255,6 @@ static int write_frame(FILE * output, id3v2_frame_t * frame,
       /* Long Comment */
       cnv = bg_charset_converter_create("UTF-8", "UTF-16BE");
       str = bg_convert_string(cnv, frame->str, -1, &len);
-      fprintf(stderr, "Converted string:\n");
-      bg_hexdump(str, len, 16);
       if(fwrite(str, 1, len, output) < len)
         return 0;
       if(fwrite(terminator, 1, 2, output) < 2)
