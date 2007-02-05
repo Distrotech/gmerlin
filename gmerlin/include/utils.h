@@ -198,7 +198,7 @@ int bg_url_split(const char * url,
  *  freed by the caller.
  */
 
-char * bg_sprintf(const char * format,...);
+char * bg_sprintf(const char * format,...) __attribute__ ((format (printf, 1, 2)));
 
 /** \brief Break a string into substrings
  *  \param str String

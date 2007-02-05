@@ -366,7 +366,7 @@ static void run_vcdimager(void * data, const char * directory, int cleanup)
       {
       if(!vcdimager->files[i].pp_only)
         {
-        bg_log(BG_LOG_INFO, LOG_DOMAIN, "Removing %s", vcdimager->files[i]);
+        bg_log(BG_LOG_INFO, LOG_DOMAIN, "Removing %s", vcdimager->files[i].name);
         remove(vcdimager->files[i].name);
         }
       }

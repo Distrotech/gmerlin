@@ -279,8 +279,7 @@ static int do_connect(bg_lcdproc_t* l)
   if(l->fd >= 0)
     {
     bg_log(BG_LOG_INFO, LOG_DOMAIN,
-           "Connection to server closed due to error",
-           l->answer);
+           "Connection to server closed due to error");
     
     close(l->fd);
     l->fd = -1;

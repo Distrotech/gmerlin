@@ -1119,7 +1119,8 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
       goto fail;
       }
 #endif
-    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Loading %s (plugin: %s)", t->com.current_entry->location,
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Loading %s (plugin: %s)",
+           (char*)t->com.current_entry->location,
            (info ? info->name : "auto"));
     bg_album_common_prepare_callbacks(&t->com, t->com.current_entry);
     if(!bg_input_plugin_load(t->com.plugin_reg,
@@ -1128,12 +1129,13 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
       {
       if(error_msg)
         error_message = bg_sprintf("Cannot open %s: %s",
-                                   t->com.current_entry->location, error_msg);
+                                   (char*)t->com.current_entry->location, error_msg);
       else
         error_message = bg_sprintf("Cannot open %s", ret,
-                                   t->com.current_entry->location);
+                                   (char*)t->com.current_entry->location);
 
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Loading %s failed: %s", t->com.current_entry->location,
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Loading %s failed: %s",
+             (char*)t->com.current_entry->location,
              (error_msg ? error_msg : "unknown error"));
       goto fail;
       }
@@ -1144,7 +1146,8 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
   if(!track_info)
     {
     error_message = bg_sprintf("Selecting track %d for %s failed",
-           t->com.current_entry->index+1, t->com.current_entry->location);
+                               t->com.current_entry->index+1,
+                               (char*)t->com.current_entry->location);
     goto fail;
     }
   bg_album_update_entry(t->com.current_album, t->com.current_entry, track_info);

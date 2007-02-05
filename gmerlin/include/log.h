@@ -67,7 +67,7 @@ typedef enum
  **/
 
 void bg_log(bg_log_level_t level, const char * domain,
-            const char * format, ...);
+            const char * format, ...) __attribute__ ((format (printf, 3, 4)));
 
 /** \ingroup log
  *  \brief Set the log destination

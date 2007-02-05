@@ -616,7 +616,7 @@ void bg_parameters_2_xml(bg_parameter_info_t * info, xmlNodePtr xml_parameters)
           {
           child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)default_key, NULL);
 
-          tmp_string = bg_sprintf("%lld", info[num_parameters].val_default.val_i);
+          tmp_string = bg_sprintf("%d", info[num_parameters].val_default.val_i);
           xmlAddChild(child, BG_XML_NEW_TEXT(tmp_string));
           free(tmp_string);
           
@@ -626,7 +626,8 @@ void bg_parameters_2_xml(bg_parameter_info_t * info, xmlNodePtr xml_parameters)
           {
           child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)range_key, NULL);
 
-          tmp_string = bg_sprintf("%lld %lld", info[num_parameters].val_min.val_f, info[num_parameters].val_max.val_f);
+          tmp_string = bg_sprintf("%lld %lld", info[num_parameters].val_min.val_time,
+                                  info[num_parameters].val_max.val_time);
           xmlAddChild(child, BG_XML_NEW_TEXT(tmp_string));
           free(tmp_string);
           
