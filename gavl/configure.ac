@@ -124,7 +124,7 @@ dnl
 dnl Now, build the final CFLAGS.
 dnl 
 
-CFLAGS="-Wall -Wmissing-declarations $OPT_CFLAGS"
+CFLAGS="-Wall -Wmissing-declarations -Wdeclaration-after-statement $OPT_CFLAGS"
 
 dnl
 dnl Stuff from libsamplerate

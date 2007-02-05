@@ -1957,6 +1957,14 @@ void gavl_video_options_set_conversion_flags(gavl_video_options_t * opt,
                                              int conversion_flags);
 
 /*! \ingroup video_options
+ *  \brief Get the conversion flags
+ *  \param opt Video options
+ *  \returns Flags (see \ref video_conversion_flags)
+ */
+
+int gavl_video_options_get_conversion_flags(gavl_video_options_t * opt);
+  
+/*! \ingroup video_options
  *  \brief Set the alpha mode
  *  \param opt Video options
  *  \param alpha_mode Alpha mode
@@ -1994,13 +2002,13 @@ void gavl_video_options_set_background_color(gavl_video_options_t * opt,
                                              float * color);
 
 /*! \ingroup video_options
- *  \brief Get the conversion flags
+ *  \brief Get the background color for alpha blending
  *  \param opt Video options
- *  \returns Flags (see \ref video_conversion_flags)
+ *  \param color Returns 3 float values (0.0 .. 1.0) in RGB order
  */
 
-int gavl_video_options_get_conversion_flags(gavl_video_options_t * opt);
- 
+void gavl_video_options_get_background_color(gavl_video_options_t * opt,
+                                             float * color);
   
 /*! \ingroup video_ptions
  *  \brief Set the deinterlace mode

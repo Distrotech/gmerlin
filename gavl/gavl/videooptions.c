@@ -113,7 +113,7 @@ gavl_video_options_set_deinterlace_drop_mode(gavl_video_options_t * opt,
 void gavl_video_options_set_background_color(gavl_video_options_t * opt,
                                              float * color)
   {
-  memcpy(opt->background_float, color, 3*sizeof(float));
+  memcpy(opt->background_float, color, 3*sizeof(*color));
 
   CLIP_FLOAT(opt->background_float[0]);
   CLIP_FLOAT(opt->background_float[1]);
@@ -122,6 +122,12 @@ void gavl_video_options_set_background_color(gavl_video_options_t * opt,
   opt->background_16[1] = (uint16_t)(opt->background_float[1] * 65535.0 + 0.5);
   opt->background_16[2] = (uint16_t)(opt->background_float[2] * 65535.0 + 0.5);
   
+  }
+
+void gavl_video_options_get_background_color(gavl_video_options_t * opt,
+                                             float * color)
+  {
+  memcpy(color, opt->background_float, 3*sizeof(*color));
   }
 
 int gavl_video_options_get_accel_flags(gavl_video_options_t * opt)
