@@ -310,9 +310,9 @@ static int init_real(bgav_stream_t * s)
   prop = priv->raGetFlavorProperty(priv->real_handle, s->subformat, 0, &len);
   
   if(prop)
-    s->description = bgav_sprintf("%s (Flavor: %s)", info->format_name, prop);
+    s->description = bgav_sprintf("%s (Flavor: %s)", info->format_name, (char*)prop);
   else
-    s->description = bgav_sprintf("%s (Flavor: %s)", info->format_name);
+    s->description = bgav_sprintf("%s", info->format_name);
   
   //  prop = priv->raGetFlavorProperty(priv->real_handle, s->subformat, 1, &len);
   

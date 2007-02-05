@@ -129,8 +129,8 @@ void bgav_qt_mvhd_dump(int indent, qt_mvhd_t * c)
   bgav_diprintf(indent, "mvhd\n");
   bgav_diprintf(indent+2, "version:            %d\n", c->version);
   bgav_diprintf(indent+2, "flags:              %08x\n", c->flags);
-  bgav_diprintf(indent+2, "creation_time:      %d\n", c->creation_time);
-  bgav_diprintf(indent+2, "modification_time:  %d\n", c->modification_time);
+  bgav_diprintf(indent+2, "creation_time:      %lld\n", c->creation_time);
+  bgav_diprintf(indent+2, "modification_time:  %lld\n", c->modification_time);
   bgav_diprintf(indent+2, "time_scale:         %d\n", c->time_scale);
   bgav_diprintf(indent+2, "duration:           %lld\n", c->duration);
   bgav_diprintf(indent+2, "preferred_rate:     %f\n", c->preferred_rate);

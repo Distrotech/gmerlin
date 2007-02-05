@@ -67,7 +67,7 @@ void bgav_qt_tkhd_dump(int indent, qt_tkhd_t * c)
   bgav_diprintf(indent+2, "Matrix:\n");
   for(i = 0; i < 3; i++)
     {
-    bgav_diprintf(indent+4, "");
+    bgav_diprintf(indent+2, "  ");
     for(j = 0; j < 3; j++)
       bgav_dprintf( "%f ", c->matrix[3*i+j]);
     bgav_dprintf( "\n");

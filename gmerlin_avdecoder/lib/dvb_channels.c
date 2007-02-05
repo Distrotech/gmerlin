@@ -132,7 +132,7 @@ bgav_dvb_channels_seek(const bgav_options_t * opt,
     if(!bgav_check_file_read(filename))
       {
       bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-               "Channels file %s cannot be opened");
+               "Channels file %s cannot be opened", filename);
       goto fail;
       }
     }
@@ -382,7 +382,7 @@ void dvb_channels_dump(bgav_dvb_channel_info_t * channels, fe_type_t type, int n
   for(i = 0; i < num; i++)
     {
     bgav_dprintf("Channel %d:  %s\n", i+1, channels[i].name);
-    bgav_dprintf("  Frequency: %ld\n", channels[i].front_param.frequency);
+    bgav_dprintf("  Frequency: %d\n", channels[i].front_param.frequency);
     bgav_dprintf("  Inversion: %s\n", find_string(inversion_list,
                                                   channels[i].front_param.inversion));
     switch(type)
@@ -391,7 +391,7 @@ void dvb_channels_dump(bgav_dvb_channel_info_t * channels, fe_type_t type, int n
         bgav_dprintf("  Polarization:     %s\n", (channels[i].pol ? "Vertical": "Horizontal"));
         bgav_dprintf("  satellite number: %d\n", channels[i].sat_no);
         bgav_dprintf("  Symbol rate:      %d\n", channels[i].front_param.u.qpsk.symbol_rate);
-        bgav_dprintf("  FEC:              &s\n",
+        bgav_dprintf("  FEC:              %s\n",
                      find_string(fec_list, channels[i].front_param.u.qpsk.fec_inner));
         
         break;

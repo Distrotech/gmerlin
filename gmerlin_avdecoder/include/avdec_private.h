@@ -1196,14 +1196,15 @@ int bgav_init(bgav_t * b);
 
 void bgav_dump_fourcc(uint32_t fourcc);
 void bgav_hexdump(uint8_t * data, int len, int linebreak);
-char * bgav_sprintf(const char * format,...);
+char * bgav_sprintf(const char * format,...)   __attribute__ ((format (printf, 1, 2)));
 char * bgav_strndup(const char * start, const char * end);
 char * bgav_strdup(const char * str);
 
 char * bgav_strncat(char * old, const char * start, const char * end);
 
-void bgav_dprintf(const char * format, ...);
-void bgav_diprintf(int indent, const char * format, ...);
+void bgav_dprintf(const char * format, ...) __attribute__ ((format (printf, 1, 2)));
+void bgav_diprintf(int indent, const char * format, ...)
+  __attribute__ ((format (printf, 2, 3)));
 
 int bgav_url_split(const char * url,
                    char ** protocol,
@@ -1414,7 +1415,8 @@ int bgav_subtitle_reader_read_overlay(bgav_stream_t *, gavl_overlay_t * ovl);
 
 void bgav_log(const bgav_options_t * opt,
               bgav_log_level_t level,
-              const char * domain, char * format, ...);
+              const char * domain, char * format, ...)
+  __attribute__ ((format (printf, 4, 5)));
 
 /* bytebuffer.c */
 

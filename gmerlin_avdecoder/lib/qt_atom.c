@@ -79,7 +79,7 @@ void bgav_qt_atom_skip_unknown(bgav_input_context_t * input,
              (h->fourcc & 0x000000FF));
   else
     bgav_log(input->opt, BGAV_LOG_DEBUG, LOG_DOMAIN,
-             "Unknown atom inside [%c%c%c%c] (fourcc: [%c%c%c%c], size: %d)",
+             "Unknown atom inside [%c%c%c%c] (fourcc: [%c%c%c%c], size: %lld)",
              (parent & 0xFF000000) >> 24,
              (parent & 0x00FF0000) >> 16,
              (parent & 0x0000FF00) >> 8,

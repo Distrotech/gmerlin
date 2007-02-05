@@ -52,7 +52,7 @@ int bgav_video_start(bgav_stream_t * stream)
   if(!dec)
     {
     bgav_log(stream->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-             "No audio decoder found for fourcc %c%c%c%c (0x08x)",
+             "No audio decoder found for fourcc %c%c%c%c (0x%08x)",
              (stream->fourcc & 0xFF000000) >> 24,
              (stream->fourcc & 0x00FF0000) >> 16,
              (stream->fourcc & 0x0000FF00) >> 8,

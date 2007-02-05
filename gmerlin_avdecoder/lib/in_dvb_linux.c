@@ -368,7 +368,8 @@ static int get_streams(bgav_input_context_t * ctx,
     if(program_index == priv->num_channels)
       {
       bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-               "Cannot find service ID %d in PAT (recreate channels.conf)");
+               "Cannot find service ID %d in PAT (recreate channels.conf)",
+               priv->channels[program_index].service_id);
       continue;
       }
     /* Get PMT */

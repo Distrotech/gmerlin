@@ -534,13 +534,11 @@ static int open_nsv(bgav_demuxer_context_t * ctx,
 
   if(p->need_pcm_format)
     {
-    
     if(!ctx->input->input->seek_byte)
       {
       input_save = ctx->input;
       ctx->input = bgav_input_open_as_buffer(ctx->input);
       }
-    
     while(p->need_pcm_format)
       {
       if(!next_packet_nsv(ctx)) /* This lets us get the format for PCM audio */
@@ -783,7 +781,8 @@ static void seek_nsv(bgav_demuxer_context_t * ctx, gavl_time_t time)
     {
     return;
     }
-  file_position = priv->fh.toc.offsets[index_position] + priv->fh.header_size;
+  file_position =
+    priv->fh.toc.offsets[index_position] + priv->fh.header_size;
   bgav_input_seek(ctx->input, file_position, SEEK_SET);
 
   /* Now, resync and update stream times */
@@ -815,6 +814,7 @@ static void seek_nsv(bgav_demuxer_context_t * ctx, gavl_time_t time)
                           sync_time);
     vs->time_scaled =
       frame_position * vs->data.video.format.frame_duration;
+    vs->in_position = frame_position;
     }
   if(as)
     {

@@ -256,6 +256,7 @@ static void seek_mtv(bgav_demuxer_context_t * ctx, gavl_time_t time)
   if(ctx->tt->cur->num_video_streams)
     {
     ctx->tt->cur->video_streams[0].time_scaled = frame_number;
+    ctx->tt->cur->video_streams[0].in_position = frame_number;
     }
   priv->do_audio = 1;
   }

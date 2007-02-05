@@ -881,8 +881,7 @@ static int open_mpegts(bgav_demuxer_context_t * ctx,
   if(!priv->packet_size)
     {
     bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-             "Cannot get packet size",
-             priv->packet_size);
+             "Cannot get packet size");
     return 0;
     }
   else

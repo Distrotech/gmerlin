@@ -629,7 +629,7 @@ void bgav_RIFFINFO_get_metadata(bgav_RIFFINFO_t * info, bgav_metadata_t * m)
     if(info->IENG && info->ISFT)
       m->comment = bgav_sprintf("Made by %s with %s", info->IENG, info->ISFT);
     else if(info->IENG)
-      m->comment = bgav_sprintf("Made by %s", info->IENG, info->ISFT);
+      m->comment = bgav_sprintf("Made by %s", info->IENG);
     else if(info->ISFT)
       m->comment = bgav_sprintf("Made with %s", info->ISFT);
     }
