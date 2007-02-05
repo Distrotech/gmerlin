@@ -53,12 +53,17 @@ typedef struct
 static int read_dref_table(bgav_input_context_t * input,
                            qt_dref_table_t * ret)
   {
+  uint8_t version;
+
   if(!bgav_input_read_32_be(input, &ret->size) ||
      !bgav_input_read_fourcc(input, &ret->type))
     return 0;
 
-  READ_VERSION_AND_FLAGS;
-
+  if(!bgav_input_read_8(input, &version) || 
+     !bgav_input_read_24_be(input, &(ret->flags)))
+    return 0;
+  ret->version = version;
+  
   if(ret->size > 12)
     {
     ret->data_reference = malloc(ret->size - 11);

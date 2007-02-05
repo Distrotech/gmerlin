@@ -83,10 +83,10 @@ static int get_data(bgav_stream_t * s)
 static int decode_frame(bgav_stream_t * s)
   {
   mad_priv_t * priv;
-  priv = s->data.audio.decoder->priv;
   const char * version_string;
   char * bitrate_string;
   int i, j;
+  priv = s->data.audio.decoder->priv;
 
   /* Check if we need new data */
 

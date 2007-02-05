@@ -156,9 +156,9 @@ static void seek_a52(bgav_demuxer_context_t * ctx, gavl_time_t time)
   int64_t file_position;
   a52_priv_t * priv;
   gavl_time_t t;
+  bgav_stream_t * s;
 
   priv = (a52_priv_t *)(ctx->priv);
-  bgav_stream_t * s;
   
   
   s = ctx->tt->cur->audio_streams;

@@ -127,9 +127,9 @@ static int64_t pos_2_time(bgav_demuxer_context_t * ctx, int64_t pos)
 static int64_t time_2_pos(bgav_demuxer_context_t * ctx, int64_t time)
   {
   aiff_priv_t * priv;
-  priv = (aiff_priv_t*)(ctx->priv);
 
   bgav_stream_t * s;
+  priv = (aiff_priv_t*)(ctx->priv);
   s = &(ctx->tt->cur->audio_streams[0]);
   
   return ctx->data_start + (time/priv->samples_per_block)

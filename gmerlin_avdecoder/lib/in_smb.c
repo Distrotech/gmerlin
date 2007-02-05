@@ -154,8 +154,8 @@ static int64_t seek_byte_smb(bgav_input_context_t * ctx,
                               int64_t pos, int whence)
   {
   smb_priv_t * p;
-  p = (smb_priv_t*)(ctx->priv);
   int64_t len;
+  p = (smb_priv_t*)(ctx->priv);
 
   len = smbc_lseek(p->fd, pos, SEEK_SET);
   

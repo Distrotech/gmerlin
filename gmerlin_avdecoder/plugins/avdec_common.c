@@ -542,10 +542,10 @@ int bg_avdec_set_track(void * priv, int track)
 static void metadata_change_callback(void * priv,
                                      const bgav_metadata_t * metadata)
   {
+  bg_metadata_t m;
   avdec_priv * avdec;
   avdec = (avdec_priv*)(priv);
 
-  bg_metadata_t m;
   
   if(avdec->bg_callbacks && avdec->bg_callbacks->metadata_changed)
     {
@@ -555,20 +555,6 @@ static void metadata_change_callback(void * priv,
     avdec->bg_callbacks->metadata_changed(avdec->bg_callbacks->data,
                                           &m);
     bg_metadata_free(&m);
-    }
-  }
-
-static void aspect_callback(void * priv,
-                            int stream, int pixel_width,
-                            int pixel_height)
-  {
-  avdec_priv * avdec;
-  avdec = (avdec_priv*)(priv);
-  if(avdec->bg_callbacks && avdec->bg_callbacks->aspect_changed)
-    {
-    avdec->bg_callbacks->aspect_changed(avdec->bg_callbacks->data,
-                                        stream, pixel_width,
-                                        pixel_height);
     }
   }
 

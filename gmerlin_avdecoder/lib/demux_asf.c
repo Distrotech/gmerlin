@@ -1032,10 +1032,10 @@ static int next_packet_asf(bgav_demuxer_context_t * ctx)
   {
   int i, len2, result;
   asf_t * asf;
-  asf = (asf_t*)(ctx->priv);
   uint8_t * data_ptr;
   asf_packet_header_t pkt_hdr;
   asf_segment_header_t seg_hdr;
+  asf = (asf_t*)(ctx->priv);
 
   //  if(ctx->input->position >= asf->data_start + asf->data_size)
   //    return 0;

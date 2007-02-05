@@ -219,8 +219,8 @@ static void seek_wav(bgav_demuxer_context_t * ctx, gavl_time_t time)
   {
   int64_t file_position;
   wav_priv_t * priv;
-  priv = (wav_priv_t *)(ctx->priv);
   bgav_stream_t * s;
+  priv = (wav_priv_t *)(ctx->priv);
 
   s = ctx->tt->cur->audio_streams;
     

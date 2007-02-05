@@ -108,10 +108,10 @@ void bgav_dprintf(const char * format, ...)
 void bgav_diprintf(int indent, const char * format, ...)
   {
   int i;
+  va_list argp; /* arg ptr */
   for(i = 0; i < indent; i++)
     bgav_dprintf( " ");
   
-  va_list argp; /* arg ptr */
   va_start( argp, format);
   vfprintf(stderr, format, argp);
   va_end(argp);

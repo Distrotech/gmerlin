@@ -186,10 +186,10 @@ static int set_diseqc(bgav_input_context_t * ctx, bgav_dvb_channel_info_t * c)
   dvb_priv_t * priv;
   gavl_time_t delay_time = 15000;
   
-  priv = (dvb_priv_t *)(ctx->priv);
-
   struct dvb_diseqc_master_cmd cmd =
     {{0xe0, 0x10, 0x38, 0xf0, 0x00, 0x00}, 4};
+
+  priv = (dvb_priv_t *)(ctx->priv);
   
   cmd.msg[3] = 0xf0 | ((c->sat_no * 4) & 0x0f) |
     (c->tone ? 1 : 0) | (c->pol ? 0 : 2);

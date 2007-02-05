@@ -264,9 +264,9 @@ static void seek_mpegvideo(bgav_demuxer_context_t * ctx, gavl_time_t time)
   {
   int64_t file_position;
   mpegvideo_priv_t * priv;
+  bgav_stream_t * s;
 
   priv = (mpegvideo_priv_t *)(ctx->priv);
-  bgav_stream_t * s;
   
   s = ctx->tt->cur->video_streams;
     
