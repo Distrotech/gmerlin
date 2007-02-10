@@ -116,9 +116,6 @@ static int read_buffer(bgav_input_context_t* ctx,
   result = read_mem(ctx, buffer, len);
   ctx->total_bytes = 0;
   
-  //  fprintf(stderr, "read_mem: old_size: %d, total_bytes: %lld, len: %d, Result: %d\n",
-  //          old_size, ctx->total_bytes, len, result);
-  
   return result;
   
   }

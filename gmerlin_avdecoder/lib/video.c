@@ -144,14 +144,18 @@ int bgav_video_skipto(bgav_stream_t * s, gavl_time_t * time)
   gavl_time_t next_frame_time;
   int result;
   int64_t time_scaled;
-    
+  char tmp_string1[128];
+  char tmp_string2[128];
+  
   time_scaled = gavl_time_scale(s->data.video.format.timescale, *time);
   
   if(s->data.video.next_frame_time > time_scaled)
     {
+    sprintf(tmp_string1, "%" PRId64, s->time_scaled);
+    sprintf(tmp_string2, "%" PRId64, time_scaled);
     bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN, 
-             "Cannot skip backwards, stream_time: %lld, sync_time: %lld",
-             s->time_scaled, time_scaled);
+             "Cannot skip backwards, stream_time: %s, sync_time: %s",
+             tmp_string1, tmp_string2);
     return 1;
     }
 

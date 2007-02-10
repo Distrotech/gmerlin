@@ -44,7 +44,7 @@ void bg_chapter_list_2_xml(bg_chapter_list_t * list, xmlNodePtr xml_list)
     if(list->chapters[i].name)
       BG_XML_SET_PROP(xml_chapter, NAME_KEY, list->chapters[i].name);
 
-    tmp_string = bg_sprintf("%lld", list->chapters[i].time);
+    tmp_string = bg_sprintf("%" PRId64, list->chapters[i].time);
     xmlAddChild(xml_chapter, BG_XML_NEW_TEXT(tmp_string));
     free(tmp_string);
     xmlAddChild(xml_list, BG_XML_NEW_TEXT("\n"));
@@ -70,7 +70,7 @@ bg_xml_2_chapter_list(xmlDocPtr xml_doc, xmlNodePtr xml_list)
     if(node->name && !BG_XML_STRCMP(node->name, CHAPTER_KEY))
       {
       tmp_string = (char*)xmlNodeListGetString(xml_doc, node->children, 1);
-      sscanf(tmp_string, "%lld", &time);
+      sscanf(tmp_string, "%" PRId64, &time);
       xmlFree(tmp_string);
 
       tmp_string = BG_XML_GET_PROP(node, NAME_KEY);

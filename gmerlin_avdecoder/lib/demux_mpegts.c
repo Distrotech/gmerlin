@@ -114,6 +114,8 @@ static void reset_streams_priv(bgav_track_t * track)
 
 static void check_pts_wrap(bgav_stream_t * s, int64_t * pts)
   {
+  char tmp_string1[128];
+  char tmp_string2[128];
   stream_priv_t * priv;
   priv = (stream_priv_t*)(s->priv);
 
@@ -125,9 +127,12 @@ static void check_pts_wrap(bgav_stream_t * s, int64_t * pts)
   if(*pts + WRAP_THRESHOLD < priv->last_pts)
     {
     priv->pts_offset += ((int64_t)1) << 33;
+    sprintf(tmp_string1, "%" PRId64, *pts);
+    sprintf(tmp_string2, "%" PRId64, priv->last_pts);
+    
     bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN,
-             "Detected pts wrap (%lld < %lld)",
-             *pts, priv->last_pts);
+             "Detected pts wrap (%s < %s)",
+             tmp_string1, tmp_string2);
     }
   priv->last_pts = *pts;
   *pts += priv->pts_offset;
@@ -361,7 +366,7 @@ static int get_program_durations(bgav_demuxer_context_t * ctx)
     pts = get_program_timestamp(ctx, &program_index);
     if((pts > 0) && (priv->programs[program_index].start_pcr < 0))
       {
-      //      fprintf(stderr, "Got start pts for program %d: %lld\n", program_index,
+      //      fprintf(stderr, "Got start pts for program %d: %" PRId64 "\n", program_index,
       //              pts);
       priv->programs[program_index].start_pcr = pts;
       }
@@ -445,7 +450,7 @@ static int get_program_durations(bgav_demuxer_context_t * ctx)
   /* Set the durations */
   for(i = 0; i < priv->num_programs; i++)
     {
-    //    fprintf(stderr, "Start pcr: %lld, end_pcr: %lld\n",
+    //    fprintf(stderr, "Start pcr: %" PRId64 ", end_pcr: %" PRId64 "\n",
     //            priv->programs[i].start_pcr,
     //            priv->programs[i].end_pcr);
     
@@ -1033,7 +1038,7 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
   if(priv->buffer_size < priv->packet_size)
     {
     fprintf(stderr,
-            "next_packet_mpegts: EOF (bytes read: %d, pos: %lld)\n",
+            "next_packet_mpegts: EOF (bytes read: %d, pos: %" PRId64 ")\n",
             priv->buffer_size, ctx->input->position);
     return 0;
     }
@@ -1058,7 +1063,7 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
 #if 0
     if(priv->packet.adaption_field.pcr > 0)
       {
-      fprintf(stderr, "PCR: %lld (pid: %d)\n",
+      fprintf(stderr, "PCR: %" PRId64 " (pid: %d)\n",
               priv->packet.adaption_field.pcr,
               priv->packet.pid);
       }
@@ -1085,7 +1090,7 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
         {
         ctx->flags |= BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET;
         ctx->timestamp_offset = -priv->packet.adaption_field.pcr;
-        fprintf(stderr, "Got PCR: %lld (PID: %d, PCR PID: %d)\n",
+        fprintf(stderr, "Got PCR: %" PRId64 " (PID: %d, PCR PID: %d)\n",
                 priv->packet.adaption_field.pcr, priv->packet.pid,
                 priv->programs[priv->current_program].pcr_pid);
         }
@@ -1135,7 +1140,7 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
 
       /* Get start pts */
 
-      //      fprintf(stderr, "PTS: %lld\n", pes_header.pts);
+      //      fprintf(stderr, "PTS: %" PRId64 "\n", pes_header.pts);
 #if 1
       if(!(ctx->flags & BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET) &&
          (priv->programs[priv->current_program].pcr_pid <= 0))

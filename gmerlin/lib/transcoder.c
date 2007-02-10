@@ -3772,7 +3772,8 @@ void bg_transcoder_destroy(bg_transcoder_t * t)
   {
   int i;
   int do_delete = 0;
-
+  char tmp_string[128];
+  
   if((t->state == TRANSCODER_STATE_RUNNING) && t->delete_incomplete &&
      !t->is_url)
     do_delete = 1;
@@ -3797,17 +3798,23 @@ void bg_transcoder_destroy(bg_transcoder_t * t)
   for(i = 0; i < t->num_video_streams; i++)
     {
     if((t->video_streams[i].com.action != STREAM_ACTION_FORGET) && !do_delete)
+      {
+      sprintf(tmp_string, "%" PRId64, t->video_streams[i].frames_written);
       bg_log(BG_LOG_INFO, LOG_DOMAIN,
-             "Video stream %d: Transcoded %lld frames", i+1,
-             t->video_streams[i].frames_written);
+             "Video stream %d: Transcoded %s frames", i+1,
+             tmp_string);
+      }
     cleanup_video_stream(&(t->video_streams[i]));
     }
   for(i = 0; i < t->num_audio_streams; i++)
     {
     if((t->audio_streams[i].com.action != STREAM_ACTION_FORGET) && !do_delete)
+      {
+      sprintf(tmp_string, "%" PRId64, t->audio_streams[i].samples_written);
       bg_log(BG_LOG_INFO, LOG_DOMAIN,
-             "Audio stream %d: Transcoded %lld samples", i+1,
-             t->audio_streams[i].samples_written);
+             "Audio stream %d: Transcoded %s samples", i+1,
+             tmp_string);
+      }
     cleanup_audio_stream(&(t->audio_streams[i]));
     }
 

@@ -404,8 +404,6 @@ void bg_player_ov_cleanup(bg_player_ov_context_t * ctx)
   ctx->plugin->close(ctx->priv);
   bg_plugin_unlock(ctx->plugin_handle);
 
-  //  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Processed %lld frames",
-  //         ctx->frames_written);
   }
 
 void bg_player_ov_reset(bg_player_t * player)

@@ -208,7 +208,7 @@ static int pack_header_read(bgav_input_context_t * input,
 static void pack_header_dump(pack_header_t * h)
   {
   bgav_dprintf(
-          "Pack header: MPEG-%d, SCR: %lld (%f secs), Mux rate: %d bits/s\n",
+          "Pack header: MPEG-%d, SCR: %" PRId64 " (%f secs), Mux rate: %d bits/s\n",
           h->version, h->scr, (float)(h->scr)/90000.0,
           h->mux_rate * 400);
   }

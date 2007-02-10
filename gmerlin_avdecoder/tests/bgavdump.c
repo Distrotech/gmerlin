@@ -299,7 +299,7 @@ int main(int argc, char ** argv)
           fprintf(stderr, "Done\nsrc_rect: ");
           gavl_rectangle_i_dump(&ovl.ovl_rect);
           fprintf(stderr, "\ndst_coords: %d,%d\n", ovl.dst_x, ovl.dst_y);
-          fprintf(stderr, "Time: %lld -> %lld\n",
+          fprintf(stderr, "Time: %" PRId64 " -> %" PRId64 "\n",
                   ovl.frame->time_scaled,
                   ovl.frame->time_scaled+ovl.frame->duration_scaled);
           }

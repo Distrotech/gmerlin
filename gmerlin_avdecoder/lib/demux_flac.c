@@ -83,7 +83,7 @@ static void streaminfo_dump(streaminfo_t * s)
   bgav_dprintf("Samplerate:      %d\n", s->samplerate);
   bgav_dprintf("Num channels:    %d\n", s->num_channels);
   bgav_dprintf("Bits per sample: %d\n", s->bits_per_sample);
-  bgav_dprintf("Total samples:   %lld\n", s->total_samples);
+  bgav_dprintf("Total samples:   %" PRId64 "\n", s->total_samples);
   }
 #endif
 /* Seek table */
@@ -123,7 +123,7 @@ static void seektable_dump(seektable_t * t)
   bgav_dprintf("Seektable: %d entries\n", t->num_entries);
   for(i = 0; i < t->num_entries; i++)
     {
-    bgav_dprintf("Sample: %lld, Position: %lld, Num samples: %d\n",
+    bgav_dprintf("Sample: %" PRId64 ", Position: %" PRId64 ", Num samples: %d\n",
             t->entries[i].sample_number,
             t->entries[i].offset,
             t->entries[i].num_samples);

@@ -46,7 +46,7 @@ void bgav_chapter_list_dump(bgav_chapter_list_t * list)
     gavl_time_prettyprint(t, time_string);
     bgav_dprintf("Chapter %d\n", i+1);
     bgav_dprintf("  Name: %s\n", list->chapters[i].name);
-    bgav_dprintf("  Time: %lld [%s]\n", list->chapters[i].time, time_string);
+    bgav_dprintf("  Time: %" PRId64 " [%s]\n", list->chapters[i].time, time_string);
     }
   }
 

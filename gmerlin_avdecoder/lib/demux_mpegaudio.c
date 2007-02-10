@@ -339,7 +339,7 @@ static void bgav_albw_dump(bgav_albw_t * a)
   bgav_dprintf( "Tracks: %d\n", a->num_tracks);
 
   for(i = 0; i < a->num_tracks; i++)
-    bgav_dprintf( "Start: %lld, End: %lld, File: %s\n",
+    bgav_dprintf( "Start: %" PRId64 ", End: %" PRId64 ", File: %s\n",
             a->tracks[i].start_pos,
             a->tracks[i].end_pos,
             a->tracks[i].filename);

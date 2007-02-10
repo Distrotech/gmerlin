@@ -779,7 +779,7 @@ static void dump_indx(indx_t * indx)
 
       for(i = 0; i < indx->nEntriesInUse; i++)
         {
-        bgav_dprintf("%d qwOffset: %lld dwSize: %d dwDuration: %d\n", i,
+        bgav_dprintf("%d qwOffset: %" PRId64 " dwSize: %d dwDuration: %d\n", i,
                 indx->i.index.entries[i].qwOffset,
                 indx->i.index.entries[i].dwSize,
                 indx->i.index.entries[i].dwDuration);
@@ -794,7 +794,7 @@ static void dump_indx(indx_t * indx)
       
       if(indx->bIndexSubType == AVI_INDEX_2FIELD)
         {
-        bgav_dprintf("qwBaseOffset:  %lld\n",
+        bgav_dprintf("qwBaseOffset:  %" PRId64 "\n",
                 indx->i.field_chunk.qwBaseOffset);
         bgav_dprintf("dwReserved3:   %d\n",
                 indx->i.field_chunk.dwReserved3);
@@ -810,7 +810,7 @@ static void dump_indx(indx_t * indx)
         }
       else
         {
-        bgav_dprintf("qwBaseOffset:  %lld\n",
+        bgav_dprintf("qwBaseOffset:  %" PRId64 "\n",
                 indx->i.chunk.qwBaseOffset);
         bgav_dprintf("dwReserved3:   %d\n",
                 indx->i.chunk.dwReserved3);

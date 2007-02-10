@@ -182,9 +182,9 @@ static int get_data(bgav_stream_t * s)
 #ifdef DUMP_PARSER
       bgav_dprintf("Parsing %d bytes ", priv->buf.size);
       if(priv->last_pts != BGAV_TIMESTAMP_UNDEFINED)
-        bgav_dprintf("PTS: %lld ", priv->last_pts);
+        bgav_dprintf("PTS: %" PRId64 " ", priv->last_pts);
       if(priv->last_dts != BGAV_TIMESTAMP_UNDEFINED)
-        bgav_dprintf("DTS: %lld ", priv->last_dts);
+        bgav_dprintf("DTS: %" PRId64 " ", priv->last_dts);
 #endif
 
       if(priv->eof)
@@ -206,9 +206,9 @@ static int get_data(bgav_stream_t * s)
                    priv->parsed_bytes_used, priv->parsed_frame_size);
 
       if(priv->parser->pts != AV_NOPTS_VALUE)
-        bgav_dprintf("PTS: %lld ", priv->parser->pts);
+        bgav_dprintf("PTS: %" PRId64 " ", priv->parser->pts);
       if(priv->parser->dts != AV_NOPTS_VALUE)
-        bgav_dprintf("DTS: %lld ", priv->parser->dts);
+        bgav_dprintf("DTS: %" PRId64 " ", priv->parser->dts);
       bgav_dprintf("\n");
 #endif
       if(priv->parsed_frame_size)
@@ -352,7 +352,7 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
     /* Decode one frame */
     
 #ifdef DUMP_DECODE
-    bgav_dprintf("Decode: position: %lld len: %d\n", s->position, len);
+    bgav_dprintf("Decode: position: %" PRId64 " len: %d\n", s->position, len);
     if(priv->parsed_frame)
       bgav_hexdump(priv->parsed_frame, 16, 16);
 #endif

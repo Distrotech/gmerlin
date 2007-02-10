@@ -360,7 +360,7 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
                      &(ret[index].val_default.val_color[3]));
               break;
             case BG_PARAMETER_TIME:
-              sscanf(tmp_string, "%lld", &(ret[index].val_default.val_time));
+              sscanf(tmp_string, "%" PRId64, &(ret[index].val_default.val_time));
               break;
             }
           free(tmp_string);
@@ -396,7 +396,7 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
                      &(ret[index].val_min.val_f), &(ret[index].val_max.val_f));
               break;
             case BG_PARAMETER_TIME:
-              sscanf(tmp_string, "%lld %lld",
+              sscanf(tmp_string, "%" PRId64 " %" PRId64,
                      &(ret[index].val_min.val_time),
                      &(ret[index].val_max.val_time));
               break;
@@ -626,7 +626,7 @@ void bg_parameters_2_xml(bg_parameter_info_t * info, xmlNodePtr xml_parameters)
           {
           child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)range_key, NULL);
 
-          tmp_string = bg_sprintf("%lld %lld", info[num_parameters].val_min.val_time,
+          tmp_string = bg_sprintf("%" PRId64 " %" PRId64, info[num_parameters].val_min.val_time,
                                   info[num_parameters].val_max.val_time);
           xmlAddChild(child, BG_XML_NEW_TEXT(tmp_string));
           free(tmp_string);

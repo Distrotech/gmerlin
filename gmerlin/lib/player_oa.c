@@ -257,7 +257,7 @@ void * bg_player_oa_thread(void * data)
   gavl_time_t wait_time;
   int do_mute;
   bg_fifo_state_t state;
-  
+  char tmp_string[128];
     
   ctx = (bg_player_oa_context_t *)data;
   
@@ -292,9 +292,10 @@ void * bg_player_oa_thread(void * data)
       {
       if(frame->time_scaled)
         {
+        sprintf(tmp_string, "%" PRId64, frame->time_scaled);
         bg_log(BG_LOG_INFO, LOG_DOMAIN,
-               "Got initial audio timestamp: %lld",
-               frame->time_scaled);
+               "Got initial audio timestamp: %s",
+               tmp_string);
         
         pthread_mutex_lock(&(ctx->time_mutex));
         ctx->samples_written += frame->time_scaled;
@@ -404,8 +405,6 @@ void bg_player_oa_cleanup(bg_player_oa_context_t * ctx)
   ctx->output_open = 0;
   bg_plugin_unlock(ctx->plugin_handle);
 
-  //  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Processed %lld samples",
-  //         ctx->samples_written);
   }
 
 int bg_player_oa_start(bg_player_oa_context_t * ctx)

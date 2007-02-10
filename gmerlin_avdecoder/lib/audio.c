@@ -46,6 +46,7 @@ int bgav_audio_start(bgav_stream_t * stream)
   {
   bgav_audio_decoder_t * dec;
   bgav_audio_decoder_context_t * ctx;
+  char tmp_string[128];
   
   dec = bgav_find_audio_decoder(stream);
   if(!dec)
@@ -81,8 +82,9 @@ int bgav_audio_start(bgav_stream_t * stream)
     stream->out_position =
       gavl_time_rescale(stream->timescale, stream->data.audio.format.samplerate,
                         stream->first_timestamp);
-    bgav_log(stream->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Got initial audio timestamp: %lld",
-             stream->out_position);
+    sprintf(tmp_string, "%" PRId64, stream->out_position);
+    bgav_log(stream->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Got initial audio timestamp: %s",
+             tmp_string);
     }
   return 1;
   }
@@ -155,7 +157,7 @@ int bgav_audio_skipto(bgav_stream_t * s, gavl_time_t * t)
   int samples_skipped = 0;  
   gavl_time_t stream_time;
   gavl_time_t diff_time;
-
+  char tmp_string[128];
   
   stream_time = gavl_time_unscale(s->timescale,
                                   s->time_scaled);
@@ -166,16 +168,20 @@ int bgav_audio_skipto(bgav_stream_t * s, gavl_time_t * t)
                                      diff_time);
   
   if(num_samples < 0)
+    {
+    sprintf(tmp_string, "%" PRId64, diff_time);
     bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-             "Cannot skip backwards: Stream time: %f Skip time: %f %lld",
+             "Cannot skip backwards: Stream time: %f Skip time: %f %s",
              gavl_time_to_seconds(stream_time), gavl_time_to_seconds(*t),
-             diff_time);
+             tmp_string);
+    }
   else
     if(num_samples > 0)
       {
+      sprintf(tmp_string, "%" PRId64, num_samples);
       bgav_log(s->opt, BGAV_LOG_DEBUG, LOG_DOMAIN,
-               "Skipping %lld samples",
-               num_samples);
+               "Skipping %s samples",
+               tmp_string);
       
       samples_skipped =
         s->data.audio.decoder->decoder->decode(s, (gavl_audio_frame_t*)0,

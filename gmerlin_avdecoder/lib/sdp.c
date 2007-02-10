@@ -806,8 +806,8 @@ void bgav_sdp_dump(bgav_sdp_t * s)
   bgav_dprintf( "Origin:\n");
 
   print_string("  Useraname", s->origin.username);
-  bgav_dprintf( "  Session ID: %lld\n", s->origin.session_id);
-  bgav_dprintf( "  Session Version: %lld\n", s->origin.session_version);
+  bgav_dprintf( "  Session ID: %" PRId64 "\n", s->origin.session_id);
+  bgav_dprintf( "  Session Version: %" PRId64 "\n", s->origin.session_version);
   print_string("  Network Type", s->origin.network_type);
   print_string("  Address Type", s->origin.addr_type);
   print_string("  Address", s->origin.addr);

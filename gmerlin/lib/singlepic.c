@@ -740,8 +740,7 @@ static const char * get_extension_encoder(void * data)
     /* Create extension */
     
     plugin_extension = e->image_writer->get_extension(e->plugin_handle->priv);
-
-    e->extension_mask = bg_sprintf("-%%0%dlld%s", e->frame_digits, plugin_extension);
+    e->extension_mask = bg_sprintf("-%%0%d"PRId64"%s", e->frame_digits, plugin_extension);
     e->extension      = bg_sprintf(e->extension_mask, (int64_t)e->frame_offset);
 
     }

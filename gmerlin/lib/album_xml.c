@@ -111,7 +111,7 @@ static bg_album_entry_t * load_entry(bg_album_t * album,
       }
     else if(!BG_XML_STRCMP(node->name, "DURATION"))
       {
-      sscanf(tmp_string, "%lld", &(ret->duration));
+      sscanf(tmp_string, "%" PRId64, &(ret->duration));
       }
     else if(!BG_XML_STRCMP(node->name, "ASTREAMS"))
       {
@@ -487,7 +487,7 @@ static void save_entry(bg_album_t * a, bg_album_entry_t * entry, xmlNodePtr pare
   
   /* Duration */
 
-  c_tmp = bg_sprintf("%lld", entry->duration);
+  c_tmp = bg_sprintf("%" PRId64, entry->duration);
   node = xmlNewTextChild(xml_entry, (xmlNsPtr)0, (xmlChar*)"DURATION", NULL);
   xmlAddChild(node, BG_XML_NEW_TEXT(c_tmp));
   free(c_tmp);

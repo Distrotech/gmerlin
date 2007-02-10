@@ -315,7 +315,7 @@ static void dump_ctl_elem_info(snd_hctl_elem_t * hctl,
     }
   else if(type == SND_CTL_ELEM_TYPE_INTEGER64)
     {
-    fprintf(out, "    Min: %lld, Max: %lld, Step: %lld\n",
+    fprintf(out, "    Min: %" PRId64 ", Max: %" PRId64 ", Step: %" PRId64 "\n",
             snd_ctl_elem_info_get_min64(info),
             snd_ctl_elem_info_get_max64(info),
             snd_ctl_elem_info_get_step64(info));

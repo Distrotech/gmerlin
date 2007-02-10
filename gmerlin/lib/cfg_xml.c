@@ -93,7 +93,7 @@ static void load_item(xmlDocPtr xml_doc, xmlNodePtr xml_item,
       sscanf(tmp_string, "%d", &(item->value.val_i));
       break;
     case BG_CFG_TIME:
-      sscanf(tmp_string, "%lld", &(item->value.val_time));
+      sscanf(tmp_string, "%" PRId64, &(item->value.val_time));
       break;
     case BG_CFG_FLOAT:
       sscanf(tmp_string, "%f", &(item->value.val_f));
@@ -239,7 +239,7 @@ void bg_cfg_section_2_xml(bg_cfg_section_t * section, xmlNodePtr xml_section)
         break;
       case BG_CFG_TIME:
         BG_XML_SET_PROP(xml_item, "type", "time");
-        sprintf(buffer, "%lld", item->value.val_time);
+        sprintf(buffer, "%" PRId64, item->value.val_time);
         xmlAddChild(xml_item, BG_XML_NEW_TEXT(buffer));
         break;
       case BG_CFG_FLOAT:

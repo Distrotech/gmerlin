@@ -1131,7 +1131,7 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
         error_message = bg_sprintf("Cannot open %s: %s",
                                    (char*)t->com.current_entry->location, error_msg);
       else
-        error_message = bg_sprintf("Cannot open %s", ret,
+        error_message = bg_sprintf("Cannot open %s",
                                    (char*)t->com.current_entry->location);
 
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Loading %s failed: %s",

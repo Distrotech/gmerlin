@@ -361,7 +361,6 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
   s->data.video.last_frame_time     = priv->picture_timestamp;
   s->data.video.last_frame_duration = priv->picture_duration;
   
-  //  fprintf(stderr, "Video time: %lld\n", s->data.video.last_frame_time);
   return 1;
   }
 

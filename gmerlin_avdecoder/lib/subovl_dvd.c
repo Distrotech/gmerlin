@@ -268,7 +268,7 @@ static int decode_dvdsub(bgav_stream_t * s, gavl_overlay_t * ovl)
           palette[0], palette[1], palette[2], palette[3]);
   bgav_dprintf("Alpha:   [ %02x, %02x, %02x, %02x ]\n",
           alpha[0], alpha[1], alpha[2], alpha[3]);
-  bgav_dprintf("PTS:     %lld\n", priv->pts);
+  bgav_dprintf("PTS:     %" PRId64 "\n", priv->pts);
   bgav_dprintf("Time:    %d -> %d\n", start_date, end_date);
   bgav_dprintf("Offsets: %d %d\n", offset1, offset2);
   bgav_dprintf("IFO Palette:\n");

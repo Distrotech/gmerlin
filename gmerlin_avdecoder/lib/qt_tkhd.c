@@ -57,10 +57,10 @@ void bgav_qt_tkhd_dump(int indent, qt_tkhd_t * c)
   bgav_diprintf(indent, "tkhd:\n");
   bgav_diprintf(indent+2, "Version:           %d\n", c->version);
   bgav_diprintf(indent+2, "Flags:             %d\n", c->flags);
-  bgav_diprintf(indent+2, "Creation time:     %lld\n", c->creation_time);
-  bgav_diprintf(indent+2, "Modificatiom time: %lld\n", c->modification_time);
+  bgav_diprintf(indent+2, "Creation time:     %" PRId64 "\n", c->creation_time);
+  bgav_diprintf(indent+2, "Modificatiom time: %" PRId64 "\n", c->modification_time);
   bgav_diprintf(indent+2, "Track ID:          %d\n", c->track_id);
-  bgav_diprintf(indent+2, "Duration:          %lld\n", c->duration);
+  bgav_diprintf(indent+2, "Duration:          %" PRId64 "\n", c->duration);
   bgav_diprintf(indent+2, "Layer:             %d\n", c->layer);
   bgav_diprintf(indent+2, "Alternate Group:   %d\n", c->alternate_group);
   bgav_diprintf(indent+2, "Volume:            %f\n", c->volume);
