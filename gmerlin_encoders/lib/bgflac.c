@@ -21,6 +21,7 @@
 
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
+#include <gmerlin/translation.h>
 
 #include <bgflac.h>
 
@@ -192,20 +193,20 @@ static bg_parameter_info_t audio_parameters[] =
   {
     {
       name:      "bits",
-      long_name: "Bits",
+      long_name: TRS("Bits"),
       type:      BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "16" },
       multi_names: (char*[]){ "8", "12", "16", "20", "24", (char*)0 },
     },
     {
       name:        "compression_level",
-      long_name:   "Compression Level",
+      long_name:   TRS("Compression Level"),
       type:        BG_PARAMETER_SLIDER_INT,
       val_min:     { val_i: 0 },
       val_max:     { val_i: 8 },
       val_default: { val_i: 5 },
-      help_string: "0: Fastest encoding, biggest files\n\
-8: Slowest encoding, smallest files"
+      help_string: TRS("0: Fastest encoding, biggest files\n\
+8: Slowest encoding, smallest files")
     },
     { /* End of parameters */ }
   };

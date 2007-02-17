@@ -20,10 +20,15 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <config.h>
+
+
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "oggvorbis"
+
+#include <gmerlin/translation.h>
 
 #include <vorbis/vorbisenc.h>
 #include "ogg_common.h"
@@ -80,57 +85,57 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name:        "bitrate_mode",
-      long_name:   "Bitrate mode",
+      long_name:   TRS("Bitrate mode"),
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "VBR" },
       multi_names: (char*[]){ "vbr", "vbr_bitrate", "managed", (char*)0 },
-      multi_labels: (char*[]){ "VBR", "VBR (bitrate)", "Managed", (char*)0 },
-      help_string: "Bitrate mode:\n\
+      multi_labels: (char*[]){ TRS("VBR"), TRS("VBR (bitrate)"), TRS("Managed"), (char*)0 },
+      help_string: TRS("Bitrate mode:\n\
 VBR: You specify a quality and (optionally) a minimum and maximum bitrate\n\
 VBR (bitrate): The specified nominal bitrate will be used for selecting the encoder mode.\n\
 Managed: You specify a nominal bitrate and (optionally) a minimum and maximum bitrate\n\
-VBR is recommended, managed bitrate might result in a worse quality"
+VBR is recommended, managed bitrate might result in a worse quality")
     },
     {
       name:        "nominal_bitrate",
-      long_name:   "Nominal bitrate (kbps)",
+      long_name:   TRS("Nominal bitrate (kbps)"),
       type:        BG_PARAMETER_INT,
       val_min:     { val_i: 0 },
       val_max:     { val_i: 1000 },
       val_default: { val_i: 128 },
-      help_string: "Nominal bitrate (in kbps) for managed mode",
+      help_string: TRS("Nominal bitrate (in kbps) for managed mode"),
     },
     {
       name:      "quality",
-      long_name: "VBR Quality (10: best)",
+      long_name: TRS("VBR Quality (10: best)"),
       type:      BG_PARAMETER_SLIDER_FLOAT,
       val_min:     { val_f: 0.0 },
       val_max:     { val_f: 10.0 },
       val_default: { val_f: 3.0 },
       num_digits:  1,
-      help_string: "Quality for VBR mode\n\
+      help_string: TRS("Quality for VBR mode\n\
 10: best (largest output file)\n\
-0:  worst (smallest output file",
+0:  worst (smallest output file"),
     },
     {
       name:        "min_bitrate",
-      long_name:   "Minimum bitrate (kbps)",
+      long_name:   TRS("Minimum bitrate (kbps)"),
       type:        BG_PARAMETER_INT,
       val_min:     { val_i: 0 },
       val_max:     { val_i: 1000 },
       val_default: { val_i: 0 },
-      help_string: "Optional minimum bitrate (in kbps)\n\
-0 = unspecified",
+      help_string: TRS("Optional minimum bitrate (in kbps)\n\
+0 = unspecified"),
     },
     {
       name:        "max_bitrate",
-      long_name:   "Maximum bitrate (kbps)",
+      long_name:   TRS("Maximum bitrate (kbps)"),
       type:        BG_PARAMETER_INT,
       val_min:     { val_i: 0 },
       val_max:     { val_i: 1000 },
       val_default: { val_i: 0 },
-      help_string: "Optional maximum bitrate (in kbps)\n\
-0 = unspecified",
+      help_string: TRS("Optional maximum bitrate (in kbps)\n\
+0 = unspecified"),
     },
     { /* End of parameters */ }
   };
@@ -404,7 +409,7 @@ static int close_vorbis(void * data)
 bg_ogg_codec_t bg_vorbis_codec =
   {
     name:      "vorbis",
-    long_name: "Vorbis encoder",
+    long_name: TRS("Vorbis encoder"),
     create: create_vorbis,
 
     get_parameters: get_parameters_vorbis,

@@ -1,6 +1,6 @@
 libdir=@GMERLIN_PLUGIN_DIR@
 
-AM_CFLAGS = @MJPEGTOOLS_CFLAGS@
+AM_CFLAGS = @MJPEGTOOLS_CFLAGS@ -DLOCALE_DIR=\"$(localedir)\"
 
 lib_LTLIBRARIES = e_yuv4mpeg.la e_mpegvideo.la e_mpegaudio.la e_mpeg.la
 

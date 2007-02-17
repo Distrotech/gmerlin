@@ -21,6 +21,9 @@
 #include <stdlib.h>
 #include <errno.h>
 
+#include <config.h>
+
+#include <gmerlin/translation.h>
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/log.h>
@@ -303,7 +306,7 @@ static int close_flacogg(void * data)
 bg_ogg_codec_t bg_flacogg_codec =
   {
     name:      "flacogg",
-    long_name: "Flac encoder",
+    long_name: TRS("Flac encoder"),
     create: create_flacogg,
 
     get_parameters: get_parameters_flacogg,

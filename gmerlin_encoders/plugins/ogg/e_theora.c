@@ -24,6 +24,7 @@
 
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
+#include <gmerlin/translation.h>
 
 #include <theora/theora.h>
 
@@ -57,7 +58,7 @@ static bg_parameter_info_t audio_parameters[] =
   {
     {
       name:      "codec",
-      long_name: "Codec",
+      long_name: TRS("Codec"),
       type:      BG_PARAMETER_MULTI_MENU,
       val_default: { val_str: "vorbis" },
     },
@@ -138,18 +139,15 @@ static void set_audio_parameter_theora(void * data, int stream,
     bg_ogg_encoder_set_audio_parameter(data, stream, name, val);
   }
 
-static const char * get_error_theora(void * data)
-  {
-  bg_ogg_encoder_t * enc = (bg_ogg_encoder_t*)data;
-  return enc->error_msg;
-  }
 
 bg_encoder_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:            "e_theora",       /* Unique short name */
-      long_name:       "Theora encoder",
+      long_name:       TRS("Theora encoder"),
+      description:     TRS("Encoder for Theora files. Audio can be Vorbis, Flac or Speex."),
       mimetypes:       NULL,
       extensions:      "ogg",
       type:            BG_PLUGIN_ENCODER,
@@ -157,7 +155,6 @@ bg_encoder_plugin_t the_plugin =
       priority:        5,
       create:            bg_ogg_encoder_create,
       destroy:           bg_ogg_encoder_destroy,
-      get_error:         get_error_theora,
 #if 0
       get_parameters:    get_parameters_theora,
       set_parameter:     set_parameter_theora,

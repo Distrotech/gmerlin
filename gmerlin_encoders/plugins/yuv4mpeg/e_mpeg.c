@@ -20,10 +20,12 @@
 #include <string.h>
 #include <yuv4mpeg.h>
 
+#include <config.h>
 
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/subprocess.h>
+#include <gmerlin/translation.h>
 
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "e_mpeg"
@@ -65,7 +67,6 @@ typedef struct
     char * filename;
     gavl_video_format_t format;
     } * video_streams;
-  char * error_msg;
   
   char * tmp_dir;
   char * aux_stream_1;
@@ -80,12 +81,6 @@ static void * create_mpeg()
   return ret;
   }
 
-static const char * get_error_mpeg(void * priv)
-  {
-  e_mpeg_t * mpeg;
-  mpeg = (e_mpeg_t*)priv;
-  return mpeg->error_msg;
-  }
 
 static const char * extension_mpg  = ".mpg";
 
@@ -105,20 +100,19 @@ static int open_mpeg(void * data, const char * filename,
   /* To make sure this will work, we check for the execuables of mpeg2enc, mplex and mp2enc */
   if(!bg_search_file_exec("mpeg2enc", (char**)0))
     {
-    e->error_msg = bg_sprintf("mpeg2enc exectuable not found");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "mpeg2enc exectuable not found");
     return 0;
     }
   if(!bg_search_file_exec("mp2enc", (char**)0))
     {
-    e->error_msg = bg_sprintf("mp2enc exectuable not found");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "mp2enc exectuable not found");
     return 0;
     }
   if(!bg_search_file_exec("mplex", (char**)0))
     {
-    e->error_msg = bg_sprintf("mplex exectuable not found");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "mplex exectuable not found");
     return 0;
     }
-  
   return 1;
   }
 
@@ -402,8 +396,6 @@ static void destroy_mpeg(void * data)
 
   close_mpeg(data, 1);
   
-  if(e->error_msg)
-    free(e->error_msg);
   free(e);
   }
 
@@ -422,39 +414,41 @@ static bg_parameter_info_t common_parameters[] =
   {
     {
       name:      "format",
-      long_name: "Format",
+      long_name: TRS("Format"),
       type:      BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "mpeg1" },
       multi_names:    (char*[]) { "mpeg1",            "vcd",          "mpeg2",            "svcd",         "dvd_nav",   "dvd", (char*)0 },
-      multi_labels:   (char*[]) { "MPEG-1 (generic)", "MPEG-1 (VCD)", "MPEG-2 (generic)", "MPEG-2 (SVCD)","DVD (NAV)", "DVD", (char*)0 },
-      help_string: "Output format. Note that for some output formats (e.g. VCD), you MUST use proper settings for the audio and video streams also, since this isn't done automatically"
+      multi_labels:   (char*[]) { TRS("MPEG-1 (generic)"), TRS("MPEG-1 (VCD)"),
+                                  TRS("MPEG-2 (generic)"), TRS("MPEG-2 (SVCD)"),
+                                  TRS("DVD (NAV)"), TRS("DVD"), (char*)0 },
+      help_string: TRS("Output format. Note that for some output formats (e.g. VCD), you MUST use proper settings for the audio and video streams also, since this isn't done automatically")
     },
     {
       name:        "tmp_dir",
-      long_name:   "Directory for temporary files",
+      long_name:   TRS("Directory for temporary files"),
       type:        BG_PARAMETER_DIRECTORY,
-      help_string: "Directory to store the temporary streams. Leave empty to use the same directory as the final output file",
+      help_string: TRS("Directory to store the temporary streams. Leave empty to use the same directory as the final output file"),
     },
     {
       name:        "aux_stream_1",
-      long_name:   "Additional stream 1",
+      long_name:   TRS("Additional stream 1"),
       type:        BG_PARAMETER_FILE,
-      help_string: "Additional stream to multiplex into the final output file. Use this if you \
-want e.g. create mp3 or AC3 audio with some other encoder",
+      help_string: TRS("Additional stream to multiplex into the final output file. Use this if you \
+want e.g. create mp3 or AC3 audio with some other encoder"),
     },
     {
       name:        "aux_stream_2",
-      long_name:   "Additional stream 2",
+      long_name:   TRS("Additional stream 2"),
       type:        BG_PARAMETER_FILE,
-      help_string: "Additional stream to multiplex into the final output file. Use this if you \
-want e.g. create mp3 or AC3 audio with some other encoder",
+      help_string: TRS("Additional stream to multiplex into the final output file. Use this if you \
+want e.g. create mp3 or AC3 audio with some other encoder"),
     },
     {
       name:        "aux_stream_3",
-      long_name:   "Additional stream 3",
+      long_name:   TRS("Additional stream 3"),
       type:        BG_PARAMETER_FILE,
-      help_string: "Additional stream to multiplex into the final output file. Use this if you \
-want e.g. create mp3 or AC3 audio with some other encoder",
+      help_string: TRS("Additional stream to multiplex into the final output file. Use this if you \
+want e.g. create mp3 or AC3 audio with some other encoder"),
     },
     { /* End of parameters */ }
   };
@@ -528,8 +522,11 @@ bg_encoder_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:           "e_mpeg",       /* Unique short name */
-      long_name:      "MPEG 1/2 program/system stream encoder",
+      long_name:      TRS("MPEG 1/2 program/system stream encoder"),
+      description:      TRS("Encoder for regular .mpg files as well as VCD and DVD streams.\
+ Based on mjpegtools (http://mjpeg.sourceforge.net)"),
       mimetypes:      NULL,
       extensions:     "mpg",
       type:           BG_PLUGIN_ENCODER,
@@ -539,7 +536,6 @@ bg_encoder_plugin_t the_plugin =
       destroy:        destroy_mpeg,
       get_parameters: get_parameters_mpeg,
       set_parameter:  set_parameter_mpeg,
-      get_error:      get_error_mpeg,
     },
 
     max_audio_streams: -1,

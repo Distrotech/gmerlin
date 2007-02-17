@@ -1,4 +1,8 @@
+#include <config.h>
+#include <gmerlin/translation.h>
+
 #include "ffmpeg_common.h"
+
 
 static ffmpeg_format_info_t formats[] =
   {
@@ -30,10 +34,13 @@ bg_encoder_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:           "e_ffmpeg_video",       /* Unique short name */
-      long_name:      "FFmpeg video encoder",
+      long_name:      TRS("FFmpeg video encoder"),
+      description:    TRS("Plugin for encoding various video formats with ffmpeg \
+(http://www.ffmpeg.org)."),
       mimetypes:      NULL,
-      extensions:     "avi",
+      extensions:     "m1v",
       type:           BG_PLUGIN_ENCODER_VIDEO,
       flags:          BG_PLUGIN_FILE,
       priority:       5,
@@ -41,7 +48,6 @@ bg_encoder_plugin_t the_plugin =
       destroy:        bg_ffmpeg_destroy,
       get_parameters: bg_ffmpeg_get_parameters,
       set_parameter:  bg_ffmpeg_set_parameter,
-      get_error:      bg_ffmpeg_get_error,
     },
     
     max_video_streams:         1,

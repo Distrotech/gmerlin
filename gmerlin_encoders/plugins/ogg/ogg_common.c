@@ -5,10 +5,15 @@
 
 #include <ogg/ogg.h>
 
+#include <config.h>
+
+#include <gmerlin/log.h>
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
 
 #include "ogg_common.h"
+
+#define LOG_DOMAIN "ogg"
 
 void * bg_ogg_encoder_create()
   {
@@ -25,7 +30,6 @@ void bg_ogg_encoder_destroy(void * data)
   if(e->audio_streams) free(e->audio_streams);
   if(e->video_streams) free(e->video_streams);
   if(e->filename) free(e->filename);
-  if(e->error_msg) free(e->error_msg);
   
   if(e->audio_parameters)
     bg_parameter_info_destroy_array(e->audio_parameters);
@@ -43,7 +47,8 @@ bg_ogg_encoder_open(void * data, const char * file,
   
   if(!(e->output = fopen(file, "w")))
     {
-    e->error_msg = bg_sprintf("Cannot open file %s: %s", file, strerror(errno));
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open file %s: %s",
+           file, strerror(errno));
     return 0;
     }
   e->serialno = rand();

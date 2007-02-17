@@ -20,6 +20,9 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <config.h>
+
+#include <gmerlin/translation.h>
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/log.h>
@@ -138,16 +141,17 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name:        "mode",
-      long_name:   "Speex mode",
+      long_name:   TRS("Speex mode"),
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "auto" },
       multi_names:  (char*[]){ "auto", "nb",         "wb",       "uwb",            (char*)0 },
-      multi_labels: (char*[]){ "Auto", "Narrowband", "Wideband", "Ultra-wideband", (char*)0 },
-      help_string: "Encoding mode. If you select Auto, the mode will be taken from the samplerate."
+      multi_labels: (char*[]){ TRS("Auto"), TRS("Narrowband"), TRS("Wideband"),
+                               TRS("Ultra-wideband"), (char*)0 },
+      help_string: TRS("Encoding mode. If you select Auto, the mode will be taken from the samplerate.")
     },
     {
       name:      "quality",
-      long_name: "Quality (10: best)",
+      long_name: TRS("Quality (10: best)"),
       type:      BG_PARAMETER_SLIDER_INT,
       val_min:     { val_i: 0 },
       val_max:     { val_i: 10 },
@@ -155,7 +159,7 @@ static bg_parameter_info_t parameters[] =
     },
     {
       name:      "complexity",
-      long_name: "Encoding complexity",
+      long_name: TRS("Encoding complexity"),
       type:      BG_PARAMETER_SLIDER_INT,
       val_min:     { val_i: 0 },
       val_max:     { val_i: 10 },
@@ -163,7 +167,7 @@ static bg_parameter_info_t parameters[] =
     },
     {
       name:      "nframes",
-      long_name: "Frames per Ogg packet",
+      long_name: TRS("Frames per Ogg packet"),
       type:      BG_PARAMETER_SLIDER_INT,
       val_min:     { val_i: 1 },
       val_max:     { val_i: 10 },
@@ -171,35 +175,35 @@ static bg_parameter_info_t parameters[] =
     },
     {
       name:        "bitrate",
-      long_name:   "Encoding bitrate (kbps)",
+      long_name:   TRS("Encoding bitrate (kbps)"),
       type:        BG_PARAMETER_INT,
       val_min:     { val_i: 0 },
       val_max:     { val_i: 128 },
       val_default: { val_i: 8 },
-      help_string: "Bitrate (in kbps). Set to 0 for seleting the standard bitrates for the encoding mode.",
+      help_string: TRS("Bitrate (in kbps). Set to 0 for seleting the standard bitrates for the encoding mode."),
     },
     {
       name:        "vbr",
-      long_name:   "Variable bitrate",
+      long_name:   TRS("Variable bitrate"),
       type:        BG_PARAMETER_CHECKBUTTON,
     },
     {
       name:        "abr_bitrate",
-      long_name:   "Average bitrate (kbps)",
+      long_name:   TRS("Average bitrate (kbps)"),
       type:        BG_PARAMETER_INT,
       val_min:     { val_i: 0 },
       val_max:     { val_i: 128 },
       val_default: { val_i: 0 },
-      help_string: "Average bitrate (in kbps). Set to 0 for disabling ABR.",
+      help_string: TRS("Average bitrate (in kbps). Set to 0 for disabling ABR."),
     },
     {
       name:        "vad",
-      long_name:   "Use voice activity detection",
+      long_name:   TRS("Use voice activity detection"),
       type:        BG_PARAMETER_CHECKBUTTON,
     },
     {
       name:        "dtx",
-      long_name:   "Enable file-based discontinuous transmission",
+      long_name:   TRS("Enable file-based discontinuous transmission"),
       type:        BG_PARAMETER_CHECKBUTTON,
     },
     { /* End of parameters */ }
@@ -316,6 +320,7 @@ static int init_speex(void * data, gavl_audio_format_t * format, bg_metadata_t *
   SpeexMode *mode=NULL;
   SpeexHeader header;
   ogg_packet op;
+  int dummy;
   
   speex_t * speex = (speex_t *)data;
 
@@ -413,7 +418,8 @@ static int init_speex(void * data, gavl_audio_format_t * format, bg_metadata_t *
   build_comment(&comments, &comments_length, metadata);
 
   /* Build header */
-  op.packet = (unsigned char *)speex_header_to_packet(&header, (int*)&(op.bytes));
+  op.packet = (unsigned char *)speex_header_to_packet(&header, &dummy);
+  op.bytes = dummy;
   op.b_o_s = 1;
   op.e_o_s = 0;
   op.granulepos = 0;
@@ -423,7 +429,7 @@ static int init_speex(void * data, gavl_audio_format_t * format, bg_metadata_t *
   ogg_stream_packetin(&speex->enc_os,&op);
   free(op.packet);
   if(!bg_ogg_flush_page(&speex->enc_os, speex->output, 1))
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Warning: Got no Speex ID page");
+    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Got no Speex ID page");
 
   /* Build comment */
   op.packet = (unsigned char *)comments;
@@ -572,7 +578,7 @@ static int close_speex(void * data)
 bg_ogg_codec_t bg_speex_codec =
   {
     name:      "speex",
-    long_name: "Speex encoder",
+    long_name: TRS("Speex encoder"),
     create: create_speex,
 
     get_parameters: get_parameters_speex,

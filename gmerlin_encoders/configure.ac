@@ -42,6 +42,8 @@ GMERLIN_PLUGIN_DIR=`pkg-config --variable=prefix gmerlin`"/lib/gmerlin/plugins"
 AC_SUBST(GMERLIN_PLUGIN_DIR)
 AC_SUBST(GMERLIN_REQUIRED)
 
+AM_GNU_GETTEXT([external])
+
 dnl
 dnl Optional libraries
 dnl
@@ -121,6 +123,7 @@ if test "x$exec_prefix" = xNONE; then
 fi
 
 AC_CONFIG_FILES([Makefile \
+po/Makefile.in \
 gmerlin_encoders.spec \
 include/Makefile \
 lib/Makefile \

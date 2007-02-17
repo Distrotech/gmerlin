@@ -20,6 +20,9 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <config.h>
+
+#include <gmerlin/translation.h>
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/log.h>
@@ -62,7 +65,7 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name:        "chroma_mode",
-      long_name:   "Chroma subsampling mode",
+      long_name:   TRS("Chroma subsampling mode"),
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "420" },
       multi_names:  (char*[]){ "420",   "422",   "444",   (char*)0 },
@@ -70,70 +73,70 @@ static bg_parameter_info_t parameters[] =
     },
     {
       name:        "cbr",
-      long_name:   "Use constant bitrate",
+      long_name:   TRS("Use constant bitrate"),
       type:        BG_PARAMETER_CHECKBUTTON,
-      help_string: "For constant bitrate, choose a target bitrate. For variable bitrate, choose a nominal quality.",
+      help_string: TRS("For constant bitrate, choose a target bitrate. For variable bitrate, choose a nominal quality."),
     },
     {
       name:        "target_bitrate",
-      long_name:   "Target bitrate (kbps)",
+      long_name:   TRS("Target bitrate (kbps)"),
       type:        BG_PARAMETER_INT,
       val_min:     { val_i: 45 },
       val_max:     { val_i: 2000 },
       val_default: { val_i: 250 },
-      help_string: "Target bitrate (in kbps)",
+      help_string: TRS("Target bitrate (in kbps)"),
     },
     {
       name:      "quality",
-      long_name: "Nominal quality",
+      long_name: TRS("Nominal quality"),
       type:      BG_PARAMETER_SLIDER_INT,
       val_min:     { val_i: 0 },
       val_max:     { val_i: 63 },
       val_default: { val_i: 10 },
       num_digits:  1,
-      help_string: "Quality for VBR mode\n\
+      help_string: TRS("Quality for VBR mode\n\
 63: best (largest output file)\n\
-0:  worst (smallest output file",
+0:  worst (smallest output file"),
     },
     {
       name:      "keyframe_auto_p",
-      long_name: "Automatic keyframe insertion",
+      long_name: TRS("Automatic keyframe insertion"),
       type:      BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 0 },
     },
     {
       name:      "keyframe_frequency",
-      long_name: "Keyframe frequency",
+      long_name: TRS("Keyframe frequency"),
       type:      BG_PARAMETER_INT,
       val_default: { val_i: 64 },
     },
     {
       name:      "keyframe_frequency_force",
-      long_name: "Keyframe frequency force",
+      long_name: TRS("Keyframe frequency force"),
       type:      BG_PARAMETER_INT,
       val_default: { val_i: 64 },
     },
     {
       name:      "keyframe_auto_threshold",
-      long_name: "Keyframe auto threshold",
+      long_name: TRS("Keyframe auto threshold"),
       type:      BG_PARAMETER_INT,
       val_default: { val_i: 80 },
     },
     {
       name:      "keyframe_mindistance",
-      long_name: "Keyframe minimum distance",
+      long_name: TRS("Keyframe minimum distance"),
       type:      BG_PARAMETER_INT,
       val_default: { val_i: 8 },
     },
     {
       name:      "quick_encode",
-      long_name: "Quick encode",
+      long_name: TRS("Quick encode"),
       type:      BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 0 },
     },
     {
       name:      "sharpness",
-      long_name: "Sharpness",
+      long_name: TRS("Sharpness"),
       type:      BG_PARAMETER_SLIDER_INT,
       val_default: { val_i: 0 },
       val_min:     { val_i: 0 },
@@ -141,7 +144,7 @@ static bg_parameter_info_t parameters[] =
     },
     {
       name:      "noise_sensitivity",
-      long_name: "Noise Sensitivity",
+      long_name: TRS("Noise Sensitivity"),
       type:      BG_PARAMETER_SLIDER_INT,
       val_default: { val_i: 0 },
       val_min:     { val_i: 0 },
@@ -449,7 +452,7 @@ static int close_theora(void * data)
 bg_ogg_codec_t bg_theora_codec =
   {
     name:      "theora",
-    long_name: "Theora encoder",
+    long_name: TRS("Theora encoder"),
     create: create_theora,
 
     get_parameters: get_parameters_theora,

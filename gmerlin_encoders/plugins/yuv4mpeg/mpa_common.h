@@ -28,7 +28,6 @@ typedef struct
   gavl_audio_format_t format;
   bg_subprocess_t * mp2enc;
   
-  char * error_msg;
   sigset_t oldset;
   } bg_mpa_common_t;
 

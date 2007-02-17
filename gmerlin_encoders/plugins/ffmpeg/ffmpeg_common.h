@@ -93,7 +93,6 @@ typedef struct
   const ffmpeg_format_info_t * format;
 
   int initialized;
-  char * error_msg;
   
   int got_error;
   } ffmpeg_priv_t;
@@ -109,7 +108,6 @@ void bg_ffmpeg_set_parameter(void * data, char * name,
 
 const char * bg_ffmpeg_get_extension(void * data);
 
-const char * bg_ffmpeg_get_error(void * data);
 
 int bg_ffmpeg_open(void * data, const char * filename,
                    bg_metadata_t * metadata,

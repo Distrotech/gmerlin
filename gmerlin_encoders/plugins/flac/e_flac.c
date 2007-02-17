@@ -28,13 +28,15 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "e_flac"
 
+#include <gmerlin/translation.h>
+
+
 #include <bgflac.h>
 
 typedef struct
   {
   bg_flac_t com; /* Must be first for bg_flac_set_audio_parameter */
   
-  char * error_msg;
   char * filename;
   
   gavl_audio_format_t format;
@@ -64,38 +66,32 @@ static void * create_flac()
   }
 
 
-static const char * get_error_flac(void * priv)
-  {
-  flac_t * flac;
-  flac = (flac_t*)priv;
-  return flac->error_msg;
-  }
 
 static bg_parameter_info_t parameters[] =
   {
     {
       name:        "use_vorbis_comment",
-      long_name:   "Write vorbis comment",
+      long_name:   TRS("Write vorbis comment"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 },
-      help_string: "Write Vorbis comment containing metadata to the file"
+      help_string: TRS("Write Vorbis comment containing metadata to the file")
     },
     {
       name:        "use_seektable",
-      long_name:   "Write seek table",
+      long_name:   TRS("Write seek table"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 },
-      help_string: "Write seektable (strongly recommended)"
+      help_string: TRS("Write seektable (strongly recommended)")
     },
     {
       name:        "num_seektable_entries",
-      long_name:   "Entries in the seektable",
+      long_name:   TRS("Entries in the seektable"),
       type:        BG_PARAMETER_INT,
       val_min: { val_i: 1 },
       val_max: { val_i: 1000000 },
       val_default: { val_i: 100 },
-      help_string: "Maximum number of entries in the seek table. Default is 100, larger numbers result in\
- shorter seeking times but also in larger files."
+      help_string: TRS("Maximum number of entries in the seek table. Default is 100, larger numbers result in\
+ shorter seeking times but also in larger files.")
     },
     { /* End of parameters */ }
   };
@@ -205,12 +201,10 @@ static int start_flac(void * data)
   if(FLAC__file_encoder_init(flac->enc) != FLAC__FILE_ENCODER_OK)
     {
     if(errno)
-      flac->error_msg = bg_sprintf("Initializing encoder failed: %s",
-                                   strerror(errno));
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Initializing encoder failed: %s",
+             strerror(errno));
     else
-      flac->error_msg = bg_sprintf("Initializing encoder failed");
-    
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, flac->error_msg);
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Initializing encoder failed");
     return 0;
     }
   return 1;
@@ -455,8 +449,10 @@ bg_encoder_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:            "e_flac",       /* Unique short name */
-      long_name:       "Flac encoder",
+      long_name:       TRS("Flac encoder"),
+      description:     TRS("Encoder for .flac files. Based on libflac (http://flac.sourceforge.net)"),
       mimetypes:       NULL,
       extensions:      "flac",
       type:            BG_PLUGIN_ENCODER_AUDIO,
@@ -465,7 +461,6 @@ bg_encoder_plugin_t the_plugin =
       
       create:            create_flac,
       destroy:           destroy_flac,
-      get_error:         get_error_flac,
       get_parameters:    get_parameters_flac,
       set_parameter:     set_parameter_flac,
     },

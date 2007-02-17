@@ -1,7 +1,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <config.h>
+
 #include "ffmpeg_common.h"
+#include <gmerlin/translation.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/log.h>
 
@@ -16,7 +19,7 @@ create_format_parameters(const ffmpeg_format_info_t * formats)
   ret = calloc(2, sizeof(*ret));
 
   ret[0].name = bg_strdup(ret[0].name, "format");
-  ret[0].long_name = bg_strdup(ret[0].long_name, "Format");
+  ret[0].long_name = bg_strdup(ret[0].long_name, TRS("Format"));
   ret[0].type = BG_PARAMETER_STRINGLIST;
 
   num_formats = 0;
@@ -74,8 +77,6 @@ void bg_ffmpeg_destroy(void * data)
     free(priv->audio_streams);
   if(priv->video_streams)
     free(priv->video_streams);
-  if(priv->error_msg)
-    free(priv->error_msg);
   }
 
 bg_parameter_info_t * bg_ffmpeg_get_parameters(void * data)
@@ -134,14 +135,6 @@ const char * bg_ffmpeg_get_extension(void * data)
   if(priv->format)
     return priv->format->extension;
   return (const char *)0;
-  }
-
-const char * bg_ffmpeg_get_error(void * data)
-  {
-  ffmpeg_priv_t * priv;
-  priv = (ffmpeg_priv_t *)data;
-
-  return priv->error_msg;
   }
 
 int bg_ffmpeg_open(void * data, const char * filename,
@@ -430,8 +423,7 @@ int bg_ffmpeg_start(void * data)
       }
     if(priv->format->audio_codecs[j] == CODEC_ID_NONE)
       {
-      priv->error_msg =
-        bg_sprintf("Audio codec is not compatible with format");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Audio codec is not compatible with format");
       return 0;
       }
     }
@@ -448,9 +440,8 @@ int bg_ffmpeg_start(void * data)
       }
     if(priv->format->video_codecs[j] == CODEC_ID_NONE)
       {
-      fprintf(stderr, "Video codec is not compatible with format\n");
-      priv->error_msg =
-        bg_sprintf("Video codec is not compatible with format");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+             "Video codec is not compatible with format");
       return 0;
       }
     }

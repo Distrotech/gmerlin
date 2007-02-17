@@ -4,6 +4,8 @@ else
 flac_libs =
 endif
 
+AM_CFLAGS = -DLOCALE_DIR=\"$(localedir)\"
+
 noinst_LTLIBRARIES = libgmerlin_encoders.la $(flac_libs)
 
 libgmerlin_encoders_la_SOURCES = \

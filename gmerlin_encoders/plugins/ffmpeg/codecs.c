@@ -3,11 +3,12 @@
 #include "ffmpeg_common.h"
 #include "params.h"
 #include <gmerlin/utils.h>
+#include <gmerlin/translation.h>
 
 #define ENCODE_PARAM_MP2                 \
   {                                      \
     name:      "ff_bit_rate_str",        \
-    long_name: "Bit rate (kbps)",        \
+    long_name: TRS("Bit rate (kbps)"),        \
     type:      BG_PARAMETER_STRINGLIST, \
     val_default: { val_str: "128" },       \
     multi_names: (char*[]){ "32",  "48", "56", "64", "80", "96", "112", \
@@ -18,7 +19,7 @@
 #define ENCODE_PARAM_MP3                 \
   {                                      \
     name:      "ff_bit_rate_str",        \
-    long_name: "Bit rate (kbps)",        \
+    long_name: TRS("Bit rate (kbps)"),        \
     type:      BG_PARAMETER_STRINGLIST, \
     val_default: { val_str: "128" },       \
     multi_names: (char*[]){ "32", "40", "48", "56", "64", "80", "96", \
@@ -29,7 +30,7 @@
 #define ENCODE_PARAM_AC3 \
   {                                      \
     name:      "ff_bit_rate_str",        \
-    long_name: "Bit rate (kbps)",        \
+    long_name: TRS("Bit rate (kbps)"),        \
     type:      BG_PARAMETER_STRINGLIST, \
     val_default: { val_str: "128" },       \
     multi_names: (char*[]){ "32", "40", "48", "56", "64", "80", "96", "112", "128", \
@@ -40,7 +41,7 @@
 #define ENCODE_PARAM_VIDEO_RATECONTROL \
   {                                           \
     name:      "rate_control",                       \
-    long_name: "Rate control",                     \
+    long_name: TRS("Rate control"),                     \
     type:      BG_PARAMETER_SECTION,         \
   },                                        \
     PARAM_BITRATE_VIDEO,                    \
@@ -54,7 +55,7 @@
 #define ENCODE_PARAM_VIDEO_QUANTIZER_I \
   {                                           \
     name:      "quantizer",                       \
-    long_name: "Quantizer",                     \
+    long_name: TRS("Quantizer"),                     \
     type:      BG_PARAMETER_SECTION,         \
   },                                        \
     PARAM_QMIN,                             \
@@ -80,7 +81,7 @@
 #define ENCODE_PARAM_VIDEO_FRAMETYPES_IP \
   {                                           \
     name:      "frame_types",                       \
-    long_name: "Frame types",                     \
+    long_name: TRS("Frame types"),                     \
     type:      BG_PARAMETER_SECTION,         \
   },                                        \
   PARAM_GOP_SIZE,                      \
@@ -97,7 +98,7 @@
 #define ENCODE_PARAM_VIDEO_ME \
   {                                           \
     name:      "motion_estimation",                       \
-    long_name: "Motion estimation",                     \
+    long_name: TRS("Motion estimation"),                     \
     type:      BG_PARAMETER_SECTION,         \
   },                                        \
     PARAM_ME_METHOD,                        \
@@ -111,7 +112,7 @@
 #define ENCODE_PARAM_VIDEO_ME_PRE \
   {                                           \
     name:      "motion_estimation",                       \
-    long_name: "ME pre-pass",                     \
+    long_name: TRS("ME pre-pass"),                     \
     type:      BG_PARAMETER_SECTION,         \
   },                                        \
     PARAM_PRE_ME,\
@@ -122,7 +123,7 @@
 #define ENCODE_PARAM_VIDEO_QPEL                 \
   {                                           \
     name:      "qpel_motion_estimation",                       \
-    long_name: "Qpel ME",                     \
+    long_name: TRS("Qpel ME"),                     \
     type:      BG_PARAMETER_SECTION,         \
   },                                        \
     PARAM_FLAG_QPEL, \
@@ -133,7 +134,7 @@
 #define ENCODE_PARAM_VIDEO_MASKING \
   {                                \
     name:      "masking",                       \
-    long_name: "Masking",                     \
+    long_name: TRS("Masking"),                     \
     type:      BG_PARAMETER_SECTION,         \
   },                                        \
     PARAM_LUMI_MASKING, \
@@ -147,7 +148,7 @@
 #define ENCODE_PARAM_VIDEO_MISC \
   {                                           \
     name:      "misc",                       \
-    long_name: "Misc",                     \
+    long_name: TRS("Misc"),                     \
     type:      BG_PARAMETER_SECTION,         \
   },                                        \
     PARAM_STRICT_STANDARD_COMPLIANCE,       \
@@ -211,49 +212,49 @@ static ffmpeg_codec_info_t audio_codecs[] =
   {
     {
       .name      = "pcm_s16be",
-      .long_name = "16 bit PCM",
+      .long_name = TRS("16 bit PCM"),
       .id        = CODEC_ID_PCM_S16BE,
     },
     {
       .name      = "pcm_s16le",
-      .long_name = "16 bit PCM",
+      .long_name = TRS("16 bit PCM"),
       .id        = CODEC_ID_PCM_S16LE,
     },
     {
       .name      = "pcm_s8",
-      .long_name = "8 bit PCM",
+      .long_name = TRS("8 bit PCM"),
       .id        = CODEC_ID_PCM_S8,
     },
     {
-      .name      = "pcm_u8",
+      .name      = TRS("pcm_u8"),
       .long_name = "8 bit PCM",
       .id        = CODEC_ID_PCM_U8,
     },
     {
       .name      = "pcm_alaw",
-      .long_name = "alaw",
+      .long_name = TRS("alaw"),
       .id        = CODEC_ID_PCM_ALAW,
     },
     {
       .name      = "pcm_mulaw",
-      .long_name = "mulaw",
+      .long_name = TRS("mulaw"),
       .id        = CODEC_ID_PCM_MULAW,
     },
     {
       .name      = "ac3",
-      .long_name = "AC3",
+      .long_name = TRS("AC3"),
       .id        = CODEC_ID_AC3,
       .parameters = parameters_ac3,
     },
     {
       .name      = "mp2",
-      .long_name = "MPEG audio layer 2",
+      .long_name = TRS("MPEG audio layer 2"),
       .id        = CODEC_ID_MP2,
       .parameters = parameters_mp2,
     },
     {
       .name      = "mp3",
-      .long_name = "MPEG audio layer 3",
+      .long_name = TRS("MPEG audio layer 3"),
       .id        = CODEC_ID_MP3,
       .parameters = parameters_mp3,
     },
@@ -264,55 +265,55 @@ static ffmpeg_codec_info_t video_codecs[] =
   {
     {
       .name      = "mjpeg",
-      .long_name = "Motion JPEG",
+      .long_name = TRS("Motion JPEG"),
       .id        = CODEC_ID_MJPEG,
     },
     {
       .name       = "mpeg4",
-      .long_name  = "MPEG-4",
+      .long_name  = TRS("MPEG-4"),
       .id         = CODEC_ID_MPEG4,
       .parameters = parameters_mpeg4
     },
     {
       .name       = "msmpeg4v3",
-      .long_name  = "Divx 3 compatible",
+      .long_name  = TRS("Divx 3 compatible"),
       .id         = CODEC_ID_MSMPEG4V3,
       .parameters = parameters_msmpeg4v3
     },
     {
       .name       = "mpeg1video",
-      .long_name  = "MPEG-1 Video",
+      .long_name  = TRS("MPEG-1 Video"),
       .id         = CODEC_ID_MPEG1VIDEO,
       .parameters = parameters_mpeg1
     },
     {
       .name       = "mpeg2video",
-      .long_name  = "MPEG-2 Video",
+      .long_name  = TRS("MPEG-2 Video"),
       .id         = CODEC_ID_MPEG2VIDEO,
       .parameters = parameters_mpeg1
     },
     {
       .name       = "flv1",
-      .long_name  = "Flash 1",
+      .long_name  = TRS("Flash 1"),
       .id         = CODEC_ID_FLV1,
       .parameters = parameters_msmpeg4v3
     },
     {
       .name       = "wmv1",
-      .long_name  = "WMV 1",
+      .long_name  = TRS("WMV 1"),
       .id         = CODEC_ID_WMV1,
       .parameters = parameters_msmpeg4v3
     },
     {
       .name       = "rv10",
-      .long_name  = "Real Video 1",
+      .long_name  = TRS("Real Video 1"),
       .id         = CODEC_ID_RV10,
       .parameters = parameters_msmpeg4v3
     },
 #if 0
     {
       .name       = "wmv2",
-      .long_name  = "WMV 2",
+      .long_name  = TRS("WMV 2"),
       .id         = CODEC_ID_WMV2,
       .parameters = parameters_msmpeg4v3
     },
@@ -371,7 +372,7 @@ static void create_codec_parameter(bg_parameter_info_t * parameter_info,
   int i;
   parameter_info[0].name = bg_strdup(parameter_info[0].name, "codec");
   parameter_info[0].long_name =
-    bg_strdup(parameter_info[0].long_name, "Codec");
+    bg_strdup(parameter_info[0].long_name, TRS("Codec"));
 
   parameter_info[0].type = BG_PARAMETER_MULTI_MENU;
   parameter_info[0].multi_names =

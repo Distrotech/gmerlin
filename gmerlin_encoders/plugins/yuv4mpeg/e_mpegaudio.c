@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <config.h>
 
+#include <gmerlin/translation.h>
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/subprocess.h>
@@ -34,7 +35,6 @@
 
 typedef struct
   {
-  char * error_msg;
   char * filename;
 
   bg_mpa_common_t com;
@@ -55,12 +55,6 @@ static void destroy_mpa(void * priv)
   free(mpa);
   }
 
-static const char * get_error_mpa(void * priv)
-  {
-  e_mpa_t * mpa;
-  mpa = (e_mpa_t*)priv;
-  return mpa->error_msg;
-  }
 
 static void set_parameter_mpa(void * data, char * name,
                               bg_parameter_value_t * v)
@@ -102,8 +96,7 @@ static int start_mpa(void * data)
   int result;
   e_mpa_t * e = (e_mpa_t*)data;
   result = bg_mpa_start(&e->com, e->filename);
-  if(!result)
-    e->error_msg = bg_sprintf("Cannot find mp2enc executable");
+  bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot find mp2enc executable");
   return result;
   }
 
@@ -162,8 +155,11 @@ bg_encoder_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:            "e_mpegaudio",       /* Unique short name */
-      long_name:       "MPEG-1 layer 1/2 audio encoder",
+      long_name:       TRS("MPEG-1 layer 1/2 audio encoder"),
+      description:     TRS("Encoder for elementary MPEG-1 layer 1/2 audio streams.\
+ Based on mjpegtools (http://mjpeg.sourceforge.net)."),
       mimetypes:       NULL,
       extensions:      "mpa",
       type:            BG_PLUGIN_ENCODER_AUDIO,
@@ -171,7 +167,6 @@ bg_encoder_plugin_t the_plugin =
       priority:        5,
       create:            create_mpa,
       destroy:           destroy_mpa,
-      get_error:         get_error_mpa,
       get_parameters:    get_parameters_mpa,
       set_parameter:     set_parameter_mpa,
     },

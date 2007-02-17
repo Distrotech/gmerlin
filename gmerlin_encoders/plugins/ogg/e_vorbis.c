@@ -20,6 +20,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <config.h>
+#include <gmerlin/translation.h>
+
 #include <gmerlin_encoders.h>
 
 #include <gmerlin/plugin.h>
@@ -52,18 +54,15 @@ static int add_audio_stream_vorbis(void * data, const char * language,
   return ret;
   }
 
-static const char * get_error_vorbis(void * data)
-  {
-  bg_ogg_encoder_t * enc = (bg_ogg_encoder_t*)data;
-  return enc->error_msg;
-  }
 
 bg_encoder_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:            "e_vorbis",       /* Unique short name */
-      long_name:       "Vorbis encoder",
+      long_name:       TRS("Vorbis encoder"),
+      description:     TRS("Encoder for Vorbis files"),
       mimetypes:       NULL,
       extensions:      "ogg",
       type:            BG_PLUGIN_ENCODER_AUDIO,
@@ -71,7 +70,6 @@ bg_encoder_plugin_t the_plugin =
       priority:        5,
       create:            bg_ogg_encoder_create,
       destroy:           bg_ogg_encoder_destroy,
-      get_error:         get_error_vorbis,
 #if 0
       get_parameters:    get_parameters_vorbis,
       set_parameter:     set_parameter_vorbis,

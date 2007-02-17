@@ -21,6 +21,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <config.h>
+#include <gmerlin/translation.h>
+
 #include <gmerlin_encoders.h>
 
 #include <gmerlin/plugin.h>
@@ -51,19 +53,14 @@ static int add_audio_stream_flacogg(void * data, const char * language,
   return ret;
   }
 
-static const char * get_error_flacogg(void * data)
-  {
-  bg_ogg_encoder_t * enc = (bg_ogg_encoder_t*)data;
-  return enc->error_msg;
-  }
-
-
 bg_encoder_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:            "e_flacogg",       /* Unique short name */
-      long_name:       "Flac in Ogg encoder",
+      long_name:       TRS("Flac in Ogg encoder"),
+      description:     TRS("Encoder for flac streams in Ogg containers. Based on libflac (http://flac.sourceforge.net)"),
       mimetypes:       NULL,
       extensions:      "ogg",
       type:            BG_PLUGIN_ENCODER_AUDIO,
@@ -71,7 +68,6 @@ bg_encoder_plugin_t the_plugin =
       priority:        5,
       create:            bg_ogg_encoder_create,
       destroy:           bg_ogg_encoder_destroy,
-      get_error:         get_error_flacogg,
 #if 0
       get_parameters:    get_parameters_flacogg,
       set_parameter:     set_parameter_flacogg,

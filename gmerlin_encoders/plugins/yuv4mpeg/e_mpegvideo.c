@@ -21,6 +21,9 @@
 
 #include <yuv4mpeg.h>
 
+#include <config.h>
+
+#include <gmerlin/translation.h>
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/subprocess.h>
@@ -32,7 +35,6 @@
 
 typedef struct
   {
-  char * error_msg;
   bg_mpv_common_t mpv;
   char * filename;
   } e_mpv_t;
@@ -43,12 +45,6 @@ static void * create_mpv()
   return ret;
   }
 
-static const char * get_error_mpv(void * priv)
-  {
-  e_mpv_t * y4m;
-  y4m = (e_mpv_t*)priv;
-  return y4m->error_msg;
-  }
 
 static const char * get_extension_mpv(void * data)
   {
@@ -135,8 +131,11 @@ bg_encoder_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:           "e_mpegvideo",       /* Unique short name */
-      long_name:      "MPEG-1/2 video encoder",
+      long_name:      TRS("MPEG-1/2 video encoder"),
+      description:     TRS("Encoder for elementary MPEG-1/2 video streams.\
+ Based on mjpegtools (http://mjpeg.sourceforge.net)."),
       mimetypes:      NULL,
       extensions:     "m1v m2v",
       type:           BG_PLUGIN_ENCODER_VIDEO,
@@ -146,7 +145,6 @@ bg_encoder_plugin_t the_plugin =
       destroy:        destroy_mpv,
       get_parameters: get_parameters_mpv,
       set_parameter:  set_parameter_mpv,
-      get_error:      get_error_mpv,
     },
 
     max_audio_streams:  0,

@@ -23,6 +23,10 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include <config.h>
+
+
+#include <gmerlin/translation.h>
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
 #include <gmerlin_encoders.h>
@@ -31,7 +35,6 @@
 
 typedef struct
   {
-  char * error_msg;
   bg_y4m_common_t com;
   char * filename;
   } e_y4m_t;
@@ -42,12 +45,6 @@ static void * create_y4m()
   return ret;
   }
 
-static const char * get_error_y4m(void * priv)
-  {
-  e_y4m_t * y4m;
-  y4m = (e_y4m_t*)priv;
-  return y4m->error_msg;
-  }
 
 static const char * extension_y4m  = ".y4m";
 
@@ -120,8 +117,6 @@ static void destroy_y4m(void * data)
   e_y4m_t * e = (e_y4m_t*)data;
   bg_y4m_cleanup(&e->com);
 
-  if(e->error_msg)
-    free(e->error_msg);
   if(e->filename)
     free(e->filename);
   
@@ -157,7 +152,7 @@ static bg_parameter_info_t video_parameters[] =
   {
     {
       name:        "chroma_mode",
-      long_name:   "Chroma mode",
+      long_name:   TRS("Chroma mode"),
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "auto" },
       multi_names: (char*[]){ "auto",
@@ -170,17 +165,17 @@ static bg_parameter_info_t video_parameters[] =
                               "mono",
                               "yuva4444",
                               (char*)0 },
-      multi_labels: (char*[]){ "Auto",
-                               "4:2:0 (MPEG-1/JPEG)",
-                               "4:2:0 (MPEG-2)",
-                               "4:2:0 (PAL DV)",
-                               "4:4:4",
-                               "4:2:2",
-                               "4:1:1",
-                               "Greyscale",
-                               "4:4:4:4 (YUVA)",
+      multi_labels: (char*[]){ TRS("Auto"),
+                               TRS("4:2:0 (MPEG-1/JPEG)"),
+                               TRS("4:2:0 (MPEG-2)"),
+                               TRS("4:2:0 (PAL DV)"),
+                               TRS("4:4:4"),
+                               TRS("4:2:2"),
+                               TRS("4:1:1"),
+                               TRS("Greyscale"),
+                               TRS("4:4:4:4 (YUVA)"),
                                (char*)0 },
-      help_string: "Set the chroma mode of the output file. Auto means to take the format most similar to the source."
+      help_string: TRS("Set the chroma mode of the output file. Auto means to take the format most similar to the source.")
     },
     { /* End of parameters */ }
   };
@@ -262,8 +257,11 @@ bg_encoder_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:           "e_y4m",       /* Unique short name */
-      long_name:      "yuv4mpeg2 encoder",
+      long_name:      TRS("yuv4mpeg2 encoder"),
+      description:     TRS("Encoder for yuv4mpeg streams.\
+ Based on mjpegtools (http://mjpeg.sourceforge.net)."),
       mimetypes:      NULL,
       extensions:     "y4m",
       type:           BG_PLUGIN_ENCODER_VIDEO,
@@ -273,7 +271,6 @@ bg_encoder_plugin_t the_plugin =
       destroy:        destroy_y4m,
       //      get_parameters: get_parameters_y4m,
       //      set_parameter:  set_parameter_y4m,
-      get_error:      get_error_y4m,
     },
 
     max_audio_streams:  0,

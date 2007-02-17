@@ -19,6 +19,8 @@
 
 #include <string.h>
 
+#include <config.h>
+
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/log.h>

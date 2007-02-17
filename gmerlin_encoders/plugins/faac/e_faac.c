@@ -33,9 +33,10 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "e_faac"
 
+#include <gmerlin/translation.h>
+
 typedef struct
   {
-  char * error_msg;
   FILE * output;
   char * filename;
   
@@ -73,24 +74,18 @@ static void destroy_faac(void * priv)
   free(faac);
   }
 
-static const char * get_error_faac(void * priv)
-  {
-  faac_t * faac;
-  faac = (faac_t*)priv;
-  return faac->error_msg;
-  }
 
 
 static bg_parameter_info_t audio_parameters[] =
   {
     {
       name:        "basic",
-      long_name:   "Basic options",
+      long_name:   TRS("Basic options"),
       type:        BG_PARAMETER_SECTION
     },
     {
       name:        "object_type",
-      long_name:   "Object type",
+      long_name:   TRS("Object type"),
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str:  "mpeg4_main" },
       multi_names: (char*[]){ "mpeg2_main",
@@ -99,54 +94,58 @@ static bg_parameter_info_t audio_parameters[] =
                               "mpeg4_lc",
                               "mpeg4_ltp",
                               (char*)0 },
-      multi_labels: (char*[]){ "MPEG-2 Main profile",
-                               "MPEG-2 Low Complexity profile (LC)",
-                               "MPEG-4 Main profile",
-                               "MPEG-4 Low Complexity profile (LC)",
-                               "MPEG-4 Long Term Prediction (LTP)",
+      multi_labels: (char*[]){ TRS("MPEG-2 Main profile"),
+                               TRS("MPEG-2 Low Complexity profile (LC)"),
+                               TRS("MPEG-4 Main profile"),
+                               TRS("MPEG-4 Low Complexity profile (LC)"),
+                               TRS("MPEG-4 Long Term Prediction (LTP)"),
                                (char*)0 },
     },
     {
       name:        "bitrate",
-      long_name:   "Bitrate (kbps)",
+      long_name:   TRS("Bitrate (kbps)"),
       type:        BG_PARAMETER_INT,
       val_min:     { val_i: 0    },
       val_max:     { val_i: 1000 },
-      help_string: "Average bitrate (0: VBR based on quality)",
+      help_string: TRS("Average bitrate (0: VBR based on quality)"),
     },
     {
       name:        "quality",
-      long_name:   "Quality",
+      long_name:   TRS("Quality"),
       type:        BG_PARAMETER_SLIDER_INT,
       val_min:     { val_i: 10 },
       val_max:     { val_i: 500 },
       val_default: { val_i: 100 },
-      help_string: "Quantizer quality",
+      help_string: TRS("Quantizer quality"),
     },
     {
       name:        "advanced",
-      long_name:   "Advanced options",
+      long_name:   TRS("Advanced options"),
       type:        BG_PARAMETER_SECTION
     },
     {
       name:        "block_types",
-      long_name:   "Block types",
+      long_name:   TRS("Block types"),
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str:  "Both" },
       multi_names: (char*[]){ "Both",
                               "No short",
                               "No long",
                               (char*)0 },
+      multi_labels: (char*[]){ TRS("Both"),
+                               TRS("No short"),
+                               TRS("No long"),
+                               (char*)0 },
     },
     {
       name:        "tns",
       type:        BG_PARAMETER_CHECKBUTTON,
-      long_name:   "Use temporal noise shaping",
+      long_name:   TRS("Use temporal noise shaping"),
       val_default: { val_i: 0 }
     },
     {
       name:        "no_midside",
-      long_name:   "Don\'t use mid/side coding",
+      long_name:   TRS("Don\'t use mid/side coding"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 0 }
     },
@@ -171,7 +170,7 @@ static void set_audio_parameter_faac(void * data, int stream, char * name,
     /* Set encoding parameters */
     
     if(!faacEncSetConfiguration(faac->enc, faac->enc_config))
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "ERROR: faacEncSetConfiguration failed");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "faacEncSetConfiguration failed");
     }
     
   else if(!strcmp(name, "object_type"))
@@ -240,25 +239,25 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name:        "do_id3v1",
-      long_name:   "Write ID3V1.1 tag",
+      long_name:   TRS("Write ID3V1.1 tag"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 },
     },
     {
       name:        "do_id3v2",
-      long_name:   "Write ID3V2 tag",
+      long_name:   TRS("Write ID3V2 tag"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 },
     },
     {
       name:        "id3v2_charset",
-      long_name:   "ID3V2 Encoding",
+      long_name:   TRS("ID3V2 Encoding"),
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "3" },
       multi_names: (char*[]){ "0", "1",
                                "2", "3", (char*)0 },
-      multi_labels: (char*[]){ "ISO-8859-1", "UTF-16 LE",
-                               "UTF-16 BE", "UTF-8", (char*)0 },
+      multi_labels: (char*[]){ TRS("ISO-8859-1"), TRS("UTF-16 LE"),
+                               TRS("UTF-16 BE"), TRS("UTF-8"), (char*)0 },
     },
     { /* End of parameters */ }
   };
@@ -298,9 +297,8 @@ static int open_faac(void * data, const char * filename,
 
   if(!faac->output)
     {
-    faac->error_msg = bg_sprintf("Cannot open %s: %s",
-                                 filename, strerror(errno));
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, faac->error_msg);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s: %s",
+           filename, strerror(errno));
     return 0;
     }
   
@@ -533,8 +531,10 @@ bg_encoder_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:            "e_faac",       /* Unique short name */
-      long_name:       "Faac encoder",
+      long_name:       TRS("Faac encoder"),
+      description:     TRS("Plugin for encoding AAC streams (with ADTS headers). Based on faac (http://faac.sourceforge.net)."),
       mimetypes:       NULL,
       extensions:      "aac",
       type:            BG_PLUGIN_ENCODER_AUDIO,
@@ -542,7 +542,6 @@ bg_encoder_plugin_t the_plugin =
       priority:        5,
       create:            create_faac,
       destroy:           destroy_faac,
-      get_error:         get_error_faac,
       get_parameters:    get_parameters_faac,
       set_parameter:     set_parameter_faac,
     },

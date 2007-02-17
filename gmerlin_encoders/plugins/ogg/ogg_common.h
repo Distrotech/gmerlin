@@ -49,7 +49,6 @@ typedef struct
   
   bg_parameter_info_t * audio_parameters;
 
-  char * error_msg;  
   } bg_ogg_encoder_t;
 
 void * bg_ogg_encoder_create();

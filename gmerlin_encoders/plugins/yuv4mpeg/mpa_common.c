@@ -23,6 +23,7 @@
 #include <pthread.h>
 #include <sys/signal.h>
 
+#include <gmerlin/translation.h>
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/subprocess.h>
@@ -36,28 +37,28 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name:        "bitrate",
-      long_name:   "Bitrate (kb/s)",
+      long_name:   TRS("Bitrate (kb/s)"),
       type:        BG_PARAMETER_INT,
       val_default: { val_i:     224 },
       val_min:     { val_i:      32 },
       val_max:     { val_i:     448 },
-      help_string: "Bitrate in (kb/s). ",
+      help_string: TRS("Bitrate in (kb/s). "),
     },
     {
       name:        "layer",
-      long_name:   "Layer (1 or 2)",
+      long_name:   TRS("Layer (1 or 2)"),
       type:        BG_PARAMETER_INT,
       val_default: { val_i:       2 },
       val_min:     { val_i:       1 },
       val_max:     { val_i:       2 },
-      help_string: "Audio layer",
+      help_string: TRS("Audio layer"),
     },
     {
       name:        "vcd",
-      long_name:   "VCD Compatible",
+      long_name:   TRS("VCD Compatible"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i:       1 },
-      help_string: "Make VCD compliant output. This forces layer II, 224 kb/s and 44.1 KHz stereo",
+      help_string: TRS("Make VCD compliant output. This forces layer II, 224 kb/s and 44.1 KHz stereo"),
     },
     { /* End of parameters */ }
   };

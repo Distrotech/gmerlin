@@ -1,3 +1,6 @@
+#include <config.h>
+#include <gmerlin/translation.h>
+
 #include "ffmpeg_common.h"
 
 static ffmpeg_format_info_t formats[] =
@@ -116,8 +119,11 @@ bg_encoder_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:           "e_ffmpeg",       /* Unique short name */
-      long_name:      "FFmpeg audio/video encoder",
+      long_name:      TRS("FFmpeg audio/video encoder"),
+      description:    TRS("Plugin for encoding various audio/video formats with ffmpeg \
+(http://www.ffmpeg.org)."),
       mimetypes:      NULL,
       extensions:     "avi",
       type:           BG_PLUGIN_ENCODER,
@@ -127,7 +133,6 @@ bg_encoder_plugin_t the_plugin =
       destroy:        bg_ffmpeg_destroy,
       get_parameters: bg_ffmpeg_get_parameters,
       set_parameter:  bg_ffmpeg_set_parameter,
-      get_error:      bg_ffmpeg_get_error,
     },
     
     max_audio_streams:         -1,
