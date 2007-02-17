@@ -68,7 +68,6 @@ POTFILES = \
      ../plugins/avdec_common.c \
      ../plugins/avdec_common.h \
      ../plugins/i_dvd.c \
-     ../tests/language_table.h \
      ../tests/mmstest.c \
      ../tests/rtsptest.c \
      ../tests/bgavdump.c \
