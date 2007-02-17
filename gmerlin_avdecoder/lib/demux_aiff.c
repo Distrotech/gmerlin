@@ -298,7 +298,8 @@ static int open_aiff(bgav_demuxer_context_t * ctx,
               }
             else
               {
-              bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,  "%d bit aiff not supported\n", 
+              bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                       "%d bit aiff not supported", 
                       s->data.audio.bits_per_sample);
               return 0;
               }

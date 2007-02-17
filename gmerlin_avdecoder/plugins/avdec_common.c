@@ -401,7 +401,6 @@ void
 bg_avdec_set_parameter(void * p, char * name,
                     bg_parameter_value_t * val)
   {
-  int i_tmp;
   avdec_priv * avdec;
   avdec = (avdec_priv*)(p);
   if(!name)
@@ -422,32 +421,7 @@ bg_avdec_set_parameter(void * p, char * name,
     }
   else if(!strcmp(name, "network_bandwidth"))
     {
-    i_tmp = 393216;
-    if(!strcmp(val->val_str, "14.4 Kbps (Modem)"))
-      i_tmp = 14400;
-    else if(!strcmp(val->val_str, "19.2 Kbps (Modem)"))
-      i_tmp = 19200;
-    else if(!strcmp(val->val_str, "28.8 Kbps (Modem)"))
-      i_tmp = 28800;
-    else if(!strcmp(val->val_str, "33.6 Kbps (Modem)"))
-      i_tmp = 33600;
-    else if(!strcmp(val->val_str, "34.4 Kbps (Modem)"))
-      i_tmp = 34430;
-    else if(!strcmp(val->val_str, "57.6 Kbps (Modem)"))
-      i_tmp = 57600;
-    else if(!strcmp(val->val_str, "115.2 Kbps (ISDN)"))
-      i_tmp = 115200;
-    else if(!strcmp(val->val_str, "262.2 Kbps (Cable/DSL)"))
-      i_tmp = 262200;
-    else if(!strcmp(val->val_str, "393.2 Kbps (Cable/DSL)"))
-      i_tmp = 393216;
-    else if(!strcmp(val->val_str, "524.3 Kbps (Cable/DSL)"))
-      i_tmp = 524300;
-    else if(!strcmp(val->val_str, "1.5 Mbps (T1)"))
-      i_tmp = 1544000;
-    else if(!strcmp(val->val_str, "10.5 Mbps (LAN)"))
-      i_tmp = 10485800;
-    bgav_options_set_network_bandwidth(avdec->opt, i_tmp);
+    bgav_options_set_network_bandwidth(avdec->opt, atoi(val->val_str));
     }
   else if(!strcmp(name, "http_shoutcast_metadata"))
     {
@@ -601,16 +575,6 @@ void bg_avdec_set_callbacks(void * priv,
     bgav_options_copy(opt, avdec->opt);
     }
   }
-
-const char * bg_avdec_get_error(void * priv)
-  {
-  avdec_priv * avdec;
-  avdec = (avdec_priv*)(priv);
-  if(avdec->dec)
-    return bgav_get_error(avdec->dec);
-  return (const char *)0;
-  }
-
 
 bg_device_info_t * bg_avdec_get_devices(bgav_device_info_t * info)
   {

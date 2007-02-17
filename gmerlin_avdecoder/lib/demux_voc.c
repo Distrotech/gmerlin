@@ -227,7 +227,8 @@ static int open_voc(bgav_demuxer_context_t * ctx,
         done = 1;
         break;
       default:
-        bgav_log(ctx->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Skipping %d bytes of chunk type %02x\n",
+        bgav_log(ctx->opt, BGAV_LOG_INFO, LOG_DOMAIN,
+                 "Skipping %d bytes of chunk type %02x",
                  h.len, h.type);
         bgav_input_skip(ctx->input, h.len);
         break;

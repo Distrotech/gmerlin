@@ -431,7 +431,7 @@ static int read_spumux(bgav_stream_t * s)
   if((priv->format.image_width > s->data.subtitle.format.image_width) ||
      (priv->format.image_width > s->data.subtitle.format.image_height))
     {
-    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Overlay too large\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Overlay too large");
     return 0;
     }
 
@@ -444,7 +444,8 @@ static int read_spumux(bgav_stream_t * s)
   
   if(ctx->ovl.frame->time_scaled == GAVL_TIME_UNDEFINED)
     {
-    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Parsing time string %s failed\n", start_time);
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Parsing time string %s failed", start_time);
     return 0;
     }
   tmp = bgav_yml_get_attribute_i(priv->cur, "end");
@@ -499,7 +500,8 @@ static int init_spumux(bgav_stream_t * s)
   priv->yml = bgav_yml_parse(ctx->input);
   if(!priv->yml)
     {
-    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Parsing spumux file failed\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Parsing spumux file failed");
     return 0;
     }
   if(!priv->yml->name || strcasecmp(priv->yml->name, "subpictures"))
@@ -540,7 +542,8 @@ static void seek_spumux(bgav_stream_t * s, gavl_time_t time)
     start_time = bgav_yml_get_attribute_i(priv->cur, "start");
     if(!start_time)
       {
-      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "yml node has no start attribute\n");
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "yml node has no start attribute");
       return;
       }
     end_time = bgav_yml_get_attribute_i(priv->cur, "end");
@@ -550,7 +553,8 @@ static void seek_spumux(bgav_stream_t * s, gavl_time_t time)
                               s->data.subtitle.format.frame_duration);
     if(start == GAVL_TIME_UNDEFINED)
       {
-      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Error parsing start start attribute\n");
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Error parsing start start attribute");
       return;
       }
     

@@ -55,7 +55,7 @@ static int open_mms(bgav_input_context_t * ctx, const char * url)
 
   /* Open mms connection */
   
-  priv->mms = bgav_mms_open(ctx->opt, url, &ctx->error_msg);
+  priv->mms = bgav_mms_open(ctx->opt, url);
   if(!priv->mms)
     goto fail;
 
@@ -95,7 +95,7 @@ static int open_mms(bgav_input_context_t * ctx, const char * url)
     stream_ids[i + track->num_audio_streams] =
       track->video_streams[i].stream_id;
   
-  bgav_mms_select_streams(priv->mms, stream_ids, num_streams, &(ctx->error_msg));
+  bgav_mms_select_streams(priv->mms, stream_ids, num_streams);
 
   if((!track->name) && (track->metadata.title))
     track->name = bgav_strdup(track->metadata.title);
@@ -137,8 +137,7 @@ static int do_read(bgav_input_context_t* ctx,
     {
     if(!priv->buffer_size)
       {
-      priv->buffer = bgav_mms_read_data(priv->mms, &(priv->buffer_size), block,
-                                        &ctx->error_msg);
+      priv->buffer = bgav_mms_read_data(priv->mms, &(priv->buffer_size), block);
       if(!priv->buffer)
         return bytes_read;
       priv->buffer_ptr = priv->buffer;

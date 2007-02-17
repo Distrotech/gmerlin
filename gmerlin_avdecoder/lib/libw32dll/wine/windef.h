@@ -10,6 +10,11 @@
 #ifdef __WINE__
 # include "config.h"
 # undef UNICODE
+
+#ifdef _GNU_SOURCE
+#undef _GNU_SOURCE
+#endif
+
 #endif
 
 #ifdef _EGCS_

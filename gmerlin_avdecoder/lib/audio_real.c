@@ -473,7 +473,7 @@ static int decode_frame(bgav_stream_t * s)
                     s->data.audio.block_align,
                     (char*)priv->frame->samples.s_8, &len, -1))
     {
-    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "raDecode failed\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "raDecode failed");
     }
   priv->read_buffer_ptr += s->data.audio.block_align;
   priv->read_buffer_size -= s->data.audio.block_align;

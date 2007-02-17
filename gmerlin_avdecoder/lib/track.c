@@ -213,8 +213,8 @@ int bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer)
     t->audio_streams[i].demuxer = demuxer;
     if(!bgav_stream_start(&(t->audio_streams[i])))
       {
-      demuxer->error_msg = 
-        bgav_sprintf("Starting audio decoder for stream %d failed", i+1);
+      bgav_log(demuxer->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Starting audio decoder for stream %d failed", i+1);
       return 0;
       }
     }
@@ -226,8 +226,8 @@ int bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer)
     t->video_streams[i].demuxer = demuxer;
     if(!bgav_stream_start(&(t->video_streams[i])))
       {
-      demuxer->error_msg = 
-        bgav_sprintf("Starting video decoder for stream %d failed", i+1);
+      bgav_log(demuxer->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Starting video decoder for stream %d failed", i+1);
       return 0;
       }
     }
@@ -245,9 +245,9 @@ int bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer)
 
     if(!t->subtitle_streams[i].data.subtitle.video_stream)
       {
-      demuxer->error_msg = 
-        bgav_sprintf("Cannot decode subtitles from stream %d (no video)",
-                     i+1);
+      bgav_log(demuxer->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Cannot decode subtitles from stream %d (no video)",
+               i+1);
       return 0;
       }
     video_stream = t->subtitle_streams[i].data.subtitle.video_stream;
@@ -268,13 +268,12 @@ int bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer)
     if(!video_format->image_width || !video_format->image_height ||
        !video_format->timescale || !video_format->frame_duration)
       {
-      demuxer->error_msg = 
-        bgav_sprintf("Starting subtitle decoder for stream %d failed (cannot get video format)",
-                     i+1);
+      bgav_log(demuxer->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Starting subtitle decoder for stream %d failed (cannot get video format)",
+               i+1);
       return 0;
-      
       }
-
+    
     /* For text subtitles, copy the video format */
     
     if(t->subtitle_streams[i].type == BGAV_STREAM_SUBTITLE_TEXT)
@@ -284,8 +283,8 @@ int bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer)
     
     if(!bgav_stream_start(&(t->subtitle_streams[i])))
       {
-      demuxer->error_msg = 
-        bgav_sprintf("Starting subtitle decoder for stream %d failed", i+1);
+      bgav_log(demuxer->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Starting subtitle decoder for stream %d failed", i+1);
       return 0;
       }
     }

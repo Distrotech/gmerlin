@@ -109,14 +109,14 @@ static int open_http(bgav_input_context_t * ctx, const char * url)
     }
   
   p->h = bgav_http_open(url, ctx->opt,
-                        &redirect_url, extra_header, &ctx->error_msg);
-
+                        &redirect_url, extra_header);
+  
   if(!p->h && redirect_url)
     {
     for(i = 0; i < NUM_REDIRECTIONS; i++)
       {
       p->h = bgav_http_open(redirect_url, ctx->opt,
-                            &redirect_url, extra_header, &ctx->error_msg);
+                            &redirect_url, extra_header);
       if(p->h)
         break;
       else if(!redirect_url)

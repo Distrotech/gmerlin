@@ -18,7 +18,7 @@
 *****************************************************************/
 
 #include <avdec_private.h>
-
+#define LOG_DOMAIN "in_file"
 #include <errno.h>
 #include <string.h>
 #include <stdio.h>
@@ -40,7 +40,8 @@ static int open_file(bgav_input_context_t * ctx, const char * url)
   FILE * f = fopen(url, "rb");
   if(!f)
     {
-    ctx->error_msg = bgav_sprintf(strerror(errno));
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Cannot open %s: %s",
+             url, strerror(errno));
     return 0;
     }
   ctx->priv = f;

@@ -240,6 +240,7 @@ GSM610/libgsm.la \
 -lm
 
 AM_CFLAGS = \
+-DLOCALE_DIR=\"$(localedir)\" \
 @OPT_CFLAGS@ \
 $(vorbis_cflags) \
 $(mad_cflags) \
@@ -423,6 +424,7 @@ targa.c \
 tcp.c \
 track.c \
 tracktable.c \
+translation.c \
 utils.c \
 video.c \
 video_gavl.c \

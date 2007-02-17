@@ -58,7 +58,7 @@ static int init_gsm(bgav_stream_t * s)
   if(s->data.audio.format.num_channels > 1)
     {
     bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-            "Multichannel GSM not supported (who encodes such a nonsense?)");
+            "Multichannel GSM not supported");
     return 0;
     }
 

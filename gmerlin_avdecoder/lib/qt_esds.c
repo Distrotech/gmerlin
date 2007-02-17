@@ -115,7 +115,7 @@ int bgav_qt_esds_read(qt_atom_header_t * h, bgav_input_context_t * input,
   if(len < 13)
     {
     bgav_log(input->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-             "length of MP4DecConfigDescrTag too short: %d < 13\n", len);
+             "length of MP4DecConfigDescrTag too short: %d < 13", len);
     return 0;
     }
   

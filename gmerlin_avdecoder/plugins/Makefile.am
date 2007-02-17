@@ -1,6 +1,5 @@
 libdir=@GMERLIN_PLUGIN_DIR@
 
-
 if HAVE_CDIO
 cdio_modules = i_vcd.la
 cdio_cflags = @CDIO_CFLAGS@
@@ -22,7 +21,7 @@ else
 dvb_modules =
 endif
 
-AM_CFLAGS = @OPT_CFLAGS@ @GMERLIN_CFLAGS@ $(cdio_cflags)
+AM_CFLAGS = @OPT_CFLAGS@ @GMERLIN_CFLAGS@ $(cdio_cflags) -DLOCALE_DIR=\"$(localedir)\"
 
 lib_LTLIBRARIES = \
 i_avdec.la \

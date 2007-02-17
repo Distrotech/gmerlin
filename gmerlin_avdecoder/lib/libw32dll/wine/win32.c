@@ -13,6 +13,10 @@ for DLL to know too much about its environment.
 
 #include "config.h"
 
+#ifdef _GNU_SOURCE
+#undef _GNU_SOURCE
+#endif
+
 #define QTX
 
 #ifdef QTX

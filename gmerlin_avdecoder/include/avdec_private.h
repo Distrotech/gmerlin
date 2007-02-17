@@ -22,6 +22,8 @@
 #include <avdec.h>
 // #include <stdio.h>
 
+#include <libintl.h>
+
 #define BGAV_MK_FOURCC(a, b, c, d) ((a<<24)|(b<<16)|(c<<8)|d)
 
 typedef struct bgav_demuxer_s         bgav_demuxer_t;
@@ -734,8 +736,6 @@ struct bgav_input_context_s
 
   const bgav_options_t * opt;
   
-  char * error_msg;
-
   // Stream ID, which will be used for syncing (for DVB)
   int sync_id;
   
@@ -963,9 +963,6 @@ struct bgav_demuxer_context_s
 
   int64_t timestamp_offset;
 
-  /* Human readable error string */
-  char * error_msg;
-
   /* Data start (set in intially to -1, maybe set to
      other values by demuxers). It can be used by the core to
      seek to the position, where the demuxer can start working
@@ -1080,7 +1077,6 @@ struct bgav_s
 
   int eof;
 
-  char * error_msg;
   };
 
 /* bgav.c */
@@ -1245,8 +1241,11 @@ int bgav_read_data_fd(int fd, uint8_t * ret, int size, int milliseconds);
 
 /* tcp.c */
 
-int bgav_tcp_connect(const char * host, int port, int milliseconds, char ** error_msg);
-int bgav_tcp_send(int fd, uint8_t * data, int len, char ** error_msg);
+int bgav_tcp_connect(const bgav_options_t * opt,
+                     const char * host, int port);
+
+int bgav_tcp_send(const bgav_options_t * opt,
+                  int fd, uint8_t * data, int len);
 
 /* Charset utilities (charset.c) */
 
@@ -1415,7 +1414,7 @@ int bgav_subtitle_reader_read_overlay(bgav_stream_t *, gavl_overlay_t * ovl);
 
 void bgav_log(const bgav_options_t * opt,
               bgav_log_level_t level,
-              const char * domain, char * format, ...)
+              const char * domain, const char * format, ...)
   __attribute__ ((format (printf, 4, 5)));
 
 /* bytebuffer.c */
@@ -1431,3 +1430,13 @@ void bgav_bytebuffer_append(bgav_bytebuffer_t * b, bgav_packet_t * p, int paddin
 void bgav_bytebuffer_remove(bgav_bytebuffer_t * b, int bytes);
 void bgav_bytebuffer_free(bgav_bytebuffer_t * b);
 void bgav_bytebuffer_flush(bgav_bytebuffer_t * b);
+
+/* Translation specific stuff */
+
+void bgav_translation_init();
+
+/* For dynamic strings */
+#define TRD(s) dgettext(PACKAGE, (s))
+
+/* For static strings */
+#define TRS(s) (s)

@@ -17,8 +17,11 @@
  
 *****************************************************************/
 
+
 // #include <avdec.h>
 #include <avdec_private.h>
+#include <locale.h>
+
 #include <utils.h>
 
 #include <stdio.h>
@@ -118,6 +121,8 @@ int main(int argc, char ** argv)
   gavl_audio_format_t audio_format;
   const gavl_video_format_t * video_format;
 
+  setlocale(LC_MESSAGES, "");
+  
   if(argc == 1)
     {
     fprintf(stderr, "Usage: bgavdump <location>\n");

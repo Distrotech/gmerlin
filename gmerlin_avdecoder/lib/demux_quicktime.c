@@ -737,7 +737,7 @@ static void setup_chapter_track(bgav_demuxer_context_t * ctx, qt_trak_t * trak)
   if(ctx->tt->cur->chapter_list)
     {
     bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-             "More than one chapter tracks, choosing first");
+             "More than one chapter track, choosing first");
     return;
     }
 
@@ -1201,7 +1201,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
 static int handle_rmra(bgav_demuxer_context_t * ctx,
                         bgav_redirector_context_t ** redir)
   {
-  char * basename, *pos;
+  char * basename = (char*)0, *pos;
   
   int i, index;
   qt_priv_t * priv = (qt_priv_t*)(ctx->priv);
@@ -1310,8 +1310,6 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
           {
           bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
                    "Non streamable file on non seekable source");
-          ctx->error_msg =
-            bgav_sprintf("Non streamable file on non seekable source");
           return 0;
           }
         
@@ -1319,8 +1317,8 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
       case BGAV_MK_FOURCC('m','o','o','v'):
         if(!bgav_qt_moov_read(&h, ctx->input, &(priv->moov)))
           {
-          ctx->error_msg =
-            bgav_sprintf("Reading moov atom failed");
+          bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                   "Reading moov atom failed");
           return 0;
           }
         have_moov = 1;

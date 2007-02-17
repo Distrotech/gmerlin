@@ -170,8 +170,8 @@ static int decode_frame(bgav_stream_t * s)
       else
         {
         bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-                 "faad2: faacDecDecode failed %s",
-                faacDecGetErrorMessage(frame_info.error));
+                 "faacDecDecode failed %s",
+                 faacDecGetErrorMessage(frame_info.error));
         bgav_bytebuffer_flush(&priv->buf);
         if(!get_data(s))
           return 0;

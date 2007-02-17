@@ -18,7 +18,7 @@
 *****************************************************************/
 
 #include <avdec_private.h>
-
+#define LOG_DOMAIN "http"
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
@@ -75,7 +75,7 @@ void bgav_http_header_add_line(bgav_http_header_t * h, const char * line)
   h->num_lines++;
   }
 
-int bgav_http_header_send(bgav_http_header_t * h, int fd, char ** error_msg)
+int bgav_http_header_send(const bgav_options_t * opt, bgav_http_header_t * h, int fd)
   {
   int i;
 
@@ -84,11 +84,11 @@ int bgav_http_header_send(bgav_http_header_t * h, int fd, char ** error_msg)
   
   for(i = 0; i < h->num_lines; i++)
     {
-    if(!bgav_tcp_send(fd, (uint8_t*)(h->lines[i].line),
-                      strlen(h->lines[i].line), error_msg) ||
-       !bgav_tcp_send(fd, (uint8_t*)"\r\n", 2, error_msg))
+    if(!bgav_tcp_send(opt, fd, (uint8_t*)(h->lines[i].line),
+                      strlen(h->lines[i].line)) ||
+       !bgav_tcp_send(opt, fd, (uint8_t*)"\r\n", 2))
       {
-      if(error_msg) *error_msg = bgav_sprintf("Remote end closed connection");
+      bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Remote end closed connection");
       return 0;
       }
     //    write(fd, h->lines[i].line, strlen(h->lines[i].line));
@@ -99,12 +99,13 @@ int bgav_http_header_send(bgav_http_header_t * h, int fd, char ** error_msg)
 
 /* Reading of http header */
 
-void bgav_http_header_revc(bgav_http_header_t * h, int fd, int milliseconds)
+void bgav_http_header_revc(const bgav_options_t * opt,
+                           bgav_http_header_t * h, int fd)
   {
   char * answer = (char*)0;
   int answer_alloc = 0;
 
-  while(bgav_read_line_fd(fd, &answer, &answer_alloc, milliseconds))
+  while(bgav_read_line_fd(fd, &answer, &answer_alloc, opt->connect_timeout))
     {
     if(*answer == '\0')
       break;
@@ -180,35 +181,34 @@ struct bgav_http_s
   };
 
 static bgav_http_t * do_connect(const char * host, int port, const bgav_options_t * opt,
-                         bgav_http_header_t * request_header,
-                         bgav_http_header_t * extra_header,
-                         char ** error_msg)
+                                bgav_http_header_t * request_header,
+                                bgav_http_header_t * extra_header)
   {
   bgav_http_t * ret = (bgav_http_t *)0;
   
   ret = calloc(1, sizeof(*ret));
   ret->opt = opt;
 
-  ret->fd = bgav_tcp_connect(host, port, ret->opt->connect_timeout, error_msg);
+  ret->fd = bgav_tcp_connect(ret->opt, host, port);
 
   if(ret->fd == -1)
     goto fail;
 
-  if(!bgav_http_header_send(request_header, ret->fd, error_msg))
+  if(!bgav_http_header_send(ret->opt, request_header, ret->fd))
     goto fail;
   
   if(extra_header)
     {
     //    bgav_http_header_dump(extra_header);
-    if(!bgav_http_header_send(extra_header, ret->fd, error_msg))
+    if(!bgav_http_header_send(ret->opt, extra_header, ret->fd))
       goto fail;
     }
-  if(!bgav_tcp_send(ret->fd, (uint8_t*)"\r\n", 2, error_msg))
+  if(!bgav_tcp_send(ret->opt, ret->fd, (uint8_t*)"\r\n", 2))
     goto fail;
   
   ret->header = bgav_http_header_create();
   
-  bgav_http_header_revc(ret->header, ret->fd, ret->opt->connect_timeout);
+  bgav_http_header_revc(ret->opt, ret->header, ret->fd);
 
   return ret;
   
@@ -242,8 +242,7 @@ static char * encode_user_pass(const char * user, const char * pass)
 
 bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
                              char ** redirect_url,
-                             bgav_http_header_t * extra_header,
-                             char ** error_msg)
+                             bgav_http_header_t * extra_header)
   {
   int port;
   int status;
@@ -273,7 +272,7 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
                      &port,
                      &path))
     {
-    *error_msg = bgav_sprintf("Unvalid URL");
+    bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Unvalid URL");
     goto fail;
     }
   if(path && !strcmp(path, ";stream.nsv"))
@@ -329,7 +328,7 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
   bgav_http_header_add_line(request_header, "User-Agent: gmerlin/0.3.3");
   bgav_http_header_add_line(request_header, "Accept: */*");
 
-  ret = do_connect(real_host, real_port, opt, request_header, extra_header, error_msg);
+  ret = do_connect(real_host, real_port, opt, request_header, extra_header);
   if(!ret)
     goto fail;
   /* Check status code */
@@ -362,7 +361,7 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
     free(line);
     free(userpass_enc);
     
-    ret = do_connect(real_host, real_port, opt, request_header, extra_header, error_msg);
+    ret = do_connect(real_host, real_port, opt, request_header, extra_header);
     if(!ret)
       goto fail;
     /* Check status code */
@@ -372,8 +371,8 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
     
   if(status >= 400) /* Error */
     {
-    if(error_msg && bgav_http_header_status_line(ret->header))
-      *error_msg = bgav_sprintf(bgav_http_header_status_line(ret->header));
+    if(bgav_http_header_status_line(ret->header))
+      bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, bgav_http_header_status_line(ret->header));
     goto fail;
     }
   else if(status >= 300) /* Redirection */
@@ -397,8 +396,8 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
     }
   else if(status < 200)  /* Error */
     {
-    if(error_msg && bgav_http_header_status_line(ret->header))
-      *error_msg = bgav_sprintf(bgav_http_header_status_line(ret->header));
+    if(bgav_http_header_status_line(ret->header))
+      bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, bgav_http_header_status_line(ret->header));
     goto fail;
     }
   

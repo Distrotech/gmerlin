@@ -626,7 +626,7 @@ static int init_dmo(bgav_win32_thread_t*t)
   
   if(!priv->dmo_dec)
     {
-    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "DMO_VideoDecoder_Open failed %d\n", s->ext_size);
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "DMO_VideoDecoder_Open failed %d", s->ext_size);
     }
 
   //  capabilities = DMO_VideoDecoder_GetCapabilities(priv->dmo_dec);
@@ -662,7 +662,7 @@ static int decode_dmo(bgav_win32_thread_t*t)
                                            (char*)(priv->frame->planes[0]));
   if(result)
     {
-    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Decode failed\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Decode failed");
     }
   if(frame)
     {

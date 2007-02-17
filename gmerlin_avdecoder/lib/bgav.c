@@ -105,8 +105,6 @@ int bgav_init(bgav_t * ret)
       ret->demuxer = create_demuxer(ret, demuxer);
       if(!bgav_demuxer_start(ret->demuxer, &(ret->redirector)))
         {
-        if(ret->demuxer->error_msg)
-          ret->error_msg = bgav_strdup(ret->demuxer->error_msg);
         goto fail;
         }
       if(ret->redirector)
@@ -174,6 +172,7 @@ int bgav_num_tracks(bgav_t * b)
 bgav_t * bgav_create()
   {
   bgav_t * ret;
+  bgav_translation_init();
   ret = calloc(1, sizeof(*ret));
 
   bgav_options_set_defaults(&ret->opt);
@@ -187,7 +186,6 @@ int bgav_open(bgav_t * ret, const char * location)
   ret->input = create_input(ret);
   if(!bgav_input_open(ret->input, location))
     {
-    ret->error_msg = bgav_strdup(ret->input->error_msg);
     goto fail;
     }
   if(!bgav_init(ret))
@@ -241,8 +239,6 @@ void bgav_close(bgav_t * b)
     }
   if(b->tt)
     bgav_track_table_unref(b->tt);
-  if(b->error_msg)
-    free(b->error_msg);
 
   bgav_options_free(&b->opt);
   
@@ -400,8 +396,6 @@ int bgav_start(bgav_t * b)
   bgav_input_buffer(b->input);
   if(!bgav_track_start(b->tt->cur, b->demuxer))
     {
-    if(b->demuxer->error_msg)
-       b->error_msg = bgav_strdup(b->demuxer->error_msg);
     return 0;
     }
   return 1;
@@ -420,11 +414,6 @@ const bgav_metadata_t * bgav_get_metadata(bgav_t*b, int track)
 const char * bgav_get_description(bgav_t * b)
   {
   return b->demuxer->stream_description;
-  }
-
-const char * bgav_get_error(bgav_t * b)
-  {
-  return b->error_msg;
   }
 
 bgav_options_t * bgav_get_options(bgav_t * b)

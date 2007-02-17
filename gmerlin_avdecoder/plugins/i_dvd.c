@@ -21,6 +21,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <config.h>
+#include <gmerlin/translation.h>
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
 #include <avdec.h>
@@ -64,9 +66,11 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name:       "dvd_chapters_as_tracks",
-      long_name:  "Handle chapters as tracks",
+      long_name:  TRS("Handle chapters as tracks"),
       type:       BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 },
+      gettext_domain:    PACKAGE,
+      gettext_directory: LOCALE_DIR,
     },
     PARAM_DYNRANGE,
     { /* End of parameters */ }
@@ -81,8 +85,10 @@ bg_input_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:          "i_dvd",
-      long_name:     "DVD Player",
+      long_name:     TRS("DVD Player"),
+      description:   TRS("Plugin for playing DVDs. Based on Gmerlin avdecoder."),
       type:          BG_PLUGIN_INPUT,
       flags:         BG_PLUGIN_REMOVABLE,
       priority:      BG_PLUGIN_PRIORITY_MAX,
@@ -92,7 +98,6 @@ bg_input_plugin_t the_plugin =
       set_parameter:  bg_avdec_set_parameter,
       find_devices: find_devices_dvd,
       check_device: check_device_dvd,
-      get_error:    bg_avdec_get_error      
     },
     protocols: "dvd",
     set_callbacks: bg_avdec_set_callbacks,

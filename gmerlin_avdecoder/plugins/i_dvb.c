@@ -21,6 +21,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <config.h>
+#include <gmerlin/translation.h>
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
 #include <avdec.h>
@@ -64,12 +66,14 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name:        "dvb_channels_file",
-      long_name:   "Channel file",
+      long_name:   TRS("Channel file"),
       type:        BG_PARAMETER_FILE,
-      help_string: "The channels file must have the format of the dvb-utils\
+      help_string: TRS("The channels file must have the format of the dvb-utils\
  programs (like szap, tzap). If you don't set this file,\
  several locations like $HOME/.tzap/channels.conf will be\
- searched."
+ searched."),
+      gettext_domain:    PACKAGE,
+      gettext_directory: LOCALE_DIR,
     },
     PARAM_DYNRANGE,
     { /* End of parameters */ }
@@ -84,8 +88,10 @@ bg_input_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:          "i_dvb",
-      long_name:     "DVB Player",
+      long_name:     TRS("DVB Player"),
+      description:   TRS("Plugin for playing DVB streams from a Linux-DVB compatible card. Based on Gmerlin avdecoder."),
       type:          BG_PLUGIN_INPUT,
       flags:         BG_PLUGIN_TUNER,
       priority:      BG_PLUGIN_PRIORITY_MAX,
@@ -95,7 +101,6 @@ bg_input_plugin_t the_plugin =
       set_parameter:  bg_avdec_set_parameter,
       find_devices: find_devices_dvb,
       check_device: check_device_dvb,
-      get_error:    bg_avdec_get_error      
     },
     protocols: "dvb",
     

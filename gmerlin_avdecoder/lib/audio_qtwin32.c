@@ -160,7 +160,7 @@ static int init_qtaudio(bgav_stream_t * s)
   if ( priv->InitializeQTML == NULL )
     {
     bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, 
-	     "qt_audio: failed geting proc address InitializeQTML");
+	     "qt_audio: failed getting proc address InitializeQTML");
     goto fail;
     }
   priv->SoundConverterOpen =
@@ -481,7 +481,7 @@ int bgav_init_audio_decoders_qtwin32(bgav_options_t * opt)
     sprintf(dll_filename, "%s/%s", win32_def_path, needed_filenames[i]);
     if(stat(dll_filename, &stat_buf))
       {
-      bgav_log(opt, BGAV_LOG_WARNING, LOG_DOMAIN, "DLL %s not found\n",
+      bgav_log(opt, BGAV_LOG_WARNING, LOG_DOMAIN, "DLL %s not found",
                dll_filename);
       return 0;
       }

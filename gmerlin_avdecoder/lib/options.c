@@ -182,6 +182,7 @@ void bgav_options_set_defaults(bgav_options_t * b)
 bgav_options_t * bgav_options_create()
   {
   bgav_options_t * ret;
+  bgav_translation_init();
   ret = calloc(1, sizeof(*ret));
   bgav_options_set_defaults(ret);
   return ret;

@@ -749,8 +749,6 @@ int bgav_input_open(bgav_input_context_t * ctx,
  
   if(!ctx->input->open(ctx, tmp_url))
     {
-    if(!ctx->error_msg)
-      ctx->error_msg = bgav_sprintf("Opening %s failed", tmp_url);
     goto fail;
     }
 
@@ -787,8 +785,6 @@ void bgav_input_close(bgav_input_context_t * ctx)
     free(ctx->url);
   if(ctx->id3v2)
     bgav_id3v2_destroy(ctx->id3v2);
-  if(ctx->error_msg)
-    free(ctx->error_msg);
   if(ctx->charset)
     free(ctx->charset);
   if(ctx->cnv)
@@ -997,8 +993,8 @@ int bgav_input_reopen(bgav_input_context_t * ctx)
     
     if(!ctx->input->open(ctx, url))
       {
-      if(!ctx->error_msg)
-        ctx->error_msg = bgav_sprintf("Reopening %s failed", url);
+      bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Reopening %s failed", url);
       goto fail;
       }
     init_buffering(ctx);

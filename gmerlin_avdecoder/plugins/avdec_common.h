@@ -17,6 +17,8 @@
  
 *****************************************************************/
 
+#include <config.h>
+
 typedef struct
   {
   bg_track_info_t * track_info;
@@ -83,8 +85,6 @@ int bg_avdec_set_track(void * priv, int track);
 void bg_avdec_set_callbacks(void * priv,
                             bg_input_callbacks_t * callbacks);
 
-const char * bg_avdec_get_error(void * priv);
-
 bg_device_info_t * bg_avdec_get_devices(bgav_device_info_t *);
 
 /* Commonly used parameters */
@@ -92,20 +92,21 @@ bg_device_info_t * bg_avdec_get_devices(bgav_device_info_t *);
 #define PARAM_DYNRANGE \
   {                    \
   name: "audio_dynrange",    \
-  long_name: "Dynamic range control",         \
+  long_name: TRS("Dynamic range control"),         \
   type: BG_PARAMETER_CHECKBUTTON,           \
   val_default: { val_i: 1 },              \
-  help_string: "Enable dynamic range control for codecs, which support this (currently only A52)." \
+  help_string: TRS("Enable dynamic range control for codecs, which support this (currently only A52).") \
   }
 
 #define PARAM_PP_LEVEL \
   {                    \
   name: "video_pp_level",    \
-  long_name: "Postprocessing level",         \
+  long_name: TRS("Postprocessing level"),         \
   opt: "pp", \
   type: BG_PARAMETER_SLIDER_INT,           \
   val_default: { val_i: 1 },              \
   val_min:     { val_i: 0 },              \
   val_max: { val_i: 6 },              \
-  help_string: "Set postprocessing (to remove compression artifacts). 0 means no postprocessing, 6 means maximum postprocessing." \
+  help_string: TRS("Set postprocessing (to remove compression artifacts). 0 means no postprocessing, 6 means maximum postprocessing.") \
   }
+

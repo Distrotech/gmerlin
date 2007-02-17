@@ -713,7 +713,7 @@ static int init_pcm(bgav_stream_t * s)
       else
         {
         bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-                 "Audio bits %d not supported.",
+                 "%d audio bits not supported.",
                 s->data.audio.bits_per_sample);
         return 0;
         }
@@ -930,7 +930,7 @@ static int init_pcm(bgav_stream_t * s)
       if(s->ext_size < sizeof(formatSpecificFlags))
         {
         bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-                 "extradata too small (%d < %d)\n", s->ext_size,
+                 "extradata too small (%d < %d)", s->ext_size,
                  sizeof(formatSpecificFlags));
         return 0;
         }

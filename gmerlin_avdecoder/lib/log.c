@@ -19,9 +19,9 @@
 
 #include <config.h>
 
-#ifdef HAVE_VASPRINTF
-#define _GNU_SOURCE
-#endif
+// #ifdef HAVE_VASPRINTF
+// #define _GNU_SOURCE
+// #endif
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -36,10 +36,10 @@ static struct
   }
 level_names[] =
   {
-    { BGAV_LOG_DEBUG,   "Debug" },
-    { BGAV_LOG_WARNING, "Warning" },
-    { BGAV_LOG_ERROR,   "Error" },
-    { BGAV_LOG_INFO,    "Info" },
+    { BGAV_LOG_DEBUG,   TRS("Debug") },
+    { BGAV_LOG_WARNING, TRS("Warning") },
+    { BGAV_LOG_ERROR,   TRS("Error") },
+    { BGAV_LOG_INFO,    TRS("Info") },
     { 0,              (char*)0 }
   };
   
@@ -57,7 +57,7 @@ static const char * log_level_to_string(bgav_log_level_t level)
 
 
 void bgav_log(const bgav_options_t * opt,
-              bgav_log_level_t level, const char * domain, char * format, ...)
+              bgav_log_level_t level, const char * domain, const char * format, ...)
   {
   char * msg_string;
   va_list argp; /* arg ptr */
@@ -65,6 +65,8 @@ void bgav_log(const bgav_options_t * opt,
   int len;
 #endif
 
+  format = TRD(format);
+    
   va_start( argp, format);
 
 #ifndef HAVE_VASPRINTF
@@ -81,7 +83,7 @@ void bgav_log(const bgav_options_t * opt,
     {
     fprintf(stderr, "[%s] %s: %s\n",
             domain,
-            log_level_to_string(level),
+            TRD(log_level_to_string(level)),
             msg_string);
     }
   else

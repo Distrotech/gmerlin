@@ -53,7 +53,7 @@ int bgav_audio_start(bgav_stream_t * stream)
     {
     if(!(stream->fourcc & 0xffff0000))
       bgav_log(stream->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-               "No audio decoder found for WAVId 0x%04x", stream->fourcc);
+               "No audio decoder found for WAV ID 0x%04x", stream->fourcc);
     else
       bgav_log(stream->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
                "No audio decoder found for fourcc %c%c%c%c (0x%08x)",
@@ -171,7 +171,7 @@ int bgav_audio_skipto(bgav_stream_t * s, gavl_time_t * t)
     {
     sprintf(tmp_string, "%" PRId64, diff_time);
     bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-             "Cannot skip backwards: Stream time: %f Skip time: %f %s",
+             "Cannot skip backwards: Stream time: %f skip time: %f difference: %s",
              gavl_time_to_seconds(stream_time), gavl_time_to_seconds(*t),
              tmp_string);
     }

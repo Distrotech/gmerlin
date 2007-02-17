@@ -1,6 +1,6 @@
 /*****************************************************************
  
-  avdec_private.h
+  rtsp.h
  
   Copyright (c) 2003-2006 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
  
@@ -31,7 +31,7 @@ void bgav_rtsp_set_user_agent(bgav_rtsp_t * r, const char * user_agent);
 
 /* Open the URL and send the OPTIONS request */
 
-int bgav_rtsp_open(bgav_rtsp_t *, const char * url, int * got_redirected, char ** error_msg);
+int bgav_rtsp_open(bgav_rtsp_t *, const char * url, int * got_redirected);
 
 void bgav_rtsp_close(bgav_rtsp_t *);
 
@@ -49,7 +49,7 @@ const char * bgav_rtsp_get_answer(bgav_rtsp_t *, const char * name);
 
 /* Now, the requests follow */
 
-int bgav_rtsp_request_describe(bgav_rtsp_t *, int * got_redirected, char ** error_msg);
+int bgav_rtsp_request_describe(bgav_rtsp_t *, int * got_redirected);
 
 /* Get the redirection URL */
 
@@ -61,13 +61,13 @@ bgav_sdp_t * bgav_rtsp_get_sdp(bgav_rtsp_t *);
 
 /* Issue a SETUP */
 
-int bgav_rtsp_request_setup(bgav_rtsp_t *, const char * arg, char ** error_msg);
+int bgav_rtsp_request_setup(bgav_rtsp_t *, const char * arg);
 
 /* Set Parameter */
 
-int bgav_rtsp_request_setparameter(bgav_rtsp_t *, char ** error_msg);
+int bgav_rtsp_request_setparameter(bgav_rtsp_t *);
 
 /* Play */
 
-int bgav_rtsp_request_play(bgav_rtsp_t *, char ** error_msg);
+int bgav_rtsp_request_play(bgav_rtsp_t *);
 

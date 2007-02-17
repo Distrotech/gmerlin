@@ -66,8 +66,7 @@ void bgav_rtsp_set_user_agent(bgav_rtsp_t * r, const char * user_agent)
 static int rtsp_send_request(bgav_rtsp_t * rtsp,
                              const char * command,
                              const char * what,
-                             int * got_redirected,
-                             char ** error_msg)
+                             int * got_redirected)
   {
   const char * var;
   int status;
@@ -77,7 +76,7 @@ static int rtsp_send_request(bgav_rtsp_t * rtsp,
 #ifdef DUMP_REQUESTS
   bgav_dprintf("Sending: %s", line);
 #endif  
-  if(!bgav_tcp_send(rtsp->fd, (uint8_t*)line, strlen(line), error_msg))
+  if(!bgav_tcp_send(rtsp->opt, rtsp->fd, (uint8_t*)line, strlen(line)))
     goto fail;
 
   free(line);
@@ -103,15 +102,15 @@ static int rtsp_send_request(bgav_rtsp_t * rtsp,
   bgav_http_header_dump(rtsp->request_fields);
 #endif
   
-  if(!bgav_http_header_send(rtsp->request_fields, rtsp->fd, error_msg) ||
-     !bgav_tcp_send(rtsp->fd, (uint8_t*)"\r\n\r\n", 4, error_msg))
+  if(!bgav_http_header_send(rtsp->opt, rtsp->request_fields, rtsp->fd) ||
+     !bgav_tcp_send(rtsp->opt, rtsp->fd, (uint8_t*)"\r\n\r\n", 4))
     goto fail;
   
   bgav_http_header_reset(rtsp->request_fields);
   
   /* Read answers */
   bgav_http_header_reset(rtsp->answers);
-  bgav_http_header_revc(rtsp->answers, rtsp->fd, rtsp->opt->read_timeout);
+  bgav_http_header_revc(rtsp->opt, rtsp->answers, rtsp->fd);
   
 #ifdef DUMP_REQUESTS
   bgav_http_header_dump(rtsp->answers);
@@ -143,11 +142,8 @@ static int rtsp_send_request(bgav_rtsp_t * rtsp,
   status = bgav_http_header_status_code(rtsp->answers);
   if(status != 200)
     {
-    bgav_dprintf("Got status %d", status);
-    
-    if(error_msg)
-      *error_msg = bgav_sprintf("Server said: %s",
-                                bgav_http_header_status_line(rtsp->answers));
+    bgav_log(rtsp->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             bgav_http_header_status_line(rtsp->answers));
     goto fail;
     }
   
@@ -177,7 +173,7 @@ const char * bgav_rtsp_get_answer(bgav_rtsp_t * rtsp, const char * name)
   return bgav_http_header_get_var(rtsp->answers, name);
   }
 
-int bgav_rtsp_request_describe(bgav_rtsp_t *rtsp, int * got_redirected, char ** error_msg)
+int bgav_rtsp_request_describe(bgav_rtsp_t *rtsp, int * got_redirected)
   {
   int content_length;
   const char * var;
@@ -185,7 +181,7 @@ int bgav_rtsp_request_describe(bgav_rtsp_t *rtsp, int * got_redirected, char ** 
   
   /* Send the "DESCRIBE" request */
   
-  if(!rtsp_send_request(rtsp, "DESCRIBE", rtsp->url, got_redirected, error_msg))
+  if(!rtsp_send_request(rtsp, "DESCRIBE", rtsp->url, got_redirected))
     goto fail;
 
   if(got_redirected && *got_redirected)
@@ -203,7 +199,8 @@ int bgav_rtsp_request_describe(bgav_rtsp_t *rtsp, int * got_redirected, char ** 
   if(bgav_read_data_fd(rtsp->fd, (uint8_t*)buf, content_length, rtsp->opt->read_timeout) <
      content_length)
     {
-    bgav_log(rtsp->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Reading session dscription failed\n");
+    bgav_log(rtsp->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Reading session dscription failed");
     goto fail;
     }
 
@@ -226,19 +223,19 @@ int bgav_rtsp_request_describe(bgav_rtsp_t *rtsp, int * got_redirected, char ** 
   return 0;
   }
 
-int bgav_rtsp_request_setup(bgav_rtsp_t *r, const char *what, char ** error_msg)
+int bgav_rtsp_request_setup(bgav_rtsp_t *r, const char *what)
   {
-  return rtsp_send_request(r,"SETUP",what, NULL, error_msg);
+  return rtsp_send_request(r,"SETUP",what, NULL);
   }
 
-int bgav_rtsp_request_setparameter(bgav_rtsp_t * r, char ** error_msg)
+int bgav_rtsp_request_setparameter(bgav_rtsp_t * r)
   {
-  return rtsp_send_request(r,"SET_PARAMETER",r->url, NULL, error_msg);
+  return rtsp_send_request(r,"SET_PARAMETER",r->url, NULL);
   }
 
-int bgav_rtsp_request_play(bgav_rtsp_t * r, char ** error_msg)
+int bgav_rtsp_request_play(bgav_rtsp_t * r)
   {
-  return rtsp_send_request(r,"PLAY",r->url, NULL, error_msg);
+  return rtsp_send_request(r,"PLAY",r->url, NULL);
   }
 
 /*
@@ -250,7 +247,7 @@ int bgav_rtsp_request_play(bgav_rtsp_t * r, char ** error_msg)
  */
 
 static int do_connect(bgav_rtsp_t * rtsp,
-                      int * got_redirected, char ** error_msg)
+                      int * got_redirected)
   {
   int port = -1;
   char * host = (char*)0;
@@ -271,11 +268,11 @@ static int do_connect(bgav_rtsp_t * rtsp,
     port = 554;
 
   //  rtsp->cseq = 1;
-  rtsp->fd = bgav_tcp_connect(host, port, rtsp->opt->read_timeout, error_msg);
+  rtsp->fd = bgav_tcp_connect(rtsp->opt, host, port);
   if(rtsp->fd < 0)
     goto done;
  
-  if(!rtsp_send_request(rtsp, "OPTIONS", rtsp->url, got_redirected, error_msg))
+  if(!rtsp_send_request(rtsp, "OPTIONS", rtsp->url, got_redirected))
     goto done;
   
   ret = 1;
@@ -305,11 +302,11 @@ bgav_rtsp_t * bgav_rtsp_create(const bgav_options_t * opt)
 
 
 int bgav_rtsp_open(bgav_rtsp_t * rtsp, const char * url,
-                   int * got_redirected, char ** error_msg)
+                   int * got_redirected)
   {
   if(url)
     rtsp->url = bgav_strdup(url);
-  return do_connect(rtsp, got_redirected, error_msg);
+  return do_connect(rtsp, got_redirected);
   }
 
 bgav_sdp_t * bgav_rtsp_get_sdp(bgav_rtsp_t * r)

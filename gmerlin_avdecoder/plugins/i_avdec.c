@@ -21,6 +21,9 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <config.h>
+#include <gmerlin/translation.h>
+
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
 #include <avdec.h>
@@ -83,24 +86,26 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name:       "audio_options",
-      long_name:  "Audio options",
-      type:       BG_PARAMETER_SECTION
+      long_name:  TRS("Audio options"),
+      type:       BG_PARAMETER_SECTION,
+      gettext_domain:    PACKAGE,
+      gettext_directory: LOCALE_DIR,
     },
     PARAM_DYNRANGE,
     {
       name:       "video_options",
-      long_name:  "Video options",
+      long_name:  TRS("Video options"),
       type:       BG_PARAMETER_SECTION
     },
     PARAM_PP_LEVEL,
     {
       name:       "network_options",
-      long_name:  "Network options",
+      long_name:  TRS("Network options"),
       type:       BG_PARAMETER_SECTION
     },
     {
       name:        "connect_timeout",
-      long_name:   "Connect timeout (milliseconds)",
+      long_name:   TRS("Connect timeout (milliseconds)"),
       type:        BG_PARAMETER_INT,
       val_default: { val_i: 5000 },
       val_min:     { val_i: 0 },
@@ -108,7 +113,7 @@ static bg_parameter_info_t parameters[] =
     },
     {
       name:        "read_timeout",
-      long_name:   "Read timeout (milliseconds)",
+      long_name:   TRS("Read timeout (milliseconds)"),
       type:        BG_PARAMETER_INT,
       val_default: { val_i: 5000 },
       val_min:     { val_i: 0 },
@@ -116,7 +121,7 @@ static bg_parameter_info_t parameters[] =
     },
     {
       name:        "network_buffer_size",
-      long_name:   "Network buffer size (kB)",
+      long_name:   TRS("Network buffer size (kB)"),
       type:        BG_PARAMETER_INT,
       val_default: { val_i: 32 },
       val_min:     { val_i: 1 },
@@ -124,47 +129,61 @@ static bg_parameter_info_t parameters[] =
     },
     {
       name:        "network_bandwidth",
-      long_name:   "Bandwidth",
+      long_name:   TRS("Bandwidth"),
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str:  "524.3 Kbps (Cable/DSL)" },
-      multi_names:     (char*[]){ "14.4 Kbps (Modem)",
-                              "19.2 Kbps (Modem)",
-                              "28.8 Kbps (Modem)",
-                              "33.6 Kbps (Modem)",
-                              "34.4 Kbps (Modem)",
-                              "57.6 Kbps (Modem)",
-                              "115.2 Kbps (ISDN)",
-                              "262.2 Kbps (Cable/DSL)",
-                              "393.2 Kbps (Cable/DSL)",
-                              "524.3 Kbps (Cable/DSL)",
-                              "1.5 Mbps (T1)",
-                              "10.5 Mbps (LAN)", NULL },
+      multi_names: (char*[]){ "14400",
+                              "19200",
+                              "28800",
+                              "33600",
+                              "34400",
+                              "57600",
+                              "115200",
+                              "262200",
+                              "393200",
+                              "524300",
+                              "1500000",
+                              "10500000",
+                              NULL },
+      multi_labels: (char*[]){ TRS("14.4 Kbps (Modem)"),
+                               TRS("19.2 Kbps (Modem)"),
+                               TRS("28.8 Kbps (Modem)"),
+                               TRS("33.6 Kbps (Modem)"),
+                               TRS("34.4 Kbps (Modem)"),
+                               TRS("57.6 Kbps (Modem)"),
+                               TRS("115.2 Kbps (ISDN)"),
+                               TRS("262.2 Kbps (Cable/DSL)"),
+                               TRS("393.2 Kbps (Cable/DSL)"),
+                               TRS("524.3 Kbps (Cable/DSL)"),
+                               TRS("1.5 Mbps (T1)"),
+                               TRS("10.5 Mbps (LAN)"),
+                               NULL },
     },
     {
       name:       "http_options",
-      long_name:  "HTTP Options",
+      long_name:  TRS("HTTP Options"),
       type:       BG_PARAMETER_SECTION
     },
     {
       name:        "http_shoutcast_metadata",
-      long_name:   "Enable shoutcast title streaming",
+      long_name:   TRS("Enable shoutcast title streaming"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 }
     },
     {
       name:        "http_use_proxy",
-      long_name:   "Use proxy",
+      long_name:   TRS("Use proxy"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 0 },
     },
     {
       name:        "http_proxy_host",
-      long_name:   "Proxy host",
+      long_name:   TRS("Proxy host"),
       type:        BG_PARAMETER_STRING,
     },
     {
       name:        "http_proxy_port",
-      long_name:   "Proxy port",
+      long_name:   TRS("Proxy port"),
       type:        BG_PARAMETER_INT,
       val_min:     { val_i:     1 },
       val_max:     { val_i: 65535 },
@@ -172,68 +191,71 @@ static bg_parameter_info_t parameters[] =
     },
     {
       name:        "http_proxy_auth",
-      long_name:   "Proxy needs authentication",
+      long_name:   TRS("Proxy needs authentication"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 0 },
     },
     {
       name:        "http_proxy_user",
-      long_name:   "Proxy username",
+      long_name:   TRS("Proxy username"),
       type:        BG_PARAMETER_STRING,
       val_default: { val_str: (char*)0 },
     },
     {
       name:        "http_proxy_pass",
-      long_name:   "Proxy password",
+      long_name:   TRS("Proxy password"),
       type:        BG_PARAMETER_STRING_HIDDEN,
       val_default: { val_str: (char*)0 },
     },
     {
       name:       "ftp_options",
-      long_name:  "FTP Options",
+      long_name:  TRS("FTP Options"),
       type:       BG_PARAMETER_SECTION
     },
     {
       name:        "ftp_anonymous",
-      long_name:   "Login as anonymous",
+      long_name:   TRS("Login as anonymous"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 }
     },
     {
       name:        "ftp_anonymous_password",
-      long_name:   "Anonymous ftp password",
+      long_name:   TRS("Anonymous ftp password"),
       type:        BG_PARAMETER_STRING,
       val_default: { val_str: "gates@nanosoft.com" }
     },
     {
       name:       "subtitle_options",
-      long_name:  "Subtitle Options",
+      long_name:  TRS("Subtitle Options"),
       type:       BG_PARAMETER_SECTION
     },
     {
       name:        "seek_subtitles",
-      long_name:   "Seek external subtitles",
+      long_name:   TRS("Seek external subtitles"),
       type:        BG_PARAMETER_STRINGLIST,
       val_default:  { val_str: "0" },
       multi_names:  (char*[]){ "0", "1", "2", (char*)0 },
-      multi_labels: (char*[]){ "Never", "For video files only", "Always", (char*)0 },
-      help_string:  "If the input is a regular file, gmerlin_avdecoder can scan the\
+      multi_labels: (char*[]){ TRS("Never"),
+                               TRS("For video files only"),
+                               TRS("Always"),
+                               (char*)0 },
+      help_string:  TRS("If the input is a regular file, gmerlin_avdecoder can scan the\
  directory for matching subtitle files. For a file movie.mpg, possible\
  subtitle files are e.g. movie_english.srt, movie_german.srt. The\
  rule is, that the first part of the filename of the subtitle file\
  must be equal to the movie filename up to the extension.\
  Furthermore, the subtitle filename must have an extension supported by\
- any of the subtitle readers."
+ any of the subtitle readers.")
     },
     {
       name:        "default_subtitle_encoding",
-      long_name:   "Default subtitle encoding",
+      long_name:   TRS("Default subtitle encoding"),
       type:        BG_PARAMETER_STRING,
       val_default: { val_str: "LATIN1" },
-      help_string: "This sets the default encoding for text subtitles,\
+      help_string: TRS("This sets the default encoding for text subtitles,\
 when the original encoding is unknown. It must be a character set name\
 recognized by iconv. Type 'iconv -l' at the commandline for a list of \
-supported encodings.",
+supported encodings."),
     },
     { /* End of parameters */ }
   };
@@ -249,8 +271,10 @@ bg_input_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:           "i_avdec",
-      long_name:      "AVDecoder plugin",
+      long_name:      TRS("AVDecoder plugin"),
+      description:    TRS("Plugin based on the Gmerlin avdecoder library. Supports most media formats. Playback is supported from files, URLs (with various protocols) and stdin."),
       mimetypes:      "video/x-ms-asf audio/x-pn-realaudio-plugin video/x-pn-realvideo-plugin audio/x-pn-realaudio video/x-pn-realvideo audio/x-mpegurl audio/mpegurl audio/x-scpls audio/scpls audio/m3u",
       extensions:     "avi asf asx wmv rm ra ram mov wav mp4 m4a 3gp qt au aiff aif mp3 mpg mpeg vob m3u pls ogg flac aac mpc spx vob wv tta gsm vp5 vp6 voc",
       type:           BG_PLUGIN_INPUT,
@@ -260,7 +284,6 @@ bg_input_plugin_t the_plugin =
       destroy:        bg_avdec_destroy,
       get_parameters: get_parameters_avdec,
       set_parameter:  bg_avdec_set_parameter,
-      get_error:      bg_avdec_get_error
     },
       protocols:      "http ftp rtsp smb mms pnm stdin",
   /* Open file/device */

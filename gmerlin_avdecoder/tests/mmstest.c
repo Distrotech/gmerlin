@@ -7,13 +7,12 @@ int main(int argc, char ** argv)
   bgav_options_t * opt;
   
   bgav_mms_t * mms;
-  char * error_msg = (char*)0;
 
   opt = bgav_options_create();
     
-  mms = bgav_mms_open(opt, argv[1], &error_msg);
+  mms = bgav_mms_open(opt, argv[1]);
 
   if(!mms)
-    fprintf(stderr, "bgav_mms_open failed: %s\n", error_msg);
+    fprintf(stderr, "bgav_mms_open failed\n");
   return 0;
   }

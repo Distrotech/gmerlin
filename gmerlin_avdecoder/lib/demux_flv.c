@@ -297,7 +297,7 @@ static int read_meta_object(bgav_input_context_t * input,
       break;
     default:
       bgav_log(input->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-               "Unknown type: %d for metadata object %s\n",
+               "Unknown type: %d for metadata object %s",
                ret->type, ret->name);
       return 0;
     }

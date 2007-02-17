@@ -17,12 +17,16 @@
 
 *****************************************************************/
 
+#include <libsmbclient.h>
+
+
 #include <avdec_private.h>
+#define LOG_DOMAIN "in_smb"
+
 #include <string.h>
 #include <malloc.h>
 #include <stdio.h>
 #include <pthread.h>
-#include <libsmbclient.h>
 
 
 typedef struct
@@ -89,15 +93,16 @@ static int open_smb(bgav_input_context_t * ctx, const char * url)
   
   if (err < 0)
     {
-    ctx->error_msg = bgav_sprintf("Initialization of samba failed(error: %d)", err);
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Initialization of samba failed(error: %d)", err);
     pthread_mutex_unlock(&auth_mutex);
     goto fail;
     }
 
   p->fd = smbc_open((char*)url, O_RDONLY, 0644);
   if (p->fd < 0)
-    { 
-    ctx->error_msg = bgav_sprintf("Open file failed (error: %d)", p->fd);
+    {
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Open file failed (error: %d)", p->fd);
     pthread_mutex_unlock(&auth_mutex);
     goto fail;
     }
@@ -108,7 +113,7 @@ static int open_smb(bgav_input_context_t * ctx, const char * url)
  
   if (len <= 0)
     {
-    ctx->error_msg = bgav_sprintf("Can't get filesize");
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Can't get filesize");
     goto fail;
     }
   

@@ -21,6 +21,9 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <config.h>
+#include <gmerlin/translation.h>
+
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
 #include <avdec.h>
@@ -64,8 +67,10 @@ bg_input_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:          "i_vcd",
-      long_name:     "VCD Player",
+      long_name:     TRS("VCD Player"),
+      description:   TRS("Plugin for playing VCDs. Based on Gmerlin avdecoder."),
       type:          BG_PLUGIN_INPUT,
       flags:         BG_PLUGIN_REMOVABLE,
       priority:      BG_PLUGIN_PRIORITY_MAX,
@@ -75,7 +80,6 @@ bg_input_plugin_t the_plugin =
       //      set_parameter:  bg_avdec_set_parameter
       find_devices: find_devices_vcd,
       check_device: check_device_vcd,
-      get_error:    bg_avdec_get_error      
     },
     protocols: "vcd",
     

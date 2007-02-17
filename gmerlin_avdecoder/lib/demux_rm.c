@@ -462,7 +462,7 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
     if(cnt < 2)
       {
       bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-               "Video extradata too short: %d\n", cnt);
+               "Video extradata too short: %d", cnt);
       }
     else
       {
@@ -470,7 +470,7 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
       if(cnt > 6)
         {
         bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-                  "Video extradata too long: %d\n", cnt);
+                  "Video extradata too long: %d", cnt);
         cnt = 6;
         }
       //      memcpy(bg_vs->ext_data + 8, data, cnt);

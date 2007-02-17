@@ -729,14 +729,14 @@ static int open_dvb(bgav_input_context_t * ctx, const char * url)
   if(priv->fe_fd < 0)
     {
     bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-             "Cannot open frontent device %s\n", tmp_string);
+             "Cannot open frontent device %s", tmp_string);
     return 0;
     }
   /* Get frontend info */
   if((ioctl(priv->fe_fd, FE_GET_INFO, &priv->fe_info)) < 0)
     {
     bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-             "Cannot get frontent info\n");
+             "Cannot get frontent info");
     return 0;
     }
   //  dump_frontend_info(&priv->fe_info);
@@ -745,7 +745,7 @@ static int open_dvb(bgav_input_context_t * ctx, const char * url)
   if((ioctl(priv->fe_fd, FE_READ_STATUS, &status)) < 0)
     {
     bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-             "Cannot get frontend status\n");
+             "Cannot get frontend status");
     return 0;
     }
 

@@ -34,6 +34,7 @@
 #include <arpa/inet.h>
 
 #include <avdec_private.h>
+#define LOG_DOMAIN "tcp"
 
 
 // #include <sys/un.h>
@@ -51,7 +52,8 @@ typedef struct
   int port;
   } host_address_t;
 
-static int hostbyname(host_address_t * a, const char * hostname, char ** error_msg)
+static int hostbyname(const bgav_options_t * opt,
+                      host_address_t * a, const char * hostname)
   {
   struct hostent   h_ent;
   struct hostent * h_ent_p;
@@ -86,7 +88,7 @@ static int hostbyname(host_address_t * a, const char * hostname, char ** error_m
                                                                                
   if(result || (h_ent_p == NULL))
     {
-    *error_msg = bgav_sprintf("Could not resolve address %s", hostname);
+    bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Could not resolve address %s", hostname);
     goto fail;
     }
   if(h_ent_p->h_addrtype == AF_INET)
@@ -103,8 +105,8 @@ static int hostbyname(host_address_t * a, const char * hostname, char ** error_m
     }
   else
     {
-    *error_msg = bgav_sprintf("Could not resolve address %s: No known address space",
-                              hostname);
+    bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Could not resolve address %s: No known address space",
+             hostname);
     goto fail;
     }
   ret = 1;
@@ -118,7 +120,7 @@ static int hostbyname(host_address_t * a, const char * hostname, char ** error_m
 
 /* Client connection (stream oriented) */
                                                                                
-static int socket_connect_inet(host_address_t * a, int milliseconds, char ** error_msg)
+static int socket_connect_inet(const bgav_options_t * opt, host_address_t * a)
   {
   int ret = -1;
   struct sockaddr_in  addr_in;
@@ -132,10 +134,10 @@ static int socket_connect_inet(host_address_t * a, int milliseconds, char ** err
                                                                                
   if((ret = socket (PF_INET, SOCK_STREAM, 0)) < 0)
     {
-    *error_msg = bgav_sprintf( "Cannot create socket\n");
+    bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Cannot create socket");
     return -1;
     }
-                                                                               
+  
   /* Set up address */
                                                                                
   if(a->addr_type == AF_INET)
@@ -164,7 +166,7 @@ static int socket_connect_inet(host_address_t * a, int milliseconds, char ** err
     }
   else
     {
-    *error_msg = bgav_sprintf( "Unknown Address family!!!\n");
+    bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Unknown Address family");
     return -1;
     }
   
@@ -172,26 +174,26 @@ static int socket_connect_inet(host_address_t * a, int milliseconds, char ** err
 
   if(fcntl(ret, F_SETFL, O_NONBLOCK) < 0)
     {
-    *error_msg = bgav_sprintf( "Cannot set nonblocking mode\n");
+    bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Cannot set nonblocking mode");
     return -1;
     }
   if(connect(ret,(struct sockaddr*)addr,addr_len)<0)
     {
     if(errno == EINPROGRESS)
       {
-      timeout.tv_sec = milliseconds / 1000;
-      timeout.tv_usec = 1000 * (milliseconds % 1000);
+      timeout.tv_sec = opt->connect_timeout / 1000;
+      timeout.tv_usec = 1000 * (opt->connect_timeout % 1000);
       FD_ZERO (&write_fds);
       FD_SET (ret, &write_fds);
       if(!select(ret+1, (fd_set*)0, &write_fds,(fd_set*)0,&timeout))
         {
-        *error_msg = bgav_sprintf("Connection timed out");
+        bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Connection timed out");
         return -1;
         }
       }
     else
       {
-      *error_msg = bgav_sprintf("Connecting failed: %s", strerror(errno));
+      bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Connecting failed: %s", strerror(errno));
       return -1;
       }
     }
@@ -200,22 +202,23 @@ static int socket_connect_inet(host_address_t * a, int milliseconds, char ** err
   
   if(fcntl(ret, F_SETFL, 0) < 0)
     {
-    *error_msg = bgav_sprintf( "Cannot set blocking mode\n");
+    bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Cannot set blocking mode");
     return -1;
     }
   return ret;
   }
 
-int bgav_tcp_connect(const char * host, int port, int milliseconds, char ** error_msg)
+int bgav_tcp_connect(const bgav_options_t * opt,
+                     const char * host, int port)
   {
   host_address_t addr;
-  if(!hostbyname(&addr, host, error_msg))
+  if(!hostbyname(opt, &addr, host))
     return -1;
   addr.port = port;
-  return socket_connect_inet(&addr, milliseconds, error_msg);
+  return socket_connect_inet(opt, &addr);
   }
 
-int bgav_tcp_send(int fd, uint8_t * data, int len, char ** error_msg)
+int bgav_tcp_send(const bgav_options_t * opt, int fd, uint8_t * data, int len)
   {
   char error_buffer[1024];
   int result;
@@ -223,9 +226,11 @@ int bgav_tcp_send(int fd, uint8_t * data, int len, char ** error_msg)
   if(result != len)
     {
     if(!strerror_r(errno, error_buffer, 1024))
-      *error_msg = bgav_sprintf("Could not send data: %s", error_buffer);
+      bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Could not send data: %s", error_buffer);
     else
-      *error_msg = bgav_sprintf("Could not send data");
+      bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Could not send data");
     return 0;
     }
   return 1;

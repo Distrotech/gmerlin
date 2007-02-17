@@ -226,7 +226,7 @@ static int open_sphere(bgav_demuxer_context_t * ctx,
     if(!bytes_per_sample)
       {
       bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-               "Bytes per sample is zero!");
+               "Bytes per sample is zero");
       return 0;
       }
     

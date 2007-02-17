@@ -238,7 +238,7 @@ static int decode_dvdsub(bgav_stream_t * s, gavl_overlay_t * ovl)
           break;
         default:
           bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-                  "Unknown command %02x, decoding is doomed to failure\n",
+                  "Unknown command %02x, decoding is doomed to failure",
                   cmd);
           break;
         }

@@ -826,16 +826,6 @@ int bgav_open_fd(bgav_t * bgav, int fd,
                  int64_t total_size,
                  const char * mimetype);
 
-/**\ingroup decoder
- * \brief Get an error description
- * \param bgav A decoder instance
- * \returns A description of the error which occurred (or NULL if no desciption is available).
- *
- * This function can be called after a failed call of one of the open functions (see \ref opening).
- */
-
-const char * bgav_get_error(bgav_t * bgav);
-
 /* Close and destroy everything */
 
 /** \ingroup decoder

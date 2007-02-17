@@ -41,14 +41,16 @@ void bgav_http_header_reset(bgav_http_header_t*);
 void bgav_http_header_destroy(bgav_http_header_t*);
 
 void bgav_http_header_add_line(bgav_http_header_t*, const char * line);
-int bgav_http_header_send(bgav_http_header_t*, int fd, char ** error_msg);
+int bgav_http_header_send(const bgav_options_t * opt,
+                          bgav_http_header_t*, int fd);
 
 int bgav_http_header_status_code(bgav_http_header_t * h);
 const char * bgav_http_header_status_line(bgav_http_header_t * h);
 
 /* Reading of http header */
 
-void bgav_http_header_revc(bgav_http_header_t*, int fd, int milliseconds);
+void bgav_http_header_revc(const bgav_options_t * opt,
+                           bgav_http_header_t*, int fd);
 
 const char * bgav_http_header_get_var(bgav_http_header_t*,
                                       const char * name);
@@ -59,7 +61,7 @@ void bgav_http_header_dump(bgav_http_header_t*);
 /* http connection */
 
 bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt, char ** redirect_url,
-                             bgav_http_header_t* extra_header, char ** error_msg);
+                             bgav_http_header_t* extra_header);
 
 void bgav_http_close(bgav_http_t *);
 

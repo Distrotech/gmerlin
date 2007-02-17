@@ -272,7 +272,6 @@ void bgav_demuxer_destroy(bgav_demuxer_context_t * ctx)
     bgav_superindex_destroy(ctx->si);
 
   FREE(ctx->stream_description);
-  FREE(ctx->error_msg);
   free(ctx);
   }
 
@@ -381,7 +380,6 @@ void bgav_demuxer_stop(bgav_demuxer_context_t * ctx)
   ctx->demuxer->close(ctx);
   ctx->priv = NULL;
   FREE(ctx->stream_description);
-  FREE(ctx->error_msg);
   
   /* Reset global variables */
   ctx->flags &= ~(BGAV_DEMUXER_SI_SEEKING |

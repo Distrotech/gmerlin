@@ -207,7 +207,7 @@ static int init_flac(bgav_stream_t * s)
   if(s->ext_size < 42)
     {
     bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-             "FLAC decoder needs 42 bytes ext_data");
+             "FLAC decoder needs 42 bytes extradata");
     return 0;
     }
   

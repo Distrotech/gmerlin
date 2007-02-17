@@ -3,6 +3,8 @@ AC_CONFIG_SRCDIR([include/avdec.h])
 AM_CONFIG_HEADER(include/config.h)
 AM_INIT_AUTOMAKE(1.8.5)
 
+AC_GNU_SOURCE
+
 AC_DISABLE_STATIC
 AM_PROG_AS_MOD
 AC_PROG_LIBTOOL
@@ -14,11 +16,15 @@ dnl
 AC_CHECK_HEADERS(byteswap.h)
 
 
-
 AC_SYS_LARGEFILE
 AC_FUNC_FSEEKO
 AC_CHECK_FUNCS(ftello vasprintf)
 
+dnl
+dnl Gettext
+dnl
+
+AM_GNU_GETTEXT(external)
 
 dnl
 dnl Check for Dependencies package
@@ -315,7 +321,8 @@ dnl
 dnl Output
 dnl 
 
-AC_CONFIG_FILES([Makefile \
+AC_CONFIG_FILES([Makefile 
+po/Makefile.in \
 gmerlin_avdec.spec \
 gmerlin_avdec.pc \
 include/Makefile \
