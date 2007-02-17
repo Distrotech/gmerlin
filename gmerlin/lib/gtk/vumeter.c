@@ -24,8 +24,11 @@
 #include <string.h>
 #include <math.h>
 
+#include <config.h>
+
 #include <gtk/gtk.h>
 #include <gui_gtk/audio.h>
+#include <gui_gtk/gtkutils.h>
 
 #include <utils.h>
 
@@ -161,53 +164,53 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name:        "appearance",
-      long_name:   "Appearance",
+      long_name:   TRS("Appearance"),
       type:        BG_PARAMETER_SECTION
     },
     {
       name:        "font",
-      long_name:   "Font",
+      long_name:   TRS("Font"),
       type:        BG_PARAMETER_FONT,
       val_default: { val_str: "9x15" },
     },
     {
       name:        "background",
-      long_name:   "Background color",
+      long_name:   TRS("Background color"),
       type:        BG_PARAMETER_COLOR_RGB,
       val_default: { val_color: (float[]){ 0.0, 0.0, 0.0, 1.0 } },
     },
     {
       name:        "foreground",
-      long_name:   "Foreground color",
+      long_name:   TRS("Foreground color"),
       type:        BG_PARAMETER_COLOR_RGB,
       val_default: { val_color: (float[]){ 1.0, 1.0, 1.0, 1.0 } },
     },
     {
       name:        "level_low",
-      long_name:   "Low level color",
+      long_name:   TRS("Low level color"),
       type:        BG_PARAMETER_COLOR_RGB,
       val_default: { val_color: (float[]){ 0.0, 1.0, 0.0, 1.0 } },
     },
     {
       name:        "level_medium",
-      long_name:   "Medium level color",
+      long_name:   TRS("Medium level color"),
       type:        BG_PARAMETER_COLOR_RGB,
       val_default: { val_color: (float[]){ 1.0, 1.0, 0.0, 1.0 } },
     },
     {
       name:        "level_high",
-      long_name:   "High level color",
+      long_name:   TRS("High level color"),
       type:        BG_PARAMETER_COLOR_RGB,
       val_default: { val_color: (float[]){ 1.0, 0.0, 0.0, 1.0 } },
     },
     {
       name:        "properties",
-      long_name:   "Properties",
+      long_name:   TRS("Properties"),
       type:        BG_PARAMETER_SECTION
     },
     {
       name:        "peak_age",
-      long_name:   "Peak hold time (sec.)",
+      long_name:   TRS("Peak hold time (sec.)"),
       type:        BG_PARAMETER_SLIDER_FLOAT,
       val_min:     { val_f: 0.1 },
       val_max:     { val_f: 100.0 },

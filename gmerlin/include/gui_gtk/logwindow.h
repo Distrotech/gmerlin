@@ -36,3 +36,7 @@ void bg_gtk_log_window_set_parameter(void * data, char * name,
 
 int bg_gtk_log_window_get_parameter(void * data, char * name,
                                     bg_parameter_value_t * val);
+
+void bg_gtk_log_window_flush(bg_gtk_log_window_t *);
+
+const char * bg_gtk_log_window_last_error(bg_gtk_log_window_t *);

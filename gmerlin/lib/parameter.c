@@ -120,6 +120,9 @@ void bg_parameter_info_copy(bg_parameter_info_t * dst,
   dst->help_string = bg_strdup(dst->help_string, src->help_string);
   dst->type = src->type;
   dst->flags = src->flags;
+
+  dst->gettext_domain    = bg_strdup(dst->gettext_domain,    src->gettext_domain);
+  dst->gettext_directory = bg_strdup(dst->gettext_directory, src->gettext_directory);
   
   switch(dst->type)
     {
@@ -250,6 +253,10 @@ void bg_parameter_info_destroy_array(bg_parameter_info_t * info)
       free(info[index].opt);
     if(info[index].help_string)
       free(info[index].help_string);
+    if(info[index].gettext_domain)
+      free(info[index].gettext_domain);
+    if(info[index].gettext_directory)
+      free(info[index].gettext_directory);
     switch(info[index].type)
       {
       case BG_PARAMETER_COLOR_RGB:

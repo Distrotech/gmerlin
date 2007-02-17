@@ -1,6 +1,6 @@
 libdir=@GMERLIN_PLUGIN_DIR@
 
-AM_CFLAGS = @JPEG_CFLAGS@
+AM_CFLAGS = @JPEG_CFLAGS@ -DLOCALE_DIR=\"$(localedir)\"
 
 lib_LTLIBRARIES = ir_jpeg.la iw_jpeg.la
 

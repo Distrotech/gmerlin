@@ -21,6 +21,8 @@
 #include <unistd.h>
 
 #include <config.h>
+#include <translation.h>
+
 
 #include <remote.h>
 #include <bgsocket.h>
@@ -280,13 +282,13 @@ static bg_parameter_info_t server_parameters[] =
   {
     {
       name:        "allow_remote",
-      long_name:   "Allow connections from other machines",
+      long_name:   TRS("Allow connections from other machines"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 0 },
     },
     {
       name:      "max_connections",
-      long_name: "Maximum number of connections",
+      long_name: TRS("Maximum number of connections"),
       type:      BG_PARAMETER_INT,
       val_min:     { val_i: 0 },
       val_max:     { val_i: 100 },

@@ -1,6 +1,6 @@
 libdir=@GMERLIN_PLUGIN_DIR@
 
-AM_CFLAGS = @ESD_CFLAGS@
+AM_CFLAGS = @ESD_CFLAGS@ -DLOCALE_DIR=\"$(localedir)\"
 
 lib_LTLIBRARIES = oa_esd.la i_esd.la
 

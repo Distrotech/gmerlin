@@ -21,14 +21,20 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
+#include <config.h>
+#include <translation.h>
+
 #include <pluginregistry.h>
+
 #include <gui_gtk/plugin.h>
+#include <gui_gtk/gtkutils.h>
 
 #if GTK_MINOR_VERSION >= 4
 #define GTK_2_4
 #endif
 
-static char * auto_string = "Auto Select";
+static char * auto_string = TRS("Auto Select");
 
 struct bg_gtk_plugin_menu_s
   {
@@ -40,25 +46,32 @@ struct bg_gtk_plugin_menu_s
   char ** plugins;  
 #else
   GList * plugins;
+  char ** plugin_labels;
 #endif
+  char ** plugin_names;
   };
 
 bg_gtk_plugin_menu_t *
 bg_gtk_plugin_menu_create(char ** plugins,
-                          int auto_supported)
+                          int auto_supported, bg_plugin_registry_t * plugin_reg)
   {
   int index;
   GtkWidget * label;
   bg_gtk_plugin_menu_t * ret;
+
+  const bg_plugin_info_t * plugin_info;
+  
   ret = calloc(1, sizeof(*ret));
   ret->auto_supported = auto_supported;
+  ret->plugin_names = plugins;
+
 #ifdef GTK_2_4
   ret->plugins = plugins;
 
   ret->combo = gtk_combo_box_new_text();
 
   if(auto_supported)
-    gtk_combo_box_append_text(GTK_COMBO_BOX(ret->combo), auto_string);
+    gtk_combo_box_append_text(GTK_COMBO_BOX(ret->combo), TR(auto_string));
 
   index = 0;
 
@@ -66,7 +79,13 @@ bg_gtk_plugin_menu_create(char ** plugins,
     {
     while(plugins[index])
       {
-      gtk_combo_box_append_text(GTK_COMBO_BOX(ret->combo), plugins[index]);
+      plugin_info = bg_plugin_find_by_name(plugin_reg, plugins[index]);
+      
+      bindtextdomain(plugin_info->gettext_domain,
+                     plugin_info->gettext_directory);
+      
+      gtk_combo_box_append_text(GTK_COMBO_BOX(ret->combo),
+                                TRD(plugin_info->long_name, plugin_info->gettext_domain));
       index++;
       }
     }
@@ -75,7 +94,7 @@ bg_gtk_plugin_menu_create(char ** plugins,
     
 #else
   if(auto_supported)
-    ret->plugins = g_list_append(ret->plugins, auto_string);
+    ret->plugins = g_list_append(ret->plugins, bg_strdup((char*0), TR(auto_string)));
   
   index = 0;
   
@@ -96,7 +115,7 @@ bg_gtk_plugin_menu_create(char ** plugins,
   gtk_widget_show(ret->combo);
     
   ret->box = gtk_hbox_new(0, 5);
-  label = gtk_label_new("Plugin: ");
+  label = gtk_label_new(TR("Plugin: "));
   gtk_widget_show(label);
   gtk_widget_show(ret->combo);
 
@@ -111,28 +130,35 @@ bg_gtk_plugin_menu_create(char ** plugins,
 
 const char * bg_gtk_plugin_menu_get_plugin(bg_gtk_plugin_menu_t * m)
   {
-  const char * ret;
-
+  int selected;
+  
 #ifdef GTK_2_4
-  int index;
-  index = gtk_combo_box_get_active(GTK_COMBO_BOX(m->combo));
+  selected = gtk_combo_box_get_active(GTK_COMBO_BOX(m->combo));
+#else
+  GList * tmp;
+  const char * long_name;
+  selected = 0;
+    
+  tmp = m->plugins;
+  
+  long_name = gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(m->combo)->entry));
+  
+  while(strcmp(long_name, (char*)tmp->data))
+    {
+    selected++;
+    tmp = tmp->next;
+    }
+#endif
+  
   if(m->auto_supported)
     {
-    if(!index)
-      ret = (const char*)0;
+    if(!selected)
+      return (const char*)0;
     else
-      ret = m->plugins[index-1];
+      return m->plugin_names[selected];
     }
   else
-    ret = m->plugins[index];
-  
-#else
-  ret = gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(m->combo)->entry));
-
-  if(!strcmp(ret, auto_string))
-    ret = (const char*)0;
-#endif
-  return ret;
+    return m->plugin_names[selected];
   }
 
 GtkWidget * bg_gtk_plugin_menu_get_widget(bg_gtk_plugin_menu_t * m)
@@ -144,9 +170,21 @@ void bg_gtk_plugin_menu_destroy(bg_gtk_plugin_menu_t * m)
   {
 #ifdef GTK_2_4
   
+  
 #else
+  GList * tmp;
   if(m->plugins)
     {
+    tmp = m->plugins;
+    while(tmp)
+      {
+      if(tmp->data)
+        {
+        free(tmp_data);
+        tmp_data = NULL;
+        }
+      tmp = tmp->next;
+      }
     g_list_free(m->plugins);
     }
 #endif

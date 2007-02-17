@@ -6,6 +6,7 @@
 #include <ctype.h>
 
 
+#include <config.h>
 #include <player.h>
 #include <pluginregistry.h>
 #include <gavl/gavl.h>
@@ -491,7 +492,6 @@ static int play_track(bg_player_t * player, const char * gml,
   const bg_plugin_info_t * info = (const bg_plugin_info_t *)0;
   bg_input_plugin_t * plugin;
   bg_track_info_t * track_info;
-  char * error_msg = (char*)0;
 
   int result;
   char * redir_url;
@@ -514,12 +514,10 @@ static int play_track(bg_player_t * player, const char * gml,
       input_handle = (bg_plugin_handle_t*)0;
       }
     if(!bg_input_plugin_load(plugin_reg, gml, info,
-                             &input_handle, &error_msg,
+                             &input_handle,
                              (bg_input_callbacks_t*)0))
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s", gml);
-      if(error_msg)
-        free(error_msg);
       return 0;
       }
     plugin = (bg_input_plugin_t*)(input_handle->plugin);

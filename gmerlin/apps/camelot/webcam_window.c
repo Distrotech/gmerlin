@@ -17,6 +17,9 @@
 #include <gui_gtk/gtkutils.h>
 #include <gui_gtk/aboutwindow.h>
 
+#include <log.h>
+#define LOG_DOMAIN "camelot"
+
 #define DELAY_TIME 100
 
 struct gmerlin_webcam_window_s 
@@ -43,8 +46,8 @@ struct gmerlin_webcam_window_s
 
   bg_msg_queue_t * cmd_queue;
   bg_msg_queue_t * msg_queue;
-  
-    
+  bg_msg_queue_t * log_queue;
+      
   bg_gtk_file_entry_t * output_dir;
   GtkWidget * output_filename_base;
   GtkWidget * output_frame_counter;
@@ -193,6 +196,30 @@ static void button_callback(GtkWidget * w, gpointer data)
   
   }
 
+static void flush_log_queue(gmerlin_webcam_window_t * w)
+  {
+  bg_msg_t * msg;
+  char * tmp_string;
+  while((msg = bg_msg_queue_lock_read(w->log_queue)))
+    {
+    switch(bg_msg_get_id(msg))
+      {
+      case BG_LOG_DEBUG:
+        break;
+      case BG_LOG_INFO:
+        break;
+      case BG_LOG_WARNING:
+        break;
+      case BG_LOG_ERROR:
+        tmp_string = bg_msg_get_arg_string(msg, 2);
+        bg_gtk_message(tmp_string, BG_GTK_MESSAGE_ERROR);
+        free(tmp_string);
+        break;
+      }
+    bg_msg_queue_unlock_read(w->log_queue);
+    }
+  }
+
 static gboolean timeout_func(gpointer data)
   {
   float arg_f;
@@ -210,7 +237,7 @@ static gboolean timeout_func(gpointer data)
       {
       case MSG_FRAMERATE:
         arg_f = bg_msg_get_arg_float(msg, 0);
-        tmp_string = bg_sprintf("Framerate: %.2f fps", arg_f);
+        tmp_string = bg_sprintf(TR("Framerate: %.2f fps"), arg_f);
 
         if(w->framerate_set)
           gtk_statusbar_pop(GTK_STATUSBAR(w->statusbar),
@@ -225,17 +252,14 @@ static gboolean timeout_func(gpointer data)
         break;
       case MSG_FRAME_COUNT:
         arg_i = bg_msg_get_arg_int(msg, 0);
-        //        tmp_string = bg_sprintf("Framerate: %.2f fps\n", arg_f);
         
         gtk_spin_button_set_value(GTK_SPIN_BUTTON(w->output_frame_counter), (float)arg_i);
         break;
       case MSG_ERROR:
-        tmp_string = bg_msg_get_arg_string(msg, 0);
-        bg_gtk_message(tmp_string, BG_GTK_MESSAGE_ERROR);
-        free(tmp_string);
         break;
       }
     bg_msg_queue_unlock_read(w->msg_queue);
+    flush_log_queue(w);
     }
   return TRUE;
   }
@@ -271,8 +295,7 @@ static void delete_callback(GtkWidget * w, GdkEvent * evt, gpointer data)
 
 static GtkWidget * create_pixmap_button(gmerlin_webcam_window_t * w,
                                         const char * filename,
-                                        const char * tooltip,
-                                        const char * tooltip_private)
+                                        const char * tooltip)
   {
   GtkWidget * button;
   GtkWidget * image;
@@ -295,7 +318,7 @@ static GtkWidget * create_pixmap_button(gmerlin_webcam_window_t * w,
 
   gtk_widget_show(button);
 
-  gtk_tooltips_set_tip(w->tooltips, button, tooltip, tooltip_private);
+  bg_gtk_tooltips_set_tip(w->tooltips, button, tooltip, PACKAGE);
   
   return button;
   }
@@ -345,7 +368,7 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   /* Create input stuff */
     
   ret->input_plugin =
-    bg_gtk_plugin_widget_single_create("Plugin", ret->plugin_reg,
+    bg_gtk_plugin_widget_single_create(TR("Plugin"), ret->plugin_reg,
                                        BG_PLUGIN_RECORDER_VIDEO,
                                        BG_PLUGIN_RECORDER,
                                        ret->tooltips);
@@ -354,7 +377,7 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   set_input_plugin(bg_gtk_plugin_widget_single_get_plugin(ret->input_plugin),
                                                           ret);
   
-  ret->input_reopen = gtk_button_new_with_label("Reopen");
+  ret->input_reopen = gtk_button_new_with_label(TR("Reopen"));
   g_signal_connect(G_OBJECT(ret->input_reopen), "clicked",
                    G_CALLBACK(button_callback), ret);
   gtk_widget_show(ret->input_reopen);
@@ -362,7 +385,7 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   /* Create capture stuff */
   
   ret->capture_plugin =
-    bg_gtk_plugin_widget_single_create("Plugin", ret->plugin_reg,
+    bg_gtk_plugin_widget_single_create(TR("Plugin"), ret->plugin_reg,
                                        BG_PLUGIN_IMAGE_WRITER,
                                        BG_PLUGIN_FILE,
                                        ret->tooltips);
@@ -372,12 +395,12 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
                                                           ret);
 
   
-  ret->capture_button = gtk_button_new_with_label("Take picture");
+  ret->capture_button = gtk_button_new_with_label(TR("Take picture"));
   g_signal_connect(G_OBJECT(ret->capture_button), "clicked", G_CALLBACK(button_callback),
                    ret);
   gtk_widget_show(ret->capture_button);
     
-  ret->auto_capture = gtk_check_button_new_with_label("Automatic capture");
+  ret->auto_capture = gtk_check_button_new_with_label(TR("Automatic capture"));
   g_signal_connect(G_OBJECT(ret->auto_capture), "toggled", G_CALLBACK(button_callback),
                    ret);
   gtk_widget_show(ret->auto_capture);
@@ -391,7 +414,7 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   /* Create monitor stuff */
   
   ret->monitor_plugin =
-    bg_gtk_plugin_widget_single_create("Plugin", ret->plugin_reg,
+    bg_gtk_plugin_widget_single_create(TR("Plugin"), ret->plugin_reg,
                                        BG_PLUGIN_OUTPUT_VIDEO,
                                        BG_PLUGIN_PLAYBACK,
                                        ret->tooltips);
@@ -402,7 +425,7 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
                                                             ret);
                      
   
-  ret->monitor_button = gtk_check_button_new_with_label("Enable Monitor");
+  ret->monitor_button = gtk_check_button_new_with_label(TR("Enable Monitor"));
   g_signal_connect(G_OBJECT(ret->monitor_button), "toggled",
                    G_CALLBACK(button_callback), ret);
   
@@ -411,7 +434,7 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   /* Create output file stuff */
 
   ret->output_dir = bg_gtk_file_entry_create(1, filename_changed_callback, ret,
-                                             (GtkTooltips*)0, (const char*)0);
+                                             (GtkTooltips*)0, (char*)0, (char*)0);
   ret->output_filename_base = gtk_entry_new();
   g_signal_connect(ret->output_filename_base, "changed", G_CALLBACK(button_callback),
                    ret);
@@ -425,7 +448,7 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   
   gtk_spin_button_set_digits(GTK_SPIN_BUTTON(ret->output_frame_counter), 0);
   
-  ret->output_set_frame_counter = gtk_button_new_with_label("Set");
+  ret->output_set_frame_counter = gtk_button_new_with_label(TR("Set"));
   g_signal_connect(G_OBJECT(ret->output_set_frame_counter), "clicked",
                    G_CALLBACK(button_callback), ret);
   gtk_widget_show(ret->output_set_frame_counter);
@@ -454,7 +477,7 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   
   gtk_widget_show(table);
   
-  label = gtk_label_new("Input");
+  label = gtk_label_new(TR("Input"));
   gtk_widget_show(label);
 
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook), table, label);
@@ -480,7 +503,7 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   
   gtk_widget_show(table);
   
-  label = gtk_label_new("Monitor");
+  label = gtk_label_new(TR("Monitor"));
   gtk_widget_show(label);
   
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook), table, label);
@@ -505,7 +528,7 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
                    ret->auto_capture, 
                    0, num_columns, row, row+1, GTK_FILL | GTK_EXPAND, GTK_FILL, 0, 0);
   
-  label = gtk_label_new("Interval (sec)");
+  label = gtk_label_new(TR("Interval (sec)"));
   gtk_widget_show(label);
   gtk_table_attach(GTK_TABLE(table),
                    label, 
@@ -520,7 +543,7 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   
   gtk_widget_show(table);
   
-  label = gtk_label_new("Capture");
+  label = gtk_label_new(TR("Capture"));
   gtk_widget_show(label);
   
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook), table, label);
@@ -532,7 +555,7 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   gtk_table_set_col_spacings(GTK_TABLE(table), 5);
   gtk_container_set_border_width(GTK_CONTAINER(table), 5);
 
-  label = gtk_label_new("Directory");
+  label = gtk_label_new(TR("Directory"));
   gtk_widget_show(label);
   gtk_table_attach(GTK_TABLE(table),
                    label, 
@@ -549,10 +572,10 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   box = gtk_vbox_new(0, 5);
   gtk_container_set_border_width(GTK_CONTAINER(box), 5);
   
-  label = gtk_label_new("Extension is appended by the plugin\n\
+  label = gtk_label_new(TR("Extension is appended by the plugin\n\
 %t    Inserts time\n\
 %d    Inserts date\n\
-%<i>n Inserts Frame number with <i> digits");
+%<i>n Inserts Frame number with <i> digits"));
   gtk_widget_show(label);
   
   gtk_box_pack_start_defaults(GTK_BOX(box), label);
@@ -560,7 +583,7 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
 
   gtk_widget_show(box);
   
-  frame = gtk_frame_new("Filename base");
+  frame = gtk_frame_new(TR("Filename base"));
   gtk_container_set_border_width(GTK_CONTAINER(frame), 5);
   
   gtk_container_add(GTK_CONTAINER(frame), box);
@@ -569,7 +592,7 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
                             frame, 
                             0, 3, 1, 2);
 
-  label = gtk_label_new("Frame counter");
+  label = gtk_label_new(TR("Frame counter"));
   gtk_widget_show(label);
 
   gtk_table_attach(GTK_TABLE(table),
@@ -586,7 +609,7 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   
   gtk_widget_show(table);
   
-  label = gtk_label_new("Output files");
+  label = gtk_label_new(TR("Output files"));
   gtk_widget_show(label);
   
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook), table, label);
@@ -596,11 +619,13 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   gtk_widget_show(notebook);
 
   ret->statusbar = gtk_statusbar_new();
-  ret->framerate_context = gtk_statusbar_get_context_id(GTK_STATUSBAR(ret->statusbar),
-                                                        "framerate");
+  ret->framerate_context =
+    gtk_statusbar_get_context_id(GTK_STATUSBAR(ret->statusbar),
+                                 "framerate");
+  
   gtk_widget_show(ret->statusbar);
 
-  ret->about_button = create_pixmap_button(ret, "info_16.png", "About", "About");
+  ret->about_button = create_pixmap_button(ret, "info_16.png", TRS("About"));
   
   mainbox = gtk_vbox_new(0, 5);
   gtk_box_pack_start_defaults(GTK_BOX(mainbox), notebook);
@@ -624,6 +649,9 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
                        gmerlin_webcam_window_set_parameter,
                        ret);
   ret->section = section;
+  
+  ret->log_queue = bg_msg_queue_create();
+  bg_log_set_dest(ret->log_queue);
   
   return ret;
   }
@@ -651,39 +679,43 @@ bg_parameter_info_t parameters[] =
   {
     {
       name:        "do_monitor",
-      long_name:   "Do monitor",
+      long_name:   TRS("Do monitor"),
       type:      BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 },
+      help_string: TRS("Enable monitoring of the webcam image")
     },
     {
       name:        "auto_capture",
-      long_name:   "Automatic capture",
+      long_name:   TRS("Automatic capture"),
       type:      BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 0 },
+      help_string: TRS("Automatically capture in the specified capture interval")
     },
     {
       name:        "capture_interval",
-      long_name:   "Capture interval",
-      type:      BG_PARAMETER_FLOAT,
+      long_name:   TRS("Capture interval"),
+      type:        BG_PARAMETER_FLOAT,
       val_default: { val_f: 10.0 },
       val_min:     { val_f: 0.5 },
       val_max:     { val_f: 1200.0 },
+      help_string: TRS("Capture interval (in seconds)"),
     },
     {
       name:        "output_directory",
-      long_name:   "Output directory",
+      long_name:   TRS("Output directory"),
       type:        BG_PARAMETER_DIRECTORY,
       val_default: { val_str: "/tmp/" },
     },
     {
       name:        "output_namebase",
-      long_name:   "Output namebase",
+      long_name:   TRS("Output namebase"),
       type:        BG_PARAMETER_STRING,
       val_default: { val_str: "webcam-shot-%6n" },
+      help_string: TRS("Template for the output files. A mask \"%<d>n\" inserts the frame number with <n> digits (e.g. webcam-shot-%6n)")
     },
     {
       name:        "output_frame_counter",
-      long_name:   "Output framecounter",
+      long_name:   TRS("Output framecounter"),
       type:        BG_PARAMETER_INT,
       val_default: { val_i: 0 },
     },

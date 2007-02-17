@@ -22,6 +22,9 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#include <config.h>
+#include <translation.h>
+
 #include <plugin.h>
 #include <utils.h>
 
@@ -50,15 +53,16 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name:      "esd_host",
-      long_name: "Host (empty: local)",
+      long_name: TRS("Host (empty: local)"),
       type:      BG_PARAMETER_STRING,
     },
     {
       name:        "input_mode",
-      long_name:   "Input Mode:",
+      long_name:   TRS("Input Mode"),
       type:        BG_PARAMETER_STRINGLIST,
-      val_default: { val_str: "Record" },
-      multi_names:     (char*[]){ "Record", "Monitor", (char*)0 },
+      val_default: { val_str: "record" },
+      multi_names:     (char*[]){ "record", "monitor", (char*)0 },
+      multi_labels:    (char*[]){ TRS("Record"), TRS("Monitor"), (char*)0 },
     },
     { /* End of parameters */ }
   };
@@ -76,7 +80,7 @@ static void set_parameter_esd(void * data, char * name,
     }
   else if(!strcmp(name, "input_mode"))
     {
-    if(!strcmp(val->val_str, "Monitor"))
+    if(!strcmp(val->val_str, "monitor"))
       e->do_monitor = 1;
     else
       e->do_monitor = 0;
@@ -215,8 +219,11 @@ bg_ra_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:          "i_esd",
-      long_name:     "EsounD input driver",
+      long_name:     TRS("EsounD input driver"),
+      description:   TRS("EsounD input driver"),
+
       mimetypes:     (char*)0,
       extensions:    (char*)0,
       type:          BG_PLUGIN_RECORDER_AUDIO,

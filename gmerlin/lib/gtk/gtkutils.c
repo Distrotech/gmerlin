@@ -333,3 +333,10 @@ char * bg_gtk_convert_font_name_to_pango(const char * name)
   
   }
 
+void bg_gtk_tooltips_set_tip(GtkTooltips * tooltips,
+                             GtkWidget * w, const char * str,
+                             const char * translation_domain)
+  {
+  str = dgettext(translation_domain, str);
+  gtk_tooltips_set_tip(tooltips, w, str, str);
+  }

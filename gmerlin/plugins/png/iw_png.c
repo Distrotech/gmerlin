@@ -21,6 +21,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <config.h>
+#include <translation.h>
 #include <plugin.h>
 #include <utils.h>
 
@@ -47,11 +49,6 @@ static void destroy_png(void * priv)
   free(png);
   }
 
-static const char * get_error_png(void * priv)
-  {
-  bg_pngwriter_t * png = (bg_pngwriter_t*)priv;
-  return png->error_msg;
-  }
 
 
 /* Configuration stuff */
@@ -60,7 +57,7 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name:        "compression",
-      long_name:   "Compression level",
+      long_name:   TRS("Compression level"),
       type:        BG_PARAMETER_SLIDER_INT,
       val_min:     { val_i: 0 },
       val_max:     { val_i: 9 },
@@ -68,11 +65,11 @@ static bg_parameter_info_t parameters[] =
     },
     {
       name:        "bit_mode",
-      long_name:   "Bits per channel",
+      long_name:   TRS("Bits per channel"),
       type:        BG_PARAMETER_STRINGLIST,
       multi_names: (char*[]){ "Auto", "8", "16" },
       val_default: { val_str: "8" },
-      help_string: "If you select auto, the depth will be chosen according to the input format"
+      help_string: TRS("If you select auto, the depth will be chosen according to the input format")
     },
     { /* End of parameters */ }
   };
@@ -93,8 +90,10 @@ bg_image_writer_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:           "iw_png",
-      long_name:      "PNG writer",
+      long_name:      TRS("PNG writer"),
+      description:    TRS("Writer for PNG images"),
       mimetypes:      (char*)0,
       extensions:     "png",
       type:           BG_PLUGIN_IMAGE_WRITER,
@@ -102,7 +101,6 @@ bg_image_writer_plugin_t the_plugin =
       priority:       5,
       create:         create_png,
       destroy:        destroy_png,
-      get_error:      get_error_png,
       get_parameters: get_parameters_png,
       set_parameter:  bg_pngwriter_set_parameter
     },

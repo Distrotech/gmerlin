@@ -17,6 +17,7 @@
  
 *****************************************************************/
 
+#include <config.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -153,7 +154,8 @@ static void button_callback(GtkWidget * w, gpointer data)
   
   }
 
-void bg_gtk_create_font(bg_gtk_widget_t * w, bg_parameter_info_t * info)
+void bg_gtk_create_font(bg_gtk_widget_t * w, bg_parameter_info_t * info,
+                        const char * translation_domain)
   {
   font_t * priv = calloc(1, sizeof(*priv));
 
@@ -161,17 +163,17 @@ void bg_gtk_create_font(bg_gtk_widget_t * w, bg_parameter_info_t * info)
 
   if(info->help_string)
     {
-    gtk_tooltips_set_tip(w->tooltips, priv->entry, info->help_string, info->help_string);
+    bg_gtk_tooltips_set_tip(w->tooltips, priv->entry, info->help_string, translation_domain);
     }
-
+  
   gtk_widget_show(priv->entry);
 
-  priv->label = gtk_label_new(info->long_name);
+  priv->label = gtk_label_new(TR_DOM(info->long_name));
   gtk_misc_set_alignment(GTK_MISC(priv->label), 0.0, 0.5);
 
   gtk_widget_show(priv->label);
 
-  priv->button = gtk_button_new_with_label("Browse...");
+  priv->button = gtk_button_new_with_label(TR("Browse..."));
 
   g_signal_connect(G_OBJECT(priv->button),
                      "clicked", G_CALLBACK(button_callback),

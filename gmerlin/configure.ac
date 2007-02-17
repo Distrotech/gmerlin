@@ -20,6 +20,13 @@ AC_C_BIGENDIAN
 AC_CHECK_FUNCS(vasprintf)
 
 dnl
+dnl Gettext
+dnl
+
+AM_GNU_GETTEXT([external])
+
+
+dnl
 dnl Check for Dependencies package
 dnl
 
@@ -590,7 +597,7 @@ AC_SUBST(INCLUDES)
 
 dnl Configuration Subdirectiories
 
-AC_CONFIG_FILES([Makefile \
+AC_CONFIG_FILES([Makefile  po/Makefile.in \
 gmerlin.spec \
 gmerlin.pc \
 gmerlin-gtk.pc \

@@ -209,7 +209,6 @@ struct state_struct
   int state;
   float percentage;
   int want_new;
-  const char * error_msg;
   };
 
 static void msg_state(bg_msg_t * msg,
@@ -225,10 +224,6 @@ static void msg_state(bg_msg_t * msg,
   if(s->state == BG_PLAYER_STATE_BUFFERING)
     {
     bg_msg_set_arg_float(msg, 1, s->percentage);
-    }
-  else if(s->state == BG_PLAYER_STATE_ERROR)
-    {
-    bg_msg_set_arg_string(msg, 1, s->error_msg);
     }
   else if(s->state == BG_PLAYER_STATE_CHANGING)
     {
@@ -253,8 +248,6 @@ void bg_player_set_state(bg_player_t * player, int state,
 
   if(state == BG_PLAYER_STATE_BUFFERING)
     s.percentage = *((const float*)arg1);
-  else if(state == BG_PLAYER_STATE_ERROR)
-    s.error_msg =  (const char *)arg1;
   else if(state == BG_PLAYER_STATE_CHANGING)
     s.want_new = *((const int*)arg1);
   

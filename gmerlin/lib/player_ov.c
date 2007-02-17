@@ -42,7 +42,6 @@ struct bg_player_ov_context_s
   gavl_video_frame_t * still_frame;
   pthread_mutex_t     still_mutex;
   
-  const char * error_msg;
   int still_shown;
 
   gavl_overlay_t       current_subtitle;
@@ -328,13 +327,8 @@ int bg_player_ov_init(bg_player_ov_context_t * ctx)
   if(result && ctx->plugin->show_window)
     ctx->plugin->show_window(ctx->priv, 1);
   else if(!result)
-    {
-    if(ctx->plugin->common.get_error)
-      ctx->error_msg = ctx->plugin->common.get_error(ctx->priv);
-    bg_plugin_unlock(ctx->plugin_handle);
     return result;
-    }
-
+  
   memset(&(osd_format), 0, sizeof(osd_format));
   
   bg_osd_init(ctx->osd, &(ctx->player->video_stream.output_format),
@@ -446,10 +440,6 @@ void bg_player_ov_set_subtitle_format(void * data,
   }
 
 
-const char * bg_player_ov_get_error(bg_player_ov_context_t * ctx)
-  {
-  return ctx->error_msg;
-  }
 
 static void ping_func(void * data)
   {

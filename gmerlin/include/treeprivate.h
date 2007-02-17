@@ -175,7 +175,7 @@ int bg_album_refresh_entry(bg_album_t *,
 
 bg_album_entry_t * bg_album_load_url(bg_album_t * album,
                                      char * url,
-                                     const char * plugin_long_name);
+                                     const char * plugin_name);
 
 struct bg_mediatree_s
   {
@@ -193,9 +193,6 @@ struct bg_mediatree_s
   
   void (*change_callback)(bg_media_tree_t*, void*);
   void * change_callback_data;
-    
-  void (*error_callback)(bg_media_tree_t*, void*, const char*);
-  void * error_callback_data;
   
   /* Current entry in shuffle list */
 

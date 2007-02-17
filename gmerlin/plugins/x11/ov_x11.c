@@ -35,6 +35,9 @@
 #include <X11/keysym.h>
 
 #include <plugin.h>
+#include <config.h>
+#include <translation.h>
+
 #include <keycodes.h>
 #include <utils.h>
 #include <config.h>
@@ -1960,11 +1963,11 @@ bg_parameter_info_t common_parameters[] =
   {
     {
       name:        "window",
-      long_name:   "General",
+      long_name:   TRS("General"),
     },
     {
       name:        "auto_resize",
-      long_name:   "Auto resize window",
+      long_name:   TRS("Auto resize window"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 }
     },
@@ -1999,24 +2002,24 @@ bg_parameter_info_t common_parameters[] =
 #ifdef HAVE_LIBXV
     {
       name:        "xv_mode",
-      long_name:   "Try XVideo",
+      long_name:   TRS("Try XVideo"),
       type:        BG_PARAMETER_STRINGLIST,
 
       multi_names: (char*[]){ "never", "yuv_only", "always", (char*)0},
-      multi_labels: (char*[]){ "Never", "For YUV formats only", "Always", (char*)0},
+      multi_labels: (char*[]){ TRS("Never"), TRS("For YCbCr formats only"), TRS("Always"), (char*)0},
       val_default: { val_str: "yuv_only" },
-      help_string: "Choose when to try XVideo (with hardware scaling). Note that your graphics card/driver must support this.",
+      help_string: TRS("Choose when to try XVideo (with hardware scaling). Note that your graphics card/driver must support this."),
     },
 #endif
     {
       name:        "disable_xscreensaver_normal",
-      long_name:   "Disable Screensaver for normal playback",
+      long_name:   TRS("Disable Screensaver for normal playback"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 0 }
     },
     {
       name:        "disable_xscreensaver_fullscreen",
-      long_name:   "Disable Screensaver for fullscreen playback",
+      long_name:   TRS("Disable Screensaver for fullscreen playback"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 }
     },
@@ -2041,18 +2044,18 @@ bg_parameter_info_t common_parameters[] =
     },
     {
       name:        "sw_scaler",
-      long_name:   "Software scaler",
+      long_name:   TRS("Software scaler"),
       type:        BG_PARAMETER_SECTION,
     },
     {
       name:        "do_sw_scale",
-      long_name:   "Enable software scaler",
+      long_name:   TRS("Enable software scaler"),
       type:        BG_PARAMETER_CHECKBUTTON,
-      help_string: "This enables software scaling for the case that no hardware scaling is available"
+      help_string: TRS("This enables software scaling for the case that no hardware scaling is available")
     },
     {
       name:        "scale_mode",
-      long_name:   "Scale mode",
+      long_name:   TRS("Scale mode"),
       type:        BG_PARAMETER_STRINGLIST,
       multi_names:  (char*[]){ "auto",
                                "nearest",
@@ -2063,29 +2066,27 @@ bg_parameter_info_t common_parameters[] =
                                "cubic_catmull",
                                "sinc_lanczos",
                                (char*)0 },
-      multi_labels: (char*[]){ "Auto",
-                             "Nearest",
-                             "Bilinear",
-                             "Quadratic",
-                             "Cubic B-Spline",
-                             "Cubic Mitchell-Netravali",
-                             "Cubic Catmull-Rom",
-                             "Sinc with Lanczos window",
-                             (char*)0 },
+      multi_labels: (char*[]){ TRS("Auto"),
+                               TRS("Nearest"),
+                               TRS("Bilinear"),
+                               TRS("Quadratic"),
+                               TRS("Cubic B-Spline"),
+                               TRS("Cubic Mitchell-Netravali"),
+                               TRS("Cubic Catmull-Rom"),
+                               TRS("Sinc with Lanczos window"),
+                               (char*)0 },
       val_default: { val_str: "auto" },
-      help_string: "Choose scaling method. Auto means to choose based on the conversion quality. Nearest is fastest, Sinc with Lanczos window is slowest",
+      help_string: TRS("Choose scaling method. Auto means to choose based on the conversion quality. Nearest is fastest, Sinc with Lanczos window is slowest"),
     },
     {
       name:        "scale_order",
-      long_name:   "Scale order",
+      long_name:   TRS("Scale order"),
       type:        BG_PARAMETER_INT,
       val_min:     { val_i: 4 },
       val_max:     { val_i: 1000 },
       val_default: { val_i: 4 },
-      help_string: "Order for sinc scaling\n",
+      help_string: TRS("Order for sinc scaling"),
     }
-
-    
   };
 
 #define NUM_COMMON_PARAMETERS sizeof(common_parameters)/sizeof(common_parameters[0])
@@ -2336,8 +2337,10 @@ bg_ov_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:          "ov_x11",
-      long_name:     "X11 display driver",
+      long_name:     TRS("X11"),
+      description:   TRS("X11 display driver with support for XShm, XVideo and XImage"),
       type:          BG_PLUGIN_OUTPUT_VIDEO,
       flags:         BG_PLUGIN_PLAYBACK,
       priority:      BG_PLUGIN_PRIORITY_MAX,

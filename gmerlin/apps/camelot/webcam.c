@@ -22,6 +22,8 @@
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
+
+#include <config.h>
 #include <utils.h>
 #include <plugin.h>
 #include <pluginregistry.h>
@@ -359,21 +361,13 @@ static void close_monitor(gmerlin_webcam_t * cam)
 static void open_input(gmerlin_webcam_t * cam)
   {
   bg_msg_t * msg;
-  char * tmp_string;
   if(!cam->input->open(cam->input_handle->priv, &cam->input_format))
     {
-    if(cam->input_handle->plugin->get_error)
-      tmp_string = 
-      	bg_sprintf("Initializing %s failed:\n%s\n",
-                   cam->input_handle->info->long_name,
-                   cam->input_handle->plugin->get_error(cam->input_handle->priv));
-    else
-      tmp_string = 
-        bg_sprintf("Initializing %s failed, check settings",
-                   cam->input_handle->info->long_name);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Initializing %s failed, check settings",
+           cam->input_handle->info->long_name);
     msg = bg_msg_queue_lock_write(cam->msg_queue);
     bg_msg_set_id(msg, MSG_ERROR);
-    bg_msg_set_arg_string(msg, 0, tmp_string);
     bg_msg_queue_unlock_write(cam->msg_queue);
 
     cam->input_open = 0;

@@ -5,13 +5,15 @@
 
 #include <stdio.h>
 
+#include <config.h>
+#include <translation.h>
+
 #include "kbd.h"
 #include "kbd_remote.h"
-
-#include <gmerlin/gui_gtk/gtkutils.h>
-#include <gmerlin/utils.h>
-#include <gmerlin/remote.h>
-#include <gmerlin/log.h>
+#include <gui_gtk/gtkutils.h>
+#include <utils.h>
+#include <remote.h>
+#include <log.h>
 #define LOG_DOMAIN "gmerlin_kbd_config"
 #include <gmerlin/subprocess.h>
 
@@ -24,19 +26,19 @@ static struct
   }
 modifiers[] =
   {
-    { GDK_SHIFT_MASK,   "Shift" }, //   = 1 << 0,
-    { GDK_LOCK_MASK,    "Lock" }, //	    = 1 << 1,
-    { GDK_CONTROL_MASK, "Control" }, //  = 1 << 2,
-    { GDK_MOD1_MASK,    "Mod1" }, //	    = 1 << 3,
-    { GDK_MOD2_MASK,    "Mod2" }, //	    = 1 << 4,
-    { GDK_MOD3_MASK,    "Mod3" }, //	    = 1 << 5,
-    { GDK_MOD4_MASK,    "Mod4" }, //	    = 1 << 6,
-    { GDK_MOD5_MASK,    "Mod5" }, //	    = 1 << 7,
-    { GDK_BUTTON1_MASK, "Button1" }, //  = 1 << 8,
-    { GDK_BUTTON2_MASK, "Button2" }, //  = 1 << 9,
-    { GDK_BUTTON3_MASK, "Button3" }, //  = 1 << 10,
-    { GDK_BUTTON4_MASK, "Button4" }, //  = 1 << 11,
-    { GDK_BUTTON5_MASK, "Button5" }, //  = 1 << 12,
+    { GDK_SHIFT_MASK,   TRS("Shift") }, //   = 1 << 0,
+    { GDK_LOCK_MASK,    TRS("Lock") }, //	    = 1 << 1,
+    { GDK_CONTROL_MASK, TRS("Control") }, //  = 1 << 2,
+    { GDK_MOD1_MASK,    TRS("Mod1") }, //	    = 1 << 3,
+    { GDK_MOD2_MASK,    TRS("Mod2") }, //	    = 1 << 4,
+    { GDK_MOD3_MASK,    TRS("Mod3") }, //	    = 1 << 5,
+    { GDK_MOD4_MASK,    TRS("Mod4") }, //	    = 1 << 6,
+    { GDK_MOD5_MASK,    TRS("Mod5") }, //	    = 1 << 7,
+    { GDK_BUTTON1_MASK, TRS("Button1") }, //  = 1 << 8,
+    { GDK_BUTTON2_MASK, TRS("Button2") }, //  = 1 << 9,
+    { GDK_BUTTON3_MASK, TRS("Button3") }, //  = 1 << 10,
+    { GDK_BUTTON4_MASK, TRS("Button4") }, //  = 1 << 11,
+    { GDK_BUTTON5_MASK, TRS("Button5") }, //  = 1 << 12,
 
   };
 
@@ -52,10 +54,10 @@ static char * get_modifier_string(uint32_t state)
       if(ret)
         {
         ret = bg_strcat(ret, "+");
-        ret = bg_strcat(ret, modifiers[i].name);
+        ret = bg_strcat(ret, dgettext(PACKAGE, modifiers[i].name));
         }
       else
-        ret = bg_strdup(ret, modifiers[i].name);
+        ret = bg_strdup(ret, dgettext(PACKAGE, modifiers[i].name));
       }
     }
   return ret;
@@ -190,12 +192,15 @@ static edit_dialog_t * edit_dialog_create(kbd_table_t * kbd,
 
 
   gtk_window_set_modal(GTK_WINDOW(ret->window), 1);
-  gtk_window_set_title(GTK_WINDOW(ret->window), "Edit key");
-
+  gtk_window_set_title(GTK_WINDOW(ret->window),
+                       TR("Edit key"));
+  
   ret->scancode = gtk_entry_new();
   ret->modifiers = gtk_entry_new();
   ret->command = gtk_entry_new();
-  ret->grab_button = gtk_button_new_with_label("Grab key");
+  ret->grab_button =
+    gtk_button_new_with_label(TR("Grab key"));
+  
   ret->ok_button = gtk_button_new_from_stock(GTK_STOCK_OK);
   ret->cancel_button = gtk_button_new_from_stock(GTK_STOCK_CANCEL);
 
@@ -229,7 +234,7 @@ static edit_dialog_t * edit_dialog_create(kbd_table_t * kbd,
   
   /* Pack objects */
 
-  label = gtk_label_new("Scancode");
+  label = gtk_label_new(TR("Scancode"));
   gtk_widget_show(label);
   gtk_table_attach(GTK_TABLE(table), label, 0, 1, 0, 1, GTK_FILL, GTK_FILL,
                    0, 0);
@@ -238,7 +243,7 @@ static edit_dialog_t * edit_dialog_create(kbd_table_t * kbd,
                             ret->scancode, 1, 2, 0, 1);
 
   
-  label = gtk_label_new("Modifiers");
+  label = gtk_label_new(TR("Modifiers"));
   gtk_widget_show(label);
   gtk_table_attach(GTK_TABLE(table), label, 0, 1, 1, 2, GTK_FILL, GTK_FILL,
                    0, 0);
@@ -250,7 +255,7 @@ static edit_dialog_t * edit_dialog_create(kbd_table_t * kbd,
                    0, 2, 2, 3, GTK_FILL, GTK_FILL,
                    0, 0);
   
-  label = gtk_label_new("Command");
+  label = gtk_label_new(TR("Command"));
   gtk_widget_show(label);
   gtk_table_attach(GTK_TABLE(table), label, 0, 1, 3, 4, GTK_FILL, GTK_FILL,
                    0, 0);
@@ -556,8 +561,7 @@ static gboolean window_delete_callback(GtkWidget * w, GdkEventAny * evt, gpointe
 
 static GtkWidget * create_window_pixmap_button(window_t * win,
                                                const char * filename,
-                                               const char * tooltip,
-                                               const char * tooltip_private)
+                                               const char * tooltip)
   {
   GtkWidget * button;
   GtkWidget * image;
@@ -581,7 +585,7 @@ static GtkWidget * create_window_pixmap_button(window_t * win,
   
   gtk_widget_show(button);
 
-  gtk_tooltips_set_tip(win->tooltips, button, tooltip, tooltip_private);
+  bg_gtk_tooltips_set_tip(win->tooltips, button, tooltip, PACKAGE);
   
   return button;
   }
@@ -621,29 +625,26 @@ static window_t * create_window()
                    G_CALLBACK(window_delete_callback),
                    ret);
   
-  gtk_window_set_title(GTK_WINDOW(ret->window), "Keyboard daemon configuration");
+  gtk_window_set_title(GTK_WINDOW(ret->window), TR("Keyboard daemon configuration"));
 
   
   ret->apply_button = gtk_button_new_from_stock(GTK_STOCK_APPLY);
   
   ret->close_button = gtk_button_new_from_stock(GTK_STOCK_CLOSE);
 
-  ret->kbd_button = gtk_check_button_new_with_label("Daemon running");
+  ret->kbd_button = gtk_check_button_new_with_label(TR("Daemon running"));
 
-  gtk_tooltips_set_tip(ret->tooltips, ret->kbd_button,
-                       "Switch deamon on and off. If you want to start the daemon with each start of X, add \"gmerlin_kbd\" to your startup programs",
-                       "Switch deamon on and off. If you want to start the daemon with each start of X, add \"gmerlin_kbd\" to your startup programs");
+  bg_gtk_tooltips_set_tip(ret->tooltips, ret->kbd_button,
+                          TRS("Switch deamon on and off. If you want to start the daemon with each start of X, add \"gmerlin_kbd\" to your startup programs"),
+                          PACKAGE);
   
   ret->add_button =
-    create_window_pixmap_button(ret, "add_16.png", "Add new key",
-                                "Add new key");
+    create_window_pixmap_button(ret, "add_16.png", TRS("Add new key"));
   ret->edit_button =
-    create_window_pixmap_button(ret, "config_16.png", "Edit key",
-                                "Edit key");
+    create_window_pixmap_button(ret, "config_16.png", TRS("Edit key"));
   ret->delete_button =
-    create_window_pixmap_button(ret, "trash_16.png", "Delete key",
-                                "Delete key");
-
+    create_window_pixmap_button(ret, "trash_16.png", TRS("Delete key"));
+  
   /* Create list */
   ret->selected = -1;
 
@@ -662,7 +663,7 @@ static window_t * create_window()
   
   /* Add columns */
   renderer = gtk_cell_renderer_text_new ();
-  column = gtk_tree_view_column_new_with_attributes ("Scancode",
+  column = gtk_tree_view_column_new_with_attributes (TR("Scancode"),
                                                      renderer,
                                                      "text",
                                                      COLUMN_SCANCODE,
@@ -671,7 +672,7 @@ static window_t * create_window()
   gtk_tree_view_append_column (GTK_TREE_VIEW(ret->list), column);
 
   renderer = gtk_cell_renderer_text_new ();
-  column = gtk_tree_view_column_new_with_attributes ("Modifiers",
+  column = gtk_tree_view_column_new_with_attributes (TR("Modifiers"),
                                                      renderer,
                                                      "text",
                                                      COLUMN_MODIFIERS,
@@ -679,7 +680,7 @@ static window_t * create_window()
   gtk_tree_view_append_column (GTK_TREE_VIEW(ret->list), column);
 
   renderer = gtk_cell_renderer_text_new ();
-  column = gtk_tree_view_column_new_with_attributes ("Command",
+  column = gtk_tree_view_column_new_with_attributes (TR("Command"),
                                                      renderer,
                                                      "text",
                                                      COLUMN_COMMAND,

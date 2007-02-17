@@ -22,6 +22,7 @@
 #include <stdio.h>
 
 #include <config.h>
+#include <translation.h>
 #include <plugin.h>
 #include <utils.h>
 #include <log.h>
@@ -36,7 +37,6 @@ typedef struct
   char * toc_file;
 
   bg_cdrdao_t * cdr;
-  char * error_msg;
   bg_e_pp_callbacks_t * callbacks;
 
   struct
@@ -83,36 +83,30 @@ static void destroy_cdrdao(void * priv)
   free(cdrdao);
   }
 
-static const char * get_error_cdrdao(void * priv)
-  {
-  cdrdao_t * cdrdao;
-  cdrdao = (cdrdao_t*)priv;
-  return cdrdao->error_msg;
-  }
 
 static bg_parameter_info_t parameters[] =
   {
     {
       name: "cda",
-      long_name: "Audio CD options",
+      long_name: TRS("Audio CD options"),
       type: BG_PARAMETER_SECTION,
     },
     {
       name: "toc_file",
-      long_name: "TOC file",
+      long_name: TRS("TOC file"),
       type: BG_PARAMETER_STRING,
       val_default: { val_str: "audiocd.toc" },
     },
     {
       name: "pre_gap",
-      long_name: "Gap between tracks",
+      long_name: TRS("Gap between tracks"),
       type: BG_PARAMETER_INT,
       val_default: { val_i: 150 },
-      help_string: "Pre gap of each track in CD frames (1/75 seconds). Default is 150 (2 sec)."
+      help_string: TRS("Pre gap of each track in CD frames (1/75 seconds). Default is 150 (2 sec).")
     },
     {
       name: "use_cdtext",
-      long_name: "Write CD-Text",
+      long_name: TRS("Write CD-Text"),
       type: BG_PARAMETER_CHECKBUTTON,
     },
     CDRDAO_PARAMS,
@@ -441,13 +435,14 @@ bg_encoder_pp_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:              "e_pp_cdrdao", /* Unique short name */
-      long_name:         "Audio CD generator/burner",
+      long_name:         TRS("Audio CD generator/burner"),
+      description:       TRS("This is a frontend for generating audio CD images (optionally with CD-Text) for cdrdao (http://cdrdao.sourceforge.net). Optional burning is also supported."),
       extensions:        "wav",
       type:              BG_PLUGIN_ENCODER_PP,
       create:            create_cdrdao,
       destroy:           destroy_cdrdao,
-      get_error:         get_error_cdrdao,
       get_parameters:    get_parameters_cdrdao,
       set_parameter:     set_parameter_cdrdao,
       priority:          1,

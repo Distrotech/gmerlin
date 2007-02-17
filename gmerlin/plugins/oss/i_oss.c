@@ -29,6 +29,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include <config.h>
+#include <translation.h>
 #include <plugin.h>
 #include <utils.h>
 
@@ -43,27 +45,28 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name:        "device",
-      long_name:   "Device",
+      long_name:   TRS("Device"),
       type:        BG_PARAMETER_DEVICE,
       val_default: { val_str: "/dev/dsp" },
     },
     {
       name:        "channel_mode",
-      long_name:   "Channel Mode",
+      long_name:   TRS("Channel Mode"),
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "Stereo" },
       multi_names:     (char*[]){ "Mono", "Stereo", (char*)0 },
+      multi_labels:     (char*[]){ TRS("Mono"), TRS("Stereo"), (char*)0 },
     },
     {
       name:        "bits",
-      long_name:   "Bits",
+      long_name:   TRS("Bits"),
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "16" },
       multi_names:     (char*[]){ "8", "16", (char*)0 },
     },
     {
       name:        "samplerate",
-      long_name:   "Samplerate [Hz]",
+      long_name:   TRS("Samplerate [Hz]"),
       type:        BG_PARAMETER_INT,
       val_default: { val_i: 44100 },
       val_min:     { val_i:  8000 },
@@ -261,8 +264,10 @@ bg_ra_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:          "i_oss",
-      long_name:     "OSS Recorder",
+      long_name:     TRS("OSS"),
+      description:   TRS("OSS Recorder"),
       mimetypes:     (char*)0,
       extensions:    (char*)0,
       type:          BG_PLUGIN_RECORDER_AUDIO,

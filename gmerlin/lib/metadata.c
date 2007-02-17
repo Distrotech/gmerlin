@@ -21,6 +21,9 @@
 #include <string.h>
 #include <ctype.h>
 
+#include <config.h>
+#include <translation.h>
+
 #include <parameter.h>
 #include <streaminfo.h>
 #include <utils.h>
@@ -74,48 +77,48 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name:      "artist",
-      long_name: "Artist",
+      long_name: TRS("Artist"),
       type:      BG_PARAMETER_STRING,
     },
     {
       name:      "title",
-      long_name: "Title",
+      long_name: TRS("Title"),
       type:      BG_PARAMETER_STRING,
     },
     {
       name:      "album",
-      long_name: "Album",
+      long_name: TRS("Album"),
       type:      BG_PARAMETER_STRING,
     },
     {
       name:      "track",
-      long_name: "Track",
+      long_name: TRS("Track"),
       type:      BG_PARAMETER_INT,
     },
     {
       name:      "genre",
-      long_name: "Genre",
+      long_name: TRS("Genre"),
       type:      BG_PARAMETER_STRING,
     },
     {
       name:      "author",
-      long_name: "Author",
+      long_name: TRS("Author"),
       type:      BG_PARAMETER_STRING,
     },
     {
       name:      "copyright",
-      long_name: "Copyright",
+      long_name: TRS("Copyright"),
       type:      BG_PARAMETER_STRING,
     },
     {
       name:        "date",
-      long_name:   "Date",
+      long_name:   TRS("Date"),
       type:        BG_PARAMETER_STRING,
-      help_string: "Complete date or year only"
+      help_string: TRS("Complete date or year only")
     },
     {
       name:      "comment",
-      long_name: "Comment",
+      long_name: TRS("Comment"),
       type:      BG_PARAMETER_STRING,
     },
     { /* End of parameters */ }
@@ -392,47 +395,47 @@ char * bg_metadata_to_string(const bg_metadata_t * m, int use_tabs)
 
   if(m->author)
     {
-    tmp = bg_sprintf("Author:\t %s\n", m->author);
+    tmp = bg_sprintf(TR("Author:\t %s\n"), m->author);
     META_STRCAT();
     }
   if(m->artist)
     {
-    tmp = bg_sprintf("Artist:\t %s\n", m->artist);
+    tmp = bg_sprintf(TR("Artist:\t %s\n"), m->artist);
     META_STRCAT();
     }
   if(m->title)
     {
-    tmp = bg_sprintf("Title:\t %s\n", m->title);
+    tmp = bg_sprintf(TR("Title:\t %s\n"), m->title);
     META_STRCAT();
     }
   if(m->album)
     {
-    tmp = bg_sprintf("Album:\t %s\n", m->album);
+    tmp = bg_sprintf(TR("Album:\t %s\n"), m->album);
     META_STRCAT();
     }
   if(m->copyright)
     {
-    tmp = bg_sprintf("Copyright:\t %s\n", m->copyright);
+    tmp = bg_sprintf(TR("Copyright:\t %s\n"), m->copyright);
     META_STRCAT();
     }
   if(m->genre)
     {
-    tmp = bg_sprintf("Genre:\t %s\n", m->genre);
+    tmp = bg_sprintf(TR("Genre:\t %s\n"), m->genre);
     META_STRCAT();
     }
   if(m->date)
     {
-    tmp = bg_sprintf("Date:\t %s\n", m->date);
+    tmp = bg_sprintf(TR("Date:\t %s\n"), m->date);
     META_STRCAT();
     }
   if(m->track)
     {
-    tmp = bg_sprintf("Track:\t %d\n", m->track);
+    tmp = bg_sprintf(TR("Track:\t %d\n"), m->track);
     META_STRCAT();
     }
   if(m->comment)
     {
-    tmp = bg_sprintf("Comment:\t %s\n", m->comment);
+    tmp = bg_sprintf(TR("Comment:\t %s\n"), m->comment);
     META_STRCAT();
     }
   if(ret)

@@ -301,13 +301,6 @@ void bg_media_tree_set_play_callback(bg_media_tree_t *,
                                      void (*play_callback)(void*),
                                      void*);
 
-/* Will be called if an error occured while opening a track */
-
-void bg_media_tree_set_error_callback(bg_media_tree_t *,
-                                      void (*error_callback)(bg_media_tree_t*, void*,
-                                                             const char*),
-                                      void*);
-
 void bg_media_tree_destroy(bg_media_tree_t *);
 
 int bg_media_tree_get_num_albums(bg_media_tree_t *);

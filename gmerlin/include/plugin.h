@@ -86,7 +86,7 @@
 
 
 
-#define BG_PLUGIN_API_VERSION 9
+#define BG_PLUGIN_API_VERSION 10
 
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */
@@ -208,6 +208,9 @@ void bg_device_info_destroy(bg_device_info_t * arr);
 
 typedef struct bg_plugin_common_s
   {
+  char * gettext_domain; //!< First argument for bindtextdomain().
+  char * gettext_directory; //!< Second argument for bindtextdomain().
+  
   char             * name;       //!< Unique short name
   char             * long_name;  //!< Humanized name for GUI widgets
   char             * mimetypes;  //!< Mimetypes this plugin can handle (space separated)
@@ -215,6 +218,8 @@ typedef struct bg_plugin_common_s
   bg_plugin_type_t type;  //!< Type
   int              flags;  //!< Flags (see defines)
 
+  char             * description;
+  
   /*
    *  If there might be more than one plugin for the same
    *  job, there is a priority (0..10) which is used for the
@@ -261,14 +266,7 @@ typedef struct bg_plugin_common_s
    */
   
   bg_get_parameter_func_t get_parameter;
-
-  /** \brief Return a human readable description of the last error (optional)
-   *  \param priv The handle returned by the create() method
-   *  \returns the last error or NULL
-   */
-   
-  const char * (*get_error)(void* priv);
-
+  
   /** \brief Check, if a device can be opened by the plugin (optional)
    *  \param device The device as passed to the open() method
    *  \param name Returns the name if available

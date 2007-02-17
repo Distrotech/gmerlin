@@ -18,5 +18,6 @@
 *****************************************************************/
 
 void bg_gtk_multi_info_show(const bg_parameter_info_t * info,
-                            int index);
+                            int index,
+                            const char * translation_domain);
 

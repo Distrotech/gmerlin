@@ -20,6 +20,8 @@
 #include <string.h>
 #include <gtk/gtk.h>
 
+#include <config.h>
+
 #include <cfg_dialog.h>
 #include <streaminfo.h>
 #include <gui_gtk/chapterdialog.h>
@@ -178,7 +180,7 @@ static int edit_chapter(bg_gtk_chapter_dialog_t * win)
   memset(chapter_parameters, 0, sizeof(chapter_parameters));
   
   chapter_parameters[0].name      = "name";
-  chapter_parameters[0].long_name = "Name";
+  chapter_parameters[0].long_name = TRS("Name");
   chapter_parameters[0].type = BG_PARAMETER_STRING;
   chapter_parameters[0].val_default.val_str =
     win->cl->chapters[win->edited].name;
@@ -187,7 +189,7 @@ static int edit_chapter(bg_gtk_chapter_dialog_t * win)
   if(win->edited)
     {
     chapter_parameters[1].name      = "time";
-    chapter_parameters[1].long_name = "Time";
+    chapter_parameters[1].long_name = TRS("Time");
     chapter_parameters[1].type = BG_PARAMETER_TIME;
     chapter_parameters[1].val_default.val_time =
       win->cl->chapters[win->edited].time;
@@ -214,7 +216,7 @@ static int edit_chapter(bg_gtk_chapter_dialog_t * win)
                             set_parameter,
                             win,
                             chapter_parameters,
-                            "Edit chapter");
+                            TR("Edit chapter"));
   if(win->tooltips)
     bg_dialog_set_tooltips(dialog, 1);
   else
@@ -287,8 +289,7 @@ static gboolean delete_callback(GtkWidget * w, GdkEventAny * evt, gpointer data)
 
 static GtkWidget * create_window_pixmap_button(bg_gtk_chapter_dialog_t * win,
                                                const char * filename,
-                                               const char * tooltip,
-                                               const char * tooltip_private)
+                                               const char * tooltip)
   {
   GtkWidget * button;
   GtkWidget * image;
@@ -313,7 +314,7 @@ static GtkWidget * create_window_pixmap_button(bg_gtk_chapter_dialog_t * win,
   gtk_widget_show(button);
 
   if(win->tooltips)
-    gtk_tooltips_set_tip(win->tooltips, button, tooltip, tooltip_private);
+    bg_gtk_tooltips_set_tip(win->tooltips, button, tooltip, PACKAGE);
   
   return button;
   }
@@ -353,7 +354,7 @@ static bg_gtk_chapter_dialog_t * create_dialog(bg_chapter_list_t * list,
   gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER);
   
   gtk_window_set_modal(GTK_WINDOW(ret->window), 1);
-  gtk_window_set_title(GTK_WINDOW(ret->window), "Edit chapters");
+  gtk_window_set_title(GTK_WINDOW(ret->window), TR("Edit chapters"));
   g_signal_connect(G_OBJECT(ret->window), "delete_event",
                    G_CALLBACK(delete_callback),
                    ret);
@@ -370,15 +371,12 @@ static bg_gtk_chapter_dialog_t * create_dialog(bg_chapter_list_t * list,
   gtk_widget_show(ret->cancel_button);
 
   ret->add_button =
-    create_window_pixmap_button(ret, "add_16.png", "Add new chapter",
-                                "Add new chapter");
+    create_window_pixmap_button(ret, "add_16.png", TRS("Add new chapter"));
   ret->edit_button =
-    create_window_pixmap_button(ret, "config_16.png", "Edit chapter",
-                                "Edit chapter");
+    create_window_pixmap_button(ret, "config_16.png", TRS("Edit chapter"));
   ret->delete_button =
-    create_window_pixmap_button(ret, "trash_16.png", "Delete chapter",
-                                "Delete chapter");
-
+    create_window_pixmap_button(ret, "trash_16.png", TRS("Delete chapter"));
+  
   
   /* Create treeview */
   store = gtk_list_store_new(NUM_COLUMNS,

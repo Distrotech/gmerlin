@@ -1,4 +1,4 @@
-AM_CFLAGS = @ALSA_CFLAGS@
+AM_CFLAGS = @ALSA_CFLAGS@ -DLOCALE_DIR=\"$(localedir)\"
 
 libdir=@GMERLIN_PLUGIN_DIR@
 

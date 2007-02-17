@@ -19,6 +19,10 @@
 
 #include <string.h>
 #include <ctype.h>
+
+#include <config.h>
+#include <translation.h>
+
 #include <plugin.h>
 #include <utils.h>
 #include <log.h>
@@ -35,25 +39,25 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name:      "audio",
-      long_name: "Audio",
+      long_name: TRS("Audio"),
       type:      BG_PARAMETER_SECTION,
     },
     {
       name:      "audio_codecs",
       opt:       "ac",
-      long_name: "Audio Codecs",
-      help_string: "Sort and configure audio codecs",
+      long_name: TRS("Audio Codecs"),
+      help_string: TRS("Sort and configure audio codecs"),
     },
     {
       name:      "video",
-      long_name: "Video",
+      long_name: TRS("Video"),
       type:      BG_PARAMETER_SECTION,
     },
     {
       name:      "video_codecs",
       opt:       "vc",
-      long_name: "Video Codecs",
-      help_string: "Sort and configure video codecs",
+      long_name: TRS("Video Codecs"),
+      help_string: TRS("Sort and configure video codecs"),
     },
     { /* End of parameters */ }
   };
@@ -236,8 +240,10 @@ static int open_lqt(void * data, const char * arg)
       if(lqt_is_chapter_track(e->file, i))
         {
         if(e->track_info.chapter_list)
+          {
           bg_log(BG_LOG_WARNING, LOG_DOMAIN,
                  "More than one chapter track found, using first one");
+          }
         else
           setup_chapters(e, i);
         }
@@ -483,8 +489,10 @@ bg_input_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:            "i_lqt",       /* Unique short name */
-      long_name:       "libquicktime input plugin",
+      long_name:       TRS("libquicktime input plugin"),
+      description:     TRS("Input plugin based on libquicktime"),
       mimetypes:       NULL,
       extensions:      "mov",
       type:            BG_PLUGIN_INPUT,

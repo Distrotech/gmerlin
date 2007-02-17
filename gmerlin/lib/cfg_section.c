@@ -325,7 +325,7 @@ int bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * section,
   char * end;
   const char * end_c;
   bg_cfg_item_t * item;
-  int len, i;
+  int len = 0, i;
   bg_parameter_info_t * info;
   bg_cfg_section_t * subsection;
   char * tmp_string;
@@ -927,9 +927,27 @@ const char * bg_cfg_section_get_name(bg_cfg_section_t * s)
   return s->name;
   }
 
-void bg_cfg_section_set_name(bg_cfg_section_t * s, const char * name)
+
+char * bg_cfg_section_get_name_translated(bg_cfg_section_t * s)
+  {
+  if(!s)
+    return (const char*)0;
+  if(s->gettext_domain && s->gettext_directory)
+    {
+    bindtextdomain(s->gettext_domain, s->gettext_directory);
+    return bg_strdup((char*)0, dgettext(s->gettext_domain, s->name));
+    }
+  else
+    return bg_strdup((char*)0, s->name);
+  }
+
+
+void bg_cfg_section_set_name(bg_cfg_section_t * s, const char * name,
+                             const char * gettext_domain, const char * gettext_directory)
   {
   s->name = bg_strdup(s->name, name);
+  s->gettext_domain    = bg_strdup(s->gettext_domain,    gettext_domain);
+  s->gettext_directory = bg_strdup(s->gettext_directory, gettext_directory);
   }
 
 void bg_cfg_section_create_items(bg_cfg_section_t * section,

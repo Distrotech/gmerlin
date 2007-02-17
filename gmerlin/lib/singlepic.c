@@ -26,6 +26,10 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <config.h>
+#include <translation.h>
+
+
 #include <cfg_registry.h>
 #include <pluginregistry.h>
 #include <config.h>
@@ -66,7 +70,7 @@ static bg_parameter_info_t parameters_input[] =
   {
     {
       name:      "timescale",
-      long_name: "Timescale",
+      long_name: TRS("Timescale"),
       type:      BG_PARAMETER_INT,
       val_min:     { val_i: 1 },
       val_max:     { val_i: 100000 },
@@ -74,7 +78,7 @@ static bg_parameter_info_t parameters_input[] =
     },
     {
       name:      "frame_duration",
-      long_name: "Frame duration",
+      long_name: TRS("Frame duration"),
       type:      BG_PARAMETER_INT,
       val_min:     { val_i: 1 },
       val_max:     { val_i: 100000 },
@@ -87,12 +91,12 @@ static bg_parameter_info_t parameters_input_still[] =
   {
     {
       name:         "display_time",
-      long_name:    "Display time",
+      long_name:    TRS("Display time"),
       type:         BG_PARAMETER_TIME,
       val_min:      { val_time: 0 },
       val_max:      { val_time: 3600 * (gavl_time_t)GAVL_TIME_SCALE },
       val_default: { val_time: 0 },
-      help_string:  "Time to pass until the next track will be selected. 0 means infinite."
+      help_string:  TRS("Time to pass until the next track will be selected. 0 means infinite.")
     },
     { /* End of parameters */ }
   };
@@ -451,8 +455,10 @@ static bg_input_plugin_t input_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:           bg_singlepic_input_name,
-      long_name:      "Image video input plugin",
+      long_name:      TRS("Image video input plugin"),
+      description:    TRS("This plugin reads series of images as a video. It uses the installed image readers."),
       extensions:     NULL, /* Filled in later */
       type:           BG_PLUGIN_INPUT,
       flags:          BG_PLUGIN_FILE,
@@ -494,8 +500,10 @@ static bg_input_plugin_t input_plugin_stills =
   {
     common:
     {
+      BG_LOCALE,
       name:           bg_singlepic_stills_input_name,
       long_name:      "Image stills input plugin",
+      description:    TRS("This plugin reads images as stills. It uses the installed image readers."),
       extensions:     NULL, /* Filled in later */
       type:           BG_PLUGIN_INPUT,
       flags:          BG_PLUGIN_FILE,
@@ -554,9 +562,17 @@ static bg_plugin_info_t * get_input_info(bg_plugin_registry_t * reg,
     return (bg_plugin_info_t *)0;
   
   ret = calloc(1, sizeof(*ret));
+
+  ret->gettext_domain      = bg_strdup(ret->gettext_domain, plugin->common.gettext_domain);
+  
+  ret->gettext_directory   = bg_strdup(ret->gettext_directory,
+                                       plugin->common.gettext_directory);
+  
   
   ret->name      = bg_strdup(ret->name, plugin->common.name);
   ret->long_name = bg_strdup(ret->long_name, plugin->common.long_name);
+  ret->description = bg_strdup(ret->name, plugin->common.description);
+  
   ret->extensions = get_extensions(reg, BG_PLUGIN_IMAGE_READER,
                                    BG_PLUGIN_FILE);
   ret->priority  =  plugin->common.priority;
@@ -608,12 +624,12 @@ static bg_parameter_info_t parameters_encoder[] =
   {
     {
       name:        "plugin",
-      long_name:   "Plugin",
+      long_name:   TRS("Plugin"),
       type:        BG_PARAMETER_MULTI_MENU,
     },
     {
       name:        "frame_digits",
-      long_name:   "Framenumber digits",
+      long_name:   TRS("Framenumber digits"),
       type:        BG_PARAMETER_INT,
       val_min:     { val_i: 1 },
       val_max:     { val_i: 9 },
@@ -621,7 +637,7 @@ static bg_parameter_info_t parameters_encoder[] =
     },
     {
       name:        "frame_offset",
-      long_name:   "Framenumber offset",
+      long_name:   TRS("Framenumber offset"),
       type:        BG_PARAMETER_INT,
       val_min:     { val_i: 0 },
       val_max:     { val_i: 1000000 },
@@ -651,7 +667,6 @@ typedef struct
   gavl_video_format_t format;
 
   int have_header;
-  char * error_msg;
   } encoder_t;
 
 static bg_parameter_info_t *
@@ -747,12 +762,6 @@ static const char * get_extension_encoder(void * data)
   return e->extension;
   }
 
-static const char * get_error_encoder(void * data)
-  {
-  encoder_t * e;
-  e = (encoder_t *)data;
-  return e->error_msg;
-  }
 
 static int open_encoder(void * data, const char * filename,
                         bg_metadata_t * metadata,
@@ -805,10 +814,6 @@ static int write_frame_header(encoder_t * e)
 
   if(!ret)
     {
-    if(e->image_writer->common.get_error)
-      e->error_msg =
-        bg_strdup(e->error_msg,
-                  e->image_writer->common.get_error(e->plugin_handle->priv));
     e->have_header = 0;
     }
   e->frame_counter++;
@@ -859,15 +864,7 @@ write_video_frame_encoder(void * data, gavl_video_frame_t * frame,
     }
   if(ret)
     ret = e->image_writer->write_image(e->plugin_handle->priv, frame);
-
-  if(!ret)
-    {
-    if(e->image_writer->common.get_error)
-      e->error_msg =
-        bg_strdup(e->error_msg,
-                  e->image_writer->common.get_error(e->plugin_handle->priv));
-    }
-
+  
   e->have_header = 0;
   return ret;
   }
@@ -914,8 +911,6 @@ static void destroy_encoder(void * data)
     {
     bg_parameter_info_destroy_array(e->parameters);
     }
-  if(e->error_msg)
-    free(e->error_msg);
   free(e);
   }
 
@@ -924,15 +919,17 @@ bg_encoder_plugin_t encoder_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:           bg_singlepic_encoder_name,
       long_name:      "Singlepicture encoder",
+      description:    TRS("This plugin encodes a video as a series of images. It uses the installed image writers."),
+
       extensions:     NULL, /* Filled in later */
       type:           BG_PLUGIN_ENCODER_VIDEO,
       flags:          BG_PLUGIN_FILE,
       priority:       BG_PLUGIN_PRIORITY_MAX,
       create:         NULL,
       destroy:        destroy_encoder,
-      get_error:      get_error_encoder,
       get_parameters: get_parameters_encoder,
       set_parameter:  set_parameter_encoder
     },
@@ -977,10 +974,17 @@ bg_plugin_info_t * bg_singlepic_encoder_info(bg_plugin_registry_t * reg)
     return (bg_plugin_info_t *)0;
   
   ret = calloc(1, sizeof(*ret));
+
+  ret->gettext_domain      = bg_strdup(ret->gettext_domain, encoder_plugin.common.gettext_domain);
+  ret->gettext_directory   = bg_strdup(ret->gettext_directory,
+                                       encoder_plugin.common.gettext_directory);
+  
   
   ret->name      = bg_strdup(ret->name, encoder_plugin.common.name);
   ret->long_name = bg_strdup(ret->long_name, encoder_plugin.common.long_name);
-  ret->extensions = get_extensions(reg, BG_PLUGIN_IMAGE_READER,
+  ret->description = bg_strdup(ret->name, encoder_plugin.common.description);
+  
+  ret->extensions = get_extensions(reg, BG_PLUGIN_IMAGE_WRITER,
                                    BG_PLUGIN_FILE);
   ret->type     = encoder_plugin.common.type;
   ret->flags    = encoder_plugin.common.flags;

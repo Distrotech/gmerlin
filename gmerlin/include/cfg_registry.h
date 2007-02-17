@@ -232,12 +232,25 @@ void bg_cfg_section_transfer(bg_cfg_section_t * src, bg_cfg_section_t * dst);
 const char * bg_cfg_section_get_name(bg_cfg_section_t * section);
 
 /** \ingroup cfg_section
+ *  \brief Get the translated name of a configuration section
+ *  \param section Configuration section
+ *  \returns The translated name
+ *
+ *  The returned string must be freed by the caller
+ */
+
+char * bg_cfg_section_get_name_translated(bg_cfg_section_t * section);
+
+/** \ingroup cfg_section
  *  \brief Set the name of a configuration section
  *  \param section Configuration section
  *  \param name The new name
- */
+ *  \param gettext_domain 
+*/
 
-void bg_cfg_section_set_name(bg_cfg_section_t * section, const char * name);
+void bg_cfg_section_set_name(bg_cfg_section_t * section, const char * name,
+                             const char * gettext_domain,
+                             const char * gettext_directory);
 
 /*
  *  Get/Set values

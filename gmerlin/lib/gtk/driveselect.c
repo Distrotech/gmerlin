@@ -22,7 +22,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <gtk/gtk.h>
-// #include <gui_gtk/question.h>
+
+#include <config.h>
+
 #include <pluginregistry.h>
 #include <gui_gtk/plugin.h>
 
@@ -178,6 +180,7 @@ struct bg_gtk_drivesel_s
   char             ** drive_labels;
   char             ** plugin_labels;
   bg_device_info_t ** drive_infos;
+  char             ** plugin_names;
   
   GtkWidget * window;
   GtkWidget * add_button;
@@ -288,17 +291,21 @@ bg_gtk_drivesel_create(const char * title,
                        char ** plugins,
                        bg_device_info_t ** drive_infos,
                        void * user_data,
-                       GtkWidget * parent_window)
+                       GtkWidget * parent_window,
+                       bg_plugin_registry_t * plugin_reg)
   {
   bg_gtk_drivesel_t * ret;
   GtkWidget * box;
   GtkWidget * table;
   GtkWidget * mainbox;
   GtkWidget * label;
+  const bg_plugin_info_t * info;
+  int index;
   
   ret = calloc(1, sizeof(*ret));
   ret->drive_infos = drive_infos;  
-  ret->plugin_labels = plugins;
+  ret->plugin_names = plugins;
+  
   /* Create window */
 
   ret->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -317,10 +324,28 @@ bg_gtk_drivesel_create(const char * title,
   
   /* Create plugin menu */
 
+  index = 0;
+  while(plugins[index])
+    index++;
+
+  ret->plugin_labels = calloc(index+1, sizeof(*ret->plugin_labels));
+
+  index = 0;
+  while(plugins[index])
+    {
+    info = bg_plugin_find_by_name(plugin_reg, plugins[index]);
+
+    bindtextdomain(info->gettext_domain, info->gettext_directory);
+    ret->plugin_labels[index] = bg_strdup(ret->plugin_labels[index],
+                                          TRD(info->long_name,
+                                              info->gettext_domain));
+    index++;
+    }
+  
   menu_init(&(ret->plugins), change_callback, ret);
   menu_init(&(ret->drives), NULL, NULL);
 
-  menu_set_options(&(ret->plugins), plugins);
+  menu_set_options(&(ret->plugins), ret->plugin_labels);
   
   /* Create Buttons */
 
@@ -354,13 +379,13 @@ bg_gtk_drivesel_create(const char * title,
   gtk_table_set_row_spacings(GTK_TABLE(table), 5);
   
   
-  label = gtk_label_new("Plugin:");
+  label = gtk_label_new(TR("Plugin:"));
   gtk_widget_show(label);
 
   gtk_table_attach(GTK_TABLE(table), label, 0, 1, 0, 1, GTK_FILL, GTK_FILL, 0, 0);
   gtk_table_attach_defaults(GTK_TABLE(table), ret->plugins.widget, 1, 2, 0, 1);
 
-  label = gtk_label_new("Drive:");
+  label = gtk_label_new(TR("Drive:"));
   gtk_widget_show(label);
 
   gtk_table_attach(GTK_TABLE(table), label, 0, 1, 1, 2, GTK_FILL, GTK_FILL, 0, 0);
@@ -392,6 +417,14 @@ bg_gtk_drivesel_create(const char * title,
 
 void bg_gtk_drivesel_destroy(bg_gtk_drivesel_t * drivesel)
   {
+  int index = 0;
+
+  if(drivesel->plugin_labels)
+    {
+    while(drivesel->plugin_labels[index])
+      free(drivesel->plugin_labels[index++]);
+    }
+  
   menu_cleanup(&(drivesel->plugins));
   menu_cleanup(&(drivesel->drives));
   if(drivesel->drive_labels)

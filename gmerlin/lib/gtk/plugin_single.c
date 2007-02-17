@@ -21,11 +21,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <config.h>
+
 #include <pluginregistry.h>
 #include <utils.h>
 #include <cfg_dialog.h>
 
 #include <gui_gtk/plugin.h>
+#include <gui_gtk/gtkutils.h>
 
 #if GTK_MINOR_VERSION >= 4
 #define GTK_2_4
@@ -97,7 +100,7 @@ static void button_callback(GtkWidget * w, gpointer data)
                               set_parameter,
                               (void*)widget,
                               parameters,
-                              widget->info->long_name);
+                              TRD(widget->info->long_name, widget->info->gettext_domain));
     bg_dialog_show(dialog);
     bg_dialog_destroy(dialog);
     }
@@ -107,7 +110,7 @@ static void button_callback(GtkWidget * w, gpointer data)
     dialog = bg_dialog_create(widget->audio_section,
                               NULL, NULL,
                               widget->info->audio_parameters,
-                              widget->info->long_name);
+                              TRD(widget->info->long_name, widget->info->gettext_domain));
     bg_dialog_show(dialog);
     bg_dialog_destroy(dialog);
     }
@@ -117,7 +120,7 @@ static void button_callback(GtkWidget * w, gpointer data)
     dialog = bg_dialog_create(widget->video_section,
                               NULL, NULL,
                               widget->info->video_parameters,
-                              widget->info->long_name);
+                              TRD(widget->info->long_name, widget->info->gettext_domain));
     bg_dialog_show(dialog);
     bg_dialog_destroy(dialog);
     }
@@ -128,8 +131,7 @@ static void button_callback(GtkWidget * w, gpointer data)
 static GtkWidget * create_pixmap_button(bg_gtk_plugin_widget_single_t * w,
                                         const char * filename,
                                         GtkTooltips * tooltips,
-                                        const char * tooltip,
-                                        const char * tooltip_private)
+                                        const char * tooltip)
   {
   GtkWidget * button;
   GtkWidget * image;
@@ -147,7 +149,7 @@ static GtkWidget * create_pixmap_button(bg_gtk_plugin_widget_single_t * w,
   button = gtk_button_new();
   gtk_container_add(GTK_CONTAINER(button), image);
 
-  gtk_tooltips_set_tip(tooltips, button, tooltip, tooltip_private);
+  bg_gtk_tooltips_set_tip(tooltips, button, tooltip, PACKAGE);
 
   g_signal_connect(G_OBJECT(button), "clicked",
                    G_CALLBACK(button_callback), (gpointer)w);
@@ -308,19 +310,19 @@ bg_gtk_plugin_widget_single_create(char * label,
   /* Config */
   
   ret->config_button = create_pixmap_button(ret, "config_16.png", tooltips,
-                                            "Plugin options", "Plugin options");
+                                            TRS("Plugin options"));
   
   /* Info */
     
   ret->info_button = create_pixmap_button(ret, "info_16.png", tooltips,
-                                          "Plugin info", "Plugin info");
+                                          TRS("Plugin info"));
   
   /* Audio */
 
   if(type_mask & (BG_PLUGIN_ENCODER_AUDIO | BG_PLUGIN_ENCODER))
     {
     ret->audio_button = create_pixmap_button(ret, "audio_16.png", tooltips,
-                                            "Audio options", "Audio options");
+                                            TRS("Audio options"));
     }
 
   /* Video */
@@ -328,7 +330,7 @@ bg_gtk_plugin_widget_single_create(char * label,
   if(type_mask & (BG_PLUGIN_ENCODER_VIDEO | BG_PLUGIN_ENCODER))
     {
     ret->video_button = create_pixmap_button(ret, "video_16.png", tooltips,
-                                            "Video options", "Video options");
+                                            TRS("Video options"));
     }
     
   /* Create combo */

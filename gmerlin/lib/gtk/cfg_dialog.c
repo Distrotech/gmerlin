@@ -17,6 +17,8 @@
  
 *****************************************************************/
 
+#include <config.h>
+
 #include <stdio.h>
 #include <string.h>
 #include "gtk_dialog.h"
@@ -178,10 +180,7 @@ static void apply_section(dialog_section_t * s)
   int i, parameter_index;
   bg_parameter_value_t val;
   char * pos;
-
-  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "apply_section %s",
-          (s->cfg_section ? bg_cfg_section_get_name(s->cfg_section) :
-          "NULL"));
+  
   parameter_index = 0;
 
   for(i = 0; i < s->num_widgets; i++)
@@ -342,8 +341,8 @@ static bg_dialog_t * create_dialog(const char * title)
 
   ret->notebook = gtk_notebook_new();
   
-  label = gtk_label_new("No options here, choose subcategory");
-  tab_label = gtk_label_new("Bummer");
+  label = gtk_label_new(TR("No options here, choose subcategory"));
+  tab_label = gtk_label_new("");
   gtk_widget_show(label);
   gtk_widget_show(tab_label);
 
@@ -414,10 +413,12 @@ static GtkWidget * create_section(dialog_section_t * section,
                                   bg_parameter_info_t * info,
                                   bg_cfg_section_t * cfg_section,
                                   bg_set_parameter_func_t set_param,
-                                  void * data, GtkTooltips * tooltips)
+                                  void * data, GtkTooltips * tooltips,
+                                  const char * translation_domain)
   {
   int i, count;
   int row, column, num_columns;
+  
   GtkWidget * table;
   GtkWidget * label;
   
@@ -427,7 +428,7 @@ static GtkWidget * create_section(dialog_section_t * section,
   if(!info)
     {
     table = gtk_table_new(1, 1, 0);
-    label = gtk_label_new("No options available");
+    label = gtk_label_new(TR("No options available"));
     gtk_widget_show(label);
     gtk_table_attach(GTK_TABLE(table), label, 0, 1, 0, 1, GTK_FILL|GTK_EXPAND, 
                      GTK_FILL|GTK_EXPAND, 0, 0);
@@ -468,6 +469,11 @@ static GtkWidget * create_section(dialog_section_t * section,
 
   while(count  < section->num_widgets)
     {
+    if(info[i].gettext_domain)
+      translation_domain = info[i].gettext_domain;
+    if(info[i].gettext_directory)
+      bindtextdomain(translation_domain, info[i].gettext_directory);
+    
     if(info[i].flags & BG_PARAMETER_HIDE_DIALOG)
       {
       i++;
@@ -484,55 +490,71 @@ static GtkWidget * create_section(dialog_section_t * section,
     switch(info[i].type)
       {
       case BG_PARAMETER_CHECKBUTTON:
-        bg_gtk_create_checkbutton(&(section->widgets[count]), &(info[i]));
+        bg_gtk_create_checkbutton(&(section->widgets[count]), &(info[i]),
+                                  translation_domain);
         break;
       case BG_PARAMETER_INT:
-        bg_gtk_create_int(&(section->widgets[count]), &(info[i]));
+        bg_gtk_create_int(&(section->widgets[count]), &(info[i]),
+                                  translation_domain);
         break;
       case BG_PARAMETER_FLOAT:
-        bg_gtk_create_float(&(section->widgets[count]), &(info[i]));
+        bg_gtk_create_float(&(section->widgets[count]), &(info[i]),
+                                  translation_domain);
         break;
       case BG_PARAMETER_SLIDER_INT:
-        bg_gtk_create_slider_int(&(section->widgets[count]), &(info[i]));
+        bg_gtk_create_slider_int(&(section->widgets[count]), &(info[i]),
+                                  translation_domain);
         break;
       case BG_PARAMETER_TIME:
-        bg_gtk_create_time(&(section->widgets[count]), &(info[i]));
+        bg_gtk_create_time(&(section->widgets[count]), &(info[i]),
+                                  translation_domain);
         break;
       case BG_PARAMETER_SLIDER_FLOAT:
-        bg_gtk_create_slider_float(&(section->widgets[count]), &(info[i]));
+        bg_gtk_create_slider_float(&(section->widgets[count]), &(info[i]),
+                                  translation_domain);
         break;
       case BG_PARAMETER_STRING:
       case BG_PARAMETER_STRING_HIDDEN:
-        bg_gtk_create_string(&(section->widgets[count]), &(info[i]));
+        bg_gtk_create_string(&(section->widgets[count]), &(info[i]),
+                                  translation_domain);
         break;
       case BG_PARAMETER_STRINGLIST:
-        bg_gtk_create_stringlist(&(section->widgets[count]), &(info[i]));
+        bg_gtk_create_stringlist(&(section->widgets[count]), &(info[i]),
+                                  translation_domain);
         break;
       case BG_PARAMETER_COLOR_RGB:
-        bg_gtk_create_color_rgb(&(section->widgets[count]), &(info[i]));
+        bg_gtk_create_color_rgb(&(section->widgets[count]), &(info[i]),
+                                  translation_domain);
         break;
       case BG_PARAMETER_COLOR_RGBA:
-        bg_gtk_create_color_rgba(&(section->widgets[count]), &(info[i]));
+        bg_gtk_create_color_rgba(&(section->widgets[count]), &(info[i]),
+                                  translation_domain);
         break;
       case BG_PARAMETER_FILE:
-        bg_gtk_create_file(&(section->widgets[count]), &(info[i]));
+        bg_gtk_create_file(&(section->widgets[count]), &(info[i]),
+                                  translation_domain);
         break;
       case BG_PARAMETER_DIRECTORY:
-        bg_gtk_create_directory(&(section->widgets[count]), &(info[i]));
+        bg_gtk_create_directory(&(section->widgets[count]), &(info[i]),
+                                  translation_domain);
         break;
       case BG_PARAMETER_FONT:
-        bg_gtk_create_font(&(section->widgets[count]), &(info[i]));
+        bg_gtk_create_font(&(section->widgets[count]), &(info[i]),
+                                  translation_domain);
         break;
       case BG_PARAMETER_DEVICE:
-        bg_gtk_create_device(&(section->widgets[count]), &(info[i]));
+        bg_gtk_create_device(&(section->widgets[count]), &(info[i]),
+                                  translation_domain);
         break;
       case BG_PARAMETER_MULTI_MENU:
         bg_gtk_create_multi_menu(&(section->widgets[count]), &(info[i]),
-                                 cfg_section, set_param, data);
+                                 cfg_section, set_param, data,
+                                  translation_domain);
         break;
       case BG_PARAMETER_MULTI_LIST:
         bg_gtk_create_multi_list(&(section->widgets[count]), &(info[i]),
-                                 cfg_section, set_param, data);
+                                 cfg_section, set_param, data,
+                                 translation_domain);
         break;
       case BG_PARAMETER_SECTION:
         break;
@@ -596,7 +618,7 @@ bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
   GtkWidget * table;
   GtkTreeIter root_iter;
   GtkTreeModel * model;
-    
+  const char * translation_domain = (const char *)0;
   bg_dialog_t * ret = create_dialog(title);
 
   num_sections = count_sections(info);
@@ -613,7 +635,13 @@ bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
 
     for(i = 0; i < ret->root_section.num_children; i++)
       {
-      label = gtk_label_new(info[index].long_name);
+      if(info[index].gettext_domain)
+        translation_domain = info[i].gettext_domain;
+      if(info[index].gettext_directory)
+        bindtextdomain(translation_domain, info[i].gettext_directory);
+      
+
+      label = gtk_label_new(TR_DOM(info[index].long_name));
       gtk_widget_show(label);
       
       gtk_tree_store_append(GTK_TREE_STORE(model), &root_iter, NULL);
@@ -624,8 +652,9 @@ bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
         index++;
       
       table = create_section(&(ret->root_section.children[i]), &(info[index]),
-                             section, set_param, callback_data, ret->tooltips);
-
+                             section, set_param, callback_data, ret->tooltips,
+                             translation_domain);
+      
       ret->root_section.children[i].notebook_index =
         gtk_notebook_get_n_pages(GTK_NOTEBOOK(ret->notebook));
       gtk_notebook_append_page(GTK_NOTEBOOK(ret->notebook), table, label);
@@ -645,7 +674,9 @@ bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
     ret->root_section.num_children = 1;
     ret->root_section.children = calloc(1,
                            ret->root_section.num_children * sizeof(dialog_section_t));
-    table = create_section(ret->root_section.children, info, section, set_param, callback_data, ret->tooltips);
+    table =
+      create_section(ret->root_section.children, info, section, set_param,
+                     callback_data, ret->tooltips, (const char *)0);
     gtk_notebook_append_page(GTK_NOTEBOOK(ret->notebook), table, label);
     gtk_notebook_set_current_page(GTK_NOTEBOOK(ret->notebook), 1);
     gtk_widget_hide(ret->scrolledwindow);
@@ -673,6 +704,7 @@ void bg_dialog_add_child(bg_dialog_t *d, void * _parent,
   GtkWidget * tab_label;
   int i, item_index, section_index;
   GtkTreeModel *model;
+  const char * translation_domain = (const char *)0;
   dialog_section_t * parent = (dialog_section_t*)_parent;
 
   num_items = 0;
@@ -699,7 +731,8 @@ void bg_dialog_add_child(bg_dialog_t *d, void * _parent,
            sizeof(parent->children[parent->num_children]));
     
     table = create_section(&(parent->children[parent->num_children]),
-                           info, section, set_param, callback_data, d->tooltips);
+                           info, section, set_param, callback_data, d->tooltips,
+                           (const char*)0);
     tab_label = gtk_label_new(name);
     gtk_widget_show(tab_label);
 
@@ -739,7 +772,12 @@ void bg_dialog_add_child(bg_dialog_t *d, void * _parent,
     section_index = parent->num_children;
     for(i = 0; i < num_sections; i++)
       {
-      tab_label = gtk_label_new(info[item_index].long_name);
+      if(info[item_index].gettext_domain)
+        translation_domain = info[item_index].gettext_domain;
+      if(info[item_index].gettext_directory)
+        bindtextdomain(translation_domain, info[item_index].gettext_directory);
+      
+      tab_label = gtk_label_new(TR_DOM(info[item_index].long_name));
       gtk_widget_show(tab_label);
       
       if(parent == &(d->root_section))
@@ -760,8 +798,9 @@ void bg_dialog_add_child(bg_dialog_t *d, void * _parent,
       
       table = create_section(&(parent->children[section_index]),
                              &(info[item_index]),
-                             section, set_param, callback_data, d->tooltips);
-
+                             section, set_param, callback_data, d->tooltips,
+                             translation_domain);
+      
       parent->children[section_index].parent = parent;
 
       parent->children[section_index].notebook_index =

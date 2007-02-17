@@ -5,6 +5,9 @@
 #include <bggavl.h>
 #include <cmdline.h>
 
+#include <config.h>
+#include <translation.h>
+
 bg_parameter_info_t conversion_parameters[] =
   {
     BG_GAVL_PARAM_CONVERSION_QUALITY,

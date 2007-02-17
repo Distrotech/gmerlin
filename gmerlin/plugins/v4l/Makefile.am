@@ -1,5 +1,7 @@
 libdir=@GMERLIN_PLUGIN_DIR@
 
+AM_CFLAGS = -DLOCALE_DIR=\"$(localedir)\"
+
 lib_LTLIBRARIES = i_v4l.la
 
 i_v4l_la_SOURCES  = i_v4l.c pwc.c

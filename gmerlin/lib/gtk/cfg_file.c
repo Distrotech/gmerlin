@@ -22,6 +22,7 @@
 
 #include "gtk_dialog.h"
 #include <gui_gtk/fileentry.h>
+#include <gui_gtk/gtkutils.h>
 
 typedef struct
   {
@@ -108,14 +109,16 @@ static gtk_widget_funcs_t funcs =
   };
 
 
-void bg_gtk_create_file(bg_gtk_widget_t * w, bg_parameter_info_t * info)
+void bg_gtk_create_file(bg_gtk_widget_t * w, bg_parameter_info_t * info,
+                        const char * translation_domain)
   {
   file_t * priv = calloc(1, sizeof(*priv));
-
-  priv->fe = bg_gtk_file_entry_create((info->type == BG_PARAMETER_DIRECTORY) ? 1 : 0,
-                                      NULL, NULL, w->tooltips, info->help_string);
   
-  priv->label = gtk_label_new(info->long_name);
+  priv->fe = bg_gtk_file_entry_create((info->type == BG_PARAMETER_DIRECTORY) ? 1 : 0,
+                                      NULL, NULL, w->tooltips,
+                                      info->help_string, translation_domain);
+  
+  priv->label = gtk_label_new(TR_DOM(info->long_name));
   gtk_misc_set_alignment(GTK_MISC(priv->label), 0.0, 0.5);
   gtk_widget_show(priv->label);
   
@@ -123,9 +126,10 @@ void bg_gtk_create_file(bg_gtk_widget_t * w, bg_parameter_info_t * info)
   w->priv = priv;
   }
 
-void bg_gtk_create_directory(bg_gtk_widget_t * w, bg_parameter_info_t * info)
+void bg_gtk_create_directory(bg_gtk_widget_t * w, bg_parameter_info_t * info,
+                             const char * translation_domain)
   {
   file_t * f;
-  bg_gtk_create_file(w, info);
+  bg_gtk_create_file(w, info, translation_domain);
   f = (file_t*)(w->priv);
   }

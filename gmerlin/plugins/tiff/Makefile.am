@@ -1,6 +1,6 @@
 libdir=@GMERLIN_PLUGIN_DIR@
 
-AM_CFLAGS = @TIFF_CFLAGS@
+AM_CFLAGS = @TIFF_CFLAGS@ -DLOCALE_DIR=\"$(localedir)\"
 
 lib_LTLIBRARIES = ir_tiff.la iw_tiff.la
 

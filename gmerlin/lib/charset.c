@@ -17,13 +17,15 @@
  
 *****************************************************************/
 
-#include <charset.h>
 
 #include <iconv.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 #include <stdio.h>
+
+#include <config.h>
+#include <charset.h>
 
 #include <log.h>
 #define LOG_DOMAIN "charset"

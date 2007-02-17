@@ -30,6 +30,8 @@
 #include <fcntl.h>
 #include <errno.h>
 
+#include <config.h>
+#include <translation.h>
 #include <plugin.h>
 #include <utils.h>
 
@@ -46,45 +48,45 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name:        "multichannel_mode",
-      long_name:   "Multichannel Mode",
+      long_name:   TRS("Multichannel Mode"),
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "none" },
       multi_names:    (char*[]){  "none",
                               "multidev",
                               "creative",
                               (char*)0 },
-      multi_labels:    (char*[]){  "None (Downmix)",
-                              "Multiple devices",
-                              "Creative Multichannel",
+      multi_labels:    (char*[]){  TRS("None (Downmix)"),
+                              TRS("Multiple devices"),
+                              TRS("Creative Multichannel"),
                               (char*)0 },
     },
     {
       name:        "device",
-      long_name:   "Device",
+      long_name:   TRS("Device"),
       type:        BG_PARAMETER_DEVICE,
       val_default: { val_str: "/dev/dsp" },
     },
     {
       name:        "use_rear_device",
-      long_name:   "Use Rear Device",
+      long_name:   TRS("Use Rear Device"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 0 },
     },
     {
       name:        "rear_device",
-      long_name:   "Rear Device",
+      long_name:   TRS("Rear Device"),
       type:        BG_PARAMETER_DEVICE,
       val_default: { val_str: "/dev/dsp1" },
     },
     {
       name:        "use_center_lfe_device",
-      long_name:   "Use Center/LFE Device",
+      long_name:   TRS("Use Center/LFE Device"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 0 },
     },
     {
       name:        "center_lfe_device",
-      long_name:   "Center/LFE Device",
+      long_name:   TRS("Center/LFE Device"),
       type:        BG_PARAMETER_DEVICE,
       val_default: { val_str: "/dev/dsp2" },
     },
@@ -113,7 +115,6 @@ typedef struct
   int bytes_per_sample;
   gavl_audio_format_t format;
 
-  char * error_msg;
   } oss_t;
 
 static void * create_oss()
@@ -138,8 +139,8 @@ static int open_devices(oss_t * priv, gavl_audio_format_t * format)
 
   if(priv->fd_front == -1)
     {
-    priv->error_msg = bg_sprintf("Cannot open %s: %s", priv->device_front,
-                                 strerror(errno));
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s: %s", priv->device_front,
+           strerror(errno));
     goto fail;
     }
 
@@ -148,8 +149,8 @@ static int open_devices(oss_t * priv, gavl_audio_format_t * format)
     priv->fd_rear = open(priv->device_rear, O_WRONLY, 0);
     if(priv->fd_rear == -1)
       {
-      priv->error_msg = bg_sprintf("Cannot open %s: %s", priv->device_rear,
-                                   strerror(errno));
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s: %s", priv->device_rear,
+             strerror(errno));
       goto fail;
       }
     }
@@ -158,9 +159,9 @@ static int open_devices(oss_t * priv, gavl_audio_format_t * format)
     priv->fd_center_lfe = open(priv->device_center_lfe, O_WRONLY, 0);
     if(priv->fd_center_lfe == -1)
       {
-      priv->error_msg = bg_sprintf("Cannot open %s: %s",
-                                   priv->device_center_lfe,
-                                   strerror(errno));
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s: %s",
+             priv->device_center_lfe,
+             strerror(errno));
       goto fail;
       }
     }
@@ -479,8 +480,6 @@ static void destroy_oss(void * p)
     free(priv->device_rear);
   if(priv->device_center_lfe)
     free(priv->device_center_lfe);
-  if(priv->error_msg)
-    free(priv->error_msg);
   free(priv);
   }
 
@@ -490,12 +489,6 @@ get_parameters_oss(void * priv)
   return parameters;
   }
 
-static const char * get_error_oss(void * p)
-  {
-  oss_t * priv;
-  priv = (oss_t*)(p);
-  return priv->error_msg;
-  }
 
 static int get_delay_oss(void * p)
   {
@@ -561,8 +554,10 @@ bg_oa_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:          "oa_oss",
-      long_name:     "OSS output driver",
+      long_name:     TRS("OSS"),
+      description:   TRS("OSS output driver"),
       mimetypes:     (char*)0,
       extensions:    (char*)0,
       type:          BG_PLUGIN_OUTPUT_AUDIO,
@@ -570,7 +565,6 @@ bg_oa_plugin_t the_plugin =
       priority:      5,
       create:        create_oss,
       destroy:       destroy_oss,
-      get_error:     get_error_oss,
       get_parameters: get_parameters_oss,
       set_parameter:  set_parameter_oss
     },

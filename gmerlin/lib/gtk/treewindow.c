@@ -21,6 +21,8 @@
 #include <string.h>
 #include <gtk/gtk.h>
 
+#include <config.h>
+
 #include <tree.h>
 #include <gui_gtk/tree.h>
 #include <gui_gtk/gtkutils.h>
@@ -167,7 +169,7 @@ bg_gtk_tree_window_create(bg_media_tree_t * tree,
   gtk_container_add(GTK_CONTAINER(ret->window),
                     bg_gtk_tree_widget_get_widget(ret->widget));
 
-  gtk_window_set_title(GTK_WINDOW(ret->window), "Gmerlin Media Tree");
+  gtk_window_set_title(GTK_WINDOW(ret->window), TR("Gmerlin Media Tree"));
   
   return ret;
   }

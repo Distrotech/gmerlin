@@ -17,7 +17,10 @@
  
 *****************************************************************/
 
+#include <config.h>
+
 #include <stdlib.h>
+
 
 #include <gtk/gtk.h>
 #include <gui_gtk/aboutwindow.h>
@@ -110,11 +113,11 @@ bg_gtk_about_window_create(const char * name, const char * version, const char *
   bg_gtk_scrolltext_set_font(ret->scrolltext,
                              "Sans-10:slant=0:weight=200:width=100");
   
-  bg_gtk_scrolltext_set_text(ret->scrolltext, "Get the latest source version from http://gmerlin.sourceforge.net * * * If you installed gmerlin from binary package, you might have limited features", scroll_fg, scroll_bg);
+  bg_gtk_scrolltext_set_text(ret->scrolltext, TR("Get the latest source version from http://gmerlin.sourceforge.net * * * If you installed gmerlin from a binary package, you might have limited features"), scroll_fg, scroll_bg);
   
   /* Create window */
   ret->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_title(GTK_WINDOW(ret->window), "About");
+  gtk_window_set_title(GTK_WINDOW(ret->window), TR("About"));
 
   g_signal_connect(G_OBJECT(ret->window), "delete_event",
                    G_CALLBACK(delete_callback), (gpointer)ret);
@@ -124,7 +127,7 @@ bg_gtk_about_window_create(const char * name, const char * version, const char *
                    G_CALLBACK(button_callback), (gpointer)ret);
 
   ret->link =
-    bg_gtk_urllink_create("Visit homepage", "http://gmerlin.sourceforge.net");
+    bg_gtk_urllink_create(TR("Visit homepage"), "http://gmerlin.sourceforge.net");
   
   gtk_widget_show(ret->close_button);
   
@@ -158,14 +161,14 @@ bg_gtk_about_window_create(const char * name, const char * version, const char *
 #endif
   gtk_widget_show(label1);
 
-  label2 = gtk_label_new("Copyright \302\251 2001-2006 Members of the gmerlin project");
+  label2 = gtk_label_new(TR("Copyright \302\251 2001-2006 Members of the gmerlin project"));
   gtk_widget_show(label2);
   
   label3 =
-    gtk_label_new("This program is free software; you can redistribute it and/or modify\n\
+    gtk_label_new(TR("This program is free software; you can redistribute it and/or modify\n\
 it under the terms of the GNU General Public License as published by\n\
 the Free Software Foundation; either version 2 of the License, or\n\
-(at your option) any later version.");
+(at your option) any later version."));
   
   gtk_widget_show(label3);
   

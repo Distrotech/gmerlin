@@ -25,8 +25,13 @@
 
 #include <tiffio.h>
 #include <inttypes.h>
+
+#include <config.h>
+#include <translation.h>
 #include <plugin.h>
 #include <utils.h>
+#include <log.h>
+#define LOG_DOMAIN "iw_tiff"
 
 typedef struct
   {
@@ -39,7 +44,6 @@ typedef struct
   uint16_t compression;
   int jpeg_quality;
   int zip_quality;  /* Compression level, actually */
-  char * error_msg;
   } tiff_t;
 
 static void * create_tiff()
@@ -52,8 +56,6 @@ static void * create_tiff()
 static void destroy_tiff(void* priv)
   {
   tiff_t * tiff = (tiff_t*)priv;
-  if(tiff->error_msg)
-    free(tiff->error_msg);
   free(tiff);
   }
 
@@ -82,11 +84,12 @@ static int write_header_tiff(void * priv, const char * filename,
 
   if(!p->output)
     {
+    
     if(errno)
-      p->error_msg = bg_sprintf("Cannot open %s: %s",
-                                filename, strerror(errno));
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s: %s",
+             filename, strerror(errno));
     else
-      p->error_msg = bg_sprintf("Cannot open %s",  filename);
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s",  filename);
     return 0;
     }
   
@@ -137,16 +140,17 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name:        "compression",
-      long_name:   "Compression",
+      long_name:   TRS("Compression"),
       type:        BG_PARAMETER_STRINGLIST,
       multi_names: (char*[]){ "none", "packbits", "deflate", "jpeg", (char*)0 },
-      multi_labels:  (char*[]){ "None", "Packbits", "Deflate", "JPEG", (char*)0 },
+      multi_labels:  (char*[]){ TRS("None"), TRS("Packbits"), TRS("Deflate"), TRS("JPEG"),
+                                (char*)0 },
 
       val_default: { val_str: "none" },
     },
     {
       name:        "jpeg_quality",
-      long_name:   "JPEG Quality",
+      long_name:   TRS("JPEG quality"),
       type:        BG_PARAMETER_SLIDER_INT,
       val_min:     { val_i: 0 },
       val_max:     { val_i: 100 },
@@ -154,7 +158,7 @@ static bg_parameter_info_t parameters[] =
     },
     {
       name:        "zip_quality",
-      long_name:   "Deflate compression level",
+      long_name:   TRS("Deflate compression level"),
       type:        BG_PARAMETER_SLIDER_INT,
       val_min:     { val_i: 0 },
       val_max:     { val_i: 9 },
@@ -202,20 +206,15 @@ static const char * get_extension_tiff(void * p)
   return tiff_extension;
   }
 
-static const char * get_error_tiff(void * p)
-  {
-  tiff_t * tiff;
-  tiff = (tiff_t *)p;
-
-  return tiff->error_msg;
-  }
 
 bg_image_writer_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:           "iw_tiff",
-      long_name:      "TIFF writer",
+      long_name:      TRS("TIFF writer"),
+      description:    TRS("Writer for TIFF images"),
       mimetypes:      (char*)0,
       extensions:     "tif",
       type:           BG_PLUGIN_IMAGE_WRITER,
@@ -223,7 +222,6 @@ bg_image_writer_plugin_t the_plugin =
       priority:       5,
       create:         create_tiff,
       destroy:        destroy_tiff,
-      get_error:      get_error_tiff,
       get_parameters: get_parameters_tiff,
       set_parameter:  set_parameter_tiff
     },

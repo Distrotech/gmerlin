@@ -21,6 +21,8 @@
 #include <string.h>
 #include <gtk/gtk.h>
 
+#include <config.h>
+
 #include <log.h>
 #include <utils.h>
 
@@ -64,7 +66,8 @@ struct bg_gtk_log_window_s
   int show_debug;
 
   int x, y, width, height;
-  
+
+  char * last_error;
   };
 
 static gboolean delete_callback(GtkWidget * w, GdkEventAny * event,
@@ -153,6 +156,7 @@ static gboolean idle_callback(gpointer data)
       case BG_LOG_ERROR:
         tag = w->error_tag;
         if(w->show_error) do_log = 1;
+        w->last_error = bg_strdup(w->last_error, message);
         break;
       case BG_LOG_INFO:
         tag = w->info_tag;
@@ -226,7 +230,7 @@ bg_gtk_log_window_t * bg_gtk_log_window_create(void (*close_callback)(bg_gtk_log
 
   /* Create window */
   ret->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_title(GTK_WINDOW(ret->window), "Log viewer");
+  gtk_window_set_title(GTK_WINDOW(ret->window), TR("Log viewer"));
 
   g_signal_connect(G_OBJECT(ret->window), "delete_event",
                    G_CALLBACK(delete_callback), (gpointer)ret);
@@ -312,62 +316,62 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name:        "max_messages",
-      long_name:   "Number of messages",
+      long_name:   TRS("Number of messages"),
       type:        BG_PARAMETER_INT,
       val_default: { val_i: 20 },
-      help_string: "Maximum number of messages hold in the window"
+      help_string: TRS("Maximum number of messages hold in the window")
     },
     {
       name:        "show_info",
-      long_name:   "Show info massages",
+      long_name:   TRS("Show info massages"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 }
     },
     {
       name:        "show_warning",
-      long_name:   "Show warning massages",
+      long_name:   TRS("Show warning massages"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 }
     },
     {
       name:        "show_error",
-      long_name:   "Show error massages",
+      long_name:   TRS("Show error massages"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 }
     },
     {
       name:        "show_debug",
-      long_name:   "Show debug massages",
+      long_name:   TRS("Show debug massages"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 0 }
     },
     {
       name:        "info_color",
-      long_name:   "Info foreground",
+      long_name:   TRS("Info foreground"),
       type:        BG_PARAMETER_COLOR_RGB,
       val_default: { val_color: (float[]){ 0.0, 0.0, 0.0 } },
-      help_string: "Color for info messages",
+      help_string: TRS("Color for info messages"),
     },
     {
       name:        "warning_color",
-      long_name:   "Warning foreground",
+      long_name:   TRS("Warning foreground"),
       type:        BG_PARAMETER_COLOR_RGB,
       val_default: { val_color: (float[]){ 1.0, 0.5, 0.0 } },
-      help_string: "Color for warning messages",
+      help_string: TRS("Color for warning messages"),
     },
     {
       name:        "error_color",
-      long_name:   "Error foreground",
+      long_name:   TRS("Error foreground"),
       type:        BG_PARAMETER_COLOR_RGB,
       val_default: { val_color: (float[]){ 1.0, 0.0, 0.0 } },
-      help_string: "Color for error messages",
+      help_string: TRS("Color for error messages"),
     },
     {
       name:        "debug_color",
-      long_name:   "Debug foreground",
+      long_name:   TRS("Debug foreground"),
       type:        BG_PARAMETER_COLOR_RGB,
       val_default: { val_color: (float[]){ 0.0, 0.0, 1.0 } },
-      help_string: "Color for debug messages",
+      help_string: TRS("Color for debug messages"),
     },
     {
       name: "x",
@@ -507,4 +511,14 @@ int bg_gtk_log_window_get_parameter(void * data, char * name,
     }
   
   return 0;
+  }
+
+void bg_gtk_log_window_flush(bg_gtk_log_window_t * win)
+  {
+  idle_callback(win);
+  }
+
+const char * bg_gtk_log_window_last_error(bg_gtk_log_window_t * win)
+  {
+  return win->last_error;
   }

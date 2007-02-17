@@ -18,6 +18,7 @@
 *****************************************************************/
 
 #include <config.h>
+#include <translation.h>
 #include "gmerlin.h"
 #include <utils.h>
 #include <gdk/gdkkeysyms.h>
@@ -475,7 +476,7 @@ typedef struct stream_menu_s
 static void stream_menu_init(stream_menu_t * s, gmerlin_t * gmerlin)
   {
   s->menu = create_menu();
-  s->off_item = gtk_radio_menu_item_new_with_label((GSList*)0, "Off");
+  s->off_item = gtk_radio_menu_item_new_with_label((GSList*)0, TR("Off"));
   
   s->off_id = g_signal_connect(G_OBJECT(s->off_item), "activate",
                                G_CALLBACK(menu_callback),
@@ -612,9 +613,9 @@ void main_menu_set_audio_info(main_menu_t * m, int stream,
   else if(info)
     label = bg_sprintf("%s", info);
   else if(language && *language)
-    label = bg_sprintf("Stream %d [%s]", stream+1, bg_get_language_name(language));
+    label = bg_sprintf(TR("Stream %d [%s]"), stream+1, bg_get_language_name(language));
   else
-    label = bg_sprintf("Stream %d", stream+1);
+    label = bg_sprintf(TR("Stream %d"), stream+1);
 
   w = m->audio_stream_menu.stream_items[stream];
   gtk_label_set_text(GTK_LABEL(gtk_bin_get_child(GTK_BIN(w))), label);
@@ -634,7 +635,7 @@ void main_menu_set_chapter_info(main_menu_t * m, int chapter,
   if(name)
     label = bg_sprintf("%s [%s]", name, time_string);
   else
-    label = bg_sprintf("Chapter %d [%s]",
+    label = bg_sprintf(TR("Chapter %d [%s]"),
                        chapter+1, time_string);
   
   w = m->chapter_menu.chapter_items[chapter];
@@ -668,10 +669,10 @@ void main_menu_set_video_info(main_menu_t * m, int stream,
   else if(info)
     label = bg_sprintf("%s", info);
   else if(language && *language)
-    label = bg_sprintf("Stream %d [%s]", stream+1,
+    label = bg_sprintf(TR("Stream %d [%s]"), stream+1,
                        bg_get_language_name(language));
   else
-    label = bg_sprintf("Stream %d", stream+1);
+    label = bg_sprintf(TR("Stream %d"), stream+1);
   
   w = m->video_stream_menu.stream_items[stream];
   gtk_label_set_text(GTK_LABEL(gtk_bin_get_child(GTK_BIN(w))), label);
@@ -691,10 +692,10 @@ void main_menu_set_subtitle_info(main_menu_t * m, int stream,
   else if(info)
     label = bg_sprintf("%s", info);
   else if(language && *language)
-    label = bg_sprintf("Stream %d [%s]", stream+1,
+    label = bg_sprintf(TR("Stream %d [%s]"), stream+1,
                        bg_get_language_name(language));
   else
-    label = bg_sprintf("Stream %d", stream+1);
+    label = bg_sprintf(TR("Stream %d"), stream+1);
   
   w = m->subtitle_stream_menu.stream_items[stream];
   gtk_label_set_text(GTK_LABEL(gtk_bin_get_child(GTK_BIN(w))), label);
@@ -712,15 +713,15 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
     
   ret->windows_menu.menu = create_menu();
   ret->windows_menu.mediatree =
-    create_toggle_item("Media Tree", gmerlin, ret->windows_menu.menu,
+    create_toggle_item(TR("Media Tree"), gmerlin, ret->windows_menu.menu,
                        &ret->windows_menu.mediatree_id);
   ret->windows_menu.infowindow =
-    create_toggle_item("Info window", gmerlin, ret->windows_menu.menu,
+    create_toggle_item(TR("Info window"), gmerlin, ret->windows_menu.menu,
                        &ret->windows_menu.infowindow_id);
   ret->windows_menu.logwindow =
-    create_toggle_item("Log window", gmerlin, ret->windows_menu.menu,
+    create_toggle_item(TR("Log window"), gmerlin, ret->windows_menu.menu,
                        &ret->windows_menu.logwindow_id);
-  ret->windows_menu.about = create_item("About...",
+  ret->windows_menu.about = create_item(TR("About..."),
                                         gmerlin, ret->windows_menu.menu);
   gtk_widget_show(ret->windows_menu.menu);
   
@@ -737,7 +738,7 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
   
   ret->options_menu.menu = create_menu();
   ret->options_menu.preferences =
-    create_pixmap_item("Preferences...", "config_16.png", gmerlin, ret->options_menu.menu);
+    create_pixmap_item(TR("Preferences..."), "config_16.png", gmerlin, ret->options_menu.menu);
 
   gtk_widget_add_accelerator(ret->options_menu.preferences, "activate", ret->g->accel_group,
                              GDK_o, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
@@ -745,87 +746,87 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
   
 
   ret->options_menu.plugins =
-    create_pixmap_item("Plugins...", "plugin_16.png", gmerlin, ret->options_menu.menu);
+    create_pixmap_item(TR("Plugins..."), "plugin_16.png", gmerlin, ret->options_menu.menu);
   gtk_widget_add_accelerator(ret->options_menu.plugins, "activate", ret->g->accel_group,
                              GDK_p, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
 
   ret->options_menu.skins =
-    create_item("Skins...", gmerlin, ret->options_menu.menu);
+    create_item(TR("Skins..."), gmerlin, ret->options_menu.menu);
 
   if(bg_search_file_exec("gmerlin_kbd_config", NULL))
     ret->options_menu.kbd =
-      create_item("Multimedia keys...", gmerlin, ret->options_menu.menu);
+      create_item(TR("Multimedia keys..."), gmerlin, ret->options_menu.menu);
   
   /* Commands */
   ret->command_menu.menu = create_menu();
 
   ret->command_menu.seek_forward =
-    create_item("Seek forward", gmerlin, ret->command_menu.menu);
+    create_item(TR("Seek forward"), gmerlin, ret->command_menu.menu);
   gtk_widget_add_accelerator(ret->command_menu.seek_forward, "activate",
                              ret->g->accel_group,
                              GDK_Right, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
   
   
   ret->command_menu.seek_backward =
-    create_item("Seek backward", gmerlin, ret->command_menu.menu);
+    create_item(TR("Seek backward"), gmerlin, ret->command_menu.menu);
   gtk_widget_add_accelerator(ret->command_menu.seek_backward, "activate",
                              ret->g->accel_group,
                              GDK_Left, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
   
 
   ret->command_menu.inc_volume =
-    create_item("Increase volume", gmerlin, ret->command_menu.menu);
+    create_item(TR("Increase volume"), gmerlin, ret->command_menu.menu);
   gtk_widget_add_accelerator(ret->command_menu.inc_volume, "activate",
                              ret->g->accel_group,
                              GDK_Right, GDK_SHIFT_MASK, GTK_ACCEL_VISIBLE);
 
 
   ret->command_menu.dec_volume =
-    create_item("Decrease volume", gmerlin, ret->command_menu.menu);
+    create_item(TR("Decrease volume"), gmerlin, ret->command_menu.menu);
   gtk_widget_add_accelerator(ret->command_menu.dec_volume, "activate",
                              ret->g->accel_group,
                              GDK_Left, GDK_SHIFT_MASK, GTK_ACCEL_VISIBLE);
 
   ret->command_menu.mute =
-    create_item("Toggle mute", gmerlin, ret->command_menu.menu);
+    create_item(TR("Toggle mute"), gmerlin, ret->command_menu.menu);
   gtk_widget_add_accelerator(ret->command_menu.mute, "activate",
                              ret->g->accel_group,
                              GDK_m, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
   
   ret->command_menu.next =
-    create_item("Next track", gmerlin, ret->command_menu.menu);
+    create_item(TR("Next track"), gmerlin, ret->command_menu.menu);
   gtk_widget_add_accelerator(ret->command_menu.next, "activate", ret->g->accel_group,
                              GDK_Page_Down, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
 
   ret->command_menu.previous =
-    create_item("Previous track", gmerlin, ret->command_menu.menu);
+    create_item(TR("Previous track"), gmerlin, ret->command_menu.menu);
   gtk_widget_add_accelerator(ret->command_menu.previous, "activate", ret->g->accel_group,
                              GDK_Page_Up, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
 
   ret->command_menu.next_chapter =
-    create_item("Next chapter", gmerlin, ret->command_menu.menu);
+    create_item(TR("Next chapter"), gmerlin, ret->command_menu.menu);
   gtk_widget_add_accelerator(ret->command_menu.next_chapter, "activate", ret->g->accel_group,
                              GDK_Page_Down,  GDK_SHIFT_MASK | GDK_CONTROL_MASK,
                              GTK_ACCEL_VISIBLE);
 
   ret->command_menu.previous_chapter =
-    create_item("Previous chapter", gmerlin, ret->command_menu.menu);
+    create_item(TR("Previous chapter"), gmerlin, ret->command_menu.menu);
   gtk_widget_add_accelerator(ret->command_menu.previous_chapter, "activate", ret->g->accel_group,
                              GDK_Page_Up, GDK_SHIFT_MASK | GDK_CONTROL_MASK,
                              GTK_ACCEL_VISIBLE);
   
   ret->command_menu.seek_start =
-    create_item("Seek to start", gmerlin, ret->command_menu.menu);
+    create_item(TR("Seek to start"), gmerlin, ret->command_menu.menu);
   gtk_widget_add_accelerator(ret->command_menu.seek_start, "activate", ret->g->player_window->accel_group,
                              GDK_0, 0, GTK_ACCEL_VISIBLE);
 
   ret->command_menu.pause =
-    create_item("Pause", gmerlin, ret->command_menu.menu);
+    create_item(TR("Pause"), gmerlin, ret->command_menu.menu);
   gtk_widget_add_accelerator(ret->command_menu.pause, "activate", ret->g->player_window->accel_group,
                              GDK_space, 0, GTK_ACCEL_VISIBLE);
 
   ret->command_menu.quit =
-    create_item("Quit gmerlin", gmerlin, ret->command_menu.menu);
+    create_item(TR("Quit gmerlin"), gmerlin, ret->command_menu.menu);
   gtk_widget_add_accelerator(ret->command_menu.quit, "activate",
                              ret->g->accel_group,
                              GDK_q, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
@@ -836,50 +837,50 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
 
   if(bg_search_file_exec("gmerlin_transcoder", (char**)0))
     ret->accessories_menu.transcoder =
-      create_item("Transcoder", gmerlin, ret->accessories_menu.menu);
+      create_item(TR("Transcoder"), gmerlin, ret->accessories_menu.menu);
 
   if(bg_search_file_exec("gmerlin_visualizer", (char**)0))
     ret->accessories_menu.visualizer =
-      create_item("Visualizer", gmerlin, ret->accessories_menu.menu);
+      create_item(TR("Visualizer"), gmerlin, ret->accessories_menu.menu);
 
   if(bg_search_file_exec("gmerlin_alsamixer", (char**)0))
     ret->accessories_menu.mixer =
-      create_item("Mixer", gmerlin, ret->accessories_menu.menu);
+      create_item(TR("Mixer"), gmerlin, ret->accessories_menu.menu);
 
   
   /* Main menu */
     
   ret->menu = create_menu();
 
-  ret->audio_stream_item = create_submenu_item("Audio...",
+  ret->audio_stream_item = create_submenu_item(TR("Audio..."),
                                                ret->audio_stream_menu.menu,
                                                ret->menu);
 
-  ret->video_stream_item = create_submenu_item("Video...",
+  ret->video_stream_item = create_submenu_item(TR("Video..."),
                                                ret->video_stream_menu.menu,
                                                ret->menu);
 
-  ret->subtitle_stream_item = create_submenu_item("Subtitles...",
+  ret->subtitle_stream_item = create_submenu_item(TR("Subtitles..."),
                                                   ret->subtitle_stream_menu.menu,
                                                   ret->menu);
   
-  ret->chapter_item = create_submenu_item("Chapters...",
+  ret->chapter_item = create_submenu_item(TR("Chapters..."),
                                           ret->chapter_menu.menu,
                                           ret->menu);
     
-  ret->windows_item = create_submenu_item("Windows...",
+  ret->windows_item = create_submenu_item(TR("Windows..."),
                                           ret->windows_menu.menu,
                                           ret->menu);
 
-  ret->options_item = create_submenu_item("Options...",
+  ret->options_item = create_submenu_item(TR("Options..."),
                                           ret->options_menu.menu,
                                           ret->menu);
 
-  ret->options_item = create_submenu_item("Commands...",
+  ret->options_item = create_submenu_item(TR("Commands..."),
                                           ret->command_menu.menu,
                                           ret->menu);
 
-  ret->accessories_item = create_submenu_item("Accessories...",
+  ret->accessories_item = create_submenu_item(TR("Accessories..."),
                                               ret->accessories_menu.menu,
                                               ret->menu);
   gtk_widget_show(ret->menu);

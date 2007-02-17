@@ -20,6 +20,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+
+#include <config.h>
+
 #include "gmerlin.h"
 #include <utils.h>
 #include <keycodes.h>
@@ -396,8 +399,9 @@ static void handle_message(player_window_t * win,
           win->seek_active = 0;
           break;
         case BG_PLAYER_STATE_ERROR:
-          arg_str_1 = bg_msg_get_arg_string(msg, 1);
-          display_set_state(win->display, win->gmerlin->player_state, arg_str_1);
+          bg_gtk_log_window_flush(win->gmerlin->log_window);
+          display_set_state(win->display, win->gmerlin->player_state,
+                            bg_gtk_log_window_last_error(win->gmerlin->log_window));
           break;
         case BG_PLAYER_STATE_BUFFERING:
           arg_f_1 = bg_msg_get_arg_float(msg, 1);
@@ -717,29 +721,29 @@ void player_window_create(gmerlin_t * g)
 
   /* Set tooltips */
   
-  gtk_tooltips_set_tip(ret->tooltips, bg_gtk_button_get_widget(ret->play_button),
-                       "Play", "Play");
-  gtk_tooltips_set_tip(ret->tooltips, bg_gtk_button_get_widget(ret->stop_button),
-                       "Stop", "Stop");
-  gtk_tooltips_set_tip(ret->tooltips, bg_gtk_button_get_widget(ret->pause_button),
-                       "Pause", "Pause");
-  gtk_tooltips_set_tip(ret->tooltips, bg_gtk_button_get_widget(ret->next_button),
+  bg_gtk_tooltips_set_tip(ret->tooltips, bg_gtk_button_get_widget(ret->play_button),
+                          "Play", PACKAGE);
+  bg_gtk_tooltips_set_tip(ret->tooltips, bg_gtk_button_get_widget(ret->stop_button),
+                       "Stop", PACKAGE);
+  bg_gtk_tooltips_set_tip(ret->tooltips, bg_gtk_button_get_widget(ret->pause_button),
+                       "Pause", PACKAGE);
+  bg_gtk_tooltips_set_tip(ret->tooltips, bg_gtk_button_get_widget(ret->next_button),
                        "Left button: Next track\nRight button: Next chapter",
-                       "Next track/chapter");
-  gtk_tooltips_set_tip(ret->tooltips, bg_gtk_button_get_widget(ret->prev_button),
+                       PACKAGE);
+  bg_gtk_tooltips_set_tip(ret->tooltips, bg_gtk_button_get_widget(ret->prev_button),
                        "Left button: Previous track\nRight button: Previous chapter",
-                       "Previous track/chapter");
+                       PACKAGE);
   
-  gtk_tooltips_set_tip(ret->tooltips, bg_gtk_button_get_widget(ret->menu_button),
-                       "Main menu", "Main menu");
-  gtk_tooltips_set_tip(ret->tooltips, bg_gtk_button_get_widget(ret->close_button),
-                       "Quit program", "Quit program");
+  bg_gtk_tooltips_set_tip(ret->tooltips, bg_gtk_button_get_widget(ret->menu_button),
+                          "Main menu", PACKAGE);
+  bg_gtk_tooltips_set_tip(ret->tooltips, bg_gtk_button_get_widget(ret->close_button),
+                          "Quit program", PACKAGE);
 
-  gtk_tooltips_set_tip(ret->tooltips, bg_gtk_slider_get_slider_widget(ret->volume_slider),
-                       "Volume", "Volume");
+  bg_gtk_tooltips_set_tip(ret->tooltips, bg_gtk_slider_get_slider_widget(ret->volume_slider),
+                          "Volume", PACKAGE);
 
-  gtk_tooltips_set_tip(ret->tooltips, bg_gtk_slider_get_slider_widget(ret->seek_slider),
-                       "Seek", "Seek");
+  bg_gtk_tooltips_set_tip(ret->tooltips, bg_gtk_slider_get_slider_widget(ret->seek_slider),
+                          "Seek", PACKAGE);
   
   /* Pack Objects */
 

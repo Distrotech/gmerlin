@@ -19,6 +19,7 @@
 
 #include <string.h>
 
+#include <config.h>
 #include <cfg_registry.h>
 #include <cmdline.h>
 #include <utils.h>

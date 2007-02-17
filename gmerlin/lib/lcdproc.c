@@ -18,6 +18,8 @@
 *****************************************************************/
 
 #include <config.h>
+
+#include <translation.h>
 #include <parameter.h>
 #include <player.h>
 #include <lcdproc.h>
@@ -95,19 +97,19 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name:        "enable_lcdproc",
-      long_name:   "Enable LCDproc",
+      long_name:   TRS("Enable LCDproc"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 0 },
     },
     {
       name: "hostname",
-      long_name: "Hostname",
+      long_name: TRS("Hostname"),
       type: BG_PARAMETER_STRING,
       val_default: { val_str: "localhost" },
     },
     {
       name:        "port",
-      long_name:   "Port",
+      long_name:   TRS("Port"),
       type:        BG_PARAMETER_INT,
       val_min:     { val_i: 1024 },
       val_max:     { val_i: 65535 },
@@ -115,19 +117,19 @@ static bg_parameter_info_t parameters[] =
     },
     {
       name: "display_name_time",
-      long_name: "Display track name and time",
+      long_name: TRS("Display track name and time"),
       type: BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 },
     },
     {
       name: "display_formats",
-      long_name: "Display audio/video formats",
+      long_name: TRS("Display audio/video formats"),
       type: BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 },
     },
     {
       name: "display_descriptions",
-      long_name: "Display audio/video descriptions",
+      long_name: TRS("Display audio/video descriptions"),
       type: BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 },
     },

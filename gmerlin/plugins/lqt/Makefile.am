@@ -1,6 +1,6 @@
 libdir=@GMERLIN_PLUGIN_DIR@
 
-AM_CFLAGS = @LQT_CFLAGS@
+AM_CFLAGS = @LQT_CFLAGS@ -DLOCALE_DIR=\"$(localedir)\"
 
 lib_LTLIBRARIES = e_lqt.la i_lqt.la
 

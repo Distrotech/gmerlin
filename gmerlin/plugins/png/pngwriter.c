@@ -22,10 +22,17 @@
 #include <string.h>
 #include <errno.h>
 
+#include <config.h>
+#include <translation.h>
+
+#include <log.h>
+#define LOG_DOMAIN "pngwriter"
+
 #include <plugin.h>
 #include <utils.h>
 
 #include <png.h>
+
 
 #include "pngwriter.h"
 
@@ -41,9 +48,8 @@ int bg_pngwriter_write_header(void * priv, const char * filename,
   png->output = fopen(filename, "wb");
   if(!png->output)
     {
-    png->error_msg =
-      bg_sprintf("Cannot open %s: %s",
-                 filename, strerror(errno));
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s: %s",
+           filename, strerror(errno));
     return 0;
     }
   png->png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL,

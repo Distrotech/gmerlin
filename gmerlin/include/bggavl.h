@@ -97,20 +97,20 @@ void bg_gavl_video_options_set_interlace(bg_gavl_video_options_t * opt,
 #define BG_GAVL_PARAM_CONVERSION_QUALITY \
   {                                      \
   name:        "conversion_quality",     \
-  long_name:   "Conversion Quality",          \
+  long_name:   TRS("Conversion Quality"),          \
     opt:         "q", \
   type:        BG_PARAMETER_SLIDER_INT,               \
   val_min:     { val_i: GAVL_QUALITY_FASTEST },       \
   val_max:     { val_i: GAVL_QUALITY_BEST    },       \
   val_default: { val_i: GAVL_QUALITY_DEFAULT },                      \
-  help_string: "Set the conversion quality for format conversions. \
-Lower quality means more speed. Values above 3 enable slow high quality calculations." \
+  help_string: TRS("Set the conversion quality for format conversions. \
+Lower quality means more speed. Values above 3 enable slow high quality calculations.") \
     }
 
 #define BG_GAVL_PARAM_FRAMERATE                                 \
   {                                                             \
   name:      "framerate",                                       \
-  long_name: "Framerate",                                       \
+  long_name: TRS("Framerate"),                                       \
   type:      BG_PARAMETER_STRINGLIST,                           \
   val_default: { val_str: "from_source" },                      \
     multi_names: (char*[]){ "from_source",                      \
@@ -123,48 +123,48 @@ Lower quality means more speed. Values above 3 enable slow high quality calculat
                    "50",                                        \
                    "59_940",                                    \
                    "60", (char*)0 },                              \
-    multi_labels: (char*[]){ "From Source",                      \
-                   "User defined",                              \
-                   "23.976 (NTSC encapsulated film rate)",        \
-                   "24 (Standard international cinema film rate)", \
-                   "25 (PAL [625/50] video frame rate)",        \
-                   "29.970 (NTSC video frame rate)",            \
-                   "30 (NTSC drop-frame [525/60] video frame rate)",  \
-                   "50 (Double frame rate / progressive PAL)",   \
-                   "59.940 (Double frame rate NTSC)",     \
-                   "60 (Double frame rate drop-frame NTSC)",           \
+    multi_labels: (char*[]){ TRS("From Source"),                      \
+                   TRS("User defined"),                              \
+                   TRS("23.976 (NTSC encapsulated film rate)"),        \
+                   TRS("24 (Standard international cinema film rate)"), \
+                   TRS("25 (PAL [625/50] video frame rate)"),        \
+                   TRS("29.970 (NTSC video frame rate)"),            \
+                   TRS("30 (NTSC drop-frame [525/60] video frame rate)"),  \
+                   TRS("50 (Double frame rate / progressive PAL)"),   \
+                   TRS("59.940 (Double frame rate NTSC)"),     \
+                   TRS("60 (Double frame rate drop-frame NTSC)"),           \
                     (char*)0 },                                         \
-  help_string: "Output framerate. For user defined framerate, enter the \
-timescale and frame duration below (framerate = timescale / frame_duration)."\
+  help_string: TRS("Output framerate. For user defined framerate, enter the \
+timescale and frame duration below (framerate = timescale / frame_duration).")\
   },                                              \
   {                                           \
   name:      "timescale",                     \
-  long_name: "Timescale",                   \
+  long_name: TRS("Timescale"),                   \
   type:      BG_PARAMETER_INT,              \
   val_min:     { val_i: 1 },                \
   val_max:     { val_i: 100000 },           \
   val_default: { val_i: 25 },                                         \
-  help_string: "Timescale for user defined output framerate (Framerate = timescale / frame_duration).", \
+  help_string: TRS("Timescale for user defined output framerate (Framerate = timescale / frame_duration)."), \
   },                                                                  \
   {                                                                 \
   name:      "frame_duration",                                      \
-  long_name: "Frame duration",                                    \
+  long_name: TRS("Frame duration"),                                    \
   type:      BG_PARAMETER_INT,                                    \
   val_min:     { val_i: 1 },                                      \
   val_max:     { val_i: 100000 },                                 \
   val_default: { val_i: 1 },                                      \
-  help_string: "Frame duration for user defined output framerate (Framerate = timescale / frame_duration).", \
+  help_string: TRS("Frame duration for user defined output framerate (Framerate = timescale / frame_duration)."), \
   }
 
 #define BG_GAVL_PARAM_DEINTERLACE           \
  {                                            \
   name:      "deinterlace_mode",              \
-  long_name: "Deinterlace mode",             \
+  long_name: TRS("Deinterlace mode"),             \
   opt:       "dm", \
   type:      BG_PARAMETER_STRINGLIST,        \
   val_default: { val_str: "none" },          \
   multi_names:  (char*[]){ "none", "copy", "scale", (char*)0 },         \
-  multi_labels: (char*[]){ "None", "Copy", "Scale", (char*)0 },         \
+  multi_labels: (char*[]){ TRS("None"), TRS("Copy"), TRS("Scale"), (char*)0 },         \
   help_string: "Specify interlace mode. Higher modes are better but slower." \
   },                                                                   \
   {                                                                  \
@@ -174,68 +174,68 @@ timescale and frame duration below (framerate = timescale / frame_duration)."\
   type:      BG_PARAMETER_STRINGLIST,                              \
   val_default: { val_str: "top" },                                 \
   multi_names:   (char*[]){ "top", "bottom", (char*)0 },               \
-  multi_labels:  (char*[]){ "Drop top field", "Drop bottom field", (char*)0 },               \
-  help_string: "Specifies which field the deinterlacer should drop." \
+  multi_labels:  (char*[]){ TRS("Drop top field"), TRS("Drop bottom field"), (char*)0 },   \
+  help_string: TRS("Specifies which field the deinterlacer should drop.") \
   },                                                              \
   {\
   name:      "force_deinterlacing",           \
-  long_name: "Force deinterlacing",         \
+  long_name: TRS("Force deinterlacing"),         \
   opt:       "fd", \
   type:      BG_PARAMETER_CHECKBUTTON,              \
   val_default: { val_i: 0 },                \
-  help_string: "Force deinterlacing if you want progressive output and the input format pretends to be progressive also." \
+  help_string: TRS("Force deinterlacing if you want progressive output and the input format pretends to be progressive also.") \
   }                                                                  \
 
 #define BG_GAVL_PARAM_CROP                                         \
  {                                                                \
   name:      "crop_left",                                          \
-    long_name: "Crop left",                                        \
+    long_name: TRS("Crop left"),                                        \
     opt:       "crl",                                                    \
     type:      BG_PARAMETER_FLOAT,                                       \
     val_min:     { val_f: 0.0 },                                     \
       val_max:     { val_f: 100000.0 },\
       val_default: { val_f: 0.0 },\
       num_digits: 3,\
-      help_string: "Cut this many pixels from the left border of the source frames."\
+      help_string: TRS("Cut this many pixels from the left border of the source frames.") \
     },\
     {\
       name:      "crop_right",\
-      long_name: "Crop right",\
+      long_name: TRS("Crop right"),\
       opt:       "crr",                         \
       type:      BG_PARAMETER_FLOAT,\
       val_min:     { val_f: 0.0 },\
       val_max:     { val_f: 100000.0 },\
       val_default: { val_f: 0.0 },\
       num_digits: 3,\
-      help_string: "Cut this many pixels from the right border of the source frames."\
+      help_string: TRS("Cut this many pixels from the right border of the source frames.")\
     },\
     {\
       name:      "crop_top",\
-      long_name: "Crop top",\
+      long_name: TRS("Crop top"),\
       opt:       "crt",                         \
       type:      BG_PARAMETER_FLOAT,\
       val_min:     { val_f: 0.0 },\
       val_max:     { val_f: 100000.0 },\
       val_default: { val_f: 0.0 },\
       num_digits: 3,\
-      help_string: "Cut this many pixels from the top border of the source frames."\
+      help_string: TRS("Cut this many pixels from the top border of the source frames.")\
     },\
     {\
       name:      "crop_bottom",\
-      long_name: "Crop bottom",\
+      long_name: TRS("Crop bottom"),\
       opt:       "crb",                         \
       type:      BG_PARAMETER_FLOAT,\
       val_min:     { val_f: 0.0 },\
       val_max:     { val_f: 100000.0 },\
       val_default: { val_f: 0.0 },\
       num_digits: 3,\
-      help_string: "Cut this many pixels from the bottom border of the source frames."\
+      help_string: TRS("Cut this many pixels from the bottom border of the source frames.")\
     }
 
 #define BG_GAVL_PARAM_SCALE_MODE                                    \
   {                                                                 \
   name:        "scale_mode",                                          \
-  long_name:   "Scale mode",                                          \
+  long_name:   TRS("Scale mode"),                                          \
   opt:       "sm",                                                  \
   type:        BG_PARAMETER_STRINGLIST,                               \
     multi_names:  (char*[]){ "auto",\
@@ -248,33 +248,33 @@ timescale and frame duration below (framerate = timescale / frame_duration)."\
                              "sinc_lanczos", \
                              (char*)0                                     \
                          },                                    \
-    multi_labels: (char*[]){ "Auto", \
-                             "Nearest",                             \
-                             "Bilinear", \
-                             "Quadratic", \
-                             "Cubic B-Spline", \
-                             "Cubic Mitchell-Netravali", \
-                             "Cubic Catmull-Rom", \
-                             "Sinc with Lanczos window",                         \
+    multi_labels: (char*[]){ TRS("Auto"), \
+                             TRS("Nearest"),                             \
+                             TRS("Bilinear"), \
+                             TRS("Quadratic"), \
+                             TRS("Cubic B-Spline"), \
+                             TRS("Cubic Mitchell-Netravali"), \
+                             TRS("Cubic Catmull-Rom"), \
+                             TRS("Sinc with Lanczos window"),                         \
                              (char*)0 },                                         \
     val_default: { val_str: "auto" },                                   \
-    help_string: "Choose scaling method. Auto means to choose based on the conversion quality. Nearest is fastest, Sinc with Lanczos window is slowest.", \
+    help_string: TRS("Choose scaling method. Auto means to choose based on the conversion quality. Nearest is fastest, Sinc with Lanczos window is slowest."), \
     },                                                                  \
     {                                                                   \
     name:        "scale_order",                                         \
-  long_name:   "Scale order",                                        \
+  long_name:   TRS("Scale order"),                                        \
   opt:       "so",                                                  \
   type:        BG_PARAMETER_INT,                               \
   val_min:     { val_i: 4 },                                 \
   val_max:     { val_i: 1000 },                              \
   val_default: { val_i: 4 },                                \
-  help_string: "Order for sinc scaling.\n",\
+  help_string: TRS("Order for sinc scaling."),\
   }
 
 #define BG_GAVL_PARAM_FRAME_SIZE  \
     { \
       name:        "frame_size", \
-      long_name:   "Frame Size", \
+      long_name:   TRS("Frame Size"), \
       opt:         "s", \
       type:        BG_PARAMETER_STRINGLIST, \
       multi_names: (char*[]){ "from_input", \
@@ -298,77 +298,77 @@ timescale and frame duration below (framerate = timescale / frame_duration)."\
                               "vga", \
                               "qvga", \
                                (char*)0 }, \
-      multi_labels:  (char*[]){ "From Source", \
-                                "User defined", \
-                                "PAL DVD D1 4:3 (720 x 576)", \
-                                "PAL DVD D1 16:9 (720 x 576)", \
-                                "PAL DV 4:3 (720 x 576)", \
-                                "PAL DV 16:9 (720 x 576)", \
-                                "PAL CVD (352 x 576)", \
-                                "PAL VCD (352 x 288)", \
-                                "PAL SVCD 4:3 (480 x 576)", \
-                                "PAL SVCD 16:9 (480 x 576)", \
-                                "NTSC DVD D1 4:3 (720 x 480)", \
-                                "NTSC DVD D1 16:9 (720 x 480)", \
-                                "NTSC DV 4:3 (720 x 480)", \
-                                "NTSC DV 16:9 (720 x 480)", \
-                                "NTSC CVD (352 x 480)", \
-                                "NTSC VCD (352 x 240)", \
-                                "NTSC SVCD 4:3 (480 x 480)", \
-                                "NTSC SVCD 16:9 (480 x 480)", \
-                                "VGA (640 x 480)", \
-                                "QVGA (320 x 240)", \
+      multi_labels:  (char*[]){ TRS("From Source"), \
+                                TRS("User defined"), \
+                                TRS("PAL DVD D1 4:3 (720 x 576)"), \
+                                TRS("PAL DVD D1 16:9 (720 x 576)"), \
+                                TRS("PAL DV 4:3 (720 x 576)"), \
+                                TRS("PAL DV 16:9 (720 x 576)"), \
+                                TRS("PAL CVD (352 x 576)"), \
+                                TRS("PAL VCD (352 x 288)"), \
+                                TRS("PAL SVCD 4:3 (480 x 576)"), \
+                                TRS("PAL SVCD 16:9 (480 x 576)"), \
+                                TRS("NTSC DVD D1 4:3 (720 x 480)"), \
+                                TRS("NTSC DVD D1 16:9 (720 x 480)"), \
+                                TRS("NTSC DV 4:3 (720 x 480)"), \
+                                TRS("NTSC DV 16:9 (720 x 480)"), \
+                                TRS("NTSC CVD (352 x 480)"), \
+                                TRS("NTSC VCD (352 x 240)"), \
+                                TRS("NTSC SVCD 4:3 (480 x 480)"), \
+                                TRS("NTSC SVCD 16:9 (480 x 480)"), \
+                                TRS("VGA (640 x 480)"), \
+                                TRS("QVGA (320 x 240)"), \
                                 (char*)0 }, \
       val_default: { val_str: "from_input" }, \
-      help_string: "Set the output frame size. For a user defined size, you must specify the width and height as well as the pixel width and pixel height (for nonsquare pixels).", \
+      help_string: TRS("Set the output frame size. For a user defined size, you must specify the width and height as well as the pixel width and pixel height (for nonsquare pixels)."), \
     }, \
     { \
       name:      "user_image_width", \
-      long_name: "User defined width", \
+      long_name: TRS("User defined width"), \
       opt:       "w", \
       type:      BG_PARAMETER_INT,    \
       val_min:     { val_i: 1 }, \
       val_max:     { val_i: 100000 }, \
       val_default: { val_i: 640 }, \
-      help_string: "User defined width in pixels. Only meaningful if you selected \"User defined\" for the framesize.", \
+      help_string: TRS("User defined width in pixels. Only meaningful if you selected \"User defined\" for the framesize."), \
     }, \
     {                                        \
       name:      "user_image_height", \
-      long_name: "User defined height", \
+      long_name: TRS("User defined height"), \
       opt:       "h", \
       type:      BG_PARAMETER_INT, \
       val_min:     { val_i: 1 }, \
       val_max:     { val_i: 100000 }, \
       val_default: { val_i: 480 }, \
-      help_string: "User defined height in pixels. Only meaningful if you selected \"User defined\" for the framesize.", \
+      help_string: TRS("User defined height in pixels. Only meaningful if you selected \"User defined\" for the framesize."), \
       }, \
     { \
       name:      "user_pixel_width", \
-      long_name: "User defined pixel width", \
+      long_name: TRS("User defined pixel width"), \
       opt:       "sw", \
       type:      BG_PARAMETER_INT,    \
       val_min:     { val_i: 1 }, \
       val_max:     { val_i: 100000 }, \
       val_default: { val_i: 1 }, \
-      help_string: "User defined pixel width. Only meaningful if you selected \"User defined\" for the framesize.", \
+      help_string: TRS("User defined pixel width. Only meaningful if you selected \"User defined\" for the framesize."), \
     }, \
     {                                        \
       name:      "user_pixel_height", \
-      long_name: "User defined pixel height", \
+      long_name: TRS("User defined pixel height"), \
       opt:       "sh", \
       type:      BG_PARAMETER_INT, \
       val_min:     { val_i: 1 }, \
       val_max:     { val_i: 100000 }, \
       val_default: { val_i: 1 }, \
-      help_string: "User defined pixel height. Only meaningful if you selected \"User defined\" for the framesize.", \
+      help_string: TRS("User defined pixel height. Only meaningful if you selected \"User defined\" for the framesize."), \
       }, \
     { \
       name:      "maintain_aspect", \
-      long_name: "Maintain aspect ratio", \
+      long_name: TRS("Maintain aspect ratio"), \
       opt:       "ka", \
       type:      BG_PARAMETER_CHECKBUTTON, \
       val_default: { val_i: 1 }, \
-      help_string: "Let the aspect ratio appear the same as in the source, probably resulting in additional black borders." \
+      help_string: TRS("Let the aspect ratio appear the same as in the source, probably resulting in additional black borders.") \
       },                                                                \
       BG_GAVL_PARAM_SCALE_MODE
 
@@ -376,59 +376,59 @@ timescale and frame duration below (framerate = timescale / frame_duration)."\
 #define BG_GAVL_PARAM_ALPHA                \
     { \
       name:        "alpha_mode", \
-      long_name:   "Alpha mode", \
+      long_name:   TRS("Alpha mode"), \
       type:        BG_PARAMETER_STRINGLIST, \
       val_default: { val_str: "ignore" }, \
       multi_names: (char*[]){"ignore", "blend_color", (char*)0}, \
-      multi_labels: (char*[]){"Ignore", "Blend background color", (char*)0}, \
-    help_string: "This option is used if the source has an alpha (=transparency) channel, but the output supports no transparency. Either, the transparency is ignored, or the background color you specify below is blended in.",\
+      multi_labels: (char*[]){TRS("Ignore"), TRS("Blend background color"), (char*)0}, \
+    help_string: TRS("This option is used if the source has an alpha (=transparency) channel, but the output supports no transparency. Either, the transparency is ignored, or the background color you specify below is blended in."),\
     }, \
     { \
       name:        "background_color", \
-      long_name:   "Background color", \
+      long_name:   TRS("Background color"), \
       type:      BG_PARAMETER_COLOR_RGB, \
       val_default: { val_color: (float[]){ 0.0, 0.0, 0.0 } }, \
-      help_string: "Background color to use, when alpha mode above is \"Blend background color\".", \
+      help_string: TRS("Background color to use, when alpha mode above is \"Blend background color\"."), \
     }
 
 
 #define BG_GAVL_PARAM_SAMPLERATE                \
     {\
       name:      "fixed_samplerate",\
-      long_name: "Fixed samplerate",\
+      long_name: TRS("Fixed samplerate"),\
       type:      BG_PARAMETER_CHECKBUTTON,\
       val_default: { val_i: 0 },\
-      help_string: "If disabled, the output samplerate is taken from the source. If enabled, the samplerate you specify below us used."\
+      help_string: TRS("If disabled, the output samplerate is taken from the source. If enabled, the samplerate you specify below us used.")\
     },\
     {\
       name:        "samplerate",\
-      long_name:   "Samplerate",\
+      long_name:   TRS("Samplerate"),\
       type:        BG_PARAMETER_INT,\
       val_min:     { val_i: 8000 },\
       val_max:     { val_i: 192000 },\
       val_default: { val_i: 44100 },\
-      help_string: "Fixed output samplerate",\
+      help_string: TRS("Fixed output samplerate"),\
     }
 
 
 #define BG_GAVL_PARAM_CHANNEL_SETUP \
     { \
       name:      "fixed_channel_setup", \
-      long_name: "Fixed channel setup", \
+      long_name: TRS("Fixed channel setup"), \
       type:      BG_PARAMETER_CHECKBUTTON,\
       val_default: { val_i: 0 },\
-      help_string: "If disabled, the output channel configuration is taken from the source. If enabled, the setup you specify below us used." \
+      help_string: TRS("If disabled, the output channel configuration is taken from the source. If enabled, the setup you specify below us used.") \
     },                                        \
     {                                         \
     name:        "num_front_channels",          \
-    long_name:   "Front channels",              \
+    long_name:   TRS("Front channels"),              \
     type:        BG_PARAMETER_INT,              \
     val_min:     { val_i: 1 },                  \
     val_max:     { val_i: 5 },                  \
     val_default: { val_i: 2 },                  \
     },\
     {                                         \
-    name:        "num_rear_channels",          \
+    name:        TRS("num_rear_channels"),          \
     long_name:   "Rear channels",              \
     type:        BG_PARAMETER_INT,              \
     val_min:     { val_i: 0 },                  \
@@ -437,74 +437,75 @@ timescale and frame duration below (framerate = timescale / frame_duration)."\
     },                                        \
     {                                         \
     name:        "num_lfe_channels",          \
-    long_name:   "LFE",                        \
+    long_name:   TRS("LFE"),                        \
     type:        BG_PARAMETER_CHECKBUTTON,     \
     val_default: { val_i: 0 },                  \
     },                                        \
     {                                 \
       name:        "front_to_rear", \
-      long_name:   "Front to rear mode", \
+      long_name:   TRS("Front to rear mode"), \
       type:        BG_PARAMETER_STRINGLIST, \
       val_default: { val_str: "copy" }, \
       multi_names:  (char*[]){ "mute", \
                               "copy", \
                               "diff", \
                               (char*)0 }, \
-      multi_labels:  (char*[]){ "Mute", \
-                              "Copy", \
-                              "Diff", \
+      multi_labels:  (char*[]){ TRS("Mute"), \
+                              TRS("Copy"), \
+                              TRS("Diff"), \
                               (char*)0 }, \
-      help_string: "Mix mode when the output format has rear channels, \
-but the source doesn't.", \
+      help_string: TRS("Mix mode when the output format has rear channels, \
+but the source doesn't."), \
     }, \
     { \
       name:        "stereo_to_mono", \
-      long_name:   "Stereo to mono mode", \
+      long_name:   TRS("Stereo to mono mode"), \
       type:        BG_PARAMETER_STRINGLIST, \
-      val_default: { val_str: "Mix" }, \
+      val_default: { val_str: "mix" }, \
       multi_names:  (char*[]){ "left", \
                               "right", \
                               "mix", \
                               (char*)0 }, \
-      multi_labels:  (char*[]){ "Choose left", \
-                              "Choose right", \
-                              "Mix", \
+      multi_labels:  (char*[]){ TRS("Choose left"), \
+                              TRS("Choose right"), \
+                              TRS("Mix"), \
                               (char*)0 }, \
-      help_string: "Mix mode when downmixing Stereo to Mono.", \
+      help_string: TRS("Mix mode when downmixing Stereo to Mono."), \
     }
 
 
 #define BG_GAVL_PARAM_FORCE_FLOAT \
     { \
       name:      "force_float", \
-      long_name: "Force floating point", \
+      long_name: TRS("Force floating point"), \
       type:      BG_PARAMETER_CHECKBUTTON,\
       val_default: { val_i: 0 },\
-      help_string: "Force floating point processing. This will inprove the quality but might slow things down." \
+      help_string: TRS("Force floating point processing. This will inprove the quality but might slow things down.") \
     }
 
 #define BG_GAVL_PARAM_AUDIO_DITHER_MODE \
     { \
       name:      "dither_mode", \
-      long_name: "Dither mode", \
+      long_name: TRS("Dither mode"), \
       type:      BG_PARAMETER_STRINGLIST,\
       val_default: { val_str: "auto" },\
       multi_names:  (char*[]){ "auto", "none", "rect",        "tri",        "shaped", (char*)0 },\
-      multi_labels: (char*[]){ "Auto", "None", "Rectangular", "Triangular", "Shaped", (char*)0 },\
-      help_string: "Dither mode. Auto means to use the quality level. Subsequent options are ordered by increasing quality (i.e. decreasing speed)." \
+      multi_labels: (char*[]){ TRS("Auto"), TRS("None"), TRS("Rectangular"), \
+                               TRS("Triangular"), TRS("Shaped"), (char*)0 },\
+      help_string: TRS("Dither mode. Auto means to use the quality level. Subsequent options are ordered by increasing quality (i.e. decreasing speed).") \
     }
 
 #define BG_GAVL_PARAM_RESAMPLE_MODE \
     { \
       name:      "resample_mode", \
-      long_name: "Resample mode", \
+      long_name: TRS("Resample mode"), \
       type:      BG_PARAMETER_STRINGLIST,\
       val_default: { val_str: "auto" },\
       multi_names:  (char*[]){ "auto", "linear", "zoh",             "sinc_fast",  "sinc_medium", "sinc_best", (char*)0 },\
-      multi_labels: (char*[]){ "Auto", "Linear", "Zero order hold", "Sinc fast",  "Sinc medium", "Sinc best", (char*)0 },\
-      help_string: "Resample mode. Auto means to use the quality level. Subsequent options are ordered by increasing quality (i.e. decreasing speed)." \
+      multi_labels: (char*[]){ TRS("Auto"), TRS("Linear"), TRS("Zero order hold"), \
+                               TRS("Sinc fast"),  TRS("Sinc medium"), TRS("Sinc best"), (char*)0 },\
+      help_string: TRS("Resample mode. Auto means to use the quality level. Subsequent options are ordered by increasing quality (i.e. decreasing speed).") \
     }
-
 
 /* Subtitle display decisions */
 int bg_overlay_too_old(gavl_time_t time, gavl_time_t ovl_time,

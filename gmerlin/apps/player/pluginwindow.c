@@ -1,4 +1,7 @@
 #include "gmerlin.h"
+
+#include <config.h>
+
 #include <gui_gtk/plugin.h>
 #include <gui_gtk/gtkutils.h>
 
@@ -81,7 +84,7 @@ plugin_window_t * plugin_window_create(gmerlin_t * g,
 
   
   ret->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_title(GTK_WINDOW(ret->window), "Plugins");
+  gtk_window_set_title(GTK_WINDOW(ret->window), TR("Plugins"));
 
   gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER);
   
@@ -142,7 +145,7 @@ plugin_window_t * plugin_window_create(gmerlin_t * g,
 
   notebook = gtk_notebook_new();
   
-  label = gtk_label_new("Inputs");
+  label = gtk_label_new(TR("Inputs"));
   gtk_widget_show(label);
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
                            bg_gtk_plugin_widget_multi_get_widget(ret->inputs),
@@ -163,13 +166,13 @@ plugin_window_t * plugin_window_create(gmerlin_t * g,
   
   gtk_widget_show(table);
 
-  label = gtk_label_new("Outputs");
+  label = gtk_label_new(TR("Outputs"));
   gtk_widget_show(label);
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
                            table,
                            label);
 
-  label = gtk_label_new("Image readers");
+  label = gtk_label_new(TR("Image readers"));
   gtk_widget_show(label);
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
                            bg_gtk_plugin_widget_multi_get_widget(ret->image_readers),

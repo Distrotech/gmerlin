@@ -21,6 +21,7 @@
 #include <string.h>
 #include <stdio.h>
 
+#include <config.h>
 #include <pluginregistry.h>
 #include <tree.h>
 #include <transcoder_track.h>

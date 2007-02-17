@@ -40,6 +40,9 @@ struct bg_cfg_item_s
 struct bg_cfg_section_s
   {
   char * name;
+  char * gettext_domain;
+  char * gettext_directory;
+  
   bg_cfg_item_t * items;
 
   struct bg_cfg_section_s * next;

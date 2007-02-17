@@ -2,6 +2,8 @@
 #include <string.h>
 #include <gtk/gtk.h>
 
+#include <config.h>
+
 #include <pluginregistry.h>
 #include <transcoder_track.h>
 
@@ -219,11 +221,11 @@ void encoder_widget_init(encoder_widget_t * ret, bg_plugin_registry_t * plugin_r
                                        ret->tooltips);
 
   ret->audio_to_video =
-    gtk_check_button_new_with_label("Encode audio into video file");
+    gtk_check_button_new_with_label(TR("Encode audio into video file"));
   ret->subtitle_text_to_video =
-    gtk_check_button_new_with_label("Encode text subtitles into video file");
+    gtk_check_button_new_with_label(TR("Encode text subtitles into video file"));
   ret->subtitle_overlay_to_video =
-    gtk_check_button_new_with_label("Encode overlay subtitles into video file");
+    gtk_check_button_new_with_label(TR("Encode overlay subtitles into video file"));
   
   ret->audio_to_video_id =
     g_signal_connect(G_OBJECT(ret->audio_to_video), "toggled",
@@ -514,7 +516,7 @@ encoder_window_t * encoder_window_create(bg_plugin_registry_t * plugin_reg)
                    G_CALLBACK(delete_callback),
                    ret);
   
-  gtk_window_set_title(GTK_WINDOW(ret->window), "Select encoders");
+  gtk_window_set_title(GTK_WINDOW(ret->window), TR("Select encoders"));
   gtk_window_set_modal(GTK_WINDOW(ret->window), 1);
 
 

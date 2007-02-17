@@ -21,6 +21,9 @@
 #include <string.h>
 #include <stdio.h>
 
+#include <config.h>
+#include <translation.h>
+
 #include "cdaudio.h"
 #define DO_NOT_WANT_PARANOIA_COMPATIBILITY
 #include <cdio/cdda.h>
@@ -152,15 +155,15 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name:       "cdparanoia",
-      long_name:  "Cdparanoia",
+      long_name:  TRS("Cdparanoia"),
       type:       BG_PARAMETER_SECTION,
     },
     {
       name:       "cdparanoia_speed",
-      long_name:  "Speed",
+      long_name:  TRS("Speed"),
       type:       BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "Auto" },
-      multi_names: (char*[]){ "Auto",
+      multi_names: (char*[]){ TRS("Auto"),
                               "4",
                               "8",
                               "16",
@@ -169,28 +172,28 @@ static bg_parameter_info_t parameters[] =
     },
     {
       name:        "cdparanoia_max_retries",
-      long_name:   "Maximum retries",
+      long_name:   TRS("Maximum retries"),
       type:        BG_PARAMETER_INT,
       val_min:     { val_i: 0 },
       val_max:     { val_i: 200 },
       val_default: { val_i: 20 },
-      help_string: "Maximum number of retries, 0 = infinite"
+      help_string: TRS("Maximum number of retries, 0 = infinite")
     },
     {
       name:        "cdparanoia_disable_paranoia",
-      long_name:   "Disable paranoia",
+      long_name:   TRS("Disable paranoia"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 0 },
-      help_string: "Disable all data verification and  correction  features."
+      help_string: TRS("Disable all data verification and correction features.")
     },
     {
       name:        "cdparanoia_disable_extra_paranoia",
-      long_name:   "Disable extra paranoia",
+      long_name:   TRS("Disable extra paranoia"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 0 },
-      help_string: "Disables intra-read data verification; only overlap checking at\
+      help_string: TRS("Disables intra-read data verification; only overlap checking at\
 read boundaries is performed. It can wedge if errors  occur  in \
-the attempted overlap area. Not recommended."
+the attempted overlap area. Not recommended.")
     },
     { /* End of parameters */ }
   };

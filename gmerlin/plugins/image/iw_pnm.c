@@ -23,8 +23,13 @@
 #include <inttypes.h>
 #include <errno.h>
 
+#include <config.h>
+#include <translation.h>
 #include <plugin.h>
 #include <utils.h>
+
+#include <log.h>
+#define LOG_DOMAIN "iw_pnm"
 
 #define BINARY    6
 #define ASCII     3
@@ -37,7 +42,6 @@ typedef struct
   uint32_t Height;
   gavl_video_format_t format;
   uint16_t pnm_format;
-  char * error_msg;
   } pnm_t;
 
 static void * create_pnm()
@@ -52,8 +56,6 @@ static void destroy_pnm(void* priv)
   pnm_t * pnm = (pnm_t*)priv;
   if(pnm->comment)
     free(pnm->comment);
-  if(pnm->error_msg)
-    free(pnm->error_msg);
   free(pnm);
   }
 
@@ -71,8 +73,8 @@ static int write_header_pnm(void * priv, const char * filename,
 
   if(!p->output)
     {
-    p->error_msg = bg_sprintf("Cannot open %s: %s",
-                              filename, strerror(errno));
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s: %s",
+           filename, strerror(errno));
     return 0;
     }
   /* Write the header lines */  
@@ -140,20 +142,20 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name:        "format",
-      long_name:   "Format",
+      long_name:   TRS("Format"),
       type:        BG_PARAMETER_STRINGLIST,
       multi_names: (char*[]){ "binary", "ascii", (char*)0 },
-      multi_labels:  (char*[]){ "Binary", "ASCII", (char*)0 },
+      multi_labels:  (char*[]){ TRS("Binary"), TRS("ASCII"), (char*)0 },
 
       val_default: { val_str: "binary" },
     },
     {
       name:        "comment",
-      long_name:   "Comment",
+      long_name:   TRS("Comment"),
       type:        BG_PARAMETER_STRING,
 
       val_default: { val_str: "Created with gmerlin" },
-      help_string: "Comment which will be written in front of every file"
+      help_string: TRS("Comment which will be written in front of every file")
     },
    { /* End of parameters */ }
   };
@@ -186,12 +188,6 @@ static void set_parameter_pnm(void * p, char * name,
    
   }
 
-static const char * get_error_pnm(void * p)
-  {
-  pnm_t * pnm;
-  pnm = (pnm_t *)p;
-  return pnm->error_msg;
-  }
 
 static char * pnm_extension = ".ppm";
 
@@ -204,8 +200,10 @@ bg_image_writer_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:           "iw_pnm",
-      long_name:      "PNM writer",
+      long_name:      TRS("PPM writer"),
+      description:    TRS("Writer for PPM images"),
       mimetypes:      (char*)0,
       extensions:     "ppm",
       type:           BG_PLUGIN_IMAGE_WRITER,
@@ -213,7 +211,6 @@ bg_image_writer_plugin_t the_plugin =
       priority:       5,
       create:         create_pnm,
       destroy:        destroy_pnm,
-      get_error:      get_error_pnm,
       get_parameters: get_parameters_pnm,
       set_parameter:  set_parameter_pnm
     },

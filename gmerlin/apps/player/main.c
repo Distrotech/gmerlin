@@ -25,6 +25,8 @@
 
 /* Gmerlin includes */
 
+#include <config.h>
+
 #include <player.h>
 
 #include "gmerlin.h"
@@ -54,6 +56,8 @@ int main(int argc, char ** argv)
   /* Fire up the actual player */
 
   bg_gtk_init(&argc, &argv, "player_icon.png");
+
+  bg_translation_init();
   
   gmerlin = gmerlin_create(cfg_reg);
 

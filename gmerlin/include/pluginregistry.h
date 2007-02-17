@@ -46,14 +46,22 @@
 
 typedef struct bg_plugin_info_s
   {
+  char * gettext_domain; //!< First argument for bindtextdomain(). 
+  char * gettext_directory; //!< Second argument for bindtextdomain().
+  
   char * name;            //!< unique short name
   char * long_name;       //!< Humanized name
   char * mimetypes;       //!< Mimetypes, this plugin can handle
   char * extensions;      //!< Extensions, this plugin can handle
   char * protocols;       //!< Network protocols, this plugin can handle
+
+  char * description;     //!< Description of what the plugin does
+
   char * module_filename; //!< Path of the shared module
   long   module_time;     //!< Modification time of the shared module, needed internally
 
+  
+  
   bg_plugin_type_t type; //!< Plugin type
   int flags;             //!< Flags (see \ref plugin_flags)
   int priority;          //!< Priority (1..10)
@@ -169,16 +177,6 @@ const bg_plugin_info_t *
 bg_plugin_find_by_name(bg_plugin_registry_t * reg, const char * name);
 
 /** \ingroup plugin_registry
- *  \brief Find a plugin by it's long name
- *  \param reg A plugin registry
- *  \param long_name The long name
- *  \returns A plugin info or NULL
- */
-
-const bg_plugin_info_t *
-bg_plugin_find_by_long_name(bg_plugin_registry_t * reg, const char * long_name);
-
-/** \ingroup plugin_registry
  *  \brief Find a plugin by the file extension
  *  \param reg A plugin registry
  *  \param filename The file, whose extension should match
@@ -211,10 +209,10 @@ bg_plugin_find_by_protocol(bg_plugin_registry_t * reg,
  *  \param reg A plugin registry
  *  \param type_mask Mask of all returned plugin types
  *  \param flag_mask Mask of all returned plugin flags
- *  \returns A NULL-terminated list of long names.
+ *  \returns A NULL-terminated list of plugin names.
  *
  *  This functions returns plugin names suitable for adding to
- *  GUI menus. Use \ref bg_plugin_find_by_long_name to get
+ *  GUI menus. Use \ref bg_plugin_find_by_name_name to get
  *  the corresponding plugin infos.
  *
  *  Use \ref bg_plugin_registry_free_plugins to free the returned list.
@@ -261,7 +259,6 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
                          const char * location,
                          const bg_plugin_info_t * info,
                          bg_plugin_handle_t ** ret,
-                         char ** error_msg,
                          bg_input_callbacks_t * callbacks);
 
 /* Set the supported extensions and mimetypes for a plugin */

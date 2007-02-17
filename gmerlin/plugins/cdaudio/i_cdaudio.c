@@ -4,6 +4,9 @@
 
 #include <unistd.h>
 
+#include <config.h>
+#include <translation.h>
+
 #include "cdaudio.h"
 #include <utils.h>
 #include <log.h>
@@ -71,9 +74,7 @@ typedef struct
   uint32_t samples_written;
 
   int paused;
-  
-  char * error_msg;
-
+    
   const char * disc_name;
   } cdaudio_t;
 
@@ -93,16 +94,8 @@ static void destroy_cd_data(cdaudio_t* cd)
     cd->index = (bg_cdaudio_index_t*)0;
     }
 
-  if(cd->error_msg)
-    free(cd->error_msg);
   }
 
-static const char * get_error_cdaudio(void* priv)
-  {
-  cdaudio_t * cd;
-  cd = (cdaudio_t *)priv;
-  return cd->error_msg;
-  }
 
 static const char * get_disc_name_cdaudio(void* priv)
   {
@@ -197,9 +190,9 @@ static int open_cdaudio(void * data, const char * arg)
       
       cd->track_info[j].duration =
         ((int64_t)(cd->index->tracks[i].last_sector -
-          cd->index->tracks[i].first_sector + 1) * GAVL_TIME_SCALE) / 75;
-      cd->track_info[j].description = bg_strdup(NULL, "CD audio track");
-      //      cd->track_info[j].name = bg_sprintf("Audio CD track %02d", j+1);
+                   cd->index->tracks[i].first_sector + 1) *
+         GAVL_TIME_SCALE) / 75;
+      cd->track_info[j].description = bg_strdup(NULL, TR("CD audio track"));
       cd->track_info[j].metadata.track = j+1;
       cd->track_info[j].seekable = 1;
       }
@@ -297,7 +290,7 @@ static int open_cdaudio(void * data, const char * arg)
         {
         j = cd->index->tracks[i].index;
         if(cd->index->tracks[i].is_audio)
-          cd->track_info[j].name = bg_sprintf("Audio CD track %02d", j+1);
+          cd->track_info[j].name = bg_sprintf(TR("Audio CD track %02d"), j+1);
         }
       }
     }
@@ -392,7 +385,7 @@ static int start_cdaudio(void * priv)
       }
     if(!bg_cdaudio_play(cd->cdio, cd->first_sector, last_sector))
       {
-      cd->error_msg = bg_sprintf("Play command failed. Disk missing?");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Play command failed. Disk missing?");
       return 0;
       }
     cd->status.sector = cd->first_sector;
@@ -640,60 +633,60 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name:      "general",
-      long_name: "General",
+      long_name: TRS("General"),
       type:      BG_PARAMETER_SECTION
     },
     {
       name:        "trackname_template",
-      long_name:   "Trackname template",
+      long_name:   TRS("Trackname template"),
       type:        BG_PARAMETER_STRING,
       val_default: { val_str: "%p - %t" },
-      help_string: "Template for track name generation from metadata\n\
+      help_string: TRS("Template for track name generation from metadata\n\
 %p:    Artist\n\
 %a:    Album\n\
 %g:    Genre\n\
 %t:    Track name\n\
 %<d>n: Track number (d = number of digits, 1-9)\n\
 %y:    Year\n\
-%c:    Comment"
+%c:    Comment")
     },
     {
       name:        "use_cdtext",
-      long_name:   "Use CD-Text",
+      long_name:   TRS("Use CD-Text"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 },
-      help_string: "Try to get CD metadata from CD-Text",
+      help_string: TRS("Try to get CD metadata from CD-Text"),
     },
     {
       name:        "use_local",
-      long_name:   "Use locally saved metadata",
+      long_name:   TRS("Use locally saved metadata"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 },
-      help_string: "Whenever we obtain CD metadata from the internet, we save them into \
+      help_string: TRS("Whenever we obtain CD metadata from the internet, we save them into \
 $HOME/.gmerlin/cdaudio_metadata. If you got wrong metadata for a CD,\
- disabling this option will retrieve the metadata again and overwrite the saved data.",
+ disabling this option will retrieve the metadata again and overwrite the saved data."),
     },
 #ifdef HAVE_MUSICBRAINZ
     {
       name:      "musicbrainz",
-      long_name: "Musicbrainz",
+      long_name: TRS("Musicbrainz"),
       type:      BG_PARAMETER_SECTION
     },
     {
       name:        "use_musicbrainz",
-      long_name:   "Use Musicbrainz",
+      long_name:   TRS("Use Musicbrainz"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 }
     },
     {
       name:        "musicbrainz_host",
-      long_name:   "Server",
+      long_name:   TRS("Server"),
       type:        BG_PARAMETER_STRING,
       val_default: { val_str: "mm.musicbrainz.org" }
     },
     {
       name:        "musicbrainz_port",
-      long_name:   "Port",
+      long_name:   TRS("Port"),
       type:         BG_PARAMETER_INT,
       val_min:      { val_i: 1 },
       val_max:      { val_i: 65535 },
@@ -701,41 +694,41 @@ $HOME/.gmerlin/cdaudio_metadata. If you got wrong metadata for a CD,\
     },
     {
       name:        "musicbrainz_proxy_host",
-      long_name:   "Proxy",
+      long_name:   TRS("Proxy"),
       type:        BG_PARAMETER_STRING,
-      help_string: "Proxy server (leave empty for direct connection)"
+      help_string: TRS("Proxy server (leave empty for direct connection)")
     },
     {
       name:        "musicbrainz_proxy_port",
-      long_name:   "Proxy Port",
+      long_name:   TRS("Proxy Port"),
       type:         BG_PARAMETER_INT,
       val_min:      { val_i: 1 },
       val_max:      { val_i: 65535 },
       val_default:  { val_i: 80 },
-      help_string: "Proxy port"
+      help_string: TRS("Proxy port")
     },
 #endif
 #ifdef HAVE_LIBCDDB
     {
       name:      "cddb",
-      long_name: "Cddb",
+      long_name: TRS("Cddb"),
       type:      BG_PARAMETER_SECTION
     },
     {
       name:        "use_cddb",
-      long_name:   "Use Cddb",
+      long_name:   TRS("Use Cddb"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 }
     },
     {
       name:        "cddb_host",
-      long_name:   "Server",
+      long_name:   TRS("Server"),
       type:        BG_PARAMETER_STRING,
       val_default: { val_str: "freedb.org" }
     },
     {
       name:        "cddb_port",
-      long_name:   "Port",
+      long_name:   TRS("Port"),
       type:         BG_PARAMETER_INT,
       val_min:      { val_i: 1 },
       val_max:      { val_i: 65535 },
@@ -743,45 +736,45 @@ $HOME/.gmerlin/cdaudio_metadata. If you got wrong metadata for a CD,\
     },
     {
       name:        "cddb_path",
-      long_name:   "Path",
+      long_name:   TRS("Path"),
       type:        BG_PARAMETER_STRING,
       val_default: { val_str: "/~cddb/cddb.cgi" }
     },
     {
       name:        "cddb_proxy_host",
-      long_name:   "Proxy",
+      long_name:   TRS("Proxy"),
       type:        BG_PARAMETER_STRING,
-      help_string: "Proxy server (leave empty for direct connection)"
+      help_string: TRS("Proxy server (leave empty for direct connection)")
     },
     {
       name:        "cddb_proxy_port",
-      long_name:   "Proxy Port",
+      long_name:   TRS("Proxy Port"),
       type:         BG_PARAMETER_INT,
       val_min:      { val_i: 1 },
       val_max:      { val_i: 65535 },
       val_default:  { val_i: 80 },
-      help_string: "Proxy port"
+      help_string: TRS("Proxy port")
     },
     {
       name:        "cddb_proxy_user",
-      long_name:   "Proxy username",
+      long_name:   TRS("Proxy username"),
       type:        BG_PARAMETER_STRING,
-      help_string: "User name for proxy (leave empty for poxies, which don't require authentication)"
+      help_string: TRS("User name for proxy (leave empty for poxies, which don't require authentication)")
     },
     {
       name:        "cddb_proxy_pass",
-      long_name:   "Proxy password",
+      long_name:   TRS("Proxy password"),
       type:        BG_PARAMETER_STRING_HIDDEN,
-      help_string: "Password for proxy"
+      help_string: TRS("Password for proxy")
     },
     {
       name:        "cddb_timeout",
-      long_name:   "Timeout",
+      long_name:   TRS("Timeout"),
       type:         BG_PARAMETER_INT,
       val_min:      { val_i: 0 },
       val_max:      { val_i: 1000 },
       val_default:  { val_i: 10 },
-      help_string: "Timeout (in seconds) for connections to the CDDB server"
+      help_string: TRS("Timeout (in seconds) for connections to the CDDB server")
     },
 #endif
     { /* End of parmeters */ }
@@ -881,8 +874,10 @@ bg_input_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:          "i_cdaudio",
-      long_name:     "Audio CD player/ripper",
+      long_name:     TRS("Audio CD player/ripper"),
+      description:   TRS("Plugin for audio CDs. Supports both playing with direct connection from the CD-drive to the souncard and ripping with cdparanoia. Metadata are obtained from Musicbrainz, freedb or CD-text. Metadata are cached in $HOME/.gmerlin/cdaudio_metadata."),
       type:          BG_PLUGIN_INPUT,
 
       flags:         BG_PLUGIN_REMOVABLE |
@@ -897,7 +892,6 @@ bg_input_plugin_t the_plugin =
       set_parameter:  set_parameter_cdaudio,
       find_devices: bg_cdaudio_find_devices,
       check_device: bg_cdaudio_check_device,
-      get_error:    get_error_cdaudio,
     },
     protocols: "cda",
   /* Open file/device */

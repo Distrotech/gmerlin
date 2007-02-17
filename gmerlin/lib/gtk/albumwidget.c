@@ -17,6 +17,8 @@
  
 *****************************************************************/
 
+#include <config.h>
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -32,6 +34,7 @@
 #include <gui_gtk/urlselect.h>
 #include <gui_gtk/albumentry.h>
 #include <gui_gtk/display.h>
+#include <gui_gtk/gtkutils.h>
 
 /* Since the gtk part is single threaded,
    we can load the pixbufs globally */
@@ -991,7 +994,7 @@ static void rename_current_entry(bg_gtk_album_widget_t * w)
   memset(info, 0, sizeof(info));
 
   info[0].name                = "track_name";
-  info[0].long_name           = "Track name";
+  info[0].long_name           = TRS("Track name");
   info[0].type                = BG_PARAMETER_STRING;
   info[0].val_default.val_str = w->selected_entry->name;
 
@@ -1001,7 +1004,7 @@ static void rename_current_entry(bg_gtk_album_widget_t * w)
                             set_name,
                             w,
                             info,
-                            "Rename entry");
+                            TR("Rename entry"));
   
   bg_dialog_show(dialog);
   
@@ -1013,7 +1016,7 @@ static void add_files(bg_gtk_album_widget_t * widget)
   {
   char * tmp_string;
 
-  tmp_string = bg_sprintf("Add files to album %s",
+  tmp_string = bg_sprintf(TR("Add files to album %s"),
                           bg_album_get_name(widget->album));
   if(!file_plugins)
     file_plugins = bg_plugin_registry_get_plugins(bg_album_get_plugin_registry(widget->album),
@@ -1025,7 +1028,8 @@ static void add_files(bg_gtk_album_widget_t * widget)
                           add_file_callback,
                           filesel_close_callback,
                           file_plugins,
-                          widget, widget->parent);
+                          widget, widget->parent,
+                          bg_album_get_plugin_registry(widget->album));
   free(tmp_string);
 
   bg_gtk_filesel_set_directory(widget->add_files_filesel,
@@ -1041,7 +1045,7 @@ static void add_urls(bg_gtk_album_widget_t * widget)
   {
   char * tmp_string;
 
-  tmp_string = bg_sprintf("Add URLS to album %s",
+  tmp_string = bg_sprintf(TR("Add URLS to album %s"),
                           bg_album_get_name(widget->album));
   if(!url_plugins)
     url_plugins =
@@ -1054,7 +1058,8 @@ static void add_urls(bg_gtk_album_widget_t * widget)
                          add_urls_callback,
                          urlsel_close_callback,
                          url_plugins,
-                         widget, widget->parent);
+                         widget, widget->parent,
+                         bg_album_get_plugin_registry(widget->album));
   free(tmp_string);
 
   gtk_widget_set_sensitive(widget->add_urls_button, 0);
@@ -1134,14 +1139,14 @@ static void menu_callback(GtkWidget * w, gpointer data)
   
   else if(w == widget->menu.add_menu.albums_item)
     {
-    tmp_string = bg_sprintf("Add albums to %s",
+    tmp_string = bg_sprintf(TR("Add albums to %s"),
                             bg_album_get_name(widget->album));
     widget->add_files_filesel =
       bg_gtk_filesel_create(tmp_string,
                             add_albums_callback,
                             filesel_close_callback,
                             (char **)0,
-                            widget, widget->parent);
+                            widget, widget->parent, (bg_plugin_registry_t*)0);
     free(tmp_string);
     bg_gtk_filesel_run(widget->add_files_filesel, 0);
     }
@@ -1305,11 +1310,11 @@ static void init_menu(bg_gtk_album_widget_t * w)
     {
     w->menu.add_menu.menu = gtk_menu_new();
     w->menu.add_menu.files_item =
-      create_item(w, w->menu.add_menu.menu, "Add Files", "folder_open_16.png");
+      create_item(w, w->menu.add_menu.menu, TR("Add Files"), "folder_open_16.png");
     w->menu.add_menu.urls_item =
-      create_item(w, w->menu.add_menu.menu, "Add URLs", "earth_16.png");
+      create_item(w, w->menu.add_menu.menu, TR("Add URLs"), "earth_16.png");
     w->menu.add_menu.albums_item =
-      create_item(w, w->menu.add_menu.menu, "Add Albums", (char*)0);
+      create_item(w, w->menu.add_menu.menu, TR("Add Albums"), (char*)0);
     gtk_widget_show(w->menu.add_menu.menu);
     }
 
@@ -1321,7 +1326,7 @@ static void init_menu(bg_gtk_album_widget_t * w)
      (type == BG_ALBUM_TYPE_INCOMING))
     {
     w->menu.edit_menu.copy_to_favourites_item =
-      create_item(w, w->menu.edit_menu.menu, "Copy to favourites", "favourites_16.png");
+      create_item(w, w->menu.edit_menu.menu, TR("Copy to favourites"), "favourites_16.png");
     gtk_widget_add_accelerator(w->menu.edit_menu.copy_to_favourites_item, "activate",
                                w->accel_group,
                                GDK_F10, 0, GTK_ACCEL_VISIBLE);
@@ -1329,28 +1334,28 @@ static void init_menu(bg_gtk_album_widget_t * w)
     }
   
   w->menu.edit_menu.move_up_item =
-    create_item(w, w->menu.edit_menu.menu, "Move to top", "top_16.png");
+    create_item(w, w->menu.edit_menu.menu, TR("Move to top"), "top_16.png");
 
   w->menu.edit_menu.move_down_item =
-    create_item(w, w->menu.edit_menu.menu, "Move to bottom", "bottom_16.png");
+    create_item(w, w->menu.edit_menu.menu, TR("Move to bottom"), "bottom_16.png");
   
   w->menu.edit_menu.remove_item =
-    create_item(w, w->menu.edit_menu.menu, "Remove", "trash_16.png");
+    create_item(w, w->menu.edit_menu.menu, TR("Remove"), "trash_16.png");
 
   w->menu.edit_menu.cut_item =
-    create_item(w, w->menu.edit_menu.menu, "Cut", "cut_16.png");
+    create_item(w, w->menu.edit_menu.menu, TR("Cut"), "cut_16.png");
 
   gtk_widget_add_accelerator(w->menu.edit_menu.cut_item, "activate", w->accel_group,
                              GDK_x, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
   
   w->menu.edit_menu.copy_item =
-    create_item(w, w->menu.edit_menu.menu, "Copy", "copy_16.png");
+    create_item(w, w->menu.edit_menu.menu, TR("Copy"), "copy_16.png");
 
   gtk_widget_add_accelerator(w->menu.edit_menu.copy_item, "activate", w->accel_group,
                              GDK_c, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
 
   w->menu.edit_menu.paste_item =
-    create_item(w, w->menu.edit_menu.menu, "Paste", "paste_16.png");
+    create_item(w, w->menu.edit_menu.menu, TR("Paste"), "paste_16.png");
 
   gtk_widget_add_accelerator(w->menu.edit_menu.paste_item, "activate", w->accel_group,
                              GDK_v, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
@@ -1361,19 +1366,19 @@ static void init_menu(bg_gtk_album_widget_t * w)
   w->menu.selected_menu.menu = gtk_menu_new();
     
   w->menu.selected_menu.rename_item =
-    create_item(w, w->menu.selected_menu.menu, "Rename...", "rename_16.png");
+    create_item(w, w->menu.selected_menu.menu, TR("Rename..."), "rename_16.png");
   w->menu.selected_menu.info_item =
-    create_item(w, w->menu.selected_menu.menu, "Info...", "info_16.png");
+    create_item(w, w->menu.selected_menu.menu, TR("Info..."), "info_16.png");
 
   if(bg_search_file_exec("gmerlin_transcoder_remote", (char**)0))  
     w->menu.selected_menu.transcode_item =
-      create_item(w, w->menu.selected_menu.menu, "Tanscode", (char*)0);
+      create_item(w, w->menu.selected_menu.menu, TR("Transcode"), (char*)0);
   
   if((type == BG_ALBUM_TYPE_REGULAR) ||
      (type == BG_ALBUM_TYPE_FAVOURITES) ||
      (type == BG_ALBUM_TYPE_INCOMING))
     w->menu.selected_menu.refresh_item =
-      create_item(w, w->menu.selected_menu.menu, "Refresh", "refresh_16.png");
+      create_item(w, w->menu.selected_menu.menu, TR("Refresh"), "refresh_16.png");
   
   gtk_widget_set_sensitive(w->menu.selected_menu.rename_item, 0);
   
@@ -1385,10 +1390,10 @@ static void init_menu(bg_gtk_album_widget_t * w)
   if(type == BG_ALBUM_TYPE_REGULAR)
     {
     w->menu.album_menu.save_item =
-      create_item(w, w->menu.album_menu.menu, "Save as...", "save_16.png");
+      create_item(w, w->menu.album_menu.menu, TR("Save as..."), "save_16.png");
     }
   w->menu.album_menu.sort_item =
-    create_item(w, w->menu.album_menu.menu, "Sort", "sort_16.png");
+    create_item(w, w->menu.album_menu.menu, TR("Sort"), "sort_16.png");
     
   /* Root menu */
   
@@ -1397,36 +1402,36 @@ static void init_menu(bg_gtk_album_widget_t * w)
   if(type == BG_ALBUM_TYPE_REGULAR)
     {
     w->menu.add_item =
-      create_item(w, w->menu.menu, "Add...", (char*)0);
+      create_item(w, w->menu.menu, TR("Add..."), (char*)0);
     
     gtk_menu_item_set_submenu(GTK_MENU_ITEM(w->menu.add_item),
                               w->menu.add_menu.menu);
     }
 
   w->menu.edit_item =
-    create_item(w, w->menu.menu, "Edit...", (char*)0);
+    create_item(w, w->menu.menu, TR("Edit..."), (char*)0);
 
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(w->menu.edit_item),
                             w->menu.edit_menu.menu);
 
   
   w->menu.selected_item =
-    create_item(w, w->menu.menu, "Selected...", (char*)0);
+    create_item(w, w->menu.menu, TR("Selected..."), (char*)0);
 
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(w->menu.selected_item),
                             w->menu.selected_menu.menu);
 
   w->menu.album_item =
-    create_item(w, w->menu.menu, "Album...", (char*)0);
+    create_item(w, w->menu.menu, TR("Album..."), (char*)0);
 
   
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(w->menu.album_item),
                             w->menu.album_menu.menu);
   w->menu.select_error_item =
-    create_item(w, w->menu.menu, "Select error tracks", (char*)0);
+    create_item(w, w->menu.menu, TR("Select error tracks"), (char*)0);
 
   w->menu.show_toolbar_item =
-    create_toggle_item(w, w->menu.menu, "Show toolbar");
+    create_toggle_item(w, w->menu.menu, TR("Show toolbar"));
   }
 
 static void update_selected(bg_gtk_album_widget_t * aw, GtkTreePath * path,
@@ -2229,8 +2234,7 @@ static void button_callback(GtkWidget * wid, gpointer data)
 
 static GtkWidget * create_pixmap_button(bg_gtk_album_widget_t * w,
                                         const char * filename,
-                                        const char * tooltip,
-                                        const char * tooltip_private)
+                                        const char * tooltip)
   {
   GtkWidget * button;
   GtkWidget * image;
@@ -2253,7 +2257,7 @@ static GtkWidget * create_pixmap_button(bg_gtk_album_widget_t * w,
 
   gtk_widget_show(button);
 
-  gtk_tooltips_set_tip(w->tooltips, button, tooltip, tooltip_private);
+  bg_gtk_tooltips_set_tip(w->tooltips, button, tooltip, PACKAGE);
   
   return button;
   }
@@ -2515,9 +2519,9 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
   if(type == BG_ALBUM_TYPE_REGULAR)
     {
     ret->add_files_button        = create_pixmap_button(ret, "folder_open_16.png",
-                                                        "Add files", "Append files to the track list");
+                                                        TRS("Add files"));
     ret->add_urls_button         = create_pixmap_button(ret, "earth_16.png",
-                                                        "Add URLs", "Append URLs to the track list");
+                                                        TRS("Add URLs"));
     }
 
   if((type == BG_ALBUM_TYPE_REGULAR) ||
@@ -2525,45 +2529,44 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
      (type == BG_ALBUM_TYPE_FAVOURITES))
     {
     ret->cut_button              = create_pixmap_button(ret, "cut_16.png",
-                                                        "Cut", "Cut");
+                                                        TRS("Cut"));
     ret->copy_button             = create_pixmap_button(ret, "copy_16.png",
-                                                      "Copy", "Copy");
+                                                      TRS("Copy"));
     ret->paste_button             = create_pixmap_button(ret, "paste_16.png",
-                                                         "Paste", "Paste");
+                                                         TRS("Paste"));
     }
-
+  
   if(type == BG_ALBUM_TYPE_REMOVABLE && bg_album_can_eject(ret->album))
     {
     ret->eject_button = create_pixmap_button(ret, "eject_16.png",
-                                             "Close album and eject disc",
-                                             "Close album and eject disc");
+                                             TRS("Close album and eject disc"));
     }
   
   if((type == BG_ALBUM_TYPE_REGULAR) ||
      (type == BG_ALBUM_TYPE_INCOMING))
     ret->copy_to_favourites_button = create_pixmap_button(ret, "favourites_16.png",
-                                                          "Copy to favourites",
-                                                          "Copy selected tracks to favourites");
+                                                          TRS("Copy selected tracks to favourites"));
   
   ret->remove_selected_button    = create_pixmap_button(ret, "trash_16.png",
-                                                        "Delete", "Delete selected tracks");
+                                                        TRS("Delete selected tracks"));
 
   ret->rename_selected_button    = create_pixmap_button(ret, "rename_16.png",
-                                                        "Rename", "Rename selected track");
+                                                        TRS("Rename selected track"));
 
   ret->info_button               = create_pixmap_button(ret, "info_16.png",
-                                                        "Show track info", "Show track info");
+                                                        TRS("Show track info"));
+  
   ret->move_selected_up_button   = create_pixmap_button(ret, "top_16.png",
-                                                        "Move to top", "Move to top");
+                                                        TRS("Move to top"));
   ret->move_selected_down_button = create_pixmap_button(ret, "bottom_16.png",
-                                                        "Move to bottom", "Move to bottom");
+                                                        TRS("Move to bottom"));
   
   ret->total_time                = bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE_SMALL, 4);
 
-  gtk_tooltips_set_tip(ret->tooltips,
-                       bg_gtk_time_display_get_widget(ret->total_time),
-                       "Total playback time",
-                       "Total playback time");
+  bg_gtk_tooltips_set_tip(ret->tooltips,
+                          bg_gtk_time_display_get_widget(ret->total_time),
+                          TRS("Total playback time"),
+                          PACKAGE);
 
 
   ret->toolbar                   = gtk_hbox_new(0, 0);

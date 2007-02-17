@@ -17,6 +17,8 @@
  
 *****************************************************************/
 
+#include <translation.h>
+
 GdkPixbuf * bg_gtk_pixbuf_scale_alpha(GdkPixbuf * src,
                                       int dest_width,
                                       int dest_height,
@@ -35,3 +37,7 @@ char * bg_gtk_convert_font_name_from_pango(const char * name);
 char * bg_gtk_convert_font_name_to_pango(const char * name);
 
 GtkWidget * bg_gtk_window_new(GtkWindowType type);
+
+void bg_gtk_tooltips_set_tip(GtkTooltips * tooltips,
+                             GtkWidget * w, const char * str,
+                             const char * translation_domain);

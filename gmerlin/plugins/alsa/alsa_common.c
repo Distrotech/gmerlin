@@ -17,6 +17,9 @@
  
 *****************************************************************/
 
+#include <config.h>
+#include <translation.h>
+
 #include <parameter.h>
 #include <utils.h>
 
@@ -29,7 +32,6 @@ static snd_pcm_t * bg_alsa_open(const char * card,
                                 gavl_audio_format_t * format,
                                 snd_pcm_stream_t stream,
                                 gavl_time_t buffer_time,
-                                char ** error_msg,
                                 int * convert_4_3)
   {
   unsigned int i_tmp;
@@ -55,9 +57,8 @@ static snd_pcm_t * bg_alsa_open(const char * card,
                          ) < 0))
     {
     ret = (snd_pcm_t *)0;
-    if(error_msg)
-      *error_msg = bg_sprintf("alsa: snd_pcm_open failed for device %s (%s)", 
-                              card, snd_strerror(err));
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_pcm_open failed for device %s (%s)",
+           card, snd_strerror(err));
     goto fail;
     }
 
@@ -67,12 +68,12 @@ static snd_pcm_t * bg_alsa_open(const char * card,
   
   if(snd_pcm_hw_params_malloc(&hw_params) < 0)
     {
-    if(error_msg) *error_msg = bg_sprintf("alsa: snd_pcm_hw_params_malloc failed");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_pcm_hw_params_malloc failed");
     goto fail;
     }
   if(snd_pcm_hw_params_any(ret, hw_params) < 0)
     {
-    if(error_msg) *error_msg = bg_sprintf("alsa: snd_pcm_hw_params_any failed");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_pcm_hw_params_any failed");
     goto fail;
     }
 
@@ -81,8 +82,7 @@ static snd_pcm_t * bg_alsa_open(const char * card,
   if(snd_pcm_hw_params_set_access(ret, hw_params,
                                   SND_PCM_ACCESS_RW_INTERLEAVED) < 0)
     {
-    if(error_msg)
-      *error_msg = bg_sprintf("alsa: snd_pcm_hw_params_set_access failed");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_pcm_hw_params_set_access failed");
     goto fail;
     }
   else
@@ -101,7 +101,7 @@ static snd_pcm_t * bg_alsa_open(const char * card,
         if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S16) < 0)
           {
           /* Hopeless */
-          if(error_msg) *error_msg = bg_sprintf("alsa: snd_pcm_hw_params_set_format failed");
+          bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_pcm_hw_params_set_format failed");
           goto fail;
           }
         else
@@ -115,7 +115,7 @@ static snd_pcm_t * bg_alsa_open(const char * card,
       if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S16) < 0)
         {
         /* Hopeless */
-        if(error_msg) *error_msg = bg_sprintf("alsa: snd_pcm_hw_params_set_format failed");
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_pcm_hw_params_set_format failed");
         goto fail;
         }
       else
@@ -140,7 +140,7 @@ static snd_pcm_t * bg_alsa_open(const char * card,
           if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S16) < 0)
             {
             /* Hopeless */
-            if(error_msg) *error_msg = bg_sprintf("alsa: snd_pcm_hw_params_set_format failed");
+            bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_pcm_hw_params_set_format failed");
             goto fail;
             }
           else
@@ -177,7 +177,7 @@ static snd_pcm_t * bg_alsa_open(const char * card,
                 if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S16) < 0)
                   {
                   /* Hopeless */
-                  if(error_msg) *error_msg = bg_sprintf("alsa: snd_pcm_hw_params_set_format failed");
+                  bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_pcm_hw_params_set_format failed");
                   goto fail;
                   }
                 else
@@ -206,16 +206,16 @@ static snd_pcm_t * bg_alsa_open(const char * card,
   if(snd_pcm_hw_params_set_channels(ret, hw_params,
                                     format->num_channels) < 0)
     {
-    if(error_msg)
-      *error_msg =
-        bg_sprintf("alsa: snd_pcm_hw_params_set_channels failed (Format has %d channels)",
-                     format->num_channels);
-
     if(format->num_channels == 1) /* Mono doesn't work, try stereo */
       {
       if(snd_pcm_hw_params_set_channels(ret, hw_params,
                                         2) < 0)
+        {
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+               "snd_pcm_hw_params_set_channels failed (Format has %d channels)",
+               format->num_channels);
         goto fail;
+        }
       else
         {
         format->num_channels = 2;
@@ -224,9 +224,14 @@ static snd_pcm_t * bg_alsa_open(const char * card,
         }
       }
     else
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+             "snd_pcm_hw_params_set_channels failed (Format has %d channels)",
+             format->num_channels);
       goto fail;
+      }
     }
-
+  
   /* Switch off driver side resampling */
 #if SND_LIB_VERSION >= 0x010009
   snd_pcm_hw_params_set_rate_resample(ret, hw_params, 0);
@@ -238,7 +243,7 @@ static snd_pcm_t * bg_alsa_open(const char * card,
                                      &(i_tmp),
                                      0) < 0)
     {
-    if(error_msg) *error_msg = bg_sprintf("alsa: snd_pcm_hw_params_set_rate_near failed");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_pcm_hw_params_set_rate_near failed");
     goto fail;
     }
   format->samplerate = i_tmp;
@@ -268,8 +273,7 @@ static snd_pcm_t * bg_alsa_open(const char * card,
   dir = 0;
   if(snd_pcm_hw_params_set_period_size_near(ret, hw_params, &period_size, &dir) < 0)
     {
-    if(error_msg)
-      *error_msg = bg_sprintf("bg_alsa_open: snd_pcm_hw_params_set_period_size failed");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_pcm_hw_params_set_period_size failed");
     goto fail;
     }
   dir = 0;
@@ -278,8 +282,7 @@ static snd_pcm_t * bg_alsa_open(const char * card,
   dir = 0;
   if(snd_pcm_hw_params_set_buffer_size_near(ret, hw_params, &buffer_size) < 0)
     {
-    if(error_msg)
-      *error_msg = bg_sprintf("bg_alsa_open: snd_pcm_hw_params_set_buffer_size failed");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_pcm_hw_params_set_buffer_size failed");
     goto fail;
     }
   
@@ -291,15 +294,9 @@ static snd_pcm_t * bg_alsa_open(const char * card,
   /* Write params to card */
   if(snd_pcm_hw_params (ret, hw_params) < 0)
     {
-    if(error_msg)
-      *error_msg = bg_sprintf("alsa: snd_pcm_hw_params failed");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_pcm_hw_params failed");
     goto fail;
     }
-#if 0  
-  if(error_msg)
-    *error_msg = bg_sprintf("Test error");
-  goto fail;
-#endif
   snd_pcm_hw_params_free(hw_params);
   
   gavl_set_channel_setup(format);
@@ -318,20 +315,18 @@ static snd_pcm_t * bg_alsa_open(const char * card,
 
 snd_pcm_t * bg_alsa_open_read(const char * card,
                               gavl_audio_format_t * format,
-                              char ** error_msg,
                               gavl_time_t buffer_time)
   {
   return bg_alsa_open(card, format, SND_PCM_STREAM_CAPTURE,
-                      buffer_time, error_msg, NULL);
+                      buffer_time, NULL);
   }
 
 snd_pcm_t * bg_alsa_open_write(const char * card, gavl_audio_format_t * format,
-                               char ** error_msg,
                                gavl_time_t buffer_time,
                                int * convert_4_3)
   {
   return bg_alsa_open(card, format, SND_PCM_STREAM_PLAYBACK,
-                      buffer_time, error_msg, convert_4_3);
+                      buffer_time, convert_4_3);
   }
 
 void bg_alsa_create_card_parameters(bg_parameter_info_t * ret)
@@ -349,7 +344,7 @@ void bg_alsa_create_card_parameters(bg_parameter_info_t * ret)
     }
 
   ret->name      = bg_strdup((char*)0, "card");
-  ret->long_name = bg_strdup((char*)0, "Card");
+  ret->long_name = bg_strdup((char*)0, TRS("Card"));
   ret->type = BG_PARAMETER_STRINGLIST;
 
   istart = 1;
@@ -361,7 +356,7 @@ void bg_alsa_create_card_parameters(bg_parameter_info_t * ret)
   
   ret->val_default.val_str = bg_strdup((char*)0, "default");
 
-  ret->multi_labels[0] = bg_strdup((char*)0, "Default");
+  ret->multi_labels[0] = bg_strdup((char*)0, TRS("Default"));
   ret->multi_names[0]  = bg_strdup((char*)0, "default");
   
   for(i = istart; i < num_cards; i++)

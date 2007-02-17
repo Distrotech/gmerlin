@@ -1,4 +1,4 @@
-AM_CFLAGS = @XML2_CFLAGS@ @GTK_CFLAGS@
+AM_CFLAGS = @XML2_CFLAGS@ @GTK_CFLAGS@ -DLOCALE_DIR=\"$(localedir)\"
 
 Desktopdir = $(datadir)/applications
 Desktop_DATA = gmerlin-player.desktop

@@ -6,7 +6,7 @@ endif
 
 SUBDIRS = $(gtk_subdirs)
 
-AM_CFLAGS = @FONTCONFIG_CFLAGS@ @FREETYPE_CFLAGS@
+AM_CFLAGS = @FONTCONFIG_CFLAGS@ @FREETYPE_CFLAGS@ -DLOCALE_DIR=\"$(localedir)\"
 
 lib_LTLIBRARIES = libgmerlin.la
 libgmerlin_la_SOURCES = \
@@ -57,6 +57,7 @@ transcoder_enc.c \
 transcoder_pp.c \
 transcoder_track.c \
 transcoder_track_xml.c \
+translation.c \
 tree.c \
 tree_xml.c \
 urilist.c \

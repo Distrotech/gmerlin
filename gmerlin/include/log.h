@@ -25,6 +25,8 @@
 #include "parameter.h"
 #include "msgqueue.h"
 
+#include <libintl.h>
+
 /** \defgroup log Logging
  *  \brief Global logging facilities
  *
@@ -53,7 +55,7 @@ typedef enum
   } bg_log_level_t;
 
 /** \ingroup log
- *  \brief Log levels
+ *  \brief Send a message to the logger without translating it.
  *  \param level Level
  *  \param domain The name of the volume
  *  \param format Format like for printf
@@ -66,8 +68,34 @@ typedef enum
  *  bg_log_set_dest.
  **/
 
-void bg_log(bg_log_level_t level, const char * domain,
-            const char * format, ...) __attribute__ ((format (printf, 3, 4)));
+void bg_log_notranslate(bg_log_level_t level, const char * domain,
+                        const char * format, ...) __attribute__ ((format (printf, 3, 4)));
+
+/** \ingroup log
+ *  \brief Translate a message and send it to the logger.
+ *  \param level Level
+ *  \param domain The name of the volume
+ *  \param format Format like for printf
+ *
+ *  All other arguments must match the format string.
+ *
+ *  This function either prints a message to stderr (if you didn't case
+ *  \ref bg_log_set_dest and level is contained in the mask you passed to
+ *  bg_log_set_verbose) or puts a message into the queue you passed to
+ *  bg_log_set_dest.
+ **/
+
+void bg_log_translate(const char * translation_domain,
+                      bg_log_level_t level, const char * domain,
+                      const char * format, ...) __attribute__ ((format (printf, 4, 5)));
+
+/** \ingroup log
+ *  \brief Translate a message and send it to the logger 
+ */
+
+#define bg_log(level, domain, ...) \
+    bg_log_translate(PACKAGE, level, domain, __VA_ARGS__)
+
 
 /** \ingroup log
  *  \brief Set the log destination

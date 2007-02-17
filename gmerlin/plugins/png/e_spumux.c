@@ -21,6 +21,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <config.h>
+#include <translation.h>
 #include <plugin.h>
 #include <utils.h>
 
@@ -196,7 +198,7 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name:        "compression",
-      long_name:   "Compression level",
+      long_name:   TRS("Compression level"),
       type:        BG_PARAMETER_SLIDER_INT,
       val_min:     { val_i: 0 },
       val_max:     { val_i: 9 },
@@ -216,8 +218,11 @@ bg_encoder_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:           "e_spumux",       /* Unique short name */
-      long_name:      "spumux overlay exporter",
+      long_name:      TRS("spumux overlay exporter"),
+      description:    TRS("Exports overlay subtitles into the format used by spumux\
+ (http://dvdauthor.sourceforge.net)"),
       mimetypes:      NULL,
       extensions:     "xml",
       type:           BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY,

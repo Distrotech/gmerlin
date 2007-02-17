@@ -22,6 +22,9 @@
 #include <string.h>
 #include <gtk/gtk.h>
 
+#include <config.h>
+#include <translation.h>
+
 #include <parameter.h>
 #include <streaminfo.h>
 //#include <msgqueue.h>
@@ -250,13 +253,13 @@ static void update_audio(bg_gtk_info_window_t * w)
 
   if(w->audio_description)
     {
-    tmp_string = bg_sprintf("Audio stream %d/%d: %s",
+    tmp_string = bg_sprintf(TR("Audio stream %d/%d: %s"),
                             w->current_audio_stream +1, w->num_audio_streams,
                             w->audio_description);
     }
   else
     {
-    tmp_string = bg_sprintf("Audio stream %d/%d",
+    tmp_string = bg_sprintf(TR("Audio stream %d/%d"),
                             w->current_audio_stream +1, w->num_audio_streams);
     }
   bg_gtk_textview_update(w->w_audio_description, tmp_string);
@@ -281,13 +284,13 @@ static void update_video(bg_gtk_info_window_t * w)
 
   if(w->video_description)
     {
-    tmp_string = bg_sprintf("Video stream %d/%d: %s",
+    tmp_string = bg_sprintf(TR("Video stream %d/%d: %s"),
                             w->current_video_stream +1, w->num_video_streams, 
                             w->video_description);
     }
   else
     {
-    tmp_string = bg_sprintf("Video stream %d/%d",
+    tmp_string = bg_sprintf(TR("Video stream %d/%d"),
                             w->current_video_stream +1, w->num_video_streams);
     }
   bg_gtk_textview_update(w->w_video_description, tmp_string);
@@ -305,15 +308,16 @@ static void update_subtitles(bg_gtk_info_window_t * w)
   
   if(w->subtitle_description)
     {
-    tmp_string = bg_sprintf("Subtitle stream %d/%d: %s [%s]",
+    tmp_string = bg_sprintf(TR("Subtitle stream %d/%d: %s [%s]"),
                             w->current_subtitle_stream +1, w->num_subtitle_streams,
-                            w->subtitle_description, (w->subtitle_is_text ? "text" : "overlay"));
+                            w->subtitle_description, (w->subtitle_is_text ?
+                                                      TR("text") : TR("overlay")));
     }
   else
     {
-    tmp_string = bg_sprintf("Subtitle stream %d/%d [%s]",
+    tmp_string = bg_sprintf(TR("Subtitle stream %d/%d [%s]"),
                             w->current_subtitle_stream +1, w->num_subtitle_streams,
-                            (w->subtitle_is_text ? "text" : "overlay"));
+                            (w->subtitle_is_text ? TR("text") : TR("overlay")));
     }
   bg_gtk_textview_update(w->w_subtitle_description, tmp_string);
   free(tmp_string);
@@ -488,7 +492,7 @@ bg_gtk_info_window_create(bg_player_t * player,
   g_signal_connect(G_OBJECT(ret->window), "configure-event",
                    G_CALLBACK(configure_callback), (gpointer)ret);
   
-  gtk_window_set_title(GTK_WINDOW(ret->window), "Gmerlin Track Info");
+  gtk_window_set_title(GTK_WINDOW(ret->window), TR("Gmerlin Track Info"));
   
   ret->queue = bg_msg_queue_create();
 
@@ -526,21 +530,21 @@ bg_gtk_info_window_create(bg_player_t * player,
     
   table = gtk_table_new(3, 1, 0);
   
-  frame = create_frame("Name");
+  frame = create_frame(TR("Name"));
 
   gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_name));
   gtk_widget_show(frame);
   gtk_table_attach(GTK_TABLE(table), frame, 0, 2, 0, 1,
                    GTK_EXPAND|GTK_FILL, GTK_FILL, 0, 0);
 
-  frame = create_frame("Stream type");
+  frame = create_frame(TR("Stream type"));
   gtk_container_add(GTK_CONTAINER(frame),
                     bg_gtk_textview_get_widget(ret->w_description));
   gtk_widget_show(frame);
   gtk_table_attach(GTK_TABLE(table), frame, 0, 2, 1, 2,
                    GTK_EXPAND|GTK_FILL, GTK_FILL, 0, 0);
   
-  frame = create_frame("Meta info");
+  frame = create_frame(TR("Meta info"));
 
   scrolledwin = gtk_scrolled_window_new((GtkAdjustment*)0, (GtkAdjustment*)0);
   gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolledwin),
@@ -556,7 +560,7 @@ bg_gtk_info_window_create(bg_player_t * player,
 
   gtk_widget_show(table);
   
-  tab_label = gtk_label_new("Track");
+  tab_label = gtk_label_new(TR("Track"));
   gtk_widget_show(tab_label);
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook), table, tab_label);
 
@@ -566,25 +570,25 @@ bg_gtk_info_window_create(bg_player_t * player,
 
   table = gtk_table_new(2, 2, 0);
 
-  frame = create_frame("Stream type");
+  frame = create_frame(TR("Stream type"));
   gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_audio_description));
   gtk_widget_show(frame);
   gtk_table_attach(GTK_TABLE(table), frame, 0, 2, 0, 1,
                    GTK_EXPAND|GTK_FILL, GTK_FILL, 0, 0);
 
-  frame = create_frame("Input format");
+  frame = create_frame(TR("Input format"));
   gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_audio_format_i));
   gtk_widget_show(frame);
   gtk_table_attach_defaults(GTK_TABLE(table), frame, 0, 1, 1, 2);
 
-  frame = create_frame("Output format");
+  frame = create_frame(TR("Output format"));
   gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_audio_format_o));
   gtk_widget_show(frame);
   gtk_table_attach_defaults(GTK_TABLE(table), frame, 1, 2, 1, 2);
   
   gtk_widget_show(table);
   
-  tab_label = gtk_label_new("Audio");
+  tab_label = gtk_label_new(TR("Audio"));
   gtk_widget_show(tab_label);
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook), table, tab_label);
 
@@ -594,25 +598,25 @@ bg_gtk_info_window_create(bg_player_t * player,
 
   table = gtk_table_new(2, 2, 0);
 
-  frame = create_frame("Stream type");
+  frame = create_frame(TR("Stream type"));
   gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_video_description));
   gtk_widget_show(frame);
   gtk_table_attach(GTK_TABLE(table), frame, 0, 2, 0, 1,
                    GTK_EXPAND|GTK_FILL, GTK_FILL, 0, 0);
 
-  frame = create_frame("Input format");
+  frame = create_frame(TR("Input format"));
   gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_video_format_i));
   gtk_widget_show(frame);
   gtk_table_attach_defaults(GTK_TABLE(table), frame, 0, 1, 1, 2);
 
-  frame = create_frame("Output format");
+  frame = create_frame(TR("Output format"));
   gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_video_format_o));
   gtk_widget_show(frame);
   gtk_table_attach_defaults(GTK_TABLE(table), frame, 1, 2, 1, 2);
   
   gtk_widget_show(table);
   
-  tab_label = gtk_label_new("Video");
+  tab_label = gtk_label_new(TR("Video"));
   gtk_widget_show(tab_label);
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook), table, tab_label);
 
@@ -621,20 +625,20 @@ bg_gtk_info_window_create(bg_player_t * player,
 
   table = gtk_table_new(2, 2, 0);
   
-  frame = create_frame("Stream type");
+  frame = create_frame(TR("Stream type"));
   gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_subtitle_description));
   gtk_widget_show(frame);
   gtk_table_attach(GTK_TABLE(table), frame, 0, 2, 0, 1,
                    GTK_EXPAND|GTK_FILL, GTK_FILL, 0, 0);
   
-  frame = create_frame("Format");
+  frame = create_frame(TR("Format"));
   gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_subtitle_format));
   gtk_widget_show(frame);
   gtk_table_attach_defaults(GTK_TABLE(table), frame, 0, 2, 1, 2);
 
   gtk_widget_show(table);
   
-  tab_label = gtk_label_new("Subtitles");
+  tab_label = gtk_label_new(TR("Subtitles"));
   gtk_widget_show(tab_label);
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook), table, tab_label);
   

@@ -134,10 +134,25 @@ void bg_cfg_xml_2_section(xmlDocPtr xml_doc,
                           bg_cfg_section_t * cfg_section)
   {
   xmlNodePtr cur;
-  char * name;
+  char * tmp_string;
   bg_cfg_section_t * cfg_child_section;
   
   cur = xml_section->children;
+
+  tmp_string = BG_XML_GET_PROP(xml_section, "gettext_domain");
+  if(tmp_string)
+    {
+    cfg_section->gettext_domain =
+      bg_strdup(cfg_section->gettext_domain, tmp_string);
+    xmlFree(tmp_string);
+    }
+  tmp_string = BG_XML_GET_PROP(xml_section, "gettext_directory");
+  if(tmp_string)
+    {
+    cfg_section->gettext_directory =
+      bg_strdup(cfg_section->gettext_directory, tmp_string);
+    xmlFree(tmp_string);
+    }
   
   while(cur)
     {
@@ -154,12 +169,12 @@ void bg_cfg_xml_2_section(xmlDocPtr xml_doc,
     /* Load child */
     else if(!BG_XML_STRCMP(cur->name, "SECTION"))
       {
-      name = BG_XML_GET_PROP(cur, "name");
-      if(name)
+      tmp_string = BG_XML_GET_PROP(cur, "name");
+      if(tmp_string)
         {
-        cfg_child_section = bg_cfg_section_find_subsection(cfg_section, name);
+        cfg_child_section = bg_cfg_section_find_subsection(cfg_section, tmp_string);
         bg_cfg_xml_2_section(xml_doc, cur, cfg_child_section);
-        xmlFree(name);
+        xmlFree(tmp_string);
         }
       }
     cur = cur->next;
@@ -171,7 +186,7 @@ void bg_cfg_registry_load(bg_cfg_registry_t * r, const char * filename)
   xmlDocPtr xml_doc;
   xmlNodePtr node;
   bg_cfg_section_t * cfg_section;
-  char * section_name;
+  char * tmp_string;
 
   if(!filename)
     return;
@@ -195,12 +210,12 @@ void bg_cfg_registry_load(bg_cfg_registry_t * r, const char * filename)
     {
     if(node->name && !BG_XML_STRCMP(node->name, "SECTION"))
       {
-      section_name = BG_XML_GET_PROP(node, "name");
-      if(section_name)
+      tmp_string = BG_XML_GET_PROP(node, "name");
+      if(tmp_string)
         {
-        cfg_section = bg_cfg_registry_find_section(r, section_name);
+        cfg_section = bg_cfg_registry_find_section(r, tmp_string);
         bg_cfg_xml_2_section(xml_doc, node, cfg_section);
-        xmlFree(section_name);
+        xmlFree(tmp_string);
         }
       }
     node = node->next;
@@ -222,7 +237,12 @@ void bg_cfg_section_2_xml(bg_cfg_section_t * section, xmlNodePtr xml_section)
   /* Save items */
 
   item = section->items;
-
+  
+  if(section->gettext_domain)
+    BG_XML_SET_PROP(xml_section, "gettext_domain", section->gettext_domain);
+  if(section->gettext_directory)
+    BG_XML_SET_PROP(xml_section, "gettext_directory", section->gettext_directory);
+  
   xmlAddChild(xml_section, BG_XML_NEW_TEXT("\n"));
 
   while(item)

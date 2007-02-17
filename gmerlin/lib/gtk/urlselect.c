@@ -23,7 +23,11 @@
 #include <stdio.h>
 #include <gtk/gtk.h>
 // #include <gui_gtk/question.h>
+
+#include <config.h>
+
 #include <pluginregistry.h>
+
 #include <gui_gtk/plugin.h>
 
 #include <gui_gtk/urlselect.h>
@@ -106,7 +110,8 @@ bg_gtk_urlsel_create(const char * title,
                                           void * data),
                      char ** plugins,
                      void * user_data,
-                     GtkWidget * parent_window)
+                     GtkWidget * parent_window,
+                     bg_plugin_registry_t * plugin_reg)
   {
   bg_gtk_urlsel_t * ret;
   GtkWidget * box;
@@ -139,7 +144,7 @@ bg_gtk_urlsel_create(const char * title,
   /* Create plugin menu */
 
   if(plugins)
-    ret->plugins = bg_gtk_plugin_menu_create(plugins, 1);
+    ret->plugins = bg_gtk_plugin_menu_create(plugins, 1, plugin_reg);
   
   /* Create Buttons */
 
@@ -168,7 +173,7 @@ bg_gtk_urlsel_create(const char * title,
   mainbox = gtk_vbox_new(0, 5);
   box = gtk_hbox_new(0, 5);
 
-  label = gtk_label_new("URL:");
+  label = gtk_label_new(TR("URL:"));
   gtk_widget_show(label);
   
   gtk_box_pack_start(GTK_BOX(box), label, FALSE, FALSE, 0);

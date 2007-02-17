@@ -20,6 +20,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <config.h>
+
+#include <translation.h>
+
 #include <plugin.h>
 
 #include <log.h>
@@ -249,8 +253,10 @@ bg_image_reader_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:          "ir_jpeg",
-      long_name:     "JPEG loader",
+      long_name:     TRS("JPEG reader"),
+      description:   TRS("Reader for JPEG images"),
       mimetypes:     (char*)0,
       extensions:    "jpeg jpg",
       type:          BG_PLUGIN_IMAGE_READER,

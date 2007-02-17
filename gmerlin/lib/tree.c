@@ -30,6 +30,8 @@
 #include <dirent.h>
 
 /* Gmerlin includes */
+#include <config.h>
+#include <translation.h>
 
 #include <tree.h>
 #include <treeprivate.h>
@@ -239,9 +241,15 @@ static void check_special(bg_media_tree_t * tree, bg_album_t * children)
   while(a)
     {
     if(a->type == BG_ALBUM_TYPE_INCOMING)
+      {
       tree->incoming = a;
+      bg_album_rename(a, TR("Incoming"));
+      }
     else if(a->type == BG_ALBUM_TYPE_FAVOURITES)
+      {
       tree->com.favourites = a;
+      bg_album_rename(a, TR("Favourites"));
+      }
     a = a->next;
 
     /* Check children */
@@ -322,7 +330,12 @@ static void add_device_plugins(bg_media_tree_t * ret,
     if(!(plugin_album = find_by_plugin(ret->children, info->name)))
       {
       plugin_album = bg_album_create(&(ret->com), BG_ALBUM_TYPE_PLUGIN, NULL);
-      plugin_album->name  = bg_strdup(plugin_album->name, info->long_name);
+
+      bindtextdomain(info->gettext_domain,
+                     info->gettext_directory);
+      
+      plugin_album->name  = bg_strdup(plugin_album->name,
+                                      TRD(info->long_name, info->gettext_domain));
       plugin_album->plugin_info = info;
       
       ret->children = append_album(ret->children, plugin_album);
@@ -402,7 +415,7 @@ bg_media_tree_t * bg_media_tree_create(const char * filename,
   if(!ret->incoming)
     {
     ret->incoming = bg_album_create(&(ret->com), BG_ALBUM_TYPE_INCOMING, NULL);
-    ret->incoming->name  = bg_strdup(ret->incoming->name, "Incoming");
+    ret->incoming->name  = bg_strdup(ret->incoming->name, TR("Incoming"));
     ret->incoming->xml_file  = bg_strdup(ret->incoming->xml_file,
                                          "incoming.xml");
     ret->children = append_album(ret->children, ret->incoming);
@@ -410,14 +423,14 @@ bg_media_tree_t * bg_media_tree_create(const char * filename,
   if(!ret->com.favourites)
     {
     ret->com.favourites = bg_album_create(&(ret->com), BG_ALBUM_TYPE_FAVOURITES, NULL);
-    ret->com.favourites->name  = bg_strdup(ret->com.favourites->name, "Favourites");
+    ret->com.favourites->name  = bg_strdup(ret->com.favourites->name, TR("Favourites"));
     ret->com.favourites->xml_file  = bg_strdup(ret->com.favourites->xml_file, "favourites.xml");
     ret->children = append_album(ret->children, ret->com.favourites);
     }
   
   /* Check for removable devices */
-  add_device_plugins(ret, plugin_reg, BG_PLUGIN_REMOVABLE, BG_ALBUM_TYPE_REMOVABLE);
   add_device_plugins(ret, plugin_reg, BG_PLUGIN_TUNER,     BG_ALBUM_TYPE_TUNER);
+  add_device_plugins(ret, plugin_reg, BG_PLUGIN_REMOVABLE, BG_ALBUM_TYPE_REMOVABLE);
   
   return ret;
   }
@@ -1051,14 +1064,6 @@ void bg_media_tree_set_change_callback(bg_media_tree_t * tree,
   tree->change_callback_data = change_callback_data;
   }
 
-void bg_media_tree_set_error_callback(bg_media_tree_t * tree,
-                                      void (*error_callback)(bg_media_tree_t*, void*,const char*),
-                                      void* error_callback_data)
-  {
-  tree->error_callback      = error_callback;
-  tree->error_callback_data = error_callback_data;
-  }
-
 void bg_media_tree_set_play_callback(bg_media_tree_t * tree,
                                      void (*play_callback)(void*),
                                      void* play_callback_data)
@@ -1082,8 +1087,6 @@ void bg_media_tree_set_userpass_callback(bg_media_tree_t * tree,
 bg_plugin_handle_t *
 bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
   {
-  char * error_message;
-  char * error_msg = (char*)0;
   bg_track_info_t * track_info;
   const bg_plugin_info_t * info;
   bg_input_plugin_t * input_plugin;
@@ -1091,7 +1094,7 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
   //  char * system_location = (char*)0;
   if(!t->com.current_entry || !t->com.current_album)
     {
-    error_message = bg_sprintf("Doubleclick on a track first");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Doubleclick on a track first");
     goto fail;
     }
   if((t->com.current_album->type == BG_ALBUM_TYPE_REMOVABLE) ||
@@ -1114,8 +1117,7 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
 #if 0    
     if(!info)
       {
-      error_message = bg_sprintf("Cannot open %s: no plugin found",
-                                 t->com.current_entry->location);
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s: no plugin found");
       goto fail;
       }
 #endif
@@ -1125,18 +1127,10 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
     bg_album_common_prepare_callbacks(&t->com, t->com.current_entry);
     if(!bg_input_plugin_load(t->com.plugin_reg,
                              t->com.current_entry->location, info,
-                             &(ret), &error_msg, &t->com.input_callbacks))
+                             &(ret), &t->com.input_callbacks))
       {
-      if(error_msg)
-        error_message = bg_sprintf("Cannot open %s: %s",
-                                   (char*)t->com.current_entry->location, error_msg);
-      else
-        error_message = bg_sprintf("Cannot open %s",
-                                   (char*)t->com.current_entry->location);
-
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Loading %s failed: %s",
-             (char*)t->com.current_entry->location,
-             (error_msg ? error_msg : "unknown error"));
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Loading %s failed",
+             (char*)t->com.current_entry->location);
       goto fail;
       }
     input_plugin = (bg_input_plugin_t*)(ret->plugin);
@@ -1145,9 +1139,9 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
                                             t->com.current_entry->index);
   if(!track_info)
     {
-    error_message = bg_sprintf("Selecting track %d for %s failed",
-                               t->com.current_entry->index+1,
-                               (char*)t->com.current_entry->location);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Selecting track %d for %s failed",
+           t->com.current_entry->index+1,
+           (char*)t->com.current_entry->location);
     goto fail;
     }
   bg_album_update_entry(t->com.current_album, t->com.current_entry, track_info);
@@ -1161,11 +1155,6 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
   return ret;
   
   fail:
-  if(t->error_callback)
-    t->error_callback(t, t->error_callback_data, error_message);
-  free(error_message);
-  if(error_msg)
-    free(error_msg);
   bg_media_tree_mark_error(t, 1);
   return (bg_plugin_handle_t *)0;
   }
@@ -1188,17 +1177,17 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name:        "use_metadata",
-      long_name:   "Use metadata for track names",
+      long_name:   TRS("Use metadata for track names"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 },
-      help_string: "If disabled, track name will be taken from filename"
+      help_string: TRS("If disabled, track name will be taken from filename")
     },
     {
       name:        "metadata_format",
-      long_name:   "Format for track names",
+      long_name:   TRS("Format for track names"),
       type:        BG_PARAMETER_STRING,
       val_default: { val_str: "%p - %t" },
-      help_string: "Format specifier for tracknames from\n\
+      help_string: TRS("Format specifier for tracknames from\n\
 metadata\n\
 %p:    Artist\n\
 %a:    Album\n\
@@ -1206,16 +1195,16 @@ metadata\n\
 %t:    Track name\n\
 %<d>n: Track number with <d> digits\n\
 %y:    Year\n\
-%c:    Comment",
+%c:    Comment"),
 
     },
     {
       name:        "purge_directory",
-      long_name:   "Purge directory on exit",
+      long_name:   TRS("Purge directory on exit"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 },
-      help_string: "Purge directory (i.e. delete\n\
-unused album files) at program exit"
+      help_string: TRS("Purge directory (i.e. delete\n\
+unused album files) at program exit")
     },
     { /* End of parameters */ }
   };

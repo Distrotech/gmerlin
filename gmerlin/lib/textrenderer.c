@@ -28,6 +28,10 @@
 
 /* Gmerlin */
 
+#include <config.h>
+#include <translation.h>
+
+
 #include <bgfreetype.h>
 
 #include <parameter.h>
@@ -50,25 +54,25 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name:       "render_options",
-      long_name:  "Render options",
+      long_name:  TRS("Render options"),
       type:       BG_PARAMETER_SECTION,
     },
     {
       name:       "color",
-      long_name:  "Text color",
+      long_name:  TRS("Text color"),
       type:       BG_PARAMETER_COLOR_RGBA,
       val_default: { val_color: (float[]){ 1.0, 1.0, 1.0, 1.0 } },
     },
 #ifdef FT_STROKER_H
     {
       name:       "border_color",
-      long_name:  "Border color",
+      long_name:  TRS("Border color"),
       type:       BG_PARAMETER_COLOR_RGB,
       val_default: { val_color: (float[]){ 0.0, 0.0, 0.0, 1.0 } },
     },
     {
       name:       "border_width",
-      long_name:  "Border width",
+      long_name:  TRS("Border width"),
       type:       BG_PARAMETER_FLOAT,
       val_min:     { val_f: 0.0 },
       val_max:     { val_f: 10.0 },
@@ -78,63 +82,63 @@ static bg_parameter_info_t parameters[] =
 #endif    
     {
       name:       "font",
-      long_name:  "Font",
+      long_name:  TRS("Font"),
       type:       BG_PARAMETER_FONT,
       val_default: { val_str: "Sans-20" }
     },
     {
       name:       "justify_h",
-      long_name:  "Horizontal justify",
+      long_name:  TRS("Horizontal justify"),
       type:       BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "center" },
       multi_names:  (char*[]){ "center", "left", "right", (char*)0 },
-      multi_labels: (char*[]){ "Center", "Left", "Right", (char*)0  },
+      multi_labels: (char*[]){ TRS("Center"), TRS("Left"), TRS("Right"), (char*)0  },
             
     },
     {
       name:       "justify_v",
-      long_name:  "Vertical justify",
+      long_name:  TRS("Vertical justify"),
       type:       BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "bottom" },
       multi_names:  (char*[]){ "center", "top", "bottom", (char*)0  },
-      multi_labels: (char*[]){ "Center", "Top", "Bottom", (char*)0 },
+      multi_labels: (char*[]){ TRS("Center"), TRS("Top"), TRS("Bottom"), (char*)0 },
     },
     {
       name:        "cache_size",
-      long_name:   "Cache size",
+      long_name:   TRS("Cache size"),
       type:        BG_PARAMETER_INT,
       val_min:     { val_i: 1     },
       val_max:     { val_i: 65535 },
       val_default: { val_i: 255   },
       
-      help_string: "Specify, how many different characters are cached for faster rendering. For European languages, this never needs to be larger than 255",
+      help_string: TRS("Specify, how many different characters are cached for faster rendering. For European languages, this never needs to be larger than 255"),
     },
     {
       name:        "border_left",
-      long_name:   "Left border",
+      long_name:   TRS("Left border"),
       type:        BG_PARAMETER_INT,
       val_min:     { val_i: 0     },
       val_max:     { val_i: 65535 },
       val_default: { val_i: 10    },
-      help_string: "Distance from the left text border to the image border",
+      help_string: TRS("Distance from the left text border to the image border"),
     },
     {
       name:        "border_right",
-      long_name:   "Left border",
+      long_name:   TRS("Left border"),
       type:        BG_PARAMETER_INT,
       val_min:     { val_i: 0     },
       val_max:     { val_i: 65535 },
       val_default: { val_i: 10    },
-      help_string: "Distance from the right text border to the image border",
+      help_string: TRS("Distance from the right text border to the image border"),
     },
     {
       name:        "border_top",
-      long_name:   "Top border",
+      long_name:   TRS("Top border"),
       type:        BG_PARAMETER_INT,
       val_min:     { val_i: 0     },
       val_max:     { val_i: 65535 },
       val_default: { val_i: 10    },
-      help_string: "Distance from the top text border to the image border",
+      help_string: TRS("Distance from the top text border to the image border"),
     },
     {
       name:        "border_bottom",
@@ -143,23 +147,22 @@ static bg_parameter_info_t parameters[] =
       val_min:     { val_i: 0     },
       val_max:     { val_i: 65535 },
       val_default: { val_i: 10    },
-      help_string: "Distance from the bottom text border to the image border",
+      help_string: TRS("Distance from the bottom text border to the image border"),
     },
     {
       name:        "ignore_linebreaks",
-      long_name:   "Ignore linebreaks",
+      long_name:   TRS("Ignore linebreaks"),
       type:        BG_PARAMETER_CHECKBUTTON,
-      help_string: "Ignore linebreaks in subtitles."
+      help_string: TRS("Ignore linebreaks in subtitles.")
     },
     {
       name:       "default_format",
-      long_name:  "Default format",
+      long_name:  TRS("Default format"),
       type:       BG_PARAMETER_SECTION,
     },
-#if 1
     {
       name:       "default_width",
-      long_name:  "Default width",
+      long_name:  TRS("Default width"),
       type:       BG_PARAMETER_INT,
       val_min:     { val_i: 0     },
       val_max:     { val_i: 65535 },
@@ -167,7 +170,7 @@ static bg_parameter_info_t parameters[] =
     },
     {
       name:       "default_height",
-      long_name:  "Default height",
+      long_name:  TRS("Default height"),
       type:       BG_PARAMETER_INT,
       val_min:     { val_i: 0     },
       val_max:     { val_i: 65535 },
@@ -175,20 +178,19 @@ static bg_parameter_info_t parameters[] =
     },
     {
       name:       "default_csp",
-      long_name:  "Default Colorspace",
+      long_name:  TRS("Default Colorspace"),
       type:       BG_PARAMETER_STRINGLIST,
       val_default:  { val_str: "yuv" },
       multi_names:  (char*[]){ "yuv", "rgb", (char*)0 },
-      multi_labels: (char*[]){ "YCrCb", "RGB", (char*)0 },
+      multi_labels: (char*[]){ TRS("YCrCb"), TRS("RGB"), (char*)0 },
     },
     {
       name:       "default_framerate",
-      long_name:  "Default Framerate",
+      long_name:  TRS("Default Framerate"),
       type:       BG_PARAMETER_FLOAT,
       val_default:  { val_f: 10.0 },
       num_digits: 3,
     },
-#endif
     { /* End of parameters */ },
   };
 

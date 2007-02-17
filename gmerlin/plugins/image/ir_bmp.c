@@ -23,9 +23,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
-#include <plugin.h>
 #include <math.h>
 
+#include <config.h>
+#include <translation.h>
+
+#include <plugin.h>
 #include <log.h>
 #define LOG_DOMAIN "ir_bmp"
 
@@ -727,8 +730,10 @@ bg_image_reader_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:          "ir_bmp",
-      long_name:     "BMP loader ",
+      long_name:     TRS("BMP reader"),
+      description:    TRS("Reader for BMP images"),
       mimetypes:     (char*)0,
       extensions:    "bmp",
       type:          BG_PLUGIN_IMAGE_READER,

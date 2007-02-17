@@ -18,9 +18,11 @@
 *****************************************************************/
 
 #include <stdio.h>
+#include <config.h>
 
 #include "gtk_dialog.h"
 #include <utils.h>
+#include <gui_gtk/gtkutils.h>
 
 typedef struct
   {
@@ -183,12 +185,12 @@ static gtk_widget_funcs_t funcs =
 
 void 
 bg_gtk_create_time(bg_gtk_widget_t * w,
-                   bg_parameter_info_t * info)
+                   bg_parameter_info_t * info, const char * translation_domain)
   {
   char * tooltip;
   GtkWidget * label;
   spinbutton_t * s = calloc(1, sizeof(*s));
-  s->label = gtk_label_new(info->long_name);
+  s->label = gtk_label_new(TR_DOM(info->long_name));
 
   gtk_widget_show(s->label);
   gtk_misc_set_alignment(GTK_MISC(s->label), 0.0, 0.5);
@@ -209,19 +211,19 @@ bg_gtk_create_time(bg_gtk_widget_t * w,
   
   if(info->help_string)
     {
-    tooltip = bg_sprintf("%s (Hours)", info->help_string);
+    tooltip = bg_sprintf(TR("%s (Hours)"), TR_DOM(info->help_string));
     gtk_tooltips_set_tip(w->tooltips, s->spinbutton_h, tooltip, tooltip);
     free(tooltip);
 
-    tooltip = bg_sprintf("%s (Minutes)", info->help_string);
+    tooltip = bg_sprintf(TR("%s (Minutes)"), TR_DOM(info->help_string));
     gtk_tooltips_set_tip(w->tooltips, s->spinbutton_m, tooltip, tooltip);
     free(tooltip);
 
-    tooltip = bg_sprintf("%s (Seconds)", info->help_string);
+    tooltip = bg_sprintf(TR("%s (Seconds)"), TR_DOM(info->help_string));
     gtk_tooltips_set_tip(w->tooltips, s->spinbutton_s, tooltip, tooltip);
     free(tooltip);
 
-    tooltip = bg_sprintf("%s (Milliseconds)", info->help_string);
+    tooltip = bg_sprintf(TR("%s (Milliseconds)"), TR_DOM(info->help_string));
     gtk_tooltips_set_tip(w->tooltips, s->spinbutton_ms, tooltip, tooltip);
     free(tooltip);
     }
@@ -245,20 +247,20 @@ bg_gtk_create_time(bg_gtk_widget_t * w,
 
   s->box = gtk_hbox_new(0, 2);
 
-  label = gtk_label_new("h:");
+  label = gtk_label_new(TR("h:"));
   gtk_widget_show(label);
   gtk_box_pack_start(GTK_BOX(s->box), label, FALSE, FALSE, 0);
 
   gtk_box_pack_start(GTK_BOX(s->box), s->spinbutton_h, FALSE, FALSE, 0);
-  label = gtk_label_new("m:");
+  label = gtk_label_new(TR("m:"));
   gtk_widget_show(label);
   gtk_box_pack_start(GTK_BOX(s->box), label, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(s->box), s->spinbutton_m, FALSE, FALSE, 0);
-  label = gtk_label_new("s:");
+  label = gtk_label_new(TR("s:"));
   gtk_widget_show(label);
   gtk_box_pack_start(GTK_BOX(s->box), label, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(s->box), s->spinbutton_s, FALSE, FALSE, 0);
-  label = gtk_label_new("ms:");
+  label = gtk_label_new(TR("ms:"));
   gtk_widget_show(label);
   gtk_box_pack_start(GTK_BOX(s->box), label, FALSE, FALSE, 0);
   gtk_box_pack_start_defaults(GTK_BOX(s->box), s->spinbutton_ms);

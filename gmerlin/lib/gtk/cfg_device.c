@@ -17,12 +17,15 @@
  
 *****************************************************************/
 
+#include <config.h>
 #include <stdio.h>
 #include <string.h>
 
 #include <utils.h>
 
+
 #include "gtk_dialog.h"
+#include <gui_gtk/gtkutils.h>
 
 enum
 {
@@ -266,7 +269,8 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   }
 
-void bg_gtk_create_device(bg_gtk_widget_t * w, bg_parameter_info_t * info)
+void bg_gtk_create_device(bg_gtk_widget_t * w, bg_parameter_info_t * info,
+                          const char * translation_domain)
   {
   GtkListStore *store;
   GtkCellRenderer *renderer;
@@ -283,9 +287,9 @@ void bg_gtk_create_device(bg_gtk_widget_t * w, bg_parameter_info_t * info)
   
   if(info->help_string)
     {
-    gtk_tooltips_set_tip(w->tooltips,
-                         priv->treeview,
-                         info->help_string, info->help_string);
+    bg_gtk_tooltips_set_tip(w->tooltips,
+                            priv->treeview,
+                            info->help_string, translation_domain);
     }
 
   
@@ -305,8 +309,8 @@ void bg_gtk_create_device(bg_gtk_widget_t * w, bg_parameter_info_t * info)
   selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(priv->treeview));
   gtk_tree_selection_set_mode(selection, GTK_SELECTION_SINGLE);
   
-  priv->add_button = gtk_button_new_with_label("Add...");
-  priv->delete_button = gtk_button_new_with_label("Delete");
+  priv->add_button = gtk_button_new_with_label(TR("Add..."));
+  priv->delete_button = gtk_button_new_with_label(TR("Delete"));
   
   g_signal_connect(G_OBJECT(priv->add_button), "clicked",
                    G_CALLBACK(button_callback),

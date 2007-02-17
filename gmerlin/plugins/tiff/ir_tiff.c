@@ -24,6 +24,10 @@
 #include <string.h>
 #include <tiffio.h>
 #include <inttypes.h>
+
+#include <config.h>
+#include <translation.h>
+
 #include <plugin.h>
 
 #include <log.h>
@@ -838,8 +842,10 @@ bg_image_reader_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:          "ir_tiff",
-      long_name:     "TIFF loader ",
+      long_name:     TRS("TIFF reader"),
+      description:   TRS("Reader for TIFF images"),
       mimetypes:     (char*)0,
       extensions:    "tif tiff",
       type:          BG_PLUGIN_IMAGE_READER,

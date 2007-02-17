@@ -1,5 +1,7 @@
 libdir=@GMERLIN_PLUGIN_DIR@
 
+AM_CFLAGS = -DLOCALE_DIR=\"$(localedir)\"
+
 lib_LTLIBRARIES = e_pp_vcdimager.la e_pp_cdrdao.la
 
 e_pp_vcdimager_la_SOURCES  = e_pp_vcdimager.c cdrdao_common.c

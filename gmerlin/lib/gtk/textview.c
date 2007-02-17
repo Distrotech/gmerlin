@@ -113,7 +113,10 @@ void bg_gtk_textview_update(bg_gtk_textview_t * t,
   /* No tabs here, just copy the text */
   if(!next_tab)
     {
+    gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(t->textview), GTK_WRAP_WORD);
+    
     gtk_text_buffer_set_text(t->buffer, text, -1);
+    
     }
   else /* This is the complicated version */
     {

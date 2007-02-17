@@ -256,15 +256,13 @@ void bg_player_set_volume_rel(bg_player_t * p, float volume)
   }
 
 
-void bg_player_error(bg_player_t * p, const char * message)
+void bg_player_error(bg_player_t * p)
   {
   bg_msg_t * msg;
-
   
   msg = bg_msg_queue_lock_write(p->command_queue);
   bg_msg_set_id(msg, BG_PLAYER_CMD_SETSTATE);
   bg_msg_set_arg_int(msg, 0, BG_PLAYER_STATE_ERROR);
-  bg_msg_set_arg_string(msg, 1, message);
   bg_msg_queue_unlock_write(p->command_queue);
   }
 

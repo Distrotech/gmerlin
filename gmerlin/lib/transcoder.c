@@ -26,6 +26,8 @@
 #include <sys/stat.h> 
 #include <sys/types.h>
 
+#include <config.h>
+#include <translation.h>
 
 #include <pluginregistry.h>
 #include <log.h>
@@ -367,11 +369,6 @@ struct bg_transcoder_s
     
   gavl_time_t duration;
   
-  /* Error handling */
-
-  char * error_msg;
-  const char * error_msg_ret;
-  
   char * output_filename;
 
   int is_url;
@@ -407,27 +404,27 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name:      "output_path",
-      long_name: "Output Directory",
+      long_name: TRS("Output Directory"),
       type:      BG_PARAMETER_DIRECTORY,
       val_default: { val_str: "." },
     },
     {
       name:        "delete_incomplete",
-      long_name:   "Delete incomplete output files",
+      long_name:   TRS("Delete incomplete output files"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 },
-      help_string: "Delete the encoded file(s) file if you hit the stop button. \
-This option will automatically be disabled, when the track is an URL",
+      help_string: TRS("Delete the encoded files if you hit the stop button. \
+This option will automatically be disabled, when the track is an URL"),
     },
     {
       name:        "cleanup_pp",
-      long_name:   "Clean up after postprocessing",
+      long_name:   TRS("Clean up after postprocessing"),
       type:        BG_PARAMETER_CHECKBUTTON,
-      help_string: "Clean up all encoded files, which were postprocessed",
+      help_string: TRS("Clean up all encoded files, which were postprocessed"),
     },
     {
       name:        "send_finished",
-      long_name:   "Send finished files to player",
+      long_name:   TRS("Send finished files to player"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 },
     },
@@ -679,12 +676,11 @@ void bg_transcoder_send_msg_start(bg_msg_queue_list_t * l, char * what)
 static void set_message_error(bg_msg_t * msg, const void * data)
   {
   bg_msg_set_id(msg, BG_TRANSCODER_MSG_ERROR);
-  bg_msg_set_arg_string(msg, 0, (char*)data);
   }
 
-void bg_transcoder_send_msg_error(bg_msg_queue_list_t * l, char * msg)
+void bg_transcoder_send_msg_error(bg_msg_queue_list_t * l)
   {
-  bg_msg_queue_list_send(l, set_message_error, msg);
+  bg_msg_queue_list_send(l, set_message_error, (void*)0);
   }
 
 
@@ -1106,11 +1102,10 @@ static int set_video_pass(bg_transcoder_t * t, int i)
     
   if(!s->com.out_plugin->set_video_pass)
     {
-    t->error_msg = bg_sprintf("Multipass encoding not supported by encoder plugin");
-    t->error_msg_ret = t->error_msg;
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Multipass encoding not supported by encoder plugin");
     return 0;
     }
-
+  
   if(!s->stats_file)
     {
     s->stats_file = bg_sprintf("%s/%s_video_%02d.stats", t->output_directory, t->name, i+1);
@@ -1120,8 +1115,7 @@ static int set_video_pass(bg_transcoder_t * t, int i)
   if(!s->com.out_plugin->set_video_pass(s->com.out_handle->priv, s->com.out_index, t->pass, t->total_passes,
                                           s->stats_file))
     {
-    t->error_msg = bg_sprintf("Multipass encoding not supported by codec");
-    t->error_msg_ret = t->error_msg;
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Multipass encoding not supported by codec");
     return 0;
     }
   return 1;
@@ -1236,16 +1230,7 @@ static int audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
                                                s->com.out_index);
 
   if(!ret)
-    {
-    if(s->com.out_plugin->common.get_error)
-      t->error_msg =
-        bg_sprintf("Encoding audio failed: %s",
-                  s->com.out_plugin->common.get_error(s->com.out_handle->priv));
-    else
-      t->error_msg =
-        bg_sprintf("Encoding audio failed");
-    }
-
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Encoding audio failed");
   return ret;
   }
 
@@ -1605,14 +1590,7 @@ static int video_iteration(video_stream_t * s, bg_transcoder_t * t)
                                              s->com.out_index);
 
   if(!ret)
-    {
-    if(s->com.out_plugin->common.get_error)
-      t->error_msg =
-        bg_sprintf("Encoding video failed: %s",
-                  s->com.out_plugin->common.get_error(s->com.out_handle->priv));
-    else
-      t->error_msg = bg_sprintf("Encoding video failed");
-    }
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Encoding video failed");
   
   s->frames_written++;
   return ret;
@@ -1697,16 +1675,7 @@ static int subtitle_iteration(bg_transcoder_t * t)
         }
       }
     if(!ret)
-      {
-      if(st->com.com.out_plugin->common.get_error)
-        t->error_msg =
-          bg_sprintf("Encoding subtitles failed: %s",
-                     st->com.com.out_plugin->common.get_error(st->com.com.out_handle->priv));
-      else
-        t->error_msg =
-          bg_sprintf("Encoding subtitles failed");
-      break;
-      }
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Encoding subtitles failed");
     }
   
   if(!ret)
@@ -1756,11 +1725,7 @@ static int subtitle_iteration(bg_transcoder_t * t)
 
     if(!ret)
       {
-      if(ss->com.out_plugin->common.get_error)
-        t->error_msg =
-          bg_strdup(t->error_msg,
-                    ss->com.out_plugin->common.get_error(ss->com.out_handle->priv));
-
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Encoding subtitles failed");
       break;
       }
     }
@@ -1904,16 +1869,16 @@ static void send_init_messages(bg_transcoder_t * t)
 
   if(t->pp_only)
     {
-    tmp_string = bg_sprintf("Postprocessing %s", t->location);
+    tmp_string = bg_sprintf(TR("Postprocessing %s"), t->location);
     }
   else if(t->total_passes > 1)
     {
-    tmp_string = bg_sprintf("Transcoding %s [Track %d, Pass %d/%d]",
+    tmp_string = bg_sprintf(TR("Transcoding %s [Track %d, Pass %d/%d]"),
                             t->location, t->track+1, t->pass, t->total_passes);
     }
   else
     {
-    tmp_string = bg_sprintf("Transcoding %s [Track %d]", t->location, t->track+1);
+    tmp_string = bg_sprintf(TR("Transcoding %s [Track %d]"), t->location, t->track+1);
     }
   bg_transcoder_send_msg_start(t->message_queues, tmp_string);
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "%s", tmp_string);
@@ -2075,16 +2040,14 @@ static int open_input(bg_transcoder_t * ret)
   plugin_info = bg_plugin_find_by_name(ret->plugin_reg, ret->plugin);
   if(!plugin_info)
     {
-    ret->error_msg = bg_sprintf("Cannot find plugin %s", ret->plugin);
-    ret->error_msg_ret = ret->error_msg;
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot find plugin %s", ret->plugin);
     goto fail;
     }
 
   ret->in_handle = bg_plugin_load(ret->plugin_reg, plugin_info);
   if(!ret->in_handle)
     {
-    ret->error_msg = bg_sprintf("Cannot open plugin %s", ret->plugin);
-    ret->error_msg_ret = ret->error_msg;
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open plugin %s", ret->plugin);
     goto fail;
     }
 
@@ -2101,9 +2064,8 @@ static int open_input(bg_transcoder_t * ret)
   
   if(!ret->in_plugin->open(ret->in_handle->priv, ret->location))
     {
-    ret->error_msg = bg_sprintf("Cannot open %s with plugin %s",
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s with plugin %s",
                                   ret->location, ret->plugin);
-    ret->error_msg_ret = ret->error_msg;
     goto fail;
     }
 
@@ -2118,8 +2080,7 @@ static int open_input(bg_transcoder_t * ret)
   if(ret->in_plugin->get_num_tracks &&
      (ret->track >= ret->in_plugin->get_num_tracks(ret->in_handle->priv)))
     {
-    ret->error_msg = bg_sprintf("Invalid track number %d", ret->track);
-    ret->error_msg_ret = ret->error_msg;
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Invalid track number %d", ret->track);
     goto fail;
     }
 
@@ -2214,7 +2175,6 @@ static void create_streams(bg_transcoder_t * ret,
 static int start_input(bg_transcoder_t * ret)
   {
   int i;
-  const char * error_msg;
   for(i = 0; i < ret->num_audio_streams; i++)
     {
     if(ret->audio_streams[i].com.do_decode)
@@ -2252,16 +2212,7 @@ static int start_input(bg_transcoder_t * ret)
     {
     if(!ret->in_plugin->start(ret->in_handle->priv))
       {
-      if(ret->in_plugin->common.get_error)
-        error_msg = ret->in_plugin->common.get_error(ret->in_handle->priv);
-      else
-        error_msg = (const char*)0;
-      if(error_msg)
-        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Starting input plugin failed: %s",
-               error_msg);
-      else
-        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Starting input plugin failed");
-        
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Starting input plugin failed");
       goto fail;
       }
     }
@@ -2271,8 +2222,7 @@ static int start_input(bg_transcoder_t * ret)
     {
     if(!ret->in_plugin->seek)
       {
-      ret->error_msg = bg_sprintf("Cannot seek to start point");
-      ret->error_msg_ret = ret->error_msg;
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot seek to start point");
       goto fail;
       }
     ret->in_plugin->seek(ret->in_handle->priv, &(ret->start_time));
@@ -2281,8 +2231,7 @@ static int start_input(bg_transcoder_t * ret)
 
     if(ret->start_time == GAVL_TIME_UNDEFINED)
       {
-      ret->error_msg = bg_sprintf("Cannot seek to start point");
-      ret->error_msg_ret = ret->error_msg;
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot seek to start point");
       goto fail;
       }
     }
@@ -2293,8 +2242,7 @@ static int start_input(bg_transcoder_t * ret)
      (ret->end_time != GAVL_TIME_UNDEFINED) &&
      (ret->end_time < ret->start_time))
     {
-    ret->error_msg = bg_sprintf("End time if before start time");
-    ret->error_msg_ret = ret->error_msg;
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "End time if before start time");
     goto fail;
     }
   
@@ -2596,8 +2544,7 @@ static int open_encoder(bg_transcoder_t * ret,
   
   if(!strcmp(*filename, ret->location))
     {
-    ret->error_msg = bg_sprintf("Input and output are the same file");
-    ret->error_msg_ret = ret->error_msg;
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Input and output are the same file");
     bg_plugin_unref(encoder_handle);
     return 0;
     }
@@ -2618,17 +2565,8 @@ static int open_encoder(bg_transcoder_t * ret,
     }
   else
     {
-    if(encoder_plugin->common.get_error)
-      ret->error_msg =
-        bg_sprintf("Could not open %s: %s",
-                   encoder_handle->info->long_name,
-                   encoder_plugin->common.get_error(encoder_handle->priv));
-    else
-      ret->error_msg =
-        bg_sprintf("Could not open %s: Unknown error",
-                   encoder_handle->info->long_name);
-    ret->error_msg_ret = ret->error_msg;
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, ret->error_msg);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Could not open %s",
+           encoder_handle->info->long_name);
     return 0;
     }
   }
@@ -2636,22 +2574,9 @@ static int open_encoder(bg_transcoder_t * ret,
 static int start_encoder(bg_transcoder_t * ret, bg_plugin_handle_t  * encoder_handle,
                          bg_encoder_plugin_t * encoder_plugin)
   {
-  const char * error_msg = (const char *)0;
   if(encoder_plugin->start && !encoder_plugin->start(encoder_handle->priv))
     {
-    if(encoder_plugin->common.get_error)
-      error_msg = encoder_plugin->common.get_error(encoder_handle->priv);
-
-    if(error_msg)
-      ret->error_msg =
-        bg_sprintf("Could not start %s: %s",
-                   encoder_handle->info->long_name, error_msg);
-    else
-      ret->error_msg =
-        bg_sprintf("Could not start %s: Unknown error",
-                   encoder_handle->info->long_name);
-    ret->error_msg_ret = ret->error_msg;
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, ret->error_msg);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Could not start %s", encoder_handle->info->long_name);
     return 0;
     }
   return 1;
@@ -3405,8 +3330,7 @@ int bg_transcoder_init(bg_transcoder_t * ret,
 
   if(!setup_pass(ret))
     {
-    ret->error_msg = bg_sprintf("No stream to encode");
-    ret->error_msg_ret = ret->error_msg;
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No stream to encode");
     goto fail;
     }
   
@@ -3601,7 +3525,7 @@ static void next_pass(bg_transcoder_t * t)
   init_normalize(t);
   
   /* Send message */
-  tmp_string = bg_sprintf("Transcoding %s [Track %d, Pass %d/%d]", t->location, t->track+1, t->pass, t->total_passes);
+  tmp_string = bg_sprintf(TR("Transcoding %s [Track %d, Pass %d/%d]"), t->location, t->track+1, t->pass, t->total_passes);
   bg_transcoder_send_msg_start(t->message_queues, tmp_string);
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "%s", tmp_string);
   free(tmp_string);
@@ -3697,8 +3621,7 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
   if(!subtitle_iteration(t))
     {
     t->state = TRANSCODER_STATE_ERROR;
-    bg_transcoder_send_msg_error(t->message_queues,
-                                 t->error_msg);
+    bg_transcoder_send_msg_error(t->message_queues);
     return 0;
     }
 
@@ -3710,8 +3633,7 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
       if(!audio_iteration((audio_stream_t*)stream, t))
         {
         t->state = TRANSCODER_STATE_ERROR;
-        bg_transcoder_send_msg_error(t->message_queues,
-                                     t->error_msg);
+        bg_transcoder_send_msg_error(t->message_queues);
         return 0;
         }
       }
@@ -3721,9 +3643,7 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
       if(!video_iteration((video_stream_t*)stream, t))
         {
         t->state = TRANSCODER_STATE_ERROR;
-        if(t->error_msg)
-          bg_transcoder_send_msg_error(t->message_queues,
-                                       t->error_msg);
+        bg_transcoder_send_msg_error(t->message_queues);
         return 0;
         }
       }
@@ -3856,8 +3776,6 @@ void bg_transcoder_destroy(bg_transcoder_t * t)
   FREE_STR(t->output_filename);
   
   gavl_timer_destroy(t->timer);
-  if(t->error_msg)
-    free(t->error_msg);
 
   bg_msg_queue_list_destroy(t->message_queues);
   pthread_mutex_destroy(&(t->stop_mutex));
@@ -3866,10 +3784,6 @@ void bg_transcoder_destroy(bg_transcoder_t * t)
   free(t);
   }
 
-const char * bg_transcoder_get_error(bg_transcoder_t * t)
-  {
-  return t->error_msg_ret;
-  }
 
 static void * thread_func(void * data)
   {

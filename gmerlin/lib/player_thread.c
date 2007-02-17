@@ -326,12 +326,8 @@ static int init_audio_stream(bg_player_t * p)
     {
     //    bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
     //                    "Cannot setup audio playback", NULL);
-    if(p->audio_stream.error_msg)
-      bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
-                          p->audio_stream.error_msg, NULL);
-    else
-      bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
-                          "Cannot setup audio playback (unknown error)", NULL);
+    bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
+                        NULL, NULL);
     return 0;
     }
   return 1;  
@@ -341,12 +337,8 @@ static int init_video_stream(bg_player_t * p)
   {
   if(!bg_player_video_init(p, p->current_video_stream))
     {
-    if(p->video_stream.error_msg)
-      bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
-                          p->video_stream.error_msg, NULL);
-    else
-      bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
-                          "Cannot setup video playback (unknown error)", NULL);
+    bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
+                        NULL, NULL);
     return 0;
     }
   return 1;
@@ -356,12 +348,8 @@ static int init_subtitle_stream(bg_player_t * p)
   {
   if(!bg_player_subtitle_init(p, p->current_subtitle_stream))
     {
-    if(p->subtitle_stream.error_msg)
-      bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
-                          p->subtitle_stream.error_msg, NULL);
-    else
-      bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
-                          "Cannot setup subtitle playback (unknown error)", NULL);
+    bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
+                        NULL, NULL);
     return 0;
     }
   return 1;
@@ -641,8 +629,6 @@ static void play_cmd(bg_player_t * p,
                      bg_plugin_handle_t * handle,
                      int track_index, char * track_name, int flags)
   {
-  char * error_msg;
-  const char * error_msg_input;
   
   int had_video;
   
@@ -660,19 +646,7 @@ static void play_cmd(bg_player_t * p,
   if(!bg_player_input_init(p->input_context,
                            handle, track_index))
     {
-    error_msg_input = bg_player_input_get_error(p->input_context);
-
-    if(error_msg_input)
-      {
-      error_msg = bg_sprintf("Cannot initialize input (%s)", error_msg_input);
-      bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
-                          error_msg, NULL);
-      free(error_msg);
-      }
-    else
-      bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
-                          "Cannot initialize input (unknown error)", NULL);
-    
+    bg_player_set_state(p, BG_PLAYER_STATE_ERROR, NULL, NULL);
     return;
     }
   init_playback(p, 0, flags, had_video);
@@ -917,45 +891,20 @@ static int stream_change_done(bg_player_t * player, int was_playing,
                                int had_video, gavl_time_t old_time)
   {
   gavl_time_t t = 0;
-  char * error_msg;
-  const char * input_error;
   if(was_playing)
     {
     if(!bg_player_input_set_track(player->input_context))
       {
-      input_error = bg_player_input_get_error(player->input_context);
-
-      if(input_error)
-        {
-        error_msg = bg_sprintf("Cannot set track after stream change: %s",
-                                 input_error);
-        bg_player_set_state(player, BG_PLAYER_STATE_ERROR,
-                            error_msg, NULL);
-        free(error_msg);
-        }
-      else
-        bg_player_set_state(player, BG_PLAYER_STATE_ERROR,
-                            "Cannot set track after stream change (unknown error)", NULL);
-      
+      bg_player_set_state(player, BG_PLAYER_STATE_ERROR,
+                          NULL, NULL);
       goto fail;
       }
     bg_player_input_select_streams(player->input_context);
     
     if(!bg_player_input_start(player->input_context))
       {
-      input_error = bg_player_input_get_error(player->input_context);
-      if(input_error)
-        {
-        error_msg = bg_sprintf("Cannot start input after stream change: %s",
-                                 input_error);
-        bg_player_set_state(player, BG_PLAYER_STATE_ERROR,
-                            error_msg, NULL);
-        free(error_msg);
-        }
-      else
-        bg_player_set_state(player, BG_PLAYER_STATE_ERROR,
-                            "Cannot start input after stream change (unknown error)", NULL);
-
+      bg_player_set_state(player, BG_PLAYER_STATE_ERROR,
+                          NULL, NULL);
       goto fail;
       }
     init_playback(player, old_time, 0, had_video);
@@ -1314,10 +1263,9 @@ static int process_commands(bg_player_t * player)
             bg_player_set_state(player, BG_PLAYER_STATE_CHANGING, &next_track, NULL);
             break;
           case BG_PLAYER_STATE_ERROR:
-            arg_str1 = bg_msg_get_arg_string(command, 1);
             stop_cmd(player, BG_PLAYER_STATE_STOPPED, 0);
             bg_player_set_state(player, BG_PLAYER_STATE_ERROR,
-                                arg_str1, NULL);
+                                NULL, NULL);
           }
         break;
       case BG_PLAYER_CMD_SET_OA_PLUGIN:

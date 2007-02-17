@@ -23,6 +23,8 @@
 
 #include "gtk_dialog.h"
 
+#include <gui_gtk/gtkutils.h>
+
 #if GTK_MINOR_VERSION >= 4
 #define GTK_2_4
 #endif
@@ -35,6 +37,7 @@ typedef struct
   GList * strings;
 #endif
   int selected;
+  const char * translation_domain;
   } stringlist_t;
 
 static void get_value(bg_gtk_widget_t * w)
@@ -153,12 +156,15 @@ static void
 set_combo_tooltip(GtkWidget *widget, gpointer   data)
   {
   bg_gtk_widget_t * w = (bg_gtk_widget_t *)data;
+  stringlist_t * priv;
+  priv = (stringlist_t *)w->priv;
+  
   //  GtkTooltips *tooltips = (GtkTooltips *)data;
 
   if(GTK_IS_BUTTON (widget))
-    gtk_tooltips_set_tip(w->tooltips, widget,
-                         w->info->help_string,
-                         NULL);
+    bg_gtk_tooltips_set_tip(w->tooltips, widget,
+                            w->info->help_string,
+                            priv->translation_domain);
   }
 
 static void
@@ -172,7 +178,9 @@ realize_combo(GtkWidget *combo, gpointer   data)
   }
 #endif
 
-void bg_gtk_create_stringlist(bg_gtk_widget_t * w, bg_parameter_info_t * info)
+void bg_gtk_create_stringlist(bg_gtk_widget_t * w,
+                              bg_parameter_info_t * info,
+                              const char * translation_domain)
   {
   int i;
 #ifndef GTK_2_4
@@ -180,24 +188,20 @@ void bg_gtk_create_stringlist(bg_gtk_widget_t * w, bg_parameter_info_t * info)
 #endif
   stringlist_t * priv = calloc(1, sizeof(*priv));
 
+  w->funcs = &funcs;
+  w->priv = priv;
+  
+  priv->translation_domain = translation_domain;
+  
 #ifdef GTK_2_4
   priv->combo = gtk_combo_box_new_text();
   i = 0;
 
   if(info->help_string)
     {
-#if 0
-    gtk_tooltips_set_tip(w->tooltips,
-                         priv->combo,
-                         info->help_string, info->help_string);
-#else
     g_signal_connect (priv->combo, "realize",
                       G_CALLBACK (realize_combo), w);
-
-#endif
-    
     }
-
   
   if(info->multi_labels)
     {
@@ -229,11 +233,10 @@ void bg_gtk_create_stringlist(bg_gtk_widget_t * w, bg_parameter_info_t * info)
 
   if(info->help_string)
     {
-    gtk_tooltips_set_tip(w->tooltips,
-                         GTK_COMBO(priv->combo)->entry,
-                         info->help_string, info->help_string);
+    bg_gtk_tooltips_set_tip(w->tooltips,
+                            GTK_COMBO(priv->combo)->entry,
+                            info->help_string, TRANSLATION_DOMAIN);
     }
-
   
   i = 0;
 
@@ -267,11 +270,9 @@ void bg_gtk_create_stringlist(bg_gtk_widget_t * w, bg_parameter_info_t * info)
 
   gtk_widget_show(priv->combo);
 
-  priv->label = gtk_label_new(info->long_name);
+  priv->label = gtk_label_new(TR_DOM(info->long_name));
   gtk_misc_set_alignment(GTK_MISC(priv->label), 0.0, 0.5);
 
   gtk_widget_show(priv->label);
     
-  w->funcs = &funcs;
-  w->priv = priv;
   }

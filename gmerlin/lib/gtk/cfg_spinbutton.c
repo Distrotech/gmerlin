@@ -21,6 +21,8 @@
 
 #include "gtk_dialog.h"
 
+#include <gui_gtk/gtkutils.h>
+
 typedef struct
   {
   GtkWidget * label;
@@ -122,11 +124,12 @@ static gtk_widget_funcs_t float_funcs =
 static void create_common(bg_gtk_widget_t * w,
                           bg_parameter_info_t * info,
                           float min_value,
-                          float max_value)
+                          float max_value,
+                          const char * translation_domain)
   {
   spinbutton_t * s = calloc(1, sizeof(*s));
-  s->label = gtk_label_new(info->long_name);
-
+  s->label = gtk_label_new(TR_DOM(info->long_name));
+  
   gtk_widget_show(s->label);
   gtk_misc_set_alignment(GTK_MISC(s->label), 0.0, 0.5);
   s->adj =  gtk_adjustment_new(min_value, min_value, max_value,
@@ -136,7 +139,8 @@ static void create_common(bg_gtk_widget_t * w,
 
   if(info->help_string)
     {
-    gtk_tooltips_set_tip(w->tooltips, s->spinbutton, info->help_string, info->help_string);
+    bg_gtk_tooltips_set_tip(w->tooltips, s->spinbutton,
+                            info->help_string, translation_domain);
     }
   
   gtk_widget_show(s->spinbutton);
@@ -146,7 +150,8 @@ static void create_common(bg_gtk_widget_t * w,
 
 void 
 bg_gtk_create_int(bg_gtk_widget_t * w,
-                  bg_parameter_info_t * info)
+                  bg_parameter_info_t * info,
+                  const char * translation_domain)
   {
   float min_value;
   float max_value;
@@ -162,7 +167,7 @@ bg_gtk_create_int(bg_gtk_widget_t * w,
     max_value = 1.0e9;
     }
   
-  create_common(w, info, min_value, max_value);
+  create_common(w, info, min_value, max_value, translation_domain );
   s = (spinbutton_t *)(w->priv);
   w->funcs = &int_funcs;
   
@@ -170,7 +175,8 @@ bg_gtk_create_int(bg_gtk_widget_t * w,
 
 void 
 bg_gtk_create_float(bg_gtk_widget_t * w,
-                    bg_parameter_info_t * info)
+                    bg_parameter_info_t * info,
+                    const char * translation_domain)
   {
   float min_value;
   float max_value;
@@ -186,7 +192,7 @@ bg_gtk_create_float(bg_gtk_widget_t * w,
     max_value = 100000.0;
     }
   
-  create_common(w, info, min_value, max_value);
+  create_common(w, info, min_value, max_value, translation_domain );
   s = (spinbutton_t *)(w->priv);
   gtk_spin_button_set_digits(GTK_SPIN_BUTTON(s->spinbutton),
                              info->num_digits);

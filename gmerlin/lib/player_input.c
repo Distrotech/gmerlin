@@ -886,14 +886,6 @@ void bg_player_input_seek(bg_player_input_context_t * ctx,
   
   }
 
-const char * bg_player_input_get_error(bg_player_input_context_t * ctx)
-  {
-  if(ctx->plugin->common.get_error)
-    return ctx->plugin->common.get_error(ctx->priv);
-  return (char*)0;
-  }
-
-
 void bg_player_input_bypass_set_volume(bg_player_input_context_t * ctx,
                                        float volume)
   {
@@ -916,18 +908,20 @@ void bg_player_input_bypass_set_pause(bg_player_input_context_t * ctx,
 
 static bg_parameter_info_t parameters[] =
   {
+#if 0
     {
       name:      "input",
-      long_name: "Input options",
+      long_name: TRS("Input options"),
       type:      BG_PARAMETER_SECTION,
     },
+#endif
     {
       name:      "do_bypass",
-      long_name: "Enable bypass mode",
+      long_name: TRS("Enable bypass mode"),
       type:      BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 },
-      help_string: "Use input plugins in bypass mode if they support it (Currently only the audio CD player).\
- This dramatically decreases CPU usage but doesn't work on all hardware setups."
+      help_string: TRS("Use input plugins in bypass mode if they support it (Currently only the audio CD player).\
+ This dramatically decreases CPU usage but doesn't work on all hardware setups.")
     },
     { /* End of parameters */ }
   };

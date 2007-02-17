@@ -19,6 +19,11 @@
 
 
 #include <string.h>
+
+#include <config.h>
+
+#include <translation.h>
+
 #include <plugin.h>
 #include <utils.h>
 #include <log.h>
@@ -68,8 +73,9 @@ void bg_lqt_create_codec_info(bg_parameter_info_t * info,
 
     if(encode)
       {
-      info->multi_descriptions[i] = bg_sprintf("%s Use for", codec_info[i]->description);
-    
+      info->multi_descriptions[i] = bg_sprintf(TR("%s Compatible with"),
+                                               codec_info[i]->description);
+      
       if(codec_info[i]->compatibility_flags & (LQT_FILE_QT | LQT_FILE_QT_OLD))
         info->multi_descriptions[i] = bg_strcat(info->multi_descriptions[i], " QT");
       if(codec_info[i]->compatibility_flags & ( LQT_FILE_MP4))
@@ -78,6 +84,8 @@ void bg_lqt_create_codec_info(bg_parameter_info_t * info,
         info->multi_descriptions[i] = bg_strcat(info->multi_descriptions[i], " M4A");
       if(codec_info[i]->compatibility_flags & ( LQT_FILE_AVI))
         info->multi_descriptions[i] = bg_strcat(info->multi_descriptions[i], " AVI");
+      if(codec_info[i]->compatibility_flags & ( LQT_FILE_3GP))
+        info->multi_descriptions[i] = bg_strcat(info->multi_descriptions[i], " 3GP");
       }
 
 

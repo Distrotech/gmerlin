@@ -29,6 +29,9 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include <config.h>
+#include <translation.h>
+
 #include <plugin.h>
 #include <utils.h>
 
@@ -38,25 +41,27 @@
 #include "alsa_common.h"
 
 
+
 static bg_parameter_info_t static_parameters[] =
   {
     {
       name:        "channel_mode",
-      long_name:   "Channel Mode",
+      long_name:   TRS("Channel Mode"),
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "Stereo" },
-      multi_names:     (char*[]){ "Mono", "Stereo", (char*)0 },
+      multi_names:   (char*[]){ "mono", "stereo", (char*)0 },
+      multi_labels:  (char*[]){ TRS("Mono"), TRS("Stereo"), (char*)0 },
     },
     {
       name:        "bits",
-      long_name:   "Bits",
+      long_name:   TRS("Bits"),
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "16" },
       multi_names:     (char*[]){ "8", "16", (char*)0 },
     },
     {
       name:        "samplerate",
-      long_name:   "Samplerate [Hz]",
+      long_name:   TRS("Samplerate [Hz]"),
       type:        BG_PARAMETER_INT,
       val_default: { val_i: 44100 },
       val_min:     { val_i:  8000 },
@@ -64,21 +69,20 @@ static bg_parameter_info_t static_parameters[] =
     },
     {
       name:        "buffer_time",
-      long_name:   "Buffer time",
+      long_name:   TRS("Buffer time"),
       type:        BG_PARAMETER_INT,
       val_min:     { val_i: 10    },
       val_max:     { val_i: 10000 },
       val_default: { val_i: 1000  },
-      help_string: "Set the buffer time (in milliseconds). Larger values \
-improve playback performance on slow systems under load. Smaller values \
-decrease the latency of the volume control.",
+      help_string: TRS("Set the buffer time (in milliseconds). Larger values \
+improve recording performance on slow systems under load."),
     },
     {
       name:        "user_device",
-      long_name:   "User device",
+      long_name:   TRS("User device"),
       type:        BG_PARAMETER_STRING,
-      help_string: "Enter a custom device to use for recording. Leave empty to use the\
- settings above",
+      help_string: TRS("Enter a custom device to use for recording. Leave empty to use the\
+ settings above"),
     },
   };
 
@@ -100,7 +104,6 @@ typedef struct
   gavl_audio_frame_t * f;
   int last_frame_size;
 
-  char * error_msg;  
   gavl_time_t buffer_time;
   char * user_device;
   } alsa_t;
@@ -135,9 +138,9 @@ set_parameter_alsa(void * p, char * name, bg_parameter_value_t * val)
     return;
   if(!strcmp(name, "channel_mode"))
     {
-    if(!strcmp(val->val_str, "Mono"))
+    if(!strcmp(val->val_str, "mono"))
       priv->num_channels = 1;
-    else if(!strcmp(val->val_str, "Stereo"))
+    else if(!strcmp(val->val_str, "stereo"))
       priv->num_channels = 2;
     }
   else if(!strcmp(name, "bits"))
@@ -200,7 +203,7 @@ static int open_alsa(void * data,
     format->sample_format = GAVL_SAMPLE_S16;
   format->samplerate = priv->samplerate;
     
-  priv->pcm = bg_alsa_open_read(card, format, &priv->error_msg, priv->buffer_time);
+  priv->pcm = bg_alsa_open_read(card, format, priv->buffer_time);
   
   if(!priv->pcm)
     return 0;
@@ -227,11 +230,6 @@ static void close_alsa(void * p)
     {
     gavl_audio_frame_destroy(priv->f);
     priv->f = (gavl_audio_frame_t*)0;
-    }
-  if(priv->error_msg)
-    {
-    free(priv->error_msg);
-    priv->error_msg = NULL;
     }
   }
 
@@ -317,11 +315,6 @@ static void read_frame_alsa(void * p, gavl_audio_frame_t * f,
   
   }
 
-static const char * get_error_alsa(void* p)
-  {
-  alsa_t * priv = (alsa_t*)(p);
-  return priv->error_msg;
-  }
 
 static void destroy_alsa(void * p)
   {
@@ -335,8 +328,10 @@ bg_ra_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:          "i_alsa",
-      long_name:     "ALSA Recorder",
+      long_name:     TRS("Alsa"),
+      description:   TRS("Alsa recorder"),
       mimetypes:     (char*)0,
       extensions:    (char*)0,
       type:          BG_PLUGIN_RECORDER_AUDIO,
@@ -347,7 +342,6 @@ bg_ra_plugin_t the_plugin =
 
       get_parameters: get_parameters_alsa,
       set_parameter:  set_parameter_alsa,
-      get_error:      get_error_alsa
     },
 
     open:          open_alsa,

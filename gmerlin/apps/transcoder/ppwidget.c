@@ -2,6 +2,8 @@
 #include <string.h>
 #include <gtk/gtk.h>
 
+#include <config.h>
+
 #include <pluginregistry.h>
 #include <transcoder_track.h>
 
@@ -64,7 +66,7 @@ static void encoder_pp_widget_init(encoder_pp_widget_t * ret, bg_plugin_registry
   bg_gtk_plugin_widget_single_set_sensitive(ret->plugins, 0);
 
   ret->pp =
-    gtk_check_button_new_with_label("Enable postprocessing");
+    gtk_check_button_new_with_label(TR("Enable postprocessing"));
 
   g_signal_connect(G_OBJECT(ret->pp), "toggled",
                    G_CALLBACK(button_callback),
@@ -194,7 +196,7 @@ encoder_pp_window_t * encoder_pp_window_create(bg_plugin_registry_t * plugin_reg
                    G_CALLBACK(delete_callback),
                    ret);
   
-  gtk_window_set_title(GTK_WINDOW(ret->window), "Postprocessing");
+  gtk_window_set_title(GTK_WINDOW(ret->window), TR("Postprocessing"));
   gtk_window_set_modal(GTK_WINDOW(ret->window), 1);
 
   ret->apply_button = gtk_button_new_from_stock(GTK_STOCK_APPLY);

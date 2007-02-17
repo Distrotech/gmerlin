@@ -27,6 +27,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+
+#include <config.h>
+#include <translation.h>
 #include <plugin.h>
 
 #include <linux/videodev.h>
@@ -182,7 +185,6 @@ typedef struct
   int chroma_size;
   char * device;
   int flip;
-  char * error_message;
   } v4l_t;
 
 static int open_v4l(void * priv, gavl_video_format_t * format)
@@ -191,15 +193,12 @@ static int open_v4l(void * priv, gavl_video_format_t * format)
   //  int i;
   v4l_t * v4l;
   v4l = (v4l_t*)priv;
-  if(v4l->error_message)
-    free(v4l->error_message);
 
   /* Open device */
 
   if((v4l->fd = open(v4l->device, O_RDWR, 0)) < 0)
     {
-    v4l->error_message = 
-      bg_sprintf("Cannot open device %s: %s",
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open device %s: %s",
                  v4l->device, strerror(errno));
     goto fail;
     }
@@ -214,8 +213,8 @@ static int open_v4l(void * priv, gavl_video_format_t * format)
   
   if(ioctl(v4l->fd, VIDIOCGPICT, &(v4l->pic)))
     {
-    v4l->error_message = bg_sprintf("VIDIOCGPICT failed: %s",
-                                    strerror(errno));
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOCGPICT failed: %s",
+           strerror(errno));
     goto fail;
     }
   format->pixelformat = get_gavl_pixelformat(v4l->pic.palette);
@@ -238,9 +237,8 @@ static int open_v4l(void * priv, gavl_video_format_t * format)
   
   if(ioctl(v4l->fd, VIDIOCSPICT, &(v4l->pic)))
     {
-    v4l->error_message = bg_sprintf("VIDIOCSPICT failed: %s",
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOCSPICT failed: %s",
                                     strerror(errno));
-
     goto fail;
     }
   format->pixelformat = get_gavl_pixelformat(v4l->pic.palette);
@@ -249,9 +247,8 @@ static int open_v4l(void * priv, gavl_video_format_t * format)
 
   if(ioctl(v4l->fd, VIDIOCGWIN, &(v4l->win)))
     {
-    v4l->error_message = bg_sprintf("VIDIOCGWIN failed: %s",
-                                    strerror(errno));
-
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOCGWIN failed: %s",
+           strerror(errno));
     goto fail;
     }
   v4l->win.x = 0;
@@ -262,8 +259,8 @@ static int open_v4l(void * priv, gavl_video_format_t * format)
 
   if(ioctl(v4l->fd, VIDIOCSWIN, &(v4l->win)))
     {
-    v4l->error_message = bg_sprintf("VIDIOCSWIN failed: %s (invalaid picture dimensions?)",
-                                    strerror(errno));
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOCSWIN failed: %s (invalaid picture dimensions?)",
+           strerror(errno));
     goto fail;
     }
   /* Setup format */
@@ -296,16 +293,15 @@ static int open_v4l(void * priv, gavl_video_format_t * format)
   
   if(ioctl(v4l->fd, VIDIOCGMBUF, &(v4l->mbuf)))
     {
-    v4l->error_message = bg_sprintf("VIDIOCGMBUF failed: %s",
-                                    strerror(errno));
-
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOCGMBUF failed: %s",
+           strerror(errno));
     goto fail;
     }  
   v4l->mmap_buf = (uint8_t*)(mmap(0, v4l->mbuf.size, PROT_READ|PROT_WRITE,
                                   MAP_SHARED,v4l->fd,0));
   if((unsigned char*)-1 == v4l->mmap_buf)
     {
-    v4l->error_message = bg_sprintf("mmap failed");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "mmap failed: %s", strerror(errno));
     goto fail;
     }
   v4l->mmap_struct.width = format->image_width;
@@ -337,11 +333,6 @@ static void close_v4l(void * priv)
     close(v4l->fd);
     if(v4l->mmap_buf)
       munmap(v4l->mmap_buf, v4l->mbuf.size);
-    }
-  if(v4l->error_message)
-    {
-    free(v4l->error_message);
-    v4l->error_message = (char*)0;
     }
   v4l->fd = -1;
   }
@@ -418,23 +409,23 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name:        "device_section",
-      long_name:   "Device",
+      long_name:   TRS("Device"),
       type:        BG_PARAMETER_SECTION
     },
     {
       name:        "device",
-      long_name:   "V4L Device",
+      long_name:   TRS("V4L Device"),
       type:        BG_PARAMETER_DEVICE,
       val_default: { val_str: "/dev/video0" },
     },
     {
       name:        "res",
-      long_name:   "Resolution",
+      long_name:   TRS("Resolution"),
       type:        BG_PARAMETER_SECTION,
     },
     {
       name:      "resolution",
-      long_name: "Resolution",
+      long_name: TRS("Resolution"),
       type:      BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "QVGA (320x240)" },
       multi_names:     (char*[]){ "QSIF (160x112)",
@@ -445,10 +436,18 @@ static bg_parameter_info_t parameters[] =
                               "VGA (640x480)", 
                               "User defined",
                               (char*)0 },
+      multi_labels:     (char*[]){ TRS("QSIF (160x112)"),
+                                   TRS("QCIF (176x144)"), 
+                                   TRS("QVGA (320x240)"), 
+                                   TRS("SIF(352x240)"), 
+                                   TRS("CIF (352x288)"), 
+                                   TRS("VGA (640x480)"), 
+                                   TRS("User defined"),
+                                   (char*)0 },
     },
     {
       name:        "user_width",
-      long_name:   "User defined width",
+      long_name:   TRS("User defined width"),
       type:        BG_PARAMETER_INT,
       val_default: { val_i: 720 },
       val_min:     { val_i: 160 },
@@ -456,7 +455,7 @@ static bg_parameter_info_t parameters[] =
     },
     {
       name:        "user_height",
-      long_name:   "User defined height",
+      long_name:   TRS("User defined height"),
       type:        BG_PARAMETER_INT,
       val_default: { val_i: 576 },
       val_min:     { val_i: 112 },
@@ -464,12 +463,12 @@ static bg_parameter_info_t parameters[] =
     },
     {
       name:        "settings",
-      long_name:   "Settings",
+      long_name:   TRS("Settings"),
       type:        BG_PARAMETER_SECTION,
     },
     {
       name:        "brightness",
-      long_name:   "Brightness",
+      long_name:   TRS("Brightness"),
       type:        BG_PARAMETER_SLIDER_INT,
       flags:       BG_PARAMETER_SYNC,
       val_min:     { val_i: 0 },
@@ -478,7 +477,7 @@ static bg_parameter_info_t parameters[] =
     },
     {
       name:        "hue",
-      long_name:   "Hue",
+      long_name:   TRS("Hue"),
       type:        BG_PARAMETER_SLIDER_INT,
       flags:       BG_PARAMETER_SYNC,
       val_min:     { val_i: 0 },
@@ -487,7 +486,7 @@ static bg_parameter_info_t parameters[] =
     },
     {
       name:        "colour",
-      long_name:   "Colour",
+      long_name:   TRS("Colour"),
       type:        BG_PARAMETER_SLIDER_INT,
       flags:       BG_PARAMETER_SYNC,
       val_min:     { val_i: 0 },
@@ -496,7 +495,7 @@ static bg_parameter_info_t parameters[] =
     },
     {
       name:        "contrast",
-      long_name:   "Contrast",
+      long_name:   TRS("Contrast"),
       type:        BG_PARAMETER_SLIDER_INT,
       flags:       BG_PARAMETER_SYNC,
       val_min:     { val_i: 0 },
@@ -505,7 +504,7 @@ static bg_parameter_info_t parameters[] =
     },
     {
       name:        "whiteness",
-      long_name:   "Whiteness",
+      long_name:   TRS("Whiteness"),
       type:        BG_PARAMETER_SLIDER_INT,
       flags:       BG_PARAMETER_SYNC,
       val_min:     { val_i: 0 },
@@ -514,7 +513,7 @@ static bg_parameter_info_t parameters[] =
     },
     {
       name:        "flip",
-      long_name:   "Flip Image",
+      long_name:   TRS("Flip Image"),
       type:        BG_PARAMETER_CHECKBUTTON,
       flags:       BG_PARAMETER_SYNC,
       val_default: { val_i: 0 },
@@ -705,18 +704,15 @@ static void set_parameter_v4l(void * priv, char * name,
     }
   }
 
-static const char * get_error_v4l(void * priv)
-  {
-  v4l_t * v4l = (v4l_t*)priv;
-  return v4l->error_message;
-  }
 
 bg_rv_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:          "i_v4l",
-      long_name:     "Video4Linux input",
+      long_name:     TRS("V4L"),
+      description:   TRS("video4linux input plugin. Supports only video and no tuner decives"),
       mimetypes:     (char*)0,
       extensions:    (char*)0,
       type:          BG_PLUGIN_RECORDER_VIDEO,
@@ -727,7 +723,6 @@ bg_rv_plugin_t the_plugin =
 
       get_parameters: get_parameters_v4l,
       set_parameter:  set_parameter_v4l,
-      get_error:      get_error_v4l
     },
     
     open:       open_v4l,

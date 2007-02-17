@@ -21,6 +21,8 @@
 #include <unistd.h>
 #include <signal.h>
 
+#include <config.h>
+#include <translation.h>
 #include <plugin.h>
 #include <utils.h>
 
@@ -48,7 +50,6 @@ typedef struct
 
   int block_align;
   int eof;
-  char * error_msg;
   } i_mikmod_t;
 
 #ifdef dump
@@ -86,11 +87,6 @@ static void * create_mikmod()
   return ret;
   }
 
-static const char * get_error_mikmod(void * data)
-  {
-  i_mikmod_t * e = (i_mikmod_t*)data;
-  return e->error_msg;
-  }
   
 /* Read one audio frame (returns FALSE on EOF) */
 static int read_audio_samples_mikmod(void * data, gavl_audio_frame_t * f, int stream,
@@ -200,7 +196,7 @@ static int open_mikmod(void * data, const char * arg)
     {
     bg_subprocess_close(mik->proc);
     mik->proc = (bg_subprocess_t*)0;
-    mik->error_msg = bg_strdup(mik->error_msg, "Unrecognized fileformat");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Unrecognized fileformat");
     }
 
   gavl_audio_frame_destroy(test_frame);
@@ -241,8 +237,6 @@ static void destroy_mikmod(void * data)
   {
   i_mikmod_t * e = (i_mikmod_t*)data;
   close_mikmod(data);
-  if(e->error_msg)
-    free(e->error_msg);
   free(e);
   }
 
@@ -252,16 +246,16 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name:        "output",
-      long_name:   "Output format",
+      long_name:   TRS("Output format"),
       type:        BG_PARAMETER_STRINGLIST,
       multi_names: (char*[]){ "mono8", "stereo8", "mono16", "stereo16", (char*)0 },
-      multi_labels:  (char*[]){ "Mono 8bit", "Stereo 8bit", "Mono 16bit", "Stereo 16bit", (char*)0 },
+      multi_labels:  (char*[]){ TRS("Mono 8bit"), TRS("Stereo 8bit"), TRS("Mono 16bit"), TRS("Stereo 16bit"), (char*)0 },
       
       val_default: { val_str: "stereo16" },
     },
       {
       name:        "mixing_frequency",
-      long_name:   "Samplerate",
+      long_name:   TRS("Samplerate"),
       type:         BG_PARAMETER_INT,
       val_min:     { val_i: 4000 },
       val_max:     { val_i: 60000 },
@@ -270,25 +264,25 @@ static bg_parameter_info_t parameters[] =
     },
     {
       name: "look_for_hidden_patterns_in_module",
-      long_name: "Look for hidden patterns in module",
+      long_name: TRS("Look for hidden patterns in module"),
       opt:  "hidden",
       type: BG_PARAMETER_CHECKBUTTON,
     },
     {
       name: "use_surround_mixing",
-      long_name: "Use surround mixing",
+      long_name: TRS("Use surround mixing"),
       opt:  "sur",
       type: BG_PARAMETER_CHECKBUTTON,
     },
     {
       name: "force_volume_fade_at_the_end_of_module",
-      long_name: "Force volume fade at the end of module",
+      long_name: TRS("Force volume fade at the end of module"),
       opt:  "fade",
       type: BG_PARAMETER_CHECKBUTTON,
     },
     {
       name: "use_interpolate_mixing",
-      long_name: "Use interpolate mixing",
+      long_name: TRS("Use interpolate mixing"),
       opt:  "interpol",
       type: BG_PARAMETER_CHECKBUTTON,
     },
@@ -334,8 +328,10 @@ bg_input_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:            "i_mikmod",       /* Unique short name */
-      long_name:       "mikmod input plugin",
+      long_name:       TRS("mikmod input plugin"),
+      description:     TRS("Simple wrapper, which calls the mikmod program"),
       mimetypes:       NULL,
       extensions:      "it xm mod mtm  s3m stm ult far med dsm amf imf 669",
       type:            BG_PLUGIN_INPUT,
@@ -345,7 +341,6 @@ bg_input_plugin_t the_plugin =
       destroy:         destroy_mikmod,
       get_parameters:  get_parameters_mikmod,
       set_parameter:   set_parameter_mikmod,
-      get_error:       get_error_mikmod,
     },
     
     open:              open_mikmod,

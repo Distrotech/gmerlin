@@ -17,6 +17,8 @@
  
 *****************************************************************/
 
+#include <config.h>
+
 #include <stdlib.h>
 #include <gtk/gtk.h>
 
@@ -66,7 +68,7 @@ static userpass_win * userpass_win_create(const char * resource)
 
   /* Create window */
   ret->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_title(GTK_WINDOW(ret->window), "Authentication");
+  gtk_window_set_title(GTK_WINDOW(ret->window), TR("Authentication"));
   gtk_window_set_modal(GTK_WINDOW(ret->window), 1);
   gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER);
   gtk_container_set_border_width(GTK_CONTAINER(ret->window), 5);
@@ -96,7 +98,7 @@ static userpass_win * userpass_win_create(const char * resource)
   gtk_widget_show(ret->user);
   gtk_widget_show(ret->pass);
   
-  ret->save_auth = gtk_check_button_new_with_label("Save user/password (can be dangerous!)");
+  ret->save_auth = gtk_check_button_new_with_label(TR("Save user/password (can be dangerous!)"));
   gtk_widget_show(ret->save_auth);
     
   /* Pack everything */
@@ -107,7 +109,7 @@ static userpass_win * userpass_win_create(const char * resource)
   gtk_table_set_row_spacings(GTK_TABLE(table), 5);
   gtk_table_set_col_spacings(GTK_TABLE(table), 5);
 
-  w = gtk_label_new("Enter username and password for");
+  w = gtk_label_new(TR("Enter username and password for"));
   gtk_widget_show(w);
   gtk_table_attach(GTK_TABLE(table), w, 0, 3, 0, 1, GTK_FILL, GTK_FILL, 0, 0);
 
@@ -122,12 +124,12 @@ static userpass_win * userpass_win_create(const char * resource)
   gtk_table_attach(GTK_TABLE(table), w, 0, 1, 2, 5, GTK_FILL, GTK_FILL, 0, 0);
 #endif
 
-  w = gtk_label_new("Username");
+  w = gtk_label_new(TR("Username"));
   gtk_widget_show(w);
   gtk_table_attach(GTK_TABLE(table), w, 1, 2, 2, 3, GTK_FILL, GTK_FILL, 0, 0);
   gtk_table_attach_defaults(GTK_TABLE(table), ret->user, 2, 3, 2, 3);
 
-  w = gtk_label_new("Password");
+  w = gtk_label_new(TR("Password"));
   gtk_widget_show(w);
   gtk_table_attach(GTK_TABLE(table), w, 1, 2, 3, 4, GTK_FILL, GTK_FILL, 0, 0);
   gtk_table_attach_defaults(GTK_TABLE(table), ret->pass, 2, 3, 3, 4);

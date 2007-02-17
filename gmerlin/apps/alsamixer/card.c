@@ -17,6 +17,9 @@
  
 *****************************************************************/
 
+#include <config.h>
+#include <translation.h>
+
 #include <utils.h>
 #include <log.h>
 #define LOG_DOMAIN "card"
@@ -223,11 +226,11 @@ alsa_card_t * alsa_card_create(int index)
       }
     else if(is_capture && (is_volume || is_switch))
       {
-      label = bg_strdup(NULL, "Capture");
+      label = bg_strdup(NULL, TR("Capture"));
       }
     else
       {
-      label = bg_strdup(NULL, "Unknown");
+      label = bg_strdup(NULL, TR("Unknown"));
       }
     
     if(elem_index > 0)

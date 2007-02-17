@@ -17,6 +17,8 @@
  
 *****************************************************************/
 
+#include <config.h>
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -25,9 +27,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <gtk/gtk.h>
+#include <pluginregistry.h>
 #include <gui_gtk/fileselect.h>
 #include <gui_gtk/question.h>
-#include <pluginregistry.h>
+#include <gui_gtk/gtkutils.h>
 #include <gui_gtk/plugin.h>
 
 #include <utils.h>
@@ -154,7 +157,7 @@ filesel_create(const char * title,
                                     void * data),
                char ** plugins,
                void * user_data,
-               GtkWidget * parent_window)
+               GtkWidget * parent_window, bg_plugin_registry_t * plugin_reg)
   {
   bg_gtk_filesel_t * ret;
 
@@ -183,7 +186,7 @@ filesel_create(const char * title,
     gtk_widget_set_sensitive(GTK_FILE_SELECTION(ret->filesel)->file_list, 0);
 
     ret->recursive =
-      gtk_check_button_new_with_label("Recursive");
+      gtk_check_button_new_with_label(TR("Recursive"));
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(ret->recursive), 1);
 
     gtk_widget_show(ret->recursive);
@@ -191,7 +194,7 @@ filesel_create(const char * title,
                                 ret->recursive);
     
     ret->subdirs_as_subalbums =
-      gtk_check_button_new_with_label("Add subdirectories as subalbums");
+      gtk_check_button_new_with_label(TR("Add subdirectories as subalbums"));
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(ret->subdirs_as_subalbums), 1);
 
     gtk_widget_show(ret->subdirs_as_subalbums);
@@ -203,7 +206,7 @@ filesel_create(const char * title,
     
   if(plugins)
     {
-    ret->plugins = bg_gtk_plugin_menu_create(plugins, 1);
+    ret->plugins = bg_gtk_plugin_menu_create(plugins, 1, plugin_reg);
     gtk_box_pack_start_defaults(GTK_BOX(GTK_DIALOG(ret->filesel)->vbox),
                                 bg_gtk_plugin_menu_get_widget(ret->plugins));
     }
@@ -243,7 +246,8 @@ bg_gtk_filesel_create(const char * title,
                                            void * data),
                       char ** plugins,
                       void * user_data,
-                      GtkWidget * parent_window)
+                      GtkWidget * parent_window,
+                      bg_plugin_registry_t * plugin_reg)
   {
   return filesel_create(title,
                         add_file,
@@ -251,7 +255,7 @@ bg_gtk_filesel_create(const char * title,
                         close_notify,
                         plugins,
                         user_data,
-                        parent_window);
+                        parent_window, plugin_reg);
   }
 
 bg_gtk_filesel_t *
@@ -263,7 +267,8 @@ bg_gtk_dirsel_create(const char * title,
                                           void * data),
                      char ** plugins,
                      void * user_data,
-                     GtkWidget * parent_window)
+                     GtkWidget * parent_window,
+                     bg_plugin_registry_t * plugin_reg)
   {
   return filesel_create(title,
                         NULL,
@@ -271,7 +276,7 @@ bg_gtk_dirsel_create(const char * title,
                         close_notify,
                         plugins,
                         user_data,
-                        parent_window);
+                        parent_window, plugin_reg);
   }
 
 /* Destroy fileselector */
@@ -457,7 +462,7 @@ char * bg_gtk_get_filename_write(const char * title,
 
   else if(!stat(ret, &stat_buf))
     {
-    question = bg_sprintf("File\n%s\nexists, overwrite?", ret);
+    question = bg_sprintf(TR("File\n%s\nexists, overwrite?"), ret);
     if(!bg_gtk_question(question))
       {
       free(ret);

@@ -23,6 +23,8 @@
 #define _GNU_SOURCE
 #endif
 
+#include <libintl.h>
+
 #include <stdarg.h>
 #include <stdio.h>
 
@@ -57,33 +59,27 @@ const char * bg_log_level_to_string(bg_log_level_t level)
   return (char*)0;
   }
 
+
+
 static bg_msg_queue_t * log_queue = (bg_msg_queue_t*)0;
 
-void bg_log(bg_log_level_t level, const char * domain,
-            const char * format, ...)
+static void log_internal(bg_log_level_t level, const char * domain,
+                         const char * format, va_list argp)
   {
   char ** lines;
   int i;
   char * msg_string;
   bg_msg_t * msg;
   FILE * out = stderr;
-  va_list argp; /* arg ptr */
-  
+
 #ifndef HAVE_VASPRINTF
   int len;
-#endif
-
-  va_start( argp, format);
-
-#ifndef HAVE_VASPRINTF
   len = vsnprintf((char*)0, 0, format, argp);
   msg_string = malloc(len+1);
   vsnprintf(msg_string, len+1, format, argp);
 #else
   vasprintf(&msg_string, format, argp);
 #endif
-
-  va_end(argp);
   
   if(!log_queue)
     {
@@ -111,6 +107,31 @@ void bg_log(bg_log_level_t level, const char * domain,
     bg_msg_queue_unlock_write(log_queue);
     }
   free(msg_string);
+  
+  }
+
+void bg_log_notranslate(bg_log_level_t level, const char * domain,
+                        const char * format, ...)
+  {
+  va_list argp; /* arg ptr */
+  
+  va_start( argp, format);
+  log_internal(level, domain, format, argp);
+  va_end(argp);
+  }
+
+void bg_log_translate(const char * translation_domain,
+                      bg_log_level_t level, const char * domain,
+                      const char * format, ...)
+  {
+  va_list argp; /* arg ptr */
+
+  /* Translate format string */
+  format = dgettext(translation_domain, format);
+  
+  va_start( argp, format);
+  log_internal(level, domain, format, argp);
+  va_end(argp);
   }
 
 void bg_log_set_dest(bg_msg_queue_t * q)

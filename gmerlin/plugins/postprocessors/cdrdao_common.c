@@ -22,6 +22,7 @@
 #include <signal.h>
 
 
+#include <config.h>
 #include <plugin.h>
 #include <utils.h>
 #include <log.h>

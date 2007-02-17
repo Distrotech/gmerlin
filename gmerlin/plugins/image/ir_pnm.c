@@ -25,6 +25,10 @@
 #include <math.h>
 #include <ctype.h>
 
+#include <config.h>
+#include <translation.h>
+
+
 #include <log.h>
 #define LOG_DOMAIN "ir_pnm"
 
@@ -619,8 +623,10 @@ bg_image_reader_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:          "ir_pnm",
-      long_name:     "PNM loader ",
+      long_name:     TRS("PNM reader"),
+      description:    TRS("Reader for PBM/PGM/PPM images"),
       mimetypes:     (char*)0,
       extensions:    "pnm ppm pbm pgm",
       type:          BG_PLUGIN_IMAGE_READER,

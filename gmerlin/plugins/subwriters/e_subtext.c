@@ -20,6 +20,9 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <config.h>
+#include <translation.h>
+
 #include <plugin.h>
 #include <utils.h>
 
@@ -224,11 +227,11 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name:         "format" ,
-      long_name:    "Format",
+      long_name:    TRS("Format"),
       type:         BG_PARAMETER_STRINGLIST,
       val_default:  { val_str: "srt" },
       multi_names:  (char*[]){ "srt",           "mpsub",         (char*)0 },
-      multi_labels: (char*[]){ "Subrip (.srt)", "MPlayer mpsub", (char*)0 },
+      multi_labels: (char*[]){ TRS("Subrip (.srt)"), TRS("MPlayer mpsub"), (char*)0 },
       
     },
     { /* End of parameters */ }
@@ -265,8 +268,10 @@ bg_encoder_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:           "e_subtext",       /* Unique short name */
-      long_name:      "Text subtitle exporter",
+      long_name:      TRS("Text subtitle exporter"),
+      description:    TRS("Plugin for exporting text subtitles. Supported formats are MPSub and SRT"),
       mimetypes:      NULL,
       extensions:     "srt",
       type:           BG_PLUGIN_ENCODER_SUBTITLE_TEXT,

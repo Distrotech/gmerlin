@@ -18,6 +18,10 @@
 *****************************************************************/
 
 #include <string.h>
+
+#include <config.h>
+#include <translation.h>
+
 #include <plugin.h>
 #include <utils.h>
 #include <log.h>
@@ -34,7 +38,7 @@ static bg_parameter_info_t stream_parameters[] =
   {
     {
       name:      "codec",
-      long_name: "Codec",
+      long_name: TRS("Codec"),
     },
   };
 
@@ -88,8 +92,6 @@ typedef struct
     uint16_t bg_color[4];
     } * subtitle_text_streams;
   
-  char * error_msg;
-
   const bg_chapter_list_t * chapter_list;
   
   int chapter_track_id;
@@ -104,12 +106,6 @@ static void * create_lqt()
   return ret;
   }
 
-static const char * get_error_lqt(void * priv)
-  {
-  e_lqt_t * lqt;
-  lqt = (e_lqt_t*)priv;
-  return lqt->error_msg;
-  }
 
 static struct
   {
@@ -153,7 +149,7 @@ static int open_lqt(void * data, const char * filename,
   e->file = lqt_open_write(e->filename, e->file_type);
   if(!e->file)
     {
-    e->error_msg = bg_sprintf("Cannot open file %s", e->filename);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open file %s", e->filename);
     return 0;
     }
 
@@ -488,8 +484,6 @@ static void destroy_lqt(void * data)
   if(e->video_parameters)
     bg_parameter_info_destroy_array(e->video_parameters);
 
-  if(e->error_msg)
-    free(e->error_msg);
   free(e);
   }
 
@@ -512,26 +506,27 @@ static bg_parameter_info_t common_parameters[] =
   {
     {
       name:      "format",
-      long_name: "Format",
+      long_name: TRS("Format"),
       type:      BG_PARAMETER_STRINGLIST,
       multi_names:    (char*[]) { "quicktime", "avi", "avi_opendml",   "mp4", "m4a", "3gp", (char*)0 },
-      multi_labels:   (char*[]) { "Quicktime", "AVI", "AVI (Opendml)", "MP4", "M4A", "3GP", (char*)0 },
+      multi_labels:   (char*[]) { TRS("Quicktime"), TRS("AVI"), TRS("AVI (Opendml)"),
+                                  TRS("MP4"), TRS("M4A"), TRS("3GP"), (char*)0 },
       val_default: { val_str: "quicktime" },
     },
     {
       name:      "make_streamable",
-      long_name: "Make streamable",
+      long_name: TRS("Make streamable"),
       type:      BG_PARAMETER_CHECKBUTTON,
-      help_string: "Make the file streamable afterwards (uses twice the diskspace)",
+      help_string: TRS("Make the file streamable afterwards (uses twice the diskspace)"),
     },
     {
       name:      "max_riff_size",
-      long_name: "Maximum RIFF size",
+      long_name: TRS("Maximum RIFF size"),
       type:      BG_PARAMETER_INT,
       val_min:     { val_i: 1 },
       val_max:     { val_i: 1024 },
       val_default: { val_i: 1024 },
-      help_string: "Maximum RIFF size (in MB) for OpenDML AVIs. The default (1GB) is reasonable and should only be changed by people who know what they do.",
+      help_string: TRS("Maximum RIFF size (in MB) for OpenDML AVIs. The default (1GB) is reasonable and should only be changed by people who know what they do."),
     },
     { /* End of parameters */ }
   };
@@ -688,41 +683,41 @@ static bg_parameter_info_t subtitle_text_parameters[] =
   {
     {
       name:      "box_top",
-      long_name: "Text box (top)",
+      long_name: TRS("Text box (top)"),
       type:      BG_PARAMETER_INT,
       val_min:   { val_i: 0 },
       val_max:   { val_i: 0xffff },
     },
     {
       name:      "box_left",
-      long_name: "Text box (left)",
+      long_name: TRS("Text box (left)"),
       type:      BG_PARAMETER_INT,
       val_min:   { val_i: 0 },
       val_max:   { val_i: 0xffff },
     },
     {
       name:      "box_bottom",
-      long_name: "Text box (bottom)",
+      long_name: TRS("Text box (bottom)"),
       type:      BG_PARAMETER_INT,
       val_min:   { val_i: 0 },
       val_max:   { val_i: 0xffff },
     },
     {
       name:      "box_right",
-      long_name: "Text box (right)",
+      long_name: TRS("Text box (right)"),
       type:      BG_PARAMETER_INT,
       val_min:   { val_i: 0 },
       val_max:   { val_i: 0xffff },
     },
     {
       name:        "fg_color",
-      long_name:   "Text color",
+      long_name:   TRS("Text color"),
       type:        BG_PARAMETER_COLOR_RGBA,
       val_default: { val_color: (float[]){ 1.0, 1.0, 1.0, 1.0 }},
     },
     {
       name:        "bg_color",
-      long_name:   "Background color",
+      long_name:   TRS("Background color"),
       type:        BG_PARAMETER_COLOR_RGBA,
       val_default: { val_color: (float[]){ 0.0, 0.0, 0.0, 1.0 }},
     },
@@ -770,8 +765,13 @@ bg_encoder_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:           "e_lqt",       /* Unique short name */
-      long_name:      "Quicktime encoder",
+      long_name:      TRS("Quicktime encoder"),
+      description:    TRS("Encoder based on libquicktime (http://libquicktime.sourceforge.net)\
+ Writes Quicktime, AVI (optionally ODML), MP4, M4A and 3GPP. Supported codecs range from \
+high quality uncompressed formats for professional applications to consumer level formats \
+like H.264/AVC, AAC, MP3, Divx compatible etc. Also supported are chapters and text subtitles"),
       mimetypes:      NULL,
       extensions:     "mov",
       type:           BG_PLUGIN_ENCODER,
@@ -781,7 +781,6 @@ bg_encoder_plugin_t the_plugin =
       destroy:        destroy_lqt,
       get_parameters: get_parameters_lqt,
       set_parameter:  set_parameter_lqt,
-      get_error:      get_error_lqt,
     },
     
     max_audio_streams:         -1,

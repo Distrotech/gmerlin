@@ -153,6 +153,8 @@ static char * multi_label_key      = "MULTI_LABEL";
 static char * multi_parameters_key = "MULTI_PARAMETERS";
 static char * multi_parameter_key  = "MULTI_PARAMETER";
 
+static char * gettext_domain_key     = "GETTEXT_DOMAIN";
+static char * gettext_directory_key  = "GETTEXT_DIRECTORY";
 
 /* */
 
@@ -224,6 +226,18 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
           {
           tmp_string = (char*)xmlNodeListGetString(xml_doc, child->children, 1);
           ret[index].help_string = bg_strdup(ret[index].help_string, tmp_string);
+          free(tmp_string);
+          }
+        else if(!BG_XML_STRCMP(child->name, gettext_domain_key))
+          {
+          tmp_string = (char*)xmlNodeListGetString(xml_doc, child->children, 1);
+          ret[index].gettext_domain = bg_strdup(ret[index].gettext_domain, tmp_string);
+          free(tmp_string);
+          }
+        else if(!BG_XML_STRCMP(child->name, gettext_directory_key))
+          {
+          tmp_string = (char*)xmlNodeListGetString(xml_doc, child->children, 1);
+          ret[index].gettext_directory = bg_strdup(ret[index].gettext_directory, tmp_string);
           free(tmp_string);
           }
         else if(!BG_XML_STRCMP(child->name, multi_names_key))
@@ -472,7 +486,19 @@ void bg_parameters_2_xml(bg_parameter_info_t * info, xmlNodePtr xml_parameters)
       xmlAddChild(child, BG_XML_NEW_TEXT(info[num_parameters].help_string));
       xmlAddChild(xml_info, BG_XML_NEW_TEXT("\n"));
       }
-
+    if(info[num_parameters].gettext_domain)
+      {
+      child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)gettext_domain_key, NULL);
+      xmlAddChild(child, BG_XML_NEW_TEXT(info[num_parameters].gettext_domain));
+      xmlAddChild(xml_info, BG_XML_NEW_TEXT("\n"));
+      }
+    if(info[num_parameters].gettext_directory)
+      {
+      child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)gettext_directory_key, NULL);
+      xmlAddChild(child, BG_XML_NEW_TEXT(info[num_parameters].gettext_directory));
+      xmlAddChild(xml_info, BG_XML_NEW_TEXT("\n"));
+      }
+    
     multi_num = 0;
     if(info[num_parameters].multi_names)
       {

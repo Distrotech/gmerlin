@@ -21,6 +21,9 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <config.h>
+#include <translation.h>
+
 #include <plugin.h>
 
 #include <log.h>
@@ -187,8 +190,10 @@ bg_image_reader_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:          "ir_tga",
-      long_name:     "TGA loader",
+      long_name:     TRS("TGA reader"),
+      description:   TRS("Reader for TGA images"),
       mimetypes:     (char*)0,
       extensions:    "tga",
       type:          BG_PLUGIN_IMAGE_READER,

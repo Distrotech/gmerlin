@@ -29,6 +29,9 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include <config.h>
+#include <translation.h>
+
 #include <plugin.h>
 #include <utils.h>
 
@@ -52,49 +55,49 @@ static bg_parameter_info_t global_parameters[] =
   {
     {
       name:        "surround40",
-      long_name:   "Enable 4.0 Surround",
+      long_name:   TRS("Enable 4.0 Surround"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 },
-      help_string: "Use the surround 4.0 (aka quadrophonic) device"
+      help_string: TRS("Use the surround 4.0 (aka quadrophonic) device")
     },
     {
       name:        "surround41",
-      long_name:   "Enable 4.1 Surround",
+      long_name:   TRS("Enable 4.1 Surround"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 },
-      help_string: "Use the surround 4.1 device"
+      help_string: TRS("Use the surround 4.1 device")
     },
     {
       name:        "surround50",
-      long_name:   "Enable 5.0 Surround",
+      long_name:   TRS("Enable 5.0 Surround"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 },
-      help_string: "Use the surround 5.0 device"
+      help_string: TRS("Use the surround 5.0 device")
     },
     {
       name:        "surround51",
-      long_name:   "Enable 5.1 Surround",
+      long_name:   TRS("Enable 5.1 Surround"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 },
-      help_string: "Use the surround 5.1 device"
+      help_string: TRS("Use the surround 5.1 device")
     },
     {
       name:        "user_device",
-      long_name:   "User device",
+      long_name:   TRS("User device"),
       type:        BG_PARAMETER_STRING,
-      help_string: "Enter a custom device to use for playback. Leave empty to use the\
- settings above",
+      help_string: TRS("Enter a custom device to use for playback. Leave empty to use the\
+ settings above"),
     },
     {
       name:        "buffer_time",
-      long_name:   "Buffer time",
+      long_name:   TRS("Buffer time"),
       type:        BG_PARAMETER_INT,
       val_min:     { val_i: 10    },
       val_max:     { val_i: 10000 },
       val_default: { val_i: 1000  },
-      help_string: "Set the buffer time (in milliseconds). Larger values \
+      help_string: TRS("Set the buffer time (in milliseconds). Larger values \
 improve playback performance on slow systems under load. Smaller values \
-decrease the latency of the volume control.",
+decrease the latency of the volume control."),
     },
   };
 
@@ -118,7 +121,6 @@ typedef struct
   char * card;
   
   char * user_device;
-  char * error_msg;
   int convert_4_3;
   uint8_t * convert_buffer;
   int convert_buffer_alloc;
@@ -318,7 +320,7 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
   
   
     
-  priv->pcm = bg_alsa_open_write(card, format, &priv->error_msg,
+  priv->pcm = bg_alsa_open_write(card, format,
                                  priv->buffer_time, &priv->convert_4_3);
   
 
@@ -338,11 +340,6 @@ static void close_alsa(void * p)
     {
     snd_pcm_close(priv->pcm);
     priv->pcm = NULL;
-    }
-  if(priv->error_msg)
-    {
-    free(priv->error_msg);
-    priv->error_msg = NULL;
     }
   }
 
@@ -412,11 +409,6 @@ get_parameters_alsa(void * p)
   return priv->parameters;
   }
 
-static const char * get_error_alsa(void* p)
-  {
-  alsa_t * priv = (alsa_t*)(p);
-  return priv->error_msg;
-  }
 
 static int get_delay_alsa(void * p)
   {
@@ -473,8 +465,10 @@ bg_oa_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:          "oa_alsa",
-      long_name:     "ALSA output driver",
+      long_name:     TRS("Alsa"),
+      description:   TRS("Alsa output plugin with support for channel configurations up to 5.1. Samples are sent to the soundcards in the nearest precision of the source format. Select \"Force float\" in the global audio options to enable 24, 32 or floating point playback even for 8 or 16 bit source formats."),
       mimetypes:     (char*)0,
       extensions:    (char*)0,
       type:          BG_PLUGIN_OUTPUT_AUDIO,
@@ -485,7 +479,6 @@ bg_oa_plugin_t the_plugin =
       
       get_parameters: get_parameters_alsa,
       set_parameter:  set_parameter_alsa,
-      get_error:      get_error_alsa,
     },
 
     open:          open_alsa,

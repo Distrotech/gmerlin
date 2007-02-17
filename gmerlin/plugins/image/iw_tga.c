@@ -22,10 +22,15 @@
 #include <string.h>
 #include <errno.h>
 
+#include <config.h>
+#include <translation.h>
 #include <plugin.h>
 #include <utils.h>
 
 #include <targa.h>
+
+#include <log.h>
+#define LOG_DOMAIN "iw_tga"
 
 #define PADD(i, size) i = ((i + size - 1) / size) * size
 
@@ -36,7 +41,6 @@ typedef struct
   gavl_video_format_t format;
   int rle;
   char * filename;
-  char * error_msg;
   } tga_t;
 
 static void * create_tga()
@@ -49,8 +53,6 @@ static void * create_tga()
 static void destroy_tga(void * priv)
   {
   tga_t * tga = (tga_t*)priv;
-  if(tga->error_msg)
-    free(tga->error_msg);
   free(tga);
   }
 
@@ -118,11 +120,11 @@ static int write_image_tga(void * priv, gavl_video_frame_t * frame)
   if(result != TGA_NOERR)
     {
     if(errno)
-      tga->error_msg = bg_sprintf("Cannot save %s: %s",
-                                  tga->filename, strerror(errno));
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot save %s: %s",
+             tga->filename, strerror(errno));
     else
-      tga->error_msg = bg_sprintf("Cannot save %s: %s",
-                                  tga->filename, tga_error(result));
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot save %s: %s",
+             tga->filename, tga_error(result));
     free(tga->filename);
     tga->filename = (char*)0;
     return 0;
@@ -139,7 +141,7 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name:        "rle",
-      long_name:   "Do RLE compression",
+      long_name:   TRS("Do RLE compression"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 0 },
     },
@@ -171,19 +173,15 @@ static const char * get_extension_tga(void * p)
   return tga_extension;
   }
 
-static const char * get_error_tga(void * p)
-  {
-  tga_t * tga;
-  tga = (tga_t *)p;
-  return tga->error_msg;
-  }
 
 bg_image_writer_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:           "iw_tga",
-      long_name:      "TGA writer",
+      long_name:      TRS("TGA writer"),
+      description:   TRS("Writer for TGA images"),
       mimetypes:      (char*)0,
       extensions:     "tga",
       type:           BG_PLUGIN_IMAGE_WRITER,
@@ -191,7 +189,6 @@ bg_image_writer_plugin_t the_plugin =
       priority:       5,
       create:         create_tga,
       destroy:        destroy_tga,
-      get_error:      get_error_tga,
       get_parameters: get_parameters_tga,
       set_parameter:  set_parameter_tga
     },

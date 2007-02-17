@@ -18,12 +18,17 @@
 *****************************************************************/
 
 #include <stdlib.h>
+
+
+#include <config.h>
+#include <translation.h>
+
 #include <utils.h>
 
 static char * get_dB(float val)
   {
   if(val == 0.0)
-    return bg_strdup((char*)0, "Zero");
+    return bg_strdup((char*)0, TR("Zero"));
   else
     return bg_sprintf("%02f dB", val);
   }
@@ -52,9 +57,9 @@ char * bg_audio_format_to_string(gavl_audio_format_t * f, int use_tabs)
     }
   
   if(!use_tabs)
-    format = "Channels:          %d\nChannel order:     %s\nSamplerate:        %d\nSamples per frame: %d\nInterleave Mode:   %s\nSample format:     %s";
+    format = TR("Channels:          %d\nChannel order:     %s\nSamplerate:        %d\nSamples per frame: %d\nInterleave Mode:   %s\nSample format:     %s");
   else
-    format = "Channels:\t %d\nChannel order\t %s\nSamplerate:\t %d\nSamples per frame:\t %d\nInterleave Mode:\t %s\nSample format:\t %s";
+    format = TR("Channels:\t %d\nChannel order\t %s\nSamplerate:\t %d\nSamples per frame:\t %d\nInterleave Mode:\t %s\nSample format:\t %s");
   ret =
     bg_sprintf(format,
                f->num_channels,
@@ -75,9 +80,9 @@ char * bg_video_format_to_string(gavl_video_format_t * format, int use_tabs)
   char * str, *ret;
   const char * s;
   if(!use_tabs)
-    s = "Frame size:   %d x %d\nImage size:   %d x %d\nPixel size:   %d x %d\nPixel format: %s\n";
+    s = TR("Frame size:   %d x %d\nImage size:   %d x %d\nPixel size:   %d x %d\nPixel format: %s\n");
   else
-    s = "Frame size:\t %d x %d\nImage size:\t %d x %d\nPixel size:\t %d x %d\nPixel format:\t %s\n";
+    s = TR("Frame size:\t %d x %d\nImage size:\t %d x %d\nPixel size:\t %d x %d\nPixel format:\t %s\n");
 
   ret =
     bg_sprintf(s,
@@ -88,29 +93,29 @@ char * bg_video_format_to_string(gavl_video_format_t * format, int use_tabs)
   
   if(format->framerate_mode == GAVL_FRAMERATE_STILL)
     {
-    ret = bg_strcat(ret, "Still image\n");
+    ret = bg_strcat(ret, TR("Still image\n"));
     }
   else
     {
     if(!use_tabs)
-      s = "Framerate:    %f fps [%d / %d]\n             %s\n";
+      s = TR("Framerate:    %f fps [%d / %d]\n             %s\n");
     else
-      s = "Framerate:\t%f fps [%d / %d]\n\t%s\n";
+      s = TR("Framerate:\t%f fps [%d / %d]\n\t%s\n");
     
     str =
       bg_sprintf(s,
                  (float)(format->timescale)/((float)format->frame_duration),
                  format->timescale, format->frame_duration,
-                 ((format->framerate_mode == GAVL_FRAMERATE_CONSTANT) ? " (Constant)" : 
-                  " (Not constant)"));
+                 ((format->framerate_mode == GAVL_FRAMERATE_CONSTANT) ? TR(" (Constant)") : 
+                  TR(" (Not constant)")));
 
     ret = bg_strcat(ret, str);
     free(str);
     }
   if(!use_tabs)
-    s = "Interlace mode:   %s";
+    s = TR("Interlace mode:   %s");
   else
-    s = "Interlace mode:\t%s";
+    s = TR("Interlace mode:\t%s");
   
   str = bg_sprintf(s, gavl_interlace_mode_to_string(format->interlace_mode));
   ret = bg_strcat(ret, str);
@@ -119,9 +124,9 @@ char * bg_video_format_to_string(gavl_video_format_t * format, int use_tabs)
   if(format->pixelformat == GAVL_YUV_420_P)
     {
     if(!use_tabs)
-      s = "\nChroma placement: %s";
+      s = TR("\nChroma placement: %s");
     else
-      s = "\nChroma placement:\t%s";
+      s = TR("\nChroma placement:\t%s");
     str = bg_sprintf(s, gavl_chroma_placement_to_string(format->chroma_placement));
     ret = bg_strcat(ret, str);
     free(str);

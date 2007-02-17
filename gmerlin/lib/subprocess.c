@@ -30,6 +30,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+#include <config.h>
+
 #include <subprocess.h>
 #include <log.h>
 

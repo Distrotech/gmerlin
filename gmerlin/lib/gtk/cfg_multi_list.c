@@ -23,6 +23,7 @@
 #include "gtk_dialog.h"
 #include <utils.h>
 #include <gui_gtk/multiinfo.h>
+#include <gui_gtk/gtkutils.h>
 
 enum
   {
@@ -39,7 +40,7 @@ typedef struct
   GtkWidget * down_button;
   GtkWidget * scrolled;
 
-  
+  const char * translation_domain;
   bg_cfg_section_t * cfg_section;
   bg_set_parameter_func_t  set_param;
   void * data;
@@ -322,7 +323,7 @@ static void button_callback(GtkWidget * wid, gpointer data)
                                                 w->info->multi_names[priv->selected]);
     
     if(w->info->multi_labels && w->info->multi_labels[priv->selected])
-      label = w->info->multi_labels[priv->selected];
+      label = TRD(w->info->multi_labels[priv->selected], priv->translation_domain);
     else
       label = w->info->multi_names[priv->selected];
 
@@ -334,7 +335,8 @@ static void button_callback(GtkWidget * wid, gpointer data)
     }
   else if(wid == priv->info_button)
     {
-    bg_gtk_multi_info_show(w->info, priv->selected);
+    bg_gtk_multi_info_show(w->info, priv->selected,
+                           priv->translation_domain);
     }
   else if(wid == priv->up_button)
     {
@@ -392,7 +394,7 @@ void
 bg_gtk_create_multi_list(bg_gtk_widget_t * w, bg_parameter_info_t * info,
                          bg_cfg_section_t * cfg_section,
                          bg_set_parameter_func_t set_param,
-                         void * data)
+                         void * data, const char * translation_domain)
   {
   GtkListStore *store;
   GtkTreeViewColumn *column;
@@ -404,7 +406,7 @@ bg_gtk_create_multi_list(bg_gtk_widget_t * w, bg_parameter_info_t * info,
   priv->cfg_section = cfg_section;
   priv->set_param   = set_param;
   priv->data        = data;
-
+  priv->translation_domain = translation_domain;
   w->funcs = &funcs;
   w->priv = priv;
 
@@ -447,9 +449,9 @@ bg_gtk_create_multi_list(bg_gtk_widget_t * w, bg_parameter_info_t * info,
 
   if(info->help_string)
     {
-    gtk_tooltips_set_tip(w->tooltips,
-                         priv->treeview,
-                         info->help_string, info->help_string);
+    bg_gtk_tooltips_set_tip(w->tooltips,
+                            priv->treeview,
+                            info->help_string, translation_domain);
     }
 
   
@@ -463,11 +465,13 @@ bg_gtk_create_multi_list(bg_gtk_widget_t * w, bg_parameter_info_t * info,
                    (gpointer)w);
 
   renderer = gtk_cell_renderer_text_new ();
-  column = gtk_tree_view_column_new_with_attributes("Installed Codecs",
-                                                    renderer,
-                                                    "text",
-                                                    COLUMN_NAME,
-                                                    NULL);
+  column =
+    gtk_tree_view_column_new_with_attributes("Installed Codecs",
+                                             renderer,
+                                             "text",
+                                             COLUMN_NAME,
+                                             NULL);
+  
   gtk_tree_view_append_column (GTK_TREE_VIEW(priv->treeview), column);
   gtk_widget_show(priv->treeview);
 

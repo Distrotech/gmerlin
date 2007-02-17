@@ -21,6 +21,9 @@
 #include <string.h>
 #include <stdio.h>
 
+#include <config.h>
+#include <translation.h>
+
 #include <pluginregistry.h>
 #include <tree.h>
 #include <transcoder_track.h>
@@ -43,8 +46,11 @@ void bg_transcoder_track_create_encoder_sections(bg_transcoder_track_t * t,
   if(info->audio_encoder_section && !t->audio_encoder_section)
     {
     t->audio_encoder_section = bg_cfg_section_copy(info->audio_encoder_section);
-    bg_cfg_section_set_name(t->audio_encoder_section, info->audio_info->long_name);
-
+    bg_cfg_section_set_name(t->audio_encoder_section,
+                            info->audio_info->long_name,
+                            info->audio_info->gettext_domain,
+                            info->audio_info->gettext_directory);
+    
     if(bg_cfg_section_has_subsection(t->audio_encoder_section, "$audio"))
       {
       bg_cfg_section_delete_subsection(t->audio_encoder_section,
@@ -57,7 +63,9 @@ void bg_transcoder_track_create_encoder_sections(bg_transcoder_track_t * t,
   if(info->video_encoder_section && !t->video_encoder_section)
     {
     t->video_encoder_section = bg_cfg_section_copy(info->video_encoder_section);
-    bg_cfg_section_set_name(t->video_encoder_section, info->video_info->long_name);
+    bg_cfg_section_set_name(t->video_encoder_section, info->video_info->long_name,
+                            info->video_info->gettext_domain,
+                            info->video_info->gettext_directory);
         
     if(bg_cfg_section_has_subsection(t->video_encoder_section, "$audio"))
       {
@@ -91,7 +99,9 @@ void bg_transcoder_track_create_encoder_sections(bg_transcoder_track_t * t,
     {
     t->subtitle_text_encoder_section = bg_cfg_section_copy(info->subtitle_text_encoder_section);
     bg_cfg_section_set_name(t->subtitle_text_encoder_section,
-                            info->subtitle_text_info->long_name);
+                            info->subtitle_text_info->long_name,
+                            info->subtitle_text_info->gettext_domain,
+                            info->subtitle_text_info->gettext_directory);
 
     if(bg_cfg_section_has_subsection(t->subtitle_text_encoder_section, "$subtitle_text"))
       {
@@ -107,8 +117,10 @@ void bg_transcoder_track_create_encoder_sections(bg_transcoder_track_t * t,
     t->subtitle_overlay_encoder_section =
       bg_cfg_section_copy(info->subtitle_overlay_encoder_section);
     bg_cfg_section_set_name(t->subtitle_overlay_encoder_section,
-                            info->subtitle_overlay_info->long_name);
-
+                            info->subtitle_overlay_info->long_name,
+                            info->subtitle_overlay_info->gettext_domain,
+                            info->subtitle_overlay_info->gettext_directory);
+    
     if(bg_cfg_section_has_subsection(t->subtitle_overlay_encoder_section, "$subtitle_overlay"))
       {
       bg_cfg_section_delete_subsection(t->subtitle_overlay_encoder_section,
@@ -129,7 +141,8 @@ void bg_transcoder_track_create_encoder_sections(bg_transcoder_track_t * t,
           {
           t->audio_streams[i].encoder_section =
             bg_cfg_section_copy(info->audio_stream_section);
-          bg_cfg_section_set_name(t->audio_streams[i].encoder_section, "Encode options");
+          bg_cfg_section_set_name(t->audio_streams[i].encoder_section, "Encode options",
+                                  PACKAGE, LOCALE_DIR);
           }
         }
       }
@@ -147,7 +160,8 @@ void bg_transcoder_track_create_encoder_sections(bg_transcoder_track_t * t,
           {
           t->video_streams[i].encoder_section =
             bg_cfg_section_copy(info->video_stream_section);
-          bg_cfg_section_set_name(t->video_streams[i].encoder_section, "Encode options");
+          bg_cfg_section_set_name(t->video_streams[i].encoder_section, "Encode options",
+                                  PACKAGE, LOCALE_DIR);
           }
         }
       }
@@ -165,7 +179,8 @@ void bg_transcoder_track_create_encoder_sections(bg_transcoder_track_t * t,
         t->subtitle_text_streams[i].encoder_section_text =
           bg_cfg_section_copy(info->subtitle_text_stream_section);
         bg_cfg_section_set_name(t->subtitle_text_streams[i].encoder_section_text,
-                                "Encode options (Text)");
+                                "Encode options (Text)",
+                                PACKAGE, LOCALE_DIR);
         }
       if(info->subtitle_overlay_stream_section &&
          !t->subtitle_text_streams[i].encoder_section_overlay)
@@ -173,7 +188,8 @@ void bg_transcoder_track_create_encoder_sections(bg_transcoder_track_t * t,
         t->subtitle_text_streams[i].encoder_section_overlay =
           bg_cfg_section_copy(info->subtitle_overlay_stream_section);
         bg_cfg_section_set_name(t->subtitle_text_streams[i].encoder_section_overlay,
-                                "Encode options (Overlay)");
+                                "Encode options (Overlay)",
+                                PACKAGE, LOCALE_DIR);
         }
       }
     }
@@ -191,7 +207,8 @@ void bg_transcoder_track_create_encoder_sections(bg_transcoder_track_t * t,
           t->subtitle_overlay_streams[i].encoder_section =
             bg_cfg_section_copy(info->subtitle_overlay_stream_section);
           bg_cfg_section_set_name(t->subtitle_overlay_streams[i].encoder_section,
-                                  "Encode options");
+                                  "Encode options",
+                                  PACKAGE, LOCALE_DIR);
           }
         }
       }
@@ -317,33 +334,33 @@ static bg_parameter_info_t parameters_general[] =
   {
     {
       name:      "name",
-      long_name: "Name",
+      long_name: TRS("Name"),
       type:      BG_PARAMETER_STRING,
       flags:     BG_PARAMETER_HIDE_DIALOG,
     },
     {
       name:      "location",
-      long_name: "Location",
+      long_name: TRS("Location"),
       type:      BG_PARAMETER_STRING,
       flags:     BG_PARAMETER_HIDE_DIALOG,
     },
     {
       name:      "plugin",
-      long_name: "Plugin",
+      long_name: TRS("Plugin"),
       type:      BG_PARAMETER_STRING,
       flags:     BG_PARAMETER_HIDE_DIALOG,
     },
     {
       name:      "track",
-      long_name: "Track",
+      long_name: TRS("Track"),
       type:      BG_PARAMETER_INT,
       flags:     BG_PARAMETER_HIDE_DIALOG,
     },
     {
       name:        "subdir",
-      long_name:   "Subdirectory",
+      long_name:   TRS("Subdirectory"),
       type:        BG_PARAMETER_STRING,
-      help_string: "Subdirectory, where this track will be written to",
+      help_string: TRS("Subdirectory, where this track will be written to"),
     },
     {
       name:      "duration",
@@ -383,37 +400,37 @@ static bg_parameter_info_t parameters_general[] =
     },
     {
       name:      "pp_only",
-      long_name: "Postprocess only",
+      long_name: TRS("Postprocess only"),
       type:      BG_PARAMETER_CHECKBUTTON,
-      help_string: "Skip transcoding of this track and send the file directly to the postprocessor.",
+      help_string: TRS("Skip transcoding of this track and send the file directly to the postprocessor."),
     },
     {
       name:      "set_start_time",
-      long_name: "Set start time",
+      long_name: TRS("Set start time"),
       type:      BG_PARAMETER_CHECKBUTTON,
       flags:     BG_PARAMETER_HIDE_DIALOG,
       val_default: { val_i: 0 },
-      help_string: "Specify a start time below. This time will be slightly wrong if the input \
-format doesn't support sample accurate seeking."
+      help_string: TRS("Specify a start time below. This time will be slightly wrong if the input \
+format doesn't support sample accurate seeking.")
     },
     {
       name:      "start_time",
-      long_name: "Start time",
+      long_name: TRS("Start time"),
       type:      BG_PARAMETER_TIME,
       flags:     BG_PARAMETER_HIDE_DIALOG,
       val_default: { val_time: 0 }
     },
     {
       name:      "set_end_time",
-      long_name: "Set end time",
+      long_name: TRS("Set end time"),
       type:      BG_PARAMETER_CHECKBUTTON,
       flags:     BG_PARAMETER_HIDE_DIALOG,
       val_default: { val_i: 0 },
-      help_string: "Specify an end time below."
+      help_string: TRS("Specify an end time below.")
     },
     {
       name:      "end_time",
-      long_name: "End time",
+      long_name: TRS("End time"),
       type:      BG_PARAMETER_TIME,
       flags:     BG_PARAMETER_HIDE_DIALOG,
       val_default: { val_time: 0 }
@@ -427,16 +444,17 @@ static bg_parameter_info_t general_parameters_subtitle_text[] =
   {
     {
       name:        "action",
-      long_name:   "Action",
+      long_name:   TRS("Action"),
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "forget" },
       multi_names:  (char*[]){ "forget", "transcode",           "transcode_overlay",    "blend",          (char*)0 },
-      multi_labels: (char*[]){ "Forget", "Transcode as text",   "Transcode as overlay", "Blend onto video", (char*)0 },
-      help_string: "Select action for this subtitle stream."
+      multi_labels: (char*[]){ TRS("Forget"), TRS("Transcode as text"),
+                               TRS("Transcode as overlay"), TRS("Blend onto video"), (char*)0 },
+      help_string: TRS("Select action for this subtitle stream.")
     },
     {
       name:        "language",
-      long_name:   "Language",
+      long_name:   TRS("Language"),
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "eng" },
       multi_names:  bg_language_codes,
@@ -444,14 +462,14 @@ static bg_parameter_info_t general_parameters_subtitle_text[] =
     },
     {
       name:        "video_stream",
-      long_name:   "Video stream",
+      long_name:   TRS("Video stream"),
       type:        BG_PARAMETER_INT,
       flags:       BG_PARAMETER_HIDE_DIALOG,
       val_default: { val_i: 1 },
       val_min:     { val_i: 1 },
-      help_string: "Attach subtitle stream to this video stream. For blending, this video stream will\
+      help_string: TRS("Attach subtitle stream to this video stream. For blending, this video stream will\
  get the subtitles. For encoding, take frame dimensions and framerate from this video stream as they are\
- sometimes needed by subtitle encoders."
+ sometimes needed by subtitle encoders.")
     },
     { /* End of parameters */ }
   };
@@ -462,15 +480,15 @@ static bg_parameter_info_t general_parameters_subtitle_overlay[] =
   {
     {
       name:        "action",
-      long_name:   "Action",
+      long_name:   TRS("Action"),
       type:        BG_PARAMETER_STRINGLIST,
       multi_names:  (char*[]){ "forget", "transcode", "blend",          (char*)0 },
-      multi_labels: (char*[]){ "Forget", "Transcode", "Blend onto video", (char*)0 },
+      multi_labels: (char*[]){ TRS("Forget"), TRS("Transcode"), TRS("Blend onto video"), (char*)0 },
       val_default: { val_str: "forget" },
     },
     {
       name:        "language",
-      long_name:   "Language",
+      long_name:   TRS("Language"),
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "eng" },
       multi_names:  bg_language_codes,
@@ -478,7 +496,7 @@ static bg_parameter_info_t general_parameters_subtitle_overlay[] =
     },
     {
       name:        "blend_stream",
-      long_name:   "Video stream to blend onto",
+      long_name:   TRS("Video stream to blend onto"),
       type:        BG_PARAMETER_INT,
       flags:       BG_PARAMETER_HIDE_DIALOG,
       val_default: { val_i: 1 },
@@ -854,7 +872,6 @@ bg_transcoder_track_create(const char * url,
                            bg_cfg_section_t * track_defaults_section,
                            char * name)
   {
-  char * error_msg = (char*)0;
   int i;
 
   bg_transcoder_track_t * ret = (bg_transcoder_track_t *)0;
@@ -878,10 +895,9 @@ bg_transcoder_track_create(const char * url,
   /* Load the plugin */
   
   if(!bg_input_plugin_load(plugin_reg, url,
-                           input_info, &plugin_handle, &error_msg, (bg_input_callbacks_t*)0))
+                           input_info, &plugin_handle, (bg_input_callbacks_t*)0))
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Loading %s failed: %s", url, error_msg);
-    free(error_msg);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Loading %s failed", url);
     return (bg_transcoder_track_t*)0;
     }
 
@@ -1318,37 +1334,35 @@ static bg_parameter_info_t general_parameters_video[] =
   {
     {
       name:       "general",
-      long_name:  "General",
+      long_name:  TRS("General"),
       type:       BG_PARAMETER_SECTION
     },
     {
       name:        "action",
-      long_name:   "Action",
+      long_name:   TRS("Action"),
       type:        BG_PARAMETER_STRINGLIST,
       multi_names: (char*[]){ "transcode", "forget", (char*)0 },
-      multi_labels:  (char*[]){ "Transcode", "Forget", (char*)0 },
+      multi_labels:  (char*[]){ TRS("Transcode"), TRS("Forget"), (char*)0 },
       val_default: { val_str: "transcode" },
     },
     {
       name:       "twopass",
-      long_name:  "Enable 2-pass encoding",
+      long_name:  TRS("Enable 2-pass encoding"),
       type:       BG_PARAMETER_CHECKBUTTON,
-      help_string: "Encode this stream in 2 passes, i.e. analyze it first and do the final\
- transcoding in the second pass. This enables higher quality within the given bitrate constraints but roughly doubles the video encoding time.",
+      help_string: TRS("Encode this stream in 2 passes, i.e. analyze it first and do the final\
+ transcoding in the second pass. This enables higher quality within the given bitrate constraints but roughly doubles the video encoding time."),
     },
     BG_GAVL_PARAM_CONVERSION_QUALITY,
     BG_GAVL_PARAM_FRAMERATE,
     BG_GAVL_PARAM_DEINTERLACE,
     BG_GAVL_PARAM_ALPHA,
-#if 1
     {
       name:       "crop_scale",
-      long_name:  "Crop & Scale",
+      long_name:  TRS("Crop & Scale"),
       type:       BG_PARAMETER_SECTION
     },
     BG_GAVL_PARAM_CROP,
     BG_GAVL_PARAM_FRAME_SIZE,
-#endif
     { /* End of parameters */ }
   };
 
@@ -1356,15 +1370,15 @@ static bg_parameter_info_t general_parameters_audio[] =
   {
     {
       name:        "action",
-      long_name:   "Action",
+      long_name:   TRS("Action"),
       type:        BG_PARAMETER_STRINGLIST,
       multi_names: (char*[]){ "transcode", "forget", (char*)0 },
-      multi_labels:  (char*[]){ "Transcode", "Forget", (char*)0 },
+      multi_labels:  (char*[]){ TRS("Transcode"), TRS("Forget"), (char*)0 },
       val_default: { val_str: "transcode" },
     },
     {
       name:        "language",
-      long_name:   "Language",
+      long_name:   TRS("Language"),
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "eng" },
       multi_names:  bg_language_codes,
@@ -1372,10 +1386,10 @@ static bg_parameter_info_t general_parameters_audio[] =
     },
     {
       name:        "normalize",
-      long_name:   "Normalize audio",
+      long_name:   TRS("Normalize audio"),
       type:        BG_PARAMETER_CHECKBUTTON,
-      help_string: "This will enable 2 pass transcoding. In the first pass, the peak volume\
- is detected. In the second pass, the stream is transcoded with normalized volume."
+      help_string: TRS("This will enable 2 pass transcoding. In the first pass, the peak volume\
+ is detected. In the second pass, the stream is transcoded with normalized volume.")
     },
     BG_GAVL_PARAM_FORCE_FLOAT,
     BG_GAVL_PARAM_CONVERSION_QUALITY,

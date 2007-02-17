@@ -18,6 +18,7 @@
 *****************************************************************/
 
 #include <config.h>
+#include <translation.h>
 #include <utils.h>
 #include <parameter.h>
 #include "gui.h"
@@ -851,7 +852,7 @@ static void init_tone(control_widget_t * w, alsa_mixer_group_t * c)
 
   row = 0;
   
-  w->label = bg_strdup(w->label, "Tone");
+  w->label = bg_strdup(w->label, TR("Tone"));
   label = gtk_label_new(w->label);
   gtk_widget_show(label);
   gtk_table_attach(GTK_TABLE(w->w), label, 0, num_cols, row, row+1,
@@ -882,7 +883,7 @@ static void init_tone(control_widget_t * w, alsa_mixer_group_t * c)
 
   if(c->tone_treble)
     {
-    label = gtk_label_new("Treble");
+    label = gtk_label_new(TR("Treble"));
     gtk_widget_show(label);
     gtk_table_attach(GTK_TABLE(w->w), label, 0, num_cols,
                      row, row+1, GTK_FILL, GTK_FILL, 0, 0);
@@ -912,7 +913,7 @@ static void init_tone(control_widget_t * w, alsa_mixer_group_t * c)
 
   if(c->tone_bass)
     {
-    label = gtk_label_new("Bass");
+    label = gtk_label_new(TR("Bass"));
     gtk_widget_show(label);
     gtk_table_attach(GTK_TABLE(w->w), label, 0, num_cols,
                      row, row+1, GTK_FILL, GTK_FILL, 0, 0);
@@ -999,7 +1000,7 @@ static void init_volume(control_widget_t * w, alsa_mixer_group_t * c)
   /* Save label */
   if(capture_width)
     {
-    label = gtk_label_new("Rec");
+    label = gtk_label_new(TR("Rec"));
     gtk_widget_show(label);
 
     gtk_table_attach(GTK_TABLE(w->w), label, 0, capture_width, 1, 2,
@@ -1045,7 +1046,7 @@ static void init_volume(control_widget_t * w, alsa_mixer_group_t * c)
 
   if(playback_width)
     {
-    label = gtk_label_new("Play");
+    label = gtk_label_new(TR("Play"));
     gtk_widget_show(label);
 
     gtk_table_attach(GTK_TABLE(w->w), label,

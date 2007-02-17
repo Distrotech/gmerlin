@@ -20,6 +20,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <config.h>
+#include <translation.h>
 #include <plugin.h>
 
 #include <png.h>
@@ -218,8 +220,10 @@ bg_image_reader_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:          "ir_png",
-      long_name:     "PNG loader",
+      long_name:     TRS("PNG reader"),
+      description:   TRS("Reader for PNG images"),
       mimetypes:     (char*)0,
       extensions:    "png",
       type:          BG_PLUGIN_IMAGE_READER,

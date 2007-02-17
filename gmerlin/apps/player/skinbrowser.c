@@ -310,7 +310,7 @@ static int install_skin(const char * filename)
   command = bg_sprintf("tar -C %s/.gmerlin/skins -xvzf %s", home_dir, filename);
   if(system(command))
     {
-    error_msg = bg_sprintf("Installing skin from\n%s\nfailed", filename);
+    error_msg = bg_sprintf(TR("Installing skin from\n%s\nfailed"), filename);
     bg_gtk_message(error_msg, BG_GTK_MESSAGE_ERROR);
     free(error_msg);
     }
@@ -363,7 +363,8 @@ static void button_callback(GtkWidget * w, gpointer data)
                                     add_file_callback,
                                     filesel_close_callback,
                                     NULL,
-                                    b, b->window /* parent */ );
+                                    b, b->window /* parent */,
+                                    (bg_plugin_registry_t*)0);
 
     gtk_widget_set_sensitive(b->new_button, 0);
     bg_gtk_filesel_run(filesel, 0);     
@@ -400,7 +401,7 @@ gmerlin_skin_browser_t * gmerlin_skin_browser_create(gmerlin_t * g)
   g_signal_connect(G_OBJECT(ret->window), "delete_event",
                    G_CALLBACK(delete_callback),
                    (gpointer)ret);
-  gtk_window_set_title(GTK_WINDOW(ret->window), "Skin browser");
+  gtk_window_set_title(GTK_WINDOW(ret->window), TR("Skin browser"));
   gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER);
   
   /* Create skin list */

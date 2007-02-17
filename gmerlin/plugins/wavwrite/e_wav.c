@@ -27,8 +27,13 @@
 #include <time.h>
 
 #include <config.h>
+#include <translation.h>
+
+
 #include <plugin.h>
 #include <utils.h>
+#include <log.h>
+#define LOG_DOMAIN "e_wav"
 
 /* Speaker configurations for WAVEFORMATEXTENSIBLE */
 
@@ -58,7 +63,6 @@ typedef struct wav_s
   {
   int bytes_per_sample;
   FILE * output;
-  char * error_msg;
   int data_size_offset;
   gavl_audio_format_t format;
 
@@ -292,19 +296,13 @@ static void destroy_wav(void * priv)
   free(wav);
   }
 
-static const char * get_error_wav(void * priv)
-  {
-  wav_t * wav;
-  wav = (wav_t*)priv;
-  return wav->error_msg;
-  }
 
 
 static bg_parameter_info_t audio_parameters[] =
   {
     {
       name:        "bits",
-      long_name:   "Bits per sample",
+      long_name:   TRS("Bits per sample"),
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "16" },
       multi_names:     (char*[]){ "8", "16", "24", "32", (char*)0 },
@@ -316,7 +314,7 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name:        "write_info_chunk",
-      long_name:   "Write info chunk",
+      long_name:   TRS("Write info chunk"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 },
     },
@@ -453,8 +451,8 @@ static int open_wav(void * data, const char * filename,
 
   if(!wav->output)
     {
-    wav->error_msg = bg_sprintf("Cannot open output file: %s",
-                               strerror(errno));
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open output file: %s",
+           strerror(errno));
     result = 0;
     }
   else
@@ -625,8 +623,10 @@ bg_encoder_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:              "e_wav", /* Unique short name */
-      long_name:         "Simple wave writer",
+      long_name:         TRS("Wave writer"),
+      description:       TRS("Simple writer for wave files, supports 8, 16, 24 and 32 bit PCM"),
       mimetypes:         NULL,
       extensions:        "wav",
       type:              BG_PLUGIN_ENCODER_AUDIO,
@@ -634,7 +634,6 @@ bg_encoder_plugin_t the_plugin =
       priority:          BG_PLUGIN_PRIORITY_MAX,
       create:            create_wav,
       destroy:           destroy_wav,
-      get_error:         get_error_wav,
       get_parameters:    get_parameters_wav,
       set_parameter:     set_parameter_wav,
     },

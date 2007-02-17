@@ -26,6 +26,7 @@ textrenderer.h \
 transcoder.h \
 transcodermsg.h \
 transcoder_track.h \
+translation.h \
 tree.h \
 utils.h
 
@@ -38,4 +39,3 @@ playerprivate.h \
 registry_priv.h \
 treeprivate.h \
 pluginreg_priv.h
-

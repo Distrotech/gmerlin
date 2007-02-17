@@ -25,6 +25,8 @@
 #include <utils.h>
 #include <config.h>
 
+#include <translation.h>
+
 #include <gui_gtk/display.h>
 #include <gui_gtk/gtkutils.h>
 #include <gui_gtk/scrolltext.h>
@@ -60,31 +62,32 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name: "get_colors_from_skin",
-      long_name: "Get colors from skin",
+      long_name: TRS("Get colors from skin"),
       type: BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 },
+      help_string: TRS("Take the display colors from the skin definition")
     },
     {
       name:      "background",
-      long_name: "Background",
+      long_name: TRS("Background"),
       type: BG_PARAMETER_COLOR_RGB,
       val_default: { val_color: (float[]){ 0.0, 0.0, 0.0, 1.0 } },
     },
     {
       name:      "foreground_normal",
-      long_name: "Normal foreground",
+      long_name: TRS("Normal foreground"),
       type: BG_PARAMETER_COLOR_RGB,
       val_default: { val_color: (float[]) { 1.0, 0.5, 0.0, 1.0 } },
     },
     {
       name:      "foreground_error",
-      long_name: "Error foreground",
+      long_name: TRS("Error foreground"),
       type: BG_PARAMETER_COLOR_RGB,
       val_default: { val_color: (float[]){ 1.0, 0.0, 0.0, 1.0 } },
     },
     {
       name:      "display_mode",
-      long_name: "Display mode",
+      long_name: TRS("Display mode"),
       type: BG_PARAMETER_INT,
       flags:       BG_PARAMETER_HIDE_DIALOG,
       val_min:     { val_i:  DISPLAY_MODE_NONE },
@@ -93,7 +96,7 @@ static bg_parameter_info_t parameters[] =
     },
     {
       name:      "repeat_mode",
-      long_name: "Repeat mode",
+      long_name: TRS("Repeat mode"),
       type: BG_PARAMETER_INT,
       flags:       BG_PARAMETER_HIDE_DIALOG,
       val_min:     { val_i:  REPEAT_MODE_NONE },
@@ -102,7 +105,7 @@ static bg_parameter_info_t parameters[] =
     },
     {
       name:      "font",
-      long_name: "Font",
+      long_name: TRS("Font"),
       type: BG_PARAMETER_FONT,
       val_default: { val_str:  "Sans-10:slant=0:weight=200:width=100" },
     },
@@ -522,9 +525,9 @@ display_t * display_create(gmerlin_t * gmerlin, GtkTooltips * tooltips)
   gtk_widget_set_events(ret->repeat_area,
                         GDK_BUTTON_PRESS_MASK | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK);
 
-  gtk_tooltips_set_tip(tooltips, ret->repeat_area,
-                       "Repeat mode\nClick to change",
-                       "Repeat mode\nClick to change");
+  bg_gtk_tooltips_set_tip(tooltips, ret->repeat_area,
+                          "Repeat mode\nClick to change",
+                          PACKAGE);
   
   g_signal_connect(G_OBJECT(ret->repeat_area),
                    "button_press_event",
@@ -544,9 +547,9 @@ display_t * display_create(gmerlin_t * gmerlin, GtkTooltips * tooltips)
 
   gtk_widget_set_events(ret->display_area,
                         GDK_BUTTON_PRESS_MASK | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK);
-  gtk_tooltips_set_tip(tooltips, ret->display_area,
-                       "Time display mode\nClick to change",
-                       "Time display mode\nClick to change");
+  bg_gtk_tooltips_set_tip(tooltips, ret->display_area,
+                          "Time display mode\nClick to change",
+                          PACKAGE);
   
   
   g_signal_connect(G_OBJECT(ret->display_area),

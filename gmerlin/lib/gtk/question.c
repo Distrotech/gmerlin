@@ -21,6 +21,8 @@
 #include <stdio.h>
 #include <gtk/gtk.h>
 
+#include <config.h>
+
 #include <gui_gtk/question.h>
 #include <gui_gtk/gtkutils.h>
 
@@ -81,7 +83,7 @@ int bg_gtk_question(const char * question)
   /* Set attributes */
 
   gtk_window_set_modal(GTK_WINDOW(q->window), 1);
-  gtk_window_set_title(GTK_WINDOW(q->window), "Question");
+  gtk_window_set_title(GTK_WINDOW(q->window), TR("Question"));
   gtk_window_set_position(GTK_WINDOW(q->window), GTK_WIN_POS_CENTER);
   GTK_WIDGET_SET_FLAGS (q->ok_button, GTK_CAN_DEFAULT);
   GTK_WIDGET_SET_FLAGS (q->cancel_button, GTK_CAN_DEFAULT);

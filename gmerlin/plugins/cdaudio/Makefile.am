@@ -26,7 +26,8 @@ $(cddb_cflags) \
 $(musicbrainz_cflags) \
 @CDIO_CFLAGS@ \
 @CDIO_CDDA_CFLAGS@ \
-@CDIO_PARANOIA_CFLAGS@
+@CDIO_PARANOIA_CFLAGS@ \
+-DLOCALE_DIR=\"$(localedir)\"
 
 libdir = @GMERLIN_PLUGIN_DIR@
 

@@ -22,6 +22,8 @@
 #include <stdio.h>
 
 #include <config.h>
+#include <translation.h>
+
 #include <plugin.h>
 #include <utils.h>
 #include <log.h>
@@ -35,7 +37,6 @@
 typedef struct
   {
   char * vcd_version;
-  char * error_msg;
 
   char * bin_file;
   char * xml_file;
@@ -84,7 +85,6 @@ static void destroy_vcdimager(void * priv)
   FREE(vcdimager->bin_file);
   FREE(vcdimager->cue_file);
   FREE(vcdimager->volume_label);
-  FREE(vcdimager->error_msg);
   FREE(vcdimager->vcd_version);
 
   bg_cdrdao_destroy(vcdimager->cdr);
@@ -94,50 +94,44 @@ static void destroy_vcdimager(void * priv)
 
 #undef FREE
 
-static const char * get_error_vcdimager(void * priv)
-  {
-  vcdimager_t * vcdimager;
-  vcdimager = (vcdimager_t*)priv;
-  return vcdimager->error_msg;
-  }
 
 
 static bg_parameter_info_t parameters[] =
   {
     {
       name: "vcdimager",
-      long_name: "VCD options",
+      long_name: TRS("VCD options"),
       type: BG_PARAMETER_SECTION,
     },
     {
       name: "vcd_version",
-      long_name: "Format",
+      long_name: TRS("Format"),
       type: BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "vcd2" },
       multi_names: (char*[]){ "vcd11", "vcd2", "svcd", "hqsvcd", (char*)0 },
-      multi_labels: (char*[]){ "VCD 1.1", "VCD 2.0", "SVCD", "HQSVCD", (char*)0 },
+      multi_labels: (char*[]){ TRS("VCD 1.1"), TRS("VCD 2.0"), TRS("SVCD"), TRS("HQSVCD"), (char*)0 },
     },
     {
       name: "volume_label",
-      long_name: "ISO 9660 volume label",
+      long_name: TRS("ISO 9660 volume label"),
       type: BG_PARAMETER_STRING,
       val_default: { val_str: "VIDEOCD" },
     },
     {
       name: "xml_file",
-      long_name: "Xml file",
+      long_name: TRS("Xml file"),
       type: BG_PARAMETER_STRING,
       val_default: { val_str: "videocd.xml" },
     },
     {
       name: "bin_file",
-      long_name: "Bin file",
+      long_name: TRS("Bin file"),
       type: BG_PARAMETER_STRING,
       val_default: { val_str: "videocd.bin" },
     },
     {
       name: "cue_file",
-      long_name: "Cue file",
+      long_name: TRS("Cue file"),
       type: BG_PARAMETER_STRING,
       val_default: { val_str: "videocd.cue" },
     },
@@ -255,14 +249,14 @@ static void parse_output_line(vcdimager_t * vcdimager, char * line)
         if(!(end = strchr(id, '"')))
           return;
         *end = '\0';
-        str = bg_sprintf("Scanning %s", id);
+        str = bg_sprintf(TR("Scanning %s"), id);
         vcdimager->callbacks->action_callback(vcdimager->callbacks->data,
                                               str);
         free(str);
         }
       if(!strncmp(start, "write\"", 6))
         {
-        str = bg_sprintf("Writing image");
+        str = bg_sprintf(TR("Writing image"));
         vcdimager->callbacks->action_callback(vcdimager->callbacks->data,
                                               str);
         free(str);
@@ -402,15 +396,16 @@ bg_encoder_pp_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:              "e_pp_vcdimager", /* Unique short name */
-      long_name:         "VCD image generator/burner",
+      long_name:         TRS("VCD image generator/burner"),
+      description:       TRS("This is a frontend for generating (S)VCD images with the vcdimager tools (http://www.vcdimager.org). Burning with cdrdao (http://cdrdao.sourceforge.net) is also possible."),
       mimetypes:         NULL,
       extensions:        "mpg",
       type:              BG_PLUGIN_ENCODER_PP,
       flags:             0,
       create:            create_vcdimager,
       destroy:           destroy_vcdimager,
-      get_error:         get_error_vcdimager,
       get_parameters:    get_parameters_vcdimager,
       set_parameter:     set_parameter_vcdimager,
       priority:          1,

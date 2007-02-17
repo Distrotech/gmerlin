@@ -21,6 +21,8 @@
 
 #include "gtk_dialog.h"
 
+#include <gui_gtk/gtkutils.h>
+
 typedef struct
   {
   GtkWidget * button;
@@ -73,10 +75,11 @@ static gtk_widget_funcs_t funcs =
   };
 
 
-void bg_gtk_create_checkbutton(bg_gtk_widget_t * w, bg_parameter_info_t * info)
+void bg_gtk_create_checkbutton(bg_gtk_widget_t * w, bg_parameter_info_t * info,
+                               const char * translation_domain)
   {
   checkbutton_t * priv = calloc(1, sizeof(*priv));
-  priv->button = gtk_check_button_new_with_label(info->long_name);
+  priv->button = gtk_check_button_new_with_label(TR_DOM(info->long_name));
 
   if(info->flags & BG_PARAMETER_SYNC)
     {
@@ -88,7 +91,8 @@ void bg_gtk_create_checkbutton(bg_gtk_widget_t * w, bg_parameter_info_t * info)
 
   if(info->help_string)
     {
-    gtk_tooltips_set_tip(w->tooltips, priv->button, info->help_string, info->help_string);
+    bg_gtk_tooltips_set_tip(w->tooltips, priv->button,
+                            info->help_string, translation_domain);
     }
   
   gtk_widget_show(priv->button);

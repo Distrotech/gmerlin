@@ -24,7 +24,8 @@
 #include <string.h>
 #include <stdlib.h>
 
-
+#include <config.h>
+#include <translation.h>
 #include <plugin.h>
 #include <utils.h>
 
@@ -64,12 +65,12 @@ static bg_parameter_info_t pwc_parameters[] =
   {
     {
       name:        "pwc_general",
-      long_name:   "PWC General",
+      long_name:   TRS("PWC General"),
       type:        BG_PARAMETER_SECTION,
     },
     {
       name:        "pwc_framerate",
-      long_name:   "Framerate",
+      long_name:   TRS("Framerate"),
       type:        BG_PARAMETER_INT,
       val_min:     { val_i: 4 },
       val_max:     { val_i: 30 },
@@ -77,10 +78,15 @@ static bg_parameter_info_t pwc_parameters[] =
     },
     {
       name:        "pwc_compression",
-      long_name:   "Compression",
+      long_name:   TRS("Compression"),
       type:        BG_PARAMETER_STRINGLIST,
       flags:       BG_PARAMETER_SYNC,
       val_default: { val_str: "Medium" },
+      multi_labels: (char*[]){ TRS("None"),
+                              TRS("Low"),
+                              TRS("Medium"),
+                              TRS("High"),
+                              (char*)0 },
       multi_names:     (char*[]){ "None",
                               "Low",
                               "Medium",
@@ -89,7 +95,7 @@ static bg_parameter_info_t pwc_parameters[] =
     },
     {
       name:        "pwc_gain",
-      long_name:   "Gain control (-1 = Auto)",
+      long_name:   TRS("Gain control (-1 = Auto)"),
       type:        BG_PARAMETER_SLIDER_INT,
       flags:       BG_PARAMETER_SYNC,
       val_default: { val_i: -1 },
@@ -98,7 +104,7 @@ static bg_parameter_info_t pwc_parameters[] =
     },
     {
       name:        "pwc_shutterspeed",
-      long_name:   "Shutter speed (-1 = Auto)",
+      long_name:   TRS("Shutter speed (-1 = Auto)"),
       type:        BG_PARAMETER_SLIDER_INT,
       flags:       BG_PARAMETER_SYNC,
       val_default: { val_i: -1 },
@@ -107,7 +113,7 @@ static bg_parameter_info_t pwc_parameters[] =
     },
     {
       name:        "pwc_sharpness",
-      long_name:   "Sharpness (-1 = Auto)",
+      long_name:   TRS("Sharpness (-1 = Auto)"),
       type:        BG_PARAMETER_SLIDER_INT,
       flags:       BG_PARAMETER_SYNC,
       val_default: { val_i: -1 },
@@ -116,39 +122,45 @@ static bg_parameter_info_t pwc_parameters[] =
     },
     {
       name:        "pwc_backlight",
-      long_name:   "Backlight compensation",
+      long_name:   TRS("Backlight compensation"),
       type:        BG_PARAMETER_CHECKBUTTON,
       flags:       BG_PARAMETER_SYNC,
       val_default: { val_i: 1 },
     },
     {
       name:        "pwc_flicker",
-      long_name:   "Flicker compensation",
+      long_name:   TRS("Flicker compensation"),
       type:        BG_PARAMETER_CHECKBUTTON,
       flags:       BG_PARAMETER_SYNC,
       val_default: { val_i: 0 },
     },
     {
       name:        "pwc_whitebalance_section",
-      long_name:   "PWC Whitebalance",
+      long_name:   TRS("PWC Whitebalance"),
       type:        BG_PARAMETER_SECTION,
     },
     {
       name:        "pwc_whitebalance",
-      long_name:   "White balance",
+      long_name:   TRS("White balance"),
       type:        BG_PARAMETER_STRINGLIST,
       flags:       BG_PARAMETER_SYNC,
       val_default: { val_str: "Auto" },
       multi_names:     (char*[]){ "Indoor",
-                              "Outdoor",
-                              "Fluorescent lighting",
-                              "Manual",
-                              "Auto",
-                              (char*)0 },
+                                  "Outdoor",
+                                  "Fluorescent lighting",
+                                  "Manual",
+                                  "Auto",
+                                  (char*)0 },
+      multi_labels:     (char*[]){ TRS("Indoor"),
+                                   TRS("Outdoor"),
+                                   TRS("Fluorescent lighting"),
+                                   TRS("Manual"),
+                                   TRS("Auto"),
+                                   (char*)0 },
     },
     {
       name:        "pwc_manual_red",
-      long_name:   "Manual red gain",
+      long_name:   TRS("Manual red gain"),
       type:        BG_PARAMETER_SLIDER_INT,
       flags:       BG_PARAMETER_SYNC,
       val_min:     { val_i: 0 },
@@ -157,7 +169,7 @@ static bg_parameter_info_t pwc_parameters[] =
     },
     {
       name:        "pwc_manual_blue",
-      long_name:   "Manual blue gain",
+      long_name:   TRS("Manual blue gain"),
       type:        BG_PARAMETER_SLIDER_INT,
       flags:       BG_PARAMETER_SYNC,
       val_min:     { val_i: 0 },
@@ -166,7 +178,7 @@ static bg_parameter_info_t pwc_parameters[] =
     },
     {
       name:        "pwc_control_speed",
-      long_name:   "Auto speed",
+      long_name:   TRS("Auto speed"),
       type:        BG_PARAMETER_SLIDER_INT,
       flags:       BG_PARAMETER_SYNC,
       val_min:     { val_i: 0 },
@@ -175,7 +187,7 @@ static bg_parameter_info_t pwc_parameters[] =
     },
     {
       name:        "pwc_control_delay",
-      long_name:   "Auto delay",
+      long_name:   TRS("Auto delay"),
       type:        BG_PARAMETER_SLIDER_INT,
       flags:       BG_PARAMETER_SYNC,
       val_min:     { val_i: 0 },
@@ -184,12 +196,12 @@ static bg_parameter_info_t pwc_parameters[] =
     },
     {
       name:        "pwc_led_section",
-      long_name:   "PWC LED",
+      long_name:   TRS("PWC LED"),
       type:        BG_PARAMETER_SECTION,
     },
     {
       name:        "pwc_led_on",
-      long_name:   "LED on time (secs)",
+      long_name:   TRS("LED on time (secs)"),
       type:        BG_PARAMETER_FLOAT,
       val_min:     { val_f: 0.0 },
       val_max:     { val_f: 255.0 },
@@ -198,7 +210,7 @@ static bg_parameter_info_t pwc_parameters[] =
     },
     {
       name:        "pwc_led_off",
-      long_name:   "LED off time (secs)",
+      long_name:   TRS("LED off time (secs)"),
       type:        BG_PARAMETER_FLOAT,
       val_min:     { val_f: 0.0 },
       val_max:     { val_f: 255.0 },

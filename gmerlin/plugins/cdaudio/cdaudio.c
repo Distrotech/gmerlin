@@ -21,6 +21,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <config.h>
+#include <translation.h>
+
+
 #include <utils.h>
 #include <math.h> /* pow for volume calculation */
 
@@ -241,17 +245,17 @@ static char * get_device_name(CdIo_t * cdio,
   
   if(write_cap & CDIO_DRIVE_CAP_WRITE_DVD_R)
     {
-    return bg_sprintf("DVD Writer (%s)", device);
+    return bg_sprintf(TR("DVD Writer (%s)"), device);
     }
   else if(write_cap & CDIO_DRIVE_CAP_WRITE_CD_R)
     {
-    return bg_sprintf("CD Writer (%s)", device);
+    return bg_sprintf(TR("CD Writer (%s)"), device);
     }
   else if(read_cap & CDIO_DRIVE_CAP_READ_DVD_ROM)
     {
-    return bg_sprintf("DVD Drive (%s)", device);
+    return bg_sprintf(TR("DVD Drive (%s)"), device);
     }
-  return bg_sprintf("CDrom Drive (%s)", device);
+  return bg_sprintf(TR("CD-ROM Drive (%s)"), device);
   }
 
 int bg_cdaudio_check_device(const char * device, char ** name)

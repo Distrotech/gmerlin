@@ -24,7 +24,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-
+#include <config.h>
 
 
 #include <libxml/tree.h>

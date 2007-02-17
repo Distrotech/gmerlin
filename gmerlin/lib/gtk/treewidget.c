@@ -17,6 +17,8 @@
  
 *****************************************************************/
 
+#include <config.h>
+
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
 
@@ -31,6 +33,7 @@
 #include <cfg_dialog.h>
 #include <gui_gtk/tree.h>
 #include <gui_gtk/fileselect.h>
+#include <gui_gtk/gtkutils.h>
 
 static void set_tabbed_mode(bg_gtk_tree_widget_t * w);
 static void set_windowed_mode(bg_gtk_tree_widget_t * w);
@@ -510,12 +513,12 @@ static void update_menu(bg_gtk_tree_widget_t * w)
         gtk_widget_show(w->menu.album_item);
         gtk_widget_hide(w->menu.album_menu.remove_item);
         gtk_widget_set_sensitive(w->remove_button, 0);
-        gtk_widget_set_sensitive(w->rename_button, 1);
+        gtk_widget_set_sensitive(w->rename_button, 0);
         gtk_widget_set_sensitive(w->new_button, 0);
         
         gtk_widget_hide(w->menu.album_menu.new_item);
         gtk_widget_hide(w->menu.album_menu.new_from_directory_item);
-        gtk_widget_show(w->menu.album_menu.rename_item);
+        gtk_widget_hide(w->menu.album_menu.rename_item);
         
         if(album_is_open(w, w->selected_album))
           {
@@ -973,14 +976,14 @@ static void rename_selected_album(bg_gtk_tree_widget_t * w)
   memset(info, 0, sizeof(info));
 
   info[0].name                = "album_name";
-  info[0].long_name           = "Album name";
+  info[0].long_name           = TRS("Album name");
   info[0].type                = BG_PARAMETER_STRING;
   info[0].val_default.val_str = bg_album_get_name(w->selected_album);
 
   dialog = bg_dialog_create((bg_cfg_section_t*)0,
                             set_parameter_rename_album,
                             w,
-                            info, "Rename album");
+                            info, TR("Rename album"));
   
   bg_dialog_show(dialog);
   
@@ -1024,7 +1027,8 @@ static void add_directory(bg_gtk_tree_widget_t * w)
                          add_dir_close_notify,
                          file_plugins,
                          w,
-                         (GtkWidget*)0 /* parent_window */);
+                         (GtkWidget*)0 /* parent_window */,
+                         bg_media_tree_get_plugin_registry(w->tree));
   
   bg_gtk_filesel_run(dirsel, 1);
     
@@ -1132,17 +1136,17 @@ static void add_device(bg_gtk_tree_widget_t * w)
   s.album = w->selected_album;
   
   info[0].name                = "device";
-  info[0].long_name           = "Device";
+  info[0].long_name           = TRS("Device");
   info[0].type                = BG_PARAMETER_FILE;
 
   info[1].name                = "name";
-  info[1].long_name           = "Name";
+  info[1].long_name           = TRS("Name");
   info[1].type                = BG_PARAMETER_STRING;
 
   dialog = bg_dialog_create((bg_cfg_section_t*)0,
                             set_parameter_add_device,
                             &s,
-                            info, "Add device");
+                            info, TR("Add device"));
   
   bg_dialog_show(dialog);
   
@@ -1348,7 +1352,7 @@ static void init_menu(bg_gtk_tree_widget_t * w)
 
   w->menu.tree_menu.menu = gtk_menu_new();
 
-  w->menu.tree_menu.goto_current_item = create_item(w, "Goto current track");
+  w->menu.tree_menu.goto_current_item = create_item(w, TR("Goto current track"));
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.tree_menu.menu),
                         w->menu.tree_menu.goto_current_item);
 
@@ -1356,19 +1360,19 @@ static void init_menu(bg_gtk_tree_widget_t * w)
                              GDK_g, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
 
 
-  w->menu.tree_menu.expand_item = create_item(w, "Expand all");
+  w->menu.tree_menu.expand_item = create_item(w, TR("Expand all"));
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.tree_menu.menu),
                         w->menu.tree_menu.expand_item);
   
-  w->menu.tree_menu.collapse_item = create_item(w, "Collapse all");
+  w->menu.tree_menu.collapse_item = create_item(w, TR("Collapse all"));
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.tree_menu.menu),
                         w->menu.tree_menu.collapse_item);
 
-  w->menu.tree_menu.tabbed_mode_item = create_item(w, "Tabbed mode");
+  w->menu.tree_menu.tabbed_mode_item = create_item(w, TR("Tabbed mode"));
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.tree_menu.menu),
                         w->menu.tree_menu.tabbed_mode_item);
 
-  w->menu.tree_menu.windowed_mode_item = create_item(w, "Windowed mode");
+  w->menu.tree_menu.windowed_mode_item = create_item(w, TR("Windowed mode"));
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.tree_menu.menu),
                         w->menu.tree_menu.windowed_mode_item);
   
@@ -1378,27 +1382,27 @@ static void init_menu(bg_gtk_tree_widget_t * w)
   
   w->menu.album_menu.menu = gtk_menu_new();
   
-  w->menu.album_menu.open_item = create_item(w, "Open");
+  w->menu.album_menu.open_item = create_item(w, TR("Open"));
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.album_menu.menu),
                         w->menu.album_menu.open_item);
   
-  w->menu.album_menu.close_item = create_item(w, "Close");
+  w->menu.album_menu.close_item = create_item(w, TR("Close"));
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.album_menu.menu),
                         w->menu.album_menu.close_item);
 
-  w->menu.album_menu.new_item = create_item(w, "New...");
+  w->menu.album_menu.new_item = create_item(w, TR("New..."));
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.album_menu.menu),
                         w->menu.album_menu.new_item);
 
-  w->menu.album_menu.new_from_directory_item = create_item(w, "New from directory...");
+  w->menu.album_menu.new_from_directory_item = create_item(w, TR("New from directory..."));
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.album_menu.menu),
                         w->menu.album_menu.new_from_directory_item);
   
-  w->menu.album_menu.rename_item = create_item(w, "Rename...");
+  w->menu.album_menu.rename_item = create_item(w, TR("Rename..."));
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.album_menu.menu),
                         w->menu.album_menu.rename_item);
   
-  w->menu.album_menu.remove_item = create_item(w, "Remove");
+  w->menu.album_menu.remove_item = create_item(w, TR("Remove"));
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.album_menu.menu),
                         w->menu.album_menu.remove_item);
   gtk_widget_show(w->menu.album_menu.menu);
@@ -1407,31 +1411,31 @@ static void init_menu(bg_gtk_tree_widget_t * w)
 
   w->menu.plugin_menu.menu = gtk_menu_new();
   
-  w->menu.plugin_menu.find_devices_item = create_item(w, "Scan for devices");
+  w->menu.plugin_menu.find_devices_item = create_item(w, TR("Scan for devices"));
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.plugin_menu.menu),
                         w->menu.plugin_menu.find_devices_item);
 
-  w->menu.plugin_menu.add_device_item = create_item(w, "Add device...");
+  w->menu.plugin_menu.add_device_item = create_item(w, TR("Add device..."));
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.plugin_menu.menu),
                         w->menu.plugin_menu.add_device_item);
   
   /* Root menu */
 
   w->menu.menu = gtk_menu_new();
-  w->menu.album_item = create_item(w, "Album...");
+  w->menu.album_item = create_item(w, TR("Album..."));
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(w->menu.album_item),
                             w->menu.album_menu.menu);
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.menu),
                         w->menu.album_item);
 
-  w->menu.plugin_item = create_item(w, "Plugin...");
+  w->menu.plugin_item = create_item(w, TR("Plugin..."));
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(w->menu.plugin_item),
                             w->menu.plugin_menu.menu);
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.menu),
                         w->menu.plugin_item);
 
   
-  w->menu.tree_item = create_item(w, "Tree...");
+  w->menu.tree_item = create_item(w, TR("Tree..."));
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(w->menu.tree_item),
                             w->menu.tree_menu.menu);
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.menu),
@@ -1443,8 +1447,7 @@ static void init_menu(bg_gtk_tree_widget_t * w)
 
 static GtkWidget * create_pixmap_button(bg_gtk_tree_widget_t * w,
                                         const char * filename,
-                                        const char * tooltip,
-                                        const char * tooltip_private)
+                                        const char * tooltip)
   {
   GtkWidget * button;
   GtkWidget * image;
@@ -1467,7 +1470,7 @@ static GtkWidget * create_pixmap_button(bg_gtk_tree_widget_t * w,
 
   gtk_widget_show(button);
 
-  gtk_tooltips_set_tip(w->tooltips, button, tooltip, tooltip_private);
+  bg_gtk_tooltips_set_tip(w->tooltips, button, tooltip, PACKAGE);
   
   return button;
   }
@@ -2056,18 +2059,16 @@ bg_gtk_tree_widget_create(bg_media_tree_t * tree, GtkAccelGroup * accel_group, G
   /* Create buttons */
     
   ret->remove_button = create_pixmap_button(ret, "trash_16.png",
-                                            "Delete album", "Delete album");
+                                            TRS("Delete album"));
   ret->rename_button = create_pixmap_button(ret, "rename_16.png",
-                                            "Rename album", "Rename album");
+                                            TRS("Rename album"));
   ret->goto_current_button =
     create_pixmap_button(ret, "goto_current_16.png",
-                         "Goto current track",
-                         "Goto current track");
+                         TRS("Goto current track"));
 
   ret->new_button =
     create_pixmap_button(ret, "folder_new_16.png",
-                         "New album",
-                         "New album");
+                         TRS("New album"));
   
   buttonbox = gtk_hbox_new(0, 0);
   gtk_box_pack_start(GTK_BOX(buttonbox), ret->new_button,

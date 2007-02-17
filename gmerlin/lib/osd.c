@@ -20,6 +20,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <translation.h>
+
 #include <bgfreetype.h>
 
 #include <parameter.h>
@@ -71,38 +73,38 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name:        "enable_osd",
-      long_name:   "Enable OSD",
+      long_name:   TRS("Enable OSD"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 },
     },
     /* The following stuff is copied from textrenderer.c */
     {
       name:        "font_size",
-      long_name:   "Size",
+      long_name:   TRS("Size"),
       type:        BG_PARAMETER_FLOAT,
       num_digits:  2,
       val_min:     { val_f: 12.0 },
       val_max:     { val_f: 100.0 },
       val_default: { val_f: 30.0 },
-      help_string: "Specify fontsize for OSD. The value you enter, is for an image width of 640. For other \
-widths, the value will be scaled",
+      help_string: TRS("Specify fontsize for OSD. The value you enter, is for an image width of 640. For other \
+widths, the value will be scaled"),
     },
     {
       name:       "color",
-      long_name:  "Foreground color",
+      long_name:  TRS("Foreground color"),
       type:       BG_PARAMETER_COLOR_RGBA,
       val_default: { val_color: (float[]){ 1.0, 1.0, 1.0, 1.0 } },
     },
 #ifdef FT_STROKER_H
     {
       name:       "border_color",
-      long_name:  "Border color",
+      long_name:  TRS("Border color"),
       type:       BG_PARAMETER_COLOR_RGB,
       val_default: { val_color: (float[]){ 0.0, 0.0, 0.0, 1.0 } },
     },
     {
       name:       "border_width",
-      long_name:  "Border width",
+      long_name:  TRS("Border width"),
       type:       BG_PARAMETER_FLOAT,
       val_min:     { val_f: 0.0 },
       val_max:     { val_f: 10.0 },
@@ -112,60 +114,60 @@ widths, the value will be scaled",
 #endif    
     {
       name:       "justify_h",
-      long_name:  "Horizontal justify",
+      long_name:  TRS("Horizontal justify"),
       type:       BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "center" },
       multi_names:  (char*[]){ "center", "left", "right", (char*)0 },
-      multi_labels: (char*[]){ "Center", "Left", "Right", (char*)0  },
+      multi_labels: (char*[]){ TRS("Center"), TRS("Left"), TRS("Right"), (char*)0  },
             
     },
     {
       name:       "justify_v",
-      long_name:  "Vertical justify",
+      long_name:  TRS("Vertical justify"),
       type:       BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "center" },
       multi_names:  (char*[]){ "center", "top", "bottom", (char*)0  },
-      multi_labels: (char*[]){ "Center", "Top", "Bottom", (char*)0 },
+      multi_labels: (char*[]){ TRS("Center"), TRS("Top"), TRS("Bottom"), (char*)0 },
     },
     {
       name:        "border_left",
-      long_name:   "Left border",
+      long_name:   TRS("Left border"),
       type:        BG_PARAMETER_INT,
       val_min:     { val_i: 0     },
       val_max:     { val_i: 65535 },
       val_default: { val_i: 10    },
-      help_string: "Distance from the left text border to the image border",
+      help_string: TRS("Distance from the left text border to the image border"),
     },
     {
       name:        "border_right",
-      long_name:   "Left border",
+      long_name:   TRS("Left border"),
       type:        BG_PARAMETER_INT,
       val_min:     { val_i: 0     },
       val_max:     { val_i: 65535 },
       val_default: { val_i: 10    },
-      help_string: "Distance from the right text border to the image border",
+      help_string: TRS("Distance from the right text border to the image border"),
     },
     {
       name:        "border_top",
-      long_name:   "Top border",
+      long_name:   TRS("Top border"),
       type:        BG_PARAMETER_INT,
       val_min:     { val_i: 0     },
       val_max:     { val_i: 65535 },
       val_default: { val_i: 10    },
-      help_string: "Distance from the top text border to the image border",
+      help_string: TRS("Distance from the top text border to the image border"),
     },
     {
       name:        "border_bottom",
-      long_name:   "Bottom border",
+      long_name:   TRS("Bottom border"),
       type:        BG_PARAMETER_INT,
       val_min:     { val_i: 0     },
       val_max:     { val_i: 65535 },
       val_default: { val_i: 10    },
-      help_string: "Distance from the bottom text border to the image border",
+      help_string: TRS("Distance from the bottom text border to the image border"),
     },
     {
       name:        "duration",
-      long_name:   "Duration (milliseconds)",
+      long_name:   TRS("Duration (milliseconds)"),
       type:        BG_PARAMETER_INT,
       val_min:     { val_i: 0 },
       val_max:     { val_i: 10000 },

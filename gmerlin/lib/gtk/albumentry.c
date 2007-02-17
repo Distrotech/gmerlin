@@ -21,10 +21,12 @@
 
 #include <gtk/gtk.h>
 
+#include <config.h>
 #include <tree.h>
 #include <utils.h>
 #include <gui_gtk/albumentry.h>
 #include <gui_gtk/textview.h>
+#include <gui_gtk/gtkutils.h>
 
 /* This pops up a which shows all informations about a selected track */
 
@@ -43,11 +45,11 @@ void bg_gtk_album_enrty_show(const bg_album_entry_t * entry)
   else
     utf8_location = (char*)0;
   
-  text = bg_sprintf("Name:\t %s\nLocation:\t %s\nTrack:\t %d/%d\nPlugin:\t %s\nDuration:\t %s\nAudio Streams:\t %d\nVideo Streams:\t %d\nSubtitle Streams:\t %d",
+  text = bg_sprintf(TR("Name:\t %s\nLocation:\t %s\nTrack:\t %d/%d\nPlugin:\t %s\nDuration:\t %s\nAudio Streams:\t %d\nVideo Streams:\t %d\nSubtitle Streams:\t %d"),
                     S(entry->name), S(utf8_location),
                     entry->index+1,
                     entry->total_tracks,
-                    (entry->plugin ? entry->plugin : "Auto detect"),
+                    (entry->plugin ? entry->plugin : TR("Auto detect")),
                     duration,
                     entry->num_audio_streams,
                     entry->num_video_streams,

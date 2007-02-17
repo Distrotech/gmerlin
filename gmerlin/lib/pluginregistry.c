@@ -27,12 +27,17 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+#include <config.h>
+
 #include <cfg_registry.h>
 #include <pluginregistry.h>
 #include <pluginreg_priv.h>
 #include <config.h>
 #include <utils.h>
 #include <singlepic.h>
+
+#include <translation.h>
+
 #include <log.h>
 
 #define LOG_DOMAIN "pluginregistry"
@@ -55,10 +60,17 @@ struct bg_plugin_registry_s
 
 static void free_info(bg_plugin_info_t * info)
   {
+  if(info->gettext_domain)
+    free(info->gettext_domain);
+  if(info->gettext_directory)
+    free(info->gettext_directory);
+
   if(info->name)
     free(info->name);
   if(info->long_name)
     free(info->long_name);
+  if(info->description)
+    free(info->description);
   if(info->mimetypes)
     free(info->mimetypes);
   if(info->extensions)
@@ -185,18 +197,6 @@ const bg_plugin_info_t * bg_plugin_find_by_name(bg_plugin_registry_t * reg,
   return find_by_name(reg->entries, name);
   }
 
-static bg_plugin_info_t * find_by_long_name(bg_plugin_info_t * info,
-                                                  const char * name)
-  {
-  while(info)
-    {
-    if(!strcmp(info->long_name, name))
-      return info;
-    info = info->next;
-    }
-  return (bg_plugin_info_t*)0;
-  }
-
 const bg_plugin_info_t * bg_plugin_find_by_protocol(bg_plugin_registry_t * reg,
                                                     const char * protocol)
   {
@@ -210,11 +210,6 @@ const bg_plugin_info_t * bg_plugin_find_by_protocol(bg_plugin_registry_t * reg,
   return (bg_plugin_info_t*)0;
   }
 
-const bg_plugin_info_t * bg_plugin_find_by_long_name(bg_plugin_registry_t *
-                                                     reg, const char * name)
-  {
-  return find_by_long_name(reg->entries, name);
-  }
 
 
 const bg_plugin_info_t * bg_plugin_find_by_filename(bg_plugin_registry_t * reg,
@@ -417,12 +412,22 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
 
     new_info->long_name =  bg_strdup(new_info->long_name,
                                      plugin->long_name);
+
+    new_info->description = bg_strdup(new_info->description,
+                                     plugin->description);
+    
     new_info->mimetypes =  bg_strdup(new_info->mimetypes,
                                      plugin->mimetypes);
     new_info->extensions = bg_strdup(new_info->extensions,
                                      plugin->extensions);
     new_info->module_filename = bg_strdup(new_info->module_filename,
                                           filename);
+
+    new_info->gettext_domain = bg_strdup(new_info->gettext_domain,
+                                         plugin->gettext_domain);
+    new_info->gettext_directory = bg_strdup(new_info->gettext_directory,
+                                            plugin->gettext_directory);
+    
     new_info->module_time = st.st_mtime;
     new_info->type        = plugin->type;
     new_info->flags       = plugin->flags;
@@ -1206,7 +1211,7 @@ char ** bg_plugin_registry_get_plugins(bg_plugin_registry_t*reg,
   for(i = 0; i < num_plugins; i++)
     {
     info = bg_plugin_find_by_index(reg, i, type_mask, flag_mask);
-    ret[i] = bg_strdup(NULL, info->long_name);
+    ret[i] = bg_strdup(NULL, info->name);
     }
   return ret;
   
@@ -1245,13 +1250,11 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
                          const char * location,
                          const bg_plugin_info_t * info,
                          bg_plugin_handle_t ** ret,
-                         char ** error_msg,
                          bg_input_callbacks_t * callbacks)
   {
   const char * real_location;
   char * protocol = (char*)0, * path = (char*)0;
   
-  const char * msg;
   int num_plugins, i;
   uint32_t flags;
   bg_input_plugin_t * plugin;
@@ -1306,8 +1309,8 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
 
     if(!(*ret))
       {
-      if(error_msg)
-        *error_msg = bg_sprintf("Loading plugin failed");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, TRS("Loading plugin \"%s\" failed"),
+                                           info->long_name);
       return 0;
       }
     
@@ -1318,28 +1321,22 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
     
     if(!plugin->open((*ret)->priv, real_location))
       {
-      if(error_msg)
-        {
-        msg = (const char *)0;
-        if((*ret)->plugin->get_error)
-          msg = (*ret)->plugin->get_error((*ret)->priv);
-        if(msg)
-          *error_msg = bg_sprintf(msg);
-        else
-          *error_msg = bg_sprintf("Unknown error");
-        return 0;
-        }
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, TRS("Opening %s with \"%s\" failed"),
+             real_location, info->long_name);
       }
     else
+      {
+      if(protocol) free(protocol);
+      if(path)     free(path);
       return 1;
+      }
     }
-
+  
   if(protocol) free(protocol);
   if(path)     free(path);
   
   if(!try_and_error)
     return 0;
-
   
   flags = bg_string_is_url(location) ? BG_PLUGIN_URL : BG_PLUGIN_FILE;
   
@@ -1360,17 +1357,8 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
     plugin = (bg_input_plugin_t*)((*ret)->plugin);
     if(!plugin->open((*ret)->priv, location))
       {
-      if(*error_msg)
-        free(*error_msg);
-
-      msg = (const char *)0;
-      if((*ret)->plugin->get_error)
-        msg = (*ret)->plugin->get_error((*ret)->priv);
-      if(msg)
-        *error_msg = bg_sprintf(msg);
-      else
-        *error_msg = bg_sprintf("Unknown error");
-
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, TRS("Opening %s with \"%s\" failed"),
+             location, info->long_name);
       }
     else
       {
@@ -1459,6 +1447,9 @@ void bg_plugin_registry_set_parameter_info(bg_plugin_registry_t * reg,
   ret->multi_labels     = calloc(num_plugins + 1, sizeof(*ret->multi_labels));
   ret->multi_parameters = calloc(num_plugins + 1,
                                  sizeof(*ret->multi_parameters));
+
+  ret->multi_descriptions = calloc(num_plugins + 1,
+                                   sizeof(*ret->multi_descriptions));
   
   for(i = 0; i < num_plugins; i++)
     {
@@ -1470,9 +1461,14 @@ void bg_plugin_registry_set_parameter_info(bg_plugin_registry_t * reg,
       {
       ret->val_default.val_str = bg_strdup(NULL, info->name);
       }
-
-    ret->multi_labels[i] = bg_strdup(NULL, info->long_name);
-
+    
+    bindtextdomain(info->gettext_domain, info->gettext_directory);
+    ret->multi_descriptions[i] = bg_strdup(NULL, TRD(info->description,
+                                                     info->gettext_domain));
+    
+    ret->multi_labels[i] = bg_strdup(NULL, TRD(info->long_name,
+                                               info->gettext_domain));
+    
     if(info->parameters)
       {
       ret->multi_parameters[i] =

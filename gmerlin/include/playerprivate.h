@@ -18,6 +18,7 @@
 *****************************************************************/
 
 #include <pthread.h>
+#include "config.h"
 
 #include "pluginregistry.h"
 #include "fifo.h"
@@ -25,6 +26,9 @@
 #include "bggavl.h"
 #include "textrenderer.h"
 #include "osd.h"
+
+
+#include "translation.h"
 
 /* Each thread get it's private context */
 
@@ -65,7 +69,6 @@ typedef struct
   gavl_audio_format_t input_format;
   gavl_audio_format_t output_format;
   gavl_audio_format_t pipe_format;
-  const char * error_msg;
 
   /* Volume control */
   gavl_volume_control_t * volume;
@@ -87,7 +90,6 @@ typedef struct
 
   gavl_video_format_t input_format;
   gavl_video_format_t output_format;
-  const char * error_msg;
   } bg_player_video_stream_t;
 
 typedef struct
@@ -100,8 +102,7 @@ typedef struct
   pthread_mutex_t config_mutex;
 
   gavl_video_format_t format;
-  const char * error_msg;
-
+  
   char * buffer;
   int buffer_alloc;
   
@@ -229,7 +230,6 @@ int bg_player_input_start(bg_player_input_context_t * ctx);
 void bg_player_input_stop(bg_player_input_context_t * ctx);
 
 
-const char * bg_player_input_get_error(bg_player_input_context_t * ctx);
 
 void bg_player_input_cleanup(bg_player_input_context_t * ctx);
 
@@ -292,8 +292,6 @@ void bg_player_ov_set_subtitle_format(void * data, const gavl_video_format_t * f
 void bg_player_ov_set_plugin(bg_player_t * player,
                              bg_plugin_handle_t * handle);
 
-const char * bg_player_ov_get_error(bg_player_ov_context_t * ctx);
-
 /*
  *  This call will let the video plugin adjust the playertime from the
  *  next frame to be displayed
@@ -322,7 +320,6 @@ int  bg_player_oa_has_plugin(bg_player_oa_context_t * ctx);
 int bg_player_oa_init(bg_player_oa_context_t * ctx);
 int bg_player_oa_start(bg_player_oa_context_t * ctx);
 void bg_player_oa_stop(bg_player_oa_context_t * ctx);
-const char * bg_player_oa_get_error(bg_player_oa_context_t * ctx);
 
 void bg_player_oa_cleanup(bg_player_oa_context_t * ctx);
 void * bg_player_oa_thread(void *);

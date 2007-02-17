@@ -20,6 +20,7 @@
 #include <stdio.h>
 
 #include "gtk_dialog.h"
+#include <gui_gtk/gtkutils.h>
 
 typedef struct
   {
@@ -235,17 +236,19 @@ static void button_callback(GtkWidget * w, gpointer data)
   }
 
 void bg_gtk_create_color_rgba(bg_gtk_widget_t * w,
-                              bg_parameter_info_t * info)
+                              bg_parameter_info_t * info,
+                              const char * translation_domain)
   {
   color_t * priv;
-  bg_gtk_create_color_rgb(w, info);
+  bg_gtk_create_color_rgb(w, info, translation_domain);
   
   priv = (color_t*)(w->priv);
   priv->has_alpha = 1;
   }
 
 void bg_gtk_create_color_rgb(bg_gtk_widget_t * w,
-                             bg_parameter_info_t * info)
+                             bg_parameter_info_t * info,
+                             const char * translation_domain)
   {
   color_t * priv = calloc(1, sizeof(*priv));
 
@@ -275,12 +278,13 @@ void bg_gtk_create_color_rgb(bg_gtk_widget_t * w,
 
   if(info->help_string)
     {
-    gtk_tooltips_set_tip(w->tooltips, priv->button, info->help_string, info->help_string);
+    bg_gtk_tooltips_set_tip(w->tooltips, priv->button, info->help_string,
+                            translation_domain);
     }
   
   gtk_widget_show(priv->button);
 
-  priv->label = gtk_label_new(info->long_name);
+  priv->label = gtk_label_new(TR_DOM(info->long_name));
   gtk_misc_set_alignment(GTK_MISC(priv->label), 0.0, 0.5);
 
   gtk_widget_show(priv->label);

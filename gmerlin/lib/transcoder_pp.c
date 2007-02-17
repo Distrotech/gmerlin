@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <config.h>
 #include <pluginregistry.h>
 #include <msgqueue.h>
 #include <transcoder.h>

@@ -53,8 +53,6 @@ struct bg_player_oa_context_s
 
   int have_first_timestamp;
   
-  /* Error message */
-  const char * error_msg;
   };
 
 void * bg_player_oa_create_frame(void * data)
@@ -362,7 +360,6 @@ void * bg_player_oa_thread(void * data)
 
 int bg_player_oa_init(bg_player_oa_context_t * ctx)
   {
-  char * log_domain;
   int result;
   bg_plugin_lock(ctx->plugin_handle);
   result =
@@ -370,17 +367,7 @@ int bg_player_oa_init(bg_player_oa_context_t * ctx)
   if(result)
     ctx->output_open = 1;
   else
-    {
     ctx->output_open = 0;
-    if(ctx->plugin->common.get_error)
-      {
-      ctx->error_msg = ctx->plugin->common.get_error(ctx->priv);
-      log_domain =
-        bg_sprintf("%s.%s", LOG_DOMAIN, ctx->plugin_handle->info->name);
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, ctx->error_msg);
-      free(log_domain);
-      }
-    }
   
   ctx->have_first_timestamp = 0;
 
@@ -391,11 +378,6 @@ int bg_player_oa_init(bg_player_oa_context_t * ctx)
   return result;
   }
 
-
-const char * bg_player_oa_get_error(bg_player_oa_context_t * ctx)
-  {
-  return ctx->error_msg;
-  }
 
 
 void bg_player_oa_cleanup(bg_player_oa_context_t * ctx)

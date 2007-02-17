@@ -106,6 +106,9 @@ typedef struct bg_parameter_info_s
   char * name; //!< Unique name. Can contain alphanumeric characters plus underscore.
   char * long_name; //!< Long name (for labels)
   char * opt; //!< ultrashort name (optional for commandline). If missing, the name will be used.
+
+  char * gettext_domain; //!< First argument for bindtextdomain(). In an array, it's valid for subsequent entries too.
+  char * gettext_directory; //!< Second argument for bindtextdomain(). In an array, it's valid for subsequent entries too.
   
   bg_parameter_type_t type; //!< Type
 

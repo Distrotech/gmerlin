@@ -3,6 +3,8 @@
 
 #include <gtk/gtk.h>
 
+#include <config.h>
+
 #include <pluginregistry.h>
 #include <utils.h>
 #include <cfg_dialog.h>
@@ -241,7 +243,7 @@ static app_window * create_window(bg_plugin_registry_t * reg)
                    G_CALLBACK(delete_callback), (gpointer)ret);
 
   gtk_window_set_title(GTK_WINDOW(ret->window),
-                       "Gmerlin Plugin Configurator");
+                       TR("Gmerlin Plugin Configurator"));
   
   notebook = gtk_notebook_new();
   
@@ -253,7 +255,7 @@ static app_window * create_window(bg_plugin_registry_t * reg)
                                       BG_PLUGIN_REMOVABLE |
                                       BG_PLUGIN_TUNER, ret->tooltips);
   
-  label = gtk_label_new("Input plugins");
+  label = gtk_label_new(TR("Input plugins"));
   gtk_widget_show(label);
   
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
@@ -261,7 +263,7 @@ static app_window * create_window(bg_plugin_registry_t * reg)
                            label);
 
   ret->audio_output_plugins =
-    bg_gtk_plugin_widget_single_create("Audio", reg,
+    bg_gtk_plugin_widget_single_create(TR("Audio"), reg,
                                        BG_PLUGIN_OUTPUT_AUDIO,
                                        BG_PLUGIN_PLAYBACK, ret->tooltips);
   bg_gtk_plugin_widget_single_set_change_callback(ret->audio_output_plugins, set_audio_output, ret);
@@ -293,7 +295,7 @@ static app_window * create_window(bg_plugin_registry_t * reg)
                                        BG_PLUGIN_FILE, ret->tooltips);
   bg_gtk_plugin_widget_single_set_change_callback(ret->audio_encoder_plugins, set_audio_encoder, ret);
 
-  ret->audio_to_video = gtk_check_button_new_with_label("Encode audio into video file");
+  ret->audio_to_video = gtk_check_button_new_with_label(TR("Encode audio into video file"));
   
   g_signal_connect(G_OBJECT(ret->audio_to_video), "toggled",
                    G_CALLBACK(encode_audio_to_video_callback), ret);
@@ -311,7 +313,7 @@ static app_window * create_window(bg_plugin_registry_t * reg)
                                        BG_PLUGIN_FILE, ret->tooltips);
   bg_gtk_plugin_widget_single_set_change_callback(ret->subtitle_text_encoder_plugins, set_subtitle_text_encoder, ret);
 
-  ret->subtitle_text_to_video = gtk_check_button_new_with_label("Encode text subtitles into video file");
+  ret->subtitle_text_to_video = gtk_check_button_new_with_label(TR("Encode text subtitles into video file"));
   
   g_signal_connect(G_OBJECT(ret->subtitle_text_to_video), "toggled",
                    G_CALLBACK(encode_subtitle_text_to_video_callback), ret);
@@ -330,7 +332,8 @@ static app_window * create_window(bg_plugin_registry_t * reg)
   bg_gtk_plugin_widget_single_set_change_callback(ret->subtitle_overlay_encoder_plugins, set_subtitle_overlay_encoder,
                                                   ret);
 
-  ret->subtitle_overlay_to_video = gtk_check_button_new_with_label("Encode overlay subtitles into video file");
+  ret->subtitle_overlay_to_video =
+    gtk_check_button_new_with_label(TR("Encode overlay subtitles into video file"));
   
   g_signal_connect(G_OBJECT(ret->subtitle_overlay_to_video), "toggled",
                    G_CALLBACK(encode_subtitle_overlay_to_video_callback), ret);
@@ -361,7 +364,7 @@ static app_window * create_window(bg_plugin_registry_t * reg)
 
   
   /* Postprocess */
-  ret->use_pp = gtk_check_button_new_with_label("Enable postprocessing");
+  ret->use_pp = gtk_check_button_new_with_label(TR("Enable postprocessing"));
   
   g_signal_connect(G_OBJECT(ret->use_pp), "toggled",
                    G_CALLBACK(use_pp_callback), ret);
@@ -389,7 +392,7 @@ static app_window * create_window(bg_plugin_registry_t * reg)
 
   gtk_widget_show(table);
   
-  label = gtk_label_new("Output");
+  label = gtk_label_new(TR("Output"));
   gtk_widget_show(label);
   
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
@@ -472,7 +475,7 @@ static app_window * create_window(bg_plugin_registry_t * reg)
   gtk_widget_show(table);
 
   
-  label = gtk_label_new("Encoders");
+  label = gtk_label_new(TR("Encoders"));
   gtk_widget_show(label);
 
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
@@ -495,7 +498,7 @@ static app_window * create_window(bg_plugin_registry_t * reg)
   
   gtk_widget_show(table);
   
-  label = gtk_label_new("Recorder");
+  label = gtk_label_new(TR("Recorder"));
   gtk_widget_show(label);
 
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
@@ -510,7 +513,7 @@ static app_window * create_window(bg_plugin_registry_t * reg)
                                       BG_PLUGIN_URL|
                                       BG_PLUGIN_REMOVABLE, ret->tooltips);
   
-  label = gtk_label_new("Image readers");
+  label = gtk_label_new(TR("Image readers"));
   gtk_widget_show(label);
   
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
@@ -544,7 +547,7 @@ static app_window * create_window(bg_plugin_registry_t * reg)
   
   gtk_widget_show(table);
   
-  label = gtk_label_new("Image writers");
+  label = gtk_label_new(TR("Image writers"));
   gtk_widget_show(label);
   
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook),

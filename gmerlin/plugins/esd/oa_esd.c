@@ -22,6 +22,9 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#include <config.h>
+#include <translation.h>
+
 #include <plugin.h>
 #include <utils.h>
 #include <esd.h>
@@ -39,7 +42,7 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name:      "esd_host",
-      long_name: "Host (empty: local)",
+      long_name: TRS("Host (empty: local)"),
       type:      BG_PARAMETER_STRING,
     },
     { /* End of parameters */ }
@@ -162,8 +165,10 @@ bg_oa_plugin_t the_plugin =
   {
     common:
     {
+      BG_LOCALE,
       name:          "oa_esd",
-      long_name:     "EsounD output driver",
+      long_name:     TRS("EsounD output driver"),
+      description:   TRS("EsounD output driver"),
       mimetypes:     (char*)0,
       extensions:    (char*)0,
       type:          BG_PLUGIN_OUTPUT_AUDIO,

@@ -19,9 +19,12 @@
 
 #include <string.h>
 
+#include <config.h>
+
 #include <parameter.h>
 #include <streaminfo.h>
 #include <utils.h>
+#include <translation.h>
 
 bg_chapter_list_t * bg_chapter_list_create(int num_chapters)
   {
@@ -125,7 +128,7 @@ void bg_chapter_list_set_default_names(bg_chapter_list_t * list)
   for(i = 0; i < list->num_chapters; i++)
     {
     if(!list->chapters[i].name)
-      list->chapters[i].name = bg_sprintf("Chapter %d", i+1);
+      list->chapters[i].name = bg_sprintf(TR("Chapter %d"), i+1);
     }
   }
 

@@ -23,6 +23,9 @@
 #include <gtk/gtk.h>
 
 #include <config.h>
+
+#include <translation.h>
+
 #include <pluginregistry.h>
 #include <utils.h>
 
@@ -153,30 +156,30 @@ static bg_parameter_info_t transcoder_window_parameters[] =
   {
     {
       name:        "display",
-      long_name:   "Display",
+      long_name:   TRS("Display"),
       type:        BG_PARAMETER_SECTION,
     },
     {
       name:        "display_foreground",
-      long_name:   "Foreground",
+      long_name:   TRS("Foreground"),
       type:        BG_PARAMETER_COLOR_RGB,
       val_default: { val_color: (float[]){ 1.0, 1.0, 0.0, 1.0 } }
     },
     {
       name:        "display_foreground_error",
-      long_name:   "Error foreground",
+      long_name:   TRS("Error foreground"),
       type:        BG_PARAMETER_COLOR_RGB,
       val_default: { val_color: (float[]){ 1.0, 0.0, 0.0, 1.0 } }
     },
     {
       name:        "display_background",
-      long_name:   "Background",
+      long_name:   TRS("Background"),
       type:        BG_PARAMETER_COLOR_RGB,
       val_default: { val_color: (float[]){ 0.0, 0.0, 0.0, 1.0 } }
     },
     {
       name:        "display_font",
-      long_name:   "Font",
+      long_name:   TRS("Font"),
       type:        BG_PARAMETER_FONT,
       val_default: { val_str: "Sans Bold 10" }
     },
@@ -203,12 +206,12 @@ static bg_parameter_info_t transcoder_window_parameters[] =
     },
     {
       name:        "gui",
-      long_name:   "GUI",
+      long_name:   TRS("GUI"),
       type:        BG_PARAMETER_SECTION,
     },
     {
       name:        "show_tooltips",
-      long_name:   "Show Tooltips",
+      long_name:   TRS("Show Tooltips"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 },
     },
@@ -443,7 +446,6 @@ static int start_transcode(transcoder_window_t * win)
   {
   bg_cfg_section_t * cfg_section;
 
-  const char * error_msg;
   
   cfg_section = bg_cfg_registry_find_section(win->cfg_reg, "output");
 
@@ -480,13 +482,10 @@ static int start_transcode(transcoder_window_t * win)
   if(!bg_transcoder_init(win->transcoder,
                          win->plugin_reg, win->transcoder_track))
     {
-    error_msg = bg_transcoder_get_error(win->transcoder);
+    bg_gtk_log_window_flush(win->logwindow);
     
-    if(error_msg)
-      bg_gtk_scrolltext_set_text(win->scrolltext, error_msg, win->fg_color_e, win->bg_color);
-    else
-      bg_gtk_scrolltext_set_text(win->scrolltext, "Failed to initialize transcoder",
-                                 win->fg_color_e, win->bg_color);
+    bg_gtk_scrolltext_set_text(win->scrolltext, bg_gtk_log_window_last_error(win->logwindow),
+                               win->fg_color_e, win->bg_color);
     
     if(win->transcoder_track)
       track_list_prepend_track(win->tracklist, win->transcoder_track);
@@ -639,7 +638,7 @@ static void button_callback(GtkWidget * w, gpointer data)
     if(!win->filesel)
       win->filesel = create_filesel(win);
     
-    gtk_window_set_title(GTK_WINDOW(win->filesel), "Load task list");
+    gtk_window_set_title(GTK_WINDOW(win->filesel), TR("Load task list"));
     filesel_set_path(win->filesel, win->task_path);
     
     gtk_widget_show(win->filesel);
@@ -663,7 +662,7 @@ static void button_callback(GtkWidget * w, gpointer data)
     if(!win->filesel)
       win->filesel = create_filesel(win);
     
-    gtk_window_set_title(GTK_WINDOW(win->filesel), "Save task list");
+    gtk_window_set_title(GTK_WINDOW(win->filesel), TR("Save task list"));
     filesel_set_path(win->filesel, win->task_path);
     
     gtk_widget_show(win->filesel);
@@ -687,7 +686,7 @@ static void button_callback(GtkWidget * w, gpointer data)
     if(!win->filesel)
       win->filesel = create_filesel(win);
     
-    gtk_window_set_title(GTK_WINDOW(win->filesel), "Load profile");
+    gtk_window_set_title(GTK_WINDOW(win->filesel), TR("Load profile"));
     filesel_set_path(win->filesel, win->profile_path);
     
     gtk_widget_show(win->filesel);
@@ -712,7 +711,7 @@ static void button_callback(GtkWidget * w, gpointer data)
     if(!win->filesel)
       win->filesel = create_filesel(win);
     
-    gtk_window_set_title(GTK_WINDOW(win->filesel), "Save profile");
+    gtk_window_set_title(GTK_WINDOW(win->filesel), TR("Save profile"));
     filesel_set_path(win->filesel, win->profile_path);
     
     gtk_widget_show(win->filesel);
@@ -771,7 +770,7 @@ static void button_callback(GtkWidget * w, gpointer data)
 
 static GtkWidget * create_pixmap_button(transcoder_window_t * win,
                                         const char * pixmap,
-                                        const char * tooltip, const char * tooltip_private)
+                                        const char * tooltip)
   {
   GtkWidget * ret;
   GtkWidget * image;
@@ -794,7 +793,7 @@ static GtkWidget * create_pixmap_button(transcoder_window_t * win,
                    win);
   gtk_widget_show(ret);
 
-  gtk_tooltips_set_tip(win->tooltips, ret, tooltip, tooltip_private);
+  bg_gtk_tooltips_set_tip(win->tooltips, ret, tooltip, PACKAGE);
 
   return ret;
   }
@@ -877,26 +876,26 @@ create_toggle_item(transcoder_window_t * w, GtkWidget * parent,
 static void init_menus(transcoder_window_t * w)
   {
   w->file_menu.menu = gtk_menu_new();
-  w->file_menu.load_item = create_item(w, w->file_menu.menu, "Load tasklist...", "folder_open_16.png");
-  w->file_menu.save_item = create_item(w, w->file_menu.menu, "Save tasklist...", "save_16.png");
-  w->file_menu.quit_item = create_item(w, w->file_menu.menu, "Quit", "quit_16.png");
+  w->file_menu.load_item = create_item(w, w->file_menu.menu, TR("Load tasklist..."), "folder_open_16.png");
+  w->file_menu.save_item = create_item(w, w->file_menu.menu, TR("Save tasklist..."), "save_16.png");
+  w->file_menu.quit_item = create_item(w, w->file_menu.menu, TR("Quit"), "quit_16.png");
   gtk_widget_show(w->file_menu.menu);
 
   w->options_menu.menu = gtk_menu_new();
-  w->options_menu.config_item = create_item(w, w->options_menu.menu, "Preferences...", "config_16.png");
-  w->options_menu.plugin_item = create_item(w, w->options_menu.menu, "Plugins...", "plugin_16.png");
-  w->options_menu.load_item = create_item(w, w->options_menu.menu, "Load profile...", "folder_open_16.png");
-  w->options_menu.save_item = create_item(w, w->options_menu.menu, "Save profile...", "save_16.png");
+  w->options_menu.config_item = create_item(w, w->options_menu.menu, TR("Preferences..."), "config_16.png");
+  w->options_menu.plugin_item = create_item(w, w->options_menu.menu, TR("Plugins..."), "plugin_16.png");
+  w->options_menu.load_item = create_item(w, w->options_menu.menu, TR("Load profile..."), "folder_open_16.png");
+  w->options_menu.save_item = create_item(w, w->options_menu.menu, TR("Save profile..."), "save_16.png");
   gtk_widget_show(w->options_menu.menu);
 
   w->actions_menu.menu = gtk_menu_new();
-  w->actions_menu.run_item = create_item(w, w->actions_menu.menu, "Start transcoding", "run_16.png");
-  w->actions_menu.stop_item = create_item(w, w->actions_menu.menu, "Stop transcoding", "stop_16.png");
+  w->actions_menu.run_item = create_item(w, w->actions_menu.menu, TR("Start transcoding"), "run_16.png");
+  w->actions_menu.stop_item = create_item(w, w->actions_menu.menu, TR("Stop transcoding"), "stop_16.png");
   gtk_widget_set_sensitive(w->actions_menu.stop_item, 0);
 
   w->windows_menu.menu = gtk_menu_new();
-  w->windows_menu.log_item = create_toggle_item(w, w->windows_menu.menu, "Log messages");
-  w->windows_menu.about_item = create_item(w, w->windows_menu.menu, "About...", (char*)0);
+  w->windows_menu.log_item = create_toggle_item(w, w->windows_menu.menu, TR("Log messages"));
+  w->windows_menu.about_item = create_item(w, w->windows_menu.menu, TR("About..."), (char*)0);
   gtk_widget_show(w->windows_menu.menu);
 
   
@@ -973,22 +972,23 @@ transcoder_window_t * transcoder_window_create()
   
   /* Create buttons */
 
-  ret->run_button  = create_pixmap_button(ret, "run_16.png", "Start transcoding", "Start transcoding");
+  ret->run_button  = create_pixmap_button(ret, "run_16.png",
+                                          TRS("Start transcoding"));
   ret->stop_button = create_pixmap_button(ret,
-                                          "stop_16.png", "Stop transcoding", "Stop transcoding");
+                                          "stop_16.png",
+                                          TRS("Stop transcoding"));
 
   ret->plugin_button = create_pixmap_button(ret,
-                                                "plugin_16.png", "Change and configure plugins\nfor newly added tracks",
-                                                "Change and configure plugins\nfor newly added tracks");
+                                            "plugin_16.png",
+                                            TRS("Change and configure plugins\nfor newly added tracks"));
   ret->properties_button = create_pixmap_button(ret,
-                                               "config_16.png", "Set global options and track defaults",
-                                               "Set global options and track defaults");
+                                               "config_16.png", TRS("Set global options and track defaults"));
   ret->quit_button = create_pixmap_button(ret,
-                                         "quit_16.png", "Quit program", "Quit program");
+                                         "quit_16.png", TRS("Quit program"));
   ret->load_button  = create_pixmap_button(ret,
-                                          "folder_open_16.png", "Load track list", "Load track list");
+                                          "folder_open_16.png", TRS("Load track list"));
   ret->save_button  = create_pixmap_button(ret,
-                                          "save_16.png", "Save track list", "Save track list");
+                                          "save_16.png", TRS("Save track list"));
 
   gtk_widget_set_sensitive(ret->stop_button, 0);
   
@@ -999,10 +999,10 @@ transcoder_window_t * transcoder_window_create()
   /* Time display */
   ret->time_remaining = bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE_SMALL, 4);
 
-  gtk_tooltips_set_tip(ret->tooltips,
-                       bg_gtk_time_display_get_widget(ret->time_remaining),
-                       "Estimated remaining transcoding time",
-                       "Estimated remaining transcoding time");
+  bg_gtk_tooltips_set_tip(ret->tooltips,
+                          bg_gtk_time_display_get_widget(ret->time_remaining),
+                          "Estimated remaining transcoding time",
+                          PACKAGE);
 
 
   bg_gtk_time_display_update(ret->time_remaining, GAVL_TIME_UNDEFINED);
@@ -1017,27 +1017,27 @@ transcoder_window_t * transcoder_window_create()
   
   ret->menubar = gtk_menu_bar_new();
 
-  menuitem = gtk_menu_item_new_with_label("File");
+  menuitem = gtk_menu_item_new_with_label(TR("File"));
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(menuitem), ret->file_menu.menu);
   gtk_widget_show(menuitem);
   gtk_menu_shell_append(GTK_MENU_SHELL(ret->menubar), menuitem);
 
-  menuitem = gtk_menu_item_new_with_label("Options");
+  menuitem = gtk_menu_item_new_with_label(TR("Options"));
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(menuitem), ret->options_menu.menu);
   gtk_widget_show(menuitem);
   gtk_menu_shell_append(GTK_MENU_SHELL(ret->menubar), menuitem);
 
-  menuitem = gtk_menu_item_new_with_label("Actions");
+  menuitem = gtk_menu_item_new_with_label(TR("Actions"));
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(menuitem), ret->actions_menu.menu);
   gtk_widget_show(menuitem);
   gtk_menu_shell_append(GTK_MENU_SHELL(ret->menubar), menuitem);
 
-  menuitem = gtk_menu_item_new_with_label("Tasklist");
+  menuitem = gtk_menu_item_new_with_label(TR("Tasklist"));
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(menuitem), track_list_get_menu(ret->tracklist));
   gtk_widget_show(menuitem);
   gtk_menu_shell_append(GTK_MENU_SHELL(ret->menubar), menuitem);
 
-  menuitem = gtk_menu_item_new_with_label("Windows");
+  menuitem = gtk_menu_item_new_with_label(TR("Windows"));
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(menuitem), ret->windows_menu.menu);
   gtk_widget_show(menuitem);
   gtk_menu_shell_append(GTK_MENU_SHELL(ret->menubar), menuitem);
@@ -1087,7 +1087,7 @@ transcoder_window_t * transcoder_window_create()
                    ret->progress_bar,
                    0, 1, 3, 4, GTK_FILL, GTK_FILL, 0, 0);
   
-  frame = gtk_frame_new("Tasklist");
+  frame = gtk_frame_new(TR("Tasklist"));
   gtk_container_add(GTK_CONTAINER(frame),
                     track_list_get_widget(ret->tracklist));
 
@@ -1224,12 +1224,12 @@ static void transcoder_window_preferences(transcoder_window_t * w)
   bg_cfg_section_t * cfg_section;
   void * parent;
 
-  dlg = bg_dialog_create_multi("Transcoder configuration");
+  dlg = bg_dialog_create_multi(TR("Transcoder configuration"));
 
   cfg_section     = bg_cfg_registry_find_section(w->cfg_reg, "output");
 
   bg_dialog_add(dlg,
-                "Output options",
+                TR("Output options"),
                 cfg_section,
                 NULL,
                 NULL,
@@ -1239,7 +1239,7 @@ static void transcoder_window_preferences(transcoder_window_t * w)
                                                "general");
   
   bg_dialog_add(dlg,
-                "Track defaults",
+                TR("Track defaults"),
                 cfg_section,
                 NULL,
                 NULL,
@@ -1250,7 +1250,7 @@ static void transcoder_window_preferences(transcoder_window_t * w)
                                                "audio");
   
   bg_dialog_add(dlg,
-                "Audio defaults",
+                TR("Audio defaults"),
                 cfg_section,
                 NULL,
                 NULL,
@@ -1260,10 +1260,10 @@ static void transcoder_window_preferences(transcoder_window_t * w)
                                                "video");
 
   parent = bg_dialog_add_parent(dlg, NULL,
-                                "Video defaults");
+                                TR("Video defaults"));
 
   
-  bg_dialog_add_child(dlg, parent, "Video",
+  bg_dialog_add_child(dlg, parent, TR("Video"),
                       cfg_section,
                       NULL,
                       NULL,
@@ -1271,13 +1271,13 @@ static void transcoder_window_preferences(transcoder_window_t * w)
 
 
   parent = bg_dialog_add_parent(dlg, NULL,
-                                "Text subtitle defaults");
+                                TR("Text subtitle defaults"));
   
   
   cfg_section = bg_cfg_section_find_subsection(w->track_defaults_section,
                                                "subtitle_text");
 
-  bg_dialog_add_child(dlg, parent, "General",
+  bg_dialog_add_child(dlg, parent, TR("General"),
                       cfg_section,
                       NULL,
                       NULL,
@@ -1286,7 +1286,7 @@ static void transcoder_window_preferences(transcoder_window_t * w)
   cfg_section = bg_cfg_section_find_subsection(w->track_defaults_section,
                                                "textrenderer");
 
-  bg_dialog_add_child(dlg, parent, "Textrenderer",
+  bg_dialog_add_child(dlg, parent, TR("Textrenderer"),
                       cfg_section,
                       NULL,
                       NULL,
@@ -1295,7 +1295,7 @@ static void transcoder_window_preferences(transcoder_window_t * w)
   cfg_section = bg_cfg_registry_find_section(w->cfg_reg,
                                              "subtitle_overlay");
   bg_dialog_add(dlg,
-                "Overlay subtitle defaults",
+                TR("Overlay subtitle defaults"),
                 cfg_section,
                 NULL,
                 NULL,
@@ -1306,7 +1306,7 @@ static void transcoder_window_preferences(transcoder_window_t * w)
                                              "transcoder_window");
 
   bg_dialog_add(dlg,
-                "Window",
+                TR("Window"),
                 cfg_section,
                 set_transcoder_window_parameter,
                 w,
@@ -1316,7 +1316,7 @@ static void transcoder_window_preferences(transcoder_window_t * w)
                                              "remote");
 
   bg_dialog_add(dlg,
-                "Remote",
+                TR("Remote"),
                 cfg_section,
                 bg_remote_server_set_parameter,
                 w->remote,
@@ -1326,7 +1326,7 @@ static void transcoder_window_preferences(transcoder_window_t * w)
                                              "logwindow");
 
   bg_dialog_add(dlg,
-                "Log window",
+                TR("Log window"),
                 cfg_section,
                 bg_gtk_log_window_set_parameter,
                 w->logwindow,

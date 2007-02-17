@@ -22,6 +22,8 @@
 #include <string.h>
 #include <gtk/gtk.h>
 
+#include <config.h>
+
 #include <pluginregistry.h>
 #include <utils.h>
 
@@ -34,6 +36,7 @@
 #include <gui_gtk/display.h>
 #include <gui_gtk/plugin.h>
 #include <gui_gtk/chapterdialog.h>
+#include <gui_gtk/gtkutils.h>
 
 #include <transcoder_track.h>
 #include "tracklist.h"
@@ -86,7 +89,7 @@ static void init_drives(bg_plugin_registry_t * plugin_reg)
     {
     info = bg_plugin_find_by_index(plugin_reg, i, BG_PLUGIN_INPUT, BG_PLUGIN_REMOVABLE);
 
-    drive_plugins[i] = bg_strdup((char*)0, info->long_name);
+    drive_plugins[i] = bg_strdup((char*)0, info->name);
     drive_devices[i] = info->devices;
     }
 
@@ -201,7 +204,7 @@ struct track_list_s
 /* Buttons */
 
 static GtkWidget * create_pixmap_button(track_list_t * l, const char * filename,
-                                        const char * tooltip, const char * tooltip_private)
+                                        const char * tooltip)
   {
   GtkWidget * button;
   GtkWidget * image;
@@ -219,7 +222,7 @@ static GtkWidget * create_pixmap_button(track_list_t * l, const char * filename,
   button = gtk_button_new();
   gtk_container_add(GTK_CONTAINER(button), image);
 
-  gtk_tooltips_set_tip(l->tooltips, button, tooltip, tooltip_private);
+  bg_gtk_tooltips_set_tip(l->tooltips, button, tooltip, PACKAGE);
   return button;
   }
 
@@ -645,7 +648,7 @@ static void add_file_callback(char ** files, const char * plugin,
   l = (track_list_t *)(data);
 
   if(plugin)
-    plugin_info = bg_plugin_find_by_long_name(l->plugin_reg, plugin);
+    plugin_info = bg_plugin_find_by_name(l->plugin_reg, plugin);
   else
     plugin_info = (const bg_plugin_info_t*)0;
   while(files[i])
@@ -728,7 +731,8 @@ static void button_callback(GtkWidget * w, gpointer data)
                                        add_file_callback,
                                        filesel_close_callback,
                                        file_plugins,
-                                       t, NULL /* parent */ );
+                                       t, NULL /* parent */,
+                                       t->plugin_reg);
 
     bg_gtk_filesel_set_directory(t->filesel, t->open_path);
     gtk_widget_set_sensitive(t->add_file_button, 0);
@@ -747,11 +751,12 @@ static void button_callback(GtkWidget * w, gpointer data)
                                        BG_PLUGIN_INPUT,
                                        BG_PLUGIN_URL);
       }
-    urlsel = bg_gtk_urlsel_create("Add URLs",
+    urlsel = bg_gtk_urlsel_create(TR("Add URLs"),
                                   add_file_callback,
                                   urlsel_close_callback,
                                   url_plugins,
-                                  t, NULL  /* parent */ );
+                                  t, NULL  /* parent */,
+                                  t->plugin_reg);
     gtk_widget_set_sensitive(t->add_url_button, 0);
     bg_gtk_urlsel_run(urlsel, 0);
     //    bg_gtk_urlsel_destroy(urlsel);
@@ -772,7 +777,8 @@ static void button_callback(GtkWidget * w, gpointer data)
                                       drivesel_close_callback,
                                       drive_plugins,
                                       drive_devices,
-                                      t, NULL  /* parent */ );
+                                      t, NULL  /* parent */,
+                                      t->plugin_reg);
     gtk_widget_set_sensitive(t->add_removable_button, 0);
     bg_gtk_drivesel_run(drivesel, 0);
 
@@ -864,11 +870,11 @@ static void init_menu(track_list_t * t)
   t->menu.add_menu.menu = gtk_menu_new();
 
   t->menu.add_menu.add_files_item =
-    create_item(t, t->menu.add_menu.menu, "Add Files...", "folder_open_16.png");
+    create_item(t, t->menu.add_menu.menu, TR("Add Files..."), "folder_open_16.png");
   t->menu.add_menu.add_urls_item =
-    create_item(t, t->menu.add_menu.menu, "Add Urls...", "earth_16.png");
+    create_item(t, t->menu.add_menu.menu, TR("Add Urls..."), "earth_16.png");
   t->menu.add_menu.add_drives_item =
-    create_item(t, t->menu.add_menu.menu, "Add Drives...", "drive_running_16.png");
+    create_item(t, t->menu.add_menu.menu, TR("Add Drives..."), "drive_running_16.png");
   gtk_widget_show(t->menu.add_menu.menu);
   
   /* Selected */
@@ -876,36 +882,36 @@ static void init_menu(track_list_t * t)
   t->menu.selected_menu.menu = gtk_menu_new();
 
   t->menu.selected_menu.move_up_item =
-    create_item(t, t->menu.selected_menu.menu, "Move Up", "top_16.png");
+    create_item(t, t->menu.selected_menu.menu, TR("Move Up"), "top_16.png");
   t->menu.selected_menu.move_down_item =
-    create_item(t, t->menu.selected_menu.menu, "Move Down", "bottom_16.png");
+    create_item(t, t->menu.selected_menu.menu, TR("Move Down"), "bottom_16.png");
   t->menu.selected_menu.remove_item =
-    create_item(t, t->menu.selected_menu.menu, "Remove", "trash_16.png");
+    create_item(t, t->menu.selected_menu.menu, TR("Remove"), "trash_16.png");
   t->menu.selected_menu.configure_item =
-    create_item(t, t->menu.selected_menu.menu, "Configure...", "config_16.png");
+    create_item(t, t->menu.selected_menu.menu, TR("Configure..."), "config_16.png");
   t->menu.selected_menu.chapter_item =
-    create_item(t, t->menu.selected_menu.menu, "Edit chapters...", "chapter_16.png");
+    create_item(t, t->menu.selected_menu.menu, TR("Edit chapters..."), "chapter_16.png");
   t->menu.selected_menu.encoder_item =
-    create_item(t, t->menu.selected_menu.menu, "Change encoders...", "plugin_16.png");
+    create_item(t, t->menu.selected_menu.menu, TR("Change encoders..."), "plugin_16.png");
 
   /* Root menu */
 
   t->menu.menu = gtk_menu_new();
   
   t->menu.add_item =
-    create_item(t, t->menu.menu, "Add...", (char*)0);
+    create_item(t, t->menu.menu, TR("Add..."), (char*)0);
   
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(t->menu.add_item),
                             t->menu.add_menu.menu);
 
   t->menu.selected_item =
-    create_item(t, t->menu.menu, "Selected...", (char*)0);
+    create_item(t, t->menu.menu, TR("Selected..."), (char*)0);
 
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(t->menu.selected_item),
                             t->menu.selected_menu.menu);
   
   t->menu.pp_item =
-    create_item(t, t->menu.menu, "Postprocess...", (char*)0);
+    create_item(t, t->menu.menu, TR("Postprocess..."), (char*)0);
   
   }
 
@@ -1084,10 +1090,10 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg,
   ret->time_total = bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE_SMALL, 4);
   ret->encoder_pp_window = encoder_pp_window_create(plugin_reg);
   
-  gtk_tooltips_set_tip(ret->tooltips,
-                       bg_gtk_time_display_get_widget(ret->time_total),
-                       "Total playback time",
-                       "Total playback time");
+  bg_gtk_tooltips_set_tip(ret->tooltips,
+                          bg_gtk_time_display_get_widget(ret->time_total),
+                          TRS("Total playback time"),
+                          PACKAGE);
 
   ret->plugin_reg = plugin_reg;
   
@@ -1095,56 +1101,47 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg,
   ret->add_file_button =
     create_pixmap_button(ret,
                          "folder_open_16.png",
-                         "Add files",
-                         "Append files to the track list");
+                         TRS("Append files to the track list"));
 
   ret->add_url_button =
     create_pixmap_button(ret,
                          "earth_16.png",
-                         "Add URLs",
-                         "Append URLs to the track list");
+                         TRS("Append URLs to the track list"));
 
   ret->add_removable_button =
     create_pixmap_button(ret,
                          "drive_running_16.png",
-                         "Add removable media",
-                         "Append removable media to the track_list");
+                         TRS("Append removable media to the track_list"));
   
   ret->delete_button =
     create_pixmap_button(ret,
                          "trash_16.png",
-                         "Delete",
-                         "Delete selected tracks");
+                         TRS("Delete selected tracks"));
 
   ret->config_button =
     create_pixmap_button(ret,
                          "config_16.png",
-                         "Configure",
-                         "Configure selected track");
+                         TRS("Configure selected track"));
 
   ret->chapter_button =
     create_pixmap_button(ret,
                          "chapter_16.png",
-                         "Edit chapters",
-                         "Edit chapters");
+                         TRS("Edit chapters"));
   
   ret->encoder_button =
     create_pixmap_button(ret,
                          "plugin_16.png",
-                         "Change encoder plugins for selected tracks",
-                         "Change encoder plugins for selected tracks");
+                         TRS("Change encoder plugins for selected tracks"));
 
   ret->up_button =
     create_pixmap_button(ret,
                          "top_16.png",
-                         "Move to top",
-                         "Move selected tracks to the top of the tracklist");
-
+                         TRS("Move selected tracks to the top of the tracklist"));
+  
   ret->down_button =
     create_pixmap_button(ret,
                          "bottom_16.png",
-                         "Move to bottom",
-                         "Move selected tracks to the bottom of the tracklist");
+                         TRS("Move selected tracks to the bottom of the tracklist"));
   
   g_signal_connect(G_OBJECT(ret->down_button), "clicked",
                    G_CALLBACK(button_callback), ret);

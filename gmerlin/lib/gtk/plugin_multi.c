@@ -21,11 +21,16 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <config.h>
+
+#include <translation.h>
+
 #include <pluginregistry.h>
 #include <utils.h>
 #include <cfg_dialog.h>
 
 #include <gui_gtk/plugin.h>
+#include <gui_gtk/gtkutils.h>
 
 enum
 {
@@ -48,11 +53,15 @@ struct bg_gtk_plugin_widget_multi_s
   const bg_plugin_info_t * info;
 
   bg_parameter_info_t * parameters;
+
   bg_cfg_section_t * section;
 
   gulong extensions_changed_id;
   gulong protocols_changed_id;
   gulong priority_changed_id;
+
+  uint32_t flag_mask;
+  uint32_t type_mask;
   
   };
 
@@ -71,8 +80,8 @@ static void button_callback(GtkWidget * w, gpointer data)
     {
     dialog = bg_dialog_create(win->section,
                               NULL, NULL,
-                              win->parameters,
-                              win->info->long_name);
+                              win->info->parameters,
+                              TRD(win->info->long_name, win->info->gettext_domain));
     bg_dialog_show(dialog);
     bg_dialog_destroy(dialog);
     }
@@ -82,19 +91,33 @@ static void select_row_callback(GtkTreeSelection * s, gpointer data)
   {
   GtkTreeModel * model;
   GtkTreeIter iter;
-  
-  char * long_name;
 
+  int selected, i;
+  
   bg_gtk_plugin_widget_multi_t * win = (bg_gtk_plugin_widget_multi_t*)data;
 
-  if(!gtk_tree_selection_get_selected(s, &model, &iter))
+  model = gtk_tree_view_get_model(GTK_TREE_VIEW(win->treeview));
+
+  if(!gtk_tree_model_get_iter_first(model, &iter))
+    return;
+  selected = -1;
+  i = 0;
+  while(1)
+    {
+    if(gtk_tree_selection_iter_is_selected(s, &iter))
+      {
+      selected = i;
+      break;
+      }
+    gtk_tree_model_iter_next(model, &iter);
+    i++;
+    }
+  if(selected == -1)
     return;
   
-  gtk_tree_model_get(model, &iter, COLUMN_PLUGIN,
-                     &long_name, -1);
+  win->info = bg_plugin_find_by_index(win->reg, selected, win->type_mask,
+                                      win->flag_mask);
   
-  win->info = bg_plugin_find_by_long_name(win->reg, long_name);
-
   if(win->info->parameters)
     win->parameters = win->info->parameters;
   else
@@ -148,7 +171,6 @@ static void select_row_callback(GtkTreeSelection * s, gpointer data)
     gtk_widget_set_sensitive(win->priority, 1);
   else
     gtk_widget_set_sensitive(win->priority, 0);
-  g_free(long_name);
   }
 
 static void change_callback(GtkWidget * w, gpointer data)
@@ -173,7 +195,7 @@ static void change_callback(GtkWidget * w, gpointer data)
   }
 
 static GtkWidget * create_pixmap_button(const char * filename, GtkTooltips * tooltips,
-                                        const char * tooltip, const char * tooltip_private)
+                                        const char * tooltip)
   {
   GtkWidget * button;
   GtkWidget * image;
@@ -191,7 +213,7 @@ static GtkWidget * create_pixmap_button(const char * filename, GtkTooltips * too
   button = gtk_button_new();
   gtk_container_add(GTK_CONTAINER(button), image);
 
-  gtk_tooltips_set_tip(tooltips, button, tooltip, tooltip_private);
+  bg_gtk_tooltips_set_tip(tooltips, button, tooltip, PACKAGE);
 
   return button;
   }
@@ -220,15 +242,17 @@ bg_gtk_plugin_widget_multi_create(bg_plugin_registry_t * reg,
   ret = calloc(1,sizeof(*ret));
 
   ret->reg = reg;
-
+  
+  ret->type_mask = type_mask;
+  ret->flag_mask = flag_mask;
+  
   /* Create buttons */
 
-  ret->info_button = create_pixmap_button("info_16.png", tooltips, "Plugin info", "Plugin info");
+  ret->info_button = create_pixmap_button("info_16.png", tooltips, TRS("Plugin info"));
   
   ret->config_button = create_pixmap_button("config_16.png", tooltips,
-                                            "Plugin options", "Plugin options");
-                                                                                
-                                                                                
+                                            TRS("Plugin options"));
+  
   g_signal_connect(G_OBJECT(ret->info_button),
                    "clicked", G_CALLBACK(button_callback),
                    (gpointer)ret);
@@ -284,7 +308,7 @@ bg_gtk_plugin_widget_multi_create(bg_plugin_registry_t * reg,
     gtk_list_store_append(store, &iter);
     gtk_list_store_set(store, &iter,
                        COLUMN_PLUGIN,
-                       info->long_name,
+                       TRD(info->long_name, info->gettext_domain),
                        -1);
     }
 
@@ -331,7 +355,7 @@ bg_gtk_plugin_widget_multi_create(bg_plugin_registry_t * reg,
   gtk_table_attach(GTK_TABLE(table),
                    ret->info_button, 1, 2, 0, 1, GTK_FILL, GTK_SHRINK, 0, 0);
 
-  label = gtk_label_new("Priority");
+  label = gtk_label_new(TR("Priority"));
   gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
   gtk_widget_show(label);
   gtk_table_attach(GTK_TABLE(table), label, 2, 3, 0, 1, GTK_FILL,
@@ -341,7 +365,7 @@ bg_gtk_plugin_widget_multi_create(bg_plugin_registry_t * reg,
 
 
   
-  label = gtk_label_new("Protocols");
+  label = gtk_label_new(TR("Protocols"));
   gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
   gtk_widget_show(label);
   gtk_table_attach(GTK_TABLE(table), label, 0, 4, 1, 2, GTK_FILL|GTK_EXPAND,
@@ -349,7 +373,7 @@ bg_gtk_plugin_widget_multi_create(bg_plugin_registry_t * reg,
   gtk_table_attach(GTK_TABLE(table), ret->protocols, 0, 4, 2, 3, GTK_FILL|GTK_EXPAND,
                    GTK_SHRINK, 0, 0);
   
-  label = gtk_label_new("Extensions");
+  label = gtk_label_new(TR("Extensions"));
   gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
   gtk_widget_show(label);
 

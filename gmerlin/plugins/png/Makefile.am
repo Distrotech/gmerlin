@@ -1,6 +1,6 @@
 libdir=@GMERLIN_PLUGIN_DIR@
 
-AM_CFLAGS = @PNG_CFLAGS@
+AM_CFLAGS = @PNG_CFLAGS@ -DLOCALE_DIR=\"$(localedir)\"
 
 lib_LTLIBRARIES = ir_png.la iw_png.la e_spumux.la
 

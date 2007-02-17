@@ -30,9 +30,6 @@ void bg_transcoder_set_parameter(void * priv, char * name, bg_parameter_value_t 
 int bg_transcoder_init(bg_transcoder_t * t,
                        bg_plugin_registry_t * plugin_reg, bg_transcoder_track_t * track);
 
-
-const char * bg_transcoder_get_error(bg_transcoder_t * t);
-
 /*
  *  Do one iteration (Will be called as an idle function in the GUI main loop)
  *  If return value is FALSE, we are done
@@ -92,7 +89,7 @@ void bg_transcoder_send_msg_progress(bg_msg_queue_list_t * l,
 void bg_transcoder_send_msg_finished(bg_msg_queue_list_t * l);
 
 void bg_transcoder_send_msg_start(bg_msg_queue_list_t * l, char * what);
-void bg_transcoder_send_msg_error(bg_msg_queue_list_t * l, char * msg);
+void bg_transcoder_send_msg_error(bg_msg_queue_list_t * l);
 
 void bg_transcoder_send_msg_metadata(bg_msg_queue_list_t * l, bg_metadata_t * m);
 

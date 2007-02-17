@@ -1,3 +1,6 @@
+#include <config.h>
+#include <translation.h>
+
 #include <utils.h>
 #include "gui.h"
 
@@ -612,12 +615,12 @@ void card_widget_configure(card_widget_t * c)
   win->cw = c;
   
   win->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_title(GTK_WINDOW(win->window), "Card controls");
+  gtk_window_set_title(GTK_WINDOW(win->window), TR("Card controls"));
   gtk_window_set_modal(GTK_WINDOW(win->window), 1);
   g_signal_connect(G_OBJECT(win->window), "delete_event",G_CALLBACK(config_delete_callback),
                    win);
 
-  window_title = bg_sprintf("Controls for %s", c->label);
+  window_title = bg_sprintf(TR("Controls for %s"), c->label);
   gtk_window_set_title(GTK_WINDOW(win->window), window_title);
   free(window_title);
   

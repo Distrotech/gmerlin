@@ -154,10 +154,9 @@ void bg_player_pause(bg_player_t * player);
 
 /** \brief Trigger an error
  *  \param player A player
- *  \param message Human readable error message
  */
 
-void bg_player_error(bg_player_t * player, const char * message);
+void bg_player_error(bg_player_t * player);
 
 /** \brief Set audio output plugin
  *  \param player A player

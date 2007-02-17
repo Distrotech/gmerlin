@@ -1,6 +1,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <config.h>
+#include <translation.h>
+
 #include <pluginregistry.h>
 #include <utils.h>
 
@@ -51,12 +54,12 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
   ret->update_callback = update_callback;
   ret->update_priv     = update_priv;
   
-  ret->cfg_dialog = bg_dialog_create_multi("Track options");
+  ret->cfg_dialog = bg_dialog_create_multi(TR("Track options"));
   
   /* General */
   
   bg_dialog_add(ret->cfg_dialog,
-                "General",
+                TR("General"),
                 t->general_section,
                 set_parameter_general, ret,
                 t->general_parameters);
@@ -65,7 +68,7 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
   /* Metadata */
   
   bg_dialog_add(ret->cfg_dialog,
-                "Metadata",
+                TR("Metadata"),
                 t->metadata_section,
                 NULL,
                 NULL,
@@ -75,37 +78,43 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
 
   if(encoder_info.audio_encoder_parameters && t->num_audio_streams)
     {
+    label = bg_cfg_section_get_name_translated(t->audio_encoder_section);
     bg_dialog_add(ret->cfg_dialog,
-                  bg_cfg_section_get_name(t->audio_encoder_section),
+                  label,
                   t->audio_encoder_section,
                   NULL,
                   NULL,
                   encoder_info.audio_encoder_parameters);
+    free(label);
     }
-
+  
   /* Video encoder */
 
   if(encoder_info.video_encoder_parameters &&
      (!(encoder_info.audio_info) || t->num_video_streams))
     {
+    label = bg_cfg_section_get_name_translated(t->video_encoder_section);
     bg_dialog_add(ret->cfg_dialog,
-                  bg_cfg_section_get_name(t->video_encoder_section),
+                  label,
                   t->video_encoder_section,
                   NULL,
                   NULL,
                   encoder_info.video_encoder_parameters);
+    free(label);
     }
 
   /* Subtitle text encoder */
 
   if(encoder_info.subtitle_text_encoder_parameters && t->num_subtitle_text_streams)
     {
+    label = bg_cfg_section_get_name_translated(t->subtitle_text_encoder_section);
     bg_dialog_add(ret->cfg_dialog,
-                  bg_cfg_section_get_name(t->subtitle_text_encoder_section),
+                  label,
                   t->subtitle_text_encoder_section,
                   NULL,
                   NULL,
                   encoder_info.subtitle_text_encoder_parameters);
+    free(label);
     }
 
   /* Subtitle overlay encoder */
@@ -113,12 +122,14 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
   if(encoder_info.subtitle_overlay_encoder_parameters &&
      (t->num_subtitle_text_streams || t->num_subtitle_overlay_streams))
     {
+    label = bg_cfg_section_get_name_translated(t->subtitle_overlay_encoder_section);
     bg_dialog_add(ret->cfg_dialog,
-                  bg_cfg_section_get_name(t->subtitle_overlay_encoder_section),
+                  label,
                   t->subtitle_overlay_encoder_section,
                   NULL,
                   NULL,
                   encoder_info.subtitle_overlay_encoder_parameters);
+    free(label);
     }
 
   
@@ -129,16 +140,16 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
     if(t->num_audio_streams > 1)
       {
       if(t->audio_streams[i].label)
-        label = bg_sprintf("Audio #%d: %s", i+1, t->audio_streams[i].label);
+        label = bg_sprintf(TR("Audio #%d: %s"), i+1, t->audio_streams[i].label);
       else
-        label = bg_sprintf("Audio #%d", i+1);
+        label = bg_sprintf(TR("Audio #%d"), i+1);
       }
     else
       {
       if(t->audio_streams[i].label)
-        label = bg_sprintf("Audio: %s", t->audio_streams[i].label);
+        label = bg_sprintf(TR("Audio: %s"), t->audio_streams[i].label);
       else
-        label = bg_sprintf("Audio");
+        label = bg_sprintf(TR("Audio"));
       }
     
     
@@ -147,7 +158,7 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
     free(label);
     
     bg_dialog_add_child(ret->cfg_dialog, parent,
-                        "General",
+                        TR("General"),
                         t->audio_streams[i].general_section,
                         NULL,
                         NULL,
@@ -155,10 +166,11 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
 
     if(encoder_info.audio_stream_parameters)
       {
+      label = bg_cfg_section_get_name_translated(t->audio_streams[i].encoder_section);
       if(encoder_info.audio_stream_parameters[0].type != BG_PARAMETER_SECTION)
         {
         bg_dialog_add_child(ret->cfg_dialog, parent,
-                            bg_cfg_section_get_name(t->audio_streams[i].encoder_section),
+                            label,
                             t->audio_streams[i].encoder_section,
                             NULL,
                             NULL,
@@ -166,16 +178,16 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
         }
       else
         {
-        child = bg_dialog_add_parent(ret->cfg_dialog, parent,
-                                     bg_cfg_section_get_name(t->audio_streams[i].encoder_section));
+        child = bg_dialog_add_parent(ret->cfg_dialog, parent, label);
         bg_dialog_add_child(ret->cfg_dialog, child,
-                            bg_cfg_section_get_name(t->audio_streams[i].encoder_section),
+                            NULL,
                             t->audio_streams[i].encoder_section,
                             NULL,
                             NULL,
                             encoder_info.audio_stream_parameters);
         
         }
+      free(label);
       }
     }
 
@@ -186,16 +198,16 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
     if(t->num_video_streams > 1)
       {
       if(t->video_streams[i].label)
-        label = bg_sprintf("Video #%d: %s", i+1, t->video_streams[i].label);
+        label = bg_sprintf(TR("Video #%d: %s"), i+1, t->video_streams[i].label);
       else
-        label = bg_sprintf("Video #%d", i+1);
+        label = bg_sprintf(TR("Video #%d"), i+1);
       }
     else
       {
       if(t->video_streams[i].label)
-        label = bg_sprintf("Video: %s", t->video_streams[i].label);
+        label = bg_sprintf(TR("Video: %s"), t->video_streams[i].label);
       else
-        label = bg_sprintf("Video");
+        label = bg_sprintf(TR("Video"));
       }
 
     parent = bg_dialog_add_parent(ret->cfg_dialog, NULL,
@@ -203,7 +215,7 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
     free(label);
     
     bg_dialog_add_child(ret->cfg_dialog, parent,
-                        "General",
+                        TR("General"),
                         t->video_streams[i].general_section,
                         NULL,
                         NULL,
@@ -211,10 +223,11 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
 
     if(encoder_info.video_stream_parameters)
       {
+      label = bg_cfg_section_get_name_translated(t->video_streams[i].encoder_section);
       if(encoder_info.video_stream_parameters[0].type != BG_PARAMETER_SECTION)
         {
         bg_dialog_add_child(ret->cfg_dialog, parent,
-                            bg_cfg_section_get_name(t->video_streams[i].encoder_section),
+                            label,
                             t->video_streams[i].encoder_section,
                             NULL,
                             NULL,
@@ -223,35 +236,36 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
       else
         {
         child = bg_dialog_add_parent(ret->cfg_dialog, parent,
-                                     bg_cfg_section_get_name(t->video_streams[i].encoder_section));
+                                     label);
         bg_dialog_add_child(ret->cfg_dialog, child,
-                            bg_cfg_section_get_name(t->video_streams[i].encoder_section),
+                            NULL,
                             t->video_streams[i].encoder_section,
                             NULL,
                             NULL,
                             encoder_info.video_stream_parameters);
         
         }
+      free(label);
       }
     }
-
+  
   /* Subtitle streams */
-
+  
   for(i = 0; i < t->num_subtitle_text_streams; i++)
     {
     if(t->num_subtitle_text_streams > 1)
       {
       if(t->subtitle_text_streams[i].label)
-        label = bg_sprintf("Subtitles #%d: %s", i+1, t->subtitle_text_streams[i].label);
+        label = bg_sprintf(TR("Subtitles #%d: %s"), i+1, t->subtitle_text_streams[i].label);
       else
-        label = bg_sprintf("Subtitles #%d", i+1);
+        label = bg_sprintf(TR("Subtitles #%d"), i+1);
       }
     else
       {
       if(t->subtitle_text_streams[i].label)
-        label = bg_sprintf("Subtitles: %s", t->subtitle_text_streams[i].label);
+        label = bg_sprintf(TR("Subtitles: %s"), t->subtitle_text_streams[i].label);
       else
-        label = bg_sprintf("Subtitles");
+        label = bg_sprintf(TR("Subtitles"));
       }
     
     parent = bg_dialog_add_parent(ret->cfg_dialog, NULL,
@@ -259,28 +273,30 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
     free(label);
     
     bg_dialog_add_child(ret->cfg_dialog, parent,
-                        "General",
+                        TR("General"),
                         t->subtitle_text_streams[i].general_section,
                         NULL,
                         NULL,
                         t->subtitle_text_streams[i].general_parameters);
 
     bg_dialog_add_child(ret->cfg_dialog, parent,
-                        "Textrenderer",
+                        TR("Textrenderer"),
                         t->subtitle_text_streams[i].textrenderer_section,
                         NULL,
                         NULL,
                         bg_text_renderer_get_parameters());
 
     if(encoder_info.subtitle_text_stream_parameters)
+      {
+      label = bg_cfg_section_get_name_translated(t->subtitle_text_streams[i].encoder_section_text);
       bg_dialog_add_child(ret->cfg_dialog, parent,
-                          bg_cfg_section_get_name(t->subtitle_text_streams[i].encoder_section_text),
+                          label,
                           t->subtitle_text_streams[i].encoder_section_text,
                           NULL,
                           NULL,
                           encoder_info.subtitle_text_stream_parameters);
-
-
+      free(label);
+      }
     }
 
   for(i = 0; i < t->num_subtitle_overlay_streams; i++)
@@ -288,17 +304,17 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
     if(t->num_subtitle_overlay_streams > 1)
       {
       if(t->subtitle_overlay_streams[i].label)
-        label = bg_sprintf("Subtitles #%d: %s", i+1+t->num_subtitle_text_streams,
+        label = bg_sprintf(TR("Subtitles #%d: %s"), i+1+t->num_subtitle_text_streams,
                            t->subtitle_overlay_streams[i].label);
       else
-        label = bg_sprintf("Subtitles #%d", i+1+t->num_subtitle_text_streams);
+        label = bg_sprintf(TR("Subtitles #%d"), i+1+t->num_subtitle_text_streams);
       }
     else
       {
       if(t->subtitle_overlay_streams[i].label)
-        label = bg_sprintf("Subtitles: %s", t->subtitle_overlay_streams[i].label);
+        label = bg_sprintf(TR("Subtitles: %s"), t->subtitle_overlay_streams[i].label);
       else
-        label = bg_sprintf("Subtitles");
+        label = bg_sprintf(TR("Subtitles"));
       }
     
     parent = bg_dialog_add_parent(ret->cfg_dialog, NULL,
@@ -306,25 +322,26 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
     free(label);
     
     bg_dialog_add_child(ret->cfg_dialog, parent,
-                        "General",
+                        TR("General"),
                         t->subtitle_overlay_streams[i].general_section,
                         NULL,
                         NULL,
                         t->subtitle_overlay_streams[i].general_parameters);
 
     if(encoder_info.subtitle_overlay_stream_parameters)
+      {
+      label = bg_cfg_section_get_name_translated(t->subtitle_overlay_streams[i].encoder_section);
       bg_dialog_add_child(ret->cfg_dialog, parent,
-                          bg_cfg_section_get_name(t->subtitle_overlay_streams[i].encoder_section),
+                          label,
                           t->subtitle_overlay_streams[i].encoder_section,
                           NULL,
                           NULL,
                           encoder_info.subtitle_overlay_stream_parameters);
-
+      }
 
     }
   
   bg_dialog_set_tooltips(ret->cfg_dialog, show_tooltips);
-
   
   return ret;
   

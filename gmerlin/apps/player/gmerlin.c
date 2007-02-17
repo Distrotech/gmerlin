@@ -23,6 +23,8 @@
 
 #include <config.h>
 
+#include <translation.h>
+
 #include "gmerlin.h"
 #include "player_remote.h"
 
@@ -36,12 +38,6 @@ static void tree_play_callback(void * data)
   gmerlin_play(g, 0);
   }
 
-static void tree_error_callback(bg_media_tree_t * t, void * data, const char * message)
-  {
-  gmerlin_t * g = (gmerlin_t*)data;
-
-  bg_player_error(g->player, message);
-  }
 
 static void gmerlin_apply_config(gmerlin_t * g)
   {
@@ -242,7 +238,6 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
   ret->tree = bg_media_tree_create(tmp_string, ret->plugin_reg);
   
   bg_media_tree_set_play_callback(ret->tree, tree_play_callback, ret);
-  bg_media_tree_set_error_callback(ret->tree, tree_error_callback, ret);
   bg_media_tree_set_userpass_callback(ret->tree, bg_gtk_get_userpass, NULL);
   
   free(tmp_string);
@@ -430,9 +425,10 @@ int gmerlin_play(gmerlin_t * g, int flags)
   
   if(!handle)
     {
+    bg_player_error(g->player);
     return 0;
     }
-
+  
   album = bg_media_tree_get_current_album(g->tree);
   
   bg_album_get_times(album,
@@ -589,36 +585,43 @@ void gmerlin_check_next_track(gmerlin_t * g, int track)
 
 static bg_parameter_info_t parameters[] =
   {
+#if 0
     {
       name:      "general_options",
-      long_name: "General Options",
+      long_name: TRS("General Options"),
       type:      BG_PARAMETER_SECTION,
     },
+#endif
     {
       name:      "skip_error_tracks",
-      long_name: "Skip error tracks",
+      long_name: TRS("Skip error tracks"),
       type:      BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 },
+      help_string: TRS("If a track cannot be opened, switch to the next one")
     },
     {
       name:      "dont_advance",
-      long_name: "Don't advance",
+      long_name: TRS("Don't advance"),
       type:      BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 0 },
     },
     {
       name:      "shuffle_mode",
-      long_name: "Shuffle mode",
+      long_name: TRS("Shuffle mode"),
       type:      BG_PARAMETER_STRINGLIST,
-      multi_names: (char*[]){"Off",
-                         "Current album",
-                         "All open albums",
-                         (char*)0 },
+      multi_names: (char*[]){"off",
+                             "current",
+                             "all",
+                             (char*)0 },
+      multi_labels: (char*[]){TRS("Off"),
+                              TRS("Current album"),
+                              TRS("All open albums"),
+                              (char*)0 },
       val_default: { val_str: "Off" }
     },
     {
       name:        "show_tooltips",
-      long_name:   "Show tooltips",
+      long_name:   TRS("Show tooltips"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 },
     },
@@ -723,15 +726,15 @@ void gmerlin_set_parameter(void * data, char * name, bg_parameter_value_t * val)
     }
   else if(!strcmp(name, "shuffle_mode"))
     {
-    if(!strcmp(val->val_str, "Off"))
+    if(!strcmp(val->val_str, "off"))
       {
       g->shuffle_mode = BG_SHUFFLE_MODE_OFF;
       }
-    else if(!strcmp(val->val_str, "Current album"))
+    else if(!strcmp(val->val_str, "current"))
       {
       g->shuffle_mode = BG_SHUFFLE_MODE_CURRENT;
       }
-    else if(!strcmp(val->val_str, "All open albums"))
+    else if(!strcmp(val->val_str, "all"))
       {
       g->shuffle_mode = BG_SHUFFLE_MODE_ALL;
       }

@@ -121,7 +121,8 @@ bg_gtk_plugin_widget_single_set_subtitle_overlay_section(bg_gtk_plugin_widget_si
 
 typedef struct bg_gtk_plugin_menu_s bg_gtk_plugin_menu_t;
 
-bg_gtk_plugin_menu_t * bg_gtk_plugin_menu_create(char ** plugins, int auto_supported);
+bg_gtk_plugin_menu_t * bg_gtk_plugin_menu_create(char ** plugins, int auto_supported,
+                                                 bg_plugin_registry_t * plugin_reg);
 const char * bg_gtk_plugin_menu_get_plugin(bg_gtk_plugin_menu_t *);
 GtkWidget * bg_gtk_plugin_menu_get_widget(bg_gtk_plugin_menu_t *);
 void bg_gtk_plugin_menu_destroy(bg_gtk_plugin_menu_t *);

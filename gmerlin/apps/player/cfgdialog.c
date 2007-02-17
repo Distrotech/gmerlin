@@ -17,6 +17,9 @@
  
 *****************************************************************/
 
+#include <config.h>
+#include <translation.h>
+
 #include "gmerlin.h"
 
 void gmerlin_create_dialog(gmerlin_t * g)
@@ -25,13 +28,13 @@ void gmerlin_create_dialog(gmerlin_t * g)
   bg_parameter_info_t * parameters;
   /* Create the dialog */
     
-  g->cfg_dialog = bg_dialog_create_multi("Gmerlin confiuration");
+  g->cfg_dialog = bg_dialog_create_multi(TR("Gmerlin confiuration"));
   /* Add sections */
 
   parameters = gmerlin_get_parameters(g);
 
   bg_dialog_add(g->cfg_dialog,
-                (char*)0,
+                TR("General"),
                 g->general_section,
                 gmerlin_set_parameter,
                 (void*)(g),
@@ -40,17 +43,16 @@ void gmerlin_create_dialog(gmerlin_t * g)
   parameters = bg_player_get_input_parameters(g->player);
   
   bg_dialog_add(g->cfg_dialog,
-                (char*)0,
+                TR("Input"),
                 g->input_section,
                 bg_player_set_input_parameter,
                 (void*)(g->player),
                 parameters);
-
   
   parameters = bg_player_get_audio_parameters(g->player);
   
   bg_dialog_add(g->cfg_dialog,
-                (char*)0,
+                TR("Audio"),
                 g->audio_section,
                 bg_player_set_audio_parameter,
                 (void*)(g->player),
@@ -59,17 +61,17 @@ void gmerlin_create_dialog(gmerlin_t * g)
   parameters = bg_player_get_video_parameters(g->player);
   
   bg_dialog_add(g->cfg_dialog,
-                (char*)0,
+                TR("Video"),
                 g->video_section,
                 bg_player_set_video_parameter,
                 (void*)(g->player),
                 parameters);
 
   parameters = bg_player_get_subtitle_parameters(g->player);
-  parent = bg_dialog_add_parent(g->cfg_dialog, (void*)0, "Text subtitles");
+  parent = bg_dialog_add_parent(g->cfg_dialog, (void*)0, TR("Text subtitles"));
   
   bg_dialog_add_child(g->cfg_dialog, parent,
-                      "Subtitles",
+                      TR("Subtitles"),
                       g->subtitle_section,
                       bg_player_set_subtitle_parameter,
                       (void*)(g->player),
@@ -78,7 +80,7 @@ void gmerlin_create_dialog(gmerlin_t * g)
   parameters = bg_player_get_osd_parameters(g->player);
   
   bg_dialog_add(g->cfg_dialog,
-                "OSD",
+                TR("OSD"),
                 g->osd_section,
                 bg_player_set_osd_parameter,
                 (void*)(g->player),
@@ -88,7 +90,7 @@ void gmerlin_create_dialog(gmerlin_t * g)
   parameters = display_get_parameters(g->player_window->display);
 
   bg_dialog_add(g->cfg_dialog,
-                "Display",
+                TR("Display"),
                 g->display_section,
                 display_set_parameter,
                 (void*)(g->player_window->display),
@@ -97,7 +99,7 @@ void gmerlin_create_dialog(gmerlin_t * g)
   parameters = bg_media_tree_get_parameters(g->tree);
   
   bg_dialog_add(g->cfg_dialog,
-                "Media Tree",
+                TR("Media Tree"),
                 g->tree_section,
                 bg_media_tree_set_parameter,
                 (void*)(g->tree),
@@ -106,32 +108,29 @@ void gmerlin_create_dialog(gmerlin_t * g)
   parameters = bg_remote_server_get_parameters(g->remote);
   
   bg_dialog_add(g->cfg_dialog,
-                "Remote control",
+                TR("Remote control"),
                 g->remote_section,
                 bg_remote_server_set_parameter,
                 (void*)(g->remote),
                 parameters);
  
-#if 1
   parameters = bg_lcdproc_get_parameters(g->lcdproc);
   
   bg_dialog_add(g->cfg_dialog,
-                "LCDproc",
+                TR("LCDproc"),
                 g->lcdproc_section,
                 bg_lcdproc_set_parameter,
                 (void*)(g->lcdproc),
                 parameters);
-#endif
-
+  
   parameters = bg_gtk_log_window_get_parameters(g->log_window);
   
   bg_dialog_add(g->cfg_dialog,
-                "Log window",
+                TR("Log window"),
                 g->logwindow_section,
                 bg_gtk_log_window_set_parameter,
                 (void*)(g->log_window),
                 parameters);
-  
   }
 
 

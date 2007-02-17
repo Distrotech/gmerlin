@@ -31,6 +31,8 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
+#include <config.h>
+
 #include <utils.h>
 #include <bgsocket.h>
 

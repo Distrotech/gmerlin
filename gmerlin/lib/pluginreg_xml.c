@@ -76,6 +76,7 @@ static const char * plugin_registry_key   = "PLUGIN_REGISTRY";
 
 static const char * name_key              = "NAME";
 static const char * long_name_key         = "LONG_NAME";
+static const char * description_key       = "DESCRIPTION";
 static const char * mimetypes_key         = "MIMETYPES";
 static const char * extensions_key        = "EXTENSIONS";
 static const char * protocols_key         = "PROTOCOLS";
@@ -96,6 +97,10 @@ static const char * audio_parameters_key = "AUDIO_PARAMETERS";
 static const char * video_parameters_key = "VIDEO_PARAMETERS";
 static const char * subtitle_text_parameters_key = "SUBTITLE_TEXT_PARAMETERS";
 static const char * subtitle_overlay_parameters_key = "SUBTITLE_OVERLAY_PARAMETERS";
+
+static const char * gettext_domain_key   = "GETTEXT_DOMAIN";
+static const char * gettext_directory_key       = "GETTEXT_DIRECTORY";
+
 
 static bg_device_info_t *
 load_device(bg_device_info_t * arr, xmlDocPtr doc, xmlNodePtr node)
@@ -208,6 +213,10 @@ static bg_plugin_info_t * load_plugin(xmlDocPtr doc, xmlNodePtr node)
       {
       ret->long_name = bg_strdup(ret->long_name, tmp_string);
       }
+    else if(!BG_XML_STRCMP(cur->name, description_key))
+      {
+      ret->description = bg_strdup(ret->description, tmp_string);
+      }
     else if(!BG_XML_STRCMP(cur->name, mimetypes_key))
       {
       ret->mimetypes = bg_strdup(ret->mimetypes, tmp_string);
@@ -223,6 +232,14 @@ static bg_plugin_info_t * load_plugin(xmlDocPtr doc, xmlNodePtr node)
     else if(!BG_XML_STRCMP(cur->name, module_filename_key))
       {
       ret->module_filename = bg_strdup(ret->module_filename, tmp_string);
+      }
+    else if(!BG_XML_STRCMP(cur->name, gettext_domain_key))
+      {
+      ret->gettext_domain = bg_strdup(ret->gettext_domain, tmp_string);
+      }
+    else if(!BG_XML_STRCMP(cur->name, gettext_directory_key))
+      {
+      ret->gettext_directory = bg_strdup(ret->gettext_directory, tmp_string);
       }
     else if(!BG_XML_STRCMP(cur->name, module_time_key))
       {
@@ -367,6 +384,10 @@ static void save_plugin(xmlNodePtr parent, const bg_plugin_info_t * info)
   xmlAddChild(xml_item, BG_XML_NEW_TEXT(info->long_name));
   xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
 
+  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)description_key, NULL);
+  xmlAddChild(xml_item, BG_XML_NEW_TEXT(info->description));
+  xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
+  
   xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)module_filename_key,
                              NULL);
   xmlAddChild(xml_item, BG_XML_NEW_TEXT(info->module_filename));
@@ -391,6 +412,20 @@ static void save_plugin(xmlNodePtr parent, const bg_plugin_info_t * info)
     xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
     }
 
+  if(info->gettext_domain)
+    {
+    xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)gettext_domain_key, NULL);
+    xmlAddChild(xml_item, BG_XML_NEW_TEXT(info->gettext_domain));
+    xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
+    }
+  if(info->gettext_directory)
+    {
+    xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)gettext_directory_key, NULL);
+    xmlAddChild(xml_item, BG_XML_NEW_TEXT(info->gettext_directory));
+    xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
+    }
+
+  
   if(info->parameters)
     {
     xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)parameters_key, NULL);

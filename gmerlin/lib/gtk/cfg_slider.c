@@ -20,6 +20,8 @@
 #include <stdio.h>
 
 #include "gtk_dialog.h"
+#include <gui_gtk/gtkutils.h>
+
 
 typedef struct
   {
@@ -115,12 +117,13 @@ static gtk_widget_funcs_t float_funcs =
 static void create_common(bg_gtk_widget_t * w,
                           bg_parameter_info_t * info,
                           float min_value,
-                          float max_value)
+                          float max_value,
+                          const char * translation_domain)
   {
   float step;
   slider_t * s = calloc(1, sizeof(*s));
   int i;
-  s->label = gtk_label_new(info->long_name);
+  s->label = gtk_label_new(TR_DOM(info->long_name));
   step = 1.0;
   for(i = 0; i < info->num_digits; i++)
     step /= 10.0;
@@ -133,7 +136,8 @@ static void create_common(bg_gtk_widget_t * w,
 
   if(info->help_string)
     {
-    gtk_tooltips_set_tip(w->tooltips, s->slider, info->help_string, info->help_string);
+    bg_gtk_tooltips_set_tip(w->tooltips, s->slider,
+                            info->help_string, translation_domain);
     }
 
   
@@ -153,7 +157,8 @@ static void create_common(bg_gtk_widget_t * w,
 
 void 
 bg_gtk_create_slider_int(bg_gtk_widget_t * w,
-                         bg_parameter_info_t * info)
+                         bg_parameter_info_t * info,
+                         const char * translation_domain)
   {
   float min_value;
   float max_value;
@@ -169,7 +174,7 @@ bg_gtk_create_slider_int(bg_gtk_widget_t * w,
     max_value = 100000.0;
     }
   
-  create_common(w, info, min_value, max_value);
+  create_common(w, info, min_value, max_value, translation_domain);
   s = (slider_t *)(w->priv);
   w->funcs = &int_funcs;
   gtk_scale_set_digits(GTK_SCALE(s->slider), 0);
@@ -177,7 +182,8 @@ bg_gtk_create_slider_int(bg_gtk_widget_t * w,
 
 void 
 bg_gtk_create_slider_float(bg_gtk_widget_t * w,
-                           bg_parameter_info_t * info)
+                           bg_parameter_info_t * info,
+                           const char * translation_domain)
   {
   float min_value;
   float max_value;
@@ -193,7 +199,7 @@ bg_gtk_create_slider_float(bg_gtk_widget_t * w,
     max_value = 100000.0;
     }
   
-  create_common(w, info, min_value, max_value);
+  create_common(w, info, min_value, max_value, translation_domain);
   s = (slider_t *)(w->priv);
 
   gtk_scale_set_digits(GTK_SCALE(s->slider),
