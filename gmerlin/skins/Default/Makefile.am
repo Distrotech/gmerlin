@@ -1,38 +1,41 @@
 pkgdatadir = $(datadir)/@PACKAGE@/skins/Default
 
-skin_data = close_button_highlight.png \
-close_button_normal.png \
-close_button_pressed.png \
+skin_data = \
+close_button_cl.png \
+close_button_hl.png \
+close_button.png \
+mainwin_hl.png \
 mainwin.png \
-menu_button_highlight.png \
-menu_button_normal.png \
-menu_button_pressed.png \
-next_button_highlight.png \
-next_button_normal.png \
-next_button_pressed.png \
-pause_button_highlight.png \
-pause_button_normal.png \
-pause_button_pressed.png \
-play_button_highlight.png \
-play_button_normal.png \
-play_button_pressed.png \
-prev_button_highlight.png \
-prev_button_normal.png \
-prev_button_pressed.png \
-seek_slider_background.png \
-seek_slider_highlight.png \
-seek_slider_inactive.png \
-seek_slider_normal.png \
-seek_slider_pressed.png \
-volume_slider_background.png \
-volume_slider_highlight.png \
-volume_slider_inactive.png \
-volume_slider_normal.png \
-volume_slider_pressed.png \
-skin.xml \
-stop_button_highlight.png \
-stop_button_normal.png \
-stop_button_pressed.png
+menu_button_cl.png \
+menu_button_hl.png \
+menu_button.png \
+next_button_cl.png \
+next_button_hl.png \
+next_button.png \
+pause_button_cl.png \
+pause_button_hl.png \
+pause_button.png \
+play_button_cl.png \
+play_button_hl.png \
+play_button.png \
+previous_button_cl.png \
+previous_button_hl.png \
+previous_button.png \
+seek_bg.png \
+seek_slider_cl.png \
+seek_slider_hl.png \
+seek_slider_in.png \
+seek_slider.png \
+stop_button_cl.png \
+stop_button_hl.png \
+stop_button.png \
+volume_bg.png \
+volume_slider_cl.png \
+volume_slider_hl.png \
+volume_slider_in.png \
+volume_slider.png \
+skin.xml
+
 
 pkgdata_DATA = $(skin_data)
 EXTRA_DIST = $(skin_data)
