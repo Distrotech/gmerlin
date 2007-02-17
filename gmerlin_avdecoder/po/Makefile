@@ -269,7 +269,6 @@ POTFILES = \
      ../lib/qt_stss.c \
      ../lib/qt_stsz.c \
      ../lib/demux_au.c \
-     ../lib/dvbchannels.c \
      ../lib/video_rtjpeg.c \
      ../lib/demux_4xm.c \
      ../lib/chapterlist.c \

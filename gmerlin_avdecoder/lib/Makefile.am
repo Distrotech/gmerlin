@@ -204,7 +204,7 @@ xadll_libs =
 endif
 
 if HAVE_LINUXDVB
-dvb_sources = dvb_channels.c
+dvb_sources = dvb_channels.c in_dvb_linux.c
 else
 dvb_sources = 
 endif
@@ -343,7 +343,6 @@ dvframe.c \
 http.c \
 id3v1.c \
 id3v2.c \
-in_dvb_linux.c \
 in_dvd.c \
 in_fd.c \
 in_file.c \

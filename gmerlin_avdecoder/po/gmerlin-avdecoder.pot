@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-02-17 12:37+0100\n"
+"POT-Creation-Date: 2007-02-17 13:44+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -625,20 +625,20 @@ msgstr ""
 msgid "Unknown command %02x, decoding is doomed to failure"
 msgstr ""
 
-#: lib/dvb_channels.c:135 lib/dvbchannels.c:129
+#: lib/dvb_channels.c:135
 #, c-format
 msgid "Channels file %s cannot be opened"
 msgstr ""
 
-#: lib/dvb_channels.c:146 lib/dvbchannels.c:140
+#: lib/dvb_channels.c:146
 msgid "Channels file cannot be found (home directory unset)"
 msgstr ""
 
-#: lib/dvb_channels.c:221 lib/dvbchannels.c:189
+#: lib/dvb_channels.c:221
 msgid "Channels file cannot be found"
 msgstr ""
 
-#: lib/dvb_channels.c:228 lib/dvbchannels.c:196
+#: lib/dvb_channels.c:228
 #, c-format
 msgid "Channels file %s cannot be opened: %s"
 msgstr ""
