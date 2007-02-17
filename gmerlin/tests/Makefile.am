@@ -13,8 +13,8 @@ gtk_programs =
 endif
 
 if HAVE_V4L
-v4l_programs = v4ltest.c \
-v4ldump.c
+v4l_programs = v4ltest \
+v4ldump
 else
 v4l_programs =
 endif
