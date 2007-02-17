@@ -184,7 +184,6 @@ POTFILES = \
      ../tests/server.c \
      ../tests/player1.c \
      ../tests/textrenderer.c \
-     ../tests/transcoder.c \
      ../tests/audioplayer1.c \
      ../tests/v4ldump.c \
      ../tests/player1_msg.h \
