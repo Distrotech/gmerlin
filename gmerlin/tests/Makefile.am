@@ -12,13 +12,20 @@ else
 gtk_programs =
 endif
 
+if HAVE_V4L
+v4l_programs = v4ltest.c \
+v4ldump.c
+else
+v4l_programs =
+endif
+
 noinst_PROGRAMS = audioplayer1 \
 videoplayer1 \
 msgtest \
 server \
 client \
-v4ltest \
 textrenderer \
+$(v4l_programs) \
 $(gtk_programs)
 
 bin_PROGRAMS = gmerlin_player gmerlin_imgconvert
@@ -52,6 +59,10 @@ chapter_LDADD = ../lib/libgmerlin.la ../lib/gtk/libgmerlin_gtk.la
 
 v4ltest_SOURCES = v4ltest.c
 v4ltest_LDADD = ../lib/libgmerlin.la
+
+v4ldump_SOURCES = v4ldump.c
+v4ldump_LDADD = ../lib/libgmerlin.la
+
 
 scrolltext_SOURCES = scrolltext.c
 scrolltext_LDADD = ../lib/libgmerlin.la ../lib/gtk/libgmerlin_gtk.la
