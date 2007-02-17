@@ -82,7 +82,6 @@ POTFILES = \
      ../include/win32codec.h \
      ../include/RTjpeg.h \
      ../include/language_table.h \
-     ../include/dvb_cannels.h \
      ../include/dvframe.h \
      ../include/nanosoft.h \
      ../include/config.h \
