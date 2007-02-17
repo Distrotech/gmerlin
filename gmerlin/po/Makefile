@@ -62,8 +62,6 @@ $(POFILES) $(GMOFILES) \
 $(DISTFILES.extra1) $(DISTFILES.extra2) $(DISTFILES.extra3)
 
 POTFILES = \
-     ../apps/keyboard/keyboard.h \
-     ../apps/keyboard/keyboard.c \
      ../apps/plugincfg/gmerlin_plugincfg.c \
      ../apps/player/display.c \
      ../apps/player/skin.c \

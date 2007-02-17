@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmerlin 0.3.6\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-02-16 21:13+0100\n"
+"POT-Creation-Date: 2007-02-17 13:06+0100\n"
 "PO-Revision-Date: 2007-02-12 22:09+0100\n"
 "Last-Translator: Burkhard Plaum <gmerlin@users.sourceforge.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -54,7 +54,7 @@ msgstr ""
 msgid "Encoders"
 msgstr ""
 
-#: apps/plugincfg/gmerlin_plugincfg.c:501 lib/gtk/plugininfo.c:64
+#: apps/plugincfg/gmerlin_plugincfg.c:501 lib/gtk/plugininfo.c:168
 msgid "Recorder"
 msgstr ""
 
@@ -320,7 +320,7 @@ msgid "General"
 msgstr ""
 
 #: apps/player/cfgdialog.c:46 apps/camelot/webcam_window.c:480
-#: lib/gtk/plugininfo.c:40
+#: lib/gtk/plugininfo.c:144
 msgid "Input"
 msgstr ""
 
@@ -472,7 +472,7 @@ msgid "Framerate: %.2f fps"
 msgstr ""
 
 #: apps/camelot/webcam_window.c:371 apps/camelot/webcam_window.c:388
-#: apps/camelot/webcam_window.c:417 lib/singlepic.c:615
+#: apps/camelot/webcam_window.c:417 lib/singlepic.c:627
 #: lib/transcoder_track.c:349
 msgid "Plugin"
 msgstr ""
@@ -845,7 +845,7 @@ msgstr ""
 msgid "Save track list"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:1020 lib/gtk/plugininfo.c:65
+#: apps/transcoder/transcoder_window.c:1020 lib/gtk/plugininfo.c:169
 msgid "File"
 msgstr ""
 
@@ -986,6 +986,12 @@ msgstr ""
 msgid "spumux overlay exporter"
 msgstr ""
 
+#: plugins/png/e_spumux.c:224
+msgid ""
+"Exports overlay subtitles into the format used by spumux (http://dvdauthor."
+"sourceforge.net)"
+msgstr ""
+
 #: plugins/png/iw_png.c:68
 msgid "Bits per channel"
 msgstr ""
@@ -999,8 +1005,16 @@ msgstr ""
 msgid "PNG writer"
 msgstr ""
 
+#: plugins/png/iw_png.c:96
+msgid "Writer for PNG images"
+msgstr ""
+
 #: plugins/png/ir_png.c:225
-msgid "PNG loader"
+msgid "PNG reader"
+msgstr ""
+
+#: plugins/png/ir_png.c:226
+msgid "Reader for PNG images"
 msgstr ""
 
 #: plugins/wavwrite/e_wav.c:305
@@ -1017,7 +1031,11 @@ msgid "Cannot open output file: %s"
 msgstr ""
 
 #: plugins/wavwrite/e_wav.c:628
-msgid "Simple wave writer"
+msgid "Wave writer"
+msgstr ""
+
+#: plugins/wavwrite/e_wav.c:629
+msgid "Simple writer for wave files, supports 8, 16, 24 and 32 bit PCM"
 msgstr ""
 
 #: plugins/mikmod/i_mikmod.c:122
@@ -1071,6 +1089,10 @@ msgstr ""
 
 #: plugins/mikmod/i_mikmod.c:333
 msgid "mikmod input plugin"
+msgstr ""
+
+#: plugins/mikmod/i_mikmod.c:334
+msgid "Simple wrapper, which calls the mikmod program"
 msgstr ""
 
 #: plugins/x11/ov_x11.c:450
@@ -1198,7 +1220,11 @@ msgid "Order for sinc scaling"
 msgstr ""
 
 #: plugins/x11/ov_x11.c:2342
-msgid "X11 display driver"
+msgid "X11"
+msgstr ""
+
+#: plugins/x11/ov_x11.c:2343
+msgid "X11 display driver with support for XShm, XVideo and XImage"
 msgstr ""
 
 #: plugins/image/iw_tga.c:123 plugins/image/iw_tga.c:126
@@ -1214,8 +1240,16 @@ msgstr ""
 msgid "TGA writer"
 msgstr ""
 
+#: plugins/image/iw_tga.c:184
+msgid "Writer for TGA images"
+msgstr ""
+
 #: plugins/image/iw_bmp.c:213
 msgid "BMP writer"
+msgstr ""
+
+#: plugins/image/iw_bmp.c:214
+msgid "Writer for BMP images"
 msgstr ""
 
 #: plugins/image/iw_pnm.c:145 plugins/lqt/e_lqt.c:509
@@ -1241,7 +1275,11 @@ msgid "Comment which will be written in front of every file"
 msgstr ""
 
 #: plugins/image/iw_pnm.c:205
-msgid "PNM writer"
+msgid "PPM writer"
+msgstr ""
+
+#: plugins/image/iw_pnm.c:206
+msgid "Writer for PPM images"
 msgstr ""
 
 #: plugins/image/ir_pnm.c:103
@@ -1320,7 +1358,11 @@ msgid "PPMbin_16"
 msgstr ""
 
 #: plugins/image/ir_pnm.c:628
-msgid "PNM loader "
+msgid "PNM reader"
+msgstr ""
+
+#: plugins/image/ir_pnm.c:629
+msgid "Reader for PBM/PGM/PPM images"
 msgstr ""
 
 #: plugins/image/ir_bmp.c:222
@@ -1342,7 +1384,11 @@ msgid "Bitcount not suported (bitcount: %d)"
 msgstr ""
 
 #: plugins/image/ir_bmp.c:735
-msgid "BMP loader "
+msgid "BMP reader"
+msgstr ""
+
+#: plugins/image/ir_bmp.c:736
+msgid "Reader for BMP images"
 msgstr ""
 
 #: plugins/image/ir_tga.c:93
@@ -1350,7 +1396,11 @@ msgid "Read tga failed"
 msgstr ""
 
 #: plugins/image/ir_tga.c:195
-msgid "TGA loader"
+msgid "TGA reader"
+msgstr ""
+
+#: plugins/image/ir_tga.c:196
+msgid "Reader for TGA images"
 msgstr ""
 
 #: plugins/lqt/i_lqt.c:48
@@ -1377,9 +1427,13 @@ msgstr ""
 msgid "libquicktime input plugin"
 msgstr ""
 
-#: plugins/lqt/lqt_common.c:73
+#: plugins/lqt/i_lqt.c:495
+msgid "Input plugin based on libquicktime"
+msgstr ""
+
+#: plugins/lqt/lqt_common.c:76
 #, c-format
-msgid "%s Use for"
+msgid "%s Compatible with"
 msgstr ""
 
 #: plugins/lqt/e_lqt.c:41
@@ -1474,12 +1528,25 @@ msgstr ""
 msgid "Quicktime encoder"
 msgstr ""
 
+#: plugins/lqt/e_lqt.c:771
+msgid ""
+"Encoder based on libquicktime (http://libquicktime.sourceforge.net) Writes "
+"Quicktime, AVI (optionally ODML), MP4, M4A and 3GPP. Supported codecs range "
+"from high quality uncompressed formats for professional applications to "
+"consumer level formats like H.264/AVC, AAC, MP3, Divx compatible etc. Also "
+"supported are chapters and text subtitles"
+msgstr ""
+
 #: plugins/jpeg/ir_jpeg.c:243
 msgid "Illegal pixelformat"
 msgstr ""
 
 #: plugins/jpeg/ir_jpeg.c:258
-msgid "JPEG loader"
+msgid "JPEG reader"
+msgstr ""
+
+#: plugins/jpeg/ir_jpeg.c:259
+msgid "Reader for JPEG images"
 msgstr ""
 
 #: plugins/jpeg/iw_jpeg.c:161
@@ -1499,6 +1566,10 @@ msgstr ""
 msgid "JPEG writer"
 msgstr ""
 
+#: plugins/jpeg/iw_jpeg.c:305
+msgid "Writer for JPEG images"
+msgstr ""
+
 #: plugins/esd/i_esd.c:56 plugins/esd/oa_esd.c:45
 msgid "Host (empty: local)"
 msgstr ""
@@ -1515,11 +1586,11 @@ msgstr ""
 msgid "Cannot connect to daemon"
 msgstr ""
 
-#: plugins/esd/i_esd.c:224
+#: plugins/esd/i_esd.c:224 plugins/esd/i_esd.c:225
 msgid "EsounD input driver"
 msgstr ""
 
-#: plugins/esd/oa_esd.c:170
+#: plugins/esd/oa_esd.c:170 plugins/esd/oa_esd.c:171
 msgid "EsounD output driver"
 msgstr ""
 
@@ -1674,6 +1745,14 @@ msgstr ""
 msgid "Audio CD player/ripper"
 msgstr ""
 
+#: plugins/cdaudio/i_cdaudio.c:880
+msgid ""
+"Plugin for audio CDs. Supports both playing with direct connection from the "
+"CD-drive to the souncard and ripping with cdparanoia. Metadata are obtained "
+"from Musicbrainz, freedb or CD-text. Metadata are cached in $HOME/.gmerlin/"
+"cdaudio_metadata."
+msgstr ""
+
 #: plugins/cdaudio/cdparanoia.c:158
 msgid "Cdparanoia"
 msgstr ""
@@ -1709,31 +1788,31 @@ msgid ""
 "overlap area. Not recommended."
 msgstr ""
 
-#: plugins/cdaudio/cdaudio.c:162
+#: plugins/cdaudio/cdaudio.c:166
 #, c-format
 msgid "cdio_close_tray failed: %s"
 msgstr ""
 
-#: plugins/cdaudio/cdaudio.c:165
+#: plugins/cdaudio/cdaudio.c:169
 msgid "cdio_close_tray failed"
-msgstr ""
-
-#: plugins/cdaudio/cdaudio.c:244
-#, c-format
-msgid "DVD Writer (%s)"
 msgstr ""
 
 #: plugins/cdaudio/cdaudio.c:248
 #, c-format
-msgid "CD Writer (%s)"
+msgid "DVD Writer (%s)"
 msgstr ""
 
 #: plugins/cdaudio/cdaudio.c:252
 #, c-format
+msgid "CD Writer (%s)"
+msgstr ""
+
+#: plugins/cdaudio/cdaudio.c:256
+#, c-format
 msgid "DVD Drive (%s)"
 msgstr ""
 
-#: plugins/cdaudio/cdaudio.c:254
+#: plugins/cdaudio/cdaudio.c:258
 #, c-format
 msgid "CD-ROM Drive (%s)"
 msgstr ""
@@ -1796,8 +1875,16 @@ msgstr ""
 msgid "snd_pcm_write returned %s"
 msgstr ""
 
-#: plugins/alsa/oa_alsa.c:470
-msgid "ALSA output driver"
+#: plugins/alsa/oa_alsa.c:470 plugins/alsa/i_alsa.c:333
+msgid "Alsa"
+msgstr ""
+
+#: plugins/alsa/oa_alsa.c:471
+msgid ""
+"Alsa output plugin with support for channel configurations up to 5.1. "
+"Samples are sent to the soundcards in the nearest precision of the source "
+"format. Select \"Force float\" in the global audio options to enable 24, 32 "
+"or floating point playback even for 8 or 16 bit source formats."
 msgstr ""
 
 #: plugins/alsa/i_alsa.c:49 plugins/oss/i_oss.c:54
@@ -1844,8 +1931,8 @@ msgstr ""
 msgid "Unknown error"
 msgstr ""
 
-#: plugins/alsa/i_alsa.c:333
-msgid "ALSA Recorder"
+#: plugins/alsa/i_alsa.c:334
+msgid "Alsa recorder"
 msgstr ""
 
 #: plugins/alsa/alsa_common.c:60
@@ -1916,7 +2003,7 @@ msgid "Compression"
 msgstr ""
 
 #: plugins/v4l/pwc.c:85 plugins/tiff/iw_tiff.c:146 include/bggavl.h:167
-#: include/bggavl.h:493 lib/gtk/multiinfo.c:40
+#: include/bggavl.h:493
 msgid "None"
 msgstr ""
 
@@ -2121,7 +2208,11 @@ msgid "Flip Image"
 msgstr ""
 
 #: plugins/v4l/i_v4l.c:714
-msgid "Video4Linux input"
+msgid "V4L"
+msgstr ""
+
+#: plugins/v4l/i_v4l.c:715
+msgid "video4linux input plugin. Supports only video and no tuner decives"
 msgstr ""
 
 #: plugins/oss/oa_oss.c:51
@@ -2177,7 +2268,11 @@ msgstr ""
 msgid "SNDCTL_DSP_GETODELAY ioctl failed"
 msgstr ""
 
-#: plugins/oss/oa_oss.c:559
+#: plugins/oss/oa_oss.c:559 plugins/oss/i_oss.c:269
+msgid "OSS"
+msgstr ""
+
+#: plugins/oss/oa_oss.c:560
 msgid "OSS output driver"
 msgstr ""
 
@@ -2194,7 +2289,7 @@ msgstr ""
 msgid "Device %s doesn't support %d channel sound"
 msgstr ""
 
-#: plugins/oss/i_oss.c:269
+#: plugins/oss/i_oss.c:270
 msgid "OSS Recorder"
 msgstr ""
 
@@ -2297,13 +2392,20 @@ msgstr ""
 #: plugins/postprocessors/e_pp_vcdimager.c:374
 #: plugins/postprocessors/e_pp_vcdimager.c:376
 #: plugins/postprocessors/e_pp_cdrdao.c:417
-#: plugins/postprocessors/e_pp_cdrdao.c:421 lib/tree.c:1402
+#: plugins/postprocessors/e_pp_cdrdao.c:421 lib/tree.c:1408
 #, c-format
 msgid "Removing %s"
 msgstr ""
 
 #: plugins/postprocessors/e_pp_vcdimager.c:401
 msgid "VCD image generator/burner"
+msgstr ""
+
+#: plugins/postprocessors/e_pp_vcdimager.c:402
+msgid ""
+"This is a frontend for generating (S)VCD images with the vcdimager tools "
+"(http://www.vcdimager.org). Burning with cdrdao (http://cdrdao.sourceforge."
+"net) is also possible."
 msgstr ""
 
 #: plugins/postprocessors/e_pp_cdrdao.c:91
@@ -2345,6 +2447,13 @@ msgstr ""
 msgid "Audio CD generator/burner"
 msgstr ""
 
+#: plugins/postprocessors/e_pp_cdrdao.c:441
+msgid ""
+"This is a frontend for generating audio CD images (optionally with CD-Text) "
+"for cdrdao (http://cdrdao.sourceforge.net). Optional burning is also "
+"supported."
+msgstr ""
+
 #: plugins/postprocessors/cdrdao_common.c:109
 msgid "Not running cdrdao (disabled by user)"
 msgstr ""
@@ -2380,6 +2489,10 @@ msgstr ""
 
 #: plugins/tiff/iw_tiff.c:216
 msgid "TIFF writer"
+msgstr ""
+
+#: plugins/tiff/iw_tiff.c:217
+msgid "Writer for TIFF images"
 msgstr ""
 
 #: plugins/tiff/ir_tiff.c:97
@@ -2427,7 +2540,11 @@ msgid "BUG!!! convert_func == 0x0"
 msgstr ""
 
 #: plugins/tiff/ir_tiff.c:847
-msgid "TIFF loader "
+msgid "TIFF reader"
+msgstr ""
+
+#: plugins/tiff/ir_tiff.c:848
+msgid "Reader for TIFF images"
 msgstr ""
 
 #: plugins/subwriters/e_subtext.c:234
@@ -2438,8 +2555,13 @@ msgstr ""
 msgid "MPlayer mpsub"
 msgstr ""
 
-#: plugins/subwriters/e_subtext.c:273 lib/gtk/plugininfo.c:47
+#: plugins/subwriters/e_subtext.c:273 lib/gtk/plugininfo.c:151
 msgid "Text subtitle exporter"
+msgstr ""
+
+#: plugins/subwriters/e_subtext.c:274
+msgid ""
+"Plugin for exporting text subtitles. Supported formats are MPSub and SRT"
 msgstr ""
 
 #: tests/player1.c:535
@@ -3208,12 +3330,33 @@ msgstr ""
 msgid "Time to pass until the next track will be selected. 0 means infinite."
 msgstr ""
 
-#: lib/singlepic.c:620
+#: lib/singlepic.c:460
+msgid "Image video input plugin"
+msgstr ""
+
+#: lib/singlepic.c:461
+msgid ""
+"This plugin reads series of images as a video. It uses the installed image "
+"readers."
+msgstr ""
+
+#: lib/singlepic.c:506
+msgid ""
+"This plugin reads images as stills. It uses the installed image readers."
+msgstr ""
+
+#: lib/singlepic.c:632
 msgid "Framenumber digits"
 msgstr ""
 
-#: lib/singlepic.c:628
+#: lib/singlepic.c:640
 msgid "Framenumber offset"
+msgstr ""
+
+#: lib/singlepic.c:925
+msgid ""
+"This plugin encodes a video as a series of images. It uses the installed "
+"image writers."
 msgstr ""
 
 #: lib/stringutils.c:165
@@ -3464,7 +3607,7 @@ msgstr ""
 msgid "Video stream to blend onto"
 msgstr ""
 
-#: lib/transcoder_track.c:900 lib/album.c:1521 lib/tree.c:1126
+#: lib/transcoder_track.c:900 lib/album.c:1521 lib/tree.c:1132
 #, c-format
 msgid "Loading %s failed"
 msgstr ""
@@ -3959,46 +4102,46 @@ msgstr ""
 msgid "Finished process [%d] return value: %d"
 msgstr ""
 
-#: lib/tree.c:412
+#: lib/tree.c:246 lib/tree.c:418
 msgid "Incoming"
 msgstr ""
 
-#: lib/tree.c:420
+#: lib/tree.c:251 lib/tree.c:426
 msgid "Favourites"
 msgstr "Favoriten"
 
-#: lib/tree.c:1091
+#: lib/tree.c:1097
 msgid "Doubleclick on a track first"
 msgstr ""
 
-#: lib/tree.c:1114
+#: lib/tree.c:1120
 #, c-format
 msgid "Cannot open %s: no plugin found"
 msgstr ""
 
-#: lib/tree.c:1118
+#: lib/tree.c:1124
 #, c-format
 msgid "Loading %s (plugin: %s)"
 msgstr ""
 
-#: lib/tree.c:1136
+#: lib/tree.c:1142
 #, c-format
 msgid "Selecting track %d for %s failed"
 msgstr ""
 
-#: lib/tree.c:1174
+#: lib/tree.c:1180
 msgid "Use metadata for track names"
 msgstr ""
 
-#: lib/tree.c:1177
+#: lib/tree.c:1183
 msgid "If disabled, track name will be taken from filename"
 msgstr ""
 
-#: lib/tree.c:1181
+#: lib/tree.c:1187
 msgid "Format for track names"
 msgstr ""
 
-#: lib/tree.c:1184
+#: lib/tree.c:1190
 msgid ""
 "Format specifier for tracknames from\n"
 "metadata\n"
@@ -4011,17 +4154,17 @@ msgid ""
 "%c:    Comment"
 msgstr ""
 
-#: lib/tree.c:1197
+#: lib/tree.c:1203
 msgid "Purge directory on exit"
 msgstr ""
 
-#: lib/tree.c:1200
+#: lib/tree.c:1206
 msgid ""
 "Purge directory (i.e. delete\n"
 "unused album files) at program exit"
 msgstr ""
 
-#: lib/tree.c:1387
+#: lib/tree.c:1393
 #, c-format
 msgid "Purging %s"
 msgstr ""
@@ -4126,56 +4269,56 @@ msgid ""
 "\n"
 msgstr ""
 
-#: lib/pluginregistry.c:389
+#: lib/pluginregistry.c:391
 #, c-format
 msgid "Cannot dlopen %s: %s"
 msgstr ""
 
-#: lib/pluginregistry.c:394 lib/pluginregistry.c:1023
+#: lib/pluginregistry.c:396 lib/pluginregistry.c:1029
 #, c-format
 msgid "Plugin %s has no or wrong version"
 msgstr ""
 
-#: lib/pluginregistry.c:401
+#: lib/pluginregistry.c:403
 #, c-format
 msgid "No symbol the_plugin in %s"
 msgstr ""
 
-#: lib/pluginregistry.c:406
+#: lib/pluginregistry.c:408
 #, c-format
 msgid "Warning: Plugin %s has zero priority"
 msgstr ""
 
-#: lib/pluginregistry.c:590
+#: lib/pluginregistry.c:596
 msgid "Scanning for plugins"
 msgstr ""
 
-#: lib/pluginregistry.c:860
+#: lib/pluginregistry.c:866
 #, c-format
 msgid "bg_plugin_ref %s: %d"
 msgstr ""
 
-#: lib/pluginregistry.c:874
+#: lib/pluginregistry.c:880
 #, c-format
 msgid "bg_plugin_unref %s: %d"
 msgstr ""
 
-#: lib/pluginregistry.c:915 lib/pluginregistry.c:960
+#: lib/pluginregistry.c:921 lib/pluginregistry.c:966
 #, c-format
 msgid "No plugin found for image %s"
 msgstr ""
 
-#: lib/pluginregistry.c:1017
+#: lib/pluginregistry.c:1023
 #, c-format
 msgid "Cannot dlopen plugin %s: %s"
 msgstr ""
 
-#: lib/pluginregistry.c:1306
+#: lib/pluginregistry.c:1312
 #, c-format
 msgid "Loading plugin \"%s\" failed"
 msgstr ""
 
-#: lib/pluginregistry.c:1318 lib/pluginregistry.c:1354
+#: lib/pluginregistry.c:1324 lib/pluginregistry.c:1360
 #, c-format
 msgid "Opening %s with \"%s\" failed"
 msgstr ""
@@ -4235,12 +4378,15 @@ msgstr ""
 msgid "Plugin: "
 msgstr ""
 
-#: lib/gtk/multiinfo.c:37
+#: lib/gtk/multiinfo.c:139
 #, c-format
 msgid ""
 "Name:\t %s\n"
-"Label:\t %s\n"
-"Description:\t %s"
+"Label:\t %s"
+msgstr ""
+
+#: lib/gtk/multiinfo.c:146
+msgid "Not available"
 msgstr ""
 
 #: lib/gtk/treewindow.c:172
@@ -4686,79 +4832,79 @@ msgstr ""
 msgid "Auto detect"
 msgstr ""
 
-#: lib/gtk/plugininfo.c:41
+#: lib/gtk/plugininfo.c:145
 msgid "Audio output"
 msgstr ""
 
-#: lib/gtk/plugininfo.c:42
+#: lib/gtk/plugininfo.c:146
 msgid "Video output"
 msgstr ""
 
-#: lib/gtk/plugininfo.c:43
+#: lib/gtk/plugininfo.c:147
 msgid "Audio recorder"
 msgstr ""
 
-#: lib/gtk/plugininfo.c:44
+#: lib/gtk/plugininfo.c:148
 msgid "Video recorder"
 msgstr ""
 
-#: lib/gtk/plugininfo.c:45
+#: lib/gtk/plugininfo.c:149
 msgid "Audio encoder"
 msgstr ""
 
-#: lib/gtk/plugininfo.c:46
+#: lib/gtk/plugininfo.c:150
 msgid "Video encoder"
 msgstr ""
 
-#: lib/gtk/plugininfo.c:48
+#: lib/gtk/plugininfo.c:152
 msgid "Overlay subtitle exporter"
 msgstr ""
 
-#: lib/gtk/plugininfo.c:49
+#: lib/gtk/plugininfo.c:153
 msgid "Audio/Video encoder"
 msgstr ""
 
-#: lib/gtk/plugininfo.c:50
+#: lib/gtk/plugininfo.c:154
 msgid "Image Reader"
 msgstr ""
 
-#: lib/gtk/plugininfo.c:51
+#: lib/gtk/plugininfo.c:155
 msgid "Image Writer"
 msgstr ""
 
-#: lib/gtk/plugininfo.c:52
+#: lib/gtk/plugininfo.c:156
 msgid "Encoding postprocessor"
 msgstr ""
 
-#: lib/gtk/plugininfo.c:63
+#: lib/gtk/plugininfo.c:167
 msgid "Removable Device"
 msgstr ""
 
-#: lib/gtk/plugininfo.c:66
+#: lib/gtk/plugininfo.c:170
 msgid "URL"
 msgstr ""
 
-#: lib/gtk/plugininfo.c:67
+#: lib/gtk/plugininfo.c:171
 msgid "Playback"
 msgstr ""
 
-#: lib/gtk/plugininfo.c:68
+#: lib/gtk/plugininfo.c:172
 msgid "Bypass"
 msgstr ""
 
-#: lib/gtk/plugininfo.c:69
+#: lib/gtk/plugininfo.c:173
 msgid "Keep Running"
 msgstr ""
 
-#: lib/gtk/plugininfo.c:70
+#: lib/gtk/plugininfo.c:174
 msgid "Has Sync"
 msgstr ""
 
-#: lib/gtk/plugininfo.c:71
+#: lib/gtk/plugininfo.c:175
 msgid "Tuner"
 msgstr ""
 
-#: lib/gtk/plugininfo.c:141
+#: lib/gtk/plugininfo.c:245
 #, c-format
 msgid ""
 "Name:\t %s\n"

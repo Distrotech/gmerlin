@@ -1,5 +1,3 @@
-     ../apps/keyboard/keyboard.h \
-     ../apps/keyboard/keyboard.c \
      ../apps/plugincfg/gmerlin_plugincfg.c \
      ../apps/player/display.c \
      ../apps/player/skin.c \
