@@ -1,4 +1,3 @@
-apps/recorder/recorder.h
 apps/keyboard/keyboard.h
 apps/keyboard/keyboard.c
 apps/plugincfg/gmerlin_plugincfg.c

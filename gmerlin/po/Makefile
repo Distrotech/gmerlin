@@ -62,7 +62,6 @@ $(POFILES) $(GMOFILES) \
 $(DISTFILES.extra1) $(DISTFILES.extra2) $(DISTFILES.extra3)
 
 POTFILES = \
-     ../apps/recorder/recorder.h \
      ../apps/keyboard/keyboard.h \
      ../apps/keyboard/keyboard.c \
      ../apps/plugincfg/gmerlin_plugincfg.c \
