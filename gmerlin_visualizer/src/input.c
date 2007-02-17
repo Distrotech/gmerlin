@@ -71,10 +71,6 @@ int input_create(char ** error_msg)
   the_input->input = (bg_ra_plugin_t*)(the_input->input_handle->plugin);
   if(!the_input->input->open(the_input->input_handle->priv, &input_format))
     {
-    if(the_input->input_handle->plugin->get_error)
-      *error_msg =
-        bg_strdup(*error_msg,
-                  the_input->input_handle->plugin->get_error(the_input->input_handle->priv));
     return 0;
     }
   
