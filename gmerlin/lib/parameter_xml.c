@@ -48,6 +48,7 @@ type_names[] =
     { "directory",     BG_PARAMETER_DIRECTORY },
     { "multi_menu",    BG_PARAMETER_MULTI_MENU },
     { "multi_list",    BG_PARAMETER_MULTI_LIST },
+    { "multi_chain",   BG_PARAMETER_MULTI_CHAIN },
     { "time",          BG_PARAMETER_TIME }
   };
 

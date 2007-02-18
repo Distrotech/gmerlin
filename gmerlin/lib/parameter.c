@@ -49,6 +49,7 @@ void bg_parameter_value_copy(bg_parameter_value_t * dst,
     case BG_PARAMETER_STRINGLIST:
     case BG_PARAMETER_MULTI_MENU:
     case BG_PARAMETER_MULTI_LIST:
+    case BG_PARAMETER_MULTI_CHAIN:
       dst->val_str = bg_strdup(dst->val_str, src->val_str);
       break;
     case BG_PARAMETER_COLOR_RGB:
@@ -153,6 +154,7 @@ void bg_parameter_info_copy(bg_parameter_info_t * dst,
       break;
     case BG_PARAMETER_MULTI_MENU:
     case BG_PARAMETER_MULTI_LIST:
+    case BG_PARAMETER_MULTI_CHAIN:
       dst->val_default.val_str = bg_strdup(dst->val_default.val_str,
                                            src->val_default.val_str);
       
@@ -290,7 +292,7 @@ void bg_parameter_info_destroy_array(bg_parameter_info_t * info)
         break;
       case BG_PARAMETER_MULTI_MENU:
       case BG_PARAMETER_MULTI_LIST:
-
+      case BG_PARAMETER_MULTI_CHAIN:
         i = 0;
         while(info[index].multi_names[i])
           {

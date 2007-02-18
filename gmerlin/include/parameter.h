@@ -55,19 +55,20 @@ typedef enum
     BG_PARAMETER_INT,         //!< Integer spinbutton
     BG_PARAMETER_FLOAT,       //!< Float spinbutton
     BG_PARAMETER_SLIDER_INT,  //!< Integer slider
-    BG_PARAMETER_SLIDER_FLOAT,  //!< Float slider
+    BG_PARAMETER_SLIDER_FLOAT, //!< Float slider
     BG_PARAMETER_STRING,      //!< String (one line only)
-    BG_PARAMETER_STRING_HIDDEN,      //!< Encrypted string (displays as ***)
+    BG_PARAMETER_STRING_HIDDEN, //!< Encrypted string (displays as ***)
     BG_PARAMETER_STRINGLIST,  //!< Popdown menu with string values
-    BG_PARAMETER_COLOR_RGB,  //!< RGB Color
+    BG_PARAMETER_COLOR_RGB,   //!< RGB Color
     BG_PARAMETER_COLOR_RGBA,  //!< RGBA Color
     BG_PARAMETER_FONT,        //!< Font (contains fontconfig compatible fontname)
     BG_PARAMETER_DEVICE,      //!< Device
-    BG_PARAMETER_FILE,      //!< File
-    BG_PARAMETER_DIRECTORY,      //!< Directory
-    BG_PARAMETER_MULTI_MENU, //!< Menu with config- and infobutton
-    BG_PARAMETER_MULTI_LIST, //!< List with config- and infobutton
-    BG_PARAMETER_TIME        //!< Time
+    BG_PARAMETER_FILE,        //!< File
+    BG_PARAMETER_DIRECTORY,   //!< Directory
+    BG_PARAMETER_MULTI_MENU,  //!< Menu with config- and infobutton
+    BG_PARAMETER_MULTI_LIST,  //!< List with config- and infobutton
+    BG_PARAMETER_MULTI_CHAIN, //!< Several subitems (including suboptions) can be arranged in a chain
+    BG_PARAMETER_TIME         //!< Time
   } bg_parameter_type_t;
 
 /** \ingroup parameter

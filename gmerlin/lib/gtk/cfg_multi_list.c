@@ -31,13 +31,23 @@ enum
     NUM_COLUMNS
   };
 
-typedef struct
+typedef struct list_priv_s list_priv_t;
+
+
+struct list_priv_s
   {
   GtkWidget * treeview;
   GtkWidget * config_button;
   GtkWidget * info_button;
+  GtkWidget * top_button;
+  GtkWidget * bottom_button;
   GtkWidget * up_button;
   GtkWidget * down_button;
+  
+  GtkWidget * add_button;
+  GtkWidget * remove_button;
+  
+
   GtkWidget * scrolled;
 
   const char * translation_domain;
@@ -45,7 +55,37 @@ typedef struct
   bg_set_parameter_func_t  set_param;
   void * data;
   int selected;
-  } decoder_t;
+  int param_selected;
+  int is_chain;
+
+  int num;
+  
+  char ** multi_labels;
+  };
+
+static void set_sub_param(void * priv, char * name, bg_parameter_value_t * val)
+  {
+  char * tmp_string;
+  list_priv_t * list;
+  bg_gtk_widget_t * w;
+
+  w = (bg_gtk_widget_t*)priv;
+  list = (list_priv_t*)(w->priv);
+
+  if(!name)
+    tmp_string = (char*)0;
+  else if(list->is_chain)
+    tmp_string = bg_sprintf("%s.%d.%s", w->info->name, list->selected, name);
+  else
+    {
+    tmp_string = bg_sprintf("%s.%s.%s", w->info->name,
+                            w->info->multi_names[list->param_selected], name);
+    }
+  list->set_param(list->data, tmp_string, val);
+  if(tmp_string)
+    free(tmp_string);
+  
+  }
 
 static void set_value(bg_gtk_widget_t * w)
   {
@@ -54,7 +94,7 @@ static void set_value(bg_gtk_widget_t * w)
   GtkTreeIter iter;
   char * name;
   
-  decoder_t * priv = (decoder_t*)(w->priv);
+  list_priv_t * priv = (list_priv_t*)(w->priv);
 
   if(w->value.val_str)
     {
@@ -100,12 +140,14 @@ static void get_value(bg_gtk_widget_t * w)
   char ** names;
   int init;
   int i, j, do_add;
-  decoder_t * priv = (decoder_t*)(w->priv);
+  list_priv_t * priv = (list_priv_t*)(w->priv);
   /* Fill the list */
   
   model = gtk_tree_view_get_model(GTK_TREE_VIEW(priv->treeview));
   gtk_list_store_clear(GTK_LIST_STORE(model));
 
+  priv->num = 0;
+  
   tmp_string = bg_strdup(NULL, w->value.val_str);
   names = bg_strbreak(tmp_string, ',');
   if(tmp_string)
@@ -119,9 +161,23 @@ static void get_value(bg_gtk_widget_t * w)
   else
     init = 0;
 
-  /* Count and append the codecs */
+  /* create translated labels */
 
-
+  if(!priv->multi_labels && w->info->multi_labels)
+    {
+    i = 0;
+    while(w->info->multi_labels[i])
+      i++;
+    priv->multi_labels = calloc(i+1, sizeof(*priv->multi_labels));
+    i = 0;
+    while(w->info->multi_labels[i])
+      {
+      priv->multi_labels[i] = bg_strdup((char*)0,
+                                        TRD(w->info->multi_labels[i], priv->translation_domain));
+      i++;
+      }
+    }
+  
   /* Append the codec names from the string, if they are available */
   
   i = 0;
@@ -135,16 +191,17 @@ static void get_value(bg_gtk_widget_t * w)
         if(!strcmp(names[i], w->info->multi_names[j]))
           {
           gtk_list_store_append(GTK_LIST_STORE(model), &iter);
-          if(w->info->multi_labels)
+          if(priv->multi_labels)
             gtk_list_store_set(GTK_LIST_STORE(model), &iter,
                                COLUMN_NAME,
-                               w->info->multi_labels[j],
+                               priv->multi_labels[j],
                                -1);
           else
             gtk_list_store_set(GTK_LIST_STORE(model), &iter,
                                COLUMN_NAME,
                                w->info->multi_names[j],
                                -1);
+          
           break;
           }
         j++;
@@ -153,44 +210,50 @@ static void get_value(bg_gtk_widget_t * w)
       }
     }
 
-  /* Append the which are new */
+  priv->num = i;
   
-  i = 0;
-  while(w->info->multi_names[i])
+  /* Append the the new */
+
+  if(!priv->is_chain)
     {
-    /* Test, if we didn't alreary add this */
-    
-    if(init)
-      do_add = 1;
-    else
+    i = 0;
+    while(w->info->multi_names[i])
       {
-      do_add = 1;
-      j = 0;
-      while(names[j])
-        {
-        if(!strcmp(names[j], w->info->multi_names[i]))
-          {
-          do_add = 0;
-          break;
-          }
-        j++;
-        }
-      }
-    if(do_add)
-      {
-      gtk_list_store_append(GTK_LIST_STORE(model), &iter);
-      if(w->info->multi_labels)
-        gtk_list_store_set(GTK_LIST_STORE(model), &iter,
-                           COLUMN_NAME,
-                           w->info->multi_labels[i],
-                           -1);
+      /* Test, if we didn't alreary add this */
+      
+      if(init)
+        do_add = 1;
       else
-        gtk_list_store_set(GTK_LIST_STORE(model), &iter,
-                           COLUMN_NAME,
-                           w->info->multi_names[i],
-                           -1);
+        {
+        do_add = 1;
+        j = 0;
+        while(names[j])
+          {
+          if(!strcmp(names[j], w->info->multi_names[i]))
+            {
+            do_add = 0;
+            break;
+            }
+          j++;
+          }
+        }
+      if(do_add)
+        {
+        gtk_list_store_append(GTK_LIST_STORE(model), &iter);
+        if(w->info->multi_labels)
+          gtk_list_store_set(GTK_LIST_STORE(model), &iter,
+                             COLUMN_NAME,
+                             priv->multi_labels[i],
+                             -1);
+        else
+          gtk_list_store_set(GTK_LIST_STORE(model), &iter,
+                             COLUMN_NAME,
+                             w->info->multi_names[i],
+                             -1);
+        }
+      i++;
       }
-    i++;
+
     }
   if(!init)
     {
@@ -198,42 +261,134 @@ static void get_value(bg_gtk_widget_t * w)
     }
   }
 
+static void add_func(void * priv, char * name, bg_parameter_value_t * val)
+  {
+  list_priv_t * list;
+  bg_gtk_widget_t * w;
+  int selected;
+  GtkTreeModel * model;
+  GtkTreeIter iter;
+  bg_cfg_section_t * subsection;
+  bg_cfg_section_t * subsection_default;
+  
+  w = (bg_gtk_widget_t*)priv;
+  list = (list_priv_t*)(w->priv);
 
+  if(!name)
+    return;
+  
+  model = gtk_tree_view_get_model(GTK_TREE_VIEW(list->treeview));
+  
+  if(!strcmp(name, w->info->name))
+    {
+    selected = 0;
+    while(strcmp(w->info->multi_names[selected], val->val_str))
+      selected++;
+    
+    gtk_list_store_append(GTK_LIST_STORE(model), &iter);
+    
+    if(list->multi_labels)
+      {
+      gtk_list_store_set(GTK_LIST_STORE(model), &iter,
+                         COLUMN_NAME,
+                         list->multi_labels[selected],
+                         -1);
+      }
+    else
+      gtk_list_store_set(GTK_LIST_STORE(model), &iter,
+                         COLUMN_NAME,
+                         w->info->multi_names[selected],
+                         -1);
+    
+    subsection = bg_cfg_section_find_subsection(list->cfg_section, w->info->name);
+
+    subsection_default = bg_cfg_section_find_subsection(subsection, val->val_str);
+
+    if(w->info->multi_parameters[selected])
+      bg_cfg_section_create_items(subsection_default, 
+                                  w->info->multi_parameters[selected]);
+    
+    subsection = bg_cfg_section_create_subsection_at_pos(subsection, list->num);
+    bg_cfg_section_transfer(subsection_default, subsection);
+    
+    list->num++;
+    
+#if 0
+    if(w->value.val_str)
+      w->value.val_str = bg_strcat(w->value.val_str, ",");
+    w->value.val_str = bg_strcat(w->value.val_str, val->val_str);
+    get_value(w);
+#endif
+    }
+  }
 
 static void attach(void * p, GtkWidget * table,
                    int * row,
                    int * num_columns)
   {
-  decoder_t * e = (decoder_t*)(p);
+  list_priv_t * e = (list_priv_t*)(p);
 
+  int num_rows = 6;
+  if(e->is_chain)
+    num_rows += 2;
+    
   if(*num_columns < 3)
     *num_columns = 3;
 
-  gtk_table_resize(GTK_TABLE(table), *row+4, *num_columns);
+  gtk_table_resize(GTK_TABLE(table), *row+num_rows, *num_columns);
 
   gtk_table_attach_defaults(GTK_TABLE(table), e->scrolled,
-                            0, 2, *row, *row+4);
+                            0, 2, *row, *row+num_rows);
 
+  if(e->is_chain)
+    {
+    gtk_table_attach(GTK_TABLE(table), e->add_button,
+                     2, 3, *row, *row+1, GTK_FILL, GTK_SHRINK, 0, 0);
+    *row += 1;
+    gtk_table_attach(GTK_TABLE(table), e->remove_button,
+                     2, 3, *row, *row+1, GTK_FILL, GTK_SHRINK, 0, 0);
+    *row += 1;
+    
+    }
+  
   gtk_table_attach(GTK_TABLE(table), e->config_button,
                    2, 3, *row, *row+1, GTK_FILL, GTK_SHRINK, 0, 0);
-
+  *row += 1;
+  
+  
   gtk_table_attach(GTK_TABLE(table), e->info_button,
-                   2, 3, *row+1, *row+2, GTK_FILL, GTK_SHRINK, 0, 0);
+                   2, 3, *row, *row+1, GTK_FILL, GTK_SHRINK, 0, 0);
+  *row += 1;
+
+  gtk_table_attach(GTK_TABLE(table), e->top_button,
+                   2, 3, *row, *row+1, GTK_FILL, GTK_SHRINK, 0, 0);
+  *row += 1;
 
   gtk_table_attach(GTK_TABLE(table), e->up_button,
-                   2, 3, *row+2, *row+3, GTK_FILL, GTK_SHRINK, 0, 0);
+                   2, 3, *row, *row+1, GTK_FILL, GTK_SHRINK, 0, 0);
+  *row += 1;
 
   gtk_table_attach(GTK_TABLE(table), e->down_button,
-                   2, 3, *row+3, *row+4, GTK_FILL, GTK_SHRINK, 0, 0);
+                   2, 3, *row, *row+1, GTK_FILL, GTK_SHRINK, 0, 0);
+  *row += 1;
 
-  *row += 4;
+  gtk_table_attach(GTK_TABLE(table), e->bottom_button,
+                   2, 3, *row, *row+1, GTK_FILL, GTK_SHRINK, 0, 0);
+  *row += 1;
   }
 
 static void destroy(bg_gtk_widget_t * w)
   {
-  decoder_t * priv = (decoder_t*)(w->priv);
+  list_priv_t * priv = (list_priv_t*)(w->priv);
   if(w->value.val_str)
     free(w->value.val_str);
+  if(priv->multi_labels)
+    {
+    int i = 0;
+    while(priv->multi_labels[i])
+      free(priv->multi_labels[i++]);
+    free(priv->multi_labels);
+    }
   free(priv);
   }
 
@@ -248,88 +403,139 @@ static gtk_widget_funcs_t funcs =
 static void select_row_callback(GtkTreeSelection * s, gpointer data)
   {
   bg_gtk_widget_t * w;
-  decoder_t * priv;
+  list_priv_t * priv;
   char * name;
   GtkTreeIter iter;
   GtkTreeModel * model;
   GtkTreeSelection * selection;
-  int i;
-  
   w = (bg_gtk_widget_t *)data;
-  priv = (decoder_t *)(w->priv);
+  priv = (list_priv_t *)(w->priv);
 
   selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(priv->treeview));
-  gtk_tree_selection_get_selected(selection, &model, &iter);
-  
-  gtk_tree_model_get(model, &iter, COLUMN_NAME, &name, -1);
 
-  /* Now, get the selected item */
-
-  i = 0;
-  while(w->info->multi_names[i])
+  if(!gtk_tree_selection_get_selected(selection, &model, &iter))
+    priv->selected = -1;
+  else
     {
-    if((w->info->multi_labels) &&
-       !strcmp(w->info->multi_labels[i], name))
+    priv->selected = 0;
+    gtk_tree_model_get_iter_first(model, &iter);
+    while(1)
       {
-      priv->selected = i;
-      break;
+      if(gtk_tree_selection_iter_is_selected(selection, &iter))
+        break;
+      priv->selected++;
+      gtk_tree_model_iter_next(model, &iter);
       }
-    else if(!strcmp(w->info->multi_names[i], name))
-      {
-      priv->selected = i;
-      break;
-      }
-    i++;
     }
-
-  if(w->info->multi_descriptions &&
-     w->info->multi_descriptions[priv->selected])
-    gtk_widget_set_sensitive(priv->info_button, 1);
-  else
-    gtk_widget_set_sensitive(priv->info_button, 0);
-
-  if(w->info->multi_parameters &&
-     w->info->multi_parameters[priv->selected])
-    gtk_widget_set_sensitive(priv->config_button, 1);
-  else
-    gtk_widget_set_sensitive(priv->config_button, 0);
-
-  gtk_widget_set_sensitive(priv->up_button, 1);
-  gtk_widget_set_sensitive(priv->down_button, 1);
   
-  g_free(name);
+  if(priv->selected < 0)
+    {
+    gtk_widget_set_sensitive(priv->info_button, 0);
+    gtk_widget_set_sensitive(priv->config_button, 0);
+    gtk_widget_set_sensitive(priv->top_button, 0);
+    gtk_widget_set_sensitive(priv->bottom_button, 0);
+    gtk_widget_set_sensitive(priv->up_button, 0);
+    gtk_widget_set_sensitive(priv->down_button, 0);
+    if(priv->remove_button)
+      gtk_widget_set_sensitive(priv->remove_button, 0);
+    priv->param_selected = priv->selected;
+    }
+  else
+    {
+    gtk_tree_model_get(model, &iter, COLUMN_NAME, &name, -1);
+    priv->param_selected = 0;
+    if(priv->multi_labels)
+      {
+      while(strcmp(priv->multi_labels[priv->param_selected], name))
+        priv->param_selected++;
+      }
+    else
+      {
+      while(strcmp(w->info->multi_names[priv->param_selected], name))
+        priv->param_selected++;
+      }
+    g_free(name);
+    
+    if(w->info->multi_descriptions &&
+       w->info->multi_descriptions[priv->param_selected])
+      gtk_widget_set_sensitive(priv->info_button, 1);
+    else
+      gtk_widget_set_sensitive(priv->info_button, 0);
+    
+    if(w->info->multi_parameters &&
+       w->info->multi_parameters[priv->param_selected])
+      gtk_widget_set_sensitive(priv->config_button, 1);
+    else
+      gtk_widget_set_sensitive(priv->config_button, 0);
+
+    if(priv->selected > 0)
+      {
+      gtk_widget_set_sensitive(priv->top_button, 1);
+      gtk_widget_set_sensitive(priv->up_button, 1);
+      }
+    else
+      {
+      gtk_widget_set_sensitive(priv->top_button, 0);
+      gtk_widget_set_sensitive(priv->up_button, 0);
+      }
+
+    if(priv->selected < priv->num-1)
+      {
+      gtk_widget_set_sensitive(priv->bottom_button, 1);
+      gtk_widget_set_sensitive(priv->down_button, 1);
+      }
+    else
+      {
+      gtk_widget_set_sensitive(priv->bottom_button, 0);
+      gtk_widget_set_sensitive(priv->down_button, 0);
+      }
+    
+    if(priv->remove_button)
+      gtk_widget_set_sensitive(priv->remove_button, 1);
+    }
+  //  fprintf(stderr, "Selected: %d, param_selected: %d\n",
+  //          priv->selected, priv->param_selected);
   }
 
 static void button_callback(GtkWidget * wid, gpointer data)
   {
+  int i;
   bg_gtk_widget_t * w;
-  decoder_t * priv;
+  list_priv_t * priv;
   bg_dialog_t * dialog;
   GtkTreeIter iter;
+  GtkTreeIter iter2;
+
   GtkTreeModel * model;
   GtkTreeSelection * selection;
   GtkTreePath      * path;
   const char * label;
   bg_cfg_section_t * subsection;
+  bg_cfg_section_t * subsubsection;
 
   w = (bg_gtk_widget_t *)data;
-  priv = (decoder_t *)(w->priv);
+  priv = (list_priv_t *)(w->priv);
 
   if(wid == priv->config_button)
     {
-
     subsection = bg_cfg_section_find_subsection(priv->cfg_section, w->info->name);
-    subsection = bg_cfg_section_find_subsection(subsection,
-                                                w->info->multi_names[priv->selected]);
     
-    if(w->info->multi_labels && w->info->multi_labels[priv->selected])
-      label = TRD(w->info->multi_labels[priv->selected], priv->translation_domain);
+    if(priv->is_chain)
+      subsection =
+        bg_cfg_section_find_subsection_by_index(subsection,
+                                                priv->selected);
     else
-      label = w->info->multi_names[priv->selected];
-
-    dialog = bg_dialog_create(subsection, priv->set_param,
-                              priv->data,
-                              w->info->multi_parameters[priv->selected],
+      subsection =
+        bg_cfg_section_find_subsection(subsection,
+                                       w->info->multi_names[priv->param_selected]);
+    
+    if(w->info->multi_labels && w->info->multi_labels[priv->param_selected])
+      label = TRD(w->info->multi_labels[priv->param_selected], priv->translation_domain);
+    else
+      label = w->info->multi_names[priv->param_selected];
+    
+    dialog = bg_dialog_create(subsection, set_sub_param, w,
+                              w->info->multi_parameters[priv->param_selected],
                               label);
     bg_dialog_show(dialog);
     }
@@ -338,8 +544,10 @@ static void button_callback(GtkWidget * wid, gpointer data)
     bg_gtk_multi_info_show(w->info, priv->selected,
                            priv->translation_domain);
     }
-  else if(wid == priv->up_button)
+  else if(wid == priv->top_button)
     {
+    if(priv->selected == 0)
+      return;
     selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(priv->treeview));
     gtk_tree_selection_get_selected(selection, &model, &iter);
     gtk_list_store_move_after(GTK_LIST_STORE(model),
@@ -351,9 +559,128 @@ static void button_callback(GtkWidget * wid, gpointer data)
                                  (GtkTreeViewColumn *)0,
                                  0, 0.0, 0.0);
     gtk_tree_path_free(path);
+
+    /* Move config section */
+
+    if(priv->is_chain)
+      {
+      subsection = bg_cfg_section_find_subsection(priv->cfg_section, w->info->name);
+      subsubsection = bg_cfg_section_find_subsection_by_index(subsection, priv->selected);
+      bg_cfg_section_move_child(subsection, subsubsection, 0);
+      }
+    priv->selected = 0;
+
+    /* Update sensitive */
+    gtk_widget_set_sensitive(priv->down_button, 1);
+    gtk_widget_set_sensitive(priv->bottom_button, 1);
+    gtk_widget_set_sensitive(priv->top_button, 0);
+    gtk_widget_set_sensitive(priv->up_button, 0);
+
+    }
+  else if(wid == priv->up_button)
+    {
+    if(priv->selected == 0)
+      return;
+    selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(priv->treeview));
+    
+    if(!gtk_tree_selection_get_selected(selection, &model, &iter))
+      return;
+    
+    if(!gtk_tree_model_get_iter_first(model, &iter2))
+      return;
+    for(i = 0; i < priv->selected-1; i++)
+      {
+      if(!gtk_tree_model_iter_next(model, &iter2))
+        return;
+      }
+    gtk_list_store_swap(GTK_LIST_STORE(model),
+                        &iter, &iter2);
+    
+    path = gtk_tree_model_get_path(model, &iter);
+    gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW(priv->treeview),
+                                 path,
+                                 (GtkTreeViewColumn *)0,
+                                 0, 0.0, 0.0);
+    gtk_tree_path_free(path);
+
+    /* Move config section */
+    if(priv->is_chain)
+      {
+      subsection = bg_cfg_section_find_subsection(priv->cfg_section, w->info->name);
+      subsubsection = bg_cfg_section_find_subsection_by_index(subsection, priv->selected);
+      bg_cfg_section_move_child(subsection, subsubsection, priv->selected-1);
+      }
+
+    priv->selected--;
+
+    /* Update sensitive */
+    gtk_widget_set_sensitive(priv->down_button, 1);
+    gtk_widget_set_sensitive(priv->bottom_button, 1);
+
+    if(!priv->selected)
+      {
+      gtk_widget_set_sensitive(priv->top_button, 0);
+      gtk_widget_set_sensitive(priv->up_button, 0);
+      }
+    else
+      {
+      gtk_widget_set_sensitive(priv->top_button, 1);
+      gtk_widget_set_sensitive(priv->up_button, 1);
+      }
     }
   else if(wid == priv->down_button)
     {
+    if(priv->selected >= priv->num - 1)
+      return;
+    selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(priv->treeview));
+    
+    if(!gtk_tree_selection_get_selected(selection, &model, &iter))
+      return;
+    memcpy(&iter2, &iter, sizeof(iter));
+    
+    if(!gtk_tree_model_iter_next(model, &iter2))
+      return;
+
+    gtk_list_store_swap(GTK_LIST_STORE(model),
+                        &iter, &iter2);
+    
+    path = gtk_tree_model_get_path(model, &iter);
+    gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW(priv->treeview),
+                                 path,
+                                 (GtkTreeViewColumn *)0,
+                                 0, 0.0, 0.0);
+    gtk_tree_path_free(path);
+
+    /* Move config section */
+    if(priv->is_chain)
+      {
+      subsection = bg_cfg_section_find_subsection(priv->cfg_section, w->info->name);
+      subsubsection = bg_cfg_section_find_subsection_by_index(subsection, priv->selected);
+      bg_cfg_section_move_child(subsection, subsubsection, priv->selected+1);
+      }
+
+    priv->selected++;
+
+    /* Update sensitive */
+    gtk_widget_set_sensitive(priv->up_button, 1);
+    gtk_widget_set_sensitive(priv->top_button, 1);
+
+    if(priv->selected >= priv->num - 1)
+      {
+      gtk_widget_set_sensitive(priv->down_button, 0);
+      gtk_widget_set_sensitive(priv->bottom_button, 0);
+      }
+    else
+      {
+      gtk_widget_set_sensitive(priv->down_button, 1);
+      gtk_widget_set_sensitive(priv->bottom_button, 1);
+      }
+    }
+  
+  else if(wid == priv->bottom_button)
+    {
+    if(priv->selected >= priv->num-1)
+      return;
     selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(priv->treeview));
     gtk_tree_selection_get_selected(selection, &model, &iter);
     gtk_list_store_move_before(GTK_LIST_STORE(model),
@@ -365,8 +692,69 @@ static void button_callback(GtkWidget * wid, gpointer data)
                                  (GtkTreeViewColumn *)0,
                                  0, 0.0, 0.0);
     gtk_tree_path_free(path);
-    }
 
+    /* Move config section */
+    if(priv->is_chain)
+      {
+      subsection = bg_cfg_section_find_subsection(priv->cfg_section, w->info->name);
+      subsubsection = bg_cfg_section_find_subsection_by_index(subsection, priv->selected);
+      bg_cfg_section_move_child(subsection, subsubsection, priv->num-1);
+      }
+
+    priv->selected = priv->num-1;
+
+    /* Update sensitive */
+    gtk_widget_set_sensitive(priv->up_button, 1);
+    gtk_widget_set_sensitive(priv->top_button, 1);
+
+    }
+  else if(wid == priv->add_button)
+    {
+    bg_parameter_info_t params[2];
+    char * tmp_string;
+    memset(params, 0, sizeof(params));
+    params[0].name               = w->info->name;
+    params[0].long_name          = w->info->long_name;
+    params[0].type               = BG_PARAMETER_MULTI_MENU;
+    params[0].gettext_domain     = bg_strdup(params[0].gettext_domain,
+                                             priv->translation_domain);
+    params[0].multi_names        = w->info->multi_names;
+    params[0].multi_labels       = w->info->multi_labels;
+    params[0].multi_descriptions = w->info->multi_labels;
+    params[0].help_string        = w->info->help_string;
+    params[0].multi_parameters   = w->info->multi_parameters;
+    
+    tmp_string = bg_sprintf(TR("Add %s"),
+                            TRD(w->info->long_name, priv->translation_domain));
+    
+    dialog = bg_dialog_create(priv->cfg_section, add_func,
+                              w, params, tmp_string);
+    
+    free(params[0].gettext_domain);
+    
+    free(tmp_string);
+    bg_dialog_show(dialog);
+    
+    }
+  else if(wid == priv->remove_button)
+    {
+    GtkTreeIter iter;
+    
+    selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(priv->treeview));
+    
+    if(!gtk_tree_selection_get_selected(selection, &model, &iter))
+      return;
+
+    subsection = bg_cfg_section_find_subsection(priv->cfg_section, w->info->name);
+    subsubsection = bg_cfg_section_find_subsection_by_index(subsection,
+                                                            priv->selected);
+    bg_cfg_section_delete_subsection(subsection,
+                                     subsubsection);
+    
+    gtk_list_store_remove(GTK_LIST_STORE(model), &iter);        
+    priv->num--;
+    }
+  
   }
 
 static GtkWidget * create_pixmap_button(const char * filename)
@@ -389,41 +777,48 @@ static GtkWidget * create_pixmap_button(const char * filename)
   return button;
   }
 
-
-void
-bg_gtk_create_multi_list(bg_gtk_widget_t * w, bg_parameter_info_t * info,
-                         bg_cfg_section_t * cfg_section,
-                         bg_set_parameter_func_t set_param,
-                         void * data, const char * translation_domain)
+static void create_list_common(bg_gtk_widget_t * w, bg_parameter_info_t * info,
+                               bg_cfg_section_t * cfg_section,
+                               bg_set_parameter_func_t set_param,
+                               void * data, const char * translation_domain,
+                               int is_chain)
   {
   GtkListStore *store;
   GtkTreeViewColumn *column;
   GtkCellRenderer *renderer;
   GtkTreeSelection * selection;
 
-  decoder_t * priv = calloc(1, sizeof(*priv));
+  list_priv_t * priv = calloc(1, sizeof(*priv));
 
   priv->cfg_section = cfg_section;
   priv->set_param   = set_param;
   priv->data        = data;
   priv->translation_domain = translation_domain;
+
+  priv->is_chain = is_chain;
+
   w->funcs = &funcs;
   w->priv = priv;
-
+  
   /* Create objects */
 
   priv->info_button = create_pixmap_button("info_16.png");
-
   priv->config_button = create_pixmap_button("config_16.png");
-
+  priv->top_button = create_pixmap_button("top_16.png");
+  priv->bottom_button = create_pixmap_button("bottom_16.png");
   priv->up_button = create_pixmap_button("up_16.png");
-
   priv->down_button = create_pixmap_button("down_16.png");
-
+  
   g_signal_connect(G_OBJECT(priv->info_button),
                    "clicked", G_CALLBACK(button_callback),
                    (gpointer)w);
   g_signal_connect(G_OBJECT(priv->config_button),
+                   "clicked", G_CALLBACK(button_callback),
+                   (gpointer)w);
+  g_signal_connect(G_OBJECT(priv->top_button),
+                   "clicked", G_CALLBACK(button_callback),
+                   (gpointer)w);
+  g_signal_connect(G_OBJECT(priv->bottom_button),
                    "clicked", G_CALLBACK(button_callback),
                    (gpointer)w);
   g_signal_connect(G_OBJECT(priv->up_button),
@@ -435,13 +830,33 @@ bg_gtk_create_multi_list(bg_gtk_widget_t * w, bg_parameter_info_t * info,
 
   gtk_widget_show(priv->info_button);
   gtk_widget_show(priv->config_button);
+  gtk_widget_show(priv->top_button);
+  gtk_widget_show(priv->bottom_button);
   gtk_widget_show(priv->up_button);
   gtk_widget_show(priv->down_button);
 
   gtk_widget_set_sensitive(priv->info_button, 0);
   gtk_widget_set_sensitive(priv->config_button, 0);
+  gtk_widget_set_sensitive(priv->top_button, 0);
+  gtk_widget_set_sensitive(priv->bottom_button, 0);
   gtk_widget_set_sensitive(priv->up_button, 0);
   gtk_widget_set_sensitive(priv->down_button, 0);
+  
+  if(priv->is_chain)
+    {
+    priv->add_button = create_pixmap_button("add_16.png");
+    priv->remove_button = create_pixmap_button("trash_16.png");
+
+    g_signal_connect(G_OBJECT(priv->add_button),
+                     "clicked", G_CALLBACK(button_callback),
+                     (gpointer)w);
+    g_signal_connect(G_OBJECT(priv->remove_button),
+                     "clicked", G_CALLBACK(button_callback),
+                     (gpointer)w);
+    gtk_widget_show(priv->add_button);
+    gtk_widget_show(priv->remove_button);
+    gtk_widget_set_sensitive(priv->remove_button, 0);
+    }
   
   store = gtk_list_store_new(NUM_COLUMNS, G_TYPE_STRING, G_TYPE_STRING);
 
@@ -483,6 +898,24 @@ bg_gtk_create_multi_list(bg_gtk_widget_t * w, bg_parameter_info_t * info,
                                  GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
   gtk_container_add(GTK_CONTAINER(priv->scrolled), priv->treeview);
   gtk_widget_show(priv->scrolled);
+  }
 
-    
+
+
+void
+bg_gtk_create_multi_list(bg_gtk_widget_t * w, bg_parameter_info_t * info,
+                         bg_cfg_section_t * cfg_section,
+                         bg_set_parameter_func_t set_param,
+                         void * data, const char * translation_domain)
+  {
+  create_list_common(w, info, cfg_section, set_param, data, translation_domain, 0);
+  }
+
+void
+bg_gtk_create_multi_chain(bg_gtk_widget_t * w, bg_parameter_info_t * info,
+                          bg_cfg_section_t * cfg_section,
+                          bg_set_parameter_func_t set_param,
+                          void * data, const char * translation_domain)
+  {
+  create_list_common(w, info, cfg_section, set_param, data, translation_domain, 1);
   }

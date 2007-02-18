@@ -556,6 +556,11 @@ static GtkWidget * create_section(dialog_section_t * section,
                                  cfg_section, set_param, data,
                                  translation_domain);
         break;
+      case BG_PARAMETER_MULTI_CHAIN:
+        bg_gtk_create_multi_chain(&(section->widgets[count]), &(info[i]),
+                                  cfg_section, set_param, data,
+                                  translation_domain);
+        break;
       case BG_PARAMETER_SECTION:
         break;
       }

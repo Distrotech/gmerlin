@@ -152,6 +152,40 @@ bg_cfg_section_t * bg_cfg_registry_find_section(bg_cfg_registry_t * reg,
 bg_cfg_section_t * bg_cfg_section_find_subsection(bg_cfg_section_t * section,
                                                   const char * name);
 
+/** \ingroup cfg_section
+ *  \brief Create a subsection at the specified position
+ *  \param section A configuration section
+ *  \param pos Position of the subsection (starting with 0)
+ *  \returns Configuration section
+ */
+
+bg_cfg_section_t * bg_cfg_section_create_subsection_at_pos(bg_cfg_section_t * section,
+                                                           int pos);
+
+/** \ingroup cfg_section
+ *  \brief Move a subsection to the specified position
+ *  \param section A configuration section
+ *  \param child Subsection to be moved
+ *  \param pos New position of the subsection (starting with 0)
+ */
+
+void bg_cfg_section_move_child(bg_cfg_section_t * section, bg_cfg_section_t * child,
+                               int position);
+
+
+/** \ingroup cfg_section
+ *  \brief Find a child of a section by index
+ *  \param section A configuration section
+ *  \param index Index (starting with 0)
+ *  \returns Configuration section
+ *
+ *  If the child section does not exist, NULL is returned.
+ */
+
+bg_cfg_section_t * bg_cfg_section_find_subsection_by_index(bg_cfg_section_t * section,
+                                                           int index);
+
+
 /* 
  *  Create/destroy config sections
  */

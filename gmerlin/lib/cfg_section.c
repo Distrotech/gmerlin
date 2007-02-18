@@ -21,6 +21,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <config.h>
+#include <translation.h>
+
+
 #include <cfg_registry.h>
 #include <registry_priv.h>
 #include <utils.h>
@@ -109,7 +113,7 @@ bg_cfg_section_t * bg_cfg_section_find_subsection(bg_cfg_section_t * s,
   section = s->children;
 
   prev_section = (bg_cfg_section_t *)0;
-
+  
   while(section)
     {
     if(!strcmp(section->name, name))
@@ -126,6 +130,124 @@ bg_cfg_section_t * bg_cfg_section_find_subsection(bg_cfg_section_t * s,
     {
     s->children = bg_cfg_section_create(name);
     return s->children;
+    }
+  }
+
+bg_cfg_section_t * bg_cfg_section_find_subsection_by_index(bg_cfg_section_t * s,
+                                                           int index)
+  {
+  int i;
+  bg_cfg_section_t * section;
+  section = s->children;
+  
+  for(i = 0; i < index; i++)
+    {
+    if(!section)
+      return (bg_cfg_section_t*)0;
+    section = section->next;
+    }
+  return section;
+  }
+
+static char * make_unique_name(bg_cfg_section_t * section, const char * template)
+  {
+  int i = 0;
+  char * ret;
+  
+  while(1)
+    {
+    ret = bg_sprintf(template, i);
+    
+    if(!bg_cfg_section_has_subsection(section, ret))
+      break;
+    free(ret);
+    i++;
+    }
+  return ret;
+  }
+
+bg_cfg_section_t * bg_cfg_section_create_subsection_at_pos(bg_cfg_section_t * section,
+                                                           int pos)
+  {
+  int i;
+  char * name;
+  bg_cfg_section_t * before = (bg_cfg_section_t *)0;
+  bg_cfg_section_t * tmp;
+  bg_cfg_section_t * ret;
+  if(pos)
+    {
+    before = section->children;
+
+    for(i = 0; i < pos - 1; i++)
+      {
+      if(!before)
+        return before;
+      before = before->next;
+      }
+    }
+
+  name = make_unique_name(section, "$pos%03d");
+
+  if(!before)
+    {
+    ret = bg_cfg_section_create(name);
+    ret->next = section->children;
+    section->children = ret;
+    }
+  else
+    {
+    tmp = before->next;
+    before->next = bg_cfg_section_create(name);;
+    before->next->next = tmp;
+    ret = before->next;
+    }
+  free(name);
+  return ret;
+  }
+
+void bg_cfg_section_move_child(bg_cfg_section_t * s,
+                               bg_cfg_section_t * child,
+                               int pos)
+  {
+  int i;
+  bg_cfg_section_t * prev;
+  bg_cfg_section_t * tmp;
+
+  /* Remove child from the list */
+  if(child == s->children)
+    s->children = s->children->next;
+  else
+    {
+    prev = s->children;
+    while(prev)
+      {
+      if(prev->next == child)
+        break;
+      prev = prev->next;
+      }
+    if(!prev)
+      return;
+    prev->next = child->next;
+    }
+
+  /* Insert child as the desired position */
+  if(!pos)
+    {
+    child->next = s->children;
+    s->children = child;
+    }
+  else
+    {
+    prev = s->children;
+    for(i = 0; i < pos - 1; i++)
+      {
+      prev = prev->next;
+      if(!prev)
+        return;
+      }
+    tmp = prev->next;
+    prev->next = child;
+    child->next = tmp;
     }
   }
 
@@ -325,7 +447,7 @@ int bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * section,
   char * end;
   const char * end_c;
   bg_cfg_item_t * item;
-  int len = 0, i;
+  int len = 0, i, index;
   bg_parameter_info_t * info;
   bg_cfg_section_t * subsection;
   char * tmp_string;
@@ -400,6 +522,7 @@ int bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * section,
         str += len;
         break;
       case BG_PARAMETER_MULTI_LIST:
+      case BG_PARAMETER_MULTI_CHAIN:
         if(item->value.val_str)
           {
           free(item->value.val_str);
@@ -413,8 +536,20 @@ int bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * section,
           goto fail;
           }
         str++;
+
+        /* If this is a chain, we delete all subsections and recreate them afterwards */
+
+        if(info->type == BG_PARAMETER_MULTI_CHAIN)
+          {
+          while(section->children)
+            bg_cfg_section_delete_subsection(section,
+                                             section->children);
+          }
+        
+        index = 0;
         while(1)
           {
+          /* Loop over options */
           tmp_string = parse_string(str, &len);
           if(!check_option(info, tmp_string))
             goto fail;
@@ -423,13 +558,18 @@ int bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * section,
           if(item->value.val_str)
             item->value.val_str = bg_strcat(item->value.val_str, ",");
           item->value.val_str = bg_strcat(item->value.val_str, tmp_string);
-
+          
+          /* Suboptions */
           if(*str == '{')
             {
             str++;
             subsection = bg_cfg_section_find_subsection(section, info->name);
-            subsection = bg_cfg_section_find_subsection(subsection, tmp_string);
 
+            if(info->type == BG_PARAMETER_MULTI_LIST)
+              subsection = bg_cfg_section_find_subsection(subsection, tmp_string);
+            else
+              subsection = bg_cfg_section_create_subsection_at_pos(subsection, index);
+            
             i = 0;
             
             while(info->multi_names[i])
@@ -455,6 +595,8 @@ int bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * section,
           else if(*str != ':')
             goto fail;
           str++;
+          free(tmp_string);
+          index++;
           }
         break;
       case BG_PARAMETER_MULTI_MENU:
@@ -616,11 +758,12 @@ static void do_apply(bg_cfg_section_t * section,
                      bg_set_parameter_func_t func,
                      void * callback_data, const char * prefix)
   {
-  int num, selected;
+  int num, selected, i;
   bg_cfg_item_t * item;
   bg_cfg_section_t * subsection;
   bg_cfg_section_t * subsubsection;
   char * tmp_string;
+  char ** chain_elements;
   
   num = 0;
 
@@ -683,7 +826,43 @@ static void do_apply(bg_cfg_section_t * section,
           selected++;
           }
         }
-      
+
+      else if(infos[num].type == BG_PARAMETER_MULTI_CHAIN)
+        {
+        chain_elements = bg_strbreak(item->value.val_str, ',');
+        selected = 0;
+        subsection    = bg_cfg_section_find_subsection(section, infos[num].name);
+        
+        if(chain_elements)
+          {
+          while(chain_elements[selected])
+            {
+            /* Find parameter info */
+            i = 0;
+            while(strcmp(infos[num].multi_names[i], chain_elements[selected]))
+              i++;
+            
+            /* Find section */
+            subsubsection =
+              bg_cfg_section_find_subsection_by_index(subsection, selected);
+
+            if(prefix)
+              tmp_string =
+                bg_sprintf("%s.%s.%d", prefix, infos[num].name, selected);
+            else
+              tmp_string =
+                bg_sprintf("%s.%d", infos[num].name, selected);
+            
+            do_apply(subsubsection, infos[num].multi_parameters[i],
+                     func, callback_data, tmp_string);
+
+            free(tmp_string);
+            selected++;
+            }
+          
+          }
+        bg_strbreak_free(chain_elements);
+        }
       }
     
     num++;
@@ -931,7 +1110,7 @@ const char * bg_cfg_section_get_name(bg_cfg_section_t * s)
 char * bg_cfg_section_get_name_translated(bg_cfg_section_t * s)
   {
   if(!s)
-    return (const char*)0;
+    return (char*)0;
   if(s->gettext_domain && s->gettext_directory)
     {
     bindtextdomain(s->gettext_domain, s->gettext_directory);

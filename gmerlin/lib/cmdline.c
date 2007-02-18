@@ -444,6 +444,7 @@ static void print_help_parameters(int indent, bg_parameter_info_t * parameters)
         fprintf(out, TR("Default: %s\n"), parameters[i].val_default.val_str);
         break;
       case BG_PARAMETER_MULTI_LIST:
+      case BG_PARAMETER_MULTI_CHAIN:
         fprintf(out, TR("{option[{suboptions}][:option[{suboptions}]...]}\n"));
         pos = 0;
         pos += fprintf(out, spaces);

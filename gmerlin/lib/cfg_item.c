@@ -62,6 +62,7 @@ bg_cfg_item_t * bg_cfg_item_create(bg_parameter_info_t * info,
     case BG_PARAMETER_DIRECTORY:
     case BG_PARAMETER_MULTI_MENU:
     case BG_PARAMETER_MULTI_LIST:
+    case BG_PARAMETER_MULTI_CHAIN:
       ret->type = BG_CFG_STRING;
       break;
     case BG_PARAMETER_STRING_HIDDEN:

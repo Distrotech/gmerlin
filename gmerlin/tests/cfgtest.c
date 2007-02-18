@@ -10,6 +10,7 @@
 bg_cfg_section_t  * section_1;
 bg_cfg_section_t  * section_2;
 bg_cfg_section_t  * section_3;
+bg_cfg_section_t  * section_4;
 
 
 static bg_parameter_info_t multimenu_1_info[] =
@@ -72,6 +73,37 @@ static bg_parameter_info_t multilist_2_info[] =
     { /* End of Parameters */ }
   };
 
+static bg_parameter_info_t multichain_1_info[] =
+  {
+    {
+      name:      "multichain_1_checkbutton_1",
+      long_name: "Multichain 1 Checkbutton 1",
+      type:      BG_PARAMETER_CHECKBUTTON,
+    },
+    {
+      name:      "multichain_1_checkbutton_2",
+      long_name: "Multichain 1 Checkbutton 2",
+      type:      BG_PARAMETER_CHECKBUTTON,
+    },
+    { /* End of Parameters */ }
+  };
+
+static bg_parameter_info_t multichain_2_info[] =
+  {
+    {
+      name:      "multichain_2_checkbutton_1",
+      long_name: "Multichain 2 Checkbutton 1",
+      type:      BG_PARAMETER_CHECKBUTTON,
+    },
+    {
+      name:      "multichain_2_checkbutton_2",
+      long_name: "Multichain 2 Checkbutton 2",
+      type:      BG_PARAMETER_CHECKBUTTON,
+    },
+    { /* End of Parameters */ }
+  };
+
+
 static bg_parameter_info_t * multilist_parameters[] =
   {
     multilist_1_info,
@@ -83,6 +115,13 @@ static bg_parameter_info_t * multimenu_parameters[] =
   {
     multimenu_1_info,
     multimenu_2_info,
+    (bg_parameter_info_t *)0
+  };
+
+static bg_parameter_info_t * multichain_parameters[] =
+  {
+    multichain_1_info,
+    multichain_2_info,
     (bg_parameter_info_t *)0
   };
 
@@ -262,13 +301,34 @@ static bg_parameter_info_t info_3[] =
     { /* End of parameters */ }
   };
 
+static bg_parameter_info_t info_4[] =
+  {
+    {
+      name:               "multichain",
+      long_name:          "Multichain",
+      type:               BG_PARAMETER_MULTI_CHAIN,
+      multi_names:        (char *[]){ "multichain_1", "multichain_2", NULL },
+      multi_labels:   (char *[]){ "Multichain 1", "Multichain 2", NULL },
+      multi_descriptions: (char *[]){ "Multichain 1", "Multichain 2", NULL },
+      multi_parameters:   multichain_parameters,
+      help_string:   "Multichain help",
+    },
+    { /* End of parameters */ }
+  };
+
+
 static bg_parameter_info_t * find_parameter(bg_parameter_info_t * arr, char * name)
   {
+  char * pos;
+  
   bg_parameter_info_t * ret;
   int i = 0, j;
   
   i = 0;
-
+  pos = strrchr(name, '.');
+  if(pos)
+    name = pos + 1;
+  
   while(1)
     {
     if(!arr[i].name)
@@ -298,8 +358,6 @@ static bg_parameter_info_t * find_parameter(bg_parameter_info_t * arr, char * na
   return (bg_parameter_info_t*)0;
   }
 
-
-
 static void set_parameter(void * data, char * name,
                       bg_parameter_value_t * v)
   {
@@ -319,6 +377,8 @@ static void set_parameter(void * data, char * name,
     tmp_info = find_parameter(info_2, name);
   if(!tmp_info)
     tmp_info = find_parameter(info_3, name);
+  if(!tmp_info)
+    tmp_info = find_parameter(info_4, name);
   
   if(!tmp_info)
     {
@@ -356,6 +416,7 @@ static void set_parameter(void * data, char * name,
     case BG_PARAMETER_DEVICE:
     case BG_PARAMETER_MULTI_MENU:
     case BG_PARAMETER_MULTI_LIST:
+    case BG_PARAMETER_MULTI_CHAIN:
       fprintf(stderr, "String %s: %s\n", tmp_info->name,
               v->val_str);
       break;
@@ -416,6 +477,23 @@ static void opt_opt3(void * data, int * argc, char *** _argv, int arg)
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
 
+static void opt_opt4(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -opt4 requires an argument\n");
+    exit(-1);
+    }
+  if(!bg_cmdline_apply_options(section_4,
+                               set_parameter,
+                               (void*)0,
+                               info_4,
+                               (*_argv)[arg]))
+    exit(-1);
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
+
 static void opt_help(void * data, int * argc, char *** argv, int arg);
 
 static bg_cmdline_arg_t global_options[] =
@@ -437,6 +515,12 @@ static bg_cmdline_arg_t global_options[] =
       help_string: "Set Options 3",
       callback:    opt_opt3,
       parameters:  info_3,
+    },
+    {
+      arg:         "-opt4",
+      help_string: "Set Options 4",
+      callback:    opt_opt4,
+      parameters:  info_4,
     },
     {
       arg:         "-help",
@@ -465,6 +549,7 @@ int main(int argc, char ** argv)
   section_1 = bg_cfg_registry_find_section(registry, "section_1");
   section_2 = bg_cfg_registry_find_section(registry, "section_2");
   section_3 = bg_cfg_registry_find_section(registry, "section_3");
+  section_4 = bg_cfg_registry_find_section(registry, "section_4");
 
   bg_cmdline_parse(global_options, &argc, &argv, NULL);
     
@@ -478,8 +563,17 @@ int main(int argc, char ** argv)
   bg_dialog_add(test_dialog, "Section 1", section_1,set_parameter,(void *)0,info_1);
   bg_dialog_add(test_dialog, "Section 2", section_2,set_parameter,(void *)0,info_2);
   bg_dialog_add(test_dialog, "Section 3", section_3,set_parameter,(void *)0,info_3);
+  bg_dialog_add(test_dialog, "Section 4", section_4,set_parameter,(void *)0,info_4);
   
   bg_dialog_show(test_dialog);
+
+  /* Apply sections */
+  fprintf(stderr, "*** Applying section ***\n");  
+  bg_cfg_section_apply(section_1,info_1,set_parameter,(void *)0);
+  bg_cfg_section_apply(section_2,info_2,set_parameter,(void *)0);
+  bg_cfg_section_apply(section_3,info_3,set_parameter,(void *)0);
+  bg_cfg_section_apply(section_4,info_4,set_parameter,(void *)0);
+  
   bg_cfg_registry_save(registry, "config.xml");
 
   bg_cfg_registry_destroy(registry);

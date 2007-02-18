@@ -115,6 +115,12 @@ bg_gtk_create_multi_list(bg_gtk_widget_t *, bg_parameter_info_t * info,
                          void * data, const char * translation_domain);
 
 void
+bg_gtk_create_multi_chain(bg_gtk_widget_t *, bg_parameter_info_t * info,
+                          bg_cfg_section_t * cfg_section,
+                          bg_set_parameter_func_t set_param,
+                          void * data, const char * translation_domain);
+
+void
 bg_gtk_create_multi_menu(bg_gtk_widget_t *, bg_parameter_info_t * info,
                          bg_cfg_section_t * cfg_section,
                          bg_set_parameter_func_t set_param,
