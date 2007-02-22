@@ -354,6 +354,7 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
             case BG_PARAMETER_DIRECTORY:
             case BG_PARAMETER_MULTI_MENU:
             case BG_PARAMETER_MULTI_LIST:
+            case BG_PARAMETER_MULTI_CHAIN:
               ret[index].val_default.val_str = bg_strdup(ret[index].val_default.val_str,
                                                          tmp_string);
               break;
@@ -397,6 +398,7 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
             case BG_PARAMETER_DIRECTORY:
             case BG_PARAMETER_MULTI_MENU:
             case BG_PARAMETER_MULTI_LIST:
+            case BG_PARAMETER_MULTI_CHAIN:
             case BG_PARAMETER_COLOR_RGB:
             case BG_PARAMETER_COLOR_RGBA:
               break;
@@ -668,6 +670,7 @@ void bg_parameters_2_xml(bg_parameter_info_t * info, xmlNodePtr xml_parameters)
       case BG_PARAMETER_DEVICE:
       case BG_PARAMETER_MULTI_MENU:
       case BG_PARAMETER_MULTI_LIST:
+      case BG_PARAMETER_MULTI_CHAIN:
       case BG_PARAMETER_STRINGLIST:
         if(info[num_parameters].val_default.val_str)
           {

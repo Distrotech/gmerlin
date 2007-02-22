@@ -36,10 +36,13 @@ typedef struct bg_player_s bg_player_t;
 
 /** \ingroup player
  *  \brief Create a player
+ *  \param plugin_reg A plugin registry
  *  \returns A newly allocated player
+ *
+ *  The plugin registry is used for loading audio- and video filters
  */
 
-bg_player_t * bg_player_create();
+bg_player_t * bg_player_create(bg_plugin_registry_t * plugin_reg);
 
 /** \ingroup player
  *  \brief Destroy a player
@@ -258,12 +261,28 @@ void bg_player_set_input_parameter(void * data, char * name,
 
 bg_parameter_info_t * bg_player_get_audio_parameters(bg_player_t * player);
 
+/** \brief Get audio filter parameters
+ *  \param player A player
+ *  \returns Null terminated parameter array.
+ *
+ *  Returned parameters can be passed to \ref bg_player_set_audio_filter_parameter
+ */
+
+bg_parameter_info_t * bg_player_get_audio_filter_parameters(bg_player_t * player);
+
 /** \brief Set an audio parameter
  *  \param data Player casted to void*
  *  \param name Name
  *  \param val Value
  */
 void bg_player_set_audio_parameter(void*data, char * name, bg_parameter_value_t*val);
+
+/** \brief Set an audio filter parameter
+ *  \param data Player casted to void*
+ *  \param name Name
+ *  \param val Value
+ */
+void bg_player_set_audio_filter_parameter(void*data, char * name, bg_parameter_value_t*val);
 
 /** \brief Get video parameters
  *  \param player A player
@@ -272,12 +291,28 @@ void bg_player_set_audio_parameter(void*data, char * name, bg_parameter_value_t*
  *  Returned parameters can be passed to \ref bg_player_set_video_parameter
  */
 bg_parameter_info_t * bg_player_get_video_parameters(bg_player_t * player);
+
+/** \brief Get video filter parameters
+ *  \param player A player
+ *  \returns Null terminated parameter array.
+ *
+ *  Returned parameters can be passed to \ref bg_player_set_video_parameter
+ */
+bg_parameter_info_t * bg_player_get_video_filter_parameters(bg_player_t * player);
+
 /** \brief Set a video parameter
  *  \param data Player casted to void*
  *  \param name Name
  *  \param val Value
  */
 void bg_player_set_video_parameter(void*data, char * name, bg_parameter_value_t*val);
+
+/** \brief Set a video filter parameter
+ *  \param data Player casted to void*
+ *  \param name Name
+ *  \param val Value
+ */
+void bg_player_set_video_filter_parameter(void*data, char * name, bg_parameter_value_t*val);
 
 /** \brief Get subtitle parameters
  *  \param player A player

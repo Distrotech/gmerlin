@@ -47,6 +47,8 @@ type_names[] =
     { "EncoderPP",               BG_PLUGIN_ENCODER_PP },
     { "ImageReader",             BG_PLUGIN_IMAGE_READER },
     { "ImageWriter",             BG_PLUGIN_IMAGE_WRITER },
+    { "AudioFilter",             BG_PLUGIN_FILTER_AUDIO },
+    { "VideoFilter",             BG_PLUGIN_FILTER_VIDEO },
     { (char*)0,                  BG_PLUGIN_NONE }
   };
 
@@ -67,6 +69,7 @@ flag_names[] =
     { "HasSync",     BG_PLUGIN_INPUT_HAS_SYNC }, /* FOR INPUTS ONLY: Plugin will set the time via callback */
     { "Stdin",          BG_PLUGIN_STDIN         }, /* Plugin reads from stdin */
     { "Tuner",          BG_PLUGIN_TUNER         }, /* Plugin has tuner */
+    { "Filter1",        BG_PLUGIN_FILTER_1      }, /* Filter with one input port */
 
     { (char*)0,    0                           },
   };

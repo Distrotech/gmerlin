@@ -59,6 +59,8 @@ cdio_subdirs =
 endif
 
 SUBDIRS = \
+audiofilters \
+videofilters \
 $(alsa_subdirs) \
 $(lqt_subdirs) \
 $(jpeg_subdirs) \

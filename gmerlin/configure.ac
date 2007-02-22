@@ -567,6 +567,12 @@ LQT_OPT_CFLAGS($host_cpu, ["-O3 -funroll-all-loops -fomit-frame-pointer -ffast-m
 CFLAGS="-Wall -Wmissing-declarations -Wdeclaration-after-statement -D_REENTRANT -D_FILE_OFFSET_BITS=64 $GAVL_CFLAGS $OPT_CFLAGS"
 
 dnl
+dnl Check for SIMD
+dnl
+
+GAVL_CHECK_SIMD($host_cpu, "$OPT_CFLAGS")
+
+dnl
 dnl libxml is necessary for all sources
 dnl
 
@@ -625,6 +631,7 @@ lib/gtk/Makefile \
 osd/Makefile \
 plugins/Makefile \
 plugins/alsa/Makefile \
+plugins/audiofilters/Makefile \
 plugins/x11/Makefile \
 plugins/cdaudio/Makefile \
 plugins/esd/Makefile \
@@ -638,6 +645,7 @@ plugins/subwriters/Makefile \
 plugins/image/Makefile \
 plugins/tiff/Makefile \
 plugins/v4l/Makefile \
+plugins/videofilters/Makefile \
 plugins/wavwrite/Makefile \
 skins/Makefile \
 skins/Default/Makefile])

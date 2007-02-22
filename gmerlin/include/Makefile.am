@@ -7,7 +7,9 @@ cfg_registry.h \
 charset.h \
 cmdline.h \
 config.h \
+converters.h \
 fifo.h \
+filters.h \
 keycodes.h \
 lcdproc.h \
 log.h \

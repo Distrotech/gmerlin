@@ -61,11 +61,22 @@ static void gmerlin_apply_config(gmerlin_t * g)
   bg_cfg_section_apply(g->audio_section, parameters,
                        bg_player_set_audio_parameter, (void*)(g->player));
 
+  parameters = bg_player_get_audio_filter_parameters(g->player);
+  
+  bg_cfg_section_apply(g->audio_filter_section, parameters,
+                       bg_player_set_audio_filter_parameter, (void*)(g->player));
+
   parameters = bg_player_get_video_parameters(g->player);
   
   bg_cfg_section_apply(g->video_section, parameters,
                        bg_player_set_video_parameter, (void*)(g->player));
 
+  parameters = bg_player_get_video_filter_parameters(g->player);
+  
+  bg_cfg_section_apply(g->video_filter_section, parameters,
+                       bg_player_set_video_filter_parameter, (void*)(g->player));
+
+  
   parameters = bg_player_get_subtitle_parameters(g->player);
   
   bg_cfg_section_apply(g->subtitle_section, parameters,
@@ -117,11 +128,22 @@ static void gmerlin_get_config(gmerlin_t * g)
   bg_cfg_section_apply(g->audio_section, parameters,
                        bg_player_set_audio_parameter, (void*)(g->player));
 
+  parameters = bg_player_get_audio_filter_parameters(g->player);
+  
+  bg_cfg_section_apply(g->audio_filter_section, parameters,
+                       bg_player_set_audio_filter_parameter, (void*)(g->player));
+
   parameters = bg_player_get_video_parameters(g->player);
   
   bg_cfg_section_apply(g->video_section, parameters,
                        bg_player_set_video_parameter, (void*)(g->player));
 
+  parameters = bg_player_get_video_filter_parameters(g->player);
+  
+  bg_cfg_section_apply(g->video_filter_section, parameters,
+                       bg_player_set_video_filter_parameter,
+                       (void*)(g->player));
+  
   parameters = bg_player_get_subtitle_parameters(g->player);
   
   bg_cfg_section_apply(g->subtitle_section, parameters,
@@ -196,8 +218,12 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
     bg_cfg_registry_find_section(cfg_reg, "Input");
   ret->audio_section =
     bg_cfg_registry_find_section(cfg_reg, "Audio");
+  ret->audio_filter_section =
+    bg_cfg_registry_find_section(cfg_reg, "AudioFilter");
   ret->video_section =
     bg_cfg_registry_find_section(cfg_reg, "Video");
+  ret->video_filter_section =
+    bg_cfg_registry_find_section(cfg_reg, "VideoFilter");
   ret->subtitle_section =
     bg_cfg_registry_find_section(cfg_reg, "Subtitles");
   ret->osd_section =
@@ -224,7 +250,7 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
   
   /* Create player instance */
   
-  ret->player = bg_player_create();
+  ret->player = bg_player_create(ret->plugin_reg);
   
   /* Create media tree */
 

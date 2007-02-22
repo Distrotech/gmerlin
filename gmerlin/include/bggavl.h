@@ -17,6 +17,10 @@
   
 *****************************************************************/
 
+#ifndef __BG_GAVL_H_
+#define __BG_GAVL_H_
+
+
 /* Struct for converting audio */
 
 typedef struct
@@ -40,7 +44,7 @@ void bg_gavl_audio_options_init(bg_gavl_audio_options_t *);
 
 void bg_gavl_audio_options_free(bg_gavl_audio_options_t *);
 
-void bg_gavl_audio_options_set_format(bg_gavl_audio_options_t *,
+void bg_gavl_audio_options_set_format(const bg_gavl_audio_options_t *,
                                       const gavl_audio_format_t * in_format,
                                       gavl_audio_format_t * out_format);
 
@@ -74,23 +78,30 @@ void bg_gavl_video_options_init(bg_gavl_video_options_t *);
 
 void bg_gavl_video_options_free(bg_gavl_video_options_t *);
 
-void bg_gavl_video_options_set_framerate(bg_gavl_video_options_t *,
-                                         const gavl_video_format_t * in_format,
-                                         gavl_video_format_t * out_format);
+void bg_gavl_video_options_set_format(const bg_gavl_video_options_t *,
+                                      const gavl_video_format_t * in_format,
+                                      gavl_video_format_t * out_format);
 
-void bg_gavl_video_options_set_framesize(bg_gavl_video_options_t *,
-                                         const gavl_video_format_t * in_format,
-                                         gavl_video_format_t * out_format);
+void bg_gavl_video_options_set_format(const bg_gavl_video_options_t *,
+                                      const gavl_video_format_t * in_format,
+                                      gavl_video_format_t * out_format);
 
-void bg_gavl_video_options_set_rectangles(bg_gavl_video_options_t * opt,
+void bg_gavl_video_options_set_rectangles(const bg_gavl_video_options_t * opt,
                                           const gavl_video_format_t * in_format,
-                                          const gavl_video_format_t * out_format);
+                                          const gavl_video_format_t * out_format,
+                                          int do_crop);
 
-void bg_gavl_video_options_set_interlace(bg_gavl_video_options_t * opt,
+#if 0
+void bg_gavl_video_options_set_framerate(const bg_gavl_video_options_t *,
                                          const gavl_video_format_t * in_format,
                                          gavl_video_format_t * out_format);
-
-
+void bg_gavl_video_options_set_framesize(const bg_gavl_video_options_t *,
+                                         const gavl_video_format_t * in_format,
+                                         gavl_video_format_t * out_format);
+void bg_gavl_video_options_set_interlace(const bg_gavl_video_options_t * opt,
+                                         const gavl_video_format_t * in_format,
+                                         gavl_video_format_t * out_format);
+#endif
 
 /* Useful code for gluing gavl and gmerlin */
 
@@ -512,3 +523,5 @@ int bg_overlay_too_old(gavl_time_t time, gavl_time_t ovl_time,
                        gavl_time_t ovl_duration);
 
 int bg_overlay_too_new(gavl_time_t time, gavl_time_t ovl_time);
+
+#endif // __BG_GAVL_H_

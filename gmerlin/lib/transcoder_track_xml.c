@@ -39,7 +39,12 @@ static void audio_stream_2_xml(xmlNodePtr parent,
 
   node = xmlNewTextChild(parent, (xmlNsPtr)0, (xmlChar*)"GENERAL", NULL);
   section_2_xml(s->general_section, node);
+  
+  xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
 
+  node = xmlNewTextChild(parent, (xmlNsPtr)0, (xmlChar*)"FILTER", NULL);
+  section_2_xml(s->filter_section, node);
+  
   xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
 
   if(s->encoder_section)
@@ -62,6 +67,12 @@ static void video_stream_2_xml(xmlNodePtr parent,
 
   xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
 
+  node = xmlNewTextChild(parent, (xmlNsPtr)0, (xmlChar*)"FILTER", NULL);
+  section_2_xml(s->filter_section, node);
+  
+  xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
+
+  
   if(s->encoder_section)
     {
     node = xmlNewTextChild(parent, (xmlNsPtr)0, (xmlChar*)"ENCODER", NULL);
@@ -343,6 +354,10 @@ static void xml_2_audio(bg_transcoder_track_audio_t * s,
       {
       s->general_section = xml_2_section(xml_doc, node);
       }
+    else if(!BG_XML_STRCMP(node->name, "FILTER"))
+      {
+      s->filter_section = xml_2_section(xml_doc, node);
+      }
     else if(!BG_XML_STRCMP(node->name, "ENCODER"))
       {
       s->encoder_section = xml_2_section(xml_doc, node);
@@ -376,6 +391,10 @@ static void xml_2_video(bg_transcoder_track_video_t * s,
     if(!BG_XML_STRCMP(node->name, "GENERAL"))
       {
       s->general_section = xml_2_section(xml_doc, node);
+      }
+    else if(!BG_XML_STRCMP(node->name, "FILTER"))
+      {
+      s->filter_section = xml_2_section(xml_doc, node);
       }
     else if(!BG_XML_STRCMP(node->name, "ENCODER"))
       {
@@ -482,10 +501,6 @@ static int xml_2_track(bg_transcoder_track_t * t,
 
   xmlNodePtr node, child_node;
   int i;
-  const bg_plugin_info_t * audio_info = (const bg_plugin_info_t *)0;
-  const bg_plugin_info_t * video_info = (const bg_plugin_info_t *)0;
-  char * audio_encoder_name = (char*)0;
-  char * video_encoder_name = (char*)0;
   
   node = xml_track->children;
   
@@ -678,32 +693,10 @@ static int xml_2_track(bg_transcoder_track_t * t,
   
   /* Load audio encoder */
 
-  audio_encoder_name = bg_transcoder_track_get_audio_encoder(t);
-  video_encoder_name = bg_transcoder_track_get_video_encoder(t);
 
-  if(t->num_audio_streams && strcmp(audio_encoder_name, video_encoder_name))
-    {
-    audio_info = bg_plugin_find_by_name(plugin_reg, audio_encoder_name);
-    if(!audio_info)
-      goto fail;
-    }
-  
-  if(t->num_video_streams || !strcmp(audio_encoder_name, video_encoder_name))
-    {
-    video_info = bg_plugin_find_by_name(plugin_reg, video_encoder_name);
-      
-    if(!video_info)
-      goto fail;
-    }
-
-  bg_transcoder_track_create_parameters(t, audio_info, video_info);
+  bg_transcoder_track_create_parameters(t, plugin_reg);
   
   ret = 1;
-  fail:
-  if(audio_encoder_name)
-    free(audio_encoder_name);
-  if(video_encoder_name)
-    free(video_encoder_name);
   
   return ret;
   }

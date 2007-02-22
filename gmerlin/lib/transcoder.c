@@ -38,7 +38,8 @@
 #include <bggavl.h>
 
 #include <textrenderer.h>
-
+#include <converters.h>
+#include <filters.h>
 
 #define LOG_DOMAIN "transcoder"
 
@@ -71,11 +72,13 @@ typedef struct subtitle_stream_s subtitle_stream_t;
 
 typedef struct
   {
+  int do_filter;
+  
   int status;
   int type;
 
   int action;
-    
+  
   int in_index;
   int out_index;
   gavl_time_t time;
@@ -117,19 +120,26 @@ typedef struct
   {
   stream_t com;
 
-  int do_convert_in;
+  // int do_convert_in;
   int do_convert_out;
   
-  gavl_audio_converter_t * cnv_in;
+  bg_audio_converter_t * cnv_in;
   gavl_audio_converter_t * cnv_out;
-  gavl_audio_frame_t * in_frame;
+
+  bg_audio_filter_chain_t * fc;
+  
+  //  gavl_audio_frame_t * in_frame;
   gavl_audio_frame_t * out_frame;
   gavl_audio_frame_t * pipe_frame;
 
   gavl_audio_format_t in_format;
   gavl_audio_format_t pipe_format;
   gavl_audio_format_t out_format;
-    
+  
+  bg_read_audio_func_t in_func;
+  void * in_data;
+  int in_stream;
+  
   /* Set by set_parameter */
   bg_gavl_audio_options_t options;
 
@@ -180,25 +190,26 @@ typedef struct
   {
   stream_t com;
   
-  gavl_video_converter_t * cnv;
-  int do_convert;
+  bg_video_converter_t * cnv;
+
+  bg_video_filter_chain_t * fc;
   
-  gavl_video_frame_t * in_frame_1;
-  gavl_video_frame_t * in_frame_2;
-  
-  gavl_video_frame_t * out_frame;
+  gavl_video_frame_t * frame;
   
   gavl_video_format_t in_format;
+  gavl_video_format_t pipe_format;
   gavl_video_format_t out_format;
-
-  int convert_framerate;
 
   int64_t frames_written;
     
   /* Set by set_parameter */
 
   bg_gavl_video_options_t options;
-
+  
+  /* Data source */
+  bg_read_video_func_t in_func;
+  void * in_data;
+  int in_stream;
   
   /* Other stuff */
 
@@ -699,9 +710,42 @@ void bg_transcoder_send_msg_metadata(bg_msg_queue_list_t * l, bg_metadata_t * m)
 
 /* */
 
+static int decode_video_frame(void * priv, gavl_video_frame_t * f, int stream)
+  {
+  video_stream_t * s;
+  bg_transcoder_t * t;
+  int result;
+
+  t = (bg_transcoder_t *)priv;
+  s = &t->video_streams[stream];
+  
+  result = s->com.in_plugin->read_video_frame(s->com.in_handle->priv,
+                                              f, s->com.in_index);
+
+  if(!result)
+    return 0;
+  
+  /* Check for end of stream */
+  
+  if((t->end_time != GAVL_TIME_UNDEFINED) &&
+     (gavl_time_unscale(s->in_format.timescale, f->time_scaled) >= t->end_time))
+    return 0;
+  
+  /* Correct timestamps */
+
+  if(s->start_time_scaled)
+    {
+    f->time_scaled -= s->start_time_scaled;
+    if(f->time_scaled < 0)
+      f->time_scaled = 0;
+    }
+  return 1;
+  }
+
+
 static void init_audio_stream(audio_stream_t * ret,
                               bg_transcoder_track_audio_t * s,
-                              int in_index)
+                              int in_index, bg_plugin_registry_t * plugin_reg)
   {
   ret->com.type = STREAM_TYPE_AUDIO;
   /* Default options */
@@ -711,16 +755,20 @@ static void init_audio_stream(audio_stream_t * ret,
   
   /* Create converter */
   
-  ret->cnv_in  = gavl_audio_converter_create();
-  ret->cnv_out = gavl_audio_converter_create();
   bg_gavl_audio_options_init(&(ret->options));
-
+  ret->cnv_in  = bg_audio_converter_create(ret->options.opt);
+  ret->cnv_out = gavl_audio_converter_create();
+  ret->fc = bg_audio_filter_chain_create(&(ret->options), plugin_reg);
   
   /* Apply parameters */
 
   bg_cfg_section_apply(s->general_section,
                        bg_transcoder_track_audio_get_general_parameters(),
                        set_audio_parameter_general, ret);
+
+  bg_cfg_section_apply(s->filter_section,
+                       s->filter_parameters,
+                       bg_audio_filter_chain_set_parameter, ret->fc);
   
   ret->com.in_index = in_index;
   }
@@ -749,28 +797,30 @@ static void start_audio_stream_i(audio_stream_t * ret,
 
 static void init_video_stream(video_stream_t * ret,
                               bg_transcoder_track_video_t * s,
-                              int in_index)
+                              int in_index, bg_plugin_registry_t * plugin_reg)
   {
   ret->com.type = STREAM_TYPE_VIDEO;
-    
-  /* Create converter */
-
-  ret->cnv = gavl_video_converter_create();
-
 
   /* Default options */
-
   bg_gavl_video_options_init(&(ret->options));
+  
+  /* Create converter */
+
+  ret->cnv = bg_video_converter_create(ret->options.opt);
+  ret->fc  = bg_video_filter_chain_create(&ret->options, plugin_reg);
+  
   
   /* Apply parameters */
 
   bg_cfg_section_apply(s->general_section,
                        bg_transcoder_track_video_get_general_parameters(),
                        set_video_parameter_general, ret);
+
+  bg_cfg_section_apply(s->filter_section,
+                       s->filter_parameters,
+                       bg_video_filter_chain_set_parameter, ret->fc);
   
   ret->com.in_index = in_index;
-
-  
   }
 
 static void start_video_stream_i(video_stream_t * ret, bg_plugin_handle_t * in_handle)
@@ -925,6 +975,10 @@ static void add_audio_stream(audio_stream_t * ret,
                              bg_transcoder_t * t)
   {
   set_stream_param_struct_t st;
+
+  ret->in_func = ret->com.in_plugin->read_audio_samples;
+  ret->in_data = ret->com.in_handle->priv;
+  ret->in_stream = ret->com.in_index;
   
   /* We set the frame size so we have roughly half second long audio chunks */
 #if 1
@@ -932,15 +986,39 @@ static void add_audio_stream(audio_stream_t * ret,
                                                           GAVL_TIME_SCALE/2);
 #endif
 
-  bg_gavl_audio_options_set_format(&(ret->options),
-                                   &(ret->in_format),
-                                   &(ret->out_format));
-  
-  /* Add the audio stream */
+  ret->com.do_filter = bg_audio_filter_chain_init(ret->fc,
+                                                  &(ret->in_format),
+                                                  &(ret->pipe_format));
 
-  ret->com.out_index =
-    ret->com.out_plugin->add_audio_stream(ret->com.out_handle->priv, ret->language,
-                                          &(ret->out_format));
+  if(ret->com.do_filter)
+    {
+    bg_audio_filter_chain_connect_input(ret->fc,
+                                        ret->in_func,
+                                        ret->in_data,
+                                        ret->in_stream);
+    ret->in_func = bg_audio_filter_chain_read;
+    ret->in_data = ret->fc;
+    ret->in_stream = 0;
+    
+    gavl_audio_format_copy(&(ret->out_format),
+                           &(ret->pipe_format));
+
+    /* Add the audio stream */
+    
+    ret->com.out_index =
+      ret->com.out_plugin->add_audio_stream(ret->com.out_handle->priv, ret->language,
+                                            &(ret->out_format));
+    }
+  else
+    {
+    bg_gavl_audio_options_set_format(&(ret->options),
+                                     &(ret->in_format),
+                                     &(ret->out_format));
+    ret->com.out_index =
+      ret->com.out_plugin->add_audio_stream(ret->com.out_handle->priv, ret->language,
+                                            &(ret->out_format));
+    }
+  
   
   /* Apply parameters */
 
@@ -1055,21 +1133,32 @@ static void add_video_stream(video_stream_t * ret,
   {
   set_stream_param_struct_t st;
 
+  ret->in_func = decode_video_frame;
+  ret->in_data = t;
+  ret->in_stream = ret->com.in_index;
+  
+  ret->com.do_filter = bg_video_filter_chain_init(ret->fc, &(ret->in_format),
+                                                  &(ret->pipe_format));
+  if(ret->com.do_filter)
+    {
+    bg_video_filter_chain_connect_input(ret->fc,
+                                        ret->in_func, ret->in_data, ret->in_stream);
+    ret->in_func   = bg_video_filter_chain_read;
+    ret->in_data   = ret->fc;
+    ret->in_stream = 0;
+    }
+  else
+    gavl_video_format_copy(&(ret->pipe_format), &(ret->in_format));
+  
   /* Set desired output format */
-    
+  
   gavl_video_format_copy(&(ret->out_format), &(ret->in_format));
 
-  bg_gavl_video_options_set_framerate(&(ret->options),
-                                      &(ret->in_format),
-                                      &(ret->out_format));
   
-  bg_gavl_video_options_set_framesize(&(ret->options),
-                                      &(ret->in_format),
-                                      &(ret->out_format));
-
-  bg_gavl_video_options_set_interlace(&(ret->options),
-                                      &(ret->in_format),
-                                      &(ret->out_format));
+  
+  bg_gavl_video_options_set_format(&(ret->options),
+                                   &(ret->in_format),
+                                   &(ret->out_format));
   
   /* Add the video stream */
 
@@ -1157,12 +1246,14 @@ static int audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
   else
     num_samples = s->in_format.samples_per_frame;
 
+  if(s->do_convert_out)
+    frame = s->pipe_frame;
+  else
+    frame = s->out_frame;
   
-  samples_decoded =
-    s->com.in_plugin->read_audio_samples(s->com.in_handle->priv,
-                                         s->in_frame,
-                                         s->com.in_index,
-                                         num_samples);
+  samples_decoded = s->in_func(s->in_data, frame, s->in_stream,
+                                 num_samples);
+
   /* Nothing more to transcode */
   
   if(!samples_decoded)
@@ -1175,21 +1266,11 @@ static int audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
 
   /* Last samples */
   
-  if((samples_decoded < num_samples) ||
-     (s->samples_to_read && (s->samples_to_read <= s->samples_read)))
+  if(s->samples_to_read && (s->samples_to_read <= s->samples_read))
     {
     s->com.status = STREAM_STATE_FINISHED;
     }
 
-  /* Convert and encode it */
-  
-  if(s->do_convert_in)
-    {
-    gavl_audio_convert(s->cnv_in, s->in_frame, s->pipe_frame);
-    frame = s->pipe_frame;
-    }
-  else
-    frame = s->in_frame;
   
   /* Update the time BEFORE we decide what to do with the frame */
   s->samples_written += frame->valid_samples;
@@ -1211,7 +1292,7 @@ static int audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
   /* Output conversion */
   if(s->do_convert_out)
     {
-    gavl_audio_convert(s->cnv_out, frame, s->out_frame);
+    gavl_audio_convert(s->cnv_out, s->pipe_frame, s->out_frame);
     frame = s->out_frame;
     }
 
@@ -1234,32 +1315,6 @@ static int audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
   return ret;
   }
 
-static int decode_video_frame(video_stream_t * s, bg_transcoder_t * t,
-                              gavl_video_frame_t * f)
-  {
-  int result;
-  result = s->com.in_plugin->read_video_frame(s->com.in_handle->priv,
-                                              f, s->com.in_index);
-
-  if(!result)
-    return 0;
-  
-  /* Check for end of stream */
-  
-  if((t->end_time != GAVL_TIME_UNDEFINED) &&
-     (gavl_time_unscale(s->in_format.timescale, f->time_scaled) >= t->end_time))
-    return 0;
-  
-  /* Correct timestamps */
-
-  if(s->start_time_scaled)
-    {
-    f->time_scaled -= s->start_time_scaled;
-    if(f->time_scaled < 0)
-      f->time_scaled = 0;
-    }
-  return 1;
-  }
 
 static void correct_subtitle_timestamp(gavl_time_t * start, gavl_time_t * duration,
                                        bg_transcoder_t * t)
@@ -1466,127 +1521,43 @@ static int video_iteration(video_stream_t * s, bg_transcoder_t * t)
   {
   int ret = 1;
   int i;
-  gavl_time_t next_time;
-  gavl_video_frame_t * tmp_frame;
   int result;
-  int do_blend;
-  gavl_video_frame_t * out_frame;
   
   if(!s->initialized)
     {
     if(t->start_time != GAVL_TIME_UNDEFINED)
-      s->start_time_scaled = gavl_time_to_samples(s->in_format.timescale,
-                                                  t->start_time);
+      {
+      s->start_time_scaled = gavl_time_unscale(s->out_format.timescale,
+                                               t->start_time);
+      bg_video_converter_reset(s->cnv, s->start_time_scaled);
+      }
     s->initialized = 1;
     }
   
+  result = s->in_func(s->in_data, s->frame, s->in_stream);
+  if(!result)
+    {
+    s->com.status = STREAM_STATE_FINISHED;
+    return ret;
+    }
+
+  s->com.time = gavl_time_unscale(s->out_format.timescale,
+                                  s->frame->time_scaled);
   
-  if(s->convert_framerate)
-    {
-    next_time = gavl_frames_to_time(s->out_format.timescale,
-                                    s->out_format.frame_duration,
-                                    s->frames_written);
-
-
-    if(s->in_frame_1->time_scaled == GAVL_TIME_UNDEFINED)
-      {
-      /* Decode initial 2 frame(s) */
-      result = decode_video_frame(s, t, s->in_frame_1);
-      if(!result)
-        {
-        s->com.status = STREAM_STATE_FINISHED;
-        return ret;
-        }
-
-      result = decode_video_frame(s, t, s->in_frame_2);
-      if(!result)
-        {
-        s->com.status = STREAM_STATE_FINISHED;
-        return ret;
-        }
-      }
-
-    /* Decode frames until the time of in_frame_2 is
-       larger than next_time */
-
-    while(gavl_time_unscale(s->in_format.timescale, s->in_frame_2->time_scaled) < next_time)
-      {
-      SWAP_FRAMES;
-      result = decode_video_frame(s, t, s->in_frame_2);
-      if(!result)
-        {
-        s->com.status = STREAM_STATE_FINISHED;
-        break;
-        }
-      }
-
-    if(s->com.status == STREAM_STATE_FINISHED)
-      tmp_frame = s->in_frame_2;
-    else
-      tmp_frame = s->in_frame_1;
-
-    tmp_frame->time_scaled = s->frames_written * s->out_format.frame_duration;
-
-    s->com.time = next_time;
-
-    do_blend = check_video_blend(s, t, s->com.time);
-    
-    if(s->do_convert)
-      {
-      gavl_video_convert(s->cnv, tmp_frame, s->out_frame);
-      out_frame = s->out_frame;
-      }
-    else
-      {
-      if(do_blend)
-        {
-        gavl_video_frame_copy(&(s->out_format),
-                              s->out_frame, tmp_frame);
-        out_frame = s->out_frame;
-        }
-      else
-        out_frame = tmp_frame;
-      }
-    }
-  else
-    {
-    result = decode_video_frame(s, t, s->in_frame_1);
-    
-    if(!result)
-      {
-      s->com.status = STREAM_STATE_FINISHED;
-      return ret;
-      }
-
-    s->com.time = gavl_time_unscale(s->in_format.timescale, s->in_frame_1->time_scaled);
-    do_blend = check_video_blend(s, t, s->com.time);
-    
-    if(s->do_convert)
-      {
-      gavl_video_convert(s->cnv, s->in_frame_1, s->out_frame);
-      out_frame = s->out_frame;
-      }
-    else
-      {
-      out_frame = s->in_frame_1;
-      }
-    
-    }
-
-  if(do_blend)
+  if(check_video_blend(s, t, s->com.time))
     {
     for(i = 0; i < s->num_subtitle_streams; i++)
       {
       if(s->subtitle_streams[i]->do_blend)
         {
         gavl_overlay_blend(s->subtitle_streams[i]->blend_context,
-                           out_frame);
+                           s->frame);
         }
       }
     }
-  
+
   ret = s->com.out_plugin->write_video_frame(s->com.out_handle->priv,
-                                             out_frame,
+                                             s->frame,
                                              s->com.out_index);
 
   if(!ret)
@@ -2133,7 +2104,7 @@ static void create_streams(bg_transcoder_t * ret,
 
     init_audio_stream(&(ret->audio_streams[i]),
                       &(track->audio_streams[i]),
-                      i);
+                      i, ret->plugin_reg);
     if(ret->audio_streams[i].com.action == STREAM_ACTION_TRANSCODE)
       ret->num_audio_streams_real++;
     }
@@ -2144,7 +2115,7 @@ static void create_streams(bg_transcoder_t * ret,
     {
     init_video_stream(&(ret->video_streams[i]),
                       &(track->video_streams[i]),
-                      i);
+                      i, ret->plugin_reg);
     if(ret->video_streams[i].com.action == STREAM_ACTION_TRANSCODE)
       ret->num_video_streams_real++;
     }
@@ -3007,23 +2978,26 @@ static int init_audio_converter(audio_stream_t * ret)
     return 0;
     }
 #endif
-  ret->out_format.samples_per_frame =
-    (ret->in_format.samples_per_frame * ret->out_format.samplerate) /
-    ret->in_format.samplerate + 10;
-
-  gavl_audio_format_copy(&ret->pipe_format, &ret->out_format);
-  if(ret->options.force_float)
-    ret->pipe_format.sample_format = GAVL_SAMPLE_FLOAT;
   
-  /* Initialize input converter */
+  if(!ret->com.do_filter)
+    {
+    gavl_audio_format_copy(&ret->pipe_format, &ret->out_format);
+    if(ret->options.force_float)
+      ret->pipe_format.sample_format = GAVL_SAMPLE_FLOAT;
 
-  opt = gavl_audio_converter_get_options(ret->cnv_in);
-  gavl_audio_options_copy(opt, ret->options.opt);
+    if(bg_audio_converter_init(ret->cnv_in,
+                               &(ret->in_format),
+                               &(ret->pipe_format)))
+      {
+      bg_audio_converter_connect_input(ret->cnv_in, ret->in_func,
+                                       ret->in_data, ret->in_stream);
+      ret->in_func = bg_audio_converter_read;
+      ret->in_data = ret->cnv_in;
+      ret->in_stream = 0;
+      }
+    }
   
-  ret->do_convert_in = gavl_audio_converter_init(ret->cnv_in,
-                                                     &(ret->in_format),
-                                                     &(ret->pipe_format));
-
+  /* Initialize output converter */
   
   opt = gavl_audio_converter_get_options(ret->cnv_out);
   gavl_audio_options_copy(opt, ret->options.opt);
@@ -3033,14 +3007,11 @@ static int init_audio_converter(audio_stream_t * ret)
                                                   &(ret->out_format));
   
   /* Create frames (could be left from the previous pass) */
-
-  if(!ret->in_frame)
-    ret->in_frame = gavl_audio_frame_create(&(ret->in_format));
   
-  if(ret->do_convert_in && !ret->pipe_frame)
+  if(ret->do_convert_out && !ret->pipe_frame)
     ret->pipe_frame = gavl_audio_frame_create(&(ret->pipe_format));
-
-  if(ret->do_convert_out && !ret->out_frame)
+  
+  if(!ret->out_frame)
     ret->out_frame = gavl_audio_frame_create(&(ret->out_format));
   return 1;
   }
@@ -3048,63 +3019,36 @@ static int init_audio_converter(audio_stream_t * ret)
 
 static int init_video_converter(video_stream_t * ret)
   {
-  gavl_video_options_t * opt;
+  
   ret->com.out_plugin->get_video_format(ret->com.out_handle->priv,
                                         ret->com.out_index, &(ret->out_format));
 
-  bg_gavl_video_options_set_rectangles(&(ret->options),
-                                       &(ret->in_format),
-                                       &(ret->out_format));
-
+  if(ret->com.do_filter) /* Filter chain already cropped */
+    bg_gavl_video_options_set_rectangles(&(ret->options),
+                                         &(ret->pipe_format),
+                                         &(ret->out_format), 0);
+  else
+    bg_gavl_video_options_set_rectangles(&(ret->options),
+                                         &(ret->pipe_format),
+                                         &(ret->out_format), 1);
   
   /* Initialize converter */
-
-  opt = gavl_video_converter_get_options(ret->cnv);
-  gavl_video_options_copy(opt, ret->options.opt);
   
-  ret->do_convert = gavl_video_converter_init(ret->cnv, 
-                                                  &(ret->in_format),
-                                                  &(ret->out_format));
-
-  /* Check if we wanna convert the framerate */
-
-  if((ret->in_format.framerate_mode != GAVL_FRAMERATE_CONSTANT) &&
-     (ret->out_format.framerate_mode == GAVL_FRAMERATE_CONSTANT))
-    ret->convert_framerate = 1;
-
-  else if((int64_t)ret->in_format.frame_duration * (int64_t)ret->out_format.timescale !=
-          (int64_t)ret->out_format.frame_duration * (int64_t)ret->in_format.timescale)
-    ret->convert_framerate = 1;
-
-  if(ret->convert_framerate)
+  if(bg_video_converter_init(ret->cnv, 
+                             &(ret->pipe_format),
+                             &(ret->out_format)))
     {
-    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Doing framerate conversion %5.2f (%s) -> %5.2f (%s)",
-            (float)(ret->in_format.timescale) / (float)(ret->in_format.frame_duration),
-            (ret->in_format.framerate_mode == GAVL_FRAMERATE_VARIABLE ? "nonconstant" : "constant"),
-            (float)(ret->out_format.timescale) / (float)(ret->out_format.frame_duration),
-            (ret->out_format.framerate_mode == GAVL_FRAMERATE_VARIABLE ? "nonconstant" : "constant"));
+    bg_video_converter_connect_input(ret->cnv, ret->in_func, ret->in_data, ret->in_stream);
+    ret->in_func = bg_video_converter_read;
+    ret->in_data = ret->cnv;
+    ret->in_stream = 0;
     }
   
   /* Create frames */
-  if(!ret->in_frame_1)
-    ret->in_frame_1 = gavl_video_frame_create(&(ret->in_format));
-  gavl_video_frame_clear(ret->in_frame_1, &(ret->in_format));
+  if(!ret->frame)
+    ret->frame = gavl_video_frame_create(&(ret->out_format));
+  gavl_video_frame_clear(ret->frame, &(ret->out_format));
   
-  ret->in_frame_1->time_scaled = GAVL_TIME_UNDEFINED;
-  
-  if(ret->convert_framerate)
-    {
-    if(!ret->in_frame_2)
-      ret->in_frame_2 = gavl_video_frame_create(&(ret->in_format));
-    gavl_video_frame_clear(ret->in_frame_2, &(ret->in_format));
-    }
-  
-  if(ret->do_convert)
-    {
-    if(!ret->out_frame)
-      ret->out_frame = gavl_video_frame_create(&(ret->out_format));
-    gavl_video_frame_clear(ret->out_frame, &(ret->out_format));
-    }
   return 1;
   }
 
@@ -3131,8 +3075,6 @@ static void subtitle_init_blend(subtitle_stream_t * ss, video_stream_t * vs)
   ss->current_ovl = &(ss->ovl1);
   ss->next_ovl    = &(ss->ovl2);
 
-  if(!vs->out_frame && vs->convert_framerate)
-    vs->out_frame = gavl_video_frame_create(&(vs->out_format));
   
   gavl_overlay_blend_context_init(ss->blend_context,
                                   &(vs->out_format), &(ss->in_format));
@@ -3401,12 +3343,10 @@ static void cleanup_audio_stream(audio_stream_t * s)
   
   /* Free all resources */
 
-  if(s->in_frame)
-    gavl_audio_frame_destroy(s->in_frame);
   if(s->out_frame)
     gavl_audio_frame_destroy(s->out_frame);
   if(s->cnv_in)
-    gavl_audio_converter_destroy(s->cnv_in);
+    bg_audio_converter_destroy(s->cnv_in);
   if(s->cnv_out)
     gavl_audio_converter_destroy(s->cnv_out);
 
@@ -3424,14 +3364,13 @@ static void cleanup_video_stream(video_stream_t * s)
 
   /* Free all resources */
 
-  if(s->in_frame_1)
-    gavl_video_frame_destroy(s->in_frame_1);
-  if(s->in_frame_2)
-    gavl_video_frame_destroy(s->in_frame_2);
-  if(s->out_frame)
-    gavl_video_frame_destroy(s->out_frame);
+  if(s->frame)
+    gavl_video_frame_destroy(s->frame);
   if(s->cnv)
-    gavl_video_converter_destroy(s->cnv);
+    bg_video_converter_destroy(s->cnv);
+  if(s->fc)
+    bg_video_filter_chain_destroy(s->fc);
+  
   if(s->subtitle_streams)
     free(s->subtitle_streams);
   

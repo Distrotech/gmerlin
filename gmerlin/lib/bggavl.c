@@ -174,7 +174,7 @@ void bg_gavl_audio_options_free(bg_gavl_audio_options_t * opt)
   }
 
 
-void bg_gavl_audio_options_set_format(bg_gavl_audio_options_t * opt,
+void bg_gavl_audio_options_set_format(const bg_gavl_audio_options_t * opt,
                                       const gavl_audio_format_t * in_format,
                                       gavl_audio_format_t * out_format)
   {
@@ -560,14 +560,18 @@ void bg_gavl_video_options_free(bg_gavl_video_options_t * opt)
   }
 
 
-void bg_gavl_video_options_set_framerate(bg_gavl_video_options_t * opt,
-                                         const gavl_video_format_t * in_format,
-                                         gavl_video_format_t * out_format)
+static void set_framerate(const bg_gavl_video_options_t * opt,
+                          const gavl_video_format_t * in_format,
+                          gavl_video_format_t * out_format)
   {
   int i;
   if(opt->framerate_mode == FRAME_RATE_FROM_INPUT)
+    {
+    out_format->frame_duration = in_format->frame_duration;
+    out_format->timescale =      in_format->timescale;
+    out_format->framerate_mode = in_format->framerate_mode;
     return;
-    
+    }
   if(opt->framerate_mode == FRAME_RATE_USER)
     {
     out_format->frame_duration = opt->frame_duration;
@@ -587,18 +591,20 @@ void bg_gavl_video_options_set_framerate(bg_gavl_video_options_t * opt,
     }
   }
 
-void bg_gavl_video_options_set_interlace(bg_gavl_video_options_t * opt,
-                                         const gavl_video_format_t * in_format,
-                                         gavl_video_format_t * out_format)
+static void set_interlace(const bg_gavl_video_options_t * opt,
+                          const gavl_video_format_t * in_format,
+                          gavl_video_format_t * out_format)
   {
   int flags = gavl_video_options_get_conversion_flags(opt->opt);
   if(flags & GAVL_FORCE_DEINTERLACE)
     out_format->interlace_mode = GAVL_INTERLACE_NONE;
+  else
+    out_format->interlace_mode = in_format->interlace_mode;
   }
 
-void bg_gavl_video_options_set_framesize(bg_gavl_video_options_t * opt,
-                                         const gavl_video_format_t * in_format,
-                                         gavl_video_format_t * out_format)
+static void set_framesize(const bg_gavl_video_options_t * opt,
+                          const gavl_video_format_t * in_format,
+                          gavl_video_format_t * out_format)
   {
   int i;
 
@@ -609,6 +615,9 @@ void bg_gavl_video_options_set_framesize(bg_gavl_video_options_t * opt,
     {
     out_format->image_width  = in_format->image_width;
     out_format->image_height = in_format->image_height;
+
+    out_format->pixel_width =  in_format->pixel_width;
+    out_format->pixel_height = in_format->pixel_height;
     }
   else if(opt->frame_size == FRAME_SIZE_USER)
     {
@@ -637,9 +646,19 @@ void bg_gavl_video_options_set_framesize(bg_gavl_video_options_t * opt,
   out_format->frame_height = out_format->image_height;
   }
 
-void bg_gavl_video_options_set_rectangles(bg_gavl_video_options_t * opt,
+void bg_gavl_video_options_set_format(const bg_gavl_video_options_t * opt,
+                                      const gavl_video_format_t * in_format,
+                                      gavl_video_format_t * out_format)
+  {
+  set_framerate(opt, in_format, out_format);
+  set_framesize(opt, in_format, out_format);
+  set_interlace(opt, in_format, out_format);
+  }
+
+void bg_gavl_video_options_set_rectangles(const bg_gavl_video_options_t * opt,
                                           const gavl_video_format_t * in_format,
-                                          const gavl_video_format_t * out_format)
+                                          const gavl_video_format_t * out_format,
+                                          int do_crop)
   {
   gavl_rectangle_f_t in_rect;
   gavl_rectangle_i_t out_rect;
@@ -647,11 +666,14 @@ void bg_gavl_video_options_set_rectangles(bg_gavl_video_options_t * opt,
   /* Crop input */
   gavl_rectangle_f_set_all(&in_rect, in_format);
 
-  gavl_rectangle_f_crop_left(&in_rect,   opt->crop_left);
-  gavl_rectangle_f_crop_right(&in_rect,  opt->crop_right);
-  gavl_rectangle_f_crop_top(&in_rect,    opt->crop_top);
-  gavl_rectangle_f_crop_bottom(&in_rect, opt->crop_bottom);
-
+  if(do_crop)
+    {
+    gavl_rectangle_f_crop_left(&in_rect,   opt->crop_left);
+    gavl_rectangle_f_crop_right(&in_rect,  opt->crop_right);
+    gavl_rectangle_f_crop_top(&in_rect,    opt->crop_top);
+    gavl_rectangle_f_crop_bottom(&in_rect, opt->crop_bottom);
+    }
+  
   if(opt->maintain_aspect)
     {
     gavl_rectangle_fit_aspect(&out_rect,   // gavl_rectangle_t * r,

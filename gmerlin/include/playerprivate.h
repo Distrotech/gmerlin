@@ -26,6 +26,8 @@
 #include "bggavl.h"
 #include "textrenderer.h"
 #include "osd.h"
+#include "converters.h"
+#include "filters.h"
 
 
 #include "translation.h"
@@ -47,13 +49,20 @@ typedef enum
 
 typedef struct
   {
-  gavl_audio_converter_t * cnv_in;
+  bg_audio_converter_t * cnv_in;
   gavl_audio_converter_t * cnv_out;
   bg_fifo_t * fifo;
-  int do_convert_in;
+
+  bg_audio_filter_chain_t * fc;
+  
+  bg_read_audio_func_t in_func;
+  void * in_data;
+  int    in_stream;
+  
+  //  int do_convert_in;
   int do_convert_out;
 
-  gavl_audio_frame_t * frame_in;
+  //  gavl_audio_frame_t * frame_in;
   gavl_audio_frame_t * frame_out;
   
   pthread_mutex_t config_mutex;
@@ -77,19 +86,23 @@ typedef struct
 
 typedef struct
   {
-  gavl_video_converter_t * cnv;
+  bg_video_converter_t * cnv;
   bg_fifo_t * fifo;
 
+  bg_video_filter_chain_t * fc;
+    
+  bg_read_video_func_t in_func;
+  void * in_data;
+  int    in_stream;
+    
   pthread_mutex_t config_mutex;
 
   bg_gavl_video_options_t options;
-
-  //  gavl_video_options_t opt;
-  int do_convert;
-  gavl_video_frame_t * frame;
-
+  
   gavl_video_format_t input_format;
   gavl_video_format_t output_format;
+  gavl_video_format_t pipe_format;
+  
   } bg_player_video_stream_t;
 
 typedef struct
@@ -212,7 +225,7 @@ void bg_player_time_init(bg_player_t * player);
 void bg_player_time_reset(bg_player_t * player);
 void bg_player_time_set(bg_player_t * player, gavl_time_t time);
 
-/* player1_input.c */
+/* player_input.c */
 
 void bg_player_input_create(bg_player_t * player);
 void bg_player_input_destroy(bg_player_t * player);
@@ -239,6 +252,15 @@ int
 bg_player_input_get_audio_format(bg_player_input_context_t * ctx);
 int
 bg_player_input_get_video_format(bg_player_input_context_t * ctx);
+
+int
+bg_player_input_read_audio(void * priv, gavl_audio_frame_t * frame, int stream, int samples);
+
+int
+bg_player_input_read_video(void * priv, gavl_video_frame_t * frame, int stream);
+
+int
+bg_player_input_read_video_subtitle_only(void * priv, gavl_video_frame_t * frame, int stream);
 
 int
 bg_player_input_get_subtitle_format(bg_player_input_context_t * ctx);
@@ -302,7 +324,7 @@ void bg_player_ov_sync(bg_player_t * p);
 
 int bg_player_video_init(bg_player_t * p, int video_stream);
 void bg_player_video_cleanup(bg_player_t * p);
-void bg_player_video_create(bg_player_t * p);
+void bg_player_video_create(bg_player_t * p, bg_plugin_registry_t * plugin_reg);
 void bg_player_video_destroy(bg_player_t * p);
 
 
@@ -343,7 +365,7 @@ int  bg_player_oa_get_latency(bg_player_oa_context_t * ctx);
 int  bg_player_audio_init(bg_player_t * p, int audio_stream);
 void bg_player_audio_cleanup(bg_player_t * p);
 
-void bg_player_audio_create(bg_player_t * p);
+void bg_player_audio_create(bg_player_t * p, bg_plugin_registry_t * plugin_reg);
 void bg_player_audio_destroy(bg_player_t * p);
 
 /* player_subtitle.c */

@@ -893,8 +893,9 @@ void bg_gtk_change_callback(GtkWidget * gw, gpointer data)
   bg_gtk_widget_t * w = (bg_gtk_widget_t*)data;
   
   w->funcs->set_value(w);
-  w->change_callback(w->change_callback_data,
-                     w->info->name, &(w->value));
+  if(w->change_callback)
+    w->change_callback(w->change_callback_data,
+                       w->info->name, &(w->value));
   }
 
 void bg_gtk_change_callback_block(bg_gtk_widget_t * w, int block)

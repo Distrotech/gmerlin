@@ -533,10 +533,15 @@ static void button_callback(GtkWidget * wid, gpointer data)
       label = TRD(w->info->multi_labels[priv->param_selected], priv->translation_domain);
     else
       label = w->info->multi_names[priv->param_selected];
-    
-    dialog = bg_dialog_create(subsection, set_sub_param, w,
-                              w->info->multi_parameters[priv->param_selected],
-                              label);
+
+    if(priv->set_param)
+      dialog = bg_dialog_create(subsection, set_sub_param, w,
+                                w->info->multi_parameters[priv->param_selected],
+                                label);
+    else
+      dialog = bg_dialog_create(subsection, NULL, w,
+                                w->info->multi_parameters[priv->param_selected],
+                                label);
     bg_dialog_show(dialog);
     }
   else if(wid == priv->info_button)

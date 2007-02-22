@@ -425,6 +425,50 @@ bg_player_input_get_subtitle_format(bg_player_input_context_t * ctx)
   return 1;
   }
 
+int
+bg_player_input_read_audio(void * priv, gavl_audio_frame_t * frame, int stream, int samples)
+  {
+  int result;
+  bg_player_input_context_t * ctx;
+  ctx = (bg_player_input_context_t *)priv;
+  
+  bg_plugin_lock(ctx->plugin_handle);
+  result = ctx->plugin->read_audio_samples(ctx->priv, frame, stream, samples);
+  bg_plugin_unlock(ctx->plugin_handle);
+  
+  ctx->audio_samples_written += frame->valid_samples;
+  
+  return result;
+  }
+
+int
+bg_player_input_read_video(void * priv, gavl_video_frame_t * frame, int stream)
+  {
+  int result;
+  bg_player_input_context_t * ctx;
+  ctx = (bg_player_input_context_t *)priv;
+  
+  bg_plugin_lock(ctx->plugin_handle);
+  result = ctx->plugin->read_video_frame(ctx->priv, frame, stream);
+  bg_plugin_unlock(ctx->plugin_handle);
+  return result;
+  }
+
+int
+bg_player_input_read_video_subtitle_only(void * priv, gavl_video_frame_t * frame, int stream)
+  {
+  bg_player_input_context_t * ctx;
+  bg_player_video_stream_t * s;
+  ctx = (bg_player_input_context_t *)priv;
+  s = &(ctx->player->video_stream);
+
+  gavl_video_frame_fill(frame, &s->output_format, ctx->bg_color);
+  
+  frame->time_scaled = (int64_t)ctx->video_frames_written *
+    ctx->player->video_stream.output_format.frame_duration;
+  return 1;
+  }
+
 /*
  *  Read audio frames from the input plugin until one frame for
  *  the output plugin is ready
@@ -458,44 +502,20 @@ static int process_audio(bg_player_input_context_t * ctx, int preload)
     
     return 1;
     }
-  if(s->do_convert_in)
-    {
-    if(preload)
-      audio_frame = (gavl_audio_frame_t*)bg_fifo_try_lock_write(s->fifo,
-                                                                &state);
-    else
-      audio_frame = (gavl_audio_frame_t*)bg_fifo_lock_write(s->fifo, &state);
-    
-    if(!audio_frame)
-      return 0;
 
-    bg_plugin_lock(ctx->plugin_handle);
-    if(!ctx->plugin->read_audio_samples(ctx->priv, s->frame_in,
-                                        ctx->player->current_audio_stream,
-                                        ctx->player->audio_stream.input_format.samples_per_frame))
-      ctx->audio_finished = 1;
-    ctx->audio_samples_written += s->frame_in->valid_samples;
-    bg_plugin_unlock(ctx->plugin_handle);
-    
-    gavl_audio_convert(s->cnv_in, s->frame_in, audio_frame);
-    }
+  if(preload)
+    audio_frame = (gavl_audio_frame_t*)bg_fifo_try_lock_write(s->fifo,
+                                                              &state);
   else
-    {
-    if(preload)
-      audio_frame = (gavl_audio_frame_t*)bg_fifo_try_lock_write(s->fifo,
-                                                                &state);
-    else
-      audio_frame = (gavl_audio_frame_t*)bg_fifo_lock_write(s->fifo, &state);
-    
-    if(!audio_frame)
-      return 0;
-
-    if(!ctx->plugin->read_audio_samples(ctx->priv, audio_frame,
-                                        ctx->player->current_audio_stream,
-                                        ctx->player->audio_stream.input_format.samples_per_frame))
-      ctx->audio_finished = 1;
-    ctx->audio_samples_written += audio_frame->valid_samples;
-    }
+    audio_frame = (gavl_audio_frame_t*)bg_fifo_lock_write(s->fifo, &state);
+  
+  if(!audio_frame)
+    return 0;
+  
+  if(!s->in_func(s->in_data, audio_frame, s->in_stream,
+                 s->pipe_format.samples_per_frame))
+    ctx->audio_finished = 1;
+  
   if(ctx->audio_finished &&
      (!ctx->video_finished || !ctx->subtitle_finished))
     ctx->send_silence = 1;
@@ -507,7 +527,7 @@ static int process_audio(bg_player_input_context_t * ctx, int preload)
   
   
   ctx->audio_time =
-    gavl_samples_to_time(ctx->player->audio_stream.input_format.samplerate,
+    gavl_samples_to_time(ctx->player->audio_stream.pipe_format.samplerate,
                          ctx->audio_samples_written);
 
   
@@ -575,84 +595,25 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
   bg_player_video_stream_t * s;
   s = &(ctx->player->video_stream);
   
-  if(s->do_convert)
-    {
-    if(preload)
-      video_frame = (gavl_video_frame_t*)bg_fifo_try_lock_write(s->fifo,
-                                                                &state);
-    else
-      video_frame = (gavl_video_frame_t*)bg_fifo_lock_write(s->fifo, &state);
-    
-    if(!video_frame)
-      {
-      return 0;
-      }
-    bg_plugin_lock(ctx->plugin_handle);
-    result = ctx->plugin->read_video_frame(ctx->priv,
-                                           ctx->player->video_stream.frame,
-                                           ctx->player->current_video_stream);
-    bg_plugin_unlock(ctx->plugin_handle);
-    if(!result)
-      ctx->video_finished = 1;
-    else
-      ctx->video_frames_written++;
-    
-    if(ctx->player->video_stream.input_format.framerate_mode != GAVL_FRAMERATE_STILL)
-      ctx->video_time = gavl_time_unscale(ctx->player->video_stream.input_format.timescale,
-                                          ctx->player->video_stream.frame->time_scaled);
-    gavl_video_convert(s->cnv, ctx->player->video_stream.frame, video_frame);
-    }
-  else if(ctx->player->do_subtitle_only)
-    {
-    if(preload)
-      video_frame = (gavl_video_frame_t*)bg_fifo_try_lock_write(s->fifo,
-                                                                &state);
-    else
-      video_frame = (gavl_video_frame_t*)bg_fifo_lock_write(s->fifo, &state);
-    
-    if(!video_frame)
-      return 0;
-
-    gavl_video_frame_fill(video_frame, &s->output_format, ctx->bg_color);
-    
-    video_frame->time_scaled = (int64_t)ctx->video_frames_written *
-      ctx->player->video_stream.output_format.frame_duration;
-        
-    if(ctx->subtitle_finished && ctx->audio_finished)
-      ctx->video_finished = 1;
-    else
-      ctx->video_frames_written++;
-
-    ctx->video_time =
-      gavl_time_unscale(ctx->player->video_stream.output_format.timescale,
-                        video_frame->time_scaled);
-
-    }
+  if(preload)
+    video_frame = (gavl_video_frame_t*)bg_fifo_try_lock_write(s->fifo,
+                                                              &state);
   else
-    {
-    if(preload)
-      video_frame = (gavl_video_frame_t*)bg_fifo_try_lock_write(s->fifo,
-                                                                &state);
-    else
-      video_frame = (gavl_video_frame_t*)bg_fifo_lock_write(s->fifo, &state);
-    
-    if(!video_frame)
-      return 0;
-    bg_plugin_lock(ctx->plugin_handle);
-    result = ctx->plugin->read_video_frame(ctx->priv,
-                                           video_frame,
-                                           ctx->player->current_video_stream);
-    bg_plugin_unlock(ctx->plugin_handle);
-    if(!result)
-      ctx->video_finished = 1;
-    else
-      ctx->video_frames_written++;
-    
-    ctx->video_time =
-      gavl_time_unscale(ctx->player->video_stream.input_format.timescale,
-                        video_frame->time_scaled);
-    }
+    video_frame = (gavl_video_frame_t*)bg_fifo_lock_write(s->fifo, &state);
+  
+  if(!video_frame)
+    return 0;
 
+  result = s->in_func(s->in_data, video_frame, s->in_stream);
+  
+  if(!result || (ctx->player->do_subtitle_only && ctx->subtitle_finished && ctx->audio_finished))
+    ctx->video_finished = 1;
+  else
+    ctx->video_frames_written++;
+  
+  if(ctx->player->video_stream.input_format.framerate_mode != GAVL_FRAMERATE_STILL)
+    ctx->video_time = gavl_time_unscale(ctx->player->video_stream.input_format.timescale,
+                                        video_frame->time_scaled);
   
   bg_fifo_unlock_write(s->fifo, ctx->video_finished);
 

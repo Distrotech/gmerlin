@@ -23,11 +23,16 @@
 #include "player.h"
 #include "playerprivate.h"
 
-void bg_player_audio_create(bg_player_t * p)
+void bg_player_audio_create(bg_player_t * p, bg_plugin_registry_t * plugin_reg)
   {
-  p->audio_stream.cnv_in  = gavl_audio_converter_create();
-  p->audio_stream.cnv_out = gavl_audio_converter_create();
   bg_gavl_audio_options_init(&(p->audio_stream.options));
+
+  p->audio_stream.fc =
+    bg_audio_filter_chain_create(&p->audio_stream.options,
+                                 plugin_reg);
+  
+  p->audio_stream.cnv_in  = bg_audio_converter_create(p->audio_stream.options.opt);
+  p->audio_stream.cnv_out = gavl_audio_converter_create();
 
   p->audio_stream.volume = gavl_volume_control_create();
   pthread_mutex_init(&(p->audio_stream.volume_mutex),(pthread_mutexattr_t *)0);
@@ -38,7 +43,7 @@ void bg_player_audio_create(bg_player_t * p)
 
 void bg_player_audio_destroy(bg_player_t * p)
   {
-  gavl_audio_converter_destroy(p->audio_stream.cnv_in);
+  bg_audio_converter_destroy(p->audio_stream.cnv_in);
   gavl_audio_converter_destroy(p->audio_stream.cnv_out);
   bg_gavl_audio_options_free(&(p->audio_stream.options));
 
@@ -51,93 +56,116 @@ int bg_player_audio_init(bg_player_t * player, int audio_stream)
   {
   int force_float;
   gavl_audio_options_t * opt;
+  bg_player_audio_stream_t * s;
+  int do_filter;
 
+  bg_read_audio_func_t in_func;
+  void * in_data;
+  int in_stream;
+  
   if(!player->do_audio)
     return 1;
+    
+  s = &player->audio_stream;
+  
+  in_func   = bg_player_input_read_audio;
+  in_data   = player->input_context;
+  in_stream = player->current_audio_stream;
   
   bg_player_input_get_audio_format(player->input_context);
-  
-  pthread_mutex_lock(&(player->audio_stream.config_mutex));
 
-  /* Set custom format */
-  bg_gavl_audio_options_set_format(&(player->audio_stream.options),
-                                   &(player->audio_stream.input_format),
-                                   &(player->audio_stream.output_format));
-  force_float = player->audio_stream.options.force_float;
+  pthread_mutex_lock(&(s->config_mutex));
+  do_filter = bg_audio_filter_chain_init(s->fc,
+                                         &(s->input_format),
+                                         &(s->pipe_format));
+  pthread_mutex_unlock(&(s->config_mutex));
+
   
-  pthread_mutex_unlock(&(player->audio_stream.config_mutex));
+  if(do_filter)
+    {
+    bg_audio_filter_chain_connect_input(s->fc,
+                                        in_func,
+                                        in_data,
+                                        in_stream);
+    in_func = bg_audio_filter_chain_read;
+    in_data = s->fc;
+    in_stream = 0;
     
-  
-  /* Set up formats */
-  
-  if(!bg_player_oa_init(player->oa_context))
-    {
-    return 0;
-    }
-
-  gavl_audio_format_copy(&(player->audio_stream.pipe_format),
-                         &(player->audio_stream.output_format));
-  if(force_float)
-    player->audio_stream.pipe_format.sample_format = GAVL_SAMPLE_FLOAT;
-  
-  if(player->audio_stream.input_format.samplerate !=
-     player->audio_stream.output_format.samplerate)
-    {
-    player->audio_stream.input_format.samples_per_frame =
-      ((player->audio_stream.output_format.samples_per_frame - 10) *
-       player->audio_stream.input_format.samplerate) /
-      player->audio_stream.output_format.samplerate;
+    gavl_audio_format_copy(&(s->output_format),
+                           &(s->pipe_format));
+    if(!bg_player_oa_init(player->oa_context))
+      return 0;
     }
   else
     {
-    player->audio_stream.input_format.samples_per_frame =
-      player->audio_stream.output_format.samples_per_frame;
+    /* Set up pipe format */
+    pthread_mutex_lock(&(s->config_mutex));
+    force_float = s->options.force_float;
+    
+    bg_gavl_audio_options_set_format(&(s->options),
+                                     &(s->input_format),
+                                     &(s->output_format));
+    pthread_mutex_unlock(&(s->config_mutex));
+    
+    if(!bg_player_oa_init(player->oa_context))
+      return 0;
+
+    gavl_audio_format_copy(&(s->pipe_format),
+                           &(s->output_format));
+    if(force_float)
+      s->pipe_format.sample_format = GAVL_SAMPLE_FLOAT;
     }
+  
+  s->input_format.samples_per_frame =
+    s->output_format.samples_per_frame;
   
   /* Initialize audio fifo */
 
-  player->audio_stream.fifo =
+  s->fifo =
     bg_fifo_create(NUM_AUDIO_FRAMES, bg_player_oa_create_frame,
                    (void*)player->oa_context);
   /* Volume control */
-  gavl_volume_control_set_format(player->audio_stream.volume,
-                                 &(player->audio_stream.pipe_format));
+  gavl_volume_control_set_format(s->volume,
+                                 &(s->pipe_format));
   
   /* Initialize audio converter */
 
 
-  /* Input conversion */
-  opt = gavl_audio_converter_get_options(player->audio_stream.cnv_in);
-  gavl_audio_options_copy(opt, player->audio_stream.options.opt);
+  /* Connect elements */
   
-  if(!gavl_audio_converter_init(player->audio_stream.cnv_in,
-                                &(player->audio_stream.input_format),
-                                &(player->audio_stream.pipe_format)))
+  if(bg_audio_converter_init(s->cnv_in,
+                                &(s->input_format),
+                                &(s->pipe_format)))
     {
-    player->audio_stream.do_convert_in = 0;
+    bg_audio_converter_connect_input(s->cnv_in,
+                                     in_func, in_data, in_stream);
+    
+    s->in_func = bg_audio_converter_read;
+    s->in_data = s->cnv_in;
+    s->in_stream = 0;
     }
   else
     {
-    player->audio_stream.do_convert_in = 1;
-    player->audio_stream.frame_in =
-      gavl_audio_frame_create(&(player->audio_stream.input_format));
+    s->in_func   = in_func;
+    s->in_data   = in_data;
+    s->in_stream = in_stream;
     }
-
+  
   /* Output conversion */
-  opt = gavl_audio_converter_get_options(player->audio_stream.cnv_out);
-  gavl_audio_options_copy(opt, player->audio_stream.options.opt);
+  opt = gavl_audio_converter_get_options(s->cnv_out);
+  gavl_audio_options_copy(opt, s->options.opt);
   
-  if(!gavl_audio_converter_init(player->audio_stream.cnv_out,
-                                &(player->audio_stream.pipe_format),
-                                &(player->audio_stream.output_format)))
+  if(!gavl_audio_converter_init(s->cnv_out,
+                                &(s->pipe_format),
+                                &(s->output_format)))
     {
-    player->audio_stream.do_convert_out = 0;
+    s->do_convert_out = 0;
     }
   else
     {
-    player->audio_stream.do_convert_out = 1;
-    player->audio_stream.frame_out =
-      gavl_audio_frame_create(&(player->audio_stream.output_format));
+    s->do_convert_out = 1;
+    s->frame_out =
+      gavl_audio_frame_create(&(s->output_format));
     }
   return 1;
   }
@@ -149,11 +177,6 @@ void bg_player_audio_cleanup(bg_player_t * player)
     bg_fifo_destroy(player->audio_stream.fifo,
                     bg_player_oa_destroy_frame, NULL);
     player->audio_stream.fifo = (bg_fifo_t *)0;
-    }
-  if(player->audio_stream.frame_in)
-    {
-    gavl_audio_frame_destroy(player->audio_stream.frame_in);
-    player->audio_stream.frame_in = (gavl_audio_frame_t*)0;
     }
   if(player->audio_stream.frame_out)
     {
@@ -189,6 +212,12 @@ bg_parameter_info_t * bg_player_get_audio_parameters(bg_player_t * p)
   return parameters;
   }
 
+bg_parameter_info_t * bg_player_get_audio_filter_parameters(bg_player_t * p)
+  {
+  return bg_audio_filter_chain_get_parameters(p->audio_stream.fc);
+  }
+
+
 void bg_player_set_audio_parameter(void * data, char * name,
                                    bg_parameter_value_t * val)
   {
@@ -204,4 +233,13 @@ void bg_player_set_audio_parameter(void * data, char * name,
                               name, val);
   
   pthread_mutex_unlock(&(player->audio_stream.config_mutex));
+  }
+
+void bg_player_set_audio_filter_parameter(void * data, char * name,
+                                          bg_parameter_value_t * val)
+  {
+  bg_player_t * p = (bg_player_t*)data;
+  bg_audio_filter_chain_lock(p->audio_stream.fc);
+  bg_audio_filter_chain_set_parameter(p->audio_stream.fc, name, val);
+  bg_audio_filter_chain_unlock(p->audio_stream.fc);
   }

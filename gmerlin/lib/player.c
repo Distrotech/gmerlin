@@ -124,7 +124,7 @@ int bg_player_keep_going(bg_player_t * p, void (*ping_func)(void*), void * data)
   return 1;
   }
 
-bg_player_t * bg_player_create()
+bg_player_t * bg_player_create(bg_plugin_registry_t * plugin_reg)
   {
   bg_player_t * ret;
     
@@ -138,8 +138,8 @@ bg_player_t * bg_player_create()
   
   /* Create contexts */
 
-  bg_player_audio_create(ret);
-  bg_player_video_create(ret);
+  bg_player_audio_create(ret, plugin_reg);
+  bg_player_video_create(ret, plugin_reg);
   bg_player_subtitle_create(ret);
   
   bg_player_input_create(ret);

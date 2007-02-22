@@ -151,9 +151,11 @@ type_names[] =
     { TRS("Text subtitle exporter"),  BG_PLUGIN_ENCODER_SUBTITLE_TEXT },
     { TRS("Overlay subtitle exporter"),  BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY },
     { TRS("Audio/Video encoder"),  BG_PLUGIN_ENCODER },
-    { TRS("Image Reader"),   BG_PLUGIN_IMAGE_READER  },
-    { TRS("Image Writer"),   BG_PLUGIN_IMAGE_WRITER  },
+    { TRS("Image reader"),   BG_PLUGIN_IMAGE_READER  },
+    { TRS("Image writer"),   BG_PLUGIN_IMAGE_WRITER  },
     { TRS("Encoding postprocessor"),   BG_PLUGIN_ENCODER_PP  },
+    { TRS("Audio filter"),   BG_PLUGIN_FILTER_AUDIO  },
+    { TRS("Video filter"),   BG_PLUGIN_FILTER_VIDEO  },
     { (char*)0,         BG_PLUGIN_NONE }
   };
 
@@ -173,6 +175,7 @@ flag_names[] =
     { TRS("Keep Running"), BG_PLUGIN_KEEP_RUNNING   }, /* Plugin should not be stopped and restarted if tracks change */
     { TRS("Has Sync"),     BG_PLUGIN_INPUT_HAS_SYNC }, /* FOR INPUTS ONLY: Plugin will set the time via callback */
     { TRS("Tuner"),       BG_PLUGIN_TUNER           }, /* Plugin has tuner */
+    { TRS("Filter with 1 input"),  BG_PLUGIN_FILTER_1 },
     { (char*)0,      0                        },
   };
 

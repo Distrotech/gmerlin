@@ -103,7 +103,9 @@ struct gmerlin_s
   bg_cfg_section_t * tree_section;
   bg_cfg_section_t * general_section;
   bg_cfg_section_t * audio_section;
+  bg_cfg_section_t * audio_filter_section;
   bg_cfg_section_t * video_section;
+  bg_cfg_section_t * video_filter_section;
   bg_cfg_section_t * subtitle_section;
   bg_cfg_section_t * osd_section;
   bg_cfg_section_t * input_section;

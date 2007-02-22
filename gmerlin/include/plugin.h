@@ -52,6 +52,36 @@
  */
 
 
+/** \ingroup plugins
+ *  \brief Generic prototype for reading audio
+ *  \param priv Private data
+ *  \param frame Audio frame
+ *  \param stream Stream index (0 is only one stream)
+ *  \param samples Samples to read
+ *  \returns The number of samples read
+ *
+ *  This is a generic prototype for reading audio. It's shared between
+ *  input pluigns, recorders and filters to enable arbiatrary combining.
+ */
+
+typedef int (*bg_read_audio_func_t)(void * priv, gavl_audio_frame_t* frame, int stream,
+                                  int num_samples);
+
+/** \ingroup plugins
+ *  \brief Generic prototype for reading video
+ *  \param priv Private data
+ *  \param frame Video frame
+ *  \param stream Stream index (0 is only one stream)
+ *  \returns 1 if a frame could be read, 0 else
+ *
+ *  This is a generic prototype for reading audio. It's shared between
+ *  input pluigns, recorders and filters to enable arbiatrary combining.
+ */
+
+
+typedef int (*bg_read_video_func_t)(void * priv, gavl_video_frame_t* frame, int stream);
+
+
 
 /** \defgroup plugin_flags Plugin flags
  *  \ingroup plugin
@@ -78,6 +108,7 @@
 #define BG_PLUGIN_STDIN         (1<<8)  //!< Plugin can read from stdin ("-")
 
 #define BG_PLUGIN_TUNER         (1<<9)  //!< Plugin has some kind of tuner
+#define BG_PLUGIN_FILTER_1     (1<<10)  //!< Plugin acts as a filter with one input
 
 #define BG_PLUGIN_ALL 0xFFFFFFFF //!< Mask of all possible plugin flags
 
@@ -161,8 +192,11 @@ typedef enum
     BG_PLUGIN_ENCODER                    = (1<<9), //!< Encoder for multiple kinds of streams
     BG_PLUGIN_ENCODER_PP                 = (1<<10),//!< Encoder postprocessor (e.g. CD burner)
     BG_PLUGIN_IMAGE_READER               = (1<<11),//!< Image reader
-    BG_PLUGIN_IMAGE_WRITER               = (1<<12) //!< Image writer
+    BG_PLUGIN_IMAGE_WRITER               = (1<<12), //!< Image writer
+    BG_PLUGIN_FILTER_AUDIO               = (1<<13), //!< Audio filter
+    BG_PLUGIN_FILTER_VIDEO               = (1<<14), //!< Video filter
   } bg_plugin_type_t;
+
 
 
 /** \ingroup plugin
@@ -562,9 +596,8 @@ typedef struct bg_input_plugin_s
    *  video format. This means, that all audio decoding plugins must have an internal
    *  buffering mechanism.
    */
-  
-  int (*read_audio_samples)(void * priv, gavl_audio_frame_t* frame, int stream,
-                            int num_samples);
+
+  bg_read_audio_func_t read_audio_samples;
 
   /** \brief Read a video frame
    *  \param priv The handle returned by the create() method
@@ -573,8 +606,8 @@ typedef struct bg_input_plugin_s
    *  \returns 1 if a frame was decoded, 0 means EOF.
    */
   
-  int (*read_video_frame)(void * priv, gavl_video_frame_t* frame, int stream);
-
+  bg_read_video_func_t read_video_frame;
+  
   /** \brief Query if a new subtitle is available
    *  \param priv The handle returned by the create() method
    *  \param stream Stream index starting with 0
@@ -1580,5 +1613,46 @@ typedef struct bg_image_writer_plugin_s
 
   int (*write_image)(void * priv, gavl_video_frame_t * frame);
   } bg_image_writer_plugin_t;
+
+/* Filters */
+
+/** \brief Audio filter plugin
+ *
+ */
+
+typedef struct bg_audio_filter_plugin_s
+  {
+  bg_plugin_common_t common; //!< Infos and functions common to all plugin types
+  
+  void (*connect_input_port)(void * priv, bg_read_audio_func_t func, void * data, int stream, int port);
+  
+  void (*set_input_format)(void * priv, gavl_audio_format_t * format, int port);
+  void (*init)(void * priv);
+  void (*reset)(void * priv);
+  void (*get_output_format)(void * priv, gavl_audio_format_t * format);
+
+  bg_read_audio_func_t read_audio;
+    
+  } bg_fa_plugin_t;
+
+/** \brief Video filter plugin
+ *
+ */
+
+typedef struct bg_video_filter_plugin_s
+  {
+  bg_plugin_common_t common; //!< Infos and functions common to all plugin types
+  
+  void (*connect_input_port)(void * priv, bg_read_video_func_t func, void * data, int stream, int port);
+  
+  void (*set_input_format)(void * priv, gavl_video_format_t * format, int port);
+  void (*init)(void * priv);
+  void (*reset)(void * priv);
+  void (*get_output_format)(void * priv, gavl_video_format_t * format);
+
+  bg_read_video_func_t read_video;
+    
+  } bg_fv_plugin_t;
+
 
 #endif // __BG_PLUGIN_H_

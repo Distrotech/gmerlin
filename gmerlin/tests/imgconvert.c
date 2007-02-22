@@ -163,8 +163,8 @@ int main(int argc, char ** argv)
   
   gavl_video_format_copy(&out_format, &in_format);
 
-  bg_gavl_video_options_set_framesize(&vopt, &in_format, &out_format);
-  bg_gavl_video_options_set_rectangles(&vopt, &in_format, &out_format);
+  bg_gavl_video_options_set_format(&vopt, &in_format, &out_format);
+  bg_gavl_video_options_set_rectangles(&vopt, &in_format, &out_format, 1);
   
   output_plugin->write_header(output_handle->priv, files[1], &out_format);
 

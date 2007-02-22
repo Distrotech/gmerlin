@@ -1457,7 +1457,8 @@ void bg_plugin_registry_set_parameter_info(bg_plugin_registry_t * reg,
                                    type_mask, flag_mask);
     ret->multi_names[i] = bg_strdup(NULL, info->name);
 
-    if(!i) /* First plugin is the default one */
+    /* First plugin is the default one */
+    if(!i && (ret->type != BG_PARAMETER_MULTI_CHAIN)) 
       {
       ret->val_default.val_str = bg_strdup(NULL, info->name);
       }

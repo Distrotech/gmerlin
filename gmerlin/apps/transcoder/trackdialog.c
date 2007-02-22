@@ -164,6 +164,13 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
                         NULL,
                         bg_transcoder_track_audio_get_general_parameters());
 
+    bg_dialog_add_child(ret->cfg_dialog, parent,
+                        TR("Filters"),
+                        t->audio_streams[i].filter_section,
+                        NULL,
+                        NULL,
+                        t->audio_streams[i].filter_parameters);
+    
     if(encoder_info.audio_stream_parameters)
       {
       label = bg_cfg_section_get_name_translated(t->audio_streams[i].encoder_section);
@@ -221,6 +228,14 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
                         NULL,
                         bg_transcoder_track_video_get_general_parameters());
 
+    bg_dialog_add_child(ret->cfg_dialog, parent,
+                        TR("Filters"),
+                        t->video_streams[i].filter_section,
+                        NULL,
+                        NULL,
+                        t->video_streams[i].filter_parameters);
+
+    
     if(encoder_info.video_stream_parameters)
       {
       label = bg_cfg_section_get_name_translated(t->video_streams[i].encoder_section);

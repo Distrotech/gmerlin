@@ -22,18 +22,20 @@
 
 #include "player.h"
 #include "playerprivate.h"
-void bg_player_video_create(bg_player_t * p)
+void bg_player_video_create(bg_player_t * p, bg_plugin_registry_t * plugin_reg)
   {
-  p->video_stream.cnv = gavl_video_converter_create();
-  pthread_mutex_init(&(p->video_stream.config_mutex),(pthread_mutexattr_t *)0);
-
-  
   bg_gavl_video_options_init(&(p->video_stream.options));
+  p->video_stream.fc =
+    bg_video_filter_chain_create(&p->video_stream.options,
+                                 plugin_reg);
+  
+  p->video_stream.cnv = bg_video_converter_create(p->video_stream.options.opt);
+  pthread_mutex_init(&(p->video_stream.config_mutex),(pthread_mutexattr_t *)0);
   }
 
 void bg_player_video_destroy(bg_player_t * p)
   {
-  gavl_video_converter_destroy(p->video_stream.cnv);
+  bg_video_converter_destroy(p->video_stream.cnv);
   pthread_mutex_destroy(&(p->video_stream.config_mutex));
   bg_gavl_video_options_free(&(p->video_stream.options));
   }
@@ -41,14 +43,29 @@ void bg_player_video_destroy(bg_player_t * p)
 int bg_player_video_init(bg_player_t * player, int video_stream)
   {
   bg_player_video_stream_t * s;
-  gavl_video_options_t * opt;
   s = &(player->video_stream);
 
+  s->in_func = bg_player_input_read_video;
+  s->in_data = player->input_context;
+  s->in_stream = player->current_video_stream;
+  
   if(!player->do_video && !player->do_still)
     return 1;
 
   if(!player->do_subtitle_only)
+    {
     bg_player_input_get_video_format(player->input_context);
+    if(bg_video_filter_chain_init(s->fc, &s->input_format, &s->pipe_format))
+      {
+      bg_video_filter_chain_connect_input(s->fc, s->in_func,
+                                          s->in_data, s->in_stream);
+      s->in_func = bg_video_filter_chain_read;
+      s->in_data = s->fc;
+      s->in_stream = 0;
+      }
+    else
+      gavl_video_format_copy(&s->pipe_format, &s->input_format);
+    }
   
   if(!bg_player_ov_init(player->ov_context))
     {
@@ -68,20 +85,19 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
   if(!player->do_subtitle_only)
     {
     pthread_mutex_lock(&(player->video_stream.config_mutex));
-
-    opt = gavl_video_converter_get_options(s->cnv);
-    gavl_video_options_copy(opt, player->video_stream.options.opt);
-
-    if(!gavl_video_converter_init(s->cnv,
-                                  &(player->video_stream.input_format),
-                                  &(player->video_stream.output_format)))
+    
+    if(bg_video_converter_init(s->cnv,
+                               &(player->video_stream.pipe_format),
+                               &(player->video_stream.output_format)))
       {
-      s->do_convert = 0;
-      }
-    else
-      {
-      s->do_convert = 1;
-      s->frame = gavl_video_frame_create(&(player->video_stream.input_format));
+      bg_video_converter_connect_input(s->cnv,
+                                       bg_player_input_read_video,
+                                       player->input_context,
+                                       player->current_video_stream);
+      
+      s->in_func   = bg_video_converter_read;
+      s->in_data   = s->cnv;
+      s->in_stream = 0;
       }
     pthread_mutex_unlock(&(player->video_stream.config_mutex));
     }
@@ -91,6 +107,10 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
     /* Video output already initialized */
     bg_player_ov_set_subtitle_format(player->ov_context,
                                      &(player->subtitle_stream.format));
+
+    s->in_func = bg_player_input_read_video_subtitle_only;
+    s->in_data = player->input_context;
+    s->in_stream = 0;
     }
   
   return 1;
@@ -98,11 +118,6 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
 
 void bg_player_video_cleanup(bg_player_t * player)
   {
-  if(player->video_stream.frame)
-    {
-    gavl_video_frame_destroy(player->video_stream.frame);
-    player->video_stream.frame = (gavl_video_frame_t *)0;
-    }
   if(player->video_stream.fifo)
     {
     bg_fifo_destroy(player->video_stream.fifo, bg_player_ov_destroy_frame,
@@ -147,4 +162,20 @@ void bg_player_set_video_parameter(void * data, char * name,
   
   pthread_mutex_unlock(&(player->video_stream.config_mutex));
 
+  }
+
+bg_parameter_info_t *
+bg_player_get_video_filter_parameters(bg_player_t * p)
+  {
+  return bg_video_filter_chain_get_parameters(p->video_stream.fc);
+  }
+
+void
+bg_player_set_video_filter_parameter(void*data, char * name,
+                                     bg_parameter_value_t*val)
+  {
+  bg_player_t * p = (bg_player_t*)data;
+  bg_video_filter_chain_lock(p->video_stream.fc);
+  bg_video_filter_chain_set_parameter(p->video_stream.fc, name, val);
+  bg_video_filter_chain_unlock(p->video_stream.fc);
   }

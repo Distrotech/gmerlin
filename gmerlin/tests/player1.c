@@ -830,8 +830,18 @@ int main(int argc, char ** argv)
 #ifdef INFO_WINDOW
   bg_gtk_init(&argc, &argv);
 #endif
+
+  /* Create plugin regsitry */
+  cfg_reg = bg_cfg_registry_create();
+  tmp_path =  bg_search_file_read("generic", "config.xml");
+  bg_cfg_registry_load(cfg_reg, tmp_path);
+  if(tmp_path)
+    free(tmp_path);
   
-  player = bg_player_create();
+  cfg_section = bg_cfg_registry_find_section(cfg_reg, "plugins");
+  plugin_reg = bg_plugin_registry_create(cfg_section);
+  
+  player = bg_player_create(plugin_reg);
   
   bg_player_set_volume(player, 0.0);
   
@@ -856,17 +866,7 @@ int main(int argc, char ** argv)
 
   update_global_options();
   
-  /* Create plugin regsitry */
-  cfg_reg = bg_cfg_registry_create();
-  tmp_path =  bg_search_file_read("generic", "config.xml");
-  bg_cfg_registry_load(cfg_reg, tmp_path);
-  if(tmp_path)
-    free(tmp_path);
-  
-  cfg_section = bg_cfg_registry_find_section(cfg_reg, "plugins");
-  plugin_reg = bg_plugin_registry_create(cfg_section);
 
-  /* Create Plugin registry */
 #ifdef INFO_WINDOW
   info_window =
     bg_gtk_info_window_create(player, info_close_callback, NULL);

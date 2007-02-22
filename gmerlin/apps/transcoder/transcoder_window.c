@@ -38,6 +38,9 @@
 #include <remote.h>
 #include <textrenderer.h>
 
+#include <converters.h>
+#include <filters.h>
+
 #include <gui_gtk/display.h>
 #include <gui_gtk/scrolltext.h>
 #include <gui_gtk/gtkutils.h>
@@ -1224,6 +1227,12 @@ static void transcoder_window_preferences(transcoder_window_t * w)
   bg_cfg_section_t * cfg_section;
   void * parent;
 
+  bg_audio_filter_chain_t * ac;
+  bg_video_filter_chain_t * vc;
+  
+  ac = bg_audio_filter_chain_create(NULL, w->plugin_reg);
+  vc = bg_video_filter_chain_create(NULL, w->plugin_reg);
+    
   dlg = bg_dialog_create_multi(TR("Transcoder configuration"));
 
   cfg_section     = bg_cfg_registry_find_section(w->cfg_reg, "output");
@@ -1246,15 +1255,29 @@ static void transcoder_window_preferences(transcoder_window_t * w)
                 bg_transcoder_track_get_general_parameters());
 
   
+  parent = bg_dialog_add_parent(dlg, NULL,
+                                TR("Audio defaults"));
+
   cfg_section = bg_cfg_section_find_subsection(w->track_defaults_section,
                                                "audio");
-  
-  bg_dialog_add(dlg,
-                TR("Audio defaults"),
+  bg_dialog_add_child(dlg, parent,
+                TR("General"),
                 cfg_section,
                 NULL,
                 NULL,
                 bg_transcoder_track_audio_get_general_parameters());
+
+
+  cfg_section = bg_cfg_section_find_subsection(w->track_defaults_section,
+                                               "audiofilters");
+  bg_dialog_add_child(dlg, parent,
+                TR("Filters"),
+                cfg_section,
+                NULL,
+                NULL,
+                bg_audio_filter_chain_get_parameters(ac));
+
+  
   
   cfg_section = bg_cfg_section_find_subsection(w->track_defaults_section,
                                                "video");
@@ -1263,17 +1286,24 @@ static void transcoder_window_preferences(transcoder_window_t * w)
                                 TR("Video defaults"));
 
   
-  bg_dialog_add_child(dlg, parent, TR("Video"),
+  bg_dialog_add_child(dlg, parent, TR("General"),
                       cfg_section,
                       NULL,
                       NULL,
                       bg_transcoder_track_video_get_general_parameters());
 
-
+  cfg_section = bg_cfg_section_find_subsection(w->track_defaults_section,
+                                               "videofilters");
+  bg_dialog_add_child(dlg, parent,
+                      TR("Filters"),
+                      cfg_section,
+                      NULL,
+                      NULL,
+                      bg_video_filter_chain_get_parameters(vc));
+  
   parent = bg_dialog_add_parent(dlg, NULL,
                                 TR("Text subtitle defaults"));
-  
-  
+    
   cfg_section = bg_cfg_section_find_subsection(w->track_defaults_section,
                                                "subtitle_text");
 
@@ -1335,6 +1365,10 @@ static void transcoder_window_preferences(transcoder_window_t * w)
   
   bg_dialog_show(dlg);
   bg_dialog_destroy(dlg);
+
+  bg_audio_filter_chain_destroy(ac);
+  bg_video_filter_chain_destroy(vc);
+  
   
   }
 

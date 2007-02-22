@@ -25,6 +25,9 @@ typedef struct
   bg_gtk_plugin_widget_single_t * subtitle_text_encoder_plugins;
   bg_gtk_plugin_widget_single_t * subtitle_overlay_encoder_plugins;
 
+  bg_gtk_plugin_widget_multi_t  * audio_filters;
+  bg_gtk_plugin_widget_multi_t  * video_filters;
+  
   bg_gtk_plugin_widget_single_t * encoder_pp_plugins;
   
   bg_gtk_plugin_widget_multi_t  * image_readers;
@@ -374,6 +377,36 @@ static app_window * create_window(bg_plugin_registry_t * reg)
   
   gtk_widget_show(ret->use_pp);
 
+  /* Audio filters */
+
+  ret->audio_filters =
+    bg_gtk_plugin_widget_multi_create(reg,
+                                      BG_PLUGIN_FILTER_AUDIO,
+                                      BG_PLUGIN_FILTER_1,
+                                      ret->tooltips);
+  
+  label = gtk_label_new(TR("Audio filters"));
+  gtk_widget_show(label);
+  
+  gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
+                           bg_gtk_plugin_widget_multi_get_widget(ret->audio_filters),
+                           label);
+  
+  /* Video filters */
+
+  ret->video_filters =
+    bg_gtk_plugin_widget_multi_create(reg,
+                                      BG_PLUGIN_FILTER_VIDEO,
+                                      BG_PLUGIN_FILTER_1,
+                                      ret->tooltips);
+  
+  label = gtk_label_new(TR("Video filters"));
+  gtk_widget_show(label);
+  
+  gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
+                           bg_gtk_plugin_widget_multi_get_widget(ret->video_filters),
+                           label);
+  
   /* Pack */
   
   table = gtk_table_new(1, 1, 0);

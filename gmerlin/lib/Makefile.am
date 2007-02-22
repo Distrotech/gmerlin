@@ -21,8 +21,10 @@ chapterlist.c \
 chapterlist_xml.c \
 charset.c \
 cmdline.c \
+converters.c \
 device.c \
 fifo.c \
+filters.c \
 formats.c \
 hexdump.c \
 lcdproc.c \

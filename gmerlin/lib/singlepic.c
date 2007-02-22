@@ -571,7 +571,7 @@ static bg_plugin_info_t * get_input_info(bg_plugin_registry_t * reg,
   
   ret->name      = bg_strdup(ret->name, plugin->common.name);
   ret->long_name = bg_strdup(ret->long_name, plugin->common.long_name);
-  ret->description = bg_strdup(ret->name, plugin->common.description);
+  ret->description = bg_strdup(ret->description, plugin->common.description);
   
   ret->extensions = get_extensions(reg, BG_PLUGIN_IMAGE_READER,
                                    BG_PLUGIN_FILE);
@@ -982,7 +982,8 @@ bg_plugin_info_t * bg_singlepic_encoder_info(bg_plugin_registry_t * reg)
   
   ret->name      = bg_strdup(ret->name, encoder_plugin.common.name);
   ret->long_name = bg_strdup(ret->long_name, encoder_plugin.common.long_name);
-  ret->description = bg_strdup(ret->name, encoder_plugin.common.description);
+  ret->description = bg_strdup(ret->description,
+                               encoder_plugin.common.description);
   
   ret->extensions = get_extensions(reg, BG_PLUGIN_IMAGE_WRITER,
                                    BG_PLUGIN_FILE);

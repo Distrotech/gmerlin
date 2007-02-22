@@ -82,8 +82,10 @@ typedef struct
   char * label;
 
   bg_parameter_info_t * general_parameters;
+  bg_parameter_info_t * filter_parameters;
   bg_cfg_section_t * encoder_section;
   bg_cfg_section_t * general_section;
+  bg_cfg_section_t * filter_section;
   } bg_transcoder_track_audio_t;
 
 typedef struct
@@ -91,9 +93,12 @@ typedef struct
   char * label;
 
   bg_parameter_info_t * general_parameters;
+  bg_parameter_info_t * filter_parameters;
+  
   bg_cfg_section_t * encoder_section;
 
   bg_cfg_section_t * general_section;
+  bg_cfg_section_t * filter_section;
   } bg_transcoder_track_video_t;
 
 typedef struct
@@ -219,8 +224,7 @@ void bg_transcoder_track_get_duration(bg_transcoder_track_t * t,
 
 void
 bg_transcoder_track_create_parameters(bg_transcoder_track_t * track,
-                                      const bg_plugin_info_t * audio_info,
-                                      const bg_plugin_info_t * video_info);
+                                      bg_plugin_registry_t * plugin_reg);
 
 void
 bg_transcoder_track_set_encoders(bg_transcoder_track_t * track,
