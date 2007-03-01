@@ -17,7 +17,7 @@ static void (FUNC_NAME)(gavl_video_scale_context_t * ctx)
     SCALE_INIT
 
     _src = src_start + ctx->offset->src_advance * ctx->table_h.pixels[i].index;
-    for(j = 0; j < ctx->num_taps; j++)
+    for(j = 0; j < ctx->num_taps_h; j++)
       {
       src = (TYPE*)_src;
 

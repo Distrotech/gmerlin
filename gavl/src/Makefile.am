@@ -3,7 +3,8 @@ png_programs = \
 colorspace_test \
 fill_test \
 blend_test \
-scaletest 
+scaletest \
+convolvetest
 else
 png_programs =
 endif
@@ -27,6 +28,10 @@ blend_test_LDADD = ../gavl/libgavl.la -lpng -lz
 
 scaletest_SOURCES = scaletest.c
 scaletest_LDADD = ../gavl/libgavl.la -lpng -lz
+
+convolvetest_SOURCES = convolvetest.c
+convolvetest_LDADD = ../gavl/libgavl.la -lpng -lz
+
 
 plot_scale_kernels_SOURCES = plot_scale_kernels.c
 plot_scale_kernels_LDADD = ../gavl/libgavl.la

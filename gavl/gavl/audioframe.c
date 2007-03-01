@@ -158,7 +158,7 @@ void gavl_audio_frame_mute(gavl_audio_frame_t * frame,
   frame->valid_samples = format->samples_per_frame;
   }
 
-int gavl_audio_frame_copy(gavl_audio_format_t * format,
+int gavl_audio_frame_copy(const gavl_audio_format_t * format,
                           gavl_audio_frame_t * dst,
                           gavl_audio_frame_t * src,
                           int out_pos,

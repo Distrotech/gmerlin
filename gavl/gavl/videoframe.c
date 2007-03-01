@@ -302,7 +302,7 @@ void gavl_video_frame_null(gavl_video_frame_t* frame)
   }
 
 void gavl_video_frame_clear(gavl_video_frame_t * frame,
-                            gavl_video_format_t * format)
+                            const gavl_video_format_t * format)
   {
   int i, j;
   uint16_t * ptr_16;
@@ -489,7 +489,7 @@ static void copy_plane(gavl_video_frame_t * dst,
     }
   }
 
-void gavl_video_frame_copy_plane(gavl_video_format_t * format,
+void gavl_video_frame_copy_plane(const gavl_video_format_t * format,
                                  gavl_video_frame_t * dst,
                                  gavl_video_frame_t * src, int plane)
   {
@@ -513,7 +513,7 @@ void gavl_video_frame_copy_plane(gavl_video_format_t * format,
   copy_plane(dst, src, plane, bytes_per_line, height);
   }
 
-void gavl_video_frame_copy(gavl_video_format_t * format,
+void gavl_video_frame_copy(const gavl_video_format_t * format,
                            gavl_video_frame_t * dst,
                            gavl_video_frame_t * src)
   {
@@ -739,7 +739,7 @@ static flip_scanline_func find_flip_scanline_func(gavl_pixelformat_t csp)
   return (flip_scanline_func)0;
   }
 
-void gavl_video_frame_copy_flip_x(gavl_video_format_t * format,
+void gavl_video_frame_copy_flip_x(const gavl_video_format_t * format,
                                   gavl_video_frame_t * dst,
                                   gavl_video_frame_t * src)
   {
@@ -776,7 +776,7 @@ void gavl_video_frame_copy_flip_x(gavl_video_format_t * format,
   
   }
 
-void gavl_video_frame_copy_flip_y(gavl_video_format_t * format,
+void gavl_video_frame_copy_flip_y(const gavl_video_format_t * format,
                                   gavl_video_frame_t * dst,
                                   gavl_video_frame_t * src)
   {
@@ -818,7 +818,7 @@ void gavl_video_frame_copy_flip_y(gavl_video_format_t * format,
 
   }
 
-void gavl_video_frame_copy_flip_xy(gavl_video_format_t * format,
+void gavl_video_frame_copy_flip_xy(const gavl_video_format_t * format,
                                   gavl_video_frame_t * dst,
                                   gavl_video_frame_t * src)
   {
@@ -860,7 +860,7 @@ void gavl_video_frame_copy_flip_xy(gavl_video_format_t * format,
 
 
 void gavl_video_frame_dump(gavl_video_frame_t * frame,
-                           gavl_video_format_t * format,
+                           const gavl_video_format_t * format,
                            const char * namebase)
   {
   char * filename;
@@ -984,7 +984,7 @@ void gavl_video_frame_get_field(gavl_pixelformat_t pixelformat,
     }
 
 static void fill_16_packed(gavl_video_frame_t * frame,
-                           gavl_video_format_t * format,
+                           const gavl_video_format_t * format,
                            uint16_t color)
   {
   FILL_FUNC_HEAD_PACKED(uint16_t);
@@ -993,7 +993,7 @@ static void fill_16_packed(gavl_video_frame_t * frame,
   }
 
 static void fill_24_packed(gavl_video_frame_t * frame,
-                           gavl_video_format_t * format,
+                           const gavl_video_format_t * format,
                            uint8_t * color)
   {
   FILL_FUNC_HEAD_PACKED(uint8_t);
@@ -1004,7 +1004,7 @@ static void fill_24_packed(gavl_video_frame_t * frame,
   }
 
 static void fill_32_packed(gavl_video_frame_t * frame,
-                           gavl_video_format_t * format,
+                           const gavl_video_format_t * format,
                            uint8_t * _color)
   {
   uint32_t * color = (uint32_t*)_color;
@@ -1014,7 +1014,7 @@ static void fill_32_packed(gavl_video_frame_t * frame,
   }
 
 static void fill_32_packed_422(gavl_video_frame_t * frame,
-                               gavl_video_format_t * format,
+                               const gavl_video_format_t * format,
                                uint8_t * _color)
   {
   uint32_t * color = (uint32_t*)_color;
@@ -1025,7 +1025,7 @@ static void fill_32_packed_422(gavl_video_frame_t * frame,
 
 
 static void fill_48_packed(gavl_video_frame_t * frame,
-                           gavl_video_format_t * format,
+                           const gavl_video_format_t * format,
                            uint16_t * color)
   {
   FILL_FUNC_HEAD_PACKED(uint16_t);
@@ -1034,7 +1034,7 @@ static void fill_48_packed(gavl_video_frame_t * frame,
   }
 
 static void fill_64_packed(gavl_video_frame_t * frame,
-                           gavl_video_format_t * format,
+                           const gavl_video_format_t * format,
                            uint16_t * color)
   {
   FILL_FUNC_HEAD_PACKED(uint16_t);
@@ -1043,7 +1043,7 @@ static void fill_64_packed(gavl_video_frame_t * frame,
   }
 
 static void fill_float_rgb(gavl_video_frame_t * frame,
-                           gavl_video_format_t * format,
+                           const gavl_video_format_t * format,
                            float * color)
   {
   FILL_FUNC_HEAD_PACKED(float);
@@ -1052,7 +1052,7 @@ static void fill_float_rgb(gavl_video_frame_t * frame,
   }
 
 static void fill_float_rgba(gavl_video_frame_t * frame,
-                            gavl_video_format_t * format,
+                            const gavl_video_format_t * format,
                             float * color)
   {
   FILL_FUNC_HEAD_PACKED(float);
@@ -1079,7 +1079,7 @@ static void fill_float_rgba(gavl_video_frame_t * frame,
 
 
 static void fill_planar_8(gavl_video_frame_t * frame,
-                          gavl_video_format_t * format,
+                          const gavl_video_format_t * format,
                           uint8_t * color)
   {
   int i, imax;
@@ -1113,7 +1113,7 @@ static void fill_planar_8(gavl_video_frame_t * frame,
   }
 
 static void fill_planar_16(gavl_video_frame_t * frame,
-                           gavl_video_format_t * format,
+                           const gavl_video_format_t * format,
                            uint16_t * color)
   {
   int i, j, imax, jmax;
@@ -1167,8 +1167,8 @@ static void fill_planar_16(gavl_video_frame_t * frame,
 
 
 void gavl_video_frame_fill(gavl_video_frame_t * frame,
-                            gavl_video_format_t * format,
-                            float * color)
+                           const gavl_video_format_t * format,
+                           float * color)
   {
   INIT_RGB_FLOAT_TO_YUV
   uint16_t packed_16;

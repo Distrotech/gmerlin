@@ -104,7 +104,7 @@ void gavl_volume_control_destroy(gavl_volume_control_t * v)
 /* Set format: can be called multiple times with one instance */
 
 void gavl_volume_control_set_format(gavl_volume_control_t * v,
-                                    gavl_audio_format_t * format)
+                                    const gavl_audio_format_t * format)
   {
   gavl_volume_funcs_t * funcs;
 

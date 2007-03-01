@@ -94,6 +94,7 @@ void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt)
       gavl_init_scale_funcs_bicubic_c(tab);
       break;
     case GAVL_SCALE_SINC_LANCZOS:
+    case GAVL_SCALE_NONE:
       gavl_init_scale_funcs_generic_c(tab);
       break;
     }
@@ -265,7 +266,81 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
   return 1;
   }
 
-gavl_video_options_t * gavl_video_scaler_get_options(gavl_video_scaler_t * s)
+
+int gavl_video_scaler_init_convolve(gavl_video_scaler_t * scaler,
+                                    const gavl_video_format_t * format,
+                                    int h_radius, float * h_coeffs,
+                                    int v_radius, float * v_coeffs)
+  {
+  gavl_rectangle_f_t src_rect;
+  gavl_rectangle_i_t  dst_rect;
+  gavl_video_options_t opt;
+
+  int field, plane;
+ 
+  /* Copy options because we want to change them */
+
+  gavl_video_options_copy(&opt, &(scaler->opt));
+  
+  /* Copy formats */
+  
+  gavl_video_format_copy(&(scaler->src_format), format);
+  gavl_video_format_copy(&(scaler->dst_format), format);
+  
+  gavl_rectangle_f_set_all(&(src_rect), &(scaler->src_format));
+  gavl_rectangle_i_set_all(&(dst_rect), &(scaler->dst_format));
+  gavl_video_options_set_rectangles(&opt, &(src_rect), &(dst_rect));
+    
+  /* Check how many fields we must handle */
+
+  if(format->interlace_mode != GAVL_INTERLACE_NONE)
+    {
+    scaler->src_fields = 2;
+    scaler->dst_fields = 2;
+    }
+  else
+    {
+    scaler->src_fields = 1;
+    scaler->dst_fields = 1;
+    }
+  
+  /* Copy destination rectangle so we know, which subframe to take */
+  gavl_rectangle_i_copy(&scaler->dst_rect, &opt.dst_rect);
+  
+  /* Check how many planes we have */
+  
+  if((scaler->src_format.pixelformat == GAVL_YUY2) ||
+     (scaler->src_format.pixelformat == GAVL_UYVY))
+    scaler->num_planes = 3;
+  else
+    scaler->num_planes = 
+      gavl_pixelformat_num_planes(scaler->src_format.pixelformat);
+  
+  if((scaler->src_fields == 2) && (!scaler->src_field))
+    scaler->src_field = gavl_video_frame_create(NULL);
+  
+  if((scaler->dst_fields == 2) && (!scaler->dst_field))
+    scaler->dst_field = gavl_video_frame_create(NULL);
+  
+  /* Now, initialize all fields and planes */
+  
+  for(field = 0; field < scaler->src_fields; field++)
+    {
+    for(plane = 0; plane < scaler->num_planes; plane++)
+      {
+      gavl_video_scale_context_init_convolve(&(scaler->contexts[field][plane]),
+                                    &opt,
+                                    plane, format, 
+                                    scaler->src_fields,
+                                    h_radius, h_coeffs,
+                                    v_radius, v_coeffs);
+      }
+    }
+  return 1;
+  }
+
+gavl_video_options_t * 
+gavl_video_scaler_get_options(gavl_video_scaler_t * s)
   {
   return &(s->opt);
   }
@@ -276,7 +351,8 @@ void gavl_video_scaler_scale(gavl_video_scaler_t * s,
   {
   int i, field;
   /* Set the destination subframe */
-  gavl_video_frame_get_subframe(s->dst_format.pixelformat, dst, s->dst, &(s->dst_rect));
+  gavl_video_frame_get_subframe(s->dst_format.pixelformat, dst, s->dst, 
+                                &(s->dst_rect));
 #if 0
   fprintf(stderr, "Get subframe\n");
   gavl_rectangle_i_dump(&(s->dst_rect));
@@ -285,10 +361,12 @@ void gavl_video_scaler_scale(gavl_video_scaler_t * s,
   if(s->src_fields > s->dst_fields)
     {
     field = (s->opt.deinterlace_drop_mode == GAVL_DEINTERLACE_DROP_BOTTOM) ? 0 : 1;
-    gavl_video_frame_get_field(s->src_format.pixelformat, src, s->src_field, field);
+    gavl_video_frame_get_field(s->src_format.pixelformat, src, 
+                               s->src_field, field);
     
     for(i = 0; i < s->num_planes; i++)
-      gavl_video_scale_context_scale(&(s->contexts[field][i]), s->src_field, s->dst);
+      gavl_video_scale_context_scale(&(s->contexts[field][i]), 
+                                     s->src_field, s->dst);
     }
   else if(s->src_fields == 2)
     {

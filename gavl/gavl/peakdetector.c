@@ -158,7 +158,7 @@ void gavl_peak_detector_destroy(gavl_peak_detector_t *pd)
 
 
 void gavl_peak_detector_set_format(gavl_peak_detector_t *pd,
-                                    gavl_audio_format_t * format)
+                                   const gavl_audio_format_t * format)
   {
   gavl_audio_format_copy(&pd->format, format);
   switch(pd->format.interleave_mode)

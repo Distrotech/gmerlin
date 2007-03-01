@@ -71,6 +71,9 @@ static void shift_borders(gavl_video_scale_table_t * tab, int src_width);
 
 static void normalize_table(gavl_video_scale_table_t * tab);
 
+static void alloc_table(gavl_video_scale_table_t * tab,
+                        int num_pixels);
+
 void gavl_video_scale_table_init(gavl_video_scale_table_t * tab,
                                  gavl_video_options_t * opt,
                                  double src_off, double src_size,
@@ -121,26 +124,12 @@ void gavl_video_scale_table_init(gavl_video_scale_table_t * tab,
   
   /* (Re)allocate memory */
 
-  if(tab->pixels_alloc < dst_size)
-    {
-    tab->pixels_alloc = dst_size + 128;
-    tab->pixels = realloc(tab->pixels, tab->pixels_alloc * sizeof(*(tab->pixels)));
-    }
-
-  tab->num_pixels = dst_size;
-  
-  if(tab->factors_alloc < dst_size * tab->factors_per_pixel)
-    {
-    tab->factors_alloc =  dst_size * tab->factors_per_pixel + 128;
-    tab->factors = realloc(tab->factors, tab->factors_alloc * sizeof(*(tab->factors)));
-    }
-  
+  alloc_table(tab, dst_size);
+ 
   scale_factor = (double)(dst_size) / src_size;
   
   for(i = 0; i < dst_size; i++)
     {
-    /* Set the factor pointers */
-    tab->pixels[i].factor = tab->factors + i * tab->factors_per_pixel;
 
     /* src_index_f:       Fractional source index */
     /* src_index_nearest: Nearest integer source index */
@@ -202,6 +191,56 @@ void gavl_video_scale_table_init(gavl_video_scale_table_t * tab,
   //      gavl_video_scale_table_dump(tab);
   
   }
+
+void 
+gavl_video_scale_table_init_convolve(gavl_video_scale_table_t * tab,
+                                     gavl_video_options_t * opt,
+                                     int num_coeffs, float * coeffs,
+                                     int size)
+  {
+  int i, j;
+  tab->factors_per_pixel = num_coeffs * 2 + 1;
+  alloc_table(tab, size);
+  
+  for(i = 0; i < size; i++)
+    {
+    tab->pixels[i].index = i - num_coeffs;
+    for(j = 0; j < tab->factors_per_pixel; j++)
+      tab->pixels[i].factor[j].fac_f = coeffs[j];
+    }
+
+  shift_borders(tab, size);
+
+  if(opt->conversion_flags & GAVL_VIDEO_CONVOLVE_NORMALIZE)
+    normalize_table(tab);   
+  }
+
+static void alloc_table(gavl_video_scale_table_t * tab,
+                        int dst_size)
+  {
+  int i;
+  if(tab->pixels_alloc < dst_size)
+    {
+    tab->pixels_alloc = dst_size + 128;
+    tab->pixels = realloc(tab->pixels, tab->pixels_alloc * sizeof(*(tab->pixels)));
+    }
+
+  tab->num_pixels = dst_size;
+  
+  if(tab->factors_alloc < dst_size * tab->factors_per_pixel)
+    {
+    tab->factors_alloc =  dst_size * tab->factors_per_pixel + 128;
+    tab->factors = realloc(tab->factors, tab->factors_alloc * sizeof(*(tab->factors)));
+    }
+
+  for(i = 0; i < dst_size; i++)
+    {
+    /* Set the factor pointers */
+    tab->pixels[i].factor = tab->factors + i * tab->factors_per_pixel;
+    }
+  }
+
+
 
 static void normalize_table(gavl_video_scale_table_t * tab)
   {
@@ -324,10 +363,12 @@ void gavl_video_scale_table_dump(gavl_video_scale_table_t * tab)
 
     for(j = 0; j < tab->factors_per_pixel; j++)
       {
-      //      fprintf(stderr, ", fac[%d]: %f [%d]", tab->pixels[i].index + j, tab->pixels[i].factor[j].fac_f,
+      //      fprintf(stderr, ", fac[%d]: %f [%d]", tab->pixels[i].index + j,
+      //              tab->pixels[i].factor[j].fac_f,
       //              tab->pixels[i].factor[j].fac_i);
 
-      fprintf(stderr, ", fac[%d]: %f ", tab->pixels[i].index + j, tab->pixels[i].factor[j].fac_f);
+      fprintf(stderr, ", fac[%d]: %f ", tab->pixels[i].index + j,
+              tab->pixels[i].factor[j].fac_f);
       
       sum += tab->pixels[i].factor[j].fac_f;
       }
@@ -335,7 +376,6 @@ void gavl_video_scale_table_dump(gavl_video_scale_table_t * tab)
     fprintf(stderr, ", sum: %f\n", sum);
     }
   }
-
 
 void gavl_video_scale_table_init_int(gavl_video_scale_table_t * tab,
                                      int bits)

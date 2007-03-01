@@ -468,7 +468,7 @@ void gavl_audio_frame_mute(gavl_audio_frame_t * frame,
   
 */
   
-int gavl_audio_frame_copy(gavl_audio_format_t * format,
+int gavl_audio_frame_copy(const gavl_audio_format_t * format,
                           gavl_audio_frame_t * dst,
                           gavl_audio_frame_t * src,
                           int dst_pos,
@@ -779,7 +779,7 @@ void gavl_volume_control_destroy(gavl_volume_control_t *ctrl);
  */
 
 void gavl_volume_control_set_format(gavl_volume_control_t *ctrl,
-                                    gavl_audio_format_t * format);
+                                    const gavl_audio_format_t * format);
 
 /*! \ingroup volume_control
  *  \brief Set volume for a volume control
@@ -842,7 +842,7 @@ void gavl_peak_detector_destroy(gavl_peak_detector_t *pd);
  */
 
 void gavl_peak_detector_set_format(gavl_peak_detector_t *pd,
-                                    gavl_audio_format_t * format);
+                                   const gavl_audio_format_t * format);
 
 /*! \ingroup peak_detection
  *  \brief Feed the peak detector with a new frame
@@ -1647,7 +1647,7 @@ void gavl_video_frame_null(gavl_video_frame_t*frame);
 */
 
 void gavl_video_frame_clear(gavl_video_frame_t * frame,
-                            gavl_video_format_t * format);
+                            const gavl_video_format_t * format);
 
 /*!
   \ingroup video_frame
@@ -1659,7 +1659,7 @@ void gavl_video_frame_clear(gavl_video_frame_t * frame,
 */
 
 void gavl_video_frame_fill(gavl_video_frame_t * frame,
-                           gavl_video_format_t * format,
+                           const gavl_video_format_t * format,
                            float * color);
 
   
@@ -1675,7 +1675,7 @@ void gavl_video_frame_fill(gavl_video_frame_t * frame,
  
 */
 
-void gavl_video_frame_copy(gavl_video_format_t * format,
+void gavl_video_frame_copy(const gavl_video_format_t * format,
                            gavl_video_frame_t * dst,
                            gavl_video_frame_t * src);
 
@@ -1691,7 +1691,7 @@ void gavl_video_frame_copy(gavl_video_format_t * format,
  
 */
   
-void gavl_video_frame_copy_plane(gavl_video_format_t * format,
+void gavl_video_frame_copy_plane(const gavl_video_format_t * format,
                                  gavl_video_frame_t * dst,
                                  gavl_video_frame_t * src, int plane);
 
@@ -1706,7 +1706,7 @@ void gavl_video_frame_copy_plane(gavl_video_format_t * format,
  
 */
   
-void gavl_video_frame_copy_flip_x(gavl_video_format_t * format,
+void gavl_video_frame_copy_flip_x(const gavl_video_format_t * format,
                                   gavl_video_frame_t * dst,
                                   gavl_video_frame_t * src);
 
@@ -1721,7 +1721,7 @@ void gavl_video_frame_copy_flip_x(gavl_video_format_t * format,
  
 */
   
-void gavl_video_frame_copy_flip_y(gavl_video_format_t * format,
+void gavl_video_frame_copy_flip_y(const gavl_video_format_t * format,
                                   gavl_video_frame_t * dst,
                                   gavl_video_frame_t * src);
 
@@ -1736,7 +1736,7 @@ void gavl_video_frame_copy_flip_y(gavl_video_format_t * format,
  
 */
 
-void gavl_video_frame_copy_flip_xy(gavl_video_format_t * format,
+void gavl_video_frame_copy_flip_xy(const gavl_video_format_t * format,
                                   gavl_video_frame_t * dst,
                                   gavl_video_frame_t * src);
 
@@ -1797,7 +1797,7 @@ void gavl_video_frame_get_field(gavl_pixelformat_t pixelformat,
 */
  
 void gavl_video_frame_dump(gavl_video_frame_t * frame,
-                           gavl_video_format_t * format,
+                           const gavl_video_format_t * format,
                            const char * namebase);
   
 /*****************************
@@ -1821,7 +1821,18 @@ void gavl_video_frame_dump(gavl_video_frame_t * frame,
 
 #define GAVL_FORCE_DEINTERLACE (1<<0)
 
-  
+/** \ingroup video_conversion_flags
+ * \brief Pass chroma planes to the convolver
+ */
+
+#define GAVL_VIDEO_CONVOLVE_CHROMA   (1<<1)
+
+/** \ingroup video_conversion_flags
+ * \brief Normalize convolution matrices passed to the scaler
+ */
+
+#define GAVL_VIDEO_CONVOLVE_NORMALIZE (1<<2)
+ 
 /** \ingroup video_options
  * Alpha handling mode
  *
@@ -1874,6 +1885,7 @@ typedef enum
     GAVL_SCALE_CUBIC_MITCHELL,/*!< Cubic Mitchell-Netravali */
     GAVL_SCALE_CUBIC_CATMULL, /*!< Cubic Catmull-Rom */
     GAVL_SCALE_SINC_LANCZOS,  /*!< Sinc with Lanczos window. Set order with \ref gavl_video_options_set_scale_order */
+    GAVL_SCALE_NONE,          /*!< Used internally when the scaler is used as a convolver */
   } gavl_scale_mode_t;
 
 /** \ingroup video_options
@@ -2204,6 +2216,32 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
                            const gavl_video_format_t * src_format,
                            const gavl_video_format_t * dst_format);
 
+/*! \ingroup video_scaler
+ *  \brief Initialize a video scaler as a generic convolver
+ *  \param scaler A video scaler
+ *  \param format Format (must be the same for input and output)
+ *  \param h_radius Horizontal radius
+ *  \param h_coeffs Horizontal coefficients
+ *  \param v_radius Vertical radius
+ *  \param v_coeffs Vertical coefficients
+ *  \returns If something goes wrong (should never happen), -1 is returned.
+ *
+ * This initialized a scaler for use as a generic convolver.
+ * The h_radius and v_radius arguments denote the numbers of pixels,
+ * which are taken in both left and right from the center pixel, i.e.
+ * a value of 1 will result in a 3-tap filter. The coefficients
+ * must be given for ALL taps (the convolver does not assume the
+ * coeffitients to be symmetric)
+ *
+ * This function can be called multiple times with one instance. 
+ */
+
+
+int gavl_video_scaler_init_convolve(gavl_video_scaler_t * scaler,
+                                    const gavl_video_format_t * format,
+                                    int h_radius, float * h_coeffs,
+                                    int v_radius, float * v_coeffs);
+  
 /*! \ingroup video_scaler
  *  \brief Scale video
  *  \param scaler A video scaler

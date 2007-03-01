@@ -1,14 +1,14 @@
 #
 # Automatic simd compiler feature check by Burkhard Plaum (2006-05-16)
 #
-dnl GAVL_CHECK_SIMD (cpumodel)
+dnl GAVL_CHECK_SIMD_INTERNAL (cpumodel)
 dnl Check for specific compiler simd features. These include inline
 dnl assembly as well as intrinsics. If a feature is detected, have
 dnl variable HAVE_feature is set to "true". The following features are
 dnl Supported:
 dnl MMX: Compiler can compile inline MMX assembly
 dnl SSE: Compiler can compile inline SSE assembly
-AC_DEFUN([GAVL_CHECK_SIMD],[
+AC_DEFUN([GAVL_CHECK_SIMD_INTERNAL],[
 AC_MSG_CHECKING([Architecture])
 case $1 in
   i[[3-7]]86)
@@ -170,5 +170,66 @@ dnl
 fi
 
 CFLAGS=$OLD_CFLAGS
+
+])
+
+
+dnl GAVL_CHECK_SIMD (cpumodel)
+dnl Check for specific compiler simd features. These include inline
+dnl assembly as well as intrinsics. If a feature is detected, have
+dnl variable HAVE_feature is set to "true". The following features are
+dnl Supported:
+dnl MMX: Compiler can compile inline MMX assembly
+dnl SSE: Compiler can compile inline SSE assembly
+AC_DEFUN([GAVL_CHECK_SIMD],[
+
+dnl
+dnl Check for SIMD
+dnl
+
+AH_TEMPLATE([ARCH_X86],    [Intel Architecture (32/64)])
+AH_TEMPLATE([ARCH_X86_64], [Intel Architecture (64)])
+AH_TEMPLATE([ARCH_PPC],    [PowerPC Architecture])
+
+AH_TEMPLATE([HAVE_MMX],    [MMX Supported])
+AH_TEMPLATE([HAVE_3DNOW],  [3Dnow Supported])
+AH_TEMPLATE([HAVE_SSE],    [SSE Supported])
+AH_TEMPLATE([HAVE_SSE2],   [SSE2 Supported])
+
+
+GAVL_CHECK_SIMD_INTERNAL($1, $2)
+
+if test x"$HAVE_MMX" = "xtrue"; then
+AC_DEFINE(HAVE_MMX)
+fi
+AM_CONDITIONAL(HAVE_MMX, test "x$HAVE_MMX" = "xtrue")
+
+if test x"$HAVE_3DNOW" = "xtrue"; then
+AC_DEFINE(HAVE_3DNOW)
+fi
+AM_CONDITIONAL(HAVE_3DNOW, test "x$HAVE_3DNOW" = "xtrue")
+
+if test x"$HAVE_SSE" = "xtrue"; then
+AC_DEFINE(HAVE_SSE)
+fi
+AM_CONDITIONAL(HAVE_SSE, test "x$HAVE_SSE" = "xtrue")
+
+if test x"$HAVE_SSE2" = "xtrue"; then
+AC_DEFINE(HAVE_SSE2)
+fi
+AM_CONDITIONAL(HAVE_SSE2, test "x$HAVE_SSE2" = "xtrue")
+
+if test x"$ARCH_X86" = "xtrue"; then
+AC_DEFINE(ARCH_X86)
+fi
+
+if test x"$ARCH_X86_64" = "xtrue"; then
+AC_DEFINE(ARCH_X86_64)
+fi
+
+if test x"$ARCH_PPC" = "xtrue"; then
+AC_DEFINE(ARCH_PPC)
+fi
+
 
 ])

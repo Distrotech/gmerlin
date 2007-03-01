@@ -111,6 +111,12 @@ void gavl_video_scale_table_init(gavl_video_scale_table_t * tab,
                                  int dst_size,
                                  int src_width);
 
+void 
+gavl_video_scale_table_init_convolve(gavl_video_scale_table_t * tab,
+                                     gavl_video_options_t * opt,
+                                     int num_coeffs, float * coeffs,
+                                     int size);
+
 void gavl_video_scale_table_init_int(gavl_video_scale_table_t * tab,
                                      int bits);
 
@@ -158,7 +164,8 @@ struct gavl_video_scale_context_s
   gavl_rectangle_i_t dst_rect;
 
   /* Number of filter taps */
-  int num_taps;
+  int num_taps_h;
+  int num_taps_v;
     
   /* Indices of source and destination planes inside the frame. Can be 0 for chroma channels of
      packed YUV formats */
@@ -212,10 +219,19 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*,
                                   int src_field, int dst_field,
                                   int src_fields, int dst_fields);
 
+int gavl_video_scale_context_init_convolve(gavl_video_scale_context_t*,
+                                           gavl_video_options_t * opt,
+                                           int plane,
+                                           const gavl_video_format_t * format,
+                                           int num_fields,
+                                           int h_radius, float * h_coeffs,
+                                           int v_radius, float * v_coeffs);
+
 void gavl_video_scale_context_cleanup(gavl_video_scale_context_t * ctx);
 
 void gavl_video_scale_context_scale(gavl_video_scale_context_t * ctx,
-                                    gavl_video_frame_t * src, gavl_video_frame_t * dst);
+                                    gavl_video_frame_t * src,
+                                    gavl_video_frame_t * dst);
 
 struct gavl_video_scaler_s
   {

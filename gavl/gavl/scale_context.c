@@ -808,9 +808,14 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
 #endif
 
   if(scale_x)
-    ctx->num_taps = ctx->table_h.factors_per_pixel;
+    ctx->num_taps_h = ctx->table_h.factors_per_pixel;
   else
-    ctx->num_taps = ctx->table_v.factors_per_pixel;
+    ctx->num_taps_h = 0;
+
+  if(scale_y)
+    ctx->num_taps_v = ctx->table_v.factors_per_pixel;
+  else
+    ctx->num_taps_v = 0;
   
   get_minmax(src_format->pixelformat, ctx->min_values, ctx->max_values);
   for(i = 0; i < 4; i++)
@@ -826,6 +831,404 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
             ctx->min_values[i], ctx->max_values[i]);
     }
 #endif
+  return 1;
+  }
+
+/* Factor must be a power of 2 */
+
+static void downsample_coeffs(int factor,
+                              float * coeffs, int num_coeffs,
+                              float ** coeffs_ret, 
+                              int * num_coeffs_ret)
+  {
+  int i;
+  int fac = 1;
+  float * coeffs_1;
+  float * coeffs_2;
+  float * swp;
+  int coeffs_total;
+  int last_coeffs_total;
+
+  coeffs_1 = malloc(num_coeffs * sizeof(*coeffs_1));
+  coeffs_2 = malloc(num_coeffs * sizeof(*coeffs_2));
+
+  memcpy(coeffs_1, coeffs, num_coeffs * sizeof(*coeffs));
+  *num_coeffs_ret = num_coeffs;
+
+  coeffs_total = *num_coeffs_ret * 2 + 1;
+  
+  while(fac < factor)
+    {
+    *num_coeffs_ret = (*num_coeffs_ret + 1)/2;
+    last_coeffs_total = coeffs_total;
+    coeffs_total = *num_coeffs_ret * 2 + 1;
+    if(*num_coeffs_ret & 1)
+      {
+      coeffs_2[0] = 0.5 * coeffs_1[0] + coeffs_1[1];
+      for(i = 1; i < coeffs_total - 1; i++)
+        {
+        coeffs_2[i] = 0.5 * (coeffs_1[2*i-1] + coeffs_1[2*i+1]) +
+          coeffs_1[2*i];
+        }
+      coeffs_2[coeffs_total - 1] = 
+        0.5 * coeffs_1[last_coeffs_total - 1] + 
+              coeffs_1[last_coeffs_total - 2];
+      }
+    else
+      {
+      coeffs_2[0] =  0.5 * coeffs_1[0];
+      for(i = 1; i < coeffs_total - 1; i++)
+        {
+        coeffs_2[i] = 0.5 * (coeffs_1[2*i-1] + coeffs_1[2*i+1]) +
+          coeffs_1[2*i];
+        }
+      coeffs_2[coeffs_total-1] = 
+        0.5 * coeffs_1[last_coeffs_total-1];
+      }
+    swp = coeffs_1;
+    coeffs_1 = coeffs_2;
+    coeffs_2 = swp;
+    fac *= 2;
+    }
+  *coeffs_ret = coeffs_1;
+  free(coeffs_2);
+  }
+
+int 
+gavl_video_scale_context_init_convolve(gavl_video_scale_context_t* ctx,
+                                       gavl_video_options_t * opt,
+                                       int plane,
+                                       const gavl_video_format_t * format,
+                                       int num_fields,
+                                       int h_radius, float * h_coeffs,
+                                       int v_radius, float * v_coeffs)
+  {
+  int bits, i;
+  int sub_h = 1, sub_v = 1;
+  int scale_x, scale_y;
+
+  int fac_h = 1;
+  int fac_v = 1;
+
+  gavl_video_options_t tmp_opt, tmp_opt_y;
+  gavl_rectangle_i_t src_rect_i;
+
+  int h_radius_real;
+  float * h_coeffs_real, *h_c = (float*)0;
+  int v_radius_real;
+  float * v_coeffs_real, *v_c = (float*)0;
+
+  int src_width, src_height; /* Needed for generating the scale table */
+ 
+  gavl_scale_funcs_t funcs;
+  
+#if 0  
+  fprintf(stderr, "scale_context_init: src_field: %d, dst_field: %d plane: %d\n",
+          src_field, dst_field, plane);
+#endif  
+
+  gavl_rectangle_f_set_all(&(ctx->src_rect), format);
+  gavl_rectangle_i_set_all(&(ctx->dst_rect), format);
+  
+  ctx->plane = plane;
+  
+  if(plane)
+    {
+    /* Get chroma subsampling factors for source and destination */
+    gavl_pixelformat_chroma_sub(format->pixelformat, &sub_h, &sub_v);
+    
+    ctx->src_rect.w /= sub_h;
+    ctx->src_rect.h /= sub_v;
+    ctx->dst_rect.w /= sub_h;
+    ctx->dst_rect.h /= sub_v;
+
+    fac_h *= sub_h;
+    fac_v *= sub_v;
+    
+    src_width = format->image_width / sub_h;
+    src_height = format->image_height / sub_v;
+    }
+  else
+    {
+    src_width =  format->image_width;
+    src_height = format->image_height;
+    }
+  
+  if(num_fields == 2)
+    {
+    ctx->src_rect.h /= 2.0;
+    ctx->dst_rect.h /= 2;
+    src_height /= 2;
+    fac_v *= 2;
+    }
+  
+#if 0
+  fprintf(stderr, "gavl_video_scale_context_init\n");
+  gavl_rectangle_f_dump(&(ctx->src_rect));
+  fprintf(stderr, "\n");
+  gavl_rectangle_i_dump(&(ctx->dst_rect));
+  fprintf(stderr, "\n");
+#endif
+  
+  /* Calculate chroma offsets  */
+  if(plane && !(opt->conversion_flags & GAVL_VIDEO_CONVOLVE_CHROMA))
+    {
+    scale_x = 0;
+    scale_y = 0;
+    }
+  else
+    {
+    if(h_radius > 0)
+      scale_x = 1;
+    else
+      scale_x = 0;
+
+    if(v_radius > 0)
+      scale_y = 1;
+    else
+      scale_y = 0;
+    }
+
+  /* Downsample coefficients */
+
+  h_radius_real = h_radius;
+  v_radius_real = v_radius;
+
+  if(scale_x)
+    {
+    if(fac_h > 1)
+      {
+      downsample_coeffs(fac_h, h_coeffs, h_radius,
+                        &h_c, &h_radius_real);
+      h_coeffs_real = h_c;
+      }
+    else
+      h_coeffs_real = h_coeffs;
+    }
+  if(scale_y)
+    {
+    if(fac_v > 1)
+      {
+      downsample_coeffs(fac_v, v_coeffs, v_radius,
+                        &v_c, &v_radius_real);
+      v_coeffs_real = v_c;
+      }
+    else
+      v_coeffs_real = v_coeffs;
+    }
+ 
+  ctx->func1 = NULL;
+  ctx->func2 = NULL;
+  
+  ctx->num_directions = 0;
+  if(scale_x)
+    ctx->num_directions++;
+  if(scale_y)
+    ctx->num_directions++;
+  
+  /* Set source and destination frame planes */
+  
+  if(gavl_pixelformat_is_planar(format->pixelformat))
+    {
+    ctx->src_frame_plane = plane;
+    ctx->dst_frame_plane = plane;
+    }
+  else
+    {
+    ctx->src_frame_plane = 0;
+    ctx->dst_frame_plane = 0;
+    }
+
+  if(!ctx->num_directions)
+    {
+    ctx->bytes_per_line = 
+      gavl_pixelformat_is_planar(format->pixelformat) ?
+      ctx->dst_rect.w * gavl_pixelformat_bytes_per_component(format->pixelformat) :
+      ctx->dst_rect.w * gavl_pixelformat_bytes_per_pixel(format->pixelformat);
+
+    if((format->pixelformat == GAVL_YUY2) ||
+       (format->pixelformat == GAVL_UYVY))
+      ctx->func1 = copy_scanline_advance;
+    else
+      ctx->func1 = copy_scanline_noadvance;
+    
+    /* Set source and destination offsets */
+    get_offsets(format->pixelformat,
+                plane, &ctx->offset1.src_advance, &ctx->offset1.src_offset);
+    get_offsets(format->pixelformat,
+                plane, &ctx->offset1.dst_advance, &ctx->offset1.dst_offset);
+
+    /* We set this once here */
+
+    ctx->offset = &(ctx->offset1);
+    ctx->dst_size = ctx->dst_rect.w;
+
+    ctx->num_directions = 1;
+    return 0;
+    }
+
+  else if(scale_x && scale_y)
+    {
+    //    fprintf(stderr, "Initializing x table\n");
+    gavl_video_options_copy(&tmp_opt, opt);
+    tmp_opt.scale_mode = GAVL_SCALE_NONE;
+    gavl_video_scale_table_init_convolve(&(ctx->table_h),
+                                         &tmp_opt,
+                                         h_radius, h_coeffs,
+                                         format->image_width);
+    //    fprintf(stderr, "Initializing x table done\n");
+
+    //    fprintf(stderr, "Initializing y table\n");
+    gavl_video_options_copy(&tmp_opt_y, opt);
+    tmp_opt_y.scale_mode = GAVL_SCALE_NONE;
+    gavl_video_scale_table_init_convolve(&(ctx->table_v),
+                                         &tmp_opt_y,
+                                         v_radius, v_coeffs,
+                                         format->image_height);
+   
+    //    fprintf(stderr, "Initializing y table done\n");
+    
+    /* Check if we can scale in x and y-directions at once */
+
+    if((tmp_opt.scale_mode == tmp_opt_y.scale_mode) &&
+       (tmp_opt.scale_order == tmp_opt_y.scale_order))
+      {
+      memset(&funcs, 0, sizeof(funcs));
+      gavl_init_scale_funcs(&funcs, &tmp_opt);
+      ctx->func1 = get_func(&(funcs.funcs_xy), format->pixelformat, &bits);
+      //      fprintf(stderr, "X AND Y\n");
+      }
+    
+    if(ctx->func1) /* Scaling routines for x-y are there, good */
+      {
+      ctx->num_directions = 1;
+            
+      gavl_video_scale_table_init_int(&(ctx->table_h), bits);
+      gavl_video_scale_table_init_int(&(ctx->table_v), bits);
+      }
+    else
+      {
+      gavl_video_scale_table_get_src_indices(&(ctx->table_h),
+                                             &src_rect_i.x, &src_rect_i.w);
+      gavl_video_scale_table_get_src_indices(&(ctx->table_v),
+                                             &src_rect_i.y, &src_rect_i.h);
+
+      //        fprintf(stderr, "X then Y\n");
+      /* X then Y */
+
+      ctx->buffer_width  = ctx->dst_rect.w;
+      ctx->buffer_height = src_rect_i.h;
+        
+      gavl_video_scale_table_shift_indices(&(ctx->table_v), -src_rect_i.y);
+        
+      memset(&funcs, 0, sizeof(funcs));
+      gavl_init_scale_funcs(&funcs, &tmp_opt);
+      ctx->func1 = get_func(&funcs.funcs_x, format->pixelformat, &bits);
+      gavl_video_scale_table_init_int(&(ctx->table_h), bits);
+
+      memset(&funcs, 0, sizeof(funcs));
+      gavl_init_scale_funcs(&funcs, &tmp_opt_y);
+      ctx->func2 = get_func(&funcs.funcs_y, format->pixelformat, &bits);
+      gavl_video_scale_table_init_int(&(ctx->table_v), bits);
+     
+      /* Allocate temporary buffer */
+      alloc_temp(ctx, format->pixelformat);
+      }
+    }
+  else if(scale_x)
+    {
+    //    fprintf(stderr, "Initializing x table\n");
+    gavl_video_options_copy(&tmp_opt, opt);
+    tmp_opt.scale_mode = GAVL_SCALE_NONE;
+
+    gavl_video_scale_table_init_convolve(&(ctx->table_h),
+                                         &tmp_opt,
+                                         h_radius, h_coeffs,
+                                         format->image_width);
+    //    fprintf(stderr, "Initializing x table done\n");
+    memset(&funcs, 0, sizeof(funcs));
+    gavl_init_scale_funcs(&funcs, &tmp_opt);
+    ctx->func1 = get_func(&(funcs.funcs_x), format->pixelformat, &bits);
+    
+    gavl_video_scale_table_init_int(&(ctx->table_h), bits);
+    }
+  else if(scale_y)
+    {
+    //    fprintf(stderr, "Initializing y table\n");
+    gavl_video_options_copy(&tmp_opt, opt);
+    tmp_opt.scale_mode = GAVL_SCALE_NONE;
+    gavl_video_scale_table_init_convolve(&(ctx->table_v),
+                                         &tmp_opt,
+                                         v_radius, v_coeffs,
+                                         format->image_height);
+    
+    //    fprintf(stderr, "Initializing y table done\n");
+    memset(&funcs, 0, sizeof(funcs));
+    gavl_init_scale_funcs(&funcs, &tmp_opt);
+    ctx->func1 = get_func(&(funcs.funcs_y), format->pixelformat, &bits);
+    
+    gavl_video_scale_table_init_int(&(ctx->table_v), bits);
+    }
+  
+  /* Set source and destination offsets */
+
+  if(ctx->num_directions == 1)
+    {
+    get_offsets(format->pixelformat,
+                plane, &ctx->offset1.src_advance, &ctx->offset1.src_offset);
+    get_offsets(format->pixelformat,
+                plane, &ctx->offset1.dst_advance, &ctx->offset1.dst_offset);
+
+    /* We set this once here */
+
+    ctx->offset = &(ctx->offset1);
+    ctx->dst_size = ctx->dst_rect.w;
+    }
+  else if(ctx->num_directions == 2)
+    {
+    get_offsets(format->pixelformat,
+                plane, &ctx->offset1.src_advance, &ctx->offset1.src_offset);
+
+    get_offsets(format->pixelformat,
+                plane, &ctx->offset1.dst_advance, &ctx->offset1.dst_offset);
+    ctx->offset1.dst_offset = 0;
+
+    if((format->pixelformat == GAVL_YUY2) || 
+       (format->pixelformat == GAVL_UYVY))
+      {
+      ctx->offset1.dst_advance = 1;
+      }
+    ctx->offset2.src_advance = ctx->offset1.dst_advance;
+    ctx->offset2.src_offset  = ctx->offset1.dst_offset;
+    
+    get_offsets(format->pixelformat,
+                plane, &ctx->offset2.dst_advance, &ctx->offset2.dst_offset);
+    }
+  
+#if 0  
+  /* Dump final scale tables */
+  fprintf(stderr, "Horizontal table:\n");
+  gavl_video_scale_table_dump(&(ctx->table_h));
+  fprintf(stderr, "Vertical table:\n");
+  gavl_video_scale_table_dump(&(ctx->table_v));
+#endif
+
+  if(scale_x)
+    ctx->num_taps_h = ctx->table_h.factors_per_pixel;
+  else
+    ctx->num_taps_h = 0;
+
+  if(scale_y)
+    ctx->num_taps_v = ctx->table_v.factors_per_pixel;
+  else
+    ctx->num_taps_v = 0;
+  
+  get_minmax(format->pixelformat, ctx->min_values, ctx->max_values);
+  for(i = 0; i < 4; i++)
+    {
+    ctx->min_values[i] <<= bits;
+    ctx->max_values[i] <<= bits;
+    }
   return 1;
   }
 

@@ -175,7 +175,12 @@ typedef struct {
 #define FUNC_NAME scale_uint16_x_4_x_generic_c
 #define TYPE uint16_t
 
-#define SCALE_INIT ctx->tmp[0] = 0;ctx->tmp[1] = 0;ctx->tmp[2] = 0;
+#define SCALE_INIT \
+ctx->tmp[0] = 0;\
+ctx->tmp[1] = 0;\
+ctx->tmp[2] = 0;\
+ctx->tmp[3] = 0;
+
 
 #define SCALE_ACCUM                                                     \
   ctx->tmp[0] += (int64_t)ctx->table_h.pixels[i].factor[j].fac_i * src[0];   \
