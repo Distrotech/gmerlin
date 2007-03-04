@@ -6,6 +6,16 @@ AM_CONFIG_HEADER(include/gavl/config.h)
 
 AM_INIT_AUTOMAKE(gavl, 0.2.6)
 
+GAVL_VERSION=$VERSION
+
+GAVL_VERSION_MAJOR=`echo $VERSION | cut -d . -f 1`
+GAVL_VERSION_MINOR=`echo $VERSION | cut -d . -f 2`
+GAVL_VERSION_MICRO=`echo $VERSION | cut -d . -f 3 | cut -d p -f 1`
+AC_SUBST(GAVL_VERSION)
+AC_SUBST(GAVL_VERSION_MAJOR)
+AC_SUBST(GAVL_VERSION_MINOR)
+AC_SUBST(GAVL_VERSION_MICRO)
+
 AC_CANONICAL_HOST
 
 dnl AC_DISABLE_STATIC
@@ -125,6 +135,7 @@ m4/Makefile \
 include/Makefile \
 include/gavlconfig.h \
 include/gavl/Makefile \
+include/gavl/gavl_version.h \
 gavl/Makefile \
 gavl/libgdither/Makefile \
 gavl/libsamplerate/Makefile \

@@ -843,19 +843,20 @@ static void downsample_coeffs(int factor,
   {
   int i;
   int fac = 1;
+  int src_index;
   float * coeffs_1;
   float * coeffs_2;
   float * swp;
   int coeffs_total;
   int last_coeffs_total;
 
-  coeffs_1 = malloc(num_coeffs * sizeof(*coeffs_1));
-  coeffs_2 = malloc(num_coeffs * sizeof(*coeffs_2));
-
-  memcpy(coeffs_1, coeffs, num_coeffs * sizeof(*coeffs));
   *num_coeffs_ret = num_coeffs;
-
   coeffs_total = *num_coeffs_ret * 2 + 1;
+
+  coeffs_1 = malloc(coeffs_total * sizeof(*coeffs_1));
+  coeffs_2 = malloc(coeffs_total * sizeof(*coeffs_2));
+
+  memcpy(coeffs_1, coeffs, coeffs_total * sizeof(*coeffs));
   
   while(fac < factor)
     {
@@ -865,10 +866,13 @@ static void downsample_coeffs(int factor,
     if(*num_coeffs_ret & 1)
       {
       coeffs_2[0] = 0.5 * coeffs_1[0] + coeffs_1[1];
+      src_index = 2;
       for(i = 1; i < coeffs_total - 1; i++)
         {
-        coeffs_2[i] = 0.5 * (coeffs_1[2*i-1] + coeffs_1[2*i+1]) +
-          coeffs_1[2*i];
+        coeffs_2[i] = 0.5 * (coeffs_1[src_index-1] + 
+                             coeffs_1[src_index+1]) +
+                      coeffs_1[src_index];
+        src_index += 2;
         }
       coeffs_2[coeffs_total - 1] = 
         0.5 * coeffs_1[last_coeffs_total - 1] + 
@@ -877,10 +881,13 @@ static void downsample_coeffs(int factor,
     else
       {
       coeffs_2[0] =  0.5 * coeffs_1[0];
+      src_index = 1;
       for(i = 1; i < coeffs_total - 1; i++)
         {
-        coeffs_2[i] = 0.5 * (coeffs_1[2*i-1] + coeffs_1[2*i+1]) +
-          coeffs_1[2*i];
+        coeffs_2[i] = 0.5 * (coeffs_1[src_index-1] + 
+                             coeffs_1[src_index+1]) +
+          coeffs_1[src_index];
+        src_index += 2;
         }
       coeffs_2[coeffs_total-1] = 
         0.5 * coeffs_1[last_coeffs_total-1];
@@ -1075,7 +1082,7 @@ gavl_video_scale_context_init_convolve(gavl_video_scale_context_t* ctx,
     gavl_video_scale_table_init_convolve(&(ctx->table_h),
                                          &tmp_opt,
                                          h_radius, h_coeffs,
-                                         format->image_width);
+                                         src_width);
     //    fprintf(stderr, "Initializing x table done\n");
 
     //    fprintf(stderr, "Initializing y table\n");
@@ -1084,7 +1091,7 @@ gavl_video_scale_context_init_convolve(gavl_video_scale_context_t* ctx,
     gavl_video_scale_table_init_convolve(&(ctx->table_v),
                                          &tmp_opt_y,
                                          v_radius, v_coeffs,
-                                         format->image_height);
+                                         src_height);
    
     //    fprintf(stderr, "Initializing y table done\n");
     
@@ -1144,7 +1151,7 @@ gavl_video_scale_context_init_convolve(gavl_video_scale_context_t* ctx,
     gavl_video_scale_table_init_convolve(&(ctx->table_h),
                                          &tmp_opt,
                                          h_radius, h_coeffs,
-                                         format->image_width);
+                                         src_width);
     //    fprintf(stderr, "Initializing x table done\n");
     memset(&funcs, 0, sizeof(funcs));
     gavl_init_scale_funcs(&funcs, &tmp_opt);
@@ -1160,7 +1167,7 @@ gavl_video_scale_context_init_convolve(gavl_video_scale_context_t* ctx,
     gavl_video_scale_table_init_convolve(&(ctx->table_v),
                                          &tmp_opt,
                                          v_radius, v_coeffs,
-                                         format->image_height);
+                                         src_height);
     
     //    fprintf(stderr, "Initializing y table done\n");
     memset(&funcs, 0, sizeof(funcs));
