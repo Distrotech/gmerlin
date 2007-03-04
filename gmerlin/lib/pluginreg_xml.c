@@ -55,6 +55,18 @@ type_names[] =
 static struct
   {
   char * name;
+  int api;
+  }
+api_names[] =
+  {
+    { "gmerlin",                 BG_PLUGIN_API_GMERLIN },
+    { "ladspa",                  BG_PLUGIN_API_LADSPA  },
+    { (char*)0,                  BG_PLUGIN_NONE }
+  };
+
+static struct
+  {
+  char * name;
   int flag;
   }
 flag_names[] =
@@ -70,7 +82,7 @@ flag_names[] =
     { "Stdin",          BG_PLUGIN_STDIN         }, /* Plugin reads from stdin */
     { "Tuner",          BG_PLUGIN_TUNER         }, /* Plugin has tuner */
     { "Filter1",        BG_PLUGIN_FILTER_1      }, /* Filter with one input port */
-
+    { "Unsupported",    BG_PLUGIN_UNSUPPORTED   },
     { (char*)0,    0                           },
   };
 
@@ -104,6 +116,8 @@ static const char * subtitle_overlay_parameters_key = "SUBTITLE_OVERLAY_PARAMETE
 static const char * gettext_domain_key   = "GETTEXT_DOMAIN";
 static const char * gettext_directory_key       = "GETTEXT_DIRECTORY";
 
+static const char * api_key                  = "API";
+static const char * index_key                = "INDEX";
 
 static bg_device_info_t *
 load_device(bg_device_info_t * arr, xmlDocPtr doc, xmlNodePtr node)
@@ -252,6 +266,10 @@ static bg_plugin_info_t * load_plugin(xmlDocPtr doc, xmlNodePtr node)
       {
       sscanf(tmp_string, "%d", &(ret->priority));
       }
+    else if(!BG_XML_STRCMP(cur->name, index_key))
+      {
+      sscanf(tmp_string, "%d", &(ret->index));
+      }
     else if(!BG_XML_STRCMP(cur->name, type_key))
       {
       index = 0;
@@ -260,6 +278,19 @@ static bg_plugin_info_t * load_plugin(xmlDocPtr doc, xmlNodePtr node)
         if(!strcmp(tmp_string, type_names[index].name))
           {
           ret->type = type_names[index].type;
+          break;
+          }
+        index++;
+        }
+      }
+    else if(!BG_XML_STRCMP(cur->name, api_key))
+      {
+      index = 0;
+      while(api_names[index].name)
+        {
+        if(!strcmp(tmp_string, api_names[index].name))
+          {
+          ret->api = api_names[index].api;
           break;
           }
         index++;
@@ -501,6 +532,27 @@ static void save_plugin(xmlNodePtr parent, const bg_plugin_info_t * info)
     index++;
     }
 
+  if(info->api)
+    {
+    index = 0;
+    while(api_names[index].name)
+      {
+      if(info->api == api_names[index].api)
+        {
+        xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)api_key, NULL);
+        xmlAddChild(xml_item, BG_XML_NEW_TEXT(api_names[index].name));
+        xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
+        break;
+        }
+      index++;
+      }
+
+    xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)index_key, NULL);
+    sprintf(buffer, "%d", info->index);
+    xmlAddChild(xml_item, BG_XML_NEW_TEXT(buffer));
+    xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
+    }
+  
   /* Write flags */
 
   if(info->flags)
@@ -550,6 +602,7 @@ bg_plugin_info_t * bg_plugin_registry_load(const char * filename)
   {
   bg_plugin_info_t * ret;
   bg_plugin_info_t * end;
+  bg_plugin_info_t * new;
 
   xmlDocPtr xml_doc;
   xmlNodePtr node;
@@ -577,20 +630,23 @@ bg_plugin_info_t * bg_plugin_registry_load(const char * filename)
     {
     if(node->name && !BG_XML_STRCMP(node->name, plugin_key))
       {
-      if(!ret)
+      new = load_plugin(xml_doc, node);
+      if(!new->module_filename)
+        bg_plugin_info_destroy(new);
+      else if(!ret)
         {
-        ret = load_plugin(xml_doc, node);
+        ret = new;
         end = ret;
         }
       else
         {
-        end->next = load_plugin(xml_doc, node);
+        end->next = new;
         end = end->next;
         }
       }
     node = node->next;
     }
-      
+  
   xmlFreeDoc(xml_doc);
   
   return ret;
@@ -614,8 +670,8 @@ void bg_plugin_registry_save(bg_plugin_info_t * info)
   xmlDocSetRootElement(xml_doc, xml_registry);
   while(info)
     {
-    //    if(info->module_filename) /* We save only external plugins */
-    save_plugin(xml_registry, info);
+    if(info->module_filename) /* We save only external plugins */
+      save_plugin(xml_registry, info);
     info = info->next;
     }
   

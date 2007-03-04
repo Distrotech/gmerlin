@@ -20,6 +20,10 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+
+#include <log.h>
+#define LOG_DOMAIN "player.audio"
+
 #include "player.h"
 #include "playerprivate.h"
 
@@ -59,18 +63,14 @@ int bg_player_audio_init(bg_player_t * player, int audio_stream)
   bg_player_audio_stream_t * s;
   int do_filter;
 
-  bg_read_audio_func_t in_func;
-  void * in_data;
-  int in_stream;
-  
   if(!player->do_audio)
     return 1;
-    
+  
   s = &player->audio_stream;
   
-  in_func   = bg_player_input_read_audio;
-  in_data   = player->input_context;
-  in_stream = player->current_audio_stream;
+  s->in_func   = bg_player_input_read_audio;
+  s->in_data   = player->input_context;
+  s->in_stream = player->current_audio_stream;
   
   bg_player_input_get_audio_format(player->input_context);
 
@@ -84,12 +84,12 @@ int bg_player_audio_init(bg_player_t * player, int audio_stream)
   if(do_filter)
     {
     bg_audio_filter_chain_connect_input(s->fc,
-                                        in_func,
-                                        in_data,
-                                        in_stream);
-    in_func = bg_audio_filter_chain_read;
-    in_data = s->fc;
-    in_stream = 0;
+                                        s->in_func,
+                                        s->in_data,
+                                        s->in_stream);
+    s->in_func = bg_audio_filter_chain_read;
+    s->in_data = s->fc;
+    s->in_stream = 0;
     
     gavl_audio_format_copy(&(s->output_format),
                            &(s->pipe_format));
@@ -114,7 +114,20 @@ int bg_player_audio_init(bg_player_t * player, int audio_stream)
                            &(s->output_format));
     if(force_float)
       s->pipe_format.sample_format = GAVL_SAMPLE_FLOAT;
-    }
+
+    if(bg_audio_converter_init(s->cnv_in,
+                              &(s->input_format),
+                              &(s->pipe_format)))
+      {
+      bg_audio_converter_connect_input(s->cnv_in,
+                                       s->in_func, s->in_data,
+                                       s->in_stream);
+    
+      s->in_func = bg_audio_converter_read;
+      s->in_data = s->cnv_in;
+      s->in_stream = 0;
+      }
+   }
   
   s->input_format.samples_per_frame =
     s->output_format.samples_per_frame;
@@ -127,30 +140,7 @@ int bg_player_audio_init(bg_player_t * player, int audio_stream)
   /* Volume control */
   gavl_volume_control_set_format(s->volume,
                                  &(s->pipe_format));
-  
-  /* Initialize audio converter */
 
-
-  /* Connect elements */
-  
-  if(bg_audio_converter_init(s->cnv_in,
-                                &(s->input_format),
-                                &(s->pipe_format)))
-    {
-    bg_audio_converter_connect_input(s->cnv_in,
-                                     in_func, in_data, in_stream);
-    
-    s->in_func = bg_audio_converter_read;
-    s->in_data = s->cnv_in;
-    s->in_stream = 0;
-    }
-  else
-    {
-    s->in_func   = in_func;
-    s->in_data   = in_data;
-    s->in_stream = in_stream;
-    }
-  
   /* Output conversion */
   opt = gavl_audio_converter_get_options(s->cnv_out);
   gavl_audio_options_copy(opt, s->options.opt);
@@ -238,8 +228,21 @@ void bg_player_set_audio_parameter(void * data, char * name,
 void bg_player_set_audio_filter_parameter(void * data, char * name,
                                           bg_parameter_value_t * val)
   {
+  int need_rebuild;
   bg_player_t * p = (bg_player_t*)data;
   bg_audio_filter_chain_lock(p->audio_stream.fc);
   bg_audio_filter_chain_set_parameter(p->audio_stream.fc, name, val);
+  need_rebuild = bg_audio_filter_chain_need_rebuild(p->audio_stream.fc);
   bg_audio_filter_chain_unlock(p->audio_stream.fc);
+
+  if(bg_player_get_state(p) == BG_PLAYER_STATE_INIT)
+    need_rebuild = 0;
+  
+  if(need_rebuild)
+    {
+    bg_log(BG_LOG_INFO, LOG_DOMAIN,
+           "Restarting playback due to changed audio filters");
+    bg_player_interrupt(p);
+    bg_player_interrupt_resume(p);
+    }
   }

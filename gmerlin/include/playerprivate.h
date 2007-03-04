@@ -121,6 +121,13 @@ typedef struct
   
   } bg_player_subtitle_stream_t;
 
+typedef struct
+  {
+  int playing;
+  int has_video;
+  gavl_time_t time;
+  } bg_player_saved_state_t;
+
 /* The player */
 
 struct bg_player_s
@@ -199,6 +206,8 @@ struct bg_player_s
 
   int mute;
   pthread_mutex_t mute_mutex;
+  
+  bg_player_saved_state_t saved_state;
   
   };
 

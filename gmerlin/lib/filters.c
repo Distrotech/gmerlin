@@ -35,9 +35,15 @@ struct bg_audio_filter_chain_s
   
   bg_parameter_info_t * parameters;
   
-  pthread_mutex_t mutex;
   char * filter_string;
+  int need_rebuild;
   };
+
+int bg_audio_filter_chain_need_rebuild(bg_audio_filter_chain_t * ch)
+  {
+  return ch->need_rebuild;
+  }
+
 
 static int audio_filter_create(audio_filter_t * f, bg_audio_filter_chain_t * ch,
                                 const char * name)
@@ -72,7 +78,7 @@ static void audio_filter_destroy(audio_filter_t * f)
   {
   bg_audio_converter_destroy(f->cnv);
   if(f->handle)
-    bg_plugin_unref(f->handle);
+    bg_plugin_unref_nolock(f->handle);
   }
 
 static void destroy_audio_chain(bg_audio_filter_chain_t * ch)
@@ -94,8 +100,11 @@ static void build_audio_chain(bg_audio_filter_chain_t * ch)
   {
   int i;
   char ** filter_names;
-  filter_names = bg_strbreak(ch->filter_string, ',');
 
+  ch->need_rebuild = 0;
+  fprintf(stderr, "Build audio chain\n");
+  filter_names = bg_strbreak(ch->filter_string, ',');
+  
   destroy_audio_chain(ch);
   
   if(!filter_names)
@@ -122,7 +131,6 @@ bg_audio_filter_chain_create(const bg_gavl_audio_options_t * opt,
   ret->opt = opt;
   ret->plugin_reg = plugin_reg;
 
-  pthread_mutex_init(&(ret->mutex),(pthread_mutexattr_t *)0);
 
   return ret;
   }
@@ -135,20 +143,24 @@ static void create_audio_parameters(bg_audio_filter_chain_t * ch)
   ch->parameters->gettext_domain = bg_strdup(NULL, PACKAGE);
   ch->parameters->gettext_directory = bg_strdup(NULL, LOCALE_DIR);
   ch->parameters->type = BG_PARAMETER_MULTI_CHAIN;
+  ch->parameters->flags |= BG_PARAMETER_SYNC;
   bg_plugin_registry_set_parameter_info(ch->plugin_reg,
                                         BG_PLUGIN_FILTER_AUDIO,
                                         BG_PLUGIN_FILTER_1,
                                         ch->parameters);
   }
 
-bg_parameter_info_t * bg_audio_filter_chain_get_parameters(bg_audio_filter_chain_t * ch)
+bg_parameter_info_t *
+bg_audio_filter_chain_get_parameters(bg_audio_filter_chain_t * ch)
   {
   if(!ch->parameters)
     create_audio_parameters(ch);
   return ch->parameters;
   }
 
-void bg_audio_filter_chain_set_parameter(void * data, char * name, bg_parameter_value_t * val)
+void
+bg_audio_filter_chain_set_parameter(void * data, char * name,
+                                    bg_parameter_value_t * val)
   {
   bg_audio_filter_chain_t * ch;
   int i;
@@ -159,22 +171,29 @@ void bg_audio_filter_chain_set_parameter(void * data, char * name, bg_parameter_
   
   if(!name)
     return;
+
+  fprintf(stderr, "bg_audio_filter_chain_set_parameter: %s\n",
+          name);
   
   if(!strcmp(name, "audio_filters"))
     {
     if(!ch->filter_string && !val->val_str)
       return;
     
-    if(ch->filter_string && val->val_str && !strcmp(ch->filter_string, val->val_str))
+    if(ch->filter_string && val->val_str &&
+       !strcmp(ch->filter_string, val->val_str))
       {
       return;
       }
     /* Rebuild chain */
     ch->filter_string = bg_strdup(ch->filter_string, val->val_str);
-    build_audio_chain(ch);
+    ch->need_rebuild = 1;
     }
   else if(!strncmp(name, "audio_filters.", 14))
     {
+    if(ch->need_rebuild)
+      build_audio_chain(ch);
+
     pos = strchr(name, '.');
     pos++;
     i = atoi(pos);
@@ -198,6 +217,9 @@ int bg_audio_filter_chain_init(bg_audio_filter_chain_t * ch,
   gavl_audio_format_t format_1;
   gavl_audio_format_t format_2;
   audio_filter_t * f;
+  
+  if(ch->need_rebuild)
+    build_audio_chain(ch);
   
   if(!ch->num_filters)
     return 0;
@@ -235,7 +257,8 @@ int bg_audio_filter_chain_init(bg_audio_filter_chain_t * ch,
     if(f->do_convert)
       {
       f->plugin->connect_input_port(f->handle->priv,
-                                    bg_audio_converter_read, f->cnv, 0, 0);
+                                    bg_audio_converter_read,
+                                    f->cnv, 0, 0);
       if(i)
         bg_audio_converter_connect_input(f->cnv,
                                          ch->filters[i-1].plugin->read_audio,
@@ -249,7 +272,8 @@ int bg_audio_filter_chain_init(bg_audio_filter_chain_t * ch,
     f->plugin->get_output_format(f->handle->priv, &format_1);
 
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Initialized audio filter %s",
-           TRD(f->handle->info->long_name, f->handle->info->gettext_domain));
+           TRD(f->handle->info->long_name,
+               f->handle->info->gettext_domain));
     f++;
     }
   gavl_audio_format_copy(out_format, &format_1);
@@ -290,7 +314,6 @@ void bg_audio_filter_chain_destroy(bg_audio_filter_chain_t * ch)
   {
   if(ch->parameters)
     bg_parameter_info_destroy_array(ch->parameters);
-  pthread_mutex_destroy(&ch->mutex);
 
   if(ch->filter_string)
     free(ch->filter_string);
@@ -321,8 +344,13 @@ struct bg_video_filter_chain_s
 
   char * filter_string;
   
-  pthread_mutex_t mutex;
+  int need_rebuild;
   };
+
+int bg_video_filter_chain_need_rebuild(bg_video_filter_chain_t * ch)
+  {
+  return ch->need_rebuild;
+  }
 
 
 static int
@@ -346,7 +374,7 @@ static void video_filter_destroy(video_filter_t * f)
   {
   bg_video_converter_destroy(f->cnv);
   if(f->handle)
-    bg_plugin_unref(f->handle);
+    bg_plugin_unref_nolock(f->handle);
   }
 
 static void destroy_video_chain(bg_video_filter_chain_t * ch)
@@ -385,6 +413,7 @@ static void build_video_chain(bg_video_filter_chain_t * ch)
                         filter_names[i]);
     }
   bg_strbreak_free(filter_names);
+  ch->need_rebuild = 0;
   }
 
 
@@ -397,7 +426,6 @@ bg_video_filter_chain_create(const bg_gavl_video_options_t * opt,
   ret->opt = opt;
   ret->plugin_reg = plugin_reg;
 
-  pthread_mutex_init(&(ret->mutex),(pthread_mutexattr_t *)0);
 
   return ret;
   }
@@ -410,6 +438,7 @@ static void create_video_parameters(bg_video_filter_chain_t * ch)
   ch->parameters->gettext_domain = bg_strdup(NULL, PACKAGE);
   ch->parameters->gettext_directory = bg_strdup(NULL, LOCALE_DIR);
   ch->parameters->type = BG_PARAMETER_MULTI_CHAIN;
+  ch->parameters->flags |= BG_PARAMETER_SYNC;
   bg_plugin_registry_set_parameter_info(ch->plugin_reg,
                                         BG_PLUGIN_FILTER_VIDEO,
                                         BG_PLUGIN_FILTER_1,
@@ -442,17 +471,20 @@ void bg_video_filter_chain_set_parameter(void * data, char * name, bg_parameter_
     if(!ch->filter_string && !val->val_str)
       return;
     
-    if(ch->filter_string && val->val_str && !strcmp(ch->filter_string, val->val_str))
+    if(ch->filter_string && val->val_str &&
+       !strcmp(ch->filter_string, val->val_str))
       {
       return;
       }
-    
     /* Rebuild chain */
     ch->filter_string = bg_strdup(ch->filter_string, val->val_str);
-    build_video_chain(ch);
+    ch->need_rebuild = 1;
     }
   else if(!strncmp(name, "video_filters.", 14))
     {
+    if(ch->need_rebuild)
+      build_video_chain(ch);
+    
     pos = strchr(name, '.');
     pos++;
     i = atoi(pos);
@@ -465,9 +497,7 @@ void bg_video_filter_chain_set_parameter(void * data, char * name, bg_parameter_
     if(f->plugin->common.set_parameter)
       f->plugin->common.set_parameter(f->handle->priv, pos, val);
     }
-  
   }
-
 
 int bg_video_filter_chain_init(bg_video_filter_chain_t * ch,
                                const gavl_video_format_t * in_format,
@@ -478,6 +508,9 @@ int bg_video_filter_chain_init(bg_video_filter_chain_t * ch,
   gavl_video_format_t format_1;
   gavl_video_format_t format_2;
   video_filter_t * f;
+  
+  if(ch->need_rebuild)
+    build_video_chain(ch);
   
   if(!ch->num_filters)
     return 0;
@@ -567,7 +600,6 @@ void bg_video_filter_chain_destroy(bg_video_filter_chain_t * ch)
   {
   if(ch->parameters)
     bg_parameter_info_destroy_array(ch->parameters);
-  pthread_mutex_destroy(&ch->mutex);
   if(ch->filter_string)
     free(ch->filter_string);
   destroy_video_chain(ch);
@@ -585,3 +617,4 @@ void bg_video_filter_chain_unlock(bg_video_filter_chain_t * cnv)
   if(cnv->num_filters && cnv->filters[cnv->num_filters-1].handle)
     bg_plugin_unlock(cnv->filters[cnv->num_filters-1].handle);
   }
+

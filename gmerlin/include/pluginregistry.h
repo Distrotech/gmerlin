@@ -41,6 +41,16 @@
  */
 
 /** \ingroup plugin_registry
+ *  \brief Identifiers for plugin APIs
+ */
+
+typedef enum
+  {
+    BG_PLUGIN_API_GMERLIN = 0, //!< Always 0 so native plugins can leave this empty
+    BG_PLUGIN_API_LADSPA,      //!< Ladspa API
+  } bg_plugin_api_t;
+
+/** \ingroup plugin_registry
  *  \brief Information about a plugin
  */
 
@@ -60,7 +70,8 @@ typedef struct bg_plugin_info_s
   char * module_filename; //!< Path of the shared module
   long   module_time;     //!< Modification time of the shared module, needed internally
 
-  
+  bg_plugin_api_t api;    //!< API of the plugin
+  int index;              //!< Index inside the module. Always 0 for native plugins.
   
   bg_plugin_type_t type; //!< Plugin type
   int flags;             //!< Flags (see \ref plugin_flags)
@@ -586,6 +597,18 @@ void bg_plugin_ref(bg_plugin_handle_t * h);
  *  be destroyed
  */
 void bg_plugin_unref(bg_plugin_handle_t * h);
+
+/** \ingroup plugin_registry
+ *  \brief Decrease the reference count without locking
+ *  \param h A plugin handle
+ *
+ *  Use this *only* if you know for sure, that the plugin is
+ *  already locked and no other thread waits for the plugin to
+ *  be unlocked.
+ *  If the reference count gets zero, the plugin will
+ *  be destroyed
+ */
+void bg_plugin_unref_nolock(bg_plugin_handle_t * h);
 
 /* Check if 2 plugins handles are equal */
 

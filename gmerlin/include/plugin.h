@@ -110,6 +110,9 @@ typedef int (*bg_read_video_func_t)(void * priv, gavl_video_frame_t* frame, int 
 #define BG_PLUGIN_TUNER         (1<<9)  //!< Plugin has some kind of tuner
 #define BG_PLUGIN_FILTER_1     (1<<10)  //!< Plugin acts as a filter with one input
 
+#define BG_PLUGIN_UNSUPPORTED  (1<<24)  //!< Plugin is not supported. Only for a foreign API plugins
+
+
 #define BG_PLUGIN_ALL 0xFFFFFFFF //!< Mask of all possible plugin flags
 
 /** @}

@@ -27,6 +27,7 @@
  *  @{
 */
 
+#define BG_PLAYER_STATE_INIT      -1 //!< Initializing
 #define BG_PLAYER_STATE_STOPPED   0 //!< Stopped, waiting for play command
 #define BG_PLAYER_STATE_PLAYING   1 //!< Playing
 #define BG_PLAYER_STATE_SEEKING   2 //!< Seeking
@@ -137,6 +138,8 @@
 
 #define BG_PLAYER_CMD_PREV_CHAPTER        22 /* Previous chapter */
 
+#define BG_PLAYER_CMD_INTERRUPT           23 /* Interrupt playback */
+#define BG_PLAYER_CMD_INTERRUPT_RESUME    24 /* Resume interrupted playback */
 
 /********************************
  * Messages from the player
@@ -375,6 +378,11 @@
  */
 
 #define BG_PLAYER_MSG_CHAPTER_CHANGED        25
+
+/** \brief Playback interrupted
+ */
+
+#define BG_PLAYER_MSG_INTERRUPT              26
 
 /**  @}
  */

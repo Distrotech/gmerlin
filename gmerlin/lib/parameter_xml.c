@@ -405,12 +405,19 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
             case BG_PARAMETER_SLIDER_INT:
             case BG_PARAMETER_INT:
               sscanf(tmp_string, "%d %d",
-                     &(ret[index].val_min.val_i), &(ret[index].val_max.val_i));
+                     &(ret[index].val_min.val_i),
+                     &(ret[index].val_max.val_i));
               break;
             case BG_PARAMETER_FLOAT:
             case BG_PARAMETER_SLIDER_FLOAT:
               sscanf(tmp_string, "%f %f",
-                     &(ret[index].val_min.val_f), &(ret[index].val_max.val_f));
+                     &(ret[index].val_min.val_f),
+                     &(ret[index].val_max.val_f));
+              if(!strcmp(ret[index].name, "Band 1 Gain [dB]"))
+                fprintf(stderr, "Range: %s -> %f %f\n",
+                        tmp_string, ret[index].val_min.val_f,
+                        ret[index].val_max.val_f);
+                        
               break;
             case BG_PARAMETER_TIME:
               sscanf(tmp_string, "%" PRId64 " %" PRId64,
@@ -598,7 +605,9 @@ void bg_parameters_2_xml(bg_parameter_info_t * info, xmlNodePtr xml_parameters)
           {
           child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)range_key, NULL);
 
-          tmp_string = bg_sprintf("%d %d", info[num_parameters].val_min.val_i, info[num_parameters].val_max.val_i);
+          tmp_string = bg_sprintf("%d %d",
+                                  info[num_parameters].val_min.val_i,
+                                  info[num_parameters].val_max.val_i);
           xmlAddChild(child, BG_XML_NEW_TEXT(tmp_string));
           free(tmp_string);
           
@@ -619,11 +628,15 @@ void bg_parameters_2_xml(bg_parameter_info_t * info, xmlNodePtr xml_parameters)
           
           xmlAddChild(xml_info, BG_XML_NEW_TEXT("\n"));
           }
-        if(info[num_parameters].val_min.val_f < info[num_parameters].val_max.val_f)
+        if(info[num_parameters].val_min.val_f <
+           info[num_parameters].val_max.val_f)
           {
-          child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)range_key, NULL);
+          child = xmlNewTextChild(xml_info, (xmlNsPtr)0,
+                                  (xmlChar*)range_key, NULL);
 
-          tmp_string = bg_sprintf("%f %f", info[num_parameters].val_min.val_f, info[num_parameters].val_max.val_f);
+          tmp_string = bg_sprintf("%f %f",
+                                  info[num_parameters].val_min.val_f,
+                                  info[num_parameters].val_max.val_f);
           xmlAddChild(child, BG_XML_NEW_TEXT(tmp_string));
           free(tmp_string);
           
@@ -651,7 +664,8 @@ void bg_parameters_2_xml(bg_parameter_info_t * info, xmlNodePtr xml_parameters)
           
           xmlAddChild(xml_info, BG_XML_NEW_TEXT("\n"));
           }
-        if(info[num_parameters].val_min.val_time < info[num_parameters].val_max.val_time)
+        if(info[num_parameters].val_min.val_time <
+           info[num_parameters].val_max.val_time)
           {
           child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)range_key, NULL);
 

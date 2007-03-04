@@ -22,6 +22,8 @@
 #include "kbd_remote.h"
 #include "kbd.h"
 
+static int ignore_mask = Mod2Mask;
+
 /* Gdk Modifiers */
 
 static struct
@@ -165,6 +167,14 @@ static void grab_keys(kbd_daemon_t * d)
                GrabModeAsync, // int pointer_mode,
                GrabModeAsync // int keyboard_mode
                );
+      XGrabKey(d->dpy, d->keys[i].scancode, 
+               d->keys[i].modifiers_i | ignore_mask,
+               d->root,
+               False, // Bool owner_events,
+               GrabModeAsync, // int pointer_mode,
+               GrabModeAsync // int keyboard_mode
+               );
+
       XFlush(d->dpy);
       XSync(d->dpy, False);
       if(got_error)
@@ -277,11 +287,14 @@ static void kbd_loop(kbd_daemon_t * d)
       switch(evt.type)
         {
         case KeyPress:
-          //          fprintf(stderr, "KeyPress\n");
+          bg_log(BG_LOG_INFO, LOG_DOMAIN, 
+                 "State %02x -> %02x\n", evt.xkey.state,
+                 evt.xkey.state & ~ignore_mask);
           for(i = 0; i < d->num_keys; i++)
             {
             if((d->keys[i].scancode == evt.xkey.keycode) &&
-               (d->keys[i].modifiers_i == evt.xkey.state))
+               ((d->keys[i].modifiers_i & ~ignore_mask) == 
+                (evt.xkey.state & ~ignore_mask)))
               {
               proc = bg_subprocess_create(d->keys[i].command, 0, 0, 0);
               bg_subprocess_close(proc);

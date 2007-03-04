@@ -301,7 +301,7 @@ static void print_help_parameters(int indent, bg_parameter_info_t * parameters)
     if(parameters[i].gettext_domain)
       translation_domain = parameters[i].gettext_domain;
     if(parameters[i].gettext_directory)
-      bindtextdomain(translation_domain, parameters[i].gettext_directory);
+      bg_bindtextdomain(translation_domain, parameters[i].gettext_directory);
     
     if((parameters[i].type == BG_PARAMETER_SECTION) ||
        (parameters[i].flags & BG_PARAMETER_HIDE_DIALOG))

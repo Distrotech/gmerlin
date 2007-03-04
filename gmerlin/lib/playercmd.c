@@ -289,6 +289,35 @@ void bg_player_change(bg_player_t * p, int flags)
   bg_msg_queue_destroy(q);
   }
 
+void bg_player_interrupt(bg_player_t * p)
+  {
+  bg_msg_queue_t * q;
+  bg_msg_t * msg;
+  
+  q = bg_msg_queue_create();
+  bg_player_add_message_queue(p, q);
+
+  msg = bg_msg_queue_lock_write(p->command_queue);
+  bg_msg_set_id(msg, BG_PLAYER_CMD_INTERRUPT);
+  bg_msg_queue_unlock_write(p->command_queue);
+
+  while((msg = bg_msg_queue_lock_read(q)) &&
+        (bg_msg_get_id(msg) != BG_PLAYER_MSG_INTERRUPT))
+    {
+    bg_msg_queue_unlock_read(q);
+    }
+  bg_player_delete_message_queue(p, q);
+  bg_msg_queue_destroy(q);
+  }
+
+void bg_player_interrupt_resume(bg_player_t * p)
+  {
+  bg_msg_t * msg;
+  msg = bg_msg_queue_lock_write(p->command_queue);
+  bg_msg_set_id(msg, BG_PLAYER_CMD_INTERRUPT_RESUME);
+  bg_msg_queue_unlock_write(p->command_queue);
+  }
+
 void bg_player_next_chapter(bg_player_t * p)
   {
   bg_msg_t * msg;
@@ -296,7 +325,6 @@ void bg_player_next_chapter(bg_player_t * p)
   bg_msg_set_id(msg, BG_PLAYER_CMD_NEXT_CHAPTER);
   bg_msg_queue_unlock_write(p->command_queue);
   }
-
 
 void bg_player_prev_chapter(bg_player_t * p)
   {

@@ -40,6 +40,8 @@
 
 #include <log.h>
 
+#include <bgladspa.h>
+
 #define LOG_DOMAIN "pluginregistry"
 
 struct bg_plugin_registry_s
@@ -58,7 +60,7 @@ struct bg_plugin_registry_s
   int encode_pp;
   };
 
-static void free_info(bg_plugin_info_t * info)
+void bg_plugin_info_destroy(bg_plugin_info_t * info)
   {
   if(info->gettext_domain)
     free(info->gettext_domain);
@@ -105,10 +107,31 @@ static void free_info_list(bg_plugin_info_t * entries)
   while(info)
     {
     entries = info->next;
-    free_info(info);
+    bg_plugin_info_destroy(info);
     info = entries;
     }
   }
+
+static int compare_swap(bg_plugin_info_t * i1,
+                        bg_plugin_info_t * i2)
+  {
+  if((i1->flags & BG_PLUGIN_FILTER_1) &&
+     (i2->flags & BG_PLUGIN_FILTER_1))
+    {
+    return strcmp(i1->long_name, i2->long_name) > 0;
+    }
+  else if((!(i1->flags & BG_PLUGIN_FILTER_1)) &&
+          (!(i2->flags & BG_PLUGIN_FILTER_1)))
+    {
+    return i1->priority < i2->priority;
+    }
+  else if((!(i1->flags & BG_PLUGIN_FILTER_1)) &&
+          (i2->flags & BG_PLUGIN_FILTER_1))
+    return 1;
+  
+  return 0;
+  }
+                           
 
 static bg_plugin_info_t * sort_by_priority(bg_plugin_info_t * list)
   {
@@ -143,7 +166,7 @@ static bg_plugin_info_t * sort_by_priority(bg_plugin_info_t * list)
     keep_going = 0;
     for(j = num_plugins-1; j > i; j--)
       {
-      if(arr[j]->priority > arr[j-1]->priority)
+      if(compare_swap(arr[j-1], arr[j]))
         {
         info  = arr[j];
         arr[j]   = arr[j-1];
@@ -258,12 +281,13 @@ const bg_plugin_info_t * bg_plugin_find_by_filename(bg_plugin_registry_t * reg,
   }
 
 static bg_plugin_info_t * remove_from_list(bg_plugin_info_t * list,
-                                    bg_plugin_info_t * info)
+                                           bg_plugin_info_t * info)
   {
   bg_plugin_info_t * before;
   if(info == list)
     {
     list = list->next;
+    info->next = (bg_plugin_info_t*)0;
     return list;
     }
 
@@ -281,11 +305,9 @@ static bg_plugin_info_t * append_to_list(bg_plugin_info_t * list,
                                          bg_plugin_info_t * info)
   {
   bg_plugin_info_t * end;
-  info->next = (bg_plugin_info_t*)0;
   if(!list)
-    {
     return info;
-    }
+  
   end = list;
   while(end->next)
     end = end->next;
@@ -306,10 +328,120 @@ static int check_plugin_version(void * handle)
   return 1;
   }
 
+static bg_plugin_info_t * get_info(void * test_module, const char * filename)
+  {
+  bg_encoder_plugin_t * encoder;
+  bg_input_plugin_t  * input;
+
+  bg_plugin_info_t * new_info;
+  bg_plugin_common_t * plugin;
+  void * plugin_priv;
+  bg_parameter_info_t * parameter_info;
+  
+  if(!check_plugin_version(test_module))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Plugin %s has no or wrong version", filename);
+    dlclose(test_module);
+    return (bg_plugin_info_t*)0;
+    }
+  plugin = (bg_plugin_common_t*)(dlsym(test_module, "the_plugin"));
+  if(!plugin)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No symbol the_plugin in %s", filename);
+    dlclose(test_module);
+    return (bg_plugin_info_t*)0;
+    }
+  if(!plugin->priority)
+    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Warning: Plugin %s has zero priority",
+           plugin->name);
+  new_info = calloc(1, sizeof(*new_info));
+  new_info->name = bg_strdup(new_info->name, plugin->name);
+
+  new_info->long_name =  bg_strdup(new_info->long_name,
+                                   plugin->long_name);
+
+  new_info->description = bg_strdup(new_info->description,
+                                    plugin->description);
+    
+  new_info->mimetypes =  bg_strdup(new_info->mimetypes,
+                                   plugin->mimetypes);
+  new_info->extensions = bg_strdup(new_info->extensions,
+                                   plugin->extensions);
+  new_info->module_filename = bg_strdup(new_info->module_filename,
+                                        filename);
+
+  new_info->gettext_domain = bg_strdup(new_info->gettext_domain,
+                                       plugin->gettext_domain);
+  new_info->gettext_directory = bg_strdup(new_info->gettext_directory,
+                                          plugin->gettext_directory);
+  new_info->type        = plugin->type;
+  new_info->flags       = plugin->flags;
+  new_info->priority    = plugin->priority;
+
+  /* Get parameters */
+
+  plugin_priv = plugin->create();
+  
+  if(plugin->get_parameters)
+    {
+    parameter_info = plugin->get_parameters(plugin_priv);
+    new_info->parameters = bg_parameter_info_copy_array(parameter_info);
+    }
+    
+  if(plugin->type & (BG_PLUGIN_ENCODER_AUDIO|
+                     BG_PLUGIN_ENCODER_VIDEO|
+                     BG_PLUGIN_ENCODER_SUBTITLE_TEXT |
+                     BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY |
+                     BG_PLUGIN_ENCODER ))
+    {
+    encoder = (bg_encoder_plugin_t*)plugin;
+    new_info->max_audio_streams = encoder->max_audio_streams;
+    new_info->max_video_streams = encoder->max_video_streams;
+    new_info->max_subtitle_text_streams = encoder->max_subtitle_text_streams;
+    new_info->max_subtitle_overlay_streams = encoder->max_subtitle_overlay_streams;
+    
+    if(encoder->get_audio_parameters)
+      {
+      parameter_info = encoder->get_audio_parameters(plugin_priv);
+      new_info->audio_parameters = bg_parameter_info_copy_array(parameter_info);
+      }
+    
+    if(encoder->get_video_parameters)
+      {
+      parameter_info = encoder->get_video_parameters(plugin_priv);
+      new_info->video_parameters = bg_parameter_info_copy_array(parameter_info);
+      }
+    if(encoder->get_subtitle_text_parameters)
+      {
+      parameter_info = encoder->get_subtitle_text_parameters(plugin_priv);
+      new_info->subtitle_text_parameters = bg_parameter_info_copy_array(parameter_info);
+      }
+    if(encoder->get_subtitle_overlay_parameters)
+      {
+      parameter_info = encoder->get_subtitle_overlay_parameters(plugin_priv);
+      new_info->subtitle_overlay_parameters =
+        bg_parameter_info_copy_array(parameter_info);
+      }
+    if(plugin->type & (BG_PLUGIN_INPUT))
+      {
+      input = (bg_input_plugin_t*)plugin;
+      if(input->protocols)
+        new_info->protocols = bg_strdup(new_info->protocols,
+                                        input->protocols);
+      }
+    if(plugin->find_devices)
+      new_info->devices = plugin->find_devices();
+    
+    }
+  plugin->destroy(plugin_priv);
+  
+  return new_info;
+  }
+
 static bg_plugin_info_t *
-scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
-               int * changed,
-               bg_cfg_section_t * cfg_section)
+scan_directory_internal(const char * directory, bg_plugin_info_t ** _file_info,
+                        int * changed,
+                        bg_cfg_section_t * cfg_section, bg_plugin_api_t api)
   {
   bg_plugin_info_t * ret;
   //  bg_plugin_info_t * end = (bg_plugin_info_t *)0;
@@ -319,18 +451,13 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
   struct stat st;
   char * pos;
   void * test_module;
-  bg_plugin_common_t * plugin;
   
   bg_plugin_info_t * file_info;
-  bg_plugin_info_t *  new_info;
-  bg_encoder_plugin_t * encoder;
-  bg_input_plugin_t  * input;
+  bg_plugin_info_t * new_info;
+  bg_plugin_info_t * tmp_info;
   
   bg_cfg_section_t * plugin_section;
   bg_cfg_section_t * stream_section;
-  bg_parameter_info_t * parameter_info;
-  void * plugin_priv;
-
   if(_file_info)
     file_info = *_file_info;
   else
@@ -363,15 +490,27 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
     new_info = find_by_dll(file_info, filename);
     if(new_info)
       {
+      fprintf(stderr, "dll: %s, %d %d\n", filename, st.st_mtime,
+              new_info->module_time);
       if((st.st_mtime == new_info->module_time) &&
          (bg_cfg_section_has_subsection(cfg_section,
                                         new_info->name)))
         {
         file_info = remove_from_list(file_info, new_info);
-
+        
         ret = append_to_list(ret, new_info);
+        fprintf(stderr, "Already in registry\n");
+
+        /* Remove other plugins as well */
+        while((new_info = find_by_dll(file_info, filename)))
+          {
+          file_info = remove_from_list(file_info, new_info);
+          ret = append_to_list(ret, new_info);
+          }
+        
         continue;
         }
+      fprintf(stderr, "Reloading\n");
       }
 
     if(!(*changed))
@@ -384,141 +523,71 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
       }
     
     /* Open the DLL and see what's inside */
-
+    
     test_module = dlopen(filename, RTLD_NOW);
     if(!test_module)
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot dlopen %s: %s", filename, dlerror());
       continue;
       }
-    if(!check_plugin_version(test_module))
+
+    switch(api)
       {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Plugin %s has no or wrong version", filename);
-      dlclose(test_module);
-      continue;
+      case BG_PLUGIN_API_GMERLIN:
+        new_info = get_info(test_module, filename);
+        break;
+      case BG_PLUGIN_API_LADSPA:
+        new_info = bg_ladspa_get_info(test_module, filename);
       }
-    plugin = (bg_plugin_common_t*)(dlsym(test_module, "the_plugin"));
-    if(!plugin)
+
+    tmp_info = new_info;
+    while(tmp_info)
       {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No symbol the_plugin in %s", filename);
-      dlclose(test_module);
-      continue;
+      tmp_info->module_time = st.st_mtime;
+      tmp_info = tmp_info->next;
       }
-    if(!plugin->priority)
-      bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Warning: Plugin %s has zero priority",
-             plugin->name);
-    new_info = calloc(1, sizeof(*new_info));
-    new_info->name = bg_strdup(new_info->name, plugin->name);
-
-    new_info->long_name =  bg_strdup(new_info->long_name,
-                                     plugin->long_name);
-
-    new_info->description = bg_strdup(new_info->description,
-                                     plugin->description);
     
-    new_info->mimetypes =  bg_strdup(new_info->mimetypes,
-                                     plugin->mimetypes);
-    new_info->extensions = bg_strdup(new_info->extensions,
-                                     plugin->extensions);
-    new_info->module_filename = bg_strdup(new_info->module_filename,
-                                          filename);
-
-    new_info->gettext_domain = bg_strdup(new_info->gettext_domain,
-                                         plugin->gettext_domain);
-    new_info->gettext_directory = bg_strdup(new_info->gettext_directory,
-                                            plugin->gettext_directory);
-    
-    new_info->module_time = st.st_mtime;
-    new_info->type        = plugin->type;
-    new_info->flags       = plugin->flags;
-    new_info->priority    = plugin->priority;
     
     /* Create parameter entries in the registry */
 
     plugin_section =
-      bg_cfg_section_find_subsection(cfg_section, plugin->name);
-
-    plugin_priv = plugin->create();
+      bg_cfg_section_find_subsection(cfg_section, new_info->name);
     
-    if(plugin->get_parameters)
+    if(new_info->parameters)
       {
-          
-      parameter_info = plugin->get_parameters(plugin_priv);
-      
       bg_cfg_section_create_items(plugin_section,
-                                  parameter_info);
-
-      new_info->parameters = bg_parameter_info_copy_array(parameter_info);
+                                  new_info->parameters);
       }
-    
-    if(plugin->type & (BG_PLUGIN_ENCODER_AUDIO|
-                       BG_PLUGIN_ENCODER_VIDEO|
-                       BG_PLUGIN_ENCODER_SUBTITLE_TEXT |
-                       BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY |
-                       BG_PLUGIN_ENCODER ))
+    if(new_info->audio_parameters)
       {
-      encoder = (bg_encoder_plugin_t*)plugin;
-      new_info->max_audio_streams = encoder->max_audio_streams;
-      new_info->max_video_streams = encoder->max_video_streams;
-      new_info->max_subtitle_text_streams = encoder->max_subtitle_text_streams;
-      new_info->max_subtitle_overlay_streams = encoder->max_subtitle_overlay_streams;
-      
-      if(encoder->get_audio_parameters)
-        {
-        parameter_info = encoder->get_audio_parameters(plugin_priv);
-        stream_section = bg_cfg_section_find_subsection(plugin_section,
-                                                        "$audio");
+      stream_section = bg_cfg_section_find_subsection(plugin_section,
+                                                      "$audio");
         
-        bg_cfg_section_create_items(stream_section,
-                                    parameter_info);
-        new_info->audio_parameters = bg_parameter_info_copy_array(parameter_info);
-        }
-
-      if(encoder->get_video_parameters)
-        {
-        parameter_info = encoder->get_video_parameters(plugin_priv);
-        stream_section = bg_cfg_section_find_subsection(plugin_section,
-                                                        "$video");
-        
-        bg_cfg_section_create_items(stream_section,
-                                    parameter_info);
-        new_info->video_parameters = bg_parameter_info_copy_array(parameter_info);
-        }
-      if(encoder->get_subtitle_text_parameters)
-        {
-        parameter_info = encoder->get_subtitle_text_parameters(plugin_priv);
-        stream_section = bg_cfg_section_find_subsection(plugin_section,
-                                                        "$subtitle_text");
-        
-        bg_cfg_section_create_items(stream_section,
-                                    parameter_info);
-        new_info->subtitle_text_parameters = bg_parameter_info_copy_array(parameter_info);
-        }
-      if(encoder->get_subtitle_overlay_parameters)
-        {
-        parameter_info = encoder->get_subtitle_overlay_parameters(plugin_priv);
-        stream_section = bg_cfg_section_find_subsection(plugin_section,
-                                                        "$subtitle_overlay");
-        
-        bg_cfg_section_create_items(stream_section,
-                                    parameter_info);
-        new_info->subtitle_overlay_parameters = bg_parameter_info_copy_array(parameter_info);
-        }
+      bg_cfg_section_create_items(stream_section,
+                                  new_info->audio_parameters);
       }
-    if(plugin->type & (BG_PLUGIN_INPUT))
+    if(new_info->video_parameters)
       {
-      input = (bg_input_plugin_t*)plugin;
-      if(input->protocols)
-        new_info->protocols = bg_strdup(new_info->protocols,
-                                        input->protocols);
+      stream_section = bg_cfg_section_find_subsection(plugin_section,
+                                                      "$video");
+      bg_cfg_section_create_items(stream_section,
+                                  new_info->video_parameters);
       }
-    
-    if(plugin->find_devices)
-      new_info->devices = plugin->find_devices();
-    
-    plugin->destroy(plugin_priv);
+    if(new_info->subtitle_text_parameters)
+      {
+      stream_section = bg_cfg_section_find_subsection(plugin_section,
+                                                      "$subtitle_text");
+      bg_cfg_section_create_items(stream_section,
+                                  new_info->video_parameters);
+      }
+    if(new_info->subtitle_overlay_parameters)
+      {
+      stream_section = bg_cfg_section_find_subsection(plugin_section,
+                                                      "$subtitle_overlay");
+      bg_cfg_section_create_items(stream_section,
+                                  new_info->video_parameters);
+      }
     dlclose(test_module);
-
     ret = append_to_list(ret, new_info);
     }
   
@@ -529,16 +598,63 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
   return ret;
   }
 
+static bg_plugin_info_t *
+scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
+               bg_cfg_section_t * cfg_section, bg_plugin_api_t api)
+  {
+  int changed = 0;
+  bg_plugin_info_t * file_info;
+  bg_plugin_info_t * file_info_next;
+
+  bg_plugin_info_t * ret;
+  
+  ret = scan_directory_internal(directory, _file_info,
+                                &changed, cfg_section, api);
+  
+  /* Check if there are entries from the file info left */
+  file_info = *_file_info;
+
+  /* */
+
+  file_info = *_file_info;
+  
+  while(file_info)
+    {
+    if(!strncmp(file_info->module_filename, directory, strlen(directory)))
+      {
+      file_info_next = file_info->next;
+      *_file_info = remove_from_list(*_file_info, file_info);
+      file_info = file_info_next;
+      changed = 1;
+      }
+    else
+      file_info = file_info->next;
+    }
+  
+  if(!changed)
+    return ret;
+  
+  free_info_list(ret);
+  ret = scan_directory_internal(directory, _file_info,
+                                &changed, cfg_section, api);
+  return ret;
+  }
+
 bg_plugin_registry_t *
 bg_plugin_registry_create(bg_cfg_section_t * section)
   {
   bg_plugin_registry_t * ret;
   bg_plugin_info_t * file_info;
   bg_plugin_info_t * tmp_info;
+  bg_plugin_info_t * tmp_info_next;
   char * filename;
-  int changed = 0;
-  int reloaded = 0;
-  
+  int index;
+
+  char * env;
+
+  char * path;
+  char ** paths;
+    
   ret = calloc(1, sizeof(*ret));
   ret->config_section = section;
 
@@ -552,73 +668,51 @@ bg_plugin_registry_create(bg_cfg_section_t * section)
     file_info = bg_plugin_registry_load(filename);
     free(filename);
     }
-  
-  ret->entries = scan_directory(GMERLIN_PLUGIN_DIR,
-                                &file_info, &changed,
-                                section);
-  
-  /* Handle saved meta plugins */
-  if(!changed)
+
+  /* Native plugins */
+  tmp_info = scan_directory(GMERLIN_PLUGIN_DIR,
+                            &file_info, 
+                            section, BG_PLUGIN_API_GMERLIN);
+  if(tmp_info)
+    ret->entries = append_to_list(ret->entries, tmp_info);
+  /* Ladspa plugins */
+
+  env = getenv("LADSPA_PATH");
+  if(env)
+    path = bg_sprintf("%s:/usr/lib/ladspa:/usr/local/lib/ladspa", env);
+  else
+    path = bg_sprintf("/usr/lib/ladspa:/usr/local/lib/ladspa");
+
+  paths = bg_strbreak(path, ':');
+  if(paths)
     {
-    while(file_info)
+    index = 0;
+    while(paths[index])
       {
-      if(!file_info->module_filename)
-        {
-        tmp_info = file_info;
-        file_info = remove_from_list(file_info, tmp_info);
+      tmp_info = scan_directory(paths[index],
+                                &file_info, 
+                                section, BG_PLUGIN_API_LADSPA);
+      if(tmp_info)
         ret->entries = append_to_list(ret->entries, tmp_info);
-
-        if(!strcmp(tmp_info->name, bg_singlepic_input_name))
-          ret->singlepic_input = tmp_info;
-        else if(!strcmp(tmp_info->name, bg_singlepic_stills_input_name))
-          ret->singlepic_stills_input = tmp_info;
-        else if(!strcmp(tmp_info->name, bg_singlepic_encoder_name))
-          ret->singlepic_encoder = tmp_info;
-        }
-      else
-        {
-        changed = 1;
-        break;
-        }
+      index++;
       }
+    bg_strbreak_free(paths);
     }
-  
-  if(file_info)
-    {
-    changed = 1;
-    free_info_list(file_info);
-    }
-  
-  if(changed)
-    {
-    reloaded = 1;
-
-    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Scanning for plugins");
-    
-    /* Reload the entire registry to prevent mysterious crashes */
-    free_info_list(ret->entries);
-    ret->entries = scan_directory(GMERLIN_PLUGIN_DIR,
-                                  (bg_plugin_info_t**)0, &changed,
-                                  section);
-    //    bg_plugin_registry_save(ret->entries);
-    }
+  free(path);
   
   /* Now we have all external plugins, time to create the meta plugins */
-
-  if(reloaded)
-    {
-    ret->singlepic_input = bg_singlepic_input_info(ret);
-    if(ret->singlepic_input)
-      ret->entries = append_to_list(ret->entries, ret->singlepic_input);
-
-    ret->singlepic_stills_input = bg_singlepic_stills_input_info(ret);
-    if(ret->singlepic_stills_input)
-      ret->entries = append_to_list(ret->entries, ret->singlepic_stills_input);
-
-    ret->singlepic_encoder = bg_singlepic_encoder_info(ret);
-    if(ret->singlepic_encoder)
-      ret->entries = append_to_list(ret->entries, ret->singlepic_encoder);
-    }
+  
+  ret->singlepic_input = bg_singlepic_input_info(ret);
+  if(ret->singlepic_input)
+    ret->entries = append_to_list(ret->entries, ret->singlepic_input);
+  
+  ret->singlepic_stills_input = bg_singlepic_stills_input_info(ret);
+  if(ret->singlepic_stills_input)
+    ret->entries = append_to_list(ret->entries, ret->singlepic_stills_input);
+  
+  ret->singlepic_encoder = bg_singlepic_encoder_info(ret);
+  if(ret->singlepic_encoder)
+    ret->entries = append_to_list(ret->entries, ret->singlepic_encoder);
   
   /* Get flags */
 
@@ -639,6 +733,21 @@ bg_plugin_registry_create(bg_cfg_section_t * section)
 
   ret->entries = sort_by_priority(ret->entries);
   bg_plugin_registry_save(ret->entries);
+
+  /* Kick out unsupported plugins */
+  tmp_info = ret->entries;
+
+  while(tmp_info)
+    {
+    if(tmp_info->flags & BG_PLUGIN_UNSUPPORTED)
+      {
+      tmp_info_next = tmp_info->next;
+      ret->entries = remove_from_list(ret->entries, tmp_info);
+      tmp_info = tmp_info_next;
+      }
+    else
+      tmp_info = tmp_info->next;
+    }
   
   return ret;
   }
@@ -652,7 +761,7 @@ void bg_plugin_registry_destroy(bg_plugin_registry_t * reg)
   while(info)
     {
     reg->entries = info->next;
-    free_info(info);
+    bg_plugin_info_destroy(info);
     info = reg->entries;
     }
   free(reg);
@@ -870,37 +979,58 @@ void bg_plugin_ref(bg_plugin_handle_t * h)
   
   }
 
+static void unload_plugin(bg_plugin_handle_t * h)
+  {
+  bg_cfg_section_t * section;
+ 
+  if(h->plugin->get_parameter)
+    {
+    section = bg_plugin_registry_get_section(h->plugin_reg, h->info->name);
+    bg_cfg_section_get(section,
+                         h->plugin->get_parameters(h->priv),
+                       h->plugin->get_parameter,
+                         h->priv);
+    }
+  switch(h->info->api)
+    {
+    case BG_PLUGIN_API_GMERLIN:
+      if(h->priv && h->plugin->destroy)
+        h->plugin->destroy(h->priv);
+      break;
+    case BG_PLUGIN_API_LADSPA:
+      bg_ladspa_unload(h);
+      break;
+    }
+  
+  if(h->dll_handle)
+    dlclose(h->dll_handle);
+  free(h);
+  }
+
+void bg_plugin_unref_nolock(bg_plugin_handle_t * h)
+  {
+  int refcount;
+
+  h->refcount--;
+  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "bg_plugin_unref %s: %d", h->info->name, h->refcount);
+
+  refcount = h->refcount;
+
+  if(!refcount)
+    unload_plugin(h);
+  }
+
 void bg_plugin_unref(bg_plugin_handle_t * h)
   {
   int refcount;
-  bg_cfg_section_t * section;
   bg_plugin_lock(h);
-  
   h->refcount--;
   bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "bg_plugin_unref %s: %d", h->info->name, h->refcount);
 
   refcount = h->refcount;
   bg_plugin_unlock(h);
-
   if(!refcount)
-    {
-    if(h->plugin->get_parameter)
-      {
-      bg_plugin_lock(h);
-      section = bg_plugin_registry_get_section(h->plugin_reg, h->info->name);
-      bg_cfg_section_get(section,
-                         h->plugin->get_parameters(h->priv),
-                         h->plugin->get_parameter,
-                         h->priv);
-      bg_plugin_unlock(h);
-      }
-    if(h->priv && h->plugin->destroy)
-      h->plugin->destroy(h->priv);
-    //    if(h->dll_handle)
-    //      dlclose(h->dll_handle);
-    free(h);
-    }
-  
+    unload_plugin(h);
   }
 
 gavl_video_frame_t *
@@ -1024,20 +1154,25 @@ bg_plugin_handle_t * bg_plugin_load(bg_plugin_registry_t * reg,
               dlerror());
       goto fail;
       }
-    if(!check_plugin_version(ret->dll_handle))
+
+    switch(info->api)
       {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Plugin %s has no or wrong version",
-             info->module_filename);
-      goto fail;
+      case BG_PLUGIN_API_GMERLIN:
+        if(!check_plugin_version(ret->dll_handle))
+          {
+          bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Plugin %s has no or wrong version",
+                 info->module_filename);
+          goto fail;
+          }
+        ret->plugin = dlsym(ret->dll_handle, "the_plugin");
+        if(!ret->plugin)
+          goto fail;
+        ret->priv = ret->plugin->create();
+        break;
+      case BG_PLUGIN_API_LADSPA:
+        if(!bg_ladspa_load(ret, info))
+          goto fail;
       }
-
-
-    
-    ret->plugin = dlsym(ret->dll_handle, "the_plugin");
-    if(!ret->plugin)
-      goto fail;
-    
-    ret->priv = ret->plugin->create();
     }
   else if(reg->singlepic_input &&
           !strcmp(reg->singlepic_input->name, info->name))
@@ -1463,7 +1598,7 @@ void bg_plugin_registry_set_parameter_info(bg_plugin_registry_t * reg,
       ret->val_default.val_str = bg_strdup(NULL, info->name);
       }
     
-    bindtextdomain(info->gettext_domain, info->gettext_directory);
+    bg_bindtextdomain(info->gettext_domain, info->gettext_directory);
     ret->multi_descriptions[i] = bg_strdup(NULL, TRD(info->description,
                                                      info->gettext_domain));
     

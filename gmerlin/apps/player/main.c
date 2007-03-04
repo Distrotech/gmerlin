@@ -45,7 +45,10 @@ int main(int argc, char ** argv)
   /* Initialize random generator (for shuffle) */
 
   srand(time(NULL));
-    
+
+  bg_translation_init();
+  bg_gtk_init(&argc, &argv, "player_icon.png");
+  
   cfg_reg = bg_cfg_registry_create();
   
   tmp_path = bg_search_file_read("player", "config.xml");
@@ -54,10 +57,6 @@ int main(int argc, char ** argv)
     free(tmp_path);
   
   /* Fire up the actual player */
-
-  bg_gtk_init(&argc, &argv, "player_icon.png");
-
-  bg_translation_init();
   
   gmerlin = gmerlin_create(cfg_reg);
 

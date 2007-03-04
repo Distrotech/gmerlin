@@ -17,13 +17,6 @@
  
 *****************************************************************/
 
-/*
- *  pluginreg_xml.c
- *
- *  These functions load/save a chained list of plugin infos from/to
- *  a file (used by registry.c only)
- */
-
 /** \ingroup plugin_registry
  *  \brief Load plugin infos from an xml file
  *  \param filename The name of the xml file
@@ -36,3 +29,6 @@ bg_plugin_info_t * bg_plugin_registry_load(const char * filename);
  */
 
 void bg_plugin_registry_save(bg_plugin_info_t * info);
+
+
+void bg_plugin_info_destroy(bg_plugin_info_t * info);

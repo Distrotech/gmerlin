@@ -335,7 +335,7 @@ bg_gtk_drivesel_create(const char * title,
     {
     info = bg_plugin_find_by_name(plugin_reg, plugins[index]);
 
-    bindtextdomain(info->gettext_domain, info->gettext_directory);
+    bg_bindtextdomain(info->gettext_domain, info->gettext_directory);
     ret->plugin_labels[index] = bg_strdup(ret->plugin_labels[index],
                                           TRD(info->long_name,
                                               info->gettext_domain));

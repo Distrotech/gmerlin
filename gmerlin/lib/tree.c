@@ -331,7 +331,7 @@ static void add_device_plugins(bg_media_tree_t * ret,
       {
       plugin_album = bg_album_create(&(ret->com), BG_ALBUM_TYPE_PLUGIN, NULL);
 
-      bindtextdomain(info->gettext_domain,
+      bg_bindtextdomain(info->gettext_domain,
                      info->gettext_directory);
       
       plugin_album->name  = bg_strdup(plugin_album->name,

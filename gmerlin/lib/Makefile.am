@@ -13,6 +13,7 @@ libgmerlin_la_SOURCES = \
 album.c \
 album_xml.c \
 bggavl.c \
+bgladspa.c \
 cfg_item.c \
 cfg_registry.c \
 cfg_section.c \

@@ -228,7 +228,21 @@ void bg_player_next_chapter(bg_player_t * player);
 
 void bg_player_prev_chapter(bg_player_t * player);
 
+/** \brief Interrupt playback
+ *  \param player A player
+ *
+ *  This function works synchonously, this means it
+ *  is garantueed, that all playback threads are stopped
+ *  until \ref bg_player_interrupt_resume is called.
+ */
 
+void bg_player_interrupt(bg_player_t * player);
+
+/** \brief Resume an interrupted playback
+ *  \param player A player
+ */
+
+void bg_player_interrupt_resume(bg_player_t * player);
 
 /** @} */
 

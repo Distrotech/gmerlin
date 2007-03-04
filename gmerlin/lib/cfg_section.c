@@ -1118,7 +1118,7 @@ char * bg_cfg_section_get_name_translated(bg_cfg_section_t * s)
     return (char*)0;
   if(s->gettext_domain && s->gettext_directory)
     {
-    bindtextdomain(s->gettext_domain, s->gettext_directory);
+    bg_bindtextdomain(s->gettext_domain, s->gettext_directory);
     return bg_strdup((char*)0, dgettext(s->gettext_domain, s->name));
     }
   else

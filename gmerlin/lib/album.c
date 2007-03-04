@@ -1294,7 +1294,14 @@ static void add_device(bg_album_t * album,
                        const char * name)
   {
   bg_album_t * device_album;
-  device_album = bg_album_create(album->com, BG_ALBUM_TYPE_REMOVABLE, album);
+  bg_album_type_t type;
+  if(album->plugin_info->flags & BG_PLUGIN_REMOVABLE)
+    type = BG_ALBUM_TYPE_REMOVABLE;
+  else if(album->plugin_info->flags & BG_PLUGIN_TUNER)
+    type = BG_ALBUM_TYPE_TUNER;    	
+
+  device_album = bg_album_create(album->com, type, album);
+ 
   device_album->device = bg_strdup(device_album->device, device);
   if(name)
     {

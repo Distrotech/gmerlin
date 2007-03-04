@@ -17,6 +17,8 @@
 #define LOG_DOMAIN "gmerlin_kbd_config"
 #include <gmerlin/subprocess.h>
 
+static int ignore_mask = GDK_MOD2_MASK;
+
 /* Gdk Modifiers */
 
 static struct
@@ -113,7 +115,7 @@ static gboolean dialog_key_callback(GtkWidget * w,
   gtk_entry_set_text(GTK_ENTRY(dlg->scancode), tmp_string);
   free(tmp_string);
   
-  tmp_string = get_modifier_string(evt->state);
+  tmp_string = get_modifier_string(evt->state & ~ignore_mask);
   
   if(tmp_string)
     {

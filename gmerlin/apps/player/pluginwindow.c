@@ -12,6 +12,10 @@ struct plugin_window_s
   bg_gtk_plugin_widget_single_t * video_output;
   bg_gtk_plugin_widget_single_t * audio_output;
   bg_gtk_plugin_widget_multi_t * image_readers;
+
+  bg_gtk_plugin_widget_multi_t * video_filters;
+  bg_gtk_plugin_widget_multi_t * audio_filters;
+
   GtkWidget * close_button;
   void (*close_notify)(plugin_window_t*,void*);
   void * close_notify_data;
@@ -125,6 +129,17 @@ plugin_window_t * plugin_window_create(gmerlin_t * g,
     bg_gtk_plugin_widget_multi_create(g->plugin_reg,
                                       BG_PLUGIN_IMAGE_READER,
                                       BG_PLUGIN_FILE, ret->tooltips);
+
+  ret->audio_filters = 
+    bg_gtk_plugin_widget_multi_create(g->plugin_reg,
+                                      BG_PLUGIN_FILTER_AUDIO,
+                                      BG_PLUGIN_FILTER_1, ret->tooltips);
+
+  ret->video_filters = 
+    bg_gtk_plugin_widget_multi_create(g->plugin_reg,
+                                      BG_PLUGIN_FILTER_VIDEO,
+                                      BG_PLUGIN_FILTER_1, ret->tooltips);
+
   
   ret->close_button = gtk_button_new_from_stock(GTK_STOCK_CLOSE);
 
@@ -171,13 +186,26 @@ plugin_window_t * plugin_window_create(gmerlin_t * g,
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
                            table,
                            label);
-
+ 
   label = gtk_label_new(TR("Image readers"));
   gtk_widget_show(label);
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
                            bg_gtk_plugin_widget_multi_get_widget(ret->image_readers),
                            label);
-    
+
+  label = gtk_label_new(TR("Audio filters"));
+  gtk_widget_show(label);
+  gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
+                           bg_gtk_plugin_widget_multi_get_widget(ret->audio_filters),
+                           label);
+
+  label = gtk_label_new(TR("Video filters"));
+  gtk_widget_show(label);
+  gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
+                           bg_gtk_plugin_widget_multi_get_widget(ret->video_filters),
+                           label);
+
+  
   gtk_widget_show(notebook);
 
   table = gtk_table_new(2, 1, 0);
@@ -194,7 +222,6 @@ plugin_window_t * plugin_window_create(gmerlin_t * g,
                    0, 1, 1, 2, GTK_EXPAND, GTK_SHRINK, 0, 0);
 
   gtk_widget_show(table);
-
 
   gtk_container_add(GTK_CONTAINER(ret->window), table);
   

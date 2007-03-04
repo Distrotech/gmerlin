@@ -159,6 +159,8 @@ bg_player_t * bg_player_create(bg_plugin_registry_t * plugin_reg)
 
   /* Subtitles are off by default */
   ret->current_subtitle_stream = -1;
+
+  ret->state = BG_PLAYER_STATE_INIT;
   
   return ret;
   }

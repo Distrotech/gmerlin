@@ -472,7 +472,7 @@ static GtkWidget * create_section(dialog_section_t * section,
     if(info[i].gettext_domain)
       translation_domain = info[i].gettext_domain;
     if(info[i].gettext_directory)
-      bindtextdomain(translation_domain, info[i].gettext_directory);
+      bg_bindtextdomain(translation_domain, info[i].gettext_directory);
     
     if(info[i].flags & BG_PARAMETER_HIDE_DIALOG)
       {
@@ -643,7 +643,7 @@ bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
       if(info[index].gettext_domain)
         translation_domain = info[i].gettext_domain;
       if(info[index].gettext_directory)
-        bindtextdomain(translation_domain, info[i].gettext_directory);
+        bg_bindtextdomain(translation_domain, info[i].gettext_directory);
       
 
       label = gtk_label_new(TR_DOM(info[index].long_name));
@@ -780,7 +780,7 @@ void bg_dialog_add_child(bg_dialog_t *d, void * _parent,
       if(info[item_index].gettext_domain)
         translation_domain = info[item_index].gettext_domain;
       if(info[item_index].gettext_directory)
-        bindtextdomain(translation_domain, info[item_index].gettext_directory);
+        bg_bindtextdomain(translation_domain, info[item_index].gettext_directory);
       
       tab_label = gtk_label_new(TR_DOM(info[item_index].long_name));
       gtk_widget_show(tab_label);

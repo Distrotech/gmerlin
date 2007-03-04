@@ -36,6 +36,8 @@ utils.h
 noinst_HEADERS = \
 bgfreetype.h \
 bggavl.h \
+bgladspa.h \
+ladspa.h \
 language_table.h \
 playerprivate.h \
 registry_priv.h \

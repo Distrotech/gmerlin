@@ -23,11 +23,11 @@ void bg_audio_filter_chain_set_parameter(void * data,
                                          char * name,
                                          bg_parameter_value_t * val);
 
-int bg_audio_filter_chain_init(bg_audio_filter_chain_t * cnv,
+int bg_audio_filter_chain_init(bg_audio_filter_chain_t * ch,
                                const gavl_audio_format_t * in_format,
                                gavl_audio_format_t * out_format);
 
-void bg_audio_filter_chain_connect_input(bg_audio_filter_chain_t * cnv,
+void bg_audio_filter_chain_connect_input(bg_audio_filter_chain_t * ch,
                                          bg_read_audio_func_t func,
                                          void * priv,
                                          int stream);
@@ -36,10 +36,13 @@ int bg_audio_filter_chain_read(void * priv, gavl_audio_frame_t* frame,
                                int stream,
                                int num_samples);
 
-void bg_audio_filter_chain_destroy(bg_audio_filter_chain_t * cnv);
 
-void bg_audio_filter_chain_lock(bg_audio_filter_chain_t * cnv);
-void bg_audio_filter_chain_unlock(bg_audio_filter_chain_t * cnv);
+void bg_audio_filter_chain_destroy(bg_audio_filter_chain_t * ch);
+
+void bg_audio_filter_chain_lock(bg_audio_filter_chain_t * ch);
+void bg_audio_filter_chain_unlock(bg_audio_filter_chain_t * ch);
+
+int bg_audio_filter_chain_need_rebuild(bg_audio_filter_chain_t * ch);
 
 /* Video */
 
@@ -53,19 +56,23 @@ bg_video_filter_chain_get_parameters(bg_video_filter_chain_t *);
 void bg_video_filter_chain_set_parameter(void * data, char * name,
                                          bg_parameter_value_t * val);
 
+int bg_video_filter_chain_need_rebuild(bg_video_filter_chain_t *);
 
-int bg_video_filter_chain_init(bg_video_filter_chain_t * cnv,
+
+int bg_video_filter_chain_init(bg_video_filter_chain_t * ch,
                                const gavl_video_format_t * in_format,
                                gavl_video_format_t * out_format);
 
-void bg_video_filter_chain_connect_input(bg_video_filter_chain_t * cnv,
+void bg_video_filter_chain_connect_input(bg_video_filter_chain_t * ch,
                                          bg_read_video_func_t func,
                                          void * priv, int stream);
 
 int bg_video_filter_chain_read(void * priv, gavl_video_frame_t* frame,
                                int stream);
 
-void bg_video_filter_chain_destroy(bg_video_filter_chain_t * cnv);
+void bg_video_filter_chain_destroy(bg_video_filter_chain_t * ch);
 
-void bg_video_filter_chain_lock(bg_video_filter_chain_t * cnv);
-void bg_video_filter_chain_unlock(bg_video_filter_chain_t * cnv);
+void bg_video_filter_chain_lock(bg_video_filter_chain_t * ch);
+void bg_video_filter_chain_unlock(bg_video_filter_chain_t * ch);
+
+int bg_video_filter_chain_need_rebuild(bg_video_filter_chain_t * ch);

@@ -81,7 +81,7 @@ bg_gtk_plugin_menu_create(char ** plugins,
       {
       plugin_info = bg_plugin_find_by_name(plugin_reg, plugins[index]);
       
-      bindtextdomain(plugin_info->gettext_domain,
+      bg_bindtextdomain(plugin_info->gettext_domain,
                      plugin_info->gettext_directory);
       
       gtk_combo_box_append_text(GTK_COMBO_BOX(ret->combo),

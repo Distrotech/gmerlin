@@ -151,7 +151,7 @@ static int read_video_flip(void * priv, gavl_video_frame_t * frame, int stream)
   if(!vp->frame)
     {
     vp->frame = gavl_video_frame_create(&vp->format);
-    gavl_video_frame_clear(&vp->format, vp->frame);
+    gavl_video_frame_clear(vp->frame, &vp->format);
     }
   if(!vp->read_func(vp->read_data, vp->frame, vp->read_stream))
     return 0;

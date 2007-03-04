@@ -80,6 +80,32 @@ static void set_value_float(bg_gtk_widget_t * w)
     gtk_range_get_value(GTK_RANGE(priv->slider));
   }
 
+static gboolean button_callback(GtkWidget * wid, GdkEventButton * evt,
+                                gpointer data)
+  {
+  bg_gtk_widget_t * w;
+  slider_t * priv;
+  
+  w = (bg_gtk_widget_t*)data;
+  priv = (slider_t*)(w->priv);
+
+  if(evt->type == GDK_2BUTTON_PRESS)
+    {
+    if(w->info->type == BG_PARAMETER_SLIDER_FLOAT)
+      {
+      w->value.val_f = w->info->val_default.val_f;
+      get_value_float(w);
+      }
+    else if(w->info->type == BG_PARAMETER_SLIDER_INT)
+      {
+      w->value.val_i = w->info->val_default.val_i;
+      get_value_int(w);
+      }
+    return TRUE;
+    }
+  return FALSE;
+  }
+
 static void attach(void * priv, GtkWidget * table, int * row, int * num_columns)
   {
   slider_t * s = (slider_t*)priv;
@@ -148,8 +174,12 @@ static void create_common(bg_gtk_widget_t * w,
                        G_CALLBACK(bg_gtk_change_callback), (gpointer)w);
     w->callback_widget = s->slider;
     }
-  
   gtk_scale_set_value_pos(GTK_SCALE(s->slider), GTK_POS_LEFT);
+  gtk_widget_set_events(s->slider, GDK_BUTTON_PRESS_MASK);
+
+  g_signal_connect(G_OBJECT(s->slider), "button-press-event",
+                   G_CALLBACK(button_callback), (gpointer)w);
+  
   gtk_widget_show(s->slider);
   gtk_widget_show(s->label);
   w->priv = s;

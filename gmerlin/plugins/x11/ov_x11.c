@@ -51,7 +51,7 @@
 #include <X11/extensions/Xvlib.h>
 #endif
 
-
+static int ignore_mask = Mod2Mask;
 
 // #undef HAVE_LIBXV
 
@@ -1444,14 +1444,14 @@ static int handle_event(x11_t * priv, XEvent * evt)
         if((x_image >= 0) && (x_image < priv->video_format.image_width) &&
            (y_image >= 0) && (y_image < priv->video_format.image_height))
           priv->callbacks->button_callback(priv->callbacks->data,
-                                           x_image, y_image, button_number, get_key_mask(evt->xbutton.state));
+                                           x_image, y_image, button_number, get_key_mask(evt->xbutton.state & ~ignore_mask));
         }
 
 
       break;
     case KeyPress:
       XLookupString(&(evt->xkey), &key_char, 1, &keysym, NULL);
-      
+      evt->xkey.state &= ~ignore_mask;
       done = 1;
       
       /* Handle some keys here */

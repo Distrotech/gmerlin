@@ -25,6 +25,7 @@ msgtest \
 server \
 client \
 textrenderer \
+ladspa \
 $(v4l_programs) \
 $(gtk_programs)
 
@@ -34,6 +35,9 @@ bin_PROGRAMS = gmerlin_player gmerlin_imgconvert
 
 audioplayer1_SOURCES = audioplayer1.c
 audioplayer1_LDADD = ../lib/libgmerlin.la -ldl
+
+ladspa_SOURCES = ladspa.c
+ladspa_LDADD =  -ldl
 
 gmerlin_imgconvert_SOURCES = imgconvert.c
 gmerlin_imgconvert_LDADD = ../lib/libgmerlin.la -ldl

@@ -63,7 +63,8 @@ struct list_priv_s
   char ** multi_labels;
   };
 
-static void set_sub_param(void * priv, char * name, bg_parameter_value_t * val)
+static void set_sub_param(void * priv, char * name,
+                          bg_parameter_value_t * val)
   {
   char * tmp_string;
   list_priv_t * list;
@@ -75,11 +76,13 @@ static void set_sub_param(void * priv, char * name, bg_parameter_value_t * val)
   if(!name)
     tmp_string = (char*)0;
   else if(list->is_chain)
-    tmp_string = bg_sprintf("%s.%d.%s", w->info->name, list->selected, name);
+    tmp_string = bg_sprintf("%s.%d.%s", w->info->name, list->selected,
+                            name);
   else
     {
     tmp_string = bg_sprintf("%s.%s.%s", w->info->name,
-                            w->info->multi_names[list->param_selected], name);
+                            w->info->multi_names[list->param_selected],
+                            name);
     }
   list->set_param(list->data, tmp_string, val);
   if(tmp_string)
@@ -312,6 +315,9 @@ static void add_func(void * priv, char * name, bg_parameter_value_t * val)
     bg_cfg_section_transfer(subsection_default, subsection);
     
     list->num++;
+    
+    if(w->info->flags & BG_PARAMETER_SYNC)
+      bg_gtk_change_callback((GtkWidget*)0, w);
     
 #if 0
     if(w->value.val_str)
@@ -758,6 +764,8 @@ static void button_callback(GtkWidget * wid, gpointer data)
     
     gtk_list_store_remove(GTK_LIST_STORE(model), &iter);        
     priv->num--;
+    if(w->info->flags & BG_PARAMETER_SYNC)
+      bg_gtk_change_callback((GtkWidget*)0, w);
     }
   
   }
@@ -886,7 +894,7 @@ static void create_list_common(bg_gtk_widget_t * w, bg_parameter_info_t * info,
 
   renderer = gtk_cell_renderer_text_new ();
   column =
-    gtk_tree_view_column_new_with_attributes("Installed Codecs",
+    gtk_tree_view_column_new_with_attributes("",
                                              renderer,
                                              "text",
                                              COLUMN_NAME,
@@ -904,8 +912,6 @@ static void create_list_common(bg_gtk_widget_t * w, bg_parameter_info_t * info,
   gtk_container_add(GTK_CONTAINER(priv->scrolled), priv->treeview);
   gtk_widget_show(priv->scrolled);
   }
-
-
 
 void
 bg_gtk_create_multi_list(bg_gtk_widget_t * w, bg_parameter_info_t * info,

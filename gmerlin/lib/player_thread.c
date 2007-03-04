@@ -49,6 +49,11 @@ static void msg_cleanup(bg_msg_t * msg,
   bg_msg_set_id(msg, BG_PLAYER_MSG_CLEANUP);
   }
 
+static void msg_interrupt(bg_msg_t * msg,
+                          const void * data)
+  {
+  bg_msg_set_id(msg, BG_PLAYER_MSG_INTERRUPT);
+  }
 
 static void msg_volume_changed(bg_msg_t * msg,
                                const void * data)
@@ -861,25 +866,25 @@ static void seek_cmd(bg_player_t * player, gavl_time_t t)
   do_seek(player, t, old_state);  
   }
 
-static void stream_change_init(bg_player_t * player, int * was_playing,
-                               int * had_video, gavl_time_t * old_time)
+static void stream_change_init(bg_player_t * player)
   {
   int old_state;
+  player->saved_state.has_video = 0;
   old_state = bg_player_get_state(player);
-
+  
   if((old_state == BG_PLAYER_STATE_STOPPED)  ||
      (old_state == BG_PLAYER_STATE_CHANGING) ||
      (old_state == BG_PLAYER_STATE_ERROR))
-    *was_playing = 0;
+    player->saved_state.playing = 0;
   else
-    *was_playing = 1;
+    player->saved_state.playing = 1;
   
-  if(*was_playing)
+  if(player->saved_state.playing)
     {
-    bg_player_time_get(player, 1, old_time);
+    bg_player_time_get(player, 1, &player->saved_state.time);
     /* Interrupt and pretend we are seeking */
 
-    *had_video = player->do_video || player->do_still;
+    player->saved_state.has_video = player->do_video || player->do_still;
     
     cleanup_playback(player, old_state, BG_PLAYER_STATE_CHANGING, 0);
     cleanup_streams(player);
@@ -887,11 +892,10 @@ static void stream_change_init(bg_player_t * player, int * was_playing,
     }
   }
 
-static int stream_change_done(bg_player_t * player, int was_playing,
-                               int had_video, gavl_time_t old_time)
+static int stream_change_done(bg_player_t * player)
   {
   gavl_time_t t = 0;
-  if(was_playing)
+  if(player->saved_state.playing)
     {
     if(!bg_player_input_set_track(player->input_context))
       {
@@ -907,11 +911,12 @@ static int stream_change_done(bg_player_t * player, int was_playing,
                           NULL, NULL);
       goto fail;
       }
-    init_playback(player, old_time, 0, had_video);
+    init_playback(player, player->saved_state.time, 0,
+                  player->saved_state.has_video);
     }
   return 1;
   fail:
-  if(had_video)
+  if(player->saved_state.has_video)
     bg_player_ov_standby(player->ov_context);
   bg_player_time_reset(player);
   
@@ -926,46 +931,36 @@ static int stream_change_done(bg_player_t * player, int was_playing,
 
 static void set_audio_stream_cmd(bg_player_t * player, int stream)
   {
-  gavl_time_t old_time;
-  int was_playing;
-  int had_video = 0;
   
   if(stream == player->current_audio_stream)
     return;
 
-  stream_change_init(player, &was_playing, &had_video, &old_time);
+  stream_change_init(player);
   player->current_audio_stream = stream;
-  stream_change_done(player, was_playing, had_video, old_time);
+  stream_change_done(player);
   }
 
 static void set_video_stream_cmd(bg_player_t * player, int stream)
   {
-  gavl_time_t old_time;
-  int was_playing;
-
-  int had_video = 0;
   
   if(stream == player->current_video_stream)
     return;
 
-  stream_change_init(player, &was_playing, &had_video, &old_time);
+  stream_change_init(player);
   player->current_video_stream = stream;
-  stream_change_done(player, was_playing, had_video, old_time);
+  stream_change_done(player);
   }
 
 
 static void set_subtitle_stream_cmd(bg_player_t * player, int stream)
   {
-  gavl_time_t old_time;
-  int was_playing;
-  int had_video = 0;
   
   if(stream == player->current_subtitle_stream)
     return;
 
-  stream_change_init(player, &was_playing, &had_video, &old_time);
+  stream_change_init(player);
   player->current_subtitle_stream = stream;
-  stream_change_done(player, was_playing, had_video, old_time);
+  stream_change_done(player);
   }
 
 static void chapter_cmd(bg_player_t * player, int chapter)
@@ -1291,6 +1286,30 @@ static int process_commands(bg_player_t * player)
         break;
       case BG_PLAYER_CMD_PAUSE:
         pause_cmd(player);
+        break;
+      case BG_PLAYER_CMD_INTERRUPT:
+        /* Interrupt playback and restart */
+        stream_change_init(player);
+        bg_msg_queue_list_send(player->message_queues,
+                               msg_interrupt,
+                               &player);
+
+        bg_msg_queue_unlock_read(player->command_queue);
+        queue_locked = 0;
+        
+        while(1)
+          {
+          command = bg_msg_queue_lock_read(player->command_queue);
+          queue_locked = 1;
+          if(bg_msg_get_id(command) != BG_PLAYER_CMD_INTERRUPT_RESUME)
+            bg_log(BG_LOG_WARNING, LOG_DOMAIN,
+                   "Ignoring command while playback is interrupted");
+          else
+            break;
+          bg_msg_queue_unlock_read(player->command_queue);
+          queue_locked = 0;
+          }
+        stream_change_done(player);
         break;
       case BG_PLAYER_CMD_TOGGLE_MUTE:
         pthread_mutex_lock(&player->mute_mutex);

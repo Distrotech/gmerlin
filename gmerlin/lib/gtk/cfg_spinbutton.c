@@ -136,7 +136,13 @@ static void create_common(bg_gtk_widget_t * w,
                                1.0, 0.0, 0.0);
   s->spinbutton =
     gtk_spin_button_new(GTK_ADJUSTMENT(s->adj), 0.1, 0);
-
+  if(info->flags & BG_PARAMETER_SYNC)
+    {
+    w->callback_id =
+      g_signal_connect(G_OBJECT(s->spinbutton), "value-changed",
+                       G_CALLBACK(bg_gtk_change_callback), (gpointer)w);
+    w->callback_widget = s->spinbutton;
+    }
   if(info->help_string)
     {
     bg_gtk_tooltips_set_tip(w->tooltips, s->spinbutton,
@@ -167,9 +173,10 @@ bg_gtk_create_int(bg_gtk_widget_t * w,
     max_value = 1.0e9;
     }
   
+  w->funcs = &int_funcs;
   create_common(w, info, min_value, max_value, translation_domain );
   s = (spinbutton_t *)(w->priv);
-  w->funcs = &int_funcs;
+
   
   }
 
@@ -191,11 +198,10 @@ bg_gtk_create_float(bg_gtk_widget_t * w,
     min_value = 0.0;
     max_value = 100000.0;
     }
-  
+  w->funcs = &float_funcs;
   create_common(w, info, min_value, max_value, translation_domain );
   s = (spinbutton_t *)(w->priv);
   gtk_spin_button_set_digits(GTK_SPIN_BUTTON(s->spinbutton),
                              info->num_digits);
 
-  w->funcs = &float_funcs;
   }

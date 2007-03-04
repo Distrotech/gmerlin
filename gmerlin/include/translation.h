@@ -11,6 +11,8 @@
 
 void bg_translation_init();
 
+void bg_bindtextdomain(const char * domainname, const char * dirname);
+
 #define BG_LOCALE \
 gettext_domain: PACKAGE, \
 gettext_directory: LOCALE_DIR

@@ -22,6 +22,10 @@
 
 #include "player.h"
 #include "playerprivate.h"
+
+#include <log.h>
+#define LOG_DOMAIN "player.video"
+
 void bg_player_video_create(bg_player_t * p, bg_plugin_registry_t * plugin_reg)
   {
   bg_gavl_video_options_init(&(p->video_stream.options));
@@ -174,8 +178,22 @@ void
 bg_player_set_video_filter_parameter(void*data, char * name,
                                      bg_parameter_value_t*val)
   {
+  int need_rebuild;
   bg_player_t * p = (bg_player_t*)data;
   bg_video_filter_chain_lock(p->video_stream.fc);
   bg_video_filter_chain_set_parameter(p->video_stream.fc, name, val);
+  need_rebuild = bg_video_filter_chain_need_rebuild(p->video_stream.fc);
   bg_video_filter_chain_unlock(p->video_stream.fc);
+
+  if(bg_player_get_state(p) == BG_PLAYER_STATE_INIT)
+    need_rebuild = 0;
+  
+  if(need_rebuild)
+    {
+    bg_log(BG_LOG_INFO, LOG_DOMAIN,
+           "Restarting playback due to changed video filters");
+    bg_player_interrupt(p);
+    bg_player_interrupt_resume(p);
+    
+    }
   }

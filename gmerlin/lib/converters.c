@@ -19,8 +19,11 @@ struct bg_audio_converter_s
   bg_read_audio_func_t read_func;
   void * read_priv;
   int read_stream;
-  
-  int samples_to_read;
+
+  gavl_audio_format_t frame_format;
+  int in_rate;
+  int out_rate;
+  int last_samples;
   };
 
 bg_audio_converter_t * bg_audio_converter_create(const gavl_audio_options_t * opt)
@@ -36,7 +39,6 @@ int bg_audio_converter_init(bg_audio_converter_t * cnv,
                             const gavl_audio_format_t * in_format,
                             const gavl_audio_format_t * out_format)
   {
-  gavl_audio_format_t frame_format;
   int result;
   gavl_audio_options_t * cnv_opt;
   
@@ -54,16 +56,10 @@ int bg_audio_converter_init(bg_audio_converter_t * cnv,
 
   if(result)
     {
-    gavl_audio_format_copy(&frame_format, in_format);
-    if(in_format->samplerate != out_format->samplerate)
-      {
-      frame_format.samples_per_frame =
-        ((out_format->samples_per_frame - 10) *
-         in_format->samplerate) / out_format->samplerate;
-
-      }
-    cnv->frame = gavl_audio_frame_create(&frame_format);
-    cnv->samples_to_read = frame_format.samples_per_frame;
+    gavl_audio_format_copy(&cnv->frame_format, in_format);
+    cnv->in_rate = in_format->samplerate;
+    cnv->out_rate = out_format->samplerate;
+    cnv->last_samples = 0;
     }
   return result;
   }
@@ -81,7 +77,28 @@ int bg_audio_converter_read(void * priv, gavl_audio_frame_t* frame, int stream,
                             int num_samples)
   {
   bg_audio_converter_t * cnv = (bg_audio_converter_t *)priv;
-  cnv->read_func(cnv->read_priv, cnv->frame, cnv->read_stream, cnv->samples_to_read);
+
+  if(cnv->last_samples != num_samples)
+    {
+    if(cnv->frame && (cnv->last_samples < num_samples))
+      {
+      gavl_audio_frame_destroy(cnv->frame);
+      cnv->frame = (gavl_audio_frame_t*)0;
+      }
+    if(cnv->in_rate != cnv->out_rate)
+      {
+      cnv->frame_format.samples_per_frame =
+        ((num_samples - 10) * cnv->in_rate) / cnv->out_rate;
+      }
+    else
+      cnv->frame_format.samples_per_frame = num_samples;
+
+    cnv->last_samples = num_samples;
+    }
+  if(!cnv->frame)
+    cnv->frame = gavl_audio_frame_create(&cnv->frame_format);
+
+  cnv->read_func(cnv->read_priv, cnv->frame, cnv->read_stream, cnv->frame_format.samples_per_frame);
   gavl_audio_convert(cnv->cnv, cnv->frame, frame);
   return frame->valid_samples;
   }
