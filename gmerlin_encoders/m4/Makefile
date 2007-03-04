@@ -69,7 +69,7 @@ AVFORMAT_REQUIRED = LIBAVFORMAT_VERSION
 AWK = mawk
 CC = gcc
 CCDEPMODE = depmode=gcc3
-CFLAGS = -Wall -Wmissing-declarations -Wdeclaration-after-statement -D_REENTRANT -D_FILE_OFFSET_BITS=64  -march=pentium4 -mtune=pentium4 -O3 -funroll-all-loops -fomit-frame-pointer -ffast-math -I/usr/local/include -I/usr/local/lib/gavl/include/ -I/usr/include/libxml2  
+CFLAGS = -Wall -Wmissing-declarations -Wdeclaration-after-statement -D_REENTRANT -D_FILE_OFFSET_BITS=64  -march=pentium4 -mtune=pentium4 -g -I/usr/local/include -I/usr/local/lib/gavl/include/ -I/usr/include/libxml2  
 CPP = gcc -E
 CPPFLAGS = 
 CXX = g++
