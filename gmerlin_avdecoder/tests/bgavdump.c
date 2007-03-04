@@ -92,12 +92,11 @@ static int read_timeout      = 5000;
 static int network_bandwidth = 524300; /* 524.3 Kbps (Cable/DSL) */
 
 static int samples_to_read = 10240;
-
-
+static int frames_to_read  = 10;
 
 int main(int argc, char ** argv)
   {
-  int i;
+  int i, j;
   int num_audio_streams;
   int num_video_streams;
   int num_subtitle_streams;
@@ -262,15 +261,21 @@ int main(int argc, char ** argv)
       video_format = bgav_get_video_format(file, i);
       vf = gavl_video_frame_create(video_format);
 #if 1
-      fprintf(stderr, "Reading frame from video stream %d...", i+1);
-      if(bgav_read_video(file, vf, i))
+      for(j = 0; j < frames_to_read; j++)
         {
-        fprintf(stderr, "Done\n");
-        // fprintf(stderr, "First 16 bytes of first plane follow\n");
-        // bgav_hexdump(vf->planes[0] + vf->strides[0] * 20, 16, 16);
+        fprintf(stderr, "Reading frame from video stream %d...", i+1);
+        if(bgav_read_video(file, vf, i))
+          {
+          fprintf(stderr, "Done, timestamp: %"PRId64"\n", vf->time_scaled);
+          // fprintf(stderr, "First 16 bytes of first plane follow\n");
+          // bgav_hexdump(vf->planes[0] + vf->strides[0] * 20, 16, 16);
+          }
+        else
+          {
+          fprintf(stderr, "Failed\n");
+          break;
+          }
         }
-      else
-        fprintf(stderr, "Failed\n");
 #endif
       //      gavl_video_frame_dump(vf, video_format, "frame");
       gavl_video_frame_destroy(vf);

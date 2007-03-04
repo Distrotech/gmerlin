@@ -1,0 +1,17 @@
+#ifndef __BG_VERSION_H_
+#define __BG_VERSION_H_
+
+#define BG_VERSION "@BG_VERSION@"
+
+#define BG_VERSION_MAJOR @BG_VERSION_MAJOR@
+#define BG_VERSION_MINOR @BG_VERSION_MINOR@
+#define BG_VERSION_MICRO @BG_VERSION_MICRO@
+
+#define BG_MAKE_BUILD(a,b,c) ((a << 16) + (b << 8) + c)
+
+#define BG_BUILD \
+BG_MAKE_BUILD(BG_VERSION_MAJOR, \
+                BG_VERSION_MINOR, \
+                BG_VERSION_MICRO)
+
+#endif // __BG_VERSION_H_

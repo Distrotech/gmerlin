@@ -1,6 +1,7 @@
 SUBDIRS=gui_gtk
 
 pkginclude_HEADERS = \
+bg_version.h \
 bgsocket.h \
 cfg_dialog.h \
 cfg_registry.h \
@@ -43,3 +44,5 @@ playerprivate.h \
 registry_priv.h \
 treeprivate.h \
 pluginreg_priv.h
+
+EXTRA_DIST = bg_version.h.in

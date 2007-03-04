@@ -413,11 +413,6 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
               sscanf(tmp_string, "%f %f",
                      &(ret[index].val_min.val_f),
                      &(ret[index].val_max.val_f));
-              if(!strcmp(ret[index].name, "Band 1 Gain [dB]"))
-                fprintf(stderr, "Range: %s -> %f %f\n",
-                        tmp_string, ret[index].val_min.val_f,
-                        ret[index].val_max.val_f);
-                        
               break;
             case BG_PARAMETER_TIME:
               sscanf(tmp_string, "%" PRId64 " %" PRId64,

@@ -490,8 +490,6 @@ scan_directory_internal(const char * directory, bg_plugin_info_t ** _file_info,
     new_info = find_by_dll(file_info, filename);
     if(new_info)
       {
-      fprintf(stderr, "dll: %s, %d %d\n", filename, st.st_mtime,
-              new_info->module_time);
       if((st.st_mtime == new_info->module_time) &&
          (bg_cfg_section_has_subsection(cfg_section,
                                         new_info->name)))
@@ -499,8 +497,7 @@ scan_directory_internal(const char * directory, bg_plugin_info_t ** _file_info,
         file_info = remove_from_list(file_info, new_info);
         
         ret = append_to_list(ret, new_info);
-        fprintf(stderr, "Already in registry\n");
-
+        
         /* Remove other plugins as well */
         while((new_info = find_by_dll(file_info, filename)))
           {
@@ -510,7 +507,6 @@ scan_directory_internal(const char * directory, bg_plugin_info_t ** _file_info,
         
         continue;
         }
-      fprintf(stderr, "Reloading\n");
       }
 
     if(!(*changed))
@@ -544,49 +540,50 @@ scan_directory_internal(const char * directory, bg_plugin_info_t ** _file_info,
     while(tmp_info)
       {
       tmp_info->module_time = st.st_mtime;
-      tmp_info = tmp_info->next;
-      }
     
     
     /* Create parameter entries in the registry */
 
-    plugin_section =
-      bg_cfg_section_find_subsection(cfg_section, new_info->name);
+      plugin_section =
+        bg_cfg_section_find_subsection(cfg_section, tmp_info->name);
     
-    if(new_info->parameters)
-      {
-      bg_cfg_section_create_items(plugin_section,
-                                  new_info->parameters);
-      }
-    if(new_info->audio_parameters)
-      {
-      stream_section = bg_cfg_section_find_subsection(plugin_section,
-                                                      "$audio");
+      if(tmp_info->parameters)
+        {
+        bg_cfg_section_create_items(plugin_section,
+                                    tmp_info->parameters);
+        }
+      if(tmp_info->audio_parameters)
+        {
+        stream_section = bg_cfg_section_find_subsection(plugin_section,
+                                                        "$audio");
         
-      bg_cfg_section_create_items(stream_section,
-                                  new_info->audio_parameters);
+        bg_cfg_section_create_items(stream_section,
+                                    tmp_info->audio_parameters);
+        }
+      if(tmp_info->video_parameters)
+        {
+        stream_section = bg_cfg_section_find_subsection(plugin_section,
+                                                        "$video");
+        bg_cfg_section_create_items(stream_section,
+                                    tmp_info->video_parameters);
+        }
+      if(tmp_info->subtitle_text_parameters)
+        {
+        stream_section = bg_cfg_section_find_subsection(plugin_section,
+                                                        "$subtitle_text");
+        bg_cfg_section_create_items(stream_section,
+                                    tmp_info->video_parameters);
+        }
+      if(tmp_info->subtitle_overlay_parameters)
+        {
+        stream_section = bg_cfg_section_find_subsection(plugin_section,
+                                                        "$subtitle_overlay");
+        bg_cfg_section_create_items(stream_section,
+                                    tmp_info->video_parameters);
+        }
+      tmp_info = tmp_info->next;
       }
-    if(new_info->video_parameters)
-      {
-      stream_section = bg_cfg_section_find_subsection(plugin_section,
-                                                      "$video");
-      bg_cfg_section_create_items(stream_section,
-                                  new_info->video_parameters);
-      }
-    if(new_info->subtitle_text_parameters)
-      {
-      stream_section = bg_cfg_section_find_subsection(plugin_section,
-                                                      "$subtitle_text");
-      bg_cfg_section_create_items(stream_section,
-                                  new_info->video_parameters);
-      }
-    if(new_info->subtitle_overlay_parameters)
-      {
-      stream_section = bg_cfg_section_find_subsection(plugin_section,
-                                                      "$subtitle_overlay");
-      bg_cfg_section_create_items(stream_section,
-                                  new_info->video_parameters);
-      }
+
     dlclose(test_module);
     ret = append_to_list(ret, new_info);
     }
@@ -648,8 +645,8 @@ bg_plugin_registry_create(bg_cfg_section_t * section)
   bg_plugin_info_t * tmp_info;
   bg_plugin_info_t * tmp_info_next;
   char * filename;
-  int index;
-
+  int index, i;
+  int do_scan;
   char * env;
 
   char * path;
@@ -689,11 +686,23 @@ bg_plugin_registry_create(bg_cfg_section_t * section)
     index = 0;
     while(paths[index])
       {
-      tmp_info = scan_directory(paths[index],
-                                &file_info, 
-                                section, BG_PLUGIN_API_LADSPA);
-      if(tmp_info)
-        ret->entries = append_to_list(ret->entries, tmp_info);
+      do_scan = 1;
+      for(i = 0; i < index; i++)
+        {
+        if(!strcmp(paths[index], paths[i]))
+          {
+          do_scan = 0;
+          break;
+          }
+        }
+      if(do_scan)
+        {
+        tmp_info = scan_directory(paths[index],
+                                  &file_info, 
+                                  section, BG_PLUGIN_API_LADSPA);
+        if(tmp_info)
+          ret->entries = append_to_list(ret->entries, tmp_info);
+        }
       index++;
       }
     bg_strbreak_free(paths);

@@ -138,8 +138,6 @@ static float * get_coeffs(float radius, int * r_i, int mode)
     ret[*r_i+i] = coeff - last_coeff;
     ret[*r_i-i] = ret[*r_i+i];
     }
-  for(i = 0; i < 2* (*r_i)+1; i++)
-    fprintf(stderr, "%d %f\n", i, ret[i]);
   return ret;
   }
 

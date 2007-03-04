@@ -102,7 +102,6 @@ static void build_audio_chain(bg_audio_filter_chain_t * ch)
   char ** filter_names;
 
   ch->need_rebuild = 0;
-  fprintf(stderr, "Build audio chain\n");
   filter_names = bg_strbreak(ch->filter_string, ',');
   
   destroy_audio_chain(ch);
@@ -172,9 +171,6 @@ bg_audio_filter_chain_set_parameter(void * data, char * name,
   if(!name)
     return;
 
-  fprintf(stderr, "bg_audio_filter_chain_set_parameter: %s\n",
-          name);
-  
   if(!strcmp(name, "audio_filters"))
     {
     if(!ch->filter_string && !val->val_str)

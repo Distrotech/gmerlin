@@ -31,6 +31,8 @@
 
 #define LOG_DOMAIN "video_libmpeg2"
 
+
+
 /* Debug function */
 #if 0
 void dump_sequence_header(const mpeg2_sequence_t * s)
@@ -295,9 +297,14 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
       else
         break;
       }
+#if MPEG2_RELEASE >= MPEG2_VERSION(a,b,c)
     else if((state == STATE_SEQUENCE) ||
             (state == STATE_SEQUENCE_REPEATED) ||
             (state == STATE_SEQUENCE_MODIFIED))
+#else
+    else if((state == STATE_SEQUENCE) ||
+            (state == STATE_SEQUENCE_REPEATED))
+#endif
       {
       memset(&new_format, 0, sizeof(new_format));
       get_format(&(new_format), priv->info->sequence);
@@ -360,7 +367,7 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
     
   s->data.video.last_frame_time     = priv->picture_timestamp;
   s->data.video.last_frame_duration = priv->picture_duration;
-  
+
   return 1;
   }
 

@@ -1,5 +1,5 @@
 pkgincludedir=$(includedir)/gmerlin
-pkginclude_HEADERS = avdec.h
+pkginclude_HEADERS = avdec.h bgav_version.h
 
 noinst_HEADERS = \
 a52_header.h \
@@ -28,3 +28,4 @@ win32codec.h \
 xing.h \
 yml.h
 
+EXTRA_DIST = bgav_version.h.in

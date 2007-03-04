@@ -367,9 +367,9 @@ static void init_ladspa(ladspa_priv_t * lp)
     {
     lp->num_instances = lp->format.num_channels;
     }
-  else if(lp->format.num_channels > lp->num_out_ports)
+  else if(lp->format.num_channels != lp->num_out_ports)
     {
-    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Downmixing to stereo for \"%s\"",
+    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Remixing to stereo for filter \"%s\"",
            lp->desc->Name);
     lp->format.num_channels = 2;
     lp->format.channel_locations[0] = GAVL_CHID_NONE;
@@ -378,8 +378,6 @@ static void init_ladspa(ladspa_priv_t * lp)
     }
   else /* Stereo -> Stereo */
     lp->num_instances = 1;
-
-  fprintf(stderr, "Instantiate: %d\n", lp->format.samplerate);
   
   for(i = 0; i < lp->num_instances; i++)
     {
@@ -536,9 +534,6 @@ static int read_audio_ladspa(void * priv,
     }
 
   connect_output(lp, frame);
-
-
-  fprintf(stderr, "lp->run_adding: %d\n", lp->run_adding);
   
   /* Run */
   for(i = 0; i < lp->num_instances; i++)
@@ -605,8 +600,6 @@ static void set_parameter_ladspa(void * priv, char * name,
     }
   if(!strcmp(name, "$run_adding"))
     {
-    fprintf(stderr, "set $run_adding: %d\n",
-            val->val_i);
     if(lp->desc->run_adding)
       lp->run_adding = val->val_i;
     else
@@ -622,8 +615,6 @@ static void set_parameter_ladspa(void * priv, char * name,
         lp->config_ports[lp->in_c_ports[i]] = val->val_i;
       else
         lp->config_ports[lp->in_c_ports[i]] = val->val_f;
-      fprintf(stderr, "Port %d: %f\n", lp->in_c_ports[i],
-              lp->config_ports[lp->in_c_ports[i]]);
       break;
       }
     }

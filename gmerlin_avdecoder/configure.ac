@@ -3,6 +3,19 @@ AC_CONFIG_SRCDIR([include/avdec.h])
 AM_CONFIG_HEADER(include/config.h)
 AM_INIT_AUTOMAKE(1.8.5)
 
+
+BGAV_VERSION=$VERSION
+
+BGAV_VERSION_MAJOR=`echo $VERSION | cut -d . -f 1`
+BGAV_VERSION_MINOR=`echo $VERSION | cut -d . -f 2`
+BGAV_VERSION_MICRO=`echo $VERSION | cut -d . -f 3 | cut -d p -f 1`
+AC_SUBST(BGAV_VERSION)
+AC_SUBST(BGAV_VERSION_MAJOR)
+AC_SUBST(BGAV_VERSION_MINOR)
+AC_SUBST(BGAV_VERSION_MICRO)
+
+
+
 AC_GNU_SOURCE
 
 AC_DISABLE_STATIC
@@ -326,6 +339,7 @@ po/Makefile.in \
 gmerlin_avdec.spec \
 gmerlin_avdec.pc \
 include/Makefile \
+include/bgav_version.h \
 lib/Makefile \
 lib/libw32dll/Makefile \
 lib/libw32dll/dmo/Makefile \

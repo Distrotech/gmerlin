@@ -842,27 +842,31 @@ static void do_apply(bg_cfg_section_t * section,
             i = 0;
             while(strcmp(infos[num].multi_names[i], chain_elements[selected]))
               i++;
-            
-            /* Find section */
-            subsubsection =
-              bg_cfg_section_find_subsection_by_index(subsection, selected);
 
-            if(!subsubsection)
+            if(infos[num].multi_parameters[i])
+              {
+            
+              /* Find section */
               subsubsection =
-                bg_cfg_section_create_subsection_at_pos(subsection, selected);
+                bg_cfg_section_find_subsection_by_index(subsection, selected);
+
+              if(!subsubsection)
+                subsubsection =
+                  bg_cfg_section_create_subsection_at_pos(subsection, selected);
 
               
-            if(prefix)
-              tmp_string =
-                bg_sprintf("%s.%s.%d", prefix, infos[num].name, selected);
-            else
-              tmp_string =
-                bg_sprintf("%s.%d", infos[num].name, selected);
+              if(prefix)
+                tmp_string =
+                  bg_sprintf("%s.%s.%d", prefix, infos[num].name, selected);
+              else
+                tmp_string =
+                  bg_sprintf("%s.%d", infos[num].name, selected);
             
-            do_apply(subsubsection, infos[num].multi_parameters[i],
-                     func, callback_data, tmp_string);
+              do_apply(subsubsection, infos[num].multi_parameters[i],
+                       func, callback_data, tmp_string);
 
-            free(tmp_string);
+              free(tmp_string);
+              }
             selected++;
             }
           bg_strbreak_free(chain_elements);

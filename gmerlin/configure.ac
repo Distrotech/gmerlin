@@ -6,6 +6,17 @@ AM_CONFIG_HEADER(include/config.h)
 
 AM_INIT_AUTOMAKE(gmerlin, 0.3.6)
 
+BG_VERSION=$VERSION
+
+BG_VERSION_MAJOR=`echo $VERSION | cut -d . -f 1`
+BG_VERSION_MINOR=`echo $VERSION | cut -d . -f 2`
+BG_VERSION_MICRO=`echo $VERSION | cut -d . -f 3 | cut -d p -f 1`
+AC_SUBST(BG_VERSION)
+AC_SUBST(BG_VERSION_MAJOR)
+AC_SUBST(BG_VERSION_MINOR)
+AC_SUBST(BG_VERSION_MICRO)
+
+
 AC_DISABLE_STATIC
 dnl AM_DISABLE_STATIC
 
@@ -625,6 +636,7 @@ icons/Makefile \
 m4/Makefile \
 tests/Makefile \
 include/Makefile \
+include/bg_version.h \
 include/gui_gtk/Makefile \
 lib/Makefile \
 lib/gtk/Makefile \

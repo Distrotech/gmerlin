@@ -264,6 +264,28 @@ static void get_value(bg_gtk_widget_t * w)
     }
   }
 
+static void set_sub_param_add(void * priv, char * name,
+                              bg_parameter_value_t * val)
+  {
+  char * tmp_string;
+  list_priv_t * list;
+  bg_gtk_widget_t * w;
+
+  w = (bg_gtk_widget_t*)priv;
+  list = (list_priv_t*)(w->priv);
+
+  if(!name)
+    tmp_string = (char*)0;
+  else
+    tmp_string = bg_sprintf("%s.%d.%s", w->info->name, list->num-1,
+                            name);
+  list->set_param(list->data, tmp_string, val);
+  if(tmp_string)
+    free(tmp_string);
+  
+  }
+
+
 static void add_func(void * priv, char * name, bg_parameter_value_t * val)
   {
   list_priv_t * list;
@@ -317,14 +339,16 @@ static void add_func(void * priv, char * name, bg_parameter_value_t * val)
     list->num++;
     
     if(w->info->flags & BG_PARAMETER_SYNC)
+      {
       bg_gtk_change_callback((GtkWidget*)0, w);
+
+      if(w->info->multi_parameters[selected])
+        bg_cfg_section_apply(subsection,
+                             w->info->multi_parameters[selected],
+                             set_sub_param_add, w);
+      }
     
-#if 0
-    if(w->value.val_str)
-      w->value.val_str = bg_strcat(w->value.val_str, ",");
-    w->value.val_str = bg_strcat(w->value.val_str, val->val_str);
-    get_value(w);
-#endif
+    
     }
   }
 

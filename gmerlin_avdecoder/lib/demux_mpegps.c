@@ -613,38 +613,18 @@ static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * inpu
             }
           p->data_size = priv->pes_header.payload_size;
         
-          if(priv->pes_header.pts >= 0)
+          if(priv->pes_header.pts != BGAV_TIMESTAMP_UNDEFINED)
             {
             if(!(ctx->flags & BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET))
               {
-              if(ctx->tt->cur->num_audio_streams &&
-                 ctx->tt->cur->num_video_streams)
-                {
-                if(stream->type == BGAV_STREAM_AUDIO)
-                  {
-                  ctx->timestamp_offset = -priv->pes_header.pts;
-                  ctx->flags |= BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET;
-                  }
-                }
-              else
-                {
-                ctx->timestamp_offset = -priv->pes_header.pts;
-                ctx->flags |= BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET;
-                }
+              ctx->timestamp_offset = -priv->pes_header.pts;
+              ctx->flags |= BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET;
               }
-
-            if(ctx->flags & BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET)
-              {
-              p->pts = priv->pes_header.pts + ctx->timestamp_offset;
-              if(p->pts < 0)
-                p->pts = 0;
-
-              }
-            else
-              {
-              p->pts = 0;
-              }
-          
+            
+            p->pts = priv->pes_header.pts + ctx->timestamp_offset;
+            //            if(p->pts < 0)
+            //              p->pts = 0;
+            
             if(priv->do_sync && (stream->time_scaled < 0))
               stream->time_scaled = p->pts;
             }
