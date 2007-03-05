@@ -4,9 +4,19 @@ mmx_libs = mmx/libgavl_mmx.la mmxext/libgavl_mmxext.la
 mmx_subdirs = mmx mmxext
 else
 mmx_libs = 
+mmx_subdirs =
 endif
 
-SUBDIRS = hq c libgdither libsamplerate $(mmx_subdirs)
+if HAVE_SSE
+sse_libs = sse/libgavl_sse.la
+sse_subdirs = sse
+else
+sse_libs = 
+sse_subdirs =
+endif
+
+SUBDIRS = hq c libgdither libsamplerate $(mmx_subdirs) \
+$(sse_subdirs)
 
 lib_LTLIBRARIES= libgavl.la
 #noinst_LTLIBRARIES = libgavl.la
@@ -22,6 +32,7 @@ colorspace.c \
 cputest.c \
 deinterlace.c \
 deinterlace_copy.c \
+dsp.c \
 interleave.c \
 memcpy.c \
 mix.c \
@@ -50,6 +61,7 @@ csp_planar_planar.h
 libgavl_la_LIBADD = \
 @GMERLIN_DEP_LIBS@ \
 $(mmx_libs) \
+$(sse_libs) \
 c/libgavl_c.la \
 hq/libgavl_hq.la \
 libgdither/libgdither.la \

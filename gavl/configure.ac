@@ -142,5 +142,6 @@ gavl/libsamplerate/Makefile \
 gavl/c/Makefile \
 gavl/hq/Makefile \
 gavl/mmx/Makefile \
-gavl/mmxext/Makefile)
+gavl/mmxext/Makefile \
+gavl/sse/Makefile)
 

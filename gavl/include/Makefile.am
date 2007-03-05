@@ -10,6 +10,7 @@ audio.h \
 blend.h \
 colorspace.h \
 deinterlace.h \
+dsp.h \
 float_cast.h \
 interleave.h \
 mix.h \
