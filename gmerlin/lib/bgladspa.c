@@ -369,7 +369,8 @@ static void init_ladspa(ladspa_priv_t * lp)
     }
   else if(lp->format.num_channels != lp->num_out_ports)
     {
-    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Remixing to stereo for filter \"%s\"",
+    bg_log(BG_LOG_WARNING, LOG_DOMAIN, 
+           "Remixing to stereo for filter \"%s\"",
            lp->desc->Name);
     lp->format.num_channels = 2;
     lp->format.channel_locations[0] = GAVL_CHID_NONE;
@@ -436,14 +437,14 @@ static void set_input_format_ladspa(void * priv,
 
 static void connect_input_port_ladspa(void * priv,
                                       bg_read_audio_func_t func,
-                                      void * data, int stream, int port)
+                                      void * data, int stream, 
+                                      int port)
   {
   ladspa_priv_t * lp;
   lp = (ladspa_priv_t *)priv;
   
   if(!port)
     {
-
     lp->read_func = func;
     lp->read_data = data;
     lp->read_stream = stream;
@@ -527,10 +528,10 @@ static int read_audio_ladspa(void * priv,
     if(!ret)
       return 0;
 
-//     if(lp->run_adding)
-    gavl_audio_frame_copy(&lp->format, frame, lp->frame,
-                          0, 0, lp->frame->valid_samples,
-                          lp->frame->valid_samples);
+    if(lp->run_adding)
+      gavl_audio_frame_copy(&lp->format, frame, lp->frame,
+                            0, 0, lp->frame->valid_samples,
+                            lp->frame->valid_samples);
     }
 
   connect_output(lp, frame);
@@ -648,8 +649,7 @@ int bg_ladspa_load(bg_plugin_handle_t * ret,
   priv = calloc(1, sizeof(*priv));
   ret->priv = priv;
   priv->parameters = info->parameters;
-  //  priv->inplace_broken = 1;
-  
+ 
   desc_func = dlsym(ret->dll_handle, "ladspa_descriptor");
   if(!desc_func)
     {
@@ -658,6 +658,10 @@ int bg_ladspa_load(bg_plugin_handle_t * ret,
     return 0;
     }
   priv->desc = desc_func(info->index);
+
+  if(priv->desc->Properties & LADSPA_PROPERTY_INPLACE_BROKEN) 
+    priv->inplace_broken = 1;
+
   priv->config_ports = calloc(priv->desc->PortCount,
                               sizeof(*priv->config_ports));
   

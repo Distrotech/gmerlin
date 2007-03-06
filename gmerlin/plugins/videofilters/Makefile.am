@@ -4,6 +4,7 @@ AM_CFLAGS = -DLOCALE_DIR=\"$(localedir)\"
 
 lib_LTLIBRARIES = \
 fv_blur.la \
+fv_decimate.la \
 fv_equalizer.la \
 fv_flip.la
 
@@ -12,6 +13,9 @@ fv_blur_la_LDFLAGS = -avoid-version -module
 
 fv_flip_la_SOURCES  = fv_flip.c
 fv_flip_la_LDFLAGS = -avoid-version -module
+
+fv_decimate_la_SOURCES  = fv_decimate.c
+fv_decimate_la_LDFLAGS = -avoid-version -module
 
 fv_equalizer_la_SOURCES  = fv_equalizer.c
 fv_equalizer_la_LDFLAGS = -avoid-version -module

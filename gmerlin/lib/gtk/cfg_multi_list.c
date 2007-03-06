@@ -599,7 +599,8 @@ static void button_callback(GtkWidget * wid, gpointer data)
 
     if(priv->is_chain)
       {
-      subsection = bg_cfg_section_find_subsection(priv->cfg_section, w->info->name);
+      subsection = 
+        bg_cfg_section_find_subsection(priv->cfg_section, w->info->name);
       subsubsection = bg_cfg_section_find_subsection_by_index(subsection, priv->selected);
       bg_cfg_section_move_child(subsection, subsubsection, 0);
       }
