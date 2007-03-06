@@ -27,7 +27,7 @@ gavl_dsp_context_t * gavl_dsp_context_create()
   ret = calloc(1, sizeof(*ret));
   ret->accel_flags = gavl_accel_supported();
   ret->quality = GAVL_QUALITY_DEFAULT;
-  init_table(&ret->funcs);
+  init_table(ret);
   return ret;
   }
 
@@ -35,7 +35,7 @@ void gavl_dsp_context_set_quality(gavl_dsp_context_t * ctx,
                                   int q)
   {
   ctx->quality = q;
-  init_table(&ctx->funcs);
+  init_table(ctx);
   }
 
 
