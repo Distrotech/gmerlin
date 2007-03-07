@@ -87,6 +87,7 @@ POTFILES = \
      ../include/config.h \
      ../include/dvb_channels.h \
      ../include/pngreader.h \
+     ../include/bgav_version.h \
      ../include/id3.h \
      ../include/utils.h \
      ../include/pes_header.h \

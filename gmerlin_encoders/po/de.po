@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmerlin-encoders 0.2.4\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-02-15 21:11+0100\n"
+"POT-Creation-Date: 2007-03-07 22:02+0100\n"
 "PO-Revision-Date: 2007-02-17 12:50+0100\n"
 "Last-Translator: Burkhard Plaum <gmerlin-general@lists.sourceforge.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -48,7 +48,7 @@ msgstr ""
 msgid "Joint stereo"
 msgstr ""
 
-#: plugins/lame/e_lame.c:237 plugins/yuv4mpeg/e_yuv4mpeg.c:165
+#: plugins/lame/e_lame.c:237 plugins/yuv4mpeg/e_yuv4mpeg.c:168
 #: plugins/yuv4mpeg/mpv_common.c:70 plugins/ogg/speex.c:148
 msgid "Auto"
 msgstr ""
@@ -215,6 +215,12 @@ msgstr ""
 msgid "Lame mp3 encoder"
 msgstr ""
 
+#: plugins/lame/e_lame.c:707
+msgid ""
+"Encoder for mp3 files. Based on lame (http://www.mp3dev.org). Supports CBR, "
+"VBR, ID3V1 and ID3V2 tags."
+msgstr ""
+
 #: plugins/flac/e_flac.c:74
 msgid "Write vorbis comment"
 msgstr ""
@@ -252,6 +258,10 @@ msgstr ""
 
 #: plugins/flac/e_flac.c:454 plugins/ogg/flac.c:309
 msgid "Flac encoder"
+msgstr ""
+
+#: plugins/flac/e_flac.c:455
+msgid "Encoder for .flac files. Based on libflac (http://flac.sourceforge.net)"
 msgstr ""
 
 #: plugins/faac/e_faac.c:83
@@ -330,6 +340,12 @@ msgstr ""
 msgid "Faac encoder"
 msgstr ""
 
+#: plugins/faac/e_faac.c:537
+msgid ""
+"Plugin for encoding AAC streams (with ADTS headers). Based on faac (http://"
+"faac.sourceforge.net)."
+msgstr ""
+
 #: plugins/yuv4mpeg/e_mpeg.c:103
 msgid "mpeg2enc exectuable not found"
 msgstr ""
@@ -347,7 +363,7 @@ msgid "Cannot find mplex"
 msgstr ""
 
 #: plugins/yuv4mpeg/e_mpeg.c:366 plugins/yuv4mpeg/e_mpeg.c:380
-#: plugins/yuv4mpeg/e_mpegaudio.c:132 plugins/yuv4mpeg/e_mpegvideo.c:101
+#: plugins/yuv4mpeg/e_mpegaudio.c:133 plugins/yuv4mpeg/e_mpegvideo.c:102
 #, c-format
 msgid "Removing %s"
 msgstr ""
@@ -421,62 +437,86 @@ msgstr ""
 msgid "MPEG 1/2 program/system stream encoder"
 msgstr ""
 
-#: plugins/yuv4mpeg/e_mpegaudio.c:98
+#: plugins/yuv4mpeg/e_mpeg.c:528
+msgid ""
+"Encoder for regular .mpg files as well as VCD and DVD streams. Based on "
+"mjpegtools (http://mjpeg.sourceforge.net)"
+msgstr ""
+
+#: plugins/yuv4mpeg/e_mpegaudio.c:99
 msgid "Cannot find mp2enc executable"
 msgstr ""
 
-#: plugins/yuv4mpeg/e_mpegaudio.c:159
+#: plugins/yuv4mpeg/e_mpegaudio.c:160
 msgid "MPEG-1 layer 1/2 audio encoder"
 msgstr ""
 
-#: plugins/yuv4mpeg/e_mpegvideo.c:135
+#: plugins/yuv4mpeg/e_mpegaudio.c:161
+msgid ""
+"Encoder for elementary MPEG-1 layer 1/2 audio streams. Based on mjpegtools "
+"(http://mjpeg.sourceforge.net)."
+msgstr ""
+
+#: plugins/yuv4mpeg/e_mpegvideo.c:136
 msgid "MPEG-1/2 video encoder"
 msgstr ""
 
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:152
+#: plugins/yuv4mpeg/e_mpegvideo.c:137
+msgid ""
+"Encoder for elementary MPEG-1/2 video streams. Based on mjpegtools (http://"
+"mjpeg.sourceforge.net)."
+msgstr ""
+
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:155
 msgid "Chroma mode"
 msgstr ""
 
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:166
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:169
 msgid "4:2:0 (MPEG-1/JPEG)"
 msgstr ""
 
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:167
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:170
 msgid "4:2:0 (MPEG-2)"
 msgstr ""
 
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:168
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:171
 msgid "4:2:0 (PAL DV)"
 msgstr ""
 
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:169
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:172
 msgid "4:4:4"
 msgstr ""
 
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:170
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:173
 msgid "4:2:2"
 msgstr ""
 
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:171
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:174
 msgid "4:1:1"
 msgstr ""
 
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:172
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:175
 msgid "Greyscale"
 msgstr ""
 
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:173
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:176
 msgid "4:4:4:4 (YUVA)"
 msgstr ""
 
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:175
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:178
 msgid ""
 "Set the chroma mode of the output file. Auto means to take the format most "
 "similar to the source."
 msgstr ""
 
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:259
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:262
 msgid "yuv4mpeg2 encoder"
+msgstr ""
+
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:263
+msgid ""
+"Encoder for yuv4mpeg streams. Based on mjpegtools (http://mjpeg.sourceforge."
+"net)."
 msgstr ""
 
 #: plugins/yuv4mpeg/mpa_common.c:40 plugins/yuv4mpeg/mpv_common.c:77
@@ -613,8 +653,14 @@ msgstr ""
 msgid "Video codec is not compatible with format"
 msgstr ""
 
-#: plugins/ffmpeg/e_ffmpeg.c:121
+#: plugins/ffmpeg/e_ffmpeg.c:124
 msgid "FFmpeg audio/video encoder"
+msgstr ""
+
+#: plugins/ffmpeg/e_ffmpeg.c:125
+msgid ""
+"Plugin for encoding various audio/video formats with ffmpeg (http://www."
+"ffmpeg.org)."
 msgstr ""
 
 #: plugins/ffmpeg/codecs.c:11 plugins/ffmpeg/codecs.c:22
@@ -1425,12 +1471,24 @@ msgstr ""
 msgid "Strictly enforce GOP size"
 msgstr ""
 
-#: plugins/ffmpeg/e_ffmpeg_video.c:35
+#: plugins/ffmpeg/e_ffmpeg_video.c:39
 msgid "FFmpeg video encoder"
 msgstr ""
 
-#: plugins/ffmpeg/e_ffmpeg_audio.c:56
+#: plugins/ffmpeg/e_ffmpeg_video.c:40
+msgid ""
+"Plugin for encoding various video formats with ffmpeg (http://www.ffmpeg."
+"org)."
+msgstr ""
+
+#: plugins/ffmpeg/e_ffmpeg_audio.c:58
 msgid "FFmpeg audio encoder"
+msgstr ""
+
+#: plugins/ffmpeg/e_ffmpeg_audio.c:59
+msgid ""
+"Plugin for encoding various audio formats with ffmpeg (http://www.ffmpeg."
+"org)."
 msgstr ""
 
 #: plugins/ogg/flac.c:105
@@ -1446,16 +1504,30 @@ msgstr ""
 msgid "ERROR: FLAC__stream_encoder_init failed"
 msgstr ""
 
-#: plugins/ogg/e_flacogg.c:60
+#: plugins/ogg/e_flacogg.c:62
 msgid "Flac in Ogg encoder"
 msgstr ""
 
-#: plugins/ogg/e_speex.c:62 plugins/ogg/speex.c:579
+#: plugins/ogg/e_flacogg.c:63
+msgid ""
+"Encoder for flac streams in Ogg containers. Based on libflac (http://flac."
+"sourceforge.net)"
+msgstr ""
+
+#: plugins/ogg/e_speex.c:64 plugins/ogg/speex.c:581
 msgid "Speex encoder"
 msgstr ""
 
-#: plugins/ogg/e_vorbis.c:62 plugins/ogg/vorbis.c:412
+#: plugins/ogg/e_speex.c:65
+msgid "Encoder for Speex files"
+msgstr ""
+
+#: plugins/ogg/e_vorbis.c:64 plugins/ogg/vorbis.c:412
 msgid "Vorbis encoder"
+msgstr ""
+
+#: plugins/ogg/e_vorbis.c:65
+msgid "Encoder for Vorbis files"
 msgstr ""
 
 #: plugins/ogg/speex.c:144
@@ -1522,7 +1594,7 @@ msgstr ""
 msgid "Enable file-based discontinuous transmission"
 msgstr ""
 
-#: plugins/ogg/speex.c:430
+#: plugins/ogg/speex.c:432
 msgid "Got no Speex ID page"
 msgstr ""
 
@@ -1684,6 +1756,10 @@ msgstr ""
 #: plugins/ogg/ogg_common.c:50
 #, c-format
 msgid "Cannot open file %s: %s"
+msgstr ""
+
+#: plugins/ogg/e_theora.c:150
+msgid "Encoder for Theora files. Audio can be Vorbis, Flac or Speex."
 msgstr ""
 
 #: lib/bgflac.c:196

@@ -115,6 +115,7 @@ POTFILES = \
      ../apps/alsamixer/main.c \
      ../apps/alsamixer/alsamixer.h \
      ../apps/alsamixer/g_card.c \
+     ../plugins/audiofilters/fa_volume.c \
      ../plugins/png/pngwriter.c \
      ../plugins/png/pngwriter.h \
      ../plugins/png/e_spumux.c \
@@ -172,6 +173,10 @@ POTFILES = \
      ../plugins/tiff/iw_tiff.c \
      ../plugins/tiff/ir_tiff.c \
      ../plugins/subwriters/e_subtext.c \
+     ../plugins/videofilters/fv_decimate.c \
+     ../plugins/videofilters/fv_blur.c \
+     ../plugins/videofilters/fv_flip.c \
+     ../plugins/videofilters/fv_equalizer.c \
      ../tests/imgconvert.c \
      ../tests/recorder.c \
      ../tests/playtree.c \
@@ -185,6 +190,7 @@ POTFILES = \
      ../tests/player1.c \
      ../tests/textrenderer.c \
      ../tests/audioplayer1.c \
+     ../tests/ladspa.c \
      ../tests/v4ldump.c \
      ../tests/player1_msg.h \
      ../tests/cfgtest.c \
@@ -192,6 +198,7 @@ POTFILES = \
      ../tests/v4ltest.c \
      ../tests/msgtest.c \
      ../include/streaminfo.h \
+     ../include/bgladspa.h \
      ../include/registry_priv.h \
      ../include/treeprivate.h \
      ../include/charset.h \
@@ -204,6 +211,8 @@ POTFILES = \
      ../include/language_table.h \
      ../include/singlepic.h \
      ../include/pluginreg_priv.h \
+     ../include/ladspa.h \
+     ../include/bg_version.h \
      ../include/transcoder.h \
      ../include/config.h \
      ../include/translation.h \
@@ -231,7 +240,9 @@ POTFILES = \
      ../include/gui_gtk/button.h \
      ../include/gui_gtk/urlselect.h \
      ../include/gui_gtk/urllink.h \
+     ../include/converters.h \
      ../include/playermsg.h \
+     ../include/filters.h \
      ../include/transcoder_track.h \
      ../include/textrenderer.h \
      ../include/utils.h \
@@ -262,6 +273,7 @@ POTFILES = \
      ../lib/hexdump.c \
      ../lib/osd.c \
      ../lib/player.c \
+     ../lib/filters.c \
      ../lib/singlepic.c \
      ../lib/msgqueue.c \
      ../lib/bggavl.c \
@@ -275,6 +287,7 @@ POTFILES = \
      ../lib/remote.c \
      ../lib/translation.c \
      ../lib/fifo.c \
+     ../lib/converters.c \
      ../lib/metadata.c \
      ../lib/device.c \
      ../lib/transcoder_track.c \
@@ -283,6 +296,7 @@ POTFILES = \
      ../lib/album.c \
      ../lib/textrenderer.c \
      ../lib/lcdproc.c \
+     ../lib/bgladspa.c \
      ../lib/parameter_xml.c \
      ../lib/transcoder.c \
      ../lib/loader.c \
