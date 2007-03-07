@@ -537,7 +537,7 @@ bg_gtk_info_window_create(bg_player_t * player,
   gtk_table_attach(GTK_TABLE(table), frame, 0, 2, 0, 1,
                    GTK_EXPAND|GTK_FILL, GTK_FILL, 0, 0);
 
-  frame = create_frame(TR("Stream type"));
+  frame = create_frame(TR("Format"));
   gtk_container_add(GTK_CONTAINER(frame),
                     bg_gtk_textview_get_widget(ret->w_description));
   gtk_widget_show(frame);

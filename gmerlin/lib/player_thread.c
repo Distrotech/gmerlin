@@ -177,6 +177,7 @@ static void msg_stream_description(bg_msg_t * msg, const void * data)
   bg_msg_set_arg_string(msg, 0, (char*)data);
   }
 
+
 static void msg_mute(bg_msg_t * msg, const void * data)
   {
   bg_msg_set_id(msg, BG_PLAYER_MSG_MUTE);
@@ -434,13 +435,6 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
       return;
     }
   
-  /* Send messages about the stream */
-  /*
-    bg_msg_queue_list_send(p->message_queues,
-    msg_name,
-    p->track_info);
-  */
-
   if(p->track_info->description)
     bg_msg_queue_list_send(p->message_queues,
                            msg_stream_description,
@@ -645,8 +639,6 @@ static void play_cmd(bg_player_t * p,
   had_video = p->do_video || p->do_still;
   
   
-  bg_player_set_track_name(p, track_name);
-
   p->input_handle = handle;
   if(!bg_player_input_init(p->input_context,
                            handle, track_index))
@@ -655,6 +647,7 @@ static void play_cmd(bg_player_t * p,
     return;
     }
   init_playback(p, 0, flags, had_video);
+  bg_player_set_track_name(p, track_name);
   }
 
 static void cleanup_playback(bg_player_t * player,

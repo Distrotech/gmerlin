@@ -523,22 +523,137 @@ static void select_row_callback(GtkTreeSelection * s, gpointer data)
     if(priv->remove_button)
       gtk_widget_set_sensitive(priv->remove_button, 1);
     }
-  //  fprintf(stderr, "Selected: %d, param_selected: %d\n",
-  //          priv->selected, priv->param_selected);
+  }
+
+static void move_selected(bg_gtk_widget_t * w, int new_pos)
+  {
+  int i;
+  int index;
+  char ** names;
+  list_priv_t * priv;
+
+  bg_cfg_section_t * subsection;
+  bg_cfg_section_t * subsubsection;
+
+  GtkTreeSelection * selection;
+  GtkTreeModel * model;
+  GtkTreePath      * path;
+
+  GtkTreeIter iter;
+  GtkTreeIter iter_before;
+
+  priv = (list_priv_t *)(w->priv);
+  selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(priv->treeview));
+  gtk_tree_selection_get_selected(selection, &model, &iter);
+
+  if(!new_pos)
+    {
+    gtk_list_store_move_after(GTK_LIST_STORE(model),
+                              &iter,
+                              (GtkTreeIter*)0);
+
+    }
+  else
+    {
+    gtk_tree_model_get_iter_first(model, &iter_before);
+
+    for(i = 0; i < new_pos-1; i++)
+      gtk_tree_model_iter_next(model, &iter_before);
+
+    if(new_pos > priv->selected)
+      gtk_tree_model_iter_next(model, &iter_before);
+        
+    gtk_list_store_move_after(GTK_LIST_STORE(model),
+                              &iter,
+                              &iter_before);
+    }
+  //  gtk_tree_selection_select_iter(selection, &iter);
+  
+  path = gtk_tree_model_get_path(model, &iter);
+  gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW(priv->treeview),
+                               path,
+                               (GtkTreeViewColumn *)0,
+                               0, 0.0, 0.0);
+  gtk_tree_path_free(path);
+
+  subsection = 
+    bg_cfg_section_find_subsection(priv->cfg_section, w->info->name);
+  
+  /* Move config section */
+  
+  if(priv->is_chain)
+    {
+    subsubsection =
+      bg_cfg_section_find_subsection_by_index(subsection, priv->selected);
+    bg_cfg_section_move_child(subsection, subsubsection, new_pos);
+    }
+  
+  /* Apply parameter and subsections. It's easier to do it here. */
+
+  if(w->info->flags & BG_PARAMETER_SYNC)
+    {
+    bg_gtk_change_callback((GtkWidget*)0, w);
+    if(priv->is_chain)
+      {
+      names = bg_strbreak(w->value.val_str, ',');
+      
+      for(priv->selected = 0; priv->selected < priv->num; priv->selected++)
+        {
+        index = 0;
+        while(w->info->multi_names[index])
+          {
+          if(!strcmp(w->info->multi_names[index], names[priv->selected]))
+            break;
+          index++;
+          }
+
+        if(w->info->multi_names[index] && w->info->multi_parameters[index])
+          {
+          subsubsection =
+            bg_cfg_section_find_subsection_by_index(subsection, priv->selected);
+          
+          bg_cfg_section_apply(subsubsection,
+                               w->info->multi_parameters[index],
+                               set_sub_param, w);
+          }
+        }
+      bg_strbreak_free(names);
+      }
+    }
+  
+  priv->selected = new_pos;
+  
+  if(!priv->selected)
+    {
+    gtk_widget_set_sensitive(priv->top_button, 0);
+    gtk_widget_set_sensitive(priv->up_button, 0);
+    }
+  else
+    {
+    gtk_widget_set_sensitive(priv->top_button, 1);
+    gtk_widget_set_sensitive(priv->up_button, 1);
+    }
+
+  if(priv->selected >= priv->num - 1)
+    {
+    gtk_widget_set_sensitive(priv->down_button, 0);
+    gtk_widget_set_sensitive(priv->bottom_button, 0);
+    }
+  else
+    {
+    gtk_widget_set_sensitive(priv->down_button, 1);
+    gtk_widget_set_sensitive(priv->bottom_button, 1);
+    }
   }
 
 static void button_callback(GtkWidget * wid, gpointer data)
   {
-  int i;
   bg_gtk_widget_t * w;
   list_priv_t * priv;
   bg_dialog_t * dialog;
-  GtkTreeIter iter;
-  GtkTreeIter iter2;
+  GtkTreeSelection * selection;
 
   GtkTreeModel * model;
-  GtkTreeSelection * selection;
-  GtkTreePath      * path;
   const char * label;
   bg_cfg_section_t * subsection;
   bg_cfg_section_t * subsubsection;
@@ -583,166 +698,27 @@ static void button_callback(GtkWidget * wid, gpointer data)
     {
     if(priv->selected == 0)
       return;
-    selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(priv->treeview));
-    gtk_tree_selection_get_selected(selection, &model, &iter);
-    gtk_list_store_move_after(GTK_LIST_STORE(model),
-                              &iter,
-                              (GtkTreeIter*)0);
-    path = gtk_tree_model_get_path(model, &iter);
-    gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW(priv->treeview),
-                                 path,
-                                 (GtkTreeViewColumn *)0,
-                                 0, 0.0, 0.0);
-    gtk_tree_path_free(path);
-
-    /* Move config section */
-
-    if(priv->is_chain)
-      {
-      subsection = 
-        bg_cfg_section_find_subsection(priv->cfg_section, w->info->name);
-      subsubsection = bg_cfg_section_find_subsection_by_index(subsection, priv->selected);
-      bg_cfg_section_move_child(subsection, subsubsection, 0);
-      }
-    priv->selected = 0;
-
-    /* Update sensitive */
-    gtk_widget_set_sensitive(priv->down_button, 1);
-    gtk_widget_set_sensitive(priv->bottom_button, 1);
-    gtk_widget_set_sensitive(priv->top_button, 0);
-    gtk_widget_set_sensitive(priv->up_button, 0);
-
+    move_selected(w, 0);
     }
   else if(wid == priv->up_button)
     {
     if(priv->selected == 0)
       return;
-    selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(priv->treeview));
-    
-    if(!gtk_tree_selection_get_selected(selection, &model, &iter))
-      return;
-    
-    if(!gtk_tree_model_get_iter_first(model, &iter2))
-      return;
-    for(i = 0; i < priv->selected-1; i++)
-      {
-      if(!gtk_tree_model_iter_next(model, &iter2))
-        return;
-      }
-    gtk_list_store_swap(GTK_LIST_STORE(model),
-                        &iter, &iter2);
-    
-    path = gtk_tree_model_get_path(model, &iter);
-    gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW(priv->treeview),
-                                 path,
-                                 (GtkTreeViewColumn *)0,
-                                 0, 0.0, 0.0);
-    gtk_tree_path_free(path);
-
-    /* Move config section */
-    if(priv->is_chain)
-      {
-      subsection = bg_cfg_section_find_subsection(priv->cfg_section, w->info->name);
-      subsubsection = bg_cfg_section_find_subsection_by_index(subsection, priv->selected);
-      bg_cfg_section_move_child(subsection, subsubsection, priv->selected-1);
-      }
-
-    priv->selected--;
-
-    /* Update sensitive */
-    gtk_widget_set_sensitive(priv->down_button, 1);
-    gtk_widget_set_sensitive(priv->bottom_button, 1);
-
-    if(!priv->selected)
-      {
-      gtk_widget_set_sensitive(priv->top_button, 0);
-      gtk_widget_set_sensitive(priv->up_button, 0);
-      }
-    else
-      {
-      gtk_widget_set_sensitive(priv->top_button, 1);
-      gtk_widget_set_sensitive(priv->up_button, 1);
-      }
+    move_selected(w, priv->selected - 1);
     }
   else if(wid == priv->down_button)
     {
     if(priv->selected >= priv->num - 1)
       return;
-    selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(priv->treeview));
-    
-    if(!gtk_tree_selection_get_selected(selection, &model, &iter))
-      return;
-    memcpy(&iter2, &iter, sizeof(iter));
-    
-    if(!gtk_tree_model_iter_next(model, &iter2))
-      return;
-
-    gtk_list_store_swap(GTK_LIST_STORE(model),
-                        &iter, &iter2);
-    
-    path = gtk_tree_model_get_path(model, &iter);
-    gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW(priv->treeview),
-                                 path,
-                                 (GtkTreeViewColumn *)0,
-                                 0, 0.0, 0.0);
-    gtk_tree_path_free(path);
-
-    /* Move config section */
-    if(priv->is_chain)
-      {
-      subsection = bg_cfg_section_find_subsection(priv->cfg_section, w->info->name);
-      subsubsection = bg_cfg_section_find_subsection_by_index(subsection, priv->selected);
-      bg_cfg_section_move_child(subsection, subsubsection, priv->selected+1);
-      }
-
-    priv->selected++;
-
-    /* Update sensitive */
-    gtk_widget_set_sensitive(priv->up_button, 1);
-    gtk_widget_set_sensitive(priv->top_button, 1);
-
-    if(priv->selected >= priv->num - 1)
-      {
-      gtk_widget_set_sensitive(priv->down_button, 0);
-      gtk_widget_set_sensitive(priv->bottom_button, 0);
-      }
-    else
-      {
-      gtk_widget_set_sensitive(priv->down_button, 1);
-      gtk_widget_set_sensitive(priv->bottom_button, 1);
-      }
+    move_selected(w, priv->selected+1);
     }
   
   else if(wid == priv->bottom_button)
     {
     if(priv->selected >= priv->num-1)
       return;
-    selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(priv->treeview));
-    gtk_tree_selection_get_selected(selection, &model, &iter);
-    gtk_list_store_move_before(GTK_LIST_STORE(model),
-                               &iter,
-                               (GtkTreeIter*)0);
-    path = gtk_tree_model_get_path(model, &iter);
-    gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW(priv->treeview),
-                                 path,
-                                 (GtkTreeViewColumn *)0,
-                                 0, 0.0, 0.0);
-    gtk_tree_path_free(path);
 
-    /* Move config section */
-    if(priv->is_chain)
-      {
-      subsection = bg_cfg_section_find_subsection(priv->cfg_section, w->info->name);
-      subsubsection = bg_cfg_section_find_subsection_by_index(subsection, priv->selected);
-      bg_cfg_section_move_child(subsection, subsubsection, priv->num-1);
-      }
-
-    priv->selected = priv->num-1;
-
-    /* Update sensitive */
-    gtk_widget_set_sensitive(priv->up_button, 1);
-    gtk_widget_set_sensitive(priv->top_button, 1);
-
+    move_selected(w, priv->num-1);
     }
   else if(wid == priv->add_button)
     {

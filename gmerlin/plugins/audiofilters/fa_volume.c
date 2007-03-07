@@ -90,7 +90,6 @@ static void set_parameter_volume(void * priv, char * name, bg_parameter_value_t 
   
   if(!strcmp(name, "volume"))
     {
-    fprintf(stderr, "set_parameter_volume: %f\n", val->val_f);
     gavl_volume_control_set_volume(vp->vc, val->val_f);
     }
   }

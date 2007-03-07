@@ -167,7 +167,7 @@ static bg_parameter_info_t parameters[] =
       val_max:     { val_i: 500 },
       val_default: { val_i: 10 },
       flags: BG_PARAMETER_SYNC,
-      help_string: TRS("Maximum number of consecutive skipped frames .")
+      help_string: TRS("Maximum number of consecutive skipped frames")
     },
     {
       name: "do_log",
