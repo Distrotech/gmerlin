@@ -348,7 +348,8 @@ set_input_format_decimate(void * priv,
   vp->frame = gavl_video_frame_create(&vp->format);
   }
 
-static void get_output_format_decimate(void * priv, gavl_video_format_t * format)
+static void get_output_format_decimate(void * priv,
+                                       gavl_video_format_t * format)
   {
   decimate_priv_t * vp;
   vp = (decimate_priv_t *)priv;

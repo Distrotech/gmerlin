@@ -130,47 +130,65 @@ static void select_row_callback(GtkTreeSelection * s, gpointer data)
   else
     gtk_widget_set_sensitive(win->config_button, 0);
 
-  g_signal_handler_block(G_OBJECT(win->extensions), win->extensions_changed_id);
-  if(win->info->flags & BG_PLUGIN_FILE)
+  if(win->extensions)
     {
-    gtk_entry_set_text(GTK_ENTRY(win->extensions), win->info->extensions);
-    gtk_widget_set_sensitive(win->extensions, 1);
+    g_signal_handler_block(G_OBJECT(win->extensions),
+                           win->extensions_changed_id);
+    if(win->info->flags & BG_PLUGIN_FILE)
+      {
+      gtk_entry_set_text(GTK_ENTRY(win->extensions),
+                         win->info->extensions);
+      gtk_widget_set_sensitive(win->extensions, 1);
+      }
+    else
+      {
+      gtk_entry_set_text(GTK_ENTRY(win->extensions), "");
+      gtk_widget_set_sensitive(win->extensions, 0);
+      }
+    g_signal_handler_unblock(G_OBJECT(win->extensions),
+                             win->extensions_changed_id);
+
     }
-  else
+  if(win->protocols)
     {
-    gtk_entry_set_text(GTK_ENTRY(win->extensions), "");
-    gtk_widget_set_sensitive(win->extensions, 0);
+    g_signal_handler_block(G_OBJECT(win->protocols),
+                           win->protocols_changed_id);
+    if(win->info->flags & BG_PLUGIN_URL)
+      {
+      gtk_entry_set_text(GTK_ENTRY(win->protocols),
+                         win->info->protocols);
+      gtk_widget_set_sensitive(win->protocols, 1);
+      }
+    else if(win->info->flags & (BG_PLUGIN_REMOVABLE | BG_PLUGIN_TUNER))
+      {
+      gtk_entry_set_text(GTK_ENTRY(win->protocols),
+                         win->info->protocols);
+      gtk_widget_set_sensitive(win->protocols, 0);
+      }
+    else
+      {
+      gtk_entry_set_text(GTK_ENTRY(win->protocols), "");
+      gtk_widget_set_sensitive(win->protocols, 0);
+      }
+    g_signal_handler_unblock(G_OBJECT(win->protocols),
+                             win->protocols_changed_id);
+
     }
-  g_signal_handler_unblock(G_OBJECT(win->extensions), win->extensions_changed_id);
 
   
-  g_signal_handler_block(G_OBJECT(win->protocols), win->protocols_changed_id);
-  if(win->info->flags & BG_PLUGIN_URL)
-    {
-    gtk_entry_set_text(GTK_ENTRY(win->protocols), win->info->protocols);
-    gtk_widget_set_sensitive(win->protocols, 1);
-    }
-  else if(win->info->flags & BG_PLUGIN_REMOVABLE)
-    {
-    gtk_entry_set_text(GTK_ENTRY(win->protocols), win->info->protocols);
-    gtk_widget_set_sensitive(win->protocols, 0);
-    }
-  else
-    {
-    gtk_entry_set_text(GTK_ENTRY(win->protocols), "");
-    gtk_widget_set_sensitive(win->protocols, 0);
-    }
-  g_signal_handler_unblock(G_OBJECT(win->protocols), win->protocols_changed_id);
   gtk_widget_set_sensitive(win->info_button, 1);
-
-  g_signal_handler_block(G_OBJECT(win->priority), win->priority_changed_id);
-  gtk_spin_button_set_value(GTK_SPIN_BUTTON(win->priority), win->info->priority);
-  g_signal_handler_unblock(G_OBJECT(win->priority), win->priority_changed_id);
-
-  if(win->info->flags & (BG_PLUGIN_URL | BG_PLUGIN_FILE))
-    gtk_widget_set_sensitive(win->priority, 1);
-  else
-    gtk_widget_set_sensitive(win->priority, 0);
+  
+  if(win->priority)
+    {
+    g_signal_handler_block(G_OBJECT(win->priority), win->priority_changed_id);
+    gtk_spin_button_set_value(GTK_SPIN_BUTTON(win->priority), win->info->priority);
+    g_signal_handler_unblock(G_OBJECT(win->priority), win->priority_changed_id);
+    
+    if(win->info->flags & (BG_PLUGIN_URL | BG_PLUGIN_FILE))
+      gtk_widget_set_sensitive(win->priority, 1);
+    else
+      gtk_widget_set_sensitive(win->priority, 0);
+    }
   }
 
 static void change_callback(GtkWidget * w, gpointer data)
@@ -314,30 +332,34 @@ bg_gtk_plugin_widget_multi_create(bg_plugin_registry_t * reg,
 
   /* Create entries */
 
-  ret->extensions = gtk_entry_new();
-  ret->protocols = gtk_entry_new();
-  ret->priority = gtk_spin_button_new_with_range(BG_PLUGIN_PRIORITY_MIN,
-                                                 BG_PLUGIN_PRIORITY_MAX, 1.0);
+  if(flag_mask != BG_PLUGIN_FILTER_1)
+    {
+    ret->extensions = gtk_entry_new();
+    ret->protocols = gtk_entry_new();
+    ret->priority = gtk_spin_button_new_with_range(BG_PLUGIN_PRIORITY_MIN,
+                                                   BG_PLUGIN_PRIORITY_MAX, 1.0);
   
-  ret->extensions_changed_id =
-    g_signal_connect(G_OBJECT(ret->extensions),
-                     "changed", G_CALLBACK(change_callback),
-                     (gpointer)ret);
+    ret->extensions_changed_id =
+      g_signal_connect(G_OBJECT(ret->extensions),
+                       "changed", G_CALLBACK(change_callback),
+                       (gpointer)ret);
   
-  ret->protocols_changed_id =
-    g_signal_connect(G_OBJECT(ret->protocols),
-                     "changed", G_CALLBACK(change_callback),
-                     (gpointer)ret);
+    ret->protocols_changed_id =
+      g_signal_connect(G_OBJECT(ret->protocols),
+                       "changed", G_CALLBACK(change_callback),
+                       (gpointer)ret);
 
-  ret->priority_changed_id =
-    g_signal_connect(G_OBJECT(ret->priority),
-                     "value-changed", G_CALLBACK(change_callback),
-                     (gpointer)ret);
+    ret->priority_changed_id =
+      g_signal_connect(G_OBJECT(ret->priority),
+                       "value-changed", G_CALLBACK(change_callback),
+                       (gpointer)ret);
   
 
-  gtk_widget_show(ret->protocols);
-  gtk_widget_show(ret->extensions);
-  gtk_widget_show(ret->priority);
+    gtk_widget_show(ret->protocols);
+    gtk_widget_show(ret->extensions);
+    gtk_widget_show(ret->priority);
+    }
+  
     
   /* Pack stuff */
   
@@ -352,34 +374,46 @@ bg_gtk_plugin_widget_multi_create(bg_plugin_registry_t * reg,
 
   gtk_table_attach(GTK_TABLE(table),
                    ret->config_button, 0, 1, 0, 1, GTK_FILL, GTK_SHRINK, 0, 0);
-  gtk_table_attach(GTK_TABLE(table),
-                   ret->info_button, 1, 2, 0, 1, GTK_FILL, GTK_SHRINK, 0, 0);
 
-  label = gtk_label_new(TR("Priority"));
-  gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
-  gtk_widget_show(label);
-  gtk_table_attach(GTK_TABLE(table), label, 2, 3, 0, 1, GTK_FILL,
-                   GTK_SHRINK, 0, 0);
-  gtk_table_attach(GTK_TABLE(table), ret->priority, 3, 4, 0, 1, GTK_FILL|GTK_EXPAND,
-                   GTK_SHRINK, 0, 0);
-
-
-  
-  label = gtk_label_new(TR("Protocols"));
-  gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
-  gtk_widget_show(label);
-  gtk_table_attach(GTK_TABLE(table), label, 0, 4, 1, 2, GTK_FILL|GTK_EXPAND,
-                   GTK_SHRINK, 0, 0);
-  gtk_table_attach(GTK_TABLE(table), ret->protocols, 0, 4, 2, 3, GTK_FILL|GTK_EXPAND,
-                   GTK_SHRINK, 0, 0);
-  
-  label = gtk_label_new(TR("Extensions"));
-  gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
-  gtk_widget_show(label);
-
-  gtk_table_attach(GTK_TABLE(table), label, 0, 4, 3, 4, GTK_FILL|GTK_EXPAND, GTK_SHRINK, 0, 0);
+  if(ret->priority)
+    {
+    gtk_table_attach(GTK_TABLE(table),
+                     ret->info_button, 1, 2, 0, 1, GTK_FILL, GTK_SHRINK, 0, 0);
+    
+    label = gtk_label_new(TR("Priority"));
+    gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
+    gtk_widget_show(label);
+    gtk_table_attach(GTK_TABLE(table), label, 2, 3, 0, 1, GTK_FILL,
+                     GTK_SHRINK, 0, 0);
+    gtk_table_attach(GTK_TABLE(table), ret->priority, 3, 4, 0, 1, GTK_FILL|GTK_EXPAND,
+                     GTK_SHRINK, 0, 0);
+    
+    
+    
+    label = gtk_label_new(TR("Protocols"));
+    gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
+    gtk_widget_show(label);
+    gtk_table_attach(GTK_TABLE(table), label, 0, 4, 1, 2, GTK_FILL|GTK_EXPAND,
+                     GTK_SHRINK, 0, 0);
+    gtk_table_attach(GTK_TABLE(table), ret->protocols, 0, 4, 2, 3, GTK_FILL|GTK_EXPAND,
+                     GTK_SHRINK, 0, 0);
+    
+    label = gtk_label_new(TR("Extensions"));
+    gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
+    gtk_widget_show(label);
+    
+    gtk_table_attach(GTK_TABLE(table), label, 0, 4, 3, 4, GTK_FILL|GTK_EXPAND, GTK_SHRINK, 0, 0);
   gtk_table_attach(GTK_TABLE(table),
                    ret->extensions, 0, 4, 4, 5, GTK_FILL|GTK_EXPAND, GTK_SHRINK, 0, 0);
+    }
+  else
+    {
+    gtk_table_attach(GTK_TABLE(table),
+                     ret->info_button, 0, 1, 1, 2,
+                     GTK_FILL, GTK_SHRINK, 0, 0);
+
+    }
+  
   
   gtk_widget_show(table);
 
@@ -391,10 +425,14 @@ bg_gtk_plugin_widget_multi_create(bg_plugin_registry_t * reg,
   ret->widget = hbox;
   /* Make things insensitive, because nothing is selected so far */
 
-  gtk_widget_set_sensitive(ret->priority, 0);
+  if(ret->priority)
+    gtk_widget_set_sensitive(ret->priority, 0);
+  if(ret->protocols) 
+    gtk_widget_set_sensitive(ret->protocols, 0);
 
-  gtk_widget_set_sensitive(ret->protocols, 0);
-  gtk_widget_set_sensitive(ret->extensions, 0);
+  if(ret->extensions)
+    gtk_widget_set_sensitive(ret->extensions, 0);
+
   gtk_widget_set_sensitive(ret->config_button, 0);
   gtk_widget_set_sensitive(ret->info_button, 0);
   

@@ -198,6 +198,13 @@ gmerlin_avdecoder is a lot better.
 Optional for en-/decoding yuv4mpeg streams and for encoding high
 quality MPEG video using mpeg2enc and friends.
 
+@item @uref{http://www.ladspa.org, Ladspa plugins}
+Optional for audio filters/effects. Good experiences were made with
+the plugin packages @uref{http://www.ladspa.org/cmt/,cmt},
+@uref{http://plugin.org.uk, swh-plugins} and
+@uref{http://tap-plugins.sourceforge.net, tap-plugins}. Gmerlin looks for them
+at runtime, so you can install them at any time.
+
 @end table
 
 @node Compilation and installation
@@ -272,6 +279,16 @@ We try to make this as consistent as possible across the applications.
 In many windows, you'll see context sensitive menus when you right
 click somewhere. Furthermore, tooltips are enabled in all programs by
 default. You can, however, switch them off if they bother you. 
+
+@strong{Some GUI tips}
+
+@itemize
+@item Many buttons, which are assosiated with a list, are disabled unless you select an item in the list
+@item Doubleclicking onto the background of a slider (@strong{not} the slider itself) resets it to the
+      factory default
+@end itemize
+ 
+
 @node Remote control
 
 @section Remote control
@@ -735,6 +752,21 @@ Alsa startup scripts.
 only one small subset of the included libraries or applications. To make installation
 a bit easier, there are the gmerlin-dependencies and gmerlin-all-in-one packages.
 
+@strong{Q:} @emph{How do I enable Ladspa plugins?}
+
+@strong{A:} Gmerlin looks for Ladspa plugins in @code{/usr/lib/ladspa} and @code{/usr/local/lib/ladspa} by
+  default. Additional paths can be set with the @code{LADSPA_PATH} enviromnent variable.
+
+@strong{Q:} How do I enable DVB?
+
+@strong{A:} Gmerlin looks for DVB devices in /dev/dvb. Then, you must pass gmerlin
+  a channel configuration file created with the @uref{http://www.linuxtv.org/wiki/index.php/LinuxTV_dvb-apps,dvb-apps}
+  tools. Check the documentation coming with dvb-apps for how to create channel files. Gmerlin looks for channel maps
+  in the directories @code{$HOME/.szap}, @code{$HOME/.tzap}, @code{$HOME/.czap},
+  @code{$HOME/.azap}, @code{$HOME/.mplayer} and @code{$HOME/.xine}. The first time, you load the DVB plugin,
+  and each time you changed your channel map, the plugin will tune to each transponder and get the full
+  information about the programs (the information provided by dvp-apps is not sufficient). This can take some time.
+  
 @node Usage questions
 @section Usage questions
 

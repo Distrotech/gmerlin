@@ -422,17 +422,17 @@ static bg_plugin_info_t * get_info(void * test_module, const char * filename)
       new_info->subtitle_overlay_parameters =
         bg_parameter_info_copy_array(parameter_info);
       }
-    if(plugin->type & (BG_PLUGIN_INPUT))
-      {
-      input = (bg_input_plugin_t*)plugin;
-      if(input->protocols)
-        new_info->protocols = bg_strdup(new_info->protocols,
-                                        input->protocols);
-      }
-    if(plugin->find_devices)
-      new_info->devices = plugin->find_devices();
-    
     }
+  if(plugin->type & BG_PLUGIN_INPUT)
+    {
+    input = (bg_input_plugin_t*)plugin;
+    if(input->protocols)
+      new_info->protocols = bg_strdup(new_info->protocols,
+                                      input->protocols);
+    }
+  if(plugin->find_devices)
+    new_info->devices = plugin->find_devices();
+  
   plugin->destroy(plugin_priv);
   
   return new_info;
