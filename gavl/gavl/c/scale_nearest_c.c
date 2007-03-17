@@ -312,7 +312,8 @@ void gavl_init_scale_funcs_nearest_c(gavl_scale_funcs_t * tab)
   
   tab->funcs_xy.scale_rgb_15 =     scale_rgb_16_xy_nearest_c;
   tab->funcs_xy.scale_rgb_16 =     scale_rgb_16_xy_nearest_c;
-  tab->funcs_xy.scale_uint8_x_1 =  scale_uint8_x_1_xy_nearest_c;
+  tab->funcs_xy.scale_uint8_x_1_advance =  scale_uint8_x_1_xy_nearest_c;
+  tab->funcs_xy.scale_uint8_x_1_noadvance =  scale_uint8_x_1_xy_nearest_c;
   tab->funcs_xy.scale_uint8_x_3 =  scale_uint8_x_3_xy_nearest_c;
   tab->funcs_xy.scale_uint8_x_4 =  scale_uint8_x_4_xy_nearest_c;
   tab->funcs_xy.scale_uint16_x_1 = scale_uint16_x_1_xy_nearest_c;
@@ -323,12 +324,14 @@ void gavl_init_scale_funcs_nearest_c(gavl_scale_funcs_t * tab)
 
   tab->funcs_xy.bits_rgb_15 = 0;
   tab->funcs_xy.bits_rgb_16 = 0;
-  tab->funcs_xy.bits_uint8  = 0;
+  tab->funcs_xy.bits_uint8_advance  = 0;
+  tab->funcs_xy.bits_uint8_noadvance  = 0;
   tab->funcs_xy.bits_uint16 = 0;
 
   tab->funcs_x.scale_rgb_15 =     scale_rgb_16_x_nearest_c;
   tab->funcs_x.scale_rgb_16 =     scale_rgb_16_x_nearest_c;
-  tab->funcs_x.scale_uint8_x_1 =  scale_uint8_x_1_x_nearest_c;
+  tab->funcs_x.scale_uint8_x_1_noadvance =  scale_uint8_x_1_x_nearest_c;
+  tab->funcs_x.scale_uint8_x_1_advance =  scale_uint8_x_1_x_nearest_c;
   tab->funcs_x.scale_uint8_x_3 =  scale_uint8_x_3_x_nearest_c;
   tab->funcs_x.scale_uint8_x_4 =  scale_uint8_x_4_x_nearest_c;
   tab->funcs_x.scale_uint16_x_1 = scale_uint16_x_1_x_nearest_c;
@@ -339,12 +342,14 @@ void gavl_init_scale_funcs_nearest_c(gavl_scale_funcs_t * tab)
 
   tab->funcs_x.bits_rgb_15 = 0;
   tab->funcs_x.bits_rgb_16 = 0;
-  tab->funcs_x.bits_uint8  = 0;
+  tab->funcs_x.bits_uint8_advance  = 0;
+  tab->funcs_x.bits_uint8_noadvance  = 0;
   tab->funcs_x.bits_uint16 = 0;
 
   tab->funcs_y.scale_rgb_15 =     scale_rgb_16_y_nearest_c;
   tab->funcs_y.scale_rgb_16 =     scale_rgb_16_y_nearest_c;
-  tab->funcs_y.scale_uint8_x_1 =  scale_uint8_x_1_y_nearest_c;
+  tab->funcs_y.scale_uint8_x_1_advance =  scale_uint8_x_1_y_nearest_c;
+  tab->funcs_y.scale_uint8_x_1_noadvance =  scale_uint8_x_1_y_nearest_c;
   tab->funcs_y.scale_uint8_x_3 =  scale_uint8_x_3_y_nearest_c;
   tab->funcs_y.scale_uint8_x_4 =  scale_uint8_x_4_y_nearest_c;
   tab->funcs_y.scale_uint16_x_1 = scale_uint16_x_1_y_nearest_c;
@@ -355,9 +360,8 @@ void gavl_init_scale_funcs_nearest_c(gavl_scale_funcs_t * tab)
 
   tab->funcs_y.bits_rgb_15 = 0;
   tab->funcs_y.bits_rgb_16 = 0;
-  tab->funcs_y.bits_uint8  = 0;
+  tab->funcs_y.bits_uint8_advance  = 0;
+  tab->funcs_y.bits_uint8_noadvance  = 0;
   tab->funcs_y.bits_uint16 = 0;
-
-  
   
   }

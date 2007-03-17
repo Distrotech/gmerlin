@@ -37,86 +37,86 @@ typedef struct {
 #define FUNC_NAME scale_rgb_15_x_bicubic_c
 #define TYPE color_15
 #define SCALE \
-  dst->r = (ctx->table_h.pixels[i].factor[0].fac_i * src_1->r + \
-            ctx->table_h.pixels[i].factor[1].fac_i * src_2->r + \
-            ctx->table_h.pixels[i].factor[2].fac_i * src_3->r + \
-            ctx->table_h.pixels[i].factor[3].fac_i * src_4->r) >> 8;    \
-  dst->g = (ctx->table_h.pixels[i].factor[0].fac_i * src_1->g + \
-            ctx->table_h.pixels[i].factor[1].fac_i * src_2->g + \
-            ctx->table_h.pixels[i].factor[2].fac_i * src_3->g + \
-            ctx->table_h.pixels[i].factor[3].fac_i * src_4->g) >> 8;    \
-  dst->b = (ctx->table_h.pixels[i].factor[0].fac_i * src_1->b + \
-            ctx->table_h.pixels[i].factor[1].fac_i * src_2->b + \
-            ctx->table_h.pixels[i].factor[2].fac_i * src_3->b + \
-            ctx->table_h.pixels[i].factor[3].fac_i * src_4->b) >> 8;
+  dst->r = (ctx->table_h.pixels[i].factor_i[0] * src_1->r + \
+            ctx->table_h.pixels[i].factor_i[1] * src_2->r + \
+            ctx->table_h.pixels[i].factor_i[2] * src_3->r + \
+            ctx->table_h.pixels[i].factor_i[3] * src_4->r) >> 8;    \
+  dst->g = (ctx->table_h.pixels[i].factor_i[0] * src_1->g + \
+            ctx->table_h.pixels[i].factor_i[1] * src_2->g + \
+            ctx->table_h.pixels[i].factor_i[2] * src_3->g + \
+            ctx->table_h.pixels[i].factor_i[3] * src_4->g) >> 8;    \
+  dst->b = (ctx->table_h.pixels[i].factor_i[0] * src_1->b + \
+            ctx->table_h.pixels[i].factor_i[1] * src_2->b + \
+            ctx->table_h.pixels[i].factor_i[2] * src_3->b + \
+            ctx->table_h.pixels[i].factor_i[3] * src_4->b) >> 8;
 
 #include "scale_bicubic_x.h"
 
 #define FUNC_NAME scale_rgb_16_x_bicubic_c
 #define TYPE color_16
 #define SCALE \
-  dst->r = (ctx->table_h.pixels[i].factor[0].fac_i * src_1->r +         \
-            ctx->table_h.pixels[i].factor[1].fac_i * src_2->r +         \
-            ctx->table_h.pixels[i].factor[2].fac_i * src_3->r +         \
-            ctx->table_h.pixels[i].factor[3].fac_i * src_4->r) >> 8;    \
-  dst->g = (ctx->table_h.pixels[i].factor[0].fac_i * src_1->g + \
-            ctx->table_h.pixels[i].factor[1].fac_i * src_2->g + \
-            ctx->table_h.pixels[i].factor[2].fac_i * src_3->g + \
-            ctx->table_h.pixels[i].factor[3].fac_i * src_4->g) >> 8;    \
-  dst->b = (ctx->table_h.pixels[i].factor[0].fac_i * src_1->b + \
-            ctx->table_h.pixels[i].factor[1].fac_i * src_2->b + \
-            ctx->table_h.pixels[i].factor[2].fac_i * src_3->b + \
-            ctx->table_h.pixels[i].factor[3].fac_i * src_4->b) >> 8;
+  dst->r = (ctx->table_h.pixels[i].factor_i[0] * src_1->r +         \
+            ctx->table_h.pixels[i].factor_i[1] * src_2->r +         \
+            ctx->table_h.pixels[i].factor_i[2] * src_3->r +         \
+            ctx->table_h.pixels[i].factor_i[3] * src_4->r) >> 8;    \
+  dst->g = (ctx->table_h.pixels[i].factor_i[0] * src_1->g + \
+            ctx->table_h.pixels[i].factor_i[1] * src_2->g + \
+            ctx->table_h.pixels[i].factor_i[2] * src_3->g + \
+            ctx->table_h.pixels[i].factor_i[3] * src_4->g) >> 8;    \
+  dst->b = (ctx->table_h.pixels[i].factor_i[0] * src_1->b + \
+            ctx->table_h.pixels[i].factor_i[1] * src_2->b + \
+            ctx->table_h.pixels[i].factor_i[2] * src_3->b + \
+            ctx->table_h.pixels[i].factor_i[3] * src_4->b) >> 8;
 
 #include "scale_bicubic_x.h"
 
 #define FUNC_NAME scale_uint8_x_1_x_bicubic_c
 #define TYPE uint8_t
 #define SCALE \
-  dst[0] = (ctx->table_h.pixels[i].factor[0].fac_i * src_1[0] + \
-            ctx->table_h.pixels[i].factor[1].fac_i * src_2[0] + \
-            ctx->table_h.pixels[i].factor[2].fac_i * src_3[0] + \
-            ctx->table_h.pixels[i].factor[3].fac_i * src_4[0]) >> 8;
+  dst[0] = (ctx->table_h.pixels[i].factor_i[0] * src_1[0] + \
+            ctx->table_h.pixels[i].factor_i[1] * src_2[0] + \
+            ctx->table_h.pixels[i].factor_i[2] * src_3[0] + \
+            ctx->table_h.pixels[i].factor_i[3] * src_4[0]) >> 8;
 
 #include "scale_bicubic_x.h"
 
 #define FUNC_NAME scale_uint8_x_3_x_bicubic_c
 #define TYPE uint8_t
 #define SCALE \
-  dst[0] = (ctx->table_h.pixels[i].factor[0].fac_i * src_1[0] + \
-            ctx->table_h.pixels[i].factor[1].fac_i * src_2[0] + \
-            ctx->table_h.pixels[i].factor[2].fac_i * src_3[0] + \
-            ctx->table_h.pixels[i].factor[3].fac_i * src_4[0]) >> 8;    \
-  dst[1] = (ctx->table_h.pixels[i].factor[0].fac_i * src_1[1] + \
-            ctx->table_h.pixels[i].factor[1].fac_i * src_2[1] + \
-            ctx->table_h.pixels[i].factor[2].fac_i * src_3[1] + \
-            ctx->table_h.pixels[i].factor[3].fac_i * src_4[1]) >> 8;    \
-  dst[2] = (ctx->table_h.pixels[i].factor[0].fac_i * src_1[2] + \
-            ctx->table_h.pixels[i].factor[1].fac_i * src_2[2] + \
-            ctx->table_h.pixels[i].factor[2].fac_i * src_3[2] + \
-            ctx->table_h.pixels[i].factor[3].fac_i * src_4[2]) >> 8;
+  dst[0] = (ctx->table_h.pixels[i].factor_i[0] * src_1[0] + \
+            ctx->table_h.pixels[i].factor_i[1] * src_2[0] + \
+            ctx->table_h.pixels[i].factor_i[2] * src_3[0] + \
+            ctx->table_h.pixels[i].factor_i[3] * src_4[0]) >> 8;    \
+  dst[1] = (ctx->table_h.pixels[i].factor_i[0] * src_1[1] + \
+            ctx->table_h.pixels[i].factor_i[1] * src_2[1] + \
+            ctx->table_h.pixels[i].factor_i[2] * src_3[1] + \
+            ctx->table_h.pixels[i].factor_i[3] * src_4[1]) >> 8;    \
+  dst[2] = (ctx->table_h.pixels[i].factor_i[0] * src_1[2] + \
+            ctx->table_h.pixels[i].factor_i[1] * src_2[2] + \
+            ctx->table_h.pixels[i].factor_i[2] * src_3[2] + \
+            ctx->table_h.pixels[i].factor_i[3] * src_4[2]) >> 8;
 
 #include "scale_bicubic_x.h"
 
 #define FUNC_NAME scale_uint8_x_4_x_bicubic_c
 #define TYPE uint8_t
 #define SCALE \
-  dst[0] = (ctx->table_h.pixels[i].factor[0].fac_i * src_1[0] + \
-            ctx->table_h.pixels[i].factor[1].fac_i * src_2[0] + \
-            ctx->table_h.pixels[i].factor[2].fac_i * src_3[0] + \
-            ctx->table_h.pixels[i].factor[3].fac_i * src_4[0]) >> 8;    \
-  dst[1] = (ctx->table_h.pixels[i].factor[0].fac_i * src_1[1] + \
-            ctx->table_h.pixels[i].factor[1].fac_i * src_2[1] + \
-            ctx->table_h.pixels[i].factor[2].fac_i * src_3[1] + \
-            ctx->table_h.pixels[i].factor[3].fac_i * src_4[1]) >> 8;    \
-  dst[2] = (ctx->table_h.pixels[i].factor[0].fac_i * src_1[2] + \
-            ctx->table_h.pixels[i].factor[1].fac_i * src_2[2] + \
-            ctx->table_h.pixels[i].factor[2].fac_i * src_3[2] + \
-            ctx->table_h.pixels[i].factor[3].fac_i * src_4[2]) >> 8;    \
-  dst[3] = (ctx->table_h.pixels[i].factor[0].fac_i * src_1[3] + \
-            ctx->table_h.pixels[i].factor[1].fac_i * src_2[3] + \
-            ctx->table_h.pixels[i].factor[2].fac_i * src_3[3] + \
-            ctx->table_h.pixels[i].factor[3].fac_i * src_4[3]) >> 8;
+  dst[0] = (ctx->table_h.pixels[i].factor_i[0] * src_1[0] + \
+            ctx->table_h.pixels[i].factor_i[1] * src_2[0] + \
+            ctx->table_h.pixels[i].factor_i[2] * src_3[0] + \
+            ctx->table_h.pixels[i].factor_i[3] * src_4[0]) >> 8;    \
+  dst[1] = (ctx->table_h.pixels[i].factor_i[0] * src_1[1] + \
+            ctx->table_h.pixels[i].factor_i[1] * src_2[1] + \
+            ctx->table_h.pixels[i].factor_i[2] * src_3[1] + \
+            ctx->table_h.pixels[i].factor_i[3] * src_4[1]) >> 8;    \
+  dst[2] = (ctx->table_h.pixels[i].factor_i[0] * src_1[2] + \
+            ctx->table_h.pixels[i].factor_i[1] * src_2[2] + \
+            ctx->table_h.pixels[i].factor_i[2] * src_3[2] + \
+            ctx->table_h.pixels[i].factor_i[3] * src_4[2]) >> 8;    \
+  dst[3] = (ctx->table_h.pixels[i].factor_i[0] * src_1[3] + \
+            ctx->table_h.pixels[i].factor_i[1] * src_2[3] + \
+            ctx->table_h.pixels[i].factor_i[2] * src_3[3] + \
+            ctx->table_h.pixels[i].factor_i[3] * src_4[3]) >> 8;
  
 #include "scale_bicubic_x.h"
 
@@ -124,10 +124,10 @@ typedef struct {
 #define TYPE uint16_t
 #define INIT uint32_t tmp;
 #define SCALE                                                           \
-  tmp = (ctx->table_h.pixels[i].factor[0].fac_i * src_1[0] + \
-         ctx->table_h.pixels[i].factor[1].fac_i * src_2[0] + \
-         ctx->table_h.pixels[i].factor[2].fac_i * src_3[0] + \
-         ctx->table_h.pixels[i].factor[3].fac_i * src_4[0]); \
+  tmp = (ctx->table_h.pixels[i].factor_i[0] * src_1[0] + \
+         ctx->table_h.pixels[i].factor_i[1] * src_2[0] + \
+         ctx->table_h.pixels[i].factor_i[2] * src_3[0] + \
+         ctx->table_h.pixels[i].factor_i[3] * src_4[0]); \
   dst[0] = tmp >> 16;
 
 #include "scale_bicubic_x.h"
@@ -136,20 +136,20 @@ typedef struct {
 #define TYPE uint16_t
 #define INIT uint32_t tmp;
 #define SCALE                                                           \
-  tmp = (ctx->table_h.pixels[i].factor[0].fac_i * src_1[0] + \
-         ctx->table_h.pixels[i].factor[1].fac_i * src_2[0] + \
-         ctx->table_h.pixels[i].factor[2].fac_i * src_3[0] + \
-         ctx->table_h.pixels[i].factor[3].fac_i * src_4[0]); \
+  tmp = (ctx->table_h.pixels[i].factor_i[0] * src_1[0] + \
+         ctx->table_h.pixels[i].factor_i[1] * src_2[0] + \
+         ctx->table_h.pixels[i].factor_i[2] * src_3[0] + \
+         ctx->table_h.pixels[i].factor_i[3] * src_4[0]); \
   dst[0] = tmp >> 16; \
-  tmp = (ctx->table_h.pixels[i].factor[0].fac_i * src_1[1] + \
-         ctx->table_h.pixels[i].factor[1].fac_i * src_2[1] + \
-         ctx->table_h.pixels[i].factor[2].fac_i * src_3[1] + \
-         ctx->table_h.pixels[i].factor[3].fac_i * src_4[1]); \
+  tmp = (ctx->table_h.pixels[i].factor_i[0] * src_1[1] + \
+         ctx->table_h.pixels[i].factor_i[1] * src_2[1] + \
+         ctx->table_h.pixels[i].factor_i[2] * src_3[1] + \
+         ctx->table_h.pixels[i].factor_i[3] * src_4[1]); \
   dst[1] = tmp >> 16; \
-  tmp = (ctx->table_h.pixels[i].factor[0].fac_i * src_1[2] + \
-         ctx->table_h.pixels[i].factor[1].fac_i * src_2[2] + \
-         ctx->table_h.pixels[i].factor[2].fac_i * src_3[2] + \
-         ctx->table_h.pixels[i].factor[3].fac_i * src_4[2]); \
+  tmp = (ctx->table_h.pixels[i].factor_i[0] * src_1[2] + \
+         ctx->table_h.pixels[i].factor_i[1] * src_2[2] + \
+         ctx->table_h.pixels[i].factor_i[2] * src_3[2] + \
+         ctx->table_h.pixels[i].factor_i[3] * src_4[2]); \
   dst[2] = tmp >> 16;
 
 #include "scale_bicubic_x.h"
@@ -158,25 +158,25 @@ typedef struct {
 #define TYPE uint16_t
 #define INIT uint32_t tmp;
 #define SCALE                                                           \
-  tmp = (ctx->table_h.pixels[i].factor[0].fac_i * src_1[0] + \
-         ctx->table_h.pixels[i].factor[1].fac_i * src_2[0] + \
-         ctx->table_h.pixels[i].factor[2].fac_i * src_3[0] + \
-         ctx->table_h.pixels[i].factor[3].fac_i * src_4[0]); \
+  tmp = (ctx->table_h.pixels[i].factor_i[0] * src_1[0] + \
+         ctx->table_h.pixels[i].factor_i[1] * src_2[0] + \
+         ctx->table_h.pixels[i].factor_i[2] * src_3[0] + \
+         ctx->table_h.pixels[i].factor_i[3] * src_4[0]); \
   dst[0] = tmp >> 16; \
-  tmp = (ctx->table_h.pixels[i].factor[0].fac_i * src_1[1] + \
-         ctx->table_h.pixels[i].factor[1].fac_i * src_2[1] + \
-         ctx->table_h.pixels[i].factor[2].fac_i * src_3[1] + \
-         ctx->table_h.pixels[i].factor[3].fac_i * src_4[1]); \
+  tmp = (ctx->table_h.pixels[i].factor_i[0] * src_1[1] + \
+         ctx->table_h.pixels[i].factor_i[1] * src_2[1] + \
+         ctx->table_h.pixels[i].factor_i[2] * src_3[1] + \
+         ctx->table_h.pixels[i].factor_i[3] * src_4[1]); \
   dst[1] = tmp >> 16; \
-  tmp = (ctx->table_h.pixels[i].factor[0].fac_i * src_1[2] + \
-         ctx->table_h.pixels[i].factor[1].fac_i * src_2[2] + \
-         ctx->table_h.pixels[i].factor[2].fac_i * src_3[2] + \
-         ctx->table_h.pixels[i].factor[3].fac_i * src_4[2]); \
+  tmp = (ctx->table_h.pixels[i].factor_i[0] * src_1[2] + \
+         ctx->table_h.pixels[i].factor_i[1] * src_2[2] + \
+         ctx->table_h.pixels[i].factor_i[2] * src_3[2] + \
+         ctx->table_h.pixels[i].factor_i[3] * src_4[2]); \
   dst[2] = tmp >> 16; \
-  tmp = (ctx->table_h.pixels[i].factor[0].fac_i * src_1[3] + \
-         ctx->table_h.pixels[i].factor[1].fac_i * src_2[3] + \
-         ctx->table_h.pixels[i].factor[2].fac_i * src_3[3] + \
-         ctx->table_h.pixels[i].factor[3].fac_i * src_4[3]); \
+  tmp = (ctx->table_h.pixels[i].factor_i[0] * src_1[3] + \
+         ctx->table_h.pixels[i].factor_i[1] * src_2[3] + \
+         ctx->table_h.pixels[i].factor_i[2] * src_3[3] + \
+         ctx->table_h.pixels[i].factor_i[3] * src_4[3]); \
   dst[3] = tmp >> 16;
 
 #include "scale_bicubic_x.h"
@@ -228,10 +228,10 @@ typedef struct {
 #define FUNC_NAME scale_rgb_15_y_bicubic_c
 #define TYPE color_15
 #define INIT int fac_1, fac_2, fac_3, fac_4;                           \
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor[0].fac_i;\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor[1].fac_i;\
-  fac_3 = ctx->table_v.pixels[ctx->scanline].factor[2].fac_i;\
-  fac_4 = ctx->table_v.pixels[ctx->scanline].factor[3].fac_i;
+  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];\
+  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_i[2];\
+  fac_4 = ctx->table_v.pixels[ctx->scanline].factor_i[3];
 
 #define NO_UINT8
 
@@ -254,10 +254,10 @@ typedef struct {
 #define FUNC_NAME scale_rgb_16_y_bicubic_c
 #define TYPE color_16
 #define INIT int fac_1, fac_2, fac_3, fac_4;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor[0].fac_i;\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor[1].fac_i;\
-  fac_3 = ctx->table_v.pixels[ctx->scanline].factor[2].fac_i;\
-  fac_4 = ctx->table_v.pixels[ctx->scanline].factor[3].fac_i;
+  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];\
+  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_i[2];\
+  fac_4 = ctx->table_v.pixels[ctx->scanline].factor_i[3];
 
 
 #define NO_UINT8
@@ -281,10 +281,10 @@ typedef struct {
 #define FUNC_NAME scale_uint8_x_1_y_bicubic_c
 #define TYPE uint8_t
 #define INIT int fac_1, fac_2, fac_3, fac_4;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor[0].fac_i;\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor[1].fac_i;\
-  fac_3 = ctx->table_v.pixels[ctx->scanline].factor[2].fac_i;\
-  fac_4 = ctx->table_v.pixels[ctx->scanline].factor[3].fac_i;
+  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];\
+  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_i[2];\
+  fac_4 = ctx->table_v.pixels[ctx->scanline].factor_i[3];
 
 
 #define SCALE                  \
@@ -298,10 +298,10 @@ typedef struct {
 #define FUNC_NAME scale_uint8_x_3_y_bicubic_c
 #define TYPE uint8_t
 #define INIT int fac_1, fac_2, fac_3, fac_4;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor[0].fac_i;\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor[1].fac_i;\
-  fac_3 = ctx->table_v.pixels[ctx->scanline].factor[2].fac_i;\
-  fac_4 = ctx->table_v.pixels[ctx->scanline].factor[3].fac_i;
+  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];\
+  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_i[2];\
+  fac_4 = ctx->table_v.pixels[ctx->scanline].factor_i[3];
 
 #define SCALE                  \
   dst[0] = (fac_1 * src_1[0] + \
@@ -322,10 +322,10 @@ typedef struct {
 #define FUNC_NAME scale_uint8_x_4_y_bicubic_c
 #define TYPE uint8_t
 #define INIT int fac_1, fac_2, fac_3, fac_4;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor[0].fac_i;\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor[1].fac_i;\
-  fac_3 = ctx->table_v.pixels[ctx->scanline].factor[2].fac_i;\
-  fac_4 = ctx->table_v.pixels[ctx->scanline].factor[3].fac_i;
+  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];\
+  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_i[2];\
+  fac_4 = ctx->table_v.pixels[ctx->scanline].factor_i[3];
 
 #define SCALE                  \
   dst[0] = (fac_1 * src_1[0] + \
@@ -351,10 +351,10 @@ typedef struct {
 #define TYPE uint16_t
 #define INIT uint32_t tmp; \
   int fac_1, fac_2, fac_3, fac_4;                                      \
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor[0].fac_i;\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor[1].fac_i;\
-  fac_3 = ctx->table_v.pixels[ctx->scanline].factor[2].fac_i;\
-  fac_4 = ctx->table_v.pixels[ctx->scanline].factor[3].fac_i;
+  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];\
+  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_i[2];\
+  fac_4 = ctx->table_v.pixels[ctx->scanline].factor_i[3];
 
 
 #define NO_UINT8
@@ -373,10 +373,10 @@ typedef struct {
 #define TYPE uint16_t
 #define INIT uint32_t tmp;                      \
   int fac_1, fac_2, fac_3, fac_4;                                            \
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor[0].fac_i;\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor[1].fac_i;\
-  fac_3 = ctx->table_v.pixels[ctx->scanline].factor[2].fac_i;\
-  fac_4 = ctx->table_v.pixels[ctx->scanline].factor[3].fac_i;
+  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];\
+  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_i[2];\
+  fac_4 = ctx->table_v.pixels[ctx->scanline].factor_i[3];
 
 #define NO_UINT8
 
@@ -403,10 +403,10 @@ typedef struct {
 #define TYPE uint16_t
 #define INIT uint32_t tmp;\
   int fac_1, fac_2, fac_3, fac_4;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor[0].fac_i;\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor[1].fac_i;\
-  fac_3 = ctx->table_v.pixels[ctx->scanline].factor[2].fac_i;\
-  fac_4 = ctx->table_v.pixels[ctx->scanline].factor[3].fac_i;
+  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];\
+  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_i[2];\
+  fac_4 = ctx->table_v.pixels[ctx->scanline].factor_i[3];
 
 #define NO_UINT8
 

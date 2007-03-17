@@ -1,41 +1,28 @@
-#include <config.h>
-
-#include <stdio.h>
-#include <gavl/gavl.h>
-#include <gavl/gavldsp.h>
-#include <dsp.h>
-#include <attributes.h>
-#include "mmx.h"
-
-#ifdef MMXEXT
-#define MOVQ_R2M(reg,mem) movntq_r2m(reg, mem)
-#else
-#define MOVQ_R2M(reg,mem) movq_r2m(reg, mem)
-#endif
-
-#if 1
-static mmx_t mm_tmp;
-#define DUMP_MM(name, reg) MOVQ_R2M(reg, mm_tmp);\
-  fprintf(stderr, "%s: %016llx\n", name, mm_tmp.q);
-#endif
 
 
-
-static void interpolate_8_mmx(uint8_t * src_1, uint8_t * src_2, 
-                              uint8_t * dst, int num, int fac)
+static void (FUNC_NAME)(gavl_video_scale_context_t * ctx)
   {
   int i, imax;
   int32_t tmp;
-  int anti_fac;
-
-  fac >>= 1;
-  anti_fac = 0x80 - fac;
-
-  //  fprintf(stderr, "interpolate_8_mmx %d %d\n", fac, anti_fac);
-
-  imax = num / 8;
+  
+  uint8_t * src_1;
+  uint8_t * src_2;
+  uint8_t * dst;
+  
+  if(!ctx->scanline)
+    fprintf(stderr, "scale_y_linear_mmx %d %d\n",
+            ctx->table_v.pixels[ctx->scanline].factor_i[0],
+            ctx->table_v.pixels[ctx->scanline].factor_i[1]);
+  
+  imax = (ctx->dst_size * WIDTH_MUL) / 8;
   //  imax = 0;
   
+  src_1 =
+    ctx->src + ctx->table_v.pixels[ctx->scanline].index * ctx->src_stride;
+  src_2 = src_1 + ctx->src_stride;
+
+  dst = ctx->dst;
+
   /* Load factors */
 
   /*
@@ -52,7 +39,7 @@ static void interpolate_8_mmx(uint8_t * src_1, uint8_t * src_2,
   pxor_r2r(mm7, mm7);
   
   /* Load factor1 */
-  movd_m2r(fac, mm2);
+  movd_m2r(ctx->table_v.pixels[ctx->scanline].factor_i[0], mm2);
   psllw_i2r(7, mm2);
   movq_r2r(mm2, mm6);
   psllq_i2r(16, mm6);
@@ -60,8 +47,9 @@ static void interpolate_8_mmx(uint8_t * src_1, uint8_t * src_2,
   movq_r2r(mm2, mm6);
   psllq_i2r(32, mm6);
   por_r2r(mm6, mm2);
+
   /* Load factor2 */
-  movd_m2r(anti_fac, mm3);
+  movd_m2r(ctx->table_v.pixels[ctx->scanline].factor_i[1], mm3);
   psllw_i2r(7, mm3);
   movq_r2r(mm3, mm6);
   psllq_i2r(16, mm6);
@@ -101,12 +89,10 @@ static void interpolate_8_mmx(uint8_t * src_1, uint8_t * src_2,
     /* Accumulate mm1 */ 
     pmulhw_r2r(mm3, mm1);
     paddsw_r2r(mm1, mm5);
-    
+
     psraw_i2r(5, mm4);
     psraw_i2r(5, mm5);
-    
     packuswb_r2r(mm5, mm4);
-    
     MOVQ_R2M(mm4, *dst);
     
     dst += 8;
@@ -116,29 +102,23 @@ static void interpolate_8_mmx(uint8_t * src_1, uint8_t * src_2,
 
   emms();
   
-  imax = num % 8;
-  //  imax = num;
+  imax = (ctx->dst_size * WIDTH_MUL) % 8;
+  //  imax = (ctx->dst_size * WIDTH_MUL);
   
   if(!imax)
     return;
   
   for(i = 0; i < imax; i++)
     {
-    tmp = (*src_1 * fac +
-           *src_2 * anti_fac) >> 7;
+    tmp = (*src_1 * ctx->table_v.pixels[ctx->scanline].factor_i[0] +
+           *src_2 * ctx->table_v.pixels[ctx->scanline].factor_i[1]) >> 7;
     *dst = (uint8_t)((tmp & ~0xFF)?((-tmp) >> 31) : tmp);
     /* Accum */
     dst++;
     src_1++;
     src_2++;
     }
-
-  
   }
 
-void gavl_dsp_init_mmx(gavl_dsp_funcs_t * funcs, 
-                       int quality)
-  {
-  if(quality < 3)
-    funcs->interpolate_8 = interpolate_8_mmx;
-  }
+#undef FUNC_NAME
+#undef WIDTH_MUL

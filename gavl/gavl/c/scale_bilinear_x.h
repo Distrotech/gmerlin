@@ -2,6 +2,7 @@
 static void (FUNC_NAME)(gavl_video_scale_context_t * ctx)
   {
   int i;
+
   uint8_t * src;
 
   TYPE * src_1, *src_2, *dst;

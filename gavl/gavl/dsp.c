@@ -1,5 +1,6 @@
 #include <stdlib.h>
 
+#include <config.h>
 #include <gavl/gavl.h>
 #include <gavl/gavldsp.h>
 #include <dsp.h>
@@ -49,3 +50,4 @@ void gavl_dsp_context_destroy(gavl_dsp_context_t * ctx)
   {
   free(ctx);
   }
+

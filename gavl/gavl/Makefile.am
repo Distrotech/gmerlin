@@ -33,6 +33,7 @@ cputest.c \
 deinterlace.c \
 deinterlace_copy.c \
 dsp.c \
+dsputils.c \
 interleave.c \
 memcpy.c \
 mix.c \

@@ -46,9 +46,9 @@ typedef struct {
 #define SCALE_INIT ctx->tmp[0] = 0; ctx->tmp[1] = 0; ctx->tmp[2] = 0;
 
 #define SCALE_ACCUM                                                    \
-  ctx->tmp[0] += (int64_t)ctx->table_h.pixels[i].factor[j].fac_i * src->r;   \
-  ctx->tmp[1] += (int64_t)ctx->table_h.pixels[i].factor[j].fac_i * src->g;   \
-  ctx->tmp[2] += (int64_t)ctx->table_h.pixels[i].factor[j].fac_i * src->b;
+  ctx->tmp[0] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src->r;   \
+  ctx->tmp[1] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src->g;   \
+  ctx->tmp[2] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src->b;
 
 #define SCALE_FINISH                                                    \
   RECLIP(ctx->tmp[0],0);                                                     \
@@ -66,9 +66,9 @@ typedef struct {
 #define SCALE_INIT ctx->tmp[0] = 0; ctx->tmp[1] = 0; ctx->tmp[2] = 0;
 
 #define SCALE_ACCUM                                                    \
-  ctx->tmp[0] += (int64_t)ctx->table_h.pixels[i].factor[j].fac_i * src->r;   \
-  ctx->tmp[1] += (int64_t)ctx->table_h.pixels[i].factor[j].fac_i * src->g;   \
-  ctx->tmp[2] += (int64_t)ctx->table_h.pixels[i].factor[j].fac_i * src->b;
+  ctx->tmp[0] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src->r;   \
+  ctx->tmp[1] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src->g;   \
+  ctx->tmp[2] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src->b;
 
 #define SCALE_FINISH                                                    \
   RECLIP(ctx->tmp[0],0);                                                     \
@@ -85,7 +85,7 @@ typedef struct {
 
 #define SCALE_INIT ctx->tmp[0] = 0;
 
-#define SCALE_ACCUM ctx->tmp[0] += (int64_t)ctx->table_h.pixels[i].factor[j].fac_i * src[0];
+#define SCALE_ACCUM ctx->tmp[0] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[0];
 
 #define SCALE_FINISH   \
   RECLIP(ctx->tmp[0],ctx->plane);               \
@@ -99,9 +99,9 @@ typedef struct {
 #define SCALE_INIT ctx->tmp[0] = 0;ctx->tmp[1] = 0;ctx->tmp[2] = 0;
 
 #define SCALE_ACCUM \
-  ctx->tmp[0] += (int64_t)ctx->table_h.pixels[i].factor[j].fac_i * src[0];\
-  ctx->tmp[1] += (int64_t)ctx->table_h.pixels[i].factor[j].fac_i * src[1];\
-  ctx->tmp[2] += (int64_t)ctx->table_h.pixels[i].factor[j].fac_i * src[2];
+  ctx->tmp[0] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[0];\
+  ctx->tmp[1] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[1];\
+  ctx->tmp[2] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[2];
 
 #define SCALE_FINISH   \
   RECLIP(ctx->tmp[0],0);                        \
@@ -120,10 +120,10 @@ typedef struct {
 #define SCALE_INIT ctx->tmp[0] = 0;ctx->tmp[1] = 0;ctx->tmp[2] = 0;ctx->tmp[3] = 0;
 
 #define SCALE_ACCUM \
-  ctx->tmp[0] += (int64_t)ctx->table_h.pixels[i].factor[j].fac_i * src[0];\
-  ctx->tmp[1] += (int64_t)ctx->table_h.pixels[i].factor[j].fac_i * src[1];\
-  ctx->tmp[2] += (int64_t)ctx->table_h.pixels[i].factor[j].fac_i * src[2];\
-  ctx->tmp[3] += (int64_t)ctx->table_h.pixels[i].factor[j].fac_i * src[3];
+  ctx->tmp[0] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[0];\
+  ctx->tmp[1] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[1];\
+  ctx->tmp[2] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[2];\
+  ctx->tmp[3] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[3];
 
 
 #define SCALE_FINISH   \
@@ -144,7 +144,7 @@ typedef struct {
 #define SCALE_INIT ctx->tmp[0] = 0;
 
 #define SCALE_ACCUM                             \
-  ctx->tmp[0] += (int64_t)ctx->table_h.pixels[i].factor[j].fac_i * src[0];
+  ctx->tmp[0] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[0];
 
 #define SCALE_FINISH                            \
   RECLIP(ctx->tmp[0],ctx->plane);                    \
@@ -158,9 +158,9 @@ typedef struct {
 #define SCALE_INIT ctx->tmp[0] = 0;ctx->tmp[1] = 0;ctx->tmp[2] = 0;
 
 #define SCALE_ACCUM                                                     \
-  ctx->tmp[0] += (int64_t)ctx->table_h.pixels[i].factor[j].fac_i * src[0];   \
-  ctx->tmp[1] += (int64_t)ctx->table_h.pixels[i].factor[j].fac_i * src[1];   \
-  ctx->tmp[2] += (int64_t)ctx->table_h.pixels[i].factor[j].fac_i * src[2];
+  ctx->tmp[0] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[0];   \
+  ctx->tmp[1] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[1];   \
+  ctx->tmp[2] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[2];
 
 #define SCALE_FINISH                            \
   RECLIP(ctx->tmp[0],0);                             \
@@ -183,10 +183,10 @@ ctx->tmp[3] = 0;
 
 
 #define SCALE_ACCUM                                                     \
-  ctx->tmp[0] += (int64_t)ctx->table_h.pixels[i].factor[j].fac_i * src[0];   \
-  ctx->tmp[1] += (int64_t)ctx->table_h.pixels[i].factor[j].fac_i * src[1];   \
-  ctx->tmp[2] += (int64_t)ctx->table_h.pixels[i].factor[j].fac_i * src[2];   \
-  ctx->tmp[3] += (int64_t)ctx->table_h.pixels[i].factor[j].fac_i * src[3];
+  ctx->tmp[0] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[0];   \
+  ctx->tmp[1] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[1];   \
+  ctx->tmp[2] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[2];   \
+  ctx->tmp[3] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[3];
 
 #define SCALE_FINISH                            \
   RECLIP(ctx->tmp[0],0);                             \
@@ -206,9 +206,9 @@ ctx->tmp[3] = 0;
 #define SCALE_INIT dst[0] = 0.0; dst[1] = 0.0; dst[2] = 0.0;
 
 #define SCALE_ACCUM \
-  dst[0] += ctx->table_h.pixels[i].factor[j].fac_f * src[0];\
-  dst[1] += ctx->table_h.pixels[i].factor[j].fac_f * src[1];\
-  dst[2] += ctx->table_h.pixels[i].factor[j].fac_f * src[2];
+  dst[0] += ctx->table_h.pixels[i].factor_f[j] * src[0];\
+  dst[1] += ctx->table_h.pixels[i].factor_f[j] * src[1];\
+  dst[2] += ctx->table_h.pixels[i].factor_f[j] * src[2];
 
 #define SCALE_FINISH                                                    \
   RECLIP_FLOAT(dst[0]);                                                 \
@@ -223,10 +223,10 @@ ctx->tmp[3] = 0;
 #define SCALE_INIT dst[0] = 0.0; dst[1] = 0.0; dst[2] = 0.0; dst[3] = 0.0;
 
 #define SCALE_ACCUM \
-  dst[0] += ctx->table_h.pixels[i].factor[j].fac_f * src[0];    \
-  dst[1] += ctx->table_h.pixels[i].factor[j].fac_f * src[1];    \
-  dst[2] += ctx->table_h.pixels[i].factor[j].fac_f * src[2];    \
-  dst[3] += ctx->table_h.pixels[i].factor[j].fac_f * src[3]; 
+  dst[0] += ctx->table_h.pixels[i].factor_f[j] * src[0];    \
+  dst[1] += ctx->table_h.pixels[i].factor_f[j] * src[1];    \
+  dst[2] += ctx->table_h.pixels[i].factor_f[j] * src[2];    \
+  dst[3] += ctx->table_h.pixels[i].factor_f[j] * src[3]; 
 
 #define SCALE_FINISH                                                    \
   RECLIP_FLOAT(dst[0]);                                                 \
@@ -244,9 +244,9 @@ ctx->tmp[3] = 0;
 #define SCALE_INIT ctx->tmp[0] = 0;ctx->tmp[1] = 0;ctx->tmp[2] = 0;
 
 #define SCALE_ACCUM                             \
-  ctx->tmp[0] += ctx->table_v.pixels[ctx->scanline].factor[j].fac_i * src->r;\
-  ctx->tmp[1] += ctx->table_v.pixels[ctx->scanline].factor[j].fac_i * src->g;\
-  ctx->tmp[2] += ctx->table_v.pixels[ctx->scanline].factor[j].fac_i * src->b;
+  ctx->tmp[0] += ctx->table_v.pixels[ctx->scanline].factor_i[j] * src->r;\
+  ctx->tmp[1] += ctx->table_v.pixels[ctx->scanline].factor_i[j] * src->g;\
+  ctx->tmp[2] += ctx->table_v.pixels[ctx->scanline].factor_i[j] * src->b;
 
 #define SCALE_FINISH                            \
   RECLIP(ctx->tmp[0], 0);                                       \
@@ -264,9 +264,9 @@ ctx->tmp[3] = 0;
 #define SCALE_INIT ctx->tmp[0] = 0;ctx->tmp[1] = 0;ctx->tmp[2] = 0;
 
 #define SCALE_ACCUM                             \
-  ctx->tmp[0] += ctx->table_v.pixels[ctx->scanline].factor[j].fac_i * src->r;\
-  ctx->tmp[1] += ctx->table_v.pixels[ctx->scanline].factor[j].fac_i * src->g;\
-  ctx->tmp[2] += ctx->table_v.pixels[ctx->scanline].factor[j].fac_i * src->b;
+  ctx->tmp[0] += ctx->table_v.pixels[ctx->scanline].factor_i[j] * src->r;\
+  ctx->tmp[1] += ctx->table_v.pixels[ctx->scanline].factor_i[j] * src->g;\
+  ctx->tmp[2] += ctx->table_v.pixels[ctx->scanline].factor_i[j] * src->b;
 
 #define SCALE_FINISH                            \
   RECLIP(ctx->tmp[0], 0);                                       \
@@ -284,7 +284,7 @@ ctx->tmp[3] = 0;
 #define SCALE_INIT ctx->tmp[0] = 0;
 
 #define SCALE_ACCUM \
-  ctx->tmp[0] += ctx->table_v.pixels[ctx->scanline].factor[j].fac_i * src[0];
+  ctx->tmp[0] += ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[0];
 
 #define SCALE_FINISH                            \
   RECLIP(ctx->tmp[0], ctx->plane);                      \
@@ -298,9 +298,9 @@ ctx->tmp[3] = 0;
 #define SCALE_INIT ctx->tmp[0] = 0;ctx->tmp[1] = 0;ctx->tmp[2] = 0;
 
 #define SCALE_ACCUM \
-  ctx->tmp[0] += ctx->table_v.pixels[ctx->scanline].factor[j].fac_i * src[0];\
-  ctx->tmp[1] += ctx->table_v.pixels[ctx->scanline].factor[j].fac_i * src[1];\
-  ctx->tmp[2] += ctx->table_v.pixels[ctx->scanline].factor[j].fac_i * src[2];
+  ctx->tmp[0] += ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[0];\
+  ctx->tmp[1] += ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[1];\
+  ctx->tmp[2] += ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[2];
 
 #define SCALE_FINISH                                    \
   RECLIP(ctx->tmp[0], 0);                               \
@@ -318,10 +318,10 @@ ctx->tmp[3] = 0;
 #define SCALE_INIT ctx->tmp[0] = 0;ctx->tmp[1] = 0;ctx->tmp[2] = 0;ctx->tmp[3] = 0;
 
 #define SCALE_ACCUM \
-  ctx->tmp[0] += ctx->table_v.pixels[ctx->scanline].factor[j].fac_i * src[0];\
-  ctx->tmp[1] += ctx->table_v.pixels[ctx->scanline].factor[j].fac_i * src[1];\
-  ctx->tmp[2] += ctx->table_v.pixels[ctx->scanline].factor[j].fac_i * src[2];\
-  ctx->tmp[3] += ctx->table_v.pixels[ctx->scanline].factor[j].fac_i * src[3];
+  ctx->tmp[0] += ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[0];\
+  ctx->tmp[1] += ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[1];\
+  ctx->tmp[2] += ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[2];\
+  ctx->tmp[3] += ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[3];
 
 #define SCALE_FINISH                                    \
   RECLIP(ctx->tmp[0], 0);                               \
@@ -342,7 +342,7 @@ ctx->tmp[3] = 0;
 #define SCALE_INIT ctx->tmp[0] = 0;
 
 #define SCALE_ACCUM                             \
-  ctx->tmp[0] += (int64_t)ctx->table_v.pixels[ctx->scanline].factor[j].fac_i * src[0];
+  ctx->tmp[0] += (int64_t)ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[0];
 
 #define SCALE_FINISH \
   RECLIP(ctx->tmp[0], ctx->plane);                      \
@@ -356,9 +356,9 @@ ctx->tmp[3] = 0;
 #define SCALE_INIT ctx->tmp[0] = 0;ctx->tmp[1] = 0;ctx->tmp[2] = 0;
 
 #define SCALE_ACCUM                             \
-  ctx->tmp[0] += (int64_t)ctx->table_v.pixels[ctx->scanline].factor[j].fac_i * src[0];\
-  ctx->tmp[1] += (int64_t)ctx->table_v.pixels[ctx->scanline].factor[j].fac_i * src[1];\
-  ctx->tmp[2] += (int64_t)ctx->table_v.pixels[ctx->scanline].factor[j].fac_i * src[2];
+  ctx->tmp[0] += (int64_t)ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[0];\
+  ctx->tmp[1] += (int64_t)ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[1];\
+  ctx->tmp[2] += (int64_t)ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[2];
 
 #define SCALE_FINISH \
   RECLIP(ctx->tmp[0], 0);                      \
@@ -376,10 +376,10 @@ ctx->tmp[3] = 0;
 #define SCALE_INIT ctx->tmp[0] = 0;ctx->tmp[1] = 0;ctx->tmp[2] = 0;ctx->tmp[3] = 0;
 
 #define SCALE_ACCUM                             \
-  ctx->tmp[0] += (int64_t)ctx->table_v.pixels[ctx->scanline].factor[j].fac_i * src[0];\
-  ctx->tmp[1] += (int64_t)ctx->table_v.pixels[ctx->scanline].factor[j].fac_i * src[1];\
-  ctx->tmp[2] += (int64_t)ctx->table_v.pixels[ctx->scanline].factor[j].fac_i * src[2];\
-  ctx->tmp[3] += (int64_t)ctx->table_v.pixels[ctx->scanline].factor[j].fac_i * src[3];
+  ctx->tmp[0] += (int64_t)ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[0];\
+  ctx->tmp[1] += (int64_t)ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[1];\
+  ctx->tmp[2] += (int64_t)ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[2];\
+  ctx->tmp[3] += (int64_t)ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[3];
 
 #define SCALE_FINISH \
   RECLIP(ctx->tmp[0], 0);                      \
@@ -399,9 +399,9 @@ ctx->tmp[3] = 0;
 #define SCALE_INIT dst[0] = 0.0; dst[1] = 0.0; dst[2] = 0.0;
 
 #define SCALE_ACCUM \
-  dst[0] += ctx->table_v.pixels[ctx->scanline].factor[j].fac_f * src[0];\
-  dst[1] += ctx->table_v.pixels[ctx->scanline].factor[j].fac_f * src[1];\
-  dst[2] += ctx->table_v.pixels[ctx->scanline].factor[j].fac_f * src[2];\
+  dst[0] += ctx->table_v.pixels[ctx->scanline].factor_f[j] * src[0];\
+  dst[1] += ctx->table_v.pixels[ctx->scanline].factor_f[j] * src[1];\
+  dst[2] += ctx->table_v.pixels[ctx->scanline].factor_f[j] * src[2];\
   
 #define SCALE_FINISH                  \
   RECLIP_FLOAT(dst[0]);        \
@@ -416,10 +416,10 @@ ctx->tmp[3] = 0;
 #define SCALE_INIT dst[0] = 0.0; dst[1] = 0.0; dst[2] = 0.0;dst[3] = 0.0;
 
 #define SCALE_ACCUM \
-  dst[0] += ctx->table_v.pixels[ctx->scanline].factor[j].fac_f * src[0];\
-  dst[1] += ctx->table_v.pixels[ctx->scanline].factor[j].fac_f * src[1];\
-  dst[2] += ctx->table_v.pixels[ctx->scanline].factor[j].fac_f * src[2];\
-  dst[3] += ctx->table_v.pixels[ctx->scanline].factor[j].fac_f * src[3];
+  dst[0] += ctx->table_v.pixels[ctx->scanline].factor_f[j] * src[0];\
+  dst[1] += ctx->table_v.pixels[ctx->scanline].factor_f[j] * src[1];\
+  dst[2] += ctx->table_v.pixels[ctx->scanline].factor_f[j] * src[2];\
+  dst[3] += ctx->table_v.pixels[ctx->scanline].factor_f[j] * src[3];
   
 #define SCALE_FINISH                  \
   RECLIP_FLOAT(dst[0]);        \
@@ -434,7 +434,8 @@ void gavl_init_scale_funcs_generic_c(gavl_scale_funcs_t * tab)
   //  fprintf(stderr, "gavl_init_scale_funcs_generic_c\n");
   tab->funcs_x.scale_rgb_15 =     scale_rgb_15_x_generic_c;
   tab->funcs_x.scale_rgb_16 =     scale_rgb_16_x_generic_c;
-  tab->funcs_x.scale_uint8_x_1 =  scale_uint8_x_1_x_generic_c;
+  tab->funcs_x.scale_uint8_x_1_advance =  scale_uint8_x_1_x_generic_c;
+  tab->funcs_x.scale_uint8_x_1_noadvance =  scale_uint8_x_1_x_generic_c;
   tab->funcs_x.scale_uint8_x_3 =  scale_uint8_x_3_x_generic_c;
   tab->funcs_x.scale_uint8_x_4 =  scale_uint8_x_4_x_generic_c;
   tab->funcs_x.scale_uint16_x_1 = scale_uint16_x_1_x_generic_c;
@@ -444,12 +445,14 @@ void gavl_init_scale_funcs_generic_c(gavl_scale_funcs_t * tab)
   tab->funcs_x.scale_float_x_4 =  scale_float_x_4_x_generic_c;
   tab->funcs_x.bits_rgb_15 = 8;
   tab->funcs_x.bits_rgb_16 = 8;
-  tab->funcs_x.bits_uint8  = 8;
+  tab->funcs_x.bits_uint8_advance  = 8;
+  tab->funcs_x.bits_uint8_noadvance  = 8;
   tab->funcs_x.bits_uint16 = 16;
 
   tab->funcs_y.scale_rgb_15 =     scale_rgb_15_y_generic_c;
   tab->funcs_y.scale_rgb_16 =     scale_rgb_16_y_generic_c;
-  tab->funcs_y.scale_uint8_x_1 =  scale_uint8_x_1_y_generic_c;
+  tab->funcs_y.scale_uint8_x_1_advance =  scale_uint8_x_1_y_generic_c;
+  tab->funcs_y.scale_uint8_x_1_noadvance =  scale_uint8_x_1_y_generic_c;
   tab->funcs_y.scale_uint8_x_3 =  scale_uint8_x_3_y_generic_c;
   tab->funcs_y.scale_uint8_x_4 =  scale_uint8_x_4_y_generic_c;
   tab->funcs_y.scale_uint16_x_1 = scale_uint16_x_1_y_generic_c;
@@ -459,7 +462,8 @@ void gavl_init_scale_funcs_generic_c(gavl_scale_funcs_t * tab)
   tab->funcs_y.scale_float_x_4 =  scale_float_x_4_y_generic_c;
   tab->funcs_y.bits_rgb_15 = 8;
   tab->funcs_y.bits_rgb_16 = 8;
-  tab->funcs_y.bits_uint8  = 8;
+  tab->funcs_y.bits_uint8_advance  = 8;
+  tab->funcs_y.bits_uint8_noadvance  = 8;
   tab->funcs_y.bits_uint16 = 16;
   
   }

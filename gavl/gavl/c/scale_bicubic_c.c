@@ -52,22 +52,22 @@ typedef struct {
 #define TYPE color_15
 #define INIT int64_t tmp;
 #define SCALE                                                \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor[0].fac_i * src_1->r +   \
-         (int64_t)ctx->table_h.pixels[i].factor[1].fac_i * src_2->r +   \
-         (int64_t)ctx->table_h.pixels[i].factor[2].fac_i * src_3->r +   \
-         (int64_t)ctx->table_h.pixels[i].factor[3].fac_i * src_4->r);   \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1->r +   \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2->r +   \
+         (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3->r +   \
+         (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4->r);   \
   RECLIP(tmp,0);                                                        \
   dst->r = tmp >> 8;                                                    \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor[0].fac_i * src_1->g +   \
-         (int64_t)ctx->table_h.pixels[i].factor[1].fac_i * src_2->g +   \
-         (int64_t)ctx->table_h.pixels[i].factor[2].fac_i * src_3->g +   \
-         (int64_t)ctx->table_h.pixels[i].factor[3].fac_i * src_4->g);   \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1->g +   \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2->g +   \
+         (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3->g +   \
+         (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4->g);   \
   RECLIP(tmp,1);                                                        \
   dst->g = tmp >> 8;                                                    \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor[0].fac_i * src_1->b +   \
-         (int64_t)ctx->table_h.pixels[i].factor[1].fac_i * src_2->b +   \
-         (int64_t)ctx->table_h.pixels[i].factor[2].fac_i * src_3->b +   \
-         (int64_t)ctx->table_h.pixels[i].factor[3].fac_i * src_4->b);   \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1->b +   \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2->b +   \
+         (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3->b +   \
+         (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4->b);   \
   RECLIP(tmp,2);                                                        \
   dst->b = tmp >> 8;                                                    \
 
@@ -78,22 +78,22 @@ typedef struct {
 #define TYPE color_16
 #define INIT int64_t tmp;
 #define SCALE \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor[0].fac_i * src_1->r +            \
-         (int64_t)ctx->table_h.pixels[i].factor[1].fac_i * src_2->r +            \
-         (int64_t)ctx->table_h.pixels[i].factor[2].fac_i * src_3->r +            \
-         (int64_t)ctx->table_h.pixels[i].factor[3].fac_i * src_4->r);       \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1->r +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2->r +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3->r +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4->r);       \
   RECLIP(tmp,0);                                                     \
   dst->r = tmp >> 8;                                               \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor[0].fac_i * src_1->g +      \
-         (int64_t)ctx->table_h.pixels[i].factor[1].fac_i * src_2->g +            \
-         (int64_t)ctx->table_h.pixels[i].factor[2].fac_i * src_3->g +            \
-         (int64_t)ctx->table_h.pixels[i].factor[3].fac_i * src_4->g);       \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1->g +      \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2->g +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3->g +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4->g);       \
   RECLIP(tmp,1);                                                     \
   dst->g = tmp >> 8;                                               \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor[0].fac_i * src_1->b + \
-         (int64_t)ctx->table_h.pixels[i].factor[1].fac_i * src_2->b +    \
-         (int64_t)ctx->table_h.pixels[i].factor[2].fac_i * src_3->b +    \
-         (int64_t)ctx->table_h.pixels[i].factor[3].fac_i * src_4->b);\
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1->b + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2->b +    \
+         (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3->b +    \
+         (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4->b);\
   RECLIP(tmp,2);                                                     \
   dst->b = tmp >> 8;                                               \
 
@@ -104,10 +104,10 @@ typedef struct {
 #define TYPE uint8_t
 #define INIT int64_t tmp;
 #define SCALE \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor[0].fac_i * src_1[0] +            \
-         (int64_t)ctx->table_h.pixels[i].factor[1].fac_i * src_2[0] +            \
-         (int64_t)ctx->table_h.pixels[i].factor[2].fac_i * src_3[0] +            \
-         (int64_t)ctx->table_h.pixels[i].factor[3].fac_i * src_4[0]);            \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[0] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[0] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[0]);            \
   RECLIP(tmp,ctx->plane);                                               \
   dst[0] = tmp >> 8;
 
@@ -118,22 +118,22 @@ typedef struct {
 #define TYPE uint8_t
 #define INIT int64_t tmp;
 #define SCALE \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor[0].fac_i * src_1[0] +            \
-         (int64_t)ctx->table_h.pixels[i].factor[1].fac_i * src_2[0] +            \
-         (int64_t)ctx->table_h.pixels[i].factor[2].fac_i * src_3[0] +            \
-         (int64_t)ctx->table_h.pixels[i].factor[3].fac_i * src_4[0]);       \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[0] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[0] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[0]);       \
   RECLIP(tmp,0);                                                         \
   dst[0] = tmp >> 8;                                                    \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor[0].fac_i * src_1[1] +            \
-         (int64_t)ctx->table_h.pixels[i].factor[1].fac_i * src_2[1] +            \
-         (int64_t)ctx->table_h.pixels[i].factor[2].fac_i * src_3[1] +            \
-         (int64_t)ctx->table_h.pixels[i].factor[3].fac_i * src_4[1]);       \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[1] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[1] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[1] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[1]);       \
   RECLIP(tmp,1);                                                          \
   dst[1] = tmp >> 8;                                                    \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor[0].fac_i * src_1[2] +            \
-         (int64_t)ctx->table_h.pixels[i].factor[1].fac_i * src_2[2] +            \
-         (int64_t)ctx->table_h.pixels[i].factor[2].fac_i * src_3[2] +            \
-         (int64_t)ctx->table_h.pixels[i].factor[3].fac_i * src_4[2]);       \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[2] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[2] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[2] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[2]);       \
   RECLIP(tmp,2);                                                          \
   dst[2] = tmp >> 8;
 
@@ -144,28 +144,28 @@ typedef struct {
 #define TYPE uint8_t
 #define INIT int64_t tmp;
 #define SCALE \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor[0].fac_i * src_1[0] +            \
-         (int64_t)ctx->table_h.pixels[i].factor[1].fac_i * src_2[0] +            \
-         (int64_t)ctx->table_h.pixels[i].factor[2].fac_i * src_3[0] +            \
-         (int64_t)ctx->table_h.pixels[i].factor[3].fac_i * src_4[0]);            \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[0] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[0] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[0]);            \
   RECLIP(tmp,0);                                                         \
   dst[0] = tmp >> 8;                                                    \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor[0].fac_i * src_1[1] +            \
-         (int64_t)ctx->table_h.pixels[i].factor[1].fac_i * src_2[1] +            \
-         (int64_t)ctx->table_h.pixels[i].factor[2].fac_i * src_3[1] +            \
-         (int64_t)ctx->table_h.pixels[i].factor[3].fac_i * src_4[1]);            \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[1] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[1] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[1] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[1]);            \
   RECLIP(tmp,1);                                                          \
   dst[1] = tmp >> 8;                                                    \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor[0].fac_i * src_1[2] +            \
-         (int64_t)ctx->table_h.pixels[i].factor[1].fac_i * src_2[2] +            \
-         (int64_t)ctx->table_h.pixels[i].factor[2].fac_i * src_3[2] +            \
-         (int64_t)ctx->table_h.pixels[i].factor[3].fac_i * src_4[2]);            \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[2] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[2] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[2] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[2]);            \
   RECLIP(tmp,2);                                                          \
   dst[2] = tmp >> 8;                                                    \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor[0].fac_i * src_1[3] +            \
-         (int64_t)ctx->table_h.pixels[i].factor[1].fac_i * src_2[3] +            \
-         (int64_t)ctx->table_h.pixels[i].factor[2].fac_i * src_3[3] +            \
-         (int64_t)ctx->table_h.pixels[i].factor[3].fac_i * src_4[3]);            \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[3] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[3] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[3] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[3]);            \
   RECLIP(tmp,3);                                                          \
   dst[3] = tmp >> 8;
  
@@ -176,10 +176,10 @@ typedef struct {
 #define TYPE uint16_t
 #define INIT int64_t tmp;
 #define SCALE                                                \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor[0].fac_i * src_1[0] + \
-         (int64_t)ctx->table_h.pixels[i].factor[1].fac_i * src_2[0] + \
-         (int64_t)ctx->table_h.pixels[i].factor[2].fac_i * src_3[0] + \
-         (int64_t)ctx->table_h.pixels[i].factor[3].fac_i * src_4[0]); \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[0] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[0] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[0]); \
   RECLIP(tmp,ctx->plane);                                             \
   dst[0] = tmp >> 16;
 
@@ -190,22 +190,22 @@ typedef struct {
 #define TYPE uint16_t
 #define INIT int64_t tmp;
 #define SCALE                                                           \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor[0].fac_i * src_1[0] +   \
-         (int64_t)ctx->table_h.pixels[i].factor[1].fac_i * src_2[0] + \
-         (int64_t)ctx->table_h.pixels[i].factor[2].fac_i * src_3[0] + \
-         (int64_t)ctx->table_h.pixels[i].factor[3].fac_i * src_4[0]); \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[0] +   \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[0] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[0]); \
   RECLIP(tmp,0);                                                       \
   dst[0] = tmp >> 16; \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor[0].fac_i * src_1[1] + \
-         (int64_t)ctx->table_h.pixels[i].factor[1].fac_i * src_2[1] + \
-         (int64_t)ctx->table_h.pixels[i].factor[2].fac_i * src_3[1] + \
-         (int64_t)ctx->table_h.pixels[i].factor[3].fac_i * src_4[1]); \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[1] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[1] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[1] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[1]); \
   RECLIP(tmp,1);                                               \
   dst[1] = tmp >> 16; \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor[0].fac_i * src_1[2] + \
-         (int64_t)ctx->table_h.pixels[i].factor[1].fac_i * src_2[2] + \
-         (int64_t)ctx->table_h.pixels[i].factor[2].fac_i * src_3[2] + \
-         (int64_t)ctx->table_h.pixels[i].factor[3].fac_i * src_4[2]); \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[2] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[2] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[2] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[2]); \
   RECLIP(tmp,2);                                               \
   dst[2] = tmp >> 16;
 
@@ -216,28 +216,28 @@ typedef struct {
 #define TYPE uint16_t
 #define INIT int64_t tmp;
 #define SCALE                                                           \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor[0].fac_i * src_1[0] + \
-         (int64_t)ctx->table_h.pixels[i].factor[1].fac_i * src_2[0] + \
-         (int64_t)ctx->table_h.pixels[i].factor[2].fac_i * src_3[0] + \
-         (int64_t)ctx->table_h.pixels[i].factor[3].fac_i * src_4[0]); \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[0] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[0] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[0]); \
   RECLIP(tmp,0);                                               \
   dst[0] = tmp >> 16; \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor[0].fac_i * src_1[1] + \
-         (int64_t)ctx->table_h.pixels[i].factor[1].fac_i * src_2[1] + \
-         (int64_t)ctx->table_h.pixels[i].factor[2].fac_i * src_3[1] + \
-         (int64_t)ctx->table_h.pixels[i].factor[3].fac_i * src_4[1]); \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[1] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[1] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[1] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[1]); \
   RECLIP(tmp,1);                                               \
   dst[1] = tmp >> 16; \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor[0].fac_i * src_1[2] + \
-         (int64_t)ctx->table_h.pixels[i].factor[1].fac_i * src_2[2] + \
-         (int64_t)ctx->table_h.pixels[i].factor[2].fac_i * src_3[2] + \
-         (int64_t)ctx->table_h.pixels[i].factor[3].fac_i * src_4[2]); \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[2] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[2] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[2] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[2]); \
   RECLIP(tmp,2);                                               \
   dst[2] = tmp >> 16; \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor[0].fac_i * src_1[3] + \
-         (int64_t)ctx->table_h.pixels[i].factor[1].fac_i * src_2[3] + \
-         (int64_t)ctx->table_h.pixels[i].factor[2].fac_i * src_3[3] + \
-         (int64_t)ctx->table_h.pixels[i].factor[3].fac_i * src_4[3]); \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[3] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[3] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[3] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[3]); \
   RECLIP(tmp,3);                                                       \
   dst[3] = tmp >> 16;
 
@@ -248,20 +248,20 @@ typedef struct {
 #define FUNC_NAME scale_float_x_3_x_bicubic_c
 #define TYPE float
 #define SCALE                                                   \
-  dst[0] = (ctx->table_h.pixels[i].factor[0].fac_f * src_1[0] + \
-            ctx->table_h.pixels[i].factor[1].fac_f * src_2[0] +         \
-            ctx->table_h.pixels[i].factor[2].fac_f * src_3[0] +         \
-            ctx->table_h.pixels[i].factor[3].fac_f * src_4[0]);         \
+  dst[0] = (ctx->table_h.pixels[i].factor_f[0] * src_1[0] + \
+            ctx->table_h.pixels[i].factor_f[1] * src_2[0] +         \
+            ctx->table_h.pixels[i].factor_f[2] * src_3[0] +         \
+            ctx->table_h.pixels[i].factor_f[3] * src_4[0]);         \
   RECLIP_FLOAT(dst[0]);                                                 \
-  dst[1] = (ctx->table_h.pixels[i].factor[0].fac_f * src_1[1] + \
-            ctx->table_h.pixels[i].factor[1].fac_f * src_2[1] + \
-            ctx->table_h.pixels[i].factor[2].fac_f * src_3[1] + \
-            ctx->table_h.pixels[i].factor[3].fac_f * src_4[1]);         \
+  dst[1] = (ctx->table_h.pixels[i].factor_f[0] * src_1[1] + \
+            ctx->table_h.pixels[i].factor_f[1] * src_2[1] + \
+            ctx->table_h.pixels[i].factor_f[2] * src_3[1] + \
+            ctx->table_h.pixels[i].factor_f[3] * src_4[1]);         \
   RECLIP_FLOAT(dst[1]);                                                 \
-  dst[2] = (ctx->table_h.pixels[i].factor[0].fac_f * src_1[2] + \
-            ctx->table_h.pixels[i].factor[1].fac_f * src_2[2] + \
-            ctx->table_h.pixels[i].factor[2].fac_f * src_3[2] + \
-            ctx->table_h.pixels[i].factor[3].fac_f * src_4[2]);\
+  dst[2] = (ctx->table_h.pixels[i].factor_f[0] * src_1[2] + \
+            ctx->table_h.pixels[i].factor_f[1] * src_2[2] + \
+            ctx->table_h.pixels[i].factor_f[2] * src_3[2] + \
+            ctx->table_h.pixels[i].factor_f[3] * src_4[2]);\
   RECLIP_FLOAT(dst[2]);                                        \
 
 
@@ -271,25 +271,25 @@ typedef struct {
 #define FUNC_NAME scale_float_x_4_x_bicubic_c
 #define TYPE float
 #define SCALE                                                           \
-  dst[0] = (ctx->table_h.pixels[i].factor[0].fac_f * src_1[0] +         \
-            ctx->table_h.pixels[i].factor[1].fac_f * src_2[0] +         \
-            ctx->table_h.pixels[i].factor[2].fac_f * src_3[0] +         \
-            ctx->table_h.pixels[i].factor[3].fac_f * src_4[0]);         \
+  dst[0] = (ctx->table_h.pixels[i].factor_f[0] * src_1[0] +         \
+            ctx->table_h.pixels[i].factor_f[1] * src_2[0] +         \
+            ctx->table_h.pixels[i].factor_f[2] * src_3[0] +         \
+            ctx->table_h.pixels[i].factor_f[3] * src_4[0]);         \
   RECLIP_FLOAT(dst[0]);                                                 \
-  dst[1] = (ctx->table_h.pixels[i].factor[0].fac_f * src_1[1] +         \
-            ctx->table_h.pixels[i].factor[1].fac_f * src_2[1] +         \
-            ctx->table_h.pixels[i].factor[2].fac_f * src_3[1] +         \
-            ctx->table_h.pixels[i].factor[3].fac_f * src_4[1]);         \
+  dst[1] = (ctx->table_h.pixels[i].factor_f[0] * src_1[1] +         \
+            ctx->table_h.pixels[i].factor_f[1] * src_2[1] +         \
+            ctx->table_h.pixels[i].factor_f[2] * src_3[1] +         \
+            ctx->table_h.pixels[i].factor_f[3] * src_4[1]);         \
   RECLIP_FLOAT(dst[1]);                                                 \
-  dst[2] = (ctx->table_h.pixels[i].factor[0].fac_f * src_1[2] +         \
-            ctx->table_h.pixels[i].factor[1].fac_f * src_2[2] +         \
-            ctx->table_h.pixels[i].factor[2].fac_f * src_3[2] +         \
-            ctx->table_h.pixels[i].factor[3].fac_f * src_4[2]);         \
+  dst[2] = (ctx->table_h.pixels[i].factor_f[0] * src_1[2] +         \
+            ctx->table_h.pixels[i].factor_f[1] * src_2[2] +         \
+            ctx->table_h.pixels[i].factor_f[2] * src_3[2] +         \
+            ctx->table_h.pixels[i].factor_f[3] * src_4[2]);         \
   RECLIP_FLOAT(dst[2]);                                                 \
-  dst[3] = (ctx->table_h.pixels[i].factor[0].fac_f * src_1[3] +         \
-            ctx->table_h.pixels[i].factor[1].fac_f * src_2[3] +         \
-            ctx->table_h.pixels[i].factor[2].fac_f * src_3[3] +         \
-            ctx->table_h.pixels[i].factor[3].fac_f * src_4[3]);\
+  dst[3] = (ctx->table_h.pixels[i].factor_f[0] * src_1[3] +         \
+            ctx->table_h.pixels[i].factor_f[1] * src_2[3] +         \
+            ctx->table_h.pixels[i].factor_f[2] * src_3[3] +         \
+            ctx->table_h.pixels[i].factor_f[3] * src_4[3]);\
   RECLIP_FLOAT(dst[3]);                                        \
 
 #define NUM_TAPS 4
@@ -301,10 +301,10 @@ typedef struct {
 #define TYPE color_15
 #define INIT int64_t fac_1, fac_2, fac_3, fac_4;        \
   int64_t tmp; \
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor[0].fac_i;\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor[1].fac_i;\
-  fac_3 = ctx->table_v.pixels[ctx->scanline].factor[2].fac_i;\
-  fac_4 = ctx->table_v.pixels[ctx->scanline].factor[3].fac_i;
+  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];\
+  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_i[2];\
+  fac_4 = ctx->table_v.pixels[ctx->scanline].factor_i[3];
 
 #define NO_UINT8
 
@@ -335,10 +335,10 @@ typedef struct {
 #define TYPE color_16
 #define INIT int64_t fac_1, fac_2, fac_3, fac_4;\
   int64_t tmp;                                                  \
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor[0].fac_i;\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor[1].fac_i;\
-  fac_3 = ctx->table_v.pixels[ctx->scanline].factor[2].fac_i;\
-  fac_4 = ctx->table_v.pixels[ctx->scanline].factor[3].fac_i;
+  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];\
+  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_i[2];\
+  fac_4 = ctx->table_v.pixels[ctx->scanline].factor_i[3];
 
 
 #define NO_UINT8
@@ -369,10 +369,10 @@ typedef struct {
 #define FUNC_NAME scale_uint8_x_1_y_bicubic_c
 #define TYPE uint8_t
 #define INIT int64_t fac_1, fac_2, fac_3, fac_4, tmp;               \
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor[0].fac_i;\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor[1].fac_i;\
-  fac_3 = ctx->table_v.pixels[ctx->scanline].factor[2].fac_i;\
-  fac_4 = ctx->table_v.pixels[ctx->scanline].factor[3].fac_i;
+  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];\
+  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_i[2];\
+  fac_4 = ctx->table_v.pixels[ctx->scanline].factor_i[3];
 
 #define SCALE                  \
   tmp = (fac_1 * src_1[0] + \
@@ -388,10 +388,10 @@ typedef struct {
 #define FUNC_NAME scale_uint8_x_3_y_bicubic_c
 #define TYPE uint8_t
 #define INIT int64_t fac_1, fac_2, fac_3, fac_4, tmp;               \
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor[0].fac_i;\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor[1].fac_i;\
-  fac_3 = ctx->table_v.pixels[ctx->scanline].factor[2].fac_i;\
-  fac_4 = ctx->table_v.pixels[ctx->scanline].factor[3].fac_i;
+  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];\
+  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_i[2];\
+  fac_4 = ctx->table_v.pixels[ctx->scanline].factor_i[3];
 
 #define SCALE               \
   tmp = (fac_1 * src_1[0] +    \
@@ -419,10 +419,10 @@ typedef struct {
 #define FUNC_NAME scale_uint8_x_4_y_bicubic_c
 #define TYPE uint8_t
 #define INIT int64_t fac_1, fac_2, fac_3, fac_4, tmp;               \
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor[0].fac_i;\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor[1].fac_i;\
-  fac_3 = ctx->table_v.pixels[ctx->scanline].factor[2].fac_i;\
-  fac_4 = ctx->table_v.pixels[ctx->scanline].factor[3].fac_i;
+  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];\
+  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_i[2];\
+  fac_4 = ctx->table_v.pixels[ctx->scanline].factor_i[3];
 
 #define SCALE               \
   tmp = (fac_1 * src_1[0] +    \
@@ -459,10 +459,10 @@ typedef struct {
 #define TYPE uint16_t
 #define INIT int64_t tmp; \
   int64_t fac_1, fac_2, fac_3, fac_4;                           \
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor[0].fac_i;   \
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor[1].fac_i;   \
-  fac_3 = ctx->table_v.pixels[ctx->scanline].factor[2].fac_i;   \
-  fac_4 = ctx->table_v.pixels[ctx->scanline].factor[3].fac_i;
+  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];   \
+  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];   \
+  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_i[2];   \
+  fac_4 = ctx->table_v.pixels[ctx->scanline].factor_i[3];
 
 #define NO_UINT8
 
@@ -482,10 +482,10 @@ typedef struct {
 #define TYPE uint16_t
 #define INIT int64_t tmp;                      \
   int64_t fac_1, fac_2, fac_3, fac_4;                           \
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor[0].fac_i;\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor[1].fac_i;\
-  fac_3 = ctx->table_v.pixels[ctx->scanline].factor[2].fac_i;\
-  fac_4 = ctx->table_v.pixels[ctx->scanline].factor[3].fac_i;
+  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];\
+  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_i[2];\
+  fac_4 = ctx->table_v.pixels[ctx->scanline].factor_i[3];
 
 #define NO_UINT8
 
@@ -516,10 +516,10 @@ typedef struct {
 #define TYPE uint16_t
 #define INIT int64_t tmp;\
   int64_t fac_1, fac_2, fac_3, fac_4;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor[0].fac_i;\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor[1].fac_i;\
-  fac_3 = ctx->table_v.pixels[ctx->scanline].factor[2].fac_i;\
-  fac_4 = ctx->table_v.pixels[ctx->scanline].factor[3].fac_i;
+  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];\
+  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_i[2];\
+  fac_4 = ctx->table_v.pixels[ctx->scanline].factor_i[3];
 
 #define NO_UINT8
 
@@ -555,10 +555,10 @@ typedef struct {
 #define FUNC_NAME scale_float_x_3_y_bicubic_c
 #define TYPE float
 #define INIT float fac_1, fac_2, fac_3, fac_4;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor[0].fac_f;\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor[1].fac_f;\
-  fac_3 = ctx->table_v.pixels[ctx->scanline].factor[2].fac_f;\
-  fac_4 = ctx->table_v.pixels[ctx->scanline].factor[3].fac_f;
+  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_f[0];\
+  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_f[1];\
+  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_f[2];\
+  fac_4 = ctx->table_v.pixels[ctx->scanline].factor_f[3];
 
 #define NO_UINT8
   
@@ -585,10 +585,10 @@ typedef struct {
 #define FUNC_NAME scale_float_x_4_y_bicubic_c
 #define TYPE float
 #define INIT float fac_1, fac_2, fac_3, fac_4;                  \
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor[0].fac_f;   \
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor[1].fac_f;   \
-  fac_3 = ctx->table_v.pixels[ctx->scanline].factor[2].fac_f;   \
-  fac_4 = ctx->table_v.pixels[ctx->scanline].factor[3].fac_f;
+  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_f[0];   \
+  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_f[1];   \
+  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_f[2];   \
+  fac_4 = ctx->table_v.pixels[ctx->scanline].factor_f[3];
 
 #define NO_UINT8
 
@@ -626,7 +626,8 @@ void gavl_init_scale_funcs_bicubic_c(gavl_scale_funcs_t * tab)
   //  fprintf(stderr, "gavl_init_scale_funcs_bicubic_c\n");
   tab->funcs_x.scale_rgb_15 =     scale_rgb_15_x_bicubic_c;
   tab->funcs_x.scale_rgb_16 =     scale_rgb_16_x_bicubic_c;
-  tab->funcs_x.scale_uint8_x_1 =  scale_uint8_x_1_x_bicubic_c;
+  tab->funcs_x.scale_uint8_x_1_advance =  scale_uint8_x_1_x_bicubic_c;
+  tab->funcs_x.scale_uint8_x_1_noadvance =  scale_uint8_x_1_x_bicubic_c;
   tab->funcs_x.scale_uint8_x_3 =  scale_uint8_x_3_x_bicubic_c;
   tab->funcs_x.scale_uint8_x_4 =  scale_uint8_x_4_x_bicubic_c;
   tab->funcs_x.scale_uint16_x_1 = scale_uint16_x_1_x_bicubic_c;
@@ -636,12 +637,14 @@ void gavl_init_scale_funcs_bicubic_c(gavl_scale_funcs_t * tab)
   tab->funcs_x.scale_float_x_4 =  scale_float_x_4_x_bicubic_c;
   tab->funcs_x.bits_rgb_15 = 8;
   tab->funcs_x.bits_rgb_16 = 8;
-  tab->funcs_x.bits_uint8  = 8;
+  tab->funcs_x.bits_uint8_advance  = 8;
+  tab->funcs_x.bits_uint8_noadvance  = 8;
   tab->funcs_x.bits_uint16 = 16;
 
   tab->funcs_y.scale_rgb_15 =     scale_rgb_15_y_bicubic_c;
   tab->funcs_y.scale_rgb_16 =     scale_rgb_16_y_bicubic_c;
-  tab->funcs_y.scale_uint8_x_1 =  scale_uint8_x_1_y_bicubic_c;
+  tab->funcs_y.scale_uint8_x_1_advance =  scale_uint8_x_1_y_bicubic_c;
+  tab->funcs_y.scale_uint8_x_1_noadvance =  scale_uint8_x_1_y_bicubic_c;
   tab->funcs_y.scale_uint8_x_3 =  scale_uint8_x_3_y_bicubic_c;
   tab->funcs_y.scale_uint8_x_4 =  scale_uint8_x_4_y_bicubic_c;
   tab->funcs_y.scale_uint16_x_1 = scale_uint16_x_1_y_bicubic_c;
@@ -651,7 +654,8 @@ void gavl_init_scale_funcs_bicubic_c(gavl_scale_funcs_t * tab)
   tab->funcs_y.scale_float_x_4 =  scale_float_x_4_y_bicubic_c;
   tab->funcs_y.bits_rgb_15 = 8;
   tab->funcs_y.bits_rgb_16 = 8;
-  tab->funcs_y.bits_uint8  = 8;
+  tab->funcs_y.bits_uint8_advance  = 8;
+  tab->funcs_y.bits_uint8_noadvance  = 8;
   tab->funcs_y.bits_uint16 = 16;
   
   }

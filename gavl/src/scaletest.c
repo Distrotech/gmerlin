@@ -6,6 +6,10 @@
 
 #include <accel.h>
 
+#define CSP GAVL_YUV_444_P
+#define CSP GAVL_RGB_32
+#define LOOP
+
 #define IN_X 0
 #define IN_Y 0
 
@@ -13,7 +17,8 @@
 #define OUT_Y 10
 
 
-static void write_png(char * filename, gavl_video_format_t * format, gavl_video_frame_t * frame)
+static void write_png(char * filename, gavl_video_format_t * format,
+                      gavl_video_frame_t * frame)
   {
   int i;
   unsigned char ** rows;
@@ -30,7 +35,8 @@ static void write_png(char * filename, gavl_video_format_t * format, gavl_video_
   gavl_video_frame_t * frame_1 = (gavl_video_frame_t*)0;
 
   
-  if((format->pixelformat != GAVL_RGB_24) && (format->pixelformat != GAVL_RGBA_32))
+  if((format->pixelformat != GAVL_RGB_24) &&
+     (format->pixelformat != GAVL_RGBA_32))
     {
     cnv = gavl_video_converter_create();
     
@@ -252,7 +258,9 @@ int main(int argc, char ** argv)
   gavl_rectangle_i_t dst_rect;
   
   char filename_buffer[1024];
+#ifdef LOOP
   int i, imax;
+#endif
   gavl_video_scaler_t *scaler;
     
   gavl_video_format_t format, format_1;
@@ -265,32 +273,40 @@ int main(int argc, char ** argv)
   memset(&format, 0, sizeof(format));
   memset(&format_1, 0, sizeof(format_1));
   
+#ifdef LOOP
   imax = gavl_num_pixelformats();
+#endif
   scaler = gavl_video_scaler_create();
 
   opt = gavl_video_scaler_get_options(scaler);
 
   //  imax = 1;
-  
+
+#ifdef LOOP  
   for(i = 0; i < imax; i++)
     {
     csp = gavl_get_pixelformat(i);
-    
+#else
+    csp = CSP;
+#endif
     //    csp = GAVL_RGB_24;
     
     fprintf(stderr, "Pixelformat: %s\n", gavl_pixelformat_to_string(csp));
+
     
-    dst_rect.w = atoi(argv[2]);
-    dst_rect.h = atoi(argv[3]);
-    dst_rect.x = 0;
-    dst_rect.y = 0;
-    
-    src_rect.w = 640;
-    src_rect.h = 480;
+    frame = read_png(argv[1], &format, csp);
+
+    src_rect.w = format.image_width;
+    src_rect.h = format.image_height;
     src_rect.x = 0;
     src_rect.y = 0;
-        
-    frame = read_png(argv[1], &format, csp);
+    
+    dst_rect.w = src_rect.w;
+    dst_rect.h = (int)(3.7 * src_rect.h);
+    dst_rect.x = 0;
+    dst_rect.y = 0;
+
+    
 #if 0
     /* Write test frame */
     sprintf(filename_buffer, "%s-test.png", gavl_pixelformat_to_string(csp));
@@ -305,17 +321,21 @@ int main(int argc, char ** argv)
     format_1.frame_height = dst_rect.h + dst_rect.y;
 
     gavl_video_options_set_defaults(opt);
-    gavl_video_options_set_scale_mode(opt, GAVL_SCALE_SINC_LANCZOS);
+    //    gavl_video_options_set_scale_mode(opt, GAVL_SCALE_SINC_LANCZOS);
     gavl_video_options_set_scale_order(opt, 5);
-    //    gavl_video_options_set_scale_mode(opt, GAVL_SCALE_CUBIC_BSPLINE);
-    gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_C);
+    gavl_video_options_set_scale_mode(opt, GAVL_SCALE_BILINEAR);
+    //    gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_C);
     gavl_video_options_set_rectangles(opt, &src_rect, &dst_rect);
     
     if(gavl_video_scaler_init(scaler,
                               &format, &format_1) < 0)  // int output_height
       {
       fprintf(stderr, "No scaling routine defined\n");
+#ifdef LOOP
       continue;
+#else
+      return -1;
+#endif
       }
     
     frame_1 = gavl_video_frame_create(&format_1);
@@ -329,7 +349,9 @@ int main(int argc, char ** argv)
     fprintf(stderr, "Wrote %s\n", filename_buffer);
     gavl_video_frame_destroy(frame);
     gavl_video_frame_destroy(frame_1);
+#ifdef LOOP
     }
+#endif
   gavl_video_scaler_destroy(scaler);
   return 0;
   }

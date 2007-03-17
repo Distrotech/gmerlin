@@ -23,12 +23,15 @@
 
 typedef struct gavl_video_scale_context_s gavl_video_scale_context_t;
 
-typedef void (*gavl_video_scale_scanline_func)(gavl_video_scale_context_t*);
+typedef void
+(*gavl_video_scale_scanline_func)(gavl_video_scale_context_t*);
 
-typedef float (*gavl_video_scale_get_weight)(gavl_video_options_t * opt, double t);
+typedef float
+(*gavl_video_scale_get_weight)(gavl_video_options_t * opt, double t);
 
-gavl_video_scale_get_weight gavl_video_scale_get_weight_func(gavl_video_options_t * opt,
-                                                             int * num_points);
+gavl_video_scale_get_weight
+gavl_video_scale_get_weight_func(gavl_video_options_t * opt,
+                                 int * num_points);
 
 /* Scale functions */
 
@@ -36,7 +39,8 @@ typedef struct
   {
   gavl_video_scale_scanline_func scale_rgb_15;
   gavl_video_scale_scanline_func scale_rgb_16;
-  gavl_video_scale_scanline_func scale_uint8_x_1;
+  gavl_video_scale_scanline_func scale_uint8_x_1_noadvance;
+  gavl_video_scale_scanline_func scale_uint8_x_1_advance;
   gavl_video_scale_scanline_func scale_uint8_x_3;
   gavl_video_scale_scanline_func scale_uint8_x_4;
   gavl_video_scale_scanline_func scale_uint16_x_1;
@@ -48,7 +52,8 @@ typedef struct
   /* Bits needed for the integer scaling coefficient */
   int bits_rgb_15;
   int bits_rgb_16;
-  int bits_uint8;
+  int bits_uint8_noadvance;
+  int bits_uint8_advance;
   int bits_uint16;
   } gavl_scale_func_tab_t;
 
@@ -71,28 +76,36 @@ void gavl_init_scale_funcs_bicubic_noclip_c(gavl_scale_funcs_t * tab);
 
 
 void gavl_init_scale_funcs_generic_c(gavl_scale_funcs_t * tab);
-#ifdef ARCH_X86
 
-void gavl_init_scale_funcs_mmxext(gavl_scale_funcs_t * tab,
-                                  gavl_scale_mode_t scale_mode,
-                                  int scale_x, int scale_y, int min_scanline_width);
-void gavl_init_scale_funcs_mmx(gavl_scale_funcs_t * tab,
-                               gavl_scale_mode_t scale_mode,
-                               int scale_x, int scale_y, int min_scanline_width);
+
+#ifdef HAVE_MMX
+void gavl_init_scale_funcs_bicubic_y_mmx(gavl_scale_funcs_t * tab,
+                                         int src_advance,
+                                         int dst_advance);
+
+void gavl_init_scale_funcs_quadratic_y_mmx(gavl_scale_funcs_t * tab,
+                                           int src_advance,
+                                           int dst_advance);
+
+void gavl_init_scale_funcs_generic_y_mmx(gavl_scale_funcs_t * tab,
+                                         int src_advance,
+                                         int dst_advance);
+
+void gavl_init_scale_funcs_bilinear_y_mmx(gavl_scale_funcs_t * tab,
+                                          int src_advance, int dst_advance);
+
 #endif
 
-void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt);
-
-typedef struct
-  {
-  float fac_f; /* Scaling coefficient with high precision */
-  int fac_i;   /* Scaling coefficient with lower precision */
-  } gavl_video_scale_factor_t;
+void gavl_init_scale_funcs(gavl_scale_funcs_t * tab,
+                           gavl_video_options_t * opt,
+                           int src_advance,
+                           int dst_advance);
 
 typedef struct
   {
   int index; /* Index of the first row/column */
-  gavl_video_scale_factor_t * factor;
+  int32_t * factor_i;
+  float * factor_f;
   } gavl_video_scale_pixel_t;
 
 typedef struct
@@ -100,7 +113,8 @@ typedef struct
   int pixels_alloc;
   int factors_alloc;
   int num_pixels; /* Number of pixels (rows/columns) in the output area */
-  gavl_video_scale_factor_t * factors;
+  float * factors_f;
+  int32_t * factors_i;
   gavl_video_scale_pixel_t  * pixels;
   int factors_per_pixel;
   } gavl_video_scale_table_t;
@@ -162,11 +176,7 @@ struct gavl_video_scale_context_s
   /* Rectangles */
   gavl_rectangle_f_t src_rect;
   gavl_rectangle_i_t dst_rect;
-
-  /* Number of filter taps */
-  int num_taps_h;
-  int num_taps_v;
-    
+  
   /* Indices of source and destination planes inside the frame. Can be 0 for chroma channels of
      packed YUV formats */
   

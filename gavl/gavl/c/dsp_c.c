@@ -152,6 +152,9 @@ static void average_rgb15_c(uint8_t * src_1, uint8_t * src_2,
     *d |= 
       (((*s1 & RGB15_UPPER_MASK) + 
         (*s2 & RGB15_UPPER_MASK)) >> 1) & RGB15_UPPER_MASK;
+    s1++;
+    s2++;
+    d++;
     }
   
   }
@@ -237,6 +240,123 @@ static void average_f_c(uint8_t * src_1, uint8_t * src_2,
   }
 
 
+/* */
+
+/* Interpolating */
+
+static void interpolate_rgb15_c(uint8_t * src_1, uint8_t * src_2, 
+                            uint8_t * dst, int num, int fac)
+  {
+  int i;
+  uint16_t * s1, *s2, *d;
+  int anti_fac = 0x100 - fac;
+  s1 = (uint16_t*)src_1;
+  s2 = (uint16_t*)src_2;
+  d = (uint16_t*)dst;
+
+  for(i = 0; i < num; i++)
+    {
+    *d = 
+      (((*s1 & RGB15_LOWER_MASK)*fac + 
+        (*s2 & RGB15_LOWER_MASK)*anti_fac) >> 8) & RGB15_LOWER_MASK;
+    *d |= 
+      (((*s1 & RGB15_MIDDLE_MASK)*fac + 
+        (*s2 & RGB15_MIDDLE_MASK)*anti_fac) >> 8) & RGB15_MIDDLE_MASK;
+    *d |= 
+      (((*s1 & RGB15_UPPER_MASK)*fac + 
+        (*s2 & RGB15_UPPER_MASK)*anti_fac) >> 8) & RGB15_UPPER_MASK;
+    s1++;
+    s2++;
+    d++;
+    }
+  
+  }
+
+static void interpolate_rgb16_c(uint8_t * src_1, uint8_t * src_2, 
+                        uint8_t * dst, int num, int fac)
+  {
+  int i;
+  uint16_t * s1, *s2, *d;
+  int anti_fac = 0x100 - fac;
+
+  s1 = (uint16_t*)src_1;
+  s2 = (uint16_t*)src_2;
+  d = (uint16_t*)dst;
+
+  for(i = 0; i < num; i++)
+    {
+    *d = 
+      (((*s1 & RGB16_LOWER_MASK)*fac + 
+        (*s2 & RGB16_LOWER_MASK)*anti_fac) >> 8) & RGB16_LOWER_MASK;
+    *d |= 
+      (((*s1 & RGB16_MIDDLE_MASK)*fac + 
+        (*s2 & RGB16_MIDDLE_MASK)*anti_fac) >> 8) & RGB16_MIDDLE_MASK;
+    *d |= 
+      (((*s1 & RGB16_UPPER_MASK)*fac + 
+        (*s2 & RGB16_UPPER_MASK)*anti_fac) >> 8) & RGB16_UPPER_MASK;
+    s1++;
+    s2++;
+    d++;
+    }
+  
+  }
+
+static void interpolate_8_c(uint8_t * src_1, uint8_t * src_2, 
+                    uint8_t * dst, int num, int fac)
+  {
+  int i;
+  int anti_fac = 0x100 - fac;
+  for(i = 0; i < num; i++)
+    {
+    *dst = (*src_1 * fac + *src_2 * anti_fac) >> 8;
+    src_1++;
+    src_2++;
+    dst++;
+    }
+  }
+
+static void interpolate_16_c(uint8_t * src_1, uint8_t * src_2, 
+                     uint8_t * dst, int num, int fac)
+  {
+  int i;
+  uint16_t * s1, *s2, *d;
+  uint16_t anti_fac = 0xffff - fac;
+
+  s1 = (uint16_t*)src_1;
+  s2 = (uint16_t*)src_2;
+  d = (uint16_t*)dst;
+
+  for(i = 0; i < num; i++)
+    {
+    *d = (*s1 * fac + *s2 * anti_fac) >> 16;
+    s1++;
+    s2++;
+    d++;
+    }
+
+  }
+
+static void interpolate_f_c(uint8_t * src_1, uint8_t * src_2, 
+                        uint8_t * dst, int num, float fac)
+  {
+  int i;
+  float * s1, *s2, *d;
+  float anti_fac = 1.0 - fac;
+  s1 = (float*)src_1;
+  s2 = (float*)src_2;
+  d = (float*)dst;
+
+  for(i = 0; i < num; i++)
+    {
+    *d = *s1 * fac + *s2 * anti_fac;
+    s1++;
+    s2++;
+    d++;
+    }
+  }
+
+
+
 void gavl_dsp_init_c(gavl_dsp_funcs_t * funcs, 
                      int quality)
   {
@@ -252,4 +372,9 @@ void gavl_dsp_init_c(gavl_dsp_funcs_t * funcs,
   funcs->average_16    = average_16_c;
   funcs->average_f     = average_f_c;
 
+  funcs->interpolate_rgb15 = interpolate_rgb15_c;
+  funcs->interpolate_rgb16 = interpolate_rgb16_c;
+  funcs->interpolate_8     = interpolate_8_c;
+  funcs->interpolate_16    = interpolate_16_c;
+  funcs->interpolate_f     = interpolate_f_c;
   }

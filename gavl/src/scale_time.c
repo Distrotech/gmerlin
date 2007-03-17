@@ -9,6 +9,8 @@
 
 #define NUM_CONVERSIONS 20
 
+#define SCALE_MODE GAVL_SCALE_BILINEAR
+
 static struct timeval time_before;
 static struct timeval time_after;
 
@@ -105,8 +107,10 @@ int main(int argc, char ** argv)
     fprintf(stderr, "C-Version:\n");
     
     gavl_video_options_set_defaults(opt);
-    gavl_video_options_set_scale_mode(opt, GAVL_SCALE_BILINEAR);
-    gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_C);
+    gavl_video_options_set_scale_mode(opt, SCALE_MODE);
+    gavl_video_options_set_scale_order(opt, 5);
+    gavl_video_options_set_quality(opt, 3);
+    //    gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_C);
     gavl_video_options_set_rectangles(opt, &src_rect, &dst_rect);
 
     if(gavl_video_scaler_init(scaler,
@@ -123,11 +127,12 @@ int main(int argc, char ** argv)
         }
       timer_stop();
       }
-#if 0
+#if 1
     fprintf(stderr, "MMX-Version:\n");
     gavl_video_options_set_defaults(opt);
-    gavl_video_options_set_scale_mode(opt, GAVL_SCALE_BILINEAR);
-    gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_MMX);
+    gavl_video_options_set_scale_mode(opt, SCALE_MODE);
+    gavl_video_options_set_quality(opt, 2);
+    gavl_video_options_set_scale_order(opt, 5);
     gavl_video_options_set_rectangles(opt, &src_rect, &dst_rect);
         
     if(gavl_video_scaler_init(scaler,
@@ -145,26 +150,6 @@ int main(int argc, char ** argv)
       timer_stop();
       }
 
-    fprintf(stderr, "MMXEXT-Version:\n");
-    gavl_video_options_set_defaults(opt);
-    gavl_video_options_set_scale_mode(opt, GAVL_SCALE_BILINEAR);
-    gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_MMXEXT);
-    gavl_video_options_set_rectangles(opt, &src_rect, &dst_rect);
-        
-    if(gavl_video_scaler_init(scaler,
-                              &format, &format_1) < 0)  // int output_height
-      {
-      fprintf(stderr, "No scaling routine defined\n");
-      }
-    else
-      {
-      timer_init();
-      for(j = 0; j < NUM_CONVERSIONS; j++)
-        {
-        gavl_video_scaler_scale(scaler, frame, frame_1);
-        }
-      timer_stop();
-      }
 #endif
     gavl_video_frame_destroy(frame);
     gavl_video_frame_destroy(frame_1);

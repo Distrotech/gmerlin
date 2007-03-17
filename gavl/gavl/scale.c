@@ -22,6 +22,8 @@
 #include <stdio.h>
 #include <math.h>
 
+#include <config.h>
+
 #include <gavl/gavl.h>
 #include <scale.h>
 #include <accel.h>
@@ -70,7 +72,8 @@ gavl_video_scaler_t * gavl_video_scaler_create()
   return ret;
   }
 
-void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt)
+void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt,
+                           int src_advance, int dst_advance)
   {
   /* Get scale functions */
   switch(opt->scale_mode)
@@ -82,20 +85,40 @@ void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt)
       break;
     case GAVL_SCALE_BILINEAR:
       gavl_init_scale_funcs_bilinear_c(tab);
+#ifdef HAVE_MMX
+      if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMX))
+        gavl_init_scale_funcs_bilinear_y_mmx(tab, src_advance, dst_advance);
+#endif
       break;
     case GAVL_SCALE_QUADRATIC:
       gavl_init_scale_funcs_quadratic_c(tab);
+#ifdef HAVE_MMX
+      if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMX))
+        gavl_init_scale_funcs_generic_y_mmx(tab, src_advance, dst_advance);
+#endif
       break;
     case GAVL_SCALE_CUBIC_BSPLINE:
       gavl_init_scale_funcs_bicubic_noclip_c(tab);
+#ifdef HAVE_MMX
+      if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMX))
+        gavl_init_scale_funcs_bicubic_y_mmx(tab, src_advance, dst_advance);
+#endif
       break;
     case GAVL_SCALE_CUBIC_MITCHELL:
     case GAVL_SCALE_CUBIC_CATMULL:
       gavl_init_scale_funcs_bicubic_c(tab);
+#ifdef HAVE_MMX
+      if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMX))
+        gavl_init_scale_funcs_bicubic_y_mmx(tab, src_advance, dst_advance);
       break;
+#endif
     case GAVL_SCALE_SINC_LANCZOS:
     case GAVL_SCALE_NONE:
       gavl_init_scale_funcs_generic_c(tab);
+#ifdef HAVE_MMX
+      if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMX))
+        gavl_init_scale_funcs_generic_y_mmx(tab, src_advance, dst_advance);
+#endif
       break;
     }
   }
