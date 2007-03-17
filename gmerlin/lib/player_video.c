@@ -78,32 +78,32 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
   /* Initialize video fifo */
 
   if(player->do_video)
-    player->video_stream.fifo = bg_fifo_create(NUM_VIDEO_FRAMES,
+    s->fifo = bg_fifo_create(NUM_VIDEO_FRAMES,
                                                bg_player_ov_create_frame,
                                                (void*)(player->ov_context));
   else if(player->do_still)
-    player->video_stream.fifo = bg_fifo_create(1,
+    s->fifo = bg_fifo_create(1,
                                                bg_player_ov_create_frame,
                                                (void*)(player->ov_context));
   /* Initialize video converter */
   if(!player->do_subtitle_only)
     {
-    pthread_mutex_lock(&(player->video_stream.config_mutex));
+    pthread_mutex_lock(&(s->config_mutex));
     
     if(bg_video_converter_init(s->cnv,
-                               &(player->video_stream.pipe_format),
-                               &(player->video_stream.output_format)))
+                               &(s->pipe_format),
+                               &(s->output_format)))
       {
       bg_video_converter_connect_input(s->cnv,
-                                       bg_player_input_read_video,
-                                       player->input_context,
-                                       player->current_video_stream);
+                                       s->in_func,
+                                       s->in_data,
+                                       s->in_stream);
       
       s->in_func   = bg_video_converter_read;
       s->in_data   = s->cnv;
       s->in_stream = 0;
       }
-    pthread_mutex_unlock(&(player->video_stream.config_mutex));
+    pthread_mutex_unlock(&(s->config_mutex));
     }
   
   if(player->do_subtitle_only)

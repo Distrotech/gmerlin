@@ -37,15 +37,16 @@ struct bg_audio_filter_chain_s
   
   char * filter_string;
   int need_rebuild;
+  int need_restart;
   };
 
 int bg_audio_filter_chain_need_rebuild(bg_audio_filter_chain_t * ch)
   {
-  return ch->need_rebuild;
+  return ch->need_rebuild || ch->need_restart;
   }
 
-
-static int audio_filter_create(audio_filter_t * f, bg_audio_filter_chain_t * ch,
+static int audio_filter_create(audio_filter_t * f,
+                               bg_audio_filter_chain_t * ch,
                                 const char * name)
   {
   const bg_plugin_info_t * info;
@@ -171,15 +172,16 @@ bg_audio_filter_chain_set_parameter(void * data, char * name,
   if(!name)
     return;
 
+
   if(!strcmp(name, "audio_filters"))
     {
     if(!ch->filter_string && !val->val_str)
-      return;
+      goto the_end;
     
     if(ch->filter_string && val->val_str &&
        !strcmp(ch->filter_string, val->val_str))
       {
-      return;
+      goto the_end;
       }
     /* Rebuild chain */
     ch->filter_string = bg_strdup(ch->filter_string, val->val_str);
@@ -189,7 +191,7 @@ bg_audio_filter_chain_set_parameter(void * data, char * name,
     {
     if(ch->need_rebuild)
       build_audio_chain(ch);
-
+    
     pos = strchr(name, '.');
     pos++;
     i = atoi(pos);
@@ -197,11 +199,17 @@ bg_audio_filter_chain_set_parameter(void * data, char * name,
 
     pos = strchr(pos, '.');
     if(!pos)
-      return;
+      goto the_end;
     pos++;
     if(f->plugin->common.set_parameter)
+      {
       f->plugin->common.set_parameter(f->handle->priv, pos, val);
+      if(f->plugin->need_restart && f->plugin->need_restart(f->handle->priv))
+        ch->need_restart = 1;
+      }
     }
+  the_end:
+  return;
   }
 
 int bg_audio_filter_chain_init(bg_audio_filter_chain_t * ch,
@@ -213,6 +221,8 @@ int bg_audio_filter_chain_init(bg_audio_filter_chain_t * ch,
   gavl_audio_format_t format_1;
   gavl_audio_format_t format_2;
   audio_filter_t * f;
+
+  ch->need_restart = 0;
   
   if(ch->need_rebuild)
     build_audio_chain(ch);
@@ -341,11 +351,12 @@ struct bg_video_filter_chain_s
   char * filter_string;
   
   int need_rebuild;
+  int need_restart;
   };
 
 int bg_video_filter_chain_need_rebuild(bg_video_filter_chain_t * ch)
   {
-  return ch->need_rebuild;
+  return ch->need_rebuild || ch->need_restart;
   }
 
 
@@ -442,14 +453,17 @@ static void create_video_parameters(bg_video_filter_chain_t * ch)
   }
 
 
-bg_parameter_info_t * bg_video_filter_chain_get_parameters(bg_video_filter_chain_t * ch)
+bg_parameter_info_t *
+bg_video_filter_chain_get_parameters(bg_video_filter_chain_t * ch)
   {
   if(!ch->parameters)
     create_video_parameters(ch);
   return ch->parameters;
   }
 
-void bg_video_filter_chain_set_parameter(void * data, char * name, bg_parameter_value_t * val)
+void
+bg_video_filter_chain_set_parameter(void * data, char * name,
+                                    bg_parameter_value_t * val)
   {
   int i;
   char * pos;
@@ -459,18 +473,17 @@ void bg_video_filter_chain_set_parameter(void * data, char * name, bg_parameter_
   ch = (bg_video_filter_chain_t *)data;
   
   if(!name)
-    {
-    
-    }
-  else if(!strcmp(name, "video_filters"))
+    return;
+  
+  if(!strcmp(name, "video_filters"))
     {
     if(!ch->filter_string && !val->val_str)
-      return;
+      goto the_end;
     
     if(ch->filter_string && val->val_str &&
        !strcmp(ch->filter_string, val->val_str))
       {
-      return;
+      goto the_end;
       }
     /* Rebuild chain */
     ch->filter_string = bg_strdup(ch->filter_string, val->val_str);
@@ -488,11 +501,17 @@ void bg_video_filter_chain_set_parameter(void * data, char * name, bg_parameter_
 
     pos = strchr(pos, '.');
     if(!pos)
-      return;
+      goto the_end;
     pos++;
     if(f->plugin->common.set_parameter)
+      {
       f->plugin->common.set_parameter(f->handle->priv, pos, val);
+      if(f->plugin->need_restart && f->plugin->need_restart(f->handle->priv))
+        ch->need_restart = 1;
+      }
     }
+  the_end:
+  return;
   }
 
 int bg_video_filter_chain_init(bg_video_filter_chain_t * ch,
@@ -504,7 +523,9 @@ int bg_video_filter_chain_init(bg_video_filter_chain_t * ch,
   gavl_video_format_t format_1;
   gavl_video_format_t format_2;
   video_filter_t * f;
-  
+
+  ch->need_restart = 0;
+
   if(ch->need_rebuild)
     build_video_chain(ch);
   

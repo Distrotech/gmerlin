@@ -453,6 +453,7 @@ bg_fv_plugin_t the_plugin =
     get_output_format: get_output_format_decimate,
 
     read_video: read_video_decimate,
+    reset: reset_decimate,
     
   };
 

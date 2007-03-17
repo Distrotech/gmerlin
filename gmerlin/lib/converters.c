@@ -26,7 +26,8 @@ struct bg_audio_converter_s
   int last_samples;
   };
 
-bg_audio_converter_t * bg_audio_converter_create(const gavl_audio_options_t * opt)
+bg_audio_converter_t *
+bg_audio_converter_create(const gavl_audio_options_t * opt)
   {
   bg_audio_converter_t * ret;
   ret = calloc(1, sizeof(*ret));
@@ -65,7 +66,8 @@ int bg_audio_converter_init(bg_audio_converter_t * cnv,
   }
 
 void bg_audio_converter_connect_input(bg_audio_converter_t * cnv,
-                                      bg_read_audio_func_t func, void * priv,
+                                      bg_read_audio_func_t func,
+                                      void * priv,
                                       int stream)
   {
   cnv->read_func = func;
@@ -73,7 +75,8 @@ void bg_audio_converter_connect_input(bg_audio_converter_t * cnv,
   cnv->read_stream = stream;
   }
 
-int bg_audio_converter_read(void * priv, gavl_audio_frame_t* frame, int stream,
+int bg_audio_converter_read(void * priv,
+                            gavl_audio_frame_t* frame, int stream,
                             int num_samples)
   {
   bg_audio_converter_t * cnv = (bg_audio_converter_t *)priv;
@@ -98,7 +101,8 @@ int bg_audio_converter_read(void * priv, gavl_audio_frame_t* frame, int stream,
   if(!cnv->frame)
     cnv->frame = gavl_audio_frame_create(&cnv->frame_format);
 
-  cnv->read_func(cnv->read_priv, cnv->frame, cnv->read_stream, cnv->frame_format.samples_per_frame);
+  cnv->read_func(cnv->read_priv, cnv->frame, cnv->read_stream,
+                 cnv->frame_format.samples_per_frame);
   gavl_audio_convert(cnv->cnv, cnv->frame, frame);
   return frame->valid_samples;
   }

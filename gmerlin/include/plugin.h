@@ -1633,7 +1633,8 @@ typedef struct bg_audio_filter_plugin_s
   void (*init)(void * priv);
   void (*reset)(void * priv);
   void (*get_output_format)(void * priv, gavl_audio_format_t * format);
-
+  int (*need_restart)(void * priv);
+  
   bg_read_audio_func_t read_audio;
     
   } bg_fa_plugin_t;
@@ -1652,6 +1653,7 @@ typedef struct bg_video_filter_plugin_s
   void (*init)(void * priv);
   void (*reset)(void * priv);
   void (*get_output_format)(void * priv, gavl_video_format_t * format);
+  int (*need_restart)(void * priv);
 
   bg_read_video_func_t read_video;
     

@@ -178,7 +178,7 @@ bg_fv_plugin_t the_plugin =
       BG_LOCALE,
       name:      "fv_flip",
       long_name: TRS("Flip image"),
-      description: TRS("Flip video images horizovtally and/or vertically"),
+      description: TRS("Flip video images horizontally and/or vertically"),
       type:     BG_PLUGIN_FILTER_VIDEO,
       flags:    BG_PLUGIN_FILTER_1,
       create:   create_flip,
