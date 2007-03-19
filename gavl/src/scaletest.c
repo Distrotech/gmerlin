@@ -6,7 +6,7 @@
 
 #include <accel.h>
 
-#define CSP GAVL_YUV_444_P
+#define CSP GAVL_UYVY
 // #define CSP GAVL_RGB_32
 // #define LOOP
 
@@ -301,8 +301,8 @@ int main(int argc, char ** argv)
     src_rect.x = 0;
     src_rect.y = 0;
     
-    dst_rect.w = src_rect.w * 2;
-    dst_rect.h = src_rect.h;
+    dst_rect.w = src_rect.w*2;
+    dst_rect.h = src_rect.h*2;
     dst_rect.x = 0;
     dst_rect.y = 0;
 

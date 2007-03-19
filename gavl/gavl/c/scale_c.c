@@ -668,6 +668,7 @@ void gavl_init_scale_funcs_c(gavl_scale_funcs_t * tab,
                              gavl_scale_mode_t scale_mode,
                              int scale_x, int scale_y)
   {
+#if 0
   if(scale_x && scale_y)
     {
     tab->scale_rgb_15 =     scale_xy_rgb_15_bilinear_c;
@@ -681,7 +682,9 @@ void gavl_init_scale_funcs_c(gavl_scale_funcs_t * tab,
     tab->scale_float_x_3 =  scale_xy_float_x_3_bilinear_c;
     tab->scale_float_x_4 =  scale_xy_float_x_4_bilinear_c;
     }
-  else if(scale_x)
+  else
+#endif
+    if(scale_x)
     {
     tab->scale_rgb_15 =     scale_x_rgb_15_bilinear_c;
     tab->scale_rgb_16 =     scale_x_rgb_16_bilinear_c;

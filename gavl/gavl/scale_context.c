@@ -628,10 +628,11 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
     {
     get_offsets(src_format->pixelformat,
                 plane, &ctx->offset1.src_advance, &ctx->offset1.src_offset);
-    get_offsets(src_format->pixelformat,
-                plane, &ctx->offset1.dst_advance, &ctx->offset1.dst_offset);
+    get_offsets(dst_format->pixelformat,
+                plane, &ctx->offset2.dst_advance, &ctx->offset2.dst_offset);
 
     ctx->offset1.dst_offset = 0;
+    ctx->offset1.dst_advance = ctx->offset1.src_advance;
 
     if((src_format->pixelformat == GAVL_YUY2) || 
        (src_format->pixelformat == GAVL_UYVY))
@@ -641,8 +642,7 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
     ctx->offset2.src_advance = ctx->offset1.dst_advance;
     ctx->offset2.src_offset  = ctx->offset1.dst_offset;
     }
-  
-  if(!ctx->num_directions)
+  else if(!ctx->num_directions)
     {
     ctx->bytes_per_line = gavl_pixelformat_is_planar(src_format->pixelformat) ?
       ctx->dst_rect.w * gavl_pixelformat_bytes_per_component(src_format->pixelformat) :
@@ -670,23 +670,24 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
     ctx->num_directions = 1;
     return 0;
     }
-  else if(scale_x && scale_y)
+
+  if(scale_x && scale_y)
     {
     // fprintf(stderr, "Initializing x table %f\n", ctx->src_rect.x + offset_x);
     gavl_video_options_copy(&tmp_opt, opt);
     gavl_video_scale_table_init(&(ctx->table_h), &tmp_opt,
                                 offset_x,
                                 ctx->src_rect.w, ctx->dst_rect.w, src_width);
-    fprintf(stderr, "Initializing x table done\n");
+    //    fprintf(stderr, "Initializing x table done\n");
 
-    fprintf(stderr, "Initializing y table %f\n",
-            ctx->src_rect.y + offset_y);
+    //    fprintf(stderr, "Initializing y table %f\n",
+    //            ctx->src_rect.y + offset_y);
     gavl_video_options_copy(&tmp_opt_y, opt);
     gavl_video_scale_table_init(&(ctx->table_v), &tmp_opt_y,
                                 offset_y,
                                 ctx->src_rect.h, ctx->dst_rect.h, src_height);
     
-    fprintf(stderr, "Initializing y table done\n");
+    //    fprintf(stderr, "Initializing y table done\n");
     
     /* Check if we can scale in x and y-directions at once */
 
@@ -707,6 +708,11 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
       gavl_video_scale_table_init_int(&(ctx->table_h), bits_h);
       gavl_video_scale_table_init_int(&(ctx->table_v), bits_h);
       ctx->offset = &(ctx->offset1);
+      ctx->dst_size = ctx->dst_rect.w;
+      
+      /* Switch offsets back */
+      ctx->offset1.dst_advance = ctx->offset2.dst_advance;
+      ctx->offset1.dst_offset  = ctx->offset2.dst_offset;
       }
     else
       {
@@ -1073,7 +1079,7 @@ gavl_video_scale_context_init_convolve(gavl_video_scale_context_t* ctx,
                 plane, &ctx->offset1.src_advance, &ctx->offset1.src_offset);
 
     get_offsets(format->pixelformat,
-                plane, &ctx->offset1.dst_advance, &ctx->offset1.dst_offset);
+                plane, &ctx->offset2.dst_advance, &ctx->offset2.dst_offset);
     ctx->offset1.dst_offset = 0;
 
     if((format->pixelformat == GAVL_YUY2) || 
