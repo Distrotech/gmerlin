@@ -7,8 +7,8 @@
 #include <accel.h>
 
 #define CSP GAVL_YUV_444_P
-#define CSP GAVL_RGB_32
-#define LOOP
+// #define CSP GAVL_RGB_32
+// #define LOOP
 
 #define IN_X 0
 #define IN_Y 0
@@ -301,8 +301,8 @@ int main(int argc, char ** argv)
     src_rect.x = 0;
     src_rect.y = 0;
     
-    dst_rect.w = src_rect.w;
-    dst_rect.h = (int)(3.7 * src_rect.h);
+    dst_rect.w = src_rect.w * 2;
+    dst_rect.h = src_rect.h;
     dst_rect.x = 0;
     dst_rect.y = 0;
 
@@ -322,8 +322,11 @@ int main(int argc, char ** argv)
 
     gavl_video_options_set_defaults(opt);
     //    gavl_video_options_set_scale_mode(opt, GAVL_SCALE_SINC_LANCZOS);
-    gavl_video_options_set_scale_order(opt, 5);
     gavl_video_options_set_scale_mode(opt, GAVL_SCALE_BILINEAR);
+    
+    gavl_video_options_set_scale_order(opt, 5);
+    //    gavl_video_options_set_scale_mode(opt, GAVL_SCALE_CUBIC_BSPLINE);
+    // gavl_video_options_set_scale_mode(opt, GAVL_SCALE_CUBIC_MITCHELL);
     //    gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_C);
     gavl_video_options_set_rectangles(opt, &src_rect, &dst_rect);
     

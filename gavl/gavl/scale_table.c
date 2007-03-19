@@ -387,7 +387,6 @@ void gavl_video_scale_table_init_int(gavl_video_scale_table_t * tab,
   float fac_max_f;
   int sum, index;
   int min_index, max_index;
-  //  fprintf(stderr, "gavl_video_scale_table_init_int: %d\n", bits);
   
   //  fac_max_i = (1<<bits) - 1;
   fac_max_i = (1<<bits);

@@ -33,14 +33,19 @@ typedef struct {
 } color_15;
 
 #ifdef NOCLIP
-#define RECLIP(a,idx)
+#define RECLIP_H(a,idx)
+#define RECLIP_V(a,idx)
 #define RECLIP_FLOAT(a)
 
 #else
 
-#define RECLIP(a,idx) \
-  if(a < ctx->min_values[idx]) a = ctx->min_values[idx];    \
-  if(a > ctx->max_values[idx]) a = ctx->max_values[idx]
+#define RECLIP_H(a,idx) \
+  if(a < ctx->min_values_h[idx]) a = ctx->min_values_h[idx];    \
+  if(a > ctx->max_values_h[idx]) a = ctx->max_values_h[idx]
+
+#define RECLIP_V(a,idx) \
+  if(a < ctx->min_values_v[idx]) a = ctx->min_values_v[idx];    \
+  if(a > ctx->max_values_v[idx]) a = ctx->max_values_v[idx]
 
 #define RECLIP_FLOAT(a) if(a < 0.0) a = 0.0; if(a > 1.0) a = 1.0
 
@@ -56,19 +61,19 @@ typedef struct {
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2->r +   \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3->r +   \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4->r);   \
-  RECLIP(tmp,0);                                                        \
+  RECLIP_H(tmp,0);                                                        \
   dst->r = tmp >> 8;                                                    \
   tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1->g +   \
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2->g +   \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3->g +   \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4->g);   \
-  RECLIP(tmp,1);                                                        \
+  RECLIP_H(tmp,1);                                                        \
   dst->g = tmp >> 8;                                                    \
   tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1->b +   \
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2->b +   \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3->b +   \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4->b);   \
-  RECLIP(tmp,2);                                                        \
+  RECLIP_H(tmp,2);                                                        \
   dst->b = tmp >> 8;                                                    \
 
 #define NUM_TAPS 4
@@ -82,19 +87,19 @@ typedef struct {
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2->r +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3->r +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4->r);       \
-  RECLIP(tmp,0);                                                     \
+  RECLIP_H(tmp,0);                                                     \
   dst->r = tmp >> 8;                                               \
   tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1->g +      \
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2->g +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3->g +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4->g);       \
-  RECLIP(tmp,1);                                                     \
+  RECLIP_H(tmp,1);                                                     \
   dst->g = tmp >> 8;                                               \
   tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1->b + \
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2->b +    \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3->b +    \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4->b);\
-  RECLIP(tmp,2);                                                     \
+  RECLIP_H(tmp,2);                                                     \
   dst->b = tmp >> 8;                                               \
 
 #define NUM_TAPS 4
@@ -108,7 +113,7 @@ typedef struct {
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[0] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[0]);            \
-  RECLIP(tmp,ctx->plane);                                               \
+  RECLIP_H(tmp,ctx->plane);                                               \
   dst[0] = tmp >> 8;
 
 #define NUM_TAPS 4
@@ -122,19 +127,19 @@ typedef struct {
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[0] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[0]);       \
-  RECLIP(tmp,0);                                                         \
+  RECLIP_H(tmp,0);                                                         \
   dst[0] = tmp >> 8;                                                    \
   tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[1] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[1] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[1] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[1]);       \
-  RECLIP(tmp,1);                                                          \
+  RECLIP_H(tmp,1);                                                          \
   dst[1] = tmp >> 8;                                                    \
   tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[2] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[2] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[2] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[2]);       \
-  RECLIP(tmp,2);                                                          \
+  RECLIP_H(tmp,2);                                                          \
   dst[2] = tmp >> 8;
 
 #define NUM_TAPS 4
@@ -148,25 +153,25 @@ typedef struct {
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[0] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[0]);            \
-  RECLIP(tmp,0);                                                         \
+  RECLIP_H(tmp,0);                                                         \
   dst[0] = tmp >> 8;                                                    \
   tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[1] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[1] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[1] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[1]);            \
-  RECLIP(tmp,1);                                                          \
+  RECLIP_H(tmp,1);                                                          \
   dst[1] = tmp >> 8;                                                    \
   tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[2] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[2] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[2] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[2]);            \
-  RECLIP(tmp,2);                                                          \
+  RECLIP_H(tmp,2);                                                          \
   dst[2] = tmp >> 8;                                                    \
   tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[3] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[3] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[3] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[3]);            \
-  RECLIP(tmp,3);                                                          \
+  RECLIP_H(tmp,3);                                                          \
   dst[3] = tmp >> 8;
  
 #define NUM_TAPS 4
@@ -180,7 +185,7 @@ typedef struct {
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[0] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[0]); \
-  RECLIP(tmp,ctx->plane);                                             \
+  RECLIP_H(tmp,ctx->plane);                                             \
   dst[0] = tmp >> 16;
 
 #define NUM_TAPS 4
@@ -194,19 +199,19 @@ typedef struct {
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[0] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[0]); \
-  RECLIP(tmp,0);                                                       \
+  RECLIP_H(tmp,0);                                                       \
   dst[0] = tmp >> 16; \
   tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[1] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[1] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[1] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[1]); \
-  RECLIP(tmp,1);                                               \
+  RECLIP_H(tmp,1);                                               \
   dst[1] = tmp >> 16; \
   tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[2] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[2] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[2] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[2]); \
-  RECLIP(tmp,2);                                               \
+  RECLIP_H(tmp,2);                                               \
   dst[2] = tmp >> 16;
 
 #define NUM_TAPS 4
@@ -220,25 +225,25 @@ typedef struct {
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[0] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[0]); \
-  RECLIP(tmp,0);                                               \
+  RECLIP_H(tmp,0);                                               \
   dst[0] = tmp >> 16; \
   tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[1] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[1] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[1] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[1]); \
-  RECLIP(tmp,1);                                               \
+  RECLIP_H(tmp,1);                                               \
   dst[1] = tmp >> 16; \
   tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[2] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[2] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[2] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[2]); \
-  RECLIP(tmp,2);                                               \
+  RECLIP_H(tmp,2);                                               \
   dst[2] = tmp >> 16; \
   tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[3] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[3] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[3] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[3]); \
-  RECLIP(tmp,3);                                                       \
+  RECLIP_H(tmp,3);                                                       \
   dst[3] = tmp >> 16;
 
 #define NUM_TAPS 4
@@ -313,19 +318,19 @@ typedef struct {
          fac_2 * src_2->r +    \
          fac_3 * src_3->r +                             \
          fac_4 * src_4->r);                        \
-  RECLIP(tmp, 0);                                       \
+  RECLIP_V(tmp, 0);                                       \
   dst->r = tmp >> 8;                                    \
   tmp = (fac_1 * src_1->g +                             \
          fac_2 * src_2->g +                             \
          fac_3 * src_3->g +                             \
          fac_4 * src_4->g);                        \
-  RECLIP(tmp, 1);                                       \
+  RECLIP_V(tmp, 1);                                       \
   dst->g = tmp >> 8;                                    \
   tmp = (fac_1 * src_1->b +                             \
          fac_2 * src_2->b +                             \
          fac_3 * src_3->b +                             \
          fac_4 * src_4->b);                        \
-  RECLIP(tmp, 2);                                       \
+  RECLIP_V(tmp, 2);                                       \
   dst->b = tmp >> 8;
 
 #define NUM_TAPS 4
@@ -348,19 +353,19 @@ typedef struct {
          fac_2 * src_2->r +                             \
          fac_3 * src_3->r +                             \
          fac_4 * src_4->r);                             \
-  RECLIP(tmp, 0);                                       \
+  RECLIP_V(tmp, 0);                                       \
   dst->r = tmp >> 8;                                     \
   tmp = (fac_1 * src_1->g +                             \
          fac_2 * src_2->g +                             \
          fac_3 * src_3->g +                             \
          fac_4 * src_4->g);                        \
-  RECLIP(tmp, 1);                                       \
+  RECLIP_V(tmp, 1);                                       \
   dst->g = tmp >> 8;                                     \
   tmp = (fac_1 * src_1->b +                             \
          fac_2 * src_2->b +                             \
          fac_3 * src_3->b +                             \
          fac_4 * src_4->b);                        \
-  RECLIP(tmp, 2);                                       \
+  RECLIP_V(tmp, 2);                                       \
   dst->b = tmp >> 8;                                     \
 
 #define NUM_TAPS 4
@@ -379,7 +384,7 @@ typedef struct {
          fac_2 * src_2[0] +    \
          fac_3 * src_3[0] +                     \
          fac_4 * src_4[0]);                     \
-  RECLIP(tmp, ctx->plane);                      \
+  RECLIP_V(tmp, ctx->plane);                      \
   dst[0] = tmp >> 8;
 
 #define NUM_TAPS 4
@@ -398,19 +403,19 @@ typedef struct {
          fac_2 * src_2[0] +                     \
          fac_3 * src_3[0] +                      \
          fac_4 * src_4[0]);                 \
-  RECLIP(tmp, 0);                                \
+  RECLIP_V(tmp, 0);                                \
   dst[0] = tmp >> 8;                             \
   tmp = (fac_1 * src_1[1] +                             \
          fac_2 * src_2[1] +                             \
          fac_3 * src_3[1] +                             \
          fac_4 * src_4[1]);                        \
-  RECLIP(tmp, ctx->plane);                              \
+  RECLIP_V(tmp, ctx->plane);                              \
   dst[1] = tmp >> 8;                                    \
   tmp = (fac_1 * src_1[2] +                             \
          fac_2 * src_2[2] +                             \
          fac_3 * src_3[2] +                             \
          fac_4 * src_4[2]);                        \
-  RECLIP(tmp, ctx->plane);                              \
+  RECLIP_V(tmp, ctx->plane);                              \
   dst[2] = tmp >> 8;
 
 #define NUM_TAPS 4
@@ -429,25 +434,25 @@ typedef struct {
          fac_2 * src_2[0] +                     \
          fac_3 * src_3[0] +                      \
          fac_4 * src_4[0]);                 \
-  RECLIP(tmp, 0);                                \
+  RECLIP_V(tmp, 0);                                \
   dst[0] = tmp >> 8;                             \
   tmp = (fac_1 * src_1[1] +                             \
          fac_2 * src_2[1] +                             \
          fac_3 * src_3[1] +                             \
          fac_4 * src_4[1]);                        \
-  RECLIP(tmp, 1);                              \
+  RECLIP_V(tmp, 1);                              \
   dst[1] = tmp >> 8;                                    \
   tmp = (fac_1 * src_1[2] +                             \
          fac_2 * src_2[2] +                             \
          fac_3 * src_3[2] +                             \
          fac_4 * src_4[2]);                        \
-  RECLIP(tmp, 2);                                       \
+  RECLIP_V(tmp, 2);                                       \
   dst[2] = tmp >> 8;                                    \
   tmp = (fac_1 * src_1[3] +                             \
          fac_2 * src_2[3] +                             \
          fac_3 * src_3[3] +                             \
          fac_4 * src_4[3]);                        \
-  RECLIP(tmp, 3);                              \
+  RECLIP_V(tmp, 3);                              \
   dst[3] = tmp >> 8;
 
 
@@ -471,7 +476,7 @@ typedef struct {
          fac_2 * src_2[0] + \
          fac_3 * src_3[0] + \
          fac_4 * src_4[0]); \
-  RECLIP(tmp, ctx->plane);                    \
+  RECLIP_V(tmp, ctx->plane);                    \
   dst[0] = tmp >> 16;
 
 #define NUM_TAPS 4
@@ -494,19 +499,19 @@ typedef struct {
          fac_2 * src_2[0] +                    \
          fac_3 * src_3[0] +                    \
          fac_4 * src_4[0]);                    \
-  RECLIP(tmp, 0);                              \
+  RECLIP_V(tmp, 0);                              \
   dst[0] = tmp >> 16;                          \
   tmp = (fac_1 * src_1[1] +                    \
          fac_2 * src_2[1] +                    \
          fac_3 * src_3[1] +                    \
          fac_4 * src_4[1]);                    \
-  RECLIP(tmp, 1);                              \
+  RECLIP_V(tmp, 1);                              \
   dst[1] = tmp >> 16;                          \
   tmp = (fac_1 * src_1[2] +                    \
          fac_2 * src_2[2] +                    \
          fac_3 * src_3[2] +                    \
          fac_4 * src_4[2]);                    \
-  RECLIP(tmp, 2);                              \
+  RECLIP_V(tmp, 2);                              \
   dst[2] = tmp >> 16;
 
 #define NUM_TAPS 4
@@ -528,25 +533,25 @@ typedef struct {
          fac_2 * src_2[0] + \
          fac_3 * src_3[0] + \
          fac_4 * src_4[0]); \
-  RECLIP(tmp, 0);                              \
+  RECLIP_V(tmp, 0);                              \
   dst[0] = tmp >> 16; \
   tmp = (fac_1 * src_1[1] + \
          fac_2 * src_2[1] + \
          fac_3 * src_3[1] + \
          fac_4 * src_4[1]); \
-  RECLIP(tmp, 1);                              \
+  RECLIP_V(tmp, 1);                              \
   dst[1] = tmp >> 16; \
   tmp = (fac_1 * src_1[2] + \
          fac_2 * src_2[2] + \
          fac_3 * src_2[2] + \
          fac_4 * src_4[2]); \
-  RECLIP(tmp, 2);                              \
+  RECLIP_V(tmp, 2);                              \
   dst[2] = tmp >> 16; \
   tmp = (fac_1 * src_1[3] + \
          fac_2 * src_2[3] + \
          fac_3 * src_3[3] + \
          fac_4 * src_4[3]); \
-  RECLIP(tmp, 3);                              \
+  RECLIP_V(tmp, 3);                              \
   dst[3] = tmp >> 16;
 
 #define NUM_TAPS 4

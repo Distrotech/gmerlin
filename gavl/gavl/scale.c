@@ -87,21 +87,27 @@ void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt,
       gavl_init_scale_funcs_bilinear_c(tab);
 #ifdef HAVE_MMX
       if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMX))
+        {
         gavl_init_scale_funcs_bilinear_y_mmx(tab, src_advance, dst_advance);
+        gavl_init_scale_funcs_bilinear_x_mmx(tab, src_advance, dst_advance);
+        }
 #endif
       break;
     case GAVL_SCALE_QUADRATIC:
       gavl_init_scale_funcs_quadratic_c(tab);
 #ifdef HAVE_MMX
       if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMX))
-        gavl_init_scale_funcs_generic_y_mmx(tab, src_advance, dst_advance);
+        gavl_init_scale_funcs_quadratic_y_mmx(tab, src_advance, dst_advance);
 #endif
       break;
     case GAVL_SCALE_CUBIC_BSPLINE:
       gavl_init_scale_funcs_bicubic_noclip_c(tab);
 #ifdef HAVE_MMX
       if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMX))
+        {
         gavl_init_scale_funcs_bicubic_y_mmx(tab, src_advance, dst_advance);
+        gavl_init_scale_funcs_bicubic_noclip_x_mmx(tab, src_advance, dst_advance);
+        }
 #endif
       break;
     case GAVL_SCALE_CUBIC_MITCHELL:
@@ -109,7 +115,10 @@ void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt,
       gavl_init_scale_funcs_bicubic_c(tab);
 #ifdef HAVE_MMX
       if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMX))
+        {
         gavl_init_scale_funcs_bicubic_y_mmx(tab, src_advance, dst_advance);
+        gavl_init_scale_funcs_bicubic_x_mmx(tab, src_advance, dst_advance);
+        }
       break;
 #endif
     case GAVL_SCALE_SINC_LANCZOS:
@@ -117,7 +126,10 @@ void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt,
       gavl_init_scale_funcs_generic_c(tab);
 #ifdef HAVE_MMX
       if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMX))
+        {
         gavl_init_scale_funcs_generic_y_mmx(tab, src_advance, dst_advance);
+        gavl_init_scale_funcs_generic_x_mmx(tab, src_advance, dst_advance);
+        }
 #endif
       break;
     }

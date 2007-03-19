@@ -94,6 +94,22 @@ void gavl_init_scale_funcs_generic_y_mmx(gavl_scale_funcs_t * tab,
 void gavl_init_scale_funcs_bilinear_y_mmx(gavl_scale_funcs_t * tab,
                                           int src_advance, int dst_advance);
 
+void gavl_init_scale_funcs_bicubic_x_mmx(gavl_scale_funcs_t * tab,
+                                         int src_advance,
+                                         int dst_advance);
+
+void gavl_init_scale_funcs_bicubic_noclip_x_mmx(gavl_scale_funcs_t * tab,
+                                                int src_advance,
+                                                int dst_advance);
+
+void gavl_init_scale_funcs_generic_x_mmx(gavl_scale_funcs_t * tab,
+                                         int src_advance,
+                                         int dst_advance);
+
+void gavl_init_scale_funcs_bilinear_x_mmx(gavl_scale_funcs_t * tab,
+                                          int src_advance, int dst_advance);
+
+
 #endif
 
 void gavl_init_scale_funcs(gavl_scale_funcs_t * tab,
@@ -202,8 +218,11 @@ struct gavl_video_scale_context_s
   /* Minimum and maximum values for clipping.
      Values can be different for different components */
   
-  uint32_t min_values[4];
-  uint32_t max_values[4];
+  uint32_t min_values_h[4];
+  uint32_t max_values_h[4];
+
+  uint32_t min_values_v[4];
+  uint32_t max_values_v[4];
 
   /* These are used by the generic scaler */
 

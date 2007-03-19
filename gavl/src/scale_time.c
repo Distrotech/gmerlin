@@ -9,6 +9,7 @@
 
 #define NUM_CONVERSIONS 20
 
+//#define SCALE_MODE GAVL_SCALE_SINC_LANCZOS
 #define SCALE_MODE GAVL_SCALE_BILINEAR
 
 static struct timeval time_before;

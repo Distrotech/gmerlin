@@ -32,9 +32,13 @@ typedef struct {
 	uint16_t b:5, g:5, r:5;
 } color_15;
 
-#define RECLIP(a,idx) \
-  if(a < ctx->min_values[idx]) a = ctx->min_values[idx];    \
-  if(a > ctx->max_values[idx]) a = ctx->max_values[idx]
+#define RECLIP_H(a,idx) \
+  if(a < ctx->min_values_h[idx]) a = ctx->min_values_h[idx];    \
+  if(a > ctx->max_values_h[idx]) a = ctx->max_values_h[idx]
+
+#define RECLIP_V(a,idx) \
+  if(a < ctx->min_values_v[idx]) a = ctx->min_values_v[idx];    \
+  if(a > ctx->max_values_v[idx]) a = ctx->max_values_v[idx]
 
 #define RECLIP_FLOAT(a) if(a < 0.0) a = 0.0; if(a > 1.0) a = 1.0
 
@@ -51,9 +55,9 @@ typedef struct {
   ctx->tmp[2] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src->b;
 
 #define SCALE_FINISH                                                    \
-  RECLIP(ctx->tmp[0],0);                                                     \
-  RECLIP(ctx->tmp[1],1);                                                     \
-  RECLIP(ctx->tmp[2],2);                                                     \
+  RECLIP_H(ctx->tmp[0],0);                                                     \
+  RECLIP_H(ctx->tmp[1],1);                                                     \
+  RECLIP_H(ctx->tmp[2],2);                                                     \
   dst->r = ctx->tmp[0] >> 8;                                                 \
   dst->g = ctx->tmp[1] >> 8;                                                 \
   dst->b = ctx->tmp[2] >> 8;
@@ -71,9 +75,9 @@ typedef struct {
   ctx->tmp[2] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src->b;
 
 #define SCALE_FINISH                                                    \
-  RECLIP(ctx->tmp[0],0);                                                     \
-  RECLIP(ctx->tmp[1],1);                                                     \
-  RECLIP(ctx->tmp[2],2);                                                     \
+  RECLIP_H(ctx->tmp[0],0);                                                     \
+  RECLIP_H(ctx->tmp[1],1);                                                     \
+  RECLIP_H(ctx->tmp[2],2);                                                     \
   dst->r = ctx->tmp[0] >> 8;                                                 \
   dst->g = ctx->tmp[1] >> 8;                                                 \
   dst->b = ctx->tmp[2] >> 8;
@@ -88,7 +92,7 @@ typedef struct {
 #define SCALE_ACCUM ctx->tmp[0] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[0];
 
 #define SCALE_FINISH   \
-  RECLIP(ctx->tmp[0],ctx->plane);               \
+  RECLIP_H(ctx->tmp[0],ctx->plane);               \
   dst[0] = ctx->tmp[0] >> 8;
 
 #include "scale_generic_x.h"
@@ -104,11 +108,11 @@ typedef struct {
   ctx->tmp[2] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[2];
 
 #define SCALE_FINISH   \
-  RECLIP(ctx->tmp[0],0);                        \
+  RECLIP_H(ctx->tmp[0],0);                        \
   dst[0] = ctx->tmp[0] >> 8;                    \
-  RECLIP(ctx->tmp[1],1);                        \
+  RECLIP_H(ctx->tmp[1],1);                        \
   dst[1] = ctx->tmp[1] >> 8;                    \
-  RECLIP(ctx->tmp[2],2);                        \
+  RECLIP_H(ctx->tmp[2],2);                        \
   dst[2] = ctx->tmp[2] >> 8;
 
 
@@ -127,13 +131,13 @@ typedef struct {
 
 
 #define SCALE_FINISH   \
-  RECLIP(ctx->tmp[0],0);                        \
+  RECLIP_H(ctx->tmp[0],0);                        \
   dst[0] = ctx->tmp[0] >> 8;                    \
-  RECLIP(ctx->tmp[1],1);                        \
+  RECLIP_H(ctx->tmp[1],1);                        \
   dst[1] = ctx->tmp[1] >> 8;                    \
-  RECLIP(ctx->tmp[2],2);                        \
+  RECLIP_H(ctx->tmp[2],2);                        \
   dst[2] = ctx->tmp[2] >> 8;                    \
-  RECLIP(ctx->tmp[3],3);                        \
+  RECLIP_H(ctx->tmp[3],3);                        \
   dst[3] = ctx->tmp[3] >> 8;
 
 #include "scale_generic_x.h"
@@ -147,7 +151,7 @@ typedef struct {
   ctx->tmp[0] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[0];
 
 #define SCALE_FINISH                            \
-  RECLIP(ctx->tmp[0],ctx->plane);                    \
+  RECLIP_H(ctx->tmp[0],ctx->plane);                    \
   dst[0] = ctx->tmp[0] >> 16;
 
 #include "scale_generic_x.h"
@@ -163,11 +167,11 @@ typedef struct {
   ctx->tmp[2] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[2];
 
 #define SCALE_FINISH                            \
-  RECLIP(ctx->tmp[0],0);                             \
+  RECLIP_H(ctx->tmp[0],0);                             \
   dst[0] = ctx->tmp[0] >> 16;                        \
-  RECLIP(ctx->tmp[1],1);                             \
+  RECLIP_H(ctx->tmp[1],1);                             \
   dst[1] = ctx->tmp[1] >> 16;                        \
-  RECLIP(ctx->tmp[2],2);                             \
+  RECLIP_H(ctx->tmp[2],2);                             \
   dst[2] = ctx->tmp[2] >> 16;
 
 #include "scale_generic_x.h"
@@ -189,13 +193,13 @@ ctx->tmp[3] = 0;
   ctx->tmp[3] += (int64_t)ctx->table_h.pixels[i].factor_i[j] * src[3];
 
 #define SCALE_FINISH                            \
-  RECLIP(ctx->tmp[0],0);                             \
+  RECLIP_H(ctx->tmp[0],0);                             \
   dst[0] = ctx->tmp[0] >> 16;                        \
-  RECLIP(ctx->tmp[1],1);                             \
+  RECLIP_H(ctx->tmp[1],1);                             \
   dst[1] = ctx->tmp[1] >> 16;                        \
-  RECLIP(ctx->tmp[2],2);                             \
+  RECLIP_H(ctx->tmp[2],2);                             \
   dst[2] = ctx->tmp[2] >> 16;                        \
-  RECLIP(ctx->tmp[3],3);                             \
+  RECLIP_H(ctx->tmp[3],3);                             \
   dst[3] = ctx->tmp[3] >> 16;
 
 #include "scale_generic_x.h"
@@ -249,11 +253,11 @@ ctx->tmp[3] = 0;
   ctx->tmp[2] += ctx->table_v.pixels[ctx->scanline].factor_i[j] * src->b;
 
 #define SCALE_FINISH                            \
-  RECLIP(ctx->tmp[0], 0);                                       \
+  RECLIP_V(ctx->tmp[0], 0);                                       \
   dst->r = ctx->tmp[0] >> 8;                                    \
-  RECLIP(ctx->tmp[1], 1);                                       \
+  RECLIP_V(ctx->tmp[1], 1);                                       \
   dst->g = ctx->tmp[1] >> 8;                                    \
-  RECLIP(ctx->tmp[2], 2);                                       \
+  RECLIP_V(ctx->tmp[2], 2);                                       \
   dst->b = ctx->tmp[2] >> 8;
 
 #include "scale_generic_y.h"
@@ -269,11 +273,11 @@ ctx->tmp[3] = 0;
   ctx->tmp[2] += ctx->table_v.pixels[ctx->scanline].factor_i[j] * src->b;
 
 #define SCALE_FINISH                            \
-  RECLIP(ctx->tmp[0], 0);                                       \
+  RECLIP_V(ctx->tmp[0], 0);                                       \
   dst->r = ctx->tmp[0] >> 8;                                    \
-  RECLIP(ctx->tmp[1], 1);                                       \
+  RECLIP_V(ctx->tmp[1], 1);                                       \
   dst->g = ctx->tmp[1] >> 8;                                    \
-  RECLIP(ctx->tmp[2], 2);                                       \
+  RECLIP_V(ctx->tmp[2], 2);                                       \
   dst->b = ctx->tmp[2] >> 8;
 
 #include "scale_generic_y.h"
@@ -287,7 +291,7 @@ ctx->tmp[3] = 0;
   ctx->tmp[0] += ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[0];
 
 #define SCALE_FINISH                            \
-  RECLIP(ctx->tmp[0], ctx->plane);                      \
+  RECLIP_V(ctx->tmp[0], ctx->plane);                      \
   dst[0] = ctx->tmp[0] >> 8;
 
 #include "scale_generic_y.h"
@@ -303,11 +307,11 @@ ctx->tmp[3] = 0;
   ctx->tmp[2] += ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[2];
 
 #define SCALE_FINISH                                    \
-  RECLIP(ctx->tmp[0], 0);                               \
+  RECLIP_V(ctx->tmp[0], 0);                               \
   dst[0] = ctx->tmp[0] >> 8;                            \
-  RECLIP(ctx->tmp[1], 1);                               \
+  RECLIP_V(ctx->tmp[1], 1);                               \
   dst[1] = ctx->tmp[1] >> 8;                            \
-  RECLIP(ctx->tmp[2], 2);                               \
+  RECLIP_V(ctx->tmp[2], 2);                               \
   dst[2] = ctx->tmp[2] >> 8;
 
 #include "scale_generic_y.h"
@@ -324,13 +328,13 @@ ctx->tmp[3] = 0;
   ctx->tmp[3] += ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[3];
 
 #define SCALE_FINISH                                    \
-  RECLIP(ctx->tmp[0], 0);                               \
+  RECLIP_V(ctx->tmp[0], 0);                               \
   dst[0] = ctx->tmp[0] >> 8;                            \
-  RECLIP(ctx->tmp[1], 1);                               \
+  RECLIP_V(ctx->tmp[1], 1);                               \
   dst[1] = ctx->tmp[1] >> 8;                            \
-  RECLIP(ctx->tmp[2], 2);                               \
+  RECLIP_V(ctx->tmp[2], 2);                               \
   dst[2] = ctx->tmp[2] >> 8;                            \
-  RECLIP(ctx->tmp[3], 3);                               \
+  RECLIP_V(ctx->tmp[3], 3);                               \
   dst[3] = ctx->tmp[3] >> 8;
 
 
@@ -345,7 +349,7 @@ ctx->tmp[3] = 0;
   ctx->tmp[0] += (int64_t)ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[0];
 
 #define SCALE_FINISH \
-  RECLIP(ctx->tmp[0], ctx->plane);                      \
+  RECLIP_V(ctx->tmp[0], ctx->plane);                      \
   dst[0] = ctx->tmp[0] >> 16;
 
 #include "scale_generic_y.h"
@@ -361,11 +365,11 @@ ctx->tmp[3] = 0;
   ctx->tmp[2] += (int64_t)ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[2];
 
 #define SCALE_FINISH \
-  RECLIP(ctx->tmp[0], 0);                      \
+  RECLIP_V(ctx->tmp[0], 0);                      \
   dst[0] = ctx->tmp[0] >> 16;                  \
-  RECLIP(ctx->tmp[1], 1);                      \
+  RECLIP_V(ctx->tmp[1], 1);                      \
   dst[1] = ctx->tmp[1] >> 16;                  \
-  RECLIP(ctx->tmp[2], 2);                      \
+  RECLIP_V(ctx->tmp[2], 2);                      \
   dst[2] = ctx->tmp[2] >> 16;
 
 #include "scale_generic_y.h"
@@ -382,13 +386,13 @@ ctx->tmp[3] = 0;
   ctx->tmp[3] += (int64_t)ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[3];
 
 #define SCALE_FINISH \
-  RECLIP(ctx->tmp[0], 0);                      \
+  RECLIP_V(ctx->tmp[0], 0);                      \
   dst[0] = ctx->tmp[0] >> 16;                  \
-  RECLIP(ctx->tmp[1], 1);                      \
+  RECLIP_V(ctx->tmp[1], 1);                      \
   dst[1] = ctx->tmp[1] >> 16;                  \
-  RECLIP(ctx->tmp[2], 2);                      \
+  RECLIP_V(ctx->tmp[2], 2);                      \
   dst[2] = ctx->tmp[2] >> 16;                  \
-  RECLIP(ctx->tmp[3], 3);                      \
+  RECLIP_V(ctx->tmp[3], 3);                      \
   dst[3] = ctx->tmp[3] >> 16;
 
 #include "scale_generic_y.h"

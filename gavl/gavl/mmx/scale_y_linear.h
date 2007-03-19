@@ -8,12 +8,12 @@ static void (FUNC_NAME)(gavl_video_scale_context_t * ctx)
   uint8_t * src_1;
   uint8_t * src_2;
   uint8_t * dst;
-  
+#if 0  
   if(!ctx->scanline)
     fprintf(stderr, "scale_y_linear_mmx %d %d\n",
             ctx->table_v.pixels[ctx->scanline].factor_i[0],
             ctx->table_v.pixels[ctx->scanline].factor_i[1]);
-  
+#endif
   imax = (ctx->dst_size * WIDTH_MUL) / 8;
   //  imax = 0;
   
