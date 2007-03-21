@@ -238,6 +238,8 @@ struct gavl_video_scale_context_s
   uint8_t * dst;
   int scanline;
   int dst_size;
+
+  int first_scanline;
   };
 
 int gavl_video_scale_context_init(gavl_video_scale_context_t*,

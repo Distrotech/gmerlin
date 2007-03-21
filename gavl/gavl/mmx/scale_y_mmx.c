@@ -49,7 +49,7 @@ static mmx_t mm_tmp;
  *  mm4: Output1
  *  mm5: Output2
  *  mm6: Scratch
- *  mm7: 0
+ *  mm7: factor_mask
  */
 
 #define INIT_8_GLOBAL \
@@ -71,7 +71,7 @@ static mmx_t mm_tmp;
   /* Load factor */ \
   movd_m2r(ctx->table_v.pixels[ctx->scanline].factor_i[num], mm2);\
   pand_r2r(mm7, mm2);\
-  psllw_i2r(7, mm2);\
+  /* psllw_i2r(7, mm2); */\
   movq_r2r(mm2, mm5);\
   psllq_i2r(16, mm5);\
   por_r2r(mm5, mm2);\
@@ -95,7 +95,7 @@ static mmx_t mm_tmp;
    tmp += ctx->table_v.pixels[ctx->scanline].factor_i[num] * *src
 
 #define OUTPUT_C_8 \
-   tmp >>= 7; \
+   tmp >>= 14; \
    *dst = (uint8_t)((tmp & ~0xFF)?((-tmp) >> 63) : tmp);
 
 /* scale_uint8_x_1_y_bicubic_mmx  */
@@ -185,18 +185,18 @@ void gavl_init_scale_funcs_quadratic_y_mmx(gavl_scale_funcs_t * tab,
   if((src_advance == 1) && (dst_advance == 1))
     {
     tab->funcs_y.scale_uint8_x_1_noadvance =  scale_uint8_x_1_y_quadratic_mmx;
-    tab->funcs_y.bits_uint8_noadvance = 7;
+    tab->funcs_y.bits_uint8_noadvance = 14;
     }
   else if((src_advance == 3) && (dst_advance == 3))
     {
     tab->funcs_y.scale_uint8_x_3 =  scale_uint8_x_3_y_quadratic_mmx;
-    tab->funcs_y.bits_uint8_noadvance = 7;
+    tab->funcs_y.bits_uint8_noadvance = 14;
     }
   else if((src_advance == 4) && (dst_advance == 4))
     {
     tab->funcs_y.scale_uint8_x_3 =  scale_uint8_x_4_y_quadratic_mmx;
     tab->funcs_y.scale_uint8_x_4 =  scale_uint8_x_4_y_quadratic_mmx;
-    tab->funcs_y.bits_uint8_noadvance  = 7;
+    tab->funcs_y.bits_uint8_noadvance  = 14;
     }
   }
 
@@ -206,18 +206,18 @@ void gavl_init_scale_funcs_bicubic_y_mmx(gavl_scale_funcs_t * tab,
   if((src_advance == 1) && (dst_advance == 1))
     {
     tab->funcs_y.scale_uint8_x_1_noadvance =  scale_uint8_x_1_y_bicubic_mmx;
-    tab->funcs_y.bits_uint8_noadvance = 7;
+    tab->funcs_y.bits_uint8_noadvance = 14;
     }
   else if((src_advance == 3) && (dst_advance == 3))
     {
     tab->funcs_y.scale_uint8_x_3 =  scale_uint8_x_3_y_bicubic_mmx;
-    tab->funcs_y.bits_uint8_noadvance = 7;
+    tab->funcs_y.bits_uint8_noadvance = 14;
     }
   else if((src_advance == 4) && (dst_advance == 4))
     {
     tab->funcs_y.scale_uint8_x_3 =  scale_uint8_x_4_y_bicubic_mmx;
     tab->funcs_y.scale_uint8_x_4 =  scale_uint8_x_4_y_bicubic_mmx;
-    tab->funcs_y.bits_uint8_noadvance  = 7;
+    tab->funcs_y.bits_uint8_noadvance  = 14;
     }
   }
 
@@ -227,18 +227,18 @@ void gavl_init_scale_funcs_generic_y_mmx(gavl_scale_funcs_t * tab,
   if((src_advance == 1) && (dst_advance == 1))
     {
     tab->funcs_y.scale_uint8_x_1_noadvance =  scale_uint8_x_1_y_generic_mmx;
-    tab->funcs_y.bits_uint8_noadvance = 7;
+    tab->funcs_y.bits_uint8_noadvance = 14;
     }
   else if((src_advance == 3) && (dst_advance == 3))
     {
     tab->funcs_y.scale_uint8_x_3 =  scale_uint8_x_3_y_generic_mmx;
-    tab->funcs_y.bits_uint8_noadvance = 7;
+    tab->funcs_y.bits_uint8_noadvance = 14;
     }
   else if((src_advance == 4) && (dst_advance == 4))
     {
     tab->funcs_y.scale_uint8_x_3 =  scale_uint8_x_4_y_generic_mmx;
     tab->funcs_y.scale_uint8_x_4 =  scale_uint8_x_4_y_generic_mmx;
-    tab->funcs_y.bits_uint8_noadvance  = 7;
+    tab->funcs_y.bits_uint8_noadvance  = 14;
     }
   
   }
@@ -276,18 +276,18 @@ void gavl_init_scale_funcs_bilinear_y_mmx(gavl_scale_funcs_t * tab,
   if((src_advance == 1) && (dst_advance == 1))
     {
     tab->funcs_y.scale_uint8_x_1_noadvance =  scale_uint8_x_1_y_bilinear_mmx;
-    tab->funcs_y.bits_uint8_noadvance = 7;
+    tab->funcs_y.bits_uint8_noadvance = 14;
     }
   else if((src_advance == 3) && (dst_advance == 3))
     {
     tab->funcs_y.scale_uint8_x_3 =  scale_uint8_x_3_y_bilinear_mmx;
-    tab->funcs_y.bits_uint8_noadvance = 7;
+    tab->funcs_y.bits_uint8_noadvance = 14;
     }
   else if((src_advance == 4) && (dst_advance == 4))
     {
     tab->funcs_y.scale_uint8_x_3 =  scale_uint8_x_4_y_bilinear_mmx;
     tab->funcs_y.scale_uint8_x_4 =  scale_uint8_x_4_y_bilinear_mmx;
-    tab->funcs_y.bits_uint8_noadvance  = 7;
+    tab->funcs_y.bits_uint8_noadvance  = 14;
     }
   
   }

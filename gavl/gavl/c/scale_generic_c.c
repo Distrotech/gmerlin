@@ -58,9 +58,9 @@ typedef struct {
   RECLIP_H(ctx->tmp[0],0);                                                     \
   RECLIP_H(ctx->tmp[1],1);                                                     \
   RECLIP_H(ctx->tmp[2],2);                                                     \
-  dst->r = ctx->tmp[0] >> 8;                                                 \
-  dst->g = ctx->tmp[1] >> 8;                                                 \
-  dst->b = ctx->tmp[2] >> 8;
+  dst->r = ctx->tmp[0] >> 16;                                                 \
+  dst->g = ctx->tmp[1] >> 16;                                                 \
+  dst->b = ctx->tmp[2] >> 16;
 
 #include "scale_generic_x.h"
 
@@ -78,9 +78,9 @@ typedef struct {
   RECLIP_H(ctx->tmp[0],0);                                                     \
   RECLIP_H(ctx->tmp[1],1);                                                     \
   RECLIP_H(ctx->tmp[2],2);                                                     \
-  dst->r = ctx->tmp[0] >> 8;                                                 \
-  dst->g = ctx->tmp[1] >> 8;                                                 \
-  dst->b = ctx->tmp[2] >> 8;
+  dst->r = ctx->tmp[0] >> 16;                                                 \
+  dst->g = ctx->tmp[1] >> 16;                                                 \
+  dst->b = ctx->tmp[2] >> 16;
 
 #include "scale_generic_x.h"
 
@@ -93,7 +93,7 @@ typedef struct {
 
 #define SCALE_FINISH   \
   RECLIP_H(ctx->tmp[0],ctx->plane);               \
-  dst[0] = ctx->tmp[0] >> 8;
+  dst[0] = ctx->tmp[0] >> 16;
 
 #include "scale_generic_x.h"
 
@@ -109,11 +109,11 @@ typedef struct {
 
 #define SCALE_FINISH   \
   RECLIP_H(ctx->tmp[0],0);                        \
-  dst[0] = ctx->tmp[0] >> 8;                    \
+  dst[0] = ctx->tmp[0] >> 16;                    \
   RECLIP_H(ctx->tmp[1],1);                        \
-  dst[1] = ctx->tmp[1] >> 8;                    \
+  dst[1] = ctx->tmp[1] >> 16;                    \
   RECLIP_H(ctx->tmp[2],2);                        \
-  dst[2] = ctx->tmp[2] >> 8;
+  dst[2] = ctx->tmp[2] >> 16;
 
 
 #include "scale_generic_x.h"
@@ -132,13 +132,13 @@ typedef struct {
 
 #define SCALE_FINISH   \
   RECLIP_H(ctx->tmp[0],0);                        \
-  dst[0] = ctx->tmp[0] >> 8;                    \
+  dst[0] = ctx->tmp[0] >> 16;                    \
   RECLIP_H(ctx->tmp[1],1);                        \
-  dst[1] = ctx->tmp[1] >> 8;                    \
+  dst[1] = ctx->tmp[1] >> 16;                    \
   RECLIP_H(ctx->tmp[2],2);                        \
-  dst[2] = ctx->tmp[2] >> 8;                    \
+  dst[2] = ctx->tmp[2] >> 16;                    \
   RECLIP_H(ctx->tmp[3],3);                        \
-  dst[3] = ctx->tmp[3] >> 8;
+  dst[3] = ctx->tmp[3] >> 16;
 
 #include "scale_generic_x.h"
 
@@ -254,11 +254,11 @@ ctx->tmp[3] = 0;
 
 #define SCALE_FINISH                            \
   RECLIP_V(ctx->tmp[0], 0);                                       \
-  dst->r = ctx->tmp[0] >> 8;                                    \
+  dst->r = ctx->tmp[0] >> 16;                                    \
   RECLIP_V(ctx->tmp[1], 1);                                       \
-  dst->g = ctx->tmp[1] >> 8;                                    \
+  dst->g = ctx->tmp[1] >> 16;                                    \
   RECLIP_V(ctx->tmp[2], 2);                                       \
-  dst->b = ctx->tmp[2] >> 8;
+  dst->b = ctx->tmp[2] >> 16;
 
 #include "scale_generic_y.h"
 
@@ -274,11 +274,11 @@ ctx->tmp[3] = 0;
 
 #define SCALE_FINISH                            \
   RECLIP_V(ctx->tmp[0], 0);                                       \
-  dst->r = ctx->tmp[0] >> 8;                                    \
+  dst->r = ctx->tmp[0] >> 16;                                    \
   RECLIP_V(ctx->tmp[1], 1);                                       \
-  dst->g = ctx->tmp[1] >> 8;                                    \
+  dst->g = ctx->tmp[1] >> 16;                                    \
   RECLIP_V(ctx->tmp[2], 2);                                       \
-  dst->b = ctx->tmp[2] >> 8;
+  dst->b = ctx->tmp[2] >> 16;
 
 #include "scale_generic_y.h"
 
@@ -292,7 +292,7 @@ ctx->tmp[3] = 0;
 
 #define SCALE_FINISH                            \
   RECLIP_V(ctx->tmp[0], ctx->plane);                      \
-  dst[0] = ctx->tmp[0] >> 8;
+  dst[0] = ctx->tmp[0] >> 16;
 
 #include "scale_generic_y.h"
 
@@ -308,11 +308,11 @@ ctx->tmp[3] = 0;
 
 #define SCALE_FINISH                                    \
   RECLIP_V(ctx->tmp[0], 0);                               \
-  dst[0] = ctx->tmp[0] >> 8;                            \
+  dst[0] = ctx->tmp[0] >> 16;                            \
   RECLIP_V(ctx->tmp[1], 1);                               \
-  dst[1] = ctx->tmp[1] >> 8;                            \
+  dst[1] = ctx->tmp[1] >> 16;                            \
   RECLIP_V(ctx->tmp[2], 2);                               \
-  dst[2] = ctx->tmp[2] >> 8;
+  dst[2] = ctx->tmp[2] >> 16;
 
 #include "scale_generic_y.h"
 
@@ -329,13 +329,13 @@ ctx->tmp[3] = 0;
 
 #define SCALE_FINISH                                    \
   RECLIP_V(ctx->tmp[0], 0);                               \
-  dst[0] = ctx->tmp[0] >> 8;                            \
+  dst[0] = ctx->tmp[0] >> 16;                            \
   RECLIP_V(ctx->tmp[1], 1);                               \
-  dst[1] = ctx->tmp[1] >> 8;                            \
+  dst[1] = ctx->tmp[1] >> 16;                            \
   RECLIP_V(ctx->tmp[2], 2);                               \
-  dst[2] = ctx->tmp[2] >> 8;                            \
+  dst[2] = ctx->tmp[2] >> 16;                            \
   RECLIP_V(ctx->tmp[3], 3);                               \
-  dst[3] = ctx->tmp[3] >> 8;
+  dst[3] = ctx->tmp[3] >> 16;
 
 
 #include "scale_generic_y.h"
@@ -447,10 +447,10 @@ void gavl_init_scale_funcs_generic_c(gavl_scale_funcs_t * tab)
   tab->funcs_x.scale_uint16_x_4 = scale_uint16_x_4_x_generic_c;
   tab->funcs_x.scale_float_x_3 =  scale_float_x_3_x_generic_c;
   tab->funcs_x.scale_float_x_4 =  scale_float_x_4_x_generic_c;
-  tab->funcs_x.bits_rgb_15 = 8;
-  tab->funcs_x.bits_rgb_16 = 8;
-  tab->funcs_x.bits_uint8_advance  = 8;
-  tab->funcs_x.bits_uint8_noadvance  = 8;
+  tab->funcs_x.bits_rgb_15 = 16;
+  tab->funcs_x.bits_rgb_16 = 16;
+  tab->funcs_x.bits_uint8_advance  = 16;
+  tab->funcs_x.bits_uint8_noadvance  = 16;
   tab->funcs_x.bits_uint16 = 16;
 
   tab->funcs_y.scale_rgb_15 =     scale_rgb_15_y_generic_c;
@@ -464,10 +464,10 @@ void gavl_init_scale_funcs_generic_c(gavl_scale_funcs_t * tab)
   tab->funcs_y.scale_uint16_x_4 = scale_uint16_x_4_y_generic_c;
   tab->funcs_y.scale_float_x_3 =  scale_float_x_3_y_generic_c;
   tab->funcs_y.scale_float_x_4 =  scale_float_x_4_y_generic_c;
-  tab->funcs_y.bits_rgb_15 = 8;
-  tab->funcs_y.bits_rgb_16 = 8;
-  tab->funcs_y.bits_uint8_advance  = 8;
-  tab->funcs_y.bits_uint8_noadvance  = 8;
+  tab->funcs_y.bits_rgb_15 = 16;
+  tab->funcs_y.bits_rgb_16 = 16;
+  tab->funcs_y.bits_uint8_advance  = 16;
+  tab->funcs_y.bits_uint8_noadvance  = 16;
   tab->funcs_y.bits_uint16 = 16;
   
   }

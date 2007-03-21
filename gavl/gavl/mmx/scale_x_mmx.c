@@ -72,7 +72,7 @@ static void scale_uint8_x_1_x_bicubic_mmx(gavl_video_scale_context_t * ctx)
   uint8_t * src, * dst, *src_start;
   int32_t * factors;
   mmx_t tmp_mm;
-  int tmp;
+  int32_t tmp;
   
   //  fprintf(stderr, "scale_uint8_x_1_x_bicubic_mmx\n");
 
@@ -97,7 +97,7 @@ static void scale_uint8_x_1_x_bicubic_mmx(gavl_video_scale_context_t * ctx)
     MOVQ_R2M(mm0, tmp_mm);
     tmp = tmp_mm.d[0] + tmp_mm.d[1];
     RECLIP(tmp, ctx->plane);
-    *(dst++) = tmp >> 7;
+    *(dst++) = tmp >> 14;
     }
   emms();
   }
@@ -130,7 +130,7 @@ scale_uint8_x_1_x_bicubic_noclip_mmx(gavl_video_scale_context_t * ctx)
     packssdw_r2r(mm3, mm2);
     /* Multiply */
     pmaddwd_r2r(mm2, mm0);
-    psrld_i2r(7, mm0);
+    psrld_i2r(14, mm0);
     MOVQ_R2M(mm0, tmp_mm);
     *(dst++) = tmp_mm.d[0] + tmp_mm.d[1];
     }
@@ -177,7 +177,6 @@ static void scale_uint8_x_4_x_bicubic_mmx(gavl_video_scale_context_t * ctx)
     /* Load factors */
     movd_m2r(*factors, mm2);
     pand_r2r(mm1, mm2);
-    psllw_i2r(7, mm2);
     movq_r2r(mm2, mm7);
     psllq_i2r(16, mm7);
     por_r2r(mm7, mm2);
@@ -198,7 +197,6 @@ static void scale_uint8_x_4_x_bicubic_mmx(gavl_video_scale_context_t * ctx)
     /* Load factors */
     movd_m2r(*factors, mm2);
     pand_r2r(mm1, mm2);
-    psllw_i2r(7, mm2);
     movq_r2r(mm2, mm7);
     psllq_i2r(16, mm7);
     por_r2r(mm7, mm2);
@@ -219,7 +217,6 @@ static void scale_uint8_x_4_x_bicubic_mmx(gavl_video_scale_context_t * ctx)
     /* Load factors */
     movd_m2r(*factors, mm2);
     pand_r2r(mm1, mm2);
-    psllw_i2r(7, mm2);
     movq_r2r(mm2, mm7);
     psllq_i2r(16, mm7);
     por_r2r(mm7, mm2);
@@ -240,7 +237,6 @@ static void scale_uint8_x_4_x_bicubic_mmx(gavl_video_scale_context_t * ctx)
     /* Load factors */
     movd_m2r(*factors, mm2);
     pand_r2r(mm1, mm2);
-    psllw_i2r(7, mm2);
     movq_r2r(mm2, mm7);
     psllq_i2r(16, mm7);
     por_r2r(mm7, mm2);
@@ -313,7 +309,7 @@ static void scale_uint8_x_1_x_generic_mmx(gavl_video_scale_context_t * ctx)
       }
     
     RECLIP(tmp, ctx->plane);
-    *(dst++) = tmp >> 7;
+    *(dst++) = tmp >> 14;
     }
   emms();
   }
@@ -359,7 +355,6 @@ static void scale_uint8_x_4_x_generic_mmx(gavl_video_scale_context_t * ctx)
       /* Load factors */
       movd_m2r(*factors, mm2);
       pand_r2r(mm1, mm2);
-      psllw_i2r(7, mm2);
       movq_r2r(mm2, mm7);
       psllq_i2r(16, mm7);
       por_r2r(mm7, mm2);
@@ -432,6 +427,7 @@ static void scale_uint8_x_1_x_bilinear_mmx(gavl_video_scale_context_t * ctx)
     /* Load factors */
     movq_m2r(ctx->table_h.pixels[index].factor_i[0], mm1);
     movq_m2r(ctx->table_h.pixels[index+1].factor_i[0], mm7);
+
     packssdw_r2r(mm7, mm1);
     pmaddwd_r2r(mm0, mm1);
 
@@ -453,6 +449,8 @@ static void scale_uint8_x_1_x_bilinear_mmx(gavl_video_scale_context_t * ctx)
     packssdw_r2r(mm7, mm3);
     pmaddwd_r2r(mm0, mm3);
     
+    psrld_i2r(7, mm3);
+    psrld_i2r(7, mm1);
     packssdw_r2r(mm3, mm1);
     psrlw_i2r(7, mm1);
     index += 2;
@@ -473,7 +471,7 @@ static void scale_uint8_x_1_x_bilinear_mmx(gavl_video_scale_context_t * ctx)
     {
     src = (src_start + ctx->table_h.pixels[index].index);
     *dst = (ctx->table_h.pixels[index].factor_i[0] * *src +
-      ctx->table_h.pixels[index].factor_i[1] * *(src+1)) >> 7;
+      ctx->table_h.pixels[index].factor_i[1] * *(src+1)) >> 14;
     dst++;
     index++;
     }
@@ -525,7 +523,6 @@ static void scale_uint8_x_4_x_bilinear_mmx(gavl_video_scale_context_t * ctx)
     /* Load factors */
     movd_m2r(*factors, mm2);
     pand_r2r(mm1, mm2);
-    psllw_i2r(7, mm2);
     movq_r2r(mm2, mm7);
     psllq_i2r(16, mm7);
     por_r2r(mm7, mm2);
@@ -558,13 +555,13 @@ void gavl_init_scale_funcs_bicubic_x_mmx(gavl_scale_funcs_t * tab,
   if((src_advance == 1) && (dst_advance == 1))
     {
     tab->funcs_x.scale_uint8_x_1_noadvance =  scale_uint8_x_1_x_bicubic_mmx;
-    tab->funcs_x.bits_uint8_noadvance = 7;
+    tab->funcs_x.bits_uint8_noadvance = 14;
     }
   else if((src_advance == 4) && (dst_advance == 4))
     {
     tab->funcs_x.scale_uint8_x_3 =  scale_uint8_x_4_x_bicubic_mmx;
     tab->funcs_x.scale_uint8_x_4 =  scale_uint8_x_4_x_bicubic_mmx;
-    tab->funcs_x.bits_uint8_noadvance  = 7;
+    tab->funcs_x.bits_uint8_noadvance  = 14;
     }
   }
 
@@ -574,14 +571,14 @@ void gavl_init_scale_funcs_bicubic_noclip_x_mmx(gavl_scale_funcs_t * tab,
   if((src_advance == 1) && (dst_advance == 1))
     {
     tab->funcs_x.scale_uint8_x_1_noadvance =  scale_uint8_x_1_x_bicubic_noclip_mmx;
-    tab->funcs_x.bits_uint8_noadvance = 7;
+    tab->funcs_x.bits_uint8_noadvance = 14;
     }
 #if 1  
   else if((src_advance == 4) && (dst_advance == 4))
     {
     tab->funcs_x.scale_uint8_x_3 =  scale_uint8_x_4_x_bicubic_mmx;
     tab->funcs_x.scale_uint8_x_4 =  scale_uint8_x_4_x_bicubic_mmx;
-    tab->funcs_x.bits_uint8_noadvance  = 7;
+    tab->funcs_x.bits_uint8_noadvance  = 14;
     }
 #endif
   }
@@ -592,13 +589,13 @@ void gavl_init_scale_funcs_generic_x_mmx(gavl_scale_funcs_t * tab,
   if((src_advance == 1) && (dst_advance == 1))
     {
     tab->funcs_x.scale_uint8_x_1_noadvance =  scale_uint8_x_1_x_generic_mmx;
-    tab->funcs_x.bits_uint8_noadvance = 7;
+    tab->funcs_x.bits_uint8_noadvance = 14;
     }
   else if((src_advance == 4) && (dst_advance == 4))
     {
     tab->funcs_x.scale_uint8_x_3 =  scale_uint8_x_4_x_generic_mmx;
     tab->funcs_x.scale_uint8_x_4 =  scale_uint8_x_4_x_generic_mmx;
-    tab->funcs_x.bits_uint8_noadvance  = 7;
+    tab->funcs_x.bits_uint8_noadvance  = 14;
     }
   
   }
@@ -609,13 +606,13 @@ void gavl_init_scale_funcs_bilinear_x_mmx(gavl_scale_funcs_t * tab,
   if((src_advance == 1) && (dst_advance == 1))
     {
     tab->funcs_x.scale_uint8_x_1_noadvance =  scale_uint8_x_1_x_bilinear_mmx;
-    tab->funcs_x.bits_uint8_noadvance = 7;
+    tab->funcs_x.bits_uint8_noadvance = 14;
     }
   else if((src_advance == 4) && (dst_advance == 4))
     {
     tab->funcs_x.scale_uint8_x_3 =  scale_uint8_x_4_x_bilinear_mmx;
     tab->funcs_x.scale_uint8_x_4 =  scale_uint8_x_4_x_bilinear_mmx;
-    tab->funcs_x.bits_uint8_noadvance  = 7;
+    tab->funcs_x.bits_uint8_noadvance  = 14;
     }
   
   }

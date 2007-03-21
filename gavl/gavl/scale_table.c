@@ -447,7 +447,7 @@ void gavl_video_scale_table_shift_indices(gavl_video_scale_table_t * tab,
     return;
   for(i = 0; i < tab->num_pixels; i++)
     {
-    tab->pixels[tab->num_pixels].index += shift;
+    tab->pixels[i].index += shift;
     }
   }
 

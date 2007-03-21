@@ -43,34 +43,34 @@ typedef struct {
 
 #define BILINEAR_1D_1(src_c_1, src_c_2, factor_1, factor_2, dst_c) \
   tmp = src_c_1[0] * factor_1 + src_c_2[0] * factor_2;             \
-  dst_c[0] = tmp >> 8;
+  dst_c[0] = tmp >> 16;
 
 #define BILINEAR_1D_3(src_c_1, src_c_2, factor_1, factor_2, dst_c) \
   tmp = src_c_1[0] * factor_1 + src_c_2[0] * factor_2;             \
-  dst_c[0] = tmp >> 8;                                               \
+  dst_c[0] = tmp >> 16;                                               \
   tmp = src_c_1[1] * factor_1 + src_c_2[1] * factor_2;             \
-  dst_c[1] = tmp >> 8;                                               \
+  dst_c[1] = tmp >> 16;                                               \
   tmp = src_c_1[2] * factor_1 + src_c_2[2] * factor_2;             \
-  dst_c[2] = tmp >> 8;
+  dst_c[2] = tmp >> 16;
   
 
 #define BILINEAR_1D_4(src_c_1, src_c_2, factor_1, factor_2, dst_c) \
   tmp = src_c_1[0] * factor_1 + src_c_2[0] * factor_2;             \
-  dst_c[0] = tmp >> 8;                                               \
+  dst_c[0] = tmp >> 16;                                               \
   tmp = src_c_1[1] * factor_1 + src_c_2[1] * factor_2;             \
-  dst_c[1] = tmp >> 8;                                               \
+  dst_c[1] = tmp >> 16;                                               \
   tmp = src_c_1[2] * factor_1 + src_c_2[2] * factor_2;             \
-  dst_c[2] = tmp >> 8;                                               \
+  dst_c[2] = tmp >> 16;                                               \
   tmp = src_c_1[3] * factor_1 + src_c_2[3] * factor_2;             \
-  dst_c[3] = tmp >> 8;
+  dst_c[3] = tmp >> 16;
 
 #define BILINEAR_1D_PACKED(src_c_1, src_c_2, factor_1, factor_2, dst_c) \
   tmp = src_c_1->r * factor_1 + src_c_2->r * factor_2;             \
-  dst_c->r = tmp >> 8;                                               \
+  dst_c->r = tmp >> 16;                                               \
   tmp = src_c_1->g * factor_1 + src_c_2->g * factor_2;             \
-  dst_c->g = tmp >> 8;                                               \
+  dst_c->g = tmp >> 16;                                               \
   tmp = src_c_1->b * factor_1 + src_c_2->b * factor_2;             \
-  dst_c->b = tmp >> 8;
+  dst_c->b = tmp >> 16;
 
 /*
  *  dst = ((src_c_11 * factor_h1 + src_c_12 * factor_h1) * factor_v1 +
@@ -711,9 +711,9 @@ void gavl_init_scale_funcs_c(gavl_scale_funcs_t * tab,
     tab->scale_float_x_4 =  scale_y_float_x_4_bilinear_c;
     }
 
-  tab->bits_rgb_15 = 8;
-  tab->bits_rgb_16 = 8;
-  tab->bits_uint8  = 8;
+  tab->bits_rgb_15 = 16;
+  tab->bits_rgb_16 = 16;
+  tab->bits_uint8  = 16;
   tab->bits_uint16 = 16;
   }
 

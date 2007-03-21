@@ -577,6 +577,43 @@ static void flip_scanline_2(uint8_t * dst, uint8_t * src, int len)
   
   }
 
+static void flip_scanline_yuy2(uint8_t * dst, uint8_t * src, int len)
+  {
+  int i;
+  dst += 2*(len-1)-2;
+  
+  for(i = 0; i < len/2; i++)
+    {
+    dst[0] = src[2]; /* Y */
+    dst[1] = src[1]; /* U */
+    dst[2] = src[0]; /* Y */
+    dst[3] = src[3]; /* U */
+    
+    dst-=4;
+    src+=4;
+    }
+  
+  }
+
+static void flip_scanline_uyvy(uint8_t * dst, uint8_t * src, int len)
+  {
+  int i;
+  dst += 2*(len-1)-2;
+  
+  for(i = 0; i < len/2; i++)
+    {
+    dst[0] = src[0]; /* U */
+    dst[1] = src[3]; /* Y */
+    dst[2] = src[2]; /* V */
+    dst[3] = src[1]; /* Y */
+    
+    dst-=4;
+    src+=4;
+    }
+  
+  }
+
+
 static void flip_scanline_3(uint8_t * dst, uint8_t * src, int len)
   {
   int i;
@@ -695,8 +732,6 @@ static flip_scanline_func find_flip_scanline_func(gavl_pixelformat_t csp)
     case GAVL_BGR_15:
     case GAVL_RGB_16:
     case GAVL_BGR_16:
-    case GAVL_YUY2:
-    case GAVL_UYVY:
     case GAVL_YUV_444_P_16:
     case GAVL_YUV_422_P_16:
       return flip_scanline_2;
@@ -733,6 +768,12 @@ static flip_scanline_func find_flip_scanline_func(gavl_pixelformat_t csp)
     case GAVL_YUVJ_444_P:
       return flip_scanline_1;
       break;
+    case GAVL_YUY2:
+      return flip_scanline_yuy2;
+      break;
+    case GAVL_UYVY:
+      return flip_scanline_uyvy;
+      break;
     case GAVL_PIXELFORMAT_NONE:
       break;
     }
@@ -746,7 +787,7 @@ void gavl_video_frame_copy_flip_x(const gavl_video_format_t * format,
   uint8_t * src_ptr;
   uint8_t * dst_ptr;
   
-  int i, j;
+  int i, j, jmax, width;
   int sub_h, sub_v;
   int planes;
   flip_scanline_func func;
@@ -756,21 +797,28 @@ void gavl_video_frame_copy_flip_x(const gavl_video_format_t * format,
   
   sub_h = 1;
   sub_v = 1;
+
+  jmax = format->image_height;
+  width = format->image_width;
+
+  gavl_pixelformat_chroma_sub(format->pixelformat, &sub_h, &sub_v);
   
   for(i = 0; i < planes; i++)
     {
-    if(i)
-      gavl_pixelformat_chroma_sub(format->pixelformat, &sub_h, &sub_v);
-
     src_ptr = src->planes[i];
     dst_ptr = dst->planes[i];
             
-    for(j = 0; j < format->image_height / sub_v; j++)
+    for(j = 0; j < jmax; j++)
       {
-      func(dst_ptr, src_ptr, format->image_width / sub_h);
-
+      func(dst_ptr, src_ptr, width);
+      
       src_ptr += src->strides[i];
       dst_ptr += dst->strides[i];
+      }
+    if(!i)
+      {
+      jmax /= sub_v;
+      width /= sub_h;
       }
     }
   

@@ -308,7 +308,7 @@ static void scale_float_x_4_y_nearest_c(gavl_video_scale_context_t * ctx)
 
 void gavl_init_scale_funcs_nearest_c(gavl_scale_funcs_t * tab)
   {
-  fprintf(stderr, "gavl_init_scale_funcs_nearest_c\n");
+  //   fprintf(stderr, "gavl_init_scale_funcs_nearest_c\n");
   
   tab->funcs_xy.scale_rgb_15 =     scale_rgb_16_xy_nearest_c;
   tab->funcs_xy.scale_rgb_16 =     scale_rgb_16_xy_nearest_c;

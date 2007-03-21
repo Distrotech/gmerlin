@@ -40,7 +40,7 @@ static void (FUNC_NAME)(gavl_video_scale_context_t * ctx)
   
   /* Load factor1 */
   movd_m2r(ctx->table_v.pixels[ctx->scanline].factor_i[0], mm2);
-  psllw_i2r(7, mm2);
+  //  psllw_i2r(7, mm2);
   movq_r2r(mm2, mm6);
   psllq_i2r(16, mm6);
   por_r2r(mm6, mm2);
@@ -50,7 +50,7 @@ static void (FUNC_NAME)(gavl_video_scale_context_t * ctx)
 
   /* Load factor2 */
   movd_m2r(ctx->table_v.pixels[ctx->scanline].factor_i[1], mm3);
-  psllw_i2r(7, mm3);
+  //  psllw_i2r(7, mm3);
   movq_r2r(mm3, mm6);
   psllq_i2r(16, mm6);
   por_r2r(mm6, mm3);
