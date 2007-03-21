@@ -82,14 +82,13 @@ void bg_gavl_video_options_set_format(const bg_gavl_video_options_t *,
                                       const gavl_video_format_t * in_format,
                                       gavl_video_format_t * out_format);
 
-void bg_gavl_video_options_set_format(const bg_gavl_video_options_t *,
-                                      const gavl_video_format_t * in_format,
-                                      gavl_video_format_t * out_format);
-
 void bg_gavl_video_options_set_rectangles(const bg_gavl_video_options_t * opt,
                                           const gavl_video_format_t * in_format,
                                           const gavl_video_format_t * out_format,
                                           int do_crop);
+
+gavl_scale_mode_t bg_gavl_string_to_scale_mode(const char * str);
+
 
 #if 0
 void bg_gavl_video_options_set_framerate(const bg_gavl_video_options_t *,
@@ -243,31 +242,36 @@ timescale and frame duration below (framerate = timescale / frame_duration).")\
       help_string: TRS("Cut this many pixels from the bottom border of the source frames.")\
     }
 
+#define BG_GAVL_SCALE_MODE_NAMES \
+   (char*[]){ "auto",\
+              "nearest",         \
+              "bilinear", \
+              "quadratic", \
+              "cubic_bspline", \
+              "cubic_mitchell", \
+              "cubic_catmull", \
+              "sinc_lanczos", \
+              (char*)0 }
+
+#define BG_GAVL_SCALE_MODE_LABELS \
+  (char*[]){ TRS("Auto"), \
+             TRS("Nearest"),            \
+             TRS("Bilinear"), \
+             TRS("Quadratic"), \
+             TRS("Cubic B-Spline"), \
+             TRS("Cubic Mitchell-Netravali"), \
+             TRS("Cubic Catmull-Rom"), \
+             TRS("Sinc with Lanczos window"), \
+            (char*)0 }
+
 #define BG_GAVL_PARAM_SCALE_MODE                                    \
   {                                                                 \
   name:        "scale_mode",                                          \
   long_name:   TRS("Scale mode"),                                          \
   opt:       "sm",                                                  \
   type:        BG_PARAMETER_STRINGLIST,                               \
-    multi_names:  (char*[]){ "auto",\
-                             "nearest",         \
-                             "bilinear", \
-                             "quadratic", \
-                             "cubic_bspline", \
-                             "cubic_mitchell", \
-                             "cubic_catmull", \
-                             "sinc_lanczos", \
-                             (char*)0                                     \
-                         },                                    \
-    multi_labels: (char*[]){ TRS("Auto"), \
-                             TRS("Nearest"),                             \
-                             TRS("Bilinear"), \
-                             TRS("Quadratic"), \
-                             TRS("Cubic B-Spline"), \
-                             TRS("Cubic Mitchell-Netravali"), \
-                             TRS("Cubic Catmull-Rom"), \
-                             TRS("Sinc with Lanczos window"),                         \
-                             (char*)0 },                                         \
+    multi_names: BG_GAVL_SCALE_MODE_NAMES, \
+    multi_labels: BG_GAVL_SCALE_MODE_LABELS, \
     val_default: { val_str: "auto" },                                   \
     help_string: TRS("Choose scaling method. Auto means to choose based on the conversion quality. Nearest is fastest, Sinc with Lanczos window is slowest."), \
     },                                                                  \

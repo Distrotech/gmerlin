@@ -18,6 +18,7 @@
 *****************************************************************/
 
 #include <stdio.h>
+#include <string.h>
 
 #include "gtk_dialog.h"
 #include <gui_gtk/gtkutils.h>
@@ -34,6 +35,7 @@ typedef struct
   GdkGC * gc;
   int has_alpha;
   GdkColor color;
+  GdkColor last_color;
   guint16 alpha;
   } color_t;
 
@@ -183,25 +185,50 @@ static void realize_callback(GtkWidget * _w, gpointer data)
   set_button(priv);
   }
 
+static void changed_callback(GtkWidget * w, gpointer data)
+  {
+  bg_gtk_widget_t * wid = (bg_gtk_widget_t*)data;
+  color_t * priv = (color_t*)wid->priv;
+  
+  gtk_color_selection_get_current_color(GTK_COLOR_SELECTION(GTK_COLOR_SELECTION_DIALOG(priv->colorsel)->colorsel), &(priv->color));
+  priv->alpha = gtk_color_selection_get_current_alpha(GTK_COLOR_SELECTION(GTK_COLOR_SELECTION_DIALOG(priv->colorsel)->colorsel));
+  
+  wid->funcs->set_value(wid);
+  if(wid->change_callback)
+    wid->change_callback(wid->change_callback_data,
+                       wid->info->name, &(wid->value));
+  set_button(priv);
+  }
+
 static void button_callback(GtkWidget * w, gpointer data)
   {
-  color_t * priv = (color_t*)data;
-
+  bg_gtk_widget_t * wid = (bg_gtk_widget_t*)data;
+  color_t * priv = (color_t*)wid->priv;
+  
   if(w == priv->button)
     {
+    /* Save last color */
+    memcpy(&priv->last_color, &priv->color, sizeof(priv->color));
+    
     if(!priv->colorsel)
       {
       priv->colorsel =
         gtk_color_selection_dialog_new("Select a color");
+
+      if(wid->info->flags & BG_PARAMETER_SYNC)
+        {
+        g_signal_connect(G_OBJECT(GTK_COLOR_SELECTION_DIALOG(priv->colorsel)->colorsel),
+                         "color-changed", G_CALLBACK(changed_callback), wid);
+        }
       
       gtk_window_set_modal(GTK_WINDOW(priv->colorsel), TRUE);
 
       g_signal_connect(G_OBJECT(GTK_COLOR_SELECTION_DIALOG(priv->colorsel)->ok_button),
                        "clicked", G_CALLBACK(button_callback),
-                         (gpointer)priv);
+                       (gpointer)wid);
       g_signal_connect(G_OBJECT(GTK_COLOR_SELECTION_DIALOG(priv->colorsel)->cancel_button),
                        "clicked", G_CALLBACK(button_callback),
-                       (gpointer)priv);
+                       (gpointer)wid);
       gtk_widget_hide(GTK_COLOR_SELECTION_DIALOG(priv->colorsel)->help_button);
       if(priv->has_alpha)
         gtk_color_selection_set_has_opacity_control(GTK_COLOR_SELECTION(GTK_COLOR_SELECTION_DIALOG(priv->colorsel)->colorsel),
@@ -231,6 +258,19 @@ static void button_callback(GtkWidget * w, gpointer data)
       {
       gtk_main_quit();
       gtk_widget_hide(priv->colorsel);
+
+      if(wid->info->flags & BG_PARAMETER_SYNC)
+        {
+        /* Restore last color */
+        memcpy(&priv->color, &priv->last_color, sizeof(priv->color));
+
+        wid->funcs->set_value(wid);
+        if(wid->change_callback)
+          wid->change_callback(wid->change_callback_data,
+                               wid->info->name, &(wid->value));
+        set_button(priv);
+        }
+
       }
     }
   }
@@ -271,7 +311,7 @@ void bg_gtk_create_color_rgb(bg_gtk_widget_t * w,
                      (gpointer)priv);
   g_signal_connect(G_OBJECT(priv->button),
                      "clicked", G_CALLBACK(button_callback),
-                     (gpointer)priv);
+                     (gpointer)w);
   
   gtk_widget_show(priv->drawingarea);
   gtk_container_add(GTK_CONTAINER(priv->button), priv->drawingarea);

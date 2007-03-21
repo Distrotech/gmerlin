@@ -52,6 +52,7 @@ typedef struct
 
   gavl_video_format_t format;
   gavl_video_frame_t * frame;
+  int quality;
   } blur_priv_t;
 
 static void * create_blur()
@@ -151,7 +152,7 @@ static void init_scaler(blur_priv_t * vp)
   float radius_v;
   float pixel_aspect;
   int flags;
-
+  
   radius_h = vp->radius_h;
   radius_v = vp->radius_v;
 
@@ -163,6 +164,8 @@ static void init_scaler(blur_priv_t * vp)
   gavl_video_options_set_conversion_flags(vp->opt,
                                           flags);
 
+  gavl_video_options_set_quality(vp->opt, vp->quality);
+  
   if(vp->correct_nonsquare)
     {
     pixel_aspect = 
@@ -236,6 +239,15 @@ static bg_parameter_info_t parameters[] =
       val_default: { val_i: 0 },
       flags: BG_PARAMETER_SYNC,
     },
+    {
+      name: "quality",
+      long_name: TRS("Quality"),
+      type: BG_PARAMETER_SLIDER_INT,
+      flags: BG_PARAMETER_SYNC,
+      val_min:     { val_i: GAVL_QUALITY_FASTEST },
+      val_max:     { val_i: GAVL_QUALITY_BEST },
+      val_default: { val_i: GAVL_QUALITY_DEFAULT },
+    },
     { /* End of parameters */ },
   };
 
@@ -294,6 +306,14 @@ static void set_parameter_blur(void * priv, char * name,
     else if(!strcmp(val->val_str, "box"))
       vp->mode = MODE_BOX;
     vp->changed = 1;
+    }
+  else if(!strcmp(name, "quality"))
+    {
+    if(vp->quality != val->val_i)
+      {
+      vp->quality = val->val_i;
+      vp->changed = 1;
+      }
     }
   }
 

@@ -82,7 +82,7 @@ static bg_parameter_info_t parameters[] =
       val_min:     { val_f: 0.0 },
       val_max:     { val_f: 1.0 },
       val_default: { val_f: 0.5 },
-      help_string: "Factor for the new image. Lower values mean a larger delay time.",
+      help_string: TRS("Factor for the new image. Lower values mean a larger delay time."),
     },
     {
       name: "quality",
@@ -92,7 +92,6 @@ static bg_parameter_info_t parameters[] =
       val_min:     { val_i: GAVL_QUALITY_FASTEST },
       val_max:     { val_i: GAVL_QUALITY_BEST },
       val_default: { val_i: GAVL_QUALITY_DEFAULT },
-      help_string: "Values below 3 enable faster but less accurate routines",
     },
     { /* End of parameters */ },
   };

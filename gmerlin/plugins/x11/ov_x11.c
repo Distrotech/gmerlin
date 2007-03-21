@@ -1025,7 +1025,18 @@ static void set_drawing_coords(x11_t * priv)
   /* Clear window */
 
   gavl_video_frame_clear(priv->window_frame, &(priv->window_format));
+
+  fprintf(stderr, "src format\n");
+  gavl_video_format_dump(&(priv->video_format));
+  fprintf(stderr, "dst format\n");
+  gavl_video_format_dump(&(priv->window_format));
   
+  fprintf(stderr, "src rect\n");
+  gavl_rectangle_f_dump(&(priv->src_rect_f));
+  fprintf(stderr, "dst rect\n");
+  gavl_rectangle_i_dump(&(priv->dst_rect));
+  fprintf(stderr, "\n");
+
   
   /* Reinitialize scaler */
   

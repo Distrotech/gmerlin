@@ -17,6 +17,8 @@
  
 *****************************************************************/
 
+#include <config.h>
+
 #include <string.h>
 #include <stdio.h>
 
@@ -24,6 +26,9 @@
 
 #include <parameter.h>
 #include <bggavl.h>
+
+#include <log.h>
+#define LOG_DOMAIN "bggavl"
 
 #define SP_INT(s) if(!strcmp(name, # s)) \
     { \
@@ -439,6 +444,32 @@ static void set_frame_rate_mode(bg_gavl_video_options_t * opt,
   return 1;                                                   \
   }
 
+gavl_scale_mode_t bg_gavl_string_to_scale_mode(const char * str)
+  {
+  if(!strcmp(str, "auto"))
+    return GAVL_SCALE_AUTO;
+  else if(!strcmp(str, "nearest"))
+    return GAVL_SCALE_NEAREST;
+  else if(!strcmp(str, "bilinear"))
+    return GAVL_SCALE_BILINEAR;
+  else if(!strcmp(str, "quadratic"))
+    return GAVL_SCALE_QUADRATIC;
+  else if(!strcmp(str, "cubic_bspline"))
+    return GAVL_SCALE_CUBIC_BSPLINE;
+  else if(!strcmp(str, "cubic_mitchell"))
+    return GAVL_SCALE_CUBIC_MITCHELL;
+  else if(!strcmp(str, "cubic_catmull"))
+    return GAVL_SCALE_CUBIC_CATMULL;
+  else if(!strcmp(str, "sinc_lanczos"))
+    return GAVL_SCALE_SINC_LANCZOS;
+  else
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Unknown scale mode %s\n", str);
+    return GAVL_SCALE_AUTO;
+    }
+      
+  }
+
 int bg_gavl_video_set_parameter(void * data, char * name,
                                 bg_parameter_value_t * val)
   {
@@ -492,23 +523,7 @@ int bg_gavl_video_set_parameter(void * data, char * name,
     }
   else if(!strcmp(name, "scale_mode"))
     {
-    if(!strcmp(val->val_str, "auto"))
-      gavl_video_options_set_scale_mode(opt->opt, GAVL_SCALE_AUTO);
-    else if(!strcmp(val->val_str, "nearest"))
-      gavl_video_options_set_scale_mode(opt->opt, GAVL_SCALE_NEAREST);
-    else if(!strcmp(val->val_str, "bilinear"))
-      gavl_video_options_set_scale_mode(opt->opt, GAVL_SCALE_BILINEAR);
-    else if(!strcmp(val->val_str, "quadratic"))
-      gavl_video_options_set_scale_mode(opt->opt, GAVL_SCALE_QUADRATIC);
-    else if(!strcmp(val->val_str, "cubic_bspline"))
-      gavl_video_options_set_scale_mode(opt->opt, GAVL_SCALE_CUBIC_BSPLINE);
-    else if(!strcmp(val->val_str, "cubic_mitchell"))
-      gavl_video_options_set_scale_mode(opt->opt, GAVL_SCALE_CUBIC_MITCHELL);
-    else if(!strcmp(val->val_str, "cubic_catmull"))
-      gavl_video_options_set_scale_mode(opt->opt, GAVL_SCALE_CUBIC_CATMULL);
-    else if(!strcmp(val->val_str, "sinc_lanczos"))
-      gavl_video_options_set_scale_mode(opt->opt, GAVL_SCALE_SINC_LANCZOS);
-    
+    gavl_video_options_set_scale_mode(opt->opt, bg_gavl_string_to_scale_mode(val->val_str));
     return 1;
     }
   else if(!strcmp(name, "scale_order"))

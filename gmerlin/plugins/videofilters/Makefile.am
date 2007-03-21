@@ -8,7 +8,8 @@ fv_decimate.la \
 fv_equalizer.la \
 fv_flip.la \
 fv_pixelformat.la \
-fv_tlp.la
+fv_tlp.la \
+fv_zoom.la
 
 fv_blur_la_SOURCES  = fv_blur.c
 fv_blur_la_LDFLAGS = -avoid-version -module
@@ -27,3 +28,6 @@ fv_decimate_la_LDFLAGS = -avoid-version -module
 
 fv_equalizer_la_SOURCES  = fv_equalizer.c
 fv_equalizer_la_LDFLAGS = -avoid-version -module
+
+fv_zoom_la_SOURCES  = fv_zoom.c
+fv_zoom_la_LDFLAGS = -avoid-version -module
