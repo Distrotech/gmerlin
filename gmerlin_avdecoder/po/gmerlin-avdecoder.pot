@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-03-07 22:02+0100\n"
+"POT-Creation-Date: 2007-03-22 02:11+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -634,11 +634,11 @@ msgstr ""
 msgid "Channels file cannot be found (home directory unset)"
 msgstr ""
 
-#: lib/dvb_channels.c:221
+#: lib/dvb_channels.c:241
 msgid "Channels file cannot be found"
 msgstr ""
 
-#: lib/dvb_channels.c:228
+#: lib/dvb_channels.c:248
 #, c-format
 msgid "Channels file %s cannot be opened: %s"
 msgstr ""

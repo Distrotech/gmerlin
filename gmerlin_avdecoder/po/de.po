@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmerlin-avdecoder 0.1.6\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-03-07 22:02+0100\n"
+"POT-Creation-Date: 2007-03-22 02:11+0100\n"
 "PO-Revision-Date: 2007-02-11 02:57+0100\n"
 "Last-Translator: Burkhard Plaum <gmerlin@users.sourceforge.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -634,11 +634,11 @@ msgstr ""
 msgid "Channels file cannot be found (home directory unset)"
 msgstr ""
 
-#: lib/dvb_channels.c:221
+#: lib/dvb_channels.c:241
 msgid "Channels file cannot be found"
 msgstr ""
 
-#: lib/dvb_channels.c:228
+#: lib/dvb_channels.c:248
 #, c-format
 msgid "Channels file %s cannot be opened: %s"
 msgstr ""

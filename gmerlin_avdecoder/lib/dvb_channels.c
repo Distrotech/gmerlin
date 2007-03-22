@@ -167,7 +167,27 @@ bgav_dvb_channels_seek(const bgav_options_t * opt,
         filename = (char*)0;
         }
       }
-
+    else if(type == FE_QAM)
+      {
+      filename = bgav_sprintf("%s/.czap/channels.conf", home_dir);
+      
+      if(!bgav_check_file_read(filename))
+        {
+        free(filename);
+        filename = (char*)0;
+        }
+      }
+    else if(type == FE_ATSC)
+      {
+      filename = bgav_sprintf("%s/.azap/channels.conf", home_dir);
+      
+      if(!bgav_check_file_read(filename))
+        {
+        free(filename);
+        filename = (char*)0;
+        }
+      }
+    
     if(!filename)
       {
       filename = bgav_sprintf("%s/.mplayer/channels.conf", home_dir);
