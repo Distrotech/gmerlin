@@ -33,7 +33,7 @@
 #define MOVQ_R2M(reg,mem) movq_r2m(reg, mem)
 #endif
 
-#if 1
+#if 0
 static mmx_t mm_tmp;
 #define DUMP_MM(name, reg) MOVQ_R2M(reg, mm_tmp);\
   fprintf(stderr, "%s: %016llx\n", name, mm_tmp.q);
@@ -258,6 +258,109 @@ static void scale_uint8_x_4_x_bicubic_mmx(gavl_video_scale_context_t * ctx)
   emms();
   }
 
+
+/* scale_uint8_x_4_x_bicubic_mmx */
+
+static void scale_uint8_x_4_x_quadratic_mmx(gavl_video_scale_context_t * ctx)
+  {
+  int i;
+  uint8_t * src, * dst, *src_start;
+  int32_t * factors;
+  //  mmx_t tmp_mm;
+
+/*
+ *  mm0: Input
+ *  mm1: factor_mask
+ *  mm2: Factor
+ *  mm3: Output
+ *  mm4: 
+ *  mm5: 
+ *  mm6: 0
+ *  mm7: scratch
+ *  
+ */
+  
+  //  fprintf(stderr, "scale_uint8_x_1_x_bicubic_noclip_mmx\n");
+  src_start = ctx->src + ctx->scanline * ctx->src_stride;
+  
+  pxor_r2r(mm6, mm6);
+  movq_m2r(factor_mask, mm1);
+  dst = ctx->dst;
+  for(i = 0; i < ctx->dst_size; i++)
+    {
+    src = src_start + 4*ctx->table_h.pixels[i].index;
+    factors = ctx->table_h.pixels[i].factor_i;
+    
+    /* Load pixels */
+    movd_m2r(*(src), mm0);
+    punpcklbw_r2r(mm6, mm0);
+    psllw_i2r(7, mm0);
+    /* Load factors */
+    movd_m2r(*factors, mm2);
+    pand_r2r(mm1, mm2);
+    movq_r2r(mm2, mm7);
+    psllq_i2r(16, mm7);
+    por_r2r(mm7, mm2);
+    movq_r2r(mm2, mm7);
+    psllq_i2r(32, mm7);
+    por_r2r(mm7, mm2);
+    /* Multiply */
+    pmulhw_r2r(mm2, mm0);
+    movq_r2r(mm0, mm3);
+    //    DUMP_MM("mm3_1", mm3);
+    src += 4;
+    factors++;
+    
+    /* Load pixels */
+    movd_m2r(*(src), mm0);
+    punpcklbw_r2r(mm6, mm0);
+    psllw_i2r(7, mm0);
+    /* Load factors */
+    movd_m2r(*factors, mm2);
+    pand_r2r(mm1, mm2);
+    movq_r2r(mm2, mm7);
+    psllq_i2r(16, mm7);
+    por_r2r(mm7, mm2);
+    movq_r2r(mm2, mm7);
+    psllq_i2r(32, mm7);
+    por_r2r(mm7, mm2);
+    /* Multiply */
+    pmulhw_r2r(mm2, mm0);
+    paddw_r2r(mm0, mm3);
+    //    DUMP_MM("mm3_2", mm3);
+    src += 4;
+    factors++;
+
+    /* Load pixels */
+    movd_m2r(*(src), mm0);
+    punpcklbw_r2r(mm6, mm0);
+    psllw_i2r(7, mm0);
+    /* Load factors */
+    movd_m2r(*factors, mm2);
+    pand_r2r(mm1, mm2);
+    movq_r2r(mm2, mm7);
+    psllq_i2r(16, mm7);
+    por_r2r(mm7, mm2);
+    movq_r2r(mm2, mm7);
+    psllq_i2r(32, mm7);
+    por_r2r(mm7, mm2);
+    /* Multiply */
+    pmulhw_r2r(mm2, mm0);
+    paddw_r2r(mm0, mm3);
+    //    DUMP_MM("mm3_3", mm3);
+    src += 4;
+    factors++;
+    
+    psraw_i2r(5, mm3);
+    packuswb_r2r(mm6, mm3);
+    movd_r2m(mm3, *dst);
+    
+    dst+=4;
+    }
+  emms();
+  }
+
+
 /* scale_uint8_x_1_x_generic_mmx */
 
 static void scale_uint8_x_1_x_generic_mmx(gavl_video_scale_context_t * ctx)
@@ -281,6 +384,9 @@ static void scale_uint8_x_1_x_generic_mmx(gavl_video_scale_context_t * ctx)
 
     jmax = ctx->table_h.factors_per_pixel / 4;
     tmp = 0;
+
+    pxor_r2r(mm4, mm4);
+
     for(j = 0; j < jmax; j++)
       {
       /* Load pixels */
@@ -293,12 +399,15 @@ static void scale_uint8_x_1_x_generic_mmx(gavl_video_scale_context_t * ctx)
       packssdw_r2r(mm3, mm2);
       /* Multiply */
       pmaddwd_r2r(mm2, mm0);
-      MOVQ_R2M(mm0, tmp_mm);
-      tmp += tmp_mm.d[0] + tmp_mm.d[1];
+      paddd_r2r(mm0, mm4);
       src += 4;
       factors += 4;
       }
 
+    MOVQ_R2M(mm4, tmp_mm);
+    tmp = tmp_mm.d[0] + tmp_mm.d[1];
+
+    
     jmax = ctx->table_h.factors_per_pixel % 4;
 
     for(j = 0; j < jmax; j++)
@@ -388,7 +497,6 @@ static void scale_uint8_x_1_x_bilinear_mmx(gavl_video_scale_context_t * ctx)
   uint8_t * src, * dst, *src_start;
   mmx_t tmp_mm;
 
-  uint16_t * src_16;
   
 /*
  *  mm0: Input1 Input2
@@ -561,6 +669,17 @@ void gavl_init_scale_funcs_bicubic_x_mmx(gavl_scale_funcs_t * tab,
     {
     tab->funcs_x.scale_uint8_x_3 =  scale_uint8_x_4_x_bicubic_mmx;
     tab->funcs_x.scale_uint8_x_4 =  scale_uint8_x_4_x_bicubic_mmx;
+    tab->funcs_x.bits_uint8_noadvance  = 14;
+    }
+  }
+
+void gavl_init_scale_funcs_quadratic_x_mmx(gavl_scale_funcs_t * tab,
+                                           int src_advance, int dst_advance)
+  {
+  if((src_advance == 4) && (dst_advance == 4))
+    {
+    tab->funcs_x.scale_uint8_x_3 =  scale_uint8_x_4_x_quadratic_mmx;
+    tab->funcs_x.scale_uint8_x_4 =  scale_uint8_x_4_x_quadratic_mmx;
     tab->funcs_x.bits_uint8_noadvance  = 14;
     }
   }

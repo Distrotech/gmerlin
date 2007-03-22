@@ -22,10 +22,19 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <config.h>
 #include <gavl/gavl.h>
 #include <scale.h>
 
 #include <accel.h>
+
+#ifdef HAVE_MEMALIGN
+/* some systems have memalign() but no declaration for it */
+void * memalign (size_t align, size_t size);
+#else
+/* assume malloc alignment is sufficient */
+#define memalign(align,size) malloc (size)
+#endif
 
 #define SCALE_X        0
 #define SCALE_Y        1
@@ -33,7 +42,7 @@
 #define SCALE_X_THEN_Y 3
 #define SCALE_Y_THEN_X 4
 
-#define ALIGNMENT_BYTES 8
+#define ALIGNMENT_BYTES 16
 #define ALIGN(a) a=((a+ALIGNMENT_BYTES-1)/ALIGNMENT_BYTES)*ALIGNMENT_BYTES
 
 #define EPS 1e-4 /* Needed to determine if a double and an int are equal. */
@@ -364,10 +373,11 @@ static void alloc_temp(gavl_video_scale_context_t * ctx, gavl_pixelformat_t pixe
 
   if(ctx->buffer_alloc < size)
     {
+    if(ctx->buffer)
+      free(ctx->buffer);
     ctx->buffer_alloc = size + 8192;
-    ctx->buffer = realloc(ctx->buffer, ctx->buffer_alloc);
+    ctx->buffer = memalign(ALIGNMENT_BYTES, ctx->buffer_alloc);
     }
-  
   }
 
 /*
@@ -1002,7 +1012,7 @@ gavl_video_scale_context_init_convolve(gavl_video_scale_context_t* ctx,
 #endif
   
   /* Calculate chroma offsets  */
-  if(plane && !(opt->conversion_flags & GAVL_VIDEO_CONVOLVE_CHROMA))
+  if(plane && !(opt->conversion_flags & GAVL_CONVOLVE_CHROMA))
     {
     scale_x = 0;
     scale_y = 0;

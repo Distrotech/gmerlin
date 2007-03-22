@@ -84,6 +84,9 @@ struct gavl_video_convert_context_s
 
 struct gavl_video_converter_s
   {
+  gavl_video_format_t input_format;
+  gavl_video_format_t output_format;
+  
   gavl_video_options_t options;
 
   gavl_video_convert_context_t * first_context;

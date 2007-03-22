@@ -97,7 +97,10 @@ void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt,
       gavl_init_scale_funcs_quadratic_c(tab);
 #ifdef HAVE_MMX
       if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMX))
+        {
         gavl_init_scale_funcs_quadratic_y_mmx(tab, src_advance, dst_advance);
+        gavl_init_scale_funcs_quadratic_x_mmx(tab, src_advance, dst_advance);
+        }
 #endif
       break;
     case GAVL_SCALE_CUBIC_BSPLINE:

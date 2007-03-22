@@ -200,9 +200,7 @@ static int add_context_deinterlace(gavl_video_converter_t * cnv,
   }
 
 
-int gavl_video_converter_init(gavl_video_converter_t * cnv,
-                              const gavl_video_format_t * input_format,
-                              const gavl_video_format_t * output_format)
+int gavl_video_converter_reinit(gavl_video_converter_t * cnv)
   {
   int csp_then_scale = 0;
   gavl_video_convert_context_t * tmp_ctx;
@@ -221,6 +219,12 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
   gavl_video_format_t tmp_format;
   gavl_video_format_t tmp_format1;
 
+  gavl_video_format_t * input_format;
+  gavl_video_format_t * output_format;
+
+  input_format = &cnv->input_format;
+  output_format = &cnv->output_format;
+  
   // #ifdef DEBUG
 #if 0
   //  fprintf(stderr, "Initializing video converter, quality: %d, Flags: 0x%08x\n",
@@ -262,7 +266,7 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
      (tmp_format.image_height != output_format->image_height) ||
      (tmp_format.pixel_width  != output_format->pixel_width) ||
      (tmp_format.pixel_height != output_format->pixel_height) ||
-     ((cnv->options.quality > 3)
+     (((cnv->options.quality > 3) || (cnv->options.conversion_flags & GAVL_RESAMPLE_CHROMA))
       && (tmp_format.chroma_placement != output_format->chroma_placement)))
     {
     do_scale = 1;
@@ -272,7 +276,9 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
      accurate conversion. This is especially true if the chroma subsampling
      ratios change or when the chroma placement becomes different */
     
-  if(((cnv->options.quality > 3) || do_scale))
+  if(((cnv->options.quality > 3) ||
+      (cnv->options.conversion_flags & GAVL_RESAMPLE_CHROMA) ||
+      do_scale))
     {
     if(do_csp)
       {
@@ -462,6 +468,16 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
     }
   return cnv->num_contexts;
   }
+
+int gavl_video_converter_init(gavl_video_converter_t * cnv,
+                              const gavl_video_format_t * input_format,
+                              const gavl_video_format_t * output_format)
+  {
+  gavl_video_format_copy(&cnv->input_format, input_format);
+  gavl_video_format_copy(&cnv->output_format, output_format);
+  return gavl_video_converter_reinit(cnv);
+  }
+
 
 gavl_video_options_t *
 gavl_video_converter_get_options(gavl_video_converter_t * cnv)

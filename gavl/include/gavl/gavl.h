@@ -2,7 +2,7 @@
 
   gavl.h
 
-  Copyright (c) 2001-2006 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+  Copyright (c) 2001-2007 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
 
   http://gmerlin.sourceforge.net
 
@@ -573,6 +573,14 @@ typedef struct gavl_audio_options_s gavl_audio_options_t;
 void gavl_audio_options_set_quality(gavl_audio_options_t * opt, int quality);
 
 /*! \ingroup audio_options
+ *  \brief Get the quality level for a converter
+ *  \param opt Audio options
+ *  \returns Quality level (see \ref quality)
+ */
+  
+int gavl_audio_options_get_quality(gavl_audio_options_t * opt);
+  
+/*! \ingroup audio_options
  *  \brief Set the dither mode for the converter
  *  \param opt Audio options
  *  \param mode A dither mode
@@ -581,22 +589,39 @@ void gavl_audio_options_set_quality(gavl_audio_options_t * opt, int quality);
 void gavl_audio_options_set_dither_mode(gavl_audio_options_t * opt, gavl_audio_dither_mode_t mode);
 
 /*! \ingroup audio_options
+ *  \brief Get the dither mode for the converter
+ *  \param opt Audio options
+ *  \returns The dither mode
+ */
+  
+gavl_audio_dither_mode_t gavl_audio_options_get_dither_mode(gavl_audio_options_t * opt);
+
+  
+/*! \ingroup audio_options
  *  \brief Set the resample mode for the converter
  *  \param opt Audio options
  *  \param mode A resample mode
  */
   
 void gavl_audio_options_set_resample_mode(gavl_audio_options_t * opt, gavl_resample_mode_t mode);
+
+/*! \ingroup audio_options
+ *  \brief Get the resample mode for the converter
+ *  \param opt Audio options
+ *  \returns The resample mode
+ */
+  
+gavl_resample_mode_t gavl_audio_options_get_resample_mode(gavl_audio_options_t * opt);
   
 /*! \ingroup audio_options
  *  \brief Set the conversion flags
  *  \param opt Audio options
- *  \param flags (see \ref audio_conversion_flags)
+ *  \param flags Flags (see \ref audio_conversion_flags)
  */
   
 void gavl_audio_options_set_conversion_flags(gavl_audio_options_t * opt,
                                              int flags);
-
+  
 /*! \ingroup audio_options
  *  \brief Get the conversion flags
  *  \param opt Audio options
@@ -697,7 +722,7 @@ void gavl_audio_converter_destroy(gavl_audio_converter_t* cnv);
  *  \param cnv An audio converter
  *
  * After you called this, you can use the gavl_audio_options_set_*() functions to change
- * the options. Options will become valid with the next call to \ref gavl_audio_converter_init
+ * the options. Options will become valid with the next call to \ref gavl_audio_converter_init or \ref gavl_audio_converter_reinit
  */
 
 gavl_audio_options_t * gavl_audio_converter_get_options(gavl_audio_converter_t*cnv);
@@ -720,6 +745,22 @@ int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
                               const gavl_audio_format_t * input_format,
                               const gavl_audio_format_t * output_format);
 
+/*! \ingroup audio_converter
+ *  \brief Reinitialize an audio converter
+ *  \param cnv An audio converter
+ *  \returns The number of single conversion steps necessary to perform the
+ *           conversion. It may be 0, in this case you don't need the converter and
+ *           can pass the audio frames directly. If something goes wrong (should never happen),
+ *           -1 is returned.
+ *
+ * This function can be called if the input and output formats didn't
+ * change but the options did.
+ */
+
+  
+int gavl_audio_converter_reinit(gavl_audio_converter_t* cnv);
+
+  
 /*! \ingroup audio_converter
  *  \brief Convert audio
  *  \param cnv An audio converter
@@ -1825,14 +1866,23 @@ void gavl_video_frame_dump(gavl_video_frame_t * frame,
  * \brief Pass chroma planes to the convolver
  */
 
-#define GAVL_VIDEO_CONVOLVE_CHROMA   (1<<1)
+#define GAVL_CONVOLVE_CHROMA   (1<<1)
 
 /** \ingroup video_conversion_flags
  * \brief Normalize convolution matrices passed to the scaler
  */
 
-#define GAVL_VIDEO_CONVOLVE_NORMALIZE (1<<2)
- 
+#define GAVL_CONVOLVE_NORMALIZE (1<<2)
+
+/** \ingroup video_conversion_flags
+ * \brief Force chroma placement correction
+ *
+ *  Force chroma placement correction and resampling using a scaler.
+ *  Usually this is done only for qualities above 3.
+ */
+
+#define GAVL_RESAMPLE_CHROMA    (1<<3)
+  
 /** \ingroup video_options
  * Alpha handling mode
  *
@@ -1952,6 +2002,16 @@ void gavl_video_options_set_rectangles(gavl_video_options_t * opt,
                                        const gavl_rectangle_i_t * dst_rect);
 
 /*! \ingroup video_options
+ *  \brief Get source and destination rectangles
+ *  \param opt Video options
+ *  \param src_rect Returns the rectangular area in the source frame
+ *  \param dst_rect Returns the rectangular area in the destination frame
+ */
+void gavl_video_options_get_rectangles(gavl_video_options_t * opt,
+                                       gavl_rectangle_f_t * src_rect,
+                                       gavl_rectangle_i_t * dst_rect);
+  
+/*! \ingroup video_options
  *  \brief Set the quality level for the converter
  *  \param opt Video options
  *  \param quality Quality level (see \ref quality)
@@ -1959,6 +2019,15 @@ void gavl_video_options_set_rectangles(gavl_video_options_t * opt,
 
 void gavl_video_options_set_quality(gavl_video_options_t * opt, int quality);
 
+/*! \ingroup video_options
+ *  \brief Get the quality level for the converter
+ *  \param opt Video options
+ *  \returns Quality level (see \ref quality)
+ */
+
+int gavl_video_options_get_quality(gavl_video_options_t * opt);
+
+  
 /*! \ingroup video_options
  *  \brief Set the conversion flags
  *  \param opt Video options
@@ -1986,6 +2055,16 @@ void gavl_video_options_set_alpha_mode(gavl_video_options_t * opt,
                                        gavl_alpha_mode_t alpha_mode);
 
 /*! \ingroup video_options
+ *  \brief Get the alpha mode
+ *  \param opt Video options
+ *  \returns Alpha mode
+ */
+
+gavl_alpha_mode_t
+gavl_video_options_get_alpha_mode(gavl_video_options_t * opt);
+
+  
+/*! \ingroup video_options
  *  \brief Set the scale mode
  *  \param opt Video options
  *  \param scale_mode Scale mode
@@ -1995,6 +2074,16 @@ void gavl_video_options_set_scale_mode(gavl_video_options_t * opt,
                                        gavl_scale_mode_t scale_mode);
 
 /*! \ingroup video_options
+ *  \brief Get the scale mode
+ *  \param opt Video options
+ *  \returns Scale mode
+ */
+  
+gavl_scale_mode_t
+gavl_video_options_get_scale_mode(gavl_video_options_t * opt);
+
+  
+/*! \ingroup video_options
  *  \brief Set the scale order for GAVL_SCALE_SINC_LANCZOS
  *  \param opt Video options
  *  \param order Order (must be at least 4)
@@ -2002,6 +2091,14 @@ void gavl_video_options_set_scale_mode(gavl_video_options_t * opt,
   
 void gavl_video_options_set_scale_order(gavl_video_options_t * opt,
                                         int order);
+
+/*! \ingroup video_options
+ *  \brief Get the scale order for GAVL_SCALE_SINC_LANCZOS
+ *  \param opt Video options
+ *  \returns Order
+ */
+  
+int gavl_video_options_get_scale_order(gavl_video_options_t * opt);
 
   
 /*! \ingroup video_options
@@ -2031,6 +2128,15 @@ void gavl_video_options_get_background_color(gavl_video_options_t * opt,
 void gavl_video_options_set_deinterlace_mode(gavl_video_options_t * opt,
                                              gavl_deinterlace_mode_t deinterlace_mode);
 
+/*! \ingroup video_ptions
+ *  \brief Get the deinterlace mode
+ *  \param opt Video options
+ *  \returns Deinterlace mode
+ */
+  
+gavl_deinterlace_mode_t
+gavl_video_options_get_deinterlace_mode(gavl_video_options_t * opt);
+
 /*! \ingroup video_options
  *  \brief Set the deinterlace drop mode
  *  \param opt Video options
@@ -2040,6 +2146,15 @@ void gavl_video_options_set_deinterlace_mode(gavl_video_options_t * opt,
 void gavl_video_options_set_deinterlace_drop_mode(gavl_video_options_t * opt,
                                                   gavl_deinterlace_drop_mode_t deinterlace_drop_mode);
 
+/*! \ingroup video_options
+ *  \brief Get the deinterlace drop mode
+ *  \param opt Video options
+ *  \returns Deinterlace drop mode
+ */
+  
+gavl_deinterlace_drop_mode_t
+gavl_video_options_get_deinterlace_drop_mode(gavl_video_options_t * opt);
+ 
   
 /***************************************************
  * Create and destroy video converters
@@ -2103,7 +2218,7 @@ void gavl_video_converter_destroy(gavl_video_converter_t*cnv);
  *  \param cnv A video converter
  *
  * After you called this, you can use the gavl_video_options_set_*() functions to change
- * the options. Options will become valid with the next call to \ref gavl_video_converter_init
+ * the options. Options will become valid with the next call to \ref gavl_video_converter_init or \ref gavl_video_converter_reinit.
  */
   
 gavl_video_options_t *
@@ -2127,6 +2242,21 @@ int gavl_video_converter_init(gavl_video_converter_t* cnv,
                               const gavl_video_format_t * input_format,
                               const gavl_video_format_t * output_format);
 
+/*! \ingroup video_converter
+ *  \brief Reinitialize a video converter
+ *  \param cnv A video converter
+ *  \returns The number of single conversion steps necessary to perform the
+ *           conversion. It may be 0, in this case you don't need the converter and
+ *           can pass the video frames directly. If something goes wrong (should never happen),
+ *           -1 is returned.
+ *
+ * This function can be called if the input and output formats didn't
+ * change but the options did.
+ */
+  
+int gavl_video_converter_reinit(gavl_video_converter_t* cnv);
+ 
+  
 /***************************************************
  * Convert a frame
  ***************************************************/

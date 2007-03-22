@@ -70,6 +70,22 @@ int gavl_audio_options_get_conversion_flags(gavl_audio_options_t * opt)
   return opt->conversion_flags;
   }
 
+int gavl_audio_options_get_quality(gavl_audio_options_t * opt)
+  {
+  return opt->quality;
+  }
+
+gavl_audio_dither_mode_t
+gavl_audio_options_get_dither_mode(gavl_audio_options_t * opt)
+  {
+  return opt->dither_mode;
+  }
+
+gavl_resample_mode_t
+gavl_audio_options_get_resample_mode(gavl_audio_options_t * opt)
+  {
+  return opt->resample_mode;
+  }
 
 void gavl_audio_options_set_defaults(gavl_audio_options_t * opt)
   {

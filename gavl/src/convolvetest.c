@@ -301,7 +301,7 @@ int main(int argc, char ** argv)
     gavl_video_options_set_defaults(opt);
 
     gavl_video_options_set_conversion_flags(opt,
-                                            GAVL_VIDEO_CONVOLVE_NORMALIZE | GAVL_VIDEO_CONVOLVE_CHROMA);
+                                            GAVL_CONVOLVE_NORMALIZE | GAVL_CONVOLVE_CHROMA);
     gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_C);
 
 #if 0    

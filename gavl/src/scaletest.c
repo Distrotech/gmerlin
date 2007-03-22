@@ -6,7 +6,7 @@
 
 #include <accel.h>
 
-#define CSP GAVL_UYVY
+#define CSP GAVL_YUV_420_P
 // #define CSP GAVL_RGB_32
 // #define LOOP
 
@@ -56,6 +56,8 @@ static void write_png(char * filename, gavl_video_format_t * format,
 
     opt = gavl_video_converter_get_options(cnv);
     gavl_video_options_set_alpha_mode(opt, GAVL_ALPHA_BLEND_COLOR);    
+    gavl_video_options_set_quality(opt, 2);    
+    
     gavl_video_converter_init(cnv, format, &format_1);
     
     gavl_video_convert(cnv, frame, frame_1);

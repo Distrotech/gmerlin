@@ -13,7 +13,7 @@
 #define MOVQ_R2M(reg,mem) movq_r2m(reg, mem)
 #endif
 
-#if 1
+#if 0
 static mmx_t mm_tmp;
 #define DUMP_MM(name, reg) MOVQ_R2M(reg, mm_tmp);\
   fprintf(stderr, "%s: %016llx\n", name, mm_tmp.q);

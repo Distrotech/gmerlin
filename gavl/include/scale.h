@@ -87,6 +87,7 @@ void gavl_init_scale_funcs_quadratic_y_mmx(gavl_scale_funcs_t * tab,
                                            int src_advance,
                                            int dst_advance);
 
+
 void gavl_init_scale_funcs_generic_y_mmx(gavl_scale_funcs_t * tab,
                                          int src_advance,
                                          int dst_advance);
@@ -97,6 +98,10 @@ void gavl_init_scale_funcs_bilinear_y_mmx(gavl_scale_funcs_t * tab,
 void gavl_init_scale_funcs_bicubic_x_mmx(gavl_scale_funcs_t * tab,
                                          int src_advance,
                                          int dst_advance);
+
+void gavl_init_scale_funcs_quadratic_x_mmx(gavl_scale_funcs_t * tab,
+                                           int src_advance,
+                                           int dst_advance);
 
 void gavl_init_scale_funcs_bicubic_noclip_x_mmx(gavl_scale_funcs_t * tab,
                                                 int src_advance,

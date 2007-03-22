@@ -130,15 +130,18 @@ static void dump_context(gavl_audio_convert_context_t * ctx)
   }
 #endif
 
-int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
-                              const gavl_audio_format_t * input_format,
-                              const gavl_audio_format_t * output_format)
+int gavl_audio_converter_reinit(gavl_audio_converter_t* cnv)
   {
   int do_mix, do_resample;
   int i;
   gavl_audio_convert_context_t * ctx;
 
+  gavl_audio_format_t * input_format, * output_format;
+  
   gavl_audio_format_t tmp_format;
+
+  input_format = &cnv->input_format;
+  output_format = &cnv->output_format;
   
 #if 0
   fprintf(stderr, "Initializing audio converter, quality: %d, Flags: 0x%08x\n",
@@ -149,13 +152,7 @@ int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
   audio_converter_cleanup(cnv);
 
   /* Copy formats and options */
-
-  gavl_audio_format_copy(&(cnv->input_format), input_format);
-  gavl_audio_format_copy(&(cnv->output_format), output_format);
-
-  adjust_format(&(cnv->input_format));
-  adjust_format(&(cnv->output_format));
-
+  
   if(cnv->input_format.samples_per_frame < cnv->output_format.samples_per_frame)
     cnv->input_format.samples_per_frame = cnv->output_format.samples_per_frame;
   else
@@ -347,6 +344,18 @@ int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
     }
   
   return cnv->num_conversions;
+  }
+
+int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
+                              const gavl_audio_format_t * input_format,
+                              const gavl_audio_format_t * output_format)
+  {
+  gavl_audio_format_copy(&(cnv->input_format), input_format);
+  gavl_audio_format_copy(&(cnv->output_format), output_format);
+
+  adjust_format(&(cnv->input_format));
+  adjust_format(&(cnv->output_format));
+  return gavl_audio_converter_reinit(cnv);
   }
 
 /* Convert audio */

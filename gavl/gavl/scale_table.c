@@ -211,7 +211,7 @@ gavl_video_scale_table_init_convolve(gavl_video_scale_table_t * tab,
 
   shift_borders(tab, size);
 
-  if(opt->conversion_flags & GAVL_VIDEO_CONVOLVE_NORMALIZE)
+  if(opt->conversion_flags & GAVL_CONVOLVE_NORMALIZE)
     normalize_table(tab);   
   }
 
