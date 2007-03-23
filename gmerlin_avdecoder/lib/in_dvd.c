@@ -164,12 +164,56 @@ static gavl_time_t get_duration(pgc_t * pgc, int start_cell, int end_cell, int a
   
   }
 
+static struct
+  {
+  int image_width;
+  int image_height;
+  int pixel_width_4_3;
+  int pixel_height_4_3;
+  int pixel_width_16_9;
+  int pixel_height_16_9;
+  }
+frame_sizes[] =
+  {
+    { 720, 576, 59, 54, 118, 81 }, /* PAL  */
+    { 720, 480, 10, 11, 40,  33 }, /* NTSC */
+    { 352, 576, 59, 27,  0,   0 }, /* PAL CVD */
+    { 352, 480, 20, 11,  0,   0 }, /* NTSC CVD */
+    { 352, 288, 59, 54,  0,   0 }, /* PAL VCD */
+    { 352, 480, 10, 11,  0,   0 }, /* NTSC VCD */
+  };
+
+static void guess_pixel_aspect(int width, int height, int aspect,
+                               int * pixel_width, int * pixel_height)
+  {
+  int i;
+  for(i = 0; i < sizeof(frame_sizes)/sizeof(frame_sizes[0]); i++)
+    {
+    if((frame_sizes[i].image_width == width) &&
+       (frame_sizes[i].image_height == height))
+      {
+      if(aspect == 0) /* 4:3 */
+        {
+        *pixel_width  = frame_sizes[i].pixel_width_4_3;
+        *pixel_height = frame_sizes[i].pixel_height_4_3;
+        }
+      else if(aspect == 3) /* 16:9 */
+        {
+        *pixel_width  = frame_sizes[i].pixel_width_16_9;
+        *pixel_height = frame_sizes[i].pixel_height_16_9;
+        }
+      return;
+      }
+    }
+  }
 
 static void setup_track(bgav_input_context_t * ctx,
                         int title, int chapter, int angle)
   {
+  int video_width, video_height;
   const char * audio_codec = (const char *)0;
   audio_attr_t * audio_attr;
+  video_attr_t * video_attr;
   subp_attr_t *  subp_attr;
   int i;
   int stream_position;
@@ -304,6 +348,33 @@ static void setup_track(bgav_input_context_t * ctx,
   s->fourcc = BGAV_MK_FOURCC('m', 'p', 'g', 'v');
   s->stream_id = 0xE0;
   s->timescale = 90000;
+  video_attr = &dvd->vts_ifo->vtsi_mat->vts_video_attr;
+
+  video_height = 480;
+  if(video_attr->video_format != 0) 
+    video_height = 576;
+
+  switch(video_attr->picture_size)
+    {
+    case 0:
+      video_width = 720;
+      break;
+    case 1:
+      video_width = 704;
+      break;
+    case 2:
+      video_width = 352;
+      break;
+    case 3:
+      video_width = 352;
+      video_height /= 2;
+      break;      
+    }
+  
+  guess_pixel_aspect(video_width, video_height,
+                     video_attr->display_aspect_ratio,
+                     &s->data.video.format.pixel_width,
+                     &s->data.video.format.pixel_height);
   
   /* Audio streams */
   for(i = 0; i < dvd->vts_ifo->vtsi_mat->nr_of_vts_audio_streams; i++)

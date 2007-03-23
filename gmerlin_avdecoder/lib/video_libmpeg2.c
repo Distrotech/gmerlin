@@ -66,6 +66,8 @@ typedef struct
   int do_resync;
 
   const mpeg2_picture_t * first_iframe;
+  
+  int extern_aspect; /* Container sent us the aspect ratio already */
   } mpeg2_priv_t;
 
 int dump_packet = 1;
@@ -121,9 +123,13 @@ static int parse(bgav_stream_t*s, mpeg2_state_t * state)
     }
   }
 
-static void get_format(gavl_video_format_t * ret,
+static void get_format(bgav_stream_t*s,
+                       gavl_video_format_t * ret,
                        const mpeg2_sequence_t * sequence)
   {
+  mpeg2_priv_t * priv;
+  priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
+  
   switch(sequence->frame_period)
     {
     /* Original timscale is 27.000.000, a bit too much for us */
@@ -173,14 +179,14 @@ static void get_format(gavl_video_format_t * ret,
   ret->frame_width  = sequence->width;
   ret->frame_height = sequence->height;
 
-#if 1
-  ret->pixel_width  = sequence->pixel_width;
-  ret->pixel_height = sequence->pixel_height;
-#else
-  mpeg2_guess_aspect(sequence,
-                     &(ret->pixel_width),
-                     &(ret->pixel_height));
-#endif
+  if(!ret->pixel_width)
+    {
+    ret->pixel_width  = sequence->pixel_width;
+    ret->pixel_height = sequence->pixel_height;
+    }
+  else
+    priv->extern_aspect = 1;
+  
   if(sequence->chroma_height == sequence->height/2)
     {
     ret->pixelformat = GAVL_YUV_420_P;
@@ -224,7 +230,7 @@ static int init_mpeg2(bgav_stream_t*s)
   
   /* Get format */
   
-  get_format(&(s->data.video.format), priv->info->sequence);
+  get_format(s, &s->data.video.format, priv->info->sequence);
   priv->frame = gavl_video_frame_create(NULL);
 
   priv->frame->strides[0] = priv->info->sequence->width;
@@ -307,29 +313,32 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
 #endif
       {
       memset(&new_format, 0, sizeof(new_format));
-      get_format(&(new_format), priv->info->sequence);
+      get_format(s, &(new_format), priv->info->sequence);
       
       if((new_format.image_width != s->data.video.format.image_width) ||
          (new_format.image_height != s->data.video.format.image_height))
         bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
                  "Detected change of image size, not handled yet");
 
-      if((s->data.video.format.pixel_width != new_format.pixel_width) ||
-         (s->data.video.format.pixel_height != new_format.pixel_height))
+      if(!priv->extern_aspect)
         {
-        bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN,
-                 "Detected change of pixel aspect ratio: %dx%d",
-                 new_format.pixel_width,
-                 new_format.pixel_height);
-        if(s->opt->aspect_callback)
+        if((s->data.video.format.pixel_width != new_format.pixel_width) ||
+           (s->data.video.format.pixel_height != new_format.pixel_height))
           {
-          s->opt->aspect_callback(s->opt->aspect_callback_data,
-                                  bgav_stream_get_index(s),
-                                  new_format.pixel_width,
-                                  new_format.pixel_height);
+          bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN,
+                   "Detected change of pixel aspect ratio: %dx%d",
+                   new_format.pixel_width,
+                   new_format.pixel_height);
+          if(s->opt->aspect_callback)
+            {
+            s->opt->aspect_callback(s->opt->aspect_callback_data,
+                                    bgav_stream_get_index(s),
+                                    new_format.pixel_width,
+                                    new_format.pixel_height);
+            }
+          s->data.video.format.pixel_width = new_format.pixel_width;
+          s->data.video.format.pixel_height = new_format.pixel_height;
           }
-        s->data.video.format.pixel_width = new_format.pixel_width;
-        s->data.video.format.pixel_height = new_format.pixel_height;
         }
       }
     }

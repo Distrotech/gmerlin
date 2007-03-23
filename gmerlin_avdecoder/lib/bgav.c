@@ -68,8 +68,10 @@ int bgav_init(bgav_t * ret)
       bgav_track_table_ref(ret->demuxer->tt);
       }
     if(ret->tt->num_tracks > 1)
+      {
+      bgav_track_table_remove_unsupported(ret->tt);
       return 1;
-    
+      }
     }
   /*
    *  Autodetect the format and fire up the demuxer

@@ -819,6 +819,10 @@ static int init_pcm(bgav_stream_t * s)
           priv->decode_func = decode_s_16;
 #endif
           break;
+        case 24:
+          s->data.audio.format.sample_format = GAVL_SAMPLE_S32;
+          priv->decode_func = decode_s_24_be;
+          break;
         default:
           bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
                    "Audio bits %d not supported.",

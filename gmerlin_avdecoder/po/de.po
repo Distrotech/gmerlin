@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmerlin-avdecoder 0.1.6\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-03-22 02:11+0100\n"
+"POT-Creation-Date: 2007-03-23 01:02+0100\n"
 "PO-Revision-Date: 2007-02-11 02:57+0100\n"
 "Last-Translator: Burkhard Plaum <gmerlin@users.sourceforge.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -569,34 +569,34 @@ msgstr ""
 msgid "Decode png failed"
 msgstr ""
 
-#: lib/in_dvd.c:550 lib/in_vcd.c:246
+#: lib/in_dvd.c:621 lib/in_vcd.c:246
 #, c-format
 msgid "cdio_close_tray failed: %s"
 msgstr ""
 
-#: lib/in_dvd.c:554 lib/in_vcd.c:250
+#: lib/in_dvd.c:625 lib/in_vcd.c:250
 msgid "cdio_close_tray failed"
 msgstr ""
 
-#: lib/in_dvd.c:562
+#: lib/in_dvd.c:633
 msgid "DVDOpen failed"
 msgstr ""
 
-#: lib/in_dvd.c:578
+#: lib/in_dvd.c:649
 msgid "ifoOpen failed"
 msgstr ""
 
-#: lib/in_dvd.c:672 lib/in_dvd.c:947
+#: lib/in_dvd.c:743 lib/in_dvd.c:1018
 #, c-format
 msgid "error reading NAV packet @%i"
 msgstr ""
 
-#: lib/in_dvd.c:776
+#: lib/in_dvd.c:847
 #, c-format
 msgid "error reading blocks @%i"
 msgstr ""
 
-#: lib/in_dvd.c:1121
+#: lib/in_dvd.c:1192
 #, c-format
 msgid "Cannot open DVD Device %s"
 msgstr ""
@@ -607,15 +607,15 @@ msgstr ""
 msgid "Palette missing or too small %d"
 msgstr ""
 
-#: lib/video_libmpeg2.c:260
+#: lib/video_libmpeg2.c:266
 msgid "Detected Intra slice refresh"
 msgstr ""
 
-#: lib/video_libmpeg2.c:315
+#: lib/video_libmpeg2.c:321
 msgid "Detected change of image size, not handled yet"
 msgstr ""
 
-#: lib/video_libmpeg2.c:321
+#: lib/video_libmpeg2.c:329
 #, c-format
 msgid "Detected change of pixel aspect ratio: %dx%d"
 msgstr ""
@@ -1092,7 +1092,7 @@ msgstr ""
 msgid "%d audio bits not supported."
 msgstr ""
 
-#: lib/audio_pcm.c:798 lib/audio_pcm.c:824
+#: lib/audio_pcm.c:798 lib/audio_pcm.c:828
 #, c-format
 msgid "Audio bits %d not supported."
 msgstr ""
@@ -1101,12 +1101,12 @@ msgstr ""
 msgid "Could not get initial packet"
 msgstr ""
 
-#: lib/audio_pcm.c:933
+#: lib/audio_pcm.c:937
 #, c-format
 msgid "extradata too small (%d < %d)"
 msgstr ""
 
-#: lib/audio_pcm.c:1032
+#: lib/audio_pcm.c:1036
 msgid "Unknown fourcc"
 msgstr ""
 
@@ -1275,11 +1275,11 @@ msgstr ""
 msgid "Invalid channel number %d"
 msgstr ""
 
-#: lib/bgav.c:151
+#: lib/bgav.c:153
 msgid "Cannot detect stream type"
 msgstr ""
 
-#: lib/bgav.c:352
+#: lib/bgav.c:354
 msgid "Reopening input due to track reset"
 msgstr ""
 
