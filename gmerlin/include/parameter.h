@@ -223,7 +223,16 @@ void bg_parameter_info_destroy_array(bg_parameter_info_t * info);
 
 void bg_parameter_value_copy(bg_parameter_value_t * dst,
                              const bg_parameter_value_t * src,
-                             bg_parameter_info_t * info);
+                             const bg_parameter_info_t * info);
+
+/** \ingroup parameter
+ *  \brief Free a parameter value
+ *  \param val A parameter value
+ *  \param info Parameter description
+ */
+
+void bg_parameter_value_free(bg_parameter_value_t * val,
+                             const bg_parameter_info_t * info);
 
 
 /** \ingroup parameter

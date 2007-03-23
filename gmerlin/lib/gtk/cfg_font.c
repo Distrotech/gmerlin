@@ -32,6 +32,8 @@ typedef struct
   GtkWidget * fontselect;
   } font_t;
 
+static void button_callback(GtkWidget * w, gpointer data);
+
 static void get_value(bg_gtk_widget_t * w)
   {
   font_t * priv;
@@ -74,8 +76,6 @@ static void destroy(bg_gtk_widget_t * w)
   font_t * priv = (font_t*)(w->priv);
   if(priv->fontselect)
     gtk_widget_destroy(priv->fontselect);
-  if(w->value.val_str)
-    free(w->value.val_str);
   free(priv);
   }
 
@@ -110,6 +110,14 @@ static gtk_widget_funcs_t funcs =
     attach:    attach
   };
 
+static gboolean delete_callback(GtkWidget * w, GdkEventAny * event,
+                                gpointer data)
+  {
+  button_callback(w, data);
+  return TRUE;
+  }
+
+
 static void button_callback(GtkWidget * w, gpointer data)
   {
   char * fontname;
@@ -127,6 +135,10 @@ static void button_callback(GtkWidget * w, gpointer data)
       g_signal_connect(G_OBJECT(GTK_FONT_SELECTION_DIALOG(priv->fontselect)->cancel_button),
                          "clicked", G_CALLBACK(button_callback),
                          (gpointer)priv);
+      g_signal_connect(G_OBJECT(priv->fontselect),
+                       "delete_event", G_CALLBACK(delete_callback),
+                       (gpointer)priv);
+      
       }
 
     gtk_font_selection_set_font_name(GTK_FONT_SELECTION(GTK_FONT_SELECTION_DIALOG(priv->fontselect)->fontsel), gtk_entry_get_text(GTK_ENTRY(priv->entry)));
@@ -145,7 +157,8 @@ static void button_callback(GtkWidget * w, gpointer data)
       gtk_entry_set_text(GTK_ENTRY(priv->entry), fontname);
       g_free(fontname);
       }
-    if(w == GTK_FONT_SELECTION_DIALOG(priv->fontselect)->cancel_button)
+    if((w == GTK_FONT_SELECTION_DIALOG(priv->fontselect)->cancel_button) ||
+       (w == priv->fontselect))
       {
       gtk_widget_hide(priv->fontselect);
       gtk_main_quit();

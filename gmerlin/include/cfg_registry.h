@@ -301,7 +301,7 @@ void bg_cfg_section_set_name(bg_cfg_section_t * section, const char * name,
  */
 
 void bg_cfg_section_set_parameter(bg_cfg_section_t * section,
-                                  bg_parameter_info_t * info,
+                                  const bg_parameter_info_t * info,
                                   bg_parameter_value_t * value);
 
 /** \ingroup cfg_section
@@ -331,7 +331,7 @@ int bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * section,
  */
 
 void bg_cfg_section_get_parameter(bg_cfg_section_t * section,
-                                  bg_parameter_info_t * info,
+                                  const bg_parameter_info_t * info,
                                   bg_parameter_value_t * value);
 
 /** \ingroup cfg_section

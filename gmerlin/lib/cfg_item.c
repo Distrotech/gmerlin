@@ -31,7 +31,7 @@ bg_cfg_item_t * bg_cfg_item_create_empty(const char * name)
   return ret;
   }
 
-bg_cfg_item_t * bg_cfg_item_create(bg_parameter_info_t * info,
+bg_cfg_item_t * bg_cfg_item_create(const bg_parameter_info_t * info,
                                    bg_parameter_value_t * value)
   {
   bg_cfg_item_t * ret = calloc(1, sizeof(*ret));

@@ -44,6 +44,7 @@ struct bg_gtk_widget_s
   void * priv;
   gtk_widget_funcs_t * funcs;
   bg_parameter_value_t value;
+  bg_parameter_value_t last_value; /* For pressing ESC */
   const bg_parameter_info_t * info;
 
   /* For change callbacks */

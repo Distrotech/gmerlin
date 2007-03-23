@@ -1025,18 +1025,6 @@ static void set_drawing_coords(x11_t * priv)
   /* Clear window */
 
   gavl_video_frame_clear(priv->window_frame, &(priv->window_format));
-
-  fprintf(stderr, "src format\n");
-  gavl_video_format_dump(&(priv->video_format));
-  fprintf(stderr, "dst format\n");
-  gavl_video_format_dump(&(priv->window_format));
-  
-  fprintf(stderr, "src rect\n");
-  gavl_rectangle_f_dump(&(priv->src_rect_f));
-  fprintf(stderr, "dst rect\n");
-  gavl_rectangle_i_dump(&(priv->dst_rect));
-  fprintf(stderr, "\n");
-
   
   /* Reinitialize scaler */
   
@@ -1470,6 +1458,7 @@ static int handle_event(x11_t * priv, XEvent * evt)
       switch(keysym)
         {
         case XK_Tab:
+        case XK_f:
           /* Non Fullscreen -> Fullscreen */
           
           if(priv->win.current_window == priv->win.normal_window)
@@ -1478,6 +1467,13 @@ static int handle_event(x11_t * priv, XEvent * evt)
           else
             x11_window_set_fullscreen(&(priv->win), 0);
           set_drawing_coords(priv);
+          break;
+        case XK_Escape:
+          if(priv->win.current_window == priv->win.fullscreen_window)
+            {
+            x11_window_set_fullscreen(&(priv->win), 0);
+            set_drawing_coords(priv);
+            }
           break;
         case XK_Home:
           priv->zoom = 100.0;

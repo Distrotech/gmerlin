@@ -61,7 +61,7 @@ bg_cfg_item_t * bg_cfg_item_create_empty(const char * name);
 
 /* Value can be NULL, then the default is used */
 
-bg_cfg_item_t * bg_cfg_item_create(bg_parameter_info_t *,
+bg_cfg_item_t * bg_cfg_item_create(const bg_parameter_info_t *,
                                    bg_parameter_value_t * value);
 
 void bg_cfg_destroy_item(bg_cfg_item_t *);
@@ -69,7 +69,7 @@ void bg_cfg_destroy_item(bg_cfg_item_t *);
 
 
 bg_cfg_item_t * bg_cfg_section_find_item(bg_cfg_section_t * section,
-                                         bg_parameter_info_t * info);
+                                         const bg_parameter_info_t * info);
 
 bg_cfg_item_t * bg_cfg_item_copy(bg_cfg_item_t * src);
 void bg_cfg_item_transfer(bg_cfg_item_t * src, bg_cfg_item_t * dst);

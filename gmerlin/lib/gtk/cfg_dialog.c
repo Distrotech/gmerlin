@@ -173,32 +173,31 @@ static dialog_section_t * iter_2_section(bg_dialog_t * d,
   return ret;
   }
 
-
-
-static void apply_section(dialog_section_t * s)
+static void reset_section(dialog_section_t * s)
   {
-  int i, parameter_index;
+  int i;
   bg_parameter_value_t val;
   char * pos;
   
-  parameter_index = 0;
-
   for(i = 0; i < s->num_widgets; i++)
     {
-    while(s->infos[parameter_index].flags & BG_PARAMETER_HIDE_DIALOG)
-      parameter_index++;
+    bg_parameter_value_copy(&s->widgets[i].value, &s->widgets[i].last_value,
+                            s->widgets[i].info);
     
-    s->widgets[i].funcs->set_value(&(s->widgets[i]));
-    if(s->cfg_section)
+    s->widgets[i].funcs->get_value(&(s->widgets[i]));
+
+    
+    if(s->cfg_section && (s->widgets[i].info->flags & BG_PARAMETER_SYNC))
       {
+
       bg_cfg_section_set_parameter(s->cfg_section,
-                                   &(s->infos[parameter_index]),
+                                   s->widgets[i].info,
                                    &(s->widgets[i].value));
       }
-
-    if(s->set_param)
+    
+    if(s->set_param && (s->widgets[i].info->flags & BG_PARAMETER_SYNC))
       {
-      if((s->infos[parameter_index].type == BG_PARAMETER_DEVICE) &&
+      if((s->widgets[i].info->type == BG_PARAMETER_DEVICE) &&
          (s->widgets[i].value.val_str) &&
          strchr(s->widgets[i].value.val_str, ':'))
         {
@@ -206,15 +205,58 @@ static void apply_section(dialog_section_t * s)
         strcpy(val.val_str, s->widgets[i].value.val_str);
         pos = strchr(val.val_str, ':');
         *pos = '\0';
-        s->set_param(s->callback_data, s->infos[parameter_index].name,
+        s->set_param(s->callback_data, s->widgets[i].info->name,
                      &val);
         free(val.val_str);
         }
       else
-        s->set_param(s->callback_data, s->infos[parameter_index].name,
+        s->set_param(s->callback_data, s->widgets[i].info->name,
                      &(s->widgets[i].value));
       }
-    parameter_index++;
+    }
+  
+  for(i = 0; i < s->num_children; i++)
+    reset_section(&(s->children[i]));
+  }
+
+static void apply_section(dialog_section_t * s)
+  {
+  bg_parameter_value_t val;
+  char * pos;
+  int i;
+  
+  for(i = 0; i < s->num_widgets; i++)
+    {
+    s->widgets[i].funcs->set_value(&(s->widgets[i]));
+    bg_parameter_value_copy(&s->widgets[i].last_value, &s->widgets[i].value,
+                            s->widgets[i].info);
+    
+    if(s->cfg_section)
+      {
+      bg_cfg_section_set_parameter(s->cfg_section,
+                                   s->widgets[i].info,
+                                   &(s->widgets[i].value));
+      
+      }
+
+    if(s->set_param)
+      {
+      if((s->widgets[i].info->type == BG_PARAMETER_DEVICE) &&
+         (s->widgets[i].value.val_str) &&
+         strchr(s->widgets[i].value.val_str, ':'))
+        {
+        val.val_str = malloc(strlen(s->widgets[i].value.val_str)+1);
+        strcpy(val.val_str, s->widgets[i].value.val_str);
+        pos = strchr(val.val_str, ':');
+        *pos = '\0';
+        s->set_param(s->callback_data, s->widgets[i].info->name,
+                     &val);
+        free(val.val_str);
+        }
+      else
+        s->set_param(s->callback_data, s->widgets[i].info->name,
+                     &(s->widgets[i].value));
+      }
     }
 
   
@@ -231,12 +273,18 @@ static void apply_values(bg_dialog_t * d)
   apply_section(&(d->root_section));
   }
 
+static void reset_values(bg_dialog_t * d)
+  {
+  reset_section(&(d->root_section));
+  }
+
 static void button_callback(GtkWidget * w, gpointer * data)
   {
   bg_dialog_t * d = (bg_dialog_t *)data;
   if((w == d->close_button) ||
      (w == d->window))
     {
+    reset_values(d);
     d->visible = 0;
     gtk_widget_hide(d->window);
     gtk_main_quit();
@@ -578,6 +626,11 @@ static GtkWidget * create_section(dialog_section_t * section,
                               &(info[i].val_default),
                               &(info[i]));
       }
+    
+    bg_parameter_value_copy(&section->widgets[count].last_value,
+                            &section->widgets[count].value,
+                            &(info[i]));
+    
     if(section->widgets[count].info->flags & BG_PARAMETER_SYNC)
       bg_gtk_change_callback_block(&section->widgets[count], 1);
     section->widgets[count].funcs->get_value(&(section->widgets[count]));    
@@ -837,36 +890,33 @@ void bg_dialog_add(bg_dialog_t *d,
 
 void bg_dialog_show(bg_dialog_t * d)
   {
-  
   if(d->visible)
     {
     gtk_window_present(GTK_WINDOW(d->window));
     return;
     }
-  
   d->visible = 1;
-  
-
   gtk_widget_show(d->window);
   gtk_widget_grab_default(d->ok_button);
   gtk_widget_grab_focus(d->ok_button);
   gtk_main();
   }
 
-
 static void destroy_section(dialog_section_t * s)
   {
   int i;
-
   if(s->num_widgets)
     {
     for(i = 0; i < s->num_widgets; i++)
       {
       s->widgets[i].funcs->destroy(&(s->widgets[i]));
+      bg_parameter_value_free(&s->widgets[i].value,
+                              s->widgets[i].info);
+      bg_parameter_value_free(&s->widgets[i].last_value,
+                              s->widgets[i].info);
       }
     free(s->widgets);
     }
-  
   if(s->num_children)
     {
     for(i = 0; i < s->num_children; i++)
@@ -875,7 +925,6 @@ static void destroy_section(dialog_section_t * s)
       }
     free(s->children);
     }
-  
   }
 
 void bg_dialog_destroy(bg_dialog_t * d)
@@ -901,9 +950,7 @@ void bg_gtk_change_callback(GtkWidget * gw, gpointer data)
 void bg_gtk_change_callback_block(bg_gtk_widget_t * w, int block)
   {
   if(!w->callback_widget)
-    {
     return;
-    }
   if(block)
     g_signal_handler_block(w->callback_widget, w->callback_id);
   else

@@ -1684,3 +1684,27 @@ void bg_album_eject(bg_album_t * a)
   bg_plugin_unref(handle);
   }
    
+char * bg_album_selected_to_string(bg_album_t * a)
+  {
+  char time_string[GAVL_TIME_STRING_LEN];
+  bg_album_entry_t * entry;
+  char * ret = (char*)0;
+  char * tmp_string;
+  int index = 1;
+  entry = a->entries;
+  while(entry)
+    {
+    if(entry->flags & BG_ALBUM_ENTRY_SELECTED)
+      {
+      if(ret)
+        ret = bg_strcat(ret, "\n");
+      gavl_time_prettyprint(entry->duration, time_string);
+      tmp_string = bg_sprintf("%d.\t%s\t%s", index, entry->name, time_string);
+      ret = bg_strcat(ret, tmp_string);
+      free(tmp_string);
+      }
+    entry = entry->next;
+    index++;
+    }
+  return ret;
+  }

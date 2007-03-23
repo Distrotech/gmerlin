@@ -63,7 +63,7 @@ static void * create_blur()
   ret->scaler = gavl_video_scaler_create();
   ret->opt = gavl_video_scaler_get_options(ret->scaler);
   flags = gavl_video_options_get_conversion_flags(ret->opt);
-  flags |= GAVL_VIDEO_CONVOLVE_NORMALIZE;
+  flags |= GAVL_CONVOLVE_NORMALIZE;
   gavl_video_options_set_conversion_flags(ret->opt,
                                           flags);
 
@@ -158,9 +158,9 @@ static void init_scaler(blur_priv_t * vp)
 
   flags = gavl_video_options_get_conversion_flags(vp->opt);
   if(vp->blur_chroma)
-    flags |= GAVL_VIDEO_CONVOLVE_CHROMA;
+    flags |= GAVL_CONVOLVE_CHROMA;
   else
-    flags &= ~GAVL_VIDEO_CONVOLVE_CHROMA;
+    flags &= ~GAVL_CONVOLVE_CHROMA;
   gavl_video_options_set_conversion_flags(vp->opt,
                                           flags);
 

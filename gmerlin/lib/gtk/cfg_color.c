@@ -39,6 +39,9 @@ typedef struct
   guint16 alpha;
   } color_t;
 
+static void button_callback(GtkWidget * w, gpointer data);
+
+
 static void destroy(bg_gtk_widget_t * w)
   {
   color_t * priv = (color_t *)w->priv;
@@ -48,7 +51,6 @@ static void destroy(bg_gtk_widget_t * w)
     gdk_gc_unref(priv->gc);
   if(priv->background_pixmap)
     gdk_drawable_unref(priv->background_pixmap);
-  free(w->value.val_color);
   free(priv);
   }
 
@@ -200,6 +202,14 @@ static void changed_callback(GtkWidget * w, gpointer data)
   set_button(priv);
   }
 
+static gboolean delete_callback(GtkWidget * w, GdkEventAny * event,
+                                gpointer data)
+  {
+  button_callback(w, data);
+  return TRUE;
+  }
+
+
 static void button_callback(GtkWidget * w, gpointer data)
   {
   bg_gtk_widget_t * wid = (bg_gtk_widget_t*)data;
@@ -229,6 +239,9 @@ static void button_callback(GtkWidget * w, gpointer data)
       g_signal_connect(G_OBJECT(GTK_COLOR_SELECTION_DIALOG(priv->colorsel)->cancel_button),
                        "clicked", G_CALLBACK(button_callback),
                        (gpointer)wid);
+      g_signal_connect(G_OBJECT(priv->colorsel),
+                       "delete_event", G_CALLBACK(delete_callback),
+                       (gpointer)wid);
       gtk_widget_hide(GTK_COLOR_SELECTION_DIALOG(priv->colorsel)->help_button);
       if(priv->has_alpha)
         gtk_color_selection_set_has_opacity_control(GTK_COLOR_SELECTION(GTK_COLOR_SELECTION_DIALOG(priv->colorsel)->colorsel),
@@ -254,11 +267,12 @@ static void button_callback(GtkWidget * w, gpointer data)
       priv->alpha = gtk_color_selection_get_current_alpha(GTK_COLOR_SELECTION(GTK_COLOR_SELECTION_DIALOG(priv->colorsel)->colorsel));
       set_button(priv);
       }
-    else if(w == GTK_COLOR_SELECTION_DIALOG(priv->colorsel)->cancel_button)
+    else if((w == GTK_COLOR_SELECTION_DIALOG(priv->colorsel)->cancel_button) ||
+            (w == priv->colorsel))
       {
       gtk_main_quit();
       gtk_widget_hide(priv->colorsel);
-
+      
       if(wid->info->flags & BG_PARAMETER_SYNC)
         {
         /* Restore last color */

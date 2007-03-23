@@ -69,18 +69,20 @@ static GtkTargetList * target_list_r = (GtkTargetList *)0;
 static GtkTargetEntry dnd_src_entries[] = 
   {
     { bg_gtk_atom_entries_name, 0, DND_GMERLIN_TRACKS },
+    {"text/plain",             0, DND_TEXT_PLAIN     },
   };
 
 static GtkTargetEntry dnd_src_entries_r[] = 
   {
     { bg_gtk_atom_entries_name_r, 0, DND_GMERLIN_TRACKS_R },
+    {"text/plain",             0, DND_TEXT_PLAIN     },
   };
 
 static GtkTargetEntry dnd_dst_entries[] = 
   {
+    {bg_gtk_atom_entries_name, 0, DND_GMERLIN_TRACKS },
     {"text/uri-list",          0, DND_TEXT_URI_LIST  },
     {"text/plain",             0, DND_TEXT_PLAIN     },
-    {bg_gtk_atom_entries_name, 0, DND_GMERLIN_TRACKS },
   };
 
 static GtkTargetEntry dnd_dst_entries_r[] = 
@@ -88,11 +90,9 @@ static GtkTargetEntry dnd_dst_entries_r[] =
     { bg_gtk_atom_entries_name_r, GTK_TARGET_SAME_WIDGET, DND_GMERLIN_TRACKS_R },
   };
 
-static GtkTargetEntry dnd_copy_paste_entries[] =
+static GtkTargetEntry copy_paste_entries[] =
   {
     { bg_gtk_atom_entries_name, 0, DND_GMERLIN_TRACKS },
-    /* We also support text/plain */
-    {"STRING",             0, DND_TEXT_PLAIN     },
   };
 
 static void load_pixmaps()
@@ -301,6 +301,8 @@ struct bg_gtk_album_widget_s
   int clipboard_len;
 
   GtkAccelGroup * accel_group;
+
+  int drag_delete;
   };
 
 /* Utilities */
@@ -857,9 +859,9 @@ static void do_copy(bg_gtk_album_widget_t * w)
   clipboard = gtk_clipboard_get(clipboard_atom);
   
   gtk_clipboard_set_with_data(clipboard,
-                              dnd_copy_paste_entries,
-                              sizeof(dnd_copy_paste_entries)/
-                              sizeof(dnd_copy_paste_entries[0]),
+                              copy_paste_entries,
+                              sizeof(copy_paste_entries)/
+                              sizeof(copy_paste_entries[0]),
                               clipboard_get_func,
                               clipboard_clear_func,
                               (gpointer)w);
@@ -1836,6 +1838,7 @@ static void drag_get_callback(GtkWidget *widget,
   char * str;
   int len;
   GdkAtom type_atom;
+  GdkAtom target_atom;
   
   bg_gtk_album_widget_t * w;
   w = (bg_gtk_album_widget_t *)user_data;
@@ -1843,9 +1846,25 @@ static void drag_get_callback(GtkWidget *widget,
   type_atom = gdk_atom_intern("STRING", FALSE);
   if(!type_atom)
     return;
-    
-  gtk_selection_data_set(data, type_atom, 8, (uint8_t*)str, len);
-  free(str);
+
+  target_atom = gdk_atom_intern(bg_gtk_atom_entries_name, FALSE);
+  if(target_atom == data->target)
+    {
+    str = bg_album_save_selected_to_memory(w->album, &len, 1);
+    gtk_selection_data_set(data, type_atom, 8, (uint8_t*)str, len);
+    free(str);
+    w->drag_delete = 1; 
+    return;
+    }
+  target_atom = gdk_atom_intern("text/plain", FALSE);
+  if(target_atom == data->target)
+    {
+    str = bg_album_selected_to_string(w->album);
+    gtk_selection_data_set(data, type_atom, 8, (uint8_t*)str, len);
+    free(str);
+    w->drag_delete = 0; 
+    return;
+    }
   }
 
 static void select_row_callback(GtkTreeSelection * sel,
@@ -1927,10 +1946,11 @@ static void drag_delete_callback(GtkWidget *widget,
                          gpointer user_data)
   {
   bg_gtk_album_widget_t * w = (bg_gtk_album_widget_t *)user_data;
-
-
-  bg_album_delete_selected(w->album);
-  bg_gtk_album_widget_update(w);
+  if(w->drag_delete)
+    {
+    bg_album_delete_selected(w->album);
+    bg_gtk_album_widget_update(w);
+    }
   }
 
 

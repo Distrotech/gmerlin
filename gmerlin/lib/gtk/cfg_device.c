@@ -179,8 +179,6 @@ static void destroy(bg_gtk_widget_t * w)
   device_t * priv = (device_t*)w->priv;
   if(priv->fileselect)
     gtk_widget_destroy(priv->fileselect);
-  if(w->value.val_str)
-    free(w->value.val_str);
   free(priv);
   }
 

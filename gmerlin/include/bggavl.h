@@ -35,6 +35,10 @@ typedef struct
   int num_front_channels;
   int num_rear_channels;
   int num_lfe_channels;
+
+  /* Set by bg_gavl_audio_set_parameter */
+  int format_changed;
+  int options_changed;
   
   } bg_gavl_audio_options_t;
 
@@ -70,6 +74,10 @@ typedef struct
   double crop_top;
   double crop_bottom;
   int maintain_aspect;
+  
+  /* Set by bg_gavl_video_set_parameter */
+  int format_changed;
+  int options_changed;
   } bg_gavl_video_options_t;
 
 int bg_gavl_video_set_parameter(void * data, char * name, bg_parameter_value_t * val);
@@ -285,6 +293,16 @@ timescale and frame duration below (framerate = timescale / frame_duration).")\
   val_default: { val_i: 4 },                                \
   help_string: TRS("Order for sinc scaling."),\
   }
+
+#define BG_GAVL_PARAM_RESAMPLE_CHROMA \
+  {                                                                 \
+  name:        "resample_chroma",                                          \
+  long_name:   TRS("Resample chroma"),                                          \
+  opt:       "sm",                                                  \
+  type:        BG_PARAMETER_CHECKBUTTON,                               \
+    help_string: TRS("Always perform chroma resampling if chroma subsampling factors or chroma placements are different. Usually, this is only done for qualities above 3."), \
+  }
+
 
 #define BG_GAVL_PARAM_FRAME_SIZE  \
     { \

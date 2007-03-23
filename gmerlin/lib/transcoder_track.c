@@ -1404,6 +1404,7 @@ static bg_parameter_info_t general_parameters_video[] =
     BG_GAVL_PARAM_FRAMERATE,
     BG_GAVL_PARAM_DEINTERLACE,
     BG_GAVL_PARAM_ALPHA,
+    BG_GAVL_PARAM_RESAMPLE_CHROMA,
     {
       name:       "crop_scale",
       long_name:  TRS("Crop & Scale"),

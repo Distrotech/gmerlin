@@ -67,8 +67,6 @@ static void set_value(bg_gtk_widget_t * w)
 static void destroy(bg_gtk_widget_t * w)
   {
   string_t * priv = (string_t*)(w->priv);
-  if(w->value.val_str)
-    free(w->value.val_str);
   free(priv);
   }
 

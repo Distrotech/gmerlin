@@ -410,8 +410,6 @@ static void attach(void * p, GtkWidget * table,
 static void destroy(bg_gtk_widget_t * w)
   {
   list_priv_t * priv = (list_priv_t*)(w->priv);
-  if(w->value.val_str)
-    free(w->value.val_str);
   if(priv->multi_labels)
     {
     int i = 0;

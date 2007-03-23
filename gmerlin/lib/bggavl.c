@@ -503,6 +503,7 @@ int bg_gavl_video_set_parameter(void * data, char * name,
   SP_INT(maintain_aspect);
   
   SP_FLAG("force_deinterlacing", GAVL_FORCE_DEINTERLACE);
+  SP_FLAG("resample_chroma", GAVL_RESAMPLE_CHROMA);
   
   if(!strcmp(name, "alpha_mode"))
     {

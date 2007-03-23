@@ -71,8 +71,6 @@ static void destroy(bg_gtk_widget_t * w)
   file_t * priv = (file_t*)w->priv;
 
   bg_gtk_file_entry_destroy(priv->fe);
-  if(w->value.val_str)
-    free(w->value.val_str);
   free(priv);
   }
 

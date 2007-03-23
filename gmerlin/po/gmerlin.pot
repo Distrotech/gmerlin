@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-03-07 21:55+0100\n"
+"POT-Creation-Date: 2007-03-23 01:00+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -325,7 +325,7 @@ msgstr ""
 #: apps/transcoder/trackdialog.c:291 apps/transcoder/trackdialog.c:340
 #: apps/transcoder/transcoder_window.c:1264
 #: apps/transcoder/transcoder_window.c:1289
-#: apps/transcoder/transcoder_window.c:1310 plugins/x11/ov_x11.c:1966
+#: apps/transcoder/transcoder_window.c:1310 plugins/x11/ov_x11.c:1973
 #: plugins/cdaudio/i_cdaudio.c:636 lib/transcoder_track.c:1385
 msgid "General"
 msgstr ""
@@ -688,8 +688,8 @@ msgstr ""
 msgid "Select encoders"
 msgstr ""
 
-#: apps/transcoder/tracklist.c:754 lib/gtk/albumwidget.c:1315
-#: lib/gtk/albumwidget.c:2524
+#: apps/transcoder/tracklist.c:754 lib/gtk/albumwidget.c:1317
+#: lib/gtk/albumwidget.c:2544
 msgid "Add URLs"
 msgstr ""
 
@@ -714,7 +714,7 @@ msgid "Move Down"
 msgstr ""
 
 #: apps/transcoder/tracklist.c:889 lib/gtk/treewidget.c:1405
-#: lib/gtk/albumwidget.c:1343
+#: lib/gtk/albumwidget.c:1345
 msgid "Remove"
 msgstr ""
 
@@ -730,12 +730,12 @@ msgstr ""
 msgid "Change encoders..."
 msgstr ""
 
-#: apps/transcoder/tracklist.c:902 lib/gtk/albumwidget.c:1405
-#: lib/gtk/cfg_device.c:312
+#: apps/transcoder/tracklist.c:902 lib/gtk/albumwidget.c:1407
+#: lib/gtk/cfg_device.c:310
 msgid "Add..."
 msgstr ""
 
-#: apps/transcoder/tracklist.c:908 lib/gtk/albumwidget.c:1419
+#: apps/transcoder/tracklist.c:908 lib/gtk/albumwidget.c:1421
 msgid "Selected..."
 msgstr ""
 
@@ -743,7 +743,7 @@ msgstr ""
 msgid "Postprocess..."
 msgstr ""
 
-#: apps/transcoder/tracklist.c:1095 lib/gtk/albumwidget.c:2568
+#: apps/transcoder/tracklist.c:1095 lib/gtk/albumwidget.c:2588
 msgid "Total playback time"
 msgstr ""
 
@@ -759,7 +759,7 @@ msgstr ""
 msgid "Append removable media to the track_list"
 msgstr ""
 
-#: apps/transcoder/tracklist.c:1119 lib/gtk/albumwidget.c:2551
+#: apps/transcoder/tracklist.c:1119 lib/gtk/albumwidget.c:2571
 msgid "Delete selected tracks"
 msgstr ""
 
@@ -1101,7 +1101,7 @@ msgstr ""
 msgid "Stereo 16bit"
 msgstr ""
 
-#: plugins/mikmod/i_mikmod.c:258 include/bggavl.h:416
+#: plugins/mikmod/i_mikmod.c:258 include/bggavl.h:438
 msgid "Samplerate"
 msgstr ""
 
@@ -1145,119 +1145,121 @@ msgstr ""
 msgid "Assuming KDE screensaver support"
 msgstr ""
 
-#: plugins/x11/ov_x11.c:1835
+#: plugins/x11/ov_x11.c:1842
 msgid "Enabled DPMS"
 msgstr ""
 
-#: plugins/x11/ov_x11.c:1837
+#: plugins/x11/ov_x11.c:1844
 msgid "Disabled DPMS"
 msgstr ""
 
-#: plugins/x11/ov_x11.c:1970
+#: plugins/x11/ov_x11.c:1977
 msgid "Auto resize window"
 msgstr ""
 
-#: plugins/x11/ov_x11.c:2005
+#: plugins/x11/ov_x11.c:2012
 msgid "Try XVideo"
 msgstr ""
 
-#: plugins/x11/ov_x11.c:2009
+#: plugins/x11/ov_x11.c:2016
 msgid "Never"
 msgstr ""
 
-#: plugins/x11/ov_x11.c:2009
+#: plugins/x11/ov_x11.c:2016
 msgid "For YCbCr formats only"
 msgstr ""
 
-#: plugins/x11/ov_x11.c:2009
+#: plugins/x11/ov_x11.c:2016
 msgid "Always"
 msgstr ""
 
-#: plugins/x11/ov_x11.c:2011
+#: plugins/x11/ov_x11.c:2018
 msgid ""
 "Choose when to try XVideo (with hardware scaling). Note that your graphics "
 "card/driver must support this."
 msgstr ""
 
-#: plugins/x11/ov_x11.c:2016
+#: plugins/x11/ov_x11.c:2023
 msgid "Disable Screensaver for normal playback"
 msgstr ""
 
-#: plugins/x11/ov_x11.c:2022
+#: plugins/x11/ov_x11.c:2029
 msgid "Disable Screensaver for fullscreen playback"
 msgstr ""
 
-#: plugins/x11/ov_x11.c:2047
+#: plugins/x11/ov_x11.c:2054
 msgid "Software scaler"
 msgstr ""
 
-#: plugins/x11/ov_x11.c:2052
+#: plugins/x11/ov_x11.c:2059
 msgid "Enable software scaler"
 msgstr ""
 
-#: plugins/x11/ov_x11.c:2054
+#: plugins/x11/ov_x11.c:2061
 msgid ""
 "This enables software scaling for the case that no hardware scaling is "
 "available"
 msgstr ""
 
-#: plugins/x11/ov_x11.c:2058 include/bggavl.h:249
+#: plugins/x11/ov_x11.c:2065 plugins/videofilters/fv_zoom.c:101
+#: include/bggavl.h:278
 msgid "Scale mode"
 msgstr ""
 
-#: plugins/x11/ov_x11.c:2069 plugins/cdaudio/cdparanoia.c:166
-#: plugins/v4l/pwc.c:158 include/bggavl.h:262 include/bggavl.h:504
-#: include/bggavl.h:516
+#: plugins/x11/ov_x11.c:2076 plugins/cdaudio/cdparanoia.c:166
+#: plugins/v4l/pwc.c:158 include/bggavl.h:265 include/bggavl.h:526
+#: include/bggavl.h:538
 msgid "Auto"
 msgstr ""
 
-#: plugins/x11/ov_x11.c:2070 include/bggavl.h:263
+#: plugins/x11/ov_x11.c:2077 include/bggavl.h:266
 msgid "Nearest"
 msgstr ""
 
-#: plugins/x11/ov_x11.c:2071 include/bggavl.h:264
+#: plugins/x11/ov_x11.c:2078 include/bggavl.h:267
 msgid "Bilinear"
 msgstr ""
 
-#: plugins/x11/ov_x11.c:2072 include/bggavl.h:265
+#: plugins/x11/ov_x11.c:2079 include/bggavl.h:268
 msgid "Quadratic"
 msgstr ""
 
-#: plugins/x11/ov_x11.c:2073 include/bggavl.h:266
+#: plugins/x11/ov_x11.c:2080 include/bggavl.h:269
 msgid "Cubic B-Spline"
 msgstr ""
 
-#: plugins/x11/ov_x11.c:2074 include/bggavl.h:267
+#: plugins/x11/ov_x11.c:2081 include/bggavl.h:270
 msgid "Cubic Mitchell-Netravali"
 msgstr ""
 
-#: plugins/x11/ov_x11.c:2075 include/bggavl.h:268
+#: plugins/x11/ov_x11.c:2082 include/bggavl.h:271
 msgid "Cubic Catmull-Rom"
 msgstr ""
 
-#: plugins/x11/ov_x11.c:2076 include/bggavl.h:269
+#: plugins/x11/ov_x11.c:2083 include/bggavl.h:272
 msgid "Sinc with Lanczos window"
 msgstr ""
 
-#: plugins/x11/ov_x11.c:2079
+#: plugins/x11/ov_x11.c:2086
 msgid ""
 "Choose scaling method. Auto means to choose based on the conversion quality. "
 "Nearest is fastest, Sinc with Lanczos window is slowest"
 msgstr ""
 
-#: plugins/x11/ov_x11.c:2083 include/bggavl.h:276
+#: plugins/x11/ov_x11.c:2090 plugins/videofilters/fv_zoom.c:112
+#: include/bggavl.h:288
 msgid "Scale order"
 msgstr ""
 
-#: plugins/x11/ov_x11.c:2088
+#: plugins/x11/ov_x11.c:2095
 msgid "Order for sinc scaling"
 msgstr ""
 
-#: plugins/x11/ov_x11.c:2342
+#: plugins/x11/ov_x11.c:2349
 msgid "X11"
 msgstr ""
 
-#: plugins/x11/ov_x11.c:2343
+#: plugins/x11/ov_x11.c:2350
 msgid "X11 display driver with support for XShm, XVideo and XImage"
 msgstr ""
 
@@ -1555,7 +1557,8 @@ msgstr ""
 msgid "Text color"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:720 include/bggavl.h:399 lib/gtk/vumeter.c:178
+#: plugins/lqt/e_lqt.c:720 plugins/videofilters/fv_zoom.c:132
+#: include/bggavl.h:421 lib/gtk/vumeter.c:178
 msgid "Background color"
 msgstr ""
 
@@ -1589,7 +1592,9 @@ msgstr ""
 msgid "Illegal pixelformat: %s"
 msgstr ""
 
-#: plugins/jpeg/iw_jpeg.c:237
+#: plugins/jpeg/iw_jpeg.c:237 plugins/videofilters/fv_tlp.c:89
+#: plugins/videofilters/fv_blur.c:244 plugins/videofilters/fv_zoomshift.c:95
+#: plugins/videofilters/fv_zoom.c:123
 msgid "Quality"
 msgstr ""
 
@@ -2029,7 +2034,7 @@ msgstr ""
 msgid "PWC General"
 msgstr ""
 
-#: plugins/v4l/pwc.c:73 include/bggavl.h:124
+#: plugins/v4l/pwc.c:73 include/bggavl.h:131
 msgid "Framerate"
 msgstr ""
 
@@ -2037,8 +2042,8 @@ msgstr ""
 msgid "Compression"
 msgstr ""
 
-#: plugins/v4l/pwc.c:85 plugins/tiff/iw_tiff.c:146 include/bggavl.h:178
-#: include/bggavl.h:504
+#: plugins/v4l/pwc.c:85 plugins/tiff/iw_tiff.c:146 include/bggavl.h:185
+#: include/bggavl.h:526
 msgid "None"
 msgstr ""
 
@@ -2202,15 +2207,15 @@ msgstr ""
 msgid "VGA (640x480)"
 msgstr ""
 
-#: plugins/v4l/i_v4l.c:445 include/bggavl.h:138 include/bggavl.h:313
+#: plugins/v4l/i_v4l.c:445 include/bggavl.h:145 include/bggavl.h:335
 msgid "User defined"
 msgstr ""
 
-#: plugins/v4l/i_v4l.c:450 include/bggavl.h:338
+#: plugins/v4l/i_v4l.c:450 include/bggavl.h:360
 msgid "User defined width"
 msgstr ""
 
-#: plugins/v4l/i_v4l.c:458 include/bggavl.h:348
+#: plugins/v4l/i_v4l.c:458 include/bggavl.h:370
 msgid "User defined height"
 msgstr ""
 
@@ -2637,49 +2642,79 @@ msgstr ""
 msgid "Log reports about skipped frames"
 msgstr ""
 
-#: plugins/videofilters/fv_decimate.c:428
+#: plugins/videofilters/fv_decimate.c:429
 #, c-format
 msgid "Skipped %d frames"
 msgstr ""
 
-#: plugins/videofilters/fv_decimate.c:438
+#: plugins/videofilters/fv_decimate.c:439
 msgid "Decimate"
 msgstr ""
 
-#: plugins/videofilters/fv_decimate.c:439
+#: plugins/videofilters/fv_decimate.c:440
 msgid "Skip almost identical frames"
 msgstr ""
 
-#: plugins/videofilters/fv_blur.c:194
+#: plugins/videofilters/fv_tlp.c:78
+msgid "Factor"
+msgstr ""
+
+#: plugins/videofilters/fv_tlp.c:85
+msgid "Factor for the new image. Lower values mean a larger delay time."
+msgstr ""
+
+#: plugins/videofilters/fv_tlp.c:205
+msgid "Temporal lowpass"
+msgstr ""
+
+#: plugins/videofilters/fv_tlp.c:206
+msgid "Simple temporal lowpass"
+msgstr ""
+
+#: plugins/videofilters/fv_blur.c:197
 msgid "Mode"
 msgstr ""
 
-#: plugins/videofilters/fv_blur.c:200
+#: plugins/videofilters/fv_blur.c:203
 msgid "Gauss"
 msgstr ""
 
-#: plugins/videofilters/fv_blur.c:201 include/bggavl.h:505
+#: plugins/videofilters/fv_blur.c:204 include/bggavl.h:527
 msgid "Triangular"
 msgstr ""
 
-#: plugins/videofilters/fv_blur.c:202 include/bggavl.h:504
+#: plugins/videofilters/fv_blur.c:205 include/bggavl.h:526
 msgid "Rectangular"
 msgstr ""
 
-#: plugins/videofilters/fv_blur.c:207
+#: plugins/videofilters/fv_blur.c:210
 msgid "Horizontal radius"
 msgstr ""
 
-#: plugins/videofilters/fv_blur.c:217
+#: plugins/videofilters/fv_blur.c:220
 msgid "Vertical radius"
 msgstr ""
 
-#: plugins/videofilters/fv_blur.c:366
+#: plugins/videofilters/fv_blur.c:386
 msgid "Blur"
 msgstr ""
 
-#: plugins/videofilters/fv_blur.c:367
+#: plugins/videofilters/fv_blur.c:387
 msgid "Blur filter based on gavl. Supports triangular, box and gauss blur."
+msgstr ""
+
+#: plugins/videofilters/fv_pixelformat.c:66
+msgid "Pixelformat"
+msgstr ""
+
+#: plugins/videofilters/fv_pixelformat.c:195
+msgid "Force pixelformat"
+msgstr ""
+
+#: plugins/videofilters/fv_pixelformat.c:196
+msgid ""
+"This forces a pixelformat as input for the next filter. Its mainly used for "
+"testing."
 msgstr ""
 
 #: plugins/videofilters/fv_flip.c:68
@@ -2695,7 +2730,41 @@ msgid "Flip image"
 msgstr ""
 
 #: plugins/videofilters/fv_flip.c:181
-msgid "Flip video images horizovtally and/or vertically"
+msgid "Flip video images horizontally and/or vertically"
+msgstr ""
+
+#: plugins/videofilters/fv_zoomshift.c:74 plugins/videofilters/fv_zoom.c:80
+msgid "Zoom horizontally"
+msgstr ""
+
+#: plugins/videofilters/fv_zoomshift.c:84 plugins/videofilters/fv_zoom.c:90
+msgid "Zoom vertically"
+msgstr ""
+
+#: plugins/videofilters/fv_zoomshift.c:220
+msgid "Zs image"
+msgstr ""
+
+#: plugins/videofilters/fv_zoomshift.c:221
+msgid "Zoom and shift video images horizontally and/or vertically"
+msgstr ""
+
+#: plugins/videofilters/fv_zoom.c:108 include/bggavl.h:284
+msgid ""
+"Choose scaling method. Auto means to choose based on the conversion quality. "
+"Nearest is fastest, Sinc with Lanczos window is slowest."
+msgstr ""
+
+#: plugins/videofilters/fv_zoom.c:119 include/bggavl.h:294
+msgid "Order for sinc scaling."
+msgstr ""
+
+#: plugins/videofilters/fv_zoom.c:328
+msgid "Zoom"
+msgstr ""
+
+#: plugins/videofilters/fv_zoom.c:329
+msgid "Zoom horizontally and/or vertically"
 msgstr ""
 
 #: plugins/videofilters/fv_equalizer.c:162
@@ -2802,426 +2871,426 @@ msgstr ""
 msgid "Player finishing"
 msgstr ""
 
-#: include/bggavl.h:111
+#: include/bggavl.h:118
 msgid "Conversion Quality"
 msgstr ""
 
-#: include/bggavl.h:117
+#: include/bggavl.h:124
 msgid ""
 "Set the conversion quality for format conversions. Lower quality means more "
 "speed. Values above 3 enable slow high quality calculations."
 msgstr ""
 
-#: include/bggavl.h:137 include/bggavl.h:312
+#: include/bggavl.h:144 include/bggavl.h:334
 msgid "From Source"
 msgstr ""
 
-#: include/bggavl.h:139
+#: include/bggavl.h:146
 msgid "23.976 (NTSC encapsulated film rate)"
 msgstr ""
 
-#: include/bggavl.h:140
+#: include/bggavl.h:147
 msgid "24 (Standard international cinema film rate)"
 msgstr ""
 
-#: include/bggavl.h:141
+#: include/bggavl.h:148
 msgid "25 (PAL [625/50] video frame rate)"
 msgstr ""
 
-#: include/bggavl.h:142
+#: include/bggavl.h:149
 msgid "29.970 (NTSC video frame rate)"
 msgstr ""
 
-#: include/bggavl.h:143
+#: include/bggavl.h:150
 msgid "30 (NTSC drop-frame [525/60] video frame rate)"
 msgstr ""
 
-#: include/bggavl.h:144
+#: include/bggavl.h:151
 msgid "50 (Double frame rate / progressive PAL)"
 msgstr ""
 
-#: include/bggavl.h:145
+#: include/bggavl.h:152
 msgid "59.940 (Double frame rate NTSC)"
 msgstr ""
 
-#: include/bggavl.h:146
+#: include/bggavl.h:153
 msgid "60 (Double frame rate drop-frame NTSC)"
 msgstr ""
 
-#: include/bggavl.h:148
+#: include/bggavl.h:155
 msgid ""
 "Output framerate. For user defined framerate, enter the timescale and frame "
 "duration below (framerate = timescale / frame_duration)."
 msgstr ""
 
-#: include/bggavl.h:153 lib/singlepic.c:73
+#: include/bggavl.h:160 lib/singlepic.c:73
 msgid "Timescale"
 msgstr ""
 
-#: include/bggavl.h:158
+#: include/bggavl.h:165
 msgid ""
 "Timescale for user defined output framerate (Framerate = timescale / "
 "frame_duration)."
 msgstr ""
 
-#: include/bggavl.h:162 lib/singlepic.c:81
+#: include/bggavl.h:169 lib/singlepic.c:81
 msgid "Frame duration"
 msgstr ""
 
-#: include/bggavl.h:167
+#: include/bggavl.h:174
 msgid ""
 "Frame duration for user defined output framerate (Framerate = timescale / "
 "frame_duration)."
 msgstr ""
 
-#: include/bggavl.h:173
+#: include/bggavl.h:180
 msgid "Deinterlace mode"
 msgstr ""
 
-#: include/bggavl.h:178 include/bggavl.h:465 lib/gtk/albumwidget.c:1352
-#: lib/gtk/albumwidget.c:2534
+#: include/bggavl.h:185 include/bggavl.h:487 lib/gtk/albumwidget.c:1354
+#: lib/gtk/albumwidget.c:2554
 msgid "Copy"
 msgstr ""
 
-#: include/bggavl.h:178
+#: include/bggavl.h:185
 msgid "Scale"
 msgstr ""
 
-#: include/bggavl.h:188
+#: include/bggavl.h:195
 msgid "Drop top field"
 msgstr ""
 
-#: include/bggavl.h:188
+#: include/bggavl.h:195
 msgid "Drop bottom field"
 msgstr ""
 
-#: include/bggavl.h:189
+#: include/bggavl.h:196
 msgid "Specifies which field the deinterlacer should drop."
 msgstr ""
 
-#: include/bggavl.h:193
+#: include/bggavl.h:200
 msgid "Force deinterlacing"
 msgstr ""
 
-#: include/bggavl.h:197
+#: include/bggavl.h:204
 msgid ""
 "Force deinterlacing if you want progressive output and the input format "
 "pretends to be progressive also."
 msgstr ""
 
-#: include/bggavl.h:203
+#: include/bggavl.h:210
 msgid "Crop left"
 msgstr ""
 
-#: include/bggavl.h:210
+#: include/bggavl.h:217
 msgid "Cut this many pixels from the left border of the source frames."
 msgstr ""
 
-#: include/bggavl.h:214
+#: include/bggavl.h:221
 msgid "Crop right"
 msgstr ""
 
-#: include/bggavl.h:221
+#: include/bggavl.h:228
 msgid "Cut this many pixels from the right border of the source frames."
 msgstr ""
 
-#: include/bggavl.h:225
+#: include/bggavl.h:232
 msgid "Crop top"
 msgstr ""
 
-#: include/bggavl.h:232
+#: include/bggavl.h:239
 msgid "Cut this many pixels from the top border of the source frames."
 msgstr ""
 
-#: include/bggavl.h:236
+#: include/bggavl.h:243
 msgid "Crop bottom"
 msgstr ""
 
-#: include/bggavl.h:243
+#: include/bggavl.h:250
 msgid "Cut this many pixels from the bottom border of the source frames."
 msgstr ""
 
-#: include/bggavl.h:272
+#: include/bggavl.h:300
+msgid "Resample chroma"
+msgstr ""
+
+#: include/bggavl.h:303
 msgid ""
-"Choose scaling method. Auto means to choose based on the conversion quality. "
-"Nearest is fastest, Sinc with Lanczos window is slowest."
+"Always perform chroma resampling if chroma subsampling factors or chroma "
+"placements are different. Usually, this is only done for qualities above 3."
 msgstr ""
 
-#: include/bggavl.h:282
-msgid "Order for sinc scaling."
-msgstr ""
-
-#: include/bggavl.h:288
+#: include/bggavl.h:310
 msgid "Frame Size"
 msgstr ""
 
-#: include/bggavl.h:314
+#: include/bggavl.h:336
 msgid "PAL DVD D1 4:3 (720 x 576)"
 msgstr ""
 
-#: include/bggavl.h:315
+#: include/bggavl.h:337
 msgid "PAL DVD D1 16:9 (720 x 576)"
 msgstr ""
 
-#: include/bggavl.h:316
+#: include/bggavl.h:338
 msgid "PAL DV 4:3 (720 x 576)"
 msgstr ""
 
-#: include/bggavl.h:317
+#: include/bggavl.h:339
 msgid "PAL DV 16:9 (720 x 576)"
 msgstr ""
 
-#: include/bggavl.h:318
+#: include/bggavl.h:340
 msgid "PAL CVD (352 x 576)"
 msgstr ""
 
-#: include/bggavl.h:319
+#: include/bggavl.h:341
 msgid "PAL VCD (352 x 288)"
 msgstr ""
 
-#: include/bggavl.h:320
+#: include/bggavl.h:342
 msgid "PAL SVCD 4:3 (480 x 576)"
 msgstr ""
 
-#: include/bggavl.h:321
+#: include/bggavl.h:343
 msgid "PAL SVCD 16:9 (480 x 576)"
 msgstr ""
 
-#: include/bggavl.h:322
+#: include/bggavl.h:344
 msgid "NTSC DVD D1 4:3 (720 x 480)"
 msgstr ""
 
-#: include/bggavl.h:323
+#: include/bggavl.h:345
 msgid "NTSC DVD D1 16:9 (720 x 480)"
 msgstr ""
 
-#: include/bggavl.h:324
+#: include/bggavl.h:346
 msgid "NTSC DV 4:3 (720 x 480)"
 msgstr ""
 
-#: include/bggavl.h:325
+#: include/bggavl.h:347
 msgid "NTSC DV 16:9 (720 x 480)"
 msgstr ""
 
-#: include/bggavl.h:326
+#: include/bggavl.h:348
 msgid "NTSC CVD (352 x 480)"
 msgstr ""
 
-#: include/bggavl.h:327
+#: include/bggavl.h:349
 msgid "NTSC VCD (352 x 240)"
 msgstr ""
 
-#: include/bggavl.h:328
+#: include/bggavl.h:350
 msgid "NTSC SVCD 4:3 (480 x 480)"
 msgstr ""
 
-#: include/bggavl.h:329
+#: include/bggavl.h:351
 msgid "NTSC SVCD 16:9 (480 x 480)"
 msgstr ""
 
-#: include/bggavl.h:330
+#: include/bggavl.h:352
 msgid "VGA (640 x 480)"
 msgstr ""
 
-#: include/bggavl.h:331
+#: include/bggavl.h:353
 msgid "QVGA (320 x 240)"
 msgstr ""
 
-#: include/bggavl.h:334
+#: include/bggavl.h:356
 msgid ""
 "Set the output frame size. For a user defined size, you must specify the "
 "width and height as well as the pixel width and pixel height (for nonsquare "
 "pixels)."
 msgstr ""
 
-#: include/bggavl.h:344
+#: include/bggavl.h:366
 msgid ""
 "User defined width in pixels. Only meaningful if you selected \"User defined"
 "\" for the framesize."
 msgstr ""
 
-#: include/bggavl.h:354
+#: include/bggavl.h:376
 msgid ""
 "User defined height in pixels. Only meaningful if you selected \"User defined"
 "\" for the framesize."
 msgstr ""
 
-#: include/bggavl.h:358
+#: include/bggavl.h:380
 msgid "User defined pixel width"
 msgstr ""
 
-#: include/bggavl.h:364
+#: include/bggavl.h:386
 msgid ""
 "User defined pixel width. Only meaningful if you selected \"User defined\" "
 "for the framesize."
 msgstr ""
 
-#: include/bggavl.h:368
+#: include/bggavl.h:390
 msgid "User defined pixel height"
 msgstr ""
 
-#: include/bggavl.h:374
+#: include/bggavl.h:396
 msgid ""
 "User defined pixel height. Only meaningful if you selected \"User defined\" "
 "for the framesize."
 msgstr ""
 
-#: include/bggavl.h:378
+#: include/bggavl.h:400
 msgid "Maintain aspect ratio"
 msgstr ""
 
-#: include/bggavl.h:382
+#: include/bggavl.h:404
 msgid ""
 "Let the aspect ratio appear the same as in the source, probably resulting in "
 "additional black borders."
 msgstr ""
 
-#: include/bggavl.h:390
+#: include/bggavl.h:412
 msgid "Alpha mode"
 msgstr ""
 
-#: include/bggavl.h:394
+#: include/bggavl.h:416
 msgid "Ignore"
 msgstr ""
 
-#: include/bggavl.h:394
+#: include/bggavl.h:416
 msgid "Blend background color"
 msgstr ""
 
-#: include/bggavl.h:395
+#: include/bggavl.h:417
 msgid ""
 "This option is used if the source has an alpha (=transparency) channel, but "
 "the output supports no transparency. Either, the transparency is ignored, or "
 "the background color you specify below is blended in."
 msgstr ""
 
-#: include/bggavl.h:402
+#: include/bggavl.h:424
 msgid ""
 "Background color to use, when alpha mode above is \"Blend background color\"."
 msgstr ""
 
-#: include/bggavl.h:409
+#: include/bggavl.h:431
 msgid "Fixed samplerate"
 msgstr ""
 
-#: include/bggavl.h:412
+#: include/bggavl.h:434
 msgid ""
 "If disabled, the output samplerate is taken from the source. If enabled, the "
 "samplerate you specify below us used."
 msgstr ""
 
-#: include/bggavl.h:421
+#: include/bggavl.h:443
 msgid "Fixed output samplerate"
 msgstr ""
 
-#: include/bggavl.h:428
+#: include/bggavl.h:450
 msgid "Fixed channel setup"
 msgstr ""
 
-#: include/bggavl.h:431
+#: include/bggavl.h:453
 msgid ""
 "If disabled, the output channel configuration is taken from the source. If "
 "enabled, the setup you specify below us used."
 msgstr ""
 
-#: include/bggavl.h:435
+#: include/bggavl.h:457
 msgid "Front channels"
 msgstr ""
 
-#: include/bggavl.h:442
+#: include/bggavl.h:464
 msgid "num_rear_channels"
 msgstr ""
 
-#: include/bggavl.h:451
+#: include/bggavl.h:473
 msgid "LFE"
 msgstr ""
 
-#: include/bggavl.h:457
+#: include/bggavl.h:479
 msgid "Front to rear mode"
 msgstr ""
 
-#: include/bggavl.h:464
+#: include/bggavl.h:486
 msgid "Mute"
 msgstr ""
 
-#: include/bggavl.h:466
+#: include/bggavl.h:488
 msgid "Diff"
 msgstr ""
 
-#: include/bggavl.h:468
+#: include/bggavl.h:490
 msgid ""
 "Mix mode when the output format has rear channels, but the source doesn't."
 msgstr ""
 
-#: include/bggavl.h:473
+#: include/bggavl.h:495
 msgid "Stereo to mono mode"
 msgstr ""
 
-#: include/bggavl.h:480
+#: include/bggavl.h:502
 msgid "Choose left"
 msgstr ""
 
-#: include/bggavl.h:481
+#: include/bggavl.h:503
 msgid "Choose right"
 msgstr ""
 
-#: include/bggavl.h:482
+#: include/bggavl.h:504
 msgid "Mix"
 msgstr ""
 
-#: include/bggavl.h:484
+#: include/bggavl.h:506
 msgid "Mix mode when downmixing Stereo to Mono."
 msgstr ""
 
-#: include/bggavl.h:491
+#: include/bggavl.h:513
 msgid "Force floating point"
 msgstr ""
 
-#: include/bggavl.h:494
+#: include/bggavl.h:516
 msgid ""
 "Force floating point processing. This will inprove the quality but might "
 "slow things down."
 msgstr ""
 
-#: include/bggavl.h:500
+#: include/bggavl.h:522
 msgid "Dither mode"
 msgstr ""
 
-#: include/bggavl.h:505
+#: include/bggavl.h:527
 msgid "Shaped"
 msgstr ""
 
-#: include/bggavl.h:506
+#: include/bggavl.h:528
 msgid ""
 "Dither mode. Auto means to use the quality level. Subsequent options are "
 "ordered by increasing quality (i.e. decreasing speed)."
 msgstr ""
 
-#: include/bggavl.h:512
+#: include/bggavl.h:534
 msgid "Resample mode"
 msgstr ""
 
-#: include/bggavl.h:516
+#: include/bggavl.h:538
 msgid "Linear"
 msgstr ""
 
-#: include/bggavl.h:516
+#: include/bggavl.h:538
 msgid "Zero order hold"
 msgstr ""
 
-#: include/bggavl.h:517
+#: include/bggavl.h:539
 msgid "Sinc fast"
 msgstr ""
 
-#: include/bggavl.h:517
+#: include/bggavl.h:539
 msgid "Sinc medium"
 msgstr ""
 
-#: include/bggavl.h:517
+#: include/bggavl.h:539
 msgid "Sinc best"
 msgstr ""
 
-#: include/bggavl.h:518
+#: include/bggavl.h:540
 msgid ""
 "Resample mode. Auto means to use the quality level. Subsequent options are "
 "ordered by increasing quality (i.e. decreasing speed)."
@@ -3462,20 +3531,20 @@ msgstr ""
 msgid "Duration (milliseconds)"
 msgstr ""
 
-#: lib/filters.c:141
+#: lib/filters.c:142
 msgid "Audio Filters"
 msgstr ""
 
-#: lib/filters.c:270
+#: lib/filters.c:280
 #, c-format
 msgid "Initialized audio filter %s"
 msgstr ""
 
-#: lib/filters.c:433
+#: lib/filters.c:444
 msgid "Video Filters"
 msgstr ""
 
-#: lib/filters.c:557
+#: lib/filters.c:578
 #, c-format
 msgid "Initialized video filter %s"
 msgstr ""
@@ -3517,7 +3586,12 @@ msgid ""
 "image writers."
 msgstr ""
 
-#: lib/player_video.c:194
+#: lib/bggavl.c:467
+#, c-format
+msgid "Unknown scale mode %s\n"
+msgstr ""
+
+#: lib/player_video.c:195
 msgid "Restarting playback due to changed video filters"
 msgstr ""
 
@@ -3584,12 +3658,12 @@ msgstr ""
 msgid "Reading welcome line failed"
 msgstr ""
 
-#: lib/converters.c:186
+#: lib/converters.c:190
 #, c-format
 msgid "Doing framerate conversion %5.2f (%s) -> %5.2f (%s)"
 msgstr ""
 
-#: lib/converters.c:211
+#: lib/converters.c:215
 #, c-format
 msgid "Initialized video converter, %d steps"
 msgstr ""
@@ -3729,12 +3803,12 @@ msgid "End time"
 msgstr ""
 
 #: lib/transcoder_track.c:458 lib/transcoder_track.c:494
-#: lib/transcoder_track.c:1390 lib/transcoder_track.c:1421
+#: lib/transcoder_track.c:1390 lib/transcoder_track.c:1422
 msgid "Action"
 msgstr ""
 
 #: lib/transcoder_track.c:462 lib/transcoder_track.c:497
-#: lib/transcoder_track.c:1393 lib/transcoder_track.c:1424
+#: lib/transcoder_track.c:1393 lib/transcoder_track.c:1425
 msgid "Forget"
 msgstr ""
 
@@ -3755,7 +3829,7 @@ msgid "Select action for this subtitle stream."
 msgstr ""
 
 #: lib/transcoder_track.c:468 lib/transcoder_track.c:502
-#: lib/transcoder_track.c:1429
+#: lib/transcoder_track.c:1430
 msgid "Language"
 msgstr ""
 
@@ -3771,7 +3845,7 @@ msgid ""
 msgstr ""
 
 #: lib/transcoder_track.c:497 lib/transcoder_track.c:1393
-#: lib/transcoder_track.c:1424 lib/gtk/albumwidget.c:1375
+#: lib/transcoder_track.c:1425 lib/gtk/albumwidget.c:1377
 msgid "Transcode"
 msgstr ""
 
@@ -3795,15 +3869,15 @@ msgid ""
 "bitrate constraints but roughly doubles the video encoding time."
 msgstr ""
 
-#: lib/transcoder_track.c:1409
+#: lib/transcoder_track.c:1410
 msgid "Crop & Scale"
 msgstr ""
 
-#: lib/transcoder_track.c:1437
+#: lib/transcoder_track.c:1438
 msgid "Normalize audio"
 msgstr ""
 
-#: lib/transcoder_track.c:1439
+#: lib/transcoder_track.c:1440
 msgid ""
 "This will enable 2 pass transcoding. In the first pass, the peak volume is "
 "detected. In the second pass, the stream is transcoded with normalized "
@@ -4564,7 +4638,7 @@ msgstr ""
 msgid "Delete chapter"
 msgstr ""
 
-#: lib/gtk/cfg_font.c:176 lib/gtk/fileentry.c:112
+#: lib/gtk/cfg_font.c:189 lib/gtk/fileentry.c:127
 msgid "Browse..."
 msgstr ""
 
@@ -4671,7 +4745,7 @@ msgstr ""
 msgid "New from directory..."
 msgstr ""
 
-#: lib/gtk/treewidget.c:1401 lib/gtk/albumwidget.c:1369
+#: lib/gtk/treewidget.c:1401 lib/gtk/albumwidget.c:1371
 msgid "Rename..."
 msgstr ""
 
@@ -4683,7 +4757,7 @@ msgstr ""
 msgid "Add device..."
 msgstr ""
 
-#: lib/gtk/treewidget.c:1425 lib/gtk/albumwidget.c:1425
+#: lib/gtk/treewidget.c:1425 lib/gtk/albumwidget.c:1427
 msgid "Album..."
 msgstr ""
 
@@ -4703,102 +4777,102 @@ msgstr ""
 msgid "New album"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:997
+#: lib/gtk/albumwidget.c:999
 msgid "Track name"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1007
+#: lib/gtk/albumwidget.c:1009
 msgid "Rename entry"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1019
+#: lib/gtk/albumwidget.c:1021
 #, c-format
 msgid "Add files to album %s"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1048
+#: lib/gtk/albumwidget.c:1050
 #, c-format
 msgid "Add URLS to album %s"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1142
+#: lib/gtk/albumwidget.c:1144
 #, c-format
 msgid "Add albums to %s"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1313
+#: lib/gtk/albumwidget.c:1315
 msgid "Add Files"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1317
+#: lib/gtk/albumwidget.c:1319
 msgid "Add Albums"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1329
+#: lib/gtk/albumwidget.c:1331
 msgid "Copy to favourites"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1337 lib/gtk/albumwidget.c:2560
+#: lib/gtk/albumwidget.c:1339 lib/gtk/albumwidget.c:2580
 msgid "Move to top"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1340 lib/gtk/albumwidget.c:2562
+#: lib/gtk/albumwidget.c:1342 lib/gtk/albumwidget.c:2582
 msgid "Move to bottom"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1346 lib/gtk/albumwidget.c:2532
+#: lib/gtk/albumwidget.c:1348 lib/gtk/albumwidget.c:2552
 msgid "Cut"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1358 lib/gtk/albumwidget.c:2536
+#: lib/gtk/albumwidget.c:1360 lib/gtk/albumwidget.c:2556
 msgid "Paste"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1371
+#: lib/gtk/albumwidget.c:1373
 msgid "Info..."
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1381
+#: lib/gtk/albumwidget.c:1383
 msgid "Refresh"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1393
+#: lib/gtk/albumwidget.c:1395
 msgid "Save as..."
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1396
+#: lib/gtk/albumwidget.c:1398
 msgid "Sort"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1412
+#: lib/gtk/albumwidget.c:1414
 msgid "Edit..."
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1431
+#: lib/gtk/albumwidget.c:1433
 msgid "Select error tracks"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1434
+#: lib/gtk/albumwidget.c:1436
 msgid "Show toolbar"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:2522
+#: lib/gtk/albumwidget.c:2542
 msgid "Add files"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:2542
+#: lib/gtk/albumwidget.c:2562
 msgid "Close album and eject disc"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:2548
+#: lib/gtk/albumwidget.c:2568
 msgid "Copy selected tracks to favourites"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:2554
+#: lib/gtk/albumwidget.c:2574
 msgid "Rename selected track"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:2557
+#: lib/gtk/albumwidget.c:2577
 msgid "Show track info"
 msgstr ""
 
@@ -4918,7 +4992,7 @@ msgstr ""
 msgid "Password"
 msgstr ""
 
-#: lib/gtk/cfg_multi_list.c:739
+#: lib/gtk/cfg_multi_list.c:737
 #, c-format
 msgid "Add %s"
 msgstr ""
@@ -4993,11 +5067,11 @@ msgstr ""
 msgid "Input format"
 msgstr ""
 
-#: lib/gtk/plugin_single.c:313 lib/gtk/plugin_multi.c:254
+#: lib/gtk/plugin_single.c:313 lib/gtk/plugin_multi.c:272
 msgid "Plugin options"
 msgstr ""
 
-#: lib/gtk/plugin_single.c:318 lib/gtk/plugin_multi.c:251
+#: lib/gtk/plugin_single.c:318 lib/gtk/plugin_multi.c:269
 msgid "Plugin info"
 msgstr ""
 
@@ -5009,11 +5083,11 @@ msgstr ""
 msgid "Video options"
 msgstr ""
 
-#: lib/gtk/cfg_dialog.c:344
+#: lib/gtk/cfg_dialog.c:392
 msgid "No options here, choose subcategory"
 msgstr ""
 
-#: lib/gtk/cfg_dialog.c:431
+#: lib/gtk/cfg_dialog.c:479
 msgid "No options available"
 msgstr ""
 
@@ -5129,15 +5203,15 @@ msgid ""
 "DLL Filename:\t %s"
 msgstr ""
 
-#: lib/gtk/plugin_multi.c:358
+#: lib/gtk/plugin_multi.c:383
 msgid "Priority"
 msgstr ""
 
-#: lib/gtk/plugin_multi.c:368
+#: lib/gtk/plugin_multi.c:393
 msgid "Protocols"
 msgstr ""
 
-#: lib/gtk/plugin_multi.c:376
+#: lib/gtk/plugin_multi.c:401
 msgid "Extensions"
 msgstr ""
 
@@ -5149,7 +5223,7 @@ msgstr ""
 msgid "Drive:"
 msgstr ""
 
-#: lib/gtk/cfg_device.c:313
+#: lib/gtk/cfg_device.c:311
 msgid "Delete"
 msgstr ""
 

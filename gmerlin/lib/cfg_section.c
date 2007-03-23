@@ -272,7 +272,7 @@ int bg_cfg_section_has_subsection(bg_cfg_section_t * s,
  */
 
 bg_cfg_item_t * bg_cfg_section_find_item(bg_cfg_section_t * section,
-                                         bg_parameter_info_t * info)
+                                         const bg_parameter_info_t * info)
   {
   bg_cfg_item_t * prev;
   bg_cfg_item_t * ret;
@@ -298,7 +298,7 @@ bg_cfg_item_t * bg_cfg_section_find_item(bg_cfg_section_t * section,
 
 
 void bg_cfg_section_set_parameter(bg_cfg_section_t * section,
-                                  bg_parameter_info_t * info,
+                                  const bg_parameter_info_t * info,
                                   bg_parameter_value_t * value)
   {
   bg_cfg_item_t * item;
@@ -699,7 +699,7 @@ int bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * section,
 
 
 void bg_cfg_section_get_parameter(bg_cfg_section_t * section,
-                                  bg_parameter_info_t * info,
+                                  const bg_parameter_info_t * info,
                                   bg_parameter_value_t * value)
   {
   bg_cfg_item_t * item;

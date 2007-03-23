@@ -263,6 +263,10 @@ void bg_album_rename_track(bg_album_t * album,
 char * bg_album_save_to_memory(bg_album_t * a, int * len);
 char * bg_album_save_selected_to_memory(bg_album_t * a, int * len, int preserve_current);
 
+char * bg_album_selected_to_string(bg_album_t * a);
+
+
+
 /*
  *  tree.c
  */

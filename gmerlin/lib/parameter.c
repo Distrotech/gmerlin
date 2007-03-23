@@ -25,7 +25,7 @@
 
 void bg_parameter_value_copy(bg_parameter_value_t * dst,
                              const bg_parameter_value_t * src,
-                             bg_parameter_info_t * info)
+                             const bg_parameter_info_t * info)
   {
   switch(info->type)
     {
@@ -77,6 +77,41 @@ void bg_parameter_value_copy(bg_parameter_value_t * dst,
     case BG_PARAMETER_SECTION:
       break;
     }
+  }
+
+void bg_parameter_value_free(bg_parameter_value_t * val,
+                             const bg_parameter_info_t * info)
+  {
+  switch(info->type)
+    {
+    case BG_PARAMETER_CHECKBUTTON:
+    case BG_PARAMETER_INT:
+    case BG_PARAMETER_SLIDER_INT:
+    case BG_PARAMETER_FLOAT:
+    case BG_PARAMETER_SLIDER_FLOAT:
+    case BG_PARAMETER_TIME:
+    case BG_PARAMETER_SECTION:
+      break;
+    case BG_PARAMETER_STRING:
+    case BG_PARAMETER_STRING_HIDDEN:
+    case BG_PARAMETER_FONT:
+    case BG_PARAMETER_DEVICE:
+    case BG_PARAMETER_FILE:
+    case BG_PARAMETER_DIRECTORY:
+    case BG_PARAMETER_STRINGLIST:
+    case BG_PARAMETER_MULTI_MENU:
+    case BG_PARAMETER_MULTI_LIST:
+    case BG_PARAMETER_MULTI_CHAIN:
+      if(val->val_str)
+        free(val->val_str);
+      break;
+    case BG_PARAMETER_COLOR_RGB:
+    case BG_PARAMETER_COLOR_RGBA:
+      if(val->val_color)
+        free(val->val_color);
+      break;
+    }
+
   }
 
 static char ** copy_string_array(char ** arr)

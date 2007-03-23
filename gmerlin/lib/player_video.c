@@ -143,6 +143,7 @@ static bg_parameter_info_t parameters[] =
 #endif
     BG_GAVL_PARAM_CONVERSION_QUALITY,
     BG_GAVL_PARAM_ALPHA,
+    BG_GAVL_PARAM_RESAMPLE_CHROMA,
     { /* End of parameters */ }
   };
 
