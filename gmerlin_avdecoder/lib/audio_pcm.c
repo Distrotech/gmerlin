@@ -186,6 +186,41 @@ static void decode_s_24_be(bgav_stream_t * s)
   priv->frame->valid_samples = num_samples;
   }
 
+
+static void decode_s_24_lpcm(bgav_stream_t * s)
+  {
+  pcm_t * priv;
+  int num_samples, num_bytes, i;
+  uint8_t * src;
+  uint32_t * dst;
+  priv = (pcm_t*)(s->data.audio.decoder->priv);
+
+  num_samples = priv->bytes_in_packet / (3 * s->data.audio.format.num_channels);
+
+  if(num_samples > FRAME_SAMPLES)
+    num_samples = FRAME_SAMPLES;
+
+  num_bytes   = num_samples * 3 * s->data.audio.format.num_channels;
+
+  src = priv->packet_ptr;
+  dst = (uint32_t*)(priv->frame->samples.s_32);
+
+  i = (num_samples * s->data.audio.format.num_channels)/4;
+  
+  while(i--)
+    {
+    dst[0] = ((uint32_t)(src[0])<<24)|((uint32_t)(src[1])<<16)|((uint32_t)(src[8])<< 8);
+    dst[1] = ((uint32_t)(src[2])<<24)|((uint32_t)(src[3])<<16)|((uint32_t)(src[9])<< 8);
+    dst[2] = ((uint32_t)(src[4])<<24)|((uint32_t)(src[5])<<16)|((uint32_t)(src[10])<< 8);
+    dst[3] = ((uint32_t)(src[6])<<24)|((uint32_t)(src[7])<<16)|((uint32_t)(src[11])<< 8);
+    src+=12;
+    dst+=4;
+    }
+  priv->packet_ptr += num_bytes;
+  priv->bytes_in_packet -= num_bytes;
+  priv->frame->valid_samples = num_samples;
+  }
+
 static void decode_s_32(bgav_stream_t * s)
   {
   pcm_t * priv;
@@ -821,7 +856,7 @@ static int init_pcm(bgav_stream_t * s)
           break;
         case 24:
           s->data.audio.format.sample_format = GAVL_SAMPLE_S32;
-          priv->decode_func = decode_s_24_be;
+          priv->decode_func = decode_s_24_lpcm;
           break;
         default:
           bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,

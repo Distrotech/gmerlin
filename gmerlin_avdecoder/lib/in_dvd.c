@@ -375,6 +375,16 @@ static void setup_track(bgav_input_context_t * ctx,
                      video_attr->display_aspect_ratio,
                      &s->data.video.format.pixel_width,
                      &s->data.video.format.pixel_height);
+#if 0
+  /* Check if we have a still image. This is a bit lousy for now,
+     we just check for a nonzero still time at the start cell of
+     each track (which can be either a title or a chaptzer */
+
+  if(pgc->cell_playback[track_priv->start_cell].still_time != 0)
+    {
+    bgav_log(ctx->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Detected still cell");
+    }
+#endif
   
   /* Audio streams */
   for(i = 0; i < dvd->vts_ifo->vtsi_mat->nr_of_vts_audio_streams; i++)

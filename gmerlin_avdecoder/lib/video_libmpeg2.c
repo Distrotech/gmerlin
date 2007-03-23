@@ -68,6 +68,9 @@ typedef struct
   const mpeg2_picture_t * first_iframe;
   
   int extern_aspect; /* Container sent us the aspect ratio already */
+  
+  int init;
+  int have_frame;
   } mpeg2_priv_t;
 
 int dump_packet = 1;
@@ -197,7 +200,8 @@ static void get_format(bgav_stream_t*s,
   else if(sequence->chroma_height == sequence->height)
     ret->pixelformat = GAVL_YUV_422_P;
   
-  if(sequence->flags & SEQ_FLAG_MPEG2)
+  if((sequence->flags & SEQ_FLAG_MPEG2) &&
+     (ret->framerate_mode != GAVL_FRAMERATE_STILL))
     ret->framerate_mode = GAVL_FRAMERATE_VARIABLE;
   else /* MPEG-1 is always constant framerate */
     {
@@ -207,6 +211,154 @@ static void get_format(bgav_stream_t*s,
 
   //  dump_sequence_header(sequence);
   }
+
+/* Decode one picture, frame will be in priv->info->display_picture
+   after */
+
+static int decode_picture(bgav_stream_t*s)
+  {
+  gavl_video_format_t new_format;
+  int64_t tmp;
+  mpeg2_priv_t * priv;
+  mpeg2_state_t state;
+  priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
+  
+  while(1)
+    {
+    if(!parse(s, &state))
+      return 0;
+    if(((state == STATE_END) || (state == STATE_SLICE) ||
+        (state == STATE_INVALID_END)) && priv->info->display_fbuf)
+      {
+      if(priv->first_iframe)
+        {
+        if(priv->info->display_picture == priv->first_iframe)
+          {
+          priv->first_iframe = (mpeg2_picture_t*)0;
+          break;
+          }
+        }
+      else
+        break;
+      }
+#if MPEG2_RELEASE >= MPEG2_VERSION(0,5,0)
+    else if((state == STATE_SEQUENCE) ||
+            (state == STATE_SEQUENCE_REPEATED) ||
+            (state == STATE_SEQUENCE_MODIFIED))
+#else
+    else if((state == STATE_SEQUENCE) ||
+            (state == STATE_SEQUENCE_REPEATED))
+#endif
+      {
+      memset(&new_format, 0, sizeof(new_format));
+      get_format(s, &(new_format), priv->info->sequence);
+      
+      if((new_format.image_width != s->data.video.format.image_width) ||
+         (new_format.image_height != s->data.video.format.image_height))
+        bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                 "Detected change of image size, not handled yet");
+
+      if(!priv->extern_aspect)
+        {
+        if((s->data.video.format.pixel_width != new_format.pixel_width) ||
+           (s->data.video.format.pixel_height != new_format.pixel_height))
+          {
+          bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN,
+                   "Detected change of pixel aspect ratio: %dx%d",
+                   new_format.pixel_width,
+                   new_format.pixel_height);
+          if(s->opt->aspect_callback)
+            {
+            s->opt->aspect_callback(s->opt->aspect_callback_data,
+                                    bgav_stream_get_index(s),
+                                    new_format.pixel_width,
+                                    new_format.pixel_height);
+            }
+          s->data.video.format.pixel_width = new_format.pixel_width;
+          s->data.video.format.pixel_height = new_format.pixel_height;
+          }
+        }
+      }
+    }
+
+  if((state == STATE_END) && priv->init)
+    {
+    /* If we have a sequence end code after the first frame,
+       force still mode */
+    bgav_log(s->opt, BGAV_LOG_DEBUG, LOG_DOMAIN, "Detected MPEG still image");
+    fprintf(stderr, "Got sequence end code\n");
+    s->data.video.format.framerate_mode = GAVL_FRAMERATE_STILL;
+    }
+
+  /* Calculate timestamp */
+    
+  if(priv->info->display_picture->flags & PIC_FLAG_TAGS)
+    {
+    tmp = priv->info->display_picture->tag;
+    tmp <<= 32;
+    tmp |= priv->info->display_picture->tag2;
+    priv->picture_timestamp = (tmp * s->data.video.format.timescale) / s->timescale;
+    }
+  else
+    {
+    priv->picture_timestamp += priv->picture_duration;
+    }
+  /* Get this pictures duration */
+  
+  priv->picture_duration = s->data.video.format.frame_duration;
+  
+  if((priv->info->display_picture->flags & PIC_FLAG_TOP_FIELD_FIRST) &&
+     (priv->info->display_picture->nb_fields > 2))
+    {
+    priv->picture_duration =
+      (priv->picture_duration * priv->info->current_picture->nb_fields) / 2;
+    }
+  return 1;
+  }
+
+static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
+  {
+  mpeg2_priv_t * priv;
+  priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
+  
+  /* Decode frame */
+  
+#if 0  
+  if(f)
+    mpeg2_skip(priv->dec, 0);
+  else
+    mpeg2_skip(priv->dec, 1);
+#endif
+
+  if(!priv->have_frame)
+    {
+    if(s->data.video.format.framerate_mode == GAVL_FRAMERATE_STILL)
+      return 0;
+    if(!decode_picture(s))
+      return 0;
+    }
+  
+  if(priv->init)
+    {
+    priv->have_frame = 1;
+    return 1;
+    }
+  
+  if(f)
+    {
+    priv->frame->planes[0] = priv->info->display_fbuf->buf[0];
+    priv->frame->planes[1] = priv->info->display_fbuf->buf[1];
+    priv->frame->planes[2] = priv->info->display_fbuf->buf[2];
+    gavl_video_frame_copy(&(s->data.video.format), f, priv->frame);
+    }
+    
+  s->data.video.last_frame_time     = priv->picture_timestamp;
+  s->data.video.last_frame_duration = priv->picture_duration;
+  priv->have_frame = 0;
+  
+  return 1;
+  }
+
 
 static int init_mpeg2(bgav_stream_t*s)
   {
@@ -266,119 +418,16 @@ static int init_mpeg2(bgav_stream_t*s)
              "Detected Intra slice refresh");
     priv->intra_slice_refresh = 1;
     }
+
+  /* Decode first frame to check for still mode */
+  
+  priv->init = 1;
+  decode_mpeg2(s, (gavl_video_frame_t*)0);
+  priv->init = 0;
+  
   return 1;
   }
 
-static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
-  {
-  gavl_video_format_t new_format;
-  int64_t tmp;
-  mpeg2_priv_t * priv;
-  mpeg2_state_t state;
-  priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
-  /* Decode frame */
-
-#if 0  
-  if(f)
-    mpeg2_skip(priv->dec, 0);
-  else
-    mpeg2_skip(priv->dec, 1);
-#endif
-  
-  while(1)
-    {
-    if(!parse(s, &state))
-      return 0;
-    if(((state == STATE_END) || (state == STATE_SLICE) ||
-        (state == STATE_INVALID_END)) && priv->info->display_fbuf)
-      {
-      if(priv->first_iframe)
-        {
-        if(priv->info->display_picture == priv->first_iframe)
-          {
-          priv->first_iframe = (mpeg2_picture_t*)0;
-          break;
-          }
-        }
-      else
-        break;
-      }
-#if MPEG2_RELEASE >= MPEG2_VERSION(a,b,c)
-    else if((state == STATE_SEQUENCE) ||
-            (state == STATE_SEQUENCE_REPEATED) ||
-            (state == STATE_SEQUENCE_MODIFIED))
-#else
-    else if((state == STATE_SEQUENCE) ||
-            (state == STATE_SEQUENCE_REPEATED))
-#endif
-      {
-      memset(&new_format, 0, sizeof(new_format));
-      get_format(s, &(new_format), priv->info->sequence);
-      
-      if((new_format.image_width != s->data.video.format.image_width) ||
-         (new_format.image_height != s->data.video.format.image_height))
-        bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-                 "Detected change of image size, not handled yet");
-
-      if(!priv->extern_aspect)
-        {
-        if((s->data.video.format.pixel_width != new_format.pixel_width) ||
-           (s->data.video.format.pixel_height != new_format.pixel_height))
-          {
-          bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN,
-                   "Detected change of pixel aspect ratio: %dx%d",
-                   new_format.pixel_width,
-                   new_format.pixel_height);
-          if(s->opt->aspect_callback)
-            {
-            s->opt->aspect_callback(s->opt->aspect_callback_data,
-                                    bgav_stream_get_index(s),
-                                    new_format.pixel_width,
-                                    new_format.pixel_height);
-            }
-          s->data.video.format.pixel_width = new_format.pixel_width;
-          s->data.video.format.pixel_height = new_format.pixel_height;
-          }
-        }
-      }
-    }
-  /* Calculate timestamp */
-    
-  if(priv->info->display_picture->flags & PIC_FLAG_TAGS)
-    {
-    tmp = priv->info->display_picture->tag;
-    tmp <<= 32;
-    tmp |= priv->info->display_picture->tag2;
-    priv->picture_timestamp = (tmp * s->data.video.format.timescale) / s->timescale;
-    }
-  else
-    {
-    priv->picture_timestamp += priv->picture_duration;
-    }
-  /* Get this pictures duration */
-  
-  priv->picture_duration = s->data.video.format.frame_duration;
-  
-  if((priv->info->display_picture->flags & PIC_FLAG_TOP_FIELD_FIRST) &&
-     (priv->info->display_picture->nb_fields > 2))
-    {
-    priv->picture_duration =
-      (priv->picture_duration * priv->info->current_picture->nb_fields) / 2;
-    }
-  
-  if(f)
-    {
-    priv->frame->planes[0] = priv->info->display_fbuf->buf[0];
-    priv->frame->planes[1] = priv->info->display_fbuf->buf[1];
-    priv->frame->planes[2] = priv->info->display_fbuf->buf[2];
-    gavl_video_frame_copy(&(s->data.video.format), f, priv->frame);
-    }
-    
-  s->data.video.last_frame_time     = priv->picture_timestamp;
-  s->data.video.last_frame_duration = priv->picture_duration;
-
-  return 1;
-  }
 
 static void resync_mpeg2(bgav_stream_t*s)
   {
@@ -390,7 +439,7 @@ static void resync_mpeg2(bgav_stream_t*s)
   //  mpeg2_skip(priv->dec, 1);
   
   priv->p = (bgav_packet_t*)0;
-  
+  priv->have_frame = 0;
   priv->do_resync = 1;
 
   while(1)
