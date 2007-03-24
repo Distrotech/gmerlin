@@ -475,6 +475,7 @@ static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * inpu
                                           priv->pes_header.stream_id);
           }
         else if((c >= 0x80) && (c <= 0x87)) /* AC3 Audio */
+
           {
           bgav_input_skip(input, 3);
           priv->pes_header.payload_size -= 3;
@@ -490,6 +491,27 @@ static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * inpu
             stream = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
             stream->timescale = 90000;
             stream->fourcc = BGAV_MK_FOURCC('.', 'a', 'c', '3');
+            stream->stream_id = priv->pes_header.stream_id;
+            }
+          }
+        else if(((c >= 0x88) && (c <= 0x8F)) ||
+                ((c >= 0x98) && (c <= 0x9F))) /* DTS Audio */
+
+          {
+          bgav_input_skip(input, 3);
+          priv->pes_header.payload_size -= 3;
+          
+          if(priv->find_streams)
+            stream = bgav_track_find_stream_all(ctx->tt->cur,
+                                                priv->pes_header.stream_id);
+          else
+            stream = bgav_track_find_stream(ctx->tt->cur,
+                                            priv->pes_header.stream_id);
+          if(!stream && priv->find_streams)
+            {
+            stream = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
+            stream->timescale = 90000;
+            stream->fourcc = BGAV_MK_FOURCC('d', 't', 's', ' ');
             stream->stream_id = priv->pes_header.stream_id;
             }
           }

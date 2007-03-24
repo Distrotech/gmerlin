@@ -398,6 +398,9 @@ struct bgav_stream_s
 
       int64_t next_frame_time;
       int     next_frame_duration;
+
+      int still_mode; /* Don't always have the next picture
+                         during seeking */
       } video;
     struct
       {

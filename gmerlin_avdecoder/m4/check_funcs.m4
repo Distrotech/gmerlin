@@ -928,6 +928,39 @@ fi
 
 ])
 
+dnl
+dnl libdca
+dnl
+
+AC_DEFUN([GMERLIN_CHECK_DCA],[
+
+AH_TEMPLATE([HAVE_DCA], [ libdca found ])
+
+have_dca="false"
+DCA_REQUIRED="0.0.2"
+
+AC_ARG_ENABLE(libcda,
+[AC_HELP_STRING([--disable-libdca],[Disable libdca (default: autodetect)])],
+[case "${enableval}" in
+   yes) test_libdca=true ;;
+   no)  test_libdca=false ;;
+esac],[test_libdca=true])
+
+if test x$test_libdca = xtrue; then
+
+PKG_CHECK_MODULES(DCA, libdts >= $DCA_REQUIRED, have_dca="true", have_dca="false")
+fi
+
+AM_CONDITIONAL(HAVE_DCA, test x$have_dca = xtrue)
+AC_SUBST(DCA_REQUIRED)
+
+if test "x$have_dca" = "xtrue"; then
+AC_DEFINE([HAVE_DCA])
+fi
+
+])
+
+
 
 dnl
 dnl Ogg

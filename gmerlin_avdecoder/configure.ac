@@ -205,6 +205,12 @@ dnl
 GMERLIN_CHECK_LIBA52
 
 dnl
+dnl libdca
+dnl
+
+GMERLIN_CHECK_DCA
+
+dnl
 dnl CDrom support
 dnl
 
@@ -472,6 +478,15 @@ elif test "x$test_liba52" = "xfalse"; then
 echo "Disabled"
 else
 echo "Missing (Go to http://liba52.sourceforge.net/)"
+fi
+
+echo -n "libdca:                 "
+if test "x$have_dca" = "xtrue"; then
+echo "Found (CFLAGS=$DCA_CFLAGS LIBS=$DCA_LIBS)"
+elif test "x$test_cda" = "xfalse"; then
+echo "Disabled"
+else
+echo "Missing (Go to http://www.videolan.org/developers/libdca.html)"
 fi
 
 echo -n "libmpcdec:              "

@@ -83,6 +83,17 @@ mad_libs =
 mad_sources =
 endif
 
+if HAVE_DCA
+dca_cflags =  @DCA_CFLAGS@
+dca_libs =    @DCA_LIBS@
+dca_sources = audio_dca.c
+else
+dca_cflags =
+dca_libs =
+dca_sources =
+endif
+
+
 if HAVE_MUSEPACK
 musepack_cflags =  @MUSEPACK_CFLAGS@
 musepack_libs =    @MUSEPACK_LIBS@
@@ -224,6 +235,7 @@ $(dvdread_libs) \
 $(faad2_libs) \
 $(flac_libs) \
 $(mad_libs) \
+$(dca_libs) \
 $(musepack_libs) \
 $(a52_libs) \
 $(avcodec_libs) \
@@ -250,6 +262,7 @@ $(faad2_cflags) \
 $(flac_cflags) \
 $(libmpeg2_cflags) \
 $(a52_cflags) \
+$(dca_cflags) \
 $(musepack_cflags) \
 $(avcodec_cflags) \
 $(cdio_cflags) \
@@ -269,6 +282,7 @@ $(win32_sources) \
 $(mad_sources) \
 $(musepack_sources) \
 $(a52_sources) \
+$(dca_sources) \
 $(flac_sources) \
 $(avcodec_sources) \
 $(real_sources) \

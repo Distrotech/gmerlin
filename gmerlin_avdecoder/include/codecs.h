@@ -10,6 +10,10 @@ void bgav_init_audio_decoders_vorbis();
 void bgav_init_audio_decoders_a52();
 #endif
 
+#ifdef HAVE_DCA
+void bgav_init_audio_decoders_dca();
+#endif
+
 #ifdef HAVE_MAD
 void bgav_init_audio_decoders_mad();
 #endif

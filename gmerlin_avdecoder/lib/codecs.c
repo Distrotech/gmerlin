@@ -236,6 +236,10 @@ void bgav_codecs_init(bgav_options_t * opt)
   bgav_init_audio_decoders_a52();
 #endif
 
+#ifdef HAVE_DCA
+  bgav_init_audio_decoders_dca();
+#endif
+
 #ifdef HAVE_MAD
   bgav_init_audio_decoders_mad();
 #endif

@@ -71,6 +71,7 @@ typedef struct
   
   int init;
   int have_frame;
+  
   } mpeg2_priv_t;
 
 int dump_packet = 1;
@@ -200,8 +201,7 @@ static void get_format(bgav_stream_t*s,
   else if(sequence->chroma_height == sequence->height)
     ret->pixelformat = GAVL_YUV_422_P;
   
-  if((sequence->flags & SEQ_FLAG_MPEG2) &&
-     (ret->framerate_mode != GAVL_FRAMERATE_STILL))
+  if(sequence->flags & SEQ_FLAG_MPEG2)
     ret->framerate_mode = GAVL_FRAMERATE_VARIABLE;
   else /* MPEG-1 is always constant framerate */
     {
@@ -286,8 +286,8 @@ static int decode_picture(bgav_stream_t*s)
     /* If we have a sequence end code after the first frame,
        force still mode */
     bgav_log(s->opt, BGAV_LOG_DEBUG, LOG_DOMAIN, "Detected MPEG still image");
-    fprintf(stderr, "Got sequence end code\n");
-    s->data.video.format.framerate_mode = GAVL_FRAMERATE_STILL;
+    s->data.video.still_mode = 1;
+    // s->data.video.format.framerate_mode = GAVL_FRAMERATE_STILL;
     }
 
   /* Calculate timestamp */
@@ -330,19 +330,17 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
     mpeg2_skip(priv->dec, 1);
 #endif
 
-  if(!priv->have_frame)
+  if((!s->data.video.still_mode && !priv->have_frame) ||
+     (s->data.video.still_mode &&
+      bgav_demuxer_peek_packet_read(s->demuxer, s, 0)))
     {
-    if(s->data.video.format.framerate_mode == GAVL_FRAMERATE_STILL)
-      return 0;
     if(!decode_picture(s))
       return 0;
+    priv->have_frame = 1;
     }
   
   if(priv->init)
-    {
-    priv->have_frame = 1;
     return 1;
-    }
   
   if(f)
     {
@@ -354,8 +352,11 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
     
   s->data.video.last_frame_time     = priv->picture_timestamp;
   s->data.video.last_frame_duration = priv->picture_duration;
-  priv->have_frame = 0;
-  
+
+  if(!s->data.video.still_mode)
+    priv->have_frame = 0;
+  else
+    priv->picture_timestamp += priv->picture_duration;
   return 1;
   }
 
@@ -440,49 +441,62 @@ static void resync_mpeg2(bgav_stream_t*s)
   
   priv->p = (bgav_packet_t*)0;
   priv->have_frame = 0;
-  priv->do_resync = 1;
 
-  while(1)
+  if(s->data.video.still_mode)
     {
-    /* Get the next picture header */
+    priv->picture_timestamp = gavl_time_rescale(s->timescale,
+                                                s->data.video.format.timescale,
+                                                s->time_scaled);
+    }
+  else
+    {
+    priv->do_resync = 1;
     while(1)
       {
-      if(!parse(s, &state))
-        return;
-      if(state == STATE_PICTURE)
-        break;
-      }
+      /* Get the next picture header */
+      while(1)
+        {
+        if(!parse(s, &state))
+          return;
+        if(state == STATE_PICTURE)
+          break;
+        }
     
-    /* Check if we can start decoding again */
-    if((priv->intra_slice_refresh)  &&
-       ((priv->info->current_picture->flags & PIC_MASK_CODING_TYPE) ==
-        PIC_FLAG_CODING_TYPE_P))
-      {
-      break;
+      /* Check if we can start decoding again */
+      if((priv->intra_slice_refresh)  &&
+         ((priv->info->current_picture->flags & PIC_MASK_CODING_TYPE) ==
+          PIC_FLAG_CODING_TYPE_P))
+        {
+        break;
+        }
+      else if(priv->info->current_picture &&
+              ((priv->info->current_picture->flags & PIC_MASK_CODING_TYPE) ==
+               PIC_FLAG_CODING_TYPE_I))
+        {
+        priv->first_iframe = priv->info->current_picture;
+        break;
+        }
       }
-    else if(priv->info->current_picture &&
-            ((priv->info->current_picture->flags & PIC_MASK_CODING_TYPE) ==
-             PIC_FLAG_CODING_TYPE_I))
-      {
-      priv->first_iframe = priv->info->current_picture;
-      break;
-      }
+    priv->do_resync = 0;
     }
   //  mpeg2_skip(priv->dec, 0);
-  priv->do_resync = 0;
 
   /* Set next timestamps */
 
   s->data.video.next_frame_time = priv->picture_timestamp;
 
   s->data.video.next_frame_duration = s->data.video.format.frame_duration;
-  
-  if((priv->info->current_picture->flags & PIC_FLAG_TOP_FIELD_FIRST) &&
-     (priv->info->current_picture->nb_fields > 2))
+
+  if(!s->data.video.still_mode)
     {
-    s->data.video.next_frame_duration =
-      (s->data.video.next_frame_duration * priv->info->current_picture->nb_fields) / 2;
+    if((priv->info->current_picture->flags & PIC_FLAG_TOP_FIELD_FIRST) &&
+       (priv->info->current_picture->nb_fields > 2))
+      {
+      s->data.video.next_frame_duration =
+        (s->data.video.next_frame_duration * priv->info->current_picture->nb_fields) / 2;
+      }
     }
+  
   
   }
 
