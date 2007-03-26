@@ -53,10 +53,10 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
   s->in_data = player->input_context;
   s->in_stream = player->current_video_stream;
   
-  if(!player->do_video && !player->do_still)
+  if(!DO_VIDEO(player) && !DO_STILL(player))
     return 1;
 
-  if(!player->do_subtitle_only)
+  if(!DO_SUBTITLE_ONLY(player))
     {
     bg_player_input_get_video_format(player->input_context);
     if(bg_video_filter_chain_init(s->fc, &s->input_format, &s->pipe_format))
@@ -77,16 +77,16 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
     }
   /* Initialize video fifo */
 
-  if(player->do_video)
+  if(DO_VIDEO(player))
     s->fifo = bg_fifo_create(NUM_VIDEO_FRAMES,
                                                bg_player_ov_create_frame,
                                                (void*)(player->ov_context));
-  else if(player->do_still)
+  else if(DO_STILL(player))
     s->fifo = bg_fifo_create(1,
                                                bg_player_ov_create_frame,
                                                (void*)(player->ov_context));
   /* Initialize video converter */
-  if(!player->do_subtitle_only)
+  if(!DO_SUBTITLE_ONLY(player))
     {
     pthread_mutex_lock(&(s->config_mutex));
     
@@ -106,7 +106,7 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
     pthread_mutex_unlock(&(s->config_mutex));
     }
   
-  if(player->do_subtitle_only)
+  if(DO_SUBTITLE_ONLY(player))
     {
     /* Video output already initialized */
     bg_player_ov_set_subtitle_format(player->ov_context,
@@ -144,6 +144,16 @@ static bg_parameter_info_t parameters[] =
     BG_GAVL_PARAM_CONVERSION_QUALITY,
     BG_GAVL_PARAM_ALPHA,
     BG_GAVL_PARAM_RESAMPLE_CHROMA,
+    {
+      name: "still_framerate",
+      long_name: TRS("Still image framerate"),
+      type:      BG_PARAMETER_FLOAT,
+      val_min:     { val_f:   1.0 },
+      val_max:     { val_f: 100.0 },
+      val_default: { val_f:  10.0 },
+      num_digits:  2,
+      help_string: TRS("Set framerate width which still images will be redisplayed periodically"),
+    },
     { /* End of parameters */ }
   };
 

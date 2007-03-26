@@ -99,7 +99,7 @@ static void msg_subtitle_stream(bg_msg_t * msg,
 
   bg_msg_set_id(msg, BG_PLAYER_MSG_SUBTITLE_STREAM);
   bg_msg_set_arg_int(msg, 0, player->current_subtitle_stream);
-  bg_msg_set_arg_int(msg, 1, player->do_subtitle_text);
+  bg_msg_set_arg_int(msg, 1, !!DO_SUBTITLE_TEXT(player));
   
   bg_msg_set_arg_video_format(msg, 2,
                               &(player->subtitle_stream.format));
@@ -245,9 +245,9 @@ static void interrupt_cmd(bg_player_t * p, int new_state)
     }
   /* Tell it to the fifos */
 
-  if(p->do_audio)
+  if(DO_AUDIO(p))
     bg_fifo_set_state(p->audio_stream.fifo, BG_FIFO_PAUSED);
-  if(p->do_video)
+  if(DO_VIDEO(p))
     bg_fifo_set_state(p->video_stream.fifo, BG_FIFO_PAUSED);
   
   //  if(p->waiting_plugin_threads < p->total_plugin_threads)
@@ -256,7 +256,7 @@ static void interrupt_cmd(bg_player_t * p, int new_state)
   pthread_mutex_unlock(&p->stop_mutex);
   bg_player_time_stop(p);
 
-  if(p->do_audio)
+  if(DO_AUDIO(p))
     bg_player_oa_stop(p->oa_context);
   }
 
@@ -287,7 +287,7 @@ static void start_playback(bg_player_t * p, int new_state)
   
   bg_player_time_start(p);
 
-  if(p->do_audio)
+  if(DO_AUDIO(p))
     bg_player_oa_start(p->oa_context);
   
   pthread_mutex_lock(&(p->start_mutex));
@@ -310,9 +310,9 @@ static void pause_cmd(bg_player_t * p)
       bg_player_input_bypass_set_pause(p->input_context, 1);
 
     /* Now that all threads are stopped, we can go back to play mode */
-    if(p->do_audio)
+    if(DO_AUDIO(p))
       bg_fifo_set_state(p->audio_stream.fifo, BG_FIFO_PLAYING);
-    if(p->do_video)
+    if(DO_VIDEO(p))
       bg_fifo_set_state(p->video_stream.fifo, BG_FIFO_PLAYING);
     
     }
@@ -365,7 +365,7 @@ static int init_subtitle_stream(bg_player_t * p)
 
 static int init_streams(bg_player_t * p)
   {
-  if(p->do_subtitle_only)
+  if(DO_SUBTITLE_ONLY(p))
     {
     if(!init_audio_stream(p) ||
        !init_subtitle_stream(p) ||
@@ -386,10 +386,10 @@ static int init_streams(bg_player_t * p)
 
 static void cleanup_streams(bg_player_t * player)
   {
-  if(player->do_audio)
+  if(DO_AUDIO(player))
     bg_player_oa_cleanup(player->oa_context);
   
-  if(player->do_video)
+  if(DO_VIDEO(player))
     bg_player_ov_cleanup(player->ov_context);
   
   bg_player_time_stop(player);
@@ -505,7 +505,7 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
     }
   
   /* Send messages about formats */
-  if(p->do_audio)
+  if(DO_AUDIO(p))
     {
     if(p->track_info->audio_streams[p->current_audio_stream].description)
       bg_msg_queue_list_send(p->message_queues,
@@ -515,9 +515,9 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
                            msg_audio_stream,
                            p);
     }
-  if(p->do_video)
+  if(DO_VIDEO(p))
     {
-    if(!p->do_subtitle_only &&
+    if(!DO_SUBTITLE_ONLY(p) &&
        p->track_info->video_streams[p->current_video_stream].description)
       bg_msg_queue_list_send(p->message_queues,
                              msg_video_description,
@@ -529,7 +529,7 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
   else if(had_video)
     bg_player_ov_standby(p->ov_context);
   
-  if(p->do_subtitle_overlay || p->do_subtitle_text)
+  if(DO_SUBTITLE(p))
     {
     bg_msg_queue_list_send(p->message_queues, msg_subtitle_stream, p);
     }
@@ -537,9 +537,9 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
   /* Count the threads */
 
   p->total_plugin_threads = 1;
-  if(p->do_audio)
+  if(DO_AUDIO(p))
     p->total_plugin_threads++;
-  if(p->do_video || p->do_still)
+  if(DO_VIDEO(p) || DO_STILL(p))
     p->total_plugin_threads++;
 
   /* Reset variables */
@@ -560,16 +560,16 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
                    bg_player_input_thread, p->input_context);
     
   
-  if(p->do_audio)
+  if(DO_AUDIO(p))
     pthread_create(&(p->oa_thread),
                    (pthread_attr_t*)0,
                    bg_player_oa_thread, p->oa_context);
 
-  if(p->do_video)
+  if(DO_VIDEO(p))
     pthread_create(&(p->ov_thread),
                    (pthread_attr_t*)0,
                    bg_player_ov_thread, p->ov_context);
-  else if(p->do_still)
+  else if(DO_STILL(p))
     pthread_create(&(p->ov_thread),
                    (pthread_attr_t*)0,
                    bg_player_ov_still_thread, p->ov_context);
@@ -593,9 +593,9 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
     {
   
     /* Fire up the fifos */
-    if(p->do_audio)
+    if(DO_AUDIO(p))
       bg_fifo_set_state(p->audio_stream.fifo, BG_FIFO_PLAYING);
-    if(p->do_video)
+    if(DO_VIDEO(p))
       bg_fifo_set_state(p->video_stream.fifo, BG_FIFO_PLAYING);
     preload(p);
     }
@@ -605,7 +605,7 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
     bg_player_set_state(p, BG_PLAYER_STATE_PAUSED, NULL, NULL);
     if(p->do_bypass)
       bg_player_input_bypass_set_pause(p->input_context, 1);
-    if(p->do_video)
+    if(DO_VIDEO(p))
       bg_player_ov_update_still(p->ov_context);
 
     }
@@ -636,8 +636,7 @@ static void play_cmd(bg_player_t * p,
   if(p->input_handle && !bg_plugin_equal(p->input_handle, handle))
     player_cleanup(p);
   
-  had_video = p->do_video || p->do_still;
-  
+  had_video = DO_VIDEO(p) || DO_STILL(p);
   
   p->input_handle = handle;
   if(!bg_player_input_init(p->input_context,
@@ -668,11 +667,10 @@ static void cleanup_playback(bg_player_t * player,
     case BG_PLAYER_STATE_CHANGING:
       if(new_state == BG_PLAYER_STATE_STOPPED)
         {
-        if(player->do_video || player->do_still)
+        if(DO_VIDEO(player) || DO_STILL(player))
           {
           bg_player_ov_standby(player->ov_context);
-          player->do_video = 0;
-          player->do_still = 0;
+          player->flags &= ~(PLAYER_DO_VIDEO|PLAYER_DO_STILL);
           }
         }
       return;
@@ -690,9 +688,9 @@ static void cleanup_playback(bg_player_t * player,
      (old_state == BG_PLAYER_STATE_STILL))
     {
     /* Set the stop flag */
-    if(player->do_audio)
+    if(DO_AUDIO(player))
       bg_fifo_set_state(player->audio_stream.fifo, BG_FIFO_STOPPED);
-    if(player->do_video || player->do_still)
+    if(DO_VIDEO(player) || DO_STILL(player))
       bg_fifo_set_state(player->video_stream.fifo, BG_FIFO_STOPPED);
 
     /* Input thread is joined before entering still mode */
@@ -703,28 +701,27 @@ static void cleanup_playback(bg_player_t * player,
       bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Joining input thread done");
       }
 
-    if(player->do_audio)
+    if(DO_AUDIO(player))
       {
       bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Joining audio thread...");
       pthread_join(player->oa_thread, (void**)0);
       bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Joining audio thread done");
       }
-    if(player->do_video || player->do_still)
+    if(DO_VIDEO(player) || DO_STILL(player))
       {
       bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Joining video thread...");
       pthread_join(player->ov_thread, (void**)0);
       bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Joining video thread done");
       }
-    if(player->do_audio)
+    if(DO_AUDIO(player))
       bg_player_oa_stop(player->oa_context);
         
     if(new_state == BG_PLAYER_STATE_STOPPED)
       {
-      if(player->do_video || player->do_still)
+      if(DO_VIDEO(player) || DO_STILL(player))
         {
         bg_player_ov_standby(player->ov_context);
-        player->do_video = 0;
-        player->do_still = 0;
+        player->flags &= ~(PLAYER_DO_VIDEO|PLAYER_DO_STILL);
         }
       }
     
@@ -783,15 +780,15 @@ static void do_seek(bg_player_t * player, gavl_time_t t, int old_state)
   
   /* Clear fifos */
 
-  if(player->do_audio)
+  if(DO_AUDIO(player))
     {
     bg_fifo_clear(player->audio_stream.fifo);
     }
-  if(player->do_video)
+  if(DO_VIDEO(player))
     {
     bg_fifo_clear(player->video_stream.fifo);
     }
-  if(player->do_subtitle_text || player->do_subtitle_overlay)
+  if(DO_SUBTITLE(player))
     {
     bg_fifo_clear(player->subtitle_stream.fifo);
     }
@@ -799,9 +796,9 @@ static void do_seek(bg_player_t * player, gavl_time_t t, int old_state)
   /* Resync */
 
   /* Fire up the fifos */
-  if(player->do_audio)
+  if(DO_AUDIO(player))
     bg_fifo_set_state(player->audio_stream.fifo, BG_FIFO_PLAYING);
-  if(player->do_video)
+  if(DO_VIDEO(player))
     bg_fifo_set_state(player->video_stream.fifo, BG_FIFO_PLAYING);
   
   preload(player);
@@ -837,7 +834,7 @@ static void do_seek(bg_player_t * player, gavl_time_t t, int old_state)
                            msg_time,
                            &sync_time);
     
-    if(player->do_video)
+    if(DO_VIDEO(player))
       bg_player_ov_update_still(player->ov_context);
     
     // if(p->do_bypass)
@@ -877,7 +874,8 @@ static void stream_change_init(bg_player_t * player)
     bg_player_time_get(player, 1, &player->saved_state.time);
     /* Interrupt and pretend we are seeking */
 
-    player->saved_state.has_video = player->do_video || player->do_still;
+    player->saved_state.has_video =
+      DO_VIDEO(player) || DO_STILL(player);
     
     cleanup_playback(player, old_state, BG_PLAYER_STATE_CHANGING, 0);
     cleanup_streams(player);
@@ -1234,13 +1232,13 @@ static int process_commands(bg_player_t * player)
               pthread_join(player->input_thread, (void**)0);
               bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Joining input thread done");
               }
-            if(player->do_audio)
+            if(DO_AUDIO(player))
               {
               bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Joining audio thread...");
               pthread_join(player->oa_thread, (void**)0);
               bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Joining audio thread done");
               }
-            if(player->do_video || player->do_still)
+            if(DO_VIDEO(player) || DO_STILL(player))
               {
               bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Joining video thread...");
               pthread_join(player->ov_thread, (void**)0);

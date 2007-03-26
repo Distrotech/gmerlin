@@ -178,7 +178,6 @@ POTFILES = \
      ../plugins/videofilters/fv_blur.c \
      ../plugins/videofilters/fv_pixelformat.c \
      ../plugins/videofilters/fv_flip.c \
-     ../plugins/videofilters/fv_zoomshift.c \
      ../plugins/videofilters/fv_zoom.c \
      ../plugins/videofilters/fv_equalizer.c \
      ../tests/imgconvert.c \

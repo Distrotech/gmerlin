@@ -532,7 +532,7 @@ void * bg_player_ov_thread(void * data)
 
     
     /* Subtitle handling */
-    if(ctx->player->do_subtitle_text || ctx->player->do_subtitle_overlay)
+    if(DO_SUBTITLE(ctx->player))
       {
 
       /* Try to get next subtitle */

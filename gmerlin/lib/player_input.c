@@ -184,13 +184,7 @@ void bg_player_input_select_streams(bg_player_input_context_t * ctx)
     }
 
   /* Check if the streams are actually there */
-
-  ctx->player->do_audio = 0;
-  ctx->player->do_video = 0;
-  ctx->player->do_still = 0;
-  ctx->player->do_subtitle_text = 0;
-  ctx->player->do_subtitle_overlay = 0;
-  ctx->player->do_subtitle_only = 0;
+  ctx->player->flags = 0;
 
   ctx->audio_finished = 1;
   ctx->video_finished = 1;
@@ -202,30 +196,31 @@ void bg_player_input_select_streams(bg_player_input_context_t * ctx)
        (ctx->player->current_audio_stream < ctx->player->track_info->num_audio_streams))
       {
       ctx->audio_finished = 0;
-      ctx->player->do_audio = 1;
+      ctx->player->flags |= PLAYER_DO_AUDIO;
       }
     if((ctx->player->current_video_stream >= 0) &&
        (ctx->player->current_video_stream < ctx->player->track_info->num_video_streams))
       {
       if(ctx->player->track_info->video_streams[ctx->player->current_video_stream].is_still)
-        ctx->player->do_still = 1;
+        ctx->player->flags |= PLAYER_DO_STILL;
       else
-        ctx->player->do_video = 1;
+        ctx->player->flags |= PLAYER_DO_VIDEO;
       ctx->video_finished = 0;
       }
     if((ctx->player->current_subtitle_stream >= 0) &&
        (ctx->player->current_subtitle_stream < ctx->player->track_info->num_subtitle_streams))
       {
       if(ctx->player->track_info->subtitle_streams[ctx->player->current_subtitle_stream].is_text)
-        ctx->player->do_subtitle_text = 1;
+        ctx->player->flags |= PLAYER_DO_SUBTITLE_TEXT;
       else
-        ctx->player->do_subtitle_overlay = 1;
+        ctx->player->flags |= PLAYER_DO_SUBTITLE_OVERLAY;
       ctx->subtitle_finished = 0;
 
-      if(!ctx->player->do_video)
+      if(!(ctx->player->flags & PLAYER_DO_VIDEO))
         {
-        ctx->player->do_subtitle_only = 1;
-        ctx->player->do_video = 1;
+        
+        ctx->player->flags |= PLAYER_DO_SUBTITLE_ONLY;
+        ctx->player->flags |= PLAYER_DO_VIDEO;
         ctx->video_finished = 0;
 
         pthread_mutex_lock(&(ctx->player->video_stream.config_mutex));
@@ -556,7 +551,7 @@ static int process_subtitle(bg_player_input_context_t * ctx)
       {
       return 0;
       }
-    if(ctx->player->do_subtitle_text)
+    if(DO_SUBTITLE_TEXT(ctx->player))
       {
       if(!ctx->plugin->read_subtitle_text(ctx->priv,
                                           &(s->buffer),
@@ -606,7 +601,7 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
 
   result = s->in_func(s->in_data, video_frame, s->in_stream);
   
-  if(!result || (ctx->player->do_subtitle_only && ctx->subtitle_finished && ctx->audio_finished))
+  if(!result || (DO_SUBTITLE_ONLY(ctx->player) && ctx->subtitle_finished && ctx->audio_finished))
     ctx->video_finished = 1;
   else
     ctx->video_frames_written++;
@@ -655,8 +650,8 @@ void * bg_player_input_thread(void * data)
 
   read_audio = 0;
 
-  if(ctx->player->do_audio &&
-     !(ctx->player->do_video || ctx->player->do_still))
+  if(DO_AUDIO(ctx->player) &&
+     !(DO_VIDEO(ctx->player) || DO_STILL(ctx->player)))
     read_audio = 1;
 
   
@@ -681,8 +676,8 @@ void * bg_player_input_thread(void * data)
         }
       break;
       }
-    if(ctx->player->do_audio &&
-       (ctx->player->do_video || ctx->player->do_still))
+    if(DO_AUDIO(ctx->player) &&
+       (DO_VIDEO(ctx->player) || DO_STILL(ctx->player)))
       {
             
       //      if(ctx->audio_finished)
@@ -720,20 +715,20 @@ void * bg_player_input_thread(void * data)
   msg = bg_msg_queue_lock_write(ctx->player->command_queue);
   bg_msg_set_id(msg, BG_PLAYER_CMD_SETSTATE);
   
-  if(ctx->player->do_still && !ctx->player->do_audio)
+  if(DO_STILL(ctx->player) && !DO_AUDIO(ctx->player))
     bg_msg_set_arg_int(msg, 0, BG_PLAYER_STATE_STILL);
   else
     bg_msg_set_arg_int(msg, 0, BG_PLAYER_STATE_FINISHING);
   
   bg_msg_queue_unlock_write(ctx->player->command_queue);
 
-  if(ctx->player->do_audio)
+  if(DO_AUDIO(ctx->player))
     {
     sprintf(tmp_string, "%" PRId64, ctx->audio_samples_written);
     bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Processed %s audio samples",
            tmp_string);
     }
-  if(ctx->player->do_video || ctx->player->do_still)
+  if(DO_VIDEO(ctx->player) || DO_STILL(ctx->player))
     {
     sprintf(tmp_string, "%" PRId64, ctx->video_frames_written);
     bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Processed %s video frames",
@@ -784,12 +779,11 @@ void bg_player_input_preload(bg_player_input_context_t * ctx)
   int do_still;
   int do_subtitle;
 
-  do_audio = ctx->player->do_audio;
-  do_video = ctx->player->do_video;
-  do_still = ctx->player->do_still;
-  do_subtitle = ctx->player->do_subtitle_text || 
-    ctx->player->do_subtitle_overlay;
-
+  do_audio = !!DO_AUDIO(ctx->player);
+  do_video = !!DO_VIDEO(ctx->player);
+  do_still = !!DO_STILL(ctx->player);
+  do_subtitle = !!DO_SUBTITLE(ctx->player);
+  
   if(do_still)
     {
     process_video(ctx, 1);
@@ -822,7 +816,7 @@ void bg_player_input_seek(bg_player_input_context_t * ctx,
     gavl_time_to_samples(ctx->player->audio_stream.input_format.samplerate,
                          ctx->audio_time);
 
-  if(ctx->player->do_subtitle_only)
+  if(DO_SUBTITLE_ONLY(ctx->player))
     ctx->video_frames_written =
       gavl_time_to_frames(ctx->player->video_stream.output_format.timescale,
                           ctx->player->video_stream.output_format.frame_duration,
@@ -834,11 +828,11 @@ void bg_player_input_seek(bg_player_input_context_t * ctx,
                           ctx->video_time);
   
   /* Clear EOF states */
-  do_audio = ctx->player->do_audio;
-  do_video = ((ctx->player->do_video) || (ctx->player->do_still));
+  do_audio = DO_AUDIO(ctx->player);
+  do_video = DO_VIDEO(ctx->player) || DO_STILL(ctx->player);
   do_subtitle =
-    ctx->player->do_subtitle_overlay ||
-    ctx->player->do_subtitle_text;
+    DO_SUBTITLE_OVERLAY(ctx->player) ||
+    DO_SUBTITLE_TEXT(ctx->player);
   
   ctx->subtitle_finished = !do_subtitle;
   ctx->audio_finished = !do_audio;

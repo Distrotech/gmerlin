@@ -98,10 +98,15 @@ typedef struct
   pthread_mutex_t config_mutex;
 
   bg_gavl_video_options_t options;
-  
+
+  float still_framerate;
+  int64_t still_pts;
+  int still_pts_inc;
+    
   gavl_video_format_t input_format;
   gavl_video_format_t output_format;
   gavl_video_format_t pipe_format;
+
   
   } bg_player_video_stream_t;
 
@@ -127,6 +132,36 @@ typedef struct
   int has_video;
   gavl_time_t time;
   } bg_player_saved_state_t;
+
+/* Player flags */
+
+#define PLAYER_DO_AUDIO            (1<<0)
+#define PLAYER_DO_VIDEO            (1<<1)
+#define PLAYER_DO_STILL            (1<<2)
+#define PLAYER_DO_SUBTITLE_OVERLAY (1<<3)
+#define PLAYER_DO_SUBTITLE_TEXT    (1<<4)
+#define PLAYER_DO_SUBTITLE_ONLY    (1<<5)
+
+#define DO_SUBTITLE_TEXT(p) \
+ (p->flags & PLAYER_DO_SUBTITLE_TEXT)
+
+#define DO_SUBTITLE_OVERLAY(p) \
+ (p->flags & PLAYER_DO_SUBTITLE_OVERLAY)
+
+#define DO_SUBTITLE(p) \
+ (p->flags & (PLAYER_DO_SUBTITLE_OVERLAY|PLAYER_DO_SUBTITLE_TEXT))
+
+#define DO_SUBTITLE_ONLY(p) \
+  (DO_SUBTITLE(p) && !(p->flags & PLAYER_DO_VIDEO))
+
+#define DO_STILL(p) \
+  (p->flags & PLAYER_DO_STILL)
+
+#define DO_AUDIO(p) \
+  (p->flags & PLAYER_DO_AUDIO)
+
+#define DO_VIDEO(p) \
+  (p->flags & PLAYER_DO_VIDEO)
 
 /* The player */
 
@@ -156,7 +191,10 @@ struct bg_player_s
   /*
    *  Stream selection
    */
-    
+
+  int flags;
+
+#if 0  
   int do_audio;
 
   /* Only one of do_still and do_video can be nonzero at the same time */
@@ -166,6 +204,7 @@ struct bg_player_s
   int do_subtitle_overlay;
   int do_subtitle_text;
   int do_subtitle_only; /* Display subtitles without video */
+#endif
   
   int current_audio_stream;
   int current_video_stream;

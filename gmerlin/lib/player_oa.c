@@ -124,7 +124,7 @@ void bg_player_time_init(bg_player_t * player)
      player->do_bypass)
     ctx->sync_mode = SYNC_INPUT;
   else if(ctx->plugin && (ctx->plugin->get_delay) &&
-          (ctx->player->do_audio))
+          DO_AUDIO(ctx->player))
     ctx->sync_mode = SYNC_SOUNDCARD;
   else
     ctx->sync_mode = SYNC_SOFTWARE;
