@@ -105,6 +105,8 @@ have_x="false"
 
 X_CLAGS=""
 X_LIBS=""
+
+
 AC_PATH_X
 
 if test x$no_x != xyes; then
@@ -267,7 +269,7 @@ AC_ARG_ENABLE(lqt,
                esac],
 	       test_lqt=true)
 
-if test x$test_lqt="xtrue"; then
+if test x$test_lqt = "xtrue"; then
 PKG_CHECK_MODULES(LQT, libquicktime >= $LQT_REQUIRED, have_lqt=true, have_lqt=false)
 fi
 
@@ -284,6 +286,14 @@ have_cdio="false"
 
 CDIO_REQUIRED="0.76"
 
+AC_ARG_ENABLE(libcdio,
+[AC_HELP_STRING([--disable-libcdio],[Disable libcdio (default: autodetect)])],
+[case "${enableval}" in
+   yes) test_cdio=true ;;
+   no)  test_cdio=false ;;
+esac],[test_cdio=true])
+
+if test x$test_cdio = xtrue; then
 PKG_CHECK_MODULES(CDIO, libcdio >= $CDIO_REQUIRED, have_cdio="true", have_cdio="false")
 
 if test x$have_cdio = xtrue; then
@@ -292,6 +302,8 @@ fi
 
 if test x$have_cdio = xtrue; then
 PKG_CHECK_MODULES(CDIO_PARANOIA, libcdio_paranoia >= $CDIO_REQUIRED, have_cdio="true", have_cdio="false")
+fi
+
 fi
 
 AM_CONDITIONAL(HAVE_CDIO, test x$have_cdio = xtrue)
@@ -314,16 +326,16 @@ AC_ARG_ENABLE(musicbrainz,
                esac],
 	       test_musicbrainz=true)
 
-dnl We check for musicbrainz only of we already detected CDROM support
+dnl We check for musicbrainz only if we already detected CDROM support
 if test x$have_cdio = "xfalse"; then
 test_musicbrainz=false
 fi
 
-if test x$test_musicbrainz="xtrue"; then
+if test x$test_musicbrainz = "xtrue"; then
 PKG_CHECK_MODULES(MUSICBRAINZ, libmusicbrainz >= $MUSICBRAINZ_REQUIRED, have_musicbrainz=true, have_musicbrainz=false)
 fi
 
-if test x$have_musicbrainz="xtrue"; then
+if test x$have_musicbrainz = "xtrue"; then
 AC_DEFINE(HAVE_MUSICBRAINZ)
 fi
 
@@ -680,56 +692,88 @@ echo -n "EsounD:              "
 if test "x$have_esd" = "xtrue"; then
 echo "Yes (CFLAGS=$ESD_CFLAGS LIBS=$ESD_LIBS)"
 else
+if test "x$test_esd" = "xtrue"; then
 echo "Missing (Go to http://www.tux.org/~ricdude/EsounD.html)"
+else
+echo "Disabled"
+fi
 fi
 
 echo -n "Alsa:                "
 if test "x$have_alsa" = "xtrue"; then
 echo "Yes (CFLAGS=$ALSA_CFLAGS LIBS=$ALSA_LIBS)"
 else
+if test "x$test_alsa" = "xtrue"; then
 echo "Missing (Go to http://www.alsa-project.org/)"
+else
+echo "Disabled"
+fi
 fi
 
 echo -n "Libquicktime:        "
 if test "x$have_lqt" = "xtrue"; then
 echo "Yes (CFLAGS=$LQT_CFLAGS LIBS=$LQT_LIBS)"
 else
+if test "x$test_lqt" = "xtrue"; then
 echo "Missing (Go to http://libquicktime.sourceforge.net/)"
+else
+echo "Disabled"
+fi
 fi
 
 echo -n "Libjpeg:             "
 if test "x$have_libjpeg" = "xtrue"; then
 echo "Yes (CFLAGS=$JPEG_CFLAGS LIBS=$JPEG_LIBS)"
 else
+if test "x$test_libjpeg" = "xtrue"; then
 echo "Missing (Go to http://www.ijg.org/)"
+else
+echo "Disabled"
+fi
 fi
 
 echo -n "Libpng:              "
 if test "x$have_libpng" = "xtrue"; then
 echo "Yes (CFLAGS=$PNG_CFLAGS LIBS=$PNG_LIBS)"
 else
+if test "x$test_libpng" = "xtrue"; then
 echo "Missing (Go to http://www.libpng.org/pub/png/libpng.html)"
+else
+echo "Disabled"
+fi
 fi
 
 echo -n "Libtiff:             "
 if test "x$have_libtiff" = "xtrue"; then
 echo "Yes (CFLAGS=$TIFF_CFLAGS LIBS=$TIFF_LIBS)"
 else
+if test "x$test_libtiff" = "xtrue"; then
 echo "Missing (http://www.remotesensing.org/libtiff/)"
+else
+echo "Disabled"
+fi
 fi
 
 echo -n "OSS:                 "
 if test "x$have_oss" = "xtrue"; then
 echo "Yes"
 else
+if test "x$test_oss" = "xtrue"; then
 echo "Missing (Probably unsupported architecture)"
+else
+echo "Disabled"
+fi
 fi
 
 echo -n "Video4Linux:         "
 if test "x$have_v4l" = "xtrue"; then
 echo "Yes"
 else
+if test "x$test_v4l" = "xtrue"; then
 echo "Missing (Probably unsupported architecture)"
+else
+echo "Disabled"
+fi
 fi
 
 echo -n "X11:                 "
@@ -764,23 +808,34 @@ echo -n "libcdio:             "
 if test "x$have_cdio" = "xtrue"; then
 echo "Yes (CFLAGS=$CDIO_CFLAGS $CDIO_CDDA_CFLAGS $CDIO_PARANOIA_CFLAGS LIBS=$CDIO_LIBS $CDIO_CDDA_LIBS $CDIO_PARANOIA_LIBS)"
 else
+if test "x$test_cdio" = "xtrue"; then
 echo "Missing (Go to http://www.gnu.org/software/libcdio/)"
+else
+echo "Disabled"
+fi
 fi
 
 echo -n "Musicbrainz:         "
 if test "x$have_musicbrainz" = "xtrue"; then
 echo "Yes (CFLAGS=$MUSICBRAINZ_CFLAGS LIBS=$MUSICBRAINZ_LIBS)"
 else
+if test "x$test_musicbrainz" = "xtrue"; then
 echo "Missing (Go to http://musicbrainz.org/products/client/index.html)"
+else
+echo "Disabled"
+fi
 fi
 
 echo -n "libcddb:             "
 if test "x$have_cddb" = "xtrue"; then
 echo "Yes (CFLAGS=$CDDB_CFLAGS LIBS=$CDDB_LIBS)"
 else
+if test "x$test_cddb" = "xtrue"; then
 echo "Missing (Go to http://libcddb.sourceforge.net)"
+else
+echo "Disabled"
 fi
-
+fi
 
 echo
 echo "=== Applications: ================================="

@@ -910,12 +910,11 @@ CDIO_REQUIRED="0.76"
 AC_ARG_ENABLE(libcdio,
 [AC_HELP_STRING([--disable-libcdio],[Disable libcdio (default: autodetect)])],
 [case "${enableval}" in
-   yes) test_libcdio=true ;;
-   no)  test_libcdio=false ;;
-esac],[test_libcdio=true])
+   yes) test_cdio=true ;;
+   no)  test_cdio=false ;;
+esac],[test_cdio=true])
 
-if test x$test_libcdio = xtrue; then
-
+if test x$test_cdio = xtrue; then
 PKG_CHECK_MODULES(CDIO, libcdio >= $CDIO_REQUIRED, have_cdio="true", have_cdio="false")
 fi
 
