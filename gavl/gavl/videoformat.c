@@ -55,7 +55,7 @@ void gavl_video_format_dump(const gavl_video_format_t * format)
     }
   else
     {
-    fprintf(stderr, "Still image\n");
+    fprintf(stderr, "  Still image\n");
     }
   fprintf(stderr, "  Interlace mode:   %s\n", gavl_interlace_mode_to_string(format->interlace_mode));  
 

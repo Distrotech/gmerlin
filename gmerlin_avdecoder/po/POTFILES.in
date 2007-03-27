@@ -307,6 +307,7 @@ lib/qt_tkhd.c
 lib/audio_qtwin32.c
 lib/demux_wve.c
 lib/demux_mpegps.c
+lib/audio_dca.c
 lib/demux_tiertex.c
 lib/in_mms.c
 lib/video_theora.c

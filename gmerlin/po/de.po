@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmerlin 0.3.6\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-03-23 01:00+0100\n"
+"POT-Creation-Date: 2007-03-28 00:36+0200\n"
 "PO-Revision-Date: 2007-02-12 22:09+0100\n"
 "Last-Translator: Burkhard Plaum <gmerlin@users.sourceforge.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -1593,8 +1593,7 @@ msgid "Illegal pixelformat: %s"
 msgstr ""
 
 #: plugins/jpeg/iw_jpeg.c:237 plugins/videofilters/fv_tlp.c:89
-#: plugins/videofilters/fv_blur.c:244 plugins/videofilters/fv_zoomshift.c:95
-#: plugins/videofilters/fv_zoom.c:123
+#: plugins/videofilters/fv_blur.c:244 plugins/videofilters/fv_zoom.c:123
 msgid "Quality"
 msgstr ""
 
@@ -2733,20 +2732,12 @@ msgstr ""
 msgid "Flip video images horizontally and/or vertically"
 msgstr ""
 
-#: plugins/videofilters/fv_zoomshift.c:74 plugins/videofilters/fv_zoom.c:80
+#: plugins/videofilters/fv_zoom.c:80
 msgid "Zoom horizontally"
 msgstr ""
 
-#: plugins/videofilters/fv_zoomshift.c:84 plugins/videofilters/fv_zoom.c:90
+#: plugins/videofilters/fv_zoom.c:90
 msgid "Zoom vertically"
-msgstr ""
-
-#: plugins/videofilters/fv_zoomshift.c:220
-msgid "Zs image"
-msgstr ""
-
-#: plugins/videofilters/fv_zoomshift.c:221
-msgid "Zoom and shift video images horizontally and/or vertically"
 msgstr ""
 
 #: plugins/videofilters/fv_zoom.c:108 include/bggavl.h:284
@@ -3408,37 +3399,37 @@ msgstr ""
 msgid "Aspect ratio changed"
 msgstr ""
 
-#: lib/player_input.c:300 lib/transcoder.c:2186
+#: lib/player_input.c:295 lib/transcoder.c:2186
 msgid "Starting input plugin failed"
 msgstr ""
 
-#: lib/player_input.c:320
+#: lib/player_input.c:315
 msgid "Cannot select track, skipping"
 msgstr ""
 
-#: lib/player_input.c:361
+#: lib/player_input.c:356
 msgid "Stream has neither audio nor video, skipping"
 msgstr ""
 
-#: lib/player_input.c:733
+#: lib/player_input.c:728
 #, c-format
 msgid "Processed %s audio samples"
 msgstr ""
 
-#: lib/player_input.c:739
+#: lib/player_input.c:734
 #, c-format
 msgid "Processed %s video frames"
 msgstr ""
 
-#: lib/player_input.c:875
+#: lib/player_input.c:869
 msgid "Input options"
 msgstr ""
 
-#: lib/player_input.c:881
+#: lib/player_input.c:875
 msgid "Enable bypass mode"
 msgstr ""
 
-#: lib/player_input.c:884
+#: lib/player_input.c:878
 msgid ""
 "Use input plugins in bypass mode if they support it (Currently only the "
 "audio CD player). This dramatically decreases CPU usage but doesn't work on "
@@ -3591,7 +3582,15 @@ msgstr ""
 msgid "Unknown scale mode %s\n"
 msgstr ""
 
-#: lib/player_video.c:195
+#: lib/player_video.c:149
+msgid "Still image framerate"
+msgstr ""
+
+#: lib/player_video.c:155
+msgid "Set framerate width which still images will be redisplayed periodically"
+msgstr ""
+
+#: lib/player_video.c:205
 msgid "Restarting playback due to changed video filters"
 msgstr ""
 
@@ -4278,31 +4277,31 @@ msgstr ""
 msgid "Audio stream %d: Transcoded %s samples"
 msgstr ""
 
-#: lib/player_thread.c:701 lib/player_thread.c:1220 lib/player_thread.c:1233
+#: lib/player_thread.c:699 lib/player_thread.c:1218 lib/player_thread.c:1231
 msgid "Joining input thread..."
 msgstr ""
 
-#: lib/player_thread.c:703 lib/player_thread.c:1222 lib/player_thread.c:1235
+#: lib/player_thread.c:701 lib/player_thread.c:1220 lib/player_thread.c:1233
 msgid "Joining input thread done"
 msgstr ""
 
-#: lib/player_thread.c:708 lib/player_thread.c:1239
+#: lib/player_thread.c:706 lib/player_thread.c:1237
 msgid "Joining audio thread..."
 msgstr ""
 
-#: lib/player_thread.c:710 lib/player_thread.c:1241
+#: lib/player_thread.c:708 lib/player_thread.c:1239
 msgid "Joining audio thread done"
 msgstr ""
 
-#: lib/player_thread.c:714 lib/player_thread.c:1245
+#: lib/player_thread.c:712 lib/player_thread.c:1243
 msgid "Joining video thread..."
 msgstr ""
 
-#: lib/player_thread.c:716 lib/player_thread.c:1247
+#: lib/player_thread.c:714 lib/player_thread.c:1245
 msgid "Joining video thread done"
 msgstr ""
 
-#: lib/player_thread.c:1299
+#: lib/player_thread.c:1297
 msgid "Ignoring command while playback is interrupted"
 msgstr ""
 
