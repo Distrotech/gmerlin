@@ -245,11 +245,13 @@ static void average_f_c(uint8_t * src_1, uint8_t * src_2,
 /* Interpolating */
 
 static void interpolate_rgb15_c(uint8_t * src_1, uint8_t * src_2, 
-                            uint8_t * dst, int num, int fac)
+                            uint8_t * dst, int num, float fac)
   {
   int i;
   uint16_t * s1, *s2, *d;
-  int anti_fac = 0x100 - fac;
+  int fac_i = (int)(fac * 0x10000 + 0.5);
+  int anti_fac = 0x10000 - fac_i;
+  
   s1 = (uint16_t*)src_1;
   s2 = (uint16_t*)src_2;
   d = (uint16_t*)dst;
@@ -257,14 +259,14 @@ static void interpolate_rgb15_c(uint8_t * src_1, uint8_t * src_2,
   for(i = 0; i < num; i++)
     {
     *d = 
-      (((*s1 & RGB15_LOWER_MASK)*fac + 
-        (*s2 & RGB15_LOWER_MASK)*anti_fac) >> 8) & RGB15_LOWER_MASK;
+      (((*s1 & RGB15_LOWER_MASK)*fac_i + 
+        (*s2 & RGB15_LOWER_MASK)*anti_fac) >> 16) & RGB15_LOWER_MASK;
     *d |= 
-      (((*s1 & RGB15_MIDDLE_MASK)*fac + 
-        (*s2 & RGB15_MIDDLE_MASK)*anti_fac) >> 8) & RGB15_MIDDLE_MASK;
+      (((*s1 & RGB15_MIDDLE_MASK)*fac_i + 
+        (*s2 & RGB15_MIDDLE_MASK)*anti_fac) >> 16) & RGB15_MIDDLE_MASK;
     *d |= 
-      (((*s1 & RGB15_UPPER_MASK)*fac + 
-        (*s2 & RGB15_UPPER_MASK)*anti_fac) >> 8) & RGB15_UPPER_MASK;
+      (((*s1 & RGB15_UPPER_MASK)*fac_i + 
+        (*s2 & RGB15_UPPER_MASK)*anti_fac) >> 16) & RGB15_UPPER_MASK;
     s1++;
     s2++;
     d++;
@@ -273,11 +275,12 @@ static void interpolate_rgb15_c(uint8_t * src_1, uint8_t * src_2,
   }
 
 static void interpolate_rgb16_c(uint8_t * src_1, uint8_t * src_2, 
-                        uint8_t * dst, int num, int fac)
+                        uint8_t * dst, int num, float fac)
   {
   int i;
   uint16_t * s1, *s2, *d;
-  int anti_fac = 0x100 - fac;
+  int fac_i = (int)(fac * 0x10000 + 0.5);
+  int anti_fac = 0x10000 - fac_i;
 
   s1 = (uint16_t*)src_1;
   s2 = (uint16_t*)src_2;
@@ -286,14 +289,14 @@ static void interpolate_rgb16_c(uint8_t * src_1, uint8_t * src_2,
   for(i = 0; i < num; i++)
     {
     *d = 
-      (((*s1 & RGB16_LOWER_MASK)*fac + 
-        (*s2 & RGB16_LOWER_MASK)*anti_fac) >> 8) & RGB16_LOWER_MASK;
+      (((*s1 & RGB16_LOWER_MASK)*fac_i + 
+        (*s2 & RGB16_LOWER_MASK)*anti_fac) >> 16) & RGB16_LOWER_MASK;
     *d |= 
-      (((*s1 & RGB16_MIDDLE_MASK)*fac + 
-        (*s2 & RGB16_MIDDLE_MASK)*anti_fac) >> 8) & RGB16_MIDDLE_MASK;
+      (((*s1 & RGB16_MIDDLE_MASK)*fac_i + 
+        (*s2 & RGB16_MIDDLE_MASK)*anti_fac) >> 16) & RGB16_MIDDLE_MASK;
     *d |= 
-      (((*s1 & RGB16_UPPER_MASK)*fac + 
-        (*s2 & RGB16_UPPER_MASK)*anti_fac) >> 8) & RGB16_UPPER_MASK;
+      (((*s1 & RGB16_UPPER_MASK)*fac_i + 
+        (*s2 & RGB16_UPPER_MASK)*anti_fac) >> 16) & RGB16_UPPER_MASK;
     s1++;
     s2++;
     d++;
@@ -302,13 +305,14 @@ static void interpolate_rgb16_c(uint8_t * src_1, uint8_t * src_2,
   }
 
 static void interpolate_8_c(uint8_t * src_1, uint8_t * src_2, 
-                    uint8_t * dst, int num, int fac)
+                    uint8_t * dst, int num, float fac)
   {
   int i;
-  int anti_fac = 0x100 - fac;
+  int fac_i = (int)(fac * 0x10000 + 0.5);
+  int anti_fac = 0x10000 - fac_i;
   for(i = 0; i < num; i++)
     {
-    *dst = (*src_1 * fac + *src_2 * anti_fac) >> 8;
+    *dst = (*src_1 * fac_i + *src_2 * anti_fac) >> 16;
     src_1++;
     src_2++;
     dst++;
@@ -316,11 +320,12 @@ static void interpolate_8_c(uint8_t * src_1, uint8_t * src_2,
   }
 
 static void interpolate_16_c(uint8_t * src_1, uint8_t * src_2, 
-                     uint8_t * dst, int num, int fac)
+                             uint8_t * dst, int num, float fac)
   {
   int i;
   uint16_t * s1, *s2, *d;
-  uint16_t anti_fac = 0xffff - fac;
+  int fac_i = (int)(fac * 0x8000 + 0.5);
+  int anti_fac = 0x8000 - fac_i;
 
   s1 = (uint16_t*)src_1;
   s2 = (uint16_t*)src_2;
@@ -328,7 +333,7 @@ static void interpolate_16_c(uint8_t * src_1, uint8_t * src_2,
 
   for(i = 0; i < num; i++)
     {
-    *d = (*s1 * fac + *s2 * anti_fac) >> 16;
+    *d = (*s1 * fac_i + *s2 * anti_fac) >> 15;
     s1++;
     s2++;
     d++;
@@ -337,7 +342,7 @@ static void interpolate_16_c(uint8_t * src_1, uint8_t * src_2,
   }
 
 static void interpolate_f_c(uint8_t * src_1, uint8_t * src_2, 
-                        uint8_t * dst, int num, float fac)
+                            uint8_t * dst, int num, float fac)
   {
   int i;
   float * s1, *s2, *d;

@@ -155,10 +155,12 @@ typedef struct
    *  \param dst Destination
    *  \param num Number of pixels
    *  \param fac Factor for src_1 (0..255)
+   *
+   *  Sets the destination to src_1 * fac + src_2 * (1.0-fac)
    */
   
   void (*interpolate_rgb15)(uint8_t * src_1, uint8_t * src_2, 
-                            uint8_t * dst, int num, int fac);
+                            uint8_t * dst, int num, float);
 
   /** \brief Interpolate 2 scanlines (RGB/BGR16)
    *  \param src_1 Scanline 1
@@ -166,9 +168,11 @@ typedef struct
    *  \param dst Destination
    *  \param num Number of pixels
    *  \param fac Factor for src_1 (0..255)
+   *
+   *  Sets the destination to src_1 * fac + src_2 * (1.0-fac)
    */
   void (*interpolate_rgb16)(uint8_t * src_1, uint8_t * src_2, 
-                            uint8_t * dst, int num, int fac);
+                            uint8_t * dst, int num, float fac);
 
   /** \brief Interpolate 2 scanlines (8 bit)
    *  \param src_1 Scanline 1
@@ -176,9 +180,11 @@ typedef struct
    *  \param dst Destination
    *  \param num Number of bytes
    *  \param fac Factor for src_1 (0..255)
+   *
+   *  Sets the destination to src_1 * fac + src_2 * (1.0-fac)
    */
   void (*interpolate_8)(uint8_t * src_1, uint8_t * src_2, 
-                        uint8_t * dst, int num, int fac);
+                        uint8_t * dst, int num, float fac);
 
   /** \brief Interpolate 2 scanlines (16 bit)
    *  \param src_1 Scanline 1
@@ -186,9 +192,11 @@ typedef struct
    *  \param dst Destination
    *  \param num Number of shorts
    *  \param fac Factor for src_1 (0..65535)
+   *
+   *  Sets the destination to src_1 * fac + src_2 * (1.0-fac)
    */
   void (*interpolate_16)(uint8_t * src_1, uint8_t * src_2, 
-                         uint8_t * dst, int num, int fac);
+                         uint8_t * dst, int num, float fac);
 
   /** \brief Interpolate 2 scanlines (float)
    *  \param src_1 Scanline 1
@@ -196,6 +204,8 @@ typedef struct
    *  \param dst Destination
    *  \param num Number of floats
    *  \param fac Factor for src_1 (0.0..1.0)
+   *
+   *  Sets the destination to src_1 * fac + src_2 * (1.0-fac)
    */
   
   void (*interpolate_f)(uint8_t * src_1, uint8_t * src_2, 

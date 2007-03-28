@@ -22,15 +22,16 @@ static mmx_t mm_tmp;
 
 
 static void interpolate_8_mmx(uint8_t * src_1, uint8_t * src_2, 
-                              uint8_t * dst, int num, int fac)
+                              uint8_t * dst, int num, float fac)
   {
   int i, imax;
   int32_t tmp;
-  int anti_fac;
-
-  fac >>= 1;
-  anti_fac = 0x80 - fac;
-
+  int32_t fac_i;
+  int32_t anti_fac;
+  
+  fac_i = (float)(fac * 0x4000 + 0.5);
+  anti_fac = 0x4000 - fac_i;
+  
   //  fprintf(stderr, "interpolate_8_mmx %d %d\n", fac, anti_fac);
 
   imax = num / 8;
@@ -52,8 +53,7 @@ static void interpolate_8_mmx(uint8_t * src_1, uint8_t * src_2,
   pxor_r2r(mm7, mm7);
   
   /* Load factor1 */
-  movd_m2r(fac, mm2);
-  psllw_i2r(7, mm2);
+  movd_m2r(fac_i, mm2);
   movq_r2r(mm2, mm6);
   psllq_i2r(16, mm6);
   por_r2r(mm6, mm2);
@@ -62,7 +62,6 @@ static void interpolate_8_mmx(uint8_t * src_1, uint8_t * src_2,
   por_r2r(mm6, mm2);
   /* Load factor2 */
   movd_m2r(anti_fac, mm3);
-  psllw_i2r(7, mm3);
   movq_r2r(mm3, mm6);
   psllq_i2r(16, mm6);
   por_r2r(mm6, mm3);
@@ -124,8 +123,7 @@ static void interpolate_8_mmx(uint8_t * src_1, uint8_t * src_2,
   
   for(i = 0; i < imax; i++)
     {
-    tmp = (*src_1 * fac +
-           *src_2 * anti_fac) >> 7;
+    tmp = (*src_1 * fac_i + *src_2 * anti_fac) >> 15;
     *dst = (uint8_t)((tmp & ~0xFF)?((-tmp) >> 31) : tmp);
     /* Accum */
     dst++;
