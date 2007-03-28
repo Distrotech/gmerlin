@@ -599,7 +599,7 @@ msgstr ""
 #: lib/in_dvd.c:1192
 #, c-format
 msgid "Cannot open DVD Device %s"
-msgstr "Kann DVD Gerät %s nicht öffnen: %s"
+msgstr "Kann DVD Gerät %s nicht öffnen"
 
 #: lib/video_qtraw.c:240 lib/video_qtraw.c:254 lib/video_qtraw.c:268
 #: lib/video_qtraw.c:282
