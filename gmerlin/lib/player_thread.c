@@ -55,6 +55,12 @@ static void msg_interrupt(bg_msg_t * msg,
   bg_msg_set_id(msg, BG_PLAYER_MSG_INTERRUPT);
   }
 
+static void msg_interrupt_resume(bg_msg_t * msg,
+                                 const void * data)
+  {
+  bg_msg_set_id(msg, BG_PLAYER_MSG_INTERRUPT_RESUME);
+  }
+
 static void msg_volume_changed(bg_msg_t * msg,
                                const void * data)
   {
@@ -1301,6 +1307,9 @@ static int process_commands(bg_player_t * player)
           queue_locked = 0;
           }
         stream_change_done(player);
+        bg_msg_queue_list_send(player->message_queues,
+                               msg_interrupt_resume,
+                               &player);
         break;
       case BG_PLAYER_CMD_TOGGLE_MUTE:
         pthread_mutex_lock(&player->mute_mutex);

@@ -232,7 +232,8 @@ void bg_player_set_audio_filter_parameter(void * data, char * name,
   bg_player_t * p = (bg_player_t*)data;
   bg_audio_filter_chain_lock(p->audio_stream.fc);
   bg_audio_filter_chain_set_parameter(p->audio_stream.fc, name, val);
-  need_rebuild = bg_audio_filter_chain_need_rebuild(p->audio_stream.fc);
+  need_rebuild =
+    bg_audio_filter_chain_need_rebuild(p->audio_stream.fc);
   bg_audio_filter_chain_unlock(p->audio_stream.fc);
 
   if(bg_player_get_state(p) == BG_PLAYER_STATE_INIT)

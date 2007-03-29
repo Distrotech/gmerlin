@@ -1860,7 +1860,7 @@ static void drag_get_callback(GtkWidget *widget,
   if(target_atom == data->target)
     {
     str = bg_album_selected_to_string(w->album);
-    gtk_selection_data_set(data, type_atom, 8, (uint8_t*)str, len);
+    gtk_selection_data_set(data, type_atom, 8, (uint8_t*)str, strlen(str));
     free(str);
     w->drag_delete = 0; 
     return;

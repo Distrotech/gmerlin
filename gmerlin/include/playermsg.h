@@ -384,6 +384,12 @@
 
 #define BG_PLAYER_MSG_INTERRUPT              26
 
+/** \brief Interrupted playback resumed 
+ */
+
+#define BG_PLAYER_MSG_INTERRUPT_RESUME       27
+
+
 /**  @}
  */
 
