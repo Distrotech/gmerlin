@@ -154,7 +154,7 @@ typedef struct
    *  \param src_2 Scanline 2
    *  \param dst Destination
    *  \param num Number of pixels
-   *  \param fac Factor for src_1 (0..255)
+   *  \param fac Factor for src_1 (0.0 .. 1.0)
    *
    *  Sets the destination to src_1 * fac + src_2 * (1.0-fac)
    */
@@ -167,7 +167,7 @@ typedef struct
    *  \param src_2 Scanline 2
    *  \param dst Destination
    *  \param num Number of pixels
-   *  \param fac Factor for src_1 (0..255)
+   *  \param fac Factor for src_1 (0.0 .. 1.0)
    *
    *  Sets the destination to src_1 * fac + src_2 * (1.0-fac)
    */
@@ -179,7 +179,7 @@ typedef struct
    *  \param src_2 Scanline 2
    *  \param dst Destination
    *  \param num Number of bytes
-   *  \param fac Factor for src_1 (0..255)
+   *  \param fac Factor for src_1 (0.0 .. 1.0)
    *
    *  Sets the destination to src_1 * fac + src_2 * (1.0-fac)
    */
@@ -191,7 +191,7 @@ typedef struct
    *  \param src_2 Scanline 2
    *  \param dst Destination
    *  \param num Number of shorts
-   *  \param fac Factor for src_1 (0..65535)
+   *  \param fac Factor for src_1 (0.0 .. 1.0)
    *
    *  Sets the destination to src_1 * fac + src_2 * (1.0-fac)
    */
@@ -203,7 +203,7 @@ typedef struct
    *  \param src_2 Scanline 2
    *  \param dst Destination
    *  \param num Number of floats
-   *  \param fac Factor for src_1 (0.0..1.0)
+   *  \param fac Factor for src_1 (0.0 .. 1.0)
    *
    *  Sets the destination to src_1 * fac + src_2 * (1.0-fac)
    */
