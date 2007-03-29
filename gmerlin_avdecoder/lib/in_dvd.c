@@ -1076,7 +1076,16 @@ static void seek_time_dvd(bgav_input_context_t * ctx, gavl_time_t t)
     else
       break;
 
-    if(!(next_vobu_offset & 0x80000000))
+    //    http://dvd.sourceforge.net/dvdinfo/dsi_pkt.html
+    //    says, bit 31 indicates a valid pointer
+    //
+    //    but on the Procupine Tree DVD, valid offsets are given
+    //    without bit 31 set :(
+    //
+    //    if(!(next_vobu_offset & 0x80000000))
+    //      break;
+
+    if(next_vobu_offset == 0x3fffffff)
       break;
     
     next_vobu_offset &= 0x3fffffff;

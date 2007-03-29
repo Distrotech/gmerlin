@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmerlin-avdecoder 0.1.6\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-03-23 01:02+0100\n"
+"POT-Creation-Date: 2007-03-30 01:56+0200\n"
 "PO-Revision-Date: 2007-02-11 02:57+0100\n"
 "Last-Translator: Burkhard Plaum <gmerlin@users.sourceforge.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -569,34 +569,38 @@ msgstr ""
 msgid "Decode png failed"
 msgstr ""
 
-#: lib/in_dvd.c:621 lib/in_vcd.c:246
+#: lib/in_dvd.c:385
+msgid "Detected still cell"
+msgstr ""
+
+#: lib/in_dvd.c:631 lib/in_vcd.c:246
 #, c-format
 msgid "cdio_close_tray failed: %s"
 msgstr ""
 
-#: lib/in_dvd.c:625 lib/in_vcd.c:250
+#: lib/in_dvd.c:635 lib/in_vcd.c:250
 msgid "cdio_close_tray failed"
 msgstr ""
 
-#: lib/in_dvd.c:633
+#: lib/in_dvd.c:643
 msgid "DVDOpen failed"
 msgstr ""
 
-#: lib/in_dvd.c:649
+#: lib/in_dvd.c:659
 msgid "ifoOpen failed"
 msgstr ""
 
-#: lib/in_dvd.c:743 lib/in_dvd.c:1018
+#: lib/in_dvd.c:755 lib/in_dvd.c:1033
 #, c-format
 msgid "error reading NAV packet @%i"
 msgstr ""
 
-#: lib/in_dvd.c:847
+#: lib/in_dvd.c:859
 #, c-format
 msgid "error reading blocks @%i"
 msgstr ""
 
-#: lib/in_dvd.c:1192
+#: lib/in_dvd.c:1216
 #, c-format
 msgid "Cannot open DVD Device %s"
 msgstr "Kann DVD Gerät %s nicht öffnen"
@@ -607,17 +611,21 @@ msgstr "Kann DVD Gerät %s nicht öffnen"
 msgid "Palette missing or too small %d"
 msgstr ""
 
-#: lib/video_libmpeg2.c:266
-msgid "Detected Intra slice refresh"
-msgstr ""
-
-#: lib/video_libmpeg2.c:321
+#: lib/video_libmpeg2.c:259
 msgid "Detected change of image size, not handled yet"
 msgstr ""
 
-#: lib/video_libmpeg2.c:329
+#: lib/video_libmpeg2.c:267
 #, c-format
 msgid "Detected change of pixel aspect ratio: %dx%d"
+msgstr ""
+
+#: lib/video_libmpeg2.c:288
+msgid "Detected MPEG still image"
+msgstr ""
+
+#: lib/video_libmpeg2.c:419
+msgid "Detected Intra slice refresh"
 msgstr ""
 
 #: lib/subovl_dvd.c:241
@@ -1087,26 +1095,26 @@ msgstr ""
 msgid "Detected multirate real"
 msgstr ""
 
-#: lib/audio_pcm.c:716
+#: lib/audio_pcm.c:751
 #, c-format
 msgid "%d audio bits not supported."
 msgstr ""
 
-#: lib/audio_pcm.c:798 lib/audio_pcm.c:828
+#: lib/audio_pcm.c:833 lib/audio_pcm.c:863
 #, c-format
 msgid "Audio bits %d not supported."
 msgstr ""
 
-#: lib/audio_pcm.c:809
+#: lib/audio_pcm.c:844
 msgid "Could not get initial packet"
 msgstr ""
 
-#: lib/audio_pcm.c:937
+#: lib/audio_pcm.c:972
 #, c-format
 msgid "extradata too small (%d < %d)"
 msgstr ""
 
-#: lib/audio_pcm.c:1036
+#: lib/audio_pcm.c:1071
 msgid "Unknown fourcc"
 msgstr ""
 

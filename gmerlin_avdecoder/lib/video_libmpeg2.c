@@ -435,13 +435,9 @@ static void resync_mpeg2(bgav_stream_t*s)
   mpeg2_state_t state;
   mpeg2_priv_t * priv;
   priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
-  mpeg2_reset(priv->dec, 0);
-  mpeg2_buffer(priv->dec, NULL, NULL);
-  //  mpeg2_skip(priv->dec, 1);
-  
-  priv->p = (bgav_packet_t*)0;
-  priv->have_frame = 0;
 
+  priv->p = (bgav_packet_t*)0;
+  
   if(s->data.video.still_mode)
     {
     priv->picture_timestamp = gavl_time_rescale(s->timescale,
@@ -450,6 +446,11 @@ static void resync_mpeg2(bgav_stream_t*s)
     }
   else
     {
+    mpeg2_reset(priv->dec, 0);
+    mpeg2_buffer(priv->dec, NULL, NULL);
+    //  mpeg2_skip(priv->dec, 1);
+    
+    priv->have_frame = 0;
     priv->do_resync = 1;
     while(1)
       {
