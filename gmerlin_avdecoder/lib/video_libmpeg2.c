@@ -330,6 +330,11 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
     mpeg2_skip(priv->dec, 1);
 #endif
 
+  /* Return EOF if we are in still mode and the demuxer ran out of
+     data */
+  if(s->data.video.still_mode && (s->demuxer->flags & BGAV_DEMUXER_EOF))
+    return 0;
+  
   if((!s->data.video.still_mode && !priv->have_frame) ||
      (s->data.video.still_mode &&
       bgav_demuxer_peek_packet_read(s->demuxer, s, 0)))

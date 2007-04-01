@@ -48,7 +48,9 @@
 typedef struct
   {
   int64_t last_pts;
+  int64_t last_pts_2nd;
   int64_t pts_offset;
+  int64_t pts_offset_2nd;
   } stream_priv_t;
 
 typedef struct
@@ -101,12 +103,14 @@ static void reset_streams_priv(bgav_track_t * track)
     {
     priv = (stream_priv_t*)(track->audio_streams[i].priv);
     priv->last_pts = BGAV_TIMESTAMP_UNDEFINED;
+    priv->pts_offset = 0;
     }
 
   for(i = 0; i < track->num_video_streams; i++)
     {
     priv = (stream_priv_t*)(track->video_streams[i].priv);
     priv->last_pts = BGAV_TIMESTAMP_UNDEFINED;
+    priv->pts_offset = 0;
     }
   }
 
@@ -124,8 +128,11 @@ static void check_pts_wrap(bgav_stream_t * s, int64_t * pts)
     priv->last_pts = *pts;
     return;
     }
+
+  /* Detected PTS wrap */
   if(*pts + WRAP_THRESHOLD < priv->last_pts)
     {
+    priv->pts_offset_2nd = priv->pts_offset;
     priv->pts_offset += ((int64_t)1) << 33;
     sprintf(tmp_string1, "%" PRId64, *pts);
     sprintf(tmp_string2, "%" PRId64, priv->last_pts);
@@ -133,9 +140,19 @@ static void check_pts_wrap(bgav_stream_t * s, int64_t * pts)
     bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN,
              "Detected pts wrap (%s < %s)",
              tmp_string1, tmp_string2);
+    //    fprintf(stderr, "Detected pts wrap in stream %d (%s < %s), adding offset: %lld\n",
+    //            s->stream_id, tmp_string1, tmp_string2, ((int64_t)1) << 33);
+    priv->last_pts = *pts;
+    *pts += priv->pts_offset;
     }
-  priv->last_pts = *pts;
-  *pts += priv->pts_offset;
+  /* Old timestamp (from before PTS wrap, might come due to MPEG frame reordering) */
+  else if(*pts - WRAP_THRESHOLD > priv->last_pts)
+    *pts += priv->pts_offset_2nd;
+  else
+    {
+    priv->last_pts = *pts;
+    *pts += priv->pts_offset;
+    }
   }
 
 typedef struct
@@ -1015,6 +1032,17 @@ static int open_mpegts(bgav_demuxer_context_t * ctx,
   return 1;
   }
 
+static void predict_pcr_wrap(int64_t pcr)
+  {
+  char str[GAVL_TIME_STRING_LEN];
+  int64_t time_scaled;
+  gavl_time_t time;
+  time_scaled = (1LL << 33) - pcr;
+  time = gavl_time_unscale(90000, time_scaled);
+  gavl_time_prettyprint(time, str);
+  fprintf(stderr, "Next PCR wrap in %s\n", str);
+  }
+
 #define NUM_PACKETS 5 /* Packets to be processed at once */
 
 static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
@@ -1093,6 +1121,7 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
         fprintf(stderr, "Got PCR: %" PRId64 " (PID: %d, PCR PID: %d)\n",
                 priv->packet.adaption_field.pcr, priv->packet.pid,
                 priv->programs[priv->current_program].pcr_pid);
+        predict_pcr_wrap(priv->packet.adaption_field.pcr);
         }
       }
 #endif
@@ -1200,8 +1229,11 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
       
       if(pes_header.pts > 0)
         {
-        s->packet->pts = pes_header.pts + ctx->timestamp_offset;
+        s->packet->pts = pes_header.pts;
         check_pts_wrap(s, &s->packet->pts);
+        //        fprintf(stderr, "** Stream %d, PTS: %lld\n", s->stream_id, s->packet->pts);
+        s->packet->pts += ctx->timestamp_offset;
+        
         }
       }
     else if(s->packet)

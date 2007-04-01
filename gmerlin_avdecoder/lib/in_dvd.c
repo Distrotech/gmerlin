@@ -728,7 +728,7 @@ next_cell(pgc_t *pgc, int cell, int angle)
     ret += angle;
     }
 
-  fprintf(stderr, "Entering cell, still time: %d\n", pgc->cell_playback[ret].still_time);
+  //  fprintf(stderr, "Entering cell, still time: %d\n", pgc->cell_playback[ret].still_time);
     
   return ret;
   }
@@ -946,7 +946,7 @@ static void select_track_dvd(bgav_input_context_t * ctx, int track)
   
   dvd->pgc = dvd->vts_ifo->vts_pgcit->pgci_srp[pgc_id - 1].pgc;
 
-  fprintf(stderr, "Entering pgc, still time: %d\n", dvd->pgc->still_time);
+  //  fprintf(stderr, "Entering pgc, still time: %d\n", dvd->pgc->still_time);
 
   
   dvd->next_cell = dvd->pgc->program_map[pgn - 1] - 1;
