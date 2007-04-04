@@ -354,10 +354,12 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
     priv->frame->planes[2] = priv->info->display_fbuf->buf[2];
     gavl_video_frame_copy(&(s->data.video.format), f, priv->frame);
     }
-    
+  
   s->data.video.last_frame_time     = priv->picture_timestamp;
   s->data.video.last_frame_duration = priv->picture_duration;
 
+  //  fprintf(stderr, "video pts: %lld\n", s->data.video.last_frame_time);
+  
   if(!s->data.video.still_mode)
     priv->have_frame = 0;
   else

@@ -82,6 +82,8 @@ int bgav_audio_start(bgav_stream_t * stream)
     stream->out_position =
       gavl_time_rescale(stream->timescale, stream->data.audio.format.samplerate,
                         stream->first_timestamp);
+    //    if(stream->out_position < 0)
+    //      stream->out_position = 0;
     sprintf(tmp_string, "%" PRId64, stream->out_position);
     bgav_log(stream->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Got initial audio timestamp: %s",
              tmp_string);

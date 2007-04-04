@@ -78,6 +78,8 @@ void bgav_stream_stop(bgav_stream_t * stream)
   stream->in_position = 0;
   stream->out_position = 0;
   stream->packet_seq = 0;
+  stream->time_scaled = BGAV_TIMESTAMP_UNDEFINED;
+  stream->has_first_timestamp = 0;
   }
 
 void bgav_stream_create_packet_buffer(bgav_stream_t * stream)
@@ -88,7 +90,7 @@ void bgav_stream_create_packet_buffer(bgav_stream_t * stream)
 void bgav_stream_init(bgav_stream_t * stream, const bgav_options_t * opt)
   {
   memset(stream, 0, sizeof(*stream));
-  stream->time_scaled = -1;
+  stream->time_scaled = BGAV_TIMESTAMP_UNDEFINED;
   stream->first_index_position = INT_MAX;
 
   /* need to set this to -1 so we know, if this stream has packets at all */

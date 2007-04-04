@@ -207,10 +207,13 @@ struct bgav_packet_buffer_s
 bgav_packet_buffer_t * bgav_packet_buffer_create();
 void bgav_packet_buffer_destroy(bgav_packet_buffer_t*);
 
-bgav_packet_t * bgav_packet_buffer_get_packet_read(bgav_packet_buffer_t*, int get_duration);
-bgav_packet_t * bgav_packet_buffer_peek_packet_read(bgav_packet_buffer_t*, int get_duration);
+bgav_packet_t *
+bgav_packet_buffer_get_packet_read(bgav_packet_buffer_t*, int get_duration);
+bgav_packet_t *
+bgav_packet_buffer_peek_packet_read(bgav_packet_buffer_t*, int get_duration);
 
-bgav_packet_t * bgav_packet_buffer_get_packet_write(bgav_packet_buffer_t*, bgav_stream_t * s);
+bgav_packet_t *
+bgav_packet_buffer_get_packet_write(bgav_packet_buffer_t*, bgav_stream_t * s);
 
 void bgav_packet_buffer_clear(bgav_packet_buffer_t*);
 

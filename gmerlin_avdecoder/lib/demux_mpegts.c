@@ -48,7 +48,6 @@
 typedef struct
   {
   int64_t last_pts;
-  int64_t last_pts_2nd;
   int64_t pts_offset;
   int64_t pts_offset_2nd;
   } stream_priv_t;
@@ -1205,8 +1204,7 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
         else
           s->packet = bgav_stream_get_packet_write(s);
         }
-      
-      
+     
       /*
        *  Now the bad news: Some transport streams contain PES packets
        *  with a packet length field of zero. This means, we must use
@@ -1222,7 +1220,7 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
       bgav_packet_alloc(s->packet, 1024);
 
       /* Read data */
-           
+      
       memcpy(s->packet->data, priv->ptr, bytes_to_copy);
 
       s->packet->data_size = bytes_to_copy;
@@ -1231,9 +1229,10 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
         {
         s->packet->pts = pes_header.pts;
         check_pts_wrap(s, &s->packet->pts);
-        //        fprintf(stderr, "** Stream %d, PTS: %lld\n", s->stream_id, s->packet->pts);
         s->packet->pts += ctx->timestamp_offset;
-        
+#if 0
+        fprintf(stderr, "** Stream %d, PTS: %lld\n", s->stream_id, s->packet->pts);
+#endif
         }
       }
     else if(s->packet)
@@ -1289,7 +1288,7 @@ static void close_mpegts(bgav_demuxer_context_t * ctx)
   int i;
   mpegts_t * priv;
   priv = (mpegts_t*)(ctx->priv);
-
+  
   if(!priv)
     return;
 

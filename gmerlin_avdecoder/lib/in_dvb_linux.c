@@ -864,7 +864,6 @@ static int setup_pes_filter(const bgav_options_t * opt,
   return 1;
   }
 
-
 static int setup_filters(bgav_input_context_t * ctx,
                          bgav_dvb_channel_info_t * channel,
                          bgav_track_t * track)

@@ -824,12 +824,10 @@ static int read_sector_dvd(bgav_input_context_t * ctx, uint8_t * data)
   dvd_t * d;
   int l;
   d = (dvd_t*)(ctx->priv);
-  
+  //  fprintf(stderr, "read_sector_dvd: %d %d\n", d->npack, d->pack);
   switch(d->state)
     {
     case CELL_START:
-      /* TODO: EOF at chapter boundaries */
-      
       if(!check_next_cell(ctx))
         return 0;
       d->cell = d->next_cell;
@@ -871,9 +869,7 @@ static int read_sector_dvd(bgav_input_context_t * ctx, uint8_t * data)
           d->state = CELL_START;
         }
       else
-        {
         d->pack += l;
-	}
     }
   
   return 1;
@@ -961,12 +957,9 @@ static void select_track_dvd(bgav_input_context_t * ctx, int track)
   /* Set the subtitle palettes */
   for(i = 0; i < ctx->tt->cur->num_subtitle_streams; i++)
     {
-    ctx->tt->cur->subtitle_streams[i].ext_data =
-      (uint8_t*)(dvd->pgc->palette);
-    ctx->tt->cur->subtitle_streams[i].ext_size =
-      sizeof(dvd->pgc->palette);
+    ctx->tt->cur->subtitle_streams[i].ext_data = (uint8_t*)(dvd->pgc->palette);
+    ctx->tt->cur->subtitle_streams[i].ext_size = sizeof(dvd->pgc->palette);
     }
-  
   }
 
 static void seek_time_dvd(bgav_input_context_t * ctx, gavl_time_t t)

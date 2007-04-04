@@ -275,6 +275,9 @@ int bgav_select_track(bgav_t * b, int track)
   int64_t data_start = -1;
   if((track < 0) || (track >= b->tt->num_tracks))
     return 0;
+
+  fprintf(stderr, "bgav_select_track %d\n",
+          b->is_running);
   
   if(b->is_running)
     {
@@ -289,6 +292,10 @@ int bgav_select_track(bgav_t * b, int track)
 
     bgav_demuxer_stop(b->demuxer);
     bgav_track_table_select_track(b->tt, track);
+
+    /* Clear buffer */
+    b->input->buffer_size = 0;
+
     b->input->input->select_track(b->input, track);
     bgav_demuxer_start(b->demuxer, &(b->redirector));
     return 1;

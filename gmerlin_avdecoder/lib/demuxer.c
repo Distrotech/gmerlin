@@ -378,7 +378,7 @@ int bgav_demuxer_start(bgav_demuxer_context_t * ctx,
 void bgav_demuxer_stop(bgav_demuxer_context_t * ctx)
   {
   ctx->demuxer->close(ctx);
-  ctx->priv = NULL;
+  ctx->priv = (void*)0;
   FREE(ctx->stream_description);
   
   /* Reset global variables */

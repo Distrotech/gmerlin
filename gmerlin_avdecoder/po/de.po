@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmerlin-avdecoder 0.1.6\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-03-30 01:56+0200\n"
+"POT-Creation-Date: 2007-04-04 20:51+0200\n"
 "PO-Revision-Date: 2007-02-11 02:57+0100\n"
 "Last-Translator: Burkhard Plaum <gmerlin@users.sourceforge.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -352,17 +352,17 @@ msgstr ""
 msgid "No audio decoder found for fourcc %c%c%c%c (0x%08x)"
 msgstr ""
 
-#: lib/audio.c:86
+#: lib/audio.c:88
 #, c-format
 msgid "Got initial audio timestamp: %s"
 msgstr "Erster Audio Zeitstempel gelesen: %s"
 
-#: lib/audio.c:174
+#: lib/audio.c:176
 #, c-format
 msgid "Cannot skip backwards: Stream time: %f skip time: %f difference: %s"
 msgstr ""
 
-#: lib/audio.c:183
+#: lib/audio.c:185
 #, c-format
 msgid "Skipping %s samples"
 msgstr ""
@@ -553,7 +553,7 @@ msgstr ""
 msgid "Setting filter failed: %s"
 msgstr ""
 
-#: lib/in_dvb_linux.c:1009
+#: lib/in_dvb_linux.c:1008
 msgid "Filters initialized successfully"
 msgstr ""
 
@@ -590,17 +590,17 @@ msgstr ""
 msgid "ifoOpen failed"
 msgstr ""
 
-#: lib/in_dvd.c:755 lib/in_dvd.c:1033
+#: lib/in_dvd.c:755 lib/in_dvd.c:1026
 #, c-format
 msgid "error reading NAV packet @%i"
 msgstr ""
 
-#: lib/in_dvd.c:859
+#: lib/in_dvd.c:857
 #, c-format
 msgid "error reading blocks @%i"
 msgstr ""
 
-#: lib/in_dvd.c:1216
+#: lib/in_dvd.c:1209
 #, c-format
 msgid "Cannot open DVD Device %s"
 msgstr "Kann DVD Gerät %s nicht öffnen"
@@ -624,7 +624,7 @@ msgstr ""
 msgid "Detected MPEG still image"
 msgstr ""
 
-#: lib/video_libmpeg2.c:419
+#: lib/video_libmpeg2.c:426
 msgid "Detected Intra slice refresh"
 msgstr ""
 
@@ -1201,45 +1201,45 @@ msgstr ""
 msgid "Unknown atom inside [%c%c%c%c] (fourcc: [%c%c%c%c], size: %s)"
 msgstr ""
 
-#: lib/demux_mpegts.c:134
+#: lib/demux_mpegts.c:140
 #, c-format
 msgid "Detected pts wrap (%s < %s)"
 msgstr ""
 
-#: lib/demux_mpegts.c:499
+#: lib/demux_mpegts.c:515
 msgid "PAT section spans multiple packets, please report"
 msgstr ""
 
-#: lib/demux_mpegts.c:508
+#: lib/demux_mpegts.c:524
 msgid "PAT has multiple sections, please report"
 msgstr ""
 
-#: lib/demux_mpegts.c:542
+#: lib/demux_mpegts.c:558
 msgid "Premature EOF"
 msgstr ""
 
-#: lib/demux_mpegts.c:555
+#: lib/demux_mpegts.c:571
 msgid "Lost sync during initializing"
 msgstr ""
 
-#: lib/demux_mpegts.c:596
+#: lib/demux_mpegts.c:612
 msgid "PMT section spans multiple packets, please report"
 msgstr ""
 
-#: lib/demux_mpegts.c:603
+#: lib/demux_mpegts.c:619
 msgid "PMT has multiple sections, please report"
 msgstr ""
 
-#: lib/demux_mpegts.c:889
+#: lib/demux_mpegts.c:905
 msgid "Cannot get packet size"
 msgstr ""
 
-#: lib/demux_mpegts.c:893
+#: lib/demux_mpegts.c:909
 #, c-format
 msgid "Packet size: %d"
 msgstr ""
 
-#: lib/demux_mpegts.c:1006
+#: lib/demux_mpegts.c:1022
 msgid "Could not get program durations, seeking disabled"
 msgstr ""
 
@@ -1287,7 +1287,7 @@ msgstr ""
 msgid "Cannot detect stream type"
 msgstr ""
 
-#: lib/bgav.c:354
+#: lib/bgav.c:361
 msgid "Reopening input due to track reset"
 msgstr ""
 
