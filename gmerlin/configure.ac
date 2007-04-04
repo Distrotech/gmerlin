@@ -49,7 +49,9 @@ if test -d $GMERLIN_DEP_DIR; then
   GMERLIN_DEP_CFLAGS="-I$GMERLIN_DEP_DIR/include"
   GMERLIN_DEP_LDPATH="$GMERLIN_DEP_DIR/lib"
   GMERLIN_DEP_LIBS="-L$GMERLIN_DEP_DIR/lib"
-  GMERLIN_DEP_RPATH="-Wl,--rpath -Wl,$GMERLIN_DEP_DIR/lib"
+  LQT_TRY_CFLAGS([-Wl,--rpath -Wl,$GMERLIN_DEP_DIR/lib],
+                 [GMERLIN_DEP_RPATH="-Wl,--rpath -Wl,$GMERLIN_DEP_DIR/lib"],
+		 [GMERLIN_DEP_RPATH=""])
 else
   have_opt_gmerlin="false"
   GMERLIN_DEP_CFLAGS=""

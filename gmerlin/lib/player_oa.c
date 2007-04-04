@@ -285,7 +285,7 @@ void * bg_player_oa_thread(void * data)
         continue;
         }
       }
-
+#if 1
     if(!ctx->have_first_timestamp)
       {
       if(frame->time_scaled)
@@ -301,7 +301,7 @@ void * bg_player_oa_thread(void * data)
         }
       ctx->have_first_timestamp = 1;
       }
-    
+#endif
     if(frame->valid_samples)
       {
       pthread_mutex_lock(&(ctx->player->mute_mutex));
@@ -349,7 +349,6 @@ void * bg_player_oa_thread(void * data)
         gavl_samples_to_time(ctx->player->audio_stream.output_format.samplerate,
                              frame->valid_samples)/2;
       }
-    
     bg_fifo_unlock_read(s->fifo);
     
     if(wait_time != GAVL_TIME_UNDEFINED)

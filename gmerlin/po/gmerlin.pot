@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-03-30 01:55+0200\n"
+"POT-Creation-Date: 2007-04-04 20:50+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,295 +17,245 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: apps/plugincfg/gmerlin_plugincfg.c:249
-#: gmerlin-0.3.6/apps/plugincfg/gmerlin_plugincfg.c:249
 msgid "Gmerlin Plugin Configurator"
 msgstr ""
 
 #: apps/plugincfg/gmerlin_plugincfg.c:261
-#: gmerlin-0.3.6/apps/plugincfg/gmerlin_plugincfg.c:261
 msgid "Input plugins"
 msgstr ""
 
 #: apps/plugincfg/gmerlin_plugincfg.c:269 apps/player/cfgdialog.c:52
-#: apps/transcoder/trackdialog.c:152
-#: gmerlin-0.3.6/apps/plugincfg/gmerlin_plugincfg.c:269
-#: gmerlin-0.3.6/apps/player/cfgdialog.c:52
-#: gmerlin-0.3.6/apps/transcoder/trackdialog.c:152
-#: gmerlin-0.3.6/plugins/lqt/i_lqt.c:42 gmerlin-0.3.6/lib/player_audio.c:185
-#: gmerlin-0.3.6/lib/gtk/infowindow.c:591 plugins/lqt/i_lqt.c:42
+#: apps/transcoder/trackdialog.c:152 plugins/lqt/i_lqt.c:42
 #: lib/player_audio.c:185 lib/gtk/infowindow.c:591
 msgid "Audio"
 msgstr ""
 
 #: apps/plugincfg/gmerlin_plugincfg.c:301 apps/transcoder/encoderwidget.c:224
-#: gmerlin-0.3.6/apps/plugincfg/gmerlin_plugincfg.c:301
-#: gmerlin-0.3.6/apps/transcoder/encoderwidget.c:224
 msgid "Encode audio into video file"
 msgstr ""
 
 #: apps/plugincfg/gmerlin_plugincfg.c:319 apps/transcoder/encoderwidget.c:226
-#: gmerlin-0.3.6/apps/plugincfg/gmerlin_plugincfg.c:319
-#: gmerlin-0.3.6/apps/transcoder/encoderwidget.c:226
 msgid "Encode text subtitles into video file"
 msgstr ""
 
 #: apps/plugincfg/gmerlin_plugincfg.c:339 apps/transcoder/encoderwidget.c:228
-#: gmerlin-0.3.6/apps/plugincfg/gmerlin_plugincfg.c:339
-#: gmerlin-0.3.6/apps/transcoder/encoderwidget.c:228
 msgid "Encode overlay subtitles into video file"
 msgstr ""
 
 #: apps/plugincfg/gmerlin_plugincfg.c:370 apps/transcoder/ppwidget.c:69
-#: gmerlin-0.3.6/apps/plugincfg/gmerlin_plugincfg.c:370
-#: gmerlin-0.3.6/apps/transcoder/ppwidget.c:69
 msgid "Enable postprocessing"
 msgstr ""
 
 #: apps/plugincfg/gmerlin_plugincfg.c:388
-#: gmerlin-0.3.6/apps/plugincfg/gmerlin_plugincfg.c:388
 msgid "Audio filters"
 msgstr ""
 
 #: apps/plugincfg/gmerlin_plugincfg.c:403
-#: gmerlin-0.3.6/apps/plugincfg/gmerlin_plugincfg.c:403
 msgid "Video filters"
 msgstr ""
 
 #: apps/plugincfg/gmerlin_plugincfg.c:428
-#: gmerlin-0.3.6/apps/plugincfg/gmerlin_plugincfg.c:428
 msgid "Output"
 msgstr ""
 
 #: apps/plugincfg/gmerlin_plugincfg.c:511 apps/transcoder/pluginwindow.c:160
-#: gmerlin-0.3.6/apps/plugincfg/gmerlin_plugincfg.c:511
-#: gmerlin-0.3.6/apps/transcoder/pluginwindow.c:160
 msgid "Encoders"
 msgstr ""
 
-#: apps/plugincfg/gmerlin_plugincfg.c:534
-#: gmerlin-0.3.6/apps/plugincfg/gmerlin_plugincfg.c:534
-#: gmerlin-0.3.6/lib/gtk/plugininfo.c:170 lib/gtk/plugininfo.c:170
+#: apps/plugincfg/gmerlin_plugincfg.c:534 lib/gtk/plugininfo.c:170
 msgid "Recorder"
 msgstr ""
 
 #: apps/plugincfg/gmerlin_plugincfg.c:549 apps/player/pluginwindow.c:178
 #: apps/transcoder/pluginwindow.c:173
-#: gmerlin-0.3.6/apps/plugincfg/gmerlin_plugincfg.c:549
-#: gmerlin-0.3.6/apps/player/pluginwindow.c:178
-#: gmerlin-0.3.6/apps/transcoder/pluginwindow.c:173
 msgid "Image readers"
 msgstr ""
 
 #: apps/plugincfg/gmerlin_plugincfg.c:583
-#: gmerlin-0.3.6/apps/plugincfg/gmerlin_plugincfg.c:583
 msgid "Image writers"
 msgstr ""
 
-#: apps/player/display.c:65 gmerlin-0.3.6/apps/player/display.c:65
+#: apps/player/display.c:65
 msgid "Get colors from skin"
 msgstr ""
 
-#: apps/player/display.c:68 gmerlin-0.3.6/apps/player/display.c:68
+#: apps/player/display.c:68
 msgid "Take the display colors from the skin definition"
 msgstr ""
 
 #: apps/player/display.c:72 apps/transcoder/transcoder_window.c:179
-#: gmerlin-0.3.6/apps/player/display.c:72
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:179
 msgid "Background"
 msgstr ""
 
-#: apps/player/display.c:78 gmerlin-0.3.6/apps/player/display.c:78
+#: apps/player/display.c:78
 msgid "Normal foreground"
 msgstr ""
 
 #: apps/player/display.c:84 apps/transcoder/transcoder_window.c:173
-#: gmerlin-0.3.6/apps/player/display.c:84
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:173
-#: gmerlin-0.3.6/lib/gtk/logwindow.c:364 lib/gtk/logwindow.c:364
+#: lib/gtk/logwindow.c:364
 msgid "Error foreground"
 msgstr ""
 
-#: apps/player/display.c:90 gmerlin-0.3.6/apps/player/display.c:90
+#: apps/player/display.c:90
 msgid "Display mode"
 msgstr ""
 
-#: apps/player/display.c:99 gmerlin-0.3.6/apps/player/display.c:99
+#: apps/player/display.c:99
 msgid "Repeat mode"
 msgstr ""
 
 #: apps/player/display.c:108 apps/transcoder/transcoder_window.c:185
-#: gmerlin-0.3.6/apps/player/display.c:108
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:185
-#: gmerlin-0.3.6/lib/textrenderer.c:85 gmerlin-0.3.6/lib/gtk/vumeter.c:172
 #: lib/textrenderer.c:85 lib/gtk/vumeter.c:172
 msgid "Font"
 msgstr ""
 
 #: apps/player/mainmenu.c:479 apps/player/gmerlin.c:642
-#: gmerlin-0.3.6/apps/player/mainmenu.c:479
-#: gmerlin-0.3.6/apps/player/gmerlin.c:642
 msgid "Off"
 msgstr ""
 
 #: apps/player/mainmenu.c:616 apps/player/mainmenu.c:672
-#: apps/player/mainmenu.c:695 gmerlin-0.3.6/apps/player/mainmenu.c:616
-#: gmerlin-0.3.6/apps/player/mainmenu.c:672
-#: gmerlin-0.3.6/apps/player/mainmenu.c:695
+#: apps/player/mainmenu.c:695
 #, c-format
 msgid "Stream %d [%s]"
 msgstr ""
 
 #: apps/player/mainmenu.c:618 apps/player/mainmenu.c:675
-#: apps/player/mainmenu.c:698 gmerlin-0.3.6/apps/player/mainmenu.c:618
-#: gmerlin-0.3.6/apps/player/mainmenu.c:675
-#: gmerlin-0.3.6/apps/player/mainmenu.c:698
+#: apps/player/mainmenu.c:698
 #, c-format
 msgid "Stream %d"
 msgstr ""
 
-#: apps/player/mainmenu.c:638 gmerlin-0.3.6/apps/player/mainmenu.c:638
+#: apps/player/mainmenu.c:638
 #, c-format
 msgid "Chapter %d [%s]"
 msgstr ""
 
 #: apps/player/mainmenu.c:716 apps/player/cfgdialog.c:122
-#: gmerlin-0.3.6/apps/player/mainmenu.c:716
-#: gmerlin-0.3.6/apps/player/cfgdialog.c:122
 msgid "Media Tree"
 msgstr ""
 
-#: apps/player/mainmenu.c:719 gmerlin-0.3.6/apps/player/mainmenu.c:719
+#: apps/player/mainmenu.c:719
 msgid "Info window"
 msgstr ""
 
 #: apps/player/mainmenu.c:722 apps/player/cfgdialog.c:149
 #: apps/transcoder/transcoder_window.c:1359
-#: gmerlin-0.3.6/apps/player/mainmenu.c:722
-#: gmerlin-0.3.6/apps/player/cfgdialog.c:149
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:1359
 msgid "Log window"
 msgstr ""
 
 #: apps/player/mainmenu.c:724 apps/transcoder/transcoder_window.c:901
-#: gmerlin-0.3.6/apps/player/mainmenu.c:724
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:901
 msgid "About..."
 msgstr ""
 
 #: apps/player/mainmenu.c:741 apps/transcoder/transcoder_window.c:888
-#: gmerlin-0.3.6/apps/player/mainmenu.c:741
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:888
 msgid "Preferences..."
 msgstr ""
 
 #: apps/player/mainmenu.c:749 apps/transcoder/transcoder_window.c:889
-#: gmerlin-0.3.6/apps/player/mainmenu.c:749
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:889
 msgid "Plugins..."
 msgstr ""
 
-#: apps/player/mainmenu.c:754 gmerlin-0.3.6/apps/player/mainmenu.c:754
+#: apps/player/mainmenu.c:754
 msgid "Skins..."
 msgstr ""
 
-#: apps/player/mainmenu.c:758 gmerlin-0.3.6/apps/player/mainmenu.c:758
+#: apps/player/mainmenu.c:758
 msgid "Multimedia keys..."
 msgstr ""
 
-#: apps/player/mainmenu.c:764 gmerlin-0.3.6/apps/player/mainmenu.c:764
+#: apps/player/mainmenu.c:764
 msgid "Seek forward"
 msgstr ""
 
-#: apps/player/mainmenu.c:771 gmerlin-0.3.6/apps/player/mainmenu.c:771
+#: apps/player/mainmenu.c:771
 msgid "Seek backward"
 msgstr ""
 
-#: apps/player/mainmenu.c:778 gmerlin-0.3.6/apps/player/mainmenu.c:778
+#: apps/player/mainmenu.c:778
 msgid "Increase volume"
 msgstr ""
 
-#: apps/player/mainmenu.c:785 gmerlin-0.3.6/apps/player/mainmenu.c:785
+#: apps/player/mainmenu.c:785
 msgid "Decrease volume"
 msgstr ""
 
-#: apps/player/mainmenu.c:791 gmerlin-0.3.6/apps/player/mainmenu.c:791
+#: apps/player/mainmenu.c:791
 msgid "Toggle mute"
 msgstr ""
 
-#: apps/player/mainmenu.c:797 gmerlin-0.3.6/apps/player/mainmenu.c:797
+#: apps/player/mainmenu.c:797
 msgid "Next track"
 msgstr ""
 
-#: apps/player/mainmenu.c:802 gmerlin-0.3.6/apps/player/mainmenu.c:802
+#: apps/player/mainmenu.c:802
 msgid "Previous track"
 msgstr ""
 
-#: apps/player/mainmenu.c:807 gmerlin-0.3.6/apps/player/mainmenu.c:807
+#: apps/player/mainmenu.c:807
 msgid "Next chapter"
 msgstr ""
 
-#: apps/player/mainmenu.c:813 gmerlin-0.3.6/apps/player/mainmenu.c:813
+#: apps/player/mainmenu.c:813
 msgid "Previous chapter"
 msgstr ""
 
-#: apps/player/mainmenu.c:819 gmerlin-0.3.6/apps/player/mainmenu.c:819
+#: apps/player/mainmenu.c:819
 msgid "Seek to start"
 msgstr ""
 
-#: apps/player/mainmenu.c:824 gmerlin-0.3.6/apps/player/mainmenu.c:824
+#: apps/player/mainmenu.c:824
 msgid "Pause"
 msgstr ""
 
-#: apps/player/mainmenu.c:829 gmerlin-0.3.6/apps/player/mainmenu.c:829
+#: apps/player/mainmenu.c:829
 msgid "Quit gmerlin"
 msgstr ""
 
-#: apps/player/mainmenu.c:840 gmerlin-0.3.6/apps/player/mainmenu.c:840
+#: apps/player/mainmenu.c:840
 msgid "Transcoder"
 msgstr ""
 
-#: apps/player/mainmenu.c:844 gmerlin-0.3.6/apps/player/mainmenu.c:844
+#: apps/player/mainmenu.c:844
 msgid "Visualizer"
 msgstr ""
 
-#: apps/player/mainmenu.c:848 gmerlin-0.3.6/apps/player/mainmenu.c:848
+#: apps/player/mainmenu.c:848
 msgid "Mixer"
 msgstr ""
 
-#: apps/player/mainmenu.c:855 gmerlin-0.3.6/apps/player/mainmenu.c:855
+#: apps/player/mainmenu.c:855
 msgid "Audio..."
 msgstr ""
 
-#: apps/player/mainmenu.c:859 gmerlin-0.3.6/apps/player/mainmenu.c:859
+#: apps/player/mainmenu.c:859
 msgid "Video..."
 msgstr ""
 
-#: apps/player/mainmenu.c:863 gmerlin-0.3.6/apps/player/mainmenu.c:863
+#: apps/player/mainmenu.c:863
 msgid "Subtitles..."
 msgstr ""
 
-#: apps/player/mainmenu.c:867 gmerlin-0.3.6/apps/player/mainmenu.c:867
+#: apps/player/mainmenu.c:867
 msgid "Chapters..."
 msgstr ""
 
-#: apps/player/mainmenu.c:871 gmerlin-0.3.6/apps/player/mainmenu.c:871
+#: apps/player/mainmenu.c:871
 msgid "Windows..."
 msgstr ""
 
-#: apps/player/mainmenu.c:875 gmerlin-0.3.6/apps/player/mainmenu.c:875
+#: apps/player/mainmenu.c:875
 msgid "Options..."
 msgstr ""
 
-#: apps/player/mainmenu.c:879 gmerlin-0.3.6/apps/player/mainmenu.c:879
+#: apps/player/mainmenu.c:879
 msgid "Commands..."
 msgstr ""
 
-#: apps/player/mainmenu.c:883 gmerlin-0.3.6/apps/player/mainmenu.c:883
+#: apps/player/mainmenu.c:883
 msgid "Accessories..."
 msgstr ""
 
-#: apps/player/skinbrowser.c:313 gmerlin-0.3.6/apps/player/skinbrowser.c:313
+#: apps/player/skinbrowser.c:313
 #, c-format
 msgid ""
 "Installing skin from\n"
@@ -313,64 +263,59 @@ msgid ""
 "failed"
 msgstr ""
 
-#: apps/player/skinbrowser.c:404 gmerlin-0.3.6/apps/player/skinbrowser.c:404
+#: apps/player/skinbrowser.c:404
 msgid "Skin browser"
 msgstr ""
 
 #: apps/player/pluginwindow.c:88 apps/transcoder/pluginwindow.c:126
-#: gmerlin-0.3.6/apps/player/pluginwindow.c:88
-#: gmerlin-0.3.6/apps/transcoder/pluginwindow.c:126
 msgid "Plugins"
 msgstr ""
 
 #: apps/player/pluginwindow.c:151 apps/transcoder/pluginwindow.c:167
-#: gmerlin-0.3.6/apps/player/pluginwindow.c:151
-#: gmerlin-0.3.6/apps/transcoder/pluginwindow.c:167
 msgid "Inputs"
 msgstr ""
 
-#: apps/player/pluginwindow.c:172 gmerlin-0.3.6/apps/player/pluginwindow.c:172
+#: apps/player/pluginwindow.c:172
 msgid "Outputs"
 msgstr ""
 
 #: apps/player/gmerlin_remote.c:502
-#: gmerlin-0.3.6/apps/player/gmerlin_remote.c:502
 msgid "Cannot launch gmerlin process"
 msgstr ""
 
-#: apps/player/gmerlin.c:617 gmerlin-0.3.6/apps/player/gmerlin.c:617
+#: apps/player/gmerlin.c:617
 msgid "General Options"
 msgstr ""
 
-#: apps/player/gmerlin.c:623 gmerlin-0.3.6/apps/player/gmerlin.c:623
+#: apps/player/gmerlin.c:623
 msgid "Skip error tracks"
 msgstr ""
 
-#: apps/player/gmerlin.c:626 gmerlin-0.3.6/apps/player/gmerlin.c:626
+#: apps/player/gmerlin.c:626
 msgid "If a track cannot be opened, switch to the next one"
 msgstr ""
 
-#: apps/player/gmerlin.c:630 gmerlin-0.3.6/apps/player/gmerlin.c:630
+#: apps/player/gmerlin.c:630
 msgid "Don't advance"
 msgstr ""
 
-#: apps/player/gmerlin.c:636 gmerlin-0.3.6/apps/player/gmerlin.c:636
+#: apps/player/gmerlin.c:636
 msgid "Shuffle mode"
 msgstr ""
 
-#: apps/player/gmerlin.c:643 gmerlin-0.3.6/apps/player/gmerlin.c:643
+#: apps/player/gmerlin.c:643
 msgid "Current album"
 msgstr ""
 
-#: apps/player/gmerlin.c:644 gmerlin-0.3.6/apps/player/gmerlin.c:644
+#: apps/player/gmerlin.c:644
 msgid "All open albums"
 msgstr ""
 
-#: apps/player/gmerlin.c:650 gmerlin-0.3.6/apps/player/gmerlin.c:650
+#: apps/player/gmerlin.c:650
 msgid "Show tooltips"
 msgstr ""
 
-#: apps/player/cfgdialog.c:31 gmerlin-0.3.6/apps/player/cfgdialog.c:31
+#: apps/player/cfgdialog.c:31
 msgid "Gmerlin confiuration"
 msgstr ""
 
@@ -380,29 +325,13 @@ msgstr ""
 #: apps/transcoder/trackdialog.c:291 apps/transcoder/trackdialog.c:340
 #: apps/transcoder/transcoder_window.c:1264
 #: apps/transcoder/transcoder_window.c:1289
-#: apps/transcoder/transcoder_window.c:1310
-#: gmerlin-0.3.6/apps/player/cfgdialog.c:37
-#: gmerlin-0.3.6/apps/player/cfgdialog.c:56
-#: gmerlin-0.3.6/apps/player/cfgdialog.c:75
-#: gmerlin-0.3.6/apps/transcoder/trackdialog.c:62
-#: gmerlin-0.3.6/apps/transcoder/trackdialog.c:161
-#: gmerlin-0.3.6/apps/transcoder/trackdialog.c:225
-#: gmerlin-0.3.6/apps/transcoder/trackdialog.c:291
-#: gmerlin-0.3.6/apps/transcoder/trackdialog.c:340
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:1264
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:1289
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:1310
-#: gmerlin-0.3.6/plugins/x11/ov_x11.c:1973
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:636
-#: gmerlin-0.3.6/lib/transcoder_track.c:1385 plugins/x11/ov_x11.c:1973
+#: apps/transcoder/transcoder_window.c:1310 plugins/x11/ov_x11.c:1973
 #: plugins/cdaudio/i_cdaudio.c:636 lib/transcoder_track.c:1385
 msgid "General"
 msgstr ""
 
 #: apps/player/cfgdialog.c:46 apps/camelot/webcam_window.c:480
-#: gmerlin-0.3.6/apps/player/cfgdialog.c:46
-#: gmerlin-0.3.6/apps/camelot/webcam_window.c:480
-#: gmerlin-0.3.6/lib/gtk/plugininfo.c:144 lib/gtk/plugininfo.c:144
+#: lib/gtk/plugininfo.c:144
 msgid "Input"
 msgstr ""
 
@@ -410,244 +339,203 @@ msgstr ""
 #: apps/transcoder/trackdialog.c:168 apps/transcoder/trackdialog.c:232
 #: apps/transcoder/transcoder_window.c:1274
 #: apps/transcoder/transcoder_window.c:1298
-#: gmerlin-0.3.6/apps/player/cfgdialog.c:64
-#: gmerlin-0.3.6/apps/player/cfgdialog.c:84
-#: gmerlin-0.3.6/apps/transcoder/trackdialog.c:168
-#: gmerlin-0.3.6/apps/transcoder/trackdialog.c:232
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:1274
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:1298
 msgid "Filters"
 msgstr ""
 
 #: apps/player/cfgdialog.c:70 apps/transcoder/trackdialog.c:217
-#: gmerlin-0.3.6/apps/player/cfgdialog.c:70
-#: gmerlin-0.3.6/apps/transcoder/trackdialog.c:217
-#: gmerlin-0.3.6/plugins/lqt/i_lqt.c:53 gmerlin-0.3.6/lib/player_video.c:140
-#: gmerlin-0.3.6/lib/gtk/infowindow.c:619 plugins/lqt/i_lqt.c:53
-#: lib/player_video.c:140 lib/gtk/infowindow.c:619
+#: plugins/lqt/i_lqt.c:53 lib/player_video.c:140 lib/gtk/infowindow.c:619
 msgid "Video"
 msgstr ""
 
-#: apps/player/cfgdialog.c:90 gmerlin-0.3.6/apps/player/cfgdialog.c:90
+#: apps/player/cfgdialog.c:90
 msgid "Text subtitles"
 msgstr ""
 
 #: apps/player/cfgdialog.c:94 apps/transcoder/trackdialog.c:283
-#: apps/transcoder/trackdialog.c:332 gmerlin-0.3.6/apps/player/cfgdialog.c:94
-#: gmerlin-0.3.6/apps/transcoder/trackdialog.c:283
-#: gmerlin-0.3.6/apps/transcoder/trackdialog.c:332
-#: gmerlin-0.3.6/lib/gtk/infowindow.c:641 lib/gtk/infowindow.c:641
+#: apps/transcoder/trackdialog.c:332 lib/gtk/infowindow.c:641
 msgid "Subtitles"
 msgstr ""
 
-#: apps/player/cfgdialog.c:103 gmerlin-0.3.6/apps/player/cfgdialog.c:103
+#: apps/player/cfgdialog.c:103
 msgid "OSD"
 msgstr ""
 
 #: apps/player/cfgdialog.c:113 apps/transcoder/transcoder_window.c:162
-#: gmerlin-0.3.6/apps/player/cfgdialog.c:113
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:162
 msgid "Display"
 msgstr ""
 
-#: apps/player/cfgdialog.c:131 gmerlin-0.3.6/apps/player/cfgdialog.c:131
+#: apps/player/cfgdialog.c:131
 msgid "Remote control"
 msgstr ""
 
-#: apps/player/cfgdialog.c:140 gmerlin-0.3.6/apps/player/cfgdialog.c:140
+#: apps/player/cfgdialog.c:140
 msgid "LCDproc"
 msgstr ""
 
-#: apps/kbd/kbd_daemon.c:183 gmerlin-0.3.6/apps/kbd/kbd_daemon.c:183
+#: apps/kbd/kbd_daemon.c:183
 #, c-format
 msgid "Grabbing key (Code: %d, modifiers: %s) failed"
 msgstr ""
 
-#: apps/kbd/kbd_daemon.c:218 gmerlin-0.3.6/apps/kbd/kbd_daemon.c:218
+#: apps/kbd/kbd_daemon.c:218
 msgid "Exiting"
 msgstr ""
 
-#: apps/kbd/kbd_daemon.c:291 gmerlin-0.3.6/apps/kbd/kbd_daemon.c:291
+#: apps/kbd/kbd_daemon.c:291
 #, c-format
 msgid "State %02x -> %02x\n"
 msgstr ""
 
-#: apps/kbd/kbd_daemon.c:334 gmerlin-0.3.6/apps/kbd/kbd_daemon.c:334
+#: apps/kbd/kbd_daemon.c:334
 msgid "Reloaded keys"
 msgstr ""
 
-#: apps/kbd/kbd_config.c:31 gmerlin-0.3.6/apps/kbd/kbd_config.c:31
+#: apps/kbd/kbd_config.c:31
 msgid "Shift"
 msgstr ""
 
-#: apps/kbd/kbd_config.c:32 gmerlin-0.3.6/apps/kbd/kbd_config.c:32
+#: apps/kbd/kbd_config.c:32
 msgid "Lock"
 msgstr ""
 
-#: apps/kbd/kbd_config.c:33 gmerlin-0.3.6/apps/kbd/kbd_config.c:33
+#: apps/kbd/kbd_config.c:33
 msgid "Control"
 msgstr ""
 
-#: apps/kbd/kbd_config.c:34 gmerlin-0.3.6/apps/kbd/kbd_config.c:34
+#: apps/kbd/kbd_config.c:34
 msgid "Mod1"
 msgstr ""
 
-#: apps/kbd/kbd_config.c:35 gmerlin-0.3.6/apps/kbd/kbd_config.c:35
+#: apps/kbd/kbd_config.c:35
 msgid "Mod2"
 msgstr ""
 
-#: apps/kbd/kbd_config.c:36 gmerlin-0.3.6/apps/kbd/kbd_config.c:36
+#: apps/kbd/kbd_config.c:36
 msgid "Mod3"
 msgstr ""
 
-#: apps/kbd/kbd_config.c:37 gmerlin-0.3.6/apps/kbd/kbd_config.c:37
+#: apps/kbd/kbd_config.c:37
 msgid "Mod4"
 msgstr ""
 
-#: apps/kbd/kbd_config.c:38 gmerlin-0.3.6/apps/kbd/kbd_config.c:38
+#: apps/kbd/kbd_config.c:38
 msgid "Mod5"
 msgstr ""
 
-#: apps/kbd/kbd_config.c:39 gmerlin-0.3.6/apps/kbd/kbd_config.c:39
+#: apps/kbd/kbd_config.c:39
 msgid "Button1"
 msgstr ""
 
-#: apps/kbd/kbd_config.c:40 gmerlin-0.3.6/apps/kbd/kbd_config.c:40
+#: apps/kbd/kbd_config.c:40
 msgid "Button2"
 msgstr ""
 
-#: apps/kbd/kbd_config.c:41 gmerlin-0.3.6/apps/kbd/kbd_config.c:41
+#: apps/kbd/kbd_config.c:41
 msgid "Button3"
 msgstr ""
 
-#: apps/kbd/kbd_config.c:42 gmerlin-0.3.6/apps/kbd/kbd_config.c:42
+#: apps/kbd/kbd_config.c:42
 msgid "Button4"
 msgstr ""
 
-#: apps/kbd/kbd_config.c:43 gmerlin-0.3.6/apps/kbd/kbd_config.c:43
+#: apps/kbd/kbd_config.c:43
 msgid "Button5"
 msgstr ""
 
 #: apps/kbd/kbd_config.c:198 apps/kbd/kbd_config.c:646
-#: gmerlin-0.3.6/apps/kbd/kbd_config.c:198
-#: gmerlin-0.3.6/apps/kbd/kbd_config.c:646
 msgid "Edit key"
 msgstr ""
 
-#: apps/kbd/kbd_config.c:204 gmerlin-0.3.6/apps/kbd/kbd_config.c:204
+#: apps/kbd/kbd_config.c:204
 msgid "Grab key"
 msgstr ""
 
 #: apps/kbd/kbd_config.c:239 apps/kbd/kbd_config.c:668
-#: gmerlin-0.3.6/apps/kbd/kbd_config.c:239
-#: gmerlin-0.3.6/apps/kbd/kbd_config.c:668
 msgid "Scancode"
 msgstr ""
 
 #: apps/kbd/kbd_config.c:248 apps/kbd/kbd_config.c:677
-#: gmerlin-0.3.6/apps/kbd/kbd_config.c:248
-#: gmerlin-0.3.6/apps/kbd/kbd_config.c:677
 msgid "Modifiers"
 msgstr ""
 
 #: apps/kbd/kbd_config.c:260 apps/kbd/kbd_config.c:685
-#: gmerlin-0.3.6/apps/kbd/kbd_config.c:260
-#: gmerlin-0.3.6/apps/kbd/kbd_config.c:685
 msgid "Command"
 msgstr ""
 
-#: apps/kbd/kbd_config.c:520 gmerlin-0.3.6/apps/kbd/kbd_config.c:520
+#: apps/kbd/kbd_config.c:520
 msgid "Keyboard daemon not found"
 msgstr ""
 
-#: apps/kbd/kbd_config.c:630 gmerlin-0.3.6/apps/kbd/kbd_config.c:630
+#: apps/kbd/kbd_config.c:630
 msgid "Keyboard daemon configuration"
 msgstr ""
 
-#: apps/kbd/kbd_config.c:637 gmerlin-0.3.6/apps/kbd/kbd_config.c:637
+#: apps/kbd/kbd_config.c:637
 msgid "Daemon running"
 msgstr ""
 
-#: apps/kbd/kbd_config.c:640 gmerlin-0.3.6/apps/kbd/kbd_config.c:640
+#: apps/kbd/kbd_config.c:640
 msgid ""
 "Switch deamon on and off. If you want to start the daemon with each start of "
 "X, add \"gmerlin_kbd\" to your startup programs"
 msgstr ""
 
-#: apps/kbd/kbd_config.c:644 gmerlin-0.3.6/apps/kbd/kbd_config.c:644
+#: apps/kbd/kbd_config.c:644
 msgid "Add new key"
 msgstr ""
 
-#: apps/kbd/kbd_config.c:648 gmerlin-0.3.6/apps/kbd/kbd_config.c:648
+#: apps/kbd/kbd_config.c:648
 msgid "Delete key"
 msgstr ""
 
 #: apps/camelot/webcam_window.c:240
-#: gmerlin-0.3.6/apps/camelot/webcam_window.c:240
 #, c-format
 msgid "Framerate: %.2f fps"
 msgstr ""
 
 #: apps/camelot/webcam_window.c:371 apps/camelot/webcam_window.c:388
-#: apps/camelot/webcam_window.c:417
-#: gmerlin-0.3.6/apps/camelot/webcam_window.c:371
-#: gmerlin-0.3.6/apps/camelot/webcam_window.c:388
-#: gmerlin-0.3.6/apps/camelot/webcam_window.c:417
-#: gmerlin-0.3.6/lib/singlepic.c:627 gmerlin-0.3.6/lib/transcoder_track.c:360
-#: lib/singlepic.c:627 lib/transcoder_track.c:360
+#: apps/camelot/webcam_window.c:417 lib/singlepic.c:627
+#: lib/transcoder_track.c:360
 msgid "Plugin"
 msgstr ""
 
 #: apps/camelot/webcam_window.c:380
-#: gmerlin-0.3.6/apps/camelot/webcam_window.c:380
 msgid "Reopen"
 msgstr ""
 
 #: apps/camelot/webcam_window.c:398
-#: gmerlin-0.3.6/apps/camelot/webcam_window.c:398
 msgid "Take picture"
 msgstr ""
 
 #: apps/camelot/webcam_window.c:403 apps/camelot/webcam_window.c:689
-#: gmerlin-0.3.6/apps/camelot/webcam_window.c:403
-#: gmerlin-0.3.6/apps/camelot/webcam_window.c:689
 msgid "Automatic capture"
 msgstr ""
 
 #: apps/camelot/webcam_window.c:428
-#: gmerlin-0.3.6/apps/camelot/webcam_window.c:428
 msgid "Enable Monitor"
 msgstr ""
 
 #: apps/camelot/webcam_window.c:451
-#: gmerlin-0.3.6/apps/camelot/webcam_window.c:451
 msgid "Set"
 msgstr ""
 
-#: apps/camelot/webcam_window.c:506
-#: gmerlin-0.3.6/apps/camelot/webcam_window.c:506
-#: gmerlin-0.3.6/plugins/esd/i_esd.c:65 plugins/esd/i_esd.c:65
+#: apps/camelot/webcam_window.c:506 plugins/esd/i_esd.c:65
 msgid "Monitor"
 msgstr ""
 
 #: apps/camelot/webcam_window.c:531
-#: gmerlin-0.3.6/apps/camelot/webcam_window.c:531
 msgid "Interval (sec)"
 msgstr ""
 
 #: apps/camelot/webcam_window.c:546 apps/alsamixer/card.c:229
-#: gmerlin-0.3.6/apps/camelot/webcam_window.c:546
-#: gmerlin-0.3.6/apps/alsamixer/card.c:229
 msgid "Capture"
 msgstr ""
 
 #: apps/camelot/webcam_window.c:558
-#: gmerlin-0.3.6/apps/camelot/webcam_window.c:558
 msgid "Directory"
 msgstr ""
 
 #: apps/camelot/webcam_window.c:575
-#: gmerlin-0.3.6/apps/camelot/webcam_window.c:575
 msgid ""
 "Extension is appended by the plugin\n"
 "%t    Inserts time\n"
@@ -656,1180 +544,1029 @@ msgid ""
 msgstr ""
 
 #: apps/camelot/webcam_window.c:586
-#: gmerlin-0.3.6/apps/camelot/webcam_window.c:586
 msgid "Filename base"
 msgstr ""
 
 #: apps/camelot/webcam_window.c:595
-#: gmerlin-0.3.6/apps/camelot/webcam_window.c:595
 msgid "Frame counter"
 msgstr ""
 
 #: apps/camelot/webcam_window.c:612
-#: gmerlin-0.3.6/apps/camelot/webcam_window.c:612
 msgid "Output files"
 msgstr ""
 
-#: apps/camelot/webcam_window.c:628
-#: gmerlin-0.3.6/apps/camelot/webcam_window.c:628
-#: gmerlin-0.3.6/lib/gtk/aboutwindow.c:120 lib/gtk/aboutwindow.c:120
+#: apps/camelot/webcam_window.c:628 lib/gtk/aboutwindow.c:120
 msgid "About"
 msgstr ""
 
 #: apps/camelot/webcam_window.c:682
-#: gmerlin-0.3.6/apps/camelot/webcam_window.c:682
 msgid "Do monitor"
 msgstr ""
 
 #: apps/camelot/webcam_window.c:685
-#: gmerlin-0.3.6/apps/camelot/webcam_window.c:685
 msgid "Enable monitoring of the webcam image"
 msgstr ""
 
 #: apps/camelot/webcam_window.c:692
-#: gmerlin-0.3.6/apps/camelot/webcam_window.c:692
 msgid "Automatically capture in the specified capture interval"
 msgstr ""
 
 #: apps/camelot/webcam_window.c:696
-#: gmerlin-0.3.6/apps/camelot/webcam_window.c:696
 msgid "Capture interval"
 msgstr ""
 
 #: apps/camelot/webcam_window.c:701
-#: gmerlin-0.3.6/apps/camelot/webcam_window.c:701
 msgid "Capture interval (in seconds)"
 msgstr ""
 
 #: apps/camelot/webcam_window.c:705
-#: gmerlin-0.3.6/apps/camelot/webcam_window.c:705
 msgid "Output directory"
 msgstr ""
 
 #: apps/camelot/webcam_window.c:711
-#: gmerlin-0.3.6/apps/camelot/webcam_window.c:711
 msgid "Output namebase"
 msgstr ""
 
 #: apps/camelot/webcam_window.c:714
-#: gmerlin-0.3.6/apps/camelot/webcam_window.c:714
 msgid ""
 "Template for the output files. A mask \"%<d>n\" inserts the frame number "
 "with <n> digits (e.g. webcam-shot-%6n)"
 msgstr ""
 
 #: apps/camelot/webcam_window.c:718
-#: gmerlin-0.3.6/apps/camelot/webcam_window.c:718
 msgid "Output framecounter"
 msgstr ""
 
-#: apps/camelot/webcam.c:258 gmerlin-0.3.6/apps/camelot/webcam.c:258
+#: apps/camelot/webcam.c:258
 msgid "Do capture: No plugin loaded"
 msgstr ""
 
-#: apps/camelot/webcam.c:276 gmerlin-0.3.6/apps/camelot/webcam.c:276
+#: apps/camelot/webcam.c:276
 #, c-format
 msgid "Saving %s failed"
 msgstr ""
 
-#: apps/camelot/webcam.c:321 gmerlin-0.3.6/apps/camelot/webcam.c:321
+#: apps/camelot/webcam.c:321
 msgid "Opening monitor plugin failed"
 msgstr ""
 
-#: apps/camelot/webcam.c:367 gmerlin-0.3.6/apps/camelot/webcam.c:367
+#: apps/camelot/webcam.c:367
 #, c-format
 msgid "Initializing %s failed, check settings"
 msgstr ""
 
-#: apps/camelot/webcam.c:514 gmerlin-0.3.6/apps/camelot/webcam.c:514
+#: apps/camelot/webcam.c:514
 msgid "read_frame failed"
 msgstr ""
 
-#: apps/transcoder/ppwidget.c:199 gmerlin-0.3.6/apps/transcoder/ppwidget.c:199
+#: apps/transcoder/ppwidget.c:199
 msgid "Postprocessing"
 msgstr ""
 
 #: apps/transcoder/gmerlin_transcoder_remote.c:220
-#: gmerlin-0.3.6/apps/transcoder/gmerlin_transcoder_remote.c:220
 msgid "Cannot launch transcoder process"
 msgstr ""
 
 #: apps/transcoder/trackdialog.c:57
-#: gmerlin-0.3.6/apps/transcoder/trackdialog.c:57
 msgid "Track options"
 msgstr ""
 
 #: apps/transcoder/trackdialog.c:71
-#: gmerlin-0.3.6/apps/transcoder/trackdialog.c:71
 msgid "Metadata"
 msgstr ""
 
 #: apps/transcoder/trackdialog.c:143
-#: gmerlin-0.3.6/apps/transcoder/trackdialog.c:143
 #, c-format
 msgid "Audio #%d: %s"
 msgstr ""
 
 #: apps/transcoder/trackdialog.c:145
-#: gmerlin-0.3.6/apps/transcoder/trackdialog.c:145
 #, c-format
 msgid "Audio #%d"
 msgstr ""
 
 #: apps/transcoder/trackdialog.c:150
-#: gmerlin-0.3.6/apps/transcoder/trackdialog.c:150
 #, c-format
 msgid "Audio: %s"
 msgstr ""
 
 #: apps/transcoder/trackdialog.c:208
-#: gmerlin-0.3.6/apps/transcoder/trackdialog.c:208
 #, c-format
 msgid "Video #%d: %s"
 msgstr ""
 
 #: apps/transcoder/trackdialog.c:210
-#: gmerlin-0.3.6/apps/transcoder/trackdialog.c:210
 #, c-format
 msgid "Video #%d"
 msgstr ""
 
 #: apps/transcoder/trackdialog.c:215
-#: gmerlin-0.3.6/apps/transcoder/trackdialog.c:215
 #, c-format
 msgid "Video: %s"
 msgstr ""
 
 #: apps/transcoder/trackdialog.c:274 apps/transcoder/trackdialog.c:322
-#: gmerlin-0.3.6/apps/transcoder/trackdialog.c:274
-#: gmerlin-0.3.6/apps/transcoder/trackdialog.c:322
 #, c-format
 msgid "Subtitles #%d: %s"
 msgstr ""
 
 #: apps/transcoder/trackdialog.c:276 apps/transcoder/trackdialog.c:325
-#: gmerlin-0.3.6/apps/transcoder/trackdialog.c:276
-#: gmerlin-0.3.6/apps/transcoder/trackdialog.c:325
 #, c-format
 msgid "Subtitles #%d"
 msgstr ""
 
 #: apps/transcoder/trackdialog.c:281 apps/transcoder/trackdialog.c:330
-#: gmerlin-0.3.6/apps/transcoder/trackdialog.c:281
-#: gmerlin-0.3.6/apps/transcoder/trackdialog.c:330
 #, c-format
 msgid "Subtitles: %s"
 msgstr ""
 
 #: apps/transcoder/trackdialog.c:298 apps/transcoder/transcoder_window.c:1319
-#: gmerlin-0.3.6/apps/transcoder/trackdialog.c:298
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:1319
 msgid "Textrenderer"
 msgstr ""
 
 #: apps/transcoder/encoderwidget.c:519
-#: gmerlin-0.3.6/apps/transcoder/encoderwidget.c:519
 msgid "Select encoders"
 msgstr ""
 
-#: apps/transcoder/tracklist.c:754
-#: gmerlin-0.3.6/apps/transcoder/tracklist.c:754
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:1317
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:2544 lib/gtk/albumwidget.c:1317
+#: apps/transcoder/tracklist.c:754 lib/gtk/albumwidget.c:1317
 #: lib/gtk/albumwidget.c:2544
 msgid "Add URLs"
 msgstr ""
 
 #: apps/transcoder/tracklist.c:873
-#: gmerlin-0.3.6/apps/transcoder/tracklist.c:873
 msgid "Add Files..."
 msgstr ""
 
 #: apps/transcoder/tracklist.c:875
-#: gmerlin-0.3.6/apps/transcoder/tracklist.c:875
 msgid "Add Urls..."
 msgstr ""
 
 #: apps/transcoder/tracklist.c:877
-#: gmerlin-0.3.6/apps/transcoder/tracklist.c:877
 msgid "Add Drives..."
 msgstr ""
 
 #: apps/transcoder/tracklist.c:885
-#: gmerlin-0.3.6/apps/transcoder/tracklist.c:885
 msgid "Move Up"
 msgstr ""
 
 #: apps/transcoder/tracklist.c:887
-#: gmerlin-0.3.6/apps/transcoder/tracklist.c:887
 msgid "Move Down"
 msgstr ""
 
-#: apps/transcoder/tracklist.c:889
-#: gmerlin-0.3.6/apps/transcoder/tracklist.c:889
-#: gmerlin-0.3.6/lib/gtk/treewidget.c:1405
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:1345 lib/gtk/treewidget.c:1405
+#: apps/transcoder/tracklist.c:889 lib/gtk/treewidget.c:1405
 #: lib/gtk/albumwidget.c:1345
 msgid "Remove"
 msgstr ""
 
 #: apps/transcoder/tracklist.c:891
-#: gmerlin-0.3.6/apps/transcoder/tracklist.c:891
 msgid "Configure..."
 msgstr ""
 
 #: apps/transcoder/tracklist.c:893
-#: gmerlin-0.3.6/apps/transcoder/tracklist.c:893
 msgid "Edit chapters..."
 msgstr ""
 
 #: apps/transcoder/tracklist.c:895
-#: gmerlin-0.3.6/apps/transcoder/tracklist.c:895
 msgid "Change encoders..."
 msgstr ""
 
-#: apps/transcoder/tracklist.c:902
-#: gmerlin-0.3.6/apps/transcoder/tracklist.c:902
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:1407
-#: gmerlin-0.3.6/lib/gtk/cfg_device.c:310 lib/gtk/albumwidget.c:1407
+#: apps/transcoder/tracklist.c:902 lib/gtk/albumwidget.c:1407
 #: lib/gtk/cfg_device.c:310
 msgid "Add..."
 msgstr ""
 
-#: apps/transcoder/tracklist.c:908
-#: gmerlin-0.3.6/apps/transcoder/tracklist.c:908
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:1421 lib/gtk/albumwidget.c:1421
+#: apps/transcoder/tracklist.c:908 lib/gtk/albumwidget.c:1421
 msgid "Selected..."
 msgstr ""
 
 #: apps/transcoder/tracklist.c:914
-#: gmerlin-0.3.6/apps/transcoder/tracklist.c:914
 msgid "Postprocess..."
 msgstr ""
 
-#: apps/transcoder/tracklist.c:1095
-#: gmerlin-0.3.6/apps/transcoder/tracklist.c:1095
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:2588 lib/gtk/albumwidget.c:2588
+#: apps/transcoder/tracklist.c:1095 lib/gtk/albumwidget.c:2588
 msgid "Total playback time"
 msgstr ""
 
 #: apps/transcoder/tracklist.c:1104
-#: gmerlin-0.3.6/apps/transcoder/tracklist.c:1104
 msgid "Append files to the track list"
 msgstr ""
 
 #: apps/transcoder/tracklist.c:1109
-#: gmerlin-0.3.6/apps/transcoder/tracklist.c:1109
 msgid "Append URLs to the track list"
 msgstr ""
 
 #: apps/transcoder/tracklist.c:1114
-#: gmerlin-0.3.6/apps/transcoder/tracklist.c:1114
 msgid "Append removable media to the track_list"
 msgstr ""
 
-#: apps/transcoder/tracklist.c:1119
-#: gmerlin-0.3.6/apps/transcoder/tracklist.c:1119
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:2571 lib/gtk/albumwidget.c:2571
+#: apps/transcoder/tracklist.c:1119 lib/gtk/albumwidget.c:2571
 msgid "Delete selected tracks"
 msgstr ""
 
 #: apps/transcoder/tracklist.c:1124
-#: gmerlin-0.3.6/apps/transcoder/tracklist.c:1124
 msgid "Configure selected track"
 msgstr ""
 
-#: apps/transcoder/tracklist.c:1129
-#: gmerlin-0.3.6/apps/transcoder/tracklist.c:1129
-#: gmerlin-0.3.6/lib/gtk/chapterdialog.c:357 lib/gtk/chapterdialog.c:357
+#: apps/transcoder/tracklist.c:1129 lib/gtk/chapterdialog.c:357
 msgid "Edit chapters"
 msgstr ""
 
 #: apps/transcoder/tracklist.c:1134
-#: gmerlin-0.3.6/apps/transcoder/tracklist.c:1134
 msgid "Change encoder plugins for selected tracks"
 msgstr ""
 
 #: apps/transcoder/tracklist.c:1139
-#: gmerlin-0.3.6/apps/transcoder/tracklist.c:1139
 msgid "Move selected tracks to the top of the tracklist"
 msgstr ""
 
 #: apps/transcoder/tracklist.c:1144
-#: gmerlin-0.3.6/apps/transcoder/tracklist.c:1144
 msgid "Move selected tracks to the bottom of the tracklist"
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:167
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:167
 msgid "Foreground"
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:212
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:212
 msgid "GUI"
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:217
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:217
 msgid "Show Tooltips"
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:644
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:644
 msgid "Load task list"
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:668
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:668
 msgid "Save task list"
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:692
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:692
 msgid "Load profile"
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:717
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:717
 msgid "Save profile"
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:882
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:882
 msgid "Load tasklist..."
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:883
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:883
 msgid "Save tasklist..."
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:884
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:884
 msgid "Quit"
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:890
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:890
 msgid "Load profile..."
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:891
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:891
 msgid "Save profile..."
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:895
 #: apps/transcoder/transcoder_window.c:979
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:895
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:979
 msgid "Start transcoding"
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:896
 #: apps/transcoder/transcoder_window.c:982
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:896
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:982
 msgid "Stop transcoding"
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:900
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:900
 msgid "Log messages"
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:986
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:986
 msgid ""
 "Change and configure plugins\n"
 "for newly added tracks"
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:988
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:988
 msgid "Set global options and track defaults"
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:990
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:990
 msgid "Quit program"
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:992
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:992
 msgid "Load track list"
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:994
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:994
 msgid "Save track list"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:1023
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:1023
-#: gmerlin-0.3.6/lib/gtk/plugininfo.c:171 lib/gtk/plugininfo.c:171
+#: apps/transcoder/transcoder_window.c:1023 lib/gtk/plugininfo.c:171
 msgid "File"
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:1028
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:1028
 msgid "Options"
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:1033
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:1033
 msgid "Actions"
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:1038
 #: apps/transcoder/transcoder_window.c:1093
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:1038
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:1093
 msgid "Tasklist"
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:1043
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:1043
 msgid "Windows"
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:1236
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:1236
 msgid "Transcoder configuration"
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:1241
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:1241
 msgid "Output options"
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:1251
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:1251
 msgid "Track defaults"
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:1259
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:1259
 msgid "Audio defaults"
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:1286
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:1286
 msgid "Video defaults"
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:1305
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:1305
 msgid "Text subtitle defaults"
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:1328
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:1328
 msgid "Overlay subtitle defaults"
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:1339
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:1339
 msgid "Window"
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:1349
-#: gmerlin-0.3.6/apps/transcoder/transcoder_window.c:1349
 msgid "Remote"
 msgstr ""
 
-#: apps/alsamixer/g_control.c:855 gmerlin-0.3.6/apps/alsamixer/g_control.c:855
+#: apps/alsamixer/g_control.c:855
 msgid "Tone"
 msgstr ""
 
-#: apps/alsamixer/g_control.c:886 gmerlin-0.3.6/apps/alsamixer/g_control.c:886
+#: apps/alsamixer/g_control.c:886
 msgid "Treble"
 msgstr ""
 
-#: apps/alsamixer/g_control.c:916 gmerlin-0.3.6/apps/alsamixer/g_control.c:916
+#: apps/alsamixer/g_control.c:916
 msgid "Bass"
 msgstr ""
 
 #: apps/alsamixer/g_control.c:1003
-#: gmerlin-0.3.6/apps/alsamixer/g_control.c:1003
 msgid "Rec"
 msgstr ""
 
 #: apps/alsamixer/g_control.c:1049
-#: gmerlin-0.3.6/apps/alsamixer/g_control.c:1049
 msgid "Play"
 msgstr ""
 
 #: apps/alsamixer/g_control.c:1400
-#: gmerlin-0.3.6/apps/alsamixer/g_control.c:1400
 #, c-format
 msgid "Type %s not handled for %s"
 msgstr ""
 
-#: apps/alsamixer/card.c:34 gmerlin-0.3.6/apps/alsamixer/card.c:34
+#: apps/alsamixer/card.c:34
 msgid "snd_hctl_elem_read Failed"
 msgstr ""
 
-#: apps/alsamixer/card.c:45 gmerlin-0.3.6/apps/alsamixer/card.c:45
+#: apps/alsamixer/card.c:45
 msgid "snd_hctl_elem_write Failed"
 msgstr ""
 
-#: apps/alsamixer/card.c:115 gmerlin-0.3.6/apps/alsamixer/card.c:115
+#: apps/alsamixer/card.c:115
 msgid "snd_hctl_open failed"
 msgstr ""
 
-#: apps/alsamixer/card.c:120 gmerlin-0.3.6/apps/alsamixer/card.c:120
+#: apps/alsamixer/card.c:120
 msgid "snd_hctl_load failed"
 msgstr ""
 
-#: apps/alsamixer/card.c:128 gmerlin-0.3.6/apps/alsamixer/card.c:128
+#: apps/alsamixer/card.c:128
 msgid "snd_ctl_card_info_malloc failed"
 msgstr ""
 
-#: apps/alsamixer/card.c:133 gmerlin-0.3.6/apps/alsamixer/card.c:133
+#: apps/alsamixer/card.c:133
 msgid "snd_ctl_card_info failed"
 msgstr ""
 
-#: apps/alsamixer/card.c:233 gmerlin-0.3.6/apps/alsamixer/card.c:233
+#: apps/alsamixer/card.c:233
 msgid "Unknown"
 msgstr ""
 
-#: apps/alsamixer/main.c:12 gmerlin-0.3.6/apps/alsamixer/main.c:12
+#: apps/alsamixer/main.c:12
 msgid ""
 "Could not find any Alsa mixers.\n"
 "Check your setup!\n"
 msgstr ""
 
-#: apps/alsamixer/g_card.c:618 gmerlin-0.3.6/apps/alsamixer/g_card.c:618
+#: apps/alsamixer/g_card.c:618
 msgid "Card controls"
 msgstr ""
 
-#: apps/alsamixer/g_card.c:623 gmerlin-0.3.6/apps/alsamixer/g_card.c:623
+#: apps/alsamixer/g_card.c:623
 #, c-format
 msgid "Controls for %s"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/audiofilters/fa_volume.c:66
 #: plugins/audiofilters/fa_volume.c:66
 msgid "Volume"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/audiofilters/fa_volume.c:149
 #: plugins/audiofilters/fa_volume.c:149
 msgid "Volume control"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/audiofilters/fa_volume.c:150
 #: plugins/audiofilters/fa_volume.c:150
 msgid "Simple volume control"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/png/pngwriter.c:51
-#: gmerlin-0.3.6/plugins/image/iw_bmp.c:127
-#: gmerlin-0.3.6/plugins/image/iw_pnm.c:76
-#: gmerlin-0.3.6/plugins/jpeg/iw_jpeg.c:90
-#: gmerlin-0.3.6/plugins/oss/oa_oss.c:142
-#: gmerlin-0.3.6/plugins/oss/oa_oss.c:152
-#: gmerlin-0.3.6/plugins/oss/oa_oss.c:162
-#: gmerlin-0.3.6/plugins/tiff/iw_tiff.c:89 plugins/png/pngwriter.c:51
-#: plugins/image/iw_bmp.c:127 plugins/image/iw_pnm.c:76
-#: plugins/jpeg/iw_jpeg.c:90 plugins/oss/oa_oss.c:142 plugins/oss/oa_oss.c:152
-#: plugins/oss/oa_oss.c:162 plugins/tiff/iw_tiff.c:89
+#: plugins/png/pngwriter.c:51 plugins/image/iw_bmp.c:127
+#: plugins/image/iw_pnm.c:76 plugins/jpeg/iw_jpeg.c:90
+#: plugins/oss/oa_oss.c:142 plugins/oss/oa_oss.c:152 plugins/oss/oa_oss.c:162
+#: plugins/tiff/iw_tiff.c:89
 #, c-format
 msgid "Cannot open %s: %s"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/png/e_spumux.c:201
-#: gmerlin-0.3.6/plugins/png/iw_png.c:60 plugins/png/e_spumux.c:201
-#: plugins/png/iw_png.c:60
+#: plugins/png/e_spumux.c:201 plugins/png/iw_png.c:60
 msgid "Compression level"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/png/e_spumux.c:223 plugins/png/e_spumux.c:223
+#: plugins/png/e_spumux.c:223
 msgid "spumux overlay exporter"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/png/e_spumux.c:224 plugins/png/e_spumux.c:224
+#: plugins/png/e_spumux.c:224
 msgid ""
 "Exports overlay subtitles into the format used by spumux (http://dvdauthor."
 "sourceforge.net)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/png/iw_png.c:68 plugins/png/iw_png.c:68
+#: plugins/png/iw_png.c:68
 msgid "Bits per channel"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/png/iw_png.c:72 plugins/png/iw_png.c:72
+#: plugins/png/iw_png.c:72
 msgid ""
 "If you select auto, the depth will be chosen according to the input format"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/png/iw_png.c:95 plugins/png/iw_png.c:95
+#: plugins/png/iw_png.c:95
 msgid "PNG writer"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/png/iw_png.c:96 plugins/png/iw_png.c:96
+#: plugins/png/iw_png.c:96
 msgid "Writer for PNG images"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/png/ir_png.c:225 plugins/png/ir_png.c:225
+#: plugins/png/ir_png.c:225
 msgid "PNG reader"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/png/ir_png.c:226 plugins/png/ir_png.c:226
+#: plugins/png/ir_png.c:226
 msgid "Reader for PNG images"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/wavwrite/e_wav.c:305 plugins/wavwrite/e_wav.c:305
+#: plugins/wavwrite/e_wav.c:305
 msgid "Bits per sample"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/wavwrite/e_wav.c:317 plugins/wavwrite/e_wav.c:317
+#: plugins/wavwrite/e_wav.c:317
 msgid "Write info chunk"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/wavwrite/e_wav.c:454 plugins/wavwrite/e_wav.c:454
+#: plugins/wavwrite/e_wav.c:454
 #, c-format
 msgid "Cannot open output file: %s"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/wavwrite/e_wav.c:628 plugins/wavwrite/e_wav.c:628
+#: plugins/wavwrite/e_wav.c:628
 msgid "Wave writer"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/wavwrite/e_wav.c:629 plugins/wavwrite/e_wav.c:629
+#: plugins/wavwrite/e_wav.c:629
 msgid "Simple writer for wave files, supports 8, 16, 24 and 32 bit PCM"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/mikmod/i_mikmod.c:122 plugins/mikmod/i_mikmod.c:122
+#: plugins/mikmod/i_mikmod.c:122
 msgid "Cannot find mikmod executable"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/mikmod/i_mikmod.c:199 plugins/mikmod/i_mikmod.c:199
+#: plugins/mikmod/i_mikmod.c:199
 msgid "Unrecognized fileformat"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/mikmod/i_mikmod.c:249
-#: gmerlin-0.3.6/lib/gtk/infowindow.c:584
-#: gmerlin-0.3.6/lib/gtk/infowindow.c:612 plugins/mikmod/i_mikmod.c:249
-#: lib/gtk/infowindow.c:584 lib/gtk/infowindow.c:612
+#: plugins/mikmod/i_mikmod.c:249 lib/gtk/infowindow.c:584
+#: lib/gtk/infowindow.c:612
 msgid "Output format"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/mikmod/i_mikmod.c:252 plugins/mikmod/i_mikmod.c:252
+#: plugins/mikmod/i_mikmod.c:252
 msgid "Mono 8bit"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/mikmod/i_mikmod.c:252 plugins/mikmod/i_mikmod.c:252
+#: plugins/mikmod/i_mikmod.c:252
 msgid "Stereo 8bit"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/mikmod/i_mikmod.c:252 plugins/mikmod/i_mikmod.c:252
+#: plugins/mikmod/i_mikmod.c:252
 msgid "Mono 16bit"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/mikmod/i_mikmod.c:252 plugins/mikmod/i_mikmod.c:252
+#: plugins/mikmod/i_mikmod.c:252
 msgid "Stereo 16bit"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/mikmod/i_mikmod.c:258
-#: gmerlin-0.3.6/include/bggavl.h:438 plugins/mikmod/i_mikmod.c:258
-#: include/bggavl.h:438
+#: plugins/mikmod/i_mikmod.c:258 include/bggavl.h:438
 msgid "Samplerate"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/mikmod/i_mikmod.c:267 plugins/mikmod/i_mikmod.c:267
+#: plugins/mikmod/i_mikmod.c:267
 msgid "Look for hidden patterns in module"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/mikmod/i_mikmod.c:273 plugins/mikmod/i_mikmod.c:273
+#: plugins/mikmod/i_mikmod.c:273
 msgid "Use surround mixing"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/mikmod/i_mikmod.c:279 plugins/mikmod/i_mikmod.c:279
+#: plugins/mikmod/i_mikmod.c:279
 msgid "Force volume fade at the end of module"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/mikmod/i_mikmod.c:285 plugins/mikmod/i_mikmod.c:285
+#: plugins/mikmod/i_mikmod.c:285
 msgid "Use interpolate mixing"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/mikmod/i_mikmod.c:333 plugins/mikmod/i_mikmod.c:333
+#: plugins/mikmod/i_mikmod.c:333
 msgid "mikmod input plugin"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/mikmod/i_mikmod.c:334 plugins/mikmod/i_mikmod.c:334
+#: plugins/mikmod/i_mikmod.c:334
 msgid "Simple wrapper, which calls the mikmod program"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/x11/ov_x11.c:450 plugins/x11/ov_x11.c:450
+#: plugins/x11/ov_x11.c:450
 msgid "No True Color Visual"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/x11/ov_x11.c:920 plugins/x11/ov_x11.c:920
+#: plugins/x11/ov_x11.c:920
 msgid "Assuming Xlib screensaver support"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/x11/ov_x11.c:923 plugins/x11/ov_x11.c:923
+#: plugins/x11/ov_x11.c:923
 msgid "Assuming Gnome screensaver support"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/x11/ov_x11.c:926 plugins/x11/ov_x11.c:926
+#: plugins/x11/ov_x11.c:926
 msgid "Assuming KDE screensaver support"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/x11/ov_x11.c:1842 plugins/x11/ov_x11.c:1842
+#: plugins/x11/ov_x11.c:1842
 msgid "Enabled DPMS"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/x11/ov_x11.c:1844 plugins/x11/ov_x11.c:1844
+#: plugins/x11/ov_x11.c:1844
 msgid "Disabled DPMS"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/x11/ov_x11.c:1977 plugins/x11/ov_x11.c:1977
+#: plugins/x11/ov_x11.c:1977
 msgid "Auto resize window"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/x11/ov_x11.c:2012 plugins/x11/ov_x11.c:2012
+#: plugins/x11/ov_x11.c:2012
 msgid "Try XVideo"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/x11/ov_x11.c:2016 plugins/x11/ov_x11.c:2016
+#: plugins/x11/ov_x11.c:2016
 msgid "Never"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/x11/ov_x11.c:2016 plugins/x11/ov_x11.c:2016
+#: plugins/x11/ov_x11.c:2016
 msgid "For YCbCr formats only"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/x11/ov_x11.c:2016 plugins/x11/ov_x11.c:2016
+#: plugins/x11/ov_x11.c:2016
 msgid "Always"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/x11/ov_x11.c:2018 plugins/x11/ov_x11.c:2018
+#: plugins/x11/ov_x11.c:2018
 msgid ""
 "Choose when to try XVideo (with hardware scaling). Note that your graphics "
 "card/driver must support this."
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/x11/ov_x11.c:2023 plugins/x11/ov_x11.c:2023
+#: plugins/x11/ov_x11.c:2023
 msgid "Disable Screensaver for normal playback"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/x11/ov_x11.c:2029 plugins/x11/ov_x11.c:2029
+#: plugins/x11/ov_x11.c:2029
 msgid "Disable Screensaver for fullscreen playback"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/x11/ov_x11.c:2054 plugins/x11/ov_x11.c:2054
+#: plugins/x11/ov_x11.c:2054
 msgid "Software scaler"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/x11/ov_x11.c:2059 plugins/x11/ov_x11.c:2059
+#: plugins/x11/ov_x11.c:2059
 msgid "Enable software scaler"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/x11/ov_x11.c:2061 plugins/x11/ov_x11.c:2061
+#: plugins/x11/ov_x11.c:2061
 msgid ""
 "This enables software scaling for the case that no hardware scaling is "
 "available"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/x11/ov_x11.c:2065
-#: gmerlin-0.3.6/plugins/videofilters/fv_zoom.c:101
-#: gmerlin-0.3.6/include/bggavl.h:278 plugins/x11/ov_x11.c:2065
-#: plugins/videofilters/fv_zoom.c:101 include/bggavl.h:278
+#: plugins/x11/ov_x11.c:2065 plugins/videofilters/fv_zoom.c:101
+#: include/bggavl.h:278
 msgid "Scale mode"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/x11/ov_x11.c:2076
-#: gmerlin-0.3.6/plugins/cdaudio/cdparanoia.c:166
-#: gmerlin-0.3.6/plugins/v4l/pwc.c:158 gmerlin-0.3.6/include/bggavl.h:265
-#: gmerlin-0.3.6/include/bggavl.h:526 gmerlin-0.3.6/include/bggavl.h:538
 #: plugins/x11/ov_x11.c:2076 plugins/cdaudio/cdparanoia.c:166
 #: plugins/v4l/pwc.c:158 include/bggavl.h:265 include/bggavl.h:526
 #: include/bggavl.h:538
 msgid "Auto"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/x11/ov_x11.c:2077 gmerlin-0.3.6/include/bggavl.h:266
 #: plugins/x11/ov_x11.c:2077 include/bggavl.h:266
 msgid "Nearest"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/x11/ov_x11.c:2078 gmerlin-0.3.6/include/bggavl.h:267
 #: plugins/x11/ov_x11.c:2078 include/bggavl.h:267
 msgid "Bilinear"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/x11/ov_x11.c:2079 gmerlin-0.3.6/include/bggavl.h:268
 #: plugins/x11/ov_x11.c:2079 include/bggavl.h:268
 msgid "Quadratic"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/x11/ov_x11.c:2080 gmerlin-0.3.6/include/bggavl.h:269
 #: plugins/x11/ov_x11.c:2080 include/bggavl.h:269
 msgid "Cubic B-Spline"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/x11/ov_x11.c:2081 gmerlin-0.3.6/include/bggavl.h:270
 #: plugins/x11/ov_x11.c:2081 include/bggavl.h:270
 msgid "Cubic Mitchell-Netravali"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/x11/ov_x11.c:2082 gmerlin-0.3.6/include/bggavl.h:271
 #: plugins/x11/ov_x11.c:2082 include/bggavl.h:271
 msgid "Cubic Catmull-Rom"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/x11/ov_x11.c:2083 gmerlin-0.3.6/include/bggavl.h:272
 #: plugins/x11/ov_x11.c:2083 include/bggavl.h:272
 msgid "Sinc with Lanczos window"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/x11/ov_x11.c:2086 plugins/x11/ov_x11.c:2086
+#: plugins/x11/ov_x11.c:2086
 msgid ""
 "Choose scaling method. Auto means to choose based on the conversion quality. "
 "Nearest is fastest, Sinc with Lanczos window is slowest"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/x11/ov_x11.c:2090
-#: gmerlin-0.3.6/plugins/videofilters/fv_zoom.c:112
-#: gmerlin-0.3.6/include/bggavl.h:288 plugins/x11/ov_x11.c:2090
-#: plugins/videofilters/fv_zoom.c:112 include/bggavl.h:288
+#: plugins/x11/ov_x11.c:2090 plugins/videofilters/fv_zoom.c:112
+#: include/bggavl.h:288
 msgid "Scale order"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/x11/ov_x11.c:2095 plugins/x11/ov_x11.c:2095
+#: plugins/x11/ov_x11.c:2095
 msgid "Order for sinc scaling"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/x11/ov_x11.c:2349 plugins/x11/ov_x11.c:2349
+#: plugins/x11/ov_x11.c:2349
 msgid "X11"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/x11/ov_x11.c:2350 plugins/x11/ov_x11.c:2350
+#: plugins/x11/ov_x11.c:2350
 msgid "X11 display driver with support for XShm, XVideo and XImage"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/iw_tga.c:123
-#: gmerlin-0.3.6/plugins/image/iw_tga.c:126 plugins/image/iw_tga.c:123
-#: plugins/image/iw_tga.c:126
+#: plugins/image/iw_tga.c:123 plugins/image/iw_tga.c:126
 #, c-format
 msgid "Cannot save %s: %s"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/iw_tga.c:144 plugins/image/iw_tga.c:144
+#: plugins/image/iw_tga.c:144
 msgid "Do RLE compression"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/iw_tga.c:183 plugins/image/iw_tga.c:183
+#: plugins/image/iw_tga.c:183
 msgid "TGA writer"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/iw_tga.c:184 plugins/image/iw_tga.c:184
+#: plugins/image/iw_tga.c:184
 msgid "Writer for TGA images"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/iw_bmp.c:213 plugins/image/iw_bmp.c:213
+#: plugins/image/iw_bmp.c:213
 msgid "BMP writer"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/iw_bmp.c:214 plugins/image/iw_bmp.c:214
+#: plugins/image/iw_bmp.c:214
 msgid "Writer for BMP images"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/iw_pnm.c:145
-#: gmerlin-0.3.6/plugins/lqt/e_lqt.c:509
-#: gmerlin-0.3.6/plugins/postprocessors/e_pp_vcdimager.c:108
-#: gmerlin-0.3.6/plugins/subwriters/e_subtext.c:230
-#: gmerlin-0.3.6/lib/gtk/infowindow.c:540
-#: gmerlin-0.3.6/lib/gtk/infowindow.c:634 plugins/image/iw_pnm.c:145
-#: plugins/lqt/e_lqt.c:509 plugins/postprocessors/e_pp_vcdimager.c:108
+#: plugins/image/iw_pnm.c:145 plugins/lqt/e_lqt.c:509
+#: plugins/postprocessors/e_pp_vcdimager.c:108
 #: plugins/subwriters/e_subtext.c:230 lib/gtk/infowindow.c:540
 #: lib/gtk/infowindow.c:634
 msgid "Format"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/iw_pnm.c:148 plugins/image/iw_pnm.c:148
+#: plugins/image/iw_pnm.c:148
 msgid "Binary"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/iw_pnm.c:148 plugins/image/iw_pnm.c:148
+#: plugins/image/iw_pnm.c:148
 msgid "ASCII"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/iw_pnm.c:154 gmerlin-0.3.6/lib/metadata.c:121
 #: plugins/image/iw_pnm.c:154 lib/metadata.c:121
 msgid "Comment"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/iw_pnm.c:158 plugins/image/iw_pnm.c:158
+#: plugins/image/iw_pnm.c:158
 msgid "Comment which will be written in front of every file"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/iw_pnm.c:205 plugins/image/iw_pnm.c:205
+#: plugins/image/iw_pnm.c:205
 msgid "PPM writer"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/iw_pnm.c:206 plugins/image/iw_pnm.c:206
+#: plugins/image/iw_pnm.c:206
 msgid "Writer for PPM images"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/ir_pnm.c:103 plugins/image/ir_pnm.c:103
+#: plugins/image/ir_pnm.c:103
 #, c-format
 msgid "Can't open file %s"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/ir_pnm.c:121
-#: gmerlin-0.3.6/plugins/image/ir_bmp.c:232 plugins/image/ir_pnm.c:121
-#: plugins/image/ir_bmp.c:232
+#: plugins/image/ir_pnm.c:121 plugins/image/ir_bmp.c:232
 msgid "Can't read File type"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/ir_pnm.c:136 plugins/image/ir_pnm.c:136
+#: plugins/image/ir_pnm.c:136
 msgid "File isn't a pnm"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/ir_pnm.c:162 plugins/image/ir_pnm.c:162
+#: plugins/image/ir_pnm.c:162
 #, c-format
 msgid "File must not be a pnm (%.1s%.1s%.1s)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/ir_pnm.c:179 plugins/image/ir_pnm.c:179
+#: plugins/image/ir_pnm.c:179
 msgid "Can't read width"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/ir_pnm.c:192 plugins/image/ir_pnm.c:192
+#: plugins/image/ir_pnm.c:192
 msgid "Can't read height"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/ir_pnm.c:205 plugins/image/ir_pnm.c:205
+#: plugins/image/ir_pnm.c:205
 msgid "Can't read maxval"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/ir_pnm.c:229 plugins/image/ir_pnm.c:229
+#: plugins/image/ir_pnm.c:229
 msgid "Sorry PAM format not suported"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/ir_pnm.c:235 plugins/image/ir_pnm.c:235
+#: plugins/image/ir_pnm.c:235
 #, c-format
 msgid "File isn't a pnm (%.1s%.1s%.1s)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/ir_pnm.c:282 plugins/image/ir_pnm.c:282
+#: plugins/image/ir_pnm.c:282
 msgid "PBMascii"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/ir_pnm.c:316 plugins/image/ir_pnm.c:316
+#: plugins/image/ir_pnm.c:316
 msgid "PBMbin"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/ir_pnm.c:354 plugins/image/ir_pnm.c:354
+#: plugins/image/ir_pnm.c:354
 msgid "PGMascii"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/ir_pnm.c:383 plugins/image/ir_pnm.c:383
+#: plugins/image/ir_pnm.c:383
 msgid "PGMascii_16"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/ir_pnm.c:414 plugins/image/ir_pnm.c:414
+#: plugins/image/ir_pnm.c:414
 msgid "PGMbin"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/ir_pnm.c:439 plugins/image/ir_pnm.c:439
+#: plugins/image/ir_pnm.c:439
 msgid "PGMbin_16"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/ir_pnm.c:466 plugins/image/ir_pnm.c:466
+#: plugins/image/ir_pnm.c:466
 msgid "PPMascii"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/ir_pnm.c:509 plugins/image/ir_pnm.c:509
+#: plugins/image/ir_pnm.c:509
 msgid "PPMascii_16"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/ir_pnm.c:587 plugins/image/ir_pnm.c:587
+#: plugins/image/ir_pnm.c:587
 msgid "PPMbin_16"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/ir_pnm.c:628 plugins/image/ir_pnm.c:628
+#: plugins/image/ir_pnm.c:628
 msgid "PNM reader"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/ir_pnm.c:629 plugins/image/ir_pnm.c:629
+#: plugins/image/ir_pnm.c:629
 msgid "Reader for PBM/PGM/PPM images"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/ir_bmp.c:222 plugins/image/ir_bmp.c:222
+#: plugins/image/ir_bmp.c:222
 #, c-format
 msgid "Can't open File %s"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/ir_bmp.c:238 plugins/image/ir_bmp.c:238
+#: plugins/image/ir_bmp.c:238
 msgid "File isn't a BMP"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/ir_bmp.c:282 plugins/image/ir_bmp.c:282
+#: plugins/image/ir_bmp.c:282
 msgid "Can't detect width or height"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/ir_bmp.c:291 plugins/image/ir_bmp.c:291
+#: plugins/image/ir_bmp.c:291
 #, c-format
 msgid "Bitcount not suported (bitcount: %d)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/ir_bmp.c:735 plugins/image/ir_bmp.c:735
+#: plugins/image/ir_bmp.c:735
 msgid "BMP reader"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/ir_bmp.c:736 plugins/image/ir_bmp.c:736
+#: plugins/image/ir_bmp.c:736
 msgid "Reader for BMP images"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/ir_tga.c:93 plugins/image/ir_tga.c:93
+#: plugins/image/ir_tga.c:93
 msgid "Read tga failed"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/ir_tga.c:195 plugins/image/ir_tga.c:195
+#: plugins/image/ir_tga.c:195
 msgid "TGA reader"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/image/ir_tga.c:196 plugins/image/ir_tga.c:196
+#: plugins/image/ir_tga.c:196
 msgid "Reader for TGA images"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/lqt/i_lqt.c:48 plugins/lqt/i_lqt.c:48
+#: plugins/lqt/i_lqt.c:48
 msgid "Audio Codecs"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/lqt/i_lqt.c:49 plugins/lqt/i_lqt.c:49
+#: plugins/lqt/i_lqt.c:49
 msgid "Sort and configure audio codecs"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/lqt/i_lqt.c:59 plugins/lqt/i_lqt.c:59
+#: plugins/lqt/i_lqt.c:59
 msgid "Video Codecs"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/lqt/i_lqt.c:60 plugins/lqt/i_lqt.c:60
+#: plugins/lqt/i_lqt.c:60
 msgid "Sort and configure video codecs"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/lqt/i_lqt.c:245 plugins/lqt/i_lqt.c:245
+#: plugins/lqt/i_lqt.c:245
 msgid "More than one chapter track found, using first one"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/lqt/i_lqt.c:494 plugins/lqt/i_lqt.c:494
+#: plugins/lqt/i_lqt.c:494
 msgid "libquicktime input plugin"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/lqt/i_lqt.c:495 plugins/lqt/i_lqt.c:495
+#: plugins/lqt/i_lqt.c:495
 msgid "Input plugin based on libquicktime"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/lqt/lqt_common.c:76 plugins/lqt/lqt_common.c:76
+#: plugins/lqt/lqt_common.c:76
 #, c-format
 msgid "%s Compatible with"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/lqt/e_lqt.c:41 plugins/lqt/e_lqt.c:41
+#: plugins/lqt/e_lqt.c:41
 msgid "Codec"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/lqt/e_lqt.c:152 plugins/lqt/e_lqt.c:152
+#: plugins/lqt/e_lqt.c:152
 #, c-format
 msgid "Cannot open file %s"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/lqt/e_lqt.c:401 plugins/lqt/e_lqt.c:401
+#: plugins/lqt/e_lqt.c:401
 #, c-format
 msgid "Omitting chapter %d: time (%f) > duration (%f)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/lqt/e_lqt.c:436 plugins/lqt/e_lqt.c:436
+#: plugins/lqt/e_lqt.c:436
 msgid "Making streamable...."
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/lqt/e_lqt.c:438 plugins/lqt/e_lqt.c:438
+#: plugins/lqt/e_lqt.c:438
 msgid "Making streamable....done"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/lqt/e_lqt.c:512 plugins/lqt/e_lqt.c:512
+#: plugins/lqt/e_lqt.c:512
 msgid "Quicktime"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/lqt/e_lqt.c:512 plugins/lqt/e_lqt.c:512
+#: plugins/lqt/e_lqt.c:512
 msgid "AVI"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/lqt/e_lqt.c:512 plugins/lqt/e_lqt.c:512
+#: plugins/lqt/e_lqt.c:512
 msgid "AVI (Opendml)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/lqt/e_lqt.c:513 plugins/lqt/e_lqt.c:513
+#: plugins/lqt/e_lqt.c:513
 msgid "MP4"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/lqt/e_lqt.c:513 plugins/lqt/e_lqt.c:513
+#: plugins/lqt/e_lqt.c:513
 msgid "M4A"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/lqt/e_lqt.c:513 plugins/lqt/e_lqt.c:513
+#: plugins/lqt/e_lqt.c:513
 msgid "3GP"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/lqt/e_lqt.c:518 plugins/lqt/e_lqt.c:518
+#: plugins/lqt/e_lqt.c:518
 msgid "Make streamable"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/lqt/e_lqt.c:520 plugins/lqt/e_lqt.c:520
+#: plugins/lqt/e_lqt.c:520
 msgid "Make the file streamable afterwards (uses twice the diskspace)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/lqt/e_lqt.c:524 plugins/lqt/e_lqt.c:524
+#: plugins/lqt/e_lqt.c:524
 msgid "Maximum RIFF size"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/lqt/e_lqt.c:529 plugins/lqt/e_lqt.c:529
+#: plugins/lqt/e_lqt.c:529
 msgid ""
 "Maximum RIFF size (in MB) for OpenDML AVIs. The default (1GB) is reasonable "
 "and should only be changed by people who know what they do."
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/lqt/e_lqt.c:686 plugins/lqt/e_lqt.c:686
+#: plugins/lqt/e_lqt.c:686
 msgid "Text box (top)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/lqt/e_lqt.c:693 plugins/lqt/e_lqt.c:693
+#: plugins/lqt/e_lqt.c:693
 msgid "Text box (left)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/lqt/e_lqt.c:700 plugins/lqt/e_lqt.c:700
+#: plugins/lqt/e_lqt.c:700
 msgid "Text box (bottom)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/lqt/e_lqt.c:707 plugins/lqt/e_lqt.c:707
+#: plugins/lqt/e_lqt.c:707
 msgid "Text box (right)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/lqt/e_lqt.c:714 gmerlin-0.3.6/lib/textrenderer.c:62
 #: plugins/lqt/e_lqt.c:714 lib/textrenderer.c:62
 msgid "Text color"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/lqt/e_lqt.c:720
-#: gmerlin-0.3.6/plugins/videofilters/fv_zoom.c:132
-#: gmerlin-0.3.6/include/bggavl.h:421 gmerlin-0.3.6/lib/gtk/vumeter.c:178
 #: plugins/lqt/e_lqt.c:720 plugins/videofilters/fv_zoom.c:132
 #: include/bggavl.h:421 lib/gtk/vumeter.c:178
 msgid "Background color"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/lqt/e_lqt.c:770 plugins/lqt/e_lqt.c:770
+#: plugins/lqt/e_lqt.c:770
 msgid "Quicktime encoder"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/lqt/e_lqt.c:771 plugins/lqt/e_lqt.c:771
+#: plugins/lqt/e_lqt.c:771
 msgid ""
 "Encoder based on libquicktime (http://libquicktime.sourceforge.net) Writes "
 "Quicktime, AVI (optionally ODML), MP4, M4A and 3GPP. Supported codecs range "
@@ -1838,117 +1575,100 @@ msgid ""
 "supported are chapters and text subtitles"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/jpeg/ir_jpeg.c:243 plugins/jpeg/ir_jpeg.c:243
+#: plugins/jpeg/ir_jpeg.c:243
 msgid "Illegal pixelformat"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/jpeg/ir_jpeg.c:258 plugins/jpeg/ir_jpeg.c:258
+#: plugins/jpeg/ir_jpeg.c:258
 msgid "JPEG reader"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/jpeg/ir_jpeg.c:259 plugins/jpeg/ir_jpeg.c:259
+#: plugins/jpeg/ir_jpeg.c:259
 msgid "Reader for JPEG images"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/jpeg/iw_jpeg.c:161 plugins/jpeg/iw_jpeg.c:161
+#: plugins/jpeg/iw_jpeg.c:161
 #, c-format
 msgid "Illegal pixelformat: %s"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/jpeg/iw_jpeg.c:237
-#: gmerlin-0.3.6/plugins/videofilters/fv_tlp.c:89
-#: gmerlin-0.3.6/plugins/videofilters/fv_blur.c:244
-#: gmerlin-0.3.6/plugins/videofilters/fv_zoom.c:123 plugins/jpeg/iw_jpeg.c:237
-#: plugins/videofilters/fv_tlp.c:89 plugins/videofilters/fv_blur.c:244
-#: plugins/videofilters/fv_zoom.c:123
+#: plugins/jpeg/iw_jpeg.c:237 plugins/videofilters/fv_tlp.c:89
+#: plugins/videofilters/fv_blur.c:244 plugins/videofilters/fv_zoom.c:123
 msgid "Quality"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/jpeg/iw_jpeg.c:245 plugins/jpeg/iw_jpeg.c:245
+#: plugins/jpeg/iw_jpeg.c:245
 msgid "Chroma sampling"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/jpeg/iw_jpeg.c:304 plugins/jpeg/iw_jpeg.c:304
+#: plugins/jpeg/iw_jpeg.c:304
 msgid "JPEG writer"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/jpeg/iw_jpeg.c:305 plugins/jpeg/iw_jpeg.c:305
+#: plugins/jpeg/iw_jpeg.c:305
 msgid "Writer for JPEG images"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/esd/i_esd.c:56 gmerlin-0.3.6/plugins/esd/oa_esd.c:45
 #: plugins/esd/i_esd.c:56 plugins/esd/oa_esd.c:45
 msgid "Host (empty: local)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/esd/i_esd.c:61 plugins/esd/i_esd.c:61
+#: plugins/esd/i_esd.c:61
 msgid "Input Mode"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/esd/i_esd.c:65 plugins/esd/i_esd.c:65
+#: plugins/esd/i_esd.c:65
 msgid "Record"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/esd/i_esd.c:167 plugins/esd/i_esd.c:167
+#: plugins/esd/i_esd.c:167
 msgid "Cannot connect to daemon"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/esd/i_esd.c:224 gmerlin-0.3.6/plugins/esd/i_esd.c:225
 #: plugins/esd/i_esd.c:224 plugins/esd/i_esd.c:225
 msgid "EsounD input driver"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/esd/oa_esd.c:170
-#: gmerlin-0.3.6/plugins/esd/oa_esd.c:171 plugins/esd/oa_esd.c:170
-#: plugins/esd/oa_esd.c:171
+#: plugins/esd/oa_esd.c:170 plugins/esd/oa_esd.c:171
 msgid "EsounD output driver"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:195
 #: plugins/cdaudio/i_cdaudio.c:195
 msgid "CD audio track"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:215
 #: plugins/cdaudio/i_cdaudio.c:215
 msgid "Got metadata from CD-Text"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:232
 #: plugins/cdaudio/i_cdaudio.c:232
 #, c-format
 msgid "Got metadata from gmerlin cache (%s)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:248
 #: plugins/cdaudio/i_cdaudio.c:248
 #, c-format
 msgid "Got metadata from musicbrainz (%s)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:267
 #: plugins/cdaudio/i_cdaudio.c:267
 #, c-format
 msgid "Got metadata from CDDB (%s)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:293
 #: plugins/cdaudio/i_cdaudio.c:293
 #, c-format
 msgid "Audio CD track %02d"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:388
 #: plugins/cdaudio/i_cdaudio.c:388
 msgid "Play command failed. Disk missing?"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:641
 #: plugins/cdaudio/i_cdaudio.c:641
 msgid "Trackname template"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:644
 #: plugins/cdaudio/i_cdaudio.c:644
 msgid ""
 "Template for track name generation from metadata\n"
@@ -1961,22 +1681,18 @@ msgid ""
 "%c:    Comment"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:655
 #: plugins/cdaudio/i_cdaudio.c:655
 msgid "Use CD-Text"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:658
 #: plugins/cdaudio/i_cdaudio.c:658
 msgid "Try to get CD metadata from CD-Text"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:662
 #: plugins/cdaudio/i_cdaudio.c:662
 msgid "Use locally saved metadata"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:665
 #: plugins/cdaudio/i_cdaudio.c:665
 msgid ""
 "Whenever we obtain CD metadata from the internet, we save them into $HOME/."
@@ -1984,117 +1700,90 @@ msgid ""
 "option will retrieve the metadata again and overwrite the saved data."
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:672
 #: plugins/cdaudio/i_cdaudio.c:672
 msgid "Musicbrainz"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:677
 #: plugins/cdaudio/i_cdaudio.c:677
 msgid "Use Musicbrainz"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:683
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:725
 #: plugins/cdaudio/i_cdaudio.c:683 plugins/cdaudio/i_cdaudio.c:725
 msgid "Server"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:689
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:731
-#: gmerlin-0.3.6/lib/lcdproc.c:112 plugins/cdaudio/i_cdaudio.c:689
-#: plugins/cdaudio/i_cdaudio.c:731 lib/lcdproc.c:112
+#: plugins/cdaudio/i_cdaudio.c:689 plugins/cdaudio/i_cdaudio.c:731
+#: lib/lcdproc.c:112
 msgid "Port"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:697
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:745
 #: plugins/cdaudio/i_cdaudio.c:697 plugins/cdaudio/i_cdaudio.c:745
 msgid "Proxy"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:699
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:747
 #: plugins/cdaudio/i_cdaudio.c:699 plugins/cdaudio/i_cdaudio.c:747
 msgid "Proxy server (leave empty for direct connection)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:703
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:751
 #: plugins/cdaudio/i_cdaudio.c:703 plugins/cdaudio/i_cdaudio.c:751
 msgid "Proxy Port"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:708
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:756
 #: plugins/cdaudio/i_cdaudio.c:708 plugins/cdaudio/i_cdaudio.c:756
 msgid "Proxy port"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:714
 #: plugins/cdaudio/i_cdaudio.c:714
 msgid "Cddb"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:719
 #: plugins/cdaudio/i_cdaudio.c:719
 msgid "Use Cddb"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:739
 #: plugins/cdaudio/i_cdaudio.c:739
 msgid "Path"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:760
 #: plugins/cdaudio/i_cdaudio.c:760
 msgid "Proxy username"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:762
 #: plugins/cdaudio/i_cdaudio.c:762
 msgid ""
 "User name for proxy (leave empty for poxies, which don't require "
 "authentication)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:766
 #: plugins/cdaudio/i_cdaudio.c:766
 msgid "Proxy password"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:768
 #: plugins/cdaudio/i_cdaudio.c:768
 msgid "Password for proxy"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:772
 #: plugins/cdaudio/i_cdaudio.c:772
 msgid "Timeout"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:777
 #: plugins/cdaudio/i_cdaudio.c:777
 msgid "Timeout (in seconds) for connections to the CDDB server"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:860
 #: plugins/cdaudio/i_cdaudio.c:860
 #, c-format
 msgid "Ejecting disk failed: %s"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:862
 #: plugins/cdaudio/i_cdaudio.c:862
 msgid "Ejecting disk failed"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:879
 #: plugins/cdaudio/i_cdaudio.c:879
 msgid "Audio CD player/ripper"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/i_cdaudio.c:880
 #: plugins/cdaudio/i_cdaudio.c:880
 msgid ""
 "Plugin for audio CDs. Supports both playing with direct connection from the "
@@ -2103,43 +1792,34 @@ msgid ""
 "cdaudio_metadata."
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/cdparanoia.c:158
 #: plugins/cdaudio/cdparanoia.c:158
 msgid "Cdparanoia"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/cdparanoia.c:163
-#: gmerlin-0.3.6/plugins/postprocessors/cdrdao_common.h:60
 #: plugins/cdaudio/cdparanoia.c:163 plugins/postprocessors/cdrdao_common.h:60
 msgid "Speed"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/cdparanoia.c:175
 #: plugins/cdaudio/cdparanoia.c:175
 msgid "Maximum retries"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/cdparanoia.c:180
 #: plugins/cdaudio/cdparanoia.c:180
 msgid "Maximum number of retries, 0 = infinite"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/cdparanoia.c:184
 #: plugins/cdaudio/cdparanoia.c:184
 msgid "Disable paranoia"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/cdparanoia.c:187
 #: plugins/cdaudio/cdparanoia.c:187
 msgid "Disable all data verification and correction features."
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/cdparanoia.c:191
 #: plugins/cdaudio/cdparanoia.c:191
 msgid "Disable extra paranoia"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/cdparanoia.c:194
 #: plugins/cdaudio/cdparanoia.c:194
 msgid ""
 "Disables intra-read data verification; only overlap checking atread "
@@ -2147,104 +1827,98 @@ msgid ""
 "overlap area. Not recommended."
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/cdaudio.c:166 plugins/cdaudio/cdaudio.c:166
+#: plugins/cdaudio/cdaudio.c:166
 #, c-format
 msgid "cdio_close_tray failed: %s"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/cdaudio.c:169 plugins/cdaudio/cdaudio.c:169
+#: plugins/cdaudio/cdaudio.c:169
 msgid "cdio_close_tray failed"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/cdaudio.c:248 plugins/cdaudio/cdaudio.c:248
+#: plugins/cdaudio/cdaudio.c:248
 #, c-format
 msgid "DVD Writer (%s)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/cdaudio.c:252 plugins/cdaudio/cdaudio.c:252
+#: plugins/cdaudio/cdaudio.c:252
 #, c-format
 msgid "CD Writer (%s)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/cdaudio.c:256 plugins/cdaudio/cdaudio.c:256
+#: plugins/cdaudio/cdaudio.c:256
 #, c-format
 msgid "DVD Drive (%s)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/cdaudio/cdaudio.c:258 plugins/cdaudio/cdaudio.c:258
+#: plugins/cdaudio/cdaudio.c:258
 #, c-format
 msgid "CD-ROM Drive (%s)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/oa_alsa.c:58 plugins/alsa/oa_alsa.c:58
+#: plugins/alsa/oa_alsa.c:58
 msgid "Enable 4.0 Surround"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/oa_alsa.c:61 plugins/alsa/oa_alsa.c:61
+#: plugins/alsa/oa_alsa.c:61
 msgid "Use the surround 4.0 (aka quadrophonic) device"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/oa_alsa.c:65 plugins/alsa/oa_alsa.c:65
+#: plugins/alsa/oa_alsa.c:65
 msgid "Enable 4.1 Surround"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/oa_alsa.c:68 plugins/alsa/oa_alsa.c:68
+#: plugins/alsa/oa_alsa.c:68
 msgid "Use the surround 4.1 device"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/oa_alsa.c:72 plugins/alsa/oa_alsa.c:72
+#: plugins/alsa/oa_alsa.c:72
 msgid "Enable 5.0 Surround"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/oa_alsa.c:75 plugins/alsa/oa_alsa.c:75
+#: plugins/alsa/oa_alsa.c:75
 msgid "Use the surround 5.0 device"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/oa_alsa.c:79 plugins/alsa/oa_alsa.c:79
+#: plugins/alsa/oa_alsa.c:79
 msgid "Enable 5.1 Surround"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/oa_alsa.c:82 plugins/alsa/oa_alsa.c:82
+#: plugins/alsa/oa_alsa.c:82
 msgid "Use the surround 5.1 device"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/oa_alsa.c:86
-#: gmerlin-0.3.6/plugins/alsa/i_alsa.c:82 plugins/alsa/oa_alsa.c:86
-#: plugins/alsa/i_alsa.c:82
+#: plugins/alsa/oa_alsa.c:86 plugins/alsa/i_alsa.c:82
 msgid "User device"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/oa_alsa.c:88 plugins/alsa/oa_alsa.c:88
+#: plugins/alsa/oa_alsa.c:88
 msgid ""
 "Enter a custom device to use for playback. Leave empty to use the settings "
 "above"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/oa_alsa.c:93
-#: gmerlin-0.3.6/plugins/alsa/i_alsa.c:72 plugins/alsa/oa_alsa.c:93
-#: plugins/alsa/i_alsa.c:72
+#: plugins/alsa/oa_alsa.c:93 plugins/alsa/i_alsa.c:72
 msgid "Buffer time"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/oa_alsa.c:98 plugins/alsa/oa_alsa.c:98
+#: plugins/alsa/oa_alsa.c:98
 msgid ""
 "Set the buffer time (in milliseconds). Larger values improve playback "
 "performance on slow systems under load. Smaller values decrease the latency "
 "of the volume control."
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/oa_alsa.c:389 plugins/alsa/oa_alsa.c:389
+#: plugins/alsa/oa_alsa.c:389
 #, c-format
 msgid "snd_pcm_write returned %s"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/oa_alsa.c:470
-#: gmerlin-0.3.6/plugins/alsa/i_alsa.c:333 plugins/alsa/oa_alsa.c:470
-#: plugins/alsa/i_alsa.c:333
+#: plugins/alsa/oa_alsa.c:470 plugins/alsa/i_alsa.c:333
 msgid "Alsa"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/oa_alsa.c:471 plugins/alsa/oa_alsa.c:471
+#: plugins/alsa/oa_alsa.c:471
 msgid ""
 "Alsa output plugin with support for channel configurations up to 5.1. "
 "Samples are sent to the soundcards in the nearest precision of the source "
@@ -2252,576 +1926,507 @@ msgid ""
 "or floating point playback even for 8 or 16 bit source formats."
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/i_alsa.c:49 gmerlin-0.3.6/plugins/oss/i_oss.c:54
 #: plugins/alsa/i_alsa.c:49 plugins/oss/i_oss.c:54
 msgid "Channel Mode"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/i_alsa.c:53 gmerlin-0.3.6/plugins/oss/i_oss.c:58
 #: plugins/alsa/i_alsa.c:53 plugins/oss/i_oss.c:58
 msgid "Mono"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/i_alsa.c:53 gmerlin-0.3.6/plugins/oss/i_oss.c:58
 #: plugins/alsa/i_alsa.c:53 plugins/oss/i_oss.c:58
 msgid "Stereo"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/i_alsa.c:57 gmerlin-0.3.6/plugins/oss/i_oss.c:62
 #: plugins/alsa/i_alsa.c:57 plugins/oss/i_oss.c:62
 msgid "Bits"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/i_alsa.c:64 gmerlin-0.3.6/plugins/oss/i_oss.c:69
 #: plugins/alsa/i_alsa.c:64 plugins/oss/i_oss.c:69
 msgid "Samplerate [Hz]"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/i_alsa.c:77 plugins/alsa/i_alsa.c:77
+#: plugins/alsa/i_alsa.c:77
 msgid ""
 "Set the buffer time (in milliseconds). Larger values improve recording "
 "performance on slow systems under load."
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/i_alsa.c:84 plugins/alsa/i_alsa.c:84
+#: plugins/alsa/i_alsa.c:84
 msgid ""
 "Enter a custom device to use for recording. Leave empty to use the settings "
 "above"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/i_alsa.c:265 plugins/alsa/i_alsa.c:265
+#: plugins/alsa/i_alsa.c:265
 msgid "Dropping samples"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/i_alsa.c:269 plugins/alsa/i_alsa.c:269
+#: plugins/alsa/i_alsa.c:269
 msgid "snd_pcm_prepare failed"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/i_alsa.c:276 plugins/alsa/i_alsa.c:276
+#: plugins/alsa/i_alsa.c:276
 msgid "Unknown error"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/i_alsa.c:334 plugins/alsa/i_alsa.c:334
+#: plugins/alsa/i_alsa.c:334
 msgid "Alsa recorder"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/alsa_common.c:60 plugins/alsa/alsa_common.c:60
+#: plugins/alsa/alsa_common.c:60
 #, c-format
 msgid "snd_pcm_open failed for device %s (%s)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/alsa_common.c:71 plugins/alsa/alsa_common.c:71
+#: plugins/alsa/alsa_common.c:71
 msgid "snd_pcm_hw_params_malloc failed"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/alsa_common.c:76 plugins/alsa/alsa_common.c:76
+#: plugins/alsa/alsa_common.c:76
 msgid "snd_pcm_hw_params_any failed"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/alsa_common.c:85 plugins/alsa/alsa_common.c:85
+#: plugins/alsa/alsa_common.c:85
 msgid "snd_pcm_hw_params_set_access failed"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/alsa_common.c:104
-#: gmerlin-0.3.6/plugins/alsa/alsa_common.c:118
-#: gmerlin-0.3.6/plugins/alsa/alsa_common.c:143
-#: gmerlin-0.3.6/plugins/alsa/alsa_common.c:180 plugins/alsa/alsa_common.c:104
-#: plugins/alsa/alsa_common.c:118 plugins/alsa/alsa_common.c:143
-#: plugins/alsa/alsa_common.c:180
+#: plugins/alsa/alsa_common.c:104 plugins/alsa/alsa_common.c:118
+#: plugins/alsa/alsa_common.c:143 plugins/alsa/alsa_common.c:180
 msgid "snd_pcm_hw_params_set_format failed"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/alsa_common.c:215
-#: gmerlin-0.3.6/plugins/alsa/alsa_common.c:229 plugins/alsa/alsa_common.c:215
-#: plugins/alsa/alsa_common.c:229
+#: plugins/alsa/alsa_common.c:215 plugins/alsa/alsa_common.c:229
 #, c-format
 msgid "snd_pcm_hw_params_set_channels failed (Format has %d channels)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/alsa_common.c:246 plugins/alsa/alsa_common.c:246
+#: plugins/alsa/alsa_common.c:246
 msgid "snd_pcm_hw_params_set_rate_near failed"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/alsa_common.c:276 plugins/alsa/alsa_common.c:276
+#: plugins/alsa/alsa_common.c:276
 msgid "snd_pcm_hw_params_set_period_size failed"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/alsa_common.c:285 plugins/alsa/alsa_common.c:285
+#: plugins/alsa/alsa_common.c:285
 msgid "snd_pcm_hw_params_set_buffer_size failed"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/alsa_common.c:297 plugins/alsa/alsa_common.c:297
+#: plugins/alsa/alsa_common.c:297
 msgid "snd_pcm_hw_params failed"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/alsa_common.c:308 plugins/alsa/alsa_common.c:308
+#: plugins/alsa/alsa_common.c:308
 msgid "Alsa initialization failed"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/alsa_common.c:347 plugins/alsa/alsa_common.c:347
+#: plugins/alsa/alsa_common.c:347
 msgid "Card"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/alsa/alsa_common.c:359 plugins/alsa/alsa_common.c:359
+#: plugins/alsa/alsa_common.c:359
 msgid "Default"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/pwc.c:68 plugins/v4l/pwc.c:68
+#: plugins/v4l/pwc.c:68
 msgid "PWC General"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/pwc.c:73 gmerlin-0.3.6/include/bggavl.h:131
 #: plugins/v4l/pwc.c:73 include/bggavl.h:131
 msgid "Framerate"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/pwc.c:81 gmerlin-0.3.6/plugins/tiff/iw_tiff.c:143
 #: plugins/v4l/pwc.c:81 plugins/tiff/iw_tiff.c:143
 msgid "Compression"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/pwc.c:85 gmerlin-0.3.6/plugins/tiff/iw_tiff.c:146
-#: gmerlin-0.3.6/include/bggavl.h:185 gmerlin-0.3.6/include/bggavl.h:526
 #: plugins/v4l/pwc.c:85 plugins/tiff/iw_tiff.c:146 include/bggavl.h:185
 #: include/bggavl.h:526
 msgid "None"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/pwc.c:86 plugins/v4l/pwc.c:86
+#: plugins/v4l/pwc.c:86
 msgid "Low"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/pwc.c:87 plugins/v4l/pwc.c:87
+#: plugins/v4l/pwc.c:87
 msgid "Medium"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/pwc.c:88 plugins/v4l/pwc.c:88
+#: plugins/v4l/pwc.c:88
 msgid "High"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/pwc.c:98 plugins/v4l/pwc.c:98
+#: plugins/v4l/pwc.c:98
 msgid "Gain control (-1 = Auto)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/pwc.c:107 plugins/v4l/pwc.c:107
+#: plugins/v4l/pwc.c:107
 msgid "Shutter speed (-1 = Auto)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/pwc.c:116 plugins/v4l/pwc.c:116
+#: plugins/v4l/pwc.c:116
 msgid "Sharpness (-1 = Auto)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/pwc.c:125 plugins/v4l/pwc.c:125
+#: plugins/v4l/pwc.c:125
 msgid "Backlight compensation"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/pwc.c:132 plugins/v4l/pwc.c:132
+#: plugins/v4l/pwc.c:132
 msgid "Flicker compensation"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/pwc.c:139 plugins/v4l/pwc.c:139
+#: plugins/v4l/pwc.c:139
 msgid "PWC Whitebalance"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/pwc.c:144 plugins/v4l/pwc.c:144
+#: plugins/v4l/pwc.c:144
 msgid "White balance"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/pwc.c:154 plugins/v4l/pwc.c:154
+#: plugins/v4l/pwc.c:154
 msgid "Indoor"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/pwc.c:155 plugins/v4l/pwc.c:155
+#: plugins/v4l/pwc.c:155
 msgid "Outdoor"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/pwc.c:156 plugins/v4l/pwc.c:156
+#: plugins/v4l/pwc.c:156
 msgid "Fluorescent lighting"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/pwc.c:157 plugins/v4l/pwc.c:157
+#: plugins/v4l/pwc.c:157
 msgid "Manual"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/pwc.c:163 plugins/v4l/pwc.c:163
+#: plugins/v4l/pwc.c:163
 msgid "Manual red gain"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/pwc.c:172 plugins/v4l/pwc.c:172
+#: plugins/v4l/pwc.c:172
 msgid "Manual blue gain"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/pwc.c:181 plugins/v4l/pwc.c:181
+#: plugins/v4l/pwc.c:181
 msgid "Auto speed"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/pwc.c:190 plugins/v4l/pwc.c:190
+#: plugins/v4l/pwc.c:190
 msgid "Auto delay"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/pwc.c:199 plugins/v4l/pwc.c:199
+#: plugins/v4l/pwc.c:199
 msgid "PWC LED"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/pwc.c:204 plugins/v4l/pwc.c:204
+#: plugins/v4l/pwc.c:204
 msgid "LED on time (secs)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/pwc.c:213 plugins/v4l/pwc.c:213
+#: plugins/v4l/pwc.c:213
 msgid "LED off time (secs)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/i_v4l.c:201 plugins/v4l/i_v4l.c:201
+#: plugins/v4l/i_v4l.c:201
 #, c-format
 msgid "Cannot open device %s: %s"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/i_v4l.c:210 plugins/v4l/i_v4l.c:210
+#: plugins/v4l/i_v4l.c:210
 msgid "Phillips webcam detected"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/i_v4l.c:216 plugins/v4l/i_v4l.c:216
+#: plugins/v4l/i_v4l.c:216
 #, c-format
 msgid "VIDIOCGPICT failed: %s"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/i_v4l.c:240 plugins/v4l/i_v4l.c:240
+#: plugins/v4l/i_v4l.c:240
 #, c-format
 msgid "VIDIOCSPICT failed: %s"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/i_v4l.c:250 plugins/v4l/i_v4l.c:250
+#: plugins/v4l/i_v4l.c:250
 #, c-format
 msgid "VIDIOCGWIN failed: %s"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/i_v4l.c:262 plugins/v4l/i_v4l.c:262
+#: plugins/v4l/i_v4l.c:262
 #, c-format
 msgid "VIDIOCSWIN failed: %s (invalaid picture dimensions?)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/i_v4l.c:296 plugins/v4l/i_v4l.c:296
+#: plugins/v4l/i_v4l.c:296
 #, c-format
 msgid "VIDIOCGMBUF failed: %s"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/i_v4l.c:304 plugins/v4l/i_v4l.c:304
+#: plugins/v4l/i_v4l.c:304
 #, c-format
 msgid "mmap failed: %s"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/i_v4l.c:412 gmerlin-0.3.6/plugins/oss/oa_oss.c:65
-#: gmerlin-0.3.6/plugins/oss/i_oss.c:48
-#: gmerlin-0.3.6/plugins/postprocessors/cdrdao_common.h:34
-#: gmerlin-0.3.6/lib/gtk/treewidget.c:1139 plugins/v4l/i_v4l.c:412
-#: plugins/oss/oa_oss.c:65 plugins/oss/i_oss.c:48
+#: plugins/v4l/i_v4l.c:412 plugins/oss/oa_oss.c:65 plugins/oss/i_oss.c:48
 #: plugins/postprocessors/cdrdao_common.h:34 lib/gtk/treewidget.c:1139
 msgid "Device"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/i_v4l.c:417 plugins/v4l/i_v4l.c:417
+#: plugins/v4l/i_v4l.c:417
 msgid "V4L Device"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/i_v4l.c:423 gmerlin-0.3.6/plugins/v4l/i_v4l.c:428
 #: plugins/v4l/i_v4l.c:423 plugins/v4l/i_v4l.c:428
 msgid "Resolution"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/i_v4l.c:439 plugins/v4l/i_v4l.c:439
+#: plugins/v4l/i_v4l.c:439
 msgid "QSIF (160x112)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/i_v4l.c:440 plugins/v4l/i_v4l.c:440
+#: plugins/v4l/i_v4l.c:440
 msgid "QCIF (176x144)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/i_v4l.c:441 plugins/v4l/i_v4l.c:441
+#: plugins/v4l/i_v4l.c:441
 msgid "QVGA (320x240)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/i_v4l.c:442 plugins/v4l/i_v4l.c:442
+#: plugins/v4l/i_v4l.c:442
 msgid "SIF(352x240)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/i_v4l.c:443 plugins/v4l/i_v4l.c:443
+#: plugins/v4l/i_v4l.c:443
 msgid "CIF (352x288)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/i_v4l.c:444 plugins/v4l/i_v4l.c:444
+#: plugins/v4l/i_v4l.c:444
 msgid "VGA (640x480)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/i_v4l.c:445 gmerlin-0.3.6/include/bggavl.h:145
-#: gmerlin-0.3.6/include/bggavl.h:335 plugins/v4l/i_v4l.c:445
-#: include/bggavl.h:145 include/bggavl.h:335
+#: plugins/v4l/i_v4l.c:445 include/bggavl.h:145 include/bggavl.h:335
 msgid "User defined"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/i_v4l.c:450 gmerlin-0.3.6/include/bggavl.h:360
 #: plugins/v4l/i_v4l.c:450 include/bggavl.h:360
 msgid "User defined width"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/i_v4l.c:458 gmerlin-0.3.6/include/bggavl.h:370
 #: plugins/v4l/i_v4l.c:458 include/bggavl.h:370
 msgid "User defined height"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/i_v4l.c:466 plugins/v4l/i_v4l.c:466
+#: plugins/v4l/i_v4l.c:466
 msgid "Settings"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/i_v4l.c:471
-#: gmerlin-0.3.6/plugins/videofilters/fv_equalizer.c:142
 #: plugins/v4l/i_v4l.c:471 plugins/videofilters/fv_equalizer.c:142
 msgid "Brightness"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/i_v4l.c:480
-#: gmerlin-0.3.6/plugins/videofilters/fv_equalizer.c:172
 #: plugins/v4l/i_v4l.c:480 plugins/videofilters/fv_equalizer.c:172
 msgid "Hue"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/i_v4l.c:489 plugins/v4l/i_v4l.c:489
+#: plugins/v4l/i_v4l.c:489
 msgid "Colour"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/i_v4l.c:498
-#: gmerlin-0.3.6/plugins/videofilters/fv_equalizer.c:152
 #: plugins/v4l/i_v4l.c:498 plugins/videofilters/fv_equalizer.c:152
 msgid "Contrast"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/i_v4l.c:507 plugins/v4l/i_v4l.c:507
+#: plugins/v4l/i_v4l.c:507
 msgid "Whiteness"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/i_v4l.c:516 plugins/v4l/i_v4l.c:516
+#: plugins/v4l/i_v4l.c:516
 msgid "Flip Image"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/i_v4l.c:714 plugins/v4l/i_v4l.c:714
+#: plugins/v4l/i_v4l.c:714
 msgid "V4L"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/v4l/i_v4l.c:715 plugins/v4l/i_v4l.c:715
+#: plugins/v4l/i_v4l.c:715
 msgid "video4linux input plugin. Supports only video and no tuner decives"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/oss/oa_oss.c:51 plugins/oss/oa_oss.c:51
+#: plugins/oss/oa_oss.c:51
 msgid "Multichannel Mode"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/oss/oa_oss.c:58 plugins/oss/oa_oss.c:58
+#: plugins/oss/oa_oss.c:58
 msgid "None (Downmix)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/oss/oa_oss.c:59 plugins/oss/oa_oss.c:59
+#: plugins/oss/oa_oss.c:59
 msgid "Multiple devices"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/oss/oa_oss.c:60 plugins/oss/oa_oss.c:60
+#: plugins/oss/oa_oss.c:60
 msgid "Creative Multichannel"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/oss/oa_oss.c:71 plugins/oss/oa_oss.c:71
+#: plugins/oss/oa_oss.c:71
 msgid "Use Rear Device"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/oss/oa_oss.c:77 plugins/oss/oa_oss.c:77
+#: plugins/oss/oa_oss.c:77
 msgid "Rear Device"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/oss/oa_oss.c:83 plugins/oss/oa_oss.c:83
+#: plugins/oss/oa_oss.c:83
 msgid "Use Center/LFE Device"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/oss/oa_oss.c:89 plugins/oss/oa_oss.c:89
+#: plugins/oss/oa_oss.c:89
 msgid "Center/LFE Device"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/oss/oa_oss.c:176
-#: gmerlin-0.3.6/plugins/oss/oa_oss.c:188
-#: gmerlin-0.3.6/plugins/oss/oa_oss.c:200
-#: gmerlin-0.3.6/plugins/oss/i_oss.c:202 plugins/oss/oa_oss.c:176
-#: plugins/oss/oa_oss.c:188 plugins/oss/oa_oss.c:200 plugins/oss/i_oss.c:202
+#: plugins/oss/oa_oss.c:176 plugins/oss/oa_oss.c:188 plugins/oss/oa_oss.c:200
+#: plugins/oss/i_oss.c:202
 #, c-format
 msgid "Cannot set sampleformat for %s"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/oss/oa_oss.c:212
-#: gmerlin-0.3.6/plugins/oss/oa_oss.c:224
-#: gmerlin-0.3.6/plugins/oss/oa_oss.c:237 plugins/oss/oa_oss.c:212
-#: plugins/oss/oa_oss.c:224 plugins/oss/oa_oss.c:237
+#: plugins/oss/oa_oss.c:212 plugins/oss/oa_oss.c:224 plugins/oss/oa_oss.c:237
 #, c-format
 msgid "Device %s supports no %d-channel sound"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/oss/oa_oss.c:250
-#: gmerlin-0.3.6/plugins/oss/oa_oss.c:262
-#: gmerlin-0.3.6/plugins/oss/oa_oss.c:275
-#: gmerlin-0.3.6/plugins/oss/i_oss.c:219 plugins/oss/oa_oss.c:250
-#: plugins/oss/oa_oss.c:262 plugins/oss/oa_oss.c:275 plugins/oss/i_oss.c:219
+#: plugins/oss/oa_oss.c:250 plugins/oss/oa_oss.c:262 plugins/oss/oa_oss.c:275
+#: plugins/oss/i_oss.c:219
 #, c-format
 msgid "Samplerate %f KHz not supported by device %s"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/oss/oa_oss.c:500 plugins/oss/oa_oss.c:500
+#: plugins/oss/oa_oss.c:500
 msgid "SNDCTL_DSP_GETODELAY ioctl failed"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/oss/oa_oss.c:559
-#: gmerlin-0.3.6/plugins/oss/i_oss.c:269 plugins/oss/oa_oss.c:559
-#: plugins/oss/i_oss.c:269
+#: plugins/oss/oa_oss.c:559 plugins/oss/i_oss.c:269
 msgid "OSS"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/oss/oa_oss.c:560 plugins/oss/oa_oss.c:560
+#: plugins/oss/oa_oss.c:560
 msgid "OSS output driver"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/oss/i_oss.c:167 plugins/oss/i_oss.c:167
+#: plugins/oss/i_oss.c:167
 msgid "Invalid number of bits"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/oss/i_oss.c:182 plugins/oss/i_oss.c:182
+#: plugins/oss/i_oss.c:182
 msgid "Invalid number of channels"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/oss/i_oss.c:210 plugins/oss/i_oss.c:210
+#: plugins/oss/i_oss.c:210
 #, c-format
 msgid "Device %s doesn't support %d channel sound"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/oss/i_oss.c:270 plugins/oss/i_oss.c:270
+#: plugins/oss/i_oss.c:270
 msgid "OSS Recorder"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/cdrdao_common.h:23
 #: plugins/postprocessors/cdrdao_common.h:23
 msgid "Burn options"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/cdrdao_common.h:28
 #: plugins/postprocessors/cdrdao_common.h:28
 msgid "Run cdrdao"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/cdrdao_common.h:37
 #: plugins/postprocessors/cdrdao_common.h:37
 msgid ""
 "Device to use as burner. Type \"cdrdao scanbus\" at the commandline for "
 "supported devices. Leave this empty to use the default /dev/cdrecorder."
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/cdrdao_common.h:41
 #: plugins/postprocessors/cdrdao_common.h:41
 msgid "Driver"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/cdrdao_common.h:44
 #: plugins/postprocessors/cdrdao_common.h:44
 msgid ""
 "Driver to use. Check the cdrdao manual page and the cdrdao README for "
 "available drivers/options. Leave this empty to attempt autodetection."
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/cdrdao_common.h:48
 #: plugins/postprocessors/cdrdao_common.h:48
 msgid "Eject after burning"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/cdrdao_common.h:54
 #: plugins/postprocessors/cdrdao_common.h:54
 msgid "Simulate"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/cdrdao_common.h:65
 #: plugins/postprocessors/cdrdao_common.h:65
 msgid "Set the writing speed. 0 means autodetect."
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/cdrdao_common.h:69
 #: plugins/postprocessors/cdrdao_common.h:69
 msgid "No pause"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/cdrdao_common.h:72
 #: plugins/postprocessors/cdrdao_common.h:72
 msgid "Skip the 10 second pause before writing or simulating starts."
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/e_pp_vcdimager.c:103
 #: plugins/postprocessors/e_pp_vcdimager.c:103
 msgid "VCD options"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/e_pp_vcdimager.c:112
 #: plugins/postprocessors/e_pp_vcdimager.c:112
 msgid "VCD 1.1"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/e_pp_vcdimager.c:112
 #: plugins/postprocessors/e_pp_vcdimager.c:112
 msgid "VCD 2.0"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/e_pp_vcdimager.c:112
 #: plugins/postprocessors/e_pp_vcdimager.c:112
 msgid "SVCD"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/e_pp_vcdimager.c:112
 #: plugins/postprocessors/e_pp_vcdimager.c:112
 msgid "HQSVCD"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/e_pp_vcdimager.c:116
 #: plugins/postprocessors/e_pp_vcdimager.c:116
 msgid "ISO 9660 volume label"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/e_pp_vcdimager.c:122
 #: plugins/postprocessors/e_pp_vcdimager.c:122
 msgid "Xml file"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/e_pp_vcdimager.c:128
 #: plugins/postprocessors/e_pp_vcdimager.c:128
 msgid "Bin file"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/e_pp_vcdimager.c:134
 #: plugins/postprocessors/e_pp_vcdimager.c:134
 msgid "Cue file"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/e_pp_vcdimager.c:252
 #: plugins/postprocessors/e_pp_vcdimager.c:252
 #, c-format
 msgid "Scanning %s"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/e_pp_vcdimager.c:259
 #: plugins/postprocessors/e_pp_vcdimager.c:259
 msgid "Writing image"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/e_pp_vcdimager.c:320
 #: plugins/postprocessors/e_pp_vcdimager.c:320
 #, c-format
 msgid "vcdxgen failed: %s"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/e_pp_vcdimager.c:363
-#: gmerlin-0.3.6/plugins/postprocessors/e_pp_vcdimager.c:367
-#: gmerlin-0.3.6/plugins/postprocessors/e_pp_vcdimager.c:374
-#: gmerlin-0.3.6/plugins/postprocessors/e_pp_vcdimager.c:376
-#: gmerlin-0.3.6/plugins/postprocessors/e_pp_cdrdao.c:417
-#: gmerlin-0.3.6/plugins/postprocessors/e_pp_cdrdao.c:421
-#: gmerlin-0.3.6/lib/tree.c:1408 plugins/postprocessors/e_pp_vcdimager.c:363
+#: plugins/postprocessors/e_pp_vcdimager.c:363
 #: plugins/postprocessors/e_pp_vcdimager.c:367
 #: plugins/postprocessors/e_pp_vcdimager.c:374
 #: plugins/postprocessors/e_pp_vcdimager.c:376
@@ -2831,12 +2436,10 @@ msgstr ""
 msgid "Removing %s"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/e_pp_vcdimager.c:401
 #: plugins/postprocessors/e_pp_vcdimager.c:401
 msgid "VCD image generator/burner"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/e_pp_vcdimager.c:402
 #: plugins/postprocessors/e_pp_vcdimager.c:402
 msgid ""
 "This is a frontend for generating (S)VCD images with the vcdimager tools "
@@ -2844,55 +2447,45 @@ msgid ""
 "net) is also possible."
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/e_pp_cdrdao.c:91
 #: plugins/postprocessors/e_pp_cdrdao.c:91
 msgid "Audio CD options"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/e_pp_cdrdao.c:96
 #: plugins/postprocessors/e_pp_cdrdao.c:96
 msgid "TOC file"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/e_pp_cdrdao.c:102
 #: plugins/postprocessors/e_pp_cdrdao.c:102
 msgid "Gap between tracks"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/e_pp_cdrdao.c:105
 #: plugins/postprocessors/e_pp_cdrdao.c:105
 msgid ""
 "Pre gap of each track in CD frames (1/75 seconds). Default is 150 (2 sec)."
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/e_pp_cdrdao.c:109
 #: plugins/postprocessors/e_pp_cdrdao.c:109
 msgid "Write CD-Text"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/e_pp_cdrdao.c:237
 #: plugins/postprocessors/e_pp_cdrdao.c:237
 #, c-format
 msgid "Cannot get duration of file %s"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/e_pp_cdrdao.c:279
 #: plugins/postprocessors/e_pp_cdrdao.c:279
 msgid "Skipping cdrdao run (no tracks)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/e_pp_cdrdao.c:407
 #: plugins/postprocessors/e_pp_cdrdao.c:407
 #, c-format
 msgid "Wrote %s"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/e_pp_cdrdao.c:440
 #: plugins/postprocessors/e_pp_cdrdao.c:440
 msgid "Audio CD generator/burner"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/e_pp_cdrdao.c:441
 #: plugins/postprocessors/e_pp_cdrdao.c:441
 msgid ""
 "This is a frontend for generating audio CD images (optionally with CD-Text) "
@@ -2900,132 +2493,120 @@ msgid ""
 "supported."
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/cdrdao_common.c:109
 #: plugins/postprocessors/cdrdao_common.c:109
 msgid "Not running cdrdao (disabled by user)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/postprocessors/cdrdao_common.c:114
 #: plugins/postprocessors/cdrdao_common.c:114
 msgid "cdrdao executable not found"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/tiff/iw_tiff.c:92 gmerlin-0.3.6/tests/player1.c:520
 #: plugins/tiff/iw_tiff.c:92 tests/player1.c:520
 #, c-format
 msgid "Cannot open %s"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/tiff/iw_tiff.c:146 plugins/tiff/iw_tiff.c:146
+#: plugins/tiff/iw_tiff.c:146
 msgid "Packbits"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/tiff/iw_tiff.c:146 plugins/tiff/iw_tiff.c:146
+#: plugins/tiff/iw_tiff.c:146
 msgid "Deflate"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/tiff/iw_tiff.c:146 plugins/tiff/iw_tiff.c:146
+#: plugins/tiff/iw_tiff.c:146
 msgid "JPEG"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/tiff/iw_tiff.c:153 plugins/tiff/iw_tiff.c:153
+#: plugins/tiff/iw_tiff.c:153
 msgid "JPEG quality"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/tiff/iw_tiff.c:161 plugins/tiff/iw_tiff.c:161
+#: plugins/tiff/iw_tiff.c:161
 msgid "Deflate compression level"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/tiff/iw_tiff.c:216 plugins/tiff/iw_tiff.c:216
+#: plugins/tiff/iw_tiff.c:216
 msgid "TIFF writer"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/tiff/iw_tiff.c:217 plugins/tiff/iw_tiff.c:217
+#: plugins/tiff/iw_tiff.c:217
 msgid "Writer for TIFF images"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/tiff/ir_tiff.c:97 plugins/tiff/ir_tiff.c:97
+#: plugins/tiff/ir_tiff.c:97
 msgid "codec_tiff: warning, seek overshot buffer."
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/tiff/ir_tiff.c:579 plugins/tiff/ir_tiff.c:579
+#: plugins/tiff/ir_tiff.c:579
 msgid "Unsupported compression for LOGL/LOGLUV"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/tiff/ir_tiff.c:623
-#: gmerlin-0.3.6/plugins/tiff/ir_tiff.c:652
-#: gmerlin-0.3.6/plugins/tiff/ir_tiff.c:681 plugins/tiff/ir_tiff.c:623
-#: plugins/tiff/ir_tiff.c:652 plugins/tiff/ir_tiff.c:681
+#: plugins/tiff/ir_tiff.c:623 plugins/tiff/ir_tiff.c:652
+#: plugins/tiff/ir_tiff.c:681
 msgid "Unsupported samples per pixel"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/tiff/ir_tiff.c:657 plugins/tiff/ir_tiff.c:657
+#: plugins/tiff/ir_tiff.c:657
 #, c-format
 msgid "Unsupported bits per sample (%d) for UINT"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/tiff/ir_tiff.c:663 plugins/tiff/ir_tiff.c:663
+#: plugins/tiff/ir_tiff.c:663
 msgid "Didn't get max sample value"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/tiff/ir_tiff.c:666 plugins/tiff/ir_tiff.c:666
+#: plugins/tiff/ir_tiff.c:666
 msgid "Didn't get min sample value"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/tiff/ir_tiff.c:686 plugins/tiff/ir_tiff.c:686
+#: plugins/tiff/ir_tiff.c:686
 #, c-format
 msgid "Unsupported depth %d for IEEE float"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/tiff/ir_tiff.c:695 plugins/tiff/ir_tiff.c:695
+#: plugins/tiff/ir_tiff.c:695
 msgid "Unsupported sampleformat"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/tiff/ir_tiff.c:699 plugins/tiff/ir_tiff.c:699
+#: plugins/tiff/ir_tiff.c:699
 #, c-format
 msgid "Unknown sampleformat %d"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/tiff/ir_tiff.c:817 plugins/tiff/ir_tiff.c:817
+#: plugins/tiff/ir_tiff.c:817
 msgid "BUG!!! convert_func == 0x0"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/tiff/ir_tiff.c:847 plugins/tiff/ir_tiff.c:847
+#: plugins/tiff/ir_tiff.c:847
 msgid "TIFF reader"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/tiff/ir_tiff.c:848 plugins/tiff/ir_tiff.c:848
+#: plugins/tiff/ir_tiff.c:848
 msgid "Reader for TIFF images"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/subwriters/e_subtext.c:234
 #: plugins/subwriters/e_subtext.c:234
 msgid "Subrip (.srt)"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/subwriters/e_subtext.c:234
 #: plugins/subwriters/e_subtext.c:234
 msgid "MPlayer mpsub"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/subwriters/e_subtext.c:273
-#: gmerlin-0.3.6/lib/gtk/plugininfo.c:151 plugins/subwriters/e_subtext.c:273
-#: lib/gtk/plugininfo.c:151
+#: plugins/subwriters/e_subtext.c:273 lib/gtk/plugininfo.c:151
 msgid "Text subtitle exporter"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/subwriters/e_subtext.c:274
 #: plugins/subwriters/e_subtext.c:274
 msgid ""
 "Plugin for exporting text subtitles. Supported formats are MPSub and SRT"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_decimate.c:144
 #: plugins/videofilters/fv_decimate.c:144
 msgid "Block threshold"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_decimate.c:150
 #: plugins/videofilters/fv_decimate.c:150
 msgid ""
 "Specifies how much a block may differ from the last non-skipped block. 0 "
@@ -3033,12 +2614,10 @@ msgid ""
 "meaning of \"completely different\" depends on the colorspace."
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_decimate.c:154
 #: plugins/videofilters/fv_decimate.c:154
 msgid "Total threshold"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_decimate.c:160
 #: plugins/videofilters/fv_decimate.c:160
 msgid ""
 "Specifies how much a frame may differ from the last non-skipped frame. 0 "
@@ -3046,223 +2625,184 @@ msgid ""
 "meaning of \"completely different\" depends on the colorspace."
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_decimate.c:164
 #: plugins/videofilters/fv_decimate.c:164
 msgid "Maximum skipped frames"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_decimate.c:170
 #: plugins/videofilters/fv_decimate.c:170
 msgid "Maximum number of consecutive skipped frames"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_decimate.c:174
 #: plugins/videofilters/fv_decimate.c:174
 msgid "Report results"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_decimate.c:177
 #: plugins/videofilters/fv_decimate.c:177
 msgid "Log reports about skipped frames"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_decimate.c:429
 #: plugins/videofilters/fv_decimate.c:429
 #, c-format
 msgid "Skipped %d frames"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_decimate.c:439
 #: plugins/videofilters/fv_decimate.c:439
 msgid "Decimate"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_decimate.c:440
 #: plugins/videofilters/fv_decimate.c:440
 msgid "Skip almost identical frames"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_tlp.c:78
 #: plugins/videofilters/fv_tlp.c:78
 msgid "Factor"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_tlp.c:85
 #: plugins/videofilters/fv_tlp.c:85
 msgid "Factor for the new image. Lower values mean a larger delay time."
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_tlp.c:205
 #: plugins/videofilters/fv_tlp.c:205
 msgid "Temporal lowpass"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_tlp.c:206
 #: plugins/videofilters/fv_tlp.c:206
 msgid "Simple temporal lowpass"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_blur.c:197
 #: plugins/videofilters/fv_blur.c:197
 msgid "Mode"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_blur.c:203
 #: plugins/videofilters/fv_blur.c:203
 msgid "Gauss"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_blur.c:204
-#: gmerlin-0.3.6/include/bggavl.h:527 plugins/videofilters/fv_blur.c:204
-#: include/bggavl.h:527
+#: plugins/videofilters/fv_blur.c:204 include/bggavl.h:527
 msgid "Triangular"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_blur.c:205
-#: gmerlin-0.3.6/include/bggavl.h:526 plugins/videofilters/fv_blur.c:205
-#: include/bggavl.h:526
+#: plugins/videofilters/fv_blur.c:205 include/bggavl.h:526
 msgid "Rectangular"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_blur.c:210
 #: plugins/videofilters/fv_blur.c:210
 msgid "Horizontal radius"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_blur.c:220
 #: plugins/videofilters/fv_blur.c:220
 msgid "Vertical radius"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_blur.c:386
 #: plugins/videofilters/fv_blur.c:386
 msgid "Blur"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_blur.c:387
 #: plugins/videofilters/fv_blur.c:387
 msgid "Blur filter based on gavl. Supports triangular, box and gauss blur."
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_pixelformat.c:66
 #: plugins/videofilters/fv_pixelformat.c:66
 msgid "Pixelformat"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_pixelformat.c:195
 #: plugins/videofilters/fv_pixelformat.c:195
 msgid "Force pixelformat"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_pixelformat.c:196
 #: plugins/videofilters/fv_pixelformat.c:196
 msgid ""
 "This forces a pixelformat as input for the next filter. Its mainly used for "
 "testing."
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_flip.c:68
 #: plugins/videofilters/fv_flip.c:68
 msgid "Flip horizontally"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_flip.c:76
 #: plugins/videofilters/fv_flip.c:76
 msgid "Flip vertically"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_flip.c:180
 #: plugins/videofilters/fv_flip.c:180
 msgid "Flip image"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_flip.c:181
 #: plugins/videofilters/fv_flip.c:181
 msgid "Flip video images horizontally and/or vertically"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_zoom.c:80
 #: plugins/videofilters/fv_zoom.c:80
 msgid "Zoom horizontally"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_zoom.c:90
 #: plugins/videofilters/fv_zoom.c:90
 msgid "Zoom vertically"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_zoom.c:108
-#: gmerlin-0.3.6/include/bggavl.h:284 plugins/videofilters/fv_zoom.c:108
-#: include/bggavl.h:284
+#: plugins/videofilters/fv_zoom.c:108 include/bggavl.h:284
 msgid ""
 "Choose scaling method. Auto means to choose based on the conversion quality. "
 "Nearest is fastest, Sinc with Lanczos window is slowest."
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_zoom.c:119
-#: gmerlin-0.3.6/include/bggavl.h:294 plugins/videofilters/fv_zoom.c:119
-#: include/bggavl.h:294
+#: plugins/videofilters/fv_zoom.c:119 include/bggavl.h:294
 msgid "Order for sinc scaling."
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_zoom.c:328
 #: plugins/videofilters/fv_zoom.c:328
 msgid "Zoom"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_zoom.c:329
 #: plugins/videofilters/fv_zoom.c:329
 msgid "Zoom horizontally and/or vertically"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_equalizer.c:162
 #: plugins/videofilters/fv_equalizer.c:162
 msgid "Saturation"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_equalizer.c:367
 #: plugins/videofilters/fv_equalizer.c:367
 msgid "Video equalizer"
 msgstr ""
 
-#: gmerlin-0.3.6/plugins/videofilters/fv_equalizer.c:368
 #: plugins/videofilters/fv_equalizer.c:368
 msgid ""
 "Control hue, saturation, contrast and brightness. Based on the vf_eq and "
 "vf_hue from the MPlayer project."
 msgstr ""
 
-#: gmerlin-0.3.6/tests/player1.c:535 tests/player1.c:535
+#: tests/player1.c:535
 #, c-format
 msgid "No such track %d"
 msgstr ""
 
-#: gmerlin-0.3.6/tests/player1.c:577 tests/player1.c:577
+#: tests/player1.c:577
 #, c-format
 msgid "Got redirector %s (%d/%d)"
 msgstr ""
 
-#: gmerlin-0.3.6/tests/player1.c:679 tests/player1.c:679
+#: tests/player1.c:679
 #, c-format
 msgid "Name: %s"
 msgstr ""
 
-#: gmerlin-0.3.6/tests/player1.c:686 tests/player1.c:686
+#: tests/player1.c:686
 #, c-format
 msgid "Audio streams %d"
 msgstr ""
 
-#: gmerlin-0.3.6/tests/player1.c:691 tests/player1.c:691
+#: tests/player1.c:691
 #, c-format
 msgid "Video streams %d"
 msgstr ""
 
-#: gmerlin-0.3.6/tests/player1.c:696 tests/player1.c:696
+#: tests/player1.c:696
 #, c-format
 msgid "Subpicture streams %d"
 msgstr ""
 
-#: gmerlin-0.3.6/tests/player1.c:708 tests/player1.c:708
+#: tests/player1.c:708
 #, c-format
 msgid ""
 "Playing audio stream %d\n"
@@ -3272,7 +2812,7 @@ msgid ""
 "%s"
 msgstr ""
 
-#: gmerlin-0.3.6/tests/player1.c:723 tests/player1.c:723
+#: tests/player1.c:723
 #, c-format
 msgid ""
 "Playing video stream %d\n"
@@ -3282,481 +2822,476 @@ msgid ""
 "%s"
 msgstr ""
 
-#: gmerlin-0.3.6/tests/player1.c:730 tests/player1.c:730
+#: tests/player1.c:730
 #, c-format
 msgid "Format: %s"
 msgstr ""
 
-#: gmerlin-0.3.6/tests/player1.c:734 tests/player1.c:734
+#: tests/player1.c:734
 #, c-format
 msgid "Audio stream: %s"
 msgstr ""
 
-#: gmerlin-0.3.6/tests/player1.c:738 tests/player1.c:738
+#: tests/player1.c:738
 #, c-format
 msgid "Video stream: %s"
 msgstr ""
 
-#: gmerlin-0.3.6/tests/player1.c:742 tests/player1.c:742
+#: tests/player1.c:742
 #, c-format
 msgid "Subtitle stream: %s"
 msgstr ""
 
-#: gmerlin-0.3.6/tests/player1.c:747 tests/player1.c:747
+#: tests/player1.c:747
 msgid "Player cleaned up"
 msgstr ""
 
-#: gmerlin-0.3.6/tests/player1.c:762 tests/player1.c:762
+#: tests/player1.c:762
 msgid "Player now playing"
 msgstr ""
 
-#: gmerlin-0.3.6/tests/player1.c:766 tests/player1.c:766
+#: tests/player1.c:766
 msgid "Player now seeking"
 msgstr ""
 
-#: gmerlin-0.3.6/tests/player1.c:769 tests/player1.c:769
+#: tests/player1.c:769
 msgid "Player now changing"
 msgstr ""
 
-#: gmerlin-0.3.6/tests/player1.c:786 tests/player1.c:786
+#: tests/player1.c:786
 msgid "Player finishing"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:118 include/bggavl.h:118
+#: include/bggavl.h:118
 msgid "Conversion Quality"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:124 include/bggavl.h:124
+#: include/bggavl.h:124
 msgid ""
 "Set the conversion quality for format conversions. Lower quality means more "
 "speed. Values above 3 enable slow high quality calculations."
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:144 gmerlin-0.3.6/include/bggavl.h:334
 #: include/bggavl.h:144 include/bggavl.h:334
 msgid "From Source"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:146 include/bggavl.h:146
+#: include/bggavl.h:146
 msgid "23.976 (NTSC encapsulated film rate)"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:147 include/bggavl.h:147
+#: include/bggavl.h:147
 msgid "24 (Standard international cinema film rate)"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:148 include/bggavl.h:148
+#: include/bggavl.h:148
 msgid "25 (PAL [625/50] video frame rate)"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:149 include/bggavl.h:149
+#: include/bggavl.h:149
 msgid "29.970 (NTSC video frame rate)"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:150 include/bggavl.h:150
+#: include/bggavl.h:150
 msgid "30 (NTSC drop-frame [525/60] video frame rate)"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:151 include/bggavl.h:151
+#: include/bggavl.h:151
 msgid "50 (Double frame rate / progressive PAL)"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:152 include/bggavl.h:152
+#: include/bggavl.h:152
 msgid "59.940 (Double frame rate NTSC)"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:153 include/bggavl.h:153
+#: include/bggavl.h:153
 msgid "60 (Double frame rate drop-frame NTSC)"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:155 include/bggavl.h:155
+#: include/bggavl.h:155
 msgid ""
 "Output framerate. For user defined framerate, enter the timescale and frame "
 "duration below (framerate = timescale / frame_duration)."
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:160 gmerlin-0.3.6/lib/singlepic.c:73
 #: include/bggavl.h:160 lib/singlepic.c:73
 msgid "Timescale"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:165 include/bggavl.h:165
+#: include/bggavl.h:165
 msgid ""
 "Timescale for user defined output framerate (Framerate = timescale / "
 "frame_duration)."
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:169 gmerlin-0.3.6/lib/singlepic.c:81
 #: include/bggavl.h:169 lib/singlepic.c:81
 msgid "Frame duration"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:174 include/bggavl.h:174
+#: include/bggavl.h:174
 msgid ""
 "Frame duration for user defined output framerate (Framerate = timescale / "
 "frame_duration)."
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:180 include/bggavl.h:180
+#: include/bggavl.h:180
 msgid "Deinterlace mode"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:185 gmerlin-0.3.6/include/bggavl.h:487
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:1354
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:2554 include/bggavl.h:185
-#: include/bggavl.h:487 lib/gtk/albumwidget.c:1354 lib/gtk/albumwidget.c:2554
+#: include/bggavl.h:185 include/bggavl.h:487 lib/gtk/albumwidget.c:1354
+#: lib/gtk/albumwidget.c:2554
 msgid "Copy"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:185 include/bggavl.h:185
+#: include/bggavl.h:185
 msgid "Scale"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:195 include/bggavl.h:195
+#: include/bggavl.h:195
 msgid "Drop top field"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:195 include/bggavl.h:195
+#: include/bggavl.h:195
 msgid "Drop bottom field"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:196 include/bggavl.h:196
+#: include/bggavl.h:196
 msgid "Specifies which field the deinterlacer should drop."
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:200 include/bggavl.h:200
+#: include/bggavl.h:200
 msgid "Force deinterlacing"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:204 include/bggavl.h:204
+#: include/bggavl.h:204
 msgid ""
 "Force deinterlacing if you want progressive output and the input format "
 "pretends to be progressive also."
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:210 include/bggavl.h:210
+#: include/bggavl.h:210
 msgid "Crop left"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:217 include/bggavl.h:217
+#: include/bggavl.h:217
 msgid "Cut this many pixels from the left border of the source frames."
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:221 include/bggavl.h:221
+#: include/bggavl.h:221
 msgid "Crop right"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:228 include/bggavl.h:228
+#: include/bggavl.h:228
 msgid "Cut this many pixels from the right border of the source frames."
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:232 include/bggavl.h:232
+#: include/bggavl.h:232
 msgid "Crop top"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:239 include/bggavl.h:239
+#: include/bggavl.h:239
 msgid "Cut this many pixels from the top border of the source frames."
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:243 include/bggavl.h:243
+#: include/bggavl.h:243
 msgid "Crop bottom"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:250 include/bggavl.h:250
+#: include/bggavl.h:250
 msgid "Cut this many pixels from the bottom border of the source frames."
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:300 include/bggavl.h:300
+#: include/bggavl.h:300
 msgid "Resample chroma"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:303 include/bggavl.h:303
+#: include/bggavl.h:303
 msgid ""
 "Always perform chroma resampling if chroma subsampling factors or chroma "
 "placements are different. Usually, this is only done for qualities above 3."
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:310 include/bggavl.h:310
+#: include/bggavl.h:310
 msgid "Frame Size"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:336 include/bggavl.h:336
+#: include/bggavl.h:336
 msgid "PAL DVD D1 4:3 (720 x 576)"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:337 include/bggavl.h:337
+#: include/bggavl.h:337
 msgid "PAL DVD D1 16:9 (720 x 576)"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:338 include/bggavl.h:338
+#: include/bggavl.h:338
 msgid "PAL DV 4:3 (720 x 576)"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:339 include/bggavl.h:339
+#: include/bggavl.h:339
 msgid "PAL DV 16:9 (720 x 576)"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:340 include/bggavl.h:340
+#: include/bggavl.h:340
 msgid "PAL CVD (352 x 576)"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:341 include/bggavl.h:341
+#: include/bggavl.h:341
 msgid "PAL VCD (352 x 288)"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:342 include/bggavl.h:342
+#: include/bggavl.h:342
 msgid "PAL SVCD 4:3 (480 x 576)"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:343 include/bggavl.h:343
+#: include/bggavl.h:343
 msgid "PAL SVCD 16:9 (480 x 576)"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:344 include/bggavl.h:344
+#: include/bggavl.h:344
 msgid "NTSC DVD D1 4:3 (720 x 480)"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:345 include/bggavl.h:345
+#: include/bggavl.h:345
 msgid "NTSC DVD D1 16:9 (720 x 480)"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:346 include/bggavl.h:346
+#: include/bggavl.h:346
 msgid "NTSC DV 4:3 (720 x 480)"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:347 include/bggavl.h:347
+#: include/bggavl.h:347
 msgid "NTSC DV 16:9 (720 x 480)"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:348 include/bggavl.h:348
+#: include/bggavl.h:348
 msgid "NTSC CVD (352 x 480)"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:349 include/bggavl.h:349
+#: include/bggavl.h:349
 msgid "NTSC VCD (352 x 240)"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:350 include/bggavl.h:350
+#: include/bggavl.h:350
 msgid "NTSC SVCD 4:3 (480 x 480)"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:351 include/bggavl.h:351
+#: include/bggavl.h:351
 msgid "NTSC SVCD 16:9 (480 x 480)"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:352 include/bggavl.h:352
+#: include/bggavl.h:352
 msgid "VGA (640 x 480)"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:353 include/bggavl.h:353
+#: include/bggavl.h:353
 msgid "QVGA (320 x 240)"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:356 include/bggavl.h:356
+#: include/bggavl.h:356
 msgid ""
 "Set the output frame size. For a user defined size, you must specify the "
 "width and height as well as the pixel width and pixel height (for nonsquare "
 "pixels)."
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:366 include/bggavl.h:366
+#: include/bggavl.h:366
 msgid ""
 "User defined width in pixels. Only meaningful if you selected \"User defined"
 "\" for the framesize."
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:376 include/bggavl.h:376
+#: include/bggavl.h:376
 msgid ""
 "User defined height in pixels. Only meaningful if you selected \"User defined"
 "\" for the framesize."
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:380 include/bggavl.h:380
+#: include/bggavl.h:380
 msgid "User defined pixel width"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:386 include/bggavl.h:386
+#: include/bggavl.h:386
 msgid ""
 "User defined pixel width. Only meaningful if you selected \"User defined\" "
 "for the framesize."
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:390 include/bggavl.h:390
+#: include/bggavl.h:390
 msgid "User defined pixel height"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:396 include/bggavl.h:396
+#: include/bggavl.h:396
 msgid ""
 "User defined pixel height. Only meaningful if you selected \"User defined\" "
 "for the framesize."
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:400 include/bggavl.h:400
+#: include/bggavl.h:400
 msgid "Maintain aspect ratio"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:404 include/bggavl.h:404
+#: include/bggavl.h:404
 msgid ""
 "Let the aspect ratio appear the same as in the source, probably resulting in "
 "additional black borders."
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:412 include/bggavl.h:412
+#: include/bggavl.h:412
 msgid "Alpha mode"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:416 include/bggavl.h:416
+#: include/bggavl.h:416
 msgid "Ignore"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:416 include/bggavl.h:416
+#: include/bggavl.h:416
 msgid "Blend background color"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:417 include/bggavl.h:417
+#: include/bggavl.h:417
 msgid ""
 "This option is used if the source has an alpha (=transparency) channel, but "
 "the output supports no transparency. Either, the transparency is ignored, or "
 "the background color you specify below is blended in."
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:424 include/bggavl.h:424
+#: include/bggavl.h:424
 msgid ""
 "Background color to use, when alpha mode above is \"Blend background color\"."
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:431 include/bggavl.h:431
+#: include/bggavl.h:431
 msgid "Fixed samplerate"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:434 include/bggavl.h:434
+#: include/bggavl.h:434
 msgid ""
 "If disabled, the output samplerate is taken from the source. If enabled, the "
 "samplerate you specify below us used."
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:443 include/bggavl.h:443
+#: include/bggavl.h:443
 msgid "Fixed output samplerate"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:450 include/bggavl.h:450
+#: include/bggavl.h:450
 msgid "Fixed channel setup"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:453 include/bggavl.h:453
+#: include/bggavl.h:453
 msgid ""
 "If disabled, the output channel configuration is taken from the source. If "
 "enabled, the setup you specify below us used."
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:457 include/bggavl.h:457
+#: include/bggavl.h:457
 msgid "Front channels"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:464 include/bggavl.h:464
+#: include/bggavl.h:464
 msgid "num_rear_channels"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:473 include/bggavl.h:473
+#: include/bggavl.h:473
 msgid "LFE"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:479 include/bggavl.h:479
+#: include/bggavl.h:479
 msgid "Front to rear mode"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:486 include/bggavl.h:486
+#: include/bggavl.h:486
 msgid "Mute"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:488 include/bggavl.h:488
+#: include/bggavl.h:488
 msgid "Diff"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:490 include/bggavl.h:490
+#: include/bggavl.h:490
 msgid ""
 "Mix mode when the output format has rear channels, but the source doesn't."
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:495 include/bggavl.h:495
+#: include/bggavl.h:495
 msgid "Stereo to mono mode"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:502 include/bggavl.h:502
+#: include/bggavl.h:502
 msgid "Choose left"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:503 include/bggavl.h:503
+#: include/bggavl.h:503
 msgid "Choose right"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:504 include/bggavl.h:504
+#: include/bggavl.h:504
 msgid "Mix"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:506 include/bggavl.h:506
+#: include/bggavl.h:506
 msgid "Mix mode when downmixing Stereo to Mono."
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:513 include/bggavl.h:513
+#: include/bggavl.h:513
 msgid "Force floating point"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:516 include/bggavl.h:516
+#: include/bggavl.h:516
 msgid ""
 "Force floating point processing. This will inprove the quality but might "
 "slow things down."
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:522 include/bggavl.h:522
+#: include/bggavl.h:522
 msgid "Dither mode"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:527 include/bggavl.h:527
+#: include/bggavl.h:527
 msgid "Shaped"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:528 include/bggavl.h:528
+#: include/bggavl.h:528
 msgid ""
 "Dither mode. Auto means to use the quality level. Subsequent options are "
 "ordered by increasing quality (i.e. decreasing speed)."
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:534 include/bggavl.h:534
+#: include/bggavl.h:534
 msgid "Resample mode"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:538 include/bggavl.h:538
+#: include/bggavl.h:538
 msgid "Linear"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:538 include/bggavl.h:538
+#: include/bggavl.h:538
 msgid "Zero order hold"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:539 include/bggavl.h:539
+#: include/bggavl.h:539
 msgid "Sinc fast"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:539 include/bggavl.h:539
+#: include/bggavl.h:539
 msgid "Sinc medium"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:539 include/bggavl.h:539
+#: include/bggavl.h:539
 msgid "Sinc best"
 msgstr ""
 
-#: gmerlin-0.3.6/include/bggavl.h:540 include/bggavl.h:540
+#: include/bggavl.h:540
 msgid ""
 "Resample mode. Auto means to use the quality level. Subsequent options are "
 "ordered by increasing quality (i.e. decreasing speed)."
 msgstr ""
 
-#: gmerlin-0.3.6/lib/formats.c:31 lib/formats.c:31
+#: lib/formats.c:31
 msgid "Zero"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/formats.c:60 lib/formats.c:60
+#: lib/formats.c:60
 #, c-format
 msgid ""
 "Channels:          %d\n"
@@ -3767,7 +3302,7 @@ msgid ""
 "Sample format:     %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/formats.c:62 lib/formats.c:62
+#: lib/formats.c:62
 #, c-format
 msgid ""
 "Channels:\t %d\n"
@@ -3778,7 +3313,7 @@ msgid ""
 "Sample format:\t %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/formats.c:83 lib/formats.c:83
+#: lib/formats.c:83
 #, c-format
 msgid ""
 "Frame size:   %d x %d\n"
@@ -3787,7 +3322,7 @@ msgid ""
 "Pixel format: %s\n"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/formats.c:85 lib/formats.c:85
+#: lib/formats.c:85
 #, c-format
 msgid ""
 "Frame size:\t %d x %d\n"
@@ -3796,772 +3331,726 @@ msgid ""
 "Pixel format:\t %s\n"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/formats.c:96 lib/formats.c:96
+#: lib/formats.c:96
 msgid "Still image\n"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/formats.c:101 lib/formats.c:101
+#: lib/formats.c:101
 #, c-format
 msgid ""
 "Framerate:    %f fps [%d / %d]\n"
 "             %s\n"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/formats.c:103 lib/formats.c:103
+#: lib/formats.c:103
 #, c-format
 msgid ""
 "Framerate:\t%f fps [%d / %d]\n"
 "\t%s\n"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/formats.c:109 lib/formats.c:109
+#: lib/formats.c:109
 msgid " (Constant)"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/formats.c:110 lib/formats.c:110
+#: lib/formats.c:110
 msgid " (Not constant)"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/formats.c:116 lib/formats.c:116
+#: lib/formats.c:116
 #, c-format
 msgid "Interlace mode:   %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/formats.c:118 lib/formats.c:118
+#: lib/formats.c:118
 #, c-format
 msgid "Interlace mode:\t%s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/formats.c:127 lib/formats.c:127
+#: lib/formats.c:127
 #, c-format
 msgid ""
 "\n"
 "Chroma placement: %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/formats.c:129 lib/formats.c:129
+#: lib/formats.c:129
 #, c-format
 msgid ""
 "\n"
 "Chroma placement:\t%s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_pp.c:212 lib/transcoder_pp.c:212
+#: lib/transcoder_pp.c:212
 #, c-format
 msgid "Not adding %s: Unsupported filename"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_pp.c:221 lib/transcoder_pp.c:221
+#: lib/transcoder_pp.c:221
 #, c-format
 msgid "Scheduling %s for postprocessing"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_pp.c:239 lib/transcoder_pp.c:239
+#: lib/transcoder_pp.c:239
 msgid "Skipping postprocessing (no suitable files found)"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/player_input.c:126 lib/player_input.c:126
+#: lib/player_input.c:128
 msgid "Aspect ratio changed"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/player_input.c:295 gmerlin-0.3.6/lib/transcoder.c:2186
-#: lib/player_input.c:295 lib/transcoder.c:2186
+#: lib/player_input.c:297 lib/transcoder.c:2186
 msgid "Starting input plugin failed"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/player_input.c:315 lib/player_input.c:315
+#: lib/player_input.c:318
 msgid "Cannot select track, skipping"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/player_input.c:356 lib/player_input.c:356
+#: lib/player_input.c:359
 msgid "Stream has neither audio nor video, skipping"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/player_input.c:728 lib/player_input.c:728
+#: lib/player_input.c:737
 #, c-format
 msgid "Processed %s audio samples"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/player_input.c:734 lib/player_input.c:734
+#: lib/player_input.c:743
 #, c-format
 msgid "Processed %s video frames"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/player_input.c:869 lib/player_input.c:869
+#: lib/player_input.c:878
 msgid "Input options"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/player_input.c:875 lib/player_input.c:875
+#: lib/player_input.c:884
 msgid "Enable bypass mode"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/player_input.c:878 lib/player_input.c:878
+#: lib/player_input.c:887
 msgid ""
 "Use input plugins in bypass mode if they support it (Currently only the "
 "audio CD player). This dramatically decreases CPU usage but doesn't work on "
 "all hardware setups."
 msgstr ""
 
-#: gmerlin-0.3.6/lib/osd.c:76 lib/osd.c:76
+#: lib/osd.c:76
 msgid "Enable OSD"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/osd.c:83 lib/osd.c:83
+#: lib/osd.c:83
 msgid "Size"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/osd.c:89 lib/osd.c:89
+#: lib/osd.c:89
 msgid ""
 "Specify fontsize for OSD. The value you enter, is for an image width of 640. "
 "For other widths, the value will be scaled"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/osd.c:94 gmerlin-0.3.6/lib/gtk/vumeter.c:184 lib/osd.c:94
-#: lib/gtk/vumeter.c:184
+#: lib/osd.c:94 lib/gtk/vumeter.c:184
 msgid "Foreground color"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/osd.c:101 gmerlin-0.3.6/lib/textrenderer.c:69
 #: lib/osd.c:101 lib/textrenderer.c:69
 msgid "Border color"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/osd.c:107 gmerlin-0.3.6/lib/textrenderer.c:75
 #: lib/osd.c:107 lib/textrenderer.c:75
 msgid "Border width"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/osd.c:117 gmerlin-0.3.6/lib/textrenderer.c:91
 #: lib/osd.c:117 lib/textrenderer.c:91
 msgid "Horizontal justify"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/osd.c:121 gmerlin-0.3.6/lib/osd.c:130
-#: gmerlin-0.3.6/lib/textrenderer.c:95 gmerlin-0.3.6/lib/textrenderer.c:104
 #: lib/osd.c:121 lib/osd.c:130 lib/textrenderer.c:95 lib/textrenderer.c:104
 msgid "Center"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/osd.c:121 gmerlin-0.3.6/lib/textrenderer.c:95
 #: lib/osd.c:121 lib/textrenderer.c:95
 msgid "Left"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/osd.c:121 gmerlin-0.3.6/lib/textrenderer.c:95
 #: lib/osd.c:121 lib/textrenderer.c:95
 msgid "Right"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/osd.c:126 gmerlin-0.3.6/lib/textrenderer.c:100
 #: lib/osd.c:126 lib/textrenderer.c:100
 msgid "Vertical justify"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/osd.c:130 gmerlin-0.3.6/lib/textrenderer.c:104
 #: lib/osd.c:130 lib/textrenderer.c:104
 msgid "Top"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/osd.c:130 gmerlin-0.3.6/lib/textrenderer.c:104
 #: lib/osd.c:130 lib/textrenderer.c:104
 msgid "Bottom"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/osd.c:134 gmerlin-0.3.6/lib/osd.c:143
-#: gmerlin-0.3.6/lib/textrenderer.c:118 gmerlin-0.3.6/lib/textrenderer.c:127
 #: lib/osd.c:134 lib/osd.c:143 lib/textrenderer.c:118 lib/textrenderer.c:127
 msgid "Left border"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/osd.c:139 gmerlin-0.3.6/lib/textrenderer.c:123
 #: lib/osd.c:139 lib/textrenderer.c:123
 msgid "Distance from the left text border to the image border"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/osd.c:148 gmerlin-0.3.6/lib/textrenderer.c:132
 #: lib/osd.c:148 lib/textrenderer.c:132
 msgid "Distance from the right text border to the image border"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/osd.c:152 gmerlin-0.3.6/lib/textrenderer.c:136
 #: lib/osd.c:152 lib/textrenderer.c:136
 msgid "Top border"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/osd.c:157 gmerlin-0.3.6/lib/textrenderer.c:141
 #: lib/osd.c:157 lib/textrenderer.c:141
 msgid "Distance from the top text border to the image border"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/osd.c:161 lib/osd.c:161
+#: lib/osd.c:161
 msgid "Bottom border"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/osd.c:166 gmerlin-0.3.6/lib/textrenderer.c:150
 #: lib/osd.c:166 lib/textrenderer.c:150
 msgid "Distance from the bottom text border to the image border"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/osd.c:170 lib/osd.c:170
+#: lib/osd.c:170
 msgid "Duration (milliseconds)"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/filters.c:142 lib/filters.c:142
+#: lib/filters.c:142
 msgid "Audio Filters"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/filters.c:280 lib/filters.c:280
+#: lib/filters.c:280
 #, c-format
 msgid "Initialized audio filter %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/filters.c:444 lib/filters.c:444
+#: lib/filters.c:444
 msgid "Video Filters"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/filters.c:578 lib/filters.c:578
+#: lib/filters.c:578
 #, c-format
 msgid "Initialized video filter %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/singlepic.c:94 lib/singlepic.c:94
+#: lib/singlepic.c:94
 msgid "Display time"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/singlepic.c:99 lib/singlepic.c:99
+#: lib/singlepic.c:99
 msgid "Time to pass until the next track will be selected. 0 means infinite."
 msgstr ""
 
-#: gmerlin-0.3.6/lib/singlepic.c:460 lib/singlepic.c:460
+#: lib/singlepic.c:460
 msgid "Image video input plugin"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/singlepic.c:461 lib/singlepic.c:461
+#: lib/singlepic.c:461
 msgid ""
 "This plugin reads series of images as a video. It uses the installed image "
 "readers."
 msgstr ""
 
-#: gmerlin-0.3.6/lib/singlepic.c:506 lib/singlepic.c:506
+#: lib/singlepic.c:506
 msgid ""
 "This plugin reads images as stills. It uses the installed image readers."
 msgstr ""
 
-#: gmerlin-0.3.6/lib/singlepic.c:632 lib/singlepic.c:632
+#: lib/singlepic.c:632
 msgid "Framenumber digits"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/singlepic.c:640 lib/singlepic.c:640
+#: lib/singlepic.c:640
 msgid "Framenumber offset"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/singlepic.c:925 lib/singlepic.c:925
+#: lib/singlepic.c:925
 msgid ""
 "This plugin encodes a video as a series of images. It uses the installed "
 "image writers."
 msgstr ""
 
-#: gmerlin-0.3.6/lib/bggavl.c:467 lib/bggavl.c:467
+#: lib/bggavl.c:467
 #, c-format
 msgid "Unknown scale mode %s\n"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/player_video.c:149 lib/player_video.c:149
+#: lib/player_video.c:149
 msgid "Still image framerate"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/player_video.c:155 lib/player_video.c:155
+#: lib/player_video.c:155
 msgid "Set framerate width which still images will be redisplayed periodically"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/player_video.c:205 lib/player_video.c:205
+#: lib/player_video.c:205
 msgid "Restarting playback due to changed video filters"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/stringutils.c:165 lib/stringutils.c:165
+#: lib/stringutils.c:165
 #, c-format
 msgid "Cannot open file \"%s\" for writing"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/chapterlist.c:131 lib/chapterlist.c:131
+#: lib/chapterlist.c:131
 #, c-format
 msgid "Chapter %d"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/charset.c:94 lib/charset.c:94
+#: lib/charset.c:94
 msgid "Invalid Multibyte sequence"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/charset.c:97 lib/charset.c:97
+#: lib/charset.c:97
 msgid "Incomplete Multibyte sequence"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/remote.c:87 lib/remote.c:87
+#: lib/remote.c:87
 msgid "Setting up socket failed, this instance won't be reachable via remote"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/remote.c:92 lib/remote.c:92
+#: lib/remote.c:92
 #, c-format
 msgid "Remote socket listening at port %d"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/remote.c:112 lib/remote.c:112
+#: lib/remote.c:112
 msgid "Reading hello line failed"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/remote.c:121 gmerlin-0.3.6/lib/remote.c:419
 #: lib/remote.c:121 lib/remote.c:419
 msgid "Protocol mismatch"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/remote.c:172 lib/remote.c:172
+#: lib/remote.c:172
 msgid "Client connection closed"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/remote.c:196 lib/remote.c:196
+#: lib/remote.c:196
 msgid "New client connection"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/remote.c:285 lib/remote.c:285
+#: lib/remote.c:285
 msgid "Allow connections from other machines"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/remote.c:291 lib/remote.c:291
+#: lib/remote.c:291
 msgid "Maximum number of connections"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/remote.c:391 gmerlin-0.3.6/lib/socket.c:214
 #: lib/remote.c:391 lib/socket.c:214
 msgid "Connecting failed"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/remote.c:402 lib/remote.c:402
+#: lib/remote.c:402
 msgid "Sending initialization string failed"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/remote.c:410 lib/remote.c:410
+#: lib/remote.c:410
 msgid "Reading welcome line failed"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/converters.c:190 lib/converters.c:190
+#: lib/converters.c:190
 #, c-format
 msgid "Doing framerate conversion %5.2f (%s) -> %5.2f (%s)"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/converters.c:215 lib/converters.c:215
+#: lib/converters.c:215
 #, c-format
 msgid "Initialized video converter, %d steps"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/metadata.c:80 lib/metadata.c:80
+#: lib/metadata.c:80
 msgid "Artist"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/metadata.c:85 lib/metadata.c:85
+#: lib/metadata.c:85
 msgid "Title"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/metadata.c:90 lib/metadata.c:90
+#: lib/metadata.c:90
 msgid "Album"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/metadata.c:95 gmerlin-0.3.6/lib/transcoder_track.c:366
-#: gmerlin-0.3.6/lib/gtk/infowindow.c:563 lib/metadata.c:95
-#: lib/transcoder_track.c:366 lib/gtk/infowindow.c:563
+#: lib/metadata.c:95 lib/transcoder_track.c:366 lib/gtk/infowindow.c:563
 msgid "Track"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/metadata.c:100 lib/metadata.c:100
+#: lib/metadata.c:100
 msgid "Genre"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/metadata.c:105 lib/metadata.c:105
+#: lib/metadata.c:105
 msgid "Author"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/metadata.c:110 lib/metadata.c:110
+#: lib/metadata.c:110
 msgid "Copyright"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/metadata.c:115 lib/metadata.c:115
+#: lib/metadata.c:115
 msgid "Date"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/metadata.c:117 lib/metadata.c:117
+#: lib/metadata.c:117
 msgid "Complete date or year only"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/metadata.c:398 lib/metadata.c:398
+#: lib/metadata.c:398
 #, c-format
 msgid "Author:\t %s\n"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/metadata.c:403 lib/metadata.c:403
+#: lib/metadata.c:403
 #, c-format
 msgid "Artist:\t %s\n"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/metadata.c:408 lib/metadata.c:408
+#: lib/metadata.c:408
 #, c-format
 msgid "Title:\t %s\n"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/metadata.c:413 lib/metadata.c:413
+#: lib/metadata.c:413
 #, c-format
 msgid "Album:\t %s\n"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/metadata.c:418 lib/metadata.c:418
+#: lib/metadata.c:418
 #, c-format
 msgid "Copyright:\t %s\n"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/metadata.c:423 lib/metadata.c:423
+#: lib/metadata.c:423
 #, c-format
 msgid "Genre:\t %s\n"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/metadata.c:428 lib/metadata.c:428
+#: lib/metadata.c:428
 #, c-format
 msgid "Date:\t %s\n"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/metadata.c:433 lib/metadata.c:433
+#: lib/metadata.c:433
 #, c-format
 msgid "Track:\t %d\n"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/metadata.c:438 lib/metadata.c:438
+#: lib/metadata.c:438
 #, c-format
 msgid "Comment:\t %s\n"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_track.c:348
-#: gmerlin-0.3.6/lib/gtk/chapterdialog.c:183
-#: gmerlin-0.3.6/lib/gtk/treewidget.c:1143
-#: gmerlin-0.3.6/lib/gtk/infowindow.c:533 lib/transcoder_track.c:348
-#: lib/gtk/chapterdialog.c:183 lib/gtk/treewidget.c:1143
-#: lib/gtk/infowindow.c:533
+#: lib/transcoder_track.c:348 lib/gtk/chapterdialog.c:183
+#: lib/gtk/treewidget.c:1143 lib/gtk/infowindow.c:533
 msgid "Name"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_track.c:354 lib/transcoder_track.c:354
+#: lib/transcoder_track.c:354
 msgid "Location"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_track.c:372 lib/transcoder_track.c:372
+#: lib/transcoder_track.c:372
 msgid "Subdirectory"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_track.c:374 lib/transcoder_track.c:374
+#: lib/transcoder_track.c:374
 msgid "Subdirectory, where this track will be written to"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_track.c:414 lib/transcoder_track.c:414
+#: lib/transcoder_track.c:414
 msgid "Postprocess only"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_track.c:416 lib/transcoder_track.c:416
+#: lib/transcoder_track.c:416
 msgid ""
 "Skip transcoding of this track and send the file directly to the "
 "postprocessor."
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_track.c:420 lib/transcoder_track.c:420
+#: lib/transcoder_track.c:420
 msgid "Set start time"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_track.c:424 lib/transcoder_track.c:424
+#: lib/transcoder_track.c:424
 msgid ""
 "Specify a start time below. This time will be slightly wrong if the input "
 "format doesn't support sample accurate seeking."
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_track.c:429 lib/transcoder_track.c:429
+#: lib/transcoder_track.c:429
 msgid "Start time"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_track.c:436 lib/transcoder_track.c:436
+#: lib/transcoder_track.c:436
 msgid "Set end time"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_track.c:440 lib/transcoder_track.c:440
+#: lib/transcoder_track.c:440
 msgid "Specify an end time below."
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_track.c:444 lib/transcoder_track.c:444
+#: lib/transcoder_track.c:444
 msgid "End time"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_track.c:458
-#: gmerlin-0.3.6/lib/transcoder_track.c:494
-#: gmerlin-0.3.6/lib/transcoder_track.c:1390
-#: gmerlin-0.3.6/lib/transcoder_track.c:1422 lib/transcoder_track.c:458
-#: lib/transcoder_track.c:494 lib/transcoder_track.c:1390
-#: lib/transcoder_track.c:1422
+#: lib/transcoder_track.c:458 lib/transcoder_track.c:494
+#: lib/transcoder_track.c:1390 lib/transcoder_track.c:1422
 msgid "Action"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_track.c:462
-#: gmerlin-0.3.6/lib/transcoder_track.c:497
-#: gmerlin-0.3.6/lib/transcoder_track.c:1393
-#: gmerlin-0.3.6/lib/transcoder_track.c:1425 lib/transcoder_track.c:462
-#: lib/transcoder_track.c:497 lib/transcoder_track.c:1393
-#: lib/transcoder_track.c:1425
+#: lib/transcoder_track.c:462 lib/transcoder_track.c:497
+#: lib/transcoder_track.c:1393 lib/transcoder_track.c:1425
 msgid "Forget"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_track.c:462 lib/transcoder_track.c:462
+#: lib/transcoder_track.c:462
 msgid "Transcode as text"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_track.c:463 lib/transcoder_track.c:463
+#: lib/transcoder_track.c:463
 msgid "Transcode as overlay"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_track.c:463
-#: gmerlin-0.3.6/lib/transcoder_track.c:497 lib/transcoder_track.c:463
-#: lib/transcoder_track.c:497
+#: lib/transcoder_track.c:463 lib/transcoder_track.c:497
 msgid "Blend onto video"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_track.c:464 lib/transcoder_track.c:464
+#: lib/transcoder_track.c:464
 msgid "Select action for this subtitle stream."
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_track.c:468
-#: gmerlin-0.3.6/lib/transcoder_track.c:502
-#: gmerlin-0.3.6/lib/transcoder_track.c:1430 lib/transcoder_track.c:468
-#: lib/transcoder_track.c:502 lib/transcoder_track.c:1430
+#: lib/transcoder_track.c:468 lib/transcoder_track.c:502
+#: lib/transcoder_track.c:1430
 msgid "Language"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_track.c:476 lib/transcoder_track.c:476
+#: lib/transcoder_track.c:476
 msgid "Video stream"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_track.c:481 lib/transcoder_track.c:481
+#: lib/transcoder_track.c:481
 msgid ""
 "Attach subtitle stream to this video stream. For blending, this video stream "
 "will get the subtitles. For encoding, take frame dimensions and framerate "
 "from this video stream as they are sometimes needed by subtitle encoders."
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_track.c:497
-#: gmerlin-0.3.6/lib/transcoder_track.c:1393
-#: gmerlin-0.3.6/lib/transcoder_track.c:1425
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:1377 lib/transcoder_track.c:497
-#: lib/transcoder_track.c:1393 lib/transcoder_track.c:1425
-#: lib/gtk/albumwidget.c:1377
+#: lib/transcoder_track.c:497 lib/transcoder_track.c:1393
+#: lib/transcoder_track.c:1425 lib/gtk/albumwidget.c:1377
 msgid "Transcode"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_track.c:510 lib/transcoder_track.c:510
+#: lib/transcoder_track.c:510
 msgid "Video stream to blend onto"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_track.c:946 gmerlin-0.3.6/lib/album.c:1528
-#: gmerlin-0.3.6/lib/tree.c:1132 lib/transcoder_track.c:946 lib/album.c:1528
-#: lib/tree.c:1132
+#: lib/transcoder_track.c:946 lib/album.c:1528 lib/tree.c:1132
 #, c-format
 msgid "Loading %s failed"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_track.c:1398 lib/transcoder_track.c:1398
+#: lib/transcoder_track.c:1398
 msgid "Enable 2-pass encoding"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_track.c:1400 lib/transcoder_track.c:1400
+#: lib/transcoder_track.c:1400
 msgid ""
 "Encode this stream in 2 passes, i.e. analyze it first and do the final "
 "transcoding in the second pass. This enables higher quality within the given "
 "bitrate constraints but roughly doubles the video encoding time."
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_track.c:1410 lib/transcoder_track.c:1410
+#: lib/transcoder_track.c:1410
 msgid "Crop & Scale"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_track.c:1438 lib/transcoder_track.c:1438
+#: lib/transcoder_track.c:1438
 msgid "Normalize audio"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_track.c:1440 lib/transcoder_track.c:1440
+#: lib/transcoder_track.c:1440
 msgid ""
 "This will enable 2 pass transcoding. In the first pass, the peak volume is "
 "detected. In the second pass, the stream is transcoded with normalized "
 "volume."
 msgstr ""
 
-#: gmerlin-0.3.6/lib/album.c:443 lib/album.c:443
+#: lib/album.c:443
 #, c-format
 msgid "Album %s already open"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/album.c:448 lib/album.c:448
+#: lib/album.c:448
 #, c-format
 msgid "Opening album %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/album.c:582 lib/album.c:582
+#: lib/album.c:582
 #, c-format
 msgid "Not closing album %s (open_count > 0)"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/album.c:585 lib/album.c:585
+#: lib/album.c:585
 #, c-format
 msgid "Closing album %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/album.c:1510 lib/album.c:1510
+#: lib/album.c:1510
 #, c-format
 msgid "Loading %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/album.c:1549 lib/album.c:1549
+#: lib/album.c:1549
 #, c-format
 msgid "Loaded %s (track %d of %d)"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/album.c:1683 lib/album.c:1683
+#: lib/album.c:1683
 msgid "Ejecting disc failed"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/textrenderer.c:57 lib/textrenderer.c:57
+#: lib/textrenderer.c:57
 msgid "Render options"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/textrenderer.c:108 lib/textrenderer.c:108
+#: lib/textrenderer.c:108
 msgid "Cache size"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/textrenderer.c:114 lib/textrenderer.c:114
+#: lib/textrenderer.c:114
 msgid ""
 "Specify, how many different characters are cached for faster rendering. For "
 "European languages, this never needs to be larger than 255"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/textrenderer.c:154 lib/textrenderer.c:154
+#: lib/textrenderer.c:154
 msgid "Ignore linebreaks"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/textrenderer.c:156 lib/textrenderer.c:156
+#: lib/textrenderer.c:156
 msgid "Ignore linebreaks in subtitles."
 msgstr ""
 
-#: gmerlin-0.3.6/lib/textrenderer.c:160 lib/textrenderer.c:160
+#: lib/textrenderer.c:160
 msgid "Default format"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/textrenderer.c:165 lib/textrenderer.c:165
+#: lib/textrenderer.c:165
 msgid "Default width"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/textrenderer.c:173 lib/textrenderer.c:173
+#: lib/textrenderer.c:173
 msgid "Default height"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/textrenderer.c:181 lib/textrenderer.c:181
+#: lib/textrenderer.c:181
 msgid "Default Colorspace"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/textrenderer.c:185 lib/textrenderer.c:185
+#: lib/textrenderer.c:185
 msgid "YCrCb"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/textrenderer.c:185 lib/textrenderer.c:185
+#: lib/textrenderer.c:185
 msgid "RGB"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/textrenderer.c:189 lib/textrenderer.c:189
+#: lib/textrenderer.c:189
 msgid "Default Framerate"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/lcdproc.c:100 lib/lcdproc.c:100
+#: lib/lcdproc.c:100
 msgid "Enable LCDproc"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/lcdproc.c:106 lib/lcdproc.c:106
+#: lib/lcdproc.c:106
 msgid "Hostname"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/lcdproc.c:120 lib/lcdproc.c:120
+#: lib/lcdproc.c:120
 msgid "Display track name and time"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/lcdproc.c:126 lib/lcdproc.c:126
+#: lib/lcdproc.c:126
 msgid "Display audio/video formats"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/lcdproc.c:132 lib/lcdproc.c:132
+#: lib/lcdproc.c:132
 msgid "Display audio/video descriptions"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/lcdproc.c:159 gmerlin-0.3.6/lib/lcdproc.c:164
 #: lib/lcdproc.c:159 lib/lcdproc.c:164
 msgid "Sending command failed"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/lcdproc.c:187 lib/lcdproc.c:187
+#: lib/lcdproc.c:187
 #, c-format
 msgid "Command \"%s\" not unserstood by server"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/lcdproc.c:208 lib/lcdproc.c:208
+#: lib/lcdproc.c:208
 #, c-format
 msgid "Could not resolve adress for: %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/lcdproc.c:215 lib/lcdproc.c:215
+#: lib/lcdproc.c:215
 #, c-format
 msgid "Could not connect to server at %s:%d"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/lcdproc.c:225 lib/lcdproc.c:225
+#: lib/lcdproc.c:225
 msgid "Could not send hello message"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/lcdproc.c:231 lib/lcdproc.c:231
+#: lib/lcdproc.c:231
 msgid "Could not get server welcome line"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/lcdproc.c:240 lib/lcdproc.c:240
+#: lib/lcdproc.c:240
 #, c-format
 msgid "Invalid answer: %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/lcdproc.c:272 lib/lcdproc.c:272
+#: lib/lcdproc.c:272
 #, c-format
 msgid "Connection to server established, display size: %dx%d"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/lcdproc.c:284 lib/lcdproc.c:284
+#: lib/lcdproc.c:284
 msgid "Connection to server closed due to error"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/lcdproc.c:789 lib/lcdproc.c:789
+#: lib/lcdproc.c:789
 msgid "Server connection closed due to error"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/lcdproc.c:883 lib/lcdproc.c:883
+#: lib/lcdproc.c:883
 msgid "Server connection closed"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/bgladspa.c:176 lib/bgladspa.c:176
+#: lib/bgladspa.c:176
 msgid "Add effect to input data"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/bgladspa.c:186 lib/bgladspa.c:186
+#: lib/bgladspa.c:186
 msgid "Add gain (dB)"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/bgladspa.c:194 lib/bgladspa.c:194
+#: lib/bgladspa.c:194
 msgid ""
 "Overall gain for this filter. This is only valid if you add the effect to "
 "the input data"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/bgladspa.c:244 lib/bgladspa.c:244
+#: lib/bgladspa.c:244
 #, c-format
 msgid ""
 "ladspa plugin\n"
@@ -4569,388 +4058,361 @@ msgid ""
 "Copyright:\t%s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/bgladspa.c:373 lib/bgladspa.c:373
+#: lib/bgladspa.c:373
 #, c-format
 msgid "Remixing to stereo for filter \"%s\""
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:418 lib/transcoder.c:418
+#: lib/transcoder.c:418
 msgid "Output Directory"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:424 lib/transcoder.c:424
+#: lib/transcoder.c:424
 msgid "Delete incomplete output files"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:427 lib/transcoder.c:427
+#: lib/transcoder.c:427
 msgid ""
 "Delete the encoded files if you hit the stop button. This option will "
 "automatically be disabled, when the track is an URL"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:432 lib/transcoder.c:432
+#: lib/transcoder.c:432
 msgid "Clean up after postprocessing"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:434 lib/transcoder.c:434
+#: lib/transcoder.c:434
 msgid "Clean up all encoded files, which were postprocessed"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:438 lib/transcoder.c:438
+#: lib/transcoder.c:438
 msgid "Send finished files to player"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:1194 lib/transcoder.c:1194
+#: lib/transcoder.c:1194
 msgid "Multipass encoding not supported by encoder plugin"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:1201 lib/transcoder.c:1201
+#: lib/transcoder.c:1201
 #, c-format
 msgid "Using statistics file: %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:1207 lib/transcoder.c:1207
+#: lib/transcoder.c:1207
 msgid "Multipass encoding not supported by codec"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:1314 lib/transcoder.c:1314
+#: lib/transcoder.c:1314
 msgid "Encoding audio failed"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:1564 lib/transcoder.c:1564
+#: lib/transcoder.c:1564
 msgid "Encoding video failed"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:1649 gmerlin-0.3.6/lib/transcoder.c:1699
 #: lib/transcoder.c:1649 lib/transcoder.c:1699
 msgid "Encoding subtitles failed"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:1765 lib/transcoder.c:1765
+#: lib/transcoder.c:1765
 #, c-format
 msgid "Cannot create directory %s: %s, using default"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:1771 gmerlin-0.3.6/lib/searchpath.c:131
 #: lib/transcoder.c:1771 lib/searchpath.c:131
 #, c-format
 msgid "Created directory %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:1843 lib/transcoder.c:1843
+#: lib/transcoder.c:1843
 #, c-format
 msgid "Postprocessing %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:1847 gmerlin-0.3.6/lib/transcoder.c:3467
 #: lib/transcoder.c:1847 lib/transcoder.c:3467
 #, c-format
 msgid "Transcoding %s [Track %d, Pass %d/%d]"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:1852 lib/transcoder.c:1852
+#: lib/transcoder.c:1852
 #, c-format
 msgid "Transcoding %s [Track %d]"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:1855 gmerlin-0.3.6/lib/transcoder.c:3469
 #: lib/transcoder.c:1855 lib/transcoder.c:3469
 #, c-format
 msgid "%s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:1863 lib/transcoder.c:1863
+#: lib/transcoder.c:1863
 #, c-format
 msgid ""
 "Metadata:\n"
 "%s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:1878 lib/transcoder.c:1878
+#: lib/transcoder.c:1878
 #, c-format
 msgid ""
 "Audio stream %d input format:\n"
 "%s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:1883 lib/transcoder.c:1883
+#: lib/transcoder.c:1883
 #, c-format
 msgid ""
 "Audio stream %d output format:\n"
 "%s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:1896 lib/transcoder.c:1896
+#: lib/transcoder.c:1896
 #, c-format
 msgid ""
 "Video stream %d input format:\n"
 "%s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:1901 lib/transcoder.c:1901
+#: lib/transcoder.c:1901
 #, c-format
 msgid ""
 "Video stream %d output format:\n"
 "%s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:1913 gmerlin-0.3.6/lib/transcoder.c:1932
 #: lib/transcoder.c:1913 lib/transcoder.c:1932
 #, c-format
 msgid "Text subtitle stream %d: Blending onto video stream %d"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:1918 gmerlin-0.3.6/lib/transcoder.c:1937
 #: lib/transcoder.c:1918 lib/transcoder.c:1937
 #, c-format
 msgid "Text subtitle stream %d: Exporting to file"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:1975 lib/transcoder.c:1975
+#: lib/transcoder.c:1975
 #, c-format
 msgid "Audio stream %d -> file: %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:1990 lib/transcoder.c:1990
+#: lib/transcoder.c:1990
 #, c-format
 msgid "Video stream %d -> %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:2001 lib/transcoder.c:2001
+#: lib/transcoder.c:2001
 #, c-format
 msgid "Output file: %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:2014 lib/transcoder.c:2014
+#: lib/transcoder.c:2014
 #, c-format
 msgid "Cannot find plugin %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:2021 lib/transcoder.c:2021
+#: lib/transcoder.c:2021
 #, c-format
 msgid "Cannot open plugin %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:2038 lib/transcoder.c:2038
+#: lib/transcoder.c:2038
 #, c-format
 msgid "Cannot open %s with plugin %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:2054 lib/transcoder.c:2054
+#: lib/transcoder.c:2054
 #, c-format
 msgid "Invalid track number %d"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:2196 gmerlin-0.3.6/lib/transcoder.c:2205
 #: lib/transcoder.c:2196 lib/transcoder.c:2205
 msgid "Cannot seek to start point"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:2216 lib/transcoder.c:2216
+#: lib/transcoder.c:2216
 msgid "End time if before start time"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:2446 gmerlin-0.3.6/lib/transcoder.c:2494
 #: lib/transcoder.c:2446 lib/transcoder.c:2494
 msgid "Subtitle stream cannot be handled"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:2518 lib/transcoder.c:2518
+#: lib/transcoder.c:2518
 msgid "Input and output are the same file"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:2539 lib/transcoder.c:2539
+#: lib/transcoder.c:2539
 #, c-format
 msgid "Could not open %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:2550 lib/transcoder.c:2550
+#: lib/transcoder.c:2550
 #, c-format
 msgid "Could not start %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:2977 lib/transcoder.c:2977
+#: lib/transcoder.c:2977
 msgid "Input samplerate is zero"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:3212 lib/transcoder.c:3212
+#: lib/transcoder.c:3212
 msgid "Zero peaks detected (silent file?). Disabling normalization."
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:3218 lib/transcoder.c:3218
+#: lib/transcoder.c:3218
 #, c-format
 msgid "Correcting volume by %.2f dB"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:3275 lib/transcoder.c:3275
+#: lib/transcoder.c:3275
 msgid "No stream to encode"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:3663 lib/transcoder.c:3663
+#: lib/transcoder.c:3663
 #, c-format
 msgid "Video stream %d: Transcoded %s frames"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder.c:3674 lib/transcoder.c:3674
+#: lib/transcoder.c:3674
 #, c-format
 msgid "Audio stream %d: Transcoded %s samples"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/player_thread.c:699
-#: gmerlin-0.3.6/lib/player_thread.c:1218
-#: gmerlin-0.3.6/lib/player_thread.c:1231 lib/player_thread.c:705
-#: lib/player_thread.c:1224 lib/player_thread.c:1237
+#: lib/player_thread.c:705 lib/player_thread.c:1224 lib/player_thread.c:1237
 msgid "Joining input thread..."
 msgstr ""
 
-#: gmerlin-0.3.6/lib/player_thread.c:701
-#: gmerlin-0.3.6/lib/player_thread.c:1220
-#: gmerlin-0.3.6/lib/player_thread.c:1233 lib/player_thread.c:707
-#: lib/player_thread.c:1226 lib/player_thread.c:1239
+#: lib/player_thread.c:707 lib/player_thread.c:1226 lib/player_thread.c:1239
 msgid "Joining input thread done"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/player_thread.c:706
-#: gmerlin-0.3.6/lib/player_thread.c:1237 lib/player_thread.c:712
-#: lib/player_thread.c:1243
+#: lib/player_thread.c:712 lib/player_thread.c:1243
 msgid "Joining audio thread..."
 msgstr ""
 
-#: gmerlin-0.3.6/lib/player_thread.c:708
-#: gmerlin-0.3.6/lib/player_thread.c:1239 lib/player_thread.c:714
-#: lib/player_thread.c:1245
+#: lib/player_thread.c:714 lib/player_thread.c:1245
 msgid "Joining audio thread done"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/player_thread.c:712
-#: gmerlin-0.3.6/lib/player_thread.c:1243 lib/player_thread.c:718
-#: lib/player_thread.c:1249
+#: lib/player_thread.c:718 lib/player_thread.c:1249
 msgid "Joining video thread..."
 msgstr ""
 
-#: gmerlin-0.3.6/lib/player_thread.c:714
-#: gmerlin-0.3.6/lib/player_thread.c:1245 lib/player_thread.c:720
-#: lib/player_thread.c:1251
+#: lib/player_thread.c:720 lib/player_thread.c:1251
 msgid "Joining video thread done"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/player_thread.c:1297 lib/player_thread.c:1303
+#: lib/player_thread.c:1303
 msgid "Ignoring command while playback is interrupted"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/socket.c:103 lib/socket.c:103
+#: lib/socket.c:103
 msgid "Could not resolve address"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/socket.c:120 lib/socket.c:120
+#: lib/socket.c:120
 msgid "No known address space"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/socket.c:157 lib/socket.c:157
+#: lib/socket.c:157
 msgid "Cannot create inet client socket"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/socket.c:194 gmerlin-0.3.6/lib/socket.c:289
-#: gmerlin-0.3.6/lib/socket.c:325 lib/socket.c:194 lib/socket.c:289
-#: lib/socket.c:325
+#: lib/socket.c:194 lib/socket.c:289 lib/socket.c:325
 msgid "Cannot set nonblocking mode"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/socket.c:208 lib/socket.c:208
+#: lib/socket.c:208
 msgid "Connection timed out"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/socket.c:223 lib/socket.c:223
+#: lib/socket.c:223
 msgid "Cannot set blocking mode"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/socket.c:237 lib/socket.c:237
+#: lib/socket.c:237
 msgid "Cannot create unix socket"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/socket.c:250 lib/socket.c:250
+#: lib/socket.c:250
 msgid "Connecting unix socket failed"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/socket.c:274 lib/socket.c:274
+#: lib/socket.c:274
 msgid "Cannot create inet server socket"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/socket.c:284 lib/socket.c:284
+#: lib/socket.c:284
 #, c-format
 msgid "Cannot bind inet socket: %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/socket.c:294 gmerlin-0.3.6/lib/socket.c:330
 #: lib/socket.c:294 lib/socket.c:330
 msgid "Cannot put socket into listening mode"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/socket.c:310 lib/socket.c:310
+#: lib/socket.c:310
 msgid "Cannot create unix server socket"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/socket.c:320 lib/socket.c:320
+#: lib/socket.c:320
 msgid "Could not bind socket"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/subprocess.c:166 lib/subprocess.c:166
+#: lib/subprocess.c:166
 #, c-format
 msgid "Created process: %s [%d]"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/subprocess.c:171 lib/subprocess.c:171
+#: lib/subprocess.c:171
 #, c-format
 msgid "Creating process failed: %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/subprocess.c:206 lib/subprocess.c:206
+#: lib/subprocess.c:206
 #, c-format
 msgid "Finished process [%d] return value: %d"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/tree.c:246 gmerlin-0.3.6/lib/tree.c:418 lib/tree.c:246
-#: lib/tree.c:418
+#: lib/tree.c:246 lib/tree.c:418
 msgid "Incoming"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/tree.c:251 gmerlin-0.3.6/lib/tree.c:426 lib/tree.c:251
-#: lib/tree.c:426
+#: lib/tree.c:251 lib/tree.c:426
 msgid "Favourites"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/tree.c:1097 lib/tree.c:1097
+#: lib/tree.c:1097
 msgid "Doubleclick on a track first"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/tree.c:1120 lib/tree.c:1120
+#: lib/tree.c:1120
 #, c-format
 msgid "Cannot open %s: no plugin found"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/tree.c:1124 lib/tree.c:1124
+#: lib/tree.c:1124
 #, c-format
 msgid "Loading %s (plugin: %s)"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/tree.c:1142 lib/tree.c:1142
+#: lib/tree.c:1142
 #, c-format
 msgid "Selecting track %d for %s failed"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/tree.c:1180 lib/tree.c:1180
+#: lib/tree.c:1180
 msgid "Use metadata for track names"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/tree.c:1183 lib/tree.c:1183
+#: lib/tree.c:1183
 msgid "If disabled, track name will be taken from filename"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/tree.c:1187 lib/tree.c:1187
+#: lib/tree.c:1187
 msgid "Format for track names"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/tree.c:1190 lib/tree.c:1190
+#: lib/tree.c:1190
 msgid ""
 "Format specifier for tracknames from\n"
 "metadata\n"
@@ -4963,119 +4425,114 @@ msgid ""
 "%c:    Comment"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/tree.c:1203 lib/tree.c:1203
+#: lib/tree.c:1203
 msgid "Purge directory on exit"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/tree.c:1206 lib/tree.c:1206
+#: lib/tree.c:1206
 msgid ""
 "Purge directory (i.e. delete\n"
 "unused album files) at program exit"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/tree.c:1393 lib/tree.c:1393
+#: lib/tree.c:1393
 #, c-format
 msgid "Purging %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/cmdline.c:296 lib/cmdline.c:296
+#: lib/cmdline.c:296
 msgid ""
 "\n"
 "  Supported options:\n"
 "\n"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/cmdline.c:329 lib/cmdline.c:329
+#: lib/cmdline.c:329
 #, c-format
 msgid "[1|0] (default: %d)\n"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/cmdline.c:333 gmerlin-0.3.6/lib/cmdline.c:343
 #: lib/cmdline.c:333 lib/cmdline.c:343
 msgid "<number> ("
 msgstr ""
 
-#: gmerlin-0.3.6/lib/cmdline.c:354 lib/cmdline.c:354
+#: lib/cmdline.c:354
 #, c-format
 msgid "default: %%.%df)\n"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/cmdline.c:365 lib/cmdline.c:365
+#: lib/cmdline.c:365
 msgid "<string>"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/cmdline.c:367 lib/cmdline.c:367
+#: lib/cmdline.c:367
 #, c-format
 msgid " (Default: %s)\n"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/cmdline.c:372 gmerlin-0.3.6/lib/cmdline.c:375
 #: lib/cmdline.c:372 lib/cmdline.c:375
 msgid "<string>\n"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/cmdline.c:381 lib/cmdline.c:381
+#: lib/cmdline.c:381
 msgid "Supported strings: "
 msgstr ""
 
-#: gmerlin-0.3.6/lib/cmdline.c:401 gmerlin-0.3.6/lib/cmdline.c:444
 #: lib/cmdline.c:401 lib/cmdline.c:444
 #, c-format
 msgid "Default: %s\n"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/cmdline.c:404 lib/cmdline.c:404
+#: lib/cmdline.c:404
 #, c-format
 msgid "<r>,<g>,<b> (default: %.3f,%.3f,%.3f)\n"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/cmdline.c:409 lib/cmdline.c:409
+#: lib/cmdline.c:409
 msgid "  <r>, <g> and <b> are in the range 0.0..1.0\n"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/cmdline.c:412 lib/cmdline.c:412
+#: lib/cmdline.c:412
 #, c-format
 msgid "<r>,<g>,<b>,<a> (default: %.3f,%.3f,%.3f,%.3f)\n"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/cmdline.c:418 lib/cmdline.c:418
+#: lib/cmdline.c:418
 msgid "  <r>, <g>, <b> and <a> are in the range 0.0..1.0\n"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/cmdline.c:421 lib/cmdline.c:421
+#: lib/cmdline.c:421
 msgid "option[{suboptions}]\n"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/cmdline.c:425 gmerlin-0.3.6/lib/cmdline.c:452
 #: lib/cmdline.c:425 lib/cmdline.c:452
 msgid "Supported options: "
 msgstr ""
 
-#: gmerlin-0.3.6/lib/cmdline.c:448 lib/cmdline.c:448
+#: lib/cmdline.c:448
 msgid "{option[{suboptions}][:option[{suboptions}]...]}\n"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/cmdline.c:472 lib/cmdline.c:472
+#: lib/cmdline.c:472
 msgid "{[[HH:]MM:]SS} ("
 msgstr ""
 
-#: gmerlin-0.3.6/lib/cmdline.c:482 lib/cmdline.c:482
+#: lib/cmdline.c:482
 #, c-format
 msgid "default: %s)\n"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/cmdline.c:484 lib/cmdline.c:484
+#: lib/cmdline.c:484
 msgid "  Seconds can be fractional (i.e. with decimal point)\n"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/cmdline.c:510 lib/cmdline.c:510
+#: lib/cmdline.c:510
 #, c-format
 msgid ""
 "  Suboptions for %s\n"
 "\n"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/cmdline.c:517 gmerlin-0.3.6/lib/cmdline.c:520
 #: lib/cmdline.c:517 lib/cmdline.c:520
 #, c-format
 msgid ""
@@ -5083,88 +4540,80 @@ msgid ""
 "\n"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/pluginregistry.c:343
-#: gmerlin-0.3.6/lib/pluginregistry.c:1172 lib/pluginregistry.c:343
-#: lib/pluginregistry.c:1172
+#: lib/pluginregistry.c:343 lib/pluginregistry.c:1172
 #, c-format
 msgid "Plugin %s has no or wrong version"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/pluginregistry.c:350 lib/pluginregistry.c:350
+#: lib/pluginregistry.c:350
 #, c-format
 msgid "No symbol the_plugin in %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/pluginregistry.c:355 lib/pluginregistry.c:355
+#: lib/pluginregistry.c:355
 #, c-format
 msgid "Warning: Plugin %s has zero priority"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/pluginregistry.c:526 lib/pluginregistry.c:526
+#: lib/pluginregistry.c:526
 #, c-format
 msgid "Cannot dlopen %s: %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/pluginregistry.c:984 lib/pluginregistry.c:984
+#: lib/pluginregistry.c:984
 #, c-format
 msgid "bg_plugin_ref %s: %d"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/pluginregistry.c:1024
-#: gmerlin-0.3.6/lib/pluginregistry.c:1037 lib/pluginregistry.c:1024
-#: lib/pluginregistry.c:1037
+#: lib/pluginregistry.c:1024 lib/pluginregistry.c:1037
 #, c-format
 msgid "bg_plugin_unref %s: %d"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/pluginregistry.c:1060
-#: gmerlin-0.3.6/lib/pluginregistry.c:1105 lib/pluginregistry.c:1060
-#: lib/pluginregistry.c:1105
+#: lib/pluginregistry.c:1060 lib/pluginregistry.c:1105
 #, c-format
 msgid "No plugin found for image %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/pluginregistry.c:1162 lib/pluginregistry.c:1162
+#: lib/pluginregistry.c:1162
 #, c-format
 msgid "Cannot dlopen plugin %s: %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/pluginregistry.c:1456 lib/pluginregistry.c:1456
+#: lib/pluginregistry.c:1456
 #, c-format
 msgid "Loading plugin \"%s\" failed"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/pluginregistry.c:1468
-#: gmerlin-0.3.6/lib/pluginregistry.c:1504 lib/pluginregistry.c:1468
-#: lib/pluginregistry.c:1504
+#: lib/pluginregistry.c:1468 lib/pluginregistry.c:1504
 #, c-format
 msgid "Opening %s with \"%s\" failed"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/album_xml.c:221 lib/album_xml.c:221
+#: lib/album_xml.c:221
 #, c-format
 msgid "Couldn't open album file %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/player_audio.c:244 lib/player_audio.c:245
+#: lib/player_audio.c:245
 msgid "Restarting playback due to changed audio filters"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/aboutwindow.c:116 lib/gtk/aboutwindow.c:116
+#: lib/gtk/aboutwindow.c:116
 msgid ""
 "Get the latest source version from http://gmerlin.sourceforge.net * * * If "
 "you installed gmerlin from a binary package, you might have limited features"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/aboutwindow.c:130 lib/gtk/aboutwindow.c:130
+#: lib/gtk/aboutwindow.c:130
 msgid "Visit homepage"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/aboutwindow.c:164 lib/gtk/aboutwindow.c:164
+#: lib/gtk/aboutwindow.c:164
 msgid "Copyright © 2001-2006 Members of the gmerlin project"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/aboutwindow.c:168 lib/gtk/aboutwindow.c:168
+#: lib/gtk/aboutwindow.c:168
 msgid ""
 "This program is free software; you can redistribute it and/or modify\n"
 "it under the terms of the GNU General Public License as published by\n"
@@ -5172,409 +4621,390 @@ msgid ""
 "(at your option) any later version."
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/chapterdialog.c:192 lib/gtk/chapterdialog.c:192
+#: lib/gtk/chapterdialog.c:192
 msgid "Time"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/chapterdialog.c:219
-#: gmerlin-0.3.6/lib/gtk/chapterdialog.c:376 lib/gtk/chapterdialog.c:219
-#: lib/gtk/chapterdialog.c:376
+#: lib/gtk/chapterdialog.c:219 lib/gtk/chapterdialog.c:376
 msgid "Edit chapter"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/chapterdialog.c:374 lib/gtk/chapterdialog.c:374
+#: lib/gtk/chapterdialog.c:374
 msgid "Add new chapter"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/chapterdialog.c:378 lib/gtk/chapterdialog.c:378
+#: lib/gtk/chapterdialog.c:378
 msgid "Delete chapter"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/cfg_font.c:189 gmerlin-0.3.6/lib/gtk/fileentry.c:127
 #: lib/gtk/cfg_font.c:189 lib/gtk/fileentry.c:127
 msgid "Browse..."
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/pluginmenu.c:37 lib/gtk/pluginmenu.c:37
+#: lib/gtk/pluginmenu.c:37
 msgid "Auto Select"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/pluginmenu.c:118 lib/gtk/pluginmenu.c:118
+#: lib/gtk/pluginmenu.c:118
 msgid "Plugin: "
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/multiinfo.c:139 lib/gtk/multiinfo.c:139
+#: lib/gtk/multiinfo.c:139
 #, c-format
 msgid ""
 "Name:\t %s\n"
 "Label:\t %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/multiinfo.c:146 lib/gtk/multiinfo.c:146
+#: lib/gtk/multiinfo.c:146
 msgid "Not available"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/treewindow.c:172 lib/gtk/treewindow.c:172
+#: lib/gtk/treewindow.c:172
 msgid "Gmerlin Media Tree"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/vumeter.c:167 lib/gtk/vumeter.c:167
+#: lib/gtk/vumeter.c:167
 msgid "Appearance"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/vumeter.c:190 lib/gtk/vumeter.c:190
+#: lib/gtk/vumeter.c:190
 msgid "Low level color"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/vumeter.c:196 lib/gtk/vumeter.c:196
+#: lib/gtk/vumeter.c:196
 msgid "Medium level color"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/vumeter.c:202 lib/gtk/vumeter.c:202
+#: lib/gtk/vumeter.c:202
 msgid "High level color"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/vumeter.c:208 lib/gtk/vumeter.c:208
+#: lib/gtk/vumeter.c:208
 msgid "Properties"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/vumeter.c:213 lib/gtk/vumeter.c:213
+#: lib/gtk/vumeter.c:213
 msgid "Peak hold time (sec.)"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/question.c:86 lib/gtk/question.c:86
+#: lib/gtk/question.c:86
 msgid "Question"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/urlselect.c:176 lib/gtk/urlselect.c:176
+#: lib/gtk/urlselect.c:176
 msgid "URL:"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/treewidget.c:979 lib/gtk/treewidget.c:979
+#: lib/gtk/treewidget.c:979
 msgid "Album name"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/treewidget.c:986
-#: gmerlin-0.3.6/lib/gtk/treewidget.c:2064 lib/gtk/treewidget.c:986
-#: lib/gtk/treewidget.c:2064
+#: lib/gtk/treewidget.c:986 lib/gtk/treewidget.c:2064
 msgid "Rename album"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/treewidget.c:1149 lib/gtk/treewidget.c:1149
+#: lib/gtk/treewidget.c:1149
 msgid "Add device"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/treewidget.c:1355
-#: gmerlin-0.3.6/lib/gtk/treewidget.c:2067 lib/gtk/treewidget.c:1355
-#: lib/gtk/treewidget.c:2067
+#: lib/gtk/treewidget.c:1355 lib/gtk/treewidget.c:2067
 msgid "Goto current track"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/treewidget.c:1363 lib/gtk/treewidget.c:1363
+#: lib/gtk/treewidget.c:1363
 msgid "Expand all"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/treewidget.c:1367 lib/gtk/treewidget.c:1367
+#: lib/gtk/treewidget.c:1367
 msgid "Collapse all"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/treewidget.c:1371 lib/gtk/treewidget.c:1371
+#: lib/gtk/treewidget.c:1371
 msgid "Tabbed mode"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/treewidget.c:1375 lib/gtk/treewidget.c:1375
+#: lib/gtk/treewidget.c:1375
 msgid "Windowed mode"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/treewidget.c:1385 lib/gtk/treewidget.c:1385
+#: lib/gtk/treewidget.c:1385
 msgid "Open"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/treewidget.c:1389 lib/gtk/treewidget.c:1389
+#: lib/gtk/treewidget.c:1389
 msgid "Close"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/treewidget.c:1393 lib/gtk/treewidget.c:1393
+#: lib/gtk/treewidget.c:1393
 msgid "New..."
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/treewidget.c:1397 lib/gtk/treewidget.c:1397
+#: lib/gtk/treewidget.c:1397
 msgid "New from directory..."
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/treewidget.c:1401
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:1371 lib/gtk/treewidget.c:1401
-#: lib/gtk/albumwidget.c:1371
+#: lib/gtk/treewidget.c:1401 lib/gtk/albumwidget.c:1371
 msgid "Rename..."
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/treewidget.c:1414 lib/gtk/treewidget.c:1414
+#: lib/gtk/treewidget.c:1414
 msgid "Scan for devices"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/treewidget.c:1418 lib/gtk/treewidget.c:1418
+#: lib/gtk/treewidget.c:1418
 msgid "Add device..."
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/treewidget.c:1425
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:1427 lib/gtk/treewidget.c:1425
-#: lib/gtk/albumwidget.c:1427
+#: lib/gtk/treewidget.c:1425 lib/gtk/albumwidget.c:1427
 msgid "Album..."
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/treewidget.c:1431 lib/gtk/treewidget.c:1431
+#: lib/gtk/treewidget.c:1431
 msgid "Plugin..."
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/treewidget.c:1438 lib/gtk/treewidget.c:1438
+#: lib/gtk/treewidget.c:1438
 msgid "Tree..."
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/treewidget.c:2062 lib/gtk/treewidget.c:2062
+#: lib/gtk/treewidget.c:2062
 msgid "Delete album"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/treewidget.c:2071 lib/gtk/treewidget.c:2071
+#: lib/gtk/treewidget.c:2071
 msgid "New album"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:999 lib/gtk/albumwidget.c:999
+#: lib/gtk/albumwidget.c:999
 msgid "Track name"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:1009 lib/gtk/albumwidget.c:1009
+#: lib/gtk/albumwidget.c:1009
 msgid "Rename entry"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:1021 lib/gtk/albumwidget.c:1021
+#: lib/gtk/albumwidget.c:1021
 #, c-format
 msgid "Add files to album %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:1050 lib/gtk/albumwidget.c:1050
+#: lib/gtk/albumwidget.c:1050
 #, c-format
 msgid "Add URLS to album %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:1144 lib/gtk/albumwidget.c:1144
+#: lib/gtk/albumwidget.c:1144
 #, c-format
 msgid "Add albums to %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:1315 lib/gtk/albumwidget.c:1315
+#: lib/gtk/albumwidget.c:1315
 msgid "Add Files"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:1319 lib/gtk/albumwidget.c:1319
+#: lib/gtk/albumwidget.c:1319
 msgid "Add Albums"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:1331 lib/gtk/albumwidget.c:1331
+#: lib/gtk/albumwidget.c:1331
 msgid "Copy to favourites"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:1339
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:2580 lib/gtk/albumwidget.c:1339
-#: lib/gtk/albumwidget.c:2580
+#: lib/gtk/albumwidget.c:1339 lib/gtk/albumwidget.c:2580
 msgid "Move to top"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:1342
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:2582 lib/gtk/albumwidget.c:1342
-#: lib/gtk/albumwidget.c:2582
+#: lib/gtk/albumwidget.c:1342 lib/gtk/albumwidget.c:2582
 msgid "Move to bottom"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:1348
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:2552 lib/gtk/albumwidget.c:1348
-#: lib/gtk/albumwidget.c:2552
+#: lib/gtk/albumwidget.c:1348 lib/gtk/albumwidget.c:2552
 msgid "Cut"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:1360
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:2556 lib/gtk/albumwidget.c:1360
-#: lib/gtk/albumwidget.c:2556
+#: lib/gtk/albumwidget.c:1360 lib/gtk/albumwidget.c:2556
 msgid "Paste"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:1373 lib/gtk/albumwidget.c:1373
+#: lib/gtk/albumwidget.c:1373
 msgid "Info..."
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:1383 lib/gtk/albumwidget.c:1383
+#: lib/gtk/albumwidget.c:1383
 msgid "Refresh"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:1395 lib/gtk/albumwidget.c:1395
+#: lib/gtk/albumwidget.c:1395
 msgid "Save as..."
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:1398 lib/gtk/albumwidget.c:1398
+#: lib/gtk/albumwidget.c:1398
 msgid "Sort"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:1414 lib/gtk/albumwidget.c:1414
+#: lib/gtk/albumwidget.c:1414
 msgid "Edit..."
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:1433 lib/gtk/albumwidget.c:1433
+#: lib/gtk/albumwidget.c:1433
 msgid "Select error tracks"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:1436 lib/gtk/albumwidget.c:1436
+#: lib/gtk/albumwidget.c:1436
 msgid "Show toolbar"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:2542 lib/gtk/albumwidget.c:2542
+#: lib/gtk/albumwidget.c:2542
 msgid "Add files"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:2562 lib/gtk/albumwidget.c:2562
+#: lib/gtk/albumwidget.c:2562
 msgid "Close album and eject disc"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:2568 lib/gtk/albumwidget.c:2568
+#: lib/gtk/albumwidget.c:2568
 msgid "Copy selected tracks to favourites"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:2574 lib/gtk/albumwidget.c:2574
+#: lib/gtk/albumwidget.c:2574
 msgid "Rename selected track"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/albumwidget.c:2577 lib/gtk/albumwidget.c:2577
+#: lib/gtk/albumwidget.c:2577
 msgid "Show track info"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/logwindow.c:233 lib/gtk/logwindow.c:233
+#: lib/gtk/logwindow.c:233
 msgid "Log viewer"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/logwindow.c:319 lib/gtk/logwindow.c:319
+#: lib/gtk/logwindow.c:319
 msgid "Number of messages"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/logwindow.c:322 lib/gtk/logwindow.c:322
+#: lib/gtk/logwindow.c:322
 msgid "Maximum number of messages hold in the window"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/logwindow.c:326 lib/gtk/logwindow.c:326
+#: lib/gtk/logwindow.c:326
 msgid "Show info massages"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/logwindow.c:332 lib/gtk/logwindow.c:332
+#: lib/gtk/logwindow.c:332
 msgid "Show warning massages"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/logwindow.c:338 lib/gtk/logwindow.c:338
+#: lib/gtk/logwindow.c:338
 msgid "Show error massages"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/logwindow.c:344 lib/gtk/logwindow.c:344
+#: lib/gtk/logwindow.c:344
 msgid "Show debug massages"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/logwindow.c:350 lib/gtk/logwindow.c:350
+#: lib/gtk/logwindow.c:350
 msgid "Info foreground"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/logwindow.c:353 lib/gtk/logwindow.c:353
+#: lib/gtk/logwindow.c:353
 msgid "Color for info messages"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/logwindow.c:357 lib/gtk/logwindow.c:357
+#: lib/gtk/logwindow.c:357
 msgid "Warning foreground"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/logwindow.c:360 lib/gtk/logwindow.c:360
+#: lib/gtk/logwindow.c:360
 msgid "Color for warning messages"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/logwindow.c:367 lib/gtk/logwindow.c:367
+#: lib/gtk/logwindow.c:367
 msgid "Color for error messages"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/logwindow.c:371 lib/gtk/logwindow.c:371
+#: lib/gtk/logwindow.c:371
 msgid "Debug foreground"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/logwindow.c:374 lib/gtk/logwindow.c:374
+#: lib/gtk/logwindow.c:374
 msgid "Color for debug messages"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/cfg_time.c:214 lib/gtk/cfg_time.c:214
+#: lib/gtk/cfg_time.c:214
 #, c-format
 msgid "%s (Hours)"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/cfg_time.c:218 lib/gtk/cfg_time.c:218
+#: lib/gtk/cfg_time.c:218
 #, c-format
 msgid "%s (Minutes)"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/cfg_time.c:222 lib/gtk/cfg_time.c:222
+#: lib/gtk/cfg_time.c:222
 #, c-format
 msgid "%s (Seconds)"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/cfg_time.c:226 lib/gtk/cfg_time.c:226
+#: lib/gtk/cfg_time.c:226
 #, c-format
 msgid "%s (Milliseconds)"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/cfg_time.c:250 lib/gtk/cfg_time.c:250
+#: lib/gtk/cfg_time.c:250
 msgid "h:"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/cfg_time.c:255 lib/gtk/cfg_time.c:255
+#: lib/gtk/cfg_time.c:255
 msgid "m:"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/cfg_time.c:259 lib/gtk/cfg_time.c:259
+#: lib/gtk/cfg_time.c:259
 msgid "s:"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/cfg_time.c:263 lib/gtk/cfg_time.c:263
+#: lib/gtk/cfg_time.c:263
 msgid "ms:"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/message.c:81 lib/gtk/message.c:81
+#: lib/gtk/message.c:81
 msgid "Message"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/auth.c:71 lib/gtk/auth.c:71
+#: lib/gtk/auth.c:71
 msgid "Authentication"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/auth.c:101 lib/gtk/auth.c:101
+#: lib/gtk/auth.c:101
 msgid "Save user/password (can be dangerous!)"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/auth.c:112 lib/gtk/auth.c:112
+#: lib/gtk/auth.c:112
 msgid "Enter username and password for"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/auth.c:127 lib/gtk/auth.c:127
+#: lib/gtk/auth.c:127
 msgid "Username"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/auth.c:132 lib/gtk/auth.c:132
+#: lib/gtk/auth.c:132
 msgid "Password"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/cfg_multi_list.c:737 lib/gtk/cfg_multi_list.c:737
+#: lib/gtk/cfg_multi_list.c:737
 #, c-format
 msgid "Add %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/fileselect.c:189 lib/gtk/fileselect.c:189
+#: lib/gtk/fileselect.c:189
 msgid "Recursive"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/fileselect.c:197 lib/gtk/fileselect.c:197
+#: lib/gtk/fileselect.c:197
 msgid "Add subdirectories as subalbums"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/fileselect.c:465 lib/gtk/fileselect.c:465
+#: lib/gtk/fileselect.c:465
 #, c-format
 msgid ""
 "File\n"
@@ -5582,98 +5012,85 @@ msgid ""
 "exists, overwrite?"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/infowindow.c:256 lib/gtk/infowindow.c:256
+#: lib/gtk/infowindow.c:256
 #, c-format
 msgid "Audio stream %d/%d: %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/infowindow.c:262 lib/gtk/infowindow.c:262
+#: lib/gtk/infowindow.c:262
 #, c-format
 msgid "Audio stream %d/%d"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/infowindow.c:287 lib/gtk/infowindow.c:287
+#: lib/gtk/infowindow.c:287
 #, c-format
 msgid "Video stream %d/%d: %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/infowindow.c:293 lib/gtk/infowindow.c:293
+#: lib/gtk/infowindow.c:293
 #, c-format
 msgid "Video stream %d/%d"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/infowindow.c:311 lib/gtk/infowindow.c:311
+#: lib/gtk/infowindow.c:311
 #, c-format
 msgid "Subtitle stream %d/%d: %s [%s]"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/infowindow.c:314
-#: gmerlin-0.3.6/lib/gtk/infowindow.c:320 lib/gtk/infowindow.c:314
-#: lib/gtk/infowindow.c:320
+#: lib/gtk/infowindow.c:314 lib/gtk/infowindow.c:320
 msgid "text"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/infowindow.c:314
-#: gmerlin-0.3.6/lib/gtk/infowindow.c:320 lib/gtk/infowindow.c:314
-#: lib/gtk/infowindow.c:320
+#: lib/gtk/infowindow.c:314 lib/gtk/infowindow.c:320
 msgid "overlay"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/infowindow.c:318 lib/gtk/infowindow.c:318
+#: lib/gtk/infowindow.c:318
 #, c-format
 msgid "Subtitle stream %d/%d [%s]"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/infowindow.c:495 lib/gtk/infowindow.c:495
+#: lib/gtk/infowindow.c:495
 msgid "Gmerlin Track Info"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/infowindow.c:547 lib/gtk/infowindow.c:547
+#: lib/gtk/infowindow.c:547
 msgid "Meta info"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/infowindow.c:573
-#: gmerlin-0.3.6/lib/gtk/infowindow.c:601
-#: gmerlin-0.3.6/lib/gtk/infowindow.c:628 lib/gtk/infowindow.c:573
-#: lib/gtk/infowindow.c:601 lib/gtk/infowindow.c:628
+#: lib/gtk/infowindow.c:573 lib/gtk/infowindow.c:601 lib/gtk/infowindow.c:628
 msgid "Stream type"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/infowindow.c:579
-#: gmerlin-0.3.6/lib/gtk/infowindow.c:607 lib/gtk/infowindow.c:579
-#: lib/gtk/infowindow.c:607
+#: lib/gtk/infowindow.c:579 lib/gtk/infowindow.c:607
 msgid "Input format"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/plugin_single.c:313
-#: gmerlin-0.3.6/lib/gtk/plugin_multi.c:272 lib/gtk/plugin_single.c:313
-#: lib/gtk/plugin_multi.c:272
+#: lib/gtk/plugin_single.c:313 lib/gtk/plugin_multi.c:272
 msgid "Plugin options"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/plugin_single.c:318
-#: gmerlin-0.3.6/lib/gtk/plugin_multi.c:269 lib/gtk/plugin_single.c:318
-#: lib/gtk/plugin_multi.c:269
+#: lib/gtk/plugin_single.c:318 lib/gtk/plugin_multi.c:269
 msgid "Plugin info"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/plugin_single.c:325 lib/gtk/plugin_single.c:325
+#: lib/gtk/plugin_single.c:325
 msgid "Audio options"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/plugin_single.c:333 lib/gtk/plugin_single.c:333
+#: lib/gtk/plugin_single.c:333
 msgid "Video options"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/cfg_dialog.c:392 lib/gtk/cfg_dialog.c:392
+#: lib/gtk/cfg_dialog.c:392
 msgid "No options here, choose subcategory"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/cfg_dialog.c:479 lib/gtk/cfg_dialog.c:479
+#: lib/gtk/cfg_dialog.c:479
 msgid "No options available"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/albumentry.c:48 lib/gtk/albumentry.c:48
+#: lib/gtk/albumentry.c:48
 #, c-format
 msgid ""
 "Name:\t %s\n"
@@ -5686,95 +5103,95 @@ msgid ""
 "Subtitle Streams:\t %d"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/albumentry.c:52 lib/gtk/albumentry.c:52
+#: lib/gtk/albumentry.c:52
 msgid "Auto detect"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/plugininfo.c:145 lib/gtk/plugininfo.c:145
+#: lib/gtk/plugininfo.c:145
 msgid "Audio output"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/plugininfo.c:146 lib/gtk/plugininfo.c:146
+#: lib/gtk/plugininfo.c:146
 msgid "Video output"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/plugininfo.c:147 lib/gtk/plugininfo.c:147
+#: lib/gtk/plugininfo.c:147
 msgid "Audio recorder"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/plugininfo.c:148 lib/gtk/plugininfo.c:148
+#: lib/gtk/plugininfo.c:148
 msgid "Video recorder"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/plugininfo.c:149 lib/gtk/plugininfo.c:149
+#: lib/gtk/plugininfo.c:149
 msgid "Audio encoder"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/plugininfo.c:150 lib/gtk/plugininfo.c:150
+#: lib/gtk/plugininfo.c:150
 msgid "Video encoder"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/plugininfo.c:152 lib/gtk/plugininfo.c:152
+#: lib/gtk/plugininfo.c:152
 msgid "Overlay subtitle exporter"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/plugininfo.c:153 lib/gtk/plugininfo.c:153
+#: lib/gtk/plugininfo.c:153
 msgid "Audio/Video encoder"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/plugininfo.c:154 lib/gtk/plugininfo.c:154
+#: lib/gtk/plugininfo.c:154
 msgid "Image reader"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/plugininfo.c:155 lib/gtk/plugininfo.c:155
+#: lib/gtk/plugininfo.c:155
 msgid "Image writer"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/plugininfo.c:156 lib/gtk/plugininfo.c:156
+#: lib/gtk/plugininfo.c:156
 msgid "Encoding postprocessor"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/plugininfo.c:157 lib/gtk/plugininfo.c:157
+#: lib/gtk/plugininfo.c:157
 msgid "Audio filter"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/plugininfo.c:158 lib/gtk/plugininfo.c:158
+#: lib/gtk/plugininfo.c:158
 msgid "Video filter"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/plugininfo.c:169 lib/gtk/plugininfo.c:169
+#: lib/gtk/plugininfo.c:169
 msgid "Removable Device"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/plugininfo.c:172 lib/gtk/plugininfo.c:172
+#: lib/gtk/plugininfo.c:172
 msgid "URL"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/plugininfo.c:173 lib/gtk/plugininfo.c:173
+#: lib/gtk/plugininfo.c:173
 msgid "Playback"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/plugininfo.c:174 lib/gtk/plugininfo.c:174
+#: lib/gtk/plugininfo.c:174
 msgid "Bypass"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/plugininfo.c:175 lib/gtk/plugininfo.c:175
+#: lib/gtk/plugininfo.c:175
 msgid "Keep Running"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/plugininfo.c:176 lib/gtk/plugininfo.c:176
+#: lib/gtk/plugininfo.c:176
 msgid "Has Sync"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/plugininfo.c:177 lib/gtk/plugininfo.c:177
+#: lib/gtk/plugininfo.c:177
 msgid "Tuner"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/plugininfo.c:178 lib/gtk/plugininfo.c:178
+#: lib/gtk/plugininfo.c:178
 msgid "Filter with 1 input"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/plugininfo.c:248 lib/gtk/plugininfo.c:248
+#: lib/gtk/plugininfo.c:248
 #, c-format
 msgid ""
 "Name:\t %s\n"
@@ -5785,47 +5202,47 @@ msgid ""
 "DLL Filename:\t %s"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/plugin_multi.c:383 lib/gtk/plugin_multi.c:383
+#: lib/gtk/plugin_multi.c:383
 msgid "Priority"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/plugin_multi.c:393 lib/gtk/plugin_multi.c:393
+#: lib/gtk/plugin_multi.c:393
 msgid "Protocols"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/plugin_multi.c:401 lib/gtk/plugin_multi.c:401
+#: lib/gtk/plugin_multi.c:401
 msgid "Extensions"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/driveselect.c:382 lib/gtk/driveselect.c:382
+#: lib/gtk/driveselect.c:382
 msgid "Plugin:"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/driveselect.c:388 lib/gtk/driveselect.c:388
+#: lib/gtk/driveselect.c:388
 msgid "Drive:"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/gtk/cfg_device.c:311 lib/gtk/cfg_device.c:311
+#: lib/gtk/cfg_device.c:311
 msgid "Delete"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_enc.c:102 lib/transcoder_enc.c:102
+#: lib/transcoder_enc.c:102
 msgid "No video encoder found, check installation"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_enc.c:115 lib/transcoder_enc.c:115
+#: lib/transcoder_enc.c:115
 msgid "No audio encoder found, check installation"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_enc.c:129 lib/transcoder_enc.c:129
+#: lib/transcoder_enc.c:129
 msgid "No encoder for text subtitles found, check installation"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/transcoder_enc.c:144 lib/transcoder_enc.c:144
+#: lib/transcoder_enc.c:144
 msgid "No encoder for overlay subtitles found, check installation"
 msgstr ""
 
-#: gmerlin-0.3.6/lib/player_oa.c:295 lib/player_oa.c:295
+#: lib/player_oa.c:295
 #, c-format
 msgid "Got initial audio timestamp: %s"
 msgstr ""

@@ -585,8 +585,7 @@ void * bg_player_ov_thread(void * data)
     
     /* Check Timing */
     bg_player_time_get(ctx->player, 1, &current_time);
-
-
+    
     diff_time =  ctx->frame_time - current_time;
     
     /* Wait until we can display the frame */

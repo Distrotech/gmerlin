@@ -43,6 +43,8 @@ struct bg_player_input_context_s
   int64_t audio_samples_written;
   int64_t video_frames_written;
 
+  int has_first_audio_timestamp;
+  
   /* Internal times */
 
   gavl_time_t audio_time;
@@ -296,6 +298,7 @@ int bg_player_input_start(bg_player_input_context_t * ctx)
       return 0;
       }
     }
+  ctx->has_first_audio_timestamp = 0;
   return 1;
   }
 
@@ -430,6 +433,12 @@ bg_player_input_read_audio(void * priv, gavl_audio_frame_t * frame, int stream, 
   bg_plugin_lock(ctx->plugin_handle);
   result = ctx->plugin->read_audio_samples(ctx->priv, frame, stream, samples);
   bg_plugin_unlock(ctx->plugin_handle);
+
+  if(!ctx->has_first_audio_timestamp)
+    {
+    ctx->audio_samples_written += frame->time_scaled;
+    ctx->has_first_audio_timestamp = 1;
+    }
   
   ctx->audio_samples_written += frame->valid_samples;
   
