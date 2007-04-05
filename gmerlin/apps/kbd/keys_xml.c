@@ -4,7 +4,7 @@
 #include <libxml/tree.h>
 #include <libxml/parser.h>
 
-#include <gmerlin/utils.h>
+#include <utils.h>
 
 #include "kbd.h"
 

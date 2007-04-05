@@ -1295,8 +1295,8 @@ static int open_x11(void * data,
 
 static void close_x11(void * data)
   {
-#ifdef HAVE_LIBXV
   x11_t * priv = (x11_t*)data;
+#ifdef HAVE_LIBXV
   if(priv->do_xv)
     {
     XvUngrabPort(priv->dpy, priv->xv_port, CurrentTime);
@@ -1525,6 +1525,7 @@ static int handle_event(x11_t * priv, XEvent * evt)
           else
             done = 0;
           break;
+#ifdef HAVE_LIBXV
         case XK_B:
 	  if(!priv->brightness_parameter)
 	    break;
@@ -1634,6 +1635,7 @@ static int handle_event(x11_t * priv, XEvent * evt)
                                                  priv->contrast_f);
           
           break;
+#endif // HAVE_LIBXV
         default:
           done = 0;
         }

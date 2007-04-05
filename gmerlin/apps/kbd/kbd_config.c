@@ -15,7 +15,7 @@
 #include <remote.h>
 #include <log.h>
 #define LOG_DOMAIN "gmerlin_kbd_config"
-#include <gmerlin/subprocess.h>
+#include <subprocess.h>
 
 static int ignore_mask = GDK_MOD2_MASK;
 

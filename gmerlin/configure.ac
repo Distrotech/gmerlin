@@ -161,7 +161,7 @@ AC_TRY_LINK([#include <X11/Xlib.h>
             [XINERAMA_LIBS="-lXinerama";have_xinerama=true;AC_MSG_RESULT("Yes")],
 	    AC_MSG_RESULT("No"))
 
-if test x$have_xinerama="xtrue"; then
+if test x$have_xinerama = "xtrue"; then
 AC_DEFINE(HAVE_LIBXINERAMA)
 fi
 
@@ -203,7 +203,7 @@ AC_TRY_LINK([#include <X11/Xlib.h>
             [XV_LIBS="-lXv";have_xv=true;AC_MSG_RESULT("Yes")],
 	    AC_MSG_RESULT("No"))
 
-if test x$have_xv="xtrue"; then
+if test x$have_xv = "xtrue"; then
 AC_DEFINE(HAVE_LIBXV)
 fi
 
@@ -245,7 +245,7 @@ AC_TRY_LINK([#include <X11/Xlib.h>
             [XDPMS_LIBS="-lXext";have_xdpms=true;AC_MSG_RESULT("Yes")],
 	    AC_MSG_RESULT("No"))
 
-if test x$have_xdpms="xtrue"; then
+if test x$have_xdpms = "xtrue"; then
 AC_DEFINE(HAVE_XDPMS)
 fi
 
