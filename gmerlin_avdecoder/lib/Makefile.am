@@ -214,13 +214,6 @@ xadll_sources =
 xadll_libs = 
 endif
 
-if HAVE_LINUXDVB
-dvb_sources = dvb_channels.c in_dvb_linux.c
-else
-dvb_sources = 
-endif
-
-
 SUBDIRS = $(win32_subdirs) GSM610
 
 libgmerlin_avdec_la_LDFLAGS=-export-dynamic
@@ -354,10 +347,12 @@ demux_wav.c \
 demux_wavpack.c \
 demux_wve.c \
 device.c \
+dvb_channels.c \
 dvframe.c \
 http.c \
 id3v1.c \
 id3v2.c \
+in_dvb_linux.c \
 in_dvd.c \
 in_fd.c \
 in_file.c \

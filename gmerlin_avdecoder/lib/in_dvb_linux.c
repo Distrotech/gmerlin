@@ -1144,4 +1144,4 @@ int bgav_open_dvb(bgav_t * b, const char * device)
   return 0;
   }
 
-#endif
+#endif // !HAVE_LINUXDVB
