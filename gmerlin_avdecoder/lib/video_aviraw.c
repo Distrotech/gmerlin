@@ -176,14 +176,14 @@ static int init_aviraw(bgav_stream_t * s)
     case 1:
       if(s->data.video.palette_size < 2)
         bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-                 "Warning: Palette too small %d < 2",
+                 "Palette too small %d < 2",
                 s->data.video.palette_size);
       priv->scanline_func = scanline_1;
       break;
     case 4:
       if(s->data.video.palette_size < 16)
         bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-                 "Warning: Palette too small %d < 16",
+                 "Palette too small %d < 16",
                 s->data.video.palette_size);
       priv->scanline_func = scanline_4;
       break;
@@ -191,7 +191,7 @@ static int init_aviraw(bgav_stream_t * s)
     case 8:
       if(s->data.video.palette_size < 256)
         bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-                 "Warning: Palette too small %d < 256",
+                 "Palette too small %d < 256",
                 s->data.video.palette_size);
       priv->scanline_func = scanline_8;
       break;

@@ -261,7 +261,6 @@ static void get_video_format_lqt(void * data, int stream,
                                  gavl_video_format_t * ret)
   {
   e_lqt_t * e = (e_lqt_t*)data;
-  
   gavl_video_format_copy(ret, &(e->video_streams[stream].format));
   }
 
@@ -280,7 +279,7 @@ static int start_lqt(void * data)
     {
     lqt_gavl_get_video_format(e->file,
                               i,
-                              &(e->video_streams[i].format));
+                              &(e->video_streams[i].format), 1);
     }
   
   /* Add the subtitle tracks */
@@ -347,7 +346,6 @@ static int write_video_frame_lqt(void * data, gavl_video_frame_t* frame,
                                 frame->time_scaled);
   if(e->duration < test_time)
     e->duration = test_time;
-
   
   return !lqt_gavl_encode_video(e->file, stream, frame,
                                 e->video_streams[stream].rows);
@@ -633,6 +631,7 @@ static void set_video_parameter_lqt(void * data, int stream, char * name,
   if(!name)
     return;
 
+  
   if(!strcmp(name, "codec"))
     {
     /* Now we can add the stream */
@@ -657,11 +656,6 @@ static void set_video_parameter_lqt(void * data, int stream, char * name,
     
     lqt_gavl_add_video_track(e->file, &e->video_streams[stream].format,
                              *e->video_streams[stream].codec_info);
-    
-    /* Request constant framerate for AVI files */
-
-    if(e->file_type == LQT_FILE_AVI)
-      e->video_streams[stream].format.framerate_mode = GAVL_FRAMERATE_CONSTANT;
     
     e->video_streams[stream].rows = lqt_gavl_rows_create(e->file, stream);
     }

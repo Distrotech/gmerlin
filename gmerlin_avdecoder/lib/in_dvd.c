@@ -752,7 +752,8 @@ read_nav(bgav_input_context_t * ctx, int sector, int *next)
   
   if(DVDReadBlocks(d->dvd_file, sector, 1, buf) != 1)
     {
-    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "error reading NAV packet @%i", sector);
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Reading NAV packet at sector %d failed", sector);
     return -1;
     }
   
@@ -854,7 +855,7 @@ static int read_sector_dvd(bgav_input_context_t * ctx, uint8_t * data)
       l = DVDReadBlocks(d->dvd_file, d->pack, 1, data);
       if(l < 1)
         {
-        bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "error reading blocks @%i", d->pack);
+        bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Reading blocks at %d failed", d->pack);
         return 0;
         }
       //      bgav_hexdump(data, 32, 16);
@@ -1023,7 +1024,7 @@ static void seek_time_dvd(bgav_input_context_t * ctx, gavl_time_t t)
     if(DVDReadBlocks(dvd->dvd_file, dvd->npack, 1, buf) != 1)
       {
       bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-               "error reading NAV packet @%i", dvd->npack);
+               "Reading NAV packet at sector %d failed", dvd->npack);
       return;
       }
     if(!is_nav_pack(buf))
@@ -1088,14 +1089,14 @@ static void seek_time_dvd(bgav_input_context_t * ctx, gavl_time_t t)
 
   time_scaled = gavl_time_scale(90000, time);
   
-  
+#if 0  
   for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
     ctx->tt->cur->audio_streams[i].time_scaled = time_scaled;
   for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
     ctx->tt->cur->video_streams[i].time_scaled = time_scaled;
   for(i = 0; i < ctx->tt->cur->num_subtitle_streams; i++)
     ctx->tt->cur->subtitle_streams[i].time_scaled = time_scaled;
-  
+#endif
 
   ctx->demuxer->timestamp_offset = time_scaled - (int64_t)pci_pack.pci_gi.vobu_s_ptm;
   dvd->last_vobu_end_pts = pci_pack.pci_gi.vobu_s_ptm;

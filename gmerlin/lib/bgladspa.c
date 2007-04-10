@@ -253,10 +253,7 @@ static bg_plugin_info_t * get_info(const LADSPA_Descriptor * desc)
     {
     /* Unsupported */
     ret->flags       |= BG_PLUGIN_UNSUPPORTED;
-    fprintf(stderr, "Unsupported ladspa plugin %s\n", ret->long_name);
     }
-  else
-    fprintf(stderr, "Added Ladspa plugin %s\n", ret->long_name);
   
   ret->parameters = create_parameters(desc);
   return ret;
@@ -275,7 +272,7 @@ bg_plugin_info_t * bg_ladspa_get_info(void * dll_handle, const char * filename)
   desc_func = dlsym(dll_handle, "ladspa_descriptor");
   if(!desc_func)
     {
-    fprintf(stderr, "No symbol \"ladspa_descriptor\" found: %s\n",
+    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "No symbol \"ladspa_descriptor\" found: %s",
             dlerror());
     return (bg_plugin_info_t *)0;
     }
@@ -532,8 +529,9 @@ static int read_audio_ladspa(void * priv,
       gavl_audio_frame_copy(&lp->format, frame, lp->frame,
                             0, 0, lp->frame->valid_samples,
                             lp->frame->valid_samples);
+    frame->time_scaled = lp->frame->time_scaled;
     }
-
+  
   connect_output(lp, frame);
   
   /* Run */

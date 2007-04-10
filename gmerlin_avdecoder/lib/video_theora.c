@@ -119,7 +119,7 @@ static int init_theora(bgav_stream_t * s)
       break;
     default:
       bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-               "Error, unknown pixelformat %d",
+               "Unknown pixelformat %d",
               priv->ti.pixelformat);
       return 0;
     }

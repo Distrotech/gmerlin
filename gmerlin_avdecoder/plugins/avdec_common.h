@@ -95,7 +95,7 @@ bg_device_info_t * bg_avdec_get_devices(bgav_device_info_t *);
   long_name: TRS("Dynamic range control"),         \
   type: BG_PARAMETER_CHECKBUTTON,           \
   val_default: { val_i: 1 },              \
-  help_string: TRS("Enable dynamic range control for codecs, which support this (currently only A52).") \
+  help_string: TRS("Enable dynamic range control for codecs, which support this (currently only A52 and DTS).") \
   }
 
 #define PARAM_PP_LEVEL \

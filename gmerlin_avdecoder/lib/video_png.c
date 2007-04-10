@@ -66,7 +66,7 @@ static int decode_png(bgav_stream_t * s, gavl_video_frame_t * frame)
         free(error_msg);
         }
       else
-        bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "reading png header failed");
+        bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Reading png header failed");
         
       return 0;
       }

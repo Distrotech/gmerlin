@@ -206,7 +206,7 @@ void bg_gtk_create_stringlist(bg_gtk_widget_t * w,
     while(info->multi_labels[i])
       {
       gtk_combo_box_append_text(GTK_COMBO_BOX(priv->combo),
-                                info->multi_labels[i]);
+                                TR_DOM(info->multi_labels[i]));
       i++;
       }
     }

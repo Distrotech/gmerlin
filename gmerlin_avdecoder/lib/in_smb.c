@@ -94,7 +94,7 @@ static int open_smb(bgav_input_context_t * ctx, const char * url)
   if (err < 0)
     {
     bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-             "Initialization of samba failed(error: %d)", err);
+             "Initialization of samba failed (error: %d)", err);
     pthread_mutex_unlock(&auth_mutex);
     goto fail;
     }

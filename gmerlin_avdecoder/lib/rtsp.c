@@ -200,7 +200,7 @@ int bgav_rtsp_request_describe(bgav_rtsp_t *rtsp, int * got_redirected)
      content_length)
     {
     bgav_log(rtsp->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-             "Reading session dscription failed");
+             "Reading session description failed");
     goto fail;
     }
 

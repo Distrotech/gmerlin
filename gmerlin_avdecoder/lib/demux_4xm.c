@@ -461,7 +461,7 @@ static int next_packet_4xm(bgav_demuxer_context_t * ctx)
         break;
       default:
         bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-                 "Warning: Unknown Chunk %c%c%c%c",
+                 "Unknown Chunk %c%c%c%c",
                  (fourcc & 0xFF000000) >> 24,
                  (fourcc & 0x00FF0000) >> 16,
                  (fourcc & 0x0000FF00) >> 8,

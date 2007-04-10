@@ -160,7 +160,7 @@ static int init_qtaudio(bgav_stream_t * s)
   if ( priv->InitializeQTML == NULL )
     {
     bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, 
-	     "qt_audio: failed getting proc address InitializeQTML");
+	     "Getting proc address InitializeQTML failed");
     goto fail;
     }
   priv->SoundConverterOpen =
@@ -168,7 +168,7 @@ static int init_qtaudio(bgav_stream_t * s)
   if ( priv->SoundConverterOpen == NULL )
     {
     bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, 
-	     "qt_audio: failed getting proc address SoundConverterOpen");
+	     "Getting proc address SoundConverterOpen failed");
     goto fail;
     }
   
@@ -177,7 +177,7 @@ static int init_qtaudio(bgav_stream_t * s)
   if ( priv->SoundConverterClose == NULL )
     {
     bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, 
-	     "qt_audio: failed getting proc address SoundConverterClose");
+	     "Getting proc address SoundConverterClose failed");
     goto fail;
     }
   priv->TerminateQTML =
@@ -185,7 +185,7 @@ static int init_qtaudio(bgav_stream_t * s)
   if ( priv->TerminateQTML == NULL )
     {
     bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, 
-	     "qt_audio: failed getting proc address TerminateQTML");
+	     "Getting proc address TerminateQTML failed");
     goto fail;
     }
   priv->SoundConverterSetInfo =
@@ -193,7 +193,7 @@ static int init_qtaudio(bgav_stream_t * s)
   if ( priv->SoundConverterSetInfo == NULL )
     {
     bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, 
-	     "qt_audio: failed getting proc address SoundConverterSetInfo");
+	     "Getting proc address SoundConverterSetInfo failed");
     goto fail;
     }
   priv->SoundConverterGetBufferSizes =
@@ -201,7 +201,7 @@ static int init_qtaudio(bgav_stream_t * s)
   if ( priv->SoundConverterGetBufferSizes == NULL )
     {
     bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, 
-	     "qt_audio: failed getting proc address SoundConverterGetBufferSizes");
+	     "Getting proc address SoundConverterGetBufferSizes failed");
     goto fail;
     }
   priv->SoundConverterConvertBuffer =
@@ -209,7 +209,7 @@ static int init_qtaudio(bgav_stream_t * s)
   if ( priv->SoundConverterConvertBuffer == NULL )
     {
     bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, 
-	     "qt_audio: failed getting proc address SoundConverterConvertBuffer1");
+	     "Getting proc address SoundConverterConvertBuffer1 failed");
     goto fail;
     }
   priv->SoundConverterEndConversion =
@@ -217,7 +217,7 @@ static int init_qtaudio(bgav_stream_t * s)
   if ( priv->SoundConverterEndConversion == NULL )
     {
     bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, 
-	     "qt_audio: failed getting proc address SoundConverterEndConversion");
+	     "Getting proc address SoundConverterEndConversion failed");
     goto fail;
     }
   priv->SoundConverterBeginConversion =
@@ -225,7 +225,7 @@ static int init_qtaudio(bgav_stream_t * s)
   if ( priv->SoundConverterBeginConversion == NULL )
     {
     bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, 
-	     "qt_audio: failed getting proc address SoundConverterBeginConversion");
+	     "Getting proc address SoundConverterBeginConversion failed");
     goto fail;
     }
 

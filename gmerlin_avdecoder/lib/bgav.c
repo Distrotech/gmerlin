@@ -276,8 +276,6 @@ int bgav_select_track(bgav_t * b, int track)
   if((track < 0) || (track >= b->tt->num_tracks))
     return 0;
 
-  fprintf(stderr, "bgav_select_track %d\n",
-          b->is_running);
   
   if(b->is_running)
     {

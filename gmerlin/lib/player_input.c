@@ -436,7 +436,7 @@ bg_player_input_read_audio(void * priv, gavl_audio_frame_t * frame, int stream, 
 
   if(!ctx->has_first_audio_timestamp)
     {
-    ctx->audio_samples_written += frame->time_scaled;
+    ctx->audio_samples_written = frame->time_scaled;
     ctx->has_first_audio_timestamp = 1;
     }
   
@@ -484,7 +484,6 @@ static int process_audio(bg_player_input_context_t * ctx, int preload)
   bg_player_audio_stream_t * s;
   bg_fifo_state_t state;
   s = &(ctx->player->audio_stream);
-  
 
   if(ctx->send_silence)
     {
@@ -598,7 +597,7 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
   gavl_video_frame_t * video_frame;
   bg_player_video_stream_t * s;
   s = &(ctx->player->video_stream);
-  
+
   if(preload)
     video_frame = (gavl_video_frame_t*)bg_fifo_try_lock_write(s->fifo,
                                                               &state);

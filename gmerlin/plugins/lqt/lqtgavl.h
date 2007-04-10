@@ -153,12 +153,13 @@ int lqt_gavl_get_audio_format(quicktime_t * file,
  *  \param file A quicktime handle
  *  \param track Track index (starting with 0)
  *  \param format Returns the format.
+ *  \param encode Set to 1 if encoding, 0 for decoding
  *  \returns 1 on success, 0 if there is no such track.
  */
 
 int lqt_gavl_get_video_format(quicktime_t * file,
                               int track,
-                              gavl_video_format_t * format);
+                              gavl_video_format_t * format, int encode);
 
 /* Decode audio/video */
 

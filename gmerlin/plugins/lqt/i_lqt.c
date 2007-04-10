@@ -479,7 +479,7 @@ static int start_lqt(void * data)
     {
     lqt_gavl_get_video_format(e->file,
                               e->video_streams[i].quicktime_index,
-                              &(e->track_info.video_streams[i].format));
+                              &(e->track_info.video_streams[i].format), 0);
     }
   return 1;
   }

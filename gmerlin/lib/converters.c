@@ -134,7 +134,8 @@ struct bg_video_converter_s
   
   int convert_gavl;
   int convert_framerate;
-
+  int rescale_timestamps;
+  
   gavl_video_format_t in_format;
   gavl_video_format_t out_format;
 
@@ -157,6 +158,10 @@ int bg_video_converter_init(bg_video_converter_t * cnv,
   {
   gavl_video_options_t * cnv_opt;
   int ret;
+
+  cnv->convert_framerate  = 0;
+  cnv->convert_gavl       = 0;
+  cnv->rescale_timestamps = 0;
   
   /* Free previous stuff */
   if(cnv->frame)
@@ -194,6 +199,11 @@ int bg_video_converter_init(bg_video_converter_t * cnv,
              (cnv->out_format.framerate_mode == GAVL_FRAMERATE_VARIABLE ? "nonconstant" : "constant"));
       }
     }
+  if(!cnv->convert_framerate)
+    {
+    if(in_format->timescale != out_format->timescale)
+      cnv->rescale_timestamps = 1;
+    }
   
   if(cnv->convert_gavl || cnv->convert_framerate)
     {
@@ -210,10 +220,9 @@ int bg_video_converter_init(bg_video_converter_t * cnv,
   cnv->out_pts = 0;
   cnv->eof = 0;
 
-  ret = cnv->convert_framerate + cnv->convert_gavl;
+  ret = cnv->convert_framerate + cnv->convert_gavl + cnv->rescale_timestamps;
   
-  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Initialized video converter, %d steps",
-         ret);
+  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Initialized video converter, %d steps", ret);
   return ret;
   }
 
@@ -236,9 +245,19 @@ int bg_video_converter_read(void * priv, gavl_video_frame_t* frame, int stream)
   
   if(!cnv->convert_framerate)
     {
-    result = cnv->read_func(cnv->read_priv, cnv->frame, cnv->read_stream);
-    if(result)
-      gavl_video_convert(cnv->cnv, cnv->frame, frame);
+    if(cnv->convert_gavl)
+      {
+      result = cnv->read_func(cnv->read_priv, cnv->frame, cnv->read_stream);
+      if(result)
+        gavl_video_convert(cnv->cnv, cnv->frame, frame);
+      }
+    else
+      result = cnv->read_func(cnv->read_priv, frame, cnv->read_stream);
+    if(cnv->rescale_timestamps)
+      frame->time_scaled = gavl_time_rescale(cnv->in_format.timescale,
+                                             cnv->out_format.timescale,
+                                             frame->time_scaled);
+    
     return result;
     }
   else
@@ -253,7 +272,7 @@ int bg_video_converter_read(void * priv, gavl_video_frame_t* frame, int stream)
       return 0;
     
     in_pts = gavl_time_rescale(cnv->out_format.timescale,
-                               cnv->out_format.timescale,
+                               cnv->in_format.timescale,
                                cnv->out_pts);
     /* Last frame was already returned */
     if(cnv->eof)

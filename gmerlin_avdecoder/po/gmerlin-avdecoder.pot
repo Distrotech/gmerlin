@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-04-04 20:51+0200\n"
+"POT-Creation-Date: 2007-04-10 22:08+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -223,7 +223,7 @@ msgstr ""
 #: plugins/avdec_common.h:98
 msgid ""
 "Enable dynamic range control for codecs, which support this (currently only "
-"A52)."
+"A52 and DTS)."
 msgstr ""
 
 #: plugins/avdec_common.h:104
@@ -273,7 +273,7 @@ msgid "Lost sync"
 msgstr ""
 
 #: lib/rtsp.c:203
-msgid "Reading session dscription failed"
+msgid "Reading session description failed"
 msgstr ""
 
 #: lib/qt_esds.c:118
@@ -397,7 +397,7 @@ msgstr ""
 
 #: lib/rmff.c:907
 #, c-format
-msgid "Error, unsupported packet header version: %d"
+msgid "Unsupported packet header version: %d"
 msgstr ""
 
 #: lib/demux_sphere.c:229
@@ -442,14 +442,14 @@ msgstr ""
 msgid "Codec DLL %s not found"
 msgstr ""
 
-#: lib/video.c:157
+#: lib/video.c:159
 #, c-format
 msgid "Cannot skip backwards, stream_time: %s, sync_time: %s"
 msgstr ""
 
 #: lib/in_smb.c:97
 #, c-format
-msgid "Initialization of samba failed(error: %d)"
+msgid "Initialization of samba failed (error: %d)"
 msgstr ""
 
 #: lib/in_smb.c:105
@@ -525,11 +525,11 @@ msgstr ""
 
 #: lib/in_dvb_linux.c:732
 #, c-format
-msgid "Cannot open frontent device %s"
+msgid "Cannot open frontend device %s"
 msgstr ""
 
 #: lib/in_dvb_linux.c:739
-msgid "Cannot get frontent info"
+msgid "Cannot get frontend info"
 msgstr ""
 
 #: lib/in_dvb_linux.c:748
@@ -561,8 +561,8 @@ msgstr ""
 msgid "EOF"
 msgstr ""
 
-#: lib/video_png.c:69
-msgid "reading png header failed"
+#: lib/video_png.c:69 lib/subread.c:419
+msgid "Reading png header failed"
 msgstr ""
 
 #: lib/video_png.c:104
@@ -590,17 +590,17 @@ msgstr ""
 msgid "ifoOpen failed"
 msgstr ""
 
-#: lib/in_dvd.c:755 lib/in_dvd.c:1026
+#: lib/in_dvd.c:756 lib/in_dvd.c:1027
 #, c-format
-msgid "error reading NAV packet @%i"
+msgid "Reading NAV packet at sector %d failed"
 msgstr ""
 
-#: lib/in_dvd.c:857
+#: lib/in_dvd.c:858
 #, c-format
-msgid "error reading blocks @%i"
+msgid "Reading blocks at %d failed"
 msgstr ""
 
-#: lib/in_dvd.c:1209
+#: lib/in_dvd.c:1210
 #, c-format
 msgid "Cannot open DVD Device %s"
 msgstr ""
@@ -624,7 +624,7 @@ msgstr ""
 msgid "Detected MPEG still image"
 msgstr ""
 
-#: lib/video_libmpeg2.c:426
+#: lib/video_libmpeg2.c:424
 msgid "Detected Intra slice refresh"
 msgstr ""
 
@@ -695,7 +695,7 @@ msgstr ""
 
 #: lib/demux_vivo.c:323
 #, c-format
-msgid "Warning, unknown timestamp type: %s"
+msgid "Unknown timestamp type: %s"
 msgstr ""
 
 #: lib/demux_vivo.c:576
@@ -719,17 +719,17 @@ msgstr ""
 
 #: lib/video_aviraw.c:179
 #, c-format
-msgid "Warning: Palette too small %d < 2"
+msgid "Palette too small %d < 2"
 msgstr ""
 
 #: lib/video_aviraw.c:186
 #, c-format
-msgid "Warning: Palette too small %d < 16"
+msgid "Palette too small %d < 16"
 msgstr ""
 
 #: lib/video_aviraw.c:194
 #, c-format
-msgid "Warning: Palette too small %d < 256"
+msgid "Palette too small %d < 256"
 msgstr ""
 
 #: lib/video_aviraw.c:220
@@ -762,7 +762,7 @@ msgstr ""
 
 #: lib/demux_ogg.c:680
 #, c-format
-msgid "Warning, unsupported stream (serialno: %d)"
+msgid "Unsupported stream (serialno: %d)"
 msgstr ""
 
 #: lib/demux_ogg.c:1035
@@ -780,7 +780,7 @@ msgstr ""
 
 #: lib/demux_4xm.c:464
 #, c-format
-msgid "Warning: Unknown Chunk %c%c%c%c"
+msgid "Unknown Chunk %c%c%c%c"
 msgstr ""
 
 #: lib/r_smil.c:397
@@ -888,20 +888,20 @@ msgstr ""
 
 #: lib/video_xadll.c:322
 #, c-format
-msgid "xacodec: failed to init %s"
+msgid "failed to init %s"
 msgstr ""
 
 #: lib/video_xadll.c:329
-msgid "xacodec: initializer function failed"
+msgid "initializer function failed"
 msgstr ""
 
 #: lib/video_xadll.c:334
 #, c-format
-msgid "xacodec: not supported api revision (%d)"
+msgid "Unsupported api revision (%d)"
 msgstr ""
 
 #: lib/video_xadll.c:341
-msgid "xacodec: function table error"
+msgid "function table error"
 msgstr ""
 
 #: lib/video_xadll.c:376
@@ -923,7 +923,7 @@ msgid "Non interleaved file from non seekable source"
 msgstr ""
 
 #: lib/demuxer.c:762
-msgid "Warning: Undefined sync time after seeking"
+msgid "Undefined sync time after seeking"
 msgstr ""
 
 #: lib/subread.c:391 lib/subread.c:546
@@ -944,10 +944,6 @@ msgstr ""
 msgid "Reading png header failed: %s"
 msgstr ""
 
-#: lib/subread.c:419
-msgid "Reading png header failed"
-msgstr ""
-
 #: lib/subread.c:434
 msgid "Overlay too large"
 msgstr ""
@@ -962,7 +958,7 @@ msgid "Parsing spumux file failed"
 msgstr ""
 
 #: lib/subread.c:557
-msgid "Error parsing start start attribute"
+msgid "Error parsing start attribute"
 msgstr ""
 
 #: lib/mms.c:245
@@ -1287,7 +1283,7 @@ msgstr ""
 msgid "Cannot detect stream type"
 msgstr ""
 
-#: lib/bgav.c:361
+#: lib/bgav.c:359
 msgid "Reopening input due to track reset"
 msgstr ""
 
@@ -1419,39 +1415,39 @@ msgid "Cannot open qtmlClient.dll"
 msgstr ""
 
 #: lib/audio_qtwin32.c:163
-msgid "qt_audio: failed getting proc address InitializeQTML"
+msgid "Getting proc address InitializeQTML failed"
 msgstr ""
 
 #: lib/audio_qtwin32.c:171
-msgid "qt_audio: failed getting proc address SoundConverterOpen"
+msgid "Getting proc address SoundConverterOpen failed"
 msgstr ""
 
 #: lib/audio_qtwin32.c:180
-msgid "qt_audio: failed getting proc address SoundConverterClose"
+msgid "Getting proc address SoundConverterClose failed"
 msgstr ""
 
 #: lib/audio_qtwin32.c:188
-msgid "qt_audio: failed getting proc address TerminateQTML"
+msgid "Getting proc address TerminateQTML failed"
 msgstr ""
 
 #: lib/audio_qtwin32.c:196
-msgid "qt_audio: failed getting proc address SoundConverterSetInfo"
+msgid "Getting proc address SoundConverterSetInfo failed"
 msgstr ""
 
 #: lib/audio_qtwin32.c:204
-msgid "qt_audio: failed getting proc address SoundConverterGetBufferSizes"
+msgid "Getting proc address SoundConverterGetBufferSizes failed"
 msgstr ""
 
 #: lib/audio_qtwin32.c:212
-msgid "qt_audio: failed getting proc address SoundConverterConvertBuffer1"
+msgid "Getting proc address SoundConverterConvertBuffer1 failed"
 msgstr ""
 
 #: lib/audio_qtwin32.c:220
-msgid "qt_audio: failed getting proc address SoundConverterEndConversion"
+msgid "Getting proc address SoundConverterEndConversion failed"
 msgstr ""
 
 #: lib/audio_qtwin32.c:228
-msgid "qt_audio: failed getting proc address SoundConverterBeginConversion"
+msgid "Getting proc address SoundConverterBeginConversion failed"
 msgstr ""
 
 #: lib/audio_qtwin32.c:234
@@ -1507,7 +1503,7 @@ msgstr ""
 
 #: lib/video_theora.c:122
 #, c-format
-msgid "Error, unknown pixelformat %d"
+msgid "Unknown pixelformat %d"
 msgstr ""
 
 #: lib/audio_faad2.c:173

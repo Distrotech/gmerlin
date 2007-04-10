@@ -588,21 +588,24 @@ static void set_framerate(const bg_gavl_video_options_t * opt,
     out_format->framerate_mode = in_format->framerate_mode;
     return;
     }
-  if(opt->framerate_mode == FRAME_RATE_USER)
+  else if(opt->framerate_mode == FRAME_RATE_USER)
     {
     out_format->frame_duration = opt->frame_duration;
     out_format->timescale =      opt->timescale;
     out_format->framerate_mode = GAVL_FRAMERATE_CONSTANT;
     return;
     }
-  for(i = 0; i < NUM_FRAME_RATES; i++)
+  else
     {
-    if(opt->framerate_mode == framerate_rates[i].rate)
+    for(i = 0; i < NUM_FRAME_RATES; i++)
       {
-      out_format->timescale      = framerate_rates[i].timescale;
-      out_format->frame_duration = framerate_rates[i].frame_duration;
-      out_format->framerate_mode = GAVL_FRAMERATE_CONSTANT;
-      return;
+      if(opt->framerate_mode == framerate_rates[i].rate)
+        {
+        out_format->timescale      = framerate_rates[i].timescale;
+        out_format->frame_duration = framerate_rates[i].frame_duration;
+        out_format->framerate_mode = GAVL_FRAMERATE_CONSTANT;
+        return;
+        }
       }
     }
   }

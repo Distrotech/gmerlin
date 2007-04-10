@@ -327,7 +327,7 @@ int lqt_gavl_get_audio_format(quicktime_t * file,
 
 int lqt_gavl_get_video_format(quicktime_t * file,
                               int track,
-                              gavl_video_format_t * format)
+                              gavl_video_format_t * format, int encode)
   {
   int constant_framerate;
   if(track >= quicktime_video_tracks(file) ||
@@ -347,10 +347,20 @@ int lqt_gavl_get_video_format(quicktime_t * file,
   format->frame_duration = lqt_frame_duration(file, track,
                                               &constant_framerate);
 
-  if(!constant_framerate)
-    format->framerate_mode = GAVL_FRAMERATE_VARIABLE;
+  if(encode)
+    {
+    if((lqt_get_file_type(file) & (LQT_FILE_AVI|LQT_FILE_AVI_ODML)))
+      format->framerate_mode = GAVL_FRAMERATE_CONSTANT;
+    else
+      format->framerate_mode = GAVL_FRAMERATE_VARIABLE;
+    }
   else
-    format->framerate_mode = GAVL_FRAMERATE_CONSTANT;
+    {
+    if(!constant_framerate)
+      format->framerate_mode = GAVL_FRAMERATE_VARIABLE;
+    else
+      format->framerate_mode = GAVL_FRAMERATE_CONSTANT;
+    }
   
   format->chroma_placement =
     chroma_placement_lqt_2_gavl(lqt_get_chroma_placement(file, track));

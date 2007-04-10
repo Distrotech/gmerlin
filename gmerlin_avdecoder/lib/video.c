@@ -128,6 +128,8 @@ void bgav_video_stop(bgav_stream_t * s)
     free(s->data.video.decoder);
     s->data.video.decoder = (bgav_video_decoder_context_t*)0;
     }
+  /* Clear still mode flag (it will be set during reinit */
+  s->data.video.still_mode = 0;
   }
 
 void bgav_video_resync(bgav_stream_t * s)

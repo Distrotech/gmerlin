@@ -249,6 +249,7 @@ $(speex_libs) \
 $(libpostproc_libs) \
 GSM610/libgsm.la \
 @ICONV_LIBS@ \
+@LIBINTL@ \
 -lm
 
 AM_CFLAGS = \

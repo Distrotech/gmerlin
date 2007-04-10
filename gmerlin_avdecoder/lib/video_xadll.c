@@ -319,26 +319,26 @@ static int init_xadll(bgav_stream_t * s)
 
   if(!what_the)
     {
-    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "xacodec: failed to init %s", dlerror());
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "failed to init %s", dlerror());
     goto fail;
     }
         
   mod_hdr = what_the();
   if(!mod_hdr)
     {
-    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "xacodec: initializer function failed");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "initializer function failed");
     goto fail;
     }
   if (mod_hdr->api_rev > XAVID_API_REV)
     {
-    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "xacodec: not supported api revision (%d)", mod_hdr->api_rev);
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Unsupported api revision (%d)", mod_hdr->api_rev);
     goto fail;
     }
   
   func = mod_hdr->funcs;
   if (!func)
     {
-    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "xacodec: function table error");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "function table error");
     goto fail;
     }
   

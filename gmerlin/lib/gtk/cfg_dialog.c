@@ -704,7 +704,7 @@ bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
       
       gtk_tree_store_append(GTK_TREE_STORE(model), &root_iter, NULL);
       gtk_tree_store_set(GTK_TREE_STORE(model), &root_iter, COLUMN_NAME,
-                         info[index].long_name, -1);
+                         TR_DOM(info[index].long_name), -1);
             
       while(info[index].type == BG_PARAMETER_SECTION)
         index++;

@@ -64,10 +64,10 @@ static GdkPixbuf * has_video_pixbuf = (GdkPixbuf *)0;
 
 static GtkTargetEntry dnd_dst_entries[] =
   {
-    {"text/uri-list",            0, DND_TEXT_URI_LIST    },
-    {"text/plain",               0, DND_TEXT_PLAIN       },
     {bg_gtk_atom_entries_name,   0, DND_GMERLIN_TRACKS   },
     {bg_gtk_atom_entries_name_r, 0, DND_GMERLIN_TRACKS_R },
+    {"text/uri-list",            0, DND_TEXT_URI_LIST    },
+    {"text/plain",               0, DND_TEXT_PLAIN       },
   };
 
 

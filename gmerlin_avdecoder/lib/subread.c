@@ -554,7 +554,7 @@ static void seek_spumux(bgav_stream_t * s, gavl_time_t time)
     if(start == GAVL_TIME_UNDEFINED)
       {
       bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-               "Error parsing start start attribute");
+               "Error parsing start attribute");
       return;
       }
     

@@ -904,7 +904,7 @@ int bgav_rmff_packet_header_read(bgav_input_context_t * input,
   else
     {
     bgav_log(input->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-             "Error, unsupported packet header version: %d",
+             "Unsupported packet header version: %d",
              ret->object_version);
     return 0;
     }

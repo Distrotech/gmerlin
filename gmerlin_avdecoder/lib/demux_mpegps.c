@@ -647,7 +647,8 @@ static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * inpu
             //            if(p->pts < 0)
             //              p->pts = 0;
             
-            if(priv->do_sync && (stream->time_scaled < 0))
+            if(priv->do_sync &&
+               (stream->time_scaled == BGAV_TIMESTAMP_UNDEFINED))
               stream->time_scaled = p->pts;
             }
           bgav_packet_done_write(p);
@@ -1056,7 +1057,10 @@ static void seek_mpegps(bgav_demuxer_context_t * ctx, gavl_time_t time)
   priv = (mpegps_priv_t*)(ctx->priv);
 
   if(ctx->input->input->seek_time)
+    {
     ctx->input->input->seek_time(ctx->input, time);
+    do_sync(ctx);
+    }
   else if(priv->sector_size)
     seek_sector(ctx, time);
   else

@@ -732,7 +732,7 @@ static int decode_video_frame(void * priv, gavl_video_frame_t * f, int stream)
     return 0;
   
   /* Correct timestamps */
-
+  
   if(s->start_time_scaled)
     {
     f->time_scaled -= s->start_time_scaled;
@@ -1277,6 +1277,12 @@ static int audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
   
   s->com.time = gavl_samples_to_time(s->out_format.samplerate,
                                      s->samples_written);
+#if 0
+  if(t->start_time != GAVL_TIME_UNDEFINED)
+    s->com.time += t->start_time;
+#endif
+  
+  fprintf(stderr, "Audio iteration %lld\n", s->com.time);
   
   /* Volume normalization */
   if(s->normalize)
@@ -1527,8 +1533,8 @@ static int video_iteration(video_stream_t * s, bg_transcoder_t * t)
     {
     if(t->start_time != GAVL_TIME_UNDEFINED)
       {
-      s->start_time_scaled = gavl_time_unscale(s->out_format.timescale,
-                                               t->start_time);
+      s->start_time_scaled = gavl_time_scale(s->out_format.timescale,
+                                             t->start_time);
       bg_video_converter_reset(s->cnv, s->start_time_scaled);
       }
     s->initialized = 1;
@@ -1543,6 +1549,9 @@ static int video_iteration(video_stream_t * s, bg_transcoder_t * t)
 
   s->com.time = gavl_time_unscale(s->out_format.timescale,
                                   s->frame->time_scaled);
+
+  fprintf(stderr, "Video iteration %lld %lld\n",
+          s->frame->time_scaled, s->com.time);
   
   if(check_video_blend(s, t, s->com.time))
     {
@@ -3473,7 +3482,7 @@ static void next_pass(bg_transcoder_t * t)
   }
 
 /*
- *  Do one iteration (Will be called as an idle function in the GUI main loop or by bg_transcoder_run())
+ *  Do one iteration.
  *  If return value is FALSE, we are done
  */
 
@@ -3588,18 +3597,20 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
       }
     if(stream->time > t->time)
       t->time = stream->time;
+
+    fprintf(stderr, "Time: %lld %lld\n", stream->time, t->time);
     }
-  
+
   
   /* Update status */
 
   real_time = gavl_timer_get(t->timer);
   real_seconds = gavl_time_to_seconds(real_time);
 
-  t->percentage_done =
-    gavl_time_to_seconds(t->time) /
-    gavl_time_to_seconds(t->duration);
-  
+    t->percentage_done =
+      gavl_time_to_seconds(t->time) /
+      gavl_time_to_seconds(t->duration);
+    
   if(t->percentage_done < 0.0)
     t->percentage_done = 0.0;
   if(t->percentage_done > 1.0)

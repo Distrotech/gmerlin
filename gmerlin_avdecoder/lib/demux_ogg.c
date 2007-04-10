@@ -677,7 +677,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         break;
       default:
         bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-                 "Warning, unsupported stream (serialno: %d)", serialno);
+                 "Unsupported stream (serialno: %d)", serialno);
         
         ogg_track->unsupported_streams =
           realloc(ogg_track->unsupported_streams,

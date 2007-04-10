@@ -759,7 +759,7 @@ bgav_seek(bgav_t * b, gavl_time_t * time)
     if(sync_time == GAVL_TIME_UNDEFINED)
       {
       bgav_log(&b->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-               "Warning: Undefined sync time after seeking");
+               "Undefined sync time after seeking");
       return;
       }
     /* If demuxer already seeked perfectly, break here */
