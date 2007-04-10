@@ -30,6 +30,7 @@ typedef struct
 
   int bitrate_mode; /* -cbr, -q ... */
   int quantization; /* -q */
+  char * quant_matrix; /* -K */
   
   char * user_options;
   bg_subprocess_t * mpeg2enc;

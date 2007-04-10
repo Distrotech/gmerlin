@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmerlin-encoders 0.2.4\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-03-07 22:02+0100\n"
+"POT-Creation-Date: 2007-04-10 22:09+0200\n"
 "PO-Revision-Date: 2007-02-17 12:50+0100\n"
 "Last-Translator: Burkhard Plaum <gmerlin-general@lists.sourceforge.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -616,10 +616,30 @@ msgid ""
 msgstr ""
 
 #: plugins/yuv4mpeg/mpv_common.c:96
-msgid "Number of B-Frames"
+msgid "Quantization matrices"
 msgstr ""
 
 #: plugins/yuv4mpeg/mpv_common.c:101
+msgid "Default"
+msgstr ""
+
+#: plugins/yuv4mpeg/mpv_common.c:101
+msgid "KVCD"
+msgstr ""
+
+#: plugins/yuv4mpeg/mpv_common.c:102
+msgid "tmpegenc"
+msgstr ""
+
+#: plugins/yuv4mpeg/mpv_common.c:102
+msgid "Hi-Res"
+msgstr ""
+
+#: plugins/yuv4mpeg/mpv_common.c:107
+msgid "Number of B-Frames"
+msgstr ""
+
+#: plugins/yuv4mpeg/mpv_common.c:112
 msgid ""
 "Specify the number of B-frames between 2 P/I frames. More B-frames slow down "
 "encoding and increase memory usage, but might give better compression "
@@ -627,21 +647,21 @@ msgid ""
 "B-frames, no matter if you like them or not."
 msgstr ""
 
-#: plugins/yuv4mpeg/mpv_common.c:107
+#: plugins/yuv4mpeg/mpv_common.c:118
 msgid "User options"
 msgstr ""
 
-#: plugins/yuv4mpeg/mpv_common.c:109
+#: plugins/yuv4mpeg/mpv_common.c:120
 msgid ""
 "Enter further commandline options for mpeg2enc here. Check the mpeg2enc "
 "manual page for details"
 msgstr ""
 
-#: plugins/yuv4mpeg/mpv_common.c:169
+#: plugins/yuv4mpeg/mpv_common.c:184
 msgid "Cannot find mpeg2enc"
 msgstr ""
 
-#: plugins/yuv4mpeg/mpv_common.c:291 plugins/yuv4mpeg/mpv_common.c:310
+#: plugins/yuv4mpeg/mpv_common.c:337 plugins/yuv4mpeg/mpv_common.c:356
 msgid "Unknown MPEG format"
 msgstr ""
 

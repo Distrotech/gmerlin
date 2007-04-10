@@ -92,6 +92,17 @@ fixed bitrate (e.g. VCD) this option is ignored"),
       help_string: TRS("Minimum quantization for VBR. Lower numbers mean higher quality. For CBR, this option is ignored."),
     },
     {
+      name:        "quant_matrix",
+      long_name:   TRS("Quantization matrices"),
+      type:        BG_PARAMETER_STRINGLIST,
+      val_default: { val_str: "default" },
+      multi_names: (char*[]){ "default", "kvcd", "tmpgenc",
+                              "hi-res", (char*)0 },
+      multi_labels: (char*[]){ TRS("Default"), TRS("KVCD"),
+                               TRS("tmpegenc"), TRS("Hi-Res"),
+                               (char*)0 },
+    },
+    {
       name:        "bframes",
       long_name:   TRS("Number of B-Frames"),
       type:        BG_PARAMETER_INT,
@@ -139,14 +150,14 @@ void bg_mpv_set_parameter(void * data, char * name, bg_parameter_value_t * val)
   else if(!strcmp(name, "bitrate_mode"))
     {
     SET_ENUM("auto", com->bitrate_mode, BITRATE_AUTO);
-    SET_ENUM("cbr",  com->bitrate_mode, BITRATE_VBR);
-    SET_ENUM("vbr",  com->bitrate_mode, BITRATE_CBR);
+    SET_ENUM("vbr",  com->bitrate_mode, BITRATE_VBR);
+    SET_ENUM("cbr",  com->bitrate_mode, BITRATE_CBR);
     }
 
   else if(!strcmp(name, "bitrate"))
     com->bitrate = val->val_i;
 
-  else if(!strcmp(name, "quanitzation"))
+  else if(!strcmp(name, "quantization"))
     com->quantization = val->val_i;
 
   else if(!strcmp(name, "bframes"))
@@ -154,6 +165,8 @@ void bg_mpv_set_parameter(void * data, char * name, bg_parameter_value_t * val)
 
   else if(!strcmp(name, "user_options"))
     com->user_options = bg_strdup(com->user_options, val->val_str);
+  else if(!strcmp(name, "quant_matrix"))
+    com->quant_matrix = bg_strdup(com->quant_matrix, val->val_str);
   }
 
 #undef SET_ENUM
@@ -163,6 +176,8 @@ static char * bg_mpv_make_commandline(bg_mpv_common_t * com, const char * filena
   char * ret;
   char * mpeg2enc_path;
   char * tmp_string;
+
+  int mpeg_1;
   
   if(!bg_search_file_exec("mpeg2enc", &mpeg2enc_path))
     {
@@ -170,6 +185,13 @@ static char * bg_mpv_make_commandline(bg_mpv_common_t * com, const char * filena
     return (char*)0;
     }
 
+  /* Check if we have MPEG-1 */
+  if((com->format == FORMAT_VCD) ||
+     (com->format == FORMAT_MPEG1))
+    mpeg_1 = 1;
+  else
+    mpeg_1 = 0;
+  
   /* path + format */
   ret = bg_sprintf("%s -f %d", mpeg2enc_path, com->format);
   free(mpeg2enc_path);
@@ -183,10 +205,34 @@ static char * bg_mpv_make_commandline(bg_mpv_common_t * com, const char * filena
     free(tmp_string);
     }
 
-  /* Bitrate */
-
+  /* Bitrate mode */
+  
   if(com->format != FORMAT_VCD)
     {
+    if(mpeg_1)
+      {
+      if(com->bitrate_mode == BITRATE_VBR)
+        {
+        tmp_string = bg_sprintf(" -q %d", com->quantization);
+        ret = bg_strcat(ret, tmp_string);
+        free(tmp_string);
+        }
+      }
+    else
+      {
+      if(com->bitrate_mode == BITRATE_CBR)
+        ret = bg_strcat(ret, " --cbr");
+      else
+        {
+        tmp_string = bg_sprintf(" -q %d", com->quantization);
+        ret = bg_strcat(ret, tmp_string);
+        free(tmp_string);
+        }
+
+      tmp_string = bg_sprintf(" -K %s", com->quant_matrix);
+      ret = bg_strcat(ret, tmp_string);
+      free(tmp_string);
+      }
     tmp_string = bg_sprintf(" -b %d", com->bitrate);
     ret = bg_strcat(ret, tmp_string);
     free(tmp_string);
@@ -398,6 +444,8 @@ int bg_mpv_close(bg_mpv_common_t * com)
   bg_y4m_cleanup(&com->y4m);
   if(com->user_options)
     free(com->user_options);
+  if(com->quant_matrix)
+    free(com->quant_matrix);
   return ret;
   }
 
