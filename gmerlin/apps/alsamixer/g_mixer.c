@@ -169,14 +169,20 @@ mixer_window_t * mixer_window_create(alsa_mixer_t * mixer,
   ret->num_cards = mixer->num_cards;
   for(i = 0; i < mixer->num_cards; i++)
     {
-    section =
-      bg_cfg_registry_find_section(ret->cfg_reg, mixer->cards[i]->name);
-    label = gtk_label_new(mixer->cards[i]->name);
-    gtk_widget_show(label);
-    ret->cards[i] = card_widget_create(mixer->cards[i], section);
-    gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
-                             card_widget_get_widget(ret->cards[i]),
-                             label);
+    if(mixer->cards[i]->num_groups)
+      {
+      section =
+        bg_cfg_registry_find_section(ret->cfg_reg,
+                                     mixer->cards[i]->name);
+      label = gtk_label_new(mixer->cards[i]->name);
+      gtk_widget_show(label);
+      
+      ret->cards[i] = card_widget_create(mixer->cards[i], section);
+      gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
+                               card_widget_get_widget(ret->cards[i]),
+                               label);
+      }
+    
     }
   
   gtk_widget_show(notebook);
