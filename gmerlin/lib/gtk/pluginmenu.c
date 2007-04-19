@@ -53,7 +53,8 @@ struct bg_gtk_plugin_menu_s
 
 bg_gtk_plugin_menu_t *
 bg_gtk_plugin_menu_create(char ** plugins,
-                          int auto_supported, bg_plugin_registry_t * plugin_reg)
+                          int auto_supported,
+                          bg_plugin_registry_t * plugin_reg)
   {
   int index;
   GtkWidget * label;

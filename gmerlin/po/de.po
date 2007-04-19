@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmerlin 0.3.6\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-04-10 22:07+0200\n"
+"POT-Creation-Date: 2007-04-19 21:01+0200\n"
 "PO-Revision-Date: 2007-02-12 22:09+0100\n"
 "Last-Translator: Burkhard Plaum <gmerlin@users.sourceforge.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -24,7 +24,7 @@ msgstr ""
 msgid "Input plugins"
 msgstr ""
 
-#: apps/plugincfg/gmerlin_plugincfg.c:269 apps/player/cfgdialog.c:52
+#: apps/plugincfg/gmerlin_plugincfg.c:269 apps/player/cfgdialog.c:105
 #: apps/transcoder/trackdialog.c:152 plugins/lqt/i_lqt.c:42
 #: lib/player_audio.c:185 lib/gtk/infowindow.c:591
 msgid "Audio"
@@ -46,11 +46,11 @@ msgstr ""
 msgid "Enable postprocessing"
 msgstr ""
 
-#: apps/plugincfg/gmerlin_plugincfg.c:388
+#: apps/plugincfg/gmerlin_plugincfg.c:388 apps/player/cfgdialog.c:44
 msgid "Audio filters"
 msgstr ""
 
-#: apps/plugincfg/gmerlin_plugincfg.c:403
+#: apps/plugincfg/gmerlin_plugincfg.c:403 apps/player/cfgdialog.c:59
 msgid "Video filters"
 msgstr ""
 
@@ -109,149 +109,159 @@ msgstr ""
 msgid "Font"
 msgstr ""
 
-#: apps/player/mainmenu.c:479 apps/player/gmerlin.c:642
+#: apps/player/mainmenu.c:561 apps/player/gmerlin.c:642
 msgid "Off"
 msgstr "Aus"
 
-#: apps/player/mainmenu.c:616 apps/player/mainmenu.c:672
-#: apps/player/mainmenu.c:695
+#: apps/player/mainmenu.c:575 apps/player/mainmenu.c:974
+msgid "Options..."
+msgstr "Optionen..."
+
+#: apps/player/mainmenu.c:579
+#, fuzzy
+msgid "Filters..."
+msgstr "Kapitel"
+
+#: apps/player/mainmenu.c:582
+#, fuzzy
+msgid "Output plugin..."
+msgstr "Optionen..."
+
+#: apps/player/mainmenu.c:715 apps/player/mainmenu.c:771
+#: apps/player/mainmenu.c:794
 #, c-format
 msgid "Stream %d [%s]"
 msgstr ""
 
-#: apps/player/mainmenu.c:618 apps/player/mainmenu.c:675
-#: apps/player/mainmenu.c:698
+#: apps/player/mainmenu.c:717 apps/player/mainmenu.c:774
+#: apps/player/mainmenu.c:797
 #, c-format
 msgid "Stream %d"
 msgstr ""
 
-#: apps/player/mainmenu.c:638
+#: apps/player/mainmenu.c:737
 #, c-format
 msgid "Chapter %d [%s]"
 msgstr "Kapitel %d [%s]"
 
-#: apps/player/mainmenu.c:716 apps/player/cfgdialog.c:122
+#: apps/player/mainmenu.c:815 apps/player/cfgdialog.c:165
 msgid "Media Tree"
 msgstr ""
 
-#: apps/player/mainmenu.c:719
+#: apps/player/mainmenu.c:818
 msgid "Info window"
 msgstr "Track information"
 
-#: apps/player/mainmenu.c:722 apps/player/cfgdialog.c:149
+#: apps/player/mainmenu.c:821 apps/player/cfgdialog.c:192
 #: apps/transcoder/transcoder_window.c:1359
 msgid "Log window"
 msgstr "Meldungen"
 
-#: apps/player/mainmenu.c:724 apps/transcoder/transcoder_window.c:901
+#: apps/player/mainmenu.c:823 apps/transcoder/transcoder_window.c:901
 msgid "About..."
 msgstr "Über..."
 
-#: apps/player/mainmenu.c:741 apps/transcoder/transcoder_window.c:888
+#: apps/player/mainmenu.c:840 apps/transcoder/transcoder_window.c:888
 msgid "Preferences..."
 msgstr "Präferenzen..."
 
-#: apps/player/mainmenu.c:749 apps/transcoder/transcoder_window.c:889
+#: apps/player/mainmenu.c:848 apps/transcoder/transcoder_window.c:889
 msgid "Plugins..."
 msgstr ""
 
-#: apps/player/mainmenu.c:754
+#: apps/player/mainmenu.c:853
 msgid "Skins..."
 msgstr ""
 
-#: apps/player/mainmenu.c:758
+#: apps/player/mainmenu.c:857
 msgid "Multimedia keys..."
 msgstr "Multimedia Tasten..."
 
-#: apps/player/mainmenu.c:764
+#: apps/player/mainmenu.c:863
 msgid "Seek forward"
 msgstr "Vorwärts suchen"
 
-#: apps/player/mainmenu.c:771
+#: apps/player/mainmenu.c:870
 msgid "Seek backward"
 msgstr "Rückwärts suchen"
 
-#: apps/player/mainmenu.c:778
+#: apps/player/mainmenu.c:877
 msgid "Increase volume"
 msgstr "Lauter"
 
-#: apps/player/mainmenu.c:785
+#: apps/player/mainmenu.c:884
 msgid "Decrease volume"
 msgstr "Leiser"
 
-#: apps/player/mainmenu.c:791
+#: apps/player/mainmenu.c:890
 msgid "Toggle mute"
 msgstr "Stummschalten"
 
-#: apps/player/mainmenu.c:797
+#: apps/player/mainmenu.c:896
 msgid "Next track"
 msgstr "Nächster Track"
 
-#: apps/player/mainmenu.c:802
+#: apps/player/mainmenu.c:901
 msgid "Previous track"
 msgstr "Vorheriger Track"
 
-#: apps/player/mainmenu.c:807
+#: apps/player/mainmenu.c:906
 msgid "Next chapter"
 msgstr "Nächstes Kapitel"
 
-#: apps/player/mainmenu.c:813
+#: apps/player/mainmenu.c:912
 msgid "Previous chapter"
 msgstr "Vorheriges Kapitel"
 
-#: apps/player/mainmenu.c:819
+#: apps/player/mainmenu.c:918
 msgid "Seek to start"
 msgstr "Zum Anfang suchen"
 
-#: apps/player/mainmenu.c:824
+#: apps/player/mainmenu.c:923
 msgid "Pause"
 msgstr ""
 
-#: apps/player/mainmenu.c:829
+#: apps/player/mainmenu.c:928
 msgid "Quit gmerlin"
 msgstr "Gmerlin beenden"
 
-#: apps/player/mainmenu.c:840
+#: apps/player/mainmenu.c:939
 msgid "Transcoder"
 msgstr ""
 
-#: apps/player/mainmenu.c:844
+#: apps/player/mainmenu.c:943
 msgid "Visualizer"
 msgstr ""
 
-#: apps/player/mainmenu.c:848
+#: apps/player/mainmenu.c:947
 msgid "Mixer"
 msgstr ""
 
-#: apps/player/mainmenu.c:855
+#: apps/player/mainmenu.c:954
 msgid "Audio..."
 msgstr ""
 
-#: apps/player/mainmenu.c:859
+#: apps/player/mainmenu.c:958
 msgid "Video..."
 msgstr ""
 
-#: apps/player/mainmenu.c:863
+#: apps/player/mainmenu.c:962
 msgid "Subtitles..."
 msgstr "Untertitel..."
 
-#: apps/player/mainmenu.c:867
+#: apps/player/mainmenu.c:966
 msgid "Chapters..."
 msgstr "Kapitel"
 
-#: apps/player/mainmenu.c:871
+#: apps/player/mainmenu.c:970
 msgid "Windows..."
 msgstr "Fenster"
 
-#: apps/player/mainmenu.c:875
-msgid "Options..."
-msgstr "Optionen..."
-
-#: apps/player/mainmenu.c:879
+#: apps/player/mainmenu.c:978
 msgid "Commands..."
 msgstr "Befehle..."
 
-#: apps/player/mainmenu.c:883
+#: apps/player/mainmenu.c:982
 msgid "Accessories..."
 msgstr "Zubehör..."
 
@@ -315,12 +325,34 @@ msgstr ""
 msgid "Show tooltips"
 msgstr ""
 
-#: apps/player/cfgdialog.c:31
+#: apps/player/cfgdialog.c:37 lib/gtk/plugin_single.c:325
+msgid "Audio options"
+msgstr ""
+
+#: apps/player/cfgdialog.c:52 lib/gtk/plugin_single.c:333
+msgid "Video options"
+msgstr ""
+
+#: apps/player/cfgdialog.c:68
+#, fuzzy
+msgid "Subtitle options"
+msgstr "Untertitel..."
+
+#: apps/player/cfgdialog.c:71
+msgid "Text subtitles"
+msgstr ""
+
+#: apps/player/cfgdialog.c:74 apps/transcoder/trackdialog.c:283
+#: apps/transcoder/trackdialog.c:332 lib/gtk/infowindow.c:641
+msgid "Subtitles"
+msgstr ""
+
+#: apps/player/cfgdialog.c:82
 msgid "Gmerlin confiuration"
 msgstr ""
 
-#: apps/player/cfgdialog.c:37 apps/player/cfgdialog.c:56
-#: apps/player/cfgdialog.c:75 apps/transcoder/trackdialog.c:62
+#: apps/player/cfgdialog.c:89 apps/player/cfgdialog.c:108
+#: apps/player/cfgdialog.c:127 apps/transcoder/trackdialog.c:62
 #: apps/transcoder/trackdialog.c:161 apps/transcoder/trackdialog.c:225
 #: apps/transcoder/trackdialog.c:291 apps/transcoder/trackdialog.c:340
 #: apps/transcoder/transcoder_window.c:1264
@@ -330,45 +362,36 @@ msgstr ""
 msgid "General"
 msgstr ""
 
-#: apps/player/cfgdialog.c:46 apps/camelot/webcam_window.c:480
+#: apps/player/cfgdialog.c:98 apps/camelot/webcam_window.c:480
 #: lib/gtk/plugininfo.c:144
 msgid "Input"
 msgstr ""
 
-#: apps/player/cfgdialog.c:64 apps/player/cfgdialog.c:84
+#: apps/player/cfgdialog.c:116 apps/player/cfgdialog.c:136
 #: apps/transcoder/trackdialog.c:168 apps/transcoder/trackdialog.c:232
 #: apps/transcoder/transcoder_window.c:1274
 #: apps/transcoder/transcoder_window.c:1298
 msgid "Filters"
 msgstr ""
 
-#: apps/player/cfgdialog.c:70 apps/transcoder/trackdialog.c:217
+#: apps/player/cfgdialog.c:122 apps/transcoder/trackdialog.c:217
 #: plugins/lqt/i_lqt.c:53 lib/player_video.c:140 lib/gtk/infowindow.c:619
 msgid "Video"
 msgstr ""
 
-#: apps/player/cfgdialog.c:90
-msgid "Text subtitles"
-msgstr ""
-
-#: apps/player/cfgdialog.c:94 apps/transcoder/trackdialog.c:283
-#: apps/transcoder/trackdialog.c:332 lib/gtk/infowindow.c:641
-msgid "Subtitles"
-msgstr ""
-
-#: apps/player/cfgdialog.c:103
+#: apps/player/cfgdialog.c:146
 msgid "OSD"
 msgstr ""
 
-#: apps/player/cfgdialog.c:113 apps/transcoder/transcoder_window.c:162
+#: apps/player/cfgdialog.c:156 apps/transcoder/transcoder_window.c:162
 msgid "Display"
 msgstr ""
 
-#: apps/player/cfgdialog.c:131
+#: apps/player/cfgdialog.c:174
 msgid "Remote control"
 msgstr ""
 
-#: apps/player/cfgdialog.c:140
+#: apps/player/cfgdialog.c:183
 msgid "LCDproc"
 msgstr ""
 
@@ -3421,15 +3444,15 @@ msgstr ""
 msgid "Processed %s video frames"
 msgstr ""
 
-#: lib/player_input.c:877
+#: lib/player_input.c:880
 msgid "Input options"
 msgstr ""
 
-#: lib/player_input.c:883
+#: lib/player_input.c:886
 msgid "Enable bypass mode"
 msgstr ""
 
-#: lib/player_input.c:886
+#: lib/player_input.c:889
 msgid ""
 "Use input plugins in bypass mode if they support it (Currently only the "
 "audio CD player). This dramatically decreases CPU usage but doesn't work on "
@@ -4650,7 +4673,7 @@ msgstr ""
 msgid "Auto Select"
 msgstr ""
 
-#: lib/gtk/pluginmenu.c:118
+#: lib/gtk/pluginmenu.c:119
 msgid "Plugin: "
 msgstr ""
 
@@ -5077,14 +5100,6 @@ msgstr ""
 
 #: lib/gtk/plugin_single.c:318 lib/gtk/plugin_multi.c:269
 msgid "Plugin info"
-msgstr ""
-
-#: lib/gtk/plugin_single.c:325
-msgid "Audio options"
-msgstr ""
-
-#: lib/gtk/plugin_single.c:333
-msgid "Video options"
 msgstr ""
 
 #: lib/gtk/cfg_dialog.c:392

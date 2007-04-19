@@ -26,9 +26,61 @@ void gmerlin_create_dialog(gmerlin_t * g)
   {
   void * parent;
   bg_parameter_info_t * parameters;
-  /* Create the dialog */
-    
+  /* Create the dialogs */
+
+  /* Audio options */
+  parameters = bg_player_get_audio_parameters(g->player);
+
+  g->audio_dialog = bg_dialog_create(g->audio_section,
+                                     bg_player_set_audio_parameter,
+                                     (void*)(g->player),
+                                     parameters, TR("Audio options"));
+
+  /* Audio filters */
+  parameters = bg_player_get_audio_filter_parameters(g->player);
+  g->audio_filter_dialog = bg_dialog_create(g->audio_filter_section,
+                                            bg_player_set_audio_filter_parameter,
+                                            (void*)(g->player),
+                                            parameters, TR("Audio filters"));
+
+  /* Video options */
+  parameters = bg_player_get_video_parameters(g->player);
+
+  g->video_dialog = bg_dialog_create(g->video_section,
+                                     bg_player_set_video_parameter,
+                                     (void*)(g->player),
+                                     parameters, TR("Video options"));
+
+  /* Video filters */
+  parameters = bg_player_get_video_filter_parameters(g->player);
+  g->video_filter_dialog = bg_dialog_create(g->video_filter_section,
+                                            bg_player_set_video_filter_parameter,
+                                            (void*)(g->player),
+                                            parameters, TR("Video filters"));
+
+  /* Subtitles */
+
+  parameters = bg_player_get_subtitle_parameters(g->player);
+  
+  g->subtitle_dialog = bg_dialog_create(g->subtitle_section,
+                                        bg_player_set_subtitle_parameter,
+                                        (void*)(g->player),
+                                        parameters, TR("Subtitle options"));
+
+#if 0
+  parent = bg_dialog_add_parent(g->subtitle_dialog, (void*)0, TR("Text subtitles"));
+  
+  bg_dialog_add_child(g->cfg_dialog, parent,
+                      TR("Subtitles"),
+                      g->subtitle_section,
+                      bg_player_set_subtitle_parameter,
+                      (void*)(g->player),
+                      parameters);
+#endif
+
+  
   g->cfg_dialog = bg_dialog_create_multi(TR("Gmerlin confiuration"));
+    
   /* Add sections */
 
   parameters = gmerlin_get_parameters(g);
@@ -49,8 +101,8 @@ void gmerlin_create_dialog(gmerlin_t * g)
                 (void*)(g->player),
                 parameters);
   
+#if 0  
   parent = bg_dialog_add_parent(g->cfg_dialog, (void*)0, TR("Audio"));
-  parameters = bg_player_get_audio_parameters(g->player);
   
   bg_dialog_add_child(g->cfg_dialog, parent,
                       TR("General"),
@@ -86,16 +138,7 @@ void gmerlin_create_dialog(gmerlin_t * g)
                 bg_player_set_video_filter_parameter,
                 (void*)(g->player),
                 parameters);
-  
-  parent = bg_dialog_add_parent(g->cfg_dialog, (void*)0, TR("Text subtitles"));
-  parameters = bg_player_get_subtitle_parameters(g->player);
-  
-  bg_dialog_add_child(g->cfg_dialog, parent,
-                      TR("Subtitles"),
-                      g->subtitle_section,
-                      bg_player_set_subtitle_parameter,
-                      (void*)(g->player),
-                      parameters);
+#endif  
 
   parameters = bg_player_get_osd_parameters(g->player);
   

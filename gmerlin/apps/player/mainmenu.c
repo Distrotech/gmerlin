@@ -25,6 +25,19 @@
 
 #include <gui_gtk/aboutwindow.h>
 
+typedef struct
+  {
+  int num_plugins;
+  GtkWidget *  menu;
+  GtkWidget ** plugin_items;
+  GtkWidget *  info;
+  GtkWidget *  options;
+
+  const bg_plugin_info_t * plugin_info;
+  bg_plugin_handle_t * plugin_handle;
+  bg_plugin_type_t type;
+  } plugin_menu_t;
+
 typedef struct stream_menu_s
   {
   GSList * group;
@@ -38,6 +51,11 @@ typedef struct stream_menu_s
   int streams_alloc;
   
   GtkWidget * menu;
+
+  GtkWidget * options;
+  GtkWidget * plugins;
+  GtkWidget * filters;
+  plugin_menu_t plugin_menu;
   } stream_menu_t;
 
 typedef struct chapter_menu_s
@@ -49,6 +67,7 @@ typedef struct chapter_menu_s
   GtkWidget ** chapter_items;
   GtkWidget * menu;
   } chapter_menu_t;
+
 
 struct windows_menu_s
   {
@@ -180,6 +199,22 @@ static int chapter_menu_has_widget(chapter_menu_t * s,
   return 0;
   }
 
+static int plugin_menu_has_widget(plugin_menu_t * s,
+                                  GtkWidget * w, int * index)
+  {
+  int i;
+  for(i = 0; i < s->num_plugins; i++)
+    {
+    if((w == s->plugin_items[i]) &&
+       gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(s->plugin_items[i])))
+      {
+      *index = i;
+      return 1;
+      }
+    }
+  return 0;
+  }
+
 static void about_window_close_callback(bg_gtk_about_window_t* win, void* data)
   {
   gmerlin_t * g;
@@ -203,6 +238,27 @@ static void menu_callback(GtkWidget * w, gpointer data)
     {
     gmerlin_configure(g);
     }
+  else if(w == the_menu->audio_stream_menu.options)
+    {
+    bg_dialog_show(g->audio_dialog);
+    }
+  else if(w == the_menu->audio_stream_menu.filters)
+    {
+    bg_dialog_show(g->audio_filter_dialog);
+    }
+  else if(w == the_menu->video_stream_menu.options)
+    {
+    bg_dialog_show(g->video_dialog);
+    }
+  else if(w == the_menu->video_stream_menu.filters)
+    {
+    bg_dialog_show(g->video_filter_dialog);
+    }
+  else if(w == the_menu->subtitle_stream_menu.options)
+    {
+    bg_dialog_show(g->subtitle_dialog);
+    }
+  
   else if(w == the_menu->options_menu.skins)
     {
     if(!g->skin_browser)
@@ -324,30 +380,17 @@ static void menu_callback(GtkWidget * w, gpointer data)
     bg_player_seek(g->player, 0 );
     }
   else if(w == the_menu->command_menu.quit)
-    {
     gtk_main_quit();
-    }
   else if(w == the_menu->command_menu.pause)
-    {
     bg_player_pause(g->player);
-    }
-  
   else if(stream_menu_has_widget(&the_menu->audio_stream_menu, w, &index))
-    {
     bg_player_set_audio_stream(g->player, index);
-    }
   else if(stream_menu_has_widget(&the_menu->video_stream_menu, w, &index))
-    {
     bg_player_set_video_stream(g->player, index);
-    }
   else if(stream_menu_has_widget(&the_menu->subtitle_stream_menu, w, &index))
-    {
     bg_player_set_subtitle_stream(g->player, index);
-    }
   else if(chapter_menu_has_widget(&the_menu->chapter_menu, w, &index))
-    {
     bg_player_set_chapter(g->player, index);
-    }
   }
 
 static GtkWidget *
@@ -424,7 +467,7 @@ static GtkWidget * create_stream_item(gmerlin_t * gmerlin,
   *id = g_signal_connect(G_OBJECT(ret), "activate",
                          G_CALLBACK(menu_callback),
                          gmerlin);
-  gtk_menu_shell_append(GTK_MENU_SHELL(m->menu), ret);
+  gtk_menu_shell_insert(GTK_MENU_SHELL(m->menu), ret, (int)(id - m->ids) + 2);
   return ret;
   }
 
@@ -473,8 +516,47 @@ typedef struct stream_menu_s
   } stream_menu_t;
 #endif
 
-static void stream_menu_init(stream_menu_t * s, gmerlin_t * gmerlin)
+static void plugin_menu_init(plugin_menu_t * m, gmerlin_t * gmerlin,
+                             bg_plugin_type_t plugin_type)
   {
+  int i;
+  const bg_plugin_info_t * info;
+  GtkWidget * w;
+  GSList * group = (GSList*)0;
+
+  m->type = plugin_type;
+  m->menu = create_menu();
+  
+  
+  m->num_plugins = bg_plugin_registry_get_num_plugins(gmerlin->plugin_reg,
+                                                      plugin_type, BG_PLUGIN_ALL);
+  m->plugin_items = calloc(m->num_plugins, sizeof(*m->plugin_items));
+  for(i = 0; i < m->num_plugins; i++)
+    {
+    info = bg_plugin_find_by_index(gmerlin->plugin_reg, i, plugin_type, BG_PLUGIN_ALL);
+    m->plugin_items[i] = gtk_radio_menu_item_new_with_label(group, info->long_name);
+    gtk_widget_show(m->plugin_items[i]);
+    group = gtk_radio_menu_item_get_group(GTK_RADIO_MENU_ITEM(m->plugin_items[i]));
+    gtk_menu_shell_append(GTK_MENU_SHELL(m->menu), m->plugin_items[i]);
+    }
+  w = gtk_separator_menu_item_new();
+  gtk_widget_show(w);
+  gtk_menu_shell_append(GTK_MENU_SHELL(m->menu), w);
+
+  m->options = create_pixmap_item("Options...", "config_16.png",
+                                  gmerlin, m->menu);
+
+  m->info = create_pixmap_item("Info...", "info_16.png",
+                               gmerlin, m->menu);
+  
+  //  m->options = create_
+  }
+
+static void stream_menu_init(stream_menu_t * s, gmerlin_t * gmerlin,
+                             int has_plugins, int has_filters,
+                             bg_plugin_type_t plugin_type)
+  {
+  GtkWidget * separator;
   s->menu = create_menu();
   s->off_item = gtk_radio_menu_item_new_with_label((GSList*)0, TR("Off"));
   
@@ -485,6 +567,23 @@ static void stream_menu_init(stream_menu_t * s, gmerlin_t * gmerlin)
   s->group = gtk_radio_menu_item_get_group(GTK_RADIO_MENU_ITEM(s->off_item));
   gtk_widget_show(s->off_item);
   gtk_menu_shell_append(GTK_MENU_SHELL(s->menu), s->off_item);
+
+  separator = gtk_separator_menu_item_new();
+  gtk_widget_show(separator);
+  gtk_menu_shell_append(GTK_MENU_SHELL(s->menu), separator);
+
+  s->options = create_pixmap_item(TR("Options..."), "config_16.png",
+                                  gmerlin,
+                                  s->menu);
+  if(has_filters)
+    s->filters = create_item(TR("Filters..."), gmerlin, s->menu);
+  if(has_plugins)
+    {
+    s->plugins = create_pixmap_item(TR("Output plugin..."), "plugin_16.png",
+                                    gmerlin, s->menu);
+    plugin_menu_init(&s->plugin_menu, gmerlin, plugin_type);
+    gtk_menu_item_set_submenu(GTK_MENU_ITEM(s->plugins), s->plugin_menu.menu);
+    }
   }
 
 static void stream_menu_set_num(gmerlin_t * g, stream_menu_t * s, int num)
@@ -727,9 +826,9 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
   
   /* Streams */
 
-  stream_menu_init(&ret->audio_stream_menu, gmerlin);
-  stream_menu_init(&ret->video_stream_menu, gmerlin);
-  stream_menu_init(&ret->subtitle_stream_menu, gmerlin);
+  stream_menu_init(&ret->audio_stream_menu, gmerlin, 1, 1, BG_PLUGIN_OUTPUT_AUDIO);
+  stream_menu_init(&ret->video_stream_menu, gmerlin, 1, 1, BG_PLUGIN_OUTPUT_VIDEO);
+  stream_menu_init(&ret->subtitle_stream_menu, gmerlin, 0, 0, BG_PLUGIN_NONE);
 
   /* Chapters */
   ret->chapter_menu.menu = create_menu();

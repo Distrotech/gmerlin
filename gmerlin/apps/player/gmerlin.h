@@ -81,7 +81,14 @@ struct gmerlin_s
   /* GUI */
 
   bg_dialog_t * cfg_dialog;
-    
+  bg_dialog_t * audio_dialog;
+  bg_dialog_t * audio_filter_dialog;
+
+  bg_dialog_t * video_dialog;
+  bg_dialog_t * video_filter_dialog;
+  
+  bg_dialog_t * subtitle_dialog;
+  
   bg_gtk_tree_window_t * tree_window;
 
   player_window_t * player_window;

@@ -824,6 +824,9 @@ void bg_player_input_seek(bg_player_input_context_t * ctx,
     gavl_time_to_samples(ctx->player->audio_stream.input_format.samplerate,
                          ctx->audio_time);
 
+  // This wasn't set before if we switch streams or replug filters
+  ctx->has_first_audio_timestamp = 1;
+  
   if(DO_SUBTITLE_ONLY(ctx->player))
     ctx->video_frames_written =
       gavl_time_to_frames(ctx->player->video_stream.output_format.timescale,
@@ -835,7 +838,7 @@ void bg_player_input_seek(bg_player_input_context_t * ctx,
                           ctx->player->video_stream.input_format.frame_duration,
                           ctx->video_time);
   
-  /* Clear EOF states */
+  // Clear EOF states
   do_audio = DO_AUDIO(ctx->player);
   do_video = DO_VIDEO(ctx->player) || DO_STILL(ctx->player);
   do_subtitle =

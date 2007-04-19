@@ -160,18 +160,17 @@ static GtkWidget * create_pixmap_button(bg_gtk_plugin_widget_single_t * w,
 
 static void update_sensitive(bg_gtk_plugin_widget_single_t * widget)
   {
-
   if(!widget->info)
-    {
     return;
-    }
   
   if(widget->info->parameters)
     gtk_widget_set_sensitive(widget->config_button, 1);
   else
     gtk_widget_set_sensitive(widget->config_button, 0);
 
-  if(widget->info->type & (BG_PLUGIN_ENCODER_AUDIO|BG_PLUGIN_ENCODER_VIDEO|BG_PLUGIN_ENCODER))
+  if(widget->info->type & (BG_PLUGIN_ENCODER_AUDIO|
+                           BG_PLUGIN_ENCODER_VIDEO|
+                           BG_PLUGIN_ENCODER))
     {
     if(widget->audio_button)
       {
@@ -204,9 +203,10 @@ static void change_callback(GtkWidget * w, gpointer data)
   widget = (bg_gtk_plugin_widget_single_t *)data;
     
 #ifdef GTK_2_4
-  widget->info = bg_plugin_find_by_index(widget->reg,
-                                         gtk_combo_box_get_active(GTK_COMBO_BOX(widget->combo)),
-                                         widget->type_mask, widget->flag_mask);
+  widget->info =
+    bg_plugin_find_by_index(widget->reg,
+                            gtk_combo_box_get_active(GTK_COMBO_BOX(widget->combo)),
+                            widget->type_mask, widget->flag_mask);
 #else
   long_name = gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(widget->combo)->entry));
   if(*long_name == '\0')
@@ -324,7 +324,7 @@ bg_gtk_plugin_widget_single_create(char * label,
     ret->audio_button = create_pixmap_button(ret, "audio_16.png", tooltips,
                                             TRS("Audio options"));
     }
-
+  
   /* Video */
     
   if(type_mask & (BG_PLUGIN_ENCODER_VIDEO | BG_PLUGIN_ENCODER))
@@ -332,7 +332,7 @@ bg_gtk_plugin_widget_single_create(char * label,
     ret->video_button = create_pixmap_button(ret, "video_16.png", tooltips,
                                             TRS("Video options"));
     }
-    
+  
   /* Create combo */
     
   num_plugins = bg_plugin_registry_get_num_plugins(reg,

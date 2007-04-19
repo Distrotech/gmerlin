@@ -2,7 +2,7 @@
   
   bggavl.c
   
-  Copyright (c) 2003-2004 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+  Copyright (c) 2003-2007 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
   
   http://gmerlin.sourceforge.net
   
