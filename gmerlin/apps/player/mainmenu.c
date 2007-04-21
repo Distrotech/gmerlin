@@ -225,7 +225,6 @@ static void plugin_menu_set_plugin(plugin_menu_t * s, gmerlin_t * gmerlin, int i
                                            s->type, BG_PLUGIN_ALL);
   
   s->plugin_info = info;
-  fprintf(stderr, "plugin_menu_set_plugin: %d\n", index);
 
   if(s->plugin_handle)
     bg_plugin_unref(s->plugin_handle);
@@ -468,7 +467,6 @@ static void menu_callback(GtkWidget * w, gpointer data)
     }
   else if(w == the_menu->audio_stream_menu.plugin_menu.options)
     {
-    fprintf(stderr, "Audio options\n");
     plugin_menu_configure(&the_menu->audio_stream_menu.plugin_menu);
     }
   else if(w == the_menu->video_stream_menu.plugin_menu.info)
@@ -477,7 +475,6 @@ static void menu_callback(GtkWidget * w, gpointer data)
     }
   else if(w == the_menu->video_stream_menu.plugin_menu.options)
     {
-    fprintf(stderr, "Video options\n");
     plugin_menu_configure(&the_menu->video_stream_menu.plugin_menu);
     }
   
