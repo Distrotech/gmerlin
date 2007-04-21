@@ -24,6 +24,7 @@
 #include <gdk/gdkkeysyms.h>
 
 #include <gui_gtk/aboutwindow.h>
+#include <gui_gtk/plugin.h>
 
 typedef struct
   {
@@ -36,6 +37,8 @@ typedef struct
   const bg_plugin_info_t * plugin_info;
   bg_plugin_handle_t * plugin_handle;
   bg_plugin_type_t type;
+
+  bg_cfg_section_t * section;
   } plugin_menu_t;
 
 typedef struct stream_menu_s
@@ -215,6 +218,66 @@ static int plugin_menu_has_widget(plugin_menu_t * s,
   return 0;
   }
 
+static void plugin_menu_set_plugin(plugin_menu_t * s, gmerlin_t * gmerlin, int index)
+  {
+  const bg_plugin_info_t * info;
+  info = bg_plugin_find_by_index(gmerlin->plugin_reg, index,
+                                           s->type, BG_PLUGIN_ALL);
+  
+  s->plugin_info = info;
+  fprintf(stderr, "plugin_menu_set_plugin: %d\n", index);
+
+  if(s->plugin_handle)
+    bg_plugin_unref(s->plugin_handle);
+  
+  s->plugin_handle = bg_plugin_load(gmerlin->plugin_reg, s->plugin_info);
+
+  s->section = bg_plugin_registry_get_section(gmerlin->plugin_reg, info->name);
+
+  if(s->type == BG_PLUGIN_OUTPUT_AUDIO)
+    {
+    bg_player_set_oa_plugin(gmerlin->player, s->plugin_handle);
+    }
+  else if(s->type == BG_PLUGIN_OUTPUT_VIDEO)
+    {
+    bg_player_set_ov_plugin(gmerlin->player, s->plugin_handle);
+    }
+  }
+
+static void set_parameter(void * data, char * name,
+                          bg_parameter_value_t * v)
+  {
+  plugin_menu_t * m;
+  m = (plugin_menu_t*)data;
+  
+  if(m->plugin_handle && m->plugin_handle->plugin->set_parameter)
+    {
+    bg_plugin_lock(m->plugin_handle);
+    m->plugin_handle->plugin->set_parameter(m->plugin_handle->priv, name, v);
+    bg_plugin_unlock(m->plugin_handle);
+    }
+  }
+
+static void plugin_menu_configure(plugin_menu_t * m)
+  {
+  bg_parameter_info_t * parameters;
+  bg_dialog_t * dialog;
+
+  if(m->plugin_handle)
+    parameters = m->plugin_handle->plugin->get_parameters(m->plugin_handle->priv);
+  else
+    parameters = m->plugin_info->parameters;
+  dialog = bg_dialog_create(m->section,
+                            set_parameter,
+                            (void*)m,
+                            parameters,
+                            TRD(m->plugin_info->long_name,
+                                m->plugin_info->gettext_domain));
+  bg_dialog_show(dialog);
+  bg_dialog_destroy(dialog);
+  
+  }
+
 static void about_window_close_callback(bg_gtk_about_window_t* win, void* data)
   {
   gmerlin_t * g;
@@ -391,6 +454,33 @@ static void menu_callback(GtkWidget * w, gpointer data)
     bg_player_set_subtitle_stream(g->player, index);
   else if(chapter_menu_has_widget(&the_menu->chapter_menu, w, &index))
     bg_player_set_chapter(g->player, index);
+  else if(plugin_menu_has_widget(&the_menu->audio_stream_menu.plugin_menu, w, &index))
+    {
+    plugin_menu_set_plugin(&the_menu->audio_stream_menu.plugin_menu, g, index);
+    }
+  else if(plugin_menu_has_widget(&the_menu->video_stream_menu.plugin_menu, w, &index))
+    {
+    plugin_menu_set_plugin(&the_menu->video_stream_menu.plugin_menu, g, index);
+    }
+  else if(w == the_menu->audio_stream_menu.plugin_menu.info)
+    {
+    bg_gtk_plugin_info_show(the_menu->audio_stream_menu.plugin_menu.plugin_info);
+    }
+  else if(w == the_menu->audio_stream_menu.plugin_menu.options)
+    {
+    fprintf(stderr, "Audio options\n");
+    plugin_menu_configure(&the_menu->audio_stream_menu.plugin_menu);
+    }
+  else if(w == the_menu->video_stream_menu.plugin_menu.info)
+    {
+    bg_gtk_plugin_info_show(the_menu->video_stream_menu.plugin_menu.plugin_info);
+    }
+  else if(w == the_menu->video_stream_menu.plugin_menu.options)
+    {
+    fprintf(stderr, "Video options\n");
+    plugin_menu_configure(&the_menu->video_stream_menu.plugin_menu);
+    }
+  
   }
 
 static GtkWidget *
@@ -521,6 +611,9 @@ static void plugin_menu_init(plugin_menu_t * m, gmerlin_t * gmerlin,
   {
   int i;
   const bg_plugin_info_t * info;
+  const bg_plugin_info_t * default_info;
+  int default_index = 0;
+  
   GtkWidget * w;
   GSList * group = (GSList*)0;
 
@@ -531,10 +624,26 @@ static void plugin_menu_init(plugin_menu_t * m, gmerlin_t * gmerlin,
   m->num_plugins = bg_plugin_registry_get_num_plugins(gmerlin->plugin_reg,
                                                       plugin_type, BG_PLUGIN_ALL);
   m->plugin_items = calloc(m->num_plugins, sizeof(*m->plugin_items));
+  
+  default_info = bg_plugin_registry_get_default(gmerlin->plugin_reg,
+                                                plugin_type);
+  
   for(i = 0; i < m->num_plugins; i++)
     {
     info = bg_plugin_find_by_index(gmerlin->plugin_reg, i, plugin_type, BG_PLUGIN_ALL);
-    m->plugin_items[i] = gtk_radio_menu_item_new_with_label(group, info->long_name);
+    
+    m->plugin_items[i] =
+      gtk_radio_menu_item_new_with_label(group,
+                                         TRD(info->long_name, info->gettext_domain));
+    
+    if(info == default_info)
+      {
+      gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(m->plugin_items[i]), 1);
+      default_index = i;
+      }
+    g_signal_connect(G_OBJECT(m->plugin_items[i]), "activate",
+                     G_CALLBACK(menu_callback), gmerlin);
+    
     gtk_widget_show(m->plugin_items[i]);
     group = gtk_radio_menu_item_get_group(GTK_RADIO_MENU_ITEM(m->plugin_items[i]));
     gtk_menu_shell_append(GTK_MENU_SHELL(m->menu), m->plugin_items[i]);
@@ -548,8 +657,9 @@ static void plugin_menu_init(plugin_menu_t * m, gmerlin_t * gmerlin,
 
   m->info = create_pixmap_item("Info...", "info_16.png",
                                gmerlin, m->menu);
-  
-  //  m->options = create_
+
+  /* Set default plugin and send it to the player */
+  plugin_menu_set_plugin(m, gmerlin, default_index);
   }
 
 static void stream_menu_init(stream_menu_t * s, gmerlin_t * gmerlin,

@@ -753,27 +753,86 @@ static void stop_cmd(bg_player_t * player, int new_state, int want_new)
   
   }
 
+static void stream_change_init(bg_player_t * player)
+  {
+  int old_state;
+  player->saved_state.has_video = 0;
+  old_state = bg_player_get_state(player);
+  
+  if((old_state == BG_PLAYER_STATE_STOPPED)  ||
+     (old_state == BG_PLAYER_STATE_CHANGING) ||
+     (old_state == BG_PLAYER_STATE_ERROR))
+    player->saved_state.playing = 0;
+  else
+    player->saved_state.playing = 1;
+  
+  if(player->saved_state.playing)
+    {
+    bg_player_time_get(player, 1, &player->saved_state.time);
+    /* Interrupt and pretend we are seeking */
+
+    player->saved_state.has_video =
+      DO_VIDEO(player) || DO_STILL(player);
+    
+    cleanup_playback(player, old_state, BG_PLAYER_STATE_CHANGING, 0);
+    cleanup_streams(player);
+    bg_player_input_stop(player->input_context);
+    }
+  }
+
+static int stream_change_done(bg_player_t * player)
+  {
+  gavl_time_t t = 0;
+  if(player->saved_state.playing)
+    {
+    if(!bg_player_input_set_track(player->input_context))
+      {
+      bg_player_set_state(player, BG_PLAYER_STATE_ERROR,
+                          NULL, NULL);
+      goto fail;
+      }
+    bg_player_input_select_streams(player->input_context);
+    
+    if(!bg_player_input_start(player->input_context))
+      {
+      bg_player_set_state(player, BG_PLAYER_STATE_ERROR,
+                          NULL, NULL);
+      goto fail;
+      }
+    init_playback(player, player->saved_state.time, 0,
+                  player->saved_state.has_video);
+    }
+  return 1;
+  fail:
+  if(player->saved_state.has_video)
+    bg_player_ov_standby(player->ov_context);
+  bg_player_time_reset(player);
+  
+  bg_player_input_cleanup(player->input_context);
+  player->input_handle = (bg_plugin_handle_t*)0;
+  bg_msg_queue_list_send(player->message_queues,
+                         msg_time,
+                         &t);
+  
+  return 0;
+  }
+
+
 static void set_ov_plugin_cmd(bg_player_t * player,
                               bg_plugin_handle_t * handle)
   {
-  int state;
-
-  state = bg_player_get_state(player);
-  if((state == BG_PLAYER_STATE_PLAYING) || (state == BG_PLAYER_STATE_STILL))
-    stop_cmd(player, BG_PLAYER_STATE_STOPPED, 0);
-  
+  stream_change_init(player);
   bg_player_ov_set_plugin(player, handle);
   bg_player_ov_standby(player->ov_context);
+  stream_change_done(player);
   }
 
 static void set_oa_plugin_cmd(bg_player_t * player,
                               bg_plugin_handle_t * handle)
   {
-  int state;
-  state = bg_player_get_state(player);
-  if((state == BG_PLAYER_STATE_PLAYING) || (state == BG_PLAYER_STATE_STILL))
-    stop_cmd(player, BG_PLAYER_STATE_STOPPED, 0);
+  stream_change_init(player);
   bg_player_oa_set_plugin(player, handle);
+  stream_change_done(player);
   }
 
 static void do_seek(bg_player_t * player, gavl_time_t t, int old_state)
@@ -862,69 +921,6 @@ static void seek_cmd(bg_player_t * player, gavl_time_t t)
   do_seek(player, t, old_state);  
   }
 
-static void stream_change_init(bg_player_t * player)
-  {
-  int old_state;
-  player->saved_state.has_video = 0;
-  old_state = bg_player_get_state(player);
-  
-  if((old_state == BG_PLAYER_STATE_STOPPED)  ||
-     (old_state == BG_PLAYER_STATE_CHANGING) ||
-     (old_state == BG_PLAYER_STATE_ERROR))
-    player->saved_state.playing = 0;
-  else
-    player->saved_state.playing = 1;
-  
-  if(player->saved_state.playing)
-    {
-    bg_player_time_get(player, 1, &player->saved_state.time);
-    /* Interrupt and pretend we are seeking */
-
-    player->saved_state.has_video =
-      DO_VIDEO(player) || DO_STILL(player);
-    
-    cleanup_playback(player, old_state, BG_PLAYER_STATE_CHANGING, 0);
-    cleanup_streams(player);
-    bg_player_input_stop(player->input_context);
-    }
-  }
-
-static int stream_change_done(bg_player_t * player)
-  {
-  gavl_time_t t = 0;
-  if(player->saved_state.playing)
-    {
-    if(!bg_player_input_set_track(player->input_context))
-      {
-      bg_player_set_state(player, BG_PLAYER_STATE_ERROR,
-                          NULL, NULL);
-      goto fail;
-      }
-    bg_player_input_select_streams(player->input_context);
-    
-    if(!bg_player_input_start(player->input_context))
-      {
-      bg_player_set_state(player, BG_PLAYER_STATE_ERROR,
-                          NULL, NULL);
-      goto fail;
-      }
-    init_playback(player, player->saved_state.time, 0,
-                  player->saved_state.has_video);
-    }
-  return 1;
-  fail:
-  if(player->saved_state.has_video)
-    bg_player_ov_standby(player->ov_context);
-  bg_player_time_reset(player);
-  
-  bg_player_input_cleanup(player->input_context);
-  player->input_handle = (bg_plugin_handle_t*)0;
-  bg_msg_queue_list_send(player->message_queues,
-                         msg_time,
-                         &t);
-  
-  return 0;
-  }
 
 static void set_audio_stream_cmd(bg_player_t * player, int stream)
   {

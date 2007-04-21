@@ -9,8 +9,8 @@ struct plugin_window_s
   {
   GtkWidget * window;
   bg_gtk_plugin_widget_multi_t * inputs;
-  bg_gtk_plugin_widget_single_t * video_output;
-  bg_gtk_plugin_widget_single_t * audio_output;
+  //  bg_gtk_plugin_widget_single_t * video_output;
+  //  bg_gtk_plugin_widget_single_t * audio_output;
   bg_gtk_plugin_widget_multi_t * image_readers;
 
   GtkWidget * close_button;
@@ -22,6 +22,7 @@ struct plugin_window_s
   GtkTooltips * tooltips;
   };
 
+#if 0
 static void set_audio_output(const bg_plugin_info_t * info, void * data)
   {
   bg_plugin_handle_t * handle;
@@ -44,6 +45,7 @@ static void set_video_output(const bg_plugin_info_t * info, void * data)
 
   bg_player_set_ov_plugin(win->g->player, handle);
   }
+#endif
 
 static void button_callback(GtkWidget * w, gpointer data)
   {
@@ -68,8 +70,6 @@ plugin_window_t * plugin_window_create(gmerlin_t * g,
   GtkWidget * label;
   GtkWidget * table;
   GtkWidget * notebook;
-  int row = 0;
-  int num_columns = 0;
     
   ret = calloc(1, sizeof(*ret));
 
@@ -92,28 +92,6 @@ plugin_window_t * plugin_window_create(gmerlin_t * g,
   ret->close_notify      = close_notify;
   ret->close_notify_data = close_notify_data;
   
-  ret->audio_output = 
-    bg_gtk_plugin_widget_single_create("Audio",
-                                       g->plugin_reg,
-                                       BG_PLUGIN_OUTPUT_AUDIO,
-                                       BG_PLUGIN_PLAYBACK,
-                                       ret->tooltips);
-
-  set_audio_output(bg_gtk_plugin_widget_single_get_plugin(ret->audio_output), ret);
-  
-  bg_gtk_plugin_widget_single_set_change_callback(ret->audio_output, set_audio_output, ret);
-                                           
-  ret->video_output = 
-    bg_gtk_plugin_widget_single_create("Video",
-                                       g->plugin_reg,
-                                       BG_PLUGIN_OUTPUT_VIDEO,
-                                       BG_PLUGIN_PLAYBACK,
-                                       ret->tooltips);
-
-  set_video_output(bg_gtk_plugin_widget_single_get_plugin(ret->video_output), ret);
-
-  bg_gtk_plugin_widget_single_set_change_callback(ret->video_output, set_video_output, ret); 
-
   ret->inputs = 
     bg_gtk_plugin_widget_multi_create(g->plugin_reg,
                                       BG_PLUGIN_INPUT,
@@ -159,21 +137,6 @@ plugin_window_t * plugin_window_create(gmerlin_t * g,
   gtk_table_set_col_spacings(GTK_TABLE(table), 5);
   gtk_container_set_border_width(GTK_CONTAINER(table), 5);
 
-  bg_gtk_plugin_widget_single_attach(ret->audio_output,
-                                     table,
-                                     &row, &num_columns);
-
-  bg_gtk_plugin_widget_single_attach(ret->video_output,
-                                     table,
-                                     &row, &num_columns);
-  
-  gtk_widget_show(table);
-
-  label = gtk_label_new(TR("Outputs"));
-  gtk_widget_show(label);
-  gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
-                           table,
-                           label);
  
   label = gtk_label_new(TR("Image readers"));
   gtk_widget_show(label);
@@ -205,8 +168,6 @@ plugin_window_t * plugin_window_create(gmerlin_t * g,
 
 void plugin_window_destroy(plugin_window_t * w)
   {
-  bg_gtk_plugin_widget_single_destroy(w->audio_output);
-  bg_gtk_plugin_widget_single_destroy(w->video_output);
   bg_gtk_plugin_widget_multi_destroy(w->inputs);
   bg_gtk_plugin_widget_multi_destroy(w->image_readers);
   g_object_unref(w->tooltips);
