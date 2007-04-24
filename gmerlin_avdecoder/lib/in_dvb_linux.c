@@ -401,7 +401,7 @@ static int get_streams(bgav_input_context_t * ctx,
     for(j = 0; j < pmts.num_streams; j++)
       pmts.streams[j].present = 1;
     
-    //    bgav_pmt_section_dump(&pmts);  
+    bgav_pmt_section_dump(&pmts);  
 
     /* Setup streams from pmt */
     bgav_pmt_section_setup_track(&pmts,
