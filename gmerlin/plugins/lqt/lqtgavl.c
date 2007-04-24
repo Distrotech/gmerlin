@@ -351,8 +351,6 @@ int lqt_gavl_get_video_format(quicktime_t * file,
     {
     if((lqt_get_file_type(file) & (LQT_FILE_AVI|LQT_FILE_AVI_ODML)))
       format->framerate_mode = GAVL_FRAMERATE_CONSTANT;
-    else
-      format->framerate_mode = GAVL_FRAMERATE_VARIABLE;
     }
   else
     {

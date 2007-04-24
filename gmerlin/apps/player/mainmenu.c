@@ -454,29 +454,17 @@ static void menu_callback(GtkWidget * w, gpointer data)
   else if(chapter_menu_has_widget(&the_menu->chapter_menu, w, &index))
     bg_player_set_chapter(g->player, index);
   else if(plugin_menu_has_widget(&the_menu->audio_stream_menu.plugin_menu, w, &index))
-    {
     plugin_menu_set_plugin(&the_menu->audio_stream_menu.plugin_menu, g, index);
-    }
   else if(plugin_menu_has_widget(&the_menu->video_stream_menu.plugin_menu, w, &index))
-    {
     plugin_menu_set_plugin(&the_menu->video_stream_menu.plugin_menu, g, index);
-    }
   else if(w == the_menu->audio_stream_menu.plugin_menu.info)
-    {
     bg_gtk_plugin_info_show(the_menu->audio_stream_menu.plugin_menu.plugin_info);
-    }
   else if(w == the_menu->audio_stream_menu.plugin_menu.options)
-    {
     plugin_menu_configure(&the_menu->audio_stream_menu.plugin_menu);
-    }
   else if(w == the_menu->video_stream_menu.plugin_menu.info)
-    {
     bg_gtk_plugin_info_show(the_menu->video_stream_menu.plugin_menu.plugin_info);
-    }
   else if(w == the_menu->video_stream_menu.plugin_menu.options)
-    {
     plugin_menu_configure(&the_menu->video_stream_menu.plugin_menu);
-    }
   
   }
 

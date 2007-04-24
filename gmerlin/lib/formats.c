@@ -106,8 +106,8 @@ char * bg_video_format_to_string(gavl_video_format_t * format, int use_tabs)
       bg_sprintf(s,
                  (float)(format->timescale)/((float)format->frame_duration),
                  format->timescale, format->frame_duration,
-                 ((format->framerate_mode == GAVL_FRAMERATE_CONSTANT) ? TR(" (Constant)") : 
-                  TR(" (Not constant)")));
+                 ((format->framerate_mode == GAVL_FRAMERATE_CONSTANT) ? TR(" (constant)") : 
+                  TR(" (variable)")));
 
     ret = bg_strcat(ret, str);
     free(str);

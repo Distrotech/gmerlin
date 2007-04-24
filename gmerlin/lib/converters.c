@@ -194,9 +194,9 @@ int bg_video_converter_init(bg_video_converter_t * cnv,
       cnv->convert_framerate = 1;
       bg_log(BG_LOG_INFO, LOG_DOMAIN, "Doing framerate conversion %5.2f (%s) -> %5.2f (%s)",
              (float)(cnv->in_format.timescale) / (float)(cnv->in_format.frame_duration),
-             (cnv->in_format.framerate_mode == GAVL_FRAMERATE_VARIABLE ? "nonconstant" : "constant"),
+             (cnv->in_format.framerate_mode == GAVL_FRAMERATE_VARIABLE ? "variable" : "constant"),
              (float)(cnv->out_format.timescale) / (float)(cnv->out_format.frame_duration),
-             (cnv->out_format.framerate_mode == GAVL_FRAMERATE_VARIABLE ? "nonconstant" : "constant"));
+             (cnv->out_format.framerate_mode == GAVL_FRAMERATE_VARIABLE ? "variable" : "constant"));
       }
     }
   if(!cnv->convert_framerate)
@@ -241,8 +241,7 @@ int bg_video_converter_read(void * priv, gavl_video_frame_t* frame, int stream)
   int result;
   bg_video_converter_t * cnv = (bg_video_converter_t *)priv;
   gavl_video_frame_t * tmp_frame;
-  
-  
+    
   if(!cnv->convert_framerate)
     {
     if(cnv->convert_gavl)
@@ -277,37 +276,36 @@ int bg_video_converter_read(void * priv, gavl_video_frame_t* frame, int stream)
     /* Last frame was already returned */
     if(cnv->eof)
       return 0;
-    else if(in_pts >= cnv->next_frame->time_scaled)
-      {
-      do{
-        tmp_frame = cnv->frame;
-        cnv->frame = cnv->next_frame;
-        cnv->next_frame = tmp_frame;
-        
-        result = cnv->read_func(cnv->read_priv, cnv->next_frame, cnv->read_stream);
-        if(!result)
-          {
-          cnv->eof = 1;
-          break;
-          }
-        } while(cnv->next_frame->time_scaled < cnv->next_frame->time_scaled);
 
-      if(cnv->eof)
-        tmp_frame = cnv->next_frame;
-      else if(ABSDIFF(cnv->next_frame->time_scaled, in_pts) <
-              ABSDIFF(cnv->frame->time_scaled, in_pts))
-        tmp_frame = cnv->next_frame;
-      else
-        tmp_frame = cnv->frame;
+    while(in_pts >= cnv->next_frame->time_scaled)
+      {
+      tmp_frame = cnv->frame;
+      cnv->frame = cnv->next_frame;
+      cnv->next_frame = tmp_frame;
       
-      if(cnv->convert_gavl)
-        gavl_video_convert(cnv->cnv, tmp_frame, frame);
-      else
-        gavl_video_frame_copy(&cnv->out_format, tmp_frame, frame);
-      
-      frame->time_scaled = cnv->out_pts;
-      cnv->out_pts += cnv->out_format.frame_duration;
+      result = cnv->read_func(cnv->read_priv, cnv->next_frame, cnv->read_stream);
+      if(!result)
+        {
+        cnv->eof = 1;
+        break;
+        }
       }
+    
+    if(cnv->eof)
+      tmp_frame = cnv->next_frame;
+    else if(ABSDIFF(cnv->next_frame->time_scaled, in_pts) <
+            ABSDIFF(cnv->frame->time_scaled, in_pts))
+      tmp_frame = cnv->next_frame;
+    else
+      tmp_frame = cnv->frame;
+    
+    if(cnv->convert_gavl)
+      gavl_video_convert(cnv->cnv, tmp_frame, frame);
+    else
+      gavl_video_frame_copy(&cnv->out_format, frame, tmp_frame);
+    
+    frame->time_scaled = cnv->out_pts;
+    cnv->out_pts += cnv->out_format.frame_duration;
     }
   return 1;
   }

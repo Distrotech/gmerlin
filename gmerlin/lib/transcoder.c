@@ -1533,9 +1533,9 @@ static int video_iteration(video_stream_t * s, bg_transcoder_t * t)
     {
     if(t->start_time != GAVL_TIME_UNDEFINED)
       {
-      s->start_time_scaled = gavl_time_scale(s->out_format.timescale,
+      s->start_time_scaled = gavl_time_scale(s->in_format.timescale,
                                              t->start_time);
-      bg_video_converter_reset(s->cnv, s->start_time_scaled);
+      //      bg_video_converter_reset(s->cnv, s->start_time_scaled);
       }
     s->initialized = 1;
     }

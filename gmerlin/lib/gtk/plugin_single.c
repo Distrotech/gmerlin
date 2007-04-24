@@ -233,12 +233,14 @@ static void change_callback(GtkWidget * w, gpointer data)
                            BG_PLUGIN_ENCODER))
     {
     if(widget->info->audio_parameters)
-      widget->audio_section = bg_cfg_section_find_subsection(widget->section, "$audio");
+      widget->audio_section =
+        bg_cfg_section_find_subsection(widget->section, "$audio");
     else
       widget->audio_section = (bg_cfg_section_t*)0;
 
     if(widget->info->video_parameters)
-      widget->video_section = bg_cfg_section_find_subsection(widget->section, "$video");
+      widget->video_section =
+        bg_cfg_section_find_subsection(widget->section, "$video");
     else
       widget->video_section = (bg_cfg_section_t*)0;
 
