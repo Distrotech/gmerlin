@@ -239,10 +239,12 @@ static int add_video_stream_lqt(void * data,
   gavl_video_format_copy(&(e->video_streams[e->num_video_streams].format),
                          format);
 
+#if 0  
   /* AVIs are made with constant framerates only */
   if((e->file_type & (LQT_FILE_AVI|LQT_FILE_AVI_ODML)))
     e->video_streams[e->num_video_streams].format.framerate_mode =
       GAVL_FRAMERATE_CONSTANT;
+#endif // Done by lqtgavl
   
   e->num_video_streams++;
   return e->num_video_streams-1;

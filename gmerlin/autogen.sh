@@ -1,4 +1,5 @@
 #!/bin/sh
+./make_potfiles
 aclocal -I m4
 libtoolize --automake --copy --force
 autoheader
