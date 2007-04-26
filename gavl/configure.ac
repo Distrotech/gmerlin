@@ -98,7 +98,12 @@ dnl
 dnl Now, build the final CFLAGS.
 dnl 
 
-CFLAGS="-Wall -Wmissing-declarations -Wdeclaration-after-statement $OPT_CFLAGS"
+CFLAGS="$CFLAGS $OPT_CFLAGS"
+
+LQT_TRY_CFLAGS("-Wall", CFLAGS="$CFLAGS -Wall", )
+LQT_TRY_CFLAGS("-Wmissing-declarations", CFLAGS="$CFLAGS -Wmissing-declarations", )
+LQT_TRY_CFLAGS("-Wdeclaration-after-statement", CFLAGS="$CFLAGS -Wdeclaration-after-statement")
+
 
 dnl
 dnl Stuff from libsamplerate

@@ -325,7 +325,12 @@ dnl
 dnl Common CFLAGS
 dnl
 
-CFLAGS="-Wall -Wmissing-declarations -Wdeclaration-after-statement -D_REENTRANT -D_FILE_OFFSET_BITS=64 $GAVL_CFLAGS"
+CFLAGS="$CFLAGS -D_REENTRANT -D_FILE_OFFSET_BITS=64 $GAVL_CFLAGS"
+
+LQT_TRY_CFLAGS("-Wall", CFLAGS="$CFLAGS -Wall", )
+LQT_TRY_CFLAGS("-Wmissing-declarations", CFLAGS="$CFLAGS -Wmissing-declarations", )
+LQT_TRY_CFLAGS("-Wdeclaration-after-statement", CFLAGS="$CFLAGS -Wdeclaration-after-statement")
+
 
 dnl The following is necessary so the win32 dll loader also gets compiled
 dnl with -g
