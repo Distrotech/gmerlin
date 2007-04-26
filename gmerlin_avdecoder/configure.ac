@@ -50,9 +50,13 @@ if test -d $GMERLIN_DEP_DIR; then
   export PKG_CONFIG_PATH=$GMERLIN_DEP_DIR/lib/pkgconfig:$PKG_CONFIG_PATH
   GMERLIN_DEP_CFLAGS="-I$GMERLIN_DEP_DIR/include"
 
-  LQT_TRY_CFLAGS([-Wl,--rpath -Wl,$GMERLIN_DEP_DIR/lib],
-                 [GMERLIN_DEP_RPATH="-Wl,--rpath -Wl,$GMERLIN_DEP_DIR/lib"],
-		 [GMERLIN_DEP_RPATH=""])
+  AC_MSG_CHECKING(for --rpath option)
+  OLD_LDFLAGS=$LDFLAGS
+  LDFLAGS="$LDFLAGS -Wl,--rpath -Wl,$GMERLIN_DEP_DIR/lib"  
+  AC_TRY_LINK([],[],
+              [GMERLIN_DEP_RPATH="-Wl,--rpath -Wl,$GMERLIN_DEP_DIR/lib"; AC_MSG_RESULT(Supported)],
+	      [GMERLIN_DEP_RPATH="";AC_MSG_RESULT(Unsupported)])
+  LDFLAGS=$OLD_LDFLAGS
 
   GMERLIN_DEP_LIBS="-L$GMERLIN_DEP_DIR/lib"
 else
