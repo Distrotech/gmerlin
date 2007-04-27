@@ -402,7 +402,7 @@ int bg_mpv_open(bg_mpv_common_t * com, const char * filename)
     }
 
 
-  com->y4m.fd = com->mpeg2enc->stdin;
+  com->y4m.fd = com->mpeg2enc->stdin_fd;
 
   free(commandline);
   

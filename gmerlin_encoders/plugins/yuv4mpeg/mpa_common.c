@@ -324,7 +324,7 @@ int bg_mpa_write_audio_frame(bg_mpa_common_t * com,
                               gavl_audio_frame_t * frame)
   {
   int bytes = 2 * com->format.num_channels * frame->valid_samples;
-  if(write(com->mp2enc->stdin, frame->samples.s_16, bytes) < bytes)
+  if(write(com->mp2enc->stdin_fd, frame->samples.s_16, bytes) < bytes)
     return 0;
   return 1;
   }
