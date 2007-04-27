@@ -219,7 +219,7 @@ char * bg_find_url_launcher()
       bg_subprocess_create("gconftool-2 -g /desktop/gnome/url-handlers/http/command",
                            0, 1, 0);
     
-    if(bg_subprocess_read_line(proc->stdout, &ret, &ret_alloc, 0))
+    if(bg_subprocess_read_line(proc->stdout_fd, &ret, &ret_alloc, 0))
       {
       bg_subprocess_close(proc);
       return ret;

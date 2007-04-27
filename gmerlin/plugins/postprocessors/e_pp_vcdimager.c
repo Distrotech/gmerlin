@@ -312,7 +312,7 @@ static void run_vcdimager(void * data, const char * directory, int cleanup)
   free(commandline);
   commandline = (char*)0;
   
-  while(bg_subprocess_read_line(proc->stderr, &line, &line_alloc, -1))
+  while(bg_subprocess_read_line(proc->stderr_fd, &line, &line_alloc, -1))
     {
     /* If we read something from stderr, we know it's an error */
     if(line && (*line != '\0'))
@@ -345,7 +345,7 @@ static void run_vcdimager(void * data, const char * directory, int cleanup)
 
   proc = bg_subprocess_create(commandline, 0, 1, 0);
   free(commandline);
-  while(bg_subprocess_read_line(proc->stdout, &line, &line_alloc, -1))
+  while(bg_subprocess_read_line(proc->stdout_fd, &line, &line_alloc, -1))
     {
     parse_output_line(vcdimager, line);
     }

@@ -29,9 +29,9 @@
 
 typedef struct
   {
-  int stdin; //!< Filedescriptor, which is a pipe to the stdin of the process  
-  int stdout; //!< Filedescriptor, which is a pipe to the stdout of the process
-  int stderr;//!< Filedescriptor, which is a pipe to the stderr of the process
+  int stdin_fd; //!< Filedescriptor, which is a pipe to the stdin of the process  
+  int stdout_fd; //!< Filedescriptor, which is a pipe to the stdout of the process
+  int stderr_fd;//!< Filedescriptor, which is a pipe to the stderr of the process
   
   void * priv; //!< Internals made opaque
   } bg_subprocess_t;

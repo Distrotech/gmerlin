@@ -95,7 +95,7 @@ static int read_audio_samples_mikmod(void * data, gavl_audio_frame_t * f, int st
   int result;
   i_mikmod_t * e = (i_mikmod_t*)data;
 
-  result = bg_subprocess_read_data(e->proc->stdout,
+  result = bg_subprocess_read_data(e->proc->stdout_fd,
                                    f->samples.u_8, num_samples * e->block_align);
 
   if(result < 0)

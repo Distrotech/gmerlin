@@ -106,9 +106,9 @@ static void connect_pipe_child(pipe_t * p, int fileno)
 typedef struct
   {
   pid_t pid;
-  pipe_t stdin;
-  pipe_t stdout;
-  pipe_t stderr;
+  pipe_t stdin_fd;
+  pipe_t stdout_fd;
+  pipe_t stderr_fd;
   } subprocess_priv_t;
 
 bg_subprocess_t * bg_subprocess_create(const char * command, int do_stdin,
@@ -123,22 +123,22 @@ bg_subprocess_t * bg_subprocess_create(const char * command, int do_stdin,
   ret_priv = calloc(1, sizeof(*ret_priv));
   ret->priv = ret_priv;
 
-  ret_priv->stdin.w = 1;
+  ret_priv->stdin_fd.w = 1;
   
   if(do_stdin)
-    create_pipe(&ret_priv->stdin);
+    create_pipe(&ret_priv->stdin_fd);
   if(do_stdout)
-    create_pipe(&ret_priv->stdout);
+    create_pipe(&ret_priv->stdout_fd);
   if(do_stderr)
-    create_pipe(&ret_priv->stderr);
+    create_pipe(&ret_priv->stderr_fd);
   
   pid = fork();
   if(pid == (pid_t) 0)
     {
     /*  Child */
-    connect_pipe_child(&ret_priv->stdin, STDIN_FILENO);
-    connect_pipe_child(&ret_priv->stdout, STDOUT_FILENO);
-    connect_pipe_child(&ret_priv->stderr, STDERR_FILENO);
+    connect_pipe_child(&ret_priv->stdin_fd, STDIN_FILENO);
+    connect_pipe_child(&ret_priv->stdout_fd, STDOUT_FILENO);
+    connect_pipe_child(&ret_priv->stderr_fd, STDERR_FILENO);
 
     /* Close all open filedescriptors from parent */
 
@@ -158,9 +158,9 @@ bg_subprocess_t * bg_subprocess_create(const char * command, int do_stdin,
   else
     {
     /*  Parent */
-    ret->stdin  = connect_pipe_parent(&ret_priv->stdin);
-    ret->stdout = connect_pipe_parent(&ret_priv->stdout);
-    ret->stderr = connect_pipe_parent(&ret_priv->stderr);
+    ret->stdin_fd  = connect_pipe_parent(&ret_priv->stdin_fd);
+    ret->stdout_fd = connect_pipe_parent(&ret_priv->stdout_fd);
+    ret->stderr_fd = connect_pipe_parent(&ret_priv->stderr_fd);
     ret_priv->pid = pid;
     }
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "Created process: %s [%d]",
@@ -189,10 +189,10 @@ int bg_subprocess_close(bg_subprocess_t*p)
   int status, ret;
   subprocess_priv_t * priv = (subprocess_priv_t*)(p->priv);
 
-  if(priv->stdin.use)
+  if(priv->stdin_fd.use)
     {
     //    fflush(p->stdin);
-    my_close(&p->stdin);
+    my_close(&p->stdin_fd);
     }
   /* Some programs might rely on EOF in stdin */
 
@@ -207,10 +207,10 @@ int bg_subprocess_close(bg_subprocess_t*p)
          priv->pid, ret);
 
   
-  if(priv->stdout.use)
-    my_close(&p->stdout);
-  if(priv->stderr.use)
-    my_close(&p->stderr);
+  if(priv->stdout_fd.use)
+    my_close(&p->stdout_fd);
+  if(priv->stderr_fd.use)
+    my_close(&p->stderr_fd);
   
   free(priv);
   free(p);
