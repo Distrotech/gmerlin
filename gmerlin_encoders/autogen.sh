@@ -1,4 +1,5 @@
 #!/bin/sh
+./make_potfiles
 if test -d /usr/local/share/aclocal; then
 ACLOCAL_FLAGS="-I /usr/local/share/aclocal"
 else
