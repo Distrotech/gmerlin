@@ -383,7 +383,7 @@ int bg_remote_client_init(bg_remote_client_t * c,
     
   bg_host_address_t * addr = bg_host_address_create();
   c->milliseconds = milliseconds;
-  if(!bg_host_address_set(addr, host, port))
+  if(!bg_host_address_set(addr, host, port, SOCK_STREAM))
     goto fail;
   c->fd = bg_socket_connect_inet(addr, c->milliseconds);
   if(c->fd < 0)

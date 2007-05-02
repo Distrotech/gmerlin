@@ -36,9 +36,11 @@
 #include <avdec_private.h>
 #define LOG_DOMAIN "tcp"
 
+#if !HAVE_DECL_MSG_NOSIGNAL
+#define MSG_NOSIGNAL 0
+#endif
 
-// #include <sys/un.h>
-
+#if 0
 typedef struct 
   {
   int addr_type; /* AF_INET or AF_INET6 */
@@ -51,6 +53,31 @@ typedef struct
                                                                                
   int port;
   } host_address_t;
+#endif
+
+/* Utility functions */
+
+static int create_socket(int domain, int type, int protocol)
+  {
+  int ret;
+#if HAVE_DECL_SO_NOSIGPIPE // OSX
+  int value = 1;
+#endif
+
+  ret = socket(domain, type, protocol);
+
+#if HAVE_DECL_SO_NOSIGPIPE // OSX
+  if(ret < 0)
+    return ret;
+  if(setsockopt(ret, SOL_SOCKET, SO_NOSIGPIPE, &value,
+                sizeof(int)) == -1)
+    return -1;
+#endif
+  return ret;
+  }
+
+
+#if 0
 
 static int hostbyname(const bgav_options_t * opt,
                       host_address_t * a, const char * hostname)
@@ -68,7 +95,6 @@ static int hostbyname(const bgav_options_t * opt,
     a->addr_type = AF_INET;
     return 1;
     }
-
   
   gethostbyname_buffer_size = 1024;
   gethostbyname_buffer = malloc(gethostbyname_buffer_size);
@@ -88,7 +114,8 @@ static int hostbyname(const bgav_options_t * opt,
                                                                                
   if(result || (h_ent_p == NULL))
     {
-    bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Could not resolve address %s", hostname);
+    bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Could not resolve address %s", hostname);
     goto fail;
     }
   if(h_ent_p->h_addrtype == AF_INET)
@@ -105,7 +132,8 @@ static int hostbyname(const bgav_options_t * opt,
     }
   else
     {
-    bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Could not resolve address %s: No known address space",
+    bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Could not resolve address %s: No known address space",
              hostname);
     goto fail;
     }
@@ -118,66 +146,96 @@ static int hostbyname(const bgav_options_t * opt,
   return ret;
   }
 
+#endif
+
+static void address_set_port(struct addrinfo * info, int port)
+  {
+  while(info)
+    {
+    switch(info->ai_family)
+      {
+      case AF_INET:
+        {
+        struct sockaddr_in * addr;
+        addr = (struct sockaddr_in*)info->ai_addr;
+        addr->sin_port = htons(port);
+        }
+        break;
+      case AF_INET6:
+        {
+        struct sockaddr_in6 * addr;
+        addr = (struct sockaddr_in6*)info->ai_addr;
+        addr->sin6_port = htons(port);
+        }
+        break;
+      default:
+        break;
+      }
+    info = info->ai_next;
+    }
+  }
+
+
+static struct addrinfo * hostbyname(const bgav_options_t * opt,
+                                    const char * hostname, int port, int socktype)
+  {
+  int err;
+  struct in_addr ipv4_addr;
+  
+  struct addrinfo hints;
+  struct addrinfo * ret;
+
+  memset(&hints, 0, sizeof(hints));
+  hints.ai_family   = PF_UNSPEC;
+  hints.ai_socktype = socktype; // SOCK_STREAM, SOCK_DGRAM
+  hints.ai_protocol = 0; // 0
+  hints.ai_flags    = 0;
+
+  /* prevent DNS lookup for numeric IP addresses */
+
+  if(inet_aton(hostname, &(ipv4_addr)))
+    hints.ai_flags |= AI_NUMERICSERV;
+
+  if((err = getaddrinfo(hostname, (char*)0 /* service */,
+                        &hints, &ret)))
+    {
+    bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Cannot resolve address of %s: %s",
+             hostname, gai_strerror(err));
+    return (struct addrinfo *)0;
+    }
+
+  address_set_port(ret, port);
+  
+  return ret;
+  }
+
+
 /* Client connection (stream oriented) */
                                                                                
-static int socket_connect_inet(const bgav_options_t * opt, host_address_t * a)
+static int socket_connect_inet(const bgav_options_t * opt, struct addrinfo * addr)
   {
   int ret = -1;
-  struct sockaddr_in  addr_in;
-  struct sockaddr_in6 addr_in6;
-  void * addr;
-  int addr_len;
+
   struct timeval timeout;
   fd_set write_fds;
                                                                                
   /* Create the socket */
-                                                                               
-  if((ret = socket (PF_INET, SOCK_STREAM, 0)) < 0)
+  if((ret = create_socket(addr->ai_family, SOCK_STREAM, 0)) < 0)
     {
     bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Cannot create socket");
     return -1;
     }
   
-  /* Set up address */
-                                                                               
-  if(a->addr_type == AF_INET)
-    {
-    addr = &addr_in;
-    addr_len = sizeof(addr_in);   
-    memset(&addr_in, 0, sizeof(addr_len));
-    
-    addr_in.sin_family = AF_INET;
-    memcpy(&(addr_in.sin_addr),
-           &(a->addr.ipv4_addr),
-           sizeof(a->addr.ipv4_addr));
-    addr_in.sin_port = htons(a->port);
-    }
-  else if(a->addr_type == AF_INET6)
-    {
-    addr = &addr_in6;
-    addr_len = sizeof(addr_in6);
-                                                                               
-    memset(&addr_in6, 0, addr_len);
-    addr_in6.sin6_family = AF_INET6;
-    memcpy(&(addr_in6.sin6_addr),
-           &(a->addr.ipv6_addr),
-           sizeof(a->addr.ipv6_addr));
-    addr_in6.sin6_port = htons(a->port);
-    }
-  else
-    {
-    bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Unknown Address family");
-    return -1;
-    }
-  
-  /* Connect the thing */
-
+  /* Set nonblocking mode */
   if(fcntl(ret, F_SETFL, O_NONBLOCK) < 0)
     {
     bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Cannot set nonblocking mode");
     return -1;
     }
-  if(connect(ret,(struct sockaddr*)addr,addr_len)<0)
+  
+  /* Connect the thing */
+  if(connect(ret, addr->ai_addr, addr->ai_addrlen)<0)
     {
     if(errno == EINPROGRESS)
       {
@@ -202,7 +260,8 @@ static int socket_connect_inet(const bgav_options_t * opt, host_address_t * a)
   
   if(fcntl(ret, F_SETFL, 0) < 0)
     {
-    bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Cannot set blocking mode");
+    bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Cannot set blocking mode");
     return -1;
     }
   return ret;
@@ -211,26 +270,26 @@ static int socket_connect_inet(const bgav_options_t * opt, host_address_t * a)
 int bgav_tcp_connect(const bgav_options_t * opt,
                      const char * host, int port)
   {
-  host_address_t addr;
-  if(!hostbyname(opt, &addr, host))
+  struct addrinfo * addr;
+  int ret;
+  
+  addr = hostbyname(opt, host, port, SOCK_STREAM);
+  if(!addr)
     return -1;
-  addr.port = port;
-  return socket_connect_inet(opt, &addr);
+  ret = socket_connect_inet(opt, addr);
+  freeaddrinfo(addr);
+  return ret;
   }
 
-int bgav_tcp_send(const bgav_options_t * opt, int fd, uint8_t * data, int len)
+int bgav_tcp_send(const bgav_options_t * opt, int fd,
+                  uint8_t * data, int len)
   {
-  char error_buffer[1024];
   int result;
   result = send(fd, data, len, MSG_NOSIGNAL);
   if(result != len)
     {
-    if(!strerror_r(errno, error_buffer, 1024))
-      bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-               "Could not send data: %s", error_buffer);
-    else
-      bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-               "Could not send data");
+    bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Could not send data: %s", strerror(errno));
     return 0;
     }
   return 1;

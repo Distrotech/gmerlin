@@ -27,9 +27,12 @@
 #include <netdb.h> /* gethostbyname */
 
 #include <fcntl.h>
-#include <sys/types.h>
-#include <sys/socket.h>
+//#include <sys/types.h>
+//#include <sys/socket.h>
 #include <sys/un.h>
+
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 #include <config.h>
 
@@ -39,19 +42,15 @@
 #include <log.h>
 #define LOG_DOMAIN "tcpsocket"
 
+#if !HAVE_DECL_MSG_NOSIGNAL
+#define MSG_NOSIGNAL 0
+#endif
+
 /* Opaque address structure so we can support IPv6 in the future */
 
 struct bg_host_address_s 
   {
-  int addr_type; /* AF_INET or AF_INET6 */
-
-  union
-    {
-    struct in_addr  ipv4_addr;
-    struct in6_addr ipv6_addr;
-    } addr;
-  
-  int port;
+  struct addrinfo * addr;
   };
 
 bg_host_address_t * bg_host_address_create()
@@ -66,11 +65,29 @@ void bg_host_address_destroy(bg_host_address_t * a)
   free(a);
   }
 
+static int create_socket(int domain, int type, int protocol)
+  {
+  int ret;
+#if HAVE_DECL_SO_NOSIGPIPE // OSX
+  int value = 1;
+#endif
 
+  ret = socket(domain, type, protocol);
+
+#if HAVE_DECL_SO_NOSIGPIPE // OSX
+  if(ret < 0)
+    return ret;
+  if(setsockopt(ret, SOL_SOCKET, SO_NOSIGPIPE, &value,
+                sizeof(int)) == -1)
+    return -1;
+#endif
+  return ret;
+  }
 
 
 /* gethostbyname */
 
+#if 0
 static int hostbyname(bg_host_address_t * a, const char * hostname)
   {
   struct hostent   h_ent;
@@ -128,13 +145,78 @@ static int hostbyname(bg_host_address_t * a, const char * hostname)
     free(gethostbyname_buffer);
   return ret;
   }
+#endif
+
+/* */
+
+static void address_set_port(struct addrinfo * info, int port)
+  {
+  while(info)
+    {
+    switch(info->ai_family)
+      {
+      case AF_INET:
+        {
+        struct sockaddr_in * addr;
+        addr = (struct sockaddr_in*)info->ai_addr;
+        addr->sin_port = htons(port);
+        }
+        break;
+      case AF_INET6:
+        {
+        struct sockaddr_in6 * addr;
+        addr = (struct sockaddr_in6*)info->ai_addr;
+        addr->sin6_port = htons(port);
+        }
+        break;
+      default:
+        break;
+      }
+    info = info->ai_next;
+    }
+  }
+
+static struct addrinfo * hostbyname(const char * hostname, int port, int socktype)
+  {
+  int err;
+  struct in_addr ipv4_addr;
+  
+  struct addrinfo hints;
+  struct addrinfo * ret;
+
+  memset(&hints, 0, sizeof(hints));
+  hints.ai_family   = PF_UNSPEC;
+  hints.ai_socktype = socktype; // SOCK_STREAM, SOCK_DGRAM
+  hints.ai_protocol = 0; // 0
+  hints.ai_flags    = 0;
+
+  /* prevent DNS lookup for numeric IP addresses */
+
+  if(inet_aton(hostname, &(ipv4_addr)))
+    hints.ai_flags |= AI_NUMERICSERV;
+  if((err = getaddrinfo(hostname, (char*)0 /* service */,
+                        &hints, &ret)))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot resolve address of %s: %s",
+           hostname, gai_strerror(err));
+    return (struct addrinfo *)0;
+    }
+
+  address_set_port(ret, port);
+  
+  return ret;
+  }
 
 int bg_host_address_set(bg_host_address_t * a, const char * hostname,
-                        int port)
+                        int port, int socktype)
   {
-  if(!hostbyname(a, hostname))
+  a->addr = hostbyname(hostname, port, socktype);
+  //  if(!hostbyname(a, hostname))
+  //    return 0;
+  //  a->port = port;
+  
+  if(!a->addr)
     return 0;
-  a->port = port;
   return 1;
   }
 
@@ -143,59 +225,26 @@ int bg_host_address_set(bg_host_address_t * a, const char * hostname,
 int bg_socket_connect_inet(bg_host_address_t * a, int milliseconds)
   {
   int ret = -1;
-  struct sockaddr_in  addr_in;
-  struct sockaddr_in6 addr_in6;
-  void * addr = NULL;
-  int addr_len = 0;
+
   struct timeval timeout;
   fd_set write_fds;
-  
+                                                                               
   /* Create the socket */
-  
-  if((ret = socket (PF_INET, SOCK_STREAM, 0)) < 0)
+  if((ret = create_socket(a->addr->ai_family, SOCK_STREAM, 0)) < 0)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot create inet client socket");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot create socket");
     return -1;
     }
-
-  /* Set up address */
-
-  if(a->addr_type == AF_INET)
-    {
-    addr = &addr_in;
-    addr_len = sizeof(addr_in);
-    
-    memset(&addr_in, 0, sizeof(addr_len));
-
-    addr_in.sin_family = AF_INET;
-    memcpy(&(addr_in.sin_addr),
-           &(a->addr.ipv4_addr),
-           sizeof(a->addr.ipv4_addr));
-    addr_in.sin_port = htons(a->port);
-    }
-  else if(a->addr_type == AF_INET6)
-    {
-    addr = &addr_in6;
-    addr_len = sizeof(addr_in6);
-
-    memset(&addr_in6, 0, addr_len);
-    addr_in6.sin6_family = AF_INET6;
-    memcpy(&(addr_in6.sin6_addr),
-           &(a->addr.ipv6_addr),
-           sizeof(a->addr.ipv6_addr));
-    addr_in6.sin6_port = htons(a->port);
-    }
   
-  /* Connect the thing */
-
-
+  /* Set nonblocking mode */
   if(fcntl(ret, F_SETFL, O_NONBLOCK) < 0)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot set nonblocking mode");
     return -1;
     }
-
-  if(connect(ret,(struct sockaddr*)addr,addr_len)<0)
+  
+  /* Connect the thing */
+  if(connect(ret, a->addr->ai_addr, a->addr->ai_addrlen)<0)
     {
     if(errno == EINPROGRESS)
       {
@@ -211,7 +260,7 @@ int bg_socket_connect_inet(bg_host_address_t * a, int milliseconds)
       }
     else
       {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Connecting failed");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Connecting failed: %s", strerror(errno));
       return -1;
       }
     }
@@ -231,7 +280,7 @@ int bg_socket_connect_unix(const char * name)
   struct sockaddr_un addr;
   int addr_len;
   int ret;
-  ret = socket(PF_LOCAL, SOCK_STREAM, 0);
+  ret = create_socket(PF_LOCAL, SOCK_STREAM, 0);
   if(ret < 0)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot create unix socket");
@@ -241,9 +290,7 @@ int bg_socket_connect_unix(const char * name)
   addr.sun_family = AF_LOCAL;
   strncpy (addr.sun_path, name, sizeof(addr.sun_path));
   addr.sun_path[sizeof (addr.sun_path) - 1] = '\0';
-
   addr_len = SUN_LEN(&addr);
-
   
   if(connect(ret,(struct sockaddr*)(&addr),addr_len)<0)
     {
@@ -268,7 +315,7 @@ int bg_listen_socket_create_inet(int port,
   struct sockaddr_in name;
   
   /* Create the socket. */
-  ret = socket (PF_INET, SOCK_STREAM, 0);
+  ret = create_socket(PF_INET, SOCK_STREAM, 0);
   if (ret < 0)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot create inet server socket");
@@ -304,7 +351,7 @@ int bg_listen_socket_create_unix(const char * name,
 
   struct sockaddr_un addr;
   int addr_len;
-  ret = socket(PF_LOCAL, SOCK_STREAM, 0);
+  ret = create_socket(PF_LOCAL, SOCK_STREAM, 0);
   if(ret < 0)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot create unix server socket");

@@ -33,6 +33,10 @@ AC_SYS_LARGEFILE
 AC_FUNC_FSEEKO
 AC_CHECK_FUNCS(ftello vasprintf)
 
+AC_CHECK_DECLS([MSG_NOSIGNAL, SO_NOSIGPIPE],,,
+               [#include <sys/types.h>
+	       #include <sys/socket.h>])
+
 dnl
 dnl Gettext
 dnl

@@ -396,9 +396,9 @@ static int init_mpeg2(bgav_stream_t*s)
   priv->frame->strides[2] = priv->info->sequence->chroma_width;
   
   s->description =
-    bgav_sprintf("MPEG-%d, %.2f kb/sec", 
+    bgav_sprintf("MPEG-%d, %d kb/sec", 
                  (priv->info->sequence->flags & SEQ_FLAG_MPEG2) ? 2 : 1,
-                 (float)priv->info->sequence->byte_rate * 8.0 / 1000.0);
+                 (priv->info->sequence->byte_rate * 8) / 1000);
   s->codec_bitrate = priv->info->sequence->byte_rate * 8;
 
   if(!s->timescale)

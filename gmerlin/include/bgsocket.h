@@ -22,6 +22,10 @@
 
 #include <inttypes.h>
 
+#include <sys/types.h>
+#include <sys/socket.h>
+
+
 /* Opaque address structure so we can support IPv6 in the future */
 
 typedef struct bg_host_address_s bg_host_address_t;
@@ -33,7 +37,7 @@ void bg_host_address_destroy(bg_host_address_t *);
 /* Get address from hostname and port */
 
 int bg_host_address_set(bg_host_address_t *, const char * host,
-                        int port);
+                        int port, int socktype);
 
 /*
  *  Client connection (stream oriented)

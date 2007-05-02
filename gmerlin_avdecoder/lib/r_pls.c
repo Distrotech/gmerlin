@@ -54,12 +54,13 @@ static int parse_pls(bgav_redirector_context_t * r)
   int buffer_alloc = 0;
   int index;
   char * pos;
-
+  int ret = 0;
+  
   /* Get the first nonempty line */
   while(1)
     {
     if(!bgav_input_read_line(r->input, &buffer, &buffer_alloc, 0, (int*)0))
-      return 0;
+      goto fail;
     pos = buffer;
     while(isspace(*pos))
       pos++;
@@ -68,8 +69,8 @@ static int parse_pls(bgav_redirector_context_t * r)
     }
   
   if(strncasecmp(buffer, "[playlist]", 10))
-    return 0;
-
+    goto fail;
+  
   /* Get number of entries */
   
   while(1)
@@ -115,7 +116,13 @@ static int parse_pls(bgav_redirector_context_t * r)
         }
       }
     }
-  return 1;
+  ret = 1;
+
+  fail:
+  if(buffer)
+    free(buffer);
+  
+  return ret;
   }
 
 bgav_redirector_t bgav_redirector_pls = 

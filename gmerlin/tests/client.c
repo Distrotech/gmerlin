@@ -28,7 +28,7 @@ int main(int argc, char ** argv)
   if(argv[1][1] == 't') /* TCP/IP */
     {
     addr = bg_host_address_create();
-    bg_host_address_set(addr, "localhost", INET_PORT);
+    bg_host_address_set(addr, "localhost", INET_PORT, SOCK_STREAM);
     fd = bg_socket_connect_inet(addr, 500);
     if(fd == -1)
       {

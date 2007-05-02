@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-04-10 22:08+0200\n"
+"POT-Creation-Date: 2007-05-03 00:56+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -976,7 +976,7 @@ msgstr ""
 msgid "Invalid URL: %s"
 msgstr ""
 
-#: lib/mms.c:450 lib/tcp.c:177
+#: lib/mms.c:450 lib/tcp.c:233
 msgid "Cannot set nonblocking mode"
 msgstr ""
 
@@ -1202,41 +1202,46 @@ msgstr ""
 msgid "Detected pts wrap (%s < %s)"
 msgstr ""
 
-#: lib/demux_mpegts.c:515
+#: lib/demux_mpegts.c:499
 msgid "PAT section spans multiple packets, please report"
 msgstr ""
 
-#: lib/demux_mpegts.c:524
+#: lib/demux_mpegts.c:508
 msgid "PAT has multiple sections, please report"
 msgstr ""
 
-#: lib/demux_mpegts.c:558
+#: lib/demux_mpegts.c:542
 msgid "Premature EOF"
 msgstr ""
 
-#: lib/demux_mpegts.c:571
+#: lib/demux_mpegts.c:555
 msgid "Lost sync during initializing"
 msgstr ""
 
-#: lib/demux_mpegts.c:612
+#: lib/demux_mpegts.c:593
 msgid "PMT section spans multiple packets, please report"
 msgstr ""
 
-#: lib/demux_mpegts.c:619
+#: lib/demux_mpegts.c:600
 msgid "PMT has multiple sections, please report"
 msgstr ""
 
-#: lib/demux_mpegts.c:905
+#: lib/demux_mpegts.c:881
 msgid "Cannot get packet size"
 msgstr ""
 
-#: lib/demux_mpegts.c:909
+#: lib/demux_mpegts.c:885
 #, c-format
 msgid "Packet size: %d"
 msgstr ""
 
-#: lib/demux_mpegts.c:1022
+#: lib/demux_mpegts.c:998
 msgid "Could not get program durations, seeking disabled"
+msgstr ""
+
+#: lib/demux_mpegts.c:1017
+#, c-format
+msgid "Next PCR wrap in %s\n"
 msgstr ""
 
 #: lib/video_ffmpeg.c:651
@@ -1325,44 +1330,41 @@ msgstr ""
 msgid "Warning: data_size %d, Offset: %d"
 msgstr ""
 
-#: lib/tcp.c:91
+#: lib/tcp.c:118
 #, c-format
 msgid "Could not resolve address %s"
 msgstr ""
 
-#: lib/tcp.c:108
+#: lib/tcp.c:136
 #, c-format
 msgid "Could not resolve address %s: No known address space"
 msgstr ""
 
-#: lib/tcp.c:137
+#: lib/tcp.c:203
+#, c-format
+msgid "Cannot resolve address of %s: %s"
+msgstr ""
+
+#: lib/tcp.c:226
 msgid "Cannot create socket"
 msgstr ""
 
-#: lib/tcp.c:169
-msgid "Unknown Address family"
-msgstr ""
-
-#: lib/tcp.c:190
+#: lib/tcp.c:248
 msgid "Connection timed out"
 msgstr ""
 
-#: lib/tcp.c:196
+#: lib/tcp.c:254
 #, c-format
 msgid "Connecting failed: %s"
 msgstr ""
 
-#: lib/tcp.c:205
+#: lib/tcp.c:264
 msgid "Cannot set blocking mode"
 msgstr ""
 
-#: lib/tcp.c:230
+#: lib/tcp.c:292
 #, c-format
 msgid "Could not send data: %s"
-msgstr ""
-
-#: lib/tcp.c:233
-msgid "Could not send data"
 msgstr ""
 
 #: lib/demux_avi.c:1599

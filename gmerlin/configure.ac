@@ -30,6 +30,10 @@ AC_CHECK_SIZEOF(long)
 AC_C_BIGENDIAN
 AC_CHECK_FUNCS(vasprintf)
 
+AC_CHECK_DECLS([MSG_NOSIGNAL, SO_NOSIGPIPE],,,
+               [#include <sys/types.h>
+	       #include <sys/socket.h>])
+
 dnl
 dnl Gettext
 dnl

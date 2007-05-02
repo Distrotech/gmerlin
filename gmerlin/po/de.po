@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmerlin 0.3.6\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-04-19 21:01+0200\n"
+"POT-Creation-Date: 2007-05-03 00:55+0200\n"
 "PO-Revision-Date: 2007-02-12 22:09+0100\n"
 "Last-Translator: Burkhard Plaum <gmerlin@users.sourceforge.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -66,7 +66,7 @@ msgstr ""
 msgid "Recorder"
 msgstr ""
 
-#: apps/plugincfg/gmerlin_plugincfg.c:549 apps/player/pluginwindow.c:178
+#: apps/plugincfg/gmerlin_plugincfg.c:549 apps/player/pluginwindow.c:141
 #: apps/transcoder/pluginwindow.c:173
 msgid "Image readers"
 msgstr ""
@@ -109,159 +109,159 @@ msgstr ""
 msgid "Font"
 msgstr ""
 
-#: apps/player/mainmenu.c:561 apps/player/gmerlin.c:642
+#: apps/player/mainmenu.c:656 apps/player/gmerlin.c:642
 msgid "Off"
 msgstr "Aus"
 
-#: apps/player/mainmenu.c:575 apps/player/mainmenu.c:974
+#: apps/player/mainmenu.c:670 apps/player/mainmenu.c:1069
 msgid "Options..."
 msgstr "Optionen..."
 
-#: apps/player/mainmenu.c:579
+#: apps/player/mainmenu.c:674
 #, fuzzy
 msgid "Filters..."
 msgstr "Kapitel"
 
-#: apps/player/mainmenu.c:582
+#: apps/player/mainmenu.c:677
 #, fuzzy
 msgid "Output plugin..."
 msgstr "Optionen..."
 
-#: apps/player/mainmenu.c:715 apps/player/mainmenu.c:771
-#: apps/player/mainmenu.c:794
+#: apps/player/mainmenu.c:810 apps/player/mainmenu.c:866
+#: apps/player/mainmenu.c:889
 #, c-format
 msgid "Stream %d [%s]"
 msgstr ""
 
-#: apps/player/mainmenu.c:717 apps/player/mainmenu.c:774
-#: apps/player/mainmenu.c:797
+#: apps/player/mainmenu.c:812 apps/player/mainmenu.c:869
+#: apps/player/mainmenu.c:892
 #, c-format
 msgid "Stream %d"
 msgstr ""
 
-#: apps/player/mainmenu.c:737
+#: apps/player/mainmenu.c:832
 #, c-format
 msgid "Chapter %d [%s]"
 msgstr "Kapitel %d [%s]"
 
-#: apps/player/mainmenu.c:815 apps/player/cfgdialog.c:165
+#: apps/player/mainmenu.c:910 apps/player/cfgdialog.c:165
 msgid "Media Tree"
 msgstr ""
 
-#: apps/player/mainmenu.c:818
+#: apps/player/mainmenu.c:913
 msgid "Info window"
 msgstr "Track information"
 
-#: apps/player/mainmenu.c:821 apps/player/cfgdialog.c:192
+#: apps/player/mainmenu.c:916 apps/player/cfgdialog.c:192
 #: apps/transcoder/transcoder_window.c:1359
 msgid "Log window"
 msgstr "Meldungen"
 
-#: apps/player/mainmenu.c:823 apps/transcoder/transcoder_window.c:901
+#: apps/player/mainmenu.c:918 apps/transcoder/transcoder_window.c:901
 msgid "About..."
 msgstr "Über..."
 
-#: apps/player/mainmenu.c:840 apps/transcoder/transcoder_window.c:888
+#: apps/player/mainmenu.c:935 apps/transcoder/transcoder_window.c:888
 msgid "Preferences..."
 msgstr "Präferenzen..."
 
-#: apps/player/mainmenu.c:848 apps/transcoder/transcoder_window.c:889
+#: apps/player/mainmenu.c:943 apps/transcoder/transcoder_window.c:889
 msgid "Plugins..."
 msgstr ""
 
-#: apps/player/mainmenu.c:853
+#: apps/player/mainmenu.c:948
 msgid "Skins..."
 msgstr ""
 
-#: apps/player/mainmenu.c:857
+#: apps/player/mainmenu.c:952
 msgid "Multimedia keys..."
 msgstr "Multimedia Tasten..."
 
-#: apps/player/mainmenu.c:863
+#: apps/player/mainmenu.c:958
 msgid "Seek forward"
 msgstr "Vorwärts suchen"
 
-#: apps/player/mainmenu.c:870
+#: apps/player/mainmenu.c:965
 msgid "Seek backward"
 msgstr "Rückwärts suchen"
 
-#: apps/player/mainmenu.c:877
+#: apps/player/mainmenu.c:972
 msgid "Increase volume"
 msgstr "Lauter"
 
-#: apps/player/mainmenu.c:884
+#: apps/player/mainmenu.c:979
 msgid "Decrease volume"
 msgstr "Leiser"
 
-#: apps/player/mainmenu.c:890
+#: apps/player/mainmenu.c:985
 msgid "Toggle mute"
 msgstr "Stummschalten"
 
-#: apps/player/mainmenu.c:896
+#: apps/player/mainmenu.c:991
 msgid "Next track"
 msgstr "Nächster Track"
 
-#: apps/player/mainmenu.c:901
+#: apps/player/mainmenu.c:996
 msgid "Previous track"
 msgstr "Vorheriger Track"
 
-#: apps/player/mainmenu.c:906
+#: apps/player/mainmenu.c:1001
 msgid "Next chapter"
 msgstr "Nächstes Kapitel"
 
-#: apps/player/mainmenu.c:912
+#: apps/player/mainmenu.c:1007
 msgid "Previous chapter"
 msgstr "Vorheriges Kapitel"
 
-#: apps/player/mainmenu.c:918
+#: apps/player/mainmenu.c:1013
 msgid "Seek to start"
 msgstr "Zum Anfang suchen"
 
-#: apps/player/mainmenu.c:923
+#: apps/player/mainmenu.c:1018
 msgid "Pause"
 msgstr ""
 
-#: apps/player/mainmenu.c:928
+#: apps/player/mainmenu.c:1023
 msgid "Quit gmerlin"
 msgstr "Gmerlin beenden"
 
-#: apps/player/mainmenu.c:939
+#: apps/player/mainmenu.c:1034
 msgid "Transcoder"
 msgstr ""
 
-#: apps/player/mainmenu.c:943
+#: apps/player/mainmenu.c:1038
 msgid "Visualizer"
 msgstr ""
 
-#: apps/player/mainmenu.c:947
+#: apps/player/mainmenu.c:1042
 msgid "Mixer"
 msgstr ""
 
-#: apps/player/mainmenu.c:954
+#: apps/player/mainmenu.c:1049
 msgid "Audio..."
 msgstr ""
 
-#: apps/player/mainmenu.c:958
+#: apps/player/mainmenu.c:1053
 msgid "Video..."
 msgstr ""
 
-#: apps/player/mainmenu.c:962
+#: apps/player/mainmenu.c:1057
 msgid "Subtitles..."
 msgstr "Untertitel..."
 
-#: apps/player/mainmenu.c:966
+#: apps/player/mainmenu.c:1061
 msgid "Chapters..."
 msgstr "Kapitel"
 
-#: apps/player/mainmenu.c:970
+#: apps/player/mainmenu.c:1065
 msgid "Windows..."
 msgstr "Fenster"
 
-#: apps/player/mainmenu.c:978
+#: apps/player/mainmenu.c:1073
 msgid "Commands..."
 msgstr "Befehle..."
 
-#: apps/player/mainmenu.c:982
+#: apps/player/mainmenu.c:1077
 msgid "Accessories..."
 msgstr "Zubehör..."
 
@@ -281,12 +281,8 @@ msgstr ""
 msgid "Plugins"
 msgstr ""
 
-#: apps/player/pluginwindow.c:151 apps/transcoder/pluginwindow.c:167
+#: apps/player/pluginwindow.c:129 apps/transcoder/pluginwindow.c:167
 msgid "Inputs"
-msgstr ""
-
-#: apps/player/pluginwindow.c:172
-msgid "Outputs"
 msgstr ""
 
 #: apps/player/gmerlin_remote.c:502
@@ -325,11 +321,11 @@ msgstr ""
 msgid "Show tooltips"
 msgstr ""
 
-#: apps/player/cfgdialog.c:37 lib/gtk/plugin_single.c:325
+#: apps/player/cfgdialog.c:37 lib/gtk/plugin_single.c:327
 msgid "Audio options"
 msgstr ""
 
-#: apps/player/cfgdialog.c:52 lib/gtk/plugin_single.c:333
+#: apps/player/cfgdialog.c:52 lib/gtk/plugin_single.c:335
 msgid "Video options"
 msgstr ""
 
@@ -1311,7 +1307,7 @@ msgstr ""
 msgid "Writer for BMP images"
 msgstr ""
 
-#: plugins/image/iw_pnm.c:145 plugins/lqt/e_lqt.c:507
+#: plugins/image/iw_pnm.c:145 plugins/lqt/e_lqt.c:509
 #: plugins/postprocessors/e_pp_vcdimager.c:108
 #: plugins/subwriters/e_subtext.c:230 lib/gtk/infowindow.c:540
 #: lib/gtk/infowindow.c:634
@@ -1505,91 +1501,91 @@ msgstr ""
 msgid "Cannot open file %s"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:399
+#: plugins/lqt/e_lqt.c:401
 #, c-format
 msgid "Omitting chapter %d: time (%f) > duration (%f)"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:434
+#: plugins/lqt/e_lqt.c:436
 msgid "Making streamable...."
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:436
+#: plugins/lqt/e_lqt.c:438
 msgid "Making streamable....done"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:510
+#: plugins/lqt/e_lqt.c:512
 msgid "Quicktime"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:510
+#: plugins/lqt/e_lqt.c:512
 msgid "AVI"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:510
+#: plugins/lqt/e_lqt.c:512
 msgid "AVI (Opendml)"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:511
+#: plugins/lqt/e_lqt.c:513
 msgid "MP4"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:511
+#: plugins/lqt/e_lqt.c:513
 msgid "M4A"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:511
+#: plugins/lqt/e_lqt.c:513
 msgid "3GP"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:516
+#: plugins/lqt/e_lqt.c:518
 msgid "Make streamable"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:518
+#: plugins/lqt/e_lqt.c:520
 msgid "Make the file streamable afterwards (uses twice the diskspace)"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:522
+#: plugins/lqt/e_lqt.c:524
 msgid "Maximum RIFF size"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:527
+#: plugins/lqt/e_lqt.c:529
 msgid ""
 "Maximum RIFF size (in MB) for OpenDML AVIs. The default (1GB) is reasonable "
 "and should only be changed by people who know what they do."
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:680
+#: plugins/lqt/e_lqt.c:682
 msgid "Text box (top)"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:687
+#: plugins/lqt/e_lqt.c:689
 msgid "Text box (left)"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:694
+#: plugins/lqt/e_lqt.c:696
 msgid "Text box (bottom)"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:701
+#: plugins/lqt/e_lqt.c:703
 msgid "Text box (right)"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:708 lib/textrenderer.c:62
+#: plugins/lqt/e_lqt.c:710 lib/textrenderer.c:62
 msgid "Text color"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:714 plugins/videofilters/fv_zoom.c:132
+#: plugins/lqt/e_lqt.c:716 plugins/videofilters/fv_zoom.c:132
 #: include/bggavl.h:421 lib/gtk/vumeter.c:178
 msgid "Background color"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:764
+#: plugins/lqt/e_lqt.c:766
 msgid "Quicktime encoder"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:765
+#: plugins/lqt/e_lqt.c:767
 msgid ""
 "Encoder based on libquicktime (http://libquicktime.sourceforge.net) Writes "
 "Quicktime, AVI (optionally ODML), MP4, M4A and 3GPP. Supported codecs range "
@@ -3373,11 +3369,11 @@ msgid ""
 msgstr ""
 
 #: lib/formats.c:109
-msgid " (Constant)"
+msgid " (constant)"
 msgstr ""
 
 #: lib/formats.c:110
-msgid " (Not constant)"
+msgid " (variable)"
 msgstr ""
 
 #: lib/formats.c:116
@@ -3668,7 +3664,7 @@ msgstr ""
 msgid "Maximum number of connections"
 msgstr ""
 
-#: lib/remote.c:391 lib/socket.c:214
+#: lib/remote.c:391
 msgid "Connecting failed"
 msgstr ""
 
@@ -4305,84 +4301,94 @@ msgstr ""
 msgid "Audio stream %d: Transcoded %s samples"
 msgstr ""
 
-#: lib/player_thread.c:705 lib/player_thread.c:1224 lib/player_thread.c:1237
+#: lib/player_thread.c:705 lib/player_thread.c:1220 lib/player_thread.c:1233
 msgid "Joining input thread..."
 msgstr ""
 
-#: lib/player_thread.c:707 lib/player_thread.c:1226 lib/player_thread.c:1239
+#: lib/player_thread.c:707 lib/player_thread.c:1222 lib/player_thread.c:1235
 msgid "Joining input thread done"
 msgstr ""
 
-#: lib/player_thread.c:712 lib/player_thread.c:1243
+#: lib/player_thread.c:712 lib/player_thread.c:1239
 msgid "Joining audio thread..."
 msgstr ""
 
-#: lib/player_thread.c:714 lib/player_thread.c:1245
+#: lib/player_thread.c:714 lib/player_thread.c:1241
 msgid "Joining audio thread done"
 msgstr ""
 
-#: lib/player_thread.c:718 lib/player_thread.c:1249
+#: lib/player_thread.c:718 lib/player_thread.c:1245
 msgid "Joining video thread..."
 msgstr ""
 
-#: lib/player_thread.c:720 lib/player_thread.c:1251
+#: lib/player_thread.c:720 lib/player_thread.c:1247
 msgid "Joining video thread done"
 msgstr ""
 
-#: lib/player_thread.c:1303
+#: lib/player_thread.c:1299
 msgid "Ignoring command while playback is interrupted"
 msgstr ""
 
-#: lib/socket.c:103
+#: lib/socket.c:120
 msgid "Could not resolve address"
 msgstr ""
 
-#: lib/socket.c:120
+#: lib/socket.c:137
 msgid "No known address space"
 msgstr ""
 
-#: lib/socket.c:157
-msgid "Cannot create inet client socket"
+#: lib/socket.c:200
+#, c-format
+msgid "Cannot resolve address of %s: %s"
 msgstr ""
 
-#: lib/socket.c:194 lib/socket.c:289 lib/socket.c:325
+#: lib/socket.c:235
+msgid "Cannot create socket"
+msgstr ""
+
+#: lib/socket.c:242 lib/socket.c:336 lib/socket.c:372
 msgid "Cannot set nonblocking mode"
 msgstr ""
 
-#: lib/socket.c:208
+#: lib/socket.c:257
 msgid "Connection timed out"
 msgstr ""
 
-#: lib/socket.c:223
+#: lib/socket.c:263
+#, c-format
+msgid "Connecting failed: %s"
+msgstr ""
+
+#: lib/socket.c:272
 msgid "Cannot set blocking mode"
 msgstr ""
 
-#: lib/socket.c:237
+#: lib/socket.c:286
 msgid "Cannot create unix socket"
 msgstr ""
 
-#: lib/socket.c:250
+#: lib/socket.c:297
 msgid "Connecting unix socket failed"
 msgstr ""
 
-#: lib/socket.c:274
+#: lib/socket.c:321
 msgid "Cannot create inet server socket"
 msgstr ""
 
-#: lib/socket.c:284
+#: lib/socket.c:331
 #, c-format
 msgid "Cannot bind inet socket: %s"
 msgstr ""
 
-#: lib/socket.c:294 lib/socket.c:330
+#: lib/socket.c:341 lib/socket.c:377
 msgid "Cannot put socket into listening mode"
 msgstr ""
 
-#: lib/socket.c:310
+#: lib/socket.c:357
 msgid "Cannot create unix server socket"
 msgstr ""
 
-#: lib/socket.c:320
+#: lib/socket.c:367
 msgid "Could not bind socket"
 msgstr ""
 
@@ -4568,52 +4574,52 @@ msgid ""
 "\n"
 msgstr ""
 
-#: lib/pluginregistry.c:343 lib/pluginregistry.c:1172
+#: lib/pluginregistry.c:344 lib/pluginregistry.c:1173
 #, c-format
 msgid "Plugin %s has no or wrong version"
 msgstr ""
 
-#: lib/pluginregistry.c:350
+#: lib/pluginregistry.c:351
 #, c-format
 msgid "No symbol the_plugin in %s"
 msgstr ""
 
-#: lib/pluginregistry.c:355
+#: lib/pluginregistry.c:356
 #, c-format
 msgid "Warning: Plugin %s has zero priority"
 msgstr ""
 
-#: lib/pluginregistry.c:526
+#: lib/pluginregistry.c:527
 #, c-format
 msgid "Cannot dlopen %s: %s"
 msgstr ""
 
-#: lib/pluginregistry.c:984
+#: lib/pluginregistry.c:985
 #, c-format
 msgid "bg_plugin_ref %s: %d"
 msgstr ""
 
-#: lib/pluginregistry.c:1024 lib/pluginregistry.c:1037
+#: lib/pluginregistry.c:1025 lib/pluginregistry.c:1038
 #, c-format
 msgid "bg_plugin_unref %s: %d"
 msgstr ""
 
-#: lib/pluginregistry.c:1060 lib/pluginregistry.c:1105
+#: lib/pluginregistry.c:1061 lib/pluginregistry.c:1106
 #, c-format
 msgid "No plugin found for image %s"
 msgstr ""
 
-#: lib/pluginregistry.c:1162
+#: lib/pluginregistry.c:1163
 #, c-format
 msgid "Cannot dlopen plugin %s: %s"
 msgstr ""
 
-#: lib/pluginregistry.c:1456
+#: lib/pluginregistry.c:1457
 #, c-format
 msgid "Loading plugin \"%s\" failed"
 msgstr ""
 
-#: lib/pluginregistry.c:1468 lib/pluginregistry.c:1504
+#: lib/pluginregistry.c:1469 lib/pluginregistry.c:1505
 #, c-format
 msgid "Opening %s with \"%s\" failed"
 msgstr ""
@@ -5094,11 +5100,11 @@ msgstr ""
 msgid "Input format"
 msgstr ""
 
-#: lib/gtk/plugin_single.c:313 lib/gtk/plugin_multi.c:272
+#: lib/gtk/plugin_single.c:315 lib/gtk/plugin_multi.c:272
 msgid "Plugin options"
 msgstr ""
 
-#: lib/gtk/plugin_single.c:318 lib/gtk/plugin_multi.c:269
+#: lib/gtk/plugin_single.c:320 lib/gtk/plugin_multi.c:269
 msgid "Plugin info"
 msgstr ""
 
