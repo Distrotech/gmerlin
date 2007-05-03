@@ -319,8 +319,8 @@ if test x$test_libtiff = xtrue; then
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
 
-LIBS="-ltiff"
-CFLAGS=""
+LIBS="$LIBS -ltiff"
+CFLAGS="$CFLAGS"
    
 AC_MSG_CHECKING(for libtiff)
 AC_TRY_LINK([#include <tiffio.h>],
@@ -440,8 +440,8 @@ if test x$test_libpng = xtrue; then
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
 
-LIBS="-lpng -lm -lz"
-CFLAGS=""
+LIBS="$LIBS -lpng -lm -lz"
+CFLAGS="$CFLAGS"
  
 AC_MSG_CHECKING(for libpng)
 AC_TRY_LINK([#include <png.h>],
@@ -910,12 +910,11 @@ CDIO_REQUIRED="0.76"
 AC_ARG_ENABLE(libcdio,
 [AC_HELP_STRING([--disable-libcdio],[Disable libcdio (default: autodetect)])],
 [case "${enableval}" in
-   yes) test_libcdio=true ;;
-   no)  test_libcdio=false ;;
-esac],[test_libcdio=true])
+   yes) test_cdio=true ;;
+   no)  test_cdio=false ;;
+esac],[test_cdio=true])
 
-if test x$test_libcdio = xtrue; then
-
+if test x$test_cdio = xtrue; then
 PKG_CHECK_MODULES(CDIO, libcdio >= $CDIO_REQUIRED, have_cdio="true", have_cdio="false")
 fi
 
@@ -1167,8 +1166,8 @@ if test x$test_libjpeg = xtrue; then
 
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
-LIBS=-ljpeg
-CFLAGS=""
+LIBS="$LIBS -ljpeg"
+CFLAGS="$CFLAGS"
 
 AC_MSG_CHECKING(for libjpeg)
 AC_TRY_LINK([#include <stdio.h>

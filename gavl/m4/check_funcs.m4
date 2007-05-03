@@ -38,6 +38,46 @@ fi
 ])
 
 dnl
+dnl Avformat
+dnl
+
+AC_DEFUN([GMERLIN_CHECK_AVFORMAT],[
+
+AH_TEMPLATE([HAVE_LIBAVFORMAT],
+            [Do we have libavformat installed?])
+
+have_avformat=false
+
+AVFORMAT_BUILD="3278080"
+
+AC_ARG_ENABLE(libavformat,
+[AC_HELP_STRING([--disable-libavformat],[Disable libavformat (default: autodetect)])],
+[case "${enableval}" in
+   yes) test_avformat=true ;;
+   no)  test_avformat=false ;;
+esac],[test_avformat=true])
+
+if test x$test_avformat = xtrue; then
+
+ACL_PATH_AVFORMAT($AVFORMAT_BUILD , have_avformat="true", have_avformat="false")
+AVFORMAT_REQUIRED=$AVFORMAT_VERSION
+
+fi
+
+AM_CONDITIONAL(HAVE_LIBAVFORMAT, test x$have_avformat = xtrue)
+
+AC_SUBST(AVFORMAT_REQUIRED)
+AC_SUBST(AVFORMAT_LIBS)
+AC_SUBST(AVFORMAT_CFLAGS)
+
+if test "x$have_avformat" = "xtrue"; then
+AC_DEFINE([HAVE_LIBAVFORMAT])
+fi
+
+])
+
+
+dnl
 dnl libpostproc
 dnl
 
@@ -279,8 +319,8 @@ if test x$test_libtiff = xtrue; then
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
 
-LIBS="-ltiff"
-CFLAGS=""
+LIBS="$LIBS -ltiff"
+CFLAGS="$CFLAGS"
    
 AC_MSG_CHECKING(for libtiff)
 AC_TRY_LINK([#include <tiffio.h>],
@@ -400,8 +440,8 @@ if test x$test_libpng = xtrue; then
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
 
-LIBS="-lpng -lm -lz"
-CFLAGS=""
+LIBS="$LIBS -lpng -lm -lz"
+CFLAGS="$CFLAGS"
  
 AC_MSG_CHECKING(for libpng)
 AC_TRY_LINK([#include <png.h>],
@@ -870,12 +910,11 @@ CDIO_REQUIRED="0.76"
 AC_ARG_ENABLE(libcdio,
 [AC_HELP_STRING([--disable-libcdio],[Disable libcdio (default: autodetect)])],
 [case "${enableval}" in
-   yes) test_libcdio=true ;;
-   no)  test_libcdio=false ;;
-esac],[test_libcdio=true])
+   yes) test_cdio=true ;;
+   no)  test_cdio=false ;;
+esac],[test_cdio=true])
 
-if test x$test_libcdio = xtrue; then
-
+if test x$test_cdio = xtrue; then
 PKG_CHECK_MODULES(CDIO, libcdio >= $CDIO_REQUIRED, have_cdio="true", have_cdio="false")
 fi
 
@@ -887,6 +926,39 @@ AC_DEFINE([HAVE_CDIO])
 fi
 
 ])
+
+dnl
+dnl libdca
+dnl
+
+AC_DEFUN([GMERLIN_CHECK_DCA],[
+
+AH_TEMPLATE([HAVE_DCA], [ libdca found ])
+
+have_dca="false"
+DCA_REQUIRED="0.0.2"
+
+AC_ARG_ENABLE(libcda,
+[AC_HELP_STRING([--disable-libdca],[Disable libdca (default: autodetect)])],
+[case "${enableval}" in
+   yes) test_libdca=true ;;
+   no)  test_libdca=false ;;
+esac],[test_libdca=true])
+
+if test x$test_libdca = xtrue; then
+
+PKG_CHECK_MODULES(DCA, libdts >= $DCA_REQUIRED, have_dca="true", have_dca="false")
+fi
+
+AM_CONDITIONAL(HAVE_DCA, test x$have_dca = xtrue)
+AC_SUBST(DCA_REQUIRED)
+
+if test "x$have_dca" = "xtrue"; then
+AC_DEFINE([HAVE_DCA])
+fi
+
+])
+
 
 
 dnl
@@ -1094,8 +1166,8 @@ if test x$test_libjpeg = xtrue; then
 
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
-LIBS=-ljpeg
-CFLAGS=""
+LIBS="$LIBS -ljpeg"
+CFLAGS="$CFLAGS"
 
 AC_MSG_CHECKING(for libjpeg)
 AC_TRY_LINK([#include <stdio.h>
@@ -1124,3 +1196,22 @@ AM_CONDITIONAL(HAVE_LIBJPEG, test x$have_libjpeg = xtrue)
 
 ])
 
+dnl
+dnl Linux DVB
+dnl
+
+AC_DEFUN([GMERLIN_CHECK_LINUXDVB],[
+AH_TEMPLATE([HAVE_LINUXDVB],
+            [Linux DVB Support available])
+
+have_linuxdvb="true"
+AC_CHECK_HEADERS([linux/dvb/frontend.h linux/dvb/dmx.h], [],
+[have_linuxdvb="false"; break] )
+
+if test "x$have_linuxdvb" = "xtrue"; then
+AC_DEFINE(HAVE_LINUXDVB)
+fi
+
+AM_CONDITIONAL(HAVE_LINUXDVB, test x$have_linuxdvb = xtrue)
+
+])
