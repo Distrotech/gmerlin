@@ -319,8 +319,8 @@ if test x$test_libtiff = xtrue; then
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
 
-LIBS="-ltiff"
-CFLAGS=""
+LIBS="$LIBS -ltiff"
+CFLAGS="$CFLAGS"
    
 AC_MSG_CHECKING(for libtiff)
 AC_TRY_LINK([#include <tiffio.h>],
@@ -440,8 +440,8 @@ if test x$test_libpng = xtrue; then
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
 
-LIBS="-lpng -lm -lz"
-CFLAGS=""
+LIBS="$LIBS -lpng -lm -lz"
+CFLAGS="$CFLAGS"
  
 AC_MSG_CHECKING(for libpng)
 AC_TRY_LINK([#include <png.h>],
@@ -1166,8 +1166,8 @@ if test x$test_libjpeg = xtrue; then
 
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
-LIBS=-ljpeg
-CFLAGS=""
+LIBS="$LIBS -ljpeg"
+CFLAGS="$CFLAGS"
 
 AC_MSG_CHECKING(for libjpeg)
 AC_TRY_LINK([#include <stdio.h>

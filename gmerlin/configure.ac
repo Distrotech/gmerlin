@@ -415,6 +415,9 @@ dnl
 ALSA_REQUIRED="1.0.0"
 have_alsa="false"
 
+OLD_CFLAGS=$CFLAGS
+OLD_LIBS=$LIBS
+
 AC_ARG_ENABLE(alsa,
               AC_HELP_STRING(--disable-alsa, [Disable Alsa (default: autodetect)]),
               [case "${enableval}" in
@@ -428,8 +431,8 @@ if test x$test_alsa = xtrue; then
 fi
 
 dnl CFLAGS and LIBS must be cleared after AM_PATH_ALSA
-CFLAGS=""
-LIBS=""
+CFLAGS=$OLD_CFLAGS
+LIBS=$OLD_LIBS
 
 
 AM_CONDITIONAL(HAVE_ALSA, test x$have_alsa = xtrue)
