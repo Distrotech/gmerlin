@@ -193,7 +193,7 @@ static struct addrinfo * hostbyname(const char * hostname, int port, int socktyp
   /* prevent DNS lookup for numeric IP addresses */
 
   if(inet_aton(hostname, &(ipv4_addr)))
-    hints.ai_flags |= AI_NUMERICSERV;
+    hints.ai_flags |= AI_NUMERICHOST;
   if((err = getaddrinfo(hostname, (char*)0 /* service */,
                         &hints, &ret)))
     {
