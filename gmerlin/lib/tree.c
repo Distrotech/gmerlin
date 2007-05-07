@@ -334,12 +334,14 @@ static void add_device_plugins(bg_media_tree_t * ret,
       bg_bindtextdomain(info->gettext_domain,
                      info->gettext_directory);
       
-      plugin_album->name  = bg_strdup(plugin_album->name,
-                                      TRD(info->long_name, info->gettext_domain));
       plugin_album->plugin_info = info;
       
       ret->children = append_album(ret->children, plugin_album);
       }
+    
+    plugin_album->name  = bg_strdup(plugin_album->name,
+                                    TRD(info->long_name, info->gettext_domain));
+
     
     /* Now, get the number of devices */
     

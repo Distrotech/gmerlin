@@ -54,12 +54,14 @@ static void destroy(bg_gtk_widget_t * w)
   free(priv);
   }
 
-guint16 background_color_1[3] = { 0xc0c0, 0xc0c0, 0xc0c0 };
-guint16 background_color_2[3] = { 0x8080, 0x8080, 0x8080 };
+static guint16 background_color_1[3] = { 0xc0c0, 0xc0c0, 0xc0c0 };
+static guint16 background_color_2[3] = { 0x8080, 0x8080, 0x8080 };
 
 static void set_button(color_t * c)
   {
+  GdkRectangle rect;
   guint32 i_tmp;
+  int depth;
   
   if(!c->drawingarea->window)
     return;
@@ -98,16 +100,25 @@ static void set_button(color_t * c)
     gdk_gc_set_foreground(c->gc, &(c->gdk_color_2));
     gdk_draw_rectangle(c->background_pixmap, c->gc, 1, 16, 0, 16, 16);
     gdk_draw_rectangle(c->background_pixmap, c->gc, 1, 0, 16, 16, 16);
-    gdk_window_clear(c->drawingarea->window);
     }
   else
     {
     gdk_color_alloc(gdk_window_get_colormap(c->drawingarea->window),
                     &(c->color));
+
+    gdk_gc_set_foreground(c->gc, &(c->color));
+    gdk_draw_rectangle(c->background_pixmap, c->gc, 1, 0, 0, 32, 32);
+
     gdk_window_set_background(c->drawingarea->window, &(c->color));
-    gdk_window_clear(c->drawingarea->window);
     }
+
+  gdk_window_get_geometry(c->drawingarea->window,
+                          &rect.x, &rect.y, &rect.width, &rect.height, &depth);
+  rect.x = 0;
+  rect.y = 0;
   
+  gdk_window_invalidate_rect(c->drawingarea->window, &rect,
+                             TRUE);
   }
 
 static void get_value(bg_gtk_widget_t * w)
@@ -173,16 +184,18 @@ static void realize_callback(GtkWidget * _w, gpointer data)
   int x, y, w, h, depth;
   color_t * priv = (color_t*)data;
 
-  if(priv->has_alpha)
-    {
+  //  if(priv->has_alpha)
+  //    {
     gdk_window_get_geometry(priv->drawingarea->window,
                             &x, &y, &w, &h, &depth);
     priv->background_pixmap = gdk_pixmap_new(priv->drawingarea->window,
                                              32, 32, depth);
     priv->gc = gdk_gc_new(priv->drawingarea->window);
-    gdk_window_set_back_pixmap (priv->drawingarea->window,
-                                priv->background_pixmap, 0);
-    }
+
+    //    gdk_window_set_back_pixmap(priv->drawingarea->window,
+    //                               priv->background_pixmap, 0);
+    bg_gtk_set_widget_bg_pixmap(priv->drawingarea, priv->background_pixmap);
+    //    }
 
   set_button(priv);
   }
