@@ -170,7 +170,7 @@ bg_cfg_section_t * bg_cfg_section_create_subsection_at_pos(bg_cfg_section_t * se
  */
 
 void bg_cfg_section_move_child(bg_cfg_section_t * section, bg_cfg_section_t * child,
-                               int position);
+                               int pos);
 
 
 /** \ingroup cfg_section
@@ -279,7 +279,8 @@ char * bg_cfg_section_get_name_translated(bg_cfg_section_t * section);
  *  \brief Set the name of a configuration section
  *  \param section Configuration section
  *  \param name The new name
- *  \param gettext_domain 
+ *  \param gettext_domain First argument for bindtextdomain()
+ *  \param gettext_directory Second argument for bindtextdomain()
 */
 
 void bg_cfg_section_set_name(bg_cfg_section_t * section, const char * name,

@@ -121,6 +121,8 @@ static float * get_coeffs(float radius, int * r_i, int mode)
       get_coeff = get_coeff_rectangular;
       *r_i = (int)(radius + 0.4999);
       break;
+    default:
+      return (float*)0;
     }
   if(*r_i < 1)
     return (float*)(0);

@@ -78,10 +78,7 @@ typedef int (*bg_read_audio_func_t)(void * priv, gavl_audio_frame_t* frame, int 
  *  input pluigns, recorders and filters to enable arbiatrary combining.
  */
 
-
 typedef int (*bg_read_video_func_t)(void * priv, gavl_video_frame_t* frame, int stream);
-
-
 
 /** \defgroup plugin_flags Plugin flags
  *  \ingroup plugin
@@ -254,8 +251,8 @@ typedef struct bg_plugin_common_s
   char             * extensions;  //!< File extensions this plugin can handle (space separated)
   bg_plugin_type_t type;  //!< Type
   int              flags;  //!< Flags (see defines)
-
-  char             * description;
+  
+  char             * description; //!< Textual description 
   
   /*
    *  If there might be more than one plugin for the same
@@ -1431,7 +1428,6 @@ typedef struct bg_encoder_plugin_s
  *  for creating and (optionally) burning audio CDs and VCDs.
  */
 
-
 /** \ingroup plugin_e_pp
  *  \brief Callbacks for postprocessing
  *
@@ -1535,9 +1531,15 @@ typedef struct bg_encoder_pp_plugin_s
   } bg_encoder_pp_plugin_t;
 
 
-/*******************************************
- * Image reader
- *******************************************/
+/** \defgroup plugin_ir Image support
+ *  \ingroup plugin
+ *  \brief Read and write image files
+ *
+ *  These support reading and writing of images in a variety
+ *  of formats
+ *
+ *  @{
+ */
 
 /** \brief Image reader plugin
  */
@@ -1566,10 +1568,6 @@ typedef struct bg_image_reader_plugin_s
    */
   int (*read_image)(void * priv, gavl_video_frame_t * frame);
   } bg_image_reader_plugin_t;
-
-/*******************************************
- * Image writer
- *******************************************/
 
 /** \brief Image writer plugin
  *
@@ -1617,6 +1615,36 @@ typedef struct bg_image_writer_plugin_s
   int (*write_image)(void * priv, gavl_video_frame_t * frame);
   } bg_image_writer_plugin_t;
 
+/**
+ *  @}
+ */
+
+
+/** \defgroup plugin_filter A/V Filters
+ *  \ingroup plugin
+ *  \brief A/V Filters
+ 
+ *  These can apply additional effects to uncomporessed A/V data.
+ *  The API follows an asynchronous pull approach: You pass a callback
+ *  for reading input frames. Then you call the read method to read one
+ *  output frame. The plugin will read input data via the callback.
+ *
+ *  This mechanism allows filters, where the numbers of input frames/samples
+ *  differs from the numbers of output frames/samples (e.g. when the filter
+ *  does framerate conversion).
+ *
+ *  In principle, the API also supports filters with multiple input ports,
+ *  but currently, only plugins with one input are available.
+ *
+ *  Not all filters support all formats. Applications should build filter chains
+ *  with format converters between them. There are, however, some standard formats,
+ *  which are supported by almost all filters, so the overall conversion overhead
+ *  is usually zero in real-life situations.
+ *
+ *  @{
+ */
+
+
 /* Filters */
 
 /** \brief Audio filter plugin
@@ -1626,15 +1654,69 @@ typedef struct bg_image_writer_plugin_s
 typedef struct bg_audio_filter_plugin_s
   {
   bg_plugin_common_t common; //!< Infos and functions common to all plugin types
+
+  /** \brief Set input callback
+   *  \param priv The handle returned by the create() method
+   *  \param func The function to call
+   *  \param data The private handle to pass to func
+   *  \param stream The stream argument to pass to func
+   *  \param port The input port of the plugin
+   */
   
-  void (*connect_input_port)(void * priv, bg_read_audio_func_t func, void * data, int stream, int port);
+  void (*connect_input_port)(void * priv, bg_read_audio_func_t func,
+                             void * data,
+                             int stream, int port);
+
+  /** \brief Set input format
+   *  \param priv The handle returned by the create() method
+   *  \param format Format
+   *  \param port The input port of the plugin
+   *
+   *  The input format can be changed by the plugin. Make sure that you have a format
+   *  converter before the filter.
+   */
   
   void (*set_input_format)(void * priv, gavl_audio_format_t * format, int port);
+
+  /** \brief Initialize
+   *  \param priv The handle returned by the create() method
+   *
+   *  Perform initialization
+   */
+
   void (*init)(void * priv);
+
+  /** \brief Reset
+   *  \param priv The handle returned by the create() method
+   *
+   *  Optional, resets internal state, as if no frame has been processed before.
+   */
+
   void (*reset)(void * priv);
+
+  /** \brief Get output format
+   *  \param priv The handle returned by the create() method
+   *  \param format Returns the output format
+   *
+   *  These must be called after init().
+   */
+
   void (*get_output_format)(void * priv, gavl_audio_format_t * format);
-  int (*need_restart)(void * priv);
+
+  /** \brief Report, if the plugin must be reinitialized
+   *  \param priv The handle returned by the create() method
+   *  \returns 1 if the plugin must be reinitialized, 0 else
+   *
+   *  Optional, must be called after set_parameter() to check, if the
+   *  filter must be reinitialized. Note, that the input and output formats can
+   *  be changed in this case as well.
+   */
   
+  int (*need_restart)(void * priv);
+
+  /** \brief Read audio samples from the plugin
+   */
+ 
   bg_read_audio_func_t read_audio;
     
   } bg_fa_plugin_t;
@@ -1646,18 +1728,73 @@ typedef struct bg_audio_filter_plugin_s
 typedef struct bg_video_filter_plugin_s
   {
   bg_plugin_common_t common; //!< Infos and functions common to all plugin types
+
+  /** \brief Set input callback
+   *  \param priv The handle returned by the create() method
+   *  \param func The function to call
+   *  \param data The private handle to pass to func
+   *  \param stream The stream argument to pass to func
+   *  \param port The input port of the plugin
+   */
   
-  void (*connect_input_port)(void * priv, bg_read_video_func_t func, void * data, int stream, int port);
+  void (*connect_input_port)(void * priv,
+                             bg_read_video_func_t func,
+                             void * data, int stream, int port);
+
+  /** \brief Set input format
+   *  \param priv The handle returned by the create() method
+   *  \param format Format
+   *  \param port The input port of the plugin
+   */
   
   void (*set_input_format)(void * priv, gavl_video_format_t * format, int port);
+
+  /** \brief Initialize
+   *  \param priv The handle returned by the create() method
+   *
+   *  Perform initialization
+   */
+  
   void (*init)(void * priv);
+
+  /** \brief Reset
+   *  \param priv The handle returned by the create() method
+   *
+   *  Optional, resets internal state, as if no frame has been processed before.
+   */
+
   void (*reset)(void * priv);
+
+  /** \brief Get output format
+   *  \param priv The handle returned by the create() method
+   *  \param format Returns the output format
+   *
+   *  These must be called after init().
+   */
+  
   void (*get_output_format)(void * priv, gavl_video_format_t * format);
+  
+  /** \brief Report, if the plugin must be reinitialized
+   *  \param priv The handle returned by the create() method
+   *  \returns 1 if the plugin must be reinitialized, 0 else
+   *
+   *  Optional, must be called after set_parameter() to check, if the
+   *  filter must be reinitialized. Note, that the input and output formats can
+   *  be changed in this case as well.
+   */
+  
   int (*need_restart)(void * priv);
+
+  /** \brief Read a video frame from the plugin
+   */
 
   bg_read_video_func_t read_video;
     
   } bg_fv_plugin_t;
 
+
+/**
+ *  @}
+ */
 
 #endif // __BG_PLUGIN_H_

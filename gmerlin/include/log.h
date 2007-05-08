@@ -73,6 +73,7 @@ void bg_log_notranslate(bg_log_level_t level, const char * domain,
 
 /** \ingroup log
  *  \brief Translate a message and send it to the logger.
+ *  \param translation_domain Gettext domain (usually package name)
  *  \param level Level
  *  \param domain The name of the volume
  *  \param format Format like for printf

@@ -17,7 +17,7 @@
  
 *****************************************************************/
 
-/** \defgroup Subprocesses
+/** \defgroup subprocesses Subprocesses
  *  \ingroup utils
  *  \brief Subprocesses with pipable stdin, stdout and stderr
  *

@@ -223,7 +223,7 @@ bg_plugin_find_by_protocol(bg_plugin_registry_t * reg,
  *  \returns A NULL-terminated list of plugin names.
  *
  *  This functions returns plugin names suitable for adding to
- *  GUI menus. Use \ref bg_plugin_find_by_name_name to get
+ *  GUI menus. Use \ref bg_plugin_find_by_name to get
  *  the corresponding plugin infos.
  *
  *  Use \ref bg_plugin_registry_free_plugins to free the returned list.
@@ -255,7 +255,6 @@ void bg_plugin_registry_free_plugins(char ** plugins);
  *  \param location Filename or URL
  *  \param info Plugin to use (can be NULL for autodetection)
  *  \param ret Will return the plugin handle.
- *  \param error_msg Might return an error message
  *  \param callbacks Input callbacks (only for authentication)
  *  \returns 1 on success, 0 on error.
  *

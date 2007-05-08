@@ -233,7 +233,7 @@ typedef struct
     {
     gavl_time_t time;     //!< Start time (seekpoint) of this chapter
     char * name;          //!< Name for this chapter (or NULL if unavailable)
-    } * chapters;
+    } * chapters;         //!< Chapters
   } bg_chapter_list_t;
 
 /** \ingroup streaminfo
@@ -262,6 +262,8 @@ void bg_chapter_list_destroy(bg_chapter_list_t * list);
  *  \brief Insert a chapter into a chapter list
  *  \param list A chapter list
  *  \param index Position (starting with 0) where the new chapter will be placed
+ *  \param time Start time of the chapter
+ *  \param name Chapter name (or NULL)
  */
 
 void bg_chapter_list_insert(bg_chapter_list_t * list, int index,

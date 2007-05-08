@@ -148,5 +148,5 @@ int main(int argc, char ** argv)
   dump_video_window(&win);
   
   close(fd);
-  
+  return 0;
   }

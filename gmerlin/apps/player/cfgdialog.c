@@ -24,7 +24,6 @@
 
 void gmerlin_create_dialog(gmerlin_t * g)
   {
-  void * parent;
   bg_parameter_info_t * parameters;
   /* Create the dialogs */
 

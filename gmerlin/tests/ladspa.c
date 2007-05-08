@@ -6,7 +6,7 @@ static void dump_filter(const LADSPA_Descriptor * desc)
   {
   int i;
   fprintf(stderr, "Ladspa filter\n");
-  fprintf(stderr, "  UniqueID:   %d\n", desc->UniqueID);
+  fprintf(stderr, "  UniqueID:   %ld\n", desc->UniqueID);
   fprintf(stderr, "  Label:      %s\n", desc->Label);
   fprintf(stderr, "  Name:       %s\n", desc->Name);
   fprintf(stderr, "  Properties: ");
@@ -19,7 +19,7 @@ static void dump_filter(const LADSPA_Descriptor * desc)
   fprintf(stderr, "\n");
   fprintf(stderr, "  Maker:      %s\n", desc->Maker);
   fprintf(stderr, "  Copyright:  %s\n", desc->Copyright);
-  fprintf(stderr, "  PortCount:  %d\n", desc->PortCount);
+  fprintf(stderr, "  PortCount:  %ld\n", desc->PortCount);
 
   for(i = 0; i < desc->PortCount; i++)
     {
@@ -107,4 +107,5 @@ int main(int argc, char ** argv)
     dump_filter(desc);
     index++;
     }
+  return 0;
   }
