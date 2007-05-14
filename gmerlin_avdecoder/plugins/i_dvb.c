@@ -29,8 +29,6 @@
 
 #include "avdec_common.h"
 
-#include <cdio/cdio.h> // Version
-
 static int open_dvb(void * priv, const char * location)
   {
   avdec_priv * avdec;

@@ -23,6 +23,7 @@
 #include <dirent.h>
 #include <string.h>
 #include <ctype.h>
+#include <limits.h>
 
 
 #include <avdec_private.h>

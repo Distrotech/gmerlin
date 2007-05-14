@@ -618,12 +618,12 @@ extern bgav_input_t bgav_input_vcd;
 extern bgav_input_t bgav_input_dvd;
 #endif
 
+#endif // HAVE_CDIO
+
 #ifdef HAVE_LINUXDVB
 extern bgav_input_t bgav_input_dvb;
 #endif
 
-
-#endif
 
 #ifdef HAVE_SAMBA
 extern bgav_input_t bgav_input_smb;
@@ -640,20 +640,25 @@ void bgav_inputs_dump()
   bgav_dprintf( "<li>%s\n", bgav_input_mms.name);
   bgav_dprintf( "<li>%s\n", bgav_input_http.name);
   bgav_dprintf( "<li>%s\n", bgav_input_ftp.name);
+
 #ifdef HAVE_CDIO
+
   bgav_dprintf( "<li>%s\n", bgav_input_vcd.name);
 
 #ifdef HAVE_DVDREAD
   bgav_dprintf( "<li>%s\n", bgav_input_dvd.name);
 #endif
 
-#endif
+#endif // HAVE_CDIO
+
 #ifdef HAVE_SAMBA
   bgav_dprintf( "<li>%s\n", bgav_input_smb.name);
 #endif
+
 #ifdef HAVE_LINUXDVB
   bgav_dprintf( "<li>%s\n", bgav_input_dvb.name);
 #endif
+
   bgav_dprintf( "</ul>\n");
   }
 
@@ -738,9 +743,10 @@ int bgav_input_open(bgav_input_context_t * ctx,
         }
       }
 #endif
+    else
 #endif
-    else if(!strcmp(url, "-"))
-      ctx->input = &bgav_input_stdin;
+      if(!strcmp(url, "-"))
+        ctx->input = &bgav_input_stdin;
 
     if(!ctx->input)
       ctx->input = &bgav_input_file;
