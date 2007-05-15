@@ -12,4 +12,4 @@ SUBDIRS = po lib plugins tests apps icons skins include doc m4 osd
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = gmerlin.pc $(gtk_pc) 
 
-EXTRA_DIST= config.rpath gmerlin.spec.in gmerlin.pc.in autogen.sh cvs_clean.sh cpuinfo.sh
+EXTRA_DIST= config.rpath gmerlin.spec.in gmerlin.pc.in autogen.sh cvs_clean.sh cpuinfo.sh make_potfiles
