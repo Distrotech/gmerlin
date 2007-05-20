@@ -31,7 +31,9 @@ blend.c \
 colorspace.c \
 cputest.c \
 deinterlace.c \
+deinterlace_blend.c \
 deinterlace_copy.c \
+deinterlace_scale.c \
 dsp.c \
 dsputils.c \
 interleave.c \

@@ -52,8 +52,8 @@ static void deinterlace_copy(gavl_video_deinterlacer_t * d,
   }
 
 gavl_video_deinterlace_func
-gavl_find_deinterlacer_copy_c(const gavl_video_options_t * opt,
-                              const gavl_video_format_t * format)
+gavl_find_deinterlacer_copy(const gavl_video_options_t * opt,
+                            const gavl_video_format_t * format)
   {
   return deinterlace_copy;
   }

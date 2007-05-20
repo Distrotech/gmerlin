@@ -115,6 +115,11 @@ void gavl_video_options_set_scale_mode(gavl_video_options_t * opt,
   SET_INT(scale_mode);
   }
 
+gavl_scale_mode_t  gavl_video_options_get_scale_mode(gavl_video_options_t * opt)
+  {
+  return opt->scale_mode;
+  }
+
 
 
 void gavl_video_options_set_scale_order(gavl_video_options_t * opt,

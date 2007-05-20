@@ -56,19 +56,10 @@ gavl_video_deinterlacer_get_options(gavl_video_deinterlacer_t * d)
   return &(d->opt);
   }
 
-static void deinterlace_scale(gavl_video_deinterlacer_t * d,
-                              gavl_video_frame_t * in,
-                              gavl_video_frame_t * out)
-  { 
-  gavl_video_scaler_scale(d->scaler, in, out);
-  }
 
 int gavl_video_deinterlacer_init(gavl_video_deinterlacer_t * d,
                                  const gavl_video_format_t * src_format)
   {
-  gavl_video_options_t * scaler_opt;
-  gavl_video_format_t in_format;
-  gavl_video_format_t out_format;
   
   gavl_video_format_copy(&(d->format), src_format);
   gavl_video_format_copy(&(d->half_height_format), src_format);
@@ -81,29 +72,15 @@ int gavl_video_deinterlacer_init(gavl_video_deinterlacer_t * d,
     case GAVL_DEINTERLACE_NONE:
       break;
     case GAVL_DEINTERLACE_COPY:
-      d->func = gavl_find_deinterlacer_copy_c(&(d->opt), src_format);
+      d->func = gavl_find_deinterlacer_copy(&(d->opt), src_format);
       break;
     case GAVL_DEINTERLACE_SCALE:
-      d->scaler = gavl_video_scaler_create();
-      scaler_opt = gavl_video_scaler_get_options(d->scaler);
-      gavl_video_options_copy(scaler_opt, &d->opt);
-
-      gavl_video_format_copy(&in_format, src_format);
-      gavl_video_format_copy(&out_format, src_format);
-
-      if(in_format.interlace_mode == GAVL_INTERLACE_NONE)
-        in_format.interlace_mode = GAVL_INTERLACE_TOP_FIRST;
-      out_format.interlace_mode = GAVL_INTERLACE_NONE;
-
-      gavl_video_scaler_init(d->scaler, 
-                             &in_format,
-                             &out_format);
-      
-      d->func = deinterlace_scale;
+      gavl_deinterlacer_init_scale(d, src_format);
+      break;
+    case GAVL_DEINTERLACE_BLEND:
+      gavl_deinterlacer_init_blend(d, src_format);
       break;
     }
-  
-  
   return 1;
   }
 

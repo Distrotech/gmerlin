@@ -1906,7 +1906,8 @@ typedef enum
   {
     GAVL_DEINTERLACE_NONE      = 0, /*!< Don't care about interlacing                */
     GAVL_DEINTERLACE_COPY      = 1, /*!< Take one field and copy it to the other     */
-    GAVL_DEINTERLACE_SCALE     = 2  /*!< Take one field and scale it vertically by 2 */
+    GAVL_DEINTERLACE_SCALE     = 2, /*!< Take one field and scale it vertically by 2 */
+    GAVL_DEINTERLACE_BLEND     = 3  /*!< Linear blend fields together */
   } gavl_deinterlace_mode_t;
 
 /** \ingroup video_options
