@@ -258,113 +258,7 @@ void bg_gavl_audio_options_set_format(const bg_gavl_audio_options_t * opt,
 
 /* Definitions for standard resolutions */
   
-#define FRAME_SIZE_FROM_INPUT      0
-#define FRAME_SIZE_USER            1
-#define FRAME_SIZE_PAL_D1          2
-#define FRAME_SIZE_PAL_D1_WIDE     3
-#define FRAME_SIZE_PAL_DV          4
-#define FRAME_SIZE_PAL_DV_WIDE     5
-#define FRAME_SIZE_PAL_CVD         6
-#define FRAME_SIZE_PAL_VCD         7
-#define FRAME_SIZE_PAL_SVCD        8
-#define FRAME_SIZE_PAL_SVCD_WIDE   9
-#define FRAME_SIZE_NTSC_D1        10
-#define FRAME_SIZE_NTSC_D1_WIDE   11
-#define FRAME_SIZE_NTSC_DV        12
-#define FRAME_SIZE_NTSC_DV_WIDE   13
-#define FRAME_SIZE_NTSC_CVD       14
-#define FRAME_SIZE_NTSC_VCD       15
-#define FRAME_SIZE_NTSC_SVCD      16
-#define FRAME_SIZE_NTSC_SVCD_WIDE 17
-#define FRAME_SIZE_VGA            18
-#define FRAME_SIZE_QVGA           19
-#define NUM_FRAME_SIZES           20
 
-#if 0
-      multi_names: (char*[]){ "from_input", \
-                              "user_defined", \
-                              "pal_d1", \
-                              "pal_d1_wide", \
-                              "pal_dv", \
-                              "pal_dv_wide", \
-                              "pal_vcd", \
-                              "pal_svcd", \
-                              "pal_svcd_wide", \
-                              "ntsc_d1", \
-                              "ntsc_d1_wide", \
-                              "ntsc_dv", \
-                              "ntsc_dv_wide", \
-                              "ntsc_vcd", \
-                              "ntsc_svcd", \
-                              "ntsc_svcd_wide", \
-                              "vga", \
-                              "qvga", \
-
-#endif
-
-
-#if 1
-static struct
-  {
-  int size;
-  char * name;
-  }
-framesize_strings[NUM_FRAME_SIZES] =
-  {
-    { FRAME_SIZE_FROM_INPUT,     "from_input"},
-    { FRAME_SIZE_USER,           "user_defined"},
-    { FRAME_SIZE_PAL_D1,         "pal_d1"},
-    { FRAME_SIZE_PAL_D1_WIDE,    "pal_d1_wide"},
-    { FRAME_SIZE_PAL_DV,         "pal_dv"},
-    { FRAME_SIZE_PAL_DV_WIDE,    "pal_dv_wide"},
-    { FRAME_SIZE_PAL_CVD,        "pal_cvd"},
-    { FRAME_SIZE_PAL_VCD,        "pal_vcd"},
-    { FRAME_SIZE_PAL_SVCD,       "pal_svcd"},
-    { FRAME_SIZE_PAL_SVCD_WIDE,  "pal_svcd_wide"},
-    { FRAME_SIZE_NTSC_D1,        "ntsc_d1"},
-    { FRAME_SIZE_NTSC_D1_WIDE,   "ntsc_d1_wide"},
-    { FRAME_SIZE_NTSC_DV,        "ntsc_dv"},
-    { FRAME_SIZE_NTSC_DV_WIDE,   "ntsc_dv_wide"},
-    { FRAME_SIZE_NTSC_CVD,       "ntsc_cvd"},
-    { FRAME_SIZE_NTSC_VCD,       "ntsc_vcd"},
-    { FRAME_SIZE_NTSC_SVCD,      "ntsc_svcd"},
-    { FRAME_SIZE_NTSC_SVCD_WIDE, "ntsc_svcd_wide"},
-    { FRAME_SIZE_VGA,            "vga"},
-    { FRAME_SIZE_QVGA,           "qvga"},
-  };
-
-static struct
-  {
-  int size;
-  int image_width;
-  int image_height;
-  int pixel_width;
-  int pixel_height;
-  }
-frame_size_sizes[NUM_FRAME_SIZES] =
-  {
-    { FRAME_SIZE_FROM_INPUT,       0,   0,   0,     0 },
-    { FRAME_SIZE_USER,             0,   0,   0,     0 },
-    { FRAME_SIZE_PAL_D1,           720, 576,   59,   54},
-    { FRAME_SIZE_PAL_D1_WIDE,      720, 576,  118,   81},
-    { FRAME_SIZE_PAL_DV,           720, 576,   59,   54},
-    { FRAME_SIZE_PAL_DV_WIDE,      720, 576,  118,   81},
-    { FRAME_SIZE_PAL_CVD,          352, 576,   59,   27},
-    { FRAME_SIZE_PAL_VCD,          352, 288,   59,   54},
-    { FRAME_SIZE_PAL_SVCD,         480, 576,   59,   36},
-    { FRAME_SIZE_PAL_SVCD_WIDE,    480, 576,   59,   27},
-    { FRAME_SIZE_NTSC_D1,          720, 480,   10,   11},
-    { FRAME_SIZE_NTSC_D1_WIDE,     720, 480,   40,   33 },
-    { FRAME_SIZE_NTSC_DV,          720, 480,   10,   11 },
-    { FRAME_SIZE_NTSC_DV_WIDE,     720, 480,   40,   33 },
-    { FRAME_SIZE_NTSC_CVD,         352, 480,   20,   11 },
-    { FRAME_SIZE_NTSC_VCD,         352, 240,   10,   11 },
-    { FRAME_SIZE_NTSC_SVCD,        480, 480,   15,   11 },
-    { FRAME_SIZE_NTSC_SVCD_WIDE,   480, 480,   20,   11 },
-    { FRAME_SIZE_VGA,              640, 480,    1,    1 },
-    { FRAME_SIZE_QVGA,             320, 240,    1,    1 },
-  };
-#endif
 
 /* Frame rates */
 
@@ -473,7 +367,6 @@ gavl_scale_mode_t bg_gavl_string_to_scale_mode(const char * str)
 int bg_gavl_video_set_parameter(void * data, char * name,
                                 bg_parameter_value_t * val)
   {
-  int i;
   int flags;  
   bg_gavl_video_options_t * opt = (bg_gavl_video_options_t *)data;
 
@@ -492,15 +385,12 @@ int bg_gavl_video_set_parameter(void * data, char * name,
   //  SP_INT(fixed_framerate);
   SP_INT(frame_duration);
   SP_INT(timescale);
-  SP_FLOAT(crop_left);
-  SP_FLOAT(crop_right);
-  SP_FLOAT(crop_top);
-  SP_FLOAT(crop_bottom);
-  SP_INT(user_image_width);
-  SP_INT(user_image_height);
-  SP_INT(user_pixel_width);
-  SP_INT(user_pixel_height);
-  SP_INT(maintain_aspect);
+
+  //  SP_INT(user_image_width);
+  //  SP_INT(user_image_height);
+  //  SP_INT(user_pixel_width);
+  //  SP_INT(user_pixel_height);
+  //  SP_INT(maintain_aspect);
   
   SP_FLAG("force_deinterlacing", GAVL_FORCE_DEINTERLACE);
   SP_FLAG("resample_chroma", GAVL_RESAMPLE_CHROMA);
@@ -546,18 +436,6 @@ int bg_gavl_video_set_parameter(void * data, char * name,
       gavl_video_options_set_deinterlace_drop_mode(opt->opt, GAVL_DEINTERLACE_DROP_TOP);
     else if(!strcmp(val->val_str, "bottom"))
       gavl_video_options_set_deinterlace_drop_mode(opt->opt, GAVL_DEINTERLACE_DROP_BOTTOM);
-    }
-  else if(!strcmp(name, "frame_size"))
-    {
-    for(i = 0; i < NUM_FRAME_SIZES; i++)
-      {
-      if(!strcmp(val->val_str, framesize_strings[i].name))
-        {
-        opt->frame_size = framesize_strings[i].size;
-        break;
-        }
-      }
-    return 1;
     }
   return 0;
   }
@@ -621,97 +499,15 @@ static void set_interlace(const bg_gavl_video_options_t * opt,
     out_format->interlace_mode = in_format->interlace_mode;
   }
 
-static void set_framesize(const bg_gavl_video_options_t * opt,
-                          const gavl_video_format_t * in_format,
-                          gavl_video_format_t * out_format)
-  {
-  int i;
-
-  
-  /* Set image- and pixel size for output */
-  
-  if(opt->frame_size == FRAME_SIZE_FROM_INPUT)
-    {
-    out_format->image_width  = in_format->image_width;
-    out_format->image_height = in_format->image_height;
-
-    out_format->pixel_width =  in_format->pixel_width;
-    out_format->pixel_height = in_format->pixel_height;
-    }
-  else if(opt->frame_size == FRAME_SIZE_USER)
-    {
-    out_format->image_width  = opt->user_image_width;
-    out_format->image_height = opt->user_image_height;
-
-    out_format->pixel_width =  opt->user_pixel_width;
-    out_format->pixel_height = opt->user_pixel_height;
-    }
-  else
-    {
-    for(i = 0; i < NUM_FRAME_SIZES; i++)
-      {
-      if(frame_size_sizes[i].size == opt->frame_size)
-        {
-        out_format->image_width = frame_size_sizes[i].image_width;
-        out_format->image_height = frame_size_sizes[i].image_height;
-        
-        out_format->pixel_width = frame_size_sizes[i].pixel_width;
-        out_format->pixel_height = frame_size_sizes[i].pixel_height;
-        
-        }
-      }
-    }
-  out_format->frame_width = out_format->image_width;
-  out_format->frame_height = out_format->image_height;
-  }
 
 void bg_gavl_video_options_set_format(const bg_gavl_video_options_t * opt,
                                       const gavl_video_format_t * in_format,
                                       gavl_video_format_t * out_format)
   {
   set_framerate(opt, in_format, out_format);
-  set_framesize(opt, in_format, out_format);
   set_interlace(opt, in_format, out_format);
   }
 
-void bg_gavl_video_options_set_rectangles(const bg_gavl_video_options_t * opt,
-                                          const gavl_video_format_t * in_format,
-                                          const gavl_video_format_t * out_format,
-                                          int do_crop)
-  {
-  gavl_rectangle_f_t in_rect;
-  gavl_rectangle_i_t out_rect;
-  
-  /* Crop input */
-  gavl_rectangle_f_set_all(&in_rect, in_format);
-
-  if(do_crop)
-    {
-    gavl_rectangle_f_crop_left(&in_rect,   opt->crop_left);
-    gavl_rectangle_f_crop_right(&in_rect,  opt->crop_right);
-    gavl_rectangle_f_crop_top(&in_rect,    opt->crop_top);
-    gavl_rectangle_f_crop_bottom(&in_rect, opt->crop_bottom);
-    }
-  
-  if(opt->maintain_aspect)
-    {
-    gavl_rectangle_fit_aspect(&out_rect,   // gavl_rectangle_t * r,
-                              in_format,  // gavl_video_format_t * src_format,
-                              &in_rect,    // gavl_rectangle_t * src_rect,
-                              out_format, // gavl_video_format_t * dst_format,
-                              1.0,        // float zoom,
-                              0.0         // float squeeze
-                              );
-    }
-  else
-    {
-    gavl_rectangle_i_set_all(&out_rect, out_format);
-    }
-      
-  /* Set rectangles */
-
-  gavl_video_options_set_rectangles(opt->opt, &in_rect, &out_rect);
-  }
 
 
 int bg_overlay_too_old(gavl_time_t time, gavl_time_t ovl_time,

@@ -60,24 +60,10 @@ typedef struct
   int framerate_mode;
   int frame_duration;
   int timescale;
-
-  int frame_size;
-  
-  int user_image_width;
-  int user_image_height;
-
-  int user_pixel_width;
-  int user_pixel_height;
-
-  double crop_left;
-  double crop_right;
-  double crop_top;
-  double crop_bottom;
-  int maintain_aspect;
   
   /* Set by bg_gavl_video_set_parameter */
-  int format_changed;
-  int options_changed;
+  //  int format_changed;
+  //  int options_changed;
   } bg_gavl_video_options_t;
 
 int bg_gavl_video_set_parameter(void * data, char * name, bg_parameter_value_t * val);
@@ -204,51 +190,6 @@ timescale and frame duration below (framerate = timescale / frame_duration).")\
   help_string: TRS("Force deinterlacing if you want progressive output and the input format pretends to be progressive also.") \
   }                                                                  \
 
-#define BG_GAVL_PARAM_CROP                                         \
- {                                                                \
-  name:      "crop_left",                                          \
-    long_name: TRS("Crop left"),                                        \
-    opt:       "crl",                                                    \
-    type:      BG_PARAMETER_FLOAT,                                       \
-    val_min:     { val_f: 0.0 },                                     \
-      val_max:     { val_f: 100000.0 },\
-      val_default: { val_f: 0.0 },\
-      num_digits: 3,\
-      help_string: TRS("Cut this many pixels from the left border of the source frames.") \
-    },\
-    {\
-      name:      "crop_right",\
-      long_name: TRS("Crop right"),\
-      opt:       "crr",                         \
-      type:      BG_PARAMETER_FLOAT,\
-      val_min:     { val_f: 0.0 },\
-      val_max:     { val_f: 100000.0 },\
-      val_default: { val_f: 0.0 },\
-      num_digits: 3,\
-      help_string: TRS("Cut this many pixels from the right border of the source frames.")\
-    },\
-    {\
-      name:      "crop_top",\
-      long_name: TRS("Crop top"),\
-      opt:       "crt",                         \
-      type:      BG_PARAMETER_FLOAT,\
-      val_min:     { val_f: 0.0 },\
-      val_max:     { val_f: 100000.0 },\
-      val_default: { val_f: 0.0 },\
-      num_digits: 3,\
-      help_string: TRS("Cut this many pixels from the top border of the source frames.")\
-    },\
-    {\
-      name:      "crop_bottom",\
-      long_name: TRS("Crop bottom"),\
-      opt:       "crb",                         \
-      type:      BG_PARAMETER_FLOAT,\
-      val_min:     { val_f: 0.0 },\
-      val_max:     { val_f: 100000.0 },\
-      val_default: { val_f: 0.0 },\
-      num_digits: 3,\
-      help_string: TRS("Cut this many pixels from the bottom border of the source frames.")\
-    }
 
 #define BG_GAVL_SCALE_MODE_NAMES \
    (char*[]){ "auto",\
@@ -278,13 +219,13 @@ timescale and frame duration below (framerate = timescale / frame_duration).")\
   long_name:   TRS("Scale mode"),                                          \
   opt:       "sm",                                                  \
   type:        BG_PARAMETER_STRINGLIST,                               \
-    multi_names: BG_GAVL_SCALE_MODE_NAMES, \
-    multi_labels: BG_GAVL_SCALE_MODE_LABELS, \
-    val_default: { val_str: "auto" },                                   \
-    help_string: TRS("Choose scaling method. Auto means to choose based on the conversion quality. Nearest is fastest, Sinc with Lanczos window is slowest."), \
-    },                                                                  \
-    {                                                                   \
-    name:        "scale_order",                                         \
+  multi_names: BG_GAVL_SCALE_MODE_NAMES, \
+  multi_labels: BG_GAVL_SCALE_MODE_LABELS, \
+  val_default: { val_str: "auto" },                                   \
+  help_string: TRS("Choose scaling method. Auto means to choose based on the conversion quality. Nearest is fastest, Sinc with Lanczos window is slowest."), \
+  },                                                                  \
+  {                                                                   \
+  name:        "scale_order",                                         \
   long_name:   TRS("Scale order"),                                        \
   opt:       "so",                                                  \
   type:        BG_PARAMETER_INT,                               \
@@ -302,108 +243,6 @@ timescale and frame duration below (framerate = timescale / frame_duration).")\
   type:        BG_PARAMETER_CHECKBUTTON,                               \
     help_string: TRS("Always perform chroma resampling if chroma subsampling factors or chroma placements are different. Usually, this is only done for qualities above 3."), \
   }
-
-
-#define BG_GAVL_PARAM_FRAME_SIZE  \
-    { \
-      name:        "frame_size", \
-      long_name:   TRS("Frame Size"), \
-      opt:         "s", \
-      type:        BG_PARAMETER_STRINGLIST, \
-      multi_names: (char*[]){ "from_input", \
-                              "user_defined", \
-                              "pal_d1", \
-                              "pal_d1_wide", \
-                              "pal_dv", \
-                              "pal_dv_wide", \
-                              "pal_cvd", \
-                              "pal_vcd", \
-                              "pal_svcd", \
-                              "pal_svcd_wide", \
-                              "ntsc_d1", \
-                              "ntsc_d1_wide", \
-                              "ntsc_dv", \
-                              "ntsc_dv_wide", \
-                              "ntsc_cvd", \
-                              "ntsc_vcd", \
-                              "ntsc_svcd", \
-                              "ntsc_svcd_wide", \
-                              "vga", \
-                              "qvga", \
-                               (char*)0 }, \
-      multi_labels:  (char*[]){ TRS("From Source"), \
-                                TRS("User defined"), \
-                                TRS("PAL DVD D1 4:3 (720 x 576)"), \
-                                TRS("PAL DVD D1 16:9 (720 x 576)"), \
-                                TRS("PAL DV 4:3 (720 x 576)"), \
-                                TRS("PAL DV 16:9 (720 x 576)"), \
-                                TRS("PAL CVD (352 x 576)"), \
-                                TRS("PAL VCD (352 x 288)"), \
-                                TRS("PAL SVCD 4:3 (480 x 576)"), \
-                                TRS("PAL SVCD 16:9 (480 x 576)"), \
-                                TRS("NTSC DVD D1 4:3 (720 x 480)"), \
-                                TRS("NTSC DVD D1 16:9 (720 x 480)"), \
-                                TRS("NTSC DV 4:3 (720 x 480)"), \
-                                TRS("NTSC DV 16:9 (720 x 480)"), \
-                                TRS("NTSC CVD (352 x 480)"), \
-                                TRS("NTSC VCD (352 x 240)"), \
-                                TRS("NTSC SVCD 4:3 (480 x 480)"), \
-                                TRS("NTSC SVCD 16:9 (480 x 480)"), \
-                                TRS("VGA (640 x 480)"), \
-                                TRS("QVGA (320 x 240)"), \
-                                (char*)0 }, \
-      val_default: { val_str: "from_input" }, \
-      help_string: TRS("Set the output frame size. For a user defined size, you must specify the width and height as well as the pixel width and pixel height (for nonsquare pixels)."), \
-    }, \
-    { \
-      name:      "user_image_width", \
-      long_name: TRS("User defined width"), \
-      opt:       "w", \
-      type:      BG_PARAMETER_INT,    \
-      val_min:     { val_i: 1 }, \
-      val_max:     { val_i: 100000 }, \
-      val_default: { val_i: 640 }, \
-      help_string: TRS("User defined width in pixels. Only meaningful if you selected \"User defined\" for the framesize."), \
-    }, \
-    {                                        \
-      name:      "user_image_height", \
-      long_name: TRS("User defined height"), \
-      opt:       "h", \
-      type:      BG_PARAMETER_INT, \
-      val_min:     { val_i: 1 }, \
-      val_max:     { val_i: 100000 }, \
-      val_default: { val_i: 480 }, \
-      help_string: TRS("User defined height in pixels. Only meaningful if you selected \"User defined\" for the framesize."), \
-      }, \
-    { \
-      name:      "user_pixel_width", \
-      long_name: TRS("User defined pixel width"), \
-      opt:       "sw", \
-      type:      BG_PARAMETER_INT,    \
-      val_min:     { val_i: 1 }, \
-      val_max:     { val_i: 100000 }, \
-      val_default: { val_i: 1 }, \
-      help_string: TRS("User defined pixel width. Only meaningful if you selected \"User defined\" for the framesize."), \
-    }, \
-    {                                        \
-      name:      "user_pixel_height", \
-      long_name: TRS("User defined pixel height"), \
-      opt:       "sh", \
-      type:      BG_PARAMETER_INT, \
-      val_min:     { val_i: 1 }, \
-      val_max:     { val_i: 100000 }, \
-      val_default: { val_i: 1 }, \
-      help_string: TRS("User defined pixel height. Only meaningful if you selected \"User defined\" for the framesize."), \
-      }, \
-    { \
-      name:      "maintain_aspect", \
-      long_name: TRS("Maintain aspect ratio"), \
-      opt:       "ka", \
-      type:      BG_PARAMETER_CHECKBUTTON, \
-      val_default: { val_i: 1 }, \
-      help_string: TRS("Let the aspect ratio appear the same as in the source, probably resulting in additional black borders.") \
-      },                                                                \
-      BG_GAVL_PARAM_SCALE_MODE
 
 
 #define BG_GAVL_PARAM_ALPHA                \

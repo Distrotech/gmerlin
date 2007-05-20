@@ -11,9 +11,7 @@
 bg_parameter_info_t conversion_parameters[] =
   {
     BG_GAVL_PARAM_CONVERSION_QUALITY,
-    BG_GAVL_PARAM_CROP,
     BG_GAVL_PARAM_SCALE_MODE,
-    BG_GAVL_PARAM_FRAME_SIZE,
     BG_GAVL_PARAM_DEINTERLACE,
     { /* End of parameters */ }
   };
@@ -164,7 +162,6 @@ int main(int argc, char ** argv)
   gavl_video_format_copy(&out_format, &in_format);
 
   bg_gavl_video_options_set_format(&vopt, &in_format, &out_format);
-  bg_gavl_video_options_set_rectangles(&vopt, &in_format, &out_format, 1);
   
   output_plugin->write_header(output_handle->priv, files[1], &out_format);
 

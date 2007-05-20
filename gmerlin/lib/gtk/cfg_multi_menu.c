@@ -169,7 +169,10 @@ static void combo_box_change_callback(GtkWidget * wid, gpointer data)
     gtk_widget_set_sensitive(priv->config_button, 1);
   else
     gtk_widget_set_sensitive(priv->config_button, 0);
-    
+  
+  if(w->info->flags & BG_PARAMETER_SYNC)
+    bg_gtk_change_callback((GtkWidget*)0, w);
+  
   }
 #else
 
@@ -204,6 +207,9 @@ static void entry_change_callback(GtkWidget * wid, gpointer data)
     gtk_widget_set_sensitive(priv->config_button, 1);
   else
     gtk_widget_set_sensitive(priv->config_button, 0);
+  
+  if(w->info->flags & BG_PARAMETER_SYNC)
+    bg_gtk_change_callback((GtkWidget*)0, w);
   
   }
 #endif

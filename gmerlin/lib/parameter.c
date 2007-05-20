@@ -205,19 +205,22 @@ void bg_parameter_info_copy(bg_parameter_info_t * dst,
         
         while(src->multi_names[num_options])
           num_options++;
-        
-        dst->multi_parameters = calloc(num_options, sizeof(*(src->multi_parameters)));
-        i = 0;
-        
-        while(src->multi_names[i])
+
+        if(src->multi_parameters)
           {
-          if(src->multi_parameters[i])
-            dst->multi_parameters[i] =
-              bg_parameter_info_copy_array(src->multi_parameters[i]);
-          i++;
+          dst->multi_parameters =
+            calloc(num_options, sizeof(*(src->multi_parameters)));
+          i = 0;
+          
+          while(src->multi_names[i])
+            {
+            if(src->multi_parameters[i])
+              dst->multi_parameters[i] =
+                bg_parameter_info_copy_array(src->multi_parameters[i]);
+            i++;
+            }
           }
         }
-      
       break;
     case BG_PARAMETER_STRINGLIST:
       dst->val_default.val_str = bg_strdup(dst->val_default.val_str,

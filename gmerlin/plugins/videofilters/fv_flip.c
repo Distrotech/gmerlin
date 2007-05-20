@@ -70,8 +70,6 @@ static bg_parameter_info_t parameters[] =
       flags: BG_PARAMETER_SYNC,
     },
     {
-      gettext_domain: PACKAGE,
-      gettext_directory: LOCALE_DIR,
       name: "flip_v",
       long_name: TRS("Flip vertically"),
       type: BG_PARAMETER_CHECKBUTTON,

@@ -3028,18 +3028,8 @@ static int init_audio_converter(audio_stream_t * ret)
 
 static int init_video_converter(video_stream_t * ret)
   {
-  
   ret->com.out_plugin->get_video_format(ret->com.out_handle->priv,
                                         ret->com.out_index, &(ret->out_format));
-
-  if(ret->com.do_filter) /* Filter chain already cropped */
-    bg_gavl_video_options_set_rectangles(&(ret->options),
-                                         &(ret->pipe_format),
-                                         &(ret->out_format), 0);
-  else
-    bg_gavl_video_options_set_rectangles(&(ret->options),
-                                         &(ret->pipe_format),
-                                         &(ret->out_format), 1);
   
   /* Initialize converter */
   

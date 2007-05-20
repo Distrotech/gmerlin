@@ -540,9 +540,6 @@ int bg_video_filter_chain_init(bg_video_filter_chain_t * ch,
   bg_gavl_video_options_set_format(ch->opt,
                                    in_format,
                                    &format_1);
-  bg_gavl_video_options_set_rectangles(ch->opt,
-                                       in_format,
-                                       &format_1, 1);
   
   for(i = 0; i < ch->num_filters; i++)
     {

@@ -1152,9 +1152,8 @@ void bg_cfg_section_create_items(bg_cfg_section_t * section,
   while(info[i].name)
     {
     bg_cfg_section_find_item(section, &(info[i]));
-
-    if((info[i].type == BG_PARAMETER_MULTI_LIST) ||
-       (info[i].type == BG_PARAMETER_MULTI_MENU))
+    
+    if(info[i].multi_parameters)
       {
       j = 0;
 
