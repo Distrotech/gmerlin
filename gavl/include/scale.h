@@ -17,6 +17,9 @@
 
 *****************************************************************/
 
+#ifndef _GAVL_SCALE_H_
+#define _GAVL_SCALE_H_
+
 #include "video.h"
 
 /* Typedefs */
@@ -113,6 +116,44 @@ void gavl_init_scale_funcs_generic_x_mmx(gavl_scale_funcs_t * tab,
 
 void gavl_init_scale_funcs_bilinear_x_mmx(gavl_scale_funcs_t * tab,
                                           int src_advance, int dst_advance);
+
+/* */
+
+void gavl_init_scale_funcs_bicubic_y_mmxext(gavl_scale_funcs_t * tab,
+                                         int src_advance,
+                                         int dst_advance);
+
+void gavl_init_scale_funcs_quadratic_y_mmxext(gavl_scale_funcs_t * tab,
+                                           int src_advance,
+                                           int dst_advance);
+
+
+void gavl_init_scale_funcs_generic_y_mmxext(gavl_scale_funcs_t * tab,
+                                         int src_advance,
+                                         int dst_advance);
+
+void gavl_init_scale_funcs_bilinear_y_mmxext(gavl_scale_funcs_t * tab,
+                                          int src_advance, int dst_advance);
+
+void gavl_init_scale_funcs_bicubic_x_mmxext(gavl_scale_funcs_t * tab,
+                                         int src_advance,
+                                         int dst_advance);
+
+void gavl_init_scale_funcs_quadratic_x_mmxext(gavl_scale_funcs_t * tab,
+                                           int src_advance,
+                                           int dst_advance);
+
+void gavl_init_scale_funcs_bicubic_noclip_x_mmxext(gavl_scale_funcs_t * tab,
+                                                int src_advance,
+                                                int dst_advance);
+
+void gavl_init_scale_funcs_generic_x_mmxext(gavl_scale_funcs_t * tab,
+                                         int src_advance,
+                                         int dst_advance);
+
+void gavl_init_scale_funcs_bilinear_x_mmxext(gavl_scale_funcs_t * tab,
+                                          int src_advance, int dst_advance);
+
 
 
 #endif
@@ -296,3 +337,5 @@ struct gavl_video_scaler_s
 
   };
 
+
+#endif // _GAVL_SCALE_H_

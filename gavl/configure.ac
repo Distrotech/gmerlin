@@ -154,5 +154,6 @@ gavl/c/Makefile \
 gavl/hq/Makefile \
 gavl/mmx/Makefile \
 gavl/mmxext/Makefile \
+gavl/3dnow/Makefile \
 gavl/sse/Makefile)
 

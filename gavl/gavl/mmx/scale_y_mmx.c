@@ -179,8 +179,13 @@ static mmx_t mm_tmp;
 
 #include "scale_y.h"
 
+#ifdef MMXEXT
+void gavl_init_scale_funcs_quadratic_y_mmxext(gavl_scale_funcs_t * tab,
+                                           int src_advance, int dst_advance)
+#else
 void gavl_init_scale_funcs_quadratic_y_mmx(gavl_scale_funcs_t * tab,
                                            int src_advance, int dst_advance)
+#endif
   {
   if((src_advance == 1) && (dst_advance == 1))
     {
@@ -200,8 +205,13 @@ void gavl_init_scale_funcs_quadratic_y_mmx(gavl_scale_funcs_t * tab,
     }
   }
 
+#ifdef MMXEXT
+void gavl_init_scale_funcs_bicubic_y_mmxext(gavl_scale_funcs_t * tab,
+                                            int src_advance, int dst_advance)
+#else
 void gavl_init_scale_funcs_bicubic_y_mmx(gavl_scale_funcs_t * tab,
                                          int src_advance, int dst_advance)
+#endif
   {
   if((src_advance == 1) && (dst_advance == 1))
     {
@@ -221,8 +231,13 @@ void gavl_init_scale_funcs_bicubic_y_mmx(gavl_scale_funcs_t * tab,
     }
   }
 
+#ifdef MMXEXT
+void gavl_init_scale_funcs_generic_y_mmxext(gavl_scale_funcs_t * tab,
+                                            int src_advance, int dst_advance)
+#else
 void gavl_init_scale_funcs_generic_y_mmx(gavl_scale_funcs_t * tab,
                                          int src_advance, int dst_advance)
+#endif
   {
   if((src_advance == 1) && (dst_advance == 1))
     {
@@ -270,8 +285,13 @@ void gavl_init_scale_funcs_generic_y_mmx(gavl_scale_funcs_t * tab,
 
 #include "scale_y_linear.h"
 
+#ifdef MMXEXT
+void gavl_init_scale_funcs_bilinear_y_mmxext(gavl_scale_funcs_t * tab,
+                                             int src_advance, int dst_advance)
+#else
 void gavl_init_scale_funcs_bilinear_y_mmx(gavl_scale_funcs_t * tab,
                                          int src_advance, int dst_advance)
+#endif
   {
   if((src_advance == 1) && (dst_advance == 1))
     {

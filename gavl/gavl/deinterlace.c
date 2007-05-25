@@ -90,3 +90,4 @@ void gavl_video_deinterlacer_deinterlace(gavl_video_deinterlacer_t * d,
   {
   d->func(d, input_frame, output_frame);
   }
+

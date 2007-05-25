@@ -38,13 +38,10 @@ typedef struct
   {
   gavl_video_deinterlace_blend_func func_packed_15;
   gavl_video_deinterlace_blend_func func_packed_16;
-  gavl_video_deinterlace_blend_func func_rgb_24_4;
   gavl_video_deinterlace_blend_func func_8;
   gavl_video_deinterlace_blend_func func_16;
   gavl_video_deinterlace_blend_func func_float;
-  
   } gavl_video_deinterlace_blend_func_table_t;
-
 
 struct gavl_video_deinterlacer_s
   {
@@ -95,12 +92,16 @@ gavl_find_deinterlacer_blend_funcs_mmx(gavl_video_deinterlace_blend_func_table_t
 
 void
 gavl_find_deinterlacer_blend_funcs_mmxext(gavl_video_deinterlace_blend_func_table_t * tab,
-                                     const gavl_video_options_t * opt,
-                                         const gavl_video_format_t * format);
-
-
+                                          const gavl_video_options_t * opt,
+                                          const gavl_video_format_t * format);
 #endif
 
+#ifdef HAVE_3DNOW
+void
+gavl_find_deinterlacer_blend_funcs_3dnow(gavl_video_deinterlace_blend_func_table_t * tab,
+                                         const gavl_video_options_t * opt,
+                                         const gavl_video_format_t * format);
+#endif
 
 
 #endif // _GAVL_DEINTERLACE_H_

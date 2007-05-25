@@ -5,6 +5,7 @@ libgavl_mmx_la_SOURCES = \
 colorspace_mmx.c \
 scale_x_mmx.c \
 scale_y_mmx.c \
+deinterlace_blend_mmx.c \
 dsp_mmx.c
 
 EXTRA_libgavl_mmx_la_SOURCES = \

@@ -198,6 +198,7 @@ typedef	union {
 #define pavgusb_m2r(var,reg)	mmx_m2r (pavgusb, var, reg)
 #define pavgusb_r2r(regs,regd)	mmx_r2r (pavgusb, regs, regd)
 
+#define femms() __asm__ __volatile__ ("femms")
 
 /* AMD MMX extensions - also available in intel SSE */
 

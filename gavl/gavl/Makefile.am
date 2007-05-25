@@ -15,8 +15,18 @@ sse_libs =
 sse_subdirs =
 endif
 
+if HAVE_3DNOW
+threednow_libs = 3dnow/libgavl_3dnow.la
+threednow_subdirs = 3dnow
+else
+threednow_libs = 
+threednow_subdirs =
+endif
+
+
 SUBDIRS = hq c libgdither libsamplerate $(mmx_subdirs) \
-$(sse_subdirs)
+$(sse_subdirs) \
+$(threednow_subdirs)
 
 lib_LTLIBRARIES= libgavl.la
 #noinst_LTLIBRARIES = libgavl.la
@@ -65,6 +75,7 @@ libgavl_la_LIBADD = \
 @GMERLIN_DEP_LIBS@ \
 $(mmx_libs) \
 $(sse_libs) \
+$(threednow_libs) \
 c/libgavl_c.la \
 hq/libgavl_hq.la \
 libgdither/libgdither.la \

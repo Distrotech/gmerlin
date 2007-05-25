@@ -4,7 +4,8 @@ colorspace_test \
 fill_test \
 blend_test \
 scaletest \
-convolvetest
+convolvetest \
+deinterlacetest
 else
 png_programs =
 endif
@@ -12,6 +13,7 @@ endif
 noinst_PROGRAMS = \
 $(png_programs) \
 colorspace_time \
+deinterlace_time \
 plot_scale_kernels \
 scaletest \
 scale_time \
@@ -29,15 +31,21 @@ blend_test_LDADD = ../gavl/libgavl.la -lpng -lz
 scaletest_SOURCES = scaletest.c
 scaletest_LDADD = ../gavl/libgavl.la -lpng -lz
 
-convolvetest_SOURCES = convolvetest.c
+convolvetest_SOURCES = convolvetest.c pngutil.c
 convolvetest_LDADD = ../gavl/libgavl.la -lpng -lz
+
+deinterlacetest_SOURCES = deinterlacetest.c pngutil.c
+deinterlacetest_LDADD = ../gavl/libgavl.la -lpng -lz
 
 
 plot_scale_kernels_SOURCES = plot_scale_kernels.c
 plot_scale_kernels_LDADD = ../gavl/libgavl.la
 
-scale_time_SOURCES = scale_time.c
+scale_time_SOURCES = scale_time.c timeutils.c
 scale_time_LDADD = ../gavl/libgavl.la
+
+deinterlace_time_SOURCES = deinterlace_time.c timeutils.c
+deinterlace_time_LDADD = ../gavl/libgavl.la
 
 colorspace_time_SOURCES = colorspace_time.c
 colorspace_time_LDADD = ../gavl/libgavl.la
@@ -45,3 +53,5 @@ colorspace_time_LDADD = ../gavl/libgavl.la
 timescale_test_SOURCES = timescale_test.c
 timescale_test_LDADD = ../gavl/libgavl.la
 
+
+noinst_HEADERS = pngutil.h

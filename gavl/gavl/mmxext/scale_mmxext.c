@@ -18,4 +18,5 @@
 *****************************************************************/
 
 #define MMXEXT
-#include "../mmx/scale_mmx.c"
+#include "../mmx/scale_x_mmx.c"
+#include "../mmx/scale_y_mmx.c"

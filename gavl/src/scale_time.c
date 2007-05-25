@@ -6,42 +6,20 @@
 #include <string.h>
 
 #include <accel.h>
+#include "timeutils.h"
 
 #define NUM_CONVERSIONS 20
 
 //#define SCALE_MODE GAVL_SCALE_SINC_LANCZOS
 #define SCALE_MODE GAVL_SCALE_BILINEAR
 
-static struct timeval time_before;
-static struct timeval time_after;
-
-static void timer_init()
-  {
-  gettimeofday(&time_before, (struct timezone*)0);
-  }
-
-static void timer_stop()
-  {
-  double before, after, diff;
-  
-  gettimeofday(&time_after, (struct timezone*)0);
-
-  before = time_before.tv_sec + time_before.tv_usec / 1.0e6;
-  after  = time_after.tv_sec  + time_after.tv_usec  / 1.0e6;
-
-/*   fprintf(stderr, "Before: %f After: %f\n", before, after); */
-    
-  diff = after - before;
-    
-  fprintf(stderr, "Made %d conversions, Time: %f (%f per conversion)\n",
-          NUM_CONVERSIONS, diff, diff/NUM_CONVERSIONS);
-  }
-
 
 int main(int argc, char ** argv)
   {
   gavl_rectangle_f_t src_rect;
   gavl_rectangle_i_t dst_rect;
+
+  uint64_t t;
   
   int i, j, imax;
   gavl_video_scaler_t *scaler;
@@ -126,7 +104,9 @@ int main(int argc, char ** argv)
         {
         gavl_video_scaler_scale(scaler, frame, frame_1);
         }
-      timer_stop();
+      t = timer_stop();
+      fprintf(stderr, "Made %d conversions, Time: %e (%e per conversion)\n",
+              NUM_CONVERSIONS, (double)t, (double)t/NUM_CONVERSIONS);
       }
 #if 1
     fprintf(stderr, "MMX-Version:\n");
@@ -148,7 +128,9 @@ int main(int argc, char ** argv)
         {
         gavl_video_scaler_scale(scaler, frame, frame_1);
         }
-      timer_stop();
+      t = timer_stop();
+      fprintf(stderr, "Made %d conversions, Time: %e (%e per conversion)\n",
+              NUM_CONVERSIONS, (double)t, (double)t/NUM_CONVERSIONS);
       }
 
 #endif

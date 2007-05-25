@@ -656,9 +656,13 @@ static void scale_uint8_x_4_x_bilinear_mmx(gavl_video_scale_context_t * ctx)
   
   }
 
-
+#ifdef MMXEXT
+void gavl_init_scale_funcs_bicubic_x_mmxext(gavl_scale_funcs_t * tab,
+                                         int src_advance, int dst_advance)
+#else
 void gavl_init_scale_funcs_bicubic_x_mmx(gavl_scale_funcs_t * tab,
                                          int src_advance, int dst_advance)
+#endif
   {
   if((src_advance == 1) && (dst_advance == 1))
     {
@@ -673,8 +677,13 @@ void gavl_init_scale_funcs_bicubic_x_mmx(gavl_scale_funcs_t * tab,
     }
   }
 
+#ifdef MMXEXT
+void gavl_init_scale_funcs_quadratic_x_mmxext(gavl_scale_funcs_t * tab,
+                                              int src_advance, int dst_advance)
+#else
 void gavl_init_scale_funcs_quadratic_x_mmx(gavl_scale_funcs_t * tab,
                                            int src_advance, int dst_advance)
+#endif
   {
   if((src_advance == 4) && (dst_advance == 4))
     {
@@ -684,8 +693,13 @@ void gavl_init_scale_funcs_quadratic_x_mmx(gavl_scale_funcs_t * tab,
     }
   }
 
+#ifdef MMXEXT
+void gavl_init_scale_funcs_bicubic_noclip_x_mmxext(gavl_scale_funcs_t * tab,
+                                                   int src_advance, int dst_advance)
+#else
 void gavl_init_scale_funcs_bicubic_noclip_x_mmx(gavl_scale_funcs_t * tab,
                                                 int src_advance, int dst_advance)
+#endif
   {
   if((src_advance == 1) && (dst_advance == 1))
     {
@@ -702,8 +716,13 @@ void gavl_init_scale_funcs_bicubic_noclip_x_mmx(gavl_scale_funcs_t * tab,
 #endif
   }
 
+#ifdef MMXEXT
+void gavl_init_scale_funcs_generic_x_mmxext(gavl_scale_funcs_t * tab,
+                                            int src_advance, int dst_advance)
+#else
 void gavl_init_scale_funcs_generic_x_mmx(gavl_scale_funcs_t * tab,
                                          int src_advance, int dst_advance)
+#endif
   {
   if((src_advance == 1) && (dst_advance == 1))
     {
@@ -716,11 +735,15 @@ void gavl_init_scale_funcs_generic_x_mmx(gavl_scale_funcs_t * tab,
     tab->funcs_x.scale_uint8_x_4 =  scale_uint8_x_4_x_generic_mmx;
     tab->funcs_x.bits_uint8_noadvance  = 14;
     }
-  
   }
 
+#ifdef MMXEXT
+void gavl_init_scale_funcs_bilinear_x_mmxext(gavl_scale_funcs_t * tab,
+                                             int src_advance, int dst_advance)
+#else
 void gavl_init_scale_funcs_bilinear_x_mmx(gavl_scale_funcs_t * tab,
                                          int src_advance, int dst_advance)
+#endif
   {
   if((src_advance == 1) && (dst_advance == 1))
     {
