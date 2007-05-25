@@ -1,8 +1,8 @@
 /*****************************************************************
 
-  scale_mmxext.c
+  scale_x_mmxext.c
 
-  Copyright (c) 2001-2002 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+  Copyright (c) 2001-2007 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
 
   http://gmerlin.sourceforge.net
 
@@ -19,4 +19,3 @@
 
 #define MMXEXT
 #include "../mmx/scale_x_mmx.c"
-#include "../mmx/scale_y_mmx.c"
