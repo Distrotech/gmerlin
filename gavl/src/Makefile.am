@@ -53,5 +53,4 @@ colorspace_time_LDADD = ../gavl/libgavl.la
 timescale_test_SOURCES = timescale_test.c
 timescale_test_LDADD = ../gavl/libgavl.la
 
-
-noinst_HEADERS = pngutil.h
+noinst_HEADERS = pngutil.h timeutils.h
