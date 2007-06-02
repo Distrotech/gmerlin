@@ -71,6 +71,7 @@ extern bgav_demuxer_t bgav_demuxer_avs;
 extern bgav_demuxer_t bgav_demuxer_wve;
 extern bgav_demuxer_t bgav_demuxer_mtv;
 extern bgav_demuxer_t bgav_demuxer_gxf;
+extern bgav_demuxer_t bgav_demuxer_dxa;
 
 #ifdef HAVE_VORBIS
 extern bgav_demuxer_t bgav_demuxer_ogg;
@@ -134,6 +135,7 @@ static demuxer_t demuxers[] =
     { &bgav_demuxer_wve,       "Electronicarts WVE" },
     { &bgav_demuxer_mtv,       "MTV" },
     { &bgav_demuxer_gxf,       "GXF" },
+    { &bgav_demuxer_dxa,       "DXA" },
 #ifdef HAVE_VORBIS
     { &bgav_demuxer_ogg, "Ogg Bitstream" },
 #endif
@@ -464,38 +466,89 @@ static int next_packet_interleaved(bgav_demuxer_context_t * ctx)
 
 static int next_packet_noninterleaved(bgav_demuxer_context_t * ctx)
   {
+  int i;
   bgav_packet_t * p;
-  /* If the file is truely noninterleaved, this isn't neccessary, but who knows? */
-  while(ctx->si->entries[ctx->request_stream->index_position].stream_id !=
-        ctx->request_stream->stream_id)
-    {
-    ctx->request_stream->index_position++;
-    }
-
+  bgav_stream_t * s = (bgav_stream_t*)0;
+  bgav_stream_t * ts;
+  
   if(ctx->request_stream->index_position >= ctx->request_stream->last_index_position)
-    return 0;
+    {
+    /* Requested stream is finished, read data from another stream
+       before returning 0 */
+
+    for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
+      {
+      ts = &ctx->tt->cur->audio_streams[i];
+      if((ts->action != BGAV_STREAM_MUTE) &&
+         (ts->index_position < ts->last_index_position))
+        {
+        s = ts;
+        break;
+        }
+      }
+
+    if(!s)
+      {
+      for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
+        {
+        ts = &ctx->tt->cur->video_streams[i];
+        if((ts->action != BGAV_STREAM_MUTE) &&
+           (ts->index_position < ts->last_index_position))
+          {
+          s = ts;
+          break;
+          }
+        }
+      }
+
+    if(!s)
+      {
+      for(i = 0; i < ctx->tt->cur->num_subtitle_streams; i++)
+        {
+        ts = &ctx->tt->cur->subtitle_streams[i];
+        if((ts->action != BGAV_STREAM_MUTE) &&
+           (ts->index_position < ts->last_index_position))
+          {
+          s = ts;
+          break;
+          }
+        }
+      }
+
+    if(!s)
+      return 0;
+    }
+  else
+    s = ctx->request_stream;
+  
+  /* If the file is truely noninterleaved, this isn't neccessary, but who knows? */
+  while(ctx->si->entries[s->index_position].stream_id !=
+        s->stream_id)
+    {
+    s->index_position++;
+    }
   
   bgav_input_seek(ctx->input,
-                  ctx->si->entries[ctx->request_stream->index_position].offset,
+                  ctx->si->entries[s->index_position].offset,
                   SEEK_SET);
 
-  p = bgav_stream_get_packet_write(ctx->request_stream);
-  p->data_size = ctx->si->entries[ctx->request_stream->index_position].size;
+  p = bgav_stream_get_packet_write(s);
+  p->data_size = ctx->si->entries[s->index_position].size;
   bgav_packet_alloc(p, p->data_size);
   
-  p->pts = ctx->si->entries[ctx->request_stream->index_position].time;
-  p->duration = ctx->si->entries[ctx->request_stream->index_position].duration;
-  p->keyframe = ctx->si->entries[ctx->request_stream->index_position].keyframe;
+  p->pts = ctx->si->entries[s->index_position].time;
+  p->duration = ctx->si->entries[s->index_position].duration;
+  p->keyframe = ctx->si->entries[s->index_position].keyframe;
     
   if(bgav_input_read_data(ctx->input, p->data, p->data_size) < p->data_size)
     return 0;
 
-  if(ctx->request_stream->process_packet)
-    ctx->request_stream->process_packet(ctx->request_stream, p);
+  if(s->process_packet)
+    s->process_packet(s, p);
   
   bgav_packet_done_write(p);
   
-  ctx->request_stream->index_position++;
+  s->index_position++;
   return 1;
   
   }

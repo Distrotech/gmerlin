@@ -318,6 +318,7 @@ demux_au.c \
 demux_daud.c \
 demux_dsicin.c \
 demux_dv.c \
+demux_dxa.c \
 demux_flac.c \
 demux_fli.c \
 demux_flv.c \

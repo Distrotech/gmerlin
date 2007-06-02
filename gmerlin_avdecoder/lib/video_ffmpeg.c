@@ -1213,6 +1213,14 @@ static codec_info_t codec_infos[] =
                     0x00 } },
 #endif
 
+#if LIBAVCODEC_BUILD >= 3352320
+    { "FFmpeg DXA decoder", "DXA", CODEC_ID_DXA,
+      (uint32_t[]){ BGAV_MK_FOURCC('D', 'X', 'A', ' '),
+                    0x00 } },
+#endif
+
+    
+    
   };
 
 
