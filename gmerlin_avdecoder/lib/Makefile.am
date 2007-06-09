@@ -345,6 +345,7 @@ demux_smaf.c \
 demux_smjpeg.c \
 demux_sol.c \
 demux_tiertex.c \
+demux_thp.c \
 demux_tta.c \
 demux_vivo.c \
 demux_voc.c \

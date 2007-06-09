@@ -98,6 +98,13 @@ static codec_info_t codec_infos[] =
                     0x00 },
       -1 },
 #endif
+
+#if LIBAVCODEC_BUILD >= 3352580
+    { "FFmpeg THP Audio decoder", "THP Audio", CODEC_ID_ADPCM_THP,
+      (uint32_t[]){ BGAV_MK_FOURCC('T', 'H', 'P', 'A'),
+               0x00 } },
+#endif
+
     
     { "FFmpeg True audio decoder", "True audio", CODEC_ID_TTA,
       (uint32_t[]){ BGAV_MK_FOURCC('T', 'T', 'A', '1'),

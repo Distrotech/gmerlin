@@ -994,7 +994,11 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_MK_FOURCC('R', 'J', 'P', 'G'),
                0x00 } },
 
-    
+#if LIBAVCODEC_BUILD >= 3352580
+    { "FFmpeg THP Video decoder", "THP Video", CODEC_ID_THP,
+      (uint32_t[]){ BGAV_MK_FOURCC('T', 'H', 'P', 'V'),
+               0x00 } },
+#endif
     
     /*************************************************************
      * Proprietary Codecs

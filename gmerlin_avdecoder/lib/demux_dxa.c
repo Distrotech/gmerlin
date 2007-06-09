@@ -30,6 +30,9 @@
 
 #define DXA_EXTRA_SIZE 9
 
+#define AUDIO_ID 0
+#define VIDEO_ID 1
+
 static int probe_dxa(bgav_input_context_t * input)
   {
   uint8_t probe_buffer[4];
@@ -111,7 +114,8 @@ static int open_dxa(bgav_demuxer_context_t * ctx,
 
   ctx->tt = bgav_track_table_create(1);
   vs = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
-
+  vs->stream_id = VIDEO_ID;
+  
   if(fps > 0)
     {
     den = 1000;
@@ -141,6 +145,11 @@ static int open_dxa(bgav_demuxer_context_t * ctx,
 
   vs->data.video.format.image_height = h;
   vs->data.video.format.frame_height = h;
+
+  vs->data.video.format.pixel_width  = 1;
+  vs->data.video.format.pixel_height = 1;
+  
+  
   vs->fourcc = BGAV_MK_FOURCC('D', 'X', 'A', ' ');
 
   vs->data.video.format.timescale      = den;
@@ -185,6 +194,8 @@ static int open_dxa(bgav_demuxer_context_t * ctx,
     bgav_WAVEFORMAT_get_format(&wf, as);
     free(buf);
 
+    as->stream_id = AUDIO_ID;
+    
     while(1)
       {
       if(!bgav_input_read_fourcc(ctx->input, &fourcc) ||
