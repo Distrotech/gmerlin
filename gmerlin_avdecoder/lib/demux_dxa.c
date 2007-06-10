@@ -39,9 +39,9 @@ static int probe_dxa(bgav_input_context_t * input)
   if(bgav_input_get_data(input, probe_buffer, 4) < 4)
     return 0;
 
-  if((probe_buffer[0] == 'D') ||
-     (probe_buffer[1] == 'E') ||
-     (probe_buffer[2] == 'X') ||
+  if((probe_buffer[0] == 'D') &&
+     (probe_buffer[1] == 'E') &&
+     (probe_buffer[2] == 'X') &&
      (probe_buffer[3] == 'A'))
     return 1;
   

@@ -109,9 +109,9 @@ static int probe_thp(bgav_input_context_t * input)
   if(bgav_input_get_data(input, probe_buffer, 4) < 4)
     return 0;
 
-  if((probe_buffer[0] == 'T') ||
-     (probe_buffer[1] == 'H') ||
-     (probe_buffer[2] == 'P') ||
+  if((probe_buffer[0] == 'T') &&
+     (probe_buffer[1] == 'H') &&
+     (probe_buffer[2] == 'P') &&
      (probe_buffer[3] == 0x00))
     return 1;
   

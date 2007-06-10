@@ -105,7 +105,13 @@ static codec_info_t codec_infos[] =
                0x00 } },
 #endif
 
-    
+#if LIBAVCODEC_BUILD >= 3352580
+    { "FFmpeg ATRAC3 decoder", "ATRAC3", CODEC_ID_ATRAC3,
+      (uint32_t[]){ BGAV_MK_FOURCC('a', 't', 'r', 'c'),
+                    BGAV_WAVID_2_FOURCC(0x0270),
+                    0x00  } },
+#endif
+      
     { "FFmpeg True audio decoder", "True audio", CODEC_ID_TTA,
       (uint32_t[]){ BGAV_MK_FOURCC('T', 'T', 'A', '1'),
                     0x00 },
