@@ -113,7 +113,7 @@ dnl
 
 have_x="false"
 
-X_CLAGS=""
+X_CFLAGS=""
 X_LIBS=""
 
 
@@ -121,22 +121,28 @@ AC_PATH_X
 
 if test x$no_x != xyes; then
   if test "x$x_includes" != "x"; then
-    X_FLAGS="-I$x_includes"
+    X_CFLAGS="-I$x_includes"
   else
-    X_FLAGS=""
+    X_CFLAGS=""
   fi
 
   if test "x$x_libraries" != "x"; then
-    X_LIBS="-L$x_libraries -lX11 -lXext"
+    X_LIBS="-L$x_libraries -lX11"
   else
-    X_LIBS="-lX11 -lXext"
+    X_LIBS="-lX11"
   fi
-have_x="true"
+  have_x="true"
+else
+  PKG_CHECK_MODULES(X, x11 >= 1.0.0, have_x=true, have_x=false)
+fi
+
+if test x$have_x = xtrue; then
+  X_LIBS="$X_LIBS -lXext"
 fi
 
 AC_SUBST(X_CFLAGS)
 AC_SUBST(X_LIBS)
-AM_CONDITIONAL(HAVE_X11, test x$no_x != xyes)
+AM_CONDITIONAL(HAVE_X11, test x$have_x = xtrue)
 
 dnl
 dnl Xinerama
@@ -148,7 +154,7 @@ AH_TEMPLATE([HAVE_LIBXINERAMA],
 have_xinerama="false"
 XINERAMA_LIBS=""
 
-if test x$no_x != xyes; then
+if test x$have_x = xtrue; then
 
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
@@ -166,7 +172,7 @@ AC_TRY_LINK([#include <X11/Xlib.h>
              if(i)
                XineramaQueryExtension(NULL, NULL, NULL);
              return 0;],
-            [XINERAMA_LIBS="-lXinerama";have_xinerama=true;AC_MSG_RESULT("Yes")],
+            [XINERAMA_LIBS="-lXinerama";have_xinerama=true;AC_MSG_RESULT(Yes)],
 	    AC_MSG_RESULT("No"))
 
 if test x$have_xinerama = "xtrue"; then
@@ -191,7 +197,7 @@ AH_TEMPLATE([HAVE_LIBXV],
 have_xv="false"
 XV_LIBS=""
 
-if test x$no_x != xyes; then
+if test x$have_x = xtrue; then
 
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
@@ -208,7 +214,7 @@ AC_TRY_LINK([#include <X11/Xlib.h>
              if(i)
 		 XvQueryExtension(NULL, NULL, NULL, NULL, NULL, NULL);
              return 0;],
-            [XV_LIBS="-lXv";have_xv=true;AC_MSG_RESULT("Yes")],
+            [XV_LIBS="-lXv";have_xv=true;AC_MSG_RESULT(Yes)],
 	    AC_MSG_RESULT("No"))
 
 if test x$have_xv = "xtrue"; then
@@ -233,7 +239,7 @@ AH_TEMPLATE([HAVE_XDPMS],
 have_xdpms="false"
 XDPMS_LIBS=""
 
-if test x$no_x != xyes; then
+if test x$have_x = xtrue; then
 
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
@@ -250,7 +256,7 @@ AC_TRY_LINK([#include <X11/Xlib.h>
              if(i)
 		 DPMSQueryExtension(NULL, NULL, NULL);
              return 0;],
-            [XDPMS_LIBS="-lXext";have_xdpms=true;AC_MSG_RESULT("Yes")],
+            [XDPMS_LIBS="-lXext";have_xdpms=true;AC_MSG_RESULT(Yes)],
 	    AC_MSG_RESULT("No"))
 
 if test x$have_xdpms = "xtrue"; then
@@ -573,6 +579,11 @@ AC_ARG_ENABLE(kbd,
 if test "x$have_gtk" = "xfalse"; then
 have_kdb=false
 fi
+
+if test "x$have_x" = "xfalse"; then
+have_kdb=false
+fi
+
 
 AM_CONDITIONAL(HAVE_KBD, test x$have_kbd = xtrue)
 
