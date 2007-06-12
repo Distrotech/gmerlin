@@ -946,8 +946,30 @@ AC_ARG_ENABLE(libcda,
 esac],[test_libdca=true])
 
 if test x$test_libdca = xtrue; then
-
 PKG_CHECK_MODULES(DCA, libdts >= $DCA_REQUIRED, have_dca="true", have_dca="false")
+
+dnl
+dnl Some systems need -ldts_pic
+dnl
+
+if test x$have_dca = xtrue; then
+have_libdts_pic=false
+OLD_CFLAGS=$CFLAGS
+OLD_LIBS=$LIBS
+CFLAGS=$DCA_CFLAGS
+LIBS=`pkg-config --libs-only-L libdts`
+LIBS="$LIBS -lm"
+AC_CHECK_LIB(dts_pic, dts_init, have_libdts_pic=true, have_libdts_pic=false)
+
+if test x$have_libdts_pic = xtrue; then
+DCA_LIBS="$LIBS -ldts_pic"
+fi
+
+CFLAGS=$OLD_CFLAGS
+LIBS=$OLD_LIBS
+
+fi
+
 fi
 
 AM_CONDITIONAL(HAVE_DCA, test x$have_dca = xtrue)
