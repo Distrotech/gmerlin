@@ -186,6 +186,6 @@ CODEC_ID_XAN_DPCM
 # CODEC_ID_MPEG2TS= 0x20000 /* _FAKE_ codec to indicate a raw MPEG2 transport
 + CODEC_ID_IMC
 # CODEC_ID_MUSEPACK7 // Handled by libmpcdec
-CODEC_ID_MLP
-- CODEC_ID_GSM_MS  /* as found in WAV */
+- CODEC_ID_MLP
+# CODEC_ID_GSM_MS  /* as found in WAV */
 + CODEC_ID_ATRAC3

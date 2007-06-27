@@ -31,7 +31,7 @@
    on each open call */
 
 // #define DUMP_HEADERS
-// #define DUMP_INDICES
+#define DUMP_INDICES
 // #define DUMP_AUDIO_TYPE
 
 /* AVI Flags */
@@ -895,6 +895,7 @@ static void indx_build_superindex(bgav_demuxer_context_t * ctx)
       avi_as->total_bytes = 0;
       avi_as->total_blocks = 0;
       }
+    num_audio_streams = ctx->tt->cur->num_audio_streams;
     }
   for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
     {

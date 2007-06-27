@@ -34,6 +34,7 @@ int bgav_pes_header_read(bgav_input_context_t * input,
   uint8_t c;
   uint16_t len;
   int64_t pos;
+  int64_t header_start;
   uint16_t tmp_16;
   
   uint8_t header_flags;
@@ -70,6 +71,8 @@ int bgav_pes_header_read(bgav_input_context_t * input,
       return 0;
     if(!bgav_input_read_8(input, &header_size))
       return 0;
+
+    header_start = input->position;
     
     if(header_flags)
       {
@@ -83,7 +86,6 @@ int bgav_pes_header_read(bgav_input_context_t * input,
         ret->pts |= (int64_t)(tmp_16 >> 1) << 15;
         bgav_input_read_16_be(input, &tmp_16);
         ret->pts |= (int64_t)(tmp_16 >> 1);
-        header_size -= 5;
         }
       else if((header_flags & 0xc0) == 0xc0) /* PTS+DTS present */
         {
@@ -93,7 +95,6 @@ int bgav_pes_header_read(bgav_input_context_t * input,
         ret->pts |= (int64_t)(tmp_16 >> 1) << 15;
         bgav_input_read_16_be(input, &tmp_16);
         ret->pts |= (int64_t)(tmp_16 >> 1);
-        header_size -= 5;
 
         bgav_input_read_8(input, &c);
         ret->dts = (int64_t)((c >> 1) & 7) << 30;
@@ -101,12 +102,76 @@ int bgav_pes_header_read(bgav_input_context_t * input,
         ret->dts |= (int64_t)(tmp_16 >> 1) << 15;
         bgav_input_read_16_be(input, &tmp_16);
         ret->dts |= (int64_t)(tmp_16 >> 1);
-        header_size -= 5;
+        }
+      
+      if(header_flags & 0x20) // ESCR
+        {
+        bgav_input_skip(input, 6);
         }
 
+      if(header_flags & 0x10) // ES rate
+        {
+        bgav_input_skip(input, 3);
+        }
 
+      if(header_flags & 0x08) // DSM trick mode
+        {
+        bgav_input_skip(input, 1);
+        }
+
+      if(header_flags & 0x04) // Additional copyright info
+        {
+        bgav_input_skip(input, 1);
+        }
+
+      if(header_flags & 0x02) // CRC
+        {
+        bgav_input_skip(input, 2);
+        }
+
+      if(header_flags & 0x01)
+        {
+        uint8_t ext_flags;
+        uint8_t ext_size;
+
+        bgav_input_read_8(input, &ext_flags);
+
+        if(ext_flags & 0x80) // PES Private data
+          {
+          bgav_input_skip(input, 128);
+          }
+        
+        if(ext_flags & 0x40) // Pack header
+          {
+          bgav_input_read_8(input, &c);
+          bgav_input_skip(input, c);
+          }
+        
+        if(ext_flags & 0x20) // Sequence counter
+          {
+          bgav_input_skip(input, 2);
+          }
+
+        if(ext_flags & 0x10) // P-STD Buffer
+          {
+          bgav_input_skip(input, 2);
+          }
+
+        if(ext_flags & 0x01) // PES Extension
+          {
+          bgav_input_read_8(input, &ext_size);
+          ext_size &= 0x7f;
+          if(ext_size > 0)
+            {
+            bgav_input_read_8(input, &c);
+            if(!(c & 0x80))
+              ret->stream_id = (ret->stream_id << 8) | c;
+            }
+          //          fprintf(stderr, "Got PES Extension, header_size: %d\n", header_size);
+          }
+        }
       }
-    bgav_input_skip(input, header_size);
+    bgav_input_skip(input, header_size - (input->position - header_start));
     }
   else /* MPEG-1 */
     {
@@ -153,6 +218,7 @@ int bgav_pes_header_read(bgav_input_context_t * input,
       }
     }
   ret->payload_size = len - (input->position - pos);
+  //  bgav_pes_header_dump(ret);
   return 1;
   }
 

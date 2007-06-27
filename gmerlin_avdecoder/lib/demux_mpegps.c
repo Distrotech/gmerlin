@@ -41,6 +41,8 @@
 
 #define SYNC_SIZE (1024*1024)
 
+#define LOG_DOMAIN "mpegps"
+
 static uint32_t next_start_code(bgav_input_context_t * ctx)
   {
   int bytes_skipped = 0;
@@ -420,7 +422,8 @@ static void init_sector_mode(bgav_demuxer_context_t * ctx)
 
 /* Get one packet */
 
-static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * input)
+static int next_packet(bgav_demuxer_context_t * ctx,
+                       bgav_input_context_t * input)
   {
   uint8_t c;
   system_header_t system_header;
@@ -566,6 +569,13 @@ static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * inpu
             priv->pes_header.payload_size -= 3;
             }
           }
+#if 0
+        else
+          {
+          bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                   "Unknown ID %02x in private stream 1", c);
+          }
+#endif
         }
       /* Audio stream */
       else if((priv->pes_header.stream_id & 0xE0) == 0xC0)
@@ -607,6 +617,31 @@ static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * inpu
             stream->fourcc = BGAV_MK_FOURCC('m', 'p', 'g', 'v');
           }
         }
+      else if((priv->pes_header.stream_id >= 0xfd55) && (priv->pes_header.stream_id <= 0xfd5f))
+        {
+        
+
+        if(priv->find_streams)
+          stream = bgav_track_find_stream_all(ctx->tt->cur,
+                                              priv->pes_header.stream_id);
+        else
+          stream = bgav_track_find_stream(ctx->tt->cur,
+                                          priv->pes_header.stream_id);
+        if(!stream && priv->find_streams)
+          {
+          stream = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
+          stream->stream_id = priv->pes_header.stream_id;
+          stream->timescale = 90000;
+          stream->fourcc = BGAV_MK_FOURCC('V', 'C', '-', '1');
+          }
+        }
+      else if((priv->pes_header.stream_id != 0xbe) && (priv->pes_header.stream_id != 0xbf))
+        {
+        // Print a warning except for padding stream (0xbe) and private_stream_2 (0xbf)
+        bgav_log(ctx->opt, BGAV_LOG_WARNING,
+                 LOG_DOMAIN, "Unknown PES ID %02x",
+                 priv->pes_header.stream_id);
+        }
 
       if(stream)
         {
@@ -621,8 +656,6 @@ static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * inpu
         /* Create packet */
         if(!priv->find_streams)
           {
-
-        
           p = bgav_stream_get_packet_write(stream);
         
           bgav_packet_alloc(p, priv->pes_header.payload_size);
@@ -653,6 +686,11 @@ static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * inpu
             }
           bgav_packet_done_write(p);
           }
+        else
+          {
+          bgav_input_skip(ctx->input, priv->pes_header.payload_size);
+          }
+        
         got_packet = 1;
         }
       else

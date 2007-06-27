@@ -81,11 +81,14 @@ typedef struct
 
   uint8_t * extradata;
   int extradata_size;
-
+  
+  int need_extradata; /* Get extradata from parser */
+      
   int64_t last_pts;
   int64_t last_dts;
   int eof;
 
+  
   
   struct
     {
@@ -160,6 +163,7 @@ static int put_pts(ffmpeg_video_priv * priv, int64_t pts)
 
 static int get_data(bgav_stream_t * s)
   {
+  int ext_len;
   int bytes_to_parse;
   int done = 0;
   ffmpeg_video_priv * priv;
@@ -246,7 +250,6 @@ static int get_data(bgav_stream_t * s)
     priv->last_pts = p->pts;
     priv->last_dts = p->dts;
     bgav_bytebuffer_append(&priv->buf, p, FF_INPUT_BUFFER_PADDING_SIZE);
-
     if(!priv->parser)
       {
       priv->parsed_frame = priv->buf.buffer;
@@ -256,14 +259,35 @@ static int get_data(bgav_stream_t * s)
 #endif      
       if(!put_pts(priv, p->pts))
         return 0;
-      bgav_demuxer_done_packet_read(s->demuxer, p);
-      break;
+      done = 1;
       }
     else
       {
+      /* Extract extradata */
+      if(priv->need_extradata)
+        {
+        ext_len = priv->parser->parser->split(priv->ctx, priv->buf.buffer,
+                                              priv->buf.size);
+        if(ext_len)
+          {
+#ifdef DUMP_PARSER
+          bgav_dprintf("Got extradata from parser %d bytes\n", ext_len);
+          bgav_hexdump(priv->buf.buffer, ext_len, 16);
+#endif      
+          priv->extradata = calloc(1, ext_len + FF_INPUT_BUFFER_PADDING_SIZE);
+          memcpy(priv->extradata, priv->buf.buffer, ext_len);
+          priv->extradata_size = ext_len;
+          priv->need_extradata = 0;
+          
+          // ffplay doesn't remove these either
+          // bgav_bytebuffer_remove(&priv->buf, ext_len);
+          done = 1;
+          }
+        }
+          
       priv->parser_started = 1;
-      bgav_demuxer_done_packet_read(s->demuxer, p);
       }
+    bgav_demuxer_done_packet_read(s->demuxer, p);
     }
   return 1;
   }
@@ -352,7 +376,7 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
     /* Decode one frame */
     
 #ifdef DUMP_DECODE
-    bgav_dprintf("Decode: position: %" PRId64 " len: %d\n", s->position, len);
+    bgav_dprintf("Decode: position: %" PRId64 " len: %d\n", s->out_position, len);
     if(priv->parsed_frame)
       bgav_hexdump(priv->parsed_frame, 16, 16);
 #endif
@@ -483,6 +507,7 @@ static int init(bgav_stream_t * s)
   
   ffmpeg_video_priv * priv;
   priv = calloc(1, sizeof(*priv));
+  s->data.video.decoder->priv = priv;
 
   /* Set up coded specific details */
   
@@ -495,7 +520,24 @@ static int init(bgav_stream_t * s)
   priv->ctx->width = s->data.video.format.frame_width;
   priv->ctx->height = s->data.video.format.frame_height;
   priv->ctx->bits_per_sample = s->data.video.depth;
-
+#if 1
+  priv->ctx->codec_tag   =
+    ((s->fourcc & 0x000000ff) << 24) |
+    ((s->fourcc & 0x0000ff00) << 8) |
+    ((s->fourcc & 0x00ff0000) >> 8) |
+    ((s->fourcc & 0xff000000) >> 24);
+#endif
+  priv->ctx->codec_id = codec->id;
+  
+  /* Initialize parser */
+  if(s->not_aligned)
+    {
+    priv->parser = av_parser_init(priv->ctx->codec_id);
+    //    if(priv->parser)
+    //      priv->parser->flags |= PARSER_FLAG_COMPLETE_FRAMES;
+    //    fprintf(stderr, "Initialized parser: %p\n", priv->parser);
+    }
+  
   if(s->ext_data)
     {
     priv->extradata = calloc(s->ext_size + FF_INPUT_BUFFER_PADDING_SIZE, 1);
@@ -510,6 +552,21 @@ static int init(bgav_stream_t * s)
                  priv->ctx->extradata_size);
     bgav_hexdump(priv->ctx->extradata, priv->ctx->extradata_size, 16);
 #endif
+    }
+  else if(priv->parser && priv->parser->parser->split)
+    {
+    priv->need_extradata = 1;
+    while(priv->need_extradata)
+      {
+      if(!get_data(s))
+        {
+        bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                 "Ran out of data during extradata scanning");
+        return 0;
+        }
+      }
+    priv->ctx->extradata      = priv->extradata;
+    priv->ctx->extradata_size = priv->extradata_size;
     }
   
   priv->ctx->codec_type = CODEC_TYPE_VIDEO;
@@ -543,23 +600,7 @@ static int init(bgav_stream_t * s)
 
   //  bgav_hexdump(s->ext_data, s->ext_size, 16);
 
-  priv->ctx->codec_tag   =
-    ((s->fourcc & 0x000000ff) << 24) |
-    ((s->fourcc & 0x0000ff00) << 8) |
-    ((s->fourcc & 0x00ff0000) >> 8) |
-    ((s->fourcc & 0xff000000) >> 24);
 
-  priv->ctx->codec_id = codec->id;
-
-  /* Initialize parser */
-#if 1
-  if(s->not_aligned)
-    {
-    priv->parser = av_parser_init(priv->ctx->codec_id);
-    //    if(priv->parser)
-    //      priv->parser->flags |= PARSER_FLAG_COMPLETE_FRAMES;
-    }
-#endif
   
   priv->frame = avcodec_alloc_frame();
   priv->gavl_frame = gavl_video_frame_create(NULL);
@@ -638,7 +679,6 @@ static int init(bgav_stream_t * s)
   
   if(avcodec_open(priv->ctx, codec) != 0)
     return 0;
-  s->data.video.decoder->priv = priv;
   
   /* Set missing format values */
 
@@ -706,6 +746,9 @@ static void close_ffmpeg(bgav_stream_t * s)
   ffmpeg_video_priv * priv;
   priv= (ffmpeg_video_priv*)(s->data.video.decoder->priv);
 
+  if(!priv)
+    return;
+  
   bgav_bytebuffer_free(&priv->buf);
   
   if(priv->parser)
@@ -940,13 +983,13 @@ static codec_info_t codec_infos[] =
 
     { "FFmpeg VC1 decoder", "VC1", CODEC_ID_VC1,
       (uint32_t[]){ BGAV_MK_FOURCC('W', 'V', 'C', '1'),
-               0x00 } }, 
-
+                    BGAV_MK_FOURCC('V', 'C', '-', '1'),
+                    0x00 } },
     
     /************************************************************
      * DV Decoder
      ************************************************************/
-        
+    
     { "FFmpeg DV decoder", "DV Video", CODEC_ID_DVVIDEO,
       (uint32_t[]){ BGAV_MK_FOURCC('d', 'v', 's', 'd'), 
                BGAV_MK_FOURCC('D', 'V', 'S', 'D'), 

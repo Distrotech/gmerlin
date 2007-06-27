@@ -555,7 +555,7 @@ static gavl_time_t get_duration(bgav_demuxer_context_t * ctx,
   priv = (mpegaudio_priv_t*)(ctx->priv);
   
   bgav_input_seek(ctx->input, start_offset, SEEK_SET);
-  if(!resync(ctx, 0))
+  if(!resync(ctx, 1))
     return 0;
   
   if(bgav_input_get_data(ctx->input, frame,
