@@ -119,11 +119,18 @@ void bg_album_get_times(bg_album_t * a,
 
 int                bg_album_get_num_entries(bg_album_t*);
 bg_album_entry_t * bg_album_get_entry(bg_album_t*, int);
+int                bg_album_get_index(bg_album_t*, const bg_album_entry_t * entry);
 
 void bg_album_set_change_callback(bg_album_t * a,
                                   void (*change_callback)(bg_album_t * a,
                                                           void * data),
                                   void * change_callback_data);
+
+void bg_album_set_entry_change_callback(bg_album_t * a,
+                                        void (*change_callback)(bg_album_t * a,
+                                                                const bg_album_entry_t * e,
+                                                                void * data),
+                                        void * change_callback_data);
 
 void bg_album_set_name_change_callback(bg_album_t * a,
                                        void (*name_change_callback)(bg_album_t * a,
@@ -131,12 +138,32 @@ void bg_album_set_name_change_callback(bg_album_t * a,
                                                                     void * data),
                                        void * name_change_callback_data);
 
+void bg_album_set_current_change_callback(bg_album_t * a,
+                                          void (*change_callback)(bg_album_t * a,
+                                                                  const bg_album_entry_t * e,
+                                                                  void * data),
+                                          void * change_callback_data);
+
+void bg_album_set_delete_callback(bg_album_t * a,
+                                  void (*delete_callback)(bg_album_t * current_album,
+                                                          int * indices, void * data),
+                                  void * delete_callback_data);
+
+void bg_album_set_insert_callback(bg_album_t * a,
+                                  void (*insert_callback)(bg_album_t * current_album,
+                                                          int start, int num, void * data),
+                                  void * insert_callback_data);
+
+
 void bg_album_move_selected_to_favourites(bg_album_t * a);
 void bg_album_copy_selected_to_favourites(bg_album_t * a);
 
 /* Return the current entry (might be NULL) */
 
 bg_album_entry_t * bg_album_get_current_entry(bg_album_t*);
+
+gavl_time_t bg_album_get_duration(bg_album_t*);
+
 
 int bg_album_next(bg_album_t*, int wrap);
 int bg_album_previous(bg_album_t*, int wrap);

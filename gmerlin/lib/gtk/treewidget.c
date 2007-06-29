@@ -1652,7 +1652,6 @@ static void drag_received_callback(GtkWidget *widget,
                                    gpointer d)
   {
   
-  bg_gtk_album_window_t * album_window;
   bg_album_t * dest_album;
   gchar * atom_name;
   GtkTreePath * path;
@@ -1743,9 +1742,6 @@ static void drag_received_callback(GtkWidget *widget,
       if(drag_context->action == GDK_ACTION_MOVE)
         do_delete = 1;
       }
-    album_window = album_is_open(w, dest_album);
-    if(album_window)
-      bg_gtk_album_window_update(album_window);
     if(!was_open)
       bg_album_close(dest_album);
     }

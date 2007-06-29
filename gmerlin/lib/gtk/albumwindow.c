@@ -271,10 +271,6 @@ void bg_gtk_album_window_raise(bg_gtk_album_window_t* w)
     }
   }
 
-void bg_gtk_album_window_update(bg_gtk_album_window_t* w)
-  {
-  bg_gtk_album_widget_update(w->widget);
-  }
 
 void bg_gtk_album_window_set_tooltips(bg_gtk_album_window_t * w, int enable)
   {

@@ -274,10 +274,9 @@ void bg_album_insert_xml_after(bg_album_t * a,
   bg_album_insert_entries_after(a, new_entries, before);
 
   if(current_entry)
-    {
     bg_album_set_current(a, current_entry);
-    }
   
+  //  bg_album_changed(a);
   return;
   }
 
@@ -292,9 +291,9 @@ void bg_album_insert_xml_before(bg_album_t * a,
   bg_album_insert_entries_before(a, new_entries, after);
 
   if(current_entry)
-    {
     bg_album_set_current(a, current_entry);
-    }
+  
+  //  bg_album_changed(a);
   return;
   }
 
@@ -338,6 +337,7 @@ void bg_album_insert_albums_before(bg_album_t * a,
   bg_album_entry_t * new_entries;
   new_entries = load_albums(a, locations, (bg_album_entry_t **)0, NULL);
   bg_album_insert_entries_before(a, new_entries, after);
+  bg_album_changed(a);
   }
 
 void bg_album_insert_albums_after(bg_album_t * a,
@@ -347,6 +347,7 @@ void bg_album_insert_albums_after(bg_album_t * a,
   bg_album_entry_t * new_entries;
   new_entries = load_albums(a, locations, (bg_album_entry_t **)0, NULL);
   bg_album_insert_entries_after(a, new_entries, before);
+  bg_album_changed(a);
   }
 
 void bg_album_load(bg_album_t * a, const char * filename)

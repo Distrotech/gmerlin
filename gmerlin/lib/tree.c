@@ -764,11 +764,6 @@ void bg_media_tree_set_current(void * data,
     t->com.shuffle_list = NULL;
     }
   
-  if(last_current_album && (last_current_album != album))
-    {
-    t->com.current_entry = (bg_album_entry_t*)0;
-    bg_album_changed(last_current_album);
-    }
   t->com.current_album = album;
 
   if(t->com.current_album)
@@ -778,6 +773,18 @@ void bg_media_tree_set_current(void * data,
     while(t->com.current_entry != entry)
       t->com.current_entry = t->com.current_entry->next;
     }
+  else
+    {
+    t->com.current_entry = (bg_album_entry_t*)0;
+    }
+
+  if(last_current_album &&
+     (last_current_album != album))
+    bg_album_current_changed(last_current_album);
+  
+  if(album)
+    bg_album_current_changed(album);
+  
   if(t->change_callback)
     t->change_callback(t, t->change_callback_data);
   }
@@ -1146,11 +1153,11 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
            (char*)t->com.current_entry->location);
     goto fail;
     }
-  bg_album_update_entry(t->com.current_album, t->com.current_entry, track_info);
+  bg_album_update_entry(t->com.current_album, t->com.current_entry, track_info, 1);
 
   bg_album_common_set_auth_info(&(t->com), t->com.current_entry);
   
-  bg_album_changed(t->com.current_album);
+  //  bg_album_changed(t->com.current_album);
     
   if(index)
     *index = t->com.current_entry->index;
@@ -1240,15 +1247,22 @@ void bg_media_tree_set_parameter(void * priv, char * name,
 
 void bg_media_tree_mark_error(bg_media_tree_t * t, int err)
   {
+  int err1;
   if(t->com.current_entry)
     {
+    err1 = !!(t->com.current_entry->flags & BG_ALBUM_ENTRY_ERROR);
+    err = !!err;
+    
+    if(err == err)
+      return;
+    
     if(err)
       t->com.current_entry->flags |= BG_ALBUM_ENTRY_ERROR;
     else
       t->com.current_entry->flags &= ~BG_ALBUM_ENTRY_ERROR;
     }
-  if(t->com.current_album)
-    bg_album_changed(t->com.current_album);
+  if(t->com.current_album && t->com.current_entry)
+    bg_album_entry_changed(t->com.current_album, t->com.current_entry);
   }
 
 

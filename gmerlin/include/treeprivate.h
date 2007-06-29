@@ -115,8 +115,30 @@ struct bg_album_s
   void (*change_callback)(bg_album_t * a, void * data);
   void * change_callback_data;
 
+  void (*entry_change_callback)(bg_album_t * a, const bg_album_entry_t * e, void * data);
+  void * entry_change_callback_data;
+
   void (*name_change_callback)(bg_album_t * a, const char * name, void * data);
   void * name_change_callback_data;
+
+  /* Current track changed */
+  void (*current_change_callback)(bg_album_t * current_album,
+                                  const bg_album_entry_t * current_entry, void * data);
+  void * current_change_callback_data;
+
+  /* Tracks were deleted */
+
+  void (*delete_callback)(bg_album_t*,
+                          int * indices, void * data);
+  void * delete_callback_data;
+
+  /* Tracks were inserted */
+
+  void (*insert_callback)(bg_album_t*,
+                          int start, int num, void * data);
+  void * insert_callback_data;
+
+  
   
   /* Coordinates in the screen */
 
@@ -139,7 +161,7 @@ struct bg_album_s
 
 void bg_album_update_entry(bg_album_t * album,
                            bg_album_entry_t * entry,
-                           bg_track_info_t  * track_info);
+                           bg_track_info_t  * track_info, int callback);
 
 int bg_album_get_unique_id(bg_album_t * album);
 
@@ -156,6 +178,9 @@ void bg_album_load(bg_album_t * album, const char * filename);
 /* Notify the album of changes */
 
 void bg_album_changed(bg_album_t * album);
+void bg_album_current_changed(bg_album_t * album);
+
+void bg_album_entry_changed(bg_album_t * album, const bg_album_entry_t * entry);
 
 void bg_album_insert_entries_after(bg_album_t * album,
                                    bg_album_entry_t * new_entries,

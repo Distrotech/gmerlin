@@ -270,9 +270,9 @@ static void set_parameter_deinterlace(void * priv, char * name,
       }
     else if(!strcmp(val->val_str, "blend"))
       {
-      
+      new_method = DEINTERLACE_GAVL;
+      new_method_gavl = GAVL_DEINTERLACE_BLEND;
       }
-
     if((new_method != vp->method) || 
        (new_method_gavl != gavl_video_options_get_deinterlace_mode(vp->opt)))
       {
@@ -388,8 +388,9 @@ static int deinterlace_scale_hw(struct deinterlace_priv_s * vp,
 
 
 static void connect_input_port_deinterlace(void * priv,
-                                    bg_read_video_func_t func,
-                                    void * data, int stream, int port)
+                                           bg_read_video_func_t func,
+                                           void * data, int stream,
+                                           int port)
   {
   deinterlace_priv_t * vp;
   vp = (deinterlace_priv_t *)priv;
@@ -403,17 +404,19 @@ static void connect_input_port_deinterlace(void * priv,
   }
 
 static void
-set_input_format_deinterlace(void * priv, gavl_video_format_t * format, int port)
+set_input_format_deinterlace(void * priv,
+                             gavl_video_format_t * format,
+                             int port)
   {
   deinterlace_priv_t * vp;
   vp = (deinterlace_priv_t *)priv;
-
+  
   if(!port)
     {
     gavl_video_format_copy(&vp->in_format, format);
     gavl_video_format_copy(&vp->out_format, format);
     vp->out_format.interlace_mode = GAVL_INTERLACE_NONE;
-
+    
     vp->need_reinit = 1;
     
     switch(vp->method)
@@ -426,7 +429,7 @@ set_input_format_deinterlace(void * priv, gavl_video_format_t * format, int port
         break;
       case DEINTERLACE_SCALE_HW:
         vp->deint_func = deinterlace_scale_hw;
-
+        
         vp->out_format.image_height /= 2;
         vp->out_format.frame_height /= 2;
         vp->out_format.pixel_height *= 2;

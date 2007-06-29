@@ -86,7 +86,7 @@ void bg_album_set_default_location(bg_album_t * album)
 
 void bg_album_update_entry(bg_album_t * album,
                            bg_album_entry_t * entry,
-                           bg_track_info_t  * track_info)
+                           bg_track_info_t  * track_info, int callback)
   {
   int i;
   int name_set = 0;
@@ -145,8 +145,8 @@ void bg_album_update_entry(bg_album_t * album,
     entry->total_tracks = 1;
     entry->flags = BG_ALBUM_ENTRY_REDIRECTOR;
     }
-  
-  
+  if(callback)
+    bg_album_entry_changed(album, entry);
   }
 
 bg_album_t * bg_album_create(bg_album_common_t * com, bg_album_type_t type,
@@ -196,7 +196,7 @@ bg_album_entry_t * bg_album_get_entry(bg_album_t * a, int i)
 
 /* Add items */
 
-static void insertion_done(bg_album_t * album)
+static void insertion_done(bg_album_t * album, int start, int num)
   {
   switch(album->type)
     {
@@ -213,6 +213,8 @@ static void insertion_done(bg_album_t * album)
       break;
     }
   delete_shuffle_list(album);
+  if(album->insert_callback)
+    album->insert_callback(album, start, num, album->insert_callback_data);
   }
 
 void bg_album_insert_entries_after(bg_album_t * album,
@@ -220,26 +222,34 @@ void bg_album_insert_entries_after(bg_album_t * album,
                                    bg_album_entry_t * before)
   {
   bg_album_entry_t * last_new_entry;
-
+  int start, num;
+  
   if(!new_entries)
     return;
   
   last_new_entry = new_entries;
+
+  num = 1;
   while(last_new_entry->next)
+    {
     last_new_entry = last_new_entry->next;
-  
+    num++;
+    }
+
   if(!before)
     {
     last_new_entry->next = album->entries;
     album->entries = new_entries;
+    start = 0;
     }
   else
     {
+    start = bg_album_get_index(album, before) + 1;
     last_new_entry->next = before->next;
     before->next = new_entries;
     }
 
-  insertion_done(album);
+  insertion_done(album, start, num);
   
   }
 
@@ -249,19 +259,26 @@ void bg_album_insert_entries_before(bg_album_t * album,
   {
   bg_album_entry_t * before;
   bg_album_entry_t * last_new_entry;
+  int start, num;
 
   if(!new_entries)
     return;
   
   last_new_entry = new_entries;
+  
+  num = 1;
   while(last_new_entry->next)
+    {
     last_new_entry = last_new_entry->next;
-
+    num++;
+    }
+  
   /* Fill empty album */
-
+  
   if(!album->entries)
     {
     album->entries = new_entries;
+    start = 0;
     }
   
   /* Append as first item */
@@ -270,17 +287,22 @@ void bg_album_insert_entries_before(bg_album_t * album,
     {
     last_new_entry->next = album->entries;
     album->entries = new_entries;
+    start = 0;
     }
   else
     {
     before = album->entries;
+    start = 1;
     while(before->next != after)
+      {
       before = before->next;
+      start++;
+      }
     before->next = new_entries;
     last_new_entry->next = after;
     }
-
-  insertion_done(album);
+  
+  insertion_done(album, start, num);
 
   }
 
@@ -296,7 +318,7 @@ void bg_album_insert_urls_before(bg_album_t * a,
     {
     new_entries = bg_album_load_url(a, locations[i], plugin);
     bg_album_insert_entries_before(a, new_entries, after);
-    bg_album_changed(a);
+    //    bg_album_changed(a);
     i++;
     }
   }
@@ -320,7 +342,7 @@ void bg_album_insert_urls_after(bg_album_t * a,
       while(before->next)
         before = before->next;
       }
-    bg_album_changed(a);
+    //    bg_album_changed(a);
     i++;
     }
   }
@@ -697,17 +719,37 @@ void bg_album_destroy(bg_album_t * a)
 
 void bg_album_delete_selected(bg_album_t * album)
   {
+  int num_selected = 0;
   bg_album_entry_t * cur;
   bg_album_entry_t * cur_next;
   bg_album_entry_t * new_entries_end = (bg_album_entry_t *)0;
   bg_album_entry_t * new_entries;
-
+  int index, i;
+  int * indices = (int*)0;
+  
   if(!album->entries)
     return;
 
   cur = album->entries;
+  while(cur)
+    {
+    if(cur->flags & BG_ALBUM_ENTRY_SELECTED)
+      num_selected++;
+    cur = cur->next;
+    }
+  if(!num_selected)
+    return;
+  
+  if(album->delete_callback)
+    {
+    indices = malloc((num_selected +1)*sizeof(*indices));
+    }
+  
+  cur = album->entries;
   new_entries = (bg_album_entry_t*)0;
-
+  index = 0;
+  i = 0;
+  
   while(cur)
     {
     cur_next = cur->next;
@@ -720,7 +762,9 @@ void bg_album_delete_selected(bg_album_t * album)
         album->com->current_album = (bg_album_t*)0;
         }
       bg_album_entry_destroy(cur);
-
+      if(indices)
+        indices[i] = index;
+      i++;
       }
     else
       {
@@ -736,12 +780,21 @@ void bg_album_delete_selected(bg_album_t * album)
         }
       }
     cur = cur_next;
+    index++;
     }
   if(new_entries)
     new_entries_end->next = (bg_album_entry_t*)0;
   album->entries = new_entries;
   
   delete_shuffle_list(album);
+
+  if(indices)
+    {
+    indices[i] = -1;
+    album->delete_callback(album, indices, album->delete_callback_data);
+    free(indices);
+    }
+  //  bg_album_changed(album);  
   }
 
 void bg_album_select_error_tracks(bg_album_t * album)
@@ -756,6 +809,7 @@ void bg_album_select_error_tracks(bg_album_t * album)
       cur->flags &= ~BG_ALBUM_ENTRY_SELECTED;
     cur = cur->next;
     }
+  bg_album_changed(album);
   }
 
 void bg_album_refresh_selected(bg_album_t * album)
@@ -826,6 +880,7 @@ void bg_album_move_selected_up(bg_album_t * album)
   bg_album_insert_entries_after(album,
                                 selected,
                                 (bg_album_entry_t*)0);
+  bg_album_changed(album);
   }
 
 void bg_album_move_selected_down(bg_album_t * album)
@@ -836,6 +891,7 @@ void bg_album_move_selected_down(bg_album_t * album)
   bg_album_insert_entries_before(album,
                                  selected,
                                  (bg_album_entry_t*)0);
+  bg_album_changed(album);
   }
 
 typedef struct
@@ -936,6 +992,7 @@ void bg_album_sort_entries(bg_album_t * album)
     free(s[i]);
     }
   free(s);
+  bg_album_changed(album);
   }
 
 typedef struct
@@ -1056,6 +1113,7 @@ void bg_album_rename_track(bg_album_t * album,
     }
   entry->name = bg_strdup(entry->name, name);
   entry->flags |= BG_ALBUM_ENTRY_PRIVNAME;
+  bg_album_entry_changed(album, entry);
   }
 
 void bg_album_rename(bg_album_t * a, const char * name)
@@ -1092,7 +1150,6 @@ int bg_album_next(bg_album_t * a, int wrap)
         if(a->com->set_current_callback)
           a->com->set_current_callback(a->com->set_current_callback_data,
                                        a, a->entries);
-        bg_album_changed(a);
         return 1;
         }
       else
@@ -1103,14 +1160,50 @@ int bg_album_next(bg_album_t * a, int wrap)
       if(a->com->set_current_callback)
         a->com->set_current_callback(a->com->set_current_callback_data,
                                      a, a->com->current_entry->next);
-      bg_album_changed(a);
       return 1;
       }
     }
   else
     return 0;
-  
   }
+
+
+gavl_time_t bg_album_get_duration(bg_album_t * a)
+  {
+  gavl_time_t ret = 0;
+  bg_album_entry_t * e;
+  e = a->entries;
+  while(e)
+    {
+    if(e->duration == GAVL_TIME_UNDEFINED)
+      return GAVL_TIME_UNDEFINED;
+    else
+      ret += e->duration;
+    e = e->next;
+    }
+  return ret;
+  }
+
+
+int bg_album_get_index(bg_album_t* a, const bg_album_entry_t * entry)
+  {
+  int index = 0;
+  const bg_album_entry_t * e;
+  e = a->entries;
+  while(1)
+    {
+    if(e == entry)
+      return index;
+
+    index++;
+    e = e->next;
+
+    if(!e)
+      break;
+    }
+  return -1;
+  }
+
 
 int bg_album_previous(bg_album_t * a, int wrap)
   {
@@ -1130,7 +1223,6 @@ int bg_album_previous(bg_album_t * a, int wrap)
     if(a->com->set_current_callback)
       a->com->set_current_callback(a->com->set_current_callback_data,
                                    a, tmp_entry);
-    bg_album_changed(a);
     return 1;
     }
   else
@@ -1141,11 +1233,8 @@ int bg_album_previous(bg_album_t * a, int wrap)
     if(a->com->set_current_callback)
       a->com->set_current_callback(a->com->set_current_callback_data,
                                    a, tmp_entry);
-    
-    bg_album_changed(a);
     return 1;    
     }
-
   }
 
 void bg_album_set_change_callback(bg_album_t * a,
@@ -1155,6 +1244,46 @@ void bg_album_set_change_callback(bg_album_t * a,
   a->change_callback      = change_callback;
   a->change_callback_data = change_callback_data;
   }
+
+void bg_album_set_entry_change_callback(bg_album_t * a,
+                                        void (*change_callback)(bg_album_t * a,
+                                                                const bg_album_entry_t * e,
+                                                                void * data),
+                                        void * change_callback_data)
+  {
+  a->entry_change_callback      = change_callback;
+  a->entry_change_callback_data = change_callback_data;
+  }
+
+void bg_album_set_current_change_callback(bg_album_t * a,
+                                          void (*change_callback)(bg_album_t * a,
+                                                                  const bg_album_entry_t * e,
+                                                                  void * data),
+                                          void * change_callback_data)
+  {
+  a->current_change_callback      = change_callback;
+  a->current_change_callback_data = change_callback_data;
+  }
+
+void bg_album_set_delete_callback(bg_album_t * a,
+                                  void (*delete_callback)(bg_album_t * current_album,
+                                                          int * indices, void * data),
+                                  void * delete_callback_data)
+  {
+  a->delete_callback      = delete_callback;
+  a->delete_callback_data = delete_callback_data;
+  }
+
+void bg_album_set_insert_callback(bg_album_t * a,
+                                  void (*insert_callback)(bg_album_t * current_album,
+                                                          int start, int num, void * data),
+                                  void * insert_callback_data)
+  {
+  a->insert_callback      = insert_callback;
+  a->insert_callback_data = insert_callback_data;
+  }
+
+
 
 void bg_album_set_name_change_callback(bg_album_t * a,
                                        void (*name_change_callback)(bg_album_t * a,
@@ -1172,6 +1301,20 @@ void bg_album_changed(bg_album_t * a)
     a->change_callback(a, a->change_callback_data);
   }
 
+void bg_album_current_changed(bg_album_t * a)
+  {
+  if(a->current_change_callback)
+    a->current_change_callback(a->com->current_album, a->com->current_entry,
+                               a->current_change_callback_data);
+  }
+
+void bg_album_entry_changed(bg_album_t * a, const bg_album_entry_t * e)
+  {
+  if(a->entry_change_callback)
+    a->entry_change_callback(a->com->current_album, e,
+                             a->entry_change_callback_data);
+  }
+
 void bg_album_set_current(bg_album_t * a, const bg_album_entry_t * e)
   {
   bg_album_entry_t * tmp_entry;
@@ -1183,8 +1326,7 @@ void bg_album_set_current(bg_album_t * a, const bg_album_entry_t * e)
   if(a->com->set_current_callback)
     a->com->set_current_callback(a->com->set_current_callback_data,
                                  a, tmp_entry);
-  
-  bg_album_changed(a);
+  //  bg_album_current_changed(a);
   }
 
 
@@ -1540,7 +1682,7 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
   for(i = 0; i < num_entries; i++)
     {
     track_info = plugin->get_track_info(album->com->load_handle->priv, i);
-
+    
     new_entry = bg_album_entry_create(album);
     //    new_entry->location = bg_system_to_utf8(url, strlen(url));
     new_entry->location = bg_strdup(new_entry->location, url);
@@ -1550,7 +1692,7 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
            new_entry->index+1, new_entry->total_tracks);
     
     bg_album_common_set_auth_info(album->com, new_entry);
-    bg_album_update_entry(album, new_entry, track_info);
+    bg_album_update_entry(album, new_entry, track_info, 0);
     
     new_entry->plugin = bg_strdup(new_entry->plugin, plugin_name);
     
@@ -1605,7 +1747,7 @@ int bg_album_refresh_entry(bg_album_t * album,
                            &(album->com->load_handle), &(album->com->input_callbacks)))
     {
     entry->flags |= BG_ALBUM_ENTRY_ERROR;
-
+    bg_album_entry_changed(album, entry);
     return 0;
     }
   
@@ -1616,8 +1758,9 @@ int bg_album_refresh_entry(bg_album_t * album,
 
   bg_album_common_set_auth_info(album->com, entry);
   
-  bg_album_update_entry(album, entry, track_info);
+  bg_album_update_entry(album, entry, track_info, 1);
   plugin->close(album->com->load_handle->priv);
+  bg_album_entry_changed(album, entry);
   return 1;
   }
 
@@ -1641,16 +1784,12 @@ void bg_album_copy_selected_to_favourites(bg_album_t * a)
 
   if(!was_open)
     bg_album_close(a->com->favourites);
-  else
-    bg_album_changed(a->com->favourites);  
-  
   }
 
 void bg_album_move_selected_to_favourites(bg_album_t * a)
   {
   bg_album_copy_selected_to_favourites(a);
   bg_album_delete_selected(a);
-  bg_album_changed(a);  
   }
 
 const char * bg_album_get_disc_name(bg_album_t * a)
