@@ -917,13 +917,13 @@ static void * create_x11()
   switch(priv->win.screensaver_mode)
     {
     case SCREENSAVER_MODE_XLIB:
-      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Assuming Xlib screensaver support");
+      bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Assuming Xlib screensaver support");
       break;
     case SCREENSAVER_MODE_GNOME:
-      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Assuming Gnome screensaver support");
+      bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Assuming Gnome screensaver support");
       break;
     case SCREENSAVER_MODE_KDE:
-      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Assuming KDE screensaver support");
+      bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Assuming KDE screensaver support");
       break;
     }
   

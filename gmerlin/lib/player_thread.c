@@ -644,6 +644,8 @@ static void play_cmd(bg_player_t * p,
   
   had_video = DO_VIDEO(p) || DO_STILL(p);
   
+  bg_player_set_track_name(p, track_name);
+  
   p->input_handle = handle;
   if(!bg_player_input_init(p->input_context,
                            handle, track_index))
@@ -652,7 +654,6 @@ static void play_cmd(bg_player_t * p,
     return;
     }
   init_playback(p, 0, flags, had_video);
-  bg_player_set_track_name(p, track_name);
   }
 
 static void cleanup_playback(bg_player_t * player,

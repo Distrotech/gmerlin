@@ -231,7 +231,6 @@ static void clear_info(bg_gtk_info_window_t * w)
   bg_gtk_textview_update(w->w_audio_description, "");
   bg_gtk_textview_update(w->w_video_description, "");
   bg_gtk_textview_update(w->w_subtitle_description, "");
-  bg_gtk_textview_update(w->w_name, "");
   
   }
 
