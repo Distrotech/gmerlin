@@ -105,14 +105,16 @@ static char * do_convert(iconv_t cd, char * in_string, int len, int * out_len)
 
   output_pos = (int)(outbuf - ret);
   
-  if(outbytesleft < 2)
+  if(outbytesleft < 4)
     {
-    alloc_size+=2;
+    alloc_size+=4;
     ret = realloc(ret, alloc_size);
     outbuf = &ret[output_pos];
     }
   outbuf[0] = '\0';
   outbuf[1] = '\0';
+  outbuf[2] = '\0';
+  outbuf[3] = '\0';
   if(out_len)
     *out_len = outbuf - ret;
   return ret;

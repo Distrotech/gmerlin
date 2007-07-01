@@ -20,6 +20,8 @@
 #ifndef __BG_TREE_H_
 #define __BG_TREE_H_
 
+#include <wchar.h> /* wchar_t */
+
 #include "pluginregistry.h"
 
 /* Entry flags                 */
@@ -74,6 +76,10 @@ typedef struct bg_album_entry_s
     
   int flags;
   struct bg_album_entry_s * next;
+
+  wchar_t * name_w;
+  int len_w;
+  
   } bg_album_entry_t;
 
 typedef struct bg_album_s bg_album_t;
@@ -164,7 +170,6 @@ bg_album_entry_t * bg_album_get_current_entry(bg_album_t*);
 
 gavl_time_t bg_album_get_duration(bg_album_t*);
 
-
 int bg_album_next(bg_album_t*, int wrap);
 int bg_album_previous(bg_album_t*, int wrap);
 
@@ -188,6 +193,37 @@ int  bg_album_get_error(bg_album_t * a);
 void bg_album_rename(bg_album_t * a, const char *);
 
 void bg_album_append_child(bg_album_t * parent, bg_album_t * child);
+
+void bg_album_select_entry(bg_album_t * a, int entry);
+void bg_album_unselect_entry(bg_album_t * a, int entry);
+void bg_album_select_entries(bg_album_t * a, int start, int num);
+void bg_album_toggle_select_entry(bg_album_t * a, int entry);
+void bg_album_unselect_all(bg_album_t * a);
+int bg_album_num_selected(bg_album_t * a);
+int bg_album_entry_is_selected(bg_album_t * a, int entry);
+
+/* Seek support */
+
+typedef struct bg_album_seek_data_s bg_album_seek_data_t;
+
+bg_album_seek_data_t * bg_album_seek_data_create();
+
+int bg_album_seek_data_changed(bg_album_seek_data_t*);
+
+void bg_album_seek_data_set_string(bg_album_seek_data_t *, const char * str);
+void bg_album_seek_data_ignore_case(bg_album_seek_data_t *, int ignore);
+void bg_album_seek_data_exact_string(bg_album_seek_data_t *, int exact);
+
+
+bg_album_entry_t * bg_album_seek_entry_after(bg_album_t * a,
+                                             bg_album_entry_t * e,
+                                             bg_album_seek_data_t*);
+
+bg_album_entry_t * bg_album_seek_entry_before(bg_album_t * a,
+                                              bg_album_entry_t * e,
+                                              bg_album_seek_data_t*);
+
+void bg_album_seek_data_destroy(bg_album_seek_data_t *);
 
 /*
  *  Mark an album as expanded i.e. itself and all the

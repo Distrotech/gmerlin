@@ -28,6 +28,10 @@
 
 #include <tree.h>
 #include <utils.h>
+
+#include <log.h>
+#define LOG_DOMAIN "gtk_albumwidget"
+
 #include <gui_gtk/tree.h>
 #include <cfg_dialog.h>
 #include <gui_gtk/fileselect.h>
@@ -180,6 +184,7 @@ typedef struct
   GtkWidget * move_down_item;
   GtkWidget * copy_to_favourites_item;
   GtkWidget * remove_item;
+  GtkWidget * find_item;
 
   GtkWidget * menu;
   } edit_menu_t;
@@ -222,6 +227,25 @@ typedef struct
   GtkWidget * menu;
   } menu_t;
 
+typedef struct
+  {
+  GtkWidget * entry;
+  GtkWidget * up_button;
+  GtkWidget * down_button;
+  GtkWidget * close_button;
+
+  GtkWidget * match_case_button;
+  GtkWidget * exact_button;
+  
+  GtkWidget * box;
+  
+  int visible;
+  bg_album_seek_data_t * sd;
+  
+  bg_album_entry_t * last_match;
+  
+  } find_widget_t;
+
 struct bg_gtk_album_widget_s
   {
   GtkWidget * treeview;
@@ -231,7 +255,7 @@ struct bg_gtk_album_widget_s
   const bg_album_entry_t * current_entry;
   GtkTreeViewColumn * col_duration;
   GtkTreeViewColumn * col_name;
-  gulong select_handler_id;
+  //  gulong select_handler_id;
 
   void (*close_callback)(bg_gtk_album_widget_t *, void*);
   void * close_callback_data;
@@ -272,6 +296,7 @@ struct bg_gtk_album_widget_s
   GtkWidget * cut_button;
   GtkWidget * paste_button;
   GtkWidget * eject_button;
+  GtkWidget * find_button;
   
   /* Display */
 
@@ -303,10 +328,47 @@ struct bg_gtk_album_widget_s
   GtkAccelGroup * accel_group;
 
   int drag_delete;
+
+  find_widget_t find_widget;
   
   };
 
+static void find_widget_init(bg_gtk_album_widget_t * w);
+static void find_widget_run(bg_gtk_album_widget_t * w);
+static void find_widget_reset(bg_gtk_album_widget_t * w);
+
 /* Utilities */
+
+static void display_selected(bg_gtk_album_widget_t * w)
+  {
+  GtkTreeModel * model;
+  GtkTreeSelection * selection;
+  int i;
+  GtkTreeIter iter;
+
+  model = gtk_tree_view_get_model(GTK_TREE_VIEW(w->treeview));
+  selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(w->treeview));
+  
+  w->selected_entry = (bg_album_entry_t*)0;
+  
+  if(!gtk_tree_model_get_iter_first(model, &iter))
+    return;
+  
+  for(i = 0; i < w->num_entries; i++)
+    {
+    if(bg_album_entry_is_selected(w->album, i))
+      {
+      gtk_tree_selection_select_iter(selection, &iter);
+      if(!w->selected_entry)
+        w->selected_entry = bg_album_get_entry(w->album, i);
+      }
+    else
+      gtk_tree_selection_unselect_iter(selection, &iter);
+    if(!gtk_tree_model_iter_next(model, &iter))
+      return;
+    }
+  
+  }
 
 
 static bg_album_entry_t * path_2_entry(bg_gtk_album_widget_t * w,
@@ -320,7 +382,8 @@ static bg_album_entry_t * path_2_entry(bg_gtk_album_widget_t * w,
   return (bg_album_get_entry(w->album, index));
   }
 
-static int entry_2_iter(bg_gtk_album_widget_t * w, const bg_album_entry_t * entry, GtkTreeIter * iter)
+static int entry_2_iter(bg_gtk_album_widget_t * w,
+                        const bg_album_entry_t * entry, GtkTreeIter * iter)
   {
   int index;
   GtkTreeModel * model;
@@ -401,9 +464,8 @@ static void set_sensitive(bg_gtk_album_widget_t * w)
   int num_selected;
   GtkTreeSelection * selection;
   selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(w->treeview));
-  num_selected = gtk_tree_selection_count_selected_rows(selection);
+  num_selected = bg_album_num_selected(w->album);
   
-  fprintf(stderr, "set_sensitive: %d\n", num_selected);
   if(!num_selected)
     {
     gtk_widget_set_sensitive(w->menu.selected_menu.rename_item, 0);
@@ -554,10 +616,9 @@ static void update_cursor_pos(bg_gtk_album_widget_t * w)
     }
   
   gtk_widget_queue_draw(w->treeview);
-
   
-  while(gdk_events_pending() || gtk_events_pending())
-    gtk_main_iteration();
+  //  while(gdk_events_pending() || gtk_events_pending())
+  //    gtk_main_iteration();
   }
 
 static int get_visible_range(bg_gtk_album_widget_t * w, int * start_index,
@@ -818,7 +879,7 @@ static void bg_gtk_album_widget_update(bg_gtk_album_widget_t * w)
   w->current_entry = (const bg_album_entry_t*)0;
   
   selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(w->treeview));
-  g_signal_handler_block(G_OBJECT(selection), w->select_handler_id);
+  //  g_signal_handler_block(G_OBJECT(selection), w->select_handler_id);
   
   model = gtk_tree_view_get_model(GTK_TREE_VIEW(w->treeview));
   
@@ -880,9 +941,11 @@ static void bg_gtk_album_widget_update(bg_gtk_album_widget_t * w)
 
   g_idle_add(setup_drag_dest, (gpointer)w);
   
-  g_signal_handler_unblock(G_OBJECT(selection), w->select_handler_id);
+  //  g_signal_handler_unblock(G_OBJECT(selection), w->select_handler_id);
   w->last_clicked_row = -1;
   update_cursor_pos(w);
+  display_selected(w);
+  find_widget_reset(w);
   }
 
 
@@ -1298,7 +1361,11 @@ static void menu_callback(GtkWidget * w, gpointer data)
     {
     do_paste(widget);
     }
-
+  /* Find */
+  else if(w == widget->menu.edit_menu.find_item)
+    {
+    find_widget_run(widget);
+    }
   
   /* Refresh */
   else if(w == widget->menu.selected_menu.refresh_item)
@@ -1445,6 +1512,11 @@ static void init_menu(bg_gtk_album_widget_t * w)
   gtk_widget_add_accelerator(w->menu.edit_menu.paste_item, "activate", w->accel_group,
                              GDK_v, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
 
+  w->menu.edit_menu.find_item =
+    create_item(w, w->menu.edit_menu.menu, TR("Find..."), "find_16.png");
+
+  gtk_widget_add_accelerator(w->menu.edit_menu.find_item, "activate", w->accel_group,
+                             GDK_f, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
   
   /* Selected */
 
@@ -1519,6 +1591,7 @@ static void init_menu(bg_gtk_album_widget_t * w)
     create_toggle_item(w, w->menu.menu, TR("Show toolbar"));
   }
 
+#if 0
 static void select_row_callback(GtkTreeSelection * sel,
                                 gpointer data)
   {
@@ -1551,18 +1624,37 @@ static void select_row_callback(GtkTreeSelection * sel,
     }
   set_sensitive(w);
   }
+#endif
+
+static void update_last_clicked(bg_gtk_album_widget_t * w,
+                                int clicked_row)
+  {
+  GtkTreePath * p;
+  w->last_clicked_row = clicked_row;
+
+  if(w->last_clicked_row >= 0)
+    p = gtk_tree_path_new_from_indices(w->last_clicked_row, -1);
+  else
+    p = gtk_tree_path_new_from_indices(0, -1);
+#if 0
+  gtk_tree_view_set_cursor(GTK_TREE_VIEW(w->treeview),
+                           // (GtkTreePath*)0,
+                           p,
+                           (GtkTreeViewColumn *)0,
+                           FALSE);
+  // #else
+  gtk_tree_view_row_activated(GTK_TREE_VIEW(w->treeview),
+                              p,
+                              (GtkTreeViewColumn *)0);
+#endif
+  gtk_tree_path_free(p);
+  }
 
 
-static void update_selected(bg_gtk_album_widget_t * aw, GtkTreePath * path,
+static void update_selected(bg_gtk_album_widget_t * w, GtkTreePath * path,
                             guint state, int force)
   {
-  int i;
   int num_selected;
-  GtkTreeSelection * selection;
-  GtkTreeModel * model;
-
-  GtkTreeIter clicked_iter;
-  GtkTreeIter last_clicked_iter;
   
   gint * indices;
   int clicked_row = -1;
@@ -1570,100 +1662,62 @@ static void update_selected(bg_gtk_album_widget_t * aw, GtkTreePath * path,
   indices = gtk_tree_path_get_indices(path);
   clicked_row = indices[0];
   
-  selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(aw->treeview));
-  model = gtk_tree_view_get_model(GTK_TREE_VIEW(aw->treeview));
-
-  num_selected = gtk_tree_selection_count_selected_rows(selection);
+  num_selected = bg_album_num_selected(w->album);
   
   /* Get the clicked iter */
   
-  gtk_tree_model_get_iter(model, &clicked_iter, path);
-
   if(!force) /* Called by button press callback */
     {
-    if(gtk_tree_selection_iter_is_selected(selection, &clicked_iter) &&
+    if(bg_album_entry_is_selected(w->album, clicked_row) &&
        (num_selected > 1))
       {
-      aw->release_updates_selection = 1;
+      w->release_updates_selection = 1;
       return;
       }
     }
   
+  gtk_tree_view_set_cursor(GTK_TREE_VIEW(w->treeview),
+                           // (GtkTreePath*)0,
+                           path,
+                           (GtkTreeViewColumn *)0,
+                           FALSE);
+  
   if(state & GDK_CONTROL_MASK)
     {
-    if(gtk_tree_selection_iter_is_selected(selection, &clicked_iter))
-      gtk_tree_selection_unselect_iter(selection, &clicked_iter);
-    else
-      gtk_tree_selection_select_iter(selection, &clicked_iter);
+    bg_album_toggle_select_entry(w->album, clicked_row);
     }
   else if(state & GDK_SHIFT_MASK)
     {
     /* Select anything between the last clicked row and here */
-
-    if(aw->last_clicked_row >= 0)
+    
+    if(w->last_clicked_row >= 0)
       {
-      if(!gtk_tree_model_get_iter_first(model, &last_clicked_iter))
-        {
-        gtk_tree_selection_unselect_all(selection);
-        gtk_tree_selection_select_iter(selection, &clicked_iter);
-        aw->last_clicked_row = clicked_row;
-        return;
-        }
-      for(i = 0; i < aw->last_clicked_row; i++)
-        {
-        if(!gtk_tree_model_iter_next(model, &last_clicked_iter))
-          {
-          gtk_tree_selection_unselect_all(selection);
-          gtk_tree_selection_select_iter(selection, &clicked_iter);
-          aw->last_clicked_row = clicked_row;
-          return;
-          }
-        }
-      
-      g_signal_handler_block(G_OBJECT(selection), aw->select_handler_id);
-      if(clicked_row > aw->last_clicked_row)
-        {
-        for(i = aw->last_clicked_row; i <= clicked_row; i++)
-          {
-          gtk_tree_selection_select_iter(selection, &last_clicked_iter);
-          gtk_tree_model_iter_next(model, &last_clicked_iter);
-          }
-        }
-      else
-        {
-        for(i = clicked_row; i <= aw->last_clicked_row; i++)
-          {
-          gtk_tree_selection_select_iter(selection, &clicked_iter);
-          gtk_tree_model_iter_next(model, &clicked_iter);
-          }
-        }
-      g_signal_handler_unblock(G_OBJECT(selection), aw->select_handler_id);
-      select_row_callback(selection, aw);
+      bg_album_select_entries(w->album, w->last_clicked_row, clicked_row);
       }
     else
       {
-      gtk_tree_selection_unselect_all(selection);
-      gtk_tree_selection_select_iter(selection, &clicked_iter);
+      bg_album_unselect_all(w->album);
+      bg_album_select_entry(w->album, clicked_row);
       }
     }
   else
     {
-    gtk_tree_selection_unselect_all(selection);
-    gtk_tree_selection_select_iter(selection, &clicked_iter);
+    bg_album_unselect_all(w->album);
+    bg_album_select_entry(w->album, clicked_row);
     }
-
-  if(aw->last_clicked_row > clicked_row)
+  
+  if(w->last_clicked_row > clicked_row)
     {
-    aw->cursor_pos = clicked_row;
+    w->cursor_pos = clicked_row;
     }
   else /* Also for aw->last_clicked_row < 0 */
     {
-    aw->cursor_pos = clicked_row+1;
+    w->cursor_pos = clicked_row+1;
     }
-  update_cursor_pos(aw);
-  
-  aw->last_clicked_row = clicked_row;
-  
+  update_cursor_pos(w);
+  update_last_clicked(w, clicked_row);
+  display_selected(w);
+  set_sensitive(w);
   }
 
 static gboolean button_release_callback(GtkWidget * w, GdkEventButton * evt,
@@ -1699,27 +1753,27 @@ static gboolean button_press_callback(GtkWidget * w, GdkEventButton * evt,
   bg_gtk_album_widget_t * aw = (bg_gtk_album_widget_t *)data;
     
   if(!gtk_tree_view_get_path_at_pos(GTK_TREE_VIEW(aw->treeview),
-                                   evt->x, evt->y, &path,
-                                   (GtkTreeViewColumn **)0,
-                                   (gint *)0,
-                                   (gint*)0))
+                                    evt->x, evt->y, &path,
+                                    (GtkTreeViewColumn **)0,
+                                    (gint *)0,
+                                    (gint*)0))
     {
     path = (GtkTreePath *)0;
     /* Didn't click any entry, return here */
     //    return TRUE;
     }
-    
+  
   /* No matter which button was clicked, we must update the selection if the
      current track isn't already selected */
   
   if((evt->type == GDK_BUTTON_PRESS) && path)
     {
-    update_selected(aw, path, evt->state, 0);
 
     indices = gtk_tree_path_get_indices(path);
     aw->cursor_pos = *indices;
 
     gtk_widget_grab_focus(aw->treeview);
+    update_selected(aw, path, evt->state, 0);
     }
   
   if(evt->button == 3)
@@ -2356,12 +2410,11 @@ static void delete_callback(bg_album_t * a,
   GtkTreeSelection * selection;
   GtkTreeModel * model;
   int cursor_diff = 0;
-  fprintf(stderr, "Delete callback\n");
   
   model = gtk_tree_view_get_model(GTK_TREE_VIEW(w->treeview));
 
   selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(w->treeview));
-  g_signal_handler_block(G_OBJECT(selection), w->select_handler_id);
+  //  g_signal_handler_block(G_OBJECT(selection), w->select_handler_id);
   
   i = 0;
   while(indices[i] >= 0)
@@ -2374,8 +2427,8 @@ static void delete_callback(bg_album_t * a,
                                       (GtkTreeIter*)0,
                                       indices[i] - i))
       {
-      g_signal_handler_unblock(G_OBJECT(selection),
-                               w->select_handler_id);
+      //      g_signal_handler_unblock(G_OBJECT(selection),
+      //                               w->select_handler_id);
       return;
       }
     /* Decrease num_entries right now, because it will be used by
@@ -2389,10 +2442,9 @@ static void delete_callback(bg_album_t * a,
     gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
     i++;
     }
-  
-  w->last_clicked_row = -1;
+  update_last_clicked(w, -1);
 
-  g_signal_handler_unblock(G_OBJECT(selection), w->select_handler_id);
+  //  g_signal_handler_unblock(G_OBJECT(selection), w->select_handler_id);
 
   w->cursor_pos -= cursor_diff;
   
@@ -2401,6 +2453,7 @@ static void delete_callback(bg_album_t * a,
   bg_gtk_time_display_update(w->total_time,
                              bg_album_get_duration(w->album));
   set_sensitive(w);
+  find_widget_reset(w);
   }
 
 static void insert_callback(bg_album_t * a,
@@ -2413,11 +2466,9 @@ static void insert_callback(bg_album_t * a,
   GtkTreeModel * model;
   bg_gtk_album_widget_t * w = (bg_gtk_album_widget_t*)data;
   
-  fprintf(stderr, "Insert callback %d %d\n", start, num);
-  
   model = gtk_tree_view_get_model(GTK_TREE_VIEW(w->treeview));
 
-  w->last_clicked_row = -1;
+  update_last_clicked(w, -1);
     
   for(i = start; i < start + num; i++)
     {
@@ -2432,6 +2483,7 @@ static void insert_callback(bg_album_t * a,
     w->cursor_pos += num;
   
   update_cursor_pos(w);
+  find_widget_reset(w);
   }
 
 /* */
@@ -2492,6 +2544,10 @@ static void button_callback(GtkWidget * wid, gpointer data)
     if(w->close_callback)
       w->close_callback(w, w->close_callback_data);
     bg_album_eject(w->album);
+    }
+  else if(wid == w->find_button)
+    {
+    find_widget_run(w);
     }
   }
 
@@ -2557,11 +2613,11 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
   ret = calloc(1, sizeof(*ret));
   ret->album = album;
   ret->parent = parent;
-
+  
   ret->accel_group = gtk_accel_group_new();
   
   ret->tooltips = gtk_tooltips_new();
-  ret->last_clicked_row = -1;
+  
   g_object_ref (G_OBJECT (ret->tooltips));
 
 #if GTK_MINOR_VERSION < 10
@@ -2595,11 +2651,11 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
   selection =
     gtk_tree_view_get_selection(GTK_TREE_VIEW(ret->treeview));
   gtk_tree_selection_set_mode(selection, GTK_SELECTION_MULTIPLE);
-
+#if 0
   ret->select_handler_id = 
     g_signal_connect(G_OBJECT(selection), "changed",
                      G_CALLBACK(select_row_callback), (gpointer)ret);
-  
+#endif
   gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(ret->treeview), 0);
 
   /* Set list callbacks */
@@ -2829,6 +2885,9 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
                                                         TRS("Move to top"));
   ret->move_selected_down_button = create_pixmap_button(ret, "bottom_16.png",
                                                         TRS("Move to bottom"));
+
+  ret->find_button               = create_pixmap_button(ret, "find_16.png",
+                                                        TRS("Find tracks"));
   
   ret->total_time                = bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE_SMALL, 4);
 
@@ -2837,7 +2896,8 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
                           TRS("Total playback time"),
                           PACKAGE);
 
-
+  find_widget_init(ret);
+  
   ret->toolbar                   = gtk_hbox_new(0, 0);
 
 #define PACK_BUTTON(but) if(ret->but) gtk_box_pack_start(GTK_BOX(ret->toolbar), ret->but, FALSE, FALSE, 0);
@@ -2851,10 +2911,12 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
   PACK_BUTTON(rename_selected_button);
   PACK_BUTTON(move_selected_up_button);
   PACK_BUTTON(move_selected_down_button);
+
   
   PACK_BUTTON(cut_button);
   PACK_BUTTON(copy_button);
   PACK_BUTTON(paste_button);
+  PACK_BUTTON(find_button);
   
   PACK_BUTTON(copy_to_favourites_button);
   PACK_BUTTON(eject_button);
@@ -2868,6 +2930,7 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
   ret->widget = gtk_vbox_new(0, 0);
 
   gtk_box_pack_start_defaults(GTK_BOX(ret->widget), scrolledwin);
+  gtk_box_pack_start(GTK_BOX(ret->widget), ret->find_widget.box, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(ret->widget), ret->toolbar, FALSE, FALSE, 0);
   
   init_menu(ret);
@@ -2881,6 +2944,8 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
   
   bg_gtk_album_widget_update(ret);
   gtk_widget_show(ret->widget);
+
+  update_last_clicked(ret, -1);
   
   return ret;
   }
@@ -2913,7 +2978,10 @@ void bg_gtk_album_widget_destroy(bg_gtk_album_widget_t * w)
   bg_album_set_insert_callback(w->album, NULL, NULL);
 
   g_object_unref(w->accel_group);
-  
+
+  if(w->find_widget.sd)
+    bg_album_seek_data_destroy(w->find_widget.sd);
+    
   free(w);
 
   unload_pixmaps();
@@ -2983,4 +3051,245 @@ bg_gtk_album_widget_set_close_callback(bg_gtk_album_widget_t * w,
   {
   w->close_callback = callback;
   w->close_callback_data = data;
+  }
+
+/* Find widget */
+
+static int prepare_seek(bg_gtk_album_widget_t * w)
+  {
+  const char * text;
+  text = gtk_entry_get_text(GTK_ENTRY(w->find_widget.entry));
+  
+  if(!text || (*text == '\0'))
+    return 0;
+  
+  bg_album_seek_data_set_string(w->find_widget.sd, text);
+    
+  bg_album_seek_data_ignore_case(w->find_widget.sd,
+                                 !gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(w->find_widget.match_case_button)));
+  
+  bg_album_seek_data_exact_string(w->find_widget.sd,
+                                  gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(w->find_widget.exact_button)));
+  
+  if(bg_album_seek_data_changed(w->find_widget.sd))
+    w->find_widget.last_match = (bg_album_entry_t*)0;
+  return 1;
+  }
+
+
+static void find_widget_button_callback(GtkWidget * wid, gpointer data)
+  {
+  bg_gtk_album_widget_t * w;
+  bg_album_entry_t * e = (bg_album_entry_t*)0;
+  int index;
+  GtkTreePath * p;
+  w = (bg_gtk_album_widget_t*)data;
+  
+  if(wid == w->find_widget.up_button)
+    {
+    if(!prepare_seek(w))
+      return;
+    e = bg_album_seek_entry_before(w->album,
+                                   w->find_widget.last_match,
+                                   w->find_widget.sd);
+    if(!e)
+      {
+      if(w->find_widget.last_match)
+        {
+        e = bg_album_seek_entry_before(w->album,
+                                       (bg_album_entry_t*)0,
+                                       w->find_widget.sd);
+        if(e)
+          bg_log(BG_LOG_INFO, LOG_DOMAIN,
+                 "Backward search hit top, continuing at bottom");
+        }
+      }
+    if(!e)
+      {
+      bg_album_unselect_all(w->album);
+      display_selected(w);
+      w->find_widget.last_match = (bg_album_entry_t*)0;
+      bg_log(BG_LOG_WARNING, LOG_DOMAIN,
+             "Backward search: No tracks found");
+      }
+    }
+  else if(wid == w->find_widget.down_button)
+    {
+    if(!prepare_seek(w))
+      return;
+    e = bg_album_seek_entry_after(w->album,
+                                  w->find_widget.last_match,
+                                  w->find_widget.sd);
+    if(!e)
+      {
+      if(w->find_widget.last_match)
+        {
+        e = bg_album_seek_entry_after(w->album,
+                                      (bg_album_entry_t*)0,
+                                      w->find_widget.sd);
+        if(e)
+          bg_log(BG_LOG_INFO, LOG_DOMAIN,
+                 "Forward search hit bottom, continuing at top");
+        }
+      }
+    if(!e)
+      {
+      bg_album_unselect_all(w->album);
+      display_selected(w);
+      w->find_widget.last_match = (bg_album_entry_t*)0;
+      bg_log(BG_LOG_WARNING, LOG_DOMAIN,
+             "Forward search: No tracks found");
+      }
+    }
+  else if(wid == w->find_widget.close_button)
+    {
+    gtk_widget_hide(w->find_widget.box);
+    w->find_widget.visible = 0;
+    }
+
+  if(e)
+    {
+    w->find_widget.last_match = e;
+    index = bg_album_get_index(w->album, e);
+    p = gtk_tree_path_new_from_indices(index, -1);
+
+    gtk_tree_view_set_cursor(GTK_TREE_VIEW(w->treeview),
+                             // (GtkTreePath*)0,
+                             p,
+                             (GtkTreeViewColumn *)0,
+                             FALSE);
+    bg_album_unselect_all(w->album);
+    bg_album_select_entry(w->album, index);
+    display_selected(w);
+    gtk_tree_path_free(p);
+    }
+  }
+
+static GtkWidget * find_create_pixmap_button(bg_gtk_album_widget_t * w,
+                                             const char * filename,
+                                             const char * tooltip)
+  {
+  GtkWidget * button;
+  GtkWidget * image;
+  char * path;
+  path = bg_search_file_read("icons", filename);
+  if(path)
+    {
+    image = gtk_image_new_from_file(path);
+    free(path);
+    }
+  else
+    image = gtk_image_new();
+
+  gtk_widget_show(image);
+  button = gtk_button_new();
+  gtk_container_add(GTK_CONTAINER(button), image);
+
+  g_signal_connect(G_OBJECT(button), "clicked",
+                   G_CALLBACK(find_widget_button_callback), w);
+  
+  gtk_widget_show(button);
+  
+  bg_gtk_tooltips_set_tip(w->tooltips, button, tooltip, PACKAGE);
+  
+  return button;
+  }
+
+static GtkWidget * find_create_check_button(bg_gtk_album_widget_t * w,
+                                            const char * name,
+                                            const char * tooltip)
+  {
+  GtkWidget * button;
+  button = gtk_check_button_new_with_label(name);
+  gtk_widget_show(button);
+  bg_gtk_tooltips_set_tip(w->tooltips, button, tooltip, PACKAGE);
+  return button;
+  }
+
+static gboolean find_key_press_callback(GtkWidget * w, GdkEventKey * evt,
+                                        gpointer user_data)
+  {
+  bg_gtk_album_widget_t * wid = (bg_gtk_album_widget_t *)user_data;
+  switch(evt->keyval)
+    {
+    case GDK_Return:
+      find_widget_button_callback(wid->find_widget.down_button, user_data);
+      break;
+    case GDK_Escape:
+      gtk_widget_hide(wid->find_widget.box);
+      wid->find_widget.visible = 0;
+      break;
+    default:
+      break;
+    }
+  return FALSE;
+  }
+
+static void find_widget_init(bg_gtk_album_widget_t * w)
+  {
+  w->find_widget.box = gtk_hbox_new(0, 0);
+  }
+
+static void find_widget_reset(bg_gtk_album_widget_t * w)
+  {
+  w->find_widget.last_match = (bg_album_entry_t*)0;
+  }
+
+static void find_widget_run(bg_gtk_album_widget_t * w)
+  {
+  if(!w->find_widget.sd)
+    {
+    w->find_widget.down_button = find_create_pixmap_button(w,
+                                                           "down_16.png",
+                                                           "Seek forward");
+    w->find_widget.up_button = find_create_pixmap_button(w,
+                                                         "up_16.png",
+                                                         "Seek backward");
+    w->find_widget.close_button = find_create_pixmap_button(w,
+                                                            "close_16.png",
+                                                            "Close search");
+    w->find_widget.sd = bg_album_seek_data_create();
+
+    w->find_widget.entry = gtk_entry_new();
+
+    gtk_widget_set_events(w->find_widget.entry, GDK_KEY_PRESS_MASK );
+    
+    g_signal_connect(G_OBJECT(w->find_widget.entry),
+                     "key-press-event",
+                     G_CALLBACK(find_key_press_callback), (gpointer)w);
+    
+    gtk_widget_show(w->find_widget.entry);
+    
+    w->find_widget.exact_button =
+      find_create_check_button(w,
+                               TRS("Exact match"),
+                               TRS("String is an exact substring"));
+
+    w->find_widget.match_case_button =
+      find_create_check_button(w,
+                               TRS("Match case"),
+                               TRS("Match upper and lower case"));
+    
+    gtk_box_pack_start(GTK_BOX(w->find_widget.box), w->find_widget.close_button,
+                       FALSE, FALSE, 0);
+
+    gtk_box_pack_start_defaults(GTK_BOX(w->find_widget.box), w->find_widget.entry);
+    
+    gtk_box_pack_start(GTK_BOX(w->find_widget.box), w->find_widget.down_button,
+                       FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(w->find_widget.box), w->find_widget.up_button,
+                       FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(w->find_widget.box), w->find_widget.match_case_button,
+                       FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(w->find_widget.box), w->find_widget.exact_button,
+                       FALSE, FALSE, 0);
+    }
+  if(!w->find_widget.visible)
+    {
+    gtk_widget_show(w->find_widget.box);
+    gtk_widget_grab_focus(w->find_widget.entry);
+    w->find_widget.visible = 1;
+    return;
+    }
+  find_widget_button_callback(w->find_widget.down_button, w);
   }

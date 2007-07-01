@@ -2,7 +2,7 @@
  
   album.c
  
-  Copyright (c) 2003-2004 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+  Copyright (c) 2003-2007 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
  
   http://gmerlin.sourceforge.net
  
@@ -23,10 +23,15 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <wctype.h>
+
+
 #include <config.h>
 
 #include <tree.h>
 #include <treeprivate.h>
+
+#include <charset.h>
 
 #include <utils.h>
 // #include <http.h>
@@ -112,6 +117,14 @@ void bg_album_update_entry(bg_album_t * album,
       free(entry->name);
       entry->name = (char*)0;
       }
+
+    if(entry->name_w)
+      {
+      free(entry->name_w);
+      entry->name_w = (wchar_t*)0;
+      entry->len_w = 0;
+      }
+
     /* Track info has a name */
     
     if(album->com->use_metadata && album->com->metadata_format)
@@ -731,12 +744,9 @@ void bg_album_delete_selected(bg_album_t * album)
     return;
 
   cur = album->entries;
-  while(cur)
-    {
-    if(cur->flags & BG_ALBUM_ENTRY_SELECTED)
-      num_selected++;
-    cur = cur->next;
-    }
+
+  num_selected = bg_album_num_selected(album);
+  
   if(!num_selected)
     return;
   
@@ -1113,7 +1123,15 @@ void bg_album_rename_track(bg_album_t * album,
     }
   entry->name = bg_strdup(entry->name, name);
   entry->flags |= BG_ALBUM_ENTRY_PRIVNAME;
+
+  if(entry->name_w)
+    {
+    free(entry->name_w);
+    entry->name_w = (wchar_t*)0;
+    entry->len_w = 0;
+    }
   bg_album_entry_changed(album, entry);
+
   }
 
 void bg_album_rename(bg_album_t * a, const char * name)
@@ -1846,4 +1864,349 @@ char * bg_album_selected_to_string(bg_album_t * a)
     index++;
     }
   return ret;
+  }
+
+void bg_album_select_entry(bg_album_t * a, int entry)
+  {
+  bg_album_entry_t * e;
+  e = bg_album_get_entry(a, entry);
+  e->flags |= BG_ALBUM_ENTRY_SELECTED;
+  }
+
+void bg_album_unselect_entry(bg_album_t * a, int entry)
+  {
+  bg_album_entry_t * e;
+  e = bg_album_get_entry(a, entry);
+  e->flags &= ~BG_ALBUM_ENTRY_SELECTED;
+  }
+
+void bg_album_unselect_all(bg_album_t * a)
+  {
+  bg_album_entry_t * e;
+  e = a->entries;
+  while(e)
+    {
+    e->flags &= ~BG_ALBUM_ENTRY_SELECTED;
+    e = e->next;
+    }
+  }
+
+int bg_album_num_selected(bg_album_t * a)
+  {
+  bg_album_entry_t * e;
+  int ret = 0;
+  e = a->entries;
+  while(e)
+    {
+    if(e->flags & BG_ALBUM_ENTRY_SELECTED)
+      ret++;
+    e = e->next;
+    }
+  return ret;
+  }
+
+int bg_album_entry_is_selected(bg_album_t * a, int entry)
+  {
+  bg_album_entry_t * e;
+  e = bg_album_get_entry(a, entry);
+  return !!(e->flags & BG_ALBUM_ENTRY_SELECTED);
+  }
+
+
+void bg_album_toggle_select_entry(bg_album_t * a, int entry)
+  {
+  bg_album_entry_t * e;
+  e = bg_album_get_entry(a, entry);
+  if(e->flags & BG_ALBUM_ENTRY_SELECTED)
+    e->flags &= ~BG_ALBUM_ENTRY_SELECTED;
+  else
+    e->flags |= BG_ALBUM_ENTRY_SELECTED;
+  }
+
+void bg_album_select_entries(bg_album_t * a, int start, int end)
+  {
+  int i;
+  int swp;
+  bg_album_entry_t * e;
+
+  if(end < start)
+    {
+    swp = end;
+    end = start;
+    start = swp;
+    }
+  
+  e = bg_album_get_entry(a, start);
+  for(i = start; i <= end; i++)
+    {
+    if(!e)
+      {
+      bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Invalid selection range given");
+      return;
+      }
+    e->flags |= BG_ALBUM_ENTRY_SELECTED;
+    e = e->next;
+    }
+  }
+
+/*********************************
+ * Seek support
+ *********************************/
+
+struct bg_album_seek_data_s
+  {
+  char * str;
+  int ignore;
+  int exact;
+  
+  int changed;
+
+  struct
+    {
+    wchar_t * str;
+    int len;
+    int matched;
+    } * substrings;
+  int num_substrings;
+  int substrings_alloc;
+  
+  int (*match_func)(const wchar_t *s1, const wchar_t *s2, size_t n);
+  
+  bg_charset_converter_t * cnv;
+  };
+
+bg_album_seek_data_t * bg_album_seek_data_create()
+  {
+  bg_album_seek_data_t * ret;
+  ret = calloc(1, sizeof(*ret));
+  ret->cnv = bg_charset_converter_create("UTF-8", "WCHAR_T");
+  return ret;
+  }
+
+void bg_album_seek_data_set_string(bg_album_seek_data_t * d, const char * str)
+  {
+  if(d->str && !strcmp(d->str, str))
+    return;
+  d->str = bg_strdup(d->str, str);
+  d->changed = 1;
+  }
+
+void bg_album_seek_data_ignore_case(bg_album_seek_data_t * d, int ignore)
+  {
+  if(d->ignore == ignore)
+    return;
+  d->ignore = ignore;
+  d->changed = 1;
+  }
+
+void bg_album_seek_data_exact_string(bg_album_seek_data_t * d, int exact)
+  {
+  if(d->exact == exact)
+    return;
+  d->exact = exact;
+  d->changed = 1;
+  }
+
+static int match_string_ignore(const wchar_t *s1, const wchar_t *s2, size_t n)
+  {
+  int i;
+  for(i = 0; i < n; i++)
+    {
+    if(!(*s1) || !(*s2) || (towlower(*s1) != towlower(*s2)))
+      return 0;
+    s1++;
+    s2++;
+    }
+  return 1;
+  }
+
+static int match_string(const wchar_t *s1, const wchar_t *s2, size_t n)
+  {
+  int i;
+  for(i = 0; i < n; i++)
+    {
+    if(!(*s1) || !(*s2) || (*s1 != *s2))
+      return 0;
+    s1++;
+    s2++;
+    }
+  return 1;
+  }
+
+static void update_seek_data(bg_album_seek_data_t * d)
+  {
+  int i;
+  char ** substrings;
+  char ** substrings_d = (char**)0;
+  
+  char * substrings_s[2];
+
+  
+  if(d->exact)
+    {
+    d->num_substrings = 1;
+    substrings_s[0] = d->str;
+    substrings_s[1] = (char*)0;
+    substrings = substrings_s;
+    }
+  else
+    {
+    substrings_d = bg_strbreak(d->str, ' ');
+    d->num_substrings = 0;
+    while(substrings_d[d->num_substrings])
+      d->num_substrings++;
+    substrings = substrings_d;
+    }
+
+  if(d->num_substrings > d->substrings_alloc)
+    {
+    d->substrings = realloc(d->substrings,
+                            d->num_substrings * sizeof(*d->substrings));
+    memset(d->substrings + d->substrings_alloc,
+           0, sizeof(*d->substrings) * (d->num_substrings - d->substrings_alloc));
+    d->substrings_alloc = d->num_substrings;
+    }
+
+  for(i = 0; i < d->num_substrings; i++)
+    {
+    if(d->substrings[i].str)
+      free(d->substrings[i].str);
+    d->substrings[i].str =
+      (wchar_t*)bg_convert_string(d->cnv,
+                                  substrings[i], -1,
+                                  &d->substrings[i].len);
+    d->substrings[i].len /= sizeof(wchar_t);
+    }
+  
+  if(d->ignore)
+    d->match_func = match_string_ignore;
+  else
+    d->match_func = match_string;
+
+  if(substrings_d)
+    bg_strbreak_free(substrings_d);
+  d->changed = 0;
+  }
+
+static int entry_matches(bg_album_entry_t * entry, bg_album_seek_data_t * d)
+  {
+  int i, j, keep_going;
+  wchar_t * ptr;
+  if(d->changed)
+    update_seek_data(d);
+  
+  if(!entry->name_w)
+    {
+    entry->name_w = (wchar_t*)bg_convert_string(d->cnv,
+                                                entry->name, -1,
+                                                &entry->len_w);
+    entry->len_w /= sizeof(wchar_t);
+    }
+
+  ptr = entry->name_w;
+
+  for(j = 0; j < d->num_substrings; j++)
+    d->substrings[j].matched = 0;
+  
+  keep_going = 1;
+  
+  for(i = 0; i < entry->len_w-1; i++)
+    {
+    keep_going = 0;
+    for(j = 0; j < d->num_substrings; j++)
+      {
+      if(!d->substrings[j].matched)
+        d->substrings[j].matched = d->match_func(d->substrings[j].str,
+                                                 ptr, d->substrings[j].len);
+      
+      if(!d->substrings[j].matched)
+        keep_going = 1;
+      }
+    if(!keep_going)
+      break;
+    ptr++;
+    }
+  if(keep_going)
+    return 0;
+  return 1;
+  }
+
+
+bg_album_entry_t * bg_album_seek_entry_after(bg_album_t * a,
+                                             bg_album_entry_t * e,
+                                             bg_album_seek_data_t * d)
+  {
+  if(!e)
+    e = a->entries;
+  else
+    e = e->next;
+  
+  while(e)
+    {
+    if(entry_matches(e, d))
+      return e;
+    e = e->next;
+    }
+  return e;
+  }
+
+bg_album_entry_t * bg_album_seek_entry_before(bg_album_t * a,
+                                              bg_album_entry_t * e,
+                                              bg_album_seek_data_t * d)
+  {
+  int wrap = 0;
+  bg_album_entry_t * cur;
+  
+  bg_album_entry_t * match = (bg_album_entry_t*)0;
+  
+  if(!e)
+    {
+    e = a->entries;
+    while(e->next)
+      e = e->next;
+    if(entry_matches(e, d))
+      return e;
+    }
+  
+  cur = a->entries;
+  while(1)
+    {
+    if(cur == e)
+      return match;
+    
+    if(entry_matches(cur, d))
+      {
+      if(cur->next == e)
+        return cur;
+      match = cur;
+      }
+    cur = cur->next;
+    if(!cur)
+      break;
+    }
+  return (bg_album_entry_t*)0;
+  }
+
+void bg_album_seek_data_destroy(bg_album_seek_data_t * d)
+  {
+  int i;
+  bg_charset_converter_destroy(d->cnv);
+
+  if(d->str)
+    free(d->str);
+
+  for(i = 0; i < d->substrings_alloc; i++)
+    {
+    if(d->substrings[i].str)
+      free(d->substrings[i].str);
+    }
+  if(d->substrings)
+    free(d->substrings);
+  
+  free(d);
+  }
+
+int bg_album_seek_data_changed(bg_album_seek_data_t * d)
+  {
+  return d->changed;
   }
