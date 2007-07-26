@@ -66,6 +66,7 @@ typedef struct
   Window fullscreen_window;
   Window current_window;
   Window root;
+  Window parent;
   
   int window_width, window_height;
 
@@ -114,10 +115,12 @@ typedef struct
   int disable_screensaver;
 
   int64_t screensaver_last_ping_time;
-    
+  
+  int is_embedded;
+  
   } x11_window_t;
 
-int x11_window_create(x11_window_t * w,
+int x11_window_create(x11_window_t * w, Window parent,
                       Display * dpy, Visual * visual, int depth,
                       int width, int height, const char * title);
 

@@ -156,6 +156,7 @@ type_names[] =
     { TRS("Encoding postprocessor"),   BG_PLUGIN_ENCODER_PP  },
     { TRS("Audio filter"),   BG_PLUGIN_FILTER_AUDIO  },
     { TRS("Video filter"),   BG_PLUGIN_FILTER_VIDEO  },
+    { TRS("Visualization"),   BG_PLUGIN_VISUALIZATION  },
     { (char*)0,         BG_PLUGIN_NONE }
   };
 

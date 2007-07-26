@@ -422,7 +422,7 @@ static void player_cleanup(bg_player_t * player)
   }
 
 /* Initialize playback (called when playback starts or after
-   streams have changed */
+   streams have changed) */
 
 static void init_playback(bg_player_t * p, gavl_time_t time,
                           int flags, int had_video)

@@ -28,7 +28,7 @@
 #include "osd.h"
 #include "converters.h"
 #include "filters.h"
-
+#include "visualize.h"
 
 #include "translation.h"
 
@@ -141,6 +141,7 @@ typedef struct
 #define PLAYER_DO_SUBTITLE_OVERLAY (1<<3)
 #define PLAYER_DO_SUBTITLE_TEXT    (1<<4)
 #define PLAYER_DO_SUBTITLE_ONLY    (1<<5)
+#define PLAYER_DO_VISUALIZE        (1<<6)
 
 #define DO_SUBTITLE_TEXT(p) \
  (p->flags & PLAYER_DO_SUBTITLE_TEXT)
@@ -162,6 +163,10 @@ typedef struct
 
 #define DO_VIDEO(p) \
   (p->flags & PLAYER_DO_VIDEO)
+
+#define DO_VISUALIZE(p) \
+ (p->flags & PLAYER_DO_VISUALIZE)
+
 
 /* The player */
 
@@ -188,6 +193,13 @@ struct bg_player_s
   
   bg_track_info_t * track_info;
 
+  /*
+   *  Visualizer: Initialized and cleaned up by the player
+   *  core, run by the audio thread
+   */
+  
+  bg_visualizer_t * visualizer;
+  
   /*
    *  Stream selection
    */

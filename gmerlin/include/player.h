@@ -257,7 +257,9 @@ void bg_player_interrupt_resume(bg_player_t * player);
  *
  *  Returned parameters can be passed to \ref bg_player_set_input_parameter
  */
+
 bg_parameter_info_t * bg_player_get_input_parameters(bg_player_t *  player);
+
 /** \brief Set an input parameter
  *  \param data Player casted to void*
  *  \param name Name
@@ -355,6 +357,27 @@ bg_parameter_info_t * bg_player_get_osd_parameters(bg_player_t * player);
  *  \param val Value
  */
 void bg_player_set_osd_parameter(void*data, char * name, bg_parameter_value_t*val);
+
+/** \brief Get visualization parameters
+ *  \param player A player
+ *  \returns Null terminated parameter array.
+ *
+ *  Returned parameters can be passed to
+ *  \ref bg_player_set_visualization_parameter
+ */
+
+bg_parameter_info_t *
+bg_player_get_visualization_parameters(bg_player_t *  player);
+
+/** \brief Set a visualization parameter
+ *  \param data Player casted to void*
+ *  \param name Name
+ *  \param val Value
+ */
+void
+bg_player_set_visualization_parameter(void*data,
+                                      char * name, bg_parameter_value_t*val);
+
 /** @} */
 
 

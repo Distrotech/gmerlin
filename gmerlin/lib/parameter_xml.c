@@ -695,10 +695,7 @@ void bg_parameters_2_xml(bg_parameter_info_t * info, xmlNodePtr xml_parameters)
         break; /* Hidden strings never have defaults */
         
       case BG_PARAMETER_COLOR_RGB:
-        if(info[num_parameters].val_default.val_color &&
-           (info[num_parameters].val_default.val_color[0] != 0.0) &&
-           (info[num_parameters].val_default.val_color[1] != 0.0) &&
-           (info[num_parameters].val_default.val_color[2] != 0.0))
+        if(info[num_parameters].val_default.val_color)
           {
           child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)default_key, NULL);
 

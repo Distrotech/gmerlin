@@ -2154,7 +2154,6 @@ bg_album_entry_t * bg_album_seek_entry_before(bg_album_t * a,
                                               bg_album_entry_t * e,
                                               bg_album_seek_data_t * d)
   {
-  int wrap = 0;
   bg_album_entry_t * cur;
   
   bg_album_entry_t * match = (bg_album_entry_t*)0;

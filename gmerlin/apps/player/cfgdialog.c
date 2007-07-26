@@ -175,15 +175,6 @@ void gmerlin_create_dialog(gmerlin_t * g)
                 bg_remote_server_set_parameter,
                 (void*)(g->remote),
                 parameters);
- 
-  parameters = bg_lcdproc_get_parameters(g->lcdproc);
-  
-  bg_dialog_add(g->cfg_dialog,
-                TR("LCDproc"),
-                g->lcdproc_section,
-                bg_lcdproc_set_parameter,
-                (void*)(g->lcdproc),
-                parameters);
   
   parameters = bg_gtk_log_window_get_parameters(g->log_window);
   
@@ -193,6 +184,26 @@ void gmerlin_create_dialog(gmerlin_t * g)
                 bg_gtk_log_window_set_parameter,
                 (void*)(g->log_window),
                 parameters);
+  
+  parameters = bg_player_get_visualization_parameters(g->player);
+  
+  bg_dialog_add(g->cfg_dialog,
+                TR("Visualization"),
+                g->visualization_section,
+                bg_player_set_visualization_parameter,
+                (void*)(g->player),
+                parameters);
+  
+  parameters = bg_lcdproc_get_parameters(g->lcdproc);
+  
+  bg_dialog_add(g->cfg_dialog,
+                TR("LCDproc"),
+                g->lcdproc_section,
+                bg_lcdproc_set_parameter,
+                (void*)(g->lcdproc),
+                parameters);
+
+  
   }
 
 

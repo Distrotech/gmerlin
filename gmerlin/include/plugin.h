@@ -107,6 +107,12 @@ typedef int (*bg_read_video_func_t)(void * priv, gavl_video_frame_t* frame, int 
 #define BG_PLUGIN_TUNER         (1<<9)  //!< Plugin has some kind of tuner
 #define BG_PLUGIN_FILTER_1     (1<<10)  //!< Plugin acts as a filter with one input
 
+#define BG_PLUGIN_EMBED_WINDOW (1<<11)  //!< Plugin can embed it's window into another application
+
+#define BG_PLUGIN_VISUALIZE_FRAME (1<<12)  //!< Visualization plugin outputs video frames
+
+#define BG_PLUGIN_VISUALIZE_GL (1<<13)  //!< Visualization plugin outputs via OpenGL
+
 #define BG_PLUGIN_UNSUPPORTED  (1<<24)  //!< Plugin is not supported. Only for a foreign API plugins
 
 
@@ -195,9 +201,8 @@ typedef enum
     BG_PLUGIN_IMAGE_WRITER               = (1<<12), //!< Image writer
     BG_PLUGIN_FILTER_AUDIO               = (1<<13), //!< Audio filter
     BG_PLUGIN_FILTER_VIDEO               = (1<<14), //!< Video filter
+    BG_PLUGIN_VISUALIZATION              = (1<<15), //!< Visualization
   } bg_plugin_type_t;
-
-
 
 /** \ingroup plugin
  *  \brief Device description
@@ -915,6 +920,23 @@ typedef struct bg_ov_callbacks_s
 typedef struct bg_ov_plugin_s
   {
   bg_plugin_common_t common; //!< Infos and functions common to all plugin types
+
+  /** \brief Set window
+   *  \param priv The handle returned by the create() method
+   *  \param window Window identifier (for X11: display_name:window_id_in_hex)
+   *
+   *  Call this immediately after creation of the plugin to embed video output
+   *  into a foreign application.
+   */
+  
+  void (*set_window)(void * priv, const char * window_id);
+
+  /** \brief Get window
+   *  \param priv The handle returned by the create() method
+   *  \returns Window identifier (for X11: display_name:window_id_in_hex)
+   */
+  
+  const char * (*get_window)(void * priv);
   
   /** \brief Set callbacks
    *  \param priv The handle returned by the create() method
@@ -932,7 +954,7 @@ typedef struct bg_ov_plugin_s
    *  by the plugin. To convert the source format to the output format,
    *  use a \ref gavl_video_converter_t
    */
-         
+  
   int  (*open)(void * priv, gavl_video_format_t * format, const char * window_title);
 
   /** \brief Allocate a video frame
@@ -997,7 +1019,7 @@ typedef struct bg_ov_plugin_s
    *  
    *  This function  processes and handles all events, which were
    *  received from the windowing system. It calls mouse and key-callbacks,
-   *  and redisplayed the image when in still mode.
+   *  and redisplays the image when in still mode.
    */
   
   void (*handle_events)(void * priv);
@@ -1791,6 +1813,37 @@ typedef struct bg_video_filter_plugin_s
   bg_read_video_func_t read_video;
     
   } bg_fv_plugin_t;
+
+
+/**
+ *  @}
+ */
+
+
+/** \defgroup plugin_visualization Audio Visualization plugins
+ *  \ingroup plugin
+ *  \brief Audio Visualization plugins
+ *
+ *
+ *
+ *  @{
+ */
+typedef struct bg_visualization_plugin_s
+  {
+  bg_plugin_common_t common; //!< Infos and functions common to all plugin types
+  
+  int (*open)(void * priv, bg_ov_plugin_t * ov_plugin, void * ov_priv,
+              gavl_audio_format_t * audio_format, gavl_video_format_t * video_format);
+  void (*update)(void * priv, gavl_audio_frame_t * frame);
+  void (*draw_frame)(void * priv, gavl_video_frame_t *);
+  
+  /* For GL Plugins only */
+  void (*show_frame)(void * priv);
+
+  void (*close)(void * priv);
+  
+  } bg_visualization_plugin_t;
+
 
 
 /**

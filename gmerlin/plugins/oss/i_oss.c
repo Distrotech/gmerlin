@@ -90,6 +90,8 @@ typedef struct
   /* Runtime variables */
     
   int bytes_per_frame;
+
+  int64_t samples_read;
   } oss_t;
 
 static bg_parameter_info_t *
@@ -147,7 +149,8 @@ static int open_oss(void * data,
   oss_t * priv = (oss_t*)data;
 
   priv->fd = -1;
-
+  priv->samples_read = 0;
+  
   memset(format, 0, sizeof(*format));
   
   /* Set up the format */
@@ -249,6 +252,8 @@ static void read_frame_oss(void * p, gavl_audio_frame_t * f, int num_samples)
                           f->samples.s_8,
                           num_samples * priv->bytes_per_frame);
   f->valid_samples /= priv->bytes_per_frame;
+  f->time_scaled = priv->samples_read;
+  priv->samples_read += f->valid_samples;
   }
 
 static void destroy_oss(void * p)

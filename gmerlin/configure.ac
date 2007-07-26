@@ -699,6 +699,7 @@ plugins/image/Makefile \
 plugins/tiff/Makefile \
 plugins/v4l/Makefile \
 plugins/videofilters/Makefile \
+plugins/visualization/Makefile \
 plugins/wavwrite/Makefile \
 skins/Makefile \
 skins/Default/Makefile])

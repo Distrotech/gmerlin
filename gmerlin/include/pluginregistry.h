@@ -567,6 +567,20 @@ bg_plugin_handle_t * bg_plugin_load(bg_plugin_registry_t * reg,
                                     const bg_plugin_info_t * info);
 
 /** \ingroup plugin_registry
+ *  \brief Load a video output plugin
+ *  \param reg A plugin registry
+ *  \param info The plugin info
+ *  \param window_id The window ID or NULL
+ *
+ *  Load a video output plugin for embedding into an already existing window
+ *  and return handle with reference count of 1
+ */
+
+bg_plugin_handle_t * bg_ov_plugin_load(bg_plugin_registry_t * reg,
+                                       const bg_plugin_info_t * info,
+                                       const char * window_id);
+
+/** \ingroup plugin_registry
  *  \brief Lock a plugin
  *  \param h A plugin handle
  */

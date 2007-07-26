@@ -120,6 +120,7 @@ struct gmerlin_s
   bg_cfg_section_t * remote_section;
   bg_cfg_section_t * logwindow_section;
   bg_cfg_section_t * infowindow_section;
+  bg_cfg_section_t * visualization_section;
   
   int show_info_window;
   int show_log_window;

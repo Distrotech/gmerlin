@@ -136,6 +136,8 @@ bg_player_t * bg_player_create(bg_plugin_registry_t * plugin_reg)
   
   ret->message_queues = bg_msg_queue_list_create();
   
+  ret->visualizer = bg_visualizer_create(plugin_reg);
+  
   /* Create contexts */
 
   bg_player_audio_create(ret, plugin_reg);
@@ -159,7 +161,7 @@ bg_player_t * bg_player_create(bg_plugin_registry_t * plugin_reg)
 
   /* Subtitles are off by default */
   ret->current_subtitle_stream = -1;
-
+  //  ret->current_subtitle_stream = 5;
   ret->state = BG_PLAYER_STATE_INIT;
   
   return ret;
@@ -174,6 +176,8 @@ void bg_player_destroy(bg_player_t * player)
   bg_player_audio_destroy(player);
   bg_player_video_destroy(player);
   bg_player_subtitle_destroy(player);
+
+  bg_visualizer_destroy(player->visualizer);
   
   bg_msg_queue_destroy(player->command_queue);
  
@@ -256,5 +260,20 @@ void bg_player_set_state(bg_player_t * player, int state,
   bg_msg_queue_list_send(player->message_queues,
                          msg_state,
                          &s);
+  }
+
+bg_parameter_info_t *
+bg_player_get_visualization_parameters(bg_player_t *  player)
+  {
+  return bg_visualizer_get_parameters(player->visualizer);
+  }
+
+void
+bg_player_set_visualization_parameter(void*data,
+                                      char * name, bg_parameter_value_t*val)
+  {
+  bg_player_t * player;
+  player = (bg_player_t*)data;
+  bg_visualizer_set_parameter(player->visualizer, name, val);
   }
 

@@ -106,6 +106,8 @@ typedef struct
 
   gavl_time_t buffer_time;
   char * user_device;
+
+  int64_t samples_read;
   } alsa_t;
 
 static bg_parameter_info_t *
@@ -189,6 +191,8 @@ static int open_alsa(void * data,
   else
   card = priv->card;
 
+  priv->samples_read = 0;
+  
   if(!card)
     card = "default";
   
@@ -309,12 +313,12 @@ static void read_frame_alsa(void * p, gavl_audio_frame_t * f,
     }
 
   if(f)
+    {
     f->valid_samples = samples_read;
-
-  
-  
+    f->time_scaled = priv->samples_read;
+    }
+  priv->samples_read += samples_read;
   }
-
 
 static void destroy_alsa(void * p)
   {

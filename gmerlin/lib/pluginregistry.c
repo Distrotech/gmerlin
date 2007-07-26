@@ -59,6 +59,7 @@ struct bg_plugin_registry_s
   int encode_subtitle_overlay_to_video;
   
   int encode_pp;
+  
   };
 
 void bg_plugin_info_destroy(bg_plugin_info_t * info)
@@ -1138,12 +1139,10 @@ bg_plugin_registry_save_image(bg_plugin_registry_t * r,
   }
 
 
-bg_plugin_handle_t * bg_plugin_load(bg_plugin_registry_t * reg,
-                                    const bg_plugin_info_t * info)
+static bg_plugin_handle_t * load_plugin(bg_plugin_registry_t * reg,
+                                 const bg_plugin_info_t * info)
   {
   bg_plugin_handle_t * ret;
-  bg_parameter_info_t * parameters;
-  bg_cfg_section_t * section;
 
   if(!info)
     return (bg_plugin_handle_t*)0;
@@ -1203,18 +1202,6 @@ bg_plugin_handle_t * bg_plugin_load(bg_plugin_registry_t * reg,
     ret->priv = bg_singlepic_encoder_create(reg);
     }
   ret->info = info;
-
-  /* Apply saved parameters */
-
-  if(ret->plugin->get_parameters)
-    {
-    parameters = ret->plugin->get_parameters(ret->priv);
-    
-    section = bg_plugin_registry_get_section(reg, info->name);
-    
-    bg_cfg_section_apply(section, parameters, ret->plugin->set_parameter,
-                         ret->priv);
-    }
   bg_plugin_ref(ret);
   return ret;
 
@@ -1224,6 +1211,68 @@ fail:
     dlclose(ret->dll_handle);
   free(ret);
   return (bg_plugin_handle_t*)0;
+  }
+
+static void apply_parameters(bg_plugin_registry_t * reg,
+                             bg_plugin_handle_t * ret)
+  {
+  bg_parameter_info_t * parameters;
+  bg_cfg_section_t * section;
+  
+  /* Apply saved parameters */
+
+  if(ret->plugin->get_parameters)
+    {
+    parameters = ret->plugin->get_parameters(ret->priv);
+    
+    section = bg_plugin_registry_get_section(reg, ret->info->name);
+    
+    bg_cfg_section_apply(section, parameters, ret->plugin->set_parameter,
+                         ret->priv);
+    }
+  
+  }
+
+bg_plugin_handle_t * bg_plugin_load(bg_plugin_registry_t * reg,
+                                    const bg_plugin_info_t * info)
+  {
+  bg_plugin_handle_t * ret;
+  ret = load_plugin(reg, info);
+  if(ret)
+    apply_parameters(reg, ret);
+  return ret;
+  }
+
+bg_plugin_handle_t * bg_ov_plugin_load(bg_plugin_registry_t * reg,
+                                       const bg_plugin_info_t * info,
+                                       const char * window_id)
+  {
+  bg_plugin_handle_t * ret;
+  bg_ov_plugin_t * plugin;
+  
+  if(info->type != BG_PLUGIN_OUTPUT_VIDEO)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Invalid plugin type for video output");
+    return (bg_plugin_handle_t *)0;
+    }
+  if(!(info->flags & BG_PLUGIN_EMBED_WINDOW) && window_id)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Plugin %s doesn't support embedded windows", info->name);
+    return (bg_plugin_handle_t *)0;
+    }
+  
+  ret = load_plugin(reg, info);
+  
+  if(window_id)
+    {
+    plugin = (bg_ov_plugin_t*)(ret->plugin);
+    plugin->set_window(ret->priv, window_id);
+    }
+  
+  if(ret)
+    apply_parameters(reg, ret);
+  return ret;
   }
 
 void bg_plugin_lock(bg_plugin_handle_t * h)
@@ -1376,9 +1425,9 @@ void bg_plugin_registry_free_plugins(char ** plugins)
   
   }
 
-static void load_plugin(bg_plugin_registry_t * reg,
-                        const bg_plugin_info_t * info,
-                        bg_plugin_handle_t ** ret)
+static void load_input_plugin(bg_plugin_registry_t * reg,
+                              const bg_plugin_info_t * info,
+                              bg_plugin_handle_t ** ret)
   {
   if(!(*ret) || strcmp((*ret)->info->name, info->name))
     {
@@ -1450,7 +1499,7 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
     {
     /* Try to load this */
 
-    load_plugin(reg, info, ret);
+    load_input_plugin(reg, info, ret);
 
     if(!(*ret))
       {
@@ -1494,7 +1543,7 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
     if(info == first_plugin)
       continue;
         
-    load_plugin(reg, info, ret);
+    load_input_plugin(reg, info, ret);
 
     if(!*ret)
       continue;

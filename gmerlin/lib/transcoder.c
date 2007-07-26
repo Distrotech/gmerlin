@@ -1282,7 +1282,6 @@ static int audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
     s->com.time += t->start_time;
 #endif
   
-  fprintf(stderr, "Audio iteration %lld\n", s->com.time);
   
   /* Volume normalization */
   if(s->normalize)
@@ -1550,8 +1549,6 @@ static int video_iteration(video_stream_t * s, bg_transcoder_t * t)
   s->com.time = gavl_time_unscale(s->out_format.timescale,
                                   s->frame->time_scaled);
 
-  fprintf(stderr, "Video iteration %lld %lld\n",
-          s->frame->time_scaled, s->com.time);
   
   if(check_video_blend(s, t, s->com.time))
     {
@@ -3587,8 +3584,7 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
       }
     if(stream->time > t->time)
       t->time = stream->time;
-
-    fprintf(stderr, "Time: %lld %lld\n", stream->time, t->time);
+    
     }
 
   

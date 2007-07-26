@@ -406,11 +406,9 @@ int lqt_gavl_decode_audio(quicktime_t * file, int track,
                           gavl_audio_frame_t * frame,
                           int samples)
   {
-  int64_t pos;
-
-  pos = quicktime_audio_position(file, track);
+  frame->time_scaled = quicktime_audio_position(file, track);
   lqt_decode_audio_raw(file, frame->samples.s_8, samples, track);
-  frame->valid_samples = lqt_last_audio_position(file, track) - pos;
+  frame->valid_samples = lqt_last_audio_position(file, track) - frame->time_scaled;
   return frame->valid_samples;
   }
 

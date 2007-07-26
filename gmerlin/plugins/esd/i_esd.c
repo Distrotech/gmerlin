@@ -46,7 +46,7 @@ typedef struct
   
   int last_frame_size;
   
-  
+  int64_t samples_read;
   } esd_t;
 
 static bg_parameter_info_t parameters[] =
@@ -118,6 +118,8 @@ static int open_esd(void * data,
   char hostname[128];
   
   esd_t * e = (esd_t*)data;
+
+  e->samples_read = 0;
   
   /* Set up format */
 
@@ -212,7 +214,11 @@ static void read_frame_esd(void * p, gavl_audio_frame_t * f, int num_samples)
     }
 
   if(f)
+    {
     f->valid_samples = samples_read;
+    f->time_scaled = priv->samples_read;
+    }
+  priv->samples_read += samples_read;
   }
 
 bg_ra_plugin_t the_plugin =

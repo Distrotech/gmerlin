@@ -64,7 +64,8 @@ translation.c \
 tree.c \
 tree_xml.c \
 urilist.c \
-utf8.c
+utf8.c \
+visualize.c
 
 libgmerlin_la_LIBADD = @FONTCONFIG_LIBS@ @FREETYPE_LIBS@ @XML2_LIBS@ @ICONV_LIBS@ @LIBINTL@ -ldl -lpthread
 

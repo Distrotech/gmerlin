@@ -1,7 +1,8 @@
 AM_CFLAGS = @GTK_CFLAGS@ @XML2_CFLAGS@
 
 if HAVE_GTK
-gtk_programs = cfgtest \
+gtk_programs = \
+cfgtest \
 playtree \
 question \
 message \
@@ -26,6 +27,7 @@ server \
 client \
 textrenderer \
 ladspa \
+visualization \
 $(v4l_programs) \
 $(gtk_programs)
 
@@ -67,6 +69,8 @@ v4ltest_LDADD = ../lib/libgmerlin.la
 v4ldump_SOURCES = v4ldump.c
 v4ldump_LDADD = ../lib/libgmerlin.la
 
+visualization_SOURCES = visualization.c
+visualization_LDADD = ../lib/libgmerlin.la
 
 scrolltext_SOURCES = scrolltext.c
 scrolltext_LDADD = ../lib/libgmerlin.la ../lib/gtk/libgmerlin_gtk.la

@@ -408,7 +408,7 @@ static void set_min_size(x11_window_t * w, Window win, int width, int height)
   XFree(h);
   }
 
-int x11_window_create(x11_window_t * w,
+int x11_window_create(x11_window_t * w, Window parent,
                       Display * dpy, Visual * visual, int depth,
                       int width, int height, const char * default_title)
   {
@@ -424,10 +424,34 @@ int x11_window_create(x11_window_t * w,
 #endif
   
   w->dpy = dpy;
+  
+  w->root = DefaultRootWindow (w->dpy);
+
+  w->parent = parent;
+  if(w->parent == None)
+    w->parent = w->root;
+  else
+    {
+    Window root_return;
+    int x_return;
+    int y_return;
+    unsigned int width_return;
+    unsigned int height_return;
+    unsigned int border_width_return;
+    unsigned int depth_return;
+
+    XGetGeometry(w->dpy, w->parent, &root_return,
+                 &x_return, &y_return, &width_return,
+                 &height_return, &border_width_return,
+                 &depth_return);
+    width  = width_return;
+    height = height_return;
+    
+    w->is_embedded = 1;
+    }
+  
   w->window_width = width;
   w->window_height = height;
-
-  w->root = DefaultRootWindow (w->dpy);
 
   init_atoms(w);
 
@@ -462,26 +486,29 @@ int x11_window_create(x11_window_t * w,
   attr.background_pixel = 0;
   attr.colormap = w->colormap;
   attr.event_mask = w->event_mask;
-      
-  w->normal_window = XCreateWindow (w->dpy, w->root,
-                                    0 /* x */,
-                                    0 /* y */,
-                                    width, height,
-                                    0 /* border_width */, depth,
-                                    InputOutput, visual,
-                                    (CWBackingStore | CWEventMask |
-                                     CWBorderPixel | CWBackPixel | CWColormap),
-                                    &attr);
+  
+  w->normal_window = XCreateWindow(w->dpy, w->parent,
+                                   0 /* x */,
+                                   0 /* y */,
+                                   width, height,
+                                   0 /* border_width */, depth,
+                                   InputOutput, visual,
+                                   (CWBackingStore | CWEventMask |
+                                    CWBorderPixel | CWBackPixel | CWColormap),
+                                   &attr);
   /* Create GC */
   
   w->gc = XCreateGC(w->dpy, w->normal_window, 0, NULL);
-  set_decorations(w, w->normal_window, 1);
-  
-  XSetWMProtocols(w->dpy, w->normal_window, wm_protocols, 1);
-  
-  if(w->min_width && w->min_height)
+
+  if(!w->is_embedded)
     {
-    set_min_size(w, w->normal_window, w->min_width, w->min_height);
+    set_decorations(w, w->normal_window, 1);
+    XSetWMProtocols(w->dpy, w->normal_window, wm_protocols, 1);
+    
+    if(w->min_width && w->min_height)
+      {
+      set_min_size(w, w->normal_window, w->min_width, w->min_height);
+      }
     }
   
   /* The fullscreen window will be created with the same size for now */
@@ -808,9 +835,11 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
       XMaskEvent(w->dpy, ExposureMask, &evt);
       x11_window_handle_event(w, &evt);
       } while((evt.type != Expose) && (evt.xexpose.window != w->normal_window));
-    XMoveResizeWindow(w->dpy, w->normal_window,
-                      w->window_x, w->window_y,
-                      w->window_width, w->window_height);
+    
+    if(!w->is_embedded)
+      XMoveResizeWindow(w->dpy, w->normal_window,
+                        w->window_x, w->window_y,
+                        w->window_width, w->window_height);
     
     XSetInputFocus(w->dpy, w->normal_window, RevertToNone, CurrentTime);
     
@@ -932,7 +961,7 @@ void x11_window_show(x11_window_t * win, int show)
   else
     {
     XMapWindow(win->dpy, win->current_window);
-    if(win->current_window == win->normal_window)
+    if((win->current_window == win->normal_window) && !win->is_embedded)
       XMoveResizeWindow(win->dpy, win->normal_window,
                         win->window_x, win->window_y,
                         win->window_width, win->window_height);

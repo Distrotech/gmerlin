@@ -27,6 +27,7 @@ typedef struct
 
   bg_gtk_plugin_widget_multi_t  * audio_filters;
   bg_gtk_plugin_widget_multi_t  * video_filters;
+  bg_gtk_plugin_widget_multi_t  * visualizations;
   
   bg_gtk_plugin_widget_single_t * encoder_pp_plugins;
   
@@ -406,6 +407,22 @@ static app_window * create_window(bg_plugin_registry_t * reg)
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
                            bg_gtk_plugin_widget_multi_get_widget(ret->video_filters),
                            label);
+
+  /* Visualizations */
+
+  ret->visualizations =
+    bg_gtk_plugin_widget_multi_create(reg,
+                                      BG_PLUGIN_VISUALIZATION,
+                                      BG_PLUGIN_VISUALIZE_FRAME|BG_PLUGIN_VISUALIZE_GL,
+                                      ret->tooltips);
+  
+  label = gtk_label_new(TR("Visualizations"));
+  gtk_widget_show(label);
+  
+  gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
+                           bg_gtk_plugin_widget_multi_get_widget(ret->visualizations),
+                           label);
+
   
   /* Pack */
   

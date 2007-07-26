@@ -332,7 +332,7 @@ bg_gtk_plugin_widget_multi_create(bg_plugin_registry_t * reg,
 
   /* Create entries */
 
-  if(flag_mask != BG_PLUGIN_FILTER_1)
+  if(type_mask & (BG_PLUGIN_INPUT | BG_PLUGIN_IMAGE_READER))
     {
     ret->extensions = gtk_entry_new();
     ret->protocols = gtk_entry_new();

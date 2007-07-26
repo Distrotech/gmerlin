@@ -209,34 +209,7 @@ void bg_player_input_select_streams(bg_player_input_context_t * ctx)
         ctx->player->flags |= PLAYER_DO_VIDEO;
       ctx->video_finished = 0;
       }
-    if((ctx->player->current_subtitle_stream >= 0) &&
-       (ctx->player->current_subtitle_stream < ctx->player->track_info->num_subtitle_streams))
-      {
-      if(ctx->player->track_info->subtitle_streams[ctx->player->current_subtitle_stream].is_text)
-        ctx->player->flags |= PLAYER_DO_SUBTITLE_TEXT;
-      else
-        ctx->player->flags |= PLAYER_DO_SUBTITLE_OVERLAY;
-      ctx->subtitle_finished = 0;
-
-      if(!(ctx->player->flags & PLAYER_DO_VIDEO))
-        {
-        
-        ctx->player->flags |= PLAYER_DO_SUBTITLE_ONLY;
-        ctx->player->flags |= PLAYER_DO_VIDEO;
-        ctx->video_finished = 0;
-
-        pthread_mutex_lock(&(ctx->player->video_stream.config_mutex));
-        /* Get background color */
-        gavl_video_options_get_background_color(ctx->player->video_stream.options.opt,
-                                                ctx->bg_color);
-        pthread_mutex_unlock(&(ctx->player->video_stream.config_mutex));
-
-        ctx->bg_color[3] = 1.0;
-        }
-      }
-
     }
-  
   
   /* En-/Disable strams at the input plugin */
   
@@ -298,6 +271,46 @@ int bg_player_input_start(bg_player_input_context_t * ctx)
       return 0;
       }
     }
+
+  /* Subtitle type must be set here, because it's unknown before the
+     start() call */
+
+  if((ctx->player->current_subtitle_stream >= 0) &&
+     (ctx->player->current_subtitle_stream < ctx->player->track_info->num_subtitle_streams))
+    {
+    if(ctx->player->track_info->subtitle_streams[ctx->player->current_subtitle_stream].is_text)
+      {
+      ctx->player->flags |= PLAYER_DO_SUBTITLE_TEXT;
+      }
+    else
+      {
+      ctx->player->flags |= PLAYER_DO_SUBTITLE_OVERLAY;
+      }
+    ctx->subtitle_finished = 0;
+
+    if(!(ctx->player->flags & PLAYER_DO_VIDEO))
+      {
+        
+      ctx->player->flags |= PLAYER_DO_SUBTITLE_ONLY;
+      ctx->player->flags |= PLAYER_DO_VIDEO;
+      ctx->video_finished = 0;
+
+      pthread_mutex_lock(&(ctx->player->video_stream.config_mutex));
+      /* Get background color */
+      gavl_video_options_get_background_color(ctx->player->video_stream.options.opt,
+                                              ctx->bg_color);
+      pthread_mutex_unlock(&(ctx->player->video_stream.config_mutex));
+
+      ctx->bg_color[3] = 1.0;
+      }
+    }
+      
+      
+
+  
+  
+
+
   ctx->has_first_audio_timestamp = 0;
   return 1;
   }

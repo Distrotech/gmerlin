@@ -49,6 +49,7 @@ type_names[] =
     { "ImageWriter",             BG_PLUGIN_IMAGE_WRITER },
     { "AudioFilter",             BG_PLUGIN_FILTER_AUDIO },
     { "VideoFilter",             BG_PLUGIN_FILTER_VIDEO },
+    { "Visualization",           BG_PLUGIN_VISUALIZATION },
     { (char*)0,                  BG_PLUGIN_NONE }
   };
 
@@ -82,6 +83,9 @@ flag_names[] =
     { "Stdin",          BG_PLUGIN_STDIN         }, /* Plugin reads from stdin */
     { "Tuner",          BG_PLUGIN_TUNER         }, /* Plugin has tuner */
     { "Filter1",        BG_PLUGIN_FILTER_1      }, /* Filter with one input port */
+    { "EmbedWindow",    BG_PLUGIN_EMBED_WINDOW },
+    { "VisualizeFrame", BG_PLUGIN_VISUALIZE_FRAME },
+    { "VisualizeGL",    BG_PLUGIN_VISUALIZE_GL },
     { "Unsupported",    BG_PLUGIN_UNSUPPORTED   },
     { (char*)0,    0                           },
   };

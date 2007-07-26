@@ -61,6 +61,7 @@ endif
 SUBDIRS = \
 audiofilters \
 videofilters \
+visualization \
 $(alsa_subdirs) \
 $(lqt_subdirs) \
 $(jpeg_subdirs) \

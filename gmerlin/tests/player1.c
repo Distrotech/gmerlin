@@ -56,6 +56,9 @@ bg_cfg_section_t * input_section;
 
 char * input_plugin_name = (char*)0;
 
+const bg_plugin_info_t * ov_info = (const bg_plugin_info_t*)0;
+char * window_id = (char*)0;
+
 /* Set up by registry */
 static bg_parameter_info_t oa_parameters[] =
   {
@@ -75,6 +78,12 @@ static bg_parameter_info_t ov_parameters[] =
       long_name: "Video output plugin",
       opt:       "p",
       type:      BG_PARAMETER_MULTI_MENU,
+    },
+    {
+      name:      "window",
+      long_name: "Window ID",
+      opt:       "w",
+      type:      BG_PARAMETER_STRING,
     },
     { /* End of parameters */ }
   };
@@ -145,17 +154,21 @@ static void opt_oa(void * data, int * argc, char *** _argv, int arg)
 
 static void set_ov_parameter(void * data, char * name, bg_parameter_value_t * val)
   {
-  const bg_plugin_info_t * info;
   if(name && !strcmp(name, "plugin"))
     {
-    info =  bg_plugin_find_by_name(plugin_reg, val->val_str);
-    ov_handle = bg_plugin_load(plugin_reg, info);
+    ov_info =  bg_plugin_find_by_name(plugin_reg, val->val_str);
     }
+  else if(name && !strcmp(name, "window"))
+    {
+    window_id = bg_strdup(window_id, val->val_str);
+    }
+#if 0
   else
     {
     if(ov_handle && ov_handle->plugin && ov_handle->plugin->set_parameter)
       ov_handle->plugin->set_parameter(ov_handle->priv, name, val);
     }
+#endif
   }
 
 static void set_i_parameter(void * data, char * name, bg_parameter_value_t * val)
@@ -818,7 +831,7 @@ static void info_close_callback(bg_gtk_info_window_t * info_window,
 
 int main(int argc, char ** argv)
   {
-  
+  int i;
   bg_msg_t * message;
   char * tmp_path;
 #ifdef INFO_WINDOW
@@ -941,15 +954,27 @@ int main(int argc, char ** argv)
   
   /* Load video output */
 
-  if(!ov_handle)
+  if(!ov_info)
     {
-    info = bg_plugin_registry_get_default(plugin_reg,
-                                          BG_PLUGIN_OUTPUT_VIDEO);
+    ov_info = bg_plugin_registry_get_default(plugin_reg,
+                                             BG_PLUGIN_OUTPUT_VIDEO);
+    }
 
-    if(info)
-      {
-      ov_handle = bg_plugin_load(plugin_reg, info);
-      }
+  if(ov_info)
+    {
+    ov_handle = bg_ov_plugin_load(plugin_reg, ov_info, window_id);
+
+    cfg_section = bg_cfg_section_find_subsection(ov_section,
+                                                 "plugin");
+    cfg_section = bg_cfg_section_find_subsection(cfg_section,
+                                                 ov_info->name);
+    i = bg_parameter_get_selected(&ov_parameters[0],
+                                  ov_info->name);
+
+    bg_cfg_section_apply(cfg_section,
+                         ov_parameters[0].multi_parameters[i],
+                         ov_handle->plugin->set_parameter,
+                         ov_handle->priv);
     }
   
   bg_player_set_ov_plugin(player, ov_handle);

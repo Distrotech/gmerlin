@@ -347,6 +347,8 @@ typedef struct
     gavl_overlay_blend_context_t * ctx;
     gavl_overlay_t * ovl;
     } * overlay_streams;
+  
+  char * window_id;
   } x11_t;
 
 #ifdef HAVE_LIBXV
@@ -549,7 +551,7 @@ static void check_xv(Display * d, Window w,
                          &dummy, &dummy, &dummy) != Success) ||
       (version < 2) || ((version == 2) && (release < 2)))
     return;
-
+  
   XvQueryAdaptors (d, w, &adaptors, &adaptorInfo);
   for (i = 0; i < adaptors; i++)
     {
@@ -628,7 +630,7 @@ static int create_shm(x11_t * priv, x11_frame_t * frame, int size)
     shmerror = 1;
   
   XSync (priv->dpy, False);
-  XSetErrorHandler (NULL);
+  XSetErrorHandler(NULL);
   
   if(shmerror)
     {
@@ -865,21 +867,32 @@ free_frame_x11(void * data, gavl_video_frame_t * frame)
     }
   }
 
-static void * create_x11()
+static int open_display(x11_t * priv)
   {
-  int dpi_x, dpi_y;
-  x11_t * priv;
   int screen;
+  int dpi_x, dpi_y;
+  Window parent;
+  char * tmp_id;
+  char * pos;
   
-  priv = calloc(1, sizeof(x11_t));
-
-  priv->scaler = gavl_video_scaler_create();
-  
-    
-  /* Open X Display */
-
-  priv->dpy = XOpenDisplay(NULL);
-
+  /* Open X Display and get parent */
+  if(priv->window_id)
+    {
+    tmp_id = bg_strdup((char*)0, priv->window_id);
+    pos = strrchr(tmp_id, ':');
+    if(!pos)
+      return 0;
+    *pos = '\0';
+    pos++;
+    parent = strtoul(pos, (char **)0, 16);
+    priv->dpy = XOpenDisplay(tmp_id);
+    free(tmp_id);
+    }
+  else
+    {
+    priv->dpy = XOpenDisplay(NULL);
+    parent = None;
+    }
   
   /* Default screen */
   
@@ -902,18 +915,18 @@ static void * create_x11()
   priv->window_format.pixel_height = 1;
 #endif
   /* Check for XShm */
-
+  
   priv->have_shm = check_shm(priv->dpy, &(priv->shm_completion_type));
   
   /* Create windows */
   
-  x11_window_create(&(priv->win),
+  x11_window_create(&(priv->win), parent,
                     priv->dpy, DefaultVisual(priv->dpy, screen),
                     DefaultDepth(priv->dpy, screen),
                     320, 240, "Video output");
-
+  
   /* Log screensaver mode */
-
+  
   switch(priv->win.screensaver_mode)
     {
     case SCREENSAVER_MODE_XLIB:
@@ -942,6 +955,26 @@ static void * create_x11()
 
 #endif // HAVE_LIBXV
   create_parameters(priv);
+
+  if(!priv->window_id)
+    {
+    priv->window_id = bg_sprintf("%s:%08lx", XDisplayName(DisplayString(priv->dpy)), priv->win.normal_window);
+    }
+  
+  return 1;
+  }
+
+
+static void * create_x11()
+  {
+  x11_t * priv;
+  
+  priv = calloc(1, sizeof(x11_t));
+
+  priv->scaler = gavl_video_scaler_create();
+  
+  //  open_display(priv);
+  
   return priv;
   }
 
@@ -957,9 +990,9 @@ static void set_drawing_coords(x11_t * priv)
   zoom_factor = priv->zoom * 0.01;
   squeeze_factor = priv->squeeze;
   
-  
   priv->window_format.image_width = priv->win.window_width;
   priv->window_format.image_height = priv->win.window_height;
+  
   
   if(priv->can_scale)
     {
@@ -1067,6 +1100,9 @@ static int _open_x11(void * data,
   x11_t * priv;
   gavl_pixelformat_t x11_pixelformat;
   priv = (x11_t*)data;
+
+  if(!priv->dpy)
+    open_display(priv);
   
   /* Set screensaver options */
 
@@ -1260,7 +1296,7 @@ static int _open_x11(void * data,
   gavl_rectangle_i_set_all(&priv->src_rect_i, &priv->video_format);
   gavl_rectangle_f_set_all(&priv->src_rect_f, &priv->video_format);
     
-  if(priv->auto_resize)
+  if(priv->auto_resize && !priv->win.is_embedded)
     {
     if(priv->can_scale)
       {
@@ -1328,7 +1364,8 @@ static void destroy_x11(void * data)
   XCloseDisplay(priv->dpy);
 
   gavl_video_scaler_destroy(priv->scaler);
-  
+  if(priv->window_id)
+    free(priv->window_id);
   free(priv);
   }
 
@@ -2145,7 +2182,10 @@ static bg_parameter_info_t *
 get_parameters_x11(void * priv)
   {
   x11_t * x11 = (x11_t*)priv;
-    
+  
+  if(!x11->dpy)
+    open_display(x11);
+  
   return x11->parameters;
   }
 
@@ -2224,19 +2264,23 @@ set_parameter_x11(void * priv, char * name, bg_parameter_value_t * val)
 #endif
   else if(!strcmp(name, "window_x"))
     {
-    p->win.window_x = val->val_i;
+    if(!p->win.is_embedded)
+      p->win.window_x = val->val_i;
     }
   else if(!strcmp(name, "window_y"))
     {
-    p->win.window_y = val->val_i;
+    if(!p->win.is_embedded)
+      p->win.window_y = val->val_i;
     }
   else if(!strcmp(name, "window_width"))
     {
-    p->win.window_width = val->val_i;
+    if(!p->win.is_embedded)
+      p->win.window_width = val->val_i;
     }
   else if(!strcmp(name, "window_height"))
     {
-    p->win.window_height = val->val_i;
+    if(!p->win.is_embedded)
+      p->win.window_height = val->val_i;
     }
   else if(!strcmp(name, "disable_xscreensaver_normal"))
     {
@@ -2342,6 +2386,18 @@ get_parameter_x11(void * priv, char * name, bg_parameter_value_t * val)
     return 0;
   }
 
+static void set_window_x11(void * priv, const char * window_id)
+  {
+  x11_t * p = (x11_t*)priv;
+  p->window_id = bg_strdup(p->window_id, window_id);
+  }
+
+static const char * get_window_x11(void * priv)
+  {
+  x11_t * p = (x11_t*)priv;
+  return p->window_id;
+  }
+
 bg_ov_plugin_t the_plugin =
   {
     common:
@@ -2351,7 +2407,7 @@ bg_ov_plugin_t the_plugin =
       long_name:     TRS("X11"),
       description:   TRS("X11 display driver with support for XShm, XVideo and XImage"),
       type:          BG_PLUGIN_OUTPUT_VIDEO,
-      flags:         BG_PLUGIN_PLAYBACK,
+      flags:         BG_PLUGIN_PLAYBACK | BG_PLUGIN_EMBED_WINDOW,
       priority:      BG_PLUGIN_PRIORITY_MAX,
       mimetypes:     (char*)0,
       extensions:    (char*)0,
@@ -2362,7 +2418,9 @@ bg_ov_plugin_t the_plugin =
       set_parameter:  set_parameter_x11,
       get_parameter:  get_parameter_x11
     },
-
+    
+    set_window:     set_window_x11,
+    get_window:     get_window_x11,
     open:           open_x11,
     put_video:      put_video_x11,
 
