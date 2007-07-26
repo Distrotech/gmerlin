@@ -310,8 +310,9 @@ int bg_avdec_start(void * priv)
       avdec->current_track->subtitle_streams[i].info = bg_strdup(NULL, str);
 
     if(bgav_subtitle_is_text(avdec->dec, i))
+      {
       avdec->current_track->subtitle_streams[i].is_text = 1;
-
+      }
     format = bgav_get_subtitle_format(avdec->dec, i);
     gavl_video_format_copy(&avdec->current_track->subtitle_streams[i].format,
                            format);
