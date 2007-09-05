@@ -1,3 +1,4 @@
+#include <config.h>
 #include <gavl/gavl.h>
 #include <gavl/gavldsp.h>
 #include <dsp.h>

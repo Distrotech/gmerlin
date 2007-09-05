@@ -16,7 +16,6 @@
 
 static float coeffs_h[] = 
 { 0.2, 0.4, 0.6, 0.8, 1.0, 0.8, 0.6, 0.4, 0.2 };
-static int num_coeffs_h = sizeof(coeffs_h)/sizeof(coeffs_h[0]);
 
 static float * coeffs_v = coeffs_h;
 static int num_coeffs_v = sizeof(coeffs_h)/sizeof(coeffs_h[0]);

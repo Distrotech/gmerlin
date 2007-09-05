@@ -12,12 +12,12 @@ void gavl_dsp_interpolate_video_frame(gavl_dsp_context_t * ctx,
   int num_planes;
   int sub_v, sub_h;
   int width, height;
-  int is_float = 0;
   uint8_t * s1, *s2, *d;
   int i, j;
   
   void (*interpolate)(uint8_t * src_1, uint8_t * src_2, 
-                      uint8_t * dst, int num, float fac);
+                      uint8_t * dst, int num, float fac) =
+    (void (*)(uint8_t *, uint8_t *, uint8_t *, int, float))0;
   
   num_planes = gavl_pixelformat_num_planes(format->pixelformat);
   gavl_pixelformat_chroma_sub(format->pixelformat, &sub_h, &sub_v);

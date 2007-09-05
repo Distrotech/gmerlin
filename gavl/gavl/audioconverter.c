@@ -85,7 +85,7 @@ gavl_audio_convert_context_create(gavl_audio_format_t  * input_format,
   gavl_audio_convert_context_t * ret;
   ret = calloc(1, sizeof(*ret));
   gavl_audio_format_copy(&(ret->input_format),  input_format);
-  gavl_audio_format_copy(&(ret->output_format), input_format);
+  gavl_audio_format_copy(&(ret->output_format), output_format);
 
   return ret;
   }
@@ -94,7 +94,6 @@ static void adjust_format(gavl_audio_format_t * f)
   {
   if(f->num_channels == 1)
     f->interleave_mode = GAVL_INTERLEAVE_NONE;
-
   
   if((f->num_channels == 2) &&
      (f->interleave_mode == GAVL_INTERLEAVE_2))
@@ -130,6 +129,38 @@ static void dump_context(gavl_audio_convert_context_t * ctx)
   }
 #endif
 
+static void put_samplerate_context(gavl_audio_converter_t* cnv,
+                                   gavl_audio_format_t * tmp_format,
+                                   int out_samplerate)
+  {
+  gavl_audio_convert_context_t * ctx;
+
+  /* Sampleformat conversion with GAVL_INTERLEAVE_2 is not supported */
+  if(cnv->current_format->interleave_mode == GAVL_INTERLEAVE_2)
+    {
+    tmp_format->interleave_mode = GAVL_INTERLEAVE_NONE;
+    ctx = gavl_interleave_context_create(&(cnv->opt),
+                                         cnv->current_format,
+                                         tmp_format);
+    add_context(cnv, ctx);
+    }
+  
+  if(cnv->current_format->sample_format != GAVL_SAMPLE_FLOAT)
+    {
+    tmp_format->sample_format = GAVL_SAMPLE_FLOAT;
+    ctx = gavl_sampleformat_context_create(&(cnv->opt),
+                                           cnv->current_format,
+                                           tmp_format);
+    add_context(cnv, ctx);
+    }
+  
+  tmp_format->samplerate = out_samplerate;
+  ctx = gavl_samplerate_context_create(&(cnv->opt),
+                                       cnv->current_format,
+                                       tmp_format);
+  add_context(cnv, ctx);
+  }
+
 int gavl_audio_converter_reinit(gavl_audio_converter_t* cnv)
   {
   int do_mix, do_resample;
@@ -153,12 +184,9 @@ int gavl_audio_converter_reinit(gavl_audio_converter_t* cnv)
 
   /* Copy formats and options */
   
-  if(cnv->input_format.samples_per_frame < cnv->output_format.samples_per_frame)
-    cnv->input_format.samples_per_frame = cnv->output_format.samples_per_frame;
-  else
-    cnv->output_format.samples_per_frame = cnv->input_format.samples_per_frame;
-  
   memset(&tmp_format, 0, sizeof(tmp_format));
+  gavl_audio_format_copy(&tmp_format, &cnv->input_format);
+  
   cnv->current_format = &(cnv->input_format);
     
   /* Check if we must mix */
@@ -187,40 +215,17 @@ int gavl_audio_converter_reinit(gavl_audio_converter_t* cnv)
       }
     }
 
-  /* Check is we must resample */
+  /* Check if we must resample */
 
   do_resample = (input_format->samplerate != output_format->samplerate) ? 1 : 0;
 
   /* Check for resampling. We take care, that we do resampling for the least possible channels */
 
-  if(do_resample && (!do_mix || (do_mix && (input_format->num_channels <= output_format->num_channels))))
-    {
-    /* Sampleformat conversion with GAVL_INTERLEAVE_2 is not supported */
-    if(cnv->current_format->interleave_mode == GAVL_INTERLEAVE_2)
-      {
-      tmp_format.interleave_mode = GAVL_INTERLEAVE_NONE;
-      ctx = gavl_interleave_context_create(&(cnv->opt),
-                                           cnv->current_format,
-                                           &tmp_format);
-      add_context(cnv, ctx);
-      }
-   
-    if(cnv->current_format->sample_format != GAVL_SAMPLE_FLOAT)
-      {
-      tmp_format.sample_format = GAVL_SAMPLE_FLOAT;
-      ctx = gavl_sampleformat_context_create(&(cnv->opt),
-                                             cnv->current_format,
-                                             &tmp_format);
-      add_context(cnv, ctx);
-      }
-
-    tmp_format.samplerate = output_format->samplerate;
-    ctx = gavl_samplerate_context_create(&(cnv->opt),
-                                         cnv->current_format,
-                                         &tmp_format);
-    add_context(cnv, ctx);
-    }
-
+  if(do_resample &&
+     (!do_mix ||
+      (do_mix && (input_format->num_channels <= output_format->num_channels))))
+    put_samplerate_context(cnv, &tmp_format, output_format->samplerate);
+  
   /* Check for mixing */
     
   if(do_mix)
@@ -265,33 +270,11 @@ int gavl_audio_converter_reinit(gavl_audio_converter_t* cnv)
 
   if(do_resample && do_mix && (input_format->num_channels > output_format->num_channels))
     {
-    /* Sampleformat conversion with GAVL_INTERLEAVE_2 is not supported */
-    if(cnv->current_format->interleave_mode == GAVL_INTERLEAVE_2)
-      {
-      tmp_format.interleave_mode = GAVL_INTERLEAVE_NONE;
-      ctx = gavl_interleave_context_create(&(cnv->opt),
-                                           cnv->current_format,
-                                           &tmp_format);
-      add_context(cnv, ctx);
-      }
-    
-    if(cnv->current_format->sample_format != GAVL_SAMPLE_FLOAT)
-      {
-      tmp_format.sample_format = GAVL_SAMPLE_FLOAT;
-      ctx = gavl_sampleformat_context_create(&(cnv->opt),
-                                             cnv->current_format,
-                                             &tmp_format);
-      add_context(cnv, ctx);
-      }
-    tmp_format.samplerate = output_format->samplerate;
-    ctx = gavl_samplerate_context_create(&(cnv->opt),
-                                         cnv->current_format,
-                                         &tmp_format);
-    add_context(cnv, ctx);
+    put_samplerate_context(cnv, &tmp_format, output_format->samplerate);
     }
-    
+  
   /* Check, if we must change the sample format */
-
+  
   if(cnv->current_format->sample_format != cnv->output_format.sample_format)
     {
     if(cnv->current_format->interleave_mode == GAVL_INTERLEAVE_2)
@@ -329,6 +312,41 @@ int gavl_audio_converter_reinit(gavl_audio_converter_t* cnv)
   //  gavl_audio_format_dump(&(cnv->output_format));
   //  gavl_audio_format_dump(cnv->current_format);
 
+  /* Set samples_per_frame of the first context
+     to zero to enable automatic allocation later on */
+  
+  cnv->input_format.samples_per_frame = 0;
+  return cnv->num_conversions;
+  }
+
+static void alloc_frames(gavl_audio_converter_t* cnv,
+                         int in_samples)
+  {
+  gavl_audio_convert_context_t * ctx;
+  
+  if(cnv->input_format.samples_per_frame >= in_samples)
+    return;
+  
+  cnv->input_format.samples_per_frame = in_samples;
+  
+  /* Set the samples_per_frame member of all intermediate formats */
+  
+  ctx = cnv->contexts;
+  
+  while(ctx)
+    {
+    ctx->input_format.samples_per_frame = in_samples;
+    
+    if(ctx->input_format.samplerate != ctx->output_format.samplerate)
+      {
+      in_samples =
+        (in_samples * ctx->output_format.samplerate) /
+        ctx->input_format.samplerate + 10;
+      }
+    ctx->output_format.samples_per_frame = in_samples;
+    ctx = ctx->next;
+    }
+  
   /* Create temporary buffers */
   ctx = cnv->contexts;
   
@@ -337,13 +355,14 @@ int gavl_audio_converter_reinit(gavl_audio_converter_t* cnv)
     //    dump_context(ctx);
     if(ctx->next)
       {
+      if(ctx->output_frame)
+        gavl_audio_frame_destroy(ctx->output_frame);
       ctx->output_frame = gavl_audio_frame_create(&(ctx->output_format));
       ctx->next->input_frame = ctx->output_frame;
       }
     ctx = ctx->next;
     }
   
-  return cnv->num_conversions;
   }
 
 int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
@@ -366,10 +385,12 @@ void gavl_audio_convert(gavl_audio_converter_t * cnv,
   {
   int i;
   gavl_audio_convert_context_t * ctx;
-    
+  
   cnv->contexts->input_frame = input_frame;
   cnv->last_context->output_frame = output_frame;
-
+  
+  alloc_frames(cnv, input_frame->valid_samples);
+  
   ctx = cnv->contexts;
   
   for(i = 0; i < cnv->num_conversions; i++)

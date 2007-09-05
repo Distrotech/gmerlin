@@ -939,7 +939,7 @@ void gavl_peak_detector_reset(gavl_peak_detector_t * pd);
 typedef struct
   {
   int x; /*!< Horizontal offset from the left border of the frame */
-  int y; /*!< Vertical offset from the left border of the frame */
+  int y; /*!< Vertical offset from the top border of the frame */
   int w; /*!< Width */
   int h; /*!< Height */
   } gavl_rectangle_i_t;
@@ -951,7 +951,7 @@ typedef struct
 typedef struct
   {
   double x; /*!< Horizontal offset from the left border of the frame */
-  double y; /*!< Vertical offset from the left border of the frame */
+  double y; /*!< Vertical offset from the top border of the frame */
   double w; /*!< Width */
   double h; /*!< Height */
   } gavl_rectangle_f_t;
