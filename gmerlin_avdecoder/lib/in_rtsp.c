@@ -140,10 +140,12 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
       seq = -1;
       while(1)
         {
-        if(!bgav_read_line_fd(fd, (char**)(&(priv->packet)),
+        char * ptr = (char*)priv->packet;
+        if(!bgav_read_line_fd(fd, &ptr,
                               &(priv->packet_alloc),
                               ctx->opt->read_timeout))
           return 0;
+        priv->packet = (uint8_t*)ptr;
         size = strlen((char*)(priv->packet));
         if(!size)
           break;

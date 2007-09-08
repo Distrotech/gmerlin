@@ -210,7 +210,7 @@ static void guess_pixel_aspect(int width, int height, int aspect,
 static void setup_track(bgav_input_context_t * ctx,
                         int title, int chapter, int angle)
   {
-  int video_width, video_height;
+  int video_width = 0, video_height;
   const char * audio_codec = (const char *)0;
   audio_attr_t * audio_attr;
   video_attr_t * video_attr;
@@ -220,7 +220,7 @@ static void setup_track(bgav_input_context_t * ctx,
   bgav_stream_t * s;
   bgav_track_t * new_track;
   tt_srpt_t *ttsrpt;
-  pgc_t * pgc;
+  pgc_t * pgc = (pgc_t*)0;
   vts_ptt_srpt_t *vts_ptt_srpt;
   int ttn, pgn;
   int pgc_id;
@@ -965,7 +965,6 @@ static void select_track_dvd(bgav_input_context_t * ctx, int track)
 
 static void seek_time_dvd(bgav_input_context_t * ctx, gavl_time_t t)
   {
-  int i;
   uint8_t buf[DVD_VIDEO_LB_LEN];
   dsi_t dsi_pack;
   pci_t pci_pack;

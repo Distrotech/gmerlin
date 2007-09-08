@@ -97,7 +97,7 @@ void *ELFDLL_dlopen(const char *libname, int flags)
 		else
 			strcpy(buffer + len, libname);
 
-		TRACE("Trying dlopen('%s', %d)\n", buffer, flags);
+                //		TRACE("Trying dlopen('%s', %d)\n", buffer, flags);
 
 		handle = dlopen(buffer, flags);
 		if(handle)

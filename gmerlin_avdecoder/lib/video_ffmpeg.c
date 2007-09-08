@@ -34,6 +34,10 @@
 #include <postprocess.h>
 #endif
 
+#ifdef HAVE_LIBSWSCALE
+#include <swscale.h>
+#endif
+
 #define LOG_DOMAIN "ffmpeg_video"
 
 // #define DUMP_DECODE
@@ -103,6 +107,11 @@ typedef struct
   pp_context_t *pp_context;
   pp_mode_t    *pp_mode;
 #endif
+
+#ifdef HAVE_LIBSWSCALE
+  struct SwsContext *swsContext;
+#endif
+
   
   gavl_video_frame_t * flip_frame; /* Only used if we flip AND do postprocessing */
   
@@ -704,6 +713,19 @@ static int init(bgav_stream_t * s)
     s->data.video.format.pixelformat = GAVL_YUV_420_P;
     priv->do_convert = 1;
     priv->dst_format = PIX_FMT_YUV420P;
+
+#ifdef HAVE_LIBSWSCALE
+    priv->swsContext =
+      sws_getContext(s->data.video.format.image_width,
+                     s->data.video.format.image_height,
+                     priv->ctx->pix_fmt,
+                     s->data.video.format.image_width,
+                     s->data.video.format.image_height,
+                     priv->dst_format,
+                     0, (SwsFilter*)0,
+                     (SwsFilter*)0,
+                     (double*)0);
+#endif
     }
 
   if(priv->swap_fields)
@@ -785,7 +807,12 @@ static void close_ffmpeg(bgav_stream_t * s)
     pp_free_mode(priv->pp_mode);
   if(priv->pp_context)
     pp_free_context(priv->pp_context);
-#endif  
+#endif
+  
+#ifdef HAVE_LIBSWSCALE
+  if(priv->swsContext)
+    sws_freeContext(priv->swsContext);
+#endif
   free(priv->frame);
   free(priv);
   }
@@ -1650,7 +1677,9 @@ static void init_pp(bgav_stream_t * s)
 /* Copy/postprocess/flip internal frame to output */
 static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f)
   {
+#ifndef HAVE_LIBSWSCALE
   AVPicture ffmpeg_frame;
+#endif
   
   ffmpeg_video_priv * priv;
   priv = (ffmpeg_video_priv*)(s->data.video.decoder->priv);
@@ -1743,6 +1772,15 @@ static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f)
     }
   else
     {
+    // TODO: Enable postprocessing for non-gavl pixelformats
+    // (but not as long as it makes no sense)
+#ifdef HAVE_LIBSWSCALE
+    sws_scale(priv->swsContext,
+              priv->frame->data, priv->frame->linesize,
+              0, s->data.video.format.image_height,
+              f->planes, f->strides);
+
+#else
     ffmpeg_frame.data[0]     = f->planes[0];
     ffmpeg_frame.data[1]     = f->planes[1];
     ffmpeg_frame.data[2]     = f->planes[2];
@@ -1753,6 +1791,7 @@ static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f)
                 (AVPicture*)(priv->frame), priv->ctx->pix_fmt,
                 s->data.video.format.image_width,
                 s->data.video.format.image_height);
+#endif
     }
   
   }

@@ -195,7 +195,7 @@ LPSTR HEAP_strdupA(HANDLE heap, DWORD flags, LPCSTR string)
 LPWSTR HEAP_strdupAtoW(HANDLE heap, DWORD flags, LPCSTR string)
 {
     int size, i;
-    short* answer;
+    LPWSTR answer;
     if(string==0)
 	return 0;
     size=strlen(string);

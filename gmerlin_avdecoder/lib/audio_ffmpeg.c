@@ -33,6 +33,14 @@
 // #define DUMP_DECODE
 // #define DUMP_EXTRADATA
 
+/* Different decoding functions */
+
+#if LIBAVCODEC_BUILD >= 3349760
+#define DECODE_FUNC avcodec_decode_audio2
+#else
+#define DECODE_FUNC avcodec_decode_audio
+#endif
+
 /* Map of ffmpeg codecs to fourccs (from ffmpeg's avienc.c) */
 
 typedef struct
@@ -310,9 +318,10 @@ typedef struct
   {
   AVCodecContext * ctx;
   codec_info_t * info;
-
+  
   gavl_audio_frame_t * frame;
   int last_frame_size;
+  int frame_alloc;
   
   uint8_t * packet_buffer;
   uint8_t * packet_buffer_ptr;
@@ -379,34 +388,42 @@ static int decode_frame(bgav_stream_t * s)
            0, FF_INPUT_BUFFER_PADDING_SIZE);
     bgav_demuxer_done_packet_read(s->demuxer, p);
     }
+#if LIBAVCODEC_BUILD >= 3349760
+  frame_size = priv->frame_alloc;
+#else
   frame_size = 0;
-
+#endif
+  
 #ifdef DUMP_DECODE
   bgav_dprintf("decode_audio Size: %d\n", priv->bytes_in_packet_buffer);
 #endif
   
   if(priv->frame)
     {
-    bytes_used = avcodec_decode_audio(priv->ctx,
-                                      priv->frame->samples.s_16,
-                                      &frame_size,
-                                      priv->packet_buffer_ptr,
-                                      priv->bytes_in_packet_buffer);
+    bytes_used = DECODE_FUNC(priv->ctx,
+                             priv->frame->samples.s_16,
+                             &frame_size,
+                             priv->packet_buffer_ptr,
+                             priv->bytes_in_packet_buffer);
     }
   else
     {
     int16_t * tmp_buf = malloc(AVCODEC_MAX_AUDIO_FRAME_SIZE*4);
-    bytes_used = avcodec_decode_audio(priv->ctx,
-                                      tmp_buf,
-                                      &frame_size,
-                                      priv->packet_buffer_ptr,
-                                      priv->bytes_in_packet_buffer);
+    bytes_used = DECODE_FUNC(priv->ctx,
+                             tmp_buf,
+                             &frame_size,
+                             priv->packet_buffer_ptr,
+                             priv->bytes_in_packet_buffer);
     s->data.audio.format.num_channels = priv->ctx->channels;
     s->data.audio.format.samplerate   = priv->ctx->sample_rate;
 
     gavl_set_channel_setup(&(s->data.audio.format));
     s->data.audio.format.samples_per_frame = 2*AVCODEC_MAX_AUDIO_FRAME_SIZE;
     priv->frame = gavl_audio_frame_create(&(s->data.audio.format));
+    priv->frame_alloc =
+      gavl_bytes_per_sample(s->data.audio.format.sample_format) *
+      s->data.audio.format.num_channels *
+      s->data.audio.format.samples_per_frame;
     s->data.audio.format.samples_per_frame = 1024;
 
     memcpy(priv->frame->samples.s_16, tmp_buf, frame_size);
@@ -524,6 +541,10 @@ static int init(bgav_stream_t * s)
     gavl_set_channel_setup(&(s->data.audio.format));
     s->data.audio.format.samples_per_frame = 2*AVCODEC_MAX_AUDIO_FRAME_SIZE;
     priv->frame = gavl_audio_frame_create(&(s->data.audio.format));
+    priv->frame_alloc =
+      gavl_bytes_per_sample(s->data.audio.format.sample_format) *
+      s->data.audio.format.num_channels *
+      s->data.audio.format.samples_per_frame;
     s->data.audio.format.samples_per_frame = 1024;
     }
   else /* Let ffmpeg find out the format */

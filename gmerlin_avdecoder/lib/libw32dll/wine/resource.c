@@ -135,7 +135,7 @@ static HFILE RES_AccessResource( HMODULE hModule, HRSRC hRsrc )
     if ( !hModule || !hRsrc ) return HFILE_ERROR;
 
     /* 32-bit PE module */
-    FIXME("32-bit modules not yet supported.\n" );
+    //    FIXME("32-bit modules not yet supported.\n" );
     hFile = HFILE_ERROR;
 
     return hFile;
@@ -174,7 +174,7 @@ static LPVOID RES_LockResource( HGLOBAL handle )
 {
     LPVOID bits = NULL;
 
-    TRACE("(%08x, %s)\n", handle, "PE" );
+    //    TRACE("(%08x, %s)\n", handle, "PE" );
 
     bits = (LPVOID)handle;
 
@@ -324,8 +324,8 @@ INT WINAPI LoadStringW( HINSTANCE instance, UINT resource_id,
 
     if (HIWORD(resource_id)==0xFFFF) /* netscape 3 passes this */
 	resource_id = (UINT)(-((INT)resource_id));
-    TRACE("instance = %04x, id = %04x, buffer = %08x, "
-          "length = %d\n", instance, (int)resource_id, (int) buffer, buflen);
+    //    TRACE("instance = %04x, id = %04x, buffer = %08x, "
+    //          "length = %d\n", instance, (int)resource_id, (int) buffer, buflen);
 
     /* Use bits 4 - 19 (incremented by 1) as resourceid, mask out 
      * 20 - 31. */
@@ -340,7 +340,7 @@ INT WINAPI LoadStringW( HINSTANCE instance, UINT resource_id,
     for (i = 0; i < string_num; i++)
 	p += *p + 1;
     
-    TRACE("strlen = %d\n", (int)*p );
+    //    TRACE("strlen = %d\n", (int)*p );
     
     if (buffer == NULL) return *p;
     i = min(buflen - 1, *p);
@@ -357,7 +357,7 @@ INT WINAPI LoadStringW( HINSTANCE instance, UINT resource_id,
 #endif
     }
 
-    TRACE("String loaded !\n");
+    //    TRACE("String loaded !\n");
     return i;
 }
 
@@ -396,7 +396,7 @@ INT WINAPI LoadMessageA( HMODULE instance, UINT id, WORD lang,
     PMESSAGE_RESOURCE_ENTRY	mre;
     int		i,slen;
 
-    TRACE("instance = %08lx, id = %08lx, buffer = %p, length = %ld\n", (DWORD)instance, (DWORD)id, buffer, (DWORD)buflen);
+    //    TRACE("instance = %08lx, id = %08lx, buffer = %p, length = %ld\n", (DWORD)instance, (DWORD)id, buffer, (DWORD)buflen);
 
     /*FIXME: I am not sure about the '1' ... But I've only seen those entries*/
     hrsrc = FindResourceExW(instance,RT_MESSAGELISTW,(LPWSTR)1,lang);
@@ -423,7 +423,7 @@ INT WINAPI LoadMessageA( HMODULE instance, UINT id, WORD lang,
     	mre = (PMESSAGE_RESOURCE_ENTRY)(((char*)mre)+(mre->Length));
     }
     slen=mre->Length;
-    TRACE("	- strlen=%d\n",slen);
+    //    TRACE("	- strlen=%d\n",slen);
     i = min(buflen - 1, slen);
     if (buffer == NULL)
 	return slen;
@@ -436,8 +436,8 @@ INT WINAPI LoadMessageA( HMODULE instance, UINT id, WORD lang,
 	    return 0;
 	}
     }
-    if (buffer)
-	    TRACE("'%s' copied !\n", buffer);
+    //    if (buffer)
+    //	    TRACE("'%s' copied !\n", buffer);
     return i;
 }
 

@@ -429,7 +429,7 @@ static int load_channel_cache(bgav_input_context_t * ctx)
   {
   bgav_input_context_t * input;
   char * filename;
-  bgav_yml_node_t * yml;
+  bgav_yml_node_t * yml = (bgav_yml_node_t*)0;
   bgav_yml_node_t * channel_node;
   bgav_yml_node_t * channel_child;
   bgav_yml_node_t * stream_node;
@@ -712,7 +712,6 @@ static int open_dvb(bgav_input_context_t * ctx, const char * url)
   {
   int i;
   fe_status_t status;
-  char * tmp_string;
   dvb_priv_t * priv;
   char * filename;
   
@@ -729,7 +728,7 @@ static int open_dvb(bgav_input_context_t * ctx, const char * url)
   if(priv->fe_fd < 0)
     {
     bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-             "Cannot open frontend device %s", tmp_string);
+             "Cannot open frontend device %s", priv->frontend_filename);
     return 0;
     }
   /* Get frontend info */

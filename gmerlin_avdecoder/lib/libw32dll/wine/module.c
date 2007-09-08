@@ -53,18 +53,18 @@ HANDLE SegptrHeap;
 WINE_MODREF* MODULE_FindModule(LPCSTR m)
 {
     modref_list* list=local_wm;
-    TRACE("FindModule: Module %s request\n", m);
+    //    TRACE("FindModule: Module %s request\n", m);
     if(list==NULL)
 	return NULL;
 //    while(strcmp(m, list->wm->filename))
     while(!strstr(list->wm->filename, m))
     {
-	TRACE("%s: %x\n", list->wm->filename, list->wm->module);
+    //	TRACE("%s: %x\n", list->wm->filename, list->wm->module);
 	list=list->prev;
 	if(list==NULL)
 	    return NULL;
     }
-    TRACE("Resolved to %s\n", list->wm->filename);
+    //    TRACE("Resolved to %s\n", list->wm->filename);
     return list->wm;
 }
 
@@ -102,10 +102,10 @@ static void MODULE_RemoveFromList(WINE_MODREF *mod)
 WINE_MODREF *MODULE32_LookupHMODULE(HMODULE m)
 {
     modref_list* list=local_wm;
-    TRACE("LookupHMODULE: Module %X request\n", m);
+    //    TRACE("LookupHMODULE: Module %X request\n", m);
     if(list==NULL)
     {
-	TRACE("LookupHMODULE failed\n");
+    //	TRACE("LookupHMODULE failed\n");
 	return NULL;
     }
     while(m!=list->wm->module)
@@ -115,11 +115,11 @@ WINE_MODREF *MODULE32_LookupHMODULE(HMODULE m)
 	list=list->prev;
 	if(list==NULL)
 	{
-	    TRACE("LookupHMODULE failed\n");
+        //	    TRACE("LookupHMODULE failed\n");
 	    return NULL;
 	}
     }
-    TRACE("LookupHMODULE hit %p\n", list->wm);
+    //    TRACE("LookupHMODULE hit %p\n", list->wm);
     return list->wm;
 }
 
@@ -145,9 +145,9 @@ static WIN_BOOL MODULE_InitDll( WINE_MODREF *wm, DWORD type, LPVOID lpReserved )
 
 
 #ifdef LOG
-    TRACE("(%s,%s,%p) - CALL\n", wm->modname, typeName[type], lpReserved );
+    //    TRACE("(%s,%s,%p) - CALL\n", wm->modname, typeName[type], lpReserved );
 #else
-    TRACE("(%s,%p) - CALL\n", wm->modname, lpReserved );
+    //    TRACE("(%s,%p) - CALL\n", wm->modname, lpReserved );
 #endif
     
     /* Call the initialization routine */
@@ -171,9 +171,9 @@ static WIN_BOOL MODULE_InitDll( WINE_MODREF *wm, DWORD type, LPVOID lpReserved )
        to PE_InitDLL. We cannot assume that this module has not been
        deleted.  */
 #ifdef LOG
-    TRACE("(%p,%s,%p) - RETURN %d\n", wm, typeName[type], lpReserved, retv );
+    //    TRACE("(%p,%s,%p) - RETURN %d\n", wm, typeName[type], lpReserved, retv );
 #else
-    TRACE("(%p,%p) - RETURN %d\n", wm, lpReserved, retv );
+    //    TRACE("(%p,%p) - RETURN %d\n", wm, lpReserved, retv );
 #endif
     
     return retv;
@@ -222,7 +222,7 @@ static WIN_BOOL MODULE_DllProcessAttach( WINE_MODREF *wm, LPVOID lpReserved )
          || ( wm->flags & WINE_MODREF_PROCESS_ATTACHED ) )
         return retv;
 
-    TRACE("(%s,%p) - START\n", wm->modname, lpReserved );
+    //    TRACE("(%s,%p) - START\n", wm->modname, lpReserved );
 
     /* Tag current MODREF to prevent recursive loop */
     wm->flags |= WINE_MODREF_MARKER;
@@ -260,7 +260,7 @@ static WIN_BOOL MODULE_DllProcessAttach( WINE_MODREF *wm, LPVOID lpReserved )
     }
 
 
-    TRACE("(%s,%p) - END\n", wm->modname, lpReserved );
+    //    TRACE("(%s,%p) - END\n", wm->modname, lpReserved );
 
     return retv;
 }
@@ -306,12 +306,12 @@ static WINE_MODREF *MODULE_LoadLibraryExA( LPCSTR libname, HFILE hfile, DWORD fl
 //	module_loadorder_t *plo;
 
         SetLastError( ERROR_FILE_NOT_FOUND );
-	TRACE("Trying native dll '%s'\n", libname);
+        //	TRACE("Trying native dll '%s'\n", libname);
 	pwm = PE_LoadLibraryExA(libname, flags);
 #ifdef HAVE_LIBDL
 	if(!pwm)
 	{
-    	    TRACE("Trying ELF dll '%s'\n", libname);
+        //    	    TRACE("Trying ELF dll '%s'\n", libname);
 	    pwm=(WINE_MODREF*)ELFDLL_LoadLibraryExA(libname, flags);
 	}
 #endif
@@ -320,7 +320,7 @@ static WINE_MODREF *MODULE_LoadLibraryExA( LPCSTR libname, HFILE hfile, DWORD fl
 	if(pwm)
 	{
 		/* Initialize DLL just loaded */
-		TRACE("Loaded module '%s' at 0x%08x, \n", libname, pwm->module);
+        //		TRACE("Loaded module '%s' at 0x%08x, \n", libname, pwm->module);
 		/* Set the refCount here so that an attach failure will */
 		/* decrement the dependencies through the MODULE_FreeLibrary call. */
 		pwm->refCount++;
@@ -330,7 +330,7 @@ static WINE_MODREF *MODULE_LoadLibraryExA( LPCSTR libname, HFILE hfile, DWORD fl
 	}
 
 
-	WARN("Failed to load module '%s'; error=0x%08lx, \n", libname, GetLastError());
+        //	WARN("Failed to load module '%s'; error=0x%08lx, \n", libname, GetLastError());
 	return NULL;
 }
 
@@ -341,7 +341,7 @@ static WINE_MODREF *MODULE_LoadLibraryExA( LPCSTR libname, HFILE hfile, DWORD fl
  */
 static WIN_BOOL MODULE_FreeLibrary( WINE_MODREF *wm )
 {
-    TRACE("(%s) - START\n", wm->modname );
+//    TRACE("(%s) - START\n", wm->modname );
 
     /* Recursively decrement reference counts */
     //MODULE_DecRefCount( wm );
@@ -351,7 +351,7 @@ static WIN_BOOL MODULE_FreeLibrary( WINE_MODREF *wm )
 
     PE_UnloadLibrary(wm);
 
-    TRACE("END\n");
+    //    TRACE("END\n");
 
     return TRUE;
 }
@@ -420,7 +420,7 @@ HMODULE WINAPI LoadLibraryExA(LPCSTR libname, HANDLE hfile, DWORD flags)
 	{
 		if ( !MODULE_DllProcessAttach( wm, NULL ) )
 		{
-			WARN_(module)("Attach failed for module '%s', \n", libname);
+                //			WARN_(module)("Attach failed for module '%s', \n", libname);
 			MODULE_FreeLibrary(wm);
 			SetLastError(ERROR_DLL_INIT_FAILED);
 			MODULE_RemoveFromList(wm);
@@ -593,7 +593,7 @@ static void MODULE_DecRefCount( WINE_MODREF *wm )
         return;
 
     --wm->refCount;
-    TRACE("(%s) refCount: %d\n", wm->modname, wm->refCount );
+    //    TRACE("(%s) refCount: %d\n", wm->modname, wm->refCount );
 
     if ( wm->refCount == 0 )
     {

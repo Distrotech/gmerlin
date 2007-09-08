@@ -123,6 +123,14 @@ libpostproc_cflags =
 libpostproc_libs =
 endif
 
+if HAVE_LIBSWSCALE
+libswscale_cflags =  @LIBSWSCALE_CFLAGS@
+libswscale_libs =    @LIBSWSCALE_LIBS@
+else
+libswscale_cflags =
+libswscale_libs =
+endif
+
 
 if HAVE_CDIO
 cdio_cflags =  @CDIO_CFLAGS@
@@ -246,6 +254,7 @@ $(samba_libs) \
 $(theora_libs) \
 $(speex_libs) \
 $(libpostproc_libs) \
+$(libswscale_libs) \
 GSM610/libgsm.la \
 @ICONV_LIBS@ \
 @LIBINTL@ \
@@ -270,7 +279,8 @@ $(mjpegtools_cflags) \
 $(samba_cflags) \
 $(theora_cflags) \
 $(speex_cflags) \
-$(libpostproc_cflags)
+$(libpostproc_cflags) \
+$(libswscale_cflags)
 
 libgmerlin_avdec_la_SOURCES = \
 $(libmpeg2_sources) \

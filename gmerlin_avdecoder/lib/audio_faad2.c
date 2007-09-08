@@ -20,11 +20,41 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <faad.h>
 
 #include <config.h>
 #include <avdec_private.h>
 #include <codecs.h>
+
+#ifdef HAVE_NEAACDEC_H
+#include <neaacdec.h>
+
+/*
+ *  Backwards compatibility names (currently in neaacdec.h,
+ *  but might be removed in future versions
+ */
+#ifndef faacDecHandle
+/* structs */
+#define faacDecHandle                  NeAACDecHandle
+#define faacDecConfiguration           NeAACDecConfiguration
+#define faacDecConfigurationPtr        NeAACDecConfigurationPtr
+#define faacDecFrameInfo               NeAACDecFrameInfo
+/* functions */
+#define faacDecGetErrorMessage         NeAACDecGetErrorMessage
+#define faacDecSetConfiguration        NeAACDecSetConfiguration
+#define faacDecGetCurrentConfiguration NeAACDecGetCurrentConfiguration
+#define faacDecInit                    NeAACDecInit
+#define faacDecInit2                   NeAACDecInit2
+#define faacDecInitDRM                 NeAACDecInitDRM
+#define faacDecPostSeekReset           NeAACDecPostSeekReset
+#define faacDecOpen                    NeAACDecOpen
+#define faacDecClose                   NeAACDecClose
+#define faacDecDecode                  NeAACDecDecode
+#define AudioSpecificConfig            NeAACDecAudioSpecificConfig
+#endif
+
+#else
+#include <faad.h>
+#endif
 
 #define LOG_DOMAIN "faad2"
 
