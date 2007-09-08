@@ -17,9 +17,6 @@ static bg_visualizer_t * visualizer = (bg_visualizer_t*)0;
 static bg_cfg_section_t * vis_section = (bg_cfg_section_t*)0;
 static bg_parameter_info_t * vis_parameters = (bg_parameter_info_t*)0;
 
-static int do_stop = 0;
-
-
 static void opt_help(void * data, int * argc, char *** argv, int arg);
 
 static void opt_visualizer(void * data, int * argc,

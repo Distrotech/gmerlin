@@ -1229,10 +1229,19 @@ static void transcoder_window_preferences(transcoder_window_t * w)
 
   bg_audio_filter_chain_t * ac;
   bg_video_filter_chain_t * vc;
+
+  bg_gavl_audio_options_t ao;
+  bg_gavl_video_options_t vo;
+
+  memset(&ao, 0, sizeof(ao));
+  memset(&vo, 0, sizeof(vo));
+
+  bg_gavl_audio_options_init(&ao);
+  bg_gavl_video_options_init(&vo);
   
-  ac = bg_audio_filter_chain_create(NULL, w->plugin_reg);
-  vc = bg_video_filter_chain_create(NULL, w->plugin_reg);
-    
+  ac = bg_audio_filter_chain_create(&ao, w->plugin_reg);
+  vc = bg_video_filter_chain_create(&vo, w->plugin_reg);
+  
   dlg = bg_dialog_create_multi(TR("Transcoder configuration"));
 
   cfg_section     = bg_cfg_registry_find_section(w->cfg_reg, "output");
@@ -1368,8 +1377,10 @@ static void transcoder_window_preferences(transcoder_window_t * w)
 
   bg_audio_filter_chain_destroy(ac);
   bg_video_filter_chain_destroy(vc);
-  
-  
+
+  bg_gavl_audio_options_free(&ao);
+  bg_gavl_video_options_free(&vo);
+    
   }
 
 

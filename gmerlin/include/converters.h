@@ -152,7 +152,7 @@ void bg_video_converter_destroy(bg_video_converter_t * cnv);
  *  Reset a video converter as if no frame has been processed since initialization.
  */
 
-void bg_video_converter_reset(bg_video_converter_t * cnv, int64_t out_pts);
+void bg_video_converter_reset(bg_video_converter_t * cnv);
 
 /**
  * @}

@@ -377,6 +377,7 @@ static void init_ladspa(ladspa_priv_t * lp)
   else /* Stereo -> Stereo */
     lp->num_instances = 1;
   
+  lp->format.samples_per_frame = 0;
   for(i = 0; i < lp->num_instances; i++)
     {
     lp->channels[i].Instance =

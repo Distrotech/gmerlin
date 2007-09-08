@@ -72,6 +72,25 @@ void bg_log_notranslate(bg_log_level_t level, const char * domain,
                         const char * format, ...) __attribute__ ((format (printf, 3, 4)));
 
 /** \ingroup log
+ *  \brief Send a message (as complete string) to the logger without translating it.
+ *  \param level Level
+ *  \param domain The name of the volume
+ *  \param str Message string
+ *
+ *  All other arguments must match the format string.
+ *
+ *  This function either prints a message to stderr (if you didn't case
+ *  \ref bg_log_set_dest and level is contained in the mask you passed to
+ *  bg_log_set_verbose) or puts a message into the queue you passed to
+ *  bg_log_set_dest.
+ **/
+
+void bg_logs_notranslate(bg_log_level_t level, const char * domain,
+                         const char * str);
+
+
+
+/** \ingroup log
  *  \brief Translate a message and send it to the logger.
  *  \param translation_domain Gettext domain (usually package name)
  *  \param level Level

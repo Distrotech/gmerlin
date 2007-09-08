@@ -67,12 +67,27 @@
 #define TRANSCODER_STATE_FINISHED 2
 #define TRANSCODER_STATE_ERROR    3
 
-typedef struct subtitle_stream_s subtitle_stream_t;
+/* Language utilities */
 
+static void copy_language(char * dst, const char * src)
+  {
+  if(src)
+    strncpy(dst, src, 3);
+  else
+    *dst = '\0';
+  }
+
+static char * get_language(char * in_lang, char * lang, int force)
+  {
+  if(in_lang)
+    return force ? lang : in_lang;
+  return lang;
+  }
+
+typedef struct subtitle_stream_s subtitle_stream_t;
 
 typedef struct
   {
-  int do_filter;
   
   int status;
   int type;
@@ -123,15 +138,13 @@ typedef struct
   // int do_convert_in;
   int do_convert_out;
   
-  bg_audio_converter_t * cnv_in;
   gavl_audio_converter_t * cnv_out;
 
   bg_audio_filter_chain_t * fc;
   
-  //  gavl_audio_frame_t * in_frame;
   gavl_audio_frame_t * out_frame;
   gavl_audio_frame_t * pipe_frame;
-
+  
   gavl_audio_format_t in_format;
   gavl_audio_format_t pipe_format;
   gavl_audio_format_t out_format;
@@ -146,18 +159,17 @@ typedef struct
   /* Do normalization */
   int normalize;
   
-  int64_t samples_to_read; /* Samples to read     (in INPUT samplerate) */
-  int64_t samples_read;    /* Samples read so far (in INPUT samplerate) */
-
-  int64_t samples_written;
+  int64_t samples_to_read; /* Samples to read     (in OUTPUT samplerate) */
+  int64_t samples_read;    /* Samples read so far (in OUTPUT samplerate) */
   
   int initialized;
 
   gavl_peak_detector_t * peak_detector;
   gavl_volume_control_t * volume_control;
 
-  char language[4];
-  
+  char in_language[4];
+  char out_language[4];
+  int force_language;
   } audio_stream_t;
 
 static void set_audio_parameter_general(void * data, char * name, bg_parameter_value_t * val)
@@ -173,9 +185,19 @@ static void set_audio_parameter_general(void * data, char * name, bg_parameter_v
     stream->normalize = val->val_i;
     return;
     }
+  if(!strcmp(name, "in_language"))
+    {
+    copy_language(stream->in_language, val->val_str);
+    return;
+    }
   if(!strcmp(name, "language"))
     {
-    strncpy(stream->language, val->val_str, 3);
+    copy_language(stream->out_language, val->val_str);
+    return;
+    }
+  if(!strcmp(name, "force_language"))
+    {
+    stream->force_language = val->val_i;
     return;
     }
   if(set_stream_parameters_general(&(stream->com),
@@ -190,14 +212,11 @@ typedef struct
   {
   stream_t com;
   
-  bg_video_converter_t * cnv;
-
   bg_video_filter_chain_t * fc;
   
   gavl_video_frame_t * frame;
   
   gavl_video_format_t in_format;
-  gavl_video_format_t pipe_format;
   gavl_video_format_t out_format;
 
   int64_t frames_written;
@@ -272,7 +291,9 @@ struct subtitle_stream_s
   
   int eof; /* Set STREAM finished not before the last subtitle expired */
 
-  char language[4];
+  char in_language[4];
+  char out_language[4];
+  int force_language;
   };
 
 typedef struct
@@ -300,13 +321,22 @@ static void set_subtitle_parameter_general(void * data,
 
   if(!strcmp(name, "video_stream"))
     stream->video_stream = val->val_i-1;
-
-  if(!strcmp(name, "language"))
+  if(!strcmp(name, "in_language"))
     {
-    strncpy(stream->language, val->val_str, 3);
+    copy_language(stream->in_language, val->val_str);
     return;
     }
-  
+  if(!strcmp(name, "language"))
+    {
+    copy_language(stream->out_language, val->val_str);
+    return;
+    }
+  if(!strcmp(name, "force_language"))
+    {
+    stream->force_language = val->val_i;
+    return;
+    }
+
   if(set_stream_parameters_general(&(stream->com),
                                    name, val))
     return;
@@ -756,7 +786,6 @@ static void init_audio_stream(audio_stream_t * ret,
   /* Create converter */
   
   bg_gavl_audio_options_init(&(ret->options));
-  ret->cnv_in  = bg_audio_converter_create(ret->options.opt);
   ret->cnv_out = gavl_audio_converter_create();
   ret->fc = bg_audio_filter_chain_create(&(ret->options), plugin_reg);
   
@@ -806,7 +835,6 @@ static void init_video_stream(video_stream_t * ret,
   
   /* Create converter */
 
-  ret->cnv = bg_video_converter_create(ret->options.opt);
   ret->fc  = bg_video_filter_chain_create(&ret->options, plugin_reg);
   
   
@@ -975,7 +1003,8 @@ static void add_audio_stream(audio_stream_t * ret,
                              bg_transcoder_t * t)
   {
   set_stream_param_struct_t st;
-
+  char * language;
+  
   ret->in_func = ret->com.in_plugin->read_audio_samples;
   ret->in_data = ret->com.in_handle->priv;
   ret->in_stream = ret->com.in_index;
@@ -986,38 +1015,34 @@ static void add_audio_stream(audio_stream_t * ret,
                                                           GAVL_TIME_SCALE/2);
 #endif
 
-  ret->com.do_filter = bg_audio_filter_chain_init(ret->fc,
-                                                  &(ret->in_format),
-                                                  &(ret->pipe_format));
+  bg_audio_filter_chain_connect_input(ret->fc,
+                                      ret->in_func,
+                                      ret->in_data,
+                                      ret->in_stream);
+  
+  bg_audio_filter_chain_init(ret->fc, &(ret->in_format), &(ret->pipe_format));
 
-  if(ret->com.do_filter)
-    {
-    bg_audio_filter_chain_connect_input(ret->fc,
-                                        ret->in_func,
-                                        ret->in_data,
-                                        ret->in_stream);
-    ret->in_func = bg_audio_filter_chain_read;
-    ret->in_data = ret->fc;
-    ret->in_stream = 0;
-    
-    gavl_audio_format_copy(&(ret->out_format),
-                           &(ret->pipe_format));
-
-    /* Add the audio stream */
-    
-    ret->com.out_index =
-      ret->com.out_plugin->add_audio_stream(ret->com.out_handle->priv, ret->language,
-                                            &(ret->out_format));
-    }
-  else
-    {
-    bg_gavl_audio_options_set_format(&(ret->options),
-                                     &(ret->in_format),
-                                     &(ret->out_format));
-    ret->com.out_index =
-      ret->com.out_plugin->add_audio_stream(ret->com.out_handle->priv, ret->language,
-                                            &(ret->out_format));
-    }
+  ret->pipe_format.samples_per_frame = gavl_time_to_samples(ret->pipe_format.samplerate,
+                                                            GAVL_TIME_SCALE/2);
+  
+  ret->in_func = bg_audio_filter_chain_read;
+  ret->in_data = ret->fc;
+  ret->in_stream = 0;
+  
+  gavl_audio_format_copy(&(ret->out_format),
+                         &(ret->pipe_format));
+  
+  /* Decide language */
+  language = get_language(ret->in_language,
+                          ret->out_language,
+                          ret->force_language);
+  
+  /* Add the audio stream */
+  
+  ret->com.out_index =
+    ret->com.out_plugin->add_audio_stream(ret->com.out_handle->priv,
+                                          language,
+                                          &(ret->out_format));
   
   
   /* Apply parameters */
@@ -1040,12 +1065,19 @@ static void add_subtitle_text_stream(subtitle_text_stream_t * ret,
                                      bg_transcoder_track_subtitle_text_t * s,
                                      bg_transcoder_t * t)
   {
+  
+  char * language;
   set_stream_param_struct_t st;
   if(ret->com.com.action == STREAM_ACTION_TRANSCODE)
     {
+    /* Decide language */
+    language = get_language(ret->com.in_language,
+                            ret->com.out_language,
+                            ret->com.force_language);
+    
     ret->com.com.out_index =
       ret->com.com.out_plugin->add_subtitle_text_stream(ret->com.com.out_handle->priv,
-                                                        ret->com.language);
+                                                        language);
     
     if(t->encoder_info.subtitle_text_stream_parameters &&
        s->encoder_section_text && ret->com.com.out_plugin->set_subtitle_text_parameter)
@@ -1078,10 +1110,15 @@ static void add_subtitle_text_stream(subtitle_text_stream_t * ret,
       /* Video stream won't get encoded: Use video format associatd with the text subtitle stream */
       gavl_video_format_copy(&ret->com.out_format, &ret->com.in_format);
       }
+
+    /* Decide language */
+    language = get_language(ret->com.in_language,
+                            ret->com.out_language,
+                            ret->com.force_language);
     
     ret->com.com.out_index =
       ret->com.com.out_plugin->add_subtitle_overlay_stream(ret->com.com.out_handle->priv,
-                                                           ret->com.language,
+                                                           language,
                                                            &ret->com.out_format);
 
     if(t->encoder_info.subtitle_overlay_stream_parameters &&
@@ -1105,13 +1142,21 @@ static void add_subtitle_overlay_stream(subtitle_stream_t * ret,
                                         bg_transcoder_t * t)
   {
   set_stream_param_struct_t st;
+  char * language;
+  
   gavl_video_format_copy(&ret->out_format, &ret->in_format);
+
+  /* Decide language */
+
+  language = get_language(ret->in_language,
+                          ret->out_language,
+                          ret->force_language);
   
   ret->com.out_index =
     ret->com.out_plugin->add_subtitle_overlay_stream(ret->com.out_handle->priv,
-                                                         t->track_info->subtitle_streams[ret->com.in_index].language,
-                                                         &ret->out_format);
-
+                                                     language,
+                                                     &ret->out_format);
+  
   if(t->encoder_info.subtitle_overlay_stream_parameters &&
      s->encoder_section && ret->com.out_plugin->set_subtitle_overlay_parameter)
     {
@@ -1136,29 +1181,15 @@ static void add_video_stream(video_stream_t * ret,
   ret->in_func = decode_video_frame;
   ret->in_data = t;
   ret->in_stream = ret->com.in_index;
-  
-  ret->com.do_filter = bg_video_filter_chain_init(ret->fc, &(ret->in_format),
-                                                  &(ret->pipe_format));
-  if(ret->com.do_filter)
-    {
-    bg_video_filter_chain_connect_input(ret->fc,
-                                        ret->in_func, ret->in_data, ret->in_stream);
-    ret->in_func   = bg_video_filter_chain_read;
-    ret->in_data   = ret->fc;
-    ret->in_stream = 0;
-    }
-  else
-    gavl_video_format_copy(&(ret->pipe_format), &(ret->in_format));
-  
-  /* Set desired output format */
-  
-  gavl_video_format_copy(&(ret->out_format), &(ret->in_format));
 
+  bg_video_filter_chain_connect_input(ret->fc,
+                                      ret->in_func, ret->in_data, ret->in_stream);
   
-  
-  bg_gavl_video_options_set_format(&(ret->options),
-                                   &(ret->in_format),
-                                   &(ret->out_format));
+  bg_video_filter_chain_init(ret->fc, &(ret->in_format),
+                             &(ret->out_format));
+  ret->in_func   = bg_video_filter_chain_read;
+  ret->in_data   = ret->fc;
+  ret->in_stream = 0;
   
   /* Add the video stream */
 
@@ -1225,13 +1256,13 @@ static int audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
        (t->end_time != GAVL_TIME_UNDEFINED) &&
        (t->end_time > t->start_time))
       {
-      s->samples_to_read = gavl_time_to_samples(s->in_format.samplerate,
+      s->samples_to_read = gavl_time_to_samples(s->out_format.samplerate,
                                                 t->end_time - t->start_time);
       
       }
     else if(t->end_time != GAVL_TIME_UNDEFINED)
       {
-      s->samples_to_read = gavl_time_to_samples(s->in_format.samplerate,
+      s->samples_to_read = gavl_time_to_samples(s->out_format.samplerate,
                                                 t->end_time);
       }
     else
@@ -1241,10 +1272,10 @@ static int audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
     }
 
   if(s->samples_to_read &&
-     (s->samples_read + s->in_format.samples_per_frame > s->samples_to_read))
+     (s->samples_read + s->out_format.samples_per_frame > s->samples_to_read))
     num_samples = s->samples_to_read - s->samples_read;
   else
-    num_samples = s->in_format.samples_per_frame;
+    num_samples = s->out_format.samples_per_frame;
 
   if(s->do_convert_out)
     frame = s->pipe_frame;
@@ -1262,21 +1293,15 @@ static int audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
     return ret;
     }
 
-  s->samples_read += samples_decoded;
-
+  s->samples_read += frame->valid_samples;
+  
   /* Last samples */
   
   if(s->samples_to_read && (s->samples_to_read <= s->samples_read))
-    {
     s->com.status = STREAM_STATE_FINISHED;
-    }
-
-  
-  /* Update the time BEFORE we decide what to do with the frame */
-  s->samples_written += frame->valid_samples;
   
   s->com.time = gavl_samples_to_time(s->out_format.samplerate,
-                                     s->samples_written);
+                                     s->samples_read);
 #if 0
   if(t->start_time != GAVL_TIME_UNDEFINED)
     s->com.time += t->start_time;
@@ -2977,31 +3002,12 @@ static int init_audio_converter(audio_stream_t * ret)
   ret->com.out_plugin->get_audio_format(ret->com.out_handle->priv,
                                         ret->com.out_index,
                                         &(ret->out_format));
-#if 0
-  if(!ret->in_format.samplerate)
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Input samplerate is zero");
-    return 0;
-    }
-#endif
-  
-  if(!ret->com.do_filter)
-    {
-    gavl_audio_format_copy(&ret->pipe_format, &ret->out_format);
-    if(ret->options.force_float)
-      ret->pipe_format.sample_format = GAVL_SAMPLE_FLOAT;
 
-    if(bg_audio_converter_init(ret->cnv_in,
-                               &(ret->in_format),
-                               &(ret->pipe_format)))
-      {
-      bg_audio_converter_connect_input(ret->cnv_in, ret->in_func,
-                                       ret->in_data, ret->in_stream);
-      ret->in_func = bg_audio_converter_read;
-      ret->in_data = ret->cnv_in;
-      ret->in_stream = 0;
-      }
-    }
+  gavl_audio_format_copy(&ret->pipe_format, &ret->out_format);
+  if(ret->options.force_float)
+    ret->pipe_format.sample_format = GAVL_SAMPLE_FLOAT;
+
+  bg_audio_filter_chain_set_out_format(ret->fc, &ret->pipe_format);
   
   /* Initialize output converter */
   
@@ -3029,16 +3035,8 @@ static int init_video_converter(video_stream_t * ret)
                                         ret->com.out_index, &(ret->out_format));
   
   /* Initialize converter */
-  
-  if(bg_video_converter_init(ret->cnv, 
-                             &(ret->pipe_format),
-                             &(ret->out_format)))
-    {
-    bg_video_converter_connect_input(ret->cnv, ret->in_func, ret->in_data, ret->in_stream);
-    ret->in_func = bg_video_converter_read;
-    ret->in_data = ret->cnv;
-    ret->in_stream = 0;
-    }
+
+  bg_video_filter_chain_set_out_format(ret->fc, &(ret->out_format));
   
   /* Create frames */
   if(!ret->frame)
@@ -3155,7 +3153,8 @@ static int init_converters(bg_transcoder_t * ret)
         subtitle_init_encode_text((&ret->subtitle_text_streams[i]));
         break;
       case STREAM_ACTION_TRANSCODE_OVERLAY:
-        subtitle_init_encode_overlay((subtitle_stream_t*)&ret->subtitle_text_streams[i]);       break;
+        subtitle_init_encode_overlay((subtitle_stream_t*)&ret->subtitle_text_streams[i]);
+        break;
       }
     }
 
@@ -3341,8 +3340,8 @@ static void cleanup_audio_stream(audio_stream_t * s)
 
   if(s->out_frame)
     gavl_audio_frame_destroy(s->out_frame);
-  if(s->cnv_in)
-    bg_audio_converter_destroy(s->cnv_in);
+  if(s->pipe_frame)
+    gavl_audio_frame_destroy(s->pipe_frame);
   if(s->cnv_out)
     gavl_audio_converter_destroy(s->cnv_out);
 
@@ -3362,8 +3361,6 @@ static void cleanup_video_stream(video_stream_t * s)
 
   if(s->frame)
     gavl_video_frame_destroy(s->frame);
-  if(s->cnv)
-    bg_video_converter_destroy(s->cnv);
   if(s->fc)
     bg_video_filter_chain_destroy(s->fc);
   
@@ -3397,7 +3394,7 @@ static void reset_streams(bg_transcoder_t * t)
   int i;
   for(i = 0; i < t->num_audio_streams; i++)
     {
-    t->audio_streams[i].samples_written = 0;
+    t->audio_streams[i].samples_read = 0;
     t->audio_streams[i].com.time = 0;
     }
   for(i = 0; i < t->num_video_streams; i++)
@@ -3666,7 +3663,7 @@ void bg_transcoder_destroy(bg_transcoder_t * t)
     {
     if((t->audio_streams[i].com.action != STREAM_ACTION_FORGET) && !do_delete)
       {
-      sprintf(tmp_string, "%" PRId64, t->audio_streams[i].samples_written);
+      sprintf(tmp_string, "%" PRId64, t->audio_streams[i].samples_read);
       bg_log(BG_LOG_INFO, LOG_DOMAIN,
              "Audio stream %d: Transcoded %s samples", i+1,
              tmp_string);

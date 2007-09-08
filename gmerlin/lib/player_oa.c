@@ -58,7 +58,7 @@ struct bg_player_oa_context_s
 void * bg_player_oa_create_frame(void * data)
   {
   bg_player_oa_context_t * ctx = (bg_player_oa_context_t *)data;
-  return gavl_audio_frame_create(&(ctx->player->audio_stream.pipe_format));
+  return gavl_audio_frame_create(&(ctx->player->audio_stream.fifo_format));
   }
 
 int  bg_player_oa_has_plugin(bg_player_oa_context_t * ctx)
@@ -311,7 +311,7 @@ void * bg_player_oa_thread(void * data)
       if(do_mute)
         {
         gavl_audio_frame_mute(frame,
-                              &(ctx->player->audio_stream.pipe_format));
+                              &(ctx->player->audio_stream.fifo_format));
         }
       else
         {

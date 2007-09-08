@@ -71,7 +71,7 @@ char * bg_fix_path(char * path)
 char * bg_strdup(char * old_string, const char * new_string)
   {
   char * ret;
-  
+  int len;
   if(!new_string || (*new_string == '\0'))
     {
     if(old_string)
@@ -86,7 +86,9 @@ char * bg_strdup(char * old_string, const char * new_string)
     else
       free(old_string);
     }
-  ret = malloc(strlen(new_string)+1);
+  len = ((strlen(new_string)+1 + 3) / 4) * 4 ;
+  
+  ret = malloc(len);
   strcpy(ret, new_string);
   return ret;
   }

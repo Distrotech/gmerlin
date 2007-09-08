@@ -33,13 +33,11 @@ void bg_player_video_create(bg_player_t * p, bg_plugin_registry_t * plugin_reg)
     bg_video_filter_chain_create(&p->video_stream.options,
                                  plugin_reg);
   
-  p->video_stream.cnv = bg_video_converter_create(p->video_stream.options.opt);
   pthread_mutex_init(&(p->video_stream.config_mutex),(pthread_mutexattr_t *)0);
   }
 
 void bg_player_video_destroy(bg_player_t * p)
   {
-  bg_video_converter_destroy(p->video_stream.cnv);
   pthread_mutex_destroy(&(p->video_stream.config_mutex));
   bg_gavl_video_options_free(&(p->video_stream.options));
   }
@@ -59,52 +57,33 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
   if(!DO_SUBTITLE_ONLY(player))
     {
     bg_player_input_get_video_format(player->input_context);
-    if(bg_video_filter_chain_init(s->fc, &s->input_format, &s->pipe_format))
-      {
-      bg_video_filter_chain_connect_input(s->fc, s->in_func,
-                                          s->in_data, s->in_stream);
-      s->in_func = bg_video_filter_chain_read;
-      s->in_data = s->fc;
-      s->in_stream = 0;
-      }
-    else
-      gavl_video_format_copy(&s->pipe_format, &s->input_format);
+    
+    bg_video_filter_chain_connect_input(s->fc, s->in_func,
+                                        s->in_data, s->in_stream);
+    
+    bg_video_filter_chain_init(s->fc, &s->input_format, &s->output_format);
+    
+    s->in_func = bg_video_filter_chain_read;
+    s->in_data = s->fc;
+    s->in_stream = 0;
     }
   
   if(!bg_player_ov_init(player->ov_context))
-    {
     return 0;
-    }
+
+  if(!DO_SUBTITLE_ONLY(player))
+    bg_video_filter_chain_set_out_format(s->fc, &(s->output_format));
+  
   /* Initialize video fifo */
 
   if(DO_VIDEO(player))
     s->fifo = bg_fifo_create(NUM_VIDEO_FRAMES,
-                                               bg_player_ov_create_frame,
-                                               (void*)(player->ov_context));
+                             bg_player_ov_create_frame,
+                             (void*)(player->ov_context));
   else if(DO_STILL(player))
     s->fifo = bg_fifo_create(1,
-                                               bg_player_ov_create_frame,
-                                               (void*)(player->ov_context));
-  /* Initialize video converter */
-  if(!DO_SUBTITLE_ONLY(player))
-    {
-    pthread_mutex_lock(&(s->config_mutex));
-    
-    if(bg_video_converter_init(s->cnv,
-                               &(s->pipe_format),
-                               &(s->output_format)))
-      {
-      bg_video_converter_connect_input(s->cnv,
-                                       s->in_func,
-                                       s->in_data,
-                                       s->in_stream);
-      
-      s->in_func   = bg_video_converter_read;
-      s->in_data   = s->cnv;
-      s->in_stream = 0;
-      }
-    pthread_mutex_unlock(&(s->config_mutex));
-    }
+                             bg_player_ov_create_frame,
+                             (void*)(player->ov_context));
   
   if(DO_SUBTITLE_ONLY(player))
     {

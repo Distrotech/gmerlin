@@ -49,7 +49,6 @@ typedef enum
 
 typedef struct
   {
-  bg_audio_converter_t * cnv_in;
   gavl_audio_converter_t * cnv_out;
   bg_fifo_t * fifo;
 
@@ -59,10 +58,8 @@ typedef struct
   void * in_data;
   int    in_stream;
   
-  //  int do_convert_in;
   int do_convert_out;
-
-  //  gavl_audio_frame_t * frame_in;
+  
   gavl_audio_frame_t * frame_out;
   
   pthread_mutex_t config_mutex;
@@ -77,7 +74,7 @@ typedef struct
   
   gavl_audio_format_t input_format;
   gavl_audio_format_t output_format;
-  gavl_audio_format_t pipe_format;
+  gavl_audio_format_t fifo_format;
 
   /* Volume control */
   gavl_volume_control_t * volume;
@@ -86,7 +83,6 @@ typedef struct
 
 typedef struct
   {
-  bg_video_converter_t * cnv;
   bg_fifo_t * fifo;
 
   bg_video_filter_chain_t * fc;
@@ -105,9 +101,6 @@ typedef struct
     
   gavl_video_format_t input_format;
   gavl_video_format_t output_format;
-  gavl_video_format_t pipe_format;
-
-  
   } bg_player_video_stream_t;
 
 typedef struct
@@ -205,18 +198,6 @@ struct bg_player_s
    */
 
   int flags;
-
-#if 0  
-  int do_audio;
-
-  /* Only one of do_still and do_video can be nonzero at the same time */
-  int do_video;
-  int do_still;
-  
-  int do_subtitle_overlay;
-  int do_subtitle_text;
-  int do_subtitle_only; /* Display subtitles without video */
-#endif
   
   int current_audio_stream;
   int current_video_stream;

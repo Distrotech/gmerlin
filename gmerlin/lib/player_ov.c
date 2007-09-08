@@ -313,12 +313,9 @@ int bg_player_ov_init(bg_player_ov_context_t * ctx)
   {
   gavl_video_format_t osd_format;
   int result;
-
+  
   ctx->next_subtitle    = (gavl_overlay_t*)0;
   ctx->has_subtitle = 0;
-  
-  gavl_video_format_copy(&(ctx->player->video_stream.output_format),
-                         &(ctx->player->video_stream.pipe_format));
   
   bg_plugin_lock(ctx->plugin_handle);
   result = ctx->plugin->open(ctx->priv,

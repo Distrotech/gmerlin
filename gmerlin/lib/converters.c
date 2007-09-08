@@ -9,21 +9,33 @@
 
 #define ABSDIFF(x,y) ((x)>(y)?(x)-(y):(y)-(x))
 
+#define TIME_UNDEFINED 0x8000000000000000LL
+
 struct bg_audio_converter_s
   {
   gavl_audio_converter_t * cnv;
   const gavl_audio_options_t * opt;
-  gavl_audio_frame_t * frame;
+  gavl_audio_frame_t * in_frame;
+  gavl_audio_frame_t * out_frame;
 
   /* Input stuff */
   bg_read_audio_func_t read_func;
   void * read_priv;
   int read_stream;
 
-  gavl_audio_format_t frame_format;
+  bg_read_audio_func_t read_func_1;
+  void * read_priv_1;
+  int read_stream_1;
+  
+  /* Output stuff */
+  int (*read_func_out)(bg_audio_converter_t*, gavl_audio_frame_t * frame, int num_samples);
+  
+  gavl_audio_format_t in_format;
+  gavl_audio_format_t out_format;
   int in_rate;
   int out_rate;
   int last_samples;
+  int64_t out_pts;
   };
 
 bg_audio_converter_t *
@@ -36,6 +48,100 @@ bg_audio_converter_create(const gavl_audio_options_t * opt)
   return ret;
   }
 
+void bg_audio_converter_reset(bg_audio_converter_t * cnv)
+  {
+  if(cnv->out_frame)
+    cnv->out_frame->valid_samples = 0;
+  cnv->out_pts = TIME_UNDEFINED;
+  }
+
+static int
+read_audio_priv(void * priv, gavl_audio_frame_t * frame, int stream,
+                int num_samples)
+  {
+  int ret;
+  bg_audio_converter_t * cnv = (bg_audio_converter_t *)priv;
+  ret = cnv->read_func_1(cnv->read_priv_1, frame,
+                         cnv->read_stream_1, num_samples);
+  if(cnv->out_pts == TIME_UNDEFINED)
+    cnv->out_pts = gavl_time_rescale(cnv->in_format.samplerate,
+                                     cnv->out_format.samplerate,
+                                     frame->time_scaled);
+  return ret;
+  }
+
+void bg_audio_converter_connect_input(bg_audio_converter_t * cnv,
+                                      bg_read_audio_func_t func,
+                                      void * priv,
+                                      int stream)
+  {
+  cnv->read_func = read_audio_priv;
+  cnv->read_priv = cnv;
+  cnv->read_stream = 0;
+  
+  cnv->read_func_1 = func;
+  cnv->read_priv_1 = priv;
+  cnv->read_stream_1 = stream;
+  }
+
+static int audio_converter_read_noresample(bg_audio_converter_t * cnv,
+                                           gavl_audio_frame_t* frame, int num_samples)
+  {
+  if(cnv->in_format.samples_per_frame < num_samples)
+    {
+    if(cnv->in_frame)
+      {
+      gavl_audio_frame_destroy(cnv->in_frame);
+      cnv->in_frame = (gavl_audio_frame_t*)0;
+      }
+    cnv->in_format.samples_per_frame = num_samples + 1024;
+    }
+  
+  if(!cnv->in_frame)
+    cnv->in_frame = gavl_audio_frame_create(&cnv->in_format);
+
+  cnv->read_func(cnv->read_priv,
+                 cnv->in_frame,
+                 cnv->read_stream,
+                 num_samples);
+  
+  gavl_audio_convert(cnv->cnv, cnv->in_frame, frame);
+  return frame->valid_samples;
+  }
+
+static int audio_converter_read_resample(bg_audio_converter_t * cnv,
+                                         gavl_audio_frame_t* frame, int num_samples)
+  {
+  int samples_copied;
+
+  frame->valid_samples = 0;
+  while(frame->valid_samples < num_samples)
+    {
+    /* Read samples */
+    if(!cnv->out_frame->valid_samples)
+      {
+      if(!cnv->read_func(cnv->read_priv, cnv->in_frame, cnv->read_stream,
+                         cnv->in_format.samples_per_frame))
+        return frame->valid_samples;
+      gavl_audio_convert(cnv->cnv, cnv->in_frame, cnv->out_frame);
+      cnv->last_samples = cnv->out_frame->valid_samples;
+      }
+    /* Copy samples */
+
+    samples_copied = gavl_audio_frame_copy(&cnv->out_format,
+                                           frame,
+                                           cnv->out_frame,
+                                           frame->valid_samples,
+                                           cnv->last_samples - cnv->out_frame->valid_samples,
+                                           num_samples - frame->valid_samples,
+                                           cnv->out_frame->valid_samples);
+
+    cnv->out_frame->valid_samples -= samples_copied;
+    frame->valid_samples += samples_copied;
+    }
+  return frame->valid_samples;
+  }
+
 int bg_audio_converter_init(bg_audio_converter_t * cnv,
                             const gavl_audio_format_t * in_format,
                             const gavl_audio_format_t * out_format)
@@ -44,10 +150,15 @@ int bg_audio_converter_init(bg_audio_converter_t * cnv,
   gavl_audio_options_t * cnv_opt;
   
   /* Free previous stuff */
-  if(cnv->frame)
+  if(cnv->in_frame)
     {
-    gavl_audio_frame_destroy(cnv->frame);
-    cnv->frame = (gavl_audio_frame_t*)0;
+    gavl_audio_frame_destroy(cnv->in_frame);
+    cnv->in_frame = (gavl_audio_frame_t*)0;
+    }
+  if(cnv->out_frame)
+    {
+    gavl_audio_frame_destroy(cnv->out_frame);
+    cnv->out_frame = (gavl_audio_frame_t*)0;
     }
   /* Set options */
   cnv_opt = gavl_audio_converter_get_options(cnv->cnv);
@@ -57,60 +168,52 @@ int bg_audio_converter_init(bg_audio_converter_t * cnv,
 
   if(result)
     {
-    gavl_audio_format_copy(&cnv->frame_format, in_format);
-    cnv->in_rate = in_format->samplerate;
-    cnv->out_rate = out_format->samplerate;
+    gavl_audio_format_copy(&cnv->in_format, in_format);
+    gavl_audio_format_copy(&cnv->out_format, out_format);
+    
+    if(cnv->out_format.samplerate != cnv->in_format.samplerate)
+      {
+      cnv->out_format.samples_per_frame =
+        (cnv->in_format.samples_per_frame * cnv->out_format.samplerate) /
+        cnv->in_format.samplerate + 10;
+      
+      cnv->in_frame = gavl_audio_frame_create(&cnv->in_format);
+      cnv->out_frame = gavl_audio_frame_create(&cnv->out_format);
+
+      cnv->read_func_out = audio_converter_read_resample;
+      }
+    else
+      cnv->read_func_out = audio_converter_read_noresample;
+    
     cnv->last_samples = 0;
     }
   return result;
   }
 
-void bg_audio_converter_connect_input(bg_audio_converter_t * cnv,
-                                      bg_read_audio_func_t func,
-                                      void * priv,
-                                      int stream)
-  {
-  cnv->read_func = func;
-  cnv->read_priv = priv;
-  cnv->read_stream = stream;
-  }
 
 int bg_audio_converter_read(void * priv,
                             gavl_audio_frame_t* frame, int stream,
                             int num_samples)
   {
-  bg_audio_converter_t * cnv = (bg_audio_converter_t *)priv;
+  bg_audio_converter_t * cnv = (bg_audio_converter_t*)priv;
+  int result;
 
-  if(cnv->last_samples != num_samples)
+  result = cnv->read_func_out(cnv, frame, num_samples);
+
+  if(result)
     {
-    if(cnv->frame && (cnv->last_samples < num_samples))
-      {
-      gavl_audio_frame_destroy(cnv->frame);
-      cnv->frame = (gavl_audio_frame_t*)0;
-      }
-    if(cnv->in_rate != cnv->out_rate)
-      {
-      cnv->frame_format.samples_per_frame =
-        ((num_samples - 10) * cnv->in_rate) / cnv->out_rate;
-      }
-    else
-      cnv->frame_format.samples_per_frame = num_samples;
-
-    cnv->last_samples = num_samples;
+    frame->time_scaled = cnv->out_pts;
+    cnv->out_pts += frame->valid_samples;
     }
-  if(!cnv->frame)
-    cnv->frame = gavl_audio_frame_create(&cnv->frame_format);
-
-  cnv->read_func(cnv->read_priv, cnv->frame, cnv->read_stream,
-                 cnv->frame_format.samples_per_frame);
-  gavl_audio_convert(cnv->cnv, cnv->frame, frame);
-  return frame->valid_samples;
+  return result;
   }
 
 void bg_audio_converter_destroy(bg_audio_converter_t * cnv)
   {
-  if(cnv->frame)
-    gavl_audio_frame_destroy(cnv->frame);
+  if(cnv->in_frame)
+    gavl_audio_frame_destroy(cnv->in_frame);
+  if(cnv->out_frame)
+    gavl_audio_frame_destroy(cnv->out_frame);
   if(cnv->cnv)
     gavl_audio_converter_destroy(cnv->cnv);
   free(cnv);
@@ -129,8 +232,12 @@ struct bg_video_converter_s
   bg_read_video_func_t read_func;
   void * read_priv;
   int read_stream;
-  
-  int out_pts;
+
+  bg_read_video_func_t read_func_1;
+  void * read_priv_1;
+  int read_stream_1;
+    
+  int64_t out_pts;
   
   int convert_gavl;
   int convert_framerate;
@@ -226,14 +333,35 @@ int bg_video_converter_init(bg_video_converter_t * cnv,
   return ret;
   }
 
+static int
+read_video_priv(void * priv, gavl_video_frame_t * frame, int stream)
+  {
+  int ret;
+  bg_video_converter_t * cnv = (bg_video_converter_t *)priv;
+  ret = cnv->read_func_1(cnv->read_priv_1, frame,
+                         cnv->read_stream_1);
+  if(cnv->out_pts == TIME_UNDEFINED)
+    cnv->out_pts = gavl_time_rescale(cnv->in_format.timescale,
+                                     cnv->out_format.timescale,
+                                     frame->time_scaled);
+  return ret;
+  }
+
 void bg_video_converter_connect_input(bg_video_converter_t * cnv,
-                                      bg_read_video_func_t func, void * priv,
+                                      bg_read_video_func_t func,
+                                      void * priv,
                                       int stream)
   {
-  cnv->read_func = func;
-  cnv->read_priv = priv;
-  cnv->read_stream = stream;
+  cnv->read_func = read_video_priv;
+  cnv->read_priv = cnv;
+  cnv->read_stream = 0;
+  
+  cnv->read_func_1 = func;
+  cnv->read_priv_1 = priv;
+  cnv->read_stream_1 = stream;
   }
+
+
 
 int bg_video_converter_read(void * priv, gavl_video_frame_t* frame, int stream)
   {
@@ -321,11 +449,11 @@ void bg_video_converter_destroy(bg_video_converter_t * cnv)
   free(cnv);
   }
 
-void bg_video_converter_reset(bg_video_converter_t * cnv, int64_t out_pts)
+void bg_video_converter_reset(bg_video_converter_t * cnv)
   {
   if(cnv->frame)      cnv->frame->time_scaled      = GAVL_TIME_UNDEFINED;
   if(cnv->next_frame) cnv->next_frame->time_scaled = GAVL_TIME_UNDEFINED;
-
+  
   cnv->eof = 0;
-  cnv->out_pts = out_pts;
+  cnv->out_pts = TIME_UNDEFINED;
   }

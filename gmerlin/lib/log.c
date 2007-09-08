@@ -63,30 +63,18 @@ const char * bg_log_level_to_string(bg_log_level_t level)
 
 static bg_msg_queue_t * log_queue = (bg_msg_queue_t*)0;
 
-static void log_internal(bg_log_level_t level, const char * domain,
-                         const char * format, va_list argp)
+static void logs_internal(bg_log_level_t level, const char * domain,
+                          const char * msg_string)
   {
+  bg_msg_t * msg;
   char ** lines;
   int i;
-  char * msg_string;
-  bg_msg_t * msg;
   FILE * out = stderr;
-
-#ifndef HAVE_VASPRINTF
-  int len;
-  len = vsnprintf((char*)0, 0, format, argp);
-  msg_string = malloc(len+1);
-  vsnprintf(msg_string, len+1, format, argp);
-#else
-  vasprintf(&msg_string, format, argp);
-#endif
-  
   if(!log_queue)
     {
     if(level & log_mask)
       {
       lines = bg_strbreak(msg_string, '\n');
-
       i = 0;
       while(lines[i])
         {
@@ -96,6 +84,7 @@ static void log_internal(bg_log_level_t level, const char * domain,
                 lines[i]);
         i++;
         }
+      bg_strbreak_free(lines);
       }
     }
   else
@@ -106,8 +95,23 @@ static void log_internal(bg_log_level_t level, const char * domain,
     bg_msg_set_arg_string(msg, 1, msg_string);
     bg_msg_queue_unlock_write(log_queue);
     }
+  }
+
+static void log_internal(bg_log_level_t level, const char * domain,
+                         const char * format, va_list argp)
+  {
+  char * msg_string;
+
+#ifndef HAVE_VASPRINTF
+  int len;
+  len = vsnprintf((char*)0, 0, format, argp);
+  msg_string = malloc(len+1);
+  vsnprintf(msg_string, len+1, format, argp);
+#else
+  vasprintf(&msg_string, format, argp);
+#endif
+  logs_internal(level, domain, msg_string);
   free(msg_string);
-  
   }
 
 void bg_log_notranslate(bg_log_level_t level, const char * domain,
@@ -118,6 +122,12 @@ void bg_log_notranslate(bg_log_level_t level, const char * domain,
   va_start( argp, format);
   log_internal(level, domain, format, argp);
   va_end(argp);
+  }
+
+void bg_logs_notranslate(bg_log_level_t level, const char * domain,
+                        const char * str)
+  {
+  logs_internal(level, domain, str);
   }
 
 void bg_log_translate(const char * translation_domain,

@@ -506,9 +506,9 @@ static int process_audio(bg_player_input_context_t * ctx, int preload)
       audio_frame = (gavl_audio_frame_t*)bg_fifo_lock_write(s->fifo, &state);
     if(!audio_frame)
       return 0;
-    gavl_audio_frame_mute(audio_frame, &(ctx->player->audio_stream.pipe_format));
+    gavl_audio_frame_mute(audio_frame, &(ctx->player->audio_stream.fifo_format));
     audio_frame->valid_samples =
-      ctx->player->audio_stream.pipe_format.samples_per_frame;
+      ctx->player->audio_stream.fifo_format.samples_per_frame;
     ctx->audio_samples_written += audio_frame->valid_samples;
     ctx->audio_time =
       gavl_samples_to_time(ctx->player->audio_stream.input_format.samplerate,
@@ -529,7 +529,7 @@ static int process_audio(bg_player_input_context_t * ctx, int preload)
     return 0;
   
   if(!s->in_func(s->in_data, audio_frame, s->in_stream,
-                 s->pipe_format.samples_per_frame))
+                 s->fifo_format.samples_per_frame))
     ctx->audio_finished = 1;
   
   if(ctx->audio_finished &&
@@ -543,7 +543,7 @@ static int process_audio(bg_player_input_context_t * ctx, int preload)
   
   
   ctx->audio_time =
-    gavl_samples_to_time(ctx->player->audio_stream.pipe_format.samplerate,
+    gavl_samples_to_time(ctx->player->audio_stream.fifo_format.samplerate,
                          ctx->audio_samples_written);
 
   

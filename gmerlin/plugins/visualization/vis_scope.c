@@ -53,13 +53,24 @@ typedef struct
   int changed;
   float fade_factor;
   
+  gavl_video_options_t * scaler_opt;
+  
   } scope_priv_t;
 
 static void * create_scope()
   {
   scope_priv_t * ret;
+  int flags;
   ret = calloc(1, sizeof(*ret));
   ret->scaler = gavl_video_scaler_create();
+  ret->scaler_opt = gavl_video_scaler_get_options(ret->scaler);
+
+  //  gavl_video_options_set_quality(ret->scaler_opt, 3);
+
+  flags = gavl_video_options_get_conversion_flags(ret->scaler_opt);
+  flags &= ~GAVL_CONVOLVE_NORMALIZE;
+  gavl_video_options_set_conversion_flags(ret->scaler_opt, flags);
+  
   return ret;
   }
 
@@ -106,7 +117,7 @@ static bg_parameter_info_t parameters[] =
       flags: BG_PARAMETER_SYNC,
       val_min: { val_f:  0.5 },
       val_max: { val_f: 50.0 },
-      val_default: { val_f:  1.0 },
+      val_default: { val_f:  0.3 },
       num_digits: 1,
     },
     {
@@ -115,7 +126,7 @@ static bg_parameter_info_t parameters[] =
       type: BG_PARAMETER_SLIDER_FLOAT,
       val_min: { val_f:  0.0 },
       val_max: { val_f:  1.0 },
-      val_default: { val_f:  0.8 },
+      val_default: { val_f:  0.2 },
       num_digits: 2,
     },
     { /* End of parameters */ },
@@ -135,11 +146,17 @@ set_parameter_scope(void * priv, char * name, bg_parameter_value_t * val)
   if(!name)
     return;
 
+  fprintf(stderr, "set_parameter_scope %s\n", name);
+  
   if(!strcmp(name, "fg_color"))
     {
     vp->fg_float[0] = val->val_color[0];
     vp->fg_float[1] = val->val_color[1];
     vp->fg_float[2] = val->val_color[2];
+    fprintf(stderr, "%f %f %f\n",
+            vp->fg_float[0],
+            vp->fg_float[1],
+            vp->fg_float[2]);
     }
   else if(!strcmp(name, "blur_mode"))
     {
@@ -217,7 +234,7 @@ static float * get_coeffs(float radius, int * r_i, int mode, float fade_factor)
       return (float*)0;
     }
   if(*r_i < 1)
-    return (float*)(0);
+    return (float*)0;
   /* Allocate and set return values */
   ret = malloc(((*r_i * 2) + 1)*sizeof(*ret));
 
@@ -229,7 +246,7 @@ static float * get_coeffs(float radius, int * r_i, int mode, float fade_factor)
   for(i = 1; i <= *r_i; i++)
     {
     last_coeff = coeff;
-    coeff = get_coeff((i+0.5) / radius);
+    coeff = get_coeff((i) / radius);
     ret[*r_i+i] = coeff - last_coeff;
     ret[*r_i-i] = ret[*r_i+i];
     }
@@ -240,6 +257,9 @@ static float * get_coeffs(float radius, int * r_i, int mode, float fade_factor)
 
   for(i = 0; i < (2 * *r_i) + 1; i++)
     ret[i] *= fade_factor / sum;
+  
+  for(i = 0; i < (2 * *r_i) + 1; i++)
+    fprintf(stderr, "ret[%d]: %f\n", i, ret[i]);
   
   return ret;
   }
@@ -252,7 +272,7 @@ open_scope(void * priv, bg_ov_plugin_t * ov_plugin, void * ov_priv,
   scope_priv_t * vp;
   uint8_t fg_r, fg_g, fg_b;
   float * blur_coeffs;
-  int num_blur_coeffs;
+  int num_blur_coeffs = 0;
   
   vp = (scope_priv_t *)priv;
 
@@ -402,14 +422,12 @@ static void draw_frame_scope(void * priv, gavl_video_frame_t * frame)
   {
   scope_priv_t * vp;
 
-  float color[4] = { 1.0, 0.0, 0.0, 1.0 };
-  
   vp = (scope_priv_t *)priv;
 
   gavl_video_frame_clear(frame, &vp->video_format);
   
-  //  gavl_video_frame_copy(&vp->video_format, frame, vp->last_video_frame);
-  //  gavl_video_scaler_scale(vp->scaler, vp->last_video_frame, frame);
+  gavl_video_frame_copy(&vp->video_format, frame, vp->last_video_frame);
+  gavl_video_scaler_scale(vp->scaler, vp->last_video_frame, frame);
   
   
   //  draw_line(vp, frame, (vp->video_format.image_width - 1), 0,

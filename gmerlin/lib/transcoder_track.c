@@ -274,13 +274,9 @@ static void create_sections(bg_transcoder_track_t * t,
       t->audio_streams[i].filter_section = bg_cfg_section_copy(filter_section);
       if(track_info->audio_streams[i].language[0] != '\0')
         bg_cfg_section_set_parameter_string(t->audio_streams[i].general_section,
-                                            "language",
+                                            "in_language",
                                             track_info->audio_streams[i].language);
-      else
-        bg_cfg_section_set_parameter_string(t->audio_streams[i].general_section,
-                                            "language", "und");
       }
-    
     }
 
   if(t->num_video_streams)
@@ -312,11 +308,8 @@ static void create_sections(bg_transcoder_track_t * t,
 
       if(track_info->subtitle_streams[in_index].language[0] != '\0')
         bg_cfg_section_set_parameter_string(t->subtitle_text_streams[i].general_section,
-                                            "language",
+                                            "in_language",
                                             track_info->subtitle_streams[in_index].language);
-      else
-        bg_cfg_section_set_parameter_string(t->subtitle_text_streams[i].general_section,
-                                            "language", "und");
       }
     }
 
@@ -330,11 +323,8 @@ static void create_sections(bg_transcoder_track_t * t,
       in_index = t->subtitle_overlay_streams[i].in_index;
       if(track_info->subtitle_streams[in_index].language[0] != '\0')
         bg_cfg_section_set_parameter_string(t->subtitle_overlay_streams[i].general_section,
-                                            "language",
+                                            "in_language",
                                             track_info->subtitle_streams[in_index].language);
-      else
-        bg_cfg_section_set_parameter_string(t->subtitle_overlay_streams[i].general_section,
-                                            "language", "und");
       }
     }
   bg_transcoder_track_create_encoder_sections(t, encoder_info);
@@ -464,12 +454,25 @@ static bg_parameter_info_t general_parameters_subtitle_text[] =
       help_string: TRS("Select action for this subtitle stream.")
     },
     {
+      name:        "in_language",
+      long_name:   TRS("Input Language"),
+      type:        BG_PARAMETER_STRING,
+      flags:       BG_PARAMETER_HIDE_DIALOG,
+    },
+    {
       name:        "language",
       long_name:   TRS("Language"),
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "eng" },
       multi_names:  bg_language_codes,
       multi_labels: bg_language_labels,
+    },
+    {
+      name:        "force_language",
+      long_name:   TRS("Force language"),
+      type:        BG_PARAMETER_CHECKBUTTON,
+      val_default: { val_i: 1 },
+      help_string: TRS("Force the given language even if the input has the language set differently.")
     },
     {
       name:        "video_stream",
@@ -498,12 +501,25 @@ static bg_parameter_info_t general_parameters_subtitle_overlay[] =
       val_default: { val_str: "forget" },
     },
     {
+      name:        "in_language",
+      long_name:   TRS("Input Language"),
+      type:        BG_PARAMETER_STRING,
+      flags:       BG_PARAMETER_HIDE_DIALOG,
+    },
+    {
       name:        "language",
       long_name:   TRS("Language"),
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "eng" },
       multi_names:  bg_language_codes,
       multi_labels: bg_language_labels,
+    },
+    {
+      name:        "force_language",
+      long_name:   TRS("Force language"),
+      type:        BG_PARAMETER_CHECKBUTTON,
+      val_default: { val_i: 1 },
+      help_string: TRS("Force the given language even if the input has the language set differently.")
     },
     {
       name:        "blend_stream",
@@ -562,9 +578,18 @@ static void create_filter_parameters(bg_transcoder_track_t * track,
   bg_audio_filter_chain_t * afc;
   bg_video_filter_chain_t * vfc;
 
+  bg_gavl_audio_options_t ao;
+  bg_gavl_video_options_t vo;
+
+  memset(&ao, 0, sizeof(ao));
+  memset(&vo, 0, sizeof(vo));
+
+  bg_gavl_audio_options_init(&ao);
+  bg_gavl_video_options_init(&vo);
+  
   if(track->num_audio_streams > 0)
     {
-    afc = bg_audio_filter_chain_create(NULL, plugin_reg);
+    afc = bg_audio_filter_chain_create(&ao, plugin_reg);
     for(i = 0; i < track->num_audio_streams; i++)
       {
       track->audio_streams[i].filter_parameters =
@@ -576,7 +601,7 @@ static void create_filter_parameters(bg_transcoder_track_t * track,
   
   if(track->num_video_streams > 0)
     {
-    vfc = bg_video_filter_chain_create(NULL, plugin_reg);
+    vfc = bg_video_filter_chain_create(&vo, plugin_reg);
     for(i = 0; i < track->num_video_streams; i++)
       {
       track->video_streams[i].filter_parameters =
@@ -584,6 +609,10 @@ static void create_filter_parameters(bg_transcoder_track_t * track,
       }
     bg_video_filter_chain_destroy(vfc);
     }
+
+  bg_gavl_audio_options_free(&ao);
+  bg_gavl_video_options_free(&vo);
+
   }
 
 /* Create parameters if the config sections are already there */
@@ -1418,12 +1447,25 @@ static bg_parameter_info_t general_parameters_audio[] =
       val_default: { val_str: "transcode" },
     },
     {
+      name:        "in_language",
+      long_name:   TRS("Input Language"),
+      type:        BG_PARAMETER_STRING,
+      flags:       BG_PARAMETER_HIDE_DIALOG,
+    },
+    {
       name:        "language",
       long_name:   TRS("Language"),
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "eng" },
       multi_names:  bg_language_codes,
       multi_labels: bg_language_labels,
+    },
+    {
+      name:        "force_language",
+      long_name:   TRS("Force language"),
+      type:        BG_PARAMETER_CHECKBUTTON,
+      val_default: { val_i: 1 },
+      help_string: TRS("Force the given language even if the input has the language set differently.")
     },
     {
       name:        "normalize",

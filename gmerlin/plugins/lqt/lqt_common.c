@@ -378,6 +378,6 @@ void bg_lqt_log(lqt_log_level_t level, const char * log_domain, const char * mes
       break;
     }
 
-  bg_log(gmerlin_level, gmerlin_domain, message);
+  bg_logs_notranslate(gmerlin_level, gmerlin_domain, message);
   free(gmerlin_domain);
   }

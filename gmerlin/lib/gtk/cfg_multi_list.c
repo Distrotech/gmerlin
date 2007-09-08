@@ -279,7 +279,8 @@ static void set_sub_param_add(void * priv, char * name,
   else
     tmp_string = bg_sprintf("%s.%d.%s", w->info->name, list->num-1,
                             name);
-  list->set_param(list->data, tmp_string, val);
+  if(list->set_param)
+    list->set_param(list->data, tmp_string, val);
   if(tmp_string)
     free(tmp_string);
   

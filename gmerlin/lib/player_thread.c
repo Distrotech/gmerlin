@@ -592,9 +592,14 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
     bg_player_input_seek(p->input_context, &time);
     bg_player_time_set(p, time);
     }
-  //  else
-  //    bg_player_time_set(p, 0);
-
+  else
+    {
+    if(DO_AUDIO(p))
+      bg_audio_filter_chain_reset(p->audio_stream.fc);
+    if(DO_VIDEO(p))
+      bg_video_filter_chain_reset(p->video_stream.fc);
+    }
+  
   if(!p->do_bypass)
     {
   
@@ -844,14 +849,16 @@ static void do_seek(bg_player_t * player, gavl_time_t t, int old_state)
   if(player->can_seek)
     bg_player_input_seek(player->input_context, &sync_time);
   
-  /* Clear fifos */
+  /* Clear fifos and filter chains */
 
   if(DO_AUDIO(player))
     {
+    bg_audio_filter_chain_reset(player->audio_stream.fc);
     bg_fifo_clear(player->audio_stream.fifo);
     }
   if(DO_VIDEO(player))
     {
+    bg_video_filter_chain_reset(player->video_stream.fc);
     bg_fifo_clear(player->video_stream.fifo);
     }
   if(DO_SUBTITLE(player))

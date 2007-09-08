@@ -194,6 +194,8 @@ void bg_visualizer_set_parameter(void * priv,
     }
   }
 
+static int delay_print_counter = 0;
+
 static void * audio_thread_func(void * data)
   {
   int do_stop;
@@ -249,7 +251,14 @@ static void * audio_thread_func(void * data)
                                             v->audio_time + v->audio_pos);
     
     diff_time = audio_time_unscaled - current_time;
-    //    fprintf(stderr, "Delay %lld %lld %lld\n", audio_time_unscaled, current_time, diff_time);
+
+    if(delay_print_counter < 10)
+      {
+      fprintf(stderr, "Delay %lld %lld -> %lld\n",
+              audio_time_unscaled, current_time, diff_time);
+      delay_print_counter++;
+      }
+    
     if(diff_time > GAVL_TIME_SCALE / 1000)
       {
       gavl_time_delay(&diff_time);
@@ -260,7 +269,7 @@ static void * audio_thread_func(void * data)
     v->vis_plugin->update(v->vis_handle->priv, v->audio_frame_out_1);
     bg_plugin_unlock(v->vis_handle);
     
-    
+    v->audio_pos += v->audio_format_out.samples_per_frame;
     }
   
   return (void*)0;

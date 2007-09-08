@@ -71,6 +71,20 @@ void bg_audio_filter_chain_set_parameter(void * data,
 
 int bg_audio_filter_chain_need_rebuild(bg_audio_filter_chain_t * ch);
 
+/** \brief Set input callback of an audio filter chain
+ *  \param ch An audio filter chain
+ *  \param func The function to call
+ *  \param priv The private handle to pass to func
+ *  \param stream The stream argument to pass to func
+ *
+ *  This function must be called *before* bg_audio_filter_chain_init.
+ */
+
+void bg_audio_filter_chain_connect_input(bg_audio_filter_chain_t * ch,
+                                         bg_read_audio_func_t func,
+                                         void * priv,
+                                         int stream);
+
 /** \brief Initialize an audio filter chain
  *  \param ch An audio filter chain
  *  \param in_format Input format
@@ -81,17 +95,17 @@ int bg_audio_filter_chain_init(bg_audio_filter_chain_t * ch,
                                const gavl_audio_format_t * in_format,
                                gavl_audio_format_t * out_format);
 
-/** \brief Set input callback of an audio filter chain
+/** \brief Set output format of an audio filter chain
  *  \param ch An audio filter chain
- *  \param func The function to call
- *  \param priv The private handle to pass to func
- *  \param stream The stream argument to pass to func
+ *  \param out_format Output format
+ *  \returns The number of conversion steps
+ *
+ *  This function initializes a final audio converter at the output
+ *  for delivering the desired format.
  */
 
-void bg_audio_filter_chain_connect_input(bg_audio_filter_chain_t * ch,
-                                         bg_read_audio_func_t func,
-                                         void * priv,
-                                         int stream);
+int bg_audio_filter_chain_set_out_format(bg_audio_filter_chain_t * ch,
+                                          const gavl_audio_format_t * out_format);
 
 /** \brief Read a audio samples from an audio filter chain
  *  \param priv An audio filter chain
@@ -129,6 +143,14 @@ void bg_audio_filter_chain_lock(bg_audio_filter_chain_t * ch);
 
 void bg_audio_filter_chain_unlock(bg_audio_filter_chain_t * ch);
 
+/** \brief Reset an audio filter chain
+ *  \param ch An audio filter chain
+ *  \param out_pts The pts of the next output frame in \ref GAVL_TIME_SCALE tics
+ *  
+ *  Set the internal state as if no sample has been processed since last init
+ */
+
+void bg_audio_filter_chain_reset(bg_audio_filter_chain_t * ch);
 
 /* Video */
 
@@ -174,6 +196,21 @@ void bg_video_filter_chain_set_parameter(void * data, char * name,
 
 int bg_video_filter_chain_need_rebuild(bg_video_filter_chain_t * ch);
 
+
+
+/** \brief Set input callback of a video filter chain
+ *  \param ch A video filter chain
+ *  \param func The function to call
+ *  \param priv The private handle to pass to func
+ *  \param stream The stream argument to pass to func
+ *
+ *  This function must be called *before* bg_video_filter_chain_init.
+ */
+
+void bg_video_filter_chain_connect_input(bg_video_filter_chain_t * ch,
+                                         bg_read_video_func_t func,
+                                         void * priv, int stream);
+
 /** \brief Initialize a video filter chain
  *  \param ch A video filter chain
  *  \param in_format Input format
@@ -184,17 +221,17 @@ int bg_video_filter_chain_init(bg_video_filter_chain_t * ch,
                                const gavl_video_format_t * in_format,
                                gavl_video_format_t * out_format);
 
-
-/** \brief Set input callback of a video filter chain
- *  \param ch A video filter chain
- *  \param func The function to call
- *  \param priv The private handle to pass to func
- *  \param stream The stream argument to pass to func
+/** \brief Set output format of an video filter chain
+ *  \param ch An video filter chain
+ *  \param out_format Output format
+ *
+ *  This function initializes a final video converter at the output
+ *  for delivering the desired format.
  */
 
-void bg_video_filter_chain_connect_input(bg_video_filter_chain_t * ch,
-                                         bg_read_video_func_t func,
-                                         void * priv, int stream);
+int bg_video_filter_chain_set_out_format(bg_video_filter_chain_t * ch,
+                                          const gavl_video_format_t * out_format);
+
 
 /** \brief Read a video frame from a video filter chain
  *  \param priv A video filter chain
@@ -229,6 +266,15 @@ void bg_video_filter_chain_lock(bg_video_filter_chain_t * ch);
  */
 
 void bg_video_filter_chain_unlock(bg_video_filter_chain_t * ch);
+
+/** \brief Reset a video filter chain
+ *  \param ch An video filter chain
+ *  \param out_pts The pts of the next output frame in \ref GAVL_TIME_SCALE tics
+ *  
+ *  Set the internal state as if no sample has been processed since last init
+ */
+
+void bg_video_filter_chain_reset(bg_video_filter_chain_t * ch);
 
 /**
  * @}
