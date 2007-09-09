@@ -164,8 +164,8 @@ static int read_video_flip(void * priv, gavl_video_frame_t * frame, int stream)
   else /* Flip y */
     gavl_video_frame_copy_flip_y(&vp->format, frame, vp->frame);
   
-  frame->time_scaled = vp->frame->time_scaled;
-  frame->duration_scaled = vp->frame->duration_scaled;
+  frame->timestamp = vp->frame->timestamp;
+  frame->duration = vp->frame->duration;
   return 1;
   }
 

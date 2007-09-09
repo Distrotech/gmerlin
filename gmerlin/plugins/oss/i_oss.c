@@ -252,7 +252,7 @@ static void read_frame_oss(void * p, gavl_audio_frame_t * f, int num_samples)
                           f->samples.s_8,
                           num_samples * priv->bytes_per_frame);
   f->valid_samples /= priv->bytes_per_frame;
-  f->time_scaled = priv->samples_read;
+  f->timestamp = priv->samples_read;
   priv->samples_read += f->valid_samples;
   }
 

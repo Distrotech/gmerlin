@@ -530,7 +530,7 @@ static int read_audio_ladspa(void * priv,
       gavl_audio_frame_copy(&lp->format, frame, lp->frame,
                             0, 0, lp->frame->valid_samples,
                             lp->frame->valid_samples);
-    frame->time_scaled = lp->frame->time_scaled;
+    frame->timestamp = lp->frame->timestamp;
     }
   
   connect_output(lp, frame);

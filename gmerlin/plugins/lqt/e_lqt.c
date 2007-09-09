@@ -345,7 +345,7 @@ static int write_video_frame_lqt(void * data, gavl_video_frame_t* frame,
   e_lqt_t * e = (e_lqt_t*)data;
   
   test_time = gavl_time_unscale(e->video_streams[stream].format.timescale,
-                                frame->time_scaled);
+                                frame->timestamp);
   if(e->duration < test_time)
     e->duration = test_time;
   

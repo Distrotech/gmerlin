@@ -525,7 +525,7 @@ void * bg_player_ov_thread(void * data)
 
     /* Get frame time */
     ctx->frame_time = gavl_time_unscale(ctx->player->video_stream.output_format.timescale,
-                                        ctx->frame->time_scaled);
+                                        ctx->frame->timestamp);
 
     
     /* Subtitle handling */
@@ -542,8 +542,8 @@ void * bg_player_ov_thread(void * data)
       if(ctx->has_subtitle)
         {
         if(bg_overlay_too_old(ctx->frame_time,
-                              ctx->current_subtitle.frame->time_scaled,
-                              ctx->current_subtitle.frame->duration_scaled))
+                              ctx->current_subtitle.frame->timestamp,
+                              ctx->current_subtitle.frame->duration))
           {
           ctx->plugin->set_overlay(ctx->priv, ctx->subtitle_id, (gavl_overlay_t*)0);
           ctx->has_subtitle = 0;
@@ -555,7 +555,7 @@ void * bg_player_ov_thread(void * data)
       if(ctx->next_subtitle)
         {
         if(!bg_overlay_too_new(ctx->frame_time,
-                               ctx->next_subtitle->frame->time_scaled))
+                               ctx->next_subtitle->frame->timestamp))
           {
           memcpy(&tmp_overlay, ctx->next_subtitle, sizeof(tmp_overlay));
           memcpy(ctx->next_subtitle, &(ctx->current_subtitle),

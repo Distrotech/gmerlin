@@ -315,7 +315,7 @@ static void read_frame_alsa(void * p, gavl_audio_frame_t * f,
   if(f)
     {
     f->valid_samples = samples_read;
-    f->time_scaled = priv->samples_read;
+    f->timestamp = priv->samples_read;
     }
   priv->samples_read += samples_read;
   }

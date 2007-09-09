@@ -358,8 +358,8 @@ static int deinterlace_gavl(struct deinterlace_priv_s * vp,
     return 0;
   gavl_video_deinterlacer_deinterlace(vp->deint, vp->frame, frame);
 
-  frame->time_scaled = vp->frame->time_scaled;
-  frame->duration_scaled = vp->frame->duration_scaled;
+  frame->timestamp = vp->frame->timestamp;
+  frame->duration = vp->frame->duration;
 
   return 1;
   }
@@ -380,8 +380,8 @@ static int deinterlace_scale_hw(struct deinterlace_priv_s * vp,
   gavl_video_frame_copy(&vp->out_format, frame, vp->src_field_1);
 
   
-  frame->time_scaled = vp->frame->time_scaled;
-  frame->duration_scaled = vp->frame->duration_scaled;
+  frame->timestamp = vp->frame->timestamp;
+  frame->duration = vp->frame->duration;
   
   return 1;
   }

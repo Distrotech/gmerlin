@@ -218,15 +218,15 @@ void bg_osd_init(bg_osd_t * osd, const gavl_video_format_t * format,
 
 int bg_osd_overlay_valid(bg_osd_t * osd, gavl_time_t time)
   {
-  if(!osd->enable || (osd->ovl.frame->time_scaled < 0))
+  if(!osd->enable || (osd->ovl.frame->timestamp < 0))
     return 0;
 
-  if(time < osd->ovl.frame->time_scaled)
+  if(time < osd->ovl.frame->timestamp)
     return 0;
   
-  else if(time > osd->ovl.frame->time_scaled + osd->ovl.frame->duration_scaled)
+  else if(time > osd->ovl.frame->timestamp + osd->ovl.frame->duration)
     {
-    osd->ovl.frame->time_scaled = -1;
+    osd->ovl.frame->timestamp = -1;
     return 0;
     }
   return 1;
@@ -264,8 +264,8 @@ static void print_float(bg_osd_t * osd, float val, char c, gavl_time_t time)
   
   bg_text_renderer_render(osd->renderer, _buf, &osd->ovl);
 
-  osd->ovl.frame->time_scaled = time;
-  osd->ovl.frame->duration_scaled = osd->duration;
+  osd->ovl.frame->timestamp = time;
+  osd->ovl.frame->duration = osd->duration;
   
   }
 

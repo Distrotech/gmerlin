@@ -424,7 +424,7 @@ static int read_video_decimate(void * priv,
   gavl_video_frame_copy(&vp->format, vp->frame, frame);
   
   /* Don't know when the next frame will come */
-  frame->duration_scaled = -1; 
+  frame->duration = -1; 
   if(vp->do_log && skipped)
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Skipped %d frames", skipped);  
   return 1;

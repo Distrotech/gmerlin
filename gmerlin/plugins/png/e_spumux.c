@@ -141,10 +141,10 @@ static int write_subtitle_overlay_spumux(void * priv, gavl_overlay_t * ovl, int 
     return 0;
   
   fprintf(spumux->xml_file, "    <spu start=\"");
-  print_time(spumux->xml_file, ovl->frame->time_scaled, &spumux->format);
+  print_time(spumux->xml_file, ovl->frame->timestamp, &spumux->format);
 
   fprintf(spumux->xml_file, "\" end=\"");
-  print_time(spumux->xml_file, ovl->frame->time_scaled+ovl->frame->duration_scaled, &spumux->format);
+  print_time(spumux->xml_file, ovl->frame->timestamp+ovl->frame->duration, &spumux->format);
   fprintf(spumux->xml_file, "\" xoffset=\"%d\" yoffset=\"%d\" image=\"%s\"/>\n", ovl->dst_x, ovl->dst_y,
           image_filename);
   

@@ -270,7 +270,7 @@ int lqt_gavl_encode_video(quicktime_t * file, int track,
     {
     lqt_set_row_span(file, track, frame->strides[0]);
     lqt_set_row_span_uv(file, track, frame->strides[1]);
-    result = lqt_encode_video(file, frame->planes, track, frame->time_scaled);
+    result = lqt_encode_video(file, frame->planes, track, frame->timestamp);
     }
   else
     {
@@ -280,7 +280,7 @@ int lqt_gavl_encode_video(quicktime_t * file, int track,
       lqt_set_row_span(file, track, frame->strides[0]);
       rows[i] = frame->planes[0] + i * frame->strides[0];
       }
-    result = lqt_encode_video(file, rows, track, frame->time_scaled);
+    result = lqt_encode_video(file, rows, track, frame->timestamp);
     }
   return result;
   }
@@ -379,7 +379,7 @@ int lqt_gavl_decode_video(quicktime_t * file, int track,
      quicktime_video_length(file, track))
     return 0;
   
-  frame->time_scaled = lqt_frame_time(file, track);
+  frame->timestamp = lqt_frame_time(file, track);
 
 
 
@@ -406,9 +406,9 @@ int lqt_gavl_decode_audio(quicktime_t * file, int track,
                           gavl_audio_frame_t * frame,
                           int samples)
   {
-  frame->time_scaled = quicktime_audio_position(file, track);
+  frame->timestamp = quicktime_audio_position(file, track);
   lqt_decode_audio_raw(file, frame->samples.s_8, samples, track);
-  frame->valid_samples = lqt_last_audio_position(file, track) - frame->time_scaled;
+  frame->valid_samples = lqt_last_audio_position(file, track) - frame->timestamp;
   return frame->valid_samples;
   }
 

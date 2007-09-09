@@ -88,7 +88,7 @@ AH_TEMPLATE([HAVE_LIBPOSTPROC],
 
 have_libpostproc=false
 
-LIBPOSTPROC_REQUIRED="51"
+LIBPOSTPROC_REQUIRED="51.0.0"
 
 AC_ARG_ENABLE(libpostproc,
 [AC_HELP_STRING([--disable-libpostproc],[Disable libpostproc (default: autodetect)])],
@@ -99,7 +99,8 @@ esac],[test_libpostproc=true])
 
 if test x$test_libpostproc = xtrue; then
 
-PKG_CHECK_MODULES(LIBPOSTPROC, libpostproc, have_libpostproc="true", have_libpostproc="false")
+PKG_CHECK_MODULES(LIBPOSTPROC, libpostproc >= $LIBPOSTPROC_REQUIRED,
+                  have_libpostproc="true", have_libpostproc="false")
 fi
 
 AC_SUBST(LIBPOSTPROC_REQUIRED)
@@ -113,6 +114,45 @@ AC_DEFINE([HAVE_LIBPOSTPROC])
 fi
 
 ])
+
+dnl
+dnl libswscale
+dnl
+
+AC_DEFUN([GMERLIN_CHECK_LIBSWSCALE],[
+
+AH_TEMPLATE([HAVE_LIBSWSCALE],
+            [Do we have libswscale installed?])
+
+have_libswscale=false
+
+LIBSWSCALE_REQUIRED="0.5.0"
+
+AC_ARG_ENABLE(libswscale,
+[AC_HELP_STRING([--disable-libswscale],[Disable libswscale (default: autodetect)])],
+[case "${enableval}" in
+   yes) test_libswscale=true ;;
+   no)  test_libswscale=false ;;
+esac],[test_libswscale=true])
+
+if test x$test_libswscale = xtrue; then
+
+PKG_CHECK_MODULES(LIBSWSCALE, libswscale >= $LIBSWSCALE_REQUIRED,
+                  have_libswscale="true", have_libswscale="false")
+fi
+
+AC_SUBST(LIBSWSCALE_REQUIRED)
+AC_SUBST(LIBSWSCALE_LIBS)
+AC_SUBST(LIBSWSCALE_CFLAGS)
+
+AM_CONDITIONAL(HAVE_LIBSWSCALE, test x$have_libswscale = xtrue)
+
+if test "x$have_libswscale" = "xtrue"; then
+AC_DEFINE([HAVE_LIBSWSCALE])
+fi
+
+])
+
 
 
 dnl
@@ -485,6 +525,7 @@ FAAD2_PREFIX=""
 FAAD2_REQUIRED="2.0"
 have_faad2="false"
 AH_TEMPLATE([HAVE_FAAD2], [Enable FAAD2])
+AH_TEMPLATE([HAVE_NEAACDEC_H], [Use new header file for faad2])
 AC_ARG_WITH(faad2-prefix, [ --with-faad2-prefix=PFX   Prefix to search for faad2],FAAD2_PREFIX=${withval})
 
 
@@ -508,10 +549,47 @@ CFLAGS="-I$FAAD2_PREFIX/include"
 LIBS="-L$FAAD2_PREFIX/lib -lfaad -lm"
 fi
 
-AC_MSG_CHECKING(for faad2)
+dnl
+dnl Check for neaacdec.h
+dnl
+
+AC_MSG_CHECKING(for neaacdec.h usability for faad2)
 
   AC_TRY_RUN([
-    #include "faad.h"
+    #include <neaacdec.h>
+    #include <stdio.h>
+    main()
+    {
+    int faad_major;
+    int faad_minor;
+    NeAACDecHandle dec;
+
+    if(sscanf(FAAD2_VERSION, "%d.%d", &faad_major, &faad_minor) < 2)
+      return -1;
+    dec = NeAACDecOpen();
+    if(!dec)
+      return -1;
+    return 0;
+    }
+  ],
+  [
+    # program could be run
+    have_faad2="true"
+    AC_MSG_RESULT(yes)
+    FAAD2_CFLAGS=$CFLAGS
+    FAAD2_LIBS=$LIBS
+    AC_DEFINE(HAVE_NEAACDEC_H)
+  ],
+    # program could not be run
+    AC_MSG_RESULT(no)
+)
+
+if test "x$have_faad2" != "xtrue"; then
+
+AC_MSG_CHECKING(for faad.h usability for faad2)
+
+  AC_TRY_RUN([
+    #include <faad.h>
     #include <stdio.h>
     main()
     {
@@ -538,6 +616,8 @@ AC_MSG_CHECKING(for faad2)
     # program could not be run
     AC_MSG_RESULT(no)
 )
+fi
+
 
 CFLAGS=$OLD_CFLAGS
 LIBS=$OLD_LIBS
@@ -946,8 +1026,30 @@ AC_ARG_ENABLE(libcda,
 esac],[test_libdca=true])
 
 if test x$test_libdca = xtrue; then
-
 PKG_CHECK_MODULES(DCA, libdts >= $DCA_REQUIRED, have_dca="true", have_dca="false")
+
+dnl
+dnl Some systems need -ldts_pic
+dnl
+
+if test x$have_dca = xtrue; then
+have_libdts_pic=false
+OLD_CFLAGS=$CFLAGS
+OLD_LIBS=$LIBS
+CFLAGS=$DCA_CFLAGS
+LIBS=`pkg-config --libs-only-L libdts`
+LIBS="$LIBS -lm"
+AC_CHECK_LIB(dts_pic, dts_init, have_libdts_pic=true, have_libdts_pic=false)
+
+if test x$have_libdts_pic = xtrue; then
+DCA_LIBS="$LIBS -ldts_pic"
+fi
+
+CFLAGS=$OLD_CFLAGS
+LIBS=$OLD_LIBS
+
+fi
+
 fi
 
 AM_CONDITIONAL(HAVE_DCA, test x$have_dca = xtrue)

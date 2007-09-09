@@ -234,7 +234,7 @@ static void * audio_thread_func(void * data)
                               0, 0, v->audio_format_in.samples_per_frame,
                               v->audio_frame_in->valid_samples);
       v->audio_changed = 0;
-      v->audio_time = v->audio_frame_in->time_scaled;
+      v->audio_time = v->audio_frame_in->timestamp;
       v->audio_pos = 0;
       }
     pthread_mutex_unlock(&v->audio_mutex);
@@ -445,7 +445,7 @@ void bg_visualizer_update(bg_visualizer_t * v, gavl_audio_frame_t * frame)
                             v->audio_frame_in,
                             frame, 0, 0, v->audio_format_in.samples_per_frame,
                             frame->valid_samples);
-  v->audio_frame_in->time_scaled = frame->time_scaled;
+  v->audio_frame_in->timestamp = frame->timestamp;
   
   pthread_mutex_unlock(&v->audio_mutex);
   }

@@ -216,7 +216,7 @@ static void read_frame_esd(void * p, gavl_audio_frame_t * f, int num_samples)
   if(f)
     {
     f->valid_samples = samples_read;
-    f->time_scaled = priv->samples_read;
+    f->timestamp = priv->samples_read;
     }
   priv->samples_read += samples_read;
   }

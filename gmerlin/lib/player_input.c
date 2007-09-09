@@ -449,7 +449,7 @@ bg_player_input_read_audio(void * priv, gavl_audio_frame_t * frame, int stream, 
 
   if(!ctx->has_first_audio_timestamp)
     {
-    ctx->audio_samples_written = frame->time_scaled;
+    ctx->audio_samples_written = frame->timestamp;
     ctx->has_first_audio_timestamp = 1;
     }
   
@@ -481,7 +481,7 @@ bg_player_input_read_video_subtitle_only(void * priv, gavl_video_frame_t * frame
 
   gavl_video_frame_fill(frame, &s->output_format, ctx->bg_color);
   
-  frame->time_scaled = (int64_t)ctx->video_frames_written *
+  frame->timestamp = (int64_t)ctx->video_frames_written *
     ctx->player->video_stream.output_format.frame_duration;
   return 1;
   }
@@ -584,8 +584,8 @@ static int process_subtitle(bg_player_input_context_t * ctx)
         return 0;
         }
       bg_text_renderer_render(s->renderer, s->buffer, ovl);
-      ovl->frame->time_scaled = start;
-      ovl->frame->duration_scaled = duration;
+      ovl->frame->timestamp = start;
+      ovl->frame->duration = duration;
       //      return 1;
       }
     else
@@ -629,7 +629,7 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
   
   if(ctx->player->video_stream.input_format.framerate_mode != GAVL_FRAMERATE_STILL)
     ctx->video_time = gavl_time_unscale(ctx->player->video_stream.input_format.timescale,
-                                        video_frame->time_scaled);
+                                        video_frame->timestamp);
   
   bg_fifo_unlock_write(s->fifo, ctx->video_finished);
 

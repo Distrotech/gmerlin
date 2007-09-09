@@ -371,8 +371,8 @@ static int read_video_blur(void * priv, gavl_video_frame_t * frame, int stream)
       return 0;
     gavl_video_scaler_scale(vp->scaler,
                             vp->frame, frame);
-    frame->time_scaled = vp->frame->time_scaled;
-    frame->duration_scaled = vp->frame->duration_scaled;
+    frame->timestamp = vp->frame->timestamp;
+    frame->duration = vp->frame->duration;
     return 1;
     }
   else 

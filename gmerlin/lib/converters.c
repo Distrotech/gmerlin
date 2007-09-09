@@ -66,7 +66,7 @@ read_audio_priv(void * priv, gavl_audio_frame_t * frame, int stream,
   if(cnv->out_pts == TIME_UNDEFINED)
     cnv->out_pts = gavl_time_rescale(cnv->in_format.samplerate,
                                      cnv->out_format.samplerate,
-                                     frame->time_scaled);
+                                     frame->timestamp);
   return ret;
   }
 
@@ -202,7 +202,7 @@ int bg_audio_converter_read(void * priv,
 
   if(result)
     {
-    frame->time_scaled = cnv->out_pts;
+    frame->timestamp = cnv->out_pts;
     cnv->out_pts += frame->valid_samples;
     }
   return result;
@@ -316,13 +316,13 @@ int bg_video_converter_init(bg_video_converter_t * cnv,
     {
     cnv->frame = gavl_video_frame_create(in_format);
     gavl_video_frame_clear(cnv->frame, in_format);
-    cnv->frame->time_scaled = GAVL_TIME_UNDEFINED;
+    cnv->frame->timestamp = GAVL_TIME_UNDEFINED;
     }
   if(cnv->convert_framerate)
     {
     cnv->next_frame = gavl_video_frame_create(in_format);
     gavl_video_frame_clear(cnv->next_frame, in_format);
-    cnv->next_frame->time_scaled = GAVL_TIME_UNDEFINED;
+    cnv->next_frame->timestamp = GAVL_TIME_UNDEFINED;
     }
   cnv->out_pts = 0;
   cnv->eof = 0;
@@ -343,7 +343,7 @@ read_video_priv(void * priv, gavl_video_frame_t * frame, int stream)
   if(cnv->out_pts == TIME_UNDEFINED)
     cnv->out_pts = gavl_time_rescale(cnv->in_format.timescale,
                                      cnv->out_format.timescale,
-                                     frame->time_scaled);
+                                     frame->timestamp);
   return ret;
   }
 
@@ -381,20 +381,20 @@ int bg_video_converter_read(void * priv, gavl_video_frame_t* frame, int stream)
     else
       result = cnv->read_func(cnv->read_priv, frame, cnv->read_stream);
     if(cnv->rescale_timestamps)
-      frame->time_scaled = gavl_time_rescale(cnv->in_format.timescale,
+      frame->timestamp = gavl_time_rescale(cnv->in_format.timescale,
                                              cnv->out_format.timescale,
-                                             frame->time_scaled);
+                                             frame->timestamp);
     
     return result;
     }
   else
     {
     /* Read first frames */
-    if((cnv->frame->time_scaled == GAVL_TIME_UNDEFINED) &&
+    if((cnv->frame->timestamp == GAVL_TIME_UNDEFINED) &&
        !cnv->read_func(cnv->read_priv, cnv->frame, cnv->read_stream))
       return 0;
 
-    if((cnv->next_frame->time_scaled == GAVL_TIME_UNDEFINED) &&
+    if((cnv->next_frame->timestamp == GAVL_TIME_UNDEFINED) &&
        !cnv->read_func(cnv->read_priv, cnv->next_frame, cnv->read_stream))
       return 0;
     
@@ -405,7 +405,7 @@ int bg_video_converter_read(void * priv, gavl_video_frame_t* frame, int stream)
     if(cnv->eof)
       return 0;
 
-    while(in_pts >= cnv->next_frame->time_scaled)
+    while(in_pts >= cnv->next_frame->timestamp)
       {
       tmp_frame = cnv->frame;
       cnv->frame = cnv->next_frame;
@@ -421,8 +421,8 @@ int bg_video_converter_read(void * priv, gavl_video_frame_t* frame, int stream)
     
     if(cnv->eof)
       tmp_frame = cnv->next_frame;
-    else if(ABSDIFF(cnv->next_frame->time_scaled, in_pts) <
-            ABSDIFF(cnv->frame->time_scaled, in_pts))
+    else if(ABSDIFF(cnv->next_frame->timestamp, in_pts) <
+            ABSDIFF(cnv->frame->timestamp, in_pts))
       tmp_frame = cnv->next_frame;
     else
       tmp_frame = cnv->frame;
@@ -432,7 +432,7 @@ int bg_video_converter_read(void * priv, gavl_video_frame_t* frame, int stream)
     else
       gavl_video_frame_copy(&cnv->out_format, frame, tmp_frame);
     
-    frame->time_scaled = cnv->out_pts;
+    frame->timestamp = cnv->out_pts;
     cnv->out_pts += cnv->out_format.frame_duration;
     }
   return 1;
@@ -451,8 +451,8 @@ void bg_video_converter_destroy(bg_video_converter_t * cnv)
 
 void bg_video_converter_reset(bg_video_converter_t * cnv)
   {
-  if(cnv->frame)      cnv->frame->time_scaled      = GAVL_TIME_UNDEFINED;
-  if(cnv->next_frame) cnv->next_frame->time_scaled = GAVL_TIME_UNDEFINED;
+  if(cnv->frame)      cnv->frame->timestamp      = GAVL_TIME_UNDEFINED;
+  if(cnv->next_frame) cnv->next_frame->timestamp = GAVL_TIME_UNDEFINED;
   
   cnv->eof = 0;
   cnv->out_pts = TIME_UNDEFINED;

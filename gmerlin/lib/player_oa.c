@@ -288,15 +288,15 @@ void * bg_player_oa_thread(void * data)
 #if 1
     if(!ctx->have_first_timestamp)
       {
-      if(frame->time_scaled)
+      if(frame->timestamp)
         {
-        sprintf(tmp_string, "%" PRId64, frame->time_scaled);
+        sprintf(tmp_string, "%" PRId64, frame->timestamp);
         bg_log(BG_LOG_INFO, LOG_DOMAIN,
                "Got initial audio timestamp: %s",
                tmp_string);
         
         pthread_mutex_lock(&(ctx->time_mutex));
-        ctx->samples_written += frame->time_scaled;
+        ctx->samples_written += frame->timestamp;
         pthread_mutex_unlock(&(ctx->time_mutex));
         }
       ctx->have_first_timestamp = 1;

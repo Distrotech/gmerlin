@@ -396,7 +396,7 @@ static int read_video_frame_input(void * priv, gavl_video_frame_t* f,
     }
   if(f)
     {
-    f->time_scaled = (inp->current_frame - inp->frame_start) * inp->frame_duration;
+    f->timestamp = (inp->current_frame - inp->frame_start) * inp->frame_duration;
     }
   inp->header_read = 0;
   inp->current_frame++;
