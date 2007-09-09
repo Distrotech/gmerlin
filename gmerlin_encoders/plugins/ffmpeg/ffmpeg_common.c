@@ -401,7 +401,6 @@ static int open_video_encoder(ffmpeg_priv_t * priv,
   return 1;
   }
 
-
 int bg_ffmpeg_start(void * data)
   {
   ffmpeg_priv_t * priv;

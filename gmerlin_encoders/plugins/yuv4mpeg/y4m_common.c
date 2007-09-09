@@ -96,7 +96,9 @@ int bg_y4m_write_header(bg_y4m_common_t * com)
     case GAVL_INTERLACE_BOTTOM_FIRST:
       i = Y4M_ILACE_BOTTOM_FIRST;
       break;
-    default:
+    case GAVL_INTERLACE_MIXED:
+      com->format.interlace_mode = GAVL_INTERLACE_NONE;
+    default: // Fall through
       i = Y4M_ILACE_NONE;
       break;
     }

@@ -340,7 +340,7 @@ static int bg_mpv_get_chroma_mode(bg_mpv_common_t * com)
   }
 
 static void bg_mpv_adjust_interlacing(gavl_video_format_t * format,
-                               int mpeg_format)
+                                      int mpeg_format)
   {
   switch(mpeg_format)
     {
@@ -351,6 +351,11 @@ static void bg_mpv_adjust_interlacing(gavl_video_format_t * format,
     case FORMAT_MPEG2:
     case FORMAT_SVCD:
     case FORMAT_DVD:
+      if(format->interlace_mode == GAVL_INTERLACE_MIXED)
+        {
+        bg_log(BG_LOG_WARNING, LOG_DOMAIN,  "Mixed interlacing not supported (yet)");
+        format->interlace_mode = GAVL_INTERLACE_NONE;
+        }
       break;
     default:
       bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Unknown MPEG format");

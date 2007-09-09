@@ -852,6 +852,15 @@ RC buffer size") \
     help_string: TRS("Warning: GMC is not supported by all decoders") \
   }
 
+/** Motion estimation */
+#define PARAM_FLAG_MV0 \
+  { \
+    .name =        "ff_flag_mv0", \
+    .long_name =   TRS("Always try a MB with MV=<0,0>"),       \
+    .type =        BG_PARAMETER_CHECKBUTTON, \
+    .val_default = { .val_i = 0 }, \
+  }
+
 #define PARAM_FLAG_PART \
   {                              \
     name:        "ff_flag_part", \
