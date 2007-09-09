@@ -88,6 +88,15 @@ void gavl_video_deinterlacer_deinterlace(gavl_video_deinterlacer_t * d,
                                          gavl_video_frame_t * input_frame,
                                          gavl_video_frame_t * output_frame)
   {
-  d->func(d, input_frame, output_frame);
+  if(d->format.interlace_mode == GAVL_INTERLACE_MIXED)
+    {
+    if((input_frame->interlace_mode != GAVL_INTERLACE_NONE) ||
+       (d->opt.conversion_flags & GAVL_FORCE_DEINTERLACE))
+      d->func(d, input_frame, output_frame);
+    else
+      gavl_video_frame_copy(&d->format, output_frame, input_frame);
+    }
+  else
+    d->func(d, input_frame, output_frame);
   }
 

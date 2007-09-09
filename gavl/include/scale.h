@@ -314,8 +314,12 @@ struct gavl_video_scaler_s
   {
   gavl_video_options_t opt;
 
-  /* a context is obtained with contexts[field][plane] */
-  gavl_video_scale_context_t contexts[2][GAVL_MAX_PLANES];
+  /*
+   *  a context is obtained with contexts[field][plane].
+   *  field == 2 contains a progressive scaler, which might be
+   *  required for frame based interlacing
+   */
+  gavl_video_scale_context_t contexts[3][GAVL_MAX_PLANES];
   
   int num_planes;
 

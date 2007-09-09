@@ -46,16 +46,13 @@ void gavl_video_scaler_destroy(gavl_video_scaler_t * s)
   gavl_video_frame_destroy(s->src);
   gavl_video_frame_destroy(s->dst);
 
-  for(i = 0; i < 2; i++)
+  for(i = 0; i < 3; i++)
     {
     for(j = 0; j < GAVL_MAX_PLANES; j++)
       {
       gavl_video_scale_context_cleanup(&(s->contexts[i][j]));
       }
-    
     }
-  
-  
   free(s);  
   }
 
@@ -165,8 +162,8 @@ void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt,
 
 
 int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
-                           const gavl_video_format_t * _src_format,
-                           const gavl_video_format_t * _dst_format)
+                           const gavl_video_format_t * src_format,
+                           const gavl_video_format_t * dst_format)
   {
   gavl_rectangle_f_t src_rect;
   gavl_rectangle_i_t  dst_rect;
@@ -185,8 +182,8 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
   
   /* Copy formats */
   
-  gavl_video_format_copy(&(scaler->src_format), _src_format);
-  gavl_video_format_copy(&(scaler->dst_format), _dst_format);
+  gavl_video_format_copy(&(scaler->src_format), src_format);
+  gavl_video_format_copy(&(scaler->dst_format), dst_format);
   
   /* Check if we have rectangles */
 
@@ -287,7 +284,6 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
 #endif    
 
   /* Handle automatic mode selection */
-  
 
   if(opt.scale_mode == GAVL_SCALE_AUTO)
     {
@@ -304,6 +300,7 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
 
   if(scaler->src_fields > scaler->dst_fields)
     {
+    /* Deinterlace mode */
     field = (scaler->opt.deinterlace_drop_mode == GAVL_DEINTERLACE_DROP_BOTTOM) ? 0 : 1;
     for(plane = 0; plane < scaler->num_planes; plane++)
       {
@@ -312,9 +309,19 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
                                     plane, &(scaler->src_format), &(scaler->dst_format), field, 0,
                                     scaler->src_fields, scaler->dst_fields);
       }
+    if(scaler->src_format.interlace_mode == GAVL_INTERLACE_MIXED)
+      {
+      for(plane = 0; plane < scaler->num_planes; plane++)
+        {
+        gavl_video_scale_context_init(&(scaler->contexts[2][plane]),
+                                      &opt,
+                                      plane, &(scaler->src_format), &(scaler->dst_format), 0, 0, 1, 1);
+        }
+      }
     }
   else
     {
+    /* src_fields == dst_fields */
     for(field = 0; field < scaler->src_fields; field++)
       {
       for(plane = 0; plane < scaler->num_planes; plane++)
@@ -323,6 +330,16 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
                                       &opt,
                                       plane, &(scaler->src_format), &(scaler->dst_format), field, field,
                                       scaler->src_fields, scaler->dst_fields);
+        }
+      }
+
+    if(scaler->src_format.interlace_mode == GAVL_INTERLACE_MIXED)
+      {
+      for(plane = 0; plane < scaler->num_planes; plane++)
+        {
+        gavl_video_scale_context_init(&(scaler->contexts[2][plane]),
+                                      &opt,
+                                      plane, &(scaler->src_format), &(scaler->dst_format), 0, 0, 1, 1);
         }
       }
     }
@@ -392,12 +409,26 @@ int gavl_video_scaler_init_convolve(gavl_video_scaler_t * scaler,
     for(plane = 0; plane < scaler->num_planes; plane++)
       {
       gavl_video_scale_context_init_convolve(&(scaler->contexts[field][plane]),
-                                    &opt,
-                                    plane, format, 
-                                    scaler->src_fields,
-                                    h_radius, h_coeffs,
-                                    v_radius, v_coeffs);
+                                             &opt,
+                                             plane, format, 
+                                             scaler->src_fields,
+                                             h_radius, h_coeffs,
+                                             v_radius, v_coeffs);
       }
+    
+    if(scaler->src_format.interlace_mode == GAVL_INTERLACE_MIXED)
+      {
+      for(plane = 0; plane < scaler->num_planes; plane++)
+        {
+        gavl_video_scale_context_init_convolve(&(scaler->contexts[2][plane]),
+                                               &opt,
+                                               plane, format, 
+                                               1,
+                                               h_radius, h_coeffs,
+                                               v_radius, v_coeffs);
+        }
+      }
+    
     }
   return 1;
   }
@@ -423,32 +454,54 @@ void gavl_video_scaler_scale(gavl_video_scaler_t * s,
 #endif
   if(s->src_fields > s->dst_fields)
     {
-    field = (s->opt.deinterlace_drop_mode == GAVL_DEINTERLACE_DROP_BOTTOM) ? 0 : 1;
-    gavl_video_frame_get_field(s->src_format.pixelformat, src, 
-                               s->src_field, field);
-    
-    for(i = 0; i < s->num_planes; i++)
-      gavl_video_scale_context_scale(&(s->contexts[field][i]), 
-                                     s->src_field, s->dst);
+    /* Progressive scaling for mixed mode */
+    if((s->src_format.interlace_mode == GAVL_INTERLACE_MIXED) &&
+       (src->interlace_mode == GAVL_INTERLACE_NONE) &&
+       !(s->opt.conversion_flags & GAVL_FORCE_DEINTERLACE))
+      {
+      for(i = 0; i < s->num_planes; i++)
+        gavl_video_scale_context_scale(&(s->contexts[2][i]), src, s->dst);
+      }
+    else /* Deinterlace mode */
+      {
+      field = (s->opt.deinterlace_drop_mode == GAVL_DEINTERLACE_DROP_BOTTOM) ? 0 : 1;
+      gavl_video_frame_get_field(s->src_format.pixelformat, src, 
+                                 s->src_field, field);
+      
+      for(i = 0; i < s->num_planes; i++)
+        gavl_video_scale_context_scale(&(s->contexts[field][i]), 
+                                       s->src_field, s->dst);
+      }
     }
   else if(s->src_fields == 2)
     {
-    /* First field */
-    gavl_video_frame_get_field(s->src_format.pixelformat, src,    s->src_field, 0);
-    gavl_video_frame_get_field(s->dst_format.pixelformat, s->dst, s->dst_field, 0);
-    for(i = 0; i < s->num_planes; i++)
+    /* Progressive scaling for mixed mode */
+    if((s->src_format.interlace_mode == GAVL_INTERLACE_MIXED) &&
+       (src->interlace_mode == GAVL_INTERLACE_NONE) &&
+       !(s->opt.conversion_flags & GAVL_FORCE_DEINTERLACE))
       {
-      //      fprintf(stderr, "Field: 0, plane: %d\n", i);
-      gavl_video_scale_context_scale(&(s->contexts[0][i]), s->src_field, s->dst_field);
+      for(i = 0; i < s->num_planes; i++)
+        gavl_video_scale_context_scale(&(s->contexts[2][i]), src, s->dst);
       }
-    
-    /* Second field */
-    gavl_video_frame_get_field(s->src_format.pixelformat, src,    s->src_field, 1);
-    gavl_video_frame_get_field(s->dst_format.pixelformat, s->dst, s->dst_field, 1);
-    for(i = 0; i < s->num_planes; i++)
+    else
       {
-      //      fprintf(stderr, "Field: 1, plane: %d\n", i);
-      gavl_video_scale_context_scale(&(s->contexts[1][i]), s->src_field, s->dst_field);
+      /* First field */
+      gavl_video_frame_get_field(s->src_format.pixelformat, src,    s->src_field, 0);
+      gavl_video_frame_get_field(s->dst_format.pixelformat, s->dst, s->dst_field, 0);
+      for(i = 0; i < s->num_planes; i++)
+        {
+        //      fprintf(stderr, "Field: 0, plane: %d\n", i);
+        gavl_video_scale_context_scale(&(s->contexts[0][i]), s->src_field, s->dst_field);
+        }
+      
+      /* Second field */
+      gavl_video_frame_get_field(s->src_format.pixelformat, src,    s->src_field, 1);
+      gavl_video_frame_get_field(s->dst_format.pixelformat, s->dst, s->dst_field, 1);
+      for(i = 0; i < s->num_planes; i++)
+        {
+        //      fprintf(stderr, "Field: 1, plane: %d\n", i);
+        gavl_video_scale_context_scale(&(s->contexts[1][i]), s->src_field, s->dst_field);
+        }
       }
     }
   else

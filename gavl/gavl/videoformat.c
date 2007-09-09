@@ -101,9 +101,10 @@ typedef struct
 
 interlace_mode_tab_t interlace_mode_tab[] =
   {
-    { GAVL_INTERLACE_NONE, "None (Progressive)" },
-    { GAVL_INTERLACE_TOP_FIRST, "Top field first" },
-    { GAVL_INTERLACE_BOTTOM_FIRST, "Bottom field first" }
+    { GAVL_INTERLACE_NONE,         "None (Progressive)" },
+    { GAVL_INTERLACE_TOP_FIRST,    "Top field first" },
+    { GAVL_INTERLACE_BOTTOM_FIRST, "Bottom field first" },
+    { GAVL_INTERLACE_MIXED,        "Mixed" }
   };
 
 static int num_interlace_modes = sizeof(interlace_mode_tab)/sizeof(interlace_mode_tab[0]);

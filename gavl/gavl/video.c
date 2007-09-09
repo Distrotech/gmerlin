@@ -498,14 +498,17 @@ void gavl_video_convert(gavl_video_converter_t * cnv,
   cnv->first_context->input_frame = input_frame;
   cnv->last_context->output_frame = output_frame;
 
+  output_frame->timestamp = input_frame->timestamp;
+  output_frame->duration = input_frame->duration;
+  output_frame->interlace_mode = input_frame->interlace_mode;
+  
   tmp_ctx = cnv->first_context;
 
+  
   while(tmp_ctx)
     {
     tmp_ctx->func(tmp_ctx);
     tmp_ctx = tmp_ctx->next;
     }
 
-  output_frame->time_scaled = input_frame->time_scaled;
-  output_frame->duration_scaled = input_frame->duration_scaled;
   }

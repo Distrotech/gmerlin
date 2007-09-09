@@ -395,7 +395,7 @@ typedef struct gavl_audio_frame_s
   gavl_audio_samples_t  samples; /*!< Sample pointer for interleaved formats         */ 
   gavl_audio_channels_t channels;/*!< Channel pointer for non interleaved formats    */
   int valid_samples;             /*!< Number of actually valid samples */
-  int64_t time_scaled;           /*!< Timestamp in samplerate tics */
+  int64_t timestamp;             /*!< Timestamp in samplerate tics */
   } gavl_audio_frame_t;
 
 /*!
@@ -1502,9 +1502,10 @@ typedef enum
 
 typedef enum
   {
-    GAVL_INTERLACE_NONE = 0,      /*!< Progressive */
-    GAVL_INTERLACE_TOP_FIRST,     /*!< Top field first */
-    GAVL_INTERLACE_BOTTOM_FIRST     /*!< Bottom field first */
+    GAVL_INTERLACE_NONE = 0,    /*!< Progressive */
+    GAVL_INTERLACE_TOP_FIRST,   /*!< Top field first */
+    GAVL_INTERLACE_BOTTOM_FIRST,/*!< Bottom field first */
+    GAVL_INTERLACE_MIXED        /*!< Use interlace_mode of the frames */
   } gavl_interlace_mode_t;
 
 /*! \ingroup video_format
@@ -1543,6 +1544,7 @@ struct gavl_video_format_s
 
   gavl_framerate_mode_t   framerate_mode;/*!< Framerate mode */
   gavl_chroma_placement_t chroma_placement;/*!< Chroma placement */
+
   gavl_interlace_mode_t   interlace_mode;/*!< Interlace mode */
   };
 
@@ -1623,8 +1625,9 @@ typedef struct gavl_video_frame_s
   int strides[GAVL_MAX_PLANES];      /*!< For each plane, this stores the byte offset between the scanlines */
   
   void * user_data;    /*!< For storing user data (e.g. the corresponding XImage) */
-  int64_t time_scaled; /*!< Timestamp in stream specific units (see \ref video_format) */
-  int64_t duration_scaled; /*!< Duration in stream specific units (see \ref video_format) */
+  int64_t timestamp; /*!< Timestamp in stream specific units (see \ref video_format) */
+  int64_t duration; /*!< Duration in stream specific units (see \ref video_format) */
+  gavl_interlace_mode_t   interlace_mode;/*!< Interlace mode */
   } gavl_video_frame_t;
 
 
