@@ -92,14 +92,15 @@ static int bgav_video_decode(bgav_stream_t * stream,
   
   if(frame && result)
     {
-    frame->time_scaled = stream->data.video.last_frame_time;
+    frame->timestamp = stream->data.video.last_frame_time;
+    frame->duration  = stream->data.video.last_frame_duration;
     //    fprintf(stderr, "Video time: %f\n",
-    //            (float)(frame->time_scaled) /
+    //            (float)(frame->timestamp) /
     //            (float)(stream->data.video.format.timescale));
                 
     /* Yes, this sometimes happens due to rounding errors */
-    if(frame->time_scaled < 0)
-      frame->time_scaled = 0;
+    if(frame->timestamp < 0)
+      frame->timestamp = 0;
     }
   stream->out_position++;
   

@@ -439,11 +439,11 @@ static int read_spumux(bgav_stream_t * s)
   if(!bgav_png_reader_read_image(priv->reader, ctx->ovl.frame))
     return 0;
   
-  ctx->ovl.frame->time_scaled =
+  ctx->ovl.frame->timestamp =
     parse_time_spumux(start_time, s->data.subtitle.format.timescale,
                       s->data.subtitle.format.frame_duration);
   
-  if(ctx->ovl.frame->time_scaled == GAVL_TIME_UNDEFINED)
+  if(ctx->ovl.frame->timestamp == GAVL_TIME_UNDEFINED)
     {
     bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
              "Parsing time string %s failed", start_time);
@@ -452,17 +452,17 @@ static int read_spumux(bgav_stream_t * s)
   tmp = bgav_yml_get_attribute_i(priv->cur, "end");
   if(tmp)
     {
-    ctx->ovl.frame->duration_scaled =
+    ctx->ovl.frame->duration =
       parse_time_spumux(tmp,
                         s->data.subtitle.format.timescale,
                         s->data.subtitle.format.frame_duration);
-    if(ctx->ovl.frame->duration_scaled == GAVL_TIME_UNDEFINED)
+    if(ctx->ovl.frame->duration == GAVL_TIME_UNDEFINED)
       return 0;
-    ctx->ovl.frame->duration_scaled -= ctx->ovl.frame->time_scaled;
+    ctx->ovl.frame->duration -= ctx->ovl.frame->timestamp;
     }
   else
     {
-    ctx->ovl.frame->duration_scaled = -1;
+    ctx->ovl.frame->duration = -1;
     }
 
   tmp = bgav_yml_get_attribute_i(priv->cur, "xoffset");
@@ -916,7 +916,7 @@ void bgav_subtitle_reader_seek(bgav_stream_t * s,
       {
       while(ctx->reader->read_subtitle_overlay(s))
         {
-        if(ctx->ovl.frame->time_scaled + ctx->ovl.frame->duration_scaled < time)
+        if(ctx->ovl.frame->timestamp + ctx->ovl.frame->duration < time)
           {
           titles_skipped++;
           continue;
@@ -948,8 +948,8 @@ int bgav_subtitle_reader_read_overlay(bgav_stream_t * s, gavl_overlay_t * ovl)
     copy_format.image_height = ctx->ovl.ovl_rect.h;
     copy_format.frame_height = ctx->ovl.ovl_rect.h;
     gavl_video_frame_copy(&copy_format, ovl->frame, ctx->ovl.frame);
-    ovl->frame->time_scaled     = ctx->ovl.frame->time_scaled;
-    ovl->frame->duration_scaled = ctx->ovl.frame->duration_scaled;
+    ovl->frame->timestamp     = ctx->ovl.frame->timestamp;
+    ovl->frame->duration = ctx->ovl.frame->duration;
     ovl->dst_x = ctx->ovl.dst_x;
     ovl->dst_y = ctx->ovl.dst_y;
     gavl_rectangle_i_copy(&(ovl->ovl_rect), &(ctx->ovl.ovl_rect));

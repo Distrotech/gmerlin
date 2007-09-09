@@ -30,7 +30,7 @@
 
 /*
  *  Backwards compatibility names (currently in neaacdec.h,
- *  but might be removed in future versions
+ *  but might be removed in future versions)
  */
 #ifndef faacDecHandle
 /* structs */

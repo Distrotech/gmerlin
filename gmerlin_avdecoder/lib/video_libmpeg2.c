@@ -210,6 +210,13 @@ static void get_format(bgav_stream_t*s,
     }
 
   //  dump_sequence_header(sequence);
+
+  // Get interlace mode
+  if((sequence->flags & SEQ_FLAG_MPEG2) &&
+     !(sequence->flags & SEQ_FLAG_PROGRESSIVE_SEQUENCE))
+    ret->interlace_mode = GAVL_INTERLACE_MIXED;
+  else
+    ret->interlace_mode = GAVL_INTERLACE_NONE;
   }
 
 /* Decode one picture, frame will be in priv->info->display_picture
@@ -306,13 +313,27 @@ static int decode_picture(bgav_stream_t*s)
   /* Get this pictures duration */
   
   priv->picture_duration = s->data.video.format.frame_duration;
+
+  //  fprintf(stderr, "Duration1: %d\n", priv->picture_duration);
   
+#if 0  
   if((priv->info->display_picture->flags & PIC_FLAG_TOP_FIELD_FIRST) &&
      (priv->info->display_picture->nb_fields > 2))
     {
     priv->picture_duration =
-      (priv->picture_duration * priv->info->current_picture->nb_fields) / 2;
+      (priv->picture_duration * priv->info->display_picture->nb_fields) / 2;
     }
+#else
+  if(priv->info->display_picture->nb_fields > 2)
+    {
+    priv->picture_duration =
+      (priv->picture_duration * priv->info->display_picture->nb_fields) / 2;
+    }
+  //  fprintf(stderr, "Fields: %d, Duration: %d\n",
+  //          priv->info->display_picture->nb_fields,
+  //          priv->picture_duration);
+#endif
+  
   
   return 1;
   }
@@ -354,10 +375,31 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
     priv->frame->planes[1] = priv->info->display_fbuf->buf[1];
     priv->frame->planes[2] = priv->info->display_fbuf->buf[2];
     gavl_video_frame_copy(&(s->data.video.format), f, priv->frame);
+    if(s->data.video.format.interlace_mode == GAVL_INTERLACE_MIXED)
+      {
+      if(priv->info->display_picture->flags & PIC_FLAG_PROGRESSIVE_FRAME)
+        f->interlace_mode = GAVL_INTERLACE_NONE;
+      else
+        f->interlace_mode =
+          (priv->info->display_picture->flags & PIC_FLAG_TOP_FIELD_FIRST) ?
+          GAVL_INTERLACE_TOP_FIRST : GAVL_INTERLACE_BOTTOM_FIRST;
+      }
+#if 0 // Don't set anything for progressive mode!!
+    else
+      f->interlace_mode = GAVL_INTERLACE_NONE;
+#endif
     }
   s->data.video.last_frame_time     = priv->picture_timestamp;
   s->data.video.last_frame_duration = priv->picture_duration;
-  
+#if 0
+  fprintf(stderr, "PTS: %lld, Duration: %d, P: %d, TFF: %d, fields: %d, Interlace mode: %s\n", 
+          s->data.video.last_frame_time,
+          s->data.video.last_frame_duration,
+          !!(priv->info->display_picture->flags & PIC_FLAG_PROGRESSIVE_FRAME),
+          !!(priv->info->display_picture->flags & PIC_FLAG_TOP_FIELD_FIRST),
+          priv->info->display_picture->nb_fields,
+          (f ? gavl_interlace_mode_to_string(f->interlace_mode) : "No frame"));
+#endif
   if(!s->data.video.still_mode)
     {
     priv->have_frame = 0;

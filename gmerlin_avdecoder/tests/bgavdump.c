@@ -266,7 +266,8 @@ int main(int argc, char ** argv)
         fprintf(stderr, "Reading frame from video stream %d...", i+1);
         if(bgav_read_video(file, vf, i))
           {
-          fprintf(stderr, "Done, timestamp: %"PRId64"\n", vf->time_scaled);
+          fprintf(stderr, "Done, timestamp: %"PRId64", Duration: %"PRId64"\n",
+                  vf->timestamp, vf->duration);
           // fprintf(stderr, "First 16 bytes of first plane follow\n");
           // bgav_hexdump(vf->planes[0] + vf->strides[0] * 20, 16, 16);
           }
@@ -310,8 +311,8 @@ int main(int argc, char ** argv)
           gavl_rectangle_i_dump(&ovl.ovl_rect);
           fprintf(stderr, "\ndst_coords: %d,%d\n", ovl.dst_x, ovl.dst_y);
           fprintf(stderr, "Time: %" PRId64 " -> %" PRId64 "\n",
-                  ovl.frame->time_scaled,
-                  ovl.frame->time_scaled+ovl.frame->duration_scaled);
+                  ovl.frame->timestamp,
+                  ovl.frame->timestamp+ovl.frame->duration);
           }
         else
           fprintf(stderr, "Failed\n");

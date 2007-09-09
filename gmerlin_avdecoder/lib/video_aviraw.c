@@ -154,7 +154,7 @@ static int decode_aviraw(bgav_stream_t * s, gavl_video_frame_t * f)
       src += priv->in_stride;
       dst -= f->strides[0];
       }
-    f->time_scaled = p->pts;
+    f->timestamp = p->pts;
     }
 
   bgav_demuxer_done_packet_read(s->demuxer, p);

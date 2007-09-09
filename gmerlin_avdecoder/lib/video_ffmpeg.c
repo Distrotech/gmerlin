@@ -1604,9 +1604,10 @@ static void get_format(AVCodecContext * ctx, gavl_video_format_t * format)
       format->pixel_height = ctx->width;
       format->image_width = ctx->width;
       }
-        
+    if((ctx->codec_id == CODEC_ID_MPEG4) && (format->pixelformat == GAVL_YUV_420_P))
+      format->chroma_placement = GAVL_CHROMA_PLACEMENT_MPEG2;
     }
-
+  
   if(!format->timescale)
     {
     format->timescale      = ctx->time_base.den;
