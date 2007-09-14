@@ -462,8 +462,6 @@ static void connect_input(ladspa_priv_t * lp, gavl_audio_frame_t * f)
   int i;
   for(i = 0; i < lp->format.num_channels; i++)
     {
-    //    fprintf(stderr, "Connect input (ch %d): %d\n", i+1,
-    //            lp->channels[i].input_port);
     lp->desc->connect_port(lp->channels[i].Instance,
                            lp->channels[i].input_port,
                            f->channels.f[i]);
@@ -475,8 +473,6 @@ static void connect_output(ladspa_priv_t * lp, gavl_audio_frame_t * f)
   int i;
   for(i = 0; i < lp->format.num_channels; i++)
     {
-    //    fprintf(stderr, "Connect output (ch %d): %d\n", i+1,
-    //            lp->channels[i].output_port);
     lp->desc->connect_port(lp->channels[i].Instance,
                            lp->channels[i].output_port,
                            f->channels.f[i]);
@@ -652,7 +648,8 @@ int bg_ladspa_load(bg_plugin_handle_t * ret,
   desc_func = dlsym(ret->dll_handle, "ladspa_descriptor");
   if(!desc_func)
     {
-    fprintf(stderr, "No symbol \"ladspa_descriptor\" found: %s\n",
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "No symbol \"ladspa_descriptor\" found: %s",
             dlerror());
     return 0;
     }

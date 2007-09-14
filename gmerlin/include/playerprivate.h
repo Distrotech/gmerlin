@@ -79,6 +79,9 @@ typedef struct
   /* Volume control */
   gavl_volume_control_t * volume;
   pthread_mutex_t volume_mutex;
+  
+  /* If the playback was interrupted due to changed parameters */
+  int interrupted;
   } bg_player_audio_stream_t;
 
 typedef struct
@@ -101,6 +104,10 @@ typedef struct
     
   gavl_video_format_t input_format;
   gavl_video_format_t output_format;
+
+  /* If the playback was interrupted due to changed parameters */
+  int interrupted;
+
   } bg_player_video_stream_t;
 
 typedef struct

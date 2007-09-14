@@ -35,6 +35,10 @@ typedef struct
   void (*get_value)(bg_gtk_widget_t * w);
   /* widget -> value */
   void (*set_value)(bg_gtk_widget_t * w);
+  
+  /* Subsections -> set_parameter() */
+  void (*apply_sub_params)(bg_gtk_widget_t * w);
+  
   void (*destroy)(bg_gtk_widget_t * w);
   void (*attach)(void * priv, GtkWidget * table, int * row, int * num_columns);
   } gtk_widget_funcs_t;
@@ -57,6 +61,9 @@ struct bg_gtk_widget_s
   /* Pointer to central tooltips instance */
 
   GtkTooltips * tooltips;
+  
+  bg_cfg_section_t * cfg_section;
+  bg_cfg_section_t * cfg_subsection_save;
   };
 
 void 
@@ -111,19 +118,16 @@ bg_gtk_create_time(bg_gtk_widget_t *,
 
 void
 bg_gtk_create_multi_list(bg_gtk_widget_t *, bg_parameter_info_t * info,
-                         bg_cfg_section_t * cfg_section,
                          bg_set_parameter_func_t set_param,
                          void * data, const char * translation_domain);
 
 void
 bg_gtk_create_multi_chain(bg_gtk_widget_t *, bg_parameter_info_t * info,
-                          bg_cfg_section_t * cfg_section,
                           bg_set_parameter_func_t set_param,
                           void * data, const char * translation_domain);
 
 void
 bg_gtk_create_multi_menu(bg_gtk_widget_t *, bg_parameter_info_t * info,
-                         bg_cfg_section_t * cfg_section,
                          bg_set_parameter_func_t set_param,
                          void * data, const char * translation_domain);
 

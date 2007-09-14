@@ -38,8 +38,7 @@ typedef struct
 #endif
   GtkWidget * config_button;
   GtkWidget * info_button;
-
-  bg_cfg_section_t * cfg_section;
+  
   bg_set_parameter_func_t  set_param;
   void * data;
   int selected;
@@ -233,7 +232,7 @@ static void button_callback(GtkWidget * wid, gpointer data)
     }
   else if(wid == priv->config_button)
     {
-    subsection = bg_cfg_section_find_subsection(priv->cfg_section, w->info->name);
+    subsection = bg_cfg_section_find_subsection(w->cfg_section, w->info->name);
     subsection = bg_cfg_section_find_subsection(subsection,
                                                 w->info->multi_names[priv->selected]);
     
@@ -253,7 +252,6 @@ static void button_callback(GtkWidget * wid, gpointer data)
 
 void bg_gtk_create_multi_menu(bg_gtk_widget_t * w,
                               bg_parameter_info_t * info,
-                              bg_cfg_section_t * cfg_section,
                               bg_set_parameter_func_t set_param,
                               void * data, const char * translation_domain)
   {
@@ -263,7 +261,6 @@ void bg_gtk_create_multi_menu(bg_gtk_widget_t * w,
 #endif
   multi_menu_t * priv = calloc(1, sizeof(*priv));
 
-  priv->cfg_section = cfg_section;
   priv->set_param   = set_param;
   priv->data        = data;
   

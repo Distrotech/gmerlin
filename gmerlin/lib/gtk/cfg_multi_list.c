@@ -51,7 +51,6 @@ struct list_priv_s
   GtkWidget * scrolled;
 
   const char * translation_domain;
-  bg_cfg_section_t * cfg_section;
   bg_set_parameter_func_t  set_param;
   void * data;
   int selected;
@@ -61,6 +60,7 @@ struct list_priv_s
   int num;
   
   char ** multi_labels;
+  
   };
 
 static void set_sub_param(void * priv, char * name,
@@ -73,6 +73,9 @@ static void set_sub_param(void * priv, char * name,
   w = (bg_gtk_widget_t*)priv;
   list = (list_priv_t*)(w->priv);
 
+  if(!list->set_param)
+    return;
+  
   if(!name)
     tmp_string = (char*)0;
   else if(list->is_chain)
@@ -88,6 +91,56 @@ static void set_sub_param(void * priv, char * name,
   if(tmp_string)
     free(tmp_string);
   
+  }
+
+static void apply_sub_params(bg_gtk_widget_t * w)
+  {
+  list_priv_t * list = (list_priv_t*)(w->priv);
+  int index;
+  bg_cfg_section_t * subsection;
+  bg_cfg_section_t * subsubsection;
+  int selected_save;
+  char ** names;
+  
+  if(!list->set_param)
+    return;
+  
+  subsection =
+    bg_cfg_section_find_subsection(w->cfg_section, w->info->name);
+  
+  names = bg_strbreak(w->value.val_str, ',');
+  
+  selected_save = list->selected;
+      
+  for(list->selected = 0; list->selected < list->num; list->selected++)
+    {
+    index = 0;
+    while(w->info->multi_names[index])
+      {
+      if(!strcmp(w->info->multi_names[index], names[list->selected]))
+        break;
+      index++;
+      }
+    
+    if(w->info->multi_names[index] && w->info->multi_parameters[index])
+      {
+      subsubsection =
+        bg_cfg_section_find_subsection_by_index(subsection, list->selected);
+      
+      bg_cfg_section_apply_noterminate(subsubsection,
+                                       w->info->multi_parameters[index],
+                                       set_sub_param, w);
+      }
+    }
+  list->selected = selected_save;
+  if(names)
+    bg_strbreak_free(names);
+  }
+
+static void do_apply_sub_params(bg_gtk_widget_t * w)
+  {
+  apply_sub_params(w);
+  set_sub_param(w, NULL, NULL);
   }
 
 static void set_value(bg_gtk_widget_t * w)
@@ -132,8 +185,6 @@ static void set_value(bg_gtk_widget_t * w)
     w->value.val_str = bg_strcat(w->value.val_str, ",");
     }
   }
-
-
 
 static void get_value(bg_gtk_widget_t * w)
   {
@@ -264,39 +315,16 @@ static void get_value(bg_gtk_widget_t * w)
     }
   }
 
-static void set_sub_param_add(void * priv, char * name,
-                              bg_parameter_value_t * val)
-  {
-  char * tmp_string;
-  list_priv_t * list;
-  bg_gtk_widget_t * w;
-
-  w = (bg_gtk_widget_t*)priv;
-  list = (list_priv_t*)(w->priv);
-
-  if(!name)
-    tmp_string = (char*)0;
-  else
-    tmp_string = bg_sprintf("%s.%d.%s", w->info->name, list->num-1,
-                            name);
-  if(list->set_param)
-    list->set_param(list->data, tmp_string, val);
-  if(tmp_string)
-    free(tmp_string);
-  
-  }
-
-
 static void add_func(void * priv, char * name, bg_parameter_value_t * val)
   {
   list_priv_t * list;
   bg_gtk_widget_t * w;
-  int selected;
+  int index;
   GtkTreeModel * model;
   GtkTreeIter iter;
   bg_cfg_section_t * subsection;
+  bg_cfg_section_t * subsubsection;
   bg_cfg_section_t * subsection_default;
-  
   w = (bg_gtk_widget_t*)priv;
   list = (list_priv_t*)(w->priv);
 
@@ -307,49 +335,44 @@ static void add_func(void * priv, char * name, bg_parameter_value_t * val)
   
   if(!strcmp(name, w->info->name))
     {
-    selected = 0;
-    while(strcmp(w->info->multi_names[selected], val->val_str))
-      selected++;
+    index = 0;
+    while(strcmp(w->info->multi_names[index], val->val_str))
+      index++;
     
     gtk_list_store_append(GTK_LIST_STORE(model), &iter);
     
     if(list->multi_labels)
-      {
       gtk_list_store_set(GTK_LIST_STORE(model), &iter,
                          COLUMN_NAME,
-                         list->multi_labels[selected],
+                         list->multi_labels[index],
                          -1);
-      }
     else
       gtk_list_store_set(GTK_LIST_STORE(model), &iter,
                          COLUMN_NAME,
-                         w->info->multi_names[selected],
+                         w->info->multi_names[index],
                          -1);
     
-    subsection = bg_cfg_section_find_subsection(list->cfg_section, w->info->name);
-
-    subsection_default = bg_cfg_section_find_subsection(subsection, val->val_str);
-
-    if(w->info->multi_parameters[selected])
-      bg_cfg_section_create_items(subsection_default, 
-                                  w->info->multi_parameters[selected]);
+    subsection =
+      bg_cfg_section_find_subsection(w->cfg_section, w->info->name);
     
-    subsection = bg_cfg_section_create_subsection_at_pos(subsection, list->num);
-    bg_cfg_section_transfer(subsection_default, subsection);
+    subsection_default =
+      bg_cfg_section_find_subsection(subsection, val->val_str);
+    
+    if(w->info->multi_parameters[index])
+      bg_cfg_section_create_items(subsection_default, 
+                                  w->info->multi_parameters[index]);
+    
+    subsubsection =
+      bg_cfg_section_create_subsection_at_pos(subsection, list->num);
+    bg_cfg_section_transfer(subsection_default, subsubsection);
     
     list->num++;
     
     if(w->info->flags & BG_PARAMETER_SYNC)
       {
       bg_gtk_change_callback((GtkWidget*)0, w);
-
-      if(w->info->multi_parameters[selected])
-        bg_cfg_section_apply(subsection,
-                             w->info->multi_parameters[selected],
-                             set_sub_param_add, w);
+      do_apply_sub_params(w);
       }
-    
-    
     }
   }
 
@@ -426,7 +449,8 @@ static gtk_widget_funcs_t funcs =
     get_value: get_value,
     set_value: set_value,
     destroy:   destroy,
-    attach:    attach
+    attach:    attach,
+    apply_sub_params: apply_sub_params,
   };
 
 static void select_row_callback(GtkTreeSelection * s, gpointer data)
@@ -527,8 +551,6 @@ static void select_row_callback(GtkTreeSelection * s, gpointer data)
 static void move_selected(bg_gtk_widget_t * w, int new_pos)
   {
   int i;
-  int index;
-  char ** names;
   list_priv_t * priv;
 
   bg_cfg_section_t * subsection;
@@ -576,7 +598,7 @@ static void move_selected(bg_gtk_widget_t * w, int new_pos)
   gtk_tree_path_free(path);
 
   subsection = 
-    bg_cfg_section_find_subsection(priv->cfg_section, w->info->name);
+    bg_cfg_section_find_subsection(w->cfg_section, w->info->name);
   
   /* Move config section */
   
@@ -593,31 +615,7 @@ static void move_selected(bg_gtk_widget_t * w, int new_pos)
     {
     bg_gtk_change_callback((GtkWidget*)0, w);
     if(priv->is_chain)
-      {
-      names = bg_strbreak(w->value.val_str, ',');
-      
-      for(priv->selected = 0; priv->selected < priv->num; priv->selected++)
-        {
-        index = 0;
-        while(w->info->multi_names[index])
-          {
-          if(!strcmp(w->info->multi_names[index], names[priv->selected]))
-            break;
-          index++;
-          }
-
-        if(w->info->multi_names[index] && w->info->multi_parameters[index])
-          {
-          subsubsection =
-            bg_cfg_section_find_subsection_by_index(subsection, priv->selected);
-          
-          bg_cfg_section_apply(subsubsection,
-                               w->info->multi_parameters[index],
-                               set_sub_param, w);
-          }
-        }
-      bg_strbreak_free(names);
-      }
+      do_apply_sub_params(w);
     }
   
   priv->selected = new_pos;
@@ -662,7 +660,7 @@ static void button_callback(GtkWidget * wid, gpointer data)
 
   if(wid == priv->config_button)
     {
-    subsection = bg_cfg_section_find_subsection(priv->cfg_section, w->info->name);
+    subsection = bg_cfg_section_find_subsection(w->cfg_section, w->info->name);
     
     if(priv->is_chain)
       subsection =
@@ -738,7 +736,7 @@ static void button_callback(GtkWidget * wid, gpointer data)
     tmp_string = bg_sprintf(TR("Add %s"),
                             TRD(w->info->long_name, priv->translation_domain));
     
-    dialog = bg_dialog_create(priv->cfg_section, add_func,
+    dialog = bg_dialog_create(w->cfg_section, add_func,
                               w, params, tmp_string);
     
     free(params[0].gettext_domain);
@@ -756,7 +754,7 @@ static void button_callback(GtkWidget * wid, gpointer data)
     if(!gtk_tree_selection_get_selected(selection, &model, &iter))
       return;
 
-    subsection = bg_cfg_section_find_subsection(priv->cfg_section, w->info->name);
+    subsection = bg_cfg_section_find_subsection(w->cfg_section, w->info->name);
     subsubsection = bg_cfg_section_find_subsection_by_index(subsection,
                                                             priv->selected);
     bg_cfg_section_delete_subsection(subsection,
@@ -765,7 +763,10 @@ static void button_callback(GtkWidget * wid, gpointer data)
     gtk_list_store_remove(GTK_LIST_STORE(model), &iter);        
     priv->num--;
     if(w->info->flags & BG_PARAMETER_SYNC)
+      {
       bg_gtk_change_callback((GtkWidget*)0, w);
+      do_apply_sub_params(w);
+      }
     }
   
   }
@@ -791,7 +792,6 @@ static GtkWidget * create_pixmap_button(const char * filename)
   }
 
 static void create_list_common(bg_gtk_widget_t * w, bg_parameter_info_t * info,
-                               bg_cfg_section_t * cfg_section,
                                bg_set_parameter_func_t set_param,
                                void * data, const char * translation_domain,
                                int is_chain)
@@ -803,7 +803,6 @@ static void create_list_common(bg_gtk_widget_t * w, bg_parameter_info_t * info,
 
   list_priv_t * priv = calloc(1, sizeof(*priv));
 
-  priv->cfg_section = cfg_section;
   priv->set_param   = set_param;
   priv->data        = data;
   priv->translation_domain = translation_domain;
@@ -915,18 +914,16 @@ static void create_list_common(bg_gtk_widget_t * w, bg_parameter_info_t * info,
 
 void
 bg_gtk_create_multi_list(bg_gtk_widget_t * w, bg_parameter_info_t * info,
-                         bg_cfg_section_t * cfg_section,
                          bg_set_parameter_func_t set_param,
                          void * data, const char * translation_domain)
   {
-  create_list_common(w, info, cfg_section, set_param, data, translation_domain, 0);
+  create_list_common(w, info, set_param, data, translation_domain, 0);
   }
 
 void
 bg_gtk_create_multi_chain(bg_gtk_widget_t * w, bg_parameter_info_t * info,
-                          bg_cfg_section_t * cfg_section,
                           bg_set_parameter_func_t set_param,
                           void * data, const char * translation_domain)
   {
-  create_list_common(w, info, cfg_section, set_param, data, translation_domain, 1);
+  create_list_common(w, info, set_param, data, translation_domain, 1);
   }

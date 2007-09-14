@@ -742,6 +742,10 @@ static void set_input_format_cropscale(void * priv, gavl_video_format_t * format
     gavl_video_format_copy(&vp->in_format, format);
     gavl_video_format_copy(&vp->out_format, format);
     set_framesize(vp);
+
+    if(vp->deinterlace != DEINTERLACE_NEVER)
+      vp->out_format.interlace_mode = GAVL_INTERLACE_NONE;
+    
     vp->need_reinit = 1;
     vp->need_restart = 0;
     }

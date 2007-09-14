@@ -242,6 +242,15 @@ void bg_cfg_section_destroy(bg_cfg_section_t * section);
 bg_cfg_section_t * bg_cfg_section_copy(bg_cfg_section_t * src);
 
 /** \ingroup cfg_section
+ *  \brief Restore a configuration section from a previously copied one
+ *  \param section       Configuration section
+ *  \param section_saved Saved configuration section
+ *  \returns A newly allocated section with all values copied from src.
+ */
+
+void bg_cfg_section_restore(bg_cfg_section_t * section, bg_cfg_section_t * section_saved);
+
+/** \ingroup cfg_section
  *  \brief Set values in a configuration section from another section
  *  \param src Source section
  *  \param dst Destination section
@@ -457,6 +466,22 @@ void bg_cfg_section_apply(bg_cfg_section_t * section,
                           bg_parameter_info_t * parameters,
                           bg_set_parameter_func_t func,
                           void * callback_data);
+
+/** \ingroup cfg_section
+ *  \brief Send all parameters to a module without terminating
+ *  \param section The configuration section
+ *  \param parameters Parameter array
+ *  \param func Function to be called
+ *  \param callback_data First argument passed to func
+ *
+ *  This function works like \ref bg_cfg_section_apply but doesn't
+ *  call func with a NULL name argument at the end.
+ */ 
+
+void bg_cfg_section_apply_noterminate(bg_cfg_section_t * section,
+                                      bg_parameter_info_t * infos,
+                                      bg_set_parameter_func_t func,
+                                      void * callback_data);
 
 /** \ingroup cfg_section
  *  \brief Get parameters from a module

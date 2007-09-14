@@ -178,6 +178,8 @@ static void reset_section(dialog_section_t * s)
   int i;
   bg_parameter_value_t val;
   char * pos;
+  bg_cfg_section_t * cfg_subsection;
+  int set_param = 0;
   
   for(i = 0; i < s->num_widgets; i++)
     {
@@ -185,18 +187,30 @@ static void reset_section(dialog_section_t * s)
                             s->widgets[i].info);
     
     s->widgets[i].funcs->get_value(&(s->widgets[i]));
-
     
-    if(s->cfg_section && (s->widgets[i].info->flags & BG_PARAMETER_SYNC))
+    if(s->cfg_section)
       {
+      if(s->widgets[i].info->flags & BG_PARAMETER_SYNC)
+        bg_cfg_section_set_parameter(s->cfg_section,
+                                     s->widgets[i].info,
+                                      &(s->widgets[i].value));
 
-      bg_cfg_section_set_parameter(s->cfg_section,
-                                   s->widgets[i].info,
-                                   &(s->widgets[i].value));
+      /* If we have multi parameters, we'll also reset the subsection, even if
+         BG_PARAMETER_SYNC isn't set */
+
+      if(s->widgets[i].cfg_subsection_save)
+        {
+        cfg_subsection = bg_cfg_section_find_subsection(s->cfg_section, s->widgets[i].info->name);
+        bg_cfg_section_restore(cfg_subsection, s->widgets[i].cfg_subsection_save);
+        }
+      
+      if(s->widgets[i].funcs->apply_sub_params)
+        s->widgets[i].funcs->apply_sub_params(&(s->widgets[i]));
       }
     
     if(s->set_param && (s->widgets[i].info->flags & BG_PARAMETER_SYNC))
       {
+      set_param = 1;
       if((s->widgets[i].info->type == BG_PARAMETER_DEVICE) &&
          (s->widgets[i].value.val_str) &&
          strchr(s->widgets[i].value.val_str, ':'))
@@ -215,6 +229,9 @@ static void reset_section(dialog_section_t * s)
       }
     }
   
+  if(set_param)
+    s->set_param(s->callback_data, NULL, NULL);
+  
   for(i = 0; i < s->num_children; i++)
     reset_section(&(s->children[i]));
   }
@@ -224,6 +241,7 @@ static void apply_section(dialog_section_t * s)
   bg_parameter_value_t val;
   char * pos;
   int i;
+  bg_cfg_section_t * cfg_subsection;
   
   for(i = 0; i < s->num_widgets; i++)
     {
@@ -239,6 +257,17 @@ static void apply_section(dialog_section_t * s)
       
       }
 
+    if(s->widgets[i].cfg_subsection_save)
+      {
+      bg_cfg_section_destroy(s->widgets[i].cfg_subsection_save);
+      
+      cfg_subsection =
+        bg_cfg_section_find_subsection(s->cfg_section, s->widgets[i].info->name);
+
+      s->widgets[i].cfg_subsection_save = bg_cfg_section_copy(cfg_subsection);
+      }
+    
+    
     if(s->set_param)
       {
       if((s->widgets[i].info->type == BG_PARAMETER_DEVICE) &&
@@ -466,6 +495,7 @@ static GtkWidget * create_section(dialog_section_t * section,
   {
   int i, count;
   int row, column, num_columns;
+  bg_cfg_section_t * cfg_subsection;
   
   GtkWidget * table;
   GtkWidget * label;
@@ -535,6 +565,13 @@ static GtkWidget * create_section(dialog_section_t * section,
       section->widgets[count].change_callback_data = data;
       }
     section->widgets[count].info = &(info[i]);
+
+    section->widgets[count].cfg_section = cfg_section;
+    if(info[i].multi_parameters)
+      {
+      cfg_subsection = bg_cfg_section_find_subsection(cfg_section, info[i].name);
+      section->widgets[count].cfg_subsection_save = bg_cfg_section_copy(cfg_subsection);
+      }
     switch(info[i].type)
       {
       case BG_PARAMETER_CHECKBUTTON:
@@ -596,17 +633,17 @@ static GtkWidget * create_section(dialog_section_t * section,
         break;
       case BG_PARAMETER_MULTI_MENU:
         bg_gtk_create_multi_menu(&(section->widgets[count]), &(info[i]),
-                                 cfg_section, set_param, data,
-                                  translation_domain);
+                                 set_param, data,
+                                 translation_domain);
         break;
       case BG_PARAMETER_MULTI_LIST:
         bg_gtk_create_multi_list(&(section->widgets[count]), &(info[i]),
-                                 cfg_section, set_param, data,
+                                 set_param, data,
                                  translation_domain);
         break;
       case BG_PARAMETER_MULTI_CHAIN:
         bg_gtk_create_multi_chain(&(section->widgets[count]), &(info[i]),
-                                  cfg_section, set_param, data,
+                                  set_param, data,
                                   translation_domain);
         break;
       case BG_PARAMETER_SECTION:
@@ -914,10 +951,12 @@ static void destroy_section(dialog_section_t * s)
                               s->widgets[i].info);
       bg_parameter_value_free(&s->widgets[i].last_value,
                               s->widgets[i].info);
+      if(s->widgets[i].cfg_subsection_save)
+        bg_cfg_section_destroy(s->widgets[i].cfg_subsection_save);
       }
     free(s->widgets);
     }
-  if(s->num_children)
+  if(s->children)
     {
     for(i = 0; i < s->num_children; i++)
       {

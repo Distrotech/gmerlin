@@ -281,9 +281,7 @@ static void kbd_loop(kbd_daemon_t * d)
     /* Check for X-Events */
     while(XPending(d->dpy))
       {
-      //      fprintf(stderr, "Next event...");
       XNextEvent(d->dpy, &evt);
-      //     fprintf(stderr, "done\n");
       switch(evt.type)
         {
         case KeyPress:
@@ -308,14 +306,10 @@ static void kbd_loop(kbd_daemon_t * d)
       }
     
     /* Check for remote commands */
-    //    fprintf(stderr, "Get msg...");
     msg = bg_remote_server_get_msg(d->remote);
-    //    fprintf(stderr, "done\n");
     
     if(msg)
       {
-      // fprintf(stderr, "Got command\n");
-      
       switch(bg_msg_get_id(msg))
         {
         case KBD_CMD_RELOAD:
@@ -334,7 +328,6 @@ static void kbd_loop(kbd_daemon_t * d)
           bg_log(BG_LOG_INFO, LOG_DOMAIN, "Reloaded keys");
           break;
         case KBD_CMD_QUIT:
-          // fprintf(stderr, "Got quit command\n");
           done = 1;
           break;
         }

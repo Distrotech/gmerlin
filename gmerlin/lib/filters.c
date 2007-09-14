@@ -50,9 +50,14 @@ struct bg_audio_filter_chain_s
   int in_stream;
   };
 
+int bg_audio_filter_chain_need_restart(bg_audio_filter_chain_t * ch)
+  {
+  return ch->need_restart;
+  }
+
 int bg_audio_filter_chain_need_rebuild(bg_audio_filter_chain_t * ch)
   {
-  return ch->need_rebuild || ch->need_restart;
+  return ch->need_rebuild;
   }
 
 static int audio_filter_create(audio_filter_t * f,
@@ -105,7 +110,7 @@ static void destroy_audio_chain(bg_audio_filter_chain_t * ch)
   ch->num_filters = 0;
   }
 
-static void build_audio_chain(bg_audio_filter_chain_t * ch)
+void bg_audio_filter_chain_rebuild(bg_audio_filter_chain_t * ch)
   {
   int i;
   char ** filter_names;
@@ -199,7 +204,7 @@ bg_audio_filter_chain_set_parameter(void * data, char * name,
   else if(!strncmp(name, "audio_filters.", 14))
     {
     if(ch->need_rebuild)
-      build_audio_chain(ch);
+      bg_audio_filter_chain_rebuild(ch);
     
     pos = strchr(name, '.');
     pos++;
@@ -234,7 +239,7 @@ int bg_audio_filter_chain_init(bg_audio_filter_chain_t * ch,
   ch->need_restart = 0;
   
   if(ch->need_rebuild)
-    build_audio_chain(ch);
+    bg_audio_filter_chain_rebuild(ch);
   
   //  if(!ch->num_filters)
   //    return 0;
@@ -413,7 +418,12 @@ struct bg_video_filter_chain_s
 
 int bg_video_filter_chain_need_rebuild(bg_video_filter_chain_t * ch)
   {
-  return ch->need_rebuild || ch->need_restart;
+  return ch->need_rebuild;
+  }
+
+int bg_video_filter_chain_need_restart(bg_video_filter_chain_t * ch)
+  {
+  return ch->need_restart;
   }
 
 static int
@@ -455,7 +465,7 @@ static void destroy_video_chain(bg_video_filter_chain_t * ch)
   ch->num_filters = 0;
   }
 
-static void build_video_chain(bg_video_filter_chain_t * ch)
+void bg_video_filter_chain_rebuild(bg_video_filter_chain_t * ch)
   {
   int i;
   char ** filter_names;
@@ -549,7 +559,7 @@ bg_video_filter_chain_set_parameter(void * data, char * name,
   else if(!strncmp(name, "video_filters.", 14))
     {
     if(ch->need_rebuild)
-      build_video_chain(ch);
+      bg_video_filter_chain_rebuild(ch);
     
     pos = strchr(name, '.');
     pos++;
@@ -584,7 +594,7 @@ int bg_video_filter_chain_init(bg_video_filter_chain_t * ch,
   ch->need_restart = 0;
 
   if(ch->need_rebuild)
-    build_video_chain(ch);
+    bg_video_filter_chain_rebuild(ch);
   
   gavl_video_format_copy(&format_1, in_format);
   

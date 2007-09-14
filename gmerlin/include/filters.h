@@ -64,12 +64,34 @@ void bg_audio_filter_chain_set_parameter(void * data,
                                          char * name,
                                          bg_parameter_value_t * val);
 
-/** \brief Check if an audio filter chain needs to be reinitialized
+/** \brief Check if an audio filter chain needs to be rebuilt
  *  \param ch An audio filter chain
- *  \returns 1 if the chain must be reinitialized, 0 else
+ *  \returns 1 if the chain must be rebuilt, 0 else
+ *
+ *  If this returns true, you should call \ref bg_audio_filter_chain_rebuild
+ *  or \ref bg_audio_filter_chain_init. It's usually used after
+ *  \ref bg_audio_filter_chain_set_parameter.
  */
 
 int bg_audio_filter_chain_need_rebuild(bg_audio_filter_chain_t * ch);
+
+/** \brief Check if an audio filter chain needs to be restarted
+ *  \param ch An audio filter chain
+ *  \returns 1 if the chain must be restarted, 0 else
+ *
+ *  If this returns true, you should call \ref bg_audio_filter_chain_init.
+ *  It's usually used after
+ *  \ref bg_audio_filter_chain_set_parameter.
+ */
+
+int bg_audio_filter_chain_need_restart(bg_audio_filter_chain_t * ch);
+
+
+/** \brief Rebuild an audio chain
+ *  \param ch An audio filter chain
+ */
+
+void bg_audio_filter_chain_rebuild(bg_audio_filter_chain_t * ch);
 
 /** \brief Set input callback of an audio filter chain
  *  \param ch An audio filter chain
@@ -182,19 +204,42 @@ bg_video_filter_chain_get_parameters(bg_video_filter_chain_t * ch);
  *  \param val Value
  *
  *  In some cases the filter chain must be rebuilt after setting a parameter.
- *  The application should therefore call \ref bg_video_filter_chain_need_rebuild
+ *  The application should therefore call
+ *  \ref bg_video_filter_chain_need_rebuild
  *  and call \ref bg_video_filter_chain_init if necessary.
  */
 
 void bg_video_filter_chain_set_parameter(void * data, char * name,
                                          bg_parameter_value_t * val);
 
-/** \brief Check if a video filter chain needs to be reinitialized
+/** \brief Check if a video filter chain needs to be rebuilt
  *  \param ch A video filter chain
- *  \returns 1 if the chain must be reinitialized, 0 else
+ *  \returns 1 if the chain must be rebuilt, 0 else
+ *
+ *  If this returns true, you should call \ref bg_video_filter_chain_rebuild
+ *  or \ref bg_video_filter_chain_init. It's usually used after
+ *  \ref bg_video_filter_chain_set_parameter.
  */
 
 int bg_video_filter_chain_need_rebuild(bg_video_filter_chain_t * ch);
+
+/** \brief Check if a video filter chain needs to be restarted
+ *  \param ch A video filter chain
+ *  \returns 1 if the chain must be restarted, 0 else
+ *
+ *  If this returns true, you should call \ref bg_video_filter_chain_init.
+ *  It's usually used after
+ *  \ref bg_video_filter_chain_set_parameter.
+ */
+
+int bg_video_filter_chain_need_restart(bg_video_filter_chain_t * ch);
+
+
+/** \brief Rebuild a video chain
+ *  \param ch A video filter chain
+ */
+
+void bg_video_filter_chain_rebuild(bg_video_filter_chain_t * ch);
 
 
 
@@ -221,8 +266,8 @@ int bg_video_filter_chain_init(bg_video_filter_chain_t * ch,
                                const gavl_video_format_t * in_format,
                                gavl_video_format_t * out_format);
 
-/** \brief Set output format of an video filter chain
- *  \param ch An video filter chain
+/** \brief Set output format of a video filter chain
+ *  \param ch A video filter chain
  *  \param out_format Output format
  *
  *  This function initializes a final video converter at the output
@@ -268,7 +313,7 @@ void bg_video_filter_chain_lock(bg_video_filter_chain_t * ch);
 void bg_video_filter_chain_unlock(bg_video_filter_chain_t * ch);
 
 /** \brief Reset a video filter chain
- *  \param ch An video filter chain
+ *  \param ch A video filter chain
  *  \param out_pts The pts of the next output frame in \ref GAVL_TIME_SCALE tics
  *  
  *  Set the internal state as if no sample has been processed since last init
