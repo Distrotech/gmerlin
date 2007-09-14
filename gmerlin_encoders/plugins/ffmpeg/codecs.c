@@ -37,6 +37,16 @@
                    "160", "192", "224", "256", "320", "384", "448", "512", \
                    "576", "640", (char*)0 } \
   },
+
+#define ENCODE_PARAM_WMA \
+  {                                      \
+    name:      "ff_bit_rate_str",        \
+    long_name: TRS("Bit rate (kbps)"),        \
+    type:      BG_PARAMETER_STRINGLIST, \
+    val_default: { val_str: "128" },       \
+    multi_names: (char*[]){ "24", "48", "64", "96", "128", (char*)0 } \
+  },
+    
     
 #define ENCODE_PARAM_VIDEO_RATECONTROL \
   {                                           \
@@ -212,6 +222,11 @@ static bg_parameter_info_t parameters_mp3[] = {
   { /* End of parameters */ }
 };
 
+static bg_parameter_info_t parameters_wma[] = {
+  ENCODE_PARAM_WMA
+  { /* End of parameters */ }
+};
+
 static ffmpeg_codec_info_t audio_codecs[] =
   {
     {
@@ -255,6 +270,18 @@ static ffmpeg_codec_info_t audio_codecs[] =
       .long_name = TRS("MPEG audio layer 2"),
       .id        = CODEC_ID_MP2,
       .parameters = parameters_mp2,
+    },
+    {
+      .name      = "wma1",
+      .long_name = TRS("Windows media Audio 1"),
+      .id        = CODEC_ID_WMAV1,
+      .parameters = parameters_wma,
+    },
+    {
+      .name      = "wma2",
+      .long_name = TRS("Windows media Audio 2"),
+      .id        = CODEC_ID_WMAV2,
+      .parameters = parameters_wma,
     },
     {
       .name      = "mp3",

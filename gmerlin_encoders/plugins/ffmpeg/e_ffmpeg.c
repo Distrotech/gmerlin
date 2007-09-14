@@ -69,7 +69,12 @@ static ffmpeg_format_info_t formats[] =
       extension:  ".asf",
       max_audio_streams: 1,
       max_video_streams: 1,
-      audio_codecs: (enum CodecID[]){  CODEC_ID_MP3,
+      audio_codecs: (enum CodecID[]){
+#if LIBAVCODEC_BUILD >= ((51<<16)+(32<<8)+0)
+                                       CODEC_ID_WMAV2,
+                                       CODEC_ID_WMAV1,
+#endif
+                                       CODEC_ID_MP3,
                                        CODEC_ID_MP2,
                                        CODEC_ID_NONE },
       

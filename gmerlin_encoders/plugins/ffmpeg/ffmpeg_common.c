@@ -507,20 +507,21 @@ static int flush_audio(ffmpeg_priv_t * priv,
     out_size = st->stream->codec->block_align * st->frame->valid_samples;
   else
     out_size = st->buffer_alloc;
-  
 
+  
   bytes_encoded = avcodec_encode_audio(st->stream->codec, st->buffer,
                                        out_size,
                                        st->frame->samples.s_16);
-
   if(bytes_encoded > 0)
     {
     av_init_packet(&pkt);
     pkt.size = bytes_encoded;
     
-    pkt.pts= av_rescale_q(st->stream->codec->coded_frame->pts,
-                          st->stream->codec->time_base,
-                          st->stream->time_base);
+    if(st->stream->codec->coded_frame &&
+       (st->stream->codec->coded_frame->pts != AV_NOPTS_VALUE))
+      pkt.pts= av_rescale_q(st->stream->codec->coded_frame->pts,
+                            st->stream->codec->time_base,
+                            st->stream->time_base);
     
     pkt.flags |= PKT_FLAG_KEY;
     pkt.stream_index= st->stream->index;
@@ -671,7 +672,6 @@ static void close_video_encoder(ffmpeg_priv_t * priv,
     while(1)
       {
       result = flush_video(priv, st, NULL);
-      fprintf(stderr, "Flush video %d\n", result);
       if(result <= 0)
         break;
       }

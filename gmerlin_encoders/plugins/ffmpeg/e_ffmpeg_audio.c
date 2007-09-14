@@ -41,6 +41,17 @@ static ffmpeg_format_info_t formats[] =
       audio_codecs: (enum CodecID[]){  CODEC_ID_MP2,
                                        CODEC_ID_NONE },
     },
+#if LIBAVCODEC_BUILD >= ((51<<16)+(32<<8)+0)
+    {
+      name:       "WMA",
+      short_name: "asf",
+      extension:  ".wma",
+      max_audio_streams: 1,
+      audio_codecs: (enum CodecID[]){  CODEC_ID_WMAV2,
+                                       CODEC_ID_WMAV1,
+                                       CODEC_ID_NONE },
+    },
+#endif
     { /* End of formats */ }
   };
 
