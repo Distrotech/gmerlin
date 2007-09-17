@@ -428,8 +428,6 @@ int bgav_pmt_section_setup_track(pmt_section_t * pmts,
       s = bgav_track_add_audio_stream(track, opt);
       s->fourcc = st->fourcc;
 
-      //      fprintf(stderr, "Detected audio stream %d\n",
-      //              pmts->streams[i].pid);
 
       }
     else if(st && (st->bgav_type == BGAV_STREAM_VIDEO) &&
@@ -452,8 +450,6 @@ int bgav_pmt_section_setup_track(pmt_section_t * pmts,
         {
         s = bgav_track_add_audio_stream(track, opt);
         s->fourcc = BGAV_MK_FOURCC('.','a','c','3');
-        //        fprintf(stderr, "Detected AC3 audio stream %d\n",
-        //                pmts->streams[i].pid);
         ac3_streams++;
         }
       else
@@ -489,7 +485,6 @@ int bgav_pmt_section_setup_track(pmt_section_t * pmts,
         }
       s->not_aligned = 1;
       s->timescale = 90000;
-      //      fprintf(stderr, "Stream ID: %d\n", pmts->streams[i].pid);
       s->stream_id = pmts->streams[i].pid;
       ret++;
       }

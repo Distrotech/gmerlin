@@ -544,7 +544,6 @@ static int init(bgav_stream_t * s)
     priv->parser = av_parser_init(priv->ctx->codec_id);
     //    if(priv->parser)
     //      priv->parser->flags |= PARSER_FLAG_COMPLETE_FRAMES;
-    //    fprintf(stderr, "Initialized parser: %p\n", priv->parser);
     }
   
   if(s->ext_data)

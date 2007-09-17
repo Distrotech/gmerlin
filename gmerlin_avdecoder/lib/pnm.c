@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
  *
- * $Id: pnm.c,v 1.6 2006-11-21 22:01:06 gmerlin Exp $
+ * $Id: pnm.c,v 1.7 2007-09-17 22:55:35 gmerlin Exp $
  *
  * pnm protocol implementation 
  * based upon code from joschka
@@ -798,7 +798,6 @@ int pnm_read (pnm_t *this, char *data, int len) {
 
     if (!pnm_get_stream_chunk (this))
       {
-      fprintf (stderr, "input_pnm: %d of %d bytes provided\n", len-to_copy, len);
       return len-to_copy;
       }
     source = (char*)(this->recv);

@@ -314,7 +314,6 @@ static int decode_picture(bgav_stream_t*s)
   
   priv->picture_duration = s->data.video.format.frame_duration;
 
-  //  fprintf(stderr, "Duration1: %d\n", priv->picture_duration);
   
 #if 0  
   if((priv->info->display_picture->flags & PIC_FLAG_TOP_FIELD_FIRST) &&
@@ -329,9 +328,6 @@ static int decode_picture(bgav_stream_t*s)
     priv->picture_duration =
       (priv->picture_duration * priv->info->display_picture->nb_fields) / 2;
     }
-  //  fprintf(stderr, "Fields: %d, Duration: %d\n",
-  //          priv->info->display_picture->nb_fields,
-  //          priv->picture_duration);
 #endif
   
   

@@ -1151,9 +1151,6 @@ static int process_audio_chunk(bgav_demuxer_context_t * ctx,
           p->keyframe = 1;
         else
           p->keyframe = 0;
-        //        fprintf(stderr, "done_write: ");
-        //        bgav_hexdump(p->data, 16, 16);
-        //        fprintf(stderr, "\n");
         bgav_packet_done_write(p);
         }
       }

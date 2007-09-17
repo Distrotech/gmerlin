@@ -167,7 +167,6 @@ int bgav_pes_header_read(bgav_input_context_t * input,
             if(!(c & 0x80))
               ret->stream_id = (ret->stream_id << 8) | c;
             }
-          //          fprintf(stderr, "Got PES Extension, header_size: %d\n", header_size);
           }
         }
       }

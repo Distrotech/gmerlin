@@ -169,7 +169,6 @@ static int open_dxa(bgav_demuxer_context_t * ctx,
 
   if(fourcc == BGAV_MK_FOURCC('W', 'A', 'V', 'E'))
     {
-    fprintf(stderr, "Detected wave chunk\n");
     
     
     if(!bgav_input_read_32_be(ctx->input, &size))
