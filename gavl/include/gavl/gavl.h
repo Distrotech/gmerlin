@@ -303,6 +303,16 @@ int gavl_lfe_channels(const gavl_audio_format_t * format);
 void gavl_audio_format_copy(gavl_audio_format_t * dst,
                             const gavl_audio_format_t * src);
 
+/*!
+  \ingroup audio_format
+  \brief Compare 2 audio formats
+  \param format_1 First format
+  \param format_2 Second format
+  \returns 1 if the formats are equal, 0 else
+*/
+  
+int gavl_audio_formats_equal(const gavl_audio_format_t * dst,
+                              const gavl_audio_format_t * src);
 
 /*!
   \ingroup audio_format
@@ -446,8 +456,21 @@ void gavl_audio_frame_destroy(gavl_audio_frame_t * frame);
   
 void gavl_audio_frame_mute(gavl_audio_frame_t * frame,
                            const gavl_audio_format_t * format);
-  
 
+/*!
+  \ingroup audio_frame
+  \brief Mute a single channel of an audio frame.
+  \param frame An audio frame
+  \param format The format of the frame
+  \param channel The channel to mute
+
+  Fills the frame with digital zero samples according to the audio format
+*/
+  
+void gavl_audio_frame_mute_channel(gavl_audio_frame_t * frame,
+                                   const gavl_audio_format_t * format,
+                                   int channel);
+  
 /*!
   \ingroup audio_frame
   \brief Copy audio data from one frame to another.
@@ -549,8 +572,8 @@ typedef enum
 typedef enum
   {
     GAVL_RESAMPLE_AUTO        = 0, /*!< Set from quality */
-    GAVL_RESAMPLE_LINEAR      = 1, /*!< Linear interpolator, very fast, poor quality. */
-    GAVL_RESAMPLE_ZOH         = 2, /*!< Zero order hold interpolator, very fast, poor quality. */
+    GAVL_RESAMPLE_ZOH         = 1, /*!< Zero order hold interpolator, very fast, poor quality. */
+    GAVL_RESAMPLE_LINEAR      = 2, /*!< Linear interpolator, very fast, poor quality. */
     GAVL_RESAMPLE_SINC_FAST   = 3, /*!< Band limited sinc interpolation, fastest, 97dB SNR, 80% BW. */
     GAVL_RESAMPLE_SINC_MEDIUM = 4, /*!< Band limited sinc interpolation, medium quality, 97dB SNR, 90% BW. */
     GAVL_RESAMPLE_SINC_BEST   = 5  /*!< Band limited sinc interpolation, best quality, 97dB SNR, 96% BW. */
@@ -1558,6 +1581,18 @@ struct gavl_video_format_s
 void gavl_video_format_copy(gavl_video_format_t * dst,
                             const gavl_video_format_t * src);
 
+/*!
+  \ingroup video_format
+  \brief Compare 2 video formats
+  \param format_1 First format
+  \param format_2 Second format
+  \returns 1 if the formats are equal, 0 else
+*/
+  
+int gavl_video_formats_equal(const gavl_video_format_t * dst,
+                              const gavl_video_format_t * src);
+
+  
 /*!
   \ingroup video_format
   \brief Get the chroma offsets relative to the luma samples

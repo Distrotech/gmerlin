@@ -407,3 +407,8 @@ int gavl_bytes_per_sample(gavl_sample_format_t format)
   }
 
 
+int gavl_audio_formats_equal(const gavl_audio_format_t * format_1,
+                              const gavl_audio_format_t * format_2)
+  {
+  return !memcmp(format_1, format_2, sizeof(*format_1));
+  }

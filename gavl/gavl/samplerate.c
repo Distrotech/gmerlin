@@ -46,10 +46,10 @@ static int get_filter_type(gavl_audio_options_t * opt)
       switch(opt->quality)
         {
         case 1:
-          return SRC_LINEAR;
+          return SRC_ZERO_ORDER_HOLD;
           break;
         case 2:
-          return SRC_ZERO_ORDER_HOLD;
+          return SRC_LINEAR;
           break;
         case 3:
           return SRC_SINC_FASTEST;

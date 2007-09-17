@@ -149,7 +149,6 @@ void gavl_audio_frame_mute(gavl_audio_frame_t * frame,
       for(i = 0; i < imax; i++)
         frame->samples.s_32[i] = 0x00000000;
       break;
-      
     case GAVL_SAMPLE_FLOAT:
       for(i = 0; i < imax; i++)
         frame->samples.f[i] = 0.0;
@@ -157,6 +156,74 @@ void gavl_audio_frame_mute(gavl_audio_frame_t * frame,
     }
   frame->valid_samples = format->samples_per_frame;
   }
+
+void gavl_audio_frame_mute_channel(gavl_audio_frame_t * frame,
+                                   const gavl_audio_format_t * format,
+                                   int channel)
+  {
+  int i;
+  int imax;
+  int offset;
+  int advance;
+
+  switch(format->interleave_mode)
+    {
+    case GAVL_INTERLEAVE_ALL:
+      offset = channel;
+      advance = format->num_channels;
+      break;
+    case GAVL_INTERLEAVE_NONE:
+      offset = channel * format->samples_per_frame;
+      advance = 1;
+      break;
+    case GAVL_INTERLEAVE_2:
+      if(channel & 1)
+        offset = channel * format->samples_per_frame + 1;
+      else
+        offset = channel * format->samples_per_frame;
+
+      if((channel == format->num_channels - 1) &&
+         (format->num_channels & 1))
+        advance = 1;
+      else
+        advance = 2;
+      
+      break;
+    }
+  
+  imax = format->samples_per_frame;
+  
+  switch(format->sample_format)
+    {
+    case GAVL_SAMPLE_NONE:
+      break;
+    case GAVL_SAMPLE_U8:
+      for(i = 0; i < imax; i++)
+        frame->samples.u_8[offset + advance * i] = 0x80;
+      break;
+    case GAVL_SAMPLE_S8:
+      for(i = 0; i < imax; i++)
+        frame->samples.u_8[offset + advance * i] = 0x00;
+      break;
+    case GAVL_SAMPLE_U16:
+      for(i = 0; i < imax; i++)
+        frame->samples.u_16[offset + advance * i] = 0x8000;
+      break;
+    case GAVL_SAMPLE_S16:
+      for(i = 0; i < imax; i++)
+        frame->samples.s_16[offset + advance * i] = 0x0000;
+      break;
+    case GAVL_SAMPLE_S32:
+      for(i = 0; i < imax; i++)
+        frame->samples.s_32[offset + advance * i] = 0x00000000;
+      break;
+    case GAVL_SAMPLE_FLOAT:
+      for(i = 0; i < imax; i++)
+        frame->samples.f[offset + advance * i] = 0.0;
+      break;
+    }
+  }
+
 
 int gavl_audio_frame_copy(const gavl_audio_format_t * format,
                           gavl_audio_frame_t * dst,

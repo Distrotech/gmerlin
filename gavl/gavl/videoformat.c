@@ -208,3 +208,9 @@ void gavl_video_format_get_chroma_offset(const gavl_video_format_t * format,
     }
   
   }
+
+int gavl_video_formats_equal(const gavl_video_format_t * format_1,
+                              const gavl_video_format_t * format_2)
+  {
+  return !memcmp(format_1, format_2, sizeof(*format_1));
+  }

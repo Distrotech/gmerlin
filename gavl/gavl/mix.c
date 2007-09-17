@@ -60,6 +60,7 @@ static void output_channel_dump(gavl_mix_output_channel_t * c)
   int i;
   fprintf(stderr, "Output channel %d, num_inputs: %d, func: %p\n",
           c->index, c->num_inputs, c->func);
+  
   for(i = 0; i < c->num_inputs; i++)
     {
     input_channel_dump(&(c->inputs[i]));
@@ -70,7 +71,6 @@ static void output_channel_dump(gavl_mix_output_channel_t * c)
 void gavl_mix_audio(gavl_audio_convert_context_t * ctx)
   {
   int i;
-  //  fprintf(stderr, "MIX...");
   for(i = 0; i < ctx->output_format.num_channels; i++)
     {
     if(ctx->mix_matrix->output_channels[i].func)
@@ -78,11 +78,10 @@ void gavl_mix_audio(gavl_audio_convert_context_t * ctx)
                                                 ctx->input_frame,
                                                 ctx->output_frame);
     else
-      gavl_audio_frame_mute(ctx->output_frame, &(ctx->output_format));
-    //      fprintf(stderr, "Mixer function missing\n");
-    
+      /* This happens, if channels in the output are muted */
+      gavl_audio_frame_mute_channel(ctx->output_frame,
+                                    &(ctx->output_format), i);
     }
-  //  fprintf(stderr, "done\n");
   }
 
 #if 0
@@ -728,10 +727,11 @@ static void init_context(gavl_mix_matrix_t * ctx,
     num_inputs = 0;
     for(j = 0; j < in_format->num_channels; j++)
       {
+      //      fprintf(stderr, "matrix[%d][%d]: %f\n",
+      //              i, j, matrix[i][j]);
+      
       if(matrix[i][j] != 0.0)
         {
-        //        fprintf(stderr, "Set factor %f %d %d\n",
-        //                matrix[i][j], i, j);
         set_factor(&(ctx->output_channels[i].inputs[num_inputs]),
                    matrix[i][j], in_format->sample_format);
         ctx->output_channels[i].inputs[num_inputs].index = j;
