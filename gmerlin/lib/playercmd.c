@@ -293,20 +293,25 @@ void bg_player_interrupt(bg_player_t * p)
   {
   bg_msg_queue_t * q;
   bg_msg_t * msg;
-  
+
+  /* Create message queue and connect to player */
   q = bg_msg_queue_create();
   bg_player_add_message_queue(p, q);
 
+  /* Tell player to interrupt */
   msg = bg_msg_queue_lock_write(p->command_queue);
   bg_msg_set_id(msg, BG_PLAYER_CMD_INTERRUPT);
   bg_msg_queue_unlock_write(p->command_queue);
 
+  /* Wait for confirmation */
   while((msg = bg_msg_queue_lock_read(q)) &&
         (bg_msg_get_id(msg) != BG_PLAYER_MSG_INTERRUPT))
     {
     bg_msg_queue_unlock_read(q);
     }
   bg_msg_queue_unlock_read(q);
+
+  /* Cleanup */
   bg_player_delete_message_queue(p, q);
   bg_msg_queue_destroy(q);
   }
@@ -316,19 +321,24 @@ void bg_player_interrupt_resume(bg_player_t * p)
   bg_msg_t * msg;
   bg_msg_queue_t * q;
 
+  /* Create message queue and connect to player */
   q = bg_msg_queue_create();
   bg_player_add_message_queue(p, q);
 
+  /* Tell player to resume */
   msg = bg_msg_queue_lock_write(p->command_queue);
   bg_msg_set_id(msg, BG_PLAYER_CMD_INTERRUPT_RESUME);
   bg_msg_queue_unlock_write(p->command_queue);
 
+  /* Wait for confirmation */
   while((msg = bg_msg_queue_lock_read(q)) &&
         (bg_msg_get_id(msg) != BG_PLAYER_MSG_INTERRUPT_RESUME))
     {
     bg_msg_queue_unlock_read(q);
     }
   bg_msg_queue_unlock_read(q);
+  
+  /* Cleanup */
   bg_player_delete_message_queue(p, q);
   bg_msg_queue_destroy(q);
   }

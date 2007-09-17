@@ -36,10 +36,7 @@ typedef struct
   int num_rear_channels;
   int num_lfe_channels;
 
-  /* Set by bg_gavl_audio_set_parameter */
-  int format_changed;
   int options_changed;
-  
   } bg_gavl_audio_options_t;
 
 int bg_gavl_audio_set_parameter(void * data, char * name, bg_parameter_value_t * val);
@@ -56,14 +53,12 @@ void bg_gavl_audio_options_set_format(const bg_gavl_audio_options_t *,
 typedef struct
   {
   gavl_video_options_t * opt;
-
+  
   int framerate_mode;
   int frame_duration;
   int timescale;
   
-  /* Set by bg_gavl_video_set_parameter */
-  //  int format_changed;
-  //  int options_changed;
+  int options_changed;
   } bg_gavl_video_options_t;
 
 int bg_gavl_video_set_parameter(void * data, char * name, bg_parameter_value_t * val);
@@ -104,6 +99,7 @@ void bg_gavl_video_options_set_interlace(const bg_gavl_video_options_t * opt,
   long_name:   TRS("Conversion Quality"),          \
     opt:         "q", \
   type:        BG_PARAMETER_SLIDER_INT,               \
+  flags:       BG_PARAMETER_SYNC,                     \
   val_min:     { val_i: GAVL_QUALITY_FASTEST },       \
   val_max:     { val_i: GAVL_QUALITY_BEST    },       \
   val_default: { val_i: GAVL_QUALITY_DEFAULT },                      \
@@ -116,8 +112,9 @@ Lower quality means more speed. Values above 3 enable slow high quality calculat
   name:      "framerate",                                       \
   long_name: TRS("Framerate"),                                       \
   type:      BG_PARAMETER_STRINGLIST,                           \
+  flags:       BG_PARAMETER_SYNC,                     \
   val_default: { val_str: "from_source" },                      \
-    multi_names: (char*[]){ "from_source",                      \
+  multi_names: (char*[]){ "from_source",                      \
                    "user_defined",                              \
                    "23_976",      \
                    "24", \
@@ -219,6 +216,7 @@ timescale and frame duration below (framerate = timescale / frame_duration).")\
   long_name:   TRS("Scale mode"),                                          \
   opt:       "sm",                                                  \
   type:        BG_PARAMETER_STRINGLIST,                               \
+  flags:       BG_PARAMETER_SYNC,                     \
   multi_names: BG_GAVL_SCALE_MODE_NAMES, \
   multi_labels: BG_GAVL_SCALE_MODE_LABELS, \
   val_default: { val_str: "auto" },                                   \
@@ -229,6 +227,7 @@ timescale and frame duration below (framerate = timescale / frame_duration).")\
   long_name:   TRS("Scale order"),                                        \
   opt:       "so",                                                  \
   type:        BG_PARAMETER_INT,                               \
+  flags:       BG_PARAMETER_SYNC,                     \
   val_min:     { val_i: 4 },                                 \
   val_max:     { val_i: 1000 },                              \
   val_default: { val_i: 4 },                                \
@@ -241,6 +240,7 @@ timescale and frame duration below (framerate = timescale / frame_duration).")\
   long_name:   TRS("Resample chroma"),                                          \
   opt:       "sm",                                                  \
   type:        BG_PARAMETER_CHECKBUTTON,                               \
+  flags:       BG_PARAMETER_SYNC,                     \
     help_string: TRS("Always perform chroma resampling if chroma subsampling factors or chroma placements are different. Usually, this is only done for qualities above 3."), \
   }
 
@@ -250,6 +250,7 @@ timescale and frame duration below (framerate = timescale / frame_duration).")\
       name:        "alpha_mode", \
       long_name:   TRS("Alpha mode"), \
       type:        BG_PARAMETER_STRINGLIST, \
+      flags:       BG_PARAMETER_SYNC,                     \
       val_default: { val_str: "ignore" }, \
       multi_names: (char*[]){"ignore", "blend_color", (char*)0}, \
       multi_labels: (char*[]){TRS("Ignore"), TRS("Blend background color"), (char*)0}, \
@@ -259,6 +260,7 @@ timescale and frame duration below (framerate = timescale / frame_duration).")\
       name:        "background_color", \
       long_name:   TRS("Background color"), \
       type:      BG_PARAMETER_COLOR_RGB, \
+      flags:       BG_PARAMETER_SYNC,                     \
       val_default: { val_color: (float[]){ 0.0, 0.0, 0.0 } }, \
       help_string: TRS("Background color to use, when alpha mode above is \"Blend background color\"."), \
     }
@@ -269,6 +271,7 @@ timescale and frame duration below (framerate = timescale / frame_duration).")\
       name:      "fixed_samplerate",\
       long_name: TRS("Fixed samplerate"),\
       type:      BG_PARAMETER_CHECKBUTTON,\
+      flags:       BG_PARAMETER_SYNC,                     \
       val_default: { val_i: 0 },\
       help_string: TRS("If disabled, the output samplerate is taken from the source. If enabled, the samplerate you specify below us used.")\
     },\
@@ -276,6 +279,7 @@ timescale and frame duration below (framerate = timescale / frame_duration).")\
       name:        "samplerate",\
       long_name:   TRS("Samplerate"),\
       type:        BG_PARAMETER_INT,\
+      flags:       BG_PARAMETER_SYNC,                     \
       val_min:     { val_i: 8000 },\
       val_max:     { val_i: 192000 },\
       val_default: { val_i: 44100 },\
@@ -288,6 +292,7 @@ timescale and frame duration below (framerate = timescale / frame_duration).")\
       name:      "fixed_channel_setup", \
       long_name: TRS("Fixed channel setup"), \
       type:      BG_PARAMETER_CHECKBUTTON,\
+      flags:       BG_PARAMETER_SYNC,                     \
       val_default: { val_i: 0 },\
       help_string: TRS("If disabled, the output channel configuration is taken from the source. If enabled, the setup you specify below us used.") \
     },                                        \
@@ -295,6 +300,7 @@ timescale and frame duration below (framerate = timescale / frame_duration).")\
     name:        "num_front_channels",          \
     long_name:   TRS("Front channels"),              \
     type:        BG_PARAMETER_INT,              \
+    flags:       BG_PARAMETER_SYNC,                     \
     val_min:     { val_i: 1 },                  \
     val_max:     { val_i: 5 },                  \
     val_default: { val_i: 2 },                  \
@@ -303,6 +309,7 @@ timescale and frame duration below (framerate = timescale / frame_duration).")\
     name:        TRS("num_rear_channels"),          \
     long_name:   "Rear channels",              \
     type:        BG_PARAMETER_INT,              \
+    flags:       BG_PARAMETER_SYNC,                     \
     val_min:     { val_i: 0 },                  \
     val_max:     { val_i: 3 },                  \
     val_default: { val_i: 0 },                  \
@@ -311,12 +318,14 @@ timescale and frame duration below (framerate = timescale / frame_duration).")\
     name:        "num_lfe_channels",          \
     long_name:   TRS("LFE"),                        \
     type:        BG_PARAMETER_CHECKBUTTON,     \
+    flags:       BG_PARAMETER_SYNC,                     \
     val_default: { val_i: 0 },                  \
     },                                        \
     {                                 \
       name:        "front_to_rear", \
       long_name:   TRS("Front to rear mode"), \
       type:        BG_PARAMETER_STRINGLIST, \
+      flags:       BG_PARAMETER_SYNC,                     \
       val_default: { val_str: "copy" }, \
       multi_names:  (char*[]){ "mute", \
                               "copy", \
@@ -333,6 +342,7 @@ but the source doesn't."), \
       name:        "stereo_to_mono", \
       long_name:   TRS("Stereo to mono mode"), \
       type:        BG_PARAMETER_STRINGLIST, \
+      flags:       BG_PARAMETER_SYNC,                     \
       val_default: { val_str: "mix" }, \
       multi_names:  (char*[]){ "left", \
                               "right", \
@@ -351,6 +361,7 @@ but the source doesn't."), \
       name:      "force_float", \
       long_name: TRS("Force floating point"), \
       type:      BG_PARAMETER_CHECKBUTTON,\
+      flags:       BG_PARAMETER_SYNC,                     \
       val_default: { val_i: 0 },\
       help_string: TRS("Force floating point processing. This will inprove the quality but might slow things down.") \
     }
@@ -360,6 +371,7 @@ but the source doesn't."), \
       name:      "dither_mode", \
       long_name: TRS("Dither mode"), \
       type:      BG_PARAMETER_STRINGLIST,\
+      flags:       BG_PARAMETER_SYNC,                     \
       val_default: { val_str: "auto" },\
       multi_names:  (char*[]){ "auto", "none", "rect",        "tri",        "shaped", (char*)0 },\
       multi_labels: (char*[]){ TRS("Auto"), TRS("None"), TRS("Rectangular"), \
@@ -372,6 +384,7 @@ but the source doesn't."), \
       name:      "resample_mode", \
       long_name: TRS("Resample mode"), \
       type:      BG_PARAMETER_STRINGLIST,\
+      flags:       BG_PARAMETER_SYNC,                     \
       val_default: { val_str: "auto" },\
       multi_names:  (char*[]){ "auto", "linear", "zoh",             "sinc_fast",  "sinc_medium", "sinc_best", (char*)0 },\
       multi_labels: (char*[]){ TRS("Auto"), TRS("Linear"), TRS("Zero order hold"), \

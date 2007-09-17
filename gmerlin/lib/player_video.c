@@ -141,6 +141,7 @@ bg_parameter_info_t * bg_player_get_video_parameters(bg_player_t * p)
   return parameters;
   }
 
+#if 0
 void bg_player_set_video_parameter(void * data, char * name,
                                    bg_parameter_value_t * val)
   {
@@ -157,6 +158,65 @@ void bg_player_set_video_parameter(void * data, char * name,
   pthread_mutex_unlock(&(player->video_stream.config_mutex));
 
   }
+#endif
+
+void bg_player_set_video_parameter(void * data, char * name,
+                                   bg_parameter_value_t * val)
+  {
+  bg_player_t * p = (bg_player_t*)data;
+  int need_restart = 0;
+  int is_interrupted;
+  int do_init;
+  int check_restart;
+  
+  do_init = (bg_player_get_state(p) == BG_PLAYER_STATE_INIT);
+  
+  pthread_mutex_lock(&(p->video_stream.config_mutex));
+
+  is_interrupted = p->video_stream.interrupted;
+  
+  bg_gavl_video_set_parameter(&(p->video_stream.options),
+                              name, val);
+
+  if(!do_init && !is_interrupted)
+    check_restart = 1;
+  else
+    check_restart = 0;
+  
+  if(check_restart)
+    need_restart = p->video_stream.options.options_changed;
+  
+  pthread_mutex_unlock(&(p->video_stream.config_mutex));
+
+  if(!need_restart && check_restart)
+    {
+    bg_video_filter_chain_lock(p->video_stream.fc);
+    need_restart =
+        bg_video_filter_chain_need_restart(p->video_stream.fc);
+    bg_video_filter_chain_unlock(p->video_stream.fc);
+    }
+
+  if(need_restart)
+    {
+    bg_log(BG_LOG_INFO, LOG_DOMAIN,
+           "Restarting playback due to changed video options");
+    bg_player_interrupt(p);
+    
+    pthread_mutex_lock(&(p->video_stream.config_mutex));
+    p->video_stream.interrupted = 1;
+    pthread_mutex_unlock(&(p->video_stream.config_mutex));
+    }
+  
+  if(!name && is_interrupted)
+    {
+    bg_player_interrupt_resume(p);
+    pthread_mutex_lock(&(p->video_stream.config_mutex));
+    p->video_stream.interrupted = 0;
+    pthread_mutex_unlock(&(p->video_stream.config_mutex));
+    }
+  }
+
+
 
 bg_parameter_info_t *
 bg_player_get_video_filter_parameters(bg_player_t * p)
@@ -164,64 +224,40 @@ bg_player_get_video_filter_parameters(bg_player_t * p)
   return bg_video_filter_chain_get_parameters(p->video_stream.fc);
   }
 
-#if 0
-void
-bg_player_set_video_filter_parameter(void*data, char * name,
-                                     bg_parameter_value_t*val)
-  {
-  int need_rebuild;
-  bg_player_t * p = (bg_player_t*)data;
-  bg_video_filter_chain_lock(p->video_stream.fc);
-  bg_video_filter_chain_set_parameter(p->video_stream.fc, name, val);
-  need_rebuild = bg_video_filter_chain_need_rebuild(p->video_stream.fc);
-  bg_video_filter_chain_unlock(p->video_stream.fc);
-
-  if(bg_player_get_state(p) == BG_PLAYER_STATE_INIT)
-    need_rebuild = 0;
-  
-  if(need_rebuild)
-    {
-    bg_log(BG_LOG_INFO, LOG_DOMAIN,
-           "Restarting playback due to changed video filters");
-    bg_player_interrupt(p);
-    bg_player_interrupt_resume(p);
-    
-    }
-  }
-#endif
-
 void bg_player_set_video_filter_parameter(void * data, char * name,
                                           bg_parameter_value_t * val)
   {
-  int need_rebuild;
+  int need_rebuild = 0, need_restart = 0;
   int is_interrupted;
+  int do_init;
   bg_player_t * p = (bg_player_t*)data;
-
+  
+  do_init = (bg_player_get_state(p) == BG_PLAYER_STATE_INIT);
+  
   pthread_mutex_lock(&(p->video_stream.config_mutex));
   is_interrupted = p->video_stream.interrupted;
   pthread_mutex_unlock(&(p->video_stream.config_mutex));
   
   bg_video_filter_chain_lock(p->video_stream.fc);
   bg_video_filter_chain_set_parameter(p->video_stream.fc, name, val);
+  
   need_rebuild =
     bg_video_filter_chain_need_rebuild(p->video_stream.fc);
-  bg_video_filter_chain_unlock(p->video_stream.fc);
-
-  if(bg_player_get_state(p) == BG_PLAYER_STATE_INIT)
-    need_rebuild = 0;
+  need_restart =
+    bg_video_filter_chain_need_restart(p->video_stream.fc);
   
-  if(need_rebuild && !is_interrupted)
+  bg_video_filter_chain_unlock(p->video_stream.fc);
+  
+  if(!do_init && (need_rebuild || need_restart) && !is_interrupted)
     {
     bg_log(BG_LOG_INFO, LOG_DOMAIN,
            "Restarting playback due to changed video filters");
     bg_player_interrupt(p);
-    bg_video_filter_chain_rebuild(p->video_stream.fc);
     
     pthread_mutex_lock(&(p->video_stream.config_mutex));
     p->video_stream.interrupted = 1;
     pthread_mutex_unlock(&(p->video_stream.config_mutex));
     }
-  
   if(!name && is_interrupted)
     {
     bg_player_interrupt_resume(p);

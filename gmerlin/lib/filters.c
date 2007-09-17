@@ -42,6 +42,8 @@ struct bg_audio_filter_chain_s
   bg_audio_converter_t * cnv_out;
   gavl_audio_frame_t     * frame;
   gavl_audio_format_t    out_format_1;
+  gavl_audio_format_t    in_format_1;
+  gavl_audio_format_t    in_format_2;
   
   pthread_mutex_t mutex;
   
@@ -52,6 +54,16 @@ struct bg_audio_filter_chain_s
 
 int bg_audio_filter_chain_need_restart(bg_audio_filter_chain_t * ch)
   {
+  gavl_audio_format_t test_format;
+
+  if(!ch->need_restart)
+    {
+    gavl_audio_format_copy(&test_format, &ch->in_format_1);
+    bg_gavl_audio_options_set_format(ch->opt, &ch->in_format_1, &test_format);
+    if(!gavl_audio_formats_equal(&test_format, &ch->in_format_2))
+      ch->need_restart = 1;
+    }
+  
   return ch->need_restart;
   }
 
@@ -251,6 +263,10 @@ int bg_audio_filter_chain_init(bg_audio_filter_chain_t * ch,
   bg_gavl_audio_options_set_format(ch->opt,
                                    in_format,
                                    &format_1);
+
+  gavl_audio_format_copy(&ch->in_format_1, in_format);
+  gavl_audio_format_copy(&ch->in_format_2, &format_1);
+  
   
   f = ch->filters;
   
@@ -407,6 +423,9 @@ struct bg_video_filter_chain_s
   bg_video_converter_t * cnv_out;
   gavl_video_frame_t   * frame;
   gavl_video_format_t  out_format_1;
+  gavl_video_format_t  in_format_1;
+  gavl_video_format_t  in_format_2;
+  
   int                  do_convert_out;
 
   bg_read_video_func_t in_func;
@@ -423,6 +442,16 @@ int bg_video_filter_chain_need_rebuild(bg_video_filter_chain_t * ch)
 
 int bg_video_filter_chain_need_restart(bg_video_filter_chain_t * ch)
   {
+  gavl_video_format_t test_format;
+
+  if(!ch->need_restart)
+    {
+    gavl_video_format_copy(&test_format, &ch->in_format_1);
+    bg_gavl_video_options_set_format(ch->opt, &ch->in_format_1, &test_format);
+    if(!gavl_video_formats_equal(&test_format, &ch->in_format_2))
+      ch->need_restart = 1;
+    }
+  
   return ch->need_restart;
   }
 
@@ -470,7 +499,7 @@ void bg_video_filter_chain_rebuild(bg_video_filter_chain_t * ch)
   int i;
   char ** filter_names;
   filter_names = bg_strbreak(ch->filter_string, ',');
-
+  
   destroy_video_chain(ch);
   
   if(!filter_names)
@@ -604,6 +633,10 @@ int bg_video_filter_chain_init(bg_video_filter_chain_t * ch,
   bg_gavl_video_options_set_format(ch->opt,
                                    in_format,
                                    &format_1);
+
+  gavl_video_format_copy(&ch->in_format_1, in_format);
+  gavl_video_format_copy(&ch->in_format_2, &format_1);
+
   
   for(i = 0; i < ch->num_filters; i++)
     {

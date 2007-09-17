@@ -208,10 +208,7 @@ static void changed_callback(GtkWidget * w, gpointer data)
   gtk_color_selection_get_current_color(GTK_COLOR_SELECTION(GTK_COLOR_SELECTION_DIALOG(priv->colorsel)->colorsel), &(priv->color));
   priv->alpha = gtk_color_selection_get_current_alpha(GTK_COLOR_SELECTION(GTK_COLOR_SELECTION_DIALOG(priv->colorsel)->colorsel));
   
-  wid->funcs->set_value(wid);
-  if(wid->change_callback)
-    wid->change_callback(wid->change_callback_data,
-                       wid->info->name, &(wid->value));
+  bg_gtk_change_callback((GtkWidget*)0, wid);
   set_button(priv);
   }
 
@@ -319,6 +316,8 @@ void bg_gtk_create_color_rgb(bg_gtk_widget_t * w,
   {
   color_t * priv = calloc(1, sizeof(*priv));
 
+  w->funcs = &funcs;
+  
   w->value.val_color = calloc(4, sizeof(float));
   w->value.val_color[0] = 0.0;
   w->value.val_color[1] = 0.0;
@@ -356,7 +355,5 @@ void bg_gtk_create_color_rgb(bg_gtk_widget_t * w,
 
   gtk_widget_show(priv->label);
   
-  
-  w->funcs = &funcs;
   w->priv = priv;
   }

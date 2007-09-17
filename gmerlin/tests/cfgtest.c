@@ -12,6 +12,7 @@ bg_cfg_section_t  * section_2;
 bg_cfg_section_t  * section_3;
 bg_cfg_section_t  * section_4;
 
+#define PARAMETER_FLAGS BG_PARAMETER_SYNC
 
 static bg_parameter_info_t multimenu_1_info[] =
   {
@@ -19,11 +20,13 @@ static bg_parameter_info_t multimenu_1_info[] =
       name:      "multimenu_1_checkbutton_1",
       long_name: "Multimenu 1 Checkbutton 1",
       type:      BG_PARAMETER_CHECKBUTTON,
+      flags:     PARAMETER_FLAGS,
     },
     {
       name:      "multimenu_1_checkbutton_2",
       long_name: "Multimenu 1 Checkbutton 2",
       type:      BG_PARAMETER_CHECKBUTTON,
+      flags:     PARAMETER_FLAGS,
     },
     { /* End of Parameters */ }
   };
@@ -34,11 +37,13 @@ static bg_parameter_info_t multimenu_2_info[] =
       name:      "multimenu_2_checkbutton_1",
       long_name: "Multimenu 2 Checkbutton 1",
       type:      BG_PARAMETER_CHECKBUTTON,
+      flags:     PARAMETER_FLAGS,
     },
     {
       name:      "multimenu_2_checkbutton_2",
       long_name: "Multimenu 2 Checkbutton 2",
       type:      BG_PARAMETER_CHECKBUTTON,
+      flags:     PARAMETER_FLAGS,
     },
     { /* End of Parameters */ }
   };
@@ -49,11 +54,13 @@ static bg_parameter_info_t multilist_1_info[] =
       name:      "multilist_1_checkbutton_1",
       long_name: "Multilist 1 Checkbutton 1",
       type:      BG_PARAMETER_CHECKBUTTON,
+      flags:     PARAMETER_FLAGS,
     },
     {
       name:      "multilist_1_checkbutton_2",
       long_name: "Multilist 1 Checkbutton 2",
       type:      BG_PARAMETER_CHECKBUTTON,
+      flags:     PARAMETER_FLAGS,
     },
     { /* End of Parameters */ }
   };
@@ -64,11 +71,13 @@ static bg_parameter_info_t multilist_2_info[] =
       name:      "multilist_2_checkbutton_1",
       long_name: "Multilist 2 Checkbutton 1",
       type:      BG_PARAMETER_CHECKBUTTON,
+      flags:     PARAMETER_FLAGS,
     },
     {
       name:      "multilist_2_checkbutton_2",
       long_name: "Multilist 2 Checkbutton 2",
       type:      BG_PARAMETER_CHECKBUTTON,
+      flags:     PARAMETER_FLAGS,
     },
     { /* End of Parameters */ }
   };
@@ -79,11 +88,13 @@ static bg_parameter_info_t multichain_1_info[] =
       name:      "multichain_1_checkbutton_1",
       long_name: "Multichain 1 Checkbutton 1",
       type:      BG_PARAMETER_CHECKBUTTON,
+      flags:     PARAMETER_FLAGS,
     },
     {
       name:      "multichain_1_checkbutton_2",
       long_name: "Multichain 1 Checkbutton 2",
       type:      BG_PARAMETER_CHECKBUTTON,
+      flags:     PARAMETER_FLAGS,
     },
     { /* End of Parameters */ }
   };
@@ -94,11 +105,13 @@ static bg_parameter_info_t multichain_2_info[] =
       name:      "multichain_2_checkbutton_1",
       long_name: "Multichain 2 Checkbutton 1",
       type:      BG_PARAMETER_CHECKBUTTON,
+      flags:     PARAMETER_FLAGS,
     },
     {
       name:      "multichain_2_checkbutton_2",
       long_name: "Multichain 2 Checkbutton 2",
       type:      BG_PARAMETER_CHECKBUTTON,
+      flags:     PARAMETER_FLAGS,
     },
     { /* End of Parameters */ }
   };
@@ -138,6 +151,7 @@ static bg_parameter_info_t info_1[] =
       name:        "checkbutton",
       long_name:   "Check Button",
       type:        BG_PARAMETER_CHECKBUTTON,
+      flags:     PARAMETER_FLAGS,
       val_default: { val_i: 1 },
       help_string: "Checkbutton help"
     },
@@ -145,6 +159,7 @@ static bg_parameter_info_t info_1[] =
       name:      "spinbutton_float",
       long_name: "Floating point Spinbutton",
       type:      BG_PARAMETER_FLOAT,
+      flags:     PARAMETER_FLAGS,
       val_default: { val_f: 250.0 },
       val_min:     { val_f: 200.0 },
       val_max:     { val_f: 300.0 },
@@ -155,6 +170,7 @@ static bg_parameter_info_t info_1[] =
       name:      "spinbutton_int",
       long_name: "Integer Spinbutton",
       type:      BG_PARAMETER_INT,
+      flags:     PARAMETER_FLAGS,
       val_default: { val_i: 250 },
       val_min:     { val_i: 200 },
       val_max:     { val_i: 300 },
@@ -164,12 +180,14 @@ static bg_parameter_info_t info_1[] =
       name:      "time",
       long_name: "Time",
       type:      BG_PARAMETER_TIME,
+      flags:     PARAMETER_FLAGS,
       help_string: "Time help",
     },
     {
       name:        "slider_float",
       long_name:   "Floating point Slider",
       type:        BG_PARAMETER_SLIDER_FLOAT,
+      flags:     PARAMETER_FLAGS,
       val_default: { val_f: 250.0 },
       val_min:     { val_f: 1.0 },
       val_max:     { val_f: 300.0 },
@@ -180,6 +198,7 @@ static bg_parameter_info_t info_1[] =
       name:        "slider_int",
       long_name:   "Integer Slider",
       type:        BG_PARAMETER_SLIDER_INT,
+      flags:     PARAMETER_FLAGS,
       val_default: { val_i: 250 },
       val_min:     { val_i: 200 },
       val_max:     { val_i: 300 },
@@ -189,6 +208,7 @@ static bg_parameter_info_t info_1[] =
       name:      "string",
       long_name: "String",
       type:      BG_PARAMETER_STRING,
+      flags:     PARAMETER_FLAGS,
       val_default: { val_str: "Some string" },
       help_string:   "String help",
     },
@@ -196,6 +216,7 @@ static bg_parameter_info_t info_1[] =
       name:      "string_hidden",
       long_name: "String (hidden)",
       type:      BG_PARAMETER_STRING_HIDDEN,
+      flags:     PARAMETER_FLAGS,
       val_default: { val_str: "Some string (hidden)" },
       help_string:   "String hidden help",
     },
@@ -203,6 +224,7 @@ static bg_parameter_info_t info_1[] =
       name:        "stringlist",
       long_name:   "Stringlist",
       type:        BG_PARAMETER_STRINGLIST,
+      flags:     PARAMETER_FLAGS,
       val_default: { val_str: "option_2" },
       multi_names:  (char *[]){ "option_1", "option_2", "option_3", NULL },
       multi_labels: (char *[]){ "Option 1", "Option 2", "Option 3", NULL },
@@ -224,7 +246,7 @@ static bg_parameter_info_t info_2[] =
       name:      "color_rgb",
       long_name: "Color RGB",
       type:      BG_PARAMETER_COLOR_RGB,
-      flags:     BG_PARAMETER_SYNC,
+      flags:     PARAMETER_FLAGS,
       val_default: { val_color: (float[]){ 0.0, 1.0, 0.0 } },
       help_string:   "Color RGB help",
     },
@@ -232,7 +254,7 @@ static bg_parameter_info_t info_2[] =
       name:      "color_rgba",
       long_name: "Color RGBA",
       type:      BG_PARAMETER_COLOR_RGBA,
-      flags:     BG_PARAMETER_SYNC,
+      flags:     PARAMETER_FLAGS,
       val_default: { val_color: (float[]){ 0.0, 1.0, 0.0, 0.5 } },
       help_string:   "Color RGBA help",
     },
@@ -240,6 +262,7 @@ static bg_parameter_info_t info_2[] =
       name:        "file",
       long_name:   "File",
       type:        BG_PARAMETER_FILE,
+      flags:     PARAMETER_FLAGS,
       val_default: { val_str: "/usr/include/stdio.h" },
       help_string:   "File help",
     },
@@ -247,6 +270,7 @@ static bg_parameter_info_t info_2[] =
       name:        "directory",
       long_name:   "Directory",
       type:        BG_PARAMETER_DIRECTORY,
+      flags:     PARAMETER_FLAGS,
       val_default: { val_str: "/usr/local" },
       help_string:   "Directory help",
     },
@@ -254,6 +278,7 @@ static bg_parameter_info_t info_2[] =
       name:      "font",
       long_name: "Font",
       type:      BG_PARAMETER_FONT,
+      flags:     PARAMETER_FLAGS,
       val_default: { val_str: "Sans-12:slant=0:weight=100:width=100" },
       help_string:   "Font help",
     },
@@ -261,6 +286,7 @@ static bg_parameter_info_t info_2[] =
       name:      "device",
       long_name: "Device",
       type:      BG_PARAMETER_DEVICE,
+      flags:     PARAMETER_FLAGS,
       val_default: { val_str: "/dev/cdrom" },
       help_string:   "Device help",
     },
@@ -281,6 +307,7 @@ static bg_parameter_info_t info_3[] =
       name:               "multimenu",
       long_name:          "Multimenu",
       type:               BG_PARAMETER_MULTI_MENU,
+      flags:     PARAMETER_FLAGS,
       val_default:        { val_str: "multimenu_1" },
       multi_names:        (char *[]){ "multimenu_1", "multimenu_2", NULL },
       multi_labels:   (char *[]){ "Multimenu 1", "Multimenu 2", NULL },
@@ -293,6 +320,7 @@ static bg_parameter_info_t info_3[] =
       name:               "multilist",
       long_name:          "Multilist",
       type:               BG_PARAMETER_MULTI_LIST,
+      flags:     PARAMETER_FLAGS,
       multi_names:        (char *[]){ "multilist_1", "multilist_2", NULL },
       multi_labels:   (char *[]){ "Multilist 1", "Multilist 2", NULL },
       multi_descriptions: (char *[]){ "Multilist 1", "Multilist 2", NULL },
@@ -309,6 +337,7 @@ static bg_parameter_info_t info_4[] =
       name:               "multichain",
       long_name:          "Multichain",
       type:               BG_PARAMETER_MULTI_CHAIN,
+      flags:     PARAMETER_FLAGS,
       multi_names:        (char *[]){ "multichain_1", "multichain_2", NULL },
       multi_labels:   (char *[]){ "Multichain 1", "Multichain 2", NULL },
       multi_descriptions: (char *[]){ "Multichain 1", "Multichain 2", NULL },
@@ -370,8 +399,10 @@ static void set_parameter(void * data, char * name,
   tmp_info = (bg_parameter_info_t *)0;
 
   if(!name)
+    {
+    fprintf(stderr, "NULL Parameter\n");
     return;
-  
+    }
   i = 0;
 
   tmp_info = find_parameter(info_1, name);

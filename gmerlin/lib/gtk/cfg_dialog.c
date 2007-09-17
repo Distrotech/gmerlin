@@ -203,7 +203,6 @@ static void reset_section(dialog_section_t * s)
         cfg_subsection = bg_cfg_section_find_subsection(s->cfg_section, s->widgets[i].info->name);
         bg_cfg_section_restore(cfg_subsection, s->widgets[i].cfg_subsection_save);
         }
-      
       if(s->widgets[i].funcs->apply_sub_params)
         s->widgets[i].funcs->apply_sub_params(&(s->widgets[i]));
       }
@@ -982,8 +981,14 @@ void bg_gtk_change_callback(GtkWidget * gw, gpointer data)
   
   w->funcs->set_value(w);
   if(w->change_callback)
+    {
     w->change_callback(w->change_callback_data,
                        w->info->name, &(w->value));
+    if(w->funcs->apply_sub_params)
+      w->funcs->apply_sub_params(w);
+    w->change_callback(w->change_callback_data,
+                       NULL, NULL);
+    }
   }
 
 void bg_gtk_change_callback_block(bg_gtk_widget_t * w, int block)

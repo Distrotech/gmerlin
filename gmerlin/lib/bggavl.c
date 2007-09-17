@@ -46,11 +46,13 @@
 
 int bg_gavl_audio_set_parameter(void * data, char * name, bg_parameter_value_t * val)
   {
-  int flags;
   bg_gavl_audio_options_t * opt = (bg_gavl_audio_options_t *)data;
-
+  if(!name)
+    return 1;
   if(!strcmp(name, "conversion_quality"))
     {
+    if(val->val_i != gavl_audio_options_get_quality(opt->opt))
+      opt->options_changed = 1;
     gavl_audio_options_set_quality(opt->opt, val->val_i);
     return 1;
     }
@@ -64,101 +66,99 @@ int bg_gavl_audio_set_parameter(void * data, char * name, bg_parameter_value_t *
   
   if(!strcmp(name, "front_to_rear"))
     {
+    int old_flags, new_flags;
     if(!val->val_str)
       return 1;
-    flags = gavl_audio_options_get_conversion_flags(opt->opt);
-
-    flags &= ~GAVL_AUDIO_FRONT_TO_REAR_MASK;
+    old_flags = gavl_audio_options_get_conversion_flags(opt->opt);
+    new_flags = old_flags & ~GAVL_AUDIO_FRONT_TO_REAR_MASK;
     
     if(!strcmp(val->val_str, "copy"))
-      {
-      flags |= GAVL_AUDIO_FRONT_TO_REAR_COPY;
-      }
+      new_flags |= GAVL_AUDIO_FRONT_TO_REAR_COPY;
     else if(!strcmp(val->val_str, "mute"))
-      {
-      flags |= GAVL_AUDIO_FRONT_TO_REAR_MUTE;
-      }
+      new_flags |= GAVL_AUDIO_FRONT_TO_REAR_MUTE;
     else if(!strcmp(val->val_str, "diff"))
-      {
-      flags |= GAVL_AUDIO_FRONT_TO_REAR_DIFF;
-      }
-    gavl_audio_options_set_conversion_flags(opt->opt, flags);
+      new_flags |= GAVL_AUDIO_FRONT_TO_REAR_DIFF;
+    
+    if(old_flags != new_flags)
+      opt->options_changed = 1;
+    
+    gavl_audio_options_set_conversion_flags(opt->opt, new_flags);
     
     return 1;
     }
 
   else if(!strcmp(name, "stereo_to_mono"))
     {
+    int old_flags, new_flags = GAVL_AUDIO_STEREO_TO_MONO_MIX;
     if(!val->val_str)
       return 1;
-    flags = gavl_audio_options_get_conversion_flags(opt->opt);
-
-    flags &= ~GAVL_AUDIO_STEREO_TO_MONO_MASK;
-                                                                                                        
+    old_flags = gavl_audio_options_get_conversion_flags(opt->opt);
+    new_flags = (old_flags & ~GAVL_AUDIO_STEREO_TO_MONO_MASK);
+    
     if(!strcmp(val->val_str, "left"))
-      {
-      flags |= GAVL_AUDIO_STEREO_TO_MONO_LEFT;
-      }
+      new_flags |= GAVL_AUDIO_STEREO_TO_MONO_LEFT;
     else if(!strcmp(val->val_str, "right"))
-      {
-      flags |= GAVL_AUDIO_STEREO_TO_MONO_RIGHT;
-      }
+      new_flags |= GAVL_AUDIO_STEREO_TO_MONO_RIGHT;
     else if(!strcmp(val->val_str, "mix"))
-      {
-      flags |= GAVL_AUDIO_STEREO_TO_MONO_MIX;
-      }
-    gavl_audio_options_set_conversion_flags(opt->opt, flags);
+      new_flags |= GAVL_AUDIO_STEREO_TO_MONO_MIX;
+
+    if(old_flags |= new_flags)
+      opt->options_changed = 1;
+    
+    gavl_audio_options_set_conversion_flags(opt->opt, new_flags);
     return 1;
     }
 
   else if(!strcmp(name, "dither_mode"))
     {
+    gavl_audio_dither_mode_t dither_mode = GAVL_AUDIO_DITHER_AUTO;
     if(!strcmp(val->val_str, "auto"))
       {
-      gavl_audio_options_set_dither_mode(opt->opt, GAVL_AUDIO_DITHER_AUTO);
+      dither_mode = GAVL_AUDIO_DITHER_AUTO;
       }
     else if(!strcmp(val->val_str, "none"))
       {
-      gavl_audio_options_set_dither_mode(opt->opt, GAVL_AUDIO_DITHER_NONE);
+      dither_mode = GAVL_AUDIO_DITHER_NONE;
       }
     else if(!strcmp(val->val_str, "rect"))
       {
-      gavl_audio_options_set_dither_mode(opt->opt, GAVL_AUDIO_DITHER_RECT);
+      dither_mode = GAVL_AUDIO_DITHER_RECT;
       }
     else if(!strcmp(val->val_str, "shaped"))
       {
-      gavl_audio_options_set_dither_mode(opt->opt, GAVL_AUDIO_DITHER_SHAPED);
+      dither_mode = GAVL_AUDIO_DITHER_SHAPED;
       }
+
+    if(dither_mode != gavl_audio_options_get_dither_mode(opt->opt))
+      opt->options_changed = 1;
+      
+      gavl_audio_options_set_dither_mode(opt->opt, dither_mode);
+
     return 1;
     }
 
   
   else if(!strcmp(name, "resample_mode"))
     {
+    gavl_resample_mode_t resample_mode = GAVL_RESAMPLE_AUTO;
     if(!strcmp(val->val_str, "auto"))
-      {
       gavl_audio_options_set_resample_mode(opt->opt, GAVL_RESAMPLE_AUTO);
-      }
+
     else if(!strcmp(val->val_str, "linear"))
-      {
-      gavl_audio_options_set_resample_mode(opt->opt, GAVL_RESAMPLE_LINEAR);
-      }
+      resample_mode = GAVL_RESAMPLE_LINEAR;
     else if(!strcmp(val->val_str, "zoh"))
-      {
-      gavl_audio_options_set_resample_mode(opt->opt, GAVL_RESAMPLE_ZOH);
-      }
+      resample_mode = GAVL_RESAMPLE_ZOH;
     else if(!strcmp(val->val_str, "sinc_fast"))
-      {
-      gavl_audio_options_set_resample_mode(opt->opt, GAVL_RESAMPLE_SINC_FAST);
-      }
+      resample_mode = GAVL_RESAMPLE_SINC_FAST;
     else if(!strcmp(val->val_str, "sinc_medium"))
-      {
-      gavl_audio_options_set_resample_mode(opt->opt, GAVL_RESAMPLE_SINC_MEDIUM);
-      }
+      resample_mode = GAVL_RESAMPLE_SINC_MEDIUM;
     else if(!strcmp(val->val_str, "sinc_best"))
-      {
-      gavl_audio_options_set_resample_mode(opt->opt, GAVL_RESAMPLE_SINC_BEST);
-      }
+      resample_mode = GAVL_RESAMPLE_SINC_BEST;
+    
+    if(resample_mode != gavl_audio_options_get_resample_mode(opt->opt))
+      opt->options_changed = 1;
+    
+    gavl_audio_options_set_resample_mode(opt->opt, resample_mode);
     
     return 1;
     }
@@ -330,10 +330,16 @@ static void set_frame_rate_mode(bg_gavl_video_options_t * opt,
 
 #define SP_FLAG(s, flag) if(!strcmp(name, s)) {               \
   flags = gavl_video_options_get_conversion_flags(opt->opt);  \
-  if(val->val_i)                                              \
+  if((val->val_i) && !(flags & flag))                         \
+    {                                                         \
+    opt->options_changed = 1;                                 \
     flags |= flag;                                            \
-  else                                                        \
+    }                                                         \
+  else if(!(val->val_i) && (flags & flag))                    \
+    {                                                         \
+    opt->options_changed = 1;                                 \
     flags &= ~flag;                                           \
+    }                                                         \
   gavl_video_options_set_conversion_flags(opt->opt, flags);   \
   return 1;                                                   \
   }
@@ -370,9 +376,13 @@ int bg_gavl_video_set_parameter(void * data, char * name,
   int flags;  
   bg_gavl_video_options_t * opt = (bg_gavl_video_options_t *)data;
 
-  
+  if(!name)
+    return 1;
   if(!strcmp(name, "conversion_quality"))
     {
+    if(val->val_i != gavl_video_options_get_quality(opt->opt))
+      opt->options_changed = 1;
+    
     gavl_video_options_set_quality(opt->opt, val->val_i);
     return 1;
     }

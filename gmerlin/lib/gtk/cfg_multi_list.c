@@ -137,14 +137,18 @@ static void apply_sub_params(bg_gtk_widget_t * w)
     bg_strbreak_free(names);
   }
 
+#if 0
 static void do_apply_sub_params(bg_gtk_widget_t * w)
   {
   apply_sub_params(w);
   set_sub_param(w, NULL, NULL);
   }
+#endif
 
-static void set_value(bg_gtk_widget_t * w)
+/* Return the string corresponding to the current list */
+static char * get_list_string(bg_gtk_widget_t * w)
   {
+  char * ret = (char*)0;
   int num;
   GtkTreeModel * model;
   GtkTreeIter iter;
@@ -152,16 +156,10 @@ static void set_value(bg_gtk_widget_t * w)
   
   list_priv_t * priv = (list_priv_t*)(w->priv);
 
-  if(w->value.val_str)
-    {
-    free(w->value.val_str);
-    w->value.val_str = (char*)0;
-    }
-  
   model = gtk_tree_view_get_model(GTK_TREE_VIEW(priv->treeview));
   if(!gtk_tree_model_get_iter_first(model, &iter))
     {
-    return;
+    return (char*)0;
     }
 
   while(1)
@@ -172,40 +170,55 @@ static void set_value(bg_gtk_widget_t * w)
       num = 0;
       while(strcmp(w->info->multi_labels[num], name))
         num++;
-      w->value.val_str = bg_strcat(w->value.val_str,
-                                   w->info->multi_names[num]);
+      ret = bg_strcat(ret, w->info->multi_names[num]);
       }
     else
-      w->value.val_str = bg_strcat(w->value.val_str,
-                                   name);
-
+      ret = bg_strcat(ret, name);
+    
     g_free(name);
     if(!gtk_tree_model_iter_next(model, &iter))
       break;
     w->value.val_str = bg_strcat(w->value.val_str, ",");
     }
+  return ret;
+  }
+
+static void set_value(bg_gtk_widget_t * w)
+  {
+  if(w->value.val_str)
+    free(w->value.val_str);
+  w->value.val_str = get_list_string(w);
   }
 
 static void get_value(bg_gtk_widget_t * w)
   {
   GtkTreeIter iter;
   GtkTreeModel * model;
-  char * tmp_string;
   char ** names;
   int init;
   int i, j, do_add;
   list_priv_t * priv = (list_priv_t*)(w->priv);
-  /* Fill the list */
+  char * val_current;
   
+  /* Return early if nothing changed */
+  val_current = get_list_string(w);
+  if((!val_current && !w->value.val_str)
+     || ((val_current && w->value.val_str) &&
+         !strcmp(val_current, w->value.val_str)))
+    {
+    if(val_current)
+      free(val_current);
+    return;
+    }
+  free(val_current);
+  
+  /* Fill the list */
   model = gtk_tree_view_get_model(GTK_TREE_VIEW(priv->treeview));
   gtk_list_store_clear(GTK_LIST_STORE(model));
-
+  
   priv->num = 0;
   
-  tmp_string = bg_strdup(NULL, w->value.val_str);
-  names = bg_strbreak(tmp_string, ',');
-  if(tmp_string)
-    free(tmp_string);
+  names = bg_strbreak(w->value.val_str, ',');
   
   if(!names)
     {
@@ -226,8 +239,9 @@ static void get_value(bg_gtk_widget_t * w)
     i = 0;
     while(w->info->multi_labels[i])
       {
-      priv->multi_labels[i] = bg_strdup((char*)0,
-                                        TRD(w->info->multi_labels[i], priv->translation_domain));
+      priv->multi_labels[i] =
+        bg_strdup((char*)0,
+                  TRD(w->info->multi_labels[i], priv->translation_domain));
       i++;
       }
     }
@@ -313,6 +327,9 @@ static void get_value(bg_gtk_widget_t * w)
     {
     bg_strbreak_free(names);
     }
+  
+  if(w->info->flags & BG_PARAMETER_SYNC)
+    bg_gtk_change_callback((GtkWidget*)0, w);
   }
 
 static void add_func(void * priv, char * name, bg_parameter_value_t * val)
@@ -371,7 +388,6 @@ static void add_func(void * priv, char * name, bg_parameter_value_t * val)
     if(w->info->flags & BG_PARAMETER_SYNC)
       {
       bg_gtk_change_callback((GtkWidget*)0, w);
-      do_apply_sub_params(w);
       }
     }
   }
@@ -612,11 +628,7 @@ static void move_selected(bg_gtk_widget_t * w, int new_pos)
   /* Apply parameter and subsections. It's easier to do it here. */
 
   if(w->info->flags & BG_PARAMETER_SYNC)
-    {
     bg_gtk_change_callback((GtkWidget*)0, w);
-    if(priv->is_chain)
-      do_apply_sub_params(w);
-    }
   
   priv->selected = new_pos;
   
@@ -765,7 +777,6 @@ static void button_callback(GtkWidget * wid, gpointer data)
     if(w->info->flags & BG_PARAMETER_SYNC)
       {
       bg_gtk_change_callback((GtkWidget*)0, w);
-      do_apply_sub_params(w);
       }
     }
   

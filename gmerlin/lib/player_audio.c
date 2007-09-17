@@ -66,6 +66,8 @@ int bg_player_audio_init(bg_player_t * player, int audio_stream)
   
   s = &player->audio_stream;
   
+  s->options.options_changed = 0;
+  
   s->in_func   = bg_player_input_read_audio;
   s->in_data   = player->input_context;
   s->in_stream = player->current_audio_stream;
@@ -179,46 +181,88 @@ bg_parameter_info_t * bg_player_get_audio_filter_parameters(bg_player_t * p)
 void bg_player_set_audio_parameter(void * data, char * name,
                                    bg_parameter_value_t * val)
   {
-  bg_player_t * player = (bg_player_t*)data;
-
+  bg_player_t * p = (bg_player_t*)data;
+  int need_restart = 0;
+  int is_interrupted;
+  int do_init;
+  int check_restart;
   
-  if(!name)
-    return;
+  do_init = (bg_player_get_state(p) == BG_PLAYER_STATE_INIT);
+  
+  pthread_mutex_lock(&(p->audio_stream.config_mutex));
 
-  pthread_mutex_lock(&(player->audio_stream.config_mutex));
-
-  bg_gavl_audio_set_parameter(&(player->audio_stream.options),
+  is_interrupted = p->audio_stream.interrupted;
+  
+  bg_gavl_audio_set_parameter(&(p->audio_stream.options),
                               name, val);
+
+  if(!do_init && !is_interrupted)
+    check_restart = 1;
+  else
+    check_restart = 0;
   
-  pthread_mutex_unlock(&(player->audio_stream.config_mutex));
+  if(check_restart)
+    need_restart = p->audio_stream.options.options_changed;
+  
+  pthread_mutex_unlock(&(p->audio_stream.config_mutex));
+
+  if(!need_restart && check_restart)
+    {
+    bg_audio_filter_chain_lock(p->audio_stream.fc);
+    need_restart =
+        bg_audio_filter_chain_need_restart(p->audio_stream.fc);
+    bg_audio_filter_chain_unlock(p->audio_stream.fc);
+    }
+
+  if(need_restart)
+    {
+    bg_log(BG_LOG_INFO, LOG_DOMAIN,
+           "Restarting playback due to changed audio options");
+    bg_player_interrupt(p);
+    
+    pthread_mutex_lock(&(p->audio_stream.config_mutex));
+    p->audio_stream.interrupted = 1;
+    pthread_mutex_unlock(&(p->audio_stream.config_mutex));
+    }
+  
+  if(!name && is_interrupted)
+    {
+    bg_player_interrupt_resume(p);
+    pthread_mutex_lock(&(p->audio_stream.config_mutex));
+    p->audio_stream.interrupted = 0;
+    pthread_mutex_unlock(&(p->audio_stream.config_mutex));
+    }
   }
 
 void bg_player_set_audio_filter_parameter(void * data, char * name,
                                           bg_parameter_value_t * val)
   {
-  int need_rebuild;
+  int need_rebuild = 0, need_restart = 0;
   int is_interrupted;
+  int do_init;
   bg_player_t * p = (bg_player_t*)data;
+
+  do_init = (bg_player_get_state(p) == BG_PLAYER_STATE_INIT);
 
   pthread_mutex_lock(&(p->audio_stream.config_mutex));
   is_interrupted = p->audio_stream.interrupted;
   pthread_mutex_unlock(&(p->audio_stream.config_mutex));
-  
+    
   bg_audio_filter_chain_lock(p->audio_stream.fc);
   bg_audio_filter_chain_set_parameter(p->audio_stream.fc, name, val);
+
   need_rebuild =
     bg_audio_filter_chain_need_rebuild(p->audio_stream.fc);
-  bg_audio_filter_chain_unlock(p->audio_stream.fc);
-
-  if(bg_player_get_state(p) == BG_PLAYER_STATE_INIT)
-    need_rebuild = 0;
+  need_restart =
+    bg_audio_filter_chain_need_restart(p->audio_stream.fc);
   
-  if(need_rebuild && !is_interrupted)
+  bg_audio_filter_chain_unlock(p->audio_stream.fc);
+  
+  if(!do_init && (need_rebuild || need_restart) && !is_interrupted)
     {
     bg_log(BG_LOG_INFO, LOG_DOMAIN,
            "Restarting playback due to changed audio filters");
     bg_player_interrupt(p);
-    bg_audio_filter_chain_rebuild(p->audio_stream.fc);
     
     pthread_mutex_lock(&(p->audio_stream.config_mutex));
     p->audio_stream.interrupted = 1;
