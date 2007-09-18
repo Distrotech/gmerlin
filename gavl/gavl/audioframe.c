@@ -178,7 +178,7 @@ void gavl_audio_frame_mute_channel(gavl_audio_frame_t * frame,
       break;
     case GAVL_INTERLEAVE_2:
       if(channel & 1)
-        offset = channel * format->samples_per_frame + 1;
+        offset = (channel-1) * format->samples_per_frame + 1;
       else
         offset = channel * format->samples_per_frame;
 
