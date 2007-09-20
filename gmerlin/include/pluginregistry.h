@@ -126,6 +126,8 @@ typedef struct bg_plugin_handle_s
   bg_plugin_common_t * plugin; //!< Common structure, cast this to the derived type (e.g. \ref bg_input_plugin_t).
   const bg_plugin_info_t * info; //!< Info about this plugin
   void * priv; //!< Private handle, passed as the first argument to most plugin functions
+
+  char * location; //!< Applications can save the argument of an open call here
   
   } bg_plugin_handle_t;
 

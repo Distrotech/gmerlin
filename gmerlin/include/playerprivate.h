@@ -326,6 +326,8 @@ void bg_player_input_bypass_set_volume(bg_player_input_context_t * ctx,
 void bg_player_input_bypass_set_pause(bg_player_input_context_t * ctx,
                                       int pause);
 
+void bg_player_input_send_messages(bg_player_input_context_t * ctx);
+
 
 
 /* player_ov.c */

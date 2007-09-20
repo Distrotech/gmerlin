@@ -2,7 +2,7 @@
  
   infowindow.c
  
-  Copyright (c) 2003-2004 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+  Copyright (c) 2003-2007 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
  
   http://gmerlin.sourceforge.net
  
@@ -31,7 +31,7 @@
 #include <player.h>
 #include <playermsg.h>
 #include <gui_gtk/infowindow.h>
-#include <gui_gtk/textview.h>
+//#include <gui_gtk/textview.h>
 #include <gui_gtk/gtkutils.h>
 
 #include <utils.h>
@@ -40,6 +40,36 @@
 
 extern void
 gtk_decorated_window_move_resize_window(GtkWindow*, int, int, int, int);
+
+enum
+{
+  COLUMN_1,
+  COLUMN_2,
+  COLUMN_FG_COLOR,
+  NUM_COLUMNS
+};
+
+#define PATH_NAME             0
+#define PATH_INPUT_PLUGIN     1
+#define PATH_LOCATION         2
+#define PATH_TRACK            3
+#define PATH_FORMAT           4
+#define PATH_METADATA         5
+#define PATH_AUDIO            6
+#define PATH_AUDIO_DESC       7
+#define PATH_AUDIO_FORMAT_I   8
+#define PATH_AUDIO_FORMAT_O   9
+
+#define PATH_VIDEO           10
+#define PATH_VIDEO_DESC      11
+#define PATH_VIDEO_FORMAT_I  12
+#define PATH_VIDEO_FORMAT_O  13
+
+#define PATH_SUBTITLE        14
+#define PATH_SUBTITLE_DESC   15
+#define PATH_SUBTITLE_FORMAT 16
+
+#define PATH_NUM             17
 
 /* Delay between update calls in Milliseconds */
 
@@ -50,59 +80,34 @@ struct bg_gtk_info_window_s
   int x, y, width, height;
 
   /* We store everything interesting locally */
-  gavl_audio_format_t audio_format_i;
-  gavl_audio_format_t audio_format_o;
-
-  gavl_video_format_t video_format_i;
-  gavl_video_format_t video_format_o;
-
+  
   gavl_video_format_t subtitle_format;
   
-  bg_metadata_t metadata;
 
   int num_audio_streams;
   int num_video_streams;
   int num_subtitle_streams;
 
-  int current_audio_stream;
-  int current_video_stream;
-  int current_subtitle_stream;
-  
-  char * name;
-  char * location;
-  char * description;
-    
-  char * audio_description;
-  char * video_description;
-  char * subtitle_description;
-
-  int subtitle_is_text;
     
   GtkWidget * window;
-
-  /* The text views */
-
-  bg_gtk_textview_t * w_audio_description;
-  bg_gtk_textview_t * w_audio_format_i;
-  bg_gtk_textview_t * w_audio_format_o;
   
-  bg_gtk_textview_t * w_video_description;
-  bg_gtk_textview_t * w_video_format_i;
-  bg_gtk_textview_t * w_video_format_o;
-
-  bg_gtk_textview_t * w_subtitle_description;
-  bg_gtk_textview_t * w_subtitle_format;
-  
-  bg_gtk_textview_t * w_name;
-  bg_gtk_textview_t * w_description;
-  bg_gtk_textview_t * w_metadata;
+  GtkWidget * treeview;
   
   bg_msg_queue_t * queue;
 
   void (*close_callback)(bg_gtk_info_window_t*, void*);
   void * close_callback_data;
   
+  GtkTreePath * paths[PATH_NUM];
+  int           expanded[PATH_NUM];
+
+  guint expand_id;
+  guint collapse_id;
+  
   };
+
+static void reset_tree(bg_gtk_info_window_t * w);
+
 
 static bg_parameter_info_t parameters[] =
   {
@@ -150,8 +155,6 @@ void bg_gtk_info_window_set_parameter(void * data, char * name,
   win = (bg_gtk_info_window_t*)data;
   if(!name)
     return;
-
-
   
   if(!strcmp(name, "x"))
     {
@@ -203,153 +206,118 @@ int bg_gtk_info_window_get_parameter(void * data, char * name,
   return 0;
   }
 
-#define FREE(str) if(str) free(str);str=(char*)0;
-
-static void clear_info(bg_gtk_info_window_t * w)
+static void set_line(bg_gtk_info_window_t * w,
+                     GtkTreeIter * iter,
+                     char * line, int sensitive)
   {
-  memset(&(w->audio_format_i), 0, sizeof(w->audio_format_i));
-  memset(&(w->audio_format_o), 0, sizeof(w->audio_format_o));
-  memset(&(w->video_format_i), 0, sizeof(w->video_format_i));
-  memset(&(w->video_format_o), 0, sizeof(w->video_format_o));
+  char * pos;
+  GtkTreeModel * model;
+  model = gtk_tree_view_get_model(GTK_TREE_VIEW(w->treeview));
 
-  FREE(w->audio_description);
-  FREE(w->video_description);
-  FREE(w->subtitle_description);
-  FREE(w->description);
+  pos = strchr(line, '\t');
+  if(pos)
+    {
+    *pos = '\0';
+    pos++;
+    }
 
-  bg_metadata_free(&(w->metadata));
-  memset(&(w->metadata), 0, sizeof(w->metadata));
-
-  bg_gtk_textview_update(w->w_audio_format_i, "");
-  bg_gtk_textview_update(w->w_audio_format_o, "");
-  bg_gtk_textview_update(w->w_video_format_i, "");
-  bg_gtk_textview_update(w->w_video_format_o, "");
-  bg_gtk_textview_update(w->w_subtitle_format, "");
-  bg_gtk_textview_update(w->w_metadata, "");
+  gtk_tree_store_set(GTK_TREE_STORE(model), iter, COLUMN_1,
+                     line, -1);
   
-  bg_gtk_textview_update(w->w_description, "");
-  bg_gtk_textview_update(w->w_audio_description, "");
-  bg_gtk_textview_update(w->w_video_description, "");
-  bg_gtk_textview_update(w->w_subtitle_description, "");
+  if(pos)
+    gtk_tree_store_set(GTK_TREE_STORE(model), iter, COLUMN_2,
+                       pos, -1);
+  else
+    gtk_tree_store_set(GTK_TREE_STORE(model), iter, COLUMN_2,
+                       "", -1);
+  
+  if(sensitive)
+    gtk_tree_store_set(GTK_TREE_STORE(model), iter, COLUMN_FG_COLOR,
+                       "#000000", -1);
+  else
+    gtk_tree_store_set(GTK_TREE_STORE(model), iter, COLUMN_FG_COLOR,
+                       "#808080", -1);
   
   }
 
-static void update_audio(bg_gtk_info_window_t * w)
+static void set_line_index(bg_gtk_info_window_t * w, int iter_index, char * line, int sensitive)
+  {
+  GtkTreeIter iter;
+  GtkTreeModel * model;
+  
+  model = gtk_tree_view_get_model(GTK_TREE_VIEW(w->treeview));
+  gtk_tree_model_get_iter(model, &iter, w->paths[iter_index]);
+  set_line(w, &iter, line, sensitive);
+  }
+
+static void set_line_multi(bg_gtk_info_window_t * w,
+                           int parent_index,
+                           char * line)
+  {
+  int i;
+  GtkTreeIter parent;
+  GtkTreeIter iter;
+  GtkTreeModel * model;
+  char ** tmp_strings;
+  model = gtk_tree_view_get_model(GTK_TREE_VIEW(w->treeview));
+  
+  gtk_tree_model_get_iter(model, &parent, w->paths[parent_index]);
+  
+  tmp_strings = bg_strbreak(line, '\n');
+  i = 0;
+  
+  gtk_tree_store_set(GTK_TREE_STORE(model), &parent, COLUMN_FG_COLOR,
+                     "#000000", -1);
+
+  
+  while(tmp_strings[i])
+    {
+    gtk_tree_store_append(GTK_TREE_STORE(model), &iter, &parent);
+    set_line(w, &iter, tmp_strings[i], 1);
+    i++;
+    }
+  if(w->expanded[parent_index])
+    gtk_tree_view_expand_row(GTK_TREE_VIEW(w->treeview), w->paths[parent_index], 0);
+
+  
+  if(tmp_strings)
+    bg_strbreak_free(tmp_strings);
+  
+  }
+     
+static void set_audio_format(bg_gtk_info_window_t * w,
+                             int parent_index,
+                             gavl_audio_format_t * format)
   {
   char * tmp_string;
-
-  /* Audio formats */
-
-  tmp_string = bg_audio_format_to_string(&(w->audio_format_i), 1);
-  bg_gtk_textview_update(w->w_audio_format_i, tmp_string);
   
+  tmp_string = bg_audio_format_to_string(format, 1);
+  set_line_multi(w, parent_index, tmp_string);
   free(tmp_string);
-  
-  tmp_string = bg_audio_format_to_string(&(w->audio_format_o), 1);
-  bg_gtk_textview_update(w->w_audio_format_o, tmp_string);
-  
-  free(tmp_string);
-
-  if(w->audio_description)
-    {
-    tmp_string = bg_sprintf(TR("Audio stream %d/%d: %s"),
-                            w->current_audio_stream +1, w->num_audio_streams,
-                            w->audio_description);
-    }
-  else
-    {
-    tmp_string = bg_sprintf(TR("Audio stream %d/%d"),
-                            w->current_audio_stream +1, w->num_audio_streams);
-    }
-  bg_gtk_textview_update(w->w_audio_description, tmp_string);
-  free(tmp_string);
-  
   }
 
-static void update_video(bg_gtk_info_window_t * w)
+static void set_video_format(bg_gtk_info_window_t * w,
+                             int parent_index,
+                             gavl_video_format_t * format)
   {
   char * tmp_string;
-  /* Video formats */
-
-  tmp_string = bg_video_format_to_string(&(w->video_format_i), 1);
-  bg_gtk_textview_update(w->w_video_format_i, tmp_string);
   
+  tmp_string = bg_video_format_to_string(format, 1);
+  set_line_multi(w, parent_index, tmp_string);
   free(tmp_string);
-  
-  tmp_string = bg_video_format_to_string(&(w->video_format_o), 1);
-  bg_gtk_textview_update(w->w_video_format_o, tmp_string);
-  
-  free(tmp_string);
-
-  if(w->video_description)
-    {
-    tmp_string = bg_sprintf(TR("Video stream %d/%d: %s"),
-                            w->current_video_stream +1, w->num_video_streams, 
-                            w->video_description);
-    }
-  else
-    {
-    tmp_string = bg_sprintf(TR("Video stream %d/%d"),
-                            w->current_video_stream +1, w->num_video_streams);
-    }
-  bg_gtk_textview_update(w->w_video_description, tmp_string);
-  free(tmp_string);
-  }
-
-static void update_subtitles(bg_gtk_info_window_t * w)
-  {
-  char * tmp_string;
-  /* Subtitle format */
-
-  tmp_string = bg_video_format_to_string(&(w->subtitle_format), 1);
-  bg_gtk_textview_update(w->w_subtitle_format, tmp_string);
-  free(tmp_string);
-  
-  if(w->subtitle_description)
-    {
-    tmp_string = bg_sprintf(TR("Subtitle stream %d/%d: %s [%s]"),
-                            w->current_subtitle_stream +1, w->num_subtitle_streams,
-                            w->subtitle_description, (w->subtitle_is_text ?
-                                                      TR("text") : TR("overlay")));
-    }
-  else
-    {
-    tmp_string = bg_sprintf(TR("Subtitle stream %d/%d [%s]"),
-                            w->current_subtitle_stream +1, w->num_subtitle_streams,
-                            (w->subtitle_is_text ? TR("text") : TR("overlay")));
-    }
-  bg_gtk_textview_update(w->w_subtitle_description, tmp_string);
-  free(tmp_string);
-  }
-
-
-static void update_stream(bg_gtk_info_window_t * w)
-  {
-  if(w->description)
-    bg_gtk_textview_update(w->w_description, w->description);
-  }
-
-static void update_metadata(bg_gtk_info_window_t * w)
-  {
-  char * window_string = (char*)0;
-
-  bg_gtk_textview_update(w->w_metadata, "");
-
-  window_string = bg_metadata_to_string(&w->metadata, 1);
-  
-  if(window_string)
-    {
-    /* Delete trailing newline */
-    
-    bg_gtk_textview_update(w->w_metadata, window_string);
-    free(window_string);
-    }
   }
 
 static gboolean idle_callback(gpointer data)
   {
   int arg_i;
+  int arg_i2;
   char * arg_str;
+
+  char * tmp_string;
+  
+  gavl_audio_format_t arg_af;
+  gavl_video_format_t arg_vf;
+  bg_metadata_t     arg_m;
   
   bg_gtk_info_window_t * w;
   bg_msg_t * msg;
@@ -361,10 +329,6 @@ static gboolean idle_callback(gpointer data)
     
     switch(bg_msg_get_id(msg))
       {
-      case BG_PLAYER_MSG_TIME_CHANGED:
-        break;
-      case BG_PLAYER_MSG_TRACK_CHANGED:
-        break;
       case BG_PLAYER_MSG_STATE_CHANGED:
         arg_i = bg_msg_get_arg_int(msg, 0);
         
@@ -372,20 +336,53 @@ static gboolean idle_callback(gpointer data)
           {
           case BG_PLAYER_STATE_STARTING:
             /* New info on the way, clean up everything */
-            clear_info(w);
+            reset_tree(w);
             break;
           case BG_PLAYER_STATE_PLAYING:
             /* All infos sent, update display */
-            update_stream(w);
+            //            update_format(w);
             break;
           default:
             break;
           }
         break;
       case BG_PLAYER_MSG_TRACK_NAME:
+
         arg_str = bg_msg_get_arg_string(msg, 0);
-        bg_gtk_textview_update(w->w_name, arg_str);
-        free(arg_str);
+        
+        if(arg_str)
+          {
+          tmp_string = bg_sprintf(TR("Name:\t%s"), arg_str);
+          set_line_index(w, PATH_NAME, tmp_string, 1);
+          free(tmp_string);
+          free(arg_str);
+          }
+        break;
+      case BG_PLAYER_MSG_INPUT:
+        arg_str = bg_msg_get_arg_string(msg, 0);
+        if(arg_str)
+          {
+          tmp_string = bg_sprintf(TR("Input plugin:\t%s"), arg_str);
+          set_line_index(w, PATH_INPUT_PLUGIN, tmp_string, 1);
+          free(tmp_string);
+          free(arg_str);
+          }
+
+        arg_str = bg_msg_get_arg_string(msg, 1);
+        if(arg_str)
+          {
+          tmp_string = bg_sprintf(TR("Location:\t%s"), arg_str);
+          set_line_index(w, PATH_LOCATION, tmp_string, 1);
+          free(tmp_string);
+          free(arg_str);
+          }
+
+        arg_i = bg_msg_get_arg_int(msg, 2);
+
+        tmp_string = bg_sprintf(TR("Track:\t%d"), arg_i);
+        set_line_index(w, PATH_TRACK, tmp_string, 1);
+        free(tmp_string);
+        
         break;
       case BG_PLAYER_MSG_TRACK_NUM_STREAMS:
         w->num_audio_streams = bg_msg_get_arg_int(msg, 0);
@@ -395,36 +392,90 @@ static gboolean idle_callback(gpointer data)
       case BG_PLAYER_MSG_TRACK_DURATION:
         break;
       case BG_PLAYER_MSG_STREAM_DESCRIPTION:
-        w->description = bg_msg_get_arg_string(msg, 0);
+        
+        arg_str = bg_msg_get_arg_string(msg, 0);
+        
+        if(arg_str)
+          {
+          tmp_string = bg_sprintf(TR("Format:\t%s"), arg_str);
+          set_line_index(w, PATH_FORMAT, tmp_string, 1);
+          free(tmp_string);
+          free(arg_str);
+          }
+        
         break;
       case BG_PLAYER_MSG_AUDIO_DESCRIPTION:
-        w->audio_description = bg_msg_get_arg_string(msg, 0);
+        arg_str = bg_msg_get_arg_string(msg, 0);
+        if(arg_str)
+          {
+          tmp_string = bg_sprintf(TR("Stream type:\t%s"), arg_str);
+          set_line_index(w, PATH_AUDIO_DESC, tmp_string, 1);
+          free(tmp_string);
+          free(arg_str);
+          }
         break;
       case BG_PLAYER_MSG_VIDEO_DESCRIPTION:
-        w->video_description = bg_msg_get_arg_string(msg, 0);
+        arg_str = bg_msg_get_arg_string(msg, 0);
+        if(arg_str)
+          {
+          tmp_string = bg_sprintf(TR("Stream type:\t%s"), arg_str);
+          set_line_index(w, PATH_VIDEO_DESC, tmp_string, 1);
+          free(tmp_string);
+          free(arg_str);
+          }
         break;
       case BG_PLAYER_MSG_AUDIO_STREAM:
-        w->current_audio_stream = bg_msg_get_arg_int(msg, 0);
-        bg_msg_get_arg_audio_format(msg, 1, &(w->audio_format_i));
-        bg_msg_get_arg_audio_format(msg, 2, &(w->audio_format_o));
-        update_audio(w);
+        arg_i = bg_msg_get_arg_int(msg, 0);
+        tmp_string = bg_sprintf(TR("Audio stream %d/%d"),
+                                arg_i + 1, w->num_audio_streams);
+        set_line_index(w, PATH_AUDIO, tmp_string, 1);
+        free(tmp_string);
+        
+        bg_msg_get_arg_audio_format(msg, 1, &arg_af);
+        set_audio_format(w, PATH_AUDIO_FORMAT_I, &arg_af);
+
+        bg_msg_get_arg_audio_format(msg, 2, &arg_af);
+        set_audio_format(w, PATH_AUDIO_FORMAT_O, &arg_af);
+        
         break;
       case BG_PLAYER_MSG_SUBTITLE_STREAM:
-        w->current_subtitle_stream = bg_msg_get_arg_int(msg, 0);
-        w->subtitle_is_text = bg_msg_get_arg_int(msg, 1);
-        bg_msg_get_arg_video_format(msg, 2, &(w->subtitle_format));
-        update_subtitles(w);
+        arg_i = bg_msg_get_arg_int(msg, 0);
+        arg_i2 = bg_msg_get_arg_int(msg, 1);
+        tmp_string = bg_sprintf(TR("Subtitle stream %d/%d [%s]"),
+                                arg_i + 1, w->num_subtitle_streams,
+                                (arg_i2 ? "Text" : "Overlay"));
+        set_line_index(w, PATH_SUBTITLE, tmp_string, 1);
+        free(tmp_string);
+        
+        bg_msg_get_arg_video_format(msg, 2, &arg_vf);
+        set_video_format(w, PATH_SUBTITLE_FORMAT, &arg_vf);
+        
         break;
       case BG_PLAYER_MSG_VIDEO_STREAM:
-        w->current_video_stream = bg_msg_get_arg_int(msg, 0);
-        bg_msg_get_arg_video_format(msg, 1, &(w->video_format_i));
-        bg_msg_get_arg_video_format(msg, 2, &(w->video_format_o));
-        update_video(w);
+        arg_i = bg_msg_get_arg_int(msg, 0);
+        tmp_string = bg_sprintf(TR("Video stream %d/%d"),
+                                arg_i + 1, w->num_video_streams);
+        set_line_index(w, PATH_VIDEO, tmp_string, 1);
+        free(tmp_string);
+        
+        bg_msg_get_arg_video_format(msg, 1, &arg_vf);
+        set_video_format(w, PATH_VIDEO_FORMAT_I, &arg_vf);
+
+        bg_msg_get_arg_video_format(msg, 2, &arg_vf);
+        set_video_format(w, PATH_VIDEO_FORMAT_O, &arg_vf);
+        
         break;
       case BG_PLAYER_MSG_METADATA:
-        bg_metadata_free(&(w->metadata));
-        bg_msg_get_arg_metadata(msg, 0, &(w->metadata));
-        update_metadata(w);
+        memset(&arg_m, 0, sizeof(arg_m));
+        bg_msg_get_arg_metadata(msg, 0, &arg_m);
+        
+        tmp_string = bg_metadata_to_string(&arg_m, 1);
+        
+        if(tmp_string)
+          {
+          set_line_multi(w, PATH_METADATA, tmp_string);
+          free(tmp_string);
+          }
         break;
       }
     bg_msg_queue_unlock_read(w->queue);
@@ -457,31 +508,240 @@ static gboolean configure_callback(GtkWidget * w, GdkEventConfigure *event,
   return FALSE;
   }
 
-static GtkWidget * create_frame(const char * label)
+
+
+#define FREE(str) if(str) free(str);str=(char*)0;
+
+static void remove_children(bg_gtk_info_window_t * w, GtkTreeIter * parent)
   {
-  GtkWidget * ret = gtk_frame_new(label);
-  gtk_container_set_border_width(GTK_CONTAINER(ret), 3);
-  return ret;
+  GtkTreeModel * model;
+  GtkTreeIter child;
+  
+  model = gtk_tree_view_get_model(GTK_TREE_VIEW(w->treeview));
+
+  while(gtk_tree_model_iter_children(GTK_TREE_MODEL(model),
+                                     &child, parent))
+    {
+    gtk_tree_store_remove(GTK_TREE_STORE(model), &child);
+    }
+  
   }
+
+static void reset_tree(bg_gtk_info_window_t * w)
+  {
+  GtkTreeModel * model;
+  GtkTreeIter iter;
+
+  g_signal_handler_block(w->treeview, w->collapse_id);
+
+  model = gtk_tree_view_get_model(GTK_TREE_VIEW(w->treeview));
+  
+  /* Format */
+  gtk_tree_model_get_iter(model, &iter, w->paths[PATH_FORMAT]);
+  set_line(w, &iter, TR("Format"), 0);
+  
+  /* Metadata */
+  gtk_tree_model_get_iter(model, &iter, w->paths[PATH_METADATA]);
+  set_line(w, &iter, TR("Metadata"), 0);
+  remove_children(w, &iter);
+  
+  /* Audio */
+  gtk_tree_model_get_iter(model, &iter, w->paths[PATH_AUDIO]);
+  set_line(w, &iter, TR("Audio"), 0);
+
+  /* Audio -> desc */
+  gtk_tree_model_get_iter(model, &iter, w->paths[PATH_AUDIO_DESC]);
+  set_line(w, &iter, TR("Stream type"), 0);
+  
+  /* Audio -> format_i */
+  gtk_tree_model_get_iter(model, &iter, w->paths[PATH_AUDIO_FORMAT_I]);
+  set_line(w, &iter, TR("Input format"), 0);
+  remove_children(w, &iter);
+  
+  /* Audio -> format_o */
+  gtk_tree_model_get_iter(model, &iter, w->paths[PATH_AUDIO_FORMAT_O]);
+  set_line(w, &iter, TR("Output format"), 0);
+  remove_children(w, &iter);
+    
+  /* Video */
+  gtk_tree_model_get_iter(model, &iter, w->paths[PATH_VIDEO]);
+  set_line(w, &iter, TR("Video"), 0);
+
+  /* Video -> desc */
+  gtk_tree_model_get_iter(model, &iter, w->paths[PATH_VIDEO_DESC]);
+  set_line(w, &iter, TR("Stream type"), 0);
+
+  /* Video -> format_i */
+  gtk_tree_model_get_iter(model, &iter, w->paths[PATH_VIDEO_FORMAT_I]);
+  set_line(w, &iter, TR("Input format"), 0);
+  remove_children(w, &iter);
+  
+  /* Video -> format_o */
+  gtk_tree_model_get_iter(model, &iter, w->paths[PATH_VIDEO_FORMAT_O]);
+  set_line(w, &iter, TR("Output format"), 0);
+  remove_children(w, &iter);
+  
+  /* Subtitle */
+  gtk_tree_model_get_iter(model, &iter, w->paths[PATH_SUBTITLE]);
+  set_line(w, &iter, TR("Subtitles"), 0);
+
+  /* Subtitle -> desc */
+  gtk_tree_model_get_iter(model, &iter, w->paths[PATH_SUBTITLE_DESC]);
+  set_line(w, &iter, TR("Stream type"), 0);
+  
+  /* Subtitle -> format */
+  gtk_tree_model_get_iter(model, &iter, w->paths[PATH_SUBTITLE_FORMAT]);
+  set_line(w, &iter, TR("Format"), 0);
+  remove_children(w, &iter);
+
+  g_signal_handler_unblock(w->treeview, w->collapse_id);
+
+  }
+
+static void init_tree(bg_gtk_info_window_t * w)
+  {
+  GtkTreeIter iter;
+  GtkTreeIter child;
+  GtkTreeModel * model;
+
+  model = gtk_tree_view_get_model(GTK_TREE_VIEW(w->treeview));
+
+  /* Name */
+  gtk_tree_store_append(GTK_TREE_STORE(model), &iter, (GtkTreeIter*)0);
+  w->paths[PATH_NAME] = gtk_tree_model_get_path(model, &iter);
+  set_line(w, &iter, TR("Name"), 0);
+
+  /* Plugin */
+  gtk_tree_store_append(GTK_TREE_STORE(model), &iter, (GtkTreeIter*)0);
+  w->paths[PATH_INPUT_PLUGIN] = gtk_tree_model_get_path(model, &iter);
+  set_line(w, &iter, TR("Input plugin"), 0);
+    
+  /* Location */
+  gtk_tree_store_append(GTK_TREE_STORE(model), &iter, (GtkTreeIter*)0);
+  w->paths[PATH_LOCATION] = gtk_tree_model_get_path(model, &iter);
+  set_line(w, &iter, TR("Location"), 0);
+  
+  /* Track */
+  gtk_tree_store_append(GTK_TREE_STORE(model), &iter, (GtkTreeIter*)0);
+  w->paths[PATH_TRACK] = gtk_tree_model_get_path(model, &iter);
+  set_line(w, &iter, TR("Track"), 0);
+  
+  /* Format */
+  gtk_tree_store_append(GTK_TREE_STORE(model), &iter, (GtkTreeIter*)0);
+  w->paths[PATH_FORMAT] = gtk_tree_model_get_path(model, &iter);
+  
+  /* Metadata */
+  gtk_tree_store_append(GTK_TREE_STORE(model), &iter, (GtkTreeIter*)0);
+  w->paths[PATH_METADATA] = gtk_tree_model_get_path(model, &iter);
+  
+  /* Audio */
+  gtk_tree_store_append(GTK_TREE_STORE(model), &iter, (GtkTreeIter*)0);
+  w->paths[PATH_AUDIO] = gtk_tree_model_get_path(model, &iter);
+
+  /* Audio -> desc */
+  gtk_tree_store_append(GTK_TREE_STORE(model), &child, &iter);
+  w->paths[PATH_AUDIO_DESC] = gtk_tree_model_get_path(model, &child);
+  
+  /* Audio -> format_i */
+  gtk_tree_store_append(GTK_TREE_STORE(model), &child, &iter);
+  w->paths[PATH_AUDIO_FORMAT_I] = gtk_tree_model_get_path(model, &child);
+  
+  /* Audio -> format_o */
+  gtk_tree_store_append(GTK_TREE_STORE(model), &child, &iter);
+  w->paths[PATH_AUDIO_FORMAT_O] = gtk_tree_model_get_path(model, &child);
+    
+  /* Video */
+  gtk_tree_store_append(GTK_TREE_STORE(model), &iter, (GtkTreeIter*)0);
+  w->paths[PATH_VIDEO] = gtk_tree_model_get_path(model, &iter);
+
+  /* Video -> desc */
+  gtk_tree_store_append(GTK_TREE_STORE(model), &child, &iter);
+  w->paths[PATH_VIDEO_DESC] = gtk_tree_model_get_path(model, &child);
+
+  /* Video -> format_i */
+  gtk_tree_store_append(GTK_TREE_STORE(model), &child, &iter);
+  w->paths[PATH_VIDEO_FORMAT_I] = gtk_tree_model_get_path(model, &child);
+  
+  /* Video -> format_o */
+  gtk_tree_store_append(GTK_TREE_STORE(model), &child, &iter);
+  w->paths[PATH_VIDEO_FORMAT_O] = gtk_tree_model_get_path(model, &child);
+  
+  
+  /* Subtitle */
+  gtk_tree_store_append(GTK_TREE_STORE(model), &iter, (GtkTreeIter*)0);
+  w->paths[PATH_SUBTITLE] = gtk_tree_model_get_path(model, &iter);
+
+  /* Subtitle -> desc */
+  gtk_tree_store_append(GTK_TREE_STORE(model), &child, &iter);
+  w->paths[PATH_SUBTITLE_DESC] = gtk_tree_model_get_path(model, &child);
+  
+  /* Subtitle -> format */
+  gtk_tree_store_append(GTK_TREE_STORE(model), &child, &iter);
+  w->paths[PATH_SUBTITLE_FORMAT] = gtk_tree_model_get_path(model, &child);
+  reset_tree(w);
+  }
+
+static int find_node(bg_gtk_info_window_t * w, GtkTreePath * path)
+  {
+  int i;
+  for(i = 0; i < PATH_NUM; i++)
+    {
+    if(!gtk_tree_path_compare(path, w->paths[i]))
+      return i;
+    }
+  return -1;
+  }
+
+static void row_expanded_callback(GtkTreeView *treeview,
+                                  GtkTreeIter *arg1,
+                                  GtkTreePath *arg2,
+                                  gpointer user_data)
+  {
+  int i;
+  bg_gtk_info_window_t * w;
+  
+  w = (bg_gtk_info_window_t*)user_data;
+
+  i = find_node(w, arg2);
+  if(i < 0)
+    return;
+  w->expanded[i] = 1;
+  }
+
+static void row_collapsed_callback(GtkTreeView *treeview,
+                                   GtkTreeIter *arg1,
+                                   GtkTreePath *arg2,
+                                   gpointer user_data)
+  {
+  int i;
+  bg_gtk_info_window_t * w;
+  
+  w = (bg_gtk_info_window_t*)user_data;
+
+  i = find_node(w, arg2);
+  if(i < 0)
+    return;
+  w->expanded[i] = 0;
+  }
+
 
 bg_gtk_info_window_t *
 bg_gtk_info_window_create(bg_player_t * player,
                           void (*close_callback)(bg_gtk_info_window_t*, void*),
                           void * close_callback_data)
   {
-  GtkWidget * notebook;
-  GtkWidget * frame;
-  GtkWidget * table;
-  GtkWidget * tab_label;
+  GtkTreeStore * store;
   GtkWidget * scrolledwin;
-  
+  GtkCellRenderer * text_renderer;
+  GtkTreeViewColumn *column;
+  GtkTreeSelection  *selection;
+
   bg_gtk_info_window_t * ret;
 
   ret = calloc(1, sizeof(*ret));
 
   ret->close_callback      = close_callback;
   ret->close_callback_data = close_callback_data;
-  
   
   /* Create objects */
   
@@ -498,22 +758,49 @@ bg_gtk_info_window_create(bg_player_t * player,
   /* Link message queue to the player */
 
   bg_player_add_message_queue(player, ret->queue);
-  
-  ret->w_audio_description = bg_gtk_textview_create();
-  ret->w_video_description = bg_gtk_textview_create();
-  ret->w_subtitle_description = bg_gtk_textview_create();
 
-  ret->w_audio_format_i = bg_gtk_textview_create();
-  ret->w_audio_format_o = bg_gtk_textview_create();
+  /* Create treeview */
   
-  ret->w_video_format_i = bg_gtk_textview_create();
-  ret->w_video_format_o = bg_gtk_textview_create();
+  store = gtk_tree_store_new(NUM_COLUMNS, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+  
+  ret->treeview = gtk_tree_view_new_with_model(GTK_TREE_MODEL(store));
+  gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(ret->treeview), 0);
+  
+  gtk_tree_view_set_rules_hint(GTK_TREE_VIEW(ret->treeview), TRUE);
+  
+  ret->collapse_id =
+    g_signal_connect(G_OBJECT(ret->treeview), "row-collapsed",
+                     G_CALLBACK(row_collapsed_callback), (gpointer)ret);
+  
+  ret->expand_id =
+    g_signal_connect(G_OBJECT(ret->treeview), "row-expanded",
+                     G_CALLBACK(row_expanded_callback), (gpointer)ret);
+  
+  /* Column 1 */
+  text_renderer = gtk_cell_renderer_text_new();
+  column = gtk_tree_view_column_new();
+  gtk_tree_view_column_pack_start(column, text_renderer, TRUE);
+  gtk_tree_view_column_add_attribute(column, text_renderer, "text", COLUMN_1);
+  gtk_tree_view_column_add_attribute(column, text_renderer,
+                                     "foreground", COLUMN_FG_COLOR);
 
-  ret->w_subtitle_format = bg_gtk_textview_create();
+  gtk_tree_view_append_column (GTK_TREE_VIEW(ret->treeview), column);
+
+  /* Column 2 */
+  text_renderer = gtk_cell_renderer_text_new();
+  column = gtk_tree_view_column_new();
+  gtk_tree_view_column_pack_start(column, text_renderer, TRUE);
+  gtk_tree_view_column_add_attribute(column, text_renderer, "text", COLUMN_2);
+  gtk_tree_view_append_column (GTK_TREE_VIEW(ret->treeview), column);
+  gtk_tree_view_column_add_attribute(column, text_renderer,
+                                     "foreground", COLUMN_FG_COLOR);
   
-  ret->w_name        = bg_gtk_textview_create();
-  ret->w_description = bg_gtk_textview_create();
-  ret->w_metadata    = bg_gtk_textview_create();
+  gtk_widget_show(ret->treeview);
+  
+  /* Selection mode */
+  
+  selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(ret->treeview));
+  gtk_tree_selection_set_mode(selection, GTK_SELECTION_SINGLE);
   
   /* Set callbacks */
   
@@ -522,151 +809,25 @@ bg_gtk_info_window_create(bg_player_t * player,
                    G_CALLBACK(delete_callback), (gpointer)ret);
 
   /* pack objects */
-
-  notebook = gtk_notebook_new();
-
-  /* Overall info */
-    
-  table = gtk_table_new(3, 1, 0);
   
-  frame = create_frame(TR("Name"));
-
-  gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_name));
-  gtk_widget_show(frame);
-  gtk_table_attach(GTK_TABLE(table), frame, 0, 2, 0, 1,
-                   GTK_EXPAND|GTK_FILL, GTK_FILL, 0, 0);
-
-  frame = create_frame(TR("Format"));
-  gtk_container_add(GTK_CONTAINER(frame),
-                    bg_gtk_textview_get_widget(ret->w_description));
-  gtk_widget_show(frame);
-  gtk_table_attach(GTK_TABLE(table), frame, 0, 2, 1, 2,
-                   GTK_EXPAND|GTK_FILL, GTK_FILL, 0, 0);
-  
-  frame = create_frame(TR("Meta info"));
-
   scrolledwin = gtk_scrolled_window_new((GtkAdjustment*)0, (GtkAdjustment*)0);
   gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolledwin),
                                  GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
   
-  gtk_container_add(GTK_CONTAINER(scrolledwin),
-                    bg_gtk_textview_get_widget(ret->w_metadata));
+  gtk_container_add(GTK_CONTAINER(scrolledwin), ret->treeview);
   gtk_widget_show(scrolledwin);
-  
-  gtk_container_add(GTK_CONTAINER(frame), scrolledwin);
-  gtk_widget_show(frame);
-  gtk_table_attach_defaults(GTK_TABLE(table), frame, 0, 2, 2, 3);
 
-  gtk_widget_show(table);
-  
-  tab_label = gtk_label_new(TR("Track"));
-  gtk_widget_show(tab_label);
-  gtk_notebook_append_page(GTK_NOTEBOOK(notebook), table, tab_label);
+  /* */
+  gtk_container_add(GTK_CONTAINER(ret->window), scrolledwin);
 
-  gtk_widget_show(notebook);
-
-  /* Audio stream */
-
-  table = gtk_table_new(2, 2, 0);
-
-  frame = create_frame(TR("Stream type"));
-  gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_audio_description));
-  gtk_widget_show(frame);
-  gtk_table_attach(GTK_TABLE(table), frame, 0, 2, 0, 1,
-                   GTK_EXPAND|GTK_FILL, GTK_FILL, 0, 0);
-
-  frame = create_frame(TR("Input format"));
-  gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_audio_format_i));
-  gtk_widget_show(frame);
-  gtk_table_attach_defaults(GTK_TABLE(table), frame, 0, 1, 1, 2);
-
-  frame = create_frame(TR("Output format"));
-  gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_audio_format_o));
-  gtk_widget_show(frame);
-  gtk_table_attach_defaults(GTK_TABLE(table), frame, 1, 2, 1, 2);
-  
-  gtk_widget_show(table);
-  
-  tab_label = gtk_label_new(TR("Audio"));
-  gtk_widget_show(tab_label);
-  gtk_notebook_append_page(GTK_NOTEBOOK(notebook), table, tab_label);
-
-  gtk_widget_show(notebook);
-
-  /* Video stream */
-
-  table = gtk_table_new(2, 2, 0);
-
-  frame = create_frame(TR("Stream type"));
-  gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_video_description));
-  gtk_widget_show(frame);
-  gtk_table_attach(GTK_TABLE(table), frame, 0, 2, 0, 1,
-                   GTK_EXPAND|GTK_FILL, GTK_FILL, 0, 0);
-
-  frame = create_frame(TR("Input format"));
-  gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_video_format_i));
-  gtk_widget_show(frame);
-  gtk_table_attach_defaults(GTK_TABLE(table), frame, 0, 1, 1, 2);
-
-  frame = create_frame(TR("Output format"));
-  gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_video_format_o));
-  gtk_widget_show(frame);
-  gtk_table_attach_defaults(GTK_TABLE(table), frame, 1, 2, 1, 2);
-  
-  gtk_widget_show(table);
-  
-  tab_label = gtk_label_new(TR("Video"));
-  gtk_widget_show(tab_label);
-  gtk_notebook_append_page(GTK_NOTEBOOK(notebook), table, tab_label);
-
-
-  /* Subtitle stream */
-
-  table = gtk_table_new(2, 2, 0);
-  
-  frame = create_frame(TR("Stream type"));
-  gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_subtitle_description));
-  gtk_widget_show(frame);
-  gtk_table_attach(GTK_TABLE(table), frame, 0, 2, 0, 1,
-                   GTK_EXPAND|GTK_FILL, GTK_FILL, 0, 0);
-  
-  frame = create_frame(TR("Format"));
-  gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_subtitle_format));
-  gtk_widget_show(frame);
-  gtk_table_attach_defaults(GTK_TABLE(table), frame, 0, 2, 1, 2);
-
-  gtk_widget_show(table);
-  
-  tab_label = gtk_label_new(TR("Subtitles"));
-  gtk_widget_show(tab_label);
-  gtk_notebook_append_page(GTK_NOTEBOOK(notebook), table, tab_label);
-  
-  gtk_widget_show(notebook);
-  gtk_container_add(GTK_CONTAINER(ret->window), notebook);
+  init_tree(ret);
   
   return ret;
   }
 
 void bg_gtk_info_window_destroy(bg_gtk_info_window_t * w)
   {
-  FREE(w->name);
-  FREE(w->location);
-  FREE(w->description);
-  FREE(w->audio_description);
-  FREE(w->video_description);
-
-  bg_gtk_textview_destroy(w->w_audio_format_i);
-  bg_gtk_textview_destroy(w->w_audio_format_o);
-  bg_gtk_textview_destroy(w->w_video_format_i);
-  bg_gtk_textview_destroy(w->w_video_format_o);
-  bg_gtk_textview_destroy(w->w_metadata);
   
-  bg_gtk_textview_destroy(w->w_description);
-  bg_gtk_textview_destroy(w->w_audio_description);
-  bg_gtk_textview_destroy(w->w_video_description);
-  bg_gtk_textview_destroy(w->w_name);
-
-    
   bg_msg_queue_destroy(w->queue);
   
   free(w);

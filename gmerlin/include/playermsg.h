@@ -389,6 +389,14 @@
 
 #define BG_PLAYER_MSG_INTERRUPT_RESUME       27
 
+/** \brief Input info 
+ *  arg0: Plugin name (string)
+ *  arg1: Location (string)
+ *  arg2: Track (int)
+ */
+
+#define BG_PLAYER_MSG_INPUT                  28
+
 
 /**  @}
  */

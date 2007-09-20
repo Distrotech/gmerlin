@@ -1012,7 +1012,7 @@ static void unload_plugin(bg_plugin_handle_t * h)
       bg_ladspa_unload(h);
       break;
     }
-  
+  if(h->location) free(h->location);
   if(h->dll_handle)
     dlclose(h->dll_handle);
   free(h);
@@ -1522,6 +1522,7 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
       {
       if(protocol) free(protocol);
       if(path)     free(path);
+      (*ret)->location = bg_strdup((*ret)->location, real_location);
       return 1;
       }
     }
@@ -1556,6 +1557,7 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
       }
     else
       {
+      (*ret)->location = bg_strdup((*ret)->location, location);
       return 1;
       }
     }

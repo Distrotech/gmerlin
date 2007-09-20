@@ -438,6 +438,7 @@ char * bg_metadata_to_string(const bg_metadata_t * m, int use_tabs)
     tmp = bg_sprintf(TR("Comment:\t %s\n"), m->comment);
     META_STRCAT();
     }
+  /* Remove trailing '\n' */
   if(ret)
     ret[strlen(ret) - 1] = '\0';
   return ret;

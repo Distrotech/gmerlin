@@ -440,6 +440,10 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
     if(!init_streams(p))
       return;
     }
+
+  /* Send input messages */
+  bg_player_input_send_messages(p->input_context);
+
   
   if(p->track_info->description)
     bg_msg_queue_list_send(p->message_queues,

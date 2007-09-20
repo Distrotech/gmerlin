@@ -98,9 +98,9 @@ char * bg_video_format_to_string(gavl_video_format_t * format, int use_tabs)
   else
     {
     if(!use_tabs)
-      s = TR("Framerate:    %f fps [%d / %d]\n             %s\n");
+      s = TR("Framerate:    %f fps [%d / %d]%s\n");
     else
-      s = TR("Framerate:\t%f fps [%d / %d]\n\t%s\n");
+      s = TR("Framerate:\t%f fps [%d / %d]%s\n");
     
     str =
       bg_sprintf(s,

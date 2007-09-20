@@ -927,3 +927,32 @@ void bg_player_set_input_parameter(void * data, char * name,
   pthread_mutex_unlock(&(player->input_context->config_mutex));
 
   }
+
+struct msg_input_data
+  {
+  bg_plugin_handle_t * handle;
+  int track;
+  };
+
+static void msg_input(bg_msg_t * msg, const void * data)
+  {
+  struct msg_input_data * d = (struct msg_input_data *)data;
+  
+  bg_msg_set_id(msg, BG_PLAYER_MSG_INPUT);
+
+  if(d->handle)
+    {
+    bg_msg_set_arg_string(msg, 0, d->handle->info->long_name);
+    bg_msg_set_arg_string(msg, 1, d->handle->location);
+    bg_msg_set_arg_int(msg, 2, d->track);
+    }
+  }
+
+void bg_player_input_send_messages(bg_player_input_context_t * ctx)
+  {
+  struct msg_input_data d;
+  d.handle = ctx->plugin_handle;
+  d.track = ctx->current_track;
+
+  bg_msg_queue_list_send(ctx->player->message_queues, msg_input, &d);
+  }
