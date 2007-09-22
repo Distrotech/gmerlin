@@ -2,6 +2,16 @@ libdir=@GMERLIN_PLUGIN_DIR@
 
 AM_CFLAGS = -DLOCALE_DIR=\"$(localedir)\"
 
+if HAVE_MJPEGTOOLS
+yuvdeinterlace_sources = yuvdeinterlace.c
+mjpeg_cflags = @MJPEGTOOLS_CFLAGS@
+mjpeg_libs   = @MJPEGTOOLS_LIBS@
+else
+yuvdeinterlace_sources =
+mjpeg_cflags = 
+mjpeg_libs   = 
+endif
+
 lib_LTLIBRARIES = \
 fv_blur.la \
 fv_cropscale.la \
@@ -32,7 +42,9 @@ fv_flip_la_LDFLAGS = -avoid-version -module
 fv_decimate_la_SOURCES  = fv_decimate.c
 fv_decimate_la_LDFLAGS = -avoid-version -module
 
-fv_deinterlace_la_SOURCES  = fv_deinterlace.c
+fv_deinterlace_la_CFLAGS   = $(mjpeg_cflags) -DLOCALE_DIR=\"$(localedir)\"
+fv_deinterlace_la_LIBADD   = $(mjpeg_libs)
+fv_deinterlace_la_SOURCES  = fv_deinterlace.c $(yuvdeinterlace_sources)
 fv_deinterlace_la_LDFLAGS = -avoid-version -module
 
 fv_equalizer_la_SOURCES  = fv_equalizer.c

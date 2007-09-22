@@ -503,6 +503,12 @@ dnl
 GMERLIN_CHECK_LIBTIFF
 
 dnl
+dnl mjpegtools (for videofilters)
+dnl
+
+GMERLIN_CHECK_MJPEGTOOLS
+
+dnl
 dnl Applications
 dnl
 
@@ -781,7 +787,18 @@ if test "x$have_libtiff" = "xtrue"; then
 echo "Yes (CFLAGS=$TIFF_CFLAGS LIBS=$TIFF_LIBS)"
 else
 if test "x$test_libtiff" = "xtrue"; then
-echo "Missing (http://www.remotesensing.org/libtiff/)"
+echo "Missing (Go to http://www.remotesensing.org/libtiff/)"
+else
+echo "Disabled"
+fi
+fi
+
+echo -n "mjpegtools:             "
+if test "x$have_mjpegtools" = "xtrue"; then
+echo "Yes (CFLAGS=$MJPEGTOOLS_CFLAGS LIBS=$MJPEGTOOLS_LIBS)"
+else
+if test "x$test_mjpegtools" = "xtrue"; then
+echo "Missing (Go to http://mjpeg.sourceforge.net)"
 else
 echo "Disabled"
 fi
