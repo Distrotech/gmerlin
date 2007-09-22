@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmerlin 0.3.6\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-07-26 21:49+0200\n"
+"POT-Creation-Date: 2007-09-21 20:27+0200\n"
 "PO-Revision-Date: 2007-07-26 21:45+0200\n"
 "Last-Translator: Burkhard Plaum <gmerlin@users.sourceforge.net>\n"
 "Language-Team: Finnish\n"
@@ -26,7 +26,7 @@ msgstr ""
 
 #: apps/plugincfg/gmerlin_plugincfg.c:270 apps/player/cfgdialog.c:104
 #: apps/transcoder/trackdialog.c:152 plugins/lqt/i_lqt.c:42
-#: lib/player_audio.c:185 lib/gtk/infowindow.c:590
+#: lib/player_audio.c:155 lib/gtk/infowindow.c:649
 msgid "Audio"
 msgstr ""
 
@@ -155,7 +155,7 @@ msgid "Info window"
 msgstr ""
 
 #: apps/player/mainmenu.c:916 apps/player/cfgdialog.c:182
-#: apps/transcoder/transcoder_window.c:1359
+#: apps/transcoder/transcoder_window.c:1368
 msgid "Log window"
 msgstr ""
 
@@ -340,7 +340,7 @@ msgid "Text subtitles"
 msgstr ""
 
 #: apps/player/cfgdialog.c:73 apps/transcoder/trackdialog.c:283
-#: apps/transcoder/trackdialog.c:332 lib/gtk/infowindow.c:640
+#: apps/transcoder/trackdialog.c:332 lib/gtk/infowindow.c:685
 msgid "Subtitles"
 msgstr ""
 
@@ -352,10 +352,10 @@ msgstr ""
 #: apps/player/cfgdialog.c:126 apps/transcoder/trackdialog.c:62
 #: apps/transcoder/trackdialog.c:161 apps/transcoder/trackdialog.c:225
 #: apps/transcoder/trackdialog.c:291 apps/transcoder/trackdialog.c:340
-#: apps/transcoder/transcoder_window.c:1264
-#: apps/transcoder/transcoder_window.c:1289
-#: apps/transcoder/transcoder_window.c:1310 plugins/x11/ov_x11.c:2012
-#: plugins/cdaudio/i_cdaudio.c:636 lib/transcoder_track.c:1385
+#: apps/transcoder/transcoder_window.c:1273
+#: apps/transcoder/transcoder_window.c:1298
+#: apps/transcoder/transcoder_window.c:1319 plugins/x11/ov_x11.c:2012
+#: plugins/cdaudio/i_cdaudio.c:636 lib/transcoder_track.c:1414
 msgid "General"
 msgstr ""
 
@@ -366,13 +366,13 @@ msgstr ""
 
 #: apps/player/cfgdialog.c:115 apps/player/cfgdialog.c:135
 #: apps/transcoder/trackdialog.c:168 apps/transcoder/trackdialog.c:232
-#: apps/transcoder/transcoder_window.c:1274
-#: apps/transcoder/transcoder_window.c:1298
+#: apps/transcoder/transcoder_window.c:1283
+#: apps/transcoder/transcoder_window.c:1307
 msgid "Filters"
 msgstr ""
 
 #: apps/player/cfgdialog.c:121 apps/transcoder/trackdialog.c:217
-#: plugins/lqt/i_lqt.c:53 lib/player_video.c:140 lib/gtk/infowindow.c:618
+#: plugins/lqt/i_lqt.c:53 lib/player_video.c:119 lib/gtk/infowindow.c:667
 msgid "Video"
 msgstr ""
 
@@ -405,12 +405,12 @@ msgstr ""
 msgid "Exiting"
 msgstr ""
 
-#: apps/kbd/kbd_daemon.c:291
+#: apps/kbd/kbd_daemon.c:289
 #, c-format
 msgid "State %02x -> %02x\n"
 msgstr ""
 
-#: apps/kbd/kbd_daemon.c:334
+#: apps/kbd/kbd_daemon.c:328
 msgid "Reloaded keys"
 msgstr ""
 
@@ -519,7 +519,7 @@ msgstr ""
 
 #: apps/camelot/webcam_window.c:371 apps/camelot/webcam_window.c:388
 #: apps/camelot/webcam_window.c:417 lib/singlepic.c:627
-#: lib/transcoder_track.c:360
+#: lib/transcoder_track.c:350 lib/visualize.c:97
 msgid "Plugin"
 msgstr ""
 
@@ -655,7 +655,7 @@ msgstr ""
 msgid "Track options"
 msgstr ""
 
-#: apps/transcoder/trackdialog.c:71
+#: apps/transcoder/trackdialog.c:71 lib/gtk/infowindow.c:644
 msgid "Metadata"
 msgstr ""
 
@@ -704,7 +704,7 @@ msgstr ""
 msgid "Subtitles: %s"
 msgstr ""
 
-#: apps/transcoder/trackdialog.c:298 apps/transcoder/transcoder_window.c:1319
+#: apps/transcoder/trackdialog.c:298 apps/transcoder/transcoder_window.c:1328
 msgid "Textrenderer"
 msgstr ""
 
@@ -712,8 +712,8 @@ msgstr ""
 msgid "Select encoders"
 msgstr ""
 
-#: apps/transcoder/tracklist.c:754 lib/gtk/albumwidget.c:1448
-#: lib/gtk/albumwidget.c:2830
+#: apps/transcoder/tracklist.c:754 lib/gtk/albumwidget.c:1453
+#: lib/gtk/albumwidget.c:2835
 msgid "Add URLs"
 msgstr ""
 
@@ -738,7 +738,7 @@ msgid "Move Down"
 msgstr ""
 
 #: apps/transcoder/tracklist.c:889 lib/gtk/treewidget.c:1405
-#: lib/gtk/albumwidget.c:1476
+#: lib/gtk/albumwidget.c:1481
 msgid "Remove"
 msgstr ""
 
@@ -754,12 +754,12 @@ msgstr ""
 msgid "Change encoders..."
 msgstr ""
 
-#: apps/transcoder/tracklist.c:902 lib/gtk/albumwidget.c:1543
+#: apps/transcoder/tracklist.c:902 lib/gtk/albumwidget.c:1548
 #: lib/gtk/cfg_device.c:310
 msgid "Add..."
 msgstr ""
 
-#: apps/transcoder/tracklist.c:908 lib/gtk/albumwidget.c:1557
+#: apps/transcoder/tracklist.c:908 lib/gtk/albumwidget.c:1562
 msgid "Selected..."
 msgstr ""
 
@@ -767,7 +767,7 @@ msgstr ""
 msgid "Postprocess..."
 msgstr ""
 
-#: apps/transcoder/tracklist.c:1095 lib/gtk/albumwidget.c:2877
+#: apps/transcoder/tracklist.c:1095 lib/gtk/albumwidget.c:2882
 msgid "Total playback time"
 msgstr ""
 
@@ -783,7 +783,7 @@ msgstr ""
 msgid "Append removable media to the track_list"
 msgstr ""
 
-#: apps/transcoder/tracklist.c:1119 lib/gtk/albumwidget.c:2857
+#: apps/transcoder/tracklist.c:1119 lib/gtk/albumwidget.c:2862
 msgid "Delete selected tracks"
 msgstr ""
 
@@ -912,39 +912,39 @@ msgstr ""
 msgid "Windows"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:1236
+#: apps/transcoder/transcoder_window.c:1245
 msgid "Transcoder configuration"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:1241
+#: apps/transcoder/transcoder_window.c:1250
 msgid "Output options"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:1251
+#: apps/transcoder/transcoder_window.c:1260
 msgid "Track defaults"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:1259
+#: apps/transcoder/transcoder_window.c:1268
 msgid "Audio defaults"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:1286
+#: apps/transcoder/transcoder_window.c:1295
 msgid "Video defaults"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:1305
+#: apps/transcoder/transcoder_window.c:1314
 msgid "Text subtitle defaults"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:1328
+#: apps/transcoder/transcoder_window.c:1337
 msgid "Overlay subtitle defaults"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:1339
+#: apps/transcoder/transcoder_window.c:1348
 msgid "Window"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:1349
+#: apps/transcoder/transcoder_window.c:1358
 msgid "Remote"
 msgstr ""
 
@@ -1104,8 +1104,8 @@ msgstr ""
 msgid "Unrecognized fileformat"
 msgstr ""
 
-#: plugins/mikmod/i_mikmod.c:249 lib/gtk/infowindow.c:583
-#: lib/gtk/infowindow.c:611
+#: plugins/mikmod/i_mikmod.c:249 lib/gtk/infowindow.c:662
+#: lib/gtk/infowindow.c:680
 msgid "Output format"
 msgstr ""
 
@@ -1125,7 +1125,7 @@ msgstr ""
 msgid "Stereo 16bit"
 msgstr ""
 
-#: plugins/mikmod/i_mikmod.c:258 include/bggavl.h:277
+#: plugins/mikmod/i_mikmod.c:258 include/bggavl.h:280
 msgid "Samplerate"
 msgstr ""
 
@@ -1228,50 +1228,50 @@ msgstr ""
 #: plugins/x11/ov_x11.c:2104 plugins/videofilters/fv_cropscale.c:279
 #: plugins/videofilters/fv_cropscale.c:284
 #: plugins/videofilters/fv_deinterlace.c:94 plugins/videofilters/fv_zoom.c:101
-#: include/bggavl.h:219
+#: include/bggavl.h:216
 msgid "Scale mode"
 msgstr ""
 
 #: plugins/x11/ov_x11.c:2115 plugins/cdaudio/cdparanoia.c:166
 #: plugins/v4l/pwc.c:158 plugins/videofilters/fv_cropscale.c:297
 #: plugins/videofilters/fv_cropscale.c:343
-#: plugins/videofilters/fv_deinterlace.c:107 include/bggavl.h:206
-#: include/bggavl.h:365 include/bggavl.h:377
+#: plugins/videofilters/fv_deinterlace.c:107 include/bggavl.h:203
+#: include/bggavl.h:377 include/bggavl.h:390
 msgid "Auto"
 msgstr ""
 
 #: plugins/x11/ov_x11.c:2116 plugins/videofilters/fv_cropscale.c:298
-#: plugins/videofilters/fv_deinterlace.c:108 include/bggavl.h:207
+#: plugins/videofilters/fv_deinterlace.c:108 include/bggavl.h:204
 msgid "Nearest"
 msgstr ""
 
 #: plugins/x11/ov_x11.c:2117 plugins/videofilters/fv_cropscale.c:299
-#: plugins/videofilters/fv_deinterlace.c:109 include/bggavl.h:208
+#: plugins/videofilters/fv_deinterlace.c:109 include/bggavl.h:205
 msgid "Bilinear"
 msgstr ""
 
 #: plugins/x11/ov_x11.c:2118 plugins/videofilters/fv_cropscale.c:300
-#: plugins/videofilters/fv_deinterlace.c:110 include/bggavl.h:209
+#: plugins/videofilters/fv_deinterlace.c:110 include/bggavl.h:206
 msgid "Quadratic"
 msgstr ""
 
 #: plugins/x11/ov_x11.c:2119 plugins/videofilters/fv_cropscale.c:301
-#: plugins/videofilters/fv_deinterlace.c:111 include/bggavl.h:210
+#: plugins/videofilters/fv_deinterlace.c:111 include/bggavl.h:207
 msgid "Cubic B-Spline"
 msgstr ""
 
 #: plugins/x11/ov_x11.c:2120 plugins/videofilters/fv_cropscale.c:302
-#: plugins/videofilters/fv_deinterlace.c:112 include/bggavl.h:211
+#: plugins/videofilters/fv_deinterlace.c:112 include/bggavl.h:208
 msgid "Cubic Mitchell-Netravali"
 msgstr ""
 
 #: plugins/x11/ov_x11.c:2121 plugins/videofilters/fv_cropscale.c:303
-#: plugins/videofilters/fv_deinterlace.c:113 include/bggavl.h:212
+#: plugins/videofilters/fv_deinterlace.c:113 include/bggavl.h:209
 msgid "Cubic Catmull-Rom"
 msgstr ""
 
 #: plugins/x11/ov_x11.c:2122 plugins/videofilters/fv_cropscale.c:304
-#: plugins/videofilters/fv_deinterlace.c:114 include/bggavl.h:213
+#: plugins/videofilters/fv_deinterlace.c:114 include/bggavl.h:210
 msgid "Sinc with Lanczos window"
 msgstr ""
 
@@ -1283,7 +1283,7 @@ msgstr ""
 
 #: plugins/x11/ov_x11.c:2129 plugins/videofilters/fv_cropscale.c:311
 #: plugins/videofilters/fv_deinterlace.c:121
-#: plugins/videofilters/fv_zoom.c:112 include/bggavl.h:229
+#: plugins/videofilters/fv_zoom.c:112 include/bggavl.h:227
 msgid "Scale order"
 msgstr ""
 
@@ -1326,8 +1326,8 @@ msgstr ""
 
 #: plugins/image/iw_pnm.c:145 plugins/lqt/e_lqt.c:509
 #: plugins/postprocessors/e_pp_vcdimager.c:108
-#: plugins/subwriters/e_subtext.c:230 lib/gtk/infowindow.c:539
-#: lib/gtk/infowindow.c:633
+#: plugins/subwriters/e_subtext.c:230 lib/gtk/infowindow.c:640
+#: lib/gtk/infowindow.c:693
 msgid "Format"
 msgstr ""
 
@@ -1594,7 +1594,7 @@ msgid "Text color"
 msgstr ""
 
 #: plugins/lqt/e_lqt.c:716 plugins/videofilters/fv_zoom.c:132
-#: include/bggavl.h:260 lib/gtk/vumeter.c:178
+#: include/bggavl.h:261 lib/gtk/vumeter.c:178
 msgid "Background color"
 msgstr ""
 
@@ -2071,7 +2071,7 @@ msgstr ""
 msgid "PWC General"
 msgstr ""
 
-#: plugins/v4l/pwc.c:73 include/bggavl.h:117
+#: plugins/v4l/pwc.c:73 include/bggavl.h:113 lib/visualize.c:120
 msgid "Framerate"
 msgstr ""
 
@@ -2080,8 +2080,8 @@ msgid "Compression"
 msgstr ""
 
 #: plugins/v4l/pwc.c:85 plugins/tiff/iw_tiff.c:146
-#: plugins/videofilters/fv_deinterlace.c:150 include/bggavl.h:171
-#: include/bggavl.h:365
+#: plugins/videofilters/fv_deinterlace.c:150 include/bggavl.h:168
+#: include/bggavl.h:377
 msgid "None"
 msgstr ""
 
@@ -2246,7 +2246,7 @@ msgid "VGA (640x480)"
 msgstr ""
 
 #: plugins/v4l/i_v4l.c:445 plugins/videofilters/fv_cropscale.c:187
-#: include/bggavl.h:131
+#: include/bggavl.h:128
 msgid "User defined"
 msgstr ""
 
@@ -2340,7 +2340,7 @@ msgstr ""
 #: plugins/oss/oa_oss.c:250 plugins/oss/oa_oss.c:262 plugins/oss/oa_oss.c:275
 #: plugins/oss/i_oss.c:222
 #, c-format
-msgid "Samplerate %f KHz not supported by device %s"
+msgid "Samplerate %f kHz not supported by device %s"
 msgstr ""
 
 #: plugins/oss/oa_oss.c:500
@@ -2626,41 +2626,41 @@ msgstr ""
 msgid "Reader for TIFF images"
 msgstr ""
 
-#: plugins/visualization/vis_scope.c:84 lib/osd.c:94 lib/gtk/vumeter.c:184
+#: plugins/visualization/vis_scope.c:95 lib/osd.c:94 lib/gtk/vumeter.c:184
 msgid "Foreground color"
 msgstr ""
 
-#: plugins/visualization/vis_scope.c:91
+#: plugins/visualization/vis_scope.c:102
 msgid "Blur mode"
 msgstr ""
 
-#: plugins/visualization/vis_scope.c:97 plugins/videofilters/fv_blur.c:205
+#: plugins/visualization/vis_scope.c:108 plugins/videofilters/fv_blur.c:205
 msgid "Gauss"
 msgstr ""
 
-#: plugins/visualization/vis_scope.c:98 plugins/videofilters/fv_blur.c:206
-#: include/bggavl.h:366
+#: plugins/visualization/vis_scope.c:109 plugins/videofilters/fv_blur.c:206
+#: include/bggavl.h:378
 msgid "Triangular"
 msgstr ""
 
-#: plugins/visualization/vis_scope.c:99 plugins/videofilters/fv_blur.c:207
-#: include/bggavl.h:365
+#: plugins/visualization/vis_scope.c:110 plugins/videofilters/fv_blur.c:207
+#: include/bggavl.h:377
 msgid "Rectangular"
 msgstr ""
 
-#: plugins/visualization/vis_scope.c:104
+#: plugins/visualization/vis_scope.c:115
 msgid "Blur radius"
 msgstr ""
 
-#: plugins/visualization/vis_scope.c:114
+#: plugins/visualization/vis_scope.c:125
 msgid "Fade factor"
 msgstr ""
 
-#: plugins/visualization/vis_scope.c:469
+#: plugins/visualization/vis_scope.c:487
 msgid "Scope"
 msgstr ""
 
-#: plugins/visualization/vis_scope.c:470
+#: plugins/visualization/vis_scope.c:488
 msgid "Scope plugin"
 msgstr ""
 
@@ -2812,7 +2812,7 @@ msgstr ""
 msgid "Frame Size"
 msgstr ""
 
-#: plugins/videofilters/fv_cropscale.c:186 include/bggavl.h:130
+#: plugins/videofilters/fv_cropscale.c:186 include/bggavl.h:127
 msgid "From Source"
 msgstr ""
 
@@ -2951,7 +2951,7 @@ msgstr ""
 
 #: plugins/videofilters/fv_cropscale.c:307
 #: plugins/videofilters/fv_deinterlace.c:117
-#: plugins/videofilters/fv_zoom.c:108 include/bggavl.h:225
+#: plugins/videofilters/fv_zoom.c:108 include/bggavl.h:223
 msgid ""
 "Choose scaling method. Auto means to choose based on the conversion quality. "
 "Nearest is fastest, Sinc with Lanczos window is slowest."
@@ -2959,7 +2959,7 @@ msgstr ""
 
 #: plugins/videofilters/fv_cropscale.c:318
 #: plugins/videofilters/fv_deinterlace.c:128
-#: plugins/videofilters/fv_zoom.c:119 include/bggavl.h:235
+#: plugins/videofilters/fv_zoom.c:119 include/bggavl.h:234
 msgid "Order for sinc scaling."
 msgstr ""
 
@@ -2976,30 +2976,30 @@ msgid "Deinterlace"
 msgstr ""
 
 #: plugins/videofilters/fv_cropscale.c:353
-#: plugins/videofilters/fv_deinterlace.c:196 include/bggavl.h:181
+#: plugins/videofilters/fv_deinterlace.c:196 include/bggavl.h:178
 msgid "Drop top field"
 msgstr ""
 
 #: plugins/videofilters/fv_cropscale.c:353
-#: plugins/videofilters/fv_deinterlace.c:197 include/bggavl.h:181
+#: plugins/videofilters/fv_deinterlace.c:197 include/bggavl.h:178
 msgid "Drop bottom field"
 msgstr ""
 
-#: plugins/videofilters/fv_cropscale.c:354 include/bggavl.h:182
+#: plugins/videofilters/fv_cropscale.c:354 include/bggavl.h:179
 msgid "Specifies which field the deinterlacer should drop."
 msgstr ""
 
 #: plugins/videofilters/fv_cropscale.c:469
-#: plugins/videofilters/fv_deinterlace.c:229 lib/bggavl.c:361
+#: plugins/videofilters/fv_deinterlace.c:229 lib/bggavl.c:367
 #, c-format
 msgid "Unknown scale mode %s\n"
 msgstr ""
 
-#: plugins/videofilters/fv_cropscale.c:826
+#: plugins/videofilters/fv_cropscale.c:830
 msgid "Crop & Scale"
 msgstr ""
 
-#: plugins/videofilters/fv_cropscale.c:827
+#: plugins/videofilters/fv_cropscale.c:831
 msgid ""
 "Crop and Scale video images. Can also do chroma placement correction and "
 "simple deinterlacing"
@@ -3073,7 +3073,7 @@ msgstr ""
 msgid "Drop one field and scale the image to the original height"
 msgstr ""
 
-#: plugins/videofilters/fv_deinterlace.c:183 include/bggavl.h:186
+#: plugins/videofilters/fv_deinterlace.c:183 include/bggavl.h:183
 msgid "Force deinterlacing"
 msgstr ""
 
@@ -3086,11 +3086,11 @@ msgid ""
 "For modes, which take only one source field, specify which field to drop"
 msgstr ""
 
-#: plugins/videofilters/fv_deinterlace.c:490
+#: plugins/videofilters/fv_deinterlace.c:491
 msgid "Deinterlacer"
 msgstr ""
 
-#: plugins/videofilters/fv_deinterlace.c:491
+#: plugins/videofilters/fv_deinterlace.c:492
 msgid "Deinterlace with various algorithms"
 msgstr ""
 
@@ -3122,6 +3122,26 @@ msgstr ""
 msgid ""
 "Control hue, saturation, contrast and brightness. Based on the vf_eq and "
 "vf_hue from the MPlayer project."
+msgstr ""
+
+#: tests/visualization.c:108
+msgid "No input plugin defined"
+msgstr ""
+
+#: tests/visualization.c:115
+msgid "Input plugin could not be loaded"
+msgstr ""
+
+#: tests/visualization.c:125
+msgid "No output plugin defined"
+msgstr ""
+
+#: tests/visualization.c:132
+msgid "Output plugin could not be loaded"
+msgstr ""
+
+#: tests/visualization.c:150
+msgid "Opening input plugin failed"
 msgstr ""
 
 #: tests/player1.c:548
@@ -3214,94 +3234,94 @@ msgstr ""
 msgid "Player finishing"
 msgstr ""
 
-#: include/bggavl.h:104
+#: include/bggavl.h:99
 msgid "Conversion Quality"
 msgstr ""
 
-#: include/bggavl.h:110
+#: include/bggavl.h:106
 msgid ""
 "Set the conversion quality for format conversions. Lower quality means more "
 "speed. Values above 3 enable slow high quality calculations."
 msgstr ""
 
-#: include/bggavl.h:132
+#: include/bggavl.h:129
 msgid "23.976 (NTSC encapsulated film rate)"
 msgstr ""
 
-#: include/bggavl.h:133
+#: include/bggavl.h:130
 msgid "24 (Standard international cinema film rate)"
 msgstr ""
 
-#: include/bggavl.h:134
+#: include/bggavl.h:131
 msgid "25 (PAL [625/50] video frame rate)"
 msgstr ""
 
-#: include/bggavl.h:135
+#: include/bggavl.h:132
 msgid "29.970 (NTSC video frame rate)"
 msgstr ""
 
-#: include/bggavl.h:136
+#: include/bggavl.h:133
 msgid "30 (NTSC drop-frame [525/60] video frame rate)"
 msgstr ""
 
-#: include/bggavl.h:137
+#: include/bggavl.h:134
 msgid "50 (Double frame rate / progressive PAL)"
 msgstr ""
 
-#: include/bggavl.h:138
+#: include/bggavl.h:135
 msgid "59.940 (Double frame rate NTSC)"
 msgstr ""
 
-#: include/bggavl.h:139
+#: include/bggavl.h:136
 msgid "60 (Double frame rate drop-frame NTSC)"
 msgstr ""
 
-#: include/bggavl.h:141
+#: include/bggavl.h:138
 msgid ""
 "Output framerate. For user defined framerate, enter the timescale and frame "
 "duration below (framerate = timescale / frame_duration)."
 msgstr ""
 
-#: include/bggavl.h:146 lib/singlepic.c:73
+#: include/bggavl.h:143 lib/singlepic.c:73
 msgid "Timescale"
 msgstr ""
 
-#: include/bggavl.h:151
+#: include/bggavl.h:148
 msgid ""
 "Timescale for user defined output framerate (Framerate = timescale / "
 "frame_duration)."
 msgstr ""
 
-#: include/bggavl.h:155 lib/singlepic.c:81
+#: include/bggavl.h:152 lib/singlepic.c:81
 msgid "Frame duration"
 msgstr ""
 
-#: include/bggavl.h:160
+#: include/bggavl.h:157
 msgid ""
 "Frame duration for user defined output framerate (Framerate = timescale / "
 "frame_duration)."
 msgstr ""
 
-#: include/bggavl.h:166
+#: include/bggavl.h:163
 msgid "Deinterlace mode"
 msgstr ""
 
-#: include/bggavl.h:171 include/bggavl.h:326 lib/gtk/albumwidget.c:1485
-#: lib/gtk/albumwidget.c:2840
+#: include/bggavl.h:168 include/bggavl.h:335 lib/gtk/albumwidget.c:1490
+#: lib/gtk/albumwidget.c:2845
 msgid "Copy"
 msgstr ""
 
-#: include/bggavl.h:171
+#: include/bggavl.h:168
 msgid "Scale"
 msgstr ""
 
-#: include/bggavl.h:190
+#: include/bggavl.h:187
 msgid ""
 "Force deinterlacing if you want progressive output and the input format "
 "pretends to be progressive also."
 msgstr ""
 
-#: include/bggavl.h:241
+#: include/bggavl.h:240
 msgid "Resample chroma"
 msgstr ""
 
@@ -3315,148 +3335,148 @@ msgstr ""
 msgid "Alpha mode"
 msgstr ""
 
-#: include/bggavl.h:255
+#: include/bggavl.h:256
 msgid "Ignore"
 msgstr ""
 
-#: include/bggavl.h:255
+#: include/bggavl.h:256
 msgid "Blend background color"
 msgstr ""
 
-#: include/bggavl.h:256
+#: include/bggavl.h:257
 msgid ""
 "This option is used if the source has an alpha (=transparency) channel, but "
 "the output supports no transparency. Either, the transparency is ignored, or "
 "the background color you specify below is blended in."
 msgstr ""
 
-#: include/bggavl.h:263
+#: include/bggavl.h:265
 msgid ""
 "Background color to use, when alpha mode above is \"Blend background color\"."
 msgstr ""
 
-#: include/bggavl.h:270
+#: include/bggavl.h:272
 msgid "Fixed samplerate"
 msgstr ""
 
-#: include/bggavl.h:273
+#: include/bggavl.h:276
 msgid ""
 "If disabled, the output samplerate is taken from the source. If enabled, the "
 "samplerate you specify below us used."
 msgstr ""
 
-#: include/bggavl.h:282
+#: include/bggavl.h:286
 msgid "Fixed output samplerate"
 msgstr ""
 
-#: include/bggavl.h:289
+#: include/bggavl.h:293
 msgid "Fixed channel setup"
 msgstr ""
 
-#: include/bggavl.h:292
+#: include/bggavl.h:297
 msgid ""
 "If disabled, the output channel configuration is taken from the source. If "
 "enabled, the setup you specify below us used."
 msgstr ""
 
-#: include/bggavl.h:296
+#: include/bggavl.h:301
 msgid "Front channels"
 msgstr ""
 
-#: include/bggavl.h:303
+#: include/bggavl.h:309
 msgid "num_rear_channels"
 msgstr ""
 
-#: include/bggavl.h:312
+#: include/bggavl.h:319 lib/formats.c:157
 msgid "LFE"
 msgstr ""
 
-#: include/bggavl.h:318
+#: include/bggavl.h:326
 msgid "Front to rear mode"
 msgstr ""
 
-#: include/bggavl.h:325
+#: include/bggavl.h:334
 msgid "Mute"
 msgstr ""
 
-#: include/bggavl.h:327
+#: include/bggavl.h:336
 msgid "Diff"
 msgstr ""
 
-#: include/bggavl.h:329
+#: include/bggavl.h:338
 msgid ""
 "Mix mode when the output format has rear channels, but the source doesn't."
 msgstr ""
 
-#: include/bggavl.h:334
+#: include/bggavl.h:343
 msgid "Stereo to mono mode"
 msgstr ""
 
-#: include/bggavl.h:341
+#: include/bggavl.h:351
 msgid "Choose left"
 msgstr ""
 
-#: include/bggavl.h:342
+#: include/bggavl.h:352
 msgid "Choose right"
 msgstr ""
 
-#: include/bggavl.h:343
+#: include/bggavl.h:353
 msgid "Mix"
 msgstr ""
 
-#: include/bggavl.h:345
+#: include/bggavl.h:355
 msgid "Mix mode when downmixing Stereo to Mono."
 msgstr ""
 
-#: include/bggavl.h:352
+#: include/bggavl.h:362
 msgid "Force floating point"
 msgstr ""
 
-#: include/bggavl.h:355
+#: include/bggavl.h:366
 msgid ""
 "Force floating point processing. This will inprove the quality but might "
 "slow things down."
 msgstr ""
 
-#: include/bggavl.h:361
+#: include/bggavl.h:372
 msgid "Dither mode"
 msgstr ""
 
-#: include/bggavl.h:366
+#: include/bggavl.h:378
 msgid "Shaped"
 msgstr ""
 
-#: include/bggavl.h:367
+#: include/bggavl.h:379
 msgid ""
 "Dither mode. Auto means to use the quality level. Subsequent options are "
 "ordered by increasing quality (i.e. decreasing speed)."
 msgstr ""
 
-#: include/bggavl.h:373
+#: include/bggavl.h:385
 msgid "Resample mode"
 msgstr ""
 
-#: include/bggavl.h:377
+#: include/bggavl.h:390
 msgid "Linear"
 msgstr ""
 
-#: include/bggavl.h:377
+#: include/bggavl.h:390
 msgid "Zero order hold"
 msgstr ""
 
-#: include/bggavl.h:378
+#: include/bggavl.h:391
 msgid "Sinc fast"
 msgstr ""
 
-#: include/bggavl.h:378
+#: include/bggavl.h:391
 msgid "Sinc medium"
 msgstr ""
 
-#: include/bggavl.h:378
+#: include/bggavl.h:391
 msgid "Sinc best"
 msgstr ""
 
-#: include/bggavl.h:379
+#: include/bggavl.h:392
 msgid ""
 "Resample mode. Auto means to use the quality level. Subsequent options are "
 "ordered by increasing quality (i.e. decreasing speed)."
@@ -3466,7 +3486,7 @@ msgstr ""
 msgid "Zero"
 msgstr ""
 
-#: lib/formats.c:60
+#: lib/formats.c:61
 #, c-format
 msgid ""
 "Channels:          %d\n"
@@ -3477,7 +3497,7 @@ msgid ""
 "Sample format:     %s"
 msgstr ""
 
-#: lib/formats.c:62
+#: lib/formats.c:63
 #, c-format
 msgid ""
 "Channels:\t %d\n"
@@ -3512,16 +3532,12 @@ msgstr ""
 
 #: lib/formats.c:101
 #, c-format
-msgid ""
-"Framerate:    %f fps [%d / %d]\n"
-"             %s\n"
+msgid "Framerate:    %f fps [%d / %d]%s\n"
 msgstr ""
 
 #: lib/formats.c:103
 #, c-format
-msgid ""
-"Framerate:\t%f fps [%d / %d]\n"
-"\t%s\n"
+msgid "Framerate:\t%f fps [%d / %d]%s\n"
 msgstr ""
 
 #: lib/formats.c:109
@@ -3542,18 +3558,242 @@ msgstr ""
 msgid "Interlace mode:\t%s"
 msgstr ""
 
-#: lib/formats.c:127
+#: lib/formats.c:129
 #, c-format
 msgid ""
 "\n"
 "Chroma placement: %s"
 msgstr ""
 
-#: lib/formats.c:129
+#: lib/formats.c:131
 #, c-format
 msgid ""
 "\n"
 "Chroma placement:\t%s"
+msgstr ""
+
+#: lib/formats.c:146
+msgid "Unknown channel"
+msgstr ""
+
+#: lib/formats.c:147
+msgid "Front C"
+msgstr ""
+
+#: lib/formats.c:148
+msgid "Front L"
+msgstr ""
+
+#: lib/formats.c:149
+msgid "Front R"
+msgstr ""
+
+#: lib/formats.c:150
+msgid "Front CL"
+msgstr ""
+
+#: lib/formats.c:151
+msgid "Front CR"
+msgstr ""
+
+#: lib/formats.c:152
+msgid "Rear C"
+msgstr ""
+
+#: lib/formats.c:153
+msgid "Rear L"
+msgstr ""
+
+#: lib/formats.c:154
+msgid "Rear R"
+msgstr ""
+
+#: lib/formats.c:155
+msgid "Side L"
+msgstr ""
+
+#: lib/formats.c:156
+msgid "Side R"
+msgstr ""
+
+#: lib/formats.c:158
+msgid "AUX"
+msgstr ""
+
+#: lib/formats.c:162
+msgid "Not specified"
+msgstr ""
+
+#: lib/formats.c:163
+msgid "Unsigned 8 bit"
+msgstr ""
+
+#: lib/formats.c:164
+msgid "Signed 8 bit"
+msgstr ""
+
+#: lib/formats.c:165
+msgid "Unsigned 16 bit"
+msgstr ""
+
+#: lib/formats.c:166
+msgid "Signed 16 bit"
+msgstr ""
+
+#: lib/formats.c:167
+msgid "Signed 32 bit"
+msgstr ""
+
+#: lib/formats.c:168
+msgid "Floating point"
+msgstr ""
+
+#: lib/formats.c:172
+msgid "Not interleaved"
+msgstr ""
+
+#: lib/formats.c:173
+msgid "Interleaved channel pairs"
+msgstr ""
+
+#: lib/formats.c:174
+msgid "All channels interleaved"
+msgstr ""
+
+#: lib/formats.c:178
+msgid "None (Progressive)"
+msgstr ""
+
+#: lib/formats.c:179
+msgid "Top field first"
+msgstr ""
+
+#: lib/formats.c:180
+msgid "Bottom field first"
+msgstr ""
+
+#: lib/formats.c:181
+msgid "Mixed"
+msgstr ""
+
+#: lib/formats.c:184
+msgid "MPEG-1/JPEG"
+msgstr ""
+
+#: lib/formats.c:185
+msgid "MPEG-2"
+msgstr ""
+
+#: lib/formats.c:186
+msgid "DV PAL"
+msgstr ""
+
+#: lib/formats.c:190
+msgid "15 bpp RGB"
+msgstr ""
+
+#: lib/formats.c:191
+msgid "15 bpp BGR"
+msgstr ""
+
+#: lib/formats.c:192
+msgid "16 bpp RGB"
+msgstr ""
+
+#: lib/formats.c:193
+msgid "16 bpp BGR"
+msgstr ""
+
+#: lib/formats.c:194
+msgid "24 bpp RGB"
+msgstr ""
+
+#: lib/formats.c:195
+msgid "24 bpp BGR"
+msgstr ""
+
+#: lib/formats.c:196
+msgid "32 bpp RGB"
+msgstr ""
+
+#: lib/formats.c:197
+msgid "32 bpp BGR"
+msgstr ""
+
+#: lib/formats.c:198
+msgid "32 bpp RGBA"
+msgstr ""
+
+#: lib/formats.c:199
+msgid "48 bpp RGB"
+msgstr ""
+
+#: lib/formats.c:200
+msgid "64 bpp RGBA"
+msgstr ""
+
+#: lib/formats.c:201
+msgid "Float RGB"
+msgstr ""
+
+#: lib/formats.c:202
+msgid "Float RGBA"
+msgstr ""
+
+#: lib/formats.c:203
+msgid "YUV 422 (YUY2)"
+msgstr ""
+
+#: lib/formats.c:204
+msgid "YUV 422 (UYVY)"
+msgstr ""
+
+#: lib/formats.c:205
+msgid "YUVA 4444"
+msgstr ""
+
+#: lib/formats.c:206
+msgid "YUV 420 Planar"
+msgstr ""
+
+#: lib/formats.c:207
+msgid "YUV 410 Planar"
+msgstr ""
+
+#: lib/formats.c:208
+msgid "YUV 411 Planar"
+msgstr ""
+
+#: lib/formats.c:209
+msgid "YUV 422 Planar"
+msgstr ""
+
+#: lib/formats.c:210
+msgid "YUV 422 Planar (16 bit)"
+msgstr ""
+
+#: lib/formats.c:211
+msgid "YUV 444 Planar"
+msgstr ""
+
+#: lib/formats.c:212
+msgid "YUV 444 Planar (16 bit)"
+msgstr ""
+
+#: lib/formats.c:213
+msgid "YUVJ 420 Planar"
+msgstr ""
+
+#: lib/formats.c:214
+msgid "YUVJ 422 Planar"
+msgstr ""
+
+#: lib/formats.c:215
+msgid "YUVJ 444 Planar"
+msgstr ""
+
+#: lib/formats.c:216
+msgid "Undefined"
 msgstr ""
 
 #: lib/transcoder_pp.c:212
@@ -3574,7 +3814,7 @@ msgstr ""
 msgid "Aspect ratio changed"
 msgstr ""
 
-#: lib/player_input.c:270 lib/transcoder.c:2192
+#: lib/player_input.c:270 lib/transcoder.c:2217
 msgid "Starting input plugin failed"
 msgstr ""
 
@@ -3693,20 +3933,20 @@ msgstr ""
 msgid "Duration (milliseconds)"
 msgstr ""
 
-#: lib/filters.c:142
+#: lib/filters.c:168
 msgid "Audio Filters"
 msgstr ""
 
-#: lib/filters.c:280
+#: lib/filters.c:315
 #, c-format
 msgid "Initialized audio filter %s"
 msgstr ""
 
-#: lib/filters.c:444
+#: lib/filters.c:540
 msgid "Video Filters"
 msgstr ""
 
-#: lib/filters.c:575
+#: lib/filters.c:675
 #, c-format
 msgid "Initialized video filter %s"
 msgstr ""
@@ -3748,19 +3988,23 @@ msgid ""
 "image writers."
 msgstr ""
 
-#: lib/player_video.c:149
+#: lib/player_video.c:128
 msgid "Still image framerate"
 msgstr ""
 
-#: lib/player_video.c:155
+#: lib/player_video.c:134
 msgid "Set framerate width which still images will be redisplayed periodically"
 msgstr ""
 
-#: lib/player_video.c:205
+#: lib/player_video.c:202
+msgid "Restarting playback due to changed video options"
+msgstr ""
+
+#: lib/player_video.c:254
 msgid "Restarting playback due to changed video filters"
 msgstr ""
 
-#: lib/stringutils.c:165
+#: lib/stringutils.c:167
 #, c-format
 msgid "Cannot open file \"%s\" for writing"
 msgstr ""
@@ -3823,12 +4067,12 @@ msgstr ""
 msgid "Reading welcome line failed"
 msgstr ""
 
-#: lib/converters.c:195
+#: lib/converters.c:302
 #, c-format
 msgid "Doing framerate conversion %5.2f (%s) -> %5.2f (%s)"
 msgstr ""
 
-#: lib/converters.c:225
+#: lib/converters.c:332
 #, c-format
 msgid "Initialized video converter, %d steps"
 msgstr ""
@@ -3845,7 +4089,7 @@ msgstr ""
 msgid "Album"
 msgstr ""
 
-#: lib/metadata.c:95 lib/transcoder_track.c:366 lib/gtk/infowindow.c:562
+#: lib/metadata.c:95 lib/transcoder_track.c:356 lib/gtk/infowindow.c:726
 msgid "Track"
 msgstr ""
 
@@ -3914,131 +4158,147 @@ msgstr ""
 msgid "Comment:\t %s\n"
 msgstr ""
 
-#: lib/transcoder_track.c:348 lib/gtk/chapterdialog.c:183
-#: lib/gtk/treewidget.c:1143 lib/gtk/infowindow.c:532
+#: lib/transcoder_track.c:338 lib/gtk/chapterdialog.c:183
+#: lib/gtk/treewidget.c:1143 lib/gtk/infowindow.c:711
 msgid "Name"
 msgstr ""
 
-#: lib/transcoder_track.c:354
+#: lib/transcoder_track.c:344 lib/gtk/infowindow.c:721
 msgid "Location"
 msgstr ""
 
-#: lib/transcoder_track.c:372
+#: lib/transcoder_track.c:362
 msgid "Subdirectory"
 msgstr ""
 
-#: lib/transcoder_track.c:374
+#: lib/transcoder_track.c:364
 msgid "Subdirectory, where this track will be written to"
 msgstr ""
 
-#: lib/transcoder_track.c:414
+#: lib/transcoder_track.c:404
 msgid "Postprocess only"
 msgstr ""
 
-#: lib/transcoder_track.c:416
+#: lib/transcoder_track.c:406
 msgid ""
 "Skip transcoding of this track and send the file directly to the "
 "postprocessor."
 msgstr ""
 
-#: lib/transcoder_track.c:420
+#: lib/transcoder_track.c:410
 msgid "Set start time"
 msgstr ""
 
-#: lib/transcoder_track.c:424
+#: lib/transcoder_track.c:414
 msgid ""
 "Specify a start time below. This time will be slightly wrong if the input "
 "format doesn't support sample accurate seeking."
 msgstr ""
 
-#: lib/transcoder_track.c:429
+#: lib/transcoder_track.c:419
 msgid "Start time"
 msgstr ""
 
-#: lib/transcoder_track.c:436
+#: lib/transcoder_track.c:426
 msgid "Set end time"
 msgstr ""
 
-#: lib/transcoder_track.c:440
+#: lib/transcoder_track.c:430
 msgid "Specify an end time below."
 msgstr ""
 
-#: lib/transcoder_track.c:444
+#: lib/transcoder_track.c:434
 msgid "End time"
 msgstr ""
 
-#: lib/transcoder_track.c:458 lib/transcoder_track.c:494
-#: lib/transcoder_track.c:1390 lib/transcoder_track.c:1414
+#: lib/transcoder_track.c:448 lib/transcoder_track.c:497
+#: lib/transcoder_track.c:1419 lib/transcoder_track.c:1443
 msgid "Action"
 msgstr ""
 
-#: lib/transcoder_track.c:462 lib/transcoder_track.c:497
-#: lib/transcoder_track.c:1393 lib/transcoder_track.c:1417
+#: lib/transcoder_track.c:452 lib/transcoder_track.c:500
+#: lib/transcoder_track.c:1422 lib/transcoder_track.c:1446
 msgid "Forget"
 msgstr ""
 
-#: lib/transcoder_track.c:462
+#: lib/transcoder_track.c:452
 msgid "Transcode as text"
 msgstr ""
 
-#: lib/transcoder_track.c:463
+#: lib/transcoder_track.c:453
 msgid "Transcode as overlay"
 msgstr ""
 
-#: lib/transcoder_track.c:463 lib/transcoder_track.c:497
+#: lib/transcoder_track.c:453 lib/transcoder_track.c:500
 msgid "Blend onto video"
 msgstr ""
 
-#: lib/transcoder_track.c:464
+#: lib/transcoder_track.c:454
 msgid "Select action for this subtitle stream."
 msgstr ""
 
-#: lib/transcoder_track.c:468 lib/transcoder_track.c:502
-#: lib/transcoder_track.c:1422
+#: lib/transcoder_track.c:458 lib/transcoder_track.c:505
+#: lib/transcoder_track.c:1451
+msgid "Input Language"
+msgstr ""
+
+#: lib/transcoder_track.c:464 lib/transcoder_track.c:511
+#: lib/transcoder_track.c:1457
 msgid "Language"
 msgstr ""
 
-#: lib/transcoder_track.c:476
+#: lib/transcoder_track.c:472 lib/transcoder_track.c:519
+#: lib/transcoder_track.c:1465
+msgid "Force language"
+msgstr ""
+
+#: lib/transcoder_track.c:475 lib/transcoder_track.c:522
+#: lib/transcoder_track.c:1468
+msgid ""
+"Force the given language even if the input has the language set differently."
+msgstr ""
+
+#: lib/transcoder_track.c:479
 msgid "Video stream"
 msgstr ""
 
-#: lib/transcoder_track.c:481
+#: lib/transcoder_track.c:484
 msgid ""
 "Attach subtitle stream to this video stream. For blending, this video stream "
 "will get the subtitles. For encoding, take frame dimensions and framerate "
 "from this video stream as they are sometimes needed by subtitle encoders."
 msgstr ""
 
-#: lib/transcoder_track.c:497 lib/transcoder_track.c:1393
-#: lib/transcoder_track.c:1417 lib/gtk/albumwidget.c:1513
+#: lib/transcoder_track.c:500 lib/transcoder_track.c:1422
+#: lib/transcoder_track.c:1446 lib/gtk/albumwidget.c:1518
 msgid "Transcode"
 msgstr ""
 
-#: lib/transcoder_track.c:510
+#: lib/transcoder_track.c:526
 msgid "Video stream to blend onto"
 msgstr ""
 
-#: lib/transcoder_track.c:946 lib/album.c:1688 lib/tree.c:1141
+#: lib/transcoder_track.c:975 lib/album.c:1688 lib/tree.c:1141
 #, c-format
 msgid "Loading %s failed"
 msgstr ""
 
-#: lib/transcoder_track.c:1398
+#: lib/transcoder_track.c:1427
 msgid "Enable 2-pass encoding"
 msgstr ""
 
-#: lib/transcoder_track.c:1400
+#: lib/transcoder_track.c:1429
 msgid ""
 "Encode this stream in 2 passes, i.e. analyze it first and do the final "
 "transcoding in the second pass. This enables higher quality within the given "
 "bitrate constraints but roughly doubles the video encoding time."
 msgstr ""
 
-#: lib/transcoder_track.c:1430
+#: lib/transcoder_track.c:1472
 msgid "Normalize audio"
 msgstr ""
 
-#: lib/transcoder_track.c:1432
+#: lib/transcoder_track.c:1474
 msgid ""
 "This will enable 2 pass transcoding. In the first pass, the peak volume is "
 "detected. In the second pass, the stream is transcoded with normalized "
@@ -4224,7 +4484,7 @@ msgid ""
 "Copyright:\t%s"
 msgstr ""
 
-#: lib/bgladspa.c:275
+#: lib/bgladspa.c:275 lib/bgladspa.c:652
 #, c-format
 msgid "No symbol \"ladspa_descriptor\" found: %s"
 msgstr ""
@@ -4234,245 +4494,241 @@ msgstr ""
 msgid "Remixing to stereo for filter \"%s\""
 msgstr ""
 
-#: lib/transcoder.c:418
+#: lib/transcoder.c:448
 msgid "Output Directory"
 msgstr ""
 
-#: lib/transcoder.c:424
+#: lib/transcoder.c:454
 msgid "Delete incomplete output files"
 msgstr ""
 
-#: lib/transcoder.c:427
+#: lib/transcoder.c:457
 msgid ""
 "Delete the encoded files if you hit the stop button. This option will "
 "automatically be disabled, when the track is an URL"
 msgstr ""
 
-#: lib/transcoder.c:432
+#: lib/transcoder.c:462
 msgid "Clean up after postprocessing"
 msgstr ""
 
-#: lib/transcoder.c:434
+#: lib/transcoder.c:464
 msgid "Clean up all encoded files, which were postprocessed"
 msgstr ""
 
-#: lib/transcoder.c:438
+#: lib/transcoder.c:468
 msgid "Send finished files to player"
 msgstr ""
 
-#: lib/transcoder.c:1194
+#: lib/transcoder.c:1225
 msgid "Multipass encoding not supported by encoder plugin"
 msgstr ""
 
-#: lib/transcoder.c:1201
+#: lib/transcoder.c:1232
 #, c-format
 msgid "Using statistics file: %s"
 msgstr ""
 
-#: lib/transcoder.c:1207
+#: lib/transcoder.c:1238
 msgid "Multipass encoding not supported by codec"
 msgstr ""
 
-#: lib/transcoder.c:1319
+#: lib/transcoder.c:1344
 msgid "Encoding audio failed"
 msgstr ""
 
-#: lib/transcoder.c:1570
+#: lib/transcoder.c:1595
 msgid "Encoding video failed"
 msgstr ""
 
-#: lib/transcoder.c:1655 lib/transcoder.c:1705
+#: lib/transcoder.c:1680 lib/transcoder.c:1730
 msgid "Encoding subtitles failed"
 msgstr ""
 
-#: lib/transcoder.c:1771
+#: lib/transcoder.c:1796
 #, c-format
 msgid "Cannot create directory %s: %s, using default"
 msgstr ""
 
-#: lib/transcoder.c:1777 lib/searchpath.c:131
+#: lib/transcoder.c:1802 lib/searchpath.c:131
 #, c-format
 msgid "Created directory %s"
 msgstr ""
 
-#: lib/transcoder.c:1849
+#: lib/transcoder.c:1874
 #, c-format
 msgid "Postprocessing %s"
 msgstr ""
 
-#: lib/transcoder.c:1853 lib/transcoder.c:3463
+#: lib/transcoder.c:1878 lib/transcoder.c:3460
 #, c-format
 msgid "Transcoding %s [Track %d, Pass %d/%d]"
 msgstr ""
 
-#: lib/transcoder.c:1858
+#: lib/transcoder.c:1883
 #, c-format
 msgid "Transcoding %s [Track %d]"
 msgstr ""
 
-#: lib/transcoder.c:1861 lib/transcoder.c:3465
+#: lib/transcoder.c:1886 lib/transcoder.c:3462
 #, c-format
 msgid "%s"
 msgstr ""
 
-#: lib/transcoder.c:1869
+#: lib/transcoder.c:1894
 #, c-format
 msgid ""
 "Metadata:\n"
 "%s"
 msgstr ""
 
-#: lib/transcoder.c:1884
+#: lib/transcoder.c:1909
 #, c-format
 msgid ""
 "Audio stream %d input format:\n"
 "%s"
 msgstr ""
 
-#: lib/transcoder.c:1889
+#: lib/transcoder.c:1914
 #, c-format
 msgid ""
 "Audio stream %d output format:\n"
 "%s"
 msgstr ""
 
-#: lib/transcoder.c:1902
+#: lib/transcoder.c:1927
 #, c-format
 msgid ""
 "Video stream %d input format:\n"
 "%s"
 msgstr ""
 
-#: lib/transcoder.c:1907
+#: lib/transcoder.c:1932
 #, c-format
 msgid ""
 "Video stream %d output format:\n"
 "%s"
 msgstr ""
 
-#: lib/transcoder.c:1919 lib/transcoder.c:1938
+#: lib/transcoder.c:1944 lib/transcoder.c:1963
 #, c-format
 msgid "Text subtitle stream %d: Blending onto video stream %d"
 msgstr ""
 
-#: lib/transcoder.c:1924 lib/transcoder.c:1943
+#: lib/transcoder.c:1949 lib/transcoder.c:1968
 #, c-format
 msgid "Text subtitle stream %d: Exporting to file"
 msgstr ""
 
-#: lib/transcoder.c:1981
+#: lib/transcoder.c:2006
 #, c-format
 msgid "Audio stream %d -> file: %s"
 msgstr ""
 
-#: lib/transcoder.c:1996
+#: lib/transcoder.c:2021
 #, c-format
 msgid "Video stream %d -> %s"
 msgstr ""
 
-#: lib/transcoder.c:2007
+#: lib/transcoder.c:2032
 #, c-format
 msgid "Output file: %s"
 msgstr ""
 
-#: lib/transcoder.c:2020
+#: lib/transcoder.c:2045
 #, c-format
 msgid "Cannot find plugin %s"
 msgstr ""
 
-#: lib/transcoder.c:2027
+#: lib/transcoder.c:2052
 #, c-format
 msgid "Cannot open plugin %s"
 msgstr ""
 
-#: lib/transcoder.c:2044
+#: lib/transcoder.c:2069
 #, c-format
 msgid "Cannot open %s with plugin %s"
 msgstr ""
 
-#: lib/transcoder.c:2060
+#: lib/transcoder.c:2085
 #, c-format
 msgid "Invalid track number %d"
 msgstr ""
 
-#: lib/transcoder.c:2202 lib/transcoder.c:2211
+#: lib/transcoder.c:2227 lib/transcoder.c:2236
 msgid "Cannot seek to start point"
 msgstr ""
 
-#: lib/transcoder.c:2222
+#: lib/transcoder.c:2247
 msgid "End time if before start time"
 msgstr ""
 
-#: lib/transcoder.c:2452 lib/transcoder.c:2500
+#: lib/transcoder.c:2477 lib/transcoder.c:2525
 msgid "Subtitle stream cannot be handled"
 msgstr ""
 
-#: lib/transcoder.c:2524
+#: lib/transcoder.c:2549
 msgid "Input and output are the same file"
 msgstr ""
 
-#: lib/transcoder.c:2545
+#: lib/transcoder.c:2570
 #, c-format
 msgid "Could not open %s"
 msgstr ""
 
-#: lib/transcoder.c:2556
+#: lib/transcoder.c:2581
 #, c-format
 msgid "Could not start %s"
 msgstr ""
 
-#: lib/transcoder.c:2983
-msgid "Input samplerate is zero"
-msgstr ""
-
-#: lib/transcoder.c:3208
+#: lib/transcoder.c:3207
 msgid "Zero peaks detected (silent file?). Disabling normalization."
 msgstr ""
 
-#: lib/transcoder.c:3214
+#: lib/transcoder.c:3213
 #, c-format
 msgid "Correcting volume by %.2f dB"
 msgstr ""
 
-#: lib/transcoder.c:3271
+#: lib/transcoder.c:3270
 msgid "No stream to encode"
 msgstr ""
 
-#: lib/transcoder.c:3660
+#: lib/transcoder.c:3657
 #, c-format
 msgid "Video stream %d: Transcoded %s frames"
 msgstr ""
 
-#: lib/transcoder.c:3671
+#: lib/transcoder.c:3668
 #, c-format
 msgid "Audio stream %d: Transcoded %s samples"
 msgstr ""
 
-#: lib/player_thread.c:706 lib/player_thread.c:1221 lib/player_thread.c:1234
+#: lib/player_thread.c:715 lib/player_thread.c:1232 lib/player_thread.c:1245
 msgid "Joining input thread..."
 msgstr ""
 
-#: lib/player_thread.c:708 lib/player_thread.c:1223 lib/player_thread.c:1236
+#: lib/player_thread.c:717 lib/player_thread.c:1234 lib/player_thread.c:1247
 msgid "Joining input thread done"
 msgstr ""
 
-#: lib/player_thread.c:713 lib/player_thread.c:1240
+#: lib/player_thread.c:722 lib/player_thread.c:1251
 msgid "Joining audio thread..."
 msgstr ""
 
-#: lib/player_thread.c:715 lib/player_thread.c:1242
+#: lib/player_thread.c:724 lib/player_thread.c:1253
 msgid "Joining audio thread done"
 msgstr ""
 
-#: lib/player_thread.c:719 lib/player_thread.c:1246
+#: lib/player_thread.c:728 lib/player_thread.c:1257
 msgid "Joining video thread..."
 msgstr ""
 
-#: lib/player_thread.c:721 lib/player_thread.c:1248
+#: lib/player_thread.c:730 lib/player_thread.c:1259
 msgid "Joining video thread done"
 msgstr ""
 
-#: lib/player_thread.c:1300
+#: lib/player_thread.c:1311
 msgid "Ignoring command while playback is interrupted"
 msgstr ""
 
@@ -4775,7 +5031,7 @@ msgstr ""
 msgid "Loading plugin \"%s\" failed"
 msgstr ""
 
-#: lib/pluginregistry.c:1518 lib/pluginregistry.c:1554
+#: lib/pluginregistry.c:1518 lib/pluginregistry.c:1555
 #, c-format
 msgid "Opening %s with \"%s\" failed"
 msgstr ""
@@ -4785,8 +5041,32 @@ msgstr ""
 msgid "Couldn't open album file %s"
 msgstr ""
 
-#: lib/player_audio.c:245
+#: lib/player_audio.c:220
+msgid "Restarting playback due to changed audio options"
+msgstr ""
+
+#: lib/player_audio.c:264
 msgid "Restarting playback due to changed audio filters"
+msgstr ""
+
+#: lib/visualize.c:102
+msgid "Width"
+msgstr ""
+
+#: lib/visualize.c:107
+msgid ""
+"Desired image with, the visualization plugin might override this for no "
+"apparent reason"
+msgstr ""
+
+#: lib/visualize.c:111
+msgid "Height"
+msgstr ""
+
+#: lib/visualize.c:116
+msgid ""
+"Desired image height, the visualization plugin might override this for no "
+"apparent reason"
 msgstr ""
 
 #: lib/gtk/aboutwindow.c:116
@@ -4934,7 +5214,7 @@ msgstr ""
 msgid "New from directory..."
 msgstr ""
 
-#: lib/gtk/treewidget.c:1401 lib/gtk/albumwidget.c:1507
+#: lib/gtk/treewidget.c:1401 lib/gtk/albumwidget.c:1512
 msgid "Rename..."
 msgstr ""
 
@@ -4946,7 +5226,7 @@ msgstr ""
 msgid "Add device..."
 msgstr ""
 
-#: lib/gtk/treewidget.c:1425 lib/gtk/albumwidget.c:1563
+#: lib/gtk/treewidget.c:1425 lib/gtk/albumwidget.c:1568
 msgid "Album..."
 msgstr ""
 
@@ -4966,142 +5246,142 @@ msgstr ""
 msgid "New album"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1133
+#: lib/gtk/albumwidget.c:1138
 msgid "Track name"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1143
+#: lib/gtk/albumwidget.c:1148
 msgid "Rename entry"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1155
+#: lib/gtk/albumwidget.c:1160
 #, c-format
 msgid "Add files to album %s"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1184
+#: lib/gtk/albumwidget.c:1189
 #, c-format
 msgid "Add URLS to album %s"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1275
+#: lib/gtk/albumwidget.c:1280
 #, c-format
 msgid "Add albums to %s"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1446
+#: lib/gtk/albumwidget.c:1451
 msgid "Add Files"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1450
+#: lib/gtk/albumwidget.c:1455
 msgid "Add Albums"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1462
+#: lib/gtk/albumwidget.c:1467
 msgid "Copy to favourites"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1470 lib/gtk/albumwidget.c:2866
+#: lib/gtk/albumwidget.c:1475 lib/gtk/albumwidget.c:2871
 msgid "Move to top"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1473 lib/gtk/albumwidget.c:2868
+#: lib/gtk/albumwidget.c:1478 lib/gtk/albumwidget.c:2873
 msgid "Move to bottom"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1479 lib/gtk/albumwidget.c:2838
+#: lib/gtk/albumwidget.c:1484 lib/gtk/albumwidget.c:2843
 msgid "Cut"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1491 lib/gtk/albumwidget.c:2842
+#: lib/gtk/albumwidget.c:1496 lib/gtk/albumwidget.c:2847
 msgid "Paste"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1497
+#: lib/gtk/albumwidget.c:1502
 msgid "Find..."
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1509
+#: lib/gtk/albumwidget.c:1514
 msgid "Info..."
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1519
+#: lib/gtk/albumwidget.c:1524
 msgid "Refresh"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1531
+#: lib/gtk/albumwidget.c:1536
 msgid "Save as..."
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1534
+#: lib/gtk/albumwidget.c:1539
 msgid "Sort"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1550
+#: lib/gtk/albumwidget.c:1555
 msgid "Edit..."
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1569
+#: lib/gtk/albumwidget.c:1574
 msgid "Select error tracks"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1572
+#: lib/gtk/albumwidget.c:1577
 msgid "Show toolbar"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:2828
+#: lib/gtk/albumwidget.c:2833
 msgid "Add files"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:2848
+#: lib/gtk/albumwidget.c:2853
 msgid "Close album and eject disc"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:2854
+#: lib/gtk/albumwidget.c:2859
 msgid "Copy selected tracks to favourites"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:2860
+#: lib/gtk/albumwidget.c:2865
 msgid "Rename selected track"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:2863
+#: lib/gtk/albumwidget.c:2868
 msgid "Show track info"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:2871
+#: lib/gtk/albumwidget.c:2876
 msgid "Find tracks"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:3085
+#: lib/gtk/albumwidget.c:3090
 msgid "Backward search hit top, continuing at bottom"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:3094
+#: lib/gtk/albumwidget.c:3099
 msgid "Backward search: No tracks found"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:3113
+#: lib/gtk/albumwidget.c:3118
 msgid "Forward search hit bottom, continuing at top"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:3122
+#: lib/gtk/albumwidget.c:3127
 msgid "Forward search: No tracks found"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:3246
+#: lib/gtk/albumwidget.c:3251
 msgid "Exact match"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:3247
+#: lib/gtk/albumwidget.c:3252
 msgid "String is an exact substring"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:3251
+#: lib/gtk/albumwidget.c:3256
 msgid "Match case"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:3252
+#: lib/gtk/albumwidget.c:3257
 msgid "Match upper and lower case"
 msgstr ""
 
@@ -5221,7 +5501,7 @@ msgstr ""
 msgid "Password"
 msgstr ""
 
-#: lib/gtk/cfg_multi_list.c:737
+#: lib/gtk/cfg_multi_list.c:748
 #, c-format
 msgid "Add %s"
 msgstr ""
@@ -5242,58 +5522,73 @@ msgid ""
 "exists, overwrite?"
 msgstr ""
 
-#: lib/gtk/infowindow.c:255
+#: lib/gtk/infowindow.c:454
 #, c-format
-msgid "Audio stream %d/%d: %s"
+msgid "Name:\t%s"
 msgstr ""
 
-#: lib/gtk/infowindow.c:261
+#: lib/gtk/infowindow.c:464
+#, c-format
+msgid "Input plugin:\t%s"
+msgstr ""
+
+#: lib/gtk/infowindow.c:473
+#, c-format
+msgid "Location:\t%s"
+msgstr ""
+
+#: lib/gtk/infowindow.c:481
+#, c-format
+msgid "Track:\t%d"
+msgstr ""
+
+#: lib/gtk/infowindow.c:499
+#, c-format
+msgid "Format:\t%s"
+msgstr ""
+
+#: lib/gtk/infowindow.c:510 lib/gtk/infowindow.c:520
+#, c-format
+msgid "Stream type:\t%s"
+msgstr ""
+
+#: lib/gtk/infowindow.c:528
 #, c-format
 msgid "Audio stream %d/%d"
 msgstr ""
 
-#: lib/gtk/infowindow.c:286
-#, c-format
-msgid "Video stream %d/%d: %s"
-msgstr ""
-
-#: lib/gtk/infowindow.c:292
-#, c-format
-msgid "Video stream %d/%d"
-msgstr ""
-
-#: lib/gtk/infowindow.c:310
-#, c-format
-msgid "Subtitle stream %d/%d: %s [%s]"
-msgstr ""
-
-#: lib/gtk/infowindow.c:313 lib/gtk/infowindow.c:319
-msgid "text"
-msgstr ""
-
-#: lib/gtk/infowindow.c:313 lib/gtk/infowindow.c:319
-msgid "overlay"
-msgstr ""
-
-#: lib/gtk/infowindow.c:317
+#: lib/gtk/infowindow.c:543
 #, c-format
 msgid "Subtitle stream %d/%d [%s]"
 msgstr ""
 
-#: lib/gtk/infowindow.c:494
-msgid "Gmerlin Track Info"
+#: lib/gtk/infowindow.c:555
+#, c-format
+msgid "Video stream %d/%d"
 msgstr ""
 
-#: lib/gtk/infowindow.c:546
-msgid "Meta info"
-msgstr ""
-
-#: lib/gtk/infowindow.c:572 lib/gtk/infowindow.c:600 lib/gtk/infowindow.c:627
+#: lib/gtk/infowindow.c:653 lib/gtk/infowindow.c:671 lib/gtk/infowindow.c:689
 msgid "Stream type"
 msgstr ""
 
-#: lib/gtk/infowindow.c:578 lib/gtk/infowindow.c:606
+#: lib/gtk/infowindow.c:657 lib/gtk/infowindow.c:675
 msgid "Input format"
+msgstr ""
+
+#: lib/gtk/infowindow.c:716
+msgid "Input plugin"
+msgstr ""
+
+#: lib/gtk/infowindow.c:983
+msgid "Copy selected"
+msgstr ""
+
+#: lib/gtk/infowindow.c:985
+msgid "Copy all"
+msgstr ""
+
+#: lib/gtk/infowindow.c:1033
+msgid "Gmerlin Track Info"
 msgstr ""
 
 #: lib/gtk/plugin_single.c:315 lib/gtk/plugin_multi.c:272
@@ -5304,11 +5599,11 @@ msgstr ""
 msgid "Plugin info"
 msgstr ""
 
-#: lib/gtk/cfg_dialog.c:392
+#: lib/gtk/cfg_dialog.c:420
 msgid "No options here, choose subcategory"
 msgstr ""
 
-#: lib/gtk/cfg_dialog.c:479
+#: lib/gtk/cfg_dialog.c:508
 msgid "No options available"
 msgstr ""
 

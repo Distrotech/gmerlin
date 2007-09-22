@@ -63,6 +63,26 @@ struct list_priv_s
   
   };
 
+static void translate_labels(bg_gtk_widget_t * w)
+  {
+  list_priv_t * priv;
+  int i;
+  priv = (list_priv_t*)(w->priv);
+  i = 0;
+  while(w->info->multi_labels[i])
+    i++;
+  priv->multi_labels = calloc(i+1, sizeof(*priv->multi_labels));
+  i = 0;
+  while(w->info->multi_labels[i])
+    {
+    priv->multi_labels[i] =
+      bg_strdup((char*)0,
+                TRD(w->info->multi_labels[i], priv->translation_domain));
+    i++;
+    }
+  
+  }
+
 static void set_sub_param(void * priv, char * name,
                           bg_parameter_value_t * val)
   {
@@ -231,20 +251,7 @@ static void get_value(bg_gtk_widget_t * w)
   /* create translated labels */
 
   if(!priv->multi_labels && w->info->multi_labels)
-    {
-    i = 0;
-    while(w->info->multi_labels[i])
-      i++;
-    priv->multi_labels = calloc(i+1, sizeof(*priv->multi_labels));
-    i = 0;
-    while(w->info->multi_labels[i])
-      {
-      priv->multi_labels[i] =
-        bg_strdup((char*)0,
-                  TRD(w->info->multi_labels[i], priv->translation_domain));
-      i++;
-      }
-    }
+    translate_labels(w);
   
   /* Append the codec names from the string, if they are available */
   
@@ -357,6 +364,9 @@ static void add_func(void * priv, char * name, bg_parameter_value_t * val)
       index++;
     
     gtk_list_store_append(GTK_LIST_STORE(model), &iter);
+
+    if(!list->multi_labels && w->info->multi_labels)
+      translate_labels(w);
     
     if(list->multi_labels)
       gtk_list_store_set(GTK_LIST_STORE(model), &iter,

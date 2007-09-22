@@ -51,7 +51,8 @@ char * bg_audio_format_to_string(gavl_audio_format_t * f, int use_tabs)
 
   for(i = 0; i < f->num_channels; i++)
     {
-    channel_order = bg_strcat(channel_order, gavl_channel_id_to_string(f->channel_locations[i]));
+    channel_order = bg_strcat(channel_order,
+                              TRD(gavl_channel_id_to_string(f->channel_locations[i]), NULL));
     if(i < f->num_channels - 1)
       channel_order = bg_strcat(channel_order, ", ");
     }
@@ -65,9 +66,8 @@ char * bg_audio_format_to_string(gavl_audio_format_t * f, int use_tabs)
                f->num_channels,
                channel_order,
                f->samplerate, f->samples_per_frame,
-               gavl_interleave_mode_to_string(f->interleave_mode),
-               gavl_sample_format_to_string(f->sample_format));
-
+               TRD(gavl_interleave_mode_to_string(f->interleave_mode), NULL),
+               TRD(gavl_sample_format_to_string(f->sample_format), NULL));
   free(channel_order);
   free(center_level);
   free(rear_level);
@@ -89,7 +89,7 @@ char * bg_video_format_to_string(gavl_video_format_t * format, int use_tabs)
                format->frame_width, format->frame_height,
                format->image_width, format->image_height,
                format->pixel_width, format->pixel_height,
-               gavl_pixelformat_to_string(format->pixelformat));
+               TRD(gavl_pixelformat_to_string(format->pixelformat), NULL));
   
   if(format->framerate_mode == GAVL_FRAMERATE_STILL)
     {
@@ -117,7 +117,9 @@ char * bg_video_format_to_string(gavl_video_format_t * format, int use_tabs)
   else
     s = TR("Interlace mode:\t%s");
   
-  str = bg_sprintf(s, gavl_interlace_mode_to_string(format->interlace_mode));
+  str =
+    bg_sprintf(s, TRD(gavl_interlace_mode_to_string(format->interlace_mode),
+                      NULL));
   ret = bg_strcat(ret, str);
   free(str);
 
@@ -127,9 +129,88 @@ char * bg_video_format_to_string(gavl_video_format_t * format, int use_tabs)
       s = TR("\nChroma placement: %s");
     else
       s = TR("\nChroma placement:\t%s");
-    str = bg_sprintf(s, gavl_chroma_placement_to_string(format->chroma_placement));
+    str = bg_sprintf(s, TRD(gavl_chroma_placement_to_string(format->chroma_placement), NULL));
     ret = bg_strcat(ret, str);
     free(str);
     }
   return ret;
   }
+
+/*
+ *  When gavl will be gettextized (probably never), the
+ *  following stuff must be removed
+ */
+
+// gavl_channel_id_t
+
+TRU("Unknown channel")
+TRU("Front C")
+TRU("Front L")
+TRU("Front R")
+TRU("Front CL")
+TRU("Front CR")
+TRU("Rear C")
+TRU("Rear L")
+TRU("Rear R")
+TRU("Side L")
+TRU("Side R")
+TRU("LFE")
+TRU("AUX")
+
+// gavl_sample_format_t
+
+TRU("Not specified")
+TRU("Unsigned 8 bit")
+TRU("Signed 8 bit")
+TRU("Unsigned 16 bit")
+TRU("Signed 16 bit")
+TRU("Signed 32 bit")
+TRU("Floating point")
+
+// gavl_interleave_mode_t
+
+TRU("Not interleaved")
+TRU("Interleaved channel pairs")
+TRU("All channels interleaved")
+
+// gavl_interlace_mode_t
+     
+TRU("None (Progressive)")
+TRU("Top field first")
+TRU("Bottom field first")
+TRU("Mixed")
+
+// gavl_chroma_placement_t
+TRU("MPEG-1/JPEG")
+TRU("MPEG-2")
+TRU("DV PAL")
+
+// gavl_pixelformat_t
+
+TRU("15 bpp RGB")
+TRU("15 bpp BGR")
+TRU("16 bpp RGB")
+TRU("16 bpp BGR")
+TRU("24 bpp RGB")
+TRU("24 bpp BGR")
+TRU("32 bpp RGB")
+TRU("32 bpp BGR")
+TRU("32 bpp RGBA")
+TRU("48 bpp RGB")
+TRU("64 bpp RGBA")
+TRU("Float RGB")
+TRU("Float RGBA")
+TRU("YUV 422 (YUY2)")
+TRU("YUV 422 (UYVY)")
+TRU("YUVA 4444")
+TRU("YUV 420 Planar")
+TRU("YUV 410 Planar")
+TRU("YUV 411 Planar")
+TRU("YUV 422 Planar")
+TRU("YUV 422 Planar (16 bit)")
+TRU("YUV 444 Planar")
+TRU("YUV 444 Planar (16 bit)")
+TRU("YUVJ 420 Planar")
+TRU("YUVJ 422 Planar")
+TRU("YUVJ 444 Planar")
+TRU("Undefined")

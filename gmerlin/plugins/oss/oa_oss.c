@@ -247,7 +247,7 @@ static int open_devices(oss_t * priv, gavl_audio_format_t * format)
     bg_oss_set_samplerate(priv->fd_front, format->samplerate);
   if(test_value != format->samplerate)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Samplerate %f KHz not supported by device %s",
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Samplerate %f kHz not supported by device %s",
             format->samplerate / 1000.0,
             priv->device_front);
     goto fail;
@@ -259,7 +259,7 @@ static int open_devices(oss_t * priv, gavl_audio_format_t * format)
       bg_oss_set_samplerate(priv->fd_rear, format->samplerate);
     if(test_value != format->samplerate)
       {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Samplerate %f KHz not supported by device %s",
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Samplerate %f kHz not supported by device %s",
               format->samplerate / 1000.0,
               priv->device_rear);
       goto fail;
@@ -272,7 +272,7 @@ static int open_devices(oss_t * priv, gavl_audio_format_t * format)
       bg_oss_set_samplerate(priv->fd_center_lfe, format->samplerate);
     if(test_value != format->samplerate)
       {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Samplerate %f KHz not supported by device %s",
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Samplerate %f kHz not supported by device %s",
               format->samplerate / 1000.0,
               priv->device_center_lfe);
       goto fail;

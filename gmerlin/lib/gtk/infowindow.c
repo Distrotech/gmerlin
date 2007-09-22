@@ -38,6 +38,9 @@
 
 /* This is missing in the gtk headers */
 
+#define FG_SENSITIVE   "#000000"
+#define FG_INSENSITIVE "#808080"
+
 extern void
 gtk_decorated_window_move_resize_window(GtkWindow*, int, int, int, int);
 
@@ -103,6 +106,18 @@ struct bg_gtk_info_window_s
 
   guint expand_id;
   guint collapse_id;
+
+  /* Clipboard */
+  
+  char * clipboard;
+  int clipboard_len;
+
+  struct
+    {
+    GtkWidget * copy_all;
+    GtkWidget * copy_selected;
+    GtkWidget * menu;
+    } menu;
   
   };
 
@@ -206,6 +221,88 @@ int bg_gtk_info_window_get_parameter(void * data, char * name,
   return 0;
   }
 
+static char * iter_to_string(bg_gtk_info_window_t * w, char * ret,
+                             int depth,
+                             GtkTreeIter * iter, int append_children)
+  {
+  int i;
+  int num_children;
+  GtkTreeModel * model;
+  char * str;
+  GtkTreeIter child;
+  
+  /* */
+  model = gtk_tree_view_get_model(GTK_TREE_VIEW(w->treeview));
+
+  if(iter)
+    {
+    /* Check if the entry is present at all */
+    gtk_tree_model_get(model, iter, COLUMN_FG_COLOR, &str, -1);
+    
+    if(!strcmp(str, FG_INSENSITIVE))
+      {
+      g_free(str);
+      return ret;
+      }
+    
+    g_free(str);
+
+    /*
+     *  Ugly, that's right, but the code isn't meant to be run
+     *  for each video pixel :)
+     */
+
+    for(i = 0; i < depth; i++)
+      ret = bg_strcat(ret, "  ");
+
+    /* First column */
+    gtk_tree_model_get(model, iter, COLUMN_1, &str, -1);
+
+    if(*str)
+      ret = bg_strcat(ret, str);
+    else
+      {
+      g_free(str);
+      return ret;
+      }
+
+    g_free(str);
+    
+    /* Second column */
+    gtk_tree_model_get(model, iter, COLUMN_2, &str, -1);
+
+    if(*str)
+      {
+      ret = bg_strcat(ret, "\t");
+      ret = bg_strcat(ret, str);
+      }
+    
+    g_free(str);
+
+    ret = bg_strcat(ret, "\n");
+    }
+
+  if(!append_children)
+    return ret;
+  
+  num_children = gtk_tree_model_iter_n_children(model, iter);
+
+  if(!num_children)
+    return ret;
+  
+  gtk_tree_model_iter_children(model, &child, iter);
+  
+  for(i = 0; i < num_children; i++)
+    {
+    ret = iter_to_string(w, ret, depth + !!(iter),
+                         &child, append_children);
+    gtk_tree_model_iter_next(model, &child);
+    }
+  
+  return ret;
+  
+  }
+
 static void set_line(bg_gtk_info_window_t * w,
                      GtkTreeIter * iter,
                      char * line, int sensitive)
@@ -233,14 +330,16 @@ static void set_line(bg_gtk_info_window_t * w,
   
   if(sensitive)
     gtk_tree_store_set(GTK_TREE_STORE(model), iter, COLUMN_FG_COLOR,
-                       "#000000", -1);
+                       FG_SENSITIVE, -1);
   else
     gtk_tree_store_set(GTK_TREE_STORE(model), iter, COLUMN_FG_COLOR,
-                       "#808080", -1);
+                       FG_INSENSITIVE, -1);
   
   }
 
-static void set_line_index(bg_gtk_info_window_t * w, int iter_index, char * line, int sensitive)
+static
+void set_line_index(bg_gtk_info_window_t * w, int iter_index, char * line,
+                    int sensitive)
   {
   GtkTreeIter iter;
   GtkTreeModel * model;
@@ -267,7 +366,7 @@ static void set_line_multi(bg_gtk_info_window_t * w,
   i = 0;
   
   gtk_tree_store_set(GTK_TREE_STORE(model), &parent, COLUMN_FG_COLOR,
-                     "#000000", -1);
+                     FG_SENSITIVE, -1);
 
   
   while(tmp_strings[i])
@@ -379,7 +478,7 @@ static gboolean idle_callback(gpointer data)
 
         arg_i = bg_msg_get_arg_int(msg, 2);
 
-        tmp_string = bg_sprintf(TR("Track:\t%d"), arg_i);
+        tmp_string = bg_sprintf(TR("Track:\t%d"), arg_i+1);
         set_line_index(w, PATH_TRACK, tmp_string, 1);
         free(tmp_string);
         
@@ -724,6 +823,186 @@ static void row_collapsed_callback(GtkTreeView *treeview,
   w->expanded[i] = 0;
   }
 
+/* Clipboard */
+
+#define TARGET_TEXT_PLAIN 1
+
+static GtkTargetEntry copy_paste_entries[] =
+  {
+    { "STRING", 0, TARGET_TEXT_PLAIN },
+  };
+
+/* Callback functions for the clipboard */
+
+static void clipboard_get_func(GtkClipboard *clipboard,
+                               GtkSelectionData *selection_data,
+                               guint info,
+                               gpointer data)
+  {
+  GdkAtom type_atom;
+  bg_gtk_info_window_t * w = (bg_gtk_info_window_t*)data;
+
+  type_atom = gdk_atom_intern("STRING", FALSE);
+  if(!type_atom)
+    return;
+  
+  gtk_selection_data_set(selection_data, type_atom, 8, (uint8_t*)w->clipboard,
+                         w->clipboard_len);
+  }
+
+static void clipboard_clear_func(GtkClipboard *clipboard,
+                                 gpointer data)
+  {
+  bg_gtk_info_window_t * w = (bg_gtk_info_window_t*)data;
+  if(w->clipboard)
+    {
+    free(w->clipboard);
+    w->clipboard_len = 0;
+    w->clipboard = (char*)0;
+    }
+  }
+
+static void copy_selected(bg_gtk_info_window_t * w)
+  {
+  GtkTreeIter iter;
+  GtkTreeSelection * selection;
+  GtkClipboard *clipboard;
+  GdkAtom clipboard_atom;
+  
+  clipboard_atom = gdk_atom_intern ("CLIPBOARD", FALSE);   
+  clipboard = gtk_clipboard_get(clipboard_atom);
+
+  selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(w->treeview));
+  
+  gtk_clipboard_set_with_data(clipboard,
+                              copy_paste_entries,
+                              sizeof(copy_paste_entries)/
+                              sizeof(copy_paste_entries[0]),
+                              clipboard_get_func,
+                              clipboard_clear_func,
+                              (gpointer)w);
+
+  
+  
+  if(w->clipboard)
+    free(w->clipboard);
+
+  gtk_tree_selection_get_selected(selection,
+                                  (GtkTreeModel**)0,
+                                  &iter);
+  
+  w->clipboard = iter_to_string(w, (char*)0, 0, &iter, 1);
+
+  if(w->clipboard)
+    {
+    /* Remove trailing '\n' */
+    w->clipboard[strlen(w->clipboard)-1] = '\0';
+    w->clipboard_len = strlen(w->clipboard) + 1;
+    }
+  else
+    w->clipboard_len = 0;
+  }
+
+static void copy_all(bg_gtk_info_window_t * w)
+  {
+  GtkClipboard *clipboard;
+  GdkAtom clipboard_atom;
+  clipboard_atom = gdk_atom_intern ("CLIPBOARD", FALSE);   
+  clipboard = gtk_clipboard_get(clipboard_atom);
+  
+  gtk_clipboard_set_with_data(clipboard,
+                              copy_paste_entries,
+                              sizeof(copy_paste_entries)/
+                              sizeof(copy_paste_entries[0]),
+                              clipboard_get_func,
+                              clipboard_clear_func,
+                              (gpointer)w);
+  
+  if(w->clipboard)
+    free(w->clipboard);
+  w->clipboard = iter_to_string(w, (char*)0, 0, (GtkTreeIter*)0, 1);
+
+  if(w->clipboard)
+    {
+    w->clipboard_len = strlen(w->clipboard) + 1;
+    }
+  else
+    w->clipboard_len = 0;
+  }
+
+static void menu_callback(GtkWidget * wid, gpointer data)
+  {
+  bg_gtk_info_window_t * w = (bg_gtk_info_window_t*)data;
+  
+  /* Add files */
+  
+  if(wid == w->menu.copy_all)
+    copy_all(w);
+  else if(wid == w->menu.copy_selected)
+    copy_selected(w);
+  }
+
+static GtkWidget *
+create_item(bg_gtk_info_window_t * w, GtkWidget * parent,
+            const char * label, const char * pixmap)
+  {
+  GtkWidget * ret, *image;
+  char * path;
+    
+  if(pixmap)
+    {
+    path = bg_search_file_read("icons", pixmap);
+    if(path)
+      {
+      image = gtk_image_new_from_file(path);
+      free(path);
+      }
+    else
+      image = gtk_image_new();
+    gtk_widget_show(image);
+    ret = gtk_image_menu_item_new_with_label(label);
+    gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(ret), image);
+    }
+  else
+    {
+    ret = gtk_menu_item_new_with_label(label);
+    }
+  
+  g_signal_connect(G_OBJECT(ret), "activate", G_CALLBACK(menu_callback),
+                   (gpointer)w);
+  gtk_widget_show(ret);
+  gtk_menu_shell_append(GTK_MENU_SHELL(parent), ret);
+  return ret;
+  }
+
+
+static void init_menu(bg_gtk_info_window_t * w)
+  {
+  w->menu.menu = gtk_menu_new();
+  w->menu.copy_selected =
+    create_item(w, w->menu.menu, TR("Copy selected"), "copy_16.png");
+  w->menu.copy_all =
+    create_item(w, w->menu.menu, TR("Copy all"), "copy_16.png");
+  
+  }
+
+static gboolean button_press_callback(GtkWidget * wid, GdkEventButton * evt,
+                                      gpointer data)
+  {
+  bg_gtk_info_window_t * w = (bg_gtk_info_window_t *)data;
+
+  if(evt->button == 3)
+    {
+    gtk_menu_popup(GTK_MENU(w->menu.menu),
+                   (GtkWidget *)0,
+                   (GtkWidget *)0,
+                   (GtkMenuPositionFunc)0,
+                   (gpointer)0,
+                   3, evt->time);
+    return  FALSE;
+    }
+  return FALSE;
+  }
 
 bg_gtk_info_window_t *
 bg_gtk_info_window_create(bg_player_t * player,
@@ -761,12 +1040,15 @@ bg_gtk_info_window_create(bg_player_t * player,
 
   /* Create treeview */
   
-  store = gtk_tree_store_new(NUM_COLUMNS, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+  store = gtk_tree_store_new(NUM_COLUMNS, G_TYPE_STRING,
+                             G_TYPE_STRING, G_TYPE_STRING);
   
   ret->treeview = gtk_tree_view_new_with_model(GTK_TREE_MODEL(store));
   gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(ret->treeview), 0);
   
   gtk_tree_view_set_rules_hint(GTK_TREE_VIEW(ret->treeview), TRUE);
+
+  gtk_widget_set_events(ret->treeview, GDK_BUTTON_PRESS_MASK);
   
   ret->collapse_id =
     g_signal_connect(G_OBJECT(ret->treeview), "row-collapsed",
@@ -775,6 +1057,9 @@ bg_gtk_info_window_create(bg_player_t * player,
   ret->expand_id =
     g_signal_connect(G_OBJECT(ret->treeview), "row-expanded",
                      G_CALLBACK(row_expanded_callback), (gpointer)ret);
+
+  g_signal_connect(G_OBJECT(ret->treeview), "button-press-event",
+                   G_CALLBACK(button_press_callback), (gpointer)ret);
   
   /* Column 1 */
   text_renderer = gtk_cell_renderer_text_new();
@@ -821,6 +1106,7 @@ bg_gtk_info_window_create(bg_player_t * player,
   gtk_container_add(GTK_CONTAINER(ret->window), scrolledwin);
 
   init_tree(ret);
+  init_menu(ret);
   
   return ret;
   }
@@ -829,7 +1115,9 @@ void bg_gtk_info_window_destroy(bg_gtk_info_window_t * w)
   {
   
   bg_msg_queue_destroy(w->queue);
-  
+  if(w->clipboard)
+    free(w->clipboard);
+  gtk_widget_destroy(w->window);
   free(w);
   }
 

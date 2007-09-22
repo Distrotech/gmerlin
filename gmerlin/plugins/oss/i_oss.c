@@ -219,7 +219,7 @@ static int open_oss(void * data,
     bg_oss_set_samplerate(priv->fd, format->samplerate);
   if(test_value != format->samplerate)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Samplerate %f KHz not supported by device %s",
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Samplerate %f kHz not supported by device %s",
               format->samplerate / 1000.0,
               priv->device);
     goto fail;
