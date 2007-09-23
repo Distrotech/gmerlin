@@ -56,6 +56,7 @@ typedef struct deinterlace_priv_s
   gavl_video_frame_t * src_field_1;
   
   int method;
+  int sub_method;
   int src_field;
   int force;
   
@@ -164,7 +165,9 @@ static bg_parameter_info_t parameters[] =
                                "scale_sw",
                                "blend",
 #ifdef HAVE_MJPEGTOOLS
-                               "yuvdeinterlace",
+                               "yuvdeinterlace_1",
+                               "yuvdeinterlace_2",
+                               "yuvdeinterlace_aa",
 #endif                               
                                (char*)0 },
       
@@ -174,8 +177,10 @@ static bg_parameter_info_t parameters[] =
                                TRS("Scaler (software)"),
                                TRS("Blend"),
 #ifdef HAVE_MJPEGTOOLS
-                               TRS("yuvdeinterlace"),
-#endif                               
+                               TRS("yuvdeinterlace (1 field)"),
+                               TRS("yuvdeinterlace (2 fields)"),
+                               TRS("yuvdeinterlace (Antialiasing only)"),
+#endif
                                (char*)0 },
       multi_descriptions: (char*[]){ TRS("Do nothing"),
                                      TRS("Simply double all scanlines. Very fast but \
@@ -183,6 +188,8 @@ low image quality"),
                                      TRS("Drop one field and change the pixel aspect ratio such that a subsequent hardware scaler will scale the image to the original height"),
                                      TRS("Drop one field and scale the image to the original height"),
 #ifdef HAVE_MJPEGTOOLS
+                                     TRS("Motion compensating deinterlacer from the mjpegtools project"),
+                                     TRS("Motion compensating deinterlacer from the mjpegtools project"),
                                      TRS("Motion compensating deinterlacer from the mjpegtools project"),
 #endif                               
                                      (char*)0 },
@@ -192,8 +199,10 @@ low image quality"),
                                                    scale_parameters, // Scale (SW)
                                                    (bg_parameter_info_t*)0, // Blend
 #ifdef HAVE_MJPEGTOOLS
-                                                   yuvdeinterlacer_parameters,
-#endif                               
+                                                   (bg_parameter_info_t*)0, // yuvdeinterlace
+                                                   (bg_parameter_info_t*)0, // yuvdeinterlace
+                                                   (bg_parameter_info_t*)0, // yuvdeinterlace
+#endif
                                                    (bg_parameter_info_t*)0 } 
                                                    
     },
@@ -265,10 +274,10 @@ static void set_parameter_deinterlace(void * priv, char * name,
                                       bg_parameter_value_t * val)
   {
   int new_method = DEINTERLACE_NONE;
-  gavl_deinterlace_mode_t new_method_gavl = GAVL_DEINTERLACE_NONE;
+  gavl_deinterlace_mode_t new_sub_method = 0;
   gavl_deinterlace_drop_mode_t new_drop_mode;
   gavl_scale_mode_t new_scale_mode;
-
+  
   deinterlace_priv_t * vp;
   int new_src_field = 0;
   vp = (deinterlace_priv_t *)priv;
@@ -286,35 +295,54 @@ static void set_parameter_deinterlace(void * priv, char * name,
     else if(!strcmp(val->val_str, "copy"))
       {
       new_method = DEINTERLACE_GAVL;
-      new_method_gavl = GAVL_DEINTERLACE_COPY;
+      new_sub_method = GAVL_DEINTERLACE_COPY;
       }
     else if(!strcmp(val->val_str, "scale_hw"))
       {
       new_method = DEINTERLACE_SCALE_HW;
-      
       }
     else if(!strcmp(val->val_str, "scale_sw"))
       {
       new_method = DEINTERLACE_GAVL;
-      new_method_gavl = GAVL_DEINTERLACE_SCALE;
+      new_sub_method = GAVL_DEINTERLACE_SCALE;
       }
     else if(!strcmp(val->val_str, "blend"))
       {
       new_method = DEINTERLACE_GAVL;
-      new_method_gavl = GAVL_DEINTERLACE_BLEND;
+      new_sub_method = GAVL_DEINTERLACE_BLEND;
       }
-    else if(!strcmp(val->val_str, "yuvdeinterlace"))
+    else if(!strcmp(val->val_str, "yuvdeinterlace_1"))
       {
       new_method = DEINTERLACE_MJPEGTOOLS;
+      new_sub_method = YUVD_MODE_DEINT_1;
+      }
+    else if(!strcmp(val->val_str, "yuvdeinterlace_2"))
+      {
+      new_method = DEINTERLACE_MJPEGTOOLS;
+      new_sub_method = YUVD_MODE_DEINT_2;
+      }
+    else if(!strcmp(val->val_str, "yuvdeinterlace_aa"))
+      {
+      new_method = DEINTERLACE_MJPEGTOOLS;
+      new_sub_method = YUVD_MODE_ANTIALIAS;
       }
     
     if((new_method != vp->method) || 
-       (new_method_gavl != gavl_video_options_get_deinterlace_mode(vp->opt)))
+       (new_sub_method != vp->sub_method))
       {
       vp->need_restart = 1;
       vp->method = new_method;
-      gavl_video_options_set_deinterlace_mode(vp->opt,
-                                              new_method_gavl);
+      vp->sub_method = new_sub_method;
+
+      if(new_method == DEINTERLACE_GAVL)
+        {
+        gavl_video_options_set_deinterlace_mode(vp->opt,
+                                                new_sub_method);
+        }
+#ifdef HAVE_MJPEGTOOLS
+      else if(new_method == DEINTERLACE_MJPEGTOOLS)
+        yuvdeinterlacer_set_mode(vp->yuvd, new_sub_method);
+#endif
       }
     }
   else if(!strcmp(name, "force"))
@@ -369,14 +397,6 @@ static void set_parameter_deinterlace(void * priv, char * name,
       vp->need_reinit = 1;
       }
     }
-#ifdef HAVE_MJPEGTOOLS
-  else
-    {
-    yuvdeinterlacer_set_parameter(vp->yuvd, name, val);
-    if(yuvdeinterlacer_need_restart(vp->yuvd))
-      vp->need_restart = 1;
-    }
-#endif  
   }
 
 

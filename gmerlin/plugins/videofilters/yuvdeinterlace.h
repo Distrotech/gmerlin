@@ -1,12 +1,14 @@
 #include <plugin.h>
 
+#define YUVD_MODE_ANTIALIAS 0
+#define YUVD_MODE_DEINT_1   1
+#define YUVD_MODE_DEINT_2   2
+
 typedef struct yuvdeinterlacer_s yuvdeinterlacer_t;
 
 yuvdeinterlacer_t * yuvdeinterlacer_create();
 
 void yuvdeinterlacer_destroy(yuvdeinterlacer_t * d);
-
-void yuvdeinterlacer_set_parameter(void * data, char * name, bg_parameter_value_t * val);
 
 void yuvdeinterlacer_init(yuvdeinterlacer_t * di,
                           gavl_video_format_t * format);
@@ -23,7 +25,5 @@ int yuvdeinterlacer_read(void * priv, gavl_video_frame_t * frame, int stream);
 
 void yuvdeinterlacer_reset(yuvdeinterlacer_t * di);
 
-int yuvdeinterlacer_need_restart(yuvdeinterlacer_t * di);
-
-extern bg_parameter_info_t yuvdeinterlacer_parameters[];
+void yuvdeinterlacer_set_mode(yuvdeinterlacer_t * di, int mode);
 

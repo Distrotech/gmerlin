@@ -14,13 +14,17 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+/*
+ *  Original file yuvdeinterlace.cc from mjpegtools (http://mjpeg.sourceforge.net),
+ *  adapted to gmerlin
+ */
+
 #include "config.h"
 #include <string.h>
 #include <math.h>
 #include <mjpeg_types.h>
 #include <yuv4mpeg.h>
 #include <mjpeg_logging.h>
-// #include <cpu_accel.h>
 #include "motionsearch.h"
 
 #include <gavl/gavl.h>
@@ -44,7 +48,6 @@ struct yuvdeinterlacer_s
   int vertical_overshot_luma;
   int vertical_overshot_chroma;
   int mark_moving_blocks;
-  int motion_threshold;
   int just_anti_alias;
   
   gavl_video_frame_t * inframe;
@@ -165,7 +168,6 @@ yuvdeinterlacer_t * yuvdeinterlacer_create()
   {
   yuvdeinterlacer_t * ret;
   ret = calloc(1, sizeof(*ret));
-  ret->motion_threshold = 4;
 
   // initialize motionsearch-library      
   init_motion_search ();
@@ -278,6 +280,8 @@ void yuvdeinterlacer_init(yuvdeinterlacer_t * ret,
     }
   if(ret->both_fields)
     ret->format.timescale *= 2;
+  
+  ret->format.interlace_mode = GAVL_INTERLACE_NONE;
   initialize_memory(ret);
   }
 
@@ -880,7 +884,6 @@ static int deinterlace_motion_compensated(yuvdeinterlacer_t * di, gavl_video_fra
     {
     if(di->current_field >= 2)
       di->current_field = 0;
-    
     }
   else
     di->current_field = 0;
@@ -905,12 +908,17 @@ static int deinterlace_motion_compensated(yuvdeinterlacer_t * di, gavl_video_fra
     else
       temporal_reconstruct_frame(di, 1);
     }
+
+  /* Save older frame */
+
+  if(!di->both_fields || di->current_field)
+    {
+    swap = di->inframe1;
+    di->inframe1 = di->inframe0;
+    di->inframe0 = swap;
+    gavl_video_frame_copy(&di->format, di->inframe0, di->inframe);
+    }
   
-  swap = di->inframe1;
-  di->inframe1 = di->inframe0;
-  di->inframe0 = swap;
-  
-  gavl_video_frame_copy(&di->format, di->inframe0, di->inframe);
   gavl_video_frame_copy(&di->format, frame, di->outframe);
   
   frame->timestamp = di->inframe->timestamp + di->current_field * di->format.frame_duration;
@@ -1018,11 +1026,17 @@ static int antialias_frame (yuvdeinterlacer_t * di, gavl_video_frame_t * frame)
   //  y4m_write_frame (Y4MStream.fd_out, &Y4MStream.ostreaminfo, &Y4MStream.oframeinfo, inframe);
   }
 
+#if 0
 bg_parameter_info_t yuvdeinterlacer_parameters[] =
   {
     {
-      name: "both_fields",
-      long_name: "Output both fields",
+      name: "yuvdeinterlace_mode",
+      long_name: "Mode",
+      type: BG_PARAMETER_MULTI_LIST,
+    },
+    {
+      name: "just_anti_alias",
+      long_name: "Do only antialiasing",
       type: BG_PARAMETER_CHECKBUTTON,
     },
     { /* End */ }
@@ -1043,6 +1057,34 @@ void yuvdeinterlacer_set_parameter(void * data, char * name, bg_parameter_value_
       }
     }
   }
+#endif
+
+void yuvdeinterlacer_set_mode(yuvdeinterlacer_t * di, int mode)
+  {
+  switch(mode)
+    {
+    case YUVD_MODE_ANTIALIAS:
+      if(!di->just_anti_alias || di->both_fields)
+        di->need_restart = 1;
+      
+      di->just_anti_alias = 1;
+      di->both_fields     = 0;
+      break;
+    case YUVD_MODE_DEINT_1:
+      if(di->just_anti_alias || di->both_fields)
+        di->need_restart = 1;
+      di->just_anti_alias = 0;
+      di->both_fields     = 0;
+      break;
+    case YUVD_MODE_DEINT_2:
+      if(di->just_anti_alias || !di->both_fields)
+        di->need_restart = 1;
+      di->just_anti_alias = 0;
+      di->both_fields     = 1;
+      break;
+    }
+  }
+
 
 int yuvdeinterlacer_read(void * data, gavl_video_frame_t * frame, int stream)
   {
@@ -1053,10 +1095,6 @@ int yuvdeinterlacer_read(void * data, gavl_video_frame_t * frame, int stream)
     return deinterlace_motion_compensated(di, frame);
   }
 
-int yuvdeinterlacer_need_restart(yuvdeinterlacer_t * di)
-  {
-  return di->need_restart;
-  }
                                    
 #if 0
 
