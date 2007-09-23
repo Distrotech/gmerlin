@@ -281,7 +281,7 @@ gavl_video_frame_t * gavl_video_frame_create(const gavl_video_format_t * format)
   return ret;
   }
 
-gavl_video_frame_t * gavl_video_frame_create_nopadd(const gavl_video_format_t * format)
+gavl_video_frame_t * gavl_video_frame_create_nopad(const gavl_video_format_t * format)
   {
   gavl_video_frame_t * ret = calloc(1, sizeof(gavl_video_frame_t));
   if(format)

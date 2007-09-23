@@ -163,8 +163,8 @@ void gavl_audio_frame_mute_channel(gavl_audio_frame_t * frame,
   {
   int i;
   int imax;
-  int offset;
-  int advance;
+  int offset = 0;
+  int advance = 0;
 
   switch(format->interleave_mode)
     {
