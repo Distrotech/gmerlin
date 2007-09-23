@@ -271,7 +271,7 @@ static int next_packet_y4m(bgav_demuxer_context_t * ctx)
 
   if(!p->video_frame)
     {
-    p->video_frame = gavl_video_frame_create_nopadd(&(s->data.video.format));
+    p->video_frame = gavl_video_frame_create_nopad(&(s->data.video.format));
     
     /* For monochrome format also need to clear the chroma planes */
     gavl_video_frame_clear(p->video_frame, &(s->data.video.format));

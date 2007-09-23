@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmerlin-encoders 0.2.4\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-05-15 10:58+0200\n"
+"POT-Creation-Date: 2007-09-23 14:35+0200\n"
 "PO-Revision-Date: 2007-07-26 21:47+0200\n"
 "Last-Translator: Burkhard Plaum <gmerlin@users.sourceforge.net>\n"
 "Language-Team: Finnish\n"
@@ -16,18 +16,252 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: lib/bgflac.c:196
-msgid "Bits"
+#: plugins/lame/e_lame.c:209
+msgid "General"
 msgstr ""
 
-#: lib/bgflac.c:203
-msgid "Compression Level"
+#: plugins/lame/e_lame.c:214 plugins/ogg/vorbis.c:88
+msgid "Bitrate mode"
 msgstr ""
 
-#: lib/bgflac.c:208
+#: plugins/lame/e_lame.c:221 plugins/yuv4mpeg/mpv_common.c:70
+msgid "Constant"
+msgstr ""
+
+#: plugins/lame/e_lame.c:222
+msgid "Average"
+msgstr ""
+
+#: plugins/lame/e_lame.c:223 plugins/yuv4mpeg/mpv_common.c:70
+msgid "Variable"
+msgstr ""
+
+#: plugins/lame/e_lame.c:228
+msgid "Stereo mode"
+msgstr ""
+
+#: plugins/lame/e_lame.c:235
+msgid "Stereo"
+msgstr ""
+
+#: plugins/lame/e_lame.c:236
+msgid "Joint stereo"
+msgstr ""
+
+#: plugins/lame/e_lame.c:237 plugins/yuv4mpeg/e_yuv4mpeg.c:168
+#: plugins/yuv4mpeg/mpv_common.c:70 plugins/ogg/speex.c:148
+msgid "Auto"
+msgstr ""
+
+#: plugins/lame/e_lame.c:239
 msgid ""
-"0: Fastest encoding, biggest files\n"
-"8: Slowest encoding, smallest files"
+"Stereo: Completely independent channels\n"
+"Joint stereo: Improve quality (save bits) by using similarities of the "
+"channels\n"
+"Auto (recommended): Select one of the above depending on quality or bitrate "
+"setting"
+msgstr ""
+
+#: plugins/lame/e_lame.c:245
+msgid "Encoding speed"
+msgstr ""
+
+#: plugins/lame/e_lame.c:250
+msgid ""
+"0: Slowest encoding, best quality\n"
+"9: Fastest encoding, worst quality"
+msgstr ""
+
+#: plugins/lame/e_lame.c:255
+msgid "CBR options"
+msgstr ""
+
+#: plugins/lame/e_lame.c:260 plugins/faac/e_faac.c:106
+msgid "Bitrate (kbps)"
+msgstr ""
+
+#: plugins/lame/e_lame.c:265
+msgid ""
+"Bitrate in kbps. If your selection is no valid mp3 bitrate, we'll choose the "
+"closest value."
+msgstr ""
+
+#: plugins/lame/e_lame.c:270
+msgid "VBR/ABR options"
+msgstr ""
+
+#: plugins/lame/e_lame.c:275
+msgid "VBR Quality"
+msgstr ""
+
+#: plugins/lame/e_lame.c:280
+msgid "VBR Quality level. 0: best, 9: worst"
+msgstr ""
+
+#: plugins/lame/e_lame.c:284
+msgid "ABR overall bitrate (kbps)"
+msgstr ""
+
+#: plugins/lame/e_lame.c:289
+msgid "Average bitrate for ABR mode"
+msgstr ""
+
+#: plugins/lame/e_lame.c:293
+msgid "ABR min bitrate (kbps)"
+msgstr ""
+
+#: plugins/lame/e_lame.c:298
+msgid ""
+"Minimum bitrate for ABR mode. 0 means let lame decide. If your selection is "
+"no valid mp3 bitrate, we'll choose the closest value."
+msgstr ""
+
+#: plugins/lame/e_lame.c:303
+msgid "ABR max bitrate (kbps)"
+msgstr ""
+
+#: plugins/lame/e_lame.c:308
+msgid ""
+"Maximum bitrate for ABR mode. 0 means let lame decide. If your selection is "
+"no valid mp3 bitrate, we'll choose the closest value."
+msgstr ""
+
+#: plugins/lame/e_lame.c:337 plugins/lame/e_lame.c:370
+msgid "lame_set_VBR_q failed"
+msgstr ""
+
+#: plugins/lame/e_lame.c:341
+msgid "lame_set_VBR_mean_bitrate_kbps failed"
+msgstr ""
+
+#: plugins/lame/e_lame.c:353
+msgid "lame_set_VBR_min_bitrate_kbps failed"
+msgstr ""
+
+#: plugins/lame/e_lame.c:365
+msgid "lame_set_VBR_max_bitrate_kbps failed"
+msgstr ""
+
+#: plugins/lame/e_lame.c:376
+msgid "lame_set_brate failed"
+msgstr ""
+
+#: plugins/lame/e_lame.c:383
+msgid "lame_init_params failed"
+msgstr ""
+
+#: plugins/lame/e_lame.c:403
+msgid "lame_set_VBR failed"
+msgstr ""
+
+#: plugins/lame/e_lame.c:406
+msgid "lame_set_bWriteVbrTag failed"
+msgstr ""
+
+#: plugins/lame/e_lame.c:426
+msgid "lame_set_mode failed"
+msgstr ""
+
+#: plugins/lame/e_lame.c:432
+msgid "lame_set_quality failed"
+msgstr ""
+
+#: plugins/lame/e_lame.c:463 plugins/faac/e_faac.c:242
+msgid "Write ID3V1.1 tag"
+msgstr ""
+
+#: plugins/lame/e_lame.c:469 plugins/faac/e_faac.c:248
+msgid "Write ID3V2 tag"
+msgstr ""
+
+#: plugins/lame/e_lame.c:475 plugins/faac/e_faac.c:254
+msgid "ID3V2 Encoding"
+msgstr ""
+
+#: plugins/lame/e_lame.c:480 plugins/faac/e_faac.c:259
+msgid "ISO-8859-1"
+msgstr ""
+
+#: plugins/lame/e_lame.c:480 plugins/faac/e_faac.c:259
+msgid "UTF-16 LE"
+msgstr ""
+
+#: plugins/lame/e_lame.c:481 plugins/faac/e_faac.c:260
+msgid "UTF-16 BE"
+msgstr ""
+
+#: plugins/lame/e_lame.c:481 plugins/faac/e_faac.c:260
+msgid "UTF-8"
+msgstr ""
+
+#: plugins/lame/e_lame.c:519 plugins/faac/e_faac.c:300
+#, c-format
+msgid "Cannot open %s: %s"
+msgstr ""
+
+#: plugins/lame/e_lame.c:574
+msgid "lame_set_in_samplerate failed"
+msgstr ""
+
+#: plugins/lame/e_lame.c:576
+msgid "lame_set_num_channels failed"
+msgstr ""
+
+#: plugins/lame/e_lame.c:579
+msgid "lame_set_scale failed"
+msgstr ""
+
+#: plugins/lame/e_lame.c:706
+msgid "Lame mp3 encoder"
+msgstr ""
+
+#: plugins/lame/e_lame.c:707
+msgid ""
+"Encoder for mp3 files. Based on lame (http://www.mp3dev.org). Supports CBR, "
+"VBR, ID3V1 and ID3V2 tags."
+msgstr ""
+
+#: plugins/flac/e_flac.c:74
+msgid "Write vorbis comment"
+msgstr ""
+
+#: plugins/flac/e_flac.c:77
+msgid "Write Vorbis comment containing metadata to the file"
+msgstr ""
+
+#: plugins/flac/e_flac.c:81
+msgid "Write seek table"
+msgstr ""
+
+#: plugins/flac/e_flac.c:84
+msgid "Write seektable (strongly recommended)"
+msgstr ""
+
+#: plugins/flac/e_flac.c:88
+msgid "Entries in the seektable"
+msgstr ""
+
+#: plugins/flac/e_flac.c:93
+msgid ""
+"Maximum number of entries in the seek table. Default is 100, larger numbers "
+"result in shorter seeking times but also in larger files."
+msgstr ""
+
+#: plugins/flac/e_flac.c:204
+#, c-format
+msgid "Initializing encoder failed: %s"
+msgstr ""
+
+#: plugins/flac/e_flac.c:207
+msgid "Initializing encoder failed"
+msgstr ""
+
+#: plugins/flac/e_flac.c:454 plugins/ogg/flac.c:309
+msgid "Flac encoder"
+msgstr ""
+
+#: plugins/flac/e_flac.c:455
+msgid "Encoder for .flac files. Based on libflac (http://flac.sourceforge.net)"
 msgstr ""
 
 #: plugins/faac/e_faac.c:83
@@ -56,10 +290,6 @@ msgstr ""
 
 #: plugins/faac/e_faac.c:101
 msgid "MPEG-4 Long Term Prediction (LTP)"
-msgstr ""
-
-#: plugins/faac/e_faac.c:106 plugins/lame/e_lame.c:260
-msgid "Bitrate (kbps)"
 msgstr ""
 
 #: plugins/faac/e_faac.c:110
@@ -106,39 +336,6 @@ msgstr ""
 msgid "faacEncSetConfiguration failed"
 msgstr ""
 
-#: plugins/faac/e_faac.c:242 plugins/lame/e_lame.c:463
-msgid "Write ID3V1.1 tag"
-msgstr ""
-
-#: plugins/faac/e_faac.c:248 plugins/lame/e_lame.c:469
-msgid "Write ID3V2 tag"
-msgstr ""
-
-#: plugins/faac/e_faac.c:254 plugins/lame/e_lame.c:475
-msgid "ID3V2 Encoding"
-msgstr ""
-
-#: plugins/faac/e_faac.c:259 plugins/lame/e_lame.c:480
-msgid "ISO-8859-1"
-msgstr ""
-
-#: plugins/faac/e_faac.c:259 plugins/lame/e_lame.c:480
-msgid "UTF-16 LE"
-msgstr ""
-
-#: plugins/faac/e_faac.c:260 plugins/lame/e_lame.c:481
-msgid "UTF-16 BE"
-msgstr ""
-
-#: plugins/faac/e_faac.c:260 plugins/lame/e_lame.c:481
-msgid "UTF-8"
-msgstr ""
-
-#: plugins/faac/e_faac.c:300 plugins/lame/e_lame.c:519
-#, c-format
-msgid "Cannot open %s: %s"
-msgstr ""
-
 #: plugins/faac/e_faac.c:536
 msgid "Faac encoder"
 msgstr ""
@@ -149,200 +346,463 @@ msgid ""
 "faac.sourceforge.net)."
 msgstr ""
 
-#: plugins/flac/e_flac.c:74
-msgid "Write vorbis comment"
+#: plugins/yuv4mpeg/e_mpeg.c:103
+msgid "mpeg2enc exectuable not found"
 msgstr ""
 
-#: plugins/flac/e_flac.c:77
-msgid "Write Vorbis comment containing metadata to the file"
+#: plugins/yuv4mpeg/e_mpeg.c:108
+msgid "mp2enc exectuable not found"
 msgstr ""
 
-#: plugins/flac/e_flac.c:81
-msgid "Write seek table"
+#: plugins/yuv4mpeg/e_mpeg.c:113
+msgid "mplex exectuable not found"
 msgstr ""
 
-#: plugins/flac/e_flac.c:84
-msgid "Write seektable (strongly recommended)"
+#: plugins/yuv4mpeg/e_mpeg.c:301
+msgid "Cannot find mplex"
 msgstr ""
 
-#: plugins/flac/e_flac.c:88
-msgid "Entries in the seektable"
-msgstr ""
-
-#: plugins/flac/e_flac.c:93
-msgid ""
-"Maximum number of entries in the seek table. Default is 100, larger numbers "
-"result in shorter seeking times but also in larger files."
-msgstr ""
-
-#: plugins/flac/e_flac.c:204
+#: plugins/yuv4mpeg/e_mpeg.c:366 plugins/yuv4mpeg/e_mpeg.c:380
+#: plugins/yuv4mpeg/e_mpegaudio.c:133 plugins/yuv4mpeg/e_mpegvideo.c:102
 #, c-format
-msgid "Initializing encoder failed: %s"
+msgid "Removing %s"
 msgstr ""
 
-#: plugins/flac/e_flac.c:207
-msgid "Initializing encoder failed"
+#: plugins/yuv4mpeg/e_mpeg.c:417 plugins/yuv4mpeg/mpv_common.c:54
+#: plugins/ffmpeg/ffmpeg_common.c:22
+msgid "Format"
 msgstr ""
 
-#: plugins/flac/e_flac.c:454 plugins/ogg/flac.c:309
-msgid "Flac encoder"
+#: plugins/yuv4mpeg/e_mpeg.c:421
+msgid "MPEG-1 (generic)"
 msgstr ""
 
-#: plugins/flac/e_flac.c:455
-msgid "Encoder for .flac files. Based on libflac (http://flac.sourceforge.net)"
+#: plugins/yuv4mpeg/e_mpeg.c:421
+msgid "MPEG-1 (VCD)"
 msgstr ""
 
-#: plugins/ffmpeg/codecs.c:11 plugins/ffmpeg/codecs.c:22
-#: plugins/ffmpeg/codecs.c:33 plugins/ffmpeg/params.h:12
-#: plugins/ffmpeg/params.h:21
-msgid "Bit rate (kbps)"
+#: plugins/yuv4mpeg/e_mpeg.c:422
+msgid "MPEG-2 (generic)"
 msgstr ""
 
-#: plugins/ffmpeg/codecs.c:44
-msgid "Rate control"
+#: plugins/yuv4mpeg/e_mpeg.c:422
+msgid "MPEG-2 (SVCD)"
 msgstr ""
 
-#: plugins/ffmpeg/codecs.c:58
-msgid "Quantizer"
+#: plugins/yuv4mpeg/e_mpeg.c:423
+msgid "DVD (NAV)"
 msgstr ""
 
-#: plugins/ffmpeg/codecs.c:84
-msgid "Frame types"
+#: plugins/yuv4mpeg/e_mpeg.c:423
+msgid "DVD"
 msgstr ""
 
-#: plugins/ffmpeg/codecs.c:101
-msgid "Motion estimation"
+#: plugins/yuv4mpeg/e_mpeg.c:424
+msgid ""
+"Output format. Note that for some output formats (e.g. VCD), you MUST use "
+"proper settings for the audio and video streams also, since this isn't done "
+"automatically"
 msgstr ""
 
-#: plugins/ffmpeg/codecs.c:115 plugins/ffmpeg/params.h:520
-msgid "ME pre-pass"
+#: plugins/yuv4mpeg/e_mpeg.c:428
+msgid "Directory for temporary files"
 msgstr ""
 
-#: plugins/ffmpeg/codecs.c:126
-msgid "Qpel ME"
+#: plugins/yuv4mpeg/e_mpeg.c:430
+msgid ""
+"Directory to store the temporary streams. Leave empty to use the same "
+"directory as the final output file"
 msgstr ""
 
-#: plugins/ffmpeg/codecs.c:137
-msgid "Masking"
+#: plugins/yuv4mpeg/e_mpeg.c:434
+msgid "Additional stream 1"
 msgstr ""
 
-#: plugins/ffmpeg/codecs.c:151
-msgid "Misc"
+#: plugins/yuv4mpeg/e_mpeg.c:436 plugins/yuv4mpeg/e_mpeg.c:443
+#: plugins/yuv4mpeg/e_mpeg.c:450
+msgid ""
+"Additional stream to multiplex into the final output file. Use this if you "
+"want e.g. create mp3 or AC3 audio with some other encoder"
 msgstr ""
 
-#: plugins/ffmpeg/codecs.c:215 plugins/ffmpeg/codecs.c:220
-msgid "16 bit PCM"
+#: plugins/yuv4mpeg/e_mpeg.c:441
+msgid "Additional stream 2"
 msgstr ""
 
-#: plugins/ffmpeg/codecs.c:225
-msgid "8 bit PCM"
+#: plugins/yuv4mpeg/e_mpeg.c:448
+msgid "Additional stream 3"
 msgstr ""
 
-#: plugins/ffmpeg/codecs.c:229
-msgid "pcm_u8"
+#: plugins/yuv4mpeg/e_mpeg.c:527
+msgid "MPEG 1/2 program/system stream encoder"
 msgstr ""
 
-#: plugins/ffmpeg/codecs.c:235
-msgid "alaw"
+#: plugins/yuv4mpeg/e_mpeg.c:528
+msgid ""
+"Encoder for regular .mpg files as well as VCD and DVD streams. Based on "
+"mjpegtools (http://mjpeg.sourceforge.net)"
 msgstr ""
 
-#: plugins/ffmpeg/codecs.c:240
-msgid "mulaw"
+#: plugins/yuv4mpeg/e_mpegaudio.c:99
+msgid "Cannot find mp2enc executable"
 msgstr ""
 
-#: plugins/ffmpeg/codecs.c:245
-msgid "AC3"
+#: plugins/yuv4mpeg/e_mpegaudio.c:160
+msgid "MPEG-1 layer 1/2 audio encoder"
 msgstr ""
 
-#: plugins/ffmpeg/codecs.c:251
-msgid "MPEG audio layer 2"
+#: plugins/yuv4mpeg/e_mpegaudio.c:161
+msgid ""
+"Encoder for elementary MPEG-1 layer 1/2 audio streams. Based on mjpegtools "
+"(http://mjpeg.sourceforge.net)."
 msgstr ""
 
-#: plugins/ffmpeg/codecs.c:257
-msgid "MPEG audio layer 3"
+#: plugins/yuv4mpeg/e_mpegvideo.c:136
+msgid "MPEG-1/2 video encoder"
 msgstr ""
 
-#: plugins/ffmpeg/codecs.c:268
-msgid "Motion JPEG"
+#: plugins/yuv4mpeg/e_mpegvideo.c:137
+msgid ""
+"Encoder for elementary MPEG-1/2 video streams. Based on mjpegtools (http://"
+"mjpeg.sourceforge.net)."
 msgstr ""
 
-#: plugins/ffmpeg/codecs.c:273
-msgid "MPEG-4"
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:155
+msgid "Chroma mode"
 msgstr ""
 
-#: plugins/ffmpeg/codecs.c:279
-msgid "Divx 3 compatible"
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:169
+msgid "4:2:0 (MPEG-1/JPEG)"
 msgstr ""
 
-#: plugins/ffmpeg/codecs.c:285
-msgid "MPEG-1 Video"
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:170
+msgid "4:2:0 (MPEG-2)"
 msgstr ""
 
-#: plugins/ffmpeg/codecs.c:291
-msgid "MPEG-2 Video"
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:171
+msgid "4:2:0 (PAL DV)"
 msgstr ""
 
-#: plugins/ffmpeg/codecs.c:297
-msgid "Flash 1"
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:172
+msgid "4:4:4"
 msgstr ""
 
-#: plugins/ffmpeg/codecs.c:303
-msgid "WMV 1"
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:173
+msgid "4:2:2"
 msgstr ""
 
-#: plugins/ffmpeg/codecs.c:309
-msgid "Real Video 1"
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:174
+msgid "4:1:1"
 msgstr ""
 
-#: plugins/ffmpeg/codecs.c:316
-msgid "WMV 2"
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:175
+msgid "Greyscale"
 msgstr ""
 
-#: plugins/ffmpeg/codecs.c:375 plugins/ogg/e_theora.c:61
-msgid "Codec"
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:176
+msgid "4:4:4:4 (YUVA)"
 msgstr ""
 
-#: plugins/ffmpeg/e_ffmpeg.c:124
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:178
+msgid ""
+"Set the chroma mode of the output file. Auto means to take the format most "
+"similar to the source."
+msgstr ""
+
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:262
+msgid "yuv4mpeg2 encoder"
+msgstr ""
+
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:263
+msgid ""
+"Encoder for yuv4mpeg streams. Based on mjpegtools (http://mjpeg.sourceforge."
+"net)."
+msgstr ""
+
+#: plugins/yuv4mpeg/mpa_common.c:40 plugins/yuv4mpeg/mpv_common.c:77
+msgid "Bitrate (kb/s)"
+msgstr ""
+
+#: plugins/yuv4mpeg/mpa_common.c:45
+msgid "Bitrate in (kb/s). "
+msgstr ""
+
+#: plugins/yuv4mpeg/mpa_common.c:49
+msgid "Layer (1 or 2)"
+msgstr ""
+
+#: plugins/yuv4mpeg/mpa_common.c:54
+msgid "Audio layer"
+msgstr ""
+
+#: plugins/yuv4mpeg/mpa_common.c:58
+msgid "VCD Compatible"
+msgstr ""
+
+#: plugins/yuv4mpeg/mpa_common.c:61
+msgid ""
+"Make VCD compliant output. This forces layer II, 224 kb/s and 44.1 KHz stereo"
+msgstr ""
+
+#: plugins/yuv4mpeg/mpa_common.c:98
+msgid "Cannot find mp2enc"
+msgstr ""
+
+#: plugins/yuv4mpeg/mpa_common.c:198
+#, c-format
+msgid "Bitrate %d kbps unsupported, switching to %d kbps"
+msgstr ""
+
+#: plugins/yuv4mpeg/mpa_common.c:254
+#, c-format
+msgid "Samplerate %d unsupported, switching to %d"
+msgstr ""
+
+#: plugins/yuv4mpeg/y4m_common.c:122
+msgid "Writing stream header failed"
+msgstr ""
+
+#: plugins/yuv4mpeg/mpv_common.c:58
+msgid "Generic MPEG-1"
+msgstr ""
+
+#: plugins/yuv4mpeg/mpv_common.c:58
+msgid "Generic MPEG-2"
+msgstr ""
+
+#: plugins/yuv4mpeg/mpv_common.c:59
+msgid "VCD"
+msgstr ""
+
+#: plugins/yuv4mpeg/mpv_common.c:59
+msgid "SVCD"
+msgstr ""
+
+#: plugins/yuv4mpeg/mpv_common.c:59
+msgid "DVD (for dvdauthor)"
+msgstr ""
+
+#: plugins/yuv4mpeg/mpv_common.c:61
+msgid ""
+"Sets the MPEG flavour. Note, that for VCD, SVCD and DVD, you MUST provide "
+"valid frame sizes"
+msgstr ""
+
+#: plugins/yuv4mpeg/mpv_common.c:66
+msgid "Bitrate Mode"
+msgstr ""
+
+#: plugins/yuv4mpeg/mpv_common.c:71
+msgid ""
+"Specify constant or variable bitrate. For \"Auto\", constant bitrate will be "
+"used for MPEG-1, variable bitrate will be used for MPEG-2. For formats, "
+"which require CBR, this option is ignored"
+msgstr ""
+
+#: plugins/yuv4mpeg/mpv_common.c:82
+msgid ""
+"Video bitrate in (kb/s). For VBR, it's the maximum bitrate. If the format "
+"requires a fixed bitrate (e.g. VCD) this option is ignored"
+msgstr ""
+
+#: plugins/yuv4mpeg/mpv_common.c:87
+msgid "Quantization"
+msgstr ""
+
+#: plugins/yuv4mpeg/mpv_common.c:92
+msgid ""
+"Minimum quantization for VBR. Lower numbers mean higher quality. For CBR, "
+"this option is ignored."
+msgstr ""
+
+#: plugins/yuv4mpeg/mpv_common.c:96
+msgid "Quantization matrices"
+msgstr ""
+
+#: plugins/yuv4mpeg/mpv_common.c:101
+msgid "Default"
+msgstr ""
+
+#: plugins/yuv4mpeg/mpv_common.c:101
+msgid "KVCD"
+msgstr ""
+
+#: plugins/yuv4mpeg/mpv_common.c:102
+msgid "tmpegenc"
+msgstr ""
+
+#: plugins/yuv4mpeg/mpv_common.c:102
+msgid "Hi-Res"
+msgstr ""
+
+#: plugins/yuv4mpeg/mpv_common.c:107
+msgid "Number of B-Frames"
+msgstr ""
+
+#: plugins/yuv4mpeg/mpv_common.c:112
+msgid ""
+"Specify the number of B-frames between 2 P/I frames. More B-frames slow down "
+"encoding and increase memory usage, but might give better compression "
+"results. For VCD, this option is ignored, since the VCD standard requires 2 "
+"B-frames, no matter if you like them or not."
+msgstr ""
+
+#: plugins/yuv4mpeg/mpv_common.c:118
+msgid "User options"
+msgstr ""
+
+#: plugins/yuv4mpeg/mpv_common.c:120
+msgid ""
+"Enter further commandline options for mpeg2enc here. Check the mpeg2enc "
+"manual page for details"
+msgstr ""
+
+#: plugins/yuv4mpeg/mpv_common.c:184
+msgid "Cannot find mpeg2enc"
+msgstr ""
+
+#: plugins/yuv4mpeg/mpv_common.c:337 plugins/yuv4mpeg/mpv_common.c:361
+msgid "Unknown MPEG format"
+msgstr ""
+
+#: plugins/yuv4mpeg/mpv_common.c:356
+msgid "Mixed interlacing not supported (yet)"
+msgstr ""
+
+#: plugins/ffmpeg/ffmpeg_common.c:425
+msgid "Audio codec is not compatible with format"
+msgstr ""
+
+#: plugins/ffmpeg/ffmpeg_common.c:443
+msgid "Video codec is not compatible with format"
+msgstr ""
+
+#: plugins/ffmpeg/e_ffmpeg.c:129
 msgid "FFmpeg audio/video encoder"
 msgstr ""
 
-#: plugins/ffmpeg/e_ffmpeg.c:125
+#: plugins/ffmpeg/e_ffmpeg.c:130
 msgid ""
 "Plugin for encoding various audio/video formats with ffmpeg (http://www."
 "ffmpeg.org)."
 msgstr ""
 
-#: plugins/ffmpeg/e_ffmpeg_audio.c:58
-msgid "FFmpeg audio encoder"
+#: plugins/ffmpeg/codecs.c:11 plugins/ffmpeg/codecs.c:22
+#: plugins/ffmpeg/codecs.c:33 plugins/ffmpeg/codecs.c:44
+#: plugins/ffmpeg/params.h:12 plugins/ffmpeg/params.h:21
+msgid "Bit rate (kbps)"
 msgstr ""
 
-#: plugins/ffmpeg/e_ffmpeg_audio.c:59
-msgid ""
-"Plugin for encoding various audio formats with ffmpeg (http://www.ffmpeg."
-"org)."
+#: plugins/ffmpeg/codecs.c:54
+msgid "Rate control"
 msgstr ""
 
-#: plugins/ffmpeg/e_ffmpeg_video.c:39
-msgid "FFmpeg video encoder"
+#: plugins/ffmpeg/codecs.c:68
+msgid "Quantizer"
 msgstr ""
 
-#: plugins/ffmpeg/e_ffmpeg_video.c:40
-msgid ""
-"Plugin for encoding various video formats with ffmpeg (http://www.ffmpeg."
-"org)."
+#: plugins/ffmpeg/codecs.c:94
+msgid "Frame types"
 msgstr ""
 
-#: plugins/ffmpeg/ffmpeg_common.c:22 plugins/yuv4mpeg/e_mpeg.c:417
-#: plugins/yuv4mpeg/mpv_common.c:54
-msgid "Format"
+#: plugins/ffmpeg/codecs.c:111
+msgid "Motion estimation"
 msgstr ""
 
-#: plugins/ffmpeg/ffmpeg_common.c:426
-msgid "Audio codec is not compatible with format"
+#: plugins/ffmpeg/codecs.c:125 plugins/ffmpeg/params.h:520
+msgid "ME pre-pass"
 msgstr ""
 
-#: plugins/ffmpeg/ffmpeg_common.c:444
-msgid "Video codec is not compatible with format"
+#: plugins/ffmpeg/codecs.c:136
+msgid "Qpel ME"
+msgstr ""
+
+#: plugins/ffmpeg/codecs.c:147
+msgid "Masking"
+msgstr ""
+
+#: plugins/ffmpeg/codecs.c:161
+msgid "Misc"
+msgstr ""
+
+#: plugins/ffmpeg/codecs.c:234 plugins/ffmpeg/codecs.c:239
+msgid "16 bit PCM"
+msgstr ""
+
+#: plugins/ffmpeg/codecs.c:244
+msgid "8 bit PCM"
+msgstr ""
+
+#: plugins/ffmpeg/codecs.c:248
+msgid "pcm_u8"
+msgstr ""
+
+#: plugins/ffmpeg/codecs.c:254
+msgid "alaw"
+msgstr ""
+
+#: plugins/ffmpeg/codecs.c:259
+msgid "mulaw"
+msgstr ""
+
+#: plugins/ffmpeg/codecs.c:264
+msgid "AC3"
+msgstr ""
+
+#: plugins/ffmpeg/codecs.c:270
+msgid "MPEG audio layer 2"
+msgstr ""
+
+#: plugins/ffmpeg/codecs.c:276
+msgid "Windows media Audio 1"
+msgstr ""
+
+#: plugins/ffmpeg/codecs.c:282
+msgid "Windows media Audio 2"
+msgstr ""
+
+#: plugins/ffmpeg/codecs.c:288
+msgid "MPEG audio layer 3"
+msgstr ""
+
+#: plugins/ffmpeg/codecs.c:299
+msgid "Motion JPEG"
+msgstr ""
+
+#: plugins/ffmpeg/codecs.c:304
+msgid "MPEG-4"
+msgstr ""
+
+#: plugins/ffmpeg/codecs.c:310
+msgid "Divx 3 compatible"
+msgstr ""
+
+#: plugins/ffmpeg/codecs.c:316
+msgid "MPEG-1 Video"
+msgstr ""
+
+#: plugins/ffmpeg/codecs.c:322
+msgid "MPEG-2 Video"
+msgstr ""
+
+#: plugins/ffmpeg/codecs.c:328
+msgid "Flash 1"
+msgstr ""
+
+#: plugins/ffmpeg/codecs.c:334
+msgid "WMV 1"
+msgstr ""
+
+#: plugins/ffmpeg/codecs.c:340
+msgid "Real Video 1"
+msgstr ""
+
+#: plugins/ffmpeg/codecs.c:347
+msgid "WMV 2"
+msgstr ""
+
+#: plugins/ffmpeg/codecs.c:406 plugins/ogg/e_theora.c:61
+msgid "Codec"
 msgstr ""
 
 #: plugins/ffmpeg/params.h:30
@@ -929,286 +1389,155 @@ msgstr ""
 msgid "Warning: GMC is not supported by all decoders"
 msgstr ""
 
-#: plugins/ffmpeg/params.h:858
+#: plugins/ffmpeg/params.h:859
+msgid "Always try a MB with MV=<0,0>"
+msgstr ""
+
+#: plugins/ffmpeg/params.h:867
 msgid "Use data partitioning"
 msgstr ""
 
-#: plugins/ffmpeg/params.h:861
+#: plugins/ffmpeg/params.h:870
 msgid ""
 "Use data partitioning for more robustness if the video is for transmitting "
 "over unreliable channels"
 msgstr ""
 
-#: plugins/ffmpeg/params.h:869
+#: plugins/ffmpeg/params.h:878
 msgid "Grayscale mode"
 msgstr ""
 
-#: plugins/ffmpeg/params.h:877
+#: plugins/ffmpeg/params.h:886
 msgid "Don't draw edges"
 msgstr ""
 
-#: plugins/ffmpeg/params.h:886
+#: plugins/ffmpeg/params.h:895
 msgid "Normalize adaptive quantization"
 msgstr ""
 
-#: plugins/ffmpeg/params.h:889
+#: plugins/ffmpeg/params.h:898
 msgid ""
 "When using masking, try to adjust the per macroblock quantizers to maintain "
 "the desired average"
 msgstr ""
 
-#: plugins/ffmpeg/params.h:896
+#: plugins/ffmpeg/params.h:905
 msgid "Use alternative scantable"
 msgstr ""
 
-#: plugins/ffmpeg/params.h:905
+#: plugins/ffmpeg/params.h:914
 msgid "Use trellis quantization"
 msgstr ""
 
-#: plugins/ffmpeg/params.h:908
+#: plugins/ffmpeg/params.h:917
 msgid "Use trellis quantization (improves quality)"
 msgstr ""
 
-#: plugins/ffmpeg/params.h:914
+#: plugins/ffmpeg/params.h:923
 msgid "Use only bitexact stuff"
 msgstr ""
 
-#: plugins/ffmpeg/params.h:917
+#: plugins/ffmpeg/params.h:926
 msgid "Use only bitexact stuff (except (i)dct)"
 msgstr ""
 
-#: plugins/ffmpeg/params.h:923
+#: plugins/ffmpeg/params.h:932
 msgid "Advanced intra coding"
 msgstr ""
 
-#: plugins/ffmpeg/params.h:931
+#: plugins/ffmpeg/params.h:940
 msgid "MPEG-4 AC prediction"
 msgstr ""
 
-#: plugins/ffmpeg/params.h:939
+#: plugins/ffmpeg/params.h:948
 msgid "Unlimited motion vector"
 msgstr ""
 
-#: plugins/ffmpeg/params.h:947
+#: plugins/ffmpeg/params.h:956
 msgid "CBP RD"
 msgstr ""
 
-#: plugins/ffmpeg/params.h:950
+#: plugins/ffmpeg/params.h:959
 msgid "Use rate distortion optimization for cbp"
 msgstr ""
 
-#: plugins/ffmpeg/params.h:956
+#: plugins/ffmpeg/params.h:965
 msgid "QP RD"
 msgstr ""
 
-#: plugins/ffmpeg/params.h:959
+#: plugins/ffmpeg/params.h:968
 msgid "Use rate distortion optimization for qp selectioon"
 msgstr ""
 
-#: plugins/ffmpeg/params.h:965
+#: plugins/ffmpeg/params.h:974
 msgid "Alternative inter vlc"
 msgstr ""
 
-#: plugins/ffmpeg/params.h:974
+#: plugins/ffmpeg/params.h:983
 msgid "OBMC"
 msgstr ""
 
-#: plugins/ffmpeg/params.h:977
+#: plugins/ffmpeg/params.h:986
 msgid ""
 "Overlapped block motion compensation (only supported with with simple MB "
 "decision)"
 msgstr ""
 
-#: plugins/ffmpeg/params.h:983
+#: plugins/ffmpeg/params.h:992
 msgid "Loop filter"
 msgstr ""
 
-#: plugins/ffmpeg/params.h:991
+#: plugins/ffmpeg/params.h:1000
 msgid "Slice struct"
 msgstr ""
 
-#: plugins/ffmpeg/params.h:1000
+#: plugins/ffmpeg/params.h:1009
 msgid "Close all GOPs"
 msgstr ""
 
-#: plugins/ffmpeg/params.h:1008
+#: plugins/ffmpeg/params.h:1017
 msgid "Allow fast encoding"
 msgstr ""
 
-#: plugins/ffmpeg/params.h:1011
+#: plugins/ffmpeg/params.h:1020
 msgid "Allow non spec compliant speedup tricks"
 msgstr ""
 
-#: plugins/ffmpeg/params.h:1018
+#: plugins/ffmpeg/params.h:1027
 msgid "Strictly enforce GOP size"
 msgstr ""
 
-#: plugins/lame/e_lame.c:209
-msgid "General"
+#: plugins/ffmpeg/e_ffmpeg_video.c:39
+msgid "FFmpeg video encoder"
 msgstr ""
 
-#: plugins/lame/e_lame.c:214 plugins/ogg/vorbis.c:88
-msgid "Bitrate mode"
-msgstr ""
-
-#: plugins/lame/e_lame.c:221 plugins/yuv4mpeg/mpv_common.c:70
-msgid "Constant"
-msgstr ""
-
-#: plugins/lame/e_lame.c:222
-msgid "Average"
-msgstr ""
-
-#: plugins/lame/e_lame.c:223 plugins/yuv4mpeg/mpv_common.c:70
-msgid "Variable"
-msgstr ""
-
-#: plugins/lame/e_lame.c:228
-msgid "Stereo mode"
-msgstr ""
-
-#: plugins/lame/e_lame.c:235
-msgid "Stereo"
-msgstr ""
-
-#: plugins/lame/e_lame.c:236
-msgid "Joint stereo"
-msgstr ""
-
-#: plugins/lame/e_lame.c:237 plugins/ogg/speex.c:148
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:168 plugins/yuv4mpeg/mpv_common.c:70
-msgid "Auto"
-msgstr ""
-
-#: plugins/lame/e_lame.c:239
+#: plugins/ffmpeg/e_ffmpeg_video.c:40
 msgid ""
-"Stereo: Completely independent channels\n"
-"Joint stereo: Improve quality (save bits) by using similarities of the "
-"channels\n"
-"Auto (recommended): Select one of the above depending on quality or bitrate "
-"setting"
+"Plugin for encoding various video formats with ffmpeg (http://www.ffmpeg."
+"org)."
 msgstr ""
 
-#: plugins/lame/e_lame.c:245
-msgid "Encoding speed"
+#: plugins/ffmpeg/e_ffmpeg_audio.c:69
+msgid "FFmpeg audio encoder"
 msgstr ""
 
-#: plugins/lame/e_lame.c:250
+#: plugins/ffmpeg/e_ffmpeg_audio.c:70
 msgid ""
-"0: Slowest encoding, best quality\n"
-"9: Fastest encoding, worst quality"
+"Plugin for encoding various audio formats with ffmpeg (http://www.ffmpeg."
+"org)."
 msgstr ""
 
-#: plugins/lame/e_lame.c:255
-msgid "CBR options"
+#: plugins/ogg/flac.c:105
+msgid "Got no Flac ID page"
 msgstr ""
 
-#: plugins/lame/e_lame.c:265
-msgid ""
-"Bitrate in kbps. If your selection is no valid mp3 bitrate, we'll choose the "
-"closest value."
+#: plugins/ogg/flac.c:110 plugins/ogg/flac.c:152
+#, c-format
+msgid "Writing to file failed: %s"
 msgstr ""
 
-#: plugins/lame/e_lame.c:270
-msgid "VBR/ABR options"
-msgstr ""
-
-#: plugins/lame/e_lame.c:275
-msgid "VBR Quality"
-msgstr ""
-
-#: plugins/lame/e_lame.c:280
-msgid "VBR Quality level. 0: best, 9: worst"
-msgstr ""
-
-#: plugins/lame/e_lame.c:284
-msgid "ABR overall bitrate (kbps)"
-msgstr ""
-
-#: plugins/lame/e_lame.c:289
-msgid "Average bitrate for ABR mode"
-msgstr ""
-
-#: plugins/lame/e_lame.c:293
-msgid "ABR min bitrate (kbps)"
-msgstr ""
-
-#: plugins/lame/e_lame.c:298
-msgid ""
-"Minimum bitrate for ABR mode. 0 means let lame decide. If your selection is "
-"no valid mp3 bitrate, we'll choose the closest value."
-msgstr ""
-
-#: plugins/lame/e_lame.c:303
-msgid "ABR max bitrate (kbps)"
-msgstr ""
-
-#: plugins/lame/e_lame.c:308
-msgid ""
-"Maximum bitrate for ABR mode. 0 means let lame decide. If your selection is "
-"no valid mp3 bitrate, we'll choose the closest value."
-msgstr ""
-
-#: plugins/lame/e_lame.c:337 plugins/lame/e_lame.c:370
-msgid "lame_set_VBR_q failed"
-msgstr ""
-
-#: plugins/lame/e_lame.c:341
-msgid "lame_set_VBR_mean_bitrate_kbps failed"
-msgstr ""
-
-#: plugins/lame/e_lame.c:353
-msgid "lame_set_VBR_min_bitrate_kbps failed"
-msgstr ""
-
-#: plugins/lame/e_lame.c:365
-msgid "lame_set_VBR_max_bitrate_kbps failed"
-msgstr ""
-
-#: plugins/lame/e_lame.c:376
-msgid "lame_set_brate failed"
-msgstr ""
-
-#: plugins/lame/e_lame.c:383
-msgid "lame_init_params failed"
-msgstr ""
-
-#: plugins/lame/e_lame.c:403
-msgid "lame_set_VBR failed"
-msgstr ""
-
-#: plugins/lame/e_lame.c:406
-msgid "lame_set_bWriteVbrTag failed"
-msgstr ""
-
-#: plugins/lame/e_lame.c:426
-msgid "lame_set_mode failed"
-msgstr ""
-
-#: plugins/lame/e_lame.c:432
-msgid "lame_set_quality failed"
-msgstr ""
-
-#: plugins/lame/e_lame.c:574
-msgid "lame_set_in_samplerate failed"
-msgstr ""
-
-#: plugins/lame/e_lame.c:576
-msgid "lame_set_num_channels failed"
-msgstr ""
-
-#: plugins/lame/e_lame.c:579
-msgid "lame_set_scale failed"
-msgstr ""
-
-#: plugins/lame/e_lame.c:706
-msgid "Lame mp3 encoder"
-msgstr ""
-
-#: plugins/lame/e_lame.c:707
-msgid ""
-"Encoder for mp3 files. Based on lame (http://www.mp3dev.org). Supports CBR, "
-"VBR, ID3V1 and ID3V2 tags."
+#: plugins/ogg/flac.c:241
+msgid "ERROR: FLAC__stream_encoder_init failed"
 msgstr ""
 
 #: plugins/ogg/e_flacogg.c:62
@@ -1229,38 +1558,12 @@ msgstr ""
 msgid "Encoder for Speex files"
 msgstr ""
 
-#: plugins/ogg/e_theora.c:149 plugins/ogg/theora.c:455
-msgid "Theora encoder"
-msgstr ""
-
-#: plugins/ogg/e_theora.c:150
-msgid "Encoder for Theora files. Audio can be Vorbis, Flac or Speex."
-msgstr ""
-
 #: plugins/ogg/e_vorbis.c:64 plugins/ogg/vorbis.c:412
 msgid "Vorbis encoder"
 msgstr ""
 
 #: plugins/ogg/e_vorbis.c:65
 msgid "Encoder for Vorbis files"
-msgstr ""
-
-#: plugins/ogg/flac.c:105
-msgid "Got no Flac ID page"
-msgstr ""
-
-#: plugins/ogg/flac.c:110 plugins/ogg/flac.c:152
-#, c-format
-msgid "Writing to file failed: %s"
-msgstr ""
-
-#: plugins/ogg/flac.c:241
-msgid "ERROR: FLAC__stream_encoder_init failed"
-msgstr ""
-
-#: plugins/ogg/ogg_common.c:50
-#, c-format
-msgid "Cannot open file %s: %s"
 msgstr ""
 
 #: plugins/ogg/speex.c:144
@@ -1424,6 +1727,10 @@ msgstr ""
 msgid "Writing packet failed"
 msgstr ""
 
+#: plugins/ogg/theora.c:455 plugins/ogg/e_theora.c:149
+msgid "Theora encoder"
+msgstr ""
+
 #: plugins/ogg/vorbis.c:92
 msgid "VBR"
 msgstr ""
@@ -1482,316 +1789,25 @@ msgstr ""
 msgid "Warning: Got no Vorbis ID page"
 msgstr ""
 
-#: plugins/yuv4mpeg/e_mpeg.c:103
-msgid "mpeg2enc exectuable not found"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpeg.c:108
-msgid "mp2enc exectuable not found"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpeg.c:113
-msgid "mplex exectuable not found"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpeg.c:301
-msgid "Cannot find mplex"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpeg.c:366 plugins/yuv4mpeg/e_mpeg.c:380
-#: plugins/yuv4mpeg/e_mpegaudio.c:133 plugins/yuv4mpeg/e_mpegvideo.c:102
+#: plugins/ogg/ogg_common.c:50
 #, c-format
-msgid "Removing %s"
+msgid "Cannot open file %s: %s"
 msgstr ""
 
-#: plugins/yuv4mpeg/e_mpeg.c:421
-msgid "MPEG-1 (generic)"
+#: plugins/ogg/e_theora.c:150
+msgid "Encoder for Theora files. Audio can be Vorbis, Flac or Speex."
 msgstr ""
 
-#: plugins/yuv4mpeg/e_mpeg.c:421
-msgid "MPEG-1 (VCD)"
+#: lib/bgflac.c:196
+msgid "Bits"
 msgstr ""
 
-#: plugins/yuv4mpeg/e_mpeg.c:422
-msgid "MPEG-2 (generic)"
+#: lib/bgflac.c:203
+msgid "Compression Level"
 msgstr ""
 
-#: plugins/yuv4mpeg/e_mpeg.c:422
-msgid "MPEG-2 (SVCD)"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpeg.c:423
-msgid "DVD (NAV)"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpeg.c:423
-msgid "DVD"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpeg.c:424
+#: lib/bgflac.c:208
 msgid ""
-"Output format. Note that for some output formats (e.g. VCD), you MUST use "
-"proper settings for the audio and video streams also, since this isn't done "
-"automatically"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpeg.c:428
-msgid "Directory for temporary files"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpeg.c:430
-msgid ""
-"Directory to store the temporary streams. Leave empty to use the same "
-"directory as the final output file"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpeg.c:434
-msgid "Additional stream 1"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpeg.c:436 plugins/yuv4mpeg/e_mpeg.c:443
-#: plugins/yuv4mpeg/e_mpeg.c:450
-msgid ""
-"Additional stream to multiplex into the final output file. Use this if you "
-"want e.g. create mp3 or AC3 audio with some other encoder"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpeg.c:441
-msgid "Additional stream 2"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpeg.c:448
-msgid "Additional stream 3"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpeg.c:527
-msgid "MPEG 1/2 program/system stream encoder"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpeg.c:528
-msgid ""
-"Encoder for regular .mpg files as well as VCD and DVD streams. Based on "
-"mjpegtools (http://mjpeg.sourceforge.net)"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpegaudio.c:99
-msgid "Cannot find mp2enc executable"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpegaudio.c:160
-msgid "MPEG-1 layer 1/2 audio encoder"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpegaudio.c:161
-msgid ""
-"Encoder for elementary MPEG-1 layer 1/2 audio streams. Based on mjpegtools "
-"(http://mjpeg.sourceforge.net)."
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpegvideo.c:136
-msgid "MPEG-1/2 video encoder"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpegvideo.c:137
-msgid ""
-"Encoder for elementary MPEG-1/2 video streams. Based on mjpegtools (http://"
-"mjpeg.sourceforge.net)."
-msgstr ""
-
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:155
-msgid "Chroma mode"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:169
-msgid "4:2:0 (MPEG-1/JPEG)"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:170
-msgid "4:2:0 (MPEG-2)"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:171
-msgid "4:2:0 (PAL DV)"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:172
-msgid "4:4:4"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:173
-msgid "4:2:2"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:174
-msgid "4:1:1"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:175
-msgid "Greyscale"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:176
-msgid "4:4:4:4 (YUVA)"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:178
-msgid ""
-"Set the chroma mode of the output file. Auto means to take the format most "
-"similar to the source."
-msgstr ""
-
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:262
-msgid "yuv4mpeg2 encoder"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:263
-msgid ""
-"Encoder for yuv4mpeg streams. Based on mjpegtools (http://mjpeg.sourceforge."
-"net)."
-msgstr ""
-
-#: plugins/yuv4mpeg/mpa_common.c:40 plugins/yuv4mpeg/mpv_common.c:77
-msgid "Bitrate (kb/s)"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpa_common.c:45
-msgid "Bitrate in (kb/s). "
-msgstr ""
-
-#: plugins/yuv4mpeg/mpa_common.c:49
-msgid "Layer (1 or 2)"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpa_common.c:54
-msgid "Audio layer"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpa_common.c:58
-msgid "VCD Compatible"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpa_common.c:61
-msgid ""
-"Make VCD compliant output. This forces layer II, 224 kb/s and 44.1 KHz stereo"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpa_common.c:98
-msgid "Cannot find mp2enc"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpa_common.c:198
-#, c-format
-msgid "Bitrate %d kbps unsupported, switching to %d kbps"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpa_common.c:254
-#, c-format
-msgid "Samplerate %d unsupported, switching to %d"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpv_common.c:58
-msgid "Generic MPEG-1"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpv_common.c:58
-msgid "Generic MPEG-2"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpv_common.c:59
-msgid "VCD"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpv_common.c:59
-msgid "SVCD"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpv_common.c:59
-msgid "DVD (for dvdauthor)"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpv_common.c:61
-msgid ""
-"Sets the MPEG flavour. Note, that for VCD, SVCD and DVD, you MUST provide "
-"valid frame sizes"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpv_common.c:66
-msgid "Bitrate Mode"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpv_common.c:71
-msgid ""
-"Specify constant or variable bitrate. For \"Auto\", constant bitrate will be "
-"used for MPEG-1, variable bitrate will be used for MPEG-2. For formats, "
-"which require CBR, this option is ignored"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpv_common.c:82
-msgid ""
-"Video bitrate in (kb/s). For VBR, it's the maximum bitrate. If the format "
-"requires a fixed bitrate (e.g. VCD) this option is ignored"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpv_common.c:87
-msgid "Quantization"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpv_common.c:92
-msgid ""
-"Minimum quantization for VBR. Lower numbers mean higher quality. For CBR, "
-"this option is ignored."
-msgstr ""
-
-#: plugins/yuv4mpeg/mpv_common.c:96
-msgid "Quantization matrices"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpv_common.c:101
-msgid "Default"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpv_common.c:101
-msgid "KVCD"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpv_common.c:102
-msgid "tmpegenc"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpv_common.c:102
-msgid "Hi-Res"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpv_common.c:107
-msgid "Number of B-Frames"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpv_common.c:112
-msgid ""
-"Specify the number of B-frames between 2 P/I frames. More B-frames slow down "
-"encoding and increase memory usage, but might give better compression "
-"results. For VCD, this option is ignored, since the VCD standard requires 2 "
-"B-frames, no matter if you like them or not."
-msgstr ""
-
-#: plugins/yuv4mpeg/mpv_common.c:118
-msgid "User options"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpv_common.c:120
-msgid ""
-"Enter further commandline options for mpeg2enc here. Check the mpeg2enc "
-"manual page for details"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpv_common.c:184
-msgid "Cannot find mpeg2enc"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpv_common.c:337 plugins/yuv4mpeg/mpv_common.c:356
-msgid "Unknown MPEG format"
-msgstr ""
-
-#: plugins/yuv4mpeg/y4m_common.c:120
-msgid "Writing stream header failed"
+"0: Fastest encoding, biggest files\n"
+"8: Slowest encoding, smallest files"
 msgstr ""

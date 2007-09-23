@@ -211,7 +211,7 @@ int bg_y4m_write_frame(bg_y4m_common_t * com, gavl_video_frame_t * frame)
     else
       {
       if(!com->frame)
-        com->frame = gavl_video_frame_create_nopadd(&(com->format));
+        com->frame = gavl_video_frame_create_nopad(&(com->format));
       gavl_video_frame_copy(&(com->format), com->frame, frame);
       result = y4m_write_frame(com->fd, &(com->si), &(com->fi), com->frame->planes);
       }
