@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmerlin 0.3.6\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-09-21 20:27+0200\n"
+"POT-Creation-Date: 2007-09-23 14:34+0200\n"
 "PO-Revision-Date: 2007-07-26 21:45+0200\n"
 "Last-Translator: Burkhard Plaum <gmerlin@users.sourceforge.net>\n"
 "Language-Team: Finnish\n"
@@ -1227,51 +1227,51 @@ msgstr ""
 
 #: plugins/x11/ov_x11.c:2104 plugins/videofilters/fv_cropscale.c:279
 #: plugins/videofilters/fv_cropscale.c:284
-#: plugins/videofilters/fv_deinterlace.c:94 plugins/videofilters/fv_zoom.c:101
-#: include/bggavl.h:216
+#: plugins/videofilters/fv_deinterlace.c:113
+#: plugins/videofilters/fv_zoom.c:101 include/bggavl.h:216
 msgid "Scale mode"
 msgstr ""
 
 #: plugins/x11/ov_x11.c:2115 plugins/cdaudio/cdparanoia.c:166
 #: plugins/v4l/pwc.c:158 plugins/videofilters/fv_cropscale.c:297
 #: plugins/videofilters/fv_cropscale.c:343
-#: plugins/videofilters/fv_deinterlace.c:107 include/bggavl.h:203
+#: plugins/videofilters/fv_deinterlace.c:126 include/bggavl.h:203
 #: include/bggavl.h:377 include/bggavl.h:390
 msgid "Auto"
 msgstr ""
 
 #: plugins/x11/ov_x11.c:2116 plugins/videofilters/fv_cropscale.c:298
-#: plugins/videofilters/fv_deinterlace.c:108 include/bggavl.h:204
+#: plugins/videofilters/fv_deinterlace.c:127 include/bggavl.h:204
 msgid "Nearest"
 msgstr ""
 
 #: plugins/x11/ov_x11.c:2117 plugins/videofilters/fv_cropscale.c:299
-#: plugins/videofilters/fv_deinterlace.c:109 include/bggavl.h:205
+#: plugins/videofilters/fv_deinterlace.c:128 include/bggavl.h:205
 msgid "Bilinear"
 msgstr ""
 
 #: plugins/x11/ov_x11.c:2118 plugins/videofilters/fv_cropscale.c:300
-#: plugins/videofilters/fv_deinterlace.c:110 include/bggavl.h:206
+#: plugins/videofilters/fv_deinterlace.c:129 include/bggavl.h:206
 msgid "Quadratic"
 msgstr ""
 
 #: plugins/x11/ov_x11.c:2119 plugins/videofilters/fv_cropscale.c:301
-#: plugins/videofilters/fv_deinterlace.c:111 include/bggavl.h:207
+#: plugins/videofilters/fv_deinterlace.c:130 include/bggavl.h:207
 msgid "Cubic B-Spline"
 msgstr ""
 
 #: plugins/x11/ov_x11.c:2120 plugins/videofilters/fv_cropscale.c:302
-#: plugins/videofilters/fv_deinterlace.c:112 include/bggavl.h:208
+#: plugins/videofilters/fv_deinterlace.c:131 include/bggavl.h:208
 msgid "Cubic Mitchell-Netravali"
 msgstr ""
 
 #: plugins/x11/ov_x11.c:2121 plugins/videofilters/fv_cropscale.c:303
-#: plugins/videofilters/fv_deinterlace.c:113 include/bggavl.h:209
+#: plugins/videofilters/fv_deinterlace.c:132 include/bggavl.h:209
 msgid "Cubic Catmull-Rom"
 msgstr ""
 
 #: plugins/x11/ov_x11.c:2122 plugins/videofilters/fv_cropscale.c:304
-#: plugins/videofilters/fv_deinterlace.c:114 include/bggavl.h:210
+#: plugins/videofilters/fv_deinterlace.c:133 include/bggavl.h:210
 msgid "Sinc with Lanczos window"
 msgstr ""
 
@@ -1282,7 +1282,7 @@ msgid ""
 msgstr ""
 
 #: plugins/x11/ov_x11.c:2129 plugins/videofilters/fv_cropscale.c:311
-#: plugins/videofilters/fv_deinterlace.c:121
+#: plugins/videofilters/fv_deinterlace.c:140
 #: plugins/videofilters/fv_zoom.c:112 include/bggavl.h:227
 msgid "Scale order"
 msgstr ""
@@ -1630,7 +1630,7 @@ msgstr ""
 
 #: plugins/jpeg/iw_jpeg.c:237 plugins/videofilters/fv_tlp.c:89
 #: plugins/videofilters/fv_blur.c:246 plugins/videofilters/fv_cropscale.c:322
-#: plugins/videofilters/fv_deinterlace.c:172
+#: plugins/videofilters/fv_deinterlace.c:211
 #: plugins/videofilters/fv_zoom.c:123
 msgid "Quality"
 msgstr ""
@@ -2080,7 +2080,7 @@ msgid "Compression"
 msgstr ""
 
 #: plugins/v4l/pwc.c:85 plugins/tiff/iw_tiff.c:146
-#: plugins/videofilters/fv_deinterlace.c:150 include/bggavl.h:168
+#: plugins/videofilters/fv_deinterlace.c:174 include/bggavl.h:168
 #: include/bggavl.h:377
 msgid "None"
 msgstr ""
@@ -2950,7 +2950,7 @@ msgid "Color of the image borders."
 msgstr ""
 
 #: plugins/videofilters/fv_cropscale.c:307
-#: plugins/videofilters/fv_deinterlace.c:117
+#: plugins/videofilters/fv_deinterlace.c:136
 #: plugins/videofilters/fv_zoom.c:108 include/bggavl.h:223
 msgid ""
 "Choose scaling method. Auto means to choose based on the conversion quality. "
@@ -2958,13 +2958,13 @@ msgid ""
 msgstr ""
 
 #: plugins/videofilters/fv_cropscale.c:318
-#: plugins/videofilters/fv_deinterlace.c:128
+#: plugins/videofilters/fv_deinterlace.c:147
 #: plugins/videofilters/fv_zoom.c:119 include/bggavl.h:234
 msgid "Order for sinc scaling."
 msgstr ""
 
 #: plugins/videofilters/fv_cropscale.c:329
-#: plugins/videofilters/fv_deinterlace.c:179
+#: plugins/videofilters/fv_deinterlace.c:218
 msgid ""
 "Lower quality means more speed. Values above 3 enable slow high quality "
 "calculations."
@@ -2976,12 +2976,12 @@ msgid "Deinterlace"
 msgstr ""
 
 #: plugins/videofilters/fv_cropscale.c:353
-#: plugins/videofilters/fv_deinterlace.c:196 include/bggavl.h:178
+#: plugins/videofilters/fv_deinterlace.c:235 include/bggavl.h:178
 msgid "Drop top field"
 msgstr ""
 
 #: plugins/videofilters/fv_cropscale.c:353
-#: plugins/videofilters/fv_deinterlace.c:197 include/bggavl.h:178
+#: plugins/videofilters/fv_deinterlace.c:236 include/bggavl.h:178
 msgid "Drop bottom field"
 msgstr ""
 
@@ -2990,7 +2990,7 @@ msgid "Specifies which field the deinterlacer should drop."
 msgstr ""
 
 #: plugins/videofilters/fv_cropscale.c:469
-#: plugins/videofilters/fv_deinterlace.c:229 lib/bggavl.c:367
+#: plugins/videofilters/fv_deinterlace.c:268 lib/bggavl.c:367
 #, c-format
 msgid "Unknown scale mode %s\n"
 msgstr ""
@@ -3035,62 +3035,80 @@ msgstr ""
 msgid "Flip video images horizontally and/or vertically"
 msgstr ""
 
-#: plugins/videofilters/fv_deinterlace.c:139
+#: plugins/videofilters/fv_deinterlace.c:158
 msgid "Method"
 msgstr ""
 
-#: plugins/videofilters/fv_deinterlace.c:151
+#: plugins/videofilters/fv_deinterlace.c:175
 msgid "Scanline doubler"
 msgstr ""
 
-#: plugins/videofilters/fv_deinterlace.c:152
+#: plugins/videofilters/fv_deinterlace.c:176
 msgid "Scaler (hardware)"
 msgstr ""
 
-#: plugins/videofilters/fv_deinterlace.c:153
+#: plugins/videofilters/fv_deinterlace.c:177
 msgid "Scaler (software)"
 msgstr ""
 
-#: plugins/videofilters/fv_deinterlace.c:154
+#: plugins/videofilters/fv_deinterlace.c:178
 msgid "Blend"
 msgstr ""
 
-#: plugins/videofilters/fv_deinterlace.c:156
+#: plugins/videofilters/fv_deinterlace.c:180
+msgid "yuvdeinterlace (1 field)"
+msgstr ""
+
+#: plugins/videofilters/fv_deinterlace.c:181
+msgid "yuvdeinterlace (2 fields)"
+msgstr ""
+
+#: plugins/videofilters/fv_deinterlace.c:182
+msgid "yuvdeinterlace (Antialiasing only)"
+msgstr ""
+
+#: plugins/videofilters/fv_deinterlace.c:185
 msgid "Do nothing"
 msgstr ""
 
-#: plugins/videofilters/fv_deinterlace.c:157
+#: plugins/videofilters/fv_deinterlace.c:186
 msgid "Simply double all scanlines. Very fast but low image quality"
 msgstr ""
 
-#: plugins/videofilters/fv_deinterlace.c:159
+#: plugins/videofilters/fv_deinterlace.c:188
 msgid ""
 "Drop one field and change the pixel aspect ratio such that a subsequent "
 "hardware scaler will scale the image to the original height"
 msgstr ""
 
-#: plugins/videofilters/fv_deinterlace.c:160
+#: plugins/videofilters/fv_deinterlace.c:189
 msgid "Drop one field and scale the image to the original height"
 msgstr ""
 
-#: plugins/videofilters/fv_deinterlace.c:183 include/bggavl.h:183
+#: plugins/videofilters/fv_deinterlace.c:191
+#: plugins/videofilters/fv_deinterlace.c:192
+#: plugins/videofilters/fv_deinterlace.c:193
+msgid "Motion compensating deinterlacer from the mjpegtools project"
+msgstr ""
+
+#: plugins/videofilters/fv_deinterlace.c:222 include/bggavl.h:183
 msgid "Force deinterlacing"
 msgstr ""
 
-#: plugins/videofilters/fv_deinterlace.c:190
+#: plugins/videofilters/fv_deinterlace.c:229
 msgid "Drop mode"
 msgstr ""
 
-#: plugins/videofilters/fv_deinterlace.c:194
+#: plugins/videofilters/fv_deinterlace.c:233
 msgid ""
 "For modes, which take only one source field, specify which field to drop"
 msgstr ""
 
-#: plugins/videofilters/fv_deinterlace.c:491
+#: plugins/videofilters/fv_deinterlace.c:575
 msgid "Deinterlacer"
 msgstr ""
 
-#: plugins/videofilters/fv_deinterlace.c:492
+#: plugins/videofilters/fv_deinterlace.c:576
 msgid "Deinterlace with various algorithms"
 msgstr ""
 
@@ -5501,7 +5519,7 @@ msgstr ""
 msgid "Password"
 msgstr ""
 
-#: lib/gtk/cfg_multi_list.c:748
+#: lib/gtk/cfg_multi_list.c:758
 #, c-format
 msgid "Add %s"
 msgstr ""
