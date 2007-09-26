@@ -34,8 +34,8 @@ bg_parameter_info_t *
 bg_ffmpeg_create_parameters(const ffmpeg_format_info_t * format_info);
 
 void
-bg_ffmpeg_set_codec_parameter(AVCodecContext * ctx, char * name,
-                              bg_parameter_value_t * val);
+bg_ffmpeg_set_codec_parameter(AVCodecContext * ctx, const char * name,
+                              const bg_parameter_value_t * val);
 
 enum CodecID
 bg_ffmpeg_find_audio_encoder(const char * name);
@@ -103,8 +103,8 @@ void bg_ffmpeg_destroy(void*);
 
 bg_parameter_info_t * bg_ffmpeg_get_parameters(void * data);
 
-void bg_ffmpeg_set_parameter(void * data, char * name,
-                             bg_parameter_value_t * v);
+void bg_ffmpeg_set_parameter(void * data, const char * name,
+                             const bg_parameter_value_t * v);
 
 const char * bg_ffmpeg_get_extension(void * data);
 
@@ -121,11 +121,11 @@ int bg_ffmpeg_add_audio_stream(void * data, const char * language,
 
 int bg_ffmpeg_add_video_stream(void * data, gavl_video_format_t * format);
 
-void bg_ffmpeg_set_audio_parameter(void * data, int stream, char * name,
-                                  bg_parameter_value_t * v);
+void bg_ffmpeg_set_audio_parameter(void * data, int stream, const char * name,
+                                   const bg_parameter_value_t * v);
 
-void bg_ffmpeg_set_video_parameter(void * data, int stream, char * name,
-                                  bg_parameter_value_t * v);
+void bg_ffmpeg_set_video_parameter(void * data, int stream, const char * name,
+                                  const bg_parameter_value_t * v);
 
 
 int bg_ffmpeg_set_video_pass(void * data, int stream, int pass,

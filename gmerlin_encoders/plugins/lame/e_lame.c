@@ -316,8 +316,9 @@ static bg_parameter_info_t * get_audio_parameters_lame(void * data)
   return audio_parameters;
   }
 
-static void set_audio_parameter_lame(void * data, int stream, char * name,
-                                     bg_parameter_value_t * v)
+static void set_audio_parameter_lame(void * data, int stream,
+                                     const char * name,
+                                     const bg_parameter_value_t * v)
   {
   lame_priv_t * lame;
   int i;
@@ -488,7 +489,8 @@ static bg_parameter_info_t * get_parameters_lame(void * data)
   return parameters;
   }
 
-static void set_parameter_lame(void * data, char * name, bg_parameter_value_t * v)
+static void set_parameter_lame(void * data, const char * name,
+                               const bg_parameter_value_t * v)
   {
   lame_priv_t * lame;
   lame = (lame_priv_t*)data;

@@ -48,7 +48,7 @@ typedef struct
 
 bg_parameter_info_t * bg_flac_get_parameters(void * data);
   
-void bg_flac_set_parameter(void * data, char * name, bg_parameter_value_t * val);
+void bg_flac_set_parameter(void * data, const char * name, const bg_parameter_value_t * val);
 void bg_flac_init_file_encoder(bg_flac_t * flac, FLAC__FileEncoder * enc);
 void bg_flac_init_stream_encoder(bg_flac_t * flac, FLAC__StreamEncoder * enc);
 

@@ -122,7 +122,7 @@ static int add_video_stream_theora(void * data, gavl_video_format_t * format)
   }
 
 static void set_audio_parameter_theora(void * data, int stream,
-                                       char * name, bg_parameter_value_t * val)
+                                       const char * name, const bg_parameter_value_t * val)
   {
   int i;
   if(!name)

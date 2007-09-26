@@ -102,7 +102,8 @@ static bg_parameter_info_t * get_parameters_flac(void * data)
   }
 
 static void set_parameter_flac(void * data,
-                               char * name, bg_parameter_value_t * v)
+                               const char * name,
+                               const bg_parameter_value_t * v)
   {
   flac_t * flac;
   flac = (flac_t*)data;
@@ -437,8 +438,9 @@ static void destroy_flac(void * priv)
   free(flac);
   }
 
-static void set_audio_parameter_flac(void * data, int stream, char * name,
-                                     bg_parameter_value_t * val)
+static void set_audio_parameter_flac(void * data, int stream,
+                                     const char * name,
+                                     const bg_parameter_value_t * val)
   {
   flac_t * flac;
   flac = (flac_t*)data;

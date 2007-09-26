@@ -34,8 +34,8 @@ typedef struct
 bg_parameter_info_t * bg_mpa_get_parameters();
 
 /* Must pass a bg_mpa_common_t for parameters */
-void bg_mpa_set_parameter(void * data, char * name,
-                          bg_parameter_value_t * val);
+void bg_mpa_set_parameter(void * data, const char * name,
+                          const bg_parameter_value_t * val);
 
 void bg_mpa_set_format(bg_mpa_common_t * com, const gavl_audio_format_t * format);
 void bg_mpa_get_format(bg_mpa_common_t * com, gavl_audio_format_t * format);

@@ -118,8 +118,8 @@ static bg_parameter_info_t * get_parameters_mpv(void * data)
   return bg_mpv_get_parameters();
   }
 
-static void set_parameter_mpv(void * data, char * name,
-                              bg_parameter_value_t * val)
+static void set_parameter_mpv(void * data, const char * name,
+                              const bg_parameter_value_t * val)
   {
   e_mpv_t * e = (e_mpv_t*)data;
   bg_mpv_set_parameter(&e->mpv, name, val);

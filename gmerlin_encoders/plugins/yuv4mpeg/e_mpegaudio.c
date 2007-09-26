@@ -56,8 +56,8 @@ static void destroy_mpa(void * priv)
   }
 
 
-static void set_parameter_mpa(void * data, char * name,
-                              bg_parameter_value_t * v)
+static void set_parameter_mpa(void * data, const char * name,
+                              const bg_parameter_value_t * v)
   {
   e_mpa_t * mpa;
   mpa = (e_mpa_t*)data;

@@ -41,7 +41,7 @@ typedef struct
 bg_parameter_info_t * bg_mpv_get_parameters();
 
 /* Must pass a bg_mpv_common_t for data */
-void bg_mpv_set_parameter(void * data, char * name, bg_parameter_value_t * val);
+void bg_mpv_set_parameter(void * data, const char * name, const bg_parameter_value_t * val);
 
 int bg_mpv_open(bg_mpv_common_t * com, const char * filename);
 

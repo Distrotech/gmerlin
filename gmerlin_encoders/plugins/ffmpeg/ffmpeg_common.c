@@ -100,8 +100,8 @@ bg_parameter_info_t * bg_ffmpeg_get_video_parameters(void * data)
   return priv->video_parameters;
   }
 
-void bg_ffmpeg_set_parameter(void * data, char * name,
-                             bg_parameter_value_t * v)
+void bg_ffmpeg_set_parameter(void * data, const char * name,
+                             const bg_parameter_value_t * v)
   {
   int i;
   ffmpeg_priv_t * priv;
@@ -269,8 +269,8 @@ int bg_ffmpeg_add_video_stream(void * data, gavl_video_format_t * format)
   return priv->num_video_streams-1;
   }
 
-void bg_ffmpeg_set_audio_parameter(void * data, int stream, char * name,
-                                  bg_parameter_value_t * v)
+void bg_ffmpeg_set_audio_parameter(void * data, int stream, const char * name,
+                                   const bg_parameter_value_t * v)
   {
   ffmpeg_priv_t * priv;
   ffmpeg_audio_stream_t * st;
@@ -289,8 +289,8 @@ void bg_ffmpeg_set_audio_parameter(void * data, int stream, char * name,
   }
 
 
-void bg_ffmpeg_set_video_parameter(void * data, int stream, char * name,
-                                  bg_parameter_value_t * v)
+void bg_ffmpeg_set_video_parameter(void * data, int stream, const char * name,
+                                   const bg_parameter_value_t * v)
   {
   ffmpeg_priv_t * priv;
   ffmpeg_video_stream_t * st;

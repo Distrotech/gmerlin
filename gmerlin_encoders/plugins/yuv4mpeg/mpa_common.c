@@ -69,7 +69,8 @@ bg_parameter_info_t * bg_mpa_get_parameters()
   }
   
 
-void bg_mpa_set_parameter(void * data, char * name, bg_parameter_value_t * val)
+void bg_mpa_set_parameter(void * data, const char * name,
+                          const bg_parameter_value_t * val)
   {
   bg_mpa_common_t * com = (bg_mpa_common_t*)data;
   

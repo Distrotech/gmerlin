@@ -9,7 +9,7 @@ typedef struct
   void * (*create)(FILE * output, long serialno);
 
   bg_parameter_info_t * (*get_parameters)();
-  void (*set_parameter)(void*, char * name, bg_parameter_value_t * v);
+  void (*set_parameter)(void*, const char * name, const bg_parameter_value_t * v);
 
   int (*init_audio)(void*, gavl_audio_format_t * format, bg_metadata_t * metadata);
   int (*init_video)(void*, gavl_video_format_t * format, bg_metadata_t * metadata);
@@ -69,8 +69,8 @@ int bg_ogg_encoder_add_video_stream(void*, gavl_video_format_t * format);
 void bg_ogg_encoder_init_audio_stream(void*, int stream, bg_ogg_codec_t * codec);
 void bg_ogg_encoder_init_video_stream(void*, int stream, bg_ogg_codec_t * codec);
 
-void bg_ogg_encoder_set_audio_parameter(void*, int stream, char * name, bg_parameter_value_t * val);
-void bg_ogg_encoder_set_video_parameter(void*, int stream, char * name, bg_parameter_value_t * val);
+void bg_ogg_encoder_set_audio_parameter(void*, int stream, const char * name, const bg_parameter_value_t * val);
+void bg_ogg_encoder_set_video_parameter(void*, int stream, const char * name, const bg_parameter_value_t * val);
 
 int bg_ogg_encoder_start(void*);
 

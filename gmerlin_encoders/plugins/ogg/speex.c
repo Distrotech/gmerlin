@@ -215,8 +215,8 @@ static bg_parameter_info_t * get_parameters_speex()
   return parameters;
   }
 
-static void set_parameter_speex(void * data, char * name,
-                                 bg_parameter_value_t * v)
+static void set_parameter_speex(void * data, const char * name,
+                                 const bg_parameter_value_t * v)
   {
   speex_t * speex;
   speex = (speex_t*)data;

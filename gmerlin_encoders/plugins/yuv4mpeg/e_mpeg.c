@@ -462,8 +462,8 @@ static bg_parameter_info_t * get_parameters_mpeg(void * data)
 
 #define SET_STRING(key) if(!strcmp(# key, name)) e->key = bg_strdup(e->key, val->val_str);
 
-static void set_parameter_mpeg(void * data, char * name,
-                              bg_parameter_value_t * val)
+static void set_parameter_mpeg(void * data, const char * name,
+                               const bg_parameter_value_t * val)
   {
   e_mpeg_t * e = (e_mpeg_t*)data;
   if(!name)
@@ -496,8 +496,9 @@ static bg_parameter_info_t * get_video_parameters_mpeg(void * data)
   return bg_mpv_get_parameters();
   }
 
-static void set_audio_parameter_mpeg(void * data, int stream, char * name,
-                                    bg_parameter_value_t * val)
+static void set_audio_parameter_mpeg(void * data, int stream,
+                                     const char * name,
+                                     const bg_parameter_value_t * val)
   {
   e_mpeg_t * e = (e_mpeg_t*)data;
   
@@ -508,8 +509,9 @@ static void set_audio_parameter_mpeg(void * data, int stream, char * name,
   }
 
 
-static void set_video_parameter_mpeg(void * data, int stream, char * name,
-                                    bg_parameter_value_t * val)
+static void set_video_parameter_mpeg(void * data, int stream,
+                                     const char * name,
+                                     const bg_parameter_value_t * val)
   {
   e_mpeg_t * e = (e_mpeg_t*)data;
   if(!name)

@@ -669,8 +669,8 @@ enum_t mb_decision[] =
 
 
 void
-bg_ffmpeg_set_codec_parameter(AVCodecContext * ctx, char * name,
-                              bg_parameter_value_t * val)
+bg_ffmpeg_set_codec_parameter(AVCodecContext * ctx, const char * name,
+                              const bg_parameter_value_t * val)
   {
   int found = 0, i;
 /*

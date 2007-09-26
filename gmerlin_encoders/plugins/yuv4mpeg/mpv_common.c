@@ -133,7 +133,7 @@ bg_parameter_info_t * bg_mpv_get_parameters()
 
 #define SET_ENUM(str, dst, v) if(!strcmp(val->val_str, str)) dst = v
 
-void bg_mpv_set_parameter(void * data, char * name, bg_parameter_value_t * val)
+void bg_mpv_set_parameter(void * data, const char * name, const bg_parameter_value_t * val)
   {
   bg_mpv_common_t * com = (bg_mpv_common_t*)data;
 

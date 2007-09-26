@@ -158,8 +158,8 @@ static bg_parameter_info_t * get_parameters_theora()
   return parameters;
   }
 
-static void set_parameter_theora(void * data, char * name,
-                                 bg_parameter_value_t * v)
+static void set_parameter_theora(void * data, const char * name,
+                                 const bg_parameter_value_t * v)
   {
   theora_t * theora;
   theora = (theora_t*)data;

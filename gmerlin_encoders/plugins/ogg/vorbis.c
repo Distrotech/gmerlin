@@ -272,8 +272,8 @@ static int flush_header_pages_vorbis(void*data)
     return 1;
   }
 
-static void set_parameter_vorbis(void * data, char * name,
-                                 bg_parameter_value_t * v)
+static void set_parameter_vorbis(void * data, const char * name,
+                                 const bg_parameter_value_t * v)
   {
   vorbis_t * vorbis;
   vorbis = (vorbis_t*)data;

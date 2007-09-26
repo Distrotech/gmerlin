@@ -156,8 +156,8 @@ static bg_parameter_info_t * get_audio_parameters_faac(void * data)
   return audio_parameters;
   }
 
-static void set_audio_parameter_faac(void * data, int stream, char * name,
-                                       bg_parameter_value_t * v)
+static void set_audio_parameter_faac(void * data, int stream, const char * name,
+                                     const bg_parameter_value_t * v)
   {
   faac_t * faac;
   faac = (faac_t*)data;
@@ -268,8 +268,8 @@ static bg_parameter_info_t * get_parameters_faac(void * data)
   }
 
 
-static void set_parameter_faac(void * data, char * name,
-                               bg_parameter_value_t * v)
+static void set_parameter_faac(void * data, const char * name,
+                               const bg_parameter_value_t * v)
   {
   faac_t * faac;
   faac = (faac_t*)data;

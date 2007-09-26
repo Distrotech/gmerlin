@@ -129,13 +129,14 @@ void bg_ogg_encoder_init_video_stream(void * data, int stream, bg_ogg_codec_t * 
   e->serialno++;
   }
 
-void bg_ogg_encoder_set_audio_parameter(void * data, int stream, char * name, bg_parameter_value_t * val)
+void
+bg_ogg_encoder_set_audio_parameter(void * data, int stream, const char * name, const bg_parameter_value_t * val)
   {
   bg_ogg_encoder_t * e = (bg_ogg_encoder_t *)data;
   e->audio_streams[stream].codec->set_parameter(e->audio_streams[stream].codec_priv, name, val);
   }
 
-void bg_ogg_encoder_set_video_parameter(void * data, int stream, char * name, bg_parameter_value_t * val)
+void bg_ogg_encoder_set_video_parameter(void * data, int stream, const char * name, const bg_parameter_value_t * val)
   {
   bg_ogg_encoder_t * e = (bg_ogg_encoder_t *)data;
   e->video_streams[stream].codec->set_parameter(e->video_streams[stream].codec_priv, name, val);
