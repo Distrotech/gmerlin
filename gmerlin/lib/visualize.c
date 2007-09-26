@@ -145,8 +145,8 @@ bg_parameter_info_t * bg_visualizer_get_parameters(bg_visualizer_t * v)
   }
 
 void bg_visualizer_set_parameter(void * priv,
-                                 char * name,
-                                 bg_parameter_value_t * val)
+                                 const char * name,
+                                 const bg_parameter_value_t * val)
   {
   const bg_plugin_info_t * info;
   bg_visualizer_t * v;

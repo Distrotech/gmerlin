@@ -61,8 +61,8 @@ bg_audio_filter_chain_get_parameters(bg_audio_filter_chain_t * ch);
  */
 
 void bg_audio_filter_chain_set_parameter(void * data,
-                                         char * name,
-                                         bg_parameter_value_t * val);
+                                         const char * name,
+                                         const bg_parameter_value_t * val);
 
 /** \brief Check if an audio filter chain needs to be rebuilt
  *  \param ch An audio filter chain
@@ -209,8 +209,8 @@ bg_video_filter_chain_get_parameters(bg_video_filter_chain_t * ch);
  *  and call \ref bg_video_filter_chain_init if necessary.
  */
 
-void bg_video_filter_chain_set_parameter(void * data, char * name,
-                                         bg_parameter_value_t * val);
+void bg_video_filter_chain_set_parameter(void * data, const char * name,
+                                         const bg_parameter_value_t * val);
 
 /** \brief Check if a video filter chain needs to be rebuilt
  *  \param ch A video filter chain

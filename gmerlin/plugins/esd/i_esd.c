@@ -67,8 +67,8 @@ static bg_parameter_info_t parameters[] =
     { /* End of parameters */ }
   };
 
-static void set_parameter_esd(void * data, char * name,
-                              bg_parameter_value_t * val)
+static void set_parameter_esd(void * data, const char * name,
+                              const bg_parameter_value_t * val)
   {
   esd_t * e = (esd_t *)data;
 

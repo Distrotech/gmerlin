@@ -60,8 +60,8 @@ void bg_cdrdao_destroy(bg_cdrdao_t * cdrdao)
   free(cdrdao);
   }
 
-void bg_cdrdao_set_parameter(void * data, char * name,
-                             bg_parameter_value_t * val)
+void bg_cdrdao_set_parameter(void * data, const char * name,
+                             const bg_parameter_value_t * val)
   {
   bg_cdrdao_t * c;
   if(!name)

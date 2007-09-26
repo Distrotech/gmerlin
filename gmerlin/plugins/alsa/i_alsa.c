@@ -131,7 +131,8 @@ get_parameters_alsa(void * p)
   }
 
 static void
-set_parameter_alsa(void * p, char * name, bg_parameter_value_t * val)
+set_parameter_alsa(void * p, const char * name,
+                   const bg_parameter_value_t * val)
   {
   alsa_t * priv = (alsa_t*)(p);
 

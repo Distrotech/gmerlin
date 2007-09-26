@@ -348,7 +348,8 @@ static bg_parameter_info_t info_4[] =
   };
 
 
-static bg_parameter_info_t * find_parameter(bg_parameter_info_t * arr, char * name)
+static bg_parameter_info_t * find_parameter(bg_parameter_info_t * arr,
+                                            const char * name)
   {
   char * pos;
   
@@ -389,8 +390,8 @@ static bg_parameter_info_t * find_parameter(bg_parameter_info_t * arr, char * na
   return (bg_parameter_info_t*)0;
   }
 
-static void set_parameter(void * data, char * name,
-                      bg_parameter_value_t * v)
+static void set_parameter(void * data, const char * name,
+                          const bg_parameter_value_t * v)
   {
   bg_parameter_info_t * tmp_info;
   int i;

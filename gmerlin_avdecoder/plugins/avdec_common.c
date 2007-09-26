@@ -399,8 +399,8 @@ int bg_avdec_init(avdec_priv * avdec)
   }
 
 void
-bg_avdec_set_parameter(void * p, char * name,
-                    bg_parameter_value_t * val)
+bg_avdec_set_parameter(void * p, const char * name,
+                       const bg_parameter_value_t * val)
   {
   avdec_priv * avdec;
   avdec = (avdec_priv*)(p);

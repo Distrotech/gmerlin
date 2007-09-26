@@ -101,7 +101,7 @@ get_parameters_oss(void * priv)
   }
 
 static void
-set_parameter_oss(void * p, char * name, bg_parameter_value_t * val)
+set_parameter_oss(void * p, const char * name, const bg_parameter_value_t * val)
   {
   oss_t * priv = (oss_t*)(p);
   char * pos;

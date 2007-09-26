@@ -39,10 +39,10 @@ display_t * display_create(gmerlin_t * gmerlin, GtkTooltips * tooltips);
 
 bg_parameter_info_t * display_get_parameters(display_t * display);
 
-void display_set_parameter(void * data, char * name,
-                           bg_parameter_value_t * v);
+void display_set_parameter(void * data, const char * name,
+                           const bg_parameter_value_t * v);
 
-int display_get_parameter(void * data, char * name,
+int display_get_parameter(void * data, const char * name,
                            bg_parameter_value_t * v);
 
 void display_destroy(display_t *);

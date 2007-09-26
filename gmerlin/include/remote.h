@@ -35,8 +35,8 @@ bg_remote_server_t * bg_remote_server_create(int default_listen_port,
 bg_parameter_info_t * bg_remote_server_get_parameters(bg_remote_server_t *);
 
 void bg_remote_server_set_parameter(void * data,
-                                    char * name,
-                                    bg_parameter_value_t * v);
+                                    const char * name,
+                                    const bg_parameter_value_t * v);
 
 int bg_remote_server_init(bg_remote_server_t *);
 

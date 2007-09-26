@@ -133,8 +133,8 @@ int bg_pngwriter_write_image(void * priv, gavl_video_frame_t * frame)
   return 1;
   }
 
-void bg_pngwriter_set_parameter(void * p, char * name,
-                                bg_parameter_value_t * val)
+void bg_pngwriter_set_parameter(void * p, const char * name,
+                                const bg_parameter_value_t * val)
   {
   bg_pngwriter_t * png;
   png = (bg_pngwriter_t *)p;

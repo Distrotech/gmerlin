@@ -120,7 +120,9 @@ void bg_transcoder_pp_destroy(bg_transcoder_pp_t * p)
   free(p);
   }
 
-void bg_transcoder_pp_set_parameter(void * data, char * name, bg_parameter_value_t * val)
+void
+bg_transcoder_pp_set_parameter(void * data, const char * name,
+                               const bg_parameter_value_t * val)
   {
   bg_transcoder_pp_t * w = (bg_transcoder_pp_t*)data;
   

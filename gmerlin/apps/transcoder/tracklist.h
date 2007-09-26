@@ -24,6 +24,6 @@ void track_list_add_xml(track_list_t * t, char * xml_string, int len);
 
 bg_parameter_info_t * track_list_get_parameters(track_list_t * t);
 
-void track_list_set_parameter(void * data, char * name, bg_parameter_value_t * val);
-int track_list_get_parameter(void * data, char * name, bg_parameter_value_t * val);
+void track_list_set_parameter(void * data, const char * name, const bg_parameter_value_t * val);
+int track_list_get_parameter(void * data, const char * name, bg_parameter_value_t * val);
 bg_plugin_handle_t * track_list_get_pp_plugin(track_list_t * t);

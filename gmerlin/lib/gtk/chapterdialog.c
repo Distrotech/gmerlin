@@ -152,7 +152,8 @@ static void update_list(bg_gtk_chapter_dialog_t * win)
   g_signal_handler_unblock(G_OBJECT(selection), win->select_id);
   }
 
-static void set_parameter(void * data, char * name, bg_parameter_value_t * val)
+static void set_parameter(void * data, const char * name,
+                          const bg_parameter_value_t * val)
   {
   bg_gtk_chapter_dialog_t * win;
   win = (bg_gtk_chapter_dialog_t*)data;

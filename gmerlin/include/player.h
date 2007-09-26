@@ -265,8 +265,8 @@ bg_parameter_info_t * bg_player_get_input_parameters(bg_player_t *  player);
  *  \param name Name
  *  \param val Value
  */
-void bg_player_set_input_parameter(void * data, char * name,
-                                   bg_parameter_value_t * val);
+void bg_player_set_input_parameter(void * data, const char * name,
+                                   const bg_parameter_value_t * val);
 
 /** \brief Get audio parameters
  *  \param player A player
@@ -291,14 +291,16 @@ bg_parameter_info_t * bg_player_get_audio_filter_parameters(bg_player_t * player
  *  \param name Name
  *  \param val Value
  */
-void bg_player_set_audio_parameter(void*data, char * name, bg_parameter_value_t*val);
+void bg_player_set_audio_parameter(void*data, const char * name,
+                                   const bg_parameter_value_t*val);
 
 /** \brief Set an audio filter parameter
  *  \param data Player casted to void*
  *  \param name Name
  *  \param val Value
  */
-void bg_player_set_audio_filter_parameter(void*data, char * name, bg_parameter_value_t*val);
+void bg_player_set_audio_filter_parameter(void*data, const char * name,
+                                          const bg_parameter_value_t*val);
 
 /** \brief Get video parameters
  *  \param player A player
@@ -321,14 +323,16 @@ bg_parameter_info_t * bg_player_get_video_filter_parameters(bg_player_t * player
  *  \param name Name
  *  \param val Value
  */
-void bg_player_set_video_parameter(void*data, char * name, bg_parameter_value_t*val);
+void bg_player_set_video_parameter(void*data, const char * name,
+                                   const bg_parameter_value_t*val);
 
 /** \brief Set a video filter parameter
  *  \param data Player casted to void*
  *  \param name Name
  *  \param val Value
  */
-void bg_player_set_video_filter_parameter(void*data, char * name, bg_parameter_value_t*val);
+void bg_player_set_video_filter_parameter(void*data, const char * name,
+                                          const bg_parameter_value_t*val);
 
 /** \brief Get subtitle parameters
  *  \param player A player
@@ -342,7 +346,7 @@ bg_parameter_info_t * bg_player_get_subtitle_parameters(bg_player_t * player);
  *  \param name Name
  *  \param val Value
  */
-void bg_player_set_subtitle_parameter(void*data, char * name, bg_parameter_value_t*val);
+void bg_player_set_subtitle_parameter(void*data, const char * name, const bg_parameter_value_t*val);
 
 /** \brief Get OSD parameters
  *  \param player A player
@@ -356,7 +360,7 @@ bg_parameter_info_t * bg_player_get_osd_parameters(bg_player_t * player);
  *  \param name Name
  *  \param val Value
  */
-void bg_player_set_osd_parameter(void*data, char * name, bg_parameter_value_t*val);
+void bg_player_set_osd_parameter(void*data, const char * name, const bg_parameter_value_t*val);
 
 /** \brief Get visualization parameters
  *  \param player A player
@@ -376,7 +380,7 @@ bg_player_get_visualization_parameters(bg_player_t *  player);
  */
 void
 bg_player_set_visualization_parameter(void*data,
-                                      char * name, bg_parameter_value_t*val);
+                                      const char * name, const bg_parameter_value_t*val);
 
 /** @} */
 

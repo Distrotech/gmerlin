@@ -332,7 +332,7 @@ static bg_parameter_info_t parameters[] =
     { /* End of parameters */ }
   };
 
-static void set_parameter(void * data, char * name, bg_parameter_value_t * val)
+static void set_parameter(void * data, const char * name, const bg_parameter_value_t * val)
   {
   bg_gtk_tree_widget_t * wid;
   wid = (bg_gtk_tree_widget_t*)data;
@@ -347,7 +347,8 @@ static void set_parameter(void * data, char * name, bg_parameter_value_t * val)
     }
   }
 
-static int get_parameter(void * data, char * name, bg_parameter_value_t * val)
+static int get_parameter(void * data, const char * name,
+                         bg_parameter_value_t * val)
   {
   bg_gtk_tree_widget_t * wid;
   wid = (bg_gtk_tree_widget_t*)data;
@@ -945,8 +946,8 @@ void bg_gtk_tree_widget_open_incoming(bg_gtk_tree_widget_t * w)
   }
 
 
-static void set_parameter_rename_album(void * data, char * name,
-                                 bg_parameter_value_t * val)
+static void set_parameter_rename_album(void * data, const char * name,
+                                 const bg_parameter_value_t * val)
   {
   GtkTreeIter iter;
   bg_gtk_tree_widget_t * w = (bg_gtk_tree_widget_t*)data;
@@ -1100,8 +1101,8 @@ typedef struct
   } add_device_struct;
   
 
-static void set_parameter_add_device(void * data, char * name,
-                                     bg_parameter_value_t * val)
+static void set_parameter_add_device(void * data, const char * name,
+                                     const bg_parameter_value_t * val)
   {
   add_device_struct * s = (add_device_struct*)data;
   

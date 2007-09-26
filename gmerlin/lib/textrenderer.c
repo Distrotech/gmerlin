@@ -852,8 +852,8 @@ bg_parameter_info_t * bg_text_renderer_get_parameters()
   return parameters;
   }
 
-void bg_text_renderer_set_parameter(void * data, char * name,
-                                    bg_parameter_value_t * val)
+void bg_text_renderer_set_parameter(void * data, const char * name,
+                                    const bg_parameter_value_t * val)
   {
   bg_text_renderer_t * r;
   r = (bg_text_renderer_t *)data;

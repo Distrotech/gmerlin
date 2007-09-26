@@ -111,8 +111,8 @@ typedef struct
   } stream_t;
 
 static int set_stream_parameters_general(stream_t * s,
-                                         char * name,
-                                         bg_parameter_value_t * val)
+                                         const char * name,
+                                         const bg_parameter_value_t * val)
   {
   if(!strcmp(name, "action"))
     {
@@ -172,7 +172,8 @@ typedef struct
   int force_language;
   } audio_stream_t;
 
-static void set_audio_parameter_general(void * data, char * name, bg_parameter_value_t * val)
+static void set_audio_parameter_general(void * data, const char * name,
+                                        const bg_parameter_value_t * val)
   {
   audio_stream_t * stream;
   stream = (audio_stream_t*)data;
@@ -246,8 +247,8 @@ typedef struct
   } video_stream_t;
 
 static void set_video_parameter_general(void * data,
-                                        char * name,
-                                        bg_parameter_value_t * val)
+                                        const char * name,
+                                        const bg_parameter_value_t * val)
   {
   video_stream_t * stream;
   stream = (video_stream_t*)data;
@@ -310,8 +311,8 @@ typedef struct
   } subtitle_text_stream_t;
 
 static void set_subtitle_parameter_general(void * data,
-                                           char * name,
-                                           bg_parameter_value_t * val)
+                                           const char * name,
+                                           const bg_parameter_value_t * val)
   {
   subtitle_stream_t * stream;
   stream = (subtitle_stream_t*)data;
@@ -472,7 +473,7 @@ This option will automatically be disabled, when the track is an URL"),
     { /* End of parameters */ }
   };
 
-void bg_transcoder_set_parameter(void * data, char * name, bg_parameter_value_t * val)
+void bg_transcoder_set_parameter(void * data, const char * name, const bg_parameter_value_t * val)
   {
   bg_transcoder_t * w = (bg_transcoder_t*)data;
   
@@ -948,13 +949,15 @@ static void start_subtitle_stream_i(subtitle_stream_t * ret,
 
 typedef struct
   {
-  void (*func)(void * data, int index, char * name, bg_parameter_value_t*val);
+  void (*func)(void * data, int index, const char * name,
+               const bg_parameter_value_t*val);
   void * data;
   int index;
   
   } set_stream_param_struct_t;
 
-static void set_stream_param(void * priv, char * name, bg_parameter_value_t * val)
+static void set_stream_param(void * priv, const char * name,
+                             const bg_parameter_value_t * val)
   {
   set_stream_param_struct_t * s;
   s = (set_stream_param_struct_t *)priv;
@@ -1755,7 +1758,8 @@ static int subtitle_iteration(bg_transcoder_t * t)
     }
 
 static void
-set_parameter_general(void * data, char * name, bg_parameter_value_t * val)
+set_parameter_general(void * data, const char * name,
+                      const bg_parameter_value_t * val)
   {
   int i, name_len;
   bg_transcoder_t * t;

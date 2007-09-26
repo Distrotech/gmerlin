@@ -185,7 +185,8 @@ static bg_parameter_info_t * get_parameters_equalizer(void * priv)
   return parameters;
   }
 
-static void set_parameter_equalizer(void * priv, char * name, bg_parameter_value_t * val)
+static void set_parameter_equalizer(void * priv, const char * name,
+                                    const bg_parameter_value_t * val)
   {
   equalizer_priv_t * vp;
   vp = (equalizer_priv_t *)priv;

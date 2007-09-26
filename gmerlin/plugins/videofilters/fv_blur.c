@@ -258,8 +258,8 @@ static bg_parameter_info_t * get_parameters_blur(void * priv)
   return parameters;
   }
 
-static void set_parameter_blur(void * priv, char * name,
-                               bg_parameter_value_t * val)
+static void set_parameter_blur(void * priv, const char * name,
+                               const bg_parameter_value_t * val)
   {
   blur_priv_t * vp;
   vp = (blur_priv_t *)priv;

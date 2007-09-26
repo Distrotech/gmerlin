@@ -911,8 +911,8 @@ bg_parameter_info_t * bg_player_get_input_parameters(bg_player_t * p)
   return parameters;
   }
 
-void bg_player_set_input_parameter(void * data, char * name,
-                                   bg_parameter_value_t * val)
+void bg_player_set_input_parameter(void * data, const char * name,
+                                   const bg_parameter_value_t * val)
   {
   bg_player_t * player = (bg_player_t*)data;
 

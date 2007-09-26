@@ -83,7 +83,8 @@ static bg_parameter_info_t * get_parameters_flip(void * priv)
   return parameters;
   }
 
-static void set_parameter_flip(void * priv, char * name, bg_parameter_value_t * val)
+static void set_parameter_flip(void * priv, const char * name,
+                               const bg_parameter_value_t * val)
   {
   flip_priv_t * vp;
   vp = (flip_priv_t *)priv;

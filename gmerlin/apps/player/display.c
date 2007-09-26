@@ -380,8 +380,8 @@ static void set_repeat_mode(display_t * d)
   d->gmerlin->repeat_mode = d->repeat_mode;
   }
 
-void display_set_parameter(void * data, char * name,
-                           bg_parameter_value_t * v)
+void display_set_parameter(void * data, const char * name,
+                           const bg_parameter_value_t * v)
   {
   display_t * d = (display_t*)data;
   if(!name)
@@ -431,7 +431,7 @@ void display_set_parameter(void * data, char * name,
     }
   }
 
-int display_get_parameter(void * data, char * name,
+int display_get_parameter(void * data, const char * name,
                            bg_parameter_value_t * v)
   {
   display_t * d = (display_t*)data;

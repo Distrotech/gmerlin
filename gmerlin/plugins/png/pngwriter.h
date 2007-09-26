@@ -36,7 +36,7 @@ int bg_pngwriter_write_header(void * priv, const char * filename,
                               gavl_video_format_t * format);
 int bg_pngwriter_write_image(void * priv, gavl_video_frame_t * frame);
 
-void bg_pngwriter_set_parameter(void * p, char * name,
-                                bg_parameter_value_t * val);
+void bg_pngwriter_set_parameter(void * p, const char * name,
+                                const bg_parameter_value_t * val);
 
 

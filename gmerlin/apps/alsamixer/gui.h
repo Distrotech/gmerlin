@@ -25,10 +25,10 @@ int control_widget_get_own_window(control_widget_t *);
 void control_widget_set_own_window(control_widget_t *, int);
 
 
-void control_widget_set_parameter(void * data, char * name,
-                                  bg_parameter_value_t * v);
+void control_widget_set_parameter(void * data, const char * name,
+                                  const bg_parameter_value_t * v);
 
-int control_widget_get_parameter(void * data, char * name,
+int control_widget_get_parameter(void * data, const char * name,
                                  bg_parameter_value_t * v);
 
 void control_widget_read_config(control_widget_t *);

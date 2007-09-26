@@ -185,8 +185,8 @@ bg_audio_filter_chain_get_parameters(bg_audio_filter_chain_t * ch)
   }
 
 void
-bg_audio_filter_chain_set_parameter(void * data, char * name,
-                                    bg_parameter_value_t * val)
+bg_audio_filter_chain_set_parameter(void * data, const char * name,
+                                    const bg_parameter_value_t * val)
   {
   bg_audio_filter_chain_t * ch;
   int i;
@@ -558,8 +558,8 @@ bg_video_filter_chain_get_parameters(bg_video_filter_chain_t * ch)
   }
 
 void
-bg_video_filter_chain_set_parameter(void * data, char * name,
-                                    bg_parameter_value_t * val)
+bg_video_filter_chain_set_parameter(void * data, const char * name,
+                                    const bg_parameter_value_t * val)
   {
   int i;
   char * pos;

@@ -222,7 +222,8 @@ static bg_parameter_info_t transcoder_window_parameters[] =
   };
 
 static void
-set_transcoder_window_parameter(void * data, char * name, bg_parameter_value_t * val)
+set_transcoder_window_parameter(void * data, const char * name,
+                                const bg_parameter_value_t * val)
   {
   transcoder_window_t * win = (transcoder_window_t *)data;
 
@@ -275,7 +276,7 @@ set_transcoder_window_parameter(void * data, char * name, bg_parameter_value_t *
   }
 
 static int
-get_transcoder_window_parameter(void * data, char * name,
+get_transcoder_window_parameter(void * data, const char * name,
                                 bg_parameter_value_t * val)
   {
   transcoder_window_t * win = (transcoder_window_t *)data;

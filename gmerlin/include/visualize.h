@@ -8,8 +8,8 @@ void bg_visualizer_destroy(bg_visualizer_t *);
 bg_parameter_info_t * bg_visualizer_get_parameters(bg_visualizer_t*);
 
 void bg_visualizer_set_parameter(void * priv,
-                                 char * name,
-                                 bg_parameter_value_t * v);
+                                 const char * name,
+                                 const bg_parameter_value_t * v);
 
 void bg_visualizer_open(bg_visualizer_t * v,
                         const gavl_audio_format_t * format,

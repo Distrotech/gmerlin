@@ -276,7 +276,7 @@ void bg_pwc_destroy(void*p)
 /* Handle parameters beginning with "pwc_" */
 
 void bg_pwc_set_parameter(int fd, void * priv,
-                          char * name, bg_parameter_value_t * val)
+                          const char * name, const bg_parameter_value_t * val)
   {
   pwc_priv_t * p;
   int compression;

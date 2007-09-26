@@ -172,8 +172,8 @@ static bg_parameter_info_t * get_parameters_tiff(void * p)
   return parameters;
   }
 
-static void set_parameter_tiff(void * p, char * name,
-                               bg_parameter_value_t * val)
+static void set_parameter_tiff(void * p, const char * name,
+                               const bg_parameter_value_t * val)
   {
   tiff_t * tiff;
   tiff = (tiff_t *)p;

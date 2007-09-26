@@ -76,8 +76,8 @@ const char * bg_avdec_get_disc_name(void * priv);
 
 
 void
-bg_avdec_set_parameter(void * p, char * name,
-                       bg_parameter_value_t * val);
+bg_avdec_set_parameter(void * p, const char * name,
+                       const bg_parameter_value_t * val);
 int bg_avdec_get_num_tracks(void * p);
 
 int bg_avdec_set_track(void * priv, int track);

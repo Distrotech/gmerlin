@@ -193,10 +193,10 @@ void gmerlin_tree_close_callback(bg_gtk_tree_window_t * win,
 
 bg_parameter_info_t * gmerlin_get_parameters(gmerlin_t * g);
 
-void gmerlin_set_parameter(void * data, char * name,
-                           bg_parameter_value_t * val);
+void gmerlin_set_parameter(void * data, const char * name,
+                           const bg_parameter_value_t * val);
 
-int gmerlin_get_parameter(void * data, char * name,
+int gmerlin_get_parameter(void * data, const char * name,
                           bg_parameter_value_t * val);
 
 /* Enable/disable tooltips */

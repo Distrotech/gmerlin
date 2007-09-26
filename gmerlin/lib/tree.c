@@ -1223,8 +1223,8 @@ bg_parameter_info_t * bg_media_tree_get_parameters(bg_media_tree_t * tree)
   return parameters;
   }
 
-void bg_media_tree_set_parameter(void * priv, char * name,
-                                 bg_parameter_value_t * val)
+void bg_media_tree_set_parameter(void * priv, const char * name,
+                                 const bg_parameter_value_t * val)
   {
   bg_media_tree_t * tree;
   tree = (bg_media_tree_t*)priv;

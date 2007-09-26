@@ -2230,7 +2230,8 @@ static int get_xv_parameter(x11_t * p, const char * name,
 /* Set parameter */
 
 static void
-set_parameter_x11(void * priv, char * name, bg_parameter_value_t * val)
+set_parameter_x11(void * priv, const char * name,
+                  const bg_parameter_value_t * val)
   {
   x11_t * p = (x11_t*)priv;
   
@@ -2340,7 +2341,8 @@ set_parameter_x11(void * priv, char * name, bg_parameter_value_t * val)
   }
 
 static int
-get_parameter_x11(void * priv, char * name, bg_parameter_value_t * val)
+get_parameter_x11(void * priv, const char * name,
+                  bg_parameter_value_t * val)
   {
   x11_t * p = (x11_t*)priv;
   

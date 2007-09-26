@@ -142,7 +142,7 @@ static bg_parameter_info_t * get_parameters_zoom(void * priv)
   return parameters;
   }
 
-static void set_parameter_zoom(void * priv, char * name, bg_parameter_value_t * val)
+static void set_parameter_zoom(void * priv, const char * name, const bg_parameter_value_t * val)
   {
   zs_priv_t * vp;
   gavl_scale_mode_t scale_mode;

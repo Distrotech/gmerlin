@@ -39,7 +39,9 @@ typedef struct
   int options_changed;
   } bg_gavl_audio_options_t;
 
-int bg_gavl_audio_set_parameter(void * data, char * name, bg_parameter_value_t * val);
+int
+bg_gavl_audio_set_parameter(void * data, const char * name,
+                            const bg_parameter_value_t * val);
 
 void bg_gavl_audio_options_init(bg_gavl_audio_options_t *);
 
@@ -61,7 +63,8 @@ typedef struct
   int options_changed;
   } bg_gavl_video_options_t;
 
-int bg_gavl_video_set_parameter(void * data, char * name, bg_parameter_value_t * val);
+int bg_gavl_video_set_parameter(void * data, const char * name,
+                                const bg_parameter_value_t * val);
 
 void bg_gavl_video_options_init(bg_gavl_video_options_t *);
 

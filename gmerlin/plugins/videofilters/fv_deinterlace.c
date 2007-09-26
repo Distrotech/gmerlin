@@ -270,8 +270,8 @@ static gavl_scale_mode_t string_to_scale_mode(const char * str)
     }
   }
 
-static void set_parameter_deinterlace(void * priv, char * name,
-                                      bg_parameter_value_t * val)
+static void set_parameter_deinterlace(void * priv, const char * name,
+                                      const bg_parameter_value_t * val)
   {
   int new_method = DEINTERLACE_NONE;
   gavl_deinterlace_mode_t new_sub_method = 0;

@@ -300,7 +300,7 @@ bg_cfg_item_t * bg_cfg_section_find_item(bg_cfg_section_t * section,
 
 void bg_cfg_section_set_parameter(bg_cfg_section_t * section,
                                   const bg_parameter_info_t * info,
-                                  bg_parameter_value_t * value)
+                                  const bg_parameter_value_t * value)
   {
   bg_cfg_item_t * item;
   item = bg_cfg_section_find_item(section, info);

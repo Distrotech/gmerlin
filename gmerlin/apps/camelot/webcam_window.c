@@ -729,7 +729,8 @@ bg_parameter_info_t * gmerlin_webcam_window_get_parameters(gmerlin_webcam_window
 
 void
 gmerlin_webcam_window_set_parameter(void * priv,
-                                    char * name, bg_parameter_value_t * val)
+                                    const char * name,
+                                    const bg_parameter_value_t * val)
   {
   bg_msg_t * msg;
   gmerlin_webcam_window_t * w;
@@ -774,7 +775,7 @@ gmerlin_webcam_window_set_parameter(void * priv,
 
 int
 gmerlin_webcam_window_get_parameter(void * priv,
-                                    char * name, bg_parameter_value_t * val)
+                                    const char * name, bg_parameter_value_t * val)
   {
   gmerlin_webcam_window_t * w;
   w = (gmerlin_webcam_window_t *)priv;

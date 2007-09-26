@@ -536,8 +536,8 @@ static bg_parameter_info_t * get_parameters_lqt(void * data)
   return common_parameters;
   }
 
-static void set_parameter_lqt(void * data, char * name,
-                              bg_parameter_value_t * val)
+static void set_parameter_lqt(void * data, const char * name,
+                              const bg_parameter_value_t * val)
   {
   e_lqt_t * e = (e_lqt_t*)data;
   if(!name)
@@ -585,8 +585,8 @@ static bg_parameter_info_t * get_video_parameters_lqt(void * data)
   return e->video_parameters;
   }
 
-static void set_audio_parameter_lqt(void * data, int stream, char * name,
-                                    bg_parameter_value_t * val)
+static void set_audio_parameter_lqt(void * data, int stream, const char * name,
+                                    const bg_parameter_value_t * val)
   {
   e_lqt_t * e = (e_lqt_t*)data;
     
@@ -625,8 +625,8 @@ static int set_video_pass_lqt(void * data, int stream, int pass,
   return lqt_set_video_pass(e->file, pass, total_passes, stats_file, stream);
   }
 
-static void set_video_parameter_lqt(void * data, int stream, char * name,
-                                    bg_parameter_value_t * val)
+static void set_video_parameter_lqt(void * data, int stream, const char * name,
+                                    const bg_parameter_value_t * val)
   {
   e_lqt_t * e = (e_lqt_t*)data;
   
@@ -725,8 +725,9 @@ static bg_parameter_info_t * get_subtitle_text_parameters_lqt(void * priv)
   return subtitle_text_parameters;
   }
 
-static void set_subtitle_text_parameter_lqt(void * priv, int stream, char * name,
-                                            bg_parameter_value_t * val)
+static void set_subtitle_text_parameter_lqt(void * priv, int stream,
+                                            const char * name,
+                                            const bg_parameter_value_t * val)
   {
   e_lqt_t * e = (e_lqt_t*)priv;
   

@@ -165,8 +165,8 @@ static bg_parameter_info_t * get_parameters_pnm(void * p)
   return parameters;
   }
 
-static void set_parameter_pnm(void * p, char * name,
-                               bg_parameter_value_t * val)
+static void set_parameter_pnm(void * p, const char * name,
+                              const bg_parameter_value_t * val)
   {
   pnm_t * pnm;
   pnm = (pnm_t *)p;

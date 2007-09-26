@@ -408,8 +408,9 @@ static int write_WAVEFORMATEXTENSIBLE(wav_t * wav)
          (fwrite(guid, 1, 16, wav->output) == 16));
     }
 
-static void set_audio_parameter_wav(void * data, int stream, char * name,
-                                    bg_parameter_value_t * v)
+static void set_audio_parameter_wav(void * data, int stream,
+                                    const char * name,
+                                    const bg_parameter_value_t * v)
   {
   wav_t * wav;
   wav = (wav_t*)data;
@@ -427,7 +428,8 @@ static void set_audio_parameter_wav(void * data, int stream, char * name,
     }
   }
 
-static void set_parameter_wav(void * data, char * name, bg_parameter_value_t * v)
+static void set_parameter_wav(void * data, const char * name,
+                              const bg_parameter_value_t * v)
   {
   wav_t * wav;
   wav = (wav_t*)data;

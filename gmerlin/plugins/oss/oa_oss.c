@@ -507,7 +507,8 @@ static int get_delay_oss(void * p)
 /* Set parameter */
 
 static void
-set_parameter_oss(void * p, char * name, bg_parameter_value_t * val)
+set_parameter_oss(void * p, const char * name,
+                  const bg_parameter_value_t * val)
   {
   char * pos;
   oss_t * priv = (oss_t*)(p);

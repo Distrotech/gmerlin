@@ -304,8 +304,8 @@ bg_parameter_info_t * bg_remote_server_get_parameters(bg_remote_server_t * s)
 
 void
 bg_remote_server_set_parameter(void * data,
-                               char * name,
-                               bg_parameter_value_t * v)
+                               const char * name,
+                               const bg_parameter_value_t * v)
   {
   bg_remote_server_t * s;
   s = (bg_remote_server_t *)data;

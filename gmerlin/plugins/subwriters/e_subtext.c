@@ -242,8 +242,8 @@ static bg_parameter_info_t * get_parameters_subtext(void * data)
   return parameters;
   }
 
-static void set_parameter_subtext(void * data, char * name,
-                                  bg_parameter_value_t * val)
+static void set_parameter_subtext(void * data, const char * name,
+                                  const bg_parameter_value_t * val)
   {
   int i;
   subtext_t * e;
@@ -281,7 +281,6 @@ bg_encoder_plugin_t the_plugin =
       destroy:        destroy_subtext,
       get_parameters: get_parameters_subtext,
       set_parameter:  set_parameter_subtext,
-      //   get_error:      get_error_subtext,
     },
 
     max_subtitle_text_streams: 1,

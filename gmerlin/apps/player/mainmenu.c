@@ -243,8 +243,8 @@ static void plugin_menu_set_plugin(plugin_menu_t * s, gmerlin_t * gmerlin, int i
     }
   }
 
-static void set_parameter(void * data, char * name,
-                          bg_parameter_value_t * v)
+static void set_parameter(void * data, const char * name,
+                          const bg_parameter_value_t * v)
   {
   plugin_menu_t * m;
   m = (plugin_menu_t*)data;

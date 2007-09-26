@@ -174,8 +174,8 @@ bg_parameter_info_t * bg_metadata_get_parameters(bg_metadata_t * m)
     m->s = val->val_i; \
     }
 
-void bg_metadata_set_parameter(void * data, char * name,
-                               bg_parameter_value_t * val)
+void bg_metadata_set_parameter(void * data, const char * name,
+                               const bg_parameter_value_t * val)
   {
   bg_metadata_t * m = (bg_metadata_t*)data;
   

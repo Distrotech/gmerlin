@@ -260,8 +260,8 @@ static bg_parameter_info_t * get_parameters_jpeg(void * p)
   }
 
 
-static void set_parameter_jpeg(void * p, char * name,
-                               bg_parameter_value_t * val)
+static void set_parameter_jpeg(void * p, const char * name,
+                               const bg_parameter_value_t * val)
   {
   jpeg_t * jpeg;
   jpeg = (jpeg_t *)p;

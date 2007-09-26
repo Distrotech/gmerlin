@@ -24,5 +24,5 @@ void * bg_pwc_get_parameters(int fd,
 
 void bg_pwc_destroy(void*);
 
-void bg_pwc_set_parameter(int fd, void * priv, char * name,
-                                 bg_parameter_value_t * val);
+void bg_pwc_set_parameter(int fd, void * priv, const char * name,
+                          const bg_parameter_value_t * val);

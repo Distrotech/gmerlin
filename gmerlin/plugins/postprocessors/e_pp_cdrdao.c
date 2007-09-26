@@ -118,7 +118,8 @@ static bg_parameter_info_t * get_parameters_cdrdao(void * data)
   return parameters;
   }
 
-static void set_parameter_cdrdao(void * data, char * name, bg_parameter_value_t * v)
+static void set_parameter_cdrdao(void * data, const char * name,
+                                 const bg_parameter_value_t * v)
   {
   cdrdao_t * cdrdao;
   cdrdao = (cdrdao_t*)data;

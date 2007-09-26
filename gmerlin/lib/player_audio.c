@@ -178,8 +178,8 @@ bg_parameter_info_t * bg_player_get_audio_filter_parameters(bg_player_t * p)
   }
 
 
-void bg_player_set_audio_parameter(void * data, char * name,
-                                   bg_parameter_value_t * val)
+void bg_player_set_audio_parameter(void * data, const char * name,
+                                   const bg_parameter_value_t * val)
   {
   bg_player_t * p = (bg_player_t*)data;
   int need_restart = 0;
@@ -234,8 +234,8 @@ void bg_player_set_audio_parameter(void * data, char * name,
     }
   }
 
-void bg_player_set_audio_filter_parameter(void * data, char * name,
-                                          bg_parameter_value_t * val)
+void bg_player_set_audio_filter_parameter(void * data, const char * name,
+                                          const bg_parameter_value_t * val)
   {
   int need_rebuild = 0, need_restart = 0;
   int is_interrupted;

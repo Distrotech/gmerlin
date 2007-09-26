@@ -570,8 +570,8 @@ static bg_parameter_info_t * get_parameters_ladspa(void * priv)
   return lp->parameters;
   }
 
-static void set_parameter_ladspa(void * priv, char * name,
-                                 bg_parameter_value_t * val)
+static void set_parameter_ladspa(void * priv, const char * name,
+                                 const bg_parameter_value_t * val)
   {
   int i;
   ladspa_priv_t * lp;

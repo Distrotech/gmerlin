@@ -62,8 +62,8 @@ struct bg_gtk_plugin_widget_single_s
 
   };
 
-static void set_parameter(void * data, char * name,
-                          bg_parameter_value_t * v)
+static void set_parameter(void * data, const char * name,
+                          const bg_parameter_value_t * v)
   {
   bg_gtk_plugin_widget_single_t * widget;
   widget = (bg_gtk_plugin_widget_single_t *)data;

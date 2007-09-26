@@ -214,8 +214,8 @@ bg_parameter_info_t * bg_metadata_get_parameters(bg_metadata_t * m);
  *  \param v Value
  */
 
-void bg_metadata_set_parameter(void * data, char * name,
-                               bg_parameter_value_t * v);
+void bg_metadata_set_parameter(void * data, const char * name,
+                               const bg_parameter_value_t * v);
 
 
 /** \ingroup streaminfo

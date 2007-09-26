@@ -47,5 +47,5 @@ bg_parameter_info_t *
 bg_gtk_vumeter_get_parameters(bg_gtk_vumeter_t * m);
 
 void bg_gtk_vumeter_set_parameter(void * vumeter, const char * name,
-                                  bg_parameter_value_t * val);
+                                  const bg_parameter_value_t * val);
 

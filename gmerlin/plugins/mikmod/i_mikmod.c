@@ -294,8 +294,8 @@ static bg_parameter_info_t * get_parameters_mikmod(void * data)
   return parameters;
   }
 
-static void set_parameter_mikmod(void * data, char * name,
-                              bg_parameter_value_t * val)
+static void set_parameter_mikmod(void * data, const char * name,
+                                 const bg_parameter_value_t * val)
   {
   i_mikmod_t * mikmod;
   mikmod = (i_mikmod_t*)data;

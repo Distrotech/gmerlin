@@ -25,7 +25,8 @@ bg_transcoder_t * bg_transcoder_create();
 
 bg_parameter_info_t * bg_transcoder_get_parameters();
 
-void bg_transcoder_set_parameter(void * priv, char * name, bg_parameter_value_t * val);
+void bg_transcoder_set_parameter(void * priv, const char * name,
+                                 const bg_parameter_value_t * val);
 
 int bg_transcoder_init(bg_transcoder_t * t,
                        bg_plugin_registry_t * plugin_reg, bg_transcoder_track_t * track);
@@ -116,6 +117,7 @@ void bg_transcoder_pp_stop(bg_transcoder_pp_t*);
 
 void bg_transcoder_pp_finish(bg_transcoder_pp_t * t);
 
-void bg_transcoder_pp_set_parameter(void * priv, char * name, bg_parameter_value_t * val);
+void bg_transcoder_pp_set_parameter(void * priv, const char * name,
+                                    const bg_parameter_value_t * val);
 void bg_transcoder_pp_add_message_queue(bg_transcoder_pp_t * p,
                                         bg_msg_queue_t * message_queue);

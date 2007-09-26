@@ -1279,8 +1279,8 @@ typedef struct bg_encoder_plugin_s
    *  \ref get_audio_parameters.
    */
   
-  void (*set_audio_parameter)(void * priv, int stream, char * name,
-                              bg_parameter_value_t * v);
+  void (*set_audio_parameter)(void * priv, int stream, const char * name,
+                              const bg_parameter_value_t * v);
 
   /** \brief Set video encoding parameter
    *  \param priv The handle returned by the create() method
@@ -1293,8 +1293,8 @@ typedef struct bg_encoder_plugin_s
    */
 
   
-  void (*set_video_parameter)(void * priv, int stream, char * name,
-                              bg_parameter_value_t * v);
+  void (*set_video_parameter)(void * priv, int stream, const char * name,
+                              const bg_parameter_value_t * v);
 
   /** \brief Set text subtitle encoding parameter
    *  \param priv The handle returned by the create() method
@@ -1306,8 +1306,9 @@ typedef struct bg_encoder_plugin_s
    *  \ref get_subtitle_text_parameters.
    */
   
-  void (*set_subtitle_text_parameter)(void * priv, int stream, char * name,
-                                      bg_parameter_value_t * v);
+  void (*set_subtitle_text_parameter)(void * priv, int stream,
+                                      const char * name,
+                                      const bg_parameter_value_t * v);
 
   /** \brief Set text subtitle encoding parameter
    *  \param priv The handle returned by the create() method
@@ -1319,8 +1320,9 @@ typedef struct bg_encoder_plugin_s
    *  \ref get_subtitle_overlay_parameters.
    */
   
-  void (*set_subtitle_overlay_parameter)(void * priv, int stream, char * name,
-                                         bg_parameter_value_t * v);
+  void (*set_subtitle_overlay_parameter)(void * priv, int stream,
+                                         const char * name,
+                                         const bg_parameter_value_t * v);
   
   /** \brief Setup multipass video encoding.
    *  \param priv The handle returned by the create() method

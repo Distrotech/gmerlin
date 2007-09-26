@@ -184,7 +184,7 @@ static bg_parameter_info_t * get_parameters_decimate(void * priv)
   return parameters;
   }
 
-static void set_parameter_decimate(void * priv, char * name, bg_parameter_value_t * val)
+static void set_parameter_decimate(void * priv, const char * name, const bg_parameter_value_t * val)
   {
   decimate_priv_t * vp;
   vp = (decimate_priv_t *)priv;

@@ -270,7 +270,8 @@ bg_player_get_visualization_parameters(bg_player_t *  player)
 
 void
 bg_player_set_visualization_parameter(void*data,
-                                      char * name, bg_parameter_value_t*val)
+                                      const char * name,
+                                      const bg_parameter_value_t*val)
   {
   bg_player_t * player;
   player = (bg_player_t*)data;

@@ -160,8 +160,8 @@ void bg_player_set_video_parameter(void * data, char * name,
   }
 #endif
 
-void bg_player_set_video_parameter(void * data, char * name,
-                                   bg_parameter_value_t * val)
+void bg_player_set_video_parameter(void * data, const char * name,
+                                   const bg_parameter_value_t * val)
   {
   bg_player_t * p = (bg_player_t*)data;
   int need_restart = 0;
@@ -224,8 +224,8 @@ bg_player_get_video_filter_parameters(bg_player_t * p)
   return bg_video_filter_chain_get_parameters(p->video_stream.fc);
   }
 
-void bg_player_set_video_filter_parameter(void * data, char * name,
-                                          bg_parameter_value_t * val)
+void bg_player_set_video_filter_parameter(void * data, const char * name,
+                                          const bg_parameter_value_t * val)
   {
   int need_rebuild = 0, need_restart = 0;
   int is_interrupted;

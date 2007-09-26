@@ -1487,7 +1487,9 @@ bg_parameter_info_t * track_list_get_parameters(track_list_t * t)
   return parameters;
   }
 
-void track_list_set_parameter(void * data, char * name, bg_parameter_value_t * val)
+void
+track_list_set_parameter(void * data, const char * name,
+                         const bg_parameter_value_t * val)
   {
   track_list_t * t;
   if(!name)
@@ -1499,7 +1501,7 @@ void track_list_set_parameter(void * data, char * name, bg_parameter_value_t * v
     t->open_path = bg_strdup(t->open_path, val->val_str);
   }
 
-int track_list_get_parameter(void * data, char * name, bg_parameter_value_t * val)
+int track_list_get_parameter(void * data, const char * name, bg_parameter_value_t * val)
   {
   track_list_t * t;
   if(!name)

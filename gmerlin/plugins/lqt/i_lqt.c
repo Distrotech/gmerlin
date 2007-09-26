@@ -415,8 +415,8 @@ static bg_parameter_info_t * get_parameters_lqt(void * data)
   return e->parameters;
   }
 
-static void set_parameter_lqt(void * data, char * name,
-                              bg_parameter_value_t * val)
+static void set_parameter_lqt(void * data, const char * name,
+                              const bg_parameter_value_t * val)
   {
   i_lqt_t * e = (i_lqt_t*)data;
   char * pos;

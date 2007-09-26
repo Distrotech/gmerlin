@@ -138,7 +138,8 @@ static bg_parameter_info_t * get_parameters_scope(void * priv)
   }
 
 static void
-set_parameter_scope(void * priv, char * name, bg_parameter_value_t * val)
+set_parameter_scope(void * priv, const char * name,
+                    const bg_parameter_value_t * val)
   {
   scope_priv_t * vp;
   vp = (scope_priv_t *)priv;

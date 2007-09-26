@@ -181,8 +181,8 @@ bg_parameter_info_t * bg_osd_get_parameters(bg_osd_t * osd)
   return parameters;
   }
 
-void bg_osd_set_parameter(void * data, char * name,
-                          bg_parameter_value_t * val)
+void bg_osd_set_parameter(void * data, const char * name,
+                          const bg_parameter_value_t * val)
   {
   bg_osd_t * osd;
   if(!name)

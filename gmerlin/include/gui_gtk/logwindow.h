@@ -31,10 +31,10 @@ void bg_gtk_log_window_hide(bg_gtk_log_window_t *);
 
 bg_parameter_info_t * bg_gtk_log_window_get_parameters(bg_gtk_log_window_t *);
 
-void bg_gtk_log_window_set_parameter(void * data, char * name,
-                                     bg_parameter_value_t * v);
+void bg_gtk_log_window_set_parameter(void * data, const char * name,
+                                     const bg_parameter_value_t * v);
 
-int bg_gtk_log_window_get_parameter(void * data, char * name,
+int bg_gtk_log_window_get_parameter(void * data, const char * name,
                                     bg_parameter_value_t * val);
 
 void bg_gtk_log_window_flush(bg_gtk_log_window_t *);

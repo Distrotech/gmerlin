@@ -334,7 +334,7 @@ static void set_color(bg_gtk_vumeter_t * v,
   }
 
 void bg_gtk_vumeter_set_parameter(void * vumeter, const char * name,
-                                  bg_parameter_value_t * val)
+                                  const bg_parameter_value_t * val)
   {
   bg_gtk_vumeter_t * v;
   v = (bg_gtk_vumeter_t *)vumeter;

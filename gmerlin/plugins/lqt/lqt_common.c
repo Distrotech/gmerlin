@@ -192,9 +192,9 @@ void bg_lqt_create_codec_info(bg_parameter_info_t * info,
   lqt_destroy_codec_info(codec_info);
   }
 
-static void * get_value(lqt_parameter_info_t * lqt_parameter_info,
+static const void * get_value(lqt_parameter_info_t * lqt_parameter_info,
                         const char * name,
-                        bg_parameter_value_t * val)
+                        const bg_parameter_value_t * val)
   {
   int index;
   index = 0;
@@ -227,11 +227,11 @@ static void * get_value(lqt_parameter_info_t * lqt_parameter_info,
                         
 void bg_lqt_set_audio_parameter(quicktime_t * file,
                                 int stream,
-                                char * name,
-                                bg_parameter_value_t * val,
+                                const char * name,
+                                const bg_parameter_value_t * val,
                                 lqt_parameter_info_t * lqt_parameter_info)
   {
-  void * val_ptr;
+  const void * val_ptr;
   val_ptr = get_value(lqt_parameter_info, name, val);
   if(val_ptr)
     {
@@ -242,11 +242,11 @@ void bg_lqt_set_audio_parameter(quicktime_t * file,
 
 void bg_lqt_set_video_parameter(quicktime_t * file,
                                 int stream,
-                                char * name,
-                                bg_parameter_value_t * val,
+                                const char * name,
+                                const bg_parameter_value_t * val,
                                 lqt_parameter_info_t * lqt_parameter_info)
   {
-  void * val_ptr;
+  const void * val_ptr;
   val_ptr = get_value(lqt_parameter_info, name, val);
   if(val_ptr)
     {
@@ -256,7 +256,7 @@ void bg_lqt_set_video_parameter(quicktime_t * file,
 
 static void set_decoder_parameter(const char * codec_name,
                                   const char * parameter_name,
-                                  bg_parameter_value_t * val,
+                                  const bg_parameter_value_t * val,
                                   lqt_codec_info_t ** codec_info_arr)
   {
   int i;
@@ -330,7 +330,7 @@ static void set_decoder_parameter(const char * codec_name,
 
 void bg_lqt_set_audio_decoder_parameter(const char * codec_name,
                                         const char * parameter_name,
-                                        bg_parameter_value_t * val)
+                                        const bg_parameter_value_t * val)
   {
   lqt_codec_info_t ** codec_info_arr;
   codec_info_arr = lqt_query_registry(1, 0, 0, 1);
@@ -345,7 +345,7 @@ void bg_lqt_set_audio_decoder_parameter(const char * codec_name,
 
 void bg_lqt_set_video_decoder_parameter(const char * codec_name,
                                         const char * parameter_name,
-                                        bg_parameter_value_t * val)
+                                        const bg_parameter_value_t * val)
   {
   lqt_codec_info_t ** codec_info_arr;
   codec_info_arr = lqt_query_registry(0, 1, 0, 1);

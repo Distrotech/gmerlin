@@ -162,8 +162,8 @@ typedef struct bg_parameter_info_s
  *  case must be handled nevertheless.
  */
 
-typedef void (*bg_set_parameter_func_t)(void * data, char * name,
-                                      bg_parameter_value_t * v);
+typedef void (*bg_set_parameter_func_t)(void * data, const char * name,
+                                        const bg_parameter_value_t * v);
 
 /** \ingroup parameter
  *  \brief Generic prototype for getting parameters from a module
@@ -178,8 +178,8 @@ typedef void (*bg_set_parameter_func_t)(void * data, char * name,
  *  dialogs for those parameters.
  */
 
-typedef int (*bg_get_parameter_func_t)(void * data, char * name,
-                                     bg_parameter_value_t * v);
+typedef int (*bg_get_parameter_func_t)(void * data, const char * name,
+                                       bg_parameter_value_t * v);
 
 /** \ingroup parameter
  *  \brief Copy a NULL terminated parameter array

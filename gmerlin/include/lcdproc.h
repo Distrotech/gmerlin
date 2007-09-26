@@ -11,5 +11,5 @@ void bg_lcdproc_destroy(bg_lcdproc_t*);
  */
 
 bg_parameter_info_t * bg_lcdproc_get_parameters(bg_lcdproc_t *);
-void bg_lcdproc_set_parameter(void * data, char * name,
-                              bg_parameter_value_t * val);
+void bg_lcdproc_set_parameter(void * data, const char * name,
+                              const bg_parameter_value_t * val);

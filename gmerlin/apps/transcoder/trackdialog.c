@@ -24,7 +24,7 @@ struct track_dialog_s
   void * update_priv;
   };
 
-static void set_parameter_general(void * priv, char * name, bg_parameter_value_t * val)
+static void set_parameter_general(void * priv, const char * name, const bg_parameter_value_t * val)
   {
   track_dialog_t * d;
   d = (track_dialog_t *)priv;

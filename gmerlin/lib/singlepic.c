@@ -138,8 +138,8 @@ static bg_parameter_info_t * get_parameters_input_still(void * priv)
   return parameters_input_still;
   }
 
-static void set_parameter_input(void * priv, char * name,
-                                bg_parameter_value_t * val)
+static void set_parameter_input(void * priv, const char * name,
+                                const bg_parameter_value_t * val)
   {
   input_t * inp = (input_t *)priv;
 
@@ -697,8 +697,8 @@ static bg_parameter_info_t * get_parameters_encoder(void * priv)
   return enc->parameters;
   }
 
-static void set_parameter_encoder(void * priv, char * name, 
-                                  bg_parameter_value_t * val)
+static void set_parameter_encoder(void * priv, const char * name, 
+                                  const bg_parameter_value_t * val)
   {
   const bg_plugin_info_t * info;
   

@@ -114,7 +114,8 @@ char * track_spec_ptr;
  *  Commandline options stuff
  */
 
-static void set_oa_parameter(void * data, char * name, bg_parameter_value_t * val)
+static void set_oa_parameter(void * data, const char * name,
+                             const bg_parameter_value_t * val)
   {
   const bg_plugin_info_t * info;
 
@@ -152,7 +153,8 @@ static void opt_oa(void * data, int * argc, char *** _argv, int arg)
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
 
-static void set_ov_parameter(void * data, char * name, bg_parameter_value_t * val)
+static void set_ov_parameter(void * data, const char * name,
+                             const bg_parameter_value_t * val)
   {
   if(name && !strcmp(name, "plugin"))
     {
@@ -171,7 +173,8 @@ static void set_ov_parameter(void * data, char * name, bg_parameter_value_t * va
 #endif
   }
 
-static void set_i_parameter(void * data, char * name, bg_parameter_value_t * val)
+static void set_i_parameter(void * data, const char * name,
+                            const bg_parameter_value_t * val)
   {
   if(name && !strcmp(name, "plugin"))
     input_plugin_name = bg_strdup(input_plugin_name,

@@ -76,7 +76,8 @@ static bg_parameter_info_t parameters[] =
     { /* End of parameters */ }
   };
 
-static void set_parameter(void * data, char * name, bg_parameter_value_t * val)
+static void set_parameter(void * data, const char * name,
+                          const bg_parameter_value_t * val)
   {
   bg_gtk_tree_window_t * win;
   win = (bg_gtk_tree_window_t*)data;
@@ -100,7 +101,8 @@ static void set_parameter(void * data, char * name, bg_parameter_value_t * val)
     }
   }
 
-static int get_parameter(void * data, char * name, bg_parameter_value_t * val)
+static int get_parameter(void * data, const char * name,
+                         bg_parameter_value_t * val)
   {
   bg_gtk_tree_window_t * win;
   win = (bg_gtk_tree_window_t*)data;

@@ -125,10 +125,10 @@ static void initialize_memory(yuvdeinterlacer_t * d)
   luma_size = (w * h) + 2 * vertical_overshot_luma;
   chroma_size = (cw * ch) + 2 * vertical_overshot_chroma;
 
-  d->inframe_real = gavl_video_frame_create_nopadd(&frame_format);
-  d->inframe0_real = gavl_video_frame_create_nopadd(&frame_format);
-  d->inframe1_real = gavl_video_frame_create_nopadd(&frame_format);
-  d->outframe_real = gavl_video_frame_create_nopadd(&frame_format);
+  d->inframe_real = gavl_video_frame_create_nopad(&frame_format);
+  d->inframe0_real = gavl_video_frame_create_nopad(&frame_format);
+  d->inframe1_real = gavl_video_frame_create_nopad(&frame_format);
+  d->outframe_real = gavl_video_frame_create_nopad(&frame_format);
 
   gavl_video_frame_clear(d->inframe_real, &frame_format);
   gavl_video_frame_clear(d->inframe0_real, &frame_format);
@@ -1043,7 +1043,7 @@ bg_parameter_info_t yuvdeinterlacer_parameters[] =
   };
 
 
-void yuvdeinterlacer_set_parameter(void * data, char * name, bg_parameter_value_t * val)
+void yuvdeinterlacer_set_parameter(void * data, const char * name, const bg_parameter_value_t * val)
   {
   yuvdeinterlacer_t * di = (yuvdeinterlacer_t *)data;
   if(!name)

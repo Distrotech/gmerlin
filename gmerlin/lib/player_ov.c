@@ -641,7 +641,7 @@ bg_parameter_info_t * bg_player_get_osd_parameters(bg_player_t * p)
   return bg_osd_get_parameters(p->ov_context->osd);
   }
 
-void bg_player_set_osd_parameter(void * data, char * name, bg_parameter_value_t*val)
+void bg_player_set_osd_parameter(void * data, const char * name, const bg_parameter_value_t*val)
   {
   bg_player_t * p = (bg_player_t *)data;
   bg_osd_set_parameter(p->ov_context->osd, name, val);

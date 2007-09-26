@@ -83,8 +83,8 @@ static void translate_labels(bg_gtk_widget_t * w)
   
   }
 
-static void set_sub_param(void * priv, char * name,
-                          bg_parameter_value_t * val)
+static void set_sub_param(void * priv, const char * name,
+                          const bg_parameter_value_t * val)
   {
   char * tmp_string;
   list_priv_t * list;
@@ -339,7 +339,8 @@ static void get_value(bg_gtk_widget_t * w)
     bg_gtk_change_callback((GtkWidget*)0, w);
   }
 
-static void add_func(void * priv, char * name, bg_parameter_value_t * val)
+static void add_func(void * priv, const char * name,
+                     const bg_parameter_value_t * val)
   {
   list_priv_t * list;
   bg_gtk_widget_t * w;

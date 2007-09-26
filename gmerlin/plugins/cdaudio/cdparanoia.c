@@ -205,8 +205,8 @@ bg_parameter_info_t * bg_cdaudio_rip_get_parameters()
 
 
 int
-bg_cdaudio_rip_set_parameter(void * data, char * name,
-                             bg_parameter_value_t * val)
+bg_cdaudio_rip_set_parameter(void * data, const char * name,
+                             const bg_parameter_value_t * val)
   {
   cdparanoia_priv_t * priv;
   priv = (cdparanoia_priv_t *)data;

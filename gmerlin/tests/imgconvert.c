@@ -19,8 +19,8 @@ bg_parameter_info_t conversion_parameters[] =
 bg_cfg_section_t * conversion_section = (bg_cfg_section_t *)0;
 bg_gavl_video_options_t vopt;
 
-static void set_video_parameter(void * data, char * name,
-                                bg_parameter_value_t * v)
+static void set_video_parameter(void * data, const char * name,
+                                const bg_parameter_value_t * v)
   {
   if(!name)
     return;

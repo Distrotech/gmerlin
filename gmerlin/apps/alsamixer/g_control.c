@@ -1564,8 +1564,8 @@ static void create_parameters(control_widget_t * w)
     }
   }
 
-void control_widget_set_parameter(void * data, char * name,
-                                  bg_parameter_value_t * v)
+void control_widget_set_parameter(void * data, const char * name,
+                                  const bg_parameter_value_t * v)
   {
   control_widget_t * w;
   w = (control_widget_t*)data;
@@ -1628,7 +1628,7 @@ void control_widget_set_parameter(void * data, char * name,
     }
   }
 
-int control_widget_get_parameter(void * data, char * name,
+int control_widget_get_parameter(void * data, const char * name,
                                  bg_parameter_value_t * v)
   {
   control_widget_t * w;

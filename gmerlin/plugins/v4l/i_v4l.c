@@ -558,8 +558,8 @@ static bg_parameter_info_t * get_parameters_v4l(void * priv)
   return v4l->parameters;
   }
 
-static void set_parameter_v4l(void * priv, char * name,
-                       bg_parameter_value_t * val)
+static void set_parameter_v4l(void * priv, const char * name,
+                              const bg_parameter_value_t * val)
   {
   char * pos;
   v4l_t * v4l;

@@ -44,7 +44,7 @@
 
 /* Audio stuff */
 
-int bg_gavl_audio_set_parameter(void * data, char * name, bg_parameter_value_t * val)
+int bg_gavl_audio_set_parameter(void * data, const char * name, const bg_parameter_value_t * val)
   {
   bg_gavl_audio_options_t * opt = (bg_gavl_audio_options_t *)data;
   if(!name)
@@ -314,7 +314,7 @@ framerate_rates[NUM_FRAME_RATES] =
   };
 
 static void set_frame_rate_mode(bg_gavl_video_options_t * opt,
-                                bg_parameter_value_t * val)
+                                const bg_parameter_value_t * val)
   {
   int i;
   for(i = 0; i < NUM_FRAME_RATES; i++)
@@ -370,8 +370,8 @@ gavl_scale_mode_t bg_gavl_string_to_scale_mode(const char * str)
       
   }
 
-int bg_gavl_video_set_parameter(void * data, char * name,
-                                bg_parameter_value_t * val)
+int bg_gavl_video_set_parameter(void * data, const char * name,
+                                const bg_parameter_value_t * val)
   {
   int flags;  
   bg_gavl_video_options_t * opt = (bg_gavl_video_options_t *)data;

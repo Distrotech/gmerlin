@@ -471,8 +471,8 @@ static gavl_scale_mode_t string_to_scale_mode(const char * str)
     }
   }
 
-static void set_parameter_cropscale(void * priv, char * name,
-                                    bg_parameter_value_t * val)
+static void set_parameter_cropscale(void * priv, const char * name,
+                                    const bg_parameter_value_t * val)
   {
   cropscale_priv_t * vp;
   int i;

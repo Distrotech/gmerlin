@@ -716,7 +716,8 @@ bg_parameter_info_t * gmerlin_get_parameters(gmerlin_t * g)
   return parameters;
   }
 
-void gmerlin_set_parameter(void * data, char * name, bg_parameter_value_t * val)
+void gmerlin_set_parameter(void * data, const char * name,
+                           const bg_parameter_value_t * val)
   {
   gmerlin_t * g = (gmerlin_t*)data;
   if(!name)
@@ -793,7 +794,7 @@ void gmerlin_set_parameter(void * data, char * name, bg_parameter_value_t * val)
     }
   }
 
-int gmerlin_get_parameter(void * data, char * name, bg_parameter_value_t * val)
+int gmerlin_get_parameter(void * data, const char * name, bg_parameter_value_t * val)
   {
   gmerlin_t * g = (gmerlin_t*)data;
   if(!name)

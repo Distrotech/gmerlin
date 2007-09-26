@@ -153,8 +153,8 @@ static bg_parameter_info_t * get_parameters_tga(void * p)
   return parameters;
   }
 
-static void set_parameter_tga(void * p, char * name,
-                               bg_parameter_value_t * val)
+static void set_parameter_tga(void * p, const char * name,
+                              const bg_parameter_value_t * val)
   {
   tga_t * tga;
   tga = (tga_t *)p;

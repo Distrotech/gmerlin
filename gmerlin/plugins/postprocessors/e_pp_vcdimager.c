@@ -146,7 +146,7 @@ static bg_parameter_info_t * get_parameters_vcdimager(void * data)
 
 #define SET_STR(key) if(!strcmp(name, # key)) { vcd->key = bg_strdup(vcd->key, v->val_str); return; }
 
-static void set_parameter_vcdimager(void * data, char * name, bg_parameter_value_t * v)
+static void set_parameter_vcdimager(void * data, const char * name, const bg_parameter_value_t * v)
   {
   vcdimager_t * vcd = (vcdimager_t*)data;
   if(!name)
