@@ -249,16 +249,15 @@ void bg_album_insert_urls_after(bg_album_t * a,
 /* Inserts an xml-string */
 
 void bg_album_insert_xml_before(bg_album_t * a, const char * xml_string,
-                                int length, bg_album_entry_t * after);
+                                bg_album_entry_t * after);
 
 void bg_album_insert_xml_after(bg_album_t * a, const char * xml_string,
-                               int length, bg_album_entry_t * before);
+                               bg_album_entry_t * before);
 
 /* Load an xml string and make album entries from it */
 
 bg_album_entry_t *
-bg_album_entries_new_from_xml(const char * xml_string,
-                             int length);
+bg_album_entries_new_from_xml(const char * xml_string);
 
 /* Destroy the list returned from the function above */
 
@@ -323,8 +322,8 @@ void bg_album_rename_track(bg_album_t * album,
                            const char * name);
 /* Return value should be free()d                         */
 
-char * bg_album_save_to_memory(bg_album_t * a, int * len);
-char * bg_album_save_selected_to_memory(bg_album_t * a, int * len, int preserve_current);
+char * bg_album_save_to_memory(bg_album_t * a);
+char * bg_album_save_selected_to_memory(bg_album_t * a, int preserve_current);
 
 char * bg_album_selected_to_string(bg_album_t * a);
 

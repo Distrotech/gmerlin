@@ -364,6 +364,23 @@ char * bg_video_format_to_string(gavl_video_format_t * format, int use_tabs);
 extern char * bg_language_codes[];
 extern char * bg_language_labels[];
 
+/* 
+ * memory writer for libxml
+ */
+
+typedef struct bg_xml_output_mem_s
+  {
+  int bytes_written;
+  int bytes_allocated;
+  char * buffer;
+  } bg_xml_output_mem_t;
+
+#define BLOCK_SIZE 2048
+
+int bg_xml_write_callback(void * context, const char * buffer,
+                          int len);
+
+int bg_xml_close_callback(void * context);
 
 
 #endif // __BG_UTILS_H_

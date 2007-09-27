@@ -55,12 +55,15 @@ static bg_device_info_t ** drive_devices;
 static GdkPixbuf * has_audio_pixbuf = (GdkPixbuf *)0;
 static GdkPixbuf * has_video_pixbuf = (GdkPixbuf *)0;
 
+#define cp_tracks_name "gmerlin_transcoder_tracks"
+
 /* 0 means unset */
 
-#define DND_GMERLIN_TRACKS   1
-#define DND_GMERLIN_TRACKS_R 2
-#define DND_TEXT_URI_LIST    3
-#define DND_TEXT_PLAIN       4
+#define DND_GMERLIN_TRACKS    1
+#define DND_GMERLIN_TRACKS_R  2
+#define DND_TEXT_URI_LIST     3
+#define DND_TEXT_PLAIN        4
+#define DND_TRANSCODER_TRACKS 5
 
 static GtkTargetEntry dnd_dst_entries[] =
   {
@@ -69,6 +72,12 @@ static GtkTargetEntry dnd_dst_entries[] =
     {"text/uri-list",            0, DND_TEXT_URI_LIST    },
     {"text/plain",               0, DND_TEXT_PLAIN       },
   };
+
+static GtkTargetEntry copy_paste_entries[] =
+  {
+    { cp_tracks_name , 0, DND_TRANSCODER_TRACKS },
+  };
+
 
 
 static void init_drives(bg_plugin_registry_t * plugin_reg)
@@ -135,11 +144,22 @@ typedef struct
 
 typedef struct
   {
+  GtkWidget * cut_item;
+  GtkWidget * copy_item;
+  GtkWidget * paste_item;
+  GtkWidget * menu;
+  } edit_menu_t;
+
+typedef struct
+  {
   GtkWidget *      add_item;
   add_menu_t       add_menu;
   GtkWidget *      selected_item;
   selected_menu_t  selected_menu;
 
+  GtkWidget *      edit_item;
+  edit_menu_t      edit_menu;
+  
   GtkWidget      * pp_item;
   
   GtkWidget      * menu;
@@ -168,10 +188,14 @@ struct track_list_s
 
   GtkWidget * delete_button;
   GtkWidget * config_button;
-  GtkWidget * up_button;
-  GtkWidget * down_button;
+  //  GtkWidget * up_button;
+  //  GtkWidget * down_button;
   GtkWidget * encoder_button;
   GtkWidget * chapter_button;
+
+  GtkWidget * cut_button;
+  GtkWidget * copy_button;
+  GtkWidget * paste_button;
   
   bg_transcoder_track_t * tracks;
   bg_transcoder_track_global_t track_global;
@@ -199,32 +223,10 @@ struct track_list_s
 
   char * open_path;
   bg_gtk_filesel_t * filesel;
+  
+  char * clipboard;
   };
 
-/* Buttons */
-
-static GtkWidget * create_pixmap_button(track_list_t * l, const char * filename,
-                                        const char * tooltip)
-  {
-  GtkWidget * button;
-  GtkWidget * image;
-  char * path;
-  path = bg_search_file_read("icons", filename);
-  if(path)
-    {
-    image = gtk_image_new_from_file(path);
-    free(path);
-    }
-  else
-    image = gtk_image_new();
-
-  gtk_widget_show(image);
-  button = gtk_button_new();
-  gtk_container_add(GTK_CONTAINER(button), image);
-
-  bg_gtk_tooltips_set_tip(l->tooltips, button, tooltip, PACKAGE);
-  return button;
-  }
 
 /* Called when the selecection changed */
 
@@ -253,16 +255,20 @@ static void select_row_callback(GtkTreeSelection * sel,
     gtk_widget_set_sensitive(w->config_button, 0);
     gtk_widget_set_sensitive(w->encoder_button, 0);
     w->selected_track = (bg_transcoder_track_t*)0;
-    gtk_widget_set_sensitive(w->up_button, 0);
-    gtk_widget_set_sensitive(w->down_button, 0);
+    //    gtk_widget_set_sensitive(w->up_button, 0);
+    //    gtk_widget_set_sensitive(w->down_button, 0);
     gtk_widget_set_sensitive(w->delete_button, 0);
-
+    gtk_widget_set_sensitive(w->cut_button, 0);
+    gtk_widget_set_sensitive(w->copy_button, 0);
+    
     gtk_widget_set_sensitive(w->menu.selected_menu.move_up_item, 0);
     gtk_widget_set_sensitive(w->menu.selected_menu.move_down_item, 0);
     gtk_widget_set_sensitive(w->menu.selected_menu.configure_item, 0);
     gtk_widget_set_sensitive(w->menu.selected_menu.remove_item, 0);
     gtk_widget_set_sensitive(w->menu.selected_menu.encoder_item, 0);
     
+    gtk_widget_set_sensitive(w->menu.edit_menu.cut_item, 0);
+    gtk_widget_set_sensitive(w->menu.edit_menu.copy_item, 0);
     return;
     }
   
@@ -288,10 +294,12 @@ static void select_row_callback(GtkTreeSelection * sel,
     {
     gtk_widget_set_sensitive(w->config_button, 1);
     gtk_widget_set_sensitive(w->encoder_button, 1);
-    gtk_widget_set_sensitive(w->up_button, 1);
-    gtk_widget_set_sensitive(w->down_button, 1);
+    //    gtk_widget_set_sensitive(w->up_button, 1);
+    //    gtk_widget_set_sensitive(w->down_button, 1);
     gtk_widget_set_sensitive(w->delete_button, 1);
     gtk_widget_set_sensitive(w->chapter_button, 1);
+    gtk_widget_set_sensitive(w->cut_button, 1);
+    gtk_widget_set_sensitive(w->copy_button, 1);
     
     gtk_widget_set_sensitive(w->menu.selected_menu.move_up_item, 1);
     gtk_widget_set_sensitive(w->menu.selected_menu.move_down_item, 1);
@@ -300,16 +308,22 @@ static void select_row_callback(GtkTreeSelection * sel,
     gtk_widget_set_sensitive(w->menu.selected_menu.encoder_item, 1);
     gtk_widget_set_sensitive(w->menu.selected_menu.chapter_item, 1);
 
+    gtk_widget_set_sensitive(w->menu.edit_menu.cut_item, 1);
+    gtk_widget_set_sensitive(w->menu.edit_menu.copy_item, 1);
+    
+    
     }
   else if(w->num_selected == 0)
     {
     gtk_widget_set_sensitive(w->config_button, 0);
     gtk_widget_set_sensitive(w->encoder_button, 0);
     w->selected_track = (bg_transcoder_track_t*)0;
-    gtk_widget_set_sensitive(w->up_button, 0);
-    gtk_widget_set_sensitive(w->down_button, 0);
+    //    gtk_widget_set_sensitive(w->up_button, 0);
+    //    gtk_widget_set_sensitive(w->down_button, 0);
     gtk_widget_set_sensitive(w->delete_button, 0);
     gtk_widget_set_sensitive(w->chapter_button, 0);
+    gtk_widget_set_sensitive(w->cut_button, 0);
+    gtk_widget_set_sensitive(w->copy_button, 0);
 
     gtk_widget_set_sensitive(w->menu.selected_menu.move_up_item, 0);
     gtk_widget_set_sensitive(w->menu.selected_menu.move_down_item, 0);
@@ -318,16 +332,20 @@ static void select_row_callback(GtkTreeSelection * sel,
     gtk_widget_set_sensitive(w->menu.selected_menu.encoder_item, 0);
     gtk_widget_set_sensitive(w->menu.selected_menu.chapter_item, 0);
 
+    gtk_widget_set_sensitive(w->menu.edit_menu.cut_item, 0);
+    gtk_widget_set_sensitive(w->menu.edit_menu.copy_item, 0);
     }
   else
     {
     gtk_widget_set_sensitive(w->config_button, 0);
     w->selected_track = (bg_transcoder_track_t*)0;
     gtk_widget_set_sensitive(w->encoder_button, 1);
-    gtk_widget_set_sensitive(w->up_button, 1);
-    gtk_widget_set_sensitive(w->down_button, 1);
+    //    gtk_widget_set_sensitive(w->up_button, 1);
+    //    gtk_widget_set_sensitive(w->down_button, 1);
     gtk_widget_set_sensitive(w->delete_button, 1);
     gtk_widget_set_sensitive(w->chapter_button, 0);
+    gtk_widget_set_sensitive(w->cut_button, 1);
+    gtk_widget_set_sensitive(w->copy_button, 1);
 
     gtk_widget_set_sensitive(w->menu.selected_menu.move_up_item, 1);
     gtk_widget_set_sensitive(w->menu.selected_menu.move_down_item, 1);
@@ -335,6 +353,9 @@ static void select_row_callback(GtkTreeSelection * sel,
     gtk_widget_set_sensitive(w->menu.selected_menu.remove_item, 1);
     gtk_widget_set_sensitive(w->menu.selected_menu.encoder_item, 1);
     gtk_widget_set_sensitive(w->menu.selected_menu.chapter_item, 0);
+    
+    gtk_widget_set_sensitive(w->menu.edit_menu.cut_item, 1);
+    gtk_widget_set_sensitive(w->menu.edit_menu.copy_item, 1);
     }
   }
 
@@ -497,143 +518,117 @@ static void add_track(track_list_t * l,
 
 static void delete_selected(track_list_t * l)
   {
-  bg_transcoder_track_t * track, *tmp_track;
-  bg_transcoder_track_t * new_tracks =
-    (bg_transcoder_track_t*)0;
-  bg_transcoder_track_t * end_track =
-    (bg_transcoder_track_t*)0;
-
-  track = l->tracks;
-
-  while(track)
-    {
-    if(track->selected)
-      {
-      /* Copy non selected tracks */
-      tmp_track = track->next;
-      bg_transcoder_track_destroy(track);
-      track = tmp_track;
-      }
-    else
-      {
-      /* Insert into new list */
-      if(!new_tracks)
-        {
-        new_tracks = track;
-        end_track = track;
-        }
-      else
-        {
-        end_track->next = track;
-        end_track = end_track->next;
-        }
-      track = track->next;
-      end_track->next = (bg_transcoder_track_t*)0;
-      }
-    }
-  l->tracks = new_tracks;
+  l->tracks = 
+    bg_transcoder_tracks_delete_selected(l->tracks);
+  
   track_list_update(l);
   }
 
-static bg_transcoder_track_t * extract_selected(track_list_t * l)
+/* Callback functions for the clipboard */
+
+static void clipboard_get_func(GtkClipboard *clipboard,
+                               GtkSelectionData *selection_data,
+                               guint info,
+                               gpointer data)
   {
-  bg_transcoder_track_t * track;
+  GdkAtom type_atom;
+  track_list_t * w = (track_list_t*)data;
   
-  bg_transcoder_track_t * ret = (bg_transcoder_track_t*)0;
-  bg_transcoder_track_t * ret_end = (bg_transcoder_track_t*)0;
-
-  bg_transcoder_track_t * new_tracks  = (bg_transcoder_track_t*)0;
-  bg_transcoder_track_t * new_tracks_end = (bg_transcoder_track_t*)0;
-
-  track = l->tracks;
-
-  while(track)
-    {
-    if(track->selected)
-      {
-      if(!ret_end)
-        {
-        ret = track;
-        ret_end = ret;
-        }
-      else
-        {
-        ret_end->next = track;
-        ret_end = ret_end->next;
-        }
-      }
-    else
-      {
-      if(!new_tracks_end)
-        {
-        new_tracks = track;
-        new_tracks_end = new_tracks;
-        }
-      else
-        {
-        new_tracks_end->next = track;
-        new_tracks_end = new_tracks_end->next;
-        }
-      }
-    track = track->next;
-    }
-
-  /* Zero terminate */
-
-  if(ret_end)
-    ret_end->next = (bg_transcoder_track_t*)0;
-  if(new_tracks_end)  
-    new_tracks_end->next = (bg_transcoder_track_t*)0;
-
-  l->tracks = new_tracks;
-  return ret;
+  type_atom = gdk_atom_intern("STRING", FALSE);
+  if(!type_atom)
+    return;
+  
+  gtk_selection_data_set(selection_data, type_atom, 8, (uint8_t*)w->clipboard,
+                         strlen(w->clipboard)+1);
   }
+
+static void clipboard_clear_func(GtkClipboard *clipboard,
+                                 gpointer data)
+  {
+  track_list_t * w = (track_list_t*)data;
+  if(w->clipboard)
+    {
+    free(w->clipboard);
+    w->clipboard = (char*)0;
+    }
+  }
+
+static void clipboard_received_func(GtkClipboard *clipboard,
+                                    GtkSelectionData *selection_data,
+                                    gpointer data)
+  {
+  bg_transcoder_track_t * new_tracks;
+  track_list_t * w = (track_list_t*)data;
+  
+  if(selection_data->length <= 0)
+    return;
+
+  new_tracks = bg_transcoder_tracks_from_xml((char*)selection_data->data,
+                                             w->plugin_reg);
+  w->tracks = bg_transcoder_tracks_append(w->tracks, new_tracks);
+  track_list_update(w);
+  }
+
+
+static void do_copy(track_list_t * w)
+  {
+  GtkClipboard *clipboard;
+  GdkAtom clipboard_atom;
+  
+  // clipboard_atom = gdk_atom_intern ("PRIMARY", FALSE);
+  clipboard_atom = gdk_atom_intern ("CLIPBOARD", FALSE);   
+  clipboard = gtk_clipboard_get(clipboard_atom);
+  
+  gtk_clipboard_set_with_data(clipboard,
+                              copy_paste_entries,
+                              sizeof(copy_paste_entries)/
+                              sizeof(copy_paste_entries[0]),
+                              clipboard_get_func,
+                              clipboard_clear_func,
+                              (gpointer)w);
+  
+  if(w->clipboard)
+    free(w->clipboard);
+  w->clipboard = bg_transcoder_tracks_selected_to_xml(w->tracks);
+
+  fprintf(stderr, "Clipboard: %s\n", w->clipboard);
+  }
+
+static void do_cut(track_list_t * l)
+  {
+  do_copy(l);
+  delete_selected(l);
+  }
+
+static void do_paste(track_list_t * l)
+  {
+  GtkClipboard *clipboard;
+  GdkAtom clipboard_atom;
+  GdkAtom target;
+
+  //    clipboard_atom = gdk_atom_intern ("PRIMARY", FALSE);
+  clipboard_atom = gdk_atom_intern ("CLIPBOARD", FALSE);   
+  clipboard = gtk_clipboard_get(clipboard_atom);
+  
+  target = gdk_atom_intern(cp_tracks_name, FALSE);
+  
+  gtk_clipboard_request_contents(clipboard,
+                                 target,
+                                 clipboard_received_func,
+                                 l);
+  }
+
+
 
 static void move_up(track_list_t * l)
   {
-  bg_transcoder_track_t * selected_tracks;
-  bg_transcoder_track_t * end;
-  
-  selected_tracks = extract_selected(l);
-  if(selected_tracks)
-    {
-    if(l->tracks)
-      {
-      end = selected_tracks;
-      while(end->next)
-        end = end->next;
-      end->next = l->tracks;
-      l->tracks = selected_tracks;
-      }
-    else
-      {
-      l->tracks = selected_tracks;
-      }
-    }
-  
+  l->tracks = bg_transcoder_tracks_move_selected_up(l->tracks);
   track_list_update(l);
   }
 
 static void move_down(track_list_t * l)
   {
-  bg_transcoder_track_t * selected_tracks;
-  bg_transcoder_track_t * end;
-  
-  selected_tracks = extract_selected(l);
-  if(selected_tracks)
-    {
-    if(l->tracks)
-      {
-      end = l->tracks;
-      while(end->next)
-        end = end->next;
-      end->next = selected_tracks;
-      }
-    else
-      {
-      l->tracks = selected_tracks;
-      }
-    }
+  l->tracks = bg_transcoder_tracks_move_selected_down(l->tracks);
   track_list_update(l);
   }
 
@@ -699,7 +694,6 @@ static void update_track(void * data)
 
   track_list_update(l);
   }
-
 
 static void button_callback(GtkWidget * w, gpointer data)
   {
@@ -788,11 +782,11 @@ static void button_callback(GtkWidget * w, gpointer data)
     {
     delete_selected(t);
     }
-  else if((w == t->up_button) || (w == t->menu.selected_menu.move_up_item))
+  else if(w == t->menu.selected_menu.move_up_item)
     {
     move_up(t);
     }
-  else if((w == t->down_button) || (w == t->menu.selected_menu.move_down_item))
+  else if(w == t->menu.selected_menu.move_down_item)
     {
     move_down(t);
     }
@@ -803,6 +797,18 @@ static void button_callback(GtkWidget * w, gpointer data)
     track_dialog_run(track_dialog);
     track_dialog_destroy(track_dialog);
 
+    }
+  else if((w == t->menu.edit_menu.cut_item) || (w == t->cut_button))
+    {
+    do_cut(t);
+    }
+  else if((w == t->menu.edit_menu.copy_item) || (w == t->copy_button))
+    {
+    do_copy(t);
+    }
+  else if((w == t->menu.edit_menu.paste_item) || (w == t->paste_button))
+    {
+    do_paste(t);
     }
   else if((w == t->chapter_button) || (w == t->menu.selected_menu.chapter_item))
     {
@@ -894,6 +900,18 @@ static void init_menu(track_list_t * t)
   t->menu.selected_menu.encoder_item =
     create_item(t, t->menu.selected_menu.menu, TR("Change encoders..."), "plugin_16.png");
 
+  /* Edit */
+
+  t->menu.edit_menu.menu = gtk_menu_new();
+
+  t->menu.edit_menu.cut_item =
+    create_item(t, t->menu.edit_menu.menu, TR("Cut"), "cut_16.png");
+  t->menu.edit_menu.copy_item =
+    create_item(t, t->menu.edit_menu.menu, TR("Copy"), "copy_16.png");
+  t->menu.edit_menu.paste_item =
+    create_item(t, t->menu.edit_menu.menu, TR("Paste"), "paste_16.png");
+  gtk_widget_show(t->menu.add_menu.menu);
+  
   /* Root menu */
 
   t->menu.menu = gtk_menu_new();
@@ -909,6 +927,12 @@ static void init_menu(track_list_t * t)
 
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(t->menu.selected_item),
                             t->menu.selected_menu.menu);
+
+  t->menu.edit_item =
+    create_item(t, t->menu.menu, TR("Edit..."), (char*)0);
+
+  gtk_menu_item_set_submenu(GTK_MENU_ITEM(t->menu.edit_item),
+                            t->menu.edit_menu.menu);
   
   t->menu.pp_item =
     create_item(t, t->menu.menu, TR("Postprocess..."), (char*)0);
@@ -1008,11 +1032,11 @@ static int is_albumentries(GtkSelectionData * data)
   return ret;
   }
 
-void track_list_add_xml(track_list_t * l, char * xml_string, int len)
+void track_list_add_albumentries_xml(track_list_t * l, char * xml_string)
   {
   bg_transcoder_track_t * new_tracks;
   new_tracks =
-    bg_transcoder_track_create_from_albumentries(xml_string, len,
+    bg_transcoder_track_create_from_albumentries(xml_string,
                                                  l->plugin_reg,
                                                  l->track_defaults_section);
   add_track(l, new_tracks);
@@ -1058,7 +1082,7 @@ static void drag_received_callback(GtkWidget *widget,
     }
   else if(is_albumentries(data))
     {
-    track_list_add_xml(l, (char*)(data->data), data->length);
+    track_list_add_albumentries_xml(l, (char*)(data->data));
     }
 
   gtk_drag_finish(drag_context,
@@ -1066,6 +1090,36 @@ static void drag_received_callback(GtkWidget *widget,
                   0, /* Delete */
                   time);
   }
+
+/* Buttons */
+
+static GtkWidget * create_pixmap_button(track_list_t * l, const char * filename,
+                                        const char * tooltip)
+  {
+  GtkWidget * button;
+  GtkWidget * image;
+  char * path;
+  path = bg_search_file_read("icons", filename);
+  if(path)
+    {
+    image = gtk_image_new_from_file(path);
+    free(path);
+    }
+  else
+    image = gtk_image_new();
+
+  gtk_widget_show(image);
+  button = gtk_button_new();
+  gtk_container_add(GTK_CONTAINER(button), image);
+
+  bg_gtk_tooltips_set_tip(l->tooltips, button, tooltip, PACKAGE);
+
+  g_signal_connect(G_OBJECT(button), "clicked",
+                   G_CALLBACK(button_callback), l);
+  gtk_widget_show(button);
+  return button;
+  }
+
 
 track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg,
                                  bg_cfg_section_t * track_defaults_section)
@@ -1133,6 +1187,21 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg,
                          "plugin_16.png",
                          TRS("Change encoder plugins for selected tracks"));
 
+  ret->copy_button =
+    create_pixmap_button(ret,
+                         "copy_16.png",
+                         TRS("Copy selected tracks to clipboard"));
+  ret->cut_button =
+    create_pixmap_button(ret,
+                         "cut_16.png",
+                         TRS("Cut selected tracks to clipboard"));
+
+  ret->paste_button =
+    create_pixmap_button(ret,
+                         "paste_16.png",
+                         TRS("Paste tracks from clipboard"));
+  
+#if 0
   ret->up_button =
     create_pixmap_button(ret,
                          "top_16.png",
@@ -1143,41 +1212,16 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg,
                          "bottom_16.png",
                          TRS("Move selected tracks to the bottom of the tracklist"));
   
-  g_signal_connect(G_OBJECT(ret->down_button), "clicked",
-                   G_CALLBACK(button_callback), ret);
-  g_signal_connect(G_OBJECT(ret->up_button), "clicked",
-                   G_CALLBACK(button_callback), ret);
-  g_signal_connect(G_OBJECT(ret->add_file_button), "clicked",
-                   G_CALLBACK(button_callback), ret);
-  g_signal_connect(G_OBJECT(ret->add_url_button), "clicked",
-                   G_CALLBACK(button_callback), ret);
-  g_signal_connect(G_OBJECT(ret->add_removable_button), "clicked",
-                   G_CALLBACK(button_callback), ret);
-  g_signal_connect(G_OBJECT(ret->delete_button), "clicked",
-                   G_CALLBACK(button_callback), ret);
-  g_signal_connect(G_OBJECT(ret->config_button), "clicked",
-                   G_CALLBACK(button_callback), ret);
-  g_signal_connect(G_OBJECT(ret->chapter_button), "clicked",
-                   G_CALLBACK(button_callback), ret);
-  g_signal_connect(G_OBJECT(ret->encoder_button), "clicked",
-                   G_CALLBACK(button_callback), ret);
-
-  gtk_widget_show(ret->add_file_button);
-  gtk_widget_show(ret->add_url_button);
-  gtk_widget_show(ret->add_removable_button);
-  gtk_widget_show(ret->delete_button);
-  gtk_widget_show(ret->config_button);
-  gtk_widget_show(ret->chapter_button);
-  gtk_widget_show(ret->up_button);
-  gtk_widget_show(ret->down_button);
-  gtk_widget_show(ret->encoder_button);
-
+#endif
+  
   gtk_widget_set_sensitive(ret->delete_button, 0);
   gtk_widget_set_sensitive(ret->encoder_button, 0);
   gtk_widget_set_sensitive(ret->config_button, 0);
   gtk_widget_set_sensitive(ret->chapter_button, 0);
-  gtk_widget_set_sensitive(ret->up_button, 0);
-  gtk_widget_set_sensitive(ret->down_button, 0);
+  //  gtk_widget_set_sensitive(ret->up_button, 0);
+  //  gtk_widget_set_sensitive(ret->down_button, 0);
+  gtk_widget_set_sensitive(ret->cut_button, 0);
+  gtk_widget_set_sensitive(ret->copy_button, 0);
   
   /* Create list view */
   
@@ -1344,9 +1388,12 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg,
   gtk_box_pack_start(GTK_BOX(box), ret->encoder_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->config_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->chapter_button, FALSE, FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(box), ret->up_button, FALSE, FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(box), ret->down_button, FALSE, FALSE, 0);
-
+  //  gtk_box_pack_start(GTK_BOX(box), ret->up_button, FALSE, FALSE, 0);
+  //  gtk_box_pack_start(GTK_BOX(box), ret->down_button, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(box), ret->cut_button, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(box), ret->copy_button, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(box), ret->paste_button, FALSE, FALSE, 0);
+  
   gtk_box_pack_end(GTK_BOX(box), bg_gtk_time_display_get_widget(ret->time_total),
                      FALSE, FALSE, 0);
   gtk_widget_show(box);
@@ -1396,6 +1443,9 @@ void track_list_destroy(track_list_t * t)
   //  g_object_unref(t->tooltips);
   if(t->open_path)
     free(t->open_path);
+  if(t->clipboard)
+    free(t->clipboard);
+  
   free(t);
   }
 

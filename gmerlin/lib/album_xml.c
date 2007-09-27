@@ -228,15 +228,15 @@ static bg_album_entry_t * load_album_file(bg_album_t * album,
   }
 
 static bg_album_entry_t * load_album_xml(bg_album_t * album,
-                                  const char * string, int len,
+                                  const char * string,
                                   bg_album_entry_t ** last,
                                   bg_album_entry_t ** current,
                                   int load_globals)
   {
   bg_album_entry_t * ret;
   xmlDocPtr xml_doc;
-  xml_doc = xmlParseMemory(string, len);
-
+  xml_doc = xmlParseMemory(string, strlen(string));
+  
   ret = xml_2_album(album, xml_doc, last, current, load_globals);
   
   xmlFreeDoc(xml_doc);
@@ -244,12 +244,11 @@ static bg_album_entry_t * load_album_xml(bg_album_t * album,
   }
 
 bg_album_entry_t *
-bg_album_entries_new_from_xml(const char * xml_string,
-                             int length)
+bg_album_entries_new_from_xml(const char * xml_string)
   {
   bg_album_entry_t * ret;
   xmlDocPtr xml_doc;
-  xml_doc = xmlParseMemory(xml_string, length);
+  xml_doc = xmlParseMemory(xml_string, strlen(xml_string));
 
   ret = xml_2_album((bg_album_t*)0, xml_doc,
                     (bg_album_entry_t**)0, (bg_album_entry_t**)0, 0);
@@ -263,13 +262,13 @@ bg_album_entries_new_from_xml(const char * xml_string,
 /* Inserts an xml-string */
 
 void bg_album_insert_xml_after(bg_album_t * a,
-                               const char * xml_string, int len,
+                               const char * xml_string,
                                bg_album_entry_t * before)
   {
   bg_album_entry_t * new_entries;
   bg_album_entry_t * current_entry;
   new_entries = load_album_xml(a,
-                               xml_string, len,
+                               xml_string,
                                (bg_album_entry_t**)0, &current_entry, 0);
   bg_album_insert_entries_after(a, new_entries, before);
 
@@ -281,13 +280,13 @@ void bg_album_insert_xml_after(bg_album_t * a,
   }
 
 void bg_album_insert_xml_before(bg_album_t * a,
-                                const char * xml_string, int len,
+                                const char * xml_string,
                                 bg_album_entry_t * after)
   {
   bg_album_entry_t * new_entries;
   bg_album_entry_t * current_entry;
   new_entries = load_album_xml(a,
-                               xml_string, len, (bg_album_entry_t**)0, &current_entry, 0);
+                               xml_string, (bg_album_entry_t**)0, &current_entry, 0);
   bg_album_insert_entries_before(a, new_entries, after);
 
   if(current_entry)
@@ -558,6 +557,7 @@ static xmlDocPtr selected_2_xml(bg_album_t * a, int preserve_current)
 
 /* Output routines for writing to memory */
 
+#if 0
 typedef struct output_mem_s
   {
   int bytes_written;
@@ -587,62 +587,56 @@ static int xml_write_callback(void * context, const char * buffer,
 static int xml_close_callback(void * context)
   {
   output_mem_t * o = (output_mem_t*)context;
+
+  if(o->bytes_allocated == o->bytes_written)
+    {
+    o->bytes_allocated++;
+    o->buffer = realloc(o->buffer, o->bytes_allocated);
+    }
   o->buffer[o->bytes_written] = '\0';
   return 0;
   }
+#endif
 
-char * bg_album_save_to_memory(bg_album_t * a, int * len)
+char * bg_album_save_to_memory(bg_album_t * a)
   {
   xmlDocPtr  xml_doc;
-  output_mem_t * ctx;
+  bg_xml_output_mem_t ctx;
   xmlOutputBufferPtr b;
-  char * ret;
-
+  memset(&ctx, 0, sizeof(ctx));
+  
   xml_doc = album_2_xml(a);
   
-  ctx = calloc(1, sizeof(*ctx));
-  
-  b = xmlOutputBufferCreateIO (xml_write_callback,
-                               xml_close_callback,
-                               ctx,
+  b = xmlOutputBufferCreateIO (bg_xml_write_callback,
+                               bg_xml_close_callback,
+                               &ctx,
                                (xmlCharEncodingHandlerPtr)0);
   
-  xmlSaveFileTo(b,
-                xml_doc,
-                (const char*)0);
+  xmlSaveFileTo(b, xml_doc, (const char*)0);
   xmlFreeDoc(xml_doc);
-  ret = ctx->buffer;
-  if(len)
-    *len = ctx->bytes_written;
-  free(ctx);
-  return ret;
+  return ctx.buffer;
   }
 
-char * bg_album_save_selected_to_memory(bg_album_t * a, int * len, int preserve_current)
+char * bg_album_save_selected_to_memory(bg_album_t * a, int preserve_current)
   {
   xmlDocPtr  xml_doc;
-  output_mem_t * ctx;
+  bg_xml_output_mem_t ctx;
   xmlOutputBufferPtr b;
-  char * ret;
-
+  
+  memset(&ctx, 0, sizeof(ctx));
+  
   xml_doc = selected_2_xml(a, preserve_current);
   
-  ctx = calloc(1, sizeof(*ctx));
-  
-  b = xmlOutputBufferCreateIO(xml_write_callback,
-                              xml_close_callback,
-                              ctx,
+  b = xmlOutputBufferCreateIO(bg_xml_write_callback,
+                              bg_xml_close_callback,
+                              &ctx,
                               (xmlCharEncodingHandlerPtr)0);
   
   xmlSaveFileTo(b,
                 xml_doc,
                 (const char*)0);
   xmlFreeDoc(xml_doc);
-  ret = ctx->buffer;
-  if(len)
-    *len = ctx->bytes_written;
-  free(ctx);
-  return ret;
+  return ctx.buffer;
   }
 
 static void set_permissions(const char * filename)

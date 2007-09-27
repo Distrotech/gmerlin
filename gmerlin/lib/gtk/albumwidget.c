@@ -328,8 +328,6 @@ struct bg_gtk_album_widget_s
 
   /* xml string as clipboard */
   char * clipboard;
-  int clipboard_len;
-
   GtkAccelGroup * accel_group;
 
   int drag_delete;
@@ -954,7 +952,7 @@ static void clipboard_get_func(GtkClipboard *clipboard,
     return;
   
   gtk_selection_data_set(selection_data, type_atom, 8, (uint8_t*)w->clipboard,
-                         w->clipboard_len);
+                         strlen(w->clipboard)+1);
   }
 
 static void clipboard_clear_func(GtkClipboard *clipboard,
@@ -964,7 +962,6 @@ static void clipboard_clear_func(GtkClipboard *clipboard,
   if(w->clipboard)
     {
     free(w->clipboard);
-    w->clipboard_len = 0;
     w->clipboard = (char*)0;
     }
   }
@@ -976,8 +973,6 @@ static void clipboard_received_func(GtkClipboard *clipboard,
   bg_album_entry_t * entry;
   bg_gtk_album_widget_t * w = (bg_gtk_album_widget_t*)data;
   
-
-#if 1
   if(selection_data->length <= 0)
     {
     return;
@@ -985,10 +980,8 @@ static void clipboard_received_func(GtkClipboard *clipboard,
   entry = bg_album_get_entry(w->album, w->cursor_pos);
   
   bg_album_insert_xml_before(w->album, (char*)(selection_data->data),
-                             selection_data->length,
                              entry);
-
-#endif
+  
   }
 
 static void do_copy(bg_gtk_album_widget_t * w)
@@ -1010,8 +1003,7 @@ static void do_copy(bg_gtk_album_widget_t * w)
   
   if(w->clipboard)
     free(w->clipboard);
-  w->clipboard = bg_album_save_selected_to_memory(w->album, &w->clipboard_len,
-                                                  0);
+  w->clipboard = bg_album_save_selected_to_memory(w->album, 0);
   }
 
 static void do_cut(bg_gtk_album_widget_t * w)
@@ -1232,10 +1224,9 @@ static void transcode_selected(bg_gtk_album_widget_t * w)
   FILE * file;
   char * filename;
   char * str;
-  int len;
   char * command;
     
-  str = bg_album_save_selected_to_memory(w->album, &len, 0);
+  str = bg_album_save_selected_to_memory(w->album, 0);
   filename = bg_create_unique_filename("/tmp/gmerlin-%08x.xml");
   file = fopen(filename, "w");
   if(!file)
@@ -1243,8 +1234,7 @@ static void transcode_selected(bg_gtk_album_widget_t * w)
     free(filename);
     return;
     }
-
-  fwrite(str, 1, len, file);
+  fwrite(str, 1, strlen(str), file);
   fclose(file);
   
   command = bg_sprintf("gmerlin_transcoder_remote -launch -addalbum %s",
@@ -1916,7 +1906,7 @@ static void drag_received_callback(GtkWidget *widget,
           {
           case DND_GMERLIN_TRACKS:
           case DND_GMERLIN_TRACKS_R:
-            bg_album_insert_xml_before(aw->album, (char*)(data->data), data->length,
+            bg_album_insert_xml_before(aw->album, (char*)(data->data),
                                        entry);
             break;
           case DND_TEXT_URI_LIST:
@@ -1932,7 +1922,7 @@ static void drag_received_callback(GtkWidget *widget,
           {
           case DND_GMERLIN_TRACKS:
           case DND_GMERLIN_TRACKS_R:
-            bg_album_insert_xml_after(aw->album, (char*)(data->data), data->length,
+            bg_album_insert_xml_after(aw->album, (char*)(data->data),
                                       entry);
             break;
           case DND_TEXT_URI_LIST:
@@ -1950,7 +1940,7 @@ static void drag_received_callback(GtkWidget *widget,
     switch(source_type)
       {
       case DND_GMERLIN_TRACKS:
-        bg_album_insert_xml_before(aw->album, (char*)(data->data), data->length,
+        bg_album_insert_xml_before(aw->album, (char*)(data->data),
                                    (bg_album_entry_t*)0);
         break;
       case DND_TEXT_URI_LIST:
@@ -1999,13 +1989,12 @@ static void drag_get_callback(GtkWidget *widget,
                               gpointer user_data)
   {
   char * str;
-  int len;
   GdkAtom type_atom;
   GdkAtom target_atom;
   
   bg_gtk_album_widget_t * w;
   w = (bg_gtk_album_widget_t *)user_data;
-  str = bg_album_save_selected_to_memory(w->album, &len, 1);
+  str = bg_album_save_selected_to_memory(w->album, 1);
   type_atom = gdk_atom_intern("STRING", FALSE);
   if(!type_atom)
     return;
@@ -2013,8 +2002,8 @@ static void drag_get_callback(GtkWidget *widget,
   target_atom = gdk_atom_intern(bg_gtk_atom_entries_name, FALSE);
   if(target_atom == data->target)
     {
-    str = bg_album_save_selected_to_memory(w->album, &len, 1);
-    gtk_selection_data_set(data, type_atom, 8, (uint8_t*)str, len);
+    str = bg_album_save_selected_to_memory(w->album, 1);
+    gtk_selection_data_set(data, type_atom, 8, (uint8_t*)str, strlen(str)+1);
     free(str);
     w->drag_delete = 1; 
     return;

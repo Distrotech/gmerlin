@@ -14,6 +14,7 @@ album.c \
 album_xml.c \
 bggavl.c \
 bgladspa.c \
+bgxml.c \
 cfg_item.c \
 cfg_registry.c \
 cfg_section.c \

@@ -1215,7 +1215,6 @@ bg_transcoder_track_create_from_urilist(const char * list,
 
 bg_transcoder_track_t *
 bg_transcoder_track_create_from_albumentries(const char * xml_string,
-                                             int len,
                                              bg_plugin_registry_t * plugin_reg,
                                              bg_cfg_section_t * track_defaults_section)
   {
@@ -1224,7 +1223,7 @@ bg_transcoder_track_create_from_albumentries(const char * xml_string,
   bg_transcoder_track_t * ret = (bg_transcoder_track_t*)0;
   const bg_plugin_info_t * plugin_info;
 
-  new_entries = bg_album_entries_new_from_xml(xml_string, len);
+  new_entries = bg_album_entries_new_from_xml(xml_string);
 
   entry = new_entries;
 
@@ -1726,3 +1725,143 @@ bg_transcoder_track_global_free(bg_transcoder_track_global_t * g)
     }
 
   }
+
+//
+
+/* Functions, which operate on lists of transcoder tracks */
+
+bg_transcoder_track_t *
+bg_transcoder_tracks_delete_selected(bg_transcoder_track_t * t)
+  {
+  bg_transcoder_track_t * track, *tmp_track;
+  bg_transcoder_track_t * new_tracks =
+    (bg_transcoder_track_t*)0;
+  bg_transcoder_track_t * end_track =
+    (bg_transcoder_track_t*)0;
+
+  track = t;
+  
+  while(track)
+    {
+    if(track->selected)
+      {
+      /* Copy non selected tracks */
+      tmp_track = track->next;
+      bg_transcoder_track_destroy(track);
+      track = tmp_track;
+      }
+    else
+      {
+      /* Insert into new list */
+      if(!new_tracks)
+        {
+        new_tracks = track;
+        end_track = track;
+        }
+      else
+        {
+        end_track->next = track;
+        end_track = end_track->next;
+        }
+      track = track->next;
+      end_track->next = (bg_transcoder_track_t*)0;
+      }
+    }
+  return new_tracks;
+  }
+
+bg_transcoder_track_t *
+bg_transcoder_tracks_append(bg_transcoder_track_t * t, bg_transcoder_track_t * tail)
+  {
+  bg_transcoder_track_t * end;
+  if(!t)
+    return tail;
+  end = t;
+  while(end->next)
+    end = end->next;
+  end->next = tail;
+  return t;
+  }
+
+bg_transcoder_track_t *
+bg_transcoder_tracks_prepend(bg_transcoder_track_t * t, bg_transcoder_track_t * head)
+  {
+  return bg_transcoder_tracks_append(head, t);
+  }
+
+bg_transcoder_track_t *
+bg_transcoder_tracks_extract_selected(bg_transcoder_track_t ** t)
+  {
+    bg_transcoder_track_t * track;
+  
+  bg_transcoder_track_t * ret = (bg_transcoder_track_t*)0;
+  bg_transcoder_track_t * ret_end = (bg_transcoder_track_t*)0;
+
+  bg_transcoder_track_t * new_tracks  = (bg_transcoder_track_t*)0;
+  bg_transcoder_track_t * new_tracks_end = (bg_transcoder_track_t*)0;
+
+  track = *t;
+  
+  while(track)
+    {
+    if(track->selected)
+      {
+      if(!ret_end)
+        {
+        ret = track;
+        ret_end = ret;
+        }
+      else
+        {
+        ret_end->next = track;
+        ret_end = ret_end->next;
+        }
+      }
+    else
+      {
+      if(!new_tracks_end)
+        {
+        new_tracks = track;
+        new_tracks_end = new_tracks;
+        }
+      else
+        {
+        new_tracks_end->next = track;
+        new_tracks_end = new_tracks_end->next;
+        }
+      }
+    track = track->next;
+    }
+
+  /* Zero terminate */
+
+  if(ret_end)
+    ret_end->next = (bg_transcoder_track_t*)0;
+  if(new_tracks_end)  
+    new_tracks_end->next = (bg_transcoder_track_t*)0;
+  *t = new_tracks;
+  return ret;
+  }
+
+bg_transcoder_track_t *
+bg_transcoder_tracks_move_selected_up(bg_transcoder_track_t * t)
+  {
+  bg_transcoder_track_t * selected;
+
+  selected = bg_transcoder_tracks_extract_selected(&t);
+  if(selected)
+    t = bg_transcoder_tracks_prepend(t, selected);
+  return t;
+  }
+
+bg_transcoder_track_t *
+bg_transcoder_tracks_move_selected_down(bg_transcoder_track_t * t)
+  {
+  bg_transcoder_track_t * selected;
+
+  selected = bg_transcoder_tracks_extract_selected(&t);
+  if(selected)
+    t = bg_transcoder_tracks_append(t, selected);
+  return t;
+  }
+

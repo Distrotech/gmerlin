@@ -42,10 +42,12 @@ static void audio_stream_2_xml(xmlNodePtr parent,
   
   xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
 
-  node = xmlNewTextChild(parent, (xmlNsPtr)0, (xmlChar*)"FILTER", NULL);
-  section_2_xml(s->filter_section, node);
-  
-  xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
+  if(s->filter_section)
+    {
+    node = xmlNewTextChild(parent, (xmlNsPtr)0, (xmlChar*)"FILTER", NULL);
+    section_2_xml(s->filter_section, node);
+    xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
+    }
 
   if(s->encoder_section)
     {
@@ -67,11 +69,12 @@ static void video_stream_2_xml(xmlNodePtr parent,
 
   xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
 
-  node = xmlNewTextChild(parent, (xmlNsPtr)0, (xmlChar*)"FILTER", NULL);
-  section_2_xml(s->filter_section, node);
-  
-  xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
-
+  if(s->filter_section)
+    {
+    node = xmlNewTextChild(parent, (xmlNsPtr)0, (xmlChar*)"FILTER", NULL);
+    section_2_xml(s->filter_section, node);
+    xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
+    }
   
   if(s->encoder_section)
     {
@@ -276,12 +279,12 @@ static void global_2_xml(bg_transcoder_track_global_t * g,
     }
   }
 
-void bg_transcoder_tracks_save(bg_transcoder_track_t * t,
-                               bg_transcoder_track_global_t * g,
-                               const char * filename)
+static xmlDocPtr
+transcoder_tracks_2_xml(bg_transcoder_track_t * t,
+                        bg_transcoder_track_global_t * g,
+                        int selected_only)
   {
   bg_transcoder_track_t * tmp;
-
   xmlDocPtr  xml_doc;
   xmlNodePtr root_node, node;
     
@@ -291,23 +294,62 @@ void bg_transcoder_tracks_save(bg_transcoder_track_t * t,
 
   xmlAddChild(root_node, BG_XML_NEW_TEXT("\n"));
 
-  node = xmlNewTextChild(root_node, (xmlNsPtr)0, (xmlChar*)"GLOBAL", NULL);
-  global_2_xml(g, node);
-  xmlAddChild(root_node, BG_XML_NEW_TEXT("\n"));
+  if(g)
+    {
+    node = xmlNewTextChild(root_node, (xmlNsPtr)0, (xmlChar*)"GLOBAL", NULL);
+    global_2_xml(g, node);
+    xmlAddChild(root_node, BG_XML_NEW_TEXT("\n"));
+    }
   
   tmp = t;
 
   while(tmp)
     {
-    node = xmlNewTextChild(root_node, (xmlNsPtr)0, (xmlChar*)"TRACK", NULL);
-    xmlAddChild(node, BG_XML_NEW_TEXT("\n"));
-    track_2_xml(tmp, node);
-    xmlAddChild(node, BG_XML_NEW_TEXT("\n"));
+    if(tmp->selected || !selected_only)
+      {
+      node = xmlNewTextChild(root_node, (xmlNsPtr)0, (xmlChar*)"TRACK", NULL);
+      xmlAddChild(node, BG_XML_NEW_TEXT("\n"));
+      track_2_xml(tmp, node);
+      xmlAddChild(node, BG_XML_NEW_TEXT("\n"));
+      xmlAddChild(root_node, BG_XML_NEW_TEXT("\n"));
+      }
     tmp = tmp->next;
-    xmlAddChild(root_node, BG_XML_NEW_TEXT("\n"));
     }
+  return xml_doc;
+  }
+
+void bg_transcoder_tracks_save(bg_transcoder_track_t * t,
+                               bg_transcoder_track_global_t * g,
+                               const char * filename)
+  {
+  xmlDocPtr xml_doc;
+  
+  xml_doc = transcoder_tracks_2_xml(t, g, 0);
+  
   xmlSaveFile(filename, xml_doc);
   xmlFreeDoc(xml_doc);
+  }
+
+char *
+bg_transcoder_tracks_selected_to_xml(bg_transcoder_track_t * t)
+  {
+  bg_xml_output_mem_t ctx;
+  xmlOutputBufferPtr b;
+  
+  xmlDocPtr xml_doc;
+  xml_doc = transcoder_tracks_2_xml(t, (bg_transcoder_track_global_t *)0, 1);
+
+  memset(&ctx, 0, sizeof(ctx));
+
+  b = xmlOutputBufferCreateIO(bg_xml_write_callback,
+                              bg_xml_close_callback,
+                              &ctx,
+                              (xmlCharEncodingHandlerPtr)0);
+  
+  xmlSaveFileTo(b, xml_doc, (const char*)0);
+  
+  xmlFreeDoc(xml_doc);
+  return ctx.buffer;
   }
 
 /* Load */
@@ -739,33 +781,23 @@ static int xml_2_global(bg_transcoder_track_global_t * g,
   return ret;
   }
 
-
-bg_transcoder_track_t *
-bg_transcoder_tracks_load(const char * filename,
-                          bg_transcoder_track_global_t * g,
-                          bg_plugin_registry_t * plugin_reg)
+static bg_transcoder_track_t *
+transcoder_tracks_load(xmlDocPtr xml_doc,
+                       bg_transcoder_track_global_t * g,
+                       bg_plugin_registry_t * plugin_reg)
   {
-  xmlDocPtr xml_doc;
   xmlNodePtr node;
 
   bg_transcoder_track_t * ret = (bg_transcoder_track_t *)0;
   bg_transcoder_track_t * end = (bg_transcoder_track_t *)0;
-    
-  if(!filename)
-    return (bg_transcoder_track_t*)0;
   
-  xml_doc = xmlParseFile(filename);
-                                                                               
   if(!xml_doc)
     return (bg_transcoder_track_t*)0;
 
   node = xml_doc->children;
 
   if(BG_XML_STRCMP(node->name, "TRANSCODER_TRACKS"))
-    {
-    xmlFreeDoc(xml_doc);
     return (bg_transcoder_track_t*)0;
-    }
 
   node = node->children;
   
@@ -787,7 +819,7 @@ bg_transcoder_tracks_load(const char * filename,
         }
       xml_2_track(end, xml_doc, node, plugin_reg);
       }
-    else if(node->name && !BG_XML_STRCMP(node->name, "GLOBAL"))
+    else if(node->name && !BG_XML_STRCMP(node->name, "GLOBAL") && g)
       {
       xml_2_global(g, xml_doc, node, plugin_reg);
       }
@@ -798,5 +830,44 @@ bg_transcoder_tracks_load(const char * filename,
   
   
   return ret;  
+  
+
   }
 
+
+bg_transcoder_track_t *
+bg_transcoder_tracks_load(const char * filename,
+                          bg_transcoder_track_global_t * g,
+                          bg_plugin_registry_t * plugin_reg)
+  {
+  xmlDocPtr xml_doc;
+  bg_transcoder_track_t * ret;
+  if(!filename)
+    return (bg_transcoder_track_t*)0;
+  
+  xml_doc = xmlParseFile(filename);
+  
+  ret = transcoder_tracks_load(xml_doc,
+                               g, plugin_reg);
+    
+  
+  xmlFreeDoc(xml_doc);
+  return ret;
+  }
+
+bg_transcoder_track_t * 
+bg_transcoder_tracks_from_xml(char * str, bg_plugin_registry_t * plugin_reg)
+  {
+  xmlDocPtr xml_doc;
+  bg_transcoder_track_t * ret;
+  
+  xml_doc = xmlParseMemory(str, strlen(str));
+  
+  ret = transcoder_tracks_load(xml_doc,
+                               (bg_transcoder_track_global_t*)0,
+                               plugin_reg);
+  
+  xmlFreeDoc(xml_doc);
+  return ret;
+  
+  }

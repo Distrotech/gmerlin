@@ -1189,7 +1189,7 @@ static gboolean remote_callback(gpointer data)
       {
       case TRANSCODER_REMOTE_ADD_ALBUM:
         arg_str = bg_msg_get_arg_string(msg, 0);
-        track_list_add_xml(win->tracklist, arg_str, strlen(arg_str));
+        track_list_add_albumentries_xml(win->tracklist, arg_str);
         free(arg_str);
         break;
       case TRANSCODER_REMOTE_ADD_FILE:
@@ -1383,5 +1383,4 @@ static void transcoder_window_preferences(transcoder_window_t * w)
   bg_gavl_video_options_free(&vo);
     
   }
-
 

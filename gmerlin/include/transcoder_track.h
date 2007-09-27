@@ -197,7 +197,6 @@ bg_transcoder_track_create_from_urilist(const char * list,
 
 bg_transcoder_track_t *
 bg_transcoder_track_create_from_albumentries(const char * xml_string,
-                                             int len,
                                              bg_plugin_registry_t * plugin_reg,
                                              bg_cfg_section_t * section);
 
@@ -256,6 +255,34 @@ bg_transcoder_track_global_from_reg(bg_transcoder_track_global_t * g,
 
 void
 bg_transcoder_track_global_free(bg_transcoder_track_global_t * g);
+
+/* Functions, which operate on lists of transcoder tracks */
+
+bg_transcoder_track_t *
+bg_transcoder_tracks_delete_selected(bg_transcoder_track_t * t);
+
+bg_transcoder_track_t *
+bg_transcoder_tracks_move_selected_up(bg_transcoder_track_t * t);
+
+bg_transcoder_track_t *
+bg_transcoder_tracks_move_selected_down(bg_transcoder_track_t * t);
+
+char *
+bg_transcoder_tracks_selected_to_xml(bg_transcoder_track_t * t);
+
+bg_transcoder_track_t * 
+bg_transcoder_tracks_from_xml(char *, bg_plugin_registry_t * plugin_reg);
+
+
+bg_transcoder_track_t *
+bg_transcoder_tracks_append(bg_transcoder_track_t * t, bg_transcoder_track_t * tail);
+
+bg_transcoder_track_t *
+bg_transcoder_tracks_prepend(bg_transcoder_track_t * t, bg_transcoder_track_t * head);
+
+bg_transcoder_track_t *
+bg_transcoder_tracks_extract_selected(bg_transcoder_track_t ** t);
+
 
 /* transcoder_track_xml.c */
 

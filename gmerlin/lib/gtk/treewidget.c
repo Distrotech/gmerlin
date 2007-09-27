@@ -1738,7 +1738,7 @@ static void drag_received_callback(GtkWidget *widget,
       }
     else if(!strcmp(atom_name, bg_gtk_atom_entries_name))
       {
-      bg_album_insert_xml_before(dest_album, (char*)(data->data), data->length,
+      bg_album_insert_xml_before(dest_album, (char*)(data->data),
                                  (bg_album_entry_t*)0);
       if(drag_context->action == GDK_ACTION_MOVE)
         do_delete = 1;

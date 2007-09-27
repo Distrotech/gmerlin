@@ -1785,11 +1785,10 @@ int bg_album_refresh_entry(bg_album_t * album,
 void bg_album_copy_selected_to_favourites(bg_album_t * a)
   {
   char * xml;
-  int len;
   int was_open;
 
   
-  xml = bg_album_save_selected_to_memory(a, &len, 0);
+  xml = bg_album_save_selected_to_memory(a, 0);
 
   if(!bg_album_is_open(a->com->favourites))
     {
@@ -1798,7 +1797,7 @@ void bg_album_copy_selected_to_favourites(bg_album_t * a)
     }
   was_open = 1;
   
-  bg_album_insert_xml_before(a->com->favourites, xml, len, (bg_album_entry_t*)0);
+  bg_album_insert_xml_before(a->com->favourites, xml, (bg_album_entry_t*)0);
 
   if(!was_open)
     bg_album_close(a->com->favourites);
