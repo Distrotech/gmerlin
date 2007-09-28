@@ -36,6 +36,7 @@ eject_16.png \
 favourites_16.png \
 favourites_closed_16.png \
 favourites_open_16.png \
+filter_16.png \
 find_16.png \
 first_16.png \
 folder_closed_16.png \

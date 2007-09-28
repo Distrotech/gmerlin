@@ -264,7 +264,7 @@ void bg_cfg_section_2_xml(bg_cfg_section_t * section, xmlNodePtr xml_section)
         break;
       case BG_CFG_FLOAT:
         BG_XML_SET_PROP(xml_item, "type", "float");
-        sprintf(buffer, "%f", item->value.val_f);
+        sprintf(buffer, "%.15e", item->value.val_f);
         xmlAddChild(xml_item, BG_XML_NEW_TEXT(buffer));
         break;
       case BG_CFG_STRING:
