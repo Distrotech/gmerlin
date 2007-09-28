@@ -52,3 +52,5 @@ fv_equalizer_la_LDFLAGS = -avoid-version -module
 
 fv_zoom_la_SOURCES  = fv_zoom.c
 fv_zoom_la_LDFLAGS = -avoid-version -module
+
+noinst_HEADERS = motionsearch.h
