@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <gtk/gtk.h>
+#include <gdk/gdkkeysyms.h>
 
 #include <config.h>
 
@@ -225,6 +226,8 @@ struct track_list_s
   bg_gtk_filesel_t * filesel;
   
   char * clipboard;
+  
+  GtkAccelGroup * accel_group;
   };
 
 
@@ -906,10 +909,18 @@ static void init_menu(track_list_t * t)
 
   t->menu.edit_menu.cut_item =
     create_item(t, t->menu.edit_menu.menu, TR("Cut"), "cut_16.png");
+  gtk_widget_add_accelerator(t->menu.edit_menu.cut_item, "activate", t->accel_group,
+                             GDK_x, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
+  
   t->menu.edit_menu.copy_item =
     create_item(t, t->menu.edit_menu.menu, TR("Copy"), "copy_16.png");
+  gtk_widget_add_accelerator(t->menu.edit_menu.copy_item, "activate", t->accel_group,
+                             GDK_c, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
   t->menu.edit_menu.paste_item =
     create_item(t, t->menu.edit_menu.menu, TR("Paste"), "paste_16.png");
+  gtk_widget_add_accelerator(t->menu.edit_menu.paste_item, "activate", t->accel_group,
+                             GDK_v, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
+  
   gtk_widget_show(t->menu.add_menu.menu);
   
   /* Root menu */
@@ -1140,10 +1151,20 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg,
   ret = calloc(1, sizeof(*ret));
 
   ret->tooltips = gtk_tooltips_new();
+  g_object_ref (G_OBJECT (ret->tooltips));
+
+#if GTK_MINOR_VERSION < 10
+  gtk_object_sink (GTK_OBJECT (ret->tooltips));
+#else
+  g_object_ref_sink(G_OBJECT(ret->tooltips));
+#endif
+  
   ret->track_defaults_section = track_defaults_section;
   ret->time_total = bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE_SMALL, 4);
   ret->encoder_pp_window = encoder_pp_window_create(plugin_reg);
-  
+
+  ret->accel_group = gtk_accel_group_new();
+    
   bg_gtk_tooltips_set_tip(ret->tooltips,
                           bg_gtk_time_display_get_widget(ret->time_total),
                           TRS("Total playback time"),
@@ -1440,7 +1461,9 @@ void track_list_destroy(track_list_t * t)
     bg_transcoder_track_destroy(t->tracks);
     t->tracks = tmp_track;
     }
-  //  g_object_unref(t->tooltips);
+  g_object_unref(t->tooltips);
+  g_object_unref(t->accel_group);
+
   if(t->open_path)
     free(t->open_path);
   if(t->clipboard)
@@ -1452,6 +1475,11 @@ void track_list_destroy(track_list_t * t)
 GtkWidget * track_list_get_widget(track_list_t * t)
   {
   return t->widget;
+  }
+
+GtkAccelGroup * track_list_get_accel_group(track_list_t * t)
+  {
+  return t->accel_group;
   }
 
 bg_plugin_handle_t * track_list_get_pp_plugin(track_list_t * t)

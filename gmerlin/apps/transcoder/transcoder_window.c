@@ -962,6 +962,8 @@ transcoder_window_t * transcoder_window_create()
   ret->track_defaults_section = bg_cfg_registry_find_section(ret->cfg_reg, "track_defaults");
   ret->tracklist = track_list_create(ret->plugin_reg, ret->track_defaults_section);
 
+  gtk_window_add_accel_group(GTK_WINDOW(ret->win), track_list_get_accel_group(ret->tracklist));
+  
   cfg_section = bg_cfg_registry_find_section(ret->cfg_reg, "track_list");
   bg_cfg_section_apply(cfg_section, track_list_get_parameters(ret->tracklist),
                        track_list_set_parameter, ret->tracklist);
