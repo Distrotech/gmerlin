@@ -671,7 +671,7 @@ static void stream_menu_init(stream_menu_t * s, gmerlin_t * gmerlin,
                                   gmerlin,
                                   s->menu);
   if(has_filters)
-    s->filters = create_item(TR("Filters..."), gmerlin, s->menu);
+    s->filters = create_pixmap_item(TR("Filters..."), "filter_16.png", gmerlin, s->menu);
   if(has_plugins)
     {
     s->plugins = create_pixmap_item(TR("Output plugin..."), "plugin_16.png",
