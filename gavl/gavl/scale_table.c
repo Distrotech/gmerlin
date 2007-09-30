@@ -213,6 +213,7 @@ gavl_video_scale_table_init_convolve(gavl_video_scale_table_t * tab,
 
   if(opt->conversion_flags & GAVL_CONVOLVE_NORMALIZE)
     normalize_table(tab);   
+  //  gavl_video_scale_table_dump(tab);
   }
 
 static void alloc_table(gavl_video_scale_table_t * tab,
@@ -384,9 +385,9 @@ void gavl_video_scale_table_init_int(gavl_video_scale_table_t * tab,
                                      int bits)
   {
   int fac_max_i, i, j;
-  float fac_max_f;
-  int sum, index;
-  int min_index, max_index;
+  float fac_max_f, sum_f;
+  int sum_i, index;
+  int min_index, max_index, fac_i_norm = 0;
   
   //  fac_max_i = (1<<bits) - 1;
   fac_max_i = (1<<bits);
@@ -399,13 +400,16 @@ void gavl_video_scale_table_init_int(gavl_video_scale_table_t * tab,
     min_index = index;
     max_index = index;
     
-    sum = 0;
+    sum_i = 0;
+    sum_f = 0.0;
+    
     for(j = 0; j < tab->factors_per_pixel; j++)
       {
       tab->factors_i[index] =
         (int)(fac_max_f * tab->factors_f[index]+0.5);
-      sum += tab->factors_i[index];
-
+      sum_i += tab->factors_i[index];
+      sum_f += tab->factors_f[index];
+      
       if(j)
         {
         if(tab->factors_i[index] > tab->factors_i[max_index])
@@ -415,10 +419,13 @@ void gavl_video_scale_table_init_int(gavl_video_scale_table_t * tab,
         }
       index++;
       }
-    if(sum > fac_max_i)
-      tab->factors_i[max_index] -= (sum - fac_max_i);
-    else if(sum < fac_max_i)
-      tab->factors_i[min_index] += (fac_max_i - sum);
+    if(!i)
+      fac_i_norm = (int)(sum_f * fac_max_i + 0.5);
+    
+    if(sum_i > fac_i_norm)
+      tab->factors_i[max_index] -= (sum_i - fac_i_norm);
+    else if(sum_i < fac_i_norm)
+      tab->factors_i[min_index] += (fac_i_norm - sum_i);
     }
   }
 

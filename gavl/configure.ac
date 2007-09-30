@@ -105,10 +105,9 @@ dnl
 
 CFLAGS="$CFLAGS $OPT_CFLAGS"
 
-LQT_TRY_CFLAGS("-Wall", CFLAGS="$CFLAGS -Wall", )
-LQT_TRY_CFLAGS("-Wmissing-declarations", CFLAGS="$CFLAGS -Wmissing-declarations", )
-LQT_TRY_CFLAGS("-Wdeclaration-after-statement", CFLAGS="$CFLAGS -Wdeclaration-after-statement")
-
+LQT_TRY_CFLAGS([-Wall], CFLAGS="$CFLAGS -Wall")
+LQT_TRY_CFLAGS([-Wmissing-declarations], CFLAGS="$CFLAGS -Wmissing-declarations" )
+LQT_TRY_CFLAGS([-Wdeclaration-after-statement], CFLAGS="$CFLAGS -Wdeclaration-after-statement")
 
 dnl
 dnl Stuff from libsamplerate

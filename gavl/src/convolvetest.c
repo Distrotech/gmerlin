@@ -14,8 +14,11 @@
 
 
 
-static float coeffs_h[] = 
-{ 0.2, 0.4, 0.6, 0.8, 1.0, 0.8, 0.6, 0.4, 0.2 };
+//static float coeffs_h[] = 
+//{ 0.2, 0.4, 0.6, 0.8, 1.0, 0.8, 0.6, 0.4, 0.2 };
+
+// static float coeffs_h[] = { 0.5, 1.0, 0.5 };
+static float coeffs_h[] = { 0.25, 0.5, 1.0, 0.5, 0.25 };
 
 static float * coeffs_v = coeffs_h;
 static int num_coeffs_v = sizeof(coeffs_h)/sizeof(coeffs_h[0]);
@@ -52,12 +55,13 @@ int main(int argc, char ** argv)
     fprintf(stderr, "Pixelformat: %s\n", gavl_pixelformat_to_string(csp));
         
     frame = read_png(argv[1], &format, csp);
-
+#if 0
     if(csp == GAVL_RGBA_64)
       {
       write_png("test.png", &format, frame);
       }
-
+#endif
+    
 #if 0
     /* Write test frame */
     sprintf(filename_buffer, "%s-test.png", gavl_pixelformat_to_string(csp));
@@ -68,33 +72,49 @@ int main(int argc, char ** argv)
     gavl_video_options_set_defaults(opt);
 
     gavl_video_options_set_conversion_flags(opt,
-                                            GAVL_CONVOLVE_NORMALIZE | GAVL_CONVOLVE_CHROMA);
-    gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_C);
+                                            GAVL_CONVOLVE_NORMALIZE |
+                                            GAVL_CONVOLVE_CHROMA);
 
-#if 0    
+    //    gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_C);
+
+    /* X and Y */    
+#if 1
     if(gavl_video_scaler_init_convolve(scaler,
-                              &format, num_coeffs_h / 2,
-                              coeffs_h, 
-                              num_coeffs_v / 2,
-                              coeffs_v) < 0)  
+                                       &format, num_coeffs_v / 2,
+                                       coeffs_h, 
+                                       num_coeffs_v / 2,
+                                       coeffs_v) < 0)  
       {
       fprintf(stderr, "No scaling routine defined\n");
       continue;
       }
 #endif
 
-#if 1
+    /* X */
+#if 0
     if(gavl_video_scaler_init_convolve(scaler,
-                              &format, 0, /* num_coeffs_h / 2, */
-                              coeffs_h, 
-                              num_coeffs_v / 2,
-                              coeffs_v) < 0)  
+                                       &format, num_coeffs_v / 2,
+                                       coeffs_h, 
+                                       0, /* num_coeffs_v / 2, */
+                                       coeffs_v) < 0)  
       {
       fprintf(stderr, "No scaling routine defined\n");
       continue;
       }
 #endif
     
+    /* Y */    
+#if 0
+    if(gavl_video_scaler_init_convolve(scaler,
+                                       &format, 0, /* num_coeffs_h / 2, */
+                                       coeffs_h, 
+                                       num_coeffs_v / 2,
+                                       coeffs_v) < 0)  
+      {
+      fprintf(stderr, "No scaling routine defined\n");
+      continue;
+      }
+#endif
 
     frame_1 = gavl_video_frame_create(&format_1);
 
