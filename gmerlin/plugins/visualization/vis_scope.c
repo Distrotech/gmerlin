@@ -154,7 +154,7 @@ set_parameter_scope(void * priv, const char * name,
     vp->fg_float[0] = val->val_color[0];
     vp->fg_float[1] = val->val_color[1];
     vp->fg_float[2] = val->val_color[2];
-    fprintf(stderr, "%f %f %f\n",
+    fprintf(stderr, "fg_color: %f %f %f\n",
             vp->fg_float[0],
             vp->fg_float[1],
             vp->fg_float[2]);
@@ -176,6 +176,8 @@ set_parameter_scope(void * priv, const char * name,
       vp->blur_radius = val->val_f;
       vp->changed = 1;
       }
+    fprintf(stderr, "blur radius: %f\n",
+            vp->blur_radius);
     }
   else if(!strcmp(name, "fade_factor"))
     {
@@ -184,6 +186,8 @@ set_parameter_scope(void * priv, const char * name,
       vp->fade_factor = val->val_f;
       vp->changed = 1;
       }
+    fprintf(stderr, "fade factor: %f\n",
+            vp->fade_factor);
     }
   
   }
@@ -430,11 +434,10 @@ static void draw_frame_scope(void * priv, gavl_video_frame_t * frame)
   gavl_video_frame_copy(&vp->video_format, frame, vp->last_video_frame);
   gavl_video_scaler_scale(vp->scaler, vp->last_video_frame, frame);
   
+  //  draw_line(vp, frame, 0, vp->video_format.image_height/2,
+  //            (vp->video_format.image_width - 1), vp->video_format.image_height/2);
   
-  //  draw_line(vp, frame, (vp->video_format.image_width - 1), 0,
-  //            0,
-  //            vp->video_format.image_height - 1);
-
+#if 1
   if(vp->audio_format.num_channels == 1)
     {
     draw_scope(vp,
@@ -456,7 +459,7 @@ static void draw_frame_scope(void * priv, gavl_video_frame_t * frame)
                vp->audio_frame->channels.f[1],
                frame);
     }
-  
+#endif
   gavl_video_frame_copy(&vp->video_format, vp->last_video_frame, frame);
   
   //  gavl_video_frame_fill(frame, &vp->video_format, color);

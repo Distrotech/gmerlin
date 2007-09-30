@@ -361,11 +361,17 @@ static int read_video_blur(void * priv, gavl_video_frame_t * frame, int stream)
 
   if((vp->radius_h != 0.0) || (vp->radius_v != 0.0))
     {
+    if(vp->changed)
+      {
+      init_scaler(vp);
+      if(vp->frame)
+        {
+        gavl_video_frame_destroy(vp->frame);
+        vp->frame = (gavl_video_frame_t*)0;
+        }
+      }
     if(!vp->frame)
       vp->frame = gavl_video_frame_create(&vp->format);
-
-    if(vp->changed)
-      init_scaler(vp);
     
     if(!vp->read_func(vp->read_data, vp->frame, vp->read_stream))
       return 0;

@@ -26,6 +26,7 @@
 
 #include <log.h>
 #define LOG_DOMAIN "cfg_dialog"
+#include <utils.h>
 
 enum
 {
@@ -214,10 +215,10 @@ static void reset_section(dialog_section_t * s)
          (s->widgets[i].value.val_str) &&
          strchr(s->widgets[i].value.val_str, ':'))
         {
-        val.val_str = malloc(strlen(s->widgets[i].value.val_str)+1);
-        strcpy(val.val_str, s->widgets[i].value.val_str);
+        val.val_str = bg_strdup((char*)0, s->widgets[i].value.val_str);
         pos = strchr(val.val_str, ':');
-        *pos = '\0';
+        if(pos)
+          *pos = '\0';
         s->set_param(s->callback_data, s->widgets[i].info->name,
                      &val);
         free(val.val_str);

@@ -185,7 +185,15 @@ static char * get_list_string(bg_gtk_widget_t * w)
   while(1)
     {
     gtk_tree_model_get(model, &iter, COLUMN_NAME, &name, -1);
-    if(w->info->multi_labels)
+
+    if(priv->multi_labels)
+      {
+      num = 0;
+      while(strcmp(priv->multi_labels[num], name))
+        num++;
+      ret = bg_strcat(ret, w->info->multi_names[num]);
+      }
+    else if(w->info->multi_labels)
       {
       num = 0;
       while(strcmp(w->info->multi_labels[num], name))
@@ -198,7 +206,7 @@ static char * get_list_string(bg_gtk_widget_t * w)
     g_free(name);
     if(!gtk_tree_model_iter_next(model, &iter))
       break;
-    w->value.val_str = bg_strcat(w->value.val_str, ",");
+    ret = bg_strcat(ret, ",");
     }
   return ret;
   }
