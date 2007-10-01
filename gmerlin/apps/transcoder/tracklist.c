@@ -213,7 +213,6 @@ struct track_list_s
   bg_cfg_section_t * track_defaults_section;
   bg_gtk_time_display_t * time_total;
 
-  GtkTooltips * tooltips;
 
   int show_tooltips;
 
@@ -820,8 +819,7 @@ static void button_callback(GtkWidget * w, gpointer data)
 
     
     bg_gtk_chapter_dialog_show(&(t->selected_track->chapter_list),
-                               track_duration,
-                               t->show_tooltips);
+                               track_duration);
     }
   else if((w == t->encoder_button) ||
           (w == t->menu.selected_menu.encoder_item))
@@ -1123,7 +1121,7 @@ static GtkWidget * create_pixmap_button(track_list_t * l, const char * filename,
   button = gtk_button_new();
   gtk_container_add(GTK_CONTAINER(button), image);
 
-  bg_gtk_tooltips_set_tip(l->tooltips, button, tooltip, PACKAGE);
+  bg_gtk_tooltips_set_tip(button, tooltip, PACKAGE);
 
   g_signal_connect(G_OBJECT(button), "clicked",
                    G_CALLBACK(button_callback), l);
@@ -1149,24 +1147,14 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg,
   load_pixmaps();
   
   ret = calloc(1, sizeof(*ret));
-
-  ret->tooltips = gtk_tooltips_new();
-  g_object_ref (G_OBJECT (ret->tooltips));
-
-#if GTK_MINOR_VERSION < 10
-  gtk_object_sink (GTK_OBJECT (ret->tooltips));
-#else
-  g_object_ref_sink(G_OBJECT(ret->tooltips));
-#endif
-  
+    
   ret->track_defaults_section = track_defaults_section;
   ret->time_total = bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE_SMALL, 4);
   ret->encoder_pp_window = encoder_pp_window_create(plugin_reg);
 
   ret->accel_group = gtk_accel_group_new();
     
-  bg_gtk_tooltips_set_tip(ret->tooltips,
-                          bg_gtk_time_display_get_widget(ret->time_total),
+  bg_gtk_tooltips_set_tip(bg_gtk_time_display_get_widget(ret->time_total),
                           TRS("Total playback time"),
                           PACKAGE);
 
@@ -1461,7 +1449,6 @@ void track_list_destroy(track_list_t * t)
     bg_transcoder_track_destroy(t->tracks);
     t->tracks = tmp_track;
     }
-  g_object_unref(t->tooltips);
   g_object_unref(t->accel_group);
 
   if(t->open_path)
@@ -1539,14 +1526,6 @@ void track_list_set_display_colors(track_list_t * t, float * fg, float * bg)
   bg_gtk_time_display_set_colors(t->time_total, fg, bg);
   }
 
-void track_list_set_tooltips(track_list_t * t, int show_tooltips)
-  {
-  if(show_tooltips)
-    gtk_tooltips_enable(t->tooltips);
-  else
-    gtk_tooltips_disable(t->tooltips);
-  t->show_tooltips = show_tooltips;
-  }
 
 bg_parameter_info_t parameters[] =
   {

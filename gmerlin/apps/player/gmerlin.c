@@ -30,6 +30,7 @@
 
 #include <utils.h>
 #include <gui_gtk/auth.h>
+#include <gui_gtk/gtkutils.h>
 
 static void tree_play_callback(void * data)
   {
@@ -784,7 +785,7 @@ void gmerlin_set_parameter(void * data, const char * name,
     }
   else if(!strcmp(name, "show_tooltips"))
     {
-    gmerlin_set_tooltips(g, val->val_i);
+    bg_gtk_set_tooltips(val->val_i);
     }
   else if(!strcmp(name, "skin_dir"))
     {
@@ -833,15 +834,7 @@ int gmerlin_get_parameter(void * data, const char * name, bg_parameter_value_t *
   
   return 0;
   }
-  
-void gmerlin_set_tooltips(gmerlin_t * g, int enable)
-  {
-  bg_gtk_tree_window_set_tooltips(g->tree_window, enable);
-  player_window_set_tooltips(g->player_window, enable);
-  plugin_window_set_tooltips(g->plugin_window, enable);
-  bg_dialog_set_tooltips(g->cfg_dialog, enable);
-  
-  }
+ 
 
 void gmerlin_add_locations(gmerlin_t * g, char ** locations)
   {

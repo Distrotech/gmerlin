@@ -331,12 +331,17 @@ void * bg_player_oa_thread(void * data)
         ctx->plugin->write_frame(ctx->priv,
                                  ctx->player->audio_stream.frame_out);
         bg_plugin_unlock(ctx->plugin_handle);
+
+        if(DO_VISUALIZE(ctx->player))
+          bg_visualizer_update(ctx->player->visualizer, ctx->player->audio_stream.frame_out);
         }
       else
         {
         bg_plugin_lock(ctx->plugin_handle);
         ctx->plugin->write_frame(ctx->priv, frame);
         bg_plugin_unlock(ctx->plugin_handle);
+        if(DO_VISUALIZE(ctx->player))
+          bg_visualizer_update(ctx->player->visualizer, frame);
         }
       
       pthread_mutex_lock(&(ctx->time_mutex));

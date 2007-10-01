@@ -130,7 +130,6 @@ static void button_callback(GtkWidget * w, gpointer data)
 
 static GtkWidget * create_pixmap_button(bg_gtk_plugin_widget_single_t * w,
                                         const char * filename,
-                                        GtkTooltips * tooltips,
                                         const char * tooltip)
   {
   GtkWidget * button;
@@ -149,7 +148,7 @@ static GtkWidget * create_pixmap_button(bg_gtk_plugin_widget_single_t * w,
   button = gtk_button_new();
   gtk_container_add(GTK_CONTAINER(button), image);
 
-  bg_gtk_tooltips_set_tip(tooltips, button, tooltip, PACKAGE);
+  bg_gtk_tooltips_set_tip(button, tooltip, PACKAGE);
 
   g_signal_connect(G_OBJECT(button), "clicked",
                    G_CALLBACK(button_callback), (gpointer)w);
@@ -279,8 +278,7 @@ bg_gtk_plugin_widget_single_t *
 bg_gtk_plugin_widget_single_create(char * label,
                                    bg_plugin_registry_t * reg,
                                    uint32_t type_mask,
-                                   uint32_t flag_mask,
-                                   GtkTooltips * tooltips)
+                                   uint32_t flag_mask)
   {
 #ifdef GTK_2_4
   int default_index;
@@ -311,19 +309,19 @@ bg_gtk_plugin_widget_single_create(char * label,
 
   /* Config */
   
-  ret->config_button = create_pixmap_button(ret, "config_16.png", tooltips,
+  ret->config_button = create_pixmap_button(ret, "config_16.png",
                                             TRS("Plugin options"));
   
   /* Info */
     
-  ret->info_button = create_pixmap_button(ret, "info_16.png", tooltips,
+  ret->info_button = create_pixmap_button(ret, "info_16.png", 
                                           TRS("Plugin info"));
   
   /* Audio */
 
   if(type_mask & (BG_PLUGIN_ENCODER_AUDIO | BG_PLUGIN_ENCODER))
     {
-    ret->audio_button = create_pixmap_button(ret, "audio_16.png", tooltips,
+    ret->audio_button = create_pixmap_button(ret, "audio_16.png", 
                                             TRS("Audio options"));
     }
   
@@ -331,7 +329,7 @@ bg_gtk_plugin_widget_single_create(char * label,
     
   if(type_mask & (BG_PLUGIN_ENCODER_VIDEO | BG_PLUGIN_ENCODER))
     {
-    ret->video_button = create_pixmap_button(ret, "video_16.png", tooltips,
+    ret->video_button = create_pixmap_button(ret, "video_16.png", 
                                             TRS("Video options"));
     }
   

@@ -344,7 +344,7 @@ void bg_gtk_create_color_rgb(bg_gtk_widget_t * w,
 
   if(info->help_string)
     {
-    bg_gtk_tooltips_set_tip(w->tooltips, priv->button, info->help_string,
+    bg_gtk_tooltips_set_tip(priv->button, info->help_string,
                             translation_domain);
     }
   

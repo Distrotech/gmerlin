@@ -18,3 +18,5 @@ void bg_visualizer_open(bg_visualizer_t * v,
 void bg_visualizer_update(bg_visualizer_t * v, gavl_audio_frame_t *);
 
 void bg_visualizer_close(bg_visualizer_t * v);
+
+int bg_visualizer_is_enabled(bg_visualizer_t * v);

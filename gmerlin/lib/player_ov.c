@@ -195,6 +195,12 @@ int  bg_player_ov_has_plugin(bg_player_ov_context_t * ctx)
   return (ctx->plugin_handle ? 1 : 0);
   }
 
+bg_plugin_handle_t * bg_player_ov_get_plugin(bg_player_ov_context_t * ctx)
+  {
+  return ctx->plugin_handle;
+  }
+
+
 /* Create frame */
 
 void * bg_player_ov_create_frame(void * data)

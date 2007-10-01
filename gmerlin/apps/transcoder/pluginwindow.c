@@ -27,7 +27,6 @@ struct plugin_window_s
   transcoder_window_t * tw;
   bg_plugin_registry_t * plugin_reg;
 
-  GtkTooltips * tooltips;
 
   encoder_widget_t encoders;
   };
@@ -109,15 +108,6 @@ plugin_window_create(bg_plugin_registry_t * plugin_reg,
   bg_gtk_plugin_widget_single_set_change_callback(ret->encoders.subtitle_text_encoder,
                                                   set_subtitle_text_encoder, ret);
   
-  ret->tooltips = gtk_tooltips_new();
-
-  g_object_ref (G_OBJECT (ret->tooltips));
-
-#if GTK_MINOR_VERSION < 10
-  gtk_object_sink (GTK_OBJECT (ret->tooltips));
-#else
-  g_object_ref_sink(G_OBJECT(ret->tooltips));
-#endif
     
   ret->tw = win;
   ret->plugin_reg = plugin_reg;
@@ -134,12 +124,12 @@ plugin_window_create(bg_plugin_registry_t * plugin_reg,
                                       BG_PLUGIN_INPUT,
                                       BG_PLUGIN_FILE|
                                       BG_PLUGIN_URL|
-                                      BG_PLUGIN_REMOVABLE, ret->tooltips);
+                                      BG_PLUGIN_REMOVABLE);
 
   ret->image_readers =
     bg_gtk_plugin_widget_multi_create(plugin_reg,
                                       BG_PLUGIN_IMAGE_READER,
-                                      BG_PLUGIN_FILE, ret->tooltips);
+                                      BG_PLUGIN_FILE);
     
   ret->close_button = gtk_button_new_from_stock(GTK_STOCK_CLOSE);
 
@@ -195,7 +185,6 @@ void plugin_window_destroy(plugin_window_t * w)
   {
   bg_gtk_plugin_widget_multi_destroy(w->inputs);
 
-  g_object_unref(w->tooltips);
 
   free(w);
   }
@@ -209,16 +198,3 @@ void plugin_window_show(plugin_window_t * w)
   }
 
 
-void plugin_window_set_tooltips(plugin_window_t * w, int enable)
-  {
-  if(enable)
-    {
-    gtk_tooltips_enable(w->tooltips);
-    gtk_tooltips_enable(w->encoders.tooltips);
-    }
-  else
-    {
-    gtk_tooltips_disable(w->tooltips);
-    gtk_tooltips_disable(w->encoders.tooltips);
-    }
-  }

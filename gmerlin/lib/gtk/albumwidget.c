@@ -316,11 +316,7 @@ struct bg_gtk_album_widget_s
   /* Open path */
 
   char * open_path;
-
-  /* Tooltips */
-
-  GtkTooltips * tooltips;
-
+  
   int release_updates_selection;
   
   /* For inserting */
@@ -2553,7 +2549,7 @@ static GtkWidget * create_pixmap_button(bg_gtk_album_widget_t * w,
 
   gtk_widget_show(button);
 
-  bg_gtk_tooltips_set_tip(w->tooltips, button, tooltip, PACKAGE);
+  bg_gtk_tooltips_set_tip(button, tooltip, PACKAGE);
   
   return button;
   }
@@ -2593,15 +2589,6 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
   
   ret->accel_group = gtk_accel_group_new();
   
-  ret->tooltips = gtk_tooltips_new();
-  
-  g_object_ref (G_OBJECT (ret->tooltips));
-
-#if GTK_MINOR_VERSION < 10
-  gtk_object_sink (GTK_OBJECT (ret->tooltips));
-#else
-  g_object_ref_sink(G_OBJECT(ret->tooltips));
-#endif
   
   bg_album_set_change_callback(album, change_callback, ret);
   bg_album_set_current_change_callback(album, current_change_callback, ret);
@@ -2868,8 +2855,7 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
   
   ret->total_time                = bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE_SMALL, 4);
 
-  bg_gtk_tooltips_set_tip(ret->tooltips,
-                          bg_gtk_time_display_get_widget(ret->total_time),
+  bg_gtk_tooltips_set_tip(bg_gtk_time_display_get_widget(ret->total_time),
                           TRS("Total playback time"),
                           PACKAGE);
 
@@ -2946,7 +2932,6 @@ void bg_gtk_album_widget_destroy(bg_gtk_album_widget_t * w)
     free(w->clipboard);
   bg_gtk_time_display_destroy(w->total_time);
 
-  g_object_unref(w->tooltips);
 
   bg_album_set_change_callback(w->album, NULL, NULL);
   bg_album_set_current_change_callback(w->album, NULL, NULL);
@@ -2972,14 +2957,6 @@ GtkWidget * bg_gtk_album_widget_get_widget(bg_gtk_album_widget_t * w)
 bg_album_t * bg_gtk_album_widget_get_album(bg_gtk_album_widget_t * w)
   {
   return w->album;
-  }
-
-void bg_gtk_album_widget_set_tooltips(bg_gtk_album_widget_t * w, int enable)
-  {
-  if(enable)
-    gtk_tooltips_enable(w->tooltips);
-  else
-    gtk_tooltips_disable(w->tooltips);
   }
 
 void bg_gtk_album_widget_goto_current(bg_gtk_album_widget_t * aw)
@@ -3167,7 +3144,7 @@ static GtkWidget * find_create_pixmap_button(bg_gtk_album_widget_t * w,
   
   gtk_widget_show(button);
   
-  bg_gtk_tooltips_set_tip(w->tooltips, button, tooltip, PACKAGE);
+  bg_gtk_tooltips_set_tip(button, tooltip, PACKAGE);
   
   return button;
   }
@@ -3179,7 +3156,7 @@ static GtkWidget * find_create_check_button(bg_gtk_album_widget_t * w,
   GtkWidget * button;
   button = gtk_check_button_new_with_label(name);
   gtk_widget_show(button);
-  bg_gtk_tooltips_set_tip(w->tooltips, button, tooltip, PACKAGE);
+  bg_gtk_tooltips_set_tip(button, tooltip, PACKAGE);
   return button;
   }
 

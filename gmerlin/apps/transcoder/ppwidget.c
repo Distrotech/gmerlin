@@ -19,7 +19,6 @@ typedef struct
 
   GtkWidget * widget;
 
-  GtkTooltips * tooltips;
   bg_plugin_registry_t * plugin_reg;
   } encoder_pp_widget_t;
 
@@ -46,22 +45,12 @@ static void encoder_pp_widget_init(encoder_pp_widget_t * ret, bg_plugin_registry
   {
   int row, num_columns;
   
-  ret->tooltips = gtk_tooltips_new();
   ret->plugin_reg = plugin_reg;
   
-  g_object_ref (G_OBJECT (ret->tooltips));
-
-#if GTK_MINOR_VERSION < 10
-  gtk_object_sink (GTK_OBJECT (ret->tooltips));
-#else
-  g_object_ref_sink(G_OBJECT(ret->tooltips));
-#endif
-
   ret->plugins =
     bg_gtk_plugin_widget_single_create("Postprocessing plugin", plugin_reg,
                                        BG_PLUGIN_ENCODER_PP,
-                                       0,
-                                       ret->tooltips);
+                                       0);
 
   bg_gtk_plugin_widget_single_set_sensitive(ret->plugins, 0);
 

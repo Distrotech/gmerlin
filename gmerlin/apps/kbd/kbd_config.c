@@ -77,7 +77,6 @@ typedef struct
   
   GtkWidget * ok_button;
   GtkWidget * cancel_button;
-  GtkTooltips * tooltips;
   int ret;
   int do_grab; /* 1 if we are currently grabbing */
   } edit_dialog_t;
@@ -178,8 +177,7 @@ static gboolean dialog_delete_callback(GtkWidget * w, GdkEventAny * evt, gpointe
   return TRUE;
   }
 
-static edit_dialog_t * edit_dialog_create(kbd_table_t * kbd,
-                                          GtkTooltips * tooltips)
+static edit_dialog_t * edit_dialog_create(kbd_table_t * kbd)
   {
   char * tmp_string;
   GtkWidget * box, *table;
@@ -300,11 +298,11 @@ static void edit_dialog_destroy(edit_dialog_t * dlg)
   free(dlg);
   }
 
-static int edit_key(kbd_table_t * kbd, GtkTooltips * tooltips)
+static int edit_key(kbd_table_t * kbd)
   {
   int ret;
   edit_dialog_t * dlg;
-  dlg = edit_dialog_create(kbd, tooltips);
+  dlg = edit_dialog_create(kbd);
   gtk_widget_show(dlg->window);
   gtk_main();
   ret = dlg->ret;
@@ -341,7 +339,6 @@ typedef struct
   
   GtkWidget * apply_button;
   GtkWidget * close_button;
-  GtkTooltips * tooltips;
 
   bg_remote_client_t * remote;
   int selected;
@@ -479,7 +476,7 @@ static void window_button_callback(GtkWidget * w, gpointer data)
       memset(&win->keys[win->num_keys], 0, sizeof(win->keys[win->num_keys]));
       }
     win->num_keys++;
-    if(!edit_key(&win->keys[win->num_keys-1], win->tooltips))
+    if(!edit_key(&win->keys[win->num_keys-1]))
       win->num_keys--;
     else
       {
@@ -493,7 +490,7 @@ static void window_button_callback(GtkWidget * w, gpointer data)
     }
   else if(w == win->edit_button)
     {
-    if(edit_key(&win->keys[win->selected], win->tooltips))
+    if(edit_key(&win->keys[win->selected]))
       update_list(win);
     }
   else if(w == win->delete_button)
@@ -587,7 +584,7 @@ static GtkWidget * create_window_pixmap_button(window_t * win,
   
   gtk_widget_show(button);
 
-  bg_gtk_tooltips_set_tip(win->tooltips, button, tooltip, PACKAGE);
+  bg_gtk_tooltips_set_tip(button, tooltip, PACKAGE);
   
   return button;
   }
@@ -612,14 +609,6 @@ static window_t * create_window()
   ret->keys_alloc = ret->num_keys;
     
   /* Tooltips */
-  ret->tooltips = gtk_tooltips_new();
-  g_object_ref (G_OBJECT (ret->tooltips));
-
-#if GTK_MINOR_VERSION < 10
-  gtk_object_sink (GTK_OBJECT (ret->tooltips));
-#else
-  g_object_ref_sink(G_OBJECT(ret->tooltips));
-#endif
   
   /* Create Buttons */
   ret->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -636,7 +625,7 @@ static window_t * create_window()
 
   ret->kbd_button = gtk_check_button_new_with_label(TR("Daemon running"));
 
-  bg_gtk_tooltips_set_tip(ret->tooltips, ret->kbd_button,
+  bg_gtk_tooltips_set_tip(ret->kbd_button,
                           TRS("Switch deamon on and off. If you want to start the daemon with each start of X, add \"gmerlin_kbd\" to your startup programs"),
                           PACKAGE);
   

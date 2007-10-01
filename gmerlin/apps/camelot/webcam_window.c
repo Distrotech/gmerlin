@@ -59,7 +59,6 @@ struct gmerlin_webcam_window_s
 
   bg_cfg_section_t * section;
 
-  GtkTooltips * tooltips;
   };
 
 static void set_input_plugin(const bg_plugin_info_t * info, void * data)
@@ -318,7 +317,7 @@ static GtkWidget * create_pixmap_button(gmerlin_webcam_window_t * w,
 
   gtk_widget_show(button);
 
-  bg_gtk_tooltips_set_tip(w->tooltips, button, tooltip, PACKAGE);
+  bg_gtk_tooltips_set_tip(button, tooltip, PACKAGE);
   
   return button;
   }
@@ -340,15 +339,6 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   
   ret = calloc(1, sizeof(*ret));
 
-  ret->tooltips = gtk_tooltips_new();
-
-  g_object_ref (G_OBJECT (ret->tooltips));
-
-#if GTK_MINOR_VERSION < 10
-  gtk_object_sink (GTK_OBJECT (ret->tooltips));
-#else
-  g_object_ref_sink(G_OBJECT(ret->tooltips));
-#endif
     
   ret->cam = w;
 
@@ -370,8 +360,7 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   ret->input_plugin =
     bg_gtk_plugin_widget_single_create(TR("Plugin"), ret->plugin_reg,
                                        BG_PLUGIN_RECORDER_VIDEO,
-                                       BG_PLUGIN_RECORDER,
-                                       ret->tooltips);
+                                       BG_PLUGIN_RECORDER);
   bg_gtk_plugin_widget_single_set_change_callback(ret->input_plugin, set_input_plugin, ret);
   
   set_input_plugin(bg_gtk_plugin_widget_single_get_plugin(ret->input_plugin),
@@ -387,8 +376,7 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   ret->capture_plugin =
     bg_gtk_plugin_widget_single_create(TR("Plugin"), ret->plugin_reg,
                                        BG_PLUGIN_IMAGE_WRITER,
-                                       BG_PLUGIN_FILE,
-                                       ret->tooltips);
+                                       BG_PLUGIN_FILE);
   bg_gtk_plugin_widget_single_set_change_callback(ret->capture_plugin, set_capture_plugin, ret);
 
   set_capture_plugin(bg_gtk_plugin_widget_single_get_plugin(ret->capture_plugin),
@@ -416,8 +404,7 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   ret->monitor_plugin =
     bg_gtk_plugin_widget_single_create(TR("Plugin"), ret->plugin_reg,
                                        BG_PLUGIN_OUTPUT_VIDEO,
-                                       BG_PLUGIN_PLAYBACK,
-                                       ret->tooltips);
+                                       BG_PLUGIN_PLAYBACK);
   bg_gtk_plugin_widget_single_set_change_callback(ret->monitor_plugin,
                                                   set_monitor_plugin, ret);
 
@@ -434,7 +421,7 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   /* Create output file stuff */
 
   ret->output_dir = bg_gtk_file_entry_create(1, filename_changed_callback, ret,
-                                             (GtkTooltips*)0, (char*)0, (char*)0);
+                                             (char*)0, (char*)0);
   ret->output_filename_base = gtk_entry_new();
   g_signal_connect(ret->output_filename_base, "changed", G_CALLBACK(button_callback),
                    ret);

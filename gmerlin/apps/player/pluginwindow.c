@@ -97,13 +97,12 @@ plugin_window_t * plugin_window_create(gmerlin_t * g,
                                       BG_PLUGIN_INPUT,
                                       BG_PLUGIN_FILE|
                                       BG_PLUGIN_URL|
-                                      BG_PLUGIN_REMOVABLE,
-                                      ret->tooltips);
+                                      BG_PLUGIN_REMOVABLE);
 
   ret->image_readers = 
     bg_gtk_plugin_widget_multi_create(g->plugin_reg,
                                       BG_PLUGIN_IMAGE_READER,
-                                      BG_PLUGIN_FILE, ret->tooltips);
+                                      BG_PLUGIN_FILE);
 
 
   
@@ -181,10 +180,3 @@ void plugin_window_show(plugin_window_t * w)
   
   }
 
-void plugin_window_set_tooltips(plugin_window_t * w, int enable)
-  {
-  if(enable)
-    gtk_tooltips_enable(w->tooltips);
-  else
-    gtk_tooltips_disable(w->tooltips);
-  }

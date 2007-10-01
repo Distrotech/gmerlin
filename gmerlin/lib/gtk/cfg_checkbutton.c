@@ -91,7 +91,7 @@ void bg_gtk_create_checkbutton(bg_gtk_widget_t * w, bg_parameter_info_t * info,
 
   if(info->help_string)
     {
-    bg_gtk_tooltips_set_tip(w->tooltips, priv->button,
+    bg_gtk_tooltips_set_tip(priv->button,
                             info->help_string, translation_domain);
     }
   

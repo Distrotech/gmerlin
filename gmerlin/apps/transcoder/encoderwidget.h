@@ -18,7 +18,6 @@ typedef struct
   
   GtkWidget * widget;
   
-  GtkTooltips * tooltips;
   bg_plugin_registry_t * plugin_reg;
   } encoder_widget_t;
 

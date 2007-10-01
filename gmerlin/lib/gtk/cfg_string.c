@@ -108,7 +108,7 @@ void bg_gtk_create_string(bg_gtk_widget_t * w, bg_parameter_info_t * info,
 
   if(info->help_string)
     {
-    bg_gtk_tooltips_set_tip(w->tooltips, priv->entry,
+    bg_gtk_tooltips_set_tip(priv->entry,
                             info->help_string, translation_domain);
     }
 

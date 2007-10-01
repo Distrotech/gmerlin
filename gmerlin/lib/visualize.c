@@ -2,10 +2,83 @@
 
 #include <gavl/gavl.h>
 
+#include <config.h>
 #include <translation.h>
 
 #include <pluginregistry.h>
 #include <visualize.h>
+#include <log.h>
+#define LOG_DOMAIN "visualizer"
+
+typedef struct
+  {
+  gavl_audio_converter_t * cnv;
+  gavl_audio_frame_t     * frame_in;
+  gavl_audio_frame_t     * frame_out;
+  int do_convert;
+  int do_stop;
+  pthread_mutex_t mutex;
+  } audio_buffer_t;
+
+static audio_buffer_t * audio_buffer_create()
+  {
+  audio_buffer_t * ret;
+  ret = calloc(1, sizeof(*ret));
+  ret->cnv = gavl_audio_converter_create();
+  pthread_mutex_init(&(ret->mutex),(pthread_mutexattr_t *)0);
+  return ret;
+  }
+
+static void audio_buffer_cleanup(audio_buffer_t * b)
+  {
+  if(b->do_convert && b->frame_in)
+    {
+    gavl_audio_frame_destroy(b->frame_in);
+    b->frame_in = (gavl_audio_frame_t*)0;
+    }
+  
+  if(b->frame_out)
+    {
+    gavl_audio_frame_destroy(b->frame_out);
+    b->frame_out = (gavl_audio_frame_t*)0;
+    }
+  }
+
+static void audio_buffer_init(audio_buffer_t * b,
+                              const gavl_audio_format_t * in_format,
+                              const gavl_audio_format_t * out_format)
+  {
+  /* Cleanup */
+  audio_buffer_cleanup(b);
+  b->do_convert = gavl_audio_converter_init(b->cnv, in_format, out_format);
+
+  b->frame_out = gavl_audio_frame_create(out_format);
+  
+  if(b->do_convert)
+    b->frame_in = gavl_audio_frame_create(in_format);
+  
+  }
+
+static void audio_buffer_destroy(audio_buffer_t * b)
+  {
+
+  }
+
+static void audio_buffer_put_audio(audio_buffer_t * b, gavl_audio_frame_t * f)
+  {
+  
+  }
+
+static int audio_buffer_get_audio(audio_buffer_t * b, gavl_audio_frame_t * f)
+  {
+  return 0;
+  }
+
+static void audio_buffer_stop(audio_buffer_t * b)
+  {
+  
+  }
+
 
 struct bg_visualizer_s
   {
@@ -56,6 +129,8 @@ struct bg_visualizer_s
   
   int audio_pos; /* Inside frame */
   int last_samples_read;
+  
+  int enable;
   };
 
 
@@ -92,6 +167,11 @@ void bg_visualizer_destroy(bg_visualizer_t * v)
 
 static bg_parameter_info_t parameters[] =
   {
+    {
+      name:       "enable",
+      long_name:  TRS("Enable visualizations"),
+      type:       BG_PARAMETER_CHECKBUTTON,
+    },
     {
       name:       "plugin",
       long_name:  TRS("Plugin"),
@@ -134,7 +214,7 @@ static void create_params(bg_visualizer_t * v)
                                         BG_PLUGIN_VISUALIZATION,
                                         BG_PLUGIN_VISUALIZE_FRAME |
                                         BG_PLUGIN_VISUALIZE_GL,
-                                        v->params);
+                                        &(v->params[1]));
   }
 
 bg_parameter_info_t * bg_visualizer_get_parameters(bg_visualizer_t * v)
@@ -156,8 +236,12 @@ void bg_visualizer_set_parameter(void * priv,
   v = (bg_visualizer_t*)priv;
   
   //  fprintf(stderr, "bg_visualizer_set_parameter: %s\n", name);
-  
-  if(!strcmp(name, "plugin"))
+
+  if(!strcmp(name, "enable"))
+    {
+    v->enable = val->val_i;
+    }
+  else if(!strcmp(name, "plugin"))
     {
     if(v->vis_handle && strcmp(v->vis_handle->info->name, val->val_str))
       {
@@ -331,6 +415,9 @@ static void * video_thread_func(void * data)
       {
       bg_plugin_lock(v->ov_handle);
       v->ov_plugin->put_video(v->ov_handle->priv, v->video_frame_out);
+
+      fprintf(stderr, "Show frame\n");
+      
       v->ov_plugin->handle_events(v->ov_handle->priv);
       bg_plugin_unlock(v->ov_handle);
       }
@@ -374,7 +461,11 @@ void bg_visualizer_open(bg_visualizer_t * v,
                       v->ov_handle->priv,
                       &v->audio_format_out,
                       &v->video_format_in_real);
-  
+
+  fprintf(stderr, "Audio Input format:\n");
+  gavl_audio_format_dump(&v->audio_format_in);
+  fprintf(stderr, "Audio Output format:\n");
+  gavl_audio_format_dump(&v->audio_format_out);
   
   if(v->vis_handle->info->flags & BG_PLUGIN_VISUALIZE_FRAME)
     {
@@ -384,9 +475,9 @@ void bg_visualizer_open(bg_visualizer_t * v,
     v->ov_plugin->open(v->ov_handle->priv,
                        &v->video_format_out, v->vis_handle->info->long_name);
 
-    fprintf(stderr, "Input format:\n");
+    fprintf(stderr, "Video Input format:\n");
     gavl_video_format_dump(&v->video_format_in_real);
-    fprintf(stderr, "Output format:\n");
+    fprintf(stderr, "Video Output format:\n");
     gavl_video_format_dump(&v->video_format_out);
     
     /* Initialize video converter */
@@ -432,7 +523,9 @@ void bg_visualizer_open(bg_visualizer_t * v,
   gavl_timer_start(v->timer);
   
   pthread_create(&(v->audio_thread), (pthread_attr_t*)0, audio_thread_func, v);
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Started audio thread");
   pthread_create(&(v->video_thread), (pthread_attr_t*)0, video_thread_func, v);
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Started video thread");
   }
 
 void bg_visualizer_update(bg_visualizer_t * v, gavl_audio_frame_t * frame)
@@ -459,8 +552,10 @@ void bg_visualizer_close(bg_visualizer_t * v)
   pthread_mutex_unlock(&v->stop_mutex);
 
   pthread_join(v->audio_thread, (void**)0);
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Joined audio thread");
   pthread_join(v->video_thread, (void**)0);
-
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Joined video thread");
+  
   /* Close plugins */
   
   if(v->vis_handle->info->flags & BG_PLUGIN_VISUALIZE_FRAME)
@@ -473,3 +568,7 @@ void bg_visualizer_close(bg_visualizer_t * v)
   gavl_timer_stop(v->timer);
   }
 
+int bg_visualizer_is_enabled(bg_visualizer_t * v)
+  {
+  return v->enable;
+  }

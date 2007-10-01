@@ -397,6 +397,8 @@ static void cleanup_streams(bg_player_t * player)
   
   if(DO_VIDEO(player))
     bg_player_ov_cleanup(player->ov_context);
+  else if(DO_VISUALIZE(player))
+    bg_visualizer_close(player->visualizer);
   
   bg_player_time_stop(player);
   
@@ -441,6 +443,16 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
       return;
     }
 
+  /* Initialize visualizations */
+
+  if(bg_visualizer_is_enabled(p->visualizer) &&
+     !DO_VIDEO(p) && !DO_STILL(p) && !DO_SUBTITLE(p))
+    {
+    p->flags |= PLAYER_DO_VISUALIZE;
+    bg_visualizer_open(p->visualizer, &p->audio_stream.output_format,
+                       bg_player_ov_get_plugin(p->ov_context));
+    }
+  
   /* Send input messages */
   bg_player_input_send_messages(p->input_context);
 
@@ -536,7 +548,7 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
                            msg_video_stream,
                            p);
     }
-  else if(had_video)
+  else if(had_video && !DO_VISUALIZE(p))
     bg_player_ov_standby(p->ov_context);
   
   if(DO_SUBTITLE(p))
@@ -651,7 +663,7 @@ static void play_cmd(bg_player_t * p,
   if(p->input_handle && !bg_plugin_equal(p->input_handle, handle))
     player_cleanup(p);
   
-  had_video = DO_VIDEO(p) || DO_STILL(p);
+  had_video = DO_VIDEO(p) || DO_STILL(p) || DO_VISUALIZE(p);
   
   bg_player_set_track_name(p, track_name);
   
@@ -683,7 +695,7 @@ static void cleanup_playback(bg_player_t * player,
     case BG_PLAYER_STATE_CHANGING:
       if(new_state == BG_PLAYER_STATE_STOPPED)
         {
-        if(DO_VIDEO(player) || DO_STILL(player))
+        if(DO_VIDEO(player) || DO_STILL(player) || DO_VISUALIZE(player))
           {
           bg_player_ov_standby(player->ov_context);
           player->flags &= ~(PLAYER_DO_VIDEO|PLAYER_DO_STILL);
@@ -734,7 +746,7 @@ static void cleanup_playback(bg_player_t * player,
         
     if(new_state == BG_PLAYER_STATE_STOPPED)
       {
-      if(DO_VIDEO(player) || DO_STILL(player))
+      if(DO_VIDEO(player) || DO_STILL(player) || DO_VISUALIZE(player))
         {
         bg_player_ov_standby(player->ov_context);
         player->flags &= ~(PLAYER_DO_VIDEO|PLAYER_DO_STILL);
@@ -782,7 +794,7 @@ static void stream_change_init(bg_player_t * player)
     /* Interrupt and pretend we are seeking */
 
     player->saved_state.has_video =
-      DO_VIDEO(player) || DO_STILL(player);
+      DO_VIDEO(player) || DO_STILL(player) || DO_SUBTITLE(player) || DO_VISUALIZE(player);
     
     cleanup_playback(player, old_state, BG_PLAYER_STATE_CHANGING, 0);
     cleanup_streams(player);

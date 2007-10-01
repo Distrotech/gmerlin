@@ -157,10 +157,8 @@ set_combo_tooltip(GtkWidget *widget, gpointer   data)
   stringlist_t * priv;
   priv = (stringlist_t *)w->priv;
   
-  //  GtkTooltips *tooltips = (GtkTooltips *)data;
-
   if(GTK_IS_BUTTON (widget))
-    bg_gtk_tooltips_set_tip(w->tooltips, widget,
+    bg_gtk_tooltips_set_tip(widget,
                             w->info->help_string,
                             priv->translation_domain);
   }

@@ -162,7 +162,7 @@ static void create_common(bg_gtk_widget_t * w,
 
   if(info->help_string)
     {
-    bg_gtk_tooltips_set_tip(w->tooltips, s->slider,
+    bg_gtk_tooltips_set_tip(s->slider,
                             info->help_string, translation_domain);
     }
 

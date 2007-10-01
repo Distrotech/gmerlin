@@ -133,8 +133,6 @@ typedef struct player_window_s
   
   float volume;
 
-  GtkTooltips * tooltips;
-
   int msg_queue_locked;
 
   /* For the player window only (NOT for album windows) */
@@ -154,4 +152,3 @@ void player_window_set_skin(player_window_t * win,
 
 void player_window_destroy(player_window_t * win);
 
-void player_window_set_tooltips(player_window_t * win, int enable);

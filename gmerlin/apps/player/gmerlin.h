@@ -199,9 +199,6 @@ void gmerlin_set_parameter(void * data, const char * name,
 int gmerlin_get_parameter(void * data, const char * name,
                           bg_parameter_value_t * val);
 
-/* Enable/disable tooltips */
-
-void gmerlin_set_tooltips(gmerlin_t * g, int enable);
 
 /* Handle remote command */
 

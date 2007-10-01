@@ -42,7 +42,6 @@ typedef struct
   GtkWidget * window;
   bg_plugin_registry_t * plugin_reg;
 
-  GtkTooltips * tooltips;
   } app_window;
 
 static void encode_audio_to_video_callback(GtkWidget * w, gpointer data)
@@ -227,17 +226,7 @@ static app_window * create_window(bg_plugin_registry_t * reg)
   int row, num_columns;
   
   ret = calloc(1, sizeof(*ret));
-
-  ret->tooltips = gtk_tooltips_new();
-
-  g_object_ref (G_OBJECT (ret->tooltips));
-
-#if GTK_MINOR_VERSION < 10
-  gtk_object_sink (GTK_OBJECT (ret->tooltips));
-#else
-  g_object_ref_sink(G_OBJECT(ret->tooltips));
-#endif
-    
+  
   ret->plugin_reg = reg;
   
   ret->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -257,7 +246,7 @@ static app_window * create_window(bg_plugin_registry_t * reg)
                                       BG_PLUGIN_FILE|
                                       BG_PLUGIN_URL|
                                       BG_PLUGIN_REMOVABLE |
-                                      BG_PLUGIN_TUNER, ret->tooltips);
+                                      BG_PLUGIN_TUNER);
   
   label = gtk_label_new(TR("Input plugins"));
   gtk_widget_show(label);
@@ -269,26 +258,26 @@ static app_window * create_window(bg_plugin_registry_t * reg)
   ret->audio_output_plugins =
     bg_gtk_plugin_widget_single_create(TR("Audio"), reg,
                                        BG_PLUGIN_OUTPUT_AUDIO,
-                                       BG_PLUGIN_PLAYBACK, ret->tooltips);
+                                       BG_PLUGIN_PLAYBACK);
   bg_gtk_plugin_widget_single_set_change_callback(ret->audio_output_plugins, set_audio_output, ret);
   
   ret->video_output_plugins =
     bg_gtk_plugin_widget_single_create("Video", reg,
                                        BG_PLUGIN_OUTPUT_VIDEO,
-                                       BG_PLUGIN_PLAYBACK, ret->tooltips);
+                                       BG_PLUGIN_PLAYBACK);
   bg_gtk_plugin_widget_single_set_change_callback(ret->video_output_plugins, set_video_output, ret);
 
   
   ret->audio_recorder_plugins =
     bg_gtk_plugin_widget_single_create("Audio", reg,
                                        BG_PLUGIN_RECORDER_AUDIO,
-                                       BG_PLUGIN_RECORDER, ret->tooltips);
+                                       BG_PLUGIN_RECORDER);
   bg_gtk_plugin_widget_single_set_change_callback(ret->audio_recorder_plugins, set_audio_recorder, ret);
 
   ret->video_recorder_plugins =
     bg_gtk_plugin_widget_single_create("Video", reg,
                                        BG_PLUGIN_RECORDER_VIDEO,
-                                       BG_PLUGIN_RECORDER, ret->tooltips);
+                                       BG_PLUGIN_RECORDER);
   bg_gtk_plugin_widget_single_set_change_callback(ret->video_recorder_plugins, set_video_recorder, ret);
 
   /* Audio Encoders */
@@ -296,7 +285,7 @@ static app_window * create_window(bg_plugin_registry_t * reg)
   ret->audio_encoder_plugins =
     bg_gtk_plugin_widget_single_create("Audio", reg,
                                        BG_PLUGIN_ENCODER_AUDIO,
-                                       BG_PLUGIN_FILE, ret->tooltips);
+                                       BG_PLUGIN_FILE);
   bg_gtk_plugin_widget_single_set_change_callback(ret->audio_encoder_plugins, set_audio_encoder, ret);
 
   ret->audio_to_video = gtk_check_button_new_with_label(TR("Encode audio into video file"));
@@ -314,7 +303,7 @@ static app_window * create_window(bg_plugin_registry_t * reg)
   ret->subtitle_text_encoder_plugins =
     bg_gtk_plugin_widget_single_create("Text subtitles", reg,
                                        BG_PLUGIN_ENCODER_SUBTITLE_TEXT,
-                                       BG_PLUGIN_FILE, ret->tooltips);
+                                       BG_PLUGIN_FILE);
   bg_gtk_plugin_widget_single_set_change_callback(ret->subtitle_text_encoder_plugins, set_subtitle_text_encoder, ret);
 
   ret->subtitle_text_to_video = gtk_check_button_new_with_label(TR("Encode text subtitles into video file"));
@@ -332,7 +321,7 @@ static app_window * create_window(bg_plugin_registry_t * reg)
   ret->subtitle_overlay_encoder_plugins =
     bg_gtk_plugin_widget_single_create("Overlay subtitles", reg,
                                        BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY,
-                                       BG_PLUGIN_FILE, ret->tooltips);
+                                       BG_PLUGIN_FILE);
   bg_gtk_plugin_widget_single_set_change_callback(ret->subtitle_overlay_encoder_plugins, set_subtitle_overlay_encoder,
                                                   ret);
 
@@ -353,7 +342,7 @@ static app_window * create_window(bg_plugin_registry_t * reg)
     bg_gtk_plugin_widget_single_create("Video", reg,
                                        BG_PLUGIN_ENCODER_VIDEO |
                                        BG_PLUGIN_ENCODER,
-                                       BG_PLUGIN_FILE, ret->tooltips);
+                                       BG_PLUGIN_FILE);
   bg_gtk_plugin_widget_single_set_change_callback(ret->video_encoder_plugins, set_video_encoder, ret);
   
   /* Postprocessors */
@@ -361,7 +350,7 @@ static app_window * create_window(bg_plugin_registry_t * reg)
   ret->encoder_pp_plugins =
     bg_gtk_plugin_widget_single_create("Postprocessor", reg,
                                        BG_PLUGIN_ENCODER_PP,
-                                       0, ret->tooltips);
+                                       0);
   bg_gtk_plugin_widget_single_set_change_callback(ret->encoder_pp_plugins, set_encoder_pp, ret);
 
   bg_gtk_plugin_widget_single_set_sensitive(ret->encoder_pp_plugins, 0);
@@ -383,8 +372,7 @@ static app_window * create_window(bg_plugin_registry_t * reg)
   ret->audio_filters =
     bg_gtk_plugin_widget_multi_create(reg,
                                       BG_PLUGIN_FILTER_AUDIO,
-                                      BG_PLUGIN_FILTER_1,
-                                      ret->tooltips);
+                                      BG_PLUGIN_FILTER_1);
   
   label = gtk_label_new(TR("Audio filters"));
   gtk_widget_show(label);
@@ -398,8 +386,7 @@ static app_window * create_window(bg_plugin_registry_t * reg)
   ret->video_filters =
     bg_gtk_plugin_widget_multi_create(reg,
                                       BG_PLUGIN_FILTER_VIDEO,
-                                      BG_PLUGIN_FILTER_1,
-                                      ret->tooltips);
+                                      BG_PLUGIN_FILTER_1);
   
   label = gtk_label_new(TR("Video filters"));
   gtk_widget_show(label);
@@ -413,8 +400,7 @@ static app_window * create_window(bg_plugin_registry_t * reg)
   ret->visualizations =
     bg_gtk_plugin_widget_multi_create(reg,
                                       BG_PLUGIN_VISUALIZATION,
-                                      BG_PLUGIN_VISUALIZE_FRAME|BG_PLUGIN_VISUALIZE_GL,
-                                      ret->tooltips);
+                                      BG_PLUGIN_VISUALIZE_FRAME|BG_PLUGIN_VISUALIZE_GL);
   
   label = gtk_label_new(TR("Visualizations"));
   gtk_widget_show(label);
@@ -561,7 +547,7 @@ static app_window * create_window(bg_plugin_registry_t * reg)
                                       BG_PLUGIN_IMAGE_READER,
                                       BG_PLUGIN_FILE|
                                       BG_PLUGIN_URL|
-                                      BG_PLUGIN_REMOVABLE, ret->tooltips);
+                                      BG_PLUGIN_REMOVABLE);
   
   label = gtk_label_new(TR("Image readers"));
   gtk_widget_show(label);
@@ -577,8 +563,7 @@ static app_window * create_window(bg_plugin_registry_t * reg)
                                        BG_PLUGIN_IMAGE_WRITER,
                                        BG_PLUGIN_FILE|
                                        BG_PLUGIN_URL|
-                                       BG_PLUGIN_REMOVABLE,
-                                       ret->tooltips);
+                                       BG_PLUGIN_REMOVABLE);
 
   bg_gtk_plugin_widget_single_set_change_callback(ret->image_writers, set_image_writer, ret);
 
@@ -630,7 +615,6 @@ static void destroy_window(app_window * win)
   bg_gtk_plugin_widget_single_destroy(win->encoder_pp_plugins);
 
   
-  g_object_unref(win->tooltips);
                                       
   free(win);
   }

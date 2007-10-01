@@ -141,23 +141,31 @@ static void
 set_parameter_scope(void * priv, const char * name,
                     const bg_parameter_value_t * val)
   {
+  uint8_t fg_r, fg_g, fg_b;
+  
   scope_priv_t * vp;
   vp = (scope_priv_t *)priv;
 
   if(!name)
     return;
-
-  fprintf(stderr, "set_parameter_scope %s\n", name);
   
   if(!strcmp(name, "fg_color"))
     {
     vp->fg_float[0] = val->val_color[0];
     vp->fg_float[1] = val->val_color[1];
     vp->fg_float[2] = val->val_color[2];
-    fprintf(stderr, "fg_color: %f %f %f\n",
-            vp->fg_float[0],
-            vp->fg_float[1],
-            vp->fg_float[2]);
+
+    /* Set foreground color */
+    fg_r = (int)(vp->fg_float[0] * 255.0 + 0.5);
+    fg_g = (int)(vp->fg_float[1] * 255.0 + 0.5);
+    fg_b = (int)(vp->fg_float[2] * 255.0 + 0.5);
+    
+#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+    vp->fg_int = fg_r | (fg_g << 8) | (fg_b << 16) | 0xff000000;
+#else
+    vp->fg_int = (fg_r<<24) | (fg_g << 16) | (fg_b << 8) | 0x000000ff;
+#endif
+    
     }
   else if(!strcmp(name, "blur_mode"))
     {
@@ -176,8 +184,6 @@ set_parameter_scope(void * priv, const char * name,
       vp->blur_radius = val->val_f;
       vp->changed = 1;
       }
-    fprintf(stderr, "blur radius: %f\n",
-            vp->blur_radius);
     }
   else if(!strcmp(name, "fade_factor"))
     {
@@ -186,10 +192,7 @@ set_parameter_scope(void * priv, const char * name,
       vp->fade_factor = val->val_f;
       vp->changed = 1;
       }
-    fprintf(stderr, "fade factor: %f\n",
-            vp->fade_factor);
     }
-  
   }
 
 static float get_coeff_rectangular(float radius)
@@ -275,7 +278,6 @@ open_scope(void * priv, bg_ov_plugin_t * ov_plugin, void * ov_priv,
            gavl_audio_format_t * audio_format, gavl_video_format_t * video_format)
   {
   scope_priv_t * vp;
-  uint8_t fg_r, fg_g, fg_b;
   float * blur_coeffs;
   int num_blur_coeffs = 0;
   
@@ -324,17 +326,6 @@ open_scope(void * priv, bg_ov_plugin_t * ov_plugin, void * ov_priv,
   vp->last_video_frame = gavl_video_frame_create(&vp->video_format);
   gavl_video_frame_clear(vp->last_video_frame, &vp->video_format);
   
-  /* Set foreground color */
-  
-  fg_r = (int)(vp->fg_float[0] * 255.0 + 0.5);
-  fg_g = (int)(vp->fg_float[1] * 255.0 + 0.5);
-  fg_b = (int)(vp->fg_float[2] * 255.0 + 0.5);
-
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
-  vp->fg_int = fg_r | (fg_g << 8) | (fg_b << 16) | 0xff000000;
-#else
-  vp->fg_int = (fg_r<<24) | (fg_g << 16) | (fg_b << 8) | 0x000000ff;
-#endif
 
   /* Initialize scaler */
   

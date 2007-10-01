@@ -333,10 +333,58 @@ char * bg_gtk_convert_font_name_to_pango(const char * name)
   
   }
 
-void bg_gtk_tooltips_set_tip(GtkTooltips * tooltips,
-                             GtkWidget * w, const char * str,
+
+int show_tooltips = 1;
+
+
+
+#if GTK_MINOR_VERSION < 12
+static GtkTooltips * tooltips = (GtkTooltips *)0;
+
+void bg_gtk_tooltips_set_tip(GtkWidget * w, const char * str,
                              const char * translation_domain)
   {
   str = dgettext(translation_domain, str);
+
+  if(!tooltips)
+    {
+    tooltips = gtk_tooltips_new();
+    
+    g_object_ref (G_OBJECT (tooltips));
+    
+#if GTK_MINOR_VERSION < 10
+    gtk_object_sink (GTK_OBJECT (tooltips));
+#else
+    g_object_ref_sink(G_OBJECT(tooltips));
+#endif
+    }
+
+  if(show_tooltips)
+    gtk_tooltips_enable(tooltips);
+  else
+    gtk_tooltips_disable(tooltips);
+
   gtk_tooltips_set_tip(tooltips, w, str, str);
+  }
+
+void bg_gtk_set_tooltips(int enable)
+  {
+  show_tooltips = enable;
+  if(tooltips)
+    {
+    if(show_tooltips)
+      gtk_tooltips_enable(tooltips);
+    else
+      gtk_tooltips_disable(tooltips);
+    }
+  }
+
+#else
+
+#endif
+
+
+int bg_gtk_get_tooltips()
+  {
+  return show_tooltips;
   }

@@ -65,7 +65,6 @@ struct bg_dialog_s
   GtkWidget * window;
   GtkWidget * mainbox;
   dialog_section_t root_section;
-  GtkTooltips * tooltips;
   int visible;
 
   GtkWidget * notebook;
@@ -374,15 +373,6 @@ static bg_dialog_t * create_dialog(const char * title)
   
   
   ret = calloc(1, sizeof(*ret));
-
-  ret->tooltips = gtk_tooltips_new();
-  g_object_ref (G_OBJECT (ret->tooltips));
-
-#if GTK_MINOR_VERSION < 10
-  gtk_object_sink (GTK_OBJECT (ret->tooltips));
-#else
-  g_object_ref_sink(G_OBJECT(ret->tooltips));
-#endif
   
   ret->window       = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER);
@@ -490,7 +480,7 @@ static GtkWidget * create_section(dialog_section_t * section,
                                   bg_parameter_info_t * info,
                                   bg_cfg_section_t * cfg_section,
                                   bg_set_parameter_func_t set_param,
-                                  void * data, GtkTooltips * tooltips,
+                                  void * data,
                                   const char * translation_domain)
   {
   int i, count;
@@ -557,7 +547,6 @@ static GtkWidget * create_section(dialog_section_t * section,
       i++;
       continue;
       }
-    section->widgets[count].tooltips = tooltips;
       
     if(info[i].flags & BG_PARAMETER_SYNC)
       {
@@ -747,7 +736,7 @@ bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
         index++;
       
       table = create_section(&(ret->root_section.children[i]), &(info[index]),
-                             section, set_param, callback_data, ret->tooltips,
+                             section, set_param, callback_data,
                              translation_domain);
       
       ret->root_section.children[i].notebook_index =
@@ -771,7 +760,7 @@ bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
                            ret->root_section.num_children * sizeof(dialog_section_t));
     table =
       create_section(ret->root_section.children, info, section, set_param,
-                     callback_data, ret->tooltips, (const char *)0);
+                     callback_data, (const char *)0);
     gtk_notebook_append_page(GTK_NOTEBOOK(ret->notebook), table, label);
     gtk_notebook_set_current_page(GTK_NOTEBOOK(ret->notebook), 1);
     gtk_widget_hide(ret->scrolledwindow);
@@ -826,7 +815,7 @@ void bg_dialog_add_child(bg_dialog_t *d, void * _parent,
            sizeof(parent->children[parent->num_children]));
     
     table = create_section(&(parent->children[parent->num_children]),
-                           info, section, set_param, callback_data, d->tooltips,
+                           info, section, set_param, callback_data,
                            (const char*)0);
     tab_label = gtk_label_new(name);
     gtk_widget_show(tab_label);
@@ -893,7 +882,7 @@ void bg_dialog_add_child(bg_dialog_t *d, void * _parent,
       
       table = create_section(&(parent->children[section_index]),
                              &(info[item_index]),
-                             section, set_param, callback_data, d->tooltips,
+                             section, set_param, callback_data,
                              translation_domain);
       
       parent->children[section_index].parent = parent;
@@ -971,8 +960,6 @@ void bg_dialog_destroy(bg_dialog_t * d)
   destroy_section(&(d->root_section));
   gtk_widget_destroy(d->window);
 
-  g_object_unref(d->tooltips);
-  
   free(d);
   }
 
@@ -1037,10 +1024,3 @@ void * bg_dialog_add_parent(bg_dialog_t *d, void * _parent, const char * label)
   return &(parent->children[parent->num_children-1]);
   }
 
-void bg_dialog_set_tooltips(bg_dialog_t *d, int enable)
-  {
-  if(enable)
-    gtk_tooltips_enable(d->tooltips);
-  else
-    gtk_tooltips_disable(d->tooltips);
-  }

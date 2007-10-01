@@ -111,7 +111,6 @@ struct transcoder_window_s
   char * filesel_path;
   
   
-  GtkTooltips * tooltips;
 
   bg_remote_server_t * remote;
   
@@ -265,13 +264,7 @@ set_transcoder_window_parameter(void * data, const char * name,
     }
   else if(!strcmp(name, "show_tooltips"))
     {
-    if(val->val_i)
-      gtk_tooltips_enable(win->tooltips);
-    else
-      gtk_tooltips_disable(win->tooltips);
-
-    track_list_set_tooltips(win->tracklist, val->val_i);
-    plugin_window_set_tooltips(win->plugin_window, val->val_i);
+    bg_gtk_set_tooltips(val->val_i);
     }
   }
 
@@ -797,7 +790,7 @@ static GtkWidget * create_pixmap_button(transcoder_window_t * win,
                    win);
   gtk_widget_show(ret);
 
-  bg_gtk_tooltips_set_tip(win->tooltips, ret, tooltip, PACKAGE);
+  bg_gtk_tooltips_set_tip(ret, tooltip, PACKAGE);
 
   return ret;
   }
@@ -932,8 +925,6 @@ transcoder_window_t * transcoder_window_create()
 
   g_timeout_add(200, idle_callback, ret);
 
-  ret->tooltips = gtk_tooltips_new();
-  
   /* Create window */
   
   ret->win = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -1005,8 +996,7 @@ transcoder_window_t * transcoder_window_create()
   /* Time display */
   ret->time_remaining = bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE_SMALL, 4);
 
-  bg_gtk_tooltips_set_tip(ret->tooltips,
-                          bg_gtk_time_display_get_widget(ret->time_remaining),
+  bg_gtk_tooltips_set_tip(bg_gtk_time_display_get_widget(ret->time_remaining),
                           "Estimated remaining transcoding time",
                           PACKAGE);
 

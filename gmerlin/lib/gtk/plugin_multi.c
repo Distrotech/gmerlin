@@ -212,7 +212,7 @@ static void change_callback(GtkWidget * w, gpointer data)
     }
   }
 
-static GtkWidget * create_pixmap_button(const char * filename, GtkTooltips * tooltips,
+static GtkWidget * create_pixmap_button(const char * filename,
                                         const char * tooltip)
   {
   GtkWidget * button;
@@ -231,7 +231,7 @@ static GtkWidget * create_pixmap_button(const char * filename, GtkTooltips * too
   button = gtk_button_new();
   gtk_container_add(GTK_CONTAINER(button), image);
 
-  bg_gtk_tooltips_set_tip(tooltips, button, tooltip, PACKAGE);
+  bg_gtk_tooltips_set_tip(button, tooltip, PACKAGE);
 
   return button;
   }
@@ -239,8 +239,7 @@ static GtkWidget * create_pixmap_button(const char * filename, GtkTooltips * too
 bg_gtk_plugin_widget_multi_t *
 bg_gtk_plugin_widget_multi_create(bg_plugin_registry_t * reg,
                                   uint32_t type_mask,
-                                  uint32_t flag_mask,
-                                  GtkTooltips * tooltips)
+                                  uint32_t flag_mask)
   {
   bg_gtk_plugin_widget_multi_t * ret;
   GtkListStore *store;
@@ -266,9 +265,9 @@ bg_gtk_plugin_widget_multi_create(bg_plugin_registry_t * reg,
   
   /* Create buttons */
 
-  ret->info_button = create_pixmap_button("info_16.png", tooltips, TRS("Plugin info"));
+  ret->info_button = create_pixmap_button("info_16.png", TRS("Plugin info"));
   
-  ret->config_button = create_pixmap_button("config_16.png", tooltips,
+  ret->config_button = create_pixmap_button("config_16.png",
                                             TRS("Plugin options"));
   
   g_signal_connect(G_OBJECT(ret->info_button),

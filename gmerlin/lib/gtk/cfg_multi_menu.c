@@ -285,8 +285,7 @@ void bg_gtk_create_multi_menu(bg_gtk_widget_t * w,
 
   if(info->help_string)
     {
-    bg_gtk_tooltips_set_tip(w->tooltips,
-                            priv->combo,
+    bg_gtk_tooltips_set_tip(priv->combo,
                             info->help_string, translation_domain);
     }
   

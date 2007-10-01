@@ -611,14 +611,6 @@ void player_window_create(gmerlin_t * g)
 
   g->player_window = ret;
   
-  ret->tooltips = gtk_tooltips_new();
-  
-  g_object_ref (G_OBJECT (ret->tooltips));
-#if GTK_MINOR_VERSION < 10
-  gtk_object_sink (GTK_OBJECT (ret->tooltips));
-#else
-  g_object_ref_sink(G_OBJECT(ret->tooltips));
-#endif
   
   ret->msg_queue = bg_msg_queue_create();
 
@@ -687,7 +679,7 @@ void player_window_create(gmerlin_t * g)
   
   ret->main_menu = main_menu_create(g);
 
-  ret->display = display_create(g, ret->tooltips);
+  ret->display = display_create(g);
   
   /* Set callbacks */
 
@@ -721,28 +713,28 @@ void player_window_create(gmerlin_t * g)
 
   /* Set tooltips */
   
-  bg_gtk_tooltips_set_tip(ret->tooltips, bg_gtk_button_get_widget(ret->play_button),
+  bg_gtk_tooltips_set_tip(bg_gtk_button_get_widget(ret->play_button),
                           "Play", PACKAGE);
-  bg_gtk_tooltips_set_tip(ret->tooltips, bg_gtk_button_get_widget(ret->stop_button),
+  bg_gtk_tooltips_set_tip(bg_gtk_button_get_widget(ret->stop_button),
                        "Stop", PACKAGE);
-  bg_gtk_tooltips_set_tip(ret->tooltips, bg_gtk_button_get_widget(ret->pause_button),
+  bg_gtk_tooltips_set_tip(bg_gtk_button_get_widget(ret->pause_button),
                        "Pause", PACKAGE);
-  bg_gtk_tooltips_set_tip(ret->tooltips, bg_gtk_button_get_widget(ret->next_button),
+  bg_gtk_tooltips_set_tip(bg_gtk_button_get_widget(ret->next_button),
                        "Left button: Next track\nRight button: Next chapter",
                        PACKAGE);
-  bg_gtk_tooltips_set_tip(ret->tooltips, bg_gtk_button_get_widget(ret->prev_button),
+  bg_gtk_tooltips_set_tip(bg_gtk_button_get_widget(ret->prev_button),
                        "Left button: Previous track\nRight button: Previous chapter",
                        PACKAGE);
   
-  bg_gtk_tooltips_set_tip(ret->tooltips, bg_gtk_button_get_widget(ret->menu_button),
+  bg_gtk_tooltips_set_tip(bg_gtk_button_get_widget(ret->menu_button),
                           "Main menu", PACKAGE);
-  bg_gtk_tooltips_set_tip(ret->tooltips, bg_gtk_button_get_widget(ret->close_button),
+  bg_gtk_tooltips_set_tip(bg_gtk_button_get_widget(ret->close_button),
                           "Quit program", PACKAGE);
 
-  bg_gtk_tooltips_set_tip(ret->tooltips, bg_gtk_slider_get_slider_widget(ret->volume_slider),
+  bg_gtk_tooltips_set_tip(bg_gtk_slider_get_slider_widget(ret->volume_slider),
                           "Volume", PACKAGE);
 
-  bg_gtk_tooltips_set_tip(ret->tooltips, bg_gtk_slider_get_slider_widget(ret->seek_slider),
+  bg_gtk_tooltips_set_tip(bg_gtk_slider_get_slider_widget(ret->seek_slider),
                           "Seek", PACKAGE);
   
   /* Pack Objects */
@@ -806,7 +798,6 @@ void player_window_destroy(player_window_t * win)
   bg_gtk_slider_destroy(win->volume_slider);
 
   main_menu_destroy(win->main_menu);
-  g_object_unref(win->tooltips);
 
   if(win->background_pixbuf)
     g_object_unref(win->background_pixbuf);
@@ -816,13 +807,6 @@ void player_window_destroy(player_window_t * win)
   free(win);
   }
 
-void player_window_set_tooltips(player_window_t * win, int enable)
-  {
-  if(enable)
-    gtk_tooltips_enable(win->tooltips);
-  else
-    gtk_tooltips_disable(win->tooltips);
-  }
 
 
 void player_window_skin_load(player_window_skin_t * s,

@@ -101,7 +101,7 @@ bg_gtk_file_entry_t * bg_gtk_file_entry_create(int is_dir,
                                                void (*name_changed_callback)(bg_gtk_file_entry_t *,
                                                                              void * data),
                                                void * name_changed_callback_data,
-                                               GtkTooltips * tooltips, const char * help_string,
+                                               const char * help_string,
                                                const char * translation_domain)
   {
   bg_gtk_file_entry_t * priv = calloc(1, sizeof(*priv));
@@ -112,9 +112,9 @@ bg_gtk_file_entry_t * bg_gtk_file_entry_create(int is_dir,
   
   priv->entry = gtk_entry_new();
 
-  if(help_string && tooltips)
+  if(help_string)
     {
-    bg_gtk_tooltips_set_tip(tooltips, priv->entry, help_string, translation_domain);
+    bg_gtk_tooltips_set_tip(priv->entry, help_string, translation_domain);
     }
   
   if(priv->name_changed_callback)

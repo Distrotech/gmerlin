@@ -906,8 +906,7 @@ static void create_list_common(bg_gtk_widget_t * w, bg_parameter_info_t * info,
 
   if(info->help_string)
     {
-    bg_gtk_tooltips_set_tip(w->tooltips,
-                            priv->treeview,
+    bg_gtk_tooltips_set_tip(priv->treeview,
                             info->help_string, translation_domain);
     }
 

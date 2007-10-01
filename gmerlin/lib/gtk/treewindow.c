@@ -221,10 +221,6 @@ void bg_gtk_tree_window_hide(bg_gtk_tree_window_t* w)
   gtk_widget_hide(w->window);
   }
 
-void bg_gtk_tree_window_set_tooltips(bg_gtk_tree_window_t* win, int enable)
-  {
-  bg_gtk_tree_widget_set_tooltips(win->widget, enable);
-  }
 
 void bg_gtk_tree_window_open_incoming(bg_gtk_tree_window_t * win)
   {

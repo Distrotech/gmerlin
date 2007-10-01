@@ -274,10 +274,6 @@ void bg_gtk_album_window_raise(bg_gtk_album_window_t* w)
   }
 
 
-void bg_gtk_album_window_set_tooltips(bg_gtk_album_window_t * w, int enable)
-  {
-  bg_gtk_album_widget_set_tooltips(w->widget, enable);
-  }
 
 static GtkWidget * create_close_button(bg_gtk_album_window_t * w)
   {

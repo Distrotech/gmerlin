@@ -52,8 +52,6 @@ typedef struct
   int selected;
   int edited;
   
-  GtkTooltips * tooltips;
-  
   int is_ok;
 
   guint select_id;
@@ -218,10 +216,6 @@ static int edit_chapter(bg_gtk_chapter_dialog_t * win)
                             win,
                             chapter_parameters,
                             TR("Edit chapter"));
-  if(win->tooltips)
-    bg_dialog_set_tooltips(dialog, 1);
-  else
-    bg_dialog_set_tooltips(dialog, 0);
 
   bg_dialog_show(dialog);
   bg_dialog_destroy(dialog);
@@ -314,15 +308,13 @@ static GtkWidget * create_window_pixmap_button(bg_gtk_chapter_dialog_t * win,
   
   gtk_widget_show(button);
 
-  if(win->tooltips)
-    bg_gtk_tooltips_set_tip(win->tooltips, button, tooltip, PACKAGE);
+  bg_gtk_tooltips_set_tip(button, tooltip, PACKAGE);
   
   return button;
   }
 
 static bg_gtk_chapter_dialog_t * create_dialog(bg_chapter_list_t * list,
-                                               gavl_time_t duration,
-                                               int show_tooltips)
+                                               gavl_time_t duration)
   {
   GtkListStore *store;
   GtkCellRenderer *renderer;
@@ -337,18 +329,6 @@ static bg_gtk_chapter_dialog_t * create_dialog(bg_chapter_list_t * list,
   ret = calloc(1, sizeof(*ret));
   ret->cl = bg_chapter_list_copy(list);
   ret->duration = duration;
-  
-  if(show_tooltips)
-    {
-    ret->tooltips = gtk_tooltips_new();
-    g_object_ref (G_OBJECT (ret->tooltips));
-    
-#if GTK_MINOR_VERSION < 10
-    gtk_object_sink (GTK_OBJECT (ret->tooltips));
-#else
-    g_object_ref_sink(G_OBJECT(ret->tooltips));
-#endif
-    }
   
   /* Create objects */
   ret->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -468,10 +448,10 @@ static void destroy_dialog(bg_gtk_chapter_dialog_t * dlg)
   }
 
 void bg_gtk_chapter_dialog_show(bg_chapter_list_t ** list,
-                                gavl_time_t duration, int show_tooltips)
+                                gavl_time_t duration)
   {
   bg_gtk_chapter_dialog_t * dlg;
-  dlg = create_dialog(*list, duration, show_tooltips);
+  dlg = create_dialog(*list, duration);
   gtk_widget_show(dlg->window);
   gtk_main();
 

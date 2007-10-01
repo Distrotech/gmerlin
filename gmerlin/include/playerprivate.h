@@ -364,6 +364,10 @@ void bg_player_ov_set_subtitle_format(void * data, const gavl_video_format_t * f
 void bg_player_ov_set_plugin(bg_player_t * player,
                              bg_plugin_handle_t * handle);
 
+/* Plugin handle is needed by the core to fire up the visualizer */
+
+bg_plugin_handle_t * bg_player_ov_get_plugin(bg_player_ov_context_t * ctx);
+
 /*
  *  This call will let the video plugin adjust the playertime from the
  *  next frame to be displayed

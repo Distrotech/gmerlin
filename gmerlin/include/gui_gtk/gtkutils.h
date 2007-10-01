@@ -38,6 +38,8 @@ char * bg_gtk_convert_font_name_to_pango(const char * name);
 
 GtkWidget * bg_gtk_window_new(GtkWindowType type);
 
-void bg_gtk_tooltips_set_tip(GtkTooltips * tooltips,
-                             GtkWidget * w, const char * str,
+void bg_gtk_tooltips_set_tip(GtkWidget * w, const char * str,
                              const char * translation_domain);
+
+void bg_gtk_set_tooltips(int enable);
+int bg_gtk_get_tooltips();

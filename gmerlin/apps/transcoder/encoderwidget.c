@@ -191,34 +191,23 @@ void encoder_widget_init(encoder_widget_t * ret, bg_plugin_registry_t * plugin_r
   {
   int row, num_columns;
   
-  ret->tooltips = gtk_tooltips_new();
   ret->plugin_reg = plugin_reg;
   
-  g_object_ref (G_OBJECT (ret->tooltips));
-
-#if GTK_MINOR_VERSION < 10
-  gtk_object_sink (GTK_OBJECT (ret->tooltips));
-#else
-  g_object_ref_sink(G_OBJECT(ret->tooltips));
-#endif
 
   ret->audio_encoder =
     bg_gtk_plugin_widget_single_create("Audio", plugin_reg,
                                        BG_PLUGIN_ENCODER_AUDIO,
-                                       BG_PLUGIN_FILE,
-                                       ret->tooltips);
+                                       BG_PLUGIN_FILE);
 
   ret->subtitle_text_encoder =
     bg_gtk_plugin_widget_single_create("Text subtitles", plugin_reg,
                                        BG_PLUGIN_ENCODER_SUBTITLE_TEXT,
-                                       BG_PLUGIN_FILE,
-                                       ret->tooltips);
+                                       BG_PLUGIN_FILE);
 
   ret->subtitle_overlay_encoder =
     bg_gtk_plugin_widget_single_create("Overlay subtitles", plugin_reg,
                                        BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY,
-                                       BG_PLUGIN_FILE,
-                                       ret->tooltips);
+                                       BG_PLUGIN_FILE);
 
   ret->audio_to_video =
     gtk_check_button_new_with_label(TR("Encode audio into video file"));
@@ -246,8 +235,7 @@ void encoder_widget_init(encoder_widget_t * ret, bg_plugin_registry_t * plugin_r
     bg_gtk_plugin_widget_single_create("Video", plugin_reg,
                                        BG_PLUGIN_ENCODER_VIDEO |
                                        BG_PLUGIN_ENCODER,
-                                       BG_PLUGIN_FILE,
-                                       ret->tooltips);
+                                       BG_PLUGIN_FILE);
   gtk_widget_show(ret->audio_to_video);
   gtk_widget_show(ret->subtitle_text_to_video);
   gtk_widget_show(ret->subtitle_overlay_to_video);

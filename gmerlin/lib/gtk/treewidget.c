@@ -302,11 +302,7 @@ struct bg_gtk_tree_widget_s
   GtkWidget * remove_button;
   GtkWidget * rename_button;
   GtkWidget * goto_current_button;
-
-  /* Tooltips */
-
-  GtkTooltips * tooltips;
-
+  
   /* Notebook */
 
   GtkWidget * notebook;
@@ -884,27 +880,6 @@ bg_gtk_tree_widget_close_album(bg_gtk_tree_widget_t * widget,
   update_menu(widget);
   }
 
-static void set_tooltips_func(gpointer data,
-                              gpointer user_data)
-  {
-  int * enable;
-  bg_gtk_album_window_t * widget;
-  enable = (int*)user_data;
-  widget = (bg_gtk_album_window_t *)data;
-
-  bg_gtk_album_window_set_tooltips(widget, *enable);
-  }
-
-void bg_gtk_tree_widget_set_tooltips(bg_gtk_tree_widget_t* widget, int enable)
-  {
-  g_list_foreach(widget->album_windows, set_tooltips_func, &enable);
-
-  if(enable)
-    gtk_tooltips_enable(widget->tooltips);
-  else
-    gtk_tooltips_disable(widget->tooltips);
-  
-  }
 
 /* Open the current album if it isn't already open */
 
@@ -1471,7 +1446,7 @@ static GtkWidget * create_pixmap_button(bg_gtk_tree_widget_t * w,
 
   gtk_widget_show(button);
 
-  bg_gtk_tooltips_set_tip(w->tooltips, button, tooltip, PACKAGE);
+  bg_gtk_tooltips_set_tip(button, tooltip, PACKAGE);
   
   return button;
   }
@@ -1927,17 +1902,6 @@ bg_gtk_tree_widget_create(bg_media_tree_t * tree, GtkAccelGroup * accel_group, G
   ret->toplevel_window = toplevel_window;
   
   ret->accel_group = accel_group;
-  ret->tooltips = gtk_tooltips_new();
-
-  g_object_ref (G_OBJECT (ret->tooltips));
-
-#if GTK_MINOR_VERSION < 10
-  gtk_object_sink (GTK_OBJECT (ret->tooltips));
-#else
-  g_object_ref_sink(G_OBJECT(ret->tooltips));
-#endif
-
-  
   bg_media_tree_set_change_callback(ret->tree, tree_changed_callback, ret);
   
   store = gtk_tree_store_new (NUM_COLUMNS,
@@ -2123,10 +2087,6 @@ void bg_gtk_tree_widget_destroy(bg_gtk_tree_widget_t * w)
 
   bg_cfg_section_get(w->cfg_section, parameters, get_parameter, w);
   
-  
-  g_object_unref(w->tooltips);
-
-
   g_signal_handlers_block_by_func(G_OBJECT(w->notebook), notebook_change_page, w);
   
   while(w->album_windows)

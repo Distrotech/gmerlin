@@ -482,7 +482,7 @@ static gboolean button_press_callback(GtkWidget * w, GdkEventButton * evt,
   return FALSE;
   }
 
-display_t * display_create(gmerlin_t * gmerlin, GtkTooltips * tooltips)
+display_t * display_create(gmerlin_t * gmerlin)
   {
   display_t * ret;
   bg_cfg_section_t * cfg_section;
@@ -525,7 +525,7 @@ display_t * display_create(gmerlin_t * gmerlin, GtkTooltips * tooltips)
   gtk_widget_set_events(ret->repeat_area,
                         GDK_BUTTON_PRESS_MASK | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK);
 
-  bg_gtk_tooltips_set_tip(tooltips, ret->repeat_area,
+  bg_gtk_tooltips_set_tip(ret->repeat_area,
                           "Repeat mode\nClick to change",
                           PACKAGE);
   
@@ -547,7 +547,7 @@ display_t * display_create(gmerlin_t * gmerlin, GtkTooltips * tooltips)
 
   gtk_widget_set_events(ret->display_area,
                         GDK_BUTTON_PRESS_MASK | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK);
-  bg_gtk_tooltips_set_tip(tooltips, ret->display_area,
+  bg_gtk_tooltips_set_tip(ret->display_area,
                           "Time display mode\nClick to change",
                           PACKAGE);
   

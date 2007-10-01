@@ -24,7 +24,7 @@ bg_gtk_file_entry_create(int dir,
                          void (*name_changed_callback)(bg_gtk_file_entry_t *,
                                                        void * data),
                          void * name_changed_callback_data,
-                         GtkTooltips * tooltips, const char * help_string,
+                         const char * help_string,
                          const char * translation_domain);
 
 void bg_gtk_file_entry_destroy(bg_gtk_file_entry_t *);

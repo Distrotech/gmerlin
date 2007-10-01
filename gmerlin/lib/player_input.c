@@ -211,7 +211,7 @@ void bg_player_input_select_streams(bg_player_input_context_t * ctx)
       }
     }
   
-  /* En-/Disable strams at the input plugin */
+  /* En-/Disable streams at the input plugin */
   
   if(ctx->plugin->set_audio_stream)
     {

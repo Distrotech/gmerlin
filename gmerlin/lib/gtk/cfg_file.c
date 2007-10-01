@@ -113,7 +113,7 @@ void bg_gtk_create_file(bg_gtk_widget_t * w, bg_parameter_info_t * info,
   file_t * priv = calloc(1, sizeof(*priv));
   
   priv->fe = bg_gtk_file_entry_create((info->type == BG_PARAMETER_DIRECTORY) ? 1 : 0,
-                                      NULL, NULL, w->tooltips,
+                                      NULL, NULL,
                                       info->help_string, translation_domain);
   
   priv->label = gtk_label_new(TR_DOM(info->long_name));

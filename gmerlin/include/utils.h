@@ -375,8 +375,6 @@ typedef struct bg_xml_output_mem_s
   char * buffer;
   } bg_xml_output_mem_t;
 
-#define BLOCK_SIZE 2048
-
 int bg_xml_write_callback(void * context, const char * buffer,
                           int len);
 

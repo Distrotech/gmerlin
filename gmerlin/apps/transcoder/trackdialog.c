@@ -356,8 +356,6 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
 
     }
   
-  bg_dialog_set_tooltips(ret->cfg_dialog, show_tooltips);
-  
   return ret;
   
   }
