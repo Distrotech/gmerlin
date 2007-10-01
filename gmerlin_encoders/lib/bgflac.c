@@ -23,6 +23,8 @@
 #include <gmerlin/utils.h>
 #include <gmerlin/translation.h>
 
+#include <config.h>
+
 #include <bgflac.h>
 
 /* Copy functions */
@@ -270,6 +272,7 @@ static void init_common(bg_flac_t * flac)
     
   }
 
+#if BGAV_FLAC_VERSION_INT <= MAKE_VERSION(1, 1, 2)
 void bg_flac_init_file_encoder(bg_flac_t * flac, FLAC__FileEncoder * enc)
   {
   init_common(flac);
@@ -302,6 +305,7 @@ void bg_flac_init_file_encoder(bg_flac_t * flac, FLAC__FileEncoder * enc)
   FLAC__file_encoder_set_bits_per_sample(enc, flac->bits_per_sample);
   
   }
+#endif
 
 void bg_flac_init_stream_encoder(bg_flac_t * flac, FLAC__StreamEncoder * enc)
   {

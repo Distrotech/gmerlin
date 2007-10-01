@@ -68,6 +68,11 @@ int bg_ogg_flush_page(ogg_stream_state * os, FILE * output, int force)
   
   if(result)
     {
+    fprintf(stderr, "bg_ogg_flush_page: granulepos: %lld, b: %d, e: %d, bytes: %d+%d\n",
+            ogg_page_granulepos(&og),
+            ogg_page_bos(&og),
+            ogg_page_eos(&og), og.header_len, og.body_len);
+    
     if((fwrite(og.header,1,og.header_len,output) < og.header_len) ||
        (fwrite(og.body,1,og.body_len,output) < og.body_len))
       return -1;

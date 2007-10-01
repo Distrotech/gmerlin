@@ -142,7 +142,6 @@ static int open_flac(void * data, const char * filename,
   flac->enc = FLAC__file_encoder_new();
   
   flac->filename = bg_strdup(flac->filename, filename);
-  FLAC__file_encoder_set_filename(flac->enc, flac->filename);
 
   /* Create vorbis comment */
 
@@ -197,9 +196,16 @@ static int start_flac(void * data)
   flac = (flac_t*)data;
 
   bg_flac_init_file_encoder(&flac->com, flac->enc);
-  
+
+#if BGAV_FLAC_VERSION_INT <= MAKE_VERSION(1, 1, 2)
+  FLAC__file_encoder_set_filename(flac->enc, flac->filename);
   /* Initialize encoder */
   if(FLAC__file_encoder_init(flac->enc) != FLAC__FILE_ENCODER_OK)
+#else
+  if(FLAC__stream_encoder_init_file(flac->enc, flac->filename,
+                                    (FLAC__StreamEncoderProgressCallback)0,
+                                    flac) != FLAC__STREAM_ENCODER_OK)
+#endif
     {
     if(errno)
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Initializing encoder failed: %s",
@@ -208,6 +214,7 @@ static int start_flac(void * data)
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Initializing encoder failed");
     return 0;
     }
+  
   return 1;
   }
 
@@ -262,7 +269,7 @@ typedef struct
 
   } seektable_client_data;
 
-static FLAC__StreamDecoderWriteStatus
+static FLAC__FileDecoderWriteStatus
 seektable_write_callback(const FLAC__FileDecoder *decoder,
                          const FLAC__Frame *frame,
                          const FLAC__int32 * const buffer[],
@@ -361,13 +368,24 @@ static void finalize_seektable(flac_t * flac)
     
   decoder = FLAC__file_decoder_new();
   FLAC__file_decoder_set_md5_checking(decoder, false);
-  FLAC__file_decoder_set_filename(decoder, flac->filename);
   FLAC__file_decoder_set_metadata_ignore_all(decoder);
+
+#if BGAV_FLAC_VERSION_INT <= MAKE_VERSION(1, 1, 2)
+  FLAC__file_decoder_set_filename(decoder, flac->filename);
   FLAC__file_decoder_set_write_callback(decoder, seektable_write_callback);
   FLAC__file_decoder_set_metadata_callback(decoder, seektable_metadata_callback);
   FLAC__file_decoder_set_error_callback(decoder, seektable_error_callback);
   FLAC__file_decoder_set_client_data(decoder, &cd);
   FLAC__file_decoder_init(decoder);
+#else
+  FLAC__stream_decoder_init_file(decoder,
+                                 flac->filename,
+                                 seektable_write_callback,
+                                 seektable_metadata_callback,
+                                 seektable_error_callback,
+                                 &cd);
+#endif
+
   FLAC__file_decoder_process_until_end_of_metadata(decoder);
   FLAC__file_decoder_get_decode_position(decoder, &cd.start_position);
 

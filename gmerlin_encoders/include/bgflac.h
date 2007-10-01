@@ -17,8 +17,31 @@
 
 *****************************************************************/
 
+#define MAKE_VERSION(maj,min,pat) ((maj<<16)|(min<<8)|pat)
+#define BGAV_FLAC_VERSION_INT MAKE_VERSION(BGAV_FLAC_MAJOR,BGAV_FLAC_MINOR,BGAV_FLAC_PATCHLEVEL)
+
+/* Dirty hack to support different FLAC API versions */
+
+#if BGAV_FLAC_VERSION_INT <= MAKE_VERSION(1, 1, 2)
 #include <FLAC/file_encoder.h>
 #include <FLAC/file_decoder.h> /* For creating the seektable */
+#else
+#define FLAC__FileEncoder FLAC__StreamEncoder 
+#define FLAC__FileDecoder FLAC__StreamDecoder
+#define FLAC__file_encoder_new FLAC__stream_encoder_new
+#define FLAC__file_encoder_set_metadata FLAC__stream_encoder_set_metadata
+#define FLAC__file_encoder_process FLAC__stream_encoder_process 
+#define FLAC__FileDecoderWriteStatus FLAC__StreamDecoderWriteStatus
+#define FLAC__file_decoder_get_decode_position FLAC__stream_decoder_get_decode_position 
+#define FLAC__file_decoder_new FLAC__stream_decoder_new
+#define FLAC__file_decoder_set_md5_checking FLAC__stream_decoder_set_md5_checking
+#define FLAC__file_decoder_set_metadata_ignore_all FLAC__stream_decoder_set_metadata_ignore_all
+#define FLAC__file_decoder_process_until_end_of_metadata FLAC__stream_decoder_process_until_end_of_metadata
+#define FLAC__file_decoder_process_until_end_of_file FLAC__stream_decoder_process_until_end_of_stream
+#define FLAC__file_decoder_delete FLAC__stream_decoder_delete
+#define FLAC__file_encoder_finish FLAC__stream_encoder_finish
+#define FLAC__file_encoder_delete FLAC__stream_encoder_delete
+#endif
 
 #include <FLAC/stream_encoder.h> /* Flac in Ogg */
 #include <FLAC/metadata.h>
@@ -49,8 +72,14 @@ typedef struct
 bg_parameter_info_t * bg_flac_get_parameters(void * data);
   
 void bg_flac_set_parameter(void * data, const char * name, const bg_parameter_value_t * val);
-void bg_flac_init_file_encoder(bg_flac_t * flac, FLAC__FileEncoder * enc);
+
 void bg_flac_init_stream_encoder(bg_flac_t * flac, FLAC__StreamEncoder * enc);
+
+#if BGAV_FLAC_VERSION_INT <= MAKE_VERSION(1, 1, 2)
+void bg_flac_init_file_encoder(bg_flac_t * flac, FLAC__FileEncoder * enc);
+#else
+#define bg_flac_init_file_encoder(a,b) bg_flac_init_stream_encoder(a,b)
+#endif
 
 void bg_flac_init_metadata(bg_flac_t * flac, bg_metadata_t * metadata);
 
