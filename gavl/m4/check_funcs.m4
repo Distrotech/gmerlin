@@ -720,16 +720,15 @@ esac],[test_flac=true])
 
 if test x$test_flac = xtrue; then
 
-OLD_CFLAGS=$CFLAGS
-OLD_LIBS=$LIBS
- 
-LIBS="-lFLAC -lm"
-CFLAGS=""
-
-
 AH_TEMPLATE([HAVE_FLAC], [Enable FLAC])
 
 AC_MSG_CHECKING(for flac)
+
+OLD_CFLAGS=$CFLAGS
+OLD_LIBS=$LIBS
+
+CFLAGS="$GMERLIN_DEP_CFLAGS"
+LIBS="$GMERLIN_DEP_LIBS -lFLAC -lm"
 
   AC_TRY_RUN([
     #include <FLAC/stream_decoder.h>
