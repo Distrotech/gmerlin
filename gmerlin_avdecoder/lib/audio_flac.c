@@ -30,6 +30,9 @@
 
 #define LOG_DOMAIN "flac"
 
+#define MAKE_VERSION(maj,min,pat) ((maj<<16)|(min<<8)|pat)
+#define BGAV_FLAC_VERSION_INT MAKE_VERSION(BGAV_FLAC_MAJOR,BGAV_FLAC_MINOR,BGAV_FLAC_PATCHLEVEL)
+
 typedef struct
   {
   FLAC__StreamDecoder * dec;
@@ -215,7 +218,8 @@ static int init_flac(bgav_stream_t * s)
   s->data.audio.decoder->priv = priv;
   priv->header_ptr = s->ext_data;
   priv->dec = FLAC__stream_decoder_new();
-  
+ 
+#if BGAV_FLAC_VERSION_INT <= MAKE_VERSION(1, 1, 2) 
   FLAC__stream_decoder_set_read_callback(priv->dec,
                                          read_callback);
   FLAC__stream_decoder_set_write_callback(priv->dec,
@@ -228,6 +232,17 @@ static int init_flac(bgav_stream_t * s)
 
   FLAC__stream_decoder_set_client_data(priv->dec, s);
   FLAC__stream_decoder_init(priv->dec);
+#else
+  FLAC__stream_decoder_init_stream(
+               priv->dec,
+               read_callback,
+               NULL, NULL, NULL, NULL,
+               write_callback,
+               metadata_callback,
+               error_callback,
+               (void*) s);
+#endif
+
 
   if(!FLAC__stream_decoder_process_until_end_of_metadata(priv->dec))
     {
