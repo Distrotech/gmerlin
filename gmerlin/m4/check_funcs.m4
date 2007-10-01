@@ -728,6 +728,7 @@ CFLAGS=""
 
 
 AH_TEMPLATE([HAVE_FLAC], [Enable FLAC])
+
 AC_MSG_CHECKING(for flac)
 
   AC_TRY_RUN([
@@ -735,6 +736,7 @@ AC_MSG_CHECKING(for flac)
     #include <stdio.h>
     main()
     {
+    FILE * version_file;
     int version_major;
     int version_minor;
     int version_patchlevel;
@@ -744,6 +746,10 @@ AC_MSG_CHECKING(for flac)
       return -1;
     if((version_major != 1) || (version_minor < 1))
       return 1;
+    version_file = fopen("flac_version", "w");
+    fprintf(version_file, "%d.%d.%d\n", version_major,
+            version_minor, version_patchlevel);
+    fclose(version_file);
     return 0;
     }
   ],
@@ -753,7 +759,10 @@ AC_MSG_CHECKING(for flac)
     AC_MSG_RESULT(yes)
     FLAC_CFLAGS=$CFLAGS
     FLAC_LIBS=$LIBS
-
+    BGAV_FLAC_MAJOR=`cat flac_version | cut -d . -f 1`
+    BGAV_FLAC_MINOR=`cat flac_version | cut -d . -f 2`
+    BGAV_FLAC_PATCHLEVEL=`cat flac_version | cut -d . -f 3`
+#    rm -f flac_version
   ],
     # program could not be run
     AC_MSG_RESULT(no)
@@ -772,6 +781,9 @@ AM_CONDITIONAL(HAVE_FLAC, test x$have_flac = xtrue)
 
 if test x$have_flac = xtrue; then
 AC_DEFINE(HAVE_FLAC)
+AC_DEFINE_UNQUOTED(BGAV_FLAC_MAJOR, $BGAV_FLAC_MAJOR, Flac major version)
+AC_DEFINE_UNQUOTED(BGAV_FLAC_MINOR, $BGAV_FLAC_MINOR, Flac minor version)
+AC_DEFINE_UNQUOTED(BGAV_FLAC_PATCHLEVEL, $BGAV_FLAC_PATCHLEVEL, Flac patchlevel)
 fi
 
 ])
