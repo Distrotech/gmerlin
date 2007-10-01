@@ -33,24 +33,16 @@
 
 #include <utils.h>
 
-#if GTK_MINOR_VERSION >= 4
-#define GTK_2_4
-#endif
 
 typedef struct menu_s
   {
   GtkWidget * widget;
   int selected;
-#ifdef GTK_2_4
   int num_options;
-#else
-  GList * options;
-#endif
   void (*change_callback)(struct menu_s * menu, void * data);
   void * change_callback_data;
   } menu_t;
 
-#ifdef GTK_2_4
 
 static void combo_box_change_callback(GtkWidget * wid, gpointer data)
   {
@@ -62,67 +54,13 @@ static void combo_box_change_callback(GtkWidget * wid, gpointer data)
     m->change_callback(m, m->change_callback_data);
   }
 
-#else
-
-static void entry_change_callback(GtkWidget * wid, gpointer data)
-  {
-  const char * entry_str;
-  const char * list_str;
-  
-  int i;
-  menu_t * m;
-  m = (menu_t*)data;
-
-  i = 0;
-
-  entry_str = gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(m->widget)->entry));
-
-  m->selected = 0;
-    
-  if(entry_str)
-    {
-    while(1)
-      {
-      list_str = g_list_nth_data(m->options, m->selected);
-      
-      if(!list_str)
-        {
-        m->selected = 0;
-        break;
-        }
-      else if(!strcmp(list_str, entry_str))
-        {
-        break;
-        }
-      else
-        {
-        m->selected++;
-        }
-      }
-    }
-
-  if(m->change_callback)
-    m->change_callback(m, m->change_callback_data);
-  }
-
-#endif
-
 static void menu_init(menu_t * m, void (*change_callback)(struct menu_s * menu, void * data),
                       void * change_callback_data)
   {
-#ifdef GTK_2_4
   m->widget = gtk_combo_box_new_text();
   g_signal_connect(G_OBJECT(m->widget),
                    "changed", G_CALLBACK(combo_box_change_callback),
                    (gpointer)m);
-#else
-  m->widget = gtk_combo_new();
-  gtk_editable_set_editable(GTK_EDITABLE(GTK_COMBO(m->widget)->entry), FALSE);
-  g_signal_connect(G_OBJECT(GTK_EDITABLE(GTK_COMBO(m->widget)->entry)),
-                   "changed", G_CALLBACK(entry_change_callback),
-                   (gpointer)m);
-
-#endif
   m->change_callback      = change_callback;
   m->change_callback_data = change_callback_data;
   
@@ -131,7 +69,6 @@ static void menu_init(menu_t * m, void (*change_callback)(struct menu_s * menu, 
 
 static void menu_set_options(menu_t * m, char ** options)
   {
-#ifdef GTK_2_4
   int i;
   for(i = 0; i < m->num_options; i++)
     {
@@ -147,33 +84,8 @@ static void menu_set_options(menu_t * m, char ** options)
 
   gtk_combo_box_set_active(GTK_COMBO_BOX(m->widget), 0);
   
-#else
-
-  int i;
-  if(m->options)
-    g_list_free(m->options);
-  
-  m->options = (GList*)0;
-  i = 0;
-
-  while(options[i])
-    {
-    m->options = g_list_append(m->options, options[i]);
-    i++;
-    }
-
-  gtk_combo_set_popdown_strings(GTK_COMBO(m->widget), m->options);
-#endif
   }
 
-static void menu_cleanup(menu_t * m)
-  {
-#ifdef GTK_2_4
-#else
-  if(m->options)
-    g_list_free(m->options);
-#endif
-  }
 
 struct bg_gtk_drivesel_s
   {
@@ -425,8 +337,6 @@ void bg_gtk_drivesel_destroy(bg_gtk_drivesel_t * drivesel)
       free(drivesel->plugin_labels[index++]);
     }
   
-  menu_cleanup(&(drivesel->plugins));
-  menu_cleanup(&(drivesel->drives));
   if(drivesel->drive_labels)
     free(drivesel->drive_labels);
   //  g_object_unref(G_OBJECT(drivesel));

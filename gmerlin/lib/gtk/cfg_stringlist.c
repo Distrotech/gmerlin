@@ -25,17 +25,10 @@
 
 #include <gui_gtk/gtkutils.h>
 
-#if GTK_MINOR_VERSION >= 4
-#define GTK_2_4
-#endif
-
 typedef struct
   {
   GtkWidget * label;
   GtkWidget * combo;
-#ifndef GTK_2_4
-  GList * strings;
-#endif
   int selected;
   const char * translation_domain;
   } stringlist_t;
@@ -48,16 +41,7 @@ static void get_value(bg_gtk_widget_t * w)
   priv->selected = bg_parameter_get_selected(w->info, 
                                              w->value.val_str);
   
-#ifdef GTK_2_4
   gtk_combo_box_set_active(GTK_COMBO_BOX(priv->combo), priv->selected);
-#else
-  if(w->info->multi_labels)
-    gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(priv->combo)->entry),
-                       w->info->multi_labels[priv->selected]);
-  else
-    gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(priv->combo)->entry),
-                       w->info->multi_names[priv->selected]);
-#endif
   }
 
 static void set_value(bg_gtk_widget_t * w)
@@ -104,45 +88,19 @@ static gtk_widget_funcs_t funcs =
 
 static void change_callback(GtkWidget * wid, gpointer data)
   {
-#ifndef GTK_2_4
-  const char * str;
-#endif
   bg_gtk_widget_t * w;
   stringlist_t * priv;
 
   w = (bg_gtk_widget_t *)data;
   priv = (stringlist_t *)w->priv;
   
-#ifndef GTK_2_4
-  str = gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(priv->combo)->entry));
-  
-  priv->selected = 0;
-
-  if(str && *str)
-    {
-    if(w->info->multi_labels)
-      {
-      while(strcmp(w->info->multi_labels[priv->selected], str))
-        {
-        priv->selected++;
-        }
-      }
-    else
-      {
-      while(strcmp(w->info->multi_names[priv->selected], str))
-        priv->selected++;
-      }
-    }
-#else
   priv->selected = gtk_combo_box_get_active(GTK_COMBO_BOX(priv->combo));
-#endif
 
   if(w->info->flags & BG_PARAMETER_SYNC)
     bg_gtk_change_callback(wid, data);
   
   }
 
-#ifdef GTK_2_4
 
 /*
  *  Really dirty trick to get tooltips for a GtkComboBox working:
@@ -172,16 +130,12 @@ realize_combo(GtkWidget *combo, gpointer   data)
                         set_combo_tooltip,
                         w);
   }
-#endif
 
 void bg_gtk_create_stringlist(bg_gtk_widget_t * w,
                               bg_parameter_info_t * info,
                               const char * translation_domain)
   {
   int i;
-#ifndef GTK_2_4
-  char * c;
-#endif
   stringlist_t * priv = calloc(1, sizeof(*priv));
 
   w->funcs = &funcs;
@@ -189,7 +143,6 @@ void bg_gtk_create_stringlist(bg_gtk_widget_t * w,
   
   priv->translation_domain = translation_domain;
   
-#ifdef GTK_2_4
   priv->combo = gtk_combo_box_new_text();
   i = 0;
 
@@ -222,45 +175,6 @@ void bg_gtk_create_stringlist(bg_gtk_widget_t * w,
   w->callback_id = g_signal_connect(G_OBJECT(w->callback_widget),
                                       "changed", G_CALLBACK(change_callback),
                                       (gpointer)w);
-#else
-  priv->combo = gtk_combo_new();
-  gtk_editable_set_editable(GTK_EDITABLE(GTK_COMBO(priv->combo)->entry),
-                            FALSE);
-
-  if(info->help_string)
-    {
-    bg_gtk_tooltips_set_tip(w->tooltips,
-                            GTK_COMBO(priv->combo)->entry,
-                            info->help_string, TRANSLATION_DOMAIN);
-    }
-  
-  i = 0;
-
-  if(info->multi_labels)
-    {
-    while(info->multi_labels[i])
-      {
-      c = g_strdup(info->multi_labels[i]);
-      priv->strings = g_list_append(priv->strings, c);
-      i++;
-      }
-    }
-  else
-    {
-    while(info->multi_names[i])
-      {
-      c = g_strdup(info->multi_names[i]);
-      priv->strings = g_list_append(priv->strings, c);
-      i++;
-      }
-    }
-  gtk_combo_set_popdown_strings(GTK_COMBO(priv->combo), priv->strings);
-
-  w->callback_widget = GTK_COMBO(priv->combo)->entry;
-  w->callback_id = g_signal_connect(G_OBJECT(w->callback_widget),
-                   "changed", G_CALLBACK(change_callback),
-                   (gpointer)w);
-#endif
   
   //  GTK_WIDGET_UNSET_FLAGS(priv->combo, GTK_CAN_DEFAULT);
 

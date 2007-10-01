@@ -30,9 +30,6 @@
 #include <gui_gtk/plugin.h>
 #include <gui_gtk/gtkutils.h>
 
-#if GTK_MINOR_VERSION >= 4
-#define GTK_2_4
-#endif
 
 
 struct bg_gtk_plugin_widget_single_s
@@ -192,28 +189,15 @@ static void update_sensitive(bg_gtk_plugin_widget_single_t * widget)
 
 static void change_callback(GtkWidget * w, gpointer data)
   {
-
-#ifndef GTK_2_4
-  const char * long_name;
-#endif
   
   bg_gtk_plugin_widget_single_t * widget;
 
   widget = (bg_gtk_plugin_widget_single_t *)data;
     
-#ifdef GTK_2_4
   widget->info =
     bg_plugin_find_by_index(widget->reg,
                             gtk_combo_box_get_active(GTK_COMBO_BOX(widget->combo)),
                             widget->type_mask, widget->flag_mask);
-#else
-  long_name = gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(widget->combo)->entry));
-  if(*long_name == '\0')
-    return;
-
-  widget->info = bg_plugin_find_by_long_name(widget->reg, long_name);
-  
-#endif
 
   if(widget->handle)
     {
@@ -280,12 +264,7 @@ bg_gtk_plugin_widget_single_create(char * label,
                                    uint32_t type_mask,
                                    uint32_t flag_mask)
   {
-#ifdef GTK_2_4
   int default_index;
-#else
-  GList * strings;
-  char * tmp_string;
-#endif
   
   int num_plugins, i;
   bg_gtk_plugin_widget_single_t * ret;
@@ -343,7 +322,6 @@ bg_gtk_plugin_widget_single_create(char * label,
 
   
   /* Make combo */
-#ifdef GTK_2_4
   default_index = -1;
   ret->combo = gtk_combo_box_new_text();
   g_signal_connect(G_OBJECT(ret->combo),
@@ -359,34 +337,6 @@ bg_gtk_plugin_widget_single_create(char * label,
     }
   if(default_index >= 0)
     gtk_combo_box_set_active(GTK_COMBO_BOX(ret->combo), default_index);
-#else
-  
-  ret->combo = gtk_combo_new();
-  gtk_editable_set_editable(GTK_EDITABLE(GTK_COMBO(ret->combo)->entry),
-                            FALSE);
-  g_signal_connect(G_OBJECT(GTK_EDITABLE(GTK_COMBO(ret->combo)->entry)),
-                   "changed", G_CALLBACK(change_callback),
-                   (gpointer)ret);
-  
-  strings = (GList*)0;
-  
-  
-  for(i = 0; i < num_plugins; i++)
-    {
-    info = bg_plugin_find_by_index(reg, i, type_mask, flag_mask);
-    tmp_string = g_strdup(info->long_name);
-    strings = g_list_append(strings, tmp_string);
-    }
-
-  gtk_combo_set_popdown_strings(GTK_COMBO(ret->combo), strings);
-  /* Get default plugin */
-
-  if(default_info)
-    {
-    gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(ret->combo)->entry),
-                       default_info->long_name);
-    }
-#endif
 
   /* Show */
   
@@ -478,14 +428,10 @@ bg_gtk_plugin_widget_single_get_plugin(bg_gtk_plugin_widget_single_t * w)
 void bg_gtk_plugin_widget_single_set_plugin(bg_gtk_plugin_widget_single_t * w,
                                             const bg_plugin_info_t * info)
   {
-#ifdef GTK_2_4
   int index;
   int num_plugins;
   int i;
   const bg_plugin_info_t * test_info;
-#endif
-  
-#ifdef GTK_2_4
   index = -1;
 
   num_plugins = bg_plugin_registry_get_num_plugins(w->reg,
@@ -504,16 +450,6 @@ void bg_gtk_plugin_widget_single_set_plugin(bg_gtk_plugin_widget_single_t * w,
     }
   if(index >= 0)
     gtk_combo_box_set_active(GTK_COMBO_BOX(w->combo), index);
-#else
-  
-  if(info)
-    {
-    gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(w->combo)->entry),
-                       info->long_name);
-    }
-#endif
-
-  
   }
 
 bg_plugin_handle_t *

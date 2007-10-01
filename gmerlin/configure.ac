@@ -102,7 +102,7 @@ dnl
 dnl Gtk
 dnl
 
-GTK_REQUIRED="2.2.0"
+GTK_REQUIRED="2.4.0"
 AM_PATH_GTK_2_0($GTK_REQUIRED, have_gtk=true, have_gtk=false)
 AM_CONDITIONAL(HAVE_GTK, test x$have_gtk = xtrue)
 AC_SUBST(GTK_REQUIRED)

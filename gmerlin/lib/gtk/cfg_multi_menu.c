@@ -25,17 +25,10 @@
 #include <gui_gtk/multiinfo.h>
 #include <gui_gtk/gtkutils.h>
 
-#if GTK_MINOR_VERSION >= 4
-#define GTK_2_4
-#endif
-
 typedef struct
   {
   GtkWidget * label;
   GtkWidget * combo;
-#ifndef GTK_2_4
-  GList     * strings;
-#endif
   GtkWidget * config_button;
   GtkWidget * info_button;
   
@@ -45,7 +38,6 @@ typedef struct
   const char * translation_domain;
   } multi_menu_t;
 
-#ifdef GTK_2_4
 
 static void get_value(bg_gtk_widget_t * w)
   {
@@ -57,27 +49,6 @@ static void get_value(bg_gtk_widget_t * w)
                                 w->value.val_str);
   gtk_combo_box_set_active(GTK_COMBO_BOX(priv->combo), i);
   }
-
-#else
-
-static void get_value(bg_gtk_widget_t * w)
-  {
-  int i;
-  multi_menu_t * priv;
-  priv = (multi_menu_t*)(w->priv);
-
-  i = bg_parameter_get_selected(w->info, 
-                                w->value.val_str);
-  
-  if(w->info->multi_labels)
-    gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(priv->combo)->entry),
-                       w->info->multi_labels[i]);
-  else
-    gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(priv->combo)->entry),
-                       w->info->multi_names[i]);
-  }
-
-#endif
 
 static void set_value(bg_gtk_widget_t * w)
   {
@@ -155,7 +126,6 @@ static GtkWidget * create_pixmap_button(const char * filename)
   return button;
   }
 
-#ifdef GTK_2_4
 static void combo_box_change_callback(GtkWidget * wid, gpointer data)
   {
   bg_gtk_widget_t * w;
@@ -173,45 +143,6 @@ static void combo_box_change_callback(GtkWidget * wid, gpointer data)
     bg_gtk_change_callback((GtkWidget*)0, w);
   
   }
-#else
-
-static void entry_change_callback(GtkWidget * wid, gpointer data)
-  {
-  const char * codec_name;
-  int i;
-  bg_gtk_widget_t * w;
-  multi_menu_t * priv;
-  GList     * l;
-  
-  w = (bg_gtk_widget_t *)data;
-  priv = (multi_menu_t *)(w->priv);
-
-  codec_name = gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(priv->combo)->entry));
-  
-  i = 0;
-
-  l = priv->strings;
-
-  while(l)
-    {
-    if(!strcmp(codec_name, (char*)l->data))
-      {
-      priv->selected = i;
-      break;
-      }
-    l = l->next;
-    }
-  
-  if(w->info->multi_parameters && w->info->multi_parameters[priv->selected])
-    gtk_widget_set_sensitive(priv->config_button, 1);
-  else
-    gtk_widget_set_sensitive(priv->config_button, 0);
-  
-  if(w->info->flags & BG_PARAMETER_SYNC)
-    bg_gtk_change_callback((GtkWidget*)0, w);
-  
-  }
-#endif
 
 static void button_callback(GtkWidget * wid, gpointer data)
   {
@@ -256,9 +187,6 @@ void bg_gtk_create_multi_menu(bg_gtk_widget_t * w,
                               void * data, const char * translation_domain)
   {
   int i;
-#ifndef GTK_2_4
-  char * c;
-#endif
   multi_menu_t * priv = calloc(1, sizeof(*priv));
 
   priv->set_param   = set_param;
@@ -280,7 +208,6 @@ void bg_gtk_create_multi_menu(bg_gtk_widget_t * w,
   gtk_widget_show(priv->config_button);
   gtk_widget_show(priv->info_button);
 
-#ifdef GTK_2_4
   priv->combo = gtk_combo_box_new_text();
 
   if(info->help_string)
@@ -303,36 +230,6 @@ void bg_gtk_create_multi_menu(bg_gtk_widget_t * w,
   g_signal_connect(G_OBJECT(priv->combo),
                    "changed", G_CALLBACK(combo_box_change_callback),
                    (gpointer)w);
-#else
-  
-  priv->combo = gtk_combo_new();
-
-  if(info->help_string)
-    {
-    bg_gtk_tooltips_set_tip(w->tooltips,
-                            GTK_COMBO(priv->combo)->entry,
-                            info->help_string, translation_domain);
-    }
-  
-  gtk_editable_set_editable(GTK_EDITABLE(GTK_COMBO(priv->combo)->entry), FALSE);
-
-  g_signal_connect(G_OBJECT(GTK_EDITABLE(GTK_COMBO(priv->combo)->entry)),
-                   "changed", G_CALLBACK(entry_change_callback),
-                   (gpointer)w);
-
-  
-  i = 0;
-  while(info->multi_names[i])
-    {
-    if(info->multi_labels && info->multi_labels[i])
-      c = g_strdup(TR_DOM(info->multi_labels[i]));
-    else
-      c = g_strdup(info->multi_names[i]);
-    priv->strings = g_list_append(priv->strings, c);
-    i++;
-    }
-  gtk_combo_set_popdown_strings(GTK_COMBO(priv->combo), priv->strings);
-#endif
   gtk_widget_show(priv->combo);
 
   
