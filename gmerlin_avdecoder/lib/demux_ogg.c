@@ -123,6 +123,9 @@ typedef struct
   
   /* current_page is valid */
   int page_valid;
+
+  /* op is valid */
+  int packet_valid;
   
   /* Remember to call metadata_change and name_change callbacks */
   int metadata_changed;
@@ -1512,7 +1515,13 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
 
   ogg_stream_pagein(&stream_priv->os, &(priv->current_page));
   priv->page_valid = 0;
-  
+
+  // http://xiph.org/ogg/doc/framing.html
+  // A special value of '-1' (in two's complement) indicates that no
+  // packets finish on this page.
+
+  if(granulepos == -1)
+    return 1;
   
   while(ogg_stream_packetout(&stream_priv->os, &priv->op))
     {
@@ -1669,7 +1678,9 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
         if(stream_priv->do_sync)
           {
           if(stream_priv->prev_granulepos == -1)
+            {
             break;
+            }
           else
             {
             stream_priv->do_sync = 0;

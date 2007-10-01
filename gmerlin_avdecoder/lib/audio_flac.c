@@ -107,6 +107,7 @@ read_callback(const FLAC__StreamDecoder *decoder,
       }
     
     }
+  *bytes = bytes_read;
   if(!bytes_read)
     return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
   else

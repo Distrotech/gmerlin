@@ -819,6 +819,9 @@ bgav_seek(bgav_t * b, gavl_time_t * time)
                "Undefined sync time after seeking");
       return;
       }
+
+    fprintf(stderr, "Sync time: %lld (%f)\n", sync_time, gavl_time_to_seconds(sync_time));
+
     /* If demuxer already seeked perfectly, break here */
 
     if(!(b->demuxer->flags & BGAV_DEMUXER_SEEK_ITERATIVE))
