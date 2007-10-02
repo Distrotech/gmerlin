@@ -102,13 +102,14 @@ dnl
 dnl Gtk
 dnl
 
-GTK_REQUIRED="2.4.0"
+GTK_REQUIRED="2.8.0"
 AM_PATH_GTK_2_0($GTK_REQUIRED, have_gtk=true, have_gtk=false)
 AM_CONDITIONAL(HAVE_GTK, test x$have_gtk = xtrue)
 AC_SUBST(GTK_REQUIRED)
 
 dnl Always be in sync with the newest gtk
 GTK_CFLAGS="$GTK_CFLAGS -DGTK_DISABLE_DEPRECATED"
+
 
 dnl
 dnl X11
@@ -622,9 +623,9 @@ LQT_OPT_CFLAGS($host_cpu, ["-O3 -funroll-all-loops -fomit-frame-pointer -ffast-m
 
 CFLAGS="$CFLAGS -D_REENTRANT -D_FILE_OFFSET_BITS=64 $GAVL_CFLAGS $OPT_CFLAGS"
 
-LQT_TRY_CFLAGS("-Wall", CFLAGS="$CFLAGS -Wall", )
-LQT_TRY_CFLAGS("-Wmissing-declarations", CFLAGS="$CFLAGS -Wmissing-declarations", )
-LQT_TRY_CFLAGS("-Wdeclaration-after-statement", CFLAGS="$CFLAGS -Wdeclaration-after-statement")
+LQT_TRY_CFLAGS(-Wall, CFLAGS="$CFLAGS -Wall", )
+LQT_TRY_CFLAGS(-Wmissing-declarations, CFLAGS="$CFLAGS -Wmissing-declarations", )
+LQT_TRY_CFLAGS(-Wdeclaration-after-statement, CFLAGS="$CFLAGS -Wdeclaration-after-statement")
 
 
 dnl

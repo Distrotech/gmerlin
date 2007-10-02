@@ -108,10 +108,10 @@ bg_gtk_urlsel_create(const char * title,
                                        void * data),
                      void (*close_notify)(bg_gtk_urlsel_t *,
                                           void * data),
-                     char ** plugins,
                      void * user_data,
                      GtkWidget * parent_window,
-                     bg_plugin_registry_t * plugin_reg)
+                     bg_plugin_registry_t * plugin_reg, int type_mask,
+                     int flag_mask)
   {
   bg_gtk_urlsel_t * ret;
   GtkWidget * box;
@@ -143,8 +143,8 @@ bg_gtk_urlsel_create(const char * title,
   
   /* Create plugin menu */
 
-  if(plugins)
-    ret->plugins = bg_gtk_plugin_menu_create(plugins, 1, plugin_reg);
+  if(plugin_reg)
+    ret->plugins = bg_gtk_plugin_menu_create(1, plugin_reg, type_mask, flag_mask);
   
   /* Create Buttons */
 

@@ -27,10 +27,10 @@ bg_gtk_urlsel_create(const char * title,
                                      void * data),
                      void (*close_notify)(bg_gtk_urlsel_t *,
                                           void * data),
-                     char ** plugins,
                      void * user_data,
                      GtkWidget * parent_window,
-                     bg_plugin_registry_t * plugin_reg);
+                     bg_plugin_registry_t * plugin_reg,
+                     int type_mask, int flag_mask);
 
 /* Destroy urlselector */
 

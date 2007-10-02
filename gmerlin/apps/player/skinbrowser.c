@@ -362,9 +362,8 @@ static void button_callback(GtkWidget * w, gpointer data)
     filesel = bg_gtk_filesel_create("Install skin",
                                     add_file_callback,
                                     filesel_close_callback,
-                                    NULL,
                                     b, b->window /* parent */,
-                                    (bg_plugin_registry_t*)0);
+                                    (bg_plugin_registry_t*)0, 0, 0);
 
     gtk_widget_set_sensitive(b->new_button, 0);
     bg_gtk_filesel_run(filesel, 0);     

@@ -33,75 +33,16 @@
 
 #include <utils.h>
 
-
-typedef struct menu_s
-  {
-  GtkWidget * widget;
-  int selected;
-  int num_options;
-  void (*change_callback)(struct menu_s * menu, void * data);
-  void * change_callback_data;
-  } menu_t;
-
-
-static void combo_box_change_callback(GtkWidget * wid, gpointer data)
-  {
-  menu_t * m;
-  m = (menu_t*)data;
-  m->selected = gtk_combo_box_get_active(GTK_COMBO_BOX(m->widget));
-
-  if(m->change_callback)
-    m->change_callback(m, m->change_callback_data);
-  }
-
-static void menu_init(menu_t * m, void (*change_callback)(struct menu_s * menu, void * data),
-                      void * change_callback_data)
-  {
-  m->widget = gtk_combo_box_new_text();
-  g_signal_connect(G_OBJECT(m->widget),
-                   "changed", G_CALLBACK(combo_box_change_callback),
-                   (gpointer)m);
-  m->change_callback      = change_callback;
-  m->change_callback_data = change_callback_data;
-  
-  gtk_widget_show(m->widget);
-  }
-
-static void menu_set_options(menu_t * m, char ** options)
-  {
-  int i;
-  for(i = 0; i < m->num_options; i++)
-    {
-    gtk_combo_box_remove_text(GTK_COMBO_BOX(m->widget), 0);
-    }
-  m->num_options = 0;
-  while(options[m->num_options])
-    {
-    gtk_combo_box_append_text(GTK_COMBO_BOX(m->widget), options[m->num_options]);
-    m->num_options++;
-    }
-  /* Select first entry */
-
-  gtk_combo_box_set_active(GTK_COMBO_BOX(m->widget), 0);
-  
-  }
-
-
 struct bg_gtk_drivesel_s
   {
-  char             ** drive_labels;
-  char             ** plugin_labels;
-  bg_device_info_t ** drive_infos;
-  char             ** plugin_names;
-  
   GtkWidget * window;
   GtkWidget * add_button;
   GtkWidget * close_button;
-  GtkWidget * entry;
-    
-  menu_t plugins;
-  menu_t drives;
-
+  GtkWidget * drive_menu;
+  
+  const bg_plugin_info_t * plugin_info;
+  bg_gtk_plugin_menu_t * plugin_menu;
+  
   void (*add_files)(char ** files, const char * plugin,
                     void * data);
 
@@ -110,7 +51,43 @@ struct bg_gtk_drivesel_s
   void * callback_data;
 
   int is_modal;
+  int num_drives;
+
+  bg_plugin_registry_t * plugin_reg;
   };
+
+static void plugin_change_callback(bg_gtk_plugin_menu_t * m, void * data)
+  {
+  int i;
+  bg_gtk_drivesel_t * ds;
+  bg_device_info_t * devices;
+  
+  ds = (bg_gtk_drivesel_t*)data;
+  
+  for(i = 0; i < ds->num_drives; i++)
+    gtk_combo_box_remove_text(GTK_COMBO_BOX(ds->drive_menu), 0);
+
+  
+  
+  ds->plugin_info = bg_plugin_find_by_name(ds->plugin_reg,
+                                           bg_gtk_plugin_menu_get_plugin(ds->plugin_menu));
+
+  devices = ds->plugin_info->devices;
+  
+  ds->num_drives = 0;
+  while(devices[ds->num_drives].device)
+    {
+    if(devices[ds->num_drives].name)
+      gtk_combo_box_append_text(GTK_COMBO_BOX(ds->drive_menu),
+                                devices[ds->num_drives].name);
+    else
+      gtk_combo_box_append_text(GTK_COMBO_BOX(ds->drive_menu),
+                                devices[ds->num_drives].device);
+    ds->num_drives++;
+    }
+  /* Select first entry */
+  gtk_combo_box_set_active(GTK_COMBO_BOX(ds->drive_menu), 0);
+  }
 
 static void button_callback(GtkWidget * w, gpointer data)
   {
@@ -125,11 +102,11 @@ static void button_callback(GtkWidget * w, gpointer data)
     {
     //    plugin = menu_get_current(&(f->plugins));
     
-    drives[0] = f->drive_infos[f->plugins.selected][f->drives.selected].device;
+    drives[0] = f->plugin_info->devices[gtk_combo_box_get_active(GTK_COMBO_BOX(f->drive_menu))].device;
     drives[1] = NULL;
 
-    plugin = f->plugin_labels[f->plugins.selected];
-
+    plugin = f->plugin_info->name;
+    
     f->add_files(drives, plugin, f->callback_data);
     }
   
@@ -160,63 +137,24 @@ static gboolean destroy_callback(GtkWidget * w, GdkEvent * event,
   return TRUE;
   }
 
-static void change_callback(menu_t * m, void * data)
-  {
-  int i, num;
-
-  bg_gtk_drivesel_t * f;
-  f = (bg_gtk_drivesel_t *)data;
-
-  /* Free drive labels */
-
-  i = 0;
-  if(f->drive_labels)
-    {
-    free(f->drive_labels);
-    }
-  
-  /* Count the devices */
-  
-  num = 0;
-  while(f->drive_infos[f->plugins.selected][num].device)
-    num++;
-
-  f->drive_labels = calloc(num+1, sizeof(*(f->drive_labels)));
-
-  for(i = 0; i < num; i++)
-    {
-    if(f->drive_infos[f->plugins.selected][i].name)
-      f->drive_labels[i] = f->drive_infos[f->plugins.selected][i].name;
-    else
-      f->drive_labels[i] = f->drive_infos[f->plugins.selected][i].device;
-    }
-
-  menu_set_options(&(f->drives), f->drive_labels);    
-  }
-
 bg_gtk_drivesel_t *
 bg_gtk_drivesel_create(const char * title,
                        void (*add_files)(char ** files, const char * plugin,
                                          void * data),
                        void (*close_notify)(bg_gtk_drivesel_t *,
                                             void * data),
-                       char ** plugins,
-                       bg_device_info_t ** drive_infos,
                        void * user_data,
                        GtkWidget * parent_window,
-                       bg_plugin_registry_t * plugin_reg)
+                       bg_plugin_registry_t * plugin_reg,
+                       int type_mask, int flag_mask)
   {
   bg_gtk_drivesel_t * ret;
   GtkWidget * box;
   GtkWidget * table;
   GtkWidget * mainbox;
   GtkWidget * label;
-  const bg_plugin_info_t * info;
-  int index;
   
   ret = calloc(1, sizeof(*ret));
-  ret->drive_infos = drive_infos;  
-  ret->plugin_names = plugins;
   
   /* Create window */
 
@@ -233,32 +171,20 @@ bg_gtk_drivesel_create(const char * title,
     g_signal_connect(G_OBJECT(ret->window), "destroy-event",
                      G_CALLBACK(destroy_callback), ret);
     }
+
+  /* Create device menu */
+
+  ret->drive_menu = gtk_combo_box_new_text();
+  gtk_widget_show(ret->drive_menu);
   
   /* Create plugin menu */
 
-  index = 0;
-  while(plugins[index])
-    index++;
+  ret->plugin_reg = plugin_reg;
+  ret->plugin_menu = bg_gtk_plugin_menu_create(0, plugin_reg, 
+                                               type_mask, flag_mask);
 
-  ret->plugin_labels = calloc(index+1, sizeof(*ret->plugin_labels));
-
-  index = 0;
-  while(plugins[index])
-    {
-    info = bg_plugin_find_by_name(plugin_reg, plugins[index]);
-
-    bg_bindtextdomain(info->gettext_domain, info->gettext_directory);
-    ret->plugin_labels[index] = bg_strdup(ret->plugin_labels[index],
-                                          TRD(info->long_name,
-                                              info->gettext_domain));
-    index++;
-    }
-  
-  menu_init(&(ret->plugins), change_callback, ret);
-  menu_init(&(ret->drives), NULL, NULL);
-
-  menu_set_options(&(ret->plugins), ret->plugin_labels);
-  
+  bg_gtk_plugin_menu_set_change_callback(ret->plugin_menu, plugin_change_callback,
+                                         ret);
   /* Create Buttons */
 
   ret->add_button = gtk_button_new_from_stock(GTK_STOCK_ADD);
@@ -290,18 +216,14 @@ bg_gtk_drivesel_create(const char * title,
   gtk_table_set_col_spacings(GTK_TABLE(table), 5);
   gtk_table_set_row_spacings(GTK_TABLE(table), 5);
   
+  bg_gtk_plugin_menu_attach(ret->plugin_menu, table,
+                            0, 0);
   
-  label = gtk_label_new(TR("Plugin:"));
-  gtk_widget_show(label);
-
-  gtk_table_attach(GTK_TABLE(table), label, 0, 1, 0, 1, GTK_FILL, GTK_FILL, 0, 0);
-  gtk_table_attach_defaults(GTK_TABLE(table), ret->plugins.widget, 1, 2, 0, 1);
-
   label = gtk_label_new(TR("Drive:"));
   gtk_widget_show(label);
 
   gtk_table_attach(GTK_TABLE(table), label, 0, 1, 1, 2, GTK_FILL, GTK_FILL, 0, 0);
-  gtk_table_attach_defaults(GTK_TABLE(table), ret->drives.widget, 1, 2, 1, 2);
+  gtk_table_attach_defaults(GTK_TABLE(table), ret->drive_menu, 1, 2, 1, 2);
   
   gtk_widget_show(table);
   gtk_box_pack_start_defaults(GTK_BOX(mainbox), table);
@@ -321,6 +243,8 @@ bg_gtk_drivesel_create(const char * title,
   ret->add_files = add_files;
   ret->close_notify = close_notify;
   ret->callback_data = user_data;
+
+  plugin_change_callback(ret->plugin_menu, ret);
   
   return ret;
   }
@@ -329,17 +253,6 @@ bg_gtk_drivesel_create(const char * title,
 
 void bg_gtk_drivesel_destroy(bg_gtk_drivesel_t * drivesel)
   {
-  int index = 0;
-
-  if(drivesel->plugin_labels)
-    {
-    while(drivesel->plugin_labels[index])
-      free(drivesel->plugin_labels[index++]);
-    }
-  
-  if(drivesel->drive_labels)
-    free(drivesel->drive_labels);
-  //  g_object_unref(G_OBJECT(drivesel));
   free(drivesel);
   }
 

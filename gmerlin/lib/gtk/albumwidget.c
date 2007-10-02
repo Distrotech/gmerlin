@@ -48,6 +48,10 @@ static GdkPixbuf * has_video_pixbuf = (GdkPixbuf *)0;
 static GdkPixbuf * has_still_pixbuf = (GdkPixbuf *)0;
 static GdkPixbuf * dnd_pixbuf       = (GdkPixbuf *)0;
 
+#if GTK_MINOR_VERSION >= 12
+#define gtk_tree_view_tree_to_widget_coords \
+gtk_tree_view_convert_bin_window_to_widget_coords
+#endif
 
 int num_album_widgets = 0;
 
@@ -55,9 +59,6 @@ int num_album_widgets = 0;
 
 // static bg_gtk_album_widget_t * drag_source = (bg_gtk_album_widget_t*)0;
 // static int drag_do_delete = 0;
-
-static char ** file_plugins = (char **)0;
-static char **  url_plugins = (char **)0;
 
 static GtkTargetList * target_list = (GtkTargetList *)0;
 static GtkTargetList * target_list_r = (GtkTargetList *)0;
@@ -1149,18 +1150,15 @@ static void add_files(bg_gtk_album_widget_t * widget)
 
   tmp_string = bg_sprintf(TR("Add files to album %s"),
                           bg_album_get_name(widget->album));
-  if(!file_plugins)
-    file_plugins = bg_plugin_registry_get_plugins(bg_album_get_plugin_registry(widget->album),
-                                                  BG_PLUGIN_INPUT,
-                                                  BG_PLUGIN_FILE);
-    
+  
   widget->add_files_filesel =
     bg_gtk_filesel_create(tmp_string,
                           add_file_callback,
                           filesel_close_callback,
-                          file_plugins,
                           widget, widget->parent,
-                          bg_album_get_plugin_registry(widget->album));
+                          bg_album_get_plugin_registry(widget->album),
+                          BG_PLUGIN_INPUT,
+                          BG_PLUGIN_FILE);
   free(tmp_string);
 
   bg_gtk_filesel_set_directory(widget->add_files_filesel,
@@ -1178,19 +1176,14 @@ static void add_urls(bg_gtk_album_widget_t * widget)
 
   tmp_string = bg_sprintf(TR("Add URLS to album %s"),
                           bg_album_get_name(widget->album));
-  if(!url_plugins)
-    url_plugins =
-      bg_plugin_registry_get_plugins(bg_album_get_plugin_registry(widget->album),
-                                     BG_PLUGIN_INPUT,
-                                     BG_PLUGIN_URL);
   
   widget->add_urls_urlsel =
     bg_gtk_urlsel_create(tmp_string,
                          add_urls_callback,
                          urlsel_close_callback,
-                         url_plugins,
                          widget, widget->parent,
-                         bg_album_get_plugin_registry(widget->album));
+                         bg_album_get_plugin_registry(widget->album),
+                         BG_PLUGIN_INPUT, BG_PLUGIN_URL);
   free(tmp_string);
 
   gtk_widget_set_sensitive(widget->add_urls_button, 0);
@@ -1271,8 +1264,7 @@ static void menu_callback(GtkWidget * w, gpointer data)
       bg_gtk_filesel_create(tmp_string,
                             add_albums_callback,
                             filesel_close_callback,
-                            (char **)0,
-                            widget, widget->parent, (bg_plugin_registry_t*)0);
+                            widget, widget->parent, (bg_plugin_registry_t*)0, 0, 0);
     free(tmp_string);
     bg_gtk_filesel_run(widget->add_files_filesel, 0);
     }
@@ -1356,7 +1348,7 @@ static void menu_callback(GtkWidget * w, gpointer data)
     {
     tmp_string = bg_gtk_get_filename_write("Save album as",
                                            (char**)0,
-                                           0);
+                                           1);
     if(tmp_string)
       {
       bg_album_save(widget->album, tmp_string);

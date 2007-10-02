@@ -27,11 +27,10 @@ bg_gtk_drivesel_create(const char * title,
                                          void * data),
                        void (*close_notify)(bg_gtk_drivesel_t *,
                                             void * data),
-                       char ** plugins,
-                       bg_device_info_t ** decices,
                        void * user_data,
                        GtkWidget * parent_window,
-                       bg_plugin_registry_t * plugin_reg);
+                       bg_plugin_registry_t * plugin_reg, int type_mask,
+                       int flag_mask);
 
 /* Destroy driveselector */
 

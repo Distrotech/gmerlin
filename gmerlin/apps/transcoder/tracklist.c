@@ -47,12 +47,6 @@
 
 static void track_list_update(track_list_t * w);
 
-static char ** file_plugins = (char **)0;
-static char **  url_plugins = (char **)0;
-
-static char ** drive_plugins = (char **)0;
-static bg_device_info_t ** drive_devices;
-
 static GdkPixbuf * has_audio_pixbuf = (GdkPixbuf *)0;
 static GdkPixbuf * has_video_pixbuf = (GdkPixbuf *)0;
 
@@ -78,32 +72,6 @@ static GtkTargetEntry copy_paste_entries[] =
   {
     { cp_tracks_name , 0, DND_TRANSCODER_TRACKS },
   };
-
-
-
-static void init_drives(bg_plugin_registry_t * plugin_reg)
-  {
-  int i;
-  int num_plugins;
-  const bg_plugin_info_t * info;
-  
-  num_plugins = bg_plugin_registry_get_num_plugins(plugin_reg, BG_PLUGIN_INPUT, BG_PLUGIN_REMOVABLE);
-
-  if(!num_plugins)
-    return;
-    
-  drive_plugins = calloc(num_plugins + 1, sizeof(*drive_plugins));
-  drive_devices = calloc(num_plugins + 1, sizeof(*drive_devices));
-
-  for(i = 0; i < num_plugins; i++)
-    {
-    info = bg_plugin_find_by_index(plugin_reg, i, BG_PLUGIN_INPUT, BG_PLUGIN_REMOVABLE);
-
-    drive_plugins[i] = bg_strdup((char*)0, info->name);
-    drive_devices[i] = info->devices;
-    }
-
-  }
 
 static void load_pixmaps()
   {
@@ -713,22 +681,12 @@ static void button_callback(GtkWidget * w, gpointer data)
 
   if((w == t->add_file_button) || (w == t->menu.add_menu.add_files_item))
     {
-
-    if(!file_plugins)
-      {
-      file_plugins =
-        bg_plugin_registry_get_plugins(t->plugin_reg,
-                                       BG_PLUGIN_INPUT,
-                                       BG_PLUGIN_FILE);
-
-      }
-
     t->filesel = bg_gtk_filesel_create("Add files...",
                                        add_file_callback,
                                        filesel_close_callback,
-                                       file_plugins,
                                        t, NULL /* parent */,
-                                       t->plugin_reg);
+                                       t->plugin_reg, BG_PLUGIN_INPUT,
+                                       BG_PLUGIN_FILE);
 
     bg_gtk_filesel_set_directory(t->filesel, t->open_path);
     gtk_widget_set_sensitive(t->add_file_button, 0);
@@ -739,42 +697,24 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   else if((w == t->add_url_button) || (w == t->menu.add_menu.add_urls_item))
     {
-
-    if(!url_plugins)
-      {
-      url_plugins =
-        bg_plugin_registry_get_plugins(t->plugin_reg,
-                                       BG_PLUGIN_INPUT,
-                                       BG_PLUGIN_URL);
-      }
     urlsel = bg_gtk_urlsel_create(TR("Add URLs"),
                                   add_file_callback,
                                   urlsel_close_callback,
-                                  url_plugins,
                                   t, NULL  /* parent */,
-                                  t->plugin_reg);
+                                  t->plugin_reg,
+                                  BG_PLUGIN_INPUT,
+                                  BG_PLUGIN_URL);
     gtk_widget_set_sensitive(t->add_url_button, 0);
     bg_gtk_urlsel_run(urlsel, 0);
     //    bg_gtk_urlsel_destroy(urlsel);
     }
   else if((w == t->add_removable_button) || (w == t->menu.add_menu.add_drives_item))
     {
-    
-    if(!drive_plugins)
-      {
-      init_drives(t->plugin_reg);
-      
-      if(!drive_plugins)
-        return;
-      }
-
     drivesel = bg_gtk_drivesel_create("Add drive",
                                       add_file_callback,
                                       drivesel_close_callback,
-                                      drive_plugins,
-                                      drive_devices,
                                       t, NULL  /* parent */,
-                                      t->plugin_reg);
+                                      t->plugin_reg, BG_PLUGIN_INPUT, BG_PLUGIN_REMOVABLE);
     gtk_widget_set_sensitive(t->add_removable_button, 0);
     bg_gtk_drivesel_run(drivesel, 0);
 

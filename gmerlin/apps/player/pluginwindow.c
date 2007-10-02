@@ -19,7 +19,6 @@ struct plugin_window_s
 
   gmerlin_t * g;
   
-  GtkTooltips * tooltips;
   };
 
 #if 0
@@ -74,15 +73,6 @@ plugin_window_t * plugin_window_create(gmerlin_t * g,
   ret = calloc(1, sizeof(*ret));
 
   ret->g = g;
-  ret->tooltips = gtk_tooltips_new();
-
-  g_object_ref (G_OBJECT (ret->tooltips));
-#if GTK_MINOR_VERSION < 10
-  gtk_object_sink (GTK_OBJECT (ret->tooltips));
-#else
-  g_object_ref_sink(G_OBJECT(ret->tooltips));
-#endif
-
   
   ret->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_title(GTK_WINDOW(ret->window), TR("Plugins"));
@@ -169,7 +159,6 @@ void plugin_window_destroy(plugin_window_t * w)
   {
   bg_gtk_plugin_widget_multi_destroy(w->inputs);
   bg_gtk_plugin_widget_multi_destroy(w->image_readers);
-  g_object_unref(w->tooltips);
   free(w);
   }
 

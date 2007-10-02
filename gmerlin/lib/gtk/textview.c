@@ -48,7 +48,11 @@ static void set_bg(GtkWidget * widget, gpointer data)
   rc_style->base[GTK_STATE_NORMAL].pixel = widget->style->bg[GTK_STATE_NORMAL].pixel;
 #endif
   gtk_widget_modify_style(widget, rc_style);
+#if GTK_MINOR_VERSION >= 12
+  g_object_unref (rc_style);
+#else
   gtk_rc_style_unref (rc_style);
+#endif
   }
 
 bg_gtk_textview_t * bg_gtk_textview_create()

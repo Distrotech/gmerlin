@@ -46,6 +46,7 @@
 #include <gui_gtk/gtkutils.h>
 #include <gui_gtk/logwindow.h>
 #include <gui_gtk/aboutwindow.h>
+#include <gui_gtk/fileselect.h>
 
 #include "transcoder_window.h"
 #include "transcoder_remote.h"
@@ -504,6 +505,7 @@ static int start_transcode(transcoder_window_t * win)
   return 1;
   }
 
+#if 0
 static void filesel_button_callback(GtkWidget * w, gpointer * data)
   {
   const char * end_pos;
@@ -564,6 +566,7 @@ static void filesel_set_path(GtkWidget * filesel, char * path)
   if(path)
     gtk_file_selection_set_filename(GTK_FILE_SELECTION(filesel), path);
   }
+#endif
 
 static void about_window_close_callback(bg_gtk_about_window_t * w,
                                         void * data)
@@ -582,7 +585,8 @@ static void button_callback(GtkWidget * w, gpointer data)
   {
   bg_cfg_section_t * cfg_section;
   transcoder_window_t * win = (transcoder_window_t *)data;
-
+  char * tmp_string;
+  
   if((w == win->run_button) || (w == win->actions_menu.run_item))
     {
     win->pp_plugin = track_list_get_pp_plugin(win->tracklist);
@@ -631,100 +635,42 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   else if((w == win->load_button) || (w == win->file_menu.load_item))
     {
-    
-    if(!win->filesel)
-      win->filesel = create_filesel(win);
-    
-    gtk_window_set_title(GTK_WINDOW(win->filesel), TR("Load task list"));
-    filesel_set_path(win->filesel, win->task_path);
-    
-    gtk_widget_show(win->filesel);
-    gtk_main();
-
-    if(win->filesel_file)
+    tmp_string = bg_gtk_get_filename_read(TR("Load task list"),
+                                          &win->task_path);
+    if(tmp_string)
       {
-      track_list_load(win->tracklist, win->filesel_file);
-      free(win->filesel_file);
-      win->filesel_file = (char*)0;
-      }
-    if(win->filesel_path)
-      {
-      if(win->task_path) free(win->task_path);
-      win->task_path = win->filesel_path;
-      win->filesel_path = (char*)0;
+      track_list_load(win->tracklist, tmp_string);
+      free(tmp_string);
       }
     }
   else if((w == win->save_button) || (w == win->file_menu.save_item))
     {
-    if(!win->filesel)
-      win->filesel = create_filesel(win);
-    
-    gtk_window_set_title(GTK_WINDOW(win->filesel), TR("Save task list"));
-    filesel_set_path(win->filesel, win->task_path);
-    
-    gtk_widget_show(win->filesel);
-    gtk_main();
-
-    if(win->filesel_file)
+    tmp_string = bg_gtk_get_filename_write(TR("Load task list"),
+                                           &win->task_path, 1);
+    if(tmp_string)
       {
-      track_list_save(win->tracklist, win->filesel_file);
-      free(win->filesel_file);
-      win->filesel_file = (char*)0;
-      }
-    if(win->filesel_path)
-      {
-      if(win->task_path) free(win->task_path);
-      win->task_path = win->filesel_path;
-      win->filesel_path = (char*)0;
+      track_list_load(win->tracklist, tmp_string);
+      free(tmp_string);
       }
     }
   else if(w == win->options_menu.load_item)
     {
-    if(!win->filesel)
-      win->filesel = create_filesel(win);
-    
-    gtk_window_set_title(GTK_WINDOW(win->filesel), TR("Load profile"));
-    filesel_set_path(win->filesel, win->profile_path);
-    
-    gtk_widget_show(win->filesel);
-    gtk_main();
-
-    if(win->filesel_file)
+    tmp_string = bg_gtk_get_filename_read(TR("Load profile"),
+                                          &win->task_path);
+    if(tmp_string)
       {
-      transcoder_window_load_profile(win, win->filesel_file);
-      free(win->filesel_file);
-      win->filesel_file = (char*)0;
+      transcoder_window_load_profile(win, tmp_string);
+      free(tmp_string);
       }
-    if(win->filesel_path)
-      {
-      if(win->profile_path) free(win->profile_path);
-      win->profile_path = win->filesel_path;
-      win->filesel_path = (char*)0;
-      }
-    
     }
   else if(w == win->options_menu.save_item)
     {
-    if(!win->filesel)
-      win->filesel = create_filesel(win);
-    
-    gtk_window_set_title(GTK_WINDOW(win->filesel), TR("Save profile"));
-    filesel_set_path(win->filesel, win->profile_path);
-    
-    gtk_widget_show(win->filesel);
-    gtk_main();
-
-    if(win->filesel_file)
+    tmp_string = bg_gtk_get_filename_read(TR("Save profile"),
+                                          &win->task_path);
+    if(tmp_string)
       {
-      bg_cfg_registry_save(win->cfg_reg, win->filesel_file);
-      free(win->filesel_file);
-      win->filesel_file = (char*)0;
-      }
-    if(win->filesel_path)
-      {
-      if(win->profile_path) free(win->profile_path);
-      win->profile_path = win->filesel_path;
-      win->filesel_path = (char*)0;
+      bg_cfg_registry_save(win->cfg_reg, tmp_string);
+      free(tmp_string);
       }
     }
   else if((w == win->plugin_button) || (w == win->options_menu.plugin_item))

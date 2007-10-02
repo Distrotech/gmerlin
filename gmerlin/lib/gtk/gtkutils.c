@@ -379,9 +379,39 @@ void bg_gtk_set_tooltips(int enable)
     }
   }
 
+
 #else
 
+static gboolean tooltip_callback(GtkWidget  *widget,
+                                 gint        x,
+                                 gint        y,
+                                 gboolean    keyboard_mode,
+                                 GtkTooltip *tooltip,
+                                 gpointer    user_data)
+  {
+  if(show_tooltips)
+    return TRUE;
+  else
+    return FALSE;
+  }
+
+void bg_gtk_tooltips_set_tip(GtkWidget * w, const char * str,
+                             const char * translation_domain)
+  {
+  str = dgettext(translation_domain, str);
+  gtk_widget_set_tooltip_text(w, str);
+  g_signal_connect(G_OBJECT(w), "query-tooltip",
+                   G_CALLBACK(tooltip_callback),
+                   (gpointer)0);
+  }
+
+void bg_gtk_set_tooltips(int enable)
+  {
+  show_tooltips = enable;
+  }
+
 #endif
+
 
 
 int bg_gtk_get_tooltips()

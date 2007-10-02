@@ -211,12 +211,51 @@ static gtk_widget_funcs_t funcs =
     attach:    attach
   };
 
+static void
+fileselect_callback(GtkWidget *chooser,
+                    gint       response_id,
+                    gpointer data)
+  {
+  device_t * priv;
+  GtkTreeIter iter;
+  gchar *uri;
+  priv = (device_t*)data;
+  
+  if(response_id == GTK_RESPONSE_OK)
+    {
+    GtkTreeModel * model;
+    uri = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER (chooser));
+    
+    model = gtk_tree_view_get_model(GTK_TREE_VIEW(priv->treeview));
+    
+    gtk_list_store_append(GTK_LIST_STORE(model), &iter);
+    gtk_list_store_set(GTK_LIST_STORE(model), &iter,
+                       COLUMN_DEVICE,
+                       uri,
+                       -1);
+    g_free (uri);
+    }
+  //  gtk_widget_destroy (chooser);
+  
+  gtk_widget_hide(priv->fileselect);
+  gtk_main_quit();
+  }
+
+static gboolean
+fileselect_delete_callback(GtkWidget * w, GdkEventAny * event,
+                           gpointer data)
+  {
+  fileselect_callback(w, GTK_RESPONSE_CANCEL, data);
+  return TRUE;
+  }
+
 static void button_callback(GtkWidget * w, gpointer data)
   {
   device_t * priv;
   GtkTreeSelection * selection;
-  GtkTreeIter iter;
   GtkTreeModel * model;
+  GtkWidget * toplevel;
+  GtkTreeIter iter;
   
   priv = (device_t*)data;
 
@@ -224,15 +263,27 @@ static void button_callback(GtkWidget * w, gpointer data)
     {
     if(!priv->fileselect)
       {
-      priv->fileselect = gtk_file_selection_new("Select a device");
+      toplevel = gtk_widget_get_toplevel(w);
+      if(!GTK_WIDGET_TOPLEVEL (toplevel))
+        toplevel = (GtkWidget*)0;
+      
+      priv->fileselect =
+        gtk_file_chooser_dialog_new (TRD("Select a device", PACKAGE),
+                                     GTK_WINDOW(toplevel),
+                                     GTK_FILE_CHOOSER_ACTION_OPEN,
+                                     GTK_STOCK_CANCEL,
+                                     GTK_RESPONSE_CANCEL,
+                                     GTK_STOCK_OK, GTK_RESPONSE_OK,
+                                     NULL);
+      
       gtk_window_set_modal(GTK_WINDOW(priv->fileselect), TRUE);
 
-      g_signal_connect(G_OBJECT(GTK_FILE_SELECTION(priv->fileselect)->ok_button),
-                       "clicked", G_CALLBACK(button_callback), (gpointer)priv);
-      g_signal_connect(G_OBJECT(GTK_FILE_SELECTION(priv->fileselect)->cancel_button),
-                       "clicked", G_CALLBACK(button_callback), (gpointer)priv);
-      
-      
+      g_signal_connect(priv->fileselect, "response",
+                       G_CALLBACK(fileselect_callback),
+                       (gpointer)priv);
+      g_signal_connect(G_OBJECT(priv->fileselect), "delete_event",
+                       G_CALLBACK(fileselect_delete_callback),
+                       (gpointer)priv);
       }
     gtk_widget_show(priv->fileselect);
     gtk_main();
@@ -243,27 +294,6 @@ static void button_callback(GtkWidget * w, gpointer data)
     if(!gtk_tree_selection_get_selected(selection, &model, &iter))
       return;
     gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
-    }
-  else if(priv->fileselect)
-    {
-    if(w == GTK_FILE_SELECTION(priv->fileselect)->ok_button)
-      {
-      gtk_widget_hide(priv->fileselect);
-      gtk_main_quit();
-
-      model = gtk_tree_view_get_model(GTK_TREE_VIEW(priv->treeview));
-      gtk_list_store_append(GTK_LIST_STORE(model), &iter);
-      gtk_list_store_set(GTK_LIST_STORE(model), &iter,
-                         COLUMN_DEVICE,
-                         gtk_file_selection_get_filename(GTK_FILE_SELECTION(priv->fileselect)),
-                         -1);
-      
-      }
-    if(w == GTK_FILE_SELECTION(priv->fileselect)->cancel_button)
-      {
-      gtk_widget_hide(priv->fileselect);
-      gtk_main_quit();
-      }
     }
   }
 

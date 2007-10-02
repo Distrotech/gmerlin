@@ -38,9 +38,6 @@
 static void set_tabbed_mode(bg_gtk_tree_widget_t * w);
 static void set_windowed_mode(bg_gtk_tree_widget_t * w);
 
-
-static char ** file_plugins = (char **)0;
-
 static GdkPixbuf * root_pixbuf = (GdkPixbuf *)0;
 static GdkPixbuf * folder_closed_pixbuf = (GdkPixbuf *)0;
 static GdkPixbuf * folder_open_pixbuf   = (GdkPixbuf *)0;
@@ -990,21 +987,16 @@ static void add_dir_close_notify(bg_gtk_filesel_t * s, void * data)
 static void add_directory(bg_gtk_tree_widget_t * w)
   {
   bg_gtk_filesel_t * dirsel;
-
-  if(!file_plugins)
-    file_plugins =
-      bg_plugin_registry_get_plugins(bg_media_tree_get_plugin_registry(w->tree),
-                                     BG_PLUGIN_INPUT,
-                                     BG_PLUGIN_FILE);
-
+  
   dirsel =
     bg_gtk_dirsel_create("Add directory",
                          add_dir_callback,
                          add_dir_close_notify,
-                         file_plugins,
                          w,
                          (GtkWidget*)0 /* parent_window */,
-                         bg_media_tree_get_plugin_registry(w->tree));
+                         bg_media_tree_get_plugin_registry(w->tree),
+                         BG_PLUGIN_INPUT,
+                         BG_PLUGIN_FILE);
   
   bg_gtk_filesel_run(dirsel, 1);
     
