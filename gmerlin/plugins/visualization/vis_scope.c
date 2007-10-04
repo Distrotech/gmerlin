@@ -266,9 +266,6 @@ static float * get_coeffs(float radius, int * r_i, int mode, float fade_factor)
   for(i = 0; i < (2 * *r_i) + 1; i++)
     ret[i] *= fade_factor / sum;
   
-  for(i = 0; i < (2 * *r_i) + 1; i++)
-    fprintf(stderr, "ret[%d]: %f\n", i, ret[i]);
-  
   return ret;
   }
 
@@ -392,6 +389,8 @@ draw_line(scope_priv_t * vp, gavl_video_frame_t * f,
     }
   }
 
+#define CLAMP(x,min,max) x = (x>max) ? (max) : ((x < (min)) ? (min) : x)
+
 static void draw_scope(scope_priv_t * vp, int y_off, int y_ampl, float * samples,
                        gavl_video_frame_t * f)
   {
@@ -399,15 +398,19 @@ static void draw_scope(scope_priv_t * vp, int y_off, int y_ampl, float * samples
 
   x1 = 0;
   y1 = y_off + (int)(samples[0] * y_ampl + 0.5);
+
+
+  CLAMP(y1, 0, vp->video_format.image_height - 1);
+
   
   for(i = 1; i < vp->audio_format.samples_per_frame; i++)
     {
     x2 = (i * vp->video_format.image_width) / vp->audio_format.samples_per_frame;
-    if(x2 >= vp->video_format.image_width)
-      x2 = vp->video_format.image_width - 1;
-    
     y2 = y_off + (int)(samples[i] * y_ampl + 0.5);
 
+    CLAMP(x2, 0, vp->video_format.image_width  - 1);
+    CLAMP(y2, 0, vp->video_format.image_height - 1);
+    
     draw_line(vp, f, x1, y1, x2, y2);
     x1 = x2;
     y1 = y2;
@@ -422,7 +425,6 @@ static void draw_frame_scope(void * priv, gavl_video_frame_t * frame)
 
   gavl_video_frame_clear(frame, &vp->video_format);
   
-  gavl_video_frame_copy(&vp->video_format, frame, vp->last_video_frame);
   gavl_video_scaler_scale(vp->scaler, vp->last_video_frame, frame);
   
   //  draw_line(vp, frame, 0, vp->video_format.image_height/2,

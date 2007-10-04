@@ -20,6 +20,7 @@
 #include <inttypes.h>
 
 #include <unistd.h>
+#include <errno.h>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -613,9 +614,13 @@ void bg_msg_queue_destroy(bg_msg_queue_t * m)
 
 bg_msg_t * bg_msg_queue_lock_read(bg_msg_queue_t * m)
   {
-  sem_wait(&(m->msg_output->produced)); 
+  while(sem_wait(&(m->msg_output->produced)) == -1)
+    {
+    if(errno != EINTR)
+      return (void*)0;
+    }
   return m->msg_output;
-
+  
   // sem_ret->msg_output
   }
 

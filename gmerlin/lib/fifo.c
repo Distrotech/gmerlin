@@ -19,6 +19,9 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include <errno.h>
+
 #include <pthread.h>
 #include <semaphore.h>
 
@@ -77,43 +80,69 @@ struct bg_fifo_s
 
   /* Keep track of the waiting threads */
 
-  int input_waiting;
+  //  int input_waiting;
   pthread_mutex_t input_waiting_mutex;
   
-  int output_waiting;
+  //  int output_waiting;
   pthread_mutex_t output_waiting_mutex;
 
   };
 
 static void set_input_waiting(bg_fifo_t * f, int waiting)
   {
+#if 0
   pthread_mutex_lock(&(f->input_waiting_mutex));
   f->input_waiting = waiting;
   pthread_mutex_unlock(&(f->input_waiting_mutex));
+#else
+  if(waiting)
+    pthread_mutex_lock(&(f->input_waiting_mutex));
+  else
+    pthread_mutex_unlock(&(f->input_waiting_mutex));
+#endif
   }
 
 static void set_output_waiting(bg_fifo_t * f, int waiting)
   {
+#if 0
   pthread_mutex_lock(&(f->output_waiting_mutex));
   f->output_waiting = waiting;
   pthread_mutex_unlock(&(f->output_waiting_mutex));
+#else
+  if(waiting)
+    pthread_mutex_lock(&(f->output_waiting_mutex));
+  else
+    pthread_mutex_unlock(&(f->output_waiting_mutex));
+#endif
   }
 
 static int get_input_waiting(bg_fifo_t * f)
   {
   int ret;
+#if 0
   pthread_mutex_lock(&(f->input_waiting_mutex));
   ret = f->input_waiting;
   pthread_mutex_unlock(&(f->input_waiting_mutex));
+#else
+  ret = !!pthread_mutex_trylock(&(f->input_waiting_mutex));
+  if(!ret)
+    pthread_mutex_unlock(&(f->input_waiting_mutex));
+#endif
   return ret;
   }
 
 static int get_output_waiting(bg_fifo_t * f)
   {
   int ret;
+#if 0
   pthread_mutex_lock(&(f->output_waiting_mutex));
   ret = f->output_waiting;
   pthread_mutex_unlock(&(f->output_waiting_mutex));
+#else
+  ret = !!pthread_mutex_trylock(&(f->output_waiting_mutex));
+  if(!ret)
+    pthread_mutex_unlock(&(f->output_waiting_mutex));
+#endif
   return ret;
   }
 
@@ -183,13 +212,21 @@ void bg_fifo_destroy(bg_fifo_t * f,
 
 void * bg_fifo_lock_read(bg_fifo_t*f, bg_fifo_state_t * state)
   {
+
   *state = get_state(f);
   if(*state != BG_FIFO_PLAYING)
-    {
     return (void*)0;
-    }
+  
   set_output_waiting(f, 1);
-  sem_wait(&(f->output_frame->produced));
+  
+  while(sem_wait(&(f->output_frame->produced)) == -1)
+    {
+    if(errno != EINTR)
+      {
+      set_output_waiting(f, 0);
+      return (void*)0;
+      }
+    }
   
   set_output_waiting(f, 0);
   
@@ -224,9 +261,6 @@ void * bg_fifo_try_lock_read(bg_fifo_t*f, bg_fifo_state_t * state)
   return f->output_frame->frame;
   }
 
-
-
-
 void bg_fifo_unlock_read(bg_fifo_t*f)
   {
   pthread_mutex_lock(&(f->output_frame_mutex));
@@ -246,13 +280,21 @@ void bg_fifo_unlock_read(bg_fifo_t*f)
 
 void * bg_fifo_lock_write(bg_fifo_t*f, bg_fifo_state_t * state)
   {
+  
   *state = get_state(f);
-
+  
   if(*state != BG_FIFO_PLAYING)
     return (void *)0;
   
   set_input_waiting(f, 1);
-  sem_wait(&(f->input_frame->consumed));
+  while(sem_wait(&(f->input_frame->consumed)) == -1)
+    {
+    if(errno != EINTR)
+      {
+      set_input_waiting(f, 0);
+      return (void*)0;
+      }
+    }
   set_input_waiting(f, 0);
 
   *state = get_state(f);
@@ -279,7 +321,7 @@ void * bg_fifo_try_lock_write(bg_fifo_t*f, bg_fifo_state_t * state)
 /*
  *  Unlock frame for writing. If eof == 1,
  *  the frame is invalid and playback will stop
- *  as soon as the fifos are emtpy
+ *  as soon as the fifo is emtpy
  */
 
 void bg_fifo_unlock_write(bg_fifo_t*f, int eof)
@@ -300,16 +342,12 @@ void bg_fifo_set_state(bg_fifo_t * f, bg_fifo_state_t state)
     {
     /* Check whether output thread waits for the semaphore */
     if(get_output_waiting(f))
-      {
       sem_post(&(f->output_frame->produced));
-      }
+    
     /* Check whether input thread waits for the semaphore */
     if(get_input_waiting(f))
-      {
       sem_post(&(f->input_frame->consumed));
-      }
-    } 
-
+    }
   pthread_mutex_unlock(&(f->state_mutex));
   }
 
@@ -326,8 +364,11 @@ void bg_fifo_clear(bg_fifo_t * f)
     
     sem_init(&(tmp_frame->produced), 0, 0);
     sem_init(&(tmp_frame->consumed), 0, 1);
-    tmp_frame = tmp_frame->next;
     tmp_frame->eof = 0;
+    tmp_frame = tmp_frame->next;
     }
   f->output_frame = f->input_frame;
+  //  f->input_waiting = 0;
+  //  f->output_waiting = 0;
+  
   }

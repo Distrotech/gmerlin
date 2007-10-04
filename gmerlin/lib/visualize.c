@@ -13,11 +13,19 @@
 typedef struct
   {
   gavl_audio_converter_t * cnv;
-  gavl_audio_frame_t     * frame_in;
-  gavl_audio_frame_t     * frame_out;
+  gavl_audio_frame_t     * in_frame_1;
+  gavl_audio_frame_t     * in_frame_2;
+  pthread_mutex_t in_mutex;
+  
   int do_convert;
-  int do_stop;
-  pthread_mutex_t mutex;
+  
+  gavl_audio_frame_t * out_frame;
+  
+  gavl_audio_format_t in_format;
+  gavl_audio_format_t out_format;
+  
+  int last_samples_read;
+  int frame_done;
   } audio_buffer_t;
 
 static audio_buffer_t * audio_buffer_create()
@@ -25,69 +33,142 @@ static audio_buffer_t * audio_buffer_create()
   audio_buffer_t * ret;
   ret = calloc(1, sizeof(*ret));
   ret->cnv = gavl_audio_converter_create();
-  pthread_mutex_init(&(ret->mutex),(pthread_mutexattr_t *)0);
+  pthread_mutex_init(&(ret->in_mutex),(pthread_mutexattr_t *)0);
   return ret;
   }
 
 static void audio_buffer_cleanup(audio_buffer_t * b)
   {
-  if(b->do_convert && b->frame_in)
+  if(b->in_frame_1)
     {
-    gavl_audio_frame_destroy(b->frame_in);
-    b->frame_in = (gavl_audio_frame_t*)0;
+    gavl_audio_frame_destroy(b->in_frame_1);
+    b->in_frame_1 = (gavl_audio_frame_t*)0;
     }
-  
-  if(b->frame_out)
+  if(b->in_frame_2)
     {
-    gavl_audio_frame_destroy(b->frame_out);
-    b->frame_out = (gavl_audio_frame_t*)0;
+    gavl_audio_frame_destroy(b->in_frame_2);
+    b->in_frame_2 = (gavl_audio_frame_t*)0;
     }
+  if(b->out_frame)
+    {
+    gavl_audio_frame_destroy(b->out_frame);
+    b->out_frame = (gavl_audio_frame_t*)0;
+    }
+  }
+
+static void audio_buffer_destroy(audio_buffer_t * b)
+  {
+  audio_buffer_cleanup(b);
+  gavl_audio_converter_destroy(b->cnv);
+  free(b);
   }
 
 static void audio_buffer_init(audio_buffer_t * b,
                               const gavl_audio_format_t * in_format,
                               const gavl_audio_format_t * out_format)
   {
+  gavl_audio_format_t frame_format;
   /* Cleanup */
   audio_buffer_cleanup(b);
-  b->do_convert = gavl_audio_converter_init(b->cnv, in_format, out_format);
 
-  b->frame_out = gavl_audio_frame_create(out_format);
+  gavl_audio_format_copy(&b->in_format, in_format);
+  gavl_audio_format_copy(&b->out_format, out_format);
   
-  if(b->do_convert)
-    b->frame_in = gavl_audio_frame_create(in_format);
+  b->do_convert = gavl_audio_converter_init(b->cnv,
+                                            &b->in_format,
+                                            &b->out_format);
+
+  b->in_frame_1 = gavl_audio_frame_create(&b->in_format);
+
+  gavl_audio_format_copy(&frame_format, out_format);
+  frame_format.samples_per_frame = b->in_format.samples_per_frame;
   
-  }
-
-static void audio_buffer_destroy(audio_buffer_t * b)
-  {
-
-  }
-
-static void audio_buffer_put_audio(audio_buffer_t * b, gavl_audio_frame_t * f)
-  {
+  b->in_frame_2 = gavl_audio_frame_create(&frame_format);
   
+  b->out_frame = gavl_audio_frame_create(&b->out_format);
   }
 
-static int audio_buffer_get_audio(audio_buffer_t * b, gavl_audio_frame_t * f)
+static void audio_buffer_put(audio_buffer_t * b,
+                             const gavl_audio_frame_t * f)
   {
-  return 0;
+  pthread_mutex_lock(&b->in_mutex);
+  b->in_frame_1->valid_samples =
+    gavl_audio_frame_copy(&b->in_format,
+                          b->in_frame_1,
+                          f,
+                          0, /* dst_pos */
+                          0, /* src_pos */
+                          b->in_format.samples_per_frame, /* dst_size */
+                          f->valid_samples /* src_size */ ); 
+  pthread_mutex_unlock(&b->in_mutex);
   }
 
-static void audio_buffer_stop(audio_buffer_t * b)
+static gavl_audio_frame_t * audio_buffer_get(audio_buffer_t * b)
   {
+  int samples_copied;
+  /* Check if there is new audio */
+  pthread_mutex_lock(&b->in_mutex);
+
+  if(b->in_frame_1->valid_samples)
+    {
+    if(b->do_convert)
+      {
+      gavl_audio_convert(b->cnv, b->in_frame_1, b->in_frame_2);
+      samples_copied = b->in_frame_1->valid_samples;
+      }
+    else
+      samples_copied =
+        gavl_audio_frame_copy(&b->in_format,
+                              b->in_frame_2,
+                              b->in_frame_1,
+                              0, /* dst_pos */
+                              0, /* src_pos */
+                              b->in_format.samples_per_frame, /* dst_size */
+                              b->in_frame_1->valid_samples    /* src_size */ ); 
+
+    b->in_frame_2->valid_samples = samples_copied;
+    b->last_samples_read         = samples_copied;
+    b->in_frame_1->valid_samples = 0;
+    }
+  pthread_mutex_unlock(&b->in_mutex);
+
+  /* If the frame was output the last time, set valid_samples to 0 */
+  if(b->frame_done)
+    {
+    b->out_frame->valid_samples = 0;
+    b->frame_done = 0;
+    }
   
+  /* Copy to output frame and check if there are enough samples */
+  
+  samples_copied =
+    gavl_audio_frame_copy(&b->out_format,
+                          b->out_frame,
+                          b->in_frame_2,
+                          b->out_frame->valid_samples, /* dst_pos */
+                          b->last_samples_read - b->in_frame_2->valid_samples, /* src_pos */
+                          b->out_format.samples_per_frame - b->out_frame->valid_samples, /* dst_size */
+                          b->in_frame_2->valid_samples /* src_size */ ); 
+  
+  b->out_frame->valid_samples += samples_copied;
+  b->in_frame_2->valid_samples -= samples_copied;
+    
+  if(b->out_frame->valid_samples == b->out_format.samples_per_frame)
+    {
+    b->frame_done = 1;
+    return b->out_frame;
+    }
+  return (gavl_audio_frame_t*)0;
   }
-
 
 struct bg_visualizer_s
   {
   bg_plugin_registry_t * plugin_reg;
+
+  audio_buffer_t * audio_buffer;
   
-  gavl_audio_converter_t * audio_cnv;
   gavl_video_converter_t * video_cnv;
 
-  int do_convert_audio;
   int do_convert_video;
   
   bg_plugin_handle_t * vis_handle;
@@ -101,34 +182,18 @@ struct bg_visualizer_s
   gavl_video_format_t video_format_in;
   gavl_video_format_t video_format_in_real;
   gavl_video_format_t video_format_out;
-
-  gavl_audio_format_t audio_format_in;
-  gavl_audio_format_t audio_format_out;
   
   pthread_t video_thread;
-  pthread_t audio_thread;
   
   pthread_mutex_t stop_mutex;
   int do_stop;
-  
-  pthread_mutex_t audio_mutex;
-  int audio_changed;
-
-  gavl_audio_frame_t * audio_frame_in;
-  gavl_audio_frame_t * audio_frame_out_1;
-  gavl_audio_frame_t * audio_frame_out_2;
 
   gavl_video_frame_t * video_frame_in;
   gavl_video_frame_t * video_frame_out;
 
   gavl_timer_t * timer;
-  pthread_mutex_t time_mutex;
   
-  int64_t video_time; /* In timescale tics */
-  int64_t audio_time; /* In timescale tics */
-  
-  int audio_pos; /* Inside frame */
-  int last_samples_read;
+  gavl_time_t last_frame_time;
   
   int enable;
   };
@@ -140,12 +205,11 @@ bg_visualizer_t * bg_visualizer_create(bg_plugin_registry_t * plugin_reg)
   ret = calloc(1, sizeof(*ret));
 
   ret->plugin_reg = plugin_reg;
-  ret->audio_cnv = gavl_audio_converter_create();
   ret->video_cnv = gavl_video_converter_create();
 
+  ret->audio_buffer = audio_buffer_create();
+  
   pthread_mutex_init(&(ret->stop_mutex),(pthread_mutexattr_t *)0);
-  pthread_mutex_init(&(ret->audio_mutex),(pthread_mutexattr_t *)0);
-  pthread_mutex_init(&(ret->time_mutex),(pthread_mutexattr_t *)0);
   ret->timer = gavl_timer_create();
   
   return ret;
@@ -154,12 +218,9 @@ bg_visualizer_t * bg_visualizer_create(bg_plugin_registry_t * plugin_reg)
 void bg_visualizer_destroy(bg_visualizer_t * v)
   {
   pthread_mutex_destroy(&(v->stop_mutex));
-  pthread_mutex_destroy(&(v->audio_mutex));
-  pthread_mutex_destroy(&(v->time_mutex));
-
-  gavl_audio_converter_destroy(v->audio_cnv);
-  gavl_video_converter_destroy(v->video_cnv);
   
+  gavl_video_converter_destroy(v->video_cnv);
+  audio_buffer_destroy(v->audio_buffer);
   gavl_timer_destroy(v->timer);
   
   free(v);
@@ -268,8 +329,8 @@ void bg_visualizer_set_parameter(void * priv,
     }
   else if(!strcmp(name, "framerate"))
     {
-    v->video_format_in.frame_duration = 100;
-    v->video_format_in.timescale      = val->val_f * 100;
+    v->video_format_in.frame_duration = (int)((float)GAVL_TIME_SCALE / val->val_f);
+    v->video_format_in.timescale      = GAVL_TIME_SCALE;
     }
   else if(v->vis_handle && v->vis_handle->plugin->set_parameter)
     {
@@ -278,95 +339,12 @@ void bg_visualizer_set_parameter(void * priv,
     }
   }
 
-static int delay_print_counter = 0;
-
-static void * audio_thread_func(void * data)
-  {
-  int do_stop;
-  bg_visualizer_t * v;
-  
-  gavl_time_t current_time;
-  gavl_time_t diff_time;
-  gavl_time_t audio_time_unscaled;
-  
-  v = (bg_visualizer_t*)data;
-
-  
-  
-  while(1)
-    {
-    /* Check if we should stop */
-    pthread_mutex_lock(&v->stop_mutex);
-    do_stop = v->do_stop;
-    pthread_mutex_unlock(&v->stop_mutex);
-    if(do_stop)
-      break;
-    
-    /* Check if there is new audio */
-
-    pthread_mutex_lock(&v->audio_mutex);
-    if(v->audio_changed)
-      {
-      if(v->do_convert_audio)
-        gavl_audio_convert(v->audio_cnv,
-                           v->audio_frame_in,
-                           v->audio_frame_out_1);
-      else
-        gavl_audio_frame_copy(&v->audio_format_out, 
-                              v->audio_frame_out_1,
-                              v->audio_frame_in,
-                              0, 0, v->audio_format_in.samples_per_frame,
-                              v->audio_frame_in->valid_samples);
-      v->audio_changed = 0;
-      v->audio_time = v->audio_frame_in->timestamp;
-      v->audio_pos = 0;
-      }
-    pthread_mutex_unlock(&v->audio_mutex);
-
-    
-    
-    /* Update audio */
-
-    pthread_mutex_lock(&(v->time_mutex));
-    current_time = gavl_timer_get(v->timer);
-    pthread_mutex_unlock(&(v->time_mutex));
-    
-    audio_time_unscaled = gavl_time_unscale(v->audio_format_in.samplerate,
-                                            v->audio_time + v->audio_pos);
-    
-    diff_time = audio_time_unscaled - current_time;
-
-    if(delay_print_counter < 10)
-      {
-      fprintf(stderr, "Delay %lld %lld -> %lld\n",
-              audio_time_unscaled, current_time, diff_time);
-      delay_print_counter++;
-      }
-    
-    if(diff_time > GAVL_TIME_SCALE / 1000)
-      {
-      gavl_time_delay(&diff_time);
-      }
-    /* Update audio */
-    
-    bg_plugin_lock(v->vis_handle);
-    v->vis_plugin->update(v->vis_handle->priv, v->audio_frame_out_1);
-    bg_plugin_unlock(v->vis_handle);
-    
-    v->audio_pos += v->audio_format_out.samples_per_frame;
-    }
-  
-  return (void*)0;
-  }
-
 static void * video_thread_func(void * data)
   {
   int do_stop;
   bg_visualizer_t * v;
-  
-  gavl_time_t current_time;
+  gavl_audio_frame_t * audio_frame;
   gavl_time_t diff_time;
-  gavl_time_t video_time_unscaled;
   
   v = (bg_visualizer_t*)data;
 
@@ -380,9 +358,17 @@ static void * video_thread_func(void * data)
       break;
     
     /* Draw frame */
-
     bg_plugin_lock(v->vis_handle);
 
+    /* Check if we should update audio */
+
+    audio_frame = audio_buffer_get(v->audio_buffer);
+    if(audio_frame)
+      v->vis_plugin->update(v->vis_handle->priv,
+                            audio_frame);
+    
+    /* Draw frame */
+    
     if(!(v->vis_handle->info->flags & BG_PLUGIN_VISUALIZE_FRAME))
       v->vis_plugin->draw_frame(v->vis_handle->priv,
                                 (gavl_video_frame_t*)0);
@@ -398,14 +384,9 @@ static void * video_thread_func(void * data)
     
     /* Wait until we can show the frame */
     
-    pthread_mutex_lock(&(v->time_mutex));
-    current_time = gavl_timer_get(v->timer);
-    pthread_mutex_unlock(&(v->time_mutex));
+    diff_time = v->last_frame_time +
+      v->video_format_out.frame_duration - gavl_timer_get(v->timer);
 
-    video_time_unscaled = gavl_time_unscale(v->video_format_out.timescale,
-                                            v->video_time);
-    
-    diff_time = video_time_unscaled - current_time;
     if(diff_time > GAVL_TIME_SCALE / 1000)
       gavl_time_delay(&diff_time);
 
@@ -415,8 +396,7 @@ static void * video_thread_func(void * data)
       {
       bg_plugin_lock(v->ov_handle);
       v->ov_plugin->put_video(v->ov_handle->priv, v->video_frame_out);
-
-      fprintf(stderr, "Show frame\n");
+      v->last_frame_time = gavl_timer_get(v->timer);
       
       v->ov_plugin->handle_events(v->ov_handle->priv);
       bg_plugin_unlock(v->ov_handle);
@@ -425,6 +405,7 @@ static void * video_thread_func(void * data)
       {
       bg_plugin_lock(v->vis_handle);
       v->vis_plugin->show_frame(v->vis_handle->priv);
+      v->last_frame_time = gavl_timer_get(v->timer);
       bg_plugin_unlock(v->vis_handle);
 
       bg_plugin_lock(v->ov_handle);
@@ -432,7 +413,6 @@ static void * video_thread_func(void * data)
       bg_plugin_unlock(v->ov_handle);
       }
     
-    v->video_time += v->video_format_out.frame_duration;
     }
   
   return (void*)0;
@@ -444,14 +424,14 @@ void bg_visualizer_open(bg_visualizer_t * v,
   {
   gavl_audio_format_t tmp_format;
   
+  /* Set audio format */
+  
+  gavl_audio_format_copy(&tmp_format, format);
+  
   /* Set ov plugin */
   v->ov_handle = ov_handle;
   v->ov_plugin = (bg_ov_plugin_t*)(ov_handle->plugin);
   
-  /* Set audio format */
-  gavl_audio_format_copy(&v->audio_format_in, format);
-  gavl_audio_format_copy(&v->audio_format_out, format);
-
   /* Set video format */
   gavl_video_format_copy(&v->video_format_in_real, &v->video_format_in);
   
@@ -459,13 +439,15 @@ void bg_visualizer_open(bg_visualizer_t * v,
   
   v->vis_plugin->open(v->vis_handle->priv, v->ov_plugin,
                       v->ov_handle->priv,
-                      &v->audio_format_out,
+                      &tmp_format,
                       &v->video_format_in_real);
 
+  audio_buffer_init(v->audio_buffer, format, &tmp_format);
+  
   fprintf(stderr, "Audio Input format:\n");
-  gavl_audio_format_dump(&v->audio_format_in);
+  gavl_audio_format_dump(format);
   fprintf(stderr, "Audio Output format:\n");
-  gavl_audio_format_dump(&v->audio_format_out);
+  gavl_audio_format_dump(&tmp_format);
   
   if(v->vis_handle->info->flags & BG_PLUGIN_VISUALIZE_FRAME)
     {
@@ -501,47 +483,22 @@ void bg_visualizer_open(bg_visualizer_t * v,
         v->video_frame_out = gavl_video_frame_create(&v->video_format_out);
       }
     }
-
-  /* Initialize audio converter */
-  v->do_convert_audio = gavl_audio_converter_init(v->audio_cnv,
-                                                  &v->audio_format_in,
-                                                  &v->audio_format_out);
-
-  /* Create audio frames */
-  v->audio_frame_in = gavl_audio_frame_create(&v->audio_format_in);
   
-  gavl_audio_format_copy(&tmp_format, &v->audio_format_out);
-  tmp_format.samples_per_frame = v->audio_format_in.samples_per_frame;
-  
-  v->audio_frame_out_1 = gavl_audio_frame_create(&tmp_format);
-  v->audio_frame_out_2 = gavl_audio_frame_create(&v->audio_format_out);
-    
   v->ov_plugin->show_window(v->ov_handle->priv, 1);
   v->do_stop = 0;
-  
+  v->last_frame_time = 0; 
   gavl_timer_set(v->timer, 0);
   gavl_timer_start(v->timer);
   
-  pthread_create(&(v->audio_thread), (pthread_attr_t*)0, audio_thread_func, v);
-  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Started audio thread");
   pthread_create(&(v->video_thread), (pthread_attr_t*)0, video_thread_func, v);
-  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Started video thread");
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Started thread");
   }
 
 void bg_visualizer_update(bg_visualizer_t * v, gavl_audio_frame_t * frame)
   {
-  pthread_mutex_lock(&v->audio_mutex);
-  v->audio_changed = 1;
-  
-  v->audio_frame_in->valid_samples
-    = gavl_audio_frame_copy(&v->audio_format_in,
-                            v->audio_frame_in,
-                            frame, 0, 0, v->audio_format_in.samples_per_frame,
-                            frame->valid_samples);
-  v->audio_frame_in->timestamp = frame->timestamp;
-  
-  pthread_mutex_unlock(&v->audio_mutex);
+  audio_buffer_put(v->audio_buffer, frame);
   }
+
 
 void bg_visualizer_close(bg_visualizer_t * v)
   {
@@ -551,10 +508,8 @@ void bg_visualizer_close(bg_visualizer_t * v)
   v->do_stop = 1;
   pthread_mutex_unlock(&v->stop_mutex);
 
-  pthread_join(v->audio_thread, (void**)0);
-  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Joined audio thread");
   pthread_join(v->video_thread, (void**)0);
-  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Joined video thread");
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Joined thread");
   
   /* Close plugins */
   

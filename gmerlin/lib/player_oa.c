@@ -277,14 +277,11 @@ void * bg_player_oa_thread(void * data)
     if(!frame)
       {
       if(state == BG_FIFO_STOPPED) 
-        {
         break;
-        }
       else if(state == BG_FIFO_PAUSED)
-        {
         continue;
-        }
       }
+    
 #if 1
     if(!ctx->have_first_timestamp)
       {
@@ -308,6 +305,9 @@ void * bg_player_oa_thread(void * data)
       do_mute = ctx->player->mute;
       pthread_mutex_unlock(&(ctx->player->mute_mutex));
 
+      if(DO_VISUALIZE(ctx->player))
+        bg_visualizer_update(ctx->player->visualizer, frame);
+      
       if(do_mute)
         {
         gavl_audio_frame_mute(frame,
@@ -315,6 +315,7 @@ void * bg_player_oa_thread(void * data)
         }
       else
         {
+        
         pthread_mutex_lock(&(ctx->player->audio_stream.volume_mutex));
         gavl_volume_control_apply(ctx->player->audio_stream.volume,
                                   frame);
@@ -331,17 +332,12 @@ void * bg_player_oa_thread(void * data)
         ctx->plugin->write_frame(ctx->priv,
                                  ctx->player->audio_stream.frame_out);
         bg_plugin_unlock(ctx->plugin_handle);
-
-        if(DO_VISUALIZE(ctx->player))
-          bg_visualizer_update(ctx->player->visualizer, ctx->player->audio_stream.frame_out);
         }
       else
         {
         bg_plugin_lock(ctx->plugin_handle);
         ctx->plugin->write_frame(ctx->priv, frame);
         bg_plugin_unlock(ctx->plugin_handle);
-        if(DO_VISUALIZE(ctx->player))
-          bg_visualizer_update(ctx->player->visualizer, frame);
         }
       
       pthread_mutex_lock(&(ctx->time_mutex));

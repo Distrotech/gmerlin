@@ -132,7 +132,6 @@ int main(int argc, char ** argv)
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Output plugin could not be loaded");
     return -1;
     }
-
   
   /* Open input */
 
@@ -140,7 +139,7 @@ int main(int argc, char ** argv)
 
   format.samplerate = 44100;
   format.sample_format = GAVL_SAMPLE_S16;
-  format.samples_per_frame = 1024;
+  format.samples_per_frame = 2048;
   format.interleave_mode = GAVL_INTERLEAVE_ALL;
   format.num_channels   = 2;
   gavl_set_channel_setup(&format);
@@ -154,6 +153,7 @@ int main(int argc, char ** argv)
   /* Create frame */
   
   frame = gavl_audio_frame_create(&format);
+  gavl_audio_frame_mute(frame, &format);
   
   /* Start */
   

@@ -449,7 +449,7 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
      !DO_VIDEO(p) && !DO_STILL(p) && !DO_SUBTITLE(p))
     {
     p->flags |= PLAYER_DO_VISUALIZE;
-    bg_visualizer_open(p->visualizer, &p->audio_stream.output_format,
+    bg_visualizer_open(p->visualizer, &p->audio_stream.fifo_format,
                        bg_player_ov_get_plugin(p->ov_context));
     }
   
@@ -1023,7 +1023,7 @@ static int process_commands(bg_player_t * player)
     if(!command)
       return 1;
     
-  /* Process commands */
+    /* Process commands */
 
     queue_locked = 1;
     
@@ -1343,7 +1343,7 @@ static int process_commands(bg_player_t * player)
       }
     if(queue_locked)
       bg_msg_queue_unlock_read(player->command_queue);
-    }
+  }
   
   return 1;
   }

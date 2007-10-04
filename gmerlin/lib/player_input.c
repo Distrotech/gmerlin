@@ -452,7 +452,6 @@ bg_player_input_read_audio(void * priv, gavl_audio_frame_t * frame, int stream, 
     ctx->audio_samples_written = frame->timestamp;
     ctx->has_first_audio_timestamp = 1;
     }
-  
   ctx->audio_samples_written += frame->valid_samples;
   
   return result;
