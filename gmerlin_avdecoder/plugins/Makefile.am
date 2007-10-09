@@ -23,6 +23,8 @@ endif
 
 AM_CFLAGS = @OPT_CFLAGS@ @GMERLIN_CFLAGS@ $(cdio_cflags) -DLOCALE_DIR=\"$(localedir)\"
 
+AM_LDFLAGS = -avoid-version -module @GMERLIN_PLUGIN_LDFLAGS@
+
 lib_LTLIBRARIES = \
 i_avdec.la \
 $(cdio_modules) \
@@ -32,17 +34,13 @@ $(dvb_modules)
 noinst_HEADERS = avdec_common.h
 
 i_avdec_la_SOURCES = i_avdec.c avdec_common.c
-i_avdec_la_LDFLAGS = -avoid-version -module
 i_avdec_la_LIBADD = @top_srcdir@/lib/libgmerlin_avdec.la
 
 i_vcd_la_SOURCES = i_vcd.c avdec_common.c
-i_vcd_la_LDFLAGS = -avoid-version -module
 i_vcd_la_LIBADD = @top_srcdir@/lib/libgmerlin_avdec.la
 
 i_dvd_la_SOURCES = i_dvd.c avdec_common.c
-i_dvd_la_LDFLAGS = -avoid-version -module
 i_dvd_la_LIBADD = @top_srcdir@/lib/libgmerlin_avdec.la
 
 i_dvb_la_SOURCES = i_dvb.c avdec_common.c
-i_dvb_la_LDFLAGS = -avoid-version -module
 i_dvb_la_LIBADD = @top_srcdir@/lib/libgmerlin_avdec.la

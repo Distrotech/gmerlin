@@ -42,9 +42,13 @@ dnl
 
 GMERLIN_REQUIRED="0.3.6"
 PKG_CHECK_MODULES(GMERLIN, gmerlin >= $GMERLIN_REQUIRED, , AC_MSG_ERROR("gmerlin not found"))
-have_gmerlin="false"
 
 GMERLIN_PLUGIN_DIR=`pkg-config --variable=prefix gmerlin`"/lib/gmerlin/plugins"
+
+dnl LDFLAGS for plugins
+GMERLIN_PLUGIN_LDFLAGS="-export-symbols "`pkg-config --variable=prefix gmerlin`"/share/gmerlin/plugin.sym"
+
+AC_SUBST(GMERLIN_PLUGIN_LDFLAGS)
 AC_SUBST(GMERLIN_PLUGIN_DIR)
 AC_SUBST(GMERLIN_REQUIRED)
 

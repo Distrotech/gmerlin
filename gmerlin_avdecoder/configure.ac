@@ -115,10 +115,14 @@ have_gmerlin="false")
 
 GMERLIN_PLUGIN_DIR=`pkg-config --variable=prefix gmerlin`"/lib/gmerlin/plugins"
 
+dnl LDFLAGS for plugins
+GMERLIN_PLUGIN_LDFLAGS="-export-symbols "`pkg-config --variable=prefix gmerlin`"/share/gmerlin/plugin.sym"
+
 fi
 
 AC_SUBST(GMERLIN_PLUGIN_DIR)
 AC_SUBST(GMERLIN_REQUIRED)
+AC_SUBST(GMERLIN_PLUGIN_LDFLAGS)
 
 AM_CONDITIONAL(HAVE_GMERLIN, test x$have_gmerlin = xtrue)
 
