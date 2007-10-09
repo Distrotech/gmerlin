@@ -66,7 +66,9 @@ typedef struct
   Window fullscreen_window;
   Window current_window;
   Window root;
-  Window parent;
+
+  Window normal_parent;
+  Window fullscreen_parent;
   
   int window_width, window_height;
 
@@ -81,7 +83,6 @@ typedef struct
     
   /* Fullscreen stuff */
 
-  Colormap colormap;
   int fullscreen_mode;
   Pixmap fullscreen_cursor_pixmap;
   Cursor fullscreen_cursor;
@@ -116,13 +117,18 @@ typedef struct
 
   int64_t screensaver_last_ping_time;
   
-  int is_embedded;
-  
+  char * display_string;
+
+  Colormap colormap;
   } x11_window_t;
 
-int x11_window_create(x11_window_t * w, Window parent,
-                      Display * dpy, Visual * visual, int depth,
+int x11_window_open_display(x11_window_t * w, const char * display_string);
+
+int x11_window_create(x11_window_t * w, Visual * visual, int depth,
                       int width, int height, const char * title);
+
+const char *
+x11_window_get_display_string(x11_window_t * w);
 
 void x11_window_handle_event(x11_window_t*, XEvent*evt);
 
@@ -150,4 +156,6 @@ XEvent * x11_window_next_event(x11_window_t*,
 
 void x11_window_resize(x11_window_t * win,
                        int width, int height);
+
+void x11_window_init(x11_window_t * win);
 

@@ -347,7 +347,6 @@ typedef struct
     gavl_overlay_blend_context_t * ctx;
     gavl_overlay_t * ovl;
     } * overlay_streams;
-  
   char * window_id;
   } x11_t;
 
@@ -433,9 +432,8 @@ void set_callbacks_x11(void * data, bg_ov_callbacks_t * callbacks)
   ((x11_t*)(data))->callbacks = callbacks;
   }
 
-static gavl_pixelformat_t get_x11_pixelformat(Display * d)
+static gavl_pixelformat_t get_x11_pixelformat(x11_window_t * win)
   {
-  int screen_number;
   Visual * visual;
   int depth;
   int bpp;
@@ -444,8 +442,7 @@ static gavl_pixelformat_t get_x11_pixelformat(Display * d)
   int num_pf;
   gavl_pixelformat_t ret = GAVL_PIXELFORMAT_NONE;
     
-  screen_number = DefaultScreen(d);
-  visual = DefaultVisual(d, screen_number);
+  visual = DefaultVisual(win->dpy, win->screen);
 
   if(visual->class != TrueColor)
     {
@@ -453,9 +450,9 @@ static gavl_pixelformat_t get_x11_pixelformat(Display * d)
     return ret;
     }
 
-  depth = DefaultDepth(d, screen_number);
+  depth = DefaultDepth(win->dpy, win->screen);
   bpp = 0;
-  pf = XListPixmapFormats(d, &num_pf);
+  pf = XListPixmapFormats(win->dpy, &num_pf);
   for(i = 0; i < num_pf; i++)
     {
     if(pf[i].depth == depth)
@@ -869,41 +866,23 @@ free_frame_x11(void * data, gavl_video_frame_t * frame)
 
 static int open_display(x11_t * priv)
   {
-  int screen;
   int dpi_x, dpi_y;
-  Window parent;
-  char * tmp_id;
-  char * pos;
-  
+
+  if(!x11_window_open_display(&priv->win, priv->window_id))
+    return 0;
+
   /* Open X Display and get parent */
-  if(priv->window_id)
-    {
-    tmp_id = bg_strdup((char*)0, priv->window_id);
-    pos = strrchr(tmp_id, ':');
-    if(!pos)
-      return 0;
-    *pos = '\0';
-    pos++;
-    parent = strtoul(pos, (char **)0, 16);
-    priv->dpy = XOpenDisplay(tmp_id);
-    free(tmp_id);
-    }
-  else
-    {
-    priv->dpy = XOpenDisplay(NULL);
-    parent = None;
-    }
+  priv->dpy = priv->win.dpy;
   
   /* Default screen */
   
-  screen = DefaultScreen(priv->dpy);
 
   /* Screen resolution */
 
-  dpi_x = ((((double) DisplayWidth(priv->dpy,screen)) * 25.4) / 
-           ((double) DisplayWidthMM(priv->dpy,screen)));
-  dpi_y = ((((double) DisplayHeight(priv->dpy,screen)) * 25.4) / 
-	    ((double) DisplayHeightMM(priv->dpy,screen)));
+  dpi_x = ((((double) DisplayWidth(priv->dpy,priv->win.screen)) * 25.4) / 
+           ((double) DisplayWidthMM(priv->dpy,priv->win.screen)));
+  dpi_y = ((((double) DisplayHeight(priv->dpy,priv->win.screen)) * 25.4) / 
+           ((double) DisplayHeightMM(priv->dpy,priv->win.screen)));
 
   /* We must swap horizontal and vertical here because LARGER resolution means
      SMALLER pixels */
@@ -920,11 +899,11 @@ static int open_display(x11_t * priv)
   
   /* Create windows */
   
-  x11_window_create(&(priv->win), parent,
-                    priv->dpy, DefaultVisual(priv->dpy, screen),
-                    DefaultDepth(priv->dpy, screen),
+  x11_window_create(&(priv->win), DefaultVisual(priv->dpy, priv->win.screen),
+                    DefaultDepth(priv->dpy, priv->win.screen),
                     320, 240, "Video output");
-  
+  x11_window_init(&(priv->win));
+    
   /* Log screensaver mode */
   
   switch(priv->win.screensaver_mode)
@@ -955,11 +934,6 @@ static int open_display(x11_t * priv)
 
 #endif // HAVE_LIBXV
   create_parameters(priv);
-
-  if(!priv->window_id)
-    {
-    priv->window_id = bg_sprintf("%s:%08lx", XDisplayName(DisplayString(priv->dpy)), priv->win.normal_window);
-    }
   
   return 1;
   }
@@ -1090,12 +1064,10 @@ static void update_aspect_x11(void * data, int pixel_width,
   set_drawing_coords(priv);
 
   }
-     
 
-
-static int _open_x11(void * data,
-                     gavl_video_format_t * format,
-                     const char * window_title)
+static int open_x11(void * data,
+                    gavl_video_format_t * format,
+                    const char * window_title)
   {
   x11_t * priv;
   gavl_pixelformat_t x11_pixelformat;
@@ -1103,19 +1075,21 @@ static int _open_x11(void * data,
 
   if(!priv->dpy)
     open_display(priv);
+
+  x11_window_init(&(priv->win));
   
   /* Set screensaver options */
-
-  priv->win.disable_screensaver_fullscreen = priv->disable_xscreensaver_fullscreen;
-  priv->win.disable_screensaver_normal     = priv->disable_xscreensaver_normal;
+  
+  priv->win.disable_screensaver_fullscreen =
+    priv->disable_xscreensaver_fullscreen;
+  priv->win.disable_screensaver_normal     =
+    priv->disable_xscreensaver_normal;
   
   x11_window_set_title(&(priv->win), window_title);
   
   /* Decide pixelformat */
-
-  x11_pixelformat = get_x11_pixelformat(priv->dpy);
-
-
+  
+  x11_pixelformat = get_x11_pixelformat(&priv->win);
   
 #ifdef HAVE_LIBXV
   priv->do_xv = 0;
@@ -1296,7 +1270,7 @@ static int _open_x11(void * data,
   gavl_rectangle_i_set_all(&priv->src_rect_i, &priv->video_format);
   gavl_rectangle_f_set_all(&priv->src_rect_f, &priv->video_format);
     
-  if(priv->auto_resize && !priv->win.is_embedded)
+  if(priv->auto_resize && (priv->win.normal_parent == priv->win.root))
     {
     if(priv->can_scale)
       {
@@ -1319,14 +1293,6 @@ static int _open_x11(void * data,
     }
   
   return 1;
-  }
-
-
-static int open_x11(void * data,
-                    gavl_video_format_t * format,
-                    const char * window_title)
-  {
-  return _open_x11(data, format, window_title);
   }
 
 static void close_x11(void * data)
@@ -2265,22 +2231,22 @@ set_parameter_x11(void * priv, const char * name,
 #endif
   else if(!strcmp(name, "window_x"))
     {
-    if(!p->win.is_embedded)
+    if(p->win.normal_parent == p->win.root)
       p->win.window_x = val->val_i;
     }
   else if(!strcmp(name, "window_y"))
     {
-    if(!p->win.is_embedded)
+    if(p->win.normal_parent == p->win.root)
       p->win.window_y = val->val_i;
     }
   else if(!strcmp(name, "window_width"))
     {
-    if(!p->win.is_embedded)
+    if(p->win.normal_parent == p->win.root)
       p->win.window_width = val->val_i;
     }
   else if(!strcmp(name, "window_height"))
     {
-    if(!p->win.is_embedded)
+    if(p->win.normal_parent == p->win.root)
       p->win.window_height = val->val_i;
     }
   else if(!strcmp(name, "disable_xscreensaver_normal"))
@@ -2397,7 +2363,7 @@ static void set_window_x11(void * priv, const char * window_id)
 static const char * get_window_x11(void * priv)
   {
   x11_t * p = (x11_t*)priv;
-  return p->window_id;
+  return p->win.display_string;
   }
 
 bg_ov_plugin_t the_plugin =

@@ -408,148 +408,72 @@ static void set_min_size(x11_window_t * w, Window win, int width, int height)
   XFree(h);
   }
 
-int x11_window_create(x11_window_t * w, Window parent,
-                      Display * dpy, Visual * visual, int depth,
-                      int width, int height, const char * default_title)
+int x11_window_open_display(x11_window_t * w, const char * display_string)
   {
-//  int i;
-  /* Stuff for making the cursor */
-  XColor black, dummy;
-  Atom wm_protocols[1];
+  char * display_name;
+  char * normal_id;
+  char * fullscreen_id;
   
-  XSetWindowAttributes attr;
-
-#ifdef HAVE_LIBXINERAMA
-  int foo,bar;
-#endif
+  /*
+   *  Display string is in the form
+   *  <XDisplayName(DisplayString(dpy)>:<normal_id>:<fullscreen_id>
+   *  It can be NULL. Also, <fullscreen_id> can be missing
+   */
   
-  w->dpy = dpy;
-  
-  w->root = DefaultRootWindow (w->dpy);
-
-  w->parent = parent;
-  if(w->parent == None)
-    w->parent = w->root;
+  if(!display_string)
+    {
+    w->dpy = XOpenDisplay(NULL);
+    w->normal_parent = None;
+    w->fullscreen_parent = None;
+    }
   else
     {
-    Window root_return;
-    int x_return;
-    int y_return;
-    unsigned int width_return;
-    unsigned int height_return;
-    unsigned int border_width_return;
-    unsigned int depth_return;
-
-    XGetGeometry(w->dpy, w->parent, &root_return,
-                 &x_return, &y_return, &width_return,
-                 &height_return, &border_width_return,
-                 &depth_return);
-    width  = width_return;
-    height = height_return;
+    display_name = malloc(strlen(display_string)+1);
+    strcpy(display_name, display_string);
     
-    w->is_embedded = 1;
-    }
-  
-  w->window_width = width;
-  w->window_height = height;
-
-  init_atoms(w);
-
-  check_screensaver(w);
-  
-  /* Get xinerama screens */
-
-#ifdef HAVE_LIBXINERAMA
-  if (XineramaQueryExtension(w->dpy,&foo,&bar) &&
-      XineramaIsActive(w->dpy))
-    {
-    w->xinerama = XineramaQueryScreens(dpy,&(w->nxinerama));
-    }
-#endif
-
-  /* Setup event mask */
-
-  w->event_mask = StructureNotifyMask | PointerMotionMask | ExposureMask;
-  
-  w->colormap = XCreateColormap(w->dpy, RootWindow(w->dpy, w->screen),
-                                visual,
-                                AllocNone);
-
-  /* Setup protocols */
-
-  wm_protocols[0] = w->WM_DELETE_WINDOW;
-  
-  /* Create normal window */
-  
-  attr.backing_store = NotUseful;
-  attr.border_pixel = 0;
-  attr.background_pixel = 0;
-  attr.colormap = w->colormap;
-  attr.event_mask = w->event_mask;
-  
-  w->normal_window = XCreateWindow(w->dpy, w->parent,
-                                   0 /* x */,
-                                   0 /* y */,
-                                   width, height,
-                                   0 /* border_width */, depth,
-                                   InputOutput, visual,
-                                   (CWBackingStore | CWEventMask |
-                                    CWBorderPixel | CWBackPixel | CWColormap),
-                                   &attr);
-  /* Create GC */
-  
-  w->gc = XCreateGC(w->dpy, w->normal_window, 0, NULL);
-
-  if(!w->is_embedded)
-    {
-    set_decorations(w, w->normal_window, 1);
-    XSetWMProtocols(w->dpy, w->normal_window, wm_protocols, 1);
-    
-    if(w->min_width && w->min_height)
+    fullscreen_id = strrchr(display_name, ':');
+    if(!fullscreen_id)
       {
-      set_min_size(w, w->normal_window, w->min_width, w->min_height);
+      fprintf(stderr, "Invalid display string: %s\n",
+              display_string);
+      return 0;
       }
+    *fullscreen_id = '\0';
+    fullscreen_id++;
+
+    normal_id = strrchr(display_name, ':');
+    if(!normal_id)
+      {
+      fprintf(stderr, "Invalid display string: %s\n",
+              display_string);
+      return 0;
+      }
+    *normal_id = '\0';
+    normal_id++;
+
+    w->dpy = XOpenDisplay(display_name);
+    if(!w->dpy)
+      {
+      fprintf(stderr, "Opening display %s failed\n", display_name);
+      }
+    
+    w->normal_parent = strtoul(normal_id, (char **)0, 16);
+
+    if(!(*fullscreen_id))
+      w->fullscreen_parent = None;
+    else
+      w->fullscreen_parent = strtoul(fullscreen_id, (char **)0, 16);
+    
+    free(display_name);
     }
-  
-  /* The fullscreen window will be created with the same size for now */
-
-//  attr.override_redirect = True;
-  w->fullscreen_window = XCreateWindow (w->dpy, w->root,
-                                        0 /* x */,
-                                        0 /* y */,
-                                        width, height,
-                                        0 /* border_width */, depth,
-                                        InputOutput, visual,
-                                        (CWBackingStore |CWEventMask |
-                                         CWBorderPixel | CWBackPixel |
-                                         CWColormap), &attr);
-
-  set_decorations(w, w->fullscreen_window, 0);
-  XSetWMProtocols(w->dpy, w->fullscreen_window, wm_protocols, 1);
-  
-  w->current_window = w->normal_window;
-  
-  /* Create colormap and fullscreen cursor */
 
   w->screen = DefaultScreen(w->dpy);
-  
-  w->fullscreen_cursor_pixmap =
-    XCreateBitmapFromData(w->dpy, w->fullscreen_window,
-                          bm_no_data, 8, 8);
-  
-  XAllocNamedColor(w->dpy, w->colormap, "black", &black, &dummy);
-  w->fullscreen_cursor=
-    XCreatePixmapCursor(w->dpy, w->fullscreen_cursor_pixmap,
-                        w->fullscreen_cursor_pixmap,
-                        &black, &black, 0, 0);
+  w->root =   RootWindow(w->dpy, w->screen);
 
-  w->black = BlackPixel(w->dpy, w->screen);
-
-  /* Check, which fullscreen modes we have */
-
-  w->fullscreen_mode = get_fullscreen_mode(w);
-
-  x11_window_set_title(w, default_title);
+  if(w->normal_parent == None)
+    w->normal_parent = w->root;
+  if(w->fullscreen_parent == None)
+    w->fullscreen_parent = w->root;
   
   return 1;
   }
@@ -581,19 +505,20 @@ static void get_window_coords(x11_window_t * w,
     XFree(children_return);
     }
 
-  *x = x_return;
-  *y = y_return;
-  *width  = width_return;
-  *height = height_return;
-    
-  if(parent_return != root_return)
+  if(x) *x = x_return;
+  if(y) *y = y_return;
+  
+  if(width)  *width  = width_return;
+  if(height) *height = height_return;
+  
+  if(x || y || (parent_return != root_return))
     {
     XGetGeometry(w->dpy, parent_return, &root_return,
                  &x_return, &y_return,
                  &width_return, &height_return,
                  &border_width_return, &depth_return);
-    *x = x_return;
-    *y = y_return;
+    if(x) *x = x_return;
+    if(y) *y = y_return;
     
     //    XTranslateCoordinates(w->dpy, parent_return, root_return,
     //                          x_return, y_return,
@@ -605,8 +530,195 @@ static void get_window_coords(x11_window_t * w,
   
   }
 
+static int window_is_mapped(Display * dpy, Window w)
+  {
+  XWindowAttributes attr;
+  XGetWindowAttributes(dpy, w, &attr);
+  if(attr.map_state == IsViewable)
+    return 1;
+  return 0;
+  }
+
+void x11_window_init(x11_window_t * w)
+  {
+  if(window_is_mapped(w->dpy, w->fullscreen_window))
+    w->current_window = w->fullscreen_window;
+  else
+    w->current_window = w->normal_window;
+  
+  if((w->current_window == w->fullscreen_window) &&
+     (w->fullscreen_parent != w->root))
+    {
+    get_window_coords(w, w->fullscreen_parent,
+                      (int*)0, (int*)0,
+                      &w->window_width, &w->window_height);
+    XMoveResizeWindow(w->dpy, w->fullscreen_window, 0, 0,
+                      w->window_width, w->window_height);
+    }
+  else
+    get_window_coords(w, w->current_window,
+                      (int*)0, (int*)0,
+                      &w->window_width, &w->window_height);
+
+  
+  }
+
+int x11_window_create(x11_window_t * w, Visual * visual, int depth,
+                      int width, int height, const char * default_title)
+  {
+  const char * display_name;
+  
+//  int i;
+  /* Stuff for making the cursor */
+  XColor black;
+  Atom wm_protocols[1];
+  
+  XSetWindowAttributes attr;
+  unsigned long attr_flags;
+  
+#ifdef HAVE_LIBXINERAMA
+  int foo,bar;
+#endif
+  
+  if(w->normal_parent != w->root)
+    {
+    get_window_coords(w, w->normal_parent,
+                      (int*)0, (int*)0, &width,
+                      &height);
+    
+    /* We need size changes of the parent window */
+    XSelectInput(w->dpy, w->normal_parent, StructureNotifyMask);
+    //    fprintf(stderr, "Got size: %d x %d\n", width, height);
+    }
+  w->colormap = XCreateColormap(w->dpy, RootWindow(w->dpy, w->screen),
+                                visual,
+                                AllocNone);
+  init_atoms(w);
+  
+  check_screensaver(w);
+  
+  /* Get xinerama screens */
+
+#ifdef HAVE_LIBXINERAMA
+  if (XineramaQueryExtension(w->dpy,&foo,&bar) &&
+      XineramaIsActive(w->dpy))
+    {
+    w->xinerama = XineramaQueryScreens(w->dpy,&(w->nxinerama));
+    }
+#endif
+
+  /* Setup event mask */
+
+  w->event_mask = StructureNotifyMask | PointerMotionMask | ExposureMask;
+  
+  /* Create normal window */
+
+  memset(&attr, 0, sizeof(attr));
+  
+  attr.backing_store = NotUseful;
+  attr.border_pixel = 0;
+  attr.background_pixel = 0;
+  attr.event_mask = w->event_mask;
+  attr.colormap = w->colormap;
+  attr_flags = (CWBackingStore | CWEventMask | CWBorderPixel |
+                CWBackPixel | CWColormap);
+
+  wm_protocols[0] = w->WM_DELETE_WINDOW;
+
+  /* Create normal window */
+  
+  w->normal_window = XCreateWindow(w->dpy, w->normal_parent,
+                                   0 /* x */,
+                                   0 /* y */,
+                                   width, height,
+                                   0 /* border_width */, depth,
+                                   InputOutput, visual,
+                                   attr_flags,
+                                   &attr);
+  
+  if(w->normal_parent == w->root)
+    {
+    set_decorations(w, w->normal_window, 1);
+    XSetWMProtocols(w->dpy, w->normal_window, wm_protocols, 1);
+    
+    if(w->min_width && w->min_height)
+      {
+      set_min_size(w, w->normal_window, w->min_width, w->min_height);
+      }
+    }
+  
+  /* The fullscreen window will be created with the same size for now */
+  
+  w->fullscreen_window = XCreateWindow (w->dpy, w->fullscreen_parent,
+                                        0 /* x */,
+                                        0 /* y */,
+                                        width, height,
+                                        0 /* border_width */, depth,
+                                        InputOutput, visual,
+                                        attr_flags,
+                                        &attr);
+  
+  if(w->fullscreen_parent == w->root)
+    {
+    /* Setup protocols */
+    
+    set_decorations(w, w->fullscreen_window, 0);
+    XSetWMProtocols(w->dpy, w->fullscreen_window, wm_protocols, 1);
+    }
+  else
+    {
+    XMapWindow(w->dpy, w->fullscreen_window);
+    }
+  
+  /* Create GC */
+  
+  w->gc = XCreateGC(w->dpy, w->normal_window, 0, NULL);
+  
+  /* Create colormap and fullscreen cursor */
+  
+  w->fullscreen_cursor_pixmap =
+    XCreateBitmapFromData(w->dpy, w->fullscreen_window,
+                          bm_no_data, 8, 8);
+
+  black.pixel = BlackPixel(w->dpy, w->screen);
+  XQueryColor(w->dpy, DefaultColormap(w->dpy, w->screen), &black);
+  
+  w->fullscreen_cursor=
+    XCreatePixmapCursor(w->dpy, w->fullscreen_cursor_pixmap,
+                        w->fullscreen_cursor_pixmap,
+                        &black, &black, 0, 0);
+  
+  w->black = BlackPixel(w->dpy, w->screen);
+  
+  /* Check, which fullscreen modes we have */
+  
+  w->fullscreen_mode = get_fullscreen_mode(w);
+  
+  x11_window_set_title(w, default_title);
+  
+  display_name = XDisplayName(DisplayString(w->dpy));
+  
+  w->display_string = malloc(strlen(display_name) + 20);
+  sprintf(w->display_string, "%s:%08lx:%08lx", display_name,
+          w->normal_window, w->fullscreen_window);
+  
+  return 1;
+  }
+
 void x11_window_handle_event(x11_window_t * w, XEvent*evt)
   {
+  Window fullscreen_toplevel;
+  Window normal_toplevel;
+  if(w->fullscreen_parent == w->root)
+    fullscreen_toplevel = w->fullscreen_window;
+  else
+    fullscreen_toplevel = w->fullscreen_parent;
+
+  if(w->normal_parent == w->root)
+    normal_toplevel = w->normal_window;
+  else
+    normal_toplevel = w->normal_parent;
+  
   w->do_delete = 0;
 
   if(!evt || (evt->type != MotionNotify))
@@ -616,8 +728,8 @@ void x11_window_handle_event(x11_window_t * w, XEvent*evt)
       {
       if(!w->pointer_hidden)
         {
-        XDefineCursor(w->dpy, w->normal_window, w->fullscreen_cursor);
-        XDefineCursor(w->dpy, w->fullscreen_window, w->fullscreen_cursor);
+        XDefineCursor(w->dpy, normal_toplevel, w->fullscreen_cursor);
+        XDefineCursor(w->dpy, fullscreen_toplevel, w->fullscreen_cursor);
         XFlush(w->dpy);
         w->pointer_hidden = 1;
         }
@@ -640,22 +752,31 @@ void x11_window_handle_event(x11_window_t * w, XEvent*evt)
       //      w->window_x = evt->xconfigure.x;
       //      w->window_y = evt->xconfigure.y;
       
-      get_window_coords(w, w->normal_window,
-                        &(w->window_x), &(w->window_y),
-                        &(w->window_width), &(w->window_height));
-
+      if((w->normal_parent == w->root) &&
+         evt->xconfigure.window == w->normal_window)
+        get_window_coords(w, w->normal_window,
+                          (int*)0, (int*)0,
+                          &(w->window_width), &(w->window_height));
+      else if((w->normal_parent != w->root) &&
+              evt->xconfigure.window == w->normal_parent)
+        {
+        get_window_coords(w, w->normal_parent,
+                          (int*)0, (int*)0,
+                          &(w->window_width), &(w->window_height));
+        
+        XResizeWindow(w->dpy, w->normal_window, w->window_width,
+                      w->window_height);
+        }
       break;
     case MotionNotify:
       w->idle_counter = 0;
       if(w->pointer_hidden)
         {
-        XDefineCursor(w->dpy, w->normal_window, None);
-        XDefineCursor(w->dpy, w->fullscreen_window, None);
+        XDefineCursor(w->dpy, normal_toplevel, None);
+        XDefineCursor(w->dpy, fullscreen_toplevel, None);
         XFlush(w->dpy);
         w->pointer_hidden = 0;
         }
-      
-
     case ClientMessage:
       if((evt->xclient.message_type == w->WM_PROTOCOLS) &&
          (evt->xclient.data.l[0] == w->WM_DELETE_WINDOW))
@@ -735,10 +856,22 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
   int x;
   int y;
   XEvent evt;
+  Window fullscreen_toplevel;
+  Window normal_toplevel;
   /* Normal->fullscreen */
+
+  if(w->fullscreen_parent == w->root)
+    fullscreen_toplevel = w->fullscreen_window;
+  else
+    fullscreen_toplevel = w->fullscreen_parent;
+
+  if(w->normal_parent == w->root)
+    normal_toplevel = w->normal_window;
+  else
+    normal_toplevel = w->normal_parent;
+  
   if(fullscreen && (w->current_window == w->normal_window))
     {
-    
     get_fullscreen_coords(w, &x, &y, &width, &height);
 
     w->normal_width = w->window_width;
@@ -749,8 +882,8 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
     
     w->current_window = w->fullscreen_window;
     
-    XMapRaised(w->dpy, w->fullscreen_window);
-
+    XMapRaised(w->dpy, fullscreen_toplevel);
+    
     if(w->disable_screensaver_fullscreen)
       {
       w->disable_screensaver = 1;
@@ -761,28 +894,28 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
       w->disable_screensaver = 0;
       enable_screensaver(w);
       }
-
-    XSetTransientForHint(w->dpy, w->fullscreen_window, None);
-
-//    XRaiseWindow(w->dpy, w->fullscreen_window);
-//    XMapWindow(w->dpy, w->fullscreen_window);
-    XMoveResizeWindow(w->dpy, w->fullscreen_window, x, y, width, height);
     
+    XSetTransientForHint(w->dpy, fullscreen_toplevel, None);
+    
+    XMoveResizeWindow(w->dpy, fullscreen_toplevel, x, y, width, height);
+
+    if(w->fullscreen_parent != w->root)
+      XMoveResizeWindow(w->dpy, w->fullscreen_window, x, y, width, height);
     
 #if 1
     if(w->fullscreen_mode & FULLSCREEN_MODE_NET_ABOVE)
       {
-      netwm_set_state(w, w->fullscreen_window,
+      netwm_set_state(w, fullscreen_toplevel,
                       _NET_WM_STATE_ADD, w->_NET_WM_STATE_ABOVE);
       }
     if(w->fullscreen_mode & FULLSCREEN_MODE_NET_FULLSCREEN)
       {
-      netwm_set_state(w, w->fullscreen_window,
+      netwm_set_state(w, fullscreen_toplevel,
                       _NET_WM_STATE_ADD, w->_NET_WM_STATE_FULLSCREEN);
       }
-#endif    
+#endif
 
-    XWithdrawWindow(w->dpy, w->normal_window, w->screen);
+    XWithdrawWindow(w->dpy, normal_toplevel, w->screen);
 		
     /* Wait until the window is mapped */ 
     
@@ -791,31 +924,26 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
       XMaskEvent(w->dpy, ExposureMask, &evt);
       x11_window_handle_event(w, &evt);
       } while((evt.type != Expose) && (evt.xexpose.window != w->fullscreen_window));
-
     XSetInputFocus(w->dpy, w->fullscreen_window, RevertToNone, CurrentTime);
-
-//    XMoveResizeWindow(w->dpy, w->fullscreen_window, x, y, width, height);
-//    XSync(w->dpy, False);
     x11_window_clear(w);
-//    XRaiseWindow(w->dpy, w->fullscreen_window);
     XFlush(w->dpy);
     }
 	
   if(!fullscreen && (w->current_window == w->fullscreen_window))
     {
     /* Unmap fullscreen window */
-    netwm_set_state(w, w->fullscreen_window,
+    netwm_set_state(w, fullscreen_toplevel,
                     _NET_WM_STATE_REMOVE, w->_NET_WM_STATE_FULLSCREEN);
-    netwm_set_state(w, w->fullscreen_window,
+    netwm_set_state(w, fullscreen_toplevel,
                     _NET_WM_STATE_REMOVE, w->_NET_WM_STATE_ABOVE);
-    XWithdrawWindow(w->dpy, w->fullscreen_window, w->screen);
-    XUnmapWindow(w->dpy, w->fullscreen_window);
-        
+    XWithdrawWindow(w->dpy, fullscreen_toplevel, w->screen);
+    XUnmapWindow(w->dpy, fullscreen_toplevel);
+    
     /* Map normal window */
     w->current_window = w->normal_window;
-        
-    XMapWindow(w->dpy, w->normal_window);
-
+    
+    XMapWindow(w->dpy, normal_toplevel);
+    
     if(w->disable_screensaver_normal)
       {
       w->disable_screensaver = 1;
@@ -828,15 +956,14 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
       }
     w->window_width  = w->normal_width;
     w->window_height = w->normal_height;
-
-
+    
     do
       {
       XMaskEvent(w->dpy, ExposureMask, &evt);
       x11_window_handle_event(w, &evt);
-      } while((evt.type != Expose) && (evt.xexpose.window != w->normal_window));
+      }while((evt.type != Expose) && (evt.xexpose.window != w->normal_window));
     
-    if(!w->is_embedded)
+    if(w->normal_parent == w->root)
       XMoveResizeWindow(w->dpy, w->normal_window,
                         w->window_x, w->window_y,
                         w->window_width, w->window_height);
@@ -859,13 +986,15 @@ void x11_window_destroy(x11_window_t * w)
   if(w->fullscreen_cursor_pixmap)
     XFreePixmap(w->dpy, w->fullscreen_cursor_pixmap);
 
-  XFreeColormap(w->dpy, w->colormap);
   XFreeGC(w->dpy, w->gc);
 
 #ifdef HAVE_LIBXINERAMA
   if(w->xinerama)
     XFree(w->xinerama);
 #endif
+
+  if(w->display_string)
+    free(w->display_string);
   }
 
 void x11_window_set_title(x11_window_t * w, const char * title)
@@ -961,7 +1090,9 @@ void x11_window_show(x11_window_t * win, int show)
   else
     {
     XMapWindow(win->dpy, win->current_window);
-    if((win->current_window == win->normal_window) && !win->is_embedded)
+
+    if((win->current_window == win->normal_window) &&
+       (win->normal_parent == win->root))
       XMoveResizeWindow(win->dpy, win->normal_window,
                         win->window_x, win->window_y,
                         win->window_width, win->window_height);

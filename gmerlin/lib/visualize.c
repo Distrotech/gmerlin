@@ -344,7 +344,7 @@ static void * video_thread_func(void * data)
   int do_stop;
   bg_visualizer_t * v;
   gavl_audio_frame_t * audio_frame;
-  gavl_time_t diff_time;
+  gavl_time_t diff_time, current_time;
   
   v = (bg_visualizer_t*)data;
 
@@ -383,13 +383,14 @@ static void * video_thread_func(void * data)
     bg_plugin_unlock(v->vis_handle);
     
     /* Wait until we can show the frame */
+    current_time = gavl_timer_get(v->timer);
     
     diff_time = v->last_frame_time +
-      v->video_format_out.frame_duration - gavl_timer_get(v->timer);
-
+      v->video_format_out.frame_duration - current_time;
+    
     if(diff_time > GAVL_TIME_SCALE / 1000)
       gavl_time_delay(&diff_time);
-
+    
     /* Show frame */
     
     if(v->vis_handle->info->flags & BG_PLUGIN_VISUALIZE_FRAME)
@@ -444,11 +445,6 @@ void bg_visualizer_open(bg_visualizer_t * v,
 
   audio_buffer_init(v->audio_buffer, format, &tmp_format);
   
-  fprintf(stderr, "Audio Input format:\n");
-  gavl_audio_format_dump(format);
-  fprintf(stderr, "Audio Output format:\n");
-  gavl_audio_format_dump(&tmp_format);
-  
   if(v->vis_handle->info->flags & BG_PLUGIN_VISUALIZE_FRAME)
     {
     gavl_video_format_copy(&v->video_format_out, &v->video_format_in_real);
@@ -456,12 +452,7 @@ void bg_visualizer_open(bg_visualizer_t * v,
     /* Open OV Plugin */
     v->ov_plugin->open(v->ov_handle->priv,
                        &v->video_format_out, v->vis_handle->info->long_name);
-
-    fprintf(stderr, "Video Input format:\n");
-    gavl_video_format_dump(&v->video_format_in_real);
-    fprintf(stderr, "Video Output format:\n");
-    gavl_video_format_dump(&v->video_format_out);
-    
+   
     /* Initialize video converter */
     
     v->do_convert_video =
@@ -483,6 +474,8 @@ void bg_visualizer_open(bg_visualizer_t * v,
         v->video_frame_out = gavl_video_frame_create(&v->video_format_out);
       }
     }
+  else
+    gavl_video_format_copy(&v->video_format_out, &v->video_format_in);
   
   v->ov_plugin->show_window(v->ov_handle->priv, 1);
   v->do_stop = 0;

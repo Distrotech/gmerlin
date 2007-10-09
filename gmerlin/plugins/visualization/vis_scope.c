@@ -468,6 +468,8 @@ static void update_scope(void * priv, gavl_audio_frame_t * frame)
                         frame->valid_samples);
   }
 
+
+
 static void close_scope(void * priv)
   {
   scope_priv_t * vp;

@@ -1,4 +1,5 @@
 libdir=@GMERLIN_PLUGIN_DIR@
+AM_LDFLAGS = @GMERLIN_PLUGIN_LDFLAGS@ -avoid-version -module
 
 AM_CFLAGS = -DLOCALE_DIR=\"$(localedir)\"
 
@@ -24,33 +25,24 @@ fv_tlp.la \
 fv_zoom.la
 
 fv_blur_la_SOURCES  = fv_blur.c
-fv_blur_la_LDFLAGS = -avoid-version -module
 
 fv_pixelformat_la_SOURCES  = fv_pixelformat.c
-fv_pixelformat_la_LDFLAGS = -avoid-version -module
 
 fv_tlp_la_SOURCES  = fv_tlp.c
-fv_tlp_la_LDFLAGS = -avoid-version -module
 
 fv_cropscale_la_SOURCES  = fv_cropscale.c
-fv_cropscale_la_LDFLAGS = -avoid-version -module
 
 
 fv_flip_la_SOURCES  = fv_flip.c
-fv_flip_la_LDFLAGS = -avoid-version -module
 
 fv_decimate_la_SOURCES  = fv_decimate.c
-fv_decimate_la_LDFLAGS = -avoid-version -module
 
 fv_deinterlace_la_CFLAGS   = $(mjpeg_cflags) -DLOCALE_DIR=\"$(localedir)\"
 fv_deinterlace_la_LIBADD   = $(mjpeg_libs)
 fv_deinterlace_la_SOURCES  = fv_deinterlace.c $(yuvdeinterlace_sources)
-fv_deinterlace_la_LDFLAGS = -avoid-version -module
 
 fv_equalizer_la_SOURCES  = fv_equalizer.c
-fv_equalizer_la_LDFLAGS = -avoid-version -module
 
 fv_zoom_la_SOURCES  = fv_zoom.c
-fv_zoom_la_LDFLAGS = -avoid-version -module
 
 noinst_HEADERS = motionsearch.h

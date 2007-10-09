@@ -654,6 +654,7 @@ fi
 GMERLIN_PLUGIN_DIR="$exec_prefix/lib/$PACKAGE/plugins"
 GMERLIN_DATA_DIR="$prefix/share/$PACKAGE"
 
+
 AC_DEFINE_UNQUOTED(GMERLIN_DATA_DIR, "$GMERLIN_DATA_DIR", Directory for other data)
 AC_DEFINE_UNQUOTED(GMERLIN_PLUGIN_DIR, "$GMERLIN_PLUGIN_DIR", Directory for plugins)
 
@@ -662,6 +663,10 @@ AC_SUBST(GMERLIN_PLUGIN_DIR)
 
 INCLUDES='-I$(top_builddir)/include'
 AC_SUBST(INCLUDES)
+
+dnl LDFLAGS for plugins
+GMERLIN_PLUGIN_LDFLAGS='-export-symbols $(top_srcdir)/plugin.sym'
+AC_SUBST(GMERLIN_PLUGIN_LDFLAGS)
 
 dnl Configuration Subdirectiories
 

@@ -1,3 +1,4 @@
+AM_LDFLAGS = @GMERLIN_PLUGIN_LDFLAGS@ -avoid-version -module
 
 if HAVE_MUSICBRAINZ
 musicbrainz_sources = musicbrainz.c
@@ -51,7 +52,5 @@ $(cddb_libs) \
 @CDIO_LIBS@ \
 @CDIO_CDDA_LIBS@ \
 @CDIO_PARANOIA_LIBS@
-
-i_cdaudio_la_LDFLAGS  = -avoid-version -module
 
 noinst_HEADERS = cdaudio.h sha1.h
