@@ -467,7 +467,7 @@ void gavl_video_frame_clear(gavl_video_frame_t * frame,
   }
 
 static void copy_plane(gavl_video_frame_t * dst,
-                       gavl_video_frame_t * src, int plane,
+                       const gavl_video_frame_t * src, int plane,
                        int bytes_per_line, int height)
   {
   int j;
@@ -491,7 +491,7 @@ static void copy_plane(gavl_video_frame_t * dst,
 
 void gavl_video_frame_copy_plane(const gavl_video_format_t * format,
                                  gavl_video_frame_t * dst,
-                                 gavl_video_frame_t * src, int plane)
+                                 const gavl_video_frame_t * src, int plane)
   {
   int bytes_per_line;
   int sub_h, sub_v;
@@ -515,7 +515,7 @@ void gavl_video_frame_copy_plane(const gavl_video_format_t * format,
 
 void gavl_video_frame_copy(const gavl_video_format_t * format,
                            gavl_video_frame_t * dst,
-                           gavl_video_frame_t * src)
+                           const gavl_video_frame_t * src)
   {
   int i;
   int height;
@@ -782,7 +782,7 @@ static flip_scanline_func find_flip_scanline_func(gavl_pixelformat_t csp)
 
 void gavl_video_frame_copy_flip_x(const gavl_video_format_t * format,
                                   gavl_video_frame_t * dst,
-                                  gavl_video_frame_t * src)
+                                  const gavl_video_frame_t * src)
   {
   uint8_t * src_ptr;
   uint8_t * dst_ptr;
@@ -826,7 +826,7 @@ void gavl_video_frame_copy_flip_x(const gavl_video_format_t * format,
 
 void gavl_video_frame_copy_flip_y(const gavl_video_format_t * format,
                                   gavl_video_frame_t * dst,
-                                  gavl_video_frame_t * src)
+                                  const gavl_video_frame_t * src)
   {
   uint8_t * src_ptr;
   uint8_t * dst_ptr;
@@ -867,8 +867,8 @@ void gavl_video_frame_copy_flip_y(const gavl_video_format_t * format,
   }
 
 void gavl_video_frame_copy_flip_xy(const gavl_video_format_t * format,
-                                  gavl_video_frame_t * dst,
-                                  gavl_video_frame_t * src)
+                                   gavl_video_frame_t * dst,
+                                   const gavl_video_frame_t * src)
   {
   uint8_t * src_ptr;
   uint8_t * dst_ptr;
@@ -953,7 +953,7 @@ void gavl_video_frame_dump(gavl_video_frame_t * frame,
   }
 
 void gavl_video_frame_get_subframe(gavl_pixelformat_t pixelformat,
-                                   gavl_video_frame_t * src,
+                                   const gavl_video_frame_t * src,
                                    gavl_video_frame_t * dst,
                                    gavl_rectangle_i_t * src_rect)
   {
@@ -988,7 +988,7 @@ void gavl_video_frame_get_subframe(gavl_pixelformat_t pixelformat,
   }
 
 void gavl_video_frame_get_field(gavl_pixelformat_t pixelformat,
-                                gavl_video_frame_t * src,
+                                const gavl_video_frame_t * src,
                                 gavl_video_frame_t * dst,
                                 int field)
   {

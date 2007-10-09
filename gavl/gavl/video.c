@@ -490,7 +490,7 @@ gavl_video_converter_get_options(gavl_video_converter_t * cnv)
  ***************************************************/
 
 void gavl_video_convert(gavl_video_converter_t * cnv,
-                        gavl_video_frame_t * input_frame,
+                        const gavl_video_frame_t * input_frame,
                         gavl_video_frame_t * output_frame)
   {
   gavl_video_convert_context_t * tmp_ctx;

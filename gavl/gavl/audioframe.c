@@ -227,12 +227,12 @@ void gavl_audio_frame_mute_channel(gavl_audio_frame_t * frame,
 
 int gavl_audio_frame_copy(const gavl_audio_format_t * format,
                           gavl_audio_frame_t * dst,
-                          gavl_audio_frame_t * src,
+                          const gavl_audio_frame_t * src,
                           int out_pos,
                           int in_pos,
                           int out_size,
                           int in_size)
-      {
+  {
   int i;
   int bytes_per_sample;
   int samples_to_copy;

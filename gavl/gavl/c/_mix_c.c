@@ -1,6 +1,6 @@
 
 static void RENAME(mix_1_to_1)(gavl_mix_output_channel_t * channel,
-                               gavl_audio_frame_t * input_frame,
+                               const gavl_audio_frame_t * input_frame,
                                gavl_audio_frame_t * output_frame)
   {
   int i;
@@ -20,7 +20,7 @@ static void RENAME(mix_1_to_1)(gavl_mix_output_channel_t * channel,
 
 
 static void RENAME(mix_2_to_1)(gavl_mix_output_channel_t * channel,
-                               gavl_audio_frame_t * input_frame,
+                               const gavl_audio_frame_t * input_frame,
                                gavl_audio_frame_t * output_frame)
   {
   int i;
@@ -42,7 +42,7 @@ static void RENAME(mix_2_to_1)(gavl_mix_output_channel_t * channel,
   }
 
 static void RENAME(mix_3_to_1)(gavl_mix_output_channel_t * channel,
-                               gavl_audio_frame_t * input_frame,
+                               const gavl_audio_frame_t * input_frame,
                                gavl_audio_frame_t * output_frame)
   {
   int i;
@@ -66,7 +66,7 @@ static void RENAME(mix_3_to_1)(gavl_mix_output_channel_t * channel,
   }
 
 static void RENAME(mix_4_to_1)(gavl_mix_output_channel_t * channel,
-                               gavl_audio_frame_t * input_frame,
+                               const gavl_audio_frame_t * input_frame,
                                gavl_audio_frame_t * output_frame)
   {
   int i;
@@ -93,7 +93,7 @@ static void RENAME(mix_4_to_1)(gavl_mix_output_channel_t * channel,
 
 
 static void RENAME(mix_5_to_1)(gavl_mix_output_channel_t * channel,
-                               gavl_audio_frame_t * input_frame,
+                               const gavl_audio_frame_t * input_frame,
                                gavl_audio_frame_t * output_frame)
   {
   int i;
@@ -121,7 +121,7 @@ static void RENAME(mix_5_to_1)(gavl_mix_output_channel_t * channel,
   }
 
 static void RENAME(mix_6_to_1)(gavl_mix_output_channel_t * channel,
-                               gavl_audio_frame_t * input_frame,
+                               const gavl_audio_frame_t * input_frame,
                                gavl_audio_frame_t * output_frame)
   {
   int i;
@@ -153,7 +153,7 @@ static void RENAME(mix_6_to_1)(gavl_mix_output_channel_t * channel,
   }
 
 static void RENAME(mix_all_to_1)(gavl_mix_output_channel_t * channel,
-                                 gavl_audio_frame_t * input_frame,
+                                 const gavl_audio_frame_t * input_frame,
                                  gavl_audio_frame_t * output_frame)
   {
   int i, j;

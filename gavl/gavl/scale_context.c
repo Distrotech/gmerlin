@@ -1305,7 +1305,8 @@ void gavl_video_scale_context_cleanup(gavl_video_scale_context_t * ctx)
 
 
 void gavl_video_scale_context_scale(gavl_video_scale_context_t * ctx,
-                                    gavl_video_frame_t * src, gavl_video_frame_t * dst)
+                                    const gavl_video_frame_t * src,
+                                    gavl_video_frame_t * dst)
   {
   uint8_t * dst_save;
   //  fprintf(stderr, "gavl_video_scale_context_scale, plane %d\n",

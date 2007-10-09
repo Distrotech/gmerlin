@@ -307,7 +307,7 @@ int gavl_video_scale_context_init_convolve(gavl_video_scale_context_t*,
 void gavl_video_scale_context_cleanup(gavl_video_scale_context_t * ctx);
 
 void gavl_video_scale_context_scale(gavl_video_scale_context_t * ctx,
-                                    gavl_video_frame_t * src,
+                                    const gavl_video_frame_t * src,
                                     gavl_video_frame_t * dst);
 
 struct gavl_video_scaler_s

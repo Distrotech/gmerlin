@@ -440,7 +440,7 @@ gavl_video_scaler_get_options(gavl_video_scaler_t * s)
   }
 
 void gavl_video_scaler_scale(gavl_video_scaler_t * s,
-                             gavl_video_frame_t * src,
+                             const gavl_video_frame_t * src,
                              gavl_video_frame_t * dst)
   {
   int i, field;

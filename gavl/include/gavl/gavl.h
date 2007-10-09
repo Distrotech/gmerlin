@@ -493,7 +493,7 @@ void gavl_audio_frame_mute_channel(gavl_audio_frame_t * frame,
   
 int gavl_audio_frame_copy(const gavl_audio_format_t * format,
                           gavl_audio_frame_t * dst,
-                          gavl_audio_frame_t * src,
+                          const gavl_audio_frame_t * src,
                           int dst_pos,
                           int src_pos,
                           int dst_size,
@@ -798,7 +798,7 @@ int gavl_audio_converter_reinit(gavl_audio_converter_t* cnv);
  */
   
 void gavl_audio_convert(gavl_audio_converter_t * cnv,
-                        gavl_audio_frame_t * input_frame,
+                        const gavl_audio_frame_t * input_frame,
                         gavl_audio_frame_t * output_frame);
 
 
@@ -1756,7 +1756,7 @@ void gavl_video_frame_fill(gavl_video_frame_t * frame,
 
 void gavl_video_frame_copy(const gavl_video_format_t * format,
                            gavl_video_frame_t * dst,
-                           gavl_video_frame_t * src);
+                           const gavl_video_frame_t * src);
 
 /*!
   \ingroup video_frame
@@ -1772,7 +1772,7 @@ void gavl_video_frame_copy(const gavl_video_format_t * format,
   
 void gavl_video_frame_copy_plane(const gavl_video_format_t * format,
                                  gavl_video_frame_t * dst,
-                                 gavl_video_frame_t * src, int plane);
+                                 const gavl_video_frame_t * src, int plane);
 
 /*!
   \ingroup video_frame
@@ -1787,7 +1787,7 @@ void gavl_video_frame_copy_plane(const gavl_video_format_t * format,
   
 void gavl_video_frame_copy_flip_x(const gavl_video_format_t * format,
                                   gavl_video_frame_t * dst,
-                                  gavl_video_frame_t * src);
+                                  const gavl_video_frame_t * src);
 
 /*!
   \ingroup video_frame
@@ -1802,7 +1802,7 @@ void gavl_video_frame_copy_flip_x(const gavl_video_format_t * format,
   
 void gavl_video_frame_copy_flip_y(const gavl_video_format_t * format,
                                   gavl_video_frame_t * dst,
-                                  gavl_video_frame_t * src);
+                                  const gavl_video_frame_t * src);
 
 /*!
   \ingroup video_frame
@@ -1816,8 +1816,8 @@ void gavl_video_frame_copy_flip_y(const gavl_video_format_t * format,
 */
 
 void gavl_video_frame_copy_flip_xy(const gavl_video_format_t * format,
-                                  gavl_video_frame_t * dst,
-                                  gavl_video_frame_t * src);
+                                   gavl_video_frame_t * dst,
+                                  const gavl_video_frame_t * src);
 
 /*!
   \ingroup video_frame
@@ -1837,7 +1837,7 @@ void gavl_video_frame_copy_flip_xy(const gavl_video_format_t * format,
 */
 
 void gavl_video_frame_get_subframe(gavl_pixelformat_t pixelformat,
-                                   gavl_video_frame_t * src,
+                                   const gavl_video_frame_t * src,
                                    gavl_video_frame_t * dst,
                                    gavl_rectangle_i_t * src_rect);
 
@@ -1857,7 +1857,7 @@ void gavl_video_frame_get_subframe(gavl_pixelformat_t pixelformat,
 */
 
 void gavl_video_frame_get_field(gavl_pixelformat_t pixelformat,
-                                gavl_video_frame_t * src,
+                                const gavl_video_frame_t * src,
                                 gavl_video_frame_t * dst,
                                 int field);
 
@@ -2308,7 +2308,7 @@ int gavl_video_converter_reinit(gavl_video_converter_t* cnv);
  */
   
 void gavl_video_convert(gavl_video_converter_t * cnv,
-                        gavl_video_frame_t * input_frame,
+                        const gavl_video_frame_t * input_frame,
                         gavl_video_frame_t * output_frame);
 
 /*! \defgroup video_scaler Scaler
@@ -2419,7 +2419,7 @@ int gavl_video_scaler_init_convolve(gavl_video_scaler_t * scaler,
  */
   
 void gavl_video_scaler_scale(gavl_video_scaler_t * scaler,
-                             gavl_video_frame_t * input_frame,
+                             const gavl_video_frame_t * input_frame,
                              gavl_video_frame_t * output_frame);
 
 /*! \defgroup video_deinterlacer Deinterlacer

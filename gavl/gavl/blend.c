@@ -41,10 +41,11 @@ gavl_overlay_blend_context_t * gavl_overlay_blend_context_create()
 
 void gavl_overlay_blend_context_destroy(gavl_overlay_blend_context_t * ctx)
   {
-  if(ctx->cnv->input_frame)
+  if(ctx->cnv_in_frame)
     {
-    gavl_video_frame_null(ctx->cnv->input_frame);
-    gavl_video_frame_destroy(ctx->cnv->input_frame);
+    gavl_video_frame_null(ctx->cnv_in_frame);
+    gavl_video_frame_destroy(ctx->cnv_in_frame);
+    ctx->cnv->input_frame = (const gavl_video_frame_t*)0;
     }
   
   gavl_video_frame_null(ctx->dst_win);
@@ -129,10 +130,13 @@ gavl_overlay_blend_context_init(gavl_overlay_blend_context_t * ctx,
                                       ctx->cnv->input_format.pixelformat,
                                       ctx->cnv->output_format.pixelformat,
                                       127, 127);
-    if(!ctx->cnv->input_frame)
-      ctx->cnv->input_frame  =
-        gavl_video_frame_create((gavl_video_format_t*)0);
     
+    if(!ctx->cnv->input_frame)
+      {
+      ctx->cnv_in_frame  =
+        gavl_video_frame_create((gavl_video_format_t*)0);
+      ctx->cnv->input_frame = ctx->cnv_in_frame;
+      }
     ctx->ovl_win = gavl_video_frame_create(&ctx->ovl_format);
 
     ctx->cnv->output_frame = ctx->ovl_win;
@@ -230,7 +234,7 @@ void gavl_overlay_blend_context_set_overlay(gavl_overlay_blend_context_t * ctx,
 
     gavl_video_frame_get_subframe(ctx->cnv->input_format.pixelformat,
                                   ovl->frame,
-                                  ctx->cnv->input_frame,
+                                  ctx->cnv_in_frame,
                                   &(ctx->ovl.ovl_rect));
     
     /* Adjust overlay rectangle (We are at [0,0] now) */

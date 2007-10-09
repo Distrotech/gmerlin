@@ -116,7 +116,7 @@
 /* Copy routines */
 
 static void copy_8(gavl_mix_output_channel_t * channel,
-                   gavl_audio_frame_t * input_frame,
+                   const gavl_audio_frame_t * input_frame,
                    gavl_audio_frame_t * output_frame)
   {
   gavl_memcpy(output_frame->channels.s_8[channel->index],
@@ -125,7 +125,7 @@ static void copy_8(gavl_mix_output_channel_t * channel,
   }
 
 static void copy_16(gavl_mix_output_channel_t * channel,
-                    gavl_audio_frame_t * input_frame,
+                    const gavl_audio_frame_t * input_frame,
                     gavl_audio_frame_t * output_frame)
   {
   gavl_memcpy(output_frame->channels.s_16[channel->index],
@@ -134,7 +134,7 @@ static void copy_16(gavl_mix_output_channel_t * channel,
   }
 
 static void copy_32(gavl_mix_output_channel_t * channel,
-                    gavl_audio_frame_t * input_frame,
+                    const gavl_audio_frame_t * input_frame,
                     gavl_audio_frame_t * output_frame)
   {
   gavl_memcpy(output_frame->channels.s_32[channel->index],

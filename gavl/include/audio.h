@@ -54,7 +54,7 @@ typedef struct gavl_audio_dither_context_s gavl_audio_dither_context_t;
 
 struct gavl_audio_convert_context_s
   {
-  gavl_audio_frame_t * input_frame;
+  const gavl_audio_frame_t * input_frame;
   gavl_audio_frame_t * output_frame;
 
   gavl_audio_format_t input_format;

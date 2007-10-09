@@ -68,7 +68,7 @@ typedef void (*gavl_video_func_t)(gavl_video_convert_context_t * ctx);
 
 struct gavl_video_convert_context_s
   {
-  gavl_video_frame_t * input_frame;
+  const gavl_video_frame_t * input_frame;
   gavl_video_frame_t * output_frame;
   gavl_video_options_t * options;
 

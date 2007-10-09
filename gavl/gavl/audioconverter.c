@@ -380,7 +380,7 @@ int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
 /* Convert audio */
 
 void gavl_audio_convert(gavl_audio_converter_t * cnv,
-                        gavl_audio_frame_t * input_frame,
+                        const gavl_audio_frame_t * input_frame,
                         gavl_audio_frame_t * output_frame)
   {
   int i;

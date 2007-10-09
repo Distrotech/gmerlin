@@ -23,6 +23,8 @@ typedef void (*gavl_blend_func_t)(gavl_overlay_blend_context_t * ctx,
 
 struct gavl_overlay_blend_context_s
   {
+  gavl_video_frame_t * cnv_in_frame;
+  
   gavl_video_format_t dst_format;
   gavl_video_format_t ovl_format;
   gavl_blend_func_t func;

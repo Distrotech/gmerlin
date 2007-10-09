@@ -2,7 +2,7 @@
 typedef struct gavl_mix_output_channel_s gavl_mix_output_channel_t;
 
 typedef void (*gavl_mix_func_t)(gavl_mix_output_channel_t * channel,
-                                gavl_audio_frame_t * input_frame,
+                                const gavl_audio_frame_t * input_frame,
                                 gavl_audio_frame_t * output_frame);
                                 
 typedef struct
