@@ -450,9 +450,8 @@ void bg_visualizer_open(bg_visualizer_t * v,
     gavl_video_format_copy(&v->video_format_out, &v->video_format_in_real);
     
     /* Open OV Plugin */
-    v->ov_plugin->open(v->ov_handle->priv,
-                       &v->video_format_out, v->vis_handle->info->long_name);
-   
+    v->ov_plugin->open(v->ov_handle->priv, &v->video_format_out);
+    
     /* Initialize video converter */
     
     v->do_convert_video =
@@ -476,6 +475,9 @@ void bg_visualizer_open(bg_visualizer_t * v,
     }
   else
     gavl_video_format_copy(&v->video_format_out, &v->video_format_in);
+  
+  v->ov_plugin->set_window_title(v->ov_handle->priv,
+                                 v->vis_handle->info->long_name);
   
   v->ov_plugin->show_window(v->ov_handle->priv, 1);
   v->do_stop = 0;

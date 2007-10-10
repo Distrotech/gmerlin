@@ -542,7 +542,9 @@ static int window_is_mapped(Display * dpy, Window w)
 void x11_window_init(x11_window_t * w)
   {
   if(window_is_mapped(w->dpy, w->fullscreen_window))
+    {
     w->current_window = w->fullscreen_window;
+    }
   else
     w->current_window = w->normal_window;
   
@@ -554,13 +556,24 @@ void x11_window_init(x11_window_t * w)
                       &w->window_width, &w->window_height);
     XMoveResizeWindow(w->dpy, w->fullscreen_window, 0, 0,
                       w->window_width, w->window_height);
+    XSetInputFocus(w->dpy, w->fullscreen_window, RevertToNone, CurrentTime);
+    }
+  else if((w->current_window == w->normal_window) &&
+          (w->normal_parent != w->root))
+    {
+    get_window_coords(w, w->normal_parent,
+                      (int*)0, (int*)0,
+                      &w->window_width, &w->window_height);
+    XMoveResizeWindow(w->dpy, w->normal_window, 0, 0,
+                      w->window_width, w->window_height);
+
+    if(window_is_mapped(w->dpy, w->normal_window))
+      XSetInputFocus(w->dpy, w->normal_window, RevertToNone, CurrentTime);
     }
   else
     get_window_coords(w, w->current_window,
                       (int*)0, (int*)0,
                       &w->window_width, &w->window_height);
-
-  
   }
 
 int x11_window_create(x11_window_t * w, Visual * visual, int depth,
@@ -590,6 +603,9 @@ int x11_window_create(x11_window_t * w, Visual * visual, int depth,
     XSelectInput(w->dpy, w->normal_parent, StructureNotifyMask);
     //    fprintf(stderr, "Got size: %d x %d\n", width, height);
     }
+
+  /* Not clear why this is needed. Not creating the colormap
+     results in a BadMatch error */
   w->colormap = XCreateColormap(w->dpy, RootWindow(w->dpy, w->screen),
                                 visual,
                                 AllocNone);
@@ -646,6 +662,8 @@ int x11_window_create(x11_window_t * w, Visual * visual, int depth,
       set_min_size(w, w->normal_window, w->min_width, w->min_height);
       }
     }
+  else
+    XMapWindow(w->dpy, w->normal_window);
   
   /* The fullscreen window will be created with the same size for now */
   
@@ -848,7 +866,6 @@ static void get_fullscreen_coords(x11_window_t * w,
 
   }
 
-
 void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
   {
   int width;
@@ -928,7 +945,7 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
     x11_window_clear(w);
     XFlush(w->dpy);
     }
-	
+  
   if(!fullscreen && (w->current_window == w->fullscreen_window))
     {
     /* Unmap fullscreen window */
@@ -956,7 +973,7 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
       }
     w->window_width  = w->normal_width;
     w->window_height = w->normal_height;
-    
+
     do
       {
       XMaskEvent(w->dpy, ExposureMask, &evt);
@@ -1096,7 +1113,7 @@ void x11_window_show(x11_window_t * win, int show)
       XMoveResizeWindow(win->dpy, win->normal_window,
                         win->window_x, win->window_y,
                         win->window_width, win->window_height);
-    else
+    else if(win->current_window == win->fullscreen_window)
       {
       if(win->fullscreen_mode & FULLSCREEN_MODE_NET_ABOVE)
         {
@@ -1109,8 +1126,6 @@ void x11_window_show(x11_window_t * win, int show)
                         _NET_WM_STATE_ADD, win->_NET_WM_STATE_FULLSCREEN);
         }
       }
-
-    
     }
   }
 

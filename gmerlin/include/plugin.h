@@ -923,21 +923,30 @@ typedef struct bg_ov_plugin_s
 
   /** \brief Set window
    *  \param priv The handle returned by the create() method
-   *  \param window Window identifier (for X11: display_name:window_id_in_hex)
+   *  \param window Window identifier
    *
    *  Call this immediately after creation of the plugin to embed video output
-   *  into a foreign application.
+   *  into a foreign application. For X11, the window identifier has the form
+   *  <display_name>:<normal_id>:<fullscreen_id>. 
    */
   
   void (*set_window)(void * priv, const char * window_id);
-
+  
   /** \brief Get window
    *  \param priv The handle returned by the create() method
-   *  \returns Window identifier (for X11: display_name:window_id_in_hex)
+   *  \returns Window identifier
    */
   
   const char * (*get_window)(void * priv);
   
+  /** \brief Set window title
+   *  \param priv The handle returned by the create() method
+   *  \param title The title for the window
+   */
+
+  void (*set_window_title)(void * priv, const char * title);
+  
+
   /** \brief Set callbacks
    *  \param priv The handle returned by the create() method
    *  \param callbacks Callback structure initialized by the caller before
@@ -955,8 +964,8 @@ typedef struct bg_ov_plugin_s
    *  use a \ref gavl_video_converter_t
    */
   
-  int  (*open)(void * priv, gavl_video_format_t * format, const char * window_title);
-
+  int  (*open)(void * priv, gavl_video_format_t * format);
+  
   /** \brief Allocate a video frame
    *  \param priv The handle returned by the create() method
    *  \returns a newly allocated video frame

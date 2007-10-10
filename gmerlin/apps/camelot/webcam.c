@@ -315,11 +315,13 @@ static void open_monitor(gmerlin_webcam_t * cam)
 
   /* Open monitor */
   
-  if(!cam->monitor->open(cam->monitor_handle->priv, &cam->monitor_format,
-                        "Camelot"))
+  if(!cam->monitor->open(cam->monitor_handle->priv, &cam->monitor_format))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Opening monitor plugin failed");
     }
+  cam->monitor->set_window_title(cam->monitor_handle->priv,
+                                 "Camelot");
+  
   if(cam->monitor->show_window)
     cam->monitor->show_window(cam->monitor_handle->priv, 1);
   

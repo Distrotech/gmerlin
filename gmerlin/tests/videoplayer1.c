@@ -119,12 +119,13 @@ int main(int argc, char ** argv)
 
   /* Initialize output plugin */
     
-  if(!output_plugin->open(output_handle->priv, &video_format, "Video output"))
+  if(!output_plugin->open(output_handle->priv, &video_format))
     {
     fprintf(stderr, "Cannot open output plugin %s\n",
             output_handle->info->name);
     return -1;
     }
+  output_plugin->set_window_title(output_handle->priv, "Video output");
   
   /* Initialize video converter */
 

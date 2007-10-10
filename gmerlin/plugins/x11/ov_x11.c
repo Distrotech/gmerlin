@@ -1065,9 +1065,16 @@ static void update_aspect_x11(void * data, int pixel_width,
 
   }
 
+static void set_window_title_x11(void * data,
+                                 const char * window_title)
+  {
+  x11_t * priv;
+  priv = (x11_t*)data;
+  x11_window_set_title(&(priv->win), window_title);
+  }
+
 static int open_x11(void * data,
-                    gavl_video_format_t * format,
-                    const char * window_title)
+                    gavl_video_format_t * format)
   {
   x11_t * priv;
   gavl_pixelformat_t x11_pixelformat;
@@ -1084,8 +1091,6 @@ static int open_x11(void * data,
     priv->disable_xscreensaver_fullscreen;
   priv->win.disable_screensaver_normal     =
     priv->disable_xscreensaver_normal;
-  
-  x11_window_set_title(&(priv->win), window_title);
   
   /* Decide pixelformat */
   
@@ -2387,10 +2392,11 @@ bg_ov_plugin_t the_plugin =
       get_parameter:  get_parameter_x11
     },
     
-    set_window:     set_window_x11,
-    get_window:     get_window_x11,
-    open:           open_x11,
-    put_video:      put_video_x11,
+    set_window:         set_window_x11,
+    get_window:         get_window_x11,
+    set_window_title:   set_window_title_x11,
+    open:               open_x11,
+    put_video:          put_video_x11,
 
     add_overlay_stream: add_overlay_stream_x11,
     set_overlay:        set_overlay_x11,

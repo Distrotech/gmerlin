@@ -100,11 +100,14 @@ int main(int argc, char ** argv)
     
   /* Open output */
 
-  if(!output->open(output_handle->priv, &output_format, "Webcam"))
+  if(!output->open(output_handle->priv, &output_format))
     {
     fprintf(stderr, "Opening video device fauled\n");
     return -1;
     }
+
+  output->set_window_title(output_handle->priv, "Webcam");
+  
   if(output->show_window)
     output->show_window(output_handle->priv, 1);
   
