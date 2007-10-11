@@ -131,7 +131,7 @@ static gavl_audio_frame_t * audio_buffer_get(audio_buffer_t * b)
     b->in_frame_1->valid_samples = 0;
     }
   pthread_mutex_unlock(&b->in_mutex);
-
+  
   /* If the frame was output the last time, set valid_samples to 0 */
   if(b->frame_done)
     {

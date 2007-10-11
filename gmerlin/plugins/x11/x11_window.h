@@ -70,6 +70,9 @@ typedef struct
   Window normal_parent;
   Window fullscreen_parent;
   
+  Window normal_child;
+  Window fullscreen_child;
+  
   int window_width, window_height;
 
   int normal_width, normal_height;

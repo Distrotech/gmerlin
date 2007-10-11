@@ -475,6 +475,9 @@ int x11_window_open_display(x11_window_t * w, const char * display_string)
   if(w->fullscreen_parent == None)
     w->fullscreen_parent = w->root;
   
+  w->normal_child = None;
+  w->fullscreen_child = None;
+  
   return 1;
   }
 
@@ -526,8 +529,6 @@ static void get_window_coords(x11_window_t * w,
     //                          y,
     //                          &child_return);
     }
-
-  
   }
 
 static int window_is_mapped(Display * dpy, Window w)
@@ -541,13 +542,13 @@ static int window_is_mapped(Display * dpy, Window w)
 
 void x11_window_init(x11_window_t * w)
   {
+  /* Decide current window */
   if(window_is_mapped(w->dpy, w->fullscreen_window))
-    {
     w->current_window = w->fullscreen_window;
-    }
   else
     w->current_window = w->normal_window;
-  
+
+#if 1
   if((w->current_window == w->fullscreen_window) &&
      (w->fullscreen_parent != w->root))
     {
@@ -574,6 +575,7 @@ void x11_window_init(x11_window_t * w)
     get_window_coords(w, w->current_window,
                       (int*)0, (int*)0,
                       &w->window_width, &w->window_height);
+#endif
   }
 
 int x11_window_create(x11_window_t * w, Visual * visual, int depth,
@@ -595,15 +597,18 @@ int x11_window_create(x11_window_t * w, Visual * visual, int depth,
   
   if(w->normal_parent != w->root)
     {
-    get_window_coords(w, w->normal_parent,
-                      (int*)0, (int*)0, &width,
-                      &height);
+    // get_window_coords(w, w->normal_parent,
+    //                  (int*)0, (int*)0, &width,
+    //                  &height);
     
     /* We need size changes of the parent window */
     XSelectInput(w->dpy, w->normal_parent, StructureNotifyMask);
     //    fprintf(stderr, "Got size: %d x %d\n", width, height);
     }
-
+  if(w->fullscreen_parent != w->root)
+    {
+    XSelectInput(w->dpy, w->fullscreen_parent, StructureNotifyMask);
+    }
   /* Not clear why this is needed. Not creating the colormap
      results in a BadMatch error */
   w->colormap = XCreateColormap(w->dpy, RootWindow(w->dpy, w->screen),
@@ -625,7 +630,11 @@ int x11_window_create(x11_window_t * w, Visual * visual, int depth,
 
   /* Setup event mask */
 
-  w->event_mask = StructureNotifyMask | PointerMotionMask | ExposureMask;
+  w->event_mask =
+    SubstructureNotifyMask |
+    StructureNotifyMask |
+    PointerMotionMask |
+    ExposureMask;
   
   /* Create normal window */
 
@@ -684,9 +693,7 @@ int x11_window_create(x11_window_t * w, Visual * visual, int depth,
     XSetWMProtocols(w->dpy, w->fullscreen_window, wm_protocols, 1);
     }
   else
-    {
     XMapWindow(w->dpy, w->fullscreen_window);
-    }
   
   /* Create GC */
   
@@ -762,28 +769,57 @@ void x11_window_handle_event(x11_window_t * w, XEvent*evt)
   
   switch(evt->type)
     {
-    case ConfigureNotify:
-      if(w->current_window != w->normal_window)
-        break;
-      //      w->window_width  = evt->xconfigure.width;
-      //      w->window_height = evt->xconfigure.height;
-      //      w->window_x = evt->xconfigure.x;
-      //      w->window_y = evt->xconfigure.y;
+    case CreateNotify:
+      if(evt->xcreatewindow.parent == w->normal_window)
+        w->normal_child = evt->xcreatewindow.window;
+      if(evt->xcreatewindow.parent == w->fullscreen_window)
+        w->fullscreen_child = evt->xcreatewindow.window;
       
-      if((w->normal_parent == w->root) &&
-         evt->xconfigure.window == w->normal_window)
-        get_window_coords(w, w->normal_window,
-                          (int*)0, (int*)0,
-                          &(w->window_width), &(w->window_height));
-      else if((w->normal_parent != w->root) &&
-              evt->xconfigure.window == w->normal_parent)
+      /* We need to catch expose events by children */
+      XSelectInput(w->dpy, evt->xcreatewindow.window,
+                   ExposureMask);
+      
+      break;
+    case DestroyNotify:
+      if(evt->xdestroywindow.event == w->normal_window)
         {
-        get_window_coords(w, w->normal_parent,
-                          (int*)0, (int*)0,
-                          &(w->window_width), &(w->window_height));
-        
-        XResizeWindow(w->dpy, w->normal_window, w->window_width,
-                      w->window_height);
+        w->normal_child = None;
+        }
+      if(evt->xdestroywindow.event == w->fullscreen_window)
+        {
+        w->fullscreen_child = None;
+        }
+      break;
+    case ConfigureNotify:
+      if(w->current_window == w->normal_window)
+        {
+        if(evt->xconfigure.window == w->normal_window)
+          {
+          w->window_width  = evt->xconfigure.width;
+          w->window_height = evt->xconfigure.height;
+          }
+        else if(evt->xconfigure.window == w->normal_parent)
+          {
+          XResizeWindow(w->dpy,
+                        w->normal_window,
+                        evt->xconfigure.width,
+                        evt->xconfigure.height);
+          }
+        }
+      else
+        {
+        if(evt->xconfigure.window == w->fullscreen_window)
+          {
+          w->window_width  = evt->xconfigure.width;
+          w->window_height = evt->xconfigure.height;
+          }
+        else if(evt->xconfigure.window == w->fullscreen_parent)
+          {
+          XResizeWindow(w->dpy,
+                        w->fullscreen_window,
+                        evt->xconfigure.width,
+                        evt->xconfigure.height);
+          }
         }
       break;
     case MotionNotify:
@@ -809,6 +845,11 @@ void x11_window_handle_event(x11_window_t * w, XEvent*evt)
     case MapNotify:
       if(evt->xmap.window == w->normal_window)
         w->mapped = 1;
+      else if((evt->xmap.window == w->normal_parent) ||
+              (evt->xmap.window == w->fullscreen_parent))
+        {
+        x11_window_init(w);
+        }
       break;
     }
   }
@@ -875,13 +916,15 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
   XEvent evt;
   Window fullscreen_toplevel;
   Window normal_toplevel;
+  Window focus_window;
+  
   /* Normal->fullscreen */
-
+  
   if(w->fullscreen_parent == w->root)
     fullscreen_toplevel = w->fullscreen_window;
   else
     fullscreen_toplevel = w->fullscreen_parent;
-
+  
   if(w->normal_parent == w->root)
     normal_toplevel = w->normal_window;
   else
@@ -933,15 +976,21 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
 #endif
 
     XWithdrawWindow(w->dpy, normal_toplevel, w->screen);
-		
+    
     /* Wait until the window is mapped */ 
+    
+    if(w->fullscreen_child != None)
+      focus_window = w->fullscreen_child;
+    else
+      focus_window = w->fullscreen_window;
     
     do
       {
       XMaskEvent(w->dpy, ExposureMask, &evt);
       x11_window_handle_event(w, &evt);
-      } while((evt.type != Expose) && (evt.xexpose.window != w->fullscreen_window));
-    XSetInputFocus(w->dpy, w->fullscreen_window, RevertToNone, CurrentTime);
+      } while((evt.type != Expose) || (evt.xexpose.window != focus_window));
+    
+    XSetInputFocus(w->dpy, focus_window, RevertToNone, CurrentTime);
     x11_window_clear(w);
     XFlush(w->dpy);
     }
@@ -960,7 +1009,7 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
     w->current_window = w->normal_window;
     
     XMapWindow(w->dpy, normal_toplevel);
-    
+    XSync(w->dpy, False);
     if(w->disable_screensaver_normal)
       {
       w->disable_screensaver = 1;
@@ -974,18 +1023,23 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
     w->window_width  = w->normal_width;
     w->window_height = w->normal_height;
 
+    if(w->normal_child != None)
+      focus_window = w->normal_child;
+    else
+      focus_window = w->normal_window;
+    
     do
       {
       XMaskEvent(w->dpy, ExposureMask, &evt);
       x11_window_handle_event(w, &evt);
-      }while((evt.type != Expose) && (evt.xexpose.window != w->normal_window));
+      }while((evt.type != Expose) || (evt.xexpose.window != focus_window));
     
     if(w->normal_parent == w->root)
       XMoveResizeWindow(w->dpy, w->normal_window,
                         w->window_x, w->window_y,
                         w->window_width, w->window_height);
     
-    XSetInputFocus(w->dpy, w->normal_window, RevertToNone, CurrentTime);
+    XSetInputFocus(w->dpy, focus_window, RevertToNone, CurrentTime);
     
     x11_window_clear(w);
     XFlush(w->dpy);
