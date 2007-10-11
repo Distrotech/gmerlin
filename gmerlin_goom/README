@@ -1,0 +1,31 @@
+This is the goom sourcecode taken from CVS 
+(http://sourceforge.net/projects/goom) and adapted for gmerlin.
+Mostly costemic changes were done with the original code.
+
+The original README follows below:
+
+**************************
+* What a GOOM! version 2 *
+**************************
+copyright 2000-2004, by Jean-Christophe Hoelt <jeko@ios-software.com>
+
+This is my first visual plugins for XMMS, and I think that it's the best
+I have ever done !
+
+   /-----------------\\
+--< where to get Goom >--
+   \\-----------------/
+
+You can find the last version on the website of
+iOS software:
+http://www.ios-software.com/
+
+   /------\\
+--< thanks >--
+   \\------/
+
+Skal for the code of IFS
+Burkhard for the initial fullscreen patch
+Gyom for the iTunes version
+Fred for the Windows version and a lot of other Goom Stuff
+
