@@ -1,0 +1,28 @@
+What a GOOM!
+------------
+
+**********************************
+** How to compile on Linux/unix **
+**********************************
+'./configure'
+'make' && 'make install'
+
+** Needed packages **
+- xmms-devel
+- SDL & SDL-devel
+
+
+*******************************
+** How to compile on MacOS X **
+*******************************
+In a shell, type the following (without quotes): "./autogen.sh && make"
+The iTunes plugin and the standalone app should be built in the mac folder.
+"make install" is NOT recommended (the build results would only work for you)
+Distributors only : The mac Makefile also contains a special "package" target to build the distribution disk image.
+If you need only the library to be built use "./configure  --disable-mac-frontends"
+
+--
+(c) 2000-2005, by:
+* Jean-Christophe Hoelt "jeko" <jeko@free.fr>
+* Guillaume Borios "gyom" <gborios@free.fr>
+for iOS-Software.
