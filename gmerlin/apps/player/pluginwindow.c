@@ -21,31 +21,6 @@ struct plugin_window_s
   
   };
 
-#if 0
-static void set_audio_output(const bg_plugin_info_t * info, void * data)
-  {
-  bg_plugin_handle_t * handle;
-  plugin_window_t * win = (plugin_window_t *)data;
-
-  handle = bg_gtk_plugin_widget_single_load_plugin(win->audio_output);
-  bg_plugin_registry_set_default(win->g->plugin_reg, BG_PLUGIN_OUTPUT_AUDIO, info->name);
-
-  bg_player_set_oa_plugin(win->g->player, handle);
-  
-  }
-
-static void set_video_output(const bg_plugin_info_t * info, void * data)
-  {
-  bg_plugin_handle_t * handle;
-  plugin_window_t * win = (plugin_window_t *)data;
-
-  handle = bg_gtk_plugin_widget_single_load_plugin(win->video_output);
-  bg_plugin_registry_set_default(win->g->plugin_reg, BG_PLUGIN_OUTPUT_VIDEO, info->name);
-
-  bg_player_set_ov_plugin(win->g->player, handle);
-  }
-#endif
-
 static void button_callback(GtkWidget * w, gpointer data)
   {
   plugin_window_t * win = (plugin_window_t *)data;

@@ -58,10 +58,7 @@ int bg_player_keep_going(bg_player_t * p, void (*ping_func)(void*), void * data)
     case BG_PLAYER_STATE_CHANGING:
       return 0;
     case BG_PLAYER_STATE_PLAYING:
-      break;
     case BG_PLAYER_STATE_FINISHING:
-      if(DO_STILL(p) && !DO_AUDIO(p))
-        return 0;
       break;
     case BG_PLAYER_STATE_STARTING:
     case BG_PLAYER_STATE_PAUSED:
@@ -273,8 +270,24 @@ bg_player_set_visualization_parameter(void*data,
                                       const char * name,
                                       const bg_parameter_value_t*val)
   {
-  bg_player_t * player;
-  player = (bg_player_t*)data;
-  bg_visualizer_set_parameter(player->visualizer, name, val);
+  int enabled;
+  bg_player_t * p;
+  int do_init;
+
+  p = (bg_player_t*)data;
+  do_init = (bg_player_get_state(p) == BG_PLAYER_STATE_INIT);
+
+  enabled = bg_visualizer_is_enabled(p->visualizer);
+  bg_visualizer_set_parameter(p->visualizer, name, val);
+
+  if(!do_init)
+    {
+    if((enabled != bg_visualizer_is_enabled(p->visualizer)) ||
+       bg_visualizer_need_restart(p->visualizer))
+      {
+      bg_player_interrupt(p);
+      bg_player_interrupt_resume(p);
+      }
+    }
   }
 

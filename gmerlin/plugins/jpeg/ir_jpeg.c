@@ -173,8 +173,8 @@ int read_image_jpeg(void * priv, gavl_video_frame_t * frame)
 
   if(!frame)
     {
-    return 1;
     jpeg_abort_decompress(&jpeg->cinfo);
+    return 1;
     }
   
   if(jpeg->format.pixelformat != GAVL_RGB_24)

@@ -114,10 +114,7 @@ typedef struct
 
   int disable_screensaver_normal;
   int disable_screensaver_fullscreen;
-
-  /* Calculated from the 2 above and current_window */
-  int disable_screensaver;
-
+  
   int64_t screensaver_last_ping_time;
   
   char * display_string;

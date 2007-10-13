@@ -532,9 +532,12 @@ typedef struct bg_input_plugin_s
    *  \param priv The handle returned by the create() method
    *  \param track Track index starting with 0
    *
-   *  This has to be defined only if the plugin supports multiple tracks.
+   *  This has to be defined even if the plugin doesn't support
+   *  multiple tracks. In addition to selecting the track,
+   *  the plugin should also reset it's internal state such
+   *  that streams can newly be selected.
    */
-    
+  
   int (*set_track)(void * priv, int track);
     
   /*
@@ -1594,6 +1597,7 @@ typedef struct bg_image_reader_plugin_s
   /** \brief Read the image
    *  \param priv The handle returned by the create() method
    *  \param frame The frame, where the image will be copied
+   *  \returns 1 if the image was read, 0 else
    *  
    *  After reading the image the plugin is cleaned up, so \ref read_header()
    *  can be called again after that. If frame is NULL, no image is read,

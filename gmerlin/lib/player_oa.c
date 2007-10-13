@@ -124,7 +124,7 @@ void bg_player_time_init(bg_player_t * player)
      player->do_bypass)
     ctx->sync_mode = SYNC_INPUT;
   else if(ctx->plugin && (ctx->plugin->get_delay) &&
-          DO_AUDIO(ctx->player))
+          DO_AUDIO(ctx->player->flags))
     ctx->sync_mode = SYNC_SOUNDCARD;
   else
     ctx->sync_mode = SYNC_SOFTWARE;
@@ -305,7 +305,7 @@ void * bg_player_oa_thread(void * data)
       do_mute = ctx->player->mute;
       pthread_mutex_unlock(&(ctx->player->mute_mutex));
 
-      if(DO_VISUALIZE(ctx->player))
+      if(DO_VISUALIZE(ctx->player->flags))
         bg_visualizer_update(ctx->player->visualizer, frame);
       
       if(do_mute)

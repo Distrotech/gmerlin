@@ -317,8 +317,6 @@ typedef struct
   /* Configuration flags */
 
   int auto_resize;
-  int remember_size;
-  
   /* Callbacks */
 
   bg_ov_callbacks_t * callbacks;
@@ -866,7 +864,7 @@ free_frame_x11(void * data, gavl_video_frame_t * frame)
 
 static int open_display(x11_t * priv)
   {
-  int dpi_x, dpi_y;
+  //  int dpi_x, dpi_y;
 
   if(!x11_window_open_display(&priv->win, priv->window_id))
     return 0;
@@ -874,10 +872,8 @@ static int open_display(x11_t * priv)
   /* Open X Display and get parent */
   priv->dpy = priv->win.dpy;
   
-  /* Default screen */
-  
-
   /* Screen resolution */
+#if 0    
 
   dpi_x = ((((double) DisplayWidth(priv->dpy,priv->win.screen)) * 25.4) / 
            ((double) DisplayWidthMM(priv->dpy,priv->win.screen)));
@@ -886,7 +882,6 @@ static int open_display(x11_t * priv)
 
   /* We must swap horizontal and vertical here because LARGER resolution means
      SMALLER pixels */
-#if 0    
   priv->window_format.pixel_width = dpi_y;
   priv->window_format.pixel_height = dpi_x;
 #else
@@ -897,13 +892,6 @@ static int open_display(x11_t * priv)
   
   priv->have_shm = check_shm(priv->dpy, &(priv->shm_completion_type));
   
-  /* Create windows */
-  
-  x11_window_create(&(priv->win), DefaultVisual(priv->dpy, priv->win.screen),
-                    DefaultDepth(priv->dpy, priv->win.screen),
-                    320, 240, "Video output");
-  x11_window_init(&(priv->win));
-    
   /* Log screensaver mode */
   
   switch(priv->win.screensaver_mode)
@@ -919,13 +907,9 @@ static int open_display(x11_t * priv)
       break;
     }
   
-  x11_window_select_input(&(priv->win), ButtonPressMask |
-                          KeyPressMask | ExposureMask);
-  
-  
   /* Check for XV Support */
 #ifdef HAVE_LIBXV
-  check_xv(priv->dpy, priv->win.normal_window,
+  check_xv(priv->dpy, priv->win.root,
            &(priv->xv_port),
            &(priv->have_xv_yv12),
            &(priv->have_xv_yuy2),
@@ -947,7 +931,9 @@ static void * create_x11()
 
   priv->scaler = gavl_video_scaler_create();
   
-  //  open_display(priv);
+  priv->win.window_width = 320;
+  priv->win.window_height = 240;
+  priv->win.normal_window = None;
   
   return priv;
   }
@@ -982,8 +968,7 @@ static void set_drawing_coords(x11_t * priv)
                                         &priv->dst_rect,
                                         &priv->video_format,
                                         &priv->window_format);
-
-
+    
     gavl_rectangle_f_to_i(&priv->src_rect_i, &priv->src_rect_f);
     gavl_rectangle_i_align_to_format(&priv->src_rect_i, &priv->video_format);
     
@@ -1073,6 +1058,20 @@ static void set_window_title_x11(void * data,
   x11_window_set_title(&(priv->win), window_title);
   }
 
+static void create_window(x11_t * priv)
+  {
+  /* Create windows */
+  fprintf(stderr, "x11_window_create\n");
+  x11_window_create(&(priv->win), DefaultVisual(priv->dpy, priv->win.screen),
+                    DefaultDepth(priv->dpy, priv->win.screen),
+                    priv->win.window_width, priv->win.window_height,
+                    "Video output");
+  x11_window_init(&(priv->win));
+  
+  x11_window_select_input(&(priv->win), ButtonPressMask |
+                          KeyPressMask | ExposureMask);
+  }
+
 static int open_x11(void * data,
                     gavl_video_format_t * format)
   {
@@ -1082,8 +1081,9 @@ static int open_x11(void * data,
 
   if(!priv->dpy)
     open_display(priv);
-
-  x11_window_init(&(priv->win));
+  
+  if(priv->win.normal_window == None)
+    create_window(priv);
   
   /* Set screensaver options */
   
@@ -2219,10 +2219,6 @@ set_parameter_x11(void * priv, const char * name,
     {
     p->auto_resize = val->val_i;
     }
-  else if(!strcmp(name, "remember_size"))
-    {
-    p->remember_size = val->val_i;
-    }
 #ifdef HAVE_LIBXV
   else if(!strcmp(name, "xv_mode"))
     {
@@ -2246,11 +2242,13 @@ set_parameter_x11(void * priv, const char * name,
     }
   else if(!strcmp(name, "window_width"))
     {
+    fprintf(stderr, "Got window_width: %d\n", val->val_i);
     if(p->win.normal_parent == p->win.root)
       p->win.window_width = val->val_i;
     }
   else if(!strcmp(name, "window_height"))
     {
+    fprintf(stderr, "Got window_height: %d\n", val->val_i);
     if(p->win.normal_parent == p->win.root)
       p->win.window_height = val->val_i;
     }
@@ -2265,14 +2263,22 @@ set_parameter_x11(void * priv, const char * name,
   else if(!strcmp(name, "squeeze"))
     {
     p->squeeze = val->val_f;
-    x11_window_clear(&p->win);
-    set_drawing_coords(p);
+
+    if(p->win.normal_window != None)
+      {
+      x11_window_clear(&p->win);
+      set_drawing_coords(p);
+      }
     }
   else if(!strcmp(name, "zoom"))
     {
     p->zoom = val->val_f;
     x11_window_clear(&p->win);
-    set_drawing_coords(p);
+    if(p->win.normal_window != None)
+      {
+      set_drawing_coords(p);
+      fprintf(stderr, "Set zoom %f\n", p->zoom);
+      }
     }
   else if(!strcmp(name, "do_sw_scale"))
     {
@@ -2348,6 +2354,7 @@ get_parameter_x11(void * priv, const char * name,
   else if(!strcmp(name, "zoom"))
     {
     val->val_f = p->zoom;
+    fprintf(stderr, "Get zoom %f\n", p->zoom);
     return 1;
     }
   else if(!strcmp(name, "squeeze"))
@@ -2368,6 +2375,8 @@ static void set_window_x11(void * priv, const char * window_id)
 static const char * get_window_x11(void * priv)
   {
   x11_t * p = (x11_t*)priv;
+  if(p->win.normal_window == None)
+    create_window(p);
   return p->win.display_string;
   }
 

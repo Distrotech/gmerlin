@@ -7,7 +7,10 @@
 
 #include <pluginregistry.h>
 #include <visualize.h>
+#include <utils.h>
+
 #include <log.h>
+
 #define LOG_DOMAIN "visualizer"
 
 typedef struct
@@ -26,6 +29,10 @@ typedef struct
   
   int last_samples_read;
   int frame_done;
+  
+  gavl_volume_control_t * gain_control;
+  pthread_mutex_t gain_mutex;
+  
   } audio_buffer_t;
 
 static audio_buffer_t * audio_buffer_create()
@@ -34,6 +41,10 @@ static audio_buffer_t * audio_buffer_create()
   ret = calloc(1, sizeof(*ret));
   ret->cnv = gavl_audio_converter_create();
   pthread_mutex_init(&(ret->in_mutex),(pthread_mutexattr_t *)0);
+  pthread_mutex_init(&(ret->gain_mutex),(pthread_mutexattr_t *)0);
+  
+  ret->gain_control = gavl_volume_control_create();
+  
   return ret;
   }
 
@@ -60,6 +71,9 @@ static void audio_buffer_destroy(audio_buffer_t * b)
   {
   audio_buffer_cleanup(b);
   gavl_audio_converter_destroy(b->cnv);
+  gavl_volume_control_destroy(b->gain_control);
+  pthread_mutex_destroy(&b->in_mutex);
+  pthread_mutex_destroy(&b->gain_mutex);
   free(b);
   }
 
@@ -86,6 +100,8 @@ static void audio_buffer_init(audio_buffer_t * b,
   b->in_frame_2 = gavl_audio_frame_create(&frame_format);
   
   b->out_frame = gavl_audio_frame_create(&b->out_format);
+  
+  gavl_volume_control_set_format(b->gain_control, &frame_format);
   }
 
 static void audio_buffer_put(audio_buffer_t * b,
@@ -101,6 +117,13 @@ static void audio_buffer_put(audio_buffer_t * b,
                           b->in_format.samples_per_frame, /* dst_size */
                           f->valid_samples /* src_size */ ); 
   pthread_mutex_unlock(&b->in_mutex);
+  }
+
+static void audio_buffer_set_gain(audio_buffer_t * b, float gain)
+  {
+  pthread_mutex_lock(&b->gain_mutex);
+  gavl_volume_control_set_volume(b->gain_control, gain);
+  pthread_mutex_unlock(&b->gain_mutex);
   }
 
 static gavl_audio_frame_t * audio_buffer_get(audio_buffer_t * b)
@@ -125,10 +148,14 @@ static gavl_audio_frame_t * audio_buffer_get(audio_buffer_t * b)
                               0, /* src_pos */
                               b->in_format.samples_per_frame, /* dst_size */
                               b->in_frame_1->valid_samples    /* src_size */ ); 
-
+    
     b->in_frame_2->valid_samples = samples_copied;
     b->last_samples_read         = samples_copied;
     b->in_frame_1->valid_samples = 0;
+    
+    pthread_mutex_lock(&b->gain_mutex);
+    gavl_volume_control_apply(b->gain_control, b->in_frame_2);
+    pthread_mutex_unlock(&b->gain_mutex);
     }
   pthread_mutex_unlock(&b->in_mutex);
   
@@ -194,12 +221,26 @@ struct bg_visualizer_s
   gavl_timer_t * timer;
   
   gavl_time_t last_frame_time;
+
+  gavl_audio_format_t audio_format_in;
+  gavl_audio_format_t audio_format_out;
+  
+  pthread_mutex_t running_mutex;
   
   int enable;
+  int changed;
+  
+  int is_open;
+  
+  char * vis_plugin_name;
   };
 
+static void init_plugin(bg_visualizer_t * v);
+static void cleanup_plugin(bg_visualizer_t * v);
 
-bg_visualizer_t * bg_visualizer_create(bg_plugin_registry_t * plugin_reg)
+
+bg_visualizer_t *
+bg_visualizer_create(bg_plugin_registry_t * plugin_reg)
   {
   bg_visualizer_t * ret;
   ret = calloc(1, sizeof(*ret));
@@ -211,6 +252,8 @@ bg_visualizer_t * bg_visualizer_create(bg_plugin_registry_t * plugin_reg)
   
   pthread_mutex_init(&(ret->stop_mutex),(pthread_mutexattr_t *)0);
   ret->timer = gavl_timer_create();
+
+  pthread_mutex_init(&(ret->running_mutex),(pthread_mutexattr_t *)0);
   
   return ret;
   }
@@ -222,6 +265,13 @@ void bg_visualizer_destroy(bg_visualizer_t * v)
   gavl_video_converter_destroy(v->video_cnv);
   audio_buffer_destroy(v->audio_buffer);
   gavl_timer_destroy(v->timer);
+  pthread_mutex_destroy(&(v->running_mutex));
+  
+  if(v->vis_handle)
+    bg_plugin_unref(v->vis_handle);
+
+  if(v->vis_plugin_name)
+    free(v->vis_plugin_name);
   
   free(v);
   }
@@ -232,11 +282,13 @@ static bg_parameter_info_t parameters[] =
       name:       "enable",
       long_name:  TRS("Enable visualizations"),
       type:       BG_PARAMETER_CHECKBUTTON,
+      flags:      BG_PARAMETER_SYNC,
     },
     {
       name:       "plugin",
       long_name:  TRS("Plugin"),
       type:       BG_PARAMETER_MULTI_MENU,
+      flags:      BG_PARAMETER_SYNC,
     },
     {
       name:        "width",
@@ -265,6 +317,17 @@ static bg_parameter_info_t parameters[] =
       val_default: { val_f: 30.0 },
       num_digits: 2,
     },
+    {
+      name:        "gain",
+      long_name:   TRS("Gain"),
+      type:        BG_PARAMETER_SLIDER_FLOAT,
+      flags:       BG_PARAMETER_SYNC,
+      val_min:     { val_f: -10.0 },
+      val_max:     { val_f:  10.0 },
+      val_default: { val_f:   0.0 },
+      num_digits: 2,
+      help_string: TRS("Gain (in dB) to apply to the audio samples before it is sent to the visualization plugin"),
+    },
     { /* End of parameters */ }
   };
 
@@ -289,7 +352,6 @@ void bg_visualizer_set_parameter(void * priv,
                                  const char * name,
                                  const bg_parameter_value_t * val)
   {
-  const bg_plugin_info_t * info;
   bg_visualizer_t * v;
   if(!name)
     return;
@@ -297,25 +359,20 @@ void bg_visualizer_set_parameter(void * priv,
   v = (bg_visualizer_t*)priv;
   
   //  fprintf(stderr, "bg_visualizer_set_parameter: %s\n", name);
-
+  
   if(!strcmp(name, "enable"))
     {
-    v->enable = val->val_i;
+    if(v->enable != val->val_i)
+      {
+      v->changed = 1;
+      v->enable = val->val_i;
+      }
     }
   else if(!strcmp(name, "plugin"))
     {
-    if(v->vis_handle && strcmp(v->vis_handle->info->name, val->val_str))
-      {
-      bg_plugin_unref(v->vis_handle);
-      v->vis_handle = (bg_plugin_handle_t*)0;
-      }
-    if(!v->vis_handle)
-      {
-      info = bg_plugin_find_by_name(v->plugin_reg, val->val_str);
-      v->vis_handle = bg_plugin_load(v->plugin_reg, info);
-      v->vis_plugin =
-        (bg_visualization_plugin_t*)(v->vis_handle->plugin);
-      }
+    if(!v->vis_plugin_name || strcmp(v->vis_plugin_name, val->val_str))
+      v->changed = 1;
+    v->vis_plugin_name = bg_strdup(v->vis_plugin_name, val->val_str);
     }
   else if(!strcmp(name, "width"))
     {
@@ -332,6 +389,10 @@ void bg_visualizer_set_parameter(void * priv,
     v->video_format_in.frame_duration = (int)((float)GAVL_TIME_SCALE / val->val_f);
     v->video_format_in.timescale      = GAVL_TIME_SCALE;
     }
+  else if(!strcmp(name, "gain"))
+    {
+    audio_buffer_set_gain(v->audio_buffer, val->val_f);
+    }
   else if(v->vis_handle && v->vis_handle->plugin->set_parameter)
     {
     v->vis_handle->plugin->set_parameter(v->vis_handle->priv,
@@ -347,7 +408,7 @@ static void * video_thread_func(void * data)
   gavl_time_t diff_time, current_time;
   
   v = (bg_visualizer_t*)data;
-
+  pthread_mutex_lock(&v->running_mutex);
   while(1)
     {
     /* Check if we should stop */
@@ -416,35 +477,123 @@ static void * video_thread_func(void * data)
     
     }
   
+  pthread_mutex_unlock(&v->running_mutex);
   return (void*)0;
   }
 
-void bg_visualizer_open(bg_visualizer_t * v,
-                        const gavl_audio_format_t * format,
-                        bg_plugin_handle_t * ov_handle)
+int bg_visualizer_stop(bg_visualizer_t * v)
   {
-  gavl_audio_format_t tmp_format;
+  if(!pthread_mutex_trylock(&v->running_mutex))
+    {
+    pthread_mutex_unlock(&v->running_mutex);
+    return 0;
+    }
   
-  /* Set audio format */
+  /* Join threads */
   
-  gavl_audio_format_copy(&tmp_format, format);
+  pthread_mutex_lock(&v->stop_mutex);
+  v->do_stop = 1;
+  pthread_mutex_unlock(&v->stop_mutex);
   
-  /* Set ov plugin */
-  v->ov_handle = ov_handle;
-  v->ov_plugin = (bg_ov_plugin_t*)(ov_handle->plugin);
+  pthread_join(v->video_thread, (void**)0);
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Joined thread");
+  gavl_timer_stop(v->timer);
+  return 1;
+  }
+
+int bg_visualizer_start(bg_visualizer_t * v)
+  {
+  if(pthread_mutex_trylock(&v->running_mutex))
+    return 0;
+  
+  pthread_mutex_unlock(&v->running_mutex);
+  
+  v->do_stop = 0;
+  v->last_frame_time = 0; 
+  gavl_timer_set(v->timer, 0);
+  gavl_timer_start(v->timer);
+  
+  pthread_create(&(v->video_thread), (pthread_attr_t*)0, video_thread_func, v);
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Started thread");
+  return 1;
+  }
+
+void bg_visualizer_set_audio_format(bg_visualizer_t * v,
+                                    const gavl_audio_format_t * format)
+  {
+  int was_running;
+  was_running = bg_visualizer_stop(v);
+  pthread_mutex_lock(&v->audio_buffer->in_mutex);
+  audio_buffer_init(v->audio_buffer, &v->audio_format_in, &v->audio_format_out);
+  pthread_mutex_unlock(&v->audio_buffer->in_mutex);
+  if(was_running)
+    bg_visualizer_start(v);
+  }
+
+static void cleanup_plugin(bg_visualizer_t * v)
+  {
+  /* Close OV Plugin */
+  if(v->vis_handle->info->flags & BG_PLUGIN_VISUALIZE_FRAME)
+    {
+    if(v->video_frame_out)
+      {
+      if(v->ov_plugin->free_frame)
+        v->ov_plugin->free_frame(v->ov_handle->priv,
+                                 v->video_frame_out);
+      else
+        gavl_video_frame_destroy(v->video_frame_out);
+      v->video_frame_out = (gavl_video_frame_t*)0;
+      }
+    if(v->video_frame_in)
+      {
+      gavl_video_frame_destroy(v->video_frame_in);
+      v->video_frame_in = (gavl_video_frame_t*)0;
+      }
+    v->ov_plugin->close(v->ov_handle->priv);
+    }
+  /* Close vis plugin */
+  v->vis_plugin->close(v->vis_handle->priv);
+  v->is_open = 0;
+  }
+
+static void init_plugin(bg_visualizer_t * v)
+  {
+  const bg_plugin_info_t * info;
+  gavl_audio_format_copy(&v->audio_format_out, &v->audio_format_in);
+
+  /* Set members, which might be missing */
+  v->video_format_in.pixel_width  = 1;
+  v->video_format_in.pixel_height = 1;
   
   /* Set video format */
   gavl_video_format_copy(&v->video_format_in_real, &v->video_format_in);
+  
+  /* Check whether to reopen the visualization plugin */
+  
+  if(v->vis_handle && strcmp(v->vis_plugin_name, v->vis_handle->info->name))
+    {
+    if(v->is_open)
+      cleanup_plugin(v);
+    
+    bg_plugin_unref(v->vis_handle);
+    v->vis_handle = (bg_plugin_handle_t*)0;
+    v->vis_plugin = (bg_visualization_plugin_t*)0;
+    }
+
+  if(!v->vis_handle)
+    {
+    info = bg_plugin_find_by_name(v->plugin_reg, v->vis_plugin_name);
+    v->vis_handle = bg_plugin_load(v->plugin_reg, info);
+    v->vis_plugin =
+      (bg_visualization_plugin_t*)(v->vis_handle->plugin);
+    }
   
   /* Open visualizer plugin */
   
   v->vis_plugin->open(v->vis_handle->priv, v->ov_plugin,
                       v->ov_handle->priv,
-                      &tmp_format,
+                      &v->audio_format_out,
                       &v->video_format_in_real);
-
-  audio_buffer_init(v->audio_buffer, format, &tmp_format);
-  
   if(v->vis_handle->info->flags & BG_PLUGIN_VISUALIZE_FRAME)
     {
     gavl_video_format_copy(&v->video_format_out, &v->video_format_in_real);
@@ -457,21 +606,14 @@ void bg_visualizer_open(bg_visualizer_t * v,
     v->do_convert_video =
       gavl_video_converter_init(v->video_cnv, &v->video_format_in_real,
                                 &v->video_format_out);
-    if(v->do_convert_video)
-      {
-      if(v->ov_plugin->alloc_frame)
-        v->video_frame_out = v->ov_plugin->alloc_frame(v->ov_handle->priv);
-      else
-        v->video_frame_out = gavl_video_frame_create(&v->video_format_out);
-      v->video_frame_in = gavl_video_frame_create(&v->video_format_in_real);
-      }
+
+    if(v->ov_plugin->alloc_frame)
+      v->video_frame_out = v->ov_plugin->alloc_frame(v->ov_handle->priv);
     else
-      {
-      if(v->ov_plugin->alloc_frame)
-        v->video_frame_out = v->ov_plugin->alloc_frame(v->ov_handle->priv);
-      else
-        v->video_frame_out = gavl_video_frame_create(&v->video_format_out);
-      }
+      v->video_frame_out = gavl_video_frame_create(&v->video_format_out);
+    
+    if(v->do_convert_video)
+      v->video_frame_in = gavl_video_frame_create(&v->video_format_in_real);
     }
   else
     gavl_video_format_copy(&v->video_format_out, &v->video_format_in);
@@ -480,13 +622,31 @@ void bg_visualizer_open(bg_visualizer_t * v,
                                  v->vis_handle->info->long_name);
   
   v->ov_plugin->show_window(v->ov_handle->priv, 1);
-  v->do_stop = 0;
-  v->last_frame_time = 0; 
-  gavl_timer_set(v->timer, 0);
-  gavl_timer_start(v->timer);
+
+  v->is_open = 1;
   
-  pthread_create(&(v->video_thread), (pthread_attr_t*)0, video_thread_func, v);
-  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Started thread");
+  }
+
+void bg_visualizer_open(bg_visualizer_t * v,
+                        const gavl_audio_format_t * format,
+                        bg_plugin_handle_t * ov_handle)
+  {
+  /* Set audio format */
+  
+  gavl_audio_format_copy(&v->audio_format_in, format);
+  
+  /* Set ov plugin */
+  v->ov_handle = ov_handle;
+  v->ov_plugin = (bg_ov_plugin_t*)(ov_handle->plugin);
+  
+  init_plugin(v);
+  
+  audio_buffer_init(v->audio_buffer, &v->audio_format_in, &v->audio_format_out);
+
+  v->changed = 0;
+  
+  bg_visualizer_start(v);
+  
   }
 
 void bg_visualizer_update(bg_visualizer_t * v, gavl_audio_frame_t * frame)
@@ -497,28 +657,17 @@ void bg_visualizer_update(bg_visualizer_t * v, gavl_audio_frame_t * frame)
 
 void bg_visualizer_close(bg_visualizer_t * v)
   {
-  /* Join threads */
-  
-  pthread_mutex_lock(&v->stop_mutex);
-  v->do_stop = 1;
-  pthread_mutex_unlock(&v->stop_mutex);
-
-  pthread_join(v->video_thread, (void**)0);
-  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Joined thread");
-  
-  /* Close plugins */
-  
-  if(v->vis_handle->info->flags & BG_PLUGIN_VISUALIZE_FRAME)
-    {
-    /* Close OV Plugin */
-    v->ov_plugin->close(v->ov_handle->priv);
-    }
-
-  v->vis_plugin->close(v->vis_handle->priv);
-  gavl_timer_stop(v->timer);
+  fprintf(stderr, "Close visualizer\n");
+  bg_visualizer_stop(v);
+  cleanup_plugin(v);
   }
 
 int bg_visualizer_is_enabled(bg_visualizer_t * v)
   {
   return v->enable;
+  }
+
+int bg_visualizer_need_restart(bg_visualizer_t * v)
+  {
+  return v->changed;
   }

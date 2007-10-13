@@ -37,7 +37,6 @@
 #define BG_PLAYER_STATE_FINISHING 6 //!< Finishing playback
 #define BG_PLAYER_STATE_STARTING  7 //!< Starting playback
 #define BG_PLAYER_STATE_ERROR     8 //!< Error
-#define BG_PLAYER_STATE_STILL     9 //!< Displaying a still image
 
 /**
  *  @}

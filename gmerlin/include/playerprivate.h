@@ -129,7 +129,6 @@ typedef struct
 typedef struct
   {
   int playing;
-  int has_video;
   gavl_time_t time;
   } bg_player_saved_state_t;
 
@@ -137,35 +136,31 @@ typedef struct
 
 #define PLAYER_DO_AUDIO            (1<<0)
 #define PLAYER_DO_VIDEO            (1<<1)
-#define PLAYER_DO_STILL            (1<<2)
-#define PLAYER_DO_SUBTITLE_OVERLAY (1<<3)
-#define PLAYER_DO_SUBTITLE_TEXT    (1<<4)
-#define PLAYER_DO_SUBTITLE_ONLY    (1<<5)
-#define PLAYER_DO_VISUALIZE        (1<<6)
+#define PLAYER_DO_SUBTITLE_OVERLAY (1<<2)
+#define PLAYER_DO_SUBTITLE_TEXT    (1<<3)
+#define PLAYER_DO_SUBTITLE_ONLY    (1<<4)
+#define PLAYER_DO_VISUALIZE        (1<<5)
 
-#define DO_SUBTITLE_TEXT(p) \
- (p->flags & PLAYER_DO_SUBTITLE_TEXT)
+#define DO_SUBTITLE_TEXT(f) \
+ (f & PLAYER_DO_SUBTITLE_TEXT)
 
-#define DO_SUBTITLE_OVERLAY(p) \
- (p->flags & PLAYER_DO_SUBTITLE_OVERLAY)
+#define DO_SUBTITLE_OVERLAY(f) \
+ (f & PLAYER_DO_SUBTITLE_OVERLAY)
 
-#define DO_SUBTITLE(p) \
- (p->flags & (PLAYER_DO_SUBTITLE_OVERLAY|PLAYER_DO_SUBTITLE_TEXT))
+#define DO_SUBTITLE(f) \
+ (f & (PLAYER_DO_SUBTITLE_OVERLAY|PLAYER_DO_SUBTITLE_TEXT))
 
-#define DO_SUBTITLE_ONLY(p) \
-  (DO_SUBTITLE(p) && !(p->flags & PLAYER_DO_VIDEO))
+#define DO_SUBTITLE_ONLY(f) \
+  (DO_SUBTITLE(f) && !(f & PLAYER_DO_VIDEO))
 
-#define DO_STILL(p) \
-  (p->flags & PLAYER_DO_STILL)
+#define DO_AUDIO(f) \
+  (f & PLAYER_DO_AUDIO)
 
-#define DO_AUDIO(p) \
-  (p->flags & PLAYER_DO_AUDIO)
+#define DO_VIDEO(f) \
+  (f & PLAYER_DO_VIDEO)
 
-#define DO_VIDEO(p) \
-  (p->flags & PLAYER_DO_VIDEO)
-
-#define DO_VISUALIZE(p) \
- (p->flags & PLAYER_DO_VISUALIZE)
+#define DO_VISUALIZE(f) \
+ (f & PLAYER_DO_VISUALIZE)
 
 
 /* The player */
@@ -203,8 +198,14 @@ struct bg_player_s
   /*
    *  Stream selection
    */
-
+  
+  /*
+   * Flags are set by bg_player_input_select_streams() and
+   * bg_player_input_start()
+   */
+  
   int flags;
+  int old_flags; /* Flags from previous playback */
   
   int current_audio_stream;
   int current_video_stream;
@@ -344,7 +345,6 @@ int  bg_player_ov_has_plugin(bg_player_ov_context_t * ctx);
 
 void bg_player_ov_cleanup(bg_player_ov_context_t * ctx);
 void * bg_player_ov_thread(void *);
-void * bg_player_ov_still_thread(void *);
 
 void bg_player_ov_update_aspect(bg_player_ov_context_t * ctx,
                                 int pixel_width, int pixel_height);

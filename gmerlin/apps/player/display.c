@@ -42,9 +42,8 @@
 #define STATE_BUFFERING_4 8
 #define STATE_BUFFERING_5 9
 #define STATE_ERROR       10
-#define STATE_STILL       11
-#define STATE_MUTE        12
-#define NUM_STATES        13
+#define STATE_MUTE        11
+#define NUM_STATES        12
 
 #define DIGIT_HEIGHT      32
 #define DIGIT_WIDTH       20
@@ -154,7 +153,6 @@ static void load_pixbufs()
   state_pixbufs[STATE_BUFFERING_4] = load_pixbuf("state_buffering_4.png");
   state_pixbufs[STATE_BUFFERING_5] = load_pixbuf("state_buffering_5.png");
   state_pixbufs[STATE_ERROR]       = load_pixbuf("state_error.png");
-  state_pixbufs[STATE_STILL]       = load_pixbuf("state_still.png");
   state_pixbufs[STATE_MUTE]        = load_pixbuf("state_mute.png");
   
   repeat_pixbufs[REPEAT_MODE_NONE] = load_pixbuf("repeat_mode_none.png");
@@ -714,9 +712,6 @@ static void update_state(display_t * d)
       break;
     case BG_PLAYER_STATE_PAUSED:
       d->state_index = STATE_PAUSED;
-      break;
-    case BG_PLAYER_STATE_STILL:
-      d->state_index = STATE_STILL;
       break;
     case BG_PLAYER_STATE_ERROR:
       d->state_index = STATE_ERROR;

@@ -984,7 +984,6 @@ void bg_plugin_ref(bg_plugin_handle_t * h)
   h->refcount++;
 
   bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "bg_plugin_ref %s: %d", h->info->name, h->refcount);
-  
 
   bg_plugin_unlock(h);
   
@@ -998,9 +997,9 @@ static void unload_plugin(bg_plugin_handle_t * h)
     {
     section = bg_plugin_registry_get_section(h->plugin_reg, h->info->name);
     bg_cfg_section_get(section,
-                         h->plugin->get_parameters(h->priv),
+                       h->plugin->get_parameters(h->priv),
                        h->plugin->get_parameter,
-                         h->priv);
+                       h->priv);
     }
   switch(h->info->api)
     {
@@ -1013,21 +1012,27 @@ static void unload_plugin(bg_plugin_handle_t * h)
       break;
     }
   if(h->location) free(h->location);
+
+#if 0
+  // Some few libs (e.g. the OpenGL lib shipped with NVidia)
+  // seem to install pthread cleanup handlers, which point to library
+  // functions. dlclosing libraries causes programs to crash
+  // mysteriously when the thread lives longer than the plugin.
+  //
+  // So we leave them open and
+  // rely on dlopen() never loading the same lib twice
   if(h->dll_handle)
     dlclose(h->dll_handle);
+#endif
+  
   free(h);
   }
 
 void bg_plugin_unref_nolock(bg_plugin_handle_t * h)
   {
-  int refcount;
-
   h->refcount--;
-  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "bg_plugin_unref %s: %d", h->info->name, h->refcount);
-
-  refcount = h->refcount;
-
-  if(!refcount)
+  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "bg_plugin_unref_nolock %s: %d", h->info->name, h->refcount);
+  if(!h->refcount)
     unload_plugin(h);
   }
 

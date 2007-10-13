@@ -1,6 +1,6 @@
 /*****************************************************************
  
-  mainmenu.h
+  mainmenu.c
  
   Copyright (c) 2003-2005 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
  
@@ -277,6 +277,12 @@ static void plugin_menu_configure(plugin_menu_t * m)
   
   }
 
+static void plugin_menu_free(plugin_menu_t * s)
+  {
+  if(s->plugin_handle)
+    bg_plugin_unref(s->plugin_handle);
+  }
+     
 static void about_window_close_callback(bg_gtk_about_window_t* win, void* data)
   {
   gmerlin_t * g;
@@ -767,22 +773,8 @@ void main_menu_set_num_streams(main_menu_t * m,
                                int video_streams,
                                int subtitle_streams)
   {
-  if(!audio_streams)
-    gtk_widget_set_sensitive(m->audio_stream_item, 0);
-  else
-    gtk_widget_set_sensitive(m->audio_stream_item, 1);
   stream_menu_set_num(m->g, &m->audio_stream_menu, audio_streams);
-
-  if(!video_streams)
-    gtk_widget_set_sensitive(m->video_stream_item, 0);
-  else
-    gtk_widget_set_sensitive(m->video_stream_item, 1);
   stream_menu_set_num(m->g, &m->video_stream_menu, video_streams);
-  
-  if(!subtitle_streams)
-    gtk_widget_set_sensitive(m->subtitle_stream_item, 0);
-  else
-    gtk_widget_set_sensitive(m->subtitle_stream_item, 1);
   stream_menu_set_num(m->g, &m->subtitle_stream_menu, subtitle_streams);
   }
 
@@ -1086,6 +1078,8 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
 
 void main_menu_destroy(main_menu_t * m)
   {
+  plugin_menu_free(&m->audio_stream_menu.plugin_menu);
+  plugin_menu_free(&m->video_stream_menu.plugin_menu);
   free(m);
   }
 

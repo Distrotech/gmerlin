@@ -51,10 +51,10 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
   s->in_data = player->input_context;
   s->in_stream = player->current_video_stream;
   
-  if(!DO_VIDEO(player) && !DO_STILL(player))
+  if(!DO_VIDEO(player->flags))
     return 1;
-
-  if(!DO_SUBTITLE_ONLY(player))
+  
+  if(!DO_SUBTITLE_ONLY(player->flags))
     {
     bg_player_input_get_video_format(player->input_context);
     
@@ -71,21 +71,24 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
   if(!bg_player_ov_init(player->ov_context))
     return 0;
 
-  if(!DO_SUBTITLE_ONLY(player))
+  if(!DO_SUBTITLE_ONLY(player->flags))
     bg_video_filter_chain_set_out_format(s->fc, &(s->output_format));
   
   /* Initialize video fifo */
 
-  if(DO_VIDEO(player))
-    s->fifo = bg_fifo_create(NUM_VIDEO_FRAMES,
-                             bg_player_ov_create_frame,
-                             (void*)(player->ov_context));
-  else if(DO_STILL(player))
-    s->fifo = bg_fifo_create(1,
-                             bg_player_ov_create_frame,
-                             (void*)(player->ov_context));
+  if(DO_VIDEO(player->flags))
+    {
+    if(s->input_format.framerate_mode == GAVL_FRAMERATE_STILL)
+      s->fifo = bg_fifo_create(2,
+                               bg_player_ov_create_frame,
+                               (void*)(player->ov_context));
+    else 
+      s->fifo = bg_fifo_create(NUM_VIDEO_FRAMES,
+                               bg_player_ov_create_frame,
+                               (void*)(player->ov_context));
+    }
   
-  if(DO_SUBTITLE_ONLY(player))
+  if(DO_SUBTITLE_ONLY(player->flags))
     {
     /* Video output already initialized */
     bg_player_ov_set_subtitle_format(player->ov_context,

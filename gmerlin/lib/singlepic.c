@@ -113,6 +113,7 @@ typedef struct
   gavl_time_t display_time;
   
   char * template;
+  
   int64_t frame_start;
   int64_t frame_end;
   int64_t current_frame;
@@ -163,30 +164,32 @@ static void set_parameter_input(void * priv, const char * name,
   }
 
 
-static int open_input(void * priv, const char * arg)
+static int open_input(void * priv, const char * filename)
   {
+  const bg_plugin_info_t * info;
   struct stat stat_buf;
   char * tmp_string;
-  const char * filename;
   const char * pos;
   const char * pos_start;
   const char * pos_end;
   
   input_t * inp = (input_t *)priv;
-
-  filename = arg;
-
+  
   /* Check if the first file exists */
   
   if(stat(filename, &stat_buf))
     return 0;
-    
   
-  /* First of all, check if there is a plugin for this format */
-  
-  if(!bg_plugin_find_by_filename(inp->plugin_reg, filename,
-                                 BG_PLUGIN_IMAGE_READER))
+  /* Load plugin */
+
+  info = bg_plugin_find_by_filename(inp->plugin_reg,
+                                    filename,
+                                    BG_PLUGIN_IMAGE_READER);
+  if(!info)
     return 0;
+  
+  inp->handle = bg_plugin_load(inp->plugin_reg, info);
+  inp->image_reader = (bg_image_reader_plugin_t*)inp->handle->plugin;
   
   /* Create template */
   
@@ -254,31 +257,33 @@ static int open_input(void * priv, const char * arg)
   
   /* Get track name */
 
-  bg_set_track_name_default(&(inp->track_info), arg);
+  bg_set_track_name_default(&(inp->track_info), filename);
   
   inp->track_info.seekable = 1;
   return 1;
   }
 
-static int open_stills_input(void * priv, const char * arg)
+static int open_stills_input(void * priv, const char * filename)
   {
+  const bg_plugin_info_t * info;
   struct stat stat_buf;
-  const char * filename;
-  
   input_t * inp = (input_t *)priv;
-
-  filename = arg;
-
+  
   /* Check if the first file exists */
   
   if(stat(filename, &stat_buf))
     return 0;
   
   /* First of all, check if there is a plugin for this format */
-  
-  if(!bg_plugin_find_by_filename(inp->plugin_reg, filename,
-                                 BG_PLUGIN_IMAGE_READER))
+
+  info = bg_plugin_find_by_filename(inp->plugin_reg,
+                                    filename,
+                                    BG_PLUGIN_IMAGE_READER);
+  if(!info)
     return 0;
+  
+  inp->handle = bg_plugin_load(inp->plugin_reg, info);
+  inp->image_reader = (bg_image_reader_plugin_t*)inp->handle->plugin;
   
   /* Create stream */
     
@@ -292,7 +297,7 @@ static int open_stills_input(void * priv, const char * arg)
   
   /* Get track name */
 
-  bg_set_track_name_default(&(inp->track_info), arg);
+  bg_set_track_name_default(&(inp->track_info), filename);
 
   inp->filename_buffer = bg_strdup(inp->filename_buffer, filename);
   return 1;
@@ -315,8 +320,6 @@ static int set_video_stream_input(void * priv, int stream,
 
 static int start_input(void * priv)
   {
-  const bg_plugin_info_t * info;
-  
   input_t * inp = (input_t *)priv;
 
   if(inp->action != BG_STREAM_ACTION_DECODE)
@@ -326,21 +329,15 @@ static int start_input(void * priv)
   
   if(inp->do_still)
     {
-    inp->track_info.video_streams[0].description = bg_strdup(NULL, "Image");
+    inp->track_info.video_streams[0].description =
+      bg_strdup(NULL, "Still Image");
     }
   else
     {
-    inp->track_info.video_streams[0].description = bg_strdup(NULL, "Single images");
+    inp->track_info.video_streams[0].description =
+      bg_strdup(NULL, "Single images");
     sprintf(inp->filename_buffer, inp->template, inp->current_frame);
     }
-  /* Load plugin */
-
-  info = bg_plugin_find_by_filename(inp->plugin_reg, inp->filename_buffer,
-                                    BG_PLUGIN_IMAGE_READER);
-
-  inp->handle = bg_plugin_load(inp->plugin_reg, info);
-  inp->image_reader = (bg_image_reader_plugin_t*)inp->handle->plugin;
-
   
   if(inp->do_still)
     {
@@ -358,9 +355,12 @@ static int start_input(void * priv)
                                        inp->filename_buffer,
                                        &(inp->track_info.video_streams[0].format)))
       return 0;
-    inp->track_info.video_streams[0].format.timescale = inp->timescale;
-    inp->track_info.video_streams[0].format.frame_duration = inp->frame_duration;
-    inp->track_info.video_streams[0].format.framerate_mode = GAVL_FRAMERATE_CONSTANT;
+    inp->track_info.video_streams[0].format.timescale =
+      inp->timescale;
+    inp->track_info.video_streams[0].format.frame_duration =
+      inp->frame_duration;
+    inp->track_info.video_streams[0].format.framerate_mode =
+      GAVL_FRAMERATE_CONSTANT;
     }
   inp->header_read = 1;
   return 1;
@@ -371,7 +371,7 @@ static int read_video_frame_input(void * priv, gavl_video_frame_t* f,
   {
   gavl_video_format_t format;
   input_t * inp = (input_t *)priv;
-
+  
   if(inp->do_still)
     {
     if(inp->current_frame)
@@ -379,7 +379,6 @@ static int read_video_frame_input(void * priv, gavl_video_frame_t* f,
     }
   else if(inp->current_frame == inp->frame_end)
     return 0;
-
   
   if(!inp->header_read)
     {
@@ -400,8 +399,22 @@ static int read_video_frame_input(void * priv, gavl_video_frame_t* f,
     }
   inp->header_read = 0;
   inp->current_frame++;
+  
+  return 1;
+  }
 
-
+static int set_track_input_stills(void * priv, int track)
+  {
+  input_t * inp = (input_t *)priv;
+  
+  /* Reset image reader */
+  inp->current_frame = 0;
+  if(inp->header_read)
+    {
+    inp->image_reader->read_image(inp->handle->priv,
+                                  (gavl_video_frame_t*)0);
+    inp->header_read = 0;
+    }
   return 1;
   }
 
@@ -420,13 +433,8 @@ static void seek_input(void * priv, gavl_time_t * time)
 static void stop_input(void * priv)
   {
   input_t * inp = (input_t *)priv;
-  /* Unload the plugin */
-
   if(inp->action != BG_STREAM_ACTION_DECODE)
     return;
-  bg_plugin_unref(inp->handle);
-  inp->handle = NULL;
-  inp->image_reader = NULL;
   }
 
 static void close_input(void * priv)
@@ -443,6 +451,11 @@ static void close_input(void * priv)
     inp->filename_buffer = (char*)0;
     }
   bg_track_info_free(&(inp->track_info));
+  
+  /* Unload the plugin */
+  bg_plugin_unref(inp->handle);
+  inp->handle = NULL;
+  inp->image_reader = NULL;
   }
 
 static void destroy_input(void* priv)
@@ -515,6 +528,8 @@ static bg_input_plugin_t input_plugin_stills =
     },
     open:          open_stills_input,
 
+    set_track:     set_track_input_stills,
+    
     //    get_num_tracks: bg_avdec_get_num_tracks,
 
     get_track_info: get_track_info_input,

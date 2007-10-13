@@ -80,7 +80,6 @@ state_mute.png \
 state_paused.png \
 state_playing.png \
 state_seeking.png \
-state_still.png \
 state_stopped.png \
 stop_16.png \
 tab_close.png \

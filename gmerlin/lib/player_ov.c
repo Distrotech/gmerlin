@@ -537,7 +537,7 @@ void * bg_player_ov_thread(void * data)
 
     
     /* Subtitle handling */
-    if(DO_SUBTITLE(ctx->player))
+    if(DO_SUBTITLE(ctx->player->flags))
       {
 
       /* Try to get next subtitle */
@@ -612,35 +612,6 @@ void * bg_player_ov_thread(void * data)
 
   bg_player_delete_message_queue(ctx->player,
                               ctx->msg_queue);
-  return NULL;
-  }
-
-void * bg_player_ov_still_thread(void *data)
-  {
-  bg_player_ov_context_t * ctx;
-  gavl_time_t delay_time = gavl_seconds_to_time(0.02);
-  
-  ctx = (bg_player_ov_context_t*)data;
-  
-  /* Put the image into the window once and handle only events thereafter */
-
-  ctx->still_shown = 0;
-  while(1)
-    {
-    if(!bg_player_keep_going(ctx->player, NULL, NULL))
-      {
-      break;
-      }
-    if(!ctx->still_shown)
-      {
-      bg_player_ov_update_still(ctx);
-      ctx->still_shown = 1;
-      }
-    bg_plugin_lock(ctx->plugin_handle);
-    ctx->plugin->handle_events(ctx->priv);
-    bg_plugin_unlock(ctx->plugin_handle);
-    gavl_time_delay(&delay_time);
-    }
   return NULL;
   }
 

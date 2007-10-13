@@ -61,7 +61,7 @@ int bg_player_audio_init(bg_player_t * player, int audio_stream)
   bg_player_audio_stream_t * s;
   //  int do_filter;
 
-  if(!DO_AUDIO(player))
+  if(!DO_AUDIO(player->flags))
     return 1;
   
   s = &player->audio_stream;

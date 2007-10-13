@@ -175,6 +175,29 @@ static void enable_screensaver(x11_window_t * w)
     }
   }
 
+static int check_disable_screensaver(x11_window_t * w)
+  {
+  if(w->current_window == w->normal_window)
+    {
+    if(w->normal_parent != w->root)
+      return 0;
+    else if(w->disable_screensaver_normal)
+      return 1;
+    else
+      return 0;
+    }
+  else if(w->current_window == w->fullscreen_window)
+    {
+    if(w->fullscreen_parent != w->root)
+      return 0;
+    else if(w->disable_screensaver_fullscreen)
+      return 1;
+    else
+      return 0;
+    }
+  return 1;
+  }
+
 static void ping_screensaver(x11_window_t * w)
   {
   struct timeval tm;
@@ -413,6 +436,9 @@ int x11_window_open_display(x11_window_t * w, const char * display_string)
   char * display_name;
   char * normal_id;
   char * fullscreen_id;
+#ifdef HAVE_LIBXINERAMA
+  int foo,bar;
+#endif
   
   /*
    *  Display string is in the form
@@ -478,6 +504,20 @@ int x11_window_open_display(x11_window_t * w, const char * display_string)
   w->normal_child = None;
   w->fullscreen_child = None;
   
+  init_atoms(w);
+  
+  check_screensaver(w);
+  
+  /* Get xinerama screens */
+
+#ifdef HAVE_LIBXINERAMA
+  if (XineramaQueryExtension(w->dpy,&foo,&bar) &&
+      XineramaIsActive(w->dpy))
+    {
+    w->xinerama = XineramaQueryScreens(w->dpy,&(w->nxinerama));
+    }
+#endif
+  
   return 1;
   }
 
@@ -514,7 +554,7 @@ static void get_window_coords(x11_window_t * w,
   if(width)  *width  = width_return;
   if(height) *height = height_return;
   
-  if(x || y || (parent_return != root_return))
+  if((x || y) && (parent_return != root_return))
     {
     XGetGeometry(w->dpy, parent_return, &root_return,
                  &x_return, &y_return,
@@ -522,12 +562,6 @@ static void get_window_coords(x11_window_t * w,
                  &border_width_return, &depth_return);
     if(x) *x = x_return;
     if(y) *y = y_return;
-    
-    //    XTranslateCoordinates(w->dpy, parent_return, root_return,
-    //                          x_return, y_return,
-    //                          x,
-    //                          y,
-    //                          &child_return);
     }
   }
 
@@ -591,10 +625,6 @@ int x11_window_create(x11_window_t * w, Visual * visual, int depth,
   XSetWindowAttributes attr;
   unsigned long attr_flags;
   
-#ifdef HAVE_LIBXINERAMA
-  int foo,bar;
-#endif
-  
   if(w->normal_parent != w->root)
     {
     // get_window_coords(w, w->normal_parent,
@@ -614,20 +644,7 @@ int x11_window_create(x11_window_t * w, Visual * visual, int depth,
   w->colormap = XCreateColormap(w->dpy, RootWindow(w->dpy, w->screen),
                                 visual,
                                 AllocNone);
-  init_atoms(w);
   
-  check_screensaver(w);
-  
-  /* Get xinerama screens */
-
-#ifdef HAVE_LIBXINERAMA
-  if (XineramaQueryExtension(w->dpy,&foo,&bar) &&
-      XineramaIsActive(w->dpy))
-    {
-    w->xinerama = XineramaQueryScreens(w->dpy,&(w->nxinerama));
-    }
-#endif
-
   /* Setup event mask */
 
   w->event_mask =
@@ -759,7 +776,7 @@ void x11_window_handle_event(x11_window_t * w, XEvent*evt)
         w->pointer_hidden = 1;
         }
 
-      if(w->disable_screensaver)
+      if(w->screensaver_disabled)
         ping_screensaver(w);
       w->idle_counter = 0;
       }
@@ -797,6 +814,14 @@ void x11_window_handle_event(x11_window_t * w, XEvent*evt)
           {
           w->window_width  = evt->xconfigure.width;
           w->window_height = evt->xconfigure.height;
+
+          if(w->normal_parent == w->root)
+            {
+            get_window_coords(w,
+                              w->normal_window,
+                              &w->window_x, &w->window_y,
+                              (int*)0, (int*)0);
+            }
           }
         else if(evt->xconfigure.window == w->normal_parent)
           {
@@ -944,17 +969,6 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
     
     XMapRaised(w->dpy, fullscreen_toplevel);
     
-    if(w->disable_screensaver_fullscreen)
-      {
-      w->disable_screensaver = 1;
-      disable_screensaver(w);
-      }
-    else
-      {
-      w->disable_screensaver = 0;
-      enable_screensaver(w);
-      }
-    
     XSetTransientForHint(w->dpy, fullscreen_toplevel, None);
     
     XMoveResizeWindow(w->dpy, fullscreen_toplevel, x, y, width, height);
@@ -1010,16 +1024,7 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
     
     XMapWindow(w->dpy, normal_toplevel);
     XSync(w->dpy, False);
-    if(w->disable_screensaver_normal)
-      {
-      w->disable_screensaver = 1;
-      disable_screensaver(w);
-      }
-    else
-      {
-      w->disable_screensaver = 0;
-      enable_screensaver(w);
-      }
+    
     w->window_width  = w->normal_width;
     w->window_height = w->normal_height;
 
@@ -1044,21 +1049,30 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
     x11_window_clear(w);
     XFlush(w->dpy);
     }
+
+  if(check_disable_screensaver(w))
+    disable_screensaver(w);
+  else
+    enable_screensaver(w);
   }
 
 void x11_window_destroy(x11_window_t * w)
   {
-  XDestroyWindow(w->dpy, w->normal_window);
-  XDestroyWindow(w->dpy, w->fullscreen_window);
-
-  if(w->fullscreen_cursor)
+  if(w->normal_window != None)
+    XDestroyWindow(w->dpy, w->normal_window);
+  
+  if(w->fullscreen_window != None)
+    XDestroyWindow(w->dpy, w->fullscreen_window);
+  
+  if(w->fullscreen_cursor != None)
     XFreeCursor(w->dpy, w->fullscreen_cursor);
   
-  if(w->fullscreen_cursor_pixmap)
+  if(w->fullscreen_cursor_pixmap != None)
     XFreePixmap(w->dpy, w->fullscreen_cursor_pixmap);
 
-  XFreeGC(w->dpy, w->gc);
-
+  if(w->gc != None)
+    XFreeGC(w->dpy, w->gc);
+  
 #ifdef HAVE_LIBXINERAMA
   if(w->xinerama)
     XFree(w->xinerama);
@@ -1129,29 +1143,20 @@ void x11_window_show(x11_window_t * win, int show)
   {
   if(!show)
     {
+    if(win->current_window == None)
+      return;
+    
     XWithdrawWindow(win->dpy, win->current_window,
                     DefaultScreen(win->dpy));
     win->mapped = 0;
     XSync(win->dpy, False);
-
-    if(win->disable_screensaver)
-      enable_screensaver(win);
-    
+    enable_screensaver(win);
     return;
     }
 
-
-  if(((win->current_window == win->normal_window) && win->disable_screensaver_normal) ||
-     ((win->current_window == win->fullscreen_window) && win->disable_screensaver_fullscreen))
-    {
-    win->disable_screensaver = 1;
+  if(check_disable_screensaver(win))
     disable_screensaver(win);
-    }
-  else
-    {
-    win->disable_screensaver = 0;
-    }
-
+  
   /* If the window was already mapped, raise it */
   
   if(win->mapped)
@@ -1164,9 +1169,13 @@ void x11_window_show(x11_window_t * win, int show)
 
     if((win->current_window == win->normal_window) &&
        (win->normal_parent == win->root))
+      {
       XMoveResizeWindow(win->dpy, win->normal_window,
                         win->window_x, win->window_y,
                         win->window_width, win->window_height);
+      fprintf(stderr, "Show window: %d %d\n",
+              win->window_width, win->window_height);
+      }
     else if(win->current_window == win->fullscreen_window)
       {
       if(win->fullscreen_mode & FULLSCREEN_MODE_NET_ABOVE)
@@ -1201,11 +1210,13 @@ void x11_window_clear(x11_window_t * win)
 //  XSetForeground(win->dpy, win->gc, win->black);
 //  XFillRectangle(win->dpy, win->normal_window, win->gc, 0, 0, win->window_width, 
 //                 win->window_height);  
-   XClearArea(win->dpy, win->normal_window, 0, 0,
-              win->window_width, win->window_height, True);
-   
-   XClearArea(win->dpy, win->fullscreen_window, 0, 0,
-              win->window_width, win->window_height, True);
+  if(win->normal_window != None)
+    XClearArea(win->dpy, win->normal_window, 0, 0,
+               win->window_width, win->window_height, True);
 
+  if(win->fullscreen_window != None)
+    XClearArea(win->dpy, win->fullscreen_window, 0, 0,
+               win->window_width, win->window_height, True);
+  
    //   XSync(win->dpy, False);
   }
