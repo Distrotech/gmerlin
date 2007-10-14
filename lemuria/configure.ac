@@ -26,6 +26,16 @@ GMERLIN_PLUGIN_LDFLAGS="-export-symbols "`pkg-config --variable=prefix gmerlin`"
 AC_SUBST(GMERLIN_PLUGIN_LDFLAGS)
 
 dnl
+dnl Installation prefix to increase the chances to find goom
+dnl
+
+if test "x$prefix" = xNONE; then
+  prefix="${ac_default_prefix}"
+fi
+PREFIX=$prefix
+AC_DEFINE_UNQUOTED(PREFIX, "$PREFIX", Installation prefix)
+
+dnl
 dnl X11
 dnl
 
@@ -90,10 +100,6 @@ else
   echo "Found GLX"
 fi
 
-
-have_esd=true
-AM_PATH_ESD(0.2.19, , have_esd=false)
-
 LQT_OPT_CFLAGS($host_cpu, ["--fast-math -O2"])
 
 CFLAGS="$OPT_CFLAGS $GL_CFLAGS"
@@ -107,6 +113,8 @@ if test "x$LQT_DEBUG" = "xtrue"; then
   CFLAGS="$CFLAGS -DDEBUG"
 fi
 
+have_esd=true
+AM_PATH_ESD(0.2.19, , have_esd=false)
 AM_CONDITIONAL(HAVE_ESD, test x$have_esd = xtrue)
 
 AC_CONFIG_SUBDIRS(lib/xaos)

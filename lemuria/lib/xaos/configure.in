@@ -133,7 +133,7 @@ AC_ARG_WITH(png,
 	fi
 ])
 
-AC_DEFUN(AC_PROG_CC_M,
+AC_DEFUN([AC_PROG_CC_M],
 [AC_CACHE_CHECK(whether ${CC-cc} accepts -m$1, ac_cv_prog_cc_m$1,
 [echo 'void f(){}' > conftest.c
 if test -z "`${CC-cc} -mcpu=$1 -c conftest.c 2>&1`"; then
@@ -143,7 +143,7 @@ if test -z "`${CC-cc} -mcpu=$1 -c conftest.c 2>&1`"; then
     fi
 	rm -f conftest*
 ])])
-AC_DEFUN(PROG_GCC_NO_IEEE_FP,
+AC_DEFUN([PROG_GCC_NO_IEEE_FP],
 [AC_CACHE_CHECK(whether ${CC-cc} have bugfree -mno-ieee-fp, ac_mno_ieee_fp,
 [echo 'void f(){ 
 #if __GNUC__ < 2 || (__GNUC__ == 2 && __GNUC_MINOR__ < 93) 
@@ -162,7 +162,7 @@ if test -z "`${CC-cc} -mno-ieee-fp -c conftest.c 2>&1`"; then
 	rm -f conftest*
 ])])
 
-AC_DEFUN(AC_PROG_AALIB_VER_OK,
+AC_DEFUN([AC_PROG_AALIB_VER_OK],
 [AC_CACHE_CHECK(whether aalib version >= 1.4, ac_aalib_ver_ok,
 [echo '#include <aalib.h>
 #include <aalib.h>
@@ -182,7 +182,7 @@ if test -z "`${CC-cc} -c conftest.c 2>&1`"; then
 	rm -f conftest*
 ])])
 
-AC_DEFUN(PROG_CC_SWITCH1,
+AC_DEFUN([PROG_CC_SWITCH1],
 [AC_CACHE_CHECK(whether ${CC-cc} accepts -$1, ac_$2,
 [echo 'void f(){}' > conftest.c
 if test -z "`${CC-cc} -$1 -c conftest.c 2>&1`"; then
@@ -193,7 +193,7 @@ if test -z "`${CC-cc} -$1 -c conftest.c 2>&1`"; then
     fi
 	rm -f conftest*
 ])])
-AC_DEFUN(PROG_CC_SWITCH2,
+AC_DEFUN([PROG_CC_SWITCH2],
 [AC_CACHE_CHECK(whether ${CC-cc} accepts -$1, ac_$2,
 [echo 'void f(){}' > conftest.c
 if test -z "`${CC-cc} -$1 -c conftest.c 2>&1`"; then
@@ -205,7 +205,7 @@ if test -z "`${CC-cc} -$1 -c conftest.c 2>&1`"; then
     fi
 	rm -f conftest*
 ])])
-AC_DEFUN(PROG_CC_SWITCH,
+AC_DEFUN([PROG_CC_SWITCH],
 [AC_CACHE_CHECK(whether ${CC-cc} accepts -$1, ac_$2,
 [echo 'void f(){}' > conftest.c
 if test -z "`${CC-cc} -$1 -c conftest.c 2>&1`"; then
@@ -216,7 +216,7 @@ if test -z "`${CC-cc} -$1 -c conftest.c 2>&1`"; then
     fi
 	rm -f conftest*
 ])])
-AC_DEFUN(PROG_GCC_Os,
+AC_DEFUN([PROG_GCC_Os],
 [AC_CACHE_CHECK(whether ${CC-cc} accepts -Os, ac_Os,
 [echo 'void f(){}' > conftest.c
 if test -z "`${CC-cc} -Os -c conftest.c 2>&1`"; then
@@ -438,7 +438,7 @@ if test x$pthread = xtest; then
   fi
 fi
 
-AC_DEFUN(AC_USE_SUNOS_CURSES, [
+AC_DEFUN([AC_USE_SUNOS_CURSES], [
 	search_ncurses=false
 	screen_manager="SunOS 4.x /usr/5include curses"
 	AC_MSG_RESULT(Using SunOS 4.x /usr/5include curses)
@@ -450,7 +450,7 @@ AC_DEFUN(AC_USE_SUNOS_CURSES, [
 	AC_WARN(Reconsider using Slang)
 ])
 
-AC_DEFUN(AC_AALIB, [
+AC_DEFUN([AC_AALIB], [
     if $search_aalib
     then
         if test -f $1/aalib.h
@@ -483,7 +483,7 @@ AC_DEFUN(AC_AALIB, [
     fi
 ])
 
-AC_DEFUN(AC_USE_OSF1_CURSES, [
+AC_DEFUN([AC_USE_OSF1_CURSES], [
        AC_CHECK_LIB(curses, initscr)
        if test "x$ac_cv_lib_curses_initscr" = xyes; then 
        AC_MSG_RESULT(Using OSF1 curses)
@@ -494,7 +494,7 @@ AC_DEFUN(AC_USE_OSF1_CURSES, [
        fi
 ])
 
-AC_DEFUN(AC_USE_SYSV_CURSES, [
+AC_DEFUN([AC_USE_SYSV_CURSES], [
         AC_CHECK_LIB(curses, initscr)
         if test "x$ac_cv_lib_curses_initscr" = xyes; then 
 	AC_MSG_RESULT(Using SysV curses)
@@ -546,7 +546,7 @@ AC_ARG_WITH(ncurses,
 dnl
 dnl Parameters: directory filename LIBS_append CFLAGS2_append nicename
 dnl
-AC_DEFUN(AC_NCURSES, [
+AC_DEFUN([AC_NCURSES], [
     if $search_ncurses
     then
         if test -f $1/$2
@@ -572,7 +572,7 @@ AC_DEFUN(AC_NCURSES, [
 dnl
 dnl Parameters: directory filename LIBS_append CFLAGS2_append nicename
 dnl
-AC_DEFUN(AC_CURSES, [
+AC_DEFUN([AC_CURSES], [
     if $search_ncurses
     then
         if test -f $1/$2

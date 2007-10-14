@@ -30,24 +30,20 @@
 #define GOOM_WIDTH  256
 #define GOOM_HEIGHT 256
 
-static char * goom_dll = PLUGIN_DIR"/libgoom.so";
-
 static char * goom2_dlls[] =
   {
+    /* Look here in the hope, that gmerlin_goom was
+       installed under the same prefix */
+    PREFIX"/lib/libgoom2.so.0",
+    /* Let ld.so try to find it */
+    "libgoom2.so.0",
+    /* Hopefully it won't be there */
     "/usr/lib/xmms-goom/libgoom2.so",
-    "libgoom2.so",
     (char*)0
   };
 
 typedef struct
   {
-  /* Goom1 */
-  
-  void (*goom1_init)(uint32_t resx, uint32_t resy, int cinemascope);
-  char * (*goom1_update)(int16_t data[2][512], int forceMode, float fps,
-                   char *songTitle, char * message);
-  void (*goom1_close)();
-
   /* Goom2 */
 
   void * goom2_instance;
@@ -62,8 +58,6 @@ typedef struct
   void * module;
   uint32_t texture;
   int refcount;
-
-  int goom2;
   } goom_t;
 
 void lemuria_goom_create(lemuria_engine_t * e)
@@ -80,7 +74,6 @@ void lemuria_goom_create(lemuria_engine_t * e)
        (goom->goom2_update = dlsym(goom->module, "goom_update")) &&
        (goom->goom2_close = dlsym(goom->module, "goom_close")))
       {
-      goom->goom2 = 1;
       goom->goom2_instance = goom->goom2_init(GOOM_WIDTH, GOOM_HEIGHT);
       e->goom = goom;
       fprintf(stderr, "Found goom-2k4 (DLL: %s)\n", goom2_dlls[i]);
@@ -88,20 +81,7 @@ void lemuria_goom_create(lemuria_engine_t * e)
       }
     i++;
     }
-  
-  if(!(goom->module = dlopen(goom_dll, RTLD_NOW)) ||
-     !(goom->goom1_init = dlsym(goom->module, "goom_init")) ||
-     !(goom->goom1_update = dlsym(goom->module, "goom_update")) ||
-     !(goom->goom1_close = dlsym(goom->module, "goom_close")))
-    {
-    fprintf(stderr,"No Goom found :-(\n"); 
-    free(goom);
-    return;
-    }
-  fprintf(stderr, "Found goom-1.9x\n");
-  e->goom = goom;
   return;
-  
   }
 
 void lemuria_goom_update(lemuria_engine_t * e)
@@ -116,17 +96,9 @@ void lemuria_goom_update(lemuria_engine_t * e)
   glEnable(GL_TEXTURE_2D);
   glBindTexture(GL_TEXTURE_2D, goom->texture);
 
-  if(goom->goom2)
-    {
-    goom_image = goom->goom2_update(goom->goom2_instance, e->time_buffer_read, 0, -1,
+  goom_image = goom->goom2_update(goom->goom2_instance, e->time_buffer_read, 0, -1,
                               (char*)0, (char*)0);
-    }
-  else
-    {
-    goom_image = goom->goom1_update(e->time_buffer_read, 0, -1,
-                                    (char*)0, (char*)0);
-    }
-
+  
   for(i = 0; i < GOOM_WIDTH*GOOM_HEIGHT; i++)
     goom_image[4*i+3] = 0xff;
     
@@ -145,14 +117,7 @@ void lemuria_goom_destroy(lemuria_engine_t * e)
   
   //  glDeleteTextures(1, &(goom->texture));
 
-  if(goom->goom2)
-    {
-    goom->goom2_close(goom->goom2_instance);
-    }
-  else
-    {
-    goom->goom1_close();
-    }
+  goom->goom2_close(goom->goom2_instance);
   dlclose(goom->module);
   free(e->goom);
   e->goom = (void*)0;

@@ -54,6 +54,9 @@
 /* "Where to find goom" */
 #undef PLUGIN_DIR
 
+/* Installation prefix */
+#undef PREFIX
+
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 

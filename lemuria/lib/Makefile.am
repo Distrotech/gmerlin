@@ -1,6 +1,7 @@
 SUBDIRS = images meshes gradients xaos
 
 AM_CFLAGS = @GAVL_CFLAGS@
+AM_LDFLAGS = -export-symbols $(top_srcdir)/lemuria.sym
 
 xaos_libadd = xaos/src/filter/libfilter.la \
 xaos/src/engine/libengine.la \

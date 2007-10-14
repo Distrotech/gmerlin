@@ -92,7 +92,7 @@ static void esd_iteration(int fd, gavl_audio_frame_t * frame)
 
 int opt_monitor = 1;
 
-void parse_args(int argc, char ** argv)
+static void parse_args(int argc, char ** argv)
   {
   int i;
   for(i = 1; i < argc; i++)

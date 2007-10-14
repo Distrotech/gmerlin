@@ -1,0 +1,8 @@
+lemuria_create
+lemuria_draw_frame
+lemuria_update_audio
+lemuria_adjust_format
+lemuria_destroy
+lemuria_check_events
+lemuria_flash_frame
+lemuria_start
