@@ -65,9 +65,6 @@ static GtkTargetList * target_list_r = (GtkTargetList *)0;
 
 /* Drag & Drop struff */
 
-#define TEXT_PLAIN_NAME "STRING"
-// #define TEXT_PLAIN_NAME "text/plain"
-
 /* 0 means unset */
 
 #define DND_GMERLIN_TRACKS   1
@@ -78,20 +75,21 @@ static GtkTargetList * target_list_r = (GtkTargetList *)0;
 static GtkTargetEntry dnd_src_entries[] = 
   {
     { bg_gtk_atom_entries_name, 0, DND_GMERLIN_TRACKS },
-    {TEXT_PLAIN_NAME,              0, DND_TEXT_PLAIN     },
+    { "STRING",          0, DND_TEXT_PLAIN     },
   };
 
 static GtkTargetEntry dnd_src_entries_r[] = 
   {
     { bg_gtk_atom_entries_name_r, 0, DND_GMERLIN_TRACKS_R },
-    {TEXT_PLAIN_NAME,             0, DND_TEXT_PLAIN     },
+    {"STRING",             0, DND_TEXT_PLAIN     },
   };
 
 static GtkTargetEntry dnd_dst_entries[] = 
   {
     {bg_gtk_atom_entries_name, 0, DND_GMERLIN_TRACKS },
     {"text/uri-list",          0, DND_TEXT_URI_LIST  },
-    {TEXT_PLAIN_NAME,             0, DND_TEXT_PLAIN     },
+    {"STRING",                 0, DND_TEXT_PLAIN  },
+    {"text/plain",             0, DND_TEXT_URI_LIST  },
   };
 
 static GtkTargetEntry dnd_dst_entries_r[] = 
@@ -102,7 +100,7 @@ static GtkTargetEntry dnd_dst_entries_r[] =
 static GtkTargetEntry copy_paste_entries[] =
   {
     { bg_gtk_atom_entries_name, 0, DND_GMERLIN_TRACKS },
-    { TEXT_PLAIN_NAME,             0, DND_TEXT_PLAIN  },
+    { "STRING",             0, DND_TEXT_PLAIN  },
   };
 
 static void load_pixmaps()
@@ -1785,7 +1783,8 @@ static int is_urilist(GtkSelectionData * data)
     return 0;
 
   if(!strcmp(target_name, "text/uri-list") ||
-     !strcmp(target_name, TEXT_PLAIN_NAME))
+     !strcmp(target_name, "STRING") ||
+     !strcmp(target_name, "text/plain"))
     ret = 1;
   else
     ret = 0;
@@ -1996,7 +1995,7 @@ static void drag_get_callback(GtkWidget *widget,
     w->drag_delete = 1; 
     return;
     }
-  target_atom = gdk_atom_intern(TEXT_PLAIN_NAME, FALSE);
+  target_atom = gdk_atom_intern("STRING", FALSE);
   if(target_atom == data->target)
     {
     str = bg_album_selected_to_string(w->album);

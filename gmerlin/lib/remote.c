@@ -229,7 +229,7 @@ bg_msg_t * bg_remote_server_get_msg(bg_remote_server_t * s)
     if(select (conn->fd+1, &rset, NULL, NULL, &timeout) > 0)
       {
       bg_msg_free(s->msg);
-      if(bg_message_read_socket(s->msg, conn->fd, -1))
+      if(bg_msg_read_socket(s->msg, conn->fd, -1))
         return s->msg;
       else /* Select said reading won't block but reading failed
               -> Client probably disconnected */
@@ -448,7 +448,7 @@ bg_msg_t * bg_remote_client_get_msg_write(bg_remote_client_t * c)
 int bg_remote_client_done_msg_write(bg_remote_client_t * c)
   {
   /* Write message */
-  return bg_message_write_socket(c->msg, c->fd);
+  return bg_msg_write_socket(c->msg, c->fd);
   }
 
 bg_msg_t * bg_remote_client_get_msg_read(bg_remote_client_t * c)

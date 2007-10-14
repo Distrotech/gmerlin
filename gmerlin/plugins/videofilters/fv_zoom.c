@@ -132,7 +132,7 @@ static bg_parameter_info_t parameters[] =
       long_name: TRS("Background color"),
       type: BG_PARAMETER_COLOR_RGBA,
       flags: BG_PARAMETER_SYNC,
-      val_default: { val_color: (float[]){ 0.0, 0.0, 0.0, 1.0 } },
+      val_default: { val_color: { 0.0, 0.0, 0.0, 1.0 } },
     },
     { /* End of parameters */ },
   };

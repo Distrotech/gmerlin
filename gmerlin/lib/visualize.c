@@ -13,6 +13,28 @@
 
 #define LOG_DOMAIN "visualizer"
 
+/* Messages from the application to the visualizer */
+
+#define BG_VIS_MSG_AUDIO_FORMAT 0
+#define BG_VIS_MSG_AUDIO_DATA   1
+#define BG_VIS_MSG_RENDERSIZE   2
+#define BG_VIS_MSG_FPS          3
+#define BG_VIS_MSG_STOP         4
+#define BG_VIS_MSG_SETPARAM     5
+
+/* Messages from the visualizer to the application */
+
+#define BG_VIS_MSG_LOG          0
+
+/*
+ * gmerlin_visualize_slave
+ *   -w "window_id"
+ *   -a "application"
+ *   -p "plugin_module"
+ *   -o "output_module"
+ */
+
+
 typedef struct
   {
   gavl_audio_converter_t * cnv;
@@ -65,7 +87,10 @@ static void audio_buffer_cleanup(audio_buffer_t * b)
     gavl_audio_frame_destroy(b->out_frame);
     b->out_frame = (gavl_audio_frame_t*)0;
     }
+  b->last_samples_read = 0;
+  b->frame_done = 0;
   }
+
 
 static void audio_buffer_destroy(audio_buffer_t * b)
   {
@@ -84,9 +109,20 @@ static void audio_buffer_init(audio_buffer_t * b,
   gavl_audio_format_t frame_format;
   /* Cleanup */
   audio_buffer_cleanup(b);
-
+#if 0
+  fprintf(stderr, "audio_buffer_init\n");
+  fprintf(stderr, "in_format:\n");
+  gavl_audio_format_dump(in_format);
+  fprintf(stderr, "out_format:\n");
+  gavl_audio_format_dump(out_format);
+#endif
   gavl_audio_format_copy(&b->in_format, in_format);
   gavl_audio_format_copy(&b->out_format, out_format);
+
+  /* For visualizations, we ignore the samplerate completely.
+     Perfect synchronization is mathematically impossible anyway. */
+  
+  b->out_format.samplerate = b->in_format.samplerate;
   
   b->do_convert = gavl_audio_converter_init(b->cnv,
                                             &b->in_format,
@@ -107,6 +143,7 @@ static void audio_buffer_init(audio_buffer_t * b,
 static void audio_buffer_put(audio_buffer_t * b,
                              const gavl_audio_frame_t * f)
   {
+  //  fprintf(stderr, "audio buffer_put...");
   pthread_mutex_lock(&b->in_mutex);
   b->in_frame_1->valid_samples =
     gavl_audio_frame_copy(&b->in_format,
@@ -117,6 +154,7 @@ static void audio_buffer_put(audio_buffer_t * b,
                           b->in_format.samples_per_frame, /* dst_size */
                           f->valid_samples /* src_size */ ); 
   pthread_mutex_unlock(&b->in_mutex);
+  //  fprintf(stderr, "audio buffer_put done\n");
   }
 
 static void audio_buffer_set_gain(audio_buffer_t * b, float gain)
@@ -522,12 +560,16 @@ void bg_visualizer_set_audio_format(bg_visualizer_t * v,
                                     const gavl_audio_format_t * format)
   {
   int was_running;
+  //  fprintf(stderr, "bg_visualizer_set_audio_format...");
   was_running = bg_visualizer_stop(v);
   pthread_mutex_lock(&v->audio_buffer->in_mutex);
+  
+  gavl_audio_format_copy(&v->audio_format_in, format);
   audio_buffer_init(v->audio_buffer, &v->audio_format_in, &v->audio_format_out);
   pthread_mutex_unlock(&v->audio_buffer->in_mutex);
   if(was_running)
     bg_visualizer_start(v);
+  //  fprintf(stderr, "bg_visualizer_set_audio_format done\n");
   }
 
 static void cleanup_plugin(bg_visualizer_t * v)
@@ -649,7 +691,7 @@ void bg_visualizer_open(bg_visualizer_t * v,
   
   }
 
-void bg_visualizer_update(bg_visualizer_t * v, gavl_audio_frame_t * frame)
+void bg_visualizer_update(bg_visualizer_t * v, const gavl_audio_frame_t * frame)
   {
   audio_buffer_put(v->audio_buffer, frame);
   }

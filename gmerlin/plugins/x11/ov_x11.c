@@ -1061,7 +1061,6 @@ static void set_window_title_x11(void * data,
 static void create_window(x11_t * priv)
   {
   /* Create windows */
-  fprintf(stderr, "x11_window_create\n");
   x11_window_create(&(priv->win), DefaultVisual(priv->dpy, priv->win.screen),
                     DefaultDepth(priv->dpy, priv->win.screen),
                     priv->win.window_width, priv->win.window_height,
@@ -2242,13 +2241,11 @@ set_parameter_x11(void * priv, const char * name,
     }
   else if(!strcmp(name, "window_width"))
     {
-    fprintf(stderr, "Got window_width: %d\n", val->val_i);
     if(p->win.normal_parent == p->win.root)
       p->win.window_width = val->val_i;
     }
   else if(!strcmp(name, "window_height"))
     {
-    fprintf(stderr, "Got window_height: %d\n", val->val_i);
     if(p->win.normal_parent == p->win.root)
       p->win.window_height = val->val_i;
     }
@@ -2354,7 +2351,6 @@ get_parameter_x11(void * priv, const char * name,
   else if(!strcmp(name, "zoom"))
     {
     val->val_f = p->zoom;
-    fprintf(stderr, "Get zoom %f\n", p->zoom);
     return 1;
     }
   else if(!strcmp(name, "squeeze"))

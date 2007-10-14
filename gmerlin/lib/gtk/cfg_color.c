@@ -318,7 +318,6 @@ void bg_gtk_create_color_rgb(bg_gtk_widget_t * w,
 
   w->funcs = &funcs;
   
-  w->value.val_color = calloc(4, sizeof(float));
   w->value.val_color[0] = 0.0;
   w->value.val_color[1] = 0.0;
   w->value.val_color[2] = 0.0;

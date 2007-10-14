@@ -709,13 +709,13 @@ static bg_parameter_info_t subtitle_text_parameters[] =
       name:        "fg_color",
       long_name:   TRS("Text color"),
       type:        BG_PARAMETER_COLOR_RGBA,
-      val_default: { val_color: (float[]){ 1.0, 1.0, 1.0, 1.0 }},
+      val_default: { val_color: { 1.0, 1.0, 1.0, 1.0 }},
     },
     {
       name:        "bg_color",
       long_name:   TRS("Background color"),
       type:        BG_PARAMETER_COLOR_RGBA,
-      val_default: { val_color: (float[]){ 0.0, 0.0, 0.0, 1.0 }},
+      val_default: { val_color: { 0.0, 0.0, 0.0, 1.0 }},
     },
     { /* End of parameters */ },
   };

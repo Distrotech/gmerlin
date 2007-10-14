@@ -50,6 +50,9 @@
 
 typedef struct bg_msg_s bg_msg_t;
 
+typedef int (*bg_msg_read_callback_t)(void * priv, uint8_t * data, int len);
+typedef int (*bg_msg_write_callback_t)(void * priv, uint8_t * data, int len);
+
 /** \brief Create a message
  *  \returns A newly allocated message
  */
@@ -145,7 +148,7 @@ char * bg_msg_get_arg_string(bg_msg_t * msg, int arg);
  *  \param arg Argument index (starting with 0)
  *  \param value Value
  */
-void bg_msg_set_arg_float(bg_msg_t * msg, int arg, float value);
+void bg_msg_set_arg_float(bg_msg_t * msg, int arg, double value);
 
 /** \brief Get a float argument
  *  \param msg A message
@@ -153,7 +156,37 @@ void bg_msg_set_arg_float(bg_msg_t * msg, int arg, float value);
  *  \returns Value
  */
 
-float  bg_msg_get_arg_float(bg_msg_t * msg, int arg);
+double  bg_msg_get_arg_float(bg_msg_t * msg, int arg);
+
+/** \brief Set an RGB color argument
+ *  \param msg A message
+ *  \param arg Argument index (starting with 0)
+ *  \param value Value
+ */
+void bg_msg_set_arg_color_rgb(bg_msg_t * msg, int arg, float * value);
+
+/** \brief Get an RGB color argument
+ *  \param msg A message
+ *  \param arg Argument index (starting with 0)
+ *  \param value Value
+ */
+void bg_msg_get_arg_color_rgb(bg_msg_t * msg, int arg, float * value);
+
+
+/** \brief Set an RGBA color argument
+ *  \param msg A message
+ *  \param arg Argument index (starting with 0)
+ *  \param value Value
+ */
+void bg_msg_set_arg_color_rgba(bg_msg_t * msg, int arg, float * value);
+
+/** \brief Get an RGBA color argument
+ *  \param msg A message
+ *  \param arg Argument index (starting with 0)
+ *  \param value Value
+ */
+void bg_msg_get_arg_color_rgba(bg_msg_t * msg, int arg, float * value);
+
 
 
 /** \brief Set a binary data argument
@@ -255,11 +288,29 @@ void bg_msg_set_arg_metadata(bg_msg_t * msg, int arg,
 void bg_msg_get_arg_metadata(bg_msg_t * msg, int arg,
                              bg_metadata_t * m);
 
-
 /*
  *  This on will be used for remote controls,
  *  return FALSE on error
  */
+
+/** \brief Read a message using a callback
+ *  \param ret Where the message will be copied
+ *  \param cb read callback
+ *  \param private data to pass to the callback
+ *  \returns 1 on success, 0 on error
+ */
+
+int bg_msg_read(bg_msg_t * ret, bg_msg_read_callback_t cb, void * cb_data);
+
+/** \brief Write a message using a callback
+ *  \param msg A message
+ *  \param cb write callback
+ *  \param private data to pass to the callback
+ *  \returns 1 on success, 0 on error
+ */
+
+int bg_msg_write(bg_msg_t * msg, bg_msg_write_callback_t cb, void * cb_data);
+
 
 /** \brief Read a message from a socket
  *  \param ret Where the message will be copied
@@ -268,7 +319,7 @@ void bg_msg_get_arg_metadata(bg_msg_t * msg, int arg,
  *  \returns 1 on success, 0 on error
  */
 
-int bg_message_read_socket(bg_msg_t * ret,  int fd, int milliseconds);
+int bg_msg_read_socket(bg_msg_t * ret,  int fd, int milliseconds);
 
 /** \brief Write a message to a socket
  *  \param msg Message
@@ -276,7 +327,73 @@ int bg_message_read_socket(bg_msg_t * ret,  int fd, int milliseconds);
  *  \returns 1 on success, 0 on error
  */
 
-int bg_message_write_socket(bg_msg_t * msg, int fd);
+int bg_msg_write_socket(bg_msg_t * msg, int fd);
+
+/*
+ *  Read/Write audio frame over sockets
+ */
+
+/** \brief Write an audio frame
+ *  \param msg Message to use for communication
+ *  \param format An audio format
+ *  \param frame An audio frame
+ *  \param cb Callback
+ *  \param cb_data Data to pass to callback
+ *  \returns 1 on success, 0 on error
+ *
+ *  Note, that the format must be transferred separately
+ */
+
+int bg_msg_write_audio_frame(bg_msg_t * msg,
+                             const gavl_audio_format_t * format,
+                             const gavl_audio_frame_t * frame,
+                             bg_msg_write_callback_t cb, void * cb_data);
+
+/** \brief Read an audio frame
+ *  \param msg Message containing the frame header
+ *  \param format Audio format
+ *  \param frame An audio frame
+ *  \param cb Callback
+ *  \param cb_data Data to pass to callback
+ *  \returns 1 on success, 0 on error
+ *
+ *  Before you can use this function, msg must contain
+ *  a valid audio frame header
+ */
+
+int bg_msg_read_audio_frame(bg_msg_t * msg,
+                            const gavl_audio_format_t * format,
+                            gavl_audio_frame_t * frame,
+                            bg_msg_read_callback_t cb,
+                            void * cb_data);
+
+/** \brief Set a parameter
+ *  \param msg A message
+ *  \param type Type of the parameter
+ *  \param name Name of the parameter
+ *  \param val Value for the parameter
+ */
+
+void bg_msg_set_parameter(bg_msg_t * msg,
+                          const char * name,
+                          bg_parameter_type_t type,
+                          bg_parameter_value_t * val);
+  
+
+/** \brief Get a parameter
+ *  \param msg A message
+ *  \param type Type of the parameter
+ *  \param name Name of the parameter
+ *  \param val Value for the parameter
+ *
+ *  Name and val must be freef if no longer used
+ */
+
+void bg_msg_get_parameter(bg_msg_t * msg,
+                          char ** name,
+                          bg_parameter_type_t * type,
+                          bg_parameter_value_t * val);
+
 
 /** @} */
 

@@ -30,8 +30,14 @@ dnl General features
 dnl
 
 AC_CHECK_SIZEOF(long)
+
+AC_CHECK_SIZEOF(float)
+AC_CHECK_SIZEOF(double)
+
 AC_C_BIGENDIAN
 AC_CHECK_FUNCS(vasprintf)
+AC_C99_FUNC_LRINT
+AC_C99_FUNC_LRINTF
 
 AC_CHECK_DECLS([MSG_NOSIGNAL, SO_NOSIGPIPE],,,
                [#include <sys/types.h>
@@ -615,6 +621,22 @@ fi
 
 AM_CONDITIONAL(HAVE_TRANSCODER, test x$have_transcoder = xtrue)
 
+dnl Visualizer
+
+AC_ARG_ENABLE(visualizer,
+              AC_HELP_STRING(--disable-visualizer, [Disable visualizer (default: enabled)]),
+              [case "${enableval}" in
+                 yes) have_visualizer=true ;;
+                 no) have_visualizer=false ;;
+               esac],
+	       have_visualizer=true)
+
+if test "x$have_gtk" = "xfalse"; then
+have_visualizer=false
+fi
+
+AM_CONDITIONAL(HAVE_VISUALIZER, test x$have_visualizer = xtrue)
+
 dnl
 dnl CFLAGS
 dnl
@@ -685,6 +707,8 @@ apps/camelot/Makefile \
 apps/camelot/gmerlin-camelot.desktop \
 apps/transcoder/Makefile \
 apps/transcoder/gmerlin-transcoder.desktop \
+apps/visualizer/Makefile \
+apps/visualizer/gmerlin-visualizer.desktop \
 apps/kbd/Makefile \
 apps/kbd/gmerlin-kbd.desktop \
 doc/Makefile \
@@ -926,6 +950,13 @@ fi
 
 echo -n "Transcoder:          "
 if test "x$have_transcoder" = "xtrue"; then
+echo "Enabled"
+else
+echo "Disabled"
+fi
+
+echo -n "Visualizer:          "
+if test "x$have_visualizer" = "xtrue"; then
 echo "Enabled"
 else
 echo "Disabled"

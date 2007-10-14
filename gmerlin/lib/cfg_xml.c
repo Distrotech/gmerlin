@@ -96,7 +96,7 @@ static void load_item(xmlDocPtr xml_doc, xmlNodePtr xml_item,
       sscanf(tmp_string, "%" PRId64, &(item->value.val_time));
       break;
     case BG_CFG_FLOAT:
-      sscanf(tmp_string, "%f", &(item->value.val_f));
+      sscanf(tmp_string, "%lf", &(item->value.val_f));
       break;
     case BG_CFG_STRING:
       item->value.val_str = bg_strdup(item->value.val_str,

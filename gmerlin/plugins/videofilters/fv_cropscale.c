@@ -271,7 +271,7 @@ static bg_parameter_info_t parameters[] =
       opt:       "bc",
       type:      BG_PARAMETER_COLOR_RGB,
       flags:     BG_PARAMETER_SYNC,
-      val_default: { val_color: (float[]){ 0.0, 0.0, 0.0 } },
+      val_default: { val_color: { 0.0, 0.0, 0.0 } },
       help_string: TRS("Color of the image borders.")
     },
     {

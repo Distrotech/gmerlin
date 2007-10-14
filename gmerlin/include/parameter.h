@@ -77,10 +77,10 @@ typedef enum
 
 typedef union
   {
-  float   val_f; //!< For BG_PARAMETER_FLOAT and BG_PARAMETER_SLIDER_FLOAT
+  double  val_f; //!< For BG_PARAMETER_FLOAT and BG_PARAMETER_SLIDER_FLOAT
   int     val_i; //!< For BG_PARAMETER_CHECKBUTTON, BG_PARAMETER_INT and BG_PARAMETER_SLIDER_INT
   char *  val_str; //!< For BG_PARAMETER_STRING, BG_PARAMETER_STRING_HIDDEN, BG_PARAMETER_STRINGLIST, BG_PARAMETER_FONT, BG_PARAMETER_FILE, BG_PARAMETER_DIRECTORY, BG_PARAMETER_MULTI_MENU, BG_PARAMETER_MULTI_LIST
-  float * val_color;  //!< RGBA values (0.0..1.0) for BG_PARAMETER_COLOR_RGB and BG_PARAMETER_COLOR_RGBA 
+  float val_color[4];  //!< RGBA values (0.0..1.0) for BG_PARAMETER_COLOR_RGB and BG_PARAMETER_COLOR_RGBA 
   gavl_time_t val_time; //!< For BG_PARAMETER_TIME
   } bg_parameter_value_t;
 
@@ -228,11 +228,11 @@ void bg_parameter_value_copy(bg_parameter_value_t * dst,
 /** \ingroup parameter
  *  \brief Free a parameter value
  *  \param val A parameter value
- *  \param info Parameter description
+ *  \param type Type of the parameter
  */
 
 void bg_parameter_value_free(bg_parameter_value_t * val,
-                             const bg_parameter_info_t * info);
+                             bg_parameter_type_t type);
 
 
 /** \ingroup parameter

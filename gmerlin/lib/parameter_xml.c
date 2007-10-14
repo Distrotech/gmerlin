@@ -344,7 +344,7 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
               break;
             case BG_PARAMETER_FLOAT:
             case BG_PARAMETER_SLIDER_FLOAT:
-              sscanf(tmp_string, "%f", &(ret[index].val_default.val_f));
+              sscanf(tmp_string, "%lf", &(ret[index].val_default.val_f));
               break;
             case BG_PARAMETER_STRING:
             case BG_PARAMETER_STRINGLIST:
@@ -359,16 +359,12 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
                                                          tmp_string);
               break;
             case BG_PARAMETER_COLOR_RGB:
-              ret[index].val_default.val_color =
-                malloc(4 * sizeof(*ret[index].val_default.val_color));
               sscanf(tmp_string, "%f %f %f",
                      &(ret[index].val_default.val_color[0]),
                      &(ret[index].val_default.val_color[1]),
                      &(ret[index].val_default.val_color[2]));
               break;
             case BG_PARAMETER_COLOR_RGBA:
-              ret[index].val_default.val_color =
-                malloc(4 * sizeof(*ret[index].val_default.val_color));
               sscanf(tmp_string, "%f %f %f %f",
                      &(ret[index].val_default.val_color[0]),
                      &(ret[index].val_default.val_color[1]),
@@ -410,7 +406,7 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
               break;
             case BG_PARAMETER_FLOAT:
             case BG_PARAMETER_SLIDER_FLOAT:
-              sscanf(tmp_string, "%f %f",
+              sscanf(tmp_string, "%lf %lf",
                      &(ret[index].val_min.val_f),
                      &(ret[index].val_max.val_f));
               break;

@@ -100,45 +100,6 @@ void gmerlin_create_dialog(gmerlin_t * g)
                 (void*)(g->player),
                 parameters);
   
-#if 0  
-  parent = bg_dialog_add_parent(g->cfg_dialog, (void*)0, TR("Audio"));
-  
-  bg_dialog_add_child(g->cfg_dialog, parent,
-                      TR("General"),
-                      g->audio_section,
-                      bg_player_set_audio_parameter,
-                      (void*)(g->player),
-                      parameters);
-  parameters = bg_player_get_audio_filter_parameters(g->player);
-  
-  bg_dialog_add_child(g->cfg_dialog, parent,
-                      TR("Filters"),
-                      g->audio_filter_section,
-                      bg_player_set_audio_filter_parameter,
-                      (void*)(g->player),
-                      parameters);
-
-  parent = bg_dialog_add_parent(g->cfg_dialog, (void*)0, TR("Video"));
-  
-  parameters = bg_player_get_video_parameters(g->player);
-  
-  bg_dialog_add_child(g->cfg_dialog, parent,
-                TR("General"),
-                g->video_section,
-                bg_player_set_video_parameter,
-                (void*)(g->player),
-                parameters);
-
-  parameters = bg_player_get_video_filter_parameters(g->player);
-  
-  bg_dialog_add_child(g->cfg_dialog, parent,
-                TR("Filters"),
-                g->video_filter_section,
-                bg_player_set_video_filter_parameter,
-                (void*)(g->player),
-                parameters);
-#endif  
-
   parameters = bg_player_get_osd_parameters(g->player);
   
   bg_dialog_add(g->cfg_dialog,

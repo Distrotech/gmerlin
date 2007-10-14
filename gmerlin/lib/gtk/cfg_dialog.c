@@ -937,9 +937,9 @@ static void destroy_section(dialog_section_t * s)
       {
       s->widgets[i].funcs->destroy(&(s->widgets[i]));
       bg_parameter_value_free(&s->widgets[i].value,
-                              s->widgets[i].info);
+                              s->widgets[i].info->type);
       bg_parameter_value_free(&s->widgets[i].last_value,
-                              s->widgets[i].info);
+                              s->widgets[i].info->type);
       if(s->widgets[i].cfg_subsection_save)
         bg_cfg_section_destroy(s->widgets[i].cfg_subsection_save);
       }

@@ -247,7 +247,7 @@ static bg_parameter_info_t info_2[] =
       long_name: "Color RGB",
       type:      BG_PARAMETER_COLOR_RGB,
       flags:     PARAMETER_FLAGS,
-      val_default: { val_color: (float[]){ 0.0, 1.0, 0.0 } },
+      val_default: { val_color: { 0.0, 1.0, 0.0 } },
       help_string:   "Color RGB help",
     },
     {
@@ -255,7 +255,7 @@ static bg_parameter_info_t info_2[] =
       long_name: "Color RGBA",
       type:      BG_PARAMETER_COLOR_RGBA,
       flags:     PARAMETER_FLAGS,
-      val_default: { val_color: (float[]){ 0.0, 1.0, 0.0, 0.5 } },
+      val_default: { val_color: { 0.0, 1.0, 0.0, 0.5 } },
       help_string:   "Color RGBA help",
     },
     {

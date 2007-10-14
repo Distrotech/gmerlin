@@ -95,7 +95,7 @@ static bg_parameter_info_t parameters[] =
       long_name: TRS("Foreground color"),
       type: BG_PARAMETER_COLOR_RGB,
       flags: BG_PARAMETER_SYNC,
-      val_default: { val_color: (float[]){ 1.0, 1.0, 0.0 } },
+      val_default: { val_color: { 1.0, 1.0, 0.0 } },
     },
     {
       name: "blur_mode",

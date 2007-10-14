@@ -22,7 +22,8 @@ void bg_visualizer_open(bg_visualizer_t * v,
 void bg_visualizer_set_audio_format(bg_visualizer_t * v,
                                     const gavl_audio_format_t * format);
 
-void bg_visualizer_update(bg_visualizer_t * v, gavl_audio_frame_t *);
+void bg_visualizer_update(bg_visualizer_t * v,
+                          const gavl_audio_frame_t *);
 
 void bg_visualizer_close(bg_visualizer_t * v);
 

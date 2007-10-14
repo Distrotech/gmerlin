@@ -70,19 +70,19 @@ static bg_parameter_info_t parameters[] =
       name:      "background",
       long_name: TRS("Background"),
       type: BG_PARAMETER_COLOR_RGB,
-      val_default: { val_color: (float[]){ 0.0, 0.0, 0.0, 1.0 } },
+      val_default: { val_color: { 0.0, 0.0, 0.0, 1.0 } },
     },
     {
       name:      "foreground_normal",
       long_name: TRS("Normal foreground"),
       type: BG_PARAMETER_COLOR_RGB,
-      val_default: { val_color: (float[]) { 1.0, 0.5, 0.0, 1.0 } },
+      val_default: { val_color: { 1.0, 0.5, 0.0, 1.0 } },
     },
     {
       name:      "foreground_error",
       long_name: TRS("Error foreground"),
       type: BG_PARAMETER_COLOR_RGB,
-      val_default: { val_color: (float[]){ 1.0, 0.0, 0.0, 1.0 } },
+      val_default: { val_color: { 1.0, 0.0, 0.0, 1.0 } },
     },
     {
       name:      "display_mode",

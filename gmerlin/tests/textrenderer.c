@@ -29,7 +29,6 @@ int main(int argc, char ** argv)
   /* Create */
   r = bg_text_renderer_create();
 
-  val.val_color = malloc(4 * sizeof(float));
   /* Set parameters */
   val.val_color[0] = 1.0;
   val.val_color[1] = 0.0;
@@ -42,8 +41,6 @@ int main(int argc, char ** argv)
   val.val_color[2] = 1.0;
   val.val_color[3] = 1.0;
   bg_text_renderer_set_parameter(r, "border_color", &val);
-
-  free(val.val_color);
 
   /* Border width */
   val.val_f = 5.0;

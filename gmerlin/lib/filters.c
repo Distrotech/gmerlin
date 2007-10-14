@@ -363,7 +363,7 @@ int bg_audio_filter_chain_read(void * priv, gavl_audio_frame_t* frame,
   int ret;
   bg_audio_filter_chain_t * ch;
   ch = (bg_audio_filter_chain_t *)priv;
-
+  
   bg_audio_filter_chain_lock(ch);
   ret = ch->in_func(ch->in_data, frame, ch->in_stream, num_samples);
   bg_audio_filter_chain_unlock(ch);

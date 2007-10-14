@@ -1173,8 +1173,6 @@ void x11_window_show(x11_window_t * win, int show)
       XMoveResizeWindow(win->dpy, win->normal_window,
                         win->window_x, win->window_y,
                         win->window_width, win->window_height);
-      fprintf(stderr, "Show window: %d %d\n",
-              win->window_width, win->window_height);
       }
     else if(win->current_window == win->fullscreen_window)
       {

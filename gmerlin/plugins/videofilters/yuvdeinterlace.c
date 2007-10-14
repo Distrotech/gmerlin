@@ -168,8 +168,11 @@ yuvdeinterlacer_t * yuvdeinterlacer_create()
   {
   yuvdeinterlacer_t * ret;
   ret = calloc(1, sizeof(*ret));
-
-  // initialize motionsearch-library      
+  
+  // Make mjpeg logging quiet (it will only confuse users)
+  mjpeg_default_handler_verbosity(0);
+  
+  // initialize motionsearch-library
   init_motion_search ();
 
 #ifdef HAVE_ALTIVEC

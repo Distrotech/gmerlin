@@ -18,6 +18,8 @@
 *****************************************************************/
 
 #include <inttypes.h>
+#include <config.h>
+#include <float_cast.h>
 
 #include <unistd.h>
 #include <errno.h>
@@ -46,9 +48,9 @@
 #define TYPE_POINTER        2
 #define TYPE_POINTER_NOCOPY 3
 #define TYPE_TIME           4
+#define TYPE_COLOR_RGB      5
+#define TYPE_COLOR_RGBA     6
 
-#define FLOAT_FRAC_BITS     16
-#define FLOAT_FRAC_FACTOR   ((float)(1<<(FLOAT_FRAC_BITS-1)))
 
 struct bg_msg_s
   {
@@ -59,9 +61,10 @@ struct bg_msg_s
     union
       {
       int val_i;
-      float val_f;
+      double val_f;
       void * val_ptr;
       gavl_time_t val_time;
+      float val_color[4];
       } value;
     uint8_t type;
     uint32_t size;
@@ -155,7 +158,7 @@ void bg_msg_set_arg_string(bg_msg_t * msg, int arg, const char * value)
     msg->num_args = arg + 1;
   }
 
-void bg_msg_set_arg_float(bg_msg_t * msg, int arg, float value)
+void bg_msg_set_arg_float(bg_msg_t * msg, int arg, double value)
   {
   if(!check_arg(arg))
     return;
@@ -165,6 +168,30 @@ void bg_msg_set_arg_float(bg_msg_t * msg, int arg, float value)
     msg->num_args = arg + 1;
   }
 
+void bg_msg_set_arg_color_rgb(bg_msg_t * msg, int arg, float * value)
+  {
+  if(!check_arg(arg))
+    return;
+  msg->args[arg].value.val_color[0] = value[0];
+  msg->args[arg].value.val_color[1] = value[1];
+  msg->args[arg].value.val_color[2] = value[2];
+  msg->args[arg].type = TYPE_COLOR_RGB;
+  if(arg+1 > msg->num_args)
+    msg->num_args = arg + 1;
+  }
+
+void bg_msg_set_arg_color_rgba(bg_msg_t * msg, int arg, float * value)
+  {
+  if(!check_arg(arg))
+    return;
+  msg->args[arg].value.val_color[0] = value[0];
+  msg->args[arg].value.val_color[1] = value[1];
+  msg->args[arg].value.val_color[2] = value[2];
+  msg->args[arg].value.val_color[3] = value[3];
+  msg->args[arg].type = TYPE_COLOR_RGBA;
+  if(arg+1 > msg->num_args)
+    msg->num_args = arg + 1;
+  }
 
 /* Get basic types */
 
@@ -187,12 +214,32 @@ gavl_time_t bg_msg_get_arg_time(bg_msg_t * msg, int arg)
   return msg->args[arg].value.val_time;
   }
 
-float bg_msg_get_arg_float(bg_msg_t * msg, int arg)
+double bg_msg_get_arg_float(bg_msg_t * msg, int arg)
   {
   if(!check_arg(arg))
     return 0.0;
   return msg->args[arg].value.val_f;
   }
+
+void bg_msg_get_arg_color_rgb(bg_msg_t * msg, int arg, float * val)
+  {
+  if(!check_arg(arg))
+    return;
+  val[0] = msg->args[arg].value.val_color[0];
+  val[1] = msg->args[arg].value.val_color[1];
+  val[2] = msg->args[arg].value.val_color[2];
+  }
+
+void bg_msg_get_arg_color_rgba(bg_msg_t * msg, int arg, float * val)
+  {
+  if(!check_arg(arg))
+    return;
+  val[0] = msg->args[arg].value.val_color[0];
+  val[1] = msg->args[arg].value.val_color[1];
+  val[2] = msg->args[arg].value.val_color[2];
+  val[3] = msg->args[arg].value.val_color[3];
+  }
+
 
 void * bg_msg_get_arg_ptr(bg_msg_t * msg, int arg, int * length)
   {
@@ -562,6 +609,229 @@ void bg_msg_destroy(bg_msg_t * m)
   free(m);
   }
 
+/* Audio frame:
+   arg_0: valid samples
+   arg_1: timestamp
+   arg_2: big endian
+*/
+
+int bg_msg_write_audio_frame(bg_msg_t * msg,
+                             const gavl_audio_format_t * format,
+                             const gavl_audio_frame_t * frame,
+                             bg_msg_write_callback_t cb,
+                             void * cb_data)
+  {
+  int len, bytes_per_sample, i;
+  bg_msg_set_arg_int(msg, 0, frame->valid_samples);
+  bg_msg_set_arg_time(msg, 1, frame->timestamp);
+#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+  bg_msg_set_arg_int(msg, 2, 0);
+#else
+  bg_msg_set_arg_int(msg, 2, 1);
+#endif
+  if(!bg_msg_write(msg, cb, cb_data))
+    return 0;
+
+  bytes_per_sample = gavl_bytes_per_sample(format->sample_format);
+  
+  switch(format->interleave_mode)
+    {
+    case GAVL_INTERLEAVE_NONE:
+      len = bytes_per_sample * frame->valid_samples;
+      for(i = 0; i < format->num_channels; i++)
+        {
+        if(cb(cb_data, frame->channels.u_8[i], len) < len)
+          return 0;
+        }
+      break;
+    case GAVL_INTERLEAVE_2:
+      len = bytes_per_sample * frame->valid_samples * 2;
+      for(i = 0; i < format->num_channels/2; i++)
+        {
+        if(cb(cb_data, frame->channels.u_8[2*i], len) < len)
+          return 0;
+        }
+
+      if(format->num_channels % 2)
+        {
+        len = bytes_per_sample * frame->valid_samples;
+        if(cb(cb_data, frame->channels.u_8[format->num_channels-1], len) < len)
+          return 0;
+        }
+      
+      break;
+    case GAVL_INTERLEAVE_ALL:
+      len = bytes_per_sample * frame->valid_samples * format->num_channels;
+      if(cb(cb_data, frame->samples.u_8, len) < len)
+        return 0;
+      break;
+    }
+  return 1;
+  }
+
+/** \brief Read an audio frame from a socket
+ *  \param msg Message containing the frame header
+ *  \param format Audio format
+ *  \param frame An audio frame
+ *  \param fd A socket
+ *  \returns 1 on success, 0 on error
+ *
+ *  Before you can use this function, msg must contain
+ *  a valid audio frame header
+ */
+
+int bg_msg_read_audio_frame(bg_msg_t * msg,
+                            const gavl_audio_format_t * format,
+                            gavl_audio_frame_t * frame,
+                            bg_msg_read_callback_t cb,
+                            void * cb_data)
+  {
+  int len, big_endian, bytes_per_sample, i;
+  frame->valid_samples = bg_msg_get_arg_int(msg, 0);
+  frame->timestamp = bg_msg_get_arg_time(msg, 1);
+  big_endian = bg_msg_get_arg_int(msg, 2);
+  
+  bytes_per_sample = gavl_bytes_per_sample(format->sample_format);
+  
+  switch(format->interleave_mode)
+    {
+    case GAVL_INTERLEAVE_NONE:
+      len = bytes_per_sample * frame->valid_samples;
+      for(i = 0; i < format->num_channels; i++)
+        {
+        if(cb(cb_data, frame->channels.u_8[i], len) < len)
+          return 0;
+        }
+      break;
+    case GAVL_INTERLEAVE_2:
+      len = bytes_per_sample * frame->valid_samples * 2;
+      for(i = 0; i < format->num_channels/2; i++)
+        {
+        if(cb(cb_data, frame->channels.u_8[2*i], len) < len)
+          return 0;
+        }
+
+      if(format->num_channels % 2)
+        {
+        len = bytes_per_sample * frame->valid_samples;
+        if(cb(cb_data, frame->channels.u_8[format->num_channels-1], len) < len)
+          return 0;
+        }
+      
+      break;
+    case GAVL_INTERLEAVE_ALL:
+      len = bytes_per_sample * frame->valid_samples * format->num_channels;
+      if(cb(cb_data, frame->samples.u_8, len) < len)
+        return 0;
+      break;
+    }
+
+#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+  if(big_endian)
+    gavl_audio_frame_swap_endian(frame, format);
+#else
+  if(!big_endian)
+    gavl_audio_frame_swap_endian(frame, format);
+#endif
+  
+  return 1;
+  }
+
+/* parameters:
+   arg_0: name
+   arg_1: type (int)
+   arg_2: value
+*/
+
+void bg_msg_set_parameter(bg_msg_t * msg,
+                          const char * name,
+                          bg_parameter_type_t type,
+                          bg_parameter_value_t * val)
+  {
+  bg_msg_set_arg_string(msg, 0, name);
+  bg_msg_set_arg_int(msg, 1, type);
+  switch(type)
+    {
+    case BG_PARAMETER_SECTION: //!< Dummy type. It contains no data but acts as a separator in notebook style configuration windows
+      break;
+      
+    case BG_PARAMETER_CHECKBUTTON: //!< Bool
+    case BG_PARAMETER_INT:         //!< Integer spinbutton
+    case BG_PARAMETER_SLIDER_INT:  //!< Integer slider
+      bg_msg_set_arg_int(msg, 2, val->val_i);
+      break;
+    case BG_PARAMETER_FLOAT: // spinbutton
+    case BG_PARAMETER_SLIDER_FLOAT: //!< Float slider
+      bg_msg_set_arg_float(msg, 2, val->val_f);
+      break;
+    case BG_PARAMETER_STRING:      //!< String (one line only)
+    case BG_PARAMETER_STRING_HIDDEN: //!< Encrypted string (displays as ***)
+    case BG_PARAMETER_STRINGLIST:  //!< Popdown menu with string values
+    case BG_PARAMETER_FONT:        //!< Font (contains fontconfig compatible fontname)
+    case BG_PARAMETER_DEVICE:      //!< Device
+    case BG_PARAMETER_FILE:        //!< File
+    case BG_PARAMETER_DIRECTORY:   //!< Directory
+    case BG_PARAMETER_MULTI_MENU:  //!< Menu with config- and infobutton
+    case BG_PARAMETER_MULTI_LIST:  //!< List with config- and infobutton
+    case BG_PARAMETER_MULTI_CHAIN: //!< Several subitems (including suboptions) can be arranged in a chain
+      bg_msg_set_arg_string(msg, 2, val->val_str);
+      break;
+    case BG_PARAMETER_COLOR_RGB:   //!< RGB Color
+      bg_msg_set_arg_color_rgb(msg, 2, val->val_color);
+      break;
+    case BG_PARAMETER_COLOR_RGBA:  //!< RGBA Color
+      bg_msg_set_arg_color_rgba(msg, 2, val->val_color);
+      break;
+    case BG_PARAMETER_TIME:         //!< Time
+      bg_msg_set_arg_time(msg, 2, val->val_time);
+      break;
+    }
+  }
+
+void bg_msg_get_parameter(bg_msg_t * msg,
+                          char ** name,
+                          bg_parameter_type_t * type,
+                          bg_parameter_value_t * val)
+  {
+  *name = bg_msg_get_arg_string(msg, 0);
+  *type = bg_msg_get_arg_int(msg, 1);
+  switch(*type)
+    {
+    case BG_PARAMETER_SECTION: //!< Dummy type. It contains no data but acts as a separator in notebook style configuration windows
+      break;
+      
+    case BG_PARAMETER_CHECKBUTTON: //!< Bool
+    case BG_PARAMETER_INT:         //!< Integer spinbutton
+    case BG_PARAMETER_SLIDER_INT:  //!< Integer slider
+      val->val_i = bg_msg_get_arg_int(msg, 2);
+      break;
+    case BG_PARAMETER_FLOAT: // spinbutton
+    case BG_PARAMETER_SLIDER_FLOAT: //!< Float slider
+      val->val_f = bg_msg_get_arg_float(msg, 2);
+      break;
+    case BG_PARAMETER_STRING:      //!< String (one line only)
+    case BG_PARAMETER_STRING_HIDDEN: //!< Encrypted string (displays as ***)
+    case BG_PARAMETER_STRINGLIST:  //!< Popdown menu with string values
+    case BG_PARAMETER_FONT:        //!< Font (contains fontconfig compatible fontname)
+    case BG_PARAMETER_DEVICE:      //!< Device
+    case BG_PARAMETER_FILE:        //!< File
+    case BG_PARAMETER_DIRECTORY:   //!< Directory
+    case BG_PARAMETER_MULTI_MENU:  //!< Menu with config- and infobutton
+    case BG_PARAMETER_MULTI_LIST:  //!< List with config- and infobutton
+    case BG_PARAMETER_MULTI_CHAIN: //!< Several subitems (including suboptions) can be arranged in a chain
+      val->val_str = bg_msg_get_arg_string(msg, 2);
+      break;
+    case BG_PARAMETER_COLOR_RGB:   //!< RGB Color
+      bg_msg_get_arg_color_rgb(msg, 2, val->val_color);
+      break;
+    case BG_PARAMETER_COLOR_RGBA:  //!< RGBA Color
+      bg_msg_get_arg_color_rgba(msg, 2, val->val_color);
+      break;
+    case BG_PARAMETER_TIME:         //!< Time
+      bg_msg_set_arg_time(msg, 2, val->val_time);
+      break;
+    }
+  }
 
 struct bg_msg_queue_s
   {
@@ -817,11 +1087,11 @@ void bg_msg_queue_list_remove(bg_msg_queue_list_t * list,
  *  Pointer messages cannot be transmited!
  */
 
-static int read_uint32(int fd, uint32_t * ret, int milliseconds)
+static int read_uint32(uint32_t * ret, bg_msg_read_callback_t cb, void * cb_data)
   {
   uint8_t buf[4];
 
-  if(bg_socket_read_data(fd, buf, 4, milliseconds) < 4)
+  if(cb(cb_data, buf, 4) < 4)
     return 0;
   
   //  bg_hexdump(buf, 4);
@@ -831,11 +1101,11 @@ static int read_uint32(int fd, uint32_t * ret, int milliseconds)
   return 1;
   }
 
-static int read_time(int fd, gavl_time_t * ret, int milliseconds)
+static int read_uint64(uint64_t * ret, bg_msg_read_callback_t cb, void * cb_data)
   {
   uint8_t buf[8];
-
-  if(bg_socket_read_data(fd, buf, 8, milliseconds) < 4)
+  
+  if(cb(cb_data, buf, 8) < 8)
     return 0;
 
   *ret =
@@ -850,7 +1120,93 @@ static int read_time(int fd, gavl_time_t * ret, int milliseconds)
   return 1;
   }
 
-static int write_uint32(int fd, uint32_t * val)
+static float
+float32_be_read (unsigned char *cptr)
+{       int             exponent, mantissa, negative ;
+        float   fvalue ;
+
+        negative = cptr [0] & 0x80 ;
+        exponent = ((cptr [0] & 0x7F) << 1) | ((cptr [1] & 0x80) ? 1 : 0) ;
+        mantissa = ((cptr [1] & 0x7F) << 16) | (cptr [2] << 8) | (cptr [3]) ;
+
+        if (! (exponent || mantissa))
+                return 0.0 ;
+
+        mantissa |= 0x800000 ;
+        exponent = exponent ? exponent - 127 : 0 ;
+
+        fvalue = mantissa ? ((float) mantissa) / ((float) 0x800000) : 0.0 ;
+
+        if (negative)
+                fvalue *= -1 ;
+
+        if (exponent > 0)
+                fvalue *= (1 << exponent) ;
+        else if (exponent < 0)
+                fvalue /= (1 << abs (exponent)) ;
+
+        return fvalue ;
+} /* float32_be_read */
+
+
+static int read_float(float * ret, bg_msg_read_callback_t cb, void * cb_data)
+  {
+  uint8_t buf[4];
+  if(cb(cb_data, buf, 4) < 4)
+    return 0;
+  *ret = float32_be_read(buf);
+  return 1;
+  }
+
+static double
+double64_be_read (unsigned char *cptr)
+{       int             exponent, negative ;
+        double  dvalue ;
+
+        negative = (cptr [0] & 0x80) ? 1 : 0 ;
+        exponent = ((cptr [0] & 0x7F) << 4) | ((cptr [1] >> 4) & 0xF) ;
+
+        /* Might not have a 64 bit long, so load the mantissa into a double. */
+        dvalue = (((cptr [1] & 0xF) << 24) | (cptr [2] << 16) | (cptr [3] << 8) | cptr [4]) ;
+        dvalue += ((cptr [5] << 16) | (cptr [6] << 8) | cptr [7]) / ((double) 0x1000000) ;
+
+        if (exponent == 0 && dvalue == 0.0)
+                return 0.0 ;
+
+        dvalue += 0x10000000 ;
+
+        exponent = exponent - 0x3FF ;
+
+        dvalue = dvalue / ((double) 0x10000000) ;
+
+        if (negative)
+                dvalue *= -1 ;
+
+        if (exponent > 0)
+                dvalue *= (1 << exponent) ;
+        else if (exponent < 0)
+                dvalue /= (1 << abs (exponent)) ;
+
+        return dvalue ;
+} /* double64_be_read */
+
+
+static int read_double(double * ret, bg_msg_read_callback_t cb, void * cb_data)
+  {
+  uint8_t buf[8];
+  if(cb(cb_data, buf, 8) < 8)
+    return 0;
+  *ret = double64_be_read(buf);
+  return 1;
+  }
+
+static int read_time(gavl_time_t * ret, bg_msg_read_callback_t cb, void * cb_data)
+  {
+  return read_uint64((uint64_t*)ret, cb, cb_data);
+  }
+
+static int write_uint32(uint32_t * val,
+                        bg_msg_write_callback_t cb, void * cb_data)
   {
   uint8_t buf[4];
   
@@ -861,12 +1217,13 @@ static int write_uint32(int fd, uint32_t * val)
 
   //  bg_hexdump(buf, 4);
     
-  if(bg_socket_write_data(fd, buf, 4) < 4)
+  if(cb(cb_data, buf, 4) < 4)
     return 0;
   return 1;
   }
 
-static int write_time(int fd, gavl_time_t val)
+static int write_uint64(uint64_t val,
+                        bg_msg_write_callback_t cb, void * cb_data)
   {
   uint8_t buf[8];
 
@@ -880,12 +1237,113 @@ static int write_time(int fd, gavl_time_t val)
   buf[6] = (val & 0x000000000000ff00LL) >> 8;
   buf[7] = (val & 0x00000000000000ffLL);
   
-  if(bg_socket_write_data(fd, buf, 8) < 8)
+  if(cb(cb_data, buf, 8) < 8)
     return 0;
   return 1;
   }
 
-int bg_message_read_socket(bg_msg_t * ret, int fd, int milliseconds)
+static void
+float32_be_write (float in, unsigned char *out)
+{       int             exponent, mantissa, negative = 0 ;
+
+        memset (out, 0, sizeof (int)) ;
+
+        if (in == 0.0)
+                return ;
+
+        if (in < 0.0)
+        {       in *= -1.0 ;
+                negative = 1 ;
+                } ;
+
+        in = frexp (in, &exponent) ;
+
+        exponent += 126 ;
+
+        in *= (float) 0x1000000 ;
+        mantissa = (((int) in) & 0x7FFFFF) ;
+
+        if (negative)
+                out [0] |= 0x80 ;
+
+        if (exponent & 0x01)
+                out [1] |= 0x80 ;
+
+        out [3] = mantissa & 0xFF ;
+        out [2] = (mantissa >> 8) & 0xFF ;
+        out [1] |= (mantissa >> 16) & 0x7F ;
+        out [0] |= (exponent >> 1) & 0x7F ;
+
+        return ;
+} /* float32_be_write */
+
+
+static int write_float(float val, bg_msg_read_callback_t cb, void * cb_data)
+  {
+  uint8_t buf[4];
+  float32_be_write(val, buf);
+  if(cb(cb_data, buf, 4) < 4)
+    return 0;
+  return 1;
+  }
+
+static void
+double64_be_write (double in, unsigned char *out)
+{       int             exponent, mantissa ;
+
+        memset (out, 0, sizeof (double)) ;
+
+        if (in == 0.0)
+                return ;
+
+        if (in < 0.0)
+        {       in *= -1.0 ;
+                out [0] |= 0x80 ;
+                } ;
+
+        in = frexp (in, &exponent) ;
+
+        exponent += 1022 ;
+
+        out [0] |= (exponent >> 4) & 0x7F ;
+        out [1] |= (exponent << 4) & 0xF0 ;
+
+        in *= 0x20000000 ;
+        mantissa = lrint (floor (in)) ;
+
+        out [1] |= (mantissa >> 24) & 0xF ;
+        out [2] = (mantissa >> 16) & 0xFF ;
+        out [3] = (mantissa >> 8) & 0xFF ;
+        out [4] = mantissa & 0xFF ;
+
+        in = fmod (in, 1.0) ;
+        in *= 0x1000000 ;
+        mantissa = lrint (floor (in)) ;
+        out [5] = (mantissa >> 16) & 0xFF ;
+        out [6] = (mantissa >> 8) & 0xFF ;
+        out [7] = mantissa & 0xFF ;
+
+        return ;
+} /* double64_be_write */
+
+
+static int write_double(double val, bg_msg_read_callback_t cb, void * cb_data)
+  {
+  uint8_t buf[8];
+  double64_be_write(val, buf);
+  if(cb(cb_data, buf, 8) < 8)
+    return 0;
+  return 1;
+  }
+
+static int write_time(gavl_time_t val,
+                      bg_msg_write_callback_t cb, void * cb_data)
+  {
+  return write_uint64((uint64_t)val, cb, cb_data);
+  }
+
+
+int bg_msg_read(bg_msg_t * ret, bg_msg_read_callback_t cb, void * cb_data)
   {
   int i;
   void * ptr;
@@ -899,113 +1357,170 @@ int bg_message_read_socket(bg_msg_t * ret, int fd, int milliseconds)
   
   /* Message ID */
 
-  if(!read_uint32(fd, (uint32_t*)(&val_i), milliseconds))
+  if(!read_uint32((uint32_t*)(&val_i), cb, cb_data))
     return 0;
   
   ret->id = val_i;
 
   /* Number of arguments */
 
-  if(!bg_socket_read_data(fd, &val_u8, 1, -1))
+  if(!cb(cb_data, &val_u8, 1))
     return 0;
-
+  
   ret->num_args = val_u8;
 
   for(i = 0; i < ret->num_args; i++)
     {
-    if(!bg_socket_read_data(fd, &val_u8, 1, -1))
+    if(!cb(cb_data, &val_u8, 1))
       return 0;
     ret->args[i].type = val_u8;
-
+    
     switch(ret->args[i].type)
       {
       case TYPE_INT:
-        if(!read_uint32(fd, (uint32_t*)(&val_i), -1))
+        if(!read_uint32((uint32_t*)(&val_i), cb, cb_data))
           return 0;
-
+        
         ret->args[i].value.val_i = val_i;
         break;
       case TYPE_FLOAT:
-        if(!read_uint32(fd, (uint32_t*)(&val_i), -1))
+        if(!read_double(&ret->args[i].value.val_f, cb, cb_data))
           return 0;
-        ret->args[i].value.val_f = (float)val_i/FLOAT_FRAC_FACTOR;
         break;
       case TYPE_POINTER:
-        if(!read_uint32(fd, (uint32_t*)(&val_i), -1)) /* Length */
+        if(!read_uint32((uint32_t*)(&val_i), cb, cb_data)) /* Length */
           return 0;
         ptr = bg_msg_set_arg_ptr(ret, i, val_i);
-        if(bg_socket_read_data(fd, ret->args[i].value.val_ptr,
-                               val_i, 1) < val_i)
-          {
+        if(cb(cb_data, ret->args[i].value.val_ptr, val_i) < val_i)
           return 0;
-          }
         break;
       case TYPE_TIME:
-        if(!read_time(fd, &val_time, -1))
+        if(!read_time(&val_time, cb, cb_data))
           return 0;
         ret->args[i].value.val_time = val_time;
         break;
       case TYPE_POINTER_NOCOPY:
         break;
-        
+      case TYPE_COLOR_RGB:
+        if(!read_float(&ret->args[i].value.val_color[0], cb, cb_data) ||
+           !read_float(&ret->args[i].value.val_color[1], cb, cb_data) ||
+           !read_float(&ret->args[i].value.val_color[2], cb, cb_data))
+          return 0;
+        break;
+      case TYPE_COLOR_RGBA:
+        if(!read_float(&ret->args[i].value.val_color[0], cb, cb_data) ||
+           !read_float(&ret->args[i].value.val_color[1], cb, cb_data) ||
+           !read_float(&ret->args[i].value.val_color[2], cb, cb_data) ||
+           !read_float(&ret->args[i].value.val_color[3], cb, cb_data))
+          return 0;
+        break;
       }
-
     }
-    
   return 1;
   }
 
-int bg_message_write_socket(bg_msg_t * msg, int fd)
+int bg_msg_write(bg_msg_t * msg, bg_msg_write_callback_t cb,
+                     void * cb_data)
   {
   int i;
   uint8_t val_u8;
-  int32_t i_tmp;
     
   /* Message id */
 
-  if(!write_uint32(fd, &msg->id))
+  if(!write_uint32(&msg->id, cb, cb_data))
     return 0;
 
   /* Number of arguments */
   val_u8 = msg->num_args;
   
-  if(!bg_socket_write_data(fd, &val_u8, 1))
+  if(!cb(cb_data, &val_u8, 1))
     return 0;
-
+  
   /* Arguments */
 
   for(i = 0; i < msg->num_args; i++)
     {
-    bg_socket_write_data(fd, &(msg->args[i].type), 1);
+    cb(cb_data, &(msg->args[i].type), 1);
 
     switch(msg->args[i].type)
       {
       case TYPE_INT:
-        if(!write_uint32(fd, (uint32_t*)(&msg->args[i].value.val_i)))
+        if(!write_uint32((uint32_t*)(&msg->args[i].value.val_i), cb, cb_data))
           return 0;
         break;
       case TYPE_TIME:
-        if(!write_time(fd, msg->args[i].value.val_time))
+        if(!write_time(msg->args[i].value.val_time, cb, cb_data))
           return 0;
         break;
       case TYPE_FLOAT:
-        i_tmp = (int32_t)(msg->args[i].value.val_f *
-                      FLOAT_FRAC_FACTOR + 0.5);
-        
-        if(!write_uint32(fd, (uint32_t*)(&i_tmp)))
+        if(!write_double(msg->args[i].value.val_f, cb, cb_data))
           return 0;
         break;
       case TYPE_POINTER:
-        if(!write_uint32(fd, &(msg->args[i].size)))
+        if(!write_uint32(&(msg->args[i].size), cb, cb_data))
           return 0;
-        if(bg_socket_write_data(fd, msg->args[i].value.val_ptr,
-                 msg->args[i].size) < msg->args[i].size)
+        if(cb(cb_data, msg->args[i].value.val_ptr, msg->args[i].size) <
+           msg->args[i].size)
           return 0;
         break;
       case TYPE_POINTER_NOCOPY:
         break;
+      case TYPE_COLOR_RGB:
+        if(!write_float(msg->args[i].value.val_color[0], cb, cb_data) ||
+           !write_float(msg->args[i].value.val_color[1], cb, cb_data) ||
+           !write_float(msg->args[i].value.val_color[2], cb, cb_data))
+          return 0;
+        break;
+      case TYPE_COLOR_RGBA:
+        if(!write_float(msg->args[i].value.val_color[0], cb, cb_data) ||
+           !write_float(msg->args[i].value.val_color[1], cb, cb_data) ||
+           !write_float(msg->args[i].value.val_color[2], cb, cb_data) ||
+           !write_float(msg->args[i].value.val_color[3], cb, cb_data))
+          return 0;
+        break;
       }
-    
     }
   return 1;
+  }
+
+typedef struct
+  {
+  int timeout;
+  int fd;
+  } socket_data;
+
+static int socket_read_cb(void * data, uint8_t * ptr, int len)
+  {
+  int result;
+  socket_data * cb_data = (socket_data *)data;
+  result = bg_socket_read_data(cb_data->fd,
+                               ptr, len, cb_data->timeout);
+  
+  /* After a successful read, timeout must be disabled */
+  if(result && cb_data->timeout >= 0)
+    cb_data->timeout = -1;
+  return result;
+  }
+
+static int socket_write_cb(void * data, uint8_t * ptr, int len)
+  {
+  socket_data * cb_data = (socket_data *)data;
+  return bg_socket_write_data(cb_data->fd, ptr, len);
+  
+  }
+
+int bg_msg_read_socket(bg_msg_t * ret, int fd, int milliseconds)
+  {
+  socket_data cb_data;
+  cb_data.fd = fd;
+  cb_data.timeout = milliseconds;
+  return bg_msg_read(ret, socket_read_cb, &cb_data);
+  }
+
+int bg_msg_write_socket(bg_msg_t * msg, int fd)
+  {
+  socket_data cb_data;
+  cb_data.fd = fd;
+  cb_data.timeout = 0;
+  return bg_msg_write(msg, socket_write_cb, &cb_data);
   }

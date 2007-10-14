@@ -53,20 +53,12 @@ void bg_parameter_value_copy(bg_parameter_value_t * dst,
       dst->val_str = bg_strdup(dst->val_str, src->val_str);
       break;
     case BG_PARAMETER_COLOR_RGB:
-      if(!dst->val_color)
-        {
-        dst->val_color = malloc(4 * sizeof(float));
-        }
       memcpy(dst->val_color,
              src->val_color,
              3 * sizeof(float));
       dst->val_color[3] = 1.0;
       break;
     case BG_PARAMETER_COLOR_RGBA:
-      if(!dst->val_color)
-        {
-        dst->val_color = malloc(4 * sizeof(float));
-        }
       memcpy(dst->val_color,
              src->val_color,
              4 * sizeof(float));
@@ -80,9 +72,9 @@ void bg_parameter_value_copy(bg_parameter_value_t * dst,
   }
 
 void bg_parameter_value_free(bg_parameter_value_t * val,
-                             const bg_parameter_info_t * info)
+                             bg_parameter_type_t type)
   {
-  switch(info->type)
+  switch(type)
     {
     case BG_PARAMETER_CHECKBUTTON:
     case BG_PARAMETER_INT:
@@ -91,6 +83,8 @@ void bg_parameter_value_free(bg_parameter_value_t * val,
     case BG_PARAMETER_SLIDER_FLOAT:
     case BG_PARAMETER_TIME:
     case BG_PARAMETER_SECTION:
+    case BG_PARAMETER_COLOR_RGB:
+    case BG_PARAMETER_COLOR_RGBA:
       break;
     case BG_PARAMETER_STRING:
     case BG_PARAMETER_STRING_HIDDEN:
@@ -104,11 +98,6 @@ void bg_parameter_value_free(bg_parameter_value_t * val,
     case BG_PARAMETER_MULTI_CHAIN:
       if(val->val_str)
         free(val->val_str);
-      break;
-    case BG_PARAMETER_COLOR_RGB:
-    case BG_PARAMETER_COLOR_RGBA:
-      if(val->val_color)
-        free(val->val_color);
       break;
     }
 
@@ -236,20 +225,18 @@ void bg_parameter_info_copy(bg_parameter_info_t * dst,
     case BG_PARAMETER_COLOR_RGB:
       if(src->val_default.val_color)
         {
-        dst->val_default.val_color = malloc(4 * sizeof(float));
         memcpy(dst->val_default.val_color,
                src->val_default.val_color,
-               3 * sizeof(float));
+               3 * sizeof(dst->val_default.val_color[0]));
         dst->val_default.val_color[3] = 1.0;
         }
       break;
     case BG_PARAMETER_COLOR_RGBA:
       if(src->val_default.val_color)
         {
-        dst->val_default.val_color = malloc(4 * sizeof(float));
         memcpy(dst->val_default.val_color,
                src->val_default.val_color,
-               4 * sizeof(float));
+               4 * sizeof(dst->val_default.val_color[0]));
         }
       break;
     case BG_PARAMETER_TIME:
@@ -299,11 +286,6 @@ void bg_parameter_info_destroy_array(bg_parameter_info_t * info)
       free(info[index].gettext_directory);
     switch(info[index].type)
       {
-      case BG_PARAMETER_COLOR_RGB:
-      case BG_PARAMETER_COLOR_RGBA:
-        if(info[index].val_default.val_color)
-          free(info[index].val_default.val_color);
-        break;
       case BG_PARAMETER_STRINGLIST:
         free_string_array(info[index].multi_names);
         free_string_array(info[index].multi_labels);
@@ -327,6 +309,8 @@ void bg_parameter_info_destroy_array(bg_parameter_info_t * info)
       case BG_PARAMETER_TIME:
       case BG_PARAMETER_SLIDER_INT:
       case BG_PARAMETER_SLIDER_FLOAT:
+      case BG_PARAMETER_COLOR_RGB:
+      case BG_PARAMETER_COLOR_RGBA:
         break;
       case BG_PARAMETER_MULTI_MENU:
       case BG_PARAMETER_MULTI_LIST:

@@ -35,11 +35,18 @@ else
 kbd_subdirs =
 endif
 
+if HAVE_VISUALIZER
+visualizer_subdirs = visualizer
+else
+visualizer_subdirs =
+endif
+
 
 SUBDIRS = $(player_subdirs) \
 $(plugincfg_subdirs) \
 $(alsamixer_subdirs) \
 $(camelot_subdirs) \
 $(transcoder_subdirs) \
-$(kbd_subdirs)
+$(kbd_subdirs) \
+$(visualizer_subdirs)
 

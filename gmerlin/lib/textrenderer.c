@@ -61,14 +61,14 @@ static bg_parameter_info_t parameters[] =
       name:       "color",
       long_name:  TRS("Text color"),
       type:       BG_PARAMETER_COLOR_RGBA,
-      val_default: { val_color: (float[]){ 1.0, 1.0, 1.0, 1.0 } },
+      val_default: { val_color: { 1.0, 1.0, 1.0, 1.0 } },
     },
 #ifdef FT_STROKER_H
     {
       name:       "border_color",
       long_name:  TRS("Border color"),
       type:       BG_PARAMETER_COLOR_RGB,
-      val_default: { val_color: (float[]){ 0.0, 0.0, 0.0, 1.0 } },
+      val_default: { val_color: { 0.0, 0.0, 0.0, 1.0 } },
     },
     {
       name:       "border_width",
