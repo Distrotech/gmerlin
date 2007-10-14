@@ -426,3 +426,34 @@ int bg_parameter_get_selected(const bg_parameter_info_t * info,
   else
     return ret;
   }
+
+const bg_parameter_info_t *
+bg_parameter_find(const bg_parameter_info_t * info,
+                  const char * name)
+  {
+  int i, j;
+  const bg_parameter_info_t * child_ret;
+  i = 0;
+  while(info[i].name)
+    {
+    if(!strcmp(name, info[i].name))
+      return &info[i];
+
+    if(info[i].multi_parameters && info[i].multi_names)
+      {
+      j = 0;
+      while(info[i].multi_names[j])
+        {
+        if(info[i].multi_parameters[j])
+          {
+          child_ret = bg_parameter_find(info[i].multi_parameters[j], name);
+          if(child_ret)
+            return child_ret;
+          }
+        j++;
+        }
+      }
+    i++;
+    }
+  return (bg_parameter_info_t*)0;
+  }

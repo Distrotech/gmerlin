@@ -271,8 +271,9 @@ static float * get_coeffs(float radius, int * r_i, int mode, float fade_factor)
 
 
 static int
-open_scope(void * priv, bg_ov_plugin_t * ov_plugin, void * ov_priv,
-           gavl_audio_format_t * audio_format, gavl_video_format_t * video_format)
+open_scope(void * priv, gavl_audio_format_t * audio_format,
+           bg_ov_plugin_t * ov_plugin, void * ov_priv,
+           gavl_video_format_t * video_format)
   {
   scope_priv_t * vp;
   float * blur_coeffs;
@@ -493,7 +494,7 @@ bg_visualization_plugin_t the_plugin =
       set_parameter:    set_parameter_scope,
       priority:         1,
     },
-    open: open_scope,
+    open_ov: open_scope,
     update: update_scope,
     draw_frame: draw_frame_scope,
     close: close_scope

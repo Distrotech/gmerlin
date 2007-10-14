@@ -1847,8 +1847,13 @@ typedef struct bg_visualization_plugin_s
   {
   bg_plugin_common_t common; //!< Infos and functions common to all plugin types
   
-  int (*open)(void * priv, bg_ov_plugin_t * ov_plugin, void * ov_priv,
-              gavl_audio_format_t * audio_format, gavl_video_format_t * video_format);
+  int (*open_ov)(void * priv, gavl_audio_format_t * audio_format,
+                 bg_ov_plugin_t * ov_plugin, void * ov_priv,
+                 gavl_video_format_t * video_format);
+
+  int (*open_win)(void * priv, gavl_audio_format_t * audio_format,
+                  const char * window_id);
+  
   void (*update)(void * priv, gavl_audio_frame_t * frame);
   void (*draw_frame)(void * priv, gavl_video_frame_t *);
   

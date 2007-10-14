@@ -168,7 +168,7 @@ void bg_msg_set_arg_float(bg_msg_t * msg, int arg, double value)
     msg->num_args = arg + 1;
   }
 
-void bg_msg_set_arg_color_rgb(bg_msg_t * msg, int arg, float * value)
+void bg_msg_set_arg_color_rgb(bg_msg_t * msg, int arg, const float * value)
   {
   if(!check_arg(arg))
     return;
@@ -180,7 +180,7 @@ void bg_msg_set_arg_color_rgb(bg_msg_t * msg, int arg, float * value)
     msg->num_args = arg + 1;
   }
 
-void bg_msg_set_arg_color_rgba(bg_msg_t * msg, int arg, float * value)
+void bg_msg_set_arg_color_rgba(bg_msg_t * msg, int arg, const float * value)
   {
   if(!check_arg(arg))
     return;
@@ -746,8 +746,11 @@ int bg_msg_read_audio_frame(bg_msg_t * msg,
 void bg_msg_set_parameter(bg_msg_t * msg,
                           const char * name,
                           bg_parameter_type_t type,
-                          bg_parameter_value_t * val)
+                          const bg_parameter_value_t * val)
   {
+  if(!name)
+    return;
+  
   bg_msg_set_arg_string(msg, 0, name);
   bg_msg_set_arg_int(msg, 1, type);
   switch(type)
@@ -794,6 +797,10 @@ void bg_msg_get_parameter(bg_msg_t * msg,
                           bg_parameter_value_t * val)
   {
   *name = bg_msg_get_arg_string(msg, 0);
+  
+  if(!*name)
+    return;
+  
   *type = bg_msg_get_arg_int(msg, 1);
   switch(*type)
     {

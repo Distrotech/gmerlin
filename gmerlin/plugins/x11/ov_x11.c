@@ -1349,7 +1349,7 @@ static int handle_event(x11_t * priv, XEvent * evt)
   int  x_image;
   int  y_image;
   int  button_number = 0;
-  
+  int do_send_event = 0;
   
   x11_window_handle_event(&(priv->win), evt);
 
@@ -1469,17 +1469,46 @@ static int handle_event(x11_t * priv, XEvent * evt)
           /* Non Fullscreen -> Fullscreen */
           
           if(priv->win.current_window == priv->win.normal_window)
-            x11_window_set_fullscreen(&(priv->win), 1);
+            {
+            if(priv->win.normal_parent == priv->win.root)
+              {
+              x11_window_set_fullscreen(&(priv->win), 1);
+              set_drawing_coords(priv);
+              }
+            else
+              {
+              do_send_event = 1;
+              done = 0;
+              }
+            }
           /* Fullscreen -> Non Fullscreen */
           else
-            x11_window_set_fullscreen(&(priv->win), 0);
-          set_drawing_coords(priv);
+            {
+            if(priv->win.fullscreen_parent == priv->win.root)
+              {
+              x11_window_set_fullscreen(&(priv->win), 0);
+              set_drawing_coords(priv);
+              }
+            else
+              {
+              do_send_event = 1;
+              done = 0;
+              }
+            }
           break;
         case XK_Escape:
           if(priv->win.current_window == priv->win.fullscreen_window)
             {
-            x11_window_set_fullscreen(&(priv->win), 0);
-            set_drawing_coords(priv);
+            if(priv->win.fullscreen_parent == priv->win.root)
+              {
+              x11_window_set_fullscreen(&(priv->win), 0);
+              set_drawing_coords(priv);
+              }
+            else
+              {
+              do_send_event = 1;
+              done = 0;
+              }
             }
           break;
         case XK_Home:
@@ -1645,12 +1674,13 @@ static int handle_event(x11_t * priv, XEvent * evt)
 #endif // HAVE_LIBXV
         default:
           done = 0;
+          do_send_event = 1;
         }
       
       if(done)
         return 0;
-            
-      /* Pass the rest to the player */
+      
+      /* Check if we have a callback */
 
       key_code = get_key_code(keysym);
       
@@ -1660,7 +1690,39 @@ static int handle_event(x11_t * priv, XEvent * evt)
         {
         priv->callbacks->key_callback(priv->callbacks->data,
                                       get_key_code(keysym), get_key_mask(evt->xkey.state));
+        return 0;
         }
+      else if(do_send_event)
+        {
+        XKeyEvent key_event;
+
+        memset(&key_event, 0, sizeof(key_event));
+        key_event.display = priv->win.dpy;
+        
+        if(priv->win.normal_window == priv->win.current_window)
+          key_event.window = priv->win.normal_parent;
+        else
+          key_event.window = priv->win.fullscreen_parent;
+        
+        key_event.root = priv->win.root;
+        key_event.subwindow = None;
+        key_event.time = CurrentTime;
+        key_event.x = 0;
+        key_event.y = 0;
+        key_event.x_root = 0;
+        key_event.y_root = 0;
+        key_event.same_screen = True;
+        
+        key_event.type = KeyPress;;
+        key_event.keycode = evt->xkey.keycode;
+        key_event.state = evt->xkey.state;
+        
+        XSendEvent(key_event.display,
+                   key_event.window,
+                   False, KeyPressMask, (XEvent *)(&key_event));
+        XFlush(priv->win.dpy);
+        }
+      
       break;
     case ConfigureNotify:
       //      if((priv->window_format.image_width != priv->win.window_width) ||

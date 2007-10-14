@@ -163,7 +163,7 @@ double  bg_msg_get_arg_float(bg_msg_t * msg, int arg);
  *  \param arg Argument index (starting with 0)
  *  \param value Value
  */
-void bg_msg_set_arg_color_rgb(bg_msg_t * msg, int arg, float * value);
+void bg_msg_set_arg_color_rgb(bg_msg_t * msg, int arg, const float * value);
 
 /** \brief Get an RGB color argument
  *  \param msg A message
@@ -178,7 +178,7 @@ void bg_msg_get_arg_color_rgb(bg_msg_t * msg, int arg, float * value);
  *  \param arg Argument index (starting with 0)
  *  \param value Value
  */
-void bg_msg_set_arg_color_rgba(bg_msg_t * msg, int arg, float * value);
+void bg_msg_set_arg_color_rgba(bg_msg_t * msg, int arg, const float * value);
 
 /** \brief Get an RGBA color argument
  *  \param msg A message
@@ -377,7 +377,7 @@ int bg_msg_read_audio_frame(bg_msg_t * msg,
 void bg_msg_set_parameter(bg_msg_t * msg,
                           const char * name,
                           bg_parameter_type_t type,
-                          bg_parameter_value_t * val);
+                          const bg_parameter_value_t * val);
   
 
 /** \brief Get a parameter

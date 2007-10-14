@@ -8,6 +8,11 @@ SUBDIRS = $(gtk_subdirs)
 
 AM_CFLAGS = @FONTCONFIG_CFLAGS@ @FREETYPE_CFLAGS@ -DLOCALE_DIR=\"$(localedir)\"
 
+bin_PROGRAMS = gmerlin_visualizer_slave
+
+gmerlin_visualizer_slave_SOURCES = visualize_slave.c
+gmerlin_visualizer_slave_LDADD = libgmerlin.la
+
 lib_LTLIBRARIES = libgmerlin.la
 libgmerlin_la_SOURCES = \
 album.c \

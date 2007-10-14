@@ -248,7 +248,7 @@ bg_parameter_info_concat_arrays(bg_parameter_info_t ** srcs);
 /** \ingroup parameter
  *  \brief Get the index for a multi-options parameter
  *  \param info A parameter info
- *  \param val The name if the value
+ *  \param val The value
  *  \returns The index of val in the multi_names array
  *
  *  If val does not occur in the multi_names[] array,
@@ -258,6 +258,21 @@ bg_parameter_info_concat_arrays(bg_parameter_info_t ** srcs);
 int bg_parameter_get_selected(const bg_parameter_info_t * info,
                               const char * val);
 
+
+/** \ingroup parameter
+ *  \brief Find a parameter info
+ *  \param info A parameter info
+ *  \param name The name of the the parameter
+ *  \returns Parameter info matching name or NULL
+ *
+ *  This function looks for a parameter info with the
+ *  given name in an array or parameters. Sub-parameters
+ *  are also searched.
+ */
+
+const bg_parameter_info_t *
+bg_parameter_find(const bg_parameter_info_t * info,
+                  const char * name);
 
 
 /** \ingroup parameter
