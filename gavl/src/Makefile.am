@@ -14,10 +14,14 @@ noinst_PROGRAMS = \
 $(png_programs) \
 colorspace_time \
 deinterlace_time \
+pixelformat_penalty \
 plot_scale_kernels \
 scaletest \
 scale_time \
 timescale_test
+
+pixelformat_penalty_SOURCES = pixelformat_penalty.c
+pixelformat_penalty_LDADD = ../gavl/libgavl.la
 
 colorspace_test_SOURCES = colorspace_test.c
 colorspace_test_LDADD = ../gavl/libgavl.la -lpng -lz

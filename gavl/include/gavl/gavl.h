@@ -1453,6 +1453,44 @@ int gavl_pixelformat_bytes_per_component(gavl_pixelformat_t pixelformat);
 int gavl_pixelformat_bytes_per_pixel(gavl_pixelformat_t pixelformat);
   
 /*! \ingroup video_format
+ *  \brief Get the effective number of bits for one pixel
+ *  \param pixelformat A pixelformat
+ *  \returns Number of bits per pixel
+ */
+
+int gavl_pixelformat_bits_per_pixel(gavl_pixelformat_t pixelformat);
+
+/*! \ingroup video_format
+ *  \brief Get the conversion penalty for pixelformat conversions
+ *  \param src Source pixelformat
+ *  \param dst Destination pixelformat
+ *  \returns A number denoting the "cost" of the conversion
+ *
+ *  The number (the larger the worse) is calculated from several criteria
+ *  and considers both speed and quality issues.
+ */
+
+int gavl_pixelformat_conversion_penalty(gavl_pixelformat_t src,
+                                        gavl_pixelformat_t dst);
+
+/*! \ingroup video_format
+ *  \brief Get the best destination format for a given source format
+ *  \param src Source pixelformat
+ *  \param dst_supported List of supported destination format
+ *  \returns The best supported destination pixelformat
+ *
+ *  This function takes a source format and a list of supported 
+ *  destination formats (terminmated with \ref GAVL_PIXELFORMAT_NONE)
+ *  and returns the format, which will result in the cheapest conversion.
+ */
+
+gavl_pixelformat_t 
+gavl_pixelformat_get_best(gavl_pixelformat_t src,
+                          gavl_pixelformat_t * dst_supported);
+  
+
+
+/*! \ingroup video_format
  * \brief Translate a pixelformat into a human readable string
  * \param pixelformat A pixelformat
  * \returns A string describing the pixelformat

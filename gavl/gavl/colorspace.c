@@ -160,6 +160,8 @@ void gavl_pixelformat_chroma_sub(gavl_pixelformat_t csp, int * sub_h,
     }
   }
 
+
+
 int gavl_num_pixelformats()
   {
   return num_pixelformats - 1;
@@ -2573,6 +2575,169 @@ int gavl_pixelformat_bytes_per_pixel(gavl_pixelformat_t csp)
     }
   return 0;
   }
+
+int gavl_pixelformat_bits_per_pixel(gavl_pixelformat_t pixelformat)
+  {
+  switch(pixelformat)
+    {
+    case GAVL_PIXELFORMAT_NONE:
+      return 0;
+      break;
+    case GAVL_RGB_15:
+    case GAVL_BGR_15:
+      return 15;
+    case GAVL_RGB_16:
+    case GAVL_BGR_16:
+      return 16;
+      break;
+    case GAVL_RGB_24:
+    case GAVL_BGR_24:
+    case GAVL_RGB_32:
+    case GAVL_BGR_32:
+      return 24;
+      break;
+    case GAVL_RGBA_32:
+    case GAVL_YUVA_32:
+      return 32;
+      break;
+    case GAVL_RGB_48:
+      return 48;
+      break;
+    case GAVL_RGBA_64:
+      return 64;
+      break;
+    case GAVL_RGB_FLOAT:
+      return 8*3*sizeof(float);
+      break;
+    case GAVL_RGBA_FLOAT:
+      return 8*4*sizeof(float);
+      break;
+    case GAVL_YUY2:
+    case GAVL_UYVY:
+    case GAVL_YUV_422_P:
+    case GAVL_YUVJ_422_P:
+      return 16;
+      break;
+    case GAVL_YUV_420_P:
+    case GAVL_YUVJ_420_P:
+    case GAVL_YUV_411_P:
+      return 12;
+      break;
+    case GAVL_YUV_444_P:
+    case GAVL_YUVJ_444_P:
+      return 24;
+      break;
+    case GAVL_YUV_422_P_16:
+      return 32;
+      break;
+    case GAVL_YUV_444_P_16:
+      return 48;
+      break;
+    case GAVL_YUV_410_P:
+      return 9;
+      break;
+    }
+  return 0;
+  
+  }
+
+int gavl_pixelformat_conversion_penalty(gavl_pixelformat_t src,
+                                        gavl_pixelformat_t dst)
+  {
+  int ret;
+  int sub_h_src, sub_h_dst;
+  int sub_v_src, sub_v_dst;
+  int src_bits, dst_bits;
+  
+  if(src == dst)
+    return 0;
+
+  gavl_pixelformat_chroma_sub(src, &sub_h_src, &sub_v_src);
+  gavl_pixelformat_chroma_sub(dst, &sub_h_dst, &sub_v_dst);
+
+  ret = 0;
+  
+  /* Loosing the alpha channel is the worst */
+  if(gavl_pixelformat_has_alpha(src) &&
+     !gavl_pixelformat_has_alpha(dst))
+    ret += 1;
+  
+  
+  /* Colorspace conversions aren't good either */
+
+  ret <<= 1;
+  if(gavl_pixelformat_is_rgb(src) !=
+     gavl_pixelformat_is_rgb(dst))
+    ret += 1;
+
+
+  /* Chroma subsampling is next */
+  ret <<= 1;
+  if((sub_h_src != sub_h_dst) || (sub_v_src != sub_v_dst))
+    ret += 1;
+
+  /* Bits per channel difference is maximum 256
+     (one extra bit for src_bits > dst_bits) */
+  ret <<= 9;
+  
+  src_bits = gavl_pixelformat_bits_per_pixel(src);
+  dst_bits = gavl_pixelformat_bits_per_pixel(dst);
+  
+  /* Increasing precision is bad... */
+  if(src_bits < dst_bits)
+    ret += (dst_bits - src_bits);
+  /* ... but descreasing precision is worse */
+  else if(src_bits > dst_bits)
+    ret += (src_bits - dst_bits) * 2;
+
+  /*
+   *   Converting between YUV and YUVJ is done via lookup tables,
+   *   (efficient but lossy)
+   */
+
+  ret <<= 1;
+  if(gavl_pixelformat_is_yuv(src) &&
+     gavl_pixelformat_is_yuv(dst) &&
+     (gavl_pixelformat_is_jpeg_scaled(src) !=
+      gavl_pixelformat_is_jpeg_scaled(dst)))
+    ret += 1;
+  
+  /* Remaining differences should be packing format.
+     Conversions here are lossless and efficient */
+  ret <<= 1;
+  ret += 1;
+  return ret;
+  }
+
+gavl_pixelformat_t 
+gavl_pixelformat_get_best(gavl_pixelformat_t src,
+                          gavl_pixelformat_t * dst_supported)
+  {
+  int min_penalty;
+  int min_index;
+  int i, test;
+  
+  min_penalty =
+    gavl_pixelformat_conversion_penalty(src,
+                                        dst_supported[0]);
+  min_index = 0;
+
+  i = 1;
+  while(dst_supported[i] != GAVL_PIXELFORMAT_NONE)
+    {
+    test = gavl_pixelformat_conversion_penalty(src,
+                                               dst_supported[i]);
+    if(test < min_penalty)
+      {
+      min_penalty = test;
+      min_index = i;
+      }
+    i++;
+    }
+  return dst_supported[min_index];
+  }
+
+
 
 /* Check if a pixelformat can be converted by simple scaling */
 
