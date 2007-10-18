@@ -14,6 +14,7 @@ sampleformats[] =
     { "_s8", GAVL_SAMPLE_S8 },
     { "_u16", GAVL_SAMPLE_U16  },
     { "_s16", GAVL_SAMPLE_S16 },
+    { "_s32", GAVL_SAMPLE_S32 },
     { "_f", GAVL_SAMPLE_FLOAT },
   };
 
