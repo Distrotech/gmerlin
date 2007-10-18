@@ -2676,7 +2676,7 @@ int gavl_pixelformat_conversion_penalty(gavl_pixelformat_t src,
   if((sub_h_src != sub_h_dst) || (sub_v_src != sub_v_dst))
     ret += 1;
 
-  /* Bits per channel difference is maximum 256
+  /* Bits per pixel difference is maximum 256
      (one extra bit for src_bits > dst_bits) */
   ret <<= 9;
   
@@ -2685,7 +2685,21 @@ int gavl_pixelformat_conversion_penalty(gavl_pixelformat_t src,
   
   /* Increasing precision is bad... */
   if(src_bits < dst_bits)
-    ret += (dst_bits - src_bits);
+    {
+    /*
+     *  Special case: Conversions from e.g. RGB_24 to
+     *  RGBA_32 don't really mean changed precision.
+     *  They are, in fact, almost as cheap as RGB_24 -> RGB_32.
+     *  Thus, they get one penalty credit (for setting the
+     *  alpha value in the destination frame)
+     */
+    if(!gavl_pixelformat_has_alpha(src) &&
+       gavl_pixelformat_has_alpha(dst) &&
+       (4 * src_bits == 3 * dst_bits))
+      ret++;
+    else
+      ret += (dst_bits - src_bits);
+    }
   /* ... but descreasing precision is worse */
   else if(src_bits > dst_bits)
     ret += (src_bits - dst_bits) * 2;

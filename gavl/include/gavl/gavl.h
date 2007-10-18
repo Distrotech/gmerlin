@@ -1467,7 +1467,11 @@ int gavl_pixelformat_bits_per_pixel(gavl_pixelformat_t pixelformat);
  *  \returns A number denoting the "cost" of the conversion
  *
  *  The number (the larger the worse) is calculated from several criteria
- *  and considers both speed and quality issues.
+ *  and considers both speed and quality issues. Don't ever rely on
+ *  specific absolute values, since they can change from version 
+ *  to version (except 0, which is returned when and only when src and dst 
+ *  are equal). Instead, only compare values returned for different 
+ *  combinations among each other.
  */
 
 int gavl_pixelformat_conversion_penalty(gavl_pixelformat_t src,
@@ -1480,8 +1484,9 @@ int gavl_pixelformat_conversion_penalty(gavl_pixelformat_t src,
  *  \returns The best supported destination pixelformat
  *
  *  This function takes a source format and a list of supported 
- *  destination formats (terminmated with \ref GAVL_PIXELFORMAT_NONE)
- *  and returns the format, which will result in the cheapest conversion.
+ *  destination formats (terminated with \ref GAVL_PIXELFORMAT_NONE)
+ *  and returns the format, which will result in the cheapest conversion
+ *  (see \ref gavl_pixelformat_conversion_penalty).
  */
 
 gavl_pixelformat_t 
