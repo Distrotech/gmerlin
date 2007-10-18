@@ -29,7 +29,7 @@ static void set_volume_u8_c(gavl_volume_control_t * v, void * samples,
   
   for(i = 0; i < num_samples; i++)
     {
-    sample = ((((int)s[i] - 0x80) * v->factor_i) >> 16) + 0x80;
+    sample = ((((int)s[i] - 0x80) * v->factor_i) >> 8) + 0x80;
     CLAMP(sample, 0, 255);
     s[i] = sample;
     }
@@ -61,7 +61,7 @@ static void set_volume_u16_c(gavl_volume_control_t * v, void * samples,
   for(i = 0; i < num_samples; i++)
     {
     sample = ((((int64_t)s[i] - 0x8000) * v->factor_i) >> 16) + 0x8000;
-    CLAMP(sample, 0, 32767);
+    CLAMP(sample, 0, 65535);
     s[i] = sample;
     }
   }

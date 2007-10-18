@@ -18,10 +18,14 @@ pixelformat_penalty \
 plot_scale_kernels \
 scaletest \
 scale_time \
-timescale_test
+timescale_test \
+volume_test
 
 pixelformat_penalty_SOURCES = pixelformat_penalty.c
 pixelformat_penalty_LDADD = ../gavl/libgavl.la
+
+volume_test_SOURCES = volume_test.c
+volume_test_LDADD = ../gavl/libgavl.la
 
 colorspace_test_SOURCES = colorspace_test.c
 colorspace_test_LDADD = ../gavl/libgavl.la -lpng -lz
