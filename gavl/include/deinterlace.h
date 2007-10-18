@@ -25,12 +25,12 @@
 #include "config.h"
 
 typedef void (*gavl_video_deinterlace_func)(gavl_video_deinterlacer_t*,
-                                            gavl_video_frame_t*in,
+                                            const gavl_video_frame_t*in,
                                             gavl_video_frame_t*out);
 
-typedef void (*gavl_video_deinterlace_blend_func)(uint8_t * t,
-                                                  uint8_t * m,
-                                                  uint8_t * b,
+typedef void (*gavl_video_deinterlace_blend_func)(const uint8_t * t,
+                                                  const uint8_t * m,
+                                                  const uint8_t * b,
                                                   uint8_t * dst,
                                                   int num);
 

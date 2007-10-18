@@ -34,9 +34,9 @@
 
 
 
-static void blend_func_8_mmx(uint8_t * t,
-                             uint8_t * m,
-                             uint8_t * b,
+static void blend_func_8_mmx(const uint8_t * t,
+                             const uint8_t * m,
+                             const uint8_t * b,
                              uint8_t * dst,
                              int num)
   {

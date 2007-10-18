@@ -36,11 +36,11 @@
 #define EMMS() femms()
 #endif
 
-static void blend_func_8_3dnow(uint8_t * t,
-                             uint8_t * m,
-                             uint8_t * b,
-                             uint8_t * dst,
-                             int num)
+static void blend_func_8_3dnow(const uint8_t * t,
+                               const uint8_t * m,
+                               const uint8_t * b,
+                               uint8_t * dst,
+                               int num)
   {
   int i;
   int imax;

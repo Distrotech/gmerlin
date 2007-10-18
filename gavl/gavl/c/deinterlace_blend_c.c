@@ -24,17 +24,17 @@
 #include <accel.h>
 #include <colorspace_tables.h>
 #include <colorspace_macros.h>
-static void blend_func_packed_15_c(uint8_t * t1,
-                                   uint8_t * m1,
-                                   uint8_t * b1,
+static void blend_func_packed_15_c(const uint8_t * t1,
+                                   const uint8_t * m1,
+                                   const uint8_t * b1,
                                    uint8_t * dst1,
                                    int num)
   {
   int i;
 
-  uint16_t * t   = (uint16_t*)t1;
-  uint16_t * m   = (uint16_t*)m1;
-  uint16_t * b   = (uint16_t*)b1;
+  const uint16_t * t   = (const uint16_t*)t1;
+  const uint16_t * m   = (const uint16_t*)m1;
+  const uint16_t * b   = (const uint16_t*)b1;
   uint16_t * dst = (uint16_t*)dst1;
   
   for(i = 0; i < num; i++)
@@ -65,17 +65,17 @@ static void blend_func_packed_15_c(uint8_t * t1,
     }
   }
 
-static void blend_func_packed_16_c(uint8_t * t1,
-                                   uint8_t * m1,
-                                   uint8_t * b1,
+static void blend_func_packed_16_c(const uint8_t * t1,
+                                   const uint8_t * m1,
+                                   const uint8_t * b1,
                                    uint8_t * dst1,
                                    int num)
   {
   int i;
 
-  uint16_t * t   = (uint16_t*)t1;
-  uint16_t * m   = (uint16_t*)m1;
-  uint16_t * b   = (uint16_t*)b1;
+  const uint16_t * t   = (const uint16_t*)t1;
+  const uint16_t * m   = (const uint16_t*)m1;
+  const uint16_t * b   = (const uint16_t*)b1;
   uint16_t * dst = (uint16_t*)dst1;
   
   for(i = 0; i < num; i++)
@@ -106,9 +106,9 @@ static void blend_func_packed_16_c(uint8_t * t1,
     }
   }
 
-static void blend_func_8_c(uint8_t * t,
-                           uint8_t * m,
-                           uint8_t * b,
+static void blend_func_8_c(const uint8_t * t,
+                           const uint8_t * m,
+                           const uint8_t * b,
                            uint8_t * dst,
                            int num)
   {
@@ -119,17 +119,17 @@ static void blend_func_8_c(uint8_t * t,
     }
   }
 
-static void blend_func_16_c(uint8_t * t1,
-                            uint8_t * m1,
-                            uint8_t * b1,
+static void blend_func_16_c(const uint8_t * t1,
+                            const uint8_t * m1,
+                            const uint8_t * b1,
                             uint8_t * dst1,
                             int num)
   {
   int i;
 
-  uint16_t * t   = (uint16_t*)t1;
-  uint16_t * m   = (uint16_t*)m1;
-  uint16_t * b   = (uint16_t*)b1;
+  const uint16_t * t   = (const uint16_t*)t1;
+  const uint16_t * m   = (const uint16_t*)m1;
+  const uint16_t * b   = (const uint16_t*)b1;
   uint16_t * dst = (uint16_t*)dst1;
   
   for(i = 0; i < num; i++)
@@ -140,17 +140,17 @@ static void blend_func_16_c(uint8_t * t1,
 
 
 
-static void blend_func_float_c(uint8_t * t1,
-                               uint8_t * m1,
-                               uint8_t * b1,
+static void blend_func_float_c(const uint8_t * t1,
+                               const uint8_t * m1,
+                               const uint8_t * b1,
                                uint8_t * dst1,
                                int num)
   {
   int i;
 
-  float * t   = (float*)t1;
-  float * m   = (float*)m1;
-  float * b   = (float*)b1;
+  const float * t   = (float*)t1;
+  const float * m   = (float*)m1;
+  const float * b   = (float*)b1;
   float * dst = (float*)dst1;
   
   for(i = 0; i < num; i++)

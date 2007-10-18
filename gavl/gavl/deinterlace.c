@@ -85,7 +85,7 @@ int gavl_video_deinterlacer_init(gavl_video_deinterlacer_t * d,
   }
 
 void gavl_video_deinterlacer_deinterlace(gavl_video_deinterlacer_t * d,
-                                         gavl_video_frame_t * input_frame,
+                                         const gavl_video_frame_t * input_frame,
                                          gavl_video_frame_t * output_frame)
   {
   if(d->format.interlace_mode == GAVL_INTERLACE_MIXED)

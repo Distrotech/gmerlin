@@ -406,6 +406,8 @@ typedef struct gavl_audio_frame_s
   gavl_audio_channels_t channels;/*!< Channel pointer for non interleaved formats    */
   int valid_samples;             /*!< Number of actually valid samples */
   int64_t timestamp;             /*!< Timestamp in samplerate tics */
+  int channel_stride;            /*!< Byte offset between channels. Total allocated size is always num_channels * channel_stride */
+  int reserved[8];
   } gavl_audio_frame_t;
 
 /*!
@@ -457,6 +459,17 @@ void gavl_audio_frame_destroy(gavl_audio_frame_t * frame);
 void gavl_audio_frame_mute(gavl_audio_frame_t * frame,
                            const gavl_audio_format_t * format);
 
+/*!
+  \ingroup audio_frame
+  \brief Swap endianess an audio frame.
+  \param format The format of the frame
+  \param frame An audio frame
+*/
+
+void gavl_audio_frame_swap_endian(gavl_audio_frame_t * frame,
+                                  const gavl_audio_format_t * format);
+  
+  
 /*!
   \ingroup audio_frame
   \brief Mute a single channel of an audio frame.
@@ -1706,6 +1719,7 @@ typedef struct gavl_video_frame_s
   int64_t timestamp; /*!< Timestamp in stream specific units (see \ref video_format) */
   int64_t duration; /*!< Duration in stream specific units (see \ref video_format) */
   gavl_interlace_mode_t   interlace_mode;/*!< Interlace mode */
+  int reserved[8]; /*!< reserved for future use */
   } gavl_video_frame_t;
 
 
@@ -2190,7 +2204,7 @@ int gavl_video_options_get_scale_order(gavl_video_options_t * opt);
  */
 
 void gavl_video_options_set_background_color(gavl_video_options_t * opt,
-                                             float * color);
+                                             const float * color);
 
 /*! \ingroup video_options
  *  \brief Get the background color for alpha blending
@@ -2529,7 +2543,7 @@ int gavl_video_deinterlacer_init(gavl_video_deinterlacer_t * deinterlacer,
  */
   
 void gavl_video_deinterlacer_deinterlace(gavl_video_deinterlacer_t * deinterlacer,
-                                         gavl_video_frame_t * input_frame,
+                                         const gavl_video_frame_t * input_frame,
                                          gavl_video_frame_t * output_frame);
 
   

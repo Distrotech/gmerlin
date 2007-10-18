@@ -166,7 +166,7 @@ gavl_video_options_get_deinterlace_drop_mode(gavl_video_options_t * opt)
 #define CLIP_FLOAT(a) if(a < 0.0) a = 0.0; if(a>1.0) a = 1.0;
 
 void gavl_video_options_set_background_color(gavl_video_options_t * opt,
-                                             float * color)
+                                             const float * color)
   {
   memcpy(opt->background_float, color, 3*sizeof(*color));
 

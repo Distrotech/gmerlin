@@ -62,7 +62,7 @@ static void audio_converter_cleanup(gavl_audio_converter_t* cnv)
   while(ctx)
     {
     ctx = cnv->contexts->next;
-    if(ctx)
+    if(ctx && cnv->contexts->output_frame)
       gavl_audio_frame_destroy(cnv->contexts->output_frame);
     destroy_context(cnv->contexts);
     cnv->contexts = ctx;

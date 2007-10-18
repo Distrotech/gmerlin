@@ -79,7 +79,7 @@ AC_CHECK_FUNCS([memalign])
 AC_C99_FUNC_LRINT
 AC_C99_FUNC_LRINTF
 
-AC_CHECK_HEADERS(sys/times.h)
+AC_CHECK_HEADERS(sys/times.h byteswap.h)
 
 dnl
 dnl Check for libpng (only needed for some tests)

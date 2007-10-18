@@ -22,7 +22,7 @@
 #include <deinterlace.h>
 
 static void deinterlace_scale(gavl_video_deinterlacer_t * d,
-                              gavl_video_frame_t * in,
+                              const gavl_video_frame_t * in,
                               gavl_video_frame_t * out)
   { 
   gavl_video_scaler_scale(d->scaler, in, out);

@@ -24,7 +24,7 @@
 #include <deinterlace.h>
 
 static void deinterlace_copy(gavl_video_deinterlacer_t * d,
-                             gavl_video_frame_t * input_frame,
+                             const gavl_video_frame_t * input_frame,
                              gavl_video_frame_t * output_frame)
   {
   //  fprintf(stderr, "DEINTERLACE_COPY\n");

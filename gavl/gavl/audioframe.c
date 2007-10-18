@@ -25,7 +25,7 @@
 #include <config.h>
 #include <gavl.h>
 #include <accel.h>
-
+#include <bswap.h>
 
 /* Taken from a52dec (thanks guys) */
 
@@ -56,6 +56,7 @@ gavl_audio_frame_create(const gavl_audio_format_t * format)
   switch(format->sample_format)
     {
     case GAVL_SAMPLE_U8:
+      ret->channel_stride = num_samples;
       ret->samples.u_8 =
         memalign(ALIGNMENT_BYTES, num_samples * format->num_channels);
 
@@ -64,6 +65,7 @@ gavl_audio_frame_create(const gavl_audio_format_t * format)
 
       break;
     case GAVL_SAMPLE_S8:
+      ret->channel_stride = num_samples;
       ret->samples.s_8 =
         memalign(ALIGNMENT_BYTES, num_samples * format->num_channels);
 
@@ -72,6 +74,7 @@ gavl_audio_frame_create(const gavl_audio_format_t * format)
 
       break;
     case GAVL_SAMPLE_U16:
+      ret->channel_stride = num_samples * 2;
       ret->samples.u_16 =
         memalign(ALIGNMENT_BYTES, 2 * num_samples * format->num_channels);
       for(i = 0; i < format->num_channels; i++)
@@ -79,6 +82,7 @@ gavl_audio_frame_create(const gavl_audio_format_t * format)
 
       break;
     case GAVL_SAMPLE_S16:
+      ret->channel_stride = num_samples * 2;
       ret->samples.s_16 =
         memalign(ALIGNMENT_BYTES, 2 * num_samples * format->num_channels);
       for(i = 0; i < format->num_channels; i++)
@@ -87,6 +91,7 @@ gavl_audio_frame_create(const gavl_audio_format_t * format)
       break;
 
     case GAVL_SAMPLE_S32:
+      ret->channel_stride = num_samples * 4;
       ret->samples.s_32 =
         memalign(ALIGNMENT_BYTES, 4 * num_samples * format->num_channels);
       for(i = 0; i < format->num_channels; i++)
@@ -95,6 +100,7 @@ gavl_audio_frame_create(const gavl_audio_format_t * format)
       break;
 
     case GAVL_SAMPLE_FLOAT:
+      ret->channel_stride = num_samples * sizeof(float);
       ret->samples.f =
         memalign(ALIGNMENT_BYTES, sizeof(float) * num_samples * format->num_channels);
 
@@ -155,6 +161,93 @@ void gavl_audio_frame_mute(gavl_audio_frame_t * frame,
       break;
     }
   frame->valid_samples = format->samples_per_frame;
+  }
+
+static void do_swap_16(uint8_t * data, int len)
+  {
+  int i;
+  uint16_t * ptr = (uint16_t*)data;
+
+  for(i = 0; i < len; i++)
+    {
+    *ptr = bswap_16(*ptr);
+    ptr++;
+    }
+  
+  }
+
+static void do_swap_32(uint8_t * data, int len)
+  {
+  int i;
+  uint32_t * ptr = (uint32_t*)data;
+  for(i = 0; i < len; i++)
+    {
+    *ptr = bswap_32(*ptr);
+    ptr++;
+    }
+  }
+
+static void do_swap_64(uint8_t * data, int len)
+  {
+  int i;
+  uint64_t * ptr = (uint64_t*)data;
+  for(i = 0; i < len; i++)
+    {
+    *ptr = bswap_64(*ptr);
+    ptr++;
+    }
+  }
+
+void gavl_audio_frame_swap_endian(gavl_audio_frame_t * frame,
+                                  const gavl_audio_format_t * format)
+  {
+  int bytes_per_sample, len, i;
+  void (*do_swap)(uint8_t * data, int len);
+  
+  bytes_per_sample = gavl_bytes_per_sample(format->sample_format);
+  
+  switch(bytes_per_sample)
+    {
+    case 1:
+      return;
+      break;
+    case 2:
+      do_swap = do_swap_16;
+      break;
+    case 4:
+      do_swap = do_swap_32;
+      break;
+    case 8:
+      do_swap = do_swap_64;
+      break;
+    default:
+      return;
+    }
+  switch(format->interleave_mode)
+    {
+    
+    case GAVL_INTERLEAVE_NONE:
+      len = frame->valid_samples;
+      for(i = 0; i < format->num_channels; i++)
+        do_swap(frame->channels.u_8[i], len);
+      break;
+    case GAVL_INTERLEAVE_2:
+      len = frame->valid_samples * 2;
+      for(i = 0; i < format->num_channels/2; i++)
+        do_swap(frame->channels.u_8[2*i], len);
+      
+      if(format->num_channels % 2)
+        {
+        len = frame->valid_samples;
+        do_swap(frame->channels.u_8[format->num_channels-1], len);
+        }
+    
+      break;
+    case GAVL_INTERLEAVE_ALL:
+      len = frame->valid_samples * format->num_channels;
+      do_swap(frame->samples.u_8, len);
+      break;
+    }
   }
 
 void gavl_audio_frame_mute_channel(gavl_audio_frame_t * frame,
