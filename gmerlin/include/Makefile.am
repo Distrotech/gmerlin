@@ -17,6 +17,7 @@ config.h \
 converters.h \
 fifo.h \
 filters.h \
+float_cast.h \
 keycodes.h \
 lcdproc.h \
 log.h \
