@@ -295,6 +295,19 @@ AM_CONDITIONAL(HAVE_VORBIS, test x$have_vorbis = xtrue)
  
 if test x$have_vorbis = xtrue; then
 AC_DEFINE(HAVE_VORBIS)
+
+OLD_CFLAGS=$CFLAGS
+OLD_LIBS=$LIBS
+
+CFLAGS="$VORBIS_CFLAGS"
+LIBS="$VORBIS_LIBS"
+
+AC_CHECK_FUNCS(vorbis_synthesis_restart)
+
+CFLAGS="$OLD_CFLAGS"
+LIBS="$OLD_LIBS"
+
+
 fi
 
 AC_SUBST(VORBIS_REQUIRED)

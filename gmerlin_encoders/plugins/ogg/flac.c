@@ -157,7 +157,7 @@ write_callback(const FLAC__StreamEncoder *encoder,
       flacogg->frames_encoded++;
       flacogg->samples_encoded += flacogg->frame_samples;
 
-      fprintf(stderr, "Encoded frame, granulepos: %lld, bytes: %d\n",
+      fprintf(stderr, "Encoded frame, granulepos: %lld, bytes: %ld\n",
               op.granulepos, op.bytes);
       }
 
@@ -239,8 +239,8 @@ static int init_flacogg(void * data, gavl_audio_format_t * format, bg_metadata_t
 #if BGAV_FLAC_VERSION_INT <= MAKE_VERSION(1, 1, 2)
   FLAC__stream_encoder_set_write_callback(flacogg->enc, write_callback);
   FLAC__stream_encoder_set_metadata_callback(flacogg->enc, metadata_callback);
-  FLAC__stream_encoder_set_client_data(flacogg->enc, ret);
-
+  FLAC__stream_encoder_set_client_data(flacogg->enc, flacogg);
+  
   if(FLAC__stream_encoder_init(flacogg->enc) != FLAC__STREAM_ENCODER_OK)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "ERROR: FLAC__stream_encoder_init failed");

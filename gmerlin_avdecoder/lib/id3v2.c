@@ -380,12 +380,10 @@ static int read_frame(bgav_input_context_t * input,
   if(ret->header.size > input->total_bytes - input->position)
     return 0;
   
-  data = malloc(ret->header.size);
+  data = calloc(ret->header.size+2, 1);
   if(bgav_input_read_data(input, data, ret->header.size) <
      ret->header.size)
     return 0;
-
-  //  bgav_hexdump(data, ret->header.size, 16);
   
   if(((ret->header.fourcc & 0xFF000000) ==
      BGAV_MK_FOURCC('T', 0x00, 0x00, 0x00)) &&

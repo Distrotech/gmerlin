@@ -133,6 +133,7 @@ static int next_packet(bgav_stream_t * s)
     p = bgav_demuxer_get_packet_read(s->demuxer, s);
     if(!p)
       return 0;
+    
     parse_packet(&priv->dec_op, p->data); 
     bgav_demuxer_done_packet_read(s->demuxer, p);
     }
@@ -167,6 +168,7 @@ static int init_vorbis(bgav_stream_t * s)
   priv = calloc(1, sizeof(*priv));
   ogg_sync_init(&priv->dec_oy);
 
+  
   vorbis_info_init(&priv->dec_vi);
   vorbis_comment_init(&priv->dec_vc);
 
@@ -400,7 +402,10 @@ static int init_vorbis(bgav_stream_t * s)
   
   vorbis_synthesis_init(&priv->dec_vd, &priv->dec_vi);
   vorbis_block_init(&priv->dec_vd, &priv->dec_vb);
-  
+
+  // #ifdef HAVE_VORBIS_SYNTHESIS_RESTART
+  //  vorbis_synthesis_restart(&priv->dec_vd);
+  // #endif  
   s->data.audio.format.sample_format   = GAVL_SAMPLE_FLOAT;
   s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_NONE;
   s->data.audio.format.samples_per_frame = 1024;
@@ -488,8 +493,6 @@ static void resync_vorbis(bgav_stream_t * s)
   {
   vorbis_audio_priv * priv;
   priv = (vorbis_audio_priv*)(s->data.audio.decoder->priv);
-  vorbis_dsp_clear(&priv->dec_vd);
-  vorbis_block_clear(&priv->dec_vb);
 
   if(s->fourcc != BGAV_VORBIS)
     {
@@ -501,9 +504,14 @@ static void resync_vorbis(bgav_stream_t * s)
     ogg_sync_init(&priv->dec_oy);
     ogg_stream_init(&priv->dec_os, ogg_page_serialno(&priv->dec_og));
     }
+#ifdef HAVE_VORBIS_SYNTHESIS_RESTART
+  vorbis_synthesis_restart(&priv->dec_vd);
+#else
+  vorbis_dsp_clear(&priv->dec_vd);
+  vorbis_block_clear(&priv->dec_vb);
   vorbis_synthesis_init(&priv->dec_vd, &priv->dec_vi);
   vorbis_block_init(&priv->dec_vd, &priv->dec_vb);
-
+#endif  
   priv->last_block_size = 0;
   priv->frame->valid_samples = 0;
   }

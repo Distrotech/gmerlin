@@ -269,7 +269,11 @@ typedef struct
 
   } seektable_client_data;
 
+#if BGAV_FLAC_VERSION_INT <= MAKE_VERSION(1, 1, 2)
+static FLAC__StreamDecoderWriteStatus
+#else
 static FLAC__FileDecoderWriteStatus
+#endif
 seektable_write_callback(const FLAC__FileDecoder *decoder,
                          const FLAC__Frame *frame,
                          const FLAC__int32 * const buffer[],
