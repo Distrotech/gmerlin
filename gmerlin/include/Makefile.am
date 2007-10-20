@@ -38,7 +38,8 @@ transcodermsg.h \
 transcoder_track.h \
 translation.h \
 tree.h \
-utils.h
+utils.h \
+visualize.h
 
 
 noinst_HEADERS = \

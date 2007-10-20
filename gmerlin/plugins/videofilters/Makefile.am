@@ -45,4 +45,4 @@ fv_equalizer_la_SOURCES  = fv_equalizer.c
 
 fv_zoom_la_SOURCES  = fv_zoom.c
 
-noinst_HEADERS = motionsearch.h
+noinst_HEADERS = motionsearch.h yuvdeinterlace.h
