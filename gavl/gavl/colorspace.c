@@ -2725,7 +2725,8 @@ int gavl_pixelformat_conversion_penalty(gavl_pixelformat_t src,
 
 gavl_pixelformat_t 
 gavl_pixelformat_get_best(gavl_pixelformat_t src,
-                          gavl_pixelformat_t * dst_supported)
+                          gavl_pixelformat_t * dst_supported,
+                          int *penalty)
   {
   int min_penalty;
   int min_index;
@@ -2748,6 +2749,8 @@ gavl_pixelformat_get_best(gavl_pixelformat_t src,
       }
     i++;
     }
+  if(penalty)
+    *penalty = min_penalty;
   return dst_supported[min_index];
   }
 

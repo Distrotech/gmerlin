@@ -1494,6 +1494,7 @@ int gavl_pixelformat_conversion_penalty(gavl_pixelformat_t src,
  *  \brief Get the best destination format for a given source format
  *  \param src Source pixelformat
  *  \param dst_supported List of supported destination format
+ *  \param penalty If non-null, returns the conversion penalty
  *  \returns The best supported destination pixelformat
  *
  *  This function takes a source format and a list of supported 
@@ -1504,7 +1505,8 @@ int gavl_pixelformat_conversion_penalty(gavl_pixelformat_t src,
 
 gavl_pixelformat_t 
 gavl_pixelformat_get_best(gavl_pixelformat_t src,
-                          gavl_pixelformat_t * dst_supported);
+                          gavl_pixelformat_t * dst_supported,
+                          int * penalty);
   
 
 
