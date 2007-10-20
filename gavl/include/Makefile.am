@@ -8,6 +8,7 @@ arith128.h \
 attributes.h \
 audio.h \
 blend.h \
+bswap.h \
 colorspace.h \
 deinterlace.h \
 dsp.h \
