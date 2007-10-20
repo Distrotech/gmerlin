@@ -34,8 +34,6 @@
 typedef struct
   {
   lemuria_engine_t * e;
-  bg_ov_plugin_t * ov_plugin;
-  void * ov_priv;
   } lemuria_priv_t;
 
 static void * create_lemuria()
@@ -74,17 +72,13 @@ set_parameter_lemuria(void * priv, const char * name,
 #endif
 
 static int
-open_lemuria(void * priv, bg_ov_plugin_t * ov_plugin, void * ov_priv,
-             gavl_audio_format_t * audio_format,
-             gavl_video_format_t * video_format)
+open_lemuria(void * priv, gavl_audio_format_t * audio_format,
+             const char * window_id)
   {
   lemuria_priv_t * vp;
   vp = (lemuria_priv_t *)priv;
-  vp->ov_plugin = ov_plugin;
-  vp->ov_priv   = ov_priv;
   
-  vp->e = lemuria_create(vp->ov_plugin->get_window(vp->ov_priv),
-                         video_format->image_width, video_format->image_height);
+  vp->e = lemuria_create(window_id, 256, 256);
   
   lemuria_adjust_format(vp->e, audio_format);
   return 1;
@@ -136,7 +130,7 @@ bg_visualization_plugin_t the_plugin =
       //      set_parameter:    set_parameter_lemuria,
       priority:         1,
     },
-    open: open_lemuria,
+    open_win: open_lemuria,
     update: update_lemuria,
     draw_frame: draw_frame_lemuria,
 

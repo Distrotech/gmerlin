@@ -104,9 +104,10 @@ set_parameter_goom(void * priv, const char * name,
 #endif
 
 static int
-open_goom(void * priv, bg_ov_plugin_t * ov_plugin,
-          void * ov_priv,
+open_goom(void * priv,
           gavl_audio_format_t * audio_format,
+          bg_ov_plugin_t * ov_plugin,
+          void * ov_priv,
           gavl_video_format_t * video_format)
   {
   goom_priv_t * vp;
@@ -207,7 +208,7 @@ bg_visualization_plugin_t the_plugin =
       //      set_parameter:    set_parameter_goom,
       priority:         1,
     },
-    open: open_goom,
+    open_ov: open_goom,
     update: update_goom,
     draw_frame: draw_frame_goom,
     close: close_goom

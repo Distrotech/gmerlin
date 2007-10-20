@@ -56,8 +56,15 @@ echo "done"
 echo -n "doing automake..."
 automake -a --foreign
 if test $? != "0"; then
-  echo "failed"
+  echo -n "automake failed in first try (broken version). Trying once more..."
+  $LIBTOOLIZE --automake --copy --force
+  automake -a
+  if test $? != "0"; then
+    echo "failed"
   exit 1
+  else 
+    echo "Success :)"
+  fi
 fi
 echo "done"
 

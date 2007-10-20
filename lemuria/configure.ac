@@ -32,8 +32,8 @@ dnl
 if test "x$prefix" = xNONE; then
   prefix="${ac_default_prefix}"
 fi
-PREFIX=$prefix
-AC_DEFINE_UNQUOTED(PREFIX, "$PREFIX", Installation prefix)
+
+AC_DEFINE_UNQUOTED(PREFIX, "$prefix", Installation prefix)
 
 dnl
 dnl X11

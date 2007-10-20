@@ -174,14 +174,18 @@ static void handle_event(lemuria_engine_t * e, XEvent * event)
 
   x11_window_handle_event(&(data->win), event);
 
+  if(data->win.size_changed)
+    {
+    e->width = data->win.window_width;
+    e->height = data->win.window_height;
+    }
+  
   if(!event)
     return;
     
   switch(event->type)
     {
     case ConfigureNotify:
-      e->width = data->win.window_width;
-      e->height = data->win.window_height;
       break;
     case KeyPress:
       do_send_event = 0;

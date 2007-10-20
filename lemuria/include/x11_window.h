@@ -65,6 +65,7 @@ typedef struct
   Window normal_window;
   Window fullscreen_window;
   Window current_window;
+  Window current_parent;
   Window root;
 
   Window normal_parent;
@@ -120,6 +121,7 @@ typedef struct
   char * display_string;
 
   Colormap colormap;
+  int size_changed;
   } x11_window_t;
 
 int x11_window_open_display(x11_window_t * w, const char * display_string);
