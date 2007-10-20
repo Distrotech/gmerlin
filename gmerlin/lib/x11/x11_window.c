@@ -1043,6 +1043,7 @@ const char * bg_x11_window_get_display_string(bg_x11_window_t * w)
 void bg_x11_window_destroy(bg_x11_window_t * w)
   {
   bg_x11_window_cleanup_video(w);
+  bg_x11_window_cleanup_gl(w);
   
   if(w->normal_window != None)
     XDestroyWindow(w->dpy, w->normal_window);
