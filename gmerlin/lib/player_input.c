@@ -169,7 +169,7 @@ void bg_player_input_destroy(bg_player_t * player)
 
 void bg_player_input_select_streams(bg_player_input_context_t * ctx)
   {
-  int i;
+  int i, vis_enable;
   ctx->do_still = 0;
   if(ctx->still_frame)
     {
@@ -220,10 +220,15 @@ void bg_player_input_select_streams(bg_player_input_context_t * ctx)
       }
     }
 
+  pthread_mutex_lock(&ctx->player->config_mutex);
+  vis_enable = ctx->player->visualizer_enabled;
+  pthread_mutex_unlock(&ctx->player->config_mutex);
+  
+  
   if(DO_AUDIO(ctx->player->flags) &&
      !DO_VIDEO(ctx->player->flags) &&
      !DO_SUBTITLE(ctx->player->flags) &&
-     bg_visualizer_is_enabled(ctx->player->visualizer))
+     vis_enable)
     {
     ctx->player->flags |= PLAYER_DO_VISUALIZE;
     }

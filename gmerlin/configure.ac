@@ -155,6 +155,12 @@ AC_SUBST(X_LIBS)
 AM_CONDITIONAL(HAVE_X11, test x$have_x = xtrue)
 
 dnl
+dnl OpenGL
+dnl
+
+GMERLIN_CHECK_OPENGL
+
+dnl
 dnl Xinerama
 dnl
 
@@ -238,6 +244,8 @@ LIBS=$OLD_LIBS
 LDFLAGS=$OLD_LDFLAGS
 
 fi
+
+AM_CONDITIONAL(HAVE_XV, test x$have_xv = xtrue)
 
 dnl
 dnl X11 DPMS extension
@@ -675,6 +683,7 @@ fi
 
 GMERLIN_PLUGIN_DIR="$exec_prefix/lib/$PACKAGE/plugins"
 GMERLIN_DATA_DIR="$prefix/share/$PACKAGE"
+AC_DEFINE_UNQUOTED(PREFIX, "$prefix", Installation prefix)
 
 
 AC_DEFINE_UNQUOTED(GMERLIN_DATA_DIR, "$GMERLIN_DATA_DIR", Directory for other data)
@@ -718,8 +727,10 @@ tests/Makefile \
 include/Makefile \
 include/bg_version.h \
 include/gui_gtk/Makefile \
+include/x11/Makefile \
 lib/Makefile \
 lib/gtk/Makefile \
+lib/x11/Makefile \
 osd/Makefile \
 plugins/Makefile \
 plugins/alsa/Makefile \
@@ -858,6 +869,20 @@ fi
 
 echo -n "X11:                 "
 if test "x$have_x" = "xtrue"; then
+echo "Yes"
+else
+echo "Missing"
+fi
+
+echo -n "OpenGL:              "
+if test "x$have_GL" = "xtrue"; then
+echo "Yes"
+else
+echo "Missing"
+fi
+
+echo -n "GLX:                 "
+if test "x$have_GLX" = "xtrue"; then
 echo "Yes"
 else
 echo "Missing"

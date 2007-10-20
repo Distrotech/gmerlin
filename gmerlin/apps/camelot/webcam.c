@@ -129,8 +129,8 @@ void gmerlin_webcam_destroy(gmerlin_webcam_t * w)
 
   if(w->monitor_frame)
     {
-    if(w->monitor->free_frame)
-      w->monitor->free_frame(w->monitor_handle->priv, w->monitor_frame);
+    if(w->monitor->destroy_frame)
+      w->monitor->destroy_frame(w->monitor_handle->priv, w->monitor_frame);
     else
       gavl_video_frame_destroy(w->monitor_frame);
     }
@@ -335,8 +335,8 @@ static void open_monitor(gmerlin_webcam_t * cam)
   
   /* Allocate video image */
   
-  if(cam->monitor->alloc_frame)
-    cam->monitor_frame = cam->monitor->alloc_frame(cam->monitor_handle->priv);
+  if(cam->monitor->create_frame)
+    cam->monitor_frame = cam->monitor->create_frame(cam->monitor_handle->priv);
   else
     cam->monitor_frame = gavl_video_frame_create(&cam->monitor_format);
   cam->monitor_open = 1;
@@ -348,8 +348,8 @@ static void close_monitor(gmerlin_webcam_t * cam)
   if(!cam->monitor_open)
     return;
 
-  if(cam->monitor->free_frame)
-    cam->monitor->free_frame(cam->monitor_handle->priv, cam->monitor_frame);
+  if(cam->monitor->destroy_frame)
+    cam->monitor->destroy_frame(cam->monitor_handle->priv, cam->monitor_frame);
   else
     gavl_video_frame_destroy(cam->monitor_frame);
   

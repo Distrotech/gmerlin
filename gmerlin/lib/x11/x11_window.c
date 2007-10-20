@@ -17,20 +17,26 @@
  
 *****************************************************************/
 
+#include <config.h>
 #include <stdio.h>
 #include <string.h>
-#include <X11/Xatom.h>
-
-#include <X11/Xlib.h>
-#include <X11/Xproto.h>
-#include <X11/Xutil.h>
-
-#include <x11_window.h>
 
 #include <stdlib.h>
 
 #include <time.h>
 #include <sys/time.h>
+
+#include <X11/Xatom.h>
+
+#include <X11/Xutil.h>
+
+#include <translation.h>
+#include <utils.h>
+#include <log.h>
+#define LOG_DOMAIN "x11"
+
+#include <x11/x11.h>
+#include <x11/x11_window_private.h>
 
 
 #define _NET_WM_STATE_REMOVE        0    /* remove/unset property */
@@ -42,15 +48,16 @@
 
 #define FULLSCREEN_MODE_WIN_LAYER      (1<<2)
 
-
-#define IDLE_MAX 10
+#define HAVE_XSHM
 
 static char bm_no_data[] = { 0,0,0,0, 0,0,0,0 };
 
+/* since it doesn't seem to be defined on some platforms */
+int XShmGetEventBase (Display *);
 
 /* Screensaver detection */
 
-static void check_screensaver(x11_window_t * w)
+static void check_screensaver(bg_x11_window_t * w)
   {
   char * env;
   
@@ -74,7 +81,7 @@ static void check_screensaver(x11_window_t * w)
   
   }
 
-static void disable_screensaver(x11_window_t * w)
+static void disable_screensaver(bg_x11_window_t * w)
   {
   int interval, prefer_blank, allow_exp;
 
@@ -127,7 +134,7 @@ static void disable_screensaver(x11_window_t * w)
   w->screensaver_disabled = 1;
   }
 
-static void enable_screensaver(x11_window_t * w)
+static void enable_screensaver(bg_x11_window_t * w)
   {
   int dummy, interval, prefer_blank, allow_exp;
 
@@ -175,7 +182,7 @@ static void enable_screensaver(x11_window_t * w)
     }
   }
 
-static int check_disable_screensaver(x11_window_t * w)
+static int check_disable_screensaver(bg_x11_window_t * w)
   {
   if(w->current_window == w->normal_window)
     {
@@ -198,7 +205,7 @@ static int check_disable_screensaver(x11_window_t * w)
   return 1;
   }
 
-static void ping_screensaver(x11_window_t * w)
+void bg_x11_window_ping_screensaver(bg_x11_window_t * w)
   {
   struct timeval tm;
   gettimeofday(&tm, (struct timezone *)0);
@@ -253,7 +260,7 @@ wm_check_capability(Display *dpy, Window root, Atom list, Atom wanted)
   }
 
 static void
-netwm_set_state(x11_window_t * w, Window win, int action, Atom state)
+netwm_set_state(bg_x11_window_t * w, Window win, int action, Atom state)
   {
   /* Setting _NET_WM_STATE by XSendEvent works only, if the window
      is already mapped!! */
@@ -275,7 +282,7 @@ netwm_set_state(x11_window_t * w, Window win, int action, Atom state)
 
 #if 0
 static void
-netwm_set_fullscreen(x11_window_t * w, Window win)
+netwm_set_fullscreen(bg_x11_window_t * w, Window win)
   {
   long                  propvalue[2];
     
@@ -295,7 +302,7 @@ netwm_set_fullscreen(x11_window_t * w, Window win)
 
 #if 0
 static void
-netwm_set_layer(x11_window_t * w, Window win, int layer)
+netwm_set_layer(bg_x11_window_t * w, Window win, int layer)
   {
   XEvent e;
   
@@ -314,7 +321,7 @@ netwm_set_layer(x11_window_t * w, Window win, int layer)
   }
 #endif
 
-static int get_fullscreen_mode(x11_window_t * w)
+static int get_fullscreen_mode(bg_x11_window_t * w)
   {
   int ret = 0;
 
@@ -355,7 +362,7 @@ static int get_fullscreen_mode(x11_window_t * w)
   return ret;
   }
 
-static void init_atoms(x11_window_t * w)
+static void init_atoms(bg_x11_window_t * w)
   {
   w->WM_DELETE_WINDOW         = XInternAtom(w->dpy, "WM_DELETE_WINDOW", False);
 
@@ -376,6 +383,23 @@ static void init_atoms(x11_window_t * w)
 
   }
 
+void bg_x11_window_clear(bg_x11_window_t * win)
+  {
+//  XSetForeground(win->dpy, win->gc, win->black);
+//  XFillRectangle(win->dpy, win->normal_window, win->gc, 0, 0, win->window_width, 
+//                 win->window_height);  
+  if(win->normal_window != None)
+    XClearArea(win->dpy, win->normal_window, 0, 0,
+               win->window_width, win->window_height, True);
+
+  if(win->fullscreen_window != None)
+    XClearArea(win->dpy, win->fullscreen_window, 0, 0,
+               win->window_width, win->window_height, True);
+  
+   //   XSync(win->dpy, False);
+  }
+
+
 
 /* MWM decorations */
 
@@ -394,7 +418,7 @@ typedef struct
   } PropMotifWmHints;
 
 static
-int mwm_set_decorations(x11_window_t * w, Window win, int set)
+int mwm_set_decorations(bg_x11_window_t * w, Window win, int set)
   {
   PropMotifWmHints motif_hints;
   Atom hintsatom;
@@ -412,12 +436,12 @@ int mwm_set_decorations(x11_window_t * w, Window win, int set)
   return 1;
   }
 
-static void set_decorations(x11_window_t * w, Window win, int decorations)
+static void set_decorations(bg_x11_window_t * w, Window win, int decorations)
   {
   mwm_set_decorations(w, win, decorations);
   }
 
-static void set_min_size(x11_window_t * w, Window win, int width, int height)
+static void set_min_size(bg_x11_window_t * w, Window win, int width, int height)
   {
   XSizeHints * h;
   h = XAllocSizeHints();
@@ -431,9 +455,8 @@ static void set_min_size(x11_window_t * w, Window win, int width, int height)
   XFree(h);
   }
 
-int x11_window_open_display(x11_window_t * w, const char * display_string)
+static int open_display(bg_x11_window_t * w)
   {
-  char * display_name;
   char * normal_id;
   char * fullscreen_id;
 #ifdef HAVE_LIBXINERAMA
@@ -446,7 +469,7 @@ int x11_window_open_display(x11_window_t * w, const char * display_string)
    *  It can be NULL. Also, <fullscreen_id> can be missing
    */
   
-  if(!display_string)
+  if(!w->display_string_parent)
     {
     w->dpy = XOpenDisplay(NULL);
     w->normal_parent = None;
@@ -454,43 +477,40 @@ int x11_window_open_display(x11_window_t * w, const char * display_string)
     }
   else
     {
-    display_name = malloc(strlen(display_string)+1);
-    strcpy(display_name, display_string);
-    
-    fullscreen_id = strrchr(display_name, ':');
+    fullscreen_id = strrchr(w->display_string_parent, ':');
     if(!fullscreen_id)
       {
       fprintf(stderr, "Invalid display string: %s\n",
-              display_string);
+              w->display_string_parent);
       return 0;
       }
     *fullscreen_id = '\0';
     fullscreen_id++;
-
-    normal_id = strrchr(display_name, ':');
+    
+    normal_id = strrchr(w->display_string_parent, ':');
     if(!normal_id)
       {
       fprintf(stderr, "Invalid display string: %s\n",
-              display_string);
+              w->display_string_parent);
       return 0;
       }
     *normal_id = '\0';
     normal_id++;
-
-    w->dpy = XOpenDisplay(display_name);
+    
+    w->dpy = XOpenDisplay(w->display_string_parent);
     if(!w->dpy)
       {
-      fprintf(stderr, "Opening display %s failed\n", display_name);
+      fprintf(stderr, "Opening display %s failed\n", w->display_string_parent);
+      return 0;
       }
     
     w->normal_parent = strtoul(normal_id, (char **)0, 16);
-
+    
     if(!(*fullscreen_id))
       w->fullscreen_parent = None;
     else
       w->fullscreen_parent = strtoul(fullscreen_id, (char **)0, 16);
     
-    free(display_name);
     }
 
   w->screen = DefaultScreen(w->dpy);
@@ -517,11 +537,16 @@ int x11_window_open_display(x11_window_t * w, const char * display_string)
     w->xinerama = XineramaQueryScreens(w->dpy,&(w->nxinerama));
     }
 #endif
+
+  /* Check for XShm */
+  w->have_shm = bg_x11_window_check_shm(w->dpy, &w->shm_completion_type);
   
   return 1;
   }
 
-static void get_window_coords(x11_window_t * w,
+
+
+void bg_x11_window_get_coords(bg_x11_window_t * w,
                               Window win,
                               int * x, int * y, int * width,
                               int * height)
@@ -574,16 +599,40 @@ static int window_is_mapped(Display * dpy, Window w)
   return 0;
   }
 
-void x11_window_init(x11_window_t * w)
+void bg_x11_window_size_changed(bg_x11_window_t * w)
   {
+  /* Frame size remains unchanged, to let set_rectangles
+     find out, if the image must be reallocated */
+
+  /* Nothing changed actually. */
+  if((w->window_format.image_width == w->window_width) &&
+     (w->window_format.image_height == w->window_height))
+    return;
+  
+  w->window_format.image_width  = w->window_width;
+  w->window_format.image_height = w->window_height;
+  
+  if(w->callbacks && w->callbacks->size_changed)
+    w->callbacks->size_changed(w->callbacks->data,
+                               w->window_width, 
+                               w->window_height);
+  }
+
+void bg_x11_window_init(bg_x11_window_t * w)
+  {
+  int send_event = -1;
   /* Decide current window */
   if(window_is_mapped(w->dpy, w->fullscreen_window))
     {
+    if(w->current_window != w->fullscreen_window)
+      send_event = 1;
     w->current_window = w->fullscreen_window;
     w->current_parent = w->fullscreen_parent;
     }
   else
     {
+    if(w->current_window != w->normal_window)
+      send_event = 0;
     w->current_window = w->normal_window;
     w->current_parent = w->normal_parent;
     }
@@ -591,7 +640,7 @@ void x11_window_init(x11_window_t * w)
   if((w->current_window == w->fullscreen_window) &&
      (w->fullscreen_parent != w->root))
     {
-    get_window_coords(w, w->fullscreen_parent,
+    bg_x11_window_get_coords(w, w->fullscreen_parent,
                       (int*)0, (int*)0,
                       &w->window_width, &w->window_height);
     XMoveResizeWindow(w->dpy, w->fullscreen_window, 0, 0,
@@ -601,7 +650,7 @@ void x11_window_init(x11_window_t * w)
   else if((w->current_window == w->normal_window) &&
           (w->normal_parent != w->root))
     {
-    get_window_coords(w, w->normal_parent,
+    bg_x11_window_get_coords(w, w->normal_parent,
                       (int*)0, (int*)0,
                       &w->window_width, &w->window_height);
     XMoveResizeWindow(w->dpy, w->normal_window, 0, 0,
@@ -611,18 +660,25 @@ void x11_window_init(x11_window_t * w)
       XSetInputFocus(w->dpy, w->normal_window, RevertToNone, CurrentTime);
     }
   else
-    get_window_coords(w, w->current_window,
+    bg_x11_window_get_coords(w, w->current_window,
                       (int*)0, (int*)0,
                       &w->window_width, &w->window_height);
 #endif
-  w->size_changed = 1;
+
+  if((send_event >= 0) && w->callbacks &&
+     w->callbacks->set_fullscreen)
+    w->callbacks->set_fullscreen(w->callbacks->data, send_event);
+  
+  bg_x11_window_size_changed(w);
+  
   }
 
-int x11_window_create(x11_window_t * w, Visual * visual, int depth,
-                      int width, int height, const char * default_title)
+static int create_window(bg_x11_window_t * w,
+                         int width, int height)
   {
   const char * display_name;
-  
+  long event_mask;
+
 //  int i;
   /* Stuff for making the cursor */
   XColor black;
@@ -630,16 +686,18 @@ int x11_window_create(x11_window_t * w, Visual * visual, int depth,
   
   XSetWindowAttributes attr;
   unsigned long attr_flags;
+
+  if((!w->dpy) && !open_display(w))
+    return 0;
   
   if(w->normal_parent != w->root)
     {
-    // get_window_coords(w, w->normal_parent,
+    // bg_x11_window_get_coords(w, w->normal_parent,
     //                  (int*)0, (int*)0, &width,
     //                  &height);
     
     /* We need size changes of the parent window */
     XSelectInput(w->dpy, w->normal_parent, StructureNotifyMask);
-    //    fprintf(stderr, "Got size: %d x %d\n", width, height);
     }
   if(w->fullscreen_parent != w->root)
     {
@@ -648,16 +706,17 @@ int x11_window_create(x11_window_t * w, Visual * visual, int depth,
   /* Not clear why this is needed. Not creating the colormap
      results in a BadMatch error */
   w->colormap = XCreateColormap(w->dpy, RootWindow(w->dpy, w->screen),
-                                visual,
+                                w->vi->visual,
                                 AllocNone);
   
   /* Setup event mask */
 
-  w->event_mask =
+  event_mask =
     SubstructureNotifyMask |
     StructureNotifyMask |
     PointerMotionMask |
-    ExposureMask;
+    ExposureMask |
+    ButtonPressMask | KeyPressMask;
   
   /* Create normal window */
 
@@ -666,7 +725,7 @@ int x11_window_create(x11_window_t * w, Visual * visual, int depth,
   attr.backing_store = NotUseful;
   attr.border_pixel = 0;
   attr.background_pixel = 0;
-  attr.event_mask = w->event_mask;
+  attr.event_mask = event_mask;
   attr.colormap = w->colormap;
   attr_flags = (CWBackingStore | CWEventMask | CWBorderPixel |
                 CWBackPixel | CWColormap);
@@ -679,8 +738,9 @@ int x11_window_create(x11_window_t * w, Visual * visual, int depth,
                                    0 /* x */,
                                    0 /* y */,
                                    width, height,
-                                   0 /* border_width */, depth,
-                                   InputOutput, visual,
+                                   0 /* border_width */, w->vi->depth,
+                                   InputOutput,
+                                   w->vi->visual,
                                    attr_flags,
                                    &attr);
   
@@ -703,8 +763,8 @@ int x11_window_create(x11_window_t * w, Visual * visual, int depth,
                                         0 /* x */,
                                         0 /* y */,
                                         width, height,
-                                        0 /* border_width */, depth,
-                                        InputOutput, visual,
+                                        0 /* border_width */, w->vi->depth,
+                                        InputOutput, w->vi->visual,
                                         attr_flags,
                                         &attr);
   
@@ -742,155 +802,22 @@ int x11_window_create(x11_window_t * w, Visual * visual, int depth,
   
   w->fullscreen_mode = get_fullscreen_mode(w);
   
-  x11_window_set_title(w, default_title);
-  
   display_name = XDisplayName(DisplayString(w->dpy));
   
-  w->display_string = malloc(strlen(display_name) + 20);
-  sprintf(w->display_string, "%s:%08lx:%08lx", display_name,
-          w->normal_window, w->fullscreen_window);
-  
+  /* Determine if we are in fullscreen mode */
+  bg_x11_window_init(w);
   return 1;
   }
 
-void x11_window_handle_event(x11_window_t * w, XEvent*evt)
-  {
-  w->do_delete = 0;
-  w->size_changed = 0;
-  
-  if(!evt || (evt->type != MotionNotify))
-    {
-    w->idle_counter++;
-    if(w->idle_counter == IDLE_MAX)
-      {
-      if(!w->pointer_hidden)
-        {
-        if(w->normal_child == None)
-          XDefineCursor(w->dpy, w->normal_window, w->fullscreen_cursor);
-        if(w->fullscreen_child == None)
-          XDefineCursor(w->dpy, w->fullscreen_window, w->fullscreen_cursor);
-        XFlush(w->dpy);
-        w->pointer_hidden = 1;
-        }
-
-      if(w->screensaver_disabled)
-        ping_screensaver(w);
-      w->idle_counter = 0;
-      }
-    }
-  if(!evt)
-    return;
-  
-  switch(evt->type)
-    {
-    case CreateNotify:
-      if(evt->xcreatewindow.parent == w->normal_window)
-        {
-        w->normal_child = evt->xcreatewindow.window;
-        XDefineCursor(w->dpy, w->normal_window, None);
-        }
-      if(evt->xcreatewindow.parent == w->fullscreen_window)
-        {
-        w->fullscreen_child = evt->xcreatewindow.window;
-        XDefineCursor(w->dpy, w->fullscreen_window, None);
-        }
-      /* We need to catch expose events by children */
-      XSelectInput(w->dpy, evt->xcreatewindow.window,
-                   ExposureMask);
-      break;
-    case DestroyNotify:
-      if(evt->xdestroywindow.event == w->normal_window)
-        {
-        w->normal_child = None;
-        XDefineCursor(w->dpy, w->normal_window, w->fullscreen_cursor);
-        }
-      if(evt->xdestroywindow.event == w->fullscreen_window)
-        {
-        w->fullscreen_child = None;
-        XDefineCursor(w->dpy, w->fullscreen_window,
-                      w->fullscreen_cursor);
-        }
-      break;
-    case ConfigureNotify:
-      if(w->current_window == w->normal_window)
-        {
-        if(evt->xconfigure.window == w->normal_window)
-          {
-          w->window_width  = evt->xconfigure.width;
-          w->window_height = evt->xconfigure.height;
-          
-          if(w->normal_parent == w->root)
-            {
-            get_window_coords(w,
-                              w->normal_window,
-                              &w->window_x, &w->window_y,
-                              (int*)0, (int*)0);
-            }
-          }
-        else if(evt->xconfigure.window == w->normal_parent)
-          {
-          XResizeWindow(w->dpy,
-                        w->normal_window,
-                        evt->xconfigure.width,
-                        evt->xconfigure.height);
-          }
-        }
-      else
-        {
-        if(evt->xconfigure.window == w->fullscreen_window)
-          {
-          w->window_width  = evt->xconfigure.width;
-          w->window_height = evt->xconfigure.height;
-          }
-        else if(evt->xconfigure.window == w->fullscreen_parent)
-          {
-          XResizeWindow(w->dpy,
-                        w->fullscreen_window,
-                        evt->xconfigure.width,
-                        evt->xconfigure.height);
-          }
-        }
-      w->size_changed = 1;
-      break;
-    case MotionNotify:
-      w->idle_counter = 0;
-      if(w->pointer_hidden)
-        {
-        XDefineCursor(w->dpy, w->normal_window, None);
-        XDefineCursor(w->dpy, w->fullscreen_window, None);
-        XFlush(w->dpy);
-        w->pointer_hidden = 0;
-        }
-    case ClientMessage:
-      if((evt->xclient.message_type == w->WM_PROTOCOLS) &&
-         (evt->xclient.data.l[0] == w->WM_DELETE_WINDOW))
-        {
-        w->do_delete = 1;
-        }
-      break;
-    case UnmapNotify:
-      if(evt->xunmap.window == w->normal_window)
-        w->mapped = 0;
-      break;
-    case MapNotify:
-      if(evt->xmap.window == w->normal_window)
-        w->mapped = 1;
-      else if((evt->xmap.window == w->normal_parent) ||
-              (evt->xmap.window == w->fullscreen_parent))
-        {
-        x11_window_init(w);
-        }
-      break;
-    }
-  }
-
-void x11_window_select_input(x11_window_t * w, long event_mask)
+#if 0
+void x11_window_select_input(bg_x11_window_t * w, long event_mask)
   {
   XSelectInput(w->dpy, w->normal_window, event_mask | w->event_mask);
   XSelectInput(w->dpy, w->fullscreen_window, event_mask | w->event_mask);
   }
+#endif
 
-static void get_fullscreen_coords(x11_window_t * w,
+static void get_fullscreen_coords(bg_x11_window_t * w,
                                   int * x, int * y, int * width, int * height)
   {
 #ifdef HAVE_LIBXINERAMA
@@ -937,8 +864,9 @@ static void get_fullscreen_coords(x11_window_t * w,
 
   }
 
-void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
+int bg_x11_window_set_fullscreen(bg_x11_window_t * w,int fullscreen)
   {
+  int ret = 0;
   int width;
   int height;
   int x;
@@ -1007,15 +935,18 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
     do
       {
       XMaskEvent(w->dpy, ExposureMask, &evt);
-      x11_window_handle_event(w, &evt);
+      bg_x11_window_handle_event(w, &evt);
       } while((evt.type != Expose) || (evt.xexpose.window != focus_window));
     
     XSetInputFocus(w->dpy, focus_window, RevertToNone, CurrentTime);
-    x11_window_clear(w);
+    if(w->callbacks && w->callbacks->set_fullscreen)
+      w->callbacks->set_fullscreen(w->callbacks->data, 1);
+    bg_x11_window_clear(w);
     XFlush(w->dpy);
+    ret = 1;
     }
   
-  if(!fullscreen && (w->current_window == w->fullscreen_window))
+  else if(!fullscreen && (w->current_window == w->fullscreen_window))
     {
     /* Unmap fullscreen window */
     netwm_set_state(w, fullscreen_toplevel,
@@ -1043,7 +974,7 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
     do
       {
       XMaskEvent(w->dpy, ExposureMask, &evt);
-      x11_window_handle_event(w, &evt);
+      bg_x11_window_handle_event(w, &evt);
       }while((evt.type != Expose) || (evt.xexpose.window != focus_window));
     
     if(w->normal_parent == w->root)
@@ -1052,19 +983,67 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
                         w->window_width, w->window_height);
     
     XSetInputFocus(w->dpy, focus_window, RevertToNone, CurrentTime);
+
+    if(w->callbacks && w->callbacks->set_fullscreen)
+      w->callbacks->set_fullscreen(w->callbacks->data, 0);
     
-    x11_window_clear(w);
+    bg_x11_window_clear(w);
     XFlush(w->dpy);
+    ret = 1;
     }
 
-  if(check_disable_screensaver(w))
-    disable_screensaver(w);
-  else
-    enable_screensaver(w);
+  if(ret)
+    {
+    if(check_disable_screensaver(w))
+      disable_screensaver(w);
+    else
+      enable_screensaver(w);
+    }
+  return ret;
   }
 
-void x11_window_destroy(x11_window_t * w)
+void bg_x11_window_resize(bg_x11_window_t * win,
+                          int width, int height)
   {
+  win->normal_width = width;
+  win->normal_height = height;
+  if(win->current_window == win->normal_window)
+    {
+    win->window_width = width;
+    win->window_height = height;
+    XResizeWindow(win->dpy, win->normal_window, width, height);
+    }
+  }
+
+
+/* Public methods */
+
+bg_x11_window_t * bg_x11_window_create(const char * display_string)
+  {
+  bg_x11_window_t * ret;
+  ret = calloc(1, sizeof(*ret));
+  ret->display_string_parent = bg_strdup(ret->display_string_parent, display_string);
+  ret->scaler = gavl_video_scaler_create();
+  return ret;
+  }
+
+const char * bg_x11_window_get_display_string(bg_x11_window_t * w)
+  {
+  if(w->normal_window == None)
+    create_window(w, w->window_width, w->window_height);
+  
+  if(!w->display_string_child)
+    w->display_string_child = bg_sprintf("%s:%08lx:%08lx",
+                                         XDisplayName(DisplayString(w->dpy)),
+                                         w->normal_window, w->fullscreen_window);
+  return w->display_string_child;
+  }
+
+
+void bg_x11_window_destroy(bg_x11_window_t * w)
+  {
+  bg_x11_window_cleanup_video(w);
+  
   if(w->normal_window != None)
     XDestroyWindow(w->dpy, w->normal_window);
   
@@ -1084,23 +1063,326 @@ void x11_window_destroy(x11_window_t * w)
   if(w->xinerama)
     XFree(w->xinerama);
 #endif
+  if(w->vi)
+    XFree(w->vi);
+  
+  if(w->dpy)
+    XCloseDisplay(w->dpy);
+  
+  if(w->display_string_parent)
+    free(w->display_string_parent);
+  if(w->display_string_child)
+    free(w->display_string_child);
 
-  if(w->display_string)
-    free(w->display_string);
+  if(w->scaler)
+    gavl_video_scaler_destroy(w->scaler);
+  
+  free(w);
   }
 
-void x11_window_set_title(x11_window_t * w, const char * title)
+bg_parameter_info_t common_parameters[] =
+  {
+    {
+      BG_LOCALE,
+      name:        "window",
+      long_name:   TRS("General"),
+    },
+    {
+      name:        "auto_resize",
+      long_name:   TRS("Auto resize window"),
+      type:        BG_PARAMETER_CHECKBUTTON,
+      val_default: { val_i: 1 }
+    },
+    {
+      name:        "window_width",
+      long_name:   "Window width",
+      type:        BG_PARAMETER_INT,
+      flags:       BG_PARAMETER_HIDE_DIALOG,
+      val_default: { val_i: 320 }
+    },
+    {
+      name:        "window_height",
+      long_name:   "Window height",
+      type:        BG_PARAMETER_INT,
+      flags:       BG_PARAMETER_HIDE_DIALOG,
+      val_default: { val_i: 240 }
+    },
+    {
+      name:        "window_x",
+      long_name:   "Window x",
+      type:        BG_PARAMETER_INT,
+      flags:       BG_PARAMETER_HIDE_DIALOG,
+      val_default: { val_i: 100 }
+    },
+    {
+      name:        "window_y",
+      long_name:   "Window y",
+      type:        BG_PARAMETER_INT,
+      flags:       BG_PARAMETER_HIDE_DIALOG,
+      val_default: { val_i: 100 }
+    },
+#if 0
+    // #ifdef HAVE_LIBXV
+    {
+      name:        "xv_mode",
+      long_name:   TRS("Try XVideo"),
+      type:        BG_PARAMETER_STRINGLIST,
+
+      multi_names: (char*[]){ "never", "yuv_only", "always", (char*)0},
+      multi_labels: (char*[]){ TRS("Never"),
+                               TRS("For YCbCr formats only"),
+                               TRS("Always"), (char*)0},
+      val_default: { val_str: "yuv_only" },
+      help_string: TRS("Choose when to try XVideo (with hardware scaling). Note that your graphics card/driver must support this."),
+    },
+#endif
+    {
+      name:        "disable_xscreensaver_normal",
+      long_name:   TRS("Disable Screensaver for normal playback"),
+      type:        BG_PARAMETER_CHECKBUTTON,
+      val_default: { val_i: 0 }
+    },
+    {
+      name:        "disable_xscreensaver_fullscreen",
+      long_name:   TRS("Disable Screensaver for fullscreen playback"),
+      type:        BG_PARAMETER_CHECKBUTTON,
+      val_default: { val_i: 1 }
+    },
+    {
+      name:        "sw_scaler",
+      long_name:   TRS("Software scaler"),
+      type:        BG_PARAMETER_SECTION,
+    },
+    {
+      name:        "scale_mode",
+      long_name:   TRS("Scale mode"),
+      type:        BG_PARAMETER_STRINGLIST,
+      multi_names:  (char*[]){ "auto",
+                               "nearest",
+                               "bilinear",
+                               "quadratic",
+                               "cubic_bspline",
+                               "cubic_mitchell",
+                               "cubic_catmull",
+                               "sinc_lanczos",
+                               (char*)0 },
+      multi_labels: (char*[]){ TRS("Auto"),
+                               TRS("Nearest"),
+                               TRS("Bilinear"),
+                               TRS("Quadratic"),
+                               TRS("Cubic B-Spline"),
+                               TRS("Cubic Mitchell-Netravali"),
+                               TRS("Cubic Catmull-Rom"),
+                               TRS("Sinc with Lanczos window"),
+                               (char*)0 },
+      val_default: { val_str: "auto" },
+      help_string: TRS("Choose scaling method. Auto means to choose based on the conversion quality. Nearest is fastest, Sinc with Lanczos window is slowest"),
+    },
+    {
+      name:        "scale_order",
+      long_name:   TRS("Scale order"),
+      type:        BG_PARAMETER_INT,
+      val_min:     { val_i: 4 },
+      val_max:     { val_i: 1000 },
+      val_default: { val_i: 4 },
+      help_string: TRS("Order for sinc scaling"),
+    },
+    {
+      name:        "scale_quality",
+      long_name:   TRS("Scale quality"),
+      type:        BG_PARAMETER_SLIDER_INT,
+      val_min:     { val_i: GAVL_QUALITY_FASTEST },
+      val_max:     { val_i: GAVL_QUALITY_BEST },
+      val_default: { val_i: GAVL_QUALITY_DEFAULT },
+      help_string: TRS("Scale quality"),
+    },
+  };
+
+
+bg_parameter_info_t * bg_x11_window_get_parameters(bg_x11_window_t * win)
+  {
+  return common_parameters;
+  }
+
+void
+bg_x11_window_set_parameter(void * data, const char * name,
+                            const bg_parameter_value_t * val)
+  {
+  gavl_scale_mode_t scale_mode = GAVL_SCALE_AUTO;
+  gavl_video_options_t * opt;
+  bg_x11_window_t * win;
+  if(!name)
+    return;
+  win = (bg_x11_window_t *)data;
+
+  if(!strcmp(name, "auto_resize"))
+    {
+    win->auto_resize = val->val_i;
+    }
+  else if(!strcmp(name, "window_x"))
+    {
+    if(win->normal_parent == win->root)
+      win->window_x = val->val_i;
+    }
+  else if(!strcmp(name, "window_y"))
+    {
+    if(win->normal_parent == win->root)
+      win->window_y = val->val_i;
+    }
+  else if(!strcmp(name, "window_width"))
+    {
+    if(win->normal_parent == win->root)
+      win->window_width = val->val_i;
+    }
+  else if(!strcmp(name, "window_height"))
+    {
+    if(win->normal_parent == win->root)
+      win->window_height = val->val_i;
+    }
+  else if(!strcmp(name, "disable_xscreensaver_normal"))
+    {
+    win->disable_screensaver_normal = val->val_i;
+    }
+  else if(!strcmp(name, "disable_xscreensaver_fullscreen"))
+    {
+    win->disable_screensaver_fullscreen = val->val_i;
+    }
+  else if(!strcmp(name, "scale_mode"))
+    {
+    if(!strcmp(val->val_str, "auto"))
+      scale_mode = GAVL_SCALE_AUTO;
+    else if(!strcmp(val->val_str, "nearest"))
+      scale_mode = GAVL_SCALE_NEAREST;
+    else if(!strcmp(val->val_str, "bilinear"))
+      scale_mode = GAVL_SCALE_BILINEAR;
+    else if(!strcmp(val->val_str, "quadratic"))
+      scale_mode = GAVL_SCALE_QUADRATIC;
+    else if(!strcmp(val->val_str, "cubic_bspline"))
+      scale_mode = GAVL_SCALE_CUBIC_BSPLINE;
+    else if(!strcmp(val->val_str, "cubic_mitchell"))
+      scale_mode = GAVL_SCALE_CUBIC_MITCHELL;
+    else if(!strcmp(val->val_str, "cubic_catmull"))
+      scale_mode = GAVL_SCALE_CUBIC_CATMULL;
+    else if(!strcmp(val->val_str, "sinc_lanczos"))
+      scale_mode = GAVL_SCALE_SINC_LANCZOS;
+
+    opt = gavl_video_scaler_get_options(win->scaler);
+    if(scale_mode != gavl_video_options_get_scale_mode(opt))
+      {
+      win->scaler_options_changed = 1;
+      gavl_video_options_set_scale_mode(opt, scale_mode);
+      }
+    }
+  else if(!strcmp(name, "scale_order"))
+    {
+    opt = gavl_video_scaler_get_options(win->scaler);
+    if(val->val_i != gavl_video_options_get_scale_order(opt))
+      {
+      win->scaler_options_changed = 1;
+      gavl_video_options_set_scale_order(opt, val->val_i);
+      }
+    }
+  else if(!strcmp(name, "scale_quality"))
+    {
+    opt = gavl_video_scaler_get_options(win->scaler);
+    if(val->val_i != gavl_video_options_get_quality(opt))
+      {
+      win->scaler_options_changed = 1;
+      gavl_video_options_set_quality(opt, val->val_i);
+      }
+    }
+  
+  
+  }
+
+int
+bg_x11_window_get_parameter(void * data, const char * name,
+                            bg_parameter_value_t * val)
+  {
+  bg_x11_window_t * win;
+  if(!name)
+    return 0;
+  win = (bg_x11_window_t *)data;
+  
+  if(!strcmp(name, "window_x"))
+    {
+    val->val_i = win->window_x;
+    return 1;
+    }
+  else if(!strcmp(name, "window_y"))
+    {
+    val->val_i = win->window_y;
+    return 1;
+    }
+  else if(!strcmp(name, "window_width"))
+    {
+    val->val_i = win->window_width;
+    return 1;
+    }
+  else if(!strcmp(name, "window_height"))
+    {
+    val->val_i = win->window_height;
+    return 1;
+    }
+  return 0;
+  }
+
+
+void bg_x11_window_set_size(bg_x11_window_t * win, int width, int height)
+  {
+  
+  }
+
+int bg_x11_window_create_window(bg_x11_window_t * win)
+  {
+  int num;
+  XVisualInfo vi_template;
+
+  if(!win->dpy && !open_display(win))
+    return 0;
+  
+  memset(&vi_template, 0, sizeof(vi_template));
+  vi_template.class = TrueColor;
+  vi_template.depth = DefaultDepth(win->dpy, win->screen);
+  
+  win->vi = XGetVisualInfo(win->dpy, VisualClassMask | VisualDepthMask,
+                           &vi_template, &num);
+  return create_window(win, win->window_width, win->window_height);
+  }
+
+int bg_x11_window_create_window_gl(bg_x11_window_t * win,
+                                   int * attr_list )
+  {
+#ifdef HAVE_GLX
+  if(!win->dpy && !open_display(win))
+    return 0;
+  win->vi = glXChooseVisual(win->dpy, win->screen, attr_list);
+  return create_window(win, win->window_width, win->window_height);
+#else
+  return 0;
+#endif
+  }
+
+/* Handle X11 events, callbacks are called from here */
+void bg_x11_window_set_callbacks(bg_x11_window_t * win,
+                                 bg_x11_window_callbacks_t * callbacks)
+  {
+  win->callbacks = callbacks;
+  }
+
+
+
+void bg_x11_window_set_title(bg_x11_window_t * w, const char * title)
   {
   if(w->normal_parent == w->root)
     XmbSetWMProperties(w->dpy, w->normal_window, title,
                        title, NULL, 0, NULL, NULL, NULL);
   }
 
-void x11_window_set_class_hint(x11_window_t * w,
-                               char * name,
-                               char * class)
+void bg_x11_window_set_class_hint(bg_x11_window_t * w,
+                                  char * name, char * klass)
   {
-  XClassHint xclasshint={name,class};
+  XClassHint xclasshint={name,klass};
 
   if(w->normal_parent == w->root)
     XSetClassHint(w->dpy, w->normal_window, &xclasshint);
@@ -1109,47 +1391,7 @@ void x11_window_set_class_hint(x11_window_t * w,
     XSetClassHint(w->dpy, w->fullscreen_window, &xclasshint);
   }
 
-XEvent * x11_window_next_event(x11_window_t * w,
-                               int milliseconds)
-  {
-  int fd;
-  struct timeval timeout;
-  fd_set read_fds;
-  if(milliseconds < 0) /* Block */
-    {
-    XNextEvent(w->dpy, &(w->evt));
-    return &(w->evt);
-    }
-  else if(!milliseconds)
-    {
-    if(!XPending(w->dpy))
-      return (XEvent*)0;
-    else
-      {
-      XNextEvent(w->dpy, &(w->evt));
-      return &(w->evt);
-      }
-    }
-  else /* Use timeout */
-    {
-    fd = ConnectionNumber(w->dpy);
-    FD_ZERO (&read_fds);
-    FD_SET (fd, &read_fds);
-
-    timeout.tv_sec = milliseconds / 1000;
-    timeout.tv_usec = 1000 * (milliseconds % 1000);
-    if(!select(fd+1, &read_fds, (fd_set*)0,(fd_set*)0,&timeout))
-      return (XEvent*)0;
-    else
-      {
-      XNextEvent(w->dpy, &(w->evt));
-      return &(w->evt);
-      }
-    }
-  
-  }
-
-void x11_window_show(x11_window_t * win, int show)
+void bg_x11_window_show(bg_x11_window_t * win, int show)
   {
   if(!show)
     {
@@ -1198,33 +1440,4 @@ void x11_window_show(x11_window_t * win, int show)
         }
       }
     }
-  }
-
-void x11_window_resize(x11_window_t * win,
-                       int width, int height)
-  {
-  win->normal_width = width;
-  win->normal_height = height;
-  if(win->current_window == win->normal_window)
-    {
-    win->window_width = width;
-    win->window_height = height;
-    XResizeWindow(win->dpy, win->normal_window, width, height);
-    }
-  }
-
-void x11_window_clear(x11_window_t * win)
-  {
-//  XSetForeground(win->dpy, win->gc, win->black);
-//  XFillRectangle(win->dpy, win->normal_window, win->gc, 0, 0, win->window_width, 
-//                 win->window_height);  
-  if(win->normal_window != None)
-    XClearArea(win->dpy, win->normal_window, 0, 0,
-               win->window_width, win->window_height, True);
-
-  if(win->fullscreen_window != None)
-    XClearArea(win->dpy, win->fullscreen_window, 0, 0,
-               win->window_width, win->window_height, True);
-  
-   //   XSync(win->dpy, False);
   }

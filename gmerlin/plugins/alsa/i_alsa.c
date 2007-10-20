@@ -40,15 +40,13 @@
 
 #include "alsa_common.h"
 
-
-
 static bg_parameter_info_t static_parameters[] =
   {
     {
       name:        "channel_mode",
       long_name:   TRS("Channel Mode"),
       type:        BG_PARAMETER_STRINGLIST,
-      val_default: { val_str: "Stereo" },
+      val_default: { val_str: "stereo" },
       multi_names:   (char*[]){ "mono", "stereo", (char*)0 },
       multi_labels:  (char*[]){ TRS("Mono"), TRS("Stereo"), (char*)0 },
     },
@@ -135,12 +133,15 @@ set_parameter_alsa(void * p, const char * name,
                    const bg_parameter_value_t * val)
   {
   alsa_t * priv = (alsa_t*)(p);
-
-
+  
   if(!name)
     return;
+
+  fprintf(stderr, "set_parameter_alsa: %s\n", name);
+
   if(!strcmp(name, "channel_mode"))
     {
+    fprintf(stderr, "Channel mode: %s\n", val->val_str);
     if(!strcmp(val->val_str, "mono"))
       priv->num_channels = 1;
     else if(!strcmp(val->val_str, "stereo"))

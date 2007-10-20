@@ -1341,3 +1341,28 @@ fi
 AM_CONDITIONAL(HAVE_LINUXDVB, test x$have_linuxdvb = xtrue)
 
 ])
+
+dnl
+dnl OpenGL
+dnl
+AC_DEFUN([GMERLIN_CHECK_OPENGL],[
+AH_TEMPLATE([HAVE_GL],[OpenGL available])
+AH_TEMPLATE([HAVE_GLX],[OpenGL available])
+
+MDL_HAVE_OPENGL
+
+if test "x$have_GL" = "xyes"; then
+AC_DEFINE(HAVE_GL)
+dnl Change to true to match other macros
+have_GL=true
+fi
+
+if test "x$have_GLX" = "xyes"; then
+AC_DEFINE(HAVE_GLX)
+dnl Change to true to match other macros
+have_GLX=true
+fi
+
+AM_CONDITIONAL(HAVE_GL, test x$have_GL = xtrue)
+AM_CONDITIONAL(HAVE_GLX, test x$have_GL = xtrue)
+])

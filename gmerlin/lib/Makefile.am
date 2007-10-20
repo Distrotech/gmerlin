@@ -1,10 +1,18 @@
+if HAVE_X11
+x11_subdirs = x11
+x11_libadd = x11/libx11.la
+else
+x11_subdirs =
+x11_libadd =
+endif
+
 if HAVE_GTK
 gtk_subdirs = gtk
 else
 gtk_subdirs =
 endif
 
-SUBDIRS = $(gtk_subdirs)
+SUBDIRS = $(gtk_subdirs) $(x11_subdirs)
 
 AM_CFLAGS = @FONTCONFIG_CFLAGS@ @FREETYPE_CFLAGS@ -DLOCALE_DIR=\"$(localedir)\"
 
@@ -73,5 +81,5 @@ urilist.c \
 utf8.c \
 visualize.c
 
-libgmerlin_la_LIBADD = @FONTCONFIG_LIBS@ @FREETYPE_LIBS@ @XML2_LIBS@ @ICONV_LIBS@ @LIBINTL@ -ldl -lpthread
+libgmerlin_la_LIBADD = $(x11_libadd) @FONTCONFIG_LIBS@ @FREETYPE_LIBS@ @XML2_LIBS@ @ICONV_LIBS@ @LIBINTL@ -ldl -lpthread
 

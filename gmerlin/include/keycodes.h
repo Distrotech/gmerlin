@@ -52,9 +52,11 @@
 #define BG_KEY_DOWN       15 //!< Down
 #define BG_KEY_PAGE_UP    16 //!< Page Up
 #define BG_KEY_PAGE_DOWN  17 //!< Page Down
-#define BG_KEY_PLUS       18 //!< Plus
-#define BG_KEY_MINUS      19 //!< Minus
-
+#define BG_KEY_HOME       18 //!< Page Down
+#define BG_KEY_PLUS       19 //!< Plus
+#define BG_KEY_MINUS      20 //!< Minus
+#define BG_KEY_TAB        21 //!< Tab
+#define BG_KEY_ESCAPE     22 //!< Tab
 
 #define BG_KEY_A 101 //!< a
 #define BG_KEY_B 102 //!< b

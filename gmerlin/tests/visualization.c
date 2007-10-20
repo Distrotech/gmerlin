@@ -157,7 +157,7 @@ int main(int argc, char ** argv)
   
   /* Start */
   
-  bg_visualizer_open(visualizer, &format, ov_handle);
+  bg_visualizer_open_plugin(visualizer, &format, ov_handle);
   
   while(1)
     {

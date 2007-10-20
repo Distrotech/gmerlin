@@ -249,6 +249,9 @@ struct bg_player_s
   
   bg_player_saved_state_t saved_state;
   
+  int visualizer_enabled;
+  pthread_mutex_t config_mutex;
+  
   };
 
 int  bg_player_get_state(bg_player_t * player);

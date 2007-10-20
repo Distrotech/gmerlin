@@ -1,4 +1,10 @@
-SUBDIRS=gui_gtk
+if HAVE_X11
+x11_subdirs = x11
+else
+x11_subdirs =
+endif
+
+SUBDIRS=gui_gtk $(x11_subdirs)
 
 pkginclude_HEADERS = \
 bg_version.h \

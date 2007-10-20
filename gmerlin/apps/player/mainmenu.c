@@ -39,6 +39,9 @@ typedef struct
   bg_plugin_type_t type;
 
   bg_cfg_section_t * section;
+  int no_callback;
+
+  gmerlin_t * g; // For cenvenience
   } plugin_menu_t;
 
 typedef struct stream_menu_s
@@ -71,6 +74,14 @@ typedef struct chapter_menu_s
   GtkWidget * menu;
   } chapter_menu_t;
 
+typedef struct visualization_menu_s
+  {
+  GtkWidget * menu;
+  GtkWidget * enable;
+  GtkWidget * options;
+  GtkWidget * plugins;
+  plugin_menu_t plugin_menu;
+  } visualization_menu_t;
 
 struct windows_menu_s
   {
@@ -129,15 +140,16 @@ struct accessories_menu_s
 
 struct main_menu_s
   {
-  struct windows_menu_s     windows_menu;
-  struct options_menu_s     options_menu;
-  struct command_menu_s     command_menu;
-  struct accessories_menu_s accessories_menu;
-  struct stream_menu_s      audio_stream_menu;
-  struct stream_menu_s      video_stream_menu;
-  struct stream_menu_s      subtitle_stream_menu;
-  struct chapter_menu_s     chapter_menu;
-    
+  struct windows_menu_s       windows_menu;
+  struct options_menu_s       options_menu;
+  struct command_menu_s       command_menu;
+  struct accessories_menu_s   accessories_menu;
+  struct stream_menu_s        audio_stream_menu;
+  struct stream_menu_s        video_stream_menu;
+  struct stream_menu_s        subtitle_stream_menu;
+  struct chapter_menu_s       chapter_menu;
+  struct visualization_menu_s visualization_menu;
+  
   GtkWidget * windows_item;
   GtkWidget * options_item;
   GtkWidget * accessories_item;
@@ -146,6 +158,7 @@ struct main_menu_s
   GtkWidget * video_stream_item;
   GtkWidget * subtitle_stream_item;
   GtkWidget * chapter_item;
+  GtkWidget * visualization_item;
   
   GtkWidget * menu;
   gmerlin_t * g;
@@ -218,29 +231,46 @@ static int plugin_menu_has_widget(plugin_menu_t * s,
   return 0;
   }
 
-static void plugin_menu_set_plugin(plugin_menu_t * s, gmerlin_t * gmerlin, int index)
+static void
+plugin_menu_set_plugin(plugin_menu_t * s, int index)
   {
-  const bg_plugin_info_t * info;
-  info = bg_plugin_find_by_index(gmerlin->plugin_reg, index,
+  if(s->no_callback)
+    return;
+  
+  s->plugin_info = bg_plugin_find_by_index(s->g->plugin_reg, index,
                                            s->type, BG_PLUGIN_ALL);
-  
-  s->plugin_info = info;
 
+  /* Save for future use */
+  bg_plugin_registry_set_default(s->g->plugin_reg, s->type,
+                                 s->plugin_info->name);
+  
   if(s->plugin_handle)
+    {
     bg_plugin_unref(s->plugin_handle);
+    s->plugin_handle = (bg_plugin_handle_t*)0;
+    }
+  if(s->plugin_info->parameters)
+    gtk_widget_set_sensitive(s->options, 1);
+  else
+    gtk_widget_set_sensitive(s->options, 0);
   
-  s->plugin_handle = bg_plugin_load(gmerlin->plugin_reg, s->plugin_info);
-
-  s->section = bg_plugin_registry_get_section(gmerlin->plugin_reg, info->name);
-
   if(s->type == BG_PLUGIN_OUTPUT_AUDIO)
     {
-    bg_player_set_oa_plugin(gmerlin->player, s->plugin_handle);
+    s->plugin_handle = bg_plugin_load(s->g->plugin_reg, s->plugin_info);
+    bg_player_set_oa_plugin(s->g->player, s->plugin_handle);
     }
   else if(s->type == BG_PLUGIN_OUTPUT_VIDEO)
     {
-    bg_player_set_ov_plugin(gmerlin->player, s->plugin_handle);
+    s->plugin_handle = bg_plugin_load(s->g->plugin_reg, s->plugin_info);
+    bg_player_set_ov_plugin(s->g->player, s->plugin_handle);
     }
+  else if(s->type == BG_PLUGIN_VISUALIZATION)
+    {
+    bg_player_set_visualization_plugin(s->g->player, s->plugin_info);
+    }
+
+  s->section = bg_plugin_registry_get_section(s->g->plugin_reg, s->plugin_info->name);
+  
   }
 
 static void set_parameter(void * data, const char * name,
@@ -254,6 +284,10 @@ static void set_parameter(void * data, const char * name,
     bg_plugin_lock(m->plugin_handle);
     m->plugin_handle->plugin->set_parameter(m->plugin_handle->priv, name, v);
     bg_plugin_unlock(m->plugin_handle);
+    }
+  else if(m->type == BG_PLUGIN_VISUALIZATION)
+    {
+    bg_player_set_visualization_plugin_parameter(m->g->player, name, v);
     }
   }
 
@@ -295,7 +329,7 @@ static void about_window_close_callback(bg_gtk_about_window_t* win, void* data)
 
 static void menu_callback(GtkWidget * w, gpointer data)
   {
-  int index;
+  int i;
   gmerlin_t * g;
   main_menu_t * the_menu;
 
@@ -303,30 +337,25 @@ static void menu_callback(GtkWidget * w, gpointer data)
   the_menu = g->player_window->main_menu;
   
   if(w == the_menu->options_menu.preferences)
-    {
     gmerlin_configure(g);
-    }
   else if(w == the_menu->audio_stream_menu.options)
-    {
     bg_dialog_show(g->audio_dialog);
-    }
   else if(w == the_menu->audio_stream_menu.filters)
-    {
     bg_dialog_show(g->audio_filter_dialog);
-    }
   else if(w == the_menu->video_stream_menu.options)
-    {
     bg_dialog_show(g->video_dialog);
-    }
   else if(w == the_menu->video_stream_menu.filters)
-    {
     bg_dialog_show(g->video_filter_dialog);
-    }
   else if(w == the_menu->subtitle_stream_menu.options)
-    {
     bg_dialog_show(g->subtitle_dialog);
+  else if(w == the_menu->visualization_menu.options)
+    bg_dialog_show(g->visualization_dialog);
+  else if(w == the_menu->visualization_menu.enable)
+    {
+    i = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(the_menu->visualization_menu.enable));
+    bg_player_set_visualization(g->player, i);
+    bg_plugin_registry_set_visualize(g->plugin_reg, i);
     }
-  
   else if(w == the_menu->options_menu.skins)
     {
     if(!g->skin_browser)
@@ -451,27 +480,40 @@ static void menu_callback(GtkWidget * w, gpointer data)
     gtk_main_quit();
   else if(w == the_menu->command_menu.pause)
     bg_player_pause(g->player);
-  else if(stream_menu_has_widget(&the_menu->audio_stream_menu, w, &index))
-    bg_player_set_audio_stream(g->player, index);
-  else if(stream_menu_has_widget(&the_menu->video_stream_menu, w, &index))
-    bg_player_set_video_stream(g->player, index);
-  else if(stream_menu_has_widget(&the_menu->subtitle_stream_menu, w, &index))
-    bg_player_set_subtitle_stream(g->player, index);
-  else if(chapter_menu_has_widget(&the_menu->chapter_menu, w, &index))
-    bg_player_set_chapter(g->player, index);
-  else if(plugin_menu_has_widget(&the_menu->audio_stream_menu.plugin_menu, w, &index))
-    plugin_menu_set_plugin(&the_menu->audio_stream_menu.plugin_menu, g, index);
-  else if(plugin_menu_has_widget(&the_menu->video_stream_menu.plugin_menu, w, &index))
-    plugin_menu_set_plugin(&the_menu->video_stream_menu.plugin_menu, g, index);
+  /* Stream selection */
+  else if(stream_menu_has_widget(&the_menu->audio_stream_menu, w, &i))
+    bg_player_set_audio_stream(g->player, i);
+  else if(stream_menu_has_widget(&the_menu->video_stream_menu, w, &i))
+    bg_player_set_video_stream(g->player, i);
+  else if(stream_menu_has_widget(&the_menu->subtitle_stream_menu, w, &i))
+    bg_player_set_subtitle_stream(g->player, i);
+  /* Chapters */
+  else if(chapter_menu_has_widget(&the_menu->chapter_menu, w, &i))
+    bg_player_set_chapter(g->player, i);
+
+  /* Audio plugin */
+  else if(plugin_menu_has_widget(&the_menu->audio_stream_menu.plugin_menu, w, &i))
+    plugin_menu_set_plugin(&the_menu->audio_stream_menu.plugin_menu, i);
   else if(w == the_menu->audio_stream_menu.plugin_menu.info)
     bg_gtk_plugin_info_show(the_menu->audio_stream_menu.plugin_menu.plugin_info);
   else if(w == the_menu->audio_stream_menu.plugin_menu.options)
     plugin_menu_configure(&the_menu->audio_stream_menu.plugin_menu);
+
+  /* Video plugin */
+  else if(plugin_menu_has_widget(&the_menu->video_stream_menu.plugin_menu, w, &i))
+    plugin_menu_set_plugin(&the_menu->video_stream_menu.plugin_menu, i);
   else if(w == the_menu->video_stream_menu.plugin_menu.info)
     bg_gtk_plugin_info_show(the_menu->video_stream_menu.plugin_menu.plugin_info);
   else if(w == the_menu->video_stream_menu.plugin_menu.options)
     plugin_menu_configure(&the_menu->video_stream_menu.plugin_menu);
-  
+
+  /* Visualization plugin */
+  else if(plugin_menu_has_widget(&the_menu->visualization_menu.plugin_menu, w, &i))
+    plugin_menu_set_plugin(&the_menu->visualization_menu.plugin_menu, i);
+  else if(w == the_menu->visualization_menu.plugin_menu.info)
+    bg_gtk_plugin_info_show(the_menu->visualization_menu.plugin_menu.plugin_info);
+  else if(w == the_menu->visualization_menu.plugin_menu.options)
+    plugin_menu_configure(&the_menu->visualization_menu.plugin_menu);
   }
 
 static GtkWidget *
@@ -527,11 +569,14 @@ static GtkWidget * create_toggle_item(const char * label,
                                       gmerlin_t * gmerlin,
                                       GtkWidget * menu, guint * id)
   {
+  guint32 handler_id;
   GtkWidget * ret;
   ret = gtk_check_menu_item_new_with_label(label);
-  *id = g_signal_connect(G_OBJECT(ret), "toggled",
+  handler_id = g_signal_connect(G_OBJECT(ret), "toggled",
                    G_CALLBACK(menu_callback),
                    gmerlin);
+  if(id)
+    *id = handler_id;
   gtk_widget_show(ret);
   gtk_menu_shell_append(GTK_MENU_SHELL(menu), ret);
   return ret;
@@ -602,22 +647,17 @@ static void plugin_menu_init(plugin_menu_t * m, gmerlin_t * gmerlin,
   {
   int i;
   const bg_plugin_info_t * info;
-  const bg_plugin_info_t * default_info;
-  int default_index = 0;
   
   GtkWidget * w;
   GSList * group = (GSList*)0;
 
   m->type = plugin_type;
   m->menu = create_menu();
-  
+  m->g = gmerlin;
   
   m->num_plugins = bg_plugin_registry_get_num_plugins(gmerlin->plugin_reg,
                                                       plugin_type, BG_PLUGIN_ALL);
   m->plugin_items = calloc(m->num_plugins, sizeof(*m->plugin_items));
-  
-  default_info = bg_plugin_registry_get_default(gmerlin->plugin_reg,
-                                                plugin_type);
   
   for(i = 0; i < m->num_plugins; i++)
     {
@@ -627,11 +667,6 @@ static void plugin_menu_init(plugin_menu_t * m, gmerlin_t * gmerlin,
       gtk_radio_menu_item_new_with_label(group,
                                          TRD(info->long_name, info->gettext_domain));
     
-    if(info == default_info)
-      {
-      gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(m->plugin_items[i]), 1);
-      default_index = i;
-      }
     g_signal_connect(G_OBJECT(m->plugin_items[i]), "activate",
                      G_CALLBACK(menu_callback), gmerlin);
     
@@ -648,9 +683,31 @@ static void plugin_menu_init(plugin_menu_t * m, gmerlin_t * gmerlin,
 
   m->info = create_pixmap_item("Info...", "info_16.png",
                                gmerlin, m->menu);
+  
+  }
 
+static void plugin_menu_finalize(plugin_menu_t * m)
+  {
+  const bg_plugin_info_t * default_info;
+  const bg_plugin_info_t * info;
+  int default_index = 0, i;
+  default_info = bg_plugin_registry_get_default(m->g->plugin_reg,
+                                                m->type);
+
+  m->no_callback = 1;
+  for(i = 0; i < m->num_plugins; i++)
+    {
+    info = bg_plugin_find_by_index(m->g->plugin_reg, i, m->type, BG_PLUGIN_ALL);
+    
+    if(info == default_info)
+      {
+      gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(m->plugin_items[i]), 1);
+      default_index = i;
+      }
+    }
+  m->no_callback = 0;
   /* Set default plugin and send it to the player */
-  plugin_menu_set_plugin(m, gmerlin, default_index);
+  plugin_menu_set_plugin(m, default_index);
   }
 
 static void stream_menu_init(stream_menu_t * s, gmerlin_t * gmerlin,
@@ -686,6 +743,41 @@ static void stream_menu_init(stream_menu_t * s, gmerlin_t * gmerlin,
     gtk_menu_item_set_submenu(GTK_MENU_ITEM(s->plugins), s->plugin_menu.menu);
     }
   }
+
+static void stream_menu_finalize(stream_menu_t * s)
+  {
+  if(s->plugin_menu.menu)
+    plugin_menu_finalize(&s->plugin_menu);
+  }
+
+static void visualization_menu_init(visualization_menu_t * s, gmerlin_t * gmerlin)
+  {
+  s->menu = create_menu();
+  s->enable =
+    create_toggle_item(TR("Enable visualizations"),
+                       gmerlin,
+                       s->menu, (guint *)0);
+  gtk_widget_show(s->enable);
+
+  s->options = create_pixmap_item(TR("Options..."), "config_16.png",
+                                  gmerlin,
+                                  s->menu);
+  
+  s->plugins = create_pixmap_item(TR("Plugin..."), "plugin_16.png",
+                                  gmerlin, s->menu);
+  plugin_menu_init(&s->plugin_menu, gmerlin, BG_PLUGIN_VISUALIZATION);
+  gtk_menu_item_set_submenu(GTK_MENU_ITEM(s->plugins), s->plugin_menu.menu);
+  
+  }
+
+static void visualization_menu_finalize(visualization_menu_t * s, gmerlin_t * gmerlin)
+  {
+  plugin_menu_finalize(&s->plugin_menu);
+
+  if(bg_plugin_registry_get_visualize(gmerlin->plugin_reg))
+    gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(s->enable), 1);
+  }
+
 
 static void stream_menu_set_num(gmerlin_t * g, stream_menu_t * s, int num)
   {
@@ -919,6 +1011,9 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
 
   /* Chapters */
   ret->chapter_menu.menu = create_menu();
+
+  /* Visualization */
+  visualization_menu_init(&ret->visualization_menu, gmerlin);
   
   /* Options */
   
@@ -1053,7 +1148,12 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
   ret->chapter_item = create_submenu_item(TR("Chapters..."),
                                           ret->chapter_menu.menu,
                                           ret->menu);
-    
+
+      
+  ret->visualization_item = create_submenu_item(TR("Visualization..."),
+                                                ret->visualization_menu.menu,
+                                                ret->menu);
+  
   ret->windows_item = create_submenu_item(TR("Windows..."),
                                           ret->windows_menu.menu,
                                           ret->menu);
@@ -1072,8 +1172,20 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
   gtk_widget_show(ret->menu);
 
   
-  
   return ret;
+  }
+
+void main_menu_finalize(main_menu_t * ret, gmerlin_t * gmerlin)
+  {
+  /* Streams */
+  
+  stream_menu_finalize(&ret->audio_stream_menu);
+  stream_menu_finalize(&ret->video_stream_menu);
+  stream_menu_finalize(&ret->subtitle_stream_menu);
+
+  /* Visualization */
+  visualization_menu_finalize(&ret->visualization_menu, gmerlin);
+    
   }
 
 void main_menu_destroy(main_menu_t * m)

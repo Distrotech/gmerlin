@@ -66,6 +66,14 @@ void gmerlin_create_dialog(gmerlin_t * g)
                                         (void*)(g->player),
                                         parameters, TR("Subtitle options"));
 
+  parameters = bg_player_get_visualization_parameters(g->player);
+  
+  g->visualization_dialog = bg_dialog_create(g->visualization_section,
+                                             bg_player_set_visualization_parameter,
+                                             (void*)(g->player),
+                                             parameters,
+                                             TR("Visualization"));
+  
 #if 0
   parent = bg_dialog_add_parent(g->subtitle_dialog, (void*)0, TR("Text subtitles"));
   
@@ -144,15 +152,6 @@ void gmerlin_create_dialog(gmerlin_t * g)
                 g->logwindow_section,
                 bg_gtk_log_window_set_parameter,
                 (void*)(g->log_window),
-                parameters);
-  
-  parameters = bg_player_get_visualization_parameters(g->player);
-  
-  bg_dialog_add(g->cfg_dialog,
-                TR("Visualization"),
-                g->visualization_section,
-                bg_player_set_visualization_parameter,
-                (void*)(g->player),
                 parameters);
   
   parameters = bg_lcdproc_get_parameters(g->lcdproc);

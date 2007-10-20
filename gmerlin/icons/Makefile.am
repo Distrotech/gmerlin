@@ -42,6 +42,7 @@ first_16.png \
 folder_closed_16.png \
 folder_new_16.png \
 folder_open_16.png \
+fullscreen_16.png \
 goto_current_16.png \
 hardware_16.png \
 image_16.png \
@@ -92,6 +93,7 @@ tree_root_16.png \
 tuner_16.png \
 up_16.png \
 video_16.png \
+windowed_16.png \
 gmerlin.jpg
 
 pkgdata_DATA = $(icons)

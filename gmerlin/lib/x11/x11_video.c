@@ -1,0 +1,253 @@
+#include <string.h>
+#include <x11/x11.h>
+#include <x11/x11_window_private.h>
+
+static video_driver_t * drivers[] =
+  {
+    &ximage_driver,
+#ifdef HAVE_LIBXV
+    &xv_driver,
+#endif
+  };
+
+static void init(bg_x11_window_t * w)
+  {
+  int num_drivers, i;
+  num_drivers = sizeof(drivers) / sizeof(drivers[0]);
+  
+  for(i = 0; i < num_drivers; i++)
+    {
+    w->drivers[i].driver = drivers[i];
+    w->drivers[i].win = w;
+    if(w->drivers[i].driver->init)
+      w->drivers[i].driver->init(&w->drivers[i]);
+    }
+  
+  /* TODO: Get screen resolution */
+  w->window_format.pixel_width = 1;
+  w->window_format.pixel_height = 1;
+  }
+
+void bg_x11_window_cleanup_video(bg_x11_window_t * w)
+  {
+  int num_drivers, i;
+  num_drivers = sizeof(drivers) / sizeof(drivers[0]);
+
+  /* Not initialized */
+  if(!w->drivers[0].driver)
+    return;
+  
+  for(i = 0; i < num_drivers; i++)
+    {
+    if(w->drivers[i].driver->cleanup)
+      w->drivers[i].driver->cleanup(&w->drivers[i]);
+    if(w->drivers[i].pixelformats)
+      free(w->drivers[i].pixelformats);
+    }
+  }
+
+
+/* For Video output */
+
+int bg_x11_window_open_video(bg_x11_window_t * w,
+                             gavl_video_format_t * format)
+  {
+  int num_drivers;
+  int i;
+  
+  int min_penalty, min_index;
+  w->do_sw_scale = 0;
+  w->current_driver = (driver_data_t*)0;  
+  if(!w->drivers_initialized)
+    {
+    init(w);
+    w->drivers_initialized = 1;
+    }
+
+  gavl_video_format_copy(&w->video_format, format);
+  
+  num_drivers = sizeof(drivers) / sizeof(drivers[0]);
+
+  /* Query the best pixelformats for each driver */
+
+  for(i = 0; i < num_drivers; i++)
+    {
+    w->drivers[i].pixelformat =
+      gavl_pixelformat_get_best(format->pixelformat, w->drivers[i].pixelformats,
+                                &w->drivers[i].penalty);
+    }
+
+  /*
+   *  Now, get the driver with the lowest penalty.
+   *  Scaling would be nice as well
+   */
+
+  while(1)
+    {
+    min_index = -1;
+    min_penalty = -1;
+
+    /* Find out best driver. Drivers, which don't initialize,
+       have the pixelformat unset */
+    for(i = 0; i < num_drivers; i++)
+      {
+      if(w->drivers[i].pixelformat != GAVL_PIXELFORMAT_NONE)
+        {
+        if((min_penalty < 0) || w->drivers[i].penalty < min_penalty)
+          {
+          min_penalty = w->drivers[i].penalty;
+          min_index = i;
+          }
+        }
+      }
+
+    /* If we have found no driver, playing video is doomed to failure */
+    if(min_penalty < 0)
+      break;
+    
+    if(!w->drivers[min_index].driver->open)
+      {
+      w->current_driver = &w->drivers[min_index];
+      break;
+      }
+    /* Flag as unusable */
+    if(!w->drivers[min_index].driver->open(&w->drivers[min_index]))
+      w->drivers[min_index].pixelformat = GAVL_PIXELFORMAT_NONE;
+    else
+      {
+      w->current_driver = &w->drivers[min_index];
+      break;
+      }
+    }
+  if(!w->current_driver)
+    return 0;
+  
+  w->video_format.pixelformat = w->current_driver->pixelformat;
+  
+  gavl_video_format_copy(format, &w->video_format);
+  
+  /* All other values are already set or will be set by set_rectangles */
+  w->window_format.pixelformat = 
+    format->pixelformat;
+  
+  if(!w->current_driver->driver->can_scale)
+    {
+    w->do_sw_scale = 1;
+    
+    }
+  return 1;
+  }
+
+gavl_video_frame_t * bg_x11_window_create_frame(bg_x11_window_t * w)
+  {
+  if(!w->do_sw_scale)
+    {
+    if(w->current_driver->driver->create_frame)
+      return w->current_driver->driver->create_frame(w->current_driver);
+    else
+      return gavl_video_frame_create(&w->video_format);
+    }
+  else
+    return gavl_video_frame_create(&w->video_format);
+  }
+
+void bg_x11_window_destroy_frame(bg_x11_window_t * w, gavl_video_frame_t * f)
+  {
+  if(!w->do_sw_scale)
+    {
+    if(w->current_driver->driver->destroy_frame)
+      w->current_driver->driver->destroy_frame(w->current_driver, f);
+    else
+      gavl_video_frame_destroy(f);
+    }
+  else
+    gavl_video_frame_destroy(f);
+  }
+
+#define PADD_SIZE 128
+#define PADD_IMAGE_SIZE(s) \
+s = ((s + PADD_SIZE - 1) / PADD_SIZE) * PADD_SIZE
+
+void bg_x11_window_set_rectangles(bg_x11_window_t * w,
+                                  gavl_rectangle_f_t * src_rect,
+                                  gavl_rectangle_i_t * dst_rect)
+  {
+  gavl_video_options_t * opt;
+  gavl_rectangle_f_copy(&w->src_rect, src_rect);
+  gavl_rectangle_i_copy(&w->dst_rect, dst_rect);
+
+  
+  if(w->current_driver && w->do_sw_scale)
+    {
+
+    if((w->window_format.image_width > w->window_format.frame_width) ||
+       (w->window_format.image_height > w->window_format.frame_height))
+      {
+      w->window_format.frame_width = w->window_format.image_width;
+      w->window_format.frame_height = w->window_format.image_height;
+      
+      PADD_IMAGE_SIZE(w->window_format.frame_width);
+      PADD_IMAGE_SIZE(w->window_format.frame_height);
+      
+      if(w->window_frame)
+        {
+        if(w->current_driver->driver->destroy_frame)
+          w->current_driver->driver->destroy_frame(w->current_driver,
+                                                   w->window_frame);
+        else
+          gavl_video_frame_destroy(w->window_frame);
+        }
+      
+      if(w->current_driver->driver->create_frame)
+        w->window_frame = w->current_driver->driver->create_frame(w->current_driver);
+      else
+        w->window_frame = gavl_video_frame_create(&w->window_format);
+      }
+    /* Clear window */
+    gavl_video_frame_clear(w->window_frame, &(w->window_format));
+    
+    /* Reinitialize scaler */
+    
+    opt = gavl_video_scaler_get_options(w->scaler);
+    gavl_video_options_set_rectangles(opt, &(w->src_rect),
+                                      &(w->dst_rect));
+    
+    gavl_video_scaler_init(w->scaler,
+                           &(w->video_format),
+                           &(w->window_format)); 
+    }
+  bg_x11_window_clear(w);
+  }
+
+#undef PADD_IMAGE_SIZE
+
+void bg_x11_window_put_frame(bg_x11_window_t * w, gavl_video_frame_t * f)
+  {
+  if(w->do_sw_scale)
+    {
+    gavl_video_scaler_scale(w->scaler, f, w->window_frame);
+    w->current_driver->driver->put_frame(w->current_driver,
+                                         w->window_frame);
+    }
+  else
+    {
+    w->current_driver->driver->put_frame(w->current_driver, f);
+    }
+  
+  }
+
+void bg_x11_window_close_video(bg_x11_window_t * w)
+  {
+  if(w->window_frame)
+    {
+    if(w->current_driver->driver->destroy_frame)
+      w->current_driver->driver->destroy_frame(w->current_driver, w->window_frame);
+    else
+      gavl_video_frame_destroy(w->window_frame);
+    w->window_frame = (gavl_video_frame_t*)0;
+    }
+  if(w->current_driver->driver->close)
+    w->current_driver->driver->close(w->current_driver);
+  }
+
+

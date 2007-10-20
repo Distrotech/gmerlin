@@ -117,7 +117,7 @@ static bg_parameter_info_t parameters[] =
       flags: BG_PARAMETER_SYNC,
       val_min: { val_f:  1.0 },
       val_max: { val_f: 50.0 },
-      val_default: { val_f:  0.3 },
+      val_default: { val_f:  1.0 },
       num_digits: 1,
     },
     {

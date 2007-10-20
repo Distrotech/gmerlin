@@ -3,13 +3,13 @@
  *  change plugin names to test other plugins
  */
 
-//#include <dlfcn.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
 #include <pluginregistry.h>
 #include <utils.h>
+#include <log.h>
 
 static char * output_plugin_name = "ov_x11";
 static char * input_plugin_name =  "i_singlepic";
@@ -51,6 +51,7 @@ int main(int argc, char ** argv)
 
   gavl_video_converter_t * video_converter;
 
+  bg_log_set_verbose(BG_LOG_DEBUG|BG_LOG_WARNING|BG_LOG_ERROR|BG_LOG_INFO);
   if(argc == 1)
     {
     fprintf(stderr, "Usage: %s <filename>\n", argv[0]);
@@ -69,14 +70,16 @@ int main(int argc, char ** argv)
   plugin_reg = bg_plugin_registry_create(cfg_section);
 
   /* Load input plugin */
-
-  plugin_info = bg_plugin_find_by_name(plugin_reg, input_plugin_name);
-  if(!plugin_info)
+  input_handle = (bg_plugin_handle_t*)0;
+  if(!bg_input_plugin_load(plugin_reg,
+                           argv[1],
+                           (const bg_plugin_info_t*)0,
+                           &input_handle,
+                           (bg_input_callbacks_t*)0))
     {
-    fprintf(stderr, "Input plugin %s not found\n", input_plugin_name);
+    fprintf(stderr, "Cannot open %s\n", argv[1]);
     return -1;
     }
-  input_handle = bg_plugin_load(plugin_reg, plugin_info);
   input_plugin = (bg_input_plugin_t*)(input_handle->plugin);
 
   /* Load output plugin */
@@ -90,14 +93,12 @@ int main(int argc, char ** argv)
   output_handle = bg_plugin_load(plugin_reg, plugin_info);
   output_plugin = (bg_ov_plugin_t*)(output_handle->plugin);
   
-  if(!input_plugin->open(input_handle->priv, argv[1]))
-    {
-    fprintf(stderr, "Cannot open %s\n", argv[1]);
-    return -1;
-    }
-  
   info = input_plugin->get_track_info(input_handle->priv, 0);
 
+  /* Select track */
+  if(input_plugin->set_track)
+    input_plugin->set_track(input_handle->priv, 0);
+  
   if(!info->num_video_streams)
     {
     fprintf(stderr, "File %s has no video\n", argv[1]);
@@ -125,6 +126,7 @@ int main(int argc, char ** argv)
             output_handle->info->name);
     return -1;
     }
+  output_plugin->show_window(output_handle->priv, 1);
   output_plugin->set_window_title(output_handle->priv, "Video output");
   
   /* Initialize video converter */
@@ -135,19 +137,24 @@ int main(int argc, char ** argv)
   do_convert = gavl_video_converter_init(video_converter,
                                          &(info->video_streams[0].format),
                                          &video_format);
-
+  
   if(do_convert)
     fprintf(stderr, "Doing Video Conversion\n");
   else
     fprintf(stderr, "No Video conversion\n");
-    
+
+  fprintf(stderr, "Input format:\n");
+  gavl_video_format_dump(&(info->video_streams[0].format));
+  fprintf(stderr, "Output format:\n");
+  gavl_video_format_dump(&video_format);
+  
   /* Allocate frames */
 
   if(do_convert)
     input_frame = gavl_video_frame_create(&(info->video_streams[0].format));
   
-  if(output_plugin->alloc_frame)
-    output_frame = output_plugin->alloc_frame(output_handle->priv);
+  if(output_plugin->create_frame)
+    output_frame = output_plugin->create_frame(output_handle->priv);
   else
     input_frame = gavl_video_frame_create(&video_format);
 
@@ -177,6 +184,7 @@ int main(int argc, char ** argv)
         }
       
       output_plugin->put_video(output_handle->priv, output_frame);
+      output_plugin->handle_events(output_handle->priv);
       frames_written++;
       }
     }
@@ -202,8 +210,8 @@ int main(int argc, char ** argv)
   if(do_convert)
     gavl_video_frame_destroy(input_frame);
 
-  if(output_plugin->free_frame)
-    output_plugin->free_frame(output_handle->priv, output_frame);
+  if(output_plugin->destroy_frame)
+    output_plugin->destroy_frame(output_handle->priv, output_frame);
   else
     gavl_video_frame_destroy(output_frame);
   
@@ -211,9 +219,8 @@ int main(int argc, char ** argv)
     input_plugin->stop(input_handle->priv);
 
   input_plugin->close(input_handle->priv);
-
   output_plugin->close(output_handle->priv);
-
+  
   bg_plugin_unref(input_handle);
   bg_plugin_unref(output_handle);
 

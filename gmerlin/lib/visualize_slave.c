@@ -395,8 +395,8 @@ static void bg_visualizer_slave_destroy(bg_visualizer_slave_t * v)
     {
     if(v->video_frame_out)
       {
-      if(v->ov_plugin->free_frame)
-        v->ov_plugin->free_frame(v->ov_priv,
+      if(v->ov_plugin->destroy_frame)
+        v->ov_plugin->destroy_frame(v->ov_priv,
                                  v->video_frame_out);
       else
         gavl_video_frame_destroy(v->video_frame_out);
@@ -533,7 +533,6 @@ bg_visualizer_slave_set_audio_format(bg_visualizer_slave_t * v,
                                      const gavl_audio_format_t * format)
   {
   int was_running;
-  fprintf(stderr, "bg_visualizer_set_audio_format\n");
   was_running = bg_visualizer_slave_stop(v);
   pthread_mutex_lock(&v->audio_buffer->in_mutex);
   
@@ -544,7 +543,6 @@ bg_visualizer_slave_set_audio_format(bg_visualizer_slave_t * v,
   pthread_mutex_unlock(&v->audio_buffer->in_mutex);
   if(was_running)
     bg_visualizer_slave_start(v);
-  fprintf(stderr, "bg_visualizer_set_audio_format done\n");
   }
 
 static void cleanup_plugin(bg_visualizer_slave_t * v)
@@ -582,8 +580,8 @@ static void init_plugin(bg_visualizer_slave_t * v)
       gavl_video_converter_init(v->video_cnv, &v->video_format_in_real,
                                 &v->video_format_out);
 
-    if(v->ov_plugin->alloc_frame)
-      v->video_frame_out = v->ov_plugin->alloc_frame(v->ov_priv);
+    if(v->ov_plugin->create_frame)
+      v->video_frame_out = v->ov_plugin->create_frame(v->ov_priv);
     else
       v->video_frame_out = gavl_video_frame_create(&v->video_format_out);
     
@@ -626,7 +624,7 @@ int main(int argc, char ** argv)
   
   if(isatty(fileno(stdin)))
     {
-    fprintf(stderr, "This program is not meant to be started from the commandline");
+    fprintf(stderr, "This program is not meant to be started from the commandline.\nThe official frontend API for visualizatons is in " PREFIX "/include/gmerlin/visualize.h\n");
     return -1;
     }
   fprintf(stderr, "slave started\n");
@@ -708,8 +706,8 @@ int main(int argc, char ** argv)
           }
         break;
       case BG_VIS_MSG_GAIN:
-        fprintf(stderr, "Got gain %f\n",arg_f);
         arg_f = bg_msg_get_arg_float(msg, 0);
+        fprintf(stderr, "Got gain %f\n",arg_f);
         audio_buffer_set_gain(s->audio_buffer, arg_f);
         break;
       case BG_VIS_MSG_FPS:

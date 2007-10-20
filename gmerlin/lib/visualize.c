@@ -34,15 +34,13 @@ struct bg_visualizer_s
   bg_plugin_handle_t * ov_handle;
   bg_ov_plugin_t * ov_plugin;
   
-  bg_parameter_info_t * params;
-  
   pthread_mutex_t mutex;
   
-  int enable;
   int changed;
   
   bg_subprocess_t * proc;
   const bg_plugin_info_t * vis_info;
+  const bg_plugin_info_t * ov_info;
 
   int image_width;
   int image_height;
@@ -51,7 +49,8 @@ struct bg_visualizer_s
   
   sigset_t oldset;
   gavl_audio_format_t audio_format;
-
+  
+  const char * display_string;
   };
 
 static int proc_write_func(void * data, uint8_t * ptr, int len)
@@ -88,7 +87,6 @@ bg_visualizer_create(bg_plugin_registry_t * plugin_reg)
   pthread_mutex_init(&(ret->mutex),(pthread_mutexattr_t *)0);
   
   ret->msg = bg_msg_create();
-  
   return ret;
   }
 
@@ -104,21 +102,10 @@ void bg_visualizer_destroy(bg_visualizer_t * v)
 static bg_parameter_info_t parameters[] =
   {
     {
-      name:       "enable",
-      long_name:  TRS("Enable visualizations"),
-      type:       BG_PARAMETER_CHECKBUTTON,
-      flags:      BG_PARAMETER_SYNC,
-    },
-    {
-      name:       "plugin",
-      long_name:  TRS("Plugin"),
-      type:       BG_PARAMETER_MULTI_MENU,
-      flags:      BG_PARAMETER_SYNC,
-    },
-    {
       name:        "width",
       long_name:   TRS("Width"),
       type:        BG_PARAMETER_INT,
+      flags:      BG_PARAMETER_SYNC,
       val_min:     { val_i: 16 },
       val_max:     { val_i: 32768 },
       val_default: { val_i: 320 },
@@ -128,6 +115,7 @@ static bg_parameter_info_t parameters[] =
       name:       "height",
       long_name:  TRS("Height"),
       type:       BG_PARAMETER_INT,
+      flags:      BG_PARAMETER_SYNC,
       val_min:    { val_i: 16 },
       val_max:    { val_i: 32768 },
       val_default: { val_i: 240 },
@@ -156,21 +144,9 @@ static bg_parameter_info_t parameters[] =
     { /* End of parameters */ }
   };
 
-static void create_params(bg_visualizer_t * v)
-  {
-  v->params = bg_parameter_info_copy_array(parameters);
-  bg_plugin_registry_set_parameter_info(v->plugin_reg,
-                                        BG_PLUGIN_VISUALIZATION,
-                                        BG_PLUGIN_VISUALIZE_FRAME |
-                                        BG_PLUGIN_VISUALIZE_GL,
-                                        &(v->params[1]));
-  }
-
 bg_parameter_info_t * bg_visualizer_get_parameters(bg_visualizer_t * v)
   {
-  if(!v->params)
-    create_params(v);
-  return v->params;
+  return parameters;
   }
 
 static void set_ov_parameter(void * data,
@@ -184,7 +160,7 @@ static void set_ov_parameter(void * data,
   
   if(name)
     {
-    info = bg_parameter_find(v->ov_handle->info->parameters,
+    info = bg_parameter_find(v->ov_info->parameters,
                              name);
     if(!info)
       return;
@@ -227,6 +203,31 @@ static void set_gain(bg_visualizer_t * v)
   write_message(v);
   }
 
+void bg_visualizer_set_vis_plugin(bg_visualizer_t * v,
+                                  const bg_plugin_info_t * info)
+  {
+  if(!v->vis_info || strcmp(v->vis_info->name, info->name))
+    {
+    v->changed = 1;
+    v->vis_info = info;
+    bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Got visualization plugin %s",
+           v->vis_info->name);
+    }
+  }
+
+void bg_visualizer_set_vis_parameter(void * priv,
+                                     const char * name,
+                                     const bg_parameter_value_t * val)
+  {
+  bg_visualizer_t * v;
+  v = (bg_visualizer_t *)priv;
+  pthread_mutex_lock(&v->mutex);
+  if(v->proc)
+    set_vis_parameter(v, name, val);
+  pthread_mutex_unlock(&v->mutex);
+  }
+
+
 void bg_visualizer_set_parameter(void * priv,
                                  const char * name,
                                  const bg_parameter_value_t * val)
@@ -239,29 +240,21 @@ void bg_visualizer_set_parameter(void * priv,
   
   //  fprintf(stderr, "bg_visualizer_set_parameter: %s\n", name);
   
-  if(!strcmp(name, "enable"))
+  if(!strcmp(name, "width"))
     {
-    if(v->enable != val->val_i)
+    if(v->image_width != val->val_i)
       {
+      v->image_width = val->val_i;
       v->changed = 1;
-      v->enable = val->val_i;
       }
-    }
-  else if(!strcmp(name, "plugin"))
-    {
-    if(!v->vis_info || strcmp(v->vis_info->name, val->val_str))
-      {
-      v->changed = 1;
-      v->vis_info = bg_plugin_find_by_name(v->plugin_reg, val->val_str);
-      }
-    }
-  else if(!strcmp(name, "width"))
-    {
-    v->image_width = val->val_i;
     }
   else if(!strcmp(name, "height"))
     {
-    v->image_height = val->val_i;
+    if(v->image_height != val->val_i)
+      {
+      v->image_height = val->val_i;
+      v->changed = 1;
+      }
     }
   else if(!strcmp(name, "framerate"))
     {
@@ -274,13 +267,6 @@ void bg_visualizer_set_parameter(void * priv,
     pthread_mutex_lock(&v->mutex);
     if(v->proc)
       set_gain(v);
-    pthread_mutex_unlock(&v->mutex);
-    }
-  else if(v->vis_info && v->vis_info->parameters)
-    {
-    pthread_mutex_lock(&v->mutex);
-    if(v->proc)
-      set_vis_parameter(v, name, val);
     pthread_mutex_unlock(&v->mutex);
     }
   }
@@ -338,18 +324,16 @@ int bg_visualizer_start(bg_visualizer_t * v)
   if(v->vis_info->flags & BG_PLUGIN_VISUALIZE_FRAME)
     {
     command = bg_sprintf("gmerlin_visualizer_slave  -w %s -o %s -p %s",
-                         v->ov_plugin->get_window(v->ov_handle->priv),
-                         v->ov_handle->info->module_filename,
+                         v->display_string,
+                         v->ov_info->module_filename,
                          v->vis_info->module_filename);
     }
   else
     {
     command = bg_sprintf("gmerlin_visualizer_slave -w %s -p %s",
-                         v->ov_plugin->get_window(v->ov_handle->priv),
+                         v->display_string,
                          v->vis_info->module_filename);
     }
-  fprintf(stderr, "command: %s\n", command);
-  
   v->proc = bg_subprocess_create(command, 1, 0, 0);
   if(!v->proc)
     return 0;
@@ -362,13 +346,13 @@ int bg_visualizer_start(bg_visualizer_t * v)
   write_message(v);
   
   /* default ov parameters */
-  if(v->ov_handle->info->parameters &&
+  if(v->ov_info->parameters &&
      (v->vis_info->flags & BG_PLUGIN_VISUALIZE_FRAME))
     {
     section = bg_plugin_registry_get_section(v->plugin_reg,
-                                             v->ov_handle->info->name);
+                                             v->ov_info->name);
     bg_cfg_section_apply(section,
-                         v->ov_handle->info->parameters,
+                         v->ov_info->parameters,
                          set_ov_parameter, v);
     }
   
@@ -403,10 +387,12 @@ int bg_visualizer_start(bg_visualizer_t * v)
   write_message(v);
 
   /* Show window */
-  v->ov_plugin->show_window(v->ov_handle->priv, 1);
-  v->ov_plugin->set_window_title(v->ov_handle->priv,
-                                 v->vis_info->long_name);
-  
+  if(v->ov_plugin)
+    {
+    v->ov_plugin->show_window(v->ov_handle->priv, 1);
+    v->ov_plugin->set_window_title(v->ov_handle->priv,
+                                   v->vis_info->long_name);
+    }
   pthread_mutex_unlock(&v->mutex);
   return 1;
   }
@@ -430,9 +416,9 @@ void bg_visualizer_set_audio_format(bg_visualizer_t * v,
   //  fprintf(stderr, "bg_visualizer_set_audio_format done\n");
   }
 
-void bg_visualizer_open(bg_visualizer_t * v,
-                        const gavl_audio_format_t * format,
-                        bg_plugin_handle_t * ov_handle)
+void bg_visualizer_open_plugin(bg_visualizer_t * v,
+                               const gavl_audio_format_t * format,
+                               bg_plugin_handle_t * ov_handle)
   {
   /* Set audio format */
   
@@ -442,19 +428,48 @@ void bg_visualizer_open(bg_visualizer_t * v,
   v->ov_handle = ov_handle;
   v->ov_plugin = (bg_ov_plugin_t*)(ov_handle->plugin);
   
+  v->ov_info = v->ov_handle->info;
+  
+  v->display_string = v->ov_plugin->get_window(v->ov_handle->priv);
+  
   v->changed = 0;
   
   bg_visualizer_start(v);
   
   }
 
-void bg_visualizer_update(bg_visualizer_t * v, const gavl_audio_frame_t * frame)
+void bg_visualizer_open_id(bg_visualizer_t * v,
+                           const gavl_audio_format_t * format,
+                           const bg_plugin_info_t * ov_info,
+                           const char * display_name)
+  {
+  /* Set audio format */
+  
+  gavl_audio_format_copy(&v->audio_format, format);
+  
+  /* Set ov plugin */
+  v->ov_handle = (bg_plugin_handle_t*)0;
+  v->ov_plugin = (bg_ov_plugin_t*)0;
+  
+  v->ov_info = ov_info;
+  v->display_string = display_name;
+  
+  v->changed = 0;
+  
+  bg_visualizer_start(v);
+  
+  }
+
+
+void bg_visualizer_update(bg_visualizer_t * v,
+                          const gavl_audio_frame_t * frame)
   {
   pthread_mutex_lock(&v->mutex);
 
   if(!v->proc)
     {
-    v->ov_plugin->handle_events(v->ov_handle->priv);
+    if(v->ov_plugin)
+      v->ov_plugin->handle_events(v->ov_handle->priv);
     pthread_mutex_unlock(&v->mutex);
     return;
     }
@@ -472,7 +487,9 @@ void bg_visualizer_update(bg_visualizer_t * v, const gavl_audio_frame_t * frame)
            "Visualization process crashed, restart to try again");
     }
   bg_msg_free(v->msg);
-  v->ov_plugin->handle_events(v->ov_handle->priv);
+
+  if(v->ov_plugin)
+    v->ov_plugin->handle_events(v->ov_handle->priv);
   
   pthread_mutex_unlock(&v->mutex);
   }
@@ -480,13 +497,7 @@ void bg_visualizer_update(bg_visualizer_t * v, const gavl_audio_frame_t * frame)
 
 void bg_visualizer_close(bg_visualizer_t * v)
   {
-  fprintf(stderr, "Close visualizer\n");
   bg_visualizer_stop(v);
-  }
-
-int bg_visualizer_is_enabled(bg_visualizer_t * v)
-  {
-  return v->enable;
   }
 
 int bg_visualizer_need_restart(bg_visualizer_t * v)

@@ -89,6 +89,8 @@ struct gmerlin_s
   
   bg_dialog_t * subtitle_dialog;
   
+  bg_dialog_t * visualization_dialog;
+  
   bg_gtk_tree_window_t * tree_window;
 
   player_window_t * player_window;

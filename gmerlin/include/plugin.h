@@ -980,7 +980,7 @@ typedef struct bg_ov_plugin_s
    *  the free_frame() method.
    */
   
-  gavl_video_frame_t * (*alloc_frame)(void * priv);
+  gavl_video_frame_t * (*create_frame)(void * priv);
 
   
   /** \brief Add a stream for transparent overlays
@@ -1049,7 +1049,7 @@ typedef struct bg_ov_plugin_s
    *  \param frame The frame to be freed
    */
 
-  void (*free_frame)(void * priv, gavl_video_frame_t * frame);
+  void (*destroy_frame)(void * priv, gavl_video_frame_t * frame);
 
   /** \brief Close the plugin
    *  \param priv The handle returned by the create() method

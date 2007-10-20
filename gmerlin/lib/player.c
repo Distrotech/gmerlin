@@ -152,7 +152,9 @@ bg_player_t * bg_player_create(bg_plugin_registry_t * plugin_reg)
   pthread_mutex_init(&(ret->waiting_plugin_threads_mutex),
                      (pthread_mutexattr_t *)0);
   pthread_mutex_init(&(ret->mute_mutex), (pthread_mutexattr_t *)0);
-  
+  pthread_mutex_init(&(ret->config_mutex), (pthread_mutexattr_t *)0);
+
+
   pthread_cond_init (&(ret->start_cond),  (pthread_condattr_t *)0);
   pthread_cond_init (&(ret->stop_cond),   (pthread_condattr_t *)0);
 
@@ -179,8 +181,9 @@ void bg_player_destroy(bg_player_t * player)
   bg_msg_queue_destroy(player->command_queue);
  
   bg_msg_queue_list_destroy(player->message_queues);
-
+  
   pthread_mutex_destroy(&(player->state_mutex));
+  pthread_mutex_destroy(&(player->config_mutex));
   
   free(player);
   }
@@ -270,20 +273,17 @@ bg_player_set_visualization_parameter(void*data,
                                       const char * name,
                                       const bg_parameter_value_t*val)
   {
-  int enabled;
   bg_player_t * p;
   int do_init;
 
   p = (bg_player_t*)data;
   do_init = (bg_player_get_state(p) == BG_PLAYER_STATE_INIT);
-
-  enabled = bg_visualizer_is_enabled(p->visualizer);
+  
   bg_visualizer_set_parameter(p->visualizer, name, val);
-
+  
   if(!do_init)
     {
-    if((enabled != bg_visualizer_is_enabled(p->visualizer)) ||
-       bg_visualizer_need_restart(p->visualizer))
+    if(bg_visualizer_need_restart(p->visualizer))
       {
       bg_player_interrupt(p);
       bg_player_interrupt_resume(p);
@@ -291,3 +291,51 @@ bg_player_set_visualization_parameter(void*data,
     }
   }
 
+void
+bg_player_set_visualization_plugin_parameter(void*data,
+                                             const char * name,
+                                             const bg_parameter_value_t*val)
+  {
+  bg_player_t * p;
+  p = (bg_player_t*)data;
+  bg_visualizer_set_vis_parameter(p->visualizer, name, val);
+  }
+
+void
+bg_player_set_visualization(bg_player_t * p,
+                            int enable)
+  {
+  int was_enabled;
+  int do_init;
+  do_init = (bg_player_get_state(p) == BG_PLAYER_STATE_INIT);
+
+  pthread_mutex_lock(&p->config_mutex);
+  was_enabled = p->visualizer_enabled;
+  p->visualizer_enabled = enable;
+  pthread_mutex_unlock(&p->config_mutex);
+
+  if((was_enabled != enable) && !do_init)
+    {
+    bg_player_interrupt(p);
+    bg_player_interrupt_resume(p);
+    }
+  }
+
+void
+bg_player_set_visualization_plugin(bg_player_t * p, const bg_plugin_info_t * plugin_info)
+  {
+  int do_init;
+  do_init = (bg_player_get_state(p) == BG_PLAYER_STATE_INIT);
+  
+  bg_visualizer_set_vis_plugin(p->visualizer, plugin_info);
+  
+  if(!do_init)
+    {
+    if(bg_visualizer_need_restart(p->visualizer))
+      {
+      bg_player_interrupt(p);
+      bg_player_interrupt_resume(p);
+      }
+    }
+
+  }

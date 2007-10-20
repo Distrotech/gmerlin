@@ -32,11 +32,24 @@ void bg_visualizer_set_parameter(void * priv,
                                  const char * name,
                                  const bg_parameter_value_t * v);
 
+void bg_visualizer_set_vis_plugin(bg_visualizer_t * v,
+                                  const bg_plugin_info_t * info);
+
+void bg_visualizer_set_vis_parameter(void * priv,
+                                     const char * name,
+                                     const bg_parameter_value_t * v);
+
+
 /* Open visualization stuff, start visualizer thread */
 
-void bg_visualizer_open(bg_visualizer_t * v,
-                        const gavl_audio_format_t * format,
-                        bg_plugin_handle_t * ov_handle);
+void bg_visualizer_open_plugin(bg_visualizer_t * v,
+                               const gavl_audio_format_t * format,
+                               bg_plugin_handle_t * ov_handle);
+
+void bg_visualizer_open_id(bg_visualizer_t * v,
+                           const gavl_audio_format_t * format,
+                           const bg_plugin_info_t * ov_info,
+                           const char * display_name);
 
 /* Set new audio format without stopping the visualization thread */
 
@@ -47,8 +60,6 @@ void bg_visualizer_update(bg_visualizer_t * v,
                           const gavl_audio_frame_t *);
 
 void bg_visualizer_close(bg_visualizer_t * v);
-
-int bg_visualizer_is_enabled(bg_visualizer_t * v);
 
 int bg_visualizer_need_restart(bg_visualizer_t * v);
 

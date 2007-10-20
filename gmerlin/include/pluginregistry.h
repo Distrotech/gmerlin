@@ -448,6 +448,24 @@ void bg_plugin_registry_set_encode_pp(bg_plugin_registry_t * reg,
  */
 int bg_plugin_registry_get_encode_pp(bg_plugin_registry_t * reg);
 
+/** \ingroup plugin_registry_defaults
+ *  \brief Specify whether visualizations should be enabled
+ *  \param reg A plugin registry
+ *  \param enable 1 to enable visualizations, 0 else
+ */
+
+void bg_plugin_registry_set_visualize(bg_plugin_registry_t * reg,
+                                       int visualize);
+
+/** \ingroup plugin_registry_defaults
+ *  \brief Query whether visualizations should be enabled
+ *  \param reg A plugin registry
+ *  \returns 1 if visualizations should be enabled, 0 else
+ */
+
+int bg_plugin_registry_get_visualize(bg_plugin_registry_t * reg);
+
+
 /*
  *  Add a device to a plugin
  */

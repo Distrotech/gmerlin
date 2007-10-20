@@ -57,6 +57,9 @@ struct bg_gtk_plugin_widget_single_s
   void (*set_plugin)(const bg_plugin_info_t *, void*);
   void * set_plugin_data;
 
+  bg_set_parameter_func_t set_parameter;
+  void * set_parameter_data;
+    
   };
 
 static void set_parameter(void * data, const char * name,
@@ -71,8 +74,12 @@ static void set_parameter(void * data, const char * name,
     widget->handle->plugin->set_parameter(widget->handle->priv, name, v);
     bg_plugin_unlock(widget->handle);
     }
-  }
+  if(widget->set_parameter)
+    {
+    widget->set_parameter(widget->set_parameter_data, name, v);
+    }
 
+  }
 
 static void button_callback(GtkWidget * w, gpointer data)
   {
@@ -123,7 +130,6 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   
   }
-
 
 static GtkWidget * create_pixmap_button(bg_gtk_plugin_widget_single_t * w,
                                         const char * filename,
@@ -256,7 +262,17 @@ bg_gtk_plugin_widget_single_set_change_callback(bg_gtk_plugin_widget_single_t * 
   w->set_plugin_data = set_plugin_data;
   
   }
-                                                
+
+void
+bg_gtk_plugin_widget_single_set_parameter_callback(bg_gtk_plugin_widget_single_t * w,
+                                                   bg_set_parameter_func_t func,
+                                                   void * priv)
+  {
+  w->set_parameter = func;
+  w->set_parameter_data = priv;
+  }
+
+
 
 bg_gtk_plugin_widget_single_t *
 bg_gtk_plugin_widget_single_create(char * label,

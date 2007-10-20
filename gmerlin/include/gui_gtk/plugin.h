@@ -54,6 +54,12 @@ bg_gtk_plugin_widget_single_set_change_callback(bg_gtk_plugin_widget_single_t * 
                                                 void * set_plugin_data);
 
 
+void
+bg_gtk_plugin_widget_single_set_parameter_callback(bg_gtk_plugin_widget_single_t * w,
+                                                   bg_set_parameter_func_t func,
+                                                   void * priv);
+
+
 void bg_gtk_plugin_widget_single_destroy(bg_gtk_plugin_widget_single_t * w);
 
 // GtkWidget *

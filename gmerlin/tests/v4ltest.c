@@ -122,8 +122,8 @@ int main(int argc, char ** argv)
 
   /* Allocate video image */
 
-  if(output->alloc_frame)
-    frame = output->alloc_frame(output_handle->priv);
+  if(output->create_frame)
+    frame = output->create_frame(output_handle->priv);
     
   if(do_convert)
     {

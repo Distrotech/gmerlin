@@ -675,7 +675,9 @@ void player_window_create(gmerlin_t * g)
   ret->volume_slider = bg_gtk_slider_create();
   
   ret->main_menu = main_menu_create(g);
-
+  
+  main_menu_finalize(ret->main_menu, g);
+  
   ret->display = display_create(g);
   
   /* Set callbacks */

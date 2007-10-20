@@ -209,10 +209,10 @@ void * bg_player_ov_create_frame(void * data)
   bg_player_ov_context_t * ctx;
   ctx = (bg_player_ov_context_t *)data;
 
-  if(ctx->plugin->alloc_frame)
+  if(ctx->plugin->create_frame)
     {
     bg_plugin_lock(ctx->plugin_handle);
-    ret = ctx->plugin->alloc_frame(ctx->priv);
+    ret = ctx->plugin->create_frame(ctx->priv);
     bg_plugin_unlock(ctx->plugin_handle);
     }
   else
@@ -228,10 +228,10 @@ void bg_player_ov_destroy_frame(void * data, void * frame)
   bg_player_ov_context_t * ctx;
   ctx = (bg_player_ov_context_t *)data;
   
-  if(ctx->plugin->free_frame)
+  if(ctx->plugin->destroy_frame)
     {
     bg_plugin_lock(ctx->plugin_handle);
-    ctx->plugin->free_frame(ctx->priv, (gavl_video_frame_t*)frame);
+    ctx->plugin->destroy_frame(ctx->priv, (gavl_video_frame_t*)frame);
     bg_plugin_unlock(ctx->plugin_handle);
     }
   else

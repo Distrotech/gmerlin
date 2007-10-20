@@ -459,8 +459,8 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
       if(DO_VISUALIZE(p->old_flags))
         bg_visualizer_close(p->visualizer);
       /* Initialize visualizer */
-      bg_visualizer_open(p->visualizer, &p->audio_stream.fifo_format,
-                         bg_player_ov_get_plugin(p->ov_context));
+      bg_visualizer_open_plugin(p->visualizer, &p->audio_stream.fifo_format,
+                                bg_player_ov_get_plugin(p->ov_context));
       }
     else
       {

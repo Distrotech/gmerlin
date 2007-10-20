@@ -362,6 +362,27 @@ bg_parameter_info_t * bg_player_get_osd_parameters(bg_player_t * player);
  */
 void bg_player_set_osd_parameter(void*data, const char * name, const bg_parameter_value_t*val);
 
+
+/** \brief En- or disable music visualizations
+ *  \param player A player
+ *  \param enable 1 to enable visualizations, 0 to disable them
+ *
+ *  Visualizations are only enabled if you passed 1 to this function
+ *  and the video window is not used otherwise
+ */
+
+void
+bg_player_set_visualization(bg_player_t * p, int enable);
+
+/** \brief Set plugin used for visualizations
+ *  \param player A player
+ *  \param plugin_info Plugin info
+ */
+
+void
+bg_player_set_visualization_plugin(bg_player_t * p, const bg_plugin_info_t * plugin_info);
+
+
 /** \brief Get visualization parameters
  *  \param player A player
  *  \returns Null terminated parameter array.
@@ -381,6 +402,17 @@ bg_player_get_visualization_parameters(bg_player_t *  player);
 void
 bg_player_set_visualization_parameter(void*data,
                                       const char * name, const bg_parameter_value_t*val);
+
+/** \brief Set a parameter for a visuaization plugin
+ *  \param data Player casted to void*
+ *  \param name Name
+ *  \param val Value
+ */
+void
+bg_player_set_visualization_plugin_parameter(void*data,
+                                             const char * name,
+                                             const bg_parameter_value_t*val);
+
 
 /** @} */
 
