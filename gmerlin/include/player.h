@@ -45,6 +45,15 @@ typedef struct bg_player_s bg_player_t;
 bg_player_t * bg_player_create(bg_plugin_registry_t * plugin_reg);
 
 /** \ingroup player
+ *  \brief Set accelerators
+ *  \param player A newly created player 
+ *  \param accel A list of accelerators, terminated with BG_KEY_NONE
+ *
+ */
+
+void bg_player_add_accelerators(bg_player_t * player, const bg_accelerator_t * list);
+
+/** \ingroup player
  *  \brief Destroy a player
  *  \param player A player
  */

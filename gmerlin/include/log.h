@@ -54,6 +54,8 @@ typedef enum
     BG_LOG_INFO     = 1<<3  //!< Something interesting the user might want to know
   } bg_log_level_t;
 
+#define BG_LOG_LEVEL_MAX (1<<3)
+
 /** \ingroup log
  *  \brief Send a message to the logger without translating it.
  *  \param level Level

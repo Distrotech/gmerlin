@@ -49,6 +49,7 @@ struct bg_visualizer_s
   
   sigset_t oldset;
   gavl_audio_format_t audio_format;
+  double fps;
   
   const char * display_string;
   };
@@ -57,6 +58,12 @@ static int proc_write_func(void * data, uint8_t * ptr, int len)
   {
   bg_visualizer_t * v = (bg_visualizer_t *)data;
   return write(v->proc->stdin_fd, ptr, len);
+  }
+
+static int proc_read_func(void * data, uint8_t * ptr, int len)
+  {
+  bg_visualizer_t * v = (bg_visualizer_t *)data;
+  return read(v->proc->stdout_fd, ptr, len);
   }
 
 static void write_message(bg_visualizer_t * v)
@@ -74,6 +81,27 @@ static void write_message(bg_visualizer_t * v)
            "Visualization process crashed, restart to try again");
     }
   bg_msg_free(v->msg);
+  }
+
+static int read_message(bg_visualizer_t * v)
+  {
+  if(!v->proc)
+    return 0;
+  
+  if(!bg_msg_read(v->msg, proc_read_func, v))
+    {
+    bg_subprocess_close(v->proc);
+    v->proc = (bg_subprocess_t*)0;
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Visualization process crashed, restart to try again");
+    return 0;
+    }
+  return 1;
+  }
+
+double bg_visualizer_get_fps(bg_visualizer_t * v)
+  {
+  return v->fps;
   }
 
 bg_visualizer_t *
@@ -294,7 +322,6 @@ int bg_visualizer_stop(bg_visualizer_t * v)
   return 1;
   }
 
-
 int bg_visualizer_start(bg_visualizer_t * v)
   {
   char * command;
@@ -334,7 +361,7 @@ int bg_visualizer_start(bg_visualizer_t * v)
                          v->display_string,
                          v->vis_info->module_filename);
     }
-  v->proc = bg_subprocess_create(command, 1, 0, 0);
+  v->proc = bg_subprocess_create(command, 1, 1, 0);
   if(!v->proc)
     return 0;
 
@@ -460,10 +487,39 @@ void bg_visualizer_open_id(bg_visualizer_t * v,
   
   }
 
+static int handle_slave_message(bg_visualizer_t * v)
+  {
+  char * domain;
+  char * msg;
+  int id;
+  
+  id = bg_msg_get_id(v->msg);
+  switch(id)
+    {
+    case BG_LOG_INFO:
+    case BG_LOG_ERROR:
+    case BG_LOG_WARNING:
+    case BG_LOG_DEBUG:
+      domain = bg_msg_get_arg_string(v->msg, 0);
+      msg    = bg_msg_get_arg_string(v->msg, 1);
+      bg_log_notranslate(id, domain, msg);
+      free(domain);
+      free(msg);
+      break;
+    case BG_VIS_SLAVE_MSG_FPS:
+      v->fps = bg_msg_get_arg_float(v->msg, 0);
+      break;
+    case BG_VIS_SLAVE_MSG_END:
+      return 0;
+      break;
+    }
+  return 1;
+  }
 
 void bg_visualizer_update(bg_visualizer_t * v,
                           const gavl_audio_frame_t * frame)
   {
+  int keep_going;
   pthread_mutex_lock(&v->mutex);
 
   if(!v->proc)
@@ -487,9 +543,23 @@ void bg_visualizer_update(bg_visualizer_t * v,
            "Visualization process crashed, restart to try again");
     }
   bg_msg_free(v->msg);
-
+  
   if(v->ov_plugin)
     v->ov_plugin->handle_events(v->ov_handle->priv);
+
+  /* Handle messages from slave */
+  bg_msg_set_id(v->msg, BG_VIS_MSG_TELL);
+  write_message(v);
+  bg_msg_free(v->msg);
+
+  keep_going = 1;
+  while(keep_going)
+    {
+    read_message(v);
+    if(!handle_slave_message(v))
+      keep_going = 0;
+    bg_msg_free(v->msg);
+    }
   
   pthread_mutex_unlock(&v->mutex);
   }

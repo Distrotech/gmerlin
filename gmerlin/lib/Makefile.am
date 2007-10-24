@@ -23,6 +23,7 @@ gmerlin_visualizer_slave_LDADD = libgmerlin.la
 
 lib_LTLIBRARIES = libgmerlin.la
 libgmerlin_la_SOURCES = \
+accelerator.c \
 album.c \
 album_xml.c \
 bggavl.c \

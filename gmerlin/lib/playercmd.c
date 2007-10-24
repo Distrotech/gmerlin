@@ -192,28 +192,24 @@ void bg_player_set_metadata(bg_player_t * p, const bg_metadata_t * m)
 
 typedef struct
   {
-  int key;
-  int mask;
+  int id;
   } key_struct;
 
-static void msg_key(bg_msg_t * msg,
-                    const void * data)
+static void msg_accel(bg_msg_t * msg,
+                      const void * data)
   {
   const key_struct * s = (const key_struct *)(data);
-  bg_msg_set_id(msg, BG_PLAYER_MSG_KEY);
-  bg_msg_set_arg_int(msg, 0, s->key);
-  bg_msg_set_arg_int(msg, 1, s->mask);
+  bg_msg_set_id(msg, BG_PLAYER_MSG_ACCEL);
+  bg_msg_set_arg_int(msg, 0, s->id);
   }
 
-void bg_player_key_pressed(bg_player_t * p, int keycode, int mask)
+void bg_player_accel_pressed(bg_player_t * p, int id)
   {
   key_struct s;
-  s.key = keycode;
-  s.mask = mask;
+  s.id = id;
   bg_msg_queue_list_send(p->message_queues,
-                         msg_key, &s);
+                         msg_accel, &s);
   }
-
 
 void bg_player_seek(bg_player_t * p, gavl_time_t time)
   {

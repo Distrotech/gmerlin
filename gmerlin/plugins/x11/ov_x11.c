@@ -19,6 +19,30 @@
 #define ZOOM_MAX 180.0
 #define ZOOM_DELTA 2.0
 
+/* Keyboard accelerators */
+
+#define ACCEL_TOGGLE_FULLSCREEN 1<<8
+#define ACCEL_EXIT_FULLSCREEN   2<<8
+#define ACCEL_RESET_ZOOMSQUEEZE 3<<8
+#define ACCEL_INC_ZOOM          4<<8
+#define ACCEL_DEC_ZOOM          5<<8
+#define ACCEL_INC_SQUEEZE       6<<8
+#define ACCEL_DEC_SQUEEZE       7<<8
+
+static bg_accelerator_t accels[] =
+  {
+    { BG_KEY_TAB,                 0, ACCEL_TOGGLE_FULLSCREEN  },
+    { BG_KEY_f,                   0, ACCEL_TOGGLE_FULLSCREEN  },
+    { BG_KEY_ESCAPE,              0, ACCEL_EXIT_FULLSCREEN    },
+    { BG_KEY_HOME,   BG_KEY_CONTROL_MASK, ACCEL_RESET_ZOOMSQUEEZE },
+    { BG_KEY_PLUS,   BG_KEY_CONTROL_MASK, ACCEL_INC_SQUEEZE       },
+    { BG_KEY_MINUS,  BG_KEY_CONTROL_MASK, ACCEL_DEC_SQUEEZE       },
+    { BG_KEY_PLUS,   BG_KEY_ALT_MASK, ACCEL_INC_ZOOM              },
+    { BG_KEY_MINUS,  BG_KEY_ALT_MASK, ACCEL_DEC_ZOOM              },
+    { BG_KEY_NONE,   0,           0                           },
+  };
+
+
 typedef struct
   {
   bg_x11_window_t * win;
@@ -64,6 +88,11 @@ typedef struct
     gavl_overlay_blend_context_t * ctx;
     gavl_overlay_t * ovl;
     } * overlay_streams;
+
+  /* Accelerator map */
+
+  bg_accelerator_map_t * accel_map;
+  
   } x11_t;
 
 /* Utility functions */
@@ -109,10 +138,70 @@ static void ensure_window_realized(x11_t * priv)
   {
   ensure_window(priv);
   if(!priv->window_created)
+    {
     bg_x11_window_create_window(priv->win);
+    priv->window_created = 1;
+    }
   }
   
 /* Callbacks */
+
+
+static void accel_callback(void * data, int id)
+  {
+  x11_t * priv;
+  priv = (x11_t *)data;
+  switch(id)
+    {
+    case ACCEL_TOGGLE_FULLSCREEN:
+      if(priv->fullscreen)
+        bg_x11_window_set_fullscreen(priv->win, 0);
+      else
+        bg_x11_window_set_fullscreen(priv->win, 1);
+      break;
+    case ACCEL_EXIT_FULLSCREEN:
+      if(priv->fullscreen)
+        bg_x11_window_set_fullscreen(priv->win, 0);
+      break;
+    case ACCEL_RESET_ZOOMSQUEEZE:
+      priv->zoom = 100.0;
+      priv->squeeze = 0.0;
+      set_drawing_coords(priv);
+      return;
+      break;
+    case ACCEL_INC_ZOOM:
+      /* Increase Zoom */
+      priv->zoom += ZOOM_DELTA;
+      if(priv->zoom > ZOOM_MAX)
+        priv->zoom = ZOOM_MAX;
+      set_drawing_coords(priv);
+      break;
+    case ACCEL_DEC_ZOOM:
+      /* Decrease Zoom */
+      priv->zoom -= ZOOM_DELTA;
+      if(priv->zoom < ZOOM_MIN)
+        priv->zoom = ZOOM_MIN;
+      set_drawing_coords(priv);
+      break;
+    case ACCEL_INC_SQUEEZE:
+      /* Increase Squeeze */
+      priv->squeeze += SQUEEZE_DELTA;
+      if(priv->squeeze > SQUEEZE_MAX)
+        priv->squeeze = SQUEEZE_MAX;
+      set_drawing_coords(priv);
+      break;
+    case ACCEL_DEC_SQUEEZE:
+      /* Decrease Squeeze */
+      priv->squeeze -= SQUEEZE_DELTA;
+      if(priv->squeeze < SQUEEZE_MIN)
+        priv->squeeze = SQUEEZE_MIN;
+      set_drawing_coords(priv);
+      break;
+    default: // Propagate to outside
+      if(priv->callbacks && priv->callbacks->accel_callback)
+        priv->callbacks->accel_callback(priv->callbacks->data, id);
+    }
+  }
 
 static int key_callback(void * data, int key, int mask)
   {
@@ -180,7 +269,13 @@ static int key_callback(void * data, int key, int mask)
         }
       break;
     }
-  
+#if 0
+  if(priv->callbacks->key_callback)
+    {
+    priv->callbacks->key_callback(priv->callbacks->data, key, mask);
+    return 1;
+    }
+#endif
   return 0;
   }
 
@@ -251,14 +346,6 @@ static int button_callback(void * data, int x, int y, int button, int mask)
   return 0;
   }
 
-static void show_window(void * data, int show)
-  {
-  x11_t * priv;
-  priv = (x11_t *)data;
-  ensure_window_realized(priv);
-  bg_x11_window_show(priv->win, 1);
-  }
-
 static void size_changed(void * data, int width, int height)
   {
   x11_t * priv;
@@ -306,12 +393,17 @@ static void * create_x11()
   x11_t * priv;
   
   priv = calloc(1, sizeof(x11_t));
+  priv->accel_map = bg_accelerator_map_create();
+  
+  bg_accelerator_map_append_array(priv->accel_map,
+                                  accels);
   
   /* Initialize callbacks */
   
-  priv->window_callbacks.key_callback = key_callback;
+  //  priv->window_callbacks.key_callback = key_callback;
+  priv->window_callbacks.accel_callback = accel_callback;
+  priv->window_callbacks.accel_map = priv->accel_map;
   priv->window_callbacks.button_callback = button_callback;
-  priv->window_callbacks.show_window = show_window;
   priv->window_callbacks.size_changed = size_changed;
   priv->window_callbacks.set_fullscreen = set_fullscreen;
   
@@ -337,6 +429,8 @@ static void destroy_x11(void * data)
   
   if(priv->window_id)
     free(priv->window_id);
+  
+  bg_accelerator_map_destroy(priv->accel_map);
   free(priv);
   }
 
@@ -437,6 +531,9 @@ static void set_callbacks_x11(void * data, bg_ov_callbacks_t * callbacks)
   {
   x11_t * priv = (x11_t*)data;
   priv->callbacks = callbacks;
+  if(priv->callbacks && priv->callbacks->accel_map)
+    bg_accelerator_map_append_array(priv->accel_map,
+                                    bg_accelerator_map_get_accels(priv->callbacks->accel_map));
   }
 
 static void set_window_x11(void * data, const char * window_id)

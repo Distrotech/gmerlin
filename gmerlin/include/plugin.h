@@ -23,6 +23,7 @@
 #include <gavl/gavl.h>
 #include "parameter.h"
 #include "streaminfo.h"
+#include "accelerator.h"
 
 /** \defgroup plugin Plugins
  *  \brief Plugin types and associated functions
@@ -854,14 +855,35 @@ typedef struct bg_ra_plugin_s
 
 typedef struct bg_ov_callbacks_s
   {
+  /** \brief Accelerator map
+   *
+   *  These contain accelerator keys, which get reported
+   *  through the accel_callback
+   */
+
+  const bg_accelerator_map_t * accel_map;
+  
+  /** \brief Keyboard callback
+   *  \param data The data member of this bg_ov_callbacks_s struct
+   *  \param id The accelerator ID
+   */
+  
+  void (*accel_callback)(void * data, int id);
+  
   /** \brief Keyboard callback
    *  \param data The data member of this bg_ov_callbacks_s struct
    *  \param key Key code (see \ref keycodes) 
-   *  \param key Modifier mask (see \ref keycodes) 
+   *  \param mask Modifier mask (see \ref keycodes)
+   *
+   *  Although key_callback and accel_callback can be used at the same
+   *  time, accelerator_callback is preferred, because it allows registering
+   *  keyboard shortcuts in advance. This makes things more reliable, if
+   *  different modules (e.g. embedded visualization plugins) also want to
+   *  receive keybords events·
    */
   
-  void (*key_callback)(void * data, int key, int mask);
-
+  //  void (*key_callback)(void * data, int key, int mask);
+  
   /** \brief Mouse button callback
    *  \param data The data member of this bg_ov_callbacks_s struct
    *  \param x Horizontal cursor position in image coordinates

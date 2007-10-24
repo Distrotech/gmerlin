@@ -50,6 +50,7 @@
 
 #define HAVE_XSHM
 
+
 static char bm_no_data[] = { 0,0,0,0, 0,0,0,0 };
 
 /* since it doesn't seem to be defined on some platforms */
@@ -184,25 +185,14 @@ static void enable_screensaver(bg_x11_window_t * w)
 
 static int check_disable_screensaver(bg_x11_window_t * w)
   {
-  if(w->current_window == w->normal_window)
-    {
-    if(w->normal_parent != w->root)
-      return 0;
-    else if(w->disable_screensaver_normal)
-      return 1;
-    else
-      return 0;
-    }
-  else if(w->current_window == w->fullscreen_window)
-    {
-    if(w->fullscreen_parent != w->root)
-      return 0;
-    else if(w->disable_screensaver_fullscreen)
-      return 1;
-    else
-      return 0;
-    }
-  return 1;
+  /* Never change global settings if we are embedded */
+  if(w->current->parent != w->root)
+    return 0;
+  
+  if(!w->is_fullscreen)
+    return w->disable_screensaver_normal;
+  else
+    return w->disable_screensaver_fullscreen;
   }
 
 void bg_x11_window_ping_screensaver(bg_x11_window_t * w)
@@ -364,8 +354,10 @@ static int get_fullscreen_mode(bg_x11_window_t * w)
 
 static void init_atoms(bg_x11_window_t * w)
   {
-  w->WM_DELETE_WINDOW         = XInternAtom(w->dpy, "WM_DELETE_WINDOW", False);
 
+  w->WM_DELETE_WINDOW         = XInternAtom(w->dpy, "WM_DELETE_WINDOW", False);
+  w->WM_TAKE_FOCUS            = XInternAtom(w->dpy, "WM_TAKE_FOCUS", False);
+  
   w->WIN_PROTOCOLS             = XInternAtom(w->dpy, "WIN_PROTOCOLS", False);
   w->WM_PROTOCOLS             = XInternAtom(w->dpy, "WM_PROTOCOLS", False);
   w->WIN_LAYER              = XInternAtom(w->dpy, "WIN_LAYER", False);
@@ -380,7 +372,89 @@ static void init_atoms(bg_x11_window_t * w)
 
   w->_NET_MOVERESIZE_WINDOW   = XInternAtom(w->dpy, "_NET_MOVERESIZE_WINDOW",
                                             False);
+  
+  w->_XEMBED_INFO = XInternAtom(w->dpy, "_XEMBED_INFO", False);
+  w->_XEMBED = XInternAtom(w->dpy, "_XEMBED", False);
+  
+  }
 
+static void show_window(bg_x11_window_t * win, window_t * w, int show)
+  {
+  unsigned long buffer[2];
+  
+  if(!show)
+    {
+    
+    if(w->win == None)
+      return;
+    
+    if(w->win == w->toplevel)
+      {
+      XUnmapWindow(win->dpy, w->win);
+      XWithdrawWindow(win->dpy, w->win,
+                      DefaultScreen(win->dpy));
+      }
+    else if(w->parent_xembed)
+      {
+      buffer[0] = 0; // Version
+      buffer[1] = 0; 
+      
+      XChangeProperty(win->dpy,
+                      w->win,
+                      win->_XEMBED_INFO,
+                      win->_XEMBED_INFO, 32,
+                      PropModeReplace,
+                      (unsigned char *)buffer, 2);
+      return;
+      }
+    else
+      XUnmapWindow(win->dpy, w->win);
+    XSync(win->dpy, False);
+    return;
+    }
+  
+  /* Do it the XEMBED way */
+  if(w->parent_xembed)
+    {
+    buffer[0] = 0; // Version
+    buffer[1] = XEMBED_MAPPED; 
+    
+    XChangeProperty(win->dpy,
+                    w->win,
+                    win->_XEMBED_INFO,
+                    win->_XEMBED_INFO, 32,
+                    PropModeReplace,
+                    (unsigned char *)buffer, 2);
+    return;
+    }
+  
+  /* If the window was already mapped, raise it */
+  if(w->mapped)
+    XRaiseWindow(win->dpy, w->win);
+  else
+    XMapWindow(win->dpy, w->win);
+
+  if(w->win == w->toplevel)
+    {
+    if(w->fullscreen)
+      {
+      if(win->fullscreen_mode & FULLSCREEN_MODE_NET_ABOVE)
+        {
+        netwm_set_state(win, w->win,
+                        _NET_WM_STATE_ADD, win->_NET_WM_STATE_ABOVE);
+        }
+      if(win->fullscreen_mode & FULLSCREEN_MODE_NET_FULLSCREEN)
+        {
+        netwm_set_state(win, w->win,
+                        _NET_WM_STATE_ADD, win->_NET_WM_STATE_FULLSCREEN);
+        }
+      }
+    else
+      XMoveResizeWindow(win->dpy, w->win,
+                        win->window_x, win->window_y,
+                        win->window_width, win->window_height);
+    
+    }
   }
 
 void bg_x11_window_clear(bg_x11_window_t * win)
@@ -388,15 +462,15 @@ void bg_x11_window_clear(bg_x11_window_t * win)
 //  XSetForeground(win->dpy, win->gc, win->black);
 //  XFillRectangle(win->dpy, win->normal_window, win->gc, 0, 0, win->window_width, 
 //                 win->window_height);  
-  if(win->normal_window != None)
-    XClearArea(win->dpy, win->normal_window, 0, 0,
-               win->window_width, win->window_height, True);
-
-  if(win->fullscreen_window != None)
-    XClearArea(win->dpy, win->fullscreen_window, 0, 0,
+  if(win->normal.win != None)
+    XClearArea(win->dpy, win->normal.win, 0, 0,
                win->window_width, win->window_height, True);
   
-   //   XSync(win->dpy, False);
+  if(win->fullscreen.win != None)
+    XClearArea(win->dpy, win->fullscreen.win, 0, 0,
+               win->window_width, win->window_height, True);
+  
+  //   XSync(win->dpy, False);
   }
 
 
@@ -472,16 +546,16 @@ static int open_display(bg_x11_window_t * w)
   if(!w->display_string_parent)
     {
     w->dpy = XOpenDisplay(NULL);
-    w->normal_parent = None;
-    w->fullscreen_parent = None;
+    w->normal.parent = None;
+    w->fullscreen.parent = None;
     }
   else
     {
+  
+    
     fullscreen_id = strrchr(w->display_string_parent, ':');
     if(!fullscreen_id)
       {
-      fprintf(stderr, "Invalid display string: %s\n",
-              w->display_string_parent);
       return 0;
       }
     *fullscreen_id = '\0';
@@ -490,8 +564,6 @@ static int open_display(bg_x11_window_t * w)
     normal_id = strrchr(w->display_string_parent, ':');
     if(!normal_id)
       {
-      fprintf(stderr, "Invalid display string: %s\n",
-              w->display_string_parent);
       return 0;
       }
     *normal_id = '\0';
@@ -500,29 +572,28 @@ static int open_display(bg_x11_window_t * w)
     w->dpy = XOpenDisplay(w->display_string_parent);
     if(!w->dpy)
       {
-      fprintf(stderr, "Opening display %s failed\n", w->display_string_parent);
       return 0;
       }
     
-    w->normal_parent = strtoul(normal_id, (char **)0, 16);
+    w->normal.parent = strtoul(normal_id, (char **)0, 16);
     
     if(!(*fullscreen_id))
-      w->fullscreen_parent = None;
+      w->fullscreen.parent = None;
     else
-      w->fullscreen_parent = strtoul(fullscreen_id, (char **)0, 16);
+      w->fullscreen.parent = strtoul(fullscreen_id, (char **)0, 16);
     
     }
 
   w->screen = DefaultScreen(w->dpy);
   w->root =   RootWindow(w->dpy, w->screen);
 
-  if(w->normal_parent == None)
-    w->normal_parent = w->root;
-  if(w->fullscreen_parent == None)
-    w->fullscreen_parent = w->root;
+  if(w->normal.parent == None)
+    w->normal.parent = w->root;
+  if(w->fullscreen.parent == None)
+    w->fullscreen.parent = w->root;
   
-  w->normal_child = None;
-  w->fullscreen_child = None;
+  w->normal.child = None;
+  w->fullscreen.child = None;
   
   init_atoms(w);
   
@@ -590,7 +661,7 @@ void bg_x11_window_get_coords(bg_x11_window_t * w,
     }
   }
 
-static int window_is_mapped(Display * dpy, Window w)
+static int window_is_viewable(Display * dpy, Window w)
   {
   XWindowAttributes attr;
   XGetWindowAttributes(dpy, w, &attr);
@@ -598,6 +669,7 @@ static int window_is_mapped(Display * dpy, Window w)
     return 1;
   return 0;
   }
+
 
 void bg_x11_window_size_changed(bg_x11_window_t * w)
   {
@@ -622,45 +694,31 @@ void bg_x11_window_init(bg_x11_window_t * w)
   {
   int send_event = -1;
   /* Decide current window */
-  if(window_is_mapped(w->dpy, w->fullscreen_window))
+  if((w->fullscreen.parent != w->root) &&
+     window_is_viewable(w->dpy, w->fullscreen.parent))
     {
-    if(w->current_window != w->fullscreen_window)
+    if(!w->is_fullscreen)
       send_event = 1;
-    w->current_window = w->fullscreen_window;
-    w->current_parent = w->fullscreen_parent;
+    w->current = &w->fullscreen;
     }
   else
     {
-    if(w->current_window != w->normal_window)
+    if(w->is_fullscreen)
       send_event = 0;
-    w->current_window = w->normal_window;
-    w->current_parent = w->normal_parent;
+    w->current = &w->normal;
     }
-#if 1
-  if((w->current_window == w->fullscreen_window) &&
-     (w->fullscreen_parent != w->root))
-    {
-    bg_x11_window_get_coords(w, w->fullscreen_parent,
-                      (int*)0, (int*)0,
-                      &w->window_width, &w->window_height);
-    XMoveResizeWindow(w->dpy, w->fullscreen_window, 0, 0,
-                      w->window_width, w->window_height);
-    XSetInputFocus(w->dpy, w->fullscreen_window, RevertToNone, CurrentTime);
-    }
-  else if((w->current_window == w->normal_window) &&
-          (w->normal_parent != w->root))
-    {
-    bg_x11_window_get_coords(w, w->normal_parent,
-                      (int*)0, (int*)0,
-                      &w->window_width, &w->window_height);
-    XMoveResizeWindow(w->dpy, w->normal_window, 0, 0,
-                      w->window_width, w->window_height);
 
-    if(window_is_mapped(w->dpy, w->normal_window))
-      XSetInputFocus(w->dpy, w->normal_window, RevertToNone, CurrentTime);
+#if 1
+  if(w->current->parent != w->root)
+    {
+    bg_x11_window_get_coords(w, w->current->parent,
+                      (int*)0, (int*)0,
+                      &w->window_width, &w->window_height);
+    XMoveResizeWindow(w->dpy, w->current->win, 0, 0,
+                      w->window_width, w->window_height);
     }
   else
-    bg_x11_window_get_coords(w, w->current_window,
+    bg_x11_window_get_coords(w, w->current->win,
                       (int*)0, (int*)0,
                       &w->window_width, &w->window_height);
 #endif
@@ -673,36 +731,76 @@ void bg_x11_window_init(bg_x11_window_t * w)
   
   }
 
+void bg_x11_window_embed_parent(bg_x11_window_t * win,
+                                window_t * w)
+  {
+  unsigned long buffer[2];
+
+  
+  buffer[0] = 0; // Version
+  buffer[1] = 0; 
+  
+  
+  //   XMapWindow(dpy, child);
+  XChangeProperty(win->dpy,
+                  w->win,
+                  win->_XEMBED_INFO,
+                  win->_XEMBED_INFO, 32,
+                  PropModeReplace,
+                  (unsigned char *)buffer, 2);
+  w->toplevel = bg_x11_window_get_toplevel(win, w->parent);
+
+  /* We need StructureNotify of both the toplevel and the
+     parent */
+
+  XSelectInput(win->dpy, w->parent, StructureNotifyMask);
+
+  if(w->parent != w->toplevel)
+    XSelectInput(win->dpy, w->toplevel, StructureNotifyMask);
+
+  /* Try to show the window */
+  //  show_window(win, w, 1);
+  XSync(win->dpy, False);
+  }
+
+void bg_x11_window_embed_child(bg_x11_window_t * win,
+                               window_t * w)
+  {
+  //  XDefineCursor(win->dpy, w->child, None);
+  XSelectInput(win->dpy, w->child, FocusChangeMask | ExposureMask |
+               PropertyChangeMask);
+  
+  /* Define back the cursor */
+  XDefineCursor(win->dpy, w->win, None);
+  win->pointer_hidden = 0;
+  
+  bg_x11_window_check_embed_property(win, w);
+  }
+
 static int create_window(bg_x11_window_t * w,
                          int width, int height)
   {
   const char * display_name;
   long event_mask;
-
+  XColor black;
+  Atom wm_protocols[2];
+  XWMHints * wmhints;
+  
 //  int i;
   /* Stuff for making the cursor */
-  XColor black;
-  Atom wm_protocols[1];
   
   XSetWindowAttributes attr;
   unsigned long attr_flags;
 
   if((!w->dpy) && !open_display(w))
     return 0;
+
+  wmhints = XAllocWMHints();
   
-  if(w->normal_parent != w->root)
-    {
-    // bg_x11_window_get_coords(w, w->normal_parent,
-    //                  (int*)0, (int*)0, &width,
-    //                  &height);
-    
-    /* We need size changes of the parent window */
-    XSelectInput(w->dpy, w->normal_parent, StructureNotifyMask);
-    }
-  if(w->fullscreen_parent != w->root)
-    {
-    XSelectInput(w->dpy, w->fullscreen_parent, StructureNotifyMask);
-    }
+  wmhints->input = True;
+  wmhints->initial_state = NormalState;
+  wmhints->flags |= InputHint|StateHint;
+  
   /* Not clear why this is needed. Not creating the colormap
      results in a BadMatch error */
   w->colormap = XCreateColormap(w->dpy, RootWindow(w->dpy, w->screen),
@@ -712,11 +810,10 @@ static int create_window(bg_x11_window_t * w,
   /* Setup event mask */
 
   event_mask =
-    SubstructureNotifyMask |
     StructureNotifyMask |
     PointerMotionMask |
     ExposureMask |
-    ButtonPressMask | KeyPressMask;
+    ButtonPressMask | PropertyChangeMask | KeyPressMask | FocusChangeMask;
   
   /* Create normal window */
 
@@ -729,63 +826,112 @@ static int create_window(bg_x11_window_t * w,
   attr.colormap = w->colormap;
   attr_flags = (CWBackingStore | CWEventMask | CWBorderPixel |
                 CWBackPixel | CWColormap);
-
+  
   wm_protocols[0] = w->WM_DELETE_WINDOW;
-
+  wm_protocols[1] = w->WM_TAKE_FOCUS;
+  
   /* Create normal window */
   
-  w->normal_window = XCreateWindow(w->dpy, w->normal_parent,
-                                   0 /* x */,
-                                   0 /* y */,
-                                   width, height,
-                                   0 /* border_width */, w->vi->depth,
-                                   InputOutput,
-                                   w->vi->visual,
-                                   attr_flags,
-                                   &attr);
+  w->normal.win = XCreateWindow(w->dpy, w->normal.parent,
+                                0 /* x */,
+                                0 /* y */,
+                                width, height,
+                                0 /* border_width */, w->vi->depth,
+                                InputOutput,
+                                w->vi->visual,
+                                attr_flags,
+                                &attr);
   
-  if(w->normal_parent == w->root)
+  if(w->normal.parent == w->root)
     {
-    set_decorations(w, w->normal_window, 1);
-    XSetWMProtocols(w->dpy, w->normal_window, wm_protocols, 1);
+    set_decorations(w, w->normal.win, 1);
+    XSetWMProtocols(w->dpy, w->normal.win, wm_protocols, 2);
     
     if(w->min_width && w->min_height)
-      {
-      set_min_size(w, w->normal_window, w->min_width, w->min_height);
-      }
+      set_min_size(w, w->normal.win, w->min_width, w->min_height);
+
+    w->normal.toplevel = w->normal.win;
+    
+    w->normal.focus_child =
+      w->normal.focus_child = XCreateSimpleWindow(w->dpy, w->normal.win,
+                                                  -1, -1, 1, 1, 0,
+                                                  0, 0);
+    XSelectInput(w->dpy, w->normal.focus_child,
+                 KeyPressMask | KeyReleaseMask | FocusChangeMask);
+    
+    XSetWMHints(w->dpy, w->normal.win, wmhints);
+    XMapWindow(w->dpy, w->normal.focus_child);
+    w->normal.child_accel_map = bg_accelerator_map_create();
     }
   else
-    XMapWindow(w->dpy, w->normal_window);
+    bg_x11_window_embed_parent(w, &w->normal);
   
   /* The fullscreen window will be created with the same size for now */
   
-  w->fullscreen_window = XCreateWindow (w->dpy, w->fullscreen_parent,
-                                        0 /* x */,
-                                        0 /* y */,
-                                        width, height,
-                                        0 /* border_width */, w->vi->depth,
-                                        InputOutput, w->vi->visual,
-                                        attr_flags,
-                                        &attr);
+  w->fullscreen.win = XCreateWindow (w->dpy, w->fullscreen.parent,
+                                     0 /* x */,
+                                     0 /* y */,
+                                     width, height,
+                                     0 /* border_width */, w->vi->depth,
+                                     InputOutput, w->vi->visual,
+                                     attr_flags,
+                                     &attr);
+
+  w->fullscreen.fullscreen = 1;
   
-  if(w->fullscreen_parent == w->root)
+  if(w->fullscreen.parent == w->root)
     {
     /* Setup protocols */
     
-    set_decorations(w, w->fullscreen_window, 0);
-    XSetWMProtocols(w->dpy, w->fullscreen_window, wm_protocols, 1);
+    set_decorations(w, w->fullscreen.win, 0);
+    XSetWMProtocols(w->dpy, w->fullscreen.win, wm_protocols, 2);
+    w->fullscreen.toplevel = w->fullscreen.win;
+
+    w->fullscreen.focus_child =
+#if 0
+      XCreateWindow(w->dpy, w->fullscreen.win,
+                    0, 0,
+                    width, height,
+                    0,
+                    0,
+                    InputOnly,
+                    w->vi->visual,
+                    attr_flags_input_only,
+                    &attr);
+#endif
+    w->fullscreen.focus_child = XCreateSimpleWindow(w->dpy,
+                                                    w->fullscreen.win,
+                                                    -1, -1, 1, 1, 0,
+                                                    0, 0);
+    XSelectInput(w->dpy, w->fullscreen.focus_child,
+                 KeyPressMask | KeyReleaseMask | FocusChangeMask);
+    
+    XSetWMHints(w->dpy, w->fullscreen.win, wmhints);
+    XMapWindow(w->dpy, w->fullscreen.focus_child);
+    w->fullscreen.child_accel_map = bg_accelerator_map_create();
     }
   else
-    XMapWindow(w->dpy, w->fullscreen_window);
+    {
+    bg_x11_window_embed_parent(w, &w->fullscreen);
+    }
+
+  /* Set the final event masks now. We blocked SubstructureNotifyMask
+   * before because we don't want our focus children as
+   * embeded clients..
+   */
+  
+  XSync(w->dpy, False);
+  XSelectInput(w->dpy, w->normal.win,
+               event_mask | SubstructureNotifyMask);
   
   /* Create GC */
   
-  w->gc = XCreateGC(w->dpy, w->normal_window, 0, NULL);
+  w->gc = XCreateGC(w->dpy, w->normal.win, 0, NULL);
   
   /* Create colormap and fullscreen cursor */
   
   w->fullscreen_cursor_pixmap =
-    XCreateBitmapFromData(w->dpy, w->fullscreen_window,
+    XCreateBitmapFromData(w->dpy, w->fullscreen.win,
                           bm_no_data, 8, 8);
 
   black.pixel = BlackPixel(w->dpy, w->screen);
@@ -803,19 +949,16 @@ static int create_window(bg_x11_window_t * w,
   w->fullscreen_mode = get_fullscreen_mode(w);
   
   display_name = XDisplayName(DisplayString(w->dpy));
+
+  XFree(wmhints);
   
   /* Determine if we are in fullscreen mode */
   bg_x11_window_init(w);
+
+
   return 1;
   }
 
-#if 0
-void x11_window_select_input(bg_x11_window_t * w, long event_mask)
-  {
-  XSelectInput(w->dpy, w->normal_window, event_mask | w->event_mask);
-  XSelectInput(w->dpy, w->fullscreen_window, event_mask | w->event_mask);
-  }
-#endif
 
 static void get_fullscreen_coords(bg_x11_window_t * w,
                                   int * x, int * y, int * width, int * height)
@@ -833,7 +976,7 @@ static void get_fullscreen_coords(bg_x11_window_t * w,
   
   if(w->nxinerama)
     {
-    XTranslateCoordinates(w->dpy, w->normal_window, w->root, 0, 0,
+    XTranslateCoordinates(w->dpy, w->normal.win, w->root, 0, 0,
                           &x_return,
                           &y_return,
                           &child);
@@ -871,25 +1014,17 @@ int bg_x11_window_set_fullscreen(bg_x11_window_t * w,int fullscreen)
   int height;
   int x;
   int y;
-  XEvent evt;
-  Window fullscreen_toplevel;
-  Window normal_toplevel;
-  Window focus_window;
+  
+  /* Return early if there is nothing to do */
+  if(!!fullscreen == !!w->is_fullscreen)
+    return 0;
   
   /* Normal->fullscreen */
   
-  if(w->fullscreen_parent == w->root)
-    fullscreen_toplevel = w->fullscreen_window;
-  else
-    fullscreen_toplevel = w->fullscreen_parent;
-  
-  if(w->normal_parent == w->root)
-    normal_toplevel = w->normal_window;
-  else
-    normal_toplevel = w->normal_parent;
-  
-  if(fullscreen && (w->current_window == w->normal_window))
+  if(fullscreen)
     {
+    if(w->normal.parent != w->root)
+      return 0;
     get_fullscreen_coords(w, &x, &y, &width, &height);
 
     w->normal_width = w->window_width;
@@ -898,92 +1033,45 @@ int bg_x11_window_set_fullscreen(bg_x11_window_t * w,int fullscreen)
     w->window_width = width;
     w->window_height = height;
     
-    w->current_window = w->fullscreen_window;
-    w->current_parent = w->fullscreen_parent;
+    w->current = &w->fullscreen;
+    w->is_fullscreen = 1;
+    bg_x11_window_show(w, 1);
     
-    XMapRaised(w->dpy, fullscreen_toplevel);
-    
-    XSetTransientForHint(w->dpy, fullscreen_toplevel, None);
-    
-    XMoveResizeWindow(w->dpy, fullscreen_toplevel, x, y, width, height);
-
-    if(w->fullscreen_parent != w->root)
-      XMoveResizeWindow(w->dpy, w->fullscreen_window, x, y, width, height);
-    
-#if 1
-    if(w->fullscreen_mode & FULLSCREEN_MODE_NET_ABOVE)
-      {
-      netwm_set_state(w, fullscreen_toplevel,
-                      _NET_WM_STATE_ADD, w->_NET_WM_STATE_ABOVE);
-      }
-    if(w->fullscreen_mode & FULLSCREEN_MODE_NET_FULLSCREEN)
-      {
-      netwm_set_state(w, fullscreen_toplevel,
-                      _NET_WM_STATE_ADD, w->_NET_WM_STATE_FULLSCREEN);
-      }
-#endif
-
-    XWithdrawWindow(w->dpy, normal_toplevel, w->screen);
-    
-    /* Wait until the window is mapped */ 
-    
-    if(w->fullscreen_child != None)
-      focus_window = w->fullscreen_child;
-    else
-      focus_window = w->fullscreen_window;
-    
-    do
-      {
-      XMaskEvent(w->dpy, ExposureMask, &evt);
-      bg_x11_window_handle_event(w, &evt);
-      } while((evt.type != Expose) || (evt.xexpose.window != focus_window));
-    
-    XSetInputFocus(w->dpy, focus_window, RevertToNone, CurrentTime);
     if(w->callbacks && w->callbacks->set_fullscreen)
       w->callbacks->set_fullscreen(w->callbacks->data, 1);
+    
     bg_x11_window_clear(w);
+    
+    /* Hide old window */
+    if(w->normal.win == w->normal.toplevel)
+      XWithdrawWindow(w->dpy, w->normal.toplevel, w->screen);
+    
     XFlush(w->dpy);
     ret = 1;
     }
-  
-  else if(!fullscreen && (w->current_window == w->fullscreen_window))
+  else
     {
+    if(w->fullscreen.parent != w->root)
+      return 0;
     /* Unmap fullscreen window */
-    netwm_set_state(w, fullscreen_toplevel,
+#if 1
+    netwm_set_state(w, w->fullscreen.win,
                     _NET_WM_STATE_REMOVE, w->_NET_WM_STATE_FULLSCREEN);
-    netwm_set_state(w, fullscreen_toplevel,
+    netwm_set_state(w, w->fullscreen.win,
                     _NET_WM_STATE_REMOVE, w->_NET_WM_STATE_ABOVE);
-    XWithdrawWindow(w->dpy, fullscreen_toplevel, w->screen);
-    XUnmapWindow(w->dpy, fullscreen_toplevel);
+    XUnmapWindow(w->dpy, w->fullscreen.win);
+#endif
+    XWithdrawWindow(w->dpy, w->fullscreen.win, w->screen);
     
     /* Map normal window */
-    w->current_window = w->normal_window;
-    w->current_parent = w->normal_parent;
-    
-    XMapWindow(w->dpy, normal_toplevel);
-    XSync(w->dpy, False);
+    w->current = &w->normal;
+    w->is_fullscreen = 0;
     
     w->window_width  = w->normal_width;
     w->window_height = w->normal_height;
-
-    if(w->normal_child != None)
-      focus_window = w->normal_child;
-    else
-      focus_window = w->normal_window;
     
-    do
-      {
-      XMaskEvent(w->dpy, ExposureMask, &evt);
-      bg_x11_window_handle_event(w, &evt);
-      }while((evt.type != Expose) || (evt.xexpose.window != focus_window));
+    bg_x11_window_show(w, 1);
     
-    if(w->normal_parent == w->root)
-      XMoveResizeWindow(w->dpy, w->normal_window,
-                        w->window_x, w->window_y,
-                        w->window_width, w->window_height);
-    
-    XSetInputFocus(w->dpy, focus_window, RevertToNone, CurrentTime);
-
     if(w->callbacks && w->callbacks->set_fullscreen)
       w->callbacks->set_fullscreen(w->callbacks->data, 0);
     
@@ -1007,11 +1095,11 @@ void bg_x11_window_resize(bg_x11_window_t * win,
   {
   win->normal_width = width;
   win->normal_height = height;
-  if(win->current_window == win->normal_window)
+  if(!win->is_fullscreen)
     {
     win->window_width = width;
     win->window_height = height;
-    XResizeWindow(win->dpy, win->normal_window, width, height);
+    XResizeWindow(win->dpy, win->normal.win, width, height);
     }
   }
 
@@ -1029,13 +1117,13 @@ bg_x11_window_t * bg_x11_window_create(const char * display_string)
 
 const char * bg_x11_window_get_display_string(bg_x11_window_t * w)
   {
-  if(w->normal_window == None)
+  if(w->normal.win == None)
     create_window(w, w->window_width, w->window_height);
   
   if(!w->display_string_child)
     w->display_string_child = bg_sprintf("%s:%08lx:%08lx",
                                          XDisplayName(DisplayString(w->dpy)),
-                                         w->normal_window, w->fullscreen_window);
+                                         w->normal.win, w->fullscreen.win);
   return w->display_string_child;
   }
 
@@ -1045,11 +1133,11 @@ void bg_x11_window_destroy(bg_x11_window_t * w)
   bg_x11_window_cleanup_video(w);
   bg_x11_window_cleanup_gl(w);
   
-  if(w->normal_window != None)
-    XDestroyWindow(w->dpy, w->normal_window);
+  if(w->normal.win != None)
+    XDestroyWindow(w->dpy, w->normal.win);
   
-  if(w->fullscreen_window != None)
-    XDestroyWindow(w->dpy, w->fullscreen_window);
+  if(w->fullscreen.win != None)
+    XDestroyWindow(w->dpy, w->fullscreen.win);
   
   if(w->fullscreen_cursor != None)
     XFreeCursor(w->dpy, w->fullscreen_cursor);
@@ -1059,6 +1147,9 @@ void bg_x11_window_destroy(bg_x11_window_t * w)
 
   if(w->gc != None)
     XFreeGC(w->dpy, w->gc);
+
+  if(w->normal.child_accel_map)     bg_accelerator_map_destroy(w->normal.child_accel_map);
+  if(w->fullscreen.child_accel_map) bg_accelerator_map_destroy(w->fullscreen.child_accel_map);
   
 #ifdef HAVE_LIBXINERAMA
   if(w->xinerama)
@@ -1222,22 +1313,22 @@ bg_x11_window_set_parameter(void * data, const char * name,
     }
   else if(!strcmp(name, "window_x"))
     {
-    if(win->normal_parent == win->root)
+    if(win->normal.parent == win->root)
       win->window_x = val->val_i;
     }
   else if(!strcmp(name, "window_y"))
     {
-    if(win->normal_parent == win->root)
+    if(win->normal.parent == win->root)
       win->window_y = val->val_i;
     }
   else if(!strcmp(name, "window_width"))
     {
-    if(win->normal_parent == win->root)
+    if(win->normal.parent == win->root)
       win->window_width = val->val_i;
     }
   else if(!strcmp(name, "window_height"))
     {
-    if(win->normal_parent == win->root)
+    if(win->normal.parent == win->root)
       win->window_height = val->val_i;
     }
   else if(!strcmp(name, "disable_xscreensaver_normal"))
@@ -1331,7 +1422,8 @@ bg_x11_window_get_parameter(void * data, const char * name,
 
 void bg_x11_window_set_size(bg_x11_window_t * win, int width, int height)
   {
-  
+  win->window_width = width;
+  win->window_height = height;
   }
 
 int bg_x11_window_create_window(bg_x11_window_t * win)
@@ -1375,8 +1467,8 @@ void bg_x11_window_set_callbacks(bg_x11_window_t * win,
 
 void bg_x11_window_set_title(bg_x11_window_t * w, const char * title)
   {
-  if(w->normal_parent == w->root)
-    XmbSetWMProperties(w->dpy, w->normal_window, title,
+  if(w->normal.parent == w->root)
+    XmbSetWMProperties(w->dpy, w->normal.win, title,
                        title, NULL, 0, NULL, NULL, NULL);
   }
 
@@ -1385,60 +1477,117 @@ void bg_x11_window_set_class_hint(bg_x11_window_t * w,
   {
   XClassHint xclasshint={name,klass};
 
-  if(w->normal_parent == w->root)
-    XSetClassHint(w->dpy, w->normal_window, &xclasshint);
+  if(w->normal.parent == w->root)
+    XSetClassHint(w->dpy, w->normal.win, &xclasshint);
 
-  if(w->fullscreen_parent == w->root)
-    XSetClassHint(w->dpy, w->fullscreen_window, &xclasshint);
+  if(w->fullscreen.parent == w->root)
+    XSetClassHint(w->dpy, w->fullscreen.win, &xclasshint);
   }
 
 void bg_x11_window_show(bg_x11_window_t * win, int show)
   {
+  show_window(win, win->current, show);
+  
+  if(show && check_disable_screensaver(win))
+    disable_screensaver(win);
+  else
+    enable_screensaver(win);
+
+
   if(!show)
     {
-    if(win->current_window == None)
-      return;
-    
-    XWithdrawWindow(win->dpy, win->current_window,
-                    DefaultScreen(win->dpy));
-    win->mapped = 0;
     XSync(win->dpy, False);
-    enable_screensaver(win);
-    return;
+    bg_x11_window_handle_events(win, 0);
     }
+  }
 
-  if(check_disable_screensaver(win))
-    disable_screensaver(win);
+Window bg_x11_window_get_toplevel(bg_x11_window_t * w, Window win)
+  {
+  Window *children_return;
+  Window root_return;
+  Window parent_return;
   
-  /* If the window was already mapped, raise it */
-  
-  if(win->mapped)
+  unsigned int nchildren_return;
+  while(1)
     {
-    XRaiseWindow(win->dpy, win->current_window);
+    XQueryTree(w->dpy, win, &root_return, &parent_return,
+               &children_return, &nchildren_return);
+    if(nchildren_return)
+      XFree(children_return);
+    if(parent_return == root_return)
+      break;
+    win = parent_return;
+    }
+  return win;
+  }
+
+void bg_x11_window_send_xembed_message(bg_x11_window_t * w, Window win, long time,
+                                       int message, int detail, int data1, int data2)
+  {
+  XClientMessageEvent xclient;
+
+  xclient.window = win;
+  xclient.type = ClientMessage;
+  xclient.message_type = w->_XEMBED;
+  xclient.format = 32;
+  xclient.data.l[0] = time;
+  xclient.data.l[1] = message;
+  xclient.data.l[2] = detail;
+  xclient.data.l[3] = data1;
+  xclient.data.l[4] = data2;
+
+  XSendEvent(w->dpy, win,
+             False, NoEventMask, (XEvent *)&xclient);
+  XSync(w->dpy, False);
+  }
+
+int bg_x11_window_check_embed_property(bg_x11_window_t * win,
+                                       window_t * w)
+  {
+  Atom type;
+  int format;
+  unsigned long nitems, bytes_after;
+  unsigned char *data;
+  unsigned long *data_long;
+  int flags;
+  
+  if(XGetWindowProperty(win->dpy, w->child,
+                        win->_XEMBED_INFO,
+                        0, 2, False,
+                        win->_XEMBED_INFO, &type, &format,
+                        &nitems, &bytes_after, &data) != Success)
+    return 0;
+  
+  if (type == None)             /* No info property */
+    return 0;
+  if (type != win->_XEMBED_INFO)
+    return 0;
+  
+  data_long = (unsigned long *)data;
+  flags = data_long[1];
+  XFree(data);
+  
+  if(flags & XEMBED_MAPPED)
+    {
+    XMapWindow(win->dpy, w->child);
+    XRaiseWindow(win->dpy, w->focus_child);
     }
   else
     {
-    XMapWindow(win->dpy, win->current_window);
-
-    if((win->current_window == win->normal_window) &&
-       (win->normal_parent == win->root))
-      {
-      XMoveResizeWindow(win->dpy, win->normal_window,
-                        win->window_x, win->window_y,
-                        win->window_width, win->window_height);
-      }
-    else if(win->current_window == win->fullscreen_window)
-      {
-      if(win->fullscreen_mode & FULLSCREEN_MODE_NET_ABOVE)
-        {
-        netwm_set_state(win, win->fullscreen_window,
-                        _NET_WM_STATE_ADD, win->_NET_WM_STATE_ABOVE);
-        }
-      if(win->fullscreen_mode & FULLSCREEN_MODE_NET_FULLSCREEN)
-        {
-        netwm_set_state(win, win->fullscreen_window,
-                        _NET_WM_STATE_ADD, win->_NET_WM_STATE_FULLSCREEN);
-        }
-      }
+    /* Window should not be mapped right now */
+    //    XUnmapWindow(win->dpy, w->child);
     }
+  
+  if(!w->child_xembed)
+    {
+    w->child_xembed = 1;
+    bg_x11_window_send_xembed_message(win,
+                                      w->child,
+                                      CurrentTime,
+                                      XEMBED_EMBEDDED_NOTIFY,
+                                      0,
+                                      w->win, 0);
+    XFlush(win->dpy);
+    }
+  return 1;
   }

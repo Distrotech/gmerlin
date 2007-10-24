@@ -338,7 +338,8 @@
  *  by the video plugin or by the player.
  */
 
-#define BG_PLAYER_MSG_KEY                    20 /* A key was pressed */
+#define BG_PLAYER_MSG_ACCEL                    20 /* A key shortcut
+                                                     was pressed */
 
 /** \brief Player just cleaned up
  *

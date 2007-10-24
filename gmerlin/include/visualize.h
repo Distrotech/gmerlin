@@ -10,9 +10,14 @@
 #define BG_VIS_MSG_GAIN          7
 #define BG_VIS_MSG_START         8
 
+/* Let the slave tell his messages,
+ * will be termimated with BG_VIS_SLAVE_MSG_END */
+#define BG_VIS_MSG_TELL          9
+
 /* Messages from the visualizer to the application */
 
-#define BG_VIS_MSG_LOG          0
+#define BG_VIS_SLAVE_MSG_FPS     (BG_LOG_LEVEL_MAX+1)
+#define BG_VIS_SLAVE_MSG_END     (BG_LOG_LEVEL_MAX+2)
 
 /*
  * gmerlin_visualize_slave
@@ -69,4 +74,6 @@ int bg_visualizer_need_restart(bg_visualizer_t * v);
 int bg_visualizer_start(bg_visualizer_t * v);
 
 int bg_visualizer_stop(bg_visualizer_t * v);
+
+double bg_visualizer_get_fps(bg_visualizer_t * v);
 

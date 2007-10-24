@@ -17,14 +17,17 @@
  
 *****************************************************************/
 
-#include <parameter.h>
+#include "../parameter.h"
+#include "../accelerator.h"
 #include <gavl/gavl.h>
 
 typedef struct
   {
-  int (*key_callback)(void * data, int key, int mask);
+  const bg_accelerator_map_t * accel_map;
+  void (*accel_callback)(void * data, int accel);
+  //  int (*key_callback)(void * data, int key, int mask);
+  
   int (*button_callback)(void * data, int x, int y, int button, int mask);
-  void (*show_window)(void * data, int show);
   void (*size_changed)(void * data, int width, int height);
   void (*set_fullscreen)(void * data, int fullscreen);
   
@@ -36,8 +39,9 @@ typedef struct
   void * data;
   } bg_x11_window_callbacks_t;
 
-typedef struct bg_x11_window_s bg_x11_window_t;
 
+
+typedef struct bg_x11_window_s bg_x11_window_t;
 
 bg_x11_window_t * bg_x11_window_create(const char * display_string);
 

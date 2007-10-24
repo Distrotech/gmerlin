@@ -1,3 +1,4 @@
+#include <config.h>
 #include <x11/x11.h>
 #include <x11/x11_window_private.h>
 
@@ -25,7 +26,7 @@ int bg_x11_window_init_gl(bg_x11_window_t * win)
 void bg_x11_window_set_gl(bg_x11_window_t * win)
   {
 #ifdef HAVE_GLX
-  glXMakeCurrent(win->dpy, win->current_window, win->glxcontext);
+  glXMakeCurrent(win->dpy, win->current->win, win->glxcontext);
 #endif
   }
 
@@ -42,8 +43,8 @@ void bg_x11_window_unset_gl(bg_x11_window_t * win)
 void bg_x11_window_swap_gl(bg_x11_window_t * win)
   {
 #ifdef HAVE_GLX
-  glXMakeCurrent(win->dpy, win->current_window, win->glxcontext);
-  glXSwapBuffers(win->dpy, win->current_window);
+  glXMakeCurrent(win->dpy, win->current->win, win->glxcontext);
+  glXSwapBuffers(win->dpy, win->current->win);
   glXMakeCurrent(win->dpy, 0, NULL);
 #endif
   }

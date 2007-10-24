@@ -131,7 +131,7 @@ static void put_frame_ximage(driver_data_t * d, gavl_video_frame_t * f)
   if(w->have_shm)
     {
     XShmPutImage(w->dpy,            /* dpy        */
-                 w->current_window, /* d          */
+                 w->current->win, /* d          */
                  w->gc,             /* gc         */
                  frame->x11_image, /* image      */
                  w->dst_rect.x,    /* src_x      */
@@ -146,7 +146,7 @@ static void put_frame_ximage(driver_data_t * d, gavl_video_frame_t * f)
   else
     {
     XPutImage(w->dpy,            /* dpy        */
-              w->current_window, /* d          */
+              w->current->win, /* d          */
               w->gc,             /* gc         */
               frame->x11_image, /* image      */
               w->dst_rect.x,    /* src_x      */

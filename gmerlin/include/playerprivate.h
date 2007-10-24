@@ -433,7 +433,7 @@ void bg_player_subtitle_cleanup(bg_player_t * p);
 void bg_player_subtitle_create(bg_player_t * p);
 void bg_player_subtitle_destroy(bg_player_t * p);
 
-void bg_player_key_pressed(bg_player_t * player, int keycode, int mask);
+void bg_player_accel_pressed(bg_player_t * player, int id);
 
 void bg_player_set_track(bg_player_t *  player, int track);
 void bg_player_set_track_name(bg_player_t * player, const char *);

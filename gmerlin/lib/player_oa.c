@@ -307,7 +307,7 @@ void * bg_player_oa_thread(void * data)
 
       if(DO_VISUALIZE(ctx->player->flags))
         bg_visualizer_update(ctx->player->visualizer, frame);
-      
+
       if(do_mute)
         {
         gavl_audio_frame_mute(frame,

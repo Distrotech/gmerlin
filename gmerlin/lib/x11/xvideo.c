@@ -174,8 +174,8 @@ static int open_xv(driver_data_t * d)
       XvSetPortAttribute(w->dpy, priv->port, priv->xv_colorkey_atom, 
                          priv->xv_colorkey);
       
-      XSetWindowBackground(w->dpy, w->normal_window, priv->xv_colorkey);
-      XSetWindowBackground(w->dpy, w->fullscreen_window, priv->xv_colorkey);
+      XSetWindowBackground(w->dpy, w->normal.win, priv->xv_colorkey);
+      XSetWindowBackground(w->dpy, w->fullscreen.win, priv->xv_colorkey);
       
       }
     else
@@ -289,7 +289,7 @@ static void put_frame_xv(driver_data_t * d, gavl_video_frame_t * f)
     {
     XvShmPutImage(w->dpy,
                   priv->port,
-                  w->current_window,
+                  w->current->win,
                   w->gc,
                   frame->xv_image,
                   (int)w->src_rect.x,  /* src_x  */
@@ -307,7 +307,7 @@ static void put_frame_xv(driver_data_t * d, gavl_video_frame_t * f)
     {
     XvPutImage(w->dpy,
                priv->port,
-               w->current_window,
+               w->current->win,
                w->gc,
                frame->xv_image,
                (int)w->src_rect.x,  /* src_x  */
@@ -351,7 +351,7 @@ static void close_xv(driver_data_t * d)
   w = d->win;
   
   XvUngrabPort(w->dpy, priv->port, CurrentTime);
-  XvStopVideo(w->dpy, priv->port, w->current_window);
+  XvStopVideo(w->dpy, priv->port, w->current->win);
   if(priv->xv_colorkey_settable)
     XvSetPortAttribute(w->dpy, priv->port, priv->xv_colorkey_atom, 
                        priv->xv_colorkey_orig);

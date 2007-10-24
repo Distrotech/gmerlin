@@ -6,6 +6,7 @@
 #include <cfg_dialog.h>
 
 #include <gtk/gtk.h>
+#include <gdk/gdkkeysyms.h>
 #include <gui_gtk/gtkutils.h>
 #include <gui_gtk/audio.h>
 #include <gui_gtk/plugin.h>
@@ -21,6 +22,7 @@ typedef struct
   {
   GtkWidget * window;
   GtkWidget * box;
+  GtkWidget * socket;
   } window_t;
 
 typedef struct
@@ -28,7 +30,6 @@ typedef struct
   GtkWidget * window;
   bg_gtk_plugin_widget_single_t * ra_plugins;
   bg_gtk_plugin_widget_single_t * ov_plugins;
-
   GtkWidget * close_button;
   } plugin_window_t;
 
@@ -59,8 +60,6 @@ typedef struct
   //  bg_gtk_vumeter_t * vumeter;
   
   /* Core stuff */
-
-  char * display_string;
   
   gavl_audio_frame_t * audio_frame;
   gavl_audio_format_t audio_format;
@@ -87,14 +86,48 @@ typedef struct
   int mouse_in_toolbar;
   } visualizer_t;
 
+static char * get_display_string(visualizer_t * v)
+  {
+  char * ret;
+  GdkDisplay * dpy;
+  /* Get the display string */
+
+  gtk_widget_realize(v->normal_window.socket);
+  gtk_widget_realize(v->fullscreen_window.socket);
+  dpy = gdk_display_get_default();
+  
+  //  ret = bg_sprintf("%s:%08lx:%08lx", gdk_display_get_name(dpy),
+  //                   GDK_WINDOW_XID(v->normal_window.window->window),
+  //                   GDK_WINDOW_XID(v->fullscreen_window.window->window));
+
+  ret =
+    bg_sprintf("%s:%08lx:%08lx", gdk_display_get_name(dpy),
+               (long unsigned int)gtk_socket_get_id(GTK_SOCKET(v->normal_window.socket)),
+               (long unsigned int)gtk_socket_get_id(GTK_SOCKET(v->fullscreen_window.socket)));
+  
+  fprintf(stderr, "Got display string: %s\n", ret);
+  return ret;
+  }
+
+
 
 static gboolean toolbar_timeout(void * data)
   {
   visualizer_t * v;
   v = (visualizer_t *)data;
   if(!v->mouse_in_toolbar)
-    gdk_window_lower(v->toolbar->window);
+    {
+    
+    gtk_widget_hide(v->toolbar);
+    }
   return FALSE;
+  }
+
+static void attach_toolbar(visualizer_t * v, window_t * win)
+  {
+  gtk_box_pack_start(GTK_BOX(win->box), v->toolbar,
+                     FALSE, FALSE, 0);
+  
   }
 
 static void toggle_fullscreen(visualizer_t * v)
@@ -102,10 +135,9 @@ static void toggle_fullscreen(visualizer_t * v)
   if(v->current_window == &v->normal_window)
     {
     /* Reparent toolbar */
-    gtk_container_remove(GTK_CONTAINER(v->normal_window.box), v->toolbar);
-    gtk_box_pack_start(GTK_BOX(v->fullscreen_window.box), v->toolbar,
-                       FALSE, FALSE, 0);
-
+    gtk_container_remove(GTK_CONTAINER(v->normal_window.box),
+                         v->toolbar);
+    attach_toolbar(v, &v->fullscreen_window);
     /* Hide normal window, show fullscreen window */
     gtk_widget_show(v->fullscreen_window.window);
     gtk_widget_hide(v->normal_window.window);
@@ -119,9 +151,9 @@ static void toggle_fullscreen(visualizer_t * v)
   else
     {
     /* Reparent toolbar */
-    gtk_container_remove(GTK_CONTAINER(v->fullscreen_window.box), v->toolbar);
-    gtk_box_pack_start(GTK_BOX(v->normal_window.box), v->toolbar,
-                       FALSE, FALSE, 0);
+    gtk_container_remove(GTK_CONTAINER(v->fullscreen_window.box),
+                         v->toolbar);
+    attach_toolbar(v, &v->normal_window);
     
     /* Hide normal window, show fullscreen window */
     gtk_widget_show(v->normal_window.window);
@@ -194,8 +226,12 @@ static void open_audio(visualizer_t * v)
 
 static void open_vis(visualizer_t * v)
   {
+  char * display_string = get_display_string(v);
   bg_visualizer_open_id(v->visualizer, &v->audio_format,
-                        v->ov_info, v->display_string);  
+                        v->ov_info, display_string);  
+  free(display_string);
+
+
   v->vis_open = 1;
   }
 
@@ -231,6 +267,23 @@ static void button_callback(GtkWidget * w, gpointer data)
       open_vis(win);
       }
     }
+  }
+
+static gboolean plug_removed_callback(GtkWidget * w, gpointer data)
+  {
+  /* Reuse socket */
+  return TRUE;
+  }
+
+static void plug_added_callback(GtkWidget * w, gpointer data)
+  {
+  visualizer_t * v;
+  v = (visualizer_t *)data;
+  gtk_widget_hide(v->toolbar);
+  
+  /* Seems that this is switched off, when an earlier client exited */
+  GTK_WIDGET_SET_FLAGS(w, GTK_CAN_FOCUS);
+  gtk_widget_grab_focus(w);
   }
 
 static gboolean
@@ -327,10 +380,9 @@ static gboolean mouse_button_callback(GtkWidget * w,
                                       gpointer data)
   {
   visualizer_t * v = (visualizer_t*)data;
-  gtk_widget_show(v->toolbar);
-  gdk_window_raise(v->toolbar->window);
   g_timeout_add(2000, toolbar_timeout, v);
-  fprintf(stderr, "Got button press\n");
+  fprintf(stderr, "Vis: Got button press\n");
+  gtk_widget_show(v->toolbar);
   return TRUE;
   }
 
@@ -339,32 +391,92 @@ static gboolean key_callback(GtkWidget * w,
                              gpointer data)
   {
   visualizer_t * v = (visualizer_t*)data;
-  gtk_widget_show(v->toolbar);
-  gdk_window_raise(v->toolbar->window);
-  g_timeout_add(2000, toolbar_timeout, v);
-  fprintf(stderr, "Got key press\n");
-  return TRUE;
+  //  gtk_widget_show(v->toolbar);
+  //  g_timeout_add(2000, toolbar_timeout, v);
+  fprintf(stderr, "Vis: Got key press\n");
+
+  switch(evt->keyval)
+    {
+    case GDK_Tab:
+    case GDK_f:
+      toggle_fullscreen(v);
+      return TRUE;
+      break;
+    case GDK_Escape:
+      if(v->current_window == &v->fullscreen_window)
+        toggle_fullscreen(v);
+      return TRUE;
+      break;
+    case GDK_m:
+      g_timeout_add(2000, toolbar_timeout, v);
+      gtk_widget_show(v->toolbar);
+      return TRUE;
+      break;
+    }
+  return FALSE;
+  }
+
+static gboolean motion_callback(GtkWidget * w,
+                                GdkEventMotion * evt,
+                                gpointer data)
+  {
+  visualizer_t * v = (visualizer_t*)data;
+  if(!evt->state)
+    {
+    gtk_widget_show(v->toolbar);
+    g_timeout_add(5000, toolbar_timeout, v);
+    }
+  return FALSE;
   }
 
 static void window_init(visualizer_t * v,
                         window_t * w, int fullscreen)
   {
+  GtkWidget * table;
   w->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-  w->box = gtk_vbox_new(FALSE, 0);
+
+  w->socket = gtk_socket_new();
+  w->box = gtk_vbox_new(0, 0);
   gtk_widget_show(w->box);
-  gtk_widget_set_events(w->window, GDK_BUTTON_PRESS_MASK |
-                        GDK_KEY_PRESS_MASK);
+  gtk_widget_show(w->socket);
+
+  table = gtk_table_new(1, 1, 0);
+
+  gtk_table_attach_defaults(GTK_TABLE(table),w->socket,
+                            0, 1, 0, 1);
+  gtk_table_attach_defaults(GTK_TABLE(table),w->box,
+                            0, 1, 0, 1);
   
-  gtk_container_add(GTK_CONTAINER(w->window), w->box);
+  gtk_widget_show(table);
+
+  gtk_widget_set_events(w->socket, GDK_BUTTON_PRESS_MASK |
+                        GDK_KEY_PRESS_MASK | 
+                        GDK_POINTER_MOTION_MASK);
+  
+  //  gtk_window_set_focus_on_map(w->window, 0);
+  
+  gtk_container_add(GTK_CONTAINER(w->window), table);
   
   g_signal_connect(G_OBJECT(w->window), "delete_event",
                    G_CALLBACK(delete_callback),
                    v);
   
-  g_signal_connect(G_OBJECT(w->window), "button-press-event",
+  g_signal_connect(G_OBJECT(w->socket), "motion-notify-event",
+                   G_CALLBACK(motion_callback),
+                   v);
+  
+  g_signal_connect(G_OBJECT(w->socket), "plug-removed",
+                   G_CALLBACK(plug_removed_callback),
+                   v);
+
+  g_signal_connect(G_OBJECT(w->socket), "plug-added",
+                   G_CALLBACK(plug_added_callback),
+                   v);
+  
+  g_signal_connect(G_OBJECT(w->socket), "button-press-event",
                    G_CALLBACK(mouse_button_callback),
                    v);
-  g_signal_connect(G_OBJECT(w->window), "key-press-event",
+  g_signal_connect(G_OBJECT(w->socket), "key-press-event",
                    G_CALLBACK(key_callback),
                    v);
   
@@ -451,23 +563,6 @@ static bg_dialog_t * create_cfg_dialog(visualizer_t * win)
   return ret;
   }
 
-static char * get_display_string(visualizer_t * v)
-  {
-  char * ret;
-  GdkDisplay * dpy;
-  /* Get the display string */
-
-  gtk_widget_realize(v->normal_window.window);
-  gtk_widget_realize(v->fullscreen_window.window);
-  dpy = gdk_display_get_default();
-  
-  ret = bg_sprintf("%s:%08lx:%08lx", gdk_display_get_name(dpy),
-                   GDK_WINDOW_XID(v->normal_window.window->window),
-                   GDK_WINDOW_XID(v->fullscreen_window.window->window));
-  
-  fprintf(stderr, "Got display string: %s\n", ret);
-  return ret;
-  }
 
 static void apply_config(visualizer_t * v)
   {
@@ -588,7 +683,6 @@ static visualizer_t * visualizer_create()
   
   //  ret->vumeter = bg_gtk_vumeter_create(2);
   
-  ret->display_string = get_display_string(ret);
   
   /* Create actual objects */
 
@@ -648,45 +742,56 @@ static visualizer_t * visualizer_create()
   /* Pack everything */
 
   main_table = gtk_table_new(2, 2, 0);
+
+  gtk_table_set_row_spacings(GTK_TABLE(main_table), 5);
+  gtk_table_set_col_spacings(GTK_TABLE(main_table), 5);
+  gtk_container_set_border_width(GTK_CONTAINER(main_table), 5);
   
   table = gtk_table_new(1, 4, 0);
+
+  gtk_table_set_row_spacings(GTK_TABLE(table), 5);
+  gtk_table_set_col_spacings(GTK_TABLE(table), 5);
+  gtk_container_set_border_width(GTK_CONTAINER(table), 5);
+  
+  
   row = 0;
   col = 0;
   bg_gtk_plugin_widget_single_attach(ret->vis_plugins,
                                      table,
                                      &row, &col);
   gtk_widget_show(table);
-
-  gtk_table_attach_defaults(GTK_TABLE(main_table), table, 0, 1, 0, 1);
   
-  box = gtk_hbox_new(0, 5);
-  gtk_box_pack_start_defaults(GTK_BOX(box), ret->plugin_button);
-  gtk_box_pack_start_defaults(GTK_BOX(box), ret->restart_button);
-  gtk_box_pack_start_defaults(GTK_BOX(box), ret->config_button);
-  gtk_box_pack_start_defaults(GTK_BOX(box), ret->fullscreen_button);
-  gtk_box_pack_start_defaults(GTK_BOX(box), ret->nofullscreen_button);
-  gtk_box_pack_start_defaults(GTK_BOX(box), ret->quit_button);
+  gtk_table_attach(GTK_TABLE(main_table), table, 0, 1, 0, 1,
+                   GTK_FILL, GTK_SHRINK, 0, 0);
+  
+  box = gtk_hbox_new(0, 0);
+  gtk_box_pack_start(GTK_BOX(box), ret->plugin_button,
+                     FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(box), ret->restart_button,
+                     FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(box), ret->config_button,
+                     FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(box), ret->fullscreen_button,
+                     FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(box), ret->nofullscreen_button,
+                     FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(box), ret->quit_button,
+                     FALSE, FALSE, 0);
   gtk_widget_show(box);
-
-  gtk_table_attach_defaults(GTK_TABLE(main_table), box,
-                            0, 1, 1, 2);
+  
+  gtk_table_attach(GTK_TABLE(main_table), box, 0, 1, 1, 2,
+                   GTK_FILL, GTK_SHRINK, 0, 0);
   
   gtk_widget_show(main_table);
   
   gtk_container_add(GTK_CONTAINER(ret->toolbar), main_table);
   
-  gtk_widget_show(ret->toolbar);
+  //  gtk_widget_show(ret->toolbar);
   
   /* Start with non-fullscreen mode */
-  gtk_box_pack_start(GTK_BOX(ret->normal_window.box), ret->toolbar,
-                     FALSE, FALSE, 0);
+  attach_toolbar(ret, &ret->normal_window);
   
   apply_config(ret);
-  
-  gtk_widget_show(ret->current_window->window);
-  
-  while(gdk_events_pending() || gtk_events_pending())
-    gtk_main_iteration();
   
   /* Get visualization plugin */
   info = bg_gtk_plugin_widget_single_get_plugin(ret->vis_plugins);
@@ -696,6 +801,12 @@ static visualizer_t * visualizer_create()
   open_audio(ret);
   open_vis(ret);
 
+  gtk_widget_show(ret->current_window->window);
+  
+  while(gdk_events_pending() || gtk_events_pending())
+    gtk_main_iteration();
+  
+  
   g_idle_add(idle_func, ret);
   
   return ret;

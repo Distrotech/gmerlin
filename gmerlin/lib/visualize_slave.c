@@ -257,6 +257,8 @@ typedef struct
   
   gavl_audio_frame_t * read_frame;
   
+  pthread_mutex_t fps_mutex;
+  float fps;
   } bg_visualizer_slave_t;
 
 static void init_plugin(bg_visualizer_slave_t * v);
@@ -352,6 +354,7 @@ bg_visualizer_slave_create(int argc, char ** argv)
   pthread_mutex_init(&(ret->running_mutex),(pthread_mutexattr_t *)0);
   pthread_mutex_init(&(ret->vis_mutex),(pthread_mutexattr_t *)0);
   pthread_mutex_init(&(ret->ov_mutex),(pthread_mutexattr_t *)0);
+  pthread_mutex_init(&(ret->fps_mutex),(pthread_mutexattr_t *)0);
   
   ret->timer = gavl_timer_create();
 
@@ -388,7 +391,12 @@ static void bg_visualizer_slave_destroy(bg_visualizer_slave_t * v)
 
   audio_buffer_destroy(v->audio_buffer);
   gavl_timer_destroy(v->timer);
+
   pthread_mutex_destroy(&(v->running_mutex));
+  pthread_mutex_destroy(&(v->fps_mutex));
+  pthread_mutex_destroy(&(v->stop_mutex));
+  pthread_mutex_destroy(&(v->ov_mutex));
+  pthread_mutex_destroy(&(v->vis_mutex));
   
   /* Close OV Plugin */
   if(v->do_ov)
@@ -422,8 +430,11 @@ static void * video_thread_func(void * data)
   bg_visualizer_slave_t * v;
   gavl_audio_frame_t * audio_frame;
   gavl_time_t diff_time, current_time;
+  float last_fps = -1.0;
+  int64_t frame_time;
   
   v = (bg_visualizer_slave_t*)data;
+  
   pthread_mutex_lock(&v->running_mutex);
   while(1)
     {
@@ -473,7 +484,7 @@ static void * video_thread_func(void * data)
       {
       pthread_mutex_lock(&v->ov_mutex);
       v->ov_plugin->put_video(v->ov_priv, v->video_frame_out);
-      v->last_frame_time = gavl_timer_get(v->timer);
+      frame_time = gavl_timer_get(v->timer);
       
       v->ov_plugin->handle_events(v->ov_priv);
       pthread_mutex_unlock(&v->ov_mutex);
@@ -482,11 +493,31 @@ static void * video_thread_func(void * data)
       {
       pthread_mutex_lock(&v->vis_mutex);
       v->vis_plugin->show_frame(v->vis_priv);
-      v->last_frame_time = gavl_timer_get(v->timer);
+      frame_time = gavl_timer_get(v->timer);
       pthread_mutex_unlock(&v->vis_mutex);
       }
+    if(v->last_frame_time < frame_time)
+      {
+      if(last_fps < 0.0)
+        {
+        pthread_mutex_lock(&v->fps_mutex);
+        v->fps = (double)(GAVL_TIME_SCALE) /
+          (double)(frame_time - v->last_frame_time);
+        last_fps = v->fps;
+        pthread_mutex_unlock(&v->fps_mutex);
+        }
+      else
+        {
+        pthread_mutex_lock(&v->fps_mutex);
+        v->fps = 0.95 * last_fps +
+          0.05 * (double)(GAVL_TIME_SCALE) /
+          (double)(frame_time - v->last_frame_time);
+        last_fps = v->fps;
+        pthread_mutex_unlock(&v->fps_mutex);
+        }
+      }
+    v->last_frame_time = frame_time;
     }
-  
   pthread_mutex_unlock(&v->running_mutex);
   return (void*)0;
   }
@@ -518,6 +549,7 @@ static int bg_visualizer_slave_start(bg_visualizer_slave_t * v)
   
   pthread_mutex_unlock(&v->running_mutex);
   
+  v->fps = -1.0;
   v->do_stop = 0;
   v->last_frame_time = 0; 
   gavl_timer_set(v->timer, 0);
@@ -606,6 +638,22 @@ static int msg_read_callback(void * priv, uint8_t * data, int len)
   return read(STDIN_FILENO, data, len);
   }
 
+static int msg_write_callback(void * priv, uint8_t * data, int len)
+  {
+  return write(STDOUT_FILENO, data, len);
+  }
+
+static void flush_log_queue(bg_msg_queue_t * log_queue)
+  {
+  bg_msg_t * msg;
+  while((msg = bg_msg_queue_try_lock_read(log_queue)))
+    {
+    bg_msg_write(msg, msg_write_callback, NULL);
+    bg_msg_queue_unlock_read(log_queue);
+    }
+  }
+
+
 int main(int argc, char ** argv)
   {
   gavl_audio_format_t audio_format;
@@ -618,7 +666,8 @@ int main(int argc, char ** argv)
 
   char * parameter_name = (char*)0;
   bg_parameter_value_t parameter_value;
-
+  bg_msg_queue_t * log_queue;
+  int counter = 0.0;
   bg_parameter_type_t parameter_type;
   memset(&parameter_value, 0, sizeof(parameter_value));
   
@@ -627,6 +676,10 @@ int main(int argc, char ** argv)
     fprintf(stderr, "This program is not meant to be started from the commandline.\nThe official frontend API for visualizatons is in " PREFIX "/include/gmerlin/visualize.h\n");
     return -1;
     }
+
+  log_queue = bg_msg_queue_create();
+  bg_log_set_dest(log_queue);
+    
   fprintf(stderr, "slave started\n");
         
   s = bg_visualizer_slave_create(argc, argv);
@@ -644,9 +697,7 @@ int main(int argc, char ** argv)
     switch(bg_msg_get_id(msg))
       {
       case BG_VIS_MSG_AUDIO_FORMAT:
-        fprintf(stderr, "Got audio format\n");
         bg_msg_get_arg_audio_format(msg, 0, &audio_format);
-        gavl_audio_format_dump(&audio_format);
         bg_visualizer_slave_set_audio_format(s, &audio_format);
         if(audio_frame)
           gavl_audio_frame_destroy(audio_frame);
@@ -666,9 +717,7 @@ int main(int argc, char ** argv)
                              &parameter_name,
                              &parameter_type,
                              &parameter_value);
-        
-        fprintf(stderr, "Got vis parameter %s\n", parameter_name);
-        
+       
         pthread_mutex_lock(&s->vis_mutex);
         s->vis_plugin->common.set_parameter(s->vis_priv,
                                             parameter_name,
@@ -739,6 +788,28 @@ int main(int argc, char ** argv)
         break;
       case BG_VIS_MSG_QUIT:
         keep_going = 0;
+        break;
+      case BG_VIS_MSG_TELL:
+        flush_log_queue(log_queue);
+        
+        if(counter > 10)
+          {
+          counter = 0;
+
+          bg_msg_set_id(msg, BG_VIS_SLAVE_MSG_FPS);
+          pthread_mutex_lock(&s->fps_mutex);
+          bg_msg_set_arg_float(msg, 0, s->fps);
+          pthread_mutex_unlock(&s->fps_mutex);
+          bg_msg_write(msg, msg_write_callback,
+                       NULL);
+          bg_msg_free(msg);
+          
+          }
+        counter++;
+        bg_msg_set_id(msg, BG_VIS_SLAVE_MSG_END);
+        bg_msg_write(msg, msg_write_callback,
+                     NULL);
+        bg_msg_free(msg);
         break;
       }
     }

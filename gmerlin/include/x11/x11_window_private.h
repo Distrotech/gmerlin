@@ -64,6 +64,26 @@ struct video_driver_s
   void (*cleanup)(driver_data_t* data);
   };
 
+/*
+ *  We have 2 windows: One normal window and one
+ *  fullscreen window. We optionally talk to both the
+ *  children and parents through the XEmbed protocol
+ */
+
+typedef struct
+  {
+  Window win;    /* Actual window */
+  Window parent; /* Parent (if non-root we are embedded) */
+  Window child;  /* Child window */
+  Window toplevel;
+  Window focus_child;  /* Focus proxy */
+  int parent_xembed;
+  int child_xembed;
+  int mapped;
+  int fullscreen;
+  bg_accelerator_map_t * child_accel_map;
+  } window_t;
+
 struct bg_x11_window_s
   {
   /* User settable stuff (initialized before x11_window_create) */
@@ -80,22 +100,34 @@ struct bg_x11_window_s
   int dpms_disabled;
 #endif
   
-  int mapped;
   unsigned long black;  
   Display * dpy;
-  GC gc;  
+  GC gc;
+
+  int is_fullscreen;
+  
+  window_t normal;
+  window_t fullscreen;
+  window_t * current;
+
+#if 0  
   Window normal_window;
   Window fullscreen_window;
   Window current_window;
   Window current_parent;
-  Window root;
+  Window current_child;
 
   Window normal_parent;
   Window fullscreen_parent;
   
   Window normal_child;
   Window fullscreen_child;
-  
+
+  int normal_xembed;
+  int fullscreen_xembed;
+  int current_xembed;
+#endif
+  Window root;
   int window_width, window_height;
 
   int normal_width, normal_height;
@@ -113,6 +145,7 @@ struct bg_x11_window_s
   Cursor fullscreen_cursor;
 
   Atom WM_DELETE_WINDOW;
+  Atom WM_TAKE_FOCUS;
   Atom _NET_SUPPORTED;
   Atom _NET_WM_STATE;
   Atom _NET_WM_STATE_FULLSCREEN;
@@ -121,7 +154,9 @@ struct bg_x11_window_s
   Atom WIN_PROTOCOLS;
   Atom WM_PROTOCOLS;
   Atom WIN_LAYER;
-
+  Atom _XEMBED_INFO;
+  Atom _XEMBED;
+  
   /* For hiding the mouse pointer */
   int idle_counter;
   int pointer_hidden;
@@ -174,7 +209,10 @@ struct bg_x11_window_s
   driver_data_t * current_driver;
   
   int drivers_initialized;
-  
+
+  /* For asynchronous focus grabbing */
+  int need_focus;
+  Time focus_time;
   } x11_window_t;
 
 /* Private functions */
@@ -198,3 +236,44 @@ void bg_x11_window_destroy_shm(bg_x11_window_t * w,
 void bg_x11_window_size_changed(bg_x11_window_t * w);
 
 void bg_x11_window_cleanup_video(bg_x11_window_t * w);
+
+Window bg_x11_window_get_toplevel(bg_x11_window_t * w, Window win);
+
+void bg_x11_window_send_xembed_message(bg_x11_window_t * w, Window win, long time,
+                                       int type, int detail, int data1, int data2);
+
+void bg_x11_window_embed_parent(bg_x11_window_t * win,
+                                window_t * w);
+void bg_x11_window_embed_child(bg_x11_window_t * win,
+                               window_t * w);
+
+int bg_x11_window_check_embed_property(bg_x11_window_t * win,
+                                       window_t * w);
+
+
+
+#define XEMBED_MAPPED                   (1 << 0)
+
+/* XEMBED messages */
+#define XEMBED_EMBEDDED_NOTIFY		0
+#define XEMBED_WINDOW_ACTIVATE  	1
+#define XEMBED_WINDOW_DEACTIVATE  	2
+#define XEMBED_REQUEST_FOCUS	 	3
+#define XEMBED_FOCUS_IN 	 	4
+#define XEMBED_FOCUS_OUT  		5
+#define XEMBED_FOCUS_NEXT 		6
+#define XEMBED_FOCUS_PREV 		7
+/* 8-9 were used for XEMBED_GRAB_KEY/XEMBED_UNGRAB_KEY */
+#define XEMBED_MODALITY_ON 		10
+#define XEMBED_MODALITY_OFF 		11
+#define XEMBED_REGISTER_ACCELERATOR     12
+#define XEMBED_UNREGISTER_ACCELERATOR   13
+#define XEMBED_ACTIVATE_ACCELERATOR     14
+
+/* Modifiers field for XEMBED_REGISTER_ACCELERATOR */
+#define XEMBED_MODIFIER_SHIFT    (1 << 0)
+#define XEMBED_MODIFIER_CONTROL  (1 << 1)
+#define XEMBED_MODIFIER_ALT      (1 << 2)
+#define XEMBED_MODIFIER_SUPER    (1 << 3)
+#define XEMBED_MODIFIER_HYPER    (1 << 4)
+

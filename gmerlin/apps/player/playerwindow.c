@@ -446,47 +446,59 @@ static void handle_message(player_window_t * win,
       arg_i_1 = bg_msg_get_arg_int(msg, 0);
       main_menu_chapter_changed(win->main_menu, arg_i_1);
       break;
-    case BG_PLAYER_MSG_KEY:
+    case BG_PLAYER_MSG_ACCEL:
       arg_i_1 = bg_msg_get_arg_int(msg, 0);
-      arg_i_2 = bg_msg_get_arg_int(msg, 1);
-
       
       switch(arg_i_1)
         {
-        case BG_KEY_PAGE_UP:
-          if(arg_i_2 & BG_KEY_CONTROL_MASK)
-            {
-            bg_media_tree_previous(win->gmerlin->tree, 1, win->gmerlin->shuffle_mode);
-            gmerlin_play(win->gmerlin, BG_PLAY_FLAG_IGNORE_IF_STOPPED);
-            }
+        case ACCEL_VOLUME_DOWN:
+          bg_player_set_volume_rel(win->gmerlin->player,  -1.0);
           break;
-        case BG_KEY_PAGE_DOWN:
-          if(arg_i_2 & BG_KEY_CONTROL_MASK)
-            {
-            bg_media_tree_next(win->gmerlin->tree, 1, win->gmerlin->shuffle_mode);
-            gmerlin_play(win->gmerlin, BG_PLAY_FLAG_IGNORE_IF_STOPPED);
-            }
+        case ACCEL_VOLUME_UP:
+          bg_player_set_volume_rel(win->gmerlin->player,  1.0);
           break;
-        case BG_KEY_Q:
-          if(arg_i_2 & BG_KEY_CONTROL_MASK)
-            gtk_main_quit();
+        case ACCEL_SEEK_BACKWARD:
+          bg_player_seek_rel(win->gmerlin->player,   -2 * GAVL_TIME_SCALE );
+          break;
+        case ACCEL_SEEK_FORWARD:
+          bg_player_seek_rel(win->gmerlin->player,   2 * GAVL_TIME_SCALE );
+          break;
+        case ACCEL_SEEK_START:
+          bg_player_seek(win->gmerlin->player,   0 );
+          break;
+        case ACCEL_PAUSE:
+          bg_player_pause(win->gmerlin->player);
+          break;
+        case ACCEL_MUTE:
+          bg_player_toggle_mute(win->gmerlin->player);
+          break;
+        case ACCEL_NEXT_CHAPTER:
+          bg_player_next_chapter(win->gmerlin->player);
+          break;
+        case ACCEL_PREV_CHAPTER:
+          bg_player_prev_chapter(win->gmerlin->player);
+          break;
+        case ACCEL_PREV:
+          bg_media_tree_previous(win->gmerlin->tree, 1, win->gmerlin->shuffle_mode);
+          gmerlin_play(win->gmerlin, BG_PLAY_FLAG_IGNORE_IF_STOPPED);
+          break;
+        case ACCEL_NEXT:
+          bg_media_tree_next(win->gmerlin->tree, 1, win->gmerlin->shuffle_mode);
+          gmerlin_play(win->gmerlin, BG_PLAY_FLAG_IGNORE_IF_STOPPED);
+          break;
+        case ACCEL_QUIT:
+          gtk_main_quit();
           return;
           break;
-        case BG_KEY_O:
-          if(arg_i_2 & BG_KEY_CONTROL_MASK)
-            g_idle_add(do_configure, win->gmerlin);
-          
+        case ACCEL_OPTIONS:
+          g_idle_add(do_configure, win->gmerlin);
           break;
-        case BG_KEY_G:
-          if(arg_i_2 & BG_KEY_CONTROL_MASK)
-            bg_gtk_tree_window_goto_current(win->gmerlin->tree_window);
+        case ACCEL_GOTO_CURRENT:
+          bg_gtk_tree_window_goto_current(win->gmerlin->tree_window);
           break;
-        case BG_KEY_P:
-          if(arg_i_2 & BG_KEY_CONTROL_MASK)
-            {
-            plugin_window_show(win->gmerlin->plugin_window);
-            main_menu_set_plugin_window_item(win->main_menu, 1);
-            }
+        case ACCEL_PLUGINS:
+          plugin_window_show(win->gmerlin->plugin_window);
+          main_menu_set_plugin_window_item(win->main_menu, 1);
           break;
         }
       break;

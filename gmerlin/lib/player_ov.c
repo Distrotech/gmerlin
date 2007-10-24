@@ -22,6 +22,7 @@
 #include <stdlib.h>
 
 #include <keycodes.h>
+#include <accelerator.h>
 
 #include <player.h>
 #include <playerprivate.h>
@@ -54,12 +55,14 @@ struct bg_player_ov_context_s
   gavl_overlay_t * osd_ovl;
   
   bg_msg_queue_t * msg_queue;
-
+  
   int64_t frames_written;
+  
+  bg_accelerator_map_t * accel_map;
   };
 
 /* Callback functions */
-
+#if 0
 static void key_callback(void * data, int key, int mask)
   {
   bg_player_ov_context_t * ctx = (bg_player_ov_context_t*)data;
@@ -132,6 +135,15 @@ static void key_callback(void * data, int key, int mask)
   /* Broadcast event if we didn't handle it */
   bg_player_key_pressed(ctx->player, key, mask);
   }
+#else
+
+static void accel_callback(void * data, int id)
+  {
+  bg_player_ov_context_t * ctx = (bg_player_ov_context_t*)data;
+  bg_player_accel_pressed(ctx->player, id);
+  }
+#endif
+
 
 static void
 button_callback(void * data, int x, int y, int button, int mask)
@@ -245,23 +257,38 @@ void bg_player_ov_create(bg_player_t * player)
   ctx->player = player;
 
   ctx->msg_queue = bg_msg_queue_create();
+  ctx->accel_map = bg_accelerator_map_create();
   
   pthread_mutex_init(&(ctx->still_mutex),(pthread_mutexattr_t *)0);
   
   /* Load output plugin */
   
-  ctx->callbacks.key_callback    = key_callback;
+  ctx->callbacks.accel_callback    = accel_callback;
   ctx->callbacks.button_callback = button_callback;
 
   ctx->callbacks.brightness_callback = brightness_callback;
   ctx->callbacks.saturation_callback = saturation_callback;
   ctx->callbacks.contrast_callback   = contrast_callback;
   
-  ctx->callbacks.data = ctx;
+  ctx->callbacks.data      = ctx;
+  ctx->callbacks.accel_map = ctx->accel_map;
+  
   player->ov_context = ctx;
 
   ctx->osd = bg_osd_create();
   }
+
+void bg_player_add_accelerators(bg_player_t * player, const bg_accelerator_t * list)
+  {
+  if(player->ov_context->plugin_handle)
+    bg_plugin_lock(player->ov_context->plugin_handle);
+
+  bg_accelerator_map_append_array(player->ov_context->accel_map, list);
+  
+  if(player->ov_context->plugin_handle)
+    bg_plugin_unlock(player->ov_context->plugin_handle);
+  }
+
 
 void bg_player_ov_standby(bg_player_ov_context_t * ctx)
   {
