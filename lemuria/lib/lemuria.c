@@ -53,7 +53,7 @@ static void copy_frame_512(int16_t dst[2][512], int16_t src[2][512])
   }
 
 
-lemuria_engine_t * lemuria_create(const char * embed, int width, int height)
+lemuria_engine_t * lemuria_create()
   {
   struct timeval currenttime;
   lemuria_engine_t * ret = calloc(1, sizeof(lemuria_engine_t));
@@ -70,12 +70,9 @@ lemuria_engine_t * lemuria_create(const char * embed, int width, int height)
   
   ret->fullscreen = 0;
 
-  ret->width = width;
-  ret->height = height;
+  // lemuria_create_window(ret, embed, &ret->width, &ret->height);
   
-  lemuria_create_window(ret, embed, &ret->width, &ret->height);
-  
-  lemuria_set_glcontext(ret);
+  //  lemuria_set_glcontext(ret);
 
   lemuria_init_gl(ret);
   lemuria_texture_create(ret);
@@ -85,7 +82,7 @@ lemuria_engine_t * lemuria_create(const char * embed, int width, int height)
 
   lemuria_font_init(ret);
     
-  lemuria_unset_glcontext(ret);
+  //  lemuria_unset_glcontext(ret);
 
 
   /* Initialize random generator */
@@ -100,12 +97,18 @@ lemuria_engine_t * lemuria_create(const char * embed, int width, int height)
   return ret;
   }
 
+void lemuria_set_size(lemuria_engine_t * e, int width, int height)
+  {
+  e->width = width;
+  e->height = height;
+  }
+
 
 /* Destroy engine */
 
 void lemuria_destroy(lemuria_engine_t * e)
   {
-  lemuria_set_glcontext(e);
+  //  lemuria_set_glcontext(e);
 
   /* Shut down all effects */
   
@@ -134,9 +137,9 @@ void lemuria_destroy(lemuria_engine_t * e)
   
   lemuria_destroy_gl(e);
   
-  lemuria_unset_glcontext(e);
+  //  lemuria_unset_glcontext(e);
   
-  lemuria_destroy_window(e);
+  //  lemuria_destroy_window(e);
   
     
   free(e);
@@ -184,92 +187,28 @@ static void add_freq(lemuria_engine_t * e,
   pthread_mutex_unlock(&(e->freq_mutex));
   }
 
-void lemuria_update_audio(lemuria_engine_t * e, gavl_audio_frame_t * f)
+void lemuria_update_audio(lemuria_engine_t * e, int16_t * data[2])
   {
   int i;
   int16_t freq_data[2][256];
   float fft_scratch[257];
   
-  add_time(e, f->channels.s_16);
+  add_time(e, data);
   
-  fft_perform(f->channels.s_16[0], fft_scratch, e->fft);
+  fft_perform(data[0], fft_scratch, e->fft);
   for(i = 0; i < 256; i++)
       freq_data[0][i] = ((int)sqrt(fft_scratch[i + 1])) >> 8;
-
-  fft_perform(f->channels.s_16[1], fft_scratch, e->fft);
+  
+  fft_perform(data[1], fft_scratch, e->fft);
   for(i = 0; i < 256; i++)
     freq_data[1][i] = ((int)sqrt(fft_scratch[i + 1])) >> 8;
-
+  
   add_freq(e, freq_data);
-  }
-
-void lemuria_adjust_format(lemuria_engine_t * e, gavl_audio_format_t * format)
-  {
-  format->interleave_mode = GAVL_INTERLEAVE_NONE;
-  format->num_channels = 2;
-  format->channel_locations[0] = GAVL_CHID_NONE;
-  gavl_set_channel_setup(format);
-  format->sample_format = GAVL_SAMPLE_S16;
-  format->samples_per_frame = LEMURIA_TIME_SAMPLES;
-  }
-
-static void * lemuria_main_loop(void * data)
-  {
-  lemuria_engine_t * e = (lemuria_engine_t*)data;
-
-  int must_stop_internal = 0;
- 
-  pthread_mutex_lock(&e->still_going_mutex);
-
-  lemuria_set_glcontext(e);
-
-  //  lemuria_init_gl(e);
-  
-  //  fprintf(stderr, "Entering main loop\n");
-
-  /* Put text */
-
-  lemuria_print_info(e);
-  
-  while(1)
-    {
-    pthread_mutex_lock(&(e->stop_mutex));
-    must_stop_internal = e->must_stop;
-    pthread_mutex_unlock(&(e->stop_mutex));
-
-    if(must_stop_internal)
-      {
-      //      fprintf(stderr, "Must stop now");
-      break;
-      }
-
-    lemuria_draw_frame(e);
-    lemuria_wait(e);
-    lemuria_flash_frame(e);
-    lemuria_check_events(e);
-    
-    // lemuria_update(e);
-    }
-  
-  /* Shut down all effects */
-
-  e->background.effect->cleanup(e->background.data);
-  e->foreground.effect->cleanup(e->foreground.data);
-  e->texture.effect->cleanup(e->texture.data);
-
-  e->background.effect = NULL;
-  e->foreground.effect = NULL;
-  e->texture.effect = NULL;
-  //  fprintf(stderr, "Unsetting GLContext...");
-  lemuria_unset_glcontext(e);
-  //  fprintf(stderr, "Done\n");
-  pthread_mutex_unlock(&e->still_going_mutex);
-  return (void*)0;
   }
 
 void lemuria_draw_frame(lemuria_engine_t * e)
   {
-  lemuria_set_glcontext(e);
+  //  lemuria_set_glcontext(e);
 
   if(!e->initialized)
     {
@@ -352,59 +291,8 @@ void lemuria_draw_frame(lemuria_engine_t * e)
   e->time_new_read = 0;
 
   
-  lemuria_unset_glcontext(e);
+  //  lemuria_unset_glcontext(e);
   }
-
-/* Start thread */
-
-void lemuria_start(lemuria_engine_t * e)
-  {
-  pthread_attr_t attr;
-
-  e->last_frame_time = -1;
-  
-  pthread_mutex_lock(&(e->stop_mutex));
-  e->must_stop = 0;
-  pthread_mutex_unlock(&(e->stop_mutex));
-
-  pthread_attr_init(&attr);
-  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-  pthread_create(&(e->thread), &attr, &lemuria_main_loop,
-                 (void*)e);
-  pthread_attr_destroy (&attr);
-  }
-
-/* Stop thread */
-
-void lemuria_stop(lemuria_engine_t * e)
-  {
-  //  fprintf(stderr, "lemuria_stop\n");
-  pthread_mutex_lock(&(e->stop_mutex));
-  e->must_stop = 1;
-  pthread_mutex_unlock(&(e->stop_mutex));
-  
-  while(pthread_mutex_trylock(&e->still_going_mutex))
-    {
-    //    pthread_mutex_lock(&e->freq_mutex);
-    //    pthread_mutex_unlock(&e->freq_mutex);
-    
-    }
-  pthread_mutex_unlock(&e->still_going_mutex);
-
-  }
-
-/* This is the main update function */
-
-void lemuria_update(lemuria_engine_t * e)
-  {
-  lemuria_draw_frame(e);
-  lemuria_wait(e);
-  
-  lemuria_flash_frame(e);
-    /* Check for events */
-  lemuria_check_events(e);
-  }
-
 
 void lemuria_print_help(lemuria_engine_t * e)
   {

@@ -77,7 +77,7 @@ struct lemuria_engine_s
   
   /* Stuff related to the window system */
 
-  void * window_data;
+  //  void * window_data;
   
   int fullscreen;
     
@@ -143,6 +143,7 @@ void lemuria_texture_unref(lemuria_engine_t *, int num);
 
 /* Window system related functions */
 
+#if 0
 void lemuria_create_window(lemuria_engine_t * e,
                            const char * embed, int * width, int * height);
 
@@ -150,6 +151,7 @@ void lemuria_destroy_window(lemuria_engine_t * e);
 
 void lemuria_set_glcontext(lemuria_engine_t * e);
 void lemuria_unset_glcontext(lemuria_engine_t * e);
+#endif
 
 void lemuria_init_gl(lemuria_engine_t * e);
 void lemuria_destroy_gl(lemuria_engine_t * e);

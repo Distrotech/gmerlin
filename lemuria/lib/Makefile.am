@@ -67,8 +67,6 @@ fft.c \
 starfield.c \
 rotate.c \
 vectorscope.c \
-x11.c \
-x11_window.c \
 xaos.c \
 obj_bubbles.c \
 seaplant.c

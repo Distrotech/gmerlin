@@ -13,6 +13,7 @@
 #include <math.h>
 
 #include <lemuria.h>
+#include <gavl/gavl.h>
 
 /* Return FALSE of failure */
 
@@ -125,6 +126,8 @@ int main(int argc, char ** argv)
   e = lemuria_create(NULL, 640, 480);
 
   gavl_audio_format_copy(&out_format, &in_format);
+
+  
   
   lemuria_adjust_format(e, &out_format);
   
