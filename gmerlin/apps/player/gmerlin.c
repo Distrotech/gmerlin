@@ -26,7 +26,6 @@
 #include <translation.h>
 #include <keycodes.h>
  
-#include "accelerators.h"
 #include "gmerlin.h"
 #include "player_remote.h"
 
