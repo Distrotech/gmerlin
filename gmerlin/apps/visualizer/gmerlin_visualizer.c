@@ -44,7 +44,8 @@ typedef struct
   GtkWidget * nofullscreen_button;
   
   GtkWidget * toolbar; /* A GtkEventBox actually... */
-
+  GtkWidget * fps;
+  
   bg_gtk_plugin_widget_single_t * vis_plugins;
   
   /* Windows are created by gtk and the x11 plugin
@@ -107,7 +108,6 @@ static char * get_display_string(visualizer_t * v)
                (long unsigned int)gtk_socket_get_id(GTK_SOCKET(v->normal_window.socket)),
                (long unsigned int)gtk_socket_get_id(GTK_SOCKET(v->fullscreen_window.socket)));
   
-  fprintf(stderr, "Got display string: %s\n", ret);
   return ret;
   }
 
@@ -115,9 +115,8 @@ static gboolean toolbar_timeout(void * data)
   {
   visualizer_t * v;
   v = (visualizer_t *)data;
-
   if(!v->toolbar_visible)
-    return 0;
+    return TRUE;
   
   /* Maybe the toolbar will be hidden next time */
   if(!v->do_hide_toolbar)
@@ -131,6 +130,27 @@ static gboolean toolbar_timeout(void * data)
     gtk_widget_hide(v->toolbar);
     v->toolbar_visible = 0;
     }
+  return TRUE;
+  }
+
+static gboolean fps_timeout(void * data)
+  {
+  float fps;
+  char * tmp_string;
+  visualizer_t * v;
+  v = (visualizer_t *)data;
+  
+  if(!v->toolbar_visible)
+    return TRUE;
+
+  fps = bg_visualizer_get_fps(v->visualizer);
+  if(fps >= 0.0)
+    {
+    tmp_string = bg_sprintf("Fps: %.2f", fps);
+    gtk_label_set_text(GTK_LABEL(v->fps), tmp_string);
+    free(tmp_string);
+    }
+  
   return TRUE;
   }
 
@@ -186,8 +206,8 @@ static void toggle_fullscreen(visualizer_t * v)
     
     v->current_window = &v->normal_window;
     }
-
   show_toolbar(v);
+  v->mouse_in_toolbar = 0;
   }
 
 static void open_audio(visualizer_t * v)
@@ -341,7 +361,8 @@ static void set_ra_plugin(const bg_plugin_info_t * plugin,
                                  plugin->name);
   
   v->ra_info = plugin;
-  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Changed recording plugin to %s", v->ra_info->long_name);
+  bg_log(BG_LOG_INFO, LOG_DOMAIN,
+         "Changed recording plugin to %s", v->ra_info->long_name);
   close_vis(v);
   open_audio(v);
   open_vis(v);
@@ -353,19 +374,22 @@ static void plugin_window_init(plugin_window_t * win, visualizer_t * v)
   int row = 0, num_columns = 4;
   GtkWidget * table;
   win->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-  win->ra_plugins = bg_gtk_plugin_widget_single_create(TR("Audio recorder"),
-                                                       v->plugin_reg,
-                                                       BG_PLUGIN_RECORDER_AUDIO,
-                                                       BG_PLUGIN_ALL);
+  win->ra_plugins =
+    bg_gtk_plugin_widget_single_create(TR("Audio recorder"),
+                                       v->plugin_reg,
+                                       BG_PLUGIN_RECORDER_AUDIO,
+                                       BG_PLUGIN_ALL);
 
   bg_gtk_plugin_widget_single_set_change_callback(win->ra_plugins,
                                                   set_ra_plugin,
                                                   v);
   
-  win->ov_plugins = bg_gtk_plugin_widget_single_create(TR("Video output"),
-                                                       v->plugin_reg,
-                                                       BG_PLUGIN_OUTPUT_VIDEO,
-                                                       BG_PLUGIN_ALL);
+  win->ov_plugins =
+    bg_gtk_plugin_widget_single_create(TR("Video output"),
+                                       v->plugin_reg,
+                                       BG_PLUGIN_OUTPUT_VIDEO,
+                                       BG_PLUGIN_ALL);
+  
   win->close_button = gtk_button_new_from_stock(GTK_STOCK_CLOSE);
   g_signal_connect(win->close_button, "clicked",
                    G_CALLBACK(plugin_window_button_callback),
@@ -401,9 +425,7 @@ static gboolean mouse_button_callback(GtkWidget * w,
                                       gpointer data)
   {
   visualizer_t * v = (visualizer_t*)data;
-  g_timeout_add(2000, toolbar_timeout, v);
-  fprintf(stderr, "Vis: Got button press\n");
-  gtk_widget_show(v->toolbar);
+  show_toolbar(v);
   return TRUE;
   }
 
@@ -412,7 +434,6 @@ static gboolean motion_callback(GtkWidget * w,
                                 gpointer data)
   {
   visualizer_t * v = (visualizer_t*)data;
-  fprintf(stderr, "Motion callback\n");
   show_toolbar(v);
   return FALSE;
   }
@@ -617,9 +638,6 @@ static gboolean crossing_callback(GtkWidget *widget,
     return FALSE;
   
   v->mouse_in_toolbar = (event->type == GDK_ENTER_NOTIFY) ? 1 : 0;
-  if(!v->mouse_in_toolbar)
-    g_timeout_add(2000, toolbar_timeout, v);
-  
   return FALSE;
   }
 
@@ -676,6 +694,10 @@ static visualizer_t * visualizer_create()
     create_pixmap_button(ret, "fullscreen_16.png", TRS("Fullscreen mode"));
   ret->nofullscreen_button =
     create_pixmap_button(ret, "windowed_16.png", TRS("Leave fullscreen mode"));
+  
+  ret->fps = gtk_label_new("Fps: --:--");
+  gtk_misc_set_alignment(GTK_MISC(ret->fps), 0.0, 0.5);
+  gtk_widget_show(ret->fps);
   
   //  ret->vumeter = bg_gtk_vumeter_create(2);
 
@@ -782,7 +804,7 @@ static visualizer_t * visualizer_create()
   gtk_table_attach(GTK_TABLE(main_table), table, 0, 1, 0, 1,
                    GTK_FILL, GTK_SHRINK, 0, 0);
   
-  box = gtk_hbox_new(0, 0);
+  box = gtk_hbox_new(0, 5);
   gtk_box_pack_start(GTK_BOX(box), ret->plugin_button,
                      FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->restart_button,
@@ -795,6 +817,7 @@ static visualizer_t * visualizer_create()
                      FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->quit_button,
                      FALSE, FALSE, 0);
+  gtk_box_pack_start_defaults(GTK_BOX(box), ret->fps);
   gtk_widget_show(box);
   
   gtk_table_attach(GTK_TABLE(main_table), box, 0, 1, 1, 2,
@@ -827,7 +850,8 @@ static visualizer_t * visualizer_create()
   
   g_idle_add(idle_func, ret);
   
-  g_timeout_add(5000, toolbar_timeout, ret);
+  g_timeout_add(3000, toolbar_timeout, ret);
+  g_timeout_add(1000, fps_timeout, ret);
   
   return ret;
   }

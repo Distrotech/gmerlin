@@ -25,19 +25,18 @@
 typedef struct bg_gtk_vumeter_s bg_gtk_vumeter_t;
 
 bg_gtk_vumeter_t *
-bg_gtk_vumeter_create(int max_num_channels);
+bg_gtk_vumeter_create(int max_num_channels, int vertical);
 
 GtkWidget *
 bg_gtk_vumeter_get_widget(bg_gtk_vumeter_t * m);
 
 void bg_gtk_vumeter_set_format(bg_gtk_vumeter_t * m,
-                                     gavl_audio_format_t * format);
+                               gavl_audio_format_t * format);
 
 void bg_gtk_vumeter_update(bg_gtk_vumeter_t * m,
                            gavl_audio_frame_t * frame);
 
 void bg_gtk_vumeter_reset_overflow(bg_gtk_vumeter_t *);
-
 
 void bg_gtk_vumeter_draw(bg_gtk_vumeter_t * m);
 
