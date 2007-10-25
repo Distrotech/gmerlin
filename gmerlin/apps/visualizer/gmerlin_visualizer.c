@@ -82,8 +82,10 @@ typedef struct
 
   int audio_open;
   int vis_open;
-
+  
   int mouse_in_toolbar;
+  int do_hide_toolbar;
+  int toolbar_visible;
   } visualizer_t;
 
 static char * get_display_string(visualizer_t * v)
@@ -109,18 +111,37 @@ static char * get_display_string(visualizer_t * v)
   return ret;
   }
 
-
-
 static gboolean toolbar_timeout(void * data)
   {
   visualizer_t * v;
   v = (visualizer_t *)data;
+
+  if(!v->toolbar_visible)
+    return 0;
+  
+  /* Maybe the toolbar will be hidden next time */
+  if(!v->do_hide_toolbar)
+    {
+    v->do_hide_toolbar = 1;
+    return TRUE;
+    }
+  
   if(!v->mouse_in_toolbar)
     {
-    
     gtk_widget_hide(v->toolbar);
+    v->toolbar_visible = 0;
     }
-  return FALSE;
+  return TRUE;
+  }
+
+static void show_toolbar(visualizer_t * v)
+  {
+  if(!v->toolbar_visible)
+    {
+    gtk_widget_show(v->toolbar);
+    v->toolbar_visible = 1;
+    }
+  v->do_hide_toolbar = 0;
   }
 
 static void attach_toolbar(visualizer_t * v, window_t * win)
@@ -165,8 +186,8 @@ static void toggle_fullscreen(visualizer_t * v)
     
     v->current_window = &v->normal_window;
     }
-  v->mouse_in_toolbar = 0;
-  g_timeout_add(5000, toolbar_timeout, v);
+
+  show_toolbar(v);
   }
 
 static void open_audio(visualizer_t * v)
@@ -386,6 +407,16 @@ static gboolean mouse_button_callback(GtkWidget * w,
   return TRUE;
   }
 
+static gboolean motion_callback(GtkWidget * w,
+                                GdkEventMotion * evt,
+                                gpointer data)
+  {
+  visualizer_t * v = (visualizer_t*)data;
+  fprintf(stderr, "Motion callback\n");
+  show_toolbar(v);
+  return FALSE;
+  }
+
 static gboolean key_callback(GtkWidget * w,
                              GdkEventKey * evt,
                              gpointer data)
@@ -408,23 +439,9 @@ static gboolean key_callback(GtkWidget * w,
       return TRUE;
       break;
     case GDK_m:
-      g_timeout_add(2000, toolbar_timeout, v);
-      gtk_widget_show(v->toolbar);
+      show_toolbar(v);
       return TRUE;
       break;
-    }
-  return FALSE;
-  }
-
-static gboolean motion_callback(GtkWidget * w,
-                                GdkEventMotion * evt,
-                                gpointer data)
-  {
-  visualizer_t * v = (visualizer_t*)data;
-  if(!evt->state)
-    {
-    gtk_widget_show(v->toolbar);
-    g_timeout_add(5000, toolbar_timeout, v);
     }
   return FALSE;
   }
@@ -448,8 +465,9 @@ static void window_init(visualizer_t * v,
                             0, 1, 0, 1);
   
   gtk_widget_show(table);
-
-  gtk_widget_set_events(w->socket, GDK_BUTTON_PRESS_MASK |
+  
+  gtk_widget_set_events(w->socket,
+                        GDK_BUTTON_PRESS_MASK |
                         GDK_KEY_PRESS_MASK | 
                         GDK_POINTER_MOTION_MASK);
   
@@ -808,6 +826,8 @@ static visualizer_t * visualizer_create()
   
   
   g_idle_add(idle_func, ret);
+  
+  g_timeout_add(5000, toolbar_timeout, ret);
   
   return ret;
   }

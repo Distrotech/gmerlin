@@ -631,6 +631,28 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
         XFlush(w->dpy);
         w->pointer_hidden = 0;
         }
+      /* Send to parent */
+      if(w->current->parent != w->root)
+        {
+        XMotionEvent motion_event;
+        memset(&motion_event, 0, sizeof(motion_event));
+        motion_event.type = MotionNotify;
+        motion_event.display = w->dpy;
+        motion_event.window = w->current->parent;
+        motion_event.root = w->root;
+        motion_event.time = evt->xmotion.time;
+        motion_event.x = evt->xmotion.x;
+        motion_event.y = evt->xmotion.y;
+        motion_event.x_root = evt->xmotion.x_root;
+        motion_event.y_root = evt->xmotion.y_root;
+        motion_event.state  = evt->xmotion.state;
+        motion_event.same_screen = evt->xmotion.same_screen;
+        
+        XSendEvent(motion_event.display,
+                   motion_event.window,
+                   False, None, (XEvent *)(&motion_event));
+        // XFlush(w->dpy);
+        }
       break;
     case UnmapNotify:
       if(evt->xunmap.window == w->normal.win)
