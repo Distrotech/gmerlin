@@ -8,7 +8,8 @@ question \
 message \
 scrolltext \
 auth \
-chapter
+chapter \
+vumeter
 else
 gtk_programs =
 endif
@@ -61,6 +62,9 @@ cfgtest_LDADD = ../lib/libgmerlin.la ../lib/gtk/libgmerlin_gtk.la
 
 chapter_SOURCES = chapter.c
 chapter_LDADD = ../lib/libgmerlin.la ../lib/gtk/libgmerlin_gtk.la
+
+vumeter_SOURCES = vumeter.c
+vumeter_LDADD = ../lib/libgmerlin.la ../lib/gtk/libgmerlin_gtk.la
 
 
 v4ltest_SOURCES = v4ltest.c
