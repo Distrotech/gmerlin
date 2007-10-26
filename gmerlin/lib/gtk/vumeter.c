@@ -95,8 +95,6 @@ struct bg_gtk_vumeter_s
   GdkPixbuf * pixbuf_on;
   GdkPixbuf * pixbuf_off;
   
-  GtkStyle * style;
-  
   int width;
   int height;
   int max_channels;
@@ -172,13 +170,44 @@ static void set_coords_horizontal(bg_gtk_vumeter_t * m)
   
   int max_label_w = 0;
   int max_label_h = 0;
+
+  int total_width = 0;
+
+  /* Get maximum size of the labels */
   for(i = 0; i < NUM_TICS; i++)
     {
     if(m->labels[i].coords.width > max_label_w)
       max_label_w = m->labels[i].coords.width;
     if(m->labels[i].coords.height > max_label_h)
       max_label_h = m->labels[i].coords.height;
+    total_width += m->labels[i].coords.width;
+    //    gtk_layout_move(GTK_LAYOUT(m->layout), m->labels[i].l, 100, 100);
     }
+  
+  /* Calculate meter coordinates */
+  
+  for(i = 0; i < 2; i++)
+    {
+    m->meters[i].coords.x     = m->labels[i].coords.width / 2;
+    m->meters[i].coords.width = m->width - m->labels[NUM_TICS-1].coords.width / 2 -
+      m->labels[i].coords.width / 2;
+    }
+
+  m->meters[0].coords.y      = 0;
+  m->meters[0].coords.height = (m->height - 2 * TIC_LENGTH - max_label_h)/2;
+
+  m->meters[1].coords.y      = m->meters[0].coords.height + 2 * TIC_LENGTH + max_label_h;
+  m->meters[1].coords.height = (m->height - 2 * TIC_LENGTH - max_label_h)/2;
+  
+  /* Calculate label positions */
+  
+  for(i = 0; i < NUM_TICS; i++)
+    {
+    
+    }
+  
+  fprintf(stderr, "Total width: %d, max_label_width: %d, max_label_height: %d\n",
+          total_width, max_label_w, max_label_h);
   
   }
 
@@ -220,15 +249,33 @@ static void flash(bg_gtk_vumeter_t * m)
   
   }
 
-static void expose_callback(GtkWidget * w, GdkEventExpose *event,
-                            gpointer data)
+static gboolean expose_callback(GtkWidget * w, GdkEventExpose *event,
+                                gpointer data)
   {
   int i;
   bg_gtk_vumeter_t * m = (bg_gtk_vumeter_t *)data;
-  fprintf(stderr, "Expose callback\n");
+  GtkStyle * style;
+  fprintf(stderr, "Expose callback %d %d %d %d\n",
+          m->meters[0].coords.x,
+          m->meters[0].coords.y,
+          m->meters[0].coords.width,
+          m->meters[0].coords.height);
   
-  //  for(i = 0; i < NUM_TICS; i++)
-  //    gtk_widget_queue_draw(m->labels[i].l);
+  style = gtk_widget_get_style(m->layout);
+  
+  gtk_paint_shadow(style,
+                   GTK_LAYOUT(m->layout)->bin_window,
+                   GTK_STATE_NORMAL,
+                   GTK_SHADOW_IN,
+                   NULL, m->layout, NULL,
+                   m->meters[0].coords.x,
+                   m->meters[0].coords.y,
+                   10, 10);
+  
+  //                   m->meters[0].coords.width,
+  //                   m->meters[0].coords.height);
+  
+  return FALSE;
   }
 
 static gboolean mouse_callback(GtkWidget * w, GdkEventButton *event,
@@ -261,17 +308,24 @@ static void label_size_request_callback(GtkWidget * w, GtkRequisition *requisiti
     }
   }
 
+
 static void size_allocate_callback(GtkWidget * w,
                                    GtkAllocation * allocation,
                                    gpointer data)
   {
+  int i;
   bg_gtk_vumeter_t * v;
   v = (bg_gtk_vumeter_t *)data;
   fprintf(stderr, "Size allocate: %d %d\n", allocation->width,
           allocation->height);
   v->width  = allocation->width;
   v->height = allocation->height;
-  set_coords(v);
+
+  //  gtk_layout_move(
+
+  gtk_layout_set_size(GTK_LAYOUT(v->layout), allocation->width, allocation->height);
+  //set_coords(v);
+  
   }
 
 bg_gtk_vumeter_t *
@@ -288,17 +342,24 @@ bg_gtk_vumeter_create(int max_num_channels, int vertical)
   
   gtk_widget_set_events(ret->layout, GDK_EXPOSURE_MASK);
   
-  g_signal_connect(G_OBJECT(ret->layout), "expose_event",
+  g_signal_connect(G_OBJECT(ret->layout), "expose-event",
                    G_CALLBACK(expose_callback), (gpointer)ret);
   g_signal_connect(G_OBJECT(ret->layout), "size-allocate",
                    G_CALLBACK(size_allocate_callback), (gpointer)ret);
   
   gtk_widget_show(ret->layout);
 
+  if(vertical)
+    gtk_layout_set_size(GTK_LAYOUT(ret->layout), 40, 100);
+  else
+    gtk_layout_set_size(GTK_LAYOUT(ret->layout), 100, 40);
+    
+  
   /* Create labels */
   for(i = 0; i < NUM_TICS; i++)
     {
     ret->labels[i].l = gtk_label_new(scale_tics[i].label);
+    
     g_signal_connect(G_OBJECT(ret->labels[i].l),
                      "size-request", G_CALLBACK(label_size_request_callback),
                      (gpointer)ret);
