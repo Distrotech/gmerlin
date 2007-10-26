@@ -936,6 +936,8 @@ void gavl_peak_detector_update(gavl_peak_detector_t *pd,
  *  \param min Returns minimum amplitude
  *  \param max Returns maximum amplitude
  *
+ *  This function returns the highest and lowest signal level seen 
+ *  so far across all channels.
  *  The returned amplitudes are normalized such that the
  *  minimum amplitude corresponds to -1.0, the maximum amplitude
  *  corresponds to 1.0.
@@ -943,6 +945,23 @@ void gavl_peak_detector_update(gavl_peak_detector_t *pd,
   
 void gavl_peak_detector_get_peak(gavl_peak_detector_t * pd,
                                  double * min, double * max);
+
+/*! \ingroup peak_detection
+ *  \brief Get the peak volume seen so far for a single channel
+ *  \param pd A peak detector
+ *  \param channel Channel index (starting with 0)
+ *  \param min Returns minimum amplitude
+ *  \param max Returns maximum amplitude
+ *
+ *  Like \ref gavl_peak_detector_get_peak but the peak value is only
+ *  calculated for one channel.
+a */
+
+void gavl_peak_detector_get_channel_peak(gavl_peak_detector_t * pd, 
+                                         int channel,
+                                         double * min, double * max);
+
+
 
 /*! \ingroup peak_detection
  *  \brief Reset a peak detector

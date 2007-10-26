@@ -24,13 +24,14 @@
 
 struct gavl_peak_detector_s
   {
-  int64_t min_i;
-  int64_t max_i;
-  double min_d;
-  double max_d;
+  int64_t min_i[GAVL_MAX_CHANNELS];
+  int64_t max_i[GAVL_MAX_CHANNELS];
+  double min_d[GAVL_MAX_CHANNELS];
+  double max_d[GAVL_MAX_CHANNELS];
   
   gavl_audio_format_t format;
-  void (*update_channel)(gavl_peak_detector_t*,void*,int);
+  void (*update_channel)(gavl_peak_detector_t*,void*,int num,
+                         int offset, int advance, int channel);
   void (*update)(gavl_peak_detector_t*, gavl_audio_frame_t*);
   };
 
@@ -39,14 +40,19 @@ static void update_none(gavl_peak_detector_t*pd, gavl_audio_frame_t*f)
   int i;
   for(i = 0; i < pd->format.num_channels; i++)
     {
-    pd->update_channel(pd, f->channels.s_8[i], f->valid_samples);
+    pd->update_channel(pd, f->channels.s_8[i], f->valid_samples, 0, 1, i);
     }
   }
 
 static void update_all(gavl_peak_detector_t*pd, gavl_audio_frame_t*f)
   {
-  pd->update_channel(pd, f->samples.s_8,
-                     f->valid_samples * pd->format.num_channels);
+  int i;
+  for(i = 0; i < pd->format.num_channels; i++)
+    {
+    pd->update_channel(pd, f->samples.s_8,
+                       f->valid_samples * pd->format.num_channels,
+                       i, pd->format.num_channels, i);
+    }
   }
 
 static void update_2(gavl_peak_detector_t*pd, gavl_audio_frame_t*f)
@@ -54,92 +60,105 @@ static void update_2(gavl_peak_detector_t*pd, gavl_audio_frame_t*f)
   int i;
   for(i = 0; i < pd->format.num_channels/2; i++)
     {
-    pd->update_channel(pd, f->channels.s_8[i*2], f->valid_samples*2);
+    pd->update_channel(pd, f->channels.s_8[i*2], f->valid_samples*2, 0, 2, i);
+    pd->update_channel(pd, f->channels.s_8[i*2], f->valid_samples*2, 1, 2, i+1);
     }
   if(pd->format.num_channels % 2)
     pd->update_channel(pd, f->channels.s_8[pd->format.num_channels-1],
-                       f->valid_samples);
+                       f->valid_samples, 0, 1, pd->format.num_channels-1);
   }
 
 static void update_channel_u8(gavl_peak_detector_t * pd, void * _samples,
-                              int num)
+                              int num, int offset, int advcance, int channel)
   {
   int i;
   uint8_t * samples = (uint8_t *)_samples;
+  samples += offset;
   for(i = 0; i < num; i++)
     {
-    if(samples[i] > pd->max_i) pd->max_i = samples[i];
-    if(samples[i] < pd->min_i) pd->min_i = samples[i];
+    if(*samples > pd->max_i[channel]) pd->max_i[channel] = *samples;
+    if(*samples < pd->min_i[channel]) pd->min_i[channel] = *samples;
+    samples += offset;
     }
-  pd->min_d = (double)((int)pd->min_i-0x80) / 128.0;
-  pd->max_d = (double)((int)pd->max_i-0x80) / 127.0;
+  pd->min_d[channel] = (double)((int)pd->min_i[channel]-0x80) / 128.0;
+  pd->max_d[channel] = (double)((int)pd->max_i[channel]-0x80) / 127.0;
   }
 
 static void update_channel_s8(gavl_peak_detector_t * pd, void * _samples,
-                              int num)
+                              int num, int offset, int advcance, int channel)
   {
   int i;
   int8_t * samples = (int8_t *)_samples;
+  samples += offset;
   for(i = 0; i < num; i++)
     {
-    if(samples[i] > pd->max_i) pd->max_i = samples[i];
-    if(samples[i] < pd->min_i) pd->min_i = samples[i];
+    if(*samples > pd->max_i[channel]) pd->max_i[channel] = *samples;
+    if(*samples < pd->min_i[channel]) pd->min_i[channel] = *samples;
+    samples += offset;
     }
-  pd->min_d = (double)((int)pd->min_i) / 128.0;
-  pd->max_d = (double)((int)pd->max_i) / 127.0;
+  pd->min_d[channel] = (double)((int)pd->min_i[channel]) / 128.0;
+  pd->max_d[channel] = (double)((int)pd->max_i[channel]) / 127.0;
   }
 
 static void update_channel_u16(gavl_peak_detector_t * pd, void * _samples,
-                               int num)
+                               int num, int offset, int advcance, int channel)
   {
   int i;
   uint16_t * samples = (uint16_t *)_samples;
+  samples += offset;
   for(i = 0; i < num; i++)
     {
-    if(samples[i] > pd->max_i) pd->max_i = samples[i];
-    if(samples[i] < pd->min_i) pd->min_i = samples[i];
+    if(*samples > pd->max_i[channel]) pd->max_i[channel] = *samples;
+    if(*samples < pd->min_i[channel]) pd->min_i[channel] = *samples;
+    samples += offset;
     }
-  pd->min_d = (double)((int)pd->min_i-0x8000) / 32768.0;
-  pd->max_d = (double)((int)pd->max_i-0x8000) / 32767.0;
+  pd->min_d[channel] = (double)((int)pd->min_i[channel]-0x8000) / 32768.0;
+  pd->max_d[channel] = (double)((int)pd->max_i[channel]-0x8000) / 32767.0;
   }
 
 static void update_channel_s16(gavl_peak_detector_t * pd, void * _samples,
-                               int num)
+                               int num, int offset, int advcance, int channel)
   {
   int i;
   int16_t * samples = (int16_t *)_samples;
+  samples += offset;
   for(i = 0; i < num; i++)
     {
-    if(samples[i] > pd->max_i) pd->max_i = samples[i];
-    if(samples[i] < pd->min_i) pd->min_i = samples[i];
+    if(*samples > pd->max_i[channel]) pd->max_i[channel] = *samples;
+    if(*samples < pd->min_i[channel]) pd->min_i[channel] = *samples;
+    samples += offset;
     }
-  pd->min_d = (double)((int)pd->min_i) / 32768.0;
-  pd->max_d = (double)((int)pd->max_i) / 32767.0;
+  pd->min_d[channel] = (double)((int)pd->min_i) / 32768.0;
+  pd->max_d[channel] = (double)((int)pd->max_i) / 32767.0;
   }
 
 static void update_channel_s32(gavl_peak_detector_t * pd, void * _samples,
-                               int num)
+                               int num, int offset, int advcance, int channel)
   {
   int i;
   int32_t * samples = (int32_t *)_samples;
+  samples += offset;
   for(i = 0; i < num; i++)
     {
-    if(samples[i] > pd->max_i) pd->max_i = samples[i];
-    if(samples[i] < pd->min_i) pd->min_i = samples[i];
+    if(*samples > pd->max_i[channel]) pd->max_i[channel] = *samples;
+    if(*samples < pd->min_i[channel]) pd->min_i[channel] = *samples;
+    samples += offset;
     }
-  pd->min_d = (double)((int)pd->min_i) / 2147483648.0;
-  pd->max_d = (double)((int)pd->max_i) / 2147483647.0;
+  pd->min_d[channel] = (double)((int)pd->min_i[channel]) / 2147483648.0;
+  pd->max_d[channel] = (double)((int)pd->max_i[channel]) / 2147483647.0;
   }
 
 static void update_channel_float(gavl_peak_detector_t * pd, void * _samples,
-                               int num)
+                                 int num, int offset, int advcance, int channel)
   {
   int i;
   float * samples = (float*)_samples;
+  samples += offset;
   for(i = 0; i < num; i++)
     {
-    if(samples[i] > pd->max_d) pd->max_d = samples[i];
-    if(samples[i] < pd->min_d) pd->min_d = samples[i];
+    if(*samples > pd->max_i[channel]) pd->max_d[channel] = *samples;
+    if(*samples < pd->min_i[channel]) pd->min_d[channel] = *samples;
+    samples += offset;
     }
   }
 
@@ -209,32 +228,55 @@ void gavl_peak_detector_update(gavl_peak_detector_t *pd,
 void gavl_peak_detector_get_peak(gavl_peak_detector_t * pd,
                                  double * min, double * max)
   {
-  *min = pd->min_d;
-  *max = pd->max_d;
+  int i;
+  *min = pd->min_d[0];
+  *max = pd->max_d[0];
+  for(i = 1; i < pd->format.num_channels; i++)
+    {
+    if(*min > pd->min_d[i])
+      *min = pd->min_d[i];
+
+    if(*max < pd->max_d[i])
+      *max = pd->max_d[i];
+    }
   }
   
+void gavl_peak_detector_get_channel_peak(gavl_peak_detector_t * pd, int channel,
+                                         double * min, double * max)
+  {
+  }
+
 void gavl_peak_detector_reset(gavl_peak_detector_t * pd)
   {
+  int64_t min_i = 0, max_i = 0, i;
+  
   switch(pd->format.sample_format)
     {
     case GAVL_SAMPLE_U8:
-      pd->min_i = 0x80;
-      pd->max_i = 0x80;
+      min_i = 0x80;
+      max_i = 0x80;
       break;
     case GAVL_SAMPLE_U16:
-      pd->min_i = 0x8000;
-      pd->max_i = 0x8000;
+      min_i = 0x8000;
+      max_i = 0x8000;
       break;
     case GAVL_SAMPLE_S8:
     case GAVL_SAMPLE_S16:
     case GAVL_SAMPLE_S32:
-      pd->min_i = 0;
-      pd->max_i = 0;
+      min_i = 0;
+      max_i = 0;
       break;
     case GAVL_SAMPLE_FLOAT:
     case GAVL_SAMPLE_NONE:
       break;
     }
-  pd->min_d = 0.0;
-  pd->max_d = 0.0;
+
+  for(i = 0; i < pd->format.num_channels; i++)
+    {
+    pd->max_i[i] = max_i;
+    pd->min_i[i] = min_i;
+    pd->min_d[i] = 0.0;
+    pd->max_d[i] = 0.0;
+    }
+  
   }
