@@ -97,6 +97,17 @@ AC_SUBST(GMERLIN_PLUGIN_LDFLAGS)
 AM_CONDITIONAL(HAVE_GMERLIN, test x$have_gmerlin = xtrue)
 
 dnl
+dnl Disable logo 
+dnl
+
+AC_ARG_ENABLE(logo,
+[AC_HELP_STRING([--disable-logo],[Disable logo display (default: enable logo)])],
+[case "${enableval}" in
+   no) AC_DEFINE(DISABLE_LOGO,[],[Disable logo display])
+   ;;
+esac],[])
+
+dnl
 dnl
 dnl
 
