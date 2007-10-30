@@ -39,11 +39,31 @@ typedef struct
   void * data;
   } bg_x11_window_callbacks_t;
 
+/* OpenGL display attributes (see bg_x11_window_set_gl_attribute()) */
 
+#define BG_GL_ATTRIBUTE_BUFFER_SIZE       0 /**< Depth of the color buffer. */
+#define BG_GL_ATTRIBUTE_LEVEL             1 /**< Level in plane stacking. */
+#define BG_GL_ATTRIBUTE_RGBA              2 /**< True if RGBA mode. */
+#define BG_GL_ATTRIBUTE_DOUBLEBUFFER      3 /**< Double buffering supported. */
+#define BG_GL_ATTRIBUTE_STEREO            4 /**< Stereo buffering supported. */
+#define BG_GL_ATTRIBUTE_AUX_BUFFERS       5 /**< Number of aux buffers. */
+#define BG_GL_ATTRIBUTE_RED_SIZE          6 /**< Number of red component bits. */
+#define BG_GL_ATTRIBUTE_GREEN_SIZE        7 /**< Number of green component bits. */
+#define BG_GL_ATTRIBUTE_BLUE_SIZE         8 /**< Number of blue component bits. */
+#define BG_GL_ATTRIBUTE_ALPHA_SIZE        9 /**< Number of alpha component bits. */
+#define BG_GL_ATTRIBUTE_DEPTH_SIZE       10 /**< Number of depth bits. */
+#define BG_GL_ATTRIBUTE_STENCIL_SIZE     11 /**< Number of stencil bits. */
+#define BG_GL_ATTRIBUTE_ACCUM_RED_SIZE   12 /**< Number of red accum bits. */
+#define BG_GL_ATTRIBUTE_ACCUM_GREEN_SIZE 13 /**< Number of green accum bits. */
+#define BG_GL_ATTRIBUTE_ACCUM_BLUE_SIZE  14 /**< Number of blue accum bits. */
+#define BG_GL_ATTRIBUTE_ACCUM_ALPHA_SIZE 15 /**< Number of alpha accum bits. */
+#define BG_GL_ATTRIBUTE_NUM              16 /* Must be last and highest */
 
 typedef struct bg_x11_window_s bg_x11_window_t;
 
 bg_x11_window_t * bg_x11_window_create(const char * display_string);
+
+void bg_x11_window_set_gl_attribute(bg_x11_window_t * win, int attribute, int value);
 
 const char * bg_x11_window_get_display_string(bg_x11_window_t * w);
 

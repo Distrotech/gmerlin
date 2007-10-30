@@ -114,24 +114,7 @@ struct bg_x11_window_s
   window_t normal;
   window_t fullscreen;
   window_t * current;
-
-#if 0  
-  Window normal_window;
-  Window fullscreen_window;
-  Window current_window;
-  Window current_parent;
-  Window current_child;
-
-  Window normal_parent;
-  Window fullscreen_parent;
   
-  Window normal_child;
-  Window fullscreen_child;
-
-  int normal_xembed;
-  int fullscreen_xembed;
-  int current_xembed;
-#endif
   Window root;
   int window_width, window_height;
 
@@ -190,6 +173,12 @@ struct bg_x11_window_s
 #ifdef HAVE_GLX
   GLXContext glxcontext;
 #endif
+
+  struct
+    {
+    int value;
+    int changed;
+    } gl_attributes[BG_GL_ATTRIBUTE_NUM];
 
   /* XShm */
   
