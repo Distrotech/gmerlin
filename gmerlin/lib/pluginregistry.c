@@ -43,6 +43,10 @@
 
 #include <bgladspa.h>
 
+#ifdef HAVE_LV
+#include <bglv.h>
+#endif
+
 #define LOG_DOMAIN "pluginregistry"
 
 struct bg_plugin_registry_s
@@ -531,6 +535,12 @@ scan_directory_internal(const char * directory, bg_plugin_info_t ** _file_info,
         break;
       case BG_PLUGIN_API_LADSPA:
         new_info = bg_ladspa_get_info(test_module, filename);
+        break;
+#ifdef HAVE_LV
+      case BG_PLUGIN_API_LV:
+        new_info = bg_lv_get_info(filename);
+        break;
+#endif
       }
 
     tmp_info = new_info;
@@ -606,14 +616,13 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
                                 &changed, cfg_section, api);
   
   /* Check if there are entries from the file info left */
-  file_info = *_file_info;
-
-  /* */
-
+  
   file_info = *_file_info;
   
   while(file_info)
     {
+    /* FIXME: This goes wrong if one plugin directory is a subdirectory
+       of another. Currently, this is never the case though */
     if(!strncmp(file_info->module_filename, directory, strlen(directory)))
       {
       file_info_next = file_info->next;
@@ -705,6 +714,14 @@ bg_plugin_registry_create(bg_cfg_section_t * section)
     bg_strbreak_free(paths);
     }
   free(path);
+
+#ifdef HAVE_LV
+  tmp_info = scan_directory(LV_PLUGIN_DIR,
+                            &file_info, 
+                            section, BG_PLUGIN_API_LV);
+  if(tmp_info)
+    ret->entries = append_to_list(ret->entries, tmp_info);
+#endif
   
   /* Now we have all external plugins, time to create the meta plugins */
   
@@ -992,6 +1009,11 @@ static void unload_plugin(bg_plugin_handle_t * h)
     case BG_PLUGIN_API_LADSPA:
       bg_ladspa_unload(h);
       break;
+#ifdef HAVE_LV
+    case BG_PLUGIN_API_LV:
+      bg_lv_unload(h);
+      break;
+#endif
     }
   if(h->location) free(h->location);
 
@@ -1142,15 +1164,18 @@ static bg_plugin_handle_t * load_plugin(bg_plugin_registry_t * reg,
 
   if(info->module_filename)
     {
-    /* We need all symbols global because some plugins might reference them */
-    ret->dll_handle = dlopen(info->module_filename, RTLD_NOW | RTLD_GLOBAL);
-    if(!ret->dll_handle)
+    if(info->api != BG_PLUGIN_API_LV)
       {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot dlopen plugin %s: %s", info->module_filename,
-              dlerror());
-      goto fail;
+      /* We need all symbols global because some plugins might reference them */
+      ret->dll_handle = dlopen(info->module_filename, RTLD_NOW | RTLD_GLOBAL);
+      if(!ret->dll_handle)
+        {
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot dlopen plugin %s: %s", info->module_filename,
+               dlerror());
+        goto fail;
+        }
       }
-
+    
     switch(info->api)
       {
       case BG_PLUGIN_API_GMERLIN:
@@ -1168,6 +1193,11 @@ static bg_plugin_handle_t * load_plugin(bg_plugin_registry_t * reg,
       case BG_PLUGIN_API_LADSPA:
         if(!bg_ladspa_load(ret, info))
           goto fail;
+#ifdef HAVE_LV
+      case BG_PLUGIN_API_LV:
+        if(!bg_lv_load(ret, info->name, info->flags))
+          goto fail;
+#endif
       }
     }
   else if(reg->singlepic_input &&

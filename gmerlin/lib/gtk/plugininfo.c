@@ -176,6 +176,8 @@ flag_names[] =
     { TRS("Has Sync"),     BG_PLUGIN_INPUT_HAS_SYNC }, /* FOR INPUTS ONLY: Plugin will set the time via callback */
     { TRS("Tuner"),       BG_PLUGIN_TUNER           }, /* Plugin has tuner */
     { TRS("Filter with 1 input"),  BG_PLUGIN_FILTER_1 },
+    { TRS("Renders via gmerlin"),  BG_PLUGIN_VISUALIZE_FRAME },
+    { TRS("Renders via OpenGL"),  BG_PLUGIN_VISUALIZE_GL },
     { (char*)0,      0                        },
   };
 

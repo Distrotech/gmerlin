@@ -8,6 +8,7 @@ static video_driver_t * drivers[] =
 #ifdef HAVE_LIBXV
     &xv_driver,
 #endif
+    &gl_driver,
   };
 
 static void init(bg_x11_window_t * w)
@@ -21,6 +22,7 @@ static void init(bg_x11_window_t * w)
     w->drivers[i].win = w;
     if(w->drivers[i].driver->init)
       w->drivers[i].driver->init(&w->drivers[i]);
+    fprintf(stderr, "init %d, %p\n", i, w->drivers[i].pixelformats);
     }
   
   /* TODO: Get screen resolution */
@@ -54,6 +56,7 @@ int bg_x11_window_open_video(bg_x11_window_t * w,
   {
   int num_drivers;
   int i;
+  int force_hw_scale;
   
   int min_penalty, min_index;
   w->do_sw_scale = 0;
@@ -63,7 +66,9 @@ int bg_x11_window_open_video(bg_x11_window_t * w,
     init(w);
     w->drivers_initialized = 1;
     }
-
+  
+  fprintf(stderr, "open video 1 %p\n", w->drivers[2].pixelformats);
+  
   gavl_video_format_copy(&w->video_format, format);
   
   num_drivers = sizeof(drivers) / sizeof(drivers[0]);
@@ -72,16 +77,21 @@ int bg_x11_window_open_video(bg_x11_window_t * w,
 
   for(i = 0; i < num_drivers; i++)
     {
+    fprintf(stderr, "open video 2 %d %p %p\n", i,
+            w->drivers[2].pixelformats, w->drivers[i].win);
+    
     w->drivers[i].pixelformat =
       gavl_pixelformat_get_best(format->pixelformat, w->drivers[i].pixelformats,
                                 &w->drivers[i].penalty);
     }
 
+
   /*
    *  Now, get the driver with the lowest penalty.
    *  Scaling would be nice as well
    */
-
+  force_hw_scale = w->force_hw_scale;
+  
   while(1)
     {
     min_index = -1;
@@ -91,6 +101,8 @@ int bg_x11_window_open_video(bg_x11_window_t * w,
        have the pixelformat unset */
     for(i = 0; i < num_drivers; i++)
       {
+      if(!w->drivers[i].driver->can_scale && force_hw_scale)
+        continue;
       if(w->drivers[i].pixelformat != GAVL_PIXELFORMAT_NONE)
         {
         if((min_penalty < 0) || w->drivers[i].penalty < min_penalty)
@@ -103,7 +115,17 @@ int bg_x11_window_open_video(bg_x11_window_t * w,
 
     /* If we have found no driver, playing video is doomed to failure */
     if(min_penalty < 0)
-      break;
+      {
+      if(force_hw_scale)
+        {
+        force_hw_scale = 0;
+        continue;
+        }
+      else
+        break;
+      }
+
+    fprintf(stderr, "open video 2\n");
     
     if(!w->drivers[min_index].driver->open)
       {
@@ -121,14 +143,15 @@ int bg_x11_window_open_video(bg_x11_window_t * w,
     }
   if(!w->current_driver)
     return 0;
+
+  fprintf(stderr, "open video 3\n");
   
   w->video_format.pixelformat = w->current_driver->pixelformat;
   
   gavl_video_format_copy(format, &w->video_format);
   
   /* All other values are already set or will be set by set_rectangles */
-  w->window_format.pixelformat = 
-    format->pixelformat;
+  w->window_format.pixelformat = format->pixelformat;
   
   if(!w->current_driver->driver->can_scale)
     {
@@ -223,6 +246,14 @@ void bg_x11_window_set_rectangles(bg_x11_window_t * w,
 
 void bg_x11_window_put_frame(bg_x11_window_t * w, gavl_video_frame_t * f)
   {
+  int i;
+
+  if(!w->current_driver->driver->add_overlay_stream)
+    {
+    for(i = 0; i < w->num_overlay_streams; i++)
+      gavl_overlay_blend(w->overlay_streams[i].ctx, f);
+    }
+  
   if(w->do_sw_scale)
     {
     gavl_video_scaler_scale(w->scaler, f, w->window_frame);
@@ -238,6 +269,10 @@ void bg_x11_window_put_frame(bg_x11_window_t * w, gavl_video_frame_t * f)
 
 void bg_x11_window_close_video(bg_x11_window_t * w)
   {
+  int i;
+  
+  fprintf(stderr, "bg_x11_window_close_video\n");
+  
   if(w->window_frame)
     {
     if(w->current_driver->driver->destroy_frame)
@@ -246,8 +281,23 @@ void bg_x11_window_close_video(bg_x11_window_t * w)
       gavl_video_frame_destroy(w->window_frame);
     w->window_frame = (gavl_video_frame_t*)0;
     }
+  
+  if(w->overlay_streams)
+    {
+    for(i = 0; i < w->num_overlay_streams; i++)
+      {
+      if(w->overlay_streams[i].ctx)
+        gavl_overlay_blend_context_destroy(w->overlay_streams[i].ctx);
+      }
+    free(w->overlay_streams);
+    w->num_overlay_streams = 0;
+    w->overlay_streams = NULL;
+    }
+  
   if(w->current_driver->driver->close)
     w->current_driver->driver->close(w->current_driver);
+
+  
   }
 
 

@@ -34,50 +34,36 @@
 
 /* Some constants */
 
-#define TIC_LENGTH    5
+#define TIC_LENGTH    7
 #define METER_WIDTH  14
 
 static struct
   {
-  float value;
+  float val;
   char * label;
   }
 scale_tics[] =
   {
-    {   0.0,  "0"},
-    {  -1.0,  "1"},
-    {  -3.0,  "3"},
-    {  -6.0,  "6"},
-    { -10.0, "10"},
-    { -20.0, "20"},
-    { -30.0, "30"},
-    { -40.0, "40"},
-    { -50.0, "50"},
     { -60.0, "60"},
+    { -50.0, "50"},
+    { -40.0, "40"},
+    { -30.0, "30"},
+    { -20.0, "20"},
+    { -10.0, "10"},
+    {  -6.0,  "6"},
+    {  -3.0,  "3"},
+    {  -1.0,  "1"},
+    {   0.0,  "0"},
   };
 
 #define NUM_TICS sizeof(scale_tics)/sizeof(scale_tics[0])
 
-#define LEVEL_MIN (float)(scale_tics[NUM_TICS-1].value)
-#define LEVEL_MAX (float)(scale_tics[0].value)
+#define LEVEL_MIN (float)(scale_tics[0].val)
+#define LEVEL_MAX (float)(scale_tics[NUM_TICS-1].val)
 
-static bg_parameter_info_t parameters[] =
-  {
-    {
-      name:        "properties",
-      long_name:   TRS("Properties"),
-      type:        BG_PARAMETER_SECTION
-    },
-    {
-      name:        "peak_age",
-      long_name:   TRS("Peak hold time (sec.)"),
-      type:        BG_PARAMETER_SLIDER_FLOAT,
-      val_min:     { val_f: 0.1 },
-      val_max:     { val_f: 100.0 },
-      val_default: { val_f: 4.0 }
-    },
-    { /* End of parameters */ }
-  };
+/* Yellow color will be at the -6 dB mark */
+#define YELLOW_LEVEL(len) (len*2)/3
+
 
 struct bg_gtk_vumeter_s
   {
@@ -90,24 +76,17 @@ struct bg_gtk_vumeter_s
     GdkRectangle coords;
     } labels[NUM_TICS];
   
-  /* Colors */
-  
   GdkPixbuf * pixbuf_on;
   GdkPixbuf * pixbuf_off;
+  GdkGC * gc;
   
   int width;
   int height;
-  int max_channels;
   
-  int scale_width;
-  int scale_ascent;
-  int scale_descent;
+  int pixmap_width, pixmap_height;
   
-  int meter_width;
-  int meter_offset_y;
-  int meter_height;
-  int over_height;
-
+  int num_channels;
+  
   int vertical;
   
   pthread_mutex_t analysis_mutex;
@@ -117,37 +96,50 @@ struct bg_gtk_vumeter_s
   struct
     {
     float level;
+    float peak;
+    
     int64_t peak_age;
     GdkRectangle coords;
+    GdkPixmap * pixmap;
+    
     }
   meters[GAVL_MAX_CHANNELS];
   
   int max_peak_age;
-  int num_channels;
+  int redraw_pixbufs;
+  int pixmaps_valid;
   };
 
-/* Parameter stuff */
+/* Golor functions */
 
-bg_parameter_info_t *
-bg_gtk_vumeter_get_parameters(bg_gtk_vumeter_t * v)
+static void get_color_on(int i, int len, uint8_t * color)
   {
-  return parameters;
-  }
-
-void bg_gtk_vumeter_set_parameter(void * vumeter, const char * name,
-                                  const bg_parameter_value_t * val)
-  {
-  bg_gtk_vumeter_t * v;
-  v = (bg_gtk_vumeter_t *)vumeter;
-  if(!name)
-    return;
-  if(!strcmp(name, "peak_age"))
+  int yellow_level = YELLOW_LEVEL(len);
+  if(i < yellow_level)
     {
-    pthread_mutex_lock(&(v->analysis_mutex));
-    v->max_peak_age = val->val_f;
-    pthread_mutex_unlock(&(v->analysis_mutex));
+    /* Green -> Yellow */
+    color[0] = (i * 0xff)/yellow_level; // Red
+    color[1] = 0xff;                    // Green
+    color[2] = 0x00;                    // Blue
+    }
+  else
+    {
+    /* Yellow -> Red */
+    color[0] = 0xff;                    // Red
+    color[1] = ((len - i) * 0xff)/(len - yellow_level); // Green
+    color[2] = 0x00;                 // Blue
     }
   }
+
+static void get_color_off(int i, int len, uint8_t * color)
+  {
+  get_color_on(i, len, color);
+  color[0] >>= 1;
+  color[1] >>= 1;
+  color[2] >>= 1;
+  }
+
+
 
 static float level_2_dB(float level)
   {
@@ -167,7 +159,7 @@ static float level_2_dB(float level)
 static void set_coords_horizontal(bg_gtk_vumeter_t * m)
   {
   int i;
-  
+  int meter_height;
   int max_label_w = 0;
   int max_label_h = 0;
 
@@ -185,35 +177,65 @@ static void set_coords_horizontal(bg_gtk_vumeter_t * m)
     }
   
   /* Calculate meter coordinates */
-  
-  for(i = 0; i < 2; i++)
+
+  meter_height =
+    (m->height - m->num_channels * TIC_LENGTH - max_label_h)/m->num_channels;
+    
+  for(i = 0; i < m->num_channels; i++)
     {
     m->meters[i].coords.x     = m->labels[i].coords.width / 2;
-    m->meters[i].coords.width = m->width - m->labels[NUM_TICS-1].coords.width / 2 -
+    m->meters[i].coords.width =
+      m->width - m->labels[NUM_TICS-1].coords.width / 2 -
       m->labels[i].coords.width / 2;
     }
 
-  m->meters[0].coords.y      = 0;
-  m->meters[0].coords.height = (m->height - 2 * TIC_LENGTH - max_label_h)/2;
-
-  m->meters[1].coords.y      = m->meters[0].coords.height + 2 * TIC_LENGTH + max_label_h;
-  m->meters[1].coords.height = (m->height - 2 * TIC_LENGTH - max_label_h)/2;
-  
-  /* Calculate label positions */
-  
-  for(i = 0; i < NUM_TICS; i++)
+  for(i = 0; i < m->num_channels; i++)
     {
-    
+    m->meters[i].coords.y = TIC_LENGTH + max_label_h +
+      i * (meter_height + TIC_LENGTH);
+    m->meters[i].coords.height = meter_height;
     }
-  
-  fprintf(stderr, "Total width: %d, max_label_width: %d, max_label_height: %d\n",
-          total_width, max_label_w, max_label_h);
-  
   }
 
 static void set_coords_vertical(bg_gtk_vumeter_t * m)
   {
+  int i;
+  int meter_width;
+  int max_label_w = 0;
+  int max_label_h = 0;
+
+  int total_height = 0;
+
+  /* Get maximum size of the labels */
+  for(i = 0; i < NUM_TICS; i++)
+    {
+    if(m->labels[i].coords.width > max_label_w)
+      max_label_w = m->labels[i].coords.width;
+    if(m->labels[i].coords.height > max_label_h)
+      max_label_h = m->labels[i].coords.height;
+    total_height += m->labels[i].coords.height;
+    //    gtk_layout_move(GTK_LAYOUT(m->layout), m->labels[i].l, 100, 100);
+    }
   
+  /* Calculate meter coordinates */
+
+  meter_width =
+    (m->width - m->num_channels * TIC_LENGTH - max_label_w)/m->num_channels;
+    
+  for(i = 0; i < m->num_channels; i++)
+    {
+    m->meters[i].coords.y     = m->labels[i].coords.height / 2;
+    m->meters[i].coords.height =
+      m->height - m->labels[NUM_TICS-1].coords.height / 2 -
+      m->labels[i].coords.height / 2;
+    }
+
+  for(i = 0; i < m->num_channels; i++)
+    {
+    m->meters[i].coords.x = TIC_LENGTH + max_label_w +
+      i * (meter_width + TIC_LENGTH);
+    m->meters[i].coords.width = meter_width;
+    }
   }
 
 static void set_coords(bg_gtk_vumeter_t * m)
@@ -224,23 +246,438 @@ static void set_coords(bg_gtk_vumeter_t * m)
     set_coords_horizontal(m);
   }
 
-static void draw_static(bg_gtk_vumeter_t * m)
+static void draw_static_horizontal(bg_gtk_vumeter_t * m)
   {
-  int i;
+  int i, j;
+  GtkStyle * style;
+  int label_x, label_y;
+  style = gtk_widget_get_style(m->layout);
+
+  /* Print meter shadows */
+  for(i = 0; i < m->num_channels; i++)
+    {
+    gtk_paint_shadow(style,
+                     GTK_LAYOUT(m->layout)->bin_window,
+                     GTK_STATE_NORMAL,
+                     GTK_SHADOW_IN,
+                     NULL, m->layout, NULL,
+                     m->meters[i].coords.x-1,
+                     m->meters[i].coords.y-1,
+                     m->meters[i].coords.width+2,
+                     m->meters[i].coords.height+2);
+    }
+
+  label_y = 0;
+  
+  for(i = 0; i < NUM_TICS; i++)
+    {
+    label_x =
+      m->meters[0].coords.x + (m->meters[0].coords.width * i)/(NUM_TICS-1);
+    
+    if((m->labels[i].coords.x != label_x - m->labels[i].coords.width/2) ||
+       (m->labels[i].coords.y != label_y))
+      {
+      m->labels[i].coords.x = label_x - m->labels[i].coords.width/2;
+      m->labels[i].coords.y = label_y;
+      gtk_layout_move(GTK_LAYOUT(m->layout),
+                      m->labels[i].l,
+                      m->labels[i].coords.x,
+                      m->labels[i].coords.y);
+      }
+
+    for(j = 0; j < m->num_channels; j++)
+      {
+      gtk_paint_vline(style,
+                      GTK_LAYOUT(m->layout)->bin_window,
+                      GTK_STATE_NORMAL,
+                      (GdkRectangle *)0,
+                      m->layout,
+                      (const gchar *)0,
+                      m->meters[j].coords.y - TIC_LENGTH,
+                      m->meters[j].coords.y,
+                      label_x);
+      }
+    }
+
+  }
+
+static void draw_static_vertical(bg_gtk_vumeter_t * m)
+  {
+  int i, j;
+  GtkStyle * style;
+  int label_x, label_y;
+  style = gtk_widget_get_style(m->layout);
+
+  /* Print meter shadows */
+  for(i = 0; i < m->num_channels; i++)
+    {
+    gtk_paint_shadow(style,
+                     GTK_LAYOUT(m->layout)->bin_window,
+                     GTK_STATE_NORMAL,
+                     GTK_SHADOW_IN,
+                     NULL, m->layout, NULL,
+                     m->meters[i].coords.x-1,
+                     m->meters[i].coords.y-1,
+                     m->meters[i].coords.width+2,
+                     m->meters[i].coords.height+2);
+    }
+
+  label_x = 0;
+  
+  for(i = 0; i < NUM_TICS; i++)
+    {
+    label_y =
+      m->meters[0].coords.y + (m->meters[0].coords.height * i)/(NUM_TICS-1);
+            
+    if((m->labels[i].coords.x != label_x) ||
+       (m->labels[i].coords.y != label_y - m->labels[i].coords.height/2))
+      {
+      m->labels[i].coords.x = label_x;
+      m->labels[i].coords.y = label_y - m->labels[i].coords.height/2;
+      gtk_layout_move(GTK_LAYOUT(m->layout),
+                      m->labels[i].l,
+                      m->labels[i].coords.x,
+                      m->labels[i].coords.y);
+      }
+
+    for(j = 0; j < m->num_channels; j++)
+      {
+      gtk_paint_hline(style,
+                      GTK_LAYOUT(m->layout)->bin_window,
+                      GTK_STATE_NORMAL,
+                      (GdkRectangle *)0,
+                      m->layout,
+                      (const gchar *)0,
+                      m->meters[j].coords.x - TIC_LENGTH,
+                      m->meters[j].coords.x,
+                      label_y);
+      }
+    }
   
   }
 
-static int get_y(bg_gtk_vumeter_t * m, float level)
+static void draw_static(bg_gtk_vumeter_t * m)
+  {
+  if(m->vertical)
+    draw_static_vertical(m);
+  else
+    draw_static_horizontal(m);
+  }
+
+static int interpolate_tics(float val, int len)
   {
   int i;
-  int ret = 0;
+  int pos_1, pos_2;
   
-  return ret;
+  if(val <= scale_tics[0].val)
+    return 0;
+  if(val >= scale_tics[NUM_TICS-1].val)
+    return len;
+
+  for(i = 1; i < NUM_TICS; i++)
+    {
+    if(scale_tics[i].val > val)
+      {
+      pos_1 = (len * (i-1)) / (NUM_TICS-1);
+      pos_2 = (len * i) / (NUM_TICS-1);
+      return pos_1 +
+        (int)((pos_2 - pos_1) * (val - scale_tics[i-1].val)/
+              (scale_tics[i].val - scale_tics[i-1].val)+0.5);
+      }
+    }
+  return 0;
+  }
+
+static int level_2_pos_horizontal(bg_gtk_vumeter_t * m, float level)
+  {
+  return interpolate_tics(level_2_dB(level),
+                          m->meters[0].coords.width);
+  }
+
+static int level_2_pos_vertical(bg_gtk_vumeter_t * m, float level)
+  {
+  return interpolate_tics(level_2_dB(level),
+                          m->meters[0].coords.height);
+  }
+
+static void draw_pixbufs_horizontal(bg_gtk_vumeter_t * m)
+  {
+  int i, j;
+  uint8_t on_color[3];
+  uint8_t off_color[3];
+
+  uint8_t * on_pixels;
+  uint8_t * off_pixels;
+
+  uint8_t * on_ptr;
+  uint8_t * off_ptr;
   
+  int on_stride, off_stride;
+
+  on_pixels = gdk_pixbuf_get_pixels(m->pixbuf_on);
+  off_pixels = gdk_pixbuf_get_pixels(m->pixbuf_off);
+
+  on_stride  = gdk_pixbuf_get_rowstride(m->pixbuf_on);
+  off_stride = gdk_pixbuf_get_rowstride(m->pixbuf_off);
+  
+  for(i = 0; i < m->meters[0].coords.width; i++)
+    {
+    get_color_on(i, m->meters[0].coords.width, on_color);
+    get_color_off(i, m->meters[0].coords.width, off_color);
+    
+    on_ptr = on_pixels + 3 * i;
+    off_ptr = off_pixels + 3 * i;
+    
+    for(j = 0; j < m->meters[0].coords.height; j++)
+      {
+      on_ptr[0] = on_color[0];
+      on_ptr[1] = on_color[1];
+      on_ptr[2] = on_color[2];
+
+      off_ptr[0] = off_color[0];
+      off_ptr[1] = off_color[1];
+      off_ptr[2] = off_color[2];
+      
+      on_ptr += on_stride;
+      off_ptr += on_stride;
+      }
+    
+    }
+  
+  }
+
+static void draw_pixbufs_vertical(bg_gtk_vumeter_t * m)
+  {
+  int i, j;
+  uint8_t on_color[3];
+  uint8_t off_color[3];
+
+  uint8_t * on_pixels;
+  uint8_t * off_pixels;
+
+  uint8_t * on_ptr;
+  uint8_t * off_ptr;
+  
+  int on_stride, off_stride;
+
+  on_pixels = gdk_pixbuf_get_pixels(m->pixbuf_on);
+  off_pixels = gdk_pixbuf_get_pixels(m->pixbuf_off);
+
+  on_stride  = gdk_pixbuf_get_rowstride(m->pixbuf_on);
+  off_stride = gdk_pixbuf_get_rowstride(m->pixbuf_off);
+  
+  for(i = 0; i < m->meters[0].coords.height; i++)
+    {
+    get_color_on(m->meters[0].coords.height - 1 - i,
+                 m->meters[0].coords.height, on_color);
+    get_color_off(m->meters[0].coords.height - 1 - i,
+                  m->meters[0].coords.height, off_color);
+    
+    on_ptr = on_pixels + on_stride * i;
+    off_ptr = off_pixels + on_stride * i;
+    
+    for(j = 0; j < m->meters[0].coords.width; j++)
+      {
+      on_ptr[0] = on_color[0];
+      on_ptr[1] = on_color[1];
+      on_ptr[2] = on_color[2];
+
+      off_ptr[0] = off_color[0];
+      off_ptr[1] = off_color[1];
+      off_ptr[2] = off_color[2];
+      
+      on_ptr += 3;
+      off_ptr += 3;
+      }
+    
+    }
+  
+  }
+
+static void update_pixmap_horizontal(bg_gtk_vumeter_t * m, int channel)
+  {
+  int level_pos, peak_pos;
+  
+  level_pos = level_2_pos_horizontal(m, m->meters[channel].level);
+  peak_pos = level_2_pos_horizontal(m, m->meters[channel].peak);
+  
+  if(level_pos)
+    {
+    gdk_draw_pixbuf(m->meters[channel].pixmap,
+                    m->gc,
+                    m->pixbuf_on,
+                    0, /* gint src_x */
+                    0, /* gint src_y */
+                    0, /* gint dest_x */
+                    0, /* gint dest_y */
+                    level_pos, /* gint width */
+                    m->meters[channel].coords.height,  /* gint height */
+                    GDK_RGB_DITHER_NONE,
+                    0, 0);
+    }
+  
+  gdk_draw_pixbuf(m->meters[channel].pixmap,
+                  m->gc,
+                  m->pixbuf_off,
+                  level_pos, /* gint src_x */
+                  0, /* gint src_y */
+                  level_pos, /* gint dest_x */
+                  0, /* gint dest_y */
+                  m->meters[channel].coords.width - level_pos, /* gint width */
+                  m->meters[channel].coords.height,  /* gint height */
+                  GDK_RGB_DITHER_NONE,
+                  0, 0);
+
+  if(peak_pos + 2 >= m->meters[channel].coords.width)
+    peak_pos = m->meters[channel].coords.width - 2;
+  
+  if(peak_pos)
+    {
+    gdk_draw_pixbuf(m->meters[channel].pixmap,
+                    m->gc,
+                    m->pixbuf_on,
+                    peak_pos, /* gint src_x */
+                    0, /* gint src_y */
+                    peak_pos, /* gint dest_x */
+                    0, /* gint dest_y */
+                    2, /* gint width */
+                    m->meters[channel].coords.height,  /* gint height */
+                    GDK_RGB_DITHER_NONE,
+                    0, 0);
+    }
+  
+  }
+
+static void update_pixmap_vertical(bg_gtk_vumeter_t * m, int channel)
+  {
+  int level_pos, peak_pos;
+  
+  level_pos = level_2_pos_vertical(m, m->meters[channel].level);
+  peak_pos = level_2_pos_vertical(m, m->meters[channel].peak);
+#if 1
+  
+  if(level_pos)
+    {
+    gdk_draw_pixbuf(m->meters[channel].pixmap,
+                    m->gc,
+                    m->pixbuf_on,
+                    0, /* gint src_x */
+                    m->meters[channel].coords.height - level_pos, /* gint src_y */
+                    0, /* gint dest_x */
+                    m->meters[channel].coords.height - level_pos, /* gint dest_y */
+                    m->meters[channel].coords.width, /* gint width */
+                    level_pos,  /* gint height */
+                    GDK_RGB_DITHER_NONE,
+                    0, 0);
+    }
+#endif
+  
+  gdk_draw_pixbuf(m->meters[channel].pixmap,
+                  m->gc,
+                  m->pixbuf_off,
+                  0, /* gint src_x */
+                  0, /* gint src_y */
+                  0, /* gint dest_x */
+                  0, /* gint dest_y */
+                  m->meters[channel].coords.width, /* gint width */
+                  m->meters[channel].coords.height - level_pos,  /* gint height */
+                  GDK_RGB_DITHER_NONE,
+                  0, 0);
+#if 1
+  if(peak_pos + 2 >= m->meters[channel].coords.height)
+    peak_pos = m->meters[channel].coords.height - 2;
+  
+  if(peak_pos)
+    {
+    gdk_draw_pixbuf(m->meters[channel].pixmap,
+                    m->gc,
+                    m->pixbuf_on,
+                    0, /* gint src_x */
+                    m->meters[channel].coords.height - peak_pos, /* gint src_y */
+                    0, /* gint dest_x */
+                    m->meters[channel].coords.height - peak_pos, /* gint dest_y */
+                    m->meters[channel].coords.width, /* gint width */
+                    2,  /* gint height */
+                    GDK_RGB_DITHER_NONE,
+                    0, 0);
+    }
+#endif  
+  
+  }
+
+static void update_pixmaps(bg_gtk_vumeter_t * m)
+  {
+  int i;
+  
+  if(!m->gc)
+    m->gc = gdk_gc_new(GTK_LAYOUT(m->layout)->bin_window);
+  
+  if(!m->pixbuf_on)
+    {
+    m->pixbuf_on = gdk_pixbuf_new(GDK_COLORSPACE_RGB,
+                                  0, 8,
+                                  m->pixmap_width,
+                                  m->pixmap_height);
+    m->pixbuf_off = gdk_pixbuf_new(GDK_COLORSPACE_RGB,
+                                   0, 8,
+                                   m->pixmap_width,
+                                   m->pixmap_height);
+    if(m->vertical)
+      draw_pixbufs_vertical(m);
+    else
+      draw_pixbufs_horizontal(m);
+    m->redraw_pixbufs = 0;
+    }
+  else if(m->redraw_pixbufs)
+    {
+    if(m->vertical)
+      draw_pixbufs_vertical(m);
+    else
+      draw_pixbufs_horizontal(m);
+    m->redraw_pixbufs = 0;
+    }
+
+  for(i = 0; i < m->num_channels; i++)
+    {
+    if(!m->meters[i].pixmap)
+      {
+      m->meters[i].pixmap =
+        gdk_pixmap_new(GTK_LAYOUT(m->layout)->bin_window,
+                       m->pixmap_width, m->pixmap_height, 
+                       -1);
+      }
+    }
+  if(m->vertical)
+    {
+    for(i = 0; i < m->num_channels; i++)
+      update_pixmap_vertical(m, i);
+    }
+  else
+    {
+    for(i = 0; i < m->num_channels; i++)
+      update_pixmap_horizontal(m, i);
+    }
+  m->pixmaps_valid = 1;
   }
 
 static void draw_dynamic(bg_gtk_vumeter_t * m)
   {
+  int i;
+  if(!m->pixmaps_valid)
+    update_pixmaps(m);
+
+  for(i = 0; i < m->num_channels; i++)
+    {
+    gdk_draw_drawable(GTK_LAYOUT(m->layout)->bin_window,
+                      m->gc,
+                      m->meters[i].pixmap,
+                      0,
+                      0,
+                      m->meters[i].coords.x,
+                      m->meters[i].coords.y,
+                      m->meters[i].coords.width,
+                      m->meters[i].coords.height);
+    }
   
   }
 
@@ -252,41 +689,14 @@ static void flash(bg_gtk_vumeter_t * m)
 static gboolean expose_callback(GtkWidget * w, GdkEventExpose *event,
                                 gpointer data)
   {
-  int i;
   bg_gtk_vumeter_t * m = (bg_gtk_vumeter_t *)data;
-  GtkStyle * style;
-  fprintf(stderr, "Expose callback %d %d %d %d\n",
-          m->meters[0].coords.x,
-          m->meters[0].coords.y,
-          m->meters[0].coords.width,
-          m->meters[0].coords.height);
   
-  style = gtk_widget_get_style(m->layout);
   
-  gtk_paint_shadow(style,
-                   GTK_LAYOUT(m->layout)->bin_window,
-                   GTK_STATE_NORMAL,
-                   GTK_SHADOW_IN,
-                   NULL, m->layout, NULL,
-                   m->meters[0].coords.x,
-                   m->meters[0].coords.y,
-                   10, 10);
-  
-  //                   m->meters[0].coords.width,
-  //                   m->meters[0].coords.height);
-  
+  draw_static(m);
+  draw_dynamic(m);
   return FALSE;
   }
 
-static gboolean mouse_callback(GtkWidget * w, GdkEventButton *event,
-                               gpointer(data))
-  {
-  bg_gtk_vumeter_t * m;
-  m = (bg_gtk_vumeter_t *)data;
-  
-  return TRUE;
-  
-  }
 
 static void label_size_request_callback(GtkWidget * w, GtkRequisition *requisition,
                                         gpointer data)
@@ -295,9 +705,6 @@ static void label_size_request_callback(GtkWidget * w, GtkRequisition *requisiti
   int i; 
   v = (bg_gtk_vumeter_t *)data;
 
-  fprintf(stderr, "Size request: %d %d\n", requisition->width,
-          requisition->height);
-  
   for(i = 0; i < NUM_TICS; i++)
     {
     if(v->labels[i].l == w)
@@ -316,25 +723,58 @@ static void size_allocate_callback(GtkWidget * w,
   int i;
   bg_gtk_vumeter_t * v;
   v = (bg_gtk_vumeter_t *)data;
-  fprintf(stderr, "Size allocate: %d %d\n", allocation->width,
-          allocation->height);
   v->width  = allocation->width;
   v->height = allocation->height;
-
+  
   //  gtk_layout_move(
 
   gtk_layout_set_size(GTK_LAYOUT(v->layout), allocation->width, allocation->height);
-  //set_coords(v);
-  
+  set_coords(v);
+
+  if((v->meters[0].coords.width > v->pixmap_width) || 
+     (v->meters[0].coords.height > v->pixmap_height))
+    {
+    /* Check if the pixmaps must be enlarged */
+
+    v->pixmap_width = (v->meters[0].coords.width > v->pixmap_width) ?
+      v->meters[0].coords.width + 128 : v->pixmap_width;
+    v->pixmap_height = (v->meters[0].coords.height > v->pixmap_height) ?
+      v->meters[0].coords.height + 128 : v->pixmap_height;
+
+    if(v->pixbuf_on)
+      {
+      gdk_pixbuf_unref(v->pixbuf_on);
+      v->pixbuf_on = (GdkPixbuf*)0;
+      }
+    if(v->pixbuf_off)
+      {
+      gdk_pixbuf_unref(v->pixbuf_off);
+      v->pixbuf_off = (GdkPixbuf*)0;
+      }
+    
+    for(i = 0; i < GAVL_MAX_CHANNELS; i++)
+      {
+      if(!v->meters[i].pixmap)
+        break;
+      g_object_unref(v->meters[i].pixmap);
+      v->meters[i].pixmap = (GdkPixmap*)0;
+      }
+    v->pixmaps_valid = 0;
+    }
+  else
+    {
+    v->redraw_pixbufs = 1;
+    v->pixmaps_valid = 0;
+    }
   }
 
 bg_gtk_vumeter_t *
-bg_gtk_vumeter_create(int max_num_channels, int vertical)
+bg_gtk_vumeter_create(int num_channels, int vertical)
   {
-  int index, i;
+  int i;
   
   bg_gtk_vumeter_t * ret = calloc(1, sizeof(*ret));
-  ret->max_channels = max_num_channels;
+  ret->num_channels = num_channels;
 
   ret->layout = gtk_layout_new(NULL, NULL);
   
@@ -358,29 +798,25 @@ bg_gtk_vumeter_create(int max_num_channels, int vertical)
   /* Create labels */
   for(i = 0; i < NUM_TICS; i++)
     {
-    ret->labels[i].l = gtk_label_new(scale_tics[i].label);
+    if(vertical) /* Swap y */
+      ret->labels[i].l = gtk_label_new(scale_tics[NUM_TICS - 1 - i].label);
+    else
+      ret->labels[i].l = gtk_label_new(scale_tics[i].label);
+    
     
     g_signal_connect(G_OBJECT(ret->labels[i].l),
                      "size-request", G_CALLBACK(label_size_request_callback),
                      (gpointer)ret);
     gtk_widget_show(ret->labels[i].l);
 
-    gtk_layout_put(GTK_LAYOUT(ret->layout), ret->labels[i].l, 100, 100);
+    gtk_layout_put(GTK_LAYOUT(ret->layout), ret->labels[i].l, 0, 0);
     }
   
-  index = 0;
-  
-  while(parameters[index].name)
-    {
-    if(parameters[index].type != BG_PARAMETER_SECTION)
-      bg_gtk_vumeter_set_parameter(ret, parameters[index].name,
-                                   &(parameters[index].val_default));
-    index++;
-    }
-
   gtk_widget_show(ret->layout);
   
   ret->pd = gavl_peak_detector_create();
+  
+  ret->max_peak_age = 44100;
   
   pthread_mutex_init(&(ret->analysis_mutex), (pthread_mutexattr_t*)0);
   return ret;
@@ -402,7 +838,46 @@ void bg_gtk_vumeter_set_format(bg_gtk_vumeter_t * m,
 void bg_gtk_vumeter_update(bg_gtk_vumeter_t * m,
                            gavl_audio_frame_t * frame)
   {
+  int i;
+  double ampl[GAVL_MAX_CHANNELS];
+  gavl_peak_detector_reset(m->pd);
+  gavl_peak_detector_update(m->pd, frame);
+  gavl_peak_detector_get_peaks(m->pd, (double*)0, (double*)0, ampl);
   
+  for(i = 0; i < m->num_channels; i++)
+    {
+    if(m->meters[i].level < ampl[i])
+      {
+      m->meters[i].level = ampl[i];
+      if(m->meters[i].peak < ampl[i])
+        {
+        m->meters[i].peak = ampl[i];
+        m->meters[i].peak_age = 0;
+        }
+      else if(m->meters[i].peak_age > m->max_peak_age)
+        {
+        m->meters[i].peak = ampl[i];
+        m->meters[i].peak_age = 0;
+        }
+      else
+        m->meters[i].peak_age += frame->valid_samples;
+      }
+    else /* Lowpass */
+      {
+      m->meters[i].level = 0.90 * m->meters[i].level + 0.10 * ampl[i];
+
+      if(m->meters[i].peak_age > m->max_peak_age)
+        {
+        m->meters[i].peak = m->meters[i].level;
+        m->meters[i].peak_age = 0;
+        }
+      else
+        m->meters[i].peak_age += frame->valid_samples;
+      }
+    }
+  
+  m->pixmaps_valid = 0;
+  draw_dynamic(m);
   }
 
 void bg_gtk_vumeter_draw(bg_gtk_vumeter_t * m)

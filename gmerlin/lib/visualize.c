@@ -350,17 +350,22 @@ int bg_visualizer_start(bg_visualizer_t * v)
     
   if(v->vis_info->flags & BG_PLUGIN_VISUALIZE_FRAME)
     {
-    command = bg_sprintf("gmerlin_visualizer_slave  -w %s -o %s -p %s",
+    command = bg_sprintf("gmerlin_visualizer_slave  -w %s -o %s -p ",
                          v->display_string,
-                         v->ov_info->module_filename,
-                         v->vis_info->module_filename);
+                         v->ov_info->module_filename);
     }
   else
     {
-    command = bg_sprintf("gmerlin_visualizer_slave -w %s -p %s",
-                         v->display_string,
-                         v->vis_info->module_filename);
+    command = bg_sprintf("gmerlin_visualizer_slave -w %s -p ",
+                         v->display_string);
     }
+#ifdef HAVE_LV
+  if(v->vis_info->api == BG_PLUGIN_API_LV)
+    command = bg_strcat(command, v->vis_info->name);
+  else
+#endif  
+    command = bg_strcat(command, v->vis_info->module_filename);
+  
   v->proc = bg_subprocess_create(command, 1, 1, 0);
   if(!v->proc)
     return 0;

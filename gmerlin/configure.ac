@@ -148,7 +148,10 @@ fi
 
 if test x$have_x = xtrue; then
   X_LIBS="$X_LIBS -lXext"
+else
+  AC_MSG_ERROR([Gmerlin needs X11 headers])
 fi
+
 
 AC_SUBST(X_CFLAGS)
 AC_SUBST(X_LIBS)
@@ -159,6 +162,10 @@ dnl OpenGL
 dnl
 
 GMERLIN_CHECK_OPENGL
+
+if test "x$have_GL" != "xtrue" -o "x$have_GLX" != "xtrue"; then
+  AC_MSG_ERROR([Gmerlin needs OpenGL and GLX])
+fi
 
 dnl
 dnl Xinerama
@@ -311,6 +318,42 @@ dnl AC_PATH_LQT($LQT_REQUIRED,  have_lqt=true, have_lqt=false)
 
 AM_CONDITIONAL(HAVE_LQT, test x$have_lqt = xtrue)
 AC_SUBST(LQT_REQUIRED)
+
+dnl
+dnl Libvisual
+dnl
+
+AH_TEMPLATE([HAVE_LV],
+            [Do we have libvisual installed?])
+AH_TEMPLATE([LV_PLUGIN_DIR],
+            [libvisual plugin directory])
+
+LV_REQUIRED="0.4.0"
+have_LV=false
+AC_ARG_ENABLE(libvisual,
+              AC_HELP_STRING(--disable-libvisual, [Disable Libvisual support (default: autodetect)]),
+              [case "${enableval}" in
+                 yes) test_lv=true ;;
+                 no) test_lv=false ;;
+               esac],
+	       test_lv=true)
+
+if test x$test_lv = "xtrue"; then
+PKG_CHECK_MODULES(LV, libvisual-0.4 >= $LV_REQUIRED, have_lv=true, have_lv=false)
+fi
+
+if test x$have_lv = "xtrue"; then
+AC_DEFINE(HAVE_LV)
+
+lv_plugin_dir=`pkg-config --variable=pluginsbasedir libvisual-0.4`
+lv_plugin_dir="$lv_plugin_dir/actor"
+
+AC_DEFINE_UNQUOTED(LV_PLUGIN_DIR, ["$lv_plugin_dir"], [libvisual plugin directory])
+fi
+
+
+AM_CONDITIONAL(HAVE_LV, test x$have_lv = xtrue)
+AC_SUBST(LV_REQUIRED)
 
 dnl
 dnl CDrom support
@@ -796,6 +839,17 @@ echo "Yes (CFLAGS=$LQT_CFLAGS LIBS=$LQT_LIBS)"
 else
 if test "x$test_lqt" = "xtrue"; then
 echo "Missing (Go to http://libquicktime.sourceforge.net/)"
+else
+echo "Disabled"
+fi
+fi
+
+echo -n "Libvisual:           "
+if test "x$have_lqt" = "xtrue"; then
+echo "Yes (CFLAGS=$LV_CFLAGS LIBS=$LV_LIBS)"
+else
+if test "x$test_lv" = "xtrue"; then
+echo "Missing (Go to http://libvisual.sourceforge.net/)"
 else
 echo "Disabled"
 fi

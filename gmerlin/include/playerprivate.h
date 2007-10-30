@@ -87,9 +87,9 @@ typedef struct
 typedef struct
   {
   bg_fifo_t * fifo;
-
+  
   bg_video_filter_chain_t * fc;
-    
+  
   bg_read_video_func_t in_func;
   void * in_data;
   int    in_stream;
@@ -97,7 +97,7 @@ typedef struct
   pthread_mutex_t config_mutex;
 
   bg_gavl_video_options_t options;
-
+  
   float still_framerate;
   int64_t still_pts;
   int still_pts_inc;
@@ -107,23 +107,26 @@ typedef struct
 
   /* If the playback was interrupted due to changed parameters */
   int interrupted;
-
+  
   } bg_player_video_stream_t;
 
 typedef struct
   {
   bg_text_renderer_t * renderer;
   gavl_video_converter_t * cnv;
+  int do_convert;
   
   bg_fifo_t * fifo;
 
   pthread_mutex_t config_mutex;
-
-  gavl_video_format_t format;
+  
+  gavl_video_format_t input_format;
+  gavl_video_format_t output_format;
   
   char * buffer;
   int buffer_alloc;
   
+  gavl_overlay_t in_ovl;
   } bg_player_subtitle_stream_t;
 
 typedef struct
@@ -362,7 +365,7 @@ void * bg_player_ov_create_frame(void * data);
 void bg_player_ov_destroy_frame(void * data, void * frame);
 
 /* Set this extra because we must initialize subtitles after the video output */
-void bg_player_ov_set_subtitle_format(void * data, const gavl_video_format_t * format);
+void bg_player_ov_set_subtitle_format(void * data);
 
 void bg_player_ov_set_plugin(bg_player_t * player,
                              bg_plugin_handle_t * handle);
@@ -432,6 +435,9 @@ void bg_player_subtitle_cleanup(bg_player_t * p);
 
 void bg_player_subtitle_create(bg_player_t * p);
 void bg_player_subtitle_destroy(bg_player_t * p);
+
+void bg_player_subtitle_init_converter(bg_player_t * player);
+
 
 void bg_player_accel_pressed(bg_player_t * player, int id);
 

@@ -3184,7 +3184,7 @@ static int init_converters(bg_transcoder_t * ret)
 static void init_normalize(bg_transcoder_t * ret)
   {
   int i;
-  double min, max, absolute;
+  double absolute;
   double volume_dB = 0.0;
   for(i = 0; i < ret->num_audio_streams; i++)
     {
@@ -3202,9 +3202,7 @@ static void init_normalize(bg_transcoder_t * ret)
                                      &ret->audio_streams[i].pipe_format);
       /* Set the volume */
       gavl_peak_detector_get_peak(ret->audio_streams[i].peak_detector,
-                                  &min, &max);
-      absolute = max > -min ? max : -min;
-
+                                  (double*)0, (double*)0, &absolute);
       if(absolute == 0.0)
         {
         gavl_volume_control_set_volume(ret->audio_streams[i].volume_control, volume_dB);

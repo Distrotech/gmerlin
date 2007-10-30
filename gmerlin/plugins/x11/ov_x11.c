@@ -81,13 +81,6 @@ typedef struct
   int do_still;
   gavl_video_frame_t * still_frame;
   
-  /* Overlay support */
-  int num_overlay_streams;
-  struct
-    {
-    gavl_overlay_blend_context_t * ctx;
-    gavl_overlay_t * ovl;
-    } * overlay_streams;
 
   /* Accelerator map */
 
@@ -584,40 +577,19 @@ static void destroy_frame_x11(void * data, gavl_video_frame_t * frame)
 
 
 static int
-add_overlay_stream_x11(void * data, const gavl_video_format_t * format)
+add_overlay_stream_x11(void * data, gavl_video_format_t * format)
   {
   x11_t * priv = (x11_t*)data;
   /* Realloc */
-  priv->overlay_streams =
-    realloc(priv->overlay_streams,
-            (priv->num_overlay_streams+1) * sizeof(*(priv->overlay_streams)));
-  memset(&priv->overlay_streams[priv->num_overlay_streams], 0,
-         sizeof(priv->overlay_streams[priv->num_overlay_streams]));
-
-  /* Initialize */
-
-  priv->overlay_streams[priv->num_overlay_streams].ctx = gavl_overlay_blend_context_create();
-
-  gavl_overlay_blend_context_init(priv->overlay_streams[priv->num_overlay_streams].ctx,
-                                  &(priv->video_format), format);
-  priv->num_overlay_streams++;
-  return priv->num_overlay_streams - 1;
-
+  return bg_x11_window_add_overlay_stream(priv->win, format);
   }
 
 static void set_overlay_x11(void * data, int stream, gavl_overlay_t * ovl)
   {
   x11_t * priv = (x11_t*)data;
-  priv->overlay_streams[stream].ovl = ovl;
-  gavl_overlay_blend_context_set_overlay(priv->overlay_streams[stream].ctx, ovl);
+  bg_x11_window_set_overlay(priv->win, stream, ovl);
   }
 
-static void blend_overlays(x11_t * priv, gavl_video_frame_t * frame)
-  {
-  int i;
-  for(i = 0; i < priv->num_overlay_streams; i++)
-    gavl_overlay_blend(priv->overlay_streams[i].ctx, frame);
-  }
 
 static void put_video_x11(void * data, gavl_video_frame_t * frame)
   {

@@ -272,7 +272,6 @@ static float * get_coeffs(float radius, int * r_i, int mode, float fade_factor)
 
 static int
 open_scope(void * priv, gavl_audio_format_t * audio_format,
-           bg_ov_plugin_t * ov_plugin, void * ov_priv,
            gavl_video_format_t * video_format)
   {
   scope_priv_t * vp;

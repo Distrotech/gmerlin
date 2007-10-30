@@ -456,19 +456,23 @@ void bg_player_ov_update_aspect(bg_player_ov_context_t * ctx,
   }
 
 /* Set this extra because we must initialize subtitles after the video output */
-void bg_player_ov_set_subtitle_format(void * data,
-                                      const gavl_video_format_t * format)
+void bg_player_ov_set_subtitle_format(void * data)
   {
   bg_player_ov_context_t * ctx;
   ctx = (bg_player_ov_context_t*)data;
   
+  gavl_video_format_copy(&ctx->player->subtitle_stream.output_format,
+                         &ctx->player->subtitle_stream.input_format);
+  
   /* Add subtitle stream for plugin */
   
-  ctx->subtitle_id = ctx->plugin->add_overlay_stream(ctx->priv, format);
-
+  ctx->subtitle_id =
+    ctx->plugin->add_overlay_stream(ctx->priv,
+                                    &ctx->player->subtitle_stream.output_format);
+  
   /* Allocate private overlay frame */
-  ctx->current_subtitle.frame = gavl_video_frame_create(format);
-
+  ctx->current_subtitle.frame =
+    gavl_video_frame_create(&ctx->player->subtitle_stream.output_format);
   }
 
 

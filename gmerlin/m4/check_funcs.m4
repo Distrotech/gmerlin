@@ -1347,7 +1347,7 @@ dnl OpenGL
 dnl
 AC_DEFUN([GMERLIN_CHECK_OPENGL],[
 AH_TEMPLATE([HAVE_GL],[OpenGL available])
-AH_TEMPLATE([HAVE_GLX],[OpenGL available])
+AH_TEMPLATE([HAVE_GLX],[GLX available])
 
 MDL_HAVE_OPENGL
 

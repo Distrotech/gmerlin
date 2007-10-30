@@ -91,7 +91,7 @@ int bg_x11_window_init_gl(bg_x11_window_t *);
  *   All opengl calls must be enclosed by x11_window_set_gl() and
  *   x11_window_unset_gl()
  */
-   
+
 void bg_x11_window_set_gl(bg_x11_window_t *);
 void bg_x11_window_unset_gl(bg_x11_window_t *);
 
@@ -105,6 +105,14 @@ void bg_x11_window_cleanup_gl(bg_x11_window_t *);
 /* For Video output */
 
 int bg_x11_window_open_video(bg_x11_window_t*, gavl_video_format_t * format);
+
+int bg_x11_window_add_overlay_stream(bg_x11_window_t*,
+                                     gavl_video_format_t * format);
+
+void bg_x11_window_set_overlay(bg_x11_window_t*, int stream, gavl_overlay_t * ovl);
+
+gavl_overlay_t * bg_x11_window_create_overlay(bg_x11_window_t*, int);
+void bg_x11_window_destroy_overlay(bg_x11_window_t*, int, gavl_overlay_t *);
 
 gavl_video_frame_t * bg_x11_window_create_frame(bg_x11_window_t*);
 void bg_x11_window_destroy_frame(bg_x11_window_t*, gavl_video_frame_t *);

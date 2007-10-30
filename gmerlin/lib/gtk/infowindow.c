@@ -68,11 +68,12 @@ enum
 #define PATH_VIDEO_FORMAT_I  12
 #define PATH_VIDEO_FORMAT_O  13
 
-#define PATH_SUBTITLE        14
-#define PATH_SUBTITLE_DESC   15
-#define PATH_SUBTITLE_FORMAT 16
+#define PATH_SUBTITLE          14
+#define PATH_SUBTITLE_DESC     15
+#define PATH_SUBTITLE_FORMAT_I 16
+#define PATH_SUBTITLE_FORMAT_O 17
 
-#define PATH_NUM             17
+#define PATH_NUM             18
 
 /* Delay between update calls in Milliseconds */
 
@@ -547,7 +548,10 @@ static gboolean idle_callback(gpointer data)
         free(tmp_string);
         
         bg_msg_get_arg_video_format(msg, 2, &arg_vf);
-        set_video_format(w, PATH_SUBTITLE_FORMAT, &arg_vf);
+        set_video_format(w, PATH_SUBTITLE_FORMAT_I, &arg_vf);
+
+        bg_msg_get_arg_video_format(msg, 3, &arg_vf);
+        set_video_format(w, PATH_SUBTITLE_FORMAT_O, &arg_vf);
         
         break;
       case BG_PLAYER_MSG_VIDEO_STREAM:
@@ -688,11 +692,16 @@ static void reset_tree(bg_gtk_info_window_t * w)
   gtk_tree_model_get_iter(model, &iter, w->paths[PATH_SUBTITLE_DESC]);
   set_line(w, &iter, TR("Stream type"), 0);
   
-  /* Subtitle -> format */
-  gtk_tree_model_get_iter(model, &iter, w->paths[PATH_SUBTITLE_FORMAT]);
-  set_line(w, &iter, TR("Format"), 0);
+  /* Subtitle -> format_i */
+  gtk_tree_model_get_iter(model, &iter, w->paths[PATH_SUBTITLE_FORMAT_I]);
+  set_line(w, &iter, TR("Input format"), 0);
   remove_children(w, &iter);
 
+  /* Subtitle -> format_o */
+  gtk_tree_model_get_iter(model, &iter, w->paths[PATH_SUBTITLE_FORMAT_O]);
+  set_line(w, &iter, TR("Output format"), 0);
+  remove_children(w, &iter);
+  
   g_signal_handler_unblock(w->treeview, w->collapse_id);
 
   }
@@ -774,9 +783,14 @@ static void init_tree(bg_gtk_info_window_t * w)
   gtk_tree_store_append(GTK_TREE_STORE(model), &child, &iter);
   w->paths[PATH_SUBTITLE_DESC] = gtk_tree_model_get_path(model, &child);
   
-  /* Subtitle -> format */
+  /* Subtitle -> format_i */
   gtk_tree_store_append(GTK_TREE_STORE(model), &child, &iter);
-  w->paths[PATH_SUBTITLE_FORMAT] = gtk_tree_model_get_path(model, &child);
+  w->paths[PATH_SUBTITLE_FORMAT_I] = gtk_tree_model_get_path(model, &child);
+
+  /* Subtitle -> format_o */
+  gtk_tree_store_append(GTK_TREE_STORE(model), &child, &iter);
+  w->paths[PATH_SUBTITLE_FORMAT_O] = gtk_tree_model_get_path(model, &child);
+
   reset_tree(w);
   }
 

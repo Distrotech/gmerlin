@@ -42,20 +42,25 @@ extern video_driver_t ximage_driver;
 extern video_driver_t xv_driver;
 #endif
 
-#define MAX_DRIVERS 2
+extern video_driver_t gl_driver;
+
+#define MAX_DRIVERS 3
 
 struct video_driver_s
   {
   int can_scale;
-  
   int (*init)(driver_data_t* data);
-  
   int (*open)(driver_data_t* data);
   
+  int (*add_overlay_stream)(driver_data_t* data);
+  void (*set_overlay)(driver_data_t* data, int stream, gavl_overlay_t * ovl);
+  
+  gavl_video_frame_t * (*create_overlay)(driver_data_t* data, int stream);
+  void (*destroy_overlay)(driver_data_t* data, int stream, gavl_video_frame_t*);
+  
   gavl_video_frame_t * (*create_frame)(driver_data_t* data);
-
-  void (*destroy_frame)(driver_data_t* data,
-                        gavl_video_frame_t *);
+  
+  void (*destroy_frame)(driver_data_t* data, gavl_video_frame_t *);
   
   void (*put_frame)(driver_data_t* data,
                     gavl_video_frame_t * frame);
@@ -213,6 +218,19 @@ struct bg_x11_window_s
   /* For asynchronous focus grabbing */
   int need_focus;
   Time focus_time;
+
+  int force_hw_scale;
+  
+  /* Overlay stuff */
+  int num_overlay_streams;
+  struct
+    {
+    gavl_overlay_blend_context_t * ctx;
+    gavl_overlay_t * ovl;
+    unsigned long texture; /* For OpenGL only */
+    gavl_video_format_t format;
+    } * overlay_streams;
+  
   } x11_window_t;
 
 /* Private functions */

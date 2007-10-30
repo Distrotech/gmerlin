@@ -12,9 +12,21 @@ else
 gtk_subdirs =
 endif
 
+if HAVE_LV
+lv_sources = bglv.c
+lv_cflags  = @LV_CFLAGS@
+lv_libs  = @LV_LIBS@
+else
+lv_sources =
+lv_cflags  =
+lv_libs  =
+endif
+
 SUBDIRS = $(gtk_subdirs) $(x11_subdirs)
 
-AM_CFLAGS = @FONTCONFIG_CFLAGS@ @FREETYPE_CFLAGS@ -DLOCALE_DIR=\"$(localedir)\"
+AM_CFLAGS = @FONTCONFIG_CFLAGS@ @FREETYPE_CFLAGS@ -DLOCALE_DIR=\"$(localedir)\" $(lv_cflags)
+
+libgmerlin_la_LIBADD = $(x11_libadd) @FONTCONFIG_LIBS@ @FREETYPE_LIBS@ @XML2_LIBS@ @ICONV_LIBS@ @LIBINTL@ $(lv_libs) -ldl -lpthread
 
 bin_PROGRAMS = gmerlin_visualizer_slave
 
@@ -23,6 +35,7 @@ gmerlin_visualizer_slave_LDADD = libgmerlin.la
 
 lib_LTLIBRARIES = libgmerlin.la
 libgmerlin_la_SOURCES = \
+$(lv_sources) \
 accelerator.c \
 album.c \
 album_xml.c \
@@ -81,6 +94,4 @@ tree_xml.c \
 urilist.c \
 utf8.c \
 visualize.c
-
-libgmerlin_la_LIBADD = $(x11_libadd) @FONTCONFIG_LIBS@ @FREETYPE_LIBS@ @XML2_LIBS@ @ICONV_LIBS@ @LIBINTL@ -ldl -lpthread
 

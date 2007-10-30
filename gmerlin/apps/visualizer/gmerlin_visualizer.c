@@ -58,7 +58,7 @@ typedef struct
 
   plugin_window_t plugin_window;
   
-  //  bg_gtk_vumeter_t * vumeter;
+  bg_gtk_vumeter_t * vumeter;
   
   /* Core stuff */
   
@@ -111,6 +111,12 @@ static char * get_display_string(visualizer_t * v)
   return ret;
   }
 
+static void hide_toolbar(visualizer_t * v)
+  {
+  gtk_widget_hide(v->toolbar);
+  v->toolbar_visible = 0;
+  }
+
 static gboolean toolbar_timeout(void * data)
   {
   visualizer_t * v;
@@ -127,8 +133,7 @@ static gboolean toolbar_timeout(void * data)
   
   if(!v->mouse_in_toolbar)
     {
-    gtk_widget_hide(v->toolbar);
-    v->toolbar_visible = 0;
+    hide_toolbar(v);
     }
   return TRUE;
   }
@@ -206,7 +211,7 @@ static void toggle_fullscreen(visualizer_t * v)
     
     v->current_window = &v->normal_window;
     }
-  show_toolbar(v);
+  hide_toolbar(v);
   v->mouse_in_toolbar = 0;
   }
 
@@ -237,7 +242,7 @@ static void open_audio(visualizer_t * v)
   v->ra_handle = bg_plugin_load(v->plugin_reg,
                                 v->ra_info);
   v->ra_plugin = (bg_ra_plugin_t*)(v->ra_handle->plugin);
-
+  
   /* The soundcard might be busy from last time,
      give the kernel some time to free the device */
   
@@ -262,7 +267,10 @@ static void open_audio(visualizer_t * v)
     v->audio_open = 1;
   
   if(v->audio_open)
+    {
     v->audio_frame = gavl_audio_frame_create(&v->audio_format);
+    bg_gtk_vumeter_set_format(v->vumeter, &v->audio_format);
+    }
   }
 
 static void open_vis(visualizer_t * v)
@@ -306,6 +314,7 @@ static void button_callback(GtkWidget * w, gpointer data)
       {
       close_vis(win);
       open_vis(win);
+      hide_toolbar(win);
       }
     }
   }
@@ -356,7 +365,6 @@ static void set_ra_plugin(const bg_plugin_info_t * plugin,
                           void * data)
   {
   visualizer_t * v = (visualizer_t*)data;
-  //  bg_visualizer_set_vis_plugin(v->visualizer, plugin);
   bg_plugin_registry_set_default(v->plugin_reg, BG_PLUGIN_RECORDER_AUDIO,
                                  plugin->name);
   
@@ -471,8 +479,8 @@ static void window_init(visualizer_t * v,
                         window_t * w, int fullscreen)
   {
   GtkWidget * table;
-  w->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-
+  w->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  gtk_window_set_title(GTK_WINDOW(w->window), "Gmerlin visualizer");
   w->socket = gtk_socket_new();
   w->box = gtk_vbox_new(0, 0);
   gtk_widget_show(w->box);
@@ -623,6 +631,11 @@ static gboolean idle_func(void * data)
     v->ra_plugin->read_frame(v->ra_handle->priv,
                              v->audio_frame, v->audio_format.samples_per_frame);
     bg_visualizer_update(v->visualizer, v->audio_frame);
+    
+    if(v->toolbar_visible)
+      bg_gtk_vumeter_update(v->vumeter, v->audio_frame);
+    
+    bg_visualizer_update(v->visualizer, v->audio_frame);
     }
   return TRUE;
   }
@@ -653,6 +666,7 @@ static void set_vis_plugin(const bg_plugin_info_t * plugin,
     close_vis(v);
     open_vis(v);
     }
+  hide_toolbar(v);
   }
 
 static void set_vis_parameter(void * data, const char * name,
@@ -699,8 +713,6 @@ static visualizer_t * visualizer_create()
   gtk_misc_set_alignment(GTK_MISC(ret->fps), 0.0, 0.5);
   gtk_widget_show(ret->fps);
   
-  //  ret->vumeter = bg_gtk_vumeter_create(2);
-
   gtk_widget_hide(ret->nofullscreen_button);
   
   //  gtk_box_pack_start_defaults(GTK_BOX(mainbox),
@@ -721,8 +733,7 @@ static visualizer_t * visualizer_create()
   g_object_ref(ret->toolbar); /* Must be done for widgets, which get
                                  reparented after */
   
-  //  ret->vumeter = bg_gtk_vumeter_create(2);
-  
+  ret->vumeter = bg_gtk_vumeter_create(2, 0);
   
   /* Create actual objects */
 
@@ -740,7 +751,7 @@ static visualizer_t * visualizer_create()
   /* Create vis plugin widget */
 
   ret->vis_plugins =
-    bg_gtk_plugin_widget_single_create(TR("Visualization plugin"),
+    bg_gtk_plugin_widget_single_create(TR("Visualization"),
                                        ret->plugin_reg,
                                        BG_PLUGIN_VISUALIZATION,
                                        BG_PLUGIN_VISUALIZE_FRAME |
@@ -822,6 +833,12 @@ static visualizer_t * visualizer_create()
   
   gtk_table_attach(GTK_TABLE(main_table), box, 0, 1, 1, 2,
                    GTK_FILL, GTK_SHRINK, 0, 0);
+
+  gtk_table_attach(GTK_TABLE(main_table),
+                   bg_gtk_vumeter_get_widget(ret->vumeter),
+                   1, 2, 0, 2,
+                   GTK_FILL | GTK_EXPAND, GTK_FILL, 0, 0);
+
   
   gtk_widget_show(main_table);
   

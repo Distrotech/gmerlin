@@ -1018,7 +1018,7 @@ typedef struct bg_ov_plugin_s
    *  is one for subtitles and one for OSD.
    */
   
-  int (*add_overlay_stream)(void * priv, const gavl_video_format_t * format);
+  int (*add_overlay_stream)(void * priv, gavl_video_format_t * format);
 
   /** \brief Set an overlay for a specific stream
    *  \param priv The handle returned by the create() method
@@ -1870,7 +1870,6 @@ typedef struct bg_visualization_plugin_s
   bg_plugin_common_t common; //!< Infos and functions common to all plugin types
   
   int (*open_ov)(void * priv, gavl_audio_format_t * audio_format,
-                 bg_ov_plugin_t * ov_plugin, void * ov_priv,
                  gavl_video_format_t * video_format);
 
   int (*open_win)(void * priv, gavl_audio_format_t * audio_format,

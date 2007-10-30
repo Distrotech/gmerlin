@@ -17,6 +17,10 @@
 
 #define LOG_DOMAIN "visualizer_slave"
 
+#ifdef HAVE_LV
+#include <bglv.h>
+#endif
+
 /* Messages from the application to the visualizer */
 
 typedef struct
@@ -127,7 +131,6 @@ static void audio_buffer_init(audio_buffer_t * b,
 static void audio_buffer_put(audio_buffer_t * b,
                              const gavl_audio_frame_t * f)
   {
-  //  fprintf(stderr, "audio buffer_put...");
   pthread_mutex_lock(&b->in_mutex);
   b->in_frame_1->valid_samples =
     gavl_audio_frame_copy(&b->in_format,
@@ -138,7 +141,6 @@ static void audio_buffer_put(audio_buffer_t * b,
                           b->in_format.samples_per_frame, /* dst_size */
                           f->valid_samples /* src_size */ ); 
   pthread_mutex_unlock(&b->in_mutex);
-  //  fprintf(stderr, "audio buffer_put done\n");
   }
 
 static void audio_buffer_set_gain(audio_buffer_t * b, float gain)
@@ -170,7 +172,6 @@ static gavl_audio_frame_t * audio_buffer_get(audio_buffer_t * b)
                               0, /* src_pos */
                               b->in_format.samples_per_frame, /* dst_size */
                               b->in_frame_1->valid_samples    /* src_size */ ); 
-    
     b->in_frame_2->valid_samples = samples_copied;
     b->last_samples_read         = samples_copied;
     b->in_frame_1->valid_samples = 0;
@@ -212,6 +213,9 @@ static gavl_audio_frame_t * audio_buffer_get(audio_buffer_t * b)
 
 typedef struct
   {
+  bg_plugin_handle_t * vis_handle;
+  bg_plugin_handle_t * ov_handle;
+  
   audio_buffer_t * audio_buffer;
   
   gavl_video_converter_t * video_cnv;
@@ -219,11 +223,9 @@ typedef struct
   int do_convert_video;
     
   bg_ov_plugin_t * ov_plugin;
+
   bg_visualization_plugin_t * vis_plugin;
 
-  void * ov_priv;
-  void * vis_priv;
-  
   gavl_video_format_t video_format_in;
   gavl_video_format_t video_format_in_real;
   gavl_video_format_t video_format_out;
@@ -247,12 +249,8 @@ typedef struct
   gavl_audio_format_t audio_format_in;
   gavl_audio_format_t audio_format_out;
   
-
   int do_ov;
-
-  void * ov_module;
-  void * vis_module;
-
+  
   char * window_id;
   
   gavl_audio_frame_t * read_frame;
@@ -263,21 +261,22 @@ typedef struct
 
 static void init_plugin(bg_visualizer_slave_t * v);
 
-static bg_plugin_common_t *
-load_plugin(const char * filename, void ** handle, void ** priv)
+static bg_plugin_handle_t *
+load_plugin_gmerlin(const char * filename)
   {
   int (*get_plugin_api_version)();
-  bg_plugin_common_t * ret;
+  bg_plugin_handle_t * ret;
+  ret = calloc(1, sizeof(*ret));
   
-  *handle = dlopen(filename, RTLD_NOW | RTLD_GLOBAL);
-  if(!(*handle))
+  ret->dll_handle = dlopen(filename, RTLD_NOW | RTLD_GLOBAL);
+  if(!(ret->dll_handle))
     {
     fprintf(stderr, "Cannot dlopen plugin module %s: %s", filename,
            dlerror());
     goto fail;
     }
   
-  get_plugin_api_version = dlsym(*handle, "get_plugin_api_version");
+  get_plugin_api_version = dlsym(ret->dll_handle, "get_plugin_api_version");
   if(!get_plugin_api_version)
     {
     fprintf(stderr, 
@@ -290,19 +289,34 @@ load_plugin(const char * filename, void ** handle, void ** priv)
             "Wrong API version: %s", dlerror());
     goto fail;
     }
-  ret = dlsym(*handle, "the_plugin");
+  ret->plugin = dlsym(ret->dll_handle, "the_plugin");
   if(!ret)
     {
     fprintf(stderr, 
             "No symbol the_plugin: %s", dlerror());
     goto fail;
     }
-  *priv = ret->create();
+  ret->priv = ret->plugin->create();
   return ret;
   fail:
-  return (bg_plugin_common_t *)0;
+  return (bg_plugin_handle_t *)0;
   }
-                                
+
+#ifdef HAVE_LV
+static bg_plugin_handle_t *
+load_plugin_lv(const char * name, int plugin_flags)
+  {
+  bg_plugin_handle_t * ret;
+  ret = calloc(1, sizeof(*ret));
+  if(!bg_lv_load(ret, name, plugin_flags))
+    {
+    free(ret);
+    return (bg_plugin_handle_t*)0;
+    }
+  return ret;
+  }
+#endif
+
 
 static bg_visualizer_slave_t *
 bg_visualizer_slave_create(int argc, char ** argv)
@@ -364,20 +378,31 @@ bg_visualizer_slave_create(int argc, char ** argv)
     ret->do_ov = 1;
     ret->video_cnv = gavl_video_converter_create();
     
-    ret->ov_plugin =
-      (bg_ov_plugin_t*)load_plugin(ov_module, &ret->ov_module,
-                                   &ret->ov_priv);
-    if(!ret->ov_plugin)
+    ret->ov_handle = load_plugin_gmerlin(ov_module);
+    if(!ret->ov_handle)
       return (bg_visualizer_slave_t*)0;
-    ret->ov_plugin->set_window(ret->ov_priv, ret->window_id);
+    
+    ret->ov_plugin = (bg_ov_plugin_t*)ret->ov_handle->plugin;
+    ret->ov_plugin->set_window(ret->ov_handle->priv, ret->window_id);
     }
 
-  ret->vis_plugin =
-    (bg_visualization_plugin_t*)load_plugin(plugin_module, &ret->vis_module,
-                                 &ret->vis_priv);
-  if(!ret->vis_plugin)
+#ifdef HAVE_LV
+  if(!strncmp(plugin_module, "vis_lv_", 7))
+    {
+    if(ret->ov_handle)
+      ret->vis_handle = load_plugin_lv(plugin_module, BG_PLUGIN_VISUALIZE_FRAME);
+    else
+      ret->vis_handle = load_plugin_lv(plugin_module, BG_PLUGIN_VISUALIZE_GL);
+    }
+  else
+#endif
+    ret->vis_handle =
+      load_plugin_gmerlin(plugin_module);
+
+  if(!ret->vis_handle)
     return (bg_visualizer_slave_t*)0;
   
+  ret->vis_plugin = (bg_visualization_plugin_t*)(ret->vis_handle->plugin);
   
   return ret;
   }
@@ -404,7 +429,7 @@ static void bg_visualizer_slave_destroy(bg_visualizer_slave_t * v)
     if(v->video_frame_out)
       {
       if(v->ov_plugin->destroy_frame)
-        v->ov_plugin->destroy_frame(v->ov_priv,
+        v->ov_plugin->destroy_frame(v->ov_handle->priv,
                                  v->video_frame_out);
       else
         gavl_video_frame_destroy(v->video_frame_out);
@@ -415,10 +440,10 @@ static void bg_visualizer_slave_destroy(bg_visualizer_slave_t * v)
       gavl_video_frame_destroy(v->video_frame_in);
       v->video_frame_in = (gavl_video_frame_t*)0;
       }
-    v->ov_plugin->close(v->ov_priv);
+    v->ov_plugin->close(v->ov_handle->priv);
     }
   /* Close vis plugin */
-  v->vis_plugin->close(v->vis_priv);
+  v->vis_plugin->close(v->vis_handle->priv);
 
   
   free(v);
@@ -452,20 +477,20 @@ static void * video_thread_func(void * data)
 
     audio_frame = audio_buffer_get(v->audio_buffer);
     if(audio_frame)
-      v->vis_plugin->update(v->vis_priv, audio_frame);
+      v->vis_plugin->update(v->vis_handle->priv, audio_frame);
     
     /* Draw frame */
     
     if(!(v->do_ov))
-      v->vis_plugin->draw_frame(v->vis_priv,
+      v->vis_plugin->draw_frame(v->vis_handle->priv,
                                 (gavl_video_frame_t*)0);
     else if(v->do_convert_video)
       {
-      v->vis_plugin->draw_frame(v->vis_priv, v->video_frame_in);
+      v->vis_plugin->draw_frame(v->vis_handle->priv, v->video_frame_in);
       gavl_video_convert(v->video_cnv, v->video_frame_in, v->video_frame_out);
       }
     else
-      v->vis_plugin->draw_frame(v->vis_priv, v->video_frame_out);
+      v->vis_plugin->draw_frame(v->vis_handle->priv, v->video_frame_out);
     
     pthread_mutex_unlock(&v->vis_mutex);
     
@@ -483,16 +508,16 @@ static void * video_thread_func(void * data)
     if(v->do_ov)
       {
       pthread_mutex_lock(&v->ov_mutex);
-      v->ov_plugin->put_video(v->ov_priv, v->video_frame_out);
+      v->ov_plugin->put_video(v->ov_handle->priv, v->video_frame_out);
       frame_time = gavl_timer_get(v->timer);
       
-      v->ov_plugin->handle_events(v->ov_priv);
+      v->ov_plugin->handle_events(v->ov_handle->priv);
       pthread_mutex_unlock(&v->ov_mutex);
       }
     else
       {
       pthread_mutex_lock(&v->vis_mutex);
-      v->vis_plugin->show_frame(v->vis_priv);
+      v->vis_plugin->show_frame(v->vis_handle->priv);
       frame_time = gavl_timer_get(v->timer);
       pthread_mutex_unlock(&v->vis_mutex);
       }
@@ -596,24 +621,22 @@ static void init_plugin(bg_visualizer_slave_t * v)
   
   if(v->do_ov)
     {
-    v->vis_plugin->open_ov(v->vis_priv, &v->audio_format_out,
-                           v->ov_plugin,
-                           v->ov_priv,
+    v->vis_plugin->open_ov(v->vis_handle->priv, &v->audio_format_out,
                            &v->video_format_in_real);
     
     gavl_video_format_copy(&v->video_format_out, &v->video_format_in_real);
     
     /* Open OV Plugin */
-    v->ov_plugin->open(v->ov_priv, &v->video_format_out);
+    v->ov_plugin->open(v->ov_handle->priv, &v->video_format_out);
     
     /* Initialize video converter */
     
     v->do_convert_video =
       gavl_video_converter_init(v->video_cnv, &v->video_format_in_real,
                                 &v->video_format_out);
-
+    
     if(v->ov_plugin->create_frame)
-      v->video_frame_out = v->ov_plugin->create_frame(v->ov_priv);
+      v->video_frame_out = v->ov_plugin->create_frame(v->ov_handle->priv);
     else
       v->video_frame_out = gavl_video_frame_create(&v->video_format_out);
     
@@ -622,7 +645,7 @@ static void init_plugin(bg_visualizer_slave_t * v)
     }
   else
     {
-    v->vis_plugin->open_win(v->vis_priv, &v->audio_format_out,
+    v->vis_plugin->open_win(v->vis_handle->priv, &v->audio_format_out,
                             v->window_id);
     
     gavl_video_format_copy(&v->video_format_out, &v->video_format_in);
@@ -680,8 +703,6 @@ int main(int argc, char ** argv)
   log_queue = bg_msg_queue_create();
   bg_log_set_dest(log_queue);
     
-  fprintf(stderr, "slave started\n");
-        
   s = bg_visualizer_slave_create(argc, argv);
 
   msg = bg_msg_create();
@@ -719,7 +740,7 @@ int main(int argc, char ** argv)
                              &parameter_value);
        
         pthread_mutex_lock(&s->vis_mutex);
-        s->vis_plugin->common.set_parameter(s->vis_priv,
+        s->vis_plugin->common.set_parameter(s->vis_handle->priv,
                                             parameter_name,
                                             &parameter_value);
         pthread_mutex_unlock(&s->vis_mutex);
@@ -737,12 +758,10 @@ int main(int argc, char ** argv)
                              &parameter_name,
                              &parameter_type,
                              &parameter_value);
-        fprintf(stderr, "Got ov parameter %s\n", parameter_name);
-        
         pthread_mutex_lock(&s->ov_mutex);
 
 
-        s->ov_plugin->common.set_parameter(s->ov_priv,
+        s->ov_plugin->common.set_parameter(s->ov_handle->priv,
                                            parameter_name,
                                            &parameter_value);
         pthread_mutex_unlock(&s->ov_mutex);
@@ -756,16 +775,12 @@ int main(int argc, char ** argv)
         break;
       case BG_VIS_MSG_GAIN:
         arg_f = bg_msg_get_arg_float(msg, 0);
-        fprintf(stderr, "Got gain %f\n",arg_f);
         audio_buffer_set_gain(s->audio_buffer, arg_f);
         break;
       case BG_VIS_MSG_FPS:
         s->video_format_in.timescale = GAVL_TIME_SCALE;
         s->video_format_in.frame_duration =
           (int)(GAVL_TIME_SCALE / bg_msg_get_arg_float(msg, 0));
-        fprintf(stderr, "Got fps %d/%d\n",
-                s->video_format_in.timescale,
-                s->video_format_in.frame_duration);
         break;
       case BG_VIS_MSG_IMAGE_SIZE:
         s->video_format_in.image_width =
@@ -777,12 +792,8 @@ int main(int argc, char ** argv)
           s->video_format_in.image_width;
         s->video_format_in.frame_height =
           s->video_format_in.image_height;
-        fprintf(stderr, "Got image size %dx%d\n",
-                s->video_format_in.frame_width,
-                s->video_format_in.frame_height);
         break;
       case BG_VIS_MSG_START:
-        fprintf(stderr, "Starting thread\n");
         init_plugin(s);
         bg_visualizer_slave_start(s);
         break;

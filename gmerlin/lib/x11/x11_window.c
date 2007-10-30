@@ -37,6 +37,7 @@
 
 #include <x11/x11.h>
 #include <x11/x11_window_private.h>
+#include <GL/glx.h>
 
 
 #define _NET_WM_STATE_REMOVE        0    /* remove/unset property */
@@ -1244,6 +1245,13 @@ bg_parameter_info_t common_parameters[] =
       val_default: { val_i: 1 }
     },
     {
+      name:        "force_hw_scale",
+      long_name:   TRS("Force hardware scaling"),
+      type:        BG_PARAMETER_CHECKBUTTON,      val_default: { val_i: 1 },
+      help_string: TRS("Use hardware scaling even if it involves more CPU intensive pixelformat conversions"),
+
+    },
+    {
       name:        "sw_scaler",
       long_name:   TRS("Software scaler"),
       type:        BG_PARAMETER_SECTION,
@@ -1342,6 +1350,10 @@ bg_x11_window_set_parameter(void * data, const char * name,
     {
     win->disable_screensaver_fullscreen = val->val_i;
     }
+  else if(!strcmp(name, "force_hw_scale"))
+    {
+    win->force_hw_scale = val->val_i;
+    }
   else if(!strcmp(name, "scale_mode"))
     {
     if(!strcmp(val->val_str, "auto"))
@@ -1431,19 +1443,36 @@ void bg_x11_window_set_size(bg_x11_window_t * win, int width, int height)
 
 int bg_x11_window_create_window(bg_x11_window_t * win)
   {
-  int num;
-  XVisualInfo vi_template;
-
+  int ret;
+  //   int num;
+  //  XVisualInfo vi_template;
+  
+  /* Attributes we need for video playback */
+  int attr_list[] =
+    {
+      GLX_RGBA,
+      GLX_RED_SIZE, 8,
+      GLX_GREEN_SIZE, 8,
+      GLX_BLUE_SIZE, 8,
+      GLX_DEPTH_SIZE, 8,
+      GLX_DOUBLEBUFFER,
+      None };
+  
   if(!win->dpy && !open_display(win))
     return 0;
+
+  //  memset(&vi_template, 0, sizeof(vi_template));
+  //  vi_template.class = TrueColor;
+  //  vi_template.depth = DefaultDepth(win->dpy, win->screen);
   
-  memset(&vi_template, 0, sizeof(vi_template));
-  vi_template.class = TrueColor;
-  vi_template.depth = DefaultDepth(win->dpy, win->screen);
+  //  win->vi = XGetVisualInfo(win->dpy, VisualClassMask | VisualDepthMask,
+  //                           &vi_template, &num);
   
-  win->vi = XGetVisualInfo(win->dpy, VisualClassMask | VisualDepthMask,
-                           &vi_template, &num);
-  return create_window(win, win->window_width, win->window_height);
+  win->vi = glXChooseVisual(win->dpy, win->screen, attr_list);
+  
+  ret = create_window(win, win->window_width, win->window_height);
+  bg_x11_window_init_gl(win);
+  return ret;
   }
 
 int bg_x11_window_create_window_gl(bg_x11_window_t * win,

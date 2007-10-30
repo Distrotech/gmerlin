@@ -108,7 +108,9 @@ static void msg_subtitle_stream(bg_msg_t * msg,
   bg_msg_set_arg_int(msg, 1, !!DO_SUBTITLE_TEXT(player->flags));
   
   bg_msg_set_arg_video_format(msg, 2,
-                              &(player->subtitle_stream.format));
+                              &(player->subtitle_stream.input_format));
+  bg_msg_set_arg_video_format(msg, 3,
+                              &(player->subtitle_stream.output_format));
   
 
   }
@@ -734,7 +736,6 @@ static void cleanup_playback(bg_player_t * player,
     if(DO_VISUALIZE(player->flags))
       bg_visualizer_close(player->visualizer);
     bg_player_ov_standby(player->ov_context);
-    player->flags = 0;
     }
   return;
   }
@@ -754,7 +755,7 @@ static void stop_cmd(bg_player_t * player, int new_state, int want_new)
        !(player->input_handle->info->flags & BG_PLUGIN_KEEP_RUNNING))
       player_cleanup(player);
     }
-  
+  player->flags = 0;
   }
 
 static void stream_change_init(bg_player_t * player)

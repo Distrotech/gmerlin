@@ -471,7 +471,7 @@ bg_player_input_get_subtitle_format(bg_player_input_context_t * ctx)
   {
   if(!ctx->player->track_info->subtitle_streams[ctx->player->current_subtitle_stream].is_text)
     {
-    gavl_video_format_copy(&(ctx->player->subtitle_stream.format),
+    gavl_video_format_copy(&(ctx->player->subtitle_stream.input_format),
                            &(ctx->player->track_info->subtitle_streams[ctx->player->current_subtitle_stream].format));
     
     }
@@ -648,18 +648,45 @@ static int process_subtitle(bg_player_input_context_t * ctx)
         ctx->subtitle_finished = 1;
         return 0;
         }
-      bg_text_renderer_render(s->renderer, s->buffer, ovl);
+      if(s->do_convert)
+        {
+        bg_text_renderer_render(s->renderer, s->buffer, &s->in_ovl);
+        gavl_video_convert(s->cnv, s->in_ovl.frame, ovl->frame);
+        gavl_rectangle_i_copy(&ovl->ovl_rect, &s->in_ovl.ovl_rect);
+        ovl->dst_x = s->in_ovl.dst_x;
+        ovl->dst_y = s->in_ovl.dst_y;
+        }
+      else
+        {
+        bg_text_renderer_render(s->renderer, s->buffer, ovl);
+        }
       ovl->frame->timestamp = start;
       ovl->frame->duration = duration;
       //      return 1;
       }
     else
       {
-      if(!ctx->plugin->read_subtitle_overlay(ctx->priv, ovl,
-                                             ctx->player->current_subtitle_stream))
+      if(s->do_convert)
         {
-        ctx->subtitle_finished = 1;
-        return 0;
+        if(!ctx->plugin->read_subtitle_overlay(ctx->priv, &s->in_ovl,
+                                               ctx->player->current_subtitle_stream))
+          {
+          ctx->subtitle_finished = 1;
+          return 0;
+          }
+        gavl_video_convert(s->cnv, s->in_ovl.frame, ovl->frame);
+        gavl_rectangle_i_copy(&ovl->ovl_rect, &s->in_ovl.ovl_rect);
+        ovl->dst_x = s->in_ovl.dst_x;
+        ovl->dst_y = s->in_ovl.dst_y;
+        }
+      else
+        {
+        if(!ctx->plugin->read_subtitle_overlay(ctx->priv, ovl,
+                                               ctx->player->current_subtitle_stream))
+          {
+          ctx->subtitle_finished = 1;
+          return 0;
+          }
         }
       }
     bg_fifo_unlock_write(s->fifo, 0); /* Subtitle streams never signal eof! */

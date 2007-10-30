@@ -15,6 +15,8 @@ x11_event.c \
 x11_gl.c \
 x11_video.c \
 x11_window.c \
+glvideo.c \
+overlay.c \
 ximage.c \
 xvideo.c
 
