@@ -106,8 +106,6 @@ set_parameter_goom(void * priv, const char * name,
 static int
 open_goom(void * priv,
           gavl_audio_format_t * audio_format,
-          bg_ov_plugin_t * ov_plugin,
-          void * ov_priv,
           gavl_video_format_t * video_format)
   {
   goom_priv_t * vp;
