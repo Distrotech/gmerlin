@@ -543,6 +543,7 @@ static void * video_thread_func(void * data)
       }
     v->last_frame_time = frame_time;
     }
+  fprintf(stderr, "Ended video thread\n");
   pthread_mutex_unlock(&v->running_mutex);
   return (void*)0;
   }
@@ -798,6 +799,7 @@ int main(int argc, char ** argv)
         bg_visualizer_slave_start(s);
         break;
       case BG_VIS_MSG_QUIT:
+        fprintf(stderr, "MSG_QUIT\n");
         keep_going = 0;
         break;
       case BG_VIS_MSG_TELL:

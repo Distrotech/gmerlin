@@ -132,6 +132,7 @@ static int open_gl(driver_data_t * d)
   glBindTexture(GL_TEXTURE_2D,priv->texture);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glDisable(GL_DEPTH_TEST);
 
   glTexImage2D(GL_TEXTURE_2D, 0,
                priv->texture_type,

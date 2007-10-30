@@ -6,6 +6,7 @@
 
 #include <bglv.h>
 #include <utils.h>
+#include <log.h>
 
 /* Fixme: for now, we can assume, that X11 is always present .... */
 #include <x11/x11.h>
@@ -15,6 +16,32 @@ pthread_mutex_t lv_initialized_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 #define SAMPLES_PER_FRAME 512
 
+static void log_error(const char *message,
+                      const char *funcname, void *priv)
+  {
+  char * domain;
+  domain = bg_sprintf("lv.%s", funcname);
+  bg_log_notranslate(BG_LOG_ERROR, domain, message);
+  free(domain);
+  }
+
+static void log_info(const char *message,
+                      const char *funcname, void *priv)
+  {
+  char * domain;
+  domain = bg_sprintf("lv.%s", funcname);
+  bg_log_notranslate(BG_LOG_INFO, domain, message);
+  free(domain);
+  }
+
+static void log_warning(const char *message,
+                        const char *funcname, void *priv)
+  {
+  char * domain;
+  domain = bg_sprintf("lv.%s", funcname);
+  bg_log_notranslate(BG_LOG_WARNING, domain, message);
+  free(domain);
+  }
 
 static void check_init()
   {
@@ -30,6 +57,12 @@ static void check_init()
   
   /* Initialize the library */
   visual_init(&argc, &argvp);
+
+  visual_log_set_info_handler(log_info, (void*)0);
+  visual_log_set_warning_handler(log_warning, (void*)0);
+  visual_log_set_critical_handler(log_warning, (void*)0);
+  visual_log_set_error_handler(log_error, (void*)0);
+  
   lv_initialized = 1;
   pthread_mutex_unlock(&lv_initialized_mutex);
   }
@@ -134,6 +167,7 @@ typedef struct
   
   /* OpenGL */
   bg_x11_window_t * win;
+  bg_x11_window_callbacks_t window_callbacks;
   } lv_priv_t;
 
 static void draw_frame_gl_lv(void * data, gavl_video_frame_t * frame)
@@ -141,6 +175,9 @@ static void draw_frame_gl_lv(void * data, gavl_video_frame_t * frame)
   lv_priv_t * priv;
   priv = (lv_priv_t*)data;
   
+  bg_x11_window_set_gl(priv->win);
+  visual_actor_run(priv->actor, priv->audio);
+  bg_x11_window_unset_gl(priv->win);
   }
 
 static void draw_frame_ov_lv(void * data, gavl_video_frame_t * frame)
@@ -244,19 +281,100 @@ open_ov_lv(void * data, gavl_audio_format_t * audio_format,
   return 1;
   }
 
+static int bg_attributes[VISUAL_GL_ATTRIBUTE_LAST] =
+  {
+    [VISUAL_GL_ATTRIBUTE_NONE]             = -1, /**< No attribute. */
+    [VISUAL_GL_ATTRIBUTE_BUFFER_SIZE]      = BG_GL_ATTRIBUTE_BUFFER_SIZE,
+    [VISUAL_GL_ATTRIBUTE_LEVEL]            = BG_GL_ATTRIBUTE_LEVEL,
+    [VISUAL_GL_ATTRIBUTE_RGBA]             = BG_GL_ATTRIBUTE_RGBA,
+    [VISUAL_GL_ATTRIBUTE_DOUBLEBUFFER]     = BG_GL_ATTRIBUTE_DOUBLEBUFFER,
+    [VISUAL_GL_ATTRIBUTE_STEREO]           = BG_GL_ATTRIBUTE_STEREO,
+    [VISUAL_GL_ATTRIBUTE_AUX_BUFFERS]      = BG_GL_ATTRIBUTE_AUX_BUFFERS,
+    [VISUAL_GL_ATTRIBUTE_RED_SIZE]         = BG_GL_ATTRIBUTE_RED_SIZE,
+    [VISUAL_GL_ATTRIBUTE_GREEN_SIZE]       = BG_GL_ATTRIBUTE_GREEN_SIZE,
+    [VISUAL_GL_ATTRIBUTE_BLUE_SIZE]        = BG_GL_ATTRIBUTE_BLUE_SIZE,
+    [VISUAL_GL_ATTRIBUTE_ALPHA_SIZE]       = BG_GL_ATTRIBUTE_ALPHA_SIZE,
+    [VISUAL_GL_ATTRIBUTE_DEPTH_SIZE]       = BG_GL_ATTRIBUTE_DEPTH_SIZE,
+    [VISUAL_GL_ATTRIBUTE_STENCIL_SIZE]     = BG_GL_ATTRIBUTE_STENCIL_SIZE,
+    [VISUAL_GL_ATTRIBUTE_ACCUM_RED_SIZE]   = BG_GL_ATTRIBUTE_ACCUM_RED_SIZE,
+    [VISUAL_GL_ATTRIBUTE_ACCUM_GREEN_SIZE] = BG_GL_ATTRIBUTE_ACCUM_GREEN_SIZE,
+    [VISUAL_GL_ATTRIBUTE_ACCUM_BLUE_SIZE]  = BG_GL_ATTRIBUTE_ACCUM_BLUE_SIZE,
+    [VISUAL_GL_ATTRIBUTE_ACCUM_ALPHA_SIZE] = BG_GL_ATTRIBUTE_ACCUM_ALPHA_SIZE,
+  };
+
+
+static void size_changed(void * data, int width, int height)
+  {
+  lv_priv_t * priv;
+  priv = (lv_priv_t*)data;
+  fprintf(stderr, "Size changed: %d x %d\n", width, height);
+  visual_video_set_dimension(priv->video, width, height);
+  visual_actor_set_video(priv->actor, priv->video);
+  visual_actor_video_negotiate(priv->actor, 0, FALSE, FALSE);
+  fprintf(stderr, "Size changed done\n");
+  }
+
 static int
 open_gl_lv(void * data, gavl_audio_format_t * audio_format,
            const char * window_id)
   {
+  int i;
+  int width, height;
+  VisVideoAttributeOptions *vidoptions;
+  
   lv_priv_t * priv;
   priv = (lv_priv_t*)data;
-  priv->win = bg_x11_window_create(window_id);
-  adjust_audio_format(audio_format);
+
+  priv->video = visual_video_new();
+  visual_video_set_depth(priv->video, VISUAL_VIDEO_DEPTH_GL);
   
+  
+  priv->win = bg_x11_window_create(window_id);
+
+  priv->window_callbacks.data = data;
+  priv->window_callbacks.size_changed = size_changed;
+  
+  adjust_audio_format(audio_format);
+
+    
   gavl_audio_format_copy(&priv->audio_format, audio_format);
   
-  /* Create an OpenGL context */
+  /* Set bogus dimensions, will be corrected by the size_callback */
+  bg_x11_window_set_size(priv->win, 640, 480);
   
+  /* Create an OpenGL context. For this, we need the OpenGL attributes */
+  vidoptions = visual_actor_get_video_attribute_options(priv->actor);
+
+  for(i = 0; i < VISUAL_GL_ATTRIBUTE_LAST; i++)
+    {
+    if((vidoptions->gl_attributes[i].mutated) && (bg_attributes[i] >= 0))
+      {
+      bg_x11_window_set_gl_attribute(priv->win, bg_attributes[i],
+                                     vidoptions->gl_attributes[i].value);
+      }
+    }
+  bg_x11_window_realize(priv->win);
+
+  bg_x11_window_set_gl(priv->win);
+  visual_actor_realize(priv->actor);
+  visual_actor_set_video(priv->actor, priv->video);
+  bg_x11_window_unset_gl(priv->win);
+  
+  /* Set the size changed callback after initializing the libvisual stuff */
+  bg_x11_window_set_callbacks(priv->win, &priv->window_callbacks);
+  bg_x11_window_show(priv->win, 1);
+
+  
+  bg_x11_window_set_gl(priv->win);
+  
+  bg_x11_window_get_size(priv->win, &width, &height);
+  
+  /* We cannot use the size callback above since it's called before the
+     actor is realized */
+  visual_video_set_dimension(priv->video, width, height);
+  visual_actor_video_negotiate(priv->actor, 0, FALSE, FALSE);
+  
+  bg_x11_window_unset_gl(priv->win);
   return 1;
   }
 
@@ -264,6 +382,11 @@ static void show_frame_lv(void * data)
   {
   lv_priv_t * priv;
   priv = (lv_priv_t*)data;
+  bg_x11_window_swap_gl(priv->win);
+  
+  bg_x11_window_set_gl(priv->win);
+  bg_x11_window_handle_events(priv->win, 0);
+  bg_x11_window_unset_gl(priv->win);
   }
 
 /* High level load/unload */

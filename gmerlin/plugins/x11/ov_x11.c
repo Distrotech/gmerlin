@@ -132,7 +132,7 @@ static void ensure_window_realized(x11_t * priv)
   ensure_window(priv);
   if(!priv->window_created)
     {
-    bg_x11_window_create_window(priv->win);
+    bg_x11_window_realize(priv->win);
     priv->window_created = 1;
     }
   }

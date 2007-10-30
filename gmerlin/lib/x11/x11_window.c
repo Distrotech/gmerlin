@@ -1107,6 +1107,11 @@ void bg_x11_window_resize(bg_x11_window_t * win,
     }
   }
 
+void bg_x11_window_get_size(bg_x11_window_t * win, int * width, int * height)
+  {
+  *width = win->window_width;
+  *height = win->window_height;
+  }
 
 /* Public methods */
 
@@ -1116,6 +1121,15 @@ bg_x11_window_t * bg_x11_window_create(const char * display_string)
   ret = calloc(1, sizeof(*ret));
   ret->display_string_parent = bg_strdup(ret->display_string_parent, display_string);
   ret->scaler = gavl_video_scaler_create();
+  
+  /* Set default OpenGL attributes */
+  
+  bg_x11_window_set_gl_attribute(ret, BG_GL_ATTRIBUTE_RGBA, 1);
+  bg_x11_window_set_gl_attribute(ret, BG_GL_ATTRIBUTE_RED_SIZE, 8);
+  bg_x11_window_set_gl_attribute(ret, BG_GL_ATTRIBUTE_GREEN_SIZE, 8);
+  bg_x11_window_set_gl_attribute(ret, BG_GL_ATTRIBUTE_BLUE_SIZE, 8);
+  bg_x11_window_set_gl_attribute(ret, BG_GL_ATTRIBUTE_DOUBLEBUFFER, 1);
+  
   return ret;
   }
 
@@ -1441,40 +1455,80 @@ void bg_x11_window_set_size(bg_x11_window_t * win, int width, int height)
   win->window_height = height;
   }
 
-int bg_x11_window_create_window(bg_x11_window_t * win)
+static struct
+  {
+  int glx_attribute;
+  int is_boolean;
+  }
+gl_attribute_map[BG_GL_ATTRIBUTE_NUM] =
+  {
+    [BG_GL_ATTRIBUTE_BUFFER_SIZE]       = { GLX_BUFFER_SIZE,      0 },
+    [BG_GL_ATTRIBUTE_LEVEL]             = { GLX_LEVEL,            0 },
+    [BG_GL_ATTRIBUTE_RGBA]              = { GLX_RGBA,             1 },
+    [BG_GL_ATTRIBUTE_DOUBLEBUFFER]      = { GLX_DOUBLEBUFFER,     1 },
+    [BG_GL_ATTRIBUTE_STEREO]            = { GLX_STEREO,           1 },
+    [BG_GL_ATTRIBUTE_AUX_BUFFERS]       = { GLX_AUX_BUFFERS,      0 },
+    [BG_GL_ATTRIBUTE_RED_SIZE]          = { GLX_RED_SIZE,         0 },
+    [BG_GL_ATTRIBUTE_GREEN_SIZE]        = { GLX_GREEN_SIZE,       0 },
+    [BG_GL_ATTRIBUTE_BLUE_SIZE]         = { GLX_BLUE_SIZE,        0 },
+    [BG_GL_ATTRIBUTE_ALPHA_SIZE]        = { GLX_ALPHA_SIZE,       0 },
+    [BG_GL_ATTRIBUTE_DEPTH_SIZE]        = { GLX_DEPTH_SIZE,       0 },
+    [BG_GL_ATTRIBUTE_STENCIL_SIZE]      = { GLX_STENCIL_SIZE,     0 },
+    [BG_GL_ATTRIBUTE_ACCUM_RED_SIZE]    = { GLX_ACCUM_RED_SIZE,   0 },
+    [BG_GL_ATTRIBUTE_ACCUM_GREEN_SIZE]  = { GLX_ACCUM_GREEN_SIZE, 0 },
+    [BG_GL_ATTRIBUTE_ACCUM_BLUE_SIZE]   = { GLX_ACCUM_BLUE_SIZE,  0 },
+    [BG_GL_ATTRIBUTE_ACCUM_ALPHA_SIZE]  = { GLX_ACCUM_ALPHA_SIZE, 0 },
+  };
+
+int bg_x11_window_realize(bg_x11_window_t * win)
   {
   int ret;
-  //   int num;
-  //  XVisualInfo vi_template;
-  
+  int attr_index = 0, i;
   /* Attributes we need for video playback */
+
+  int attr_list[64];
+
+  for(i = 0; i < BG_GL_ATTRIBUTE_NUM; i++)
+    {
+    if(!win->gl_attributes[i].changed)
+      continue;
+    attr_list[attr_index++] = gl_attribute_map[i].glx_attribute;
+    
+    if(!gl_attribute_map[i].is_boolean)
+      attr_list[attr_index++] = win->gl_attributes[i].value;
+    }
+
+  attr_list[attr_index] = None;
+
+#if 0  
   int attr_list[] =
     {
+      // GLX_RGBA
+      //    If present, only TrueColor and DirectColor visuals are considered.
+      //    Otherwise, only PseudoColor and StaticColor visuals are considered.
       GLX_RGBA,
       GLX_RED_SIZE, 8,
       GLX_GREEN_SIZE, 8,
       GLX_BLUE_SIZE, 8,
-      GLX_DEPTH_SIZE, 8,
+      //      GLX_DEPTH_SIZE, 8,
       GLX_DOUBLEBUFFER,
       None };
+#endif
   
   if(!win->dpy && !open_display(win))
     return 0;
-
-  //  memset(&vi_template, 0, sizeof(vi_template));
-  //  vi_template.class = TrueColor;
-  //  vi_template.depth = DefaultDepth(win->dpy, win->screen);
-  
-  //  win->vi = XGetVisualInfo(win->dpy, VisualClassMask | VisualDepthMask,
-  //                           &vi_template, &num);
   
   win->vi = glXChooseVisual(win->dpy, win->screen, attr_list);
+  
+  if(!win->vi)
+    fprintf(stderr, "Could not get GL Visual\n");
   
   ret = create_window(win, win->window_width, win->window_height);
   bg_x11_window_init_gl(win);
   return ret;
   }
 
+#if 0
 int bg_x11_window_create_window_gl(bg_x11_window_t * win,
                                    int * attr_list )
   {
@@ -1487,6 +1541,7 @@ int bg_x11_window_create_window_gl(bg_x11_window_t * win,
   return 0;
 #endif
   }
+#endif
 
 /* Handle X11 events, callbacks are called from here */
 void bg_x11_window_set_callbacks(bg_x11_window_t * win,

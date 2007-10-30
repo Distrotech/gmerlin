@@ -63,6 +63,7 @@ typedef struct bg_x11_window_s bg_x11_window_t;
 
 bg_x11_window_t * bg_x11_window_create(const char * display_string);
 
+/* For attribute artgument see BG_GL_ATTRIBUTE_ above */
 void bg_x11_window_set_gl_attribute(bg_x11_window_t * win, int attribute, int value);
 
 const char * bg_x11_window_get_display_string(bg_x11_window_t * w);
@@ -83,10 +84,7 @@ void bg_x11_window_set_size(bg_x11_window_t *, int width, int height);
 
 void bg_x11_window_clear(bg_x11_window_t *);
 
-int bg_x11_window_create_window(bg_x11_window_t *);
-
-int bg_x11_window_create_window_gl(bg_x11_window_t *,
-                                   int *attribList );
+int bg_x11_window_realize(bg_x11_window_t *);
 
 /* Handle X11 events, callbacks are called from here */
 void bg_x11_window_set_callbacks(bg_x11_window_t*, bg_x11_window_callbacks_t*);
@@ -101,11 +99,8 @@ void bg_x11_window_set_class_hint(bg_x11_window_t * w,
 void bg_x11_window_show(bg_x11_window_t * w, int show);
 
 void bg_x11_window_resize(bg_x11_window_t * win, int width, int height);
+void bg_x11_window_get_size(bg_x11_window_t * win, int * width, int * height);
 
-
-/* For OpenGL support */
-
-int bg_x11_window_init_gl(bg_x11_window_t *);
 
 /*
  *   All opengl calls must be enclosed by x11_window_set_gl() and

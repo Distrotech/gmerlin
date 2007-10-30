@@ -258,6 +258,9 @@ int bg_x11_window_check_embed_property(bg_x11_window_t * win,
                                        window_t * w);
 
 
+/* For OpenGL support */
+
+int bg_x11_window_init_gl(bg_x11_window_t *);
 
 #define XEMBED_MAPPED                   (1 << 0)
 
