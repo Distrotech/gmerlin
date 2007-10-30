@@ -931,38 +931,35 @@ void gavl_peak_detector_update(gavl_peak_detector_t *pd,
                               gavl_audio_frame_t * frame);
   
 /*! \ingroup peak_detection
- *  \brief Get the peak volume seen so far
+ *  \brief Get the peak volume across all channels
  *  \param pd A peak detector
  *  \param min Returns minimum amplitude
  *  \param max Returns maximum amplitude
  *
- *  This function returns the highest and lowest signal level seen 
- *  so far across all channels.
  *  The returned amplitudes are normalized such that the
  *  minimum amplitude corresponds to -1.0, the maximum amplitude
  *  corresponds to 1.0.
  */
   
 void gavl_peak_detector_get_peak(gavl_peak_detector_t * pd,
-                                 double * min, double * max);
+                                 double * min, double * max,
+                                 double * abs);
 
 /*! \ingroup peak_detection
- *  \brief Get the peak volume seen so far for a single channel
+ *  \brief Get the peak volume for all channels separate
  *  \param pd A peak detector
- *  \param channel Channel index (starting with 0)
  *  \param min Returns minimum amplitude
  *  \param max Returns maximum amplitude
  *
- *  Like \ref gavl_peak_detector_get_peak but the peak value is only
- *  calculated for one channel.
-a */
-
-void gavl_peak_detector_get_channel_peak(gavl_peak_detector_t * pd, 
-                                         int channel,
-                                         double * min, double * max);
-
-
-
+ *  The returned amplitudes are normalized such that the
+ *  minimum amplitude corresponds to -1.0, the maximum amplitude
+ *  corresponds to 1.0.
+ */
+  
+void gavl_peak_detector_get_peaks(gavl_peak_detector_t * pd,
+                                  double * min, double * max,
+                                  double * abs);
+  
 /*! \ingroup peak_detection
  *  \brief Reset a peak detector
  *  \param pd A peak detector
@@ -2651,12 +2648,14 @@ gavl_overlay_blend_context_get_options(gavl_overlay_blend_context_t * ctx);
  *  The image_width and image_height members for the overlay format represent
  *  the maximum overlay size. The actual displayed size will be determined
  *  by the ovl_rect of the overlay.
+ *  The overlay_format might be changed to something, which can directly be blended.
+ *  Make sure you have a \ref gavl_videoconverter_t nearby.
  *  
  */
 
 int gavl_overlay_blend_context_init(gavl_overlay_blend_context_t * ctx,
                                     const gavl_video_format_t * frame_format,
-                                    const gavl_video_format_t * overlay_format);
+                                    gavl_video_format_t * overlay_format);
 
 /*! \ingroup video_blend
  *  \brief Set a new overlay

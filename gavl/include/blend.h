@@ -23,8 +23,6 @@ typedef void (*gavl_blend_func_t)(gavl_overlay_blend_context_t * ctx,
 
 struct gavl_overlay_blend_context_s
   {
-  gavl_video_frame_t * cnv_in_frame;
-  
   gavl_video_format_t dst_format;
   gavl_video_format_t ovl_format;
   gavl_blend_func_t func;
@@ -32,7 +30,6 @@ struct gavl_overlay_blend_context_s
   gavl_overlay_t ovl;
 
   int has_overlay;
-  int do_convert;
   
   gavl_video_frame_t * ovl_win;
   gavl_video_frame_t * dst_win;
@@ -40,8 +37,7 @@ struct gavl_overlay_blend_context_s
   gavl_rectangle_i_t dst_rect;
     
   gavl_video_options_t opt;
-  gavl_video_convert_context_t * cnv;
-
+  
   /* Chroma subsampling of the destination format */  
   int dst_sub_h, dst_sub_v;
   

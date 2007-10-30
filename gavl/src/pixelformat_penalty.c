@@ -19,4 +19,5 @@ int main(int argc, char ** argv)
               gavl_pixelformat_conversion_penalty(src, dst));
       }
     }
+  return 0;
   }

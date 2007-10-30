@@ -33,7 +33,6 @@ gavl_overlay_blend_context_t * gavl_overlay_blend_context_create()
   ret->ovl_win = gavl_video_frame_create((gavl_video_format_t*)0);
   ret->dst_win = gavl_video_frame_create((gavl_video_format_t*)0);
   
-  ret->cnv = calloc(1, sizeof(*ret->cnv));
   gavl_video_options_set_defaults(&ret->opt);
   
   return ret;
@@ -41,24 +40,15 @@ gavl_overlay_blend_context_t * gavl_overlay_blend_context_create()
 
 void gavl_overlay_blend_context_destroy(gavl_overlay_blend_context_t * ctx)
   {
-  if(ctx->cnv_in_frame)
-    {
-    gavl_video_frame_null(ctx->cnv_in_frame);
-    gavl_video_frame_destroy(ctx->cnv_in_frame);
-    ctx->cnv->input_frame = (const gavl_video_frame_t*)0;
-    }
-  
   gavl_video_frame_null(ctx->dst_win);
   gavl_video_frame_destroy(ctx->dst_win);
-
+  
   if(ctx->ovl_win)
     {
-    if(!ctx->do_convert)
-      gavl_video_frame_null(ctx->ovl_win);
+    gavl_video_frame_null(ctx->ovl_win);
     gavl_video_frame_destroy(ctx->ovl_win);
     }
   
-  free(ctx->cnv);
   free(ctx);
   }
 
@@ -71,14 +61,13 @@ gavl_overlay_blend_context_get_options(gavl_overlay_blend_context_t * ctx)
 int
 gavl_overlay_blend_context_init(gavl_overlay_blend_context_t * ctx,
                                 const gavl_video_format_t * dst_format,
-                                const gavl_video_format_t * ovl_format)
+                                gavl_video_format_t * ovl_format)
   {
   /* Clean up from previous initializations */
 
   if(ctx->ovl_win)
     {
-    if(!ctx->do_convert)
-      gavl_video_frame_null(ctx->ovl_win);
+    gavl_video_frame_null(ctx->ovl_win);
     gavl_video_frame_destroy(ctx->ovl_win);
     ctx->ovl_win = (gavl_video_frame_t*)0;
     ctx->has_overlay = 0;
@@ -97,56 +86,15 @@ gavl_overlay_blend_context_init(gavl_overlay_blend_context_t * ctx,
   gavl_pixelformat_chroma_sub(dst_format->pixelformat,
                               &(ctx->dst_sub_h), &(ctx->dst_sub_v));
 
-  
-  
   /* Get blend function */
 
   ctx->func = 
     gavl_find_blend_func_c(ctx,
                            dst_format->pixelformat,
                            &(ctx->ovl_format.pixelformat));
-
-  /* Check whether to convert the pixelformat */
   
-  if(ovl_format->pixelformat !=
-     ctx->ovl_format.pixelformat) /* Need pixelformat conversion */
-    {
-    ctx->do_convert = 1;
-
-    /* Copy formats to the convert context */
-    gavl_video_format_copy(&ctx->cnv->input_format, ovl_format);
-    gavl_video_format_copy(&ctx->cnv->output_format,
-                           &ctx->ovl_format);
-
-    /*
-     *  HACK: We choose a prime number for the frame size such that
-     *  we always get pixelformat convertors, which don't require a
-     *  specific alignment. This must be done, because the actual
-     *  sizes of overlays can change
-     */
-    
-    ctx->cnv->func =
-      gavl_find_pixelformat_converter(&(ctx->opt),
-                                      ctx->cnv->input_format.pixelformat,
-                                      ctx->cnv->output_format.pixelformat,
-                                      127, 127);
-    
-    if(!ctx->cnv->input_frame)
-      {
-      ctx->cnv_in_frame  =
-        gavl_video_frame_create((gavl_video_format_t*)0);
-      ctx->cnv->input_frame = ctx->cnv_in_frame;
-      }
-    ctx->ovl_win = gavl_video_frame_create(&ctx->ovl_format);
-
-    ctx->cnv->output_frame = ctx->ovl_win;
-    }
-  else
-    {
-    ctx->ovl_win = gavl_video_frame_create((gavl_video_format_t*)0);
-    ctx->do_convert = 0;
-    }
-  
+  ctx->ovl_win = gavl_video_frame_create((gavl_video_format_t*)0);
+  gavl_video_format_copy(ovl_format, &(ctx->ovl_format));
   return 1;
   }
 
@@ -227,38 +175,10 @@ void gavl_overlay_blend_context_set_overlay(gavl_overlay_blend_context_t * ctx,
   ctx->dst_rect.w = ctx->ovl.ovl_rect.w;
   ctx->dst_rect.h = ctx->ovl.ovl_rect.h;
     
-  /* Check if we must convert */
-  if(ctx->do_convert)
-    {
-    /* Set source and destination windows */
-
-    gavl_video_frame_get_subframe(ctx->cnv->input_format.pixelformat,
-                                  ovl->frame,
-                                  ctx->cnv_in_frame,
-                                  &(ctx->ovl.ovl_rect));
-    
-    /* Adjust overlay rectangle (We are at [0,0] now) */
-    ctx->ovl.ovl_rect.x = 0;
-    ctx->ovl.ovl_rect.y = 0;
-
-    /* Set image dimensions */
-
-    ctx->cnv->input_format.image_width = ctx->ovl.ovl_rect.w;
-    ctx->cnv->output_format.image_width = ctx->ovl.ovl_rect.w;
-
-    ctx->cnv->input_format.image_height = ctx->ovl.ovl_rect.h;
-    ctx->cnv->output_format.image_height = ctx->ovl.ovl_rect.h;
-    
-    ctx->cnv->func(ctx->cnv);
-
-    }
-  else
-    {
-    gavl_video_frame_get_subframe(ctx->ovl_format.pixelformat,
-                                  ovl->frame,
-                                  ctx->ovl_win,
-                                  &(ctx->ovl.ovl_rect));
-    }
+  gavl_video_frame_get_subframe(ctx->ovl_format.pixelformat,
+                                ovl->frame,
+                                ctx->ovl_win,
+                                &(ctx->ovl.ovl_rect));
   }
 
 void gavl_overlay_blend(gavl_overlay_blend_context_t * ctx,
