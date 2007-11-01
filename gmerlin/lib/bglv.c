@@ -8,7 +8,7 @@
 #include <utils.h>
 #include <log.h>
 
-/* Fixme: for now, we can assume, that X11 is always present .... */
+/* Fixme: for now, we assume, that X11 is always present... */
 #include <x11/x11.h>
 
 static int lv_initialized = 0;
@@ -57,7 +57,8 @@ static void check_init()
   
   /* Initialize the library */
   visual_init(&argc, &argvp);
-
+  
+  /* Set the log callbacks */
   visual_log_set_info_handler(log_info, (void*)0);
   visual_log_set_warning_handler(log_warning, (void*)0);
   visual_log_set_critical_handler(log_warning, (void*)0);
@@ -65,6 +66,265 @@ static void check_init()
   
   lv_initialized = 1;
   pthread_mutex_unlock(&lv_initialized_mutex);
+  }
+
+static VisUIWidget * check_widget(VisUIWidget * w, const char * name,
+                                  bg_parameter_info_t * info)
+  {
+  VisUIWidget * ret = (VisUIWidget*)0;
+  int i;
+  int num_items;
+  VisListEntry * list_entry;
+  switch(w->type)
+    {
+    case VISUAL_WIDGET_TYPE_RANGE:       /**< Range base widget: \a VisUIRange. */
+    case VISUAL_WIDGET_TYPE_ENTRY:       /**< Entry box widget: \a VisUIEntry. */
+    case VISUAL_WIDGET_TYPE_MUTATOR:     /**< Mutator base widget: \a VisUIMutator. */
+    case VISUAL_WIDGET_TYPE_NULL:    /**< NULL widget */
+    case VISUAL_WIDGET_TYPE_WIDGET:      /**< Base widget: \a VisUIWidget. */
+    case VISUAL_WIDGET_TYPE_LABEL:       /**< Label widget: \a VisUILabel. */
+    case VISUAL_WIDGET_TYPE_IMAGE:       /**< Image widget: \a VisUIImage. */
+    case VISUAL_WIDGET_TYPE_SEPARATOR:   /**< Separator widget: \a VisUISeparator. */
+    case VISUAL_WIDGET_TYPE_COLORPALETTE:/**< Color palette widget: \a VisUIColorPalette. */
+    case VISUAL_WIDGET_TYPE_CHOICE:      /**< Choice base widget: \a VisUIChoice. */
+      break;
+    case VISUAL_WIDGET_TYPE_CONTAINER:   /**< Container widget: \a VisUIContainer. */
+    case VISUAL_WIDGET_TYPE_FRAME:       /**< Frame widget: \a VisUIFrame. */
+      /* Get child */
+      return check_widget(VISUAL_UI_CONTAINER(w)->child, name, info);
+      break;
+    case VISUAL_WIDGET_TYPE_BOX:         /**< Box widget: \a VisUIBox. */
+      /* Get children */
+      list_entry = (VisListEntry*)0;
+      while(visual_list_next(&(VISUAL_UI_BOX(w)->childs), &list_entry))
+        {
+        if((ret = check_widget(list_entry->data, name, info)))
+          return ret;
+        }
+      break;
+    case VISUAL_WIDGET_TYPE_TABLE:       /**< Table widget: \a VisUITable. */
+      /* Get children */
+      list_entry = (VisListEntry*)0;
+      while(visual_list_next(&(VISUAL_UI_TABLE(w)->childs), &list_entry))
+        {
+        if((ret = check_widget(((VisUITableEntry*)list_entry->data)->widget, name, info)))
+          {
+          return ret;
+          }
+        }
+      break;
+    case VISUAL_WIDGET_TYPE_NOTEBOOK:    /**< Notebook widget: \a VisUINotebook. */
+      /* Get children */
+      /* Get children */
+      list_entry = (VisListEntry*)0;
+      while(visual_list_next(&(VISUAL_UI_NOTEBOOK(w)->childs), &list_entry))
+        {
+        if((ret = check_widget(list_entry->data, name, info)))
+          return ret;
+        }
+      break;
+    case VISUAL_WIDGET_TYPE_SLIDER:      /**< Slider widget: \a VisUISlider. */
+      if((VISUAL_UI_MUTATOR(w)->param->type == VISUAL_PARAM_ENTRY_TYPE_FLOAT) ||
+         (VISUAL_UI_MUTATOR(w)->param->type == VISUAL_PARAM_ENTRY_TYPE_DOUBLE))
+        {
+        info->type = BG_PARAMETER_SLIDER_FLOAT;
+        info->val_min.val_f = VISUAL_UI_RANGE(w)->min;
+        info->val_max.val_f = VISUAL_UI_RANGE(w)->max;
+        info->num_digits = VISUAL_UI_RANGE(w)->precision;
+        if((VISUAL_UI_MUTATOR(w)->param->type == VISUAL_PARAM_ENTRY_TYPE_FLOAT))
+          info->val_default.val_f = VISUAL_UI_MUTATOR(w)->param->numeric.floating;
+        else
+          info->val_default.val_f = VISUAL_UI_MUTATOR(w)->param->numeric.doubleflt;
+        }
+      else
+        {
+        info->type = BG_PARAMETER_SLIDER_INT;
+        info->val_min.val_i = (int)VISUAL_UI_RANGE(w)->min;
+        info->val_max.val_i = (int)VISUAL_UI_RANGE(w)->max;
+        info->val_default.val_i = VISUAL_UI_MUTATOR(w)->param->numeric.integer;
+        }
+      info->flags |= BG_PARAMETER_SYNC;
+      ret = w;
+      break;
+    case VISUAL_WIDGET_TYPE_NUMERIC:     /**< Numeric widget: \a VisUINumeric. */
+      if(strcmp(name, VISUAL_UI_MUTATOR(w)->param->name))
+        return 0;
+      if((VISUAL_UI_MUTATOR(w)->param->type == VISUAL_PARAM_ENTRY_TYPE_FLOAT) ||
+         (VISUAL_UI_MUTATOR(w)->param->type == VISUAL_PARAM_ENTRY_TYPE_DOUBLE))
+        {
+        info->type = BG_PARAMETER_FLOAT;
+        info->val_min.val_f = VISUAL_UI_RANGE(w)->min;
+        info->val_max.val_f = VISUAL_UI_RANGE(w)->max;
+        info->num_digits = VISUAL_UI_RANGE(w)->precision;
+        if((VISUAL_UI_MUTATOR(w)->param->type == VISUAL_PARAM_ENTRY_TYPE_FLOAT))
+          info->val_default.val_f = VISUAL_UI_MUTATOR(w)->param->numeric.floating;
+        else
+          info->val_default.val_f = VISUAL_UI_MUTATOR(w)->param->numeric.doubleflt;
+        }
+      else
+        {
+        info->type = BG_PARAMETER_INT;
+        info->val_min.val_i = (int)VISUAL_UI_RANGE(w)->min;
+        info->val_max.val_i = (int)VISUAL_UI_RANGE(w)->max;
+        info->val_default.val_i = VISUAL_UI_MUTATOR(w)->param->numeric.integer;
+        }
+      info->flags |= BG_PARAMETER_SYNC;
+      ret = w;
+      break;
+    case VISUAL_WIDGET_TYPE_COLOR:       /**< Color widget: \a VisUIColor. */
+    case VISUAL_WIDGET_TYPE_COLORBUTTON: /**< Color button widget: \a VisUIColorButton. */
+      if(strcmp(name, VISUAL_UI_MUTATOR(w)->param->name))
+        return 0;
+      info->type = BG_PARAMETER_COLOR_RGB;
+      info->flags |= BG_PARAMETER_SYNC;
+      info->val_default.val_color[0] = (float)VISUAL_UI_MUTATOR(w)->param->color.r / 255.0;
+      info->val_default.val_color[1] = (float)VISUAL_UI_MUTATOR(w)->param->color.b / 255.0;
+      info->val_default.val_color[2] = (float)VISUAL_UI_MUTATOR(w)->param->color.b / 255.0;
+      ret = w;
+      break;
+    case VISUAL_WIDGET_TYPE_POPUP:       /**< Popup widget: \a VisUIPopup. */
+    case VISUAL_WIDGET_TYPE_LIST:        /**< List widget: \a VisUIList. */
+    case VISUAL_WIDGET_TYPE_RADIO:       /**< Radio widget: \a VisUIRadio. */
+      if(strcmp(name, VISUAL_UI_MUTATOR(w)->param->name))
+        return 0;
+      info->type = BG_PARAMETER_STRINGLIST;
+      info->flags |= BG_PARAMETER_SYNC;
+      num_items = 0;
+      list_entry = (VisListEntry*)0;
+      while(visual_list_next(&(VISUAL_UI_CHOICE(w)->choices.choices), &list_entry))
+        num_items++;
+      info->multi_names = calloc(num_items+1, sizeof(info->multi_names));
+      list_entry = (VisListEntry*)0;
+      for(i = 0; i < num_items; i++)
+        {
+        visual_list_next(&(VISUAL_UI_CHOICE(w)->choices.choices), &list_entry);
+        info->multi_names[i] = bg_strdup((char*)0, ((VisUIChoiceEntry*)(list_entry->data))->name);
+
+        /* Check if this is the current value */
+        //        visual_param_entry_compare(((VisUIChoiceEntry*)(list_entry->data))->value,
+        //                                       VISUAL_UI_MUTATOR(w)->param)
+        if(!i)
+          {
+          fprintf(stderr, "Got default value: %s\n", info->multi_names[i]);
+          info->val_default.val_str = bg_strdup((char*)0, info->multi_names[i]);
+          }
+        }
+      ret = w;
+      break;
+    case VISUAL_WIDGET_TYPE_CHECKBOX:     /**< Checkbox widget: \a VisUICheckbox. */
+      if(strcmp(name, VISUAL_UI_MUTATOR(w)->param->name))
+        return 0;
+      info->type = BG_PARAMETER_CHECKBUTTON;
+      info->flags |= BG_PARAMETER_SYNC;
+      ret = w;
+      break;
+    }
+  if(ret)
+    info->help_string = bg_strdup(info->help_string, w->tooltip);
+  return ret;
+  }
+
+static bg_parameter_info_t *
+create_parameters(VisActor * actor, VisUIWidget *** widgets,
+                  VisParamEntry *** params_ret)
+  {
+  int num_parameters, i, index, supported;
+  bg_parameter_info_t * ret;
+  VisParamContainer * params;
+  //  VisHashmapChainEntry *entry;
+  VisParamEntry *param_entry;
+  VisListEntry * list_entry;
+  VisUIWidget * widget;
+  VisUIWidget * param_widget;
+  
+  params = visual_plugin_get_params(visual_actor_get_plugin(actor));
+  
+  /* Count parameters */
+  num_parameters = 0;
+  
+  list_entry = (VisListEntry*)0;
+
+  while(visual_list_next(&params->entries,
+                         &list_entry))
+    num_parameters++;
+
+  if(!num_parameters)
+    return (bg_parameter_info_t*)0;
+  fprintf(stderr, "num_parameters: %d\n", num_parameters);
+  /* Create parameters */
+  ret = calloc(num_parameters+1, sizeof(*ret));
+
+  if(widgets)
+    *widgets = calloc(num_parameters, sizeof(**widgets));
+
+  if(params_ret)
+    *params_ret = calloc(num_parameters, sizeof(**params_ret));
+  
+  list_entry = (VisListEntry*)0;
+  index = 0;
+
+  widget = visual_plugin_get_userinterface(visual_actor_get_plugin(actor));
+  
+  for(i = 0; i < num_parameters; i++)
+    {
+    visual_list_next(&params->entries, &list_entry);
+    param_entry = list_entry->data;
+    fprintf(stderr, "param_entry: %p\n", param_entry);
+    //    param_entry = VISUAL_PARAMENTRY(entry->data);
+    
+    if(params_ret)
+      (*params_ret)[index] = param_entry;
+    
+    supported = 1;
+    
+    if(widget)
+      param_widget = check_widget(widget, param_entry->name, &ret[index]);
+    else
+      param_widget = (VisUIWidget*)0;
+    
+    if(!param_widget)
+      {
+      switch(param_entry->type)
+        {
+        case VISUAL_PARAM_ENTRY_TYPE_NULL:     /**< No parameter. */
+          supported = 0;
+          break;
+        case VISUAL_PARAM_ENTRY_TYPE_STRING:   /**< String parameter. */
+          ret[index].type = BG_PARAMETER_STRING;
+          break;
+        case VISUAL_PARAM_ENTRY_TYPE_INTEGER:  /**< Integer parameter. */
+          ret[index].type = BG_PARAMETER_INT;
+          ret[index].flags |= BG_PARAMETER_SYNC;
+          break;
+        case VISUAL_PARAM_ENTRY_TYPE_FLOAT:    /**< Floating point parameter. */
+        case VISUAL_PARAM_ENTRY_TYPE_DOUBLE:   /**< Double floating point parameter. */
+          ret[index].type = BG_PARAMETER_FLOAT;
+          ret[index].flags |= BG_PARAMETER_SYNC;
+          break;
+        case VISUAL_PARAM_ENTRY_TYPE_COLOR:    /**< VisColor parameter. */
+          ret[index].type = BG_PARAMETER_COLOR_RGB;
+          ret[index].flags |= BG_PARAMETER_SYNC;
+          break;
+        case VISUAL_PARAM_ENTRY_TYPE_PALETTE:  /**< VisPalette parameter. */
+        case VISUAL_PARAM_ENTRY_TYPE_OBJECT:   /**< VisObject parameter. */
+        case VISUAL_PARAM_ENTRY_TYPE_END:      /**< List end, and used as terminator for VisParamEntry lists. */
+          supported = 0;
+          break;
+        }
+      }
+    
+    if(widgets)
+      (*widgets)[index] = param_widget;
+    
+    if(!supported)
+      continue;
+    
+    ret[index].name = bg_strdup((char*)0, param_entry->name);
+    ret[index].long_name = bg_strdup((char*)0, param_entry->name);
+    fprintf(stderr, "Got parameter %s\n", param_entry->name);
+    index++;
+    }
+  return ret;
   }
 
 bg_plugin_info_t * bg_lv_get_info(const char * filename)
@@ -143,7 +403,6 @@ bg_plugin_info_t * bg_lv_get_info(const char * filename)
     free(tmp_string);
     }
   
-  
   /* Check out if it's an OpenGL plugin */
   if(visual_actor_get_supported_depth(actor) &
      VISUAL_VIDEO_DEPTH_GL)
@@ -151,6 +410,13 @@ bg_plugin_info_t * bg_lv_get_info(const char * filename)
   else
     ret->flags |=  BG_PLUGIN_VISUALIZE_FRAME;
   ret->priority = 1;
+
+  /* Must realize the actor to get the parameters */
+  if(visual_actor_realize(actor) != VISUAL_OK)
+    fprintf(stderr, "Realizing actor failed\n");
+  
+  ret->parameters = create_parameters(actor, (VisUIWidget***)0, (VisParamEntry***)0);
+  
   visual_object_unref(VISUAL_OBJECT(actor));
   return ret;
   }
@@ -168,6 +434,10 @@ typedef struct
   /* OpenGL */
   bg_x11_window_t * win;
   bg_x11_window_callbacks_t window_callbacks;
+  
+  bg_parameter_info_t * parameters;
+  VisUIWidget ** widgets;
+  VisParamEntry ** params;
   } lv_priv_t;
 
 static void draw_frame_gl_lv(void * data, gavl_video_frame_t * frame)
@@ -237,8 +507,6 @@ open_ov_lv(void * data, gavl_audio_format_t * audio_format,
   lv_priv_t * priv;
   priv = (lv_priv_t*)data;
   adjust_audio_format(audio_format);
-  
-  visual_actor_realize(priv->actor);
   
   priv->video = visual_video_new();
   
@@ -318,9 +586,7 @@ static int
 open_gl_lv(void * data, gavl_audio_format_t * audio_format,
            const char * window_id)
   {
-  int i;
   int width, height;
-  VisVideoAttributeOptions *vidoptions;
   
   lv_priv_t * priv;
   priv = (lv_priv_t*)data;
@@ -328,35 +594,12 @@ open_gl_lv(void * data, gavl_audio_format_t * audio_format,
   priv->video = visual_video_new();
   visual_video_set_depth(priv->video, VISUAL_VIDEO_DEPTH_GL);
   
-  
-  priv->win = bg_x11_window_create(window_id);
-
-  priv->window_callbacks.data = data;
-  priv->window_callbacks.size_changed = size_changed;
-  
   adjust_audio_format(audio_format);
 
     
   gavl_audio_format_copy(&priv->audio_format, audio_format);
   
-  /* Set bogus dimensions, will be corrected by the size_callback */
-  bg_x11_window_set_size(priv->win, 640, 480);
-  
-  /* Create an OpenGL context. For this, we need the OpenGL attributes */
-  vidoptions = visual_actor_get_video_attribute_options(priv->actor);
-
-  for(i = 0; i < VISUAL_GL_ATTRIBUTE_LAST; i++)
-    {
-    if((vidoptions->gl_attributes[i].mutated) && (bg_attributes[i] >= 0))
-      {
-      bg_x11_window_set_gl_attribute(priv->win, bg_attributes[i],
-                                     vidoptions->gl_attributes[i].value);
-      }
-    }
-  bg_x11_window_realize(priv->win);
-
   bg_x11_window_set_gl(priv->win);
-  visual_actor_realize(priv->actor);
   visual_actor_set_video(priv->actor, priv->video);
   bg_x11_window_unset_gl(priv->win);
   
@@ -389,13 +632,125 @@ static void show_frame_lv(void * data)
   bg_x11_window_unset_gl(priv->win);
   }
 
+static bg_parameter_info_t * get_parameters_lv(void * data)
+  {
+  lv_priv_t * priv;
+  priv = (lv_priv_t*)data;
+  return priv->parameters;
+  }
+
+static void set_parameter_lv(void * data, const char * name,
+                             const bg_parameter_value_t * val)
+  {
+  int supported;
+  lv_priv_t * priv;
+  int index;
+  int i_tmp;
+  char * tmp_string;
+  VisParamEntry * param;
+  VisListEntry * list_entry;
+
+  VisColor color;
+  const bg_parameter_info_t * info;
+  if(!name)
+    return;
+  priv = (lv_priv_t*)data;
+
+  info = bg_parameter_find(priv->parameters, name);
+  if(!info)
+    return;
+
+  fprintf(stderr, "set_parameter_lv: %s\n", name);
+  
+  /* This would crash if multi_parameters were supported */
+  index = info - priv->parameters;
+
+  tmp_string = bg_strdup((char*)0, name);
+  param = visual_param_entry_new(tmp_string);
+  free(tmp_string);
+  /* Menus have to be treated specially */
+  if(info->type == BG_PARAMETER_STRINGLIST)
+    {
+    if(!priv->widgets[index])
+      return;
+    /* Get the selected index */
+    supported = 0;
+    list_entry = (VisListEntry*)0;
+    while(visual_list_next(&(VISUAL_UI_CHOICE(priv->widgets[index])->choices.choices),
+                           &list_entry))
+      {
+      if(!strcmp(((VisUIChoiceEntry*)(list_entry->data))->name, val->val_str))
+        {
+        visual_param_entry_set_from_param(param,
+                                          ((VisUIChoiceEntry*)(list_entry->data))->value);
+        supported = 1;
+        break;
+        }
+      }
+    }
+  else
+    {
+    supported = 1;
+    switch(priv->params[index]->type)
+      {
+      case VISUAL_PARAM_ENTRY_TYPE_NULL:     /**< No parameter. */
+        supported = 0;
+        break;
+      case VISUAL_PARAM_ENTRY_TYPE_STRING:   /**< String parameter. */
+        visual_param_entry_set_string(param, val->val_str);
+        break;
+      case VISUAL_PARAM_ENTRY_TYPE_INTEGER:  /**< Integer parameter. */
+        visual_param_entry_set_integer(param, val->val_i);
+        break;
+      case VISUAL_PARAM_ENTRY_TYPE_FLOAT:    /**< Floating point parameter. */
+        visual_param_entry_set_float(param, val->val_f);
+        break;
+      case VISUAL_PARAM_ENTRY_TYPE_DOUBLE:   /**< Double floating point parameter. */
+        visual_param_entry_set_double(param, val->val_f);
+        break;
+      case VISUAL_PARAM_ENTRY_TYPE_COLOR:    /**< VisColor parameter. */
+        i_tmp = (int)(val->val_color[0] * 255.0 + 0.5);
+        if(i_tmp < 0) i_tmp = 0;
+        if(i_tmp > 255) i_tmp = 255;
+        color.r = i_tmp;
+
+        i_tmp = (int)(val->val_color[1] * 255.0 + 0.5);
+        if(i_tmp < 0) i_tmp = 0;
+        if(i_tmp > 255) i_tmp = 255;
+        color.g = i_tmp;
+
+        i_tmp = (int)(val->val_color[2] * 255.0 + 0.5);
+        if(i_tmp < 0) i_tmp = 0;
+        if(i_tmp > 255) i_tmp = 255;
+        color.b = i_tmp;
+        visual_param_entry_set_color_by_color(param, &color);
+        break;
+      case VISUAL_PARAM_ENTRY_TYPE_PALETTE:  /**< VisPalette parameter. */
+      case VISUAL_PARAM_ENTRY_TYPE_OBJECT:   /**< VisObject parameter. */
+      case VISUAL_PARAM_ENTRY_TYPE_END:      /**< List end, and used as terminator for VisParamEntry lists. */
+        supported = 0;
+        break;
+      }
+    }
+  if(supported)
+    {
+    fprintf(stderr, "Setting parameter %s\n", name);
+    visual_event_queue_add_param(visual_plugin_get_eventqueue(visual_actor_get_plugin(priv->actor)),
+                              param);
+    }
+  else
+    visual_object_unref(VISUAL_OBJECT(param));
+  }
+
 /* High level load/unload */
 
 int bg_lv_load(bg_plugin_handle_t * ret,
-               const char * name, int plugin_flags)
+               const char * name, int plugin_flags, const char * window_id)
   {
   lv_priv_t * priv;
+  int i;
   bg_visualization_plugin_t * p;
+  VisVideoAttributeOptions *vidoptions;
   
   check_init();
   
@@ -416,7 +771,9 @@ int bg_lv_load(bg_plugin_handle_t * ret,
     }
   p->update = update_lv;
   p->close  = close_lv;
-     
+  p->common.get_parameters = get_parameters_lv;
+  p->common.set_parameter  = set_parameter_lv;
+    
   /* Set up private data */
   priv = calloc(1, sizeof(*priv));
   ret->priv = priv;
@@ -424,6 +781,41 @@ int bg_lv_load(bg_plugin_handle_t * ret,
   
   /* Remove gmerlin added prefix from the plugin name */
   priv->actor = visual_actor_new(name + 7);
+
+  if(plugin_flags & BG_PLUGIN_VISUALIZE_GL)
+    {
+    priv->win = bg_x11_window_create(window_id);
+    
+    priv->window_callbacks.data = p;
+    priv->window_callbacks.size_changed = size_changed;
+
+    /* Create an OpenGL context. For this, we need the OpenGL attributes */
+    vidoptions = visual_actor_get_video_attribute_options(priv->actor);
+    
+    for(i = 0; i < VISUAL_GL_ATTRIBUTE_LAST; i++)
+      {
+      if((vidoptions->gl_attributes[i].mutated) && (bg_attributes[i] >= 0))
+        {
+        bg_x11_window_set_gl_attribute(priv->win, bg_attributes[i],
+                                       vidoptions->gl_attributes[i].value);
+        }
+      }
+    
+    /* Set bogus dimensions, will be corrected by the size_callback */
+    bg_x11_window_set_size(priv->win, 640, 480);
+    
+    bg_x11_window_realize(priv->win);
+
+    
+    bg_x11_window_set_gl(priv->win);
+    }
+  visual_actor_realize(priv->actor);
+
+  if(plugin_flags & BG_PLUGIN_VISUALIZE_GL)
+    bg_x11_window_unset_gl(priv->win);
+  
+  priv->parameters = create_parameters(priv->actor, &priv->widgets, &priv->params);
+  
   return 1;
   }
 

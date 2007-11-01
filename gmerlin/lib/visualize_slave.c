@@ -304,15 +304,17 @@ load_plugin_gmerlin(const char * filename)
 
 #ifdef HAVE_LV
 static bg_plugin_handle_t *
-load_plugin_lv(const char * name, int plugin_flags)
+load_plugin_lv(const char * name, int plugin_flags, const char * window_id)
   {
   bg_plugin_handle_t * ret;
   ret = calloc(1, sizeof(*ret));
-  if(!bg_lv_load(ret, name, plugin_flags))
+  fprintf(stderr, "load_plugin_lv: %s\n", window_id);
+  if(!bg_lv_load(ret, name, plugin_flags, window_id))
     {
     free(ret);
     return (bg_plugin_handle_t*)0;
     }
+  fprintf(stderr, "load_plugin_lv: %s\n", window_id);
   return ret;
   }
 #endif
@@ -390,9 +392,9 @@ bg_visualizer_slave_create(int argc, char ** argv)
   if(!strncmp(plugin_module, "vis_lv_", 7))
     {
     if(ret->ov_handle)
-      ret->vis_handle = load_plugin_lv(plugin_module, BG_PLUGIN_VISUALIZE_FRAME);
+      ret->vis_handle = load_plugin_lv(plugin_module, BG_PLUGIN_VISUALIZE_FRAME, ret->window_id);
     else
-      ret->vis_handle = load_plugin_lv(plugin_module, BG_PLUGIN_VISUALIZE_GL);
+      ret->vis_handle = load_plugin_lv(plugin_module, BG_PLUGIN_VISUALIZE_GL, ret->window_id);
     }
   else
 #endif
