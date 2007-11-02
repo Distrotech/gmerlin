@@ -46,7 +46,7 @@ static gboolean delete_callback(GtkWidget * w, GdkEventAny * evt,
   return TRUE;
   }
 
-void bg_gtk_message(const char * message, int type)
+void bg_gtk_message(const char * message, int type, GtkWidget * parent)
   {
   GtkWidget * buttonbox;
   message_t * q;
@@ -62,8 +62,12 @@ void bg_gtk_message(const char * message, int type)
   
   q->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
-  gtk_window_set_position(GTK_WINDOW(q->window), GTK_WIN_POS_CENTER);
+  gtk_window_set_position(GTK_WINDOW(q->window), GTK_WIN_POS_CENTER_ON_PARENT);
 
+  parent = bg_gtk_get_toplevel(parent);
+  if(parent)
+    gtk_window_set_transient_for(GTK_WINDOW(q->window),
+                                 GTK_WINDOW(parent));
   
   q->ok_button = gtk_button_new_from_stock(GTK_STOCK_OK);
   label = gtk_label_new(message);
@@ -79,7 +83,7 @@ void bg_gtk_message(const char * message, int type)
 
   gtk_window_set_modal(GTK_WINDOW(q->window), 1);
   gtk_window_set_title(GTK_WINDOW(q->window), TR("Message"));
-  gtk_window_set_position(GTK_WINDOW(q->window), GTK_WIN_POS_CENTER);
+  gtk_window_set_position(GTK_WINDOW(q->window), GTK_WIN_POS_CENTER_ON_PARENT);
   GTK_WIDGET_SET_FLAGS (q->ok_button, GTK_CAN_DEFAULT);
 
   gtk_label_set_justify(GTK_LABEL(label), GTK_JUSTIFY_CENTER);

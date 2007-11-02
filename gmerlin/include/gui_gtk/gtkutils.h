@@ -43,3 +43,5 @@ void bg_gtk_tooltips_set_tip(GtkWidget * w, const char * str,
 
 void bg_gtk_set_tooltips(int enable);
 int bg_gtk_get_tooltips();
+
+GtkWidget * bg_gtk_get_toplevel(GtkWidget * w);

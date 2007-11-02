@@ -599,7 +599,7 @@ int main(int argc, char ** argv)
   bg_dialog_add(test_dialog, "Section 3", section_3,set_parameter,(void *)0,info_3);
   bg_dialog_add(test_dialog, "Section 4", section_4,set_parameter,(void *)0,info_4);
   
-  bg_dialog_show(test_dialog);
+  bg_dialog_show(test_dialog, NULL);
 
   /* Apply sections */
   fprintf(stderr, "*** Applying section ***\n");  

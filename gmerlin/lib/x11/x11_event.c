@@ -45,6 +45,18 @@ keycodes[] =
     { XK_Escape,   BG_KEY_ESCAPE },
     { XK_Menu,     BG_KEY_MENU },
     
+    { XK_question,   BG_KEY_QUESTION }, //!< ?
+    { XK_exclam,     BG_KEY_EXCLAM    }, //!< !
+    { XK_quotedbl,   BG_KEY_QUOTEDBL,   }, //!< "
+    { XK_dollar,     BG_KEY_DOLLAR,     }, //!< $
+    { XK_percent,    BG_KEY_PERCENT,    }, //!< %
+    { XK_ampersand,  BG_KEY_APMERSAND,  }, //!< &
+    { XK_slash,      BG_KEY_SLASH,      }, //!< /
+    { XK_parenleft,  BG_KEY_LEFTPAREN,  }, //!< (
+    { XK_parenright, BG_KEY_RIGHTPAREN, }, //!< )
+    { XK_equal,      BG_KEY_EQUAL,      }, //!< =
+    { XK_backslash,  BG_KEY_BACKSLASH,  }, //!< :-)
+    
     { XK_a,        BG_KEY_a },
     { XK_b,        BG_KEY_b },
     { XK_c,        BG_KEY_c },
@@ -150,6 +162,16 @@ static int x11_to_key_mask(int x11_mask)
     ret |= BG_KEY_ALT_MASK;
   if(x11_mask & Mod4Mask)
     ret |= BG_KEY_SUPER_MASK;
+  if(x11_mask & Button1Mask)
+    ret |= BG_KEY_BUTTON1_MASK;
+  if(x11_mask & Button2Mask)
+    ret |= BG_KEY_BUTTON2_MASK;
+  if(x11_mask & Button3Mask)
+    ret |= BG_KEY_BUTTON3_MASK;
+  if(x11_mask & Button4Mask)
+    ret |= BG_KEY_BUTTON4_MASK;
+  if(x11_mask & Button5Mask)
+    ret |= BG_KEY_BUTTON5_MASK;
   return ret;
   }
 
@@ -288,7 +310,29 @@ static void unregister_xembed_accelerators(bg_x11_window_t * w,
     i++;
     }
   }
-                                         
+
+/* Transform coordinates if we playback video */
+
+static void transform_coords(bg_x11_window_t * w,
+                             int x_raw, int y_raw,
+                             int * x_ret, int * y_ret)
+  {
+  double coord_norm;
+  if(!w->video_open)
+    {
+    *x_ret = x_raw;
+    *y_ret = y_raw;
+    }
+  else
+    {
+    coord_norm = (double)(x_raw - w->dst_rect.x) / w->dst_rect.w;
+    *x_ret = (int)(w->src_rect.x + coord_norm * w->src_rect.w + 0.5);
+    
+    coord_norm = (double)(y_raw - w->dst_rect.y) / w->dst_rect.h;
+    *y_ret = (int)(w->src_rect.y + coord_norm * w->src_rect.h + 0.5);
+    }
+  }
+
 void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
   {
   KeySym keysym;
@@ -298,6 +342,7 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
   int  accel_id;
   int  button_number = 0;
   window_t * cur;
+  int x_src, y_src;
   w->do_delete = 0;
   
   if(!evt || (evt->type != MotionNotify))
@@ -631,6 +676,16 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
         XFlush(w->dpy);
         w->pointer_hidden = 0;
         }
+
+      transform_coords(w, evt->xmotion.x, evt->xmotion.y, &x_src, &y_src);
+
+      if(w->callbacks && w->callbacks->motion_callback)
+        {
+        key_mask = x11_to_key_mask(evt->xmotion.state);
+        w->callbacks->motion_callback(w->callbacks->data,
+                                      x_src, y_src, key_mask);
+        }
+      
       /* Send to parent */
       if(w->current->parent != w->root)
         {
@@ -690,9 +745,10 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
         }
       break;
     case KeyPress:
+    case KeyRelease:
       XLookupString(&(evt->xkey), &key_char, 1, &keysym, NULL);
       evt->xkey.state &= STATE_IGNORE;
-
+      
       if((evt->xkey.window == w->normal.win) ||
          (evt->xkey.window == w->normal.focus_child))
         cur = &w->normal;
@@ -715,8 +771,9 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
                                             key_code,
                                             key_mask, &accel_id))
               {
-              w->callbacks->accel_callback(w->callbacks->data,
-                                           accel_id);
+              if(evt->type == KeyPress)
+                w->callbacks->accel_callback(w->callbacks->data,
+                                             accel_id);
               return;
               }
             }
@@ -728,10 +785,11 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
                                             key_code,
                                             key_mask, &accel_id))
               {
-              bg_x11_window_send_xembed_message(w, cur->child,
-                                                evt->xkey.time,
-                                                XEMBED_ACTIVATE_ACCELERATOR,
-                                                accel_id, 0, 0);
+              if(evt->type == KeyPress)
+                bg_x11_window_send_xembed_message(w, cur->child,
+                                                  evt->xkey.time,
+                                                  XEMBED_ACTIVATE_ACCELERATOR,
+                                                  accel_id, 0, 0);
               return;
               }
             }
@@ -739,23 +797,20 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
              One key callback is ok, but if we have more than one
              (i.e. in embedded or embedding windows), one might always
              eat up all events */
-#if 0
-          if(w->callbacks->key_callback)
+          if(w->callbacks->key_callback && (evt->type == KeyPress))
             {
             if(w->callbacks->key_callback(w->callbacks->data,
-                                          key_code))
+                                          key_code, key_mask))
               return;
             }
-#endif
+          else if(w->callbacks->key_release_callback && (evt->type == KeyRelease))
+            {
+            if(w->callbacks->key_release_callback(w->callbacks->data,
+                                                  key_code, key_mask))
+              return;
+            }
           }
         }
-      
-      if(evt->xkey.window == w->normal.focus_child)
-        cur = &w->normal;
-      else if(evt->xkey.window == w->fullscreen.focus_child)
-        cur = &w->fullscreen;
-      else
-        return;
       
       if(cur->child != None)
         {
@@ -773,20 +828,21 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
         key_event.y_root = 0;
         key_event.same_screen = True;
         
-        key_event.type = KeyPress;;
+        key_event.type = evt->type;;
         key_event.keycode = evt->xkey.keycode;
         key_event.state = evt->xkey.state;
         
         XSendEvent(key_event.display,
                    key_event.window,
-                   False, KeyPressMask, (XEvent *)(&key_event));
+                   False, KeyPressMask|KeyReleaseMask, (XEvent *)(&key_event));
         XFlush(w->dpy);
         }
       break;
     case ButtonPress:
+    case ButtonRelease:
+      transform_coords(w, evt->xbutton.x, evt->xbutton.y, &x_src, &y_src);
       evt->xkey.state &= STATE_IGNORE;
-      if(w->callbacks &&
-         w->callbacks->button_callback)
+      if(w->callbacks)
         {
         switch(evt->xbutton.button)
           {
@@ -806,19 +862,25 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
             button_number = 5;
             break;
           }
-        if(w->callbacks->button_callback(w->callbacks->data,
-                                         evt->xbutton.x,
-                                         evt->xbutton.y,
-                                         button_number,
-                                         x11_to_key_mask(evt->xbutton.state)))
-          return;
+        if(w->callbacks->button_callback && (evt->type == ButtonPress))
+          w->callbacks->button_callback(w->callbacks->data,
+                                        x_src,
+                                        y_src,
+                                        button_number,
+                                        x11_to_key_mask(evt->xbutton.state));
+        else if(w->callbacks->button_release_callback && (evt->type == ButtonRelease))
+          w->callbacks->button_release_callback(w->callbacks->data,
+                                                x_src,
+                                                y_src,
+                                                button_number,
+                                                x11_to_key_mask(evt->xbutton.state));
         }
-      /* Send to parent */
+      /* Also send to parent */
       if(w->current->parent != w->root)
         {
         XButtonEvent button_event;
         memset(&button_event, 0, sizeof(button_event));
-        button_event.type = ButtonPress;
+        button_event.type = evt->type;
         button_event.display = w->dpy;
         button_event.window = w->current->parent;
         button_event.root = w->root;
@@ -833,7 +895,7 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
 
         XSendEvent(button_event.display,
                    button_event.window,
-                   False, ButtonPressMask, (XEvent *)(&button_event));
+                   False, ButtonPressMask|ButtonReleaseMask, (XEvent *)(&button_event));
         // XFlush(w->dpy);
         }
 

@@ -145,16 +145,22 @@ static void accel_callback(void * data, int id)
 #endif
 
 
-static void
+static int
 button_callback(void * data, int x, int y, int button, int mask)
   {
   bg_player_ov_context_t * ctx = (bg_player_ov_context_t*)data;
 
   if(button == 4)
+    {
     bg_player_seek_rel(ctx->player, 2 * GAVL_TIME_SCALE );
+    return 1;
+    }
   else if(button == 5)
+    {
     bg_player_seek_rel(ctx->player, - 2 * GAVL_TIME_SCALE );
-  
+    return 1;
+    }
+  return 0;
   }
 
 static void brightness_callback(void * data, float val)

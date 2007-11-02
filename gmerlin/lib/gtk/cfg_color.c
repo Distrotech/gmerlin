@@ -223,8 +223,8 @@ static gboolean delete_callback(GtkWidget * w, GdkEventAny * event,
 static void button_callback(GtkWidget * w, gpointer data)
   {
   bg_gtk_widget_t * wid = (bg_gtk_widget_t*)data;
+  GtkWidget * toplevel;
   color_t * priv = (color_t*)wid->priv;
-  
   if(w == priv->button)
     {
     /* Save last color */
@@ -243,6 +243,11 @@ static void button_callback(GtkWidget * w, gpointer data)
       
       gtk_window_set_modal(GTK_WINDOW(priv->colorsel), TRUE);
 
+      toplevel = bg_gtk_get_toplevel(priv->button);
+      if(toplevel)
+        gtk_window_set_transient_for(GTK_WINDOW(priv->colorsel),
+                                     GTK_WINDOW(toplevel));
+      
       g_signal_connect(G_OBJECT(GTK_COLOR_SELECTION_DIALOG(priv->colorsel)->ok_button),
                        "clicked", G_CALLBACK(button_callback),
                        (gpointer)wid);

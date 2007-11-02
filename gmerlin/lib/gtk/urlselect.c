@@ -124,7 +124,7 @@ bg_gtk_urlsel_create(const char * title,
 
   ret->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_title(GTK_WINDOW(ret->window), title);
-  gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER);
+  gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER_ON_PARENT);
   gtk_container_set_border_width(GTK_CONTAINER(ret->window), 5);
     
   if(parent_window)
@@ -216,8 +216,14 @@ void bg_gtk_urlsel_destroy(bg_gtk_urlsel_t * urlsel)
 
 /* Show the window */
 
-void bg_gtk_urlsel_run(bg_gtk_urlsel_t * urlsel, int modal)
+void bg_gtk_urlsel_run(bg_gtk_urlsel_t * urlsel, int modal, GtkWidget * parent)
   {
+  parent = bg_gtk_get_toplevel(parent);
+  if(parent)
+    gtk_window_set_transient_for(GTK_WINDOW(urlsel->window),
+                                 GTK_WINDOW(parent));
+
+
   gtk_window_set_modal(GTK_WINDOW(urlsel->window), modal);
   gtk_widget_show(urlsel->window);
 

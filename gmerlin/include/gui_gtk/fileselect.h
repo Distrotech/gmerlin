@@ -72,7 +72,7 @@ void bg_gtk_filesel_set_directory(bg_gtk_filesel_t * filesel,
 
 char * bg_gtk_get_filename_write(const char * title,
                                  char ** directory,
-                                 int ask_overwrite);
+                                 int ask_overwrite, GtkWidget * parent);
 
 char * bg_gtk_get_filename_read(const char * title,
-                                char ** directory);
+                                char ** directory, GtkWidget * parent);

@@ -187,7 +187,8 @@ struct bg_x11_window_s
   int wait_for_completion;
   
   gavl_video_format_t video_format;
-
+  int video_open;
+  
   /* Scaling stuff */
   gavl_video_format_t window_format;
   gavl_video_frame_t * window_frame;

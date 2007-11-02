@@ -169,5 +169,5 @@ void gmerlin_create_dialog(gmerlin_t * g)
 
 void gmerlin_configure(gmerlin_t * g)
   {
-  bg_dialog_show(g->cfg_dialog);
+  bg_dialog_show(g->cfg_dialog, g->player_window->window);
   }

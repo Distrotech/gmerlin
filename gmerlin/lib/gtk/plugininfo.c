@@ -65,7 +65,7 @@ pluginwindow_create(const char * title, const char * properties, const char * de
   ret = calloc(1, sizeof(*ret));
 
   ret->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER);
+  gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER_ON_PARENT);
   g_signal_connect(G_OBJECT(ret->window), "delete_event",
                    G_CALLBACK(delete_callback), (gpointer)ret);
 
@@ -121,8 +121,14 @@ pluginwindow_create(const char * title, const char * properties, const char * de
   return ret;
   }
 
-static void pluginwindow_show(pluginwindow_t * w, int modal)
+static void pluginwindow_show(pluginwindow_t * w, int modal,
+                              GtkWidget * parent)
   {
+  parent = bg_gtk_get_toplevel(parent);
+  if(parent)
+    gtk_window_set_transient_for(GTK_WINDOW(w->window),
+                                 GTK_WINDOW(parent));
+  
   gtk_window_set_modal(GTK_WINDOW(w->window), modal);
 
   gtk_widget_grab_default(w->close_button);
@@ -239,7 +245,7 @@ static const char * get_type_string(bg_plugin_type_t type)
   return (char*)0;
   }
 
-void bg_gtk_plugin_info_show(const bg_plugin_info_t * info)
+void bg_gtk_plugin_info_show(const bg_plugin_info_t * info, GtkWidget * parent)
   {
   char * text;
   char * flag_string;
@@ -256,5 +262,5 @@ void bg_gtk_plugin_info_show(const bg_plugin_info_t * info)
   free(text);
   free(flag_string);
   
-  pluginwindow_show(win, 1);
+  pluginwindow_show(win, 1, parent);
   }

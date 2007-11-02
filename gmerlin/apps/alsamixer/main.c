@@ -9,7 +9,7 @@
 
 static void nocards()
   {
-  bg_gtk_message(TR("Could not find any Alsa mixers.\nCheck your setup!\n"), BG_GTK_MESSAGE_ERROR);
+  bg_gtk_message(TR("Could not find any Alsa mixers.\nCheck your setup!\n"), BG_GTK_MESSAGE_ERROR, NULL);
   exit(-1);
   }
 

@@ -958,7 +958,7 @@ static void rename_selected_album(bg_gtk_tree_widget_t * w)
                             w,
                             info, TR("Rename album"));
   
-  bg_dialog_show(dialog);
+  bg_dialog_show(dialog, w->treeview);
   
   bg_dialog_destroy(dialog);
 
@@ -1116,7 +1116,7 @@ static void add_device(bg_gtk_tree_widget_t * w)
                             &s,
                             info, TR("Add device"));
   
-  bg_dialog_show(dialog);
+  bg_dialog_show(dialog, w->treeview);
   
   bg_dialog_destroy(dialog);
 

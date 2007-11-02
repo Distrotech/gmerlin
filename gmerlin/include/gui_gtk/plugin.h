@@ -21,7 +21,8 @@
 
 typedef struct bg_gtk_plugin_info_s bg_gtk_plugin_info_t;
 
-void bg_gtk_plugin_info_show(const bg_plugin_info_t * info);
+void bg_gtk_plugin_info_show(const bg_plugin_info_t * info,
+                             GtkWidget * parent);
 
 /* Browser and configurator for multiple plugins */
 

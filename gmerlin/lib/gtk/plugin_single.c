@@ -92,7 +92,7 @@ static void button_callback(GtkWidget * w, gpointer data)
   
   if(w == widget->info_button)
     {
-    bg_gtk_plugin_info_show(widget->info);
+    bg_gtk_plugin_info_show(widget->info, widget->info_button);
     }
   else if(w == widget->config_button)
     {
@@ -105,7 +105,7 @@ static void button_callback(GtkWidget * w, gpointer data)
                               (void*)widget,
                               parameters,
                               TRD(widget->info->long_name, widget->info->gettext_domain));
-    bg_dialog_show(dialog);
+    bg_dialog_show(dialog, widget->config_button);
     bg_dialog_destroy(dialog);
     }
 
@@ -115,7 +115,7 @@ static void button_callback(GtkWidget * w, gpointer data)
                               NULL, NULL,
                               widget->info->audio_parameters,
                               TRD(widget->info->long_name, widget->info->gettext_domain));
-    bg_dialog_show(dialog);
+    bg_dialog_show(dialog, widget->audio_button);
     bg_dialog_destroy(dialog);
     }
 
@@ -125,7 +125,7 @@ static void button_callback(GtkWidget * w, gpointer data)
                               NULL, NULL,
                               widget->info->video_parameters,
                               TRD(widget->info->long_name, widget->info->gettext_domain));
-    bg_dialog_show(dialog);
+    bg_dialog_show(dialog, widget->video_button);
     bg_dialog_destroy(dialog);
     }
   

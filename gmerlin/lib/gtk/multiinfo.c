@@ -65,7 +65,7 @@ multiwindow_create(const char * title, const char * properties, const char * des
 
   ret->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
   
-  gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER);
+  gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER_ON_PARENT);
   g_signal_connect(G_OBJECT(ret->window), "delete_event",
                    G_CALLBACK(delete_callback), (gpointer)ret);
 
@@ -131,7 +131,7 @@ static void multiwindow_show(multiwindow_t * w, int modal)
 
 
 void bg_gtk_multi_info_show(const bg_parameter_info_t * info, int i,
-                            const char * translation_domain)
+                            const char * translation_domain, GtkWidget * parent)
   {
   char * text;
   multiwindow_t * win;
@@ -147,6 +147,10 @@ void bg_gtk_multi_info_show(const bg_parameter_info_t * info, int i,
   
   free(text);
 
+  parent = bg_gtk_get_toplevel(parent);
+  if(parent)
+    gtk_window_set_transient_for(GTK_WINDOW(win->window), GTK_WINDOW(parent));
+  
   multiwindow_show(win, 1);
   }
 

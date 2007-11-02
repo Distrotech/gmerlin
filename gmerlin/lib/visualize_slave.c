@@ -215,6 +215,7 @@ typedef struct
   {
   bg_plugin_handle_t * vis_handle;
   bg_plugin_handle_t * ov_handle;
+  bg_plugin_api_t vis_api;
   
   audio_buffer_t * audio_buffer;
   
@@ -223,6 +224,7 @@ typedef struct
   int do_convert_video;
     
   bg_ov_plugin_t * ov_plugin;
+  bg_ov_callbacks_t ov_callbacks;
 
   bg_visualization_plugin_t * vis_plugin;
 
@@ -308,13 +310,11 @@ load_plugin_lv(const char * name, int plugin_flags, const char * window_id)
   {
   bg_plugin_handle_t * ret;
   ret = calloc(1, sizeof(*ret));
-  fprintf(stderr, "load_plugin_lv: %s\n", window_id);
   if(!bg_lv_load(ret, name, plugin_flags, window_id))
     {
     free(ret);
     return (bg_plugin_handle_t*)0;
     }
-  fprintf(stderr, "load_plugin_lv: %s\n", window_id);
   return ret;
   }
 #endif
@@ -387,7 +387,8 @@ bg_visualizer_slave_create(int argc, char ** argv)
     ret->ov_plugin = (bg_ov_plugin_t*)ret->ov_handle->plugin;
     ret->ov_plugin->set_window(ret->ov_handle->priv, ret->window_id);
     }
-
+  ret->vis_api = BG_PLUGIN_API_GMERLIN;
+  
 #ifdef HAVE_LV
   if(!strncmp(plugin_module, "vis_lv_", 7))
     {
@@ -395,6 +396,7 @@ bg_visualizer_slave_create(int argc, char ** argv)
       ret->vis_handle = load_plugin_lv(plugin_module, BG_PLUGIN_VISUALIZE_FRAME, ret->window_id);
     else
       ret->vis_handle = load_plugin_lv(plugin_module, BG_PLUGIN_VISUALIZE_GL, ret->window_id);
+    ret->vis_api = BG_PLUGIN_API_LV;
     }
   else
 #endif
@@ -406,7 +408,27 @@ bg_visualizer_slave_create(int argc, char ** argv)
   
   ret->vis_plugin = (bg_visualization_plugin_t*)(ret->vis_handle->plugin);
   
+  if(ret->do_ov && ret->ov_plugin->set_callbacks && ret->vis_plugin->get_callbacks)
+    {
+    ret->ov_plugin->set_callbacks(ret->ov_handle->priv,
+                                  ret->vis_plugin->get_callbacks(ret->vis_handle->priv));
+    }
   return ret;
+  }
+
+static void uload_plugin(bg_plugin_handle_t * h, bg_plugin_api_t api)
+  {
+#ifdef HAVE_LV
+  if(api == BG_PLUGIN_API_LV)
+    {
+    bg_lv_unload(h);
+    free(h);
+    return;
+    }
+#endif
+  h->plugin->destroy(h->priv);
+  dlclose(h->dll_handle);
+  free(h);
   }
 
 static void bg_visualizer_slave_destroy(bg_visualizer_slave_t * v)
@@ -424,6 +446,10 @@ static void bg_visualizer_slave_destroy(bg_visualizer_slave_t * v)
   pthread_mutex_destroy(&(v->stop_mutex));
   pthread_mutex_destroy(&(v->ov_mutex));
   pthread_mutex_destroy(&(v->vis_mutex));
+
+  /* Close vis plugin */
+  v->vis_plugin->close(v->vis_handle->priv);
+  uload_plugin(v->vis_handle, v->vis_api);
   
   /* Close OV Plugin */
   if(v->do_ov)
@@ -443,10 +469,8 @@ static void bg_visualizer_slave_destroy(bg_visualizer_slave_t * v)
       v->video_frame_in = (gavl_video_frame_t*)0;
       }
     v->ov_plugin->close(v->ov_handle->priv);
+    uload_plugin(v->ov_handle, BG_PLUGIN_API_GMERLIN);
     }
-  /* Close vis plugin */
-  v->vis_plugin->close(v->vis_handle->priv);
-
   
   free(v);
   }
@@ -545,7 +569,6 @@ static void * video_thread_func(void * data)
       }
     v->last_frame_time = frame_time;
     }
-  fprintf(stderr, "Ended video thread\n");
   pthread_mutex_unlock(&v->running_mutex);
   return (void*)0;
   }
@@ -801,7 +824,6 @@ int main(int argc, char ** argv)
         bg_visualizer_slave_start(s);
         break;
       case BG_VIS_MSG_QUIT:
-        fprintf(stderr, "MSG_QUIT\n");
         keep_going = 0;
         break;
       case BG_VIS_MSG_TELL:

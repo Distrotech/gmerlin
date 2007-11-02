@@ -22,4 +22,4 @@
  * cancel button
  */
 
-int bg_gtk_question(const char * question);
+int bg_gtk_question(const char * question, GtkWidget * parent);

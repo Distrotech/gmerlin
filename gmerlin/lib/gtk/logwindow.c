@@ -295,7 +295,7 @@ void
 bg_gtk_log_window_show(bg_gtk_log_window_t * w)
   {
   if(!w->width || !w->height)
-    gtk_window_set_position(GTK_WINDOW(w->window), GTK_WIN_POS_CENTER);
+    gtk_window_set_position(GTK_WINDOW(w->window), GTK_WIN_POS_CENTER_ON_PARENT);
   gtk_widget_show(w->window);
 
   if(w->width && w->height)

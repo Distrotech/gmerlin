@@ -6,6 +6,6 @@
 int main(int argc, char ** argv)
   {
   bg_gtk_init(&argc, &argv, (char*)0);
-  bg_gtk_message("Switch coffemachine to backwards\rOr not?", BG_GTK_MESSAGE_ERROR);
+  bg_gtk_message("Switch coffemachine to backwards\rOr not?", BG_GTK_MESSAGE_ERROR, NULL);
   return 0;
   }

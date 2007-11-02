@@ -263,9 +263,7 @@ static void button_callback(GtkWidget * w, gpointer data)
     {
     if(!priv->fileselect)
       {
-      toplevel = gtk_widget_get_toplevel(w);
-      if(!GTK_WIDGET_TOPLEVEL (toplevel))
-        toplevel = (GtkWidget*)0;
+      toplevel = bg_gtk_get_toplevel(w);
       
       priv->fileselect =
         gtk_file_chooser_dialog_new (TRD("Select a device", PACKAGE),

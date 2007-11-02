@@ -418,3 +418,16 @@ int bg_gtk_get_tooltips()
   {
   return show_tooltips;
   }
+
+GtkWidget * bg_gtk_get_toplevel(GtkWidget * w)
+  {
+  GtkWidget * toplevel;
+
+  if(!w)
+    return (GtkWidget*)0;
+  
+  toplevel = gtk_widget_get_toplevel(w);
+  if(!GTK_WIDGET_TOPLEVEL (toplevel))
+    toplevel = (GtkWidget*)0;
+  return toplevel;
+  }

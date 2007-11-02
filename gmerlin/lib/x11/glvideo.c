@@ -66,11 +66,9 @@ static int init_gl(driver_data_t * d)
   priv = calloc(1, sizeof(*priv));
   d->priv = priv;
 
-  fprintf(stderr, "init_gl\n");
   
   d->pixelformats = malloc(5*sizeof(*d->pixelformats));
   check_gl(d->win, d->pixelformats, priv);
-  fprintf(stderr, "init_gl 1 %p\n", d->pixelformats);
   
   return 1;
   }
@@ -81,14 +79,12 @@ static int open_gl(driver_data_t * d)
   gl_priv_t * priv;
   gavl_video_frame_t * dummy;
   gavl_video_format_t texture_format;
-  fprintf(stderr, "open_gl 0\n");
   
   priv = (gl_priv_t *)(d->priv);
   w = d->win;
   /* Get the format */
   bg_x11_window_set_gl(w);
 
-  fprintf(stderr, "open_gl 1\n");
   
   switch(d->pixelformat)
     {

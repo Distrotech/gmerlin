@@ -31,6 +31,11 @@
 #define BG_KEY_CONTROL_MASK  (1<<1) //!< Control
 #define BG_KEY_ALT_MASK      (1<<2) //!< Alt
 #define BG_KEY_SUPER_MASK    (1<<3) //!< Windows key is called "Super" under X11
+#define BG_KEY_BUTTON1_MASK  (1<<4) //!< Mouse button 1
+#define BG_KEY_BUTTON2_MASK  (1<<5) //!< Mouse button 2
+#define BG_KEY_BUTTON3_MASK  (1<<6) //!< Mouse button 3
+#define BG_KEY_BUTTON4_MASK  (1<<7) //!< Mouse button 4
+#define BG_KEY_BUTTON5_MASK  (1<<8) //!< Mouse button 5
 
 #define BG_KEY_NONE      -1 //!< Undefined
 
@@ -59,6 +64,18 @@
 #define BG_KEY_TAB        21 //!< Tab
 #define BG_KEY_ESCAPE     22 //!< Esc
 #define BG_KEY_MENU       23 //!< Menu key
+
+#define BG_KEY_QUESTION   24 //!< ?
+#define BG_KEY_EXCLAM     25 //!< !
+#define BG_KEY_QUOTEDBL   26 //!< "
+#define BG_KEY_DOLLAR     27 //!< $
+#define BG_KEY_PERCENT    28 //!< %
+#define BG_KEY_APMERSAND  29 //!< &
+#define BG_KEY_SLASH      30 //!< /
+#define BG_KEY_LEFTPAREN  31 //!< (
+#define BG_KEY_RIGHTPAREN 32 //!< )
+#define BG_KEY_EQUAL      33 //!< =
+#define BG_KEY_BACKSLASH  34 //!< :-)
 
 #define BG_KEY_A 101 //!< A
 #define BG_KEY_B 102 //!< B

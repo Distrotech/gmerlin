@@ -25,4 +25,4 @@
 #define BG_GTK_MESSAGE_INFO  0
 #define BG_GTK_MESSAGE_ERROR 1
 
-void bg_gtk_message(const char * question, int type);
+void bg_gtk_message(const char * question, int type, GtkWidget * parent);

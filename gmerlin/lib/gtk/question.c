@@ -53,7 +53,7 @@ static gboolean delete_callback(GtkWidget * w, GdkEventAny * evt,
   return TRUE;
   }
 
-int bg_gtk_question(const char * question)
+int bg_gtk_question(const char * question, GtkWidget * parent)
   {
   GtkWidget * buttonbox;
   int ret;
@@ -70,7 +70,7 @@ int bg_gtk_question(const char * question)
   
   q->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
-  gtk_window_set_position(GTK_WINDOW(q->window), GTK_WIN_POS_CENTER);
+  gtk_window_set_position(GTK_WINDOW(q->window), GTK_WIN_POS_CENTER_ON_PARENT);
 
   
   q->ok_button = gtk_button_new_from_stock(GTK_STOCK_OK);
@@ -82,9 +82,14 @@ int bg_gtk_question(const char * question)
   
   /* Set attributes */
 
+  parent = bg_gtk_get_toplevel(parent);
+  if(parent)
+    gtk_window_set_transient_for(GTK_WINDOW(q->window),
+                                 GTK_WINDOW(parent));
+  
   gtk_window_set_modal(GTK_WINDOW(q->window), 1);
   gtk_window_set_title(GTK_WINDOW(q->window), TR("Question"));
-  gtk_window_set_position(GTK_WINDOW(q->window), GTK_WIN_POS_CENTER);
+  gtk_window_set_position(GTK_WINDOW(q->window), GTK_WIN_POS_CENTER_ON_PARENT);
   GTK_WIDGET_SET_FLAGS (q->ok_button, GTK_CAN_DEFAULT);
   GTK_WIDGET_SET_FLAGS (q->cancel_button, GTK_CAN_DEFAULT);
 

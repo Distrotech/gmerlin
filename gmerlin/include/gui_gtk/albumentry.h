@@ -19,6 +19,6 @@
 
 /* This pops up a which shows all informations about a selected track */
 
-void bg_gtk_album_enrty_show(const bg_album_entry_t * entry);
+void bg_gtk_album_enrty_show(const bg_album_entry_t * entry, GtkWidget * parent);
 
 

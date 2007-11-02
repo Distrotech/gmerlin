@@ -182,7 +182,9 @@ filesel_create(const char * title,
   GtkWidget * extra = (GtkWidget*)0;
   
   ret = calloc(1, sizeof(*ret));
-
+  
+  parent_window = bg_gtk_get_toplevel(parent_window);
+  
   /* Create fileselection */
   
   if(add_files)
@@ -386,7 +388,7 @@ static gboolean write_delete_callback(GtkWidget * w,
 
 char * bg_gtk_get_filename_write(const char * title,
                                  char ** directory,
-                                 int ask_overwrite)
+                                 int ask_overwrite, GtkWidget * parent)
   {
   char * ret;
   char * tmp_string;
@@ -394,9 +396,11 @@ char * bg_gtk_get_filename_write(const char * title,
 
   ret = (char*)0;
   
+  parent = bg_gtk_get_toplevel(parent);
+  
   f.w =     
     gtk_file_chooser_dialog_new(title,
-                                (GtkWindow*)0,
+                                GTK_WINDOW(parent),
                                 GTK_FILE_CHOOSER_ACTION_SAVE,
                                 GTK_STOCK_CANCEL,
                                 GTK_RESPONSE_CANCEL,
@@ -456,17 +460,19 @@ char * bg_gtk_get_filename_write(const char * title,
   }
 
 char * bg_gtk_get_filename_read(const char * title,
-                                char ** directory)
+                                char ** directory, GtkWidget * parent)
   {
   char * ret;
   char * tmp_string;
   filesel_write_struct f;
 
   ret = (char*)0;
+
+  parent = bg_gtk_get_toplevel(parent);
   
   f.w =     
     gtk_file_chooser_dialog_new(title,
-                                (GtkWindow*)0,
+                                GTK_WINDOW(parent),
                                 GTK_FILE_CHOOSER_ACTION_OPEN,
                                 GTK_STOCK_CANCEL,
                                 GTK_RESPONSE_CANCEL,

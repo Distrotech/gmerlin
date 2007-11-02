@@ -122,13 +122,18 @@ static void button_callback(GtkWidget * w, gpointer data)
   {
   char * fontname;
   font_t * priv = (font_t*)data;
-
+  GtkWidget * toplevel;
   if(w == priv->button)
     {
     if(!priv->fontselect)
       {
       priv->fontselect =  gtk_font_selection_dialog_new("Select a font");
       gtk_window_set_modal(GTK_WINDOW(priv->fontselect), TRUE);
+      toplevel = bg_gtk_get_toplevel(priv->button);
+      if(toplevel)
+        gtk_window_set_transient_for(GTK_WINDOW(priv->fontselect),
+                                     GTK_WINDOW(toplevel));
+      
       g_signal_connect(G_OBJECT(GTK_FONT_SELECTION_DIALOG(priv->fontselect)->ok_button),
                          "clicked", G_CALLBACK(button_callback),
                          (gpointer)priv);

@@ -1,3 +1,4 @@
+#include <gtk/gtk.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -360,9 +361,9 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
   
   }
 
-void track_dialog_run(track_dialog_t * d)
+void track_dialog_run(track_dialog_t * d, GtkWidget * parent)
   {
-  bg_dialog_show(d->cfg_dialog);
+  bg_dialog_show(d->cfg_dialog, parent);
   }
 
 void track_dialog_destroy(track_dialog_t * d)

@@ -375,7 +375,7 @@ static bg_dialog_t * create_dialog(const char * title)
   ret = calloc(1, sizeof(*ret));
   
   ret->window       = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER);
+  gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER_ON_PARENT);
   gtk_window_set_title(GTK_WINDOW(ret->window), title);
     
   ret->apply_button = gtk_button_new_from_stock(GTK_STOCK_APPLY);
@@ -914,12 +914,21 @@ void bg_dialog_add(bg_dialog_t *d,
                       section, set_param, callback_data, info);
   }
 
-void bg_dialog_show(bg_dialog_t * d)
+void bg_dialog_show(bg_dialog_t * d, void * parent)
   {
+  GtkWidget * parent_w;
   if(d->visible)
     {
     gtk_window_present(GTK_WINDOW(d->window));
     return;
+    }
+  if(parent)
+    {
+    parent_w = (GtkWidget*)parent;
+    parent_w = bg_gtk_get_toplevel(parent_w);
+    if(parent_w)
+      gtk_window_set_transient_for(GTK_WINDOW(d->window),
+                                   GTK_WINDOW(parent_w));
     }
   d->visible = 1;
   gtk_widget_show(d->window);

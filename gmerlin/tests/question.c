@@ -8,7 +8,7 @@ int main(int argc, char ** argv)
   int ans;
   bg_gtk_init(&argc, &argv, (char*)0);
   
-  ans = bg_gtk_question("Switch coffemachine to backwards\rOr not?");
+  ans = bg_gtk_question("Switch coffemachine to backwards\rOr not?", NULL);
 
   fprintf(stderr, "Got answer: %s\n", (ans)? "yes" : "no");
   

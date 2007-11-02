@@ -715,12 +715,12 @@ static void button_callback(GtkWidget * wid, gpointer data)
       dialog = bg_dialog_create(subsection, NULL, w,
                                 w->info->multi_parameters[priv->param_selected],
                                 label);
-    bg_dialog_show(dialog);
+    bg_dialog_show(dialog, priv->treeview);
     }
   else if(wid == priv->info_button)
     {
     bg_gtk_multi_info_show(w->info, priv->selected,
-                           priv->translation_domain);
+                           priv->translation_domain, priv->info_button);
     }
   else if(wid == priv->top_button)
     {
@@ -773,7 +773,7 @@ static void button_callback(GtkWidget * wid, gpointer data)
     free(params[0].gettext_domain);
     
     free(tmp_string);
-    bg_dialog_show(dialog);
+    bg_dialog_show(dialog, priv->treeview);
     
     }
   else if(wid == priv->remove_button)

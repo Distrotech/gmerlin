@@ -40,4 +40,4 @@ void bg_gtk_urlsel_destroy(bg_gtk_urlsel_t * urlsel);
 
 /* A non modal window will destroy itself when it's closed */
 
-void bg_gtk_urlsel_run(bg_gtk_urlsel_t * urlsel, int modal);
+void bg_gtk_urlsel_run(bg_gtk_urlsel_t * urlsel, int modal, GtkWidget * parent);

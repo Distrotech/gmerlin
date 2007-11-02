@@ -216,8 +216,8 @@ static int edit_chapter(bg_gtk_chapter_dialog_t * win)
                             win,
                             chapter_parameters,
                             TR("Edit chapter"));
-
-  bg_dialog_show(dialog);
+  
+  bg_dialog_show(dialog, win->window);
   bg_dialog_destroy(dialog);
   return 1;
   }
@@ -332,7 +332,7 @@ static bg_gtk_chapter_dialog_t * create_dialog(bg_chapter_list_t * list,
   
   /* Create objects */
   ret->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER);
+  gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER_ON_PARENT);
   
   gtk_window_set_modal(GTK_WINDOW(ret->window), 1);
   gtk_window_set_title(GTK_WINDOW(ret->window), TR("Edit chapters"));
@@ -448,10 +448,16 @@ static void destroy_dialog(bg_gtk_chapter_dialog_t * dlg)
   }
 
 void bg_gtk_chapter_dialog_show(bg_chapter_list_t ** list,
-                                gavl_time_t duration)
+                                gavl_time_t duration, GtkWidget * parent)
   {
   bg_gtk_chapter_dialog_t * dlg;
   dlg = create_dialog(*list, duration);
+  
+  parent = bg_gtk_get_toplevel(parent);
+  if(parent)
+    gtk_window_set_transient_for(GTK_WINDOW(dlg->window),
+                                 GTK_WINDOW(parent));
+  
   gtk_widget_show(dlg->window);
   gtk_main();
 

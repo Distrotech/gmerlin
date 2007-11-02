@@ -271,7 +271,7 @@ static void filesel_close_callback(bg_gtk_filesel_t * f , void * data)
   gtk_widget_set_sensitive(b->new_button, 1);
   }
 
-static int install_skin(const char * filename)
+static int install_skin(const char * filename, GtkWidget * parent)
   {
   int ret = 0;
   char * command;
@@ -311,7 +311,7 @@ static int install_skin(const char * filename)
   if(system(command))
     {
     error_msg = bg_sprintf(TR("Installing skin from\n%s\nfailed"), filename);
-    bg_gtk_message(error_msg, BG_GTK_MESSAGE_ERROR);
+    bg_gtk_message(error_msg, BG_GTK_MESSAGE_ERROR, parent);
     free(error_msg);
     }
   else
@@ -332,7 +332,7 @@ static void add_file_callback(char ** files, const char * plugin,
   i = 0;
   while(files[i])
     {
-    if(install_skin(files[i]))
+    if(install_skin(files[i], b->window))
       rescan = 1;
     i++;
     }

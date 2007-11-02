@@ -22,7 +22,6 @@ static void init(bg_x11_window_t * w)
     w->drivers[i].win = w;
     if(w->drivers[i].driver->init)
       w->drivers[i].driver->init(&w->drivers[i]);
-    fprintf(stderr, "init %d, %p\n", i, w->drivers[i].pixelformats);
     }
   
   /* TODO: Get screen resolution */
@@ -67,7 +66,6 @@ int bg_x11_window_open_video(bg_x11_window_t * w,
     w->drivers_initialized = 1;
     }
   
-  fprintf(stderr, "open video 1 %p\n", w->drivers[2].pixelformats);
   
   gavl_video_format_copy(&w->video_format, format);
   
@@ -77,8 +75,6 @@ int bg_x11_window_open_video(bg_x11_window_t * w,
 
   for(i = 0; i < num_drivers; i++)
     {
-    fprintf(stderr, "open video 2 %d %p %p\n", i,
-            w->drivers[2].pixelformats, w->drivers[i].win);
     
     w->drivers[i].pixelformat =
       gavl_pixelformat_get_best(format->pixelformat, w->drivers[i].pixelformats,
@@ -125,7 +121,6 @@ int bg_x11_window_open_video(bg_x11_window_t * w,
         break;
       }
 
-    fprintf(stderr, "open video 2\n");
     
     if(!w->drivers[min_index].driver->open)
       {
@@ -144,7 +139,6 @@ int bg_x11_window_open_video(bg_x11_window_t * w,
   if(!w->current_driver)
     return 0;
 
-  fprintf(stderr, "open video 3\n");
   
   w->video_format.pixelformat = w->current_driver->pixelformat;
   
@@ -198,7 +192,9 @@ void bg_x11_window_set_rectangles(bg_x11_window_t * w,
   gavl_video_options_t * opt;
   gavl_rectangle_f_copy(&w->src_rect, src_rect);
   gavl_rectangle_i_copy(&w->dst_rect, dst_rect);
-
+  
+  if(!w->video_open)
+    w->video_open = 1;
   
   if(w->current_driver && w->do_sw_scale)
     {
@@ -270,9 +266,6 @@ void bg_x11_window_put_frame(bg_x11_window_t * w, gavl_video_frame_t * f)
 void bg_x11_window_close_video(bg_x11_window_t * w)
   {
   int i;
-  
-  fprintf(stderr, "bg_x11_window_close_video\n");
-  
   if(w->window_frame)
     {
     if(w->current_driver->driver->destroy_frame)
@@ -296,8 +289,8 @@ void bg_x11_window_close_video(bg_x11_window_t * w)
   
   if(w->current_driver->driver->close)
     w->current_driver->driver->close(w->current_driver);
-
   
+  w->video_open = 0;
   }
 
 

@@ -58,7 +58,7 @@ bg_gtk_textwindow_create(const char * text, const char * title)
 
   ret->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
   
-  gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER);
+  gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER_ON_PARENT);
   g_signal_connect(G_OBJECT(ret->window), "delete_event",
                    G_CALLBACK(delete_callback), (gpointer)ret);
 
@@ -95,8 +95,13 @@ bg_gtk_textwindow_create(const char * text, const char * title)
   return ret;
   }
 
-void bg_gtk_textwindow_show(bg_gtk_textwindow_t * w, int modal)
+void bg_gtk_textwindow_show(bg_gtk_textwindow_t * w, int modal, GtkWidget * parent)
   {
+  parent = bg_gtk_get_toplevel(parent);
+  if(parent)
+    gtk_window_set_transient_for(GTK_WINDOW(w->window),
+                                 GTK_WINDOW(parent));
+  
   gtk_window_set_modal(GTK_WINDOW(w->window), modal);
 
   gtk_widget_grab_default(w->close_button);

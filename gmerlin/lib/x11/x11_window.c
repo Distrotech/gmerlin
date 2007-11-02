@@ -815,8 +815,10 @@ static int create_window(bg_x11_window_t * w,
     PointerMotionMask |
     ExposureMask |
     ButtonPressMask |
+    ButtonReleaseMask |
     PropertyChangeMask |
     KeyPressMask |
+    KeyReleaseMask |
     FocusChangeMask;
   
   /* Create normal window */

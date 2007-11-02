@@ -211,7 +211,7 @@ static void flush_log_queue(gmerlin_webcam_window_t * w)
         break;
       case BG_LOG_ERROR:
         tmp_string = bg_msg_get_arg_string(msg, 2);
-        bg_gtk_message(tmp_string, BG_GTK_MESSAGE_ERROR);
+        bg_gtk_message(tmp_string, BG_GTK_MESSAGE_ERROR, w->win);
         free(tmp_string);
         break;
       }

@@ -32,7 +32,7 @@
 
 #define S(s) (s?s:"(NULL)")
 
-void bg_gtk_album_enrty_show(const bg_album_entry_t * entry)
+void bg_gtk_album_enrty_show(const bg_album_entry_t * entry, GtkWidget * parent)
   {
   char * text, * utf8_location;
   bg_gtk_textwindow_t * win;
@@ -59,7 +59,7 @@ void bg_gtk_album_enrty_show(const bg_album_entry_t * entry)
   win = bg_gtk_textwindow_create(text, entry->name);
   free(text);
 
-  bg_gtk_textwindow_show(win, 0);
+  bg_gtk_textwindow_show(win, 0, parent);
   if(utf8_location)
     free(utf8_location);
   }

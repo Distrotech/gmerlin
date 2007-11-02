@@ -1136,7 +1136,7 @@ static void rename_current_entry(bg_gtk_album_widget_t * w)
                             info,
                             TR("Rename entry"));
   
-  bg_dialog_show(dialog);
+  bg_dialog_show(dialog, w->treeview);
   
   bg_dialog_destroy(dialog);
   
@@ -1187,7 +1187,7 @@ static void add_urls(bg_gtk_album_widget_t * widget)
   gtk_widget_set_sensitive(widget->add_urls_button, 0);
   gtk_widget_set_sensitive(widget->menu.add_menu.urls_item, 0);
   
-  bg_gtk_urlsel_run(widget->add_urls_urlsel, 0);
+  bg_gtk_urlsel_run(widget->add_urls_urlsel, 0, widget->add_urls_button);
 
   }
 
@@ -1308,7 +1308,7 @@ static void menu_callback(GtkWidget * w, gpointer data)
   
   else if(w == widget->menu.selected_menu.info_item)
     {
-    bg_gtk_album_enrty_show(widget->selected_entry);
+    bg_gtk_album_enrty_show(widget->selected_entry, widget->treeview);
     }
   /* Cut */
   else if(w == widget->menu.edit_menu.cut_item)
@@ -1346,7 +1346,7 @@ static void menu_callback(GtkWidget * w, gpointer data)
     {
     tmp_string = bg_gtk_get_filename_write("Save album as",
                                            (char**)0,
-                                           1);
+                                           1, widget->treeview);
     if(tmp_string)
       {
       bg_album_save(widget->album, tmp_string);
@@ -2477,7 +2477,7 @@ static void button_callback(GtkWidget * wid, gpointer data)
   
   else if(wid == w->info_button)
     {
-    bg_gtk_album_enrty_show(w->selected_entry);
+    bg_gtk_album_enrty_show(w->selected_entry, w->info_button);
     }
   else if(wid == w->move_selected_up_button)
     {

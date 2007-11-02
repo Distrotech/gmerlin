@@ -290,6 +290,17 @@ static void close_vis(visualizer_t * v)
   v->vis_open = 0;
   }
 
+static void grab_notify_callback(GtkWidget *widget,
+                                 gboolean   was_grabbed,
+                                 gpointer   data)
+  {
+  visualizer_t * win = (visualizer_t*)data;
+  if(!was_grabbed)
+    {
+    GTK_WIDGET_SET_FLAGS(win->current_window->socket, GTK_CAN_FOCUS);
+    gtk_widget_grab_focus(win->current_window->socket);
+    }
+  }
 
 static void button_callback(GtkWidget * w, gpointer data)
   {
@@ -299,7 +310,7 @@ static void button_callback(GtkWidget * w, gpointer data)
      (w == win->normal_window.window))
     gtk_main_quit();
   else if(w == win->config_button)
-    bg_dialog_show(win->cfg_dialog);
+    bg_dialog_show(win->cfg_dialog, win->current_window->window);
   else if((w == win->fullscreen_button) ||
           (w == win->nofullscreen_button))
     toggle_fullscreen(win);
@@ -514,6 +525,10 @@ static void window_init(visualizer_t * v,
   
   g_signal_connect(G_OBJECT(w->socket), "plug-removed",
                    G_CALLBACK(plug_removed_callback),
+                   v);
+
+  g_signal_connect(G_OBJECT(w->socket), "grab-notify",
+                   G_CALLBACK(grab_notify_callback),
                    v);
 
   g_signal_connect(G_OBJECT(w->socket), "plug-added",
@@ -892,11 +907,8 @@ int main(int argc, char ** argv)
   bg_gtk_init(&argc, &argv, "visualizer_icon.png");
 
   win = visualizer_create();
-
-  fprintf(stderr, "Entering main\n");
   gtk_main();
-  fprintf(stderr, "Main done\n");
-
+  
   if(win->vis_open)
     bg_visualizer_stop(win->visualizer);
   visualizer_destroy(win);

@@ -136,12 +136,9 @@ set_parameter_alsa(void * p, const char * name,
   
   if(!name)
     return;
-
-  fprintf(stderr, "set_parameter_alsa: %s\n", name);
-
+  
   if(!strcmp(name, "channel_mode"))
     {
-    fprintf(stderr, "Channel mode: %s\n", val->val_str);
     if(!strcmp(val->val_str, "mono"))
       priv->num_channels = 1;
     else if(!strcmp(val->val_str, "stereo"))

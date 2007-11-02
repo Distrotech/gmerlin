@@ -74,7 +74,7 @@ static void button_callback(GtkWidget * w, gpointer data)
 
   if(w == win->info_button)
     {
-    bg_gtk_plugin_info_show(win->info);
+    bg_gtk_plugin_info_show(win->info, win->info_button);
     }
   else if(w == win->config_button)
     {
@@ -82,7 +82,7 @@ static void button_callback(GtkWidget * w, gpointer data)
                               NULL, NULL,
                               win->info->parameters,
                               TRD(win->info->long_name, win->info->gettext_domain));
-    bg_dialog_show(dialog);
+    bg_dialog_show(dialog, win->config_button);
     bg_dialog_destroy(dialog);
     }
   }

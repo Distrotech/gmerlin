@@ -159,7 +159,7 @@ static void button_callback(GtkWidget * wid, gpointer data)
   if(wid == priv->info_button)
     {
     bg_gtk_multi_info_show(w->info, priv->selected,
-                           priv->translation_domain);
+                           priv->translation_domain, priv->info_button);
     }
   else if(wid == priv->config_button)
     {
@@ -176,8 +176,7 @@ static void button_callback(GtkWidget * wid, gpointer data)
                               priv->data,
                               w->info->multi_parameters[priv->selected],
                               label);
-    bg_dialog_show(dialog);
-
+    bg_dialog_show(dialog, priv->config_button);
     }
   }
 

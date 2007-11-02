@@ -262,13 +262,27 @@ static int key_callback(void * data, int key, int mask)
         }
       break;
     }
-#if 0
-  if(priv->callbacks->key_callback)
+#if 1
+  if(priv->callbacks && priv->callbacks->key_callback)
     {
+    //    fprintf(stderr, "OV X11: Key callback\n");
     priv->callbacks->key_callback(priv->callbacks->data, key, mask);
     return 1;
     }
 #endif
+  return 0;
+  }
+
+static int key_release_callback(void * data, int key, int mask)
+  {
+  x11_t * priv;
+  priv = (x11_t *)data;
+  if(priv->callbacks && priv->callbacks->key_release_callback)
+    {
+    //    fprintf(stderr, "OV X11: Key callback\n");
+    priv->callbacks->key_release_callback(priv->callbacks->data, key, mask);
+    return 1;
+    }
   return 0;
   }
 
@@ -329,11 +343,38 @@ static int button_callback(void * data, int x, int y, int button, int mask)
   /* Check for plugin callback*/
   if(priv->callbacks && priv->callbacks->button_callback)
     {
-    
-
     priv->callbacks->button_callback(priv->callbacks->data,
                                      x, y, button, mask);
     return 1;
+    }
+  /* Propagate to parent */
+  return 0;
+  }
+
+static int button_release_callback(void * data, int x, int y, int button, int mask)
+  {
+  x11_t * priv;
+  priv = (x11_t *)data;
+  /* Check for plugin callback*/
+  if(priv->callbacks && priv->callbacks->button_release_callback)
+    {
+    priv->callbacks->button_release_callback(priv->callbacks->data,
+                                             x, y, button, mask);
+    return 1;
+    }
+  return 0;
+  }
+
+static int motion_callback(void * data, int x, int y, int mask)
+  {
+  x11_t * priv;
+  priv = (x11_t *)data;
+  /* Check for plugin callback*/
+  if(priv->callbacks && priv->callbacks->motion_callback)
+    {
+    priv->callbacks->motion_callback(priv->callbacks->data,
+                                     x, y, mask);
+    return 0;
     }
   /* Propagate to parent */
   return 0;
@@ -393,10 +434,13 @@ static void * create_x11()
   
   /* Initialize callbacks */
   
-  //  priv->window_callbacks.key_callback = key_callback;
+  priv->window_callbacks.key_callback = key_callback;
+  priv->window_callbacks.key_release_callback = key_release_callback;
   priv->window_callbacks.accel_callback = accel_callback;
   priv->window_callbacks.accel_map = priv->accel_map;
   priv->window_callbacks.button_callback = button_callback;
+  priv->window_callbacks.button_release_callback = button_release_callback;
+  priv->window_callbacks.motion_callback = motion_callback;
   priv->window_callbacks.size_changed = size_changed;
   priv->window_callbacks.set_fullscreen = set_fullscreen;
   

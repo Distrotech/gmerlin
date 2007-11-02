@@ -25,9 +25,14 @@ typedef struct
   {
   const bg_accelerator_map_t * accel_map;
   void (*accel_callback)(void * data, int accel);
-  //  int (*key_callback)(void * data, int key, int mask);
   
+  int (*key_callback)(void * data, int key, int mask);
+  int (*key_release_callback)(void * data, int key, int mask);
+
   int (*button_callback)(void * data, int x, int y, int button, int mask);
+  int (*button_release_callback)(void * data, int x, int y, int button, int mask);
+  int (*motion_callback)(void * data, int x, int y, int mask);
+  
   void (*size_changed)(void * data, int width, int height);
   void (*set_fullscreen)(void * data, int fullscreen);
   

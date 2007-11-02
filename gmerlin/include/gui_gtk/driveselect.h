@@ -40,4 +40,5 @@ void bg_gtk_drivesel_destroy(bg_gtk_drivesel_t * drivesel);
 
 /* A non modal window will destroy itself when it's closed */
 
-void bg_gtk_drivesel_run(bg_gtk_drivesel_t * drivesel, int modal);
+void bg_gtk_drivesel_run(bg_gtk_drivesel_t * drivesel, int modal,
+                         GtkWidget * w);

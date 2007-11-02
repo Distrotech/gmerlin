@@ -306,7 +306,7 @@ static void plugin_menu_configure(plugin_menu_t * m)
                             parameters,
                             TRD(m->plugin_info->long_name,
                                 m->plugin_info->gettext_domain));
-  bg_dialog_show(dialog);
+  bg_dialog_show(dialog, m->g->player_window->window);
   bg_dialog_destroy(dialog);
   
   }
@@ -339,17 +339,17 @@ static void menu_callback(GtkWidget * w, gpointer data)
   if(w == the_menu->options_menu.preferences)
     gmerlin_configure(g);
   else if(w == the_menu->audio_stream_menu.options)
-    bg_dialog_show(g->audio_dialog);
+    bg_dialog_show(g->audio_dialog, g->player_window->window);
   else if(w == the_menu->audio_stream_menu.filters)
-    bg_dialog_show(g->audio_filter_dialog);
+    bg_dialog_show(g->audio_filter_dialog, g->player_window->window);
   else if(w == the_menu->video_stream_menu.options)
-    bg_dialog_show(g->video_dialog);
+    bg_dialog_show(g->video_dialog, g->player_window->window);
   else if(w == the_menu->video_stream_menu.filters)
-    bg_dialog_show(g->video_filter_dialog);
+    bg_dialog_show(g->video_filter_dialog, g->player_window->window);
   else if(w == the_menu->subtitle_stream_menu.options)
-    bg_dialog_show(g->subtitle_dialog);
+    bg_dialog_show(g->subtitle_dialog, g->player_window->window);
   else if(w == the_menu->visualization_menu.options)
-    bg_dialog_show(g->visualization_dialog);
+    bg_dialog_show(g->visualization_dialog, g->player_window->window);
   else if(w == the_menu->visualization_menu.enable)
     {
     i = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(the_menu->visualization_menu.enable));
@@ -495,7 +495,8 @@ static void menu_callback(GtkWidget * w, gpointer data)
   else if(plugin_menu_has_widget(&the_menu->audio_stream_menu.plugin_menu, w, &i))
     plugin_menu_set_plugin(&the_menu->audio_stream_menu.plugin_menu, i);
   else if(w == the_menu->audio_stream_menu.plugin_menu.info)
-    bg_gtk_plugin_info_show(the_menu->audio_stream_menu.plugin_menu.plugin_info);
+    bg_gtk_plugin_info_show(the_menu->audio_stream_menu.plugin_menu.plugin_info,
+                            g->player_window->window);
   else if(w == the_menu->audio_stream_menu.plugin_menu.options)
     plugin_menu_configure(&the_menu->audio_stream_menu.plugin_menu);
 
@@ -503,7 +504,8 @@ static void menu_callback(GtkWidget * w, gpointer data)
   else if(plugin_menu_has_widget(&the_menu->video_stream_menu.plugin_menu, w, &i))
     plugin_menu_set_plugin(&the_menu->video_stream_menu.plugin_menu, i);
   else if(w == the_menu->video_stream_menu.plugin_menu.info)
-    bg_gtk_plugin_info_show(the_menu->video_stream_menu.plugin_menu.plugin_info);
+    bg_gtk_plugin_info_show(the_menu->video_stream_menu.plugin_menu.plugin_info,
+                            g->player_window->window);
   else if(w == the_menu->video_stream_menu.plugin_menu.options)
     plugin_menu_configure(&the_menu->video_stream_menu.plugin_menu);
 
@@ -511,7 +513,8 @@ static void menu_callback(GtkWidget * w, gpointer data)
   else if(plugin_menu_has_widget(&the_menu->visualization_menu.plugin_menu, w, &i))
     plugin_menu_set_plugin(&the_menu->visualization_menu.plugin_menu, i);
   else if(w == the_menu->visualization_menu.plugin_menu.info)
-    bg_gtk_plugin_info_show(the_menu->visualization_menu.plugin_menu.plugin_info);
+    bg_gtk_plugin_info_show(the_menu->visualization_menu.plugin_menu.plugin_info,
+                            g->player_window->window);
   else if(w == the_menu->visualization_menu.plugin_menu.options)
     plugin_menu_configure(&the_menu->visualization_menu.plugin_menu);
   }

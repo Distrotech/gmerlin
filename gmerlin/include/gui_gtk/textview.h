@@ -30,4 +30,4 @@ typedef struct bg_gtk_textwindow_s bg_gtk_textwindow_t;
 
 bg_gtk_textwindow_t *
 bg_gtk_textwindow_create(const char * text, const char * title);
-void bg_gtk_textwindow_show(bg_gtk_textwindow_t * w, int modal);
+void bg_gtk_textwindow_show(bg_gtk_textwindow_t * w, int modal, GtkWidget * parent);

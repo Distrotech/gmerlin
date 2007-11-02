@@ -37,7 +37,7 @@ int main(int argc, char ** argv)
   bg_gtk_init(&argc, &argv, (char*)0);
   
   cl = create_chapter_list();
-  bg_gtk_chapter_dialog_show(&cl, duration);
+  bg_gtk_chapter_dialog_show(&cl, duration, NULL);
 
   if(cl)
     {

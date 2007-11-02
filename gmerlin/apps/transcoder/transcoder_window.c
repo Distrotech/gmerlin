@@ -636,7 +636,7 @@ static void button_callback(GtkWidget * w, gpointer data)
   else if((w == win->load_button) || (w == win->file_menu.load_item))
     {
     tmp_string = bg_gtk_get_filename_read(TR("Load task list"),
-                                          &win->task_path);
+                                          &win->task_path, win->load_button);
     if(tmp_string)
       {
       track_list_load(win->tracklist, tmp_string);
@@ -646,7 +646,8 @@ static void button_callback(GtkWidget * w, gpointer data)
   else if((w == win->save_button) || (w == win->file_menu.save_item))
     {
     tmp_string = bg_gtk_get_filename_write(TR("Load task list"),
-                                           &win->task_path, 1);
+                                           &win->task_path, 1,
+                                           win->save_button);
     if(tmp_string)
       {
       track_list_load(win->tracklist, tmp_string);
@@ -656,7 +657,7 @@ static void button_callback(GtkWidget * w, gpointer data)
   else if(w == win->options_menu.load_item)
     {
     tmp_string = bg_gtk_get_filename_read(TR("Load profile"),
-                                          &win->task_path);
+                                          &win->task_path, win->win);
     if(tmp_string)
       {
       transcoder_window_load_profile(win, tmp_string);
@@ -666,7 +667,7 @@ static void button_callback(GtkWidget * w, gpointer data)
   else if(w == win->options_menu.save_item)
     {
     tmp_string = bg_gtk_get_filename_read(TR("Save profile"),
-                                          &win->task_path);
+                                          &win->task_path, win->win);
     if(tmp_string)
       {
       bg_cfg_registry_save(win->cfg_reg, tmp_string);
@@ -1311,7 +1312,7 @@ static void transcoder_window_preferences(transcoder_window_t * w)
                 bg_gtk_log_window_get_parameters(w->logwindow));
 
   
-  bg_dialog_show(dlg);
+  bg_dialog_show(dlg, w->win);
   bg_dialog_destroy(dlg);
 
   bg_audio_filter_chain_destroy(ac);

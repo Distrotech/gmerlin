@@ -874,6 +874,7 @@ typedef struct bg_ov_callbacks_s
    *  \param data The data member of this bg_ov_callbacks_s struct
    *  \param key Key code (see \ref keycodes) 
    *  \param mask Modifier mask (see \ref keycodes)
+   *  \returns 1 if the event should further be processed, 0 else
    *
    *  Although key_callback and accel_callback can be used at the same
    *  time, accelerator_callback is preferred, because it allows registering
@@ -882,19 +883,49 @@ typedef struct bg_ov_callbacks_s
    *  receive keybords events·
    */
   
-  //  void (*key_callback)(void * data, int key, int mask);
+  int (*key_callback)(void * data, int key, int mask);
+
+  /** \brief Keyboard release callback
+   *  \param data The data member of this bg_ov_callbacks_s struct
+   *  \param key Key code (see \ref keycodes) 
+   *  \param mask Modifier mask (see \ref keycodes)
+   *  \returns 1 if the event should further be processed, 0 else
+   */
+  
+  int (*key_release_callback)(void * data, int key, int mask);
   
   /** \brief Mouse button callback
    *  \param data The data member of this bg_ov_callbacks_s struct
    *  \param x Horizontal cursor position in image coordinates
    *  \param y Vertical cursor position in image coordinates
    *  \param button Number of the mouse button, which was pressed (starting with 1)
-   *
-   *
+   *  \param mask State mask
+   *  \returns 1 if the event should further be processed, 0 else
    */
   
-  void (*button_callback)(void * data, int x, int y, int button, int mask);
+  int (*button_callback)(void * data, int x, int y, int button, int mask);
 
+  /** \brief Mouse button release callback
+   *  \param data The data member of this bg_ov_callbacks_s struct
+   *  \param x Horizontal cursor position in image coordinates
+   *  \param y Vertical cursor position in image coordinates
+   *  \param button Number of the mouse button, which was pressed (starting with 1)
+   *  \param mask State mask
+   *  \returns 1 if the event should further be processed, 0 else
+   */
+  
+  int (*button_release_callback)(void * data, int x, int y, int button, int mask);
+  
+  /** \brief Motion callback
+   *  \param data The data member of this bg_ov_callbacks_s struct
+   *  \param x Horizontal cursor position in image coordinates
+   *  \param y Vertical cursor position in image coordinates
+   *  \param mask State mask
+   *  \returns 1 if the event should further be processed, 0 else
+   */
+  
+  int (*motion_callback)(void * data, int x, int y, int mask);
+  
   /** \brief Show/hide callback
    *  \param data The data member of this bg_ov_callbacks_s struct
    *  \param show 1 if the window is shown now, 0 if it is hidden.
@@ -1869,9 +1900,11 @@ typedef struct bg_visualization_plugin_s
   {
   bg_plugin_common_t common; //!< Infos and functions common to all plugin types
   
+  bg_ov_callbacks_t * (*get_callbacks)(void * priv);
+  
   int (*open_ov)(void * priv, gavl_audio_format_t * audio_format,
                  gavl_video_format_t * video_format);
-
+  
   int (*open_win)(void * priv, gavl_audio_format_t * audio_format,
                   const char * window_id);
   
@@ -1880,7 +1913,7 @@ typedef struct bg_visualization_plugin_s
   
   /* For GL Plugins only */
   void (*show_frame)(void * priv);
-
+  
   void (*close)(void * priv);
   
   } bg_visualization_plugin_t;
