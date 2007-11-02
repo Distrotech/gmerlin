@@ -387,6 +387,7 @@ static bg_dialog_t * create_dialog(const char * title)
   GTK_WIDGET_SET_FLAGS(ret->ok_button, GTK_CAN_DEFAULT);
   
   gtk_window_set_modal(GTK_WINDOW(ret->window), TRUE);
+  
   g_signal_connect(G_OBJECT(ret->ok_button), "clicked",
                    G_CALLBACK(button_callback), (gpointer)ret);
   g_signal_connect(G_OBJECT(ret->close_button), "clicked",
@@ -473,6 +474,7 @@ static bg_dialog_t * create_dialog(const char * title)
   gtk_widget_show(ret->mainbox);
   gtk_container_add(GTK_CONTAINER(ret->window), ret->mainbox);  
   
+  gtk_widget_realize(ret->window);
   return ret;
   }
 

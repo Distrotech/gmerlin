@@ -549,3 +549,30 @@ bg_gtk_plugin_widget_single_set_subtitle_overlay_section(bg_gtk_plugin_widget_si
   
   }
 
+void bg_gtk_plugin_widget_single_show_buttons(bg_gtk_plugin_widget_single_t * w,
+                                              int show)
+  {
+  if(show)
+    {
+    gtk_widget_show(w->config_button);
+    gtk_widget_show(w->info_button);
+
+    if(w->audio_button)
+      gtk_widget_show(w->audio_button);
+      
+    if(w->video_button)
+      gtk_widget_show(w->video_button);
+    }
+  else
+    {
+    gtk_widget_hide(w->config_button);
+    gtk_widget_hide(w->info_button);
+
+    if(w->audio_button)
+      gtk_widget_hide(w->audio_button);
+      
+    if(w->video_button)
+      gtk_widget_hide(w->video_button);
+    }
+  
+  }

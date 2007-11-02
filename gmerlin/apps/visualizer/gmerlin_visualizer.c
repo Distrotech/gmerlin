@@ -191,6 +191,11 @@ static void toggle_fullscreen(visualizer_t * v)
     /* Update toolbar */
     gtk_widget_show(v->nofullscreen_button);
     gtk_widget_hide(v->fullscreen_button);
+
+    gtk_widget_hide(v->config_button);
+    gtk_widget_hide(v->plugin_button);
+
+    bg_gtk_plugin_widget_single_show_buttons(v->vis_plugins, 0);
     
     v->current_window = &v->fullscreen_window;
     }
@@ -208,6 +213,10 @@ static void toggle_fullscreen(visualizer_t * v)
     /* Update toolbar */
     gtk_widget_show(v->fullscreen_button);
     gtk_widget_hide(v->nofullscreen_button);
+
+    gtk_widget_show(v->config_button);
+    gtk_widget_show(v->plugin_button);
+    bg_gtk_plugin_widget_single_show_buttons(v->vis_plugins, 1);
     
     v->current_window = &v->normal_window;
     }

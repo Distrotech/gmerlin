@@ -35,6 +35,7 @@ bg_gtk_plugin_widget_multi_create(bg_plugin_registry_t * reg,
 
 void bg_gtk_plugin_widget_multi_destroy(bg_gtk_plugin_widget_multi_t * w);
 
+
 GtkWidget *
 bg_gtk_plugin_widget_multi_get_widget(bg_gtk_plugin_widget_multi_t * w);
 
@@ -62,6 +63,9 @@ bg_gtk_plugin_widget_single_set_parameter_callback(bg_gtk_plugin_widget_single_t
 
 
 void bg_gtk_plugin_widget_single_destroy(bg_gtk_plugin_widget_single_t * w);
+
+void bg_gtk_plugin_widget_single_show_buttons(bg_gtk_plugin_widget_single_t * w,
+                                              int show);
 
 // GtkWidget *
 // bg_gtk_plugin_widget_single_get_widget(bg_gtk_plugin_widget_single_t * w);
