@@ -217,6 +217,7 @@ static int set_diseqc(bgav_input_context_t * ctx, bgav_dvb_channel_info_t * c)
 static int tune_in(bgav_input_context_t * ctx,
                    bgav_dvb_channel_info_t * channel)
   {
+  int try;
   gavl_time_t delay_time;
   fe_status_t status = 0;
   dvb_priv_t * priv;
@@ -274,9 +275,16 @@ static int tune_in(bgav_input_context_t * ctx,
   /* Wait for frontend to be locked */
 
   delay_time = GAVL_TIME_SCALE / 10;
-  
+
+  try = 0;
   do{
     status = 0;
+    try++;
+    if(try > 20)
+      {
+      status |= FE_TIMEDOUT;
+      break;
+      }
     if(ioctl(priv->fe_fd, FE_READ_STATUS, &status) < 0)
       {
       bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Reading status failed: %s",
@@ -289,7 +297,7 @@ static int tune_in(bgav_input_context_t * ctx,
     gavl_time_delay(&delay_time);
     bgav_log(ctx->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Waiting for lock");
     } while (!(status & FE_TIMEDOUT));
-
+  
   if(status & FE_TIMEDOUT)
     {
     bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Locking timed out");
@@ -829,16 +837,33 @@ static void close_dvb(bgav_input_context_t * ctx)
   }
 
 static int read_dvb(bgav_input_context_t* ctx,
-                         uint8_t * buffer, int len)
+                    uint8_t * buffer, int len)
   {
   dvb_priv_t * priv;
   struct dvb_frontend_event event;
-
+  fd_set rset;
+  struct timeval timeout;
+  
   priv = (dvb_priv_t *)(ctx->priv);
-
+  
   /* Flush events */
   while (ioctl(priv->fe_fd, FE_GET_EVENT, &event) != -1);
-
+  
+  if(ctx->opt->read_timeout)
+    {
+    FD_ZERO(&rset);
+    FD_SET (priv->dvr_fd, &rset);
+    timeout.tv_sec  = ctx->opt->read_timeout / 1000;
+    timeout.tv_usec = (ctx->opt->read_timeout % 1000) * 1000;
+    if(select (priv->dvr_fd+1, &rset, NULL, NULL, &timeout) <= 0)
+      {
+      bgav_log(ctx->opt,
+               BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Reading timed out (check cable connections)");
+      return 0;
+      }
+    }
+  
   return read(priv->dvr_fd, buffer, len);
   //  return 0;
   }
