@@ -18,6 +18,16 @@
 #include <log.h>
 #define LOG_DOMAIN "gmerlin_visualizer"
 
+#define TOOLBAR_TRIGGER_KEY   (1<<0)
+#define TOOLBAR_TRIGGER_MOUSE (1<<1)
+
+#define TOOLBAR_LOCATION_TOP    0
+#define TOOLBAR_LOCATION_BOTTOM 1
+
+extern void
+gtk_decorated_window_move_resize_window(GtkWindow*, int, int, int, int);
+
+
 typedef struct
   {
   GtkWidget * window;
@@ -79,6 +89,7 @@ typedef struct
   
   //  bg_cfg_section_t * vumeter_section;
   bg_cfg_section_t * visualizer_section;
+  bg_cfg_section_t * general_section;
   bg_dialog_t * cfg_dialog;
 
   int audio_open;
@@ -87,7 +98,28 @@ typedef struct
   int mouse_in_toolbar;
   int do_hide_toolbar;
   int toolbar_visible;
+  
+  int toolbar_location;
+  int toolbar_trigger;
+  
+  int x, y, width, height;
   } visualizer_t;
+
+static gboolean configure_callback(GtkWidget * w, GdkEventConfigure *event,
+                                   gpointer data)
+  {
+  visualizer_t * win;
+  
+  win = (visualizer_t*)data;
+  win->x = event->x;
+  win->y = event->y;
+  win->width = event->width;
+  win->height = event->height;
+  gdk_window_get_root_origin(win->current_window->window->window,
+                             &(win->x), &(win->y));
+  return FALSE;
+  }
+
 
 static char * get_display_string(visualizer_t * v)
   {
@@ -171,8 +203,13 @@ static void show_toolbar(visualizer_t * v)
 
 static void attach_toolbar(visualizer_t * v, window_t * win)
   {
-  gtk_box_pack_start(GTK_BOX(win->box), v->toolbar,
+  if(v->toolbar_location == TOOLBAR_LOCATION_TOP)
+    gtk_box_pack_start(GTK_BOX(win->box), v->toolbar,
+                       FALSE, FALSE, 0);
+  else
+    gtk_box_pack_end(GTK_BOX(win->box), v->toolbar,
                      FALSE, FALSE, 0);
+    
   
   }
 
@@ -402,6 +439,7 @@ static void plugin_window_init(plugin_window_t * win, visualizer_t * v)
   int row = 0, num_columns = 4;
   GtkWidget * table;
   win->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  
   win->ra_plugins =
     bg_gtk_plugin_widget_single_create(TR("Audio recorder"),
                                        v->plugin_reg,
@@ -448,21 +486,14 @@ static void plugin_window_init(plugin_window_t * win, visualizer_t * v)
   }
 
 
-static gboolean mouse_button_callback(GtkWidget * w,
-                                      GdkEventButton * evt,
-                                      gpointer data)
-  {
-  visualizer_t * v = (visualizer_t*)data;
-  show_toolbar(v);
-  return TRUE;
-  }
 
 static gboolean motion_callback(GtkWidget * w,
                                 GdkEventMotion * evt,
                                 gpointer data)
   {
   visualizer_t * v = (visualizer_t*)data;
-  show_toolbar(v);
+  if(v->toolbar_trigger & TOOLBAR_TRIGGER_MOUSE)
+    show_toolbar(v);
   return FALSE;
   }
 
@@ -487,8 +518,9 @@ static gboolean key_callback(GtkWidget * w,
         toggle_fullscreen(v);
       return TRUE;
       break;
-    case GDK_m:
-      show_toolbar(v);
+    case GDK_Menu:
+      if(v->toolbar_trigger & TOOLBAR_TRIGGER_KEY)
+        show_toolbar(v);
       return TRUE;
       break;
     }
@@ -500,6 +532,11 @@ static void window_init(visualizer_t * v,
   {
   GtkWidget * table;
   w->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
+
+  if(!fullscreen)
+    g_signal_connect(G_OBJECT(w->window), "configure-event",
+                     G_CALLBACK(configure_callback), (gpointer)v);
+  
   gtk_window_set_title(GTK_WINDOW(w->window), "Gmerlin visualizer");
   w->socket = gtk_socket_new();
   w->box = gtk_vbox_new(0, 0);
@@ -516,7 +553,6 @@ static void window_init(visualizer_t * v,
   gtk_widget_show(table);
   
   gtk_widget_set_events(w->socket,
-                        GDK_BUTTON_PRESS_MASK |
                         GDK_KEY_PRESS_MASK | 
                         GDK_POINTER_MOTION_MASK);
   
@@ -544,9 +580,6 @@ static void window_init(visualizer_t * v,
                    G_CALLBACK(plug_added_callback),
                    v);
   
-  g_signal_connect(G_OBJECT(w->socket), "button-press-event",
-                   G_CALLBACK(mouse_button_callback),
-                   v);
   g_signal_connect(G_OBJECT(w->socket), "key-press-event",
                    G_CALLBACK(key_callback),
                    v);
@@ -603,8 +636,138 @@ static void set_vis_param(void * data, const char * name,
     open_vis(v);
     }
   }
-                         
 
+static void set_general_parameter(void * data, const char * name,
+                                  const bg_parameter_value_t * val)
+  {
+  visualizer_t * v;
+  int i_tmp;
+  v = (visualizer_t *)data;
+  
+  if(!name)
+    return;
+
+  if(!strcmp(name, "toolbar_location"))
+    {
+    if(!strcmp(val->val_str, "top"))
+      i_tmp = TOOLBAR_LOCATION_TOP;
+    else
+      i_tmp = TOOLBAR_LOCATION_BOTTOM;
+    
+    if(v->toolbar_location != i_tmp)
+      {
+      v->toolbar_location = i_tmp;
+      /* Reparent toolbar */
+      gtk_container_remove(GTK_CONTAINER(v->current_window->box),
+                           v->toolbar);
+      attach_toolbar(v, v->current_window);
+      show_toolbar(v);
+      }
+    }
+  else if(!strcmp(name, "toolbar_trigger"))
+    {
+    if(!strcmp(val->val_str, "mouse"))
+      {
+      v->toolbar_trigger =
+        TOOLBAR_TRIGGER_MOUSE;
+      }
+    else if(!strcmp(val->val_str, "key"))
+      {
+      v->toolbar_trigger = TOOLBAR_TRIGGER_KEY;
+      }
+    else if(!strcmp(val->val_str, "mousekey"))
+      {
+      v->toolbar_trigger =
+        TOOLBAR_TRIGGER_MOUSE |
+        TOOLBAR_TRIGGER_KEY;
+      }
+    }
+  else if(!strcmp(name, "x"))
+    v->x = val->val_i;
+  else if(!strcmp(name, "y"))
+    v->y = val->val_i;
+  else if(!strcmp(name, "width"))
+    v->width = val->val_i;
+  else if(!strcmp(name, "height"))
+    v->height = val->val_i;
+  }
+
+static int get_general_parameter(void * data, const char * name,
+                                 bg_parameter_value_t * val)
+  {
+  visualizer_t * v;
+  v = (visualizer_t *)data;
+  if(!strcmp(name, "x"))
+    {
+    val->val_i = v->x;
+    return 1;
+    }
+  else if(!strcmp(name, "y"))
+    {
+    val->val_i = v->y;
+    return 1;
+    }
+  else if(!strcmp(name, "width"))
+    {
+    val->val_i = v->width;
+    return 1;
+    }
+  else if(!strcmp(name, "height"))
+    {
+    val->val_i = v->height;
+    return 1;
+    }
+  return 0;
+  }
+
+bg_parameter_info_t parameters[] =
+  {
+    {
+      name:       "toolbar_location",
+      long_name:  "Toolbar location",
+      type:       BG_PARAMETER_STRINGLIST,
+      flags:      BG_PARAMETER_SYNC,
+      val_default: { val_str: "top" },
+      multi_names: (char*[]){ "top", "bottom", (char*)0 },
+      multi_labels: (char*[]){ "Top", "Bottom", (char*)0 },
+    },
+    {
+      name:       "toolbar_trigger",
+      long_name:  "Toolbar trigger",
+      type:       BG_PARAMETER_STRINGLIST,
+      val_default: { val_str: "mousekey" },
+      multi_names: (char*[]){ "mouse", "key", "mousekey", (char*)0 },
+      multi_labels: (char*[]){ "Mouse motion",
+                               "Menu key", "Mouse motion & Menu key",
+                               (char*)0 },
+    },
+    {
+      name:       "x",
+      long_name:  "X",
+      type:       BG_PARAMETER_INT,
+      flags:      BG_PARAMETER_HIDE_DIALOG,
+    },
+    {
+      name:       "y",
+      long_name:  "y",
+      type:       BG_PARAMETER_INT,
+      flags:      BG_PARAMETER_HIDE_DIALOG,
+    },
+    {
+      name:       "width",
+      long_name:  "width",
+      type:       BG_PARAMETER_INT,
+      flags:      BG_PARAMETER_HIDE_DIALOG,
+    },
+    {
+      name:       "height",
+      long_name:  "height",
+      type:       BG_PARAMETER_INT,
+      flags:      BG_PARAMETER_HIDE_DIALOG,
+    },
+    { /* End of parameters */ },
+    
+  };
 
 static bg_dialog_t * create_cfg_dialog(visualizer_t * win)
   {
@@ -612,8 +775,14 @@ static bg_dialog_t * create_cfg_dialog(visualizer_t * win)
   bg_dialog_t * ret;
   ret = bg_dialog_create_multi(TR("Visualizer configuration"));
 
+  bg_dialog_add(ret,
+                TR("General"),
+                win->general_section,
+                set_general_parameter,
+                (void*)(win),
+                parameters);
+  
   info = bg_visualizer_get_parameters(win->visualizer);
-
   bg_dialog_add(ret,
                 TR("Visualizer"),
                 win->visualizer_section,
@@ -637,13 +806,27 @@ static bg_dialog_t * create_cfg_dialog(visualizer_t * win)
 
 static void apply_config(visualizer_t * v)
   {
-  bg_parameter_info_t * parameters;
+  bg_parameter_info_t * info;
   
-  parameters = bg_visualizer_get_parameters(v->visualizer);
+  info = bg_visualizer_get_parameters(v->visualizer);
   
-  bg_cfg_section_apply(v->visualizer_section, parameters,
+  bg_cfg_section_apply(v->visualizer_section, info,
                        bg_visualizer_set_parameter,
                        (void*)(v->visualizer));
+
+  bg_cfg_section_apply(v->general_section, parameters,
+                       set_general_parameter,
+                       (void*)(v));
+  
+  }
+
+static void get_config(visualizer_t * v)
+  {
+  
+  bg_cfg_section_get(v->general_section, parameters,
+                     get_general_parameter,
+                     (void*)(v));
+  
   }
 
 static gboolean idle_func(void * data)
@@ -807,8 +990,8 @@ static visualizer_t * visualizer_create()
   
   ret->visualizer_section =
     bg_cfg_registry_find_section(ret->cfg_reg, "visualizer");
-  //  ret->vumeter_section =
-  //    bg_cfg_registry_find_section(ret->cfg_reg, "vumeter");
+  ret->general_section =
+    bg_cfg_registry_find_section(ret->cfg_reg, "general");
   
   ret->cfg_dialog = create_cfg_dialog(ret);
 
@@ -883,7 +1066,16 @@ static visualizer_t * visualizer_create()
   open_audio(ret);
   open_vis(ret);
 
+  if(!ret->width || !ret->height)
+    gtk_window_set_position(GTK_WINDOW(ret->current_window->window),
+                            GTK_WIN_POS_CENTER);
+  
   gtk_widget_show(ret->current_window->window);
+
+  if(ret->width && ret->height)
+    gtk_decorated_window_move_resize_window(GTK_WINDOW(ret->current_window->window),
+                                            ret->x, ret->y,
+                                            ret->width, ret->height);
   
   while(gdk_events_pending() || gtk_events_pending())
     gtk_main_iteration();
@@ -900,6 +1092,7 @@ static visualizer_t * visualizer_create()
 static void visualizer_destroy(visualizer_t * v)
   {
   char * tmp_path;
+  get_config(v);
   tmp_path =  bg_search_file_write("visualizer", "config.xml");
   bg_cfg_registry_save(v->cfg_reg, tmp_path);
   fprintf(stderr, "Saving registry to %s\n",

@@ -1141,7 +1141,7 @@ void bg_gtk_info_window_destroy(bg_gtk_info_window_t * w)
 void bg_gtk_info_window_show(bg_gtk_info_window_t * w)
   {
   if(!w->width || !w->height)
-    gtk_window_set_position(GTK_WINDOW(w->window), GTK_WIN_POS_CENTER_ON_PARENT);
+    gtk_window_set_position(GTK_WINDOW(w->window), GTK_WIN_POS_CENTER);
   
   gtk_widget_show(w->window);
   if(w->width && w->height)
