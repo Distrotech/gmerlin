@@ -513,6 +513,7 @@ typedef struct
   VisParamEntry ** params;
   
   bg_ov_callbacks_t ov_callbacks;
+  int have_audio;
   } lv_priv_t;
 
 static bg_ov_callbacks_t * get_callbacks_lv(void * data)
@@ -530,6 +531,7 @@ static void draw_frame_gl_lv(void * data, gavl_video_frame_t * frame)
   bg_x11_window_set_gl(priv->win);
   visual_actor_run(priv->actor, priv->audio);
   bg_x11_window_unset_gl(priv->win);
+  priv->have_audio = 0;
   }
 
 static void draw_frame_ov_lv(void * data, gavl_video_frame_t * frame)
@@ -540,6 +542,7 @@ static void draw_frame_ov_lv(void * data, gavl_video_frame_t * frame)
   visual_video_set_buffer(priv->video, frame->planes[0]);
   visual_video_set_pitch(priv->video, frame->strides[0]);
   visual_actor_run(priv->actor, priv->audio);
+  priv->have_audio = 0;
   }
 
 static void update_lv(void * data, gavl_audio_frame_t * frame)
@@ -548,7 +551,10 @@ static void update_lv(void * data, gavl_audio_frame_t * frame)
   VisBuffer buffer;
   
   priv = (lv_priv_t*)data;
-  
+
+  if(priv->have_audio)
+    return;
+    
   visual_buffer_init(&buffer, frame->samples.s_16,
                      frame->valid_samples * 2, NULL);
   
@@ -557,16 +563,16 @@ static void update_lv(void * data, gavl_audio_frame_t * frame)
                                 VISUAL_AUDIO_SAMPLE_RATE_44100,
                                 VISUAL_AUDIO_SAMPLE_FORMAT_S16,
                                 VISUAL_AUDIO_SAMPLE_CHANNEL_STEREO);
+  priv->have_audio = 1;
   }
 
 static void close_lv(void * data)
   {
   lv_priv_t * priv;
   priv = (lv_priv_t*)data;
-
-  if(priv->win)
-    bg_x11_window_show(priv->win, 1);
   
+  //  if(priv->win)
+  //    bg_x11_window_show(priv->win, 0);
   }
 
 static void adjust_audio_format(gavl_audio_format_t * f)
@@ -752,7 +758,10 @@ static void set_parameter_lv(void * data, const char * name,
         supported = 0;
         break;
       case VISUAL_PARAM_ENTRY_TYPE_STRING:   /**< String parameter. */
-        visual_param_entry_set_string(param, val->val_str);
+        if(val->val_str)
+          visual_param_entry_set_string(param, val->val_str);
+        else
+          supported = 0;
         break;
       case VISUAL_PARAM_ENTRY_TYPE_INTEGER:  /**< Integer parameter. */
         visual_param_entry_set_integer(param, val->val_i);

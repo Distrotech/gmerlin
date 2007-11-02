@@ -197,7 +197,6 @@ void bg_player_input_select_streams(bg_player_input_context_t * ctx)
     }
   
   /* Check if the streams are actually there */
-  ctx->player->old_flags = ctx->player->flags;
   ctx->player->flags = 0;
   
   ctx->audio_finished = 1;

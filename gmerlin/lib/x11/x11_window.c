@@ -929,6 +929,8 @@ static int create_window(bg_x11_window_t * w,
   XSync(w->dpy, False);
   XSelectInput(w->dpy, w->normal.win,
                event_mask | SubstructureNotifyMask);
+  XSelectInput(w->dpy, w->fullscreen.win,
+               event_mask | SubstructureNotifyMask);
   
   /* Create GC */
   
@@ -1146,7 +1148,6 @@ const char * bg_x11_window_get_display_string(bg_x11_window_t * w)
                                          w->normal.win, w->fullscreen.win);
   return w->display_string_child;
   }
-
 
 void bg_x11_window_destroy(bg_x11_window_t * w)
   {
@@ -1639,7 +1640,6 @@ int bg_x11_window_check_embed_property(bg_x11_window_t * win,
   unsigned char *data;
   unsigned long *data_long;
   int flags;
-  
   if(XGetWindowProperty(win->dpy, w->child,
                         win->_XEMBED_INFO,
                         0, 2, False,

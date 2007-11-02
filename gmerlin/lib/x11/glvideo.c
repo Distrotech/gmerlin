@@ -128,6 +128,8 @@ static int open_gl(driver_data_t * d)
   glBindTexture(GL_TEXTURE_2D,priv->texture);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
   glDisable(GL_DEPTH_TEST);
 
   glTexImage2D(GL_TEXTURE_2D, 0,
@@ -165,7 +167,6 @@ static void put_frame_gl(driver_data_t * d, gavl_video_frame_t * f)
   gl_priv_t * priv;
   bg_x11_window_t * w;
   float tex_x1, tex_x2, tex_y1, tex_y2;
-  
   priv = (gl_priv_t *)(d->priv);
   w = d->win;
 
@@ -202,10 +203,10 @@ static void put_frame_gl(driver_data_t * d, gavl_video_frame_t * f)
   glEnable(GL_TEXTURE_2D);
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
   glBegin(GL_QUADS);
-  glTexCoord2f(tex_x1,tex_y2); glVertex3f(0,                 0,                  0);
-  glTexCoord2f(tex_x1,tex_y1); glVertex3f(0,                 w->dst_rect.h,0);
-  glTexCoord2f(tex_x2,tex_y1); glVertex3f(w->dst_rect.w,w->dst_rect.h,0);
-  glTexCoord2f(tex_x2,tex_y2); glVertex3f(w->dst_rect.w,0,                  0);
+  glTexCoord2f(tex_x1,tex_y2); glVertex3f(0,             0,             0);
+  glTexCoord2f(tex_x1,tex_y1); glVertex3f(0,             w->dst_rect.h, 0);
+  glTexCoord2f(tex_x2,tex_y1); glVertex3f(w->dst_rect.w, w->dst_rect.h, 0);
+  glTexCoord2f(tex_x2,tex_y2); glVertex3f(w->dst_rect.w, 0,             0);
   glEnd();
   glDisable(GL_TEXTURE_2D);
   bg_x11_window_unset_gl(w);

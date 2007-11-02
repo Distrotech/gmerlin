@@ -399,8 +399,6 @@ static void cleanup_streams(bg_player_t * player)
   
   if(DO_VIDEO(player->flags))
     bg_player_ov_cleanup(player->ov_context);
-  //  else if(DO_VISUALIZE(player))
-  //    bg_visualizer_close(player->visualizer);
   
   bg_player_time_stop(player);
   
@@ -439,7 +437,7 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
 
   /* Close previous visualization before we init the streams
      because it might close the ov_plugin as well */
-
+  
   if(DO_VISUALIZE(p->old_flags) && !DO_VISUALIZE(p->flags))
     bg_visualizer_close(p->visualizer);
   
@@ -755,6 +753,7 @@ static void stop_cmd(bg_player_t * player, int new_state, int want_new)
        !(player->input_handle->info->flags & BG_PLUGIN_KEEP_RUNNING))
       player_cleanup(player);
     }
+  player->old_flags = player->flags;
   player->flags = 0;
   }
 
@@ -778,6 +777,7 @@ static void stream_change_init(bg_player_t * player)
     cleanup_playback(player, old_state, BG_PLAYER_STATE_CHANGING, 0);
     cleanup_streams(player);
     bg_player_input_stop(player->input_context);
+    player->old_flags = player->flags;
     }
   }
 

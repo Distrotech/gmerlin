@@ -82,6 +82,9 @@ struct bg_gtk_vumeter_s
   
   int width;
   int height;
+
+  int min_width;
+  int min_height;
   
   int pixmap_width, pixmap_height;
   
@@ -156,7 +159,8 @@ static float level_2_dB(float level)
   return ret;
   }
 
-static void set_coords_horizontal(bg_gtk_vumeter_t * m)
+static void set_coords_horizontal(bg_gtk_vumeter_t * m, int *min_width,
+                                  int *min_height)
   {
   int i;
   int meter_height;
@@ -195,9 +199,13 @@ static void set_coords_horizontal(bg_gtk_vumeter_t * m)
       i * (meter_height + TIC_LENGTH);
     m->meters[i].coords.height = meter_height;
     }
+  *min_width  = NUM_TICS * max_label_w + (NUM_TICS-1) * 5;
+  *min_height = max_label_h +
+    m->num_channels * (TIC_LENGTH + 10);
   }
 
-static void set_coords_vertical(bg_gtk_vumeter_t * m)
+static void set_coords_vertical(bg_gtk_vumeter_t * m, int *min_width,
+                                int *min_height)
   {
   int i;
   int meter_width;
@@ -236,14 +244,27 @@ static void set_coords_vertical(bg_gtk_vumeter_t * m)
       i * (meter_width + TIC_LENGTH);
     m->meters[i].coords.width = meter_width;
     }
+  *min_height  = NUM_TICS * max_label_h + (NUM_TICS-1) * 5;
+  *min_width = max_label_w +
+    m->num_channels * (TIC_LENGTH + 10);
   }
 
 static void set_coords(bg_gtk_vumeter_t * m)
   {
+  int min_width, min_height;
   if(m->vertical)
-    set_coords_vertical(m);
+    set_coords_vertical(m, &min_width, &min_height);
   else
-    set_coords_horizontal(m);
+    set_coords_horizontal(m, &min_width, &min_height);
+
+  if((m->min_width != min_width) ||
+     (m->min_height != min_height))
+    {
+    m->min_width = min_width;
+    m->min_height = min_height;
+    gtk_widget_set_size_request(m->layout, min_width, min_height);
+    }
+     
   }
 
 static void draw_static_horizontal(bg_gtk_vumeter_t * m)

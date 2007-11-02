@@ -586,8 +586,8 @@ static void window_init(visualizer_t * v,
   
   if(fullscreen)
     gtk_window_fullscreen(GTK_WINDOW(w->window));
-  else
-    gtk_widget_set_size_request(w->window, 640, 480);
+  //  else
+  //    gtk_widget_set_size_request(w->window, 640, 480);
   
   }
 
@@ -661,7 +661,6 @@ static void set_general_parameter(void * data, const char * name,
       gtk_container_remove(GTK_CONTAINER(v->current_window->box),
                            v->toolbar);
       attach_toolbar(v, v->current_window);
-      show_toolbar(v);
       }
     }
   else if(!strcmp(name, "toolbar_trigger"))
@@ -681,6 +680,7 @@ static void set_general_parameter(void * data, const char * name,
         TOOLBAR_TRIGGER_MOUSE |
         TOOLBAR_TRIGGER_KEY;
       }
+    fprintf(stderr, "Toolbar trigger: %d\n", v->toolbar_trigger);
     }
   else if(!strcmp(name, "x"))
     v->x = val->val_i;
@@ -1025,9 +1025,9 @@ static visualizer_t * visualizer_create()
   box = gtk_hbox_new(0, 5);
   gtk_box_pack_start(GTK_BOX(box), ret->plugin_button,
                      FALSE, FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(box), ret->restart_button,
-                     FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->config_button,
+                     FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(box), ret->restart_button,
                      FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->fullscreen_button,
                      FALSE, FALSE, 0);
@@ -1066,9 +1066,6 @@ static visualizer_t * visualizer_create()
   open_audio(ret);
   open_vis(ret);
 
-  if(!ret->width || !ret->height)
-    gtk_window_set_position(GTK_WINDOW(ret->current_window->window),
-                            GTK_WIN_POS_CENTER);
   
   gtk_widget_show(ret->current_window->window);
 
@@ -1076,6 +1073,10 @@ static visualizer_t * visualizer_create()
     gtk_decorated_window_move_resize_window(GTK_WINDOW(ret->current_window->window),
                                             ret->x, ret->y,
                                             ret->width, ret->height);
+  else
+    gtk_decorated_window_move_resize_window(GTK_WINDOW(ret->current_window->window),
+                                            100, 100,
+                                            640, 480);
   
   while(gdk_events_pending() || gtk_events_pending())
     gtk_main_iteration();
@@ -1095,8 +1096,6 @@ static void visualizer_destroy(visualizer_t * v)
   get_config(v);
   tmp_path =  bg_search_file_write("visualizer", "config.xml");
   bg_cfg_registry_save(v->cfg_reg, tmp_path);
-  fprintf(stderr, "Saving registry to %s\n",
-          tmp_path);
   if(tmp_path)
     free(tmp_path);
   free(v);

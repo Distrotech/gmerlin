@@ -588,8 +588,6 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
         return;
         }
       break;
-      
-
     case CreateNotify:
       if((evt->xcreatewindow.parent == w->normal.win) &&
          (evt->xcreatewindow.window != w->normal.focus_child))
@@ -746,6 +744,8 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
       break;
     case KeyPress:
     case KeyRelease:
+      
+      
       XLookupString(&(evt->xkey), &key_char, 1, &keysym, NULL);
       evt->xkey.state &= STATE_IGNORE;
       
@@ -756,8 +756,9 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
               (evt->xkey.window == w->fullscreen.focus_child))
         cur = &w->fullscreen;
       else
+        {
         return;
-      
+        }
       key_code = keysym_to_key_code(keysym);
       key_mask = x11_to_key_mask(evt->xkey.state);
       if(key_code != BG_KEY_NONE)
@@ -801,13 +802,17 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
             {
             if(w->callbacks->key_callback(w->callbacks->data,
                                           key_code, key_mask))
+              {
               return;
+              }
             }
           else if(w->callbacks->key_release_callback && (evt->type == KeyRelease))
             {
             if(w->callbacks->key_release_callback(w->callbacks->data,
                                                   key_code, key_mask))
+              {
               return;
+              }
             }
           }
         }
@@ -815,7 +820,7 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
       if(cur->child != None)
         {
         XKeyEvent key_event;
-        /* Send event to parent window */
+        /* Send event to child window */
         memset(&key_event, 0, sizeof(key_event));
         key_event.display = w->dpy;
         key_event.window = cur->child;
@@ -828,13 +833,12 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
         key_event.y_root = 0;
         key_event.same_screen = True;
         
-        key_event.type = evt->type;;
+        key_event.type = evt->type;
         key_event.keycode = evt->xkey.keycode;
         key_event.state = evt->xkey.state;
-        
         XSendEvent(key_event.display,
                    key_event.window,
-                   False, KeyPressMask|KeyReleaseMask, (XEvent *)(&key_event));
+                   False, 0, (XEvent *)(&key_event));
         XFlush(w->dpy);
         }
       break;
@@ -895,7 +899,7 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
 
         XSendEvent(button_event.display,
                    button_event.window,
-                   False, ButtonPressMask|ButtonReleaseMask, (XEvent *)(&button_event));
+                   False, 0, (XEvent *)(&button_event));
         // XFlush(w->dpy);
         }
 
