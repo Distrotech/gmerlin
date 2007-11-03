@@ -202,6 +202,7 @@ void bg_osd_set_parameter(void * data, const char * name,
 void bg_osd_set_overlay(bg_osd_t * osd, gavl_overlay_t * ovl)
   {
   osd->ovl = ovl;
+  ovl->frame->timestamp = -1;
   }
 
 void bg_osd_init(bg_osd_t * osd, const gavl_video_format_t * format,

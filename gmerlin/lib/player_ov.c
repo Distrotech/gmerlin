@@ -443,7 +443,6 @@ int bg_player_ov_init(bg_player_ov_context_t * ctx)
   
   
   ctx->osd_ovl = create_overlay(ctx, ctx->osd_id);
-  
   bg_osd_set_overlay(ctx->osd, ctx->osd_ovl);
   ctx->frames_written = 0;
   return result;

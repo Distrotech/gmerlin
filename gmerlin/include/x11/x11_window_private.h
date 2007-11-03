@@ -52,7 +52,7 @@ struct video_driver_s
   int (*init)(driver_data_t* data);
   int (*open)(driver_data_t* data);
   
-  int (*add_overlay_stream)(driver_data_t* data);
+  void (*add_overlay_stream)(driver_data_t* data);
   void (*set_overlay)(driver_data_t* data, int stream, gavl_overlay_t * ovl);
   
   gavl_video_frame_t * (*create_overlay)(driver_data_t* data, int stream);

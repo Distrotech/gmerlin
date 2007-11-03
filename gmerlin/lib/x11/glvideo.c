@@ -9,13 +9,23 @@
 
 typedef struct
   {
-  GLenum texture_format;
-  GLenum texture_type;
   GLuint texture;
+  GLenum format;
+  GLenum type;
+  int width, height;
+
+  /* For overlays only */
+  int active;
+  gavl_rectangle_i_t src_rect;
+  int dst_x, dst_y;
+  } texture_t;
+
+typedef struct
+  {
   int extensions;
-  int texture_width;
-  int texture_height;
   
+  texture_t video;
+  texture_t * overlays;
   } gl_priv_t;
 
 static int has_extension(const char * extensions,
@@ -73,44 +83,42 @@ static int init_gl(driver_data_t * d)
   return 1;
   }
 
-static int open_gl(driver_data_t * d)
+static void create_texture(gl_priv_t * priv,
+                           texture_t * ret,
+                           int width, int height, gavl_pixelformat_t pixelformat)
   {
-  bg_x11_window_t * w;
-  gl_priv_t * priv;
   gavl_video_frame_t * dummy;
+  
   gavl_video_format_t texture_format;
-  
-  priv = (gl_priv_t *)(d->priv);
-  w = d->win;
-  /* Get the format */
-  bg_x11_window_set_gl(w);
-
-  
-  switch(d->pixelformat)
+  switch(pixelformat)
     {
     case GAVL_RGB_24:
-      priv->texture_type   = GL_RGB;
-      priv->texture_format = GL_UNSIGNED_BYTE;
+      ret->type   = GL_RGB;
+      ret->format = GL_UNSIGNED_BYTE;
       break;
     case GAVL_RGBA_32:
-      priv->texture_type   = GL_RGBA;
-      priv->texture_format = GL_UNSIGNED_BYTE;
+      ret->type   = GL_RGBA;
+      ret->format = GL_UNSIGNED_BYTE;
       break;
     default:
       break;
     }
-
-  gavl_video_format_copy(&texture_format, 
-                         &w->video_format);
-
+  memset(&texture_format, 0, sizeof(texture_format));
+  
+  texture_format.image_width = width;
+  texture_format.image_height = height;
+  texture_format.pixelformat = pixelformat;
+  texture_format.pixel_width = 1;
+  texture_format.pixel_height = 1;
+  
   if(!(priv->extensions & texture_non_power_of_two))
     {
     texture_format.frame_width = 1;
     texture_format.frame_height = 1;
     
-    while(texture_format.frame_width < texture_format.image_width)
+    while(texture_format.frame_width < width)
       texture_format.frame_width <<= 1;
-    while(texture_format.frame_height < texture_format.image_height)
+    while(texture_format.frame_height < height)
       texture_format.frame_height <<= 1;
     }
   else
@@ -118,34 +126,59 @@ static int open_gl(driver_data_t * d)
     texture_format.frame_width = texture_format.image_width;
     texture_format.frame_height = texture_format.image_height;
     }
+
+  ret->width  = texture_format.frame_width;
+  ret->height = texture_format.frame_height;
   
-  priv->texture_width = texture_format.frame_width;
-  priv->texture_height = texture_format.frame_height;
   
   dummy = gavl_video_frame_create_nopad(&texture_format);
-
-  glGenTextures(1,&priv->texture);
-  glBindTexture(GL_TEXTURE_2D,priv->texture);
+  glGenTextures(1,&ret->texture);
+  glBindTexture(GL_TEXTURE_2D,ret->texture);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-  glDisable(GL_DEPTH_TEST);
 
   glTexImage2D(GL_TEXTURE_2D, 0,
-               priv->texture_type,
+               ret->type,
                texture_format.frame_width,
                texture_format.frame_height,
                0,
-               priv->texture_type,
-               priv->texture_format,dummy->planes[0]);
+               ret->type,
+               ret->format,
+               dummy->planes[0]);
+  gavl_video_frame_destroy(dummy);
+  }
+
+static void delete_texture(texture_t * ret)
+  {
+  glDeleteTextures(1, &ret->texture);
+  }
+
+static int open_gl(driver_data_t * d)
+  {
+  bg_x11_window_t * w;
+  gl_priv_t * priv;
+  
+  priv = (gl_priv_t *)(d->priv);
+  w = d->win;
+  /* Get the format */
+  bg_x11_window_set_gl(w);
+  
+  create_texture(priv,
+                 &priv->video,
+                 w->video_format.image_width,
+                 w->video_format.image_height,
+                 d->pixelformat);
+  
+  glDisable(GL_DEPTH_TEST);
   
   glClearColor (0.0, 0.0, 0.0, 0.0);
   glShadeModel(GL_FLAT);
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
   
   /* Video format will have frame_size == image_size */
-
+  
   w->video_format.frame_width  = w->video_format.image_width;
   w->video_format.frame_height = w->video_format.image_height;
   
@@ -164,6 +197,7 @@ static gavl_video_frame_t * create_frame_gl(driver_data_t * d)
 
 static void put_frame_gl(driver_data_t * d, gavl_video_frame_t * f)
   {
+  int i;
   gl_priv_t * priv;
   bg_x11_window_t * w;
   float tex_x1, tex_x2, tex_y1, tex_y2;
@@ -187,28 +221,76 @@ static void put_frame_gl(driver_data_t * d, gavl_video_frame_t * f)
   glLoadIdentity();
 
   /* Put image into texture */
+  glEnable(GL_TEXTURE_2D);
   
-  glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w->video_format.image_width,
+  glBindTexture(GL_TEXTURE_2D,priv->video.texture);
+  
+  glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
+                  w->video_format.image_width,
                   w->video_format.image_height,
-                  GL_RGB,GL_UNSIGNED_BYTE,f->planes[0]);
-
+                  priv->video.type,
+                  priv->video.format,
+                  f->planes[0]);
+  
   /* Draw this */
   
-  tex_x1 = (w->src_rect.x+2.0) / priv->texture_width;
-  tex_y1 = (w->src_rect.y+2.0) / priv->texture_height;
+  tex_x1 = (w->src_rect.x+2.0) / priv->video.width;
+  tex_y1 = (w->src_rect.y+2.0) / priv->video.height;
   
-  tex_x2 = (w->src_rect.x + w->src_rect.w) / priv->texture_width;
-  tex_y2 = (w->src_rect.y + w->src_rect.h) / priv->texture_height;
+  tex_x2 = (w->src_rect.x + w->src_rect.w) / priv->video.width;
+  tex_y2 = (w->src_rect.y + w->src_rect.h) / priv->video.height;
   
-  glEnable(GL_TEXTURE_2D);
-  glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+  glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
   glBegin(GL_QUADS);
   glTexCoord2f(tex_x1,tex_y2); glVertex3f(0,             0,             0);
   glTexCoord2f(tex_x1,tex_y1); glVertex3f(0,             w->dst_rect.h, 0);
   glTexCoord2f(tex_x2,tex_y1); glVertex3f(w->dst_rect.w, w->dst_rect.h, 0);
   glTexCoord2f(tex_x2,tex_y2); glVertex3f(w->dst_rect.w, 0,             0);
   glEnd();
+
+  /* Draw overlays */
+  if(w->num_overlay_streams)
+    {
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
+    for(i = 0; i < w->num_overlay_streams; i++)
+      {
+      if(!priv->overlays[i].active)
+        continue;
+      
+      glBindTexture(GL_TEXTURE_2D,priv->overlays[i].texture);
+      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+      
+      tex_x1 = (priv->overlays[i].src_rect.x) /
+        priv->overlays[i].width;
+    
+      tex_y1 = (priv->overlays[i].src_rect.y) /
+        priv->overlays[i].height;
+    
+      tex_x2 = (float)(priv->overlays[i].src_rect.x + priv->overlays[i].src_rect.w) /
+        priv->overlays[i].width;
+
+      tex_y2 = (float)(priv->overlays[i].src_rect.y + priv->overlays[i].src_rect.h) /
+        priv->overlays[i].height;
+
+      gavl_rectangle_i_dump(&priv->overlays[i].src_rect);
+      
+      fprintf(stderr, "\nTexture coords: %f %f -> %f %f\n",
+              tex_x1, tex_y1, tex_x2, tex_y2);
+
+      
+      glBegin(GL_QUADS);
+      glTexCoord2f(tex_x1,tex_y2); glVertex3f(0,             0,             0.1);
+      glTexCoord2f(tex_x1,tex_y1); glVertex3f(0,             w->dst_rect.h, 0.1);
+      glTexCoord2f(tex_x2,tex_y1); glVertex3f(w->dst_rect.w, w->dst_rect.h, 0.1);
+      glTexCoord2f(tex_x2,tex_y2); glVertex3f(w->dst_rect.w, 0,             0.1);
+      glEnd();
+      }
+    glDisable(GL_BLEND);
+    }
   glDisable(GL_TEXTURE_2D);
+  
   bg_x11_window_unset_gl(w);
   bg_x11_window_swap_gl(w);
   }
@@ -218,8 +300,81 @@ static void destroy_frame_gl(driver_data_t * d, gavl_video_frame_t * f)
   gavl_video_frame_destroy(f);
   }
 
+/* Overlay support */
+
+static void add_overlay_stream_gl(driver_data_t* d)
+  {
+  gl_priv_t * priv;
+  bg_x11_window_t * w;
+  
+  priv = (gl_priv_t *)(d->priv);
+  w = d->win;
+
+  priv->overlays =
+    realloc(priv->overlays,
+            (w->num_overlay_streams+1) * sizeof(*(priv->overlays)));
+  memset(&priv->overlays[w->num_overlay_streams], 0,
+         sizeof(priv->overlays[w->num_overlay_streams]));
+
+  w->overlay_streams[w->num_overlay_streams].format.pixelformat = GAVL_RGBA_32;
+  bg_x11_window_set_gl(w);
+
+  create_texture(priv,
+                 &priv->overlays[w->num_overlay_streams],
+                 w->overlay_streams[w->num_overlay_streams].format.image_width,
+                 w->overlay_streams[w->num_overlay_streams].format.image_height,
+                 w->overlay_streams[w->num_overlay_streams].format.pixelformat);
+  
+  bg_x11_window_unset_gl(w);
+  
+  }
+
+static void set_overlay_gl(driver_data_t* d, int stream, gavl_overlay_t * ovl)
+  {
+  gl_priv_t * priv;
+  bg_x11_window_t * w;
+  
+  priv = (gl_priv_t *)(d->priv);
+  w = d->win;
+
+  if(ovl)
+    {
+    bg_x11_window_set_gl(w);
+    glBindTexture(GL_TEXTURE_2D,priv->overlays[stream].texture);
+    
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
+                    w->overlay_streams[stream].format.image_width,
+                    w->overlay_streams[stream].format.image_height,
+                    priv->overlays[stream].type,
+                    priv->overlays[stream].format,
+                    ovl->frame->planes[0]);
+    priv->overlays[stream].active = 1;
+    bg_x11_window_unset_gl(w);
+
+    gavl_rectangle_i_copy(&priv->overlays[stream].src_rect, &ovl->ovl_rect);
+    priv->overlays[stream].dst_x = ovl->dst_x;
+    priv->overlays[stream].dst_y = ovl->dst_y;
+    }
+  else
+    priv->overlays[stream].active = 0;
+  
+  }
+
+
+static gavl_video_frame_t * create_overlay_gl(driver_data_t* d, int stream)
+  {
+  return gavl_video_frame_create_nopad(&d->win->overlay_streams[stream].format);
+  }
+
+static void destroy_overlay_gl(driver_data_t* d, int stream, gavl_video_frame_t* ovl)
+  {
+  gavl_video_frame_destroy(ovl);
+  }
+
+
 static void close_gl(driver_data_t * d)
   {
+  int i;
   gl_priv_t * priv;
   bg_x11_window_t * w;
   
@@ -227,7 +382,13 @@ static void close_gl(driver_data_t * d)
   w = d->win;
   
   bg_x11_window_set_gl(w);
-  glDeleteTextures(1, &priv->texture);
+  delete_texture(&priv->video);
+  
+  for(i = 0; i < w->num_overlay_streams; i++)
+    delete_texture(&priv->overlays[i]);
+  if(priv->overlays)
+    free(priv->overlays);
+  
   bg_x11_window_unset_gl(w);
   }
 
@@ -248,4 +409,8 @@ video_driver_t gl_driver =
     .destroy_frame      = destroy_frame_gl,
     .close              = close_gl,
     .cleanup            = cleanup_gl,
+    .add_overlay_stream = add_overlay_stream_gl,
+    .set_overlay        = set_overlay_gl,
+    .create_overlay     = create_overlay_gl,
+    .destroy_overlay    = destroy_overlay_gl,
   };
