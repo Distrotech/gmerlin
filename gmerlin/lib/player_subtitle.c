@@ -40,26 +40,6 @@ void bg_player_subtitle_destroy(bg_player_t * p)
   bg_text_renderer_destroy(p->subtitle_stream.renderer);
   }
 
-static void * create_frame(void * data)
-  {
-  gavl_overlay_t * ret;
-  bg_player_subtitle_stream_t * s;
-  s = (bg_player_subtitle_stream_t *)data;
-  
-  ret = calloc(1, sizeof(*ret));
-  ret->frame = gavl_video_frame_create(&s->output_format);
-  
-  return ret;
-  }
-
-static void destroy_frame(void * data, void * frame)
-  {
-  gavl_overlay_t * ovl;
-  ovl = (gavl_overlay_t*)frame;
-  gavl_video_frame_destroy(ovl->frame);
-  free(frame);
-  }
-
 int bg_player_subtitle_init(bg_player_t * player, int subtitle_stream)
   {
   bg_player_subtitle_stream_t * s;
@@ -77,8 +57,14 @@ int bg_player_subtitle_init(bg_player_t * player, int subtitle_stream)
       bg_text_renderer_init(player->subtitle_stream.renderer,
                             (gavl_video_format_t*)0,
                             &(player->subtitle_stream.input_format));
+
+      
       bg_text_renderer_get_frame_format(player->subtitle_stream.renderer,
                                         &(player->video_stream.input_format));
+      gavl_video_format_copy(&(player->video_stream.output_format),
+                             &(player->video_stream.input_format));
+      
+      
       }
     else
       {
@@ -108,9 +94,6 @@ int bg_player_subtitle_init(bg_player_t * player, int subtitle_stream)
     bg_player_subtitle_init_converter(player);
     }
   
-  player->subtitle_stream.fifo = bg_fifo_create(NUM_SUBTITLE_FRAMES,
-                                                create_frame, (void*)(s));
-  
   return 1;
   }
 
@@ -118,9 +101,8 @@ void bg_player_subtitle_cleanup(bg_player_t * player)
   {
   if(player->subtitle_stream.fifo)
     {
-    bg_fifo_destroy(player->subtitle_stream.fifo, destroy_frame,
-                    (void*)(&(player->subtitle_stream)));
-    
+    bg_fifo_destroy(player->subtitle_stream.fifo,
+                    bg_player_ov_destroy_subtitle_overlay, player->ov_context);
     player->subtitle_stream.fifo = (bg_fifo_t*)0;
     }
   if(player->subtitle_stream.in_ovl.frame)
@@ -165,4 +147,9 @@ void bg_player_subtitle_init_converter(bg_player_t * player)
                               &s->output_format);
   if(s->do_convert)
     s->in_ovl.frame = gavl_video_frame_create(&s->input_format);
+
+  /* Initialize FIFO */
+  player->subtitle_stream.fifo =
+    bg_fifo_create(NUM_SUBTITLE_FRAMES,
+                   bg_player_ov_create_subtitle_overlay, player->ov_context);
   }

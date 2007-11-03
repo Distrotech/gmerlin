@@ -651,6 +651,18 @@ static void destroy_frame_x11(void * data, gavl_video_frame_t * frame)
   bg_x11_window_destroy_frame(priv->win, frame);
   }
 
+static gavl_overlay_t * create_overlay_x11(void * data, int id)
+  {
+  x11_t * priv = (x11_t*)data;
+  return bg_x11_window_create_overlay(priv->win, id);
+  }
+
+static void destroy_overlay_x11(void * data, int id, gavl_overlay_t * ovl)
+  {
+  x11_t * priv = (x11_t*)data;
+  bg_x11_window_destroy_overlay(priv->win, id, ovl);
+  }
+
 
 static int
 add_overlay_stream_x11(void * data, gavl_video_format_t * format)
@@ -738,6 +750,9 @@ bg_ov_plugin_t the_plugin =
     create_frame:    create_frame_x11,
 
     add_overlay_stream: add_overlay_stream_x11,
+
+    create_overlay:    create_overlay_x11,
+
     set_overlay:        set_overlay_x11,
 
     put_video:          put_video_x11,
@@ -746,6 +761,7 @@ bg_ov_plugin_t the_plugin =
     handle_events:  handle_events_x11,
     
     destroy_frame:     destroy_frame_x11,
+    destroy_overlay:   destroy_overlay_x11,
     close:          close_x11,
     update_aspect:  update_aspect_x11,
     

@@ -92,6 +92,7 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
     {
     /* Video output already initialized */
     bg_player_ov_set_subtitle_format(player->ov_context);
+
     bg_player_subtitle_init_converter(player);
     
     s->in_func = bg_player_input_read_video_subtitle_only;

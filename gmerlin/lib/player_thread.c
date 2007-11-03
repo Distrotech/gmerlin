@@ -401,10 +401,13 @@ static void cleanup_streams(bg_player_t * player)
     bg_player_ov_cleanup(player->ov_context);
   
   bg_player_time_stop(player);
+
+  /* Subtitles must be cleaned up as long as the ov plugin
+     is still open */
+  bg_player_subtitle_cleanup(player);
   
   bg_player_video_cleanup(player);
   bg_player_audio_cleanup(player);
-  bg_player_subtitle_cleanup(player);
   bg_player_time_reset(player);
   }
 

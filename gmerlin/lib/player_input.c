@@ -217,8 +217,15 @@ void bg_player_input_select_streams(bg_player_input_context_t * ctx)
       ctx->video_finished = 0;
       ctx->player->flags |= PLAYER_DO_VIDEO;
       }
-    }
 
+    if((ctx->player->current_subtitle_stream >= 0) &&
+       (ctx->player->current_subtitle_stream < ctx->player->track_info->num_subtitle_streams))
+      {
+      ctx->player->flags |= PLAYER_DO_SUBTITLE;
+      ctx->subtitle_finished = 0;
+      }
+    }
+  
   pthread_mutex_lock(&ctx->player->config_mutex);
   vis_enable = ctx->player->visualizer_enabled;
   pthread_mutex_unlock(&ctx->player->config_mutex);
@@ -230,6 +237,22 @@ void bg_player_input_select_streams(bg_player_input_context_t * ctx)
      vis_enable)
     {
     ctx->player->flags |= PLAYER_DO_VISUALIZE;
+    }
+  else if(!DO_VIDEO(ctx->player->flags) &&
+          DO_SUBTITLE(ctx->player->flags))
+    {
+    ctx->player->flags |= PLAYER_DO_VIDEO;
+    ctx->video_finished = 0;
+    
+    ctx->player->flags |= PLAYER_DO_SUBTITLE_ONLY;
+    
+    pthread_mutex_lock(&(ctx->player->video_stream.config_mutex));
+    /* Get background color */
+    gavl_video_options_get_background_color(ctx->player->video_stream.options.opt,
+                                            ctx->bg_color);
+    pthread_mutex_unlock(&(ctx->player->video_stream.config_mutex));
+    
+    ctx->bg_color[3] = 1.0;
     }
   
   /* En-/Disable streams at the input plugin */
@@ -298,34 +321,14 @@ int bg_player_input_start(bg_player_input_context_t * ctx)
   /* Subtitle type must be set here, because it's unknown before the
      start() call */
 
-  if((ctx->player->current_subtitle_stream >= 0) &&
-     (ctx->player->current_subtitle_stream < ctx->player->track_info->num_subtitle_streams))
+  if(DO_SUBTITLE(ctx->player->flags))
     {
     if(ctx->player->track_info->subtitle_streams[ctx->player->current_subtitle_stream].is_text)
-      {
       ctx->player->flags |= PLAYER_DO_SUBTITLE_TEXT;
-      }
     else
-      {
       ctx->player->flags |= PLAYER_DO_SUBTITLE_OVERLAY;
-      }
-    ctx->subtitle_finished = 0;
-
-    if(!(ctx->player->flags & PLAYER_DO_VIDEO))
-      {
-      ctx->player->flags |= PLAYER_DO_VIDEO;
-      ctx->video_finished = 0;
-      
-      pthread_mutex_lock(&(ctx->player->video_stream.config_mutex));
-      /* Get background color */
-      gavl_video_options_get_background_color(ctx->player->video_stream.options.opt,
-                                              ctx->bg_color);
-      pthread_mutex_unlock(&(ctx->player->video_stream.config_mutex));
-
-      ctx->bg_color[3] = 1.0;
-      }
     }
-
+  
   /* Check for still image mode */
   
   if(ctx->player->flags & PLAYER_DO_VIDEO)
@@ -702,7 +705,7 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
   bg_player_video_stream_t * s;
   s = &(ctx->player->video_stream);
 
-  if(preload)
+  if(preload || DO_SUBTITLE_ONLY(ctx->player->flags))
     video_frame = (gavl_video_frame_t*)bg_fifo_try_lock_write(s->fifo,
                                                               &state);
   else
@@ -710,7 +713,7 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
   
   if(!video_frame)
     return 0;
-
+  
   result = s->in_func(s->in_data, video_frame, s->in_stream);
   
   if(!result || (DO_SUBTITLE_ONLY(ctx->player->flags) &&
@@ -773,23 +776,29 @@ void * bg_player_input_thread(void * data)
         }
       break;
       }
-    
-    if(DO_AUDIO(ctx->player->flags) &&
-       DO_VIDEO(ctx->player->flags))
+
+    if(!DO_SUBTITLE_ONLY(ctx->player->flags))
       {
-      if(ctx->video_finished)
-        read_audio = 1;
-      else if(ctx->audio_time > ctx->video_time)
-        read_audio = 0;
+      if(DO_AUDIO(ctx->player->flags) &&
+         DO_VIDEO(ctx->player->flags))
+        {
+        if(ctx->video_finished)
+          read_audio = 1;
+        else if(ctx->audio_time > ctx->video_time)
+          read_audio = 0;
+        else
+          read_audio = 1;
+        }
+      if(read_audio)
+        process_audio(ctx, 0);
       else
-        read_audio = 1;
+        process_video(ctx, 0);
       }
-    
-    if(read_audio)
-      process_audio(ctx, 0);
     else
+      {
       process_video(ctx, 0);
-    
+      process_audio(ctx, 0);
+      }
     /* If we sent silence before, we must tell the audio fifo EOF */
     
     if(ctx->send_silence && ctx->audio_finished && ctx->video_finished)

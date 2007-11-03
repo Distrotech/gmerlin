@@ -139,10 +139,11 @@ typedef struct
 
 #define PLAYER_DO_AUDIO            (1<<0)
 #define PLAYER_DO_VIDEO            (1<<1)
-#define PLAYER_DO_SUBTITLE_OVERLAY (1<<2)
-#define PLAYER_DO_SUBTITLE_TEXT    (1<<3)
-#define PLAYER_DO_SUBTITLE_ONLY    (1<<4)
-#define PLAYER_DO_VISUALIZE        (1<<5)
+#define PLAYER_DO_SUBTITLE         (1<<2) /* Set by open() */
+#define PLAYER_DO_SUBTITLE_OVERLAY (1<<3) /* Set by start() */
+#define PLAYER_DO_SUBTITLE_TEXT    (1<<4) /* Set by start() */
+#define PLAYER_DO_SUBTITLE_ONLY    (1<<5)
+#define PLAYER_DO_VISUALIZE        (1<<6)
 
 #define DO_SUBTITLE_TEXT(f) \
  (f & PLAYER_DO_SUBTITLE_TEXT)
@@ -151,10 +152,10 @@ typedef struct
  (f & PLAYER_DO_SUBTITLE_OVERLAY)
 
 #define DO_SUBTITLE(f) \
- (f & (PLAYER_DO_SUBTITLE_OVERLAY|PLAYER_DO_SUBTITLE_TEXT))
+ (f & (PLAYER_DO_SUBTITLE))
 
 #define DO_SUBTITLE_ONLY(f) \
-  (DO_SUBTITLE(f) && !(f & PLAYER_DO_VIDEO))
+  (f & PLAYER_DO_SUBTITLE_ONLY)
 
 #define DO_AUDIO(f) \
   (f & PLAYER_DO_AUDIO)
@@ -363,6 +364,9 @@ void bg_player_ov_standby(bg_player_ov_context_t * ctx);
 /* Create/destroy frames */
 void * bg_player_ov_create_frame(void * data);
 void bg_player_ov_destroy_frame(void * data, void * frame);
+
+void * bg_player_ov_create_subtitle_overlay(void * data);
+void bg_player_ov_destroy_subtitle_overlay(void * data, void * frame);
 
 /* Set this extra because we must initialize subtitles after the video output */
 void bg_player_ov_set_subtitle_format(void * data);

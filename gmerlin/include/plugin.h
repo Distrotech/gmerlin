@@ -1030,11 +1030,10 @@ typedef struct bg_ov_plugin_s
    *  (e.g. in a shared memory segment). If this funtion is defined, all frames
    *  which are passed to the plugin, must be allocated by this function.
    *  Before the plugin is closed, all created frames must be freed with
-   *  the free_frame() method.
+   *  the destroy_frame() method.
    */
   
   gavl_video_frame_t * (*create_frame)(void * priv);
-
   
   /** \brief Add a stream for transparent overlays
    *  \param priv The handle returned by the create() method
@@ -1051,6 +1050,20 @@ typedef struct bg_ov_plugin_s
   
   int (*add_overlay_stream)(void * priv, gavl_video_format_t * format);
 
+  /** \brief Allocate an overlay
+   *  \param priv The handle returned by the create() method
+   *  \param id The id returned by the add_overlay_stream() method
+   *  \returns a newly allocated overlay
+   *
+   *  This optional method allocates an overlay in a plugin specific manner
+   *  (e.g. in a shared memory segment). If this funtion is defined, all overlays
+   *  which are passed to the plugin, must be allocated by this function.
+   *  Before the plugin is closed, all created overlays must be freed with
+   *  the destroy_overlay() method.
+   */
+  
+  gavl_overlay_t * (*create_overlay)(void * priv, int id);
+  
   /** \brief Set an overlay for a specific stream
    *  \param priv The handle returned by the create() method
    *  \param stream Stream index returned by add_overlay_stream()
@@ -1097,12 +1110,20 @@ typedef struct bg_ov_plugin_s
   
   void (*update_aspect)(void * priv, int pixel_width, int pixel_height);
     
-  /** \brief Free a frame created with the alloc_frame() method.
+  /** \brief Free a frame created with the create_frame() method.
    *  \param priv The handle returned by the create() method
    *  \param frame The frame to be freed
    */
 
   void (*destroy_frame)(void * priv, gavl_video_frame_t * frame);
+
+  /** \brief Free an overlay created with the create_overlay() method.
+   *  \param priv The handle returned by the create() method
+   *  \param id The id returned by the add_overlay_stream() method
+   *  \param ovl The overlay to be freed
+   */
+  
+  void (*destroy_overlay)(void * priv, int id, gavl_overlay_t * ovl);
 
   /** \brief Close the plugin
    *  \param priv The handle returned by the create() method

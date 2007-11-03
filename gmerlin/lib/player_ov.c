@@ -50,6 +50,8 @@ struct bg_player_ov_context_s
   int subtitle_id; /* Stream id for subtitles in the output plugin */
   int has_subtitle;
 
+  gavl_video_format_t osd_format;
+  
   bg_osd_t * osd;
   int osd_id;
   gavl_overlay_t * osd_ovl;
@@ -257,6 +259,66 @@ void bg_player_ov_destroy_frame(void * data, void * frame)
     gavl_video_frame_destroy((gavl_video_frame_t*)frame);
   }
 
+static gavl_overlay_t * create_overlay(void * data, int id)
+  {
+  bg_player_ov_context_t * ctx;
+  gavl_overlay_t * ret;
+  ctx = (bg_player_ov_context_t *)data;
+
+  if(ctx->plugin->create_overlay)
+    {
+    bg_plugin_lock(ctx->plugin_handle);
+    ret = ctx->plugin->create_overlay(ctx->priv, id);
+    bg_plugin_unlock(ctx->plugin_handle);
+    }
+  else
+    {
+    ret = calloc(1, sizeof(*ret));
+
+    if(id == ctx->subtitle_id)
+      ret->frame =
+        gavl_video_frame_create(&(ctx->player->subtitle_stream.output_format));
+    else
+      ret->frame =
+        gavl_video_frame_create(&(ctx->osd_format));
+    }
+  gavl_video_frame_clear(ret->frame, &(ctx->player->video_stream.output_format));
+  return ret;
+  }
+
+static void destroy_overlay(void * data, int id, gavl_overlay_t * ovl)
+  {
+  bg_player_ov_context_t * ctx;
+  ctx = (bg_player_ov_context_t *)data;
+  
+  if(ctx->plugin->destroy_overlay)
+    {
+    bg_plugin_lock(ctx->plugin_handle);
+    ctx->plugin->destroy_overlay(ctx->priv, id, ovl);
+    bg_plugin_unlock(ctx->plugin_handle);
+    }
+  else
+    {
+    gavl_video_frame_destroy(ovl->frame);
+    free(ovl);
+    }
+  }
+
+
+void * bg_player_ov_create_subtitle_overlay(void * data)
+  {
+  bg_player_ov_context_t * ctx;
+  ctx = (bg_player_ov_context_t *)data;
+  return create_overlay(ctx, ctx->subtitle_id);
+  }
+
+void bg_player_ov_destroy_subtitle_overlay(void * data, void * frame)
+  {
+  bg_player_ov_context_t * ctx;
+  ctx = (bg_player_ov_context_t *)data;
+  destroy_overlay(ctx, ctx->subtitle_id, frame);
+  }
+
 void bg_player_ov_create(bg_player_t * player)
   {
   bg_player_ov_context_t * ctx;
@@ -351,7 +413,6 @@ void bg_player_ov_destroy(bg_player_t * player)
 
 int bg_player_ov_init(bg_player_ov_context_t * ctx)
   {
-  gavl_video_format_t osd_format;
   int result;
   
   ctx->next_subtitle    = (gavl_overlay_t*)0;
@@ -368,16 +429,23 @@ int bg_player_ov_init(bg_player_ov_context_t * ctx)
   else if(!result)
     return result;
   
-  memset(&(osd_format), 0, sizeof(osd_format));
+  memset(&(ctx->osd_format), 0, sizeof(ctx->osd_format));
   
   bg_osd_init(ctx->osd, &(ctx->player->video_stream.output_format),
-              &osd_format);
-
+              &ctx->osd_format);
+  /* Fixme: Lets just hope, that the OSD format doesn't get changed
+     by this call. Otherwise, we would need a gavl_video_converter */
   ctx->osd_id = ctx->plugin->add_overlay_stream(ctx->priv,
-                                                      &osd_format);
-  ctx->osd_ovl = bg_osd_get_overlay(ctx->osd);
-  ctx->frames_written = 0;
+                                                &ctx->osd_format);
+
+  /* create_overlay needs the lock again */
   bg_plugin_unlock(ctx->plugin_handle);
+  
+  
+  ctx->osd_ovl = create_overlay(ctx, ctx->osd_id);
+  
+  bg_osd_set_overlay(ctx->osd, ctx->osd_ovl);
+  ctx->frames_written = 0;
   return result;
   }
 
@@ -430,6 +498,11 @@ void bg_player_ov_cleanup(bg_player_ov_context_t * ctx)
     gavl_video_frame_destroy(ctx->current_subtitle.frame);
     ctx->current_subtitle.frame = (gavl_video_frame_t*)0;
     }
+  if(ctx->osd_ovl)
+    {
+    destroy_overlay(ctx, ctx->osd_id, ctx->osd_ovl);
+    ctx->osd_ovl = (gavl_overlay_t*)0;
+    }
   
   pthread_mutex_unlock(&ctx->still_mutex);
 
@@ -472,6 +545,7 @@ void bg_player_ov_set_subtitle_format(void * data)
                          &ctx->player->subtitle_stream.input_format);
   
   /* Add subtitle stream for plugin */
+
   
   ctx->subtitle_id =
     ctx->plugin->add_overlay_stream(ctx->priv,

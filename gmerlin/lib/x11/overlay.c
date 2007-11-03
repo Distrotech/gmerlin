@@ -49,7 +49,7 @@ bg_x11_window_create_overlay(bg_x11_window_t * w, int stream)
   ret = calloc(1, sizeof(*ret));
   if(w->current_driver->driver->create_overlay)
     ret->frame = w->current_driver->driver->create_overlay(w->current_driver,
-                                                   stream);
+                                                           stream);
   else
     ret->frame = gavl_video_frame_create(&w->overlay_streams[stream].format);
   return ret;

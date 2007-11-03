@@ -33,7 +33,7 @@ struct bg_osd_s
   {
   bg_text_renderer_t * renderer;
   int enable;
-  gavl_overlay_t ovl;
+  gavl_overlay_t * ovl;
   gavl_time_t duration;
   float font_size;
   };
@@ -64,8 +64,6 @@ bg_osd_t * bg_osd_create()
 void bg_osd_destroy(bg_osd_t * osd)
   {
   bg_text_renderer_destroy(osd->renderer);
-  if(osd->ovl.frame)
-    gavl_video_frame_destroy(osd->ovl.frame);
   free(osd);
   }
 
@@ -201,32 +199,28 @@ void bg_osd_set_parameter(void * data, const char * name,
     bg_text_renderer_set_parameter(osd->renderer, name, val);
   }
 
-gavl_overlay_t * bg_osd_get_overlay(bg_osd_t * osd)
+void bg_osd_set_overlay(bg_osd_t * osd, gavl_overlay_t * ovl)
   {
-  return &osd->ovl;
+  osd->ovl = ovl;
   }
 
 void bg_osd_init(bg_osd_t * osd, const gavl_video_format_t * format,
                  gavl_video_format_t * overlay_format)
   {
   bg_text_renderer_init(osd->renderer, format, overlay_format);
-
-  if(osd->ovl.frame)
-    gavl_video_frame_destroy(osd->ovl.frame);
-  osd->ovl.frame = gavl_video_frame_create(overlay_format);
   }
 
 int bg_osd_overlay_valid(bg_osd_t * osd, gavl_time_t time)
   {
-  if(!osd->enable || (osd->ovl.frame->timestamp < 0))
+  if(!osd->enable || (osd->ovl->frame->timestamp < 0))
     return 0;
 
-  if(time < osd->ovl.frame->timestamp)
+  if(time < osd->ovl->frame->timestamp)
     return 0;
   
-  else if(time > osd->ovl.frame->timestamp + osd->ovl.frame->duration)
+  else if(time > osd->ovl->frame->timestamp + osd->ovl->frame->duration)
     {
-    osd->ovl.frame->timestamp = -1;
+    osd->ovl->frame->timestamp = -1;
     return 0;
     }
   return 1;
@@ -262,10 +256,10 @@ static void print_float(bg_osd_t * osd, float val, char c, gavl_time_t time)
   *buf = ']'; buf++;
   *buf = '\0';
   
-  bg_text_renderer_render(osd->renderer, _buf, &osd->ovl);
+  bg_text_renderer_render(osd->renderer, _buf, osd->ovl);
 
-  osd->ovl.frame->timestamp = time;
-  osd->ovl.frame->duration = osd->duration;
+  osd->ovl->frame->timestamp = time;
+  osd->ovl->frame->duration = osd->duration;
   
   }
 

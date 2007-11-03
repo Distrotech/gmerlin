@@ -26,7 +26,7 @@ bg_parameter_info_t * bg_osd_get_parameters(bg_osd_t*);
 void bg_osd_set_parameter(void * data, const char * name,
                           const bg_parameter_value_t * val);
 
-gavl_overlay_t * bg_osd_get_overlay(bg_osd_t*);
+void bg_osd_set_overlay(bg_osd_t*, gavl_overlay_t *);
 
 void bg_osd_init(bg_osd_t*,
                  const gavl_video_format_t * format,
