@@ -33,6 +33,9 @@ static int has_extension(const char * extensions,
   {
   char end;
   char * pos;
+
+  return 0;
+  
   if(!(pos = strstr(extensions, name)))
     return 0;
   
@@ -201,6 +204,7 @@ static void put_frame_gl(driver_data_t * d, gavl_video_frame_t * f)
   gl_priv_t * priv;
   bg_x11_window_t * w;
   float tex_x1, tex_x2, tex_y1, tex_y2;
+  float v_x1, v_x2, v_y1, v_y2;
   priv = (gl_priv_t *)(d->priv);
   w = d->win;
 
@@ -260,12 +264,11 @@ static void put_frame_gl(driver_data_t * d, gavl_video_frame_t * f)
         continue;
       
       glBindTexture(GL_TEXTURE_2D,priv->overlays[i].texture);
-      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
       
-      tex_x1 = (priv->overlays[i].src_rect.x) /
+      tex_x1 = (float)(priv->overlays[i].src_rect.x) /
         priv->overlays[i].width;
-    
-      tex_y1 = (priv->overlays[i].src_rect.y) /
+      
+      tex_y1 = (float)(priv->overlays[i].src_rect.y) /
         priv->overlays[i].height;
     
       tex_x2 = (float)(priv->overlays[i].src_rect.x + priv->overlays[i].src_rect.w) /
@@ -273,18 +276,24 @@ static void put_frame_gl(driver_data_t * d, gavl_video_frame_t * f)
 
       tex_y2 = (float)(priv->overlays[i].src_rect.y + priv->overlays[i].src_rect.h) /
         priv->overlays[i].height;
-
-      gavl_rectangle_i_dump(&priv->overlays[i].src_rect);
       
-      fprintf(stderr, "\nTexture coords: %f %f -> %f %f\n",
-              tex_x1, tex_y1, tex_x2, tex_y2);
+      v_x1 = priv->overlays[i].dst_x - w->src_rect.x;
+      v_y1 = priv->overlays[i].dst_y - w->src_rect.y;
 
+      v_x2 = v_x1 + priv->overlays[i].src_rect.w;
+      v_y2 = v_y1 + priv->overlays[i].src_rect.h;
+      
+      v_x1 = (v_x1 * w->dst_rect.w) / w->src_rect.w;
+      v_x2 = (v_x2 * w->dst_rect.w) / w->src_rect.w;
+
+      v_y1 = w->dst_rect.h - (v_y1 * w->dst_rect.h) / w->src_rect.h;
+      v_y2 = w->dst_rect.h - (v_y2 * w->dst_rect.h) / w->src_rect.h;
       
       glBegin(GL_QUADS);
-      glTexCoord2f(tex_x1,tex_y2); glVertex3f(0,             0,             0.1);
-      glTexCoord2f(tex_x1,tex_y1); glVertex3f(0,             w->dst_rect.h, 0.1);
-      glTexCoord2f(tex_x2,tex_y1); glVertex3f(w->dst_rect.w, w->dst_rect.h, 0.1);
-      glTexCoord2f(tex_x2,tex_y2); glVertex3f(w->dst_rect.w, 0,             0.1);
+      glTexCoord2f(tex_x1,tex_y2); glVertex3f(v_x1, v_y2, 0.1);
+      glTexCoord2f(tex_x1,tex_y1); glVertex3f(v_x1, v_y1, 0.1);
+      glTexCoord2f(tex_x2,tex_y1); glVertex3f(v_x2, v_y1, 0.1);
+      glTexCoord2f(tex_x2,tex_y2); glVertex3f(v_x2, v_y2, 0.1);
       glEnd();
       }
     glDisable(GL_BLEND);
@@ -387,8 +396,10 @@ static void close_gl(driver_data_t * d)
   for(i = 0; i < w->num_overlay_streams; i++)
     delete_texture(&priv->overlays[i]);
   if(priv->overlays)
+    {
     free(priv->overlays);
-  
+    priv->overlays = NULL; 
+    }
   bg_x11_window_unset_gl(w);
   }
 
