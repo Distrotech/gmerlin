@@ -287,7 +287,7 @@ void bgav_subtitle_stop(bgav_stream_t * s)
   if(s->data.subtitle.charset)
     free(s->data.subtitle.charset);
   if(s->data.subtitle.subreader)
-    bgav_subtitle_reader_close(s);
+    bgav_subtitle_reader_stop(s);
   }
 
 void bgav_subtitle_resync(bgav_stream_t * s)

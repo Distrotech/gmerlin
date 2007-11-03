@@ -109,6 +109,11 @@ void bgav_stream_free(bgav_stream_t * s)
   
   if(s->packet_buffer)
     bgav_packet_buffer_destroy(s->packet_buffer);
+
+  if(((s->type == BGAV_STREAM_SUBTITLE_TEXT) ||
+      (s->type == BGAV_STREAM_SUBTITLE_OVERLAY)) &&
+     s->data.subtitle.subreader)
+    bgav_subtitle_reader_destroy(s);
   }
 
 void bgav_stream_dump(bgav_stream_t * s)

@@ -812,22 +812,35 @@ bgav_subtitle_reader_open(bgav_input_context_t * input_ctx)
   return ret;
   }
 
-void bgav_subtitle_reader_close(bgav_stream_t * s)
+void bgav_subtitle_reader_stop(bgav_stream_t * s)
   {
   bgav_subtitle_reader_context_t * ctx;
   ctx = s->data.subtitle.subreader;
 
   if(ctx->reader->close)
     ctx->reader->close(s);
+
+  if(ctx->ovl.frame)
+    {
+    gavl_video_frame_destroy(ctx->ovl.frame);
+    ctx->ovl.frame = (gavl_video_frame_t*)0;
+    }
+  
+  if(ctx->input)
+    bgav_input_close(ctx->input);
+  }
+
+void bgav_subtitle_reader_destroy(bgav_stream_t * s)
+  {
+  bgav_subtitle_reader_context_t * ctx;
+  ctx = s->data.subtitle.subreader;
   if(ctx->info) free(ctx->info);
   if(ctx->filename) free(ctx->filename);
   if(ctx->p) bgav_packet_destroy(ctx->p);
-  if(ctx->ovl.frame) gavl_video_frame_destroy(ctx->ovl.frame);
-
-  
   if(ctx->input)
     bgav_input_destroy(ctx->input);
   free(ctx);
+  
   }
 
 int bgav_subtitle_reader_has_subtitle(bgav_stream_t * s)

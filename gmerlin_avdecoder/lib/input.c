@@ -774,6 +774,7 @@ int bgav_input_open(bgav_input_context_t * ctx,
 
 void bgav_input_close(bgav_input_context_t * ctx)
   {
+  const gavl_video_options_t * opt;
   if(ctx->tt)
     bgav_track_table_unref(ctx->tt);
   if(ctx->input && ctx->priv)
@@ -798,7 +799,10 @@ void bgav_input_close(bgav_input_context_t * ctx)
   
   bgav_metadata_free(&(ctx->metadata));
   //  free(ctx);
+  
+  opt = ctx->opt;
   memset(ctx, 0, sizeof(*ctx));
+  ctx->opt = opt;
   return;
   }
 

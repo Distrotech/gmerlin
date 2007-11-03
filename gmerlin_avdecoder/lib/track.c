@@ -260,6 +260,7 @@ int bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer)
       {
       /* Start the video decoder to get the format */
       video_stream->action = BGAV_STREAM_DECODE;
+      video_stream->demuxer = demuxer;
       bgav_stream_start(video_stream);
       bgav_stream_stop(video_stream);
       video_stream->action = BGAV_STREAM_MUTE;
