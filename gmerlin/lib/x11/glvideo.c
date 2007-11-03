@@ -34,18 +34,13 @@ static int has_extension(const char * extensions,
   char end;
   char * pos;
 
-  return 0;
-  
   if(!(pos = strstr(extensions, name)))
     return 0;
   
   end = pos[strlen(name)];
   
   if((end == ' ') || (end == '\0'))
-    {
-    fprintf(stderr, "Got extension %s\n", name);
     return 1;
-    }
   return 0;
   }
 
@@ -59,6 +54,12 @@ static void check_gl(bg_x11_window_t * win,
   
   formats_ret[format_index++] = GAVL_RGB_24;
   formats_ret[format_index++] = GAVL_RGBA_32;
+
+  formats_ret[format_index++] = GAVL_RGB_48;
+  formats_ret[format_index++] = GAVL_RGBA_64;
+
+  formats_ret[format_index++] = GAVL_RGB_FLOAT;
+  formats_ret[format_index++] = GAVL_RGBA_FLOAT;
   
   bg_x11_window_set_gl(win);
   
@@ -78,9 +79,8 @@ static int init_gl(driver_data_t * d)
   gl_priv_t * priv;
   priv = calloc(1, sizeof(*priv));
   d->priv = priv;
-
   
-  d->pixelformats = malloc(5*sizeof(*d->pixelformats));
+  d->pixelformats = malloc(8*sizeof(*d->pixelformats));
   check_gl(d->win, d->pixelformats, priv);
   
   return 1;
@@ -102,6 +102,22 @@ static void create_texture(gl_priv_t * priv,
     case GAVL_RGBA_32:
       ret->type   = GL_RGBA;
       ret->format = GL_UNSIGNED_BYTE;
+      break;
+    case GAVL_RGB_48:
+      ret->type   = GL_RGB;
+      ret->format = GL_UNSIGNED_SHORT;
+      break;
+    case GAVL_RGBA_64:
+      ret->type   = GL_RGBA;
+      ret->format = GL_UNSIGNED_SHORT;
+      break;
+    case GAVL_RGB_FLOAT:
+      ret->type   = GL_RGB;
+      ret->format = GL_FLOAT;
+      break;
+    case GAVL_RGBA_FLOAT:
+      ret->type   = GL_RGBA;
+      ret->format = GL_FLOAT;
       break;
     default:
       break;
@@ -324,8 +340,10 @@ static void add_overlay_stream_gl(driver_data_t* d)
             (w->num_overlay_streams+1) * sizeof(*(priv->overlays)));
   memset(&priv->overlays[w->num_overlay_streams], 0,
          sizeof(priv->overlays[w->num_overlay_streams]));
-
-  w->overlay_streams[w->num_overlay_streams].format.pixelformat = GAVL_RGBA_32;
+  
+  if(!gavl_pixelformat_is_rgb(w->overlay_streams[w->num_overlay_streams].format.pixelformat))
+    w->overlay_streams[w->num_overlay_streams].format.pixelformat = GAVL_RGBA_32;
+  
   bg_x11_window_set_gl(w);
 
   create_texture(priv,
