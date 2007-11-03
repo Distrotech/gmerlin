@@ -551,10 +551,7 @@ static void update_lv(void * data, gavl_audio_frame_t * frame)
   VisBuffer buffer;
   
   priv = (lv_priv_t*)data;
-
-  if(priv->have_audio)
-    return;
-    
+      
   visual_buffer_init(&buffer, frame->samples.s_16,
                      frame->valid_samples * 2, NULL);
   
@@ -563,7 +560,7 @@ static void update_lv(void * data, gavl_audio_frame_t * frame)
                                 VISUAL_AUDIO_SAMPLE_RATE_44100,
                                 VISUAL_AUDIO_SAMPLE_FORMAT_S16,
                                 VISUAL_AUDIO_SAMPLE_CHANNEL_STEREO);
-  priv->have_audio = 1;
+  visual_audio_analyze(priv->audio);
   }
 
 static void close_lv(void * data)
