@@ -137,10 +137,11 @@ static void key_callback(void * data, int key, int mask)
   }
 #else
 
-static void accel_callback(void * data, int id)
+static int accel_callback(void * data, int id)
   {
   bg_player_ov_context_t * ctx = (bg_player_ov_context_t*)data;
   bg_player_accel_pressed(ctx->player, id);
+  return 1;
   }
 #endif
 

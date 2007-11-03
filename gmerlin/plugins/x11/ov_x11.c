@@ -140,7 +140,7 @@ static void ensure_window_realized(x11_t * priv)
 /* Callbacks */
 
 
-static void accel_callback(void * data, int id)
+static int accel_callback(void * data, int id)
   {
   x11_t * priv;
   priv = (x11_t *)data;
@@ -151,49 +151,77 @@ static void accel_callback(void * data, int id)
         bg_x11_window_set_fullscreen(priv->win, 0);
       else
         bg_x11_window_set_fullscreen(priv->win, 1);
+      return 1;
       break;
     case ACCEL_EXIT_FULLSCREEN:
       if(priv->fullscreen)
+        {
         bg_x11_window_set_fullscreen(priv->win, 0);
+        return 1;
+        }
       break;
     case ACCEL_RESET_ZOOMSQUEEZE:
-      priv->zoom = 100.0;
-      priv->squeeze = 0.0;
-      set_drawing_coords(priv);
-      return;
+      if(priv->is_open)
+        {
+        priv->zoom = 100.0;
+        priv->squeeze = 0.0;
+        set_drawing_coords(priv);
+        return 1;
+        }
       break;
     case ACCEL_INC_ZOOM:
       /* Increase Zoom */
-      priv->zoom += ZOOM_DELTA;
-      if(priv->zoom > ZOOM_MAX)
-        priv->zoom = ZOOM_MAX;
-      set_drawing_coords(priv);
+      if(priv->is_open)
+        {
+        priv->zoom += ZOOM_DELTA;
+        if(priv->zoom > ZOOM_MAX)
+          priv->zoom = ZOOM_MAX;
+        set_drawing_coords(priv);
+        return 1;
+        }
       break;
     case ACCEL_DEC_ZOOM:
       /* Decrease Zoom */
-      priv->zoom -= ZOOM_DELTA;
-      if(priv->zoom < ZOOM_MIN)
-        priv->zoom = ZOOM_MIN;
-      set_drawing_coords(priv);
+      if(priv->is_open)
+        {
+        priv->zoom -= ZOOM_DELTA;
+        if(priv->zoom < ZOOM_MIN)
+          priv->zoom = ZOOM_MIN;
+        set_drawing_coords(priv);
+        return 1;
+        }
       break;
     case ACCEL_INC_SQUEEZE:
       /* Increase Squeeze */
-      priv->squeeze += SQUEEZE_DELTA;
-      if(priv->squeeze > SQUEEZE_MAX)
-        priv->squeeze = SQUEEZE_MAX;
-      set_drawing_coords(priv);
+      if(priv->is_open)
+        {
+        priv->squeeze += SQUEEZE_DELTA;
+        if(priv->squeeze > SQUEEZE_MAX)
+          priv->squeeze = SQUEEZE_MAX;
+        set_drawing_coords(priv);
+        return 1;
+        }
       break;
     case ACCEL_DEC_SQUEEZE:
       /* Decrease Squeeze */
-      priv->squeeze -= SQUEEZE_DELTA;
-      if(priv->squeeze < SQUEEZE_MIN)
-        priv->squeeze = SQUEEZE_MIN;
-      set_drawing_coords(priv);
+      if(priv->is_open)
+        {
+        priv->squeeze -= SQUEEZE_DELTA;
+        if(priv->squeeze < SQUEEZE_MIN)
+          priv->squeeze = SQUEEZE_MIN;
+        set_drawing_coords(priv);
+        return 1;
+        }
       break;
-    default: // Propagate to outside
-      if(priv->callbacks && priv->callbacks->accel_callback)
-        priv->callbacks->accel_callback(priv->callbacks->data, id);
+      // Propagate to outside
     }
+  if(priv->callbacks &&
+     priv->callbacks->accel_callback &&
+     priv->callbacks->accel_map &&
+     bg_accelerator_map_has_accel_with_id(priv->callbacks->accel_map, id))
+    return priv->callbacks->accel_callback(priv->callbacks->data, id);
+  else
+    return 0;
   }
 
 static int key_callback(void * data, int key, int mask)
@@ -300,6 +328,8 @@ static int button_callback(void * data, int x, int y, int button, int mask)
   switch(button)
     {
     case 4:
+      if(!priv->is_open)
+        return 0;
       if((mask & BG_KEY_ALT_MASK) == BG_KEY_ALT_MASK)
         {
         /* Increase Zoom */
@@ -320,6 +350,8 @@ static int button_callback(void * data, int x, int y, int button, int mask)
         }
       break;
     case 5:
+      if(!priv->is_open)
+        return 0;
       if((mask & BG_KEY_ALT_MASK) == BG_KEY_ALT_MASK)
         {
         /* Decrease Zoom */
@@ -340,7 +372,7 @@ static int button_callback(void * data, int x, int y, int button, int mask)
         }
       break;
     }
-  /* Check for plugin callback*/
+  /* Check for plugin callback */
   if(priv->callbacks && priv->callbacks->button_callback)
     {
     priv->callbacks->button_callback(priv->callbacks->data,

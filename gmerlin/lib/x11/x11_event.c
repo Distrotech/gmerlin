@@ -757,63 +757,60 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
         cur = &w->fullscreen;
       else
         {
+        fprintf(stderr, "No current window\n");
         return;
         }
       key_code = keysym_to_key_code(keysym);
       key_mask = x11_to_key_mask(evt->xkey.state);
       if(key_code != BG_KEY_NONE)
         {
-        if(w->callbacks)
+        if(evt->type == KeyPress)
           {
           /* Try if it's our accel */
-          if(w->callbacks->accel_callback && w->callbacks->accel_map)
-            {
-            if(bg_accelerator_map_has_accel(w->callbacks->accel_map,
-                                            key_code,
-                                            key_mask, &accel_id))
-              {
-              if(evt->type == KeyPress)
-                w->callbacks->accel_callback(w->callbacks->data,
-                                             accel_id);
-              return;
-              }
-            }
+          if(w->callbacks &&
+             w->callbacks->accel_callback &&
+             w->callbacks->accel_map &&
+             bg_accelerator_map_has_accel(w->callbacks->accel_map,
+                                          key_code,
+                                          key_mask, &accel_id) &&
+             w->callbacks->accel_callback(w->callbacks->data,
+                                          accel_id))
+            return;
           
           /* Check if the child wants tht shortcut */
-          if(cur->child_accel_map && cur->child && cur->child_xembed)
+          if(cur->child_accel_map &&
+             cur->child &&
+             cur->child_xembed &&
+             bg_accelerator_map_has_accel(cur->child_accel_map,
+                                          key_code,
+                                          key_mask, &accel_id))
             {
-            if(bg_accelerator_map_has_accel(cur->child_accel_map,
-                                            key_code,
-                                            key_mask, &accel_id))
-              {
-              if(evt->type == KeyPress)
-                bg_x11_window_send_xembed_message(w, cur->child,
-                                                  evt->xkey.time,
-                                                  XEMBED_ACTIVATE_ACCELERATOR,
-                                                  accel_id, 0, 0);
-              return;
-              }
+            bg_x11_window_send_xembed_message(w, cur->child,
+                                              evt->xkey.time,
+                                              XEMBED_ACTIVATE_ACCELERATOR,
+                                              accel_id, 0, 0);
+            return;
             }
+          
           /* Here, we see why generic key callbacks are bad:
              One key callback is ok, but if we have more than one
              (i.e. in embedded or embedding windows), one might always
-             eat up all events */
-          if(w->callbacks->key_callback && (evt->type == KeyPress))
-            {
-            if(w->callbacks->key_callback(w->callbacks->data,
-                                          key_code, key_mask))
-              {
-              return;
-              }
-            }
-          else if(w->callbacks->key_release_callback && (evt->type == KeyRelease))
-            {
-            if(w->callbacks->key_release_callback(w->callbacks->data,
-                                                  key_code, key_mask))
-              {
-              return;
-              }
-            }
+             eat up all events. At lease callbacks should return zero
+             to signify, that the event should be propagated */
+
+          if(w->callbacks &&
+             w->callbacks->key_callback &&
+             w->callbacks->key_callback(w->callbacks->data,
+                                        key_code, key_mask))
+            return;
+          }
+        else // KeyRelease
+          {
+          if(w->callbacks &&
+             w->callbacks->key_release_callback &&
+             w->callbacks->key_release_callback(w->callbacks->data,
+                                                key_code, key_mask))
+            return;
           }
         }
       

@@ -868,7 +868,7 @@ typedef struct bg_ov_callbacks_s
    *  \param id The accelerator ID
    */
   
-  void (*accel_callback)(void * data, int id);
+  int (*accel_callback)(void * data, int id);
   
   /** \brief Keyboard callback
    *  \param data The data member of this bg_ov_callbacks_s struct

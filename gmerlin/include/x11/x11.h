@@ -24,7 +24,7 @@
 typedef struct
   {
   const bg_accelerator_map_t * accel_map;
-  void (*accel_callback)(void * data, int accel);
+  int (*accel_callback)(void * data, int accel);
   
   int (*key_callback)(void * data, int key, int mask);
   int (*key_release_callback)(void * data, int key, int mask);
