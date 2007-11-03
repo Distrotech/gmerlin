@@ -194,8 +194,8 @@ static void put_frame_gl(driver_data_t * d, gavl_video_frame_t * f)
 
   /* Draw this */
   
-  tex_x1 = w->src_rect.x / priv->texture_width;
-  tex_y1 = w->src_rect.y / priv->texture_height;
+  tex_x1 = (w->src_rect.x+2.0) / priv->texture_width;
+  tex_y1 = (w->src_rect.y+2.0) / priv->texture_height;
   
   tex_x2 = (w->src_rect.x + w->src_rect.w) / priv->texture_width;
   tex_y2 = (w->src_rect.y + w->src_rect.h) / priv->texture_height;
