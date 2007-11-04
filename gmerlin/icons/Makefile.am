@@ -53,6 +53,7 @@ kbd_icon.png \
 last_16.png \
 left_16.png \
 lock_16.png \
+log_16.png \
 mixer_icon.png \
 mute_16.png \
 paste_16.png \

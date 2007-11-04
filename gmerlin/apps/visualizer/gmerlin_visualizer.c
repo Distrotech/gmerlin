@@ -10,6 +10,7 @@
 #include <gui_gtk/gtkutils.h>
 #include <gui_gtk/audio.h>
 #include <gui_gtk/plugin.h>
+#include <gui_gtk/logwindow.h>
 #include <utils.h>
 #include <visualize.h>
 
@@ -49,6 +50,8 @@ typedef struct
   GtkWidget * quit_button;
   GtkWidget * plugin_button;
   GtkWidget * restart_button;
+  GtkWidget * log_button;
+  guint log_id;
   
   GtkWidget * fullscreen_button;
   GtkWidget * nofullscreen_button;
@@ -90,6 +93,7 @@ typedef struct
   //  bg_cfg_section_t * vumeter_section;
   bg_cfg_section_t * visualizer_section;
   bg_cfg_section_t * general_section;
+  bg_cfg_section_t * log_section;
   bg_dialog_t * cfg_dialog;
 
   int audio_open;
@@ -103,6 +107,8 @@ typedef struct
   int toolbar_trigger;
   
   int x, y, width, height;
+  
+  bg_gtk_log_window_t * log_window;
   } visualizer_t;
 
 static gboolean configure_callback(GtkWidget * w, GdkEventConfigure *event,
@@ -374,6 +380,13 @@ static void button_callback(GtkWidget * w, gpointer data)
       hide_toolbar(win);
       }
     }
+  else if(w == win->log_button)
+    {
+    if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(win->log_button)))
+      bg_gtk_log_window_show(win->log_window);
+    else
+      bg_gtk_log_window_hide(win->log_window);
+    }
   }
 
 static gboolean plug_removed_callback(GtkWidget * w, gpointer data)
@@ -621,6 +634,38 @@ static GtkWidget * create_pixmap_button(visualizer_t * w,
   return button;
   }
 
+static GtkWidget * create_pixmap_toggle_button(visualizer_t * w,
+                                               const char * filename,
+                                               const char * tooltip,
+                                               guint * id)
+  {
+  GtkWidget * button;
+  GtkWidget * image;
+  char * path;
+  path = bg_search_file_read("icons", filename);
+  if(path)
+    {
+    image = gtk_image_new_from_file(path);
+    free(path);
+    }
+  else
+    image = gtk_image_new();
+
+  gtk_widget_show(image);
+  button = gtk_toggle_button_new();
+  gtk_container_add(GTK_CONTAINER(button), image);
+
+  *id = g_signal_connect(G_OBJECT(button), "toggled",
+                         G_CALLBACK(button_callback), w);
+  
+  gtk_widget_show(button);
+  
+  bg_gtk_tooltips_set_tip(button, tooltip, PACKAGE);
+  
+  return button;
+  }
+
+
 static void set_vis_param(void * data, const char * name,
                           const bg_parameter_value_t * val)
   {
@@ -790,16 +835,14 @@ static bg_dialog_t * create_cfg_dialog(visualizer_t * win)
                 (void*)(win),
                 info);
 
-#if 0
-  info = bg_gtk_vumeter_get_parameters(win->vumeter);
-  
+  info = bg_gtk_log_window_get_parameters(win->log_window);
   bg_dialog_add(ret,
-                TR("Vumeter"),
-                win->vumeter_section,
-                bg_gtk_vumeter_set_parameter,
-                (void*)(win->vumeter),
+                TR("Log window"),
+                win->log_section,
+                bg_gtk_log_window_set_parameter,
+                (void*)(win->log_window),
                 info);
-#endif
+  
   return ret;
   }
 
@@ -817,15 +860,28 @@ static void apply_config(visualizer_t * v)
   bg_cfg_section_apply(v->general_section, parameters,
                        set_general_parameter,
                        (void*)(v));
+
+  info = bg_gtk_log_window_get_parameters(v->log_window);
+
+  bg_cfg_section_apply(v->log_section, info,
+                       bg_gtk_log_window_set_parameter,
+                       (void*)(v->log_window));
   
   }
 
 static void get_config(visualizer_t * v)
   {
+  bg_parameter_info_t * info;
   
   bg_cfg_section_get(v->general_section, parameters,
                      get_general_parameter,
                      (void*)(v));
+
+  info = bg_gtk_log_window_get_parameters(v->log_window);
+  
+  bg_cfg_section_get(v->log_section, info,
+                     bg_gtk_log_window_get_parameter,
+                     (void*)(v->log_window));
   
   }
 
@@ -883,6 +939,15 @@ static void set_vis_parameter(void * data, const char * name,
   bg_visualizer_set_vis_parameter(v->visualizer, name, val);
   }
 
+static void log_close_callback(bg_gtk_log_window_t * w, void * data)
+  {
+  visualizer_t * v = (visualizer_t*)data;
+
+  g_signal_handler_block(G_OBJECT(v->log_button), v->log_id);
+  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(v->log_button),
+                               0);
+  g_signal_handler_unblock(G_OBJECT(v->log_button), v->log_id);
+  }
 
 static visualizer_t * visualizer_create()
   {
@@ -902,6 +967,8 @@ static visualizer_t * visualizer_create()
   window_init(ret, &ret->normal_window, 0);
   window_init(ret, &ret->fullscreen_window, 1);
   ret->current_window = &ret->normal_window;
+
+  ret->log_window = bg_gtk_log_window_create(log_close_callback, ret);
   
   ret->config_button =
     create_pixmap_button(ret, "config_16.png", TRS("Configure"));
@@ -915,6 +982,11 @@ static visualizer_t * visualizer_create()
     create_pixmap_button(ret, "fullscreen_16.png", TRS("Fullscreen mode"));
   ret->nofullscreen_button =
     create_pixmap_button(ret, "windowed_16.png", TRS("Leave fullscreen mode"));
+
+  ret->log_button = create_pixmap_toggle_button(ret,
+                                                "log_16.png",
+                                                "Show log window",
+                                                &ret->log_id);
   
   ret->fps = gtk_label_new("Fps: --:--");
   gtk_misc_set_alignment(GTK_MISC(ret->fps), 0.0, 0.5);
@@ -992,6 +1064,8 @@ static visualizer_t * visualizer_create()
     bg_cfg_registry_find_section(ret->cfg_reg, "visualizer");
   ret->general_section =
     bg_cfg_registry_find_section(ret->cfg_reg, "general");
+  ret->log_section =
+    bg_cfg_registry_find_section(ret->cfg_reg, "log");
   
   ret->cfg_dialog = create_cfg_dialog(ret);
 
@@ -1026,6 +1100,8 @@ static visualizer_t * visualizer_create()
   gtk_box_pack_start(GTK_BOX(box), ret->plugin_button,
                      FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->config_button,
+                     FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(box), ret->log_button,
                      FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->restart_button,
                      FALSE, FALSE, 0);
