@@ -848,7 +848,7 @@ fi
 fi
 
 echo -n "Libvisual:           "
-if test "x$have_lqt" = "xtrue"; then
+if test "x$have_lv" = "xtrue"; then
 echo "Yes (CFLAGS=$LV_CFLAGS LIBS=$LV_LIBS)"
 else
 if test "x$test_lv" = "xtrue"; then

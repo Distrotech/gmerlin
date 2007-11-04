@@ -54,21 +54,7 @@ struct lemuria_engine_s
 
   int freq_new_read;
   int freq_new_write;
-   
-  /* Thread stuff */
   
-  pthread_mutex_t time_mutex;
-  pthread_mutex_t freq_mutex;
-
-  //  pthread_cond_t freq_cond;
-  
-  pthread_mutex_t stop_mutex;
-  pthread_mutex_t still_going_mutex;
-
-  int must_stop;
-
-  pthread_t thread;
-
   int is_initialized;
   
   /* Actual render size */

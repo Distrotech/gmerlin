@@ -2,9 +2,9 @@
 Encoding=UTF-8
 Name=Gmerlin visualizer
 Name[de]=Gmerlin visualisierer
-Comment=Run xmms visualization plugins
-Comment[de]=xmms Visualisierungs Plugins laufen lassen
-Exec=gmerlin_visualizer_launcher
+Comment=Run visualization plugins
+Comment[de]=Visualisierungs Plugins laufen lassen
+Exec=gmerlin_visualizer
 Icon=@GMERLIN_DATA_DIR@/icons/visualizer_icon.png
 Type=Application
 Categories=Application;AudioVideo;

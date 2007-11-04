@@ -405,6 +405,7 @@ numeric types, or supported options for strings (if available).
 * Player::
 * Transcoder::
 * Alsamixer::
+* Visualizer::
 @end menu
 
 @node Player
@@ -733,6 +734,13 @@ By right clicking on a control, you can:
 All window configurations and coordinates are remembered. The actual mixer
 settings are @emph{not} remembered, since this is done globally by the
 Alsa startup scripts.
+
+@node Visualizer
+@section Visualizer
+
+Gmerlin visualizer opens your soundard for recording and displays a visualization
+in a window. It supports fullscreen and mouse- and keyboard interaction with visuals
+for visualization plugins, which support this.
   
 @node FAQ, Get involved, Applications, Top
 @chapter FAQ

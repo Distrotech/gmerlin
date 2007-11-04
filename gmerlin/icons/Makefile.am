@@ -96,6 +96,7 @@ tree_root_16.png \
 tuner_16.png \
 up_16.png \
 video_16.png \
+visualizer_icon.png \
 windowed_16.png \
 gmerlin.jpg
 

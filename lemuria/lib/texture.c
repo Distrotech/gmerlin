@@ -21,7 +21,6 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 
-#include <pthread.h>
 #include <inttypes.h>
 
 #include <stdlib.h>

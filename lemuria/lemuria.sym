@@ -9,3 +9,4 @@ lemuria_next_background
 lemuria_set_texture
 lemuria_next_texture
 lemuria_set_size
+lemuria_set_antialiasing

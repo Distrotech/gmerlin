@@ -44,6 +44,7 @@ typedef struct
   int fullscreen;
   int width, height;
   bg_accelerator_map_t * accel_map;
+  int antialias;
   } lemuria_priv_t;
 
 /* Window callbacks */
@@ -77,7 +78,7 @@ static void accel_callback(void * data, int id)
   {
   lemuria_priv_t * vp;
   vp = (lemuria_priv_t *)data;
-  fprintf(stderr, "lemuria: got accel callback\n");
+  //  fprintf(stderr, "lemuria: got accel callback\n");
   switch(id)
     {
     case ACCEL_TOGGLE_FULLSCREEN:
@@ -203,10 +204,18 @@ static void destroy_lemuria(void * priv)
   free(vp);
   }
 
-#if 0
 static bg_parameter_info_t parameters[] =
   {
-    {  }
+    {
+      name: "antialias",
+      long_name: "Antialiasing",
+      type: BG_PARAMETER_SLIDER_INT,
+      flags: BG_PARAMETER_SYNC,
+      val_min: { val_i: LEMURIA_ANTIALIAS_NONE },
+      val_max: { val_i: LEMURIA_ANTIALIAS_BEST },
+      help_string: "Antialiasing level (0 = off, highest is best)\n",
+    },
+    { /* End of parameters */ },
   };
 
 static bg_parameter_info_t * get_parameters_lemuria(void * priv)
@@ -218,12 +227,20 @@ static void
 set_parameter_lemuria(void * priv, const char * name,
                     const bg_parameter_value_t * val)
   {
+  lemuria_priv_t * vp;
+  vp = (lemuria_priv_t *)priv;
+  
   if(!name)
     return;
-
+  if(!strcmp(name, "antialias"))
+    {
+    if(vp->e)
+      lemuria_set_antialiasing(vp->e, val->val_i);
+    vp->antialias = val->val_i;
+    }
   }
-#endif
 
+#if 0
 static int attr_list[] = {
   GLX_RGBA,
   GLX_DEPTH_SIZE, 16,
@@ -231,6 +248,7 @@ static int attr_list[] = {
   GLX_DOUBLEBUFFER,
   None
 };
+#endif
 
 static int
 open_lemuria(void * priv, gavl_audio_format_t * audio_format,
@@ -251,14 +269,20 @@ open_lemuria(void * priv, gavl_audio_format_t * audio_format,
   /* Initialize Window */
   bg_x11_window_set_size(vp->w, 640, 480);
   bg_x11_window_set_callbacks(vp->w, &vp->window_callbacks);
+
+  bg_x11_window_set_gl_attribute(vp->w, BG_GL_ATTRIBUTE_RGBA, 1);
+  bg_x11_window_set_gl_attribute(vp->w, BG_GL_ATTRIBUTE_ALPHA_SIZE, 8);
+  bg_x11_window_set_gl_attribute(vp->w, BG_GL_ATTRIBUTE_DEPTH_SIZE, 16);
+  bg_x11_window_set_gl_attribute(vp->w, BG_GL_ATTRIBUTE_DOUBLEBUFFER, 1);
   
-  bg_x11_window_create_window_gl(vp->w, attr_list);
-  bg_x11_window_init_gl(vp->w);
+  bg_x11_window_realize(vp->w);
   
   bg_x11_window_set_gl(vp->w);
-  vp->e = lemuria_create(window_id, 256, 256);
+  vp->e = lemuria_create();
+  
+  lemuria_set_antialiasing(vp->e, vp->antialias);
   bg_x11_window_unset_gl(vp->w);
-
+  
   lemuria_set_size(vp->e, vp->width, vp->height);
   
   bg_x11_window_show(vp->w, 1);
@@ -295,9 +319,9 @@ static void show_frame_lemuria(void * priv)
   {
   lemuria_priv_t * vp;
   vp = (lemuria_priv_t *)priv;
-  bg_x11_window_set_gl(vp->w);
-  
   bg_x11_window_swap_gl(vp->w);
+  /* Plugin might do OpenGL stuff here */
+  bg_x11_window_set_gl(vp->w);
   bg_x11_window_handle_events(vp->w, 0);
   bg_x11_window_unset_gl(vp->w);
   }
@@ -314,8 +338,8 @@ bg_visualization_plugin_t the_plugin =
       flags:    BG_PLUGIN_VISUALIZE_GL,
       create:   create_lemuria,
       destroy:   destroy_lemuria,
-      //      get_parameters:   get_parameters_lemuria,
-      //      set_parameter:    set_parameter_lemuria,
+      get_parameters:   get_parameters_lemuria,
+      set_parameter:    set_parameter_lemuria,
       priority:         1,
     },
     open_win: open_lemuria,

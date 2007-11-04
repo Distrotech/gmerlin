@@ -230,7 +230,8 @@ static void toggle_fullscreen(visualizer_t * v)
     /* Hide normal window, show fullscreen window */
     gtk_widget_show(v->fullscreen_window.window);
     gtk_widget_hide(v->normal_window.window);
-
+    
+    gtk_window_fullscreen(GTK_WINDOW(v->fullscreen_window.window));
     /* Update toolbar */
     gtk_widget_show(v->nofullscreen_button);
     gtk_widget_hide(v->fullscreen_button);

@@ -21,7 +21,6 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 
-#include <pthread.h>
 #include <inttypes.h>
 
 #include <string.h>
@@ -62,11 +61,6 @@ lemuria_engine_t * lemuria_create()
   
   //
   
-  pthread_mutex_init(&(ret->time_mutex), (pthread_mutexattr_t*)0);
-  pthread_mutex_init(&(ret->freq_mutex), (pthread_mutexattr_t*)0);
-  pthread_mutex_init(&(ret->stop_mutex), (pthread_mutexattr_t*)0);
-  pthread_mutex_init(&(ret->still_going_mutex), (pthread_mutexattr_t*)0);
-
   
   ret->fullscreen = 0;
 
@@ -123,9 +117,6 @@ void lemuria_destroy(lemuria_engine_t * e)
   
   lemuria_font_destroy(e);
   
-  pthread_mutex_destroy(&(e->time_mutex));
-  pthread_mutex_destroy(&(e->freq_mutex));
-  pthread_mutex_destroy(&(e->stop_mutex));
 
   lemuria_analysis_cleanup(e->analysis);
   
@@ -164,14 +155,12 @@ void lemuria_destroy_gl(lemuria_engine_t * e)
 static void add_time(lemuria_engine_t * engine,
                       int16_t ** samples)
   {
-  pthread_mutex_lock(&(engine->time_mutex));
 
   engine->time_new_write = 1;
 
   memcpy(engine->time_buffer_write[0], samples[0], 512 * sizeof(int16_t));
   memcpy(engine->time_buffer_write[1], samples[1], 512 * sizeof(int16_t));
   
-  pthread_mutex_unlock(&(engine->time_mutex));
   }
 
 /* Add frequency samples */
@@ -179,12 +168,10 @@ static void add_time(lemuria_engine_t * engine,
 static void add_freq(lemuria_engine_t * e,
                      int16_t samples[2][256])
   {
-  pthread_mutex_lock(&(e->freq_mutex));
 
   e->freq_new_write = 1;
   copy_frame_256(e->freq_buffer_write, samples);
   
-  pthread_mutex_unlock(&(e->freq_mutex));
   }
 
 void lemuria_update_audio(lemuria_engine_t * e, int16_t * data[2])
@@ -218,7 +205,6 @@ void lemuria_draw_frame(lemuria_engine_t * e)
   
   /* Check, if we got new time samples */
 
-  pthread_mutex_lock(&(e->time_mutex));
 
   if(e->time_new_write)
     {
@@ -227,14 +213,10 @@ void lemuria_draw_frame(lemuria_engine_t * e)
     e->time_new_read = 1;
     }
   
-  pthread_mutex_unlock(&(e->time_mutex));
 
   /* Check, if we got new frequency samples */
 
-  pthread_mutex_lock(&(e->freq_mutex));
 
-  //  if(!e->freq_new_write)
-  //  pthread_cond_wait(&e->freq_cond, &e->freq_mutex);
 
   if(e->freq_new_write)
     {
@@ -242,7 +224,6 @@ void lemuria_draw_frame(lemuria_engine_t * e)
     e->freq_new_write = 0;
     e->freq_new_read = 1;
     }
-  pthread_mutex_unlock(&(e->freq_mutex));
   
   lemuria_goom_update(e);
   lemuria_xaos_update(e);
@@ -328,4 +309,10 @@ void lemuria_print_info(lemuria_engine_t * e)
                    0.0,
                    2.0,
                    200);
+  }
+
+void lemuria_set_antialiasing(lemuria_engine_t * engine, int antialiasing)
+  {
+  fprintf(stderr, "Set antialiasing: %d\n", antialiasing);
+  engine->antialias = antialiasing;
   }

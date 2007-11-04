@@ -15,11 +15,11 @@ dnl Check for Mesa first, unless we were asked not to.
     if test x"$use_Mesa" = xyes; then
        GL_search_list="MesaGL   GL"
       GLU_search_list="MesaGLU GLU"
-      GLX_search_list="MesaGLX GLX"
+      GLX_search_list="MesaGLX GLX GL"
     else
        GL_search_list="GL  MesaGL"
       GLU_search_list="GLU MesaGLU"
-      GLX_search_list="GLX MesaGLX"
+      GLX_search_list="GLX MesaGLX GL"
     fi
 
     AC_LANG_SAVE

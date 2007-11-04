@@ -199,7 +199,7 @@ static void flush_log_queue(gmerlin_webcam_window_t * w)
   {
   bg_msg_t * msg;
   char * tmp_string;
-  while((msg = bg_msg_queue_lock_read(w->log_queue)))
+  while((msg = bg_msg_queue_try_lock_read(w->log_queue)))
     {
     switch(bg_msg_get_id(msg))
       {
@@ -668,7 +668,7 @@ bg_parameter_info_t parameters[] =
       name:        "do_monitor",
       long_name:   TRS("Do monitor"),
       type:      BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 },
+      val_default: { val_i: 0 },
       help_string: TRS("Enable monitoring of the webcam image")
     },
     {

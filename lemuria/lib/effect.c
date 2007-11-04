@@ -24,7 +24,6 @@
 #include <GL/gl.h>
 #include <GL/glx.h>
 
-#include <pthread.h>
 #include <inttypes.h>
 #include <stdio.h>
 
