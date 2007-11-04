@@ -548,8 +548,8 @@ void card_widget_tearon_control(card_widget_t * c, control_widget_t * w)
 
   free(win);
 
-  
   index = control_widget_get_index(w);
+  
   gtk_table_attach_defaults(GTK_TABLE(c->upper_table), control_widget_get_widget(w),
                             index*2, index*2+1, 0, 1);
   control_widget_set_own_window(w, 0);

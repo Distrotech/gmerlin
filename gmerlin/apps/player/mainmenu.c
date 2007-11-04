@@ -91,7 +91,13 @@ struct windows_menu_s
   guint       infowindow_id;
   GtkWidget * logwindow;
   guint       logwindow_id;
+  GtkWidget * menu;
+  };
+
+struct help_menu_s
+  {
   GtkWidget * about;
+  GtkWidget * help;
   GtkWidget * menu;
   };
 
@@ -141,6 +147,7 @@ struct accessories_menu_s
 struct main_menu_s
   {
   struct windows_menu_s       windows_menu;
+  struct help_menu_s          help_menu;
   struct options_menu_s       options_menu;
   struct command_menu_s       command_menu;
   struct accessories_menu_s   accessories_menu;
@@ -151,6 +158,7 @@ struct main_menu_s
   struct visualization_menu_s visualization_menu;
   
   GtkWidget * windows_item;
+  GtkWidget * help_item;
   GtkWidget * options_item;
   GtkWidget * accessories_item;
   
@@ -324,7 +332,7 @@ static void about_window_close_callback(bg_gtk_about_window_t* win, void* data)
 
   g = (gmerlin_t*)data;
   the_menu = g->player_window->main_menu;
-  gtk_widget_set_sensitive(the_menu->windows_menu.about, 1);
+  gtk_widget_set_sensitive(the_menu->help_menu.about, 1);
   }
 
 static void menu_callback(GtkWidget * w, gpointer data)
@@ -397,13 +405,17 @@ static void menu_callback(GtkWidget * w, gpointer data)
       g->show_log_window = 0;
       }
     }
-  else if(w == the_menu->windows_menu.about)
+  else if(w == the_menu->help_menu.about)
     {
-    gtk_widget_set_sensitive(the_menu->windows_menu.about, 0);
+    gtk_widget_set_sensitive(the_menu->help_menu.about, 0);
     bg_gtk_about_window_create("Gmerlin player", VERSION,
                                "player_icon.png",
                                about_window_close_callback,
                                g);
+    }
+  else if(w == the_menu->help_menu.help)
+    {
+    bg_display_html_help("userguide/Player.html");
     }
   
   else if(w == the_menu->windows_menu.mediatree)
@@ -1002,10 +1014,18 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
   ret->windows_menu.logwindow =
     create_toggle_item(TR("Log window"), gmerlin, ret->windows_menu.menu,
                        &ret->windows_menu.logwindow_id);
-  ret->windows_menu.about = create_item(TR("About..."),
-                                        gmerlin, ret->windows_menu.menu);
   gtk_widget_show(ret->windows_menu.menu);
+
+  /* Help */
   
+  ret->help_menu.menu = create_menu();
+  ret->help_menu.about = create_pixmap_item(TR("About..."), "about_16.png",
+                                            gmerlin, ret->help_menu.menu);
+  ret->help_menu.help = create_pixmap_item(TR("Userguide"), "help_16.png",
+                                           gmerlin, ret->help_menu.menu);
+  
+  gtk_widget_show(ret->help_menu.menu);
+    
   /* Streams */
 
   stream_menu_init(&ret->audio_stream_menu, gmerlin, 1, 1, BG_PLUGIN_OUTPUT_AUDIO);
@@ -1172,6 +1192,11 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
   ret->accessories_item = create_submenu_item(TR("Accessories..."),
                                               ret->accessories_menu.menu,
                                               ret->menu);
+
+  ret->help_item = create_submenu_item(TR("Help..."),
+                                       ret->help_menu.menu,
+                                       ret->menu);
+  
   gtk_widget_show(ret->menu);
 
   

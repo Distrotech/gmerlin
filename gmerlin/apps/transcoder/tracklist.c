@@ -887,6 +887,17 @@ static void init_menu(track_list_t * t)
   
   t->menu.pp_item =
     create_item(t, t->menu.menu, TR("Postprocess..."), (char*)0);
+
+  gtk_widget_set_sensitive(t->menu.selected_menu.move_up_item, 0);
+  gtk_widget_set_sensitive(t->menu.selected_menu.move_down_item, 0);
+  gtk_widget_set_sensitive(t->menu.selected_menu.configure_item, 0);
+  gtk_widget_set_sensitive(t->menu.selected_menu.remove_item, 0);
+  gtk_widget_set_sensitive(t->menu.selected_menu.encoder_item, 0);
+  gtk_widget_set_sensitive(t->menu.selected_menu.chapter_item, 0);
+  
+  gtk_widget_set_sensitive(t->menu.edit_menu.cut_item, 0);
+  gtk_widget_set_sensitive(t->menu.edit_menu.copy_item, 0);
+
   
   }
 
@@ -1354,7 +1365,7 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg,
   
   gtk_widget_show(ret->widget);
   init_menu(ret);
-
+  
   /* Load tracks */
 
   tmp_path = bg_search_file_read("transcoder", "tracks.xml");

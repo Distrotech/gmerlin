@@ -144,12 +144,16 @@ struct transcoder_window_s
   struct
     {
     GtkWidget * log_item;
-    GtkWidget * about_item;
     GtkWidget * menu;
     } windows_menu;
-    
+
+  struct
+    {
+    GtkWidget * about_item;
+    GtkWidget * help_item;
+    GtkWidget * menu;
+    } help_menu;
   bg_msg_queue_t * msg_queue;
-  
   };
 
 
@@ -572,7 +576,7 @@ static void about_window_close_callback(bg_gtk_about_window_t * w,
                                         void * data)
   {
   transcoder_window_t * win = (transcoder_window_t *)data;
-  gtk_widget_set_sensitive(win->windows_menu.about_item, 1);
+  gtk_widget_set_sensitive(win->help_menu.about_item, 1);
   }
 
 void transcoder_window_load_profile(transcoder_window_t * win,
@@ -702,14 +706,17 @@ static void button_callback(GtkWidget * w, gpointer data)
       }
     }
 
-  else if(w == win->windows_menu.about_item)
+  else if(w == win->help_menu.about_item)
     {
     bg_gtk_about_window_create("Gmerlin transcoder", VERSION,
                                "transcoder_icon.png", about_window_close_callback,
                                win);
-    gtk_widget_set_sensitive(win->windows_menu.about_item, 0);
+    gtk_widget_set_sensitive(win->help_menu.about_item, 0);
     }
-
+  else if(w == win->help_menu.help_item)
+    {
+    bg_display_html_help("userguide/Transcoder.html");
+    }
   }
 
 static GtkWidget * create_pixmap_button(transcoder_window_t * win,
@@ -839,9 +846,12 @@ static void init_menus(transcoder_window_t * w)
 
   w->windows_menu.menu = gtk_menu_new();
   w->windows_menu.log_item = create_toggle_item(w, w->windows_menu.menu, TR("Log messages"));
-  w->windows_menu.about_item = create_item(w, w->windows_menu.menu, TR("About..."), (char*)0);
   gtk_widget_show(w->windows_menu.menu);
 
+  w->help_menu.menu = gtk_menu_new();
+  w->help_menu.about_item = create_item(w, w->help_menu.menu, TR("About..."), "about_16.png");
+  w->help_menu.help_item = create_item(w, w->help_menu.menu, TR("Userguide"), "help_16.png");
+  gtk_widget_show(w->help_menu.menu);
   
   }
 
@@ -982,6 +992,11 @@ transcoder_window_t * transcoder_window_create()
 
   menuitem = gtk_menu_item_new_with_label(TR("Windows"));
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(menuitem), ret->windows_menu.menu);
+  gtk_widget_show(menuitem);
+  gtk_menu_shell_append(GTK_MENU_SHELL(ret->menubar), menuitem);
+
+  menuitem = gtk_menu_item_new_with_label(TR("Help"));
+  gtk_menu_item_set_submenu(GTK_MENU_ITEM(menuitem), ret->help_menu.menu);
   gtk_widget_show(menuitem);
   gtk_menu_shell_append(GTK_MENU_SHELL(ret->menubar), menuitem);
   

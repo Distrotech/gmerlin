@@ -117,6 +117,9 @@ bg_gtk_about_window_create(const char * name, const char * version, const char *
   
   /* Create window */
   ret->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  gtk_window_set_position(GTK_WINDOW(ret->window),
+                          GTK_WIN_POS_CENTER);
+  
   gtk_window_set_title(GTK_WINDOW(ret->window), TR("About"));
 
   g_signal_connect(G_OBJECT(ret->window), "delete_event",

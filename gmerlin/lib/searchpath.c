@@ -237,3 +237,21 @@ char * bg_find_url_launcher()
     }
   return (char*)0;
   }
+
+void bg_display_html_help(const char * path)
+  {
+  char * url_launcher;
+  char * complete_path;
+  char * command;
+  url_launcher = bg_find_url_launcher();
+  if(!url_launcher)
+    return;
+  
+  complete_path = bg_sprintf("file://%s/%s", GMERLIN_DOC_DIR, path);
+  command = bg_sprintf(url_launcher, complete_path);
+  command = bg_strcat(command, " &");
+  system(command);
+  free(command);
+  free(url_launcher);
+  free(complete_path);
+  }

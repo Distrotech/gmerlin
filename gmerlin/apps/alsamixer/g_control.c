@@ -596,6 +596,7 @@ typedef struct
   GtkWidget * tearoff;
   GtkWidget * config;
   GtkWidget * about;
+  GtkWidget * help;
   GtkWidget * menu;
   } menu_t;
 
@@ -701,9 +702,11 @@ static void menu_callback(GtkWidget * w, gpointer data)
                                               about_window_close_callback,
                                               (void*)0);
     }
+  else if(w == wid->menu.help)
+    bg_display_html_help("userguide/Alsamixer.html");
   }
 
-static GtkWidget * create_pixmap_item(const char * filename)
+static GtkWidget * create_pixmap_item(const char * filename, char * label)
   {
   GtkWidget * item;
   GtkWidget * image;
@@ -717,8 +720,9 @@ static GtkWidget * create_pixmap_item(const char * filename)
   else
     image = gtk_image_new();
   gtk_widget_show(image);
-  item = gtk_menu_item_new();
-  gtk_container_add(GTK_CONTAINER(item), image);
+
+  item = gtk_image_menu_item_new_with_label(label);
+  gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(item), image);
   return item;
   }
 
@@ -726,14 +730,15 @@ static GtkWidget * create_pixmap_item(const char * filename)
 
 static void init_menu(control_widget_t * w)
   {
-  w->menu.left    = create_pixmap_item("left_16.png");
-  w->menu.right   = create_pixmap_item("right_16.png");
-  w->menu.first   = create_pixmap_item("first_16.png");
-  w->menu.last    = create_pixmap_item("last_16.png");
-  w->menu.tearoff = create_pixmap_item("tearoff_16.png");
-  w->menu.config  = create_pixmap_item("config_16.png");
-  w->menu.about   = create_pixmap_item("info_16.png");
-
+  w->menu.left    = create_pixmap_item("left_16.png", "Move control left by one");
+  w->menu.right   = create_pixmap_item("right_16.png", "Move control right by one");
+  w->menu.first   = create_pixmap_item("first_16.png",  "Move control to the leftmost position");
+  w->menu.last    = create_pixmap_item("last_16.png",  "Move control to the rightmost position");
+  w->menu.tearoff = create_pixmap_item("tearoff_16.png", "Detach control");
+  w->menu.config  = create_pixmap_item("config_16.png", "Alsamixer options");
+  w->menu.about   = create_pixmap_item("about_16.png", "About...");
+  w->menu.help    = create_pixmap_item("help_16.png", "Userguide");
+  
   g_signal_connect(w->menu.left, "activate",
                    G_CALLBACK(menu_callback), w);
 
@@ -754,6 +759,9 @@ static void init_menu(control_widget_t * w)
 
   g_signal_connect(w->menu.about, "activate",
                    G_CALLBACK(menu_callback), w);
+
+  g_signal_connect(w->menu.help, "activate",
+                   G_CALLBACK(menu_callback), w);
   
   gtk_widget_show(w->menu.left);
   gtk_widget_show(w->menu.right);
@@ -762,6 +770,7 @@ static void init_menu(control_widget_t * w)
   gtk_widget_show(w->menu.tearoff);
   gtk_widget_show(w->menu.config);
   gtk_widget_show(w->menu.about);
+  gtk_widget_show(w->menu.help);
 
   w->menu.menu = gtk_menu_new();
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.menu), w->menu.left);
@@ -771,6 +780,7 @@ static void init_menu(control_widget_t * w)
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.menu), w->menu.tearoff);
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.menu), w->menu.config);
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.menu), w->menu.about);
+  gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.menu), w->menu.help);
   gtk_widget_show(w->menu.menu);
   }
 

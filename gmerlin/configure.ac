@@ -726,11 +726,14 @@ fi
 
 GMERLIN_PLUGIN_DIR="$exec_prefix/lib/$PACKAGE/plugins"
 GMERLIN_DATA_DIR="$prefix/share/$PACKAGE"
+GMERLIN_DOC_DIR="$prefix/share/doc/$PACKAGE"
+
 AC_DEFINE_UNQUOTED(PREFIX, "$prefix", Installation prefix)
 
 
-AC_DEFINE_UNQUOTED(GMERLIN_DATA_DIR, "$GMERLIN_DATA_DIR", Directory for other data)
+AC_DEFINE_UNQUOTED(GMERLIN_DATA_DIR,   "$GMERLIN_DATA_DIR",   Directory for other data)
 AC_DEFINE_UNQUOTED(GMERLIN_PLUGIN_DIR, "$GMERLIN_PLUGIN_DIR", Directory for plugins)
+AC_DEFINE_UNQUOTED(GMERLIN_DOC_DIR,    "$GMERLIN_DOC_DIR",    Directory for Documentation)
 
 AC_SUBST(GMERLIN_DATA_DIR)
 AC_SUBST(GMERLIN_PLUGIN_DIR)

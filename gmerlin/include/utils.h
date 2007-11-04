@@ -88,12 +88,21 @@ int bg_search_file_exec(const char * file, char ** path);
 /** \brief Find an URL launcher
  *  \returns A newly allocated string, which must be freed
  *
- * This returned the path of a webbrowser. Under gnome, it will be the
+ * This returnes the path of a webbrowser. Under gnome, it will be the
  * your default webbrowser, under other systems, this function will try a
  * list of known webbrowsers.
  */
  
 char * bg_find_url_launcher();
+
+/** \brief Display html help
+ *  \param path Path
+ *
+ *  Launch a webbrowser and display a html file.
+ *  Path is something lile "userguide/Player.html"
+ */
+
+void bg_display_html_help(const char * path);
 
 /** \brief Create a unique filename.
  *  \param format Printf like format. Must contain "%08x" as the only placeholder.
