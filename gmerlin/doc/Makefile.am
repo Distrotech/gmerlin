@@ -1,1 +1,3 @@
-EXTRA_DIST=gmerlin.texi mainpage.incl
+EXTRA_DIST=mainpage.incl
+
+info_TEXINFOS=gmerlin.texi

@@ -1,7 +1,7 @@
 \input texinfo   @c -*-texinfo-*-
 @comment %**start of header
-@include version.texi
 @setfilename gmerlin.info
+@include version.texi
 @settitle Gmerlin @value{VERSION}
 @syncodeindex pg cp
 @comment %**end of header
@@ -25,7 +25,6 @@ this GNU Manual, like GNU software.  Copies published by the Free
 Software Foundation raise funds for GNU development.''
 @end quotation
 @end copying
-
 @titlepage
 @title Gmerlin
 @subtitle for version @value{VERSION}, @value{UPDATED}
@@ -38,7 +37,9 @@ Software Foundation raise funds for GNU development.''
 @contents
 
 @ifnottex
-@node Top
+@node Top, Basics, (dir), (dir)
+@top Gmerlin userguide
+Gmerlin user guide.
 
 @insertcopying
 @end ifnottex
@@ -53,14 +54,14 @@ Software Foundation raise funds for GNU development.''
 * Index::
 @end menu
 
-@node Basics
+@node Basics, Installation, Top, Top
 @chapter Basics
 This manual should help you to get familiar with gmerlin software. The
 gmerlin software is quite modular, because it consists of multiple
 packages, most of which can be used independently. In this document,
 it is assumed, that you have all packages installed (See Installation below).
 
-@node Installation
+@node Installation, General usage information, Basics, Top
 @chapter Installation
 
 @menu
@@ -243,7 +244,7 @@ essential-YYYYMMDD.tar.bz2, where YYYYMMDD is some date. Unpack the
 .tar.bz2 and move the included files to /usr/lib/codecs. At this
 location, the DLLs will also be found by other players.
 
-@node General usage information
+@node General usage information, Applications, Installation, Top
 @chapter General usage information
 
 @menu
@@ -335,7 +336,7 @@ The following options should always be supported by all applications:
 @table @code
 @item -v <num>
 Set verbosity level. Values are
-@table
+@table @code
 @item 0
 Be completely quiet
 @item 1
@@ -390,15 +391,14 @@ This is like enumeration with suboptions with the difference, that
 you can concatenate multiple options together with colons (:) and
 must enclose everything with braces. For example:
 
-@code{@{opt1@{param1=value1@}:opt2@{param2=value2@}@}
+@code{@{opt1@{param1=value1@}:opt2@{param2=value2@}@}}
 
 If you use @code{-help}, you'll also see supported ranges for
 numeric types, or supported options for strings (if available).
 
 @end table
 
-
-@node Applications
+@node Applications, FAQ, General usage information, Top
 @chapter Applications
 
 @menu
@@ -734,7 +734,7 @@ All window configurations and coordinates are remembered. The actual mixer
 settings are @emph{not} remembered, since this is done globally by the
 Alsa startup scripts.
   
-@node FAQ
+@node FAQ, Get involved, Applications, Top
 @chapter FAQ
 
 @menu
@@ -829,7 +829,7 @@ file from a filemanager into an album.
 documentation of your Desktop system. To remote control gmerlin, use the commandline program
 @code{gmerlin_remote}. Type @code{gmerlin_remote -help} for supported options and commands.
    
-@node Get involved
+@node Get involved, Index, FAQ, Top
 @chapter Get involved
 
 Contribution to gmerlin can happen at several skill levels:
@@ -843,7 +843,7 @@ Contribution to gmerlin can happen at several skill levels:
 levels of gavl. 
 @end itemize
 
-@node Index
+@node Index,  , Get involved, Top
 @unnumbered Index
 
 @printindex cp
