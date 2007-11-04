@@ -144,6 +144,8 @@ struct bg_x11_window_s
   Atom WIN_LAYER;
   Atom _XEMBED_INFO;
   Atom _XEMBED;
+  Atom STRING;
+  Atom WM_CLASS;
   
   /* For hiding the mouse pointer */
   int idle_counter;

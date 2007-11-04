@@ -235,7 +235,6 @@ static VisUIWidget * check_widget(VisUIWidget * w, const char * name,
         //                                       VISUAL_UI_MUTATOR(w)->param)
         if(!i)
           {
-          fprintf(stderr, "Got default value: %s\n", info->multi_names[i]);
           info->val_default.val_str = bg_strdup((char*)0, info->multi_names[i]);
           }
         }
@@ -280,7 +279,6 @@ create_parameters(VisActor * actor, VisUIWidget *** widgets,
 
   if(!num_parameters)
     return (bg_parameter_info_t*)0;
-  fprintf(stderr, "num_parameters: %d\n", num_parameters);
   /* Create parameters */
   ret = calloc(num_parameters+1, sizeof(*ret));
 
@@ -401,7 +399,6 @@ bg_plugin_info_t * bg_lv_get_info(const char * filename)
 
   info = visual_plugin_get_info(visual_actor_get_plugin(actor));
     
-  fprintf(stderr, "Loaded %s\n", actor_name);
   
   ret->name        = bg_sprintf("vis_lv_%s", actor_name);
   ret->long_name   = bg_strdup((char*)0, info->name);
@@ -478,8 +475,7 @@ bg_plugin_info_t * bg_lv_get_info(const char * filename)
   ret->priority = 1;
 
   /* Must realize the actor to get the parameters */
-  if(visual_actor_realize(actor) != VISUAL_OK)
-    fprintf(stderr, "Realizing actor failed\n");
+  visual_actor_realize(actor);
   
   ret->parameters = create_parameters(actor, (VisUIWidget***)0, (VisParamEntry***)0);
   
@@ -590,8 +586,6 @@ open_ov_lv(void * data, gavl_audio_format_t * audio_format,
   lv_priv_t * priv;
   priv = (lv_priv_t*)data;
   adjust_audio_format(audio_format);
-  
-  fprintf(stderr, "open_ov_lv\n");
   
   /* Get the depth */
   depths = visual_actor_get_supported_depth(priv->actor);
@@ -899,7 +893,6 @@ int bg_lv_load(bg_plugin_handle_t * ret,
 void bg_lv_unload(bg_plugin_handle_t * h)
   {
   lv_priv_t * priv;
-  fprintf(stderr, "bg_lv_unload\n");
   check_init();
   priv = (lv_priv_t *)(h->priv);
   
@@ -1079,8 +1072,6 @@ static int key_callback(void * data, int key, int mask)
 
   eventqueue = visual_plugin_get_eventqueue(visual_actor_get_plugin(priv->actor));
   
-  //  fprintf(stderr, "LV key callback %d, %08x\n", lv_key, lv_mask);
-  
   visual_event_queue_add_keyboard(eventqueue,
                                   lv_key, lv_mask, VISUAL_KEY_DOWN);
   return 1;
@@ -1097,8 +1088,6 @@ static int key_release_callback(void * data, int key, int mask)
 
   eventqueue = visual_plugin_get_eventqueue(visual_actor_get_plugin(priv->actor));
   
-  //  fprintf(stderr, "LV key release callback %d, %08x\n", lv_key, lv_mask);
-  
   visual_event_queue_add_keyboard(eventqueue,
                                   lv_key, lv_mask, VISUAL_KEY_UP);
   return 1;
@@ -1109,7 +1098,6 @@ static int motion_callback(void * data, int x, int y, int mask)
   VisEventQueue *eventqueue;
   lv_priv_t * priv = (lv_priv_t*)data;
   eventqueue = visual_plugin_get_eventqueue(visual_actor_get_plugin(priv->actor));
-  //  fprintf(stderr, "LV Motion %d %d\n", x, y);
   
   visual_event_queue_add_mousemotion(eventqueue, x, y);
   return 1;
@@ -1120,7 +1108,6 @@ static int button_callback(void * data, int x, int y, int button, int mask)
   VisEventQueue *eventqueue;
   lv_priv_t * priv = (lv_priv_t*)data;
   eventqueue = visual_plugin_get_eventqueue(visual_actor_get_plugin(priv->actor));
-  //  fprintf(stderr, "LV Button press\n");
   visual_event_queue_add_mousebutton(eventqueue, button, VISUAL_MOUSE_DOWN, x, y);
   return 1;
   }
@@ -1130,7 +1117,6 @@ static int button_release_callback(void * data, int x, int y, int button, int ma
   VisEventQueue *eventqueue;
   lv_priv_t * priv = (lv_priv_t*)data;
   eventqueue = visual_plugin_get_eventqueue(visual_actor_get_plugin(priv->actor));
-  //  fprintf(stderr, "LV Button release\n");
   visual_event_queue_add_mousebutton(eventqueue, button, VISUAL_MOUSE_UP, x, y);
   return 1;
   }

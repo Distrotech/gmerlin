@@ -757,7 +757,6 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
         cur = &w->fullscreen;
       else
         {
-        fprintf(stderr, "No current window\n");
         return;
         }
       key_code = keysym_to_key_code(keysym);

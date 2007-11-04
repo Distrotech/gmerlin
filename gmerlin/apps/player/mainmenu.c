@@ -41,7 +41,7 @@ typedef struct
   bg_cfg_section_t * section;
   int no_callback;
 
-  gmerlin_t * g; // For cenvenience
+  gmerlin_t * g; // For convenience
   } plugin_menu_t;
 
 typedef struct stream_menu_s

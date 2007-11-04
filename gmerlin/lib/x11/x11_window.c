@@ -376,7 +376,8 @@ static void init_atoms(bg_x11_window_t * w)
   
   w->_XEMBED_INFO = XInternAtom(w->dpy, "_XEMBED_INFO", False);
   w->_XEMBED = XInternAtom(w->dpy, "_XEMBED", False);
-  
+  w->WM_CLASS = XInternAtom(w->dpy, "WM_CLASS", False);
+  w->STRING   = XInternAtom(w->dpy, "STRING", False);
   }
 
 static void show_window(bg_x11_window_t * win, window_t * w, int show)
@@ -695,18 +696,20 @@ void bg_x11_window_init(bg_x11_window_t * w)
   {
   int send_event = -1;
   /* Decide current window */
-  if((w->fullscreen.parent != w->root) &&
-     window_is_viewable(w->dpy, w->fullscreen.parent))
+  //  if((w->fullscreen.parent != w->root) &&
+  if(window_is_viewable(w->dpy, w->fullscreen.parent))
     {
     if(!w->is_fullscreen)
       send_event = 1;
     w->current = &w->fullscreen;
+    w->is_fullscreen = 1;
     }
   else
     {
     if(w->is_fullscreen)
       send_event = 0;
     w->current = &w->normal;
+    w->is_fullscreen = 0;
     }
 
 #if 1
@@ -729,6 +732,7 @@ void bg_x11_window_init(bg_x11_window_t * w)
     w->callbacks->set_fullscreen(w->callbacks->data, send_event);
   
   bg_x11_window_size_changed(w);
+
   
   }
 
@@ -758,9 +762,7 @@ void bg_x11_window_embed_parent(bg_x11_window_t * win,
 
   if(w->parent != w->toplevel)
     XSelectInput(win->dpy, w->toplevel, StructureNotifyMask);
-
-  /* Try to show the window */
-  //  show_window(win, w, 1);
+  
   XSync(win->dpy, False);
   }
 
@@ -1596,10 +1598,25 @@ Window bg_x11_window_get_toplevel(bg_x11_window_t * w, Window win)
   Window *children_return;
   Window root_return;
   Window parent_return;
+  Atom     type_ret;
+  int      format_ret;
+  unsigned long   nitems_ret;
+  unsigned long   bytes_after_ret;
+  unsigned char  *prop_ret;
   
   unsigned int nchildren_return;
   while(1)
     {
+    XGetWindowProperty(w->dpy, win,
+                       w->WM_CLASS, 0L, 0L, 0,
+                       w->STRING,
+                       &type_ret,&format_ret,&nitems_ret,
+                       &bytes_after_ret,&prop_ret);
+    if(type_ret!=None)
+      {
+      XFree(prop_ret);
+      return win;
+      }
     XQueryTree(w->dpy, win, &root_return, &parent_return,
                &children_return, &nchildren_return);
     if(nchildren_return)
