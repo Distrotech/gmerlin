@@ -74,11 +74,10 @@ static const bg_accelerator_t accels[] =
   { BG_KEY_NONE,   0,                0 },
 };
 
-static void accel_callback(void * data, int id)
+static int accel_callback(void * data, int id)
   {
   lemuria_priv_t * vp;
   vp = (lemuria_priv_t *)data;
-  //  fprintf(stderr, "lemuria: got accel callback\n");
   switch(id)
     {
     case ACCEL_TOGGLE_FULLSCREEN:
@@ -86,73 +85,40 @@ static void accel_callback(void * data, int id)
         bg_x11_window_set_fullscreen(vp->w, 0);
       else
         bg_x11_window_set_fullscreen(vp->w, 1);
+      return 1;
       break;
     case ACCEL_EXIT_FULLSCREEN:
       if(vp->fullscreen)
         bg_x11_window_set_fullscreen(vp->w, 0);
+      return 1;
       break;
     case ACCEL_SET_FOREGROUND:
       lemuria_set_foreground(vp->e);
+      return 1;
       break;
     case ACCEL_NEXT_FOREGROUND:
       lemuria_next_foreground(vp->e);
+      return 1;
       break;
     case ACCEL_SET_BACKGROUND:
       lemuria_set_background(vp->e);
+      return 1;
       break;
     case ACCEL_NEXT_BACKGROUND:
       lemuria_next_background(vp->e);
+      return 1;
       break;
     case ACCEL_SET_TEXTURE:
       lemuria_set_texture(vp->e);
+      return 1;
       break;
     case ACCEL_NEXT_TEXTURE:
       lemuria_next_texture(vp->e);
-      break;
-    }
-  }
-
-#if 0
-
-static int key_callback(void * data, int key, int mask)
-  {
-  lemuria_priv_t * vp;
-  vp = (lemuria_priv_t *)data;
-  fprintf(stderr, "key_callback %d, %08x\n", key, mask);
-  switch(key)
-    {
-    case BG_KEY_TAB:
-    case BG_KEY_F:
-      break;
-    case BG_KEY_ESCAPE:
-      break;
-    case BG_KEY_A:
-      if(mask & BG_KEY_CONTROL_MASK)
-        lemuria_set_foreground(vp->e);
-      else
-        lemuria_next_foreground(vp->e);
       return 1;
       break;
-    case BG_KEY_W:
-      if(mask & ControlMask)
-        lemuria_set_background(vp->e);
-      else
-        lemuria_next_background(vp->e);
-      return 1;
-      break;
-    case BG_KEY_T:
-      if(mask & ControlMask)
-        lemuria_set_texture(vp->e);
-      else
-        lemuria_next_texture(vp->e);
-      return 1;
-      break;
-
     }
   return 0;
   }
-
-#endif
 
 static void set_fullscreen(void * data, int fullscreen)
   {
@@ -312,7 +278,6 @@ static void close_lemuria(void * priv)
   bg_x11_window_set_gl(vp->w);
   lemuria_destroy(vp->e);
   bg_x11_window_unset_gl(vp->w);
-  fprintf(stderr, "close lemuria\n");
   }
 
 static void show_frame_lemuria(void * priv)
