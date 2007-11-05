@@ -210,7 +210,13 @@ static gboolean motion_callback(GtkWidget * w, GdkEventMotion * evt,
   {
   player_window_t * win;
 
+  /* Buggy (newer) gtk versions send motion events even if no button
+     is pressed */
+  if(!(evt->state & (GDK_BUTTON1_MASK|GDK_BUTTON2_MASK|GDK_BUTTON3_MASK)))
+    return TRUE;
+
   win = (player_window_t*)data;
+  
   gtk_window_move(GTK_WINDOW(win->window),
                   (int)(evt->x_root) - win->mouse_x,
                   (int)(evt->y_root) - win->mouse_y);

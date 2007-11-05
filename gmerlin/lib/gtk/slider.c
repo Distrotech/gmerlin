@@ -205,6 +205,11 @@ static gboolean motion_callback(GtkWidget * w, GdkEventMotion * evt,
   int mouse_root_1;
   s = (bg_gtk_slider_t *)data;
 
+  /* Buggy (newer) gtk versions send motion events even if no button
+     is pressed */
+  if(!(evt->state & (GDK_BUTTON1_MASK|GDK_BUTTON2_MASK|GDK_BUTTON3_MASK)))
+    return TRUE;
+  
   if(s->state != BG_GTK_SLIDER_ACTIVE)
     return TRUE;
   
