@@ -696,8 +696,8 @@ void bg_x11_window_init(bg_x11_window_t * w)
   {
   int send_event = -1;
   /* Decide current window */
-  //  if((w->fullscreen.parent != w->root) &&
-  if(window_is_viewable(w->dpy, w->fullscreen.parent))
+  if((w->fullscreen.parent != w->root) &&
+     window_is_viewable(w->dpy, w->fullscreen.parent))
     {
     if(!w->is_fullscreen)
       send_event = 1;

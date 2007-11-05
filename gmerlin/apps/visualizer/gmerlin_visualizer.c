@@ -377,6 +377,7 @@ static void button_callback(GtkWidget * w, gpointer data)
     if(win->vis_open)
       {
       close_vis(win);
+      open_audio(win);
       open_vis(win);
       hide_toolbar(win);
       }
