@@ -18,11 +18,7 @@
 
 #include <config.h>
 
-#include <X11/Xlib.h>
-// #include <X11/keysym.h>
-
 #include <GL/gl.h>
-#include <GL/glx.h>
 
 #include <inttypes.h>
 #include <stdio.h>

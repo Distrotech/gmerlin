@@ -20,10 +20,8 @@
 
 // Formulas here are taken from
 // http://astronomy.swin.edu.au/~pbourke/opengl/superellipsoid/
-#include <X11/Xlib.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
-#include <GL/glx.h>
 
 #include <lemuria_private.h>
 #include <effect.h>

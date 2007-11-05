@@ -18,9 +18,7 @@
 
 #include <config.h>
 
-#include <X11/Xlib.h>
 #include <GL/gl.h>
-#include <GL/glx.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>

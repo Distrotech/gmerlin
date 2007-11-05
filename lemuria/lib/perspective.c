@@ -18,7 +18,6 @@
 
 #include <config.h>
 
-#include <X11/Xlib.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
 

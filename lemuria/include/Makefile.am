@@ -9,7 +9,6 @@ lemuria_teapot_data.h \
 utils.h \
 particle.h \
 tentacle.h \
-object.h \
-x11_window.h
+object.h
 
 

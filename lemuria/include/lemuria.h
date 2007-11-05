@@ -1,5 +1,4 @@
 
-// #include <GL/glx.h>
 #include <inttypes.h>
 
 #define LEMURIA_TIME_SAMPLES 512

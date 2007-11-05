@@ -17,15 +17,15 @@
  */
 
 #include <config.h>
+#include <GL/gl.h>
 
 #include <lemuria_private.h>
 
-#include <X11/Xlib.h>
-#include <GL/glx.h>
 #include <stdio.h>
 
 #include <stdlib.h>
 #include <string.h>
+
 
 #include <utils.h>
 

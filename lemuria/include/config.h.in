@@ -51,9 +51,6 @@
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
-/* "Where to find goom" */
-#undef PLUGIN_DIR
-
 /* Installation prefix */
 #undef PREFIX
 

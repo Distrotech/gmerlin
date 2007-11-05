@@ -26,6 +26,44 @@ GMERLIN_PLUGIN_LDFLAGS="-export-symbols "`pkg-config --variable=prefix gmerlin`"
 AC_SUBST(GMERLIN_PLUGIN_LDFLAGS)
 
 dnl
+dnl libvisual
+dnl
+
+dnl
+dnl Libvisual
+dnl
+
+AH_TEMPLATE([HAVE_LV],
+            [Do we have libvisual installed?])
+AH_TEMPLATE([LV_PLUGIN_DIR],
+            [libvisual plugin directory])
+
+LV_REQUIRED="0.4.0"
+have_LV=false
+AC_ARG_ENABLE(libvisual,
+              AC_HELP_STRING(--disable-libvisual, [Disable Libvisual support (default: autodetect)]),
+              [case "${enableval}" in
+                 yes) test_lv=true ;;
+                 no) test_lv=false ;;
+               esac],
+               test_lv=true)
+
+if test x$test_lv = "xtrue"; then
+PKG_CHECK_MODULES(LV, libvisual-0.4 >= $LV_REQUIRED, have_lv=true, have_lv=false)
+fi
+
+if test x$have_lv = "xtrue"; then
+AC_DEFINE(HAVE_LV)
+
+lv_plugin_dir=`pkg-config --variable=pluginsbasedir libvisual-0.4`
+lv_plugin_dir="$lv_plugin_dir/actor"
+
+AC_DEFINE_UNQUOTED(LV_PLUGIN_DIR, ["$lv_plugin_dir"], [libvisual plugin directory])
+fi
+AM_CONDITIONAL(HAVE_LV, test x$have_lv = xtrue)
+AC_SUBST(LV_REQUIRED)
+
+dnl
 dnl Installation prefix to increase the chances to find goom
 dnl
 
@@ -94,12 +132,6 @@ else
   echo "Found GLU"
 fi
 
-if test x$have_GLX = "xno"; then
-  AC_MSG_ERROR(Lemuria needs GLX headers, 1)
-else
-  echo "Found GLX"
-fi
-
 LQT_OPT_CFLAGS($host_cpu, ["--fast-math -O2"])
 
 CFLAGS="$OPT_CFLAGS $GL_CFLAGS"
@@ -113,22 +145,8 @@ if test "x$LQT_DEBUG" = "xtrue"; then
   CFLAGS="$CFLAGS -DDEBUG"
 fi
 
-have_esd=true
-AM_PATH_ESD(0.2.19, , have_esd=false)
-AM_CONDITIONAL(HAVE_ESD, test x$have_esd = xtrue)
-
 AC_CONFIG_SUBDIRS(lib/xaos)
 
-# libdir=$XMMS_VISUALIZATION_PLUGIN_DIR
-
-AC_SUBST(ESD_CFLAGS, $ESD_CFLAGS)
-AC_SUBST(ESD_LIBS, $ESD_LIBS)
-
-AC_SUBST(GTK_CFLAGS, $GTK_CFLAGS)
-AC_SUBST(GTK_LIBS,   $GTK_LIBS)
 AC_SUBST(GL_LIBS,   $GL_LIBS)
 
-AH_TEMPLATE([PLUGIN_DIR], "Where to find goom")
-
-AC_DEFINE_UNQUOTED([PLUGIN_DIR], "$XMMS_VISUALIZATION_PLUGIN_DIR")
 AC_OUTPUT(Makefile lib/Makefile lib/meshes/Makefile lib/images/Makefile lib/gradients/Makefile plugins/Makefile plugins/gmerlin/Makefile include/Makefile lemuria.spec)
