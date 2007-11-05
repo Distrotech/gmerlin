@@ -454,6 +454,9 @@ static void plugin_window_init(plugin_window_t * win, visualizer_t * v)
   int row = 0, num_columns = 4;
   GtkWidget * table;
   win->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  gtk_window_set_modal(GTK_WINDOW(win->window), TRUE);
+  gtk_window_set_transient_for(GTK_WINDOW(win->window),
+                               GTK_WINDOW(v->normal_window.window));
   
   win->ra_plugins =
     bg_gtk_plugin_widget_single_create(TR("Audio recorder"),
@@ -1046,13 +1049,12 @@ static visualizer_t * visualizer_create()
                                                      set_vis_parameter,
                                                      ret);
   
-  
   /* Create audio and video plugin widgets */
-
+  
   plugin_window_init(&ret->plugin_window, ret);
 
   /* Get ov info */
-
+  
   ret->ov_info =
     bg_gtk_plugin_widget_single_get_plugin(ret->plugin_window.ov_plugins);
   
