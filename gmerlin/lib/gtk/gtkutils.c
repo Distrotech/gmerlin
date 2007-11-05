@@ -382,6 +382,8 @@ void bg_gtk_set_tooltips(int enable)
 
 #else
 
+static GQuark tooltip_quark = 0;
+
 static gboolean tooltip_callback(GtkWidget  *widget,
                                  gint        x,
                                  gint        y,
@@ -389,17 +391,35 @@ static gboolean tooltip_callback(GtkWidget  *widget,
                                  GtkTooltip *tooltip,
                                  gpointer    user_data)
   {
+  char * str;
   if(show_tooltips)
+    {
+    str = g_object_get_qdata(G_OBJECT(widget), tooltip_quark);
+    gtk_tooltip_set_text(tooltip, str);
     return TRUE;
+    }
   else
     return FALSE;
   }
 
+
 void bg_gtk_tooltips_set_tip(GtkWidget * w, const char * str,
                              const char * translation_domain)
   {
+  GValue val = { 0 };
+  
   str = dgettext(translation_domain, str);
-  gtk_widget_set_tooltip_text(w, str);
+  //  gtk_widget_set_tooltip_text(w, str);
+
+  if(!tooltip_quark)
+    tooltip_quark = g_quark_from_string("gmerlin-tooltip");
+  
+  g_object_set_qdata_full(G_OBJECT(w), tooltip_quark, g_strdup(str), g_free);
+
+  g_value_init(&val, G_TYPE_BOOLEAN);
+  g_value_set_boolean(&val, 1);
+
+  g_object_set_property(G_OBJECT(w), "has-tooltip", &val);
   g_signal_connect(G_OBJECT(w), "query-tooltip",
                    G_CALLBACK(tooltip_callback),
                    (gpointer)0);
