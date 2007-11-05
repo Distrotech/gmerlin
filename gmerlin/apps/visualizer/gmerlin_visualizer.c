@@ -522,8 +522,6 @@ static gboolean key_callback(GtkWidget * w,
   visualizer_t * v = (visualizer_t*)data;
   //  gtk_widget_show(v->toolbar);
   //  g_timeout_add(2000, toolbar_timeout, v);
-  fprintf(stderr, "Vis: Got key press\n");
-
   switch(evt->keyval)
     {
     case GDK_Tab:
@@ -730,7 +728,6 @@ static void set_general_parameter(void * data, const char * name,
         TOOLBAR_TRIGGER_MOUSE |
         TOOLBAR_TRIGGER_KEY;
       }
-    fprintf(stderr, "Toolbar trigger: %d\n", v->toolbar_trigger);
     }
   else if(!strcmp(name, "x"))
     v->x = val->val_i;

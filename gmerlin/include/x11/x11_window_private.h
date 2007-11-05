@@ -87,6 +87,7 @@ typedef struct
   int mapped;
   int fullscreen;
   bg_accelerator_map_t * child_accel_map;
+  int modality;
   } window_t;
 
 struct bg_x11_window_s

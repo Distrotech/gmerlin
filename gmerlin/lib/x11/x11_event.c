@@ -291,7 +291,7 @@ static void register_xembed_accelerators(bg_x11_window_t * w,
     i++;
     }
   }
-
+#if 0
 static void unregister_xembed_accelerators(bg_x11_window_t * w,
                                            window_t * win)
   {
@@ -310,7 +310,7 @@ static void unregister_xembed_accelerators(bg_x11_window_t * w,
     i++;
     }
   }
-
+#endif
 /* Transform coordinates if we playback video */
 
 static void transform_coords(bg_x11_window_t * w,
@@ -517,8 +517,28 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
 /* 8-9 were used for XEMBED_GRAB_KEY/XEMBED_UNGRAB_KEY */
             break;
           case XEMBED_MODALITY_ON:
+            if((evt->xclient.window == cur->win) &&
+               (cur->child_xembed))
+              {
+              /* Redirect to child */
+              bg_x11_window_send_xembed_message(w, cur->child,
+                                                evt->xclient.data.l[0],
+                                                XEMBED_MODALITY_ON,
+                                                0, 0, 0);
+              }
+            cur->modality = 1;
             break;
           case XEMBED_MODALITY_OFF:
+            if((evt->xclient.window == cur->win) &&
+               (cur->child_xembed))
+              {
+              /* Redirect to child */
+              bg_x11_window_send_xembed_message(w, cur->child,
+                                                evt->xclient.data.l[0],
+                                                XEMBED_MODALITY_OFF,
+                                                0, 0, 0);
+              }
+            cur->modality = 0;
             break;
           case XEMBED_REGISTER_ACCELERATOR:
             /* Child wants to register an accelerator */
@@ -675,6 +695,16 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
         w->pointer_hidden = 0;
         }
 
+      if(evt->xmotion.window == w->normal.win)
+        cur = &w->normal;
+      else if(evt->xmotion.window == w->fullscreen.win)
+        cur = &w->fullscreen;
+      else
+        return;
+
+      if(cur->modality)
+        return;
+      
       transform_coords(w, evt->xmotion.x, evt->xmotion.y, &x_src, &y_src);
 
       if(w->callbacks && w->callbacks->motion_callback)
@@ -840,6 +870,18 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
       break;
     case ButtonPress:
     case ButtonRelease:
+
+      if(evt->xbutton.window == w->normal.win)
+        cur = &w->normal;
+      else if(evt->xbutton.window == w->fullscreen.win)
+        cur = &w->fullscreen;
+      else
+        return;
+
+      if(cur->modality)
+        return;
+
+      
       transform_coords(w, evt->xbutton.x, evt->xbutton.y, &x_src, &y_src);
       evt->xkey.state &= STATE_IGNORE;
       if(w->callbacks)
