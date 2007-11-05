@@ -131,4 +131,4 @@ AC_SUBST(GL_LIBS,   $GL_LIBS)
 AH_TEMPLATE([PLUGIN_DIR], "Where to find goom")
 
 AC_DEFINE_UNQUOTED([PLUGIN_DIR], "$XMMS_VISUALIZATION_PLUGIN_DIR")
-AC_OUTPUT(Makefile lib/Makefile lib/meshes/Makefile lib/images/Makefile lib/gradients/Makefile plugins/Makefile plugins/gmerlin/Makefile src/Makefile include/Makefile lemuria.spec)
+AC_OUTPUT(Makefile lib/Makefile lib/meshes/Makefile lib/images/Makefile lib/gradients/Makefile plugins/Makefile plugins/gmerlin/Makefile include/Makefile lemuria.spec)
