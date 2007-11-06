@@ -95,27 +95,27 @@ static int accel_callback(void * data, int id)
       return 1;
       break;
     case ACCEL_SET_FOREGROUND:
-      lemuria_set_foreground(vp->e);
+      lemuria_change_effect(vp->e, LEMURIA_EFFECT_FOREGROUND);
       return 1;
       break;
     case ACCEL_NEXT_FOREGROUND:
-      lemuria_next_foreground(vp->e);
+      lemuria_next_effect(vp->e, LEMURIA_EFFECT_FOREGROUND);
       return 1;
       break;
     case ACCEL_SET_BACKGROUND:
-      lemuria_set_background(vp->e);
+      lemuria_change_effect(vp->e, LEMURIA_EFFECT_BACKGROUND);
       return 1;
       break;
     case ACCEL_NEXT_BACKGROUND:
-      lemuria_next_background(vp->e);
+      lemuria_next_effect(vp->e, LEMURIA_EFFECT_BACKGROUND);
       return 1;
       break;
     case ACCEL_SET_TEXTURE:
-      lemuria_set_texture(vp->e);
+      lemuria_change_effect(vp->e, LEMURIA_EFFECT_TEXTURE);
       return 1;
       break;
     case ACCEL_NEXT_TEXTURE:
-      lemuria_next_texture(vp->e);
+      lemuria_next_effect(vp->e, LEMURIA_EFFECT_TEXTURE);
       return 1;
       break;
     case ACCEL_HELP:

@@ -23,8 +23,8 @@ typedef struct lemuria_effect_s
   int mode;
   int index;
   int min_frames;
-
-  int flags;
+  
+  int next_index;
   } lemuria_effect_t;
 
 typedef struct lemuria_xaos_s lemuria_xaos_t;

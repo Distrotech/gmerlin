@@ -84,53 +84,52 @@ extern effect_plugin_t lineobjects_effect;
 
 typedef struct
   {
+  effect_plugin_t * effect;
   const char * name;
   const char * label;
-  effect_plugin_t * effect;
   } effect_info;
 
-static effect_plugin_t * foreground_effects[] = 
+static effect_info foreground_effects[] = 
   {
-    &bubbles_effect,
-    &cube_effect,
-    &fountain_effect,
+    { &bubbles_effect, "bubbles", "Bubbles" },
+    { &cube_effect,    "cube",  "Cube" },
+    { &fountain_effect, "fountain", "Starchain" },
 //    &tentacle_effect,
-    &oszi3d_effect,
-    &swarm_effect,
-    &hyperbubble_effect,
-    &tube_effect,
-    &icosphere_effect,
-    &squares_effect,
-    &superellipse_effect,
+    { &oszi3d_effect,   "oszi3d", "3D Oscilloscope" },
+    { &swarm_effect,    "swarm", "Swarm" },
+    { &hyperbubble_effect, "hyperbubble", "Hyperbubble" },
+    { &tube_effect,        "tube", "Tube" },
+    { &icosphere_effect,   "icosphere", "Icosphere" },
+    { &squares_effect,     "squares", "Squares" },
+    { &superellipse_effect, "superellipse", "Superellipse" },
   };
 
-static effect_plugin_t * background_effects[] = 
+static effect_info background_effects[] = 
   {
-    &mountains_effect,
-    &drive_effect,
+    { &mountains_effect, "mountains", "Mountains" },
+    { &drive_effect, "drive", "Drive" },
 //     &xaos_effect,
-    &deepsea_effect,
-    &lineobjects_effect,
+    { &deepsea_effect, "deepsea", "Deep sea" },
+    { &lineobjects_effect, "lineobjects", "Line objects" },
     //    &v4l_effect,
-    &boioioing_effect,
-    &psycho_effect,
-    &starfield_effect,
-
-    &monolith_effect,
+    { &boioioing_effect, "boioioing", "Boioioing" },
+    { &psycho_effect, "psycho", "Psycho" },
+    { &starfield_effect, "starfield", "Starfield" },
+    { &monolith_effect, "Monolith", "monolith" },
 
 #if 1
-//    &drive_effect,
-    &tunnel_effect,
-    &lines_effect,
-    &archaic_effect,
+    //    &drive_effect,
+    { &tunnel_effect, "tunnel", "Tunnel" },
+    { &lines_effect, "lines", "Lines" },
+    { &archaic_effect, "archaic", "Archaic" }
 #endif
   };
 
-static effect_plugin_t * texture_effects[] = 
+static effect_info texture_effects[] = 
   {
-    &oscilloscope_effect,
-    &blur_effect,
-    &vectorscope_effect
+    { &blur_effect, "blur", "Blobs" },
+    { &oscilloscope_effect, "oscilloscope", "Oscilloscope" },
+    { &vectorscope_effect, "vectorsope", "Vectorsope" }
   };
 
 static int num_foreground_effects =
@@ -144,12 +143,11 @@ sizeof(texture_effects)/sizeof(texture_effects[0]);
 
 static void manage_effect(lemuria_engine_t * e,
                           lemuria_effect_t * effect,
-                          effect_plugin_t ** plugins,
+                          effect_info * plugins,
                           int num_plugins,
                           int min_frames,
                           float probability)
   {
-  int new_index;
   
   /* Load effect if there wasn't one */
   //  fprintf(stderr, 
@@ -161,9 +159,8 @@ static void manage_effect(lemuria_engine_t * e,
 #else
     effect->index = 0;
 #endif
-    effect->effect = plugins[effect->index];
+    effect->effect = plugins[effect->index].effect;
     effect->mode = EFFECT_RUNNING;
-    effect->flags = 0;
     effect->frame_counter = 0;
     if(effect->effect->init)
       effect->data = effect->effect->init(e);
@@ -177,22 +174,9 @@ static void manage_effect(lemuria_engine_t * e,
   else if((effect->mode == EFFECT_DONE) || (effect->mode == EFFECT_FINISH))
     {
     effect->effect->cleanup(effect->data);
-    if(effect->flags & FLAG_NEXT)
-      {
-      effect->index++;
-      if(effect->index >= num_plugins)
-        effect->index = 0;
-      }
-    else
-      {
-      new_index = lemuria_random_int(e, 0, num_plugins-2);
-      if(new_index >= effect->index)
-        new_index++;
-      effect->index = new_index;
-      }
-    effect->effect = plugins[effect->index];
+    effect->index = effect->next_index;
+    effect->effect = plugins[effect->index].effect;
     effect->mode = EFFECT_RUNNING;
-    effect->flags = 0;
     if(effect->frame_counter >= 0)
       effect->frame_counter = 0;
     effect->data = effect->effect->init(e);
@@ -232,49 +216,142 @@ void lemuria_manage_effects(lemuria_engine_t * e)
                 0.4);
   }
 
-void lemuria_set_background(lemuria_engine_t * e)
+int lemuria_num_effects(lemuria_engine_t * l, int type)
   {
-  if(e->background.mode == EFFECT_RUNNING)
-    e->background.mode = EFFECT_FINISH;
+  switch(type)
+    {
+    case LEMURIA_EFFECT_BACKGROUND:
+      return num_background_effects;
+      break;
+    case LEMURIA_EFFECT_FOREGROUND:
+      return num_foreground_effects;
+      break;
+    case LEMURIA_EFFECT_TEXTURE:
+      return num_texture_effects;
+      break;
+    }
+  return 0;
   }
 
-void lemuria_next_background(lemuria_engine_t * e)
+const char * lemuria_effect_name(lemuria_engine_t * l, int type, int index)
   {
-  if(e->background.mode == EFFECT_RUNNING)
+  switch(type)
     {
-    e->background.mode = EFFECT_FINISH;
-    e->background.flags |= FLAG_NEXT;
+    case LEMURIA_EFFECT_BACKGROUND:
+      return background_effects[index].name;
+      break;
+    case LEMURIA_EFFECT_FOREGROUND:
+      return foreground_effects[index].name;
+      break;
+    case LEMURIA_EFFECT_TEXTURE:
+      return texture_effects[index].name;
+      break;
+    }
+  return (const char*)0;
+  }
+
+const char * lemuria_effect_label(lemuria_engine_t * l, int type, int index)
+  {
+  switch(type)
+    {
+    case LEMURIA_EFFECT_BACKGROUND:
+      return background_effects[index].label;
+      break;
+    case LEMURIA_EFFECT_FOREGROUND:
+      return foreground_effects[index].label;
+      break;
+    case LEMURIA_EFFECT_TEXTURE:
+      return texture_effects[index].label;
+      break;
+    }
+  return (const char*)0;
+  }
+
+void lemuria_change_effect(lemuria_engine_t * l, int type)
+  {
+  lemuria_effect_t * e;
+  switch(type)
+    {
+    case LEMURIA_EFFECT_BACKGROUND:
+      e = &l->background;
+      break;
+    case LEMURIA_EFFECT_FOREGROUND:
+      e = &l->foreground;
+      break;
+    case LEMURIA_EFFECT_TEXTURE:
+      e = &l->texture;
+      break;
+    default:
+      return;
+    }
+
+  if(e->mode == EFFECT_RUNNING)
+    {
+    e->mode = EFFECT_FINISH;
+    e->next_index = lemuria_random_int(l, 0, num_background_effects-2);
+    if(e->next_index >= e->index)
+      e->next_index++;
+    }
+
+  }
+
+void lemuria_set_effect(lemuria_engine_t * l, int type, int index)
+  {
+  lemuria_effect_t * e;
+  int m;
+  switch(type)
+    {
+    case LEMURIA_EFFECT_BACKGROUND:
+      e = &l->background;
+      m = num_background_effects;
+      break;
+    case LEMURIA_EFFECT_FOREGROUND:
+      e = &l->foreground;
+      m = num_foreground_effects;
+      break;
+    case LEMURIA_EFFECT_TEXTURE:
+      e = &l->texture;
+      m = num_texture_effects;
+      break;
+    default:
+      return;
+    }
+  if((index >= 0) && (index < m))
+    {
+    if(e->mode == EFFECT_RUNNING)
+      {
+      e->mode = EFFECT_FINISH;
+      e->next_index = index;
+      }
     }
   }
 
-void lemuria_set_foreground(lemuria_engine_t * e)
+void lemuria_next_effect(lemuria_engine_t * l, int type)
   {
-  if(e->foreground.mode == EFFECT_RUNNING)
-    e->foreground.mode = EFFECT_FINISH;
-  }
-
-void lemuria_next_foreground(lemuria_engine_t * e)
-  {
-  if(e->foreground.mode == EFFECT_RUNNING)
+  lemuria_effect_t * e;
+  int m;
+  switch(type)
     {
-    e->foreground.mode = EFFECT_FINISH;
-    e->foreground.flags |= FLAG_NEXT;
+    case LEMURIA_EFFECT_BACKGROUND:
+      e = &l->background;
+      m = num_background_effects;
+      break;
+    case LEMURIA_EFFECT_FOREGROUND:
+      e = &l->foreground;
+      m = num_foreground_effects;
+      break;
+    case LEMURIA_EFFECT_TEXTURE:
+      e = &l->texture;
+      m = num_texture_effects;
+      break;
+    default:
+      return;
+    }
+  if(e->mode == EFFECT_RUNNING)
+    {
+    e->mode = EFFECT_FINISH;
+    e->next_index++;
+    if(e->next_index >= m)
+      e->next_index = 0;
     }
   }
-
-void lemuria_set_texture(lemuria_engine_t * e)
-  {
-  if(e->texture.mode == EFFECT_RUNNING)
-    e->texture.mode = EFFECT_FINISH;
-  }
-
-
-void lemuria_next_texture(lemuria_engine_t * e)
-  {
-  if(e->texture.mode == EFFECT_RUNNING)
-    {
-    e->texture.mode = EFFECT_FINISH;
-    e->texture.flags |= FLAG_NEXT;
-    }
-  }
-

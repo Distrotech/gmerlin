@@ -277,6 +277,7 @@ void lemuria_draw_frame(lemuria_engine_t * e)
 void lemuria_print_help(lemuria_engine_t * e)
   {
   lemuria_put_text(e,
+#if 0
                    "Keyboard shortcuts:\n\
 A:  Next foreground\n\
 T:  Next texture\n\
@@ -290,6 +291,16 @@ Pause: Toggle pause\n\
 L: Change Antialiasing mode\n\
 F1: Print this help\n\
 I: Print info",
+#else
+                   "Keyboard shortcuts:\n\
+A:  Next foreground\n\
+T:  Next texture\n\
+W:  Next world (=background)\n\
+CTRL+A:  Random foreground\n\
+CTRL+T:  Random texture\n\
+CTRL+W:  Random world\n\
+F1: Print this help\n",
+#endif
                    0.5,
                    0.5,
                    0.0,
@@ -314,3 +325,4 @@ void lemuria_set_antialiasing(lemuria_engine_t * engine, int antialiasing)
   {
   engine->antialias = antialiasing;
   }
+

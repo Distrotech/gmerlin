@@ -83,21 +83,21 @@ static int lv_lemuria_events (VisPluginData *plugin, VisEventQueue *events)
           {
           case VKEY_a:
             if(ev.event.keyboard.keysym.mod & VKMOD_CTRL)
-              lemuria_set_foreground(priv->e);
+              lemuria_change_effect(priv->e, LEMURIA_EFFECT_FOREGROUND);
             else
-              lemuria_next_foreground(priv->e);
+              lemuria_next_effect(priv->e, LEMURIA_EFFECT_FOREGROUND);
             break;
           case VKEY_w:
             if(ev.event.keyboard.keysym.mod & VKMOD_CTRL)
-              lemuria_set_background(priv->e);
+              lemuria_change_effect(priv->e, LEMURIA_EFFECT_BACKGROUND);
             else
-              lemuria_next_background(priv->e);
+              lemuria_next_effect(priv->e, LEMURIA_EFFECT_BACKGROUND);
             break;
           case VKEY_t:
             if(ev.event.keyboard.keysym.mod & VKMOD_CTRL)
-              lemuria_set_texture(priv->e);
+              lemuria_change_effect(priv->e, LEMURIA_EFFECT_TEXTURE);
             else
-              lemuria_next_texture(priv->e);
+              lemuria_next_effect(priv->e, LEMURIA_EFFECT_TEXTURE);
             break;
           case VKEY_F1:
             lemuria_print_help(priv->e);
