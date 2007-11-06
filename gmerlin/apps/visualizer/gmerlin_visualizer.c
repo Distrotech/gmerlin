@@ -7,6 +7,7 @@
 
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
+#include <gui_gtk/aboutwindow.h>
 #include <gui_gtk/gtkutils.h>
 #include <gui_gtk/audio.h>
 #include <gui_gtk/plugin.h>
@@ -51,7 +52,11 @@ typedef struct
   GtkWidget * plugin_button;
   GtkWidget * restart_button;
   GtkWidget * log_button;
+  GtkWidget * about_button;
+  GtkWidget * help_button;
+  
   guint log_id;
+  guint about_id;
   
   GtkWidget * fullscreen_button;
   GtkWidget * nofullscreen_button;
@@ -355,6 +360,14 @@ static void grab_notify_callback(GtkWidget *widget,
     }
   }
 
+static void about_window_close_callback(bg_gtk_about_window_t* win, void* data)
+  {
+  visualizer_t * v;
+  
+  v = (visualizer_t*)data;
+  gtk_widget_set_sensitive(v->about_button, 1);
+  }
+
 static void button_callback(GtkWidget * w, gpointer data)
   {
   visualizer_t * win = (visualizer_t*)data;
@@ -384,11 +397,19 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   else if(w == win->log_button)
     {
-    if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(win->log_button)))
-      bg_gtk_log_window_show(win->log_window);
-    else
-      bg_gtk_log_window_hide(win->log_window);
+    gtk_widget_set_sensitive(win->log_button, 0);
+    bg_gtk_log_window_show(win->log_window);
     }
+  else if(w == win->about_button)
+    {
+    gtk_widget_set_sensitive(win->about_button, 0);
+    bg_gtk_about_window_create("Gmerlin visualizer", VERSION,
+                               "visualizer_icon.png",
+                               about_window_close_callback,
+                               win);
+    }
+  else if(w == win->help_button)
+    bg_display_html_help("userguide/Visualizer.html");
   }
 
 static gboolean plug_removed_callback(GtkWidget * w, gpointer data)
@@ -636,7 +657,7 @@ static GtkWidget * create_pixmap_button(visualizer_t * w,
   
   return button;
   }
-
+#if 0
 static GtkWidget * create_pixmap_toggle_button(visualizer_t * w,
                                                const char * filename,
                                                const char * tooltip,
@@ -667,7 +688,7 @@ static GtkWidget * create_pixmap_toggle_button(visualizer_t * w,
   
   return button;
   }
-
+#endif
 
 static void set_vis_param(void * data, const char * name,
                           const bg_parameter_value_t * val)
@@ -944,11 +965,7 @@ static void set_vis_parameter(void * data, const char * name,
 static void log_close_callback(bg_gtk_log_window_t * w, void * data)
   {
   visualizer_t * v = (visualizer_t*)data;
-
-  g_signal_handler_block(G_OBJECT(v->log_button), v->log_id);
-  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(v->log_button),
-                               0);
-  g_signal_handler_unblock(G_OBJECT(v->log_button), v->log_id);
+  gtk_widget_set_sensitive(v->log_button, 1);
   }
 
 static visualizer_t * visualizer_create()
@@ -985,10 +1002,15 @@ static visualizer_t * visualizer_create()
   ret->nofullscreen_button =
     create_pixmap_button(ret, "windowed_16.png", TRS("Leave fullscreen mode"));
 
-  ret->log_button = create_pixmap_toggle_button(ret,
-                                                "log_16.png",
-                                                "Show log window",
-                                                &ret->log_id);
+  ret->log_button = create_pixmap_button(ret,
+                                         "log_16.png",
+                                         TRS("Show log window"));
+  ret->about_button = create_pixmap_button(ret,
+                                           "about_16.png",
+                                           TRS("About Gmerlin visualizer"));
+  ret->help_button = create_pixmap_button(ret,
+                                          "help_16.png",
+                                          TRS("Launch help in a webwroswer"));
   
   ret->fps = gtk_label_new("Fps: --:--");
   gtk_misc_set_alignment(GTK_MISC(ret->fps), 0.0, 0.5);
@@ -1097,12 +1119,10 @@ static visualizer_t * visualizer_create()
   gtk_table_attach(GTK_TABLE(main_table), table, 0, 1, 0, 1,
                    GTK_FILL, GTK_SHRINK, 0, 0);
   
-  box = gtk_hbox_new(0, 5);
+  box = gtk_hbox_new(0, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->plugin_button,
                      FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->config_button,
-                     FALSE, FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(box), ret->log_button,
                      FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->restart_button,
                      FALSE, FALSE, 0);
@@ -1110,9 +1130,15 @@ static visualizer_t * visualizer_create()
                      FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->nofullscreen_button,
                      FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(box), ret->log_button,
+                     FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(box), ret->about_button,
+                     FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(box), ret->help_button,
+                     FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->quit_button,
                      FALSE, FALSE, 0);
-  gtk_box_pack_start_defaults(GTK_BOX(box), ret->fps);
+  gtk_box_pack_start(GTK_BOX(box), ret->fps, TRUE, TRUE, 5);
   gtk_widget_show(box);
   
   gtk_table_attach(GTK_TABLE(main_table), box, 0, 1, 1, 2,
