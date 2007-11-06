@@ -1,6 +1,5 @@
 SUBDIRS = images meshes gradients xaos
 
-AM_CFLAGS = @GAVL_CFLAGS@
 AM_LDFLAGS = -export-symbols $(top_srcdir)/lemuria.sym
 
 xaos_libadd = xaos/src/filter/libfilter.la \
@@ -12,7 +11,7 @@ lib_LTLIBRARIES = liblemuria.la
 
 # liblemuria_la_SOURCES = lemuria_plugin.c
 
-liblemuria_la_LIBADD = -L/usr/X11R6/lib @GL_LIBS@ -lpthread $(xaos_libadd) -lpthread -lXinerama @GAVL_LIBS@
+liblemuria_la_LIBADD = -L/usr/X11R6/lib @GL_LIBS@ -lpthread $(xaos_libadd) -lpthread -lXinerama
 
 liblemuria_la_SOURCES = effect.c \
 analyis.c \

@@ -33,6 +33,9 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
+/* libvisual plugin directory */
+#undef LV_PLUGIN_DIR
+
 /* Name of package */
 #undef PACKAGE
 
