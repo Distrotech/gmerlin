@@ -59,18 +59,20 @@ typedef struct
 #define ACCEL_NEXT_BACKGROUND   5
 #define ACCEL_SET_TEXTURE       6
 #define ACCEL_NEXT_TEXTURE      7
+#define ACCEL_HELP              8
 
 static const bg_accelerator_t accels[] =
 {
   { BG_KEY_TAB,    0,                   ACCEL_TOGGLE_FULLSCREEN },
   { BG_KEY_f,      0,                   ACCEL_TOGGLE_FULLSCREEN },
   { BG_KEY_ESCAPE, 0,                   ACCEL_EXIT_FULLSCREEN   },
-  { BG_KEY_a,      0,                   ACCEL_NEXT_FOREGROUND    },
+  { BG_KEY_a,      0,                   ACCEL_NEXT_FOREGROUND   },
   { BG_KEY_a,      BG_KEY_CONTROL_MASK, ACCEL_SET_FOREGROUND    },
-  { BG_KEY_w,      0,                   ACCEL_NEXT_BACKGROUND    },
+  { BG_KEY_w,      0,                   ACCEL_NEXT_BACKGROUND   },
   { BG_KEY_w,      BG_KEY_CONTROL_MASK, ACCEL_SET_BACKGROUND    },
-  { BG_KEY_t,      0,                   ACCEL_NEXT_TEXTURE    },
-  { BG_KEY_t,      BG_KEY_CONTROL_MASK, ACCEL_SET_TEXTURE    },
+  { BG_KEY_t,      0,                   ACCEL_NEXT_TEXTURE      },
+  { BG_KEY_t,      BG_KEY_CONTROL_MASK, ACCEL_SET_TEXTURE       },
+  { BG_KEY_F1,     0,                   ACCEL_HELP              },
   { BG_KEY_NONE,   0,                0 },
 };
 
@@ -116,6 +118,11 @@ static int accel_callback(void * data, int id)
       lemuria_next_texture(vp->e);
       return 1;
       break;
+    case ACCEL_HELP:
+      lemuria_print_help(vp->e);
+      return 1;
+      break;
+
     }
   return 0;
   }

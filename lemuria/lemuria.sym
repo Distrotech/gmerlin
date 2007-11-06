@@ -10,3 +10,4 @@ lemuria_set_texture
 lemuria_next_texture
 lemuria_set_size
 lemuria_set_antialiasing
+lemuria_print_help

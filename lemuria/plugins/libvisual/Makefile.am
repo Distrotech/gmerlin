@@ -1,4 +1,4 @@
-libdir=@LV_PLUGIN_DIR@
+libdir = @LV_PLUGIN_DIR@
 AM_LDFLAGS = -avoid-version -module
 
 AM_CFLAGS = @LV_CFLAGS@ -DLOCALE_DIR=\"$(localedir)\"

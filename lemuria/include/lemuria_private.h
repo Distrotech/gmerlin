@@ -183,7 +183,5 @@ void lemuria_put_text(lemuria_engine_t * e,
 
 void lemuria_text_update(lemuria_engine_t * e);
 
-void lemuria_print_help(lemuria_engine_t * e);
-
 void lemuria_print_info(lemuria_engine_t * e);
 

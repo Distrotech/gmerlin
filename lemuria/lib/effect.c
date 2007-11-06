@@ -82,6 +82,13 @@ extern effect_plugin_t lineobjects_effect;
 
 //extern effect_plugin_t test_effect;
 
+typedef struct
+  {
+  const char * name;
+  const char * label;
+  effect_plugin_t * effect;
+  } effect_info;
+
 static effect_plugin_t * foreground_effects[] = 
   {
     &bubbles_effect,

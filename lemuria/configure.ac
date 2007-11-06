@@ -27,10 +27,15 @@ if test x$test_gmerlin = xtrue; then
 PKG_CHECK_MODULES(GMERLIN, gmerlin >= $GMERLIN_REQUIRED, have_gmerlin="true",
 have_gmerlin="false")
 
+GMERLIN_PLUGIN_DIR=""
+GMERLIN_PLUGIN_LDFLAGS=""
+
+if test "x$have_gmerlin" = "xtrue"; then
 GMERLIN_PLUGIN_DIR=`pkg-config --variable=prefix gmerlin`"/lib/gmerlin/plugins"
+GMERLIN_PLUGIN_LDFLAGS="-export-symbols "`pkg-config --variable=prefix gmerlin`"/share/gmerlin/plugin.sym"
+fi
 
 dnl LDFLAGS for plugins
-GMERLIN_PLUGIN_LDFLAGS="-export-symbols "`pkg-config --variable=prefix gmerlin`"/share/gmerlin/plugin.sym"
 
 fi
 
@@ -58,14 +63,15 @@ if test x$test_lv = "xtrue"; then
 PKG_CHECK_MODULES(LV, libvisual-0.4 >= $LV_REQUIRED, have_lv=true, have_lv=false)
 fi
 
-if test x$have_lv = "xtrue"; then
-lv_plugin_dir=`pkg-config --variable=pluginsbasedir libvisual-0.4`
-lv_plugin_dir="$lv_plugin_dir/actor"
+LV_PLUGIN_DIR=""
 
-AC_DEFINE_UNQUOTED(LV_PLUGIN_DIR, ["$lv_plugin_dir"], [libvisual plugin directory])
+if test x$have_lv = "xtrue"; then
+LV_PLUGIN_DIR=`pkg-config --variable=pluginsbasedir libvisual-0.4`"/actor"
+
 fi
 AM_CONDITIONAL(HAVE_LV, test x$have_lv = xtrue)
 AC_SUBST(LV_REQUIRED)
+AC_SUBST(LV_PLUGIN_DIR)
 
 dnl
 dnl Installation prefix to increase the chances to find goom
@@ -76,48 +82,6 @@ if test "x$prefix" = xNONE; then
 fi
 
 AC_DEFINE_UNQUOTED(PREFIX, "$prefix", Installation prefix)
-
-dnl
-dnl X11
-dnl
-
-X_CLAGS=""
-X_LIBS=""
-
-AC_PATH_X
-if test x$no_x != xyes; then
-X_FLAGS="-I$x_includes"
-X_LIBS="-L$x_libraries -lX11 -lXext"
-have_x="true"
-else
-AC_MSG_ERROR(Lemuria X11 headers, 1)
-fi
-
-AC_SUBST(X_CFLAGS)
-AC_SUBST(X_LIBS)
-
-dnl
-dnl Xinerama
-dnl
-
-AH_TEMPLATE([HAVE_LIBXINERAMA],
-            [Do we have xinerama installed?])
-have_xinerama="false"
-XINERAMA_LIBS=""
-if test x$no_x != xyes; then
-OLD_CFLAGS=$CFLAGS
-OLD_LIBS=$LIBS
-CFLAGS=$X_FLAGS
-LIBS=$X_LIBS
-AC_CHECK_LIB(Xinerama, XineramaQueryExtension,
-             XINERAMA_LIBS="-lXinerama";have_xinerama="true")
-if test x$have_xinerama="xtrue"; then
-AC_DEFINE(HAVE_LIBXINERAMA)
-fi
-AC_SUBST(XINERAMA_LIBS)
-CFLAGS=$OLD_CFLAGS
-LIBS=$OLD_LIBS
-fi
 
 dnl
 dnl OpenGL
@@ -153,7 +117,7 @@ AC_CONFIG_SUBDIRS(lib/xaos)
 
 AC_SUBST(GL_LIBS,   $GL_LIBS)
 
-AC_OUTPUT(Makefile lib/Makefile lib/meshes/Makefile lib/images/Makefile lib/gradients/Makefile plugins/Makefile plugins/gmerlin/Makefile include/Makefile lemuria.spec)
+AC_OUTPUT(Makefile lib/Makefile lib/meshes/Makefile lib/images/Makefile lib/gradients/Makefile plugins/Makefile plugins/gmerlin/Makefile plugins/libvisual/Makefile include/Makefile lemuria.spec)
 
 echo
 echo

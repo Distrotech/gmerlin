@@ -41,3 +41,5 @@ void lemuria_next_foreground(lemuria_engine_t * engine);
 #define LEMURIA_ANTIALIAS_BEST 2
 
 void lemuria_set_antialiasing(lemuria_engine_t * engine, int antialiasing);
+
+void lemuria_print_help(lemuria_engine_t * e);

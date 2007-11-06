@@ -105,10 +105,9 @@ void lemuria_destroy(lemuria_engine_t * e)
   //  lemuria_set_glcontext(e);
 
   /* Shut down all effects */
-  
-  e->background.effect->cleanup(e->background.data);
-  e->foreground.effect->cleanup(e->foreground.data);
-  e->texture.effect->cleanup(e->texture.data);
+  if(e->background.data) e->background.effect->cleanup(e->background.data);
+  if(e->foreground.data) e->foreground.effect->cleanup(e->foreground.data);
+  if(e->texture.data) e->texture.effect->cleanup(e->texture.data);
 
   e->background.effect = NULL;
   e->foreground.effect = NULL;
@@ -313,6 +312,5 @@ void lemuria_print_info(lemuria_engine_t * e)
 
 void lemuria_set_antialiasing(lemuria_engine_t * engine, int antialiasing)
   {
-  fprintf(stderr, "Set antialiasing: %d\n", antialiasing);
   engine->antialias = antialiasing;
   }
