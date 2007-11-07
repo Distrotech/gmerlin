@@ -188,9 +188,9 @@ static gboolean fps_timeout(void * data)
   visualizer_t * v;
   v = (visualizer_t *)data;
   
-  if(!v->toolbar_visible)
+  if(!v->toolbar_visible || !v->audio_open)
     return TRUE;
-
+  
   fps = bg_visualizer_get_fps(v->visualizer);
   if(fps >= 0.0)
     {
@@ -307,8 +307,12 @@ static void open_audio(visualizer_t * v)
   if(!v->ra_plugin->open(v->ra_handle->priv, &v->audio_format))
     {
     if(!was_open)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+             "Opening audio device failed, fix settings and click restart");
+      gtk_label_set_text(GTK_LABEL(v->fps), TR("No audio"));
       return;
-    
+      }
     for(i = 0; i < 20; i++)
       {
       gavl_time_delay(&delay_time);
@@ -318,7 +322,6 @@ static void open_audio(visualizer_t * v)
         v->audio_open = 1;
         break;
         }
-      
       }
     }
   else
@@ -328,6 +331,12 @@ static void open_audio(visualizer_t * v)
     {
     v->audio_frame = gavl_audio_frame_create(&v->audio_format);
     bg_gtk_vumeter_set_format(v->vumeter, &v->audio_format);
+    }
+  else
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Opening audio device failed, fix settings and click restart");
+    gtk_label_set_text(GTK_LABEL(v->fps), TR("No audio"));
     }
   }
 
