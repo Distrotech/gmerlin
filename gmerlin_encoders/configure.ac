@@ -40,7 +40,7 @@ dnl
 dnl Required libraries
 dnl
 
-GMERLIN_REQUIRED="0.3.6"
+GMERLIN_REQUIRED="0.3.7"
 PKG_CHECK_MODULES(GMERLIN, gmerlin >= $GMERLIN_REQUIRED, , AC_MSG_ERROR("gmerlin not found"))
 
 GMERLIN_PLUGIN_DIR=`pkg-config --variable=prefix gmerlin`"/lib/gmerlin/plugins"
