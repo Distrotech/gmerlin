@@ -12,7 +12,7 @@
   </compound>
   <compound kind="file">
     <name>gavl.h</name>
-    <path>/home/pix/Src/gavl/include/gavl/</path>
+    <path>/home/pix/Src/Gmerlin_cvs_new/gavl/include/gavl/</path>
     <filename>gavl_8h</filename>
     <class kind="struct">gavl_audio_format_s</class>
     <class kind="union">gavl_audio_samples_u</class>
@@ -22,1445 +22,1661 @@
     <class kind="struct">gavl_rectangle_f_t</class>
     <class kind="struct">gavl_video_format_s</class>
     <class kind="struct">gavl_video_frame_s</class>
+    <class kind="struct">gavl_overlay_t</class>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_QUALITY_FASTEST</name>
       <anchorfile>group__quality.html</anchorfile>
-      <anchor>ga0</anchor>
+      <anchor>gcf1efacd8e4e2d1241c3ba3df389cf92</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_QUALITY_BEST</name>
       <anchorfile>group__quality.html</anchorfile>
-      <anchor>ga1</anchor>
+      <anchor>ga1374661d3b1bb939b041e14f882301e</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_QUALITY_DEFAULT</name>
       <anchorfile>group__quality.html</anchorfile>
-      <anchor>ga2</anchor>
+      <anchor>g22322c311ee070e08412f6f705befe25</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_MAX_CHANNELS</name>
       <anchorfile>group__audio__format.html</anchorfile>
-      <anchor>ga14</anchor>
+      <anchor>gdf04f3cec52fc5df08390e0feca392d8</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_AUDIO_FRONT_TO_REAR_COPY</name>
       <anchorfile>group__audio__conversion__flags.html</anchorfile>
-      <anchor>ga0</anchor>
+      <anchor>gc2f3980189b56280c4df7946e75da031</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_AUDIO_FRONT_TO_REAR_MUTE</name>
       <anchorfile>group__audio__conversion__flags.html</anchorfile>
-      <anchor>ga1</anchor>
+      <anchor>g98cc643204a882dac3b74748b799845f</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_AUDIO_FRONT_TO_REAR_DIFF</name>
       <anchorfile>group__audio__conversion__flags.html</anchorfile>
-      <anchor>ga2</anchor>
+      <anchor>g718d9e0138f967665abac2f95bc78359</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_AUDIO_FRONT_TO_REAR_MASK</name>
       <anchorfile>group__audio__conversion__flags.html</anchorfile>
-      <anchor>ga3</anchor>
+      <anchor>gf9cc032776f56df949476e79c85710b2</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_AUDIO_STEREO_TO_MONO_LEFT</name>
       <anchorfile>group__audio__conversion__flags.html</anchorfile>
-      <anchor>ga4</anchor>
+      <anchor>g3609388de4180bb572622980d7c7ebb8</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_AUDIO_STEREO_TO_MONO_RIGHT</name>
       <anchorfile>group__audio__conversion__flags.html</anchorfile>
-      <anchor>ga5</anchor>
+      <anchor>g89b4b04fad25b6f14f6418d1087f30e1</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_AUDIO_STEREO_TO_MONO_MIX</name>
       <anchorfile>group__audio__conversion__flags.html</anchorfile>
-      <anchor>ga6</anchor>
+      <anchor>gb07e520216622c2edd1df1c816fb1e71</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_AUDIO_STEREO_TO_MONO_MASK</name>
       <anchorfile>group__audio__conversion__flags.html</anchorfile>
-      <anchor>ga7</anchor>
+      <anchor>gefe94992b7a5b98e38e95ca077f67c78</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_MAX_PLANES</name>
       <anchorfile>group__video.html</anchorfile>
-      <anchor>ga0</anchor>
+      <anchor>g0bd744118eafc166feddd214c1dfae19</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_PIXFMT_PLANAR</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga15</anchor>
+      <anchor>g04b9a9a01c859eef903ad5c929b5a376</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_PIXFMT_RGB</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga16</anchor>
+      <anchor>gadfa65377172d2d7780888c1435996b9</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_PIXFMT_YUV</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga17</anchor>
+      <anchor>gb68ea697e8c26f1ac9458ab7dfc5ac2d</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_PIXFMT_YUVJ</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga18</anchor>
+      <anchor>gc9f6894e861877932a3d9e22de68f217</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_PIXFMT_ALPHA</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga19</anchor>
+      <anchor>g0a439a4323f4f72a1306b4a45d527c4d</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>gavl_pixelformat_is_rgb</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga20</anchor>
+      <anchor>ga817c92786c87106ffd6e5dc83c9559a</anchor>
       <arglist>(fmt)</arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>gavl_pixelformat_is_yuv</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga21</anchor>
+      <anchor>g01053608fe3d999aa9ee5a1c9de92f52</anchor>
       <arglist>(fmt)</arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>gavl_pixelformat_is_jpeg_scaled</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga22</anchor>
+      <anchor>g177fcadc2d94a2a5b44fef3df2551cec</anchor>
       <arglist>(fmt)</arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>gavl_pixelformat_has_alpha</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga23</anchor>
+      <anchor>g05959f9b8dd7b5464b964bdfc50e0bf2</anchor>
       <arglist>(fmt)</arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>gavl_pixelformat_is_planar</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga24</anchor>
+      <anchor>ga9d242d428b8e06d245644ab5bb900a4</anchor>
       <arglist>(fmt)</arglist>
-    </member>
-    <member kind="define">
-      <type>#define</type>
-      <name>GAVL_KEEP_APSPECT</name>
-      <anchorfile>group__video__conversion__flags.html</anchorfile>
-      <anchor>ga0</anchor>
-      <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_FORCE_DEINTERLACE</name>
       <anchorfile>group__video__conversion__flags.html</anchorfile>
-      <anchor>ga1</anchor>
+      <anchor>g2337d9ab35e09d07f98a89e8d39c3162</anchor>
       <arglist></arglist>
     </member>
     <member kind="typedef">
       <type>gavl_video_format_s</type>
       <name>gavl_video_format_t</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga0</anchor>
+      <anchor>g0ffc9c60fb71a5fb835e453531fd442c</anchor>
       <arglist></arglist>
     </member>
     <member kind="typedef">
       <type>gavl_audio_format_s</type>
       <name>gavl_audio_format_t</name>
       <anchorfile>group__audio__format.html</anchorfile>
-      <anchor>ga0</anchor>
+      <anchor>g89ed1f8be3ae6780efb780dbd785bf45</anchor>
       <arglist></arglist>
     </member>
     <member kind="typedef">
       <type>gavl_audio_samples_u</type>
       <name>gavl_audio_samples_t</name>
       <anchorfile>group__audio__frame.html</anchorfile>
-      <anchor>ga0</anchor>
+      <anchor>g11d6fbc6c579c466f5e16edf2e70665e</anchor>
       <arglist></arglist>
     </member>
     <member kind="typedef">
       <type>gavl_audio_channels_u</type>
       <name>gavl_audio_channels_t</name>
       <anchorfile>group__audio__frame.html</anchorfile>
-      <anchor>ga1</anchor>
+      <anchor>g7e6167333b27124ceee76db3b0e0b29e</anchor>
       <arglist></arglist>
     </member>
     <member kind="typedef">
       <type>gavl_audio_frame_s</type>
       <name>gavl_audio_frame_t</name>
       <anchorfile>group__audio__frame.html</anchorfile>
-      <anchor>ga2</anchor>
+      <anchor>gc9c98a5c429ce1f629e1b3058f77a9e2</anchor>
       <arglist></arglist>
     </member>
     <member kind="typedef">
       <type>gavl_audio_options_s</type>
       <name>gavl_audio_options_t</name>
       <anchorfile>group__audio__options.html</anchorfile>
-      <anchor>ga0</anchor>
+      <anchor>g1667eb35773f94035acd0ba81cdada05</anchor>
       <arglist></arglist>
     </member>
     <member kind="typedef">
       <type>gavl_audio_converter_s</type>
       <name>gavl_audio_converter_t</name>
       <anchorfile>group__audio__converter.html</anchorfile>
-      <anchor>ga0</anchor>
+      <anchor>g709646455c9edc02c6af02fd72520a28</anchor>
       <arglist></arglist>
     </member>
     <member kind="typedef">
       <type>gavl_volume_control_s</type>
       <name>gavl_volume_control_t</name>
       <anchorfile>group__volume__control.html</anchorfile>
-      <anchor>ga0</anchor>
+      <anchor>ge8781d6999b54e43aaadce7276608094</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="typedef">
+      <type>gavl_peak_detector_s</type>
+      <name>gavl_peak_detector_t</name>
+      <anchorfile>group__peak__detection.html</anchorfile>
+      <anchor>g1974488d678c0e0f8fc55a5ecaa24e1c</anchor>
       <arglist></arglist>
     </member>
     <member kind="typedef">
       <type>gavl_video_frame_s</type>
       <name>gavl_video_frame_t</name>
       <anchorfile>group__video__frame.html</anchorfile>
-      <anchor>ga0</anchor>
+      <anchor>g171d946610ae36aba2c87b3c8c542945</anchor>
       <arglist></arglist>
     </member>
     <member kind="typedef">
       <type>gavl_video_options_s</type>
       <name>gavl_video_options_t</name>
       <anchorfile>group__video__options.html</anchorfile>
-      <anchor>ga0</anchor>
+      <anchor>g661526ac8e31c3a162f8607c2bcda6ee</anchor>
       <arglist></arglist>
     </member>
     <member kind="typedef">
       <type>gavl_video_converter_s</type>
       <name>gavl_video_converter_t</name>
       <anchorfile>group__video__converter.html</anchorfile>
-      <anchor>ga0</anchor>
+      <anchor>g8608b4a917f962a192fbb4e7d1a180f5</anchor>
       <arglist></arglist>
     </member>
     <member kind="typedef">
       <type>gavl_video_scaler_s</type>
       <name>gavl_video_scaler_t</name>
       <anchorfile>group__video__scaler.html</anchorfile>
-      <anchor>ga0</anchor>
+      <anchor>g8b4210889926401c0af62a9c423e14ab</anchor>
       <arglist></arglist>
     </member>
     <member kind="typedef">
       <type>gavl_video_deinterlacer_s</type>
       <name>gavl_video_deinterlacer_t</name>
       <anchorfile>group__video__deinterlacer.html</anchorfile>
-      <anchor>ga0</anchor>
+      <anchor>g7c2cc3f5fcc2266c5df7e34ab28596f9</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="typedef">
+      <type>gavl_overlay_blend_context_s</type>
+      <name>gavl_overlay_blend_context_t</name>
+      <anchorfile>group__video__blend.html</anchorfile>
+      <anchor>gb03135cd919dbd7cfce24574ed5ff2c7</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumeration">
       <name>gavl_sample_format_t</name>
-      <anchor>ga15</anchor>
+      <anchor>g08ca85571b963dca380529d3c64e8d04</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_SAMPLE_NONE</name>
-      <anchor>gga15a38</anchor>
+      <anchor>gg08ca85571b963dca380529d3c64e8d045681e0131192ef4c5baf7aabfd53d470</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_SAMPLE_U8</name>
-      <anchor>gga15a39</anchor>
+      <anchor>gg08ca85571b963dca380529d3c64e8d045a99cb841b307045c0a9f2c90ebdddc7</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_SAMPLE_S8</name>
-      <anchor>gga15a40</anchor>
+      <anchor>gg08ca85571b963dca380529d3c64e8d0475aa6db07e83e2cb7ab52ebc8943ec9a</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_SAMPLE_U16</name>
-      <anchor>gga15a41</anchor>
+      <anchor>gg08ca85571b963dca380529d3c64e8d048c81b8d4cdf85b942f9131b2c8cf04f5</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_SAMPLE_S16</name>
-      <anchor>gga15a42</anchor>
+      <anchor>gg08ca85571b963dca380529d3c64e8d04abaddf765acac09e8e104c0a1c0abfd3</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_SAMPLE_S32</name>
-      <anchor>gga15a43</anchor>
+      <anchor>gg08ca85571b963dca380529d3c64e8d04f51697b6266eea712dfa0fd884d956ee</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_SAMPLE_FLOAT</name>
-      <anchor>gga15a44</anchor>
+      <anchor>gg08ca85571b963dca380529d3c64e8d043edfde34e4bb95751ba81ee688c2c91a</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumeration">
       <name>gavl_interleave_mode_t</name>
-      <anchor>ga16</anchor>
+      <anchor>g7ed6d11fe342b9d77d2252da737fe70c</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_INTERLEAVE_NONE</name>
-      <anchor>gga16a45</anchor>
+      <anchor>gg7ed6d11fe342b9d77d2252da737fe70ca98036ec9c35e15773f7eee9cfb5c4a7</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_INTERLEAVE_2</name>
-      <anchor>gga16a46</anchor>
+      <anchor>gg7ed6d11fe342b9d77d2252da737fe70c502a85cc59d5839c1935196cb0ebec8b</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_INTERLEAVE_ALL</name>
-      <anchor>gga16a47</anchor>
+      <anchor>gg7ed6d11fe342b9d77d2252da737fe70c5af921652b91c139a5e107a01f43888e</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumeration">
       <name>gavl_channel_id_t</name>
-      <anchor>ga17</anchor>
+      <anchor>g0167e2e6a67aadb417ad7735ce85dc8c</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_CHID_NONE</name>
-      <anchor>gga17a48</anchor>
+      <anchor>gg0167e2e6a67aadb417ad7735ce85dc8c96f1678288e5e15465e83ca0b4ff5b8c</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_CHID_FRONT_CENTER</name>
-      <anchor>gga17a49</anchor>
+      <anchor>gg0167e2e6a67aadb417ad7735ce85dc8cfc8c33d89aae92eedd2a9cc6460496d8</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_CHID_FRONT_LEFT</name>
-      <anchor>gga17a50</anchor>
+      <anchor>gg0167e2e6a67aadb417ad7735ce85dc8c5f3cbff9e18df5d430b794ad26a8ebe0</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_CHID_FRONT_RIGHT</name>
-      <anchor>gga17a51</anchor>
+      <anchor>gg0167e2e6a67aadb417ad7735ce85dc8c0d09580f5510ec0384353b7927cdb5cc</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_CHID_FRONT_CENTER_LEFT</name>
-      <anchor>gga17a52</anchor>
+      <anchor>gg0167e2e6a67aadb417ad7735ce85dc8ca6178f1146615d4000d3cf48465ec54a</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_CHID_FRONT_CENTER_RIGHT</name>
-      <anchor>gga17a53</anchor>
+      <anchor>gg0167e2e6a67aadb417ad7735ce85dc8cf53beeb74f046a3d7fc9b00458065fd6</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_CHID_REAR_LEFT</name>
-      <anchor>gga17a54</anchor>
+      <anchor>gg0167e2e6a67aadb417ad7735ce85dc8c7481629b20d13bb3b7b199e12e7fb9d9</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_CHID_REAR_RIGHT</name>
-      <anchor>gga17a55</anchor>
+      <anchor>gg0167e2e6a67aadb417ad7735ce85dc8cccfda1a5cafdc82d9d701c8eb2c6c42b</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_CHID_REAR_CENTER</name>
-      <anchor>gga17a56</anchor>
+      <anchor>gg0167e2e6a67aadb417ad7735ce85dc8cc527fed53e7225bcb00c92e3c9d71a8b</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_CHID_SIDE_LEFT</name>
-      <anchor>gga17a57</anchor>
+      <anchor>gg0167e2e6a67aadb417ad7735ce85dc8c8d304398b8347447c1277ea966722a74</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_CHID_SIDE_RIGHT</name>
-      <anchor>gga17a58</anchor>
+      <anchor>gg0167e2e6a67aadb417ad7735ce85dc8c0abe864a9e34165cdb7c0720d126c706</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_CHID_LFE</name>
-      <anchor>gga17a59</anchor>
+      <anchor>gg0167e2e6a67aadb417ad7735ce85dc8ccbc8b1ee07f3315da917e0486b672ba7</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_CHID_AUX</name>
-      <anchor>gga17a60</anchor>
+      <anchor>gg0167e2e6a67aadb417ad7735ce85dc8cd31c6ef1ed7499a2856bb5b8c5df8524</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumeration">
+      <name>gavl_audio_dither_mode_t</name>
+      <anchor>g7675efc0dadfb0f13cd5def14d16eac3</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumeration">
+      <name>gavl_resample_mode_t</name>
+      <anchor>g980691f2c8c3c77a45e959e433b80a1c</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>GAVL_RESAMPLE_AUTO</name>
+      <anchor>gg980691f2c8c3c77a45e959e433b80a1cc630f7dae0e307a333abd9f3feb84e35</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>GAVL_RESAMPLE_LINEAR</name>
+      <anchor>gg980691f2c8c3c77a45e959e433b80a1cb64c3b5e39489db00eeba97bc4c5b7c3</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>GAVL_RESAMPLE_ZOH</name>
+      <anchor>gg980691f2c8c3c77a45e959e433b80a1c748c06882eb6da67afdf31688aae1b97</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>GAVL_RESAMPLE_SINC_FAST</name>
+      <anchor>gg980691f2c8c3c77a45e959e433b80a1cfd1a6035ae2efdcc6460fa49d20507c2</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>GAVL_RESAMPLE_SINC_MEDIUM</name>
+      <anchor>gg980691f2c8c3c77a45e959e433b80a1ccd97ff82e1fd6220cf7bb1c8689d2c7d</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>GAVL_RESAMPLE_SINC_BEST</name>
+      <anchor>gg980691f2c8c3c77a45e959e433b80a1c0e3af39db4a4f523aa4284806dfdf92f</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumeration">
       <name>gavl_pixelformat_t</name>
-      <anchor>ga25</anchor>
+      <anchor>gf1e060e38cb2d9e4e776f7eca3ec2d33</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_PIXELFORMAT_NONE</name>
-      <anchor>gga25a61</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d33c717f2fe9459d34033f9795a652786be</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_RGB_15</name>
-      <anchor>gga25a62</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d33f56e3146de38129ab2a77d9c78b68597</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_BGR_15</name>
-      <anchor>gga25a63</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d33b97b65c52e4f22512fc504c318d828f7</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_RGB_16</name>
-      <anchor>gga25a64</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d333b3ab22b714c2b2dbe8378ba6e665aed</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_BGR_16</name>
-      <anchor>gga25a65</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d33ec80b2d18ff47362cc27fcc37d14ad6f</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_RGB_24</name>
-      <anchor>gga25a66</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d338211bc654500aecfd275674f6221043f</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_BGR_24</name>
-      <anchor>gga25a67</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d3313a997c77aae8666186d41a4b81587fc</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_RGB_32</name>
-      <anchor>gga25a68</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d331e0326ee4c758091617b60989ca47b0c</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_BGR_32</name>
-      <anchor>gga25a69</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d33fed887430acaadf1f5ea53b816dfabd6</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_RGBA_32</name>
-      <anchor>gga25a70</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d33ddf19307ad488270fa01958f81e49805</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_YUY2</name>
-      <anchor>gga25a71</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d338d27aaccb4602c8ec8676f9290a5dd5c</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_UYVY</name>
-      <anchor>gga25a72</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d333d4ff8ef4a77ed775628c32112aa6149</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_YUVA_32</name>
-      <anchor>gga25a73</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d3338f188147bf813acdbfd186a94b80ded</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_YUV_420_P</name>
-      <anchor>gga25a74</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d3320f380c90a1540717452e3a793719b59</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_YUV_422_P</name>
-      <anchor>gga25a75</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d33104f0457d36f00af8a42fb8ea44a04ff</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_YUV_444_P</name>
-      <anchor>gga25a76</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d3353d86fa6e94bb857879932823cd1b299</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_YUV_411_P</name>
-      <anchor>gga25a77</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d33cbc562d3d3dabe924be4cf0fda42608b</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_YUV_410_P</name>
-      <anchor>gga25a78</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d3319bb2c8eda0bfdda876921e0de0ae630</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_YUVJ_420_P</name>
-      <anchor>gga25a79</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d330e46c4cee26289eee8cc1feef2bcb544</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_YUVJ_422_P</name>
-      <anchor>gga25a80</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d336532ffb3fbf64ad20c866cbd9c794bad</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_YUVJ_444_P</name>
-      <anchor>gga25a81</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d33a6bb415b453cdfb92c0b6b9cbb745f9a</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_YUV_444_P_16</name>
-      <anchor>gga25a82</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d33bed85774258b87ba556036a39b67a98a</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_YUV_422_P_16</name>
-      <anchor>gga25a83</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d3341e6c2b3847dd8a9f18cc9af77064d04</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_RGB_48</name>
-      <anchor>gga25a84</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d331a8169a0597e154a27eb24f2415b5286</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_RGBA_64</name>
-      <anchor>gga25a85</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d3384b98bc0e63c1695bc7c4d07d90ca2d7</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_RGB_FLOAT</name>
-      <anchor>gga25a86</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d335d444e80ac504e8ce319652f5fcfa50c</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_RGBA_FLOAT</name>
-      <anchor>gga25a87</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d33fbfe8d7d8aa64729cf7c2a4a2ce9624e</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumeration">
       <name>gavl_chroma_placement_t</name>
-      <anchor>ga26</anchor>
+      <anchor>g1e5257edc9b29af8eba05825db5a0906</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_CHROMA_PLACEMENT_DEFAULT</name>
-      <anchor>gga26a88</anchor>
+      <anchor>gg1e5257edc9b29af8eba05825db5a0906e18f2501f64f2d4ace44fc84d7c719f7</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_CHROMA_PLACEMENT_MPEG2</name>
-      <anchor>gga26a89</anchor>
+      <anchor>gg1e5257edc9b29af8eba05825db5a0906d5180e13cd750c7b3618a785b4a87cf6</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_CHROMA_PLACEMENT_DVPAL</name>
-      <anchor>gga26a90</anchor>
+      <anchor>gg1e5257edc9b29af8eba05825db5a0906845aeec284544ec190abf0eeaac0e0be</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumeration">
       <name>gavl_framerate_mode_t</name>
-      <anchor>ga27</anchor>
+      <anchor>g27bc061c95b4416a2ddd2cae2f8ee811</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_FRAMERATE_CONSTANT</name>
-      <anchor>gga27a91</anchor>
+      <anchor>gg27bc061c95b4416a2ddd2cae2f8ee8113b8019ccde52a3dc42b337bb21addad7</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_FRAMERATE_VARIABLE</name>
-      <anchor>gga27a92</anchor>
+      <anchor>gg27bc061c95b4416a2ddd2cae2f8ee81172e7a1eec40615145fbc3ef25bdd026e</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_FRAMERATE_STILL</name>
-      <anchor>gga27a93</anchor>
+      <anchor>gg27bc061c95b4416a2ddd2cae2f8ee81145ddb770b81289188a660dee7d742fb0</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumeration">
       <name>gavl_interlace_mode_t</name>
-      <anchor>ga28</anchor>
+      <anchor>gabe1b351049ab5c62ff328c4e4258fae</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_INTERLACE_NONE</name>
-      <anchor>gga28a94</anchor>
+      <anchor>ggabe1b351049ab5c62ff328c4e4258fae75824d34edcb89aa3b6862ea70dc1f97</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_INTERLACE_TOP_FIRST</name>
-      <anchor>gga28a95</anchor>
+      <anchor>ggabe1b351049ab5c62ff328c4e4258faefe84e0cef3df2b894eca9474718a8b99</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_INTERLACE_BOTTOM_FIRST</name>
-      <anchor>gga28a96</anchor>
+      <anchor>ggabe1b351049ab5c62ff328c4e4258faeac14ef96211f39740c21cfcf6a281483</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumeration">
       <name>gavl_alpha_mode_t</name>
-      <anchor>ga11</anchor>
+      <anchor>g84488233d92e9407be1596d15f6bfedf</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_ALPHA_IGNORE</name>
-      <anchor>gga11a97</anchor>
+      <anchor>gg84488233d92e9407be1596d15f6bfedf5ef354544b4849ca240985f1c2f2b055</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_ALPHA_BLEND_COLOR</name>
-      <anchor>gga11a98</anchor>
+      <anchor>gg84488233d92e9407be1596d15f6bfedfa7b1ee646d776c1effb5db1ab39745a1</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumeration">
       <name>gavl_deinterlace_mode_t</name>
-      <anchor>ga12</anchor>
+      <anchor>g498099f87328c97f303f538eb79eded9</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_DEINTERLACE_NONE</name>
-      <anchor>gga12a99</anchor>
+      <anchor>gg498099f87328c97f303f538eb79eded93f9fa297598a227e7011325f0063409c</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_DEINTERLACE_COPY</name>
-      <anchor>gga12a100</anchor>
+      <anchor>gg498099f87328c97f303f538eb79eded9e1639123d6cfbf03b0a5d237ccaff2dc</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_DEINTERLACE_SCALE</name>
-      <anchor>gga12a101</anchor>
+      <anchor>gg498099f87328c97f303f538eb79eded985b2118c04bb86c6b35f95ca793a3c9a</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumeration">
       <name>gavl_deinterlace_drop_mode_t</name>
-      <anchor>ga13</anchor>
+      <anchor>g4e30253efec9dcbdac7f206bb9e1b7e3</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_DEINTERLACE_DROP_TOP</name>
-      <anchor>gga13a102</anchor>
+      <anchor>gg4e30253efec9dcbdac7f206bb9e1b7e3043a6bd2b00b5c633cbc765c65712eee</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_DEINTERLACE_DROP_BOTTOM</name>
-      <anchor>gga13a103</anchor>
+      <anchor>gg4e30253efec9dcbdac7f206bb9e1b7e3469202613e52c6bc50a9fc2ead453262</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumeration">
       <name>gavl_scale_mode_t</name>
-      <anchor>ga14</anchor>
+      <anchor>gc527f0b25df75c9dbfdbf25521d1729e</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_SCALE_AUTO</name>
-      <anchor>gga14a104</anchor>
+      <anchor>ggc527f0b25df75c9dbfdbf25521d1729e4b0b7d43baf67bf6989ae5192b26efea</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_SCALE_NEAREST</name>
-      <anchor>gga14a105</anchor>
+      <anchor>ggc527f0b25df75c9dbfdbf25521d1729e1f53f13c482c7da3d8c3218a7ff9faf2</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_SCALE_BILINEAR</name>
-      <anchor>gga14a106</anchor>
+      <anchor>ggc527f0b25df75c9dbfdbf25521d1729ef73d0475a2b5cb521a76c5d6c70fc232</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_SCALE_QUADRATIC</name>
-      <anchor>gga14a107</anchor>
+      <anchor>ggc527f0b25df75c9dbfdbf25521d1729ee67e61407a55aa628a4c03466331d92d</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_SCALE_CUBIC_BSPLINE</name>
-      <anchor>gga14a108</anchor>
+      <anchor>ggc527f0b25df75c9dbfdbf25521d1729eafcb74bc8e7e2e0c161af5d1312623c1</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_SCALE_CUBIC_MITCHELL</name>
-      <anchor>gga14a109</anchor>
+      <anchor>ggc527f0b25df75c9dbfdbf25521d1729e269a9eb117090c4681bf75a2c8125e57</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_SCALE_CUBIC_CATMULL</name>
-      <anchor>gga14a110</anchor>
+      <anchor>ggc527f0b25df75c9dbfdbf25521d1729e9741867d7bfc72473c7345e0b48a3a02</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_SCALE_SINC_LANCZOS</name>
-      <anchor>gga14a111</anchor>
+      <anchor>ggc527f0b25df75c9dbfdbf25521d1729e6631cc5c2d05633678c6576d8e88017f</anchor>
       <arglist></arglist>
     </member>
     <member kind="function">
       <type>const char *</type>
       <name>gavl_sample_format_to_string</name>
       <anchorfile>group__audio__format.html</anchorfile>
-      <anchor>ga1</anchor>
+      <anchor>g5866797cce8735c5fefdd516294aeebc</anchor>
       <arglist>(gavl_sample_format_t format)</arglist>
     </member>
     <member kind="function">
       <type>const char *</type>
       <name>gavl_channel_id_to_string</name>
       <anchorfile>group__audio__format.html</anchorfile>
-      <anchor>ga2</anchor>
+      <anchor>g4c2c079d2f56fca44e1aaa7f8f26032f</anchor>
       <arglist>(gavl_channel_id_t id)</arglist>
     </member>
     <member kind="function">
       <type>const char *</type>
       <name>gavl_interleave_mode_to_string</name>
       <anchorfile>group__audio__format.html</anchorfile>
-      <anchor>ga3</anchor>
+      <anchor>gae9dbff6e33cd8cd7e42e901956dbfc2</anchor>
       <arglist>(gavl_interleave_mode_t mode)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_audio_format_dump</name>
       <anchorfile>group__audio__format.html</anchorfile>
-      <anchor>ga4</anchor>
+      <anchor>g0767c9faac593b8276d3b82d48a1c2cd</anchor>
       <arglist>(const gavl_audio_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_channel_index</name>
       <anchorfile>group__audio__format.html</anchorfile>
-      <anchor>ga5</anchor>
+      <anchor>gdc1571e093e37e611f2b0908f0fdde2f</anchor>
       <arglist>(const gavl_audio_format_t *format, gavl_channel_id_t id)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_front_channels</name>
       <anchorfile>group__audio__format.html</anchorfile>
-      <anchor>ga6</anchor>
+      <anchor>g80876dab4eaf44ae43520f1fde2982b7</anchor>
       <arglist>(const gavl_audio_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_rear_channels</name>
       <anchorfile>group__audio__format.html</anchorfile>
-      <anchor>ga7</anchor>
+      <anchor>ga002be44b13c9b0f48e7bc015d35e5fc</anchor>
       <arglist>(const gavl_audio_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_side_channels</name>
       <anchorfile>group__audio__format.html</anchorfile>
-      <anchor>ga8</anchor>
+      <anchor>ge1b40d1d0acdfad8a517ce684cb7787d</anchor>
       <arglist>(const gavl_audio_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_aux_channels</name>
       <anchorfile>group__audio__format.html</anchorfile>
-      <anchor>ga9</anchor>
+      <anchor>gec9b46ce84ebe8fbb7632c8aa40506cb</anchor>
       <arglist>(const gavl_audio_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_lfe_channels</name>
       <anchorfile>group__audio__format.html</anchorfile>
-      <anchor>ga10</anchor>
+      <anchor>g5dfac3c857cd759d503d6cd7fc9ab971</anchor>
       <arglist>(const gavl_audio_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_audio_format_copy</name>
       <anchorfile>group__audio__format.html</anchorfile>
-      <anchor>ga11</anchor>
+      <anchor>g2ce0a82b8fc36bc1dd55aa069a715506</anchor>
       <arglist>(gavl_audio_format_t *dst, const gavl_audio_format_t *src)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_set_channel_setup</name>
       <anchorfile>group__audio__format.html</anchorfile>
-      <anchor>ga12</anchor>
+      <anchor>geda1607e247f4f288ed91ce394eb271b</anchor>
       <arglist>(gavl_audio_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_bytes_per_sample</name>
       <anchorfile>group__audio__format.html</anchorfile>
-      <anchor>ga13</anchor>
+      <anchor>gdda03b8f9524b9b79ecb19eabc7737f9</anchor>
       <arglist>(gavl_sample_format_t format)</arglist>
     </member>
     <member kind="function">
       <type>gavl_audio_frame_t *</type>
       <name>gavl_audio_frame_create</name>
       <anchorfile>group__audio__frame.html</anchorfile>
-      <anchor>ga3</anchor>
+      <anchor>g2258e1dd64f5eb444c32be349dea6f6e</anchor>
       <arglist>(const gavl_audio_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_audio_frame_null</name>
       <anchorfile>group__audio__frame.html</anchorfile>
-      <anchor>ga4</anchor>
+      <anchor>g681fe392c36a0050b11d07cffc905757</anchor>
       <arglist>(gavl_audio_frame_t *frame)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_audio_frame_destroy</name>
       <anchorfile>group__audio__frame.html</anchorfile>
-      <anchor>ga5</anchor>
+      <anchor>gc13b82557cac1d6d792d401c644bcff7</anchor>
       <arglist>(gavl_audio_frame_t *frame)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_audio_frame_mute</name>
       <anchorfile>group__audio__frame.html</anchorfile>
-      <anchor>ga6</anchor>
+      <anchor>g6b2e1f026b045aed8c0a62eb3baa3e23</anchor>
       <arglist>(gavl_audio_frame_t *frame, const gavl_audio_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_audio_frame_copy</name>
       <anchorfile>group__audio__frame.html</anchorfile>
-      <anchor>ga7</anchor>
+      <anchor>g3168deb114fa31887a1fbbf82d156a02</anchor>
       <arglist>(gavl_audio_format_t *format, gavl_audio_frame_t *dst, gavl_audio_frame_t *src, int dst_pos, int src_pos, int dst_size, int src_size)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_audio_options_set_quality</name>
       <anchorfile>group__audio__options.html</anchorfile>
-      <anchor>ga1</anchor>
+      <anchor>g35a49227511de6facbaba1c33b50c049</anchor>
       <arglist>(gavl_audio_options_t *opt, int quality)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_audio_options_set_dither_mode</name>
+      <anchorfile>group__audio__options.html</anchorfile>
+      <anchor>g28f6a39914762fc67bc33e63eca617e9</anchor>
+      <arglist>(gavl_audio_options_t *opt, gavl_audio_dither_mode_t mode)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_audio_options_set_resample_mode</name>
+      <anchorfile>group__audio__options.html</anchorfile>
+      <anchor>ge5689f30f239fc07e76c277af3ed3e9b</anchor>
+      <arglist>(gavl_audio_options_t *opt, gavl_resample_mode_t mode)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_audio_options_set_conversion_flags</name>
       <anchorfile>group__audio__options.html</anchorfile>
-      <anchor>ga2</anchor>
+      <anchor>gf2bbab51dcf5b5a2afb5a220dfd51966</anchor>
       <arglist>(gavl_audio_options_t *opt, int flags)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_audio_options_get_conversion_flags</name>
       <anchorfile>group__audio__options.html</anchorfile>
-      <anchor>ga3</anchor>
+      <anchor>g737ee7cd7f2e86462ac8ab83ccd11a73</anchor>
       <arglist>(gavl_audio_options_t *opt)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_audio_options_set_defaults</name>
       <anchorfile>group__audio__options.html</anchorfile>
-      <anchor>ga4</anchor>
+      <anchor>g9669d962a2912f914cad0719fd2883c1</anchor>
+      <arglist>(gavl_audio_options_t *opt)</arglist>
+    </member>
+    <member kind="function">
+      <type>gavl_audio_options_t *</type>
+      <name>gavl_audio_options_create</name>
+      <anchorfile>group__audio__options.html</anchorfile>
+      <anchor>g55f2853d0f949d1fb7379ec787e7d160</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_audio_options_copy</name>
+      <anchorfile>group__audio__options.html</anchorfile>
+      <anchor>g8a68c24b19b59b13e6a693dd70ac7167</anchor>
+      <arglist>(gavl_audio_options_t *dst, const gavl_audio_options_t *src)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_audio_options_destroy</name>
+      <anchorfile>group__audio__options.html</anchorfile>
+      <anchor>gbddca7c089087b48057e021788621a6f</anchor>
       <arglist>(gavl_audio_options_t *opt)</arglist>
     </member>
     <member kind="function">
       <type>gavl_audio_converter_t *</type>
       <name>gavl_audio_converter_create</name>
       <anchorfile>group__audio__converter.html</anchorfile>
-      <anchor>ga1</anchor>
+      <anchor>gc66e9e5ac7b63e12cab83cb0c7110aa4</anchor>
       <arglist>()</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_audio_converter_destroy</name>
       <anchorfile>group__audio__converter.html</anchorfile>
-      <anchor>ga2</anchor>
+      <anchor>g1ba87f41072e23c3cfb34f5ac8093ad8</anchor>
       <arglist>(gavl_audio_converter_t *cnv)</arglist>
     </member>
     <member kind="function">
       <type>gavl_audio_options_t *</type>
       <name>gavl_audio_converter_get_options</name>
       <anchorfile>group__audio__converter.html</anchorfile>
-      <anchor>ga3</anchor>
+      <anchor>gddf28297724c5a52fcd3e01bbefcda67</anchor>
       <arglist>(gavl_audio_converter_t *cnv)</arglist>
-    </member>
-    <member kind="function">
-      <type>void</type>
-      <name>gavl_audio_options_copy</name>
-      <anchorfile>group__audio__converter.html</anchorfile>
-      <anchor>ga4</anchor>
-      <arglist>(gavl_audio_options_t *dst, const gavl_audio_options_t *src)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_audio_converter_init</name>
       <anchorfile>group__audio__converter.html</anchorfile>
-      <anchor>ga5</anchor>
+      <anchor>gcbe57f23345909d15b6554fc5c677625</anchor>
       <arglist>(gavl_audio_converter_t *cnv, const gavl_audio_format_t *input_format, const gavl_audio_format_t *output_format)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_audio_convert</name>
       <anchorfile>group__audio__converter.html</anchorfile>
-      <anchor>ga6</anchor>
+      <anchor>gc8ad9be67dfb0e2a0d1354b11b14042c</anchor>
       <arglist>(gavl_audio_converter_t *cnv, gavl_audio_frame_t *input_frame, gavl_audio_frame_t *output_frame)</arglist>
     </member>
     <member kind="function">
       <type>gavl_volume_control_t *</type>
       <name>gavl_volume_control_create</name>
       <anchorfile>group__volume__control.html</anchorfile>
-      <anchor>ga1</anchor>
+      <anchor>gd86db2f2c9091fd7216af86449834335</anchor>
       <arglist>()</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_volume_control_destroy</name>
       <anchorfile>group__volume__control.html</anchorfile>
-      <anchor>ga2</anchor>
+      <anchor>g54f254228b7aaed5c2072f0fa0e42bed</anchor>
       <arglist>(gavl_volume_control_t *ctrl)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_volume_control_set_format</name>
       <anchorfile>group__volume__control.html</anchorfile>
-      <anchor>ga3</anchor>
+      <anchor>gb08463f6ead29bfd30c44ebe7eb49229</anchor>
       <arglist>(gavl_volume_control_t *ctrl, gavl_audio_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_volume_control_set_volume</name>
       <anchorfile>group__volume__control.html</anchorfile>
-      <anchor>ga4</anchor>
+      <anchor>g4874cdaac10f43b510d11d838a9c00ce</anchor>
       <arglist>(gavl_volume_control_t *ctrl, float volume)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_volume_control_apply</name>
       <anchorfile>group__volume__control.html</anchorfile>
-      <anchor>ga5</anchor>
+      <anchor>gcbef50bf745dfc8d7a2506b584636669</anchor>
       <arglist>(gavl_volume_control_t *ctrl, gavl_audio_frame_t *frame)</arglist>
     </member>
     <member kind="function">
+      <type>gavl_peak_detector_t *</type>
+      <name>gavl_peak_detector_create</name>
+      <anchorfile>group__peak__detection.html</anchorfile>
+      <anchor>g37e0507c46b63e375a20e66d0bb5fa20</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function">
       <type>void</type>
-      <name>gavl_rectangle_crop_to_format</name>
+      <name>gavl_peak_detector_destroy</name>
+      <anchorfile>group__peak__detection.html</anchorfile>
+      <anchor>g7c1d88b1d297771eaaa8d255370f41ab</anchor>
+      <arglist>(gavl_peak_detector_t *pd)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_peak_detector_set_format</name>
+      <anchorfile>group__peak__detection.html</anchorfile>
+      <anchor>gd64a6b633d578bd6a574d2cd207c85b1</anchor>
+      <arglist>(gavl_peak_detector_t *pd, gavl_audio_format_t *format)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_peak_detector_update</name>
+      <anchorfile>group__peak__detection.html</anchorfile>
+      <anchor>g57ac5066e308c5b00a628f316b4dd8a6</anchor>
+      <arglist>(gavl_peak_detector_t *pd, gavl_audio_frame_t *frame)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_peak_detector_get_peak</name>
+      <anchorfile>group__peak__detection.html</anchorfile>
+      <anchor>g5cb791fba330d5a1a3fb1c07bd2a48a5</anchor>
+      <arglist>(gavl_peak_detector_t *pd, double *min, double *max)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_peak_detector_reset</name>
+      <anchorfile>group__peak__detection.html</anchorfile>
+      <anchor>gbb68bf40ce57312f090f9910578d56e4</anchor>
+      <arglist>(gavl_peak_detector_t *pd)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_rectangle_i_crop_to_format</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga0</anchor>
+      <anchor>g45c456e7a0b7c103852e934ac6297f14</anchor>
       <arglist>(gavl_rectangle_i_t *r, const gavl_video_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_f_crop_to_format</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga1</anchor>
+      <anchor>g3e22b047bff914ffd2679e755c2be889</anchor>
       <arglist>(gavl_rectangle_f_t *r, const gavl_video_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_crop_to_format_noscale</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga2</anchor>
+      <anchor>g95a5626e2d92a1e4e6f3c82a4685b84e</anchor>
       <arglist>(gavl_rectangle_i_t *src_rect, gavl_rectangle_i_t *dst_rect, const gavl_video_format_t *src_format, const gavl_video_format_t *dst_format)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_rectangle_crop_to_format_scale</name>
+      <anchorfile>group__rectangle.html</anchorfile>
+      <anchor>g26335f07d63415a791e274da63ce8c27</anchor>
+      <arglist>(gavl_rectangle_f_t *src_rect, gavl_rectangle_i_t *dst_rect, const gavl_video_format_t *src_format, const gavl_video_format_t *dst_format)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_i_set_all</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga3</anchor>
+      <anchor>g53842e5ca70805c95021cdc56c62d4ed</anchor>
       <arglist>(gavl_rectangle_i_t *r, const gavl_video_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_f_set_all</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga4</anchor>
+      <anchor>g349e5365d1aa581cc4754912ad04186d</anchor>
       <arglist>(gavl_rectangle_f_t *r, const gavl_video_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_i_crop_left</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga5</anchor>
+      <anchor>gf9c4565a4c83ee389599866f2e5d177c</anchor>
       <arglist>(gavl_rectangle_i_t *r, int num_pixels)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_i_crop_right</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga6</anchor>
+      <anchor>ge7c05b77c66093cd638f0b2fff813512</anchor>
       <arglist>(gavl_rectangle_i_t *r, int num_pixels)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_i_crop_top</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga7</anchor>
+      <anchor>g5ed074f1f79bfc447a71f564addce12a</anchor>
       <arglist>(gavl_rectangle_i_t *r, int num_pixels)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_i_crop_bottom</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga8</anchor>
+      <anchor>g62b8fe460860456344add2416ee810ea</anchor>
       <arglist>(gavl_rectangle_i_t *r, int num_pixels)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_f_crop_left</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga9</anchor>
+      <anchor>gc308f371810979cb50ee398623aaa84b</anchor>
       <arglist>(gavl_rectangle_f_t *r, double num_pixels)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_f_crop_right</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga10</anchor>
+      <anchor>g3eac7e347b91384a363d6dd9e9bb54b5</anchor>
       <arglist>(gavl_rectangle_f_t *r, double num_pixels)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_f_crop_top</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga11</anchor>
+      <anchor>gdb10e4863ba1f694deca3402e2548477</anchor>
       <arglist>(gavl_rectangle_f_t *r, double num_pixels)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_f_crop_bottom</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga12</anchor>
+      <anchor>gf51a4e0f55aaf795bcf77f3e064e211d</anchor>
       <arglist>(gavl_rectangle_f_t *r, double num_pixels)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_i_align</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga13</anchor>
+      <anchor>g607e3f3d4e33ce2cf4ef39dd841db24b</anchor>
       <arglist>(gavl_rectangle_i_t *r, int h_align, int v_align)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_rectangle_i_align_to_format</name>
+      <anchorfile>group__rectangle.html</anchorfile>
+      <anchor>g79dee02c7f5df6e74d0ed3cbbb312f70</anchor>
+      <arglist>(gavl_rectangle_i_t *r, const gavl_video_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_i_copy</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga14</anchor>
+      <anchor>gab25aec1b5153ed18b0a0f7a5c063ca2</anchor>
       <arglist>(gavl_rectangle_i_t *dst, const gavl_rectangle_i_t *src)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_f_copy</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga15</anchor>
+      <anchor>g6bcd295b3cb5ab9baffa181f3178bdc7</anchor>
       <arglist>(gavl_rectangle_f_t *dst, const gavl_rectangle_f_t *src)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_rectangle_i_to_f</name>
+      <anchorfile>group__rectangle.html</anchorfile>
+      <anchor>g4594c0d5e49a2fa0686e94ae7ebe32eb</anchor>
+      <arglist>(gavl_rectangle_f_t *dst, const gavl_rectangle_i_t *src)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_rectangle_f_to_i</name>
+      <anchorfile>group__rectangle.html</anchorfile>
+      <anchor>g827bc9726696d033e4aaafa6b0d7fffe</anchor>
+      <arglist>(gavl_rectangle_i_t *dst, const gavl_rectangle_f_t *src)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_rectangle_i_is_empty</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga16</anchor>
+      <anchor>g313988678fa84cc4235baa94db15ad08</anchor>
       <arglist>(const gavl_rectangle_i_t *r)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_rectangle_f_is_empty</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga17</anchor>
+      <anchor>gcf1c5038f77f1a0aadf58876ea18c5da</anchor>
       <arglist>(const gavl_rectangle_f_t *r)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_fit_aspect</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga18</anchor>
+      <anchor>geaadd740f3492a91966deb94d151ced1</anchor>
       <arglist>(gavl_rectangle_i_t *dst_rect, const gavl_video_format_t *src_format, const gavl_rectangle_f_t *src_rect, const gavl_video_format_t *dst_format, float zoom, float squeeze)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_i_dump</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga19</anchor>
+      <anchor>g59de786cc71157132c3d13dbecdc3ad2</anchor>
       <arglist>(const gavl_rectangle_i_t *r)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_f_dump</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga20</anchor>
+      <anchor>ga5b05c29a115ef953ba16ebcf9bf250e</anchor>
       <arglist>(const gavl_rectangle_f_t *r)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_pixelformat_num_planes</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga1</anchor>
+      <anchor>g064f254178d0b2c1c988f37c9cd6133e</anchor>
       <arglist>(gavl_pixelformat_t pixelformat)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_pixelformat_chroma_sub</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga2</anchor>
+      <anchor>ga2fb0c4d630ea98deb2033cca15147cd</anchor>
       <arglist>(gavl_pixelformat_t pixelformat, int *sub_h, int *sub_v)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_pixelformat_bytes_per_component</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga3</anchor>
+      <anchor>g3e4658de74dc0bcf98df96845d039ece</anchor>
       <arglist>(gavl_pixelformat_t pixelformat)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_pixelformat_bytes_per_pixel</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga4</anchor>
+      <anchor>g403f7fb9b8def63af7c7bf99504b5f36</anchor>
       <arglist>(gavl_pixelformat_t pixelformat)</arglist>
     </member>
     <member kind="function">
       <type>const char *</type>
       <name>gavl_pixelformat_to_string</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga5</anchor>
+      <anchor>g64b4c0a9dd45c7fc2409bda0602178ae</anchor>
       <arglist>(gavl_pixelformat_t pixelformat)</arglist>
     </member>
     <member kind="function">
       <type>gavl_pixelformat_t</type>
       <name>gavl_string_to_pixelformat</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga6</anchor>
+      <anchor>gdd21c209d14aa35cc6815ddbef000030</anchor>
       <arglist>(const char *name)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_num_pixelformats</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga7</anchor>
+      <anchor>g003de2ac82aae03b5219eb63604bae69</anchor>
       <arglist>()</arglist>
     </member>
     <member kind="function">
       <type>gavl_pixelformat_t</type>
       <name>gavl_get_pixelformat</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga8</anchor>
+      <anchor>g32e59da63dd8223e2098595d6fb6aad2</anchor>
       <arglist>(int index)</arglist>
     </member>
     <member kind="function">
       <type>const char *</type>
       <name>gavl_chroma_placement_to_string</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga9</anchor>
+      <anchor>g1f25023e1e6bc98120d352a97fae6c10</anchor>
       <arglist>(gavl_chroma_placement_t mode)</arglist>
     </member>
     <member kind="function">
       <type>const char *</type>
       <name>gavl_interlace_mode_to_string</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga10</anchor>
+      <anchor>gab7d8b0dbb32d89f916d05beee02cfe6</anchor>
       <arglist>(gavl_interlace_mode_t mode)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_format_copy</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga11</anchor>
+      <anchor>g86ae88c60fd58232f7e9d0c8bde6e670</anchor>
       <arglist>(gavl_video_format_t *dst, const gavl_video_format_t *src)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_format_get_chroma_offset</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga12</anchor>
+      <anchor>g7ba67aeb34ad6de3d0c15040d904998f</anchor>
       <arglist>(const gavl_video_format_t *format, int field, int plane, float *off_x, float *off_y)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_format_dump</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga13</anchor>
+      <anchor>gbc6dfb673cd341464d4359ad07a9372b</anchor>
       <arglist>(const gavl_video_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_format_fit_to_source</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga14</anchor>
+      <anchor>gbb62c7e32963af6b93364dde1ae87a60</anchor>
       <arglist>(gavl_video_format_t *dst, const gavl_video_format_t *src)</arglist>
     </member>
     <member kind="function">
       <type>gavl_video_frame_t *</type>
       <name>gavl_video_frame_create</name>
       <anchorfile>group__video__frame.html</anchorfile>
-      <anchor>ga1</anchor>
+      <anchor>ge8e4110ba48a00670468b7af40c018a9</anchor>
       <arglist>(const gavl_video_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>gavl_video_frame_t *</type>
       <name>gavl_video_frame_create_nopadd</name>
       <anchorfile>group__video__frame.html</anchorfile>
-      <anchor>ga2</anchor>
+      <anchor>g0e1a5d27f816ff79034b36d770fde2db</anchor>
       <arglist>(const gavl_video_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_frame_destroy</name>
       <anchorfile>group__video__frame.html</anchorfile>
-      <anchor>ga3</anchor>
+      <anchor>g3323c7d5ef2f147a94c26846e40ede58</anchor>
       <arglist>(gavl_video_frame_t *frame)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_frame_null</name>
       <anchorfile>group__video__frame.html</anchorfile>
-      <anchor>ga4</anchor>
+      <anchor>ge13554d3f854cee04f6b888f0621bf87</anchor>
       <arglist>(gavl_video_frame_t *frame)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_frame_clear</name>
       <anchorfile>group__video__frame.html</anchorfile>
-      <anchor>ga5</anchor>
+      <anchor>ga09bd3e322838115d7fc12bea7cd4f23</anchor>
       <arglist>(gavl_video_frame_t *frame, gavl_video_format_t *format)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_video_frame_fill</name>
+      <anchorfile>group__video__frame.html</anchorfile>
+      <anchor>g73789457ec4b1412bb6c588888b52d09</anchor>
+      <arglist>(gavl_video_frame_t *frame, gavl_video_format_t *format, float *color)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_frame_copy</name>
       <anchorfile>group__video__frame.html</anchorfile>
-      <anchor>ga6</anchor>
+      <anchor>ga92eb5bf8103886c57915193239732b0</anchor>
       <arglist>(gavl_video_format_t *format, gavl_video_frame_t *dst, gavl_video_frame_t *src)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_frame_copy_plane</name>
       <anchorfile>group__video__frame.html</anchorfile>
-      <anchor>ga7</anchor>
+      <anchor>g6c2c69c45cb509f39b2f33d0ceb110e4</anchor>
       <arglist>(gavl_video_format_t *format, gavl_video_frame_t *dst, gavl_video_frame_t *src, int plane)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_frame_copy_flip_x</name>
       <anchorfile>group__video__frame.html</anchorfile>
-      <anchor>ga8</anchor>
+      <anchor>ga3fd38159c4fcd09af4a6fabe88bc9ca</anchor>
       <arglist>(gavl_video_format_t *format, gavl_video_frame_t *dst, gavl_video_frame_t *src)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_frame_copy_flip_y</name>
       <anchorfile>group__video__frame.html</anchorfile>
-      <anchor>ga9</anchor>
+      <anchor>g0d6a643845e839e2cab4cc53dcea8f7b</anchor>
       <arglist>(gavl_video_format_t *format, gavl_video_frame_t *dst, gavl_video_frame_t *src)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_frame_copy_flip_xy</name>
       <anchorfile>group__video__frame.html</anchorfile>
-      <anchor>ga10</anchor>
+      <anchor>g5895c75762314bcc5f250af202e12d0a</anchor>
       <arglist>(gavl_video_format_t *format, gavl_video_frame_t *dst, gavl_video_frame_t *src)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_frame_get_subframe</name>
       <anchorfile>group__video__frame.html</anchorfile>
-      <anchor>ga11</anchor>
+      <anchor>g39f08525b0097d8dbca5cd5bd247c569</anchor>
       <arglist>(gavl_pixelformat_t pixelformat, gavl_video_frame_t *src, gavl_video_frame_t *dst, gavl_rectangle_i_t *src_rect)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_frame_get_field</name>
       <anchorfile>group__video__frame.html</anchorfile>
-      <anchor>ga12</anchor>
+      <anchor>g89c56c1e3c9d83e2f5e9f61520ad8c48</anchor>
       <arglist>(gavl_pixelformat_t pixelformat, gavl_video_frame_t *src, gavl_video_frame_t *dst, int field)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_frame_dump</name>
       <anchorfile>group__video__frame.html</anchorfile>
-      <anchor>ga13</anchor>
+      <anchor>ga696c5bef50364a60e9e57340a3ff8cd</anchor>
       <arglist>(gavl_video_frame_t *frame, gavl_video_format_t *format, const char *namebase)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_options_set_defaults</name>
       <anchorfile>group__video__options.html</anchorfile>
-      <anchor>ga1</anchor>
+      <anchor>g4db64317bd433643f539e0047fa30732</anchor>
+      <arglist>(gavl_video_options_t *opt)</arglist>
+    </member>
+    <member kind="function">
+      <type>gavl_video_options_t *</type>
+      <name>gavl_video_options_create</name>
+      <anchorfile>group__video__options.html</anchorfile>
+      <anchor>g1fa675ac6ed28104bbaf48e3ee542e81</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_video_options_copy</name>
+      <anchorfile>group__video__options.html</anchorfile>
+      <anchor>g7d7ae8a57976c0d1971a99c1fc343d6e</anchor>
+      <arglist>(gavl_video_options_t *dst, const gavl_video_options_t *src)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_video_options_destroy</name>
+      <anchorfile>group__video__options.html</anchorfile>
+      <anchor>g325425a658193d8d51afa23e57598dc6</anchor>
       <arglist>(gavl_video_options_t *opt)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_options_set_rectangles</name>
       <anchorfile>group__video__options.html</anchorfile>
-      <anchor>ga2</anchor>
+      <anchor>gd0b5b5e813df1baf862e0372c39dcc22</anchor>
       <arglist>(gavl_video_options_t *opt, const gavl_rectangle_f_t *src_rect, const gavl_rectangle_i_t *dst_rect)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_options_set_quality</name>
       <anchorfile>group__video__options.html</anchorfile>
-      <anchor>ga3</anchor>
+      <anchor>g1b4793f2a771ab835d8e057b62640ab1</anchor>
       <arglist>(gavl_video_options_t *opt, int quality)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_options_set_conversion_flags</name>
       <anchorfile>group__video__options.html</anchorfile>
-      <anchor>ga4</anchor>
+      <anchor>g713bcac7a2c8dad3b6eb4102ef84fd2f</anchor>
       <arglist>(gavl_video_options_t *opt, int conversion_flags)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_options_set_alpha_mode</name>
       <anchorfile>group__video__options.html</anchorfile>
-      <anchor>ga5</anchor>
+      <anchor>ge4b4ee688b4952e4429794f65b402345</anchor>
       <arglist>(gavl_video_options_t *opt, gavl_alpha_mode_t alpha_mode)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_options_set_scale_mode</name>
       <anchorfile>group__video__options.html</anchorfile>
-      <anchor>ga6</anchor>
+      <anchor>ga2b6a3b4f82509155d648b2c6ab03ea7</anchor>
       <arglist>(gavl_video_options_t *opt, gavl_scale_mode_t scale_mode)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_options_set_scale_order</name>
       <anchorfile>group__video__options.html</anchorfile>
-      <anchor>ga7</anchor>
+      <anchor>g38f96b4be019adbdad523db61fad657f</anchor>
       <arglist>(gavl_video_options_t *opt, int order)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_options_set_background_color</name>
       <anchorfile>group__video__options.html</anchorfile>
-      <anchor>ga8</anchor>
+      <anchor>g7d630fd1b45b184a929f4afa5da3f40c</anchor>
       <arglist>(gavl_video_options_t *opt, float *color)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_video_options_get_conversion_flags</name>
       <anchorfile>group__video__options.html</anchorfile>
-      <anchor>ga9</anchor>
+      <anchor>gb7eb97efde25914d8a5554053f44fea0</anchor>
       <arglist>(gavl_video_options_t *opt)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_options_set_deinterlace_mode</name>
       <anchorfile>gavl_8h.html</anchorfile>
-      <anchor>a202</anchor>
+      <anchor>02e177862b0d15b287439a66a3a330ee</anchor>
       <arglist>(gavl_video_options_t *opt, gavl_deinterlace_mode_t deinterlace_mode)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_options_set_deinterlace_drop_mode</name>
       <anchorfile>group__video__options.html</anchorfile>
-      <anchor>ga10</anchor>
+      <anchor>gcfe767892506a9f778c632f6f4637c06</anchor>
       <arglist>(gavl_video_options_t *opt, gavl_deinterlace_drop_mode_t deinterlace_drop_mode)</arglist>
     </member>
     <member kind="function">
       <type>gavl_video_converter_t *</type>
       <name>gavl_video_converter_create</name>
       <anchorfile>group__video__converter.html</anchorfile>
-      <anchor>ga1</anchor>
+      <anchor>g8e2d8202edbee643296fcb5b6f830076</anchor>
       <arglist>()</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_converter_destroy</name>
       <anchorfile>group__video__converter.html</anchorfile>
-      <anchor>ga2</anchor>
+      <anchor>g661ab83d41ba62c1f55dbdaa4018561b</anchor>
       <arglist>(gavl_video_converter_t *cnv)</arglist>
     </member>
     <member kind="function">
       <type>gavl_video_options_t *</type>
       <name>gavl_video_converter_get_options</name>
       <anchorfile>group__video__converter.html</anchorfile>
-      <anchor>ga3</anchor>
+      <anchor>g972a8cd65d44893935ae98da950a44c3</anchor>
       <arglist>(gavl_video_converter_t *cnv)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_video_converter_init</name>
       <anchorfile>group__video__converter.html</anchorfile>
-      <anchor>ga4</anchor>
+      <anchor>g0ff7a0010870e857d44da41c55fa8e8b</anchor>
       <arglist>(gavl_video_converter_t *cnv, const gavl_video_format_t *input_format, const gavl_video_format_t *output_format)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_convert</name>
       <anchorfile>group__video__converter.html</anchorfile>
-      <anchor>ga5</anchor>
+      <anchor>gd6b3b5e10186bf5bb73c83d7a8a5d759</anchor>
       <arglist>(gavl_video_converter_t *cnv, gavl_video_frame_t *input_frame, gavl_video_frame_t *output_frame)</arglist>
     </member>
     <member kind="function">
       <type>gavl_video_scaler_t *</type>
       <name>gavl_video_scaler_create</name>
       <anchorfile>group__video__scaler.html</anchorfile>
-      <anchor>ga1</anchor>
+      <anchor>ga9e3e6c3c7442f85bd620f7758dcb29c</anchor>
       <arglist>()</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_scaler_destroy</name>
       <anchorfile>group__video__scaler.html</anchorfile>
-      <anchor>ga2</anchor>
+      <anchor>gc8226db5c50cbc0e466751c319fd2008</anchor>
       <arglist>(gavl_video_scaler_t *scaler)</arglist>
     </member>
     <member kind="function">
       <type>gavl_video_options_t *</type>
       <name>gavl_video_scaler_get_options</name>
       <anchorfile>group__video__scaler.html</anchorfile>
-      <anchor>ga3</anchor>
+      <anchor>g460ee7fe28117ded7f33a7d3b35204e8</anchor>
       <arglist>(gavl_video_scaler_t *scaler)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_video_scaler_init</name>
       <anchorfile>group__video__scaler.html</anchorfile>
-      <anchor>ga4</anchor>
+      <anchor>gd7177944534acda8163b9a7e1a1d2090</anchor>
       <arglist>(gavl_video_scaler_t *scaler, const gavl_video_format_t *src_format, const gavl_video_format_t *dst_format)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_scaler_scale</name>
       <anchorfile>group__video__scaler.html</anchorfile>
-      <anchor>ga5</anchor>
+      <anchor>g801fd80c55899676f467fde3b32989df</anchor>
       <arglist>(gavl_video_scaler_t *scaler, gavl_video_frame_t *input_frame, gavl_video_frame_t *output_frame)</arglist>
     </member>
     <member kind="function">
       <type>gavl_video_deinterlacer_t *</type>
       <name>gavl_video_deinterlacer_create</name>
       <anchorfile>group__video__deinterlacer.html</anchorfile>
-      <anchor>ga1</anchor>
+      <anchor>g9c28a756a33fe7702ade6468c31d27e1</anchor>
       <arglist>()</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_deinterlacer_destroy</name>
       <anchorfile>group__video__deinterlacer.html</anchorfile>
-      <anchor>ga2</anchor>
+      <anchor>g4456cc3a6f41a39aea955b3b6ef1a451</anchor>
       <arglist>(gavl_video_deinterlacer_t *deinterlacer)</arglist>
     </member>
     <member kind="function">
       <type>gavl_video_options_t *</type>
       <name>gavl_video_deinterlacer_get_options</name>
       <anchorfile>group__video__deinterlacer.html</anchorfile>
-      <anchor>ga3</anchor>
+      <anchor>gc6552ec0d9bbf5738f6ac75e054510d2</anchor>
       <arglist>(gavl_video_deinterlacer_t *deinterlacer)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_video_deinterlacer_init</name>
       <anchorfile>group__video__deinterlacer.html</anchorfile>
-      <anchor>ga4</anchor>
+      <anchor>gbc3e0d1d4f842d291220c57066c17b2d</anchor>
       <arglist>(gavl_video_deinterlacer_t *deinterlacer, const gavl_video_format_t *src_format)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_deinterlacer_deinterlace</name>
       <anchorfile>group__video__deinterlacer.html</anchorfile>
-      <anchor>ga5</anchor>
+      <anchor>gd5a615eabb18642a77c62120012c199d</anchor>
       <arglist>(gavl_video_deinterlacer_t *deinterlacer, gavl_video_frame_t *input_frame, gavl_video_frame_t *output_frame)</arglist>
+    </member>
+    <member kind="function">
+      <type>gavl_overlay_blend_context_t *</type>
+      <name>gavl_overlay_blend_context_create</name>
+      <anchorfile>group__video__blend.html</anchorfile>
+      <anchor>g92196b284a42d74771c8abae9fd768b6</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_overlay_blend_context_destroy</name>
+      <anchorfile>group__video__blend.html</anchorfile>
+      <anchor>gaa4ee18fa19952de906a4e5a4211fde3</anchor>
+      <arglist>(gavl_overlay_blend_context_t *ctx)</arglist>
+    </member>
+    <member kind="function">
+      <type>gavl_video_options_t *</type>
+      <name>gavl_overlay_blend_context_get_options</name>
+      <anchorfile>group__video__blend.html</anchorfile>
+      <anchor>g8fa8edba629238c8e46794ca826d29a8</anchor>
+      <arglist>(gavl_overlay_blend_context_t *ctx)</arglist>
+    </member>
+    <member kind="function">
+      <type>int</type>
+      <name>gavl_overlay_blend_context_init</name>
+      <anchorfile>group__video__blend.html</anchorfile>
+      <anchor>ge6826339ea6e0b49a6ac8c7e8d1e3c49</anchor>
+      <arglist>(gavl_overlay_blend_context_t *ctx, const gavl_video_format_t *frame_format, const gavl_video_format_t *overlay_format)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_overlay_blend_context_set_overlay</name>
+      <anchorfile>group__video__blend.html</anchorfile>
+      <anchor>g6a7f190555a4cb333fba0ddfff2b1939</anchor>
+      <arglist>(gavl_overlay_blend_context_t *ctx, gavl_overlay_t *ovl)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_overlay_blend</name>
+      <anchorfile>group__video__blend.html</anchorfile>
+      <anchor>g654322e773d5b341065f75591525be94</anchor>
+      <arglist>(gavl_overlay_blend_context_t *ctx, gavl_video_frame_t *dst_frame)</arglist>
     </member>
   </compound>
   <compound kind="union">
@@ -1470,49 +1686,49 @@
       <type>uint8_t *</type>
       <name>u_8</name>
       <anchorfile>uniongavl__audio__channels__u.html</anchorfile>
-      <anchor>o0</anchor>
+      <anchor>973e5f58d98d0ac01ec4a583d4ef285c</anchor>
       <arglist>[GAVL_MAX_CHANNELS]</arglist>
     </member>
     <member kind="variable">
       <type>int8_t *</type>
       <name>s_8</name>
       <anchorfile>uniongavl__audio__channels__u.html</anchorfile>
-      <anchor>o1</anchor>
+      <anchor>8fd00287bdb9af96eff3c3d117591f28</anchor>
       <arglist>[GAVL_MAX_CHANNELS]</arglist>
     </member>
     <member kind="variable">
       <type>uint16_t *</type>
       <name>u_16</name>
       <anchorfile>uniongavl__audio__channels__u.html</anchorfile>
-      <anchor>o2</anchor>
+      <anchor>c622237cbecd5ac5a0506343af716290</anchor>
       <arglist>[GAVL_MAX_CHANNELS]</arglist>
     </member>
     <member kind="variable">
       <type>int16_t *</type>
       <name>s_16</name>
       <anchorfile>uniongavl__audio__channels__u.html</anchorfile>
-      <anchor>o3</anchor>
+      <anchor>dfdf787eed36ad2760a194f36b1dc2a6</anchor>
       <arglist>[GAVL_MAX_CHANNELS]</arglist>
     </member>
     <member kind="variable">
       <type>uint32_t *</type>
       <name>u_32</name>
       <anchorfile>uniongavl__audio__channels__u.html</anchorfile>
-      <anchor>o4</anchor>
+      <anchor>c176e6a744eced61fe1f20cc72740ae4</anchor>
       <arglist>[GAVL_MAX_CHANNELS]</arglist>
     </member>
     <member kind="variable">
       <type>int32_t *</type>
       <name>s_32</name>
       <anchorfile>uniongavl__audio__channels__u.html</anchorfile>
-      <anchor>o5</anchor>
+      <anchor>2d0f5c0b6a29bc4e6a198ea5a462b26b</anchor>
       <arglist>[GAVL_MAX_CHANNELS]</arglist>
     </member>
     <member kind="variable">
       <type>float *</type>
       <name>f</name>
       <anchorfile>uniongavl__audio__channels__u.html</anchorfile>
-      <anchor>o6</anchor>
+      <anchor>06a6606bc7b019d24e885b9ca16ba2e9</anchor>
       <arglist>[GAVL_MAX_CHANNELS]</arglist>
     </member>
   </compound>
@@ -1523,56 +1739,56 @@
       <type>int</type>
       <name>samples_per_frame</name>
       <anchorfile>structgavl__audio__format__s.html</anchorfile>
-      <anchor>o0</anchor>
+      <anchor>4884f0defe636823d0a9ed9b926d7e25</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>int</type>
       <name>samplerate</name>
       <anchorfile>structgavl__audio__format__s.html</anchorfile>
-      <anchor>o1</anchor>
+      <anchor>8e64958a5b4ccb53736ab28079ff931a</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>int</type>
       <name>num_channels</name>
       <anchorfile>structgavl__audio__format__s.html</anchorfile>
-      <anchor>o2</anchor>
+      <anchor>4ce7e6709369da03fa5382baf5c3e6bc</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>gavl_sample_format_t</type>
       <name>sample_format</name>
       <anchorfile>structgavl__audio__format__s.html</anchorfile>
-      <anchor>o3</anchor>
+      <anchor>bd20848fbce8323cfa91a1bca25620db</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>gavl_interleave_mode_t</type>
       <name>interleave_mode</name>
       <anchorfile>structgavl__audio__format__s.html</anchorfile>
-      <anchor>o4</anchor>
+      <anchor>88a2440f4a186b752841d0b0c1b77fe9</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>float</type>
       <name>center_level</name>
       <anchorfile>structgavl__audio__format__s.html</anchorfile>
-      <anchor>o5</anchor>
+      <anchor>20e074c141f5a8d953a10d368611ef9f</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>float</type>
       <name>rear_level</name>
       <anchorfile>structgavl__audio__format__s.html</anchorfile>
-      <anchor>o6</anchor>
+      <anchor>f37fc35c327c31346129806ca1957cda</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>gavl_channel_id_t</type>
       <name>channel_locations</name>
       <anchorfile>structgavl__audio__format__s.html</anchorfile>
-      <anchor>o7</anchor>
+      <anchor>4b31de91f896b0039b166be21cde5cce</anchor>
       <arglist>[GAVL_MAX_CHANNELS]</arglist>
     </member>
   </compound>
@@ -1583,21 +1799,21 @@
       <type>gavl_audio_samples_t</type>
       <name>samples</name>
       <anchorfile>structgavl__audio__frame__s.html</anchorfile>
-      <anchor>o0</anchor>
+      <anchor>c5b687c3f8491494e0bd9e35574ef3b5</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>gavl_audio_channels_t</type>
       <name>channels</name>
       <anchorfile>structgavl__audio__frame__s.html</anchorfile>
-      <anchor>o1</anchor>
+      <anchor>66a7a8d435348f08d6d148587ca35d0d</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>int</type>
       <name>valid_samples</name>
       <anchorfile>structgavl__audio__frame__s.html</anchorfile>
-      <anchor>o2</anchor>
+      <anchor>c182c76cae187d12628e00e517c52d5d</anchor>
       <arglist></arglist>
     </member>
   </compound>
@@ -1608,49 +1824,81 @@
       <type>uint8_t *</type>
       <name>u_8</name>
       <anchorfile>uniongavl__audio__samples__u.html</anchorfile>
-      <anchor>o0</anchor>
+      <anchor>108bc26ed17c11a3591e641a80d4b7a5</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>int8_t *</type>
       <name>s_8</name>
       <anchorfile>uniongavl__audio__samples__u.html</anchorfile>
-      <anchor>o1</anchor>
+      <anchor>78f525099864256e25400656489f13c5</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>uint16_t *</type>
       <name>u_16</name>
       <anchorfile>uniongavl__audio__samples__u.html</anchorfile>
-      <anchor>o2</anchor>
+      <anchor>071c84301eb9639b4c4cd3a0ad9f96ec</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>int16_t *</type>
       <name>s_16</name>
       <anchorfile>uniongavl__audio__samples__u.html</anchorfile>
-      <anchor>o3</anchor>
+      <anchor>748627b24449eaad21d1fac5e1764cbc</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>uint32_t *</type>
       <name>u_32</name>
       <anchorfile>uniongavl__audio__samples__u.html</anchorfile>
-      <anchor>o4</anchor>
+      <anchor>331e71a49e4b1269712b16d57d71a14a</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>int32_t *</type>
       <name>s_32</name>
       <anchorfile>uniongavl__audio__samples__u.html</anchorfile>
-      <anchor>o5</anchor>
+      <anchor>ef7da1f493b2c3aabd91b6e6b01af798</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>float *</type>
       <name>f</name>
       <anchorfile>uniongavl__audio__samples__u.html</anchorfile>
-      <anchor>o6</anchor>
+      <anchor>e340a04a4e1fde10cdf7a0959972830e</anchor>
+      <arglist></arglist>
+    </member>
+  </compound>
+  <compound kind="struct">
+    <name>gavl_overlay_t</name>
+    <filename>structgavl__overlay__t.html</filename>
+    <member kind="variable">
+      <type>gavl_video_frame_t *</type>
+      <name>frame</name>
+      <anchorfile>structgavl__overlay__t.html</anchorfile>
+      <anchor>15a5042c2c8f8b5342f5ab6c6a8b7bed</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>gavl_rectangle_i_t</type>
+      <name>ovl_rect</name>
+      <anchorfile>structgavl__overlay__t.html</anchorfile>
+      <anchor>975dcdd78cb1212054233f2ce02c4e5d</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>int</type>
+      <name>dst_x</name>
+      <anchorfile>structgavl__overlay__t.html</anchorfile>
+      <anchor>ba59d93af2b62b37b9a8f91dc5fb214a</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable">
+      <type>int</type>
+      <name>dst_y</name>
+      <anchorfile>structgavl__overlay__t.html</anchorfile>
+      <anchor>61b7f26540747944f169f8d28fabcecd</anchor>
       <arglist></arglist>
     </member>
   </compound>
@@ -1661,28 +1909,28 @@
       <type>double</type>
       <name>x</name>
       <anchorfile>structgavl__rectangle__f__t.html</anchorfile>
-      <anchor>o0</anchor>
+      <anchor>36fb92e0ba64972d528b73faf6e67e10</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>double</type>
       <name>y</name>
       <anchorfile>structgavl__rectangle__f__t.html</anchorfile>
-      <anchor>o1</anchor>
+      <anchor>852c069d1d2baf6a0733744c7143918a</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>double</type>
       <name>w</name>
       <anchorfile>structgavl__rectangle__f__t.html</anchorfile>
-      <anchor>o2</anchor>
+      <anchor>abec14177429d15a012017587b04b411</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>double</type>
       <name>h</name>
       <anchorfile>structgavl__rectangle__f__t.html</anchorfile>
-      <anchor>o3</anchor>
+      <anchor>b1460eb6d0cd1af0ffd9b7f00931652e</anchor>
       <arglist></arglist>
     </member>
   </compound>
@@ -1693,28 +1941,28 @@
       <type>int</type>
       <name>x</name>
       <anchorfile>structgavl__rectangle__i__t.html</anchorfile>
-      <anchor>o0</anchor>
+      <anchor>029abcc5409dc0252ce081304da43efb</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>int</type>
       <name>y</name>
       <anchorfile>structgavl__rectangle__i__t.html</anchorfile>
-      <anchor>o1</anchor>
+      <anchor>6e3a23d69a375081827c03b103c5ec9d</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>int</type>
       <name>w</name>
       <anchorfile>structgavl__rectangle__i__t.html</anchorfile>
-      <anchor>o2</anchor>
+      <anchor>fec571aec22bbf4a660825bdc54c86f6</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>int</type>
       <name>h</name>
       <anchorfile>structgavl__rectangle__i__t.html</anchorfile>
-      <anchor>o3</anchor>
+      <anchor>23aa0d736bfa55e4553a9bad3f826979</anchor>
       <arglist></arglist>
     </member>
   </compound>
@@ -1725,84 +1973,84 @@
       <type>int</type>
       <name>frame_width</name>
       <anchorfile>structgavl__video__format__s.html</anchorfile>
-      <anchor>o0</anchor>
+      <anchor>a34b1d8cc01ff399d5c351840ba04b33</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>int</type>
       <name>frame_height</name>
       <anchorfile>structgavl__video__format__s.html</anchorfile>
-      <anchor>o1</anchor>
+      <anchor>b4b7f95c6339fe92a5cd84b0d5e0a965</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>int</type>
       <name>image_width</name>
       <anchorfile>structgavl__video__format__s.html</anchorfile>
-      <anchor>o2</anchor>
+      <anchor>c52d1c3c393ce7c9956441c8244572bf</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>int</type>
       <name>image_height</name>
       <anchorfile>structgavl__video__format__s.html</anchorfile>
-      <anchor>o3</anchor>
+      <anchor>fa76cb76731551a3440c0ee05f01ab70</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>int</type>
       <name>pixel_width</name>
       <anchorfile>structgavl__video__format__s.html</anchorfile>
-      <anchor>o4</anchor>
+      <anchor>e8df6dfa1ac729a453420bdbefff9477</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>int</type>
       <name>pixel_height</name>
       <anchorfile>structgavl__video__format__s.html</anchorfile>
-      <anchor>o5</anchor>
+      <anchor>9cb2215b06439d37def5ed9e795b1461</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>gavl_pixelformat_t</type>
       <name>pixelformat</name>
       <anchorfile>structgavl__video__format__s.html</anchorfile>
-      <anchor>o6</anchor>
+      <anchor>ebd366cc2e611a6b6abd464a54cafa4d</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>int</type>
       <name>frame_duration</name>
       <anchorfile>structgavl__video__format__s.html</anchorfile>
-      <anchor>o7</anchor>
+      <anchor>b2b6092b4a38c8a49febd48765abc4cf</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>int</type>
       <name>timescale</name>
       <anchorfile>structgavl__video__format__s.html</anchorfile>
-      <anchor>o8</anchor>
+      <anchor>47976ee696e6545aa0461f1d06197746</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>gavl_framerate_mode_t</type>
       <name>framerate_mode</name>
       <anchorfile>structgavl__video__format__s.html</anchorfile>
-      <anchor>o9</anchor>
+      <anchor>8a1698037b89b8a03aec71872a6ec8f6</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>gavl_chroma_placement_t</type>
       <name>chroma_placement</name>
       <anchorfile>structgavl__video__format__s.html</anchorfile>
-      <anchor>o10</anchor>
+      <anchor>00af11c8ddf3715ae894240b76b34b78</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>gavl_interlace_mode_t</type>
       <name>interlace_mode</name>
       <anchorfile>structgavl__video__format__s.html</anchorfile>
-      <anchor>o11</anchor>
+      <anchor>894824310f2d31faea38a312773cfe9c</anchor>
       <arglist></arglist>
     </member>
   </compound>
@@ -1813,35 +2061,35 @@
       <type>uint8_t *</type>
       <name>planes</name>
       <anchorfile>structgavl__video__frame__s.html</anchorfile>
-      <anchor>o0</anchor>
+      <anchor>063dcc46eb6e1ed20c0eaa1443984e43</anchor>
       <arglist>[GAVL_MAX_PLANES]</arglist>
     </member>
     <member kind="variable">
       <type>int</type>
       <name>strides</name>
       <anchorfile>structgavl__video__frame__s.html</anchorfile>
-      <anchor>o1</anchor>
+      <anchor>21a2cbc54dce0a5f82f3cf641f14b22f</anchor>
       <arglist>[GAVL_MAX_PLANES]</arglist>
     </member>
     <member kind="variable">
       <type>void *</type>
       <name>user_data</name>
       <anchorfile>structgavl__video__frame__s.html</anchorfile>
-      <anchor>o2</anchor>
+      <anchor>8caa295993d9acc1d19be7a4f20676dd</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
       <type>int64_t</type>
       <name>time_scaled</name>
       <anchorfile>structgavl__video__frame__s.html</anchorfile>
-      <anchor>o3</anchor>
+      <anchor>8201bd6aa9ff120eb92a9b709185b095</anchor>
       <arglist></arglist>
     </member>
     <member kind="variable">
-      <type>int</type>
+      <type>int64_t</type>
       <name>duration_scaled</name>
       <anchorfile>structgavl__video__frame__s.html</anchorfile>
-      <anchor>o4</anchor>
+      <anchor>0f0470e2a1158aeebddc73923a36a2e3</anchor>
       <arglist></arglist>
     </member>
   </compound>
@@ -1853,21 +2101,21 @@
       <type>#define</type>
       <name>GAVL_QUALITY_FASTEST</name>
       <anchorfile>group__quality.html</anchorfile>
-      <anchor>ga0</anchor>
+      <anchor>gcf1efacd8e4e2d1241c3ba3df389cf92</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_QUALITY_BEST</name>
       <anchorfile>group__quality.html</anchorfile>
-      <anchor>ga1</anchor>
+      <anchor>ga1374661d3b1bb939b041e14f882301e</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_QUALITY_DEFAULT</name>
       <anchorfile>group__quality.html</anchorfile>
-      <anchor>ga2</anchor>
+      <anchor>g22322c311ee070e08412f6f705befe25</anchor>
       <arglist></arglist>
     </member>
   </compound>
@@ -1880,6 +2128,7 @@
     <subgroup>audio_options</subgroup>
     <subgroup>audio_converter</subgroup>
     <subgroup>volume_control</subgroup>
+    <subgroup>peak_detection</subgroup>
   </compound>
   <compound kind="group">
     <name>audio_format</name>
@@ -1890,235 +2139,235 @@
       <type>#define</type>
       <name>GAVL_MAX_CHANNELS</name>
       <anchorfile>group__audio__format.html</anchorfile>
-      <anchor>ga14</anchor>
+      <anchor>gdf04f3cec52fc5df08390e0feca392d8</anchor>
       <arglist></arglist>
     </member>
     <member kind="typedef">
       <type>gavl_audio_format_s</type>
       <name>gavl_audio_format_t</name>
       <anchorfile>group__audio__format.html</anchorfile>
-      <anchor>ga0</anchor>
+      <anchor>g89ed1f8be3ae6780efb780dbd785bf45</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumeration">
       <name>gavl_sample_format_t</name>
-      <anchor>ga15</anchor>
+      <anchor>g08ca85571b963dca380529d3c64e8d04</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_SAMPLE_NONE</name>
-      <anchor>gga15a38</anchor>
+      <anchor>gg08ca85571b963dca380529d3c64e8d045681e0131192ef4c5baf7aabfd53d470</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_SAMPLE_U8</name>
-      <anchor>gga15a39</anchor>
+      <anchor>gg08ca85571b963dca380529d3c64e8d045a99cb841b307045c0a9f2c90ebdddc7</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_SAMPLE_S8</name>
-      <anchor>gga15a40</anchor>
+      <anchor>gg08ca85571b963dca380529d3c64e8d0475aa6db07e83e2cb7ab52ebc8943ec9a</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_SAMPLE_U16</name>
-      <anchor>gga15a41</anchor>
+      <anchor>gg08ca85571b963dca380529d3c64e8d048c81b8d4cdf85b942f9131b2c8cf04f5</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_SAMPLE_S16</name>
-      <anchor>gga15a42</anchor>
+      <anchor>gg08ca85571b963dca380529d3c64e8d04abaddf765acac09e8e104c0a1c0abfd3</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_SAMPLE_S32</name>
-      <anchor>gga15a43</anchor>
+      <anchor>gg08ca85571b963dca380529d3c64e8d04f51697b6266eea712dfa0fd884d956ee</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_SAMPLE_FLOAT</name>
-      <anchor>gga15a44</anchor>
+      <anchor>gg08ca85571b963dca380529d3c64e8d043edfde34e4bb95751ba81ee688c2c91a</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumeration">
       <name>gavl_interleave_mode_t</name>
-      <anchor>ga16</anchor>
+      <anchor>g7ed6d11fe342b9d77d2252da737fe70c</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_INTERLEAVE_NONE</name>
-      <anchor>gga16a45</anchor>
+      <anchor>gg7ed6d11fe342b9d77d2252da737fe70ca98036ec9c35e15773f7eee9cfb5c4a7</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_INTERLEAVE_2</name>
-      <anchor>gga16a46</anchor>
+      <anchor>gg7ed6d11fe342b9d77d2252da737fe70c502a85cc59d5839c1935196cb0ebec8b</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_INTERLEAVE_ALL</name>
-      <anchor>gga16a47</anchor>
+      <anchor>gg7ed6d11fe342b9d77d2252da737fe70c5af921652b91c139a5e107a01f43888e</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumeration">
       <name>gavl_channel_id_t</name>
-      <anchor>ga17</anchor>
+      <anchor>g0167e2e6a67aadb417ad7735ce85dc8c</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_CHID_NONE</name>
-      <anchor>gga17a48</anchor>
+      <anchor>gg0167e2e6a67aadb417ad7735ce85dc8c96f1678288e5e15465e83ca0b4ff5b8c</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_CHID_FRONT_CENTER</name>
-      <anchor>gga17a49</anchor>
+      <anchor>gg0167e2e6a67aadb417ad7735ce85dc8cfc8c33d89aae92eedd2a9cc6460496d8</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_CHID_FRONT_LEFT</name>
-      <anchor>gga17a50</anchor>
+      <anchor>gg0167e2e6a67aadb417ad7735ce85dc8c5f3cbff9e18df5d430b794ad26a8ebe0</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_CHID_FRONT_RIGHT</name>
-      <anchor>gga17a51</anchor>
+      <anchor>gg0167e2e6a67aadb417ad7735ce85dc8c0d09580f5510ec0384353b7927cdb5cc</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_CHID_FRONT_CENTER_LEFT</name>
-      <anchor>gga17a52</anchor>
+      <anchor>gg0167e2e6a67aadb417ad7735ce85dc8ca6178f1146615d4000d3cf48465ec54a</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_CHID_FRONT_CENTER_RIGHT</name>
-      <anchor>gga17a53</anchor>
+      <anchor>gg0167e2e6a67aadb417ad7735ce85dc8cf53beeb74f046a3d7fc9b00458065fd6</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_CHID_REAR_LEFT</name>
-      <anchor>gga17a54</anchor>
+      <anchor>gg0167e2e6a67aadb417ad7735ce85dc8c7481629b20d13bb3b7b199e12e7fb9d9</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_CHID_REAR_RIGHT</name>
-      <anchor>gga17a55</anchor>
+      <anchor>gg0167e2e6a67aadb417ad7735ce85dc8cccfda1a5cafdc82d9d701c8eb2c6c42b</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_CHID_REAR_CENTER</name>
-      <anchor>gga17a56</anchor>
+      <anchor>gg0167e2e6a67aadb417ad7735ce85dc8cc527fed53e7225bcb00c92e3c9d71a8b</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_CHID_SIDE_LEFT</name>
-      <anchor>gga17a57</anchor>
+      <anchor>gg0167e2e6a67aadb417ad7735ce85dc8c8d304398b8347447c1277ea966722a74</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_CHID_SIDE_RIGHT</name>
-      <anchor>gga17a58</anchor>
+      <anchor>gg0167e2e6a67aadb417ad7735ce85dc8c0abe864a9e34165cdb7c0720d126c706</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_CHID_LFE</name>
-      <anchor>gga17a59</anchor>
+      <anchor>gg0167e2e6a67aadb417ad7735ce85dc8ccbc8b1ee07f3315da917e0486b672ba7</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_CHID_AUX</name>
-      <anchor>gga17a60</anchor>
+      <anchor>gg0167e2e6a67aadb417ad7735ce85dc8cd31c6ef1ed7499a2856bb5b8c5df8524</anchor>
       <arglist></arglist>
     </member>
     <member kind="function">
       <type>const char *</type>
       <name>gavl_sample_format_to_string</name>
       <anchorfile>group__audio__format.html</anchorfile>
-      <anchor>ga1</anchor>
+      <anchor>g5866797cce8735c5fefdd516294aeebc</anchor>
       <arglist>(gavl_sample_format_t format)</arglist>
     </member>
     <member kind="function">
       <type>const char *</type>
       <name>gavl_channel_id_to_string</name>
       <anchorfile>group__audio__format.html</anchorfile>
-      <anchor>ga2</anchor>
+      <anchor>g4c2c079d2f56fca44e1aaa7f8f26032f</anchor>
       <arglist>(gavl_channel_id_t id)</arglist>
     </member>
     <member kind="function">
       <type>const char *</type>
       <name>gavl_interleave_mode_to_string</name>
       <anchorfile>group__audio__format.html</anchorfile>
-      <anchor>ga3</anchor>
+      <anchor>gae9dbff6e33cd8cd7e42e901956dbfc2</anchor>
       <arglist>(gavl_interleave_mode_t mode)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_audio_format_dump</name>
       <anchorfile>group__audio__format.html</anchorfile>
-      <anchor>ga4</anchor>
+      <anchor>g0767c9faac593b8276d3b82d48a1c2cd</anchor>
       <arglist>(const gavl_audio_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_channel_index</name>
       <anchorfile>group__audio__format.html</anchorfile>
-      <anchor>ga5</anchor>
+      <anchor>gdc1571e093e37e611f2b0908f0fdde2f</anchor>
       <arglist>(const gavl_audio_format_t *format, gavl_channel_id_t id)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_front_channels</name>
       <anchorfile>group__audio__format.html</anchorfile>
-      <anchor>ga6</anchor>
+      <anchor>g80876dab4eaf44ae43520f1fde2982b7</anchor>
       <arglist>(const gavl_audio_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_rear_channels</name>
       <anchorfile>group__audio__format.html</anchorfile>
-      <anchor>ga7</anchor>
+      <anchor>ga002be44b13c9b0f48e7bc015d35e5fc</anchor>
       <arglist>(const gavl_audio_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_side_channels</name>
       <anchorfile>group__audio__format.html</anchorfile>
-      <anchor>ga8</anchor>
+      <anchor>ge1b40d1d0acdfad8a517ce684cb7787d</anchor>
       <arglist>(const gavl_audio_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_aux_channels</name>
       <anchorfile>group__audio__format.html</anchorfile>
-      <anchor>ga9</anchor>
+      <anchor>gec9b46ce84ebe8fbb7632c8aa40506cb</anchor>
       <arglist>(const gavl_audio_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_lfe_channels</name>
       <anchorfile>group__audio__format.html</anchorfile>
-      <anchor>ga10</anchor>
+      <anchor>g5dfac3c857cd759d503d6cd7fc9ab971</anchor>
       <arglist>(const gavl_audio_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_audio_format_copy</name>
       <anchorfile>group__audio__format.html</anchorfile>
-      <anchor>ga11</anchor>
+      <anchor>g2ce0a82b8fc36bc1dd55aa069a715506</anchor>
       <arglist>(gavl_audio_format_t *dst, const gavl_audio_format_t *src)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_set_channel_setup</name>
       <anchorfile>group__audio__format.html</anchorfile>
-      <anchor>ga12</anchor>
+      <anchor>geda1607e247f4f288ed91ce394eb271b</anchor>
       <arglist>(gavl_audio_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_bytes_per_sample</name>
       <anchorfile>group__audio__format.html</anchorfile>
-      <anchor>ga13</anchor>
+      <anchor>gdda03b8f9524b9b79ecb19eabc7737f9</anchor>
       <arglist>(gavl_sample_format_t format)</arglist>
     </member>
   </compound>
@@ -2133,56 +2382,56 @@
       <type>gavl_audio_samples_u</type>
       <name>gavl_audio_samples_t</name>
       <anchorfile>group__audio__frame.html</anchorfile>
-      <anchor>ga0</anchor>
+      <anchor>g11d6fbc6c579c466f5e16edf2e70665e</anchor>
       <arglist></arglist>
     </member>
     <member kind="typedef">
       <type>gavl_audio_channels_u</type>
       <name>gavl_audio_channels_t</name>
       <anchorfile>group__audio__frame.html</anchorfile>
-      <anchor>ga1</anchor>
+      <anchor>g7e6167333b27124ceee76db3b0e0b29e</anchor>
       <arglist></arglist>
     </member>
     <member kind="typedef">
       <type>gavl_audio_frame_s</type>
       <name>gavl_audio_frame_t</name>
       <anchorfile>group__audio__frame.html</anchorfile>
-      <anchor>ga2</anchor>
+      <anchor>gc9c98a5c429ce1f629e1b3058f77a9e2</anchor>
       <arglist></arglist>
     </member>
     <member kind="function">
       <type>gavl_audio_frame_t *</type>
       <name>gavl_audio_frame_create</name>
       <anchorfile>group__audio__frame.html</anchorfile>
-      <anchor>ga3</anchor>
+      <anchor>g2258e1dd64f5eb444c32be349dea6f6e</anchor>
       <arglist>(const gavl_audio_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_audio_frame_null</name>
       <anchorfile>group__audio__frame.html</anchorfile>
-      <anchor>ga4</anchor>
+      <anchor>g681fe392c36a0050b11d07cffc905757</anchor>
       <arglist>(gavl_audio_frame_t *frame)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_audio_frame_destroy</name>
       <anchorfile>group__audio__frame.html</anchorfile>
-      <anchor>ga5</anchor>
+      <anchor>gc13b82557cac1d6d792d401c644bcff7</anchor>
       <arglist>(gavl_audio_frame_t *frame)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_audio_frame_mute</name>
       <anchorfile>group__audio__frame.html</anchorfile>
-      <anchor>ga6</anchor>
+      <anchor>g6b2e1f026b045aed8c0a62eb3baa3e23</anchor>
       <arglist>(gavl_audio_frame_t *frame, const gavl_audio_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_audio_frame_copy</name>
       <anchorfile>group__audio__frame.html</anchorfile>
-      <anchor>ga7</anchor>
+      <anchor>g3168deb114fa31887a1fbbf82d156a02</anchor>
       <arglist>(gavl_audio_format_t *format, gavl_audio_frame_t *dst, gavl_audio_frame_t *src, int dst_pos, int src_pos, int dst_size, int src_size)</arglist>
     </member>
   </compound>
@@ -2195,35 +2444,110 @@
       <type>gavl_audio_options_s</type>
       <name>gavl_audio_options_t</name>
       <anchorfile>group__audio__options.html</anchorfile>
-      <anchor>ga0</anchor>
+      <anchor>g1667eb35773f94035acd0ba81cdada05</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumeration">
+      <name>gavl_audio_dither_mode_t</name>
+      <anchor>g7675efc0dadfb0f13cd5def14d16eac3</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumeration">
+      <name>gavl_resample_mode_t</name>
+      <anchor>g980691f2c8c3c77a45e959e433b80a1c</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>GAVL_RESAMPLE_AUTO</name>
+      <anchor>gg980691f2c8c3c77a45e959e433b80a1cc630f7dae0e307a333abd9f3feb84e35</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>GAVL_RESAMPLE_LINEAR</name>
+      <anchor>gg980691f2c8c3c77a45e959e433b80a1cb64c3b5e39489db00eeba97bc4c5b7c3</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>GAVL_RESAMPLE_ZOH</name>
+      <anchor>gg980691f2c8c3c77a45e959e433b80a1c748c06882eb6da67afdf31688aae1b97</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>GAVL_RESAMPLE_SINC_FAST</name>
+      <anchor>gg980691f2c8c3c77a45e959e433b80a1cfd1a6035ae2efdcc6460fa49d20507c2</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>GAVL_RESAMPLE_SINC_MEDIUM</name>
+      <anchor>gg980691f2c8c3c77a45e959e433b80a1ccd97ff82e1fd6220cf7bb1c8689d2c7d</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="enumvalue">
+      <name>GAVL_RESAMPLE_SINC_BEST</name>
+      <anchor>gg980691f2c8c3c77a45e959e433b80a1c0e3af39db4a4f523aa4284806dfdf92f</anchor>
       <arglist></arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_audio_options_set_quality</name>
       <anchorfile>group__audio__options.html</anchorfile>
-      <anchor>ga1</anchor>
+      <anchor>g35a49227511de6facbaba1c33b50c049</anchor>
       <arglist>(gavl_audio_options_t *opt, int quality)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_audio_options_set_dither_mode</name>
+      <anchorfile>group__audio__options.html</anchorfile>
+      <anchor>g28f6a39914762fc67bc33e63eca617e9</anchor>
+      <arglist>(gavl_audio_options_t *opt, gavl_audio_dither_mode_t mode)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_audio_options_set_resample_mode</name>
+      <anchorfile>group__audio__options.html</anchorfile>
+      <anchor>ge5689f30f239fc07e76c277af3ed3e9b</anchor>
+      <arglist>(gavl_audio_options_t *opt, gavl_resample_mode_t mode)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_audio_options_set_conversion_flags</name>
       <anchorfile>group__audio__options.html</anchorfile>
-      <anchor>ga2</anchor>
+      <anchor>gf2bbab51dcf5b5a2afb5a220dfd51966</anchor>
       <arglist>(gavl_audio_options_t *opt, int flags)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_audio_options_get_conversion_flags</name>
       <anchorfile>group__audio__options.html</anchorfile>
-      <anchor>ga3</anchor>
+      <anchor>g737ee7cd7f2e86462ac8ab83ccd11a73</anchor>
       <arglist>(gavl_audio_options_t *opt)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_audio_options_set_defaults</name>
       <anchorfile>group__audio__options.html</anchorfile>
-      <anchor>ga4</anchor>
+      <anchor>g9669d962a2912f914cad0719fd2883c1</anchor>
+      <arglist>(gavl_audio_options_t *opt)</arglist>
+    </member>
+    <member kind="function">
+      <type>gavl_audio_options_t *</type>
+      <name>gavl_audio_options_create</name>
+      <anchorfile>group__audio__options.html</anchorfile>
+      <anchor>g55f2853d0f949d1fb7379ec787e7d160</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_audio_options_copy</name>
+      <anchorfile>group__audio__options.html</anchorfile>
+      <anchor>g8a68c24b19b59b13e6a693dd70ac7167</anchor>
+      <arglist>(gavl_audio_options_t *dst, const gavl_audio_options_t *src)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_audio_options_destroy</name>
+      <anchorfile>group__audio__options.html</anchorfile>
+      <anchor>gbddca7c089087b48057e021788621a6f</anchor>
       <arglist>(gavl_audio_options_t *opt)</arglist>
     </member>
   </compound>
@@ -2235,56 +2559,56 @@
       <type>#define</type>
       <name>GAVL_AUDIO_FRONT_TO_REAR_COPY</name>
       <anchorfile>group__audio__conversion__flags.html</anchorfile>
-      <anchor>ga0</anchor>
+      <anchor>gc2f3980189b56280c4df7946e75da031</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_AUDIO_FRONT_TO_REAR_MUTE</name>
       <anchorfile>group__audio__conversion__flags.html</anchorfile>
-      <anchor>ga1</anchor>
+      <anchor>g98cc643204a882dac3b74748b799845f</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_AUDIO_FRONT_TO_REAR_DIFF</name>
       <anchorfile>group__audio__conversion__flags.html</anchorfile>
-      <anchor>ga2</anchor>
+      <anchor>g718d9e0138f967665abac2f95bc78359</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_AUDIO_FRONT_TO_REAR_MASK</name>
       <anchorfile>group__audio__conversion__flags.html</anchorfile>
-      <anchor>ga3</anchor>
+      <anchor>gf9cc032776f56df949476e79c85710b2</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_AUDIO_STEREO_TO_MONO_LEFT</name>
       <anchorfile>group__audio__conversion__flags.html</anchorfile>
-      <anchor>ga4</anchor>
+      <anchor>g3609388de4180bb572622980d7c7ebb8</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_AUDIO_STEREO_TO_MONO_RIGHT</name>
       <anchorfile>group__audio__conversion__flags.html</anchorfile>
-      <anchor>ga5</anchor>
+      <anchor>g89b4b04fad25b6f14f6418d1087f30e1</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_AUDIO_STEREO_TO_MONO_MIX</name>
       <anchorfile>group__audio__conversion__flags.html</anchorfile>
-      <anchor>ga6</anchor>
+      <anchor>gb07e520216622c2edd1df1c816fb1e71</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_AUDIO_STEREO_TO_MONO_MASK</name>
       <anchorfile>group__audio__conversion__flags.html</anchorfile>
-      <anchor>ga7</anchor>
+      <anchor>gefe94992b7a5b98e38e95ca077f67c78</anchor>
       <arglist></arglist>
     </member>
   </compound>
@@ -2296,49 +2620,42 @@
       <type>gavl_audio_converter_s</type>
       <name>gavl_audio_converter_t</name>
       <anchorfile>group__audio__converter.html</anchorfile>
-      <anchor>ga0</anchor>
+      <anchor>g709646455c9edc02c6af02fd72520a28</anchor>
       <arglist></arglist>
     </member>
     <member kind="function">
       <type>gavl_audio_converter_t *</type>
       <name>gavl_audio_converter_create</name>
       <anchorfile>group__audio__converter.html</anchorfile>
-      <anchor>ga1</anchor>
+      <anchor>gc66e9e5ac7b63e12cab83cb0c7110aa4</anchor>
       <arglist>()</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_audio_converter_destroy</name>
       <anchorfile>group__audio__converter.html</anchorfile>
-      <anchor>ga2</anchor>
+      <anchor>g1ba87f41072e23c3cfb34f5ac8093ad8</anchor>
       <arglist>(gavl_audio_converter_t *cnv)</arglist>
     </member>
     <member kind="function">
       <type>gavl_audio_options_t *</type>
       <name>gavl_audio_converter_get_options</name>
       <anchorfile>group__audio__converter.html</anchorfile>
-      <anchor>ga3</anchor>
+      <anchor>gddf28297724c5a52fcd3e01bbefcda67</anchor>
       <arglist>(gavl_audio_converter_t *cnv)</arglist>
-    </member>
-    <member kind="function">
-      <type>void</type>
-      <name>gavl_audio_options_copy</name>
-      <anchorfile>group__audio__converter.html</anchorfile>
-      <anchor>ga4</anchor>
-      <arglist>(gavl_audio_options_t *dst, const gavl_audio_options_t *src)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_audio_converter_init</name>
       <anchorfile>group__audio__converter.html</anchorfile>
-      <anchor>ga5</anchor>
+      <anchor>gcbe57f23345909d15b6554fc5c677625</anchor>
       <arglist>(gavl_audio_converter_t *cnv, const gavl_audio_format_t *input_format, const gavl_audio_format_t *output_format)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_audio_convert</name>
       <anchorfile>group__audio__converter.html</anchorfile>
-      <anchor>ga6</anchor>
+      <anchor>gc8ad9be67dfb0e2a0d1354b11b14042c</anchor>
       <arglist>(gavl_audio_converter_t *cnv, gavl_audio_frame_t *input_frame, gavl_audio_frame_t *output_frame)</arglist>
     </member>
   </compound>
@@ -2350,43 +2667,97 @@
       <type>gavl_volume_control_s</type>
       <name>gavl_volume_control_t</name>
       <anchorfile>group__volume__control.html</anchorfile>
-      <anchor>ga0</anchor>
+      <anchor>ge8781d6999b54e43aaadce7276608094</anchor>
       <arglist></arglist>
     </member>
     <member kind="function">
       <type>gavl_volume_control_t *</type>
       <name>gavl_volume_control_create</name>
       <anchorfile>group__volume__control.html</anchorfile>
-      <anchor>ga1</anchor>
+      <anchor>gd86db2f2c9091fd7216af86449834335</anchor>
       <arglist>()</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_volume_control_destroy</name>
       <anchorfile>group__volume__control.html</anchorfile>
-      <anchor>ga2</anchor>
+      <anchor>g54f254228b7aaed5c2072f0fa0e42bed</anchor>
       <arglist>(gavl_volume_control_t *ctrl)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_volume_control_set_format</name>
       <anchorfile>group__volume__control.html</anchorfile>
-      <anchor>ga3</anchor>
+      <anchor>gb08463f6ead29bfd30c44ebe7eb49229</anchor>
       <arglist>(gavl_volume_control_t *ctrl, gavl_audio_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_volume_control_set_volume</name>
       <anchorfile>group__volume__control.html</anchorfile>
-      <anchor>ga4</anchor>
+      <anchor>g4874cdaac10f43b510d11d838a9c00ce</anchor>
       <arglist>(gavl_volume_control_t *ctrl, float volume)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_volume_control_apply</name>
       <anchorfile>group__volume__control.html</anchorfile>
-      <anchor>ga5</anchor>
+      <anchor>gcbef50bf745dfc8d7a2506b584636669</anchor>
       <arglist>(gavl_volume_control_t *ctrl, gavl_audio_frame_t *frame)</arglist>
+    </member>
+  </compound>
+  <compound kind="group">
+    <name>peak_detection</name>
+    <title>Peak detector</title>
+    <filename>group__peak__detection.html</filename>
+    <member kind="typedef">
+      <type>gavl_peak_detector_s</type>
+      <name>gavl_peak_detector_t</name>
+      <anchorfile>group__peak__detection.html</anchorfile>
+      <anchor>g1974488d678c0e0f8fc55a5ecaa24e1c</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="function">
+      <type>gavl_peak_detector_t *</type>
+      <name>gavl_peak_detector_create</name>
+      <anchorfile>group__peak__detection.html</anchorfile>
+      <anchor>g37e0507c46b63e375a20e66d0bb5fa20</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_peak_detector_destroy</name>
+      <anchorfile>group__peak__detection.html</anchorfile>
+      <anchor>g7c1d88b1d297771eaaa8d255370f41ab</anchor>
+      <arglist>(gavl_peak_detector_t *pd)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_peak_detector_set_format</name>
+      <anchorfile>group__peak__detection.html</anchorfile>
+      <anchor>gd64a6b633d578bd6a574d2cd207c85b1</anchor>
+      <arglist>(gavl_peak_detector_t *pd, gavl_audio_format_t *format)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_peak_detector_update</name>
+      <anchorfile>group__peak__detection.html</anchorfile>
+      <anchor>g57ac5066e308c5b00a628f316b4dd8a6</anchor>
+      <arglist>(gavl_peak_detector_t *pd, gavl_audio_frame_t *frame)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_peak_detector_get_peak</name>
+      <anchorfile>group__peak__detection.html</anchorfile>
+      <anchor>g5cb791fba330d5a1a3fb1c07bd2a48a5</anchor>
+      <arglist>(gavl_peak_detector_t *pd, double *min, double *max)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_peak_detector_reset</name>
+      <anchorfile>group__peak__detection.html</anchorfile>
+      <anchor>gbb68bf40ce57312f090f9910578d56e4</anchor>
+      <arglist>(gavl_peak_detector_t *pd)</arglist>
     </member>
   </compound>
   <compound kind="group">
@@ -2400,11 +2771,12 @@
     <subgroup>video_converter</subgroup>
     <subgroup>video_scaler</subgroup>
     <subgroup>video_deinterlacer</subgroup>
+    <subgroup>video_blend</subgroup>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_MAX_PLANES</name>
       <anchorfile>group__video.html</anchorfile>
-      <anchor>ga0</anchor>
+      <anchor>g0bd744118eafc166feddd214c1dfae19</anchor>
       <arglist></arglist>
     </member>
   </compound>
@@ -2416,149 +2788,177 @@
     <class kind="struct">gavl_rectangle_f_t</class>
     <member kind="function">
       <type>void</type>
-      <name>gavl_rectangle_crop_to_format</name>
+      <name>gavl_rectangle_i_crop_to_format</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga0</anchor>
+      <anchor>g45c456e7a0b7c103852e934ac6297f14</anchor>
       <arglist>(gavl_rectangle_i_t *r, const gavl_video_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_f_crop_to_format</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga1</anchor>
+      <anchor>g3e22b047bff914ffd2679e755c2be889</anchor>
       <arglist>(gavl_rectangle_f_t *r, const gavl_video_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_crop_to_format_noscale</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga2</anchor>
+      <anchor>g95a5626e2d92a1e4e6f3c82a4685b84e</anchor>
       <arglist>(gavl_rectangle_i_t *src_rect, gavl_rectangle_i_t *dst_rect, const gavl_video_format_t *src_format, const gavl_video_format_t *dst_format)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_rectangle_crop_to_format_scale</name>
+      <anchorfile>group__rectangle.html</anchorfile>
+      <anchor>g26335f07d63415a791e274da63ce8c27</anchor>
+      <arglist>(gavl_rectangle_f_t *src_rect, gavl_rectangle_i_t *dst_rect, const gavl_video_format_t *src_format, const gavl_video_format_t *dst_format)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_i_set_all</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga3</anchor>
+      <anchor>g53842e5ca70805c95021cdc56c62d4ed</anchor>
       <arglist>(gavl_rectangle_i_t *r, const gavl_video_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_f_set_all</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga4</anchor>
+      <anchor>g349e5365d1aa581cc4754912ad04186d</anchor>
       <arglist>(gavl_rectangle_f_t *r, const gavl_video_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_i_crop_left</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga5</anchor>
+      <anchor>gf9c4565a4c83ee389599866f2e5d177c</anchor>
       <arglist>(gavl_rectangle_i_t *r, int num_pixels)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_i_crop_right</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga6</anchor>
+      <anchor>ge7c05b77c66093cd638f0b2fff813512</anchor>
       <arglist>(gavl_rectangle_i_t *r, int num_pixels)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_i_crop_top</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga7</anchor>
+      <anchor>g5ed074f1f79bfc447a71f564addce12a</anchor>
       <arglist>(gavl_rectangle_i_t *r, int num_pixels)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_i_crop_bottom</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga8</anchor>
+      <anchor>g62b8fe460860456344add2416ee810ea</anchor>
       <arglist>(gavl_rectangle_i_t *r, int num_pixels)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_f_crop_left</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga9</anchor>
+      <anchor>gc308f371810979cb50ee398623aaa84b</anchor>
       <arglist>(gavl_rectangle_f_t *r, double num_pixels)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_f_crop_right</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga10</anchor>
+      <anchor>g3eac7e347b91384a363d6dd9e9bb54b5</anchor>
       <arglist>(gavl_rectangle_f_t *r, double num_pixels)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_f_crop_top</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga11</anchor>
+      <anchor>gdb10e4863ba1f694deca3402e2548477</anchor>
       <arglist>(gavl_rectangle_f_t *r, double num_pixels)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_f_crop_bottom</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga12</anchor>
+      <anchor>gf51a4e0f55aaf795bcf77f3e064e211d</anchor>
       <arglist>(gavl_rectangle_f_t *r, double num_pixels)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_i_align</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga13</anchor>
+      <anchor>g607e3f3d4e33ce2cf4ef39dd841db24b</anchor>
       <arglist>(gavl_rectangle_i_t *r, int h_align, int v_align)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_rectangle_i_align_to_format</name>
+      <anchorfile>group__rectangle.html</anchorfile>
+      <anchor>g79dee02c7f5df6e74d0ed3cbbb312f70</anchor>
+      <arglist>(gavl_rectangle_i_t *r, const gavl_video_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_i_copy</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga14</anchor>
+      <anchor>gab25aec1b5153ed18b0a0f7a5c063ca2</anchor>
       <arglist>(gavl_rectangle_i_t *dst, const gavl_rectangle_i_t *src)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_f_copy</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga15</anchor>
+      <anchor>g6bcd295b3cb5ab9baffa181f3178bdc7</anchor>
       <arglist>(gavl_rectangle_f_t *dst, const gavl_rectangle_f_t *src)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_rectangle_i_to_f</name>
+      <anchorfile>group__rectangle.html</anchorfile>
+      <anchor>g4594c0d5e49a2fa0686e94ae7ebe32eb</anchor>
+      <arglist>(gavl_rectangle_f_t *dst, const gavl_rectangle_i_t *src)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_rectangle_f_to_i</name>
+      <anchorfile>group__rectangle.html</anchorfile>
+      <anchor>g827bc9726696d033e4aaafa6b0d7fffe</anchor>
+      <arglist>(gavl_rectangle_i_t *dst, const gavl_rectangle_f_t *src)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_rectangle_i_is_empty</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga16</anchor>
+      <anchor>g313988678fa84cc4235baa94db15ad08</anchor>
       <arglist>(const gavl_rectangle_i_t *r)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_rectangle_f_is_empty</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga17</anchor>
+      <anchor>gcf1c5038f77f1a0aadf58876ea18c5da</anchor>
       <arglist>(const gavl_rectangle_f_t *r)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_fit_aspect</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga18</anchor>
+      <anchor>geaadd740f3492a91966deb94d151ced1</anchor>
       <arglist>(gavl_rectangle_i_t *dst_rect, const gavl_video_format_t *src_format, const gavl_rectangle_f_t *src_rect, const gavl_video_format_t *dst_format, float zoom, float squeeze)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_i_dump</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga19</anchor>
+      <anchor>g59de786cc71157132c3d13dbecdc3ad2</anchor>
       <arglist>(const gavl_rectangle_i_t *r)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_rectangle_f_dump</name>
       <anchorfile>group__rectangle.html</anchorfile>
-      <anchor>ga20</anchor>
+      <anchor>ga5b05c29a115ef953ba16ebcf9bf250e</anchor>
       <arglist>(const gavl_rectangle_f_t *r)</arglist>
     </member>
   </compound>
@@ -2571,375 +2971,375 @@
       <type>#define</type>
       <name>GAVL_PIXFMT_PLANAR</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga15</anchor>
+      <anchor>g04b9a9a01c859eef903ad5c929b5a376</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_PIXFMT_RGB</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga16</anchor>
+      <anchor>gadfa65377172d2d7780888c1435996b9</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_PIXFMT_YUV</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga17</anchor>
+      <anchor>gb68ea697e8c26f1ac9458ab7dfc5ac2d</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_PIXFMT_YUVJ</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga18</anchor>
+      <anchor>gc9f6894e861877932a3d9e22de68f217</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_PIXFMT_ALPHA</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga19</anchor>
+      <anchor>g0a439a4323f4f72a1306b4a45d527c4d</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>gavl_pixelformat_is_rgb</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga20</anchor>
+      <anchor>ga817c92786c87106ffd6e5dc83c9559a</anchor>
       <arglist>(fmt)</arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>gavl_pixelformat_is_yuv</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga21</anchor>
+      <anchor>g01053608fe3d999aa9ee5a1c9de92f52</anchor>
       <arglist>(fmt)</arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>gavl_pixelformat_is_jpeg_scaled</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga22</anchor>
+      <anchor>g177fcadc2d94a2a5b44fef3df2551cec</anchor>
       <arglist>(fmt)</arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>gavl_pixelformat_has_alpha</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga23</anchor>
+      <anchor>g05959f9b8dd7b5464b964bdfc50e0bf2</anchor>
       <arglist>(fmt)</arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>gavl_pixelformat_is_planar</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga24</anchor>
+      <anchor>ga9d242d428b8e06d245644ab5bb900a4</anchor>
       <arglist>(fmt)</arglist>
     </member>
     <member kind="typedef">
       <type>gavl_video_format_s</type>
       <name>gavl_video_format_t</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga0</anchor>
+      <anchor>g0ffc9c60fb71a5fb835e453531fd442c</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumeration">
       <name>gavl_pixelformat_t</name>
-      <anchor>ga25</anchor>
+      <anchor>gf1e060e38cb2d9e4e776f7eca3ec2d33</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_PIXELFORMAT_NONE</name>
-      <anchor>gga25a61</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d33c717f2fe9459d34033f9795a652786be</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_RGB_15</name>
-      <anchor>gga25a62</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d33f56e3146de38129ab2a77d9c78b68597</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_BGR_15</name>
-      <anchor>gga25a63</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d33b97b65c52e4f22512fc504c318d828f7</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_RGB_16</name>
-      <anchor>gga25a64</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d333b3ab22b714c2b2dbe8378ba6e665aed</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_BGR_16</name>
-      <anchor>gga25a65</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d33ec80b2d18ff47362cc27fcc37d14ad6f</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_RGB_24</name>
-      <anchor>gga25a66</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d338211bc654500aecfd275674f6221043f</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_BGR_24</name>
-      <anchor>gga25a67</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d3313a997c77aae8666186d41a4b81587fc</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_RGB_32</name>
-      <anchor>gga25a68</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d331e0326ee4c758091617b60989ca47b0c</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_BGR_32</name>
-      <anchor>gga25a69</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d33fed887430acaadf1f5ea53b816dfabd6</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_RGBA_32</name>
-      <anchor>gga25a70</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d33ddf19307ad488270fa01958f81e49805</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_YUY2</name>
-      <anchor>gga25a71</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d338d27aaccb4602c8ec8676f9290a5dd5c</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_UYVY</name>
-      <anchor>gga25a72</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d333d4ff8ef4a77ed775628c32112aa6149</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_YUVA_32</name>
-      <anchor>gga25a73</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d3338f188147bf813acdbfd186a94b80ded</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_YUV_420_P</name>
-      <anchor>gga25a74</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d3320f380c90a1540717452e3a793719b59</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_YUV_422_P</name>
-      <anchor>gga25a75</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d33104f0457d36f00af8a42fb8ea44a04ff</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_YUV_444_P</name>
-      <anchor>gga25a76</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d3353d86fa6e94bb857879932823cd1b299</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_YUV_411_P</name>
-      <anchor>gga25a77</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d33cbc562d3d3dabe924be4cf0fda42608b</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_YUV_410_P</name>
-      <anchor>gga25a78</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d3319bb2c8eda0bfdda876921e0de0ae630</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_YUVJ_420_P</name>
-      <anchor>gga25a79</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d330e46c4cee26289eee8cc1feef2bcb544</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_YUVJ_422_P</name>
-      <anchor>gga25a80</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d336532ffb3fbf64ad20c866cbd9c794bad</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_YUVJ_444_P</name>
-      <anchor>gga25a81</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d33a6bb415b453cdfb92c0b6b9cbb745f9a</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_YUV_444_P_16</name>
-      <anchor>gga25a82</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d33bed85774258b87ba556036a39b67a98a</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_YUV_422_P_16</name>
-      <anchor>gga25a83</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d3341e6c2b3847dd8a9f18cc9af77064d04</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_RGB_48</name>
-      <anchor>gga25a84</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d331a8169a0597e154a27eb24f2415b5286</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_RGBA_64</name>
-      <anchor>gga25a85</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d3384b98bc0e63c1695bc7c4d07d90ca2d7</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_RGB_FLOAT</name>
-      <anchor>gga25a86</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d335d444e80ac504e8ce319652f5fcfa50c</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_RGBA_FLOAT</name>
-      <anchor>gga25a87</anchor>
+      <anchor>ggf1e060e38cb2d9e4e776f7eca3ec2d33fbfe8d7d8aa64729cf7c2a4a2ce9624e</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumeration">
       <name>gavl_chroma_placement_t</name>
-      <anchor>ga26</anchor>
+      <anchor>g1e5257edc9b29af8eba05825db5a0906</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_CHROMA_PLACEMENT_DEFAULT</name>
-      <anchor>gga26a88</anchor>
+      <anchor>gg1e5257edc9b29af8eba05825db5a0906e18f2501f64f2d4ace44fc84d7c719f7</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_CHROMA_PLACEMENT_MPEG2</name>
-      <anchor>gga26a89</anchor>
+      <anchor>gg1e5257edc9b29af8eba05825db5a0906d5180e13cd750c7b3618a785b4a87cf6</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_CHROMA_PLACEMENT_DVPAL</name>
-      <anchor>gga26a90</anchor>
+      <anchor>gg1e5257edc9b29af8eba05825db5a0906845aeec284544ec190abf0eeaac0e0be</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumeration">
       <name>gavl_framerate_mode_t</name>
-      <anchor>ga27</anchor>
+      <anchor>g27bc061c95b4416a2ddd2cae2f8ee811</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_FRAMERATE_CONSTANT</name>
-      <anchor>gga27a91</anchor>
+      <anchor>gg27bc061c95b4416a2ddd2cae2f8ee8113b8019ccde52a3dc42b337bb21addad7</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_FRAMERATE_VARIABLE</name>
-      <anchor>gga27a92</anchor>
+      <anchor>gg27bc061c95b4416a2ddd2cae2f8ee81172e7a1eec40615145fbc3ef25bdd026e</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_FRAMERATE_STILL</name>
-      <anchor>gga27a93</anchor>
+      <anchor>gg27bc061c95b4416a2ddd2cae2f8ee81145ddb770b81289188a660dee7d742fb0</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumeration">
       <name>gavl_interlace_mode_t</name>
-      <anchor>ga28</anchor>
+      <anchor>gabe1b351049ab5c62ff328c4e4258fae</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_INTERLACE_NONE</name>
-      <anchor>gga28a94</anchor>
+      <anchor>ggabe1b351049ab5c62ff328c4e4258fae75824d34edcb89aa3b6862ea70dc1f97</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_INTERLACE_TOP_FIRST</name>
-      <anchor>gga28a95</anchor>
+      <anchor>ggabe1b351049ab5c62ff328c4e4258faefe84e0cef3df2b894eca9474718a8b99</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_INTERLACE_BOTTOM_FIRST</name>
-      <anchor>gga28a96</anchor>
+      <anchor>ggabe1b351049ab5c62ff328c4e4258faeac14ef96211f39740c21cfcf6a281483</anchor>
       <arglist></arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_pixelformat_num_planes</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga1</anchor>
+      <anchor>g064f254178d0b2c1c988f37c9cd6133e</anchor>
       <arglist>(gavl_pixelformat_t pixelformat)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_pixelformat_chroma_sub</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga2</anchor>
+      <anchor>ga2fb0c4d630ea98deb2033cca15147cd</anchor>
       <arglist>(gavl_pixelformat_t pixelformat, int *sub_h, int *sub_v)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_pixelformat_bytes_per_component</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga3</anchor>
+      <anchor>g3e4658de74dc0bcf98df96845d039ece</anchor>
       <arglist>(gavl_pixelformat_t pixelformat)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_pixelformat_bytes_per_pixel</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga4</anchor>
+      <anchor>g403f7fb9b8def63af7c7bf99504b5f36</anchor>
       <arglist>(gavl_pixelformat_t pixelformat)</arglist>
     </member>
     <member kind="function">
       <type>const char *</type>
       <name>gavl_pixelformat_to_string</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga5</anchor>
+      <anchor>g64b4c0a9dd45c7fc2409bda0602178ae</anchor>
       <arglist>(gavl_pixelformat_t pixelformat)</arglist>
     </member>
     <member kind="function">
       <type>gavl_pixelformat_t</type>
       <name>gavl_string_to_pixelformat</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga6</anchor>
+      <anchor>gdd21c209d14aa35cc6815ddbef000030</anchor>
       <arglist>(const char *name)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_num_pixelformats</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga7</anchor>
+      <anchor>g003de2ac82aae03b5219eb63604bae69</anchor>
       <arglist>()</arglist>
     </member>
     <member kind="function">
       <type>gavl_pixelformat_t</type>
       <name>gavl_get_pixelformat</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga8</anchor>
+      <anchor>g32e59da63dd8223e2098595d6fb6aad2</anchor>
       <arglist>(int index)</arglist>
     </member>
     <member kind="function">
       <type>const char *</type>
       <name>gavl_chroma_placement_to_string</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga9</anchor>
+      <anchor>g1f25023e1e6bc98120d352a97fae6c10</anchor>
       <arglist>(gavl_chroma_placement_t mode)</arglist>
     </member>
     <member kind="function">
       <type>const char *</type>
       <name>gavl_interlace_mode_to_string</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga10</anchor>
+      <anchor>gab7d8b0dbb32d89f916d05beee02cfe6</anchor>
       <arglist>(gavl_interlace_mode_t mode)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_format_copy</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga11</anchor>
+      <anchor>g86ae88c60fd58232f7e9d0c8bde6e670</anchor>
       <arglist>(gavl_video_format_t *dst, const gavl_video_format_t *src)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_format_get_chroma_offset</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga12</anchor>
+      <anchor>g7ba67aeb34ad6de3d0c15040d904998f</anchor>
       <arglist>(const gavl_video_format_t *format, int field, int plane, float *off_x, float *off_y)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_format_dump</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga13</anchor>
+      <anchor>gbc6dfb673cd341464d4359ad07a9372b</anchor>
       <arglist>(const gavl_video_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_format_fit_to_source</name>
       <anchorfile>group__video__format.html</anchorfile>
-      <anchor>ga14</anchor>
+      <anchor>gbb62c7e32963af6b93364dde1ae87a60</anchor>
       <arglist>(gavl_video_format_t *dst, const gavl_video_format_t *src)</arglist>
     </member>
   </compound>
@@ -2952,98 +3352,105 @@
       <type>gavl_video_frame_s</type>
       <name>gavl_video_frame_t</name>
       <anchorfile>group__video__frame.html</anchorfile>
-      <anchor>ga0</anchor>
+      <anchor>g171d946610ae36aba2c87b3c8c542945</anchor>
       <arglist></arglist>
     </member>
     <member kind="function">
       <type>gavl_video_frame_t *</type>
       <name>gavl_video_frame_create</name>
       <anchorfile>group__video__frame.html</anchorfile>
-      <anchor>ga1</anchor>
+      <anchor>ge8e4110ba48a00670468b7af40c018a9</anchor>
       <arglist>(const gavl_video_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>gavl_video_frame_t *</type>
       <name>gavl_video_frame_create_nopadd</name>
       <anchorfile>group__video__frame.html</anchorfile>
-      <anchor>ga2</anchor>
+      <anchor>g0e1a5d27f816ff79034b36d770fde2db</anchor>
       <arglist>(const gavl_video_format_t *format)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_frame_destroy</name>
       <anchorfile>group__video__frame.html</anchorfile>
-      <anchor>ga3</anchor>
+      <anchor>g3323c7d5ef2f147a94c26846e40ede58</anchor>
       <arglist>(gavl_video_frame_t *frame)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_frame_null</name>
       <anchorfile>group__video__frame.html</anchorfile>
-      <anchor>ga4</anchor>
+      <anchor>ge13554d3f854cee04f6b888f0621bf87</anchor>
       <arglist>(gavl_video_frame_t *frame)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_frame_clear</name>
       <anchorfile>group__video__frame.html</anchorfile>
-      <anchor>ga5</anchor>
+      <anchor>ga09bd3e322838115d7fc12bea7cd4f23</anchor>
       <arglist>(gavl_video_frame_t *frame, gavl_video_format_t *format)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_video_frame_fill</name>
+      <anchorfile>group__video__frame.html</anchorfile>
+      <anchor>g73789457ec4b1412bb6c588888b52d09</anchor>
+      <arglist>(gavl_video_frame_t *frame, gavl_video_format_t *format, float *color)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_frame_copy</name>
       <anchorfile>group__video__frame.html</anchorfile>
-      <anchor>ga6</anchor>
+      <anchor>ga92eb5bf8103886c57915193239732b0</anchor>
       <arglist>(gavl_video_format_t *format, gavl_video_frame_t *dst, gavl_video_frame_t *src)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_frame_copy_plane</name>
       <anchorfile>group__video__frame.html</anchorfile>
-      <anchor>ga7</anchor>
+      <anchor>g6c2c69c45cb509f39b2f33d0ceb110e4</anchor>
       <arglist>(gavl_video_format_t *format, gavl_video_frame_t *dst, gavl_video_frame_t *src, int plane)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_frame_copy_flip_x</name>
       <anchorfile>group__video__frame.html</anchorfile>
-      <anchor>ga8</anchor>
+      <anchor>ga3fd38159c4fcd09af4a6fabe88bc9ca</anchor>
       <arglist>(gavl_video_format_t *format, gavl_video_frame_t *dst, gavl_video_frame_t *src)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_frame_copy_flip_y</name>
       <anchorfile>group__video__frame.html</anchorfile>
-      <anchor>ga9</anchor>
+      <anchor>g0d6a643845e839e2cab4cc53dcea8f7b</anchor>
       <arglist>(gavl_video_format_t *format, gavl_video_frame_t *dst, gavl_video_frame_t *src)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_frame_copy_flip_xy</name>
       <anchorfile>group__video__frame.html</anchorfile>
-      <anchor>ga10</anchor>
+      <anchor>g5895c75762314bcc5f250af202e12d0a</anchor>
       <arglist>(gavl_video_format_t *format, gavl_video_frame_t *dst, gavl_video_frame_t *src)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_frame_get_subframe</name>
       <anchorfile>group__video__frame.html</anchorfile>
-      <anchor>ga11</anchor>
+      <anchor>g39f08525b0097d8dbca5cd5bd247c569</anchor>
       <arglist>(gavl_pixelformat_t pixelformat, gavl_video_frame_t *src, gavl_video_frame_t *dst, gavl_rectangle_i_t *src_rect)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_frame_get_field</name>
       <anchorfile>group__video__frame.html</anchorfile>
-      <anchor>ga12</anchor>
+      <anchor>g89c56c1e3c9d83e2f5e9f61520ad8c48</anchor>
       <arglist>(gavl_pixelformat_t pixelformat, gavl_video_frame_t *src, gavl_video_frame_t *dst, int field)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_frame_dump</name>
       <anchorfile>group__video__frame.html</anchorfile>
-      <anchor>ga13</anchor>
+      <anchor>ga696c5bef50364a60e9e57340a3ff8cd</anchor>
       <arglist>(gavl_video_frame_t *frame, gavl_video_format_t *format, const char *namebase)</arglist>
     </member>
   </compound>
@@ -3056,172 +3463,193 @@
       <type>gavl_video_options_s</type>
       <name>gavl_video_options_t</name>
       <anchorfile>group__video__options.html</anchorfile>
-      <anchor>ga0</anchor>
+      <anchor>g661526ac8e31c3a162f8607c2bcda6ee</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumeration">
       <name>gavl_alpha_mode_t</name>
-      <anchor>ga11</anchor>
+      <anchor>g84488233d92e9407be1596d15f6bfedf</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_ALPHA_IGNORE</name>
-      <anchor>gga11a97</anchor>
+      <anchor>gg84488233d92e9407be1596d15f6bfedf5ef354544b4849ca240985f1c2f2b055</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_ALPHA_BLEND_COLOR</name>
-      <anchor>gga11a98</anchor>
+      <anchor>gg84488233d92e9407be1596d15f6bfedfa7b1ee646d776c1effb5db1ab39745a1</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumeration">
       <name>gavl_deinterlace_mode_t</name>
-      <anchor>ga12</anchor>
+      <anchor>g498099f87328c97f303f538eb79eded9</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_DEINTERLACE_NONE</name>
-      <anchor>gga12a99</anchor>
+      <anchor>gg498099f87328c97f303f538eb79eded93f9fa297598a227e7011325f0063409c</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_DEINTERLACE_COPY</name>
-      <anchor>gga12a100</anchor>
+      <anchor>gg498099f87328c97f303f538eb79eded9e1639123d6cfbf03b0a5d237ccaff2dc</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_DEINTERLACE_SCALE</name>
-      <anchor>gga12a101</anchor>
+      <anchor>gg498099f87328c97f303f538eb79eded985b2118c04bb86c6b35f95ca793a3c9a</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumeration">
       <name>gavl_deinterlace_drop_mode_t</name>
-      <anchor>ga13</anchor>
+      <anchor>g4e30253efec9dcbdac7f206bb9e1b7e3</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_DEINTERLACE_DROP_TOP</name>
-      <anchor>gga13a102</anchor>
+      <anchor>gg4e30253efec9dcbdac7f206bb9e1b7e3043a6bd2b00b5c633cbc765c65712eee</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_DEINTERLACE_DROP_BOTTOM</name>
-      <anchor>gga13a103</anchor>
+      <anchor>gg4e30253efec9dcbdac7f206bb9e1b7e3469202613e52c6bc50a9fc2ead453262</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumeration">
       <name>gavl_scale_mode_t</name>
-      <anchor>ga14</anchor>
+      <anchor>gc527f0b25df75c9dbfdbf25521d1729e</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_SCALE_AUTO</name>
-      <anchor>gga14a104</anchor>
+      <anchor>ggc527f0b25df75c9dbfdbf25521d1729e4b0b7d43baf67bf6989ae5192b26efea</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_SCALE_NEAREST</name>
-      <anchor>gga14a105</anchor>
+      <anchor>ggc527f0b25df75c9dbfdbf25521d1729e1f53f13c482c7da3d8c3218a7ff9faf2</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_SCALE_BILINEAR</name>
-      <anchor>gga14a106</anchor>
+      <anchor>ggc527f0b25df75c9dbfdbf25521d1729ef73d0475a2b5cb521a76c5d6c70fc232</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_SCALE_QUADRATIC</name>
-      <anchor>gga14a107</anchor>
+      <anchor>ggc527f0b25df75c9dbfdbf25521d1729ee67e61407a55aa628a4c03466331d92d</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_SCALE_CUBIC_BSPLINE</name>
-      <anchor>gga14a108</anchor>
+      <anchor>ggc527f0b25df75c9dbfdbf25521d1729eafcb74bc8e7e2e0c161af5d1312623c1</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_SCALE_CUBIC_MITCHELL</name>
-      <anchor>gga14a109</anchor>
+      <anchor>ggc527f0b25df75c9dbfdbf25521d1729e269a9eb117090c4681bf75a2c8125e57</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_SCALE_CUBIC_CATMULL</name>
-      <anchor>gga14a110</anchor>
+      <anchor>ggc527f0b25df75c9dbfdbf25521d1729e9741867d7bfc72473c7345e0b48a3a02</anchor>
       <arglist></arglist>
     </member>
     <member kind="enumvalue">
       <name>GAVL_SCALE_SINC_LANCZOS</name>
-      <anchor>gga14a111</anchor>
+      <anchor>ggc527f0b25df75c9dbfdbf25521d1729e6631cc5c2d05633678c6576d8e88017f</anchor>
       <arglist></arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_options_set_defaults</name>
       <anchorfile>group__video__options.html</anchorfile>
-      <anchor>ga1</anchor>
+      <anchor>g4db64317bd433643f539e0047fa30732</anchor>
+      <arglist>(gavl_video_options_t *opt)</arglist>
+    </member>
+    <member kind="function">
+      <type>gavl_video_options_t *</type>
+      <name>gavl_video_options_create</name>
+      <anchorfile>group__video__options.html</anchorfile>
+      <anchor>g1fa675ac6ed28104bbaf48e3ee542e81</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_video_options_copy</name>
+      <anchorfile>group__video__options.html</anchorfile>
+      <anchor>g7d7ae8a57976c0d1971a99c1fc343d6e</anchor>
+      <arglist>(gavl_video_options_t *dst, const gavl_video_options_t *src)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_video_options_destroy</name>
+      <anchorfile>group__video__options.html</anchorfile>
+      <anchor>g325425a658193d8d51afa23e57598dc6</anchor>
       <arglist>(gavl_video_options_t *opt)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_options_set_rectangles</name>
       <anchorfile>group__video__options.html</anchorfile>
-      <anchor>ga2</anchor>
+      <anchor>gd0b5b5e813df1baf862e0372c39dcc22</anchor>
       <arglist>(gavl_video_options_t *opt, const gavl_rectangle_f_t *src_rect, const gavl_rectangle_i_t *dst_rect)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_options_set_quality</name>
       <anchorfile>group__video__options.html</anchorfile>
-      <anchor>ga3</anchor>
+      <anchor>g1b4793f2a771ab835d8e057b62640ab1</anchor>
       <arglist>(gavl_video_options_t *opt, int quality)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_options_set_conversion_flags</name>
       <anchorfile>group__video__options.html</anchorfile>
-      <anchor>ga4</anchor>
+      <anchor>g713bcac7a2c8dad3b6eb4102ef84fd2f</anchor>
       <arglist>(gavl_video_options_t *opt, int conversion_flags)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_options_set_alpha_mode</name>
       <anchorfile>group__video__options.html</anchorfile>
-      <anchor>ga5</anchor>
+      <anchor>ge4b4ee688b4952e4429794f65b402345</anchor>
       <arglist>(gavl_video_options_t *opt, gavl_alpha_mode_t alpha_mode)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_options_set_scale_mode</name>
       <anchorfile>group__video__options.html</anchorfile>
-      <anchor>ga6</anchor>
+      <anchor>ga2b6a3b4f82509155d648b2c6ab03ea7</anchor>
       <arglist>(gavl_video_options_t *opt, gavl_scale_mode_t scale_mode)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_options_set_scale_order</name>
       <anchorfile>group__video__options.html</anchorfile>
-      <anchor>ga7</anchor>
+      <anchor>g38f96b4be019adbdad523db61fad657f</anchor>
       <arglist>(gavl_video_options_t *opt, int order)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_options_set_background_color</name>
       <anchorfile>group__video__options.html</anchorfile>
-      <anchor>ga8</anchor>
+      <anchor>g7d630fd1b45b184a929f4afa5da3f40c</anchor>
       <arglist>(gavl_video_options_t *opt, float *color)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_video_options_get_conversion_flags</name>
       <anchorfile>group__video__options.html</anchorfile>
-      <anchor>ga9</anchor>
+      <anchor>gb7eb97efde25914d8a5554053f44fea0</anchor>
       <arglist>(gavl_video_options_t *opt)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_options_set_deinterlace_drop_mode</name>
       <anchorfile>group__video__options.html</anchorfile>
-      <anchor>ga10</anchor>
+      <anchor>gcfe767892506a9f778c632f6f4637c06</anchor>
       <arglist>(gavl_video_options_t *opt, gavl_deinterlace_drop_mode_t deinterlace_drop_mode)</arglist>
     </member>
   </compound>
@@ -3231,16 +3659,9 @@
     <filename>group__video__conversion__flags.html</filename>
     <member kind="define">
       <type>#define</type>
-      <name>GAVL_KEEP_APSPECT</name>
-      <anchorfile>group__video__conversion__flags.html</anchorfile>
-      <anchor>ga0</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="define">
-      <type>#define</type>
       <name>GAVL_FORCE_DEINTERLACE</name>
       <anchorfile>group__video__conversion__flags.html</anchorfile>
-      <anchor>ga1</anchor>
+      <anchor>g2337d9ab35e09d07f98a89e8d39c3162</anchor>
       <arglist></arglist>
     </member>
   </compound>
@@ -3252,42 +3673,42 @@
       <type>gavl_video_converter_s</type>
       <name>gavl_video_converter_t</name>
       <anchorfile>group__video__converter.html</anchorfile>
-      <anchor>ga0</anchor>
+      <anchor>g8608b4a917f962a192fbb4e7d1a180f5</anchor>
       <arglist></arglist>
     </member>
     <member kind="function">
       <type>gavl_video_converter_t *</type>
       <name>gavl_video_converter_create</name>
       <anchorfile>group__video__converter.html</anchorfile>
-      <anchor>ga1</anchor>
+      <anchor>g8e2d8202edbee643296fcb5b6f830076</anchor>
       <arglist>()</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_converter_destroy</name>
       <anchorfile>group__video__converter.html</anchorfile>
-      <anchor>ga2</anchor>
+      <anchor>g661ab83d41ba62c1f55dbdaa4018561b</anchor>
       <arglist>(gavl_video_converter_t *cnv)</arglist>
     </member>
     <member kind="function">
       <type>gavl_video_options_t *</type>
       <name>gavl_video_converter_get_options</name>
       <anchorfile>group__video__converter.html</anchorfile>
-      <anchor>ga3</anchor>
+      <anchor>g972a8cd65d44893935ae98da950a44c3</anchor>
       <arglist>(gavl_video_converter_t *cnv)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_video_converter_init</name>
       <anchorfile>group__video__converter.html</anchorfile>
-      <anchor>ga4</anchor>
+      <anchor>g0ff7a0010870e857d44da41c55fa8e8b</anchor>
       <arglist>(gavl_video_converter_t *cnv, const gavl_video_format_t *input_format, const gavl_video_format_t *output_format)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_convert</name>
       <anchorfile>group__video__converter.html</anchorfile>
-      <anchor>ga5</anchor>
+      <anchor>gd6b3b5e10186bf5bb73c83d7a8a5d759</anchor>
       <arglist>(gavl_video_converter_t *cnv, gavl_video_frame_t *input_frame, gavl_video_frame_t *output_frame)</arglist>
     </member>
   </compound>
@@ -3299,42 +3720,42 @@
       <type>gavl_video_scaler_s</type>
       <name>gavl_video_scaler_t</name>
       <anchorfile>group__video__scaler.html</anchorfile>
-      <anchor>ga0</anchor>
+      <anchor>g8b4210889926401c0af62a9c423e14ab</anchor>
       <arglist></arglist>
     </member>
     <member kind="function">
       <type>gavl_video_scaler_t *</type>
       <name>gavl_video_scaler_create</name>
       <anchorfile>group__video__scaler.html</anchorfile>
-      <anchor>ga1</anchor>
+      <anchor>ga9e3e6c3c7442f85bd620f7758dcb29c</anchor>
       <arglist>()</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_scaler_destroy</name>
       <anchorfile>group__video__scaler.html</anchorfile>
-      <anchor>ga2</anchor>
+      <anchor>gc8226db5c50cbc0e466751c319fd2008</anchor>
       <arglist>(gavl_video_scaler_t *scaler)</arglist>
     </member>
     <member kind="function">
       <type>gavl_video_options_t *</type>
       <name>gavl_video_scaler_get_options</name>
       <anchorfile>group__video__scaler.html</anchorfile>
-      <anchor>ga3</anchor>
+      <anchor>g460ee7fe28117ded7f33a7d3b35204e8</anchor>
       <arglist>(gavl_video_scaler_t *scaler)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_video_scaler_init</name>
       <anchorfile>group__video__scaler.html</anchorfile>
-      <anchor>ga4</anchor>
+      <anchor>gd7177944534acda8163b9a7e1a1d2090</anchor>
       <arglist>(gavl_video_scaler_t *scaler, const gavl_video_format_t *src_format, const gavl_video_format_t *dst_format)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_scaler_scale</name>
       <anchorfile>group__video__scaler.html</anchorfile>
-      <anchor>ga5</anchor>
+      <anchor>g801fd80c55899676f467fde3b32989df</anchor>
       <arglist>(gavl_video_scaler_t *scaler, gavl_video_frame_t *input_frame, gavl_video_frame_t *output_frame)</arglist>
     </member>
   </compound>
@@ -3346,43 +3767,98 @@
       <type>gavl_video_deinterlacer_s</type>
       <name>gavl_video_deinterlacer_t</name>
       <anchorfile>group__video__deinterlacer.html</anchorfile>
-      <anchor>ga0</anchor>
+      <anchor>g7c2cc3f5fcc2266c5df7e34ab28596f9</anchor>
       <arglist></arglist>
     </member>
     <member kind="function">
       <type>gavl_video_deinterlacer_t *</type>
       <name>gavl_video_deinterlacer_create</name>
       <anchorfile>group__video__deinterlacer.html</anchorfile>
-      <anchor>ga1</anchor>
+      <anchor>g9c28a756a33fe7702ade6468c31d27e1</anchor>
       <arglist>()</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_deinterlacer_destroy</name>
       <anchorfile>group__video__deinterlacer.html</anchorfile>
-      <anchor>ga2</anchor>
+      <anchor>g4456cc3a6f41a39aea955b3b6ef1a451</anchor>
       <arglist>(gavl_video_deinterlacer_t *deinterlacer)</arglist>
     </member>
     <member kind="function">
       <type>gavl_video_options_t *</type>
       <name>gavl_video_deinterlacer_get_options</name>
       <anchorfile>group__video__deinterlacer.html</anchorfile>
-      <anchor>ga3</anchor>
+      <anchor>gc6552ec0d9bbf5738f6ac75e054510d2</anchor>
       <arglist>(gavl_video_deinterlacer_t *deinterlacer)</arglist>
     </member>
     <member kind="function">
       <type>int</type>
       <name>gavl_video_deinterlacer_init</name>
       <anchorfile>group__video__deinterlacer.html</anchorfile>
-      <anchor>ga4</anchor>
+      <anchor>gbc3e0d1d4f842d291220c57066c17b2d</anchor>
       <arglist>(gavl_video_deinterlacer_t *deinterlacer, const gavl_video_format_t *src_format)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_video_deinterlacer_deinterlace</name>
       <anchorfile>group__video__deinterlacer.html</anchorfile>
-      <anchor>ga5</anchor>
+      <anchor>gd5a615eabb18642a77c62120012c199d</anchor>
       <arglist>(gavl_video_deinterlacer_t *deinterlacer, gavl_video_frame_t *input_frame, gavl_video_frame_t *output_frame)</arglist>
+    </member>
+  </compound>
+  <compound kind="group">
+    <name>video_blend</name>
+    <title>Overlay blending</title>
+    <filename>group__video__blend.html</filename>
+    <class kind="struct">gavl_overlay_t</class>
+    <member kind="typedef">
+      <type>gavl_overlay_blend_context_s</type>
+      <name>gavl_overlay_blend_context_t</name>
+      <anchorfile>group__video__blend.html</anchorfile>
+      <anchor>gb03135cd919dbd7cfce24574ed5ff2c7</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="function">
+      <type>gavl_overlay_blend_context_t *</type>
+      <name>gavl_overlay_blend_context_create</name>
+      <anchorfile>group__video__blend.html</anchorfile>
+      <anchor>g92196b284a42d74771c8abae9fd768b6</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_overlay_blend_context_destroy</name>
+      <anchorfile>group__video__blend.html</anchorfile>
+      <anchor>gaa4ee18fa19952de906a4e5a4211fde3</anchor>
+      <arglist>(gavl_overlay_blend_context_t *ctx)</arglist>
+    </member>
+    <member kind="function">
+      <type>gavl_video_options_t *</type>
+      <name>gavl_overlay_blend_context_get_options</name>
+      <anchorfile>group__video__blend.html</anchorfile>
+      <anchor>g8fa8edba629238c8e46794ca826d29a8</anchor>
+      <arglist>(gavl_overlay_blend_context_t *ctx)</arglist>
+    </member>
+    <member kind="function">
+      <type>int</type>
+      <name>gavl_overlay_blend_context_init</name>
+      <anchorfile>group__video__blend.html</anchorfile>
+      <anchor>ge6826339ea6e0b49a6ac8c7e8d1e3c49</anchor>
+      <arglist>(gavl_overlay_blend_context_t *ctx, const gavl_video_format_t *frame_format, const gavl_video_format_t *overlay_format)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_overlay_blend_context_set_overlay</name>
+      <anchorfile>group__video__blend.html</anchorfile>
+      <anchor>g6a7f190555a4cb333fba0ddfff2b1939</anchor>
+      <arglist>(gavl_overlay_blend_context_t *ctx, gavl_overlay_t *ovl)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>gavl_overlay_blend</name>
+      <anchorfile>group__video__blend.html</anchorfile>
+      <anchor>g654322e773d5b341065f75591525be94</anchor>
+      <arglist>(gavl_overlay_blend_context_t *ctx, gavl_video_frame_t *dst_frame)</arglist>
     </member>
   </compound>
   <compound kind="group">
@@ -3394,186 +3870,186 @@
       <type>#define</type>
       <name>GAVL_TIME_SCALE</name>
       <anchorfile>group__time.html</anchorfile>
-      <anchor>ga10</anchor>
+      <anchor>gf598353cbda9a5ad6878e368b6a15811</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_TIME_UNDEFINED</name>
       <anchorfile>group__time.html</anchorfile>
-      <anchor>ga11</anchor>
+      <anchor>g98a13c407599f7fd3186396337f2a313</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_TIME_MAX</name>
       <anchorfile>group__time.html</anchorfile>
-      <anchor>ga12</anchor>
+      <anchor>ge6ef0c903b29a7584c2213c07d07cb5d</anchor>
       <arglist></arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>gavl_seconds_to_time</name>
       <anchorfile>group__time.html</anchorfile>
-      <anchor>ga13</anchor>
+      <anchor>gea115f2815e637bbcd60fbade805ef76</anchor>
       <arglist>(s)</arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>gavl_time_to_seconds</name>
       <anchorfile>group__time.html</anchorfile>
-      <anchor>ga14</anchor>
+      <anchor>gfe7168a31ad0b28ead955797a62a5ab2</anchor>
       <arglist>(t)</arglist>
     </member>
     <member kind="define">
       <type>#define</type>
       <name>GAVL_TIME_STRING_LEN</name>
       <anchorfile>group__time.html</anchorfile>
-      <anchor>ga15</anchor>
+      <anchor>g49869e05d18cb1dfde4e80343ae37d50</anchor>
       <arglist></arglist>
     </member>
     <member kind="typedef">
       <type>int64_t</type>
       <name>gavl_time_t</name>
       <anchorfile>group__time.html</anchorfile>
-      <anchor>ga0</anchor>
+      <anchor>gede83abbdd6102bd8683f4b94a7bd647</anchor>
       <arglist></arglist>
     </member>
     <member kind="function">
       <type>gavl_time_t</type>
       <name>gavl_samples_to_time</name>
       <anchorfile>group__time.html</anchorfile>
-      <anchor>ga1</anchor>
+      <anchor>g7c1eb546f6102b2fec57d7f729b6ac2c</anchor>
       <arglist>(int samplerate, int64_t samples)</arglist>
     </member>
     <member kind="function">
       <type>int64_t</type>
       <name>gavl_time_to_samples</name>
       <anchorfile>group__time.html</anchorfile>
-      <anchor>ga2</anchor>
+      <anchor>gc8dc060fbba6a004f3584a20e4cedee4</anchor>
       <arglist>(int samplerate, gavl_time_t time)</arglist>
     </member>
     <member kind="function">
       <type>gavl_time_t</type>
       <name>gavl_frames_to_time</name>
       <anchorfile>group__time.html</anchorfile>
-      <anchor>ga3</anchor>
+      <anchor>g814d7c2b1515e2442e24231ef8d43bfb</anchor>
       <arglist>(int rate_num, int rate_den, int64_t frames)</arglist>
     </member>
     <member kind="function">
       <type>int64_t</type>
       <name>gavl_time_to_frames</name>
       <anchorfile>group__time.html</anchorfile>
-      <anchor>ga4</anchor>
+      <anchor>g112ca8bd2d236a7ff9aa4a2e2511ee9a</anchor>
       <arglist>(int rate_num, int rate_den, gavl_time_t time)</arglist>
     </member>
     <member kind="function">
       <type>int64_t</type>
       <name>gavl_time_scale</name>
       <anchorfile>group__time.html</anchorfile>
-      <anchor>ga5</anchor>
+      <anchor>gb0ff8b6b707448d519cf651741b114ce</anchor>
       <arglist>(int scale, gavl_time_t time)</arglist>
     </member>
     <member kind="function">
       <type>gavl_time_t</type>
       <name>gavl_time_unscale</name>
       <anchorfile>group__time.html</anchorfile>
-      <anchor>ga6</anchor>
+      <anchor>g9628bc605dcdc2658af4dd7a9f9f2d62</anchor>
       <arglist>(int scale, int64_t time)</arglist>
     </member>
     <member kind="function">
       <type>int64_t</type>
       <name>gavl_time_rescale</name>
       <anchorfile>group__time.html</anchorfile>
-      <anchor>ga7</anchor>
+      <anchor>gca558dfb6b2151be8ad3aea6b637fe5f</anchor>
       <arglist>(int scale1, int scale2, int64_t time)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_time_delay</name>
       <anchorfile>group__time.html</anchorfile>
-      <anchor>ga8</anchor>
+      <anchor>gcedc625b81616fe4af9392dd1ae83590</anchor>
       <arglist>(gavl_time_t *time)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_time_prettyprint</name>
       <anchorfile>group__time.html</anchorfile>
-      <anchor>ga9</anchor>
-      <arglist>(gavl_time_t time, char string[GAVL_TIME_STRING_LEN])</arglist>
+      <anchor>gd1af6c0393e30ca38122784c44195727</anchor>
+      <arglist>(gavl_time_t time, char str[GAVL_TIME_STRING_LEN])</arglist>
     </member>
   </compound>
   <compound kind="group">
     <name>timer</name>
-    <title>Timer</title>
+    <title>Software timer</title>
     <filename>group__timer.html</filename>
     <member kind="typedef">
       <type>gavl_timer_s</type>
       <name>gavl_timer_t</name>
       <anchorfile>group__timer.html</anchorfile>
-      <anchor>ga0</anchor>
+      <anchor>gae620a307ba8533e991c512c56b1fd24</anchor>
       <arglist></arglist>
     </member>
     <member kind="function">
       <type>gavl_timer_t *</type>
       <name>gavl_timer_create</name>
       <anchorfile>group__timer.html</anchorfile>
-      <anchor>ga1</anchor>
+      <anchor>g3ef4b05a0d75003e12b47a8f9d7bd891</anchor>
       <arglist>()</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_timer_destroy</name>
       <anchorfile>group__timer.html</anchorfile>
-      <anchor>ga2</anchor>
+      <anchor>g38609baeb538bc7beea733c665817787</anchor>
       <arglist>(gavl_timer_t *timer)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_timer_start</name>
       <anchorfile>group__timer.html</anchorfile>
-      <anchor>ga3</anchor>
+      <anchor>g8cbabd12e6d72eaa81bdfbf7b7041777</anchor>
       <arglist>(gavl_timer_t *timer)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_timer_stop</name>
       <anchorfile>group__timer.html</anchorfile>
-      <anchor>ga4</anchor>
+      <anchor>gc4ad9d5275a0517435531462e9063875</anchor>
       <arglist>(gavl_timer_t *timer)</arglist>
     </member>
     <member kind="function">
       <type>gavl_time_t</type>
       <name>gavl_timer_get</name>
       <anchorfile>group__timer.html</anchorfile>
-      <anchor>ga5</anchor>
+      <anchor>gb246801fb57119b1d17872de5ecf9ae1</anchor>
       <arglist>(gavl_timer_t *timer)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>gavl_timer_set</name>
       <anchorfile>group__timer.html</anchorfile>
-      <anchor>ga6</anchor>
+      <anchor>g878119f1c3d90cf4656301fb8320312c</anchor>
       <arglist>(gavl_timer_t *timer, gavl_time_t t)</arglist>
     </member>
   </compound>
   <compound kind="dir">
     <name>doc/</name>
-    <path>/home/pix/Src/gavl/doc/</path>
-    <filename>dir_000000.html</filename>
+    <path>/home/pix/Src/Gmerlin_cvs_new/gavl/doc/</path>
+    <filename>dir_c8680776738fe10d4e3255e7e529a92d.html</filename>
     <file>mainpage.incl</file>
   </compound>
   <compound kind="dir">
     <name>include/gavl/</name>
-    <path>/home/pix/Src/gavl/include/gavl/</path>
-    <filename>dir_000002.html</filename>
+    <path>/home/pix/Src/Gmerlin_cvs_new/gavl/include/gavl/</path>
+    <filename>dir_6ef68471fdbfa8fff675386489e5ace7.html</filename>
     <file>gavl.h</file>
     <file>gavltime.h</file>
   </compound>
   <compound kind="dir">
     <name>include/</name>
-    <path>/home/pix/Src/gavl/include/</path>
-    <filename>dir_000001.html</filename>
+    <path>/home/pix/Src/Gmerlin_cvs_new/gavl/include/</path>
+    <filename>dir_dc43efad1ffd58c541c49495c38cdfee.html</filename>
     <dir>include/gavl/</dir>
   </compound>
 </tagfile>

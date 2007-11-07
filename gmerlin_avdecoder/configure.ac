@@ -82,7 +82,7 @@ dnl
 
 GAVL_REQUIRED="0.2.7"
 
-PKG_CHECK_MODULES(GAVL, gavl = $GAVL_REQUIRED, , AC_MSG_ERROR("gavl not found"))
+PKG_CHECK_MODULES(GAVL, gavl >= $GAVL_REQUIRED, , AC_MSG_ERROR("gavl not found"))
 AC_SUBST(GAVL_REQUIRED)
 
 ICONV_LIBS=
@@ -370,6 +370,7 @@ dnl Output
 dnl 
 
 AC_CONFIG_FILES([Makefile 
+doc/Makefile \
 po/Makefile.in \
 gmerlin_avdec.spec \
 gmerlin_avdec.pc \

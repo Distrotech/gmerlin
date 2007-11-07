@@ -7,7 +7,7 @@ else
 gmerlin_subdirs =
 endif
 
-SUBDIRS = lib $(gmerlin_subdirs) tests include m4 po
+SUBDIRS = lib $(gmerlin_subdirs) tests include m4 po doc
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = gmerlin_avdec.pc
