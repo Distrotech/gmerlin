@@ -145,6 +145,7 @@ AC_SUBST(INCLUDES)
 AC_OUTPUT(Makefile \
 gavl.spec \
 gavl.pc \
+doc/Makefile \
 src/Makefile \
 m4/Makefile \
 include/Makefile \
