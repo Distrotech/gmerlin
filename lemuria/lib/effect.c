@@ -190,6 +190,10 @@ static void manage_effect(lemuria_engine_t * e,
           (lemuria_decide(e, probability)))
     {
     effect->mode = EFFECT_FINISH;
+    effect->next_index = lemuria_random_int(e, 0, num_plugins-2);
+    if(effect->next_index >= effect->index)
+      effect->next_index++;
+
     }
   else if(effect->frame_counter >= 0)
     effect->frame_counter++;
@@ -270,16 +274,20 @@ const char * lemuria_effect_label(lemuria_engine_t * l, int type, int index)
 void lemuria_change_effect(lemuria_engine_t * l, int type)
   {
   lemuria_effect_t * e;
+  int m;
   switch(type)
     {
     case LEMURIA_EFFECT_BACKGROUND:
       e = &l->background;
+      m = num_background_effects;
       break;
     case LEMURIA_EFFECT_FOREGROUND:
       e = &l->foreground;
+      m = num_foreground_effects;
       break;
     case LEMURIA_EFFECT_TEXTURE:
       e = &l->texture;
+      m = num_texture_effects;
       break;
     default:
       return;
@@ -288,7 +296,7 @@ void lemuria_change_effect(lemuria_engine_t * l, int type)
   if(e->mode == EFFECT_RUNNING)
     {
     e->mode = EFFECT_FINISH;
-    e->next_index = lemuria_random_int(l, 0, num_background_effects-2);
+    e->next_index = lemuria_random_int(l, 0, m-2);
     if(e->next_index >= e->index)
       e->next_index++;
     }

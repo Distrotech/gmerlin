@@ -2,7 +2,7 @@ AC_INIT
 AC_CONFIG_SRCDIR(include/lemuria.h)
 AM_CONFIG_HEADER(include/config.h)
 
-AM_INIT_AUTOMAKE(lemuria, 2.0.0pre1)
+AM_INIT_AUTOMAKE(lemuria, 2.0.0pre2)
 
 AC_DISABLE_STATIC
 AC_PROG_LIBTOOL
