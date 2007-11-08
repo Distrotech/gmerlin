@@ -31,6 +31,13 @@
 
 #define LOG_DOMAIN "fv_cropscale"
 
+#define SQUEEZE_MIN -1.0
+#define SQUEEZE_MAX 1.0
+
+#define ZOOM_MIN 20.0
+#define ZOOM_MAX 180.0
+
+
 #define DEINTERLACE_NEVER  0
 #define DEINTERLACE_AUTO   1
 #define DEINTERLACE_ALWAYS 2
@@ -72,6 +79,8 @@ typedef struct
   gavl_video_options_t * opt;
 
   float border_color[4];
+  
+  float zoom, squeeze;
   
   } cropscale_priv_t;
 
@@ -273,6 +282,26 @@ static bg_parameter_info_t parameters[] =
       flags:     BG_PARAMETER_SYNC,
       val_default: { val_color: { 0.0, 0.0, 0.0 } },
       help_string: TRS("Color of the image borders.")
+    },
+    {
+      BG_LOCALE,
+      name:        "squeeze",
+      long_name:   "Squeeze",
+      type:        BG_PARAMETER_SLIDER_FLOAT,
+      flags:       BG_PARAMETER_SYNC,
+      val_default: { val_f: 0.0 },
+      val_min:     { val_f: SQUEEZE_MIN },
+      val_max:     { val_f: SQUEEZE_MAX },
+      num_digits:  3
+    },
+    {
+      name:        "zoom",
+      long_name:   "Zoom",
+      type:        BG_PARAMETER_SLIDER_FLOAT,
+      flags:       BG_PARAMETER_SYNC,
+      val_default: { val_f: 100.0 },
+      val_min:     { val_f: ZOOM_MIN },
+      val_max:     { val_f: ZOOM_MAX },
     },
     {
       name: "scale_mode_section",
@@ -582,6 +611,22 @@ static void set_parameter_cropscale(void * priv, const char * name,
     vp->border_color[1] = val->val_color[1];
     vp->border_color[2] = val->val_color[2];
     }
+  else if(!strcmp(name, "squeeze"))
+    {
+    if(vp->squeeze != val->val_f)
+      {
+      vp->squeeze = val->val_f;
+      vp->need_reinit = 1;
+      }
+    }
+  else if(!strcmp(name, "zoom"))
+    {
+    if(vp->zoom != val->val_f)
+      {
+      vp->zoom = val->val_f;
+      vp->need_reinit = 1;
+      }
+    }
   else if(!strcmp(name, "quality"))
     {
     if(gavl_video_options_get_quality(vp->opt) != val->val_i)
@@ -683,6 +728,7 @@ static void set_framesize(cropscale_priv_t * vp)
 
 static void set_rectangles(cropscale_priv_t * vp)
   {
+  float zoom_factor;
   gavl_rectangle_f_t in_rect;
   gavl_rectangle_i_t out_rect;
   
@@ -693,6 +739,8 @@ static void set_rectangles(cropscale_priv_t * vp)
   gavl_rectangle_f_crop_right(&in_rect,  vp->crop_right);
   gavl_rectangle_f_crop_top(&in_rect,    vp->crop_top);
   gavl_rectangle_f_crop_bottom(&in_rect, vp->crop_bottom);
+
+  zoom_factor = vp->zoom * 0.01;
   
   if(vp->maintain_aspect)
     {
@@ -700,9 +748,14 @@ static void set_rectangles(cropscale_priv_t * vp)
                               &vp->in_format,  // gavl_video_format_t * src_format,
                               &in_rect,    // gavl_rectangle_t * src_rect,
                               &vp->out_format, // gavl_video_format_t * dst_format,
-                              1.0,        // float zoom,
-                              0.0         // float squeeze
+                              zoom_factor,        // float zoom,
+                              vp->squeeze          // float squeeze
                               );
+    gavl_rectangle_crop_to_format_scale(&in_rect,
+                                        &out_rect,
+                                        &vp->in_format,
+                                        &vp->out_format);
+    
     }
   else
     {
