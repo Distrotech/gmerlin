@@ -208,7 +208,7 @@ static VisUIWidget * check_widget(VisUIWidget * w, const char * name,
       info->type = BG_PARAMETER_COLOR_RGB;
       info->flags |= BG_PARAMETER_SYNC;
       info->val_default.val_color[0] = (float)VISUAL_UI_MUTATOR(w)->param->color.r / 255.0;
-      info->val_default.val_color[1] = (float)VISUAL_UI_MUTATOR(w)->param->color.b / 255.0;
+      info->val_default.val_color[1] = (float)VISUAL_UI_MUTATOR(w)->param->color.g / 255.0;
       info->val_default.val_color[2] = (float)VISUAL_UI_MUTATOR(w)->param->color.b / 255.0;
       ret = w;
       break;
