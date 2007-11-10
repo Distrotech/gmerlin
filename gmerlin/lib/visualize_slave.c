@@ -97,13 +97,6 @@ static void audio_buffer_init(audio_buffer_t * b,
   gavl_audio_format_t frame_format;
   /* Cleanup */
   audio_buffer_cleanup(b);
-#if 0
-  fprintf(stderr, "audio_buffer_init\n");
-  fprintf(stderr, "in_format:\n");
-  gavl_audio_format_dump(in_format);
-  fprintf(stderr, "out_format:\n");
-  gavl_audio_format_dump(out_format);
-#endif
   gavl_audio_format_copy(&b->in_format, in_format);
   gavl_audio_format_copy(&b->out_format, out_format);
 

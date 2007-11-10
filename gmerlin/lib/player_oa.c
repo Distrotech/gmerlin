@@ -213,8 +213,9 @@ void bg_player_time_get(bg_player_t * player, int exact,
         gavl_samples_to_time(ctx->player->audio_stream.output_format.samplerate,
                              ctx->samples_written-samples_in_soundcard);
 
-      //      ctx->current_time *= ctx->player->audio_stream.output_format.samplerate;
-      //      ctx->current_time /= ctx->player->audio_stream.input_format.samplerate;
+      
+      // ctx->current_time *= ctx->player->audio_stream.output_format.samplerate;
+      // ctx->current_time /= ctx->player->audio_stream.input_format.samplerate;
       
       *ret = ctx->current_time;
       pthread_mutex_unlock(&(ctx->time_mutex));
@@ -281,7 +282,7 @@ void * bg_player_oa_thread(void * data)
       else if(state == BG_FIFO_PAUSED)
         continue;
       }
-    
+
 #if 1
     if(!ctx->have_first_timestamp)
       {

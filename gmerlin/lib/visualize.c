@@ -266,8 +266,6 @@ void bg_visualizer_set_parameter(void * priv,
   
   v = (bg_visualizer_t*)priv;
   
-  //  fprintf(stderr, "bg_visualizer_set_parameter: %s\n", name);
-  
   if(!strcmp(name, "width"))
     {
     if(v->image_width != val->val_i)
@@ -445,7 +443,6 @@ void bg_visualizer_set_audio_format(bg_visualizer_t * v,
   
   pthread_mutex_unlock(&v->mutex);
   
-  //  fprintf(stderr, "bg_visualizer_set_audio_format done\n");
   }
 
 void bg_visualizer_open_plugin(bg_visualizer_t * v,

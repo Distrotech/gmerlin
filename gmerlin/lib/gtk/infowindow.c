@@ -124,6 +124,13 @@ struct bg_gtk_info_window_s
 
 static void reset_tree(bg_gtk_info_window_t * w);
 
+#define EXPANDED_PARAM(n) \
+  { \
+  name: n, \
+  long_name: n,\
+  type: BG_PARAMETER_CHECKBUTTON, \
+  flags: BG_PARAMETER_HIDE_DIALOG, \
+  }
 
 static bg_parameter_info_t parameters[] =
   {
@@ -155,6 +162,24 @@ static bg_parameter_info_t parameters[] =
       type: BG_PARAMETER_INT,
       val_default: { val_i: 0 }
     },
+    EXPANDED_PARAM("exp_0"),
+    EXPANDED_PARAM("exp_1"),
+    EXPANDED_PARAM("exp_2"),
+    EXPANDED_PARAM("exp_3"),
+    EXPANDED_PARAM("exp_4"),
+    EXPANDED_PARAM("exp_5"),
+    EXPANDED_PARAM("exp_6"),
+    EXPANDED_PARAM("exp_7"),
+    EXPANDED_PARAM("exp_8"),
+    EXPANDED_PARAM("exp_9"),
+    EXPANDED_PARAM("exp_10"),
+    EXPANDED_PARAM("exp_11"),
+    EXPANDED_PARAM("exp_12"),
+    EXPANDED_PARAM("exp_13"),
+    EXPANDED_PARAM("exp_14"),
+    EXPANDED_PARAM("exp_15"),
+    EXPANDED_PARAM("exp_16"),
+    EXPANDED_PARAM("exp_17"),
     { /* End of parameters */ }
   };
 
@@ -167,7 +192,11 @@ bg_gtk_info_window_get_parameters(bg_gtk_info_window_t * win)
 void bg_gtk_info_window_set_parameter(void * data, const char * name,
                                       const bg_parameter_value_t * val)
   {
+  int index;
   bg_gtk_info_window_t * win;
+  GtkTreeModel * model;
+  GtkTreeIter iter;
+  
   win = (bg_gtk_info_window_t*)data;
   if(!name)
     return;
@@ -188,12 +217,24 @@ void bg_gtk_info_window_set_parameter(void * data, const char * name,
     {
     win->height = val->val_i;
     }
+  else if(! strncmp(name, "exp_", 4))
+    {
+    index = atoi(name+4);
+    win->expanded[index] = val->val_i;
+    if(win->expanded[index] && win->paths[index])
+      {
+      model = gtk_tree_view_get_model(GTK_TREE_VIEW(win->treeview));
+      gtk_tree_model_get_iter(model, &iter, win->paths[index]);
+      gtk_tree_view_expand_row(GTK_TREE_VIEW(win->treeview), win->paths[index], 0);
+      }
+    }
   }
 
 int bg_gtk_info_window_get_parameter(void * data, const char * name,
                                      bg_parameter_value_t * val)
   {
   bg_gtk_info_window_t * win;
+  int index;
   win = (bg_gtk_info_window_t*)data;
   if(!name)
     return 1;
@@ -218,7 +259,12 @@ int bg_gtk_info_window_get_parameter(void * data, const char * name,
     val->val_i = win->height;
     return 1;
     }
-  
+  else if(! strncmp(name, "exp_", 4))
+    {
+    index = atoi(name+4);
+    val->val_i = win->expanded[index];
+    return 1;
+    }
   return 0;
   }
 

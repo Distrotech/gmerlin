@@ -490,7 +490,7 @@ bg_player_input_read_audio(void * priv, gavl_audio_frame_t * frame, int stream, 
   bg_plugin_lock(ctx->plugin_handle);
   result = ctx->plugin->read_audio_samples(ctx->priv, frame, stream, samples);
   bg_plugin_unlock(ctx->plugin_handle);
-
+  
   if(!ctx->has_first_audio_timestamp)
     {
     ctx->audio_samples_written = frame->timestamp;
@@ -610,7 +610,7 @@ static int process_audio(bg_player_input_context_t * ctx, int preload)
   
   
   ctx->audio_time =
-    gavl_samples_to_time(ctx->player->audio_stream.fifo_format.samplerate,
+    gavl_samples_to_time(ctx->player->audio_stream.input_format.samplerate,
                          ctx->audio_samples_written);
 
   
