@@ -1404,7 +1404,6 @@ static codec_info_t codec_infos[] =
     
   };
 
-
 #define NUM_CODECS sizeof(codec_infos)/sizeof(codec_infos[0])
 
 static int real_num_codecs;

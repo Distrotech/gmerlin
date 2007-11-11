@@ -211,13 +211,26 @@ audio_codec_map_t audio_codecs[] =
     { CODEC_ID_TTA, BGAV_MK_FOURCC('T', 'T', 'A', '1')  },
     { CODEC_ID_SMACKAUDIO, BGAV_MK_FOURCC('S','M','K','A') },
     //    { CODEC_ID_QCELP, },
+#if LIBAVCODEC_BUILD >= ((51<<16)+(16<<8)+0)
     { CODEC_ID_WAVPACK, BGAV_MK_FOURCC('w', 'v', 'p', 'k') },
+#endif
+
+#if LIBAVCODEC_BUILD >= ((51<<16)+(18<<8)+0)
     { CODEC_ID_DSICINAUDIO, BGAV_MK_FOURCC('d', 'c', 'i', 'n') },
+#endif
+
+#if LIBAVCODEC_BUILD >= ((51<<16)+(23<<8)+0)
     { CODEC_ID_IMC, BGAV_WAVID_2_FOURCC(0x0401) },
+#endif
     //    { CODEC_ID_MUSEPACK7, },
     //    { CODEC_ID_MLP, },
+#if LIBAVCODEC_BUILD >= ((51<<16)+(34<<8)+0)
     { CODEC_ID_GSM_MS, BGAV_WAVID_2_FOURCC(0x31) }, /* as found in WAV */
+#endif
+
+#if LIBAVCODEC_BUILD >= ((51<<16)+(40<<8)+4)
     { CODEC_ID_ATRAC3, BGAV_MK_FOURCC('a', 't', 'r', 'c') },
+#endif
     //    { CODEC_ID_VOXWARE, },
     //    { CODEC_ID_APE, },
 #if LIBAVCODEC_BUILD >= ((51<<16)+(46<<8)+0)
@@ -326,21 +339,41 @@ video_codec_map_t video_codecs[] =
     { CODEC_ID_NUV, BGAV_MK_FOURCC('R', 'J', 'P', 'G') },
     { CODEC_ID_KMVC, BGAV_MK_FOURCC('K', 'M', 'V', 'C') },
     { CODEC_ID_FLASHSV, BGAV_MK_FOURCC('F', 'L', 'V', 'S') },
+#if LIBAVCODEC_BUILD >= ((51<<16)+(11<<8)+0)
     { CODEC_ID_CAVS, BGAV_MK_FOURCC('C', 'A', 'V', 'S') },
+#endif
     //    { CODEC_ID_JPEG2000, },
+#if LIBAVCODEC_BUILD >= ((51<<16)+(13<<8)+0)
     { CODEC_ID_VMNC, BGAV_MK_FOURCC('V', 'M', 'n', 'c') },
+#endif
+#if LIBAVCODEC_BUILD >= ((51<<16)+(14<<8)+0)    
     { CODEC_ID_VP5, BGAV_MK_FOURCC('V', 'P', '5', '0') },
     { CODEC_ID_VP6, BGAV_MK_FOURCC('V', 'P', '6', '0') },
+#endif
     //    { CODEC_ID_VP6F, },
+#if LIBAVCODEC_BUILD >= ((51<<16)+(17<<8)+0)
     { CODEC_ID_TARGA, BGAV_MK_FOURCC('t', 'g', 'a', ' ') },
+#endif
+#if LIBAVCODEC_BUILD >= ((51<<16)+(18<<8)+0)
     { CODEC_ID_DSICINVIDEO, BGAV_MK_FOURCC('d', 'c', 'i', 'n') },
+#endif
+#if LIBAVCODEC_BUILD >= ((51<<16)+(19<<8)+0)
     { CODEC_ID_TIERTEXSEQVIDEO, BGAV_MK_FOURCC('T', 'I', 'T', 'X') },
+#endif
+#if LIBAVCODEC_BUILD >= ((51<<16)+(20<<8)+0)
     { CODEC_ID_TIFF, BGAV_MK_FOURCC('t', 'i', 'f', 'f') },
+#endif
+#if LIBAVCODEC_BUILD >= ((51<<16)+(21<<8)+0)
     { CODEC_ID_GIF, BGAV_MK_FOURCC('g', 'i', 'f', ' ') },
+#endif
     //    { CODEC_ID_FFH264, },
+#if LIBAVCODEC_BUILD >= ((51<<16)+(39<<8)+0)
     { CODEC_ID_DXA, BGAV_MK_FOURCC('D', 'X', 'A', ' ') },
+#endif
     //    { CODEC_ID_DNXHD, },
+#if LIBAVCODEC_BUILD >= ((51<<16)+(40<<8)+3)
     { CODEC_ID_THP, BGAV_MK_FOURCC('T', 'H', 'P', 'V') },
+#endif
     //    { CODEC_ID_SGI, },
 #if LIBAVCODEC_BUILD >= ((51<<16)+(40<<8)+3)
     { CODEC_ID_C93, BGAV_MK_FOURCC('C','9','3','V') },
