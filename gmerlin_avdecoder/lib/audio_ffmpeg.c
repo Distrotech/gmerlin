@@ -118,6 +118,7 @@ static codec_info_t codec_infos[] =
                0x00 },
       -1 },
     /*     CODEC_ID_ADPCM_ADX, */
+    
     /*     CODEC_ID_ADPCM_EA, */
     { "FFmpeg Electronicarts ADPCM decoder", "Electronicarts ADPCM",
       CODEC_ID_ADPCM_EA,
@@ -326,14 +327,14 @@ static codec_info_t codec_infos[] =
       -1 },
     /*     CODEC_ID_QCELP, */
     /*     CODEC_ID_WAVPACK, */
-#if LIBAVCODEC_BUILD >= 3346432
+#if LIBAVCODEC_BUILD >= ((51<<16)+(16<<8)+0)
     { "FFmpeg Wavpack decoder", "Wavpack", CODEC_ID_WAVPACK,
       (uint32_t[]){ BGAV_MK_FOURCC('w', 'v', 'p', 'k'),
                     0x00 },
       -1 },
 #endif
     /*     CODEC_ID_DSICINAUDIO, */
-#if LIBAVCODEC_BUILD >= 3346944
+#if LIBAVCODEC_BUILD >= ((51<<16)+(18<<8)+0)
     { "FFmpeg Delphine CIN audio decoder", "Delphine CIN Audio",
       CODEC_ID_DSICINAUDIO,
       (uint32_t[]){ BGAV_MK_FOURCC('d', 'c', 'i', 'n'),
@@ -341,7 +342,7 @@ static codec_info_t codec_infos[] =
       -1 },
 #endif
     /*     CODEC_ID_IMC, */
-#if LIBAVCODEC_BUILD >= 3348224
+#if LIBAVCODEC_BUILD >= ((51<<16)+(23<<8)+0)
     { "FFmpeg Intel Music decoder", "Intel Music coder", CODEC_ID_IMC,
       (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x0401),
                0x00 },
@@ -351,7 +352,7 @@ static codec_info_t codec_infos[] =
     /*     CODEC_ID_MLP, */
     /*     CODEC_ID_GSM_MS, /\* as found in WAV *\/ */
     /*     CODEC_ID_ATRAC3, */
-#if LIBAVCODEC_BUILD >= 3352580
+#if LIBAVCODEC_BUILD >= ((51<<16)+(40<<8)+4)
     { "FFmpeg ATRAC3 decoder", "ATRAC3", CODEC_ID_ATRAC3,
       (uint32_t[]){ BGAV_MK_FOURCC('a', 't', 'r', 'c'),
                     BGAV_WAVID_2_FOURCC(0x0270),

@@ -1304,7 +1304,7 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_MK_FOURCC('F', 'L', 'V', 'S'),
                     0x00 } },
     /*     CODEC_ID_CAVS, */
-#if LIBAVCODEC_BUILD >= 3345152
+#if LIBAVCODEC_BUILD >= ((51<<16)+(11<<8)+0)
     { "FFmpeg Chinese AVS decoder", "Chinese AVS", CODEC_ID_CAVS,
       (uint32_t[]){ BGAV_MK_FOURCC('C', 'A', 'V', 'S'),
                     0x00 } },
@@ -1312,26 +1312,26 @@ static codec_info_t codec_infos[] =
     /*     CODEC_ID_JPEG2000, */
 
     /*     CODEC_ID_VMNC, */
-#if LIBAVCODEC_BUILD >= 3345664
+#if LIBAVCODEC_BUILD >= ((51<<16)+(13<<8)+0)
     { "FFmpeg VMware video decoder", "VMware video", CODEC_ID_VMNC,
       (uint32_t[]){ BGAV_MK_FOURCC('V', 'M', 'n', 'c'),
                     0x00 } },
 #endif      
     /*     CODEC_ID_VP5, */
-#if LIBAVCODEC_BUILD >= 3345920    
+#if LIBAVCODEC_BUILD >= ((51<<16)+(14<<8)+0)    
     { "FFmpeg VP5 decoder", "On2 VP5", CODEC_ID_VP5,
       (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '5', '0'),
                     0x00 } },
 #endif
     /*     CODEC_ID_VP6, */
 
-#if LIBAVCODEC_BUILD >= 3345920    
+#if LIBAVCODEC_BUILD >= ((51<<16)+(14<<8)+0) 
     { "FFmpeg VP6.2 decoder", "On2 VP6.2", CODEC_ID_VP6,
       (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '6', '2'),
                     0x00 } },
 #endif
 
-#if LIBAVCODEC_BUILD >= 3349248
+#if LIBAVCODEC_BUILD >= ((51<<16)+(27<<8)+0)
     { "FFmpeg VP6.0 decoder", "On2 VP6.0", CODEC_ID_VP6,
       (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '6', '0'),
                     0x00 } },
@@ -1342,34 +1342,34 @@ static codec_info_t codec_infos[] =
     /*     CODEC_ID_VP6F, */
     /*     CODEC_ID_TARGA, */
     /*     CODEC_ID_DSICINVIDEO, */
-#if LIBAVCODEC_BUILD >= 3346944    
+#if LIBAVCODEC_BUILD >= ((51<<16)+(18<<8)+0)
     { "FFmpeg Delphine CIN video decoder", "Delphine CIN Video", CODEC_ID_DSICINVIDEO,
       (uint32_t[]){ BGAV_MK_FOURCC('d', 'c', 'i', 'n'),
                0x00 } },
 #endif      
     /*     CODEC_ID_TIERTEXSEQVIDEO, */
-#if LIBAVCODEC_BUILD >= 3347200
+#if LIBAVCODEC_BUILD >= ((51<<16)+(19<<8)+0)
     { "FFmpeg Tiertex Video Decoder", "Tiertex Video", CODEC_ID_TIERTEXSEQVIDEO,
       (uint32_t[]){ BGAV_MK_FOURCC('T', 'I', 'T', 'X'),
                     0x00 } },
 #endif
     /*     CODEC_ID_TIFF, */
     /*     CODEC_ID_GIF, */
-#if LIBAVCODEC_BUILD >= 3347712
+#if LIBAVCODEC_BUILD >= ((51<<16)+(21<<8)+0)
     { "FFmpeg GIF Video Decoder", "GIF", CODEC_ID_GIF,
       (uint32_t[]){ BGAV_MK_FOURCC('g', 'i', 'f', ' '),
                     0x00 } },
 #endif
     /*     CODEC_ID_FFH264, */
     /*     CODEC_ID_DXA, */
-#if LIBAVCODEC_BUILD >= 3352320
+#if LIBAVCODEC_BUILD >= ((51<<16)+(39<<8)+0)
     { "FFmpeg DXA decoder", "DXA", CODEC_ID_DXA,
       (uint32_t[]){ BGAV_MK_FOURCC('D', 'X', 'A', ' '),
                     0x00 } },
 #endif
     /*     CODEC_ID_DNXHD, */
     /*     CODEC_ID_THP, */
-#if LIBAVCODEC_BUILD >= 3352580
+#if LIBAVCODEC_BUILD >= ((51<<16)+(40<<8)+4)
     { "FFmpeg THP Video decoder", "THP Video", CODEC_ID_THP,
       (uint32_t[]){ BGAV_MK_FOURCC('T', 'H', 'P', 'V'),
                0x00 } },
