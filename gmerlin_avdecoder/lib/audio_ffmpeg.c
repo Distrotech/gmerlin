@@ -30,8 +30,8 @@
 
 #define LOG_DOMAIN "audio_ffmpeg"
 
-// #define DUMP_DECODE
-// #define DUMP_EXTRADATA
+//#define DUMP_DECODE
+//#define DUMP_EXTRADATA
 
 /* Different decoding functions */
 
@@ -93,7 +93,7 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_MK_FOURCC('a', 'l', 'a', 'c'),
                     0x00 },
       -1 },
-#if 0
+#ifndef HAVE_W32DLL
     { "FFmpeg QDM2 decoder", "QDM2", CODEC_ID_QDM2,
       (uint32_t[]){ BGAV_MK_FOURCC('Q', 'D', 'M', '2'),
                     0x00 },
@@ -395,7 +395,9 @@ static int decode_frame(bgav_stream_t * s)
 #endif
   
 #ifdef DUMP_DECODE
-  bgav_dprintf("decode_audio Size: %d\n", priv->bytes_in_packet_buffer);
+  bgav_dprintf("decode_audio Size: %d, Frame size: %d\n",
+               priv->bytes_in_packet_buffer + FF_INPUT_BUFFER_PADDING_SIZE, frame_size);
+  bgav_hexdump(priv->packet_buffer_ptr, 16, 16);
 #endif
   
   if(priv->frame)
@@ -404,7 +406,7 @@ static int decode_frame(bgav_stream_t * s)
                              priv->frame->samples.s_16,
                              &frame_size,
                              priv->packet_buffer_ptr,
-                             priv->bytes_in_packet_buffer);
+                             priv->bytes_in_packet_buffer + FF_INPUT_BUFFER_PADDING_SIZE);
     }
   else
     {
@@ -413,7 +415,7 @@ static int decode_frame(bgav_stream_t * s)
                              tmp_buf,
                              &frame_size,
                              priv->packet_buffer_ptr,
-                             priv->bytes_in_packet_buffer);
+                             priv->bytes_in_packet_buffer + FF_INPUT_BUFFER_PADDING_SIZE);
     s->data.audio.format.num_channels = priv->ctx->channels;
     s->data.audio.format.samplerate   = priv->ctx->sample_rate;
 
@@ -434,7 +436,7 @@ static int decode_frame(bgav_stream_t * s)
   bgav_dprintf("Used %d bytes (frame size: %d)\n", bytes_used, frame_size);
 #endif
   
-  if(bytes_used <= 1)
+  if(bytes_used < 0)
     {
     frame_size = -1;
     }
@@ -459,7 +461,7 @@ static int decode_frame(bgav_stream_t * s)
     }
   else
     {
-    priv->bytes_in_packet_buffer = 0;
+    //    priv->bytes_in_packet_buffer = 0;
     }
   
   /* No Samples decoded, get next packet */
@@ -605,6 +607,9 @@ static void close_ffmpeg(bgav_stream_t * s)
   ffmpeg_audio_priv * priv;
   priv= (ffmpeg_audio_priv*)(s->data.audio.decoder->priv);
 
+  if(!priv)
+    return;
+  
   if(priv->ext_data)
     free(priv->ext_data);
   

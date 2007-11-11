@@ -92,6 +92,11 @@ extern bgav_demuxer_t bgav_demuxer_mpc;
 extern bgav_demuxer_t bgav_demuxer_y4m;
 #endif
 
+#ifdef HAVE_LIBAVFORMAT
+extern bgav_demuxer_t bgav_demuxer_ffmpeg;
+#endif
+
+
 typedef struct
   {
   bgav_demuxer_t * demuxer;
@@ -189,7 +194,14 @@ bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input)
   int i;
   int bytes_skipped;
   uint8_t skip;
-    
+  
+#ifdef HAVE_LIBAVFORMAT
+  if(input->opt->prefer_ffmpeg_demuxers)
+    {
+    if(bgav_demuxer_ffmpeg.probe(input))
+      return &bgav_demuxer_ffmpeg;
+    }
+#endif
   //  uint8_t header[32];
   if(input->mimetype)
     {
@@ -222,7 +234,7 @@ bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input)
       return sync_demuxers[i].demuxer;
       }
     }
-
+  
   /* Try again with skipping initial bytes */
 
   bytes_skipped = 0;
@@ -246,6 +258,14 @@ bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input)
     
     }
   
+#ifdef HAVE_LIBAVFORMAT
+  if(!input->opt->prefer_ffmpeg_demuxers && input->input->seek_byte)
+    {
+    bgav_input_seek(input, 0, SEEK_SET);
+    if(bgav_demuxer_ffmpeg.probe(input))
+      return &bgav_demuxer_ffmpeg;
+    }
+#endif
   
   return (bgav_demuxer_t *)0;
   }

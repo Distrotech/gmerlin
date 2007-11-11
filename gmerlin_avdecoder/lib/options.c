@@ -154,7 +154,11 @@ void bgav_options_set_dvb_channels_file(bgav_options_t* opt,
   opt->dvb_channels_file = bgav_strdup(file);
   }
 
-
+void bgav_options_set_prefer_ffmpeg_demuxers(bgav_options_t* opt,
+                                             int prefer)
+  {
+  opt->prefer_ffmpeg_demuxers = prefer;
+  }
 
 #define FREE(ptr) if(ptr) free(ptr)
 
@@ -177,6 +181,8 @@ void bgav_options_set_defaults(bgav_options_t * b)
   b->default_subtitle_encoding = bgav_strdup("LATIN1");
   b->dvd_chapters_as_tracks = 1;
   b->audio_dynrange = 1;
+  // Test
+  //  b->prefer_ffmpeg_demuxers = 1;
   }
 
 bgav_options_t * bgav_options_create()
@@ -244,8 +250,8 @@ void bgav_options_copy(bgav_options_t * dst, const bgav_options_t * src)
   /* Audio */
 
   CP_INT(audio_dynrange);
-
   
+  CP_INT(prefer_ffmpeg_demuxers);
   /* Callbacks */
   
   CP_INT(name_change_callback);

@@ -385,7 +385,7 @@ struct bgav_stream_s
       gavl_video_format_t format;
       int palette_size;
       bgav_palette_entry_t * palette;
-
+      int palette_changed;
       /*
        *  Codecs should update this field, even if they are
        *  skipping frames. Units are timescale tics from the CODEC timescale
@@ -625,7 +625,9 @@ struct bgav_options_s
   int pp_level;
 
   char * dvb_channels_file;
-  
+
+  /* Prefer ffmpeg demuxers over native demuxers */
+  int prefer_ffmpeg_demuxers;
   /* Callbacks */
 
   bgav_log_callback log_callback;

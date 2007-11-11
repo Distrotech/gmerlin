@@ -361,8 +361,7 @@ static void close_dts(bgav_stream_t * s)
 
 static bgav_audio_decoder_t decoder =
   {
-    fourccs: (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x2000),
-                           BGAV_MK_FOURCC('d', 't', 's', ' '),
+    fourccs: (uint32_t[]){ BGAV_MK_FOURCC('d', 't', 's', ' '),
                            0x00 },
     name: "libdca based decoder",
 

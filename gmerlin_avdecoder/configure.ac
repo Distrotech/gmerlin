@@ -1,4 +1,4 @@
-AC_INIT(gmerlin-avdecoder, 0.1.7pre1)
+AC_INIT(gmerlin-avdecoder, 0.1.7pre2)
 AC_CONFIG_SRCDIR([include/avdec.h])
 AM_CONFIG_HEADER(include/config.h)
 AM_INIT_AUTOMAKE(1.8.5)
@@ -143,6 +143,12 @@ dnl libswscale
 dnl
 
 GMERLIN_CHECK_LIBSWSCALE
+
+dnl
+dnl AVFormat
+dnl
+
+GMERLIN_CHECK_AVFORMAT
 
 dnl
 dnl Check for theora
@@ -291,7 +297,7 @@ enable_realdll="false"
 
 if test x"$GCC" = x"yes"; then
  case "$host_cpu" in
-    i?86 | k?-* | athlon | pentium) enable_realdll="true"
+    i?86 | k?-* | athlon | pentium | x86_64) enable_realdll="true"
  esac
 fi
 
@@ -429,6 +435,14 @@ else
 echo "Missing (Go to http://www.ffmpeg.org/)"
 fi
 
+echo -n "libavformat (ffmpeg):    "
+if test "x$have_avformat" = "xtrue"; then
+echo "Found (CFLAGS=$AVFORMAT_CFLAGS LIBS=$AVFORMAT_LIBS)"
+elif test "x$test_avformat" = "xfalse"; then
+echo "Disabled"
+else
+echo "Missing (Go to http://www.ffmpeg.org/)"
+fi
 
 echo -n "faad2:                  "
 if test "x$have_faad2" = "xtrue"; then

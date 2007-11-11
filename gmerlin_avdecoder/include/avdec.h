@@ -457,7 +457,7 @@ void bgav_options_set_pp_level(bgav_options_t* opt,
 /** \ingroup options
  *  \brief Set DVB channels file
  *  \param opt Option container
- *  \param Name of the channel configurations file
+ *  \param file Name of the channel configurations file
  *
  *  The channels file must have the format of the dvb-utils
  *  programs (like szap, tzap). If you don't set this file,
@@ -467,6 +467,20 @@ void bgav_options_set_pp_level(bgav_options_t* opt,
 
 void bgav_options_set_dvb_channels_file(bgav_options_t* opt,
                                         const char * file);
+
+/** \ingroup options
+ *  \brief Preference of ffmpeg demultiplexers
+ *  \param opt Option container
+ *  \param prefer 1 to prefer ffmpeg demultiplexers, 0 else
+ *
+ *  Usually, native demultiplexers are prefered over the
+ *  ffmpeg ones. This function allows you to chnage that.
+ *  If gmerlin_avdecoder was compiled without libavformat support,
+ *  this function is meaningless.
+ */
+
+void bgav_options_set_prefer_ffmpeg_demuxers(bgav_options_t* opt,
+                                             int prefer);
 
 
 /** \ingroup options

@@ -104,6 +104,16 @@ musepack_libs =
 musepack_sources =
 endif
 
+if HAVE_LIBAVFORMAT
+avformat_cflags =  @AVFORMAT_CFLAGS@
+avformat_libs =    @AVFORMAT_LIBS@
+avformat_sources = demux_ffmpeg.c
+else
+avformat_cflags =
+avformat_libs =
+avformat_sources =
+endif
+
 
 if HAVE_LIBAVCODEC
 avcodec_cflags =  @AVCODEC_CFLAGS@
@@ -244,6 +254,7 @@ $(flac_libs) \
 $(mad_libs) \
 $(dca_libs) \
 $(musepack_libs) \
+$(avformat_libs) \
 $(a52_libs) \
 $(avcodec_libs) \
 $(real_libs) \
@@ -273,6 +284,7 @@ $(libmpeg2_cflags) \
 $(a52_cflags) \
 $(dca_cflags) \
 $(musepack_cflags) \
+$(avformat_cflags) \
 $(avcodec_cflags) \
 $(cdio_cflags) \
 $(mjpegtools_cflags) \
@@ -291,6 +303,7 @@ $(tiff_sources) \
 $(win32_sources) \
 $(mad_sources) \
 $(musepack_sources) \
+$(avformat_sources) \
 $(a52_sources) \
 $(dca_sources) \
 $(flac_sources) \

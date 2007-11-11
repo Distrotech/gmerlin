@@ -50,6 +50,7 @@ typedef struct
   int64_t total_tics;
 
   int skip_first_frame; /* Enabled only if the first frame has a different codec */
+  int skip_last_frame; /* Enabled only if the last frame has a different codec */
   } stream_priv_t;
 
 typedef struct
@@ -214,7 +215,15 @@ static void add_packet(bgav_demuxer_context_t * ctx,
         }
       while(offset >= priv->mdats[priv->current_mdat].start +
             priv->mdats[priv->current_mdat].size)
+        {
+#if 0
+        fprintf(stderr, "offset: %lld, cur: %d, start: %lld, size: %lld\n",
+                offset, priv->current_mdat,
+                priv->mdats[priv->current_mdat].start,
+                priv->mdats[priv->current_mdat].size);
+#endif
         priv->current_mdat++;
+        }
       }
     else
       {
@@ -252,6 +261,8 @@ static void build_index(bgav_demuxer_context_t * ctx)
       {
       num_packets += bgav_qt_trak_samples(&priv->moov.tracks[i]);
       if(priv->streams[i].skip_first_frame)
+        num_packets--;
+      if(priv->streams[i].skip_last_frame)
         num_packets--;
       }
     else if(trak->mdia.minf.has_smhd)
@@ -305,6 +316,10 @@ static void build_index(bgav_demuxer_context_t * ctx)
         }
       }
 
+    
+    //    if(j == priv->moov.num_tracks)
+    //      return;
+    
     bgav_s = find_stream(ctx, &(priv->moov.tracks[stream_id]));
 
     if(bgav_s && (bgav_s->type == BGAV_STREAM_AUDIO))
@@ -396,7 +411,6 @@ static void build_index(bgav_demuxer_context_t * ctx)
     else if(bgav_s && (bgav_s->type == BGAV_STREAM_VIDEO))
       {
       s = (stream_priv_t*)(bgav_s->priv);
-      
       for(j = 0; j < s->stbl->stsc.entries[s->stsc_pos].samples_per_chunk; j++)
         {
         packet_size = (s->stsz_pos >= 0) ? s->stbl->stsz.entries[s->stsz_pos]:
@@ -411,7 +425,10 @@ static void build_index(bgav_demuxer_context_t * ctx)
         else
           duration = s->stbl->stts.entries[0].duration;
         
-        if(s->skip_first_frame && !s->stco_pos)
+        if((s->skip_first_frame && !s->stco_pos) ||
+           (s->skip_last_frame &&
+            (s->stco_pos == s->stbl->stco.num_entries)))
+          {
           add_packet(ctx,
                      priv,
                      bgav_s,
@@ -421,6 +438,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
                      check_keyframe(s),
                      duration,
                      packet_size);
+          }
         else
           {
           add_packet(ctx,
@@ -840,6 +858,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
   qt_sample_description_t * desc;
   bgav_track_t * track;
   int skip_first_frame = 0;
+  int skip_last_frame = 0;
   qt_priv_t * priv = (qt_priv_t*)(ctx->priv);
   qt_moov_t * moov = &(priv->moov);
 
@@ -983,26 +1002,30 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
     else if(trak->mdia.minf.has_vmhd)
       {
       skip_first_frame = 0;
+      skip_last_frame = 0;
 
       if(!stsd->entries)
-        {
         continue;
-        }
+      
       if(stsd->num_entries > 1)
         {
-        if((stsd->num_entries == 2) &&
-           (trak->mdia.minf.stbl.stsc.num_entries >= 2) &&
+        if((trak->mdia.minf.stbl.stsc.num_entries >= 2) &&
            (trak->mdia.minf.stbl.stsc.entries[0].samples_per_chunk == 1) &&
            (trak->mdia.minf.stbl.stsc.entries[1].sample_description_id == 2) &&
            (trak->mdia.minf.stbl.stsc.entries[1].first_chunk == 2))
           {
           skip_first_frame = 1;
           }
-        else
+        if((trak->mdia.minf.stbl.stsc.num_entries >= 2) &&
+           (trak->mdia.minf.stbl.stsc.entries[trak->mdia.minf.stbl.stsc.num_entries-1].samples_per_chunk == 1) &&
+           (trak->mdia.minf.stbl.stsc.entries[trak->mdia.minf.stbl.stsc.num_entries-1].sample_description_id == stsd->num_entries) &&
+           (trak->mdia.minf.stbl.stsc.entries[trak->mdia.minf.stbl.stsc.num_entries-1].first_chunk == trak->mdia.minf.stbl.stco.num_entries))
           {
-          continue;
+          skip_last_frame = 1;
           }
-        
+
+        if(stsd->num_entries > 1 + skip_first_frame + skip_last_frame)
+          continue;
         }
       
       bg_vs = bgav_track_add_video_stream(track, ctx->opt);
@@ -1014,38 +1037,10 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       stream_init(stream_priv, &(moov->tracks[i]));
 
       if(skip_first_frame)
-        {
         stream_priv->skip_first_frame = 1;
-#if 0
-        /* Sample size */
-        if(stream_priv->stsz_pos >= 0)
-          stream_priv->stsz_pos++;
-        
-        /* Time to sample */
-        if(stream_priv->stts_pos >= 0)
-          {
-          stream_priv->tics += stream_priv->stbl->stts.entries[stream_priv->stts_pos].duration;
-          stream_priv->stts_count++;
-          if(stream_priv->stts_count >= stream_priv->stbl->stts.entries[stream_priv->stts_pos].count)
-            {
-            stream_priv->stts_pos++;
-            stream_priv->stts_count = 0;
-            }
-          }
-        else
-          {
-          stream_priv->tics += stream_priv->stbl->stts.entries[0].duration;
-          }
-        stream_priv->stco_pos++;
-        /* Update sample to chunk */
-        if(stream_priv->stsc_pos < stream_priv->stbl->stsc.num_entries - 1)
-          {
-          if(stream_priv->stbl->stsc.entries[stream_priv->stsc_pos+1].first_chunk - 1 == stream_priv->stco_pos)
-            stream_priv->stsc_pos++;
-          }
-#endif
-        }
-
+      if(skip_last_frame)
+        stream_priv->skip_last_frame = 1;
+      
       bg_vs->priv = stream_priv;
       
       bg_vs->fourcc = desc->fourcc;

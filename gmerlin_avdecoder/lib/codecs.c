@@ -65,7 +65,7 @@ static const char * env_name_real = "GMERLIN_AVDEC_CODEC_PATH_REAL";
 static char * real_dirs[] =
   {
     "/usr/lib/codecs",
-    "/usr/local/lob/codecs",
+    "/usr/local/lib/codecs",
     "/usr/lib/codecdlls",
     "/usr/lib/win32",
     "/usr/local/lib/win32",

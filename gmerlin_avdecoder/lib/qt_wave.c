@@ -33,8 +33,6 @@ int bgav_qt_wave_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
     
   ret->raw_size = h->size - (ctx->position - h->start_position);
   ret->raw = malloc(ret->raw_size);
-
-  
   
   if(bgav_input_read_data(ctx, ret->raw, ret->raw_size) < ret->raw_size)
     return 0;
@@ -67,6 +65,7 @@ int bgav_qt_wave_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
         break;
       case 0: /* audio atom Terminator */
         done = 1;
+        ret->raw_size -= 8;
         break;
       default:
         /* Append user atom */
