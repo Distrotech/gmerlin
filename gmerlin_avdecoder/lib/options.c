@@ -182,7 +182,7 @@ void bgav_options_set_defaults(bgav_options_t * b)
   b->dvd_chapters_as_tracks = 1;
   b->audio_dynrange = 1;
   // Test
-  //  b->prefer_ffmpeg_demuxers = 1;
+  // b->prefer_ffmpeg_demuxers = 1;
   }
 
 bgav_options_t * bgav_options_create()

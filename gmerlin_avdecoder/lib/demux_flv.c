@@ -407,7 +407,7 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
   if(!flv_tag_read(ctx->input, &t))
     return 0;
 
-  if((t.type == 0x12) && priv->init)
+  if(t.type == 0x12)
     {
     if(priv->init)
       {
@@ -436,7 +436,10 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
            (meta_object_find_number(obj, num_obj, "audiosamplerate", &number) && (number != 0.0)) ||
            (meta_object_find_number(obj, num_obj, "audiosamplesize", &number) && (number != 0.0)) ||
            (meta_object_find_number(obj, num_obj, "audiosize", &number) && (number != 0.0)))
+          {
           init_audio_stream(ctx);
+          }
+        
         }
       if(!ctx->tt->cur->num_video_streams)
         {
@@ -451,10 +454,9 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
       }
     else
       bgav_input_skip(ctx->input, t.data_size);
-    
     return 1;
     }
-
+  
   //  flv_tag_dump(&t);
   
   if(priv->init)
@@ -502,8 +504,6 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
             return 0;
           adpcm_bits = 2 +
             s->data.audio.format.num_channels * (((tmp_8 >> 6) + 2) * 4096 + 16 + 6);
-          
-          s->data.audio.block_align = (adpcm_bits + 7) / 8;
           break;
         case 2: /* MP3 */
           s->fourcc = BGAV_MK_FOURCC('.', 'm', 'p', '3');
@@ -512,7 +512,11 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
           s->fourcc = BGAV_MK_FOURCC('s', 'o', 'w', 't');
           break;
         case 5: /* NellyMoser (unsupported) */
-          s->fourcc = BGAV_MK_FOURCC('F', 'L', 'A', '2');
+          s->data.audio.format.samplerate = 8000;
+          s->fourcc = BGAV_MK_FOURCC('N', 'E', 'L', 'L');
+          break;
+        case 6: /* NellyMoser (unsupported) */
+          s->fourcc = BGAV_MK_FOURCC('N', 'E', 'L', 'L');
           break;
         default: /* Set some nonsense so we can finish initializing */
           s->fourcc = BGAV_MK_FOURCC('?', '?', '?', '?');
@@ -589,7 +593,7 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
     bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Got zero packet size (somethings wrong?)");
     return 0;
     }
-
+  
   if(!priv->init)
     {
     p = bgav_stream_get_packet_write(s);

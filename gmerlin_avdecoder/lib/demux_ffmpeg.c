@@ -177,7 +177,8 @@ audio_codec_map_t audio_codecs[] =
 
     /* various DPCM codecs */
     { CODEC_ID_ROQ_DPCM, BGAV_MK_FOURCC('R','O','Q','A') },
-    //    { CODEC_ID_INTERPLAY_DPCM, },
+    { CODEC_ID_INTERPLAY_DPCM, BGAV_MK_FOURCC('I','P','D','C') },
+    
     //    { CODEC_ID_XAN_DPCM, },
     { CODEC_ID_SOL_DPCM, BGAV_MK_FOURCC('S','O','L','1'), 0, 1 },
     { CODEC_ID_SOL_DPCM, BGAV_MK_FOURCC('S','O','L','2'), 0, 2 },
@@ -219,7 +220,9 @@ audio_codec_map_t audio_codecs[] =
     { CODEC_ID_ATRAC3, BGAV_MK_FOURCC('a', 't', 'r', 'c') },
     //    { CODEC_ID_VOXWARE, },
     //    { CODEC_ID_APE, },
-    //    { CODEC_ID_NELLYMOSER, },
+#if LIBAVCODEC_BUILD >= ((51<<16)+(46<<8)+0)
+    { CODEC_ID_NELLYMOSER, BGAV_MK_FOURCC('N', 'E', 'L', 'L')},
+#endif
     //    { CODEC_ID_MUSEPACK8, },
     
     { /* End */ }
@@ -614,10 +617,7 @@ static int next_packet_ffmpeg(bgav_demuxer_context_t * ctx)
   priv = (ffmpeg_priv_t*)ctx->priv;
   
   if(av_read_frame(priv->avfc, &pkt) < 0)
-    {
-    fprintf(stderr, "av_read_frame failed\n");
     return 0;
-    }
   
   s = bgav_track_find_stream(ctx->tt->cur, pkt.stream_index);
   if(!s)
