@@ -246,6 +246,13 @@ static snd_pcm_t * bg_alsa_open(const char * card,
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_pcm_hw_params_set_rate_near failed");
     goto fail;
     }
+  if(format->samplerate != i_tmp)
+    {
+    bg_log(BG_LOG_INFO, LOG_DOMAIN,
+           "Samplerate %d not supported by device %s, using %d",
+           format->samplerate, card, i_tmp);
+
+    }
   format->samplerate = i_tmp;
   
   dir = 0;

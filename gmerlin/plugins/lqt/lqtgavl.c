@@ -310,7 +310,7 @@ int lqt_gavl_get_audio_format(quicktime_t * file,
   format->sample_format =
     sampleformat_lqt_2_gavl(lqt_get_sample_format(file, track));
   format->interleave_mode = GAVL_INTERLEAVE_ALL;
-
+  format->samples_per_frame = 1024; // Meaningless but better than 0
   channel_setup = lqt_get_channel_setup(file, track);
 
   if(channel_setup)
