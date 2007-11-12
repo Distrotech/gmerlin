@@ -364,7 +364,6 @@ static codec_info_t codec_infos[] =
     { "FFmpeg Monkey's Audio decoder", "Monkey's Audio", CODEC_ID_APE,
       (uint32_t[]){ BGAV_MK_FOURCC('.', 'a', 'p', 'e'),
                     0x00  } },
-    
 #endif
     /*     CODEC_ID_NELLYMOSER, */
 #if LIBAVCODEC_BUILD >= ((51<<16)+(46<<8)+0)
@@ -373,10 +372,7 @@ static codec_info_t codec_infos[] =
                     0x00 },
       -1 },
 #endif
-
     /*     CODEC_ID_MUSEPACK8, */
-
-    
   };
 
 
