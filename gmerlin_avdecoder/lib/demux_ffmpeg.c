@@ -232,7 +232,9 @@ audio_codec_map_t audio_codecs[] =
     { CODEC_ID_ATRAC3, BGAV_MK_FOURCC('a', 't', 'r', 'c') },
 #endif
     //    { CODEC_ID_VOXWARE, },
-    //    { CODEC_ID_APE, },
+#if LIBAVCODEC_BUILD >= ((51<<16)+(44<<8)+0)
+    { CODEC_ID_APE, BGAV_MK_FOURCC('.', 'a', 'p', 'e')},
+#endif
 #if LIBAVCODEC_BUILD >= ((51<<16)+(46<<8)+0)
     { CODEC_ID_NELLYMOSER, BGAV_MK_FOURCC('N', 'E', 'L', 'L')},
 #endif

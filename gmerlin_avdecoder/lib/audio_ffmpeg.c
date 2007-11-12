@@ -360,6 +360,12 @@ static codec_info_t codec_infos[] =
 #endif
     /*     CODEC_ID_VOXWARE, */
     /*     CODEC_ID_APE, */
+#if LIBAVCODEC_BUILD >= ((51<<16)+(44<<8)+0)
+    { "FFmpeg Monkey's Audio decoder", "Monkey's Audio", CODEC_ID_APE,
+      (uint32_t[]){ BGAV_MK_FOURCC('.', 'a', 'p', 'e'),
+                    0x00  } },
+    
+#endif
     /*     CODEC_ID_NELLYMOSER, */
 #if LIBAVCODEC_BUILD >= ((51<<16)+(46<<8)+0)
     { "FFmpeg Nellymoser decoder", "Nellymoser", CODEC_ID_NELLYMOSER,
