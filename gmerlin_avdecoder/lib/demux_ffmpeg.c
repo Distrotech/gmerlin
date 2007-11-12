@@ -387,7 +387,9 @@ video_codec_map_t video_codecs[] =
 #endif
     //    { CODEC_ID_PTX, },
     //    { CODEC_ID_TXD, },
-    //    { CODEC_ID_VP6A, },
+#if LIBAVCODEC_BUILD >= ((51<<16)+(45<<8)+0)
+    { CODEC_ID_VP6A, BGAV_MK_FOURCC('V','P','6','A') },
+#endif
     //    { CODEC_ID_AMV, },
 
 #if LIBAVCODEC_BUILD >= ((51<<16)+(47<<8)+0)
@@ -673,7 +675,6 @@ static int next_packet_ffmpeg(bgav_demuxer_context_t * ctx)
   if(pkt.pts != AV_NOPTS_VALUE)
     {
     p->pts=pkt.pts * priv->avfc->streams[pkt.stream_index]->time_base.num;
-
     if(s->time_scaled == BGAV_TIMESTAMP_UNDEFINED)
       s->time_scaled = p->pts;
     

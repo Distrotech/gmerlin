@@ -77,6 +77,7 @@ struct meta_object_s
 typedef struct
   {
   int init;
+  int have_metadata;
   meta_object_t metadata;
   } flv_priv_t;
 
@@ -387,7 +388,7 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
   meta_object_t * obj;
   int num_obj;
   
-  double number;
+  //  double number;
   uint8_t flags;
   uint8_t header[16];
   bgav_packet_t * p;
@@ -423,13 +424,13 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
         return 1;
         }
     
-      read_metadata(ctx, &t);
+      priv->have_metadata = read_metadata(ctx, &t);
 
       obj = priv->metadata.data.object.children;
       num_obj = priv->metadata.data.object.num_children;
     
+#if 0
       /* Check if we can detect an audio stream */
-
       if(!ctx->tt->cur->num_audio_streams)
         {
         if((meta_object_find_number(obj, num_obj, "audiodatarate", &number) && (number != 0.0)) ||
@@ -448,8 +449,8 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
            (meta_object_find_number(obj, num_obj, "height", &number) && (number != 0.0)))
           init_video_stream(ctx);
         }
-    
-      //    dump_meta_object(&priv->metadata, 0);
+#endif
+      //      dump_meta_object(&priv->metadata, 0);
       //    bgav_input_skip_dump(ctx->input, t.data_size);
       }
     else
@@ -511,11 +512,11 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
         case 3: /* Uncompressed, Little endian */
           s->fourcc = BGAV_MK_FOURCC('s', 'o', 'w', 't');
           break;
-        case 5: /* NellyMoser (unsupported) */
+        case 5: /* NellyMoser */
           s->data.audio.format.samplerate = 8000;
           s->fourcc = BGAV_MK_FOURCC('N', 'E', 'L', 'L');
           break;
-        case 6: /* NellyMoser (unsupported) */
+        case 6: /* NellyMoser */
           s->fourcc = BGAV_MK_FOURCC('N', 'E', 'L', 'L');
           break;
         default: /* Set some nonsense so we can finish initializing */
@@ -543,7 +544,9 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
           s->fourcc = BGAV_MK_FOURCC('F', 'L', 'V', 'S');
           break;
         case 4: /* VP6 (Flash 8?) */
-          s->fourcc = BGAV_MK_FOURCC('V', 'P', '6', '2');
+          s->fourcc = BGAV_MK_FOURCC('V', 'P', '6', 'F');
+
+#if 0
           if(bgav_input_get_data(ctx->input, header, 5) < 5)
             return 0;
           /* Get the video size. The image is flipped vertically,
@@ -558,7 +561,43 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
           s->data.video.format.image_width  -= (header[0] >> 4);
           s->data.video.format.image_height -= header[0] & 0x0f;
           s->data.video.flip_y = 1; 
+#else
+          if(bgav_input_get_data(ctx->input, header, 1) < 1)
+            return 0;
+          /* ffmpeg needs that as extrdata */
+          s->ext_data = malloc(1);
+          *s->ext_data = header[0];
+          s->ext_size = 1;
+#endif
           break;
+        case 5: /* VP6A */
+          s->fourcc = BGAV_MK_FOURCC('V', 'P', '6', 'A');
+#if 0
+          if(bgav_input_get_data(ctx->input, header, 5) < 5)
+            return 0;
+          /* Get the video size. The image is flipped vertically,
+             so we set a negative height */
+          s->data.video.format.image_height = header[3] * 16;
+          s->data.video.format.image_width  = header[4] * 16;
+          
+          s->data.video.format.frame_height = s->data.video.format.image_height;
+          s->data.video.format.frame_width  = s->data.video.format.image_width;
+          
+          /* Crop */
+          s->data.video.format.image_width  -= (header[0] >> 4);
+          s->data.video.format.image_height -= header[0] & 0x0f;
+          s->data.video.flip_y = 1; 
+#else
+          if(bgav_input_get_data(ctx->input, header, 1) < 1)
+            return 0;
+          /* ffmpeg needs that as extrdata */
+          s->ext_data = malloc(1);
+          *s->ext_data = header[0];
+          s->ext_size = 1;
+#endif
+          
+          break;
+          
         default: /* Set some nonsense so we can finish initializing */
           s->fourcc = BGAV_MK_FOURCC('?', '?', '?', '?');
           bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN, "Unknown video codec tag: %d",
@@ -577,7 +616,8 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
       
       }
 
-    if(s->fourcc == BGAV_MK_FOURCC('V', 'P', '6', '2'))
+    if((s->fourcc == BGAV_MK_FOURCC('V', 'P', '6', 'F')) ||
+       (s->fourcc == BGAV_MK_FOURCC('V', 'P', '6', 'A')))
       {
       bgav_input_skip(ctx->input, 1);
       packet_size = t.data_size - 2;
@@ -627,13 +667,15 @@ static void handle_metadata(bgav_demuxer_context_t * ctx)
   
   obj = priv->metadata.data.object.children;
   num_obj = priv->metadata.data.object.num_children;
-
+  int as, vs;
+  as = ctx->tt->cur->num_audio_streams;
+  vs = ctx->tt->cur->num_video_streams;
   /* Data rates */
   
-  if(meta_object_find_number(obj, num_obj, "audiodatarate", &number) && (number != 0.0))
+  if(as && meta_object_find_number(obj, num_obj, "audiodatarate", &number) && (number != 0.0))
     ctx->tt->cur->audio_streams[0].container_bitrate = (int)(number*1000);
 
-  if(meta_object_find_number(obj, num_obj, "videodatarate", &number) && (number != 0.0))
+  if(vs && meta_object_find_number(obj, num_obj, "videodatarate", &number) && (number != 0.0))
     ctx->tt->cur->video_streams[0].container_bitrate = (int)(number*1000);
 
   if(meta_object_find_number(obj, num_obj, "duration", &number) && (number != 0.0))
@@ -746,14 +788,19 @@ static int open_flv(bgav_demuxer_context_t * ctx,
   if(!bgav_input_read_data(ctx->input, &flags, 1))
     goto fail;
 
+  if(!flags)
+    {
+    bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+             "Zero flags detected, assuming audio and video (might fail)");
+    flags = 0x05;
+    }
+  
   if(flags & 0x04)
-    {
     init_audio_stream(ctx);
-    }
   if(flags & 0x01)
-    {
     init_video_stream(ctx);
-    }
+
+  
   if(!bgav_input_read_32_be(ctx->input, &data_offset))
     goto fail;
 
@@ -784,10 +831,8 @@ static int open_flv(bgav_demuxer_context_t * ctx,
     {
     if(!next_packet_flv(ctx))
       goto fail;
-    if((!ctx->tt->cur->num_audio_streams ||
-        ctx->tt->cur->audio_streams[0].fourcc) &&
-       (!ctx->tt->cur->num_video_streams ||
-        ctx->tt->cur->video_streams[0].fourcc))
+    if((!ctx->tt->cur->num_audio_streams || ctx->tt->cur->audio_streams[0].fourcc) &&
+       (!ctx->tt->cur->num_video_streams || ctx->tt->cur->video_streams[0].fourcc))
       break;
     }
   priv->init = 0;

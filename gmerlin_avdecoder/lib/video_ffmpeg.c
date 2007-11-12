@@ -91,8 +91,6 @@ typedef struct
   int64_t last_pts;
   int64_t last_dts;
   int eof;
-
-  
   
   struct
     {
@@ -320,7 +318,7 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
      ffmpeg returns are not reliable */
   bgav_dv_dec_t * dvdec;
   int done = 0;
-  
+  int64_t stream_time;
   priv = (ffmpeg_video_priv*)(s->data.video.decoder->priv);
   
   if(priv->have_picture)
@@ -398,8 +396,6 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
         }
       s->data.video.palette_changed = 0;
       }
-    
-
     
     /* Decode one frame */
     
@@ -482,8 +478,16 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
           }
         }
       }
+
+    /* Check if we have a pts */
+    stream_time = get_pts(priv);
+    if(stream_time != BGAV_TIMESTAMP_UNDEFINED)
+      {
+      s->time_scaled = get_pts(priv);
+      }
     if(priv->have_picture)
       done = 1;
+    
     }
   
   if(priv->have_picture)
@@ -510,9 +514,6 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
                         priv->pts_cache.pts[1] - priv->pts_cache.pts[0]);
   else
     s->data.video.last_frame_duration = s->data.video.format.frame_duration;
-  
-  s->time_scaled = get_pts(priv);
-  
   
   if(s->time_scaled != BGAV_TIMESTAMP_UNDEFINED)
     {
@@ -1338,8 +1339,10 @@ static codec_info_t codec_infos[] =
     { "FFmpeg VP6.1 decoder", "On2 VP6.1", CODEC_ID_VP6,
       (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '6', '1'),
                     0x00 } },
+    { "FFmpeg VP6.2 decoder (flash variant)", "On2 VP6.2 (flash variant)", CODEC_ID_VP6F,
+      (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '6', 'F'),
+                    0x00 } },
 #endif
-    /*     CODEC_ID_VP6F, */
     /*     CODEC_ID_TARGA, */
     /*     CODEC_ID_DSICINVIDEO, */
 #if LIBAVCODEC_BUILD >= ((51<<16)+(18<<8)+0)
@@ -1393,6 +1396,11 @@ static codec_info_t codec_infos[] =
     /*     CODEC_ID_TXD, */
     
     /*     CODEC_ID_VP6A, */
+#if LIBAVCODEC_BUILD >= ((51<<16)+(45<<8)+0)
+    { "FFmpeg VP6 yuva decoder", "On2 VP6.0 with alpha", CODEC_ID_VP6A,
+      (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '6', 'A'),
+                    0x00 } },
+#endif
     /*     CODEC_ID_AMV, */
     /*     CODEC_ID_VB, */
 #if LIBAVCODEC_BUILD >= ((51<<16)+(47<<8)+0)
@@ -1552,6 +1560,122 @@ static void pal8_to_rgba32(gavl_video_frame_t * dst, AVFrame * src,
     }
   }
 
+#if LIBAVCODEC_BUILD >= ((51<<16)+(45<<8)+0)
+
+static void yuva420_to_yuva32(gavl_video_frame_t * dst, AVFrame * src,
+                              int width, int height, int flip_y)
+  {
+  int i, j;
+  uint8_t * dst_ptr;
+  uint8_t * dst_save;
+
+  uint8_t * src_ptr_y;
+  uint8_t * src_save_y;
+
+  uint8_t * src_ptr_u;
+  uint8_t * src_save_u;
+
+  uint8_t * src_ptr_v;
+  uint8_t * src_save_v;
+
+  uint8_t * src_ptr_a;
+  uint8_t * src_save_a;
+
+  int dst_stride;
+  
+  if(flip_y)
+    {
+    dst_save = dst->planes[0] + (height - 1) * dst->strides[0];
+    dst_stride = - dst->strides[0];
+    }
+  else
+    {
+    dst_save = dst->planes[0];
+    dst_stride = dst->strides[0];
+    }
+  
+  src_save_y = src->data[0];
+  src_save_u = src->data[1];
+  src_save_v = src->data[2];
+  src_save_a = src->data[3];
+
+  for(i = 0; i < height/2; i++)
+    {
+    src_ptr_y = src_save_y;
+    src_ptr_u = src_save_u;
+    src_ptr_v = src_save_v;
+    src_ptr_a = src_save_a;
+    dst_ptr = dst_save;
+    
+    for(j = 0; j < width/2; j++)
+      {
+      dst_ptr[0] = *src_ptr_y;
+      dst_ptr[1] = *src_ptr_u;
+      dst_ptr[2] = *src_ptr_v;
+      dst_ptr[3] = *src_ptr_a;
+      
+      dst_ptr+=4;
+      src_ptr_y++;
+      src_ptr_a++;
+
+      dst_ptr[0] = *src_ptr_y;
+      dst_ptr[1] = *src_ptr_u;
+      dst_ptr[2] = *src_ptr_v;
+      dst_ptr[3] = *src_ptr_a;
+      
+      dst_ptr+=4;
+      src_ptr_y++;
+      src_ptr_a++;
+
+      src_ptr_u++;
+      src_ptr_v++;
+      
+      }
+
+    src_save_y += src->linesize[0];
+    dst_save += dst_stride;
+
+    src_ptr_y = src_save_y;
+    src_ptr_u = src_save_u;
+    src_ptr_v = src_save_v;
+    src_ptr_a = src_save_a;
+    dst_ptr = dst_save;
+    
+    for(j = 0; j < width/2; j++)
+      {
+      dst_ptr[0] = *src_ptr_y;
+      dst_ptr[1] = *src_ptr_u;
+      dst_ptr[2] = *src_ptr_v;
+      dst_ptr[3] = *src_ptr_a;
+      
+      dst_ptr+=4;
+      src_ptr_y++;
+      src_ptr_a++;
+
+      dst_ptr[0] = *src_ptr_y;
+      dst_ptr[1] = *src_ptr_u;
+      dst_ptr[2] = *src_ptr_v;
+      dst_ptr[3] = *src_ptr_a;
+      
+      dst_ptr+=4;
+      src_ptr_y++;
+      src_ptr_a++;
+
+      src_ptr_u++;
+      src_ptr_v++;
+      
+      }
+    
+    src_save_y += src->linesize[0];
+    src_save_u += src->linesize[1];
+    src_save_v += src->linesize[2];
+    src_save_a += src->linesize[3];
+    
+    dst_save += dst_stride;
+    }
+  }
+#endif
+
 
 /* Real stupid rgba format conversion */
 
@@ -1631,6 +1755,9 @@ static struct
     { PIX_FMT_YUVJ444P,      GAVL_YUVJ_444_P }, ///< Planar YUV 4:4:4 full scale (jpeg)
     { PIX_FMT_XVMC_MPEG2_MC, GAVL_PIXELFORMAT_NONE }, ///< XVideo Motion Acceleration via common packet passing(xvmc_render.h)
     { PIX_FMT_XVMC_MPEG2_IDCT, GAVL_PIXELFORMAT_NONE },
+#if LIBAVCODEC_BUILD >= ((51<<16)+(45<<8)+0)
+    { PIX_FMT_YUVA420P,      GAVL_YUVA_32 },
+#endif
     { PIX_FMT_NB, GAVL_PIXELFORMAT_NONE }
 };
 
@@ -1807,6 +1934,14 @@ static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f)
                      s->data.video.format.image_width,
                      s->data.video.format.image_height, s->data.video.flip_y);
     }
+#if LIBAVCODEC_BUILD >= ((51<<16)+(45<<8)+0)
+  else if(priv->ctx->pix_fmt == PIX_FMT_YUVA420P)
+    {
+    yuva420_to_yuva32(f, priv->frame,
+                      s->data.video.format.image_width,
+                      s->data.video.format.image_height, s->data.video.flip_y);
+    }
+#endif
   else if(!priv->do_convert)
     {
 #ifdef HAVE_LIBPOSTPROC
