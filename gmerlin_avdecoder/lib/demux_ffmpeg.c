@@ -48,10 +48,10 @@ static offset_t lavf_seek(URLContext *h, offset_t pos, int whence)
     return -1;
   if(pos > input->total_bytes)
     return -1;
-
+#if LIBAVFORMAT_BUILD >= ((51<<16)+(8<<8)+0)
   if(whence == AVSEEK_SIZE)
     return input->total_bytes;
-
+#endif
   bgav_input_seek(input, pos, whence);
   return input->position;
   }
@@ -158,7 +158,9 @@ audio_codec_map_t audio_codecs[] =
     { CODEC_ID_ADPCM_SBPRO_4, BGAV_MK_FOURCC('S', 'B', 'P', '4') },
     { CODEC_ID_ADPCM_SBPRO_3, BGAV_MK_FOURCC('S', 'B', 'P', '3') },
     { CODEC_ID_ADPCM_SBPRO_2, BGAV_MK_FOURCC('S', 'B', 'P', '2') },
+#if LIBAVCODEC_BUILD >= ((51<<16)+(40<<8)+4)
     { CODEC_ID_ADPCM_THP, BGAV_MK_FOURCC('T', 'H', 'P', 'A') },
+#endif
     //    { CODEC_ID_ADPCM_IMA_AMV, },
     //    { CODEC_ID_ADPCM_EA_R1, },
     //    { CODEC_ID_ADPCM_EA_R3, },
