@@ -158,17 +158,18 @@ char ** bg_urilist_decode(const char * str, int len)
   
   end = 0;
   num_uris = 0;
-
   while(1)
     {
+    /* Skip spaces */
     while(((pos1 - str) < len) && isspace(*pos1))
       pos1++;
     
-    if(isspace(*pos1))
+    if(isspace(*pos1) || (*pos1 == '\0'))
       break;
     
     num_uris++;
     
+    /* Skip non-spaces */
     while(((pos1 - str) < len) && !isspace(*pos1))
       pos1++;
 
