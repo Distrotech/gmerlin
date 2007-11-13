@@ -453,7 +453,8 @@ static void close_input(void * priv)
   bg_track_info_free(&(inp->track_info));
   
   /* Unload the plugin */
-  bg_plugin_unref(inp->handle);
+  if(inp->handle)
+    bg_plugin_unref(inp->handle);
   inp->handle = NULL;
   inp->image_reader = NULL;
   }
