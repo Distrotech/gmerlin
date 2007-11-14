@@ -148,6 +148,7 @@ fileselect_callback(GtkWidget *chooser,
     }
   }
 
+#if 0
 static gboolean delete_callback(GtkWidget * w, GdkEventAny * event,
                                 gpointer data)
   {
@@ -155,7 +156,6 @@ static gboolean delete_callback(GtkWidget * w, GdkEventAny * event,
   return TRUE;
   }
 
-#if 0
 static gboolean destroy_callback(GtkWidget * w, GdkEvent * event,
                                   gpointer data)
   {
@@ -252,10 +252,10 @@ filesel_create(const char * title,
     }
   
   /* Set callbacks */
-
-  g_signal_connect(G_OBJECT(ret->filesel), "delete-event",
+#if 0
+  g_signal_connect(G_OBJECT(ret->filesel), "delete_event",
                    G_CALLBACK(delete_callback), ret);
-
+#endif
   g_signal_connect(ret->filesel, "response",
                    G_CALLBACK(fileselect_callback),
                    (gpointer)ret);
