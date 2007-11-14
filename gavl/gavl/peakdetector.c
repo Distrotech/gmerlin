@@ -259,7 +259,8 @@ void gavl_peak_detector_get_peak(gavl_peak_detector_t * pd,
 
     if(pd->max_d[i] > max1)
       max1 = pd->max_d[i];
-    if(pd->abs_d[i] < abs1)
+
+    if(pd->abs_d[i] > abs1)
       abs1 = pd->abs_d[i];
     }
   if(min)
