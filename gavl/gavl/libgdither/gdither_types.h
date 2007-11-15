@@ -15,7 +15,7 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- *  $Id: gdither_types.h,v 1.1 2005-02-26 12:18:28 gmerlin Exp $
+ *  $Id: gdither_types.h,v 1.2 2007-11-15 21:20:42 gmerlin Exp $
  */
 
 #ifndef GDITHER_TYPES_H

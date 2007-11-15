@@ -15,7 +15,7 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- *  $Id: gdither.c,v 1.2 2005-05-22 22:19:53 gmerlin Exp $
+ *  $Id: gdither.c,v 1.3 2007-11-15 21:20:40 gmerlin Exp $
  */
 
 #include "gdither_types_internal.h"
@@ -44,10 +44,14 @@
 #include <stdlib.h>
 #endif
 
+/* and even then sometimes it doesn't work... */
+long lrintf(float);
+
 #include <sys/types.h>
 
 /* Lipshitz's minimally audible FIR, only really works for 46kHz-ish signals */
 static const float shaped_bs[] = { 2.033f, -2.165f, 1.959f, -1.590f, 0.6149f };
+// 2nd order: static const float shaped_bs[] = { 1.652f, -1.049, 0.1382 };
 
 /* Some useful constants */
 #define MAX_U8        255
@@ -197,6 +201,7 @@ inline static void gdither_innner_loop(const GDitherType dt,
 	    ideal = tmp;
 
 	    /* Run FIR and add white noise */
+	    ss->buffer[ss->phase] = GDITHER_NOISE * 0.5f;
 	    tmp += ss->buffer[ss->phase] * shaped_bs[0]
 		   + ss->buffer[(ss->phase - 1) & GDITHER_SH_BUF_MASK]
 		     * shaped_bs[1]
@@ -205,8 +210,7 @@ inline static void gdither_innner_loop(const GDitherType dt,
 		   + ss->buffer[(ss->phase - 3) & GDITHER_SH_BUF_MASK]
 		     * shaped_bs[3]
 		   + ss->buffer[(ss->phase - 4) & GDITHER_SH_BUF_MASK]
-		     * shaped_bs[4]
-		   + GDITHER_NOISE * 0.5;
+		     * shaped_bs[4];
 
 	    /* Roll buffer and store last error */
 	    ss->phase = (ss->phase + 1) & GDITHER_SH_BUF_MASK;
@@ -269,6 +273,7 @@ inline static void gdither_innner_loop_fp(const GDitherType dt,
 	    ideal = tmp;
 
 	    /* Run FIR and add white noise */
+	    ss->buffer[ss->phase] = GDITHER_NOISE * 0.5f;
 	    tmp += ss->buffer[ss->phase] * shaped_bs[0]
 		   + ss->buffer[(ss->phase - 1) & GDITHER_SH_BUF_MASK]
 		     * shaped_bs[1]
@@ -277,8 +282,7 @@ inline static void gdither_innner_loop_fp(const GDitherType dt,
 		   + ss->buffer[(ss->phase - 3) & GDITHER_SH_BUF_MASK]
 		     * shaped_bs[3]
 		   + ss->buffer[(ss->phase - 4) & GDITHER_SH_BUF_MASK]
-		     * shaped_bs[4]
-		   + GDITHER_NOISE * 0.5;
+		     * shaped_bs[4];
 
 	    /* Roll buffer and store last error */
 	    ss->phase = (ss->phase + 1) & GDITHER_SH_BUF_MASK;
@@ -381,7 +385,7 @@ void gdither_runf(GDither s, unsigned int channel, unsigned int length,
 
     /* some common case handling code - looks a bit wierd, but it allows
      * the compiler to optiomise out the branches in the inner loop */
-    if ((s->bit_depth == 8) && (s->dither_depth == 8)) {
+    if (s->bit_depth == 8 && s->dither_depth == 8) {
 	switch (s->type) {
 	case GDitherNone:
 	    gdither_innner_loop(GDitherNone, s->channels, 128.0f, SCALE_U8,
@@ -404,7 +408,7 @@ void gdither_runf(GDither s, unsigned int channel, unsigned int length,
 				ss, x, y, MAX_U8, MIN_U8);
 	    break;
 	}
-    } else if ((s->bit_depth == 16) && (s->dither_depth == 16)) {
+    } else if (s->bit_depth == 16 && s->dither_depth == 16) {
 	switch (s->type) {
 	case GDitherNone:
 	    gdither_innner_loop(GDitherNone, s->channels, 0.0f, SCALE_S16,

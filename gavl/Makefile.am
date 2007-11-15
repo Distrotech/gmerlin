@@ -3,6 +3,7 @@ SUBDIRS = gavl src include m4 doc
 # aclocal Path
 ACLOCAL_AMFLAGS = -I m4
 
+
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = gavl.pc
 

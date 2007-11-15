@@ -8,9 +8,11 @@
 #define GDITHER_NOISE gdither_noise()
 #endif
 
+#include <stdint.h>
+
 inline static float gdither_noise()
 {
-    static unsigned long rnd = 23232323;
+    static uint32_t rnd = 23232323;
     rnd = (rnd * 196314165) + 907633515;
 
     return rnd * 2.3283064365387e-10f;

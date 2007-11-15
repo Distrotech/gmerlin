@@ -71,6 +71,8 @@ csp_packed_planar.h  \
 csp_planar_packed.h  \
 csp_planar_planar.h
 
+AM_LDFLAGS = -export-symbols-regex gavl
+
 libgavl_la_LIBADD = \
 @GMERLIN_DEP_LIBS@ \
 $(mmx_libs) \

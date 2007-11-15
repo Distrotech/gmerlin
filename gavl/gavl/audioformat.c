@@ -231,7 +231,7 @@ int gavl_channel_index(const gavl_audio_format_t * f, gavl_channel_id_t id)
     }
   //  fprintf(stderr, "Channel %s not present!!! Format was\n",
   //          gavl_channel_id_to_string(id));
-  gavl_audio_format_dump(f);
+  //  gavl_audio_format_dump(f);
   return -1;
   }
 
