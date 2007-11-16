@@ -451,3 +451,4 @@ GtkWidget * bg_gtk_get_toplevel(GtkWidget * w)
     toplevel = (GtkWidget*)0;
   return toplevel;
   }
+

@@ -1995,6 +1995,15 @@ static void drag_get_callback(GtkWidget *widget,
     w->drag_delete = 1; 
     return;
     }
+  target_atom = gdk_atom_intern(bg_gtk_atom_entries_name_r, FALSE);
+  if(target_atom == data->target)
+    {
+    str = bg_album_save_selected_to_memory(w->album, 1);
+    gtk_selection_data_set(data, type_atom, 8, (uint8_t*)str, strlen(str)+1);
+    free(str);
+    w->drag_delete = 1; 
+    return;
+    }
   target_atom = gdk_atom_intern("STRING", FALSE);
   if(target_atom == data->target)
     {

@@ -1016,9 +1016,29 @@ void track_list_add_url(track_list_t * l, char * url)
   add_track(l, new_tracks);
   track_list_update(l);  
   }
+#if 0
+static gboolean drag_drop_callback(GtkWidget      *widget,
+                               GdkDragContext *drag_context,
+                               gint            x,
+                               gint            y,
+                               guint           time,
+                               gpointer        user_data)
+  {
+  GdkAtom target;
+  track_list_t * l = (track_list_t *)user_data;
+  
+  target = gtk_drag_dest_find_target(widget, drag_context,
+                                     gtk_drag_dest_get_target_list(widget));
 
-
-
+  //  fprintf(stderr, "Drag drop %d (%s)\n", target, gtk_atom_get);
+  if(target != GDK_NONE)
+    gtk_drag_get_data(widget,
+                      drag_context,
+                      target,
+                      time);
+  return TRUE;
+  }
+#endif
 static void drag_received_callback(GtkWidget *widget,
                                    GdkDragContext *drag_context,
                                    gint x,
@@ -1031,7 +1051,7 @@ static void drag_received_callback(GtkWidget *widget,
   bg_transcoder_track_t * new_tracks;
   track_list_t * l = (track_list_t *)d;
   
-
+  fprintf(stderr, "drag_received_callback %d\n", data->target);
   if(is_urilist(data))
     {
     new_tracks =
@@ -1220,7 +1240,11 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg,
   g_signal_connect(G_OBJECT(ret->treeview), "drag-data-received",
                    G_CALLBACK(drag_received_callback),
                    (gpointer)ret);
-
+#if 0
+  g_signal_connect(G_OBJECT(ret->treeview), "drag-drop",
+                   G_CALLBACK(drag_drop_callback),
+                   (gpointer)ret);
+#endif
   g_signal_connect(G_OBJECT(ret->treeview), "button-press-event",
                    G_CALLBACK(button_press_callback), (gpointer)ret);
   

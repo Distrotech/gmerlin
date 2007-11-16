@@ -272,7 +272,7 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
      during startup */
 
   ret->log_window = bg_gtk_log_window_create(logwindow_close_callback, 
-                                             ret);
+                                             ret, TR("Gmerlin player"));
 
   bg_cfg_section_apply(ret->logwindow_section,
                        bg_gtk_log_window_get_parameters(ret->log_window),

@@ -35,6 +35,10 @@ typedef struct
   char * trackname_template;
   int use_cdtext;
   int use_local;
+
+  /* We initialize ripping on demand to speed up CD loading in the
+     transcoder */
+  int rip_initialized;
   
   /* Configuration stuff */
 
@@ -399,20 +403,13 @@ static int start_cdaudio(void * priv)
   else
     {
     /* Rip */
-    bg_cdaudio_rip_init(cd->ripper, cd->cdio,
-                        cd->first_sector,
-                        cd->first_sector - cd->index->tracks[0].first_sector,
-                        &(cd->read_sectors));
-
+    
     for(i = 0; i < cd->index->num_audio_tracks; i++)
       {
       cd->track_info[i].audio_streams[0].format.samples_per_frame =
-        cd->read_sectors * 588;
+        588;
       }
     
-    
-    cd->frame =
-      gavl_audio_frame_create(&(cd->track_info[0].audio_streams[0].format));
     cd->current_sector = cd->first_sector;
     cd->samples_written = 0;
     }
@@ -429,13 +426,36 @@ static void stop_cdaudio(void * priv)
     }
   else
     {
-    bg_cdaudio_rip_close(cd->ripper);
+    if(cd->rip_initialized)
+      {
+      bg_cdaudio_rip_close(cd->ripper);
+      cd->rip_initialized = 0;
+      if(cd->frame)
+        {
+        gavl_audio_frame_destroy(cd->frame);
+        cd->frame = (gavl_audio_frame_t*)0;
+        }
+      }
     }
   cd->cdio = (CdIo_t*)0;
   }
 
 static void read_frame(cdaudio_t * cd)
   {
+  if(!cd->rip_initialized)
+    {
+    gavl_audio_format_t format;
+    bg_cdaudio_rip_init(cd->ripper, cd->cdio,
+                        cd->first_sector,
+                        cd->first_sector - cd->index->tracks[0].first_sector,
+                        &(cd->read_sectors));
+    
+    gavl_audio_format_copy(&format,
+                           &(cd->track_info[0].audio_streams[0].format));
+    format.samples_per_frame = cd->read_sectors * 588;
+    cd->frame = gavl_audio_frame_create(&format);
+    cd->rip_initialized = 1;
+    }
   bg_cdaudio_rip_rip(cd->ripper, cd->frame);
 
   if(cd->current_sector + cd->read_sectors >
@@ -469,7 +489,7 @@ static int read_audio_cdaudio(void * priv,
     if(cd->current_sector > cd->index->tracks[cd->current_track].last_sector)
       break;
     
-    if(!cd->frame->valid_samples)
+    if(!cd->frame || !cd->frame->valid_samples)
       read_frame(cd);
 
     samples_copied = gavl_audio_frame_copy(&(cd->track_info[0].audio_streams[0].format),

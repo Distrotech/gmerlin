@@ -919,7 +919,8 @@ transcoder_window_t * transcoder_window_create()
 
   /* Create log window */
 
-  ret->logwindow = bg_gtk_log_window_create(logwindow_close_callback, ret);
+  ret->logwindow = bg_gtk_log_window_create(logwindow_close_callback, ret,
+                                            TR("Gmerlin transcoder"));
   cfg_section = bg_cfg_registry_find_section(ret->cfg_reg, "logwindow");
   bg_cfg_section_apply(cfg_section, bg_gtk_log_window_get_parameters(ret->logwindow),
                        bg_gtk_log_window_set_parameter, ret->logwindow);

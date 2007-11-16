@@ -223,15 +223,20 @@ static gboolean configure_callback(GtkWidget * w, GdkEventConfigure *event,
 
 
 bg_gtk_log_window_t * bg_gtk_log_window_create(void (*close_callback)(bg_gtk_log_window_t*, void*),
-                                               void * close_callback_data)
+                                               void * close_callback_data,
+                                               const char * app_name)
   {
+  char * tmp_string;
   bg_gtk_log_window_t * ret;
   ret = calloc(1, sizeof(*ret));
 
   /* Create window */
   ret->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_title(GTK_WINDOW(ret->window), TR("Log viewer"));
 
+  tmp_string = bg_sprintf(TR("%s messages"), app_name);
+  gtk_window_set_title(GTK_WINDOW(ret->window), tmp_string);
+  free(tmp_string);
+  
   g_signal_connect(G_OBJECT(ret->window), "delete_event",
                    G_CALLBACK(delete_callback), (gpointer)ret);
   g_signal_connect(G_OBJECT(ret->window), "configure-event",

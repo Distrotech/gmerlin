@@ -996,7 +996,8 @@ static visualizer_t * visualizer_create()
   window_init(ret, &ret->fullscreen_window, 1);
   ret->current_window = &ret->normal_window;
 
-  ret->log_window = bg_gtk_log_window_create(log_close_callback, ret);
+  ret->log_window = bg_gtk_log_window_create(log_close_callback, ret,
+                                             TR("Gmerlin visualizer"));
   
   ret->config_button =
     create_pixmap_button(ret, "config_16.png", TRS("Configure"));

@@ -3008,6 +3008,7 @@ static int init_audio_converter(audio_stream_t * ret)
                                         &(ret->out_format));
 
   gavl_audio_format_copy(&ret->pipe_format, &ret->out_format);
+
   if(ret->options.force_float)
     ret->pipe_format.sample_format = GAVL_SAMPLE_FLOAT;
 

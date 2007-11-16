@@ -159,6 +159,12 @@ static snd_pcm_t * bg_alsa_open(const char * card,
     case GAVL_SAMPLE_FLOAT:
       if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_FLOAT) < 0)
         {
+#if 1
+        if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S16) < 0)
+          goto fail;
+        format->sample_format = GAVL_SAMPLE_S16;
+#else
+
 #ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
         if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S32_LE) < 0)
 #else
@@ -193,6 +199,7 @@ static snd_pcm_t * bg_alsa_open(const char * card,
           else
             format->sample_format = GAVL_SAMPLE_S32;
         
+#endif
         }
       else
         format->sample_format = GAVL_SAMPLE_FLOAT;
