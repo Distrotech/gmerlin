@@ -27,6 +27,8 @@
 
 #define LOG_DOMAIN "player.input"
 
+// #define DUMP_TIMESTAMPS
+
 struct bg_player_input_context_s
   {
   /* Plugin stuff */
@@ -534,6 +536,11 @@ bg_player_input_read_video(void * priv, gavl_video_frame_t * frame, int stream)
     bg_plugin_lock(ctx->plugin_handle);
     result = ctx->plugin->read_video_frame(ctx->priv, frame, stream);
     bg_plugin_unlock(ctx->plugin_handle);
+#ifdef DUMP_TIMESTAMPS
+    bg_debug("Input timestamp: %"PRId64"\n",
+             gavl_time_unscale(ctx->player->video_stream.input_format.timescale,
+                               frame->timestamp));
+#endif
     }
   return result;
   }

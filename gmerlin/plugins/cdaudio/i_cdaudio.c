@@ -602,8 +602,24 @@ static void seek_cdaudio(void * priv, gavl_time_t * time)
       bg_cdaudio_set_pause(cd->cdio, 1);
       }
     }
-  else /* TODO */
+  else
     {
+    if(!cd->rip_initialized)
+      {
+      gavl_audio_format_t format;
+      bg_cdaudio_rip_init(cd->ripper, cd->cdio,
+                          cd->first_sector,
+                          cd->first_sector - cd->index->tracks[0].first_sector,
+                          &(cd->read_sectors));
+
+      gavl_audio_format_copy(&format,
+                             &(cd->track_info[0].audio_streams[0].format));
+      format.samples_per_frame = cd->read_sectors * 588;
+      cd->frame = gavl_audio_frame_create(&format);
+      cd->rip_initialized = 1;
+      }
+
+
     sample_position = gavl_time_to_samples(44100, *time);
         
     cd->current_sector =

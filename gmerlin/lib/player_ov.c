@@ -30,6 +30,8 @@
 #include <log.h>
 #define LOG_DOMAIN "player.video_output"
 
+// #define DUMP_TIMESTAMPS
+
 struct bg_player_ov_context_s
   {
   bg_plugin_handle_t * plugin_handle;
@@ -703,7 +705,10 @@ void * bg_player_ov_thread(void * data)
     bg_player_time_get(ctx->player, 1, &current_time);
     
     diff_time =  ctx->frame_time - current_time;
-    
+#ifdef DUMP_TIMESTAMPS
+    bg_debug("C: %"PRId64", F: %"PRId64", D: %"PRId64"\n",
+             current_time, ctx->frame_time, diff_time);
+#endif
     /* Wait until we can display the frame */
     if(diff_time > 0)
       gavl_time_delay(&diff_time);

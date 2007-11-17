@@ -389,5 +389,11 @@ int bg_xml_write_callback(void * context, const char * buffer,
 
 int bg_xml_close_callback(void * context);
 
+#ifdef DEBUG
+#define bg_debug(f,...) fprintf(stderr, f, __VA_ARGS__)
+#else
+#define bg_debug(f,...)
+#endif
+
 
 #endif // __BG_UTILS_H_
