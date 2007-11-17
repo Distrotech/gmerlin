@@ -42,19 +42,6 @@ AC_ARG_ENABLE(debug,
    no)  LQT_DEBUG=false ;;
 esac],[LQT_DEBUG=false])
 
-dnl
-dnl Profiling Support
-dnl
-
-
-LQT_PROFILE=false
-
-AC_ARG_ENABLE(profile,
-[AC_HELP_STRING([--enable-profile],[Enable profiling])],
-[case "${enableval}" in
-   yes) LQT_PROFILE=true ;;
-   no)  LQT_PROFILE=false ;;
-esac],[LQT_PROFILE=false])
 
 dnl
 dnl Extra cflags from the commandline. Can have the special values "none" or "auto"
@@ -104,9 +91,7 @@ lqt_additional_opt_flags=ifelse([$2],[],[],[$2])
 lqt_test_flags=$lqt_cpuflags
 
 if test x$LQT_DEBUG = xtrue; then
-  lqt_test_cflags="$lqt_test_flags -g"
-elif test x$LQT_PROFILE = xtrue; then
-  lqt_test_cflags="$lqt_test_flags -pg $lqt_additional_opt_flags"
+  lqt_test_cflags="$lqt_test_flags -g -DDEBUG"
 else
   lqt_test_cflags="$lqt_test_flags $lqt_additional_opt_flags"
 fi

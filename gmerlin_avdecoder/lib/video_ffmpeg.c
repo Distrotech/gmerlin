@@ -483,7 +483,7 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
     stream_time = get_pts(priv);
     if(stream_time != BGAV_TIMESTAMP_UNDEFINED)
       {
-      s->time_scaled = get_pts(priv);
+      s->time_scaled = stream_time;
       }
     if(priv->have_picture)
       done = 1;
