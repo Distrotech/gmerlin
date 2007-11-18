@@ -260,7 +260,7 @@ bg_encoder_plugin_t the_plugin =
       BG_LOCALE,
       name:           "e_y4m",       /* Unique short name */
       long_name:      TRS("yuv4mpeg2 encoder"),
-      description:     TRS("Encoder for yuv4mpeg streams.\
+      description:     TRS("Encoder for yuv4mpeg files.\
  Based on mjpegtools (http://mjpeg.sourceforge.net)."),
       mimetypes:      NULL,
       extensions:     "y4m",

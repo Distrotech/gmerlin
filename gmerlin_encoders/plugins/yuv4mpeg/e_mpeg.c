@@ -100,17 +100,17 @@ static int open_mpeg(void * data, const char * filename,
   /* To make sure this will work, we check for the execuables of mpeg2enc, mplex and mp2enc */
   if(!bg_search_file_exec("mpeg2enc", (char**)0))
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "mpeg2enc exectuable not found");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot find mpeg2enc exectuable");
     return 0;
     }
   if(!bg_search_file_exec("mp2enc", (char**)0))
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "mp2enc exectuable not found");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot find mp2enc exectuable");
     return 0;
     }
   if(!bg_search_file_exec("mplex", (char**)0))
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "mplex exectuable not found");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot find mplex exectuable");
     return 0;
     }
   return 1;
@@ -298,7 +298,7 @@ static int close_mpeg(void * data, int do_delete)
     
     if(!bg_search_file_exec("mplex", &commandline))
       {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Cannot find mplex");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Cannot find mplex exectuable");
       return 0;
       }
     /* Options */
@@ -427,7 +427,7 @@ static bg_parameter_info_t common_parameters[] =
       name:        "tmp_dir",
       long_name:   TRS("Directory for temporary files"),
       type:        BG_PARAMETER_DIRECTORY,
-      help_string: TRS("Directory to store the temporary streams. Leave empty to use the same directory as the final output file"),
+      help_string: TRS("Leave empty to use the same directory as the final output file"),
     },
     {
       name:        "aux_stream_1",

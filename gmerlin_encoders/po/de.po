@@ -1,423 +1,178 @@
-# German translations for gmerlin-encoders package.
-# Copyright (C) 2007 Members of the gmerlin project
-# This file is distributed under the same license as the gmerlin-encoders package.
-# Burkhard Plaum <gmerlin-general@lists.sourceforge.net>, 2007.
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Members of the gmerlin project
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: gmerlin-encoders 0.2.4\n"
+"Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-11-05 00:42+0100\n"
-"PO-Revision-Date: 2007-02-17 12:50+0100\n"
-"Last-Translator: Burkhard Plaum <gmerlin-general@lists.sourceforge.net>\n"
-"Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
+"POT-Creation-Date: 2007-11-18 22:25+0100\n"
+"PO-Revision-Date: 2007-11-18 22:25+0100\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=ASCII\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: plugins/flac/e_flac.c:74
-msgid "Write vorbis comment"
-msgstr ""
+#: plugins/faac/e_faac.c:83
+msgid "Basic options"
+msgstr "Grundlegenden Optionen"
 
-#: plugins/flac/e_flac.c:77
-msgid "Write Vorbis comment containing metadata to the file"
-msgstr ""
+#: plugins/faac/e_faac.c:88
+msgid "Object type"
+msgstr "Objekttyp"
 
-#: plugins/flac/e_flac.c:81
-msgid "Write seek table"
-msgstr ""
+#: plugins/faac/e_faac.c:97
+msgid "MPEG-2 Main profile"
+msgstr "MPEG-2 Main profile"
 
-#: plugins/flac/e_flac.c:84
-msgid "Write seektable (strongly recommended)"
-msgstr ""
+#: plugins/faac/e_faac.c:98
+msgid "MPEG-2 Low Complexity profile (LC)"
+msgstr "MPEG-2 Low Complexity profile (LC)"
 
-#: plugins/flac/e_flac.c:88
-msgid "Entries in the seektable"
-msgstr ""
+#: plugins/faac/e_faac.c:99
+msgid "MPEG-4 Main profile"
+msgstr "MPEG-4 Main profile"
 
-#: plugins/flac/e_flac.c:93
-msgid ""
-"Maximum number of entries in the seek table. Default is 100, larger numbers "
-"result in shorter seeking times but also in larger files."
-msgstr ""
+#: plugins/faac/e_faac.c:100
+msgid "MPEG-4 Low Complexity profile (LC)"
+msgstr "MPEG-4 Low Complexity profile (LC)"
 
-#: plugins/flac/e_flac.c:211
-#, c-format
-msgid "Initializing encoder failed: %s"
-msgstr ""
+#: plugins/faac/e_faac.c:101
+msgid "MPEG-4 Long Term Prediction (LTP)"
+msgstr "MPEG-4 Long Term Prediction (LTP)"
 
-#: plugins/flac/e_flac.c:214
-msgid "Initializing encoder failed"
-msgstr ""
-
-#: plugins/flac/e_flac.c:478 plugins/ogg/flac.c:328
-msgid "Flac encoder"
-msgstr ""
-
-#: plugins/flac/e_flac.c:479
-msgid "Encoder for .flac files. Based on libflac (http://flac.sourceforge.net)"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpegvideo.c:102 plugins/yuv4mpeg/e_mpegaudio.c:133
-#: plugins/yuv4mpeg/e_mpeg.c:366 plugins/yuv4mpeg/e_mpeg.c:380
-#, c-format
-msgid "Removing %s"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpegvideo.c:136
-msgid "MPEG-1/2 video encoder"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpegvideo.c:137
-msgid ""
-"Encoder for elementary MPEG-1/2 video streams. Based on mjpegtools (http://"
-"mjpeg.sourceforge.net)."
-msgstr ""
-
-#: plugins/yuv4mpeg/y4m_common.c:122
-msgid "Writing stream header failed"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpegaudio.c:99
-msgid "Cannot find mp2enc executable"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpegaudio.c:160
-msgid "MPEG-1 layer 1/2 audio encoder"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpegaudio.c:161
-msgid ""
-"Encoder for elementary MPEG-1 layer 1/2 audio streams. Based on mjpegtools "
-"(http://mjpeg.sourceforge.net)."
-msgstr ""
-
-#: plugins/yuv4mpeg/mpv_common.c:54 plugins/yuv4mpeg/e_mpeg.c:417
-#: plugins/ffmpeg/ffmpeg_common.c:22
-msgid "Format"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpv_common.c:58
-msgid "Generic MPEG-1"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpv_common.c:58
-msgid "Generic MPEG-2"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpv_common.c:59
-msgid "VCD"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpv_common.c:59
-msgid "SVCD"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpv_common.c:59
-msgid "DVD (for dvdauthor)"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpv_common.c:61
-msgid ""
-"Sets the MPEG flavour. Note, that for VCD, SVCD and DVD, you MUST provide "
-"valid frame sizes"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpv_common.c:66
-msgid "Bitrate Mode"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpv_common.c:70 plugins/yuv4mpeg/e_yuv4mpeg.c:168
-#: plugins/lame/e_lame.c:237 plugins/ogg/speex.c:148
-msgid "Auto"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpv_common.c:70 plugins/lame/e_lame.c:223
-msgid "Variable"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpv_common.c:70 plugins/lame/e_lame.c:221
-msgid "Constant"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpv_common.c:71
-msgid ""
-"Specify constant or variable bitrate. For \"Auto\", constant bitrate will be "
-"used for MPEG-1, variable bitrate will be used for MPEG-2. For formats, "
-"which require CBR, this option is ignored"
-msgstr ""
-
+#: plugins/faac/e_faac.c:106 plugins/lame/e_lame.c:260 plugins/ogg/speex.c:178
 #: plugins/yuv4mpeg/mpv_common.c:77 plugins/yuv4mpeg/mpa_common.c:40
-msgid "Bitrate (kb/s)"
-msgstr ""
+msgid "Bitrate (kbps)"
+msgstr "Bitrate (kbps)"
 
-#: plugins/yuv4mpeg/mpv_common.c:82
-msgid ""
-"Video bitrate in (kb/s). For VBR, it's the maximum bitrate. If the format "
-"requires a fixed bitrate (e.g. VCD) this option is ignored"
-msgstr ""
+#: plugins/faac/e_faac.c:110
+msgid "Average bitrate (0: VBR based on quality)"
+msgstr "Durchschnittliche Bitrate (0: Qualitätsbasierte Variable Bitrate)"
 
-#: plugins/yuv4mpeg/mpv_common.c:87
-msgid "Quantization"
-msgstr ""
+#: plugins/faac/e_faac.c:114
+msgid "Quality"
+msgstr "Qualität"
 
-#: plugins/yuv4mpeg/mpv_common.c:92
-msgid ""
-"Minimum quantization for VBR. Lower numbers mean higher quality. For CBR, "
-"this option is ignored."
-msgstr ""
+#: plugins/faac/e_faac.c:119
+msgid "Quantizer quality"
+msgstr "Quantisierqualität"
 
-#: plugins/yuv4mpeg/mpv_common.c:96
-msgid "Quantization matrices"
-msgstr ""
+#: plugins/faac/e_faac.c:123
+msgid "Advanced options"
+msgstr "Fortgeschrittene Optionen"
 
-#: plugins/yuv4mpeg/mpv_common.c:101
-msgid "Default"
-msgstr ""
+#: plugins/faac/e_faac.c:128
+msgid "Block types"
+msgstr "Blocktypen"
 
-#: plugins/yuv4mpeg/mpv_common.c:101
-msgid "KVCD"
-msgstr ""
+#: plugins/faac/e_faac.c:135
+msgid "Both"
+msgstr "Beide"
 
-#: plugins/yuv4mpeg/mpv_common.c:102
-msgid "tmpegenc"
-msgstr ""
+#: plugins/faac/e_faac.c:136
+msgid "No short"
+msgstr "Keine kurzen"
 
-#: plugins/yuv4mpeg/mpv_common.c:102
-msgid "Hi-Res"
-msgstr ""
+#: plugins/faac/e_faac.c:137
+msgid "No long"
+msgstr "Keine langen"
 
-#: plugins/yuv4mpeg/mpv_common.c:107
-msgid "Number of B-Frames"
-msgstr ""
+#: plugins/faac/e_faac.c:143
+msgid "Use temporal noise shaping"
+msgstr "Benutze zeitliche Rauschformung"
 
-#: plugins/yuv4mpeg/mpv_common.c:112
-msgid ""
-"Specify the number of B-frames between 2 P/I frames. More B-frames slow down "
-"encoding and increase memory usage, but might give better compression "
-"results. For VCD, this option is ignored, since the VCD standard requires 2 "
-"B-frames, no matter if you like them or not."
-msgstr ""
+#: plugins/faac/e_faac.c:148
+msgid "Don't use mid/side coding"
+msgstr "Benutze keine Mid/Side Kodierung"
 
-#: plugins/yuv4mpeg/mpv_common.c:118
-msgid "User options"
-msgstr ""
+#: plugins/faac/e_faac.c:173
+msgid "faacEncSetConfiguration failed"
+msgstr "faacEncSetConfiguration fehlgeschlagen"
 
-#: plugins/yuv4mpeg/mpv_common.c:120
-msgid ""
-"Enter further commandline options for mpeg2enc here. Check the mpeg2enc "
-"manual page for details"
-msgstr ""
+#: plugins/faac/e_faac.c:242 plugins/lame/e_lame.c:464
+msgid "Write ID3V1.1 tag"
+msgstr "Schreibe ID3V1.1 Kennung"
 
-#: plugins/yuv4mpeg/mpv_common.c:184
-msgid "Cannot find mpeg2enc"
-msgstr ""
+#: plugins/faac/e_faac.c:248 plugins/lame/e_lame.c:470
+msgid "Write ID3V2 tag"
+msgstr "Schreibe ID3V2 Kennung"
 
-#: plugins/yuv4mpeg/mpv_common.c:337 plugins/yuv4mpeg/mpv_common.c:361
-msgid "Unknown MPEG format"
-msgstr ""
+#: plugins/faac/e_faac.c:254 plugins/lame/e_lame.c:476
+msgid "ID3V2 Encoding"
+msgstr "ID3V2 Zeichentabelle"
 
-#: plugins/yuv4mpeg/mpv_common.c:356
-msgid "Mixed interlacing not supported (yet)"
-msgstr ""
+#: plugins/faac/e_faac.c:259 plugins/lame/e_lame.c:481
+msgid "ISO-8859-1"
+msgstr "ISO-8859-1"
 
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:155
-msgid "Chroma mode"
-msgstr ""
+#: plugins/faac/e_faac.c:259 plugins/lame/e_lame.c:481
+msgid "UTF-16 LE"
+msgstr "UTF-16 LE"
 
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:169
-msgid "4:2:0 (MPEG-1/JPEG)"
-msgstr ""
+#: plugins/faac/e_faac.c:260 plugins/lame/e_lame.c:482
+msgid "UTF-16 BE"
+msgstr "UTF-16 BE"
 
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:170
-msgid "4:2:0 (MPEG-2)"
-msgstr ""
+#: plugins/faac/e_faac.c:260 plugins/lame/e_lame.c:482
+msgid "UTF-8"
+msgstr "UTF-8"
 
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:171
-msgid "4:2:0 (PAL DV)"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:172
-msgid "4:4:4"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:173
-msgid "4:2:2"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:174
-msgid "4:1:1"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:175
-msgid "Greyscale"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:176
-msgid "4:4:4:4 (YUVA)"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:178
-msgid ""
-"Set the chroma mode of the output file. Auto means to take the format most "
-"similar to the source."
-msgstr ""
-
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:262
-msgid "yuv4mpeg2 encoder"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_yuv4mpeg.c:263
-msgid ""
-"Encoder for yuv4mpeg streams. Based on mjpegtools (http://mjpeg.sourceforge."
-"net)."
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpeg.c:103
-msgid "mpeg2enc exectuable not found"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpeg.c:108
-msgid "mp2enc exectuable not found"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpeg.c:113
-msgid "mplex exectuable not found"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpeg.c:301
-msgid "Cannot find mplex"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpeg.c:421
-msgid "MPEG-1 (generic)"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpeg.c:421
-msgid "MPEG-1 (VCD)"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpeg.c:422
-msgid "MPEG-2 (generic)"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpeg.c:422
-msgid "MPEG-2 (SVCD)"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpeg.c:423
-msgid "DVD (NAV)"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpeg.c:423
-msgid "DVD"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpeg.c:424
-msgid ""
-"Output format. Note that for some output formats (e.g. VCD), you MUST use "
-"proper settings for the audio and video streams also, since this isn't done "
-"automatically"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpeg.c:428
-msgid "Directory for temporary files"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpeg.c:430
-msgid ""
-"Directory to store the temporary streams. Leave empty to use the same "
-"directory as the final output file"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpeg.c:434
-msgid "Additional stream 1"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpeg.c:436 plugins/yuv4mpeg/e_mpeg.c:443
-#: plugins/yuv4mpeg/e_mpeg.c:450
-msgid ""
-"Additional stream to multiplex into the final output file. Use this if you "
-"want e.g. create mp3 or AC3 audio with some other encoder"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpeg.c:441
-msgid "Additional stream 2"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpeg.c:448
-msgid "Additional stream 3"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpeg.c:529
-msgid "MPEG 1/2 program/system stream encoder"
-msgstr ""
-
-#: plugins/yuv4mpeg/e_mpeg.c:530
-msgid ""
-"Encoder for regular .mpg files as well as VCD and DVD streams. Based on "
-"mjpegtools (http://mjpeg.sourceforge.net)"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpa_common.c:45
-msgid "Bitrate in (kb/s). "
-msgstr ""
-
-#: plugins/yuv4mpeg/mpa_common.c:49
-msgid "Layer (1 or 2)"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpa_common.c:54
-msgid "Audio layer"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpa_common.c:58
-msgid "VCD Compatible"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpa_common.c:61
-msgid ""
-"Make VCD compliant output. This forces layer II, 224 kb/s and 44.1 KHz stereo"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpa_common.c:99
-msgid "Cannot find mp2enc"
-msgstr ""
-
-#: plugins/yuv4mpeg/mpa_common.c:199
+#: plugins/faac/e_faac.c:300 plugins/lame/e_lame.c:521
 #, c-format
-msgid "Bitrate %d kbps unsupported, switching to %d kbps"
-msgstr ""
+msgid "Cannot open %s: %s"
+msgstr "Kann %s nicht öffnen: %s"
 
-#: plugins/yuv4mpeg/mpa_common.c:255
-#, c-format
-msgid "Samplerate %d unsupported, switching to %d"
+#: plugins/faac/e_faac.c:536
+msgid "Faac encoder"
+msgstr "Faac encoder"
+
+#: plugins/faac/e_faac.c:537
+msgid ""
+"Plugin for encoding AAC streams (with ADTS headers). Based on faac (http://"
+"faac.sourceforge.net)."
 msgstr ""
+"Plugin zum Erzeugen von AAC Dateien (mit ADTS Köpfen). Verwendet faac "
+"(http://faac.sourceforge.net)"
 
 #: plugins/lame/e_lame.c:209
 msgid "General"
-msgstr ""
+msgstr "Allgemein"
 
 #: plugins/lame/e_lame.c:214 plugins/ogg/vorbis.c:88
 msgid "Bitrate mode"
-msgstr ""
+msgstr "Bitratenmodus"
+
+#: plugins/lame/e_lame.c:221 plugins/yuv4mpeg/mpv_common.c:70
+msgid "Constant"
+msgstr "Konstant"
 
 #: plugins/lame/e_lame.c:222
 msgid "Average"
-msgstr ""
+msgstr "Durchschnittlich"
+
+#: plugins/lame/e_lame.c:223 plugins/yuv4mpeg/mpv_common.c:70
+msgid "Variable"
+msgstr "Variabel"
 
 #: plugins/lame/e_lame.c:228
 msgid "Stereo mode"
-msgstr ""
+msgstr "Stereo Modus"
 
 #: plugins/lame/e_lame.c:235
 msgid "Stereo"
-msgstr ""
+msgstr "Stereo"
 
 #: plugins/lame/e_lame.c:236
 msgid "Joint stereo"
-msgstr ""
+msgstr "Joint stereo"
+
+#: plugins/lame/e_lame.c:237 plugins/ogg/speex.c:148
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:168 plugins/yuv4mpeg/mpv_common.c:70
+msgid "Auto"
+msgstr "Automatisch"
 
 #: plugins/lame/e_lame.c:239
 msgid ""
@@ -427,371 +182,968 @@ msgid ""
 "Auto (recommended): Select one of the above depending on quality or bitrate "
 "setting"
 msgstr ""
+"Stereo: Völlig unabhängige Kanäle\\n\n"
+"Joing Stereo: Verbessere Qualität (spare Bits) durch Ausnutzung von "
+"Ähnlichkeiten der Kanäle\\n\n"
+"Automatisch (empfohlen): Wähle Modus aufgrund der Qualität oder der Bitrate"
 
 #: plugins/lame/e_lame.c:245
 msgid "Encoding speed"
-msgstr ""
+msgstr "Kodiergeschwindigkeit"
 
 #: plugins/lame/e_lame.c:250
 msgid ""
 "0: Slowest encoding, best quality\n"
 "9: Fastest encoding, worst quality"
 msgstr ""
+"0: Langsamstes Encodieren, Beste Qualität\n"
+"9: Schnellstes Encodieren, Schlechteste Qualität"
 
 #: plugins/lame/e_lame.c:255
 msgid "CBR options"
-msgstr ""
-
-#: plugins/lame/e_lame.c:260 plugins/faac/e_faac.c:106
-msgid "Bitrate (kbps)"
-msgstr ""
+msgstr "CBR Optionen"
 
 #: plugins/lame/e_lame.c:265
 msgid ""
 "Bitrate in kbps. If your selection is no valid mp3 bitrate, we'll choose the "
 "closest value."
 msgstr ""
+"Bitrate in kbps. Wenn Deine Auswahl keine gültige mp3-Bitrate ist, nehmen "
+"wir die nächstliegende."
 
 #: plugins/lame/e_lame.c:270
 msgid "VBR/ABR options"
-msgstr ""
+msgstr "VBR/ABR Optionen"
 
 #: plugins/lame/e_lame.c:275
 msgid "VBR Quality"
-msgstr ""
+msgstr "VBR Qualität"
 
 #: plugins/lame/e_lame.c:280
 msgid "VBR Quality level. 0: best, 9: worst"
-msgstr ""
+msgstr "VBR Qualitätsstufe 0: Beste, 9: Schlechteste"
 
 #: plugins/lame/e_lame.c:284
 msgid "ABR overall bitrate (kbps)"
-msgstr ""
+msgstr "ABR Gesamtbitrate (kbps)"
 
 #: plugins/lame/e_lame.c:289
 msgid "Average bitrate for ABR mode"
-msgstr ""
+msgstr "Durchschnittliche Bitrate for ABR modus"
 
 #: plugins/lame/e_lame.c:293
 msgid "ABR min bitrate (kbps)"
-msgstr ""
+msgstr "ABR Mindestbitrate (kbps)"
 
 #: plugins/lame/e_lame.c:298
 msgid ""
 "Minimum bitrate for ABR mode. 0 means let lame decide. If your selection is "
 "no valid mp3 bitrate, we'll choose the closest value."
 msgstr ""
+"Minimale Bitrate für ABR Modus. 0 heißt, lame darf entscheiden.\n"
+"Wenn Deine Auswahl keine gültige mp3-Bitrate ist, nehmen\n"
+"wir die nächstliegende."
 
 #: plugins/lame/e_lame.c:303
 msgid "ABR max bitrate (kbps)"
-msgstr ""
+msgstr "ABR Maximalbitrate (kbps)"
 
 #: plugins/lame/e_lame.c:308
 msgid ""
 "Maximum bitrate for ABR mode. 0 means let lame decide. If your selection is "
 "no valid mp3 bitrate, we'll choose the closest value."
 msgstr ""
+"Maximale Bitrate für ABR Modus. 0 heißt, lame darf entscheiden.\n"
+"Wenn Deine Auswahl keine gültige mp3-Bitrate ist, nehmen\n"
+"wir die nächstliegende."
 
 #: plugins/lame/e_lame.c:338 plugins/lame/e_lame.c:371
 msgid "lame_set_VBR_q failed"
-msgstr ""
+msgstr "lame_set_VBR_q fehlgeschlagen"
 
 #: plugins/lame/e_lame.c:342
 msgid "lame_set_VBR_mean_bitrate_kbps failed"
-msgstr ""
+msgstr "lame_set_VBR_mean_bitrate_kbps fehlgeschlagen"
 
 #: plugins/lame/e_lame.c:354
 msgid "lame_set_VBR_min_bitrate_kbps failed"
-msgstr ""
+msgstr "lame_set_VBR_min_bitrate_kbps fehlgeschlagen"
 
 #: plugins/lame/e_lame.c:366
 msgid "lame_set_VBR_max_bitrate_kbps failed"
-msgstr ""
+msgstr "lame_set_VBR_max_bitrate_kbps fehlgeschlagen"
 
 #: plugins/lame/e_lame.c:377
 msgid "lame_set_brate failed"
-msgstr ""
+msgstr "lame_set_brate fehlgeschlagen"
 
 #: plugins/lame/e_lame.c:384
 msgid "lame_init_params failed"
-msgstr ""
+msgstr "lame_init_params fehlgeschlagen"
 
 #: plugins/lame/e_lame.c:404
 msgid "lame_set_VBR failed"
-msgstr ""
+msgstr "lame_set_VBR fehlgeschlagen"
 
 #: plugins/lame/e_lame.c:407
 msgid "lame_set_bWriteVbrTag failed"
-msgstr ""
+msgstr "lame_set_bWriteVbrTag fehlgeschlagen"
 
 #: plugins/lame/e_lame.c:427
 msgid "lame_set_mode failed"
-msgstr ""
+msgstr "lame_set_mode fehlgeschlagen"
 
 #: plugins/lame/e_lame.c:433
 msgid "lame_set_quality failed"
-msgstr ""
-
-#: plugins/lame/e_lame.c:464 plugins/faac/e_faac.c:242
-msgid "Write ID3V1.1 tag"
-msgstr ""
-
-#: plugins/lame/e_lame.c:470 plugins/faac/e_faac.c:248
-msgid "Write ID3V2 tag"
-msgstr ""
-
-#: plugins/lame/e_lame.c:476 plugins/faac/e_faac.c:254
-msgid "ID3V2 Encoding"
-msgstr ""
-
-#: plugins/lame/e_lame.c:481 plugins/faac/e_faac.c:259
-msgid "ISO-8859-1"
-msgstr ""
-
-#: plugins/lame/e_lame.c:481 plugins/faac/e_faac.c:259
-msgid "UTF-16 LE"
-msgstr ""
-
-#: plugins/lame/e_lame.c:482 plugins/faac/e_faac.c:260
-msgid "UTF-16 BE"
-msgstr ""
-
-#: plugins/lame/e_lame.c:482 plugins/faac/e_faac.c:260
-msgid "UTF-8"
-msgstr ""
-
-#: plugins/lame/e_lame.c:521 plugins/faac/e_faac.c:300
-#, c-format
-msgid "Cannot open %s: %s"
-msgstr ""
+msgstr "lame_set_quality fehlgeschlagen"
 
 #: plugins/lame/e_lame.c:576
 msgid "lame_set_in_samplerate failed"
-msgstr ""
+msgstr "lame_set_in_samplerate fehlgeschlagen"
 
 #: plugins/lame/e_lame.c:578
 msgid "lame_set_num_channels failed"
-msgstr ""
+msgstr "lame_set_num_channels fehlgeschlagen"
 
 #: plugins/lame/e_lame.c:581
 msgid "lame_set_scale failed"
-msgstr ""
+msgstr "lame_set_scale fehlgeschlagen"
 
 #: plugins/lame/e_lame.c:708
 msgid "Lame mp3 encoder"
-msgstr ""
+msgstr "Lame mp3 Codierer"
 
 #: plugins/lame/e_lame.c:709
 msgid ""
 "Encoder for mp3 files. Based on lame (http://www.mp3dev.org). Supports CBR, "
-"VBR, ID3V1 and ID3V2 tags."
+"ABR and VBR as well as ID3V1 and ID3V2 tags."
 msgstr ""
+"Enkoder für mp3-Dateien. Verwendet lame (http://www.mp3dev.org). Unterstützt "
+"CBR, ABR und VBR sowie ID3V1 und ID2V2 Kennungen"
 
-#: plugins/faac/e_faac.c:83
-msgid "Basic options"
-msgstr ""
+#: plugins/ogg/flac.c:105
+msgid "Got no Flac ID page"
+msgstr "Bekam keine Flac-Kennungsseite"
 
-#: plugins/faac/e_faac.c:88
-msgid "Object type"
-msgstr ""
+#: plugins/ogg/flac.c:110 plugins/ogg/flac.c:152
+#, c-format
+msgid "Writing to file failed: %s"
+msgstr "Schreiben in Datei fehlgeschlagen: %s"
 
-#: plugins/faac/e_faac.c:97
-msgid "MPEG-2 Main profile"
-msgstr ""
+#: plugins/ogg/flac.c:246
+msgid "FLAC__stream_encoder_init failed"
+msgstr "FLAC__stream_encoder_init fehlgeschlagen"
 
-#: plugins/faac/e_faac.c:98
-msgid "MPEG-2 Low Complexity profile (LC)"
-msgstr ""
+#: plugins/ogg/flac.c:257
+msgid "FLAC__stream_encoder_init_stream failed"
+msgstr "FLAC__stream_encoder_init_stream fehlgeschlagen"
 
-#: plugins/faac/e_faac.c:99
-msgid "MPEG-4 Main profile"
-msgstr ""
+#: plugins/ogg/flac.c:328 plugins/flac/e_flac.c:478
+msgid "Flac encoder"
+msgstr "Flac Enkoder"
 
-#: plugins/faac/e_faac.c:100
-msgid "MPEG-4 Low Complexity profile (LC)"
-msgstr ""
+#: plugins/ogg/e_speex.c:64 plugins/ogg/speex.c:581
+msgid "Speex encoder"
+msgstr "Speex Enkoder"
 
-#: plugins/faac/e_faac.c:101
-msgid "MPEG-4 Long Term Prediction (LTP)"
-msgstr ""
+#: plugins/ogg/e_speex.c:65
+msgid "Encoder for Speex files"
+msgstr "Enkoder für Speexdateien"
 
-#: plugins/faac/e_faac.c:110
-msgid "Average bitrate (0: VBR based on quality)"
-msgstr ""
+#: plugins/ogg/speex.c:144
+msgid "Speex mode"
+msgstr "Speexmodus"
 
-#: plugins/faac/e_faac.c:114
-msgid "Quality"
-msgstr ""
+#: plugins/ogg/speex.c:148
+msgid "Narrowband"
+msgstr "Schmalband"
 
-#: plugins/faac/e_faac.c:119
-msgid "Quantizer quality"
-msgstr ""
+#: plugins/ogg/speex.c:148
+msgid "Wideband"
+msgstr "Breitband"
 
-#: plugins/faac/e_faac.c:123
-msgid "Advanced options"
-msgstr ""
+#: plugins/ogg/speex.c:149
+msgid "Ultra-wideband"
+msgstr "Ultrabreitband"
 
-#: plugins/faac/e_faac.c:128
-msgid "Block types"
-msgstr ""
-
-#: plugins/faac/e_faac.c:135
-msgid "Both"
-msgstr ""
-
-#: plugins/faac/e_faac.c:136
-msgid "No short"
-msgstr ""
-
-#: plugins/faac/e_faac.c:137
-msgid "No long"
-msgstr ""
-
-#: plugins/faac/e_faac.c:143
-msgid "Use temporal noise shaping"
-msgstr ""
-
-#: plugins/faac/e_faac.c:148
-msgid "Don't use mid/side coding"
-msgstr ""
-
-#: plugins/faac/e_faac.c:173
-msgid "faacEncSetConfiguration failed"
-msgstr ""
-
-#: plugins/faac/e_faac.c:536
-msgid "Faac encoder"
-msgstr ""
-
-#: plugins/faac/e_faac.c:537
+#: plugins/ogg/speex.c:150
 msgid ""
-"Plugin for encoding AAC streams (with ADTS headers). Based on faac (http://"
-"faac.sourceforge.net)."
+"Encoding mode. If you select Auto, the mode will be taken from the "
+"samplerate."
 msgstr ""
+"Enkodiermodus. Wenn Du Automatisch wählst, wird der Modus aus der "
+"Abtastfrequenz ermittelt."
+
+#: plugins/ogg/speex.c:154
+msgid "Quality (10: best)"
+msgstr "Qualität (10: Beste)"
+
+#: plugins/ogg/speex.c:162
+msgid "Encoding complexity"
+msgstr "Enkodierkomplexität"
+
+#: plugins/ogg/speex.c:170
+msgid "Frames per Ogg packet"
+msgstr "Rahmen pro Ogg-Paket"
+
+#: plugins/ogg/speex.c:183
+msgid ""
+"Bitrate (in kbps). Set to 0 for seleting the standard bitrates for the "
+"encoding mode."
+msgstr ""
+"Bitrate (in kbps). Wähle 0 um die Standardbitrate für den Enkodiermodus zu "
+"nehmen."
+
+#: plugins/ogg/speex.c:187
+msgid "Variable bitrate"
+msgstr "Variable Bitrate"
+
+#: plugins/ogg/speex.c:192
+msgid "Average bitrate (kbps)"
+msgstr "Durchschnittliche Bitrate (kbps)"
+
+#: plugins/ogg/speex.c:197
+msgid "Average bitrate (in kbps). Set to 0 for disabling ABR."
+msgstr "Durchschnittliche Bitrate (in kbps). Wähle 0 um ABR abzuschalten."
+
+#: plugins/ogg/speex.c:201
+msgid "Use voice activity detection"
+msgstr "Verwende Sprachaktivitätserkennung"
+
+#: plugins/ogg/speex.c:206
+msgid "Enable file-based discontinuous transmission"
+msgstr "Aktiviere Dateibasierte, nichtkontinuierliche Übertragung"
+
+#: plugins/ogg/speex.c:432
+msgid "Got no Speex ID page"
+msgstr "Bekam keine Speex Kennungsseite"
+
+#: plugins/ogg/e_theora.c:61 plugins/ffmpeg/codecs.c:406
+msgid "Codec"
+msgstr "Codec"
+
+#: plugins/ogg/e_theora.c:149 plugins/ogg/theora.c:454
+msgid "Theora encoder"
+msgstr "Theora Kodierer"
+
+#: plugins/ogg/e_theora.c:150
+msgid "Encoder for Theora files. Audio can be Vorbis, Flac or Speex."
+msgstr "Kodierer für Theoradateien. Audio kann Vorbis, Flac oder Speex sein."
+
+#: plugins/ogg/e_flacogg.c:62
+msgid "Flac in Ogg encoder"
+msgstr "Flac in Ogg Kodierer"
+
+#: plugins/ogg/e_flacogg.c:63
+msgid ""
+"Encoder for flac streams in Ogg containers. Based on libflac (http://flac."
+"sourceforge.net)"
+msgstr ""
+"Kodierer für Flac Audio in Oggdateien. Verwendet libflac (http://flac."
+"sourceforge.net)"
+
+#: plugins/ogg/ogg_common.c:50
+#, c-format
+msgid "Cannot open file %s: %s"
+msgstr "Kann Datei %s nicht öffnen: %s"
+
+#: plugins/ogg/vorbis.c:92
+msgid "VBR"
+msgstr "VBR"
+
+#: plugins/ogg/vorbis.c:92
+msgid "VBR (bitrate)"
+msgstr "VBR (Bitrate)"
+
+#: plugins/ogg/vorbis.c:92
+msgid "Managed"
+msgstr "Gesteuert"
+
+#: plugins/ogg/vorbis.c:93
+msgid ""
+"Bitrate mode:\n"
+"VBR: You specify a quality and (optionally) a minimum and maximum bitrate\n"
+"VBR (bitrate): The specified nominal bitrate will be used for selecting the "
+"encoder mode.\n"
+"Managed: You specify a nominal bitrate and (optionally) a minimum and "
+"maximum bitrate\n"
+"VBR is recommended, managed bitrate might result in a worse quality"
+msgstr ""
+"Bitratenmodus:\\n\n"
+"VBR: Du wählst eine Qualität und (optional) eine minimale und maximale "
+"Bitrate\\n\n"
+"VBR (Bitrate): Die gewählte Bitrate wird verwendet um den Kdiermodus zu "
+"wählen.\\n\n"
+"Gesteuert: Du wählst eine nominelle und (optional) eine minimale und "
+"maximale Bitrate.\\n\n"
+"VBR ist empfohlen, kontrollierte Bitrate könnte Qualitätseinbußen bringen."
+
+#: plugins/ogg/vorbis.c:101
+msgid "Nominal bitrate (kbps)"
+msgstr "Nominelle Bitrate (kbps)"
+
+#: plugins/ogg/vorbis.c:106
+msgid "Nominal bitrate (in kbps) for managed mode"
+msgstr "Nominelle Bitrate (in kbps) für gesteuerten Modus"
+
+#: plugins/ogg/vorbis.c:110
+msgid "VBR Quality (10: best)"
+msgstr "VBR Qualität (10: Beste)"
+
+#: plugins/ogg/vorbis.c:116
+msgid ""
+"Quality for VBR mode\n"
+"10: best (largest output file)\n"
+"0:  worst (smallest output file)"
+msgstr ""
+"Qualität für VBR Modus\\n\n"
+"10: Beste (größte Datei)\\n\n"
+"0: Schlechteste (kleinste Datei)"
+
+#: plugins/ogg/vorbis.c:122 plugins/ffmpeg/params.h:216
+msgid "Minimum bitrate (kbps)"
+msgstr "Minimale Bitrate (kbps)"
+
+#: plugins/ogg/vorbis.c:127
+msgid ""
+"Optional minimum bitrate (in kbps)\n"
+"0 = unspecified"
+msgstr "Optionale minimale Bitrate (0 = beliebig)"
+
+#: plugins/ogg/vorbis.c:132 plugins/ffmpeg/params.h:226
+msgid "Maximum bitrate (kbps)"
+msgstr "Maximale Bitrate (kbps)"
+
+#: plugins/ogg/vorbis.c:137
+msgid ""
+"Optional maximum bitrate (in kbps)\n"
+"0 = unspecified"
+msgstr "Optionale maximale Bitrate (0 = beliebig)"
+
+#: plugins/ogg/vorbis.c:257
+msgid "Got no Vorbis ID page"
+msgstr "Bekam keine Vorbis-Kennungsseite"
+
+#: plugins/ogg/vorbis.c:412 plugins/ogg/e_vorbis.c:64
+msgid "Vorbis encoder"
+msgstr "Vorbis Kodierer"
+
+#: plugins/ogg/theora.c:68
+msgid "Chroma subsampling mode"
+msgstr "Chroma subsampling Modus"
+
+#: plugins/ogg/theora.c:76
+msgid "Use constant bitrate"
+msgstr "Verwende konstante Bitrate"
+
+#: plugins/ogg/theora.c:78
+msgid ""
+"For constant bitrate, choose a target bitrate. For variable bitrate, choose "
+"a nominal quality."
+msgstr ""
+"Für constante Bitrate, wähle eine Zielbitrate. Für variable Bitrate, wähle "
+"eine nominelle Qualität"
+
+#: plugins/ogg/theora.c:82
+msgid "Target bitrate (kbps)"
+msgstr "Zielbitrate (kbps)"
+
+#: plugins/ogg/theora.c:90
+msgid "Nominal quality"
+msgstr "Nominelle Qualität"
+
+#: plugins/ogg/theora.c:96
+msgid ""
+"Quality for VBR mode\n"
+"63: best (largest output file)\n"
+"0:  worst (smallest output file)"
+msgstr ""
+"Qualität für VBR Modus\\n\n"
+"63: Beste (größte Datei)\\n\n"
+"0: Schlechteste (kleinste Datei)"
+
+#: plugins/ogg/theora.c:102
+msgid "Automatic keyframe insertion"
+msgstr "Automatisches Einfügen von Keyframes"
+
+#: plugins/ogg/theora.c:108
+msgid "Keyframe frequency"
+msgstr "Keyframefrequenz"
+
+#: plugins/ogg/theora.c:114
+msgid "Keyframe frequency force"
+msgstr "Erzwinge Keyframefrequenz"
+
+#: plugins/ogg/theora.c:120
+msgid "Keyframe auto threshold"
+msgstr "Keyframeschwelle"
+
+#: plugins/ogg/theora.c:126
+msgid "Keyframe minimum distance"
+msgstr "Minimaler Abstand zwischen Keyframes"
+
+#: plugins/ogg/theora.c:132
+msgid "Quick encode"
+msgstr "Schnelles Kodieren"
+
+#: plugins/ogg/theora.c:138
+msgid "Sharpness"
+msgstr "Schärfe"
+
+#: plugins/ogg/theora.c:146
+msgid "Noise Sensitivity"
+msgstr "Rauschempfindlichkeit"
+
+#: plugins/ogg/theora.c:328
+msgid "theora_encode_init failed"
+msgstr "theora_encode_init fehlgeschlagen"
+
+#: plugins/ogg/theora.c:338
+msgid "theora_encode_header failed"
+msgstr "theora_encode_header fehlgeschlagen"
+
+#: plugins/ogg/theora.c:347
+msgid "Got no Theora ID page"
+msgstr "Bekam keine Theora-Kennungsseite"
+
+#: plugins/ogg/theora.c:384 plugins/ogg/theora.c:426
+msgid "Theora encoder produced no packet"
+msgstr "Theora Kodierer hat kein Paket erzeugt"
+
+#: plugins/ogg/theora.c:391
+msgid "Writing theora packet failed"
+msgstr "Schreiben des Theorapaketes fehlgeschlagen"
+
+#: plugins/ogg/theora.c:435
+msgid "Writing packet failed"
+msgstr "Schreiben des Paketes fehlgeschlagen"
+
+#: plugins/ogg/e_vorbis.c:65
+msgid "Encoder for Vorbis files"
+msgstr "Kodierer für Vorbisdateien"
+
+#: plugins/flac/e_flac.c:74
+msgid "Write vorbis comment"
+msgstr "Schreibe Vorbis-Kommentar"
+
+#: plugins/flac/e_flac.c:77
+msgid "Write Vorbis comment containing metadata to the file"
+msgstr "Schreibe Vorbis-Kommentar mit Metadaten in die Datei"
+
+#: plugins/flac/e_flac.c:81
+msgid "Write seek table"
+msgstr "Schreibe Suchtabelle"
+
+#: plugins/flac/e_flac.c:84
+msgid "Write seektable (strongly recommended)"
+msgstr "Schreibe Suchtabelle (dringend empfohlen)"
+
+#: plugins/flac/e_flac.c:88
+msgid "Entries in the seektable"
+msgstr "Einträge in der Suchtabelle"
+
+#: plugins/flac/e_flac.c:93
+msgid ""
+"Maximum number of entries in the seek table. Default is 100, larger numbers "
+"result in shorter seeking times but also in larger files."
+msgstr ""
+"Maximale Zahl der Einträge in der Suchtabelle. Voreinstellung ist 100, "
+"größere Zahlen resultieren in schnellerem Suchen aber auch in größeren "
+"Dateien."
+
+#: plugins/flac/e_flac.c:211
+#, c-format
+msgid "Initializing encoder failed: %s"
+msgstr "Initialisierung des Kodierers fehlgeschlagen: %s"
+
+#: plugins/flac/e_flac.c:214
+msgid "Initializing encoder failed"
+msgstr "Initialisierung des Kodierers fehlgeschlagen"
+
+#: plugins/flac/e_flac.c:479
+msgid "Encoder for flac files. Based on libflac (http://flac.sourceforge.net)"
+msgstr ""
+"Kodierer für Flacdateien. Verwendet libflac (http://flac.sourceforge.net)"
+
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:155
+msgid "Chroma mode"
+msgstr "Chroma modus"
+
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:169
+msgid "4:2:0 (MPEG-1/JPEG)"
+msgstr "4:2:0 (MPEG-1/JPEG)"
+
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:170
+msgid "4:2:0 (MPEG-2)"
+msgstr "4:2:0 (MPEG-2)"
+
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:171
+msgid "4:2:0 (PAL DV)"
+msgstr "4:2:0 (PAL DV)"
+
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:172
+msgid "4:4:4"
+msgstr "4:4:4"
+
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:173
+msgid "4:2:2"
+msgstr "4:2:2"
+
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:174
+msgid "4:1:1"
+msgstr "4:1:1"
+
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:175
+msgid "Greyscale"
+msgstr "Graustufen"
+
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:176
+msgid "4:4:4:4 (YUVA)"
+msgstr "4:4:4:4 (YUVA)"
+
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:178
+msgid ""
+"Set the chroma mode of the output file. Auto means to take the format most "
+"similar to the source."
+msgstr ""
+"Wähle Farbmodus der Datei. Automatisch heißt, den Farbmodus, der dem "
+"Quellformat am ähnlichsten ist, zu verwenden."
+
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:262
+msgid "yuv4mpeg2 encoder"
+msgstr "yuv4mpeg2 Kodierer"
+
+#: plugins/yuv4mpeg/e_yuv4mpeg.c:263
+msgid ""
+"Encoder for yuv4mpeg files. Based on mjpegtools (http://mjpeg.sourceforge."
+"net)."
+msgstr ""
+"Kodierer für yuv4mpeg Dateien. Verwendet mjpegtools (http://mjpeg."
+"sourceforge.net)"
+
+#: plugins/yuv4mpeg/mpv_common.c:54 plugins/yuv4mpeg/e_mpeg.c:417
+#: plugins/ffmpeg/ffmpeg_common.c:22
+msgid "Format"
+msgstr "Format"
+
+#: plugins/yuv4mpeg/mpv_common.c:58 plugins/yuv4mpeg/e_mpeg.c:421
+msgid "MPEG-1 (generic)"
+msgstr "MPEG-1 (allgemein)"
+
+#: plugins/yuv4mpeg/mpv_common.c:58 plugins/yuv4mpeg/e_mpeg.c:422
+msgid "MPEG-2 (generic)"
+msgstr "MPEG-2 (allgemein)"
+
+#: plugins/yuv4mpeg/mpv_common.c:59
+msgid "VCD"
+msgstr "VCD"
+
+#: plugins/yuv4mpeg/mpv_common.c:59
+msgid "SVCD"
+msgstr "SVCD"
+
+#: plugins/yuv4mpeg/mpv_common.c:59
+msgid "DVD (for dvdauthor)"
+msgstr "DVD (für dvdauthor)"
+
+#: plugins/yuv4mpeg/mpv_common.c:61
+msgid ""
+"Sets the MPEG flavour. Note, that for VCD, SVCD and DVD, you MUST provide "
+"valid frame sizes"
+msgstr ""
+"Wählt den MPEG-Modus. Beachte: Für VCD, SVCD und DVD MUSST Du gültige "
+"Bildgrößen liefern"
+
+#: plugins/yuv4mpeg/mpv_common.c:66
+msgid "Bitrate Mode"
+msgstr "Bitratenmodus"
+
+#: plugins/yuv4mpeg/mpv_common.c:71
+msgid ""
+"Specify constant or variable bitrate. For \"Auto\", constant bitrate will be "
+"used for MPEG-1, variable bitrate will be used for MPEG-2. For formats, "
+"which require CBR, this option is ignored"
+msgstr ""
+"Wähle konstante oder variable Bitrate. Automatisch wählt CBR für MPEG-1 und "
+"VBR für MPEG-2. Für Formate, die eine feste Bitrate benötigen, wird diese "
+"Option ignoriert."
+
+#: plugins/yuv4mpeg/mpv_common.c:82
+msgid ""
+"Video bitrate in kbps. For VBR, it's the maximum bitrate. If the format "
+"requires a fixed bitrate (e.g. VCD) this option is ignored"
+msgstr ""
+"Video Bitrate in kbps. Für VBR ist dies die maximale Bitrate. Für Formate, "
+"die eine feste Bitrate benötigen, wird diese Option ignoriert."
+
+#: plugins/yuv4mpeg/mpv_common.c:87
+msgid "Quantization"
+msgstr "Quantisierung"
+
+#: plugins/yuv4mpeg/mpv_common.c:92
+msgid ""
+"Minimum quantization for VBR. Lower numbers mean higher quality. For CBR, "
+"this option is ignored."
+msgstr ""
+"Minimaler Quantizierer für VBR. Niedrigere Werte bedeuten höhere Qualität. "
+"Für CBR wird diese Option ignoriert."
+
+#: plugins/yuv4mpeg/mpv_common.c:96
+msgid "Quantization matrices"
+msgstr "Quantisierungsmatrizen"
+
+#: plugins/yuv4mpeg/mpv_common.c:101
+msgid "Default"
+msgstr "Voreinstellung"
+
+#: plugins/yuv4mpeg/mpv_common.c:101
+msgid "KVCD"
+msgstr "KVCD"
+
+#: plugins/yuv4mpeg/mpv_common.c:102
+msgid "tmpegenc"
+msgstr "tmpegenc"
+
+#: plugins/yuv4mpeg/mpv_common.c:102
+msgid "Hi-Res"
+msgstr "Hi-Res"
+
+#: plugins/yuv4mpeg/mpv_common.c:107
+msgid "Number of B-Frames"
+msgstr "Anzahl der B-Frames"
+
+#: plugins/yuv4mpeg/mpv_common.c:112
+msgid ""
+"Specify the number of B-frames between 2 P/I frames. More B-frames slow down "
+"encoding and increase memory usage, but might give better compression "
+"results. For VCD, this option is ignored, since the VCD standard requires 2 "
+"B-frames, no matter if you like them or not."
+msgstr ""
+"Wähle die Zahl der B-Frames zwischen 2 P/I frames. Mehr B-Frames bremsen den "
+"Kodierprozess und erhöhen den Speicherbedarf, können aber bessere Qualität "
+"bringen. Für VCD wird diese Option ignoriert, da der VCD Standard 2 B-Frames "
+"fordert, egal ob Du willst, oder nicht."
+
+#: plugins/yuv4mpeg/mpv_common.c:118
+msgid "User options"
+msgstr "Benutzeroptionen"
+
+#: plugins/yuv4mpeg/mpv_common.c:120
+msgid ""
+"Enter further commandline options for mpeg2enc here. Check the mpeg2enc "
+"manual page for details"
+msgstr ""
+"Gib zusätliche Komanndozeilenargumente für mpeg2enc an. Schau in die "
+"mpeg2enc Manual-Page für Einzelheiten."
+
+#: plugins/yuv4mpeg/mpv_common.c:184
+msgid "Cannot find mpeg2enc executable"
+msgstr "Kann ausführbare Datei mpeg2enc nicht finden"
+
+#: plugins/yuv4mpeg/mpv_common.c:337 plugins/yuv4mpeg/mpv_common.c:361
+msgid "Unknown MPEG format"
+msgstr "Unbekanntes MPEG Format"
+
+#: plugins/yuv4mpeg/mpv_common.c:356
+msgid "Mixed interlacing not supported (yet)"
+msgstr "Gemischtes Interlacing wird nicht unterstützt (bis jetzt)"
+
+#: plugins/yuv4mpeg/e_mpegaudio.c:99 plugins/yuv4mpeg/mpa_common.c:98
+msgid "Cannot find mp2enc executable"
+msgstr "Kann ausführbare Datei mp2enc nicht finden"
+
+#: plugins/yuv4mpeg/e_mpegaudio.c:133 plugins/yuv4mpeg/e_mpegvideo.c:102
+#: plugins/yuv4mpeg/e_mpeg.c:366 plugins/yuv4mpeg/e_mpeg.c:380
+#, c-format
+msgid "Removing %s"
+msgstr "Entferne %s"
+
+#: plugins/yuv4mpeg/e_mpegaudio.c:160
+msgid "MPEG-1 layer 1/2 audio encoder"
+msgstr "MPEG-1 layer 1/2 Audio Kodierer"
+
+#: plugins/yuv4mpeg/e_mpegaudio.c:161
+msgid ""
+"Encoder for elementary MPEG-1 layer 1/2 audio streams. Based on mjpegtools "
+"(http://mjpeg.sourceforge.net)."
+msgstr ""
+"Kodierer für elementare MPEG-1 layer 1/2 Audiodateien. Verwendet mjpegtools "
+"(http://mjpeg.sourceforge.net)."
+
+#: plugins/yuv4mpeg/y4m_common.c:122
+msgid "Writing stream header failed"
+msgstr "Schreiben des Kopfes fehlgeschlagen"
+
+#: plugins/yuv4mpeg/e_mpegvideo.c:136
+msgid "MPEG-1/2 video encoder"
+msgstr "MPEG-1/2 Video Kodierer"
+
+#: plugins/yuv4mpeg/e_mpegvideo.c:137
+msgid ""
+"Encoder for elementary MPEG-1/2 video streams. Based on mjpegtools (http://"
+"mjpeg.sourceforge.net)."
+msgstr ""
+"Kodierer für elementare MPEG-1/2 Videodateien. Verwendet mjpegtools (http://"
+"mjpeg.sourceforge.net)."
+
+#: plugins/yuv4mpeg/e_mpeg.c:103
+msgid "Cannot find mpeg2enc exectuable"
+msgstr "Kann ausführbare Datei mpeg2enc nicht finden"
+
+#: plugins/yuv4mpeg/e_mpeg.c:108
+msgid "Cannot find mp2enc exectuable"
+msgstr "Kann ausführbare Datei mp2enc nicht finden"
+
+#: plugins/yuv4mpeg/e_mpeg.c:113 plugins/yuv4mpeg/e_mpeg.c:301
+msgid "Cannot find mplex exectuable"
+msgstr "Kann ausführbare Datei mplex nicht finden"
+
+#: plugins/yuv4mpeg/e_mpeg.c:421
+msgid "MPEG-1 (VCD)"
+msgstr "MPEG-1 (VCD)"
+
+#: plugins/yuv4mpeg/e_mpeg.c:422
+msgid "MPEG-2 (SVCD)"
+msgstr "MPEG-2 (SVCD)"
+
+#: plugins/yuv4mpeg/e_mpeg.c:423
+msgid "DVD (NAV)"
+msgstr "DVD (NAV)"
+
+#: plugins/yuv4mpeg/e_mpeg.c:423
+msgid "DVD"
+msgstr "DVD"
+
+#: plugins/yuv4mpeg/e_mpeg.c:424
+msgid ""
+"Output format. Note that for some output formats (e.g. VCD), you MUST use "
+"proper settings for the audio and video streams also, since this isn't done "
+"automatically"
+msgstr ""
+"Ausgabeformat. Beachte, daß Du für einige Formate (z.B. VCD) die richtigen "
+"Einstellungen für die Audio- und Videokodierer machen mußt, da dies nicht "
+"automatisch geschieht."
+
+#: plugins/yuv4mpeg/e_mpeg.c:428
+msgid "Directory for temporary files"
+msgstr "Verzeichnis für temporäre Dateien"
+
+#: plugins/yuv4mpeg/e_mpeg.c:430
+msgid "Leave empty to use the same directory as the final output file"
+msgstr ""
+"Leerlassen um das gleiche Verzeichnis, wie die endgütlige Ausgabedatei, zu "
+"wählen"
+
+#: plugins/yuv4mpeg/e_mpeg.c:434
+msgid "Additional stream 1"
+msgstr "Zusätzlicher Stream 1"
+
+#: plugins/yuv4mpeg/e_mpeg.c:436 plugins/yuv4mpeg/e_mpeg.c:443
+#: plugins/yuv4mpeg/e_mpeg.c:450
+msgid ""
+"Additional stream to multiplex into the final output file. Use this if you "
+"want e.g. create mp3 or AC3 audio with some other encoder"
+msgstr ""
+"Zusätzliche Streams zum Multiplexen in die endgültige Ausgabedatei. Benutze "
+"dies, wenn Du z.B. mp3 oder AC3 mit anderen Kodieren ergeugen willst."
+
+#: plugins/yuv4mpeg/e_mpeg.c:441
+msgid "Additional stream 2"
+msgstr "Zusätzlicher Stream 2"
+
+#: plugins/yuv4mpeg/e_mpeg.c:448
+msgid "Additional stream 3"
+msgstr "Zusätzlicher Stream 3"
+
+#: plugins/yuv4mpeg/e_mpeg.c:529
+msgid "MPEG 1/2 program/system stream encoder"
+msgstr "MPEG 1/2 program/system stream Kodierer"
+
+#: plugins/yuv4mpeg/e_mpeg.c:530
+msgid ""
+"Encoder for regular .mpg files as well as VCD and DVD streams. Based on "
+"mjpegtools (http://mjpeg.sourceforge.net)"
+msgstr ""
+"Kodierer für reguläre mpg-Dateien sowie VCD und DVD Dateien. Verwendet "
+"mjpegtools (http://mjpeg.sourceforge.net)"
+
+#: plugins/yuv4mpeg/mpa_common.c:48
+msgid "Layer (1 or 2)"
+msgstr "Layer (1 oder 2)"
+
+#: plugins/yuv4mpeg/mpa_common.c:53
+msgid "Audio layer"
+msgstr "Audio layer"
+
+#: plugins/yuv4mpeg/mpa_common.c:57
+msgid "VCD Compatible"
+msgstr "VCD-kompatibel"
+
+#: plugins/yuv4mpeg/mpa_common.c:60
+msgid ""
+"Make VCD compliant output. This forces layer II, 224 kbps and 44.1 KHz stereo"
+msgstr ""
+"Erzeuge VCD-kompatible Ausgabe. Dies erzwingt Layer II, 224 kbps und 44.1 "
+"KHz Stereo"
+
+#: plugins/yuv4mpeg/mpa_common.c:198
+#, c-format
+msgid "Bitrate %d kbps unsupported, switching to %d kbps"
+msgstr "Bitrate %d kbps wird nicht unterstützt, wähle %d kbps"
+
+#: plugins/yuv4mpeg/mpa_common.c:254
+#, c-format
+msgid "Samplerate %d unsupported, switching to %d"
+msgstr "Samplerate %d wird nicht unterstützt, wähle %d"
+
+#: plugins/ffmpeg/e_ffmpeg.c:129
+msgid "FFmpeg audio/video encoder"
+msgstr "FFmpeg Audio/Video Kodierer"
+
+#: plugins/ffmpeg/e_ffmpeg.c:130
+msgid ""
+"Plugin for encoding various audio/video formats with ffmpeg (http://www."
+"ffmpeg.org)."
+msgstr ""
+"\"Plugin zum Erzeugen Verschiedener Audio/Video Formate mit ffmpeg (http://"
+"www.ffmpeg.org).\""
 
 #: plugins/ffmpeg/params.h:12 plugins/ffmpeg/params.h:21
 #: plugins/ffmpeg/codecs.c:11 plugins/ffmpeg/codecs.c:22
 #: plugins/ffmpeg/codecs.c:33 plugins/ffmpeg/codecs.c:44
 msgid "Bit rate (kbps)"
-msgstr ""
+msgstr "Bitrate (kbps)"
 
 #: plugins/ffmpeg/params.h:30
 msgid "Bitrate tolerance (kbps)"
-msgstr ""
+msgstr "Bitratentoleranz (kbps)"
 
 #: plugins/ffmpeg/params.h:33
 msgid ""
 "Number of bits the bitstream is allowed to diverge from the reference. "
 "Unused for constant quantizer encoding"
 msgstr ""
+"Anzahl an Bits die der Bitstream von der Referenz abweichen darf. Nicht "
+"verwendet bei konstantem Quantizer Codieren."
 
 #: plugins/ffmpeg/params.h:41
 msgid "Motion estimation method"
-msgstr ""
+msgstr "Art der Motion Estimation"
 
+# keine?
 #: plugins/ffmpeg/params.h:45
 msgid "Zero"
-msgstr ""
+msgstr "Null"
 
 #: plugins/ffmpeg/params.h:45
 msgid "Phods"
-msgstr ""
+msgstr "Phods"
 
 #: plugins/ffmpeg/params.h:45
 msgid "Log"
-msgstr ""
+msgstr "Log"
 
 #: plugins/ffmpeg/params.h:46
 msgid "X1"
-msgstr ""
+msgstr "X1"
 
 #: plugins/ffmpeg/params.h:46
 msgid "Epzs"
-msgstr ""
+msgstr "Epzs"
 
 #: plugins/ffmpeg/params.h:46
 msgid "Full"
-msgstr ""
+msgstr "Voll"
 
 #: plugins/ffmpeg/params.h:53
 msgid "GOP size (0 = intra only)"
-msgstr ""
+msgstr "GOP größe (0 = nur intra)"
 
 #: plugins/ffmpeg/params.h:64
 msgid "Quantizer compression"
-msgstr ""
+msgstr "Quantizer Kompression"
 
 #: plugins/ffmpeg/params.h:70
 msgid "Amount of qscale change between easy & hard scenes"
-msgstr ""
+msgstr "Menge der qcale Änderung zwiischen leichten und schweren Szenen"
 
 #: plugins/ffmpeg/params.h:77
 msgid "Quantizer blur"
-msgstr ""
+msgstr "Quantizer Unschärfe"
 
 #: plugins/ffmpeg/params.h:83
 msgid "Amount of qscale smoothing over time"
-msgstr ""
+msgstr "Menge an qscale Glättung über die Zeit"
 
 #: plugins/ffmpeg/params.h:90
 msgid "Minimum quantizer scale"
-msgstr ""
+msgstr "Minimale Quantizer Skalierung"
 
 #: plugins/ffmpeg/params.h:101
 msgid "Maximum quantizer scale"
-msgstr ""
+msgstr "Maximale Qunatizer Skalierung"
 
 #: plugins/ffmpeg/params.h:112
 msgid "Maximum quantizer difference"
-msgstr ""
+msgstr "Maximaler Quantizer Unterschied"
 
 #: plugins/ffmpeg/params.h:117
 msgid "Maximum quantizer difference between frames"
-msgstr ""
+msgstr "Maximaler quantizer Unterschied zwischen Frames"
 
 #: plugins/ffmpeg/params.h:124
 msgid "Max B-Frames"
-msgstr ""
+msgstr "Max B-Frames"
 
 #: plugins/ffmpeg/params.h:129
 msgid "Maximum number of B-frames between non B-frames"
-msgstr ""
+msgstr "Maximale Anzahl an B-Frames zwischen nicht B-Frames"
 
 #: plugins/ffmpeg/params.h:136
 msgid "B quantizer factor"
-msgstr ""
+msgstr "B Quantizer Faktor"
 
 #: plugins/ffmpeg/params.h:142
 msgid "Quantizer factor between B-frames and non-B-frames"
-msgstr ""
+msgstr "Quantizer Faktor zwischen B-Frames und nicht B-Frames"
 
 #: plugins/ffmpeg/params.h:149
 msgid "Avoid B-frames in high motion scenes"
-msgstr ""
+msgstr "Vermeide B-Frames in bewegungsintensiven Szenen"
 
+# vielleicht etwas zu weit hergeholt
 #: plugins/ffmpeg/params.h:157
 msgid "Luma elimination threshold"
-msgstr ""
+msgstr "Luma Grenzwert"
 
 #: plugins/ffmpeg/params.h:162
 msgid ""
 "Single coefficient elimination threshold for luminance. Negative values also "
 "consider dc coefficient. -4 is JVT recommendation"
 msgstr ""
+"Schwellwert für die Beseitigung einzelner Luminanz Koeffizienten. Bei "
+"negativen Werten werden auch DC Koeffizienten miteinbezogen. Die JVT "
+"Empfehlung ist -4"
 
 #: plugins/ffmpeg/params.h:170
 msgid "Chroma elimination threshold"
-msgstr ""
+msgstr "Chroma Grenzwert"
 
+# Farbwerte
+# etwas zu wissenschaftlich
 #: plugins/ffmpeg/params.h:175
 msgid ""
 "Single coefficient elimination threshold for chrominamce. Negative values "
 "also consider dc coefficient. 7 is JVT recommendation"
 msgstr ""
+"Schwellwert für die Beseitigung einzelner Chrominanz Koeffizienten. Bei "
+"negativen Werten werden auch DC Koeffizienten miteinbezogen. Die JVT "
+"Empfehlung ist 7"
 
+# Standartskonformität
 #: plugins/ffmpeg/params.h:183
 msgid "Standards compliance"
-msgstr ""
+msgstr "Konformität mit Standards"
 
 #: plugins/ffmpeg/params.h:188
 msgid ""
@@ -803,105 +1155,126 @@ msgid ""
 "-1: Allow inofficial extensions\n"
 "-2: Allow non standarized experimental things"
 msgstr ""
+"2: Strenges Befolgen einer älteren, strengeren Version der Spezifikation "
+"oder Referenzsoftware\n"
+"1: Strenges Befolgen der Spezifikation oder Referenzsoftware ungeachtet der "
+"Konsequenzen\n"
+"0: Voreinstellung\n"
+"-1: Erlaube inoffizielle Erweiterungen\n"
+"-2: Erlaube nicht standardisierte und experimentelle Dinge"
 
 #: plugins/ffmpeg/params.h:201
 msgid "B quantizer offset"
-msgstr ""
+msgstr "B Quantizer Versatz"
 
 #: plugins/ffmpeg/params.h:207
 msgid ""
 "Quantizer offset between B-frames and non-B-frames\n"
 "if > 0 then the last p frame quantizer will be used (q= lastp_q*factor"
 "+offset)\n"
-"if < 0 then normal ratecontrol will be done (q= -normal_q*factor+offset)\n"
+"if < 0 then normal ratecontrol will be done (q= -normal_q*factor+offset)"
 msgstr ""
-
-#: plugins/ffmpeg/params.h:216 plugins/ogg/vorbis.c:122
-msgid "Minimum bitrate (kbps)"
-msgstr ""
+"Quantizer Faktor zwischen P-frames und I-frames.\n"
+"Wenn > 0 dann wird der letzte P Frame Quantizer verwendet (q= "
+"Letzterp_q*Faktor+Versatz).\n"
+"Wenn < 0 dann wird normale Ratensteuerung verwendet (q= -Normal_q*Faktor"
+"+Versatz)"
 
 #: plugins/ffmpeg/params.h:219
 msgid "Minimum bitrate (0 means arbitrary)"
-msgstr ""
-
-#: plugins/ffmpeg/params.h:226 plugins/ogg/vorbis.c:132
-msgid "Maximum bitrate (kbps)"
-msgstr ""
+msgstr "Minimale Bitrate (0 bedeutet beliebig)"
 
 #: plugins/ffmpeg/params.h:229
 msgid "Maximum bitrate (0 means arbitrary)"
-msgstr ""
+msgstr "Maximale Bitrate (0 bedeutet beliebig)"
 
 #: plugins/ffmpeg/params.h:236
 msgid "RC buffer size"
-msgstr ""
+msgstr "RC Puffergröße"
 
 #: plugins/ffmpeg/params.h:239
 msgid ""
 "Decoder bitstream buffer size in kbits. When encoding with max and/or min "
 "bitrate, this must be specified."
 msgstr ""
+"Decoder Bitstream Puffergröße in kbits. Beim Codieren mit Max und/oder Min "
+"Bitrate muss dies angegeben werden."
 
 #: plugins/ffmpeg/params.h:247
 msgid "RC buffer aggressivity"
-msgstr ""
+msgstr "RC Puffer Aggressivität"
 
+# ..ungs..
 #: plugins/ffmpeg/params.h:259
 msgid "I quantizer factor"
-msgstr ""
+msgstr "I Quantizer Faktor"
 
 #: plugins/ffmpeg/params.h:265
 msgid ""
 "Quantizer factor between P-frames and I-frames.\n"
 "If > 0 then the last P frame quantizer will be used (q= lastp_q*factor"
 "+offset).\n"
-"If < 0 then normal ratecontrol will be done (q= -normal_q*factor+offset)\n"
+"If < 0 then normal ratecontrol will be done (q= -normal_q*factor+offset)"
 msgstr ""
+"Quantizer Faktor zwischen P-frames und I-frames.\n"
+"Wenn > 0 dann wird der letzte P Frame Quantizer verwendet (q= "
+"Letzterp_q*Faktor+Versatz).\n"
+"Wenn < 0 dann wird normale Ratensteuerung verwendet (q= -Normal_q*Faktor"
+"+Versatz)"
 
+# ..ungs..
 #: plugins/ffmpeg/params.h:274
 msgid "I quantizer offset"
-msgstr ""
+msgstr "I Quantizer Versatz"
 
 #: plugins/ffmpeg/params.h:280
 msgid "Quantizer offset between P-frames and I-frames"
-msgstr ""
+msgstr "Quantizer Versatz zwischen P-Frames und I-Frames"
 
 #: plugins/ffmpeg/params.h:287
 msgid "Initial RC complexity"
-msgstr ""
+msgstr "Anfängliche RC Komplexität"
 
 #: plugins/ffmpeg/params.h:299
 msgid "Luminance masking"
-msgstr ""
+msgstr "Helligkeitsmaskierung"
 
 #: plugins/ffmpeg/params.h:305
 msgid ""
 "Encode very bright image parts with reduced quality. 0 means disabled, 0-0.3 "
 "is a sane range."
 msgstr ""
+"Codiere sehr helle Bild teile mit verringerter Qualität. 0 heißt "
+"deaktiviert, 0-0,3 ist ein vernünftiger Bereich."
 
+# geht warscheinlich besser
 #: plugins/ffmpeg/params.h:313
 msgid "Temporary complexity masking"
-msgstr ""
+msgstr "Maskierung Temporaler Komplexitäten"
 
 #: plugins/ffmpeg/params.h:319
 msgid ""
 "Encode very fast moving image parts with reduced quality. 0 means disabled."
 msgstr ""
+"Codiere sehr Bewegungsintensive Bild teile mit verringerter Qualität. 0 "
+"heißt deakiviert"
 
+# spatial lassen?
 #: plugins/ffmpeg/params.h:327
 msgid "Spatial complexity masking"
-msgstr ""
+msgstr "Maskierung Regionaler Komplexitäten"
 
 #: plugins/ffmpeg/params.h:333
 msgid ""
 "Encode very complex image parts with reduced quality. 0 means disabled, 0-"
 "0.5 is a sane range."
 msgstr ""
+"Codiere sehr komplexe Bild teile mit verringerter Qualität. 0 heißt "
+"deaktiviert, 0-0,5 ist ein vernünftiger Bereich."
 
 #: plugins/ffmpeg/params.h:341
 msgid "Inter block masking"
-msgstr ""
+msgstr "Interblock Maskierung"
 
 #: plugins/ffmpeg/params.h:347
 msgid ""
@@ -909,40 +1282,45 @@ msgid ""
 "blocks).  0 means disabled, 1 will double the bits allocated for intra "
 "blocks."
 msgstr ""
+"Kodiere Inter-Blöcke mit reduzierter Qualität (erhöhe die Qualität von Intra-"
+"Blöcken). 0 heist abgeschaltet, 1 wird die Zahl der Bits für Intra-Blöcke "
+"verdoppeln."
 
 #: plugins/ffmpeg/params.h:355
 msgid "Darkness masking"
-msgstr ""
+msgstr "Dunkelheitsmaskierung"
 
 #: plugins/ffmpeg/params.h:361
 msgid ""
-"Encode very dark image parts with reduced quality.0 means disabled, 0-0.3 is "
-"a sane range."
+"Encode very dark image parts with reduced quality. 0 means disabled, 0-0.3 "
+"is a sane range."
 msgstr ""
+"Codiere sehr dunkle Bild teile mit verringerter Qualität. 0 heißt "
+"deaktiviert, 0-0,3 ist ein vernünftiger Bereich."
 
 #: plugins/ffmpeg/params.h:368
 msgid "Precition method"
-msgstr ""
+msgstr "Vorhersagemethode"
 
 #: plugins/ffmpeg/params.h:372
 msgid "Left"
-msgstr ""
+msgstr "Links"
 
 #: plugins/ffmpeg/params.h:372
 msgid "Plane"
-msgstr ""
+msgstr "Plane"
 
 #: plugins/ffmpeg/params.h:372
 msgid "Median"
-msgstr ""
+msgstr "Median"
 
 #: plugins/ffmpeg/params.h:379
 msgid "Minimum MB quantizer"
-msgstr ""
+msgstr "Minimaler MB Quantizer"
 
 #: plugins/ffmpeg/params.h:390
 msgid "Maximum MB quantizer"
-msgstr ""
+msgstr "Maximaler MB Quantizer"
 
 #: plugins/ffmpeg/params.h:400
 msgid ""
@@ -958,62 +1336,74 @@ msgid ""
 "VSSE: Sum of squared vertical differences\n"
 "NSSE: Noise preserving sum of squared differences"
 msgstr ""
+"SAD: Summe der absoluten Differenzen\n"
+"SSE: Summe der quadrierten errors\n"
+"SATD: Summe der absoluten Hadamard transformierten Differenzen\n"
+"DCT: Summe der absoluten DCT transformierten Differenzen\n"
+"PSNR: Summe der quadrierten Quantisierungsfehler (niedrige Qualität)\n"
+"BIT: Zahl der für einen Block benötigten Bits\n"
+"RD: Ratenverzerrung optimal (langsam)\n"
+"ZERO: 0\n"
+"VSAD: Summe der absoluten vertikalen Differenzen\n"
+"VSSE: Summe der quadrierten vertikalen Differenzen\n"
+"NSSE: Rauscherhaltende Summe der quadrierten Differenzen"
 
 #: plugins/ffmpeg/params.h:420
-msgid "Motion estimation compare function.\n"
-msgstr ""
+msgid "Motion estimation compare function."
+msgstr "Vergleichsfunktion für Bewegungsausgleich."
 
 #: plugins/ffmpeg/params.h:427
 msgid "Enable chroma ME compare"
-msgstr ""
+msgstr "Aktiviere Chroma ME Vergleich."
 
 #: plugins/ffmpeg/params.h:436
 msgid "Subpixel ME compare function"
-msgstr ""
+msgstr "Subpixel ME Vergleichsfunktion"
 
 #: plugins/ffmpeg/params.h:440
 msgid "Subpixel motion estimation compare function.\n"
-msgstr ""
+msgstr "Vergleichsfunktion für Subpixel-Bewegungsausgleich\n"
 
 #: plugins/ffmpeg/params.h:447
 msgid "Enable chroma subpixel ME compare"
-msgstr ""
+msgstr "Aktiviere Chroma subpixel ME Vergleich."
 
 #: plugins/ffmpeg/params.h:456
 msgid "MB compare function"
-msgstr ""
+msgstr "MB Vergleichsfunktion"
 
 #: plugins/ffmpeg/params.h:460
 msgid "Macroblock compare function.\n"
-msgstr ""
+msgstr "Makroblock Vergleichsfunktion.\n"
 
 #: plugins/ffmpeg/params.h:466
 msgid "Enable chroma macroblock ME compare"
-msgstr ""
+msgstr "Aktiviere Chroma Macroblock ME Vergleich."
 
 #: plugins/ffmpeg/params.h:475
 msgid "ILDCT compare function"
-msgstr ""
+msgstr "ILDCT Vergleichsfunktion"
 
 #: plugins/ffmpeg/params.h:479
 msgid "Interlaced dct compare function.\n"
-msgstr ""
+msgstr "Interlaced dct Vergleichsfunktion.\n"
 
 #: plugins/ffmpeg/params.h:485
 msgid "Enable chroma ILDCT ME compare"
-msgstr ""
+msgstr "Aktiviere Chroma ILDCT ME Vergleich."
 
 #: plugins/ffmpeg/params.h:494
 msgid "ME diamond size & shape"
-msgstr ""
+msgstr "ME Diamantgröße und -form"
 
 #: plugins/ffmpeg/params.h:499
 msgid "Motion estimation diamond size. Negative means shape adaptive."
-msgstr ""
+msgstr "Motion Estimation Diamantgröße. Negative bedeutet Formadaptiv."
 
+# ???
 #: plugins/ffmpeg/params.h:505
 msgid "Last predictor count"
-msgstr ""
+msgstr "Anzahl letzter Vorhersager "
 
 #: plugins/ffmpeg/params.h:510
 msgid ""
@@ -1022,10 +1412,13 @@ msgid ""
 "a Will use 2a+1 x 2a+1 macroblock square of motion vector predictors from "
 "the previous frame."
 msgstr ""
+"Anzahl der Vorhersager vom vorherigen Bild. 0 ist Voreinstellung, a wird 2a"
+"+1 mal 2a+1 Makroblock Quadrat von Bewegungsvektor-Vorhersagern vom "
+"vorherigen Bild benutzen."
 
 #: plugins/ffmpeg/params.h:520 plugins/ffmpeg/codecs.c:125
 msgid "ME pre-pass"
-msgstr ""
+msgstr "ME pre-pass"
 
 #: plugins/ffmpeg/params.h:525
 msgid ""
@@ -1034,784 +1427,546 @@ msgid ""
 "1: only after I-frames\n"
 "2: always"
 msgstr ""
+"Motion estimation pre-pass\n"
+"0: deaktiviert\n"
+"1: nur nach I-Frames\n"
+"2: immer"
 
 #: plugins/ffmpeg/params.h:535
 msgid "ME pre-pass compare function"
-msgstr ""
+msgstr "ME pre-pass Vergleichsfunktion"
 
 #: plugins/ffmpeg/params.h:539
 msgid "Motion estimation pre-pass compare function.\n"
-msgstr ""
+msgstr "Motion estimation pre-pass Vergleichsfunktion.\n"
 
 #: plugins/ffmpeg/params.h:546
 msgid "Enable chroma ME pre-pass compare"
-msgstr ""
+msgstr "Aktiviere Chroma ME pre-pass Vergleich"
 
 #: plugins/ffmpeg/params.h:557
 msgid "ME pre-pass diamond size & shape"
-msgstr ""
+msgstr "ME pre-pass Diamantgröße & -form"
 
 #: plugins/ffmpeg/params.h:562
 msgid "Motion estimation pre-pass diamond size. Negative means shape adaptive."
 msgstr ""
+"Motion Estimation pre-pass Diamantgröße. Negative Werte bedeuten Formadaptiv."
 
 #: plugins/ffmpeg/params.h:569
 msgid "Subpel ME quality"
-msgstr ""
+msgstr "Subpel ME Qualität"
 
 #: plugins/ffmpeg/params.h:574
 msgid ""
 "Subpel motion estimation refinement quality (for qpel). Higher values mean "
 "higher quality but slower encoding."
 msgstr ""
+"Verfeinerungsqualität für Subpel Motion Estimation (für qpel). Höhere Werte "
+"bedeuten bessere Qualität aber langsameres Codieren."
 
 #: plugins/ffmpeg/params.h:582
 msgid "Motion estimation range"
-msgstr ""
+msgstr "Reichweite der Motion Estimation"
 
+# suchtiefe
 #: plugins/ffmpeg/params.h:587
 msgid "Motion estimation search range (0 means unlimited)"
-msgstr ""
+msgstr "Motion Estimation Suchweite "
 
 #: plugins/ffmpeg/params.h:594
 msgid "MB decision mode"
-msgstr ""
+msgstr "MB Wahlmodus"
 
 #: plugins/ffmpeg/params.h:599
 msgid "Use compare function"
-msgstr ""
+msgstr "Verwende Vergleichsfunktion"
 
 #: plugins/ffmpeg/params.h:600
 msgid "Fewest bits"
-msgstr ""
+msgstr "Wenigste Bits"
 
+# klingt blöd
 #: plugins/ffmpeg/params.h:600
 msgid "Rate distoration"
-msgstr ""
+msgstr "Ratenverzerrung"
 
 #: plugins/ffmpeg/params.h:607
 msgid "Scenechange threshold"
-msgstr ""
+msgstr "Schwellwert für Szenenwechsel"
 
 #: plugins/ffmpeg/params.h:612
 msgid ""
 "Threshold for scene change detection.\n"
 "Negative values mean more sensitivity (more keyframes)"
 msgstr ""
+"Schwellwert für für Erkennung von Szenenwechseln.\n"
+"Negative Werte bedeuten eine höhere Empfindlichkeit (mehr Keyframes)"
 
 #: plugins/ffmpeg/params.h:620
 msgid "Minimum lagrange multiplier"
-msgstr ""
+msgstr "Minimaler Lagrange-Faktor"
 
 #: plugins/ffmpeg/params.h:626
 msgid ""
 "Minimum Lagrange multiplier for ratecontrol. Should possibly be the same as "
 "minimum quantizer scale."
 msgstr ""
+"Minimaler Lagrange Multiplikator für Ratensteuerung. Sollte wenn möglich "
+"gleich der Minimalen Quantizer Skalierung sein."
 
 #: plugins/ffmpeg/params.h:634
 msgid "Maximum lagrange multipler"
-msgstr ""
+msgstr "Maximaler Lagrange Multiplikator"
 
 #: plugins/ffmpeg/params.h:640
 msgid ""
 "Maximum Lagrange multiplier for ratecontrol. Should possibly be the same as "
 "maximum quantizer scale."
 msgstr ""
+"Maximaler Lagrange Multiplikator für Ratensteuerung. Sollte wenn möglich "
+"gleich der Maximalen Quantizer Skalierung sein."
 
 #: plugins/ffmpeg/params.h:647
 msgid "Noise reduction"
-msgstr ""
+msgstr "Rausch Unterdrückung"
 
 #: plugins/ffmpeg/params.h:658
 msgid "Initial RC buffer occupancy"
-msgstr ""
+msgstr "Anfängliche RC Pufferbelegung"
 
 #: plugins/ffmpeg/params.h:661
 msgid ""
 "Number of kilobits which should be loaded into the rc buffer before encoding "
 "starts. Must not be larger than RC buffer size"
 msgstr ""
+"Anzahl an Kilobits die vor dem Codieren in den RC Puffer geladen werden "
+"sollen. Darf nicht mehr als die RC Puffergröße sein."
 
 #: plugins/ffmpeg/params.h:672
-msgid "Inter theshold"
-msgstr ""
+msgid "Inter threshold"
+msgstr "Inter Schwellwert"
 
+# bessere übersetzungs für noise shaping?
 #: plugins/ffmpeg/params.h:681
 msgid "Quantizer noise shaping"
-msgstr ""
+msgstr "Quantizer Rauschformung"
 
 #: plugins/ffmpeg/params.h:686
 msgid ""
 "Choose quantization such that noise will be masked by similar-frequency "
 "content in the image"
 msgstr ""
+"Wähle Quantisierung so dass Rauschen von Bildinhalten mit ähnlichen "
+"Frequenzen maskiert wird."
 
 #: plugins/ffmpeg/params.h:694
 msgid "ME Theshold"
-msgstr ""
+msgstr "ME Schwellwert"
 
 #: plugins/ffmpeg/params.h:699
 msgid ""
 "Motion estimation threshold. under which no motion estimation is performed, "
 "but instead the user specified motion vectors are used"
 msgstr ""
+"Schwellwert für Motion Estimation, unter welchem keine Motion Compensation "
+"durchgeführt wird und stattdessen vom Nutzer gegebene Bewegungsvektoren "
+"verwendet werden."
 
 #: plugins/ffmpeg/params.h:705
 msgid "MB Theshold"
-msgstr ""
+msgstr "MB Schwellwert"
 
 #: plugins/ffmpeg/params.h:710
 msgid ""
 "Macroblock threshold. under which the user specified macroblock types will "
 "be used"
 msgstr ""
+"Macroblock Schwellwert, unter welchem vom Nutzer gegebene Macroblocktypen "
+"verwendet werden."
 
 #: plugins/ffmpeg/params.h:716
 msgid "NSSE weight"
-msgstr ""
+msgstr "NSSE Gewicht"
 
 #: plugins/ffmpeg/params.h:719
 msgid ""
 "Noise vs. SSE weight for the NSSE comparsion function. 0 is identical to SSE"
 msgstr ""
+"Rausch vs SSE Wichtung für die NSSE Vergleichsfunktion. 0 entspricht SSE"
 
 #: plugins/ffmpeg/params.h:727
 msgid "Border masking"
-msgstr ""
+msgstr "Randmaskierung"
 
 #: plugins/ffmpeg/params.h:733
 msgid ""
 "Encode image parts near the border with reduced quality. 0 means disabled"
 msgstr ""
+"Codiere Bild teile in der Nähe der Ränder mit verringerter Qualität. 0 heißt "
+"deaktiviert"
 
 #: plugins/ffmpeg/params.h:740
 msgid "Minimum MB lagrange multipler"
-msgstr ""
+msgstr "Minimaler macroblock Lagrange multiplier."
 
 #: plugins/ffmpeg/params.h:746
 msgid "Minimum macroblock Lagrange multiplier."
-msgstr ""
+msgstr "Minimaler macroblock Lagrange multiplier."
 
 #: plugins/ffmpeg/params.h:752
 msgid "Maximum MB lagrange multipler"
-msgstr ""
+msgstr "Maximaler MB Lagrange multiplier."
 
 #: plugins/ffmpeg/params.h:758
 msgid "Maximum macroblock Lagrange multiplier."
-msgstr ""
+msgstr "Maximaler macroblock Lagrange multiplier."
 
+# klingt eigenartig
 #: plugins/ffmpeg/params.h:765
 msgid "ME penalty compensation"
-msgstr ""
+msgstr "ME Strafenausgleich"
 
 #: plugins/ffmpeg/params.h:773
 msgid "Bidir refine"
-msgstr ""
+msgstr "Bidir Abstimmung"
 
 #: plugins/ffmpeg/params.h:783
 msgid "BRD scale"
-msgstr ""
+msgstr "BRD Skala"
 
 #: plugins/ffmpeg/params.h:795
 msgid "Scenechange factor"
-msgstr ""
+msgstr "Faktor für Szenenwechsel"
 
 #: plugins/ffmpeg/params.h:798
 msgid "Multiplied by qscale for each frame and added to scene_change_score"
 msgstr ""
+"Für jeden Frame mit qscale multipliziert und zu scene_change_score "
+"hinzuaddiert"
 
 #: plugins/ffmpeg/params.h:810
 msgid ""
 "Quantizer for fixed quality encoding. Lower means better, 1 is not "
 "recommended"
 msgstr ""
+"Quantizer für Codieren mit fester Qualität. Niedriger heißt besser, 1 ist "
+"nicht empfohlen."
 
 #: plugins/ffmpeg/params.h:819
 msgid "Use fixed quantizer"
-msgstr ""
+msgstr "Verwende festen Quantizer"
 
 #: plugins/ffmpeg/params.h:822
 msgid "Use fixed quality encoding"
-msgstr ""
+msgstr "Verwende Codieren mit fester Qualität"
 
 #: plugins/ffmpeg/params.h:829
 msgid "4 MV per MB allowed"
-msgstr ""
+msgstr "4 MV per MB erlaubt"
 
 #: plugins/ffmpeg/params.h:832
 msgid ""
 "Allow 4 motion vectors per macroblock (slightly better quality). Works "
 "better if MB decision mode is \"Fewest bits\" or \"Rate distoration\"."
 msgstr ""
+"Erlaube 4 Bewegungsvektoren pro Macroblock (etwas bessere Qualität). Arbeit "
+"besser wenn der MB Wahlmodus  \"Wenigste Bits\" oder \"Ratenverzerrung\" ist."
 
 #: plugins/ffmpeg/params.h:839
 msgid "Use qpel MC"
-msgstr ""
+msgstr "Verwende qpel MC"
 
 #: plugins/ffmpeg/params.h:842
 msgid ""
 "Use 1/4 pixel motion compensation.  Warning: QPEL is not supported by all "
 "decoders."
 msgstr ""
+"Benutze 1/4 Pixel Bewegungsausgleich. Warning: QPEL wird nicht von allen "
+"Dekodern unterstützt."
 
 #: plugins/ffmpeg/params.h:849
 msgid "Use global motion compensation"
-msgstr ""
+msgstr "Verwende Globale Motion Compensation"
 
 #: plugins/ffmpeg/params.h:852
 msgid "Warning: GMC is not supported by all decoders"
-msgstr ""
+msgstr "Warnung: GMC wird nicht von allen Decodern unterstützt"
 
 #: plugins/ffmpeg/params.h:859
 msgid "Always try a MB with MV=<0,0>"
-msgstr ""
+msgstr "Versuche immer einen MB mit MV=<0,0>"
 
 #: plugins/ffmpeg/params.h:867
 msgid "Use data partitioning"
-msgstr ""
+msgstr "Verwende Datenpartitionierung"
 
 #: plugins/ffmpeg/params.h:870
 msgid ""
 "Use data partitioning for more robustness if the video is for transmitting "
 "over unreliable channels"
 msgstr ""
+"Verwende Datenpartitionierung für erhöhte Robustheit wenn das Video über "
+"unzuverlässige Kanäle übertragen Wird"
 
 #: plugins/ffmpeg/params.h:878
 msgid "Grayscale mode"
-msgstr ""
+msgstr "Schwarzweß Modus"
 
 #: plugins/ffmpeg/params.h:886
 msgid "Don't draw edges"
-msgstr ""
+msgstr "Zeichne keine Kanten"
 
 #: plugins/ffmpeg/params.h:895
 msgid "Normalize adaptive quantization"
-msgstr ""
+msgstr "Normalisiere adaptive Quantisierung"
 
 #: plugins/ffmpeg/params.h:898
 msgid ""
 "When using masking, try to adjust the per macroblock quantizers to maintain "
 "the desired average"
 msgstr ""
+"Bei Verwendung von Maskierung, versuche per Macroblock Quantizer so "
+"abzustimmen dass der gewünschte Durchschnitt erhalten bleibt."
 
 #: plugins/ffmpeg/params.h:905
 msgid "Use alternative scantable"
-msgstr ""
+msgstr "Verwende alternative Scantabelle"
 
 #: plugins/ffmpeg/params.h:914
 msgid "Use trellis quantization"
-msgstr ""
+msgstr "Verwende Trellis Quantisierung"
 
 #: plugins/ffmpeg/params.h:917
 msgid "Use trellis quantization (improves quality)"
-msgstr ""
+msgstr "Verwende Trellis Quantisierung (verbessert Qualität)"
 
+# ...
 #: plugins/ffmpeg/params.h:923
 msgid "Use only bitexact stuff"
-msgstr ""
+msgstr "Verwende nur bitgenaue Sachen"
 
 #: plugins/ffmpeg/params.h:926
 msgid "Use only bitexact stuff (except (i)dct)"
-msgstr ""
+msgstr "Verwende nur bitgenaue Sachen (ausser (i)dct)"
 
 #: plugins/ffmpeg/params.h:932
 msgid "Advanced intra coding"
-msgstr ""
+msgstr "Fortgeschrittlene Intra Codierung"
 
 #: plugins/ffmpeg/params.h:940
 msgid "MPEG-4 AC prediction"
-msgstr ""
+msgstr "MPEG-4 AC Vorhersage"
 
+# plural?
 #: plugins/ffmpeg/params.h:948
 msgid "Unlimited motion vector"
-msgstr ""
+msgstr "Unbegrenzter Bewegungsvektor"
 
 #: plugins/ffmpeg/params.h:956
 msgid "CBP RD"
-msgstr ""
+msgstr "CBP RD"
 
 #: plugins/ffmpeg/params.h:959
 msgid "Use rate distortion optimization for cbp"
-msgstr ""
+msgstr "Verwende Ratenverzerr Optimierung für cbp"
 
 #: plugins/ffmpeg/params.h:965
 msgid "QP RD"
-msgstr ""
+msgstr "QP RD"
 
 #: plugins/ffmpeg/params.h:968
-msgid "Use rate distortion optimization for qp selectioon"
-msgstr ""
+msgid "Use rate distortion optimization for qp selection"
+msgstr "Benutze Ratenverzerrungs-Optimierung für qp Auswahl"
 
 #: plugins/ffmpeg/params.h:974
 msgid "Alternative inter vlc"
-msgstr ""
+msgstr "Alternatives inter vlc"
 
 #: plugins/ffmpeg/params.h:983
 msgid "OBMC"
-msgstr ""
+msgstr "OBMC"
 
 #: plugins/ffmpeg/params.h:986
 msgid ""
 "Overlapped block motion compensation (only supported with with simple MB "
 "decision)"
 msgstr ""
+"Überlappender Block-Bewegungsausgleich (nur unterstützt mit einfacher MB-"
+"Entscheidung)"
 
 #: plugins/ffmpeg/params.h:992
 msgid "Loop filter"
-msgstr ""
+msgstr "Schleifenfilter"
 
 #: plugins/ffmpeg/params.h:1000
-msgid "Slice struct"
-msgstr ""
+msgid "H263P slice struct"
+msgstr "H263P slice struct"
 
 #: plugins/ffmpeg/params.h:1009
 msgid "Close all GOPs"
-msgstr ""
+msgstr "Schließe alle GOPs"
 
 #: plugins/ffmpeg/params.h:1017
 msgid "Allow fast encoding"
-msgstr ""
+msgstr "Erlaube schnelles Codieren"
 
 #: plugins/ffmpeg/params.h:1020
 msgid "Allow non spec compliant speedup tricks"
-msgstr ""
+msgstr "Erlaube Beschleunigungstricks, die nicht der Spezifikation entsprechen"
 
+# durchsetzung
 #: plugins/ffmpeg/params.h:1027
 msgid "Strictly enforce GOP size"
-msgstr ""
+msgstr "Strenge Einhaltung der GOP Größe"
+
+#: plugins/ffmpeg/ffmpeg_common.c:425
+msgid "Audio codec is not compatible with format"
+msgstr "Audiokodierung ist nicht kompatibel mit Format"
+
+#: plugins/ffmpeg/ffmpeg_common.c:443
+msgid "Video codec is not compatible with format"
+msgstr "Videokodierung ist nicht kompatibel mit Format"
 
 #: plugins/ffmpeg/codecs.c:54
 msgid "Rate control"
-msgstr ""
+msgstr "Ratensteuerung"
 
 #: plugins/ffmpeg/codecs.c:68
 msgid "Quantizer"
-msgstr ""
+msgstr "Quantisierer"
 
 #: plugins/ffmpeg/codecs.c:94
 msgid "Frame types"
-msgstr ""
+msgstr "Frametypen"
 
 #: plugins/ffmpeg/codecs.c:111
 msgid "Motion estimation"
-msgstr ""
+msgstr "Bewegungsabschätzung"
 
 #: plugins/ffmpeg/codecs.c:136
 msgid "Qpel ME"
-msgstr ""
+msgstr "Qpel Bewegungsabschätzung"
 
 #: plugins/ffmpeg/codecs.c:147
 msgid "Masking"
-msgstr ""
+msgstr "Maskierung"
 
 #: plugins/ffmpeg/codecs.c:161
 msgid "Misc"
-msgstr ""
+msgstr "Verschiedenes"
 
 #: plugins/ffmpeg/codecs.c:234 plugins/ffmpeg/codecs.c:239
 msgid "16 bit PCM"
-msgstr ""
+msgstr "16 Bit PCM"
 
-#: plugins/ffmpeg/codecs.c:244
+#: plugins/ffmpeg/codecs.c:244 plugins/ffmpeg/codecs.c:249
 msgid "8 bit PCM"
-msgstr ""
-
-#: plugins/ffmpeg/codecs.c:248
-msgid "pcm_u8"
-msgstr ""
+msgstr "8 Bit PCM"
 
 #: plugins/ffmpeg/codecs.c:254
 msgid "alaw"
-msgstr ""
+msgstr "alaw"
 
 #: plugins/ffmpeg/codecs.c:259
 msgid "mulaw"
-msgstr ""
+msgstr "mulaw"
 
 #: plugins/ffmpeg/codecs.c:264
 msgid "AC3"
-msgstr ""
+msgstr "AC3"
 
 #: plugins/ffmpeg/codecs.c:270
 msgid "MPEG audio layer 2"
-msgstr ""
+msgstr "MPEG Audio Layer 2"
 
 #: plugins/ffmpeg/codecs.c:276
 msgid "Windows media Audio 1"
-msgstr ""
+msgstr "Windows Media Audio 1"
 
 #: plugins/ffmpeg/codecs.c:282
 msgid "Windows media Audio 2"
-msgstr ""
+msgstr "Windows Media Audio 2"
 
 #: plugins/ffmpeg/codecs.c:288
 msgid "MPEG audio layer 3"
-msgstr ""
+msgstr "MPEG Audio layer 3"
 
 #: plugins/ffmpeg/codecs.c:299
 msgid "Motion JPEG"
-msgstr ""
+msgstr "Motion JPEG"
 
 #: plugins/ffmpeg/codecs.c:304
 msgid "MPEG-4"
-msgstr ""
+msgstr "MPEG-4"
 
 #: plugins/ffmpeg/codecs.c:310
 msgid "Divx 3 compatible"
-msgstr ""
+msgstr "Divx 3 kompatibel"
 
 #: plugins/ffmpeg/codecs.c:316
 msgid "MPEG-1 Video"
-msgstr ""
+msgstr "MPEG-1 Video"
 
 #: plugins/ffmpeg/codecs.c:322
 msgid "MPEG-2 Video"
-msgstr ""
+msgstr "MPEG-2 Video"
 
 #: plugins/ffmpeg/codecs.c:328
 msgid "Flash 1"
-msgstr ""
+msgstr "Flash 1"
 
 #: plugins/ffmpeg/codecs.c:334
 msgid "WMV 1"
-msgstr ""
+msgstr "WMV 1"
 
 #: plugins/ffmpeg/codecs.c:340
 msgid "Real Video 1"
-msgstr ""
+msgstr "Real Video 1"
 
 #: plugins/ffmpeg/codecs.c:347
 msgid "WMV 2"
-msgstr ""
-
-#: plugins/ffmpeg/codecs.c:406 plugins/ogg/e_theora.c:61
-msgid "Codec"
-msgstr ""
-
-#: plugins/ffmpeg/e_ffmpeg_video.c:39
-msgid "FFmpeg video encoder"
-msgstr ""
-
-#: plugins/ffmpeg/e_ffmpeg_video.c:40
-msgid ""
-"Plugin for encoding various video formats with ffmpeg (http://www.ffmpeg."
-"org)."
-msgstr ""
+msgstr "WMV 2"
 
 #: plugins/ffmpeg/e_ffmpeg_audio.c:69
 msgid "FFmpeg audio encoder"
-msgstr ""
+msgstr "FFmpeg Audio Kodierer"
 
 #: plugins/ffmpeg/e_ffmpeg_audio.c:70
 msgid ""
 "Plugin for encoding various audio formats with ffmpeg (http://www.ffmpeg."
 "org)."
 msgstr ""
+"Plugin zum Erzeugen Verschiedener Audioformate mit ffmpeg (http://www.ffmpeg."
+"org)."
 
-#: plugins/ffmpeg/e_ffmpeg.c:129
-msgid "FFmpeg audio/video encoder"
-msgstr ""
+#: plugins/ffmpeg/e_ffmpeg_video.c:39
+msgid "FFmpeg video encoder"
+msgstr "FFmpeg video Kodierer"
 
-#: plugins/ffmpeg/e_ffmpeg.c:130
+#: plugins/ffmpeg/e_ffmpeg_video.c:40
 msgid ""
-"Plugin for encoding various audio/video formats with ffmpeg (http://www."
-"ffmpeg.org)."
-msgstr ""
-
-#: plugins/ffmpeg/ffmpeg_common.c:425
-msgid "Audio codec is not compatible with format"
-msgstr ""
-
-#: plugins/ffmpeg/ffmpeg_common.c:443
-msgid "Video codec is not compatible with format"
-msgstr ""
-
-#: plugins/ogg/flac.c:105
-msgid "Got no Flac ID page"
-msgstr ""
-
-#: plugins/ogg/flac.c:110 plugins/ogg/flac.c:152
-#, c-format
-msgid "Writing to file failed: %s"
-msgstr ""
-
-#: plugins/ogg/flac.c:246
-msgid "ERROR: FLAC__stream_encoder_init failed"
-msgstr ""
-
-#: plugins/ogg/flac.c:257
-msgid "ERROR: FLAC__stream_encoder_init_stream failed"
-msgstr ""
-
-#: plugins/ogg/vorbis.c:92
-msgid "VBR"
-msgstr ""
-
-#: plugins/ogg/vorbis.c:92
-msgid "VBR (bitrate)"
-msgstr ""
-
-#: plugins/ogg/vorbis.c:92
-msgid "Managed"
-msgstr ""
-
-#: plugins/ogg/vorbis.c:93
-msgid ""
-"Bitrate mode:\n"
-"VBR: You specify a quality and (optionally) a minimum and maximum bitrate\n"
-"VBR (bitrate): The specified nominal bitrate will be used for selecting the "
-"encoder mode.\n"
-"Managed: You specify a nominal bitrate and (optionally) a minimum and "
-"maximum bitrate\n"
-"VBR is recommended, managed bitrate might result in a worse quality"
-msgstr ""
-
-#: plugins/ogg/vorbis.c:101
-msgid "Nominal bitrate (kbps)"
-msgstr ""
-
-#: plugins/ogg/vorbis.c:106
-msgid "Nominal bitrate (in kbps) for managed mode"
-msgstr ""
-
-#: plugins/ogg/vorbis.c:110
-msgid "VBR Quality (10: best)"
-msgstr ""
-
-#: plugins/ogg/vorbis.c:116
-msgid ""
-"Quality for VBR mode\n"
-"10: best (largest output file)\n"
-"0:  worst (smallest output file"
-msgstr ""
-
-#: plugins/ogg/vorbis.c:127
-msgid ""
-"Optional minimum bitrate (in kbps)\n"
-"0 = unspecified"
-msgstr ""
-
-#: plugins/ogg/vorbis.c:137
-msgid ""
-"Optional maximum bitrate (in kbps)\n"
-"0 = unspecified"
-msgstr ""
-
-#: plugins/ogg/vorbis.c:257
-msgid "Warning: Got no Vorbis ID page"
-msgstr ""
-
-#: plugins/ogg/vorbis.c:412 plugins/ogg/e_vorbis.c:64
-msgid "Vorbis encoder"
-msgstr ""
-
-#: plugins/ogg/speex.c:144
-msgid "Speex mode"
-msgstr ""
-
-#: plugins/ogg/speex.c:148
-msgid "Narrowband"
-msgstr ""
-
-#: plugins/ogg/speex.c:148
-msgid "Wideband"
-msgstr ""
-
-#: plugins/ogg/speex.c:149
-msgid "Ultra-wideband"
-msgstr ""
-
-#: plugins/ogg/speex.c:150
-msgid ""
-"Encoding mode. If you select Auto, the mode will be taken from the "
-"samplerate."
-msgstr ""
-
-#: plugins/ogg/speex.c:154
-msgid "Quality (10: best)"
-msgstr ""
-
-#: plugins/ogg/speex.c:162
-msgid "Encoding complexity"
-msgstr ""
-
-#: plugins/ogg/speex.c:170
-msgid "Frames per Ogg packet"
-msgstr ""
-
-#: plugins/ogg/speex.c:178
-msgid "Encoding bitrate (kbps)"
-msgstr ""
-
-#: plugins/ogg/speex.c:183
-msgid ""
-"Bitrate (in kbps). Set to 0 for seleting the standard bitrates for the "
-"encoding mode."
-msgstr ""
-
-#: plugins/ogg/speex.c:187
-msgid "Variable bitrate"
-msgstr ""
-
-#: plugins/ogg/speex.c:192
-msgid "Average bitrate (kbps)"
-msgstr ""
-
-#: plugins/ogg/speex.c:197
-msgid "Average bitrate (in kbps). Set to 0 for disabling ABR."
-msgstr ""
-
-#: plugins/ogg/speex.c:201
-msgid "Use voice activity detection"
-msgstr ""
-
-#: plugins/ogg/speex.c:206
-msgid "Enable file-based discontinuous transmission"
-msgstr ""
-
-#: plugins/ogg/speex.c:432
-msgid "Got no Speex ID page"
-msgstr ""
-
-#: plugins/ogg/speex.c:581 plugins/ogg/e_speex.c:64
-msgid "Speex encoder"
-msgstr ""
-
-#: plugins/ogg/e_vorbis.c:65
-msgid "Encoder for Vorbis files"
-msgstr ""
-
-#: plugins/ogg/e_speex.c:65
-msgid "Encoder for Speex files"
-msgstr ""
-
-#: plugins/ogg/e_flacogg.c:62
-msgid "Flac in Ogg encoder"
-msgstr ""
-
-#: plugins/ogg/e_flacogg.c:63
-msgid ""
-"Encoder for flac streams in Ogg containers. Based on libflac (http://flac."
-"sourceforge.net)"
-msgstr ""
-
-#: plugins/ogg/theora.c:68
-msgid "Chroma subsampling mode"
-msgstr ""
-
-#: plugins/ogg/theora.c:76
-msgid "Use constant bitrate"
-msgstr ""
-
-#: plugins/ogg/theora.c:78
-msgid ""
-"For constant bitrate, choose a target bitrate. For variable bitrate, choose "
-"a nominal quality."
-msgstr ""
-
-#: plugins/ogg/theora.c:82
-msgid "Target bitrate (kbps)"
-msgstr ""
-
-#: plugins/ogg/theora.c:87
-msgid "Target bitrate (in kbps)"
-msgstr ""
-
-#: plugins/ogg/theora.c:91
-msgid "Nominal quality"
-msgstr ""
-
-#: plugins/ogg/theora.c:97
-msgid ""
-"Quality for VBR mode\n"
-"63: best (largest output file)\n"
-"0:  worst (smallest output file"
-msgstr ""
-
-#: plugins/ogg/theora.c:103
-msgid "Automatic keyframe insertion"
-msgstr ""
-
-#: plugins/ogg/theora.c:109
-msgid "Keyframe frequency"
-msgstr ""
-
-#: plugins/ogg/theora.c:115
-msgid "Keyframe frequency force"
-msgstr ""
-
-#: plugins/ogg/theora.c:121
-msgid "Keyframe auto threshold"
-msgstr ""
-
-#: plugins/ogg/theora.c:127
-msgid "Keyframe minimum distance"
-msgstr ""
-
-#: plugins/ogg/theora.c:133
-msgid "Quick encode"
-msgstr ""
-
-#: plugins/ogg/theora.c:139
-msgid "Sharpness"
-msgstr ""
-
-#: plugins/ogg/theora.c:147
-msgid "Noise Sensitivity"
-msgstr ""
-
-#: plugins/ogg/theora.c:329
-msgid "theora_encode_init failed"
-msgstr ""
-
-#: plugins/ogg/theora.c:339
-msgid "theora_encode_header failed"
-msgstr ""
-
-#: plugins/ogg/theora.c:348
-msgid "Warning: Got no Theora ID page\n"
-msgstr ""
-
-#: plugins/ogg/theora.c:385
-msgid "Theora encoder produced no packet"
-msgstr ""
-
-#: plugins/ogg/theora.c:392
-msgid "Writing theora packet failed"
-msgstr ""
-
-#: plugins/ogg/theora.c:427
-msgid "Warning: theora encoder produced no packet"
-msgstr ""
-
-#: plugins/ogg/theora.c:436
-msgid "Writing packet failed"
-msgstr ""
-
-#: plugins/ogg/theora.c:455 plugins/ogg/e_theora.c:149
-msgid "Theora encoder"
-msgstr ""
-
-#: plugins/ogg/e_theora.c:150
-msgid "Encoder for Theora files. Audio can be Vorbis, Flac or Speex."
-msgstr ""
-
-#: plugins/ogg/ogg_common.c:50
-#, c-format
-msgid "Cannot open file %s: %s"
-msgstr ""
+"Plugin for encoding various video formats with ffmpeg (http://www.ffmpeg."
+"org)."
+msgstr ""
+"Plugin zum Erzeugen Verschiedener Videoformate mit ffmpeg (http://www.ffmpeg."
+"org)."
 
 #: lib/bgflac.c:198
 msgid "Bits"
-msgstr ""
+msgstr "Bits"
 
 #: lib/bgflac.c:205
 msgid "Compression Level"
-msgstr ""
+msgstr "Kompressionsstufe"
 
 #: lib/bgflac.c:210
 msgid ""
 "0: Fastest encoding, biggest files\n"
 "8: Slowest encoding, smallest files"
 msgstr ""
+"0: Schnellstes Kodieren, größte Dateien\n"
+"8: Langsamstes Kodieren, kleinste Dateien"
+
+#~ msgid "Encoding bitrate (kbps)"
+#~ msgstr "Encodierbitrate (kbps)"

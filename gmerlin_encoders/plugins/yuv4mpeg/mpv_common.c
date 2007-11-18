@@ -55,7 +55,7 @@ static bg_parameter_info_t parameters[] =
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "mpeg1" },
       multi_names:  (char*[]){ "mpeg1",          "mpeg2",          "vcd", "svcd", "dvd", (char*)0 },
-      multi_labels: (char*[]){ TRS("Generic MPEG-1"), TRS("Generic MPEG-2"),
+      multi_labels: (char*[]){ TRS("MPEG-1 (generic)"), TRS("MPEG-2 (generic)"),
                                TRS("VCD"), TRS("SVCD"), TRS("DVD (for dvdauthor)"),
                                (char*)0  },
       help_string:  TRS("Sets the MPEG flavour. Note, that for VCD, SVCD and DVD, you MUST provide valid\
@@ -74,12 +74,12 @@ is ignored"),
     },
     {
       name:        "bitrate",
-      long_name:   TRS("Bitrate (kb/s)"),
+      long_name:   TRS("Bitrate (kbps)"),
       type:        BG_PARAMETER_INT,
       val_default: { val_i:    1150 },
       val_min:     { val_i:     200 },
       val_max:     { val_i:   99999 },
-      help_string: TRS("Video bitrate in (kb/s). For VBR, it's the maximum bitrate. If the format requires a \
+      help_string: TRS("Video bitrate in kbps. For VBR, it's the maximum bitrate. If the format requires a \
 fixed bitrate (e.g. VCD) this option is ignored"),
     },
     {
@@ -181,7 +181,7 @@ static char * bg_mpv_make_commandline(bg_mpv_common_t * com, const char * filena
   
   if(!bg_search_file_exec("mpeg2enc", &mpeg2enc_path))
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Cannot find mpeg2enc");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Cannot find mpeg2enc executable");
     return (char*)0;
     }
 

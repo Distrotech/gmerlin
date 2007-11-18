@@ -990,7 +990,7 @@ static void add_packet(bgav_demuxer_context_t * ctx,
       // append data to it!
       if((s->packet->data_size != offs) &&
          (offs != -1))
-        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN, "Warning: data_size %d, Offset: %d",
+        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN, "data_size %d, Offset: %d",
                 s->packet->data_size, offs);
       bgav_packet_alloc(s->packet,
                         s->packet->data_size + len);

@@ -37,12 +37,11 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name:        "bitrate",
-      long_name:   TRS("Bitrate (kb/s)"),
+      long_name:   TRS("Bitrate (kbps)"),
       type:        BG_PARAMETER_INT,
       val_default: { val_i:     224 },
       val_min:     { val_i:      32 },
       val_max:     { val_i:     448 },
-      help_string: TRS("Bitrate in (kb/s). "),
     },
     {
       name:        "layer",
@@ -58,7 +57,7 @@ static bg_parameter_info_t parameters[] =
       long_name:   TRS("VCD Compatible"),
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i:       1 },
-      help_string: TRS("Make VCD compliant output. This forces layer II, 224 kb/s and 44.1 KHz stereo"),
+      help_string: TRS("Make VCD compliant output. This forces layer II, 224 kbps and 44.1 KHz stereo"),
     },
     { /* End of parameters */ }
   };
@@ -96,7 +95,7 @@ static char * bg_mpa_make_commandline(bg_mpa_common_t * com,
 
   if(!bg_search_file_exec("mp2enc", &mp2enc_path))
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Cannot find mp2enc");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Cannot find mp2enc executable");
     return (char*)0;
     }
 

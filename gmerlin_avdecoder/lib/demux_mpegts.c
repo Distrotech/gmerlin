@@ -1014,7 +1014,7 @@ static void predict_pcr_wrap(const bgav_options_t * opt, int64_t pcr)
   time_scaled = (1LL << 33) - pcr;
   time = gavl_time_unscale(90000, time_scaled);
   gavl_time_prettyprint(time, str);
-  bgav_log(ctx->opt, BGAV_LOG_DEBUG, LOG_DOMAIN, "Next PCR wrap in %s\n", str);
+  bgav_log(ctx->opt, BGAV_LOG_DEBUG, LOG_DOMAIN, "Next PCR wrap in %s", str);
   }
 #endif
 

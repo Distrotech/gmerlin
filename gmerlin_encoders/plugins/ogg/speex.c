@@ -175,7 +175,7 @@ static bg_parameter_info_t parameters[] =
     },
     {
       name:        "bitrate",
-      long_name:   TRS("Encoding bitrate (kbps)"),
+      long_name:   TRS("Bitrate (kbps)"),
       type:        BG_PARAMETER_INT,
       val_min:     { val_i: 0 },
       val_max:     { val_i: 128 },

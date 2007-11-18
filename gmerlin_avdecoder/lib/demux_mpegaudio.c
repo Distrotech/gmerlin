@@ -535,7 +535,7 @@ static int resync(bgav_demuxer_context_t * ctx, int check_next)
     }
   if(skipped_bytes)
     bgav_log(ctx->opt, BGAV_LOG_INFO, LOG_DOMAIN,
-             "Skipped %d bytes in mpeg audio stream", skipped_bytes);
+             "Skipped %d bytes in MPEG audio stream", skipped_bytes);
   return 1;
   }
 

@@ -34,8 +34,12 @@ static int decode_gavl(bgav_stream_t * s, gavl_video_frame_t * frame)
     return 0;
   
   if(frame)
+    {
     gavl_video_frame_copy(&(s->data.video.format), frame, p->video_frame);
-
+    frame->interlace_mode = p->video_frame->interlace_mode;
+    frame->timestamp = p->video_frame->timestamp;
+    frame->duration = p->video_frame->duration;
+    }
   bgav_demuxer_done_packet_read(s->demuxer, p);
   return 1;
   }

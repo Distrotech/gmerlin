@@ -706,7 +706,7 @@ bg_encoder_plugin_t the_plugin =
       BG_LOCALE,
       name:            "e_lame",       /* Unique short name */
       long_name:       TRS("Lame mp3 encoder"),
-      description:     TRS("Encoder for mp3 files. Based on lame (http://www.mp3dev.org). Supports CBR, VBR, ID3V1 and ID3V2 tags."),
+      description:     TRS("Encoder for mp3 files. Based on lame (http://www.mp3dev.org). Supports CBR, ABR and VBR as well as ID3V1 and ID3V2 tags."),
       mimetypes:       NULL,
       extensions:      "mp3",
       type:            BG_PLUGIN_ENCODER_AUDIO,

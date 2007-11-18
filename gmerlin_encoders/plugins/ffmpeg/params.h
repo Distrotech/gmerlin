@@ -206,7 +206,7 @@ consequences\n\
     num_digits:  2, \
     help_string: TRS("Quantizer offset between B-frames and non-B-frames\n"\
     "if > 0 then the last p frame quantizer will be used (q= lastp_q*factor+offset)\n"\
-    "if < 0 then normal ratecontrol will be done (q= -normal_q*factor+offset)\n")\
+    "if < 0 then normal ratecontrol will be done (q= -normal_q*factor+offset)")\
   }
 
 /** Rate control */
@@ -264,7 +264,7 @@ consequences\n\
     num_digits:  1, \
     help_string: TRS("Quantizer factor between P-frames and I-frames.\n"\
 "If > 0 then the last P frame quantizer will be used (q= lastp_q*factor+offset).\n"\
-"If < 0 then normal ratecontrol will be done (q= -normal_q*factor+offset)\n"),  \
+"If < 0 then normal ratecontrol will be done (q= -normal_q*factor+offset)"),  \
   }
 
 /** Quantizer */
@@ -358,7 +358,7 @@ consequences\n\
     val_min:     { val_f:  0.0 },                            \
     val_max:     { val_f:  1.0 },                            \
     num_digits:  2, \
-    help_string: TRS("Encode very dark image parts with reduced quality." \
+    help_string: TRS("Encode very dark image parts with reduced quality. " \
     "0 means disabled, 0-0.3 is a sane range."),                          \
   }
 
@@ -417,7 +417,7 @@ multi_labels: (char*[]){ TRS("Left"), TRS("Plane"), TRS("Median"), (char*)0 },  
     type:  BG_PARAMETER_STRINGLIST,                \
     val_default: { val_str: "SAD" },         \
     multi_names: COMPARE_FUNCS,          \
-    help_string: TRS("Motion estimation compare function.\n") COMPARE_FUNCS_HELP \
+    help_string: TRS("Motion estimation compare function.") COMPARE_FUNCS_HELP \
   }
 
 /** Motion estimation */
@@ -669,7 +669,7 @@ RC buffer size") \
 #define PARAM_INTER_THRESHOLD \
   { \
     name: "ff_inter_threshold",   \
-    long_name: TRS("Inter theshold"),   \
+    long_name: TRS("Inter threshold"),   \
     type: BG_PARAMETER_INT,                \
     val_default: { val_i: 0 },            \
   }
@@ -965,7 +965,7 @@ RC buffer size") \
     long_name: TRS("QP RD"), \
     type:        BG_PARAMETER_CHECKBUTTON, \
     val_default: { val_i: 0 },    \
-    help_string: TRS("Use rate distortion optimization for qp selectioon"),\
+    help_string: TRS("Use rate distortion optimization for qp selection"),\
   }
 
 #define PARAM_FLAG_H263P_AIV \
@@ -997,7 +997,7 @@ RC buffer size") \
 #define PARAM_FLAG_H263P_SLICE_STRUCT      \
   { \
     name: "ff_flag_h263p_slice_struct", \
-    long_name: TRS("Slice struct"), \
+    long_name: TRS("H263P slice struct"), \
     type:        BG_PARAMETER_CHECKBUTTON, \
     val_default: { val_i: 0 },    \
   }

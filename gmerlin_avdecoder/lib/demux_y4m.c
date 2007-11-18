@@ -34,7 +34,8 @@ typedef struct
   y4m_cb_reader_t reader;
   uint8_t * tmp_planes[4]; /* For YUVA4444 */
   
-  int64_t frame_counter;
+  int64_t pts;
+  
   } y4m_t;
 
 /* Read function to pass to the mjpegutils */
@@ -117,6 +118,15 @@ static int open_y4m(bgav_demuxer_context_t * ctx,
   
   s->data.video.format.frame_width  = s->data.video.format.image_width;
   s->data.video.format.frame_height = s->data.video.format.image_height;
+
+  r = y4m_si_get_sampleaspect(&priv->si);
+  s->data.video.format.pixel_width  = r.n;
+  s->data.video.format.pixel_height = r.d;
+  
+  r = y4m_si_get_framerate(&priv->si);
+  s->data.video.format.timescale      = r.n;
+  s->data.video.format.frame_duration = r.d;
+
   
   result = y4m_si_get_interlace(&priv->si);
   switch(result)
@@ -131,8 +141,9 @@ static int open_y4m(bgav_demuxer_context_t * ctx,
       s->data.video.format.interlace_mode = GAVL_INTERLACE_BOTTOM_FIRST;
       break;
     case Y4M_ILACE_MIXED:
-      bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN, "Unsupported interlace mode detected, treating as progressive");
-      s->data.video.format.interlace_mode = GAVL_INTERLACE_NONE;
+      s->data.video.format.interlace_mode = GAVL_INTERLACE_MIXED;
+      s->data.video.format.timescale *= 2;
+      s->data.video.format.frame_duration *= 2;
       break;
     }
 
@@ -180,14 +191,6 @@ static int open_y4m(bgav_demuxer_context_t * ctx,
         s->data.video.format.image_width * s->data.video.format.image_height;
       break;
     }
-
-  r = y4m_si_get_sampleaspect(&priv->si);
-  s->data.video.format.pixel_width  = r.n;
-  s->data.video.format.pixel_height = r.d;
-  
-  r = y4m_si_get_framerate(&priv->si);
-  s->data.video.format.timescale      = r.n;
-  s->data.video.format.frame_duration = r.d;
 
   s->fourcc = BGAV_MK_FOURCC('g','a','v','l');
 
@@ -293,12 +296,51 @@ static int next_packet_y4m(bgav_demuxer_context_t * ctx)
       return 0;
     }
 
-  p->pts = priv->frame_counter * s->data.video.format.frame_duration;
-  priv->frame_counter++;
-    
-  bgav_packet_done_write(p);
-
+  p->pts = priv->pts;
+  p->video_frame->timestamp = priv->pts;
   
+  if(s->data.video.format.interlace_mode == GAVL_INTERLACE_MIXED)
+    {
+    switch(y4m_fi_get_presentation(&priv->fi))
+      {
+      case Y4M_PRESENT_TOP_FIRST:  /* top-field-first                 */
+        p->video_frame->interlace_mode = GAVL_INTERLACE_TOP_FIRST;
+        p->duration = s->data.video.format.frame_duration;
+        break;
+      case Y4M_PRESENT_TOP_FIRST_RPT:  /* top-first, repeat top           */
+        p->video_frame->interlace_mode = GAVL_INTERLACE_TOP_FIRST;
+        p->duration = (s->data.video.format.frame_duration * 3)/2;
+        break;
+      case Y4M_PRESENT_BOTTOM_FIRST:  /* bottom-field-first              */
+        p->video_frame->interlace_mode = GAVL_INTERLACE_BOTTOM_FIRST;
+        p->duration = s->data.video.format.frame_duration;
+        break;
+      case Y4M_PRESENT_BOTTOM_FIRST_RPT:  /* bottom-first, repeat bottom     */
+        p->video_frame->interlace_mode = GAVL_INTERLACE_BOTTOM_FIRST;
+        p->duration = (s->data.video.format.frame_duration * 3)/2;
+        break;
+      case Y4M_PRESENT_PROG_SINGLE:  /* single progressive frame        */
+        p->video_frame->interlace_mode = GAVL_INTERLACE_NONE;
+        p->duration = s->data.video.format.frame_duration;
+        break;
+      case Y4M_PRESENT_PROG_DOUBLE:  /* progressive frame, repeat once  */
+        p->video_frame->interlace_mode = GAVL_INTERLACE_NONE;
+        p->duration = 2 * s->data.video.format.frame_duration;
+        break;
+      case Y4M_PRESENT_PROG_TRIPLE:  /* progressive frame, repeat twice */
+        p->video_frame->interlace_mode = GAVL_INTERLACE_NONE;
+        p->duration = 3 * s->data.video.format.frame_duration;
+        break;
+      }
+    }
+  else
+    {
+    p->duration = s->data.video.format.frame_duration;
+    }
+  p->video_frame->duration = p->duration;
+  priv->pts += p->duration;
+  
+  bgav_packet_done_write(p);
   
   return 1;
   }

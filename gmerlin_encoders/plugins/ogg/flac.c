@@ -243,7 +243,7 @@ static int init_flacogg(void * data, gavl_audio_format_t * format, bg_metadata_t
   
   if(FLAC__stream_encoder_init(flacogg->enc) != FLAC__STREAM_ENCODER_OK)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "ERROR: FLAC__stream_encoder_init failed");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "FLAC__stream_encoder_init failed");
     return 0;
     }
 #else
@@ -254,7 +254,7 @@ static int init_flacogg(void * data, gavl_audio_format_t * format, bg_metadata_t
                                       metadata_callback,
                                       flacogg) != FLAC__STREAM_ENCODER_OK)
   {
-  bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "ERROR: FLAC__stream_encoder_init_stream failed");
+  bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "FLAC__stream_encoder_init_stream failed");
   return 0;
   }
 #endif

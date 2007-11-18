@@ -476,7 +476,7 @@ bg_encoder_plugin_t the_plugin =
       BG_LOCALE,
       name:            "e_flac",       /* Unique short name */
       long_name:       TRS("Flac encoder"),
-      description:     TRS("Encoder for .flac files. Based on libflac (http://flac.sourceforge.net)"),
+      description:     TRS("Encoder for flac files. Based on libflac (http://flac.sourceforge.net)"),
       mimetypes:       NULL,
       extensions:      "flac",
       type:            BG_PLUGIN_ENCODER_AUDIO,

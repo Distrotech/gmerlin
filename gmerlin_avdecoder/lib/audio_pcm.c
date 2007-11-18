@@ -830,7 +830,7 @@ static int init_pcm(bgav_stream_t * s)
           break;
         default:
           bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-                   "Audio bits %d not supported.",
+                   "%d audio bits not supported.",
                    s->data.audio.bits_per_sample);
           return 0;
         }
@@ -860,7 +860,7 @@ static int init_pcm(bgav_stream_t * s)
           break;
         default:
           bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-                   "Audio bits %d not supported.",
+                   "%d audio bits not supported.",
                    s->data.audio.bits_per_sample);
           return 0;
         }

@@ -84,7 +84,6 @@ static bg_parameter_info_t parameters[] =
       val_min:     { val_i: 45 },
       val_max:     { val_i: 2000 },
       val_default: { val_i: 250 },
-      help_string: TRS("Target bitrate (in kbps)"),
     },
     {
       name:      "quality",
@@ -96,7 +95,7 @@ static bg_parameter_info_t parameters[] =
       num_digits:  1,
       help_string: TRS("Quality for VBR mode\n\
 63: best (largest output file)\n\
-0:  worst (smallest output file"),
+0:  worst (smallest output file)"),
     },
     {
       name:      "keyframe_auto_p",
@@ -345,7 +344,7 @@ static int init_theora(void * data, gavl_video_format_t * format, bg_metadata_t 
     ogg_stream_packetin(&theora->os,&op);
     if(!bg_ogg_flush_page(&theora->os, theora->output, 1))
       {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Warning: Got no Theora ID page\n");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Got no Theora ID page");
       return 0;
       }
     }
@@ -424,7 +423,7 @@ static int close_theora(void * data)
     {
     if(!theora_encode_packetout(&theora->ts, 1, &op))
       {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Warning: theora encoder produced no packet");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Theora encoder produced no packet");
       ret = 0;
       }
 

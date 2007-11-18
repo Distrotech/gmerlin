@@ -245,8 +245,8 @@ static ffmpeg_codec_info_t audio_codecs[] =
       .id        = CODEC_ID_PCM_S8,
     },
     {
-      .name      = TRS("pcm_u8"),
-      .long_name = "8 bit PCM",
+      .name      = "pcm_u8",
+      .long_name = TRS("8 bit PCM"),
       .id        = CODEC_ID_PCM_U8,
     },
     {

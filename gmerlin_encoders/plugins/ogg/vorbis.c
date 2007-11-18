@@ -115,7 +115,7 @@ VBR is recommended, managed bitrate might result in a worse quality")
       num_digits:  1,
       help_string: TRS("Quality for VBR mode\n\
 10: best (largest output file)\n\
-0:  worst (smallest output file"),
+0:  worst (smallest output file)"),
     },
     {
       name:        "min_bitrate",
@@ -254,7 +254,7 @@ static int init_vorbis(void * data, gavl_audio_format_t * format, bg_metadata_t 
   /* And stream them out */
   ogg_stream_packetin(&vorbis->enc_os,&header_main);
   if(!bg_ogg_flush_page(&vorbis->enc_os, vorbis->output, 1))
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Warning: Got no Vorbis ID page");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Got no Vorbis ID page");
   
   ogg_stream_packetin(&vorbis->enc_os,&header_comments);
   ogg_stream_packetin(&vorbis->enc_os,&header_codebooks);
