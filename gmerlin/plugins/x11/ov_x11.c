@@ -21,13 +21,21 @@
 
 /* Keyboard accelerators */
 
-#define ACCEL_TOGGLE_FULLSCREEN 1<<8
-#define ACCEL_EXIT_FULLSCREEN   2<<8
-#define ACCEL_RESET_ZOOMSQUEEZE 3<<8
-#define ACCEL_INC_ZOOM          4<<8
-#define ACCEL_DEC_ZOOM          5<<8
-#define ACCEL_INC_SQUEEZE       6<<8
-#define ACCEL_DEC_SQUEEZE       7<<8
+#define ACCEL_TOGGLE_FULLSCREEN  1<<8
+#define ACCEL_EXIT_FULLSCREEN    2<<8
+#define ACCEL_RESET_ZOOMSQUEEZE  3<<8
+#define ACCEL_INC_ZOOM           4<<8
+#define ACCEL_DEC_ZOOM           5<<8
+#define ACCEL_INC_SQUEEZE        6<<8
+#define ACCEL_DEC_SQUEEZE        7<<8
+#define ACCEL_INC_BRIGHTNESS     8<<8
+#define ACCEL_DEC_BRIGHTNESS     9<<8
+#define ACCEL_INC_SATURATION    10<<8
+#define ACCEL_DEC_SATURATION    11<<8
+#define ACCEL_INC_CONTRAST      12<<8
+#define ACCEL_DEC_CONTRAST      13<<8
+#define ACCEL_INC_HUE           14<<8
+#define ACCEL_DEC_HUE           15<<8
 
 static bg_accelerator_t accels[] =
   {
@@ -39,9 +47,16 @@ static bg_accelerator_t accels[] =
     { BG_KEY_MINUS,  BG_KEY_CONTROL_MASK, ACCEL_DEC_SQUEEZE       },
     { BG_KEY_PLUS,   BG_KEY_ALT_MASK, ACCEL_INC_ZOOM              },
     { BG_KEY_MINUS,  BG_KEY_ALT_MASK, ACCEL_DEC_ZOOM              },
+    { BG_KEY_b,                   0, ACCEL_DEC_BRIGHTNESS        },
+    { BG_KEY_B,      BG_KEY_SHIFT_MASK, ACCEL_INC_BRIGHTNESS        },
+    { BG_KEY_s,                   0, ACCEL_DEC_SATURATION        },
+    { BG_KEY_S,      BG_KEY_SHIFT_MASK, ACCEL_INC_SATURATION        },
+    { BG_KEY_c,                   0, ACCEL_DEC_CONTRAST        },
+    { BG_KEY_C,      BG_KEY_SHIFT_MASK, ACCEL_INC_CONTRAST        },
+    { BG_KEY_h,                   0, ACCEL_DEC_HUE        },
+    { BG_KEY_H,      BG_KEY_SHIFT_MASK, ACCEL_INC_HUE        },
     { BG_KEY_NONE,   0,           0                           },
   };
-
 
 typedef struct
   {
@@ -81,10 +96,14 @@ typedef struct
   int do_still;
   gavl_video_frame_t * still_frame;
   
-
   /* Accelerator map */
 
   bg_accelerator_map_t * accel_map;
+
+  float hue;
+  float brightness;
+  float saturation;
+  float contrast;
   
   } x11_t;
 
@@ -143,6 +162,7 @@ static void ensure_window_realized(x11_t * priv)
 static int accel_callback(void * data, int id)
   {
   x11_t * priv;
+  float f_tmp, f_tmp_scaled;
   priv = (x11_t *)data;
   switch(id)
     {
@@ -213,7 +233,143 @@ static int accel_callback(void * data, int id)
         return 1;
         }
       break;
-      // Propagate to outside
+    case ACCEL_INC_BRIGHTNESS:
+      f_tmp = priv->brightness + BG_BRIGHTNESS_DELTA;
+      if(f_tmp > BG_BRIGHTNESS_MAX)
+        f_tmp = BG_BRIGHTNESS_MAX;
+
+      if(bg_x11_window_set_brightness(priv->win, f_tmp))
+        {
+        priv->brightness = f_tmp;
+        if(priv->callbacks && priv->callbacks->brightness_callback)
+          {
+          f_tmp_scaled =
+            (f_tmp-BG_BRIGHTNESS_MIN)/(BG_BRIGHTNESS_MAX - BG_BRIGHTNESS_MIN);
+          
+          priv->callbacks->brightness_callback(priv->callbacks->data,
+                                               f_tmp_scaled);
+          }
+        }
+      break;
+    case ACCEL_DEC_BRIGHTNESS:
+      f_tmp = priv->brightness - BG_BRIGHTNESS_DELTA;
+      if(f_tmp < BG_BRIGHTNESS_MIN)
+        f_tmp = BG_BRIGHTNESS_MIN;
+
+      if(bg_x11_window_set_brightness(priv->win, f_tmp))
+        {
+        priv->brightness = f_tmp;
+        if(priv->callbacks && priv->callbacks->brightness_callback)
+          {
+          f_tmp_scaled =
+            (f_tmp-BG_BRIGHTNESS_MIN)/(BG_BRIGHTNESS_MAX - BG_BRIGHTNESS_MIN);
+          priv->callbacks->brightness_callback(priv->callbacks->data,
+                                               f_tmp_scaled);
+          }
+        }
+      break;
+    case ACCEL_INC_SATURATION:
+      f_tmp = priv->saturation + BG_SATURATION_DELTA;
+      if(f_tmp > BG_SATURATION_MAX)
+        f_tmp = BG_SATURATION_MAX;
+
+      if(bg_x11_window_set_saturation(priv->win, f_tmp))
+        {
+        priv->saturation = f_tmp;
+        if(priv->callbacks && priv->callbacks->saturation_callback)
+          {
+          f_tmp_scaled =
+            (f_tmp-BG_SATURATION_MIN)/(BG_SATURATION_MAX - BG_SATURATION_MIN);
+          priv->callbacks->saturation_callback(priv->callbacks->data,
+                                               f_tmp_scaled);
+          }
+        }
+      break;
+    case ACCEL_DEC_SATURATION:
+      f_tmp = priv->saturation - BG_SATURATION_DELTA;
+      if(f_tmp < BG_SATURATION_MIN)
+        f_tmp = BG_SATURATION_MIN;
+
+      if(bg_x11_window_set_saturation(priv->win, f_tmp))
+        {
+        priv->saturation = f_tmp;
+        if(priv->callbacks && priv->callbacks->saturation_callback)
+          {
+          f_tmp_scaled =
+            (f_tmp-BG_SATURATION_MIN)/(BG_SATURATION_MAX - BG_SATURATION_MIN);
+          priv->callbacks->saturation_callback(priv->callbacks->data,
+                                               f_tmp_scaled);
+          }
+        }
+      break;
+    case ACCEL_INC_CONTRAST:
+      f_tmp = priv->contrast + BG_CONTRAST_DELTA;
+      if(f_tmp > BG_CONTRAST_MAX)
+        f_tmp = BG_CONTRAST_MAX;
+
+      if(bg_x11_window_set_contrast(priv->win, f_tmp))
+        {
+        priv->contrast = f_tmp;
+        if(priv->callbacks && priv->callbacks->contrast_callback)
+          {
+          f_tmp_scaled =
+            (f_tmp-BG_CONTRAST_MIN)/(BG_CONTRAST_MAX - BG_CONTRAST_MIN);
+          priv->callbacks->contrast_callback(priv->callbacks->data,
+                                             f_tmp_scaled);
+          }
+        }
+      break;
+    case ACCEL_DEC_CONTRAST:
+      f_tmp = priv->contrast - BG_CONTRAST_DELTA;
+      if(f_tmp < BG_CONTRAST_MIN)
+        f_tmp = BG_CONTRAST_MIN;
+
+      if(bg_x11_window_set_contrast(priv->win, f_tmp))
+        {
+        priv->contrast = f_tmp;
+        if(priv->callbacks && priv->callbacks->contrast_callback)
+          {
+          f_tmp_scaled =
+            (f_tmp-BG_CONTRAST_MIN)/(BG_CONTRAST_MAX - BG_CONTRAST_MIN);
+          priv->callbacks->contrast_callback(priv->callbacks->data,
+                                             f_tmp_scaled);
+          }
+        }
+      break;
+    case ACCEL_INC_HUE:
+      f_tmp = priv->hue + BG_HUE_DELTA;
+      if(f_tmp > BG_HUE_MAX)
+        f_tmp = BG_HUE_MAX;
+
+      if(bg_x11_window_set_hue(priv->win, f_tmp))
+        {
+        priv->hue = f_tmp;
+        if(priv->callbacks && priv->callbacks->hue_callback)
+          {
+          f_tmp_scaled =
+            (f_tmp-BG_HUE_MIN)/(BG_HUE_MAX - BG_HUE_MIN);
+          priv->callbacks->hue_callback(priv->callbacks->data,
+                                        f_tmp_scaled);
+          }
+        }
+      break;
+    case ACCEL_DEC_HUE:
+      f_tmp = priv->hue - BG_HUE_DELTA;
+      if(f_tmp < BG_HUE_MIN)
+        f_tmp = BG_HUE_MIN;
+
+      if(bg_x11_window_set_hue(priv->win, f_tmp))
+        {
+        priv->hue = f_tmp;
+        if(priv->callbacks && priv->callbacks->hue_callback)
+          {
+          f_tmp_scaled =
+            (f_tmp-BG_HUE_MIN)/(BG_HUE_MAX - BG_HUE_MIN);
+          priv->callbacks->hue_callback(priv->callbacks->data,
+                                        f_tmp_scaled);
+          }
+        }
+      break;
     }
   if(priv->callbacks &&
      priv->callbacks->accel_callback &&
@@ -228,76 +384,8 @@ static int key_callback(void * data, int key, int mask)
   {
   x11_t * priv;
   priv = (x11_t *)data;
-
-  /* Handle some keys here */
-  switch(key)
-    {
-    case BG_KEY_TAB:
-    case BG_KEY_F:
-      if(priv->fullscreen)
-        return bg_x11_window_set_fullscreen(priv->win, 0);
-      else
-        return bg_x11_window_set_fullscreen(priv->win, 1);
-      break;
-    case BG_KEY_ESCAPE:
-      if(priv->fullscreen)
-        return bg_x11_window_set_fullscreen(priv->win, 0);
-      break;
-    case BG_KEY_HOME:
-      priv->zoom = 100.0;
-      priv->squeeze = 0.0;
-      set_drawing_coords(priv);
-      return 1;
-      break;
-    case BG_KEY_PLUS:
-      if(mask & BG_KEY_ALT_MASK)
-        {
-        /* Increase Zoom */
-        priv->zoom += ZOOM_DELTA;
-        if(priv->zoom > ZOOM_MAX)
-          priv->zoom = ZOOM_MAX;
-        set_drawing_coords(priv);
-        return 1;
-        }
-      else if(mask & BG_KEY_CONTROL_MASK)
-        {
-        /* Increase Squeeze */
-        priv->squeeze += SQUEEZE_DELTA;
-        if(priv->squeeze > SQUEEZE_MAX)
-          priv->squeeze = SQUEEZE_MAX;
-        set_drawing_coords(priv);
-        return 1;
-        }
-      break;
-    case BG_KEY_MINUS:
-      if(mask & BG_KEY_ALT_MASK)
-        {
-        /* Decrease Zoom */
-        priv->zoom -= ZOOM_DELTA;
-        if(priv->zoom < ZOOM_MIN)
-          priv->zoom = ZOOM_MIN;
-        set_drawing_coords(priv);
-        return 1;
-        }
-      else if(mask & BG_KEY_CONTROL_MASK)
-        {
-        /* Decrease Squeeze */
-        priv->squeeze -= SQUEEZE_DELTA;
-        if(priv->squeeze < SQUEEZE_MIN)
-          priv->squeeze = SQUEEZE_MIN;
-        set_drawing_coords(priv);
-        return 1;
-        }
-      break;
-    }
-#if 1
   if(priv->callbacks && priv->callbacks->key_callback)
-    {
-    //    fprintf(stderr, "OV X11: Key callback\n");
-    priv->callbacks->key_callback(priv->callbacks->data, key, mask);
-    return 1;
-    }
-#endif
+    return priv->callbacks->key_callback(priv->callbacks->data, key, mask);
   return 0;
   }
 
@@ -423,7 +511,7 @@ static void size_changed(void * data, int width, int height)
   if(priv->is_open)
     set_drawing_coords(priv);
   }
-
+#if 0
 /* For updating OSD */
 static void brightness_callback(void * data, float val)
   {
@@ -452,7 +540,7 @@ static void contrast_callback(void * data, float val)
     priv->callbacks->contrast_callback(priv->callbacks->data,
                                        val);
   }
-
+#endif
 
 static void * create_x11()
   {
@@ -477,10 +565,11 @@ static void * create_x11()
   priv->window_callbacks.set_fullscreen = set_fullscreen;
   
   /* For updating OSD */
+#if 0
   priv->window_callbacks.brightness_callback = brightness_callback;
   priv->window_callbacks.saturation_callback = saturation_callback;
   priv->window_callbacks.contrast_callback = contrast_callback;
-  
+#endif
   priv->window_callbacks.data = priv;
   
   return priv;
@@ -524,6 +613,42 @@ bg_parameter_info_t common_parameters[] =
       val_default: { val_f: 100.0 },
       val_min:     { val_f: ZOOM_MIN },
       val_max:     { val_f: ZOOM_MAX },
+    },
+    {
+      name:        "hue",
+      long_name:   "Hue",
+      type:        BG_PARAMETER_SLIDER_FLOAT,
+      flags:       BG_PARAMETER_SYNC | BG_PARAMETER_HIDE_DIALOG,
+      val_default: { val_f: 0.0 },
+      val_min:     { val_f: BG_HUE_MIN },
+      val_max:     { val_f: BG_HUE_MAX },
+    },
+    {
+      name:        "saturation",
+      long_name:   "Saturation",
+      type:        BG_PARAMETER_SLIDER_FLOAT,
+      flags:       BG_PARAMETER_SYNC | BG_PARAMETER_HIDE_DIALOG,
+      val_default: { val_f: 0.0 },
+      val_min:     { val_f: BG_SATURATION_MIN },
+      val_max:     { val_f: BG_SATURATION_MAX },
+    },
+    {
+      name:        "brightness",
+      long_name:   "Brightness",
+      type:        BG_PARAMETER_SLIDER_FLOAT,
+      flags:       BG_PARAMETER_SYNC | BG_PARAMETER_HIDE_DIALOG,
+      val_default: { val_f: 0.0 },
+      val_min:     { val_f: BG_BRIGHTNESS_MIN },
+      val_max:     { val_f: BG_BRIGHTNESS_MAX },
+    },
+    {
+      name:        "contrast",
+      long_name:   "Contrast",
+      type:        BG_PARAMETER_SLIDER_FLOAT,
+      flags:       BG_PARAMETER_SYNC | BG_PARAMETER_HIDE_DIALOG,
+      val_default: { val_f: 0.0 },
+      val_min:     { val_f: BG_CONTRAST_MIN },
+      val_max:     { val_f: BG_CONTRAST_MAX },
     },
     { /* End of parameters */ }
   };
@@ -571,6 +696,26 @@ static void set_parameter_x11(void * data,
     if(priv->is_open)
       set_drawing_coords(priv);
     }
+  else if(!strcmp(name, "hue"))
+    {
+    priv->hue = val->val_f;
+    bg_x11_window_set_hue(priv->win, val->val_f);
+    }
+  else if(!strcmp(name, "saturation"))
+    {
+    priv->saturation = val->val_f;
+    bg_x11_window_set_saturation(priv->win, val->val_f);
+    }
+  else if(!strcmp(name, "contrast"))
+    {
+    priv->contrast = val->val_f;
+    bg_x11_window_set_contrast(priv->win, val->val_f);
+    }
+  else if(!strcmp(name, "brightness"))
+    {
+    priv->brightness = val->val_f;
+    bg_x11_window_set_brightness(priv->win, val->val_f);
+    }
   else
     bg_x11_window_set_parameter(priv->win, name, val);
   }
@@ -590,6 +735,26 @@ static int get_parameter_x11(void * data, const char * name,
   else if(!strcmp(name, "squeeze"))
     {
     val->val_f = priv->squeeze;
+    return 1;
+    }
+  else if(!strcmp(name, "hue"))
+    {
+    val->val_f = priv->hue;
+    return 1;
+    }
+  else if(!strcmp(name, "saturation"))
+    {
+    val->val_f = priv->saturation;
+    return 1;
+    }
+  else if(!strcmp(name, "brightness"))
+    {
+    val->val_f = priv->brightness;
+    return 1;
+    }
+  else if(!strcmp(name, "contrast"))
+    {
+    val->val_f = priv->contrast;
     return 1;
     }
   else

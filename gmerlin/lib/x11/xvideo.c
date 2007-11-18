@@ -2,26 +2,18 @@
 #include <x11/x11_window_private.h>
 
 #include <X11/extensions/Xvlib.h>
+#include <string.h>
 
 #define XV_ID_YV12  0x32315659 
 #define XV_ID_I420  0x30323449
 #define XV_ID_YUY2  0x32595559
 #define XV_ID_UYVY  0x59565955
 
-static struct
-  {
-  char * xv_name;
-  char * long_name;
-  }
-xv_parameters[] =
-  {
-    { "XV_HUE",        "Hue"        },
-    { "XV_BRIGHTNESS", "Brightness" },
-    { "XV_SATURATION", "Saturation" },
-    { "XV_CONTRAST",   "Contrast"   }
-  };
-
-#define NUM_XV_PARAMETERS (sizeof(xv_parameters)/sizeof(xv_parameters[0]))
+#define XV_ATTR_BRIGHTNESS 0
+#define XV_ATTR_SATURATION 1
+#define XV_ATTR_CONTRAST   2
+#define XV_ATTR_HUE        3
+#define XV_ATTR_NUM        4
 
 typedef struct
   {
@@ -30,17 +22,26 @@ typedef struct
   int have_xv_colorkey;
   int xv_colorkey;  
   int xv_colorkey_orig;
-  Atom xv_attr_atoms[NUM_XV_PARAMETERS];
   Atom xv_colorkey_atom;
   int xv_colorkey_settable;
   int format;
+  
+  int max_width, max_height;
+
+  struct
+    {
+    Atom atom;
+    int index;
+    } attributes[XV_ATTR_NUM];
+  
+  XvAttribute * xv_attributes;
+  
   } xv_priv_t;
 
-static void check_xv(Display * d, Window w,
-                     XvPortID * port,
-                     gavl_pixelformat_t * formats_ret,
-                     int * format_ids_ret)
+static void check_xv(driver_data_t * d)
   {
+  xv_priv_t * priv;
+  
   unsigned int version;
   unsigned int release;
   unsigned int dummy;
@@ -48,21 +49,25 @@ static void check_xv(Display * d, Window w,
   unsigned int i;
   unsigned long j;
   XvAdaptorInfo * adaptorInfo;
+  XvEncodingInfo * encodingInfo;
   XvImageFormatValues * formatValues;
+  int num;
+  unsigned int numu;
+  
   int formats;
   int k;
   int found = 0;
 
   int format_index = 0;
   int have_420 = 0;
+  priv = (xv_priv_t*)d->priv;
+  d->pixelformats[0] = GAVL_PIXELFORMAT_NONE;
   
-  formats_ret[0] = GAVL_PIXELFORMAT_NONE;
-  
-  if ((XvQueryExtension (d, &version, &release,
+  if ((XvQueryExtension (d->win->dpy, &version, &release,
                          &dummy, &dummy, &dummy) != Success) ||
       (version < 2) || ((version == 2) && (release < 2)))
     return;
-  XvQueryAdaptors (d, w, &adaptors, &adaptorInfo);
+  XvQueryAdaptors (d->win->dpy, d->win->root, &adaptors, &adaptorInfo);
   for (i = 0; i < adaptors; i++)
     {
     if (adaptorInfo[i].type & XvImageMask)
@@ -70,7 +75,7 @@ static void check_xv(Display * d, Window w,
       for (j = 0; j < adaptorInfo[i].num_ports; j++)
         {
         formatValues =
-          XvListImageFormats(d,
+          XvListImageFormats(d->win->dpy,
                              adaptorInfo[i].base_id + j,
                              &formats);
         for (k = 0; k < formats; k++)
@@ -79,8 +84,8 @@ static void check_xv(Display * d, Window w,
             {
             if(!have_420)
               {
-              formats_ret[format_index] = GAVL_YUV_420_P;
-              format_ids_ret[format_index++] = formatValues[k].id;
+              d->pixelformats[format_index] = GAVL_YUV_420_P;
+              priv->format_ids[format_index++] = formatValues[k].id;
               found = 1;
               have_420 = 1;
               }
@@ -89,29 +94,29 @@ static void check_xv(Display * d, Window w,
             {
             if(!have_420)
               {
-              formats_ret[format_index] = GAVL_YUV_420_P;
-              format_ids_ret[format_index++] = formatValues[k].id;
+              d->pixelformats[format_index] = GAVL_YUV_420_P;
+              priv->format_ids[format_index++] = formatValues[k].id;
               found = 1;
               have_420 = 1;
               }
             }
           else if(formatValues[k].id == XV_ID_YUY2)
             {
-            formats_ret[format_index] = GAVL_YUY2;
-            format_ids_ret[format_index++] = formatValues[k].id;
+            d->pixelformats[format_index] = GAVL_YUY2;
+            priv->format_ids[format_index++] = formatValues[k].id;
             found = 1;
             }
           else if(formatValues[k].id == XV_ID_UYVY)
             {
-            formats_ret[format_index] = GAVL_UYVY;
-            format_ids_ret[format_index++] = formatValues[k].id;
+            d->pixelformats[format_index] = GAVL_UYVY;
+            priv->format_ids[format_index++] = formatValues[k].id;
             found = 1;
             }
           }
         XFree (formatValues);
         if(found)
           {
-          *port = adaptorInfo[i].base_id + j;
+          priv->port = adaptorInfo[i].base_id + j;
           break;
           }
         }
@@ -120,7 +125,60 @@ static void check_xv(Display * d, Window w,
       break;
     }
   XvFreeAdaptorInfo (adaptorInfo);
-  formats_ret[format_index] = GAVL_PIXELFORMAT_NONE;
+  d->pixelformats[format_index] = GAVL_PIXELFORMAT_NONE;
+
+  if(found)
+    {
+    /* Check for attributes */
+    priv->xv_attributes =
+      XvQueryPortAttributes(d->win->dpy, priv->port, &num);
+
+    for(i = 0; i < num; i++)
+      {
+      if(!strcmp(priv->xv_attributes[i].name, "XV_BRIGHTNESS"))
+        {
+        priv->attributes[XV_ATTR_BRIGHTNESS].index = i;
+        priv->attributes[XV_ATTR_BRIGHTNESS].atom =
+          XInternAtom(d->win->dpy, "XV_BRIGHTNESS", False);
+        d->flags |= DRIVER_FLAG_BRIGHTNESS;
+        }
+      if(!strcmp(priv->xv_attributes[i].name, "XV_CONTRAST"))
+        {
+        priv->attributes[XV_ATTR_CONTRAST].index = i;
+        priv->attributes[XV_ATTR_CONTRAST].atom =
+          XInternAtom(d->win->dpy, "XV_CONTRAST", False);
+        d->flags |= DRIVER_FLAG_CONTRAST;
+        }
+      if(!strcmp(priv->xv_attributes[i].name, "XV_SATURATION"))
+        {
+        priv->attributes[XV_ATTR_SATURATION].index = i;
+        priv->attributes[XV_ATTR_SATURATION].atom =
+          XInternAtom(d->win->dpy, "XV_SATURATION", False);
+        d->flags |= DRIVER_FLAG_SATURATION;
+        }
+      if(!strcmp(priv->xv_attributes[i].name, "XV_HUE"))
+        {
+        priv->attributes[XV_ATTR_HUE].index = i;
+        priv->attributes[XV_ATTR_HUE].atom =
+          XInternAtom(d->win->dpy, "XV_HUE", False);
+        d->flags |= DRIVER_FLAG_HUE;
+        }
+      }
+    
+    num = 0;
+    XvQueryEncodings(d->win->dpy, priv->port, &numu, &encodingInfo);
+
+    for(i = 0; i < numu; i++)
+      {
+      if(!strcmp(encodingInfo[i].name, "XV_IMAGE"))
+        {
+        priv->max_width  = encodingInfo[i].width;
+        priv->max_height = encodingInfo[i].height;
+        }
+      }
+    if(numu)
+      XvFreeEncodingInfo(encodingInfo);
+    }
   return;
   }
 
@@ -131,11 +189,7 @@ static int init_xv(driver_data_t * d)
   d->priv = priv;
   priv->format_ids = malloc(5*sizeof(*priv->format_ids));
   d->pixelformats = malloc(5*sizeof(*d->pixelformats));
-
-  check_xv(d->win->dpy, d->win->root,
-           &priv->port,
-           d->pixelformats,
-           priv->format_ids);
+  check_xv(d);
   return 0;
   }
 
@@ -146,8 +200,14 @@ static int open_xv(driver_data_t * d)
   int i;
   priv = (xv_priv_t *)(d->priv);
   w = d->win;
-  /* Get the format */
 
+  /* Check agaist the maximum size */
+  if(priv->max_width && (d->win->video_format.frame_width > priv->max_width))
+    return 0;
+  if(priv->max_height && (d->win->video_format.frame_height > priv->max_height))
+    return 0;
+  
+  /* Get the format */
   i = 0;
   while(d->pixelformats[i] != GAVL_PIXELFORMAT_NONE)
     {
@@ -363,9 +423,77 @@ static void cleanup_xv(driver_data_t * d)
   priv = (xv_priv_t *)(d->priv);
   if(priv->format_ids)
     free(priv->format_ids);
+
+  if(priv->xv_attributes)
+    XFree(priv->xv_attributes);
+  
   free(priv);
   }
 
+static int rescale(XvAttribute * attr, float val, float min, float max)
+  {
+  int ret;
+  ret = attr->min_value +
+    (int)((attr->max_value - attr->min_value) * (val - min) / (max - min) +
+          0.5);
+  if(ret < attr->min_value)
+    ret = attr->min_value;
+  if(ret > attr->max_value)
+    ret = attr->max_value;
+  return ret;
+  }
+
+static void set_brightness_xv(driver_data_t* d,float val)
+  {
+  xv_priv_t * priv;
+  priv = (xv_priv_t *)(d->priv);
+  
+  XvSetPortAttribute(d->win->dpy, priv->port,
+                     priv->attributes[XV_ATTR_BRIGHTNESS].atom, 
+                     rescale(&priv->xv_attributes[priv->attributes[XV_ATTR_BRIGHTNESS].index],
+                             val,
+                             BG_BRIGHTNESS_MIN,
+                             BG_BRIGHTNESS_MAX));
+  }
+
+static void set_saturation_xv(driver_data_t* d,float val)
+  {
+  xv_priv_t * priv;
+  priv = (xv_priv_t *)(d->priv);
+  XvSetPortAttribute(d->win->dpy, priv->port,
+                     priv->attributes[XV_ATTR_SATURATION].atom, 
+                     rescale(&priv->xv_attributes[priv->attributes[XV_ATTR_SATURATION].index],
+                             val,
+                             BG_SATURATION_MIN,
+                             BG_SATURATION_MAX));
+
+  }
+
+static void set_contrast_xv(driver_data_t* d,float val)
+  {
+  xv_priv_t * priv;
+  priv = (xv_priv_t *)(d->priv);
+  XvSetPortAttribute(d->win->dpy, priv->port,
+                     priv->attributes[XV_ATTR_CONTRAST].atom, 
+                     rescale(&priv->xv_attributes[priv->attributes[XV_ATTR_CONTRAST].index],
+                             val,
+                             BG_CONTRAST_MIN,
+                             BG_CONTRAST_MAX));
+  
+  }
+
+static void set_hue_xv(driver_data_t* d,float val)
+  {
+  xv_priv_t * priv;
+  priv = (xv_priv_t *)(d->priv);
+  XvSetPortAttribute(d->win->dpy, priv->port,
+                     priv->attributes[XV_ATTR_HUE].atom, 
+                     rescale(&priv->xv_attributes[priv->attributes[XV_ATTR_HUE].index],
+                             val,
+                             BG_HUE_MIN,
+                             BG_HUE_MAX));
+  
+  }
 
 
 video_driver_t xv_driver =
@@ -374,6 +502,10 @@ video_driver_t xv_driver =
     .init               = init_xv,
     .open               = open_xv,
     .create_frame       = create_frame_xv,
+    .set_brightness     = set_brightness_xv,
+    .set_saturation     = set_saturation_xv,
+    .set_contrast       = set_contrast_xv,
+    .set_hue            = set_hue_xv,
     .put_frame          = put_frame_xv,
     .destroy_frame      = destroy_frame_xv,
     .close              = close_xv,

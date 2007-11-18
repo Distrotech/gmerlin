@@ -23,8 +23,14 @@
 
 typedef struct video_driver_s video_driver_t;
 
+#define DRIVER_FLAG_BRIGHTNESS (1<<0)
+#define DRIVER_FLAG_SATURATION (1<<1)
+#define DRIVER_FLAG_CONTRAST   (1<<2)
+#define DRIVER_FLAG_HUE        (1<<3)
+
 typedef struct
   {
+  int flags;
   video_driver_t * driver;
   gavl_pixelformat_t * pixelformats;
   void * priv;
@@ -64,6 +70,11 @@ struct video_driver_s
   
   void (*put_frame)(driver_data_t* data,
                     gavl_video_frame_t * frame);
+
+  void (*set_brightness)(driver_data_t* data,float brightness);
+  void (*set_saturation)(driver_data_t* data,float saturation);
+  void (*set_contrast)(driver_data_t* data,float contrast);
+  void (*set_hue)(driver_data_t* data,float hue);
   
   void (*close)(driver_data_t* data);
   void (*cleanup)(driver_data_t* data);
@@ -223,7 +234,11 @@ struct bg_x11_window_s
     unsigned long texture; /* For OpenGL only */
     gavl_video_format_t format;
     } * overlay_streams;
-  
+
+  float brightness;
+  float saturation;
+  float contrast;
+  float hue;
   } x11_window_t;
 
 /* Private functions */

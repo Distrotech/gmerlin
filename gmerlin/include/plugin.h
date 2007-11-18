@@ -959,6 +959,15 @@ typedef struct bg_ov_callbacks_s
    */
 
   void (*contrast_callback)(void * data, float val);
+
+  /** \brief Hue change callback
+   *  \param data The data member of this bg_ov_callbacks_s struct
+   *  \param val New value (0.0..1.0)
+   *
+   *  This callback can be used to update OSD when the hue changed.
+   */
+  
+  void (*hue_callback)(void * data, float val);
   
   void * data;//!< Application specific data passed as the first argument to all callbacks.
   } bg_ov_callbacks_t;

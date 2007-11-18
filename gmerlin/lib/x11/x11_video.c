@@ -11,6 +11,78 @@ static video_driver_t * drivers[] =
     &gl_driver,
   };
 
+static int set_brightness(bg_x11_window_t * w)
+  {
+  if(w->video_open &&
+     w->current_driver->driver->set_brightness &&
+     (w->current_driver->flags & DRIVER_FLAG_BRIGHTNESS))
+    {
+    w->current_driver->driver->set_brightness(w->current_driver, w->brightness);
+    return 1;
+    }
+  return 0;
+  }
+
+int bg_x11_window_set_brightness(bg_x11_window_t * w, float val)
+  {
+  w->brightness = val;
+  return set_brightness(w);
+  }
+
+static int set_saturation(bg_x11_window_t * w)
+  {
+  if(w->video_open &&
+     w->current_driver->driver->set_saturation &&
+     (w->current_driver->flags & DRIVER_FLAG_SATURATION))
+    {
+    w->current_driver->driver->set_saturation(w->current_driver, w->saturation);
+    return 1;
+    }
+  return 0;
+  }
+
+int bg_x11_window_set_saturation(bg_x11_window_t * w, float val)
+  {
+  w->saturation = val;
+  return set_saturation(w);
+  }
+
+static int set_contrast(bg_x11_window_t * w)
+  {
+  if(w->video_open &&
+     w->current_driver->driver->set_contrast &&
+     (w->current_driver->flags & DRIVER_FLAG_CONTRAST))
+    {
+    w->current_driver->driver->set_contrast(w->current_driver, w->contrast);
+    return 1;
+    }
+  return 0;
+  }
+
+int bg_x11_window_set_contrast(bg_x11_window_t * w, float val)
+  {
+  w->contrast = val;
+  return set_contrast(w);
+  }
+
+static int set_hue(bg_x11_window_t * w)
+  {
+  if(w->video_open &&
+     w->current_driver->driver->set_hue &&
+     (w->current_driver->flags & DRIVER_FLAG_HUE))
+    {
+    w->current_driver->driver->set_hue(w->current_driver, w->hue);
+    return 1;
+    }
+  return 0;
+  }
+
+int bg_x11_window_set_hue(bg_x11_window_t * w, float val)
+  {
+  w->hue = val;
+  return set_hue(w);
+  }
+
 static void init(bg_x11_window_t * w)
   {
   int num_drivers, i;
@@ -152,6 +224,13 @@ int bg_x11_window_open_video(bg_x11_window_t * w,
     w->do_sw_scale = 1;
     
     }
+
+  set_contrast(w);
+  set_saturation(w);
+  set_brightness(w);
+  set_hue(w);
+  
+
   return 1;
   }
 
@@ -292,5 +371,4 @@ void bg_x11_window_close_video(bg_x11_window_t * w)
   
   w->video_open = 0;
   }
-
 
