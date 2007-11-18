@@ -57,7 +57,7 @@ typedef struct
 static FLAC__StreamDecoderReadStatus
 read_callback(const FLAC__StreamDecoder *decoder,
               FLAC__byte buffer[],
-              unsigned *bytes, void *client_data)
+              size_t *bytes, void *client_data)
   {
   int bytes_read = 0;
   int bytes_to_copy;
