@@ -217,7 +217,7 @@ static void toc_2_tt(bgav_input_context_t * ctx)
     }
   }
 
-static int open_vcd(bgav_input_context_t * ctx, const char * url)
+static int open_vcd(bgav_input_context_t * ctx, const char * url, char ** r)
   {
   driver_return_code_t err;
   int i;
@@ -515,7 +515,7 @@ bgav_input_context_t * bgav_input_open_vcd(const char * device,
   ret = bgav_input_create(opt);
   ret->input = &bgav_input_vcd;
 
-  if(!ret->input->open(ret, device))
+  if(!ret->input->open(ret, device, NULL))
     {
     goto fail;
     }

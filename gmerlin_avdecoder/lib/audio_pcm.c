@@ -969,7 +969,7 @@ static int init_pcm(bgav_stream_t * s)
       if(s->ext_size < sizeof(formatSpecificFlags))
         {
         bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-                 "extradata too small (%d < %d)", s->ext_size,
+                 "extradata too small (%d < %ld)", s->ext_size,
                  sizeof(formatSpecificFlags));
         return 0;
         }

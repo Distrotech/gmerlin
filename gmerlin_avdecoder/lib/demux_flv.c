@@ -663,11 +663,11 @@ static void handle_metadata(bgav_demuxer_context_t * ctx)
   meta_object_t * obj, *obj1;
   int num_obj;
   flv_priv_t * priv;
+  int as, vs;
   priv = (flv_priv_t *)(ctx->priv);
   
   obj = priv->metadata.data.object.children;
   num_obj = priv->metadata.data.object.num_children;
-  int as, vs;
   as = ctx->tt->cur->num_audio_streams;
   vs = ctx->tt->cur->num_video_streams;
   /* Data rates */

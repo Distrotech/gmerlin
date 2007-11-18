@@ -35,7 +35,7 @@
 #define BGAV_FSEEK ftell
 #endif
 
-static int open_file(bgav_input_context_t * ctx, const char * url)
+static int open_file(bgav_input_context_t * ctx, const char * url, char ** r)
   {
   FILE * f = fopen(url, "rb");
   if(!f)
@@ -75,7 +75,7 @@ static void    close_file(bgav_input_context_t * ctx)
     fclose((FILE*)(ctx->priv));
   }
 
-static int open_stdin(bgav_input_context_t * ctx, const char * url)
+static int open_stdin(bgav_input_context_t * ctx, const char * url, char ** r)
   {
   ctx->priv = stdin;
   return 1;

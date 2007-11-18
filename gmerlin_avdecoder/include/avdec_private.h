@@ -660,7 +660,7 @@ void bgav_options_free(bgav_options_t*opt);
 struct bgav_input_s
   {
   const char * name;
-  int     (*open)(bgav_input_context_t*, const char * url);
+  int     (*open)(bgav_input_context_t*, const char * url, char ** redirect_url);
   int     (*read)(bgav_input_context_t*, uint8_t * buffer, int len);
 
   /* Attempts to read data but returns immediately if there is nothing

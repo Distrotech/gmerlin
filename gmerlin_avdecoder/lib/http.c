@@ -387,8 +387,9 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
     location = bgav_http_header_get_var(ret->header, "Location");
 
     if(location)
+      {
       *redirect_url = bgav_strdup(location);
-    
+      }
     bgav_http_header_destroy(ret->header);
     free(ret);
     

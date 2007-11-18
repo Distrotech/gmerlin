@@ -716,7 +716,7 @@ static void save_channel_cache(bgav_input_context_t * ctx)
   return;
   }
 
-static int open_dvb(bgav_input_context_t * ctx, const char * url)
+static int open_dvb(bgav_input_context_t * ctx, const char * url, char ** redirect_url)
   {
   int i;
   fe_status_t status;
@@ -1072,7 +1072,7 @@ bgav_input_context_t * bgav_input_open_dvb(const char * device,
   ret = bgav_input_create(opt);
   ret->input = &bgav_input_dvb;
 
-  if(!ret->input->open(ret, device))
+  if(!ret->input->open(ret, device, NULL))
     {
     goto fail;
     }

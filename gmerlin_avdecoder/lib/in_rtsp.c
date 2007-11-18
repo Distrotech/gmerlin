@@ -370,7 +370,7 @@ static int is_real_smil(bgav_sdp_t * s)
   return 0;
   }
      
-static int open_rtsp(bgav_input_context_t * ctx, const char * url)
+static int open_rtsp(bgav_input_context_t * ctx, const char * url, char ** r)
   {
   rtsp_priv_t * priv;
   bgav_sdp_t * sdp;

@@ -131,7 +131,7 @@ static char * parse_address(const char * server_msg, int * port)
 
 #define FREE(ptr) if(ptr) { free(ptr); ptr = (char*)0; }
 
-static int open_ftp(bgav_input_context_t * ctx, const char * url)
+static int open_ftp(bgav_input_context_t * ctx, const char * url, char ** r)
   {
   int port = -1;
   int server_msg_alloc = 0;

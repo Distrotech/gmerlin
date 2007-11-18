@@ -90,12 +90,10 @@ static void set_metadata_string(bgav_http_header_t * header,
     }
   }
 
-static int open_http(bgav_input_context_t * ctx, const char * url)
+static int open_http(bgav_input_context_t * ctx, const char * url, char ** r)
   {
   const char * var;
-  int i;
   bgav_http_header_t * header;
-  char * redirect_url = (char*)0;
   http_priv * p;
     
   bgav_http_header_t * extra_header = (bgav_http_header_t*)0;
@@ -109,24 +107,8 @@ static int open_http(bgav_input_context_t * ctx, const char * url)
     }
   
   p->h = bgav_http_open(url, ctx->opt,
-                        &redirect_url, extra_header);
+                        r, extra_header);
   
-  if(!p->h && redirect_url)
-    {
-    for(i = 0; i < NUM_REDIRECTIONS; i++)
-      {
-      p->h = bgav_http_open(redirect_url, ctx->opt,
-                            &redirect_url, extra_header);
-      if(p->h)
-        break;
-      else if(!redirect_url)
-        break;
-      }
-    }
-
-  if(redirect_url)
-    free(redirect_url);
-    
   if(!p->h)
     {
     free(p);

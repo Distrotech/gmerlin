@@ -30,7 +30,7 @@ typedef struct
   pnm_t * s;
   } pnm_priv_t;
 
-static int open_pnm(bgav_input_context_t * ctx, const char * url)
+static int open_pnm(bgav_input_context_t * ctx, const char * url, char ** r)
   {
   int port;
   char * path = (char*)0;

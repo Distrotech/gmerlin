@@ -78,7 +78,7 @@ static void smb_auth_fn(const char *server, const char *share,
 
 /* Connect and open File */
 
-static int open_smb(bgav_input_context_t * ctx, const char * url)
+static int open_smb(bgav_input_context_t * ctx, const char * url, char ** redirect_url)
   {
   smb_priv_t * p;
   uint64_t len;

@@ -27,6 +27,7 @@
 
 #define GET_LINE_SIZE 8
 #define ALLOC_SIZE    128
+#define MAX_REDIRECTIONS 5
 
 static void add_char_16(char ** buffer, int * buffer_alloc,
                        int pos, uint16_t c)
@@ -678,8 +679,8 @@ static void init_buffering(bgav_input_context_t * ctx)
     }
   }
 
-int bgav_input_open(bgav_input_context_t * ctx,
-                    const char *url)
+static int input_open(bgav_input_context_t * ctx,
+                      const char *url, char ** redir)
   {
   int ret = 0;
   const char * pos;
@@ -753,7 +754,7 @@ int bgav_input_open(bgav_input_context_t * ctx,
 
     }
  
-  if(!ctx->input->open(ctx, tmp_url))
+  if(!ctx->input->open(ctx, tmp_url, redir))
     {
     goto fail;
     }
@@ -771,10 +772,36 @@ int bgav_input_open(bgav_input_context_t * ctx,
   return ret;
   }
 
+int bgav_input_open(bgav_input_context_t * ctx,
+                    const char *url)
+  {
+  int ret = 0;
+  char * r = (char*)0;
+  int i;
+  char * tmp_url;
+  tmp_url = bgav_strdup(url);
+  for(i = 0; i < MAX_REDIRECTIONS; i++)
+    {
+    if(input_open(ctx, tmp_url, &r))
+      {
+      ret = 1;
+      break;
+      }
+    if(!r)
+      break;
+    free(tmp_url);
+    tmp_url = r;
+    bgav_log(ctx->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Got redirected to %s", r);
+    r = (char*)0;
+    }
+  
+  free(tmp_url);
+  return ret;
+  }
 
 void bgav_input_close(bgav_input_context_t * ctx)
   {
-  const gavl_video_options_t * opt;
+  const bgav_options_t * opt;
   if(ctx->tt)
     bgav_track_table_unref(ctx->tt);
   if(ctx->input && ctx->priv)
@@ -984,6 +1011,7 @@ int bgav_input_reopen(bgav_input_context_t * ctx)
   bgav_input_t * input;
   char * url = (char*)0;
   int ret = 0;
+  char * redir;
   const bgav_options_t * opt;
   if(ctx->url)
     {
@@ -1001,8 +1029,9 @@ int bgav_input_reopen(bgav_input_context_t * ctx)
     ctx->input = input;
     ctx->opt = opt;
     
-    if(!ctx->input->open(ctx, url))
+    if(!ctx->input->open(ctx, url, &redir))
       {
+      if(redir) free(redir);
       bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
                "Reopening %s failed", url);
       goto fail;

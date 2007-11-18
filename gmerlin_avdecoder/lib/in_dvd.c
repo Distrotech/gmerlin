@@ -600,7 +600,7 @@ static void dump_vmg_ifo(ifo_handle_t * vmg_ifo)
   }
 #endif
 
-static int open_dvd(bgav_input_context_t * ctx, const char * url)
+static int open_dvd(bgav_input_context_t * ctx, const char * url, char ** r)
   {
   int i, j, k;
   dvd_t * priv;
@@ -1204,7 +1204,7 @@ bgav_input_context_t * bgav_input_open_dvd(const char * device,
   bgav_input_context_t * ret = (bgav_input_context_t *)0;
   ret = bgav_input_create(opt);
   ret->input = &bgav_input_dvd;
-  if(!ret->input->open(ret, device))
+  if(!ret->input->open(ret, device, NULL))
     {
     bgav_log(ret->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Cannot open DVD Device %s", device);
     goto fail;

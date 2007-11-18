@@ -38,7 +38,7 @@ typedef struct
 
 extern bgav_demuxer_t bgav_demuxer_asf;
 
-static int open_mms(bgav_input_context_t * ctx, const char * url)
+static int open_mms(bgav_input_context_t * ctx, const char * url, char ** r)
   {
   uint8_t * header;
   int header_len;
