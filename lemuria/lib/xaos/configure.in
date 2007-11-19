@@ -925,7 +925,7 @@ AC_SUBST(ASMOBJS)
 
 dnl Set empty CFLAGS for lemuria
 
-CFLAGS="-prefer-non-pic"
+dnl CFLAGS="-prefer-non-pic"
 
 AC_OUTPUT(src/Makefile Makefile src/engine/Makefile src/include/Makefile src/include/i386/Makefile src/include/config/Makefile src/include/mac/Makefile src/util/Makefile src/filter/Makefile src/ui-hlp/Makefile )
 echo "------------------------------------------------------------"

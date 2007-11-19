@@ -58,10 +58,16 @@ fi
 
 do_x86()
 {
+
+CFLAGS=-O
+if test $IsDarwin = yes; then
+   CFLAGS="$CFLAGS -fno-pic -Wl,-read_only_relocs -Wl,suppress"
+fi
+
 if test -r /proc/cpuinfo; then
 	_cpuinfo="cat /proc/cpuinfo"
 else
-	$CC -o cpuinfo utils/cpuinfo.c
+	$CC $CFLAGS -o cpuinfo utils/cpuinfo.c
 	_cpuinfo="./cpuinfo"
 fi
 
@@ -156,14 +162,18 @@ case "$pvendor" in
 			   fi
 			   ;;
 			6) iproc=686
-			   if test "$pmodel" -ge 7; then
+                           if test "$pmodel" -ge 15; then
+                                proc=nocona
+                           elif test "$pmodel" -ge 13; then
+                                proc=pentium-m
+			   elif test "$pmodel" -ge 7; then
 				proc=pentium3
 			   elif test "$pmodel" -ge 3; then
 				proc=pentium2
 			   else
 				proc=i686
 			   fi
-			   ;;
+                           ;;
 			15) proc=pentium4
 			   ;;
 			*) proc=pentium4
@@ -302,7 +312,7 @@ fi
 if test "$_cc_major" -ge "3" && test "$_cc_minor" -ge "3" || test "$_cc_major" -ge "4"; then
 	case "$proc" in
 	     970*) if test $IsDarwin = yes; then
-		      _march="$_opt_mcpu=G5 -mpowerpc64 -mpowerpc-gpopt -falign-loops=16" _mcpu='-mtune=G5'
+		      _march="$_opt_mcpu=G5 -mpowerpc64 -mpowerpc-gpopt -falign-loops=16 -force_cpusubtype_ALL" _mcpu='-mtune=G5'
 		   else
 		      _march="$_opt_mcpu=970" _mcpu='-mtune=970'
 		   fi
