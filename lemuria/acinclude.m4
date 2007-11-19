@@ -6,7 +6,7 @@ dnl The variable LIBM (which is not an output variable by default) is
 dnl set to a value which is suitable for use in a Makefile (for example,
 dnl in make's LOADLIBES macro) provided you AC_SUBST it first.
 dnl
-dnl @version 0.01 $Id: acinclude.m4,v 1.1.1.1 2007-10-13 14:41:25 gmerlin Exp $
+dnl @version 0.01 $Id: acinclude.m4,v 1.2 2007-11-19 12:38:51 gmerlin Exp $
 dnl @author Matthew D. Langston <langston@SLAC.Stanford.EDU>
                                                                                 
 # AC_CHECK_LIBM - check for math library
@@ -89,7 +89,7 @@ dnl Please note that as the ac_opengl macro and the toy example evolves,
 dnl the version number increases, so you may have to adjust the above
 dnl URL accordingly.
 dnl
-dnl @version 0.01 $Id: acinclude.m4,v 1.1.1.1 2007-10-13 14:41:25 gmerlin Exp $
+dnl @version 0.01 $Id: acinclude.m4,v 1.2 2007-11-19 12:38:51 gmerlin Exp $
 dnl @author Matthew D. Langston <langston@SLAC.Stanford.EDU>
 
 AC_DEFUN([MDL_HAVE_OPENGL],
@@ -125,7 +125,7 @@ dnl If we are running under X11 then add in the appropriate libraries.
 dnl Add everything we need to compile and link X programs to GL_CFLAGS
 dnl and GL_X_LIBS.
       GL_CFLAGS="$X_CFLAGS"
-      GL_X_LIBS="$X_PRE_LIBS $X_LIBS -lX11 -lXext -lXmu -lXt -lXi $X_EXTRA_LIBS $LIBM"
+      GL_X_LIBS="$X_PRE_LIBS $X_LIBS -lX11 -lXext $X_EXTRA_LIBS $LIBM"
     fi
     GL_save_CPPFLAGS="$CPPFLAGS"
     CPPFLAGS="$GL_CFLAGS"
