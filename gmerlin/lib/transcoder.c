@@ -2848,8 +2848,12 @@ static int init_encoders(bg_transcoder_t * ret)
     
       if(!open_encoder(ret, ret->out_handle,
                        encoder_plugin, &ret->output_filename))
+        {
+        /* On error, open_encoder unrefs the plugin. Set it to NULL to prevent
+           crashes later on */
+        ret->out_handle = (bg_plugin_handle_t*)0;
         goto fail;
-    
+        }
       for(i = 0; i < ret->num_audio_streams; i++)
         {
         if(!ret->audio_streams[i].com.do_decode)/* If we don't encode we still need to open the

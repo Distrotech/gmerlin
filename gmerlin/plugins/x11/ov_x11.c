@@ -797,10 +797,14 @@ static int open_x11(void * data, gavl_video_format_t * format)
   result = bg_x11_window_open_video(priv->win, format);
   gavl_video_format_copy(&priv->video_format, format);
   gavl_video_format_copy(&priv->window_format, format);
+
+  /* FIXME: Here, we assume square x11 pixels */
+  priv->window_format.pixel_width = 1;
+  priv->window_format.pixel_height = 1;
   
   priv->is_open = 1;
-  
   set_drawing_coords(priv);
+  
   return result;
   }
 
@@ -876,7 +880,11 @@ static void close_x11(void * data)
 static void update_aspect_x11(void * data, int pixel_width,
                               int pixel_height)
   {
-  
+  x11_t * priv;
+  priv = (x11_t*)data;
+  priv->video_format.pixel_width = pixel_width;
+  priv->video_format.pixel_height = pixel_height;
+  set_drawing_coords(priv);
   }
 
 static void show_window_x11(void * data, int show)

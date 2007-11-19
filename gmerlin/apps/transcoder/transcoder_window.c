@@ -649,7 +649,7 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   else if((w == win->save_button) || (w == win->file_menu.save_item))
     {
-    tmp_string = bg_gtk_get_filename_write(TR("Load task list"),
+    tmp_string = bg_gtk_get_filename_write(TR("Save task list"),
                                            &win->task_path, 1,
                                            win->save_button);
     if(tmp_string)
@@ -661,7 +661,7 @@ static void button_callback(GtkWidget * w, gpointer data)
   else if(w == win->options_menu.load_item)
     {
     tmp_string = bg_gtk_get_filename_read(TR("Load profile"),
-                                          &win->task_path, win->win);
+                                          &win->profile_path, win->win);
     if(tmp_string)
       {
       transcoder_window_load_profile(win, tmp_string);
@@ -670,8 +670,8 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   else if(w == win->options_menu.save_item)
     {
-    tmp_string = bg_gtk_get_filename_read(TR("Save profile"),
-                                          &win->task_path, win->win);
+    tmp_string = bg_gtk_get_filename_write(TR("Save profile"),
+                                           &win->profile_path, 1, win->win);
     if(tmp_string)
       {
       bg_cfg_registry_save(win->cfg_reg, tmp_string);
