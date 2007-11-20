@@ -91,7 +91,7 @@ lqt_additional_opt_flags=ifelse([$2],[],[],[$2])
 lqt_test_flags=$lqt_cpuflags
 
 if test x$LQT_DEBUG = xtrue; then
-  lqt_test_cflags="$lqt_test_flags -g"
+  lqt_test_cflags="$lqt_test_flags -g -DDEBUG"
 else
   lqt_test_cflags="$lqt_test_flags $lqt_additional_opt_flags"
 fi
