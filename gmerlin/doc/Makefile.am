@@ -10,6 +10,8 @@ userguide: $(gmerlin_TEXINFOS)
 apiref:
 	doxygen Doxyfile
 
+all: html
+
 html: apiref userguide
 
 install-data-local:

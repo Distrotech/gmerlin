@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-11-18 18:27+0100\n"
+"POT-Creation-Date: 2007-11-20 20:26+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -484,11 +484,11 @@ msgstr ""
 msgid "Got window size: %d %d"
 msgstr ""
 
-#: plugins/x11/ov_x11.c:895
+#: plugins/x11/ov_x11.c:903
 msgid "X11"
 msgstr ""
 
-#: plugins/x11/ov_x11.c:896
+#: plugins/x11/ov_x11.c:904
 msgid "X11 display driver with support for XShm, XVideo and XImage"
 msgstr ""
 
