@@ -202,7 +202,8 @@ typedef struct gavl_audio_format_s
   float rear_level;   /*!< linear factor for mixing rear to front */
 
   gavl_channel_id_t channel_locations[GAVL_MAX_CHANNELS];   /*!< Which channel is stored where */
-
+  int reserved[8];      /*!< Reserved for future extensions */
+  
   } gavl_audio_format_t;
 
   
@@ -311,8 +312,8 @@ void gavl_audio_format_copy(gavl_audio_format_t * dst,
   \returns 1 if the formats are equal, 0 else
 */
   
-int gavl_audio_formats_equal(const gavl_audio_format_t * dst,
-                              const gavl_audio_format_t * src);
+int gavl_audio_formats_equal(const gavl_audio_format_t * format_1,
+                              const gavl_audio_format_t * format_2);
 
 /*!
   \ingroup audio_format
@@ -407,7 +408,7 @@ typedef struct gavl_audio_frame_s
   int valid_samples;             /*!< Number of actually valid samples */
   int64_t timestamp;             /*!< Timestamp in samplerate tics */
   int channel_stride;            /*!< Byte offset between channels. Total allocated size is always num_channels * channel_stride */
-  int reserved[8];
+  int reserved[8];               /*!< Reserved for future extensions */
   } gavl_audio_frame_t;
 
 /*!
@@ -935,6 +936,7 @@ void gavl_peak_detector_update(gavl_peak_detector_t *pd,
  *  \param pd A peak detector
  *  \param min Returns minimum amplitude
  *  \param max Returns maximum amplitude
+ *  \param abs Returns maximum absolute amplitude
  *
  *  The returned amplitudes are normalized such that the
  *  minimum amplitude corresponds to -1.0, the maximum amplitude
@@ -950,6 +952,7 @@ void gavl_peak_detector_get_peak(gavl_peak_detector_t * pd,
  *  \param pd A peak detector
  *  \param min Returns minimum amplitude
  *  \param max Returns maximum amplitude
+ *  \param abs Returns maximum absolute amplitude
  *
  *  The returned amplitudes are normalized such that the
  *  minimum amplitude corresponds to -1.0, the maximum amplitude
@@ -1643,6 +1646,7 @@ struct gavl_video_format_s
   gavl_chroma_placement_t chroma_placement;/*!< Chroma placement */
 
   gavl_interlace_mode_t   interlace_mode;/*!< Interlace mode */
+  int reserved[8];      /*!< Reserved for future extensions */
   };
 
 /*!
@@ -1663,8 +1667,8 @@ void gavl_video_format_copy(gavl_video_format_t * dst,
   \returns 1 if the formats are equal, 0 else
 */
   
-int gavl_video_formats_equal(const gavl_video_format_t * dst,
-                              const gavl_video_format_t * src);
+int gavl_video_formats_equal(const gavl_video_format_t * format_1,
+                             const gavl_video_format_t * format_2);
 
   
 /*!
@@ -1737,7 +1741,7 @@ typedef struct gavl_video_frame_s
   int64_t timestamp; /*!< Timestamp in stream specific units (see \ref video_format) */
   int64_t duration; /*!< Duration in stream specific units (see \ref video_format) */
   gavl_interlace_mode_t   interlace_mode;/*!< Interlace mode */
-  int reserved[8]; /*!< reserved for future use */
+  int reserved[8];      /*!< Reserved for future extensions */
   } gavl_video_frame_t;
 
 
@@ -2649,7 +2653,7 @@ gavl_overlay_blend_context_get_options(gavl_overlay_blend_context_t * ctx);
  *  the maximum overlay size. The actual displayed size will be determined
  *  by the ovl_rect of the overlay.
  *  The overlay_format might be changed to something, which can directly be blended.
- *  Make sure you have a \ref gavl_videoconverter_t nearby.
+ *  Make sure you have a \ref gavl_video_converter_t nearby.
  *  
  */
 

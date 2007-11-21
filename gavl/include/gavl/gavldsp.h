@@ -267,8 +267,8 @@ void gavl_dsp_context_destroy(gavl_dsp_context_t * ctx);
 /** \brief Do a linear interpolation of a video frame
  *  \param ctx A DSP context
  *  \param format Video format
- *  \param src1 Frame 1
- *  \param src2 Frame 2
+ *  \param src_1 Frame 1
+ *  \param src_2 Frame 2
  *  \param dst  Destination frame
  *  \param factor Interpolation factor
  *
