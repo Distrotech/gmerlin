@@ -448,7 +448,7 @@ void bgav_options_set_seek_subtitles(bgav_options_t* opt,
 /** \ingroup options
  *  \brief Set postprocessing level
  *  \param opt Option container
- *  \param Value between 0 (no postprocessing) and 6 (maximum postprocessing)
+ *  \param pp_level Value between 0 (no postprocessing) and 6 (maximum postprocessing)
  */
 
 void bgav_options_set_pp_level(bgav_options_t* opt,
@@ -1012,7 +1012,7 @@ int bgav_select_track(bgav_t * bgav, int track);
  *  \returns The number of chapters or 0 if the format doesn't support chapters
  *
  *  Chapters are simply named seekpoints. Use
- *  \ref bgav_get_chhapter_time and \ref bgav_get_chapter_name
+ *  \ref bgav_get_chapter_time and \ref bgav_get_chapter_name
  *  to query the chapters.
  */
 
@@ -1022,6 +1022,7 @@ int bgav_get_num_chapters(bgav_t * bgav, int track, int * timescale);
  *  \brief Get the name of a chapter
  *  \param bgav A decoder instance
  *  \param track Track index (starts with 0)
+ *  \param chapter Chapter index (starts with 0)
  *  \returns The name of the chapter or NULL
  */
 
@@ -1032,6 +1033,7 @@ bgav_get_chapter_name(bgav_t * bgav, int track, int chapter);
  *  \brief Get the name of a chapter
  *  \param bgav A decoder instance
  *  \param track Track index (starts with 0)
+ *  \param chapter Chapter index (starts with 0)
  *  \returns The time of the chapter
  */
 
@@ -1064,6 +1066,10 @@ const char * bgav_get_audio_language(bgav_t * bgav, int stream);
 const char * bgav_get_subtitle_language(bgav_t * bgav, int stream);
 
 /** \ingroup streams
+ *  \brief Stream action
+ *
+ *  This is used to tell the decoder, what to do with the stream.
+ *  Only supported actions right now are mute (default) and decode.
  */
 
 typedef enum
