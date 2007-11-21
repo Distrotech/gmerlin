@@ -7,6 +7,7 @@
 
 #include <pluginregistry.h>
 #include <visualize.h>
+#include <visualize_priv.h>
 #include <utils.h>
 #include <subprocess.h>
 #include <msgqueue.h>
@@ -297,30 +298,7 @@ void bg_visualizer_set_parameter(void * priv,
     }
   }
 
-int bg_visualizer_stop(bg_visualizer_t * v)
-  {
-  pthread_mutex_lock(&v->mutex);
-  
-  if(!v->proc)
-    {
-    pthread_mutex_unlock(&v->mutex);
-    return 0;
-    }
-  
-  /* Stop process */
-  bg_msg_set_id(v->msg, BG_VIS_MSG_QUIT);
-  write_message(v);
-
-  bg_subprocess_close(v->proc);
-  v->proc = (bg_subprocess_t*)0;
-
-  /* Restore signal mask */
-  pthread_sigmask(SIG_SETMASK, &v->oldset, NULL);
-  pthread_mutex_unlock(&v->mutex);
-  return 1;
-  }
-
-int bg_visualizer_start(bg_visualizer_t * v)
+static int visualizer_start(bg_visualizer_t * v)
   {
   char * command;
   bg_cfg_section_t * section;
@@ -569,7 +547,21 @@ void bg_visualizer_update(bg_visualizer_t * v,
 
 void bg_visualizer_close(bg_visualizer_t * v)
   {
-  bg_visualizer_stop(v);
+  pthread_mutex_lock(&v->mutex);
+  
+  if(!v->proc)
+    pthread_mutex_unlock(&v->mutex);
+  
+  /* Stop process */
+  bg_msg_set_id(v->msg, BG_VIS_MSG_QUIT);
+  write_message(v);
+
+  bg_subprocess_close(v->proc);
+  v->proc = (bg_subprocess_t*)0;
+
+  /* Restore signal mask */
+  pthread_sigmask(SIG_SETMASK, &v->oldset, NULL);
+  pthread_mutex_unlock(&v->mutex);
   }
 
 int bg_visualizer_need_restart(bg_visualizer_t * v)

@@ -1224,7 +1224,7 @@ int main(int argc, char ** argv)
   gtk_main();
   
   if(win->vis_open)
-    bg_visualizer_stop(win->visualizer);
+    bg_visualizer_close(win->visualizer);
   visualizer_destroy(win);
   return 0;
   }

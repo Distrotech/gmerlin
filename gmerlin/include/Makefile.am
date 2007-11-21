@@ -43,6 +43,7 @@ utils.h \
 visualize.h
 
 
+
 noinst_HEADERS = \
 bgfreetype.h \
 bggavl.h \
@@ -53,6 +54,7 @@ language_table.h \
 playerprivate.h \
 registry_priv.h \
 treeprivate.h \
-pluginreg_priv.h
+pluginreg_priv.h \
+visualize_priv.h
 
 EXTRA_DIST = bg_version.h.in

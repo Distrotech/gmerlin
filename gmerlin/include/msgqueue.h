@@ -36,8 +36,8 @@
  *  For multithread applications, there are message queues (\ref bg_msg_queue_t). They
  *  are thread save FIFO structures, which allow asynchronous communication between threads.
  *
- *  For communication via sockets, there are the ultra-simple functions \ref bg_message_read_socket and
- *  \ref bg_message_write_socket, which can be used to build network protocols
+ *  For communication via sockets, there are the ultra-simple functions \ref bg_msg_read_socket and
+ *  \ref bg_msg_write_socket, which can be used to build network protocols
  *  (e.g. remote control of applications)
  *  @{
  */
@@ -50,7 +50,22 @@
 
 typedef struct bg_msg_s bg_msg_t;
 
+/** \brief Callback for \ref bg_msg_read
+ *  \param priv The private data you passed to \ref bg_msg_read
+ *  \param data A buffer
+ *  \param len Number of bytes to read
+ *  \returns The actual number of bytes read
+ */
+
 typedef int (*bg_msg_read_callback_t)(void * priv, uint8_t * data, int len);
+
+/** \brief Callback for \ref bg_msg_write
+ *  \param priv The private data you passed to \ref bg_msg_write
+ *  \param data A buffer
+ *  \param len Number of bytes to write
+ *  \returns The actual number of bytes write
+ */
+
 typedef int (*bg_msg_write_callback_t)(void * priv, uint8_t * data, int len);
 
 /** \brief Create a message
@@ -296,7 +311,7 @@ void bg_msg_get_arg_metadata(bg_msg_t * msg, int arg,
 /** \brief Read a message using a callback
  *  \param ret Where the message will be copied
  *  \param cb read callback
- *  \param private data to pass to the callback
+ *  \param cb_data data to pass to the callback
  *  \returns 1 on success, 0 on error
  */
 
@@ -305,7 +320,7 @@ int bg_msg_read(bg_msg_t * ret, bg_msg_read_callback_t cb, void * cb_data);
 /** \brief Write a message using a callback
  *  \param msg A message
  *  \param cb write callback
- *  \param private data to pass to the callback
+ *  \param cb_data data to pass to the callback
  *  \returns 1 on success, 0 on error
  */
 

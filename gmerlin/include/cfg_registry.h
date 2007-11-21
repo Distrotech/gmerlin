@@ -470,7 +470,7 @@ void bg_cfg_section_apply(bg_cfg_section_t * section,
 /** \ingroup cfg_section
  *  \brief Send all parameters to a module without terminating
  *  \param section The configuration section
- *  \param parameters Parameter array
+ *  \param infos Parameter array
  *  \param func Function to be called
  *  \param callback_data First argument passed to func
  *

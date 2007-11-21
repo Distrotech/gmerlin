@@ -9,6 +9,7 @@
 
 #include <pluginregistry.h>
 #include <visualize.h>
+#include <visualize_priv.h>
 #include <utils.h>
 
 

@@ -47,11 +47,12 @@ bg_player_t * bg_player_create(bg_plugin_registry_t * plugin_reg);
 /** \ingroup player
  *  \brief Set accelerators
  *  \param player A newly created player 
- *  \param accel A list of accelerators, terminated with BG_KEY_NONE
+ *  \param list A list of accelerators, terminated with BG_KEY_NONE
  *
  */
 
-void bg_player_add_accelerators(bg_player_t * player, const bg_accelerator_t * list);
+void bg_player_add_accelerators(bg_player_t * player,
+                                const bg_accelerator_t * list);
 
 /** \ingroup player
  *  \brief Destroy a player
@@ -373,7 +374,7 @@ void bg_player_set_osd_parameter(void*data, const char * name, const bg_paramete
 
 
 /** \brief En- or disable music visualizations
- *  \param player A player
+ *  \param p A player
  *  \param enable 1 to enable visualizations, 0 to disable them
  *
  *  Visualizations are only enabled if you passed 1 to this function
@@ -384,7 +385,7 @@ void
 bg_player_set_visualization(bg_player_t * p, int enable);
 
 /** \brief Set plugin used for visualizations
- *  \param player A player
+ *  \param p A player
  *  \param plugin_info Plugin info
  */
 

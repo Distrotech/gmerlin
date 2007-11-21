@@ -147,7 +147,6 @@ void bg_video_converter_destroy(bg_video_converter_t * cnv);
 
 /** \brief Reset a video converter as if no samples have been processed since initialization
  *  \param cnv     A video converter
- *  \param out_pts The next pts, this filter should output
  *
  *  Reset a video converter as if no frame has been processed since initialization.
  */

@@ -456,7 +456,7 @@ int bg_plugin_registry_get_encode_pp(bg_plugin_registry_t * reg);
  */
 
 void bg_plugin_registry_set_visualize(bg_plugin_registry_t * reg,
-                                       int visualize);
+                                       int enable);
 
 /** \ingroup plugin_registry_defaults
  *  \brief Query whether visualizations should be enabled
@@ -467,12 +467,8 @@ void bg_plugin_registry_set_visualize(bg_plugin_registry_t * reg,
 int bg_plugin_registry_get_visualize(bg_plugin_registry_t * reg);
 
 
-/*
- *  Add a device to a plugin
- */
-
 /** \ingroup plugin_registry
- *  \brief
+ *  \brief Add a device to a plugin
  *  \param reg A plugin registry
  *  \param plugin_name Name of the plugin
  *  \param device Device file
@@ -547,11 +543,6 @@ gavl_video_frame_t * bg_plugin_registry_load_image(bg_plugin_registry_t * reg,
                                                    gavl_video_format_t * format);
 
 /* Same as above for writing. Does implicit pixelformat conversion */
-
-/** \ingroup plugin_registry
- *  \brief
- *  \param reg A plugin registry
- */
 
 /** \ingroup plugin_registry
  *  \brief Save an image

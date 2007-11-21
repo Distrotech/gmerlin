@@ -992,7 +992,7 @@ typedef struct bg_ov_plugin_s
    *
    *  Call this immediately after creation of the plugin to embed video output
    *  into a foreign application. For X11, the window identifier has the form
-   *  <display_name>:<normal_id>:<fullscreen_id>. 
+   *  \<display_name\>:\<normal_id\>:\<fullscreen_id\>. 
    */
   
   void (*set_window)(void * priv, const char * window_id);
@@ -1926,23 +1926,97 @@ typedef struct bg_video_filter_plugin_s
  *
  *  @{
  */
+
+/** \brief Video filter plugin
+ *
+ *  These plugins get audio samples and run visualizations of them.
+ *  Output can be either into a \ref gavl_video_frame_t or directly
+ *  via OpenGL. Which method is used is denoted by the
+ *  \ref BG_PLUGIN_VISUALIZE_FRAME and \ref BG_PLUGIN_VISUALIZE_GL
+ *  flags.
+ *
+ *  For OpenGL, you need to pass a window ID to the
+ *  plugin. The plugin is then responsible for creating Subwindows and
+ *  setting up an OpenGL context. In General, it's stronly recommended to
+ *  use the \ref bg_visualizer_t module to use visualizations.
+ */
+
 typedef struct bg_visualization_plugin_s
   {
   bg_plugin_common_t common; //!< Infos and functions common to all plugin types
+  /** \brief return callback \param priv The handle returned by the
+   *  \param priv The handle returned by the create() method
+   *
+   *  create() method \returns The callbacks or NULL
+   */
   
   bg_ov_callbacks_t * (*get_callbacks)(void * priv);
+
+  /** \brief Open a frame based visualization plugin
+   *  \param priv The handle returned by the create() method
+   *  \param audio_format Audio format
+   *  \param video_format Video format
+   *
+   *  The audio format parameter will most likely changed to the
+   *  nearest supported format. In the video format parameter, you
+   *  usually pass the desired render size. Everything else
+   *  (except the framerate) will be set up by the plugin.
+   */
   
   int (*open_ov)(void * priv, gavl_audio_format_t * audio_format,
                  gavl_video_format_t * video_format);
   
+  /** \brief Open a window based visualization plugin
+   *  \param priv The handle returned by the create() method
+   *  \param audio_format Audio format
+   *  \param window_id A window ID
+   *
+   *  The audio format parameter will most likely changed to the
+   *  nearest supported format. For the window id, use strings formatted
+   *  like the one returned by \ref bg_ov_plugin_t
+   
+   */
   int (*open_win)(void * priv, gavl_audio_format_t * audio_format,
                   const char * window_id);
+
+  /** \brief Send audio data to the plugin
+   *  \param priv The handle returned by the create() method
+   *  \param frame Audio frame
+   *
+   *  This updates the plugin with new audio samples. After that, we may
+   *  or may not call the draw_frame function below to actually draw an
+   *  image. Note, that visualization plugins are not required to do
+   *  internal audio buffering, so it's wise to pass a frame with as many
+   *  samples as the samples_per_frame member of the audio format returned
+   *  by \ref open_ov or \ref open_win.
+   */
   
   void (*update)(void * priv, gavl_audio_frame_t * frame);
-  void (*draw_frame)(void * priv, gavl_video_frame_t *);
+
+  /** \brief Draw an image
+   *  \param priv The handle returned by the create() method
+   *  \param The video frame to draw to
+   *
+   *  For OpenGL plugins, frame is NULL. For frame based plugins,
+   *  the image will be drawn into the frame you pass. You must display
+   *  the frame on your own then.
+   */
   
-  /* For GL Plugins only */
+  void (*draw_frame)(void * priv, gavl_video_frame_t * frame);
+  
+  /** \brief Show the image
+   *  \param priv The handle returned by the create() method
+   *
+   *  This function is needed only for OpenGL plugins. Under X11,
+   *  it will typically call glXSwapBuffers and process eventy on the
+   *  X11 window.
+   */
+  
   void (*show_frame)(void * priv);
+
+  /** \brief Close a plugin
+   *  \param priv The handle returned by the create() method
+   */
   
   void (*close)(void * priv);
   

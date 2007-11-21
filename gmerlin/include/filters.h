@@ -167,7 +167,6 @@ void bg_audio_filter_chain_unlock(bg_audio_filter_chain_t * ch);
 
 /** \brief Reset an audio filter chain
  *  \param ch An audio filter chain
- *  \param out_pts The pts of the next output frame in \ref GAVL_TIME_SCALE tics
  *  
  *  Set the internal state as if no sample has been processed since last init
  */
@@ -314,7 +313,6 @@ void bg_video_filter_chain_unlock(bg_video_filter_chain_t * ch);
 
 /** \brief Reset a video filter chain
  *  \param ch A video filter chain
- *  \param out_pts The pts of the next output frame in \ref GAVL_TIME_SCALE tics
  *  
  *  Set the internal state as if no sample has been processed since last init
  */

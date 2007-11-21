@@ -32,9 +32,6 @@
 #include <log.h>
 #define LOG_DOMAIN "ir_pnm"
 
-
-#define DEBUG
-
 #define Bits_16  (1<<8)
 
 #define PBMascii      1
