@@ -1,3 +1,4 @@
+#include <config.h>
 #include <gtk/gtk.h>
 #include <string.h>
 #include <stdio.h>
@@ -527,9 +528,6 @@ static void opt_opt4(void * data, int * argc, char *** _argv, int arg)
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
 
-
-static void opt_help(void * data, int * argc, char *** argv, int arg);
-
 static bg_cmdline_arg_t global_options[] =
   {
     {
@@ -556,21 +554,22 @@ static bg_cmdline_arg_t global_options[] =
       callback:    opt_opt4,
       parameters:  info_4,
     },
-    {
-      arg:         "-help",
-      help_string: "Print this help message and exit",
-      callback:    opt_help,
-    },
     { /* End of options */ }
   };
 
-static void opt_help(void * data, int * argc, char *** argv, int arg)
+
+bg_cmdline_app_data_t app_data =
   {
-  fprintf(stderr, "Usage: %s [options]\n\n", (*argv)[0]);
-  fprintf(stderr, "Options:\n\n");
-  bg_cmdline_print_help(global_options);
-  exit(0);
-  }
+    package:  PACKAGE,
+    version:  VERSION,
+    name:     "cfgtest",
+    synopsis: TRS("[Options]"),
+    help_before: TRS("Configure test\n"),
+    args: (bg_cmdline_arg_array_t[]) { { TRS("Options"),
+                                         global_options },
+                                       {  } },
+  };
+
 
 int main(int argc, char ** argv)
   {
@@ -585,7 +584,7 @@ int main(int argc, char ** argv)
   section_3 = bg_cfg_registry_find_section(registry, "section_3");
   section_4 = bg_cfg_registry_find_section(registry, "section_4");
 
-  bg_cmdline_parse(global_options, &argc, &argv, NULL);
+  bg_cmdline_parse(global_options, &argc, &argv, NULL, &app_data);
     
   bg_gtk_init(&argc, &argv, (char*)0);
 

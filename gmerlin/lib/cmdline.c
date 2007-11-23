@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <unistd.h>
+#include <time.h>
 
 #include <config.h>
 #include <translation.h>
@@ -30,22 +31,47 @@
 #include <cmdline.h>
 #include <utils.h>
 
+
 /* Terminal related functions */
 
 #define MAX_COLS 79 /* For line-wrapping */
 
+static void opt_help(void * data, int * argc, char *** argv, int arg);
+static void opt_help_man(void * data, int * argc, char *** argv, int arg);
+static void opt_help_texi(void * data, int * argc, char *** argv, int arg);
+static void opt_version(void * data, int * argc, char *** argv, int arg);
+
+static void do_indent(FILE * out, int num, bg_help_format_t format)
+  {
+  switch(format)
+    {
+    case BG_HELP_FORMAT_TERM:
+    case BG_HELP_FORMAT_PLAIN:
+      {
+      int i;
+      for(i = 0; i < num; i++)
+        fprintf(out, " ");
+      }
+      break;
+    case BG_HELP_FORMAT_MAN:
+      //      fprintf(out, ".RS %d\n", num);
+      break;
+    case BG_HELP_FORMAT_TEXI:
+      break;
+    }
+  }
+
 static void dump_string_term(FILE * out, const char * str, int indent,
-                             const char * translation_domain)
+                             const char * translation_domain, bg_help_format_t format)
   {
   const char * start;
   const char * end;
   const char * pos;
   
-  char * spaces;
-  spaces = calloc(indent+1, 1);
-  memset(spaces, ' ', indent);
-
   str = TR_DOM(str);
+
+  if(format == BG_HELP_FORMAT_MAN)
+    do_indent(out, indent + 2, format);
   
   start = str;
   pos   = str;
@@ -56,12 +82,13 @@ static void dump_string_term(FILE * out, const char * str, int indent,
     if(isspace(*pos))
       end = pos;
 
-    if(pos - start + strlen(spaces) + 2 > MAX_COLS)
+    if(pos - start + indent + 2 > MAX_COLS)
       {
-      fprintf(out, spaces);
-      fprintf(out, "  ");
+      if(format != BG_HELP_FORMAT_MAN)
+        do_indent(out, indent + 2, format);
       
       fwrite(start, 1, end - start, out);
+      
       fprintf(out, "\n");
       
       while(isspace(*end))
@@ -70,8 +97,8 @@ static void dump_string_term(FILE * out, const char * str, int indent,
       }
     else if(*pos == '\0')
       {
-      fprintf(out, spaces);
-      fprintf(out, "  ");
+      if(format != BG_HELP_FORMAT_MAN)
+        do_indent(out, indent + 2, format);
       
       fwrite(start, 1, pos - start, out);
       fprintf(out, "\n");
@@ -79,12 +106,12 @@ static void dump_string_term(FILE * out, const char * str, int indent,
       }
     else if(*pos == '\n')
       {
-      fprintf(out, spaces);
-      fprintf(out, "  ");
+      if(format != BG_HELP_FORMAT_MAN)
+        do_indent(out, indent + 2, format);
       
       fwrite(start, 1, pos - start, out);
       fprintf(out, "\n");
-
+      
       pos++;
       
       start = pos;
@@ -95,29 +122,241 @@ static void dump_string_term(FILE * out, const char * str, int indent,
       pos++;
     }
 
-  free(spaces);
   }
 
-static void font_bold(FILE * out)
+static const char ansi_underline[] = { 27, '[', '4', 'm', '\0' };
+static const char ansi_normal[] = { 27, '[', '0', 'm', '\0' };
+static const char ansi_bold[] = { 27, '[', '1', 'm', '\0' };
+
+static void print_bold(FILE * out, char * str, bg_help_format_t format)
   {
-  char ansi_bold[] = { 27, '[', '1', 'm', '\0' };
-  //  if(isatty(fileno(out)))
-    fprintf(out, ansi_bold);
+  switch(format)
+    {
+    case BG_HELP_FORMAT_TERM:
+      fprintf(out, "%s%s%s", ansi_bold, str, ansi_normal);
+      break;
+    case BG_HELP_FORMAT_PLAIN:
+      fprintf(out, "%s", str);
+      /* Do nothing */
+      break;
+    case BG_HELP_FORMAT_MAN:
+      fprintf(out, ".B %s\n", str);
+      break;
+    case BG_HELP_FORMAT_TEXI:
+      fprintf(out, "@b{%s}", str);
+      break;
+    
+    }
   }
 
-static void font_underline(FILE * out)
+static void print_italic(FILE * out, char * str, bg_help_format_t format)
   {
-  char ansi_underline[] = { 27, '[', '4', 'm', '\0' };
-  //  if(isatty(fileno(out)))
-    fprintf(out, ansi_underline);
+  switch(format)
+    {
+    case BG_HELP_FORMAT_TERM:
+      fprintf(out, "%s%s%s", ansi_underline, str, ansi_normal);
+      break;
+    case BG_HELP_FORMAT_PLAIN:
+      /* Do nothing */
+      fprintf(out, "%s", str);
+      break;
+    case BG_HELP_FORMAT_MAN:
+      fprintf(out, ".I %s\n", str);
+      break;
+    case BG_HELP_FORMAT_TEXI:
+      fprintf(out, "@i{%s}", str);
+      break;
+    }
   }
 
-static void font_normal(FILE * out)
+static void print_version(bg_cmdline_app_data_t * app_data)
   {
-  char ansi_normal[] = { 27, '[', '0', 'm', '\0' };
-  //  if(isatty(fileno(out)))
-    fprintf(out, ansi_normal);
+  printf("%s (%s) %s\n", app_data->name, app_data->package, app_data->version);
+  printf(TR("Copyright (C) 2001-2007 Members of the gmerlin project\n"));
+  printf(TR("This is free software.  You may redistribute copies of it under the terms of\n\
+the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\n\
+There is NO WARRANTY, to the extent permitted by law.\n"));
   }
+
+static void print_help(bg_cmdline_arg_t* args, bg_help_format_t format)
+  {
+  int i = 0;
+  FILE * out = stdout;
+  
+  while(args[i].arg)
+    {
+    switch(format)
+      {
+      case BG_HELP_FORMAT_PLAIN:
+      case BG_HELP_FORMAT_TERM:
+        fprintf(out, "  ");
+        print_bold(out, args[i].arg, format);
+
+        if(args[i].help_arg)
+          {
+          fprintf(out, " ");
+          print_italic(out, args[i].help_arg, format);
+          }
+        fprintf(out, "\n");
+        dump_string_term(out, args[i].help_string, 0, (const char*)0, format);
+    
+        break;
+      case BG_HELP_FORMAT_TEXI:
+        print_bold(out, args[i].arg, format);
+        break;
+      case BG_HELP_FORMAT_MAN:
+        print_bold(out, args[i].arg, format);
+        if(args[i].help_arg)
+          print_italic(out, args[i].help_arg, format);
+        fprintf(out, "\n");
+        fprintf(out, ".RS 2\n");
+        dump_string_term(out, args[i].help_string, 0, (const char*)0, format);
+        //       fprintf(out, ".RE\n");
+        fprintf(out, ".RE\n");
+
+        break;
+      }
+    
+    if(args[i].parameters)
+      {
+      bg_cmdline_print_help_parameters(args[i].parameters, format);
+      }
+    fprintf(out, "\n");
+    i++;
+    }
+  
+  }
+
+static bg_cmdline_arg_t auto_options[] =
+  {
+    {
+      arg:         "-help",
+      help_string: TRS("Print this help message and exit"),
+      callback:    opt_help,
+    },
+    {
+      arg:         "-help_man",
+      help_string: TRS("Print this help message as a manual page and exit"),
+      callback:    opt_help_man,
+    },
+    {
+      arg:         "-help_texi",
+      help_string: TRS("Print this help message in texinfo format and exit"),
+      callback:    opt_help_texi,
+    },
+    {
+      arg:         "-version",
+      help_string: TRS("Print version info and exit"),
+      callback:    opt_version,
+    },
+    { /* End of options */ }
+  };
+
+void bg_cmdline_print_help(bg_cmdline_app_data_t * app_data, char * argv0, bg_help_format_t format)
+  {
+  int i;
+  char * tmp_string;
+  
+  switch(format)
+    {
+    case BG_HELP_FORMAT_TERM:
+    case BG_HELP_FORMAT_PLAIN:
+      tmp_string = bg_sprintf(TRD(app_data->synopsis, app_data->package), argv0);
+      printf("Usage: %s\n\n", tmp_string);
+      free(tmp_string);
+      printf("%s\n", app_data->help_before);
+      i = 0;
+      while(app_data->args[i].name)
+        {
+        printf("%s\n\n", app_data->args[i].name);
+        print_help(app_data->args[i].args, format);
+        i++;
+        }
+      printf("Generic options\n\nThe following generic options are available for all gmerlin applications\n\n");
+      
+      print_help(auto_options, format);
+      
+      break;
+    case BG_HELP_FORMAT_MAN:
+      {
+      char date_str[512];
+      struct tm brokentime;
+      time_t t;
+      char ** args;
+      time(&t);
+      localtime_r(&t, &brokentime);
+      strftime(date_str, 511, "%B %Y", &brokentime);
+      printf(".TH %s 1 \"%s\" Gmerlin \"User Manuals\"\n", app_data->name,
+             date_str);
+      printf(".SH NAME\n%s\n", app_data->name);
+      printf(".SH SYNOPSIS\n.B %s \n", app_data->name);
+      tmp_string = bg_strdup(NULL,
+                             TRD(app_data->synopsis, app_data->package));
+      
+      args = bg_strbreak(tmp_string, ' ');
+      i = 0;
+      while(args[i])
+        {
+        printf(".I %s\n", args[i]);
+        i++;
+        }
+      
+      if(app_data->help_before)
+        printf(".SH DESCRIPTION\n%s\n", TRD(app_data->help_before, app_data->package));
+
+      i = 0;
+      while(app_data->args[i].name)
+        {
+        printf("%s\n\n", app_data->args[i].name);
+        print_help(app_data->args[i].args, format);
+        i++;
+        }
+      printf(".SH GENERIC OPTIONS\nThe following generic options are available for all gmerlin applications\n\n");
+      print_help(auto_options, format);
+      }
+      break;
+    case BG_HELP_FORMAT_TEXI:
+      break;
+    }
+
+  }
+
+
+static void opt_help(void * data, int * argc, char *** argv, int arg)
+  {
+  bg_cmdline_app_data_t * app_data =
+    (bg_cmdline_app_data_t*)data;
+  if(isatty(fileno(stdout)))
+    bg_cmdline_print_help(app_data, (*argv)[0], BG_HELP_FORMAT_TERM);
+  else
+    bg_cmdline_print_help(app_data, (*argv)[0], BG_HELP_FORMAT_PLAIN);
+  exit(0);
+  }
+
+static void opt_help_man(void * data, int * argc, char *** argv, int arg)
+  {
+  bg_cmdline_app_data_t * app_data =
+    (bg_cmdline_app_data_t*)data;
+  bg_cmdline_print_help(app_data, (*argv)[0], BG_HELP_FORMAT_MAN);
+  exit(0);
+  }
+
+static void opt_help_texi(void * data, int * argc, char *** argv, int arg)
+  {
+  bg_cmdline_app_data_t * app_data =
+    (bg_cmdline_app_data_t*)data;
+  bg_cmdline_print_help(app_data, (*argv)[0], BG_HELP_FORMAT_TEXI);
+  exit(0);
+  }
+
+static void opt_version(void * data, int * argc, char *** argv, int arg)
+  {
+  bg_cmdline_app_data_t * app_data =
+    (bg_cmdline_app_data_t*)data;
+  print_version(app_data);
+  exit(0);
+  }
+
 
 /* */
 
@@ -131,8 +370,13 @@ void bg_cmdline_remove_arg(int * argc, char *** _argv, int arg)
   (*argc)--;
   }
 
-void bg_cmdline_parse(bg_cmdline_arg_t * args, int * argc, char *** _argv,
-                      void * callback_data)
+
+
+static void cmdline_parse(bg_cmdline_arg_t * args,
+                          int * argc, char *** _argv,
+                          void * callback_data,
+                          bg_cmdline_app_data_t * app_data,
+                          int parse_auto)
   {
   int found;
   int i, j;
@@ -140,11 +384,16 @@ void bg_cmdline_parse(bg_cmdline_arg_t * args, int * argc, char *** _argv,
 
   i = 1;
 
+  if(parse_auto)
+    {
+    cmdline_parse(auto_options, argc, _argv, app_data, app_data, 0);
+    }
+  
   while(i < *argc)
     {
     j = 0;
     found = 0;
-
+    
     if(!strcmp(argv[i], "--"))
       break;
     
@@ -169,6 +418,14 @@ void bg_cmdline_parse(bg_cmdline_arg_t * args, int * argc, char *** _argv,
       i++;
     }
   }
+
+void bg_cmdline_parse(bg_cmdline_arg_t * args, int * argc, char *** _argv,
+                      void * callback_data, bg_cmdline_app_data_t * app_data)
+  {
+  cmdline_parse(args, argc, _argv, callback_data, app_data, 1);
+  
+  }
+
 
 char ** bg_cmdline_get_locations_from_args(int * argc, char *** _argv)
   {
@@ -223,39 +480,6 @@ char ** bg_cmdline_get_locations_from_args(int * argc, char *** _argv)
   return ret;
   }
 
-void bg_cmdline_print_help(bg_cmdline_arg_t* args)
-  {
-  int i = 0;
-  FILE * out = stdout;
-  
-  while(args[i].arg)
-    {
-    font_bold(out);
-    fprintf(out, "%s", args[i].arg);
-    font_normal(out);
-    
-    if(args[i].help_arg)
-      {
-      fprintf(out, " ");
-      
-      font_underline(out);
-      fprintf(out, "%s\n", args[i].help_arg);
-      font_normal(out);
-      }
-    else
-      fprintf(out, "\n");
-    
-    dump_string_term(out, args[i].help_string, 0, (const char*)0);
-    
-    if(args[i].parameters)
-      bg_cmdline_print_help_parameters(args[i].parameters);
-    else
-      fprintf(out, "\n");
-    
-    i++;
-    }
-  
-  }
 
 int bg_cmdline_apply_options(bg_cfg_section_t * section,
                              bg_set_parameter_func_t set_parameter,
@@ -273,7 +497,9 @@ int bg_cmdline_apply_options(bg_cfg_section_t * section,
   return 1;
   }
 
-static void print_help_parameters(int indent, bg_parameter_info_t * parameters)
+static void print_help_parameters(int indent,
+                                  bg_parameter_info_t * parameters,
+                                  bg_help_format_t format)
   {
   int i = 0;
   int j;
@@ -281,19 +507,20 @@ static void print_help_parameters(int indent, bg_parameter_info_t * parameters)
   
   int pos;
   
-  char * spaces;
   char time_string[GAVL_TIME_STRING_LEN];
   char * tmp_string;
 
   const char * translation_domain = (const char *)0;
-  
-  spaces = calloc(indent + 1, 1);
-  memset(spaces, ' ', indent);
+
+  indent += 2;
+  if(format == BG_HELP_FORMAT_MAN)
+    fprintf(out, ".RS 2\n");
   
   if(!indent)
     {
-    fprintf(out, spaces);
-    fprintf(out, TR("\n  Supported options:\n\n"));
+    do_indent(out, indent+2, format);
+    
+    fprintf(out, TR("Supported options:\n\n"));
     }
   
   while(parameters[i].name)
@@ -310,23 +537,55 @@ static void print_help_parameters(int indent, bg_parameter_info_t * parameters)
       continue;
       }
     pos = 0;
-    pos += fprintf(out, spaces);
 
-    font_bold(out);
-        
-    if(parameters[i].opt)
-      pos += fprintf(out, "  %s", parameters[i].opt);
+    if(format != BG_HELP_FORMAT_MAN)
+      {
+      do_indent(out, indent+2, format);
+      pos += indent+2;
+      
+      if(parameters[i].opt)
+        {
+        print_bold(out, parameters[i].opt, format);
+        pos += strlen(parameters[i].opt);
+        }
+      else
+        {
+        print_bold(out, parameters[i].name, format);
+        pos += strlen(parameters[i].name);
+        }
+      fprintf(out, "=");
+      }
     else
-      pos += fprintf(out, "  %s", parameters[i].name);
+      {
+      do_indent(out, indent+2, format);
+      fprintf(out, ".BR ");
+      
+      //      pos += fprintf(out, spaces);
+      //      pos += fprintf(out, "  ");
+      
+      if(parameters[i].opt)
+        {
+        fprintf(out, parameters[i].opt);
+        pos += strlen(parameters[i].opt);
+        }
+      else
+        {
+        fprintf(out, parameters[i].name);
+        pos += strlen(parameters[i].name);
+        }
+      fprintf(out, " \"=");
+      }
     
-    font_normal(out);
-    fprintf(out, "=");
     switch(parameters[i].type)
       {
       case BG_PARAMETER_SECTION:
         break;
       case BG_PARAMETER_CHECKBUTTON:
-        pos += fprintf(out, TR("[1|0] (default: %d)\n"), parameters[i].val_default.val_i);
+        pos += fprintf(out, TR("[1|0] (default: %d)"), parameters[i].val_default.val_i);
+        if(format != BG_HELP_FORMAT_MAN)
+          fprintf(out, "\n");
+        else
+          fprintf(out, "\"\n.P\n");
         break;
       case BG_PARAMETER_INT:
       case BG_PARAMETER_SLIDER_INT:
@@ -336,7 +595,11 @@ static void print_help_parameters(int indent, bg_parameter_info_t * parameters)
           pos += fprintf(out, "%d..%d, ",
                          parameters[i].val_min.val_i, parameters[i].val_max.val_i);
           }
-        fprintf(out, "default: %d)\n", parameters[i].val_default.val_i);
+        fprintf(out, "default: %d)", parameters[i].val_default.val_i);
+        if(format != BG_HELP_FORMAT_MAN)
+          fprintf(out, "\n");
+        else
+          fprintf(out, "\"\n.P\n");
         break;
       case BG_PARAMETER_SLIDER_FLOAT:
       case BG_PARAMETER_FLOAT:
@@ -351,11 +614,17 @@ static void print_help_parameters(int indent, bg_parameter_info_t * parameters)
           free(tmp_string);
           }
         tmp_string =
-          bg_sprintf(TR("default: %%.%df)\n"),
+          bg_sprintf(TR("default: %%.%df)"),
                      parameters[i].num_digits);
         fprintf(out, tmp_string,
                 parameters[i].val_default.val_f);
         free(tmp_string);
+
+        if(format != BG_HELP_FORMAT_MAN)
+          fprintf(out, "\n");
+        else
+          fprintf(out, "\"\n.P\n");
+
         break;
       case BG_PARAMETER_STRING:
       case BG_PARAMETER_FONT:
@@ -364,20 +633,33 @@ static void print_help_parameters(int indent, bg_parameter_info_t * parameters)
       case BG_PARAMETER_DIRECTORY:
         pos += fprintf(out, TR("<string>"));
         if(parameters[i].val_default.val_str)
-          pos += fprintf(out, TR(" (Default: %s)\n"), parameters[i].val_default.val_str);
+          pos += fprintf(out, TR(" (Default: %s)"), parameters[i].val_default.val_str);
+
+        if(format != BG_HELP_FORMAT_MAN)
+          fprintf(out, "\n");
         else
-          pos += fprintf(out, "\n");
+          fprintf(out, "\"\n.P\n");
+
         break;
       case BG_PARAMETER_STRING_HIDDEN:
-        pos += fprintf(out, TR("<string>\n"));
+        pos += fprintf(out, TR("<string>"));
+        if(format != BG_HELP_FORMAT_MAN)
+          fprintf(out, "\n");
+        else
+          fprintf(out, "\"\n.P\n");
         break;
       case BG_PARAMETER_STRINGLIST:
-        pos += fprintf(out, TR("<string>\n"));
+        pos += fprintf(out, TR("<string>"));
+        if(format != BG_HELP_FORMAT_MAN)
+          fprintf(out, "\n");
+        else
+          fprintf(out, "\"\n.P\n");
+
         j = 0;
 
         pos = 0;
-        pos += fprintf(out, spaces);
-        pos += fprintf(out, "  ");
+        do_indent(out, indent+2, format);
+        pos += indent+2;
         pos += fprintf(out, TR("Supported strings: "));
         
         while(parameters[i].multi_names[j])
@@ -386,42 +668,80 @@ static void print_help_parameters(int indent, bg_parameter_info_t * parameters)
 
           if(pos + strlen(parameters[i].multi_names[j]+1) > MAX_COLS)
             {
-            fprintf(out, "\n");
+            if(format != BG_HELP_FORMAT_MAN)
+              fprintf(out, "\n");
             pos = 0;
-            pos += fprintf(out, spaces);
-            pos += fprintf(out, "    ");
+            do_indent(out, indent+2, format);
+            pos += indent+2;
             }
           
           pos += fprintf(out, parameters[i].multi_names[j]);
           j++;
           }
-        fprintf(out, "\n");
-        fprintf(out, spaces);
-        fprintf(out, "  ");
-        fprintf(out, TR("Default: %s\n"), parameters[i].val_default.val_str);
+        if(format != BG_HELP_FORMAT_MAN)
+          fprintf(out, "\n");
+        else
+          fprintf(out, "\n.P\n");
+        do_indent(out, indent+2, format);
+        pos += indent+2;
+        fprintf(out, TR("Default: %s"), parameters[i].val_default.val_str);
+
+        if(format != BG_HELP_FORMAT_MAN)
+          fprintf(out, "\n");
+        else
+          fprintf(out, "\n.P\n");
+        
         break;
       case BG_PARAMETER_COLOR_RGB:
-        fprintf(out, TR("<r>,<g>,<b> (default: %.3f,%.3f,%.3f)\n"),
+        fprintf(out, TR("<r>,<g>,<b> (default: %.3f,%.3f,%.3f)"),
                 parameters[i].val_default.val_color[0],
                 parameters[i].val_default.val_color[1],
                 parameters[i].val_default.val_color[2]);
-        fprintf(out, spaces);
-        fprintf(out, TR("  <r>, <g> and <b> are in the range 0.0..1.0\n"));
+        if(format != BG_HELP_FORMAT_MAN)
+          fprintf(out, "\n");
+        else
+          fprintf(out, "\"\n.P\n");
+        
+        do_indent(out, indent+2, format);
+        pos += indent+2;
+        
+        fprintf(out, TR("<r>, <g> and <b> are in the range 0.0..1.0"));
+        if(format != BG_HELP_FORMAT_MAN)
+          fprintf(out, "\n");
+        else
+          fprintf(out, "\n.P\n");
         break;
       case BG_PARAMETER_COLOR_RGBA:
-        fprintf(out, TR("<r>,<g>,<b>,<a> (default: %.3f,%.3f,%.3f,%.3f)\n"),
+        fprintf(out, TR("<r>,<g>,<b>,<a> (default: %.3f,%.3f,%.3f,%.3f)"),
                 parameters[i].val_default.val_color[0],
                 parameters[i].val_default.val_color[1],
                 parameters[i].val_default.val_color[2],
                 parameters[i].val_default.val_color[3]);
-        fprintf(out, spaces);
-        fprintf(out, TR("  <r>, <g>, <b> and <a> are in the range 0.0..1.0\n"));
+        if(format != BG_HELP_FORMAT_MAN)
+          fprintf(out, "\n");
+        else
+          fprintf(out, "\"\n.P\n");
+
+        do_indent(out, indent+2, format);
+        pos += indent+2;
+
+        fprintf(out, TR("<r>, <g>, <b> and <a> are in the range 0.0..1.0"));
+        if(format != BG_HELP_FORMAT_MAN)
+          fprintf(out, "\n");
+        else
+          fprintf(out, "\n.P\n");
         break;
       case BG_PARAMETER_MULTI_MENU:
-        fprintf(out, TR("option[{suboptions}]\n"));
+        fprintf(out, TR("option[{suboptions}]"));
+        if(format != BG_HELP_FORMAT_MAN)
+          fprintf(out, "\n");
+        else
+          fprintf(out, "\"\n.P\n");
         pos = 0;
-        pos += fprintf(out, spaces);
-        pos += fprintf(out, "  ");
+
+        do_indent(out, indent+2, format);
+        pos += indent+2;
+
         pos += fprintf(out, TR("Supported options: "));
         j = 0;
         while(parameters[i].multi_names[j])
@@ -430,25 +750,43 @@ static void print_help_parameters(int indent, bg_parameter_info_t * parameters)
 
           if(pos + strlen(parameters[i].multi_names[j]) > MAX_COLS)
             {
-            fprintf(out, "\n");
+            if(format != BG_HELP_FORMAT_MAN)
+              fprintf(out, "\n");
             pos = 0;
-            pos += fprintf(out, spaces);
-            pos += fprintf(out, "    ");
+            do_indent(out, indent+2, format);
+            pos += indent+2;
             }
           pos += fprintf(out, parameters[i].multi_names[j]);
           j++;
           }
-        fprintf(out, "\n");
-        fprintf(out, spaces);
-        fprintf(out, "  ");
-        fprintf(out, TR("Default: %s\n"), parameters[i].val_default.val_str);
+
+        if(format != BG_HELP_FORMAT_MAN)
+          fprintf(out, "\n");
+        else
+          fprintf(out, "\n.P\n");
+        
+        do_indent(out, indent+2, format);
+        pos += indent+2;
+        fprintf(out, TR("Default: %s"), parameters[i].val_default.val_str);
+
+        if(format != BG_HELP_FORMAT_MAN)
+          fprintf(out, "\n");
+        else
+          fprintf(out, "\"\n.P\n");
+
         break;
       case BG_PARAMETER_MULTI_LIST:
       case BG_PARAMETER_MULTI_CHAIN:
-        fprintf(out, TR("{option[{suboptions}][:option[{suboptions}]...]}\n"));
+        fprintf(out, TR("{option[{suboptions}][:option[{suboptions}]...]}"));
+        if(format != BG_HELP_FORMAT_MAN)
+          fprintf(out, "\n");
+        else
+          fprintf(out, "\"\n.P\n");
         pos = 0;
-        pos += fprintf(out, spaces);
-        pos += fprintf(out, "  ");
+
+        do_indent(out, indent+2, format);
+        pos += indent+2;
+        
         pos += fprintf(out, TR("Supported options: "));
         j = 0;
         while(parameters[i].multi_names[j])
@@ -459,8 +797,8 @@ static void print_help_parameters(int indent, bg_parameter_info_t * parameters)
             {
             fprintf(out, "\n");
             pos = 0;
-            pos += fprintf(out, spaces);
-            pos += fprintf(out, "    ");
+            do_indent(out, indent+4, format);
+            pos += indent+4;
             }
           pos += fprintf(out, parameters[i].multi_names[j]);
           j++;
@@ -479,21 +817,30 @@ static void print_help_parameters(int indent, bg_parameter_info_t * parameters)
           fprintf(out, "%s, ", time_string);
           }
         gavl_time_prettyprint(parameters[i].val_default.val_time, time_string);
-        fprintf(out, TR("default: %s)\n"), time_string);
-        fprintf(out, spaces);
-        fprintf(out, TR("  Seconds can be fractional (i.e. with decimal point)\n"));
-        
+        fprintf(out, TR("default: %s)"), time_string);
+        if(format != BG_HELP_FORMAT_MAN)
+          fprintf(out, "\n");
+        else
+          fprintf(out, "\"\n.P\n");
+        do_indent(out, indent+2, format);
+        pos += indent+2;
+        fprintf(out, TR("Seconds can be fractional (i.e. with decimal point)\n"));
         break;
       }
 
-    fprintf(out, spaces);
-    fprintf(out, "  %s\n", TR_DOM(parameters[i].long_name));
+    do_indent(out, indent+2, format);
+    pos += indent+2;
+    
+    fprintf(out, "%s\n", TR_DOM(parameters[i].long_name));
 
+    if(format == BG_HELP_FORMAT_MAN)
+      fprintf(out, ".P\n");
+    
     if(parameters[i].help_string)
-      dump_string_term(out, parameters[i].help_string, indent, translation_domain);
-
-    fprintf(out, "\n");
-
+      {
+      dump_string_term(out, parameters[i].help_string, indent, translation_domain, format);
+      fprintf(out, "\n");
+      }
     /* Print suboptions */
 
     if(parameters[i].multi_parameters)
@@ -503,24 +850,24 @@ static void print_help_parameters(int indent, bg_parameter_info_t * parameters)
         {
         if(parameters[i].multi_parameters[j])
           {
-          fprintf(out, spaces);
-
+          do_indent(out, indent+2, format);
+          pos += indent+2;
+          
           if(parameters[i].type == BG_PARAMETER_MULTI_LIST)
             {
-            fprintf(out, TR("  Suboptions for %s\n\n"),
+            fprintf(out, TR("Suboptions for %s\n\n"),
                     parameters[i].multi_names[j]);
-            
             }
           else
             {
             if(parameters[i].opt)
-              fprintf(out, TR("  Suboptions for %s=%s\n\n"),
+              fprintf(out, TR("Suboptions for %s=%s\n\n"),
                       parameters[i].opt,parameters[i].multi_names[j]);
             else
-              fprintf(out, TR("  Suboptions for %s=%s\n\n"),
+              fprintf(out, TR("Suboptions for %s=%s\n\n"),
                       parameters[i].name,parameters[i].multi_names[j]);
             }
-          print_help_parameters(indent+2, parameters[i].multi_parameters[j]);
+          print_help_parameters(indent+2, parameters[i].multi_parameters[j], format);
           }
         j++;
         }
@@ -529,10 +876,11 @@ static void print_help_parameters(int indent, bg_parameter_info_t * parameters)
     i++;
     }
   
-  free(spaces);
+  fprintf(out, ".RE\n");
   }
 
-void bg_cmdline_print_help_parameters(bg_parameter_info_t * parameters)
+void bg_cmdline_print_help_parameters(bg_parameter_info_t * parameters,
+                                      bg_help_format_t format)
   {
-  print_help_parameters(0, parameters);
+  print_help_parameters(0, parameters, format);
   }

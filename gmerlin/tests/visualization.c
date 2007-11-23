@@ -7,6 +7,7 @@
 #include <pluginregistry.h>
 
 #include <visualize.h>
+#include <translation.h>
 
 #include <cmdline.h>
 #include <log.h>
@@ -17,7 +18,6 @@ static bg_visualizer_t * visualizer = (bg_visualizer_t*)0;
 static bg_cfg_section_t * vis_section = (bg_cfg_section_t*)0;
 static bg_parameter_info_t * vis_parameters = (bg_parameter_info_t*)0;
 
-static void opt_help(void * data, int * argc, char *** argv, int arg);
 
 static void opt_visualizer(void * data, int * argc,
                            char *** _argv, int arg)
@@ -43,22 +43,21 @@ static bg_cmdline_arg_t visualizer_options[] =
       help_string: "options",
       callback:    opt_visualizer,
     },
-    {
-      arg:         "-help",
-      help_string: "Print this help message and exit",
-      callback:    opt_help,
-    },
     { /* End of options */ }
     
   };
 
-static void opt_help(void * data, int * argc, char *** argv, int arg)
+bg_cmdline_app_data_t app_data =
   {
-  fprintf(stderr, "Usage: %s [options]\n\n", (*argv)[0]);
-  fprintf(stderr, "Options:\n\n");
-  bg_cmdline_print_help(visualizer_options);
-  exit(0);
-  }
+    package:  PACKAGE,
+    version:  VERSION,
+    name:     "visualization",
+    synopsis: TRS("[<options>]\n"),
+    help_before: TRS("Visualize test\n"),
+    args: (bg_cmdline_arg_array_t[]) { { TRS("Options"),
+                                         visualizer_options },
+                                       {  } },
+  };
 
 
 int main(int argc, char ** argv)
@@ -98,7 +97,7 @@ int main(int argc, char ** argv)
   vis_parameters = bg_visualizer_get_parameters(visualizer);
   visualizer_options[0].parameters = vis_parameters;
   
-  bg_cmdline_parse(visualizer_options, &argc, &argv, NULL);
+  bg_cmdline_parse(visualizer_options, &argc, &argv, NULL, &app_data);
   
   /* Load input */
 

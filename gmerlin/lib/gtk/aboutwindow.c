@@ -164,14 +164,13 @@ bg_gtk_about_window_create(const char * name, const char * version, const char *
 #endif
   gtk_widget_show(label1);
 
-  label2 = gtk_label_new(TR("Copyright \302\251 2001-2006 Members of the gmerlin project"));
+  label2 = gtk_label_new(TR("Copyright \302\251 2001-2007 Members of the gmerlin project"));
   gtk_widget_show(label2);
   
   label3 =
-    gtk_label_new(TR("This program is free software; you can redistribute it and/or modify\n\
-it under the terms of the GNU General Public License as published by\n\
-the Free Software Foundation; either version 2 of the License, or\n\
-(at your option) any later version."));
+    gtk_label_new(TR("This is free software.  You may redistribute copies of it under the terms of\n\
+the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\n\
+There is NO WARRANTY, to the extent permitted by law."));
   
   gtk_widget_show(label3);
   

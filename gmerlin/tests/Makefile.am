@@ -32,7 +32,7 @@ visualization \
 $(v4l_programs) \
 $(gtk_programs)
 
-bin_PROGRAMS = gmerlin_player gmerlin_imgconvert
+bin_PROGRAMS = gmerlin_imgconvert
 
 # noinst_HEADERS = player1.h
 
@@ -51,8 +51,6 @@ msgtest_LDADD = ../lib/libgmerlin.la -ldl
 textrenderer_SOURCES = textrenderer.c
 textrenderer_LDADD = ../lib/libgmerlin.la -ldl
 
-gmerlin_player_SOURCES = player1.c
-gmerlin_player_LDADD = ../lib/libgmerlin.la -ldl
 
 videoplayer1_SOURCES = videoplayer1.c
 videoplayer1_LDADD = ../lib/libgmerlin.la -ldl

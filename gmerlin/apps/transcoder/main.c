@@ -1,3 +1,4 @@
+#include <config.h>
 #include <time.h>
 #include <stdlib.h>
 
@@ -25,7 +26,6 @@ static void opt_p(void * data, int * argc, char *** argv, int arg)
   bg_cmdline_remove_arg(argc, argv, arg);
   }
 
-static void opt_help(void * data, int * argc, char *** argv, int arg);
 
 bg_cmdline_arg_t args[] =
   {
@@ -35,22 +35,20 @@ bg_cmdline_arg_t args[] =
       help_string: "Load a profile from the given file",
       callback:    opt_p,
     },
-    {
-      arg: "-help",
-      help_string: "Display this help and exit",
-      callback:    opt_help,
-    },
     { /* End of args */ }
   };
 
-static void opt_help(void * data, int * argc, char *** argv, int arg)
+bg_cmdline_app_data_t app_data =
   {
-  FILE * out = stderr;
-  fprintf(out, "Usage: %s [options]\n\n", (*argv)[0]);
-  fprintf(out, "Options:\n\n");
-  bg_cmdline_print_help(args);
-  exit(0);
-  }
+    package:  PACKAGE,
+    version:  VERSION,
+    name:     "gmerlin_transcoder",
+    synopsis: TRS("[options]\n"),
+    help_before: TRS("GTK multimedia transcoder\n"),
+    args: (bg_cmdline_arg_array_t[]) { { TRS("Options"), args },
+                                       {  } },
+  };
+
 
 int main(int argc, char ** argv)
   {
@@ -64,7 +62,7 @@ int main(int argc, char ** argv)
     
   win = transcoder_window_create();
 
-  bg_cmdline_parse(args, &argc, &argv, win);
+  bg_cmdline_parse(args, &argc, &argv, win, &app_data);
   
   transcoder_window_run(win);
 

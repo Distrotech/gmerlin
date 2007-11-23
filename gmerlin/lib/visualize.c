@@ -100,82 +100,11 @@ static int read_message(bg_visualizer_t * v)
   return 1;
   }
 
-double bg_visualizer_get_fps(bg_visualizer_t * v)
+static void set_gain(bg_visualizer_t * v)
   {
-  return v->fps;
-  }
-
-bg_visualizer_t *
-bg_visualizer_create(bg_plugin_registry_t * plugin_reg)
-  {
-  bg_visualizer_t * ret;
-  ret = calloc(1, sizeof(*ret));
-
-  ret->plugin_reg = plugin_reg;
-
-  pthread_mutex_init(&(ret->mutex),(pthread_mutexattr_t *)0);
-  
-  ret->msg = bg_msg_create();
-  return ret;
-  }
-
-void bg_visualizer_destroy(bg_visualizer_t * v)
-  {
-  pthread_mutex_destroy(&(v->mutex));
-  
-  
-  free(v);
-  }
-
-
-static bg_parameter_info_t parameters[] =
-  {
-    {
-      name:        "width",
-      long_name:   TRS("Width"),
-      type:        BG_PARAMETER_INT,
-      flags:      BG_PARAMETER_SYNC,
-      val_min:     { val_i: 16 },
-      val_max:     { val_i: 32768 },
-      val_default: { val_i: 320 },
-      help_string: TRS("Desired image with, the visualization plugin might override this for no apparent reason"),
-    },
-    {
-      name:       "height",
-      long_name:  TRS("Height"),
-      type:       BG_PARAMETER_INT,
-      flags:      BG_PARAMETER_SYNC,
-      val_min:    { val_i: 16 },
-      val_max:    { val_i: 32768 },
-      val_default: { val_i: 240 },
-      help_string: TRS("Desired image height, the visualization plugin might override this for no apparent reason"),
-    },
-    {
-      name:        "framerate",
-      long_name:   TRS("Framerate"),
-      type:        BG_PARAMETER_FLOAT,
-      val_min:     { val_f: 0.1 },
-      val_max:     { val_f: 200.0 },
-      val_default: { val_f: 30.0 },
-      num_digits: 2,
-    },
-    {
-      name:        "gain",
-      long_name:   TRS("Gain"),
-      type:        BG_PARAMETER_SLIDER_FLOAT,
-      flags:       BG_PARAMETER_SYNC,
-      val_min:     { val_f: -10.0 },
-      val_max:     { val_f:  10.0 },
-      val_default: { val_f:   0.0 },
-      num_digits: 2,
-      help_string: TRS("Gain (in dB) to apply to the audio samples before it is sent to the visualization plugin"),
-    },
-    { /* End of parameters */ }
-  };
-
-bg_parameter_info_t * bg_visualizer_get_parameters(bg_visualizer_t * v)
-  {
-  return parameters;
+  bg_msg_set_id(v->msg, BG_VIS_MSG_GAIN);
+  bg_msg_set_arg_float(v->msg, 0, v->gain);
+  write_message(v);
   }
 
 static void set_ov_parameter(void * data,
@@ -225,77 +154,10 @@ static void set_vis_parameter(void * data,
   
   }
 
-static void set_gain(bg_visualizer_t * v)
-  {
-  bg_msg_set_id(v->msg, BG_VIS_MSG_GAIN);
-  bg_msg_set_arg_float(v->msg, 0, v->gain);
-  write_message(v);
-  }
 
-void bg_visualizer_set_vis_plugin(bg_visualizer_t * v,
-                                  const bg_plugin_info_t * info)
+double bg_visualizer_get_fps(bg_visualizer_t * v)
   {
-  if(!v->vis_info || strcmp(v->vis_info->name, info->name))
-    {
-    v->changed = 1;
-    v->vis_info = info;
-    bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Got visualization plugin %s",
-           v->vis_info->name);
-    }
-  }
-
-void bg_visualizer_set_vis_parameter(void * priv,
-                                     const char * name,
-                                     const bg_parameter_value_t * val)
-  {
-  bg_visualizer_t * v;
-  v = (bg_visualizer_t *)priv;
-  pthread_mutex_lock(&v->mutex);
-  if(v->proc)
-    set_vis_parameter(v, name, val);
-  pthread_mutex_unlock(&v->mutex);
-  }
-
-
-void bg_visualizer_set_parameter(void * priv,
-                                 const char * name,
-                                 const bg_parameter_value_t * val)
-  {
-  bg_visualizer_t * v;
-  if(!name)
-    return;
-  
-  v = (bg_visualizer_t*)priv;
-  
-  if(!strcmp(name, "width"))
-    {
-    if(v->image_width != val->val_i)
-      {
-      v->image_width = val->val_i;
-      v->changed = 1;
-      }
-    }
-  else if(!strcmp(name, "height"))
-    {
-    if(v->image_height != val->val_i)
-      {
-      v->image_height = val->val_i;
-      v->changed = 1;
-      }
-    }
-  else if(!strcmp(name, "framerate"))
-    {
-    v->framerate = val->val_f;
-    }
-  else if(!strcmp(name, "gain"))
-    {
-    v->gain = val->val_f;
-    
-    pthread_mutex_lock(&v->mutex);
-    if(v->proc)
-      set_gain(v);
-    pthread_mutex_unlock(&v->mutex);
-    }
+  return v->fps;
   }
 
 static int visualizer_start(bg_visualizer_t * v)
@@ -405,6 +267,149 @@ static int visualizer_start(bg_visualizer_t * v)
   return 1;
   }
 
+
+bg_visualizer_t *
+bg_visualizer_create(bg_plugin_registry_t * plugin_reg)
+  {
+  bg_visualizer_t * ret;
+  ret = calloc(1, sizeof(*ret));
+
+  ret->plugin_reg = plugin_reg;
+
+  pthread_mutex_init(&(ret->mutex),(pthread_mutexattr_t *)0);
+  
+  ret->msg = bg_msg_create();
+  return ret;
+  }
+
+void bg_visualizer_destroy(bg_visualizer_t * v)
+  {
+  pthread_mutex_destroy(&(v->mutex));
+  
+  
+  free(v);
+  }
+
+
+static bg_parameter_info_t parameters[] =
+  {
+    {
+      name:        "width",
+      long_name:   TRS("Width"),
+      type:        BG_PARAMETER_INT,
+      flags:      BG_PARAMETER_SYNC,
+      val_min:     { val_i: 16 },
+      val_max:     { val_i: 32768 },
+      val_default: { val_i: 320 },
+      help_string: TRS("Desired image with, the visualization plugin might override this for no apparent reason"),
+    },
+    {
+      name:       "height",
+      long_name:  TRS("Height"),
+      type:       BG_PARAMETER_INT,
+      flags:      BG_PARAMETER_SYNC,
+      val_min:    { val_i: 16 },
+      val_max:    { val_i: 32768 },
+      val_default: { val_i: 240 },
+      help_string: TRS("Desired image height, the visualization plugin might override this for no apparent reason"),
+    },
+    {
+      name:        "framerate",
+      long_name:   TRS("Framerate"),
+      type:        BG_PARAMETER_FLOAT,
+      val_min:     { val_f: 0.1 },
+      val_max:     { val_f: 200.0 },
+      val_default: { val_f: 30.0 },
+      num_digits: 2,
+    },
+    {
+      name:        "gain",
+      long_name:   TRS("Gain"),
+      type:        BG_PARAMETER_SLIDER_FLOAT,
+      flags:       BG_PARAMETER_SYNC,
+      val_min:     { val_f: -10.0 },
+      val_max:     { val_f:  10.0 },
+      val_default: { val_f:   0.0 },
+      num_digits: 2,
+      help_string: TRS("Gain (in dB) to apply to the audio samples before it is sent to the visualization plugin"),
+    },
+    { /* End of parameters */ }
+  };
+
+bg_parameter_info_t * bg_visualizer_get_parameters(bg_visualizer_t * v)
+  {
+  return parameters;
+  }
+
+
+
+void bg_visualizer_set_vis_plugin(bg_visualizer_t * v,
+                                  const bg_plugin_info_t * info)
+  {
+  if(!v->vis_info || strcmp(v->vis_info->name, info->name))
+    {
+    v->changed = 1;
+    v->vis_info = info;
+    bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Got visualization plugin %s",
+           v->vis_info->name);
+    }
+  }
+
+void bg_visualizer_set_vis_parameter(void * priv,
+                                     const char * name,
+                                     const bg_parameter_value_t * val)
+  {
+  bg_visualizer_t * v;
+  v = (bg_visualizer_t *)priv;
+  pthread_mutex_lock(&v->mutex);
+  if(v->proc)
+    set_vis_parameter(v, name, val);
+  pthread_mutex_unlock(&v->mutex);
+  }
+
+
+void bg_visualizer_set_parameter(void * priv,
+                                 const char * name,
+                                 const bg_parameter_value_t * val)
+  {
+  bg_visualizer_t * v;
+  if(!name)
+    return;
+  
+  v = (bg_visualizer_t*)priv;
+  
+  if(!strcmp(name, "width"))
+    {
+    if(v->image_width != val->val_i)
+      {
+      v->image_width = val->val_i;
+      v->changed = 1;
+      }
+    }
+  else if(!strcmp(name, "height"))
+    {
+    if(v->image_height != val->val_i)
+      {
+      v->image_height = val->val_i;
+      v->changed = 1;
+      }
+    }
+  else if(!strcmp(name, "framerate"))
+    {
+    v->framerate = val->val_f;
+    }
+  else if(!strcmp(name, "gain"))
+    {
+    v->gain = val->val_f;
+    
+    pthread_mutex_lock(&v->mutex);
+    if(v->proc)
+      set_gain(v);
+    pthread_mutex_unlock(&v->mutex);
+    }
+  }
+
+
 void bg_visualizer_set_audio_format(bg_visualizer_t * v,
                                     const gavl_audio_format_t * format)
   {
@@ -441,7 +446,7 @@ void bg_visualizer_open_plugin(bg_visualizer_t * v,
   
   v->changed = 0;
   
-  bg_visualizer_start(v);
+  visualizer_start(v);
   
   }
 
@@ -463,7 +468,7 @@ void bg_visualizer_open_id(bg_visualizer_t * v,
   
   v->changed = 0;
   
-  bg_visualizer_start(v);
+  visualizer_start(v);
   
   }
 

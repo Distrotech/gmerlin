@@ -759,6 +759,7 @@ apps/alsamixer/Makefile \
 apps/alsamixer/gmerlin-alsamixer.desktop \
 apps/camelot/Makefile \
 apps/camelot/gmerlin-camelot.desktop \
+apps/cmdlineplayer/Makefile \
 apps/transcoder/Makefile \
 apps/transcoder/gmerlin-transcoder.desktop \
 apps/visualizer/Makefile \

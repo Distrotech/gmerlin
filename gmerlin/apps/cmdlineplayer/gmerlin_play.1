@@ -1,0 +1,996 @@
+.TH gmerlin_player 1 "November 2007" Gmerlin "User Manuals"
+.SH NAME
+gmerlin_player
+.SH SYNOPSIS
+.B gmerlin_player 
+.I [options]
+.I gml...
+
+.SH DESCRIPTION
+Commandline Multimedia player
+
+Options
+
+.B -oa
+.I <audio_output_options>
+
+.RS 2
+Set audio output options
+.RE
+.RS 2
+.BR p "=option[{suboptions}]"
+.P
+Supported options: oa_alsa oa_oss oa_esd
+.P
+Default: oa_alsa"
+.P
+Audio output plugin
+.P
+Suboptions for p=oa_alsa
+
+.RS 2
+.BR card "=<string>"
+.P
+Supported strings: default hw:0,0
+.P
+Default: default
+.P
+Card
+.P
+.BR surround40 "=[1|0] (default: 1)"
+.P
+Enable 4.0 Surround
+.P
+Use the surround 4.0 (aka quadrophonic) device
+
+.BR surround41 "=[1|0] (default: 1)"
+.P
+Enable 4.1 Surround
+.P
+Use the surround 4.1 device
+
+.BR surround50 "=[1|0] (default: 1)"
+.P
+Enable 5.0 Surround
+.P
+Use the surround 5.0 device
+
+.BR surround51 "=[1|0] (default: 1)"
+.P
+Enable 5.1 Surround
+.P
+Use the surround 5.1 device
+
+.BR user_device "=<string>"
+.P
+User device
+.P
+Enter a custom device to use for playback. Leave empty to use the
+settings above
+
+.BR buffer_time "=<number> (10..10000, default: 1000)"
+.P
+Buffer time
+.P
+Set the buffer time (in milliseconds). Larger values improve playback
+performance on slow systems under load. Smaller values decrease the
+latency of the volume control.
+
+.RE
+Suboptions for p=oa_oss
+
+.RS 2
+.BR multichannel_mode "=<string>"
+.P
+Supported strings: none multidev creative
+.P
+Default: none
+.P
+Multichannel Mode
+.P
+.BR device "=<string> (Default: /dev/dsp)"
+.P
+Device
+.P
+.BR use_rear_device "=[1|0] (default: 0)"
+.P
+Use Rear Device
+.P
+.BR rear_device "=<string> (Default: /dev/dsp1)"
+.P
+Rear Device
+.P
+.BR use_center_lfe_device "=[1|0] (default: 0)"
+.P
+Use Center/LFE Device
+.P
+.BR center_lfe_device "=<string> (Default: /dev/dsp2)"
+.P
+Center/LFE Device
+.P
+.RE
+Suboptions for p=oa_esd
+
+.RS 2
+.BR esd_host "=<string>"
+.P
+Host (empty: local)
+.P
+.RE
+.RE
+
+.B -ov
+.I <video_output_options>
+
+.RS 2
+Set video output options
+.RE
+.RS 2
+.BR p "=option[{suboptions}]"
+.P
+Supported options: ov_x11
+.P
+Default: ov_x11"
+.P
+Video output plugin
+.P
+Suboptions for p=ov_x11
+
+.RS 2
+.BR auto_resize "=[1|0] (default: 1)"
+.P
+Auto resize window
+.P
+.BR disable_xscreensaver_normal "=[1|0] (default: 0)"
+.P
+Disable Screensaver for normal playback
+.P
+.BR disable_xscreensaver_fullscreen "=[1|0] (default: 1)"
+.P
+Disable Screensaver for fullscreen playback
+.P
+.BR force_hw_scale "=[1|0] (default: 1)"
+.P
+Force hardware scaling
+.P
+Use hardware scaling even if it involves more CPU intensive pixelformat
+conversions
+
+.BR scale_mode "=<string>"
+.P
+Supported strings: auto nearest bilinear quadratic cubic_bspline cubic_mitchell cubic_catmull sinc_lanczos
+.P
+Default: auto
+.P
+Scale mode
+.P
+Choose scaling method. Auto means to choose based on the conversion
+quality. Nearest is fastest, Sinc with Lanczos window is slowest
+
+.BR scale_order "=<number> (4..1000, default: 4)"
+.P
+Scale order
+.P
+Order for sinc scaling
+
+.BR scale_quality "=<number> (1..5, default: 2)"
+.P
+Scale quality
+.P
+Scale quality
+
+.RE
+.BR w "=<string>"
+.P
+Window ID
+.P
+.RE
+
+.B -i
+.I <input_plugin>
+
+.RS 2
+Set and configure input plugin
+.RE
+.RS 2
+.BR p "=option[{suboptions}]"
+.P
+Supported options: i_avdec i_cdaudio i_dvd i_vcd i_singlepic_stills i_lqt i_singlepic i_mikmod
+.P
+Default: i_avdec"
+.P
+input plugin
+.P
+Suboptions for p=i_avdec
+
+.RS 2
+.BR audio_dynrange "=[1|0] (default: 1)"
+.P
+Dynamic range control
+.P
+Enable dynamic range control for codecs, which support this (currently
+only A52 and DTS).
+
+.BR pp "=<number> (0..6, default: 1)"
+.P
+Postprocessing level
+.P
+Set postprocessing (to remove compression artifacts). 0 means no
+postprocessing, 6 means maximum postprocessing.
+
+.BR connect_timeout "=<number> (0..2000000, default: 5000)"
+.P
+Connect timeout (milliseconds)
+.P
+.BR read_timeout "=<number> (0..2000000, default: 5000)"
+.P
+Read timeout (milliseconds)
+.P
+.BR network_buffer_size "=<number> (1..1000, default: 32)"
+.P
+Network buffer size (kB)
+.P
+.BR network_bandwidth "=<string>"
+.P
+Supported strings: 14400 19200 28800 33600 34400 57600 115200 262200 393200 524300 1500000 10500000
+.P
+Default: 524.3 Kbps (Cable/DSL)
+.P
+Bandwidth
+.P
+.BR http_shoutcast_metadata "=[1|0] (default: 1)"
+.P
+Enable shoutcast title streaming
+.P
+.BR http_use_proxy "=[1|0] (default: 0)"
+.P
+Use proxy
+.P
+.BR http_proxy_host "=<string>"
+.P
+Proxy host
+.P
+.BR http_proxy_port "=<number> (1..65535, default: 80)"
+.P
+Proxy port
+.P
+.BR http_proxy_auth "=[1|0] (default: 0)"
+.P
+Proxy needs authentication
+.P
+.BR http_proxy_user "=<string>"
+.P
+Proxy username
+.P
+.BR http_proxy_pass "=<string>"
+.P
+Proxy password
+.P
+.BR ftp_anonymous "=[1|0] (default: 1)"
+.P
+Login as anonymous
+.P
+.BR ftp_anonymous_password "=<string> (Default: gates@nanosoft.com)"
+.P
+Anonymous ftp password
+.P
+.BR seek_subtitles "=<string>"
+.P
+Supported strings: 0 1 2
+.P
+Default: 0
+.P
+Seek external subtitles
+.P
+If the input is a regular file, gmerlin_avdecoder can scan the directory
+for matching subtitle files. For a file movie.mpg, possible subtitle
+files are e.g. movie_english.srt, movie_german.srt. The rule is, that
+the first part of the filename of the subtitle file must be equal to the
+movie filename up to the extension. Furthermore, the subtitle filename
+must have an extension supported by any of the subtitle readers.
+
+.BR default_subtitle_encoding "=<string> (Default: LATIN1)"
+.P
+Default subtitle encoding
+.P
+This sets the default encoding for text subtitles,when the original
+encoding is unknown. It must be a character set namerecognized by iconv.
+Type 'iconv -l' at the commandline for a list of supported encodings.
+
+.RE
+Suboptions for p=i_cdaudio
+
+.RS 2
+.BR trackname_template "=<string> (Default: %p - %t)"
+.P
+Trackname template
+.P
+Template for track name generation from metadata
+%p:    Artist
+%a:    Album
+%g:    Genre
+%t:    Track name
+%<d>n: Track number (d = number of digits, 1-9)
+%y:    Year
+%c:    Comment
+
+.BR use_cdtext "=[1|0] (default: 1)"
+.P
+Use CD-Text
+.P
+Try to get CD metadata from CD-Text
+
+.BR use_local "=[1|0] (default: 1)"
+.P
+Use locally saved metadata
+.P
+Whenever we obtain CD metadata from the internet, we save them into
+$HOME/.gmerlin/cdaudio_metadata. If you got wrong metadata for a CD,
+disabling this option will retrieve the metadata again and overwrite the
+saved data.
+
+.BR use_musicbrainz "=[1|0] (default: 1)"
+.P
+Use Musicbrainz
+.P
+.BR musicbrainz_host "=<string> (Default: mm.musicbrainz.org)"
+.P
+Server
+.P
+.BR musicbrainz_port "=<number> (1..65535, default: 80)"
+.P
+Port
+.P
+.BR musicbrainz_proxy_host "=<string>"
+.P
+Proxy
+.P
+Proxy server (leave empty for direct connection)
+
+.BR musicbrainz_proxy_port "=<number> (1..65535, default: 80)"
+.P
+Proxy Port
+.P
+Proxy port
+
+.BR use_cddb "=[1|0] (default: 1)"
+.P
+Use Cddb
+.P
+.BR cddb_host "=<string> (Default: freedb.org)"
+.P
+Server
+.P
+.BR cddb_port "=<number> (1..65535, default: 80)"
+.P
+Port
+.P
+.BR cddb_path "=<string> (Default: /~cddb/cddb.cgi)"
+.P
+Path
+.P
+.BR cddb_proxy_host "=<string>"
+.P
+Proxy
+.P
+Proxy server (leave empty for direct connection)
+
+.BR cddb_proxy_port "=<number> (1..65535, default: 80)"
+.P
+Proxy Port
+.P
+Proxy port
+
+.BR cddb_proxy_user "=<string>"
+.P
+Proxy username
+.P
+User name for proxy (leave empty for poxies, which don't require
+authentication)
+
+.BR cddb_proxy_pass "=<string>"
+.P
+Proxy password
+.P
+Password for proxy
+
+.BR cddb_timeout "=<number> (0..1000, default: 10)"
+.P
+Timeout
+.P
+Timeout (in seconds) for connections to the CDDB server
+
+.BR cdparanoia_speed "=<string>"
+.P
+Supported strings: Auto 4 8 16 32
+.P
+Default: Auto
+.P
+Speed
+.P
+.BR cdparanoia_max_retries "=<number> (0..200, default: 20)"
+.P
+Maximum retries
+.P
+Maximum number of retries, 0 = infinite
+
+.BR cdparanoia_disable_paranoia "=[1|0] (default: 0)"
+.P
+Disable paranoia
+.P
+Disable all data verification and correction features.
+
+.BR cdparanoia_disable_extra_paranoia "=[1|0] (default: 0)"
+.P
+Disable extra paranoia
+.P
+Disables intra-read data verification; only overlap checking atread
+boundaries is performed. It can wedge if errors  occur  in the attempted
+overlap area. Not recommended.
+
+.RE
+Suboptions for p=i_dvd
+
+.RS 2
+.BR dvd_chapters_as_tracks "=[1|0] (default: 1)"
+.P
+Handle chapters as tracks
+.P
+.BR audio_dynrange "=[1|0] (default: 1)"
+.P
+Dynamic range control
+.P
+Enable dynamic range control for codecs, which support this (currently
+only A52 and DTS).
+
+.RE
+Suboptions for p=i_singlepic_stills
+
+.RS 2
+.BR display_time "={[[HH:]MM:]SS} (default: 0:00)"
+.P
+Seconds can be fractional (i.e. with decimal point)
+Display time
+.P
+Time to pass until the next track will be selected. 0 means infinite.
+
+.RE
+Suboptions for p=i_lqt
+
+.RS 2
+.BR ac "={option[{suboptions}][:option[{suboptions}]...]}"
+.P
+Supported options: ima4 rawaudio twos ulaw sowt alaw in24 in32 fl32 fl64 
+lpcm faad2 ffmpeg_mp3 ffmpeg_mp2 ffmpeg_ac3 ffmpeg_qdm2 ffmpeg_alac 
+ffmpeg_adpcm_ms ffmpeg_ima_adpcm_wav vorbis vorbis_qt
+
+Audio Codecs
+.P
+Sort and configure audio codecs
+
+.BR vc "={option[{suboptions}][:option[{suboptions}]...]}"
+.P
+Supported options: rtjpeg raw v308 v408 v410 yuv2 yuv4 yv12 2vuy v210 
+png ffmpeg_mpg1 ffmpeg_mpg4 ffmpeg_msmpeg4v1 ffmpeg_msmpeg4v2 
+ffmpeg_msmpeg4v3 ffmpeg_h263 ffmpeg_h264 ffmpeg_i263 ffmpeg_svq1 
+ffmpeg_svq3 ffmpeg_mjpg ffmpeg_mjpegb ffmpeg_TGA ffmpeg_TIFF 
+ffmpeg_8BPS ffmpeg_indeo ffmpeg_rpza ffmpeg_smc ffmpeg_cinepak 
+ffmpeg_cyuv ffmpeg_rle ffmpeg_wrle ffmpeg_dv_ntsc ffmpeg_dv_pal 
+ffmpeg_dv_avi ffmpeg_dv50_pal ffmpeg_dv50_ntsc ffmpeg_ffvhuff jpeg 
+mjpa
+
+Video Codecs
+.P
+Sort and configure video codecs
+
+Suboptions for ffmpeg_mpg1
+
+.RS 2
+.BR ff_flag_gray "=[1|0] (default: 0)"
+.P
+Grayscale mode
+.P
+.RE
+Suboptions for ffmpeg_mpg4
+
+.RS 2
+.BR ff_flag_gray "=[1|0] (default: 0)"
+.P
+Grayscale mode
+.P
+.RE
+Suboptions for ffmpeg_msmpeg4v1
+
+.RS 2
+.BR ff_flag_gray "=[1|0] (default: 0)"
+.P
+Grayscale mode
+.P
+.RE
+Suboptions for ffmpeg_msmpeg4v2
+
+.RS 2
+.BR ff_flag_gray "=[1|0] (default: 0)"
+.P
+Grayscale mode
+.P
+.RE
+Suboptions for ffmpeg_msmpeg4v3
+
+.RS 2
+.BR ff_flag_gray "=[1|0] (default: 0)"
+.P
+Grayscale mode
+.P
+.RE
+Suboptions for ffmpeg_h263
+
+.RS 2
+.BR ff_flag_gray "=[1|0] (default: 0)"
+.P
+Grayscale mode
+.P
+.RE
+Suboptions for ffmpeg_h264
+
+.RS 2
+.BR ff_flag_gray "=[1|0] (default: 0)"
+.P
+Grayscale mode
+.P
+.RE
+Suboptions for ffmpeg_i263
+
+.RS 2
+.BR ff_flag_gray "=[1|0] (default: 0)"
+.P
+Grayscale mode
+.P
+.RE
+Suboptions for ffmpeg_svq1
+
+.RS 2
+.BR ff_flag_gray "=[1|0] (default: 0)"
+.P
+Grayscale mode
+.P
+.RE
+Suboptions for ffmpeg_svq3
+
+.RS 2
+.BR ff_flag_gray "=[1|0] (default: 0)"
+.P
+Grayscale mode
+.P
+.RE
+Suboptions for ffmpeg_mjpg
+
+.RS 2
+.BR ff_flag_gray "=[1|0] (default: 0)"
+.P
+Grayscale mode
+.P
+.RE
+Suboptions for ffmpeg_indeo
+
+.RS 2
+.BR ff_flag_gray "=[1|0] (default: 0)"
+.P
+Grayscale mode
+.P
+.RE
+Suboptions for ffmpeg_cinepak
+
+.RS 2
+.BR ff_flag_gray "=[1|0] (default: 0)"
+.P
+Grayscale mode
+.P
+.RE
+Suboptions for ffmpeg_cyuv
+
+.RS 2
+.BR ff_flag_gray "=[1|0] (default: 0)"
+.P
+Grayscale mode
+.P
+.RE
+Suboptions for ffmpeg_dv_ntsc
+
+.RS 2
+.BR ff_flag_gray "=[1|0] (default: 0)"
+.P
+Grayscale mode
+.P
+.RE
+Suboptions for ffmpeg_dv_pal
+
+.RS 2
+.BR ff_flag_gray "=[1|0] (default: 0)"
+.P
+Grayscale mode
+.P
+.RE
+Suboptions for ffmpeg_dv_avi
+
+.RS 2
+.BR ff_flag_gray "=[1|0] (default: 0)"
+.P
+Grayscale mode
+.P
+.RE
+Suboptions for ffmpeg_dv50_pal
+
+.RS 2
+.BR ff_flag_gray "=[1|0] (default: 0)"
+.P
+Grayscale mode
+.P
+.RE
+Suboptions for ffmpeg_dv50_ntsc
+
+.RS 2
+.BR ff_flag_gray "=[1|0] (default: 0)"
+.P
+Grayscale mode
+.P
+.RE
+Suboptions for ffmpeg_ffvhuff
+
+.RS 2
+.BR ff_flag_gray "=[1|0] (default: 0)"
+.P
+Grayscale mode
+.P
+.RE
+.RE
+Suboptions for p=i_singlepic
+
+.RS 2
+.BR timescale "=<number> (1..100000, default: 25)"
+.P
+Timescale
+.P
+.BR frame_duration "=<number> (1..100000, default: 1)"
+.P
+Frame duration
+.P
+.RE
+Suboptions for p=i_mikmod
+
+.RS 2
+.BR output "=<string>"
+.P
+Supported strings: mono8 stereo8 mono16 stereo16
+.P
+Default: stereo16
+.P
+Output format
+.P
+.BR mixing_frequency "=<number> (4000..60000, default: 44100)"
+.P
+Samplerate
+.P
+.BR hidden "=[1|0] (default: 0)"
+.P
+Look for hidden patterns in module
+.P
+.BR sur "=[1|0] (default: 0)"
+.P
+Use surround mixing
+.P
+.BR fade "=[1|0] (default: 0)"
+.P
+Force volume fade at the end of module
+.P
+.BR interpol "=[1|0] (default: 0)"
+.P
+Use interpolate mixing
+.P
+.RE
+.RE
+
+.B -aud
+.I <audio_options>
+
+.RS 2
+Set audio processing options
+.RE
+.RS 2
+.BR force_float "=[1|0] (default: 0)"
+.P
+Force floating point
+.P
+Force floating point processing. This will inprove the quality but might
+slow things down.
+
+.BR q "=<number> (1..5, default: 2)"
+.P
+Conversion Quality
+.P
+Set the conversion quality for format conversions. Lower quality means more
+speed. Values above 3 enable slow high quality calculations.
+
+.BR dither_mode "=<string>"
+.P
+Supported strings: auto none rect tri shaped
+.P
+Default: auto
+.P
+Dither mode
+.P
+Dither mode. Auto means to use the quality level. Subsequent options are
+ordered by increasing quality (i.e. decreasing speed).
+
+.BR fixed_samplerate "=[1|0] (default: 0)"
+.P
+Fixed samplerate
+.P
+If disabled, the output samplerate is taken from the source. If enabled, the
+samplerate you specify below us used.
+
+.BR samplerate "=<number> (8000..192000, default: 44100)"
+.P
+Samplerate
+.P
+Fixed output samplerate
+
+.BR resample_mode "=<string>"
+.P
+Supported strings: auto linear zoh sinc_fast sinc_medium sinc_best
+.P
+Default: auto
+.P
+Resample mode
+.P
+Resample mode. Auto means to use the quality level. Subsequent options are
+ordered by increasing quality (i.e. decreasing speed).
+
+.BR fixed_channel_setup "=[1|0] (default: 0)"
+.P
+Fixed channel setup
+.P
+If disabled, the output channel configuration is taken from the source. If
+enabled, the setup you specify below us used.
+
+.BR num_front_channels "=<number> (1..5, default: 2)"
+.P
+Front channels
+.P
+.BR num_rear_channels "=<number> (0..3, default: 0)"
+.P
+Rear channels
+.P
+.BR num_lfe_channels "=[1|0] (default: 0)"
+.P
+LFE
+.P
+.BR front_to_rear "=<string>"
+.P
+Supported strings: mute copy diff
+.P
+Default: copy
+.P
+Front to rear mode
+.P
+Mix mode when the output format has rear channels, but the source doesn't.
+
+.BR stereo_to_mono "=<string>"
+.P
+Supported strings: left right mix
+.P
+Default: mix
+.P
+Stereo to mono mode
+.P
+Mix mode when downmixing Stereo to Mono.
+
+.RE
+
+.B -vid
+.I <video_options>
+
+.RS 2
+Set video processing options
+.RE
+.RS 2
+.BR q "=<number> (1..5, default: 2)"
+.P
+Conversion Quality
+.P
+Set the conversion quality for format conversions. Lower quality means more
+speed. Values above 3 enable slow high quality calculations.
+
+.BR alpha_mode "=<string>"
+.P
+Supported strings: ignore blend_color
+.P
+Default: ignore
+.P
+Alpha mode
+.P
+This option is used if the source has an alpha (=transparency) channel, but
+the output supports no transparency. Either, the transparency is ignored, or
+the background color you specify below is blended in.
+
+.BR background_color "=<r>,<g>,<b> (default: 0.000,0.000,0.000)"
+.P
+<r>, <g> and <b> are in the range 0.0..1.0
+.P
+Background color
+.P
+Background color to use, when alpha mode above is "Blend background color".
+
+.BR sm "=[1|0] (default: 0)"
+.P
+Resample chroma
+.P
+Always perform chroma resampling if chroma subsampling factors or chroma
+placements are different. Usually, this is only done for qualities above 3.
+
+.BR still_framerate "=<number> (1.00..100.00, default: 10.00)"
+.P
+Still image framerate
+.P
+Set framerate width which still images will be redisplayed periodically
+
+.RE
+
+.B -inopt
+.I <input_options>
+
+.RS 2
+Set generic input options
+.RE
+.RS 2
+.BR do_bypass "=[1|0] (default: 1)"
+.P
+Enable bypass mode
+.P
+Use input plugins in bypass mode if they support it (Currently only the
+audio CD player). This dramatically decreases CPU usage but doesn't work on
+all hardware setups.
+
+.BR still_framerate "=<number> (0..100, default: 10)"
+.P
+Still image repitition rate
+.P
+When showing still images, gmerlin repeats them periodically to make
+realtime filter tweaking work.
+
+.RE
+
+.B -osd
+.I <osd_options>
+
+.RS 2
+Set OSD options
+.RE
+.RS 2
+.BR enable_osd "=[1|0] (default: 1)"
+.P
+Enable OSD
+.P
+.BR font_size "=<number> (12.00..100.00, default: 30.00)"
+.P
+Size
+.P
+Specify fontsize for OSD. The value you enter, is for an image width of 640.
+For other widths, the value will be scaled
+
+.BR color "=<r>,<g>,<b>,<a> (default: 1.000,1.000,1.000,1.000)"
+.P
+<r>, <g>, <b> and <a> are in the range 0.0..1.0
+.P
+Foreground color
+.P
+.BR border_color "=<r>,<g>,<b> (default: 0.000,0.000,0.000)"
+.P
+<r>, <g> and <b> are in the range 0.0..1.0
+.P
+Border color
+.P
+.BR border_width "=<number> (0.00..10.00, default: 2.00)"
+.P
+Border width
+.P
+.BR justify_h "=<string>"
+.P
+Supported strings: center left right
+.P
+Default: center
+.P
+Horizontal justify
+.P
+.BR justify_v "=<string>"
+.P
+Supported strings: center top bottom
+.P
+Default: center
+.P
+Vertical justify
+.P
+.BR border_left "=<number> (0..65535, default: 10)"
+.P
+Left border
+.P
+Distance from the left text border to the image border
+
+.BR border_right "=<number> (0..65535, default: 10)"
+.P
+Left border
+.P
+Distance from the right text border to the image border
+
+.BR border_top "=<number> (0..65535, default: 10)"
+.P
+Top border
+.P
+Distance from the top text border to the image border
+
+.BR border_bottom "=<number> (0..65535, default: 10)"
+.P
+Bottom border
+.P
+Distance from the bottom text border to the image border
+
+.BR duration "=<number> (0..10000, default: 2000)"
+.P
+Duration (milliseconds)
+.P
+.RE
+
+.B -nt
+
+.RS 2
+Disable time display
+.RE
+
+.B -vol
+.I <volume>
+
+.RS 2
+Set volume in dB (max: 0.0)
+.RE
+
+.B -v
+.I level
+
+.RS 2
+Set verbosity level (0..4)
+.RE
+
+.B -tracks
+.I <track_spec>
+
+.RS 2
+<track_spec> can be a ranges mixed with comma separated tracks
+.RE
+
+.SH GENERIC OPTIONS
+The following generic options are available for all gmerlin applications
+
+.B -help
+
+.RS 2
+Print this help message and exit
+.RE
+
+.B -help_man
+
+.RS 2
+Print this help message as a manual page and exit
+.RE
+
+.B -help_texi
+
+.RS 2
+Print this help message in texinfo format and exit
+.RE
+
+.B -version
+
+.RS 2
+Print version info and exit
+.RE
+

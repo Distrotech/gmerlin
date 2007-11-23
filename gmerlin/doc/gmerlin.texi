@@ -128,6 +128,17 @@ multi-screen configurations.
 
 @item @uref{http://www.samba.org/, libsmbclient}
 For loading smb:// URLs (optional).
+
+@item @uref{http://sourceforge.net/projects/libvisual, libvisual}
+For using libvisual plugins (optional).
+
+@item @uref{http://www.ladspa.org, Ladspa plugins}
+Optional for audio filters/effects. Good experiences were made with
+the plugin packages @uref{http://www.ladspa.org/cmt/,cmt},
+@uref{http://plugin.org.uk, swh-plugins} and
+@uref{http://tap-plugins.sourceforge.net, tap-plugins}. Gmerlin looks for them
+at runtime, so you can install them at any time.
+
 @end table
 
 From now on, there are 2 ways to proceed:
@@ -202,13 +213,6 @@ gmerlin_avdecoder is a lot better.
 Optional for en-/decoding yuv4mpeg streams and for encoding high
 quality MPEG video using mpeg2enc and friends.
 
-@item @uref{http://www.ladspa.org, Ladspa plugins}
-Optional for audio filters/effects. Good experiences were made with
-the plugin packages @uref{http://www.ladspa.org/cmt/,cmt},
-@uref{http://plugin.org.uk, swh-plugins} and
-@uref{http://tap-plugins.sourceforge.net, tap-plugins}. Gmerlin looks for them
-at runtime, so you can install them at any time.
-
 @end table
 
 @node Compilation and installation
@@ -265,24 +269,43 @@ program misbehaves, especially after a version upgrade, delete the file
 @code{~/.gmerlin/application_dir/config.xml}, where @code{application_dir}
 corresponds to the application. Normally, this shouldn't be necessary.
 
-All applications except gmerlin_visualizer have their own configuration data.
-This means, that changes made to plugin configurations are not shared between
-these applications. Most applications have a configuration dialog, which
-lets you change some global settings. Then, there is a plugin dialog,
-which lets you select and configure plugins. It might be a bit tricky to
-find out if a special option can be set via the the plugin dialog or via
-the global config dialog. The general rule is: All features, which are
-supported independently from any plugins, are configured in the global
-dialog. You can expect them to be present on every gmerlin installation
-of the same version. The plugin dialog changes depending on what plugins
-are installed. That's the reason, why they are separated.
-
 @node GUI
 @section GUI
 We try to make this as consistent as possible across the applications.
 In many windows, you'll see context sensitive menus when you right
 click somewhere. Furthermore, tooltips are enabled in all programs by
 default. You can, however, switch them off if they bother you. 
+
+All GUI applications have their own configuration data.
+This means, that plugin configurations are not shared between
+these applications.
+
+There is a strict separation between static and plugin dependent
+configurations. 
+
+Most applications have one or more config dialogs
+@ifhtml
+(
+@image{../icons/config_16}
+)
+@end ifhtml
+which let you change settings either for several subsystems of the
+application or for plugins, depending on the context.
+To change the plugins themselves, there are separate plugin dialogs
+@ifhtml
+(
+@image{../icons/plugin_16}
+)
+@end ifhtml
+which let you select and configure plugins.
+
+It might be a bit tricky to find out if a special option can be set
+via the the plugin dialog or via
+the global config dialog. The general rule is: All features, which are
+supported by the core architecture, are configured in some global
+dialog. You can expect them to be present on every gmerlin installation
+of the same version. The plugin options vary depending on what plugins
+are installed (that's the reason, why they are separated).
 
 @strong{Some GUI tips}
 

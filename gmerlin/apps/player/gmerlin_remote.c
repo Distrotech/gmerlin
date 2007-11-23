@@ -24,6 +24,7 @@
 #include <cmdline.h>
 #include <utils.h>
 #include <remote.h>
+#include <translation.h>
 #include "player_remote.h"
 
 #include <log.h>
@@ -110,7 +111,6 @@ static void cmd_pause(void * data, int * argc, char *** _argv, int arg)
 
 static void cmd_addplay(void * data, int * argc, char *** _argv, int arg)
   {
-  FILE * out = stderr;
   bg_msg_t * msg;
   bg_remote_client_t * remote;
   char ** argv = *_argv;
@@ -119,7 +119,7 @@ static void cmd_addplay(void * data, int * argc, char *** _argv, int arg)
   
   if(arg >= *argc)
     {
-    fprintf(out, "Option -addplay requires an argument\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Option -addplay requires an argument\n");
     exit(-1);
     }
   
@@ -134,7 +134,6 @@ static void cmd_addplay(void * data, int * argc, char *** _argv, int arg)
 
 static void cmd_add(void * data, int * argc, char *** _argv, int arg)
   {
-  FILE * out = stderr;
   bg_msg_t * msg;
   bg_remote_client_t * remote;
   char ** argv = *_argv;
@@ -142,7 +141,7 @@ static void cmd_add(void * data, int * argc, char *** _argv, int arg)
 
   if(arg >= *argc)
     {
-    fprintf(out, "Option -add requires an argument\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Option -add requires an argument\n");
     exit(-1);
     }
   
@@ -160,13 +159,12 @@ static void cmd_openplay(void * data, int * argc, char *** _argv, int arg)
   bg_msg_t * msg;
   bg_remote_client_t * remote;
   char ** argv = *_argv;
-  FILE * out = stderr;
 
   remote = (bg_remote_client_t *)data;
   
   if(arg >= *argc)
     {
-    fprintf(out, "Option -openplay requires an argument\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Option -openplay requires an argument\n");
     exit(-1);
     }
   
@@ -184,12 +182,11 @@ static void cmd_open(void * data, int * argc, char *** _argv, int arg)
   bg_msg_t * msg;
   bg_remote_client_t * remote;
   char ** argv = *_argv;
-  FILE * out = stderr;
   remote = (bg_remote_client_t *)data;
 
   if(arg >= *argc)
     {
-    fprintf(out, "Option -open requires an argument\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Option -open requires an argument\n");
     exit(-1);
     }
   
@@ -207,13 +204,12 @@ static void cmd_volume(void * data, int * argc, char *** _argv, int arg)
   bg_msg_t * msg;
   bg_remote_client_t * remote;
   char ** argv = *_argv;
-  FILE * out = stderr;
   float vol;
   remote = (bg_remote_client_t *)data;
 
   if(arg >= *argc)
     {
-    fprintf(out, "Option -volume requires an argument\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Option -volume requires an argument\n");
     exit(-1);
     }
   vol = strtod(argv[arg], NULL);
@@ -231,13 +227,12 @@ static void cmd_volume_rel(void * data, int * argc, char *** _argv, int arg)
   bg_remote_client_t * remote;
   char ** argv = *_argv;
   float vol;
-  FILE * out = stderr;
 
   remote = (bg_remote_client_t *)data;
 
   if(arg >= *argc)
     {
-    fprintf(out, "Option -volume_rel requires an argument\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Option -volume_rel requires an argument\n");
     exit(-1);
     }
 
@@ -257,13 +252,12 @@ static void cmd_seek_rel(void * data, int * argc, char *** _argv, int arg)
   bg_remote_client_t * remote;
   char ** argv = *_argv;
   float diff;
-  FILE * out = stderr;
 
   remote = (bg_remote_client_t *)data;
 
   if(arg >= *argc)
     {
-    fprintf(out, "Option -seek_rel requires an argument\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Option -seek_rel requires an argument\n");
     exit(-1);
     }
 
@@ -283,13 +277,12 @@ static void cmd_chapter(void * data, int * argc, char *** _argv, int arg)
   bg_remote_client_t * remote;
   char ** argv = *_argv;
   int index;
-  FILE * out = stderr;
 
   remote = (bg_remote_client_t *)data;
 
   if(arg >= *argc)
     {
-    fprintf(out, "Option -chapter requires an argument\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Option -chapter requires an argument\n");
     exit(-1);
     }
 
@@ -314,80 +307,80 @@ bg_cmdline_arg_t commands[] =
   {
     {
       arg:         "-play",
-      help_string: "Play current track",
+      help_string: TRS("Play current track"),
       callback:    cmd_play,
     },
     {
       arg:         "-next",
-      help_string: "Switch to next track",
+      help_string: TRS("Switch to next track"),
       callback:    cmd_next,
     },
     {
       arg:         "-prev",
-      help_string: "Switch to previous track",
+      help_string: TRS("Switch to previous track"),
       callback:    cmd_prev,
     },
     {
       arg:         "-stop",
-      help_string: "Stop playback",
+      help_string: TRS("Stop playback"),
       callback:    cmd_stop,
     },
     {
       arg:         "-pause",
-      help_string: "Pause playback",
+      help_string: TRS("Pause playback"),
       callback:    cmd_pause,
     },
     {
       arg:         "-mute",
-      help_string: "Toggle mute",
+      help_string: TRS("Toggle mute"),
       callback:    cmd_toggle_mute,
     },
     {
       arg:         "-add",
-      help_arg:    "<location>",
-      help_string: "Add <location> to the incoming album",
+      help_arg:    TRS("<gml>"),
+      help_string: TRS("Add <gml> to the incoming album"),
       callback:    cmd_add,
     },
     {
       arg:         "-addplay",
-      help_arg:    "<location>",
-      help_string: "Add <location> to the incoming album and play it",
+      help_arg:    TRS("<gml>"),
+      help_string: TRS("Add <location> to the incoming album and play it"),
       callback:    cmd_addplay,
     },
     {
       arg:         "-open",
-      help_arg:    "<device>",
-      help_string: "Open album for <device>. Device must be a GML (e.g. dvd:///dev/hdd).",
+      help_arg:    TRS("<device>"),
+      help_string: TRS("Open album for <device>. Device must be a GML (e.g. dvd:///dev/hdd)."),
       callback:    cmd_open,
     },
     {
       arg:         "-openplay",
-      help_arg:    "<device>",
-      help_string: "Open album for <device> and play first track. Device must be a GML (e.g. dvd:///dev/hdd).",
+      help_arg:    TRS("<device>"),
+      help_string: TRS("Open album for <device> and play first track. Device must be a GML (e.g. dvd:///dev/hdd)."),
       callback:    cmd_openplay,
     },
     {
       arg:         "-volume",
-      help_arg:    "<volume>",
-      help_string: "Set player volume. <volume> is in dB, 0.0 is max",
+      help_arg:    TRS("<volume>"),
+      help_string: TRS("Set player volume. <volume> is in dB, 0.0 is max"),
       callback:    cmd_volume,
     },
     {
       arg:         "-volume_rel",
-      help_arg:    "<diff>",
-      help_string: "In- or decrease player volume. <diff> is in dB",
+      help_arg:    TRS("<diff>"),
+      help_string: TRS("In- or decrease player volume. <diff> is in dB"),
       callback:    cmd_volume_rel,
     },
     {
       arg:         "-seek_rel",
-      help_arg:    "<diff>",
-      help_string: "Seek relative. <diff> is in seconds.",
+      help_arg:    TRS("<diff>"),
+      help_string: TRS("Seek relative. <diff> is in seconds."),
       callback:    cmd_seek_rel,
     },
     {
       arg:         "-chapter",
       help_arg:    "[num|+|-]>",
-      help_string: "Go to the specified chapter. Use '+' and '-' to go to the next or previous chapter respectively",
+      help_string: TRS("Go to the specified chapter. Use '+' and '-' to go to the next or previous chapter respectively"),
       callback:    cmd_chapter,
     },
     
@@ -400,11 +393,10 @@ int launch = 0;
 
 static void opt_host(void * data, int * argc, char *** argv, int arg)
   {
-  FILE * out = stderr;
   
   if(arg >= *argc)
     {
-    fprintf(out, "Option -host requires an argument\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Option -host requires an argument");
     exit(-1);
     }
   host = bg_strdup(host, (*argv)[arg]);
@@ -413,11 +405,10 @@ static void opt_host(void * data, int * argc, char *** argv, int arg)
 
 static void opt_port(void * data, int * argc, char *** argv, int arg)
   {
-  FILE * out = stderr;
   
   if(arg >= *argc)
     {
-    fprintf(out, "Option -port requires an argument\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Option -port requires an argument");
     exit(-1);
     }
   port = atoi((*argv)[arg]);
@@ -429,35 +420,30 @@ static void opt_launch(void * data, int * argc, char *** argv, int arg)
   launch = 1;
   }
 
-static void opt_help(void * data, int * argc, char *** argv, int arg);
 
 static bg_cmdline_arg_t global_options[] =
   {
     {
       arg:         "-host",
       help_arg:    "<hostname>",
-      help_string: "Host to connect to, default is localhost",
+      help_string: TRS("Host to connect to, default is localhost"),
       callback:    opt_host,
     },
     {
       arg:         "-port",
       help_arg:    "<port>",
-      help_string: "Port to connect to",
+      help_string: TRS("Port to connect to"),
       callback:    opt_port,
     },
     {
       arg:         "-launch",
-      help_string: "Launch new player if necessary",
+      help_string: TRS("Launch new player if necessary"),
       callback:    opt_launch,
-    },
-    {
-      arg:         "-help",
-      help_string: "Print this help message and exit",
-      callback:    opt_help,
     },
     { /* End of options */ }
   };
 
+#if 0
 static void opt_help(void * data, int * argc, char *** argv, int arg)
   {
   FILE * out = stderr;
@@ -469,7 +455,19 @@ static void opt_help(void * data, int * argc, char *** argv, int arg)
   bg_cmdline_print_help(commands);
   exit(0);
   }
+#endif
 
+bg_cmdline_app_data_t app_data =
+  {
+    package:  PACKAGE,
+    version:  VERSION,
+    name:     "gmerlin_remote",
+    synopsis: TRS("[options] command\n"),
+    help_before: TRS("Remote control command for the Gmerlin GUI Player\n"),
+    args: (bg_cmdline_arg_array_t[]) { { TRS("Global options"), global_options },
+                                       { TRS("Commands"),       commands       },
+                                       {  } },
+  };
 
 int main(int argc, char ** argv)
   {
@@ -479,14 +477,14 @@ int main(int argc, char ** argv)
   bg_remote_client_t * remote;
   
   if(argc < 2)
-    opt_help(NULL, &argc, &argv, 0);
-
+    bg_cmdline_print_help(&app_data, argv[0], 0);
+  
   port = PLAYER_REMOTE_PORT;
   env = getenv(PLAYER_REMOTE_ENV);
   if(env)
     port = atoi(env);
   
-  bg_cmdline_parse(global_options, &argc, &argv, NULL);
+  bg_cmdline_parse(global_options, &argc, &argv, NULL, &app_data);
 
   remote = bg_remote_client_create(PLAYER_REMOTE_ID, 0);
 
@@ -513,7 +511,7 @@ int main(int argc, char ** argv)
     else
       return -1;
     }
-  bg_cmdline_parse(commands, &argc, &argv, remote);
+  bg_cmdline_parse(commands, &argc, &argv, remote, &app_data);
 
   bg_remote_client_destroy(remote);
   return 0;

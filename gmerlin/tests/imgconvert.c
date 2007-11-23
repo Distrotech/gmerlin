@@ -52,7 +52,7 @@ static void opt_video_options(void * data, int * argc, char *** argv, int arg)
   bg_cmdline_remove_arg(argc, argv, arg);
   }
 
-static void opt_help(void * data, int * argc, char *** argv, int arg);
+//static void opt_help(void * data, int * argc, char *** argv, int arg);
 
 static bg_cmdline_arg_t global_options[] =
   {
@@ -63,14 +63,21 @@ static bg_cmdline_arg_t global_options[] =
       callback:    opt_video_options,
       parameters:  conversion_parameters,
     },
-    {
-      arg:         "-help",
-      help_string: "Print this help",
-      callback:    opt_help,
-    },
     { /* End of options */ }
   };
 
+bg_cmdline_app_data_t app_data =
+  {
+    package:  PACKAGE,
+    version:  VERSION,
+    name:     "imgconvert",
+    synopsis: TRS("[-co Options] input_image output_image\n"),
+    help_before: TRS("Image converter\n"),
+    args: (bg_cmdline_arg_array_t[]) { { TRS("Options"), global_options },
+                                       {  } },
+  };
+
+#if 0
 static void opt_help(void * data, int * argc, char *** argv, int arg)
   {
   fprintf(stderr, "Usage: %s [-co <options>] <input_image> <output_image>\n\n", (*argv)[0]);
@@ -80,6 +87,7 @@ static void opt_help(void * data, int * argc, char *** argv, int arg)
   //  bg_cmdline_print_help(commands);
   exit(0);
   }
+#endif
 
 int main(int argc, char ** argv)
   {
@@ -117,12 +125,12 @@ int main(int argc, char ** argv)
 
   /* Parse options */
 
-  bg_cmdline_parse(global_options, &argc, &argv, NULL);
+  bg_cmdline_parse(global_options, &argc, &argv, NULL, &app_data);
   
   files = bg_cmdline_get_locations_from_args(&argc, &argv);
 
   if(!files || !files[0] || !files[1] || files[2])
-    opt_help(NULL, &argc, &argv, 0);
+    bg_cmdline_print_help(&app_data, argv[0], 0);
   
   /* Create registries */
 

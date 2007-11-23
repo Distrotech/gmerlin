@@ -23,6 +23,7 @@
 #include <cmdline.h>
 #include <utils.h>
 #include <remote.h>
+#include <translation.h>
 
 #include <log.h>
 #define LOG_DOMAIN "gmerlin_transcoder_remote"
@@ -148,7 +149,6 @@ static void opt_launch(void * data, int * argc, char *** argv, int arg)
   launch = 1;
   }
 
-static void opt_help(void * data, int * argc, char *** argv, int arg);
 
 static bg_cmdline_arg_t global_options[] =
   {
@@ -169,24 +169,20 @@ static bg_cmdline_arg_t global_options[] =
       help_string: "Launch new transcoder if necessary",
       callback:    opt_launch,
     },
-    {
-      arg:         "-help",
-      help_string: "Print this help message and exit",
-      callback:    opt_help,
-    },
     { /* End of options */ }
   };
 
-static void opt_help(void * data, int * argc, char *** argv, int arg)
+bg_cmdline_app_data_t app_data =
   {
-  FILE * out = stderr;
-  fprintf(out, "Usage: %s [options] command\n\n", (*argv)[0]);
-  fprintf(out, "Options:\n\n");
-  bg_cmdline_print_help(global_options);
-  fprintf(out, "\ncommand is of the following:\n\n");
-  bg_cmdline_print_help(commands);
-  exit(0);
-  }
+    package:  PACKAGE,
+    version:  VERSION,
+    name:     "gmerlin_transcoder_remote",
+    synopsis: TRS("%s [options] command\n"),
+    help_before: TRS("Remote control command for the Gmerlin GUI transcoder\n"),
+    args: (bg_cmdline_arg_array_t[]) { { TRS("Global options"), global_options },
+                                       { TRS("Commands"),       commands       },
+                                       {  } },
+  };
 
 int main(int argc, char ** argv)
   {
@@ -196,15 +192,15 @@ int main(int argc, char ** argv)
   char * env;
   
   if(argc < 2)
-    opt_help(NULL, &argc, &argv, 0);
-
+    bg_cmdline_print_help(&app_data, argv[0], 0);
+  
   port = TRANSCODER_REMOTE_PORT;
   env = getenv(TRANSCODER_REMOTE_ENV);
   if(env)
     port = atoi(env);
 
   
-  bg_cmdline_parse(global_options, &argc, &argv, NULL);
+  bg_cmdline_parse(global_options, &argc, &argv, NULL, &app_data);
 
   remote = bg_remote_client_create(TRANSCODER_REMOTE_ID, 0);
 
@@ -231,7 +227,7 @@ int main(int argc, char ** argv)
     else
       return -1;
     }
-  bg_cmdline_parse(commands, &argc, &argv, remote);
+  bg_cmdline_parse(commands, &argc, &argv, remote, &app_data);
 
   bg_remote_client_destroy(remote);
   return 0;

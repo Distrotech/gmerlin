@@ -13,6 +13,7 @@
 #include <utils.h>
 #include <cmdline.h>
 #include <log.h>
+#include <translation.h>
 
 #ifdef INFO_WINDOW
 #include <gtk/gtk.h>
@@ -352,7 +353,7 @@ static void opt_v(void * data, int * argc, char *** _argv, int arg)
   }
 
 
-static void opt_help(void * data, int * argc, char *** argv, int arg);
+// static void opt_help(void * data, int * argc, char *** argv, int arg);
 
 
 static bg_cmdline_arg_t global_options[] =
@@ -425,11 +426,6 @@ static bg_cmdline_arg_t global_options[] =
       help_string: "<track_spec> can be a ranges mixed with comma separated tracks",
       callback:    opt_tracks,
     },
-    {
-      arg:         "-help",
-      help_string: "Print this help message and exit",
-      callback:    opt_help,
-    },
     { /* End of options */ }
   };
 
@@ -439,15 +435,6 @@ static void update_global_options()
   global_options[4].parameters = video_parameters;
   global_options[5].parameters = input_parameters;
   global_options[6].parameters = osd_parameters;
-  }
-
-static void opt_help(void * data, int * argc, char *** argv, int arg)
-  {
-  fprintf(stdout, "Usage: %s [options] gml...\n\n", (*argv)[0]);
-  fprintf(stdout, "gml is a gmerlin media location (e.g. filename or URL)\n");
-  fprintf(stdout, "Options:\n\n");
-  bg_cmdline_print_help(global_options);
-  exit(0);
   }
 
 static int set_track_from_spec()
@@ -832,6 +819,18 @@ static void info_close_callback(bg_gtk_info_window_t * info_window,
   }
 #endif
 
+bg_cmdline_app_data_t app_data =
+  {
+    package:  PACKAGE,
+    version:  VERSION,
+    name:     "gmerlin_player",
+    synopsis: TRS("[options] gml...\n"),
+    help_before: TRS("Commandline Multimedia player\n"),
+    args: (bg_cmdline_arg_array_t[]) { { TRS("Options"), global_options },
+                                       {  } },
+  };
+
+
 int main(int argc, char ** argv)
   {
   int i;
@@ -927,12 +926,12 @@ int main(int argc, char ** argv)
     
   /* Get commandline options */
 
-  bg_cmdline_parse(global_options, &argc, &argv, NULL);
+  bg_cmdline_parse(global_options, &argc, &argv, NULL, &app_data);
   gmls = bg_cmdline_get_locations_from_args(&argc, &argv);
 
   if(!gmls)
     {
-    fprintf(stderr, "No input files given");
+    fprintf(stderr, "No input files given\n");
     return 0;
     }
   
