@@ -474,7 +474,12 @@ bg_avdec_set_parameter(void * p, const char * name,
     }
   else if(!strcmp(name, "seek_subtitles"))
     {
-    bgav_options_set_seek_subtitles(avdec->opt, atoi(val->val_str));
+    if(!strcmp(val->val_str, "video"))
+      bgav_options_set_seek_subtitles(avdec->opt, 1);
+    else if(!strcmp(val->val_str, "always"))
+      bgav_options_set_seek_subtitles(avdec->opt, 2);
+    else
+      bgav_options_set_seek_subtitles(avdec->opt, 0);
     }
   else if(!strcmp(name, "video_pp_level"))
     {
