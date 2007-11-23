@@ -5,6 +5,8 @@ Desktop_DATA = gmerlin-player.desktop
 
 bin_PROGRAMS = gmerlin gmerlin_remote
 
+dist_man_MANS = gmerlin_remote.1
+
 bin_SCRIPTS = gmerlin_launcher
 
 gmerlin_SOURCES = \

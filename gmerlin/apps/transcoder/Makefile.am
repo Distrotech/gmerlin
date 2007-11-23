@@ -5,6 +5,8 @@ Desktop_DATA = gmerlin-transcoder.desktop
 
 bin_PROGRAMS = gmerlin_transcoder gmerlin_transcoder_remote
 
+dist_man_MANS = gmerlin_transcoder.1 gmerlin_transcoder_remote.1
+
 gmerlin_transcoder_SOURCES = \
 encoderwidget.c \
 ppwidget.c \

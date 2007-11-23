@@ -1,0 +1,77 @@
+.TH gmerlin_transcoder_remote 1 "November 2007" Gmerlin "User Manuals"
+.SH NAME
+gmerlin_transcoder_remote
+.SH SYNOPSIS
+.B gmerlin_transcoder_remote 
+.I %s
+.I [options]
+.I command
+
+.SH DESCRIPTION
+Remote control command for the Gmerlin GUI transcoder
+
+Global options
+
+.B -host
+.I <hostname>
+
+.RS 2
+Host to connect to, default is localhost
+.RE
+
+.B -port
+.I <port>
+
+.RS 2
+Port to connect to
+.RE
+
+.B -launch
+
+.RS 2
+Launch new transcoder if necessary
+.RE
+
+Commands
+
+.B -addalbum
+.I <album_file>
+
+.RS 2
+Add album to track list
+.RE
+
+.B -add
+.I <location>
+
+.RS 2
+Add <location> to the track list
+.RE
+
+.SH GENERIC OPTIONS
+The following generic options are available for all gmerlin applications
+
+.B -help
+
+.RS 2
+Print this help message and exit
+.RE
+
+.B -help_man
+
+.RS 2
+Print this help message as a manual page and exit
+.RE
+
+.B -help_texi
+
+.RS 2
+Print this help message in texinfo format and exit
+.RE
+
+.B -version
+
+.RS 2
+Print version info and exit
+.RE
+

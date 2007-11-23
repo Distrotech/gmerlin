@@ -1,0 +1,156 @@
+.TH gmerlin_remote 1 "November 2007" Gmerlin "User Manuals"
+.SH NAME
+gmerlin_remote
+.SH SYNOPSIS
+.B gmerlin_remote 
+.I [options]
+.I command
+
+.SH DESCRIPTION
+Remote control command for the Gmerlin GUI Player
+
+Global options
+
+.B -host
+.I <hostname>
+
+.RS 2
+Host to connect to, default is localhost
+.RE
+
+.B -port
+.I <port>
+
+.RS 2
+Port to connect to
+.RE
+
+.B -launch
+
+.RS 2
+Launch new player if necessary
+.RE
+
+Commands
+
+.B -play
+
+.RS 2
+Play current track
+.RE
+
+.B -next
+
+.RS 2
+Switch to next track
+.RE
+
+.B -prev
+
+.RS 2
+Switch to previous track
+.RE
+
+.B -stop
+
+.RS 2
+Stop playback
+.RE
+
+.B -pause
+
+.RS 2
+Pause playback
+.RE
+
+.B -mute
+
+.RS 2
+Toggle mute
+.RE
+
+.B -add
+.I <gml>
+
+.RS 2
+Add <gml> to the incoming album
+.RE
+
+.B -addplay
+.I <gml>
+
+.RS 2
+Add <location> to the incoming album and play it
+.RE
+
+.B -open
+.I <device>
+
+.RS 2
+Open album for <device>. Device must be a GML (e.g. dvd:///dev/hdd).
+.RE
+
+.B -openplay
+.I <device>
+
+.RS 2
+Open album for <device> and play first track. Device must be a GML (e.g.
+dvd:///dev/hdd).
+.RE
+
+.B -volume
+.I <volume>
+
+.RS 2
+Set player volume. <volume> is in dB, 0.0 is max
+.RE
+
+.B -volume_rel
+.I <diff>
+
+.RS 2
+In- or decrease player volume. <diff> is in dB
+.RE
+
+.B -seek_rel
+.I <diff>
+
+.RS 2
+Seek relative. <diff> is in seconds.
+.RE
+
+.B -chapter
+.I [num|+|-]>
+
+.RS 2
+Go to the specified chapter. Use '+' and '-' to go to the next or previous
+chapter respectively
+.RE
+
+.SH GENERIC OPTIONS
+The following generic options are available for all gmerlin applications
+
+.B -help
+
+.RS 2
+Print this help message and exit
+.RE
+
+.B -help_man
+
+.RS 2
+Print this help message as a manual page and exit
+.RE
+
+.B -help_texi
+
+.RS 2
+Print this help message in texinfo format and exit
+.RE
+
+.B -version
+
+.RS 2
+Print version info and exit
+.RE
+
