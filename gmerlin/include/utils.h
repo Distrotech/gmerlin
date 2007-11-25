@@ -165,6 +165,14 @@ char * bg_strcat(char * old_string, const char * tail);
 
 char * bg_strncat(char * old_string, const char * start, const char * end);
 
+/** \brief Convert an UTF-8 string to uppercase
+ *  \param str String
+ *  \returns A newly allocated string.
+ */
+
+char * bg_toupper(const char * str);
+
+
 /** \brief Check if a string looks like an URL.
  *  \param str A string
  *  \returns 1 if the string looks like an URL, 0 else

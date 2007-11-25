@@ -1,5 +1,5 @@
 #!/bin/sh
-apps/cmdlineplayer/gmerlin_play -help_man > apps/cmdlineplayer/gmerlin_play.1
-apps/player/gmerlin_remote -help_man > apps/player/gmerlin_remote.1
-apps/transcoder/gmerlin_transcoder -help_man > apps/transcoder/gmerlin_transcoder.1
-apps/transcoder/gmerlin_transcoder_remote -help_man > apps/transcoder/gmerlin_transcoder_remote.1
+apps/cmdlineplayer/gmerlin_play -help-man > apps/cmdlineplayer/gmerlin_play.1
+apps/player/gmerlin_remote -help-man > apps/player/gmerlin_remote.1
+apps/transcoder/gmerlin_transcoder -help-man > apps/transcoder/gmerlin_transcoder.1
+apps/transcoder/gmerlin_transcoder_remote -help-man > apps/transcoder/gmerlin_transcoder_remote.1

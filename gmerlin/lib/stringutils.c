@@ -28,12 +28,14 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <language_table.h>
+#include <wctype.h>
 
 /* stat stuff */
 #include <sys/types.h>
 #include <sys/stat.h>
 
 #include <unistd.h>
+#include <charset.h>
 
 #include <utils.h>
 #include <log.h>
@@ -472,4 +474,45 @@ int bg_string_match(const char * key,
       }
     }
   return 0;
+  }
+
+/* Used mostly for generating manual pages,
+   it's horribly inefficient */
+
+char * bg_toupper(const char * str)
+  {
+  char * tmp_string_1;
+  char * tmp_string_2;
+  char * ret;
+  int len;
+  wchar_t * pos_1, * pos_2;
+  
+  bg_charset_converter_t * cnv1;
+  bg_charset_converter_t * cnv2;
+  
+  cnv1 = bg_charset_converter_create("UTF-8", "WCHAR_T");
+  cnv2 = bg_charset_converter_create("WCHAR_T", "UTF-8");
+  
+  tmp_string_1 = bg_convert_string(cnv1, str, -1, &len);
+
+  tmp_string_2 = malloc(len + 4);
+
+  pos_1 = (wchar_t*)tmp_string_1;
+  pos_2 = (wchar_t*)tmp_string_2;
+
+  while(*pos_1)
+    {
+    *pos_2 = towupper(*pos_1);
+    pos_1++;
+    pos_2++;
+    }
+  *pos_2 = 0;
+
+  ret = bg_convert_string(cnv2, tmp_string_2, len, (int*)0);
+
+  free(tmp_string_1);
+  free(tmp_string_2);
+  bg_charset_converter_destroy(cnv1);
+  bg_charset_converter_destroy(cnv2);
+  return ret;
   }

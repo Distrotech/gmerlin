@@ -1,4 +1,4 @@
-.TH gmerlin_remote 1 "November 2007" Gmerlin "User Manuals"
+.TH GMERLIN_REMOTE 1 "November 2007" Gmerlin "User Manuals"
 .SH NAME
 gmerlin_remote
 .SH SYNOPSIS
@@ -9,7 +9,7 @@ gmerlin_remote
 .SH DESCRIPTION
 Remote control command for the Gmerlin GUI Player
 
-Global options
+.SH GLOBAL OPTIONS
 
 .B -host
 .I <hostname>
@@ -31,7 +31,7 @@ Port to connect to
 Launch new player if necessary
 .RE
 
-Commands
+.SH COMMANDS
 
 .B -play
 
@@ -105,14 +105,14 @@ dvd:///dev/hdd).
 Set player volume. <volume> is in dB, 0.0 is max
 .RE
 
-.B -volume_rel
+.B -volume-rel
 .I <diff>
 
 .RS 2
 In- or decrease player volume. <diff> is in dB
 .RE
 
-.B -seek_rel
+.B -seek-rel
 .I <diff>
 
 .RS 2
@@ -120,7 +120,7 @@ Seek relative. <diff> is in seconds.
 .RE
 
 .B -chapter
-.I [num|+|-]>
+.I [num|+|-]
 
 .RS 2
 Go to the specified chapter. Use '+' and '-' to go to the next or previous
@@ -136,13 +136,13 @@ The following generic options are available for all gmerlin applications
 Print this help message and exit
 .RE
 
-.B -help_man
+.B -help-man
 
 .RS 2
 Print this help message as a manual page and exit
 .RE
 
-.B -help_texi
+.B -help-texi
 
 .RS 2
 Print this help message in texinfo format and exit

@@ -1,4 +1,4 @@
-.TH gmerlin_player 1 "November 2007" Gmerlin "User Manuals"
+.TH GMERLIN_PLAYER 1 "November 2007" Gmerlin "User Manuals"
 .SH NAME
 gmerlin_player
 .SH SYNOPSIS
@@ -9,7 +9,7 @@ gmerlin_player
 .SH DESCRIPTION
 Commandline Multimedia player
 
-Options
+.SH OPTIONS
 
 .B -oa
 .I <audio_output_options>
@@ -22,12 +22,13 @@ Set audio output options
 .P
 Supported options: oa_alsa oa_oss oa_esd
 .P
-Default: oa_alsa"
+Default: oa_alsa
 .P
 Audio output plugin
 .P
-Suboptions for p=oa_alsa
+.B Suboptions for p=oa_alsa
 
+.P
 .RS 2
 .BR card "=<string>"
 .P
@@ -43,24 +44,28 @@ Enable 4.0 Surround
 .P
 Use the surround 4.0 (aka quadrophonic) device
 
+.P
 .BR surround41 "=[1|0] (default: 1)"
 .P
 Enable 4.1 Surround
 .P
 Use the surround 4.1 device
 
+.P
 .BR surround50 "=[1|0] (default: 1)"
 .P
 Enable 5.0 Surround
 .P
 Use the surround 5.0 device
 
+.P
 .BR surround51 "=[1|0] (default: 1)"
 .P
 Enable 5.1 Surround
 .P
 Use the surround 5.1 device
 
+.P
 .BR user_device "=<string>"
 .P
 User device
@@ -68,6 +73,7 @@ User device
 Enter a custom device to use for playback. Leave empty to use the
 settings above
 
+.P
 .BR buffer_time "=<number> (10..10000, default: 1000)"
 .P
 Buffer time
@@ -76,9 +82,11 @@ Set the buffer time (in milliseconds). Larger values improve playback
 performance on slow systems under load. Smaller values decrease the
 latency of the volume control.
 
+.P
 .RE
-Suboptions for p=oa_oss
+.B Suboptions for p=oa_oss
 
+.P
 .RS 2
 .BR multichannel_mode "=<string>"
 .P
@@ -109,8 +117,9 @@ Use Center/LFE Device
 Center/LFE Device
 .P
 .RE
-Suboptions for p=oa_esd
+.B Suboptions for p=oa_esd
 
+.P
 .RS 2
 .BR esd_host "=<string>"
 .P
@@ -130,12 +139,13 @@ Set video output options
 .P
 Supported options: ov_x11
 .P
-Default: ov_x11"
+Default: ov_x11
 .P
 Video output plugin
 .P
-Suboptions for p=ov_x11
+.B Suboptions for p=ov_x11
 
+.P
 .RS 2
 .BR auto_resize "=[1|0] (default: 1)"
 .P
@@ -156,6 +166,7 @@ Force hardware scaling
 Use hardware scaling even if it involves more CPU intensive pixelformat
 conversions
 
+.P
 .BR scale_mode "=<string>"
 .P
 Supported strings: auto nearest bilinear quadratic cubic_bspline cubic_mitchell cubic_catmull sinc_lanczos
@@ -167,18 +178,21 @@ Scale mode
 Choose scaling method. Auto means to choose based on the conversion
 quality. Nearest is fastest, Sinc with Lanczos window is slowest
 
+.P
 .BR scale_order "=<number> (4..1000, default: 4)"
 .P
 Scale order
 .P
 Order for sinc scaling
 
+.P
 .BR scale_quality "=<number> (1..5, default: 2)"
 .P
 Scale quality
 .P
 Scale quality
 
+.P
 .RE
 .BR w "=<string>"
 .P
@@ -197,12 +211,13 @@ Set and configure input plugin
 .P
 Supported options: i_avdec i_cdaudio i_dvd i_vcd i_singlepic_stills i_lqt i_singlepic i_mikmod
 .P
-Default: i_avdec"
+Default: i_avdec
 .P
 input plugin
 .P
-Suboptions for p=i_avdec
+.B Suboptions for p=i_avdec
 
+.P
 .RS 2
 .BR audio_dynrange "=[1|0] (default: 1)"
 .P
@@ -211,6 +226,7 @@ Dynamic range control
 Enable dynamic range control for codecs, which support this (currently
 only A52 and DTS).
 
+.P
 .BR pp "=<number> (0..6, default: 1)"
 .P
 Postprocessing level
@@ -218,6 +234,7 @@ Postprocessing level
 Set postprocessing (to remove compression artifacts). 0 means no
 postprocessing, 6 means maximum postprocessing.
 
+.P
 .BR connect_timeout "=<number> (0..2000000, default: 5000)"
 .P
 Connect timeout (milliseconds)
@@ -234,7 +251,7 @@ Network buffer size (kB)
 .P
 Supported strings: 14400 19200 28800 33600 34400 57600 115200 262200 393200 524300 1500000 10500000
 .P
-Default: 524.3 Kbps (Cable/DSL)
+Default: 524300
 .P
 Bandwidth
 .P
@@ -276,9 +293,9 @@ Anonymous ftp password
 .P
 .BR seek_subtitles "=<string>"
 .P
-Supported strings: 0 1 2
+Supported strings: never video always
 .P
-Default: 0
+Default: never
 .P
 Seek external subtitles
 .P
@@ -288,7 +305,10 @@ files are e.g. movie_english.srt, movie_german.srt. The rule is, that
 the first part of the filename of the subtitle file must be equal to the
 movie filename up to the extension. Furthermore, the subtitle filename
 must have an extension supported by any of the subtitle readers.
+Subtitle seeking can be disabled, enabled for video files orenabled for
+all files.
 
+.P
 .BR default_subtitle_encoding "=<string> (Default: LATIN1)"
 .P
 Default subtitle encoding
@@ -297,11 +317,13 @@ This sets the default encoding for text subtitles,when the original
 encoding is unknown. It must be a character set namerecognized by iconv.
 Type 'iconv -l' at the commandline for a list of supported encodings.
 
+.P
 .RE
-Suboptions for p=i_cdaudio
+.B Suboptions for p=i_cdaudio
 
+.P
 .RS 2
-.BR trackname_template "=<string> (Default: %p - %t)"
+.BR trackname_template "=<string> (Default: 0x2 - %)"
 .P
 Trackname template
 .P
@@ -314,12 +336,14 @@ Template for track name generation from metadata
 %y:    Year
 %c:    Comment
 
+.P
 .BR use_cdtext "=[1|0] (default: 1)"
 .P
 Use CD-Text
 .P
 Try to get CD metadata from CD-Text
 
+.P
 .BR use_local "=[1|0] (default: 1)"
 .P
 Use locally saved metadata
@@ -329,6 +353,7 @@ $HOME/.gmerlin/cdaudio_metadata. If you got wrong metadata for a CD,
 disabling this option will retrieve the metadata again and overwrite the
 saved data.
 
+.P
 .BR use_musicbrainz "=[1|0] (default: 1)"
 .P
 Use Musicbrainz
@@ -347,12 +372,14 @@ Proxy
 .P
 Proxy server (leave empty for direct connection)
 
+.P
 .BR musicbrainz_proxy_port "=<number> (1..65535, default: 80)"
 .P
 Proxy Port
 .P
 Proxy port
 
+.P
 .BR use_cddb "=[1|0] (default: 1)"
 .P
 Use Cddb
@@ -375,12 +402,14 @@ Proxy
 .P
 Proxy server (leave empty for direct connection)
 
+.P
 .BR cddb_proxy_port "=<number> (1..65535, default: 80)"
 .P
 Proxy Port
 .P
 Proxy port
 
+.P
 .BR cddb_proxy_user "=<string>"
 .P
 Proxy username
@@ -388,18 +417,21 @@ Proxy username
 User name for proxy (leave empty for poxies, which don't require
 authentication)
 
+.P
 .BR cddb_proxy_pass "=<string>"
 .P
 Proxy password
 .P
 Password for proxy
 
+.P
 .BR cddb_timeout "=<number> (0..1000, default: 10)"
 .P
 Timeout
 .P
 Timeout (in seconds) for connections to the CDDB server
 
+.P
 .BR cdparanoia_speed "=<string>"
 .P
 Supported strings: Auto 4 8 16 32
@@ -414,12 +446,14 @@ Maximum retries
 .P
 Maximum number of retries, 0 = infinite
 
+.P
 .BR cdparanoia_disable_paranoia "=[1|0] (default: 0)"
 .P
 Disable paranoia
 .P
 Disable all data verification and correction features.
 
+.P
 .BR cdparanoia_disable_extra_paranoia "=[1|0] (default: 0)"
 .P
 Disable extra paranoia
@@ -428,9 +462,11 @@ Disables intra-read data verification; only overlap checking atread
 boundaries is performed. It can wedge if errors  occur  in the attempted
 overlap area. Not recommended.
 
+.P
 .RE
-Suboptions for p=i_dvd
+.B Suboptions for p=i_dvd
 
+.P
 .RS 2
 .BR dvd_chapters_as_tracks "=[1|0] (default: 1)"
 .P
@@ -443,9 +479,11 @@ Dynamic range control
 Enable dynamic range control for codecs, which support this (currently
 only A52 and DTS).
 
+.P
 .RE
-Suboptions for p=i_singlepic_stills
+.B Suboptions for p=i_singlepic_stills
 
+.P
 .RS 2
 .BR display_time "={[[HH:]MM:]SS} (default: 0:00)"
 .P
@@ -454,9 +492,11 @@ Display time
 .P
 Time to pass until the next track will be selected. 0 means infinite.
 
+.P
 .RE
-Suboptions for p=i_lqt
+.B Suboptions for p=i_lqt
 
+.P
 .RS 2
 .BR ac "={option[{suboptions}][:option[{suboptions}]...]}"
 .P
@@ -468,6 +508,7 @@ Audio Codecs
 .P
 Sort and configure audio codecs
 
+.P
 .BR vc "={option[{suboptions}][:option[{suboptions}]...]}"
 .P
 Supported options: rtjpeg raw v308 v408 v410 yuv2 yuv4 yv12 2vuy v210 
@@ -483,160 +524,181 @@ Video Codecs
 .P
 Sort and configure video codecs
 
-Suboptions for ffmpeg_mpg1
+.P
+.B Suboptions for ffmpeg_mpg1
 
+.P
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
 Grayscale mode
 .P
 .RE
-Suboptions for ffmpeg_mpg4
+.B Suboptions for ffmpeg_mpg4
 
+.P
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
 Grayscale mode
 .P
 .RE
-Suboptions for ffmpeg_msmpeg4v1
+.B Suboptions for ffmpeg_msmpeg4v1
 
+.P
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
 Grayscale mode
 .P
 .RE
-Suboptions for ffmpeg_msmpeg4v2
+.B Suboptions for ffmpeg_msmpeg4v2
 
+.P
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
 Grayscale mode
 .P
 .RE
-Suboptions for ffmpeg_msmpeg4v3
+.B Suboptions for ffmpeg_msmpeg4v3
 
+.P
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
 Grayscale mode
 .P
 .RE
-Suboptions for ffmpeg_h263
+.B Suboptions for ffmpeg_h263
 
+.P
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
 Grayscale mode
 .P
 .RE
-Suboptions for ffmpeg_h264
+.B Suboptions for ffmpeg_h264
 
+.P
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
 Grayscale mode
 .P
 .RE
-Suboptions for ffmpeg_i263
+.B Suboptions for ffmpeg_i263
 
+.P
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
 Grayscale mode
 .P
 .RE
-Suboptions for ffmpeg_svq1
+.B Suboptions for ffmpeg_svq1
 
+.P
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
 Grayscale mode
 .P
 .RE
-Suboptions for ffmpeg_svq3
+.B Suboptions for ffmpeg_svq3
 
+.P
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
 Grayscale mode
 .P
 .RE
-Suboptions for ffmpeg_mjpg
+.B Suboptions for ffmpeg_mjpg
 
+.P
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
 Grayscale mode
 .P
 .RE
-Suboptions for ffmpeg_indeo
+.B Suboptions for ffmpeg_indeo
 
+.P
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
 Grayscale mode
 .P
 .RE
-Suboptions for ffmpeg_cinepak
+.B Suboptions for ffmpeg_cinepak
 
+.P
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
 Grayscale mode
 .P
 .RE
-Suboptions for ffmpeg_cyuv
+.B Suboptions for ffmpeg_cyuv
 
+.P
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
 Grayscale mode
 .P
 .RE
-Suboptions for ffmpeg_dv_ntsc
+.B Suboptions for ffmpeg_dv_ntsc
 
+.P
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
 Grayscale mode
 .P
 .RE
-Suboptions for ffmpeg_dv_pal
+.B Suboptions for ffmpeg_dv_pal
 
+.P
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
 Grayscale mode
 .P
 .RE
-Suboptions for ffmpeg_dv_avi
+.B Suboptions for ffmpeg_dv_avi
 
+.P
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
 Grayscale mode
 .P
 .RE
-Suboptions for ffmpeg_dv50_pal
+.B Suboptions for ffmpeg_dv50_pal
 
+.P
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
 Grayscale mode
 .P
 .RE
-Suboptions for ffmpeg_dv50_ntsc
+.B Suboptions for ffmpeg_dv50_ntsc
 
+.P
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
 Grayscale mode
 .P
 .RE
-Suboptions for ffmpeg_ffvhuff
+.B Suboptions for ffmpeg_ffvhuff
 
+.P
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
@@ -644,8 +706,9 @@ Grayscale mode
 .P
 .RE
 .RE
-Suboptions for p=i_singlepic
+.B Suboptions for p=i_singlepic
 
+.P
 .RS 2
 .BR timescale "=<number> (1..100000, default: 25)"
 .P
@@ -656,8 +719,9 @@ Timescale
 Frame duration
 .P
 .RE
-Suboptions for p=i_mikmod
+.B Suboptions for p=i_mikmod
 
+.P
 .RS 2
 .BR output "=<string>"
 .P
@@ -704,6 +768,7 @@ Force floating point
 Force floating point processing. This will inprove the quality but might
 slow things down.
 
+.P
 .BR q "=<number> (1..5, default: 2)"
 .P
 Conversion Quality
@@ -711,6 +776,7 @@ Conversion Quality
 Set the conversion quality for format conversions. Lower quality means more
 speed. Values above 3 enable slow high quality calculations.
 
+.P
 .BR dither_mode "=<string>"
 .P
 Supported strings: auto none rect tri shaped
@@ -722,6 +788,7 @@ Dither mode
 Dither mode. Auto means to use the quality level. Subsequent options are
 ordered by increasing quality (i.e. decreasing speed).
 
+.P
 .BR fixed_samplerate "=[1|0] (default: 0)"
 .P
 Fixed samplerate
@@ -729,12 +796,14 @@ Fixed samplerate
 If disabled, the output samplerate is taken from the source. If enabled, the
 samplerate you specify below us used.
 
+.P
 .BR samplerate "=<number> (8000..192000, default: 44100)"
 .P
 Samplerate
 .P
 Fixed output samplerate
 
+.P
 .BR resample_mode "=<string>"
 .P
 Supported strings: auto linear zoh sinc_fast sinc_medium sinc_best
@@ -746,6 +815,7 @@ Resample mode
 Resample mode. Auto means to use the quality level. Subsequent options are
 ordered by increasing quality (i.e. decreasing speed).
 
+.P
 .BR fixed_channel_setup "=[1|0] (default: 0)"
 .P
 Fixed channel setup
@@ -753,6 +823,7 @@ Fixed channel setup
 If disabled, the output channel configuration is taken from the source. If
 enabled, the setup you specify below us used.
 
+.P
 .BR num_front_channels "=<number> (1..5, default: 2)"
 .P
 Front channels
@@ -775,6 +846,7 @@ Front to rear mode
 .P
 Mix mode when the output format has rear channels, but the source doesn't.
 
+.P
 .BR stereo_to_mono "=<string>"
 .P
 Supported strings: left right mix
@@ -785,6 +857,7 @@ Stereo to mono mode
 .P
 Mix mode when downmixing Stereo to Mono.
 
+.P
 .RE
 
 .B -vid
@@ -801,6 +874,7 @@ Conversion Quality
 Set the conversion quality for format conversions. Lower quality means more
 speed. Values above 3 enable slow high quality calculations.
 
+.P
 .BR alpha_mode "=<string>"
 .P
 Supported strings: ignore blend_color
@@ -813,6 +887,7 @@ This option is used if the source has an alpha (=transparency) channel, but
 the output supports no transparency. Either, the transparency is ignored, or
 the background color you specify below is blended in.
 
+.P
 .BR background_color "=<r>,<g>,<b> (default: 0.000,0.000,0.000)"
 .P
 <r>, <g> and <b> are in the range 0.0..1.0
@@ -821,6 +896,7 @@ Background color
 .P
 Background color to use, when alpha mode above is "Blend background color".
 
+.P
 .BR sm "=[1|0] (default: 0)"
 .P
 Resample chroma
@@ -828,12 +904,14 @@ Resample chroma
 Always perform chroma resampling if chroma subsampling factors or chroma
 placements are different. Usually, this is only done for qualities above 3.
 
+.P
 .BR still_framerate "=<number> (1.00..100.00, default: 10.00)"
 .P
 Still image framerate
 .P
 Set framerate width which still images will be redisplayed periodically
 
+.P
 .RE
 
 .B -inopt
@@ -851,6 +929,7 @@ Use input plugins in bypass mode if they support it (Currently only the
 audio CD player). This dramatically decreases CPU usage but doesn't work on
 all hardware setups.
 
+.P
 .BR still_framerate "=<number> (0..100, default: 10)"
 .P
 Still image repitition rate
@@ -858,6 +937,7 @@ Still image repitition rate
 When showing still images, gmerlin repeats them periodically to make
 realtime filter tweaking work.
 
+.P
 .RE
 
 .B -osd
@@ -878,6 +958,7 @@ Size
 Specify fontsize for OSD. The value you enter, is for an image width of 640.
 For other widths, the value will be scaled
 
+.P
 .BR color "=<r>,<g>,<b>,<a> (default: 1.000,1.000,1.000,1.000)"
 .P
 <r>, <g>, <b> and <a> are in the range 0.0..1.0
@@ -916,24 +997,28 @@ Left border
 .P
 Distance from the left text border to the image border
 
+.P
 .BR border_right "=<number> (0..65535, default: 10)"
 .P
 Left border
 .P
 Distance from the right text border to the image border
 
+.P
 .BR border_top "=<number> (0..65535, default: 10)"
 .P
 Top border
 .P
 Distance from the top text border to the image border
 
+.P
 .BR border_bottom "=<number> (0..65535, default: 10)"
 .P
 Bottom border
 .P
 Distance from the bottom text border to the image border
 
+.P
 .BR duration "=<number> (0..10000, default: 2000)"
 .P
 Duration (milliseconds)
@@ -976,13 +1061,13 @@ The following generic options are available for all gmerlin applications
 Print this help message and exit
 .RE
 
-.B -help_man
+.B -help-man
 
 .RS 2
 Print this help message as a manual page and exit
 .RE
 
-.B -help_texi
+.B -help-texi
 
 .RS 2
 Print this help message in texinfo format and exit

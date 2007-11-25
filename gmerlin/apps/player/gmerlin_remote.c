@@ -366,20 +366,20 @@ bg_cmdline_arg_t commands[] =
       callback:    cmd_volume,
     },
     {
-      arg:         "-volume_rel",
+      arg:         "-volume-rel",
       help_arg:    TRS("<diff>"),
       help_string: TRS("In- or decrease player volume. <diff> is in dB"),
       callback:    cmd_volume_rel,
     },
     {
-      arg:         "-seek_rel",
+      arg:         "-seek-rel",
       help_arg:    TRS("<diff>"),
       help_string: TRS("Seek relative. <diff> is in seconds."),
       callback:    cmd_seek_rel,
     },
     {
       arg:         "-chapter",
-      help_arg:    "[num|+|-]>",
+      help_arg:    "[num|+|-]",
       help_string: TRS("Go to the specified chapter. Use '+' and '-' to go to the next or previous chapter respectively"),
       callback:    cmd_chapter,
     },
