@@ -286,7 +286,7 @@ configurations.
 Most applications have one or more config dialogs
 @ifhtml
 (
-@image{../icons/config_16}
+@image{../img/config_16}
 )
 @end ifhtml
 which let you change settings either for several subsystems of the
@@ -294,7 +294,7 @@ application or for plugins, depending on the context.
 To change the plugins themselves, there are separate plugin dialogs
 @ifhtml
 (
-@image{../icons/plugin_16}
+@image{../img/plugin_16}
 )
 @end ifhtml
 which let you select and configure plugins.
@@ -425,14 +425,17 @@ numeric types, or supported options for strings (if available).
 @chapter Applications
 
 @menu
-* Player::
-* Transcoder::
+* GUI Player::
+* Player remote control::
+* GUI Transcoder::
+* Transcoder remote control::
+* Commandline player::
 * Alsamixer::
 * Visualizer::
 @end menu
 
-@node Player
-@section Player
+@node GUI Player
+@section GUI Player
 Type @code{gmerlin} with optionally any number of files or URLs to start this.
 
 @menu
@@ -709,8 +712,33 @@ Toggle play/pause
 
 @end table
 
-@node Transcoder
-@section Transcoder
+@node Player remote control
+@section Player remote control
+
+@menu
+* General: gmerlin_remote.
+@end menu
+
+@node gmerlin_remote
+@subsection General
+
+@include gmerlin_remote.texi
+
+@node GUI Transcoder
+@section GUI Transcoder
+
+@menu
+* Commandline options: gmerlin_transcoder.
+* Usage: gmerlin_transcoder_usage.
+@end menu
+
+@node gmerlin_transcoder
+@subsection Commandline options
+
+@include gmerlin_transcoder.texi
+
+@node gmerlin_transcoder_usage
+@subsection Usage
 
 Type @code{gmerlin_transcoder} to start this. It has only one window,
 which contains the tasklist. A tasklist stores ALL information necessary
@@ -737,6 +765,33 @@ currently selected tracks. Some of them require just one track to be selected.
 For configuring tracks, first, set the encoding plugins with Selected->Change
 encoders. Then configure the encoders with Selected->Configure. The task list
 has also a right-click-menu with more stuff.
+
+@node Transcoder remote control
+@section Transcoder remote control
+
+@menu
+* General: gmerlin_transcoder_remote.
+@end menu
+
+@node gmerlin_transcoder_remote
+@subsection General
+
+@include gmerlin_transcoder_remote.texi
+
+
+@node Commandline player
+@section Commandline player
+
+@menu
+* General: gmerlin_play.
+@end menu
+
+@node gmerlin_play
+@subsection General
+
+@include gmerlin_play.texi
+
+
 
 @node Alsamixer
 @section Alsamixer

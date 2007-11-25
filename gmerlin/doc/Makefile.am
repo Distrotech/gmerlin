@@ -1,11 +1,13 @@
-EXTRA_DIST=Doxyfile mainpage.incl userguide apiref
+EXTRA_DIST=Doxyfile mainpage.incl userguide apiref img
 
 info_TEXINFOS=gmerlin.texi
 gmerlin_TEXINFOS= $(info_TEXINFOS) version.texi
 
 userguide: $(gmerlin_TEXINFOS)
+	ln -s `pwd`/img $(top_builddir)
 	$(MAKEINFO) $(AM_MAKEINFOFLAGS) $(MAKEINFOFLAGS) \
                 --html -o userguide gmerlin.texi
+	rm -f ../img
 
 apiref:
 	doxygen Doxyfile
@@ -19,3 +21,5 @@ install-data-local:
 	$(INSTALL_DATA) userguide/* $(DESTDIR)$(docdir)/userguide
 	test -z "$(DESTDIR)$(docdir)/apiref" || $(mkdir_p) "$(DESTDIR)$(docdir)/apiref"
 	$(INSTALL_DATA) apiref/* $(DESTDIR)$(docdir)/apiref
+	test -z "$(DESTDIR)$(docdir)/img" || $(mkdir_p) "$(DESTDIR)$(docdir)/img"
+	$(INSTALL_DATA) img/* $(DESTDIR)$(docdir)/img
