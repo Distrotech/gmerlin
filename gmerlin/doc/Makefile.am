@@ -30,4 +30,4 @@ install-data-local:
 	test -z "$(DESTDIR)$(docdir)/apiref" || $(mkdir_p) "$(DESTDIR)$(docdir)/apiref"
 	$(INSTALL_DATA) apiref/* $(DESTDIR)$(docdir)/apiref
 	test -z "$(DESTDIR)$(docdir)/img" || $(mkdir_p) "$(DESTDIR)$(docdir)/img"
-	$(INSTALL_DATA) img/* $(DESTDIR)$(docdir)/img
+	$(INSTALL_DATA) img/*.png $(DESTDIR)$(docdir)/img
