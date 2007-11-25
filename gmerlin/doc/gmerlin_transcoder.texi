@@ -1,0 +1,30 @@
+@table @b
+@item Synopsis
+@b{gmerlin_transcoder} @i{[options]
+}@*
+@item Description
+GTK multimedia transcoder
+@*
+@item Options
+@table @i
+@item -p <file>
+Load a profile from the given file@*
+
+@end table
+@item Generic options
+The following generic options are available for all gmerlin applications@*
+@table @i
+@item -help
+Print this help message and exit@*
+
+@item -help-man
+Print this help message as a manual page and exit@*
+
+@item -help-texi
+Print this help message in texinfo format and exit@*
+
+@item -version
+Print version info and exit@*
+
+@end table
+@end table

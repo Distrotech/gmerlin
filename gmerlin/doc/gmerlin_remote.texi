@@ -1,0 +1,81 @@
+@table @b
+@item Synopsis
+@b{gmerlin_remote} @i{[options] command
+}@*
+@item Description
+Remote control command for the Gmerlin GUI Player
+@*
+@item Global options
+@table @i
+@item -host <hostname>
+Host to connect to, default is localhost@*
+
+@item -port <port>
+Port to connect to@*
+
+@item -launch
+Launch new player if necessary@*
+
+@end table
+@item Commands
+@table @i
+@item -play
+Play current track@*
+
+@item -next
+Switch to next track@*
+
+@item -prev
+Switch to previous track@*
+
+@item -stop
+Stop playback@*
+
+@item -pause
+Pause playback@*
+
+@item -mute
+Toggle mute@*
+
+@item -add <gml>
+Add <gml> to the incoming album@*
+
+@item -addplay <gml>
+Add <location> to the incoming album and play it@*
+
+@item -open <device>
+Open album for <device>. Device must be a GML (e.g. dvd:///dev/hdd).@*
+
+@item -openplay <device>
+Open album for <device> and play first track. Device must be a GML (e.g. dvd:///dev/hdd).@*
+
+@item -volume <volume>
+Set player volume. <volume> is in dB, 0.0 is max@*
+
+@item -volume-rel <diff>
+In- or decrease player volume. <diff> is in dB@*
+
+@item -seek-rel <diff>
+Seek relative. <diff> is in seconds.@*
+
+@item -chapter [num|+|-]
+Go to the specified chapter. Use '+' and '-' to go to the next or previous chapter respectively@*
+
+@end table
+@item Generic options
+The following generic options are available for all gmerlin applications@*
+@table @i
+@item -help
+Print this help message and exit@*
+
+@item -help-man
+Print this help message as a manual page and exit@*
+
+@item -help-texi
+Print this help message in texinfo format and exit@*
+
+@item -version
+Print version info and exit@*
+
+@end table
+@end table

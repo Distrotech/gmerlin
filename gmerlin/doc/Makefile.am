@@ -1,4 +1,12 @@
-EXTRA_DIST=Doxyfile mainpage.incl userguide apiref img
+EXTRA_DIST=Doxyfile \
+mainpage.incl \
+userguide \
+apiref \
+img \
+gmerlin_remote.texi \
+gmerlin_transcoder.texi \
+gmerlin_transcoder_remote.texi \
+gmerlin_play.texi
 
 info_TEXINFOS=gmerlin.texi
 gmerlin_TEXINFOS= $(info_TEXINFOS) version.texi
