@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmerlin 0.3.6\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-11-20 20:26+0100\n"
+"POT-Creation-Date: 2007-11-26 20:18+0100\n"
 "PO-Revision-Date: 2007-11-18 18:33+0100\n"
 "Last-Translator: Burkhard Plaum <gmerlin@users.sourceforge.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -71,7 +71,7 @@ msgstr ""
 msgid "PWC General"
 msgstr ""
 
-#: plugins/v4l/pwc.c:73 include/bggavl.h:116 lib/visualize.c:154
+#: plugins/v4l/pwc.c:73 include/bggavl.h:116 lib/visualize.c:318
 msgid "Framerate"
 msgstr ""
 
@@ -318,7 +318,7 @@ msgstr ""
 msgid "Can't open File %s"
 msgstr ""
 
-#: plugins/image/ir_bmp.c:232 plugins/image/ir_pnm.c:121
+#: plugins/image/ir_bmp.c:232 plugins/image/ir_pnm.c:118
 msgid "Can't read File type"
 msgstr ""
 
@@ -360,82 +360,82 @@ msgstr ""
 msgid "Writer for TGA images"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:103
+#: plugins/image/ir_pnm.c:100
 #, c-format
 msgid "Can't open file %s"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:136
+#: plugins/image/ir_pnm.c:133
 msgid "File isn't a pnm"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:162
+#: plugins/image/ir_pnm.c:159
 #, c-format
 msgid "File must not be a pnm (%.1s%.1s%.1s)"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:179
+#: plugins/image/ir_pnm.c:176
 msgid "Can't read width"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:192
+#: plugins/image/ir_pnm.c:189
 msgid "Can't read height"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:205
+#: plugins/image/ir_pnm.c:202
 msgid "Can't read maxval"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:229
+#: plugins/image/ir_pnm.c:226
 msgid "Sorry PAM format not suported"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:235
+#: plugins/image/ir_pnm.c:232
 #, c-format
 msgid "File isn't a pnm (%.1s%.1s%.1s)"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:282
+#: plugins/image/ir_pnm.c:279
 msgid "PBMascii"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:316
+#: plugins/image/ir_pnm.c:313
 msgid "PBMbin"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:354
+#: plugins/image/ir_pnm.c:351
 msgid "PGMascii"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:383
+#: plugins/image/ir_pnm.c:380
 msgid "PGMascii_16"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:414
+#: plugins/image/ir_pnm.c:411
 msgid "PGMbin"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:439
+#: plugins/image/ir_pnm.c:436
 msgid "PGMbin_16"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:466
+#: plugins/image/ir_pnm.c:463
 msgid "PPMascii"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:509
+#: plugins/image/ir_pnm.c:506
 msgid "PPMascii_16"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:587
+#: plugins/image/ir_pnm.c:584
 msgid "PPMbin_16"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:628
+#: plugins/image/ir_pnm.c:625
 msgid "PNM reader"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:629
+#: plugins/image/ir_pnm.c:626
 msgid "Reader for PBM/PGM/PPM images"
 msgstr ""
 
@@ -1979,7 +1979,7 @@ msgid ""
 "supported are chapters and text subtitles"
 msgstr ""
 
-#: plugins/tiff/iw_tiff.c:92 tests/player1.c:536
+#: plugins/tiff/iw_tiff.c:92 apps/cmdlineplayer/gmerlin_play.c:523
 #, c-format
 msgid "Cannot open %s"
 msgstr ""
@@ -2578,7 +2578,7 @@ msgstr "Lauter"
 msgid "Decrease volume"
 msgstr "Leiser"
 
-#: apps/player/mainmenu.c:1095
+#: apps/player/mainmenu.c:1095 apps/player/gmerlin_remote.c:335
 msgid "Toggle mute"
 msgstr "Stummschalten"
 
@@ -2692,7 +2692,154 @@ msgstr ""
 msgid "Font"
 msgstr ""
 
-#: apps/player/gmerlin_remote.c:502
+#: apps/player/gmerlin_remote.c:122
+msgid "Option -addplay requires an argument\n"
+msgstr ""
+
+#: apps/player/gmerlin_remote.c:144
+msgid "Option -add requires an argument\n"
+msgstr ""
+
+#: apps/player/gmerlin_remote.c:167
+msgid "Option -openplay requires an argument\n"
+msgstr ""
+
+#: apps/player/gmerlin_remote.c:189
+msgid "Option -open requires an argument\n"
+msgstr ""
+
+#: apps/player/gmerlin_remote.c:212
+msgid "Option -volume requires an argument\n"
+msgstr ""
+
+#: apps/player/gmerlin_remote.c:235
+msgid "Option -volume_rel requires an argument\n"
+msgstr ""
+
+#: apps/player/gmerlin_remote.c:260
+msgid "Option -seek_rel requires an argument\n"
+msgstr ""
+
+#: apps/player/gmerlin_remote.c:285
+msgid "Option -chapter requires an argument\n"
+msgstr ""
+
+#: apps/player/gmerlin_remote.c:310
+msgid "Play current track"
+msgstr ""
+
+#: apps/player/gmerlin_remote.c:315
+#, fuzzy
+msgid "Switch to next track"
+msgstr "Nächster Track"
+
+#: apps/player/gmerlin_remote.c:320
+#, fuzzy
+msgid "Switch to previous track"
+msgstr "Vorheriger Track"
+
+#: apps/player/gmerlin_remote.c:325
+msgid "Stop playback"
+msgstr ""
+
+#: apps/player/gmerlin_remote.c:330
+msgid "Pause playback"
+msgstr ""
+
+#: apps/player/gmerlin_remote.c:340 apps/player/gmerlin_remote.c:346
+msgid "<gml>"
+msgstr ""
+
+#: apps/player/gmerlin_remote.c:341
+msgid "Add <gml> to the incoming album"
+msgstr ""
+
+#: apps/player/gmerlin_remote.c:347
+msgid "Add <location> to the incoming album and play it"
+msgstr ""
+
+#: apps/player/gmerlin_remote.c:352 apps/player/gmerlin_remote.c:358
+msgid "<device>"
+msgstr ""
+
+#: apps/player/gmerlin_remote.c:353
+msgid "Open album for <device>. Device must be a GML (e.g. dvd:///dev/hdd)."
+msgstr ""
+
+#: apps/player/gmerlin_remote.c:359
+msgid ""
+"Open album for <device> and play first track. Device must be a GML (e.g. "
+"dvd:///dev/hdd)."
+msgstr ""
+
+#: apps/player/gmerlin_remote.c:364
+msgid "<volume>"
+msgstr ""
+
+#: apps/player/gmerlin_remote.c:365
+msgid "Set player volume. <volume> is in dB, 0.0 is max"
+msgstr ""
+
+#: apps/player/gmerlin_remote.c:370 apps/player/gmerlin_remote.c:376
+msgid "<diff>"
+msgstr ""
+
+#: apps/player/gmerlin_remote.c:371
+msgid "In- or decrease player volume. <diff> is in dB"
+msgstr ""
+
+#: apps/player/gmerlin_remote.c:377
+msgid "Seek relative. <diff> is in seconds."
+msgstr ""
+
+#: apps/player/gmerlin_remote.c:383
+msgid ""
+"Go to the specified chapter. Use '+' and '-' to go to the next or previous "
+"chapter respectively"
+msgstr ""
+
+#: apps/player/gmerlin_remote.c:399
+msgid "Option -host requires an argument"
+msgstr ""
+
+#: apps/player/gmerlin_remote.c:411
+msgid "Option -port requires an argument"
+msgstr ""
+
+#: apps/player/gmerlin_remote.c:429
+msgid "Host to connect to, default is localhost"
+msgstr ""
+
+#: apps/player/gmerlin_remote.c:435
+msgid "Port to connect to"
+msgstr ""
+
+#: apps/player/gmerlin_remote.c:440
+msgid "Launch new player if necessary"
+msgstr ""
+
+#: apps/player/gmerlin_remote.c:465
+#: apps/transcoder/gmerlin_transcoder_remote.c:180
+msgid "[options] command\n"
+msgstr ""
+
+#: apps/player/gmerlin_remote.c:466
+msgid "Remote control command for the Gmerlin GUI Player\n"
+msgstr ""
+
+#: apps/player/gmerlin_remote.c:467
+#: apps/transcoder/gmerlin_transcoder_remote.c:182
+#, fuzzy
+msgid "Global options"
+msgstr "Untertiteloptionen"
+
+#: apps/player/gmerlin_remote.c:468
+#: apps/transcoder/gmerlin_transcoder_remote.c:183
+#, fuzzy
+msgid "Commands"
+msgstr "Befehle..."
+
+#: apps/player/gmerlin_remote.c:500
 msgid "Cannot launch gmerlin process"
 msgstr ""
 
@@ -2960,7 +3107,9 @@ msgstr ""
 msgid "File"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:979
+#: apps/transcoder/transcoder_window.c:979 apps/transcoder/main.c:48
+#: apps/cmdlineplayer/gmerlin_play.c:829 tests/imgconvert.c:76
+#: tests/cfgtest.c:568 tests/visualization.c:57
 msgid "Options"
 msgstr ""
 
@@ -3027,11 +3176,24 @@ msgstr ""
 msgid "Remote"
 msgstr ""
 
+#: apps/transcoder/main.c:46
+#, fuzzy
+msgid "[options]\n"
+msgstr "Optionen..."
+
+#: apps/transcoder/main.c:47
+msgid "GTK multimedia transcoder\n"
+msgstr ""
+
 #: apps/transcoder/ppwidget.c:188
 msgid "Postprocessing"
 msgstr ""
 
-#: apps/transcoder/gmerlin_transcoder_remote.c:220
+#: apps/transcoder/gmerlin_transcoder_remote.c:181
+msgid "Remote control command for the Gmerlin GUI transcoder\n"
+msgstr ""
+
+#: apps/transcoder/gmerlin_transcoder_remote.c:216
 msgid "Cannot launch transcoder process"
 msgstr ""
 
@@ -3276,6 +3438,105 @@ msgstr ""
 msgid "Launch help in a webwroswer"
 msgstr ""
 
+#: apps/cmdlineplayer/gmerlin_play.c:538
+#, c-format
+msgid "No such track %d"
+msgstr ""
+
+#: apps/cmdlineplayer/gmerlin_play.c:580
+#, c-format
+msgid "Got redirector %s (%d/%d)"
+msgstr ""
+
+#: apps/cmdlineplayer/gmerlin_play.c:682
+#, c-format
+msgid "Name: %s"
+msgstr ""
+
+#: apps/cmdlineplayer/gmerlin_play.c:689
+#, c-format
+msgid "Audio streams %d"
+msgstr ""
+
+#: apps/cmdlineplayer/gmerlin_play.c:694
+#, c-format
+msgid "Video streams %d"
+msgstr ""
+
+#: apps/cmdlineplayer/gmerlin_play.c:699
+#, c-format
+msgid "Subpicture streams %d"
+msgstr ""
+
+#: apps/cmdlineplayer/gmerlin_play.c:711
+#, c-format
+msgid ""
+"Playing audio stream %d\n"
+"Input format:\n"
+"%s\n"
+"Output format:\n"
+"%s"
+msgstr ""
+
+#: apps/cmdlineplayer/gmerlin_play.c:726
+#, c-format
+msgid ""
+"Playing video stream %d\n"
+"Input format:\n"
+"%s\n"
+"Output format:\n"
+"%s"
+msgstr ""
+
+#: apps/cmdlineplayer/gmerlin_play.c:733
+#, c-format
+msgid "Format: %s"
+msgstr ""
+
+#: apps/cmdlineplayer/gmerlin_play.c:737
+#, c-format
+msgid "Audio stream: %s"
+msgstr ""
+
+#: apps/cmdlineplayer/gmerlin_play.c:741
+#, c-format
+msgid "Video stream: %s"
+msgstr ""
+
+#: apps/cmdlineplayer/gmerlin_play.c:745
+#, c-format
+msgid "Subtitle stream: %s"
+msgstr ""
+
+#: apps/cmdlineplayer/gmerlin_play.c:750
+msgid "Player cleaned up"
+msgstr ""
+
+#: apps/cmdlineplayer/gmerlin_play.c:765
+msgid "Player now playing"
+msgstr ""
+
+#: apps/cmdlineplayer/gmerlin_play.c:769
+msgid "Player now seeking"
+msgstr ""
+
+#: apps/cmdlineplayer/gmerlin_play.c:772
+msgid "Player now changing"
+msgstr ""
+
+#: apps/cmdlineplayer/gmerlin_play.c:789
+msgid "Player finishing"
+msgstr ""
+
+#: apps/cmdlineplayer/gmerlin_play.c:827
+#, fuzzy
+msgid "[options] gml...\n"
+msgstr "Optionen..."
+
+#: apps/cmdlineplayer/gmerlin_play.c:828
+msgid "Commandline Multimedia player\n"
+msgstr ""
+
 #: apps/kbd/kbd_daemon.c:183
 #, c-format
 msgid "Grabbing key (Code: %d, modifiers: %s) failed"
@@ -3460,113 +3721,48 @@ msgstr ""
 msgid "Type %s not handled for %s"
 msgstr ""
 
-#: tests/player1.c:551
-#, c-format
-msgid "No such track %d"
+#: tests/imgconvert.c:74
+msgid "[-co options] input_image output_image\n"
 msgstr ""
 
-#: tests/player1.c:593
-#, c-format
-msgid "Got redirector %s (%d/%d)"
+#: tests/imgconvert.c:75
+msgid "Image converter\n"
 msgstr ""
 
-#: tests/player1.c:695
-#, c-format
-msgid "Name: %s"
+#: tests/cfgtest.c:566
+#, fuzzy
+msgid "[Options]"
+msgstr "Optionen..."
+
+#: tests/cfgtest.c:567
+msgid "Configure test\n"
 msgstr ""
 
-#: tests/player1.c:702
-#, c-format
-msgid "Audio streams %d"
+#: tests/visualization.c:55
+msgid "[<options>]\n"
 msgstr ""
 
-#: tests/player1.c:707
-#, c-format
-msgid "Video streams %d"
+#: tests/visualization.c:56
+msgid "Visualize test\n"
 msgstr ""
 
-#: tests/player1.c:712
-#, c-format
-msgid "Subpicture streams %d"
-msgstr ""
-
-#: tests/player1.c:724
-#, c-format
-msgid ""
-"Playing audio stream %d\n"
-"Input format:\n"
-"%s\n"
-"Output format:\n"
-"%s"
-msgstr ""
-
-#: tests/player1.c:739
-#, c-format
-msgid ""
-"Playing video stream %d\n"
-"Input format:\n"
-"%s\n"
-"Output format:\n"
-"%s"
-msgstr ""
-
-#: tests/player1.c:746
-#, c-format
-msgid "Format: %s"
-msgstr ""
-
-#: tests/player1.c:750
-#, c-format
-msgid "Audio stream: %s"
-msgstr ""
-
-#: tests/player1.c:754
-#, c-format
-msgid "Video stream: %s"
-msgstr ""
-
-#: tests/player1.c:758
-#, c-format
-msgid "Subtitle stream: %s"
-msgstr ""
-
-#: tests/player1.c:763
-msgid "Player cleaned up"
-msgstr ""
-
-#: tests/player1.c:778
-msgid "Player now playing"
-msgstr ""
-
-#: tests/player1.c:782
-msgid "Player now seeking"
-msgstr ""
-
-#: tests/player1.c:785
-msgid "Player now changing"
-msgstr ""
-
-#: tests/player1.c:802
-msgid "Player finishing"
-msgstr ""
-
-#: tests/visualization.c:108
+#: tests/visualization.c:107
 msgid "No input plugin defined"
 msgstr ""
 
-#: tests/visualization.c:115
+#: tests/visualization.c:114
 msgid "Input plugin could not be loaded"
 msgstr ""
 
-#: tests/visualization.c:125
+#: tests/visualization.c:124
 msgid "No output plugin defined"
 msgstr "Kein Ausgabeplugin definiert"
 
-#: tests/visualization.c:132
+#: tests/visualization.c:131
 msgid "Output plugin could not be loaded"
 msgstr ""
 
-#: tests/visualization.c:149
+#: tests/visualization.c:148
 msgid "Opening input plugin failed"
 msgstr ""
 
@@ -3701,49 +3897,49 @@ msgstr ""
 msgid "Opening %s with \"%s\" failed"
 msgstr ""
 
-#: lib/visualize_slave.c:584
+#: lib/visualize_slave.c:585
 msgid "Joined thread"
 msgstr ""
 
-#: lib/visualize_slave.c:603
+#: lib/visualize_slave.c:604
 msgid "Started thread"
 msgstr ""
 
-#: lib/visualize.c:81 lib/visualize.c:96 lib/visualize.c:545
+#: lib/visualize.c:82 lib/visualize.c:97 lib/visualize.c:528
 msgid "Visualization process crashed, restart to try again"
 msgstr ""
 
-#: lib/visualize.c:134
+#: lib/visualize.c:298
 msgid "Width"
 msgstr ""
 
-#: lib/visualize.c:140
+#: lib/visualize.c:304
 msgid ""
 "Desired image with, the visualization plugin might override this for no "
 "apparent reason"
 msgstr ""
 
-#: lib/visualize.c:144
+#: lib/visualize.c:308
 msgid "Height"
 msgstr ""
 
-#: lib/visualize.c:150
+#: lib/visualize.c:314
 msgid ""
 "Desired image height, the visualization plugin might override this for no "
 "apparent reason"
 msgstr ""
 
-#: lib/visualize.c:163
+#: lib/visualize.c:327
 msgid "Gain"
 msgstr ""
 
-#: lib/visualize.c:170
+#: lib/visualize.c:334
 msgid ""
 "Gain (in dB) to apply to the audio samples before it is sent to the "
 "visualization plugin"
 msgstr ""
 
-#: lib/visualize.c:241
+#: lib/visualize.c:353
 #, c-format
 msgid "Got visualization plugin %s"
 msgstr ""
@@ -4074,105 +4270,130 @@ msgstr ""
 msgid "Undefined"
 msgstr ""
 
-#: lib/cmdline.c:296
+#: lib/cmdline.c:216
+msgid "Copyright (C) 2001-2007 Members of the gmerlin project\n"
+msgstr ""
+
+#: lib/cmdline.c:217
 msgid ""
-"\n"
-"  Supported options:\n"
-"\n"
+"This is free software.  You may redistribute copies of it under the terms "
+"of\n"
+"the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\n"
+"There is NO WARRANTY, to the extent permitted by law.\n"
 msgstr ""
 
-#: lib/cmdline.c:329
+#: lib/cmdline.c:286
+msgid "Print this help message and exit"
+msgstr ""
+
+#: lib/cmdline.c:291
+msgid "Print this help message as a manual page and exit"
+msgstr ""
+
+#: lib/cmdline.c:296
+msgid "Print this help message in texinfo format and exit"
+msgstr ""
+
+#: lib/cmdline.c:301
+msgid "Print version info and exit"
+msgstr ""
+
+#: lib/cmdline.c:610
+#, fuzzy
+msgid ""
+"Supported options:\n"
+"\n"
+msgstr "Untertiteloptionen"
+
+#: lib/cmdline.c:689
 #, c-format
-msgid "[1|0] (default: %d)\n"
+msgid "[1|0] (default: %d)"
 msgstr ""
 
-#: lib/cmdline.c:333 lib/cmdline.c:343
+#: lib/cmdline.c:698 lib/cmdline.c:712
 msgid "<number> ("
 msgstr ""
 
-#: lib/cmdline.c:354
+#: lib/cmdline.c:704
 #, c-format
-msgid "default: %%.%df)\n"
+msgid "default: %d)"
 msgstr ""
 
-#: lib/cmdline.c:365
+#: lib/cmdline.c:723
+#, c-format
+msgid "default: %%.%df)"
+msgstr ""
+
+#: lib/cmdline.c:739 lib/cmdline.c:752 lib/cmdline.c:759
 msgid "<string>"
 msgstr ""
 
-#: lib/cmdline.c:367
+#: lib/cmdline.c:742
 #, c-format
-msgid " (Default: %s)\n"
+msgid " (Default: %s)"
 msgstr ""
 
-#: lib/cmdline.c:372 lib/cmdline.c:375
-msgid "<string>\n"
-msgstr ""
-
-#: lib/cmdline.c:381
+#: lib/cmdline.c:769
 msgid "Supported strings: "
 msgstr ""
 
-#: lib/cmdline.c:401 lib/cmdline.c:444
+#: lib/cmdline.c:791 lib/cmdline.c:866
 #, c-format
-msgid "Default: %s\n"
+msgid "Default: %s"
 msgstr ""
 
-#: lib/cmdline.c:404
+#: lib/cmdline.c:798
 #, c-format
-msgid "<r>,<g>,<b> (default: %.3f,%.3f,%.3f)\n"
+msgid "<r>,<g>,<b> (default: %.3f,%.3f,%.3f)"
 msgstr ""
 
-#: lib/cmdline.c:409
-msgid "  <r>, <g> and <b> are in the range 0.0..1.0\n"
+#: lib/cmdline.c:809
+msgid "<r>, <g> and <b> are in the range 0.0..1.0"
 msgstr ""
 
-#: lib/cmdline.c:412
+#: lib/cmdline.c:816
 #, c-format
-msgid "<r>,<g>,<b>,<a> (default: %.3f,%.3f,%.3f,%.3f)\n"
+msgid "<r>,<g>,<b>,<a> (default: %.3f,%.3f,%.3f,%.3f)"
 msgstr ""
 
-#: lib/cmdline.c:418
-msgid "  <r>, <g>, <b> and <a> are in the range 0.0..1.0\n"
+#: lib/cmdline.c:828
+msgid "<r>, <g>, <b> and <a> are in the range 0.0..1.0"
 msgstr ""
 
-#: lib/cmdline.c:421
-msgid "option[{suboptions}]\n"
+#: lib/cmdline.c:835
+msgid "option[{suboptions}]"
 msgstr ""
 
-#: lib/cmdline.c:425 lib/cmdline.c:452
+#: lib/cmdline.c:844 lib/cmdline.c:884
 msgid "Supported options: "
 msgstr ""
 
-#: lib/cmdline.c:448
-msgid "{option[{suboptions}][:option[{suboptions}]...]}\n"
+#: lib/cmdline.c:872
+msgid "{option[{suboptions}][:option[{suboptions}]...]}"
 msgstr ""
 
-#: lib/cmdline.c:472
+#: lib/cmdline.c:904
 msgid "{[[HH:]MM:]SS} ("
 msgstr ""
 
-#: lib/cmdline.c:482
+#: lib/cmdline.c:914
 #, c-format
-msgid "default: %s)\n"
+msgid "default: %s)"
 msgstr ""
 
-#: lib/cmdline.c:484
-msgid "  Seconds can be fractional (i.e. with decimal point)\n"
+#: lib/cmdline.c:922
+msgid "Seconds can be fractional (i.e. with decimal point)\n"
 msgstr ""
 
-#: lib/cmdline.c:510
+#: lib/cmdline.c:955 lib/cmdline.c:958
 #, c-format
-msgid ""
-"  Suboptions for %s\n"
-"\n"
+msgid "Suboptions for %s=%s"
 msgstr ""
 
-#: lib/cmdline.c:517 lib/cmdline.c:520
-#, c-format
-msgid ""
-"  Suboptions for %s=%s\n"
-"\n"
-msgstr ""
+#: lib/cmdline.c:963
+#, fuzzy, c-format
+msgid "Suboptions for %s"
+msgstr "Untertiteloptionen"
 
 #: lib/converters.c:302
 #, c-format
@@ -5117,7 +5338,7 @@ msgstr ""
 msgid "Chapter %d"
 msgstr ""
 
-#: lib/stringutils.c:167
+#: lib/stringutils.c:169
 #, c-format
 msgid "Cannot open file \"%s\" for writing"
 msgstr ""
@@ -5643,15 +5864,15 @@ msgid "Visit homepage"
 msgstr ""
 
 #: lib/gtk/aboutwindow.c:167
-msgid "Copyright © 2001-2006 Members of the gmerlin project"
+msgid "Copyright © 2001-2007 Members of the gmerlin project"
 msgstr ""
 
 #: lib/gtk/aboutwindow.c:171
 msgid ""
-"This program is free software; you can redistribute it and/or modify\n"
-"it under the terms of the GNU General Public License as published by\n"
-"the Free Software Foundation; either version 2 of the License, or\n"
-"(at your option) any later version."
+"This is free software.  You may redistribute copies of it under the terms "
+"of\n"
+"the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\n"
+"There is NO WARRANTY, to the extent permitted by law."
 msgstr ""
 
 #: lib/gtk/treewindow.c:174

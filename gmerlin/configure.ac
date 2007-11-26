@@ -4,7 +4,7 @@ AC_CONFIG_SRCDIR([include/player.h])
 
 AM_CONFIG_HEADER(include/config.h)
 
-AM_INIT_AUTOMAKE(gmerlin, 0.3.7pre2)
+AM_INIT_AUTOMAKE(gmerlin, 0.3.7pre3)
 
 BG_VERSION=$VERSION
 

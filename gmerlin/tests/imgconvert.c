@@ -70,24 +70,12 @@ bg_cmdline_app_data_t app_data =
   {
     package:  PACKAGE,
     version:  VERSION,
-    name:     "imgconvert",
-    synopsis: TRS("[-co Options] input_image output_image\n"),
+    name:     "gmerlin_imgconvert",
+    synopsis: TRS("[-co options] input_image output_image\n"),
     help_before: TRS("Image converter\n"),
     args: (bg_cmdline_arg_array_t[]) { { TRS("Options"), global_options },
                                        {  } },
   };
-
-#if 0
-static void opt_help(void * data, int * argc, char *** argv, int arg)
-  {
-  fprintf(stderr, "Usage: %s [-co <options>] <input_image> <output_image>\n\n", (*argv)[0]);
-  fprintf(stderr, "Options:\n\n");
-  bg_cmdline_print_help(global_options);
-  //  fprintf(stderr, "\ncommand is of the following:\n\n");
-  //  bg_cmdline_print_help(commands);
-  exit(0);
-  }
-#endif
 
 int main(int argc, char ** argv)
   {

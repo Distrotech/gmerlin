@@ -1,6 +1,6 @@
 @table @b
 @item Synopsis
-@b{gmerlin_transcoder_remote} @i{%s [options] command
+@b{gmerlin_transcoder_remote} @i{[options] command
 }@*
 @item Description
 Remote control command for the Gmerlin GUI transcoder

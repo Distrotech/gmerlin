@@ -715,14 +715,38 @@ Toggle play/pause
 @node Player remote control
 @section Player remote control
 
+@code{gmerlin_remote} is the command for remotely controlling the
+GUI player. It can be used as a helper application if webbrowsers
+or filenmanagers or for all kinds of remote control methods (including
+keyboard- or infrared-daemons), which can execute arbitrary shell
+commands.
+
 @menu
 * General: gmerlin_remote.
+* Examples: gmerlin_remote_examples.
 @end menu
 
 @node gmerlin_remote
 @subsection General
 
 @include gmerlin_remote.texi
+
+@node gmerlin_remote_examples
+@subsection Examples
+
+@table @code
+@item gmerlin_remote -play
+Play the current track
+@item gmerlin_remote -host remote.example.com -play
+Connect to @code{remote.example.com} and play the current track there
+@item gmerlin_remote -seek-rel -10.0
+Seek 10 seconds backwards
+@item gmerlin_remote -next
+Go to next track
+@item gmerlin_remote -chapter +
+Go to next chapter
+@end table
+
 
 @node GUI Transcoder
 @section GUI Transcoder
