@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-11-18 18:23+0100\n"
+"POT-Creation-Date: 2007-11-26 20:19+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -163,25 +163,26 @@ msgid ""
 "g. movie_english.srt, movie_german.srt. The rule is, that the first part of "
 "the filename of the subtitle file must be equal to the movie filename up to "
 "the extension. Furthermore, the subtitle filename must have an extension "
-"supported by any of the subtitle readers."
+"supported by any of the subtitle readers. Subtitle seeking can be disabled, "
+"enabled for video files orenabled for all files."
 msgstr ""
 
-#: plugins/i_avdec.c:252
+#: plugins/i_avdec.c:253
 msgid "Default subtitle encoding"
 msgstr ""
 
-#: plugins/i_avdec.c:255
+#: plugins/i_avdec.c:256
 msgid ""
 "This sets the default encoding for text subtitles,when the original encoding "
 "is unknown. It must be a character set namerecognized by iconv. Type 'iconv -"
 "l' at the commandline for a list of supported encodings."
 msgstr ""
 
-#: plugins/i_avdec.c:276
+#: plugins/i_avdec.c:277
 msgid "AVDecoder plugin"
 msgstr ""
 
-#: plugins/i_avdec.c:277
+#: plugins/i_avdec.c:278
 msgid ""
 "Plugin based on the Gmerlin avdecoder library. Supports most media formats. "
 "Playback is supported from files, URLs (with various protocols) and stdin."
