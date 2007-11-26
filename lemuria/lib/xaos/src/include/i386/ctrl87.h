@@ -100,8 +100,8 @@
    -------------
   The bits in the value returned reflect the new floating-point control word.
 */
-EXTERN unsigned short _control87 (unsigned short, unsigned short);
-
+EXTERN unsigned int _control87 (unsigned int, unsigned int);
+// EXTERN unsigned short _control87 (unsigned short, unsigned short);
 
 /**************************************************************************/
 /**************************   Global variables   **************************/

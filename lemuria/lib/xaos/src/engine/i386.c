@@ -11,10 +11,12 @@
 #include "../include/config.h"
 
 #ifdef __GNUC__
-#ifdef __i386__
+#if defined(__i386__) || defined(__ia64__) || defined(__amd64__)
 #ifndef NOASSEMBLY
 
 /***** _control87 *****/
+
+#if 0
 unsigned short
 _control87 (unsigned short newcw, unsigned short mask)
 {
@@ -48,6 +50,70 @@ _control87 (unsigned short newcw, unsigned short mask)
   return cw;
 
 }				/* _control87 */
+#else
+unsigned int _control87(unsigned int newval, unsigned int mask)
+{
+  unsigned int fpword = 0;
+  unsigned int flags = 0;
+
+//  TRACE("(%08x, %08x): Called\n", newval, mask);
+
+  /* Get fp control word */
+  __asm__ __volatile__( "fstcw %0" : "=m" (fpword) : );
+
+//  TRACE("Control word before : %08x\n", fpword);
+
+  /* Convert into mask constants */
+  if (fpword & 0x1)  flags |= EM_INVALID;
+  if (fpword & 0x2)  flags |= EM_DENORMAL;
+  if (fpword & 0x4)  flags |= EM_ZERODIVIDE;
+  if (fpword & 0x8)  flags |= EM_OVERFLOW;
+  if (fpword & 0x10) flags |= EM_UNDERFLOW;
+  if (fpword & 0x20) flags |= EM_INEXACT;
+  switch(fpword & 0xC00) {
+  case 0xC00: flags |= RC_UP|RC_DOWN; break;
+  case 0x800: flags |= RC_UP; break;
+  case 0x400: flags |= RC_DOWN; break;
+  }
+  switch(fpword & 0x300) {
+  case 0x0:   flags |= PC_24; break;
+  case 0x200: flags |= PC_53; break;
+  case 0x300: flags |= PC_64; break;
+  }
+  if (fpword & 0x1000) flags |= IC_AFFINE;
+
+  /* Mask with parameters */
+  flags = (flags & ~mask) | (newval & mask);
+ 
+  /* Convert (masked) value back to fp word */
+  fpword = 0;
+  if (flags & EM_INVALID)    fpword |= 0x1;
+  if (flags & EM_DENORMAL)   fpword |= 0x2;
+  if (flags & EM_ZERODIVIDE) fpword |= 0x4;
+  if (flags & EM_OVERFLOW)   fpword |= 0x8;
+  if (flags & EM_UNDERFLOW)  fpword |= 0x10;
+  if (flags & EM_INEXACT)    fpword |= 0x20;
+  switch(flags & (RC_UP | RC_DOWN)) {
+  case RC_UP|RC_DOWN: fpword |= 0xC00; break;
+  case RC_UP:         fpword |= 0x800; break;
+  case RC_DOWN:       fpword |= 0x400; break;
+  }
+  switch (flags & (PC_24 | PC_53)) {
+  case PC_64: fpword |= 0x300; break;
+  case PC_53: fpword |= 0x200; break;
+  case PC_24: fpword |= 0x0; break;
+  }
+  if (flags & IC_AFFINE) fpword |= 0x1000;
+
+//  TRACE("Control word after  : %08x\n", fpword);
+
+  /* Put fp control word */
+  __asm__ __volatile__( "fldcw %0" : : "m" (fpword) );
+
+  return flags;
+}
+#endif // 0
+
 #endif
 #endif
 #endif
