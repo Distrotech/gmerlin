@@ -189,6 +189,8 @@ static bg_parameter_info_t parameters[] =
                               "ntsc_vcd",
                               "ntsc_svcd",
                               "ntsc_svcd_wide",
+                              "720",
+                              "1080",
                               "vga",
                               "qvga",
                                (char*)0 },
@@ -210,6 +212,8 @@ static bg_parameter_info_t parameters[] =
                                 TRS("NTSC VCD (352 x 240)"),
                                 TRS("NTSC SVCD 4:3 (480 x 480)"),
                                 TRS("NTSC SVCD 16:9 (480 x 480)"),
+                                TRS("HD 720p/i (1280x720)")
+                                TRS("HD 1080p/i (1920x1080)")
                                 TRS("VGA (640 x 480)"),
                                 TRS("QVGA (320 x 240)"),
                                 (char*)0 },
@@ -411,7 +415,9 @@ static bg_parameter_info_t * get_parameters_cropscale(void * priv)
 #define FRAME_SIZE_NTSC_SVCD_WIDE 17
 #define FRAME_SIZE_VGA            18
 #define FRAME_SIZE_QVGA           19
-#define NUM_FRAME_SIZES           20
+#define FRAME_SIZE_720            20
+#define FRAME_SIZE_1080           21
+#define NUM_FRAME_SIZES           22
 
 
 static struct
@@ -439,6 +445,8 @@ framesize_strings[NUM_FRAME_SIZES] =
     { FRAME_SIZE_NTSC_VCD,       "ntsc_vcd"},
     { FRAME_SIZE_NTSC_SVCD,      "ntsc_svcd"},
     { FRAME_SIZE_NTSC_SVCD_WIDE, "ntsc_svcd_wide"},
+    { FRAME_SIZE_720,            "720" }, 
+    { FRAME_SIZE_1080,           "1080" }, 
     { FRAME_SIZE_VGA,            "vga"},
     { FRAME_SIZE_QVGA,           "qvga"},
   };
@@ -453,26 +461,28 @@ static struct
   }
 frame_size_sizes[NUM_FRAME_SIZES] =
   {
-    { FRAME_SIZE_FROM_INPUT,       0,   0,   0,     0 },
-    { FRAME_SIZE_USER,             0,   0,   0,     0 },
-    { FRAME_SIZE_PAL_D1,           720, 576,   59,   54},
-    { FRAME_SIZE_PAL_D1_WIDE,      720, 576,  118,   81},
-    { FRAME_SIZE_PAL_DV,           720, 576,   59,   54},
-    { FRAME_SIZE_PAL_DV_WIDE,      720, 576,  118,   81},
-    { FRAME_SIZE_PAL_CVD,          352, 576,   59,   27},
-    { FRAME_SIZE_PAL_VCD,          352, 288,   59,   54},
-    { FRAME_SIZE_PAL_SVCD,         480, 576,   59,   36},
-    { FRAME_SIZE_PAL_SVCD_WIDE,    480, 576,   59,   27},
-    { FRAME_SIZE_NTSC_D1,          720, 480,   10,   11},
-    { FRAME_SIZE_NTSC_D1_WIDE,     720, 480,   40,   33 },
-    { FRAME_SIZE_NTSC_DV,          720, 480,   10,   11 },
-    { FRAME_SIZE_NTSC_DV_WIDE,     720, 480,   40,   33 },
-    { FRAME_SIZE_NTSC_CVD,         352, 480,   20,   11 },
-    { FRAME_SIZE_NTSC_VCD,         352, 240,   10,   11 },
-    { FRAME_SIZE_NTSC_SVCD,        480, 480,   15,   11 },
-    { FRAME_SIZE_NTSC_SVCD_WIDE,   480, 480,   20,   11 },
-    { FRAME_SIZE_VGA,              640, 480,    1,    1 },
-    { FRAME_SIZE_QVGA,             320, 240,    1,    1 },
+    { FRAME_SIZE_FROM_INPUT,       0,      0,    0,    0 },
+    { FRAME_SIZE_USER,             0,      0,    0,    0 },
+    { FRAME_SIZE_PAL_D1,           720,  576,   59,   54 },
+    { FRAME_SIZE_PAL_D1_WIDE,      720,  576,  118,   81 },
+    { FRAME_SIZE_PAL_DV,           720,  576,   59,   54 },
+    { FRAME_SIZE_PAL_DV_WIDE,      720,  576,  118,   81 },
+    { FRAME_SIZE_PAL_CVD,          352,  576,   59,   27 },
+    { FRAME_SIZE_PAL_VCD,          352,  288,   59,   54 },
+    { FRAME_SIZE_PAL_SVCD,         480,  576,   59,   36 },
+    { FRAME_SIZE_PAL_SVCD_WIDE,    480,  576,   59,   27 },
+    { FRAME_SIZE_NTSC_D1,          720,  480,   10,   11 },
+    { FRAME_SIZE_NTSC_D1_WIDE,     720,  480,   40,   33 },
+    { FRAME_SIZE_NTSC_DV,          720,  480,   10,   11 },
+    { FRAME_SIZE_NTSC_DV_WIDE,     720,  480,   40,   33 },
+    { FRAME_SIZE_NTSC_CVD,         352,  480,   20,   11 },
+    { FRAME_SIZE_NTSC_VCD,         352,  240,   10,   11 },
+    { FRAME_SIZE_NTSC_SVCD,        480,  480,   15,   11 },
+    { FRAME_SIZE_NTSC_SVCD_WIDE,   480,  480,   20,   11 },
+    { FRAME_SIZE_VGA,              640,  480,    1,    1 },
+    { FRAME_SIZE_QVGA,             320,  240,    1,    1 },
+    { FRAME_SIZE_720,             1280,  720,    1,    1 },
+    { FRAME_SIZE_1080,            1920, 1080,    1,    1 },
   };
 
 static gavl_scale_mode_t string_to_scale_mode(const char * str)
