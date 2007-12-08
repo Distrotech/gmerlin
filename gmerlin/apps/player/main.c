@@ -42,7 +42,7 @@ bg_cmdline_app_data_t app_data =
     version:  VERSION,
     name:     "gmerlin",
     synopsis: TRS("[options] [gmls ...]\n"),
-    help_before: TRS("Gmerlin GUI Player\n"),
+    help_before: TRS("Gmerlin GUI Player"),
     args: (bg_cmdline_arg_array_t[]) { {  } },
 
     env: (bg_cmdline_ext_doc_t[])

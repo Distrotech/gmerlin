@@ -9,7 +9,6 @@ gmerlin
 
 .SH DESCRIPTION
 Gmerlin GUI Player
-
 .SH GENERIC OPTIONS
 The following generic options are available for all gmerlin applications
 
@@ -37,3 +36,33 @@ Print this help message in texinfo format and exit
 Print version info and exit
 .RE
 
+.SH ENVIRONMENT VARIABLES
+.B GMERLIN_PLAYER_REMOTE_PORT
+
+.RS 2
+Default port for the remote control
+.RE
+.SH FILES
+.B ~/.gmerlin/plugins.xml
+
+.RS 2
+Cache of the plugin registry (shared by all applicatons)
+.RE
+
+.P
+.B ~/.gmerlin/player/config.xml
+
+.RS 2
+Used for configuration data. Delete this file if you think you goofed
+something up.
+.RE
+
+.P
+.B ~/.gmerlin/player/tree/tree.xml
+
+.RS 2
+Media tree is saved here. The albums are saved as separate files in the same
+directory.
+.RE
+
+.P

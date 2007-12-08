@@ -261,7 +261,6 @@ static void print_help(bg_cmdline_arg_t* args, bg_help_format_t format)
         fprintf(out, "\n");
         fprintf(out, ".RS 2\n");
         dump_string_term(out, args[i].help_string, 0, (const char*)0, format);
-        //       fprintf(out, ".RE\n");
         fprintf(out, ".RE\n");
 
         break;
@@ -324,9 +323,40 @@ void bg_cmdline_print_help(bg_cmdline_app_data_t * app_data, char * argv0, bg_he
         print_help(app_data->args[i].args, format);
         i++;
         }
-      printf("Generic options\n\nThe following generic options are available for all gmerlin applications\n");
+      print_bold(stdout, "Generic options\n", format);
+      printf("\nThe following generic options are available for all gmerlin applications\n");
       print_linebreak(stdout, format);
       print_help(auto_options, format);
+
+      if(app_data->env)
+        {
+        print_bold(stdout, TR("Environment variables\n\n"), format);
+        i = 0;
+        while(app_data->env[i].name)
+          {
+          print_bold(stdout, app_data->env[i].name, format);
+          printf("\n");
+          dump_string_term(stdout, app_data->env[i].desc,
+                           0, (const char*)0, format);
+          i++;
+          print_linebreak(stdout, format);
+          }
+        }
+      if(app_data->files)
+        {
+        print_bold(stdout, TR("Files\n\n"), format);
+        i = 0;
+        while(app_data->files[i].name)
+          {
+          print_bold(stdout, app_data->files[i].name, format);
+          printf("\n");
+          dump_string_term(stdout, app_data->files[i].desc,
+                           0, (const char*)0, format);
+          print_linebreak(stdout, format);
+          i++;
+          }
+        }
+      
       
       break;
     case BG_HELP_FORMAT_MAN:
@@ -375,6 +405,38 @@ void bg_cmdline_print_help(bg_cmdline_app_data_t * app_data, char * argv0, bg_he
         }
       printf(".SH GENERIC OPTIONS\nThe following generic options are available for all gmerlin applications\n\n");
       print_help(auto_options, format);
+
+      if(app_data->env)
+        {
+        printf(TR(".SH ENVIRONMENT VARIABLES\n"));
+        i = 0;
+        while(app_data->env[i].name)
+          {
+          print_bold(stdout, app_data->env[i].name, format);
+          printf("\n");
+          printf(".RS 2\n");
+          dump_string_term(stdout, app_data->env[i].desc,
+                           0, (const char*)0, format);
+          printf(".RE\n");
+          i++;
+          }
+        }
+      if(app_data->files)
+        {
+        printf(TR(".SH FILES\n"));
+        i = 0;
+        while(app_data->files[i].name)
+          {
+          print_bold(stdout, app_data->files[i].name, format);
+          printf("\n");
+          printf(".RS 2\n");
+          dump_string_term(stdout, app_data->files[i].desc,
+                           0, (const char*)0, format);
+          printf(".RE\n");
+          print_linebreak(stdout, format);
+          i++;
+          }
+        }
       }
       break;
     case BG_HELP_FORMAT_TEXI:
