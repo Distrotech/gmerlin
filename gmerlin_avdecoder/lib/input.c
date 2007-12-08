@@ -710,6 +710,8 @@ static int input_open(bgav_input_context_t * ctx,
       ctx->input = &bgav_input_http;
     else if(!strcasecmp(protocol, "ftp"))
       ctx->input = &bgav_input_ftp;
+    else if(!strcasecmp(protocol, "file"))
+      ctx->input = &bgav_input_file;
     else if(!strcasecmp(protocol, "stdin") || !strcmp(url, "-"))
       ctx->input = &bgav_input_stdin;
 #ifdef HAVE_SAMBA

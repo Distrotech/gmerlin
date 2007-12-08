@@ -37,7 +37,12 @@
 
 static int open_file(bgav_input_context_t * ctx, const char * url, char ** r)
   {
-  FILE * f = fopen(url, "rb");
+  FILE * f;
+
+  if(!strncmp(url, "file://", 7))
+    url += 7;
+  
+  f = fopen(url, "rb");
   if(!f)
     {
     bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Cannot open %s: %s",

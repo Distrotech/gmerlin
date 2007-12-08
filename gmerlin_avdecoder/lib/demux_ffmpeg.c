@@ -427,12 +427,6 @@ static void init_audio_stream(bgav_demuxer_context_t * ctx,
 
   st->discard = AVDISCARD_NONE;
   
-  fprintf(stderr, "Got fourcc: ");
-  bgav_dump_fourcc(s->fourcc);
-  fprintf(stderr, "\n");
-
-  fprintf(stderr, "Timebase %d/%d\n", st->time_base.num, st->time_base.den);
-  
   if(map->bits)
     s->data.audio.bits_per_sample = map->bits;
   else
@@ -471,9 +465,6 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
     ((st->codec->codec_tag & 0x00ff0000) >> 8) |
     ((st->codec->codec_tag & 0xff000000) >> 24);
   
-  fprintf(stderr, "Video codec tag: ");
-  bgav_dump_fourcc(tag);
-  fprintf(stderr, "\n");
 
   if(tag)
     {
@@ -498,11 +489,6 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
     }
   st->discard = AVDISCARD_NONE;
   
-  fprintf(stderr, "Got fourcc: ");
-  bgav_dump_fourcc(s->fourcc);
-  fprintf(stderr, "\n");
-
-  fprintf(stderr, "Timebase %d/%d\n", st->time_base.num, st->time_base.den);
   
   s->data.video.format.image_width = codec->width;
   s->data.video.format.image_height = codec->height;
@@ -533,7 +519,6 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
     s->priv = calloc(AVPALETTE_COUNT, sizeof(bgav_palette_entry_t));
     s->data.video.palette = s->priv;
     s->data.video.palette_size = AVPALETTE_COUNT;
-    fprintf(stderr, "Have palette\n");
     }
   }
 
@@ -582,8 +567,6 @@ static int open_ffmpeg(bgav_demuxer_context_t * ctx,
 
   ctx->tt = bgav_track_table_create(1);
   
-  fprintf(stderr, "Got %d streams\n", avfc->nb_streams);
-
   for(i = 0; i < avfc->nb_streams; i++)
     {
     switch(avfc->streams[i]->codec->codec_type)
