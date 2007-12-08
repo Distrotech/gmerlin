@@ -241,6 +241,8 @@ int64_t gavl_time_scale(int scale, gavl_time_t time)
 
 int64_t gavl_time_rescale(int scale1, int scale2, int64_t time)
   {
+  if(scale1 == scale2)
+    return time;
   return MULDIV(time, scale2, scale1);
   }
 
