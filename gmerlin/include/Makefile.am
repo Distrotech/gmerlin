@@ -55,6 +55,7 @@ playerprivate.h \
 registry_priv.h \
 treeprivate.h \
 pluginreg_priv.h \
-visualize_priv.h
+visualize_priv.h \
+xmlutils.h
 
 EXTRA_DIST = bg_version.h.in
