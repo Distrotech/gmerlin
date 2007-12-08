@@ -828,6 +828,14 @@ bg_cmdline_app_data_t app_data =
     help_before: TRS("Commandline Multimedia player\n"),
     args: (bg_cmdline_arg_array_t[]) { { TRS("Options"), global_options },
                                        {  } },
+    files: (bg_cmdline_ext_doc_t[])
+    { { "~/.gmerlin/plugins.xml",
+        TRS("Cache of the plugin registry (shared by all applicatons)") },
+      { "~/.gmerlin/generic/config.xml",
+        TRS("Default plugin parameters are read from there. Use gmerlin_plugincfg to change them.") },
+      { /* End */ }
+    },
+    
   };
 
 

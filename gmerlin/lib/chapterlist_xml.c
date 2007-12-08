@@ -23,6 +23,7 @@
 #include <parameter.h>
 #include <streaminfo.h>
 #include <utils.h>
+#include <xmlutils.h>
 
 #define CHAPTER_KEY "CHAPTER"
 #define CHAPTERS_KEY "CHAPTERS"
@@ -107,7 +108,7 @@ bg_chapter_list_t * bg_chapter_list_load(const char * filename)
 
   bg_chapter_list_t * ret;
 
-  xml_doc = xmlParseFile(filename);
+  xml_doc = bg_xml_parse_file(filename);
 
   if(!xml_doc)
     return (bg_chapter_list_t *)0;

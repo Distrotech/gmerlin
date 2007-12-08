@@ -6,6 +6,8 @@
 
 #include <utils.h>
 
+#include <xmlutils.h>
+
 #include "kbd.h"
 
 #define scancode_name  "code"

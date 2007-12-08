@@ -457,6 +457,8 @@ static void opt_help(void * data, int * argc, char *** argv, int arg)
   }
 #endif
 
+
+
 bg_cmdline_app_data_t app_data =
   {
     package:  PACKAGE,
@@ -467,6 +469,12 @@ bg_cmdline_app_data_t app_data =
     args: (bg_cmdline_arg_array_t[]) { { TRS("Global options"), global_options },
                                        { TRS("Commands"),       commands       },
                                        {  } },
+    env: (bg_cmdline_ext_doc_t[])
+    { { PLAYER_REMOTE_ENV,
+        TRS("Default port for the remote control") },
+      { /* End */ }
+    },
+
   };
 
 int main(int argc, char ** argv)

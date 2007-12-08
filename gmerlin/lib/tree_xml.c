@@ -18,8 +18,8 @@
 *****************************************************************/
 
 #include <string.h>
-#include <libxml/tree.h>
-#include <libxml/parser.h>
+
+#include <xmlutils.h>
 
 #include <tree.h>
 #include <treeprivate.h>
@@ -175,7 +175,7 @@ void bg_media_tree_load(bg_media_tree_t * tree)
   xmlNodePtr node;
   bg_album_t * new_album;
   
-  xml_doc = xmlParseFile(tree->filename);
+  xml_doc = bg_xml_parse_file(tree->filename);
   
   if(!xml_doc)
     return;

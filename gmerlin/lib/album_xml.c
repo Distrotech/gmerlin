@@ -26,13 +26,10 @@
 
 #include <config.h>
 
-
-#include <libxml/tree.h>
-#include <libxml/parser.h>
-
 #include <tree.h>
 #include <treeprivate.h>
 #include <utils.h>
+#include <xmlutils.h>
 
 #include <log.h>
 #define LOG_DOMAIN "album"
@@ -214,7 +211,7 @@ static bg_album_entry_t * load_album_file(bg_album_t * album,
   bg_album_entry_t * ret;
   xmlDocPtr xml_doc;
 
-  xml_doc = xmlParseFile(filename);
+  xml_doc = bg_xml_parse_file(filename);
 
   if(!xml_doc)
     {

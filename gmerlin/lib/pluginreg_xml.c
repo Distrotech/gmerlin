@@ -23,9 +23,8 @@
 #include <pluginregistry.h>
 #include <pluginreg_priv.h>
 #include <utils.h>
+#include <xmlutils.h>
 
-#include <libxml/tree.h>
-#include <libxml/parser.h>
 
 static struct
   {
@@ -616,7 +615,7 @@ bg_plugin_info_t * bg_plugin_registry_load(const char * filename)
 
   
   
-  xml_doc = xmlParseFile(filename);
+  xml_doc = bg_xml_parse_file(filename);
 
   if(!xml_doc)
     return (bg_plugin_info_t*)0;

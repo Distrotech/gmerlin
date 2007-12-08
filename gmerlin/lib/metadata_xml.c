@@ -27,6 +27,7 @@
 #include <parameter.h>
 #include <streaminfo.h>
 #include <utils.h>
+#include <xmlutils.h>
 
 #define XML_2_INT(key)                          \
 if(!BG_XML_STRCMP(node->name, #key))                 \

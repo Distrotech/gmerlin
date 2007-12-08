@@ -22,6 +22,7 @@
 #include <tree.h>
 #include <transcoder_track.h>
 #include <utils.h>
+#include <xmlutils.h>
 
 static void section_2_xml(bg_cfg_section_t * s, xmlNodePtr node)
   {
@@ -845,7 +846,7 @@ bg_transcoder_tracks_load(const char * filename,
   if(!filename)
     return (bg_transcoder_track_t*)0;
   
-  xml_doc = xmlParseFile(filename);
+  xml_doc = bg_xml_parse_file(filename);
   
   ret = transcoder_tracks_load(xml_doc,
                                g, plugin_reg);

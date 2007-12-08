@@ -310,102 +310,102 @@ Sort and configure video codecs
 @b{Suboptions for ffmpeg_mpg1}@*@*
 @table @r
 @item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
-Grayscale mode@*@*
+Schwarzweß Modus@*@*
 @end table
 @b{Suboptions for ffmpeg_mpg4}@*@*
 @table @r
 @item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
-Grayscale mode@*@*
+Schwarzweß Modus@*@*
 @end table
 @b{Suboptions for ffmpeg_msmpeg4v1}@*@*
 @table @r
 @item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
-Grayscale mode@*@*
+Schwarzweß Modus@*@*
 @end table
 @b{Suboptions for ffmpeg_msmpeg4v2}@*@*
 @table @r
 @item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
-Grayscale mode@*@*
+Schwarzweß Modus@*@*
 @end table
 @b{Suboptions for ffmpeg_msmpeg4v3}@*@*
 @table @r
 @item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
-Grayscale mode@*@*
+Schwarzweß Modus@*@*
 @end table
 @b{Suboptions for ffmpeg_h263}@*@*
 @table @r
 @item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
-Grayscale mode@*@*
+Schwarzweß Modus@*@*
 @end table
 @b{Suboptions for ffmpeg_h264}@*@*
 @table @r
 @item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
-Grayscale mode@*@*
+Schwarzweß Modus@*@*
 @end table
 @b{Suboptions for ffmpeg_i263}@*@*
 @table @r
 @item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
-Grayscale mode@*@*
+Schwarzweß Modus@*@*
 @end table
 @b{Suboptions for ffmpeg_svq1}@*@*
 @table @r
 @item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
-Grayscale mode@*@*
+Schwarzweß Modus@*@*
 @end table
 @b{Suboptions for ffmpeg_svq3}@*@*
 @table @r
 @item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
-Grayscale mode@*@*
+Schwarzweß Modus@*@*
 @end table
 @b{Suboptions for ffmpeg_mjpg}@*@*
 @table @r
 @item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
-Grayscale mode@*@*
+Schwarzweß Modus@*@*
 @end table
 @b{Suboptions for ffmpeg_indeo}@*@*
 @table @r
 @item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
-Grayscale mode@*@*
+Schwarzweß Modus@*@*
 @end table
 @b{Suboptions for ffmpeg_cinepak}@*@*
 @table @r
 @item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
-Grayscale mode@*@*
+Schwarzweß Modus@*@*
 @end table
 @b{Suboptions for ffmpeg_cyuv}@*@*
 @table @r
 @item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
-Grayscale mode@*@*
+Schwarzweß Modus@*@*
 @end table
 @b{Suboptions for ffmpeg_dv_ntsc}@*@*
 @table @r
 @item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
-Grayscale mode@*@*
+Schwarzweß Modus@*@*
 @end table
 @b{Suboptions for ffmpeg_dv_pal}@*@*
 @table @r
 @item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
-Grayscale mode@*@*
+Schwarzweß Modus@*@*
 @end table
 @b{Suboptions for ffmpeg_dv_avi}@*@*
 @table @r
 @item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
-Grayscale mode@*@*
+Schwarzweß Modus@*@*
 @end table
 @b{Suboptions for ffmpeg_dv50_pal}@*@*
 @table @r
 @item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
-Grayscale mode@*@*
+Schwarzweß Modus@*@*
 @end table
 @b{Suboptions for ffmpeg_dv50_ntsc}@*@*
 @table @r
 @item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
-Grayscale mode@*@*
+Schwarzweß Modus@*@*
 @end table
 @b{Suboptions for ffmpeg_ffvhuff}@*@*
 @table @r
 @item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
-Grayscale mode@*@*
+Schwarzweß Modus@*@*
 @end table
 @end table
 @b{Suboptions for p=i_singlepic}@*@*
@@ -617,5 +617,12 @@ Print this help message in texinfo format and exit@*
 @item -version
 Print version info and exit@*
 
+@end table
+@item Files
+@table @file
+@item ~/.gmerlin/plugins.xml
+Cache of the plugin registry (shared by all applicatons)@*
+@item ~/.gmerlin/generic/config.xml
+Default plugin parameters are read from there. Use gmerlin_plugincfg to change them.@*
 @end table
 @end table

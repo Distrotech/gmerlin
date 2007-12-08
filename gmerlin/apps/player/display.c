@@ -23,6 +23,7 @@
 #include "gmerlin.h"
 
 #include <utils.h>
+#include <xmlutils.h>
 #include <config.h>
 
 #include <translation.h>

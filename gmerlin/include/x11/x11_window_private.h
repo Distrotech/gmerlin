@@ -1,5 +1,8 @@
 #include <config.h>
 
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+
 #ifdef HAVE_LIBXINERAMA
 #include <X11/extensions/Xinerama.h>
 #endif
@@ -11,9 +14,6 @@
 #define SCREENSAVER_MODE_XLIB  0 // MUST be 0 (fallback)
 #define SCREENSAVER_MODE_GNOME 1
 #define SCREENSAVER_MODE_KDE   2
-
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
 
 #ifdef HAVE_GLX
 #include <GL/glx.h>
@@ -239,7 +239,7 @@ struct bg_x11_window_s
   float saturation;
   float contrast;
   float hue;
-  } x11_window_t;
+  };
 
 /* Private functions */
 

@@ -397,7 +397,34 @@ void bg_cmdline_print_help(bg_cmdline_app_data_t * app_data, char * argv0, bg_he
       printf("@item Generic options\n");
       printf("The following generic options are available for all gmerlin applications@*\n");
       print_help(auto_options, format);
-      
+
+      if(app_data->env)
+        {
+        printf(TR("@item Environment variables\n"));
+        printf("@table @env\n");
+        i = 0;
+        while(app_data->env[i].name)
+          {
+          printf("@item %s\n", app_data->env[i].name);
+          printf("%s@*\n", TRD(app_data->env[i].desc, app_data->package));
+          i++;
+          }
+        printf("@end table\n");
+        }
+
+      if(app_data->files)
+        {
+        printf(TR("@item Files\n"));
+        printf("@table @file\n");
+        i = 0;
+        while(app_data->files[i].name)
+          {
+          printf("@item %s\n", app_data->files[i].name);
+          printf("%s@*\n", TRD(app_data->files[i].desc, app_data->package));
+          i++;
+          }
+        printf("@end table\n");
+        }
       printf("@end table\n");
       break;
     }
@@ -472,6 +499,9 @@ static void cmdline_parse(bg_cmdline_arg_t * args,
     cmdline_parse(auto_options, argc, _argv, app_data, app_data, 0);
     }
   
+  if(!args)
+    return;
+  
   while(i < *argc)
     {
     j = 0;
@@ -506,7 +536,6 @@ void bg_cmdline_parse(bg_cmdline_arg_t * args, int * argc, char *** _argv,
                       void * callback_data, bg_cmdline_app_data_t * app_data)
   {
   cmdline_parse(args, argc, _argv, callback_data, app_data, 1);
-  
   }
 
 

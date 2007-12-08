@@ -23,6 +23,7 @@
 
 #include <parameter.h>
 #include <utils.h>
+#include <xmlutils.h>
 
 static struct
   {

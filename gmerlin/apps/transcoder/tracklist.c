@@ -1051,7 +1051,6 @@ static void drag_received_callback(GtkWidget *widget,
   bg_transcoder_track_t * new_tracks;
   track_list_t * l = (track_list_t *)d;
   
-  fprintf(stderr, "drag_received_callback %d\n", data->target);
   if(is_urilist(data))
     {
     new_tracks =

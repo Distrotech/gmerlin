@@ -1,5 +1,6 @@
 #!/bin/sh
 apps/cmdlineplayer/gmerlin_play -help-texi > doc/gmerlin_play.texi
 apps/player/gmerlin_remote -help-texi > doc/gmerlin_remote.texi
+apps/player/gmerlin -help-texi > doc/gmerlin_player.texi
 apps/transcoder/gmerlin_transcoder -help-texi > doc/gmerlin_transcoder.texi
 apps/transcoder/gmerlin_transcoder_remote -help-texi > doc/gmerlin_transcoder_remote.texi

@@ -62,7 +62,8 @@ plugin_window_t * plugin_window_create(gmerlin_t * g,
                                       BG_PLUGIN_INPUT,
                                       BG_PLUGIN_FILE|
                                       BG_PLUGIN_URL|
-                                      BG_PLUGIN_REMOVABLE);
+                                      BG_PLUGIN_REMOVABLE|
+                                      BG_PLUGIN_TUNER);
 
   ret->image_readers = 
     bg_gtk_plugin_widget_multi_create(g->plugin_reg,

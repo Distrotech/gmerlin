@@ -37,12 +37,22 @@ typedef struct
 
 typedef struct
   {
+  char * name;
+  char * desc;
+  } bg_cmdline_ext_doc_t;
+
+typedef struct
+  {
   char * package;
   char * version;
   char * name;
   char * synopsis;
   char * help_before;
   bg_cmdline_arg_array_t * args; /* Null terminated */
+  
+  bg_cmdline_ext_doc_t * env;
+  bg_cmdline_ext_doc_t * files;
+  
   char * help_after;
   } bg_cmdline_app_data_t;
 

@@ -24,6 +24,7 @@
 #include <cfg_registry.h>
 #include <registry_priv.h>
 #include <utils.h>
+#include <xmlutils.h>
 
 static void load_item(xmlDocPtr xml_doc, xmlNodePtr xml_item,
                       bg_cfg_section_t * cfg_section)
@@ -191,7 +192,7 @@ void bg_cfg_registry_load(bg_cfg_registry_t * r, const char * filename)
   if(!filename)
     return;
     
-  xml_doc = xmlParseFile(filename);
+  xml_doc = bg_xml_parse_file(filename);
 
   if(!xml_doc)
     return;

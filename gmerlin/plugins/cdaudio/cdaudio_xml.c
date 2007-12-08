@@ -19,6 +19,7 @@
 
 #include <string.h>
 #include <utils.h>
+#include <xmlutils.h>
 
 #include "cdaudio.h"
 

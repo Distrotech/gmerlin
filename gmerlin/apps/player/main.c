@@ -30,10 +30,36 @@
 #include <player.h>
 
 #include "gmerlin.h"
+#include "player_remote.h"
 
 #include <utils.h>
 #include <cmdline.h>
 #include <gui_gtk/gtkutils.h>
+
+bg_cmdline_app_data_t app_data =
+  {
+    package:  PACKAGE,
+    version:  VERSION,
+    name:     "gmerlin",
+    synopsis: TRS("[options] [gmls ...]\n"),
+    help_before: TRS("Gmerlin GUI Player\n"),
+    args: (bg_cmdline_arg_array_t[]) { {  } },
+
+    env: (bg_cmdline_ext_doc_t[])
+    { { PLAYER_REMOTE_ENV,
+        TRS("Default port for the remote control") },
+      { /* End */ }
+    },
+    files: (bg_cmdline_ext_doc_t[])
+    { { "~/.gmerlin/plugins.xml",
+        TRS("Cache of the plugin registry (shared by all applicatons)") },
+      { "~/.gmerlin/player/config.xml",
+        TRS("Used for configuration data. Delete this file if you think you goofed something up.") },
+      { "~/.gmerlin/player/tree/tree.xml",
+        TRS("Media tree is saved here. The albums are saved as separate files in the same directory.") },
+      { /* End */ }
+    },
+  };
 
 int main(int argc, char ** argv)
   {
@@ -62,6 +88,8 @@ int main(int argc, char ** argv)
 
   /* Get locations from the commandline */
 
+  bg_cmdline_parse(NULL, &argc, &argv, NULL, &app_data);
+  
   locations = bg_cmdline_get_locations_from_args(&argc, &argv);
 
   if(locations)

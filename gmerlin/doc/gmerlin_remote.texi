@@ -78,4 +78,9 @@ Print this help message in texinfo format and exit@*
 Print version info and exit@*
 
 @end table
+@item Environment variables
+@table @env
+@item GMERLIN_PLAYER_REMOTE_PORT
+Default port for the remote control@*
+@end table
 @end table
