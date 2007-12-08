@@ -1017,7 +1017,8 @@ static int open_mpegps(bgav_demuxer_context_t * ctx,
   return 1;
   }
 
-static void seek_normal(bgav_demuxer_context_t * ctx, gavl_time_t time)
+static void seek_normal(bgav_demuxer_context_t * ctx, int64_t time,
+                        int scale)
   {
   mpegps_priv_t * priv;
   int64_t file_position;
@@ -1027,7 +1028,7 @@ static void seek_normal(bgav_demuxer_context_t * ctx, gavl_time_t time)
   
   //  file_position = (priv->pack_header.mux_rate*50*time)/GAVL_TIME_SCALE;
   file_position = priv->data_start +
-    (priv->data_size * time)/
+    (priv->data_size * gavl_time_unscale(scale, time))/
     ctx->tt->cur->duration;
   
   if(file_position <= priv->data_start)
@@ -1056,7 +1057,8 @@ static void seek_normal(bgav_demuxer_context_t * ctx, gavl_time_t time)
     }
   }
 
-static void seek_sector(bgav_demuxer_context_t * ctx, gavl_time_t time)
+static void seek_sector(bgav_demuxer_context_t * ctx, gavl_time_t time,
+                        int scale)
   {
   mpegps_priv_t * priv;
   int64_t sector;
@@ -1064,9 +1066,9 @@ static void seek_sector(bgav_demuxer_context_t * ctx, gavl_time_t time)
   priv = (mpegps_priv_t*)(ctx->priv);
   
   //  file_position = (priv->pack_header.mux_rate*50*time)/GAVL_TIME_SCALE;
-  sector = (priv->total_sectors * time)/
+  sector = (priv->total_sectors * gavl_time_unscale(scale, time))/
     ctx->tt->cur->duration;
-
+  
   if(sector < 0)
     sector = 0;
   if(sector >= priv->total_sectors)
@@ -1089,20 +1091,20 @@ static void seek_sector(bgav_demuxer_context_t * ctx, gavl_time_t time)
     }
   }
 
-static void seek_mpegps(bgav_demuxer_context_t * ctx, gavl_time_t time)
+static void seek_mpegps(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   {
   mpegps_priv_t * priv;
   priv = (mpegps_priv_t*)(ctx->priv);
 
   if(ctx->input->input->seek_time)
     {
-    ctx->input->input->seek_time(ctx->input, time);
+    ctx->input->input->seek_time(ctx->input, time, scale);
     do_sync(ctx);
     }
   else if(priv->sector_size)
-    seek_sector(ctx, time);
+    seek_sector(ctx, time, scale);
   else
-    seek_normal(ctx, time);
+    seek_normal(ctx, time, scale);
   }
 
 static void close_mpegps(bgav_demuxer_context_t * ctx)

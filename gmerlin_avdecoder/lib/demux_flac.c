@@ -324,7 +324,7 @@ static int next_packet_flac(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
-static void seek_flac(bgav_demuxer_context_t * ctx, gavl_time_t time)
+static void seek_flac(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   {
   int i;
   flac_priv_t * priv;
@@ -332,9 +332,10 @@ static void seek_flac(bgav_demuxer_context_t * ctx, gavl_time_t time)
   
   
   priv = (flac_priv_t*)(ctx->priv);
-
-  sample_pos = gavl_time_to_samples(priv->streaminfo.samplerate,
-                                    time);
+  
+  sample_pos = gavl_time_rescale(scale,
+                                 priv->streaminfo.samplerate,
+                                 time);
   
   for(i = 0; i < priv->seektable.num_entries - 1; i++)
     {

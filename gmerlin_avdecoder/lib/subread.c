@@ -527,13 +527,15 @@ static int init_spumux(bgav_stream_t * s)
   }
 
 
-static void seek_spumux(bgav_stream_t * s, gavl_time_t time)
+static void seek_spumux(bgav_stream_t * s, int64_t time1, int scale)
   {
   const char * start_time, * end_time;
   bgav_subtitle_reader_context_t * ctx;
   spumux_t * priv;
   gavl_time_t start, end = 0;
-    
+
+  gavl_time_t time = gavl_time_unscale(scale, time1);
+  
   ctx = s->data.subtitle.subreader;
   priv = (spumux_t*)(ctx->priv);
   init_current_spumux(s);
@@ -897,14 +899,16 @@ int bgav_subtitle_reader_start(bgav_stream_t * s)
   }
 
 void bgav_subtitle_reader_seek(bgav_stream_t * s,
-                               gavl_time_t time)
+                               int64_t time1, int scale)
   {
   int titles_skipped;
   bgav_subtitle_reader_context_t * ctx;
+  gavl_time_t time = gavl_time_unscale(scale, time1);
+  
   ctx = s->data.subtitle.subreader;
 
   if(ctx->reader->seek)
-    ctx->reader->seek(s, time);
+    ctx->reader->seek(s, time, scale);
     
   else if(ctx->input->input->seek_byte)
     {

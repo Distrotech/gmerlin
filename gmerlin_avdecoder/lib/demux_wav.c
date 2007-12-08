@@ -24,6 +24,7 @@
 
 #define STREAM_ID 0
 
+#define DUMP_HEADER
 
 /* WAV demuxer */
 
@@ -131,11 +132,14 @@ static int open_wav(bgav_demuxer_context_t * ctx,
     goto fail;
   
   bgav_WAVEFORMAT_read(&wf, buf, format_size);
+
+#ifdef DUMP_HEADER
+  bgav_WAVEFORMAT_dump(&wf);
+#endif
+
   bgav_WAVEFORMAT_get_format(&wf, s);
   bgav_WAVEFORMAT_free(&wf);
   free(buf);
-  //  bgav_stream_dump(s);
-  
   priv->data_size = find_tag(ctx, BGAV_MK_FOURCC('d', 'a', 't', 'a'));
 
   if(priv->data_size < 0)
@@ -215,7 +219,7 @@ static int next_packet_wav(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
-static void seek_wav(bgav_demuxer_context_t * ctx, gavl_time_t time)
+static void seek_wav(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   {
   int64_t file_position;
   wav_priv_t * priv;
@@ -223,12 +227,19 @@ static void seek_wav(bgav_demuxer_context_t * ctx, gavl_time_t time)
   priv = (wav_priv_t *)(ctx->priv);
 
   s = ctx->tt->cur->audio_streams;
-    
-  file_position = (time * (s->codec_bitrate / 8)) /
-    GAVL_TIME_SCALE;
-  file_position /= s->data.audio.block_align;
-  file_position *= s->data.audio.block_align;
 
+  if(s->data.audio.bits_per_sample)
+    {
+    file_position = s->data.audio.block_align * gavl_time_rescale(scale,
+                                                                  s->data.audio.format.samplerate,
+                                                                  time);
+    }
+  else
+    {
+    file_position = (gavl_time_unscale(scale, time) * (s->codec_bitrate / 8)) / scale;
+    file_position /= s->data.audio.block_align;
+    file_position *= s->data.audio.block_align;
+    }
   /* Calculate the time before we add the start offset */
   s->time_scaled = ((int64_t)file_position * s->data.audio.format.samplerate) /
     (s->codec_bitrate / 8);

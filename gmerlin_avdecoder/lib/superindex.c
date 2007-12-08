@@ -86,12 +86,12 @@ void bgav_superindex_add_packet(bgav_superindex_t * idx,
 
 void bgav_superindex_seek(bgav_superindex_t * idx,
                          bgav_stream_t * s,
-                         gavl_time_t time)
+                         int64_t time, int scale)
   {
   int i;
   int64_t time_scaled;
   
-  time_scaled = gavl_time_scale(s->timescale, time);
+  time_scaled = gavl_time_rescale(scale, s->timescale, time);
   
   i = s->last_index_position;
 

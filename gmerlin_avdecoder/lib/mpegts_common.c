@@ -294,19 +294,12 @@ int bgav_transport_packet_parse(const bgav_options_t * opt,
 
   if(ptr[0] != 0x47)
     {
-    bgav_log(opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-             "transport_packet_read: Out of sync");
+    bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Lost sync");
     return 0;
     }
-
+  
   ret->transport_error = !!(ptr[1] & 0x80);
   
-  if(ret->transport_error)
-    {
-    bgav_log(opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-             "transport_error");
-    return 1;
-    }
   
   ret->adaption_field.pcr = -1;
   
@@ -330,6 +323,7 @@ int bgav_transport_packet_parse(const bgav_options_t * opt,
       ret->has_payload        = 1;
       break;
     default:
+      bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Invalid packet");
       return 0;
     }
   ret->continuity_counter = ptr[3] & 0x0f;

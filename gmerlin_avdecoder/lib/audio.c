@@ -153,7 +153,7 @@ void bgav_audio_resync(bgav_stream_t * s)
     s->data.audio.decoder->decoder->resync(s);
   }
 
-int bgav_audio_skipto(bgav_stream_t * s, gavl_time_t * t)
+int bgav_audio_skipto(bgav_stream_t * s, int64_t * t, int scale)
   {
   int64_t num_samples;
   int samples_skipped = 0;  
@@ -161,13 +161,15 @@ int bgav_audio_skipto(bgav_stream_t * s, gavl_time_t * t)
   gavl_time_t diff_time;
   char tmp_string[128];
   
-  stream_time = gavl_time_unscale(s->timescale,
+  stream_time = gavl_time_rescale(s->timescale,
+                                  scale,
                                   s->time_scaled);
   
   diff_time = *t - stream_time;
-
-  num_samples = gavl_time_to_samples(s->data.audio.format.samplerate,
-                                     diff_time);
+  
+  num_samples = gavl_time_rescale(scale,
+                                  s->data.audio.format.samplerate,
+                                  diff_time);
   
   if(num_samples < 0)
     {

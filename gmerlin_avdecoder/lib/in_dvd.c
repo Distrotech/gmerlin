@@ -963,7 +963,7 @@ static void select_track_dvd(bgav_input_context_t * ctx, int track)
     }
   }
 
-static void seek_time_dvd(bgav_input_context_t * ctx, gavl_time_t t)
+static void seek_time_dvd(bgav_input_context_t * ctx, int64_t t1, int scale)
   {
   uint8_t buf[DVD_VIDEO_LB_LEN];
   dsi_t dsi_pack;
@@ -972,6 +972,9 @@ static void seek_time_dvd(bgav_input_context_t * ctx, gavl_time_t t)
   gavl_time_t time, diff_time, cell_start_time;
   dvd_t * dvd;
   int64_t time_scaled;
+  gavl_time_t t;
+  t = gavl_time_unscale(scale, t1);
+  
   dvd = (dvd_t*)(ctx->priv);
 
   time = 0;
@@ -1085,18 +1088,9 @@ static void seek_time_dvd(bgav_input_context_t * ctx, gavl_time_t t)
     dvd->npack += next_vobu_offset;
     }
   dvd->state = CELL_LOOP;
-
+  
   time_scaled = gavl_time_scale(90000, time);
   
-#if 0  
-  for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
-    ctx->tt->cur->audio_streams[i].time_scaled = time_scaled;
-  for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
-    ctx->tt->cur->video_streams[i].time_scaled = time_scaled;
-  for(i = 0; i < ctx->tt->cur->num_subtitle_streams; i++)
-    ctx->tt->cur->subtitle_streams[i].time_scaled = time_scaled;
-#endif
-
   ctx->demuxer->timestamp_offset = time_scaled - (int64_t)pci_pack.pci_gi.vobu_s_ptm;
   dvd->last_vobu_end_pts = pci_pack.pci_gi.vobu_s_ptm;
   }

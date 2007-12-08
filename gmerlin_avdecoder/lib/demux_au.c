@@ -230,7 +230,7 @@ static int next_packet_au(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
-static void seek_au(bgav_demuxer_context_t * ctx, gavl_time_t time)
+static void seek_au(bgav_demuxer_context_t * ctx, gavl_time_t time, int scale)
   {
   bgav_stream_t * s;
   int64_t position;
@@ -238,7 +238,7 @@ static void seek_au(bgav_demuxer_context_t * ctx, gavl_time_t time)
   s = &(ctx->tt->cur->audio_streams[0]);
   priv = (au_priv_t*)(ctx->priv);
   
-  position = time_2_pos(ctx, time);
+  position = time_2_pos(ctx, gavl_time_rescale(scale, s->timescale, time));
   position -= ctx->data_start;
   position /= s->data.audio.block_align;
   position *= s->data.audio.block_align;

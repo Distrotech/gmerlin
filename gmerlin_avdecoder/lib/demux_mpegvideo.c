@@ -260,7 +260,8 @@ static int next_packet_mpegvideo(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
-static void seek_mpegvideo(bgav_demuxer_context_t * ctx, gavl_time_t time)
+static void seek_mpegvideo(bgav_demuxer_context_t * ctx, int64_t time,
+                           int scale)
   {
   int64_t file_position;
   mpegvideo_priv_t * priv;
@@ -270,7 +271,7 @@ static void seek_mpegvideo(bgav_demuxer_context_t * ctx, gavl_time_t time)
   
   s = ctx->tt->cur->video_streams;
     
-  file_position = (time * (priv->byte_rate)) / GAVL_TIME_SCALE;
+  file_position = (time * (priv->byte_rate)) / scale;
   
   s->time_scaled = gavl_time_scale(s->data.video.format.timescale, time);
   priv->next_packet_time = s->time_scaled;

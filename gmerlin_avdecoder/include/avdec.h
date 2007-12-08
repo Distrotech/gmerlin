@@ -1372,12 +1372,33 @@ int bgav_can_seek(bgav_t * bgav);
  *  \brief Seek to a specific time
  *  \param bgav A decoder handle
  *  \param time The time to seek to. 
- *  \returns 1 if the track is seekable, 0 else.
  *
  * The time argument is changed to the actually seeked time, which can be different.
  */
 
 void bgav_seek(bgav_t * bgav, gavl_time_t * time);
+
+/** \ingroup seeking
+ *  \brief Seek to a specific stream position
+ *  \param bgav A decoder handle
+ *  \param time The time to seek to. 
+ *  \param time The timescale
+ *
+ * This function allows sample and frame accurate seeking, if
+ * the following conditions are met:
+ * - The formats allows sample accurate seeking at all
+ * - For audio streams, scale is equal to the samplerate
+ * - For video streams, scale is equal to the timescale
+ *
+ * Typically, only one stream will be positioned accurately. For
+ * Editing applications, it's recommended, that separate decoder instances
+ * are opened for audio and video. They can then be positoned independently.
+ * 
+ * The time argument is changed to the actually seeked time, which can be different.
+ */
+
+void bgav_seek_scaled(bgav_t * bgav, gavl_time_t * time, int scale);
+
 
 /***************************************************
  * Debugging functions

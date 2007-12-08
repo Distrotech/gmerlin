@@ -45,6 +45,9 @@
 
 #define TS_MAX_PACKET_SIZE  204
 
+/* Maximum number of consecutive error packets */
+#define MAX_ERROR_PACKETS   10
+
 typedef struct
   {
   int64_t last_pts;
@@ -174,8 +177,36 @@ typedef struct
   
   int buffer_size;
   int do_sync;
+
+  int error_counter;
   
   } mpegts_t;
+
+static inline int
+parse_transport_packet(const bgav_options_t * opt,
+                       mpegts_t * priv)
+  {
+  if(!bgav_transport_packet_parse(opt, &priv->ptr, &priv->packet))
+    return 0;
+
+  if(priv->packet.transport_error)
+    {
+    priv->error_counter++;
+    if(priv->error_counter > MAX_ERROR_PACKETS)
+      {
+      bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Too many transport errors");
+      return 0;
+      }
+    bgav_log(opt, BGAV_LOG_WARNING, LOG_DOMAIN, "Transport error");
+    return 1;
+    }
+
+  priv->error_counter = 0;
+  return 1;
+  }
+
+
+
 
 static inline int next_packet(mpegts_t * priv)
   {
@@ -372,7 +403,7 @@ static int get_program_durations(bgav_demuxer_context_t * ctx)
   
   while(keep_going)
     {
-    if(!bgav_transport_packet_parse(ctx->opt, &priv->ptr, &priv->packet))
+    if(!parse_transport_packet(ctx->opt, priv))
       return 0;
 
     pts = get_program_timestamp(ctx, &program_index);
@@ -419,7 +450,7 @@ static int get_program_durations(bgav_demuxer_context_t * ctx)
 
     for(i = 0; i < SCAN_PACKETS; i++)
       {
-      if(!bgav_transport_packet_parse(ctx->opt, &priv->ptr, &priv->packet))
+      if(!parse_transport_packet(ctx->opt, priv))
         return 0;
       
       pts = get_program_timestamp(ctx, &program_index);
@@ -549,7 +580,7 @@ static int init_psi(bgav_demuxer_context_t * ctx,
 
   while(keep_going)
     {
-    if(!bgav_transport_packet_parse(ctx->opt, &priv->ptr, &priv->packet))
+    if(!parse_transport_packet(ctx->opt, priv))
       {
       bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
                "Lost sync during initializing");
@@ -775,7 +806,7 @@ static int init_raw(bgav_demuxer_context_t * ctx, int input_can_seek)
 
   while(1)
     {
-    if(!bgav_transport_packet_parse(ctx->opt, &priv->ptr, &priv->packet))
+    if(!parse_transport_packet(ctx->opt, priv))
       break;
 
     /* Find the PCR PID */
@@ -914,7 +945,7 @@ static int open_mpegts(bgav_demuxer_context_t * ctx,
     
     while(1)
       {
-      bgav_transport_packet_parse(ctx->opt, &priv->ptr, &priv->packet);
+      parse_transport_packet(ctx->opt, priv);
     
       if(priv->packet.pid == 0x0000)
         {
@@ -1039,12 +1070,8 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
                          priv->buffer, priv->packet_size * NUM_PACKETS);
   
   if(priv->buffer_size < priv->packet_size)
-    {
-    fprintf(stderr,
-            "next_packet_mpegts: EOF (bytes read: %d, pos: %" PRId64 ")\n",
-            priv->buffer_size, ctx->input->position);
     return 0;
-    }
+  
   priv->ptr = priv->buffer;
   priv->packet_start = priv->buffer;
   
@@ -1052,9 +1079,8 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
   
   for(i = 0; i < num_packets; i++)
     {
-    if(!bgav_transport_packet_parse(ctx->opt, &priv->ptr, &priv->packet))
+    if(!parse_transport_packet(ctx->opt, priv))
       {
-      fprintf(stderr, "next_packet_mpegts: Lost sync\n");
       return 0;
       }
     if(priv->packet.transport_error)
@@ -1226,7 +1252,7 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
-static void seek_mpegts(bgav_demuxer_context_t * ctx, gavl_time_t time)
+static void seek_mpegts(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   {
   int64_t total_packets;
   int64_t packet;
@@ -1242,7 +1268,8 @@ static void seek_mpegts(bgav_demuxer_context_t * ctx, gavl_time_t time)
 
   packet =
     (int64_t)((double)total_packets *
-              (double)time / (double)(ctx->tt->cur->duration)+0.5);
+              (double)gavl_time_unscale(scale, time) /
+              (double)(ctx->tt->cur->duration)+0.5);
   
   position = priv->first_packet_pos + packet * priv->packet_size;
   bgav_input_seek(ctx->input, position, SEEK_SET);
@@ -1290,7 +1317,8 @@ static int select_track_mpegts(bgav_demuxer_context_t * ctx,
   mpegts_t * priv;
   priv = (mpegts_t*)(ctx->priv);
   priv->current_program = track;
-
+  priv->error_counter = 0;
+  
   if(ctx->flags & BGAV_DEMUXER_CAN_SEEK)
     {
     ctx->flags |= BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET;

@@ -1379,7 +1379,7 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
   return result;
   }
 
-static void seek_rmff(bgav_demuxer_context_t * ctx, gavl_time_t time)
+static void seek_rmff(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   {
   uint32_t i;
   bgav_stream_t * stream;
@@ -1397,7 +1397,7 @@ static void seek_rmff(bgav_demuxer_context_t * ctx, gavl_time_t time)
   rm = (rm_private_t*)(ctx->priv);
   track = ctx->tt->cur;
   
-  real_time = (time * 1000) / GAVL_TIME_SCALE;
+  real_time = gavl_time_rescale(scale, 1000, time);
   
   /* First step: Seek the index records for each stream */
 

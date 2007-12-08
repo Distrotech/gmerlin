@@ -332,7 +332,8 @@ static int next_packet_sphere(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
-static void seek_sphere(bgav_demuxer_context_t * ctx, gavl_time_t time)
+static void seek_sphere(bgav_demuxer_context_t * ctx,
+                        int64_t time, int scale)
   {
   bgav_stream_t * s;
   int64_t position;
@@ -340,7 +341,8 @@ static void seek_sphere(bgav_demuxer_context_t * ctx, gavl_time_t time)
 
   s = &(ctx->tt->cur->audio_streams[0]);
 
-  sample = gavl_time_to_samples(s->data.audio.format.samplerate, time);
+  sample = gavl_time_rescale(scale,
+                             s->data.audio.format.samplerate, time);
     
   position =  s->data.audio.block_align * sample + HEADERSIZE;
   bgav_input_seek(ctx->input, position, SEEK_SET);

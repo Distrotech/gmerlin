@@ -712,13 +712,14 @@ static int next_packet_ffmpeg(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
-static void seek_ffmpeg(bgav_demuxer_context_t * ctx, gavl_time_t time)
+static void seek_ffmpeg(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   {
   ffmpeg_priv_t * priv;
   priv = (ffmpeg_priv_t*)ctx->priv;
 
-  av_seek_frame(priv->avfc, -1, (time * AV_TIME_BASE)/GAVL_TIME_SCALE, 0);
-
+  av_seek_frame(priv->avfc, -1,
+                gavl_time_rescale(scale, AV_TIME_BASE, time), 0);
+  
   while(!bgav_track_has_sync(ctx->tt->cur))
     {
     if(!next_packet_ffmpeg(ctx))

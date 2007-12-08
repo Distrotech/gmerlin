@@ -590,7 +590,8 @@ static int next_packet_gxf(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
-static void seek_gxf(bgav_demuxer_context_t * ctx, gavl_time_t time)
+static void seek_gxf(bgav_demuxer_context_t * ctx, int64_t time,
+                     int scale)
   {
   media_header_t mh;
   gxf_priv_t * priv;
@@ -600,7 +601,7 @@ static void seek_gxf(bgav_demuxer_context_t * ctx, gavl_time_t time)
 
   priv = (gxf_priv_t*)(ctx->priv);
 
-  field_index = gavl_time_scale(priv->timescale, time);
+  field_index = gavl_time_rescale(scale, priv->timescale, time);
   
   field_index /= priv->frame_duration;
   field_index *= priv->num_fields;

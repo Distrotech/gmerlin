@@ -197,7 +197,7 @@ static int next_packet_wavpack(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
-static void seek_wavpack(bgav_demuxer_context_t * ctx, gavl_time_t time)
+static void seek_wavpack(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   {
   int64_t current_pos;
   int64_t time_scaled;
@@ -209,8 +209,8 @@ static void seek_wavpack(bgav_demuxer_context_t * ctx, gavl_time_t time)
   s = &(ctx->tt->cur->audio_streams[0]);
 
   current_pos = 0;
-  time_scaled = gavl_time_scale(s->timescale, time);
-
+  time_scaled = gavl_time_rescale(scale, s->timescale, time);
+  
   bgav_input_seek(ctx->input, 0, SEEK_SET);
 
   while(1)

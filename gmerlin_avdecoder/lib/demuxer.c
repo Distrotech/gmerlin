@@ -712,7 +712,7 @@ bgav_demuxer_done_packet_read(bgav_demuxer_context_t * demuxer,
 
 /* Seek functions with superindex */
 
-static void seek_si(bgav_demuxer_context_t * ctx, gavl_time_t time)
+static void seek_si(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   {
   uint32_t i, j;
   int32_t start_packet;
@@ -735,16 +735,16 @@ static void seek_si(bgav_demuxer_context_t * ctx, gavl_time_t time)
   
   for(j = 0; j < track->num_audio_streams; j++)
     {
-    bgav_superindex_seek(ctx->si, &(track->audio_streams[j]), time);
+    bgav_superindex_seek(ctx->si, &(track->audio_streams[j]), time, scale);
     }
   for(j = 0; j < track->num_video_streams; j++)
     {
-    bgav_superindex_seek(ctx->si, &(track->video_streams[j]), time);
+    bgav_superindex_seek(ctx->si, &(track->video_streams[j]), time, scale);
     }
   for(j = 0; j < track->num_subtitle_streams; j++)
     {
     if(!track->subtitle_streams[j].data.subtitle.subreader)
-      bgav_superindex_seek(ctx->si, &(track->subtitle_streams[j]), time);
+      bgav_superindex_seek(ctx->si, &(track->subtitle_streams[j]), time, scale);
     }
   
   /* Find the start and end packet */
@@ -792,14 +792,14 @@ static void seek_si(bgav_demuxer_context_t * ctx, gavl_time_t time)
 
 #define MAX_SKIP_TIME  (GAVL_TIME_SCALE*5)
 
-static void skip_to(bgav_t * b, bgav_track_t * track, gavl_time_t * time)
+static void skip_to(bgav_t * b, bgav_track_t * track, int64_t * time, int scale)
   {
-  if(!bgav_track_skipto(track, time))
+  if(!bgav_track_skipto(track, time, scale))
     b->eof = 1;
   }
 
 void
-bgav_seek(bgav_t * b, gavl_time_t * time)
+bgav_seek_scaled(bgav_t * b, int64_t * time, int scale)
   {
   int i;
   gavl_time_t diff_time;
@@ -829,10 +829,10 @@ bgav_seek(bgav_t * b, gavl_time_t * time)
     /* This will set the "time" members of all streams */
     
     if(b->demuxer->si && !(b->demuxer->flags & BGAV_DEMUXER_SI_PRIVATE_FUNCS))
-      seek_si(b->demuxer, seek_time);
+      seek_si(b->demuxer, seek_time, scale);
     else
-      b->demuxer->demuxer->seek(b->demuxer, seek_time);
-    sync_time = bgav_track_resync_decoders(track);
+      b->demuxer->demuxer->seek(b->demuxer, seek_time, scale);
+    sync_time = bgav_track_resync_decoders(track, scale);
     if(sync_time == GAVL_TIME_UNDEFINED)
       {
       bgav_log(&b->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
@@ -845,10 +845,10 @@ bgav_seek(bgav_t * b, gavl_time_t * time)
     if(!(b->demuxer->flags & BGAV_DEMUXER_SEEK_ITERATIVE))
       {
       if(*time > sync_time)
-        skip_to(b, track, time);
+        skip_to(b, track, time, scale);
       else
         {
-        skip_to(b, track, &sync_time);
+        skip_to(b, track, &sync_time, scale);
         *time = sync_time;
         }
       break;
@@ -868,27 +868,27 @@ bgav_seek(bgav_t * b, gavl_time_t * time)
           if(last_sync_time != sync_time)
             {
             if(b->demuxer->si)
-              seek_si(b->demuxer, seek_time);
+              seek_si(b->demuxer, seek_time, scale);
             else
-              b->demuxer->demuxer->seek(b->demuxer, seek_time);
-            sync_time = bgav_track_resync_decoders(track);
+              b->demuxer->demuxer->seek(b->demuxer, seek_time, scale);
+            sync_time = bgav_track_resync_decoders(track, scale);
             }
           }
         else /* Go to 2nd last sync time */
           {
           if(last_sync_time != sync_time)
             {
-            b->demuxer->demuxer->seek(b->demuxer, seek_time);
-            sync_time = bgav_track_resync_decoders(track);
+            b->demuxer->demuxer->seek(b->demuxer, seek_time, scale);
+            sync_time = bgav_track_resync_decoders(track, scale);
             }
           }
 
         
         if(*time > sync_time)
-          skip_to(b, track, time);
+          skip_to(b, track, time, scale);
         else
           {
-          skip_to(b, track, &sync_time);
+          skip_to(b, track, &sync_time, scale);
           *time = sync_time;
           }
         break;
@@ -911,7 +911,7 @@ bgav_seek(bgav_t * b, gavl_time_t * time)
       }
     else if(diff_time > 0)
       {
-      skip_to(b, track, time);
+      skip_to(b, track, time, scale);
       break;
       }
     else if(diff_time < -SEEK_TOLERANCE)
@@ -923,7 +923,7 @@ bgav_seek(bgav_t * b, gavl_time_t * time)
       }
     else
       {
-      skip_to(b, track, &sync_time);
+      skip_to(b, track, &sync_time, scale);
       *time = sync_time;
       break;
       }
@@ -938,10 +938,16 @@ bgav_seek(bgav_t * b, gavl_time_t * time)
       /* Clear EOF state */
       track->subtitle_streams[i].data.subtitle.eof = 0;
       bgav_subtitle_reader_seek(&track->subtitle_streams[i],
-                                *time);
+                                *time, scale);
       }
     }
 
+  }
+
+void
+bgav_seek(bgav_t * b, gavl_time_t * time)
+  {
+  bgav_seek_scaled(b, time, GAVL_TIME_SCALE);
   }
 
 void bgav_formats_dump()

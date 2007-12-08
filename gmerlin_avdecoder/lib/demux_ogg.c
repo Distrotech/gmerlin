@@ -1808,7 +1808,7 @@ static void reset_track(bgav_track_t * track)
 
 /* Seeking in ogg: Gets quite complicated so we use iterative seeking */
 
-static void seek_ogg(bgav_demuxer_context_t * ctx, gavl_time_t time)
+static void seek_ogg(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   {
   int i, done;
   track_priv_t * track_priv;
@@ -1818,7 +1818,8 @@ static void seek_ogg(bgav_demuxer_context_t * ctx, gavl_time_t time)
   /* Seek to the file position */
   track_priv = (track_priv_t*)(ctx->tt->cur->priv);
   filepos = track_priv->start_pos +
-    (int64_t)((double)(time) / (double)(ctx->tt->cur->duration) *
+    (int64_t)((double)gavl_time_unscale(scale, time) /
+              (double)(ctx->tt->cur->duration) *
               (track_priv->end_pos - track_priv->start_pos));
   if(filepos <= track_priv->start_pos)
     filepos = find_first_page(ctx, track_priv->start_pos, track_priv->end_pos,

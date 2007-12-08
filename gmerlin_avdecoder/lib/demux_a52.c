@@ -151,11 +151,11 @@ static int next_packet_a52(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
-static void seek_a52(bgav_demuxer_context_t * ctx, gavl_time_t time)
+static void seek_a52(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   {
   int64_t file_position;
   a52_priv_t * priv;
-  gavl_time_t t;
+  int64_t t;
   bgav_stream_t * s;
 
   priv = (a52_priv_t *)(ctx->priv);
@@ -164,13 +164,13 @@ static void seek_a52(bgav_demuxer_context_t * ctx, gavl_time_t time)
   s = ctx->tt->cur->audio_streams;
     
   file_position = (time * (s->container_bitrate / 8)) /
-    GAVL_TIME_SCALE;
+    scale;
 
   /* Calculate the time before we add the start offset */
-  t = ((int64_t)file_position * GAVL_TIME_SCALE) /
+  t = ((int64_t)file_position * scale) /
     (s->container_bitrate / 8);
 
-  s->time_scaled = gavl_time_to_samples(priv->samplerate, t);
+  s->time_scaled = gavl_time_rescale(scale, priv->samplerate, t);
   priv->frame_count = s->time_scaled / FRAME_SAMPLES;
   
   file_position += ctx->data_start;

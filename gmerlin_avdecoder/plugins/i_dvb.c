@@ -74,6 +74,14 @@ static bg_parameter_info_t parameters[] =
       gettext_directory: LOCALE_DIR,
     },
     PARAM_DYNRANGE,
+    {
+      name:        "read_timeout",
+      long_name:   TRS("Read timeout (milliseconds)"),
+      type:        BG_PARAMETER_INT,
+      val_default: { val_i: 100 },
+      val_min:     { val_i: 0 },
+      val_max:     { val_i: 2000000 },
+    },
     { /* End of parameters */ }
   };
 

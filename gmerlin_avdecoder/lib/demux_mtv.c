@@ -233,7 +233,7 @@ static int next_packet_mtv(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
-static void seek_mtv(bgav_demuxer_context_t * ctx, gavl_time_t time)
+static void seek_mtv(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   {
   uint32_t file_position;
   uint32_t frame_number;
@@ -241,7 +241,7 @@ static void seek_mtv(bgav_demuxer_context_t * ctx, gavl_time_t time)
   mtv_priv_t * priv;
   priv = (mtv_priv_t*)(ctx->priv);
 
-  frame_number = gavl_time_scale(priv->video_fps, time);
+  frame_number = gavl_time_rescale(scale, priv->video_fps, time);
   file_position = MTV_HEADER_SIZE + priv->sync_size * frame_number;
   
   bgav_input_seek(ctx->input, file_position, SEEK_SET);

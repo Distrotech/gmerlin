@@ -427,17 +427,18 @@ static int next_packet_aiff(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
-static void seek_aiff(bgav_demuxer_context_t * ctx, gavl_time_t time)
+static void seek_aiff(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   {
   aiff_priv_t * priv;
   int64_t pos;
   int64_t time_scaled;
   time_scaled =
-    gavl_time_to_samples(ctx->tt->cur->audio_streams[0].data.audio.format.samplerate,
-                         time);
-
+    gavl_time_rescale(scale,
+                      ctx->tt->cur->audio_streams[0].data.audio.format.samplerate,
+                      time);
+  
   priv = (aiff_priv_t *)ctx->priv;
-
+  
   pos = time_2_pos(ctx, time_scaled);
   bgav_input_seek(ctx->input, pos, SEEK_SET);
   ctx->tt->cur->audio_streams[0].time_scaled = time_scaled;

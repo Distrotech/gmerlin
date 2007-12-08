@@ -200,7 +200,7 @@ void bgav_stream_resync_decoder(bgav_stream_t * s)
     }
   }
 
-int bgav_stream_skipto(bgav_stream_t * s, gavl_time_t * time)
+int bgav_stream_skipto(bgav_stream_t * s, gavl_time_t * time, int scale)
   {
   
   if(s->action != BGAV_STREAM_DECODE)
@@ -209,14 +209,14 @@ int bgav_stream_skipto(bgav_stream_t * s, gavl_time_t * time)
   switch(s->type)
     {
     case BGAV_STREAM_AUDIO:
-      return bgav_audio_skipto(s, time);
+      return bgav_audio_skipto(s, time, scale);
       break;
     case BGAV_STREAM_VIDEO:
-      return bgav_video_skipto(s, time);
+      return bgav_video_skipto(s, time, scale);
       break;
     case BGAV_STREAM_SUBTITLE_TEXT:
     case BGAV_STREAM_SUBTITLE_OVERLAY:
-      return bgav_subtitle_skipto(s, time);
+      return bgav_subtitle_skipto(s, time, scale);
       break;
     case BGAV_STREAM_UNKNOWN:
       break;

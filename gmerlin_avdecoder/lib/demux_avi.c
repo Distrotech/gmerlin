@@ -1313,11 +1313,12 @@ static int process_packet_iavs(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
-static void seek_iavs(bgav_demuxer_context_t * ctx, gavl_time_t time)
+static void seek_iavs(bgav_demuxer_context_t * ctx, gavl_time_t time,
+                      int scale)
   {
   bgav_superindex_seek(ctx->si,
                        ctx->tt->cur->video_streams,
-                       time);
+                       time, scale);
   ctx->tt->cur->audio_streams->time_scaled =
     ctx->tt->cur->video_streams->time_scaled;
   ctx->si->current_position = ctx->tt->cur->video_streams->index_position;
@@ -1883,12 +1884,12 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
   return result;
   }
 
-static void seek_avi(bgav_demuxer_context_t * ctx, gavl_time_t time)
+static void seek_avi(bgav_demuxer_context_t * ctx, gavl_time_t time, int scale)
   {
   avi_priv_t * priv;
   priv = (avi_priv_t*)ctx->priv;
   if(ctx->si && priv->has_iavs)
-    seek_iavs(ctx, time);
+    seek_iavs(ctx, time, scale);
   }
 
 bgav_demuxer_t bgav_demuxer_avi =

@@ -752,7 +752,7 @@ static int next_packet_nsv(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
-static void seek_nsv(bgav_demuxer_context_t * ctx, gavl_time_t time)
+static void seek_nsv(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   {
   int64_t frame_position;
   uint32_t index_position;
@@ -769,7 +769,7 @@ static void seek_nsv(bgav_demuxer_context_t * ctx, gavl_time_t time)
   if(!priv->fh.toc.frames) /* TOC version 1 */
     {
     index_position =
-      (uint32_t)((double)time / (double)(ctx->tt->cur->duration) *
+      (uint32_t)((double)gavl_time_unscale(scale, time) / (double)(ctx->tt->cur->duration) *
                  priv->fh.toc_size + 0.5);
     if(index_position >= priv->fh.toc_size)
       index_position = priv->fh.toc_size - 1;
@@ -808,10 +808,9 @@ static void seek_nsv(bgav_demuxer_context_t * ctx, gavl_time_t time)
 
   if(vs)
     {
-    frame_position =
-      gavl_time_to_frames(vs->data.video.format.timescale,
-                          vs->data.video.format.frame_duration,
-                          sync_time);
+    frame_position = gavl_time_rescale(scale, vs->data.video.format.timescale,
+                                       sync_time);
+    frame_position /= vs->data.video.format.frame_duration;
     vs->time_scaled =
       frame_position * vs->data.video.format.frame_duration;
     vs->in_position = frame_position;
@@ -819,7 +818,7 @@ static void seek_nsv(bgav_demuxer_context_t * ctx, gavl_time_t time)
   if(as)
     {
     as->time_scaled =
-      gavl_time_to_samples(as->data.audio.format.samplerate, sync_time)+
+      gavl_time_rescale(scale, as->data.audio.format.samplerate, sync_time)+
       gavl_time_rescale(1000, as->data.audio.format.samplerate, sh.syncoffs);
     }
   }

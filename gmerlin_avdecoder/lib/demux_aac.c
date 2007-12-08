@@ -551,21 +551,23 @@ static int next_packet_aac(bgav_demuxer_context_t * ctx)
   return 0;
   }
 
-static void seek_aac(bgav_demuxer_context_t * ctx, gavl_time_t time)
+static void seek_aac(bgav_demuxer_context_t * ctx, gavl_time_t time, int scale)
   {
   aac_priv_t * priv;
   uint32_t i;
   int64_t time_scaled;
   time_scaled =
-    gavl_time_to_samples(ctx->tt->cur->audio_streams[0].data.audio.format.samplerate,
-                         time);
+    gavl_time_rescale(scale,
+                      ctx->tt->cur->audio_streams[0].data.audio.format.samplerate,
+                      time);
   
   priv = (aac_priv_t *)(ctx->priv);
   i = priv->seek_table_size - 1;
   
-  while(priv->seek_table[i].time_scaled > time_scaled)
+  while((i>=0) && priv->seek_table[i].time_scaled > time_scaled)
     i--;
-  
+  if(i < 0)
+    return;
   bgav_input_seek(ctx->input, priv->seek_table[i].position, SEEK_SET);
   ctx->tt->cur->audio_streams->time_scaled = priv->seek_table[i].time_scaled;
   }

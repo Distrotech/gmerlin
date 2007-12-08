@@ -694,7 +694,7 @@ static void handle_metadata(bgav_demuxer_context_t * ctx)
     }
   }
 
-static void seek_flv(bgav_demuxer_context_t * ctx, gavl_time_t time)
+static void seek_flv(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   {
   double time_float;
   meta_object_t * obj;
@@ -729,7 +729,7 @@ static void seek_flv(bgav_demuxer_context_t * ctx, gavl_time_t time)
     return;
   
   /* Search index position */
-  time_float = gavl_time_to_seconds(time);
+  time_float = gavl_time_to_seconds(gavl_time_unscale(scale, time));
   for(i = times->data.array.num_elements-1; i >= 0; i--)
     {
     if(times->data.array.elements[i].data.number < time_float)
@@ -738,29 +738,16 @@ static void seek_flv(bgav_demuxer_context_t * ctx, gavl_time_t time)
   
   /* Seek to position */
   file_pos = (int64_t)(filepositions->data.array.elements[i].data.number)-4;
-  bgav_input_seek(ctx->input,
-                  file_pos,
-                  SEEK_SET);
+  bgav_input_seek(ctx->input, file_pos, SEEK_SET);
 
   /* Resync */
 
   while(1)
     {
-    if(!next_packet_flv(ctx))
-      {
-      break;
-      }
-    if(ctx->tt->cur->num_audio_streams &&
-       ctx->tt->cur->audio_streams[0].time_scaled < 0)
-      continue;
-    else if(ctx->tt->cur->num_video_streams &&
-            ctx->tt->cur->video_streams[0].time_scaled < 0)
-      continue;
-    else
+    if(!next_packet_flv(ctx) ||
+       bgav_track_has_sync(ctx->tt->cur))
       break;
     }
-
-  
   }
      
 

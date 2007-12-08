@@ -459,7 +459,7 @@ void bgav_stream_resync_decoder(bgav_stream_t * s);
  * Skip to a specific point which must be larger than the current stream time
  */
 
-int bgav_stream_skipto(bgav_stream_t * s, gavl_time_t * time);
+int bgav_stream_skipto(bgav_stream_t * s, int64_t * time, int scale);
 
 /*
  *  Chapter list
@@ -533,11 +533,11 @@ void bgav_track_clear(bgav_track_t * track);
 
 /* Resync the decoders, return the latest time, where we can start decoding again */
 
-gavl_time_t bgav_track_resync_decoders(bgav_track_t*);
+gavl_time_t bgav_track_resync_decoders(bgav_track_t*, int scale);
 
 /* Skip to a specific point */
 
-int bgav_track_skipto(bgav_track_t*, gavl_time_t * time);
+int bgav_track_skipto(bgav_track_t*, int64_t * time, int scale);
 
 /* Find stream among ALL streams, also switched off ones */
 
@@ -682,7 +682,7 @@ struct bgav_input_s
 
   /* Time based seek function for media, which are not stored
      stricktly linear. Time is changed to the actual seeked time */
-  void (*seek_time)(bgav_input_context_t*, gavl_time_t);
+  void (*seek_time)(bgav_input_context_t*, int64_t time, int scale);
   
   /* Some inputs autoscan the available devices */
   bgav_device_info_t (*find_devices)();
@@ -901,7 +901,7 @@ void bgav_superindex_add_packet(bgav_superindex_t * idx,
 
 void bgav_superindex_seek(bgav_superindex_t * idx,
                           bgav_stream_t * s,
-                          gavl_time_t time);
+                          int64_t time, int scale);
 
 void bgav_superindex_dump(bgav_superindex_t * idx);
 
@@ -920,7 +920,7 @@ struct bgav_demuxer_s
    *  member of the stream
    */
   
-  void (*seek)(bgav_demuxer_context_t*, gavl_time_t);
+  void (*seek)(bgav_demuxer_context_t*, int64_t time, int scale);
   void (*close)(bgav_demuxer_context_t*);
 
   /* Some demuxers support multiple tracks. This can fail e.g.
@@ -1011,7 +1011,7 @@ bgav_demuxer_done_packet_read(bgav_demuxer_context_t * demuxer,
 
 void
 bgav_demuxer_seek(bgav_demuxer_context_t * demuxer,
-                  gavl_time_t time);
+                  int64_t time, int scale);
 
 /*
  *  Start a demuxer. Some demuxers (most notably quicktime)
@@ -1286,7 +1286,7 @@ void bgav_audio_resync(bgav_stream_t * stream);
 
 /* Skip to a point in the stream, return 0 on EOF */
 
-int bgav_audio_skipto(bgav_stream_t * stream, gavl_time_t * t);
+int bgav_audio_skipto(bgav_stream_t * stream, int64_t * t, int scale);
 
 /* video.c */
 
@@ -1297,7 +1297,7 @@ void bgav_video_stop(bgav_stream_t * s);
 
 void bgav_video_resync(bgav_stream_t * stream);
 
-int bgav_video_skipto(bgav_stream_t * stream, gavl_time_t * time);
+int bgav_video_skipto(bgav_stream_t * stream, int64_t * t, int scale);
 
 /* subtitle.c */
 
@@ -1308,7 +1308,7 @@ void bgav_subtitle_stop(bgav_stream_t * s);
 
 void bgav_subtitle_resync(bgav_stream_t * stream);
 
-int bgav_subtitle_skipto(bgav_stream_t * stream, gavl_time_t * time);
+int bgav_subtitle_skipto(bgav_stream_t * stream, int64_t * t, int scale);
 
 
 /* codecs.c */
@@ -1396,7 +1396,7 @@ struct bgav_subtitle_reader_s
   
   int (*init)(bgav_stream_t*);
   void (*close)(bgav_stream_t*);
-  void (*seek)(bgav_stream_t*,gavl_time_t);
+  void (*seek)(bgav_stream_t*,int64_t time, int scale);
   
   int (*read_subtitle_text)(bgav_stream_t*);
   int (*read_subtitle_overlay)(bgav_stream_t*);
@@ -1412,7 +1412,7 @@ void bgav_subtitle_reader_stop(bgav_stream_t *);
 void bgav_subtitle_reader_destroy(bgav_stream_t *);
 
 void bgav_subtitle_reader_seek(bgav_stream_t *,
-                               gavl_time_t time);
+                               int64_t time, int scale);
 
 int bgav_subtitle_reader_has_subtitle(bgav_stream_t * s);
 

@@ -886,7 +886,8 @@ static int next_packet_mpegaudio(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
-static void seek_mpegaudio(bgav_demuxer_context_t * ctx, gavl_time_t time)
+static void seek_mpegaudio(bgav_demuxer_context_t * ctx, int64_t time,
+                           int scale)
   {
   int64_t pos;
   mpegaudio_priv_t * priv;
@@ -899,15 +900,16 @@ static void seek_mpegaudio(bgav_demuxer_context_t * ctx, gavl_time_t time)
     {
     pos =
       bgav_xing_get_seek_position(&(priv->xing),
-                                  100.0 * (float)time / (float)(ctx->tt->cur->duration));
+                                  100.0 * (float)gavl_time_unscale(scale, time) / (float)(ctx->tt->cur->duration));
     }
   else /* CBR */
     {
-    pos = ((priv->data_end - priv->data_start) * time) / ctx->tt->cur->duration;
+    pos = ((priv->data_end - priv->data_start) * gavl_time_unscale(scale, time)) / ctx->tt->cur->duration;
     }
-
+  
   s->time_scaled =
-    gavl_time_to_samples(ctx->tt->cur->audio_streams[0].data.audio.format.samplerate, time);
+    gavl_time_rescale(scale,
+                      ctx->tt->cur->audio_streams[0].data.audio.format.samplerate, time);
   
   pos += priv->data_start;
   bgav_input_seek(ctx->input, pos, SEEK_SET);

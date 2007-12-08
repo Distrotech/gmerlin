@@ -151,7 +151,8 @@ static int next_packet_dv(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
-static void seek_dv(bgav_demuxer_context_t * ctx, gavl_time_t time)
+static void seek_dv(bgav_demuxer_context_t * ctx, int64_t time,
+                    int scale)
   {
   int64_t file_position;
   dv_priv_t * priv;
@@ -162,9 +163,9 @@ static void seek_dv(bgav_demuxer_context_t * ctx, gavl_time_t time)
   vs = ctx->tt->cur->video_streams;
   as = ctx->tt->cur->audio_streams;
   
-  frame_pos = gavl_time_to_frames(vs->data.video.format.timescale,
-                                  vs->data.video.format.frame_duration,
-                                  time);
+  frame_pos = gavl_time_rescale(scale, vs->data.video.format.timescale,
+                                time);
+  frame_pos /= vs->data.video.format.frame_duration;
   
   file_position = frame_pos * priv->frame_size;
 

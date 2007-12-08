@@ -1099,7 +1099,7 @@ static int next_packet_asf(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
-static void seek_asf(bgav_demuxer_context_t * ctx, gavl_time_t time)
+static void seek_asf(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   {
   int64_t filepos;
   asf_t * asf = (asf_t*)(ctx->priv);
@@ -1107,7 +1107,7 @@ static void seek_asf(bgav_demuxer_context_t * ctx, gavl_time_t time)
   
   asf->packets_read =
     (int64_t)((double)asf->hdr.packets_count *
-              (gavl_time_to_seconds(time)/
+              (gavl_time_to_seconds(gavl_time_unscale(scale, time))/
                gavl_time_to_seconds(ctx->tt->cur->duration)));
   
   filepos = ctx->data_start +

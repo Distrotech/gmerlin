@@ -301,7 +301,7 @@ void bgav_subtitle_resync(bgav_stream_t * s)
     s->data.subtitle.decoder->decoder->resync(s);
   }
 
-int bgav_subtitle_skipto(bgav_stream_t * s, gavl_time_t * time)
+int bgav_subtitle_skipto(bgav_stream_t * s, int64_t * time, int scale)
   {
   return 0;
   }

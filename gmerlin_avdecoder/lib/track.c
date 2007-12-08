@@ -462,7 +462,7 @@ void bgav_track_clear(bgav_track_t * track)
     bgav_stream_clear(&(track->subtitle_streams[i]));
   }
 
-gavl_time_t bgav_track_resync_decoders(bgav_track_t * track)
+gavl_time_t bgav_track_resync_decoders(bgav_track_t * track, int scale)
   {
   int i;
   gavl_time_t ret = 0;
@@ -486,10 +486,11 @@ gavl_time_t bgav_track_resync_decoders(bgav_track_t * track)
                "Couldn't resync audio stream after seeking, maybe EOF");
       return GAVL_TIME_UNDEFINED;
       }
-    test_time = gavl_time_unscale(s->timescale, s->time_scaled);
+    test_time = gavl_time_rescale(s->timescale, scale, s->time_scaled);
     s->out_position =
-      gavl_time_to_samples(s->data.audio.format.samplerate,
-                           test_time);
+      gavl_time_rescale(s->timescale,
+                        s->data.audio.format.samplerate,
+                        test_time);
     if(test_time > ret)
       ret = test_time;
     }
@@ -525,30 +526,29 @@ gavl_time_t bgav_track_resync_decoders(bgav_track_t * track)
                "Couldn't resync video stream after seeking, maybe EOF");
       return GAVL_TIME_UNDEFINED;
       }
-    test_time = gavl_time_unscale(s->timescale, s->time_scaled);
-    
-    s->out_position =
-      gavl_time_to_frames(s->data.video.format.timescale,
-                          s->data.video.format.frame_duration,
-                          test_time);
+    test_time = gavl_time_rescale(s->timescale, scale, s->time_scaled);
+    s->out_position = gavl_time_rescale(s->timescale,
+                                        s->data.video.format.timescale,
+                                        s->time_scaled);
+    s->out_position /= s->data.video.format.frame_duration;
     if(test_time > ret)
       ret = test_time;
     }
   return ret;
   }
 
-int bgav_track_skipto(bgav_track_t * track, gavl_time_t * time)
+int bgav_track_skipto(bgav_track_t * track, int64_t * time, int scale)
   {
   int i;
   bgav_stream_t * s;
-  gavl_time_t t;
+  int64_t t;
   
   for(i = 0; i < track->num_video_streams; i++)
     {
     t = *time;
     s = &(track->video_streams[i]);
     
-    if(!bgav_stream_skipto(s, &t))
+    if(!bgav_stream_skipto(s, &t, scale))
       {
       return 0;
       }
@@ -559,7 +559,7 @@ int bgav_track_skipto(bgav_track_t * track, gavl_time_t * time)
     {
     s = &(track->audio_streams[i]);
 
-    if(!bgav_stream_skipto(s, time))
+    if(!bgav_stream_skipto(s, time, scale))
       {
       return 0;
       }

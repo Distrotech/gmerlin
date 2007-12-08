@@ -273,21 +273,17 @@ static int next_packet_mpc(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
-static void seek_mpc(bgav_demuxer_context_t * ctx, gavl_time_t time)
+static void seek_mpc(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   {
-  int64_t sample;
   bgav_stream_t * s;
   
   mpc_priv_t * priv;
   priv = (mpc_priv_t *)(ctx->priv);
 
   s = &(ctx->tt->cur->audio_streams[0]);
-  
-  sample = gavl_time_to_samples(s->data.audio.format.samplerate,
-                                time);
 
-  mpc_decoder_seek_sample(&(priv->dec), sample);
-  s->time_scaled = sample;
+  s->time_scaled = gavl_time_rescale(scale, s->timescale, time);
+  mpc_decoder_seek_sample(&(priv->dec), s->time_scaled);
   }
 
 static void close_mpc(bgav_demuxer_context_t * ctx)
