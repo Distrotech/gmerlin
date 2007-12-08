@@ -439,10 +439,18 @@ numeric types, or supported options for strings (if available).
 Type @code{gmerlin} with optionally any number of files or URLs to start this.
 
 @menu
+* Usage: gmerlin_player_usage.
 * Media tree::
 * The main window::
 * The video window::
 @end menu
+
+
+@node gmerlin_player_usage
+@subsection Commandline options
+
+@include gmerlin_player.texi
+
 
 @node Media tree
 @subsection Media tree
@@ -460,15 +468,41 @@ be played immediately. In addition to the regular albums, there are a
 number of special albums:
 
 @itemize @bullet
-@item @emph{Incoming:} It's the destination for tracks, which come from
+@item @emph{Incoming:}
+@ifhtml
+@image{../img/incoming_closed_16}
+@end ifhtml
+
+It's the destination for tracks, which come from
 the comandline or from the remote.
 
-@item @emph{Favourites:} Each regular album has a Favourites button, which
+@item @emph{Favourites:}
+@ifhtml
+@image{../img/favourites_closed_16}
+@end ifhtml
+
+Each regular album has a Favourites button
+@ifhtml
+@image{../img/favourites_16}
+@end ifhtml
+, which
 lets you copy the selected tracks to the favourites. It's useful for
 quickly making a selection of tracks from multiple different albums.
 
-@item @emph{Plugin and device albums:} Each plugin, which handles e.g.
-cdrom drives, will create a plugin album. The available devices are
+@item @emph{Plugin and device albums:}
+@ifhtml
+@image{../img/hardware_16}
+@end ifhtml
+
+Each plugin, which handles devices like removable disc drives
+@ifhtml
+@image{../img/drive_running_16}
+@end ifhtml
+or tuners
+@ifhtml
+@image{../img/tuner_16}
+@end ifhtml
+will create a plugin album. The available devices are
 then autoscanned and added as subalbums. Device albums are a bit limited:
 You can delete or reorder tracks, but you cannot move tracks from/to other
 albums.
@@ -480,7 +514,14 @@ Adding tracks to the media tree can happen in multiple ways:
 @itemize @bullet
 @item Drag Files or URLs from filenanagers or webbrowsers into an album
 folder in the tree or into an album directly.
-@item Use the buttons in the album toolbar, or the right click menu
+@item Use the buttons
+@ifhtml
+@image{../img/folder_open_16}
+@end ifhtml
+@ifhtml
+@image{../img/earth_16}
+@end ifhtml
+in the album toolbar, or the right click menu
 @item Via the right-click menu (Album->New from directory...) of the tree
 window, you can import entire directory trees. Subdirectories will be added
 as subalbums if you want.
