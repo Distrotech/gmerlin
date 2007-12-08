@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-11-26 20:19+0100\n"
+"POT-Creation-Date: 2007-12-08 17:50+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -32,7 +32,7 @@ msgstr ""
 msgid "Connect timeout (milliseconds)"
 msgstr ""
 
-#: plugins/i_avdec.c:116
+#: plugins/i_avdec.c:116 plugins/i_dvb.c:79
 msgid "Read timeout (milliseconds)"
 msgstr ""
 
@@ -231,11 +231,11 @@ msgid ""
 "channels.conf will be searched."
 msgstr ""
 
-#: plugins/i_dvb.c:91
+#: plugins/i_dvb.c:99
 msgid "DVB Player"
 msgstr ""
 
-#: plugins/i_dvb.c:92
+#: plugins/i_dvb.c:100
 msgid ""
 "Plugin for playing DVB streams from a Linux-DVB compatible card. Based on "
 "Gmerlin avdecoder."
@@ -299,7 +299,7 @@ msgstr ""
 msgid "Palette missing or too small %d"
 msgstr ""
 
-#: lib/in_file.c:43
+#: lib/in_file.c:48
 #, c-format
 msgid "Cannot open %s: %s"
 msgstr ""
@@ -314,17 +314,17 @@ msgstr ""
 msgid "Unknown specifier: %c"
 msgstr ""
 
-#: lib/input.c:722
+#: lib/input.c:724
 #, c-format
 msgid "Unknown protocol: %s"
 msgstr ""
 
-#: lib/input.c:794
+#: lib/input.c:796
 #, c-format
 msgid "Got redirected to %s"
 msgstr ""
 
-#: lib/input.c:1036
+#: lib/input.c:1038
 #, c-format
 msgid "Reopening %s failed"
 msgstr ""
@@ -341,7 +341,7 @@ msgstr ""
 msgid "Integer point data is not supported"
 msgstr ""
 
-#: lib/demux_wavpack.c:181
+#: lib/demux_wavpack.c:181 lib/mpegts_common.c:297
 msgid "Lost sync"
 msgstr ""
 
@@ -495,7 +495,7 @@ msgstr ""
 msgid "Setting up track failed"
 msgstr ""
 
-#: lib/demux_avi.c:1600
+#: lib/demux_avi.c:1601
 #, c-format
 msgid "Unknown stream type: %c%c%c%c"
 msgstr ""
@@ -587,7 +587,7 @@ msgstr ""
 msgid "Couldn't resync audio stream after seeking, maybe EOF"
 msgstr ""
 
-#: lib/track.c:525
+#: lib/track.c:526
 msgid "Couldn't resync video stream after seeking, maybe EOF"
 msgstr ""
 
@@ -725,11 +725,11 @@ msgstr ""
 msgid "Got zero packet size (somethings wrong?)"
 msgstr ""
 
-#: lib/demux_flv.c:794
+#: lib/demux_flv.c:781
 msgid "Zero flags detected, assuming audio and video (might fail)"
 msgstr ""
 
-#: lib/demux_flv.c:871
+#: lib/demux_flv.c:858
 msgid "Getting duration from last timestamp failed"
 msgstr ""
 
@@ -792,12 +792,12 @@ msgstr ""
 msgid "Got initial audio timestamp: %s"
 msgstr ""
 
-#: lib/audio.c:176
+#: lib/audio.c:178
 #, c-format
 msgid "Cannot skip backwards: Stream time: %f skip time: %f difference: %s"
 msgstr ""
 
-#: lib/audio.c:185
+#: lib/audio.c:187
 #, c-format
 msgid "Skipping %s samples"
 msgstr ""
@@ -833,7 +833,7 @@ msgstr ""
 msgid "ifoOpen failed"
 msgstr ""
 
-#: lib/in_dvd.c:756 lib/in_dvd.c:1026
+#: lib/in_dvd.c:756 lib/in_dvd.c:1029
 #, c-format
 msgid "Reading NAV packet at sector %d failed"
 msgstr ""
@@ -843,7 +843,7 @@ msgstr ""
 msgid "Reading blocks at %d failed"
 msgstr ""
 
-#: lib/in_dvd.c:1209
+#: lib/in_dvd.c:1203
 #, c-format
 msgid "Cannot open DVD Device %s"
 msgstr ""
@@ -861,7 +861,7 @@ msgstr ""
 msgid "Invalid samplerate"
 msgstr ""
 
-#: lib/subread.c:392 lib/subread.c:547
+#: lib/subread.c:392 lib/subread.c:549
 msgid "yml node has no start attribute"
 msgstr ""
 
@@ -892,7 +892,7 @@ msgstr ""
 msgid "Parsing spumux file failed"
 msgstr ""
 
-#: lib/subread.c:558
+#: lib/subread.c:560
 msgid "Error parsing start attribute"
 msgstr ""
 
@@ -933,12 +933,8 @@ msgstr ""
 msgid "Cannot skip backwards, stream_time: %s, sync_time: %s"
 msgstr ""
 
-#: lib/mpegts_common.c:298
-msgid "transport_packet_read: Out of sync"
-msgstr ""
-
-#: lib/mpegts_common.c:307
-msgid "transport_error"
+#: lib/mpegts_common.c:326
+msgid "Invalid packet"
 msgstr ""
 
 #: lib/utils.c:538
@@ -1135,11 +1131,11 @@ msgstr ""
 msgid "Speex needs extradata"
 msgstr ""
 
-#: lib/demux_ffmpeg.c:569
+#: lib/demux_ffmpeg.c:554
 msgid "av_open_input_stream failed"
 msgstr ""
 
-#: lib/demux_ffmpeg.c:579
+#: lib/demux_ffmpeg.c:564
 msgid "av_find_stream_info failed"
 msgstr ""
 
@@ -1220,49 +1216,57 @@ msgstr ""
 msgid "Read header failed"
 msgstr ""
 
-#: lib/demux_mpegts.c:140
+#: lib/demux_mpegts.c:143
 #, c-format
 msgid "Detected pts wrap (%s < %s)"
 msgstr ""
 
-#: lib/demux_mpegts.c:499
+#: lib/demux_mpegts.c:197
+msgid "Too many transport errors"
+msgstr ""
+
+#: lib/demux_mpegts.c:200
+msgid "Transport error"
+msgstr ""
+
+#: lib/demux_mpegts.c:530
 msgid "PAT section spans multiple packets, please report"
 msgstr ""
 
-#: lib/demux_mpegts.c:508
+#: lib/demux_mpegts.c:539
 msgid "PAT has multiple sections, please report"
 msgstr ""
 
-#: lib/demux_mpegts.c:542
+#: lib/demux_mpegts.c:573
 msgid "Premature EOF"
 msgstr ""
 
-#: lib/demux_mpegts.c:555
+#: lib/demux_mpegts.c:586
 msgid "Lost sync during initializing"
 msgstr ""
 
-#: lib/demux_mpegts.c:593
+#: lib/demux_mpegts.c:624
 msgid "PMT section spans multiple packets, please report"
 msgstr ""
 
-#: lib/demux_mpegts.c:600
+#: lib/demux_mpegts.c:631
 msgid "PMT has multiple sections, please report"
 msgstr ""
 
-#: lib/demux_mpegts.c:881
+#: lib/demux_mpegts.c:912
 msgid "Cannot get packet size"
 msgstr ""
 
-#: lib/demux_mpegts.c:885
+#: lib/demux_mpegts.c:916
 #, c-format
 msgid "Packet size: %d"
 msgstr ""
 
-#: lib/demux_mpegts.c:998
+#: lib/demux_mpegts.c:1029
 msgid "Could not get program durations, seeking disabled"
 msgstr ""
 
-#: lib/demux_mpegts.c:1017
+#: lib/demux_mpegts.c:1048
 #, c-format
 msgid "Next PCR wrap in %s"
 msgstr ""
