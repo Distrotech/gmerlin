@@ -415,7 +415,7 @@ static void menu_callback(GtkWidget * w, gpointer data)
     }
   else if(w == the_menu->help_menu.help)
     {
-    bg_display_html_help("userguide/Player.html");
+    bg_display_html_help("userguide/GUI-Player.html");
     }
   
   else if(w == the_menu->windows_menu.mediatree)

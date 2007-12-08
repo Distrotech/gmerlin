@@ -254,8 +254,8 @@ location, the DLLs will also be found by other players.
 @menu
 * Configuration data::
 * GUI::
-* Remote control::
-* Commandline options::
+* GML Syntax: gml.
+* Setting parameters from the commandline::
 @end menu
 
 @node Configuration data
@@ -271,10 +271,27 @@ corresponds to the application. Normally, this shouldn't be necessary.
 
 @node GUI
 @section GUI
+
+@menu
+* Introduction: gui_intro.
+* Static and dynamic parameters: gui_statdyn.
+* Selecting output plugins: gui_op.
+* Configuring input plugins: gui_i.
+* Configuring filters: gui_f.
+* Log messages: gui_log.
+* Tips: gui_tips.
+@end menu
+
+@node gui_intro
+@subsection Introduction
+
 We try to make this as consistent as possible across the applications.
 In many windows, you'll see context sensitive menus when you right
 click somewhere. Furthermore, tooltips are enabled in all programs by
 default. You can, however, switch them off if they bother you. 
+
+@node gui_statdyn
+@subsection Static and dynamic parameters
 
 All GUI applications have their own configuration data.
 This means, that plugin configurations are not shared between
@@ -307,79 +324,153 @@ dialog. You can expect them to be present on every gmerlin installation
 of the same version. The plugin options vary depending on what plugins
 are installed (that's the reason, why they are separated).
 
-@strong{Some GUI tips}
+@node gui_op
+@subsection Selecting output plugins
+
+@node gui_i
+@subsection Configuring input plugins 
+
+@ifhtml
+@image{../img/gui_i}
+@end ifhtml
+
+This dialog lets you control, how input plugins (or image reader plugins)
+are loaded. The widgets on the right are valid for the plugin, which is selected
+on the left. You have the following options:
+
+@table @b
+@item Parameters
+@ifhtml
+@image{../img/config_16}
+@end ifhtml
+Lets you set parameters of the plugin. These will be valid when an instance of
+the plugin is opened the next time. If you configure hardware plugins in the player,
+you must close and reopen all device albums for the changes to become effective.
+For plugins, which have no options, this button is disabled.
+@item Info
+@ifhtml
+@image{../img/info_16}
+@end ifhtml
+Pops up a window showing much of the information, which is known to the plugin
+registry.
+@item Priority
+This lets you change the priority of the plugin, if multiple plugins are
+available for a gml. The value can be between 1 and 10. Usually, the default
+priorities are ok. But for image files, the priorities of the ``Image stills input plugin'' and the ``Image video input plugin'' decide, whether images are displayed
+as a slideshow or a video.
+@item Protocols
+Lets you configure the supported network protocols. The protocols should rarely
+be changed and changes are overwritten by a new install of the plugin. For plugins,
+which don't support network streams, the protocols cannot be changed.
+@item Extensions
+Lets you configure the file extensions, which are associated with the plugin.
+If you change the extensions, they are overwritten by a new install of the plugin.
+That's a good reason to report missing file extensions to the developers.
+@end table
+
+@node gui_f
+@subsection Configuring filters
+
+@ifhtml
+@image{../img/gui_f}
+@end ifhtml
+
+This dialog lets you build a filter chain to apply additional changes to the
+A/V data. The GUI player will apply most changes during playback (reinitializing the
+playback pipelines if necessary), the transcoder can change filter chains only per
+track. The filters are processed in top-to-bottom order.
+
+You have the following buttons:
+
+@table @b
+@item Add filter
+@ifhtml
+@image{../img/add_16}
+@end ifhtml
+Pops up a dialog, which will let you add new filters to the chain.
+Filter are always added to the end of the chain.
+@item Remove filter
+@ifhtml
+@image{../img/trash_16}
+@end ifhtml
+Deletes the currently selected filter
+@item Configure filter
+@ifhtml
+@image{../img/config_16}
+@end ifhtml
+Set parameters of the currently selected filter 
+@item Move to top
+@ifhtml
+@image{../img/top_16}
+@end ifhtml
+Move filter to the top (= the beginning) of the chain
+@item Move up
+@ifhtml
+@image{../img/up_16}
+@end ifhtml
+Move filter up by one
+@item Move down
+@ifhtml
+@image{../img/down_16}
+@end ifhtml
+Move filter down by one
+@item Move to top
+@ifhtml
+@image{../img/bottom_16}
+@end ifhtml
+Move filter to the bottom (= the end) of the chain
+@end table
+
+@b{Note for the player}
+
+Even though filter parameters are changed on the fly,
+pressing ``cancel'', without pressing ``apply'' before will
+revert all changes you made.
+
+@node gui_log
+@subsection Log messages
+Messages from pretty much everywhere in the applications are sent through the
+logging mechanism, and finally show up in the log window. It's the first place to
+look, if something does not work as expected (e.g. an URL does not load).
+There are 4 different types of messages, @b{error}, @b{warning}, @b{info} and
+@b{debug}. In the configuration for the log window, you can select, which message
+you want to see and the colors of the messages.
+@node gui_tips
+@subsection Tips
 
 @itemize
 @item Many buttons, which are assosiated with a list, are disabled unless you select an item in the list
 @item Doubleclicking onto the background of a slider (@strong{not} the slider itself) resets it to the
       factory default
 @end itemize
- 
 
-@node Remote control
+@node gml
+@section GML Syntax
 
-@section Remote control
-The player and the transcoder are remotely controllable by the commandline
-programs @code{gmerlin_remote} and @code{gmerlin_transcoder_remote}
-respectively.
-Call them with @code{-help} as argument to see the options. The remote servers
-listen at ports starting with 10101 by default. You can change these via
-environment variables:
+GMLs (Gmerlin media locations) are pretty much similar to URLs or
+MRLs with the difference, that device plugins support passing the device.
+A gml can be:
 
-@table @var
-@item GMERLIN_PLAYER_REMOTE_PORT
-Port for the player remote, default 10101
-
-@item GMERLIN_TRANSCODER_REMOTE_PORT
-Port for the transcoder remote, default 10102
+@table @bullet
+@item A regular filename
+Optionally preceeded with ``file://''. This means, that @b{/files/music.mp3} is the same as
+@b{file:///files/music.mp3}.
+@item A dash ``-'' or the string ``stdin://'' for reading from stdin
+@item Any valid network URL
+Examples: @b{http://webstream.example.com:8080}, @b{ftp://user:pass@@ftp.example.com/music.mp3}
+@item A "hardare protocol" followed by the device like @b{cda:///dev/hdc}.
+Known hardware protocols are @b{cda} (Audio CD), @b{vcd}, @b{dvd} and
+@b{dvb}. The supported protocols may vary according to your installation.
 @end table
 
-By default, remote enabled applications will listen on the localhost
-(127.0.0.1) only. If you want to control your gmerlin applications from
-other computers too, enable it in their config dialogs.
 
-Remote commands can be used to launch gmerlin and/or open files, urls
-and devices. They allow seamless integration of gmerlin into existing
-desktop systems. Finally there is a script @code{gmerlin_launcher}. It can be
-used as a Mime handler by filenamagers and webbrowsers. If
-@code{gmerlin_launcher}
-is called with a file or URL as argument, it will launch a gmerlin player
-if neccessary, add the location to the Incoming album and start playing it.
+@node Setting parameters from the commandline
+@section Setting parameters from the commandline
 
-@node Commandline options
-@section Commandline options
-@strong{Warning, the commandline syntax is not completely frozen yet. It may
-change slightly or completely in future releases}
-
-Commandline options are divided into simple ones and the ones, which
-set parameters.
-
-The following options should always be supported by all applications: 
-
-@table @code
-@item -v <num>
-Set verbosity level. Values are
-@table @code
-@item 0
-Be completely quiet
-@item 1
-Print errors only
-@item 2
-Like 1 but print warnings also
-@item 3
-Like 2 but print info messages also
-@item 4
-Like 3 but print debug messages also
-@end table
-@item -help
-Print a help and exit. Pipe it into a pager to enable scrolling, like
-@code{gmerlin_player -help | less -R}.
-@end table
-
-Commandline options for parameters are handled completely analogous
-to the configuration dialogs of GUI applications, i.e. for each
-configuration item, which shows up in a GUI application, you'll have a
-parameter on the commandline.
+Gmerlin configuration handling provides the same features for both GUI
+applications and commandline programs. The natural result is, that the
+commandline syntax is a bit more complicated, since parameters can be
+nested.
 
 In General options have the form
 
@@ -409,7 +500,7 @@ Value is in the form
 The subparameters are optional. E.g. if the option is for selecting a
 plugin, setting string to @code{foo} will select the plugin @code{foo} and
 pass the subparameters (if avaliable) to the @code{foo} plugin.
-@item List with suboptions
+@item List or chain with suboptions
 This is like enumeration with suboptions with the difference, that
 you can concatenate multiple options together with colons (:) and
 must enclose everything with braces. For example:
@@ -439,18 +530,64 @@ numeric types, or supported options for strings (if available).
 Type @code{gmerlin} with optionally any number of files or URLs to start this.
 
 @menu
-* Usage: gmerlin_player_usage.
-* Media tree::
+* Invoking gmerlin: gmerlin_player_usage.
 * The main window::
+* Media tree::
 * The video window::
+* Configuring playback pipelines: gmerlin_player_avconfig.
 @end menu
 
 
 @node gmerlin_player_usage
-@subsection Commandline options
+@subsection Invoking gmerlin
 
 @include gmerlin_player.texi
 
+@node The main window
+@subsection The main window
+
+It's a usual player window, with self explanatory buttons. The menu
+button will show the main menu of the player. It lets you configure
+plugins and other global settings, show other windows, launch other
+applications and so on.
+
+You have the following keyboard shortcuts:
+
+@strong{Global commands}
+@table @kbd
+@item @key{CTRL}+G
+Pop up current album and goto current track
+
+@item @key{CTRL}+O
+Pop up preferences dialog
+
+@item @key{CTRL}+P
+Pop up plugin dialog
+
+@item @key{CTRL}+Q
+Quit program
+
+@end table
+
+@strong{Player control}
+@table @kbd
+
+@item CTRL+PAGEUP/PAGEDOWN
+Goto previous/next track
+
+@item CTRL+LEFT/RIGHT
+Seek backwards/forwards
+
+@item 0
+Seek to start
+
+@item SHIFT+LEFT/RIGHT
+Decrease/Increase volume
+
+@item SPACE
+Toggle play/pause
+
+@end table
 
 @node Media tree
 @subsection Media tree
@@ -620,51 +757,6 @@ Paste tracks from clipboard at the current cursor position
 Copy selected tracks to favourites
 @end table
 
-@node The main window
-@subsection The main window
-
-It's a usual player window, with self explanatory buttons. The menu
-button will show the main menu of the player. It lets you configure
-plugins and other global settings, show other windows, launch other
-applications and so on.
-
-You have the following keyboard shortcuts:
-
-@strong{Global commands}
-@table @kbd
-@item @key{CTRL}+G
-Pop up current album and goto current track
-
-@item @key{CTRL}+O
-Pop up preferences dialog
-
-@item @key{CTRL}+P
-Pop up plugin dialog
-
-@item @key{CTRL}+Q
-Quit program
-
-@end table
-
-@strong{Player control}
-@table @kbd
-
-@item CTRL+PAGEUP/PAGEDOWN
-Goto previous/next track
-
-@item CTRL+LEFT/RIGHT
-Seek backwards/forwards
-
-@item 0
-Seek to start
-
-@item SHIFT+LEFT/RIGHT
-Decrease/Increase volume
-
-@item SPACE
-Toggle play/pause
-
-@end table
 
 @node The video window
 @subsection The video window
@@ -752,6 +844,55 @@ Decrease/Increase volume
 Toggle play/pause
 
 @end table
+
+@node gmerlin_player_avconfig
+@subsection Configuring playback pipelines
+
+The configuration for audio, video and subtitle handling is almost the same.
+
+@b{Main menu}
+
+For each category, you have a main menu.
+
+@ifhtml
+@image{../img/player_avconfig_menu}
+@end ifhtml
+
+In the upper part, you can select the available streams.
+You can also switch the stream off.
+
+In the lower part, you can set global (= plugin independent) options
+@ifhtml
+@image{../img/config_16}
+@end ifhtml
+, Filters
+@ifhtml
+@image{../img/filter_16}
+@end ifhtml
+ (See @ref{gui_f, Configuring filters})
+and the output plugin
+@ifhtml
+@image{../img/plugin_16}
+@end ifhtml
+.
+
+@b{Output plugin menu}
+
+@ifhtml
+@image{../img/player_avconfig_plugin}
+@end ifhtml
+
+In the upper part, you can change the output plugin (even during playback).
+In the lower part, you can configure
+@ifhtml
+@image{../img/config_16}
+@end ifhtml
+the plugin or show information  
+@ifhtml
+@image{../img/info_16}
+@end ifhtml
+about the plugin.
+
 
 @node Player remote control
 @section Player remote control

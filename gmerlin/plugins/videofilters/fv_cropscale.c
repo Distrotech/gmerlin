@@ -212,8 +212,8 @@ static bg_parameter_info_t parameters[] =
                                 TRS("NTSC VCD (352 x 240)"),
                                 TRS("NTSC SVCD 4:3 (480 x 480)"),
                                 TRS("NTSC SVCD 16:9 (480 x 480)"),
-                                TRS("HD 720p/i (1280x720)")
-                                TRS("HD 1080p/i (1920x1080)")
+                                TRS("HD 720p/i (1280x720)"),
+                                TRS("HD 1080p/i (1920x1080)"),
                                 TRS("VGA (640 x 480)"),
                                 TRS("QVGA (320 x 240)"),
                                 (char*)0 },

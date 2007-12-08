@@ -1475,6 +1475,9 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
   
   if(!location)
     return 0;
+
+  if(!strncmp(location, "file://", 7))
+    location += 7;
   
   real_location = location;
   
@@ -1550,7 +1553,7 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
   if(!try_and_error)
     return 0;
   
-  flags = bg_string_is_url(location) ? BG_PLUGIN_URL : BG_PLUGIN_FILE;
+  flags = bg_string_is_url(real_location) ? BG_PLUGIN_URL : BG_PLUGIN_FILE;
   
   num_plugins = bg_plugin_registry_get_num_plugins(reg,
                                                    BG_PLUGIN_INPUT, flags);
@@ -1567,14 +1570,14 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
       continue;
     
     plugin = (bg_input_plugin_t*)((*ret)->plugin);
-    if(!plugin->open((*ret)->priv, location))
+    if(!plugin->open((*ret)->priv, real_location))
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, TRS("Opening %s with \"%s\" failed"),
              location, info->long_name);
       }
     else
       {
-      (*ret)->location = bg_strdup((*ret)->location, location);
+      (*ret)->location = bg_strdup((*ret)->location, real_location);
       return 1;
       }
     }
