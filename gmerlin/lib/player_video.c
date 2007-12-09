@@ -40,6 +40,7 @@ void bg_player_video_destroy(bg_player_t * p)
   {
   pthread_mutex_destroy(&(p->video_stream.config_mutex));
   bg_gavl_video_options_free(&(p->video_stream.options));
+  bg_video_filter_chain_destroy(p->video_stream.fc);
   }
 
 int bg_player_video_init(bg_player_t * player, int video_stream)

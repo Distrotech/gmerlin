@@ -27,9 +27,23 @@
 
 #define HOSTNAME_MAX_LEN 512
 
+static int do_substitute(uint8_t c)
+  {
+  if(!isalnum(c) &&
+     (c != '-') && 
+     (c != '_') && 
+     (c != '~') && 
+     (c != ':') && 
+     (c != '/') && 
+     (c != '.'))
+    return 1;
+  if((c <= 32) || (c >= 127))
+    return 1;
+  return 0;
+  }
+
 char * bg_string_to_uri(const char * _pos, int len)
   {
-  int i_tmp;
   char * ret;
   char * dst;
   int i;
@@ -48,20 +62,17 @@ char * bg_string_to_uri(const char * _pos, int len)
 
   for(i = 0; i < len; i++)
     {
-    if(pos[i] & 0x80)
+    if(do_substitute(pos[i]))
       num_substitutions++;
     }
-
   ret = calloc(1, len + num_substitutions * 2 + 1);
   dst = ret;
 
   for(i = 0; i < len; i++)
     {
-    if(pos[i] & 0x80)
+    if(do_substitute(pos[i]))
       {
-      i_tmp = (pos[i] ^ 0x80);
       sprintf(dst, "%%%02X", pos[i]);
-      //      dst[0] = '%';
       dst += 3;
       }
     else

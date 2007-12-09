@@ -206,6 +206,16 @@ int bg_url_split(const char * url,
                  int * port,
                  char ** path);
 
+/** \brief Get thumbnail filename
+ *  \param gml
+ *  \returns Filename of the corresponding thumbnail
+ *
+ *  This function allocates the returned string, thus it must be
+ *  freed by the caller.
+ */
+
+char * bg_get_tumbnail_file(const char * gml);
+
 
 /** \brief Print into a string
  *  \param format printf like format

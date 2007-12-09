@@ -148,6 +148,9 @@ typedef struct player_window_s
 
 void player_window_create(gmerlin_t*);
 
+void player_window_push_accel(player_window_t * w, int accel);
+
+
 void player_window_show(player_window_t * win);
 
 void player_window_set_skin(player_window_t * win,

@@ -68,6 +68,9 @@ static void destroy_zoom(void * priv)
   vp = (zs_priv_t *)priv;
   if(vp->frame)
     gavl_video_frame_destroy(vp->frame);
+
+  gavl_video_scaler_destroy(vp->scaler);
+  
   free(vp);
   }
 

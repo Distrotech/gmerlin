@@ -378,6 +378,8 @@ void bg_audio_filter_chain_destroy(bg_audio_filter_chain_t * ch)
   if(ch->filter_string)
     free(ch->filter_string);
 
+  bg_audio_converter_destroy(ch->cnv_out);
+
   destroy_audio_chain(ch);
   pthread_mutex_destroy(&ch->mutex);
   free(ch);
@@ -730,6 +732,8 @@ void bg_video_filter_chain_destroy(bg_video_filter_chain_t * ch)
     free(ch->filter_string);
   destroy_video_chain(ch);
   pthread_mutex_destroy(&ch->mutex);
+  bg_video_converter_destroy(ch->cnv_out);
+
   free(ch);
   }
 

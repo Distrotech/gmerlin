@@ -1173,10 +1173,16 @@ bg_gtk_info_window_create(bg_player_t * player,
 
 void bg_gtk_info_window_destroy(bg_gtk_info_window_t * w)
   {
-  
+  int i;
   bg_msg_queue_destroy(w->queue);
   if(w->clipboard)
     free(w->clipboard);
+
+  for(i = 0; i < PATH_NUM; i++)
+    {
+    if(w->paths[i])
+      gtk_tree_path_free(w->paths[i]);
+    }
   gtk_widget_destroy(w->window);
   free(w);
   }

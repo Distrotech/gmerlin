@@ -591,7 +591,7 @@ scan_directory_internal(const char * directory, bg_plugin_info_t ** _file_info,
       tmp_info = tmp_info->next;
       }
 
-    dlclose(test_module);
+    //    dlclose(test_module);
     ret = append_to_list(ret, new_info);
     }
   
@@ -627,6 +627,7 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
       {
       file_info_next = file_info->next;
       *_file_info = remove_from_list(*_file_info, file_info);
+      bg_plugin_info_destroy(file_info);
       file_info = file_info_next;
       changed = 1;
       }
@@ -757,7 +758,16 @@ bg_plugin_registry_create(bg_cfg_section_t * section)
     else
       tmp_info = tmp_info->next;
     }
-  
+#if 0 /* Shouldn't be neccesary if the above code is bugfree */
+  /* Kick out eventually remaining infos from the file */
+  tmp_info = file_info;
+  while(tmp_info)
+    {
+    tmp_info_next = tmp_info->next;
+    bg_plugin_info_destroy(tmp_info);
+    tmp_info = tmp_info_next;
+    }
+#endif
   return ret;
   }
 

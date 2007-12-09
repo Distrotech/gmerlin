@@ -366,6 +366,17 @@ void gmerlin_destroy(gmerlin_t * g)
   plugin_window_destroy(g->plugin_window);
   player_window_destroy(g->player_window);
 
+  /* Must destroy the dialogs early, because the
+     destructors might reference parameter infos,
+     which belong to other modules */
+  bg_dialog_destroy(g->cfg_dialog);
+  bg_dialog_destroy(g->audio_dialog);
+  bg_dialog_destroy(g->audio_filter_dialog);
+  bg_dialog_destroy(g->video_dialog);
+  bg_dialog_destroy(g->video_filter_dialog);
+  bg_dialog_destroy(g->subtitle_dialog);
+  bg_dialog_destroy(g->visualization_dialog);
+  
   bg_lcdproc_destroy(g->lcdproc);
   bg_remote_server_destroy(g->remote);
     
@@ -400,15 +411,6 @@ void gmerlin_destroy(gmerlin_t * g)
 
   
   gmerlin_skin_destroy(&(g->skin));
-
-  bg_dialog_destroy(g->cfg_dialog);
-  bg_dialog_destroy(g->audio_dialog);
-  bg_dialog_destroy(g->audio_filter_dialog);
-  bg_dialog_destroy(g->video_dialog);
-  bg_dialog_destroy(g->video_filter_dialog);
-  bg_dialog_destroy(g->subtitle_dialog);
-  bg_dialog_destroy(g->visualization_dialog);
-
   
   free(g->skin_dir);
   

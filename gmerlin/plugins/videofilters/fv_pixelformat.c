@@ -54,6 +54,8 @@ static void destroy_pixelformat(void * priv)
   {
   pixelformat_priv_t * vp;
   vp = (pixelformat_priv_t *)priv;
+  if(vp->parameters)
+    bg_parameter_info_destroy_array(vp->parameters);
   free(vp);
   }
 

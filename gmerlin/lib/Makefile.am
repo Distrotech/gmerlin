@@ -58,6 +58,7 @@ formats.c \
 hexdump.c \
 lcdproc.c \
 log.c \
+md5.c \
 metadata.c \
 metadata_xml.c \
 msgqueue.c \

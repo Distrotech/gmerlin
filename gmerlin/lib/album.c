@@ -1666,9 +1666,9 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
   bg_track_info_t * track_info;
   const bg_plugin_info_t * info;
   //  const char * file_plugin_name;
-
+  
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "Loading %s", url);
-
+  
   /* Load the appropriate plugin */
 
   if(plugin_name)

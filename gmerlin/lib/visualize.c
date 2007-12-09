@@ -285,7 +285,7 @@ bg_visualizer_create(bg_plugin_registry_t * plugin_reg)
 void bg_visualizer_destroy(bg_visualizer_t * v)
   {
   pthread_mutex_destroy(&(v->mutex));
-  
+  bg_msg_destroy(v->msg);
   
   free(v);
   }

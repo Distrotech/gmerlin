@@ -36,6 +36,12 @@
 #include <cmdline.h>
 #include <gui_gtk/gtkutils.h>
 
+// #define MTRACE
+
+#ifdef MTRACE
+#include <mcheck.h>
+#endif
+
 bg_cmdline_app_data_t app_data =
   {
     package:  PACKAGE,
@@ -67,11 +73,15 @@ int main(int argc, char ** argv)
   bg_cfg_registry_t * cfg_reg;
   char * tmp_path;
   char ** locations;
-    
+
+#ifdef MTRACE
+  mtrace();
+#endif
+ 
   /* Initialize random generator (for shuffle) */
 
   srand(time(NULL));
-
+  
   bg_translation_init();
   bg_gtk_init(&argc, &argv, "player_icon.png");
   

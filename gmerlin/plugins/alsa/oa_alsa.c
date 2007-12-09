@@ -399,6 +399,8 @@ static void destroy_alsa(void * p)
     bg_parameter_info_destroy_array(priv->parameters);
   if(priv->user_device)
     free(priv->user_device);
+  if(priv->card)
+    free(priv->card);
   free(priv);
   }
 

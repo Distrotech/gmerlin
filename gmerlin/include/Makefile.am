@@ -51,6 +51,7 @@ bglv.h \
 bgladspa.h \
 ladspa.h \
 language_table.h \
+md5.h \
 playerprivate.h \
 registry_priv.h \
 treeprivate.h \

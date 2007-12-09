@@ -132,6 +132,7 @@ static void destroy_decimate(void * priv)
   gavl_video_frame_destroy(vp->b1);
   gavl_video_frame_destroy(vp->b2);
   
+  gavl_dsp_context_destroy(vp->dsp_ctx);
   free(vp);
   }
 

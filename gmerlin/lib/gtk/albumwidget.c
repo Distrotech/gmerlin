@@ -1422,7 +1422,9 @@ static void init_menu(bg_gtk_album_widget_t * w)
   
   /* Add... */
 
-  if(type == BG_ALBUM_TYPE_REGULAR)
+  if((type == BG_ALBUM_TYPE_REGULAR)  ||
+     (type == BG_ALBUM_TYPE_INCOMING) ||
+     (type == BG_ALBUM_TYPE_FAVOURITES))
     {
     w->menu.add_menu.menu = gtk_menu_new();
     w->menu.add_menu.files_item =
@@ -1442,18 +1444,21 @@ static void init_menu(bg_gtk_album_widget_t * w)
      (type == BG_ALBUM_TYPE_INCOMING))
     {
     w->menu.edit_menu.copy_to_favourites_item =
-      create_item(w, w->menu.edit_menu.menu, TR("Copy to favourites"), "favourites_16.png");
-    gtk_widget_add_accelerator(w->menu.edit_menu.copy_to_favourites_item, "activate",
+      create_item(w, w->menu.edit_menu.menu, TR("Copy to favourites"),
+                  "favourites_16.png");
+    gtk_widget_add_accelerator(w->menu.edit_menu.copy_to_favourites_item,
+                               "activate",
                                w->accel_group,
                                GDK_F10, 0, GTK_ACCEL_VISIBLE);
-    
     }
   
   w->menu.edit_menu.move_up_item =
-    create_item(w, w->menu.edit_menu.menu, TR("Move to top"), "top_16.png");
+    create_item(w, w->menu.edit_menu.menu, TR("Move to top"),
+                "top_16.png");
 
   w->menu.edit_menu.move_down_item =
-    create_item(w, w->menu.edit_menu.menu, TR("Move to bottom"), "bottom_16.png");
+    create_item(w, w->menu.edit_menu.menu, TR("Move to bottom"),
+                "bottom_16.png");
   
   w->menu.edit_menu.remove_item =
     create_item(w, w->menu.edit_menu.menu, TR("Remove"), "trash_16.png");
@@ -1461,25 +1466,29 @@ static void init_menu(bg_gtk_album_widget_t * w)
   w->menu.edit_menu.cut_item =
     create_item(w, w->menu.edit_menu.menu, TR("Cut"), "cut_16.png");
 
-  gtk_widget_add_accelerator(w->menu.edit_menu.cut_item, "activate", w->accel_group,
+  gtk_widget_add_accelerator(w->menu.edit_menu.cut_item, "activate",
+                             w->accel_group,
                              GDK_x, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
   
   w->menu.edit_menu.copy_item =
     create_item(w, w->menu.edit_menu.menu, TR("Copy"), "copy_16.png");
 
-  gtk_widget_add_accelerator(w->menu.edit_menu.copy_item, "activate", w->accel_group,
+  gtk_widget_add_accelerator(w->menu.edit_menu.copy_item, "activate",
+                             w->accel_group,
                              GDK_c, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
 
   w->menu.edit_menu.paste_item =
     create_item(w, w->menu.edit_menu.menu, TR("Paste"), "paste_16.png");
 
-  gtk_widget_add_accelerator(w->menu.edit_menu.paste_item, "activate", w->accel_group,
+  gtk_widget_add_accelerator(w->menu.edit_menu.paste_item, "activate",
+                             w->accel_group,
                              GDK_v, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
 
   w->menu.edit_menu.find_item =
     create_item(w, w->menu.edit_menu.menu, TR("Find..."), "find_16.png");
 
-  gtk_widget_add_accelerator(w->menu.edit_menu.find_item, "activate", w->accel_group,
+  gtk_widget_add_accelerator(w->menu.edit_menu.find_item, "activate",
+                             w->accel_group,
                              GDK_f, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
   
   /* Selected */
@@ -1487,7 +1496,8 @@ static void init_menu(bg_gtk_album_widget_t * w)
   w->menu.selected_menu.menu = gtk_menu_new();
     
   w->menu.selected_menu.rename_item =
-    create_item(w, w->menu.selected_menu.menu, TR("Rename..."), "rename_16.png");
+    create_item(w, w->menu.selected_menu.menu, TR("Rename..."),
+                "rename_16.png");
   w->menu.selected_menu.info_item =
     create_item(w, w->menu.selected_menu.menu, TR("Info..."), "info_16.png");
 
@@ -1499,7 +1509,8 @@ static void init_menu(bg_gtk_album_widget_t * w)
      (type == BG_ALBUM_TYPE_FAVOURITES) ||
      (type == BG_ALBUM_TYPE_INCOMING))
     w->menu.selected_menu.refresh_item =
-      create_item(w, w->menu.selected_menu.menu, TR("Refresh"), "refresh_16.png");
+      create_item(w, w->menu.selected_menu.menu, TR("Refresh"),
+                  "refresh_16.png");
   
   gtk_widget_set_sensitive(w->menu.selected_menu.rename_item, 0);
   
@@ -1511,7 +1522,8 @@ static void init_menu(bg_gtk_album_widget_t * w)
   if(type == BG_ALBUM_TYPE_REGULAR)
     {
     w->menu.album_menu.save_item =
-      create_item(w, w->menu.album_menu.menu, TR("Save as..."), "save_16.png");
+      create_item(w, w->menu.album_menu.menu, TR("Save as..."),
+                  "save_16.png");
     }
   w->menu.album_menu.sort_item =
     create_item(w, w->menu.album_menu.menu, TR("Sort"), "sort_16.png");
@@ -1520,7 +1532,9 @@ static void init_menu(bg_gtk_album_widget_t * w)
   
   w->menu.menu = gtk_menu_new();
 
-  if(type == BG_ALBUM_TYPE_REGULAR)
+  if((type == BG_ALBUM_TYPE_REGULAR) ||
+     (type == BG_ALBUM_TYPE_INCOMING) ||
+     (type == BG_ALBUM_TYPE_FAVOURITES))
     {
     w->menu.add_item =
       create_item(w, w->menu.menu, TR("Add..."), (char*)0);
@@ -2804,19 +2818,16 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
   gtk_widget_show(scrolledwin);
     
   /* Create toolbar */
-
-  if(type == BG_ALBUM_TYPE_REGULAR)
+  
+  if((type == BG_ALBUM_TYPE_REGULAR) ||
+     (type == BG_ALBUM_TYPE_INCOMING) ||
+     (type == BG_ALBUM_TYPE_FAVOURITES))
     {
     ret->add_files_button        = create_pixmap_button(ret, "folder_open_16.png",
                                                         TRS("Add files"));
     ret->add_urls_button         = create_pixmap_button(ret, "earth_16.png",
                                                         TRS("Add URLs"));
-    }
 
-  if((type == BG_ALBUM_TYPE_REGULAR) ||
-     (type == BG_ALBUM_TYPE_INCOMING) ||
-     (type == BG_ALBUM_TYPE_FAVOURITES))
-    {
     ret->cut_button              = create_pixmap_button(ret, "cut_16.png",
                                                         TRS("Cut"));
     ret->copy_button             = create_pixmap_button(ret, "copy_16.png",

@@ -408,6 +408,8 @@ void bg_player_ov_destroy(bg_player_t * player)
     bg_plugin_unref(ctx->plugin_handle);
   bg_osd_destroy(ctx->osd);
 
+  bg_accelerator_map_destroy(ctx->accel_map);
+
   bg_msg_queue_destroy(ctx->msg_queue);
   
   free(ctx);

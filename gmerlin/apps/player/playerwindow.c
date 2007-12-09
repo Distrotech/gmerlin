@@ -574,6 +574,15 @@ static void handle_message(player_window_t * win,
   
   }
 
+void player_window_push_accel(player_window_t * w, int accel)
+  {
+  bg_msg_t * msg;
+  msg = bg_msg_queue_lock_write(w->msg_queue);
+  bg_msg_set_id(msg, BG_PLAYER_MSG_ACCEL);
+  bg_msg_set_arg_int(msg, 0, accel);
+  bg_msg_queue_unlock_write(w->msg_queue);
+  }
+
 static gboolean idle_callback(gpointer data)
   {
   bg_msg_t * msg;

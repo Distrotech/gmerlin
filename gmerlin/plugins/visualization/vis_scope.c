@@ -83,6 +83,8 @@ static void destroy_scope(void * priv)
     gavl_audio_frame_destroy(vp->audio_frame);
   if(vp->last_video_frame)
     gavl_video_frame_destroy(vp->last_video_frame);
+  
+  gavl_video_scaler_destroy(vp->scaler);
   free(vp);
   }
 

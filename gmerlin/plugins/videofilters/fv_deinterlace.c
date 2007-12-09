@@ -487,6 +487,11 @@ set_input_format_deinterlace(void * priv,
   
   if(!port)
     {
+    if(vp->frame)
+      {
+      gavl_video_frame_destroy(vp->frame);
+      vp->frame = (gavl_video_frame_t*)0;
+      }
     gavl_video_format_copy(&vp->in_format, format);
     gavl_video_format_copy(&vp->out_format, format);
     vp->out_format.interlace_mode = GAVL_INTERLACE_NONE;

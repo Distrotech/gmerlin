@@ -48,7 +48,9 @@ void bg_player_audio_destroy(bg_player_t * p)
   {
   gavl_audio_converter_destroy(p->audio_stream.cnv_out);
   bg_gavl_audio_options_free(&(p->audio_stream.options));
+  bg_audio_filter_chain_destroy(p->audio_stream.fc);
 
+  
   gavl_volume_control_destroy(p->audio_stream.volume);
   pthread_mutex_destroy(&(p->audio_stream.volume_mutex));
 

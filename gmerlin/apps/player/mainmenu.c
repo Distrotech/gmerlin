@@ -323,8 +323,10 @@ static void plugin_menu_free(plugin_menu_t * s)
   {
   if(s->plugin_handle)
     bg_plugin_unref(s->plugin_handle);
+  if(s->plugin_items)
+    free(s->plugin_items);
   }
-     
+
 static void about_window_close_callback(bg_gtk_about_window_t* win, void* data)
   {
   gmerlin_t * g;
@@ -443,55 +445,33 @@ static void menu_callback(GtkWidget * w, gpointer data)
     {
     system("gmerlin_transcoder_remote -launch");
     }
+  /* Commands (== accelerators) */
   else if(w == the_menu->command_menu.inc_volume)
-    {
-    bg_player_set_volume_rel(g->player, 1.0);
-    }
+    player_window_push_accel(g->player_window, ACCEL_VOLUME_UP);
   else if(w == the_menu->command_menu.dec_volume)
-    {
-    bg_player_set_volume_rel(g->player, -1.0);
-    }
-  else if(w == the_menu->command_menu.mute)
-    {
-    bg_player_toggle_mute(g->player);
-    }
+    player_window_push_accel(g->player_window, ACCEL_VOLUME_DOWN);
   else if(w == the_menu->command_menu.seek_backward)
-    {
-    bg_player_seek_rel(g->player,   -2 * GAVL_TIME_SCALE );
-    }
+    player_window_push_accel(g->player_window, ACCEL_SEEK_BACKWARD);
   else if(w == the_menu->command_menu.seek_forward)
-    {
-    bg_player_seek_rel(g->player,    2 * GAVL_TIME_SCALE );
-    }
-  else if(w == the_menu->command_menu.next)
-    {
-    bg_media_tree_next(g->tree, 1, g->shuffle_mode);
-    gmerlin_play(g, BG_PLAY_FLAG_IGNORE_IF_STOPPED);
-
-    }
-  else if(w == the_menu->command_menu.previous)
-    {
-    bg_media_tree_previous(g->tree, 1, g->shuffle_mode);
-    gmerlin_play(g, BG_PLAY_FLAG_IGNORE_IF_STOPPED);
-
-    }
-  else if(w == the_menu->command_menu.next_chapter)
-    {
-    bg_player_next_chapter(g->player);
-    }
-  else if(w == the_menu->command_menu.previous_chapter)
-    {
-    bg_player_prev_chapter(g->player);
-    }
-
+    player_window_push_accel(g->player_window, ACCEL_SEEK_FORWARD);
   else if(w == the_menu->command_menu.seek_start)
-    {
-    bg_player_seek(g->player, 0 );
-    }
-  else if(w == the_menu->command_menu.quit)
-    gtk_main_quit();
+    player_window_push_accel(g->player_window, ACCEL_SEEK_START);
   else if(w == the_menu->command_menu.pause)
-    bg_player_pause(g->player);
+    player_window_push_accel(g->player_window, ACCEL_PAUSE);
+  else if(w == the_menu->command_menu.mute)
+    player_window_push_accel(g->player_window, ACCEL_MUTE);
+  else if(w == the_menu->command_menu.next_chapter)
+    player_window_push_accel(g->player_window, ACCEL_NEXT_CHAPTER);
+  else if(w == the_menu->command_menu.previous_chapter)
+    player_window_push_accel(g->player_window, ACCEL_PREV_CHAPTER);
+  else if(w == the_menu->command_menu.next)
+    player_window_push_accel(g->player_window, ACCEL_NEXT);
+  else if(w == the_menu->command_menu.previous)
+    player_window_push_accel(g->player_window, ACCEL_PREV);
+  else if(w == the_menu->command_menu.quit)
+    player_window_push_accel(g->player_window, ACCEL_QUIT);
+  
+  
   /* Stream selection */
   else if(stream_menu_has_widget(&the_menu->audio_stream_menu, w, &i))
     bg_player_set_audio_stream(g->player, i);
@@ -1220,6 +1200,7 @@ void main_menu_destroy(main_menu_t * m)
   {
   plugin_menu_free(&m->audio_stream_menu.plugin_menu);
   plugin_menu_free(&m->video_stream_menu.plugin_menu);
+  plugin_menu_free(&m->visualization_menu.plugin_menu);
   free(m);
   }
 
