@@ -77,6 +77,7 @@ void bg_ffmpeg_destroy(void * data)
     free(priv->audio_streams);
   if(priv->video_streams)
     free(priv->video_streams);
+  free(priv);
   }
 
 bg_parameter_info_t * bg_ffmpeg_get_parameters(void * data)

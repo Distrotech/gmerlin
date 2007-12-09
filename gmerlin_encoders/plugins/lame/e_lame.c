@@ -182,11 +182,7 @@ static void * create_lame()
   {
   lame_priv_t * ret;
   ret = calloc(1, sizeof(*ret));
-
-  ret->lame = lame_init();
-
-  id3tag_init(ret->lame);
-
+  
   ret->vbr_mode = vbr_off;
   
   return ret;
@@ -196,7 +192,8 @@ static void destroy_lame(void * priv)
   {
   lame_priv_t * lame;
   lame = (lame_priv_t*)priv;
-  
+  if(lame->lame)
+    lame_close(lame->lame);
   free(lame);
   }
 
@@ -515,6 +512,9 @@ static int open_lame(void * data, const char * filename,
 
   lame = (lame_priv_t*)data;
 
+  lame->lame = lame_init();
+  id3tag_init(lame->lame);
+  
   lame->output = fopen(filename, "wb+");
   if(!lame->output)
     {
