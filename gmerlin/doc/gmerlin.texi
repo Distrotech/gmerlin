@@ -429,12 +429,17 @@ revert all changes you made.
 
 @node gui_log
 @subsection Log messages
+
+@ifhtml
+@image{../img/gui_log}
+
+@end ifhtml
 Messages from pretty much everywhere in the applications are sent through the
 logging mechanism, and finally show up in the log window. It's the first place to
 look, if something does not work as expected (e.g. an URL does not load).
 There are 4 different types of messages, @b{error}, @b{warning}, @b{info} and
 @b{debug}. In the configuration for the log window, you can select, which message
-you want to see and the colors of the messages.
+you want to see, the colors of the messages and the history size.
 @node gui_tips
 @subsection Tips
 
@@ -531,25 +536,104 @@ Type @code{gmerlin} with optionally any number of files or URLs to start this.
 
 @menu
 * Invoking gmerlin: gmerlin_player_usage.
-* The main window::
+* Main window::
 * Media tree::
-* The video window::
+* Video window::
+* Track information: gmerlin_player_trackinfo.
 * Configuring playback pipelines: gmerlin_player_avconfig.
 @end menu
-
 
 @node gmerlin_player_usage
 @subsection Invoking gmerlin
 
 @include gmerlin_player.texi
 
-@node The main window
-@subsection The main window
+@node Main window
+@subsection Main window
+@ifhtml
+@image{../img/player_mainwin}
 
-It's a usual player window, with self explanatory buttons. The menu
-button will show the main menu of the player. It lets you configure
-plugins and other global settings, show other windows, launch other
-applications and so on.
+@end ifhtml
+
+It's a usual player window, with self explanatory buttons.
+
+@b{Main menu}
+
+The menu button will show the main menu of the player. Here, you can
+control practically the whole application:
+
+@table @b
+@item Audio, video and subtitles
+  See @ref{gmerlin_player_avconfig, Configuring playback pipelines}.
+@item Chapters
+@ifhtml
+@image{../img/player_chapters}
+
+@end ifhtml
+Chapters in gmerlin are just seekpoints with optional labels.
+If an input plugin supports chapters (e.g. of DVDs), gmerlin will
+make them available through the chapter menu.
+@item Visualizations
+@ifhtml
+@image{../img/player_vis}
+
+@end ifhtml
+If the upper menu item is enabled and the video window isn't used otherwise,
+Visualizations will be turned on.
+The audio stream of an Audio/video track can be visualized by disabling the video stream
+of that file (See @ref{gmerlin_player_avconfig, Configuring playback pipelines}).
+
+Then you can set some plugin-independent options
+@ifhtml
+@image{../img/config_16}
+@end ifhtml
+and finally the plugin itself 
+@ifhtml
+@image{../img/plugin_16}
+@end ifhtml
+. The menu for visualization plugin works exactly the same as for output plugins
+(See @ref{gmerlin_player_avconfig, Configuring playback pipelines}).
+
+@item Windows
+@ifhtml
+@image{../img/player_windows}
+
+@end ifhtml
+Here, you can show or hide the @ref{gui_log, Log window}, the
+@ref{gmerlin_player_trackinfo, Track info window} and the @ref{Media tree}.
+
+@end table
+
+@b{Display}
+
+@ifhtml
+@image{../img/player_display}
+
+@end ifhtml
+The display is divided into several areas. Left of the
+time display, gmerlin shows an icon denoting the current
+operation mode (playing, paused etc.). Right of the time display,
+you have 2 fields. By left-clicking into the upper field, you can
+change the displayed time value. Options are
+@table @b
+@item Default
+Time is counted since track start
+@item ALL
+Time is counted since album start
+@item REM
+Remaining time until track end
+@item ALL REM
+Remaining time until album end
+@end table
+
+In the lower field, you can select the repeat mode. Options are @b{no repeat}, @b{repeat current track} and @b{repeat current album}.
+
+At the bottom, there is the scrolltext. It displayes the name of the currently played
+track (which can change e.g. for live radio stations), or a brief error messages if
+something goes wrong. Note, that in the latter case, you get more information from the
+@ref{gui_log, Log Window}.
+
+@b{Shortcuts}
 
 You have the following keyboard shortcuts:
 
@@ -662,9 +746,14 @@ in the album toolbar, or the right click menu
 @item Via the right-click menu (Album->New from directory...) of the tree
 window, you can import entire directory trees. Subdirectories will be added
 as subalbums if you want.
-@item Configure @code{gmerlin_launcher} as a MIME Handler for the supported
-filetypes in your desktop environment. @code{gmerlin_launcher} will then
-send all doubleclicked files into the @emph{Incoming}-album. 
+@item Configure script @code{gmerlin_launcher}
+as a MIME Handler for the supported filetypes in your desktop
+environment. @code{gmerlin_launcher} will then send all doubleclicked
+files into the @emph{Incoming}
+@ifhtml
+@image{../img/incoming_closed_16}
+@end ifhtml
+album. 
 @end itemize
 
 Drag and Drop is supported:
@@ -757,9 +846,8 @@ Paste tracks from clipboard at the current cursor position
 Copy selected tracks to favourites
 @end table
 
-
-@node The video window
-@subsection The video window
+@node Video window
+@subsection Video window
 
 This comes only when gmerlin has to show some video or still images. It
 is created and owned by the video output plugin (i.e. it has nothing to
@@ -845,14 +933,25 @@ Toggle play/pause
 
 @end table
 
+@node gmerlin_player_trackinfo
+@subsection Track information
+@ifhtml
+@image{../img/player_trackinfo}
+
+@end ifhtml
+
+Here, you see detailed information of the currently (or last) played track
+in a tree structure. The right-click menu lets you copy either the whole contents or
+the currently selected row to the clipboard as plain text.
+
 @node gmerlin_player_avconfig
 @subsection Configuring playback pipelines
 
 The configuration for audio, video and subtitle handling is almost the same.
 
-@b{Main menu}
+@b{Stream menu}
 
-For each category, you have a main menu.
+For each category, you have a stream menu.
 
 @ifhtml
 @image{../img/player_avconfig_menu}
