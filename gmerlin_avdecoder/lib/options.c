@@ -179,7 +179,7 @@ void bgav_options_set_defaults(bgav_options_t * b)
   b->read_timeout = 10000;
   b->ftp_anonymous = 1;
   b->default_subtitle_encoding = bgav_strdup("LATIN1");
-  b->dvd_chapters_as_tracks = 1;
+  b->dvd_chapters_as_tracks = 0;
   b->audio_dynrange = 1;
   // Test
   b->prefer_ffmpeg_demuxers = 0;
