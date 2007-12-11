@@ -243,3 +243,5 @@ void bg_album_entry_destroy(bg_album_entry_t * entry);
 
 bg_album_entry_t * bg_album_entry_create(bg_album_t * album);
 
+bg_album_entry_t * bg_album_entry_copy(bg_album_t * a, bg_album_entry_t * e);
+

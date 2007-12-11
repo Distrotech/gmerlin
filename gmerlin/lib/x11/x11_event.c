@@ -805,7 +805,6 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
              w->callbacks->accel_callback(w->callbacks->data,
                                           accel_id))
             return;
-          
           /* Check if the child wants tht shortcut */
           if(cur->child_accel_map &&
              cur->child &&

@@ -473,6 +473,7 @@ void bg_media_tree_set_parameter(void * priv, const char * name,
 
 void bg_media_tree_mark_error(bg_media_tree_t * , int err);
 
+void bg_media_tree_copy_current_to_favourites(bg_media_tree_t * t);
 
 #endif //  __BG_TREE_H_
 

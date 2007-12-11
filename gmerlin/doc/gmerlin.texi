@@ -444,7 +444,7 @@ you want to see, the colors of the messages and the history size.
 @subsection Tips
 
 @itemize
-@item Many buttons, which are assosiated with a list, are disabled unless you select an item in the list
+@item Many buttons, which are associated with a list, are disabled unless you select an item in the list
 @item Doubleclicking onto the background of a slider (@strong{not} the slider itself) resets it to the
       factory default
 @end itemize
@@ -454,6 +454,9 @@ you want to see, the colors of the messages and the history size.
 
 GMLs (Gmerlin media locations) are pretty much similar to URLs or
 MRLs with the difference, that device plugins support passing the device.
+This makes it possible to use gmls with hardware setups, which have
+multiple devices for each plugin.
+
 A gml can be:
 
 @table @bullet
@@ -528,6 +531,7 @@ numeric types, or supported options for strings (if available).
 * Commandline player::
 * Alsamixer::
 * Visualizer::
+* Keyboard daemon::
 @end menu
 
 @node GUI Player
@@ -541,6 +545,7 @@ Type @code{gmerlin} with optionally any number of files or URLs to start this.
 * Video window::
 * Track information: gmerlin_player_trackinfo.
 * Configuring playback pipelines: gmerlin_player_avconfig.
+* Shortcuts: gmerlin_player_shortcuts.
 @end menu
 
 @node gmerlin_player_usage
@@ -557,7 +562,13 @@ Type @code{gmerlin} with optionally any number of files or URLs to start this.
 
 It's a usual player window, with self explanatory buttons.
 
-@b{Main menu}
+@menu
+* Main menu: player_mainmenu.
+* Display: player_display.
+@end menu
+
+@node player_mainmenu
+@subsubsection Main menu
 
 The menu button will show the main menu of the player. Here, you can
 control practically the whole application:
@@ -602,9 +613,50 @@ and finally the plugin itself
 Here, you can show or hide the @ref{gui_log, Log window}, the
 @ref{gmerlin_player_trackinfo, Track info window} and the @ref{Media tree}.
 
+@item Options
+@ifhtml
+@image{../img/player_options}
+
+@end ifhtml
+Here, you can set @b{Preferences}
+@ifhtml
+@image{../img/config_16}
+@end ifhtml
+, configure @ref{gui_i, Input plugins}
+@ifhtml
+@image{../img/plugin_16}
+@end ifhtml
+, select
+@b{skins} or configure the @ref{Keyboard daemon}.
+
+@item Commands
+@ifhtml
+@image{../img/player_commands}
+
+@end ifhtml
+Here you have some commonly used commands. The good news about the
+shortcuts is, that they work in the
+media tree and in the video window as well.
+
+Only exception are the shortcuts, which map to ASCII-characters
+(Pause and Seek to start), they don't work in the media tree and in albums.
+
+Use this menu as a quick-help for all global
+shortcuts.
+
+@item Accessories
+@ifhtml
+@image{../img/player_accessories}
+
+@end ifhtml
+Here, you can conventiently fire up some other gmerlin applications
+like the @ref{GUI Transcoder}, the @ref{Visualizer} and the
+@ref{Alsamixer}.
+
 @end table
 
-@b{Display}
+@node player_display
+@subsubsection Display
 
 @ifhtml
 @image{../img/player_display}
@@ -626,52 +678,14 @@ Remaining time until track end
 Remaining time until album end
 @end table
 
-In the lower field, you can select the repeat mode. Options are @b{no repeat}, @b{repeat current track} and @b{repeat current album}.
+In the lower field, you can left-click to change the repeat mode.
+Options are @b{no repeat}, @b{repeat current track} and
+@b{repeat current album}.
 
 At the bottom, there is the scrolltext. It displayes the name of the currently played
 track (which can change e.g. for live radio stations), or a brief error messages if
 something goes wrong. Note, that in the latter case, you get more information from the
 @ref{gui_log, Log Window}.
-
-@b{Shortcuts}
-
-You have the following keyboard shortcuts:
-
-@strong{Global commands}
-@table @kbd
-@item @key{CTRL}+G
-Pop up current album and goto current track
-
-@item @key{CTRL}+O
-Pop up preferences dialog
-
-@item @key{CTRL}+P
-Pop up plugin dialog
-
-@item @key{CTRL}+Q
-Quit program
-
-@end table
-
-@strong{Player control}
-@table @kbd
-
-@item CTRL+PAGEUP/PAGEDOWN
-Goto previous/next track
-
-@item CTRL+LEFT/RIGHT
-Seek backwards/forwards
-
-@item 0
-Seek to start
-
-@item SHIFT+LEFT/RIGHT
-Decrease/Increase volume
-
-@item SPACE
-Toggle play/pause
-
-@end table
 
 @node Media tree
 @subsection Media tree
@@ -771,81 +785,6 @@ If you close the currently played album during playback, the player will
 stop after the current track is finished. You can then select another
 album by doubleclicking a track inside it.
 
-Inside the album, you have the following shortcuts:
-
-@strong{Global commands}
-@table @kbd
-@item @key{CTRL}+G
-Pop up current album and goto current track
-
-@item @key{CTRL}+O
-Pop up preferences dialog
-
-@item @key{CTRL}+P
-Pop up plugin dialog
-
-@item @key{CTRL}+Q
-Quit program
-@end table
-
-@strong{Navigation}
-@table @kbd
-@item UP/DOWN
-Move the cursor one track up/down
-
-@item PAGEUP/PAGEDOWN
-Move the cursor one page up/down
-
-@item Mousewheel
-Scroll
-@end table
-
-@strong{Selecting}
-@table @kbd
-
-@item SHIFT+UP/DOWN
-Move the cursor one track up/down and select track
-
-@item SHIFT+PAGEUP/PAGEDOWN
-Move the cursor one page up/down and select tracks
-
-@item CTRL+UP/DOWN
-Move the cursor one track up/down and unselect track
-
-@end table
-
-@strong{Player control}
-@table @kbd
-
-@item CTRL+PAGEUP/PAGEDOWN
-Goto previous/next track
-
-@item CTRL+LEFT/RIGHT
-Seek backwards/forwards
-
-@item SHIFT+LEFT/RIGHT
-Decrease/Increase volume
-
-@end table
-
-@strong{Edit}
-@table @kbd
-@item CTRL+C
-Copy selected tracks to clipboard
-
-@item CTRL+X
-Cut selected tracks to clipboard
-
-@item CTRL+V
-Paste tracks from clipboard at the current cursor position
-@end table
-
-@strong{Favourites}
-@table @kbd
-@item F10
-Copy selected tracks to favourites
-@end table
-
 @node Video window
 @subsection Video window
 
@@ -854,84 +793,8 @@ is created and owned by the video output plugin (i.e. it has nothing to
 do with the core GUI). Currently, only an X11 plugin is available. It
 has some special features: You can zoom or squeeze the image to make
 your favourite tradeoff between aspect ratio distortion, black borders
-or cropped images.
-
-You have the following shortcuts:
-
-@strong{Global commands}
-@table @kbd
-@item @key{CTRL}+G
-Pop up current album and goto current track
-
-@item @key{CTRL}+O
-Pop up preferences dialog
-
-@item @key{CTRL}+P
-Pop up plugin dialog
-
-@item @key{CTRL}+Q
-Quit program
-@end table
-
-@strong{Zoom/Squeeze}
-@table @kbd
-
-@item CTRL+PLUS/MINUS
-Increase/decrease aspect ratio (squeeze)
-
-@item CTRL+MOUSEWHEEL
-Increase/decrease aspect ratio (squeeze)
-
-@item ALT+PLUS/MINUS
-Increase/decrease zoom factor
-
-@item ALT+MOUSEWHEEL
-Increase/decrease zoom factor
-
-@item HOME
-Reset zoom and squeeze
-
-@end table
-
-@strong{Brightness, Saturation, Contrast}
-@table @kbd
-
-@item B/b
-Increase/decrease brightness
-
-@item S/s
-Increase/decrease saturation
-
-@item C/c
-Increase/decrease contrast
-@end table
-
-@strong{Fullscreen}
-
-@table @kbd
-@item TAB
-Toggle fullscreen/windowed mode
-@end table
-
-@strong{Player control}
-@table @kbd
-
-@item CTRL+PAGEUP/PAGEDOWN
-Goto previous/next track
-
-@item CTRL+LEFT/RIGHT
-Seek backwards/forwards
-
-@item 0
-Seek to start
-
-@item SHIFT+LEFT/RIGHT
-Decrease/Increase volume
-
-@item SPACE
-Toggle play/pause
-
-@end table
+or cropped images. All global gmerlin @ref{gmerlin_player_shortcuts, Shortcuts} work
+also in the video window, as well as some special ones.
 
 @node gmerlin_player_trackinfo
 @subsection Track information
@@ -992,6 +855,145 @@ the plugin or show information
 @end ifhtml
 about the plugin.
 
+@node gmerlin_player_shortcuts
+@subsection Shortcuts
+
+The following global shortcuts are available in the main window, the media
+tree including albums and the video window:
+
+@table @kbd
+@item @key{CTRL}+G
+Pop up current album and goto current track
+
+@item @key{CTRL}+O
+Pop up preferences dialog
+
+@item @key{CTRL}+P
+Pop up input plugin dialog
+
+@item @key{CTRL}+Q
+Quit program
+
+@item @key{CTRL}+PAGEDOWN
+Goto next track
+
+@item @key{CTRL}+PAGEUP
+Goto previous track
+
+@item @key{CTRL}+@key{SHIFT}+PAGEDOWN
+Goto next chapter
+
+@item @key{CTRL}+@key{SHIFT}+PAGEUP
+Goto previous chapter
+
+@item @key{CTRL}+RIGHT
+Seek forward
+
+@item @key{CTRL}+LEFT
+Seek backward
+
+@item @key{SHIFT}+RIGHT
+Decrease volume
+
+@item @key{SHIFT}+LEFT
+Increase volume
+
+@item @key{CTRL}+M
+Toggle mute
+
+@item 0
+(Zero) Seek to start. This is not available in the media tree and the albums.
+
+@item Space
+Toggle pause. This is not available in the media tree and the albums.
+
+@item @key{CTRL}+G
+Goto current track. This raises the current album and moves to the
+current track within that album.
+
+@item F9
+Copy current track to favourites
+
+@item @key{CTRL}+Q
+Quit gmerlin
+@end table
+
+The following additional chortcuts are available in the @ref{Video window}:
+
+@table @kbd
+
+@item CTRL+PLUS/MINUS
+Increase/decrease aspect ratio (squeeze). Zoom and squeeze are a simple way to choose your
+personal tradeoff between aspect ratio distortion, missing image parts and black borders.
+
+@item CTRL+MOUSEWHEEL
+Increase/decrease aspect ratio (squeeze).
+
+@item ALT+PLUS/MINUS
+Increase/decrease zoom factor
+
+@item ALT+MOUSEWHEEL
+Increase/decrease zoom factor
+
+@item @key{CTRL}+HOME
+Reset zoom and squeeze
+
+@item B/b
+Increase/decrease brightness. 
+
+@item S/s
+Increase/decrease saturation.
+
+@item C/c
+Increase/decrease contrast.
+
+Brightness, saturation and contrast work only, if the hardware and the currently used display driver
+support this.
+
+@item TAB
+Toggle fullscreen/windowed mode
+@item f
+Toggle fullscreen/windowed mode
+@item Esc
+Exit fullscreen mode
+@end table
+
+The following additional chortcuts are available inside albums:
+
+@table @kbd
+@item UP/DOWN
+Move the cursor one track up/down
+
+@item PAGEUP/PAGEDOWN
+Move the cursor one page up/down
+
+@item Mousewheel
+Scroll
+
+@item SHIFT+UP/DOWN
+Move the cursor one track up/down and select track
+
+@item SHIFT+PAGEUP/PAGEDOWN
+Move the cursor one page up/down and select tracks
+
+@item CTRL+UP/DOWN
+Move the cursor one track up/down and unselect track
+
+@item CTRL+C
+Copy selected tracks to clipboard
+
+@item CTRL+X
+Cut selected tracks to clipboard
+
+@item CTRL+V
+Paste tracks from clipboard at the current cursor position
+
+@item CTRL+F
+Search for tracks
+
+@item F10
+Copy selected tracks to favourites
+@end table
 
 @node Player remote control
 @section Player remote control
@@ -1000,7 +1002,8 @@ about the plugin.
 GUI player. It can be used as a helper application if webbrowsers
 or filenmanagers or for all kinds of remote control methods (including
 keyboard- or infrared-daemons), which can execute arbitrary shell
-commands.
+commands. One example for a generic keyboard daemon, which can call
+@code{gmerlin_remote} is the @ref{Keyboard daemon, Gmerlin Keyboard daemon}.
 
 @menu
 * General: gmerlin_remote.
@@ -1017,15 +1020,34 @@ commands.
 
 @table @code
 @item gmerlin_remote -play
-Play the current track
+Play the current track (same as pressing the ``play'' button)
+
 @item gmerlin_remote -host remote.example.com -play
 Connect to @code{remote.example.com} and play the current track there
+
 @item gmerlin_remote -seek-rel -10.0
 Seek 10 seconds backwards
+
 @item gmerlin_remote -next
 Go to next track
+
 @item gmerlin_remote -chapter +
 Go to next chapter
+
+@item gmerlin_remote -openplay cda:///dev/scd0
+Open and play an audio CD in the first SCSI drive and start playing.
+Use commands like this in your desktop configuration for handling removable
+media.
+
+@item gmerlin_remote -launch -addplay http://webradio.example.com/stream.ogg
+Add the given gml to the Incoming
+@ifhtml
+@image{../img/incoming_closed_16}
+@end ifhtml
+album (launching a new player if necessary) and play it. Use commands like this as
+MIME-Handler in webbrowsers and filemanagers. A shortcut for this command is the
+script
+@code{gmerlin_launcher}.
 @end table
 
 
@@ -1124,7 +1146,31 @@ Alsa startup scripts.
 Gmerlin visualizer opens your soundard for recording and displays a visualization
 in a window. It supports fullscreen and mouse- and keyboard interaction with visuals
 for visualization plugins, which support this.
-  
+
+@node Keyboard daemon
+@section Keyboard daemon
+@ifhtml
+@image{../img/kbd_mainwin}
+
+@end ifhtml
+The gmerlin keyboard daemon is an X11 application, which grabs key combinations
+and executes commands. You will communicate mostly via
+the configuration utility @code{gmerlin_kbd_config}. It's independent of
+keyboard model definitions, because it allows to enter the keyboard combination
+in the config dialog directly. It's independent of gmerlin or any other
+multimedia architecture, since the actions can be arbitrary shell commands.
+
+You can manually start and stop the keyboard daemon, add, edit and delete
+key combinations and tell the daemon to apply the changes.
+
+To automatically start the keyboard daemon at each X11 start, find out
+where to enter start commands in your desktop configuration add the
+command @code{/usr/local/bin/gmerlin_kbd}. Change @code{/usr/local} to
+your install prefix if necessary.
+
+Messages from the keyboard daemon show up in @file{/var/log/messages} or
+in another syslog file depending on your system setup.
+
 @node FAQ, Get involved, Applications, Top
 @chapter FAQ
 

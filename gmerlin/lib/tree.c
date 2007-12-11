@@ -1516,3 +1516,31 @@ bg_album_t * bg_media_tree_get_device_album(bg_media_tree_t * t, const char * gm
   
   return ret;
   }
+
+void bg_media_tree_copy_current_to_favourites(bg_media_tree_t * t)
+  {
+  int was_open;
+  
+  if(!t->com.current_entry)
+    {
+    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "No current track for copying to favourites");
+    return;
+    }
+  if(!bg_album_is_open(t->com.favourites))
+    {
+    bg_album_open(t->com.favourites);
+    was_open = 0;
+    }
+  was_open = 1;
+  
+  bg_album_insert_entries_before(t->com.favourites,
+                                 bg_album_entry_copy(t->com.current_album,
+                                                     t->com.current_entry),
+                                 (bg_album_entry_t*)0);
+  
+  if(!was_open)
+    bg_album_close(t->com.favourites);
+  }
+
+
+

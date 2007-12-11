@@ -34,7 +34,7 @@
 #include <charset.h>
 
 #include <utils.h>
-// #include <http.h>
+#include <translation.h>
 
 #include <log.h>
 #define LOG_DOMAIN "album"
@@ -417,9 +417,14 @@ static int open_device(bg_album_t * a)
     }
 
   if(plugin->get_disc_name)
+    {
     a->disc_name = bg_strdup(a->disc_name,
                              plugin->get_disc_name(a->handle->priv));
-
+    fprintf(stderr, "a->disc_name: %s\n", a->disc_name);
+    //    bg_hexdump((uint8_t*)a->disc_name, strlen(a->disc_name), 16);
+    if(!a->disc_name || (*a->disc_name == '\0'))
+      a->disc_name = bg_strdup(a->disc_name, TR("Unnamed disc"));
+    }
   
   if(plugin->eject_disc)
     a->flags |= BG_ALBUM_CAN_EJECT;
@@ -834,6 +839,33 @@ void bg_album_refresh_selected(bg_album_t * album)
     }
   }
 
+static bg_album_entry_t * copy_selected(bg_album_t * album)
+  {
+  bg_album_entry_t * ret     = (bg_album_entry_t*)0;
+  bg_album_entry_t * ret_end = (bg_album_entry_t*)0;
+  bg_album_entry_t * tmp_entry;
+
+  tmp_entry = album->entries;
+  
+  while(tmp_entry)
+    {
+    if(tmp_entry->flags & BG_ALBUM_ENTRY_SELECTED)
+      {
+      if(ret)
+        {
+        ret_end->next = bg_album_entry_copy(album, tmp_entry);
+        ret_end = ret_end->next;
+        }
+      else
+        {
+        ret = bg_album_entry_copy(album, tmp_entry);
+        ret_end = ret;
+        }
+      }
+    tmp_entry = tmp_entry->next;
+    }
+  return ret;
+  }
 
 static bg_album_entry_t * extract_selected(bg_album_t * album)
   {
@@ -1784,12 +1816,10 @@ int bg_album_refresh_entry(bg_album_t * album,
 
 void bg_album_copy_selected_to_favourites(bg_album_t * a)
   {
-  char * xml;
   int was_open;
-
+  bg_album_entry_t * sel;
+  sel = copy_selected(a);
   
-  xml = bg_album_save_selected_to_memory(a, 0);
-
   if(!bg_album_is_open(a->com->favourites))
     {
     bg_album_open(a->com->favourites);
@@ -1797,16 +1827,29 @@ void bg_album_copy_selected_to_favourites(bg_album_t * a)
     }
   was_open = 1;
   
-  bg_album_insert_xml_before(a->com->favourites, xml, (bg_album_entry_t*)0);
-
+  bg_album_insert_entries_before(a->com->favourites, sel, (bg_album_entry_t*)0);
+  
   if(!was_open)
     bg_album_close(a->com->favourites);
   }
 
 void bg_album_move_selected_to_favourites(bg_album_t * a)
   {
-  bg_album_copy_selected_to_favourites(a);
-  bg_album_delete_selected(a);
+  int was_open;
+  bg_album_entry_t * sel;
+  sel = extract_selected(a);
+  
+  if(!bg_album_is_open(a->com->favourites))
+    {
+    bg_album_open(a->com->favourites);
+    was_open = 0;
+    }
+  was_open = 1;
+  
+  bg_album_insert_entries_before(a->com->favourites, sel, (bg_album_entry_t*)0);
+  
+  if(!was_open)
+    bg_album_close(a->com->favourites);
   }
 
 const char * bg_album_get_disc_name(bg_album_t * a)
@@ -2207,4 +2250,41 @@ void bg_album_seek_data_destroy(bg_album_seek_data_t * d)
 int bg_album_seek_data_changed(bg_album_seek_data_t * d)
   {
   return d->changed;
+  }
+
+bg_album_entry_t * bg_album_entry_copy(bg_album_t * a, bg_album_entry_t * e)
+  {
+  bg_album_entry_t * ret;
+  /* Also sets unique ID */
+  ret = bg_album_entry_create(a);
+
+  ret->name = bg_strdup(ret->name, e->name);
+  ret->location = bg_strdup(ret->location, e->location);
+  ret->plugin = bg_strdup(ret->plugin, e->plugin);
+  ret->duration = e->duration;
+
+  ret->num_audio_streams = e->num_audio_streams;
+  ret->num_still_streams = e->num_still_streams;
+  ret->num_video_streams = e->num_video_streams;
+  ret->num_subtitle_streams = e->num_subtitle_streams;
+  
+  /*
+   *  Track index for multi track files/plugins
+   */
+  
+  ret->index = e->index; 
+  ret->total_tracks = e->total_tracks;
+                          
+  /* Authentication data */
+
+  ret->username = bg_strdup(ret->username, e->username);
+  ret->password = bg_strdup(ret->password, e->password);
+  
+  ret->flags = e->flags;
+  /* Clear selected bit */
+  ret->flags &= ~(BG_ALBUM_ENTRY_SELECTED);
+  
+  /* The wchar stuff will be rebuilt on demand */
+                                 
+  return ret;
   }

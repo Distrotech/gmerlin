@@ -51,22 +51,23 @@ typedef enum
 
 /* Accelerators */
 
-#define ACCEL_VOLUME_DOWN          1
-#define ACCEL_VOLUME_UP            2
-#define ACCEL_SEEK_BACKWARD        3
-#define ACCEL_SEEK_FORWARD         4
-#define ACCEL_SEEK_START           5
-#define ACCEL_PAUSE                6
-#define ACCEL_MUTE                 7
-#define ACCEL_NEXT_CHAPTER         8
-#define ACCEL_PREV_CHAPTER         9
+#define ACCEL_VOLUME_DOWN             1
+#define ACCEL_VOLUME_UP               2
+#define ACCEL_SEEK_BACKWARD           3
+#define ACCEL_SEEK_FORWARD            4
+#define ACCEL_SEEK_START              5
+#define ACCEL_PAUSE                   6
+#define ACCEL_MUTE                    7
+#define ACCEL_NEXT_CHAPTER            8
+#define ACCEL_PREV_CHAPTER            9
 
-#define ACCEL_NEXT                10
-#define ACCEL_PREV                11
-#define ACCEL_QUIT                12
-#define ACCEL_OPTIONS             13
-#define ACCEL_PLUGINS             14
-#define ACCEL_GOTO_CURRENT        15
+#define ACCEL_NEXT                   10
+#define ACCEL_PREV                   11
+#define ACCEL_QUIT                   12
+#define ACCEL_OPTIONS                13
+#define ACCEL_PLUGINS                14
+#define ACCEL_GOTO_CURRENT           15
+#define ACCEL_CURRENT_TO_FAVOURITES  16
 
 typedef struct
   {

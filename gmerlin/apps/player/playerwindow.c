@@ -455,7 +455,6 @@ static void handle_message(player_window_t * win,
       break;
     case BG_PLAYER_MSG_ACCEL:
       arg_i_1 = bg_msg_get_arg_int(msg, 0);
-      
       switch(arg_i_1)
         {
         case ACCEL_VOLUME_DOWN:
@@ -495,6 +494,10 @@ static void handle_message(player_window_t * win,
           break;
         case ACCEL_QUIT:
           gtk_main_quit();
+          return;
+          break;
+        case ACCEL_CURRENT_TO_FAVOURITES:
+          bg_media_tree_copy_current_to_favourites(win->gmerlin->tree);
           return;
           break;
         case ACCEL_OPTIONS:

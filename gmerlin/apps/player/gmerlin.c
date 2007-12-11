@@ -39,21 +39,22 @@ static bg_accelerator_t accels[] =
   {
     { BG_KEY_LEFT,    BG_KEY_SHIFT_MASK,                       ACCEL_VOLUME_DOWN             },
     { BG_KEY_RIGHT,   BG_KEY_SHIFT_MASK,                       ACCEL_VOLUME_UP               },
-    { BG_KEY_LEFT,    BG_KEY_CONTROL_MASK,                     ACCEL_SEEK_BACKWARD  },
-    { BG_KEY_RIGHT,   BG_KEY_CONTROL_MASK,                     ACCEL_SEEK_FORWARD   },
-    { BG_KEY_0,       0,                                       ACCEL_SEEK_START     },
-    { BG_KEY_SPACE,   0,                                       ACCEL_PAUSE                 },
-    { BG_KEY_M,       0,                                       ACCEL_MUTE                  },
-    { BG_KEY_PAGE_UP, BG_KEY_CONTROL_MASK|BG_KEY_SHIFT_MASK,   ACCEL_NEXT_CHAPTER          },
-    { BG_KEY_PAGE_DOWN, BG_KEY_CONTROL_MASK|BG_KEY_SHIFT_MASK, ACCEL_PREV_CHAPTER          },
-
-    { BG_KEY_PAGE_DOWN, BG_KEY_CONTROL_MASK,                   ACCEL_NEXT                  },
-    { BG_KEY_PAGE_UP,   BG_KEY_CONTROL_MASK,                   ACCEL_PREV                  },
-    { BG_KEY_Q,         BG_KEY_CONTROL_MASK,                   ACCEL_QUIT                  },
-    { BG_KEY_O,         BG_KEY_CONTROL_MASK,                   ACCEL_OPTIONS               },
-    { BG_KEY_P,         BG_KEY_CONTROL_MASK,                   ACCEL_PLUGINS               },
-    { BG_KEY_G,         BG_KEY_CONTROL_MASK,                   ACCEL_GOTO_CURRENT          },
-    { BG_KEY_NONE,      0,                                     0                           },
+    { BG_KEY_LEFT,    BG_KEY_CONTROL_MASK,                     ACCEL_SEEK_BACKWARD           },
+    { BG_KEY_RIGHT,   BG_KEY_CONTROL_MASK,                     ACCEL_SEEK_FORWARD            },
+    { BG_KEY_0,       0,                                       ACCEL_SEEK_START              },
+    { BG_KEY_SPACE,   0,                                       ACCEL_PAUSE                   },
+    { BG_KEY_M,       0,                                       ACCEL_MUTE                    },
+    { BG_KEY_PAGE_UP, BG_KEY_CONTROL_MASK|BG_KEY_SHIFT_MASK,   ACCEL_NEXT_CHAPTER            },
+    { BG_KEY_PAGE_DOWN, BG_KEY_CONTROL_MASK|BG_KEY_SHIFT_MASK, ACCEL_PREV_CHAPTER            },
+ 
+    { BG_KEY_PAGE_DOWN, BG_KEY_CONTROL_MASK,                   ACCEL_NEXT                    },
+    { BG_KEY_PAGE_UP,   BG_KEY_CONTROL_MASK,                   ACCEL_PREV                    },
+    { BG_KEY_q,         BG_KEY_CONTROL_MASK,                   ACCEL_QUIT                    },
+    { BG_KEY_o,         BG_KEY_CONTROL_MASK,                   ACCEL_OPTIONS                 },
+    { BG_KEY_p,         BG_KEY_CONTROL_MASK,                   ACCEL_PLUGINS                 },
+    { BG_KEY_g,         BG_KEY_CONTROL_MASK,                   ACCEL_GOTO_CURRENT            },
+    { BG_KEY_F9,        0,                                     ACCEL_CURRENT_TO_FAVOURITES   },
+    { BG_KEY_NONE,      0,                                     0                             },
   };
 
 static void tree_play_callback(void * data)

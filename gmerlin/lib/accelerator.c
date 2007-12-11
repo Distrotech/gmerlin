@@ -38,6 +38,7 @@ bg_accelerator_map_append_array(bg_accelerator_map_t * m,
   int num_append = 0;
   while(tail[num_append].key != BG_KEY_NONE)
     num_append++;
+  
   if(m->num_alloc <= m->num + num_append + 1)
     {
     m->num_alloc = m->num + num_append + 100;

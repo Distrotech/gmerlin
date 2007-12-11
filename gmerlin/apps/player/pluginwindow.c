@@ -50,7 +50,7 @@ plugin_window_t * plugin_window_create(gmerlin_t * g,
   ret->g = g;
   
   ret->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_title(GTK_WINDOW(ret->window), TR("Plugins"));
+  gtk_window_set_title(GTK_WINDOW(ret->window), TR("Input plugins"));
 
   gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER);
   

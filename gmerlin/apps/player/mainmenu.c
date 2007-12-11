@@ -124,12 +124,13 @@ struct command_menu_s
 
   GtkWidget * next_chapter;
   GtkWidget * previous_chapter;
+  GtkWidget * current_to_favourites;
+  GtkWidget * goto_current;
 
   
   GtkWidget * seek_start;
   GtkWidget * pause;
-
-
+  
   GtkWidget * quit;
   
   GtkWidget * menu;
@@ -435,7 +436,7 @@ static void menu_callback(GtkWidget * w, gpointer data)
     }
   else if(w == the_menu->accessories_menu.visualizer)
     {
-    system("gmerlin_visualizer_launcher");
+    system("gmerlin_visualizer &");
     }
   else if(w == the_menu->accessories_menu.mixer)
     {
@@ -468,6 +469,8 @@ static void menu_callback(GtkWidget * w, gpointer data)
     player_window_push_accel(g->player_window, ACCEL_NEXT);
   else if(w == the_menu->command_menu.previous)
     player_window_push_accel(g->player_window, ACCEL_PREV);
+  else if(w == the_menu->command_menu.current_to_favourites)
+    player_window_push_accel(g->player_window, ACCEL_CURRENT_TO_FAVOURITES);
   else if(w == the_menu->command_menu.quit)
     player_window_push_accel(g->player_window, ACCEL_QUIT);
   
@@ -1030,7 +1033,7 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
   
 
   ret->options_menu.plugins =
-    create_pixmap_item(TR("Plugins..."), "plugin_16.png", gmerlin, ret->options_menu.menu);
+    create_pixmap_item(TR("Input plugins..."), "plugin_16.png", gmerlin, ret->options_menu.menu);
   gtk_widget_add_accelerator(ret->options_menu.plugins, "activate", ret->g->accel_group,
                              GDK_p, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
 
@@ -1098,6 +1101,20 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
   gtk_widget_add_accelerator(ret->command_menu.previous_chapter, "activate", ret->g->accel_group,
                              GDK_Page_Up, GDK_SHIFT_MASK | GDK_CONTROL_MASK,
                              GTK_ACCEL_VISIBLE);
+  
+  ret->command_menu.goto_current = create_item(TR("Goto current track"),
+                                               gmerlin, ret->command_menu.menu);
+  gtk_widget_add_accelerator(ret->command_menu.goto_current, "activate",
+                             ret->g->accel_group,
+                             GDK_g, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
+  
+  ret->command_menu.current_to_favourites =
+    create_item(TR("Copy current track to favourites"), gmerlin, ret->command_menu.menu);
+  gtk_widget_add_accelerator(ret->command_menu.current_to_favourites,
+                             "activate", ret->g->accel_group,
+                             GDK_F9, 0, GTK_ACCEL_VISIBLE);
+
+
   
   ret->command_menu.seek_start =
     create_item(TR("Seek to start"), gmerlin, ret->command_menu.menu);
