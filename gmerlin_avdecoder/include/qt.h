@@ -326,6 +326,22 @@ void bgav_qt_ftab_dump(int indent, qt_ftab_t * f);
 
 void bgav_qt_ftab_free(qt_ftab_t * r);
 
+/*
+ *  Inofficial way to store codec data
+ */
+
+typedef struct
+  {
+  int size;
+  uint8_t * data;
+  } qt_glbl_t;
+
+int bgav_qt_glbl_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
+                      qt_glbl_t * ret);
+
+void bgav_qt_glbl_dump(int indent, qt_glbl_t * f);
+
+void bgav_qt_glbl_free(qt_glbl_t * r);
 
 /*
  *  Sample description
@@ -427,8 +443,9 @@ typedef struct
     } format;
   qt_esds_t esds;
   int has_esds;
-
-
+  
+  qt_glbl_t glbl;
+  int has_glbl;
   
   /* Data for avc1 (offset relative to data) */
 

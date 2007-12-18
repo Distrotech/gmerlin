@@ -298,6 +298,11 @@ static int stsd_read_audio(bgav_input_context_t * input,
           return 0;
         ret->format.audio.has_chan = 1;
         break;
+      case BGAV_MK_FOURCC('g', 'l', 'b', 'l'):
+        if(!bgav_qt_glbl_read(&h, input, &(ret->glbl)))
+          return 0;
+        ret->has_glbl = 1;
+        break;
       case 0:
         break;
       default:
@@ -431,6 +436,11 @@ static int stsd_read_video(bgav_input_context_t * input,
           return 0;
         else
           ret->format.video.has_fiel = 1;
+        break;
+      case BGAV_MK_FOURCC('g', 'l', 'b', 'l'):
+        if(!bgav_qt_glbl_read(&h, input, &(ret->glbl)))
+          return 0;
+        ret->has_glbl = 1;
         break;
       default:
         bgav_qt_atom_skip_unknown(input, &h, BGAV_MK_FOURCC('s','t','s','d'));
@@ -668,7 +678,11 @@ void bgav_qt_stsd_free(qt_stsd_t * c)
       }
     if(c->entries[i].desc.has_esds)
       bgav_qt_esds_free(&(c->entries[i].desc.esds));
+    if(c->entries[i].desc.has_glbl)
+      bgav_qt_glbl_free(&(c->entries[i].desc.glbl));
     }
+
+  
   free(c->entries);
   }
 
@@ -693,6 +707,8 @@ void bgav_qt_stsd_dump(int indent, qt_stsd_t * s)
       stsd_dump_audio(indent+2, &s->entries[i].desc);
       if(s->entries[i].desc.has_esds)
         bgav_qt_esds_dump(indent+2, &s->entries[i].desc.esds);
+      if(s->entries[i].desc.has_glbl)
+        bgav_qt_esds_dump(indent+2, &s->entries[i].desc.glbl);
       }
     else if(s->entries[i].desc.type == BGAV_STREAM_VIDEO)
       {
@@ -700,6 +716,8 @@ void bgav_qt_stsd_dump(int indent, qt_stsd_t * s)
       stsd_dump_video(indent+2, &s->entries[i].desc);
       if(s->entries[i].desc.has_esds)
         bgav_qt_esds_dump(indent+2, &s->entries[i].desc.esds);
+      if(s->entries[i].desc.has_glbl)
+        bgav_qt_glbl_dump(indent+2, &s->entries[i].desc.glbl);
       }
     else if(s->entries[i].desc.fourcc == BGAV_MK_FOURCC('t','e','x','t'))
       {

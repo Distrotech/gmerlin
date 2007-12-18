@@ -963,6 +963,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
               {
               case BGAV_MK_FOURCC('O','V','H','S'):
               case BGAV_MK_FOURCC('a','l','a','c'):
+              case BGAV_MK_FOURCC('g','l','b','l'):
                 bg_as->ext_size = atom_size;
                 bg_as->ext_data = desc->format.audio.wave.user_atoms[j];
                 break;
@@ -981,6 +982,12 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
           bg_as->ext_size = desc->format.audio.wave.raw_size;
           }
         }
+      else if(desc->has_glbl)
+        {
+        bg_as->ext_data = desc->glbl.data;
+        bg_as->ext_size = desc->glbl.size;
+        }
+      
       bg_as->stream_id = i;
       
       stream_duration = stream_get_duration(bg_as);
@@ -1118,6 +1125,11 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
           stsd->entries[skip_first_frame].desc.esds.decoderConfigLen;
         bg_vs->ext_data =
           stsd->entries[skip_first_frame].desc.esds.decoderConfig;
+        }
+      else if(desc->has_glbl)
+        {
+        bg_vs->ext_data = desc->glbl.data;
+        bg_vs->ext_size = desc->glbl.size;
         }
       bg_vs->stream_id = i;
 

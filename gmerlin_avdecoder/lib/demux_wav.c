@@ -24,7 +24,7 @@
 
 #define STREAM_ID 0
 
-#define DUMP_HEADER
+// #define DUMP_HEADER
 
 /* WAV demuxer */
 

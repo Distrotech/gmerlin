@@ -41,6 +41,7 @@ extern bgav_demuxer_t bgav_demuxer_mpegps;
 #define TRACK_OTHER 0
 #define TRACK_VCD   1
 #define TRACK_SVCD  2
+#define TRACK_CVD   3
 
 typedef struct
   {
@@ -98,6 +99,7 @@ static int read_toc(vcd_priv * priv, char ** iso_label)
   int i, j;
   cdio_iso_analysis_t iso;
   cdio_fs_anal_t fs;
+  int first_track;
   
   priv->num_tracks = cdio_get_last_track_num(priv->cdio);
   if(priv->num_tracks == CDIO_INVALID_TRACK)
@@ -111,8 +113,32 @@ static int read_toc(vcd_priv * priv, char ** iso_label)
   priv->tracks = calloc(priv->num_tracks, sizeof(*(priv->tracks)));
 
   priv->num_video_tracks = 0;
+  first_track = cdio_get_first_track_num(priv->cdio);
   
-  for(i = cdio_get_first_track_num(priv->cdio) - 1; i < priv->num_tracks; i++)
+  if(iso_label)
+    {
+    fs = cdio_guess_cd_type(priv->cdio, 0, first_track,
+                            &iso);
+    
+    /* Remove trailing spaces */
+    j = strlen(iso.iso_label)-1;
+    while(j)
+      {
+      if(!isspace(iso.iso_label[j]))
+        break;
+      j--;
+      }
+    if(!j && isspace(iso.iso_label[j]))
+      iso.iso_label[j] = '\0';
+    else
+      iso.iso_label[j+1] = '\0';
+    
+    *iso_label = bgav_strdup(iso.iso_label);
+    
+    priv->tracks[first_track - 1].mode = TRACK_OTHER;
+    }
+  /* Actually it's (first_track - 1) + 1 */
+  for(i = first_track; i < priv->num_tracks; i++)
     {
     priv->tracks[i].start_sector = cdio_get_track_lsn(priv->cdio, i+1);
     priv->tracks[i].end_sector = cdio_get_track_last_lsn(priv->cdio, i+1);
@@ -121,46 +147,25 @@ static int read_toc(vcd_priv * priv, char ** iso_label)
 
     if(fs & CDIO_FS_ANAL_VIDEOCD)
       {
-      if(i)
-        {
-        priv->num_video_tracks++;
-        priv->tracks[i].mode = TRACK_VCD;
-        }
-      else
-        {
-        if(!i && iso_label)
-          {
-          /* Remove trailing spaces */
-          j = strlen(iso.iso_label)-1;
-          while(j--)
-            {
-            if(!isspace(iso.iso_label[j]))
-              {
-              iso.iso_label[j+1] = '\0';
-              break;
-              }
-            }
-          *iso_label = bgav_strdup(iso.iso_label);
-          }
-        priv->tracks[i].mode = TRACK_OTHER;
-        }
+      priv->num_video_tracks++;
+      priv->tracks[i].mode = TRACK_VCD;
       }
     else if(fs & CDIO_FS_ANAL_SVCD)
       {
-      if(i)
-        {
-        priv->num_video_tracks++;
-        priv->tracks[i].mode = TRACK_SVCD;
-        }
-      else
-        {
-        priv->tracks[i].mode = TRACK_OTHER;
-        }
+      priv->num_video_tracks++;
+      priv->tracks[i].mode = TRACK_SVCD;
       }
-    else
+    else if(fs & CDIO_FS_ANAL_CVD)
       {
-      priv->tracks[i].mode = TRACK_OTHER;
+      priv->tracks[i].mode = TRACK_CVD;
+      priv->num_video_tracks++;
       }
+    else if(fs & CDIO_FS_ANAL_ISO9660_ANY)
+      {
+      priv->tracks[i].mode = TRACK_VCD;
+      priv->num_video_tracks++;
+      }
+
     }
   if(!priv->num_video_tracks)
     {
@@ -205,13 +210,14 @@ static void toc_2_tt(bgav_input_context_t * ctx)
       track->name = bgav_sprintf("SVCD Track %d", i);
       track->duration = GAVL_TIME_UNDEFINED;
       }
+    else if(priv->tracks[i].mode == TRACK_CVD)
+      {
+      track->name = bgav_sprintf("CVD Track %d", i);
+      track->duration = GAVL_TIME_UNDEFINED;
+      }
     else
       {
-      track->name = bgav_sprintf("VCD Track %d", i);
-      track->duration = (GAVL_TIME_SCALE *
-        (gavl_time_t)(priv->tracks[i].end_sector -
-                      priv->tracks[i].start_sector + 1) * SECTOR_SIZE) /
-        (1374000/8);
+      
       }
     index++;
     }

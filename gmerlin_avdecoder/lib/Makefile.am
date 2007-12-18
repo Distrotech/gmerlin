@@ -417,6 +417,7 @@ qt_esds.c \
 qt_fiel.c \
 qt_frma.c \
 qt_ftab.c \
+qt_glbl.c \
 qt_gmhd.c \
 qt_gmin.c \
 qt_hdlr.c \
