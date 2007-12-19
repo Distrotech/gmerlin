@@ -275,7 +275,6 @@ corresponds to the application. Normally, this shouldn't be necessary.
 @menu
 * Introduction: gui_intro.
 * Static and dynamic parameters: gui_statdyn.
-* Selecting output plugins: gui_op.
 * Configuring input plugins: gui_i.
 * Configuring filters: gui_f.
 * Log messages: gui_log.
@@ -323,9 +322,6 @@ supported by the core architecture, are configured in some global
 dialog. You can expect them to be present on every gmerlin installation
 of the same version. The plugin options vary depending on what plugins
 are installed (that's the reason, why they are separated).
-
-@node gui_op
-@subsection Selecting output plugins
 
 @node gui_i
 @subsection Configuring input plugins 
@@ -690,17 +686,62 @@ something goes wrong. Note, that in the latter case, you get more information fr
 @node Media tree
 @subsection Media tree
 
+@ifhtml
+@image{../img/player_tree_tabbed}
+@end ifhtml
+
 The media tree can be used to store and organize your media collection.
 It consists of virtual folders called @emph{albums}. You can create albums,
 subalbums and move stuff between them like you want. The media files
 always stay at the same place in the filesystem. The albums can be either
-in own windows (Windowed mode) or as tabs in the tree window (tabbed mode).
+in own windows (Windowed mode) or as tabs in the tree window (tabbed mode). You
+cah switch this with the right-click menu of the tree widget.
 The tree- and album windows remember their screen positions.
 
-You can create your own albums by right clicking onto the parent album in
-the tree and select Album->New. Whenever you doubleclick a track, it will
-be played immediately. In addition to the regular albums, there are a
-number of special albums:
+@menu
+* Tree widget: player_treewidget.
+* Album widget: player_albumwidget.
+@end menu
+
+@node player_treewidget
+@subsubsection Tree widget
+
+@b{Doubleclicking} an album opens it if it was closed or vice versa.
+
+@b{Creating albums} is done by right selecting the parent album in
+the tree and click the ``New album'' button
+@ifhtml
+@image{../img/folder_new_16}
+@end ifhtml
+or ``Album->New'' in the right-click menu. In the new empty album, you can then
+load files or URLs. Another option to import whole directory trees, is to
+click ``Album->New from directory''. It will pop up a directory selection dialog.
+The directory can optionally be scanned recursively. The tracks are either in one
+(flat) album, or in subalbums according to the directory structure.
+Note that importing large directories takes some time.
+
+@b{Deleting albums} is done by selecting them in the tree and
+clicking the ``remove'' button
+@ifhtml
+@image{../img/trash_16}
+@end ifhtml
+(or by choosing Album->Remove in the right click menu. Please note
+the following:
+
+@itemize @bullet
+@item Removing albums is done without confirmation
+@item All subalbums are removed as well
+@item This (as well as removing tracks) cannot be undone
+@item Good news: gmerlin @b{never} removes media files from disk
+@end itemize
+
+@b{Moving albums} is done with Drag & Drop
+
+@b{Loading files or URLs} into an open or closed album can be done by
+dragging it from a filemanager or webbrowser into the target album in the tree widget.
+
+Some @b{special albums} are automatically created in addition to the
+regular albums (which are created by you):
 
 @itemize @bullet
 @item @emph{Incoming:}
@@ -744,11 +785,28 @@ albums.
 
 @end itemize
 
-Adding tracks to the media tree can happen in multiple ways:
+@node player_albumwidget
+@subsubsection Album widget
+
+The album widget can either be in an own window (when the tree is in tabbed mode)
+or in a notebook right of the tree widget. It lists all tracks of that album.
+At the bottom there is a toolbar and a display of the total playback time of the album.
+
+A @b{track} in gmerlin is a piece of media, which can have an arbitrary number of audio-,
+video- and subtitle @b{streams}. A track can be divided into @b{chapters} (which are just
+seekpoints). Some files (like ALBW wrapped mp3s or concatenated Ogg streams), will show
+up as multiple tracks. You can move them around in the whole tree as if they were separate
+files.
+
+@b{Doubleclicking} an album opens it if it was closed or vice versa.
+
+The @b{right click menu} offers lots of options and shortcuts, not all of them are
+documented here.
+
+@b{Adding tracks} can happen in multiple ways:
 
 @itemize @bullet
 @item Drag Files or URLs from filenanagers or webbrowsers into an album
-folder in the tree or into an album directly.
 @item Use the buttons
 @ifhtml
 @image{../img/folder_open_16}
@@ -757,33 +815,29 @@ folder in the tree or into an album directly.
 @image{../img/earth_16}
 @end ifhtml
 in the album toolbar, or the right click menu
-@item Via the right-click menu (Album->New from directory...) of the tree
-window, you can import entire directory trees. Subdirectories will be added
-as subalbums if you want.
-@item Configure script @code{gmerlin_launcher}
-as a MIME Handler for the supported filetypes in your desktop
-environment. @code{gmerlin_launcher} will then send all doubleclicked
-files into the @emph{Incoming}
-@ifhtml
-@image{../img/incoming_closed_16}
-@end ifhtml
-album. 
 @end itemize
 
-Drag and Drop is supported:
+@b{Drag and Drop} is supported:
 @itemize @bullet
-@item Inside the tree window to move albums (inclusive subalbums) around
+@item From most webbrowsers and filenmanagers into the album (see above)
 @item From one regular album to another. By default, tracks are moved.
   Press the @key{CTRL}-key before dragging, and the tracks will be copied.
 @item Inside all albums to sort the tracks
 @item From an album window into the tree window to transfer tracks to
   another album
-
+@item From the album to text editors or graphics programs, which support
+dropping text. You'll get a string representation of the tracks, which
+will make designing disk covers easier.
 @end itemize
 
-If you close the currently played album during playback, the player will
-stop after the current track is finished. You can then select another
-album by doubleclicking a track inside it.
+@b{Error tracks} are tracks, which failed to load last time you tried.
+They are marked red but remain in the album. If they are on removable
+disks or in the network, you might retry playing them when they become
+available. To delete all error tracks, go to ``Select error tracks'' in the
+right click menu to select them. Then, press @kbd{@key{CTRL}+DELETE}
+to get rid of them.
+
+For keyboard commands, see @ref{gmerlin_player_shortcuts, Shortcuts}.
 
 @node Video window
 @subsection Video window
@@ -958,7 +1012,7 @@ Toggle fullscreen/windowed mode
 Exit fullscreen mode
 @end table
 
-The following additional chortcuts are available inside albums:
+The following additional shortcuts are available inside @ref{player_albumwidget, albums}:
 
 @table @kbd
 @item UP/DOWN
@@ -976,20 +1030,36 @@ Move the cursor one track up/down and select track
 @item SHIFT+PAGEUP/PAGEDOWN
 Move the cursor one page up/down and select tracks
 
-@item CTRL+UP/DOWN
+@item @key{CTRL}+UP/DOWN
 Move the cursor one track up/down and unselect track
 
-@item CTRL+C
+@item ALT+HOME
+Move selected tracks to the top
+
+@item ALT+END
+Move selected tracks to the bottom
+
+@item ALT+MOUSEWHEEL
+Increase/decrease zoom factor
+
+
+@item @key{CTRL}+C
 Copy selected tracks to clipboard
 
-@item CTRL+X
+@item @key{CTRL}+X
 Cut selected tracks to clipboard
 
-@item CTRL+V
+@item @key{CTRL}+V
 Paste tracks from clipboard at the current cursor position
 
-@item CTRL+F
+@item @key{CTRL}+DELETE
+Delete selected tracks
+
+@item @key{CTRL}+F
 Search for tracks
+
+@item @key{CTRL}+I
+Display info about the currently selected track
 
 @item F10
 Copy selected tracks to favourites
@@ -1056,6 +1126,8 @@ script
 
 @menu
 * Commandline options: gmerlin_transcoder.
+* Commands: gmerlin_transcoder_commands.
+* Configuration: gmerlin_transcoder_config.
 * Usage: gmerlin_transcoder_usage.
 @end menu
 
@@ -1063,6 +1135,12 @@ script
 @subsection Commandline options
 
 @include gmerlin_transcoder.texi
+
+@node gmerlin_transcoder_commands
+@subsection Commands
+
+@node gmerlin_transcoder_config
+@subsection Configuration
 
 @node gmerlin_transcoder_usage
 @subsection Usage
