@@ -311,6 +311,7 @@ static void set_parameter_deinterlace(void * priv, const char * name,
       new_method = DEINTERLACE_GAVL;
       new_sub_method = GAVL_DEINTERLACE_BLEND;
       }
+#ifdef HAVE_MJPEGTOOLS
     else if(!strcmp(val->val_str, "yuvdeinterlace_1"))
       {
       new_method = DEINTERLACE_MJPEGTOOLS;
@@ -326,7 +327,7 @@ static void set_parameter_deinterlace(void * priv, const char * name,
       new_method = DEINTERLACE_MJPEGTOOLS;
       new_sub_method = YUVD_MODE_ANTIALIAS;
       }
-    
+#endif
     if((new_method != vp->method) || 
        (new_sub_method != vp->sub_method))
       {
