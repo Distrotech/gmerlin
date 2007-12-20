@@ -268,14 +268,17 @@ static void get_video_format_lqt(void * data, int stream,
 
 static int start_lqt(void * data)
   {
-  int i;
+  int i, tmp;
   e_lqt_t * e = (e_lqt_t*)data;
 
   for(i = 0; i < e->num_audio_streams; i++)
     {
+     /* Ugly hack */
+    tmp = e->audio_streams[i].format.samples_per_frame;
     lqt_gavl_get_audio_format(e->file,
                               i,
                               &(e->audio_streams[i].format));
+    e->audio_streams[i].format.samples_per_frame = tmp;
     }
   for(i = 0; i < e->num_video_streams; i++)
     {

@@ -1253,7 +1253,7 @@ void bg_media_tree_mark_error(bg_media_tree_t * t, int err)
     err1 = !!(t->com.current_entry->flags & BG_ALBUM_ENTRY_ERROR);
     err = !!err;
     
-    if(err == err)
+    if(err == err1)
       return;
     
     if(err)

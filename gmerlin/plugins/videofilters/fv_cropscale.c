@@ -194,7 +194,12 @@ static bg_parameter_info_t parameters[] =
                               "1080",
                               "vga",
                               "qvga",
-                               (char*)0 },
+                              "sqcif",
+                              "qcif",
+                              "cif",
+                              "4cif",
+                              "16cif",
+                              (char*)0 },
       multi_labels:  (char*[]){ TRS("From Source"),
                                 TRS("User defined"),
                                 TRS("PAL DVD D1 4:3 (720 x 576)"),
@@ -217,6 +222,11 @@ static bg_parameter_info_t parameters[] =
                                 TRS("HD 1080p/i (1920x1080)"),
                                 TRS("VGA (640 x 480)"),
                                 TRS("QVGA (320 x 240)"),
+                                TRS("SQCIF (128 × 96)"),
+                                TRS("QCIF (176 × 144)"),
+                                TRS("CIF (352 × 288)"),
+                                TRS("4CIF (704 × 576)"),
+                                TRS("16CIF (1408 × 1152)"),
                                 (char*)0 },
       val_default: { val_str: "from_input" },
       help_string: TRS("Set the output frame size. For a user defined size, you must specify the width and height as well as the pixel width and pixel height (for nonsquare pixels)."),
@@ -418,8 +428,12 @@ static bg_parameter_info_t * get_parameters_cropscale(void * priv)
 #define FRAME_SIZE_QVGA           19
 #define FRAME_SIZE_720            20
 #define FRAME_SIZE_1080           21
-#define NUM_FRAME_SIZES           22
-
+#define FRAME_SIZE_SQCIF          22
+#define FRAME_SIZE_QCIF           23
+#define FRAME_SIZE_CIF            24
+#define FRAME_SIZE_4CIF           25
+#define FRAME_SIZE_16CIF          26
+#define NUM_FRAME_SIZES           27
 
 static struct
   {
@@ -450,6 +464,11 @@ framesize_strings[NUM_FRAME_SIZES] =
     { FRAME_SIZE_1080,           "1080" }, 
     { FRAME_SIZE_VGA,            "vga"},
     { FRAME_SIZE_QVGA,           "qvga"},
+    { FRAME_SIZE_SQCIF,          "sqcif" },
+    { FRAME_SIZE_QCIF,           "qcif" },
+    { FRAME_SIZE_CIF,            "cif" },
+    { FRAME_SIZE_4CIF,           "4cif" },
+    { FRAME_SIZE_16CIF,          "16cif" },
   };
 
 static struct
@@ -484,6 +503,11 @@ frame_size_sizes[NUM_FRAME_SIZES] =
     { FRAME_SIZE_QVGA,             320,  240,    1,    1 },
     { FRAME_SIZE_720,             1280,  720,    1,    1 },
     { FRAME_SIZE_1080,            1920, 1080,    1,    1 },
+    { FRAME_SIZE_SQCIF,            128,   96,   12,   11 },
+    { FRAME_SIZE_QCIF,             176,  144,   12,   11 },
+    { FRAME_SIZE_CIF,              352,  288,   12,   11 },
+    { FRAME_SIZE_4CIF,             704,  576,   12,   11 },
+    { FRAME_SIZE_16CIF,           1408, 1152,   12,   11 },
   };
 
 static gavl_scale_mode_t string_to_scale_mode(const char * str)

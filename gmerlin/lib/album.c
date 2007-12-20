@@ -420,8 +420,6 @@ static int open_device(bg_album_t * a)
     {
     a->disc_name = bg_strdup(a->disc_name,
                              plugin->get_disc_name(a->handle->priv));
-    fprintf(stderr, "a->disc_name: %s\n", a->disc_name);
-    //    bg_hexdump((uint8_t*)a->disc_name, strlen(a->disc_name), 16);
     if(!a->disc_name || (*a->disc_name == '\0'))
       a->disc_name = bg_strdup(a->disc_name, TR("Unnamed disc"));
     }
@@ -606,8 +604,6 @@ bg_album_entry_t * bg_album_entry_create(bg_album_t * album)
   {
   bg_album_entry_t * ret;
   ret = calloc(1, sizeof(*ret));
-  if(album)
-    ret->id = bg_album_get_unique_id(album);
   return ret;
   }
 

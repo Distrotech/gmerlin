@@ -70,10 +70,6 @@ typedef struct bg_album_entry_s
   char * username;
   char * password;
     
-  /* Runtime ID unique in the whole tree */
-
-  int id;
-    
   int flags;
   struct bg_album_entry_s * next;
 

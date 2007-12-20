@@ -413,7 +413,8 @@ static gboolean idle_callback(gpointer data)
 
       case BG_TRANSCODER_MSG_ERROR:
         arg_str = bg_msg_get_arg_string(msg, 0);
-        bg_gtk_scrolltext_set_text(win->scrolltext, arg_str,
+        bg_gtk_scrolltext_set_text(win->scrolltext,
+                                   bg_gtk_log_window_last_error(win->logwindow),
                                    win->fg_color_e, win->bg_color);
         if(win->transcoder_track)
           {
@@ -654,7 +655,7 @@ static void button_callback(GtkWidget * w, gpointer data)
                                            win->save_button);
     if(tmp_string)
       {
-      track_list_load(win->tracklist, tmp_string);
+      track_list_save(win->tracklist, tmp_string);
       free(tmp_string);
       }
     }
@@ -715,7 +716,7 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   else if(w == win->help_menu.help_item)
     {
-    bg_display_html_help("userguide/Transcoder.html");
+    bg_display_html_help("userguide/GUI-Transcoder.html");
     }
   }
 

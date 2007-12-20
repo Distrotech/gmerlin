@@ -1283,6 +1283,17 @@ Displays the progress of the current action.
 A queue for tracks to be transcoded. Right clicking into the
 list pops up a menu, which is the same as in the menubar.
 
+New tracks can be added in various ways:
+
+@itemize @bullet
+@item By dragging files or URLs from filenanagers or webbrowsers into the tasklist
+@item By using the buttons in lower toolbar or the right click menu
+@item From the @ref{GUI Player} by right clicking into an album end select Selected->Transcode. If multiple transcoders are open, the
+instance, which listens on the remote port (can be only one at a time),
+gets the track.
+@item By dragging tracks from a gmerlin album into the tasklist
+@end itemize
+
 @node transcoder_lower_toolbar
 @subsubsection Lower toolbar
 
@@ -1396,14 +1407,6 @@ which contains the tasklist. A tasklist stores ALL information necessary
 to transcode the track. This includes codec settings, bitrates etc. You can
 load and save tasklists, the current tasklist is remembered.
 
-New tracks can be added in various ways:
-
-@itemize @bullet
-@item By dragging files or URLs from filenanagers or webbrowsers into the tasklist
-@item By using the buttons in lower toolbar or the right click menu
-@item From the player by right clicking into an album end select Selected->Transcode
-@item By dragging tracks from a gmerlin album into the tasklist
-@end itemize
 
 The @emph{upper toolbar} controls global things. Here you can select and configure
 plugins as defaults for newly added tracks. Moreover, you can load/save
