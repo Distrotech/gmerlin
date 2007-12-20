@@ -1125,22 +1125,268 @@ script
 @section GUI Transcoder
 
 @menu
-* Commandline options: gmerlin_transcoder.
-* Commands: gmerlin_transcoder_commands.
-* Configuration: gmerlin_transcoder_config.
+* Invoking gmerlin_transcoder: gmerlin_transcoder.
+* Quick intro: gmerlin_transcoder_intro.
+* Main window: gmerlin_transcoder_window.
+* Configuring encoder plugins: gmerlin_transcoder_enc.
+* Configuring tracks: gmerlin_transcoder_tracks.
 * Usage: gmerlin_transcoder_usage.
 @end menu
 
 @node gmerlin_transcoder
-@subsection Commandline options
+@subsection Invoking gmerlin_transcoder
 
 @include gmerlin_transcoder.texi
 
-@node gmerlin_transcoder_commands
-@subsection Commands
+@node gmerlin_transcoder_intro
+@subsection Quick intro
 
-@node gmerlin_transcoder_config
-@subsection Configuration
+Gmerlin transoder can transcode every supported input file
+to any of the supported output files. It has some unique features,
+which seperate it from other transcoding applications. Most notably:
+
+@table @b
+@item Per stream settings
+All settings are configured for each stream separately. This means,
+different streams can have different formats, different filters and
+even different codecs (of course only if the container supports it)
+
+@item Subtitle support
+There are plugins for exporting subitles to separate files or to the
+same file, where the A/V data gets written. Alternatively, you can
+blend subtitles onto the video frames (for containers, which don't
+support subtitles).
+
+@item Profile support
+Finding out the right encoder parameters can be a time-consuming task.
+@code{gmerlin_transcoder} allows you to save all settings and load them later.
+Once you have found out your favourite encoder settings for a specific task,
+transcoding is a matter of
+@itemize @bullet
+@item Loading the profile
+@item Adding tracks to the tasklist
+@item Clicking the transcode button
+@end itemize
+
+@item Postprocessing support
+There are postprocessors, which take the encoded files and
+make e.g. Audio CDs (with cdtext) from it. It also contains a frontend for cdrdao,
+so you can burn them as well.
+
+@item Chapter support
+@code{gmerlin_transcoder} imports all chapter seekpoints from the source, and writes
+them  into the file (currently only supported for Quicktime and mp4).
+You can also edit chapter lists or create new ones
+@item Language codes
+@code{gmerlin_transcoder} lets you import, edit and export language codes for
+the Audio- and subtitle streams
+@item 2 Pass encoding
+For plugins, which support it, we can do multipass transcoding. There is also a
+generic volume normalizer built in.
+@end table
+
+There is a tasklist, in which the tracks are queued. All newly loaded tracks
+get the globally configured settings (plugins, formats, filters). You can then
+fine-tune the tracks by configuring them individually. Changing track
+parameters for multiple tracks at once isn't possible. Instead, make the
+settings, save them to a profile and load the profile before loading the
+tracks.
+
+@node gmerlin_transcoder_window
+@subsection Main window
+
+@ifhtml
+@image{../img/transcoder_mainwin}
+@end ifhtml
+
+The window contains of the following elements:
+
+@menu
+* Menu bar: transcoder_menubar.
+* Upper toolbar: transcoder_upper_toolbar.
+* Display: transcoder_display.
+* Progress bar: transcoder_progressbar.
+* Tasklist: transcoder_tasklist.
+* Lower toolbar: transcoder_lower_toolbar.
+@end menu
+
+@node transcoder_menubar
+@subsubsection Menu bar
+
+Here you have all @b{global} commands and settings. The item
+@b{Tasklist} has @b{per track} commands and settings.
+
+@node transcoder_upper_toolbar
+@subsubsection Upper toolbar
+Contains shortcuts for the @b{global} commands and settings.
+@table @b
+@item Load tasklist
+@ifhtml
+@image{../img/folder_open_16}
+@end ifhtml
+Pops up a file selection dialog and loads the chosen tasklist.
+The tracks are appended to already existing tracks in the list.
+@item Save tasklist
+@ifhtml
+@image{../img/save_16}
+@end ifhtml
+Pops up a file selection dialog for saving the current tasklist.
+@item Start transcoding
+@ifhtml
+@image{../img/run_16}
+@end ifhtml
+This will start transcoding of the tracks in the trasklist in top-to-bottom
+order. While transcoding you can still add/delete/edit tracks in the list.
+@item Stop transcoding
+@ifhtml
+@image{../img/stop_16}
+@end ifhtml
+Stops transcoding. If the currently transcoded track is not a
+live stream, the produced files are deleted from disk (unless you disable
+this in the preferences). The currently decoded track is moved back to the
+top of the tasklist.
+@item Configure plugins
+@ifhtml
+@image{../img/plugin_16}
+@end ifhtml
+Here, you set the default plugins for newly added tracks. You can
+configure input plugins (See @ref{gui_i, Configuring input plugins})
+and encoders (See @ref{gmerlin_transcoder_enc, Configuring encoders}).
+The plugin settings are saved in the profile.
+@item Preferences
+@ifhtml
+@image{../img/config_16}
+@end ifhtml
+Here, you configure the GUI and the default settings for newly added tracks.
+The preferences are saved in the profile.
+
+@item Quit
+@ifhtml
+@image{../img/quit_16}
+@end ifhtml
+Stop the current transcoding action (if any) and quit
+
+@end table
+
+@node transcoder_display
+@subsubsection Display
+Displays the currently performed action and the estimated
+remaining time for the current action.
+
+@node transcoder_progressbar
+@subsubsection Progress bar
+Displays the progress of the current action.
+
+@node transcoder_tasklist
+@subsubsection Tasklist
+
+A queue for tracks to be transcoded. Right clicking into the
+list pops up a menu, which is the same as in the menubar.
+
+@node transcoder_lower_toolbar
+@subsubsection Lower toolbar
+
+Here, you have shortcuts of the @b{per track} commands
+and settings. All of them are also available in the @b{Tasklist} item of the
+menu bar. In the lower right corner, you have the total playback time of all
+tracks in the list.
+
+@node gmerlin_transcoder_enc
+@subsection Configuring encoders
+@ifhtml
+@image{../img/transcoder_enc}
+@end ifhtml
+
+This dialog exists in the global settings as well as in the per track
+settings. It describes a complete encoder setup.
+
+There are 2 different modes for encoding: Either all A/V streams go into
+one file, or into separate files (i.e. it's not possible to group some
+A/V streams and write others separately). You control this by clicking
+``Encode audio into video file'' checkbox. Subtitles can be written into
+the video file, or into a separate file. You can select this independently for
+text- and overlay subtitles with the corresponding checkbuttons.
+
+Note, that some streams are always written to a separate file (regardless
+of the check-box settings) if the video encoder plugin doesn't support streams
+of that type.
+
+Then, you can set encoder plugins for each stream type. The menu selects
+the plugin. Right of the menu, there are buttons for displaying plugin info
+@ifhtml
+@image{../img/info_16}
+@end ifhtml
+and setting global options 
+@ifhtml
+@image{../img/config_16}
+@end ifhtml
+(like ID3 generation or fileformat flavours). These settings can be changed
+on a per track basis in the @ref{gmerlin_transcoder_tracks,
+ track configuration dialog}.
+
+Finally, there are the default audio-
+@ifhtml
+@image{../img/audio_16}
+@end ifhtml
+and video
+@ifhtml
+@image{../img/video_16}
+@end ifhtml
+settings. Here, you mostly configure codec parameters like bitrates, etc.
+To further tweak these settings of a per stream base, you'll find the
+same options for each stream in the @ref{gmerlin_transcoder_tracks,
+ track configuration dialog}.
+
+@node gmerlin_transcoder_tracks
+@subsection Configuring tracks
+@ifhtml
+@image{../img/transcoder_track}
+@end ifhtml
+
+It's a standard gmerlin configuration dialog, which is built dynamically
+depending on the stream layout of the source and the encoder setup. On
+the left you see a tree structure of all settings:
+@table @b
+@item General
+Sets global settings like basename of the file and an optional subdirectory
+of the encoding directory, where the file(s) will be written. Note, that
+the toplevel destination directory is configured globally, not per track.
+
+If you select ``postprocess only'', the input file will be sent directly
+to the postprocessing plugin. Enable this for files, which already have a
+format supported by the postprocessor.
+
+Finally you can choose to transcode only a certain selection given by
+the start- and/or end time.
+
+@item Metadata
+Here, any available metadata are imported from the input, and you can
+edit them. Note that not all medatada fields are supported by all output
+formats. Some formats don't support metadata at all.
+
+@item Global encoder options
+For each enabled encoding plugin, you can configure global settings here.
+
+@item Stream options
+For each stream, you have @b{Generic options}. Here you can en- or disable
+the stream, set the language and the format. In addition for subtitles,
+you can choose whether to convert text- to overlay subtitles, blend
+subtitles onto video frames or encode them separately.
+
+For Audio and video streams, you can also set up @ref{gui_f, filters}.
+
+For text subtitles, the @b{render options} let you configure the
+font and colors of the subtitles, if they are converted to overlay
+subtitles.
+
+The @b{default format} of subtitles is for the rare case, that you want
+to convert subtitles to a video stream. It's only used if you encode subtitles
+but no corresponding video stream.
+
+The last tree- node for each stream has always the codec option of the
+output plugin for the respective streams. Here, you can change encoder
+settings for each stream separately. 
+@end table
 
 @node gmerlin_transcoder_usage
 @subsection Usage
