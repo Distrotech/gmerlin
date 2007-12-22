@@ -1378,8 +1378,8 @@ Has a shortcut in the @b{lower} toolbar.
 @ifhtml
 @image{../img/paste_16}
 @end ifhtml
-Paste tracks from the clipboard.
-Has a shortcut in the @b{lower} toolbar.
+Paste tracks or album entries from the @ref{GUI Player}
+from the clipboard. Has a shortcut in the @b{lower} toolbar.
 @item Postprocess...
 Pops up a dialog to configure postprocessing.
 Postprocessing plugins are invoked whenever
