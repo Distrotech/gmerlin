@@ -734,7 +734,7 @@ static void init_menu(control_widget_t * w)
   w->menu.right   = create_pixmap_item("right_16.png", "Move control right by one");
   w->menu.first   = create_pixmap_item("first_16.png",  "Move control to the leftmost position");
   w->menu.last    = create_pixmap_item("last_16.png",  "Move control to the rightmost position");
-  w->menu.tearoff = create_pixmap_item("tearoff_16.png", "Detach control");
+  w->menu.tearoff = create_pixmap_item("windowed_16.png", "Detach control");
   w->menu.config  = create_pixmap_item("config_16.png", "Alsamixer options");
   w->menu.about   = create_pixmap_item("about_16.png", "About...");
   w->menu.help    = create_pixmap_item("help_16.png", "Userguide");

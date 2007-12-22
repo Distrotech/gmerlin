@@ -73,6 +73,59 @@ static GtkTargetEntry copy_paste_entries[] =
     { cp_tracks_name , 0, DND_TRANSCODER_TRACKS },
   };
 
+static int is_urilist(GtkSelectionData * data)
+  {
+  int ret;
+  char * target_name;
+  target_name = gdk_atom_name(data->target);
+  if(!target_name)
+    return 0;
+
+  if(!strcmp(target_name, "text/uri-list") ||
+     !strcmp(target_name, "text/plain"))
+    ret = 1;
+  else
+    ret = 0;
+  
+  g_free(target_name);
+  return ret;
+  }
+
+static int is_tracks(GtkSelectionData * data)
+  {
+  int ret;
+  char * target_name;
+  target_name = gdk_atom_name(data->target);
+  if(!target_name)
+    return 0;
+
+  if(!strcmp(target_name, cp_tracks_name))
+    ret = 1;
+  else
+    ret = 0;
+  g_free(target_name);
+  return ret;
+  }
+
+static int is_albumentries(GtkSelectionData * data)
+  {
+  int ret;
+  char * target_name;
+  target_name = gdk_atom_name(data->target);
+  if(!target_name)
+    return 0;
+
+  if(!strcmp(target_name, bg_gtk_atom_entries_name) ||
+     !strcmp(target_name, bg_gtk_atom_entries_name_r))
+    ret = 1;
+  else
+    ret = 0;
+  
+  g_free(target_name);
+  return ret;
+  }
+
+
 static void load_pixmaps()
   {
   char * filename;
@@ -533,10 +586,18 @@ static void clipboard_received_func(GtkClipboard *clipboard,
   if(selection_data->length <= 0)
     return;
 
-  new_tracks = bg_transcoder_tracks_from_xml((char*)selection_data->data,
-                                             w->plugin_reg);
-  w->tracks = bg_transcoder_tracks_append(w->tracks, new_tracks);
-  track_list_update(w);
+  if(is_tracks(data))
+    {
+    new_tracks = bg_transcoder_tracks_from_xml((char*)selection_data->data,
+                                               w->plugin_reg);
+    
+    w->tracks = bg_transcoder_tracks_append(w->tracks, new_tracks);
+    track_list_update(w);  
+    }
+  else if(is_albumentries(data))
+    {
+    track_list_add_albumentries_xml(w, (char*)(selection_data->data));
+    }
   }
 
 
@@ -561,7 +622,6 @@ static void do_copy(track_list_t * w)
     free(w->clipboard);
   w->clipboard = bg_transcoder_tracks_selected_to_xml(w->tracks);
 
-  fprintf(stderr, "Clipboard: %s\n", w->clipboard);
   }
 
 static void do_cut(track_list_t * l)
@@ -682,7 +742,7 @@ static void button_callback(GtkWidget * w, gpointer data)
 
   if((w == t->add_file_button) || (w == t->menu.add_menu.add_files_item))
     {
-    t->filesel = bg_gtk_filesel_create("Add files...",
+    t->filesel = bg_gtk_filesel_create("Add URLs",
                                        add_file_callback,
                                        filesel_close_callback,
                                        t, NULL /* parent */,
@@ -698,7 +758,7 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   else if((w == t->add_url_button) || (w == t->menu.add_menu.add_urls_item))
     {
-    urlsel = bg_gtk_urlsel_create(TR("Add URLs"),
+    urlsel = bg_gtk_urlsel_create(TR("Add files"),
                                   add_file_callback,
                                   urlsel_close_callback,
                                   t, NULL  /* parent */,
@@ -819,11 +879,11 @@ static void init_menu(track_list_t * t)
   t->menu.add_menu.menu = gtk_menu_new();
 
   t->menu.add_menu.add_files_item =
-    create_item(t, t->menu.add_menu.menu, TR("Add Files..."), "folder_open_16.png");
+    create_item(t, t->menu.add_menu.menu, TR("Files..."), "folder_open_16.png");
   t->menu.add_menu.add_urls_item =
-    create_item(t, t->menu.add_menu.menu, TR("Add Urls..."), "earth_16.png");
+    create_item(t, t->menu.add_menu.menu, TR("Urls..."), "earth_16.png");
   t->menu.add_menu.add_drives_item =
-    create_item(t, t->menu.add_menu.menu, TR("Add Drives..."), "drive_running_16.png");
+    create_item(t, t->menu.add_menu.menu, TR("Drives..."), "drive_running_16.png");
   gtk_widget_show(t->menu.add_menu.menu);
   
   /* Selected */
@@ -897,8 +957,6 @@ static void init_menu(track_list_t * t)
   
   gtk_widget_set_sensitive(t->menu.edit_menu.cut_item, 0);
   gtk_widget_set_sensitive(t->menu.edit_menu.copy_item, 0);
-
-  
   }
 
 GtkWidget * track_list_get_menu(track_list_t * t)
@@ -958,41 +1016,6 @@ static void column_resize_callback(GtkTreeViewColumn * col,
     }
   }
 
-static int is_urilist(GtkSelectionData * data)
-  {
-  int ret;
-  char * target_name;
-  target_name = gdk_atom_name(data->target);
-  if(!target_name)
-    return 0;
-
-  if(!strcmp(target_name, "text/uri-list") ||
-     !strcmp(target_name, "text/plain"))
-    ret = 1;
-  else
-    ret = 0;
-  
-  g_free(target_name);
-  return ret;
-  }
-
-static int is_albumentries(GtkSelectionData * data)
-  {
-  int ret;
-  char * target_name;
-  target_name = gdk_atom_name(data->target);
-  if(!target_name)
-    return 0;
-
-  if(!strcmp(target_name, bg_gtk_atom_entries_name) ||
-     !strcmp(target_name, bg_gtk_atom_entries_name_r))
-    ret = 1;
-  else
-    ret = 0;
-  
-  g_free(target_name);
-  return ret;
-  }
 
 void track_list_add_albumentries_xml(track_list_t * l, char * xml_string)
   {
