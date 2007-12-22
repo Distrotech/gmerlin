@@ -51,7 +51,6 @@ Gmerlin user guide.
 * Applications::
 * FAQ::
 * Get involved::
-* Index::
 @end menu
 
 @node Basics, Installation, Top, Top
@@ -1130,7 +1129,6 @@ script
 * Main window: gmerlin_transcoder_window.
 * Configuring encoder plugins: gmerlin_transcoder_enc.
 * Configuring tracks: gmerlin_transcoder_tracks.
-* Usage: gmerlin_transcoder_usage.
 @end menu
 
 @node gmerlin_transcoder
@@ -1181,11 +1179,12 @@ You can also edit chapter lists or create new ones
 @code{gmerlin_transcoder} lets you import, edit and export language codes for
 the Audio- and subtitle streams
 @item 2 Pass encoding
-For plugins, which support it, we can do multipass transcoding. There is also a
+For plugins, which support it, we can do 2-transcoding. There is also a
 generic volume normalizer built in.
 @end table
 
-There is a tasklist, in which the tracks are queued. All newly loaded tracks
+There is a @ref{transcoder_tasklist, tasklist},
+in which the tracks are queued. All newly loaded tracks
 get the globally configured settings (plugins, formats, filters). You can then
 fine-tune the tracks by configuring them individually. Changing track
 parameters for multiple tracks at once isn't possible. Instead, make the
@@ -1203,48 +1202,50 @@ The window contains of the following elements:
 
 @menu
 * Menu bar: transcoder_menubar.
-* Upper toolbar: transcoder_upper_toolbar.
 * Display: transcoder_display.
 * Progress bar: transcoder_progressbar.
 * Tasklist: transcoder_tasklist.
-* Lower toolbar: transcoder_lower_toolbar.
 @end menu
 
 @node transcoder_menubar
 @subsubsection Menu bar
 
-Here you have all @b{global} commands and settings. The item
-@b{Tasklist} has @b{per track} commands and settings.
+Here you have all @b{global} commands and settings.
+The item @b{Tasklist} has @b{per track} commands and settings.
 
-@node transcoder_upper_toolbar
-@subsubsection Upper toolbar
-Contains shortcuts for the @b{global} commands and settings.
+@b{File menu}
+
 @table @b
-@item Load tasklist
+@item Load tasklist...
 @ifhtml
 @image{../img/folder_open_16}
 @end ifhtml
 Pops up a file selection dialog and loads the chosen tasklist.
 The tracks are appended to already existing tracks in the list.
-@item Save tasklist
+Has a shortcut in the @b{upper} toolbar.
+@item Save tasklist...
 @ifhtml
 @image{../img/save_16}
 @end ifhtml
 Pops up a file selection dialog for saving the current tasklist.
-@item Start transcoding
+Has a shortcut in the @b{upper} toolbar.
+@item Quit
 @ifhtml
-@image{../img/run_16}
+@image{../img/quit_16}
 @end ifhtml
-This will start transcoding of the tracks in the trasklist in top-to-bottom
-order. While transcoding you can still add/delete/edit tracks in the list.
-@item Stop transcoding
+Stop the current transcoding action (if any) and quit
+Has a shortcut in the @b{upper} toolbar.
+@end table
+
+@b{Options menu}
+@table @b
+@item Preferences
 @ifhtml
-@image{../img/stop_16}
+@image{../img/config_16}
 @end ifhtml
-Stops transcoding. If the currently transcoded track is not a
-live stream, the produced files are deleted from disk (unless you disable
-this in the preferences). The currently decoded track is moved back to the
-top of the tasklist.
+Here, you configure the GUI and the default settings for newly added tracks.
+The preferences are saved in the profile.
+
 @item Configure plugins
 @ifhtml
 @image{../img/plugin_16}
@@ -1253,25 +1254,150 @@ Here, you set the default plugins for newly added tracks. You can
 configure input plugins (See @ref{gui_i, Configuring input plugins})
 and encoders (See @ref{gmerlin_transcoder_enc, Configuring encoders}).
 The plugin settings are saved in the profile.
-@item Preferences
+
+@item Load profile...
+@ifhtml
+@image{../img/folder_open_16}
+@end ifhtml
+Pops up a file selection dialog and loads the chosen profile.
+All configuration and plugin settings for new tracks will be
+changed immediately.
+@item Save profile...
+@ifhtml
+@image{../img/save_16}
+@end ifhtml
+Pops up a file selection dialog for saving the current configuration
+to a profile.
+
+@end table
+
+@b{Actions}
+
+@table @b
+@item Start transcoding
+@ifhtml
+@image{../img/run_16}
+@end ifhtml
+This will start transcoding of the tracks in the trasklist in top-to-bottom
+order. While transcoding you can still add/delete/edit tracks in the list.
+Has a shortcut in the @b{upper} toolbar.
+@item Stop transcoding
+@ifhtml
+@image{../img/stop_16}
+@end ifhtml
+Stops transcoding. If the currently transcoded track is not a
+live stream, the produced files are deleted from disk (unless you disable
+this in the preferences). The currently decoded track is moved back to the
+top of the tasklist.
+Has a shortcut in the @b{upper} toolbar.
+@end table
+
+@b{Tasklist}
+
+This menu acts on the tasklist as a whole or the selected track(s).
+
+@table @b
+@item Add... -> Files...
+@ifhtml
+@image{../img/folder_open_16}
+@end ifhtml
+Pops up a file selection dialog, which lets you add files (optionally
+with a specific input plugin) to the end of the tasklist. 
+Has a shortcut in the @b{lower} toolbar.
+@item Add... -> URLs...
+@ifhtml
+@image{../img/earth_16}
+@end ifhtml
+Pops up a window, which lets you enter an URL (optionally
+with a specific input plugin) to the end of the tasklist. 
+Has a shortcut in the @b{lower} toolbar.
+@item Add... -> Drives...
+@ifhtml
+@image{../img/drive_running_16}
+@end ifhtml
+Pops up a window, which lets open a removeable disk (e.g.
+and Audio CD) and append it's tracks to the end of the
+tasklist. You must specify the device @b{and} the plugin.
+Has a shortcut in the @b{lower} toolbar.
+@item Selected... -> Move up...
+@ifhtml
+@image{../img/top_16}
+@end ifhtml
+Move the selected tracks to the top of the list, so they will be
+transcoded first.
+@item Selected... -> Move down...
+@ifhtml
+@image{../img/down_16}
+@end ifhtml
+Move the selected tracks to the bottom of the list, so they will be
+transcoded last
+@item Selected... -> Remove...
+@ifhtml
+@image{../img/trash_16}
+@end ifhtml
+Remove the selected tracks (without confirmation or undo).
+Has a shortcut in the @b{lower} toolbar.
+@item Selected... -> Configure...
 @ifhtml
 @image{../img/config_16}
 @end ifhtml
-Here, you configure the GUI and the default settings for newly added tracks.
-The preferences are saved in the profile.
-
-@item Quit
+Configure the selected track. 
+Has a shortcut in the @b{lower} toolbar.
+@item Selected... -> Edit chapters...
 @ifhtml
-@image{../img/quit_16}
+@image{../img/chapter_16}
 @end ifhtml
-Stop the current transcoding action (if any) and quit
+Pop up the chapter editor. If the source has chapters, you'll
+find them here. You can also add/delete/move chapters. Chapters
+can also have names (currently only supported by the libquicktime encoder).
+Has a shortcut in the @b{lower} toolbar.
 
+@item Selected... -> Change encoders...
+@ifhtml
+@image{../img/plugin_16}
+@end ifhtml
+Here, you set the encoding plugins of the selected tracks.
+(See @ref{gmerlin_transcoder_enc, Configuring encoders}).
+Has a shortcut in the @b{lower} toolbar.
+
+@item Edit... -> Cut
+@ifhtml
+@image{../img/cut_16}
+@end ifhtml
+Cut selected tracks to the clipboard.
+Has a shortcut in the @b{lower} toolbar.
+
+@item Edit... -> Copy
+@ifhtml
+@image{../img/copy_16}
+@end ifhtml
+Copy selected tracks to the clipboard.
+Has a shortcut in the @b{lower} toolbar.
+
+@item Edit... -> Paste
+@ifhtml
+@image{../img/paste_16}
+@end ifhtml
+Paste tracks from the clipboard.
+Has a shortcut in the @b{lower} toolbar.
+@item Postprocess...
+Pops up a dialog to configure postprocessing.
+Postprocessing plugins are invoked whenever
+the tasklist gets empty. It adds all tracks, which have
+been encoded since batch transcoding was started.
+Postprocessors make some sanity checks of the files they get,
+and won't try to burn e.g. audio CDs with MPEG data.
 @end table
+
+@b{Windows}
+
+Here, you can show and hide the @ref{gui_log, log window}.
 
 @node transcoder_display
 @subsubsection Display
 Displays the currently performed action and the estimated
-remaining time for the current action.
+remaining time for the current action. The time display in the lower right
+corner shows the total playback time of the tasklist.
 
 @node transcoder_progressbar
 @subsubsection Progress bar
@@ -1293,14 +1419,6 @@ instance, which listens on the remote port (can be only one at a time),
 gets the track.
 @item By dragging tracks from a gmerlin album into the tasklist
 @end itemize
-
-@node transcoder_lower_toolbar
-@subsubsection Lower toolbar
-
-Here, you have shortcuts of the @b{per track} commands
-and settings. All of them are also available in the @b{Tasklist} item of the
-menu bar. In the lower right corner, you have the total playback time of all
-tracks in the list.
 
 @node gmerlin_transcoder_enc
 @subsection Configuring encoders
@@ -1399,27 +1517,6 @@ output plugin for the respective streams. Here, you can change encoder
 settings for each stream separately. 
 @end table
 
-@node gmerlin_transcoder_usage
-@subsection Usage
-
-Type @code{gmerlin_transcoder} to start this. It has only one window,
-which contains the tasklist. A tasklist stores ALL information necessary
-to transcode the track. This includes codec settings, bitrates etc. You can
-load and save tasklists, the current tasklist is remembered.
-
-
-The @emph{upper toolbar} controls global things. Here you can select and configure
-plugins as defaults for newly added tracks. Moreover, you can load/save
-tasklists, start/stop transcoding, set some global options and track defaults and
-quit the program.
-
-The @emph{lower toolbar} provides operations, which are applied for the
-currently selected tracks. Some of them require just one track to be selected.
-
-For configuring tracks, first, set the encoding plugins with Selected->Change
-encoders. Then configure the encoders with Selected->Configure. The task list
-has also a right-click-menu with more stuff.
-
 @node Transcoder remote control
 @section Transcoder remote control
 
@@ -1450,17 +1547,36 @@ has also a right-click-menu with more stuff.
 @node Alsamixer
 @section Alsamixer
 
-This is a mixer program, which is still convenient, if you have multiple soundcards
-with 100s of options each. It provides widgets for almost all soundcard parameters,
-which are supported by alsa.
+@ifhtml
+@image{../img/alsamixer}
+@end ifhtml
 
-By right clicking on a control, you can:
+This is a mixer program, which is still convenient, if you have
+multiple soundcards with 100s of options each. It provides widgets
+for almost all soundcard parameters, which are supported by alsa.
+
+By right clicking on a control, you get a menu where you can:
 
 @itemize @bullet
 @item Move controls inside the window
-@item Move controls to own windows. To move them back to main window,
-  simply close the control-windows.
-@item Pop up a dialog, where you can select which controls will be shown at all
+@ifhtml
+@image{../img/first_16}
+@image{../img/left_16}
+@image{../img/right_16}
+@image{../img/last_16}
+@end ifhtml
+
+@item Move controls to own windows
+@ifhtml
+@image{../img/windowed_16}
+@end ifhtml
+. To move them back to main window,
+  simply close the control-windows. 
+@item Pop up an options dialog
+@ifhtml
+@image{../img/config_16}
+@end ifhtml
+, where you can select which controls should be shown at all.
 @end itemize
 
 All window configurations and coordinates are remembered. The actual mixer
@@ -1470,9 +1586,79 @@ Alsa startup scripts.
 @node Visualizer
 @section Visualizer
 
-Gmerlin visualizer opens your soundard for recording and displays a visualization
-in a window. It supports fullscreen and mouse- and keyboard interaction with visuals
-for visualization plugins, which support this.
+@ifhtml
+@image{../img/visualizer}
+
+@end ifhtml
+
+Gmerlin visualizer opens your soundard for recording and displays a
+visualization in a window. It supports fullscreen and mouse- and
+keyboard interaction with visuals for visualization plugins, which
+support this.
+If you move the mouse or press the ``Menu key'', the toolbar will show
+up (either method can be disabled). It will be hidden again after
+the mouse is idle for some seconds.
+
+In the @b{upper left row}, you can change the input plugin, show info
+about the plugin
+@ifhtml
+@image{../img/info_16}
+@end ifhtml
+or configure the visualization
+@ifhtml
+@image{../img/config_16}
+@end ifhtml
+.
+
+In the @b{lower left row}, you can change the recording- and
+display plugins
+@ifhtml
+@image{../img/plugin_16}
+@end ifhtml
+, set global (plugin independent) options 
+@ifhtml
+@image{../img/config_16}
+@end ifhtml
+, restart the visualization
+@ifhtml
+@image{../img/refresh_16}
+@end ifhtml
+, switch to fullscreen
+@ifhtml
+@image{../img/fullscreen_16}
+@end ifhtml
+or back
+@ifhtml
+@image{../img/windowed_16}
+@end ifhtml
+. Moreover you can show or hide the @ref{gui_log, Log window}
+@ifhtml
+@image{../img/log_16}
+@end ifhtml
+or exit
+@ifhtml
+@image{../img/quit_16}
+@end ifhtml
+the application.
+
+The @b{VU-meter} at the right displays the recording level as it comes
+from the device (i.e. @b{before} the visualizer gain is applied).
+
+You have the following @b{Shortcuts}:
+
+@table @kbd
+@item f
+Toggle fullscreen mode
+@item Tab
+Toggle fullscreen mode
+@item Escape
+Exit fullscreen mode
+@item Menu
+Show toolbar
+@end table
+
+All other keyboard- and mouse events are propagated to the display
+plugin and then to the visualization plugin.
 
 @node Keyboard daemon
 @section Keyboard daemon
@@ -1593,7 +1779,7 @@ file from a filemanager into an album.
 documentation of your Desktop system. To remote control gmerlin, use the commandline program
 @code{gmerlin_remote}. Type @code{gmerlin_remote -help} for supported options and commands.
    
-@node Get involved, Index, FAQ, Top
+@node Get involved, , FAQ, Top
 @chapter Get involved
 
 Contribution to gmerlin can happen at several skill levels:
@@ -1607,9 +1793,5 @@ Contribution to gmerlin can happen at several skill levels:
 levels of gavl. 
 @end itemize
 
-@node Index,  , Get involved, Top
-@unnumbered Index
-
-@printindex cp
 @bye
 

@@ -13,7 +13,7 @@ info_TEXINFOS=gmerlin.texi
 gmerlin_TEXINFOS= $(info_TEXINFOS) version.texi
 
 userguide: $(gmerlin_TEXINFOS)
-	ln -s `pwd`/img $(top_builddir)
+	ln -sf `pwd`/img $(top_builddir)
 	$(MAKEINFO) $(AM_MAKEINFOFLAGS) $(MAKEINFOFLAGS) \
                 --html -o userguide gmerlin.texi
 	rm -f ../img
