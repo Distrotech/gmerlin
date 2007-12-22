@@ -90,7 +90,7 @@ static int is_urilist(GtkSelectionData * data)
   g_free(target_name);
   return ret;
   }
-
+#if 0
 static int is_tracks(GtkSelectionData * data)
   {
   int ret;
@@ -106,7 +106,7 @@ static int is_tracks(GtkSelectionData * data)
   g_free(target_name);
   return ret;
   }
-
+#endif
 static int is_albumentries(GtkSelectionData * data)
   {
   int ret;
@@ -576,9 +576,10 @@ static void clipboard_clear_func(GtkClipboard *clipboard,
     }
   }
 
-static void clipboard_received_func(GtkClipboard *clipboard,
-                                    GtkSelectionData *selection_data,
-                                    gpointer data)
+static void
+clipboard_received_func_tracks(GtkClipboard *clipboard,
+                               GtkSelectionData *selection_data,
+                               gpointer data)
   {
   bg_transcoder_track_t * new_tracks;
   track_list_t * w = (track_list_t*)data;
@@ -586,18 +587,23 @@ static void clipboard_received_func(GtkClipboard *clipboard,
   if(selection_data->length <= 0)
     return;
 
-  if(is_tracks(data))
-    {
-    new_tracks = bg_transcoder_tracks_from_xml((char*)selection_data->data,
-                                               w->plugin_reg);
-    
-    w->tracks = bg_transcoder_tracks_append(w->tracks, new_tracks);
-    track_list_update(w);  
-    }
-  else if(is_albumentries(data))
-    {
-    track_list_add_albumentries_xml(w, (char*)(selection_data->data));
-    }
+  new_tracks = bg_transcoder_tracks_from_xml((char*)selection_data->data,
+                                             w->plugin_reg);
+  
+  w->tracks = bg_transcoder_tracks_append(w->tracks, new_tracks);
+  track_list_update(w);  
+  }
+
+static void
+clipboard_received_func_albumentries(GtkClipboard *clipboard,
+                                     GtkSelectionData *selection_data,
+                                     gpointer data)
+  {
+  track_list_t * w = (track_list_t*)data;
+  
+  if(selection_data->length <= 0)
+    return;
+  track_list_add_albumentries_xml(w, (char*)(selection_data->data));
   }
 
 
@@ -630,6 +636,44 @@ static void do_cut(track_list_t * l)
   delete_selected(l);
   }
 
+static void target_received_func(GtkClipboard *clipboard,
+                                 GdkAtom *atoms,
+                                 gint n_atoms,
+                                 gpointer data)
+  {
+  track_list_t * l;
+  int i = 0;
+  char * atom_name;
+  l = (track_list_t *)(data);
+  
+  for(i = 0; i < n_atoms; i++)
+    {
+    atom_name = gdk_atom_name(atoms[i]);
+    if(!atom_name)
+      return;
+    else if(!strcmp(atom_name, cp_tracks_name))
+      {
+      fprintf(stderr, "Paste tracks\n");
+      gtk_clipboard_request_contents(clipboard,
+                                     atoms[i],
+                                     clipboard_received_func_tracks,
+                                     l);
+      g_free(atom_name);
+      return;
+      }
+    else if(!strcmp(atom_name, bg_gtk_atom_entries_name) ||
+            !strcmp(atom_name, bg_gtk_atom_entries_name_r))
+      {
+      fprintf(stderr, "Paste albumentries\n");
+      gtk_clipboard_request_contents(clipboard,
+                                     atoms[i],
+                                     clipboard_received_func_albumentries,
+                                     l);
+      return;
+      }
+    }
+  }
+
 static void do_paste(track_list_t * l)
   {
   GtkClipboard *clipboard;
@@ -642,10 +686,8 @@ static void do_paste(track_list_t * l)
   
   target = gdk_atom_intern(cp_tracks_name, FALSE);
   
-  gtk_clipboard_request_contents(clipboard,
-                                 target,
-                                 clipboard_received_func,
-                                 l);
+  gtk_clipboard_request_targets(clipboard,
+                                target_received_func, l);  
   }
 
 
