@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-11-18 22:25+0100\n"
+"POT-Creation-Date: 2007-12-22 03:29+0100\n"
 "PO-Revision-Date: 2007-11-18 22:25+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -43,7 +43,7 @@ msgstr "MPEG-4 Low Complexity profile (LC)"
 msgid "MPEG-4 Long Term Prediction (LTP)"
 msgstr "MPEG-4 Long Term Prediction (LTP)"
 
-#: plugins/faac/e_faac.c:106 plugins/lame/e_lame.c:260 plugins/ogg/speex.c:178
+#: plugins/faac/e_faac.c:106 plugins/lame/e_lame.c:257 plugins/ogg/speex.c:178
 #: plugins/yuv4mpeg/mpv_common.c:77 plugins/yuv4mpeg/mpa_common.c:40
 msgid "Bitrate (kbps)"
 msgstr "Bitrate (kbps)"
@@ -92,31 +92,31 @@ msgstr "Benutze keine Mid/Side Kodierung"
 msgid "faacEncSetConfiguration failed"
 msgstr "faacEncSetConfiguration fehlgeschlagen"
 
-#: plugins/faac/e_faac.c:242 plugins/lame/e_lame.c:464
+#: plugins/faac/e_faac.c:242 plugins/lame/e_lame.c:461
 msgid "Write ID3V1.1 tag"
 msgstr "Schreibe ID3V1.1 Kennung"
 
-#: plugins/faac/e_faac.c:248 plugins/lame/e_lame.c:470
+#: plugins/faac/e_faac.c:248 plugins/lame/e_lame.c:467
 msgid "Write ID3V2 tag"
 msgstr "Schreibe ID3V2 Kennung"
 
-#: plugins/faac/e_faac.c:254 plugins/lame/e_lame.c:476
+#: plugins/faac/e_faac.c:254 plugins/lame/e_lame.c:473
 msgid "ID3V2 Encoding"
 msgstr "ID3V2 Zeichentabelle"
 
-#: plugins/faac/e_faac.c:259 plugins/lame/e_lame.c:481
+#: plugins/faac/e_faac.c:259 plugins/lame/e_lame.c:478
 msgid "ISO-8859-1"
 msgstr "ISO-8859-1"
 
-#: plugins/faac/e_faac.c:259 plugins/lame/e_lame.c:481
+#: plugins/faac/e_faac.c:259 plugins/lame/e_lame.c:478
 msgid "UTF-16 LE"
 msgstr "UTF-16 LE"
 
-#: plugins/faac/e_faac.c:260 plugins/lame/e_lame.c:482
+#: plugins/faac/e_faac.c:260 plugins/lame/e_lame.c:479
 msgid "UTF-16 BE"
 msgstr "UTF-16 BE"
 
-#: plugins/faac/e_faac.c:260 plugins/lame/e_lame.c:482
+#: plugins/faac/e_faac.c:260 plugins/lame/e_lame.c:479
 msgid "UTF-8"
 msgstr "UTF-8"
 
@@ -137,44 +137,44 @@ msgstr ""
 "Plugin zum Erzeugen von AAC Dateien (mit ADTS Köpfen). Verwendet faac "
 "(http://faac.sourceforge.net)"
 
-#: plugins/lame/e_lame.c:209
+#: plugins/lame/e_lame.c:206
 msgid "General"
 msgstr "Allgemein"
 
-#: plugins/lame/e_lame.c:214 plugins/ogg/vorbis.c:88
+#: plugins/lame/e_lame.c:211 plugins/ogg/vorbis.c:88
 msgid "Bitrate mode"
 msgstr "Bitratenmodus"
 
-#: plugins/lame/e_lame.c:221 plugins/yuv4mpeg/mpv_common.c:70
+#: plugins/lame/e_lame.c:218 plugins/yuv4mpeg/mpv_common.c:70
 msgid "Constant"
 msgstr "Konstant"
 
-#: plugins/lame/e_lame.c:222
+#: plugins/lame/e_lame.c:219
 msgid "Average"
 msgstr "Durchschnittlich"
 
-#: plugins/lame/e_lame.c:223 plugins/yuv4mpeg/mpv_common.c:70
+#: plugins/lame/e_lame.c:220 plugins/yuv4mpeg/mpv_common.c:70
 msgid "Variable"
 msgstr "Variabel"
 
-#: plugins/lame/e_lame.c:228
+#: plugins/lame/e_lame.c:225
 msgid "Stereo mode"
 msgstr "Stereo Modus"
 
-#: plugins/lame/e_lame.c:235
+#: plugins/lame/e_lame.c:232
 msgid "Stereo"
 msgstr "Stereo"
 
-#: plugins/lame/e_lame.c:236
+#: plugins/lame/e_lame.c:233
 msgid "Joint stereo"
 msgstr "Joint stereo"
 
-#: plugins/lame/e_lame.c:237 plugins/ogg/speex.c:148
+#: plugins/lame/e_lame.c:234 plugins/ogg/speex.c:148
 #: plugins/yuv4mpeg/e_yuv4mpeg.c:168 plugins/yuv4mpeg/mpv_common.c:70
 msgid "Auto"
 msgstr "Automatisch"
 
-#: plugins/lame/e_lame.c:239
+#: plugins/lame/e_lame.c:236
 msgid ""
 "Stereo: Completely independent channels\n"
 "Joint stereo: Improve quality (save bits) by using similarities of the "
@@ -187,11 +187,11 @@ msgstr ""
 "Ähnlichkeiten der Kanäle\\n\n"
 "Automatisch (empfohlen): Wähle Modus aufgrund der Qualität oder der Bitrate"
 
-#: plugins/lame/e_lame.c:245
+#: plugins/lame/e_lame.c:242
 msgid "Encoding speed"
 msgstr "Kodiergeschwindigkeit"
 
-#: plugins/lame/e_lame.c:250
+#: plugins/lame/e_lame.c:247
 msgid ""
 "0: Slowest encoding, best quality\n"
 "9: Fastest encoding, worst quality"
@@ -199,11 +199,11 @@ msgstr ""
 "0: Langsamstes Encodieren, Beste Qualität\n"
 "9: Schnellstes Encodieren, Schlechteste Qualität"
 
-#: plugins/lame/e_lame.c:255
+#: plugins/lame/e_lame.c:252
 msgid "CBR options"
 msgstr "CBR Optionen"
 
-#: plugins/lame/e_lame.c:265
+#: plugins/lame/e_lame.c:262
 msgid ""
 "Bitrate in kbps. If your selection is no valid mp3 bitrate, we'll choose the "
 "closest value."
@@ -211,31 +211,31 @@ msgstr ""
 "Bitrate in kbps. Wenn Deine Auswahl keine gültige mp3-Bitrate ist, nehmen "
 "wir die nächstliegende."
 
-#: plugins/lame/e_lame.c:270
+#: plugins/lame/e_lame.c:267
 msgid "VBR/ABR options"
 msgstr "VBR/ABR Optionen"
 
-#: plugins/lame/e_lame.c:275
+#: plugins/lame/e_lame.c:272
 msgid "VBR Quality"
 msgstr "VBR Qualität"
 
-#: plugins/lame/e_lame.c:280
+#: plugins/lame/e_lame.c:277
 msgid "VBR Quality level. 0: best, 9: worst"
 msgstr "VBR Qualitätsstufe 0: Beste, 9: Schlechteste"
 
-#: plugins/lame/e_lame.c:284
+#: plugins/lame/e_lame.c:281
 msgid "ABR overall bitrate (kbps)"
 msgstr "ABR Gesamtbitrate (kbps)"
 
-#: plugins/lame/e_lame.c:289
+#: plugins/lame/e_lame.c:286
 msgid "Average bitrate for ABR mode"
 msgstr "Durchschnittliche Bitrate for ABR modus"
 
-#: plugins/lame/e_lame.c:293
+#: plugins/lame/e_lame.c:290
 msgid "ABR min bitrate (kbps)"
 msgstr "ABR Mindestbitrate (kbps)"
 
-#: plugins/lame/e_lame.c:298
+#: plugins/lame/e_lame.c:295
 msgid ""
 "Minimum bitrate for ABR mode. 0 means let lame decide. If your selection is "
 "no valid mp3 bitrate, we'll choose the closest value."
@@ -244,11 +244,11 @@ msgstr ""
 "Wenn Deine Auswahl keine gültige mp3-Bitrate ist, nehmen\n"
 "wir die nächstliegende."
 
-#: plugins/lame/e_lame.c:303
+#: plugins/lame/e_lame.c:300
 msgid "ABR max bitrate (kbps)"
 msgstr "ABR Maximalbitrate (kbps)"
 
-#: plugins/lame/e_lame.c:308
+#: plugins/lame/e_lame.c:305
 msgid ""
 "Maximum bitrate for ABR mode. 0 means let lame decide. If your selection is "
 "no valid mp3 bitrate, we'll choose the closest value."
@@ -257,43 +257,43 @@ msgstr ""
 "Wenn Deine Auswahl keine gültige mp3-Bitrate ist, nehmen\n"
 "wir die nächstliegende."
 
-#: plugins/lame/e_lame.c:338 plugins/lame/e_lame.c:371
+#: plugins/lame/e_lame.c:335 plugins/lame/e_lame.c:368
 msgid "lame_set_VBR_q failed"
 msgstr "lame_set_VBR_q fehlgeschlagen"
 
-#: plugins/lame/e_lame.c:342
+#: plugins/lame/e_lame.c:339
 msgid "lame_set_VBR_mean_bitrate_kbps failed"
 msgstr "lame_set_VBR_mean_bitrate_kbps fehlgeschlagen"
 
-#: plugins/lame/e_lame.c:354
+#: plugins/lame/e_lame.c:351
 msgid "lame_set_VBR_min_bitrate_kbps failed"
 msgstr "lame_set_VBR_min_bitrate_kbps fehlgeschlagen"
 
-#: plugins/lame/e_lame.c:366
+#: plugins/lame/e_lame.c:363
 msgid "lame_set_VBR_max_bitrate_kbps failed"
 msgstr "lame_set_VBR_max_bitrate_kbps fehlgeschlagen"
 
-#: plugins/lame/e_lame.c:377
+#: plugins/lame/e_lame.c:374
 msgid "lame_set_brate failed"
 msgstr "lame_set_brate fehlgeschlagen"
 
-#: plugins/lame/e_lame.c:384
+#: plugins/lame/e_lame.c:381
 msgid "lame_init_params failed"
 msgstr "lame_init_params fehlgeschlagen"
 
-#: plugins/lame/e_lame.c:404
+#: plugins/lame/e_lame.c:401
 msgid "lame_set_VBR failed"
 msgstr "lame_set_VBR fehlgeschlagen"
 
-#: plugins/lame/e_lame.c:407
+#: plugins/lame/e_lame.c:404
 msgid "lame_set_bWriteVbrTag failed"
 msgstr "lame_set_bWriteVbrTag fehlgeschlagen"
 
-#: plugins/lame/e_lame.c:427
+#: plugins/lame/e_lame.c:424
 msgid "lame_set_mode failed"
 msgstr "lame_set_mode fehlgeschlagen"
 
-#: plugins/lame/e_lame.c:433
+#: plugins/lame/e_lame.c:430
 msgid "lame_set_quality failed"
 msgstr "lame_set_quality fehlgeschlagen"
 
@@ -1820,11 +1820,11 @@ msgstr "Erlaube Beschleunigungstricks, die nicht der Spezifikation entsprechen"
 msgid "Strictly enforce GOP size"
 msgstr "Strenge Einhaltung der GOP Größe"
 
-#: plugins/ffmpeg/ffmpeg_common.c:425
+#: plugins/ffmpeg/ffmpeg_common.c:426
 msgid "Audio codec is not compatible with format"
 msgstr "Audiokodierung ist nicht kompatibel mit Format"
 
-#: plugins/ffmpeg/ffmpeg_common.c:443
+#: plugins/ffmpeg/ffmpeg_common.c:444
 msgid "Video codec is not compatible with format"
 msgstr "Videokodierung ist nicht kompatibel mit Format"
 

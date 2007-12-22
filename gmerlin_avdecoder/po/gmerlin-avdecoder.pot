@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-12-08 17:50+0100\n"
+"POT-Creation-Date: 2007-12-22 03:28+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -373,11 +373,11 @@ msgstr ""
 msgid "Invalid mp3on4 channel configuration"
 msgstr ""
 
-#: lib/demux_quicktime.c:1307
+#: lib/demux_quicktime.c:1319
 msgid "Non streamable file on non seekable source"
 msgstr ""
 
-#: lib/demux_quicktime.c:1316
+#: lib/demux_quicktime.c:1328
 msgid "Reading moov atom failed"
 msgstr ""
 
@@ -429,21 +429,21 @@ msgstr ""
 msgid "length of MP4DecConfigDescrTag too short: %d < 13"
 msgstr ""
 
-#: lib/in_vcd.c:246 lib/in_dvd.c:631
+#: lib/in_vcd.c:252 lib/in_dvd.c:631
 #, c-format
 msgid "cdio_close_tray failed: %s"
 msgstr ""
 
-#: lib/in_vcd.c:250 lib/in_dvd.c:635
+#: lib/in_vcd.c:256 lib/in_dvd.c:635
 msgid "cdio_close_tray failed"
 msgstr ""
 
-#: lib/in_vcd.c:262
+#: lib/in_vcd.c:268
 #, c-format
 msgid "cdio_open failed for %s"
 msgstr ""
 
-#: lib/in_vcd.c:274
+#: lib/in_vcd.c:280
 #, c-format
 msgid "read_toc failed for %s"
 msgstr ""
