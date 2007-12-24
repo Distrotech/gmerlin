@@ -17,6 +17,7 @@ lib_LTLIBRARIES = \
 fv_blur.la \
 fv_cropscale.la \
 fv_colormatrix_rgb.la \
+fv_colormatrix_yuv.la \
 fv_decimate.la \
 fv_deinterlace.la \
 fv_equalizer.la \
@@ -29,6 +30,8 @@ fv_zoom.la
 fv_blur_la_SOURCES  = fv_blur.c
 
 fv_colormatrix_rgb_la_SOURCES  = fv_colormatrix_rgb.c colormatrix.c
+fv_colormatrix_yuv_la_SOURCES  = fv_colormatrix_yuv.c colormatrix.c
+
 fv_oldcolor_la_SOURCES  = fv_oldcolor.c colormatrix.c
 
 fv_pixelformat_la_SOURCES  = fv_pixelformat.c

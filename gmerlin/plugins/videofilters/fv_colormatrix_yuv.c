@@ -68,14 +68,14 @@ static bg_parameter_info_t parameters[] =
     {
       gettext_domain: PACKAGE,
       gettext_directory: LOCALE_DIR,
-      name: "Red",
-      long_name: TRS("Red"),
+      name: "Luminance",
+      long_name: TRS("Luminance"),
       type: BG_PARAMETER_SECTION,
       flags: BG_PARAMETER_SYNC,
     },
     {
-      name: "r_to_r",
-      long_name: TRS("Red -> Red"),
+      name: "y_to_y",
+      long_name: TRS("Luminance -> Luminance"),
       type: BG_PARAMETER_FLOAT,
       flags: BG_PARAMETER_SYNC,
       val_min:     { val_f: -10.0 },
@@ -84,8 +84,8 @@ static bg_parameter_info_t parameters[] =
       num_digits:  6,
     },
     {
-      name: "g_to_r",
-      long_name: TRS("Green -> Red"),
+      name: "u_to_y",
+      long_name: TRS("Cb -> Luminance"),
       type: BG_PARAMETER_FLOAT,
       flags: BG_PARAMETER_SYNC,
       val_min:     { val_f: -10.0 },
@@ -94,8 +94,8 @@ static bg_parameter_info_t parameters[] =
       num_digits:  6,
     },
     {
-      name: "b_to_r",
-      long_name: TRS("Blue -> Red"),
+      name: "v_to_y",
+      long_name: TRS("Cr -> Luminance"),
       type: BG_PARAMETER_FLOAT,
       flags: BG_PARAMETER_SYNC,
       val_min:     { val_f: -10.0 },
@@ -104,8 +104,8 @@ static bg_parameter_info_t parameters[] =
       num_digits:  6,
     },
     {
-      name: "a_to_r",
-      long_name: TRS("Alpha -> Red"),
+      name: "a_to_y",
+      long_name: TRS("Alpha -> Luminance"),
       type: BG_PARAMETER_FLOAT,
       flags: BG_PARAMETER_SYNC,
       val_min:     { val_f: -10.0 },
@@ -114,8 +114,8 @@ static bg_parameter_info_t parameters[] =
       num_digits:  6,
     },
     {
-      name: "off_r",
-      long_name: TRS("Red offset"),
+      name: "off_y",
+      long_name: TRS("Luminance offset"),
       type: BG_PARAMETER_FLOAT,
       flags: BG_PARAMETER_SYNC,
       val_min:     { val_f: -10.0 },
@@ -126,14 +126,14 @@ static bg_parameter_info_t parameters[] =
     {
       gettext_domain: PACKAGE,
       gettext_directory: LOCALE_DIR,
-      name: "Green",
-      long_name: TRS("Green"),
+      name: "Cb",
+      long_name: TRS("Cb"),
       type: BG_PARAMETER_SECTION,
       flags: BG_PARAMETER_SYNC,
     },
     {
-      name: "r_to_g",
-      long_name: TRS("Red -> Green"),
+      name: "r_to_u",
+      long_name: TRS("Luminance -> Cb"),
       type: BG_PARAMETER_FLOAT,
       flags: BG_PARAMETER_SYNC,
       val_min:     { val_f: -10.0 },
@@ -142,8 +142,8 @@ static bg_parameter_info_t parameters[] =
       num_digits:  6,
     },
     {
-      name: "g_to_g",
-      long_name: TRS("Green -> Green"),
+      name: "u_to_u",
+      long_name: TRS("Cb -> Cb"),
       type: BG_PARAMETER_FLOAT,
       flags: BG_PARAMETER_SYNC,
       val_min:     { val_f: -10.0 },
@@ -152,8 +152,8 @@ static bg_parameter_info_t parameters[] =
       num_digits:  6,
     },
     {
-      name: "b_to_g",
-      long_name: TRS("Blue -> Green"),
+      name: "b_to_u",
+      long_name: TRS("Cr -> Cb"),
       type: BG_PARAMETER_FLOAT,
       flags: BG_PARAMETER_SYNC,
       val_min:     { val_f: -10.0 },
@@ -162,8 +162,8 @@ static bg_parameter_info_t parameters[] =
       num_digits:  6,
     },
     {
-      name: "a_to_g",
-      long_name: TRS("Alpha -> Green"),
+      name: "a_to_u",
+      long_name: TRS("Alpha -> Cb"),
       type: BG_PARAMETER_FLOAT,
       flags: BG_PARAMETER_SYNC,
       val_min:     { val_f: -10.0 },
@@ -172,8 +172,8 @@ static bg_parameter_info_t parameters[] =
       num_digits:  6,
     },
     {
-      name: "off_g",
-      long_name: TRS("Green offset"),
+      name: "off_u",
+      long_name: TRS("Cb offset"),
       type: BG_PARAMETER_FLOAT,
       flags: BG_PARAMETER_SYNC,
       val_min:     { val_f: -10.0 },
@@ -184,14 +184,14 @@ static bg_parameter_info_t parameters[] =
     {
       gettext_domain: PACKAGE,
       gettext_directory: LOCALE_DIR,
-      name: "Blue",
-      long_name: TRS("Blue"),
+      name: "Cr",
+      long_name: TRS("Cr"),
       type: BG_PARAMETER_SECTION,
       flags: BG_PARAMETER_SYNC,
     },
     {
-      name: "r_to_b",
-      long_name: TRS("Red -> Blue"),
+      name: "y_to_v",
+      long_name: TRS("Luminance -> Cr"),
       type: BG_PARAMETER_FLOAT,
       flags: BG_PARAMETER_SYNC,
       val_min:     { val_f: -10.0 },
@@ -200,8 +200,8 @@ static bg_parameter_info_t parameters[] =
       num_digits:  6,
     },
     {
-      name: "g_to_b",
-      long_name: TRS("Green -> Blue"),
+      name: "u_to_v",
+      long_name: TRS("Cb -> Cr"),
       type: BG_PARAMETER_FLOAT,
       flags: BG_PARAMETER_SYNC,
       val_min:     { val_f: -10.0 },
@@ -210,8 +210,8 @@ static bg_parameter_info_t parameters[] =
       num_digits:  6,
     },
     {
-      name: "b_to_b",
-      long_name: TRS("Blue -> Blue"),
+      name: "v_to_v",
+      long_name: TRS("Cr -> Cr"),
       type: BG_PARAMETER_FLOAT,
       flags: BG_PARAMETER_SYNC,
       val_min:     { val_f: -10.0 },
@@ -220,8 +220,8 @@ static bg_parameter_info_t parameters[] =
       num_digits:  6,
     },
     {
-      name: "a_to_b",
-      long_name: TRS("Alpha -> Blue"),
+      name: "a_to_v",
+      long_name: TRS("Alpha -> Cr"),
       type: BG_PARAMETER_FLOAT,
       flags: BG_PARAMETER_SYNC,
       val_min:     { val_f: -10.0 },
@@ -230,8 +230,8 @@ static bg_parameter_info_t parameters[] =
       num_digits:  6,
     },
     {
-      name: "off_b",
-      long_name: TRS("Blue offset"),
+      name: "off_v",
+      long_name: TRS("Cr offset"),
       type: BG_PARAMETER_FLOAT,
       flags: BG_PARAMETER_SYNC,
       val_min:     { val_f: -10.0 },
@@ -248,8 +248,8 @@ static bg_parameter_info_t parameters[] =
       flags: BG_PARAMETER_SYNC,
     },
     {
-      name: "r_to_a",
-      long_name: TRS("Red -> Alpha"),
+      name: "y_to_a",
+      long_name: TRS("Luminance -> Alpha"),
       type: BG_PARAMETER_FLOAT,
       flags: BG_PARAMETER_SYNC,
       val_min:     { val_f: -10.0 },
@@ -258,8 +258,8 @@ static bg_parameter_info_t parameters[] =
       num_digits:  6,
     },
     {
-      name: "g_to_a",
-      long_name: TRS("Green -> Alpha"),
+      name: "u_to_a",
+      long_name: TRS("Cb -> Alpha"),
       type: BG_PARAMETER_FLOAT,
       flags: BG_PARAMETER_SYNC,
       val_min:     { val_f: -10.0 },
@@ -268,8 +268,8 @@ static bg_parameter_info_t parameters[] =
       num_digits:  6,
     },
     {
-      name: "b_to_a",
-      long_name: TRS("Blue -> Alpha"),
+      name: "v_to_a",
+      long_name: TRS("Cr -> Alpha"),
       type: BG_PARAMETER_FLOAT,
       flags: BG_PARAMETER_SYNC,
       val_min:     { val_f: -10.0 },
@@ -324,32 +324,32 @@ static void set_parameter_colormatrix(void * priv, const char * name,
 
   if(!name)
     return;
-  MATRIX_PARAM("r_to_r", 0, 0)
-  MATRIX_PARAM("g_to_r", 0, 1)
-  MATRIX_PARAM("b_to_r", 0, 2)
-  MATRIX_PARAM("a_to_r", 0, 3)
-  MATRIX_PARAM( "off_r", 0, 4)
+  MATRIX_PARAM("y_to_y", 0, 0)
+  MATRIX_PARAM("u_to_y", 0, 1)
+  MATRIX_PARAM("v_to_y", 0, 2)
+  MATRIX_PARAM("a_to_y", 0, 3)
+  MATRIX_PARAM( "off_y", 0, 4)
 
-  MATRIX_PARAM("r_to_g", 1, 0)
-  MATRIX_PARAM("g_to_g", 1, 1)
-  MATRIX_PARAM("b_to_g", 1, 2)
-  MATRIX_PARAM("a_to_g", 1, 3)
-  MATRIX_PARAM( "off_g", 1, 4)
+  MATRIX_PARAM("y_to_u", 1, 0)
+  MATRIX_PARAM("u_to_u", 1, 1)
+  MATRIX_PARAM("v_to_u", 1, 2)
+  MATRIX_PARAM("a_to_u", 1, 3)
+  MATRIX_PARAM( "off_u", 1, 4)
 
-  MATRIX_PARAM("r_to_b", 2, 0)
-  MATRIX_PARAM("g_to_b", 2, 1)
-  MATRIX_PARAM("b_to_b", 2, 2)
-  MATRIX_PARAM("a_to_b", 2, 3)
-  MATRIX_PARAM( "off_b", 2, 4)
+  MATRIX_PARAM("y_to_v", 2, 0)
+  MATRIX_PARAM("u_to_v", 2, 1)
+  MATRIX_PARAM("v_to_v", 2, 2)
+  MATRIX_PARAM("a_to_v", 2, 3)
+  MATRIX_PARAM( "off_v", 2, 4)
 
-  MATRIX_PARAM("r_to_a", 3, 0)
-  MATRIX_PARAM("g_to_a", 3, 1)
-  MATRIX_PARAM("b_to_a", 3, 2)
+  MATRIX_PARAM("y_to_a", 3, 0)
+  MATRIX_PARAM("u_to_a", 3, 1)
+  MATRIX_PARAM("v_to_a", 3, 2)
   MATRIX_PARAM("a_to_a", 3, 3)
   MATRIX_PARAM( "off_a", 3, 4)
   
   if(changed)
-    bg_colormatrix_set_rgba(vp->mat, vp->coeffs);
+    bg_colormatrix_set_yuva(vp->mat, vp->coeffs);
   }
 
 static void connect_input_port_colormatrix(void * priv,
@@ -421,9 +421,9 @@ bg_fv_plugin_t the_plugin =
     common:
     {
       BG_LOCALE,
-      name:      "fv_colormatrix_rgb",
-      long_name: TRS("RGB Colormatrix"),
-      description: TRS("Generic colormatrix (RGBA)"),
+      name:      "fv_colormatrix_yuv",
+      long_name: TRS("Y'CbCr Colormatrix"),
+      description: TRS("Generic colormatrix (Y'CbCr)"),
       type:     BG_PLUGIN_FILTER_VIDEO,
       flags:    BG_PLUGIN_FILTER_1,
       create:   create_colormatrix,
