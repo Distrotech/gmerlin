@@ -16,15 +16,20 @@ endif
 lib_LTLIBRARIES = \
 fv_blur.la \
 fv_cropscale.la \
+fv_colormatrix_rgb.la \
 fv_decimate.la \
 fv_deinterlace.la \
 fv_equalizer.la \
 fv_flip.la \
+fv_oldcolor.la \
 fv_pixelformat.la \
 fv_tlp.la \
 fv_zoom.la
 
 fv_blur_la_SOURCES  = fv_blur.c
+
+fv_colormatrix_rgb_la_SOURCES  = fv_colormatrix_rgb.c colormatrix.c
+fv_oldcolor_la_SOURCES  = fv_oldcolor.c colormatrix.c
 
 fv_pixelformat_la_SOURCES  = fv_pixelformat.c
 
@@ -45,4 +50,4 @@ fv_equalizer_la_SOURCES  = fv_equalizer.c
 
 fv_zoom_la_SOURCES  = fv_zoom.c
 
-noinst_HEADERS = motionsearch.h yuvdeinterlace.h
+noinst_HEADERS = motionsearch.h yuvdeinterlace.h colormatrix.h
