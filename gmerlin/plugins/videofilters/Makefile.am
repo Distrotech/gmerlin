@@ -23,7 +23,6 @@ fv_deinterlace.la \
 fv_equalizer.la \
 fv_flip.la \
 fv_invert_rgb.la \
-fv_matrix_equalizer.la \
 fv_oldcolor.la \
 fv_pixelformat.la \
 fv_tlp.la \
@@ -36,7 +35,6 @@ fv_colormatrix_rgb_la_SOURCES  = fv_colormatrix_rgb.c colormatrix.c
 fv_colormatrix_yuv_la_SOURCES  = fv_colormatrix_yuv.c colormatrix.c
 
 fv_invert_rgb_la_SOURCES  = fv_invert_rgb.c colormatrix.c
-fv_matrix_equalizer_la_SOURCES  = fv_matrix_equalizer.c colormatrix.c
 
 
 fv_oldcolor_la_SOURCES  = fv_oldcolor.c colormatrix.c
@@ -56,7 +54,7 @@ fv_deinterlace_la_CFLAGS   = $(mjpeg_cflags) -DLOCALE_DIR=\"$(localedir)\"
 fv_deinterlace_la_LIBADD   = $(mjpeg_libs)
 fv_deinterlace_la_SOURCES  = fv_deinterlace.c $(yuvdeinterlace_sources)
 
-fv_equalizer_la_SOURCES  = fv_equalizer.c
+fv_equalizer_la_SOURCES  = fv_equalizer.c colormatrix.c
 
 fv_zoom_la_SOURCES  = fv_zoom.c
 
