@@ -27,6 +27,7 @@
 
 enum
   {
+    COLUMN_LABEL,
     COLUMN_NAME,
     NUM_COLUMNS
   };
@@ -169,7 +170,6 @@ static void do_apply_sub_params(bg_gtk_widget_t * w)
 static char * get_list_string(bg_gtk_widget_t * w)
   {
   char * ret = (char*)0;
-  int num;
   GtkTreeModel * model;
   GtkTreeIter iter;
   char * name;
@@ -185,23 +185,7 @@ static char * get_list_string(bg_gtk_widget_t * w)
   while(1)
     {
     gtk_tree_model_get(model, &iter, COLUMN_NAME, &name, -1);
-
-    if(priv->multi_labels)
-      {
-      num = 0;
-      while(strcmp(priv->multi_labels[num], name))
-        num++;
-      ret = bg_strcat(ret, w->info->multi_names[num]);
-      }
-    else if(w->info->multi_labels)
-      {
-      num = 0;
-      while(strcmp(w->info->multi_labels[num], name))
-        num++;
-      ret = bg_strcat(ret, w->info->multi_names[num]);
-      }
-    else
-      ret = bg_strcat(ret, name);
+    ret = bg_strcat(ret, name);
     
     g_free(name);
     if(!gtk_tree_model_iter_next(model, &iter))
@@ -210,6 +194,35 @@ static char * get_list_string(bg_gtk_widget_t * w)
     }
   return ret;
   }
+
+/* Get the index in the multi_* arrays of the selected item */
+static int get_selected_index(bg_gtk_widget_t * w)
+  {
+  GtkTreeModel * model;
+  GtkTreeIter iter;
+  char * name;
+  int ret;
+  list_priv_t * priv = (list_priv_t*)(w->priv);
+
+  model = gtk_tree_view_get_model(GTK_TREE_VIEW(priv->treeview));
+  if(!gtk_tree_model_iter_nth_child(model, &iter,
+                                    (GtkTreeIter *)0,
+                                    priv->selected))
+    {
+    return 0;
+    }
+
+  gtk_tree_model_get(model, &iter, COLUMN_NAME, &name, -1);
+
+  ret = 0;
+  while(strcmp(w->info->multi_names[ret], name))
+    ret++;
+  
+  g_free(name);
+  
+  return ret;
+  }
+
 
 static void set_value(bg_gtk_widget_t * w)
   {
@@ -276,15 +289,19 @@ static void get_value(bg_gtk_widget_t * w)
           gtk_list_store_append(GTK_LIST_STORE(model), &iter);
           if(priv->multi_labels)
             gtk_list_store_set(GTK_LIST_STORE(model), &iter,
-                               COLUMN_NAME,
+                               COLUMN_LABEL,
                                priv->multi_labels[j],
                                -1);
           else
             gtk_list_store_set(GTK_LIST_STORE(model), &iter,
-                               COLUMN_NAME,
+                               COLUMN_LABEL,
                                w->info->multi_names[j],
                                -1);
           
+          gtk_list_store_set(GTK_LIST_STORE(model), &iter,
+                             COLUMN_NAME,
+                             w->info->multi_names[j],
+                             -1);
           break;
           }
         j++;
@@ -325,14 +342,19 @@ static void get_value(bg_gtk_widget_t * w)
         gtk_list_store_append(GTK_LIST_STORE(model), &iter);
         if(w->info->multi_labels)
           gtk_list_store_set(GTK_LIST_STORE(model), &iter,
-                             COLUMN_NAME,
+                             COLUMN_LABEL,
                              priv->multi_labels[i],
                              -1);
         else
           gtk_list_store_set(GTK_LIST_STORE(model), &iter,
-                             COLUMN_NAME,
+                             COLUMN_LABEL,
                              w->info->multi_names[i],
                              -1);
+        
+        gtk_list_store_set(GTK_LIST_STORE(model), &iter,
+                           COLUMN_NAME,
+                           w->info->multi_names[i],
+                           -1);
         }
       i++;
       }
@@ -379,14 +401,19 @@ static void add_func(void * priv, const char * name,
     
     if(list->multi_labels)
       gtk_list_store_set(GTK_LIST_STORE(model), &iter,
-                         COLUMN_NAME,
+                         COLUMN_LABEL,
                          list->multi_labels[index],
                          -1);
     else
       gtk_list_store_set(GTK_LIST_STORE(model), &iter,
-                         COLUMN_NAME,
+                         COLUMN_LABEL,
                          w->info->multi_names[index],
                          -1);
+
+    gtk_list_store_set(GTK_LIST_STORE(model), &iter,
+                       COLUMN_NAME,
+                       w->info->multi_names[index],
+                       -1);
     
     subsection =
       bg_cfg_section_find_subsection(w->cfg_section, w->info->name);
@@ -532,16 +559,8 @@ static void select_row_callback(GtkTreeSelection * s, gpointer data)
     {
     gtk_tree_model_get(model, &iter, COLUMN_NAME, &name, -1);
     priv->param_selected = 0;
-    if(priv->multi_labels)
-      {
-      while(strcmp(priv->multi_labels[priv->param_selected], name))
-        priv->param_selected++;
-      }
-    else
-      {
-      while(strcmp(w->info->multi_names[priv->param_selected], name))
-        priv->param_selected++;
-      }
+    while(strcmp(w->info->multi_names[priv->param_selected], name))
+      priv->param_selected++;
     g_free(name);
     
     if(w->info->multi_descriptions &&
@@ -719,7 +738,7 @@ static void button_callback(GtkWidget * wid, gpointer data)
     }
   else if(wid == priv->info_button)
     {
-    bg_gtk_multi_info_show(w->info, priv->selected,
+    bg_gtk_multi_info_show(w->info, get_selected_index(w),
                            priv->translation_domain, priv->info_button);
     }
   else if(wid == priv->top_button)
@@ -760,7 +779,7 @@ static void button_callback(GtkWidget * wid, gpointer data)
                                              priv->translation_domain);
     params[0].multi_names        = w->info->multi_names;
     params[0].multi_labels       = w->info->multi_labels;
-    params[0].multi_descriptions = w->info->multi_labels;
+    params[0].multi_descriptions = w->info->multi_descriptions;
     params[0].help_string        = w->info->help_string;
     params[0].multi_parameters   = w->info->multi_parameters;
     
@@ -925,7 +944,7 @@ static void create_list_common(bg_gtk_widget_t * w, bg_parameter_info_t * info,
     gtk_tree_view_column_new_with_attributes("",
                                              renderer,
                                              "text",
-                                             COLUMN_NAME,
+                                             COLUMN_LABEL,
                                              NULL);
   
   gtk_tree_view_append_column (GTK_TREE_VIEW(priv->treeview), column);

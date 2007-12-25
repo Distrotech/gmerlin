@@ -463,7 +463,7 @@ bg_fv_plugin_t the_plugin =
       BG_LOCALE,
       name:      "fv_colormatrix_yuv",
       long_name: TRS("Y'CbCr Colormatrix"),
-      description: TRS("Generic colormatrix (Y'CbCr)"),
+      description: TRS("Generic colormatrix (Y'CbCrA). You pass the coefficients in Y'CbCrA coordinates, but the processing will work in RGBA as well."),
       type:     BG_PLUGIN_FILTER_VIDEO,
       flags:    BG_PLUGIN_FILTER_1,
       create:   create_colormatrix,

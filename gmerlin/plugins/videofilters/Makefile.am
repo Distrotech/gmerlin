@@ -16,6 +16,7 @@ endif
 lib_LTLIBRARIES = \
 fv_blur.la \
 fv_cropscale.la \
+fv_colorbalance.la \
 fv_colormatrix_rgb.la \
 fv_colormatrix_yuv.la \
 fv_decimate.la \
@@ -35,6 +36,8 @@ fv_colormatrix_rgb_la_SOURCES  = fv_colormatrix_rgb.c colormatrix.c
 fv_colormatrix_yuv_la_SOURCES  = fv_colormatrix_yuv.c colormatrix.c
 
 fv_invert_rgb_la_SOURCES  = fv_invert_rgb.c colormatrix.c
+
+fv_colorbalance_la_SOURCES  = fv_colorbalance.c colormatrix.c
 
 
 fv_oldcolor_la_SOURCES  = fv_oldcolor.c colormatrix.c
