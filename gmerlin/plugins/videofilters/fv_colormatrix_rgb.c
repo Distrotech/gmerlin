@@ -44,7 +44,17 @@ typedef struct
   gavl_video_frame_t * frame;
   
   float coeffs[4][5];
+  int force_alpha;
+  int need_restart;
   } colormatrix_priv_t;
+
+static int need_restart_colormatrix(void * priv)
+  {
+  colormatrix_priv_t * vp;
+  vp = (colormatrix_priv_t *)priv;
+  return vp->need_restart;
+  }
+
 
 static void * create_colormatrix()
   {
@@ -60,6 +70,7 @@ static void destroy_colormatrix(void * priv)
   vp = (colormatrix_priv_t *)priv;
   if(vp->frame)
     gavl_video_frame_destroy(vp->frame);
+  bg_colormatrix_destroy(vp->mat);
   free(vp);
   }
 
@@ -76,52 +87,52 @@ static bg_parameter_info_t parameters[] =
     {
       name: "r_to_r",
       long_name: TRS("Red -> Red"),
-      type: BG_PARAMETER_FLOAT,
+      type: BG_PARAMETER_SLIDER_FLOAT,
       flags: BG_PARAMETER_SYNC,
-      val_min:     { val_f: -10.0 },
-      val_max:     { val_f:  10.0 },
+      val_min:     { val_f: -2.0 },
+      val_max:     { val_f:  2.0 },
       val_default: { val_f:   1.0 },
-      num_digits:  6,
+      num_digits:  3,
     },
     {
       name: "g_to_r",
       long_name: TRS("Green -> Red"),
-      type: BG_PARAMETER_FLOAT,
+      type: BG_PARAMETER_SLIDER_FLOAT,
       flags: BG_PARAMETER_SYNC,
-      val_min:     { val_f: -10.0 },
-      val_max:     { val_f:  10.0 },
+      val_min:     { val_f: -2.0 },
+      val_max:     { val_f:  2.0 },
       val_default: { val_f:   0.0 },
-      num_digits:  6,
+      num_digits:  3,
     },
     {
       name: "b_to_r",
       long_name: TRS("Blue -> Red"),
-      type: BG_PARAMETER_FLOAT,
+      type: BG_PARAMETER_SLIDER_FLOAT,
       flags: BG_PARAMETER_SYNC,
-      val_min:     { val_f: -10.0 },
-      val_max:     { val_f:  10.0 },
+      val_min:     { val_f: -2.0 },
+      val_max:     { val_f:  2.0 },
       val_default: { val_f:   0.0 },
-      num_digits:  6,
+      num_digits:  3,
     },
     {
       name: "a_to_r",
       long_name: TRS("Alpha -> Red"),
-      type: BG_PARAMETER_FLOAT,
+      type: BG_PARAMETER_SLIDER_FLOAT,
       flags: BG_PARAMETER_SYNC,
-      val_min:     { val_f: -10.0 },
-      val_max:     { val_f:  10.0 },
+      val_min:     { val_f: -2.0 },
+      val_max:     { val_f:  2.0 },
       val_default: { val_f:   0.0 },
-      num_digits:  6,
+      num_digits:  3,
     },
     {
       name: "off_r",
       long_name: TRS("Red offset"),
-      type: BG_PARAMETER_FLOAT,
+      type: BG_PARAMETER_SLIDER_FLOAT,
       flags: BG_PARAMETER_SYNC,
-      val_min:     { val_f: -10.0 },
-      val_max:     { val_f:  10.0 },
+      val_min:     { val_f: -2.0 },
+      val_max:     { val_f:  2.0 },
       val_default: { val_f:   0.0 },
-      num_digits:  6,
+      num_digits:  3,
     },
     {
       gettext_domain: PACKAGE,
@@ -134,52 +145,52 @@ static bg_parameter_info_t parameters[] =
     {
       name: "r_to_g",
       long_name: TRS("Red -> Green"),
-      type: BG_PARAMETER_FLOAT,
+      type: BG_PARAMETER_SLIDER_FLOAT,
       flags: BG_PARAMETER_SYNC,
-      val_min:     { val_f: -10.0 },
-      val_max:     { val_f:  10.0 },
+      val_min:     { val_f: -2.0 },
+      val_max:     { val_f:  2.0 },
       val_default: { val_f:   0.0 },
-      num_digits:  6,
+      num_digits:  3,
     },
     {
       name: "g_to_g",
       long_name: TRS("Green -> Green"),
-      type: BG_PARAMETER_FLOAT,
+      type: BG_PARAMETER_SLIDER_FLOAT,
       flags: BG_PARAMETER_SYNC,
-      val_min:     { val_f: -10.0 },
-      val_max:     { val_f:  10.0 },
+      val_min:     { val_f: -2.0 },
+      val_max:     { val_f:  2.0 },
       val_default: { val_f:   1.0 },
-      num_digits:  6,
+      num_digits:  3,
     },
     {
       name: "b_to_g",
       long_name: TRS("Blue -> Green"),
-      type: BG_PARAMETER_FLOAT,
+      type: BG_PARAMETER_SLIDER_FLOAT,
       flags: BG_PARAMETER_SYNC,
-      val_min:     { val_f: -10.0 },
-      val_max:     { val_f:  10.0 },
+      val_min:     { val_f: -2.0 },
+      val_max:     { val_f:  2.0 },
       val_default: { val_f:   0.0 },
-      num_digits:  6,
+      num_digits:  3,
     },
     {
       name: "a_to_g",
       long_name: TRS("Alpha -> Green"),
-      type: BG_PARAMETER_FLOAT,
+      type: BG_PARAMETER_SLIDER_FLOAT,
       flags: BG_PARAMETER_SYNC,
-      val_min:     { val_f: -10.0 },
-      val_max:     { val_f:  10.0 },
+      val_min:     { val_f: -2.0 },
+      val_max:     { val_f:  2.0 },
       val_default: { val_f:   0.0 },
-      num_digits:  6,
+      num_digits:  3,
     },
     {
       name: "off_g",
       long_name: TRS("Green offset"),
-      type: BG_PARAMETER_FLOAT,
+      type: BG_PARAMETER_SLIDER_FLOAT,
       flags: BG_PARAMETER_SYNC,
-      val_min:     { val_f: -10.0 },
-      val_max:     { val_f:  10.0 },
+      val_min:     { val_f: -2.0 },
+      val_max:     { val_f:  2.0 },
       val_default: { val_f:   0.0 },
-      num_digits:  6,
+      num_digits:  3,
     },
     {
       gettext_domain: PACKAGE,
@@ -192,52 +203,52 @@ static bg_parameter_info_t parameters[] =
     {
       name: "r_to_b",
       long_name: TRS("Red -> Blue"),
-      type: BG_PARAMETER_FLOAT,
+      type: BG_PARAMETER_SLIDER_FLOAT,
       flags: BG_PARAMETER_SYNC,
-      val_min:     { val_f: -10.0 },
-      val_max:     { val_f:  10.0 },
+      val_min:     { val_f: -2.0 },
+      val_max:     { val_f:  2.0 },
       val_default: { val_f:   0.0 },
-      num_digits:  6,
+      num_digits:  3,
     },
     {
       name: "g_to_b",
       long_name: TRS("Green -> Blue"),
-      type: BG_PARAMETER_FLOAT,
+      type: BG_PARAMETER_SLIDER_FLOAT,
       flags: BG_PARAMETER_SYNC,
-      val_min:     { val_f: -10.0 },
-      val_max:     { val_f:  10.0 },
+      val_min:     { val_f: -2.0 },
+      val_max:     { val_f:  2.0 },
       val_default: { val_f:   0.0 },
-      num_digits:  6,
+      num_digits:  3,
     },
     {
       name: "b_to_b",
       long_name: TRS("Blue -> Blue"),
-      type: BG_PARAMETER_FLOAT,
+      type: BG_PARAMETER_SLIDER_FLOAT,
       flags: BG_PARAMETER_SYNC,
-      val_min:     { val_f: -10.0 },
-      val_max:     { val_f:  10.0 },
+      val_min:     { val_f: -2.0 },
+      val_max:     { val_f:  2.0 },
       val_default: { val_f:   1.0 },
-      num_digits:  6,
+      num_digits:  3,
     },
     {
       name: "a_to_b",
       long_name: TRS("Alpha -> Blue"),
-      type: BG_PARAMETER_FLOAT,
+      type: BG_PARAMETER_SLIDER_FLOAT,
       flags: BG_PARAMETER_SYNC,
-      val_min:     { val_f: -10.0 },
-      val_max:     { val_f:  10.0 },
+      val_min:     { val_f: -2.0 },
+      val_max:     { val_f:  2.0 },
       val_default: { val_f:   0.0 },
-      num_digits:  6,
+      num_digits:  3,
     },
     {
       name: "off_b",
       long_name: TRS("Blue offset"),
-      type: BG_PARAMETER_FLOAT,
+      type: BG_PARAMETER_SLIDER_FLOAT,
       flags: BG_PARAMETER_SYNC,
-      val_min:     { val_f: -10.0 },
-      val_max:     { val_f:  10.0 },
+      val_min:     { val_f: -2.0 },
+      val_max:     { val_f:  2.0 },
       val_default: { val_f:   0.0 },
-      num_digits:  6,
+      num_digits:  3,
     },
     {
       gettext_domain: PACKAGE,
@@ -250,52 +261,64 @@ static bg_parameter_info_t parameters[] =
     {
       name: "r_to_a",
       long_name: TRS("Red -> Alpha"),
-      type: BG_PARAMETER_FLOAT,
+      type: BG_PARAMETER_SLIDER_FLOAT,
       flags: BG_PARAMETER_SYNC,
-      val_min:     { val_f: -10.0 },
-      val_max:     { val_f:  10.0 },
+      val_min:     { val_f: -2.0 },
+      val_max:     { val_f:  2.0 },
       val_default: { val_f:   0.0 },
-      num_digits:  6,
+      num_digits:  3,
     },
     {
       name: "g_to_a",
       long_name: TRS("Green -> Alpha"),
-      type: BG_PARAMETER_FLOAT,
+      type: BG_PARAMETER_SLIDER_FLOAT,
       flags: BG_PARAMETER_SYNC,
-      val_min:     { val_f: -10.0 },
-      val_max:     { val_f:  10.0 },
+      val_min:     { val_f: -2.0 },
+      val_max:     { val_f:  2.0 },
       val_default: { val_f:   0.0 },
-      num_digits:  6,
+      num_digits:  3,
     },
     {
       name: "b_to_a",
       long_name: TRS("Blue -> Alpha"),
-      type: BG_PARAMETER_FLOAT,
+      type: BG_PARAMETER_SLIDER_FLOAT,
       flags: BG_PARAMETER_SYNC,
-      val_min:     { val_f: -10.0 },
-      val_max:     { val_f:  10.0 },
+      val_min:     { val_f: -2.0 },
+      val_max:     { val_f:  2.0 },
       val_default: { val_f:   0.0 },
-      num_digits:  6,
+      num_digits:  3,
     },
     {
       name: "a_to_a",
       long_name: TRS("Alpha -> Alpha"),
-      type: BG_PARAMETER_FLOAT,
+      type: BG_PARAMETER_SLIDER_FLOAT,
       flags: BG_PARAMETER_SYNC,
-      val_min:     { val_f: -10.0 },
-      val_max:     { val_f:  10.0 },
+      val_min:     { val_f: -2.0 },
+      val_max:     { val_f:  2.0 },
       val_default: { val_f:   1.0 },
-      num_digits:  6,
+      num_digits:  3,
     },
     {
       name: "off_a",
       long_name: TRS("Alpha offset"),
-      type: BG_PARAMETER_FLOAT,
+      type: BG_PARAMETER_SLIDER_FLOAT,
       flags: BG_PARAMETER_SYNC,
-      val_min:     { val_f: -10.0 },
-      val_max:     { val_f:  10.0 },
+      val_min:     { val_f: -2.0 },
+      val_max:     { val_f:  2.0 },
       val_default: { val_f:   0.0 },
-      num_digits:  6,
+      num_digits:  3,
+    },
+    {
+      name: "misc",
+      long_name: TRS("Misc"),
+      type: BG_PARAMETER_SECTION,
+    },
+    {
+      name: "force_alpha",
+      long_name: TRS("Force alpha"),
+      type: BG_PARAMETER_CHECKBUTTON,
+      flags: BG_PARAMETER_SYNC,
+      help_string: TRS("Create video with alpha channel even if the input format has no alpha channel. Use this to generate the alpha channel from other channels using the colormatrix."),
     },
     { /* End of parameters */ },
   };
@@ -347,6 +370,15 @@ static void set_parameter_colormatrix(void * priv, const char * name,
   MATRIX_PARAM("b_to_a", 3, 2)
   MATRIX_PARAM("a_to_a", 3, 3)
   MATRIX_PARAM( "off_a", 3, 4)
+
+  else if(!strcmp(name, "force_alpha"))
+    {
+    if(vp->force_alpha != val->val_i)
+      {
+      vp->force_alpha = val->val_i;
+      vp->need_restart = 1;
+      }
+    }
   
   if(changed)
     bg_colormatrix_set_rgba(vp->mat, vp->coeffs);
@@ -370,11 +402,14 @@ static void connect_input_port_colormatrix(void * priv,
 static void set_input_format_colormatrix(void * priv, gavl_video_format_t * format, int port)
   {
   colormatrix_priv_t * vp;
+  int flags = 0;
   vp = (colormatrix_priv_t *)priv;
+  if(vp->force_alpha)
+    flags |= BG_COLORMATRIX_FORCE_ALPHA;
 
   if(!port)
     {
-    bg_colormatrix_init(vp->mat, format);
+    bg_colormatrix_init(vp->mat, format, flags);
     gavl_video_format_copy(&vp->format, format);
     }
   if(vp->frame)
@@ -382,6 +417,7 @@ static void set_input_format_colormatrix(void * priv, gavl_video_format_t * form
     gavl_video_frame_destroy(vp->frame);
     vp->frame = (gavl_video_frame_t*)0;
     }
+  vp->need_restart = 0;
   }
 
 static void get_output_format_colormatrix(void * priv, gavl_video_format_t * format)
@@ -439,6 +475,7 @@ bg_fv_plugin_t the_plugin =
     get_output_format: get_output_format_colormatrix,
 
     read_video: read_video_colormatrix,
+    need_restart: need_restart_colormatrix,
     
   };
 

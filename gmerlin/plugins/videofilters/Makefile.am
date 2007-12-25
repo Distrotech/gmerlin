@@ -22,6 +22,8 @@ fv_decimate.la \
 fv_deinterlace.la \
 fv_equalizer.la \
 fv_flip.la \
+fv_invert_rgb.la \
+fv_matrix_equalizer.la \
 fv_oldcolor.la \
 fv_pixelformat.la \
 fv_tlp.la \
@@ -30,7 +32,12 @@ fv_zoom.la
 fv_blur_la_SOURCES  = fv_blur.c
 
 fv_colormatrix_rgb_la_SOURCES  = fv_colormatrix_rgb.c colormatrix.c
+
 fv_colormatrix_yuv_la_SOURCES  = fv_colormatrix_yuv.c colormatrix.c
+
+fv_invert_rgb_la_SOURCES  = fv_invert_rgb.c colormatrix.c
+fv_matrix_equalizer_la_SOURCES  = fv_matrix_equalizer.c colormatrix.c
+
 
 fv_oldcolor_la_SOURCES  = fv_oldcolor.c colormatrix.c
 

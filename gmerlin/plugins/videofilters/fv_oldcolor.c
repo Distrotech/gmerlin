@@ -107,6 +107,7 @@ static void destroy_technicolor(void * priv)
   vp = (technicolor_priv_t *)priv;
   if(vp->frame)
     gavl_video_frame_destroy(vp->frame);
+  bg_colormatrix_destroy(vp->mat);
   free(vp);
   }
 
@@ -299,7 +300,7 @@ static void set_input_format_technicolor(void * priv, gavl_video_format_t * form
 
   if(!port)
     {
-    bg_colormatrix_init(vp->mat, format);
+    bg_colormatrix_init(vp->mat, format, 0);
     gavl_video_format_copy(&vp->format, format);
     }
   if(vp->frame)

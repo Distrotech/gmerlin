@@ -365,8 +365,8 @@ bg_fv_plugin_t the_plugin =
     {
       BG_LOCALE,
       name:      "fv_equalizer",
-      long_name: TRS("Video equalizer"),
-      description: TRS("Control hue, saturation, contrast and brightness. Based on the vf_eq and vf_hue from the MPlayer project."),
+      long_name: TRS("Simple yuv equalizer"),
+      description: TRS("Control hue, saturation, contrast and brightness. Based on the vf_eq and vf_hue from the MPlayer project. This is fast and works for all 8 bit Y'CbCr formats. A more generic equalizer (which works in RGB as well) is the Matrix Equalizer"),
       type:     BG_PLUGIN_FILTER_VIDEO,
       flags:    BG_PLUGIN_FILTER_1,
       create:   create_equalizer,

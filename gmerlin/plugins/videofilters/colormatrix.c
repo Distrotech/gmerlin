@@ -1024,11 +1024,26 @@ static gavl_pixelformat_t pixelformats[] =
     GAVL_PIXELFORMAT_NONE,
   };
 
-
-void bg_colormatrix_init(bg_colormatrix_t * m, gavl_video_format_t * format)
+static gavl_pixelformat_t pixelformats_alpha[] =
   {
-  format->pixelformat = gavl_pixelformat_get_best(format->pixelformat,
-                                                  pixelformats, (int*)0);
+    GAVL_RGBA_32,
+    GAVL_RGBA_64,
+    GAVL_YUVA_32,
+    GAVL_PIXELFORMAT_NONE,
+  };
+
+
+void bg_colormatrix_init(bg_colormatrix_t * m,
+                         gavl_video_format_t * format, int flags)
+  {
+  if(flags & BG_COLORMATRIX_FORCE_ALPHA)
+    format->pixelformat = gavl_pixelformat_get_best(format->pixelformat,
+                                                    pixelformats_alpha,
+                                                    (int*)0);
+  else
+    format->pixelformat = gavl_pixelformat_get_best(format->pixelformat,
+                                                    pixelformats,
+                                                    (int*)0);
   
   bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Pixelformat: %s",
          TRD(gavl_pixelformat_to_string(format->pixelformat), NULL));
