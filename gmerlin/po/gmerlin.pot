@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2007-12-22 03:28+0100\n"
+"POT-Creation-Date: 2007-12-27 20:34+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -269,11 +269,11 @@ msgstr ""
 msgid "Settings"
 msgstr ""
 
-#: plugins/v4l/i_v4l.c:471 plugins/videofilters/fv_equalizer.c:142
+#: plugins/v4l/i_v4l.c:471 plugins/videofilters/fv_equalizer.c:336
 msgid "Brightness"
 msgstr ""
 
-#: plugins/v4l/i_v4l.c:480 plugins/videofilters/fv_equalizer.c:172
+#: plugins/v4l/i_v4l.c:480 plugins/videofilters/fv_equalizer.c:366
 msgid "Hue"
 msgstr ""
 
@@ -281,7 +281,7 @@ msgstr ""
 msgid "Colour"
 msgstr ""
 
-#: plugins/v4l/i_v4l.c:498 plugins/videofilters/fv_equalizer.c:152
+#: plugins/v4l/i_v4l.c:498 plugins/videofilters/fv_equalizer.c:346
 msgid "Contrast"
 msgstr ""
 
@@ -976,6 +976,133 @@ msgid ""
 "net) is also possible."
 msgstr ""
 
+#: plugins/videofilters/fv_colormatrix_yuv.c:83
+msgid "Luminance"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_yuv.c:89
+msgid "Luminance -> Luminance"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_yuv.c:99
+msgid "Cb -> Luminance"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_yuv.c:109
+msgid "Cr -> Luminance"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_yuv.c:119
+msgid "Alpha -> Luminance"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_yuv.c:129
+msgid "Luminance offset"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_yuv.c:141
+msgid "Cb"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_yuv.c:147
+msgid "Luminance -> Cb"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_yuv.c:157
+msgid "Cb -> Cb"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_yuv.c:167
+msgid "Cr -> Cb"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_yuv.c:177
+msgid "Alpha -> Cb"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_yuv.c:187
+msgid "Cb offset"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_yuv.c:199
+msgid "Cr"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_yuv.c:205
+msgid "Luminance -> Cr"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_yuv.c:215
+msgid "Cb -> Cr"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_yuv.c:225
+msgid "Cr -> Cr"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_yuv.c:235
+msgid "Alpha -> Cr"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_yuv.c:245
+msgid "Cr offset"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_yuv.c:257
+#: plugins/videofilters/fv_colormatrix_rgb.c:257
+msgid "Alpha"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_yuv.c:263
+msgid "Luminance -> Alpha"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_yuv.c:273
+msgid "Cb -> Alpha"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_yuv.c:283
+msgid "Cr -> Alpha"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_yuv.c:293
+#: plugins/videofilters/fv_colormatrix_rgb.c:293
+msgid "Alpha -> Alpha"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_yuv.c:303
+#: plugins/videofilters/fv_colormatrix_rgb.c:303
+msgid "Alpha offset"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_yuv.c:313
+#: plugins/videofilters/fv_colormatrix_rgb.c:313
+msgid "Misc"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_yuv.c:318
+#: plugins/videofilters/fv_colormatrix_rgb.c:318
+msgid "Force alpha"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_yuv.c:321
+#: plugins/videofilters/fv_colormatrix_rgb.c:321
+msgid ""
+"Create video with alpha channel even if the input format has no alpha "
+"channel. Use this to generate the alpha channel from other channels using "
+"the colormatrix."
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_yuv.c:465
+msgid "Y'CbCr Colormatrix"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_yuv.c:466
+msgid ""
+"Generic colormatrix (Y'CbCrA). You pass the coefficients in Y'CbCrA "
+"coordinates, but the processing will work in RGBA as well."
+msgstr ""
+
 #: plugins/videofilters/fv_deinterlace.c:113
 #: plugins/videofilters/fv_cropscale.c:323
 #: plugins/videofilters/fv_cropscale.c:328 plugins/videofilters/fv_zoom.c:104
@@ -1150,6 +1277,13 @@ msgstr ""
 
 #: plugins/videofilters/fv_deinterlace.c:582
 msgid "Deinterlace with various algorithms"
+msgstr ""
+
+#: plugins/videofilters/colormatrix.c:1048
+#: plugins/videofilters/fv_colorbalance.c:602
+#: plugins/videofilters/fv_equalizer.c:568
+#, c-format
+msgid "Pixelformat: %s"
 msgstr ""
 
 #: plugins/videofilters/fv_cropscale.c:114
@@ -1439,6 +1573,39 @@ msgstr ""
 msgid "Simple temporal lowpass"
 msgstr ""
 
+#: plugins/videofilters/fv_colorbalance.c:168
+#: plugins/videofilters/fv_oldcolor.c:153
+msgid "Red gain"
+msgstr ""
+
+#: plugins/videofilters/fv_colorbalance.c:178
+#: plugins/videofilters/fv_oldcolor.c:163
+msgid "Green gain"
+msgstr ""
+
+#: plugins/videofilters/fv_colorbalance.c:188
+#: plugins/videofilters/fv_oldcolor.c:173
+msgid "Blue gain"
+msgstr ""
+
+#: plugins/videofilters/fv_colorbalance.c:198
+msgid "Normalize"
+msgstr ""
+
+#: plugins/videofilters/fv_colorbalance.c:201
+msgid "Normalize for constant luminance."
+msgstr ""
+
+#: plugins/videofilters/fv_colorbalance.c:631
+msgid "Colorbalance"
+msgstr ""
+
+#: plugins/videofilters/fv_colorbalance.c:632
+msgid ""
+"Apply gain for Red, Green and Blue. RGB(A) formats are processed directly, "
+"Y'CbCr formats are processed by the colormatrix."
+msgstr ""
+
 #: plugins/videofilters/fv_flip.c:68
 msgid "Flip horizontally"
 msgstr ""
@@ -1453,6 +1620,117 @@ msgstr ""
 
 #: plugins/videofilters/fv_flip.c:180
 msgid "Flip video images horizontally and/or vertically"
+msgstr ""
+
+#: plugins/videofilters/fv_oldcolor.c:120
+msgid "Style"
+msgstr ""
+
+#: plugins/videofilters/fv_oldcolor.c:143
+msgid "Strength"
+msgstr ""
+
+#: plugins/videofilters/fv_oldcolor.c:351
+msgid "Old color"
+msgstr ""
+
+#: plugins/videofilters/fv_oldcolor.c:352
+msgid "Simulate old color- and B/W movies"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_rgb.c:83
+msgid "Red"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_rgb.c:89
+msgid "Red -> Red"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_rgb.c:99
+msgid "Green -> Red"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_rgb.c:109
+msgid "Blue -> Red"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_rgb.c:119
+msgid "Alpha -> Red"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_rgb.c:129
+msgid "Red offset"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_rgb.c:141
+msgid "Green"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_rgb.c:147
+msgid "Red -> Green"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_rgb.c:157
+msgid "Green -> Green"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_rgb.c:167
+msgid "Blue -> Green"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_rgb.c:177
+msgid "Alpha -> Green"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_rgb.c:187
+msgid "Green offset"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_rgb.c:199
+msgid "Blue"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_rgb.c:205
+msgid "Red -> Blue"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_rgb.c:215
+msgid "Green -> Blue"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_rgb.c:225
+msgid "Blue -> Blue"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_rgb.c:235
+msgid "Alpha -> Blue"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_rgb.c:245
+msgid "Blue offset"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_rgb.c:263
+msgid "Red -> Alpha"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_rgb.c:273
+msgid "Green -> Alpha"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_rgb.c:283
+msgid "Blue -> Alpha"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_rgb.c:461
+#: plugins/videofilters/fv_colormatrix.c:180
+msgid "RGB Colormatrix"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix_rgb.c:462
+msgid ""
+"Generic colormatrix (RGBA). You pass the coefficients in RGBA coordinates, "
+"but the processing will work in Y'CbCrA as well."
 msgstr ""
 
 #: plugins/videofilters/fv_decimate.c:145
@@ -1526,18 +1804,55 @@ msgstr ""
 msgid "Blur filter based on gavl. Supports triangular, box and gauss blur."
 msgstr ""
 
-#: plugins/videofilters/fv_equalizer.c:162
+#: plugins/videofilters/fv_colormatrix.c:69
+msgid "Colormatrix horizontally"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix.c:75
+msgid "Colormatrix vertically"
+msgstr ""
+
+#: plugins/videofilters/fv_colormatrix.c:181
+msgid "Colormatrix video images horizontally and/or vertically"
+msgstr ""
+
+#: plugins/videofilters/fv_invert_rgb.c:91
+msgid "Invert red"
+msgstr ""
+
+#: plugins/videofilters/fv_invert_rgb.c:98
+msgid "Invert green"
+msgstr ""
+
+#: plugins/videofilters/fv_invert_rgb.c:105
+msgid "Invert blue"
+msgstr ""
+
+#: plugins/videofilters/fv_invert_rgb.c:112
+msgid "Invert alpha"
+msgstr ""
+
+#: plugins/videofilters/fv_invert_rgb.c:262
+msgid "Invert RGBA"
+msgstr ""
+
+#: plugins/videofilters/fv_invert_rgb.c:263
+msgid "Invert single color channels"
+msgstr ""
+
+#: plugins/videofilters/fv_equalizer.c:356
 msgid "Saturation"
 msgstr ""
 
-#: plugins/videofilters/fv_equalizer.c:368
-msgid "Video equalizer"
+#: plugins/videofilters/fv_equalizer.c:597
+msgid "Equalizer"
 msgstr ""
 
-#: plugins/videofilters/fv_equalizer.c:369
+#: plugins/videofilters/fv_equalizer.c:598
 msgid ""
-"Control hue, saturation, contrast and brightness. Based on the vf_eq and "
-"vf_hue from the MPlayer project."
+"Control hue, saturation, contrast and brightness. For Y'CbCr, it uses "
+"routines based on the vf_eq and vf_hue filters from the MPlayer project. For "
+"RGB formats, it uses the colormatrix."
 msgstr ""
 
 #: plugins/mikmod/i_mikmod.c:122
@@ -5972,7 +6287,7 @@ msgstr ""
 msgid "Gmerlin Media Tree"
 msgstr ""
 
-#: lib/gtk/cfg_multi_list.c:767
+#: lib/gtk/cfg_multi_list.c:786
 #, c-format
 msgid "Add %s"
 msgstr ""
