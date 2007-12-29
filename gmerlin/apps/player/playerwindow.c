@@ -621,12 +621,25 @@ static gboolean crossing_callback(GtkWidget *widget,
                                   gpointer data)
   {
   player_window_t * w = (player_window_t *)data;
-
   if(event->detail == GDK_NOTIFY_INFERIOR)
     return FALSE;
-  
+
+  fprintf(stderr, "crossing callback %d %d %d\n",
+          event->detail, event->type, w->mouse_inside);
+ 
+ 
   w->mouse_inside = (event->type == GDK_ENTER_NOTIFY) ? 1 : 0;
+  fprintf(stderr, "Set background...");
+
+  g_signal_handler_block(w->window, w->enter_notify_id);
+  g_signal_handler_block(w->window, w->leave_notify_id); 
+
   set_background(w);
+
+  g_signal_handler_unblock(w->window, w->enter_notify_id);   
+  g_signal_handler_unblock(w->window, w->leave_notify_id); 
+
+  fprintf(stderr, "Done\n");
   return FALSE;
   }
 
@@ -676,10 +689,14 @@ void player_window_create(gmerlin_t * g)
   g_signal_connect(G_OBJECT(ret->window), "realize",
                    G_CALLBACK(realize_callback), (gpointer*)ret);
 
-  g_signal_connect(G_OBJECT(ret->window), "enter-notify-event",
-                   G_CALLBACK(crossing_callback), (gpointer*)ret);
-  g_signal_connect(G_OBJECT(ret->window), "leave-notify-event",
-                   G_CALLBACK(crossing_callback), (gpointer*)ret);
+  ret->enter_notify_id =
+    g_signal_connect(G_OBJECT(ret->window), "enter-notify-event",
+                     G_CALLBACK(crossing_callback), (gpointer*)ret);
+  ret->leave_notify_id =
+    g_signal_connect(G_OBJECT(ret->window), "leave-notify-event",
+                     G_CALLBACK(crossing_callback), (gpointer*)ret);
+  
+
   
   g_signal_connect(G_OBJECT(ret->layout), "realize",
                    G_CALLBACK(realize_callback), (gpointer*)ret);

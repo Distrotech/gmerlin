@@ -142,7 +142,9 @@ typedef struct player_window_s
   /* For the player window only (NOT for album windows) */
   GtkAccelGroup *accel_group;
 
-
+  /* For avoiding infinite recursions */
+  guint enter_notify_id;
+  guint leave_notify_id;
   
   } player_window_t;
 

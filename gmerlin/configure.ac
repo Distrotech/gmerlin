@@ -132,6 +132,8 @@ AC_PATH_X
 if test x$no_x != xyes; then
   if test "x$x_includes" != "x"; then
     X_CFLAGS="-I$x_includes"
+  elif test -d /usr/X11R6/include; then 
+    X_CFLAGS="-I/usr/X11R6/include"
   else
     X_CFLAGS=""
   fi

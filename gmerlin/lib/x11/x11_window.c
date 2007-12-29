@@ -1318,6 +1318,7 @@ bg_parameter_info_t common_parameters[] =
       val_default: { val_i: GAVL_QUALITY_DEFAULT },
       help_string: TRS("Scale quality"),
     },
+    { /* End of parameters */ },
   };
 
 
