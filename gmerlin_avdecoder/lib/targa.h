@@ -1,11 +1,11 @@
 /*
  *  Modified in August 2004 by Burkhard Plaum (added support for
- *  reading from memory
+ *  reading from memory)
  */
 
 /* ---------------------------------------------------------------------------
  * Truevision Targa Reader/Writer
- * $Id: targa.h,v 1.2 2004-11-13 16:48:09 gmerlin Exp $
+ * $Id: targa.h,v 1.3 2008-01-02 16:17:29 gmerlin Exp $
  *
  * Copyright (C) 2001-2003, Emil Mikulic.
  *
