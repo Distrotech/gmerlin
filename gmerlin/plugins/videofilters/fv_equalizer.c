@@ -65,8 +65,6 @@ typedef struct equalizer_priv_s
   
   gavl_video_format_t format;
 
-  gavl_video_frame_t * frame;
-  
   void (*process_bc)(unsigned char *dest, int dstride,
                      int w, int h, int brightness, int contrast, int advance);
   
@@ -295,17 +293,10 @@ static int read_video_fast(equalizer_priv_t * vp,
 static int read_video_matrix(equalizer_priv_t * vp,
                              gavl_video_frame_t * frame)
   {
-  if(!vp->frame)
-    {
-    vp->frame = gavl_video_frame_create(&vp->format);
-    gavl_video_frame_clear(vp->frame, &vp->format);
-    }
-  if(!vp->read_func(vp->read_data, vp->frame, vp->read_stream))
+  if(!vp->read_func(vp->read_data, frame, vp->read_stream))
     return 0;
   
-  bg_colormatrix_process(vp->mat, vp->frame, frame);
-  frame->timestamp = vp->frame->timestamp;
-  frame->duration = vp->frame->duration;
+  bg_colormatrix_process(vp->mat, frame);
   return 1;
   }
 
@@ -321,8 +312,6 @@ static void destroy_equalizer(void * priv)
   {
   equalizer_priv_t * vp;
   vp = (equalizer_priv_t *)priv;
-  if(vp->frame)
-    gavl_video_frame_destroy(vp->frame);
   bg_colormatrix_destroy(vp->mat);
   free(vp);
   }
@@ -559,11 +548,6 @@ static void set_input_format_equalizer(void * priv, gavl_video_format_t * format
     vp->read_video = read_video_fast;
     }
 
-  if(vp->frame)
-    {
-    gavl_video_frame_destroy(vp->frame);
-    vp->frame = (gavl_video_frame_t*)0;
-    }
 
   bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Pixelformat: %s",
          TRD(gavl_pixelformat_to_string(format->pixelformat), NULL));

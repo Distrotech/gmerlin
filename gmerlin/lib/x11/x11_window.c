@@ -1105,7 +1105,7 @@ void bg_x11_window_resize(bg_x11_window_t * win,
   {
   win->normal_width = width;
   win->normal_height = height;
-  if(!win->is_fullscreen)
+  if(!win->is_fullscreen && (win->normal.parent == win->root))
     {
     win->window_width = width;
     win->window_height = height;

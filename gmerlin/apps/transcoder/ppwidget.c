@@ -50,7 +50,7 @@ static void encoder_pp_widget_init(encoder_pp_widget_t * ret, bg_plugin_registry
   ret->plugins =
     bg_gtk_plugin_widget_single_create("Postprocessing plugin", plugin_reg,
                                        BG_PLUGIN_ENCODER_PP,
-                                       0);
+                                       BG_PLUGIN_PP);
 
   bg_gtk_plugin_widget_single_set_sensitive(ret->plugins, 0);
 

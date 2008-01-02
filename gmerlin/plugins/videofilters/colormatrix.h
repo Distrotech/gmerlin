@@ -18,6 +18,5 @@ void bg_colormatrix_init(bg_colormatrix_t *,
                          gavl_video_format_t * format, int flags);
 
 void bg_colormatrix_process(bg_colormatrix_t *,
-                            const gavl_video_frame_t * in_frame,
-                            gavl_video_frame_t * out_frame);
+                            gavl_video_frame_t * frame);
 

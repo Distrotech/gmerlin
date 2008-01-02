@@ -624,12 +624,12 @@ static gboolean crossing_callback(GtkWidget *widget,
   if(event->detail == GDK_NOTIFY_INFERIOR)
     return FALSE;
 
-  fprintf(stderr, "crossing callback %d %d %d\n",
-          event->detail, event->type, w->mouse_inside);
+  //  fprintf(stderr, "crossing callback %d %d %d\n",
+  //          event->detail, event->type, w->mouse_inside);
  
  
   w->mouse_inside = (event->type == GDK_ENTER_NOTIFY) ? 1 : 0;
-  fprintf(stderr, "Set background...");
+  //  fprintf(stderr, "Set background...");
 
   g_signal_handler_block(w->window, w->enter_notify_id);
   g_signal_handler_block(w->window, w->leave_notify_id); 
@@ -639,7 +639,7 @@ static gboolean crossing_callback(GtkWidget *widget,
   g_signal_handler_unblock(w->window, w->enter_notify_id);   
   g_signal_handler_unblock(w->window, w->leave_notify_id); 
 
-  fprintf(stderr, "Done\n");
+  //  fprintf(stderr, "Done\n");
   return FALSE;
   }
 

@@ -442,6 +442,7 @@ bg_encoder_pp_plugin_t the_plugin =
       description:       TRS("This is a frontend for generating audio CD images (optionally with CD-Text) for cdrdao (http://cdrdao.sourceforge.net). Optional burning is also supported."),
       extensions:        "wav",
       type:              BG_PLUGIN_ENCODER_PP,
+      flags:             BG_PLUGIN_PP,
       create:            create_cdrdao,
       destroy:           destroy_cdrdao,
       get_parameters:    get_parameters_cdrdao,

@@ -140,6 +140,15 @@ int bg_x11_window_open_video(bg_x11_window_t * w,
   
   
   gavl_video_format_copy(&w->video_format, format);
+
+  if(w->auto_resize)
+    {
+    bg_x11_window_resize(w,
+                         (w->video_format.image_width *
+                          w->video_format.pixel_width) /
+                         w->video_format.pixel_height,
+                         w->video_format.image_height);
+    }
   
   num_drivers = sizeof(drivers) / sizeof(drivers[0]);
 

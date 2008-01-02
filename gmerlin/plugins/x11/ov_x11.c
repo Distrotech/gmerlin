@@ -36,6 +36,8 @@
 #define ACCEL_DEC_CONTRAST      13<<8
 #define ACCEL_INC_HUE           14<<8
 #define ACCEL_DEC_HUE           15<<8
+#define ACCEL_FIT_WINDOW        16<<8
+#define ACCEL_SHRINK_WINDOW     17<<8
 
 static bg_accelerator_t accels[] =
   {
@@ -43,6 +45,8 @@ static bg_accelerator_t accels[] =
     { BG_KEY_f,                   0, ACCEL_TOGGLE_FULLSCREEN  },
     { BG_KEY_ESCAPE,              0, ACCEL_EXIT_FULLSCREEN    },
     { BG_KEY_HOME,   BG_KEY_CONTROL_MASK, ACCEL_RESET_ZOOMSQUEEZE },
+    { BG_KEY_HOME,   0, ACCEL_FIT_WINDOW                          },
+    { BG_KEY_HOME,   BG_KEY_SHIFT_MASK, ACCEL_SHRINK_WINDOW       },
     { BG_KEY_PLUS,   BG_KEY_CONTROL_MASK, ACCEL_INC_SQUEEZE       },
     { BG_KEY_MINUS,  BG_KEY_CONTROL_MASK, ACCEL_DEC_SQUEEZE       },
     { BG_KEY_PLUS,   BG_KEY_ALT_MASK, ACCEL_INC_ZOOM              },
@@ -368,6 +372,49 @@ static int accel_callback(void * data, int id)
           priv->callbacks->hue_callback(priv->callbacks->data,
                                         f_tmp_scaled);
           }
+        }
+      break;
+    case ACCEL_FIT_WINDOW:
+      if(priv->is_open)
+        {
+        bg_x11_window_resize(priv->win,
+                             (priv->video_format.image_width *
+                              priv->video_format.pixel_width) /
+                             priv->video_format.pixel_height,
+                             priv->video_format.image_height);
+        }
+      break;
+    case ACCEL_SHRINK_WINDOW:
+      if(priv->is_open)
+        {
+        float video_aspect;
+        float window_aspect;
+        
+        video_aspect =
+          (float)(priv->video_format.image_width *
+                  priv->video_format.pixel_width) /
+          (float)(priv->video_format.image_height *
+                  priv->video_format.pixel_height);
+
+        window_aspect = (float)(priv->window_width) /
+          (float)(priv->window_height);
+
+        if(window_aspect > video_aspect)
+          {
+          /* Remove black borders left and right */
+          bg_x11_window_resize(priv->win,
+                               (int)(priv->window_height * video_aspect + 0.5),
+                               priv->window_height);
+          }
+        else
+          {
+          /* Remove black borders top and bottom */
+          bg_x11_window_resize(priv->win,
+                               priv->window_width,
+                               (int)((float)priv->window_width /
+                                     video_aspect + 0.5));
+          }
+        
         }
       break;
     }

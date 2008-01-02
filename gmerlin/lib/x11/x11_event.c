@@ -136,7 +136,6 @@ static int keysym_to_key_code(KeySym x11)
   return BG_KEY_NONE;
   }
 
-#if 1
 static KeySym key_code_to_keysym(int bg_code)
   {
   int i;
@@ -148,7 +147,6 @@ static KeySym key_code_to_keysym(int bg_code)
     }
   return XK_VoidSymbol;
   }
-#endif
 
 static int x11_to_key_mask(int x11_mask)
   {

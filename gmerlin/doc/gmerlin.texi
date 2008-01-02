@@ -9,7 +9,7 @@
 This manual is for Gmerlin
 (version @value{VERSION}, @value{UPDATED}).
 
-Copyright @copyright{} 2001-2006 Members of the Gmerlin project.
+Copyright @copyright{} 2001-2008 Members of the Gmerlin project.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -49,6 +49,7 @@ Gmerlin user guide.
 * Installation::
 * General usage information::
 * Applications::
+* Plugins::
 * FAQ::
 * Get involved::
 @end menu
@@ -515,7 +516,7 @@ numeric types, or supported options for strings (if available).
 
 @end table
 
-@node Applications, FAQ, General usage information, Top
+@node Applications, Plugins, General usage information, Top
 @chapter Applications
 
 @menu
@@ -990,6 +991,13 @@ Increase/decrease zoom factor
 
 @item @key{CTRL}+HOME
 Reset zoom and squeeze
+
+@item HOME
+Resize the window to the size of the video. If the video has nonsquare
+pixels, the window width is adjustetd accordingly.
+
+@item @key{SHIFT}+HOME
+Shrink the window such that no black borders are visible abound the video
 
 @item B/b
 Increase/decrease brightness. 
@@ -1684,7 +1692,12 @@ your install prefix if necessary.
 Messages from the keyboard daemon show up in @file{/var/log/messages} or
 in another syslog file depending on your system setup.
 
-@node FAQ, Get involved, Applications, Top
+@node Plugins, FAQ, Applications, Top
+@chapter Plugins
+
+@include plugins.texi
+
+@node FAQ, Get involved, Plugins, Top
 @chapter FAQ
 
 @menu

@@ -39,8 +39,7 @@ struct bg_colormatrix_s
   matrix_t yuva;
   
   void (*func)(bg_colormatrix_t * m,
-               const gavl_video_frame_t * in,
-               const gavl_video_frame_t * out);
+               gavl_video_frame_t * in);
   gavl_video_format_t format;
   };
 
@@ -150,227 +149,213 @@ void bg_colormatrix_destroy(bg_colormatrix_t * m)
 /* */
 
 
-static void process_bgr_24(bg_colormatrix_t * m,
-                           const gavl_video_frame_t * in,
-                           const gavl_video_frame_t * out)
-  {
-  int tmp;
-  int i, j;
-  uint8_t * src;
-  uint8_t * dst;
-  for(i = 0; i < m->format.image_height; i++)
-    {
-    src = in->planes[0]  + i * in->strides[0];
-    dst = out->planes[0] + i * out->strides[0];
-
-    for(j = 0; j < m->format.image_width; j++)
-      {
-      tmp =
-        ((m->rgba.coeffs_i[0][0] * src[2] +
-          m->rgba.coeffs_i[0][1] * src[1] + 
-          m->rgba.coeffs_i[0][2] * src[0]) >> 8) +
-        m->rgba.coeffs_i[0][4];
-      dst[2] = (uint8_t)((tmp & ~0xFF)?((-tmp) >> 31) : tmp);
-      
-      tmp =
-        ((m->rgba.coeffs_i[1][0] * src[2] +
-          m->rgba.coeffs_i[1][1] * src[1] + 
-          m->rgba.coeffs_i[1][2] * src[0]) >> 8) +
-        m->rgba.coeffs_i[1][4];
-      dst[1] = (uint8_t)((tmp & ~0xFF)?((-tmp) >> 31) : tmp);
-      
-      tmp =
-        ((m->rgba.coeffs_i[2][0] * src[2] +
-          m->rgba.coeffs_i[2][1] * src[1] + 
-          m->rgba.coeffs_i[2][2] * src[0]) >> 8) +
-        m->rgba.coeffs_i[2][4];
-      dst[0] = (uint8_t)((tmp & ~0xFF)?((-tmp) >> 31) : tmp);
-
-      src += 3;
-      dst += 3;
-      }
-    }
-  }
-
-
-static void process_rgb_32(bg_colormatrix_t * m,
-                           const gavl_video_frame_t * in,
-                           const gavl_video_frame_t * out)
-  {
-  int tmp;
-  int i, j;
-  uint8_t * src;
-  uint8_t * dst;
-  for(i = 0; i < m->format.image_height; i++)
-    {
-    src = in->planes[0]  + i * in->strides[0];
-    dst = out->planes[0] + i * out->strides[0];
-
-    for(j = 0; j < m->format.image_width; j++)
-      {
-      tmp =
-        ((m->rgba.coeffs_i[0][0] * src[0] +
-          m->rgba.coeffs_i[0][1] * src[1] + 
-          m->rgba.coeffs_i[0][2] * src[2]) >> 8) +
-        m->rgba.coeffs_i[0][4];
-      dst[0] = (uint8_t)((tmp & ~0xFF)?((-tmp) >> 31) : tmp);
-      
-      tmp =
-        ((m->rgba.coeffs_i[1][0] * src[0] +
-          m->rgba.coeffs_i[1][1] * src[1] + 
-          m->rgba.coeffs_i[1][2] * src[2]) >> 8) +
-        m->rgba.coeffs_i[1][4];
-      dst[1] = (uint8_t)((tmp & ~0xFF)?((-tmp) >> 31) : tmp);
-      
-      tmp =
-        ((m->rgba.coeffs_i[2][0] * src[0] +
-          m->rgba.coeffs_i[2][1] * src[1] + 
-          m->rgba.coeffs_i[2][2] * src[2]) >> 8) +
-        m->rgba.coeffs_i[2][4];
-      dst[2] = (uint8_t)((tmp & ~0xFF)?((-tmp) >> 31) : tmp);
-
-      src += 4;
-      dst += 4;
-      }
-    }
-  }
-
-static void process_bgr_32(bg_colormatrix_t * m,
-                           const gavl_video_frame_t * in,
-                           const gavl_video_frame_t * out)
-  {
-  int tmp;
-  int i, j;
-  uint8_t * src;
-  uint8_t * dst;
-  for(i = 0; i < m->format.image_height; i++)
-    {
-    src = in->planes[0]  + i * in->strides[0];
-    dst = out->planes[0] + i * out->strides[0];
-
-    for(j = 0; j < m->format.image_width; j++)
-      {
-      tmp =
-        ((m->rgba.coeffs_i[0][0] * src[2] +
-          m->rgba.coeffs_i[0][1] * src[1] + 
-          m->rgba.coeffs_i[0][2] * src[0]) >> 8) +
-        m->rgba.coeffs_i[0][4];
-      dst[2] = (uint8_t)((tmp & ~0xFF)?((-tmp) >> 31) : tmp);
-      
-      tmp =
-        ((m->rgba.coeffs_i[1][0] * src[2] +
-          m->rgba.coeffs_i[1][1] * src[1] + 
-          m->rgba.coeffs_i[1][2] * src[0]) >> 8) +
-        m->rgba.coeffs_i[1][4];
-      dst[1] = (uint8_t)((tmp & ~0xFF)?((-tmp) >> 31) : tmp);
-      
-      tmp =
-        ((m->rgba.coeffs_i[2][0] * src[2] +
-          m->rgba.coeffs_i[2][1] * src[1] + 
-          m->rgba.coeffs_i[2][2] * src[0]) >> 8) +
-        m->rgba.coeffs_i[2][4];
-      dst[0] = (uint8_t)((tmp & ~0xFF)?((-tmp) >> 31) : tmp);
-
-      src += 4;
-      dst += 4;
-      }
-    }
-  }
-
 /* RGB(A) 8 bit */
 
-static void process_rgb_24(bg_colormatrix_t * m,
-                           const gavl_video_frame_t * in,
-                           const gavl_video_frame_t * out)
+
+static void process_bgr_24(bg_colormatrix_t * m,
+                           gavl_video_frame_t * in)
   {
-  int tmp;
   int i, j;
+  int r, g, b;
   uint8_t * src;
-  uint8_t * dst;
   for(i = 0; i < m->format.image_height; i++)
     {
     src = in->planes[0]  + i * in->strides[0];
-    dst = out->planes[0] + i * out->strides[0];
-
+    
     for(j = 0; j < m->format.image_width; j++)
       {
-      tmp =
+      r =
+        ((m->rgba.coeffs_i[0][0] * src[2] +
+          m->rgba.coeffs_i[0][1] * src[1] + 
+          m->rgba.coeffs_i[0][2] * src[0]) >> 8) +
+        m->rgba.coeffs_i[0][4];
+      
+      g =
+        ((m->rgba.coeffs_i[1][0] * src[2] +
+          m->rgba.coeffs_i[1][1] * src[1] + 
+          m->rgba.coeffs_i[1][2] * src[0]) >> 8) +
+        m->rgba.coeffs_i[1][4];
+      
+      b =
+        ((m->rgba.coeffs_i[2][0] * src[2] +
+          m->rgba.coeffs_i[2][1] * src[1] + 
+          m->rgba.coeffs_i[2][2] * src[0]) >> 8) +
+        m->rgba.coeffs_i[2][4];
+      
+      src[2] = (uint8_t)((r & ~0xFF)?((-r) >> 31) : r);
+      src[1] = (uint8_t)((g & ~0xFF)?((-g) >> 31) : g);
+      src[0] = (uint8_t)((b & ~0xFF)?((-b) >> 31) : b);
+      
+      src += 3;
+      }
+    }
+  }
+
+static void process_rgb_24(bg_colormatrix_t * m,
+                           gavl_video_frame_t * in)
+  {
+  int i, j;
+  int r, g, b;
+  uint8_t * src;
+  for(i = 0; i < m->format.image_height; i++)
+    {
+    src = in->planes[0]  + i * in->strides[0];
+    
+    for(j = 0; j < m->format.image_width; j++)
+      {
+      r =
         ((m->rgba.coeffs_i[0][0] * src[0] +
           m->rgba.coeffs_i[0][1] * src[1] + 
           m->rgba.coeffs_i[0][2] * src[2]) >> 8) +
         m->rgba.coeffs_i[0][4];
-      dst[0] = (uint8_t)((tmp & ~0xFF)?((-tmp) >> 31) : tmp);
       
-      tmp =
+      g =
         ((m->rgba.coeffs_i[1][0] * src[0] +
           m->rgba.coeffs_i[1][1] * src[1] + 
           m->rgba.coeffs_i[1][2] * src[2]) >> 8) +
         m->rgba.coeffs_i[1][4];
-      dst[1] = (uint8_t)((tmp & ~0xFF)?((-tmp) >> 31) : tmp);
       
-      tmp =
+      b =
         ((m->rgba.coeffs_i[2][0] * src[0] +
           m->rgba.coeffs_i[2][1] * src[1] + 
           m->rgba.coeffs_i[2][2] * src[2]) >> 8) +
         m->rgba.coeffs_i[2][4];
-      dst[2] = (uint8_t)((tmp & ~0xFF)?((-tmp) >> 31) : tmp);
-
+      
+      src[0] = (uint8_t)((r & ~0xFF)?((-r) >> 31) : r);
+      src[1] = (uint8_t)((g & ~0xFF)?((-g) >> 31) : g);
+      src[2] = (uint8_t)((b & ~0xFF)?((-b) >> 31) : b);
+      
       src += 3;
-      dst += 3;
       }
     }
   }
 
 
-static void process_rgba_32(bg_colormatrix_t * m,
-                            const gavl_video_frame_t * in,
-                            const gavl_video_frame_t * out)
+static void process_bgr_32(bg_colormatrix_t * m,
+                           gavl_video_frame_t * in)
   {
-  int tmp;
   int i, j;
+  int r, g, b;
   uint8_t * src;
-  uint8_t * dst;
   for(i = 0; i < m->format.image_height; i++)
     {
     src = in->planes[0]  + i * in->strides[0];
-    dst = out->planes[0] + i * out->strides[0];
-
+    
     for(j = 0; j < m->format.image_width; j++)
       {
-      tmp =
+      r =
+        ((m->rgba.coeffs_i[0][0] * src[2] +
+          m->rgba.coeffs_i[0][1] * src[1] + 
+          m->rgba.coeffs_i[0][2] * src[0]) >> 8) +
+        m->rgba.coeffs_i[0][4];
+      
+      g =
+        ((m->rgba.coeffs_i[1][0] * src[2] +
+          m->rgba.coeffs_i[1][1] * src[1] + 
+          m->rgba.coeffs_i[1][2] * src[0]) >> 8) +
+        m->rgba.coeffs_i[1][4];
+      
+      b =
+        ((m->rgba.coeffs_i[2][0] * src[2] +
+          m->rgba.coeffs_i[2][1] * src[1] + 
+          m->rgba.coeffs_i[2][2] * src[0]) >> 8) +
+        m->rgba.coeffs_i[2][4];
+      
+      src[2] = (uint8_t)((r & ~0xFF)?((-r) >> 31) : r);
+      src[1] = (uint8_t)((g & ~0xFF)?((-g) >> 31) : g);
+      src[0] = (uint8_t)((b & ~0xFF)?((-b) >> 31) : b);
+      
+      src += 4;
+      }
+    }
+  }
+
+static void process_rgb_32(bg_colormatrix_t * m,
+                           gavl_video_frame_t * in)
+  {
+  int i, j;
+  int r, g, b;
+  uint8_t * src;
+  for(i = 0; i < m->format.image_height; i++)
+    {
+    src = in->planes[0]  + i * in->strides[0];
+    
+    for(j = 0; j < m->format.image_width; j++)
+      {
+      r =
+        ((m->rgba.coeffs_i[0][0] * src[0] +
+          m->rgba.coeffs_i[0][1] * src[1] + 
+          m->rgba.coeffs_i[0][2] * src[2]) >> 8) +
+        m->rgba.coeffs_i[0][4];
+      
+      g =
+        ((m->rgba.coeffs_i[1][0] * src[0] +
+          m->rgba.coeffs_i[1][1] * src[1] + 
+          m->rgba.coeffs_i[1][2] * src[2]) >> 8) +
+        m->rgba.coeffs_i[1][4];
+      
+      b =
+        ((m->rgba.coeffs_i[2][0] * src[0] +
+          m->rgba.coeffs_i[2][1] * src[1] + 
+          m->rgba.coeffs_i[2][2] * src[2]) >> 8) +
+        m->rgba.coeffs_i[2][4];
+      
+      src[0] = (uint8_t)((r & ~0xFF)?((-r) >> 31) : r);
+      src[1] = (uint8_t)((g & ~0xFF)?((-g) >> 31) : g);
+      src[2] = (uint8_t)((b & ~0xFF)?((-b) >> 31) : b);
+      
+      src += 4;
+      }
+    }
+  }
+
+static void process_rgba_32(bg_colormatrix_t * m,
+                            gavl_video_frame_t * in)
+  {
+  int i, j;
+  uint8_t * src;
+  int r, g, b, a;
+
+  for(i = 0; i < m->format.image_height; i++)
+    {
+    src = in->planes[0]  + i * in->strides[0];
+    
+    for(j = 0; j < m->format.image_width; j++)
+      {
+      r =
         ((m->rgba.coeffs_i[0][0] * src[0] +
           m->rgba.coeffs_i[0][1] * src[1] + 
           m->rgba.coeffs_i[0][2] * src[2] + 
           m->rgba.coeffs_i[0][3] * src[3]) >> 8) +
         m->rgba.coeffs_i[0][4];
-      dst[0] = (uint8_t)((tmp & ~0xFF)?((-tmp) >> 31) : tmp);
       
-      tmp =
+      g =
         ((m->rgba.coeffs_i[1][0] * src[0] +
           m->rgba.coeffs_i[1][1] * src[1] + 
           m->rgba.coeffs_i[1][2] * src[2] + 
           m->rgba.coeffs_i[1][3] * src[3]) >> 8) +
         m->rgba.coeffs_i[1][4];
-      dst[1] = (uint8_t)((tmp & ~0xFF)?((-tmp) >> 31) : tmp);
       
-      tmp =
+      b =
         ((m->rgba.coeffs_i[2][0] * src[0] +
           m->rgba.coeffs_i[2][1] * src[1] + 
           m->rgba.coeffs_i[2][2] * src[2] + 
           m->rgba.coeffs_i[2][3] * src[3]) >> 8) +
         m->rgba.coeffs_i[2][4];
-      dst[2] = (uint8_t)((tmp & ~0xFF)?((-tmp) >> 31) : tmp);
 
-      tmp =
+      a =
         ((m->rgba.coeffs_i[3][0] * src[0] +
           m->rgba.coeffs_i[3][1] * src[1] + 
           m->rgba.coeffs_i[3][2] * src[2] + 
           m->rgba.coeffs_i[3][3] * src[3]) >> 8) +
         m->rgba.coeffs_i[3][4];
-      dst[3] = (uint8_t)((tmp & ~0xFF)?((-tmp) >> 31) : tmp);
 
+      src[0] = (uint8_t)((r & ~0xFF)?((-r) >> 31) : r);
+      src[1] = (uint8_t)((g & ~0xFF)?((-g) >> 31) : g);
+      src[2] = (uint8_t)((b & ~0xFF)?((-b) >> 31) : b);
+      src[3] = (uint8_t)((a & ~0xFF)?((-a) >> 31) : a);
+      
       src += 4;
-      dst += 4;
       }
     }
   
@@ -379,97 +364,90 @@ static void process_rgba_32(bg_colormatrix_t * m,
 /* RGB(A) 16 bit */
 
 static void process_rgb_48(bg_colormatrix_t * m,
-                           const gavl_video_frame_t * in,
-                           const gavl_video_frame_t * out)
+                           gavl_video_frame_t * in)
   {
-  int64_t tmp;
+  int64_t r, g, b;
   int i, j;
   uint16_t * src;
-  uint16_t * dst;
   for(i = 0; i < m->format.image_height; i++)
     {
     src = (uint16_t *)(in->planes[0]  + i * in->strides[0]);
-    dst = (uint16_t *)(out->planes[0] + i * out->strides[0]);
     
     for(j = 0; j < m->format.image_width; j++)
       {
-      tmp =
+      r =
         (((int64_t)m->rgba.coeffs_i[0][0] * (int64_t)src[0] +
           (int64_t)m->rgba.coeffs_i[0][1] * (int64_t)src[1] + 
           (int64_t)m->rgba.coeffs_i[0][2] * (int64_t)src[2]) >> 16) +
         (int64_t)m->rgba.coeffs_i[0][4];
-      dst[0] = (uint16_t)((tmp & ~0xFFFF)?((-tmp) >> 63) : tmp);
       
-      tmp =
+      g =
         (((int64_t)m->rgba.coeffs_i[1][0] * (int64_t)src[0] +
           (int64_t)m->rgba.coeffs_i[1][1] * (int64_t)src[1] + 
           (int64_t)m->rgba.coeffs_i[1][2] * (int64_t)src[2]) >> 16) +
         (int64_t)m->rgba.coeffs_i[1][4];
-      dst[1] = (uint16_t)((tmp & ~0xFFFF)?((-tmp) >> 63) : tmp);
       
-      tmp =
+      b =
         (((int64_t)m->rgba.coeffs_i[2][0] * (int64_t)src[0] +
           (int64_t)m->rgba.coeffs_i[2][1] * (int64_t)src[1] + 
           (int64_t)m->rgba.coeffs_i[2][2] * (int64_t)src[2]) >> 16) +
         (int64_t)m->rgba.coeffs_i[2][4];
-      dst[2] = (uint16_t)((tmp & ~0xFFFF)?((-tmp) >> 63) : tmp);
+
+      src[0] = (uint16_t)((r & ~0xFFFF)?((-r) >> 63) : r);
+      src[1] = (uint16_t)((g & ~0xFFFF)?((-g) >> 63) : g);
+      src[2] = (uint16_t)((b & ~0xFFFF)?((-b) >> 63) : b);
       
       src += 3;
-      dst += 3;
       }
     }
   }
 
-
 static void process_rgba_64(bg_colormatrix_t * m,
-                            const gavl_video_frame_t * in,
-                            const gavl_video_frame_t * out)
+                            gavl_video_frame_t * in)
   {
-  int64_t tmp;
+  int64_t r, g, b, a;
   int i, j;
   uint16_t * src;
-  uint16_t * dst;
   for(i = 0; i < m->format.image_height; i++)
     {
     src = (uint16_t *)(in->planes[0]  + i * in->strides[0]);
-    dst = (uint16_t *)(out->planes[0] + i * out->strides[0]);
     
     for(j = 0; j < m->format.image_width; j++)
       {
-      tmp =
+      r =
         (((int64_t)m->rgba.coeffs_i[0][0] * (int64_t)src[0] +
           (int64_t)m->rgba.coeffs_i[0][1] * (int64_t)src[1] + 
           (int64_t)m->rgba.coeffs_i[0][2] * (int64_t)src[2] + 
           (int64_t)m->rgba.coeffs_i[0][3] * (int64_t)src[3]) >> 16) +
         (int64_t)m->rgba.coeffs_i[0][4];
-      dst[0] = (uint16_t)((tmp & ~0xFFFF)?((-tmp) >> 63) : tmp);
       
-      tmp =
+      g =
         (((int64_t)m->rgba.coeffs_i[1][0] * (int64_t)src[0] +
           (int64_t)m->rgba.coeffs_i[1][1] * (int64_t)src[1] + 
           (int64_t)m->rgba.coeffs_i[1][2] * (int64_t)src[2] + 
           (int64_t)m->rgba.coeffs_i[1][3] * (int64_t)src[3]) >> 16) +
         (int64_t)m->rgba.coeffs_i[1][4];
-      dst[1] = (uint16_t)((tmp & ~0xFFFF)?((-tmp) >> 63) : tmp);
       
-      tmp =
+      b =
         (((int64_t)m->rgba.coeffs_i[2][0] * (int64_t)src[0] +
           (int64_t)m->rgba.coeffs_i[2][1] * (int64_t)src[1] + 
           (int64_t)m->rgba.coeffs_i[2][2] * (int64_t)src[2] + 
           (int64_t)m->rgba.coeffs_i[2][3] * (int64_t)src[3]) >> 16) +
         (int64_t)m->rgba.coeffs_i[2][4];
-      dst[2] = (uint16_t)((tmp & ~0xFFff)?((-tmp) >> 63) : tmp);
 
-      tmp =
+      a =
         (((int64_t)m->rgba.coeffs_i[3][0] * (int64_t)src[0] +
           (int64_t)m->rgba.coeffs_i[3][1] * (int64_t)src[1] + 
           (int64_t)m->rgba.coeffs_i[3][2] * (int64_t)src[2] + 
           (int64_t)m->rgba.coeffs_i[3][3] * (int64_t)src[3]) >> 16) +
         (int64_t)m->rgba.coeffs_i[3][4];
-      dst[3] = (uint16_t)((tmp & ~0xFFFF)?((-tmp) >> 63) : tmp);
+
+      src[0] = (uint16_t)((r & ~0xFFFF)?((-r) >> 63) : r);
+      src[1] = (uint16_t)((g & ~0xFFFF)?((-g) >> 63) : g);
+      src[2] = (uint16_t)((b & ~0xFFff)?((-b) >> 63) : b);
+      src[3] = (uint16_t)((a & ~0xFFFF)?((-a) >> 63) : a);
       
       src += 4;
-      dst += 4;
       }
     }
   
@@ -479,144 +457,136 @@ static void process_rgba_64(bg_colormatrix_t * m,
 /* Float */
 
 static void process_rgb_float(bg_colormatrix_t * m,
-                              const gavl_video_frame_t * in,
-                              const gavl_video_frame_t * out)
+                              gavl_video_frame_t * in)
   {
-  int64_t tmp;
   int i, j;
   float * src;
-  float * dst;
+  float r, g, b;
   for(i = 0; i < m->format.image_height; i++)
     {
     src = (float *)(in->planes[0]  + i * in->strides[0]);
-    dst = (float *)(out->planes[0] + i * out->strides[0]);
     
     for(j = 0; j < m->format.image_width; j++)
       {
-      dst[0] =
+      r =
         m->rgba.coeffs_f[0][0] * src[0] +
         m->rgba.coeffs_f[0][1] * src[1] + 
         m->rgba.coeffs_f[0][2] * src[2] +
         m->rgba.coeffs_f[0][4];
-      dst[1] =
+      g =
         m->rgba.coeffs_f[1][0] * src[0] +
         m->rgba.coeffs_f[1][1] * src[1] + 
         m->rgba.coeffs_f[1][2] * src[2] +
         m->rgba.coeffs_f[1][4];
-      dst[2] =
+      b =
         m->rgba.coeffs_f[2][0] * src[0] +
         m->rgba.coeffs_f[2][1] * src[1] + 
         m->rgba.coeffs_f[2][2] * src[2] +
         m->rgba.coeffs_f[2][4];
-      
+      src[0] = r;
+      src[1] = g;
+      src[2] = b;
       src += 3;
-      dst += 3;
       }
     }
   }
 
 
 static void process_rgba_float(bg_colormatrix_t * m,
-                               const gavl_video_frame_t * in,
-                               const gavl_video_frame_t * out)
+                               gavl_video_frame_t * in)
   {
-  int64_t tmp;
   int i, j;
   float * src;
-  float * dst;
+  float r, g, b, a;
   for(i = 0; i < m->format.image_height; i++)
     {
     src = (float *)(in->planes[0]  + i * in->strides[0]);
-    dst = (float *)(out->planes[0] + i * out->strides[0]);
     
     for(j = 0; j < m->format.image_width; j++)
       {
-      dst[0] =
+      r =
         m->rgba.coeffs_f[0][0] * src[0] +
         m->rgba.coeffs_f[0][1] * src[1] + 
         m->rgba.coeffs_f[0][2] * src[2] +
         m->rgba.coeffs_f[0][3] * src[3] +
         m->rgba.coeffs_f[0][4];
-      dst[1] =
+      g =
         m->rgba.coeffs_f[1][0] * src[0] +
         m->rgba.coeffs_f[1][1] * src[1] + 
         m->rgba.coeffs_f[1][2] * src[2] +
         m->rgba.coeffs_f[1][3] * src[3] +
         m->rgba.coeffs_f[1][4];
-      dst[2] =
+      b =
         m->rgba.coeffs_f[2][0] * src[0] +
         m->rgba.coeffs_f[2][1] * src[1] + 
         m->rgba.coeffs_f[2][2] * src[2] +
         m->rgba.coeffs_f[2][3] * src[3] +
         m->rgba.coeffs_f[2][4];
-      dst[3] =
+      a =
         m->rgba.coeffs_f[3][0] * src[0] +
         m->rgba.coeffs_f[3][1] * src[1] + 
         m->rgba.coeffs_f[3][2] * src[2] +
         m->rgba.coeffs_f[3][3] * src[3] +
         m->rgba.coeffs_f[3][4];
+      src[0] = r;
+      src[1] = g;
+      src[2] = b;
+      src[3] = a;
       
       src += 4;
-      dst += 4;
       }
     }
   }
 
-
-
-
 static void process_yuva_32(bg_colormatrix_t * m,
-                            const gavl_video_frame_t * in,
-                            const gavl_video_frame_t * out)
+                            gavl_video_frame_t * in)
   {
-  int tmp;
+  int y, u, v, a;
   int i, j;
   uint8_t * src;
-  uint8_t * dst;
   for(i = 0; i < m->format.image_height; i++)
     {
     src = in->planes[0]  + i * in->strides[0];
-    dst = out->planes[0] + i * out->strides[0];
-
+    
     for(j = 0; j < m->format.image_width; j++)
       {
-      tmp =
+      y =
         ((m->yuva.coeffs_i[0][0] * (src[0] - 0x10) +
           m->yuva.coeffs_i[0][1] * (src[1] - 0x80) + 
           m->yuva.coeffs_i[0][2] * (src[2] - 0x80) + 
           m->yuva.coeffs_i[0][3] * src[3]) >> 8) +
         m->yuva.coeffs_i[0][4];
-      tmp += 0x10;
-      dst[0] = (uint8_t)((tmp & ~0xFF)?((-tmp) >> 31) : tmp);
+      y += 0x10;
       
-      tmp =
+      u =
         ((m->yuva.coeffs_i[1][0] * (src[0] - 0x10) +
           m->yuva.coeffs_i[1][1] * (src[1] - 0x80) + 
           m->yuva.coeffs_i[1][2] * (src[2] - 0x80) + 
           m->yuva.coeffs_i[1][3] * src[3]) >> 8) +
         m->yuva.coeffs_i[1][4];
-      tmp += 0x80;
-      dst[1] = (uint8_t)((tmp & ~0xFF)?((-tmp) >> 31) : tmp);
+      u += 0x80;
       
-      tmp =
+      v =
         ((m->yuva.coeffs_i[2][0] * (src[0] - 0x10) +
           m->yuva.coeffs_i[2][1] * (src[1] - 0x80) + 
           m->yuva.coeffs_i[2][2] * (src[2] - 0x80) + 
           m->yuva.coeffs_i[2][3] * src[3]) >> 8) +
         m->yuva.coeffs_i[2][4];
-      tmp += 0x80;
-      dst[2] = (uint8_t)((tmp & ~0xFF)?((-tmp) >> 31) : tmp);
+      v += 0x80;
 
-      tmp =
+      a =
         ((m->yuva.coeffs_i[3][0] * (src[0] - 0x10) +
           m->yuva.coeffs_i[3][1] * (src[1] - 0x80) + 
           m->yuva.coeffs_i[3][2] * (src[2] - 0x80) + 
           m->yuva.coeffs_i[3][3] * src[3]) >> 8) +
         m->yuva.coeffs_i[3][4];
-      dst[3] = (uint8_t)((tmp & ~0xFF)?((-tmp) >> 31) : tmp);
 
+      src[0] = (uint8_t)((y & ~0xFF)?((-y) >> 31) : y);
+      src[1] = (uint8_t)((u & ~0xFF)?((-u) >> 31) : u);
+      src[2] = (uint8_t)((v & ~0xFF)?((-v) >> 31) : v);
+      src[3] = (uint8_t)((a & ~0xFF)?((-a) >> 31) : a);
+      
       src += 4;
-      dst += 4;
       }
     }
   
@@ -624,13 +594,11 @@ static void process_yuva_32(bg_colormatrix_t * m,
 
 
 static void process_444j(bg_colormatrix_t * m,
-                         const gavl_video_frame_t * in,
-                         const gavl_video_frame_t * out)
+                         gavl_video_frame_t * in)
   {
-  int tmp;
+  int y, u, v;
   int i, j;
   uint8_t * src_y, * src_u, *src_v;
-  uint8_t * dst_y, * dst_u, *dst_v;
   
   for(i = 0; i < m->format.image_height; i++)
     {
@@ -638,156 +606,134 @@ static void process_444j(bg_colormatrix_t * m,
     src_u = in->planes[1]  + i * in->strides[1];
     src_v = in->planes[2]  + i * in->strides[2];
 
-    dst_y = out->planes[0] + i * out->strides[0];
-    dst_u = out->planes[1] + i * out->strides[1];
-    dst_v = out->planes[2] + i * out->strides[2];
 
     for(j = 0; j < m->format.image_width; j++)
       {
-      tmp =
+      y =
         ((m->yuva.coeffs_i[0][0] * *src_y +
           m->yuva.coeffs_i[0][1] * (*src_u-0x80) + 
           m->yuva.coeffs_i[0][2] * (*src_v-0x80)) >> 8) +
         m->yuva.coeffs_i[0][4];
-      *dst_y = (uint8_t)((tmp & ~0xFF)?((-tmp) >> 31) : tmp);
 
-      tmp =
+      u =
         ((m->yuva.coeffs_i[1][0] * *src_y +
           m->yuva.coeffs_i[1][1] * (*src_u-0x80) + 
           m->yuva.coeffs_i[1][2] * (*src_v-0x80)) >> 8) +
         m->yuva.coeffs_i[1][4];
-      tmp += 0x80;
-      *dst_u = (uint8_t)((tmp & ~0xFF)?((-tmp) >> 31) : tmp);
+      u += 0x80;
       
-      tmp =
+      v =
         ((m->yuva.coeffs_i[2][0] * *src_y +
           m->yuva.coeffs_i[2][1] * (*src_u-0x80) + 
           m->yuva.coeffs_i[2][2] * (*src_v-0x80)) >> 8) +
         m->yuva.coeffs_i[2][4];
-      tmp += 0x80;
-      *dst_v = (uint8_t)((tmp & ~0xFF)?((-tmp) >> 31) : tmp);
+      v += 0x80;
+
+      *src_y = (uint8_t)((y & ~0xFF)?((-y) >> 31) : y);
+      *src_u = (uint8_t)((u & ~0xFF)?((-u) >> 31) : u);
+      *src_v = (uint8_t)((v & ~0xFF)?((-v) >> 31) : v);
       
       src_y++;
       src_u++;
       src_v++;
 
-      dst_y++;
-      dst_u++;
-      dst_v++;
       }
     }
   }
 
 static void process_444(bg_colormatrix_t * m,
-                        const gavl_video_frame_t * in,
-                        const gavl_video_frame_t * out)
+                        gavl_video_frame_t * in)
   {
-  int tmp;
+  int y, u, v;
   int i, j;
   uint8_t * src_y, * src_u, *src_v;
-  uint8_t * dst_y, * dst_u, *dst_v;
   
   for(i = 0; i < m->format.image_height; i++)
     {
     src_y = in->planes[0]  + i * in->strides[0];
     src_u = in->planes[1]  + i * in->strides[1];
     src_v = in->planes[2]  + i * in->strides[2];
-
-    dst_y = out->planes[0] + i * out->strides[0];
-    dst_u = out->planes[1] + i * out->strides[1];
-    dst_v = out->planes[2] + i * out->strides[2];
-
+    
     for(j = 0; j < m->format.image_width; j++)
       {
-      tmp =
+      y =
         ((m->yuva.coeffs_i[0][0] * (*src_y-0x10) +
           m->yuva.coeffs_i[0][1] * (*src_u-0x80) + 
           m->yuva.coeffs_i[0][2] * (*src_v-0x80)) >> 8) +
         m->yuva.coeffs_i[0][4];
-      tmp += 0x10;
-      *dst_y = (uint8_t)((tmp & ~0xFF)?((-tmp) >> 31) : tmp);
+      y += 0x10;
 
-      tmp =
+      u =
         ((m->yuva.coeffs_i[1][0] * (*src_y-0x10) +
           m->yuva.coeffs_i[1][1] * (*src_u-0x80) + 
           m->yuva.coeffs_i[1][2] * (*src_v-0x80)) >> 8) +
         m->yuva.coeffs_i[1][4];
-      tmp += 0x80;
-      *dst_u = (uint8_t)((tmp & ~0xFF)?((-tmp) >> 31) : tmp);
+      u += 0x80;
       
-      tmp =
+      v =
         ((m->yuva.coeffs_i[2][0] * (*src_y-0x10) +
           m->yuva.coeffs_i[2][1] * (*src_u-0x80) + 
           m->yuva.coeffs_i[2][2] * (*src_v-0x80)) >> 8) +
         m->yuva.coeffs_i[2][4];
-      tmp += 0x80;
-      *dst_v = (uint8_t)((tmp & ~0xFF)?((-tmp) >> 31) : tmp);
+      v += 0x80;
+
+      *src_y = (uint8_t)((y & ~0xFF)?((-y) >> 31) : y);
+      *src_u = (uint8_t)((u & ~0xFF)?((-u) >> 31) : u);
+      *src_v = (uint8_t)((v & ~0xFF)?((-v) >> 31) : v);
       
       src_y++;
       src_u++;
       src_v++;
-
-      dst_y++;
-      dst_u++;
-      dst_v++;
+      
       }
     }
   }
 
 static void process_444_16(bg_colormatrix_t * m,
-                           const gavl_video_frame_t * in,
-                           const gavl_video_frame_t * out)
+                           gavl_video_frame_t * in)
   {
-  int64_t tmp;
+  int64_t y, u, v;
   int i, j;
   uint16_t * src_y, * src_u, *src_v;
-  uint16_t * dst_y, * dst_u, *dst_v;
   
   for(i = 0; i < m->format.image_height; i++)
     {
     src_y = (uint16_t*)(in->planes[0]  + i * in->strides[0]);
     src_u = (uint16_t*)(in->planes[1]  + i * in->strides[1]);
     src_v = (uint16_t*)(in->planes[2]  + i * in->strides[2]);
-
-    dst_y = (uint16_t*)(out->planes[0] + i * out->strides[0]);
-    dst_u = (uint16_t*)(out->planes[1] + i * out->strides[1]);
-    dst_v = (uint16_t*)(out->planes[2] + i * out->strides[2]);
     
     for(j = 0; j < m->format.image_width; j++)
       {
-      tmp =
+      y =
         (((int64_t)m->yuva.coeffs_i[0][0] * (*src_y-0x1000) +
           m->yuva.coeffs_i[0][1] * (*src_u-0x8000) + 
           m->yuva.coeffs_i[0][2] * (*src_v-0x8000)) >> 16) +
         m->yuva.coeffs_i[0][4];
-      tmp += 0x1000;
+      y += 0x1000;
       
-      *dst_y = (uint16_t)((tmp & ~0xFFFF)?((-tmp) >> 63) : tmp);
       
-      tmp =
+      u =
         (((int64_t)m->yuva.coeffs_i[1][0] * (*src_y-0x1000) +
           m->yuva.coeffs_i[1][1] * (*src_u-0x8000) + 
           m->yuva.coeffs_i[1][2] * (*src_v-0x8000)) >> 16) +
         m->yuva.coeffs_i[1][4];
-      tmp += 0x8000;
+      u += 0x8000;
 
-      *dst_u = (uint16_t)((tmp & ~0xFFFF)?((-tmp) >> 63) : tmp);
       
-      tmp =
+      v =
         (((int64_t)m->yuva.coeffs_i[2][0] * (*src_y-0x1000) +
           m->yuva.coeffs_i[2][1] * (*src_u-0x8000) + 
           m->yuva.coeffs_i[2][2] * (*src_v-0x8000)) >> 16) +
         m->yuva.coeffs_i[2][4];
-      tmp += 0x8000;
-      *dst_v = (uint16_t)((tmp & ~0xFFFF)?((-tmp) >> 63) : tmp);
+      v += 0x8000;
+
+      *src_y = (uint16_t)((y & ~0xFFFF)?((-y) >> 63) : y);
+      *src_u = (uint16_t)((u & ~0xFFFF)?((-u) >> 63) : u);
+      *src_v = (uint16_t)((v & ~0xFFFF)?((-v) >> 63) : v);
       
       src_y++;
       src_u++;
       src_v++;
-
-      dst_y++;
-      dst_u++;
-      dst_v++;
       }
     }
   }
@@ -821,7 +767,6 @@ static void matrix_f_to_16(matrix_t * mat)
 
 static void matrix_f_to_8_yuv(matrix_t * mat)
   {
-  int i, j;
 
   /* y -> y */
   mat->coeffs_i[0][0] = (int)(mat->coeffs_f[0][0] * 256.0 + 0.5);
@@ -870,7 +815,6 @@ static void matrix_f_to_8_yuv(matrix_t * mat)
 
 static void matrix_f_to_16_yuv(matrix_t * mat)
   {
-  int i, j;
 
   /* y -> y */
   mat->coeffs_i[0][0] = (int)(mat->coeffs_f[0][0] * 65536.0 + 0.5);
@@ -1054,9 +998,8 @@ void bg_colormatrix_init(bg_colormatrix_t * m,
   }
 
 void bg_colormatrix_process(bg_colormatrix_t * m,
-                            const gavl_video_frame_t * in_frame,
-                            gavl_video_frame_t * out_frame)
+                            gavl_video_frame_t * in_frame)
   {
-  m->func(m, in_frame, out_frame);
+  m->func(m, in_frame);
   }
 

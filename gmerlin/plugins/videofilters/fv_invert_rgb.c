@@ -41,8 +41,6 @@ typedef struct
   
   gavl_video_format_t format;
 
-  gavl_video_frame_t * frame;
-  
   float coeffs[4][5];
   int invert[4];
   
@@ -76,8 +74,6 @@ static void destroy_invert(void * priv)
   {
   invert_priv_t * vp;
   vp = (invert_priv_t *)priv;
-  if(vp->frame)
-    gavl_video_frame_destroy(vp->frame);
   bg_colormatrix_destroy(vp->mat);
   free(vp);
   }
@@ -214,11 +210,6 @@ static void set_input_format_invert(void * priv, gavl_video_format_t * format, i
     bg_colormatrix_init(vp->mat, format, 0);
     gavl_video_format_copy(&vp->format, format);
     }
-  if(vp->frame)
-    {
-    gavl_video_frame_destroy(vp->frame);
-    vp->frame = (gavl_video_frame_t*)0;
-    }
   }
 
 static void get_output_format_invert(void * priv, gavl_video_format_t * format)
@@ -239,17 +230,10 @@ static int read_video_invert(void * priv, gavl_video_frame_t * frame, int stream
     return vp->read_func(vp->read_data, frame, vp->read_stream);
     }
 #endif
-  if(!vp->frame)
-    {
-    vp->frame = gavl_video_frame_create(&vp->format);
-    gavl_video_frame_clear(vp->frame, &vp->format);
-    }
-  if(!vp->read_func(vp->read_data, vp->frame, vp->read_stream))
+  if(!vp->read_func(vp->read_data, frame, vp->read_stream))
     return 0;
   
-  bg_colormatrix_process(vp->mat, vp->frame, frame);
-  frame->timestamp = vp->frame->timestamp;
-  frame->duration = vp->frame->duration;
+  bg_colormatrix_process(vp->mat, frame);
   return 1;
   }
 

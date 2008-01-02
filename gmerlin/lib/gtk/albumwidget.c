@@ -509,7 +509,7 @@ static void set_sensitive(bg_gtk_album_widget_t * w)
     do_set_sensitive(w->info_button, 1);
 
     do_set_sensitive(w->menu.edit_menu.remove_item, 1);
-     do_set_sensitive(w->rename_selected_button, 1);
+    do_set_sensitive(w->rename_selected_button, 1);
     do_set_sensitive(w->cut_button, 1);
     do_set_sensitive(w->copy_button, 1);
 

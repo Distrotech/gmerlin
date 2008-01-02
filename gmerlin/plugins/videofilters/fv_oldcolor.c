@@ -1,6 +1,6 @@
 /*****************************************************************
  
-  fv_technicolor.c
+  fv_oldcolor.c
  
   Copyright (c) 2007 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
  
@@ -40,8 +40,6 @@ typedef struct
   int read_stream;
   
   gavl_video_format_t format;
-
-  gavl_video_frame_t * frame;
   
   float coeffs[3][4];
   int style;
@@ -105,8 +103,6 @@ static void destroy_technicolor(void * priv)
   {
   technicolor_priv_t * vp;
   vp = (technicolor_priv_t *)priv;
-  if(vp->frame)
-    gavl_video_frame_destroy(vp->frame);
   bg_colormatrix_destroy(vp->mat);
   free(vp);
   }
@@ -303,11 +299,6 @@ static void set_input_format_technicolor(void * priv, gavl_video_format_t * form
     bg_colormatrix_init(vp->mat, format, 0);
     gavl_video_format_copy(&vp->format, format);
     }
-  if(vp->frame)
-    {
-    gavl_video_frame_destroy(vp->frame);
-    vp->frame = (gavl_video_frame_t*)0;
-    }
   }
 
 static void get_output_format_technicolor(void * priv, gavl_video_format_t * format)
@@ -328,17 +319,10 @@ static int read_video_technicolor(void * priv, gavl_video_frame_t * frame, int s
     return vp->read_func(vp->read_data, frame, vp->read_stream);
     }
 #endif
-  if(!vp->frame)
-    {
-    vp->frame = gavl_video_frame_create(&vp->format);
-    gavl_video_frame_clear(vp->frame, &vp->format);
-    }
-  if(!vp->read_func(vp->read_data, vp->frame, vp->read_stream))
+  if(!vp->read_func(vp->read_data, frame, vp->read_stream))
     return 0;
   
-  bg_colormatrix_process(vp->mat, vp->frame, frame);
-  frame->timestamp = vp->frame->timestamp;
-  frame->duration = vp->frame->duration;
+  bg_colormatrix_process(vp->mat, frame);
   return 1;
   }
 
@@ -347,7 +331,7 @@ bg_fv_plugin_t the_plugin =
     common:
     {
       BG_LOCALE,
-      name:      "fv_technicolor",
+      name:      "fv_oldcolor",
       long_name: TRS("Old color"),
       description: TRS("Simulate old color- and B/W movies"),
       type:     BG_PLUGIN_FILTER_VIDEO,

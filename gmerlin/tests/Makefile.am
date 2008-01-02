@@ -26,6 +26,7 @@ videoplayer1 \
 msgtest \
 server \
 client \
+dump_plugins \
 textrenderer \
 ladspa \
 visualization \
@@ -38,6 +39,9 @@ bin_PROGRAMS = gmerlin_imgconvert
 
 audioplayer1_SOURCES = audioplayer1.c
 audioplayer1_LDADD = ../lib/libgmerlin.la -ldl
+
+dump_plugins_SOURCES = dump_plugins.c
+dump_plugins_LDADD = ../lib/libgmerlin.la -ldl
 
 ladspa_SOURCES = ladspa.c
 ladspa_LDADD =  -ldl

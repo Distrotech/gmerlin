@@ -41,7 +41,6 @@ typedef struct
   
   gavl_video_format_t format;
 
-  gavl_video_frame_t * frame;
   
   float coeffs[4][5];
   int force_alpha;
@@ -68,8 +67,6 @@ static void destroy_colormatrix(void * priv)
   {
   colormatrix_priv_t * vp;
   vp = (colormatrix_priv_t *)priv;
-  if(vp->frame)
-    gavl_video_frame_destroy(vp->frame);
   bg_colormatrix_destroy(vp->mat);
   free(vp);
   }
@@ -412,11 +409,6 @@ static void set_input_format_colormatrix(void * priv, gavl_video_format_t * form
     bg_colormatrix_init(vp->mat, format, flags);
     gavl_video_format_copy(&vp->format, format);
     }
-  if(vp->frame)
-    {
-    gavl_video_frame_destroy(vp->frame);
-    vp->frame = (gavl_video_frame_t*)0;
-    }
   vp->need_restart = 0;
   }
 
@@ -438,17 +430,10 @@ static int read_video_colormatrix(void * priv, gavl_video_frame_t * frame, int s
     return vp->read_func(vp->read_data, frame, vp->read_stream);
     }
 #endif
-  if(!vp->frame)
-    {
-    vp->frame = gavl_video_frame_create(&vp->format);
-    gavl_video_frame_clear(vp->frame, &vp->format);
-    }
-  if(!vp->read_func(vp->read_data, vp->frame, vp->read_stream))
+  if(!vp->read_func(vp->read_data, frame, vp->read_stream))
     return 0;
   
-  bg_colormatrix_process(vp->mat, vp->frame, frame);
-  frame->timestamp = vp->frame->timestamp;
-  frame->duration = vp->frame->duration;
+  bg_colormatrix_process(vp->mat, frame);
   return 1;
   }
 

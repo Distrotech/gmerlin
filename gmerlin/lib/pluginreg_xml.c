@@ -86,6 +86,7 @@ flag_names[] =
     { "EmbedWindow",    BG_PLUGIN_EMBED_WINDOW },
     { "VisualizeFrame", BG_PLUGIN_VISUALIZE_FRAME },
     { "VisualizeGL",    BG_PLUGIN_VISUALIZE_GL },
+    { "PP",    BG_PLUGIN_PP },
     { "Unsupported",    BG_PLUGIN_UNSUPPORTED   },
     { (char*)0,    0                           },
   };

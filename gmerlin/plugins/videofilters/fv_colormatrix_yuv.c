@@ -1,6 +1,6 @@
 /*****************************************************************
  
-  fv_colormatrix_rgb.c
+  fv_colormatrix_yuv.c
  
   Copyright (c) 2007 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
  
@@ -41,8 +41,6 @@ typedef struct
   
   gavl_video_format_t format;
 
-  gavl_video_frame_t * frame;
-  
   float coeffs[4][5];
   int force_alpha;
   int need_restart;
@@ -68,8 +66,6 @@ static void destroy_colormatrix(void * priv)
   {
   colormatrix_priv_t * vp;
   vp = (colormatrix_priv_t *)priv;
-  if(vp->frame)
-    gavl_video_frame_destroy(vp->frame);
   bg_colormatrix_destroy(vp->mat);
   free(vp);
   }
@@ -414,11 +410,6 @@ set_input_format_colormatrix(void * priv,
     bg_colormatrix_init(vp->mat, format, flags);
     gavl_video_format_copy(&vp->format, format);
     }
-  if(vp->frame)
-    {
-    gavl_video_frame_destroy(vp->frame);
-    vp->frame = (gavl_video_frame_t*)0;
-    }
   vp->need_restart = 0;
   }
 
@@ -442,17 +433,10 @@ static int read_video_colormatrix(void * priv,
     return vp->read_func(vp->read_data, frame, vp->read_stream);
     }
 #endif
-  if(!vp->frame)
-    {
-    vp->frame = gavl_video_frame_create(&vp->format);
-    gavl_video_frame_clear(vp->frame, &vp->format);
-    }
-  if(!vp->read_func(vp->read_data, vp->frame, vp->read_stream))
+  if(!vp->read_func(vp->read_data, frame, vp->read_stream))
     return 0;
   
-  bg_colormatrix_process(vp->mat, vp->frame, frame);
-  frame->timestamp = vp->frame->timestamp;
-  frame->duration = vp->frame->duration;
+  bg_colormatrix_process(vp->mat, frame);
   return 1;
   }
 
@@ -462,8 +446,8 @@ bg_fv_plugin_t the_plugin =
     {
       BG_LOCALE,
       name:      "fv_colormatrix_yuv",
-      long_name: TRS("Y'CbCr Colormatrix"),
-      description: TRS("Generic colormatrix (Y'CbCrA). You pass the coefficients in Y'CbCrA coordinates, but the processing will work in RGBA as well."),
+      long_name: TRS("Y'CbCr(A) Colormatrix"),
+      description: TRS("Generic colormatrix (Y'CbCrA). You pass the coefficients in Y'CbCr(A) coordinates, but the processing will work in RGB(A) as well."),
       type:     BG_PLUGIN_FILTER_VIDEO,
       flags:    BG_PLUGIN_FILTER_1,
       create:   create_colormatrix,

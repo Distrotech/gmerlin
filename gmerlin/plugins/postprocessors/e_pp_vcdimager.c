@@ -403,7 +403,7 @@ bg_encoder_pp_plugin_t the_plugin =
       mimetypes:         NULL,
       extensions:        "mpg",
       type:              BG_PLUGIN_ENCODER_PP,
-      flags:             0,
+      flags:             BG_PLUGIN_PP,
       create:            create_vcdimager,
       destroy:           destroy_vcdimager,
       get_parameters:    get_parameters_vcdimager,
