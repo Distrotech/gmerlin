@@ -1,0 +1,679 @@
+@menu
+* Media input: plugin_i.
+* Audio output: plugin_oa.
+* Video output: plugin_ov.
+* Audio recorder: plugin_ra.
+* Video recorder: plugin_rv.
+* Encoders for audio: plugin_ea.
+* Encoders for video: plugin_ev.
+* Encoders for text subtitles: plugin_est.
+* Encoders for overlay subtitles: plugin_eso.
+* Encoders for multiple stream types: plugin_e.
+* Encoder postprocessors: plugin_epp.
+* Image readers: plugin_ir.
+* Image writers: plugin_iw.
+* Audio filters: plugin_fa.
+* Video filters: plugin_fv.
+* Visualizations: plugin_vis.
+@end menu
+
+@node plugin_i
+@section Media input
+
+@subsection AVDecoder plugin
+@table @i
+@item Internal name
+i_avdec
+@item Module
+i_avdec.so
+@item Description
+Plugin based on the Gmerlin avdecoder library. Supports most media formats. Playback is supported from files, URLs (with various protocols) and stdin.
+@end table
+@subsection Audio CD player/ripper
+@table @i
+@item Internal name
+i_cdaudio
+@item Module
+i_cdaudio.so
+@item Description
+Plugin for audio CDs. Supports both playing with direct connection from the CD-drive to the souncard and ripping with cdparanoia. Metadata are obtained from Musicbrainz, freedb or CD-text. Metadata are cached in $HOME/.gmerlin/cdaudio_metadata.
+@end table
+@subsection DVD Player
+@table @i
+@item Internal name
+i_dvd
+@item Module
+i_dvd.so
+@item Description
+Plugin for playing DVDs. Based on Gmerlin avdecoder.
+@end table
+@subsection VCD Player
+@table @i
+@item Internal name
+i_vcd
+@item Module
+i_vcd.so
+@item Description
+Plugin for playing VCDs. Based on Gmerlin avdecoder.
+@end table
+@subsection DVB Player
+@table @i
+@item Internal name
+i_dvb
+@item Module
+i_dvb.so
+@item Description
+Plugin for playing DVB streams from a Linux-DVB compatible card. Based on Gmerlin avdecoder.
+@end table
+@subsection Image stills input plugin
+@table @i
+@item Internal name
+i_singlepic_stills
+@item Module
+Internal plugin
+@item Description
+This plugin reads images as stills. It uses the installed image readers.
+@end table
+@subsection libquicktime input plugin
+@table @i
+@item Internal name
+i_lqt
+@item Module
+i_lqt.so
+@item Description
+Input plugin based on libquicktime
+@end table
+@subsection Image video input plugin
+@table @i
+@item Internal name
+i_singlepic
+@item Module
+Internal plugin
+@item Description
+This plugin reads series of images as a video. It uses the installed image readers.
+@end table
+@subsection mikmod input plugin
+@table @i
+@item Internal name
+i_mikmod
+@item Module
+i_mikmod.so
+@item Description
+Simple wrapper, which calls the mikmod program
+@end table
+@node plugin_oa
+@section Audio output
+
+@subsection Alsa
+@table @i
+@item Internal name
+oa_alsa
+@item Module
+oa_alsa.so
+@item Description
+Alsa output plugin with support for channel configurations up to 5.1. Samples are sent to the soundcards in the nearest precision of the source format. Select "Force float" in the global audio options to enable 24, 32 or floating point playback even for 8 or 16 bit source formats.
+@end table
+@subsection OSS
+@table @i
+@item Internal name
+oa_oss
+@item Module
+oa_oss.so
+@item Description
+OSS output driver
+@end table
+@subsection EsounD output driver
+@table @i
+@item Internal name
+oa_esd
+@item Module
+oa_esd.so
+@item Description
+EsounD output driver
+@end table
+@node plugin_ov
+@section Video output
+
+@subsection X11
+@table @i
+@item Internal name
+ov_x11
+@item Module
+ov_x11.so
+@item Description
+X11 display driver with support for XShm, XVideo and XImage
+@end table
+@node plugin_ra
+@section Audio recorder
+
+@subsection Alsa
+@table @i
+@item Internal name
+i_alsa
+@item Module
+i_alsa.so
+@item Description
+Alsa recorder
+@end table
+@subsection OSS
+@table @i
+@item Internal name
+i_oss
+@item Module
+i_oss.so
+@item Description
+OSS Recorder
+@end table
+@subsection EsounD input driver
+@table @i
+@item Internal name
+i_esd
+@item Module
+i_esd.so
+@item Description
+EsounD input driver
+@end table
+@node plugin_rv
+@section Video recorder
+
+@subsection V4L
+@table @i
+@item Internal name
+i_v4l
+@item Module
+i_v4l.so
+@item Description
+video4linux input plugin. Supports only video and no tuner decives
+@end table
+@node plugin_ea
+@section Encoders for audio
+
+@subsection Wave writer
+@table @i
+@item Internal name
+e_wav
+@item Module
+e_wav.so
+@item Description
+Simple writer for wave files, supports 8, 16, 24 and 32 bit PCM
+@end table
+@subsection Speex encoder
+@table @i
+@item Internal name
+e_speex
+@item Module
+e_speex.so
+@item Description
+Encoder for Speex files
+@end table
+@subsection Flac in Ogg encoder
+@table @i
+@item Internal name
+e_flacogg
+@item Module
+e_flacogg.so
+@item Description
+Encoder for flac streams in Ogg containers. Based on libflac (http://flac.sourceforge.net)
+@end table
+@subsection Flac encoder
+@table @i
+@item Internal name
+e_flac
+@item Module
+e_flac.so
+@item Description
+Encoder for flac files. Based on libflac (http://flac.sourceforge.net)
+@end table
+@subsection Lame mp3 encoder
+@table @i
+@item Internal name
+e_lame
+@item Module
+e_lame.so
+@item Description
+Encoder for mp3 files. Based on lame (http://www.mp3dev.org). Supports CBR, ABR and VBR as well as ID3V1 and ID3V2 tags.
+@end table
+@subsection MPEG-1 layer 1/2 audio encoder
+@table @i
+@item Internal name
+e_mpegaudio
+@item Module
+e_mpegaudio.so
+@item Description
+Encoder for elementary MPEG-1 layer 1/2 audio streams. Based on mjpegtools (http://mjpeg.sourceforge.net).
+@end table
+@subsection Faac encoder
+@table @i
+@item Internal name
+e_faac
+@item Module
+e_faac.so
+@item Description
+Plugin for encoding AAC streams (with ADTS headers). Based on faac (http://faac.sourceforge.net).
+@end table
+@subsection FFmpeg audio encoder
+@table @i
+@item Internal name
+e_ffmpeg_audio
+@item Module
+e_ffmpeg_audio.so
+@item Description
+Plugin for encoding various audio formats with ffmpeg (http://www.ffmpeg.org).
+@end table
+@subsection Vorbis encoder
+@table @i
+@item Internal name
+e_vorbis
+@item Module
+e_vorbis.so
+@item Description
+Encoder for Vorbis files
+@end table
+@node plugin_ev
+@section Encoders for video
+
+@subsection yuv4mpeg2 encoder
+@table @i
+@item Internal name
+e_y4m
+@item Module
+e_yuv4mpeg.so
+@item Description
+Encoder for yuv4mpeg files. Based on mjpegtools (http://mjpeg.sourceforge.net).
+@end table
+@subsection MPEG-1/2 video encoder
+@table @i
+@item Internal name
+e_mpegvideo
+@item Module
+e_mpegvideo.so
+@item Description
+Encoder for elementary MPEG-1/2 video streams. Based on mjpegtools (http://mjpeg.sourceforge.net).
+@end table
+@subsection Singlepicture encoder
+@table @i
+@item Internal name
+e_singlepic
+@item Module
+Internal plugin
+@item Description
+This plugin encodes a video as a series of images. It uses the installed image writers.
+@end table
+@subsection FFmpeg video encoder
+@table @i
+@item Internal name
+e_ffmpeg_video
+@item Module
+e_ffmpeg_video.so
+@item Description
+Plugin for encoding various video formats with ffmpeg (http://www.ffmpeg.org).
+@end table
+@node plugin_est
+@section Encoders for text subtitles
+
+@subsection Text subtitle exporter
+@table @i
+@item Internal name
+e_subtext
+@item Module
+e_subtext.so
+@item Description
+Plugin for exporting text subtitles. Supported formats are MPSub and SRT
+@end table
+@node plugin_eso
+@section Encoders for overlay subtitles
+
+@subsection spumux overlay exporter
+@table @i
+@item Internal name
+e_spumux
+@item Module
+e_spumux.so
+@item Description
+Exports overlay subtitles into the format used by spumux (http://dvdauthor.sourceforge.net)
+@end table
+@node plugin_e
+@section Encoders for multiple stream types
+
+@subsection Quicktime encoder
+@table @i
+@item Internal name
+e_lqt
+@item Module
+e_lqt.so
+@item Description
+Encoder based on libquicktime (http://libquicktime.sourceforge.net) Writes Quicktime, AVI (optionally ODML), MP4, M4A and 3GPP. Supported codecs range from high quality uncompressed formats for professional applications to consumer level formats like H.264/AVC, AAC, MP3, Divx compatible etc. Also supported are chapters and text subtitles
+@end table
+@subsection Theora encoder
+@table @i
+@item Internal name
+e_theora
+@item Module
+e_theora.so
+@item Description
+Encoder for Theora files. Audio can be Vorbis, Flac or Speex.
+@end table
+@subsection FFmpeg audio/video encoder
+@table @i
+@item Internal name
+e_ffmpeg
+@item Module
+e_ffmpeg.so
+@item Description
+Plugin for encoding various audio/video formats with ffmpeg (http://www.ffmpeg.org).
+@end table
+@subsection MPEG 1/2 program/system stream encoder
+@table @i
+@item Internal name
+e_mpeg
+@item Module
+e_mpeg.so
+@item Description
+Encoder for regular .mpg files as well as VCD and DVD streams. Based on mjpegtools (http://mjpeg.sourceforge.net)
+@end table
+@node plugin_epp
+@section Encoder postprocessors
+
+@subsection Audio CD generator/burner
+@table @i
+@item Internal name
+e_pp_cdrdao
+@item Module
+e_pp_cdrdao.so
+@item Description
+This is a frontend for generating audio CD images (optionally with CD-Text) for cdrdao (http://cdrdao.sourceforge.net). Optional burning is also supported.
+@end table
+@subsection VCD image generator/burner
+@table @i
+@item Internal name
+e_pp_vcdimager
+@item Module
+e_pp_vcdimager.so
+@item Description
+This is a frontend for generating (S)VCD images with the vcdimager tools (http://www.vcdimager.org). Burning with cdrdao (http://cdrdao.sourceforge.net) is also possible.
+@end table
+@node plugin_ir
+@section Image readers
+
+@subsection PNM reader
+@table @i
+@item Internal name
+ir_pnm
+@item Module
+ir_pnm.so
+@item Description
+Reader for PBM/PGM/PPM images
+@end table
+@subsection TGA reader
+@table @i
+@item Internal name
+ir_tga
+@item Module
+ir_tga.so
+@item Description
+Reader for TGA images
+@end table
+@subsection BMP reader
+@table @i
+@item Internal name
+ir_bmp
+@item Module
+ir_bmp.so
+@item Description
+Reader for BMP images
+@end table
+@subsection PNG reader
+@table @i
+@item Internal name
+ir_png
+@item Module
+ir_png.so
+@item Description
+Reader for PNG images
+@end table
+@subsection JPEG reader
+@table @i
+@item Internal name
+ir_jpeg
+@item Module
+ir_jpeg.so
+@item Description
+Reader for JPEG images
+@end table
+@subsection TIFF reader
+@table @i
+@item Internal name
+ir_tiff
+@item Module
+ir_tiff.so
+@item Description
+Reader for TIFF images
+@end table
+@node plugin_iw
+@section Image writers
+
+@subsection JPEG writer
+@table @i
+@item Internal name
+iw_jpeg
+@item Module
+iw_jpeg.so
+@item Description
+Writer for JPEG images
+@end table
+@subsection PPM writer
+@table @i
+@item Internal name
+iw_pnm
+@item Module
+iw_pnm.so
+@item Description
+Writer for PPM images
+@end table
+@subsection BMP writer
+@table @i
+@item Internal name
+iw_bmp
+@item Module
+iw_bmp.so
+@item Description
+Writer for BMP images
+@end table
+@subsection PNG writer
+@table @i
+@item Internal name
+iw_png
+@item Module
+iw_png.so
+@item Description
+Writer for PNG images
+@end table
+@subsection TGA writer
+@table @i
+@item Internal name
+iw_tga
+@item Module
+iw_tga.so
+@item Description
+Writer for TGA images
+@end table
+@subsection TIFF writer
+@table @i
+@item Internal name
+iw_tiff
+@item Module
+iw_tiff.so
+@item Description
+Writer for TIFF images
+@end table
+@node plugin_fa
+@section Audio filters
+
+@subsection Volume control
+@table @i
+@item Internal name
+fa_volume
+@item Module
+fa_volume.so
+@item Description
+Simple volume control
+@end table
+@node plugin_fv
+@section Video filters
+
+@subsection Blur
+@table @i
+@item Internal name
+fv_blur
+@item Module
+fv_blur.so
+@item Description
+Blur filter based on gavl. Supports triangular, box and gauss blur.
+@end table
+@subsection Colorbalance
+@table @i
+@item Internal name
+fv_colorbalance
+@item Module
+fv_colorbalance.so
+@item Description
+Apply gain for Red, Green and Blue. RGB(A) formats are processed directly, Y'CbCr formats are processed by the colormatrix.
+@end table
+@subsection Crop & Scale
+@table @i
+@item Internal name
+fv_cropscale
+@item Module
+fv_cropscale.so
+@item Description
+Crop and Scale video images. Can also do chroma placement correction and simple deinterlacing
+@end table
+@subsection Decimate
+@table @i
+@item Internal name
+fv_decimate
+@item Module
+fv_decimate.so
+@item Description
+Skip almost identical frames
+@end table
+@subsection Deinterlacer
+@table @i
+@item Internal name
+fv_deinterlace
+@item Module
+fv_deinterlace.so
+@item Description
+Deinterlace with various algorithms
+@end table
+@subsection Equalizer
+@table @i
+@item Internal name
+fv_equalizer
+@item Module
+fv_equalizer.so
+@item Description
+Control hue, saturation, contrast and brightness. For Y'CbCr, it uses routines based on the vf_eq and vf_hue filters from the MPlayer project. For RGB formats, it uses the colormatrix.
+@end table
+@subsection Flip image
+@table @i
+@item Internal name
+fv_flip
+@item Module
+fv_flip.so
+@item Description
+Flip video images horizontally and/or vertically
+@end table
+@subsection Force pixelformat
+@table @i
+@item Internal name
+fv_pixelformat
+@item Module
+fv_pixelformat.so
+@item Description
+This forces a pixelformat as input for the next filter. Its mainly used for testing.
+@end table
+@subsection Invert RGBA
+@table @i
+@item Internal name
+fv_invert
+@item Module
+fv_invert_rgb.so
+@item Description
+Invert single color channels
+@end table
+@subsection Old color
+@table @i
+@item Internal name
+fv_oldcolor
+@item Module
+fv_oldcolor.so
+@item Description
+Simulate old color- and B/W movies
+@end table
+@subsection RGB Colormatrix
+@table @i
+@item Internal name
+fv_colormatrix_rgb
+@item Module
+fv_colormatrix_rgb.so
+@item Description
+Generic colormatrix (RGBA). You pass the coefficients in RGBA coordinates, but the processing will work in Y'CbCrA as well.
+@end table
+@subsection Temporal lowpass
+@table @i
+@item Internal name
+fv_tlp
+@item Module
+fv_tlp.so
+@item Description
+Simple temporal lowpass
+@end table
+@subsection Y'CbCr Colormatrix
+@table @i
+@item Internal name
+fv_colormatrix_yuv
+@item Module
+fv_colormatrix_yuv.so
+@item Description
+Generic colormatrix (Y'CbCrA). You pass the coefficients in Y'CbCrA coordinates, but the processing will work in RGBA as well.
+@end table
+@subsection Zoom
+@table @i
+@item Internal name
+fv_zoom
+@item Module
+fv_zoom.so
+@item Description
+Zoom horizontally and/or vertically
+@end table
+@node plugin_vis
+@section Visualizations
+
+@subsection Scope
+@table @i
+@item Internal name
+vis_scope
+@item Module
+vis_scope.so
+@item Description
+Scope plugin
+@end table
+@subsection Lemuria
+@table @i
+@item Internal name
+vis_lemuria
+@item Module
+vis_lemuria.so
+@item Description
+Lemuria
+@end table
+@subsection Goom
+@table @i
+@item Internal name
+vis_goom
+@item Module
+vis_goom.so
+@item Description
+Goom plugin
+@end table
