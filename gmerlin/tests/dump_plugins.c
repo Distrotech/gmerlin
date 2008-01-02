@@ -1,3 +1,24 @@
+/*****************************************************************
+ * gmerlin - a general purpose multimedia framework and applications
+ *
+ * Copyright (c) 2001 - 2008 Members of the Gmerlin project
+ * gmerlin-general@lists.sourceforge.net
+ * http://gmerlin.sourceforge.net
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * *****************************************************************/
+
 #include <config.h>
 #include <pluginregistry.h>
 #include <utils.h>
@@ -7,8 +28,8 @@
 #define FORMAT_HTML    0
 #define FORMAT_TEXI    1
 
-// int format = FORMAT_HTML;
-int format = FORMAT_TEXI;
+int format = FORMAT_HTML;
+// int format = FORMAT_TEXI;
 
 static struct
   {
@@ -134,6 +155,23 @@ int main(int argc, char ** argv)
     {
     printf("@menu\n");
     }
+  else
+    {
+    printf("<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01//EN\">\n");
+    printf("<html>\n");
+    printf("<head>\n");
+    printf("  <title>Gmerlin</title>\n");
+    printf("  <link rel=\"stylesheet\" href=\"css/style.css\">\n");
+    printf("</head>\n\n");
+
+    printf("<body>\n");
+    printf("<h1>Plugins</h1>\n");
+    printf("The following are only the plugins, you can download from this site.\n");
+    printf("Gmerlin applications also load <a href=\"http://www.ladspa.org\" target=\"_top\">ladspa</a> and\n");
+    printf("<a href=\"http://sourceforge.net/projects/libvisual\" target=\"_top\">libvisual</a> plugins.\n");
+    printf("<p>\n");
+
+    }
   
   i = 0;
   while(plugin_types[i].name)
@@ -173,5 +211,10 @@ int main(int argc, char ** argv)
     i++;
     }
 
+  if(format == FORMAT_HTML)
+    {
+    printf("</body></html>\n");
+    }
+  
   return 0;
   }

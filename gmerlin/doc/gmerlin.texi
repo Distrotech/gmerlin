@@ -1744,10 +1744,10 @@ of input- and output ports must be equal.
 
 @strong{Q:} @emph{Ok, I compiled gmerlin and started the player, now how do I  play a file?}
 
-@strong{A:} The best way is to first create an album (right click onto the
-root item in the tree). Then open the album and, in the album view,
-use one of the buttons at the bottom to open a file or URL. Or drag the
-file from a filemanager into an album.
+@strong{A:} The easiest way is to open the Incoming or Favourites album
+and use one of the buttons at the bottom to open a file or URL. Or drag the
+file from a filemanager into an album. Later you might want to create
+your own albums.
 
 @strong{Q:} @emph{Can I play a VCD image from harddisk before burning?}
 
@@ -1799,7 +1799,8 @@ Contribution to gmerlin can happen at several skill levels:
 
 @itemize @bullet
 @item Report bugs and installation problems, tell about features you'd like to see.
-@item Tell us about files, which cannot be played. An URL and some infos (e.g. MPlayer plays it fine) can help a lot.
+@item Tell us about files, which cannot be played. An URL and some infos (other applications
+      which play the file fine) can help a lot.
 @item Make skins. In /usr/local/gmerlin/skins/Default/skin.xml, you'll find an example skin description file.
 @item Assembler gurus can write more speed optimized routines for gavl
 @item Mathematics gurus can write more accurate routines for the higher quality

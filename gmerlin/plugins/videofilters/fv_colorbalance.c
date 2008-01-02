@@ -1,29 +1,23 @@
 /*****************************************************************
- 
-  fv_colorbalance.c
- 
-  Copyright (c) 2007 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
- 
-  http://gmerlin.sourceforge.net
- 
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
- 
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
- 
-*****************************************************************/
-
-/*
- *  Based on vf_eq.c (by Richard Felker) and
- *  vf_hue.c (by Michael Niedermayer) from MPlayer
+ * gmerlin - a general purpose multimedia framework and applications
  *
- *  Added support for packed YUV formats and "in place"
- *  conversion.
- */
+ * Copyright (c) 2001 - 2008 Members of the Gmerlin project
+ * gmerlin-general@lists.sourceforge.net
+ * http://gmerlin.sourceforge.net
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * *****************************************************************/
 
 #include <stdlib.h>
 #include <string.h>
@@ -128,7 +122,8 @@ static int read_video_matrix(colorbalance_priv_t * vp,
   if(!vp->read_func(vp->read_data, frame, vp->read_stream))
     return 0;
   
-  bg_colormatrix_process(vp->mat, frame);
+  if((vp->gain[0] != 1.0) || (vp->gain[1] != 1.0) || (vp->gain[2] != 1.0))
+    bg_colormatrix_process(vp->mat, frame);
   return 1;
   }
 
@@ -613,7 +608,7 @@ bg_fv_plugin_t the_plugin =
       BG_LOCALE,
       name:      "fv_colorbalance",
       long_name: TRS("Colorbalance"),
-      description: TRS("Apply gain for Red, Green and Blue. RGB(A) formats are processed directly, Y'CbCr formats are processed by the colormatrix."),
+      description: TRS("Apply gain for red, green and blue. RGB(A) formats are processed directly, Y'CbCr formats are processed by the colormatrix."),
       type:     BG_PLUGIN_FILTER_VIDEO,
       flags:    BG_PLUGIN_FILTER_1,
       create:   create_colorbalance,

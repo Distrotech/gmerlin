@@ -629,14 +629,14 @@ fv_tlp.so
 @item Description
 Simple temporal lowpass
 @end table
-@subsection Y'CbCr Colormatrix
+@subsection Y'CbCr(A) Colormatrix
 @table @i
 @item Internal name
 fv_colormatrix_yuv
 @item Module
 fv_colormatrix_yuv.so
 @item Description
-Generic colormatrix (Y'CbCrA). You pass the coefficients in Y'CbCrA coordinates, but the processing will work in RGBA as well.
+Generic colormatrix (Y'CbCrA). You pass the coefficients in Y'CbCr(A) coordinates, but the processing will work in RGB(A) as well.
 @end table
 @subsection Zoom
 @table @i
@@ -667,13 +667,4 @@ vis_lemuria
 vis_lemuria.so
 @item Description
 Lemuria
-@end table
-@subsection Goom
-@table @i
-@item Internal name
-vis_goom
-@item Module
-vis_goom.so
-@item Description
-Goom plugin
 @end table
