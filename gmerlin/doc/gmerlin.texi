@@ -1083,12 +1083,12 @@ commands. One example for a generic keyboard daemon, which can call
 @code{gmerlin_remote} is the @ref{Keyboard daemon, Gmerlin Keyboard daemon}.
 
 @menu
-* General: gmerlin_remote.
+* Invoking gmerlin_remote: gmerlin_remote.
 * Examples: gmerlin_remote_examples.
 @end menu
 
 @node gmerlin_remote
-@subsection General
+@subsection Invoking gmerlin_remote
 
 @include gmerlin_remote.texi
 
@@ -1529,11 +1529,11 @@ settings for each stream separately.
 @section Transcoder remote control
 
 @menu
-* General: gmerlin_transcoder_remote.
+* Invoking gmerlin_transcoder_remote: gmerlin_transcoder_remote.
 @end menu
 
 @node gmerlin_transcoder_remote
-@subsection General
+@subsection Invoking gmerlin_transcoder_remote
 
 @include gmerlin_transcoder_remote.texi
 
@@ -1542,11 +1542,11 @@ settings for each stream separately.
 @section Commandline player
 
 @menu
-* General: gmerlin_play.
+* Invoking gmerlin_play: gmerlin_play.
 @end menu
 
 @node gmerlin_play
-@subsection General
+@subsection Invoking gmerlin_play
 
 @include gmerlin_play.texi
 
@@ -1559,6 +1559,7 @@ settings for each stream separately.
 @image{../img/alsamixer}
 @end ifhtml
 
+Type @code{gmerlin_alsamixer} to start this.
 This is a mixer program, which is still convenient, if you have
 multiple soundcards with 100s of options each. It provides widgets
 for almost all soundcard parameters, which are supported by alsa.
@@ -1599,6 +1600,7 @@ Alsa startup scripts.
 
 @end ifhtml
 
+Type @code{gmerlin_visualizer} to start this.
 Gmerlin visualizer opens your soundard for recording and displays a
 visualization in a window. It supports fullscreen and mouse- and
 keyboard interaction with visuals for visualization plugins, which

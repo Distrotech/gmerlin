@@ -33,7 +33,7 @@
 
 #define LOG_DOMAIN "fv_invert_rgb"
 
-typedef struct
+typedef struct invert_priv_s
   {
   bg_colormatrix_t * mat;
   
@@ -45,6 +45,8 @@ typedef struct
 
   float coeffs[4][5];
   int invert[4];
+
+  void (*process)(struct invert_priv_s * p, gavl_video_frame_t * f);
   
   } invert_priv_t;
 
@@ -202,6 +204,277 @@ static void connect_input_port_invert(void * priv,
     }
   }
 
+static void process_rgb24(invert_priv_t * vp, gavl_video_frame_t * frame)
+  {
+  int mask[3];
+  int anti_mask[3];
+  uint8_t * src;
+  int i, j;
+  mask[0] = vp->invert[0] ? 0x00 : 0xff;
+  mask[1] = vp->invert[1] ? 0x00 : 0xff;
+  mask[2] = vp->invert[2] ? 0x00 : 0xff;
+
+  anti_mask[0] = ~mask[0];
+  anti_mask[1] = ~mask[1];
+  anti_mask[2] = ~mask[2];
+  
+  for(i = 0; i < vp->format.image_height; i++)
+    {
+    src = frame->planes[0] + i * frame->strides[0];
+    /* The following should be faster than the 9 multiplications and 3
+       additions per pixel */
+    for(j = 0; j < vp->format.image_width; j++)
+      {
+      src[0] = (src[0] & mask[0]) | ((0xff - src[0]) & anti_mask[0]);
+      src[1] = (src[1] & mask[1]) | ((0xff - src[1]) & anti_mask[1]);
+      src[2] = (src[2] & mask[2]) | ((0xff - src[2]) & anti_mask[2]);
+      src+=3;
+      }
+    }
+  }
+
+static void process_rgb32(invert_priv_t * vp, gavl_video_frame_t * frame)
+  {
+  int mask[3];
+  int anti_mask[3];
+  uint8_t * src;
+  int i, j;
+  mask[0] = vp->invert[0] ? 0x00 : 0xff;
+  mask[1] = vp->invert[1] ? 0x00 : 0xff;
+  mask[2] = vp->invert[2] ? 0x00 : 0xff;
+  anti_mask[0] = ~mask[0];
+  anti_mask[1] = ~mask[1];
+  anti_mask[2] = ~mask[2];
+
+  for(i = 0; i < vp->format.image_height; i++)
+    {
+    src = frame->planes[0] + i * frame->strides[0];
+    /* The following should be faster than the 9 multiplications and 3
+       additions per pixel */
+    for(j = 0; j < vp->format.image_width; j++)
+      {
+      src[0] = (src[0] & mask[0]) | ((0xff - src[0]) & anti_mask[0]);
+      src[1] = (src[1] & mask[1]) | ((0xff - src[1]) & anti_mask[1]);
+      src[2] = (src[2] & mask[2]) | ((0xff - src[2]) & anti_mask[2]);
+      src+=4;
+      }
+    }
+  }
+
+static void process_bgr24(invert_priv_t * vp, gavl_video_frame_t * frame)
+  {
+  int mask[3];
+  int anti_mask[3];
+  uint8_t * src;
+  int i, j;
+  mask[2] = vp->invert[0] ? 0x00 : 0xff;
+  mask[1] = vp->invert[1] ? 0x00 : 0xff;
+  mask[0] = vp->invert[2] ? 0x00 : 0xff;
+  anti_mask[0] = ~mask[0];
+  anti_mask[1] = ~mask[1];
+  anti_mask[2] = ~mask[2];
+
+  for(i = 0; i < vp->format.image_height; i++)
+    {
+    src = frame->planes[0] + i * frame->strides[0];
+    /* The following should be faster than the 9 multiplications and 3
+       additions per pixel */
+    for(j = 0; j < vp->format.image_width; j++)
+      {
+      src[0] = (src[0] & mask[0]) | ((0xff - src[0]) & anti_mask[0]);
+      src[1] = (src[1] & mask[1]) | ((0xff - src[1]) & anti_mask[1]);
+      src[2] = (src[2] & mask[2]) | ((0xff - src[2]) & anti_mask[2]);
+      src+=3;
+      }
+    }
+  }
+
+static void process_bgr32(invert_priv_t * vp, gavl_video_frame_t * frame)
+  {
+  int mask[3];
+  int anti_mask[3];
+  uint8_t * src;
+  int i, j;
+  mask[2] = vp->invert[0] ? 0x00 : 0xff;
+  mask[1] = vp->invert[1] ? 0x00 : 0xff;
+  mask[0] = vp->invert[2] ? 0x00 : 0xff;
+  anti_mask[0] = ~mask[0];
+  anti_mask[1] = ~mask[1];
+  anti_mask[2] = ~mask[2];
+
+  for(i = 0; i < vp->format.image_height; i++)
+    {
+    src = frame->planes[0] + i * frame->strides[0];
+    /* The following should be faster than the 9 multiplications and 3
+       additions per pixel */
+    for(j = 0; j < vp->format.image_width; j++)
+      {
+      src[0] = (src[0] & mask[0]) | ((0xff - src[0]) & anti_mask[0]);
+      src[1] = (src[1] & mask[1]) | ((0xff - src[1]) & anti_mask[1]);
+      src[2] = (src[2] & mask[2]) | ((0xff - src[2]) & anti_mask[2]);
+      src+=4;
+      }
+    }
+  }
+
+static void process_rgba32(invert_priv_t * vp, gavl_video_frame_t * frame)
+  {
+  int mask[4];
+  int anti_mask[4];
+  uint8_t * src;
+  int i, j;
+  mask[0] = vp->invert[0] ? 0x00 : 0xff;
+  mask[1] = vp->invert[1] ? 0x00 : 0xff;
+  mask[2] = vp->invert[2] ? 0x00 : 0xff;
+  mask[3] = vp->invert[3] ? 0x00 : 0xff;
+  anti_mask[0] = ~mask[0];
+  anti_mask[1] = ~mask[1];
+  anti_mask[2] = ~mask[2];
+  anti_mask[3] = ~mask[3];
+
+  for(i = 0; i < vp->format.image_height; i++)
+    {
+    src = frame->planes[0] + i * frame->strides[0];
+    /* The following should be faster than the 9 multiplications and 3
+       additions per pixel */
+    for(j = 0; j < vp->format.image_width; j++)
+      {
+      src[0] = (src[0] & mask[0]) | ((0xff - src[0]) & anti_mask[0]);
+      src[1] = (src[1] & mask[1]) | ((0xff - src[1]) & anti_mask[1]);
+      src[2] = (src[2] & mask[2]) | ((0xff - src[2]) & anti_mask[2]);
+      src[3] = (src[3] & mask[3]) | ((0xff - src[3]) & anti_mask[3]);
+      src+=4;
+      }
+    }
+  }
+
+
+static void process_rgb48(invert_priv_t * vp, gavl_video_frame_t * frame)
+  {
+  int mask[3];
+  int anti_mask[3];
+  uint16_t * src;
+  int i, j;
+  mask[0] = vp->invert[0] ? 0x0000 : 0xffff;
+  mask[1] = vp->invert[1] ? 0x0000 : 0xffff;
+  mask[2] = vp->invert[2] ? 0x0000 : 0xffff;
+  anti_mask[0] = ~mask[0];
+  anti_mask[1] = ~mask[1];
+  anti_mask[2] = ~mask[2];
+  
+  for(i = 0; i < vp->format.image_height; i++)
+    {
+    src = (uint16_t *)(frame->planes[0] + i * frame->strides[0]);
+    /* The following should be faster than the 9 multiplications and 3
+       additions per pixel */
+    for(j = 0; j < vp->format.image_width; j++)
+      {
+      src[0] = (src[0] & mask[0]) | ((0xffff - src[0]) & anti_mask[0]);
+      src[1] = (src[1] & mask[1]) | ((0xffff - src[1]) & anti_mask[1]);
+      src[2] = (src[2] & mask[2]) | ((0xffff - src[2]) & anti_mask[2]);
+      src+=3;
+      }
+    }
+  }
+
+
+static void process_rgba64(invert_priv_t * vp, gavl_video_frame_t * frame)
+  {
+  int mask[4];
+  int anti_mask[4];
+  uint16_t * src;
+  int i, j;
+  mask[0] = vp->invert[0] ? 0x0000 : 0xffff;
+  mask[1] = vp->invert[1] ? 0x0000 : 0xffff;
+  mask[2] = vp->invert[2] ? 0x0000 : 0xffff;
+  mask[3] = vp->invert[3] ? 0x0000 : 0xffff;
+  anti_mask[0] = ~mask[0];
+  anti_mask[1] = ~mask[1];
+  anti_mask[2] = ~mask[2];
+  anti_mask[3] = ~mask[3];
+
+  for(i = 0; i < vp->format.image_height; i++)
+    {
+    src = (uint16_t *)(frame->planes[0] + i * frame->strides[0]);
+    /* The following should be faster than the 9 multiplications and 3
+       additions per pixel */
+    for(j = 0; j < vp->format.image_width; j++)
+      {
+      src[0] = (src[0] & mask[0]) | ((0xffff - src[0]) & anti_mask[0]);
+      src[1] = (src[1] & mask[1]) | ((0xffff - src[1]) & anti_mask[1]);
+      src[2] = (src[2] & mask[2]) | ((0xffff - src[2]) & anti_mask[2]);
+      src[3] = (src[3] & mask[3]) | ((0xffff - src[3]) & anti_mask[3]);
+      src+=4;
+      }
+    }
+  }
+
+static void process_rgb_float(invert_priv_t * vp, gavl_video_frame_t * frame)
+  {
+  float mask[3];
+  float anti_mask[3];
+  float * src;
+  int i, j;
+  mask[0] = vp->invert[0] ? 0.0 : 1.0;
+  mask[1] = vp->invert[1] ? 0.0 : 1.0;
+  mask[2] = vp->invert[2] ? 0.0 : 1.0;
+  anti_mask[0] = 1.0 - mask[0];
+  anti_mask[1] = 1.0 - mask[1];
+  anti_mask[2] = 1.0 - mask[2];
+  
+  for(i = 0; i < vp->format.image_height; i++)
+    {
+    src = (float *)(frame->planes[0] + i * frame->strides[0]);
+    /* The following should be faster than the 9 multiplications and 3
+       additions per pixel */
+    for(j = 0; j < vp->format.image_width; j++)
+      {
+      src[0] = (src[0] * mask[0]) + ((1.0 - src[0]) * anti_mask[0]);
+      src[1] = (src[1] * mask[1]) + ((1.0 - src[1]) * anti_mask[1]);
+      src[2] = (src[2] * mask[2]) + ((1.0 - src[2]) * anti_mask[2]);
+      src+=3;
+      }
+    }
+  }
+
+
+static void process_rgba_float(invert_priv_t * vp, gavl_video_frame_t * frame)
+  {
+  float mask[4];
+  float anti_mask[4];
+  float * src;
+  int i, j;
+  mask[0] = vp->invert[0] ? 0.0 : 1.0;
+  mask[1] = vp->invert[1] ? 0.0 : 1.0;
+  mask[2] = vp->invert[2] ? 0.0 : 1.0;
+  mask[3] = vp->invert[3] ? 0.0 : 1.0;
+  anti_mask[0] = 1.0 - mask[0];
+  anti_mask[1] = 1.0 - mask[1];
+  anti_mask[2] = 1.0 - mask[2];
+  anti_mask[3] = 1.0 - mask[3];
+  
+  for(i = 0; i < vp->format.image_height; i++)
+    {
+    src = (float *)(frame->planes[0] + i * frame->strides[0]);
+    /* The following should be faster than the 9 multiplications and 3
+       additions per pixel */
+    for(j = 0; j < vp->format.image_width; j++)
+      {
+      src[0] = (src[0] * mask[0]) + ((1.0 - src[0]) * anti_mask[0]);
+      src[1] = (src[1] * mask[1]) + ((1.0 - src[1]) * anti_mask[1]);
+      src[2] = (src[2] * mask[2]) + ((1.0 - src[2]) * anti_mask[2]);
+      src[3] = (src[3] * mask[3]) + ((1.0 - src[3]) * anti_mask[3]);
+      src+=4;
+      }
+    }
+  }
+
+
+static void process_matrix(invert_priv_t * vp, gavl_video_frame_t * frame)
+  {
+  bg_colormatrix_process(vp->mat, frame);
+  }
+
 static void set_input_format_invert(void * priv, gavl_video_format_t * format, int port)
   {
   invert_priv_t * vp;
@@ -209,7 +482,41 @@ static void set_input_format_invert(void * priv, gavl_video_format_t * format, i
 
   if(!port)
     {
-    bg_colormatrix_init(vp->mat, format, 0);
+    switch(format->pixelformat)
+      {
+      case GAVL_RGB_24:
+        vp->process = process_rgb24;
+        break;
+      case GAVL_RGB_32:
+        vp->process = process_rgb32;
+        break;
+      case GAVL_BGR_24:
+        vp->process = process_bgr24;
+        break;
+      case GAVL_BGR_32:
+        vp->process = process_bgr32;
+        break;
+      case GAVL_RGBA_32:
+        vp->process = process_rgba32;
+        break;
+      case GAVL_RGB_48:
+        vp->process = process_rgb48;
+        break;
+      case GAVL_RGBA_64:
+        vp->process = process_rgba64;
+        break;
+      case GAVL_RGB_FLOAT:
+        vp->process = process_rgb_float;
+        break;
+      case GAVL_RGBA_FLOAT:
+        vp->process = process_rgba_float;
+        break;
+      default:
+        vp->process = process_matrix;
+        bg_colormatrix_init(vp->mat, format, 0);
+        break;
+      }
+    
     gavl_video_format_copy(&vp->format, format);
     }
   }
@@ -225,17 +532,13 @@ static int read_video_invert(void * priv, gavl_video_frame_t * frame, int stream
   {
   invert_priv_t * vp;
   vp = (invert_priv_t *)priv;
-
-#if 0  
-  if(!vp->invert_h && !vp->invert_v)
-    {
-    return vp->read_func(vp->read_data, frame, vp->read_stream);
-    }
-#endif
+  
   if(!vp->read_func(vp->read_data, frame, vp->read_stream))
     return 0;
   
-  bg_colormatrix_process(vp->mat, frame);
+  if(vp->invert[0] || vp->invert[1] || vp->invert[2] || vp->invert[3])
+    vp->process(vp, frame);
+  
   return 1;
   }
 

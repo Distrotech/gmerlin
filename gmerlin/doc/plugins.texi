@@ -65,7 +65,7 @@ i_dvb.so
 @item Description
 Plugin for playing DVB streams from a Linux-DVB compatible card. Based on Gmerlin avdecoder.
 @end table
-@subsection Image stills input plugin
+@subsection Still image input plugin
 @table @i
 @item Internal name
 i_singlepic_stills
@@ -141,7 +141,7 @@ ov_x11
 @item Module
 ov_x11.so
 @item Description
-X11 display driver with support for XShm, XVideo and XImage
+X11 display driver with support for XVideo, XImage and OpenGL. Shared memory (XShm) is used where available.
 @end table
 @node plugin_ra
 @section Audio recorder
@@ -537,7 +537,7 @@ fv_colorbalance
 @item Module
 fv_colorbalance.so
 @item Description
-Apply gain for Red, Green and Blue. RGB(A) formats are processed directly, Y'CbCr formats are processed by the colormatrix.
+Apply gain for red, green and blue. RGB(A) formats are processed directly, Y'CbCr formats are processed by the colormatrix.
 @end table
 @subsection Crop & Scale
 @table @i
@@ -546,7 +546,7 @@ fv_cropscale
 @item Module
 fv_cropscale.so
 @item Description
-Crop and Scale video images. Can also do chroma placement correction and simple deinterlacing
+Crop and scale video images. Has lots of standard video formats as presets. Can also do chroma placement correction and simple deinterlacing
 @end table
 @subsection Decimate
 @table @i
@@ -618,7 +618,7 @@ fv_colormatrix_rgb
 @item Module
 fv_colormatrix_rgb.so
 @item Description
-Generic colormatrix (RGBA). You pass the coefficients in RGBA coordinates, but the processing will work in Y'CbCrA as well.
+Generic colormatrix (RGBA). You pass the coefficients in RGB(A) coordinates, but the processing will work in Y'CbCr(A) as well.
 @end table
 @subsection Temporal lowpass
 @table @i

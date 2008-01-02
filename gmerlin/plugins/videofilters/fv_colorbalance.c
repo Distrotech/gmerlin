@@ -608,7 +608,7 @@ bg_fv_plugin_t the_plugin =
       BG_LOCALE,
       name:      "fv_colorbalance",
       long_name: TRS("Colorbalance"),
-      description: TRS("Apply gain for red, green and blue. RGB(A) formats are processed directly, Y'CbCr formats are processed by the colormatrix."),
+      description: TRS("Apply gain for red, green and blue. RGB formats are processed directly, Y'CbCr formats are processed by the colormatrix."),
       type:     BG_PLUGIN_FILTER_VIDEO,
       flags:    BG_PLUGIN_FILTER_1,
       create:   create_colorbalance,

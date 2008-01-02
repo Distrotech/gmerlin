@@ -440,7 +440,7 @@ bg_fv_plugin_t the_plugin =
       BG_LOCALE,
       name:      "fv_colormatrix_rgb",
       long_name: TRS("RGB Colormatrix"),
-      description: TRS("Generic colormatrix (RGBA). You pass the coefficients in RGBA coordinates, but the processing will work in Y'CbCrA as well."),
+      description: TRS("Generic colormatrix (RGBA). You pass the coefficients in RGB(A) coordinates, but the processing will work in Y'CbCr(A) as well."),
       type:     BG_PLUGIN_FILTER_VIDEO,
       flags:    BG_PLUGIN_FILTER_1,
       create:   create_colormatrix,

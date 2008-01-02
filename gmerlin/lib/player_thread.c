@@ -684,6 +684,7 @@ static void play_cmd(bg_player_t * p,
                            handle, track_index))
     {
     bg_player_set_state(p, BG_PLAYER_STATE_ERROR, NULL, NULL);
+    bg_player_ov_standby(p->ov_context);
     return;
     }
   init_playback(p, 0, flags);
