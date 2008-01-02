@@ -424,12 +424,6 @@ static int read_video_colormatrix(void * priv, gavl_video_frame_t * frame, int s
   colormatrix_priv_t * vp;
   vp = (colormatrix_priv_t *)priv;
 
-#if 0  
-  if(!vp->colormatrix_h && !vp->colormatrix_v)
-    {
-    return vp->read_func(vp->read_data, frame, vp->read_stream);
-    }
-#endif
   if(!vp->read_func(vp->read_data, frame, vp->read_stream))
     return 0;
   

@@ -296,7 +296,9 @@ static int read_video_matrix(equalizer_priv_t * vp,
   if(!vp->read_func(vp->read_data, frame, vp->read_stream))
     return 0;
   
-  bg_colormatrix_process(vp->mat, frame);
+  if((vp->contrast != 0.0) || (vp->brightness != 0.0) ||
+     (vp->hue != 0.0) || (vp->saturation != 1.0))
+    bg_colormatrix_process(vp->mat, frame);
   return 1;
   }
 
