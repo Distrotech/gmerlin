@@ -126,7 +126,8 @@ void bg_log_translate(const char * translation_domain,
  *  \param q Message queue
  *
  *  This sets a global message queue to which log messages will be sent.
- *  The format of the logging messages is simple: The message id (see \ref bg_msg_get_id).
+ *  The format of the logging messages is simple: The message id is equal
+ *  to the log level (see \ref bg_msg_get_id).
  *  The first two arguments are strings for the domain and the actual message
  *  respectively (see \ref bg_msg_get_arg_string).
  *
@@ -147,7 +148,7 @@ const char * bg_log_level_to_string(bg_log_level_t level);
 
 /** \ingroup log
  *  \brief Set verbosity mask
- *  \param mask ORed log log levels, which should be printed
+ *  \param mask ORed log levels, which should be printed
  *
  *  Note, that this function is not thread save and has no effect
  *  if logging is done with a message queue.

@@ -19,6 +19,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#include <string.h>
+
 #include <config.h>
 #include <pluginregistry.h>
 #include <utils.h>
@@ -29,7 +31,6 @@
 #define FORMAT_TEXI    1
 
 int format = FORMAT_HTML;
-// int format = FORMAT_TEXI;
 
 static struct
   {
@@ -126,6 +127,17 @@ int main(int argc, char ** argv)
   bg_cfg_registry_t * cfg_reg;
   bg_cfg_section_t * cfg_section;
   bg_plugin_registry_t * plugin_reg;
+
+  if(argc > 1)
+    {
+    if(!strcmp(argv[1], "-t"))
+      format = FORMAT_TEXI;
+    else
+      {
+      fprintf(stderr, "Usage: %s [-t]\n", argv[0]);
+      return -1;
+      }
+    }
   
   /* Create config registry */
   cfg_reg = bg_cfg_registry_create();

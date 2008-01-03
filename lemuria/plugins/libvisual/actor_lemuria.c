@@ -188,7 +188,7 @@ extern const VisPluginInfo *get_plugin_info (int *count)
   info[0].author = "Burkhard Plaum";
   info[0].version = VERSION;
   info[0].about = "OpenGL animations";
-  info[0].help =  "If you wants this too long, you'll need some.";
+  info[0].help =  "If you watch this too long, you'll need some.";
   
   info[0].init = lv_lemuria_init;
   info[0].cleanup = lv_lemuria_cleanup;

@@ -549,7 +549,7 @@ bg_fv_plugin_t the_plugin =
       BG_LOCALE,
       name:      "fv_invert",
       long_name: TRS("Invert RGBA"),
-      description: TRS("Invert single color channels"),
+      description: TRS("Invert single color channels. RGB(A) formats are processed directly, Y'CbCr(A) formats are processed with the colormatrix."),
       type:     BG_PLUGIN_FILTER_VIDEO,
       flags:    BG_PLUGIN_FILTER_1,
       create:   create_invert,

@@ -22,8 +22,8 @@
  \section threads Thread safety
 
   All modules (except \ref log) are context based, i.e. we never change
-  any global structures. For all other things we have contexts, the
-  gmerlin library is thread save per instance. For most low-level modules,
+  any global structures. This means, all modules are thread save per
+  instance. For most low-level modules,
   the application must, however, take care that the instances are not
   accessed from multiple threads simultaneously.
 

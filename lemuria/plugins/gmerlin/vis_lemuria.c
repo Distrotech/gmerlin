@@ -305,7 +305,7 @@ bg_visualization_plugin_t the_plugin =
       BG_LOCALE,
       name:      "vis_lemuria",
       long_name: TRS("Lemuria"),
-      description: TRS("Lemuria"),
+      description: TRS("OpenGL visualization with many effects"),
       type:     BG_PLUGIN_VISUALIZATION,
       flags:    BG_PLUGIN_VISUALIZE_GL,
       create:   create_lemuria,

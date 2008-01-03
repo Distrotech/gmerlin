@@ -537,7 +537,7 @@ fv_colorbalance
 @item Module
 fv_colorbalance.so
 @item Description
-Apply gain for red, green and blue. RGB(A) formats are processed directly, Y'CbCr formats are processed by the colormatrix.
+Apply gain for red, green and blue. RGB formats are processed directly, Y'CbCr formats are processed by the colormatrix.
 @end table
 @subsection Crop & Scale
 @table @i
@@ -600,7 +600,7 @@ fv_invert
 @item Module
 fv_invert_rgb.so
 @item Description
-Invert single color channels
+Invert single color channels. RGB(A) formats are processed directly, Y'CbCr(A) formats are processed with the colormatrix.
 @end table
 @subsection Old color
 @table @i

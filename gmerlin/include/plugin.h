@@ -55,7 +55,7 @@
  */
 
 
-/** \ingroup plugins
+/** \ingroup plugin
  *  \brief Generic prototype for reading audio
  *  \param priv Private data
  *  \param frame Audio frame
@@ -70,7 +70,7 @@
 typedef int (*bg_read_audio_func_t)(void * priv, gavl_audio_frame_t* frame, int stream,
                                   int num_samples);
 
-/** \ingroup plugins
+/** \ingroup plugin
  *  \brief Generic prototype for reading video
  *  \param priv Private data
  *  \param frame Video frame

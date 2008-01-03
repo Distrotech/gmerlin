@@ -3,8 +3,7 @@
 @b{gmerlin} @i{[options] [gmls ...]
 }@*
 @item Description
-Gmerlin GUI Player
-@*
+Gmerlin GUI Player@*
 @item Generic options
 The following generic options are available for all gmerlin applications@*
 @table @i
