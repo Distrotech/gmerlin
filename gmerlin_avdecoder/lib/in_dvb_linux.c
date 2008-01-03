@@ -1041,6 +1041,9 @@ static int setup_filters(bgav_input_context_t * ctx,
 static void select_track_dvb(bgav_input_context_t * ctx, int track)
   {
   dvb_priv_t * priv;
+  fd_set rset;
+  struct timeval timeout;
+  
   priv = (dvb_priv_t *)(ctx->priv);
   
   if(priv->dvr_fd >= 0)
@@ -1056,6 +1059,15 @@ static void select_track_dvb(bgav_input_context_t * ctx, int track)
   
   priv->dvr_fd = open(priv->dvr_filename, O_RDONLY);
   ctx->sync_id = priv->channels[track].pcr_pid;
+
+  /* Wait here for some longer time until we can read data.
+     This allows a really short timeout in the read function */
+  
+  FD_ZERO(&rset);
+  FD_SET (priv->dvr_fd, &rset);
+  timeout.tv_sec  = 2;
+  timeout.tv_usec = 0;
+  select(priv->dvr_fd+1, &rset, NULL, NULL, &timeout);
   }
 
 bgav_input_t bgav_input_dvb =
