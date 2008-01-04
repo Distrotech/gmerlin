@@ -7,14 +7,81 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmerlin 0.3.6\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2008-01-03 18:52+0100\n"
-"PO-Revision-Date: 2008-01-04 04:34+0100\n"
+"POT-Creation-Date: 2008-01-04 19:51+0100\n"
+"PO-Revision-Date: 2008-01-04 19:53+0100\n"
 "Last-Translator: Burkhard Plaum <gmerlin@users.sourceforge.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: plugins/pulseaudio/oa_pulse.c:84
+#, fuzzy
+msgid "Pulse"
+msgstr "Pause"
+
+#: plugins/pulseaudio/oa_pulse.c:85
+#, fuzzy
+msgid "PulseAudio output"
+msgstr "Audio Optionen"
+
+#: plugins/pulseaudio/pulseaudio_common.c:179
+#, c-format
+msgid "Opening Pulseaudio failed: %s"
+msgstr ""
+
+#: plugins/pulseaudio/i_pulse.c:67 plugins/oss/i_oss.c:57
+#: plugins/alsa/i_alsa.c:49
+msgid "Channel Mode"
+msgstr "Kanalmodus"
+
+#: plugins/pulseaudio/i_pulse.c:71 plugins/oss/i_oss.c:61
+#: plugins/alsa/i_alsa.c:53
+msgid "Mono"
+msgstr "Mono"
+
+#: plugins/pulseaudio/i_pulse.c:71 plugins/oss/i_oss.c:61
+#: plugins/alsa/i_alsa.c:53
+msgid "Stereo"
+msgstr "Stereo"
+
+#: plugins/pulseaudio/i_pulse.c:75 plugins/oss/i_oss.c:65
+#: plugins/alsa/i_alsa.c:57
+msgid "Bits"
+msgstr "Bits"
+
+#: plugins/pulseaudio/i_pulse.c:82 plugins/oss/i_oss.c:72
+#: plugins/alsa/i_alsa.c:64
+msgid "Samplerate [Hz]"
+msgstr "Abtastfrequenz [Hz]"
+
+#: plugins/pulseaudio/i_pulse.c:90 plugins/cdaudio/i_cdaudio.c:740
+#: plugins/cdaudio/i_cdaudio.c:782
+msgid "Server"
+msgstr ""
+
+#: plugins/pulseaudio/i_pulse.c:92
+msgid "Server to connect to. Leave empty for default"
+msgstr ""
+
+#: plugins/pulseaudio/i_pulse.c:96
+#, fuzzy
+msgid "Source"
+msgstr "Sortieren"
+
+#: plugins/pulseaudio/i_pulse.c:98
+msgid "Source to open"
+msgstr ""
+
+#: plugins/pulseaudio/i_pulse.c:152
+msgid "PulseAudio"
+msgstr ""
+
+#: plugins/pulseaudio/i_pulse.c:153
+msgid ""
+"PulseAudio capture. You can specify the source, where we'll get the audio."
+msgstr ""
 
 #: plugins/subwriters/e_subtext.c:232 plugins/image/iw_pnm.c:148
 #: plugins/postprocessors/e_pp_vcdimager.c:110 plugins/lqt/e_lqt.c:514
@@ -37,7 +104,9 @@ msgstr "Text Untertitel exporter"
 #: plugins/subwriters/e_subtext.c:276
 msgid ""
 "Plugin for exporting text subtitles. Supported formats are MPSub and SRT"
-msgstr "Plugin zum Exportieren von Text Untertiteln. Unterstützte Formate sind MPSub und SRT"
+msgstr ""
+"Plugin zum Exportieren von Text Untertiteln. Unterstützte Formate sind MPSub "
+"und SRT"
 
 #: plugins/esd/i_esd.c:58 plugins/esd/oa_esd.c:47
 msgid "Host (empty: local)"
@@ -494,26 +563,6 @@ msgid ""
 "(XShm) is used where available."
 msgstr ""
 
-#: plugins/oss/i_oss.c:57 plugins/alsa/i_alsa.c:49
-msgid "Channel Mode"
-msgstr "Kanalmodus"
-
-#: plugins/oss/i_oss.c:61 plugins/alsa/i_alsa.c:53
-msgid "Mono"
-msgstr "Mono"
-
-#: plugins/oss/i_oss.c:61 plugins/alsa/i_alsa.c:53
-msgid "Stereo"
-msgstr "Stereo"
-
-#: plugins/oss/i_oss.c:65 plugins/alsa/i_alsa.c:57
-msgid "Bits"
-msgstr "Bits"
-
-#: plugins/oss/i_oss.c:72 plugins/alsa/i_alsa.c:64
-msgid "Samplerate [Hz]"
-msgstr "Abtastfrequenz [Hz]"
-
 #: plugins/oss/i_oss.c:173
 msgid "Invalid number of bits"
 msgstr ""
@@ -797,12 +846,36 @@ msgstr "snd_pcm_hw_params fehlgeschlagen"
 msgid "Alsa initialization failed"
 msgstr ""
 
-#: plugins/alsa/alsa_common.c:357
+#: plugins/alsa/alsa_common.c:379 plugins/alsa/alsa_common.c:468
 msgid "Card"
 msgstr ""
 
-#: plugins/alsa/alsa_common.c:369
+#: plugins/alsa/alsa_common.c:388
+msgid "No soundcards found"
+msgstr ""
+
+#: plugins/alsa/alsa_common.c:395 plugins/alsa/alsa_common.c:480
 msgid "Default"
+msgstr ""
+
+#: plugins/alsa/alsa_common.c:404
+#, fuzzy, c-format
+msgid "control open failed (%i): %s"
+msgstr "Kann Gerät %s nicht öffnen: %s"
+
+#: plugins/alsa/alsa_common.c:411
+#, c-format
+msgid "control hardware info failed (%i): %s"
+msgstr ""
+
+#: plugins/alsa/alsa_common.c:422
+#, fuzzy
+msgid "snd_ctl_pcm_next_device failed"
+msgstr "snd_pcm_prepare fehlgeschlagen"
+
+#: plugins/alsa/alsa_common.c:432
+#, c-format
+msgid "control digital audio info failed (%i): %s"
 msgstr ""
 
 #: plugins/postprocessors/cdrdao_common.c:111
@@ -1093,7 +1166,10 @@ msgid ""
 "Create video with alpha channel even if the input format has no alpha "
 "channel. Use this to generate the alpha channel from other channels using "
 "the colormatrix."
-msgstr "Ergeuge ein Video mit Transparenzkanal, selbst wenn die Quelle keinen hat. Benutze diese Option um einen Transparenzkanal aus den anderen Kanälen mit der Farbmatrix zu erzeugen."
+msgstr ""
+"Ergeuge ein Video mit Transparenzkanal, selbst wenn die Quelle keinen hat. "
+"Benutze diese Option um einen Transparenzkanal aus den anderen Kanälen mit "
+"der Farbmatrix zu erzeugen."
 
 #: plugins/videofilters/fv_colormatrix_yuv.c:451
 msgid "Y'CbCr(A) Colormatrix"
@@ -1103,7 +1179,9 @@ msgstr "Y'CbCr(A) Farbmatrix"
 msgid ""
 "Generic colormatrix (Y'CbCrA). You pass the coefficients in Y'CbCr(A) "
 "coordinates, but the processing will work in RGB(A) as well."
-msgstr "Allgemeine Farbmatrix (Y'CbCrA). Du gibst die Koeffizienten in Y'CbCr(A) Koordinaten an, die Verarbeitung funktioniert aber auch in RGB(A)."
+msgstr ""
+"Allgemeine Farbmatrix (Y'CbCrA). Du gibst die Koeffizienten in Y'CbCr(A) "
+"Koordinaten an, die Verarbeitung funktioniert aber auch in RGB(A)."
 
 #: plugins/videofilters/fv_deinterlace.c:115
 #: plugins/videofilters/fv_cropscale.c:325
@@ -1212,13 +1290,18 @@ msgstr "Mache nichts"
 
 #: plugins/videofilters/fv_deinterlace.c:188
 msgid "Simply double all scanlines. Very fast but low image quality"
-msgstr "Verdopple alle Bildzeilen. Dies ist sehr schnell aber liefert schlechte Qualität."
+msgstr ""
+"Verdopple alle Bildzeilen. Dies ist sehr schnell aber liefert schlechte "
+"Qualität."
 
 #: plugins/videofilters/fv_deinterlace.c:190
 msgid ""
 "Drop one field and change the pixel aspect ratio such that a subsequent "
 "hardware scaler will scale the image to the original height"
-msgstr "Lasse ein Feld wegfallen und verdoppele die Pixelhöhe, so daß ein nachfolgender Hardware Skalierer das Bild wieder auf die originale Höhe skalieren kann."
+msgstr ""
+"Lasse ein Feld wegfallen und verdoppele die Pixelhöhe, so daß ein "
+"nachfolgender Hardware Skalierer das Bild wieder auf die originale Höhe "
+"skalieren kann."
 
 #: plugins/videofilters/fv_deinterlace.c:191
 msgid "Drop one field and scale the image to the original height"
@@ -1268,9 +1351,8 @@ msgid "Drop bottom field"
 msgstr "Lasse unteres Feld wegfallen"
 
 #: plugins/videofilters/fv_deinterlace.c:270
-#: plugins/videofilters/fv_cropscale.c:535 lib/bggavl.c:370
 #, c-format
-msgid "Unknown scale mode %s\n"
+msgid "Unknown scale mode %s"
 msgstr ""
 
 #: plugins/videofilters/fv_deinterlace.c:583
@@ -1514,6 +1596,11 @@ msgstr "Immer"
 msgid "Specifies which field the deinterlacer should drop."
 msgstr ""
 
+#: plugins/videofilters/fv_cropscale.c:535 lib/bggavl.c:370
+#, c-format
+msgid "Unknown scale mode %s\n"
+msgstr ""
+
 #: plugins/videofilters/fv_cropscale.c:920
 msgid "Crop & Scale"
 msgstr "Zuschneiden und Skalieren"
@@ -1729,7 +1816,9 @@ msgstr "RGB Farbmatrix"
 msgid ""
 "Generic colormatrix (RGBA). You pass the coefficients in RGB(A) coordinates, "
 "but the processing will work in Y'CbCr(A) as well."
-msgstr "Allgemeine Farbmatrix (RGBA). Du gibst die Koeffizienten in RGB(A) Koordinaten an, die Verarbeitung funktioniert aber auch in Y'CbCr(A)."
+msgstr ""
+"Allgemeine Farbmatrix (RGBA). Du gibst die Koeffizienten in RGB(A) "
+"Koordinaten an, die Verarbeitung funktioniert aber auch in Y'CbCr(A)."
 
 #: plugins/videofilters/fv_decimate.c:147
 msgid "Block threshold"
@@ -2056,10 +2145,6 @@ msgstr ""
 
 #: plugins/cdaudio/i_cdaudio.c:734
 msgid "Use Musicbrainz"
-msgstr ""
-
-#: plugins/cdaudio/i_cdaudio.c:740 plugins/cdaudio/i_cdaudio.c:782
-msgid "Server"
 msgstr ""
 
 #: plugins/cdaudio/i_cdaudio.c:746 plugins/cdaudio/i_cdaudio.c:788
@@ -3404,10 +3489,12 @@ msgid "Show Tooltips"
 msgstr "Zeige Tooltips"
 
 #: apps/transcoder/transcoder_window.c:645
+#: apps/transcoder/transcoder_window.c:947
 msgid "Load task list"
 msgstr "Lade Aufgabenliste"
 
 #: apps/transcoder/transcoder_window.c:655
+#: apps/transcoder/transcoder_window.c:949
 msgid "Save task list"
 msgstr "Speichere Aufgabenliste"
 
@@ -3475,14 +3562,6 @@ msgstr "Ändere und konfiguriere Plugins für neugeladene Tracks"
 #: apps/transcoder/transcoder_window.c:945
 msgid "Quit program"
 msgstr "Beende Programm"
-
-#: apps/transcoder/transcoder_window.c:947
-msgid "Load track list"
-msgstr ""
-
-#: apps/transcoder/transcoder_window.c:949
-msgid "Save track list"
-msgstr ""
 
 #: apps/transcoder/transcoder_window.c:977 lib/gtk/plugininfo.c:179
 msgid "File"
@@ -3559,7 +3638,7 @@ msgstr ""
 
 #: apps/transcoder/main.c:68
 msgid "[options]\n"
-msgstr "[Optionen]"
+msgstr "[Optionen]\n"
 
 #: apps/transcoder/main.c:69
 msgid "GTK multimedia transcoder\n"
@@ -3650,15 +3729,15 @@ msgid "Total playback time"
 msgstr "Gesamtspielzeit"
 
 #: apps/transcoder/tracklist.c:1206
-msgid "Append files to the track list"
+msgid "Append files to the task list"
 msgstr ""
 
 #: apps/transcoder/tracklist.c:1211
-msgid "Append URLs to the track list"
+msgid "Append URLs to the task list"
 msgstr ""
 
 #: apps/transcoder/tracklist.c:1216
-msgid "Append removable media to the track_list"
+msgid "Append removable media to the task list"
 msgstr ""
 
 #: apps/transcoder/tracklist.c:1221
@@ -3909,7 +3988,7 @@ msgstr ""
 
 #: apps/cmdlineplayer/gmerlin_play.c:848
 msgid "[options] gml...\n"
-msgstr "[Optionen] gml..."
+msgstr "[Optionen] gml...\n"
 
 #: apps/cmdlineplayer/gmerlin_play.c:849
 msgid "Commandline Multimedia player\n"
@@ -4713,7 +4792,9 @@ msgstr ""
 msgid ""
 "Supported options:\n"
 "\n"
-msgstr "Unterstützte Optionen:\n\n"
+msgstr ""
+"Unterstützte Optionen:\n"
+"\n"
 
 #: lib/cmdline.c:783
 #, c-format
@@ -5598,7 +5679,9 @@ msgstr "Erzwinge Sprache"
 #: lib/transcoder_track.c:1469
 msgid ""
 "Force the given language even if the input has the language set differently."
-msgstr "Erzwinge die angegebene Sprache, selbst wenn die Quelle was anderes behautpet."
+msgstr ""
+"Erzwinge die angegebene Sprache, selbst wenn die Quelle was anderes "
+"behautpet."
 
 #: lib/transcoder_track.c:481
 msgid "Video stream"
@@ -6559,7 +6642,7 @@ msgid "Initialized video filter %s"
 msgstr ""
 
 #: lib/bglv.c:428
-msgid "libvisual plugin plugin"
+msgid "libvisual plugin"
 msgstr ""
 
 #: lib/bglv.c:433

@@ -8,13 +8,77 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2008-01-03 18:52+0100\n"
+"POT-Creation-Date: 2008-01-04 19:51+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+
+#: plugins/pulseaudio/oa_pulse.c:84
+msgid "Pulse"
+msgstr ""
+
+#: plugins/pulseaudio/oa_pulse.c:85
+msgid "PulseAudio output"
+msgstr ""
+
+#: plugins/pulseaudio/pulseaudio_common.c:179
+#, c-format
+msgid "Opening Pulseaudio failed: %s"
+msgstr ""
+
+#: plugins/pulseaudio/i_pulse.c:67 plugins/oss/i_oss.c:57
+#: plugins/alsa/i_alsa.c:49
+msgid "Channel Mode"
+msgstr ""
+
+#: plugins/pulseaudio/i_pulse.c:71 plugins/oss/i_oss.c:61
+#: plugins/alsa/i_alsa.c:53
+msgid "Mono"
+msgstr ""
+
+#: plugins/pulseaudio/i_pulse.c:71 plugins/oss/i_oss.c:61
+#: plugins/alsa/i_alsa.c:53
+msgid "Stereo"
+msgstr ""
+
+#: plugins/pulseaudio/i_pulse.c:75 plugins/oss/i_oss.c:65
+#: plugins/alsa/i_alsa.c:57
+msgid "Bits"
+msgstr ""
+
+#: plugins/pulseaudio/i_pulse.c:82 plugins/oss/i_oss.c:72
+#: plugins/alsa/i_alsa.c:64
+msgid "Samplerate [Hz]"
+msgstr ""
+
+#: plugins/pulseaudio/i_pulse.c:90 plugins/cdaudio/i_cdaudio.c:740
+#: plugins/cdaudio/i_cdaudio.c:782
+msgid "Server"
+msgstr ""
+
+#: plugins/pulseaudio/i_pulse.c:92
+msgid "Server to connect to. Leave empty for default"
+msgstr ""
+
+#: plugins/pulseaudio/i_pulse.c:96
+msgid "Source"
+msgstr ""
+
+#: plugins/pulseaudio/i_pulse.c:98
+msgid "Source to open"
+msgstr ""
+
+#: plugins/pulseaudio/i_pulse.c:152
+msgid "PulseAudio"
+msgstr ""
+
+#: plugins/pulseaudio/i_pulse.c:153
+msgid ""
+"PulseAudio capture. You can specify the source, where we'll get the audio."
+msgstr ""
 
 #: plugins/subwriters/e_subtext.c:232 plugins/image/iw_pnm.c:148
 #: plugins/postprocessors/e_pp_vcdimager.c:110 plugins/lqt/e_lqt.c:514
@@ -494,26 +558,6 @@ msgid ""
 "(XShm) is used where available."
 msgstr ""
 
-#: plugins/oss/i_oss.c:57 plugins/alsa/i_alsa.c:49
-msgid "Channel Mode"
-msgstr ""
-
-#: plugins/oss/i_oss.c:61 plugins/alsa/i_alsa.c:53
-msgid "Mono"
-msgstr ""
-
-#: plugins/oss/i_oss.c:61 plugins/alsa/i_alsa.c:53
-msgid "Stereo"
-msgstr ""
-
-#: plugins/oss/i_oss.c:65 plugins/alsa/i_alsa.c:57
-msgid "Bits"
-msgstr ""
-
-#: plugins/oss/i_oss.c:72 plugins/alsa/i_alsa.c:64
-msgid "Samplerate [Hz]"
-msgstr ""
-
 #: plugins/oss/i_oss.c:173
 msgid "Invalid number of bits"
 msgstr ""
@@ -797,12 +841,35 @@ msgstr ""
 msgid "Alsa initialization failed"
 msgstr ""
 
-#: plugins/alsa/alsa_common.c:357
+#: plugins/alsa/alsa_common.c:379 plugins/alsa/alsa_common.c:468
 msgid "Card"
 msgstr ""
 
-#: plugins/alsa/alsa_common.c:369
+#: plugins/alsa/alsa_common.c:388
+msgid "No soundcards found"
+msgstr ""
+
+#: plugins/alsa/alsa_common.c:395 plugins/alsa/alsa_common.c:480
 msgid "Default"
+msgstr ""
+
+#: plugins/alsa/alsa_common.c:404
+#, c-format
+msgid "control open failed (%i): %s"
+msgstr ""
+
+#: plugins/alsa/alsa_common.c:411
+#, c-format
+msgid "control hardware info failed (%i): %s"
+msgstr ""
+
+#: plugins/alsa/alsa_common.c:422
+msgid "snd_ctl_pcm_next_device failed"
+msgstr ""
+
+#: plugins/alsa/alsa_common.c:432
+#, c-format
+msgid "control digital audio info failed (%i): %s"
 msgstr ""
 
 #: plugins/postprocessors/cdrdao_common.c:111
@@ -1268,9 +1335,8 @@ msgid "Drop bottom field"
 msgstr ""
 
 #: plugins/videofilters/fv_deinterlace.c:270
-#: plugins/videofilters/fv_cropscale.c:535 lib/bggavl.c:370
 #, c-format
-msgid "Unknown scale mode %s\n"
+msgid "Unknown scale mode %s"
 msgstr ""
 
 #: plugins/videofilters/fv_deinterlace.c:583
@@ -1512,6 +1578,11 @@ msgstr ""
 
 #: plugins/videofilters/fv_cropscale.c:400 include/bggavl.h:185
 msgid "Specifies which field the deinterlacer should drop."
+msgstr ""
+
+#: plugins/videofilters/fv_cropscale.c:535 lib/bggavl.c:370
+#, c-format
+msgid "Unknown scale mode %s\n"
 msgstr ""
 
 #: plugins/videofilters/fv_cropscale.c:920
@@ -2056,10 +2127,6 @@ msgstr ""
 
 #: plugins/cdaudio/i_cdaudio.c:734
 msgid "Use Musicbrainz"
-msgstr ""
-
-#: plugins/cdaudio/i_cdaudio.c:740 plugins/cdaudio/i_cdaudio.c:782
-msgid "Server"
 msgstr ""
 
 #: plugins/cdaudio/i_cdaudio.c:746 plugins/cdaudio/i_cdaudio.c:788
@@ -3404,10 +3471,12 @@ msgid "Show Tooltips"
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:645
+#: apps/transcoder/transcoder_window.c:947
 msgid "Load task list"
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:655
+#: apps/transcoder/transcoder_window.c:949
 msgid "Save task list"
 msgstr ""
 
@@ -3474,14 +3543,6 @@ msgstr ""
 
 #: apps/transcoder/transcoder_window.c:945
 msgid "Quit program"
-msgstr ""
-
-#: apps/transcoder/transcoder_window.c:947
-msgid "Load track list"
-msgstr ""
-
-#: apps/transcoder/transcoder_window.c:949
-msgid "Save track list"
 msgstr ""
 
 #: apps/transcoder/transcoder_window.c:977 lib/gtk/plugininfo.c:179
@@ -3650,15 +3711,15 @@ msgid "Total playback time"
 msgstr ""
 
 #: apps/transcoder/tracklist.c:1206
-msgid "Append files to the track list"
+msgid "Append files to the task list"
 msgstr ""
 
 #: apps/transcoder/tracklist.c:1211
-msgid "Append URLs to the track list"
+msgid "Append URLs to the task list"
 msgstr ""
 
 #: apps/transcoder/tracklist.c:1216
-msgid "Append removable media to the track_list"
+msgid "Append removable media to the task list"
 msgstr ""
 
 #: apps/transcoder/tracklist.c:1221
@@ -6547,7 +6608,7 @@ msgid "Initialized video filter %s"
 msgstr ""
 
 #: lib/bglv.c:428
-msgid "libvisual plugin plugin"
+msgid "libvisual plugin"
 msgstr ""
 
 #: lib/bglv.c:433
