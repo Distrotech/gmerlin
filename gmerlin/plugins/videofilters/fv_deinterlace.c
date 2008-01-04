@@ -267,7 +267,7 @@ static gavl_scale_mode_t string_to_scale_mode(const char * str)
     return GAVL_SCALE_SINC_LANCZOS;
   else
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Unknown scale mode %s\n", str);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Unknown scale mode %s", str);
     return GAVL_SCALE_AUTO;
     }
   }

@@ -170,6 +170,12 @@ if test "x$have_GL" != "xtrue" -o "x$have_GLX" != "xtrue"; then
 fi
 
 dnl
+dnl Pulseaudio
+dnl
+
+GMERLIN_CHECK_PULSEAUDIO
+
+dnl
 dnl Xinerama
 dnl
 
@@ -792,6 +798,7 @@ plugins/jpeg/Makefile \
 plugins/mikmod/Makefile \
 plugins/png/Makefile \
 plugins/postprocessors/Makefile \
+plugins/pulseaudio/Makefile \
 plugins/subwriters/Makefile \
 plugins/image/Makefile \
 plugins/tiff/Makefile \
@@ -893,12 +900,23 @@ echo "Disabled"
 fi
 fi
 
-echo -n "mjpegtools:             "
+echo -n "mjpegtools:          "
 if test "x$have_mjpegtools" = "xtrue"; then
 echo "Yes (CFLAGS=$MJPEGTOOLS_CFLAGS LIBS=$MJPEGTOOLS_LIBS)"
 else
 if test "x$test_mjpegtools" = "xtrue"; then
 echo "Missing (Go to http://mjpeg.sourceforge.net)"
+else
+echo "Disabled"
+fi
+fi
+
+echo -n "pulseaudio:          "
+if test "x$have_pulseaudio" = "xtrue"; then
+echo "Yes (CFLAGS=$PULSEAUDIO_CFLAGS LIBS=$PULSEAUDIO_LIBS)"
+else
+if test "x$test_pulseaudio" = "xtrue"; then
+echo "Missing (Go to http://www.pulseaudio.org)"
 else
 echo "Disabled"
 fi

@@ -425,7 +425,7 @@ bg_plugin_info_t * bg_lv_get_info(const char * filename)
   ret->long_name   = bg_strdup((char*)0, info->name);
   ret->type        = BG_PLUGIN_VISUALIZATION;
   ret->api         = BG_PLUGIN_API_LV;
-  ret->description = bg_sprintf(TR("libvisual plugin plugin"));
+  ret->description = bg_sprintf(TR("libvisual plugin"));
   ret->module_filename = bg_strdup((char*)0, filename);
   /* Optional info */
   if(info->author && *info->author)

@@ -269,6 +269,45 @@ fi
 ])
 
 dnl
+dnl Check for pulseaudio
+dnl
+
+AC_DEFUN([GMERLIN_CHECK_PULSEAUDIO],[
+
+AH_TEMPLATE([HAVE_PULSEAUDIO],
+            [Do we have pulseaudio installed?])
+
+have_pulseaudio="false"
+
+PULSEAUDIO_REQUIRED="0.9.6"
+
+AC_ARG_ENABLE(pulseaudio,
+[AC_HELP_STRING([--disable-pulseaudio],[Disable pulseaudio (default: autodetect)])],
+[case "${enableval}" in
+   yes) test_pulseaudio=true ;;
+   no)  test_pulseaudio=false ;;
+esac],[test_pulseaudio=true])
+
+if test x$test_pulseaudio = xtrue; then
+
+PKG_CHECK_MODULES(PULSEAUDIO, libpulse-simple >= $PULSEAUDIO_REQUIRED, have_pulseaudio="true", have_pulseaudio="false")
+
+fi
+
+AC_SUBST(PULSEAUDIO_REQUIRED)
+AC_SUBST(PULSEAUDIO_LIBS)
+AC_SUBST(PULSEAUDIO_CFLAGS)
+
+AM_CONDITIONAL(HAVE_PULSEAUDIO, test x$have_pulseaudio = xtrue)
+
+if test "x$have_pulseaudio" = "xtrue"; then
+AC_DEFINE([HAVE_PULSEAUDIO])
+fi
+
+])
+
+
+dnl
 dnl Vorbis
 dnl 
 

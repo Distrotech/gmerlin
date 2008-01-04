@@ -52,6 +52,12 @@ else
 alsa_subdirs = 
 endif
 
+if HAVE_PULSEAUDIO
+pulseaudio_subdirs = pulseaudio
+else
+pulseaudio_subdirs = 
+endif
+
 if HAVE_CDIO
 cdio_subdirs = cdaudio
 else
@@ -72,6 +78,7 @@ $(png_subdirs) \
 $(tiff_subdirs) \
 $(x11_subdirs) \
 $(cdio_subdirs) \
+$(pulseaudio_subdirs) \
 mikmod \
 wavwrite \
 image \

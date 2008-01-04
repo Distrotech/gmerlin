@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: gmerlin 0.3.6\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
 "POT-Creation-Date: 2008-01-03 18:52+0100\n"
-"PO-Revision-Date: 2007-11-18 18:33+0100\n"
+"PO-Revision-Date: 2008-01-04 04:34+0100\n"
 "Last-Translator: Burkhard Plaum <gmerlin@users.sourceforge.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -20,125 +20,125 @@ msgstr ""
 #: plugins/postprocessors/e_pp_vcdimager.c:110 plugins/lqt/e_lqt.c:514
 #: lib/gtk/infowindow.c:692
 msgid "Format"
-msgstr ""
+msgstr "Format"
 
 #: plugins/subwriters/e_subtext.c:236
 msgid "Subrip (.srt)"
-msgstr ""
+msgstr "Subrip (.srt)"
 
 #: plugins/subwriters/e_subtext.c:236
 msgid "MPlayer mpsub"
-msgstr ""
+msgstr "MPlayer mpsub"
 
 #: plugins/subwriters/e_subtext.c:275 lib/gtk/plugininfo.c:158
 msgid "Text subtitle exporter"
-msgstr ""
+msgstr "Text Untertitel exporter"
 
 #: plugins/subwriters/e_subtext.c:276
 msgid ""
 "Plugin for exporting text subtitles. Supported formats are MPSub and SRT"
-msgstr ""
+msgstr "Plugin zum Exportieren von Text Untertiteln. Unterstützte Formate sind MPSub und SRT"
 
 #: plugins/esd/i_esd.c:58 plugins/esd/oa_esd.c:47
 msgid "Host (empty: local)"
-msgstr ""
+msgstr "Rechner (leer: lokal)"
 
 #: plugins/esd/i_esd.c:63
 msgid "Input Mode"
-msgstr ""
+msgstr "Einlesemodus"
 
 #: plugins/esd/i_esd.c:67
 msgid "Record"
-msgstr ""
+msgstr "Aufnehmen"
 
 #: plugins/esd/i_esd.c:67 apps/camelot/webcam_window.c:514
 msgid "Monitor"
-msgstr ""
+msgstr "Mithören"
 
 #: plugins/esd/i_esd.c:171
 msgid "Cannot connect to daemon"
-msgstr ""
+msgstr "Kann nicht zum Dämon verbinden"
 
 #: plugins/esd/i_esd.c:232 plugins/esd/i_esd.c:233
 msgid "EsounD input driver"
-msgstr ""
+msgstr "Esound Aufnahmeplugin"
 
 #: plugins/esd/oa_esd.c:172 plugins/esd/oa_esd.c:173
 msgid "EsounD output driver"
-msgstr ""
+msgstr "EsounD Ausgabeplugin"
 
 #: plugins/v4l/pwc.c:70
 msgid "PWC General"
-msgstr ""
+msgstr "PWC allgemein"
 
 #: plugins/v4l/pwc.c:75 include/bggavl.h:119 lib/visualize.c:339
 msgid "Framerate"
-msgstr ""
+msgstr "Bildwiederholfrequenz"
 
 #: plugins/v4l/pwc.c:83 plugins/tiff/iw_tiff.c:144
 msgid "Compression"
-msgstr ""
+msgstr "Kompression"
 
 #: plugins/v4l/pwc.c:87 plugins/videofilters/fv_deinterlace.c:176
 #: plugins/tiff/iw_tiff.c:147 include/bggavl.h:174 include/bggavl.h:383
 msgid "None"
-msgstr ""
+msgstr "Kein(s)"
 
 #: plugins/v4l/pwc.c:88
 msgid "Low"
-msgstr ""
+msgstr "Niedrig"
 
 #: plugins/v4l/pwc.c:89
 msgid "Medium"
-msgstr ""
+msgstr "Mittel"
 
 #: plugins/v4l/pwc.c:90
 msgid "High"
-msgstr ""
+msgstr "Hoch"
 
 #: plugins/v4l/pwc.c:100
 msgid "Gain control (-1 = Auto)"
-msgstr ""
+msgstr "Verstärkung (-1 = Automatisch)"
 
 #: plugins/v4l/pwc.c:109
 msgid "Shutter speed (-1 = Auto)"
-msgstr ""
+msgstr "Verschlußgeschwindigkeit (-1 = Automatisch)"
 
 #: plugins/v4l/pwc.c:118
 msgid "Sharpness (-1 = Auto)"
-msgstr ""
+msgstr "Schärfe (-1 = Automatisch)"
 
 #: plugins/v4l/pwc.c:127
 msgid "Backlight compensation"
-msgstr ""
+msgstr "Hintergrundlichtausgleich"
 
 #: plugins/v4l/pwc.c:134
 msgid "Flicker compensation"
-msgstr ""
+msgstr "Flackerausgleich"
 
 #: plugins/v4l/pwc.c:141
 msgid "PWC Whitebalance"
-msgstr ""
+msgstr "PWC Weißabgleich"
 
 #: plugins/v4l/pwc.c:146
 msgid "White balance"
-msgstr ""
+msgstr "Weißabgleich"
 
 #: plugins/v4l/pwc.c:156
 msgid "Indoor"
-msgstr ""
+msgstr "Drinnen"
 
 #: plugins/v4l/pwc.c:157
 msgid "Outdoor"
-msgstr ""
+msgstr "Draußen"
 
 #: plugins/v4l/pwc.c:158
 msgid "Fluorescent lighting"
-msgstr ""
+msgstr "Leuchtstofflampe"
 
 #: plugins/v4l/pwc.c:159
 msgid "Manual"
-msgstr ""
+msgstr "Manuell"
 
 #: plugins/v4l/pwc.c:160 plugins/videofilters/fv_deinterlace.c:128
 #: plugins/videofilters/fv_cropscale.c:343
@@ -146,148 +146,148 @@ msgstr ""
 #: include/bggavl.h:209 include/bggavl.h:383 include/bggavl.h:396
 #: lib/x11/x11_window.c:1293
 msgid "Auto"
-msgstr ""
+msgstr "Automatisch"
 
 #: plugins/v4l/pwc.c:165
 msgid "Manual red gain"
-msgstr ""
+msgstr "Manuelle Rotverstärkung"
 
 #: plugins/v4l/pwc.c:174
 msgid "Manual blue gain"
-msgstr ""
+msgstr "Manuelle Blauverstärkung"
 
 #: plugins/v4l/pwc.c:183
 msgid "Auto speed"
-msgstr ""
+msgstr "Automatische Geschwindigkeit"
 
 #: plugins/v4l/pwc.c:192
 msgid "Auto delay"
-msgstr ""
+msgstr "Automatische Verzögerung"
 
 #: plugins/v4l/pwc.c:201
 msgid "PWC LED"
-msgstr ""
+msgstr "PWC LED"
 
 #: plugins/v4l/pwc.c:206
 msgid "LED on time (secs)"
-msgstr ""
+msgstr "LED Einzeit (secs)"
 
 #: plugins/v4l/pwc.c:215
 msgid "LED off time (secs)"
-msgstr ""
+msgstr "LED Auszeit (secs)"
 
 #: plugins/v4l/i_v4l.c:203
 #, c-format
 msgid "Cannot open device %s: %s"
-msgstr ""
+msgstr "Kann Gerät %s nicht öffnen: %s"
 
 #: plugins/v4l/i_v4l.c:212
 msgid "Phillips webcam detected"
-msgstr ""
+msgstr "Phillips Webcam gefunden"
 
 #: plugins/v4l/i_v4l.c:218
 #, c-format
 msgid "VIDIOCGPICT failed: %s"
-msgstr ""
+msgstr "VIDIOCGPICT fehlgeschlagen: %s"
 
 #: plugins/v4l/i_v4l.c:242
 #, c-format
 msgid "VIDIOCSPICT failed: %s"
-msgstr ""
+msgstr "VIDIOCSPICT fehlgeschlagen: %s"
 
 #: plugins/v4l/i_v4l.c:252
 #, c-format
 msgid "VIDIOCGWIN failed: %s"
-msgstr ""
+msgstr "VIDIOCGWIN fehlgeschlagen: %s"
 
 #: plugins/v4l/i_v4l.c:264
 #, c-format
 msgid "VIDIOCSWIN failed: %s (invalaid picture dimensions?)"
-msgstr ""
+msgstr "VIDIOCSWIN fehlgeschlagen: %s (Ungültige Bildgröße?)"
 
 #: plugins/v4l/i_v4l.c:298
 #, c-format
 msgid "VIDIOCGMBUF failed: %s"
-msgstr ""
+msgstr "VIDIOCGMBUF fehlgeschlagen: %s"
 
 #: plugins/v4l/i_v4l.c:306
 #, c-format
 msgid "mmap failed: %s"
-msgstr ""
+msgstr "mmap fehlgeschlagen: %s"
 
 #: plugins/v4l/i_v4l.c:414 plugins/oss/i_oss.c:51 plugins/oss/oa_oss.c:67
 #: plugins/postprocessors/cdrdao_common.h:37 lib/gtk/treewidget.c:1109
 msgid "Device"
-msgstr ""
+msgstr "Gerät"
 
 #: plugins/v4l/i_v4l.c:419
 msgid "V4L Device"
-msgstr ""
+msgstr "V4L Gerät"
 
 #: plugins/v4l/i_v4l.c:425 plugins/v4l/i_v4l.c:430
 msgid "Resolution"
-msgstr ""
+msgstr "Auflösung"
 
 #: plugins/v4l/i_v4l.c:441
 msgid "QSIF (160x112)"
-msgstr ""
+msgstr "QSIF (160x112)"
 
 #: plugins/v4l/i_v4l.c:442
 msgid "QCIF (176x144)"
-msgstr ""
+msgstr "QCIF (176x144)"
 
 #: plugins/v4l/i_v4l.c:443
 msgid "QVGA (320x240)"
-msgstr ""
+msgstr "QVGA (320x240)"
 
 #: plugins/v4l/i_v4l.c:444
 msgid "SIF(352x240)"
-msgstr ""
+msgstr "SIF(352x240)"
 
 #: plugins/v4l/i_v4l.c:445
 msgid "CIF (352x288)"
-msgstr ""
+msgstr "CIF (352x288)"
 
 #: plugins/v4l/i_v4l.c:446
 msgid "VGA (640x480)"
-msgstr ""
+msgstr "VGA (640x480)"
 
 #: plugins/v4l/i_v4l.c:447 plugins/videofilters/fv_cropscale.c:206
 #: include/bggavl.h:134
 msgid "User defined"
-msgstr ""
+msgstr "Benutzerdefiniert"
 
 #: plugins/v4l/i_v4l.c:452 plugins/videofilters/fv_cropscale.c:238
 msgid "User defined width"
-msgstr ""
+msgstr "Benutzerdefinierte Breite"
 
 #: plugins/v4l/i_v4l.c:460 plugins/videofilters/fv_cropscale.c:249
 msgid "User defined height"
-msgstr ""
+msgstr "Benutzerdefinierte Höhe"
 
 #: plugins/v4l/i_v4l.c:468
 msgid "Settings"
-msgstr ""
+msgstr "Einstellungen"
 
 #: plugins/v4l/i_v4l.c:473 plugins/videofilters/fv_equalizer.c:330
 msgid "Brightness"
-msgstr ""
+msgstr "Helligkeit"
 
 #: plugins/v4l/i_v4l.c:482 plugins/videofilters/fv_equalizer.c:360
 msgid "Hue"
-msgstr ""
+msgstr "Ton"
 
 #: plugins/v4l/i_v4l.c:491
 msgid "Colour"
-msgstr ""
+msgstr "Farbe"
 
 #: plugins/v4l/i_v4l.c:500 plugins/videofilters/fv_equalizer.c:340
 msgid "Contrast"
-msgstr ""
+msgstr "Kontrast"
 
 #: plugins/v4l/i_v4l.c:509
 msgid "Whiteness"
-msgstr ""
+msgstr "Weißheit"
 
 #: plugins/v4l/i_v4l.c:518
 msgid "Flip Image"
@@ -397,39 +397,39 @@ msgstr ""
 
 #: plugins/image/ir_pnm.c:281
 msgid "PBMascii"
-msgstr ""
+msgstr "PBMascii"
 
 #: plugins/image/ir_pnm.c:315
 msgid "PBMbin"
-msgstr ""
+msgstr "PBMbin"
 
 #: plugins/image/ir_pnm.c:353
 msgid "PGMascii"
-msgstr ""
+msgstr "PGMascii"
 
 #: plugins/image/ir_pnm.c:382
 msgid "PGMascii_16"
-msgstr ""
+msgstr "PGMascii_16"
 
 #: plugins/image/ir_pnm.c:413
 msgid "PGMbin"
-msgstr ""
+msgstr "PGMbin"
 
 #: plugins/image/ir_pnm.c:438
 msgid "PGMbin_16"
-msgstr ""
+msgstr "PGMbin_16"
 
 #: plugins/image/ir_pnm.c:465
 msgid "PPMascii"
-msgstr ""
+msgstr "PPMascii"
 
 #: plugins/image/ir_pnm.c:508
 msgid "PPMascii_16"
-msgstr ""
+msgstr "PPMascii_16"
 
 #: plugins/image/ir_pnm.c:586
 msgid "PPMbin_16"
-msgstr ""
+msgstr "PPMbin_16"
 
 #: plugins/image/ir_pnm.c:627
 msgid "PNM reader"
@@ -445,7 +445,7 @@ msgstr ""
 #: plugins/jpeg/iw_jpeg.c:92
 #, c-format
 msgid "Cannot open %s: %s"
-msgstr ""
+msgstr "Kann %s nicht öffnen: %s"
 
 #: plugins/image/iw_bmp.c:215
 msgid "BMP writer"
@@ -457,15 +457,15 @@ msgstr ""
 
 #: plugins/image/iw_pnm.c:151
 msgid "Binary"
-msgstr ""
+msgstr "Binär"
 
 #: plugins/image/iw_pnm.c:151
 msgid "ASCII"
-msgstr ""
+msgstr "ASCII"
 
 #: plugins/image/iw_pnm.c:157 lib/metadata.c:123
 msgid "Comment"
-msgstr ""
+msgstr "Kommentar"
 
 #: plugins/image/iw_pnm.c:161
 msgid "Comment which will be written in front of every file"
@@ -486,7 +486,7 @@ msgstr ""
 
 #: plugins/x11/ov_x11.c:971
 msgid "X11"
-msgstr ""
+msgstr "X11"
 
 #: plugins/x11/ov_x11.c:972
 msgid ""
@@ -496,19 +496,19 @@ msgstr ""
 
 #: plugins/oss/i_oss.c:57 plugins/alsa/i_alsa.c:49
 msgid "Channel Mode"
-msgstr ""
+msgstr "Kanalmodus"
 
 #: plugins/oss/i_oss.c:61 plugins/alsa/i_alsa.c:53
 msgid "Mono"
-msgstr ""
+msgstr "Mono"
 
 #: plugins/oss/i_oss.c:61 plugins/alsa/i_alsa.c:53
 msgid "Stereo"
-msgstr ""
+msgstr "Stereo"
 
 #: plugins/oss/i_oss.c:65 plugins/alsa/i_alsa.c:57
 msgid "Bits"
-msgstr ""
+msgstr "Bits"
 
 #: plugins/oss/i_oss.c:72 plugins/alsa/i_alsa.c:64
 msgid "Samplerate [Hz]"
@@ -546,7 +546,7 @@ msgstr ""
 
 #: plugins/oss/i_oss.c:280 plugins/oss/oa_oss.c:562
 msgid "OSS"
-msgstr ""
+msgstr "OSS"
 
 #: plugins/oss/i_oss.c:281
 msgid "OSS Recorder"
@@ -649,7 +649,7 @@ msgstr ""
 
 #: plugins/alsa/i_alsa.c:72 plugins/alsa/oa_alsa.c:95
 msgid "Buffer time"
-msgstr ""
+msgstr "Pufferzeit"
 
 #: plugins/alsa/i_alsa.c:77
 msgid ""
@@ -659,7 +659,7 @@ msgstr ""
 
 #: plugins/alsa/i_alsa.c:82 plugins/alsa/oa_alsa.c:88
 msgid "User device"
-msgstr ""
+msgstr "Benutzerdefiniertes Gerät"
 
 #: plugins/alsa/i_alsa.c:84
 msgid ""
@@ -673,7 +673,7 @@ msgstr ""
 
 #: plugins/alsa/i_alsa.c:274
 msgid "snd_pcm_prepare failed"
-msgstr ""
+msgstr "snd_pcm_prepare fehlgeschlagen"
 
 #: plugins/alsa/i_alsa.c:281
 msgid "Unknown error"
@@ -681,7 +681,7 @@ msgstr ""
 
 #: plugins/alsa/i_alsa.c:338 plugins/alsa/oa_alsa.c:475
 msgid "Alsa"
-msgstr ""
+msgstr "Alsa"
 
 #: plugins/alsa/i_alsa.c:339
 msgid "Alsa recorder"
@@ -748,50 +748,50 @@ msgstr ""
 #: plugins/alsa/alsa_common.c:62
 #, c-format
 msgid "snd_pcm_open failed for device %s (%s)"
-msgstr ""
+msgstr "snd_pcm_open fehlgeschlagen für Gerät %s (%s)"
 
 #: plugins/alsa/alsa_common.c:73
 msgid "snd_pcm_hw_params_malloc failed"
-msgstr ""
+msgstr "snd_pcm_hw_params_malloc fehlgeschlagen"
 
 #: plugins/alsa/alsa_common.c:78
 msgid "snd_pcm_hw_params_any failed"
-msgstr ""
+msgstr "snd_pcm_hw_params_any fehlgeschlagen"
 
 #: plugins/alsa/alsa_common.c:87
 msgid "snd_pcm_hw_params_set_access failed"
-msgstr ""
+msgstr "snd_pcm_hw_params_set_access fehlgeschlagen"
 
 #: plugins/alsa/alsa_common.c:106 plugins/alsa/alsa_common.c:120
 #: plugins/alsa/alsa_common.c:145 plugins/alsa/alsa_common.c:183
 msgid "snd_pcm_hw_params_set_format failed"
-msgstr ""
+msgstr "snd_pcm_hw_params_set_format fehlgeschlagen"
 
 #: plugins/alsa/alsa_common.c:218 plugins/alsa/alsa_common.c:232
 #, c-format
 msgid "snd_pcm_hw_params_set_channels failed (Format has %d channels)"
-msgstr ""
+msgstr "snd_pcm_hw_params_set_channels fehlgeschlagen (Format hat %d Kanäle)"
 
 #: plugins/alsa/alsa_common.c:249
 msgid "snd_pcm_hw_params_set_rate_near failed"
-msgstr ""
+msgstr "snd_pcm_hw_params_set_rate_near fehlgeschlagen"
 
 #: plugins/alsa/alsa_common.c:255
 #, c-format
 msgid "Samplerate %d not supported by device %s, using %d"
-msgstr ""
+msgstr "Abtastfrequend %d wird vom Gerät %s nicht unterstützt, nehme %d"
 
 #: plugins/alsa/alsa_common.c:286
 msgid "snd_pcm_hw_params_set_period_size failed"
-msgstr ""
+msgstr "snd_pcm_hw_params_set_period_size fehlgeschlagen"
 
 #: plugins/alsa/alsa_common.c:295
 msgid "snd_pcm_hw_params_set_buffer_size failed"
-msgstr ""
+msgstr "snd_pcm_hw_params_set_buffer_size fehlgeschlagen"
 
 #: plugins/alsa/alsa_common.c:307
 msgid "snd_pcm_hw_params failed"
-msgstr ""
+msgstr "snd_pcm_hw_params fehlgeschlagen"
 
 #: plugins/alsa/alsa_common.c:318
 msgid "Alsa initialization failed"
@@ -815,7 +815,7 @@ msgstr ""
 
 #: plugins/postprocessors/cdrdao_common.h:26
 msgid "Burn options"
-msgstr ""
+msgstr "Brennoptionen"
 
 #: plugins/postprocessors/cdrdao_common.h:31
 msgid "Run cdrdao"
@@ -829,7 +829,7 @@ msgstr ""
 
 #: plugins/postprocessors/cdrdao_common.h:44
 msgid "Driver"
-msgstr ""
+msgstr "Treiber"
 
 #: plugins/postprocessors/cdrdao_common.h:47
 msgid ""
@@ -843,11 +843,11 @@ msgstr ""
 
 #: plugins/postprocessors/cdrdao_common.h:57
 msgid "Simulate"
-msgstr ""
+msgstr "Simulieren"
 
 #: plugins/postprocessors/cdrdao_common.h:63 plugins/cdaudio/cdparanoia.c:165
 msgid "Speed"
-msgstr ""
+msgstr "Geschwindigkeit"
 
 #: plugins/postprocessors/cdrdao_common.h:68
 msgid "Set the writing speed. 0 means autodetect."
@@ -904,7 +904,7 @@ msgstr ""
 #: plugins/postprocessors/e_pp_vcdimager.c:378 lib/tree.c:1426
 #, c-format
 msgid "Removing %s"
-msgstr ""
+msgstr "Lösche %s"
 
 #: plugins/postprocessors/e_pp_cdrdao.c:443
 msgid "Audio CD generator/burner"
@@ -923,19 +923,19 @@ msgstr ""
 
 #: plugins/postprocessors/e_pp_vcdimager.c:114
 msgid "VCD 1.1"
-msgstr ""
+msgstr "VCD 1.1"
 
 #: plugins/postprocessors/e_pp_vcdimager.c:114
 msgid "VCD 2.0"
-msgstr ""
+msgstr "VCD 2.0"
 
 #: plugins/postprocessors/e_pp_vcdimager.c:114
 msgid "SVCD"
-msgstr ""
+msgstr "SVCD"
 
 #: plugins/postprocessors/e_pp_vcdimager.c:114
 msgid "HQSVCD"
-msgstr ""
+msgstr "HQSVCD"
 
 #: plugins/postprocessors/e_pp_vcdimager.c:118
 msgid "ISO 9660 volume label"
@@ -980,112 +980,112 @@ msgstr ""
 
 #: plugins/videofilters/fv_colormatrix_yuv.c:81
 msgid "Luminance"
-msgstr ""
+msgstr "Luminanz"
 
 #: plugins/videofilters/fv_colormatrix_yuv.c:87
 msgid "Luminance -> Luminance"
-msgstr ""
+msgstr "Luminanz -> Luminanz"
 
 #: plugins/videofilters/fv_colormatrix_yuv.c:97
 msgid "Cb -> Luminance"
-msgstr ""
+msgstr "Cb -> Luminanz"
 
 #: plugins/videofilters/fv_colormatrix_yuv.c:107
 msgid "Cr -> Luminance"
-msgstr ""
+msgstr "Cr -> Luminanz"
 
 #: plugins/videofilters/fv_colormatrix_yuv.c:117
 msgid "Alpha -> Luminance"
-msgstr ""
+msgstr "Transparenz -> Luminanz"
 
 #: plugins/videofilters/fv_colormatrix_yuv.c:127
 msgid "Luminance offset"
-msgstr ""
+msgstr "Luminanz Offset"
 
 #: plugins/videofilters/fv_colormatrix_yuv.c:139
 msgid "Cb"
-msgstr ""
+msgstr "Cb"
 
 #: plugins/videofilters/fv_colormatrix_yuv.c:145
 msgid "Luminance -> Cb"
-msgstr ""
+msgstr "Luminanz -> Cb"
 
 #: plugins/videofilters/fv_colormatrix_yuv.c:155
 msgid "Cb -> Cb"
-msgstr ""
+msgstr "Cb -> Cb"
 
 #: plugins/videofilters/fv_colormatrix_yuv.c:165
 msgid "Cr -> Cb"
-msgstr ""
+msgstr "Cb -> Cb"
 
 #: plugins/videofilters/fv_colormatrix_yuv.c:175
 msgid "Alpha -> Cb"
-msgstr ""
+msgstr "Transparenz -> Cb"
 
 #: plugins/videofilters/fv_colormatrix_yuv.c:185
 msgid "Cb offset"
-msgstr ""
+msgstr "Cb Offset"
 
 #: plugins/videofilters/fv_colormatrix_yuv.c:197
 msgid "Cr"
-msgstr ""
+msgstr "Cr"
 
 #: plugins/videofilters/fv_colormatrix_yuv.c:203
 msgid "Luminance -> Cr"
-msgstr ""
+msgstr "Luminanz -> Cr"
 
 #: plugins/videofilters/fv_colormatrix_yuv.c:213
 msgid "Cb -> Cr"
-msgstr ""
+msgstr "Cb -> Cr"
 
 #: plugins/videofilters/fv_colormatrix_yuv.c:223
 msgid "Cr -> Cr"
-msgstr ""
+msgstr "Cr -> Cr"
 
 #: plugins/videofilters/fv_colormatrix_yuv.c:233
 msgid "Alpha -> Cr"
-msgstr ""
+msgstr "Transparenz -> Cr"
 
 #: plugins/videofilters/fv_colormatrix_yuv.c:243
 msgid "Cr offset"
-msgstr ""
+msgstr "Cr Offset"
 
 #: plugins/videofilters/fv_colormatrix_yuv.c:255
 #: plugins/videofilters/fv_colormatrix_rgb.c:256
 msgid "Alpha"
-msgstr ""
+msgstr "Transparenz"
 
 #: plugins/videofilters/fv_colormatrix_yuv.c:261
 msgid "Luminance -> Alpha"
-msgstr ""
+msgstr "Luminanz -> Transparenz"
 
 #: plugins/videofilters/fv_colormatrix_yuv.c:271
 msgid "Cb -> Alpha"
-msgstr ""
+msgstr "Cb -> Transparenz"
 
 #: plugins/videofilters/fv_colormatrix_yuv.c:281
 msgid "Cr -> Alpha"
-msgstr ""
+msgstr "Cr -> Transparenz"
 
 #: plugins/videofilters/fv_colormatrix_yuv.c:291
 #: plugins/videofilters/fv_colormatrix_rgb.c:292
 msgid "Alpha -> Alpha"
-msgstr ""
+msgstr "Transparenz -> Transparenz"
 
 #: plugins/videofilters/fv_colormatrix_yuv.c:301
 #: plugins/videofilters/fv_colormatrix_rgb.c:302
 msgid "Alpha offset"
-msgstr ""
+msgstr "Transparenz Offset"
 
 #: plugins/videofilters/fv_colormatrix_yuv.c:311
 #: plugins/videofilters/fv_colormatrix_rgb.c:312
 msgid "Misc"
-msgstr ""
+msgstr "Vermischtes"
 
 #: plugins/videofilters/fv_colormatrix_yuv.c:316
 #: plugins/videofilters/fv_colormatrix_rgb.c:317
 msgid "Force alpha"
-msgstr ""
+msgstr "Erzwinge Transparenz"
 
 #: plugins/videofilters/fv_colormatrix_yuv.c:319
 #: plugins/videofilters/fv_colormatrix_rgb.c:320
@@ -1093,66 +1093,66 @@ msgid ""
 "Create video with alpha channel even if the input format has no alpha "
 "channel. Use this to generate the alpha channel from other channels using "
 "the colormatrix."
-msgstr ""
+msgstr "Ergeuge ein Video mit Transparenzkanal, selbst wenn die Quelle keinen hat. Benutze diese Option um einen Transparenzkanal aus den anderen Kanälen mit der Farbmatrix zu erzeugen."
 
 #: plugins/videofilters/fv_colormatrix_yuv.c:451
 msgid "Y'CbCr(A) Colormatrix"
-msgstr ""
+msgstr "Y'CbCr(A) Farbmatrix"
 
 #: plugins/videofilters/fv_colormatrix_yuv.c:452
 msgid ""
 "Generic colormatrix (Y'CbCrA). You pass the coefficients in Y'CbCr(A) "
 "coordinates, but the processing will work in RGB(A) as well."
-msgstr ""
+msgstr "Allgemeine Farbmatrix (Y'CbCrA). Du gibst die Koeffizienten in Y'CbCr(A) Koordinaten an, die Verarbeitung funktioniert aber auch in RGB(A)."
 
 #: plugins/videofilters/fv_deinterlace.c:115
 #: plugins/videofilters/fv_cropscale.c:325
 #: plugins/videofilters/fv_cropscale.c:330 plugins/videofilters/fv_zoom.c:106
 #: include/bggavl.h:222 lib/x11/x11_window.c:1282
 msgid "Scale mode"
-msgstr ""
+msgstr "Skaliermethode"
 
 #: plugins/videofilters/fv_deinterlace.c:129
 #: plugins/videofilters/fv_cropscale.c:344 include/bggavl.h:210
 #: lib/x11/x11_window.c:1294
 msgid "Nearest"
-msgstr ""
+msgstr "Nächstes Pixel"
 
 #: plugins/videofilters/fv_deinterlace.c:130
 #: plugins/videofilters/fv_cropscale.c:345 include/bggavl.h:211
 #: lib/x11/x11_window.c:1295
 msgid "Bilinear"
-msgstr ""
+msgstr "Bilinear"
 
 #: plugins/videofilters/fv_deinterlace.c:131
 #: plugins/videofilters/fv_cropscale.c:346 include/bggavl.h:212
 #: lib/x11/x11_window.c:1296
 msgid "Quadratic"
-msgstr ""
+msgstr "Quadratisch"
 
 #: plugins/videofilters/fv_deinterlace.c:132
 #: plugins/videofilters/fv_cropscale.c:347 include/bggavl.h:213
 #: lib/x11/x11_window.c:1297
 msgid "Cubic B-Spline"
-msgstr ""
+msgstr "Kubisch B-Spline"
 
 #: plugins/videofilters/fv_deinterlace.c:133
 #: plugins/videofilters/fv_cropscale.c:348 include/bggavl.h:214
 #: lib/x11/x11_window.c:1298
 msgid "Cubic Mitchell-Netravali"
-msgstr ""
+msgstr "Kubisch Mitchell-Netravali"
 
 #: plugins/videofilters/fv_deinterlace.c:134
 #: plugins/videofilters/fv_cropscale.c:349 include/bggavl.h:215
 #: lib/x11/x11_window.c:1299
 msgid "Cubic Catmull-Rom"
-msgstr ""
+msgstr "Kubisch Catmull-Rom"
 
 #: plugins/videofilters/fv_deinterlace.c:135
 #: plugins/videofilters/fv_cropscale.c:350 include/bggavl.h:216
 #: lib/x11/x11_window.c:1300
 msgid "Sinc with Lanczos window"
-msgstr ""
+msgstr "sin(x)/x mit Lanczos Fenster"
 
 #: plugins/videofilters/fv_deinterlace.c:138
 #: plugins/videofilters/fv_cropscale.c:353 plugins/videofilters/fv_zoom.c:113
@@ -1176,66 +1176,66 @@ msgstr ""
 
 #: plugins/videofilters/fv_deinterlace.c:160
 msgid "Method"
-msgstr ""
+msgstr "Mothode"
 
 #: plugins/videofilters/fv_deinterlace.c:177
 msgid "Scanline doubler"
-msgstr ""
+msgstr "Zeilen verdoppeln"
 
 #: plugins/videofilters/fv_deinterlace.c:178
 msgid "Scaler (hardware)"
-msgstr ""
+msgstr "Skalieren (Hardware)"
 
 #: plugins/videofilters/fv_deinterlace.c:179
 msgid "Scaler (software)"
-msgstr ""
+msgstr "Skalieren (Software)"
 
 #: plugins/videofilters/fv_deinterlace.c:180
 msgid "Blend"
-msgstr ""
+msgstr "Felder mischen"
 
 #: plugins/videofilters/fv_deinterlace.c:182
 msgid "yuvdeinterlace (1 field)"
-msgstr ""
+msgstr "yuvdeinterlace (1 Feld)"
 
 #: plugins/videofilters/fv_deinterlace.c:183
 msgid "yuvdeinterlace (2 fields)"
-msgstr ""
+msgstr "yuvdeinterlace (2 Felder)"
 
 #: plugins/videofilters/fv_deinterlace.c:184
 msgid "yuvdeinterlace (Antialiasing only)"
-msgstr ""
+msgstr "yuvdeinterlace (nur Antialiasing)"
 
 #: plugins/videofilters/fv_deinterlace.c:187
 msgid "Do nothing"
-msgstr ""
+msgstr "Mache nichts"
 
 #: plugins/videofilters/fv_deinterlace.c:188
 msgid "Simply double all scanlines. Very fast but low image quality"
-msgstr ""
+msgstr "Verdopple alle Bildzeilen. Dies ist sehr schnell aber liefert schlechte Qualität."
 
 #: plugins/videofilters/fv_deinterlace.c:190
 msgid ""
 "Drop one field and change the pixel aspect ratio such that a subsequent "
 "hardware scaler will scale the image to the original height"
-msgstr ""
+msgstr "Lasse ein Feld wegfallen und verdoppele die Pixelhöhe, so daß ein nachfolgender Hardware Skalierer das Bild wieder auf die originale Höhe skalieren kann."
 
 #: plugins/videofilters/fv_deinterlace.c:191
 msgid "Drop one field and scale the image to the original height"
-msgstr ""
+msgstr "Lasse ein Feld wegfallen und skaliere das Bild zur Originalhöhe."
 
 #: plugins/videofilters/fv_deinterlace.c:193
 #: plugins/videofilters/fv_deinterlace.c:194
 #: plugins/videofilters/fv_deinterlace.c:195
 msgid "Motion compensating deinterlacer from the mjpegtools project"
-msgstr ""
+msgstr "Deinterlacer mir Bewegungsausgleich vom mjpegtools Projekt."
 
 #: plugins/videofilters/fv_deinterlace.c:213
 #: plugins/videofilters/fv_cropscale.c:368 plugins/videofilters/fv_zoom.c:128
 #: plugins/videofilters/fv_tlp.c:91 plugins/videofilters/fv_blur.c:248
 #: plugins/jpeg/iw_jpeg.c:239
 msgid "Quality"
-msgstr ""
+msgstr "Qualität"
 
 #: plugins/videofilters/fv_deinterlace.c:220
 #: plugins/videofilters/fv_cropscale.c:375
@@ -1260,12 +1260,12 @@ msgstr ""
 #: plugins/videofilters/fv_deinterlace.c:237
 #: plugins/videofilters/fv_cropscale.c:399 include/bggavl.h:184
 msgid "Drop top field"
-msgstr ""
+msgstr "Lasse oberes Feld wegfallen"
 
 #: plugins/videofilters/fv_deinterlace.c:238
 #: plugins/videofilters/fv_cropscale.c:399 include/bggavl.h:184
 msgid "Drop bottom field"
-msgstr ""
+msgstr "Lasse unteres Feld wegfallen"
 
 #: plugins/videofilters/fv_deinterlace.c:270
 #: plugins/videofilters/fv_cropscale.c:535 lib/bggavl.c:370
@@ -1338,103 +1338,103 @@ msgstr ""
 
 #: plugins/videofilters/fv_cropscale.c:207
 msgid "PAL DVD D1 4:3 (720 x 576)"
-msgstr ""
+msgstr "PAL DVD D1 4:3 (720 x 576)"
 
 #: plugins/videofilters/fv_cropscale.c:208
 msgid "PAL DVD D1 16:9 (720 x 576)"
-msgstr ""
+msgstr "PAL DVD D1 16:9 (720 x 576)"
 
 #: plugins/videofilters/fv_cropscale.c:209
 msgid "PAL DV 4:3 (720 x 576)"
-msgstr ""
+msgstr "PAL DV 4:3 (720 x 576)"
 
 #: plugins/videofilters/fv_cropscale.c:210
 msgid "PAL DV 16:9 (720 x 576)"
-msgstr ""
+msgstr "PAL DV 16:9 (720 x 576)"
 
 #: plugins/videofilters/fv_cropscale.c:211
 msgid "PAL CVD (352 x 576)"
-msgstr ""
+msgstr "PAL CVD (352 x 576)"
 
 #: plugins/videofilters/fv_cropscale.c:212
 msgid "PAL VCD (352 x 288)"
-msgstr ""
+msgstr "PAL VCD (352 x 288)"
 
 #: plugins/videofilters/fv_cropscale.c:213
 msgid "PAL SVCD 4:3 (480 x 576)"
-msgstr ""
+msgstr "PAL SVCD 4:3 (480 x 576)"
 
 #: plugins/videofilters/fv_cropscale.c:214
 msgid "PAL SVCD 16:9 (480 x 576)"
-msgstr ""
+msgstr "PAL SVCD 16:9 (480 x 576)"
 
 #: plugins/videofilters/fv_cropscale.c:215
 msgid "NTSC DVD D1 4:3 (720 x 480)"
-msgstr ""
+msgstr "NTSC DVD D1 4:3 (720 x 480)"
 
 #: plugins/videofilters/fv_cropscale.c:216
 msgid "NTSC DVD D1 16:9 (720 x 480)"
-msgstr ""
+msgstr "NTSC DVD D1 16:9 (720 x 480)"
 
 #: plugins/videofilters/fv_cropscale.c:217
 msgid "NTSC DV 4:3 (720 x 480)"
-msgstr ""
+msgstr "NTSC DV 4:3 (720 x 480)"
 
 #: plugins/videofilters/fv_cropscale.c:218
 msgid "NTSC DV 16:9 (720 x 480)"
-msgstr ""
+msgstr "NTSC DV 16:9 (720 x 480)"
 
 #: plugins/videofilters/fv_cropscale.c:219
 msgid "NTSC CVD (352 x 480)"
-msgstr ""
+msgstr "NTSC CVD (352 x 480)"
 
 #: plugins/videofilters/fv_cropscale.c:220
 msgid "NTSC VCD (352 x 240)"
-msgstr ""
+msgstr "NTSC VCD (352 x 240)"
 
 #: plugins/videofilters/fv_cropscale.c:221
 msgid "NTSC SVCD 4:3 (480 x 480)"
-msgstr ""
+msgstr "NTSC SVCD 4:3 (480 x 480)"
 
 #: plugins/videofilters/fv_cropscale.c:222
 msgid "NTSC SVCD 16:9 (480 x 480)"
-msgstr ""
+msgstr "NTSC SVCD 16:9 (480 x 480)"
 
 #: plugins/videofilters/fv_cropscale.c:223
 msgid "HD 720p/i (1280x720)"
-msgstr ""
+msgstr "HD 720p/i (1280x720)"
 
 #: plugins/videofilters/fv_cropscale.c:224
 msgid "HD 1080p/i (1920x1080)"
-msgstr ""
+msgstr "HD 1080p/i (1920x1080)"
 
 #: plugins/videofilters/fv_cropscale.c:225
 msgid "VGA (640 x 480)"
-msgstr ""
+msgstr "VGA (640 x 480)"
 
 #: plugins/videofilters/fv_cropscale.c:226
 msgid "QVGA (320 x 240)"
-msgstr ""
+msgstr "QVGA (320 x 240)"
 
 #: plugins/videofilters/fv_cropscale.c:227
 msgid "SQCIF (128 × 96)"
-msgstr ""
+msgstr "SQCIF (128 × 96)"
 
 #: plugins/videofilters/fv_cropscale.c:228
 msgid "QCIF (176 × 144)"
-msgstr ""
+msgstr "QCIF (176 × 144)"
 
 #: plugins/videofilters/fv_cropscale.c:229
 msgid "CIF (352 × 288)"
-msgstr ""
+msgstr "CIF (352 × 288)"
 
 #: plugins/videofilters/fv_cropscale.c:230
 msgid "4CIF (704 × 576)"
-msgstr ""
+msgstr "4CIF (704 × 576)"
 
 #: plugins/videofilters/fv_cropscale.c:231
 msgid "16CIF (1408 × 1152)"
-msgstr ""
+msgstr "16CIF (1408 × 1152)"
 
 #: plugins/videofilters/fv_cropscale.c:234
 msgid ""
@@ -1504,11 +1504,11 @@ msgstr ""
 
 #: plugins/videofilters/fv_cropscale.c:389 lib/x11/x11_window.c:1249
 msgid "Never"
-msgstr ""
+msgstr "Nie"
 
 #: plugins/videofilters/fv_cropscale.c:389 lib/x11/x11_window.c:1251
 msgid "Always"
-msgstr ""
+msgstr "Immer"
 
 #: plugins/videofilters/fv_cropscale.c:400 include/bggavl.h:185
 msgid "Specifies which field the deinterlacer should drop."
@@ -1516,7 +1516,7 @@ msgstr ""
 
 #: plugins/videofilters/fv_cropscale.c:920
 msgid "Crop & Scale"
-msgstr ""
+msgstr "Zuschneiden und Skalieren"
 
 #: plugins/videofilters/fv_cropscale.c:921
 msgid ""
@@ -1526,7 +1526,7 @@ msgstr ""
 
 #: plugins/videofilters/fv_pixelformat.c:70
 msgid "Pixelformat"
-msgstr ""
+msgstr "Pixelformat"
 
 #: plugins/videofilters/fv_pixelformat.c:199
 msgid "Force pixelformat"
@@ -1553,7 +1553,7 @@ msgstr ""
 
 #: plugins/videofilters/fv_zoom.c:333
 msgid "Zoom"
-msgstr ""
+msgstr "Zoom"
 
 #: plugins/videofilters/fv_zoom.c:334
 msgid "Zoom horizontally and/or vertically"
@@ -1561,7 +1561,7 @@ msgstr ""
 
 #: plugins/videofilters/fv_tlp.c:80 plugins/videofilters/fv_oldcolor.c:141
 msgid "Strength"
-msgstr ""
+msgstr "Stärke"
 
 #: plugins/videofilters/fv_tlp.c:87
 msgid "0 means no effect, 1 means maximum (= still image)"
@@ -1569,11 +1569,11 @@ msgstr ""
 
 #: plugins/videofilters/fv_tlp.c:207
 msgid "Temporal lowpass"
-msgstr ""
+msgstr "Zeitlicher Tiefpass"
 
 #: plugins/videofilters/fv_tlp.c:208
 msgid "Simple temporal lowpass"
-msgstr ""
+msgstr "Einfacher zeitlicher Tiefpass"
 
 #: plugins/videofilters/fv_colorbalance.c:152
 #: plugins/videofilters/fv_oldcolor.c:151
@@ -1618,7 +1618,7 @@ msgstr ""
 
 #: plugins/videofilters/fv_flip.c:181
 msgid "Flip image"
-msgstr ""
+msgstr "Spiegeln"
 
 #: plugins/videofilters/fv_flip.c:182
 msgid "Flip video images horizontally and/or vertically"
@@ -1626,110 +1626,110 @@ msgstr ""
 
 #: plugins/videofilters/fv_oldcolor.c:118
 msgid "Style"
-msgstr ""
+msgstr "Stil"
 
 #: plugins/videofilters/fv_oldcolor.c:337
 msgid "Old color"
-msgstr ""
+msgstr "Alte Farben"
 
 #: plugins/videofilters/fv_oldcolor.c:338
 msgid "Simulate old color- and B/W movies"
-msgstr ""
+msgstr "Simuliere alte Farb- und Schwarzweißfilme"
 
 #: plugins/videofilters/fv_colormatrix_rgb.c:82
 msgid "Red"
-msgstr ""
+msgstr "Rot"
 
 #: plugins/videofilters/fv_colormatrix_rgb.c:88
 msgid "Red -> Red"
-msgstr ""
+msgstr "Rot -> Rot"
 
 #: plugins/videofilters/fv_colormatrix_rgb.c:98
 msgid "Green -> Red"
-msgstr ""
+msgstr "Grün -> Rot"
 
 #: plugins/videofilters/fv_colormatrix_rgb.c:108
 msgid "Blue -> Red"
-msgstr ""
+msgstr "Blau -> Red"
 
 #: plugins/videofilters/fv_colormatrix_rgb.c:118
 msgid "Alpha -> Red"
-msgstr ""
+msgstr "Transparenz -> Rot"
 
 #: plugins/videofilters/fv_colormatrix_rgb.c:128
 msgid "Red offset"
-msgstr ""
+msgstr "Rot Offset"
 
 #: plugins/videofilters/fv_colormatrix_rgb.c:140
 msgid "Green"
-msgstr ""
+msgstr "Grün"
 
 #: plugins/videofilters/fv_colormatrix_rgb.c:146
 msgid "Red -> Green"
-msgstr ""
+msgstr "Rot -> Grün"
 
 #: plugins/videofilters/fv_colormatrix_rgb.c:156
 msgid "Green -> Green"
-msgstr ""
+msgstr "Grün -> Grün"
 
 #: plugins/videofilters/fv_colormatrix_rgb.c:166
 msgid "Blue -> Green"
-msgstr ""
+msgstr "Blau -> Grün"
 
 #: plugins/videofilters/fv_colormatrix_rgb.c:176
 msgid "Alpha -> Green"
-msgstr ""
+msgstr "Transparenz -> Grün"
 
 #: plugins/videofilters/fv_colormatrix_rgb.c:186
 msgid "Green offset"
-msgstr ""
+msgstr "Grün Offset"
 
 #: plugins/videofilters/fv_colormatrix_rgb.c:198
 msgid "Blue"
-msgstr ""
+msgstr "Blau"
 
 #: plugins/videofilters/fv_colormatrix_rgb.c:204
 msgid "Red -> Blue"
-msgstr ""
+msgstr "Rot -> Blau"
 
 #: plugins/videofilters/fv_colormatrix_rgb.c:214
 msgid "Green -> Blue"
-msgstr ""
+msgstr "Grün -> Blau"
 
 #: plugins/videofilters/fv_colormatrix_rgb.c:224
 msgid "Blue -> Blue"
-msgstr ""
+msgstr "Blau -> Blau"
 
 #: plugins/videofilters/fv_colormatrix_rgb.c:234
 msgid "Alpha -> Blue"
-msgstr ""
+msgstr "Transparenz -> Blau"
 
 #: plugins/videofilters/fv_colormatrix_rgb.c:244
 msgid "Blue offset"
-msgstr ""
+msgstr "Blau Offset"
 
 #: plugins/videofilters/fv_colormatrix_rgb.c:262
 msgid "Red -> Alpha"
-msgstr ""
+msgstr "Rot -> Transparenz"
 
 #: plugins/videofilters/fv_colormatrix_rgb.c:272
 msgid "Green -> Alpha"
-msgstr ""
+msgstr "Grün -> Transparenz"
 
 #: plugins/videofilters/fv_colormatrix_rgb.c:282
 msgid "Blue -> Alpha"
-msgstr ""
+msgstr "Blau -> Transparenz"
 
 #: plugins/videofilters/fv_colormatrix_rgb.c:442
 #: plugins/videofilters/fv_colormatrix.c:182
 msgid "RGB Colormatrix"
-msgstr ""
+msgstr "RGB Farbmatrix"
 
 #: plugins/videofilters/fv_colormatrix_rgb.c:443
 msgid ""
 "Generic colormatrix (RGBA). You pass the coefficients in RGB(A) coordinates, "
 "but the processing will work in Y'CbCr(A) as well."
-msgstr ""
+msgstr "Allgemeine Farbmatrix (RGBA). Du gibst die Koeffizienten in RGB(A) Koordinaten an, die Verarbeitung funktioniert aber auch in Y'CbCr(A)."
 
 #: plugins/videofilters/fv_decimate.c:147
 msgid "Block threshold"
@@ -2760,29 +2760,28 @@ msgstr "Aus"
 
 #: apps/player/gmerlin.c:687
 msgid "Current album"
-msgstr ""
+msgstr "Aktuelles Album"
 
 #: apps/player/gmerlin.c:688
 msgid "All open albums"
-msgstr ""
+msgstr "Alle offenen Alben"
 
 #: apps/player/gmerlin.c:694
 msgid "Show tooltips"
-msgstr ""
+msgstr "Zeige Tooltips"
 
 #: apps/player/main.c:52
-#, fuzzy
 msgid "[options] [gmls ...]\n"
-msgstr "Optionen..."
+msgstr "[Optionen] [gmls...]\n"
 
 #: apps/player/main.c:53
 msgid "Gmerlin GUI Player"
-msgstr ""
+msgstr "Gmerlin GUI Spieler"
 
 #: apps/player/main.c:58 apps/player/gmerlin_remote.c:476
 #: apps/transcoder/main.c:74 apps/transcoder/gmerlin_transcoder_remote.c:189
 msgid "Default port for the remote control"
-msgstr ""
+msgstr "Voreingestellter Port für die Fernbedienung"
 
 #: apps/player/main.c:63 apps/cmdlineplayer/gmerlin_play.c:854
 msgid "Cache of the plugin registry (shared by all applicatons)"
@@ -2802,19 +2801,19 @@ msgstr ""
 
 #: apps/player/cfgdialog.c:38 lib/gtk/plugin_single.c:322
 msgid "Audio options"
-msgstr ""
+msgstr "Audio Optionen"
 
 #: apps/player/cfgdialog.c:45 apps/plugincfg/gmerlin_plugincfg.c:398
 msgid "Audio filters"
-msgstr ""
+msgstr "Audio Filter"
 
 #: apps/player/cfgdialog.c:53 lib/gtk/plugin_single.c:330
 msgid "Video options"
-msgstr ""
+msgstr "Video Optionen"
 
 #: apps/player/cfgdialog.c:60 apps/plugincfg/gmerlin_plugincfg.c:412
 msgid "Video filters"
-msgstr ""
+msgstr "Video Filter"
 
 #: apps/player/cfgdialog.c:69
 msgid "Subtitle options"
@@ -2823,41 +2822,41 @@ msgstr "Untertiteloptionen"
 #: apps/player/cfgdialog.c:77 apps/visualizer/gmerlin_visualizer.c:1088
 #: lib/gtk/plugininfo.c:166
 msgid "Visualization"
-msgstr ""
+msgstr "Visualisierung"
 
 #: apps/player/cfgdialog.c:80
 msgid "Text subtitles"
-msgstr ""
+msgstr "Text Untertitel"
 
 #: apps/player/cfgdialog.c:83 apps/transcoder/trackdialog.c:305
 #: apps/transcoder/trackdialog.c:354 lib/gtk/infowindow.c:737
 msgid "Subtitles"
-msgstr ""
+msgstr "Untertitel"
 
 #: apps/player/cfgdialog.c:91
 msgid "Gmerlin confiuration"
-msgstr ""
+msgstr "Gmerlin Konfiuration"
 
 #: apps/player/cfgdialog.c:107 apps/camelot/webcam_window.c:488
 #: lib/gtk/plugininfo.c:151
 msgid "Input"
-msgstr ""
+msgstr "Quelle"
 
 #: apps/player/cfgdialog.c:116
 msgid "OSD"
-msgstr ""
+msgstr "OSD"
 
 #: apps/player/cfgdialog.c:126 apps/transcoder/transcoder_window.c:168
 msgid "Display"
-msgstr ""
+msgstr "Display"
 
 #: apps/player/cfgdialog.c:135 apps/player/mainmenu.c:994
 msgid "Media Tree"
-msgstr ""
+msgstr "Media Tree"
 
 #: apps/player/cfgdialog.c:144
 msgid "Remote control"
-msgstr ""
+msgstr "Fernbedienung"
 
 #: apps/player/cfgdialog.c:153 apps/player/mainmenu.c:1000
 #: apps/transcoder/transcoder_window.c:1327
@@ -2867,7 +2866,7 @@ msgstr "Meldungen"
 
 #: apps/player/cfgdialog.c:162
 msgid "LCDproc"
-msgstr ""
+msgstr "LCDproc"
 
 #: apps/player/mainmenu.c:733 apps/player/mainmenu.c:762
 #: apps/player/mainmenu.c:1183
@@ -2884,23 +2883,23 @@ msgstr "Ausgabeplugin..."
 
 #: apps/player/mainmenu.c:757
 msgid "Enable visualizations"
-msgstr ""
+msgstr "Verwende Visualisierungen"
 
 #: apps/player/mainmenu.c:766 lib/gtk/treewidget.c:1401
 msgid "Plugin..."
-msgstr ""
+msgstr "Plugin..."
 
 #: apps/player/mainmenu.c:894 apps/player/mainmenu.c:950
 #: apps/player/mainmenu.c:973
 #, c-format
 msgid "Stream %d [%s]"
-msgstr ""
+msgstr "Stream %d [%s]"
 
 #: apps/player/mainmenu.c:896 apps/player/mainmenu.c:953
 #: apps/player/mainmenu.c:976
 #, c-format
 msgid "Stream %d"
-msgstr ""
+msgstr "Stream %d"
 
 #: apps/player/mainmenu.c:916
 #, c-format
@@ -2917,16 +2916,15 @@ msgstr "Über..."
 
 #: apps/player/mainmenu.c:1009 apps/transcoder/transcoder_window.c:856
 msgid "Userguide"
-msgstr ""
+msgstr "Benutzerhandbuch"
 
 #: apps/player/mainmenu.c:1030 apps/transcoder/transcoder_window.c:839
 msgid "Preferences..."
 msgstr "Präferenzen..."
 
 #: apps/player/mainmenu.c:1038
-#, fuzzy
 msgid "Input plugins..."
-msgstr "Quellenplugin"
+msgstr "Quellenplugins..."
 
 #: apps/player/mainmenu.c:1043
 msgid "Skins..."
@@ -2978,9 +2976,8 @@ msgid "Goto current track"
 msgstr ""
 
 #: apps/player/mainmenu.c:1114
-#, fuzzy
 msgid "Copy current track to favourites"
-msgstr "Kopiere ausgewählte Tracks zu Favoriten"
+msgstr "Kopiere aktuellen Track zu Favoriten"
 
 #: apps/player/mainmenu.c:1122
 msgid "Seek to start"
@@ -2988,7 +2985,7 @@ msgstr "Zum Anfang suchen"
 
 #: apps/player/mainmenu.c:1127
 msgid "Pause"
-msgstr ""
+msgstr "Pause"
 
 #: apps/player/mainmenu.c:1132
 msgid "Quit gmerlin"
@@ -3008,11 +3005,11 @@ msgstr ""
 
 #: apps/player/mainmenu.c:1158
 msgid "Audio..."
-msgstr ""
+msgstr "Audio..."
 
 #: apps/player/mainmenu.c:1162
 msgid "Video..."
-msgstr ""
+msgstr "Video..."
 
 #: apps/player/mainmenu.c:1166
 msgid "Subtitles..."
@@ -3024,11 +3021,11 @@ msgstr "Kapitel"
 
 #: apps/player/mainmenu.c:1175
 msgid "Visualization..."
-msgstr ""
+msgstr "Visualisierung..."
 
 #: apps/player/mainmenu.c:1179
 msgid "Windows..."
-msgstr "Fenster"
+msgstr "Fenster..."
 
 #: apps/player/mainmenu.c:1187
 msgid "Commands..."
@@ -3040,7 +3037,7 @@ msgstr "Zubehör..."
 
 #: apps/player/mainmenu.c:1195
 msgid "Help..."
-msgstr ""
+msgstr "Hilfe..."
 
 #: apps/player/display.c:67
 msgid "Get colors from skin"
@@ -3069,12 +3066,12 @@ msgstr ""
 
 #: apps/player/display.c:101
 msgid "Repeat mode"
-msgstr ""
+msgstr "Wiederholmodus"
 
 #: apps/player/display.c:110 apps/transcoder/transcoder_window.c:191
 #: lib/textrenderer.c:88
 msgid "Font"
-msgstr ""
+msgstr "Schrift"
 
 #: apps/player/gmerlin_remote.c:124
 msgid "Option -addplay requires an argument\n"
@@ -3082,43 +3079,41 @@ msgstr ""
 
 #: apps/player/gmerlin_remote.c:146
 msgid "Option -add requires an argument\n"
-msgstr ""
+msgstr "Option -add erfordert ein Argument\n"
 
 #: apps/player/gmerlin_remote.c:169
 msgid "Option -openplay requires an argument\n"
-msgstr ""
+msgstr "Option -openplay erfordert ein Argument\n"
 
 #: apps/player/gmerlin_remote.c:191
 msgid "Option -open requires an argument\n"
-msgstr ""
+msgstr "Option -open erfordert ein Argument\n"
 
 #: apps/player/gmerlin_remote.c:214
 msgid "Option -volume requires an argument\n"
-msgstr ""
+msgstr "Option -volume erfordert ein Argument\n"
 
 #: apps/player/gmerlin_remote.c:237
 msgid "Option -volume_rel requires an argument\n"
-msgstr ""
+msgstr "Option -volume_rel erfordert ein Argument\n"
 
 #: apps/player/gmerlin_remote.c:262
 msgid "Option -seek_rel requires an argument\n"
-msgstr ""
+msgstr "Option -seek_rel erfordert ein Argument\n"
 
 #: apps/player/gmerlin_remote.c:287
 msgid "Option -chapter requires an argument\n"
-msgstr ""
+msgstr "Option -chapter erfordert ein Argument\n"
 
 #: apps/player/gmerlin_remote.c:312
 msgid "Play current track"
 msgstr ""
 
 #: apps/player/gmerlin_remote.c:317
-#, fuzzy
 msgid "Switch to next track"
 msgstr "Nächster Track"
 
 #: apps/player/gmerlin_remote.c:322
-#, fuzzy
 msgid "Switch to previous track"
 msgstr "Vorheriger Track"
 
@@ -3132,7 +3127,7 @@ msgstr ""
 
 #: apps/player/gmerlin_remote.c:342 apps/player/gmerlin_remote.c:348
 msgid "<gml>"
-msgstr ""
+msgstr "<gml>"
 
 #: apps/player/gmerlin_remote.c:343
 msgid "Add <gml> to the incoming album"
@@ -3213,15 +3208,13 @@ msgstr ""
 
 #: apps/player/gmerlin_remote.c:471
 #: apps/transcoder/gmerlin_transcoder_remote.c:184
-#, fuzzy
 msgid "Global options"
-msgstr "Untertiteloptionen"
+msgstr "Globale Optionen"
 
 #: apps/player/gmerlin_remote.c:472
 #: apps/transcoder/gmerlin_transcoder_remote.c:185
-#, fuzzy
 msgid "Commands"
-msgstr "Befehle..."
+msgstr "Befehle"
 
 #: apps/player/gmerlin_remote.c:510
 msgid "Cannot launch gmerlin process"
@@ -3249,7 +3242,7 @@ msgstr ""
 
 #: apps/plugincfg/gmerlin_plugincfg.c:426
 msgid "Visualizations"
-msgstr ""
+msgstr "Visualisierungen"
 
 #: apps/plugincfg/gmerlin_plugincfg.c:452
 msgid "Output"
@@ -3298,7 +3291,7 @@ msgstr ""
 #: apps/camelot/webcam_window.c:426 lib/singlepic.c:645
 #: lib/transcoder_track.c:352
 msgid "Plugin"
-msgstr ""
+msgstr "Plugin"
 
 #: apps/camelot/webcam_window.c:390
 msgid "Reopen"
@@ -3330,7 +3323,7 @@ msgstr ""
 
 #: apps/camelot/webcam_window.c:566
 msgid "Directory"
-msgstr ""
+msgstr "Verzeichnis"
 
 #: apps/camelot/webcam_window.c:583
 msgid ""
@@ -3354,7 +3347,7 @@ msgstr ""
 
 #: apps/camelot/webcam_window.c:636 lib/gtk/aboutwindow.c:126
 msgid "About"
-msgstr ""
+msgstr "Über"
 
 #: apps/camelot/webcam_window.c:690
 msgid "Do monitor"
@@ -3396,60 +3389,60 @@ msgstr ""
 
 #: apps/transcoder/pluginwindow.c:137
 msgid "Plugins"
-msgstr ""
+msgstr "Plugins"
 
 #: apps/transcoder/transcoder_window.c:173
 msgid "Foreground"
-msgstr ""
+msgstr "Vordergrund"
 
 #: apps/transcoder/transcoder_window.c:218
 msgid "GUI"
-msgstr ""
+msgstr "GUI"
 
 #: apps/transcoder/transcoder_window.c:223
 msgid "Show Tooltips"
-msgstr ""
+msgstr "Zeige Tooltips"
 
 #: apps/transcoder/transcoder_window.c:645
 msgid "Load task list"
-msgstr ""
+msgstr "Lade Aufgabenliste"
 
 #: apps/transcoder/transcoder_window.c:655
 msgid "Save task list"
-msgstr ""
+msgstr "Speichere Aufgabenliste"
 
 #: apps/transcoder/transcoder_window.c:666
 msgid "Load profile"
-msgstr ""
+msgstr "Lade Profil"
 
 #: apps/transcoder/transcoder_window.c:676
 msgid "Save profile"
-msgstr ""
+msgstr "Speichere Profil"
 
 #: apps/transcoder/transcoder_window.c:833
 msgid "Load tasklist..."
-msgstr ""
+msgstr "Lade Aufgabenliste..."
 
 #: apps/transcoder/transcoder_window.c:834
 msgid "Save tasklist..."
-msgstr ""
+msgstr "Speichere Aufgabenliste..."
 
 #: apps/transcoder/transcoder_window.c:835
 #: apps/visualizer/gmerlin_visualizer.c:1030
 msgid "Quit"
-msgstr ""
+msgstr "Beenden"
 
 #: apps/transcoder/transcoder_window.c:840
 msgid "Plugins..."
-msgstr ""
+msgstr "Plugins..."
 
 #: apps/transcoder/transcoder_window.c:841
 msgid "Load profile..."
-msgstr ""
+msgstr "Lade Profil..."
 
 #: apps/transcoder/transcoder_window.c:842
 msgid "Save profile..."
-msgstr ""
+msgstr "Speichere Profile..."
 
 #: apps/transcoder/transcoder_window.c:846
 #: apps/transcoder/transcoder_window.c:934
@@ -3463,11 +3456,11 @@ msgstr ""
 
 #: apps/transcoder/transcoder_window.c:851
 msgid "Log messages"
-msgstr ""
+msgstr "Meldungen"
 
 #: apps/transcoder/transcoder_window.c:926
 msgid "Gmerlin transcoder"
-msgstr ""
+msgstr "Gmerlin Transcoder"
 
 #: apps/transcoder/transcoder_window.c:941
 msgid ""
@@ -3477,11 +3470,11 @@ msgstr ""
 
 #: apps/transcoder/transcoder_window.c:943
 msgid "Set global options and track defaults"
-msgstr ""
+msgstr "Ändere und konfiguriere Plugins für neugeladene Tracks"
 
 #: apps/transcoder/transcoder_window.c:945
 msgid "Quit program"
-msgstr ""
+msgstr "Beende Programm"
 
 #: apps/transcoder/transcoder_window.c:947
 msgid "Load track list"
@@ -3565,9 +3558,8 @@ msgid "Remote"
 msgstr ""
 
 #: apps/transcoder/main.c:68
-#, fuzzy
 msgid "[options]\n"
-msgstr "Optionen..."
+msgstr "[Optionen]"
 
 #: apps/transcoder/main.c:69
 msgid "GTK multimedia transcoder\n"
@@ -3590,74 +3582,72 @@ msgid "Add files"
 msgstr ""
 
 #: apps/transcoder/tracklist.c:926 lib/gtk/albumwidget.c:1422
-#, fuzzy
 msgid "Files..."
-msgstr "Filter..."
+msgstr "Dateien..."
 
 #: apps/transcoder/tracklist.c:928
 msgid "Urls..."
-msgstr ""
+msgstr "Urls..."
 
 #: apps/transcoder/tracklist.c:930
-#, fuzzy
 msgid "Drives..."
-msgstr "Filter..."
+msgstr "Laufwerke..."
 
 #: apps/transcoder/tracklist.c:938
 msgid "Move Up"
-msgstr ""
+msgstr "Verschiebe hoch"
 
 #: apps/transcoder/tracklist.c:940
 msgid "Move Down"
-msgstr ""
+msgstr "Verschiebe nach unten"
 
 #: apps/transcoder/tracklist.c:942 lib/gtk/treewidget.c:1375
 #: lib/gtk/albumwidget.c:1463
 msgid "Remove"
-msgstr ""
+msgstr "Löschen"
 
 #: apps/transcoder/tracklist.c:944
 msgid "Configure..."
-msgstr ""
+msgstr "Konfiguereren..."
 
 #: apps/transcoder/tracklist.c:946
 msgid "Edit chapters..."
-msgstr ""
+msgstr "Kapitel bearbeiten"
 
 #: apps/transcoder/tracklist.c:948
 msgid "Change encoders..."
-msgstr ""
+msgstr "Wechsele Enkoder..."
 
 #: apps/transcoder/tracklist.c:955 lib/gtk/albumwidget.c:1470
 #: lib/gtk/albumwidget.c:2859
 msgid "Cut"
-msgstr ""
+msgstr "Auschneiden"
 
 #: apps/transcoder/tracklist.c:964 lib/gtk/albumwidget.c:1484
 #: lib/gtk/albumwidget.c:2863
 msgid "Paste"
-msgstr ""
+msgstr "Einfügen"
 
 #: apps/transcoder/tracklist.c:975 lib/gtk/albumwidget.c:1546
 #: lib/gtk/cfg_device.c:339
 msgid "Add..."
-msgstr ""
+msgstr "Hinzufügen..."
 
 #: apps/transcoder/tracklist.c:981 lib/gtk/albumwidget.c:1560
 msgid "Selected..."
-msgstr ""
+msgstr "Ausgewählte..."
 
 #: apps/transcoder/tracklist.c:987 lib/gtk/albumwidget.c:1553
 msgid "Edit..."
-msgstr ""
+msgstr "Bearbeiten..."
 
 #: apps/transcoder/tracklist.c:993
 msgid "Postprocess..."
-msgstr ""
+msgstr "Weiterverarbeitung..."
 
 #: apps/transcoder/tracklist.c:1197 lib/gtk/albumwidget.c:2889
 msgid "Total playback time"
-msgstr ""
+msgstr "Gesamtspielzeit"
 
 #: apps/transcoder/tracklist.c:1206
 msgid "Append files to the track list"
@@ -3918,9 +3908,8 @@ msgid "Player finishing"
 msgstr ""
 
 #: apps/cmdlineplayer/gmerlin_play.c:848
-#, fuzzy
 msgid "[options] gml...\n"
-msgstr "Optionen..."
+msgstr "[Optionen] gml..."
 
 #: apps/cmdlineplayer/gmerlin_play.c:849
 msgid "Commandline Multimedia player\n"
@@ -4125,9 +4114,8 @@ msgid "Image converter\n"
 msgstr ""
 
 #: tests/cfgtest.c:587
-#, fuzzy
 msgid "[Options]"
-msgstr "Optionen..."
+msgstr "[Optionen]"
 
 #: tests/cfgtest.c:588
 msgid "Configure test\n"
@@ -4722,11 +4710,10 @@ msgid "@item Files\n"
 msgstr ""
 
 #: lib/cmdline.c:704
-#, fuzzy
 msgid ""
 "Supported options:\n"
 "\n"
-msgstr "Untertiteloptionen"
+msgstr "Unterstützte Optionen:\n\n"
 
 #: lib/cmdline.c:783
 #, c-format
@@ -4814,14 +4801,14 @@ msgid "Suboptions for %s=%s"
 msgstr ""
 
 #: lib/cmdline.c:1057
-#, fuzzy, c-format
+#, c-format
 msgid "Suboptions for %s"
-msgstr "Untertiteloptionen"
+msgstr "Unteroptionen für %s"
 
 #: lib/converters.c:323
 #, c-format
 msgid "Doing framerate conversion %5.2f (%s) -> %5.2f (%s)"
-msgstr ""
+msgstr "Ändere Bildwiederholfrequenz %5.2f (%s) -> %5.2f (%s)"
 
 #: lib/converters.c:353
 #, c-format
@@ -5379,9 +5366,8 @@ msgid "Purging %s"
 msgstr ""
 
 #: lib/tree.c:1528
-#, fuzzy
 msgid "No current track for copying to favourites"
-msgstr "Kopiere ausgewählte Tracks zu Favoriten"
+msgstr "Kein aktueller Track zum Kopieren zu Favoriten"
 
 #: lib/singlepic.c:96
 msgid "Display time"
@@ -5408,11 +5394,11 @@ msgstr ""
 
 #: lib/singlepic.c:650
 msgid "Framenumber digits"
-msgstr ""
+msgstr "Dezimalstellen für Bildnummer"
 
 #: lib/singlepic.c:658
 msgid "Framenumber offset"
-msgstr ""
+msgstr "Offset für Bildnummer"
 
 #: lib/singlepic.c:943
 msgid ""
@@ -5422,31 +5408,31 @@ msgstr ""
 
 #: lib/metadata.c:82
 msgid "Artist"
-msgstr ""
+msgstr "Künstler"
 
 #: lib/metadata.c:87
 msgid "Title"
-msgstr ""
+msgstr "Titel"
 
 #: lib/metadata.c:92
 msgid "Album"
-msgstr ""
+msgstr "Album"
 
 #: lib/metadata.c:97 lib/transcoder_track.c:358 lib/gtk/infowindow.c:783
 msgid "Track"
-msgstr ""
+msgstr "Track"
 
 #: lib/metadata.c:102
 msgid "Genre"
-msgstr ""
+msgstr "Genre"
 
 #: lib/metadata.c:107
 msgid "Author"
-msgstr ""
+msgstr "Autor"
 
 #: lib/metadata.c:112
 msgid "Copyright"
-msgstr ""
+msgstr "Copyright"
 
 #: lib/metadata.c:117
 msgid "Date"
@@ -5601,18 +5587,18 @@ msgstr ""
 #: lib/transcoder_track.c:466 lib/transcoder_track.c:513
 #: lib/transcoder_track.c:1458
 msgid "Language"
-msgstr ""
+msgstr "Sprache"
 
 #: lib/transcoder_track.c:474 lib/transcoder_track.c:521
 #: lib/transcoder_track.c:1466
 msgid "Force language"
-msgstr ""
+msgstr "Erzwinge Sprache"
 
 #: lib/transcoder_track.c:477 lib/transcoder_track.c:524
 #: lib/transcoder_track.c:1469
 msgid ""
 "Force the given language even if the input has the language set differently."
-msgstr ""
+msgstr "Erzwinge die angegebene Sprache, selbst wenn die Quelle was anderes behautpet."
 
 #: lib/transcoder_track.c:481
 msgid "Video stream"
@@ -5628,7 +5614,7 @@ msgstr ""
 #: lib/transcoder_track.c:502 lib/transcoder_track.c:1423
 #: lib/transcoder_track.c:1447 lib/gtk/albumwidget.c:1512
 msgid "Transcode"
-msgstr ""
+msgstr "Transkodieren"
 
 #: lib/transcoder_track.c:528
 msgid "Video stream to blend onto"
@@ -5961,39 +5947,39 @@ msgstr ""
 
 #: lib/gtk/treewidget.c:1363
 msgid "New..."
-msgstr ""
+msgstr "Neu"
 
 #: lib/gtk/treewidget.c:1367
 msgid "New from directory..."
-msgstr ""
+msgstr "Neu von Verzeichnis..."
 
 #: lib/gtk/treewidget.c:1371 lib/gtk/albumwidget.c:1502
 msgid "Rename..."
-msgstr ""
+msgstr "Umbenennen..."
 
 #: lib/gtk/treewidget.c:1384
 msgid "Scan for devices"
-msgstr ""
+msgstr "Suche nach Geräten"
 
 #: lib/gtk/treewidget.c:1388
 msgid "Add device..."
-msgstr ""
+msgstr "Füge Gerät hinzu..."
 
 #: lib/gtk/treewidget.c:1395 lib/gtk/albumwidget.c:1566
 msgid "Album..."
-msgstr ""
+msgstr "Album..."
 
 #: lib/gtk/treewidget.c:1408
 msgid "Tree..."
-msgstr ""
+msgstr "Baum..."
 
 #: lib/gtk/treewidget.c:2017
 msgid "Delete album"
-msgstr ""
+msgstr "Lösche Album"
 
 #: lib/gtk/treewidget.c:2026
 msgid "New album"
-msgstr ""
+msgstr "Neues Album"
 
 #: lib/gtk/logwindow.c:238
 #, c-format
@@ -6054,7 +6040,7 @@ msgstr ""
 
 #: lib/gtk/question.c:93
 msgid "Question"
-msgstr ""
+msgstr "Frage"
 
 #: lib/gtk/plugin_multi.c:270 lib/gtk/plugin_single.c:315
 msgid "Plugin info"
@@ -6066,39 +6052,39 @@ msgstr ""
 
 #: lib/gtk/plugin_multi.c:384
 msgid "Priority"
-msgstr ""
+msgstr "Priorität"
 
 #: lib/gtk/plugin_multi.c:394
 msgid "Protocols"
-msgstr ""
+msgstr "Protokolle"
 
 #: lib/gtk/plugin_multi.c:402
 msgid "Extensions"
-msgstr ""
+msgstr "Erweiterungen"
 
 #: lib/gtk/fileselect.c:221
 msgid "Recursive"
-msgstr ""
+msgstr "Rekursiv"
 
 #: lib/gtk/fileselect.c:229
 msgid "Add subdirectories as subalbums"
-msgstr ""
+msgstr "Füge Unterverzeichnisse als Unteralben hinzu"
 
 #: lib/gtk/chapterdialog.c:193
 msgid "Time"
-msgstr ""
+msgstr "Zeit"
 
 #: lib/gtk/chapterdialog.c:220 lib/gtk/chapterdialog.c:359
 msgid "Edit chapter"
-msgstr ""
+msgstr "Bearbeite Kapitel"
 
 #: lib/gtk/chapterdialog.c:357
 msgid "Add new chapter"
-msgstr ""
+msgstr "Neues Kapitel hinzufügen"
 
 #: lib/gtk/chapterdialog.c:361
 msgid "Delete chapter"
-msgstr ""
+msgstr "Lösche Kapitel"
 
 #: lib/gtk/cfg_time.c:216
 #, c-format
@@ -6122,15 +6108,15 @@ msgstr ""
 
 #: lib/gtk/cfg_time.c:252
 msgid "h:"
-msgstr ""
+msgstr "h:"
 
 #: lib/gtk/cfg_time.c:257
 msgid "m:"
-msgstr ""
+msgstr "m:"
 
 #: lib/gtk/cfg_time.c:261
 msgid "s:"
-msgstr ""
+msgstr "s:"
 
 #: lib/gtk/cfg_time.c:265
 msgid "ms:"
@@ -6138,11 +6124,11 @@ msgstr ""
 
 #: lib/gtk/fileentry.c:85
 msgid "Select a directory"
-msgstr ""
+msgstr "Wähle ein Verzeichnis"
 
 #: lib/gtk/fileentry.c:97
 msgid "Select a file"
-msgstr ""
+msgstr "Wähle eine Datei"
 
 #: lib/gtk/fileentry.c:161 lib/gtk/cfg_font.c:197
 msgid "Browse..."
@@ -6188,13 +6174,12 @@ msgid "URLs..."
 msgstr ""
 
 #: lib/gtk/albumwidget.c:1426
-#, fuzzy
 msgid "Albums..."
-msgstr "Über..."
+msgstr "Alben..."
 
 #: lib/gtk/albumwidget.c:1438
 msgid "Copy to favourites"
-msgstr "Zu Favoriten"
+msgstr "Kopiere zu Favoriten"
 
 #: lib/gtk/albumwidget.c:1447
 msgid "Move to top"
@@ -6210,27 +6195,27 @@ msgstr "Suche..."
 
 #: lib/gtk/albumwidget.c:1505
 msgid "Info..."
-msgstr ""
+msgstr "Info..."
 
 #: lib/gtk/albumwidget.c:1518
 msgid "Refresh"
-msgstr ""
+msgstr "Neu Laden"
 
 #: lib/gtk/albumwidget.c:1531
 msgid "Save as..."
-msgstr ""
+msgstr "Speichern unter..."
 
 #: lib/gtk/albumwidget.c:1535
 msgid "Sort"
-msgstr ""
+msgstr "Sortieren"
 
 #: lib/gtk/albumwidget.c:1572
 msgid "Select error tracks"
-msgstr ""
+msgstr "Wähle Fehlertracks aus"
 
 #: lib/gtk/albumwidget.c:1575
 msgid "Show toolbar"
-msgstr ""
+msgstr "Zeige Werkzeugleiste"
 
 #: lib/gtk/albumwidget.c:2856
 msgid "Add URLs"

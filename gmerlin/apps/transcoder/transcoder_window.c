@@ -944,9 +944,9 @@ transcoder_window_t * transcoder_window_create()
   ret->quit_button = create_pixmap_button(ret,
                                          "quit_16.png", TRS("Quit program"));
   ret->load_button  = create_pixmap_button(ret,
-                                          "folder_open_16.png", TRS("Load track list"));
+                                          "folder_open_16.png", TRS("Load task list"));
   ret->save_button  = create_pixmap_button(ret,
-                                          "save_16.png", TRS("Save track list"));
+                                          "save_16.png", TRS("Save task list"));
 
   gtk_widget_set_sensitive(ret->stop_button, 0);
   

@@ -19,21 +19,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-#include <gavl/gavl.h>
-#include <alsa/asoundlib.h>
+#include <config.h>
+#include <gmerlin/plugin.h>
+#include <gmerlin/translation.h>
 
-/* For reading, the sample format, num_channels and samplerate must be set */
+#include <pulse/simple.h>
+#include <pulse/error.h>
 
-snd_pcm_t * bg_alsa_open_read(const char * card, gavl_audio_format_t * format,
-                              gavl_time_t buffer_time);
+typedef struct
+  {
+  struct pa_simple *pa;
+  char *server, *dev;
+  int record;
+  gavl_audio_format_t format;
+  int block_align;
+  int64_t sample_count;
 
-/* For writing, the complete format must be set, values will be changed if not compatible */
+  int num_channels;
+  int bytes_per_sample;
+  int samplerate;
+  } bg_pa_t;
 
-snd_pcm_t * bg_alsa_open_write(const char * card, gavl_audio_format_t * format,
-                               gavl_time_t buffer_time,
-                               int * convert_3_4);
+int bg_pa_open(bg_pa_t *, int record);
+void bg_pa_close(void *);
 
-/* Builds a parameter array for all available cards */
-
-void bg_alsa_create_card_parameters(bg_parameter_info_t * ret, int record);
-
+void * bg_pa_create();
+void bg_pa_destroy(void *);

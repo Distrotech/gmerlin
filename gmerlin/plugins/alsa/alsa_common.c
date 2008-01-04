@@ -339,6 +339,117 @@ snd_pcm_t * bg_alsa_open_write(const char * card, gavl_audio_format_t * format,
                       buffer_time, convert_4_3);
   }
 
+static void append_card(bg_parameter_info_t * ret,
+                        char * name, char * label)
+  {
+  int num = 0;
+
+  if(ret->multi_names)
+    {
+    while(ret->multi_names[num])
+      num++;
+    }
+  
+  ret->multi_names = realloc(ret->multi_names,
+                             sizeof(*ret->multi_names) * (num+2));
+
+  ret->multi_labels = realloc(ret->multi_labels,
+                             sizeof(*ret->multi_labels) * (num+2));
+
+  ret->multi_names[num]  = name;
+  ret->multi_labels[num] = label;
+
+  ret->multi_names[num+1] = (char*)0;
+  ret->multi_labels[num+1] = (char*)0;
+  }
+
+void bg_alsa_create_card_parameters(bg_parameter_info_t * ret,
+                                    int record)
+  {
+  snd_ctl_card_info_t *info;
+  snd_ctl_t *handle;
+  snd_pcm_info_t *pcminfo;
+  snd_pcm_stream_t stream;
+  int err;
+  int card, dev;
+
+  stream = record ? SND_PCM_STREAM_CAPTURE : SND_PCM_STREAM_PLAYBACK;
+  
+  ret->name      = bg_strdup((char*)0, "card");
+  ret->long_name = bg_strdup((char*)0, TRS("Card"));
+  ret->type = BG_PARAMETER_STRINGLIST;
+
+  snd_ctl_card_info_malloc(&info);
+  snd_pcm_info_malloc(&pcminfo);
+
+  card = -1;
+  if (snd_card_next(&card) < 0 || card < 0)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No soundcards found");
+    return;
+    }
+  
+  /* Default is always supported */
+  ret->val_default.val_str = bg_strdup((char*)0, "default");
+  append_card(ret, bg_strdup((char*)0, "default"),
+              bg_strdup((char*)0, TRS("Default")));
+  
+  while (card >= 0)
+    {
+    char name[32];
+    sprintf(name, "hw:%d", card);
+    if ((err = snd_ctl_open(&handle, name, 0)) < 0)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+             "control open failed (%i): %s",
+             card, snd_strerror(err));
+      goto next_card;
+      }
+    if ((err = snd_ctl_card_info(handle, info)) < 0)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+             "control hardware info failed (%i): %s",
+             card, snd_strerror(err));
+      snd_ctl_close(handle);
+      goto next_card;
+      }
+    dev = -1;
+
+    while (1)
+      {
+      char * name, *label;
+      if (snd_ctl_pcm_next_device(handle, &dev)<0)
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_ctl_pcm_next_device failed");
+      if (dev < 0)
+        break;
+      snd_pcm_info_set_device(pcminfo, dev);
+      snd_pcm_info_set_subdevice(pcminfo, 0);
+      snd_pcm_info_set_stream(pcminfo, stream);
+      if ((err = snd_ctl_pcm_info(handle, pcminfo)) < 0)
+        {
+        if (err != -ENOENT)
+          bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+                 "control digital audio info failed (%i): %s",
+                 card, snd_strerror(err));
+        continue;
+        }
+      name = bg_sprintf("hw:%d,%d", card, dev);
+      label = bg_strdup((char*)0, snd_pcm_info_get_name(pcminfo));
+      append_card(ret, name, label);
+      
+      }
+      
+    next_card:
+    if (snd_card_next(&card) < 0)
+      break;
+    }
+  snd_ctl_card_info_free(info);
+  snd_pcm_info_free(pcminfo);
+  
+  }
+
+#if 0
+
 void bg_alsa_create_card_parameters(bg_parameter_info_t * ret)
   {
   int i, istart;
@@ -378,3 +489,4 @@ void bg_alsa_create_card_parameters(bg_parameter_info_t * ret)
     free(c_tmp);
     }
   }
+#endif

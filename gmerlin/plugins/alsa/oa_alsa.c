@@ -167,7 +167,7 @@ static void * create_alsa()
   
   ret->parameters = calloc(num_global_parameters+2, sizeof(*ret->parameters));
   
-  bg_alsa_create_card_parameters(ret->parameters);
+  bg_alsa_create_card_parameters(ret->parameters, 0);
   
   for(i = 0; i < num_global_parameters; i++)
     {

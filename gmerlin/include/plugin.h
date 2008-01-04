@@ -35,7 +35,7 @@
  *  optional, so plugins can, in prinpiple, be very simple.
  *  All plugins are based on a common struct (\ref bg_plugin_common_t),
  *  which contains an identifier for the plugin type. The bg_plugin_common_t
- *  pointer can be casted to the derived plugin type.
+ *  pointer can be casted to the derived plugin types.
  *
  *  The application calls the functions in the order, in which they are
  *  defined. Some functions are mandatory from the plugin view (i.e. they
@@ -49,9 +49,12 @@
  *  Encoding plugins have an additional layer, which allows setting
  *  parameters individually for each stream.
  *  
- *  Events, which are caught by the plugins (e.g. song name change)
- *  are propagated through optional callbacks. Not all plugins support
- *  callbacks, not all applications use them.
+ *  Events, which are caught by the plugins (e.g. song name changes or
+ *  mouse clicks) are propagated through optional callbacks.
+ *  These are passed from the application to the plugin with the
+ *  set_callbacks function.
+ *  Applications should not rely on any callback to be actually supported by
+ *  a plugin. Plugins should not rely on the presence of any callback
  */
 
 
@@ -64,7 +67,7 @@
  *  \returns The number of samples read
  *
  *  This is a generic prototype for reading audio. It's shared between
- *  input pluigns, recorders and filters to enable arbiatrary combining.
+ *  input pluigns, recorders and filters to enable arbitrary chaining.
  */
 
 typedef int (*bg_read_audio_func_t)(void * priv, gavl_audio_frame_t* frame, int stream,
@@ -78,7 +81,7 @@ typedef int (*bg_read_audio_func_t)(void * priv, gavl_audio_frame_t* frame, int 
  *  \returns 1 if a frame could be read, 0 else
  *
  *  This is a generic prototype for reading audio. It's shared between
- *  input pluigns, recorders and filters to enable arbiatrary combining.
+ *  input pluigns, recorders and filters to enable arbitrary chaining.
  */
 
 typedef int (*bg_read_video_func_t)(void * priv, gavl_video_frame_t* frame, int stream);
@@ -107,7 +110,7 @@ typedef int (*bg_read_video_func_t)(void * priv, gavl_video_frame_t* frame, int 
 
 #define BG_PLUGIN_STDIN         (1<<8)  //!< Plugin can read from stdin ("-")
 
-#define BG_PLUGIN_TUNER         (1<<9)  //!< Plugin has some kind of tuner
+#define BG_PLUGIN_TUNER         (1<<9)  //!< Plugin has some kind of tuner. Channels will be loaded as tracks.
 #define BG_PLUGIN_FILTER_1     (1<<10)  //!< Plugin acts as a filter with one input
 
 #define BG_PLUGIN_EMBED_WINDOW (1<<11)  //!< Plugin can embed it's window into another application
@@ -129,7 +132,7 @@ typedef int (*bg_read_video_func_t)(void * priv, gavl_video_frame_t* frame, int 
 
 
 
-#define BG_PLUGIN_API_VERSION 10
+#define BG_PLUGIN_API_VERSION 11
 
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */
@@ -155,7 +158,7 @@ typedef int (*bg_read_video_func_t)(void * priv, gavl_video_frame_t* frame, int 
 
 typedef enum
   {
-    BG_STREAM_ACTION_OFF = 0, //!< Stream is switched off
+    BG_STREAM_ACTION_OFF = 0, //!< Stream is switched off and will be ignored
     BG_STREAM_ACTION_DECODE,  //!< Stream is switched on and will be decoded
     
     /*
@@ -372,7 +375,7 @@ typedef struct bg_input_callbacks_s
    *  (currently only the audio-cd player) to update the displayed time. Normal plugins never call this.
    */
   
-  void (*time_changed)(void * data, gavl_time_t time); //!< Called if the time changed (used only for plugins with the 
+  void (*time_changed)(void * data, gavl_time_t time);
   
   /** \brief Duration changed
    *  \param data The data member of this bg_input_callbacks_s struct
@@ -425,11 +428,15 @@ typedef struct bg_input_callbacks_s
   int (*user_pass)(void * data, const char * resource,
                    char ** username, char ** password);
 
-  /** \brief Aspect ration change callback
+  /** \brief Aspect ratio change callback
    *  \param data The data member of this bg_input_callbacks_s struct
    *  \param stream Video stream index (starts with 0)
    *  \param pixel_width  New pixel width
    *  \param pixel_height New pixel height
+   *
+   *  Some streams (e.g. DVB) change the pixel aspect ratio on the fly.
+   *  If the input plugin detects such a change, it should call this
+   *  callback.
    */
   
   void (*aspect_changed)(void * data, int stream,

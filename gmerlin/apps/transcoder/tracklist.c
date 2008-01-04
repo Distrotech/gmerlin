@@ -1203,17 +1203,17 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg,
   ret->add_file_button =
     create_pixmap_button(ret,
                          "folder_open_16.png",
-                         TRS("Append files to the track list"));
+                         TRS("Append files to the task list"));
 
   ret->add_url_button =
     create_pixmap_button(ret,
                          "earth_16.png",
-                         TRS("Append URLs to the track list"));
+                         TRS("Append URLs to the task list"));
 
   ret->add_removable_button =
     create_pixmap_button(ret,
                          "drive_running_16.png",
-                         TRS("Append removable media to the track_list"));
+                         TRS("Append removable media to the task list"));
   
   ret->delete_button =
     create_pixmap_button(ret,

@@ -347,7 +347,7 @@ static void open_audio(visualizer_t * v)
     }
   else
     v->audio_open = 1;
-  
+
   if(v->audio_open)
     {
     v->audio_frame = gavl_audio_frame_create(&v->audio_format);

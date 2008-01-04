@@ -120,7 +120,7 @@ get_parameters_alsa(void * p)
     priv->parameters = calloc(num_static_parameters + 2,
                               sizeof(*(priv->parameters)));
 
-    bg_alsa_create_card_parameters(priv->parameters);
+    bg_alsa_create_card_parameters(priv->parameters, 1);
     
     for(i = 0; i < num_static_parameters; i++)
       {
