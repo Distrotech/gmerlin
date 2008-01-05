@@ -320,12 +320,9 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
   if(!card)
     card = "default";
   
-  
-    
   priv->pcm = bg_alsa_open_write(card, format,
                                  priv->buffer_time, &priv->convert_4_3);
   
-
   if(!priv->pcm)
     return 0;
   gavl_audio_format_copy(&(priv->format), format);
@@ -344,7 +341,6 @@ static void close_alsa(void * p)
     priv->pcm = NULL;
     }
   }
-
 
 static void write_frame_alsa(void * p, gavl_audio_frame_t * f)
   {

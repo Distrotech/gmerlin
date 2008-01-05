@@ -108,6 +108,10 @@ int bg_pa_open(bg_pa_t * p, int record)
     p->format.samples_per_frame = 1024;
     gavl_set_channel_setup(&p->format);
     }
+  else
+    {
+    p->format.samples_per_frame = 4096;
+    }
   
   memset(&map, 0, sizeof(map));
   ss.channels = p->format.num_channels;

@@ -47,7 +47,7 @@ static int start_pulse(void * p)
 
 static void stop_pulse(void * p)
   {
-
+  
   }
 
 static void close_pulse(void * p)
@@ -70,9 +70,11 @@ static int get_delay_pulse(void * p)
   {
   bg_pa_t * priv;
   int error;
+  int ret;
   priv = (bg_pa_t *)p;
-  return gavl_time_rescale(1000000, priv->format.samplerate,
-                           pa_simple_get_latency(priv->pa, &error));
+  ret = gavl_time_rescale(1000000, priv->format.samplerate,
+                          pa_simple_get_latency(priv->pa, &error));
+  return ret;
   }
 
 bg_oa_plugin_t the_plugin =

@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: gmerlin 0.3.6\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
 "POT-Creation-Date: 2008-01-04 19:51+0100\n"
-"PO-Revision-Date: 2008-01-04 19:53+0100\n"
+"PO-Revision-Date: 2008-01-04 20:18+0100\n"
 "Last-Translator: Burkhard Plaum <gmerlin@users.sourceforge.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -17,14 +17,12 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: plugins/pulseaudio/oa_pulse.c:84
-#, fuzzy
 msgid "Pulse"
 msgstr "Pause"
 
 #: plugins/pulseaudio/oa_pulse.c:85
-#, fuzzy
 msgid "PulseAudio output"
-msgstr "Audio Optionen"
+msgstr "PulseAudio Ausgabe"
 
 #: plugins/pulseaudio/pulseaudio_common.c:179
 #, c-format
@@ -66,9 +64,8 @@ msgid "Server to connect to. Leave empty for default"
 msgstr ""
 
 #: plugins/pulseaudio/i_pulse.c:96
-#, fuzzy
 msgid "Source"
-msgstr "Sortieren"
+msgstr "Quelle"
 
 #: plugins/pulseaudio/i_pulse.c:98
 msgid "Source to open"
@@ -859,9 +856,9 @@ msgid "Default"
 msgstr ""
 
 #: plugins/alsa/alsa_common.c:404
-#, fuzzy, c-format
+#, c-format
 msgid "control open failed (%i): %s"
-msgstr "Kann Gerät %s nicht öffnen: %s"
+msgstr "control open fehlgeschlagen (%i): %s"
 
 #: plugins/alsa/alsa_common.c:411
 #, c-format
@@ -869,9 +866,8 @@ msgid "control hardware info failed (%i): %s"
 msgstr ""
 
 #: plugins/alsa/alsa_common.c:422
-#, fuzzy
 msgid "snd_ctl_pcm_next_device failed"
-msgstr "snd_pcm_prepare fehlgeschlagen"
+msgstr "snd_ctl_pcm_next_device fehlgeschlagen"
 
 #: plugins/alsa/alsa_common.c:432
 #, c-format

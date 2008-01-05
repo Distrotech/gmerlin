@@ -456,7 +456,7 @@ void bg_player_set_metadata(bg_player_t * player, const bg_metadata_t *);
 
 /* Number of frames in the buffers */
 
-#define NUM_AUDIO_FRAMES    8
+#define NUM_AUDIO_FRAMES   16
 #define NUM_VIDEO_FRAMES    4
 #define NUM_SUBTITLE_FRAMES 4
 
