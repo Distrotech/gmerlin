@@ -113,6 +113,15 @@ oa_alsa.so
 @item Description
 Alsa output plugin with support for channel configurations up to 5.1. Samples are sent to the soundcards in the nearest precision of the source format. Select "Force float" in the global audio options to enable 24, 32 or floating point playback even for 8 or 16 bit source formats.
 @end table
+@subsection Pulse
+@table @i
+@item Internal name
+oa_pulse
+@item Module
+oa_pulse.so
+@item Description
+PulseAudio output
+@end table
 @subsection OSS
 @table @i
 @item Internal name
@@ -172,6 +181,15 @@ i_esd
 i_esd.so
 @item Description
 EsounD input driver
+@end table
+@subsection PulseAudio
+@table @i
+@item Internal name
+i_pulse
+@item Module
+i_pulse.so
+@item Description
+PulseAudio capture. You can specify the source, where we'll get the audio.
 @end table
 @node plugin_rv
 @section Video recorder
@@ -666,5 +684,5 @@ vis_lemuria
 @item Module
 vis_lemuria.so
 @item Description
-Lemuria
+OpenGL visualization with many effects
 @end table

@@ -739,7 +739,7 @@ static int open_dvb(bgav_input_context_t * ctx, const char * url, char ** redire
   if(priv->fe_fd < 0)
     {
     bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-             "Cannot open frontend device %s", priv->frontend_filename);
+             "Cannot open frontend device %s: %s", priv->frontend_filename, strerror(errno));
     return 0;
     }
   /* Get frontend info */
@@ -846,29 +846,61 @@ static int read_dvb(bgav_input_context_t* ctx,
   struct dvb_frontend_event event;
   fd_set rset;
   struct timeval timeout;
+  int ret = 0;
+  int result;
+  struct pollfd pfd[1];
   
   priv = (dvb_priv_t *)(ctx->priv);
   
   /* Flush events */
   while (ioctl(priv->fe_fd, FE_GET_EVENT, &event) != -1);
-  
-  if(ctx->opt->read_timeout)
+
+  pfd[0].fd = priv->dvr_fd;
+  pfd[0].events = POLLIN;
+
+  while(ret < len)
     {
-    FD_ZERO(&rset);
-    FD_SET (priv->dvr_fd, &rset);
-    timeout.tv_sec  = ctx->opt->read_timeout / 1000;
-    timeout.tv_usec = (ctx->opt->read_timeout % 1000) * 1000;
-    if(select (priv->dvr_fd+1, &rset, NULL, NULL, &timeout) <= 0)
+    result = poll(pfd, 1, ctx->opt->read_timeout ? ctx->opt->read_timeout : -1);
+    if(!result)
       {
       bgav_log(ctx->opt,
                BGAV_LOG_ERROR, LOG_DOMAIN,
                "Reading timed out (check cable connections)");
       return 0;
       }
+    else if(result < 0)
+      {
+      /* Signal caught: This sometimes happens for unclear reasons */
+      if(errno == EINTR)
+        continue;
+      else
+        {
+        bgav_log(ctx->opt,
+                 BGAV_LOG_ERROR, LOG_DOMAIN,
+                 "poll failed: %s", strerror(errno));
+        return ret;
+        }
+      }
+
+    if(!(pfd[0].revents & POLLIN))
+      {
+      bgav_log(ctx->opt,
+               BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Reading timed out (check cable connections)");
+      return ret;
+      }
+    result = read(priv->dvr_fd, buffer + ret, len - ret);
+    
+    if(result <= 0)
+      {
+      bgav_log(ctx->opt,
+               BGAV_LOG_ERROR, LOG_DOMAIN,
+               "read failed: %s", strerror(errno));
+      return ret;
+      }
+    ret += result;
     }
-  
-  return read(priv->dvr_fd, buffer, len);
-  //  return 0;
+  return ret;
   }
 
 static int setup_pes_filter(const bgav_options_t * opt,
@@ -1057,7 +1089,7 @@ static void select_track_dvb(bgav_input_context_t * ctx, int track)
   if(!setup_filters(ctx, &priv->channels[track], ctx->tt->cur))
     return;
   
-  priv->dvr_fd = open(priv->dvr_filename, O_RDONLY);
+  priv->dvr_fd = open(priv->dvr_filename, O_RDONLY | O_NONBLOCK);
   ctx->sync_id = priv->channels[track].pcr_pid;
 
   /* Wait here for some longer time until we can read data.

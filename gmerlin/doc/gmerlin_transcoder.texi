@@ -1,6 +1,6 @@
 @table @b
 @item Synopsis
-@b{gmerlin_transcoder} @i{[options]
+@b{gmerlin_transcoder} @i{[Optionen]
 }@*
 @item Description
 GTK multimedia transcoder
@@ -30,6 +30,6 @@ Print version info and exit@*
 @item Environment variables
 @table @env
 @item GMERLIN_TRANSCODER_REMOTE_PORT
-Default port for the remote control@*
+Voreingestellter Port für die Fernbedienung@*
 @end table
 @end table

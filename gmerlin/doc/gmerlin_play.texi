@@ -11,13 +11,13 @@ Commandline Multimedia player
 Set audio output options@*
 @table @r
 @item @b{p}=option[@{suboptions@}]@*@*
-Supported options: oa_alsa oa_oss oa_esd@*@*
+Supported options: oa_alsa oa_pulse oa_oss oa_esd@*@*
 Default: oa_alsa@*@*
 Audio output plugin@*@*
 @b{Suboptions for p=oa_alsa}@*@*
 @table @r
 @item @b{card}=<string>@*@*
-Supported strings: default hw:0,0@*@*
+Supported strings: default hw:0,0 hw:0,1@*@*
 Default: default@*@*
 Card@*@*
 @item @b{surround40}=[1|0] (default: 1)@*@*
@@ -170,7 +170,7 @@ files are e.g. movie_english.srt, movie_german.srt. The rule is, that
 the first part of the filename of the subtitle file must be equal to the
 movie filename up to the extension. Furthermore, the subtitle filename
 must have an extension supported by any of the subtitle readers.
-Subtitle seeking can be disabled, enabled for video files orenabled for
+Subtitle seeking can be disabled, enabled for video files or enabled for
 all files.
 @*@*
 @item @b{default_subtitle_encoding}=<string> (Default: LATIN1)@*@*

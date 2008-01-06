@@ -1,9 +1,9 @@
 @table @b
 @item Synopsis
-@b{gmerlin} @i{[options] [gmls ...]
+@b{gmerlin} @i{[Optionen] [gmls...]
 }@*
 @item Description
-Gmerlin GUI Player@*
+Gmerlin GUI Spieler@*
 @item Generic options
 The following generic options are available for all gmerlin applications@*
 @table @i
@@ -23,7 +23,7 @@ Print version info and exit@*
 @item Environment variables
 @table @env
 @item GMERLIN_PLAYER_REMOTE_PORT
-Default port for the remote control@*
+Voreingestellter Port für die Fernbedienung@*
 @end table
 @item Files
 @table @file

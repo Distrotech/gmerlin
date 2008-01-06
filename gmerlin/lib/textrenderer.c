@@ -114,7 +114,7 @@ static bg_parameter_info_t parameters[] =
       val_max:     { val_i: 65535 },
       val_default: { val_i: 255   },
       
-      help_string: TRS("Specify, how many different characters are cached for faster rendering. For European languages, this never needs to be larger than 255"),
+      help_string: TRS("Specify, how many different characters are cached for faster rendering. For European languages, this never needs to be larger than 255."),
     },
     {
       name:        "border_left",
@@ -156,7 +156,7 @@ static bg_parameter_info_t parameters[] =
       name:        "ignore_linebreaks",
       long_name:   TRS("Ignore linebreaks"),
       type:        BG_PARAMETER_CHECKBUTTON,
-      help_string: TRS("Ignore linebreaks in subtitles.")
+      help_string: TRS("Ignore linebreaks")
     },
     {
       name:       "default_format",

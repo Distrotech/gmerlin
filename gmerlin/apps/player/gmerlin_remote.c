@@ -346,7 +346,7 @@ bg_cmdline_arg_t commands[] =
     {
       arg:         "-addplay",
       help_arg:    TRS("<gml>"),
-      help_string: TRS("Add <location> to the incoming album and play it"),
+      help_string: TRS("Add <gml> to the incoming album and play it"),
       callback:    cmd_addplay,
     },
     {

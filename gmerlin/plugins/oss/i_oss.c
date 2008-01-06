@@ -198,7 +198,7 @@ static int open_oss(void * data,
   priv->fd = open(priv->device, O_RDONLY, 0);
   if(priv->fd == -1)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Opening %s failed: %s", priv->device,
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s: %s", priv->device,
            strerror(errno));
     goto fail;
     }

@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmerlin 0.3.6\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2008-01-04 19:51+0100\n"
-"PO-Revision-Date: 2008-01-04 20:18+0100\n"
+"POT-Creation-Date: 2008-01-06 14:43+0100\n"
+"PO-Revision-Date: 2008-01-06 05:08+0100\n"
 "Last-Translator: Burkhard Plaum <gmerlin@users.sourceforge.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -16,18 +16,18 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: plugins/pulseaudio/oa_pulse.c:84
+#: plugins/pulseaudio/oa_pulse.c:86
 msgid "Pulse"
 msgstr "Pause"
 
-#: plugins/pulseaudio/oa_pulse.c:85
+#: plugins/pulseaudio/oa_pulse.c:87
 msgid "PulseAudio output"
 msgstr "PulseAudio Ausgabe"
 
-#: plugins/pulseaudio/pulseaudio_common.c:179
+#: plugins/pulseaudio/pulseaudio_common.c:183
 #, c-format
-msgid "Opening Pulseaudio failed: %s"
-msgstr ""
+msgid "Connection to Pulseaudio failed: %s"
+msgstr "Verbindungsaufbau zu PulseAudio fehlgeschlagen: %s"
 
 #: plugins/pulseaudio/i_pulse.c:67 plugins/oss/i_oss.c:57
 #: plugins/alsa/i_alsa.c:49
@@ -57,23 +57,26 @@ msgstr "Abtastfrequenz [Hz]"
 #: plugins/pulseaudio/i_pulse.c:90 plugins/cdaudio/i_cdaudio.c:740
 #: plugins/cdaudio/i_cdaudio.c:782
 msgid "Server"
-msgstr ""
+msgstr "Server"
 
 #: plugins/pulseaudio/i_pulse.c:92
-msgid "Server to connect to. Leave empty for default"
+msgid "Server to connect to. Leave empty for default."
 msgstr ""
+"Server zum Verbinden. Lass dies leer um die Voreinstellungen zu verwenden."
 
 #: plugins/pulseaudio/i_pulse.c:96
 msgid "Source"
 msgstr "Quelle"
 
 #: plugins/pulseaudio/i_pulse.c:98
-msgid "Source to open"
+msgid "Source to open. Use the PulseAudio manager for available Sources."
 msgstr ""
+"Zu Öffnende Quelle. Benutze den PulseAudio Manager um vorhandene Quellen "
+"anzeigen zu lassen."
 
 #: plugins/pulseaudio/i_pulse.c:152
 msgid "PulseAudio"
-msgstr ""
+msgstr "PulseAudio"
 
 #: plugins/pulseaudio/i_pulse.c:153
 msgid ""
@@ -119,7 +122,7 @@ msgstr "Aufnehmen"
 
 #: plugins/esd/i_esd.c:67 apps/camelot/webcam_window.c:514
 msgid "Monitor"
-msgstr "Mithören"
+msgstr "Monitor"
 
 #: plugins/esd/i_esd.c:171
 msgid "Cannot connect to daemon"
@@ -357,14 +360,14 @@ msgstr "Weißheit"
 
 #: plugins/v4l/i_v4l.c:518
 msgid "Flip Image"
-msgstr ""
+msgstr "Spiegeln"
 
 #: plugins/v4l/i_v4l.c:716
 msgid "V4L"
-msgstr ""
+msgstr "V4L"
 
 #: plugins/v4l/i_v4l.c:717
-msgid "video4linux input plugin. Supports only video and no tuner decives"
+msgid "video4linux input plugin. Supports only video and no tuner decives."
 msgstr ""
 
 #: plugins/image/ir_tga.c:95
@@ -384,7 +387,7 @@ msgstr ""
 msgid "Can't open File %s"
 msgstr ""
 
-#: plugins/image/ir_bmp.c:234 plugins/image/ir_pnm.c:120
+#: plugins/image/ir_bmp.c:234 plugins/image/ir_pnm.c:123
 msgid "Can't read File type"
 msgstr ""
 
@@ -412,11 +415,11 @@ msgstr ""
 #: plugins/image/iw_tga.c:125 plugins/image/iw_tga.c:128
 #, c-format
 msgid "Cannot save %s: %s"
-msgstr ""
+msgstr "Kann %s nicht speichern: %s"
 
 #: plugins/image/iw_tga.c:146
 msgid "Do RLE compression"
-msgstr ""
+msgstr "Verwende RLE Kompression"
 
 #: plugins/image/iw_tga.c:185
 msgid "TGA writer"
@@ -426,89 +429,89 @@ msgstr ""
 msgid "Writer for TGA images"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:102
+#: plugins/image/ir_pnm.c:104
 #, c-format
-msgid "Can't open file %s"
-msgstr ""
+msgid "Cannot open file %s: %s"
+msgstr "Kann Datei %s nicht öffnen: %s"
 
-#: plugins/image/ir_pnm.c:135
+#: plugins/image/ir_pnm.c:138
 msgid "File isn't a pnm"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:161
+#: plugins/image/ir_pnm.c:164
 #, c-format
 msgid "File must not be a pnm (%.1s%.1s%.1s)"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:178
+#: plugins/image/ir_pnm.c:181
 msgid "Can't read width"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:191
+#: plugins/image/ir_pnm.c:194
 msgid "Can't read height"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:204
+#: plugins/image/ir_pnm.c:207
 msgid "Can't read maxval"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:228
+#: plugins/image/ir_pnm.c:231
 msgid "Sorry PAM format not suported"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:234
+#: plugins/image/ir_pnm.c:237
 #, c-format
 msgid "File isn't a pnm (%.1s%.1s%.1s)"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:281
+#: plugins/image/ir_pnm.c:284
 msgid "PBMascii"
 msgstr "PBMascii"
 
-#: plugins/image/ir_pnm.c:315
+#: plugins/image/ir_pnm.c:318
 msgid "PBMbin"
 msgstr "PBMbin"
 
-#: plugins/image/ir_pnm.c:353
+#: plugins/image/ir_pnm.c:356
 msgid "PGMascii"
 msgstr "PGMascii"
 
-#: plugins/image/ir_pnm.c:382
+#: plugins/image/ir_pnm.c:385
 msgid "PGMascii_16"
 msgstr "PGMascii_16"
 
-#: plugins/image/ir_pnm.c:413
+#: plugins/image/ir_pnm.c:416
 msgid "PGMbin"
 msgstr "PGMbin"
 
-#: plugins/image/ir_pnm.c:438
+#: plugins/image/ir_pnm.c:441
 msgid "PGMbin_16"
 msgstr "PGMbin_16"
 
-#: plugins/image/ir_pnm.c:465
+#: plugins/image/ir_pnm.c:468
 msgid "PPMascii"
 msgstr "PPMascii"
 
-#: plugins/image/ir_pnm.c:508
+#: plugins/image/ir_pnm.c:511
 msgid "PPMascii_16"
 msgstr "PPMascii_16"
 
-#: plugins/image/ir_pnm.c:586
+#: plugins/image/ir_pnm.c:589
 msgid "PPMbin_16"
 msgstr "PPMbin_16"
 
-#: plugins/image/ir_pnm.c:627
+#: plugins/image/ir_pnm.c:630
 msgid "PNM reader"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:628
+#: plugins/image/ir_pnm.c:631
 msgid "Reader for PBM/PGM/PPM images"
 msgstr ""
 
 #: plugins/image/iw_bmp.c:129 plugins/image/iw_pnm.c:79
-#: plugins/oss/oa_oss.c:144 plugins/oss/oa_oss.c:154 plugins/oss/oa_oss.c:164
-#: plugins/png/pngwriter.c:53 plugins/tiff/iw_tiff.c:90
-#: plugins/jpeg/iw_jpeg.c:92
+#: plugins/oss/i_oss.c:201 plugins/oss/oa_oss.c:144 plugins/oss/oa_oss.c:154
+#: plugins/oss/oa_oss.c:164 plugins/png/pngwriter.c:53
+#: plugins/tiff/iw_tiff.c:90 plugins/jpeg/iw_jpeg.c:92
 #, c-format
 msgid "Cannot open %s: %s"
 msgstr "Kann %s nicht öffnen: %s"
@@ -548,7 +551,7 @@ msgstr ""
 #: plugins/x11/ov_x11.c:575
 #, c-format
 msgid "Got window size: %d %d"
-msgstr ""
+msgstr "Fentstergröße erhalten: %d %d"
 
 #: plugins/x11/ov_x11.c:971
 msgid "X11"
@@ -559,139 +562,136 @@ msgid ""
 "X11 display driver with support for XVideo, XImage and OpenGL. Shared memory "
 "(XShm) is used where available."
 msgstr ""
+"X11 Ausgabetreiber mit Unterstützung für XVideo, XImage und OpenGL. Shared "
+"Memory (XShm) wird, wenn möglich, verwendet."
 
 #: plugins/oss/i_oss.c:173
 msgid "Invalid number of bits"
-msgstr ""
+msgstr "Ungültige Anzahl an Bits"
 
 #: plugins/oss/i_oss.c:188
 msgid "Invalid number of channels"
-msgstr ""
-
-#: plugins/oss/i_oss.c:201
-#, c-format
-msgid "Opening %s failed: %s"
-msgstr ""
+msgstr "Ungültige Anzahl an Kanälen"
 
 #: plugins/oss/i_oss.c:211 plugins/oss/oa_oss.c:178 plugins/oss/oa_oss.c:190
 #: plugins/oss/oa_oss.c:202
 #, c-format
 msgid "Cannot set sampleformat for %s"
-msgstr ""
+msgstr "Kann Zahlenformat für %s nicht setzen"
 
-#: plugins/oss/i_oss.c:219
+#: plugins/oss/i_oss.c:219 plugins/oss/oa_oss.c:215
 #, c-format
 msgid "Device %s doesn't support %d channel sound"
-msgstr ""
+msgstr "Gerät %s unterstützt kein %d-Kanal Audio"
 
-#: plugins/oss/i_oss.c:228 plugins/oss/oa_oss.c:252 plugins/oss/oa_oss.c:264
-#: plugins/oss/oa_oss.c:277
+#: plugins/oss/i_oss.c:228 plugins/oss/oa_oss.c:253 plugins/oss/oa_oss.c:265
+#: plugins/oss/oa_oss.c:278
 #, c-format
 msgid "Samplerate %f kHz not supported by device %s"
-msgstr ""
+msgstr "Abtastfrequenz %f kHz wird nicht unterstützt vom Gerät %s"
 
-#: plugins/oss/i_oss.c:280 plugins/oss/oa_oss.c:562
+#: plugins/oss/i_oss.c:280 plugins/oss/oa_oss.c:563
 msgid "OSS"
 msgstr "OSS"
 
 #: plugins/oss/i_oss.c:281
 msgid "OSS Recorder"
-msgstr ""
+msgstr "OSS Aufnahme"
 
 #: plugins/oss/oa_oss.c:53
 msgid "Multichannel Mode"
-msgstr ""
+msgstr "Mehrkanal Modus"
 
 #: plugins/oss/oa_oss.c:60
 msgid "None (Downmix)"
-msgstr ""
+msgstr "Keiner (Runtermischen)"
 
 #: plugins/oss/oa_oss.c:61
 msgid "Multiple devices"
-msgstr ""
+msgstr "Mehrere Geräte"
 
 #: plugins/oss/oa_oss.c:62
 msgid "Creative Multichannel"
-msgstr ""
+msgstr "Creative Multichannel"
 
 #: plugins/oss/oa_oss.c:73
 msgid "Use Rear Device"
-msgstr ""
+msgstr "Benutze Gerät für hinten"
 
 #: plugins/oss/oa_oss.c:79
 msgid "Rear Device"
-msgstr ""
+msgstr "Gerät für hinten"
 
 #: plugins/oss/oa_oss.c:85
 msgid "Use Center/LFE Device"
-msgstr ""
+msgstr "Benutze Gerät für Mitte/LFE"
 
 #: plugins/oss/oa_oss.c:91
 msgid "Center/LFE Device"
-msgstr ""
+msgstr "Gerät für Mitte/LFE"
 
-#: plugins/oss/oa_oss.c:214 plugins/oss/oa_oss.c:226 plugins/oss/oa_oss.c:239
+#: plugins/oss/oa_oss.c:227 plugins/oss/oa_oss.c:240
 #, c-format
 msgid "Device %s supports no %d-channel sound"
 msgstr ""
 
-#: plugins/oss/oa_oss.c:502
+#: plugins/oss/oa_oss.c:503
 msgid "SNDCTL_DSP_GETODELAY ioctl failed"
-msgstr ""
+msgstr "SNDCTL_DSP_GETODELAY ioctl fehlgeschlagen"
 
-#: plugins/oss/oa_oss.c:563
+#: plugins/oss/oa_oss.c:564
 msgid "OSS output driver"
 msgstr "OSS Ausgabetreiber"
 
-#: plugins/visualization/vis_scope.c:99 lib/osd.c:94
+#: plugins/visualization/vis_scope.c:189 lib/osd.c:94
 msgid "Foreground color"
-msgstr ""
+msgstr "Vordergrundfarbe"
 
-#: plugins/visualization/vis_scope.c:106
+#: plugins/visualization/vis_scope.c:196
 msgid "Blur mode"
-msgstr ""
+msgstr "Weichzeichenmodus"
 
-#: plugins/visualization/vis_scope.c:112 plugins/videofilters/fv_blur.c:207
+#: plugins/visualization/vis_scope.c:202 plugins/videofilters/fv_blur.c:207
 msgid "Gauss"
-msgstr ""
+msgstr "Gauß"
 
-#: plugins/visualization/vis_scope.c:113 plugins/videofilters/fv_blur.c:208
+#: plugins/visualization/vis_scope.c:203 plugins/videofilters/fv_blur.c:208
 #: include/bggavl.h:384
 msgid "Triangular"
-msgstr ""
+msgstr "Dreieck"
 
-#: plugins/visualization/vis_scope.c:114 plugins/videofilters/fv_blur.c:209
+#: plugins/visualization/vis_scope.c:204 plugins/videofilters/fv_blur.c:209
 #: include/bggavl.h:383
 msgid "Rectangular"
-msgstr ""
+msgstr "Rechteck"
 
-#: plugins/visualization/vis_scope.c:119
+#: plugins/visualization/vis_scope.c:209
 msgid "Blur radius"
-msgstr ""
+msgstr "Weichzeichenradius"
 
-#: plugins/visualization/vis_scope.c:129
+#: plugins/visualization/vis_scope.c:219
 msgid "Fade factor"
-msgstr ""
+msgstr "Ausblendfaktor"
 
-#: plugins/visualization/vis_scope.c:490
+#: plugins/visualization/vis_scope.c:503
 msgid "Scope"
-msgstr ""
+msgstr "Oszi"
 
-#: plugins/visualization/vis_scope.c:491
+#: plugins/visualization/vis_scope.c:504
 msgid "Scope plugin"
-msgstr ""
+msgstr "Oszi Plugin"
 
 #: plugins/audiofilters/fa_volume.c:68
 msgid "Volume"
-msgstr ""
+msgstr "Lautstärke"
 
 #: plugins/audiofilters/fa_volume.c:152
 msgid "Volume control"
-msgstr ""
+msgstr "Lautstärkeeinstellung"
 
 #: plugins/audiofilters/fa_volume.c:153
 msgid "Simple volume control"
-msgstr ""
+msgstr "Einfache Lautstärkeeinstellung"
 
 #: plugins/alsa/i_alsa.c:72 plugins/alsa/oa_alsa.c:95
 msgid "Buffer time"
@@ -712,10 +712,12 @@ msgid ""
 "Enter a custom device to use for recording. Leave empty to use the settings "
 "above"
 msgstr ""
+"Gib ein benutzerdefiniertes Gerät zur Aufnahme an. Oder leerlassen für obige "
+"Einstellungen."
 
 #: plugins/alsa/i_alsa.c:270
 msgid "Dropping samples"
-msgstr ""
+msgstr "Überspringe Abtastwerte"
 
 #: plugins/alsa/i_alsa.c:274
 msgid "snd_pcm_prepare failed"
@@ -723,53 +725,55 @@ msgstr "snd_pcm_prepare fehlgeschlagen"
 
 #: plugins/alsa/i_alsa.c:281
 msgid "Unknown error"
-msgstr ""
+msgstr "Unbekanner Fehler"
 
-#: plugins/alsa/i_alsa.c:338 plugins/alsa/oa_alsa.c:475
+#: plugins/alsa/i_alsa.c:338 plugins/alsa/oa_alsa.c:471
 msgid "Alsa"
 msgstr "Alsa"
 
 #: plugins/alsa/i_alsa.c:339
 msgid "Alsa recorder"
-msgstr ""
+msgstr "Alsa Aufnahme"
 
 #: plugins/alsa/oa_alsa.c:60
 msgid "Enable 4.0 Surround"
-msgstr ""
+msgstr "Verwende 4.0 Surround"
 
 #: plugins/alsa/oa_alsa.c:63
 msgid "Use the surround 4.0 (aka quadrophonic) device"
-msgstr ""
+msgstr "Benutze das Surround 4.0 (oder Quadrophonische) Gerät"
 
 #: plugins/alsa/oa_alsa.c:67
 msgid "Enable 4.1 Surround"
-msgstr ""
+msgstr "Verwende 4.1 Surround"
 
 #: plugins/alsa/oa_alsa.c:70
 msgid "Use the surround 4.1 device"
-msgstr ""
+msgstr "Benutze das Surround 4.1 Gerät"
 
 #: plugins/alsa/oa_alsa.c:74
 msgid "Enable 5.0 Surround"
-msgstr ""
+msgstr "Verwende 5.0 Surround"
 
 #: plugins/alsa/oa_alsa.c:77
 msgid "Use the surround 5.0 device"
-msgstr ""
+msgstr "Benutze das Surround 5.0 Gerät"
 
 #: plugins/alsa/oa_alsa.c:81
 msgid "Enable 5.1 Surround"
-msgstr ""
+msgstr "Verwende 5.1 Surround"
 
 #: plugins/alsa/oa_alsa.c:84
 msgid "Use the surround 5.1 device"
-msgstr ""
+msgstr "Benutze das Surround 5.1 Gerät"
 
 #: plugins/alsa/oa_alsa.c:90
 msgid ""
 "Enter a custom device to use for playback. Leave empty to use the settings "
 "above"
 msgstr ""
+"Gib ein benutzerdefiniertes Gerät zur Wiedergabe an. Oder leerlassen für "
+"obige Einstellungen."
 
 #: plugins/alsa/oa_alsa.c:100
 msgid ""
@@ -777,13 +781,16 @@ msgid ""
 "performance on slow systems under load. Smaller values decrease the latency "
 "of the volume control."
 msgstr ""
+"Setze die Pufferzeit (in Millisekunden). Größere Werte verbessern vie "
+"wiedergabe auf schwachen Systemen unter Last. Kleinere Werte verringern die "
+"Verzögerung des Lautstärkereglers."
 
-#: plugins/alsa/oa_alsa.c:391
+#: plugins/alsa/oa_alsa.c:387
 #, c-format
 msgid "snd_pcm_write returned %s"
-msgstr ""
+msgstr "snd_pcm_write gab %s zurück"
 
-#: plugins/alsa/oa_alsa.c:476
+#: plugins/alsa/oa_alsa.c:472
 msgid ""
 "Alsa output plugin with support for channel configurations up to 5.1. "
 "Samples are sent to the soundcards in the nearest precision of the source "
@@ -2734,13 +2741,15 @@ msgstr ""
 
 #: include/bggavl.h:368
 msgid "Force floating point"
-msgstr ""
+msgstr "Erzwinge Fließkomma"
 
 #: include/bggavl.h:372
 msgid ""
 "Force floating point processing. This will inprove the quality but might "
 "slow things down."
 msgstr ""
+"Erzwinge Fließkommaverarbeitung. Dies verbessert die Qualität, kann aber die "
+"Wiedergabe auch bremsen."
 
 #: include/bggavl.h:378
 msgid "Dither mode"
@@ -2821,19 +2830,19 @@ msgstr ""
 
 #: apps/player/gmerlin.c:667
 msgid "Skip error tracks"
-msgstr ""
+msgstr "Überspringe fehlerhafte Tracks"
 
 #: apps/player/gmerlin.c:670
 msgid "If a track cannot be opened, switch to the next one"
-msgstr ""
+msgstr "Wenn ein Track nicht geöffnet werden kann, springe zum nächsten."
 
 #: apps/player/gmerlin.c:674
 msgid "Don't advance"
-msgstr ""
+msgstr "Nicht weiterschalten"
 
 #: apps/player/gmerlin.c:680
 msgid "Shuffle mode"
-msgstr ""
+msgstr "Zufallswiedergabe"
 
 #: apps/player/gmerlin.c:686 apps/player/mainmenu.c:719
 msgid "Off"
@@ -3009,7 +3018,7 @@ msgstr "Quellenplugins..."
 
 #: apps/player/mainmenu.c:1043
 msgid "Skins..."
-msgstr ""
+msgstr "Skins..."
 
 #: apps/player/mainmenu.c:1047
 msgid "Multimedia keys..."
@@ -3054,7 +3063,7 @@ msgstr "Vorheriges Kapitel"
 #: apps/player/mainmenu.c:1107 lib/gtk/treewidget.c:1325
 #: lib/gtk/treewidget.c:2022
 msgid "Goto current track"
-msgstr ""
+msgstr "Gehe zum nächsten Track"
 
 #: apps/player/mainmenu.c:1114
 msgid "Copy current track to favourites"
@@ -3082,7 +3091,7 @@ msgstr ""
 
 #: apps/player/mainmenu.c:1151
 msgid "Mixer"
-msgstr ""
+msgstr "Mischpult"
 
 #: apps/player/mainmenu.c:1158
 msgid "Audio..."
@@ -3122,28 +3131,28 @@ msgstr "Hilfe..."
 
 #: apps/player/display.c:67
 msgid "Get colors from skin"
-msgstr ""
+msgstr "Hole Farben vom Skin"
 
 #: apps/player/display.c:70
 msgid "Take the display colors from the skin definition"
-msgstr ""
+msgstr "Hole die Farben des Displays aus der Beschreibung des Skins"
 
 #: apps/player/display.c:74 apps/transcoder/transcoder_window.c:185
 msgid "Background"
-msgstr ""
+msgstr "Hintergrund"
 
 #: apps/player/display.c:80
 msgid "Normal foreground"
-msgstr ""
+msgstr "Vordergrund (normal)"
 
 #: apps/player/display.c:86 apps/transcoder/transcoder_window.c:179
 #: lib/gtk/logwindow.c:371
 msgid "Error foreground"
-msgstr ""
+msgstr "Vordergrund (Fehler)"
 
 #: apps/player/display.c:92
 msgid "Display mode"
-msgstr ""
+msgstr "Display modus"
 
 #: apps/player/display.c:101
 msgid "Repeat mode"
@@ -3156,7 +3165,7 @@ msgstr "Schrift"
 
 #: apps/player/gmerlin_remote.c:124
 msgid "Option -addplay requires an argument\n"
-msgstr ""
+msgstr "Option -addplay erfordert ein Argument\n"
 
 #: apps/player/gmerlin_remote.c:146
 msgid "Option -add requires an argument\n"
@@ -3188,7 +3197,7 @@ msgstr "Option -chapter erfordert ein Argument\n"
 
 #: apps/player/gmerlin_remote.c:312
 msgid "Play current track"
-msgstr ""
+msgstr "Spiele aktuellen Track"
 
 #: apps/player/gmerlin_remote.c:317
 msgid "Switch to next track"
@@ -3200,11 +3209,11 @@ msgstr "Vorheriger Track"
 
 #: apps/player/gmerlin_remote.c:327
 msgid "Stop playback"
-msgstr ""
+msgstr "Beende Wiedergabe"
 
 #: apps/player/gmerlin_remote.c:332
 msgid "Pause playback"
-msgstr ""
+msgstr "Unterbreche Weidergabe"
 
 #: apps/player/gmerlin_remote.c:342 apps/player/gmerlin_remote.c:348
 msgid "<gml>"
@@ -3212,33 +3221,37 @@ msgstr "<gml>"
 
 #: apps/player/gmerlin_remote.c:343
 msgid "Add <gml> to the incoming album"
-msgstr ""
+msgstr "Füge <gml> zum Eingangs-Album"
 
 #: apps/player/gmerlin_remote.c:349
-msgid "Add <location> to the incoming album and play it"
-msgstr ""
+#, fuzzy
+msgid "Add <gml> to the incoming album and play it"
+msgstr "Füge <gml> zum Eingangs-Album"
 
 #: apps/player/gmerlin_remote.c:354 apps/player/gmerlin_remote.c:360
 msgid "<device>"
-msgstr ""
+msgstr "<Gerät>"
 
 #: apps/player/gmerlin_remote.c:355
 msgid "Open album for <device>. Device must be a GML (e.g. dvd:///dev/hdd)."
 msgstr ""
+"Öffne Album für <Gerät>. Gerät muß eine GML sein (z.B. dvd:///dev/hdd)."
 
 #: apps/player/gmerlin_remote.c:361
 msgid ""
 "Open album for <device> and play first track. Device must be a GML (e.g. "
 "dvd:///dev/hdd)."
 msgstr ""
+"Öffne Album für <Gerät> und spiele ersten Track. Gerät muß eine GML sein (z."
+"B. dvd:///dev/hdd)"
 
 #: apps/player/gmerlin_remote.c:366
 msgid "<volume>"
-msgstr ""
+msgstr "<Lautstärke>"
 
 #: apps/player/gmerlin_remote.c:367
 msgid "Set player volume. <volume> is in dB, 0.0 is max"
-msgstr ""
+msgstr "Setze Wiedergabelautstärke. <Lautstärke> ist in dB, 0.0 ist maximal"
 
 #: apps/player/gmerlin_remote.c:372 apps/player/gmerlin_remote.c:378
 msgid "<diff>"
@@ -3260,32 +3273,32 @@ msgstr ""
 
 #: apps/player/gmerlin_remote.c:401
 msgid "Option -host requires an argument"
-msgstr ""
+msgstr "Option -host erfordert ein Argument"
 
 #: apps/player/gmerlin_remote.c:413
 msgid "Option -port requires an argument"
-msgstr ""
+msgstr "Option -port erfordert ein Argument"
 
 #: apps/player/gmerlin_remote.c:431
 msgid "Host to connect to, default is localhost"
-msgstr ""
+msgstr "Rechner zum Verbinden. Voreinstellung ist localhost"
 
 #: apps/player/gmerlin_remote.c:437
 msgid "Port to connect to"
-msgstr ""
+msgstr "Port zum Verbinden"
 
 #: apps/player/gmerlin_remote.c:442
 msgid "Launch new player if necessary"
-msgstr ""
+msgstr "Starte neuen Player wenn nötig"
 
 #: apps/player/gmerlin_remote.c:469
 #: apps/transcoder/gmerlin_transcoder_remote.c:182
 msgid "[options] command\n"
-msgstr ""
+msgstr "[Optionen] Befehl"
 
 #: apps/player/gmerlin_remote.c:470
 msgid "Remote control command for the Gmerlin GUI Player\n"
-msgstr ""
+msgstr "Fernbedienung für den Gmerlin GUI Player"
 
 #: apps/player/gmerlin_remote.c:471
 #: apps/transcoder/gmerlin_transcoder_remote.c:184
@@ -3299,7 +3312,7 @@ msgstr "Befehle"
 
 #: apps/player/gmerlin_remote.c:510
 msgid "Cannot launch gmerlin process"
-msgstr ""
+msgstr "Kann keinen gmerlin Prozess starten"
 
 #: apps/plugincfg/gmerlin_plugincfg.c:260
 msgid "Gmerlin Plugin Configurator"
@@ -3327,7 +3340,7 @@ msgstr "Visualisierungen"
 
 #: apps/plugincfg/gmerlin_plugincfg.c:452
 msgid "Output"
-msgstr ""
+msgstr "Ausgabe"
 
 #: apps/plugincfg/gmerlin_plugincfg.c:535 apps/transcoder/pluginwindow.c:171
 msgid "Encoders"
@@ -3335,7 +3348,7 @@ msgstr ""
 
 #: apps/plugincfg/gmerlin_plugincfg.c:558 lib/gtk/plugininfo.c:178
 msgid "Recorder"
-msgstr ""
+msgstr "Aufnahme"
 
 #: apps/plugincfg/gmerlin_plugincfg.c:606
 msgid "Image writers"
@@ -5131,17 +5144,17 @@ msgstr ""
 #: lib/transcoder.c:2039
 #, c-format
 msgid "Output file: %s"
-msgstr ""
+msgstr "Ausgabedatei: %s"
 
 #: lib/transcoder.c:2052
 #, c-format
 msgid "Cannot find plugin %s"
-msgstr ""
+msgstr "Kann Plugin %s nicht finden"
 
 #: lib/transcoder.c:2059
 #, c-format
 msgid "Cannot open plugin %s"
-msgstr ""
+msgstr "Kann Plugin %s nicht öffnen"
 
 #: lib/transcoder.c:2076
 #, c-format
@@ -5151,7 +5164,7 @@ msgstr ""
 #: lib/transcoder.c:2092
 #, c-format
 msgid "Invalid track number %d"
-msgstr ""
+msgstr "Ungültige Tracknummer %d"
 
 #: lib/transcoder.c:2224 lib/player_input.c:320
 msgid "Starting input plugin failed"
@@ -5176,12 +5189,12 @@ msgstr ""
 #: lib/transcoder.c:2577
 #, c-format
 msgid "Could not open %s"
-msgstr ""
+msgstr "Kann %s nicht öffnen"
 
 #: lib/transcoder.c:2588
 #, c-format
 msgid "Could not start %s"
-msgstr ""
+msgstr "Konnte %s nicht starten"
 
 #: lib/transcoder.c:3217
 msgid "Zero peaks detected (silent file?). Disabling normalization."
@@ -5290,89 +5303,88 @@ msgstr ""
 
 #: lib/textrenderer.c:103 lib/osd.c:126
 msgid "Vertical justify"
-msgstr ""
+msgstr "Vertikale Ausrichtung"
 
 #: lib/textrenderer.c:107 lib/osd.c:130
 msgid "Top"
-msgstr ""
+msgstr "Oben"
 
 #: lib/textrenderer.c:107 lib/osd.c:130
 msgid "Bottom"
-msgstr ""
+msgstr "Unten"
 
 #: lib/textrenderer.c:111
 msgid "Cache size"
-msgstr ""
+msgstr "Cachegröße"
 
 #: lib/textrenderer.c:117
 msgid ""
 "Specify, how many different characters are cached for faster rendering. For "
-"European languages, this never needs to be larger than 255"
+"European languages, this never needs to be larger than 255."
 msgstr ""
+"Gib an, wieviele verschiedene Zeichen zur schelleren Darstellung "
+"zwischengespeichert werden. Für europäische Sprachen muß dieser Wert nie "
+"größer als 255 sein."
 
 #: lib/textrenderer.c:121 lib/textrenderer.c:130 lib/osd.c:134 lib/osd.c:143
 msgid "Left border"
-msgstr ""
+msgstr "Linker Rand"
 
 #: lib/textrenderer.c:126 lib/osd.c:139
 msgid "Distance from the left text border to the image border"
-msgstr ""
+msgstr "Abstand vom linken Textrand zum Bildrand"
 
 #: lib/textrenderer.c:135 lib/osd.c:148
 msgid "Distance from the right text border to the image border"
-msgstr ""
+msgstr "Abstand vom rechten Textrand zum Bildrand"
 
 #: lib/textrenderer.c:139 lib/osd.c:152
 msgid "Top border"
-msgstr ""
+msgstr "Oberer Rand"
 
 #: lib/textrenderer.c:144 lib/osd.c:157
 msgid "Distance from the top text border to the image border"
-msgstr ""
+msgstr "Abstand vom oberen Textrand zum Bildrand"
 
 #: lib/textrenderer.c:153 lib/osd.c:166
 msgid "Distance from the bottom text border to the image border"
-msgstr ""
+msgstr "Abstand vom unteren Textrand zum Bildrand"
 
-#: lib/textrenderer.c:157
+#: lib/textrenderer.c:157 lib/textrenderer.c:159
 msgid "Ignore linebreaks"
-msgstr ""
-
-#: lib/textrenderer.c:159
-msgid "Ignore linebreaks in subtitles."
-msgstr ""
+msgstr "Ignoriere Zeilenumbrüche"
 
 #: lib/textrenderer.c:163
 msgid "Default format"
-msgstr ""
+msgstr "Voreingestelltes Format"
 
 #: lib/textrenderer.c:168
 msgid "Default width"
-msgstr ""
+msgstr "Voreingestellte Breite"
 
 #: lib/textrenderer.c:176
 msgid "Default height"
-msgstr ""
+msgstr "Voreingestellte Höhe"
 
 #: lib/textrenderer.c:184
 msgid "Default Colorspace"
-msgstr ""
+msgstr "Voreingestellter Farbraum"
 
 #: lib/textrenderer.c:188
 msgid "YCrCb"
-msgstr ""
+msgstr "YCrCb"
 
 #: lib/textrenderer.c:188
 msgid "RGB"
-msgstr ""
+msgstr "RGB"
 
 #: lib/textrenderer.c:192
 msgid "Default Framerate"
-msgstr ""
+msgstr "Voreingestellte Bildwiederholfrequenz"
 
 #: lib/tree.c:248 lib/tree.c:422
 msgid "Incoming"
-msgstr ""
+msgstr "Eingang"
 
 #: lib/tree.c:253 lib/tree.c:430
 msgid "Favourites"
@@ -6236,21 +6248,21 @@ msgstr ""
 #: lib/gtk/albumwidget.c:1140
 #, c-format
 msgid "Add files to album %s"
-msgstr ""
+msgstr "Füge Dateien zum Album %s hinzu"
 
 #: lib/gtk/albumwidget.c:1166
 #, c-format
 msgid "Add URLS to album %s"
-msgstr ""
+msgstr "Füge URLs zum Album %s hinzu"
 
 #: lib/gtk/albumwidget.c:1250
 #, c-format
 msgid "Add albums to %s"
-msgstr ""
+msgstr "Füge Alben zu %s hinzu"
 
 #: lib/gtk/albumwidget.c:1424
 msgid "URLs..."
-msgstr ""
+msgstr "URLs..."
 
 #: lib/gtk/albumwidget.c:1426
 msgid "Albums..."
@@ -6262,11 +6274,11 @@ msgstr "Kopiere zu Favoriten"
 
 #: lib/gtk/albumwidget.c:1447
 msgid "Move to top"
-msgstr ""
+msgstr "Verschiebe ganz nach oben"
 
 #: lib/gtk/albumwidget.c:1455
 msgid "Move to bottom"
-msgstr ""
+msgstr "Verschiebe ganz nach unten"
 
 #: lib/gtk/albumwidget.c:1491
 msgid "Find..."
@@ -6298,7 +6310,7 @@ msgstr "Zeige Werkzeugleiste"
 
 #: lib/gtk/albumwidget.c:2856
 msgid "Add URLs"
-msgstr ""
+msgstr "Füge URLs hinzu"
 
 #: lib/gtk/albumwidget.c:2869
 msgid "Close album and eject disc"
@@ -6314,7 +6326,7 @@ msgstr "Benenne ausgewählten Track um"
 
 #: lib/gtk/albumwidget.c:2881
 msgid "Show track info"
-msgstr ""
+msgstr "Zeige Trackinformationen"
 
 #: lib/gtk/albumwidget.c:2884
 msgid "Find tracks"
@@ -6338,7 +6350,7 @@ msgstr ""
 
 #: lib/gtk/albumwidget.c:3246
 msgid "Exact match"
-msgstr ""
+msgstr "Genaue Übereinstimmung"
 
 #: lib/gtk/albumwidget.c:3247
 msgid "String is an exact substring"
@@ -6346,25 +6358,28 @@ msgstr ""
 
 #: lib/gtk/albumwidget.c:3251
 msgid "Match case"
-msgstr ""
+msgstr "Groß/Kleinschreibung beachten"
 
 #: lib/gtk/albumwidget.c:3252
 msgid "Match upper and lower case"
-msgstr ""
+msgstr "Groß/Kleinschreibung beachten"
 
 #: lib/gtk/aboutwindow.c:119
 msgid ""
 "Get the latest source version from http://gmerlin.sourceforge.net * * * If "
 "you installed gmerlin from a binary package, you might have limited features"
 msgstr ""
+"Hole den neuesten Quellcode von http://gmerlin.sourceforge.net * * * Wenn Du "
+"gmerlin als Binärpaket installiert hast, könnten die Features eingeschränkt "
+"sein"
 
 #: lib/gtk/aboutwindow.c:136
 msgid "Visit homepage"
-msgstr ""
+msgstr "Besuche Homepage"
 
 #: lib/gtk/aboutwindow.c:170
 msgid "Copyright © 2001-2007 Members of the gmerlin project"
-msgstr ""
+msgstr "Copyright © 2001-2007 Mitglieder des gmerlin projekts"
 
 #: lib/gtk/aboutwindow.c:174
 msgid ""
@@ -6392,19 +6407,19 @@ msgstr ""
 
 #: lib/gtk/multiinfo.c:149
 msgid "Not available"
-msgstr ""
+msgstr "Nicht verfügbar"
 
 #: lib/gtk/driveselect.c:224
 msgid "Drive:"
-msgstr ""
+msgstr "Laufwerk:"
 
 #: lib/gtk/cfg_dialog.c:415
 msgid "No options here, choose subcategory"
-msgstr ""
+msgstr "Keine Optionen hier, gehe zu Unterkategorie"
 
 #: lib/gtk/cfg_dialog.c:504
 msgid "No options available"
-msgstr ""
+msgstr "Keine Optionen verfügbar"
 
 #: lib/gtk/albumentry.c:51
 #, c-format
@@ -6418,6 +6433,14 @@ msgid ""
 "Video Streams:\t %d\n"
 "Subtitle Streams:\t %d"
 msgstr ""
+"Name:\t %s\n"
+"Ort:\t %s\n"
+"Track:\t %d/%d\n"
+"Plugin:\t %s\n"
+"Dauer:\t %s\n"
+"Audio Streams:\t %d\n"
+"Video Streams:\t %d\n"
+"Untertitel Streams:\t %d"
 
 #: lib/gtk/albumentry.c:55
 msgid "Auto detect"
@@ -6425,11 +6448,11 @@ msgstr ""
 
 #: lib/gtk/plugininfo.c:152
 msgid "Audio output"
-msgstr ""
+msgstr "Audioausgabe"
 
 #: lib/gtk/plugininfo.c:155
 msgid "Video recorder"
-msgstr ""
+msgstr "Videoaufnahme"
 
 #: lib/gtk/plugininfo.c:156
 msgid "Audio encoder"
@@ -6461,23 +6484,23 @@ msgstr ""
 
 #: lib/gtk/plugininfo.c:164
 msgid "Audio filter"
-msgstr ""
+msgstr "Audiofilter"
 
 #: lib/gtk/plugininfo.c:165
 msgid "Video filter"
-msgstr ""
+msgstr "Videofilter"
 
 #: lib/gtk/plugininfo.c:177
 msgid "Removable Device"
-msgstr ""
+msgstr "Wechseldatenträger"
 
 #: lib/gtk/plugininfo.c:180
 msgid "URL"
-msgstr ""
+msgstr "URL"
 
 #: lib/gtk/plugininfo.c:181
 msgid "Playback"
-msgstr ""
+msgstr "Wiedergabe"
 
 #: lib/gtk/plugininfo.c:182
 msgid "Bypass"
@@ -6520,46 +6543,46 @@ msgstr ""
 
 #: lib/gtk/auth.c:73
 msgid "Authentication"
-msgstr ""
+msgstr "Authentifizierung"
 
 #: lib/gtk/auth.c:103
 msgid "Save user/password (can be dangerous!)"
-msgstr ""
+msgstr "Speichere Benutzer/Passwort (kann gefährlich sein!)"
 
 #: lib/gtk/auth.c:114
 msgid "Enter username and password for"
-msgstr ""
+msgstr "Gib Benutzernamen und Passwort ein für"
 
 #: lib/gtk/auth.c:129
 msgid "Username"
-msgstr ""
+msgstr "Benutzername"
 
 #: lib/gtk/auth.c:134
 msgid "Password"
-msgstr ""
+msgstr "Passwort"
 
 #: lib/gtk/cfg_device.c:340
 msgid "Delete"
-msgstr ""
+msgstr "Löschen"
 
 #: lib/gtk/message.c:87
 msgid "Message"
-msgstr ""
+msgstr "Meldung"
 
 #: lib/subprocess.c:168
 #, c-format
 msgid "Created process: %s [%d]"
-msgstr ""
+msgstr "Prozess gestartet: %s [%d]"
 
 #: lib/subprocess.c:173
 #, c-format
 msgid "Creating process failed: %s"
-msgstr ""
+msgstr "Starten eines Prozesses fehlgeschlagen: %s"
 
 #: lib/subprocess.c:208
 #, c-format
 msgid "Finished process [%d] return value: %d"
-msgstr ""
+msgstr "Prozess [%d] beendet, Rückgabewert: %d"
 
 #: lib/transcoder_enc.c:104
 msgid "No video encoder found, check installation"
@@ -6579,67 +6602,67 @@ msgstr ""
 
 #: lib/album.c:426
 msgid "Unnamed disc"
-msgstr ""
+msgstr "Namenlose Disk"
 
 #: lib/album.c:483
 #, c-format
 msgid "Album %s already open"
-msgstr ""
+msgstr "Album %s ist bereits offen"
 
 #: lib/album.c:488
 #, c-format
 msgid "Opening album %s"
-msgstr ""
+msgstr "Öffne Album %s"
 
 #: lib/album.c:620
 #, c-format
 msgid "Not closing album %s (open_count > 0)"
-msgstr ""
+msgstr "Werde Album %s nicht schließen (open_count > 0)"
 
 #: lib/album.c:623
 #, c-format
 msgid "Closing album %s"
-msgstr ""
+msgstr "Schließe Album %s"
 
 #: lib/album.c:1700
 #, c-format
 msgid "Loading %s"
-msgstr ""
+msgstr "Lade %s"
 
 #: lib/album.c:1739
 #, c-format
 msgid "Loaded %s (track %d of %d)"
-msgstr ""
+msgstr "%s geladen (Track %d von %d)"
 
 #: lib/album.c:1880
 msgid "Ejecting disc failed"
-msgstr ""
+msgstr "Datenträger auswerfen fehlgeschlagen"
 
 #: lib/album.c:1984
 msgid "Invalid selection range given"
-msgstr ""
+msgstr "Ungültiger Auswahlbereich"
 
 #: lib/filters.c:189
 msgid "Audio Filters"
-msgstr ""
+msgstr "Audiofilter"
 
 #: lib/filters.c:336
 #, c-format
 msgid "Initialized audio filter %s"
-msgstr ""
+msgstr "Initialisierte Audiofilter %s"
 
 #: lib/filters.c:563
 msgid "Video Filters"
-msgstr ""
+msgstr "Videofilter"
 
 #: lib/filters.c:698
 #, c-format
 msgid "Initialized video filter %s"
-msgstr ""
+msgstr "Initialisierte Videofilter %s"
 
 #: lib/bglv.c:428
 msgid "libvisual plugin"
-msgstr ""
+msgstr "libvisual Plugin"
 
 #: lib/bglv.c:433
 #, c-format
@@ -6647,6 +6670,8 @@ msgid ""
 "\n"
 "Author: %s"
 msgstr ""
+"\n"
+"Author: %s"
 
 #: lib/bglv.c:440
 #, c-format
@@ -6654,6 +6679,8 @@ msgid ""
 "\n"
 "Version: %s"
 msgstr ""
+"\n"
+"Version: %s"
 
 #: lib/bglv.c:447
 #, c-format
@@ -6661,6 +6688,8 @@ msgid ""
 "\n"
 "About: %s"
 msgstr ""
+"\n"
+"Über: %s"
 
 #: lib/bglv.c:454
 #, c-format
@@ -6668,6 +6697,8 @@ msgid ""
 "\n"
 "Help: %s"
 msgstr ""
+"\n"
+"Hilfe: %s"
 
 #: lib/bglv.c:461
 #, c-format
@@ -6675,3 +6706,8 @@ msgid ""
 "\n"
 "License: %s"
 msgstr ""
+"\n"
+"Lizenz: %s"
+
+#~ msgid "Ignore linebreaks in subtitles."
+#~ msgstr "Ignoriere Zeilenumbrüche"

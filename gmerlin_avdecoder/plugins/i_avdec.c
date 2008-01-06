@@ -247,7 +247,7 @@ static bg_parameter_info_t parameters[] =
  rule is, that the first part of the filename of the subtitle file\
  must be equal to the movie filename up to the extension.\
  Furthermore, the subtitle filename must have an extension supported by\
- any of the subtitle readers. Subtitle seeking can be disabled, enabled for video files or\
+ any of the subtitle readers. Subtitle seeking can be disabled, enabled for video files or \
 enabled for all files.")
     },
     {

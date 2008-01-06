@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2008-01-03 18:53+0100\n"
+"POT-Creation-Date: 2008-01-04 02:24+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -164,7 +164,7 @@ msgid ""
 "the filename of the subtitle file must be equal to the movie filename up to "
 "the extension. Furthermore, the subtitle filename must have an extension "
 "supported by any of the subtitle readers. Subtitle seeking can be disabled, "
-"enabled for video files orenabled for all files."
+"enabled for video files or enabled for all files."
 msgstr ""
 
 #: plugins/i_avdec.c:255
@@ -1335,7 +1335,7 @@ msgstr ""
 
 #: lib/in_dvb_linux.c:742
 #, c-format
-msgid "Cannot open frontend device %s"
+msgid "Cannot open frontend device %s: %s"
 msgstr ""
 
 #: lib/in_dvb_linux.c:749
@@ -1358,16 +1358,26 @@ msgstr ""
 msgid "Using channel cache"
 msgstr ""
 
-#: lib/in_dvb_linux.c:865
+#: lib/in_dvb_linux.c:868 lib/in_dvb_linux.c:889
 msgid "Reading timed out (check cable connections)"
 msgstr ""
 
-#: lib/in_dvb_linux.c:888
+#: lib/in_dvb_linux.c:880
+#, c-format
+msgid "poll failed: %s"
+msgstr ""
+
+#: lib/in_dvb_linux.c:898
+#, c-format
+msgid "read failed: %s"
+msgstr ""
+
+#: lib/in_dvb_linux.c:920
 #, c-format
 msgid "Setting filter failed: %s"
 msgstr ""
 
-#: lib/in_dvb_linux.c:1035
+#: lib/in_dvb_linux.c:1067
 msgid "Filters initialized successfully"
 msgstr ""
 

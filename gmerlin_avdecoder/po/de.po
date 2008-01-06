@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmerlin-avdecoder 0.1.6\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2008-01-03 18:53+0100\n"
-"PO-Revision-Date: 2007-11-18 18:24+0100\n"
+"POT-Creation-Date: 2008-01-04 02:24+0100\n"
+"PO-Revision-Date: 2008-01-04 02:25+0100\n"
 "Last-Translator: Burkhard Plaum <gmerlin@users.sourceforge.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -157,7 +157,6 @@ msgid "Always"
 msgstr "Immer"
 
 #: plugins/i_avdec.c:244
-#, fuzzy
 msgid ""
 "If the input is a regular file, gmerlin_avdecoder can scan the directory for "
 "matching subtitle files. For a file movie.mpg, possible subtitle files are e."
@@ -165,14 +164,16 @@ msgid ""
 "the filename of the subtitle file must be equal to the movie filename up to "
 "the extension. Furthermore, the subtitle filename must have an extension "
 "supported by any of the subtitle readers. Subtitle seeking can be disabled, "
-"enabled for video files orenabled for all files."
+"enabled for video files or enabled for all files."
 msgstr ""
 "Wenn eine reguläre Datei gespielt wird, kann gmerlin_avdecoder im "
 "Verzeichnisnach passenden Untertiteldateien suchen. Für eine Datei film.mpg, "
 "können mögliche Untertiteldateien z.B. film_englisch.srt oder film_deutsch."
 "srt heißen.Die Regel ist, daß der Dateiname der Mediendatei (ohne Endung) "
 "der Untertiteldateientsprechen muß. Außerdem muß die Untertiteldatei eine "
-"Erweiterung haben, dievon einem Untertiteldekoder unterstützt wird."
+"Erweiterung haben, dievon einem Untertiteldekoder unterstützt wird. Das "
+"Suchen nach Untertiteln kann ganz abgeschaletet, nur für Videodateien "
+"eingeschaletet oder ganz eingeschaletet werden."
 
 #: plugins/i_avdec.c:255
 msgid "Default subtitle encoding"
@@ -963,9 +964,8 @@ msgid "Cannot skip backwards, stream_time: %s, sync_time: %s"
 msgstr "Kann nicht rückwärts springen, stream_time: %s, sync_time: %s"
 
 #: lib/mpegts_common.c:328
-#, fuzzy
 msgid "Invalid packet"
-msgstr "Ungültige Abtastfrequenz"
+msgstr "Ungültiges Paket"
 
 #: lib/utils.c:540
 #, c-format
@@ -1255,12 +1255,10 @@ msgid "Detected pts wrap (%s < %s)"
 msgstr "Erkannte Umbruch der Zeitst (%s < %s)"
 
 #: lib/demux_mpegts.c:200
-#, fuzzy
 msgid "Too many transport errors"
-msgstr "Übertragungsfehler"
+msgstr "Zu viele Übertragungsfehler"
 
 #: lib/demux_mpegts.c:203
-#, fuzzy
 msgid "Transport error"
 msgstr "Übertragungsfehler"
 
@@ -1372,8 +1370,8 @@ msgstr "Kanalcache ist älter alt channels.conf"
 
 #: lib/in_dvb_linux.c:742
 #, c-format
-msgid "Cannot open frontend device %s"
-msgstr "Kann Frontendgerät %s nicht öffnen"
+msgid "Cannot open frontend device %s: %s"
+msgstr "Kann Frontendgerät %s nicht öffnen: %s"
 
 #: lib/in_dvb_linux.c:749
 msgid "Cannot get frontend info"
@@ -1395,16 +1393,26 @@ msgstr "Erzeuge Kanalcache neu"
 msgid "Using channel cache"
 msgstr "Benutze Kanalcache"
 
-#: lib/in_dvb_linux.c:865
+#: lib/in_dvb_linux.c:868 lib/in_dvb_linux.c:889
 msgid "Reading timed out (check cable connections)"
 msgstr "Zeitüberschreitung beim Lesen (Antenne eingesteckt?)"
 
-#: lib/in_dvb_linux.c:888
+#: lib/in_dvb_linux.c:880
+#, c-format
+msgid "poll failed: %s"
+msgstr "poll fehlgeschlagen: %s"
+
+#: lib/in_dvb_linux.c:898
+#, c-format
+msgid "read failed: %s"
+msgstr "Lesen fehlgeschlagen: %s"
+
+#: lib/in_dvb_linux.c:920
 #, c-format
 msgid "Setting filter failed: %s"
 msgstr "Filter setzen fehlgeschlagen: %s"
 
-#: lib/in_dvb_linux.c:1035
+#: lib/in_dvb_linux.c:1067
 msgid "Filters initialized successfully"
 msgstr "Filter erfolgreich initialisiert"
 

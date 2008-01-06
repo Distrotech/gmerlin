@@ -211,7 +211,8 @@ static int open_devices(oss_t * priv, gavl_audio_format_t * format)
     bg_oss_set_channels(priv->fd_front, priv->num_channels_front);
   if(test_value != priv->num_channels_front)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Device %s supports no %d-channel sound",
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Device %s doesn't support %d channel sound",
             priv->device_front,
             priv->num_channels_front);
     goto fail;

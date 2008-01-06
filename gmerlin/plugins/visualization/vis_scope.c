@@ -59,146 +59,6 @@ typedef struct
   
   } scope_priv_t;
 
-static void * create_scope()
-  {
-  scope_priv_t * ret;
-  int flags;
-  ret = calloc(1, sizeof(*ret));
-  ret->scaler = gavl_video_scaler_create();
-  ret->scaler_opt = gavl_video_scaler_get_options(ret->scaler);
-
-  //  gavl_video_options_set_quality(ret->scaler_opt, 3);
-
-  flags = gavl_video_options_get_conversion_flags(ret->scaler_opt);
-  flags &= ~GAVL_CONVOLVE_NORMALIZE;
-  gavl_video_options_set_conversion_flags(ret->scaler_opt, flags);
-  
-  return ret;
-  }
-
-static void destroy_scope(void * priv)
-  {
-  scope_priv_t * vp;
-  vp = (scope_priv_t *)priv;
-
-  if(vp->audio_frame)
-    gavl_audio_frame_destroy(vp->audio_frame);
-  if(vp->last_video_frame)
-    gavl_video_frame_destroy(vp->last_video_frame);
-  
-  gavl_video_scaler_destroy(vp->scaler);
-  free(vp);
-  }
-
-static bg_parameter_info_t parameters[] =
-  {
-    {
-      gettext_domain: PACKAGE,
-      gettext_directory: LOCALE_DIR,
-      name: "fg_color",
-      long_name: TRS("Foreground color"),
-      type: BG_PARAMETER_COLOR_RGB,
-      flags: BG_PARAMETER_SYNC,
-      val_default: { val_color: { 1.0, 1.0, 0.0 } },
-    },
-    {
-      name: "blur_mode",
-      long_name: TRS("Blur mode"),
-      type: BG_PARAMETER_STRINGLIST,
-      flags: BG_PARAMETER_SYNC,
-      val_default: { val_str: "gauss" },
-      multi_names: (char*[]){ "gauss", "triangular", "box", 
-                              (char*)0 },
-      multi_labels: (char*[]){ TRS("Gauss"), 
-                               TRS("Triangular"), 
-                               TRS("Rectangular"),
-                              (char*)0 },
-    },
-    {
-      name: "blur_radius",
-      long_name: TRS("Blur radius"),
-      type: BG_PARAMETER_FLOAT,
-      flags: BG_PARAMETER_SYNC,
-      val_min: { val_f:  1.0 },
-      val_max: { val_f: 50.0 },
-      val_default: { val_f:  1.0 },
-      num_digits: 1,
-    },
-    {
-      name: "fade_factor",
-      long_name: TRS("Fade factor"),
-      type: BG_PARAMETER_SLIDER_FLOAT,
-      val_min: { val_f:  0.1 },
-      val_max: { val_f:  1.0 },
-      val_default: { val_f:  0.98 },
-      num_digits: 2,
-    },
-    { /* End of parameters */ },
-  };
-
-static bg_parameter_info_t * get_parameters_scope(void * priv)
-  {
-  return parameters;
-  }
-
-static void
-set_parameter_scope(void * priv, const char * name,
-                    const bg_parameter_value_t * val)
-  {
-  uint8_t fg_r, fg_g, fg_b;
-  
-  scope_priv_t * vp;
-  vp = (scope_priv_t *)priv;
-
-  if(!name)
-    return;
-  
-  if(!strcmp(name, "fg_color"))
-    {
-    vp->fg_float[0] = val->val_color[0];
-    vp->fg_float[1] = val->val_color[1];
-    vp->fg_float[2] = val->val_color[2];
-
-    /* Set foreground color */
-    fg_r = (int)(vp->fg_float[0] * 255.0 + 0.5);
-    fg_g = (int)(vp->fg_float[1] * 255.0 + 0.5);
-    fg_b = (int)(vp->fg_float[2] * 255.0 + 0.5);
-    
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
-    vp->fg_int = fg_r | (fg_g << 8) | (fg_b << 16) | 0xff000000;
-#else
-    vp->fg_int = (fg_r<<24) | (fg_g << 16) | (fg_b << 8) | 0x000000ff;
-#endif
-    
-    }
-  else if(!strcmp(name, "blur_mode"))
-    {
-    if(!strcmp(val->val_str, "gauss"))
-      vp->blur_mode = BLUR_MODE_GAUSS;
-    else if(!strcmp(val->val_str, "triangular"))
-      vp->blur_mode = BLUR_MODE_TRIANGULAR;
-    else if(!strcmp(val->val_str, "box"))
-      vp->blur_mode = BLUR_MODE_BOX;
-    vp->changed = 1;
-    }
-  else if(!strcmp(name, "blur_radius"))
-    {
-    if(vp->blur_radius != val->val_f)
-      {
-      vp->blur_radius = val->val_f;
-      vp->changed = 1;
-      }
-    }
-  else if(!strcmp(name, "fade_factor"))
-    {
-    if(vp->fade_factor != val->val_f)
-      {
-      vp->fade_factor = val->val_f;
-      vp->changed = 1;
-      }
-    }
-  }
-
 static float get_coeff_rectangular(float radius)
   {
   if(radius <= 1.0)
@@ -274,13 +134,167 @@ static float * get_coeffs(float radius, int * r_i, int mode, float fade_factor)
   }
 
 
+static void init_scaler(scope_priv_t * vp)
+  {
+  float * blur_coeffs;
+  int num_blur_coeffs = 0;
+  blur_coeffs = get_coeffs(vp->blur_radius, &num_blur_coeffs, vp->blur_mode, vp->fade_factor);
+  
+  gavl_video_scaler_init_convolve(vp->scaler,
+                                  &vp->video_format,
+                                  num_blur_coeffs, blur_coeffs,
+                                  num_blur_coeffs, blur_coeffs);
+  if(blur_coeffs) free(blur_coeffs);
+  
+  }
+
+
+static void * create_scope()
+  {
+  scope_priv_t * ret;
+  int flags;
+  ret = calloc(1, sizeof(*ret));
+  ret->scaler = gavl_video_scaler_create();
+  ret->scaler_opt = gavl_video_scaler_get_options(ret->scaler);
+
+  //  gavl_video_options_set_quality(ret->scaler_opt, 3);
+
+  flags = gavl_video_options_get_conversion_flags(ret->scaler_opt);
+  flags &= ~GAVL_CONVOLVE_NORMALIZE;
+  gavl_video_options_set_conversion_flags(ret->scaler_opt, flags);
+  
+  return ret;
+  }
+
+static void destroy_scope(void * priv)
+  {
+  scope_priv_t * vp;
+  vp = (scope_priv_t *)priv;
+
+  if(vp->audio_frame)
+    gavl_audio_frame_destroy(vp->audio_frame);
+  if(vp->last_video_frame)
+    gavl_video_frame_destroy(vp->last_video_frame);
+  
+  gavl_video_scaler_destroy(vp->scaler);
+  free(vp);
+  }
+
+static bg_parameter_info_t parameters[] =
+  {
+    {
+      gettext_domain: PACKAGE,
+      gettext_directory: LOCALE_DIR,
+      name: "fg_color",
+      long_name: TRS("Foreground color"),
+      type: BG_PARAMETER_COLOR_RGB,
+      flags: BG_PARAMETER_SYNC,
+      val_default: { val_color: { 1.0, 1.0, 0.0 } },
+    },
+    {
+      name: "blur_mode",
+      long_name: TRS("Blur mode"),
+      type: BG_PARAMETER_STRINGLIST,
+      flags: BG_PARAMETER_SYNC,
+      val_default: { val_str: "gauss" },
+      multi_names: (char*[]){ "gauss", "triangular", "box", 
+                              (char*)0 },
+      multi_labels: (char*[]){ TRS("Gauss"), 
+                               TRS("Triangular"), 
+                               TRS("Rectangular"),
+                              (char*)0 },
+    },
+    {
+      name: "blur_radius",
+      long_name: TRS("Blur radius"),
+      type: BG_PARAMETER_FLOAT,
+      flags: BG_PARAMETER_SYNC,
+      val_min: { val_f:  1.0 },
+      val_max: { val_f: 50.0 },
+      val_default: { val_f:  1.0 },
+      num_digits: 1,
+    },
+    {
+      name: "fade_factor",
+      long_name: TRS("Fade factor"),
+      type: BG_PARAMETER_SLIDER_FLOAT,
+      flags: BG_PARAMETER_SYNC,
+      val_min: { val_f:  0.1 },
+      val_max: { val_f:  1.0 },
+      val_default: { val_f:  0.98 },
+      num_digits: 2,
+    },
+    { /* End of parameters */ },
+  };
+
+static bg_parameter_info_t * get_parameters_scope(void * priv)
+  {
+  return parameters;
+  }
+
+static void
+set_parameter_scope(void * priv, const char * name,
+                    const bg_parameter_value_t * val)
+  {
+  uint8_t fg_r, fg_g, fg_b;
+  
+  scope_priv_t * vp;
+  vp = (scope_priv_t *)priv;
+
+  if(!name)
+    return;
+  
+  if(!strcmp(name, "fg_color"))
+    {
+    vp->fg_float[0] = val->val_color[0];
+    vp->fg_float[1] = val->val_color[1];
+    vp->fg_float[2] = val->val_color[2];
+
+    /* Set foreground color */
+    fg_r = (int)(vp->fg_float[0] * 255.0 + 0.5);
+    fg_g = (int)(vp->fg_float[1] * 255.0 + 0.5);
+    fg_b = (int)(vp->fg_float[2] * 255.0 + 0.5);
+    
+#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+    vp->fg_int = fg_r | (fg_g << 8) | (fg_b << 16) | 0xff000000;
+#else
+    vp->fg_int = (fg_r<<24) | (fg_g << 16) | (fg_b << 8) | 0x000000ff;
+#endif
+    
+    }
+  else if(!strcmp(name, "blur_mode"))
+    {
+    if(!strcmp(val->val_str, "gauss"))
+      vp->blur_mode = BLUR_MODE_GAUSS;
+    else if(!strcmp(val->val_str, "triangular"))
+      vp->blur_mode = BLUR_MODE_TRIANGULAR;
+    else if(!strcmp(val->val_str, "box"))
+      vp->blur_mode = BLUR_MODE_BOX;
+    vp->changed = 1;
+    }
+  else if(!strcmp(name, "blur_radius"))
+    {
+    if(vp->blur_radius != val->val_f)
+      {
+      vp->blur_radius = val->val_f;
+      vp->changed = 1;
+      }
+    }
+  else if(!strcmp(name, "fade_factor"))
+    {
+    if(vp->fade_factor != val->val_f)
+      {
+      vp->fade_factor = val->val_f;
+      vp->changed = 1;
+      }
+    }
+  }
+
 static int
 open_scope(void * priv, gavl_audio_format_t * audio_format,
            gavl_video_format_t * video_format)
   {
   scope_priv_t * vp;
-  float * blur_coeffs;
-  int num_blur_coeffs = 0;
   
   vp = (scope_priv_t *)priv;
 
@@ -329,14 +343,7 @@ open_scope(void * priv, gavl_audio_format_t * audio_format,
   
 
   /* Initialize scaler */
-  
-  blur_coeffs = get_coeffs(vp->blur_radius, &num_blur_coeffs, vp->blur_mode, vp->fade_factor);
-  
-  gavl_video_scaler_init_convolve(vp->scaler,
-                                  &vp->video_format,
-                                  num_blur_coeffs, blur_coeffs,
-                                  num_blur_coeffs, blur_coeffs);
-  if(blur_coeffs) free(blur_coeffs);
+  init_scaler(vp);
   
   return 1;
   }
@@ -427,6 +434,12 @@ static void draw_frame_scope(void * priv, gavl_video_frame_t * frame)
 
   vp = (scope_priv_t *)priv;
 
+  if(vp->changed)
+    {
+    init_scaler(vp);
+    vp->changed = 0;
+    }
+  
   gavl_video_frame_clear(frame, &vp->video_format);
   
   gavl_video_scaler_scale(vp->scaler, vp->last_video_frame, frame);

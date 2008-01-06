@@ -89,13 +89,13 @@ static bg_parameter_info_t parameters[] =
       name:        "server",
       long_name:   TRS("Server"),
       type:        BG_PARAMETER_STRING,
-      help_string: TRS("Server to connect to. Leave empty for default"),
+      help_string: TRS("Server to connect to. Leave empty for default."),
     },
     {
       name:        "dev",
       long_name:   TRS("Source"),
       type:        BG_PARAMETER_STRING,
-      help_string: TRS("Source to open"),
+      help_string: TRS("Source to open. Use the PulseAudio manager for available Sources."),
     },
     { },
   };

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2008-01-04 19:51+0100\n"
+"POT-Creation-Date: 2008-01-06 14:43+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,17 +16,17 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: plugins/pulseaudio/oa_pulse.c:84
+#: plugins/pulseaudio/oa_pulse.c:86
 msgid "Pulse"
 msgstr ""
 
-#: plugins/pulseaudio/oa_pulse.c:85
+#: plugins/pulseaudio/oa_pulse.c:87
 msgid "PulseAudio output"
 msgstr ""
 
-#: plugins/pulseaudio/pulseaudio_common.c:179
+#: plugins/pulseaudio/pulseaudio_common.c:183
 #, c-format
-msgid "Opening Pulseaudio failed: %s"
+msgid "Connection to Pulseaudio failed: %s"
 msgstr ""
 
 #: plugins/pulseaudio/i_pulse.c:67 plugins/oss/i_oss.c:57
@@ -60,7 +60,7 @@ msgid "Server"
 msgstr ""
 
 #: plugins/pulseaudio/i_pulse.c:92
-msgid "Server to connect to. Leave empty for default"
+msgid "Server to connect to. Leave empty for default."
 msgstr ""
 
 #: plugins/pulseaudio/i_pulse.c:96
@@ -68,7 +68,7 @@ msgid "Source"
 msgstr ""
 
 #: plugins/pulseaudio/i_pulse.c:98
-msgid "Source to open"
+msgid "Source to open. Use the PulseAudio manager for available Sources."
 msgstr ""
 
 #: plugins/pulseaudio/i_pulse.c:152
@@ -362,7 +362,7 @@ msgid "V4L"
 msgstr ""
 
 #: plugins/v4l/i_v4l.c:717
-msgid "video4linux input plugin. Supports only video and no tuner decives"
+msgid "video4linux input plugin. Supports only video and no tuner decives."
 msgstr ""
 
 #: plugins/image/ir_tga.c:95
@@ -382,7 +382,7 @@ msgstr ""
 msgid "Can't open File %s"
 msgstr ""
 
-#: plugins/image/ir_bmp.c:234 plugins/image/ir_pnm.c:120
+#: plugins/image/ir_bmp.c:234 plugins/image/ir_pnm.c:123
 msgid "Can't read File type"
 msgstr ""
 
@@ -424,89 +424,89 @@ msgstr ""
 msgid "Writer for TGA images"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:102
+#: plugins/image/ir_pnm.c:104
 #, c-format
-msgid "Can't open file %s"
+msgid "Cannot open file %s: %s"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:135
+#: plugins/image/ir_pnm.c:138
 msgid "File isn't a pnm"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:161
+#: plugins/image/ir_pnm.c:164
 #, c-format
 msgid "File must not be a pnm (%.1s%.1s%.1s)"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:178
+#: plugins/image/ir_pnm.c:181
 msgid "Can't read width"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:191
+#: plugins/image/ir_pnm.c:194
 msgid "Can't read height"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:204
+#: plugins/image/ir_pnm.c:207
 msgid "Can't read maxval"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:228
+#: plugins/image/ir_pnm.c:231
 msgid "Sorry PAM format not suported"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:234
+#: plugins/image/ir_pnm.c:237
 #, c-format
 msgid "File isn't a pnm (%.1s%.1s%.1s)"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:281
+#: plugins/image/ir_pnm.c:284
 msgid "PBMascii"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:315
+#: plugins/image/ir_pnm.c:318
 msgid "PBMbin"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:353
+#: plugins/image/ir_pnm.c:356
 msgid "PGMascii"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:382
+#: plugins/image/ir_pnm.c:385
 msgid "PGMascii_16"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:413
+#: plugins/image/ir_pnm.c:416
 msgid "PGMbin"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:438
+#: plugins/image/ir_pnm.c:441
 msgid "PGMbin_16"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:465
+#: plugins/image/ir_pnm.c:468
 msgid "PPMascii"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:508
+#: plugins/image/ir_pnm.c:511
 msgid "PPMascii_16"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:586
+#: plugins/image/ir_pnm.c:589
 msgid "PPMbin_16"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:627
+#: plugins/image/ir_pnm.c:630
 msgid "PNM reader"
 msgstr ""
 
-#: plugins/image/ir_pnm.c:628
+#: plugins/image/ir_pnm.c:631
 msgid "Reader for PBM/PGM/PPM images"
 msgstr ""
 
 #: plugins/image/iw_bmp.c:129 plugins/image/iw_pnm.c:79
-#: plugins/oss/oa_oss.c:144 plugins/oss/oa_oss.c:154 plugins/oss/oa_oss.c:164
-#: plugins/png/pngwriter.c:53 plugins/tiff/iw_tiff.c:90
-#: plugins/jpeg/iw_jpeg.c:92
+#: plugins/oss/i_oss.c:201 plugins/oss/oa_oss.c:144 plugins/oss/oa_oss.c:154
+#: plugins/oss/oa_oss.c:164 plugins/png/pngwriter.c:53
+#: plugins/tiff/iw_tiff.c:90 plugins/jpeg/iw_jpeg.c:92
 #, c-format
 msgid "Cannot open %s: %s"
 msgstr ""
@@ -566,29 +566,24 @@ msgstr ""
 msgid "Invalid number of channels"
 msgstr ""
 
-#: plugins/oss/i_oss.c:201
-#, c-format
-msgid "Opening %s failed: %s"
-msgstr ""
-
 #: plugins/oss/i_oss.c:211 plugins/oss/oa_oss.c:178 plugins/oss/oa_oss.c:190
 #: plugins/oss/oa_oss.c:202
 #, c-format
 msgid "Cannot set sampleformat for %s"
 msgstr ""
 
-#: plugins/oss/i_oss.c:219
+#: plugins/oss/i_oss.c:219 plugins/oss/oa_oss.c:215
 #, c-format
 msgid "Device %s doesn't support %d channel sound"
 msgstr ""
 
-#: plugins/oss/i_oss.c:228 plugins/oss/oa_oss.c:252 plugins/oss/oa_oss.c:264
-#: plugins/oss/oa_oss.c:277
+#: plugins/oss/i_oss.c:228 plugins/oss/oa_oss.c:253 plugins/oss/oa_oss.c:265
+#: plugins/oss/oa_oss.c:278
 #, c-format
 msgid "Samplerate %f kHz not supported by device %s"
 msgstr ""
 
-#: plugins/oss/i_oss.c:280 plugins/oss/oa_oss.c:562
+#: plugins/oss/i_oss.c:280 plugins/oss/oa_oss.c:563
 msgid "OSS"
 msgstr ""
 
@@ -628,54 +623,54 @@ msgstr ""
 msgid "Center/LFE Device"
 msgstr ""
 
-#: plugins/oss/oa_oss.c:214 plugins/oss/oa_oss.c:226 plugins/oss/oa_oss.c:239
+#: plugins/oss/oa_oss.c:227 plugins/oss/oa_oss.c:240
 #, c-format
 msgid "Device %s supports no %d-channel sound"
 msgstr ""
 
-#: plugins/oss/oa_oss.c:502
+#: plugins/oss/oa_oss.c:503
 msgid "SNDCTL_DSP_GETODELAY ioctl failed"
 msgstr ""
 
-#: plugins/oss/oa_oss.c:563
+#: plugins/oss/oa_oss.c:564
 msgid "OSS output driver"
 msgstr ""
 
-#: plugins/visualization/vis_scope.c:99 lib/osd.c:94
+#: plugins/visualization/vis_scope.c:189 lib/osd.c:94
 msgid "Foreground color"
 msgstr ""
 
-#: plugins/visualization/vis_scope.c:106
+#: plugins/visualization/vis_scope.c:196
 msgid "Blur mode"
 msgstr ""
 
-#: plugins/visualization/vis_scope.c:112 plugins/videofilters/fv_blur.c:207
+#: plugins/visualization/vis_scope.c:202 plugins/videofilters/fv_blur.c:207
 msgid "Gauss"
 msgstr ""
 
-#: plugins/visualization/vis_scope.c:113 plugins/videofilters/fv_blur.c:208
+#: plugins/visualization/vis_scope.c:203 plugins/videofilters/fv_blur.c:208
 #: include/bggavl.h:384
 msgid "Triangular"
 msgstr ""
 
-#: plugins/visualization/vis_scope.c:114 plugins/videofilters/fv_blur.c:209
+#: plugins/visualization/vis_scope.c:204 plugins/videofilters/fv_blur.c:209
 #: include/bggavl.h:383
 msgid "Rectangular"
 msgstr ""
 
-#: plugins/visualization/vis_scope.c:119
+#: plugins/visualization/vis_scope.c:209
 msgid "Blur radius"
 msgstr ""
 
-#: plugins/visualization/vis_scope.c:129
+#: plugins/visualization/vis_scope.c:219
 msgid "Fade factor"
 msgstr ""
 
-#: plugins/visualization/vis_scope.c:490
+#: plugins/visualization/vis_scope.c:503
 msgid "Scope"
 msgstr ""
 
-#: plugins/visualization/vis_scope.c:491
+#: plugins/visualization/vis_scope.c:504
 msgid "Scope plugin"
 msgstr ""
 
@@ -723,7 +718,7 @@ msgstr ""
 msgid "Unknown error"
 msgstr ""
 
-#: plugins/alsa/i_alsa.c:338 plugins/alsa/oa_alsa.c:475
+#: plugins/alsa/i_alsa.c:338 plugins/alsa/oa_alsa.c:471
 msgid "Alsa"
 msgstr ""
 
@@ -776,12 +771,12 @@ msgid ""
 "of the volume control."
 msgstr ""
 
-#: plugins/alsa/oa_alsa.c:391
+#: plugins/alsa/oa_alsa.c:387
 #, c-format
 msgid "snd_pcm_write returned %s"
 msgstr ""
 
-#: plugins/alsa/oa_alsa.c:476
+#: plugins/alsa/oa_alsa.c:472
 msgid ""
 "Alsa output plugin with support for channel configurations up to 5.1. "
 "Samples are sent to the soundcards in the nearest precision of the source "
@@ -3201,7 +3196,7 @@ msgid "Add <gml> to the incoming album"
 msgstr ""
 
 #: apps/player/gmerlin_remote.c:349
-msgid "Add <location> to the incoming album and play it"
+msgid "Add <gml> to the incoming album and play it"
 msgstr ""
 
 #: apps/player/gmerlin_remote.c:354 apps/player/gmerlin_remote.c:360
@@ -5279,7 +5274,7 @@ msgstr ""
 #: lib/textrenderer.c:117
 msgid ""
 "Specify, how many different characters are cached for faster rendering. For "
-"European languages, this never needs to be larger than 255"
+"European languages, this never needs to be larger than 255."
 msgstr ""
 
 #: lib/textrenderer.c:121 lib/textrenderer.c:130 lib/osd.c:134 lib/osd.c:143
@@ -5306,12 +5301,8 @@ msgstr ""
 msgid "Distance from the bottom text border to the image border"
 msgstr ""
 
-#: lib/textrenderer.c:157
+#: lib/textrenderer.c:157 lib/textrenderer.c:159
 msgid "Ignore linebreaks"
-msgstr ""
-
-#: lib/textrenderer.c:159
-msgid "Ignore linebreaks in subtitles."
 msgstr ""
 
 #: lib/textrenderer.c:163

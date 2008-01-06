@@ -180,7 +180,7 @@ int bg_pa_open(bg_pa_t * p, int record)
 
   if(!p->pa)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Opening Pulseaudio failed: %s",
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Connection to Pulseaudio failed: %s",
            pa_strerror(error));
     return 0;
     }

@@ -22,6 +22,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
+
 #include <inttypes.h>
 #include <plugin.h>
 #include <math.h>
@@ -99,7 +101,8 @@ static int read_header_pnm(void *priv,const char *filename, gavl_video_format_t 
     
   if(!pnm_file)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN,"Can't open file %s", filename);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,"Cannot open file %s: %s",
+           filename, strerror(errno));
     return 0;
     }
   
