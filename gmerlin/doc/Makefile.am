@@ -7,7 +7,8 @@ gmerlin_remote.texi \
 gmerlin_transcoder.texi \
 gmerlin_transcoder_remote.texi \
 gmerlin_play.texi \
-gmerlin_player.texi
+gmerlin_player.texi \
+plugins.texi
 
 info_TEXINFOS=gmerlin.texi
 gmerlin_TEXINFOS= $(info_TEXINFOS) version.texi

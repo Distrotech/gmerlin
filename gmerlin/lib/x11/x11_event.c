@@ -388,6 +388,14 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
                    RevertToParent, w->focus_time);
     w->need_focus = 0;
     }
+
+  if(w->need_fullscreen &&
+     window_is_viewable(w->dpy, w->fullscreen.win))
+    {
+    bg_x11_window_set_fullscreen_mapped(w, &w->fullscreen);
+
+    w->need_fullscreen = 0;
+    }
   
   if(!evt)
     return;
@@ -783,6 +791,8 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
                                             CurrentTime,
                                             XEMBED_REQUEST_FOCUS,
                                             0, 0, 0);
+        
+        //        bg_x11_window_set_fullscreen_mapped(w, &w->fullscreen);
         }
       else if(evt->xmap.window == w->fullscreen.toplevel)
         {

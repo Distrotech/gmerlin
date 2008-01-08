@@ -1205,10 +1205,12 @@ static bg_plugin_handle_t * load_plugin(bg_plugin_registry_t * reg,
       case BG_PLUGIN_API_LADSPA:
         if(!bg_ladspa_load(ret, info))
           goto fail;
+        break;
 #ifdef HAVE_LV
       case BG_PLUGIN_API_LV:
         if(!bg_lv_load(ret, info->name, info->flags, (char*)0))
           goto fail;
+        break;
 #endif
       }
     }

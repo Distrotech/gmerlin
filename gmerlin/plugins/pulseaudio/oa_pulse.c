@@ -20,7 +20,7 @@
  * *****************************************************************/
 
 #include <pulseaudio_common.h>
-#include <gmerlin/log.h>
+#include <log.h>
 #define LOG_DOMAIN "oa_pulse"
 
 static int open_pulse(void * data,

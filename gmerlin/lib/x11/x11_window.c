@@ -46,8 +46,9 @@
 #define _NET_WM_STATE_ADD           1    /* add/set property */
 
 // #define FULLSCREEN_MODE_OLD    0
-#define FULLSCREEN_MODE_NET_FULLSCREEN (1<<0)
-#define FULLSCREEN_MODE_NET_ABOVE      (1<<1)
+#define FULLSCREEN_MODE_NET_FULLSCREEN   (1<<0)
+#define FULLSCREEN_MODE_NET_ABOVE        (1<<1)
+#define FULLSCREEN_MODE_NET_STAYS_ON_TOP (1<<2)
 
 #define FULLSCREEN_MODE_WIN_LAYER      (1<<2)
 
@@ -262,7 +263,7 @@ netwm_set_state(bg_x11_window_t * w, Window win, int action, Atom state)
   memset(&e,0,sizeof(e));
   e.xclient.type = ClientMessage;
   e.xclient.message_type = w->_NET_WM_STATE;
-  e.xclient.display = w->dpy;
+  //  e.xclient.display = w->dpy;
   e.xclient.window = win;
   e.xclient.send_event = True;
   e.xclient.format = 32;
@@ -270,49 +271,8 @@ netwm_set_state(bg_x11_window_t * w, Window win, int action, Atom state)
   e.xclient.data.l[1] = state;
   
   XSendEvent(w->dpy, w->root, False,
-             SubstructureRedirectMask, &e);
+             SubstructureRedirectMask | SubstructureNotifyMask, &e);
   }
-
-#if 0
-static void
-netwm_set_fullscreen(bg_x11_window_t * w, Window win)
-  {
-  long                  propvalue[2];
-    
-  propvalue[0] = w->_NET_WM_STATE_FULLSCREEN;
-  propvalue[1] = 0;
-
-  XChangeProperty (w->dpy, win, 
-		   w->_NET_WM_STATE, XA_ATOM, 
-		       32, PropModeReplace, 
-		       (unsigned char *)propvalue, 1);
-  XFlush(w->dpy);
-
-
-
-  }
-#endif
-
-#if 0
-static void
-netwm_set_layer(bg_x11_window_t * w, Window win, int layer)
-  {
-  XEvent e;
-  
-  memset(&e,0,sizeof(e));
-  e.xclient.type = ClientMessage;
-  e.xclient.message_type = w->_NET_WM_STATE;
-  e.xclient.display = w->dpy;
-  e.xclient.window = win;
-  e.xclient.format = 32;
-  e.xclient.data.l[0] = operation;
-  e.xclient.data.l[1] = state;
-  
-  XSendEvent(w->dpy, w->root, False,
-             SubstructureRedirectMask, &e);
-  
-  }
-#endif
 
 static int get_fullscreen_mode(bg_x11_window_t * w)
   {
@@ -341,8 +301,10 @@ static int get_fullscreen_mode(bg_x11_window_t * w)
       {
       ret |= FULLSCREEN_MODE_NET_ABOVE;
       }
-
-    
+    if (ldata[i] == w->_NET_WM_STATE_STAYS_ON_TOP)
+      {
+      ret |= FULLSCREEN_MODE_NET_STAYS_ON_TOP;
+      }
     }
   XFree(ldata);
   
@@ -355,31 +317,45 @@ static int get_fullscreen_mode(bg_x11_window_t * w)
   return ret;
   }
 
+#define INIT_ATOM(a) w->a = XInternAtom(w->dpy, #a, False);
+
 static void init_atoms(bg_x11_window_t * w)
   {
+  INIT_ATOM(WM_DELETE_WINDOW);
+  INIT_ATOM(WM_TAKE_FOCUS);
+  INIT_ATOM(WIN_PROTOCOLS);
+  INIT_ATOM(WM_PROTOCOLS);
+  INIT_ATOM(WIN_LAYER);
+  INIT_ATOM(_NET_SUPPORTED);
+  INIT_ATOM(_NET_WM_STATE);
+  INIT_ATOM(_NET_WM_STATE_FULLSCREEN);
+  INIT_ATOM(_NET_WM_STATE_ABOVE);
+  INIT_ATOM(_NET_WM_STATE_STAYS_ON_TOP);
+  INIT_ATOM(_NET_MOVERESIZE_WINDOW);
+  INIT_ATOM(_XEMBED_INFO);
+  INIT_ATOM(_XEMBED);
+  INIT_ATOM(WM_CLASS);
+  INIT_ATOM(STRING);
+  }
 
-  w->WM_DELETE_WINDOW         = XInternAtom(w->dpy, "WM_DELETE_WINDOW", False);
-  w->WM_TAKE_FOCUS            = XInternAtom(w->dpy, "WM_TAKE_FOCUS", False);
-  
-  w->WIN_PROTOCOLS             = XInternAtom(w->dpy, "WIN_PROTOCOLS", False);
-  w->WM_PROTOCOLS             = XInternAtom(w->dpy, "WM_PROTOCOLS", False);
-  w->WIN_LAYER              = XInternAtom(w->dpy, "WIN_LAYER", False);
-
-  w->_NET_SUPPORTED           = XInternAtom(w->dpy, "_NET_SUPPORTED", False);
-  w->_NET_WM_STATE            = XInternAtom(w->dpy, "_NET_WM_STATE", False);
-  w->_NET_WM_STATE_FULLSCREEN = XInternAtom(w->dpy, "_NET_WM_STATE_FULLSCREEN",
-                                            False);
-  
-  w->_NET_WM_STATE_ABOVE = XInternAtom(w->dpy, "_NET_WM_STATE_ABOVE",
-                                       False);
-
-  w->_NET_MOVERESIZE_WINDOW   = XInternAtom(w->dpy, "_NET_MOVERESIZE_WINDOW",
-                                            False);
-  
-  w->_XEMBED_INFO = XInternAtom(w->dpy, "_XEMBED_INFO", False);
-  w->_XEMBED = XInternAtom(w->dpy, "_XEMBED", False);
-  w->WM_CLASS = XInternAtom(w->dpy, "WM_CLASS", False);
-  w->STRING   = XInternAtom(w->dpy, "STRING", False);
+void bg_x11_window_set_fullscreen_mapped(bg_x11_window_t * win,
+                                         window_t * w)
+  {
+  if(win->fullscreen_mode & FULLSCREEN_MODE_NET_ABOVE)
+    {
+    netwm_set_state(win, w->win,
+                    _NET_WM_STATE_ADD, win->_NET_WM_STATE_ABOVE);
+    }
+  else if(win->fullscreen_mode & FULLSCREEN_MODE_NET_STAYS_ON_TOP)
+    {
+    netwm_set_state(win, w->win,
+                    _NET_WM_STATE_ADD, win->_NET_WM_STATE_STAYS_ON_TOP);
+    }
+  if(win->fullscreen_mode & FULLSCREEN_MODE_NET_FULLSCREEN)
+    {
+    netwm_set_state(win, w->win,
+                    _NET_WM_STATE_ADD, win->_NET_WM_STATE_FULLSCREEN);
+    }
   }
 
 static void show_window(bg_x11_window_t * win, window_t * w, int show)
@@ -440,24 +416,10 @@ static void show_window(bg_x11_window_t * win, window_t * w, int show)
 
   if(w->win == w->toplevel)
     {
-    if(w->fullscreen)
-      {
-      if(win->fullscreen_mode & FULLSCREEN_MODE_NET_ABOVE)
-        {
-        netwm_set_state(win, w->win,
-                        _NET_WM_STATE_ADD, win->_NET_WM_STATE_ABOVE);
-        }
-      if(win->fullscreen_mode & FULLSCREEN_MODE_NET_FULLSCREEN)
-        {
-        netwm_set_state(win, w->win,
-                        _NET_WM_STATE_ADD, win->_NET_WM_STATE_FULLSCREEN);
-        }
-      }
-    else
+    if(!w->fullscreen)
       XMoveResizeWindow(win->dpy, w->win,
                         win->window_x, win->window_y,
                         win->window_width, win->window_height);
-    
     }
   }
 
@@ -514,9 +476,14 @@ int mwm_set_decorations(bg_x11_window_t * w, Window win, int set)
   return 1;
   }
 
-static void set_decorations(bg_x11_window_t * w, Window win, int decorations)
+static void set_fullscreen(bg_x11_window_t * w, Window win)
   {
-  mwm_set_decorations(w, win, decorations);
+  if(w->fullscreen_mode & FULLSCREEN_MODE_NET_FULLSCREEN)
+    {
+    
+    }
+  else
+    mwm_set_decorations(w, win, 0);
   }
 
 static void set_min_size(bg_x11_window_t * w, Window win, int width, int height)
@@ -600,6 +567,10 @@ static int open_display(bg_x11_window_t * w)
   w->fullscreen.child = None;
   
   init_atoms(w);
+  
+  /* Check, which fullscreen modes we have */
+  
+  w->fullscreen_mode = get_fullscreen_mode(w);
   
   check_screensaver(w);
   
@@ -701,6 +672,8 @@ void bg_x11_window_init(bg_x11_window_t * w)
   if((w->fullscreen.parent != w->root) &&
      window_is_viewable(w->dpy, w->fullscreen.parent))
     {
+    fprintf(stderr, "Is fullscreen\n");
+    
     if(!w->is_fullscreen)
       send_event = 1;
     w->current = &w->fullscreen;
@@ -854,7 +827,7 @@ static int create_window(bg_x11_window_t * w,
   
   if(w->normal.parent == w->root)
     {
-    set_decorations(w, w->normal.win, 1);
+    //    set_decorations(w, w->normal.win, 1);
     XSetWMProtocols(w->dpy, w->normal.win, wm_protocols, 2);
     
     if(w->min_width && w->min_height)
@@ -893,7 +866,7 @@ static int create_window(bg_x11_window_t * w,
     {
     /* Setup protocols */
     
-    set_decorations(w, w->fullscreen.win, 0);
+    set_fullscreen(w, w->fullscreen.win);
     XSetWMProtocols(w->dpy, w->fullscreen.win, wm_protocols, 2);
     w->fullscreen.toplevel = w->fullscreen.win;
 
@@ -956,9 +929,6 @@ static int create_window(bg_x11_window_t * w,
   
   w->black = BlackPixel(w->dpy, w->screen);
   
-  /* Check, which fullscreen modes we have */
-  
-  w->fullscreen_mode = get_fullscreen_mode(w);
   
   display_name = XDisplayName(DisplayString(w->dpy));
 
@@ -1016,7 +986,6 @@ static void get_fullscreen_coords(bg_x11_window_t * w,
   *width  = DisplayWidth(w->dpy, w->screen);
   *height = DisplayHeight(w->dpy, w->screen);
 #endif
-
   }
 
 int bg_x11_window_set_fullscreen(bg_x11_window_t * w,int fullscreen)
@@ -1047,6 +1016,7 @@ int bg_x11_window_set_fullscreen(bg_x11_window_t * w,int fullscreen)
     
     w->current = &w->fullscreen;
     w->is_fullscreen = 1;
+    w->need_fullscreen = 1;
     bg_x11_window_show(w, 1);
     
     if(w->callbacks && w->callbacks->set_fullscreen)

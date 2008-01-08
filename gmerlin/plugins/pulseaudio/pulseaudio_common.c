@@ -25,9 +25,9 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <gmerlin/utils.h>
+#include <utils.h>
 
-#include <gmerlin/log.h>
+#include <log.h>
 #define LOG_DOMAIN "oa_pulse"
 
 static struct

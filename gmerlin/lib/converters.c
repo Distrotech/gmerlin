@@ -121,10 +121,11 @@ static int audio_converter_read_noresample(bg_audio_converter_t * cnv,
   if(!cnv->in_frame)
     cnv->in_frame = gavl_audio_frame_create(&cnv->in_format);
 
-  cnv->read_func(cnv->read_priv,
-                 cnv->in_frame,
-                 cnv->read_stream,
-                 num_samples);
+  if(!cnv->read_func(cnv->read_priv,
+                     cnv->in_frame,
+                     cnv->read_stream,
+                     num_samples))
+    return 0;
   
   gavl_audio_convert(cnv->cnv, cnv->in_frame, frame);
   return frame->valid_samples;

@@ -1290,7 +1290,6 @@ static int audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
   
   samples_decoded = s->in_func(s->in_data, frame, s->in_stream,
                                  num_samples);
-
   /* Nothing more to transcode */
   
   if(!samples_decoded)

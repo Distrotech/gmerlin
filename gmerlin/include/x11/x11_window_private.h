@@ -170,6 +170,7 @@ struct bg_x11_window_s
   Atom _NET_SUPPORTED;
   Atom _NET_WM_STATE;
   Atom _NET_WM_STATE_FULLSCREEN;
+  Atom _NET_WM_STATE_STAYS_ON_TOP;
   Atom _NET_WM_STATE_ABOVE;
   Atom _NET_MOVERESIZE_WINDOW;
   Atom WIN_PROTOCOLS;
@@ -244,6 +245,8 @@ struct bg_x11_window_s
   int need_focus;
   Time focus_time;
 
+  int need_fullscreen;
+  
   int force_hw_scale;
   
   /* Overlay stuff */
@@ -297,6 +300,8 @@ void bg_x11_window_embed_child(bg_x11_window_t * win,
 int bg_x11_window_check_embed_property(bg_x11_window_t * win,
                                        window_t * w);
 
+void bg_x11_window_set_fullscreen_mapped(bg_x11_window_t * win,
+                                         window_t * w);
 
 /* For OpenGL support */
 
