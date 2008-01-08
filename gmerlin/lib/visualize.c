@@ -592,5 +592,5 @@ void bg_visualizer_close(bg_visualizer_t * v)
 
 int bg_visualizer_need_restart(bg_visualizer_t * v)
   {
-  return v->changed;
+  return v->proc && v->changed;
   }
