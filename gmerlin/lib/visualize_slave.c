@@ -539,7 +539,7 @@ static void * video_thread_func(void * data)
     current_time = gavl_timer_get(v->timer);
     
     diff_time = v->last_frame_time +
-      v->video_format_out.frame_duration - current_time;
+      v->video_format_in.frame_duration - current_time;
     
     if(diff_time > GAVL_TIME_SCALE / 1000)
       gavl_time_delay(&diff_time);

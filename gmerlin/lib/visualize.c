@@ -128,6 +128,13 @@ static void set_gain(bg_visualizer_t * v)
   write_message(v);
   }
 
+static void set_fps(bg_visualizer_t * v)
+  {
+  bg_msg_set_id(v->msg,   BG_VIS_MSG_FPS);
+  bg_msg_set_arg_float(v->msg, 0, v->framerate);
+  write_message(v);
+  }
+
 static void set_ov_parameter(void * data,
                              const char * name,
                              const bg_parameter_value_t * val)
@@ -268,9 +275,7 @@ static int visualizer_start(bg_visualizer_t * v)
   write_message(v);
 
   /* FPS*/
-  bg_msg_set_id(v->msg,   BG_VIS_MSG_FPS);
-  bg_msg_set_arg_float(v->msg, 0, v->framerate);
-  write_message(v);
+  set_fps(v);
   
   /* All done, start */
   bg_msg_set_id(v->msg, BG_VIS_MSG_START);
@@ -338,7 +343,8 @@ static bg_parameter_info_t parameters[] =
       name:        "framerate",
       long_name:   TRS("Framerate"),
       type:        BG_PARAMETER_FLOAT,
-      val_min:     { val_f: 0.1 },
+      flags:       BG_PARAMETER_SYNC,
+      val_min:     { val_f: 1.0 },
       val_max:     { val_f: 200.0 },
       val_default: { val_f: 30.0 },
       num_digits: 2,
@@ -418,6 +424,10 @@ void bg_visualizer_set_parameter(void * priv,
   else if(!strcmp(name, "framerate"))
     {
     v->framerate = val->val_f;
+    pthread_mutex_lock(&v->mutex);
+    if(v->proc)
+      set_fps(v);
+    pthread_mutex_unlock(&v->mutex);
     }
   else if(!strcmp(name, "gain"))
     {
