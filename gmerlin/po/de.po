@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: gmerlin 0.3.6\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
 "POT-Creation-Date: 2008-01-06 14:43+0100\n"
-"PO-Revision-Date: 2008-01-06 05:08+0100\n"
+"PO-Revision-Date: 2008-01-08 20:48+0100\n"
 "Last-Translator: Burkhard Plaum <gmerlin@users.sourceforge.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -3294,11 +3294,11 @@ msgstr "Starte neuen Player wenn nötig"
 #: apps/player/gmerlin_remote.c:469
 #: apps/transcoder/gmerlin_transcoder_remote.c:182
 msgid "[options] command\n"
-msgstr "[Optionen] Befehl"
+msgstr "[Optionen] Befehl\n"
 
 #: apps/player/gmerlin_remote.c:470
 msgid "Remote control command for the Gmerlin GUI Player\n"
-msgstr "Fernbedienung für den Gmerlin GUI Player"
+msgstr "Fernbedienung für den Gmerlin GUI Player\n"
 
 #: apps/player/gmerlin_remote.c:471
 #: apps/transcoder/gmerlin_transcoder_remote.c:184
