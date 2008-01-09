@@ -201,7 +201,7 @@ i_v4l
 @item Module
 i_v4l.so
 @item Description
-video4linux input plugin. Supports only video and no tuner decives
+video4linux recording plugin. Supports only video and no tuner decives.
 @end table
 @node plugin_ea
 @section Encoders for audio

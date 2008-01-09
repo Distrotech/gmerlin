@@ -714,7 +714,7 @@ bg_rv_plugin_t the_plugin =
       BG_LOCALE,
       name:          "i_v4l",
       long_name:     TRS("V4L"),
-      description:   TRS("video4linux input plugin. Supports only video and no tuner decives."),
+      description:   TRS("video4linux recording plugin. Supports only video and no tuner decives."),
       mimetypes:     (char*)0,
       extensions:    (char*)0,
       type:          BG_PLUGIN_RECORDER_VIDEO,

@@ -41,7 +41,7 @@ Toggle mute@*
 Add <gml> to the incoming album@*
 
 @item -addplay <gml>
-Add <location> to the incoming album and play it@*
+Add <gml> to the incoming album and play it@*
 
 @item -open <device>
 Open album for <device>. Device must be a GML (e.g. dvd:///dev/hdd).@*

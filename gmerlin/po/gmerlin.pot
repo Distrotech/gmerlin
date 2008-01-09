@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2008-01-06 14:43+0100\n"
+"POT-Creation-Date: 2008-01-08 20:51+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -135,7 +135,7 @@ msgstr ""
 msgid "PWC General"
 msgstr ""
 
-#: plugins/v4l/pwc.c:75 include/bggavl.h:119 lib/visualize.c:339
+#: plugins/v4l/pwc.c:75 include/bggavl.h:119 lib/visualize.c:344
 msgid "Framerate"
 msgstr ""
 
@@ -208,7 +208,7 @@ msgstr ""
 #: plugins/videofilters/fv_cropscale.c:343
 #: plugins/videofilters/fv_cropscale.c:389 plugins/cdaudio/cdparanoia.c:168
 #: include/bggavl.h:209 include/bggavl.h:383 include/bggavl.h:396
-#: lib/x11/x11_window.c:1293
+#: lib/x11/x11_window.c:1263
 msgid "Auto"
 msgstr ""
 
@@ -362,7 +362,7 @@ msgid "V4L"
 msgstr ""
 
 #: plugins/v4l/i_v4l.c:717
-msgid "video4linux input plugin. Supports only video and no tuner decives."
+msgid "video4linux recording plugin. Supports only video and no tuner decives."
 msgstr ""
 
 #: plugins/image/ir_tga.c:95
@@ -1170,49 +1170,49 @@ msgstr ""
 #: plugins/videofilters/fv_deinterlace.c:115
 #: plugins/videofilters/fv_cropscale.c:325
 #: plugins/videofilters/fv_cropscale.c:330 plugins/videofilters/fv_zoom.c:106
-#: include/bggavl.h:222 lib/x11/x11_window.c:1282
+#: include/bggavl.h:222 lib/x11/x11_window.c:1252
 msgid "Scale mode"
 msgstr ""
 
 #: plugins/videofilters/fv_deinterlace.c:129
 #: plugins/videofilters/fv_cropscale.c:344 include/bggavl.h:210
-#: lib/x11/x11_window.c:1294
+#: lib/x11/x11_window.c:1264
 msgid "Nearest"
 msgstr ""
 
 #: plugins/videofilters/fv_deinterlace.c:130
 #: plugins/videofilters/fv_cropscale.c:345 include/bggavl.h:211
-#: lib/x11/x11_window.c:1295
+#: lib/x11/x11_window.c:1265
 msgid "Bilinear"
 msgstr ""
 
 #: plugins/videofilters/fv_deinterlace.c:131
 #: plugins/videofilters/fv_cropscale.c:346 include/bggavl.h:212
-#: lib/x11/x11_window.c:1296
+#: lib/x11/x11_window.c:1266
 msgid "Quadratic"
 msgstr ""
 
 #: plugins/videofilters/fv_deinterlace.c:132
 #: plugins/videofilters/fv_cropscale.c:347 include/bggavl.h:213
-#: lib/x11/x11_window.c:1297
+#: lib/x11/x11_window.c:1267
 msgid "Cubic B-Spline"
 msgstr ""
 
 #: plugins/videofilters/fv_deinterlace.c:133
 #: plugins/videofilters/fv_cropscale.c:348 include/bggavl.h:214
-#: lib/x11/x11_window.c:1298
+#: lib/x11/x11_window.c:1268
 msgid "Cubic Mitchell-Netravali"
 msgstr ""
 
 #: plugins/videofilters/fv_deinterlace.c:134
 #: plugins/videofilters/fv_cropscale.c:349 include/bggavl.h:215
-#: lib/x11/x11_window.c:1299
+#: lib/x11/x11_window.c:1269
 msgid "Cubic Catmull-Rom"
 msgstr ""
 
 #: plugins/videofilters/fv_deinterlace.c:135
 #: plugins/videofilters/fv_cropscale.c:350 include/bggavl.h:216
-#: lib/x11/x11_window.c:1300
+#: lib/x11/x11_window.c:1270
 msgid "Sinc with Lanczos window"
 msgstr ""
 
@@ -1226,7 +1226,7 @@ msgstr ""
 
 #: plugins/videofilters/fv_deinterlace.c:142
 #: plugins/videofilters/fv_cropscale.c:357 plugins/videofilters/fv_zoom.c:117
-#: include/bggavl.h:233 lib/x11/x11_window.c:1307
+#: include/bggavl.h:233 lib/x11/x11_window.c:1277
 msgid "Scale order"
 msgstr ""
 
@@ -1563,11 +1563,11 @@ msgstr ""
 msgid "Deinterlace"
 msgstr ""
 
-#: plugins/videofilters/fv_cropscale.c:389 lib/x11/x11_window.c:1249
+#: plugins/videofilters/fv_cropscale.c:389 lib/x11/x11_window.c:1219
 msgid "Never"
 msgstr ""
 
-#: plugins/videofilters/fv_cropscale.c:389 lib/x11/x11_window.c:1251
+#: plugins/videofilters/fv_cropscale.c:389 lib/x11/x11_window.c:1221
 msgid "Always"
 msgstr ""
 
@@ -2076,7 +2076,7 @@ msgstr ""
 #: apps/transcoder/transcoder_window.c:1278 apps/transcoder/trackdialog.c:84
 #: apps/transcoder/trackdialog.c:183 apps/transcoder/trackdialog.c:247
 #: apps/transcoder/trackdialog.c:313 apps/transcoder/trackdialog.c:362
-#: apps/visualizer/gmerlin_visualizer.c:877 lib/x11/x11_window.c:1205
+#: apps/visualizer/gmerlin_visualizer.c:877 lib/x11/x11_window.c:1175
 #: lib/transcoder_track.c:1415
 msgid "General"
 msgstr ""
@@ -4267,7 +4267,7 @@ msgstr ""
 msgid "Remixing to stereo for filter \"%s\""
 msgstr ""
 
-#: lib/searchpath.c:133 lib/transcoder.c:1809 lib/stringutils.c:560
+#: lib/searchpath.c:133 lib/transcoder.c:1808 lib/stringutils.c:560
 #, c-format
 msgid "Created directory %s"
 msgstr ""
@@ -4317,21 +4317,21 @@ msgstr ""
 msgid "Cannot dlopen plugin %s: %s"
 msgstr ""
 
-#: lib/pluginregistry.c:1284
+#: lib/pluginregistry.c:1286
 msgid "Invalid plugin type for video output"
 msgstr ""
 
-#: lib/pluginregistry.c:1290
+#: lib/pluginregistry.c:1292
 #, c-format
 msgid "Plugin %s doesn't support embedded windows"
 msgstr ""
 
-#: lib/pluginregistry.c:1538
+#: lib/pluginregistry.c:1540
 #, c-format
 msgid "Loading plugin \"%s\" failed"
 msgstr ""
 
-#: lib/pluginregistry.c:1550 lib/pluginregistry.c:1587
+#: lib/pluginregistry.c:1552 lib/pluginregistry.c:1589
 #, c-format
 msgid "Opening %s with \"%s\" failed"
 msgstr ""
@@ -4344,41 +4344,41 @@ msgstr ""
 msgid "Started thread"
 msgstr ""
 
-#: lib/visualize.c:103 lib/visualize.c:118 lib/visualize.c:549
+#: lib/visualize.c:103 lib/visualize.c:118 lib/visualize.c:559
 msgid "Visualization process crashed, restart to try again"
 msgstr ""
 
-#: lib/visualize.c:319
+#: lib/visualize.c:324
 msgid "Width"
 msgstr ""
 
-#: lib/visualize.c:325
+#: lib/visualize.c:330
 msgid ""
 "Desired image with, the visualization plugin might override this for no "
 "apparent reason"
 msgstr ""
 
-#: lib/visualize.c:329
+#: lib/visualize.c:334
 msgid "Height"
 msgstr ""
 
-#: lib/visualize.c:335
+#: lib/visualize.c:340
 msgid ""
 "Desired image height, the visualization plugin might override this for no "
 "apparent reason"
 msgstr ""
 
-#: lib/visualize.c:348
+#: lib/visualize.c:354
 msgid "Gain"
 msgstr ""
 
-#: lib/visualize.c:355
+#: lib/visualize.c:361
 msgid ""
 "Gain (in dB) to apply to the audio samples before it is sent to the "
 "visualization plugin"
 msgstr ""
 
-#: lib/visualize.c:374
+#: lib/visualize.c:380
 #, c-format
 msgid "Got visualization plugin %s"
 msgstr ""
@@ -4849,12 +4849,12 @@ msgstr ""
 msgid "Suboptions for %s"
 msgstr ""
 
-#: lib/converters.c:323
+#: lib/converters.c:324
 #, c-format
 msgid "Doing framerate conversion %5.2f (%s) -> %5.2f (%s)"
 msgstr ""
 
-#: lib/converters.c:353
+#: lib/converters.c:354
 #, c-format
 msgid "Initialized video converter, %d steps"
 msgstr ""
@@ -5003,227 +5003,227 @@ msgstr ""
 msgid "Multipass encoding not supported by codec"
 msgstr ""
 
-#: lib/transcoder.c:1350
+#: lib/transcoder.c:1349
 msgid "Encoding audio failed"
 msgstr ""
 
-#: lib/transcoder.c:1601
+#: lib/transcoder.c:1600
 msgid "Encoding video failed"
 msgstr ""
 
-#: lib/transcoder.c:1686 lib/transcoder.c:1736
+#: lib/transcoder.c:1685 lib/transcoder.c:1735
 msgid "Encoding subtitles failed"
 msgstr ""
 
-#: lib/transcoder.c:1803
+#: lib/transcoder.c:1802
 #, c-format
 msgid "Cannot create directory %s: %s, using default"
 msgstr ""
 
-#: lib/transcoder.c:1881
+#: lib/transcoder.c:1880
 #, c-format
 msgid "Postprocessing %s"
 msgstr ""
 
-#: lib/transcoder.c:1885 lib/transcoder.c:3470
+#: lib/transcoder.c:1884 lib/transcoder.c:3469
 #, c-format
 msgid "Transcoding %s [Track %d, Pass %d/%d]"
 msgstr ""
 
-#: lib/transcoder.c:1890
+#: lib/transcoder.c:1889
 #, c-format
 msgid "Transcoding %s [Track %d]"
 msgstr ""
 
-#: lib/transcoder.c:1893 lib/transcoder.c:3472
+#: lib/transcoder.c:1892 lib/transcoder.c:3471
 #, c-format
 msgid "%s"
 msgstr ""
 
-#: lib/transcoder.c:1901
+#: lib/transcoder.c:1900
 #, c-format
 msgid ""
 "Metadata:\n"
 "%s"
 msgstr ""
 
-#: lib/transcoder.c:1916
+#: lib/transcoder.c:1915
 #, c-format
 msgid ""
 "Audio stream %d input format:\n"
 "%s"
 msgstr ""
 
-#: lib/transcoder.c:1921
+#: lib/transcoder.c:1920
 #, c-format
 msgid ""
 "Audio stream %d output format:\n"
 "%s"
 msgstr ""
 
-#: lib/transcoder.c:1934
+#: lib/transcoder.c:1933
 #, c-format
 msgid ""
 "Video stream %d input format:\n"
 "%s"
 msgstr ""
 
-#: lib/transcoder.c:1939
+#: lib/transcoder.c:1938
 #, c-format
 msgid ""
 "Video stream %d output format:\n"
 "%s"
 msgstr ""
 
-#: lib/transcoder.c:1951 lib/transcoder.c:1970
+#: lib/transcoder.c:1950 lib/transcoder.c:1969
 #, c-format
 msgid "Text subtitle stream %d: Blending onto video stream %d"
 msgstr ""
 
-#: lib/transcoder.c:1956 lib/transcoder.c:1975
+#: lib/transcoder.c:1955 lib/transcoder.c:1974
 #, c-format
 msgid "Text subtitle stream %d: Exporting to file"
 msgstr ""
 
-#: lib/transcoder.c:2013
+#: lib/transcoder.c:2012
 #, c-format
 msgid "Audio stream %d -> file: %s"
 msgstr ""
 
-#: lib/transcoder.c:2028
+#: lib/transcoder.c:2027
 #, c-format
 msgid "Video stream %d -> %s"
 msgstr ""
 
-#: lib/transcoder.c:2039
+#: lib/transcoder.c:2038
 #, c-format
 msgid "Output file: %s"
 msgstr ""
 
-#: lib/transcoder.c:2052
+#: lib/transcoder.c:2051
 #, c-format
 msgid "Cannot find plugin %s"
 msgstr ""
 
-#: lib/transcoder.c:2059
+#: lib/transcoder.c:2058
 #, c-format
 msgid "Cannot open plugin %s"
 msgstr ""
 
-#: lib/transcoder.c:2076
+#: lib/transcoder.c:2075
 #, c-format
 msgid "Cannot open %s with plugin %s"
 msgstr ""
 
-#: lib/transcoder.c:2092
+#: lib/transcoder.c:2091
 #, c-format
 msgid "Invalid track number %d"
 msgstr ""
 
-#: lib/transcoder.c:2224 lib/player_input.c:320
+#: lib/transcoder.c:2223 lib/player_input.c:320
 msgid "Starting input plugin failed"
 msgstr ""
 
-#: lib/transcoder.c:2234 lib/transcoder.c:2243
+#: lib/transcoder.c:2233 lib/transcoder.c:2242
 msgid "Cannot seek to start point"
 msgstr ""
 
-#: lib/transcoder.c:2254
+#: lib/transcoder.c:2253
 msgid "End time if before start time"
 msgstr ""
 
-#: lib/transcoder.c:2484 lib/transcoder.c:2532
+#: lib/transcoder.c:2483 lib/transcoder.c:2531
 msgid "Subtitle stream cannot be handled"
 msgstr ""
 
-#: lib/transcoder.c:2556
+#: lib/transcoder.c:2555
 msgid "Input and output are the same file"
 msgstr ""
 
-#: lib/transcoder.c:2577
+#: lib/transcoder.c:2576
 #, c-format
 msgid "Could not open %s"
 msgstr ""
 
-#: lib/transcoder.c:2588
+#: lib/transcoder.c:2587
 #, c-format
 msgid "Could not start %s"
 msgstr ""
 
-#: lib/transcoder.c:3217
+#: lib/transcoder.c:3216
 msgid "Zero peaks detected (silent file?). Disabling normalization."
 msgstr ""
 
-#: lib/transcoder.c:3223
+#: lib/transcoder.c:3222
 #, c-format
 msgid "Correcting volume by %.2f dB"
 msgstr ""
 
-#: lib/transcoder.c:3280
+#: lib/transcoder.c:3279
 msgid "No stream to encode"
 msgstr ""
 
-#: lib/transcoder.c:3667
+#: lib/transcoder.c:3666
 #, c-format
 msgid "Video stream %d: Transcoded %s frames"
 msgstr ""
 
-#: lib/transcoder.c:3678
+#: lib/transcoder.c:3677
 #, c-format
 msgid "Audio stream %d: Transcoded %s samples"
 msgstr ""
 
-#: lib/x11/x11_window.c:1209
+#: lib/x11/x11_window.c:1179
 msgid "Auto resize window"
 msgstr ""
 
-#: lib/x11/x11_window.c:1245
+#: lib/x11/x11_window.c:1215
 msgid "Try XVideo"
 msgstr ""
 
-#: lib/x11/x11_window.c:1250
+#: lib/x11/x11_window.c:1220
 msgid "For YCbCr formats only"
 msgstr ""
 
-#: lib/x11/x11_window.c:1253
+#: lib/x11/x11_window.c:1223
 msgid ""
 "Choose when to try XVideo (with hardware scaling). Note that your graphics "
 "card/driver must support this."
 msgstr ""
 
-#: lib/x11/x11_window.c:1258
+#: lib/x11/x11_window.c:1228
 msgid "Disable Screensaver for normal playback"
 msgstr ""
 
-#: lib/x11/x11_window.c:1264
+#: lib/x11/x11_window.c:1234
 msgid "Disable Screensaver for fullscreen playback"
 msgstr ""
 
-#: lib/x11/x11_window.c:1270
+#: lib/x11/x11_window.c:1240
 msgid "Force hardware scaling"
 msgstr ""
 
-#: lib/x11/x11_window.c:1272
+#: lib/x11/x11_window.c:1242
 msgid ""
 "Use hardware scaling even if it involves more CPU intensive pixelformat "
 "conversions"
 msgstr ""
 
-#: lib/x11/x11_window.c:1277
+#: lib/x11/x11_window.c:1247
 msgid "Software scaler"
 msgstr ""
 
-#: lib/x11/x11_window.c:1303
+#: lib/x11/x11_window.c:1273
 msgid ""
 "Choose scaling method. Auto means to choose based on the conversion quality. "
 "Nearest is fastest, Sinc with Lanczos window is slowest"
 msgstr ""
 
-#: lib/x11/x11_window.c:1312
+#: lib/x11/x11_window.c:1282
 msgid "Order for sinc scaling"
 msgstr ""
 
-#: lib/x11/x11_window.c:1316 lib/x11/x11_window.c:1321
+#: lib/x11/x11_window.c:1286 lib/x11/x11_window.c:1291
 msgid "Scale quality"
 msgstr ""
 
