@@ -186,7 +186,7 @@ apply for gmerlin as well.
 @item @uref{http://developers.videolan.org/x264.html, x264}
 For H.264 encoding with libquicktime.
 
-@item @uref{http://developers.videolan.org/libdca.html, libdca}
+@item @uref{http://www.videolan.org/developers/libdca.html, libdca}
 For decoding DTS streams.
 
 @item @uref{http://libmpeg2.sourceforge.net/, libmpeg2}
