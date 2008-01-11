@@ -568,13 +568,13 @@ static void close_mpeg2(bgav_stream_t*s)
 
 static bgav_video_decoder_t decoder =
   {
-    fourccs: (uint32_t[]){ BGAV_MK_FOURCC('m','p','g','v'), 0x00 },
-    name:    "libmpeg2 decoder",
+    .fourccs = (uint32_t[]){ BGAV_MK_FOURCC('m','p','g','v'), 0x00 },
+    .name =    "libmpeg2 decoder",
 
-    init:    init_mpeg2,
-    decode:  decode_mpeg2,
-    close:   close_mpeg2,
-    resync:  resync_mpeg2,
+    .init =    init_mpeg2,
+    .decode =  decode_mpeg2,
+    .close =   close_mpeg2,
+    .resync =  resync_mpeg2,
   };
 
 void bgav_init_video_decoders_libmpeg2()

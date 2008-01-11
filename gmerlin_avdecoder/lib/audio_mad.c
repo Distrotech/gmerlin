@@ -270,7 +270,7 @@ static void close_mad(bgav_stream_t * s)
 
 static bgav_audio_decoder_t decoder =
   {
-    fourccs: (uint32_t[]){ BGAV_MK_FOURCC('.','m','p','3'),
+    .fourccs = (uint32_t[]){ BGAV_MK_FOURCC('.','m','p','3'),
                            BGAV_MK_FOURCC('.','m','p','2'),
                            BGAV_MK_FOURCC('m','s',0x00,0x55),
                            BGAV_MK_FOURCC('m','s',0x00,0x50),
@@ -279,11 +279,11 @@ static bgav_audio_decoder_t decoder =
                            BGAV_MK_FOURCC('M','P','3',' '), /* NSV */
                            BGAV_MK_FOURCC('L','A','M','E'), /* NUV */
                            0x00 },
-    name:   "Mpeg audio decoder (mad)",
-    init:   init_mad,
-    close:  close_mad,
-    resync: resync_mad,
-    decode: decode_mad
+    .name =   "Mpeg audio decoder (mad)",
+    .init =   init_mad,
+    .close =  close_mad,
+    .resync = resync_mad,
+    .decode = decode_mad
   };
 
 void bgav_init_audio_decoders_mad()

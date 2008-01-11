@@ -204,107 +204,107 @@ static void destroy_lame(void * priv)
 static bg_parameter_info_t audio_parameters[] =
   {
     {
-      name:        "lame_general",
-      long_name:   TRS("General"),
-      type:        BG_PARAMETER_SECTION
+      .name =        "lame_general",
+      .long_name =   TRS("General"),
+      .type =        BG_PARAMETER_SECTION
     },
     {
-      name:        "bitrate_mode",
-      long_name:   TRS("Bitrate mode"),
-      type:        BG_PARAMETER_STRINGLIST,
-      val_default: { val_str: "CBR" },
-      multi_names: (char*[]){ "CBR",
+      .name =        "bitrate_mode",
+      .long_name =   TRS("Bitrate mode"),
+      .type =        BG_PARAMETER_STRINGLIST,
+      .val_default = { .val_str = "CBR" },
+      .multi_names = (char*[]){ "CBR",
                               "ABR",
                               "VBR",
                               (char*)0 },
-      multi_labels: (char*[]){ TRS("Constant"),
+      .multi_labels = (char*[]){ TRS("Constant"),
                                TRS("Average"),
                                TRS("Variable"),
                                (char*)0 },
     },
     {
-      name:        "stereo_mode",
-      long_name:   TRS("Stereo mode"),
-      type:        BG_PARAMETER_STRINGLIST,
-      val_default: { val_str: "Auto" },
-      multi_names: (char*[]){ "Stereo",
+      .name =        "stereo_mode",
+      .long_name =   TRS("Stereo mode"),
+      .type =        BG_PARAMETER_STRINGLIST,
+      .val_default = { .val_str = "Auto" },
+      .multi_names = (char*[]){ "Stereo",
                               "Joint stereo",
                               "Auto",
                               (char*)0 },
-      multi_labels: (char*[]){ TRS("Stereo"),
+      .multi_labels = (char*[]){ TRS("Stereo"),
                                TRS("Joint stereo"),
                                TRS("Auto"),
                               (char*)0 },
-      help_string: TRS("Stereo: Completely independent channels\n\
+      .help_string = TRS("Stereo: Completely independent channels\n\
 Joint stereo: Improve quality (save bits) by using similarities of the channels\n\
 Auto (recommended): Select one of the above depending on quality or bitrate setting")
     },
     {
-      name:        "quality",
-      long_name:   TRS("Encoding speed"),
-      type:        BG_PARAMETER_SLIDER_INT,
-      val_min:     { val_i: 0 },
-      val_max:     { val_i: 9 },
-      val_default: { val_i: 2 },
-      help_string: TRS("0: Slowest encoding, best quality\n\
+      .name =        "quality",
+      .long_name =   TRS("Encoding speed"),
+      .type =        BG_PARAMETER_SLIDER_INT,
+      .val_min =     { .val_i = 0 },
+      .val_max =     { .val_i = 9 },
+      .val_default = { .val_i = 2 },
+      .help_string = TRS("0: Slowest encoding, best quality\n\
 9: Fastest encoding, worst quality")
     },
     {
-      name:        "lame_cbr_options",
-      long_name:   TRS("CBR options"),
-      type:        BG_PARAMETER_SECTION
+      .name =        "lame_cbr_options",
+      .long_name =   TRS("CBR options"),
+      .type =        BG_PARAMETER_SECTION
     },
     {
-      name:        "cbr_bitrate",
-      long_name:   TRS("Bitrate (kbps)"),
-      type:        BG_PARAMETER_INT,
-      val_min:     { val_i: 8 },
-      val_max:     { val_i: 320 },
-      val_default: { val_i: 128 },
-      help_string: TRS("Bitrate in kbps. If your selection is no \
+      .name =        "cbr_bitrate",
+      .long_name =   TRS("Bitrate (kbps)"),
+      .type =        BG_PARAMETER_INT,
+      .val_min =     { .val_i = 8 },
+      .val_max =     { .val_i = 320 },
+      .val_default = { .val_i = 128 },
+      .help_string = TRS("Bitrate in kbps. If your selection is no \
 valid mp3 bitrate, we'll choose the closest value.")
     },
     {
-      name:        "lame_vbr_abr_options",
-      long_name:   TRS("VBR/ABR options"),
-      type:        BG_PARAMETER_SECTION
+      .name =        "lame_vbr_abr_options",
+      .long_name =   TRS("VBR/ABR options"),
+      .type =        BG_PARAMETER_SECTION
     },
     {
-      name:        "vbr_quality",
-      long_name:   TRS("VBR Quality"),
-      type:        BG_PARAMETER_SLIDER_INT,
-      val_min:     { val_i: 0 },
-      val_max:     { val_i: 9 },
-      val_default: { val_i: 4 },
-      help_string: TRS("VBR Quality level. 0: best, 9: worst")
+      .name =        "vbr_quality",
+      .long_name =   TRS("VBR Quality"),
+      .type =        BG_PARAMETER_SLIDER_INT,
+      .val_min =     { .val_i = 0 },
+      .val_max =     { .val_i = 9 },
+      .val_default = { .val_i = 4 },
+      .help_string = TRS("VBR Quality level. 0: best, 9: worst")
     },
     {
-      name:        "abr_bitrate",
-      long_name:   TRS("ABR overall bitrate (kbps)"),
-      type:        BG_PARAMETER_INT,
-      val_min:     { val_i: 8 },
-      val_max:     { val_i: 320 },
-      val_default: { val_i: 128 },
-      help_string: TRS("Average bitrate for ABR mode")
+      .name =        "abr_bitrate",
+      .long_name =   TRS("ABR overall bitrate (kbps)"),
+      .type =        BG_PARAMETER_INT,
+      .val_min =     { .val_i = 8 },
+      .val_max =     { .val_i = 320 },
+      .val_default = { .val_i = 128 },
+      .help_string = TRS("Average bitrate for ABR mode")
     },
     {
-      name:        "abr_min_bitrate",
-      long_name:   TRS("ABR min bitrate (kbps)"),
-      type:        BG_PARAMETER_INT,
-      val_min:     { val_i: 0 },
-      val_max:     { val_i: 320 },
-      val_default: { val_i: 0 },
-      help_string: TRS("Minimum bitrate for ABR mode. 0 means let lame decide. \
+      .name =        "abr_min_bitrate",
+      .long_name =   TRS("ABR min bitrate (kbps)"),
+      .type =        BG_PARAMETER_INT,
+      .val_min =     { .val_i = 0 },
+      .val_max =     { .val_i = 320 },
+      .val_default = { .val_i = 0 },
+      .help_string = TRS("Minimum bitrate for ABR mode. 0 means let lame decide. \
 If your selection is no valid mp3 bitrate, we'll choose the closest value.")
     },
     {
-      name:        "abr_max_bitrate",
-      long_name:   TRS("ABR max bitrate (kbps)"),
-      type:        BG_PARAMETER_INT,
-      val_min:     { val_i: 0 },
-      val_max:     { val_i: 320 },
-      val_default: { val_i: 0 },
-      help_string: TRS("Maximum bitrate for ABR mode. 0 means let lame decide. \
+      .name =        "abr_max_bitrate",
+      .long_name =   TRS("ABR max bitrate (kbps)"),
+      .type =        BG_PARAMETER_INT,
+      .val_min =     { .val_i = 0 },
+      .val_max =     { .val_i = 320 },
+      .val_default = { .val_i = 0 },
+      .help_string = TRS("Maximum bitrate for ABR mode. 0 means let lame decide. \
 If your selection is no valid mp3 bitrate, we'll choose the closest value.")
     },
     { /* End of parameters */ }
@@ -459,25 +459,25 @@ static void set_audio_parameter_lame(void * data, int stream,
 static bg_parameter_info_t parameters[] =
   {
     {
-      name:        "do_id3v1",
-      long_name:   TRS("Write ID3V1.1 tag"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 },
+      .name =        "do_id3v1",
+      .long_name =   TRS("Write ID3V1.1 tag"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 },
     },
     {
-      name:        "do_id3v2",
-      long_name:   TRS("Write ID3V2 tag"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 },
+      .name =        "do_id3v2",
+      .long_name =   TRS("Write ID3V2 tag"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 },
     },
     {
-      name:        "id3v2_charset",
-      long_name:   TRS("ID3V2 Encoding"),
-      type:        BG_PARAMETER_STRINGLIST,
-      val_default: { val_str: "3" },
-      multi_names: (char*[]){ "0", "1",
+      .name =        "id3v2_charset",
+      .long_name =   TRS("ID3V2 Encoding"),
+      .type =        BG_PARAMETER_STRINGLIST,
+      .val_default = { .val_str = "3" },
+      .multi_names = (char*[]){ "0", "1",
                                "2", "3", (char*)0 },
-      multi_labels: (char*[]){ TRS("ISO-8859-1"), TRS("UTF-16 LE"),
+      .multi_labels = (char*[]){ TRS("ISO-8859-1"), TRS("UTF-16 LE"),
                                TRS("UTF-16 BE"), TRS("UTF-8"), (char*)0 },
     },
     { /* End of parameters */ }
@@ -703,39 +703,39 @@ static int close_lame(void * data, int do_delete)
 
 bg_encoder_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:            "e_lame",       /* Unique short name */
-      long_name:       TRS("Lame mp3 encoder"),
-      description:     TRS("Encoder for mp3 files. Based on lame (http://www.mp3dev.org). Supports CBR, ABR and VBR as well as ID3V1 and ID3V2 tags."),
-      mimetypes:       NULL,
-      extensions:      "mp3",
-      type:            BG_PLUGIN_ENCODER_AUDIO,
-      flags:           BG_PLUGIN_FILE,
-      priority:        5,
-      create:            create_lame,
-      destroy:           destroy_lame,
-      get_parameters:    get_parameters_lame,
-      set_parameter:     set_parameter_lame,
+      .name =            "e_lame",       /* Unique short name */
+      .long_name =       TRS("Lame mp3 encoder"),
+      .description =     TRS("Encoder for mp3 files. Based on lame (http://www.mp3dev.org). Supports CBR, ABR and VBR as well as ID3V1 and ID3V2 tags."),
+      .mimetypes =       NULL,
+      .extensions =      "mp3",
+      .type =            BG_PLUGIN_ENCODER_AUDIO,
+      .flags =           BG_PLUGIN_FILE,
+      .priority =        5,
+      .create =            create_lame,
+      .destroy =           destroy_lame,
+      .get_parameters =    get_parameters_lame,
+      .set_parameter =     set_parameter_lame,
     },
-    max_audio_streams:   1,
-    max_video_streams:   0,
+    .max_audio_streams =   1,
+    .max_video_streams =   0,
     
-    get_extension:       get_extension_lame,
+    .get_extension =       get_extension_lame,
     
-    open:                open_lame,
+    .open =                open_lame,
     
-    get_audio_parameters:    get_audio_parameters_lame,
+    .get_audio_parameters =    get_audio_parameters_lame,
 
-    add_audio_stream:        add_audio_stream_lame,
+    .add_audio_stream =        add_audio_stream_lame,
     
-    set_audio_parameter:     set_audio_parameter_lame,
+    .set_audio_parameter =     set_audio_parameter_lame,
 
-    get_audio_format:        get_audio_format_lame,
+    .get_audio_format =        get_audio_format_lame,
     
-    write_audio_frame:   write_audio_frame_lame,
-    close:               close_lame
+    .write_audio_frame =   write_audio_frame_lame,
+    .close =               close_lame
   };
 
 /* Include this into all plugin modules exactly once

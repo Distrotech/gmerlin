@@ -94,7 +94,7 @@ static int sequence_extension_read(bgav_input_context_t * ctx,
 
   if((buffer[3] & 0x01) != 0x01)
     {
-    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Cannot read sequence extension: missing marker bit");
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Cannot read sequence .extension = missing marker bit");
     return 0;        /* missing marker_bit */
     }
   ret->bitrate_ext = ((buffer[2]<<25) | (buffer[3]<<17)) & 0x3ffc0000;
@@ -289,10 +289,10 @@ static void close_mpegvideo(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_mpegvideo =
   {
-    probe:       probe_mpegvideo,
-    open:        open_mpegvideo,
-    next_packet: next_packet_mpegvideo,
-    seek:        seek_mpegvideo,
-    close:       close_mpegvideo
+    .probe =       probe_mpegvideo,
+    .open =        open_mpegvideo,
+    .next_packet = next_packet_mpegvideo,
+    .seek =        seek_mpegvideo,
+    .close =       close_mpegvideo
   };
 

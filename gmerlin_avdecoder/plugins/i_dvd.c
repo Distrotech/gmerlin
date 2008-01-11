@@ -67,12 +67,12 @@ static int check_device_dvd(const char * device, char ** name)
 static bg_parameter_info_t parameters[] =
   {
     {
-      name:       "dvd_chapters_as_tracks",
-      long_name:  TRS("Handle chapters as tracks"),
-      type:       BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 },
-      gettext_domain:    PACKAGE,
-      gettext_directory: LOCALE_DIR,
+      .name =       "dvd_chapters_as_tracks",
+      .long_name =  TRS("Handle chapters as tracks"),
+      .type =       BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 },
+      .gettext_domain =    PACKAGE,
+      .gettext_directory = LOCALE_DIR,
     },
     PARAM_DYNRANGE,
     { /* End of parameters */ }
@@ -85,42 +85,42 @@ static bg_parameter_info_t * get_parameters_dvd(void * priv)
 
 bg_input_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:          "i_dvd",
-      long_name:     TRS("DVD Player"),
-      description:   TRS("Plugin for playing DVDs. Based on Gmerlin avdecoder."),
-      type:          BG_PLUGIN_INPUT,
-      flags:         BG_PLUGIN_REMOVABLE,
-      priority:      BG_PLUGIN_PRIORITY_MAX,
-      create:        bg_avdec_create,
-      destroy:       bg_avdec_destroy,
-      get_parameters: get_parameters_dvd,
-      set_parameter:  bg_avdec_set_parameter,
-      find_devices: find_devices_dvd,
-      check_device: check_device_dvd,
+      .name =          "i_dvd",
+      .long_name =     TRS("DVD Player"),
+      .description =   TRS("Plugin for playing DVDs. Based on Gmerlin avdecoder."),
+      .type =          BG_PLUGIN_INPUT,
+      .flags =         BG_PLUGIN_REMOVABLE,
+      .priority =      BG_PLUGIN_PRIORITY_MAX,
+      .create =        bg_avdec_create,
+      .destroy =       bg_avdec_destroy,
+      .get_parameters = get_parameters_dvd,
+      .set_parameter =  bg_avdec_set_parameter,
+      .find_devices = find_devices_dvd,
+      .check_device = check_device_dvd,
     },
-    protocols: "dvd",
-    set_callbacks: bg_avdec_set_callbacks,
+    .protocols = "dvd",
+    .set_callbacks = bg_avdec_set_callbacks,
     /* Open file/device */
-    open: open_dvd,
-    get_disc_name: bg_avdec_get_disc_name,
+    .open = open_dvd,
+    .get_disc_name = bg_avdec_get_disc_name,
 #if LIBCDIO_VERSION_NUM >= 78
-    eject_disc: bgav_eject_disc,
+    .eject_disc = bgav_eject_disc,
 #endif
-    //    set_callbacks: set_callbacks_avdec,
+    //    .set_callbacks = set_callbacks_avdec,
   /* For file and network plugins, this can be NULL */
-    get_num_tracks: bg_avdec_get_num_tracks,
+    .get_num_tracks = bg_avdec_get_num_tracks,
     /* Return track information */
-    get_track_info: bg_avdec_get_track_info,
+    .get_track_info = bg_avdec_get_track_info,
 
     /* Set track */
-    set_track:             bg_avdec_set_track,
+    .set_track =             bg_avdec_set_track,
     /* Set streams */
-    set_audio_stream:      bg_avdec_set_audio_stream,
-    set_video_stream:      bg_avdec_set_video_stream,
-    set_subtitle_stream:   bg_avdec_set_subtitle_stream,
+    .set_audio_stream =      bg_avdec_set_audio_stream,
+    .set_video_stream =      bg_avdec_set_video_stream,
+    .set_subtitle_stream =   bg_avdec_set_subtitle_stream,
 
     /*
      *  Start decoding.
@@ -128,15 +128,15 @@ bg_input_plugin_t the_plugin =
      *  The plugin must take care of the "active" fields
      *  in the stream infos to check out, which streams are to be decoded
      */
-    start:                 bg_avdec_start,
+    .start =                 bg_avdec_start,
     /* Read one audio frame (returns FALSE on EOF) */
-    read_audio_samples:    bg_avdec_read_audio,
+    .read_audio_samples =    bg_avdec_read_audio,
     /* Read one video frame (returns FALSE on EOF) */
-    read_video_frame:      bg_avdec_read_video,
+    .read_video_frame =      bg_avdec_read_video,
 
-    has_subtitle:          bg_avdec_has_subtitle,
+    .has_subtitle =          bg_avdec_has_subtitle,
 
-    read_subtitle_overlay: bg_avdec_read_subtitle_overlay,
+    .read_subtitle_overlay = bg_avdec_read_subtitle_overlay,
     
     /*
      *  Do percentage seeking (can be NULL)
@@ -144,10 +144,10 @@ bg_input_plugin_t the_plugin =
      *  function is non-NULL AND the duration field of the track info
      *  is > 0
      */
-    seek:         bg_avdec_seek,
+    .seek =         bg_avdec_seek,
     /* Stop playback, close all decoders */
-    stop:         NULL,
-    close:        bg_avdec_close,
+    .stop =         NULL,
+    .close =        bg_avdec_close,
   };
 
 /* Include this into all plugin modules exactly once

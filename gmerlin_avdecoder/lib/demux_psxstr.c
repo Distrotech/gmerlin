@@ -253,8 +253,8 @@ static void close_psxstr(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_psxstr =
   {
-    probe:       probe_psxstr,
-    open:        open_psxstr,
-    next_packet: next_packet_psxstr,
-    close:       close_psxstr
+    .probe =       probe_psxstr,
+    .open =        open_psxstr,
+    .next_packet = next_packet_psxstr,
+    .close =       close_psxstr
   };

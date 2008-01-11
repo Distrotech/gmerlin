@@ -309,9 +309,9 @@ static void close_ra(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_ra =
   {
-    probe:       probe_ra,
-    open:        open_ra,
-    next_packet: next_packet_ra,
-    //    seek:        seek_ra,
-    close:       close_ra
+    .probe =       probe_ra,
+    .open =        open_ra,
+    .next_packet = next_packet_ra,
+    //    .seek =        seek_ra,
+    .close =       close_ra
   };

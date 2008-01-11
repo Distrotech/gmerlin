@@ -199,7 +199,7 @@ static int parse_asx(bgav_redirector_context_t * r)
 
 bgav_redirector_t bgav_redirector_asx = 
   {
-    name:  "ASX (Windows Media)",
-    probe: probe_asx,
-    parse: parse_asx
+    .name =  "ASX (Windows Media)",
+    .probe = probe_asx,
+    .parse = parse_asx
   };

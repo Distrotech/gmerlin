@@ -1135,7 +1135,7 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
       continue;
       }
 #if 0
-    fprintf(stderr, "Got packet PID: %d, s->packet: %p, %d, type:",
+    fprintf(stderr, "Got packet PID: %d, s->packet: %p, %d, .type =",
             priv->packet.pid, s->packet, priv->packet.payload_start);
     bgav_dump_fourcc(s->fourcc);
     fprintf(stderr, "\n");
@@ -1158,7 +1158,7 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
       if(s->packet)
         {
 #if 0
-        fprintf(stderr, "Packet done: %d bytes, id: %d, fourcc: ",
+        fprintf(stderr, "Packet done: %d bytes, id: %d, .fourcc = ",
                 s->packet->data_size, s->stream_id);
         bgav_dump_fourcc(s->fourcc);
         fprintf(stderr, "\n");
@@ -1343,11 +1343,11 @@ static int select_track_mpegts(bgav_demuxer_context_t * ctx,
 
 bgav_demuxer_t bgav_demuxer_mpegts =
   {
-    probe:        probe_mpegts,
-    open:         open_mpegts,
-    next_packet:  next_packet_mpegts,
-    seek:         seek_mpegts,
-    close:        close_mpegts,
-    select_track: select_track_mpegts
+    .probe =        probe_mpegts,
+    .open =         open_mpegts,
+    .next_packet =  next_packet_mpegts,
+    .seek =         seek_mpegts,
+    .close =        close_mpegts,
+    .select_track = select_track_mpegts
   };
 

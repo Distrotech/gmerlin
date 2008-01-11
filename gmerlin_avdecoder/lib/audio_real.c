@@ -56,45 +56,45 @@ typedef struct
 static codec_info_t real_codecs[] =
   {
     {
-      dll_name: "sipr.so.6.0",
-      format_name: "Real Audio sipr",
+      .dll_name = "sipr.so.6.0",
+      .format_name = "Real Audio sipr",
       decoder:
       {
-        name:   "Real audio sipr DLL decoder",
-        fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('s', 'i', 'p', 'r'), 0x00  },
-        init:   init_real,
-        decode: decode_real,
-        close:  close_real,
-        resync: resync_real,
+        .name =   "Real audio sipr DLL decoder",
+        .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('s', 'i', 'p', 'r'), 0x00  },
+        .init =   init_real,
+        .decode = decode_real,
+        .close =  close_real,
+        .resync = resync_real,
       },
     },
 #if 0 // Handled by ffmpeg
     {
-      dll_name: "cook.so",
-      format_name: "Real Audio cook",
+      .dll_name = "cook.so",
+      .format_name = "Real Audio cook",
       decoder:
       {
-        name:   "Real audio cook DLL decoder",
-        fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('c', 'o', 'o', 'k'), 0x00  },
-        init:   init_real,
-        decode: decode_real,
-        close:  close_real,
-        resync: resync_real,
+        .name =   "Real audio cook DLL decoder",
+        .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('c', 'o', 'o', 'k'), 0x00  },
+        .init =   init_real,
+        .decode = decode_real,
+        .close =  close_real,
+        .resync = resync_real,
       },
     },
 #endif
     {
-      dll_name: "atrc.so.6.0",
-      format_name: "Real Audio atrc",
+      .dll_name = "atrc.so.6.0",
+      .format_name = "Real Audio atrc",
       decoder:
       {
-        name:   "Real audio atrc DLL decoder",
-        fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('a', 't', 'r', 'c'),
+        .name =   "Real audio atrc DLL decoder",
+        .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('a', 't', 'r', 'c'),
                                 0x00  },
-        init:   init_real,
-        decode: decode_real,
-        close:  close_real,
-        resync: resync_real,
+        .init =   init_real,
+        .decode = decode_real,
+        .close =  close_real,
+        .resync = resync_real,
       },
       
     },

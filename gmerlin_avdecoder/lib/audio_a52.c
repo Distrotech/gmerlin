@@ -370,17 +370,17 @@ static void close_a52(bgav_stream_t * s)
 
 static bgav_audio_decoder_t decoder =
   {
-    fourccs: (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x2000),
+    .fourccs = (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x2000),
                            BGAV_MK_FOURCC('.', 'a', 'c', '3'),
                            /* Will be swapped to AC3 by the demuxer */
                            BGAV_MK_FOURCC('d', 'n', 'e', 't'), 
                            0x00 },
-    name: "liba52 based decoder",
+    .name = "liba52 based decoder",
 
-    init:   init_a52,
-    decode: decode_a52,
-    close:  close_a52,
-    resync: resync_a52,
+    .init =   init_a52,
+    .decode = decode_a52,
+    .close =  close_a52,
+    .resync = resync_a52,
   };
 
 void bgav_init_audio_decoders_a52()

@@ -203,12 +203,12 @@ static void close_dv(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_dv =
   {
-    probe:        probe_dv,
-    open:         open_dv,
-    select_track: select_track_dv,
-    next_packet:  next_packet_dv,
+    .probe =        probe_dv,
+    .open =         open_dv,
+    .select_track = select_track_dv,
+    .next_packet =  next_packet_dv,
     
-    seek:         seek_dv,
-    close:        close_dv
+    .seek =         seek_dv,
+    .close =        close_dv
   };
 

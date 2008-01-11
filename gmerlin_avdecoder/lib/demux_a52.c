@@ -196,11 +196,11 @@ static void close_a52(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_a52 =
   {
-    probe:       probe_a52,
-    open:        open_a52,
-    select_track: select_track_a52,
-    next_packet: next_packet_a52,
-    seek:        seek_a52,
-    close:       close_a52
+    .probe =       probe_a52,
+    .open =        open_a52,
+    .select_track = select_track_a52,
+    .next_packet = next_packet_a52,
+    .seek =        seek_a52,
+    .close =       close_a52
   };
 

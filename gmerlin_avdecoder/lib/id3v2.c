@@ -173,8 +173,8 @@ void bgav_id3v2_dump(bgav_id3v2_tag_t * t)
   /* Dump header */
 
   bgav_dprintf( "Header:\n");
-  bgav_dprintf( "  Major version: %d\n", t->header.major_version);
-  bgav_dprintf( "  Minor version: %d\n", t->header.minor_version);
+  bgav_dprintf( "  Major .version = %d\n", t->header.major_version);
+  bgav_dprintf( "  Minor .version = %d\n", t->header.minor_version);
   bgav_dprintf( "  Flags:         ");
   if(t->header.flags & ID3V2_TAG_UNSYNCHRONIZED)
     {

@@ -201,7 +201,7 @@ static int ircam_header_read(bgav_input_context_t * input, ircam_header_t * ret)
 static void ircam_header_dump(ircam_header_t * h)
   {
   bgav_dprintf("IRCAM\n");
-  bgav_dprintf("  fourcc:            0x%08x\n", h->fourcc);
+  bgav_dprintf("  .fourcc =            0x%08x\n", h->fourcc);
   bgav_dprintf("  SampleFreqenz:     %f\n",h->SampleFrequenz);
   bgav_dprintf("  NumChanels:        %d\n",h->NumChannels);
   bgav_dprintf("  DataType:          0x%08x\n",h->DataType);
@@ -422,9 +422,9 @@ static void close_ircam(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_ircam =
   {
-    probe:       probe_ircam,
-    open:        open_ircam,
-    next_packet: next_packet_ircam,
-    seek:        seek_ircam,
-    close:       close_ircam
+    .probe =       probe_ircam,
+    .open =        open_ircam,
+    .next_packet = next_packet_ircam,
+    .seek =        seek_ircam,
+    .close =       close_ircam
   };

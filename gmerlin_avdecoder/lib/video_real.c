@@ -55,18 +55,18 @@ typedef struct
 static codec_info_t real_codecs[] =
   {
     {
-      dll_name: "drvc.so",
-      format_name: "Real Video 3.0/4.0",
+      .dll_name = "drvc.so",
+      .format_name = "Real Video 3.0/4.0",
       decoder:
       {
-        name:   "Real Video 3.0/4.0 DLL decoder",
-        fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('R', 'V', '3', '0'), 
+        .name =   "Real Video 3.0/4.0 DLL decoder",
+        .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('R', 'V', '3', '0'), 
                                 BGAV_MK_FOURCC('R', 'V', '4', '0'),
                                 0x00  },
-        init:   init_real,
-        decode: decode_real,
-        close:  close_real,
-        resync: resync_real,
+        .init =   init_real,
+        .decode = decode_real,
+        .close =  close_real,
+        .resync = resync_real,
       },
     },
 

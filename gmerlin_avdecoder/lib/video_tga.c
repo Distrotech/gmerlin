@@ -172,7 +172,7 @@ static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
     if(s->data.video.format.pixelformat == GAVL_PIXELFORMAT_NONE)
       {
       bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-               "Cannot detect image type: %d", priv->tga.image_type);
+               "Cannot detect image .type = %d", priv->tga.image_type);
       return 0;
       }
     if(priv->is_mono)
@@ -300,13 +300,13 @@ static void close_tga(bgav_stream_t * s)
 
 static bgav_video_decoder_t decoder =
   {
-    name:   "TGA video decoder",
-    fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('t', 'g', 'a', ' '),
+    .name =   "TGA video decoder",
+    .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('t', 'g', 'a', ' '),
                             0x00  },
-    init:   init_tga,
-    decode: decode_tga,
-    close:  close_tga,
-    resync: NULL,
+    .init =   init_tga,
+    .decode = decode_tga,
+    .close =  close_tga,
+    .resync = NULL,
   };
 
 void bgav_init_video_decoders_tga()

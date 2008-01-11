@@ -219,9 +219,9 @@ static void close_fli(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_fli =
   {
-    probe:       probe_fli,
-    open:        open_fli,
-    next_packet: next_packet_fli,
-    close:       close_fli
+    .probe =       probe_fli,
+    .open =        open_fli,
+    .next_packet = next_packet_fli,
+    .close =       close_fli
   };
 

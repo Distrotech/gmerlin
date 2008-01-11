@@ -59,10 +59,10 @@ static int num_audio_codecs = sizeof(audio_codecs) / sizeof(audio_codecs[0]);
 static bg_parameter_info_t audio_parameters[] =
   {
     {
-      name:      "codec",
-      long_name: TRS("Codec"),
-      type:      BG_PARAMETER_MULTI_MENU,
-      val_default: { val_str: "vorbis" },
+      .name =      "codec",
+      .long_name = TRS("Codec"),
+      .type =      BG_PARAMETER_MULTI_MENU,
+      .val_default = { .val_str = "vorbis" },
     },
     { /* End of parameters */ }
   };
@@ -144,48 +144,48 @@ static void set_audio_parameter_theora(void * data, int stream,
 
 bg_encoder_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:            "e_theora",       /* Unique short name */
-      long_name:       TRS("Theora encoder"),
-      description:     TRS("Encoder for Theora files. Audio can be Vorbis, Flac or Speex."),
-      mimetypes:       NULL,
-      extensions:      "ogg",
-      type:            BG_PLUGIN_ENCODER,
-      flags:           BG_PLUGIN_FILE,
-      priority:        5,
-      create:            bg_ogg_encoder_create,
-      destroy:           bg_ogg_encoder_destroy,
+      .name =            "e_theora",       /* Unique short name */
+      .long_name =       TRS("Theora encoder"),
+      .description =     TRS("Encoder for Theora files. Audio can be Vorbis, Flac or Speex."),
+      .mimetypes =       NULL,
+      .extensions =      "ogg",
+      .type =            BG_PLUGIN_ENCODER,
+      .flags =           BG_PLUGIN_FILE,
+      .priority =        5,
+      .create =            bg_ogg_encoder_create,
+      .destroy =           bg_ogg_encoder_destroy,
 #if 0
-      get_parameters:    get_parameters_theora,
-      set_parameter:     set_parameter_theora,
+      .get_parameters =    get_parameters_theora,
+      .set_parameter =     set_parameter_theora,
 #endif
     },
-    max_audio_streams:   -1,
-    max_video_streams:   -1,
+    .max_audio_streams =   -1,
+    .max_video_streams =   -1,
     
-    get_extension:       get_extension_theora,
+    .get_extension =       get_extension_theora,
     
-    open:                bg_ogg_encoder_open,
+    .open =                bg_ogg_encoder_open,
     
-    get_audio_parameters:    get_audio_parameters_theora,
-    get_video_parameters:    get_video_parameters_theora,
+    .get_audio_parameters =    get_audio_parameters_theora,
+    .get_video_parameters =    get_video_parameters_theora,
 
-    add_audio_stream:        add_audio_stream_theora,
-    add_video_stream:        add_video_stream_theora,
+    .add_audio_stream =        add_audio_stream_theora,
+    .add_video_stream =        add_video_stream_theora,
     
-    set_audio_parameter:     set_audio_parameter_theora,
-    set_video_parameter:     bg_ogg_encoder_set_video_parameter,
+    .set_audio_parameter =     set_audio_parameter_theora,
+    .set_video_parameter =     bg_ogg_encoder_set_video_parameter,
     
-    start:                  bg_ogg_encoder_start,
+    .start =                  bg_ogg_encoder_start,
 
-    get_audio_format:        bg_ogg_encoder_get_audio_format,
-    get_video_format:        bg_ogg_encoder_get_video_format,
+    .get_audio_format =        bg_ogg_encoder_get_audio_format,
+    .get_video_format =        bg_ogg_encoder_get_video_format,
     
-    write_audio_frame:   bg_ogg_encoder_write_audio_frame,
-    write_video_frame:   bg_ogg_encoder_write_video_frame,
-    close:               bg_ogg_encoder_close,
+    .write_audio_frame =   bg_ogg_encoder_write_audio_frame,
+    .write_video_frame =   bg_ogg_encoder_write_video_frame,
+    .close =               bg_ogg_encoder_close,
   };
 
 /* Include this into all plugin modules exactly once

@@ -434,13 +434,13 @@ static void close_xadll(bgav_stream_t * s)
                         
 static bgav_video_decoder_t decoder =
   {
-    name:   "Xanim dll decoder",
-    fourccs: (uint32_t[]){ BGAV_MK_FOURCC('3','I','V','1'),
+    .name =   "Xanim dll decoder",
+    .fourccs = (uint32_t[]){ BGAV_MK_FOURCC('3','I','V','1'),
                       BGAV_MK_FOURCC('3','i','v','1'),
                       0x0 },
-    init:   init_xadll,
-    decode: decode_xadll,
-    close:  close_xadll,
+    .init =   init_xadll,
+    .decode = decode_xadll,
+    .close =  close_xadll,
   };
 
 int bgav_init_video_decoders_xadll(bgav_options_t * opt)

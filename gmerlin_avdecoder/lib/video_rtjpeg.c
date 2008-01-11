@@ -96,11 +96,11 @@ static void close_rtjpeg(bgav_stream_t * s)
 
 static bgav_video_decoder_t rtjpeg_decoder =
   {
-    name:   "rtjpeg video decoder",
-    fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('R', 'T', 'J', '0'), 0x00  },
-    init:   init_rtjpeg,
-    decode: decode_rtjpeg,
-    close:  close_rtjpeg,
+    .name =   "rtjpeg video decoder",
+    .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('R', 'T', 'J', '0'), 0x00  },
+    .init =   init_rtjpeg,
+    .decode = decode_rtjpeg,
+    .close =  close_rtjpeg,
   };
 
 void bgav_init_video_decoders_rtjpeg()

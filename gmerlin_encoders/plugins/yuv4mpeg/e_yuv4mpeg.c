@@ -153,11 +153,11 @@ static void set_parameter_y4m(void * data, char * name,
 static bg_parameter_info_t video_parameters[] =
   {
     {
-      name:        "chroma_mode",
-      long_name:   TRS("Chroma mode"),
-      type:        BG_PARAMETER_STRINGLIST,
-      val_default: { val_str: "auto" },
-      multi_names: (char*[]){ "auto",
+      .name =        "chroma_mode",
+      .long_name =   TRS("Chroma mode"),
+      .type =        BG_PARAMETER_STRINGLIST,
+      .val_default = { .val_str = "auto" },
+      .multi_names = (char*[]){ "auto",
                               "420jpeg",
                               "420mpeg2",
                               "420paldv",
@@ -167,7 +167,7 @@ static bg_parameter_info_t video_parameters[] =
                               "mono",
                               "yuva4444",
                               (char*)0 },
-      multi_labels: (char*[]){ TRS("Auto"),
+      .multi_labels = (char*[]){ TRS("Auto"),
                                TRS("4:2:0 (MPEG-1/JPEG)"),
                                TRS("4:2:0 (MPEG-2)"),
                                TRS("4:2:0 (PAL DV)"),
@@ -177,7 +177,7 @@ static bg_parameter_info_t video_parameters[] =
                                TRS("Greyscale"),
                                TRS("4:4:4:4 (YUVA)"),
                                (char*)0 },
-      help_string: TRS("Set the chroma mode of the output file. Auto means to take the format most similar to the source.")
+      .help_string = TRS("Set the chroma mode of the output file. Auto means to take the format most similar to the source.")
     },
     { /* End of parameters */ }
   };
@@ -257,43 +257,43 @@ static void set_video_parameter_y4m(void * data, int stream, const char * name,
 
 bg_encoder_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:           "e_y4m",       /* Unique short name */
-      long_name:      TRS("yuv4mpeg2 encoder"),
-      description:     TRS("Encoder for yuv4mpeg files.\
+      .name =           "e_y4m",       /* Unique short name */
+      .long_name =      TRS("yuv4mpeg2 encoder"),
+      .description =     TRS("Encoder for yuv4mpeg files.\
  Based on mjpegtools (http://mjpeg.sourceforge.net)."),
-      mimetypes:      NULL,
-      extensions:     "y4m",
-      type:           BG_PLUGIN_ENCODER_VIDEO,
-      flags:          BG_PLUGIN_FILE,
-      priority:       BG_PLUGIN_PRIORITY_MAX,
-      create:         create_y4m,
-      destroy:        destroy_y4m,
-      //      get_parameters: get_parameters_y4m,
-      //      set_parameter:  set_parameter_y4m,
+      .mimetypes =      NULL,
+      .extensions =     "y4m",
+      .type =           BG_PLUGIN_ENCODER_VIDEO,
+      .flags =          BG_PLUGIN_FILE,
+      .priority =       BG_PLUGIN_PRIORITY_MAX,
+      .create =         create_y4m,
+      .destroy =        destroy_y4m,
+      //      .get_parameters = get_parameters_y4m,
+      //      .set_parameter =  set_parameter_y4m,
     },
 
-    max_audio_streams:  0,
-    max_video_streams:  1,
+    .max_audio_streams =  0,
+    .max_video_streams =  1,
 
-    get_video_parameters: get_video_parameters_y4m,
+    .get_video_parameters = get_video_parameters_y4m,
 
-    get_extension:        get_extension_y4m,
+    .get_extension =        get_extension_y4m,
 
-    open:                 open_y4m,
+    .open =                 open_y4m,
 
-    add_video_stream:     add_video_stream_y4m,
+    .add_video_stream =     add_video_stream_y4m,
 
-    set_video_parameter:  set_video_parameter_y4m,
+    .set_video_parameter =  set_video_parameter_y4m,
 
-    get_video_format:     get_video_format_y4m,
+    .get_video_format =     get_video_format_y4m,
 
-    start:                start_y4m,
+    .start =                start_y4m,
 
-    write_video_frame: write_video_frame_y4m,
-    close:             close_y4m,
+    .write_video_frame = write_video_frame_y4m,
+    .close =             close_y4m,
     
   };
 

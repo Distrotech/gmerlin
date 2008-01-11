@@ -298,10 +298,10 @@ static void close_mpc(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_mpc =
   {
-    probe:       probe_mpc,
-    open:        open_mpc,
-    next_packet: next_packet_mpc,
-    seek:        seek_mpc,
-    close:       close_mpc
+    .probe =       probe_mpc,
+    .open =        open_mpc,
+    .next_packet = next_packet_mpc,
+    .seek =        seek_mpc,
+    .close =       close_mpc
   };
 

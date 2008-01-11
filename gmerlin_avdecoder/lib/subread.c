@@ -610,25 +610,25 @@ static void close_spumux(bgav_stream_t * s)
 static bgav_subtitle_reader_t subtitle_readers[] =
   {
     {
-      name: "Subrip (srt)",
-      probe:              probe_srt,
-      read_subtitle_text: read_srt,
+      .name = "Subrip (srt)",
+      .probe =              probe_srt,
+      .read_subtitle_text = read_srt,
     },
     {
-      name: "Mplayer mpsub",
-      init:               init_mpsub,
-      probe:              probe_mpsub,
-      read_subtitle_text: read_mpsub,
-      close:              close_mpsub,
+      .name = "Mplayer mpsub",
+      .init =               init_mpsub,
+      .probe =              probe_mpsub,
+      .read_subtitle_text = read_mpsub,
+      .close =              close_mpsub,
     },
 #ifdef HAVE_LIBPNG
     {
-      name: "Spumux (xml/png)",
-      probe:                 probe_spumux,
-      init:                  init_spumux,
-      read_subtitle_overlay: read_spumux,
-      seek:                  seek_spumux,
-      close:                 close_spumux,
+      .name = "Spumux (xml/png)",
+      .probe =                 probe_spumux,
+      .init =                  init_spumux,
+      .read_subtitle_overlay = read_spumux,
+      .seek =                  seek_spumux,
+      .close =                 close_spumux,
     },
 #endif // HAVE_LIBPNG
     { /* End of subtitle readers */ }

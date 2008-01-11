@@ -315,9 +315,9 @@ static void close_voc(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_voc =
   {
-    probe:       probe_voc,
-    open:        open_voc,
-    next_packet: next_packet_voc,
-    //    seek:        seek_voc,
-    close:       close_voc
+    .probe =       probe_voc,
+    .open =        open_voc,
+    .next_packet = next_packet_voc,
+    //    .seek =        seek_voc,
+    .close =       close_voc
   };

@@ -332,9 +332,9 @@ static int select_track_tiertex(bgav_demuxer_context_t * ctx, int t)
 
 bgav_demuxer_t bgav_demuxer_tiertex =
   {
-    probe:        probe_tiertex,
-    open:         open_tiertex,
-    select_track: select_track_tiertex,
-    next_packet:  next_packet_tiertex,
-    close:        close_tiertex
+    .probe =        probe_tiertex,
+    .open =         open_tiertex,
+    .select_track = select_track_tiertex,
+    .next_packet =  next_packet_tiertex,
+    .close =        close_tiertex
   };

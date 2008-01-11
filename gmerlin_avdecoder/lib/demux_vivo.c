@@ -323,7 +323,7 @@ static int vivo_header_read(vivo_header_t * ret, bgav_input_context_t * input)
             {
             if(strcmp(pos, "relative"))
               bgav_log(input->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-                       "Unknown timestamp type: %s",
+                       "Unknown timestamp .type = %s",
                       pos);
             }
           else if(check_key(buffer, "TimeUnitNumerator", &pos))
@@ -650,10 +650,10 @@ static void close_vivo(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_vivo =
   {
-    probe:        probe_vivo,
-    open:         open_vivo,
-    select_track: select_track_vivo,
-    next_packet:  next_packet_vivo,
-    close:        close_vivo
+    .probe =        probe_vivo,
+    .open =         open_vivo,
+    .select_track = select_track_vivo,
+    .next_packet =  next_packet_vivo,
+    .close =        close_vivo
   };
 

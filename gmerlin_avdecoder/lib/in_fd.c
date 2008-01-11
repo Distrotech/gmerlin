@@ -44,9 +44,9 @@ static void    close_fd(bgav_input_context_t * ctx)
 
 static bgav_input_t bgav_input_fd =
   {
-    open:   NULL, /* Not needed */
-    read:   read_fd,
-    close:  close_fd
+    .open =   NULL, /* Not needed */
+    .read =   read_fd,
+    .close =  close_fd
   };
 
 bgav_input_context_t * bgav_input_open_fd(int fd, int64_t total_bytes, const char * mimetype)

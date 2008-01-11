@@ -318,8 +318,8 @@ static void close_nuv(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_nuv =
   {
-    probe:       probe_nuv,
-    open:        open_nuv,
-    next_packet: next_packet_nuv,
-    close:       close_nuv
+    .probe =       probe_nuv,
+    .open =        open_nuv,
+    .next_packet = next_packet_nuv,
+    .close =       close_nuv
   };

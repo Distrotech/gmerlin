@@ -334,13 +334,13 @@ static void resync_dvdsub(bgav_stream_t * s)
 
 static bgav_subtitle_overlay_decoder_t decoder =
   {
-    fourccs: (uint32_t[]){ BGAV_MK_FOURCC('D', 'V', 'D', 'S'), 0 },
-    name:    "DVD subtitle decoder",
-    init:         init_dvdsub,
-    has_subtitle: has_subtitle_dvdsub,
-    decode:       decode_dvdsub,
-    close:        close_dvdsub,
-    resync:       resync_dvdsub,
+    .fourccs = (uint32_t[]){ BGAV_MK_FOURCC('D', 'V', 'D', 'S'), 0 },
+    .name =    "DVD subtitle decoder",
+    .init =         init_dvdsub,
+    .has_subtitle = has_subtitle_dvdsub,
+    .decode =       decode_dvdsub,
+    .close =        close_dvdsub,
+    .resync =       resync_dvdsub,
   };
 
 void bgav_init_subtitle_overlay_decoders_dvd()

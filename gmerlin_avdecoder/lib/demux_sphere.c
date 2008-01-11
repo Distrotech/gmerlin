@@ -359,9 +359,9 @@ static void close_sphere(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_sphere =
   {
-    probe:       probe_sphere,
-    open:        open_sphere,
-    next_packet: next_packet_sphere,
-    seek:        seek_sphere,
-    close:       close_sphere
+    .probe =       probe_sphere,
+    .open =        open_sphere,
+    .next_packet = next_packet_sphere,
+    .seek =        seek_sphere,
+    .close =       close_sphere
   };

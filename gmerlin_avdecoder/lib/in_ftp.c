@@ -410,10 +410,10 @@ static void close_ftp(bgav_input_context_t * ctx)
 
 bgav_input_t bgav_input_ftp =
   {
-    name:          "ftp",
-    open:          open_ftp,
-    read:          read_ftp,
-    read_nonblock: read_nonblock_ftp,
-    close:         close_ftp
+    .name =          "ftp",
+    .open =          open_ftp,
+    .read =          read_ftp,
+    .read_nonblock = read_nonblock_ftp,
+    .close =         close_ftp
   };
 

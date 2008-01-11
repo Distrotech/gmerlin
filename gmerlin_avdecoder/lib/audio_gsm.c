@@ -190,17 +190,17 @@ static void resync_gsm(bgav_stream_t * s)
 
 static bgav_audio_decoder_t decoder =
   {
-    fourccs: (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x31),
+    .fourccs = (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x31),
                BGAV_WAVID_2_FOURCC(0x32),
                BGAV_MK_FOURCC('a', 'g', 's', 'm'),
                BGAV_MK_FOURCC('G', 'S', 'M', ' '),
                0x00 },
-    name: "libgsm based decoder",
+    .name = "libgsm based decoder",
 
-    init:   init_gsm,
-    decode: decode_gsm,
-    resync: resync_gsm,
-    close:  close_gsm,
+    .init =   init_gsm,
+    .decode = decode_gsm,
+    .resync = resync_gsm,
+    .close =  close_gsm,
   };
 
 void bgav_init_audio_decoders_gsm()

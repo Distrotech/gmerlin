@@ -50,7 +50,7 @@ void bgav_qt_ftab_dump(int indent, qt_ftab_t * f)
   bgav_diprintf(indent+2, "Number of fonts: %d\n", f->num_fonts);
   for(i = 0; i < f->num_fonts; i++)
     {
-    bgav_diprintf(indent + 2 , "Font %d, ID: %d, name: %s\n",
+    bgav_diprintf(indent + 2 , "Font %d, ID: %d, .name = %s\n",
                   i+1, f->fonts[i].font_id, f->fonts[i].font_name);
     }
   bgav_diprintf(indent, "end of ftab\n");

@@ -955,10 +955,10 @@ static int select_track_mpegaudio(bgav_demuxer_context_t * ctx,
 
 bgav_demuxer_t bgav_demuxer_mpegaudio =
   {
-    probe:        probe_mpegaudio,
-    open:         open_mpegaudio,
-    next_packet:  next_packet_mpegaudio,
-    seek:         seek_mpegaudio,
-    close:        close_mpegaudio,
-    select_track: select_track_mpegaudio
+    .probe =        probe_mpegaudio,
+    .open =         open_mpegaudio,
+    .next_packet =  next_packet_mpegaudio,
+    .seek =         seek_mpegaudio,
+    .close =        close_mpegaudio,
+    .select_track = select_track_mpegaudio
   };

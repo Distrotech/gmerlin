@@ -81,22 +81,22 @@ static void destroy_faac(void * priv)
 static bg_parameter_info_t audio_parameters[] =
   {
     {
-      name:        "basic",
-      long_name:   TRS("Basic options"),
-      type:        BG_PARAMETER_SECTION
+      .name =        "basic",
+      .long_name =   TRS("Basic options"),
+      .type =        BG_PARAMETER_SECTION
     },
     {
-      name:        "object_type",
-      long_name:   TRS("Object type"),
-      type:        BG_PARAMETER_STRINGLIST,
-      val_default: { val_str:  "mpeg4_main" },
-      multi_names: (char*[]){ "mpeg2_main",
+      .name =        "object_type",
+      .long_name =   TRS("Object type"),
+      .type =        BG_PARAMETER_STRINGLIST,
+      .val_default = { .val_str =  "mpeg4_main" },
+      .multi_names = (char*[]){ "mpeg2_main",
                               "mpeg2_lc",
                               "mpeg4_main",
                               "mpeg4_lc",
                               "mpeg4_ltp",
                               (char*)0 },
-      multi_labels: (char*[]){ TRS("MPEG-2 Main profile"),
+      .multi_labels = (char*[]){ TRS("MPEG-2 Main profile"),
                                TRS("MPEG-2 Low Complexity profile (LC)"),
                                TRS("MPEG-4 Main profile"),
                                TRS("MPEG-4 Low Complexity profile (LC)"),
@@ -104,52 +104,52 @@ static bg_parameter_info_t audio_parameters[] =
                                (char*)0 },
     },
     {
-      name:        "bitrate",
-      long_name:   TRS("Bitrate (kbps)"),
-      type:        BG_PARAMETER_INT,
-      val_min:     { val_i: 0    },
-      val_max:     { val_i: 1000 },
-      help_string: TRS("Average bitrate (0: VBR based on quality)"),
+      .name =        "bitrate",
+      .long_name =   TRS("Bitrate (kbps)"),
+      .type =        BG_PARAMETER_INT,
+      .val_min =     { .val_i = 0    },
+      .val_max =     { .val_i = 1000 },
+      .help_string = TRS("Average bitrate (0: VBR based on quality)"),
     },
     {
-      name:        "quality",
-      long_name:   TRS("Quality"),
-      type:        BG_PARAMETER_SLIDER_INT,
-      val_min:     { val_i: 10 },
-      val_max:     { val_i: 500 },
-      val_default: { val_i: 100 },
-      help_string: TRS("Quantizer quality"),
+      .name =        "quality",
+      .long_name =   TRS("Quality"),
+      .type =        BG_PARAMETER_SLIDER_INT,
+      .val_min =     { .val_i = 10 },
+      .val_max =     { .val_i = 500 },
+      .val_default = { .val_i = 100 },
+      .help_string = TRS("Quantizer quality"),
     },
     {
-      name:        "advanced",
-      long_name:   TRS("Advanced options"),
-      type:        BG_PARAMETER_SECTION
+      .name =        "advanced",
+      .long_name =   TRS("Advanced options"),
+      .type =        BG_PARAMETER_SECTION
     },
     {
-      name:        "block_types",
-      long_name:   TRS("Block types"),
-      type:        BG_PARAMETER_STRINGLIST,
-      val_default: { val_str:  "Both" },
-      multi_names: (char*[]){ "Both",
+      .name =        "block_types",
+      .long_name =   TRS("Block types"),
+      .type =        BG_PARAMETER_STRINGLIST,
+      .val_default = { .val_str =  "Both" },
+      .multi_names = (char*[]){ "Both",
                               "No short",
                               "No long",
                               (char*)0 },
-      multi_labels: (char*[]){ TRS("Both"),
+      .multi_labels = (char*[]){ TRS("Both"),
                                TRS("No short"),
                                TRS("No long"),
                                (char*)0 },
     },
     {
-      name:        "tns",
-      type:        BG_PARAMETER_CHECKBUTTON,
-      long_name:   TRS("Use temporal noise shaping"),
-      val_default: { val_i: 0 }
+      .name =        "tns",
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .long_name =   TRS("Use temporal noise shaping"),
+      .val_default = { .val_i = 0 }
     },
     {
-      name:        "no_midside",
-      long_name:   TRS("Don\'t use mid/side coding"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 0 }
+      .name =        "no_midside",
+      .long_name =   TRS("Don\'t use mid/side coding"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 0 }
     },
     { /* End of parameters */ }
   };
@@ -240,25 +240,25 @@ static void set_audio_parameter_faac(void * data, int stream, const char * name,
 static bg_parameter_info_t parameters[] =
   {
     {
-      name:        "do_id3v1",
-      long_name:   TRS("Write ID3V1.1 tag"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 },
+      .name =        "do_id3v1",
+      .long_name =   TRS("Write ID3V1.1 tag"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 },
     },
     {
-      name:        "do_id3v2",
-      long_name:   TRS("Write ID3V2 tag"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 },
+      .name =        "do_id3v2",
+      .long_name =   TRS("Write ID3V2 tag"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 },
     },
     {
-      name:        "id3v2_charset",
-      long_name:   TRS("ID3V2 Encoding"),
-      type:        BG_PARAMETER_STRINGLIST,
-      val_default: { val_str: "3" },
-      multi_names: (char*[]){ "0", "1",
+      .name =        "id3v2_charset",
+      .long_name =   TRS("ID3V2 Encoding"),
+      .type =        BG_PARAMETER_STRINGLIST,
+      .val_default = { .val_str = "3" },
+      .multi_names = (char*[]){ "0", "1",
                                "2", "3", (char*)0 },
-      multi_labels: (char*[]){ TRS("ISO-8859-1"), TRS("UTF-16 LE"),
+      .multi_labels = (char*[]){ TRS("ISO-8859-1"), TRS("UTF-16 LE"),
                                TRS("UTF-16 BE"), TRS("UTF-8"), (char*)0 },
     },
     { /* End of parameters */ }
@@ -531,39 +531,39 @@ static int close_faac(void * data, int do_delete)
   
 bg_encoder_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:            "e_faac",       /* Unique short name */
-      long_name:       TRS("Faac encoder"),
-      description:     TRS("Plugin for encoding AAC streams (with ADTS headers). Based on faac (http://faac.sourceforge.net)."),
-      mimetypes:       NULL,
-      extensions:      "aac",
-      type:            BG_PLUGIN_ENCODER_AUDIO,
-      flags:           BG_PLUGIN_FILE,
-      priority:        5,
-      create:            create_faac,
-      destroy:           destroy_faac,
-      get_parameters:    get_parameters_faac,
-      set_parameter:     set_parameter_faac,
+      .name =            "e_faac",       /* Unique short name */
+      .long_name =       TRS("Faac encoder"),
+      .description =     TRS("Plugin for encoding AAC streams (with ADTS headers). Based on faac (http://faac.sourceforge.net)."),
+      .mimetypes =       NULL,
+      .extensions =      "aac",
+      .type =            BG_PLUGIN_ENCODER_AUDIO,
+      .flags =           BG_PLUGIN_FILE,
+      .priority =        5,
+      .create =            create_faac,
+      .destroy =           destroy_faac,
+      .get_parameters =    get_parameters_faac,
+      .set_parameter =     set_parameter_faac,
     },
-    max_audio_streams:   1,
-    max_video_streams:   0,
+    .max_audio_streams =   1,
+    .max_video_streams =   0,
     
-    get_extension:       get_extension_faac,
+    .get_extension =       get_extension_faac,
     
-    open:                open_faac,
+    .open =                open_faac,
     
-    get_audio_parameters:    get_audio_parameters_faac,
+    .get_audio_parameters =    get_audio_parameters_faac,
 
-    add_audio_stream:        add_audio_stream_faac,
+    .add_audio_stream =        add_audio_stream_faac,
     
-    set_audio_parameter:     set_audio_parameter_faac,
+    .set_audio_parameter =     set_audio_parameter_faac,
 
-    get_audio_format:        get_audio_format_faac,
+    .get_audio_format =        get_audio_format_faac,
     
-    write_audio_frame:   write_audio_frame_faac,
-    close:               close_faac
+    .write_audio_frame =   write_audio_frame_faac,
+    .close =               close_faac
   };
 
 /* Include this into all plugin modules exactly once

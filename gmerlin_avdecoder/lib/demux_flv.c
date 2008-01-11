@@ -120,7 +120,7 @@ static int flv_tag_read(bgav_input_context_t * ctx, flv_tag * ret)
 static void flv_tag_dump(flv_tag * t)
   {
   bgav_dprintf("FLVTAG\n");
-  bgav_dprintf("  type:      %d\n", t->type);
+  bgav_dprintf("  .type =      %d\n", t->type);
   bgav_dprintf("  data_size: %d\n", t->data_size);
   bgav_dprintf("  timestamp: %d\n", t->timestamp);
   bgav_dprintf("  reserved:  %d\n", t->reserved);
@@ -300,7 +300,7 @@ static int read_meta_object(bgav_input_context_t * input,
       break;
     default:
       bgav_log(input->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-               "Unknown type: %d for metadata object %s",
+               "Unknown .type = %d for metadata object %s",
                ret->type, ret->name);
       return 0;
     }
@@ -882,11 +882,11 @@ static void close_flv(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_flv =
   {
-    probe:       probe_flv,
-    open:        open_flv,
-    next_packet: next_packet_flv,
-    seek:        seek_flv,
-    close:       close_flv
+    .probe =       probe_flv,
+    .open =        open_flv,
+    .next_packet = next_packet_flv,
+    .seek =        seek_flv,
+    .close =       close_flv
   };
 
 

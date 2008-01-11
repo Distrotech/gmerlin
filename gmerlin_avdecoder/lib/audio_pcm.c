@@ -1156,7 +1156,7 @@ static void resync_pcm(bgav_stream_t * s)
 
 static bgav_audio_decoder_t decoder =
   {
-    fourccs: (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x0001),
+    .fourccs = (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x0001),
                            BGAV_WAVID_2_FOURCC(0x0003),
                            BGAV_MK_FOURCC('a', 'i', 'f', 'f'),
                            BGAV_MK_FOURCC('t', 'w', 'o', 's'),
@@ -1176,11 +1176,11 @@ static bgav_audio_decoder_t decoder =
                            BGAV_WAVID_2_FOURCC(0x06),
                            BGAV_MK_FOURCC('P','C','M',' '), /* Used by NSV */
                            0x00 },
-    name: "PCM audio decoder",
-    init: init_pcm,
-    close: close_pcm,
-    resync: resync_pcm,
-    decode: decode_pcm
+    .name = "PCM audio decoder",
+    .init = init_pcm,
+    .close = close_pcm,
+    .resync = resync_pcm,
+    .decode = decode_pcm
   };
 
 void bgav_init_audio_decoders_pcm()

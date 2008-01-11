@@ -191,13 +191,13 @@ static void close_speex(bgav_stream_t * s)
 
 static bgav_audio_decoder_t decoder =
   {
-    fourccs: (uint32_t[]){ BGAV_MK_FOURCC('S','P','E','X'), 0x00 },
-    name: "Speex decoder",
+    .fourccs = (uint32_t[]){ BGAV_MK_FOURCC('S','P','E','X'), 0x00 },
+    .name = "Speex decoder",
 
-    init:   init_speex,
-    decode: decode_speex,
-    close:  close_speex,
-    //    resync: resync_speex,
+    .init =   init_speex,
+    .decode = decode_speex,
+    .close =  close_speex,
+    //    .resync = resync_speex,
   };
 
 void bgav_init_audio_decoders_speex()

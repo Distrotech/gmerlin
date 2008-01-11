@@ -100,14 +100,14 @@ static void skip_chunk(bgav_input_context_t * input,
 static void dump_chunk_header(fourxm_chunk_t * ch)
   {
   bgav_dprintf("4xm chunk header\n");
-  bgav_dprintf("  fourcc: ");
+  bgav_dprintf("  .fourcc = ");
   bgav_dump_fourcc(ch->fourcc);
   bgav_dprintf("\n");
 
   bgav_dprintf("  size:   %d\n", ch->size);
   if(ch->fourcc == ID_LIST)
     {
-    bgav_dprintf("  type:   ");
+    bgav_dprintf("  .type =   ");
     bgav_dump_fourcc(ch->type);
     bgav_dprintf("\n");
     }
@@ -154,7 +154,7 @@ static int setup_audio_stream(bgav_demuxer_context_t * ctx,
           return 0;
         s->stream_id = AUDIO_STREAM_OFFSET + tmp_32;
 
-        // bytes 12-15  audio type: 0 = PCM, 1 = 4X IMA ADPCM
+        // bytes 12-15  audio .type = 0 = PCM, 1 = 4X IMA ADPCM
         if(!bgav_input_read_32_le(ctx->input, &tmp_32))
           return 0;
 
@@ -486,9 +486,9 @@ static void close_4xm(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_4xm =
   {
-    probe:        probe_4xm,
-    open:         open_4xm,
-    select_track: select_track_4xm,
-    next_packet:  next_packet_4xm,
-    close:        close_4xm
+    .probe =        probe_4xm,
+    .open =         open_4xm,
+    .select_track = select_track_4xm,
+    .next_packet =  next_packet_4xm,
+    .close =        close_4xm
   };

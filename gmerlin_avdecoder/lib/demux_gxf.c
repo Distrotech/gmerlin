@@ -108,12 +108,12 @@ static void dump_media_header(media_header_t * h)
   {
   bgav_dprintf("Packet header\n");
 
-  bgav_dprintf("  type:              %d\n", h->type);
+  bgav_dprintf("  .type =              %d\n", h->type);
   bgav_dprintf("  id:                %d\n", h->id);
   bgav_dprintf("  field_nr:          %d\n", h->field_nr);
   bgav_dprintf("  field_information: %08x\n", h->field_information);
   bgav_dprintf("  timeline_field_nr: %d\n", h->timeline_field_nr);
-  bgav_dprintf("  flags:             %d\n", h->flags);
+  bgav_dprintf("  .flags =             %d\n", h->flags);
   bgav_dprintf("  reserved:          %d\n", h->reserved);
   
   }
@@ -642,9 +642,9 @@ static void close_gxf(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_gxf =
   {
-    probe:       probe_gxf,
-    open:        open_gxf,
-    next_packet: next_packet_gxf,
-    seek:        seek_gxf,
-    close:       close_gxf
+    .probe =       probe_gxf,
+    .open =        open_gxf,
+    .next_packet = next_packet_gxf,
+    .seek =        seek_gxf,
+    .close =       close_gxf
   };

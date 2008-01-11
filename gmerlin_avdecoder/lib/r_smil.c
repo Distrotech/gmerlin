@@ -412,7 +412,7 @@ static int parse_smil(bgav_redirector_context_t * r)
 
 bgav_redirector_t bgav_redirector_smil = 
   {
-    name:  "smil",
-    probe: probe_smil,
-    parse: parse_smil
+    .name =  "smil",
+    .probe = probe_smil,
+    .parse = parse_smil
   };

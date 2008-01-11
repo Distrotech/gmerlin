@@ -449,17 +449,17 @@ static void resync_qtaudio(bgav_stream_t * s)
 
 static bgav_audio_decoder_t decoder =
   {
-    name:   "Win32 Quicktime audio decoder",
-    fourccs: (uint32_t[]){ BGAV_MK_FOURCC('Q','D','M','C'),
+    .name =   "Win32 Quicktime audio decoder",
+    .fourccs = (uint32_t[]){ BGAV_MK_FOURCC('Q','D','M','C'),
                       BGAV_MK_FOURCC('Q','D','M','2'),
                       BGAV_MK_FOURCC('Q','c','l','p'),
                       //                      BGAV_MK_FOURCC('M','A','C','6'),
                       0x0 },
     
-    init:    init_qtaudio,
-    decode:  decode_qtaudio,
-    close:   close_qtaudio,
-    resync:  resync_qtaudio
+    .init =    init_qtaudio,
+    .decode =  decode_qtaudio,
+    .close =   close_qtaudio,
+    .resync =  resync_qtaudio
   };
 
 /* We won't work unless these files are there */

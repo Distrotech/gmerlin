@@ -71,10 +71,10 @@ static void close_shorten(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_shorten =
   {
-    probe:       probe_shorten,
-    open:        open_shorten,
-    next_packet: next_packet_shorten,
-    close:       close_shorten
+    .probe =       probe_shorten,
+    .open =        open_shorten,
+    .next_packet = next_packet_shorten,
+    .close =       close_shorten
   };
 
   

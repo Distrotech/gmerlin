@@ -47,7 +47,7 @@ static int read_chunk_header(bgav_input_context_t * input,
 static void dump_chunk_header(chunk_header_t * ch)
   {
   bgav_dprintf("SMAF Chunk header\n");
-  bgav_dprintf("  fourcc: ");
+  bgav_dprintf("  .fourcc = ");
   bgav_dump_fourcc(ch->fourcc);
   bgav_dprintf("\n");
   bgav_dprintf("  size:   %d\n", ch->size);
@@ -238,8 +238,8 @@ static void close_smaf(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_smaf =
   {
-    probe:       probe_smaf,
-    open:        open_smaf,
-    next_packet: next_packet_smaf,
-    close:       close_smaf
+    .probe =       probe_smaf,
+    .open =        open_smaf,
+    .next_packet = next_packet_smaf,
+    .close =       close_smaf
   };

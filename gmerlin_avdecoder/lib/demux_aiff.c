@@ -455,9 +455,9 @@ static void close_aiff(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_aiff =
   {
-    probe:       probe_aiff,
-    open:        open_aiff,
-    next_packet: next_packet_aiff,
-    seek:        seek_aiff,
-    close:       close_aiff
+    .probe =       probe_aiff,
+    .open =        open_aiff,
+    .next_packet = next_packet_aiff,
+    .seek =        seek_aiff,
+    .close =       close_aiff
   };

@@ -75,7 +75,11 @@ typedef struct
 static FLAC__StreamEncoderWriteStatus
 write_callback(const FLAC__StreamEncoder *encoder,
                const FLAC__byte buffer[],
+#if BGAV_FLAC_VERSION_INT < MAKE_VERSION(1, 1, 2)
                unsigned bytes,
+#else
+               size_t bytes,
+#endif
                unsigned samples,
                unsigned current_frame,
                void *data)
@@ -160,8 +164,6 @@ write_callback(const FLAC__StreamEncoder *encoder,
       flacogg->frames_encoded++;
       flacogg->samples_encoded += flacogg->frame_samples;
 
-      fprintf(stderr, "Encoded frame, granulepos: %lld, bytes: %ld\n",
-              op.granulepos, op.bytes);
       }
 
     if(bytes) /* Save next frame */
@@ -239,7 +241,7 @@ static int init_flacogg(void * data, gavl_audio_format_t * format, bg_metadata_t
 
   /* Initialize encoder */
     
-#if BGAV_FLAC_VERSION_INT <= MAKE_VERSION(1, 1, 2)
+#if BGAV_FLAC_VERSION_INT < MAKE_VERSION(1, 1, 2)
   FLAC__stream_encoder_set_write_callback(flacogg->enc, write_callback);
   FLAC__stream_encoder_set_metadata_callback(flacogg->enc, metadata_callback);
   FLAC__stream_encoder_set_client_data(flacogg->enc, flacogg);
@@ -327,16 +329,16 @@ static int close_flacogg(void * data)
 
 bg_ogg_codec_t bg_flacogg_codec =
   {
-    name:      "flacogg",
-    long_name: TRS("Flac encoder"),
-    create: create_flacogg,
+    .name =      "flacogg",
+    .long_name = TRS("Flac encoder"),
+    .create = create_flacogg,
 
-    get_parameters: get_parameters_flacogg,
-    set_parameter:  set_parameter_flacogg,
+    .get_parameters = get_parameters_flacogg,
+    .set_parameter =  set_parameter_flacogg,
     
-    init_audio:     init_flacogg,
-    flush_header_pages: flush_header_pages_flacogg,
+    .init_audio =     init_flacogg,
+    .flush_header_pages = flush_header_pages_flacogg,
     
-    encode_audio: write_audio_frame_flacogg,
-    close: close_flacogg,
+    .encode_audio = write_audio_frame_flacogg,
+    .close = close_flacogg,
   };

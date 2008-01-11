@@ -162,8 +162,8 @@ static void close_sol(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_sol =
   {
-    probe:       probe_sol,
-    open:        open_sol,
-    next_packet: next_packet_sol,
-    close:       close_sol
+    .probe =       probe_sol,
+    .open =        open_sol,
+    .next_packet = next_packet_sol,
+    .close =       close_sol
   };

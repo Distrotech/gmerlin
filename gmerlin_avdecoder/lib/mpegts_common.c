@@ -39,58 +39,58 @@ typedef struct
 stream_type_t stream_types[] =
   {
     {
-      ts_type:     STREAM_TYPE_VIDEO_MPEG1,
-      bgav_type:   BGAV_STREAM_VIDEO,
-      fourcc:      BGAV_MK_FOURCC('m', 'p', 'g', 'v'),
-      description: "MPEG-1 Video",
+      .ts_type =     STREAM_TYPE_VIDEO_MPEG1,
+      .bgav_type =   BGAV_STREAM_VIDEO,
+      .fourcc =      BGAV_MK_FOURCC('m', 'p', 'g', 'v'),
+      .description = "MPEG-1 Video",
     },
     {
-      ts_type:     STREAM_TYPE_VIDEO_MPEG2,
-      bgav_type:   BGAV_STREAM_VIDEO,
-      fourcc:      BGAV_MK_FOURCC('m', 'p', 'g', 'v'),
-      description: "MPEG-2 Video",
+      .ts_type =     STREAM_TYPE_VIDEO_MPEG2,
+      .bgav_type =   BGAV_STREAM_VIDEO,
+      .fourcc =      BGAV_MK_FOURCC('m', 'p', 'g', 'v'),
+      .description = "MPEG-2 Video",
     },
     {
-      ts_type:     STREAM_TYPE_AUDIO_MPEG1,
-      bgav_type:   BGAV_STREAM_AUDIO,
-      fourcc:      BGAV_MK_FOURCC('.', 'm', 'p', '3'),
-      description: "MPEG-1 Audio",
+      .ts_type =     STREAM_TYPE_AUDIO_MPEG1,
+      .bgav_type =   BGAV_STREAM_AUDIO,
+      .fourcc =      BGAV_MK_FOURCC('.', 'm', 'p', '3'),
+      .description = "MPEG-1 Audio",
     },
     {
-      ts_type:     STREAM_TYPE_AUDIO_MPEG2,
-      bgav_type:   BGAV_STREAM_AUDIO,
-      fourcc:      BGAV_MK_FOURCC('.', 'm', 'p', '3'),
-      description: "MPEG-1 Audio",
+      .ts_type =     STREAM_TYPE_AUDIO_MPEG2,
+      .bgav_type =   BGAV_STREAM_AUDIO,
+      .fourcc =      BGAV_MK_FOURCC('.', 'm', 'p', '3'),
+      .description = "MPEG-1 Audio",
     },
     {
-      ts_type:     STREAM_TYPE_AUDIO_AAC,
-      bgav_type:   BGAV_STREAM_AUDIO,
-      fourcc:      BGAV_MK_FOURCC('a', 'a', 'c', ' '),
-      description: "MPEG-4 Audio (AAC)",
+      .ts_type =     STREAM_TYPE_AUDIO_AAC,
+      .bgav_type =   BGAV_STREAM_AUDIO,
+      .fourcc =      BGAV_MK_FOURCC('a', 'a', 'c', ' '),
+      .description = "MPEG-4 Audio (AAC)",
     },
     {
-      ts_type:     STREAM_TYPE_VIDEO_MPEG4,
-      bgav_type:   BGAV_STREAM_VIDEO,
-      fourcc:      BGAV_MK_FOURCC('m', 'p', '4', 'v'),
-      description: "MPEG-4 Video",
+      .ts_type =     STREAM_TYPE_VIDEO_MPEG4,
+      .bgav_type =   BGAV_STREAM_VIDEO,
+      .fourcc =      BGAV_MK_FOURCC('m', 'p', '4', 'v'),
+      .description = "MPEG-4 Video",
     },
     {
-      ts_type:     STREAM_TYPE_VIDEO_H264,
-      bgav_type:   BGAV_STREAM_VIDEO,
-      fourcc:      BGAV_MK_FOURCC('H', '2', '6', '4'),
-      description: "H264 Video",
+      .ts_type =     STREAM_TYPE_VIDEO_H264,
+      .bgav_type =   BGAV_STREAM_VIDEO,
+      .fourcc =      BGAV_MK_FOURCC('H', '2', '6', '4'),
+      .description = "H264 Video",
     },
     {
-      ts_type:     STREAM_TYPE_AUDIO_AC3,
-      bgav_type:   BGAV_STREAM_AUDIO,
-      fourcc:      BGAV_MK_FOURCC('.', 'a', 'c', '3'),
-      description: "AC3 Audio",
+      .ts_type =     STREAM_TYPE_AUDIO_AC3,
+      .bgav_type =   BGAV_STREAM_AUDIO,
+      .fourcc =      BGAV_MK_FOURCC('.', 'a', 'c', '3'),
+      .description = "AC3 Audio",
     },
     {
-      ts_type:     STREAM_TYPE_AUDIO_DTS,
-      bgav_type:   BGAV_STREAM_AUDIO,
-      fourcc:      BGAV_MK_FOURCC('.', 'd', 't', 's'),
-      description: "DTS Audio",
+      .ts_type =     STREAM_TYPE_AUDIO_DTS,
+      .bgav_type =   BGAV_STREAM_AUDIO,
+      .fourcc =      BGAV_MK_FOURCC('.', 'd', 't', 's'),
+      .description = "DTS Audio",
     },
   };
 
@@ -189,10 +189,10 @@ void bgav_pmt_section_dump(pmt_section_t * pmts)
     bgav_dprintf( "  Stream %d\n", i+1);
 
     if(stream_type)
-      bgav_dprintf( "    type:       0x%02x (%s)\n",
+      bgav_dprintf( "    .type =       0x%02x (%s)\n",
                     pmts->streams[i].type, stream_type->description);
     else
-      bgav_dprintf( "    type:       0x%02x (unknown)\n",
+      bgav_dprintf( "    .type =       0x%02x (unknown)\n",
                     pmts->streams[i].type);
     
     bgav_dprintf( "    PID:        0x%04x (%d)\n",
@@ -264,7 +264,7 @@ void bgav_pat_section_dump(pat_section_t * pats)
 void bgav_transport_packet_dump(transport_packet_t * p)
   {
   bgav_dprintf( "Transport packet:\n");
-  bgav_dprintf( "  Payload start:      %d\n", p->payload_start);
+  bgav_dprintf( "  Payload .start =      %d\n", p->payload_start);
   bgav_dprintf( "  PID:                0x%04x\n", p->pid);
   bgav_dprintf( "  Adaption field:     %s\n",
           (p->has_adaption_field ? "Yes" : "No"));

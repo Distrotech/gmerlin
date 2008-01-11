@@ -94,7 +94,7 @@ void bgav_rmff_prop_dump(bgav_rmff_prop_t * p)
   bgav_dprintf( "  index_offset:    %d\n", p->index_offset);
   bgav_dprintf( "  data_offset:     %d\n", p->data_offset);
   bgav_dprintf( "  num_streams:     %d\n", p->num_streams);
-  bgav_dprintf( "  flags:           %d\n", p->flags);
+  bgav_dprintf( "  .flags =           %d\n", p->flags);
   }
 
 int bgav_rmff_prop_read(bgav_rmff_chunk_t * c,
@@ -224,8 +224,8 @@ void bgav_rmff_logical_stream_dump(bgav_rmff_logical_stream_t * l)
   for(i = 0; i < l->num_properties; i++)
     {
     bgav_dprintf( "  Property %d\n", i);
-    bgav_dprintf( "    name:  %s\n", l->properties[i].name);
-    bgav_dprintf( "    type:  %d\n", l->properties[i].type);
+    bgav_dprintf( "    .name =  %s\n", l->properties[i].name);
+    bgav_dprintf( "    .type =  %d\n", l->properties[i].type);
     bgav_dprintf( "    value, %d bytes\n", l->properties[i].value_length);
     bgav_hexdump(l->properties[i].value_data, l->properties[i].value_length, 16);
     }
@@ -906,7 +906,7 @@ int bgav_rmff_packet_header_read(bgav_input_context_t * input,
   else
     {
     bgav_log(input->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-             "Unsupported packet header version: %d",
+             "Unsupported packet header .version = %d",
              ret->object_version);
     return 0;
     }
@@ -930,7 +930,7 @@ void bgav_rmff_packet_header_dump(bgav_rmff_packet_header_t * h)
     }
   else
     {
-    bgav_dprintf("Error: packet header version: %d\n", h->object_version);
+    bgav_dprintf("Error: packet header .version = %d\n", h->object_version);
     }
   }
 

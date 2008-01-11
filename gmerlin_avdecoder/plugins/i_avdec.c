@@ -87,54 +87,54 @@ static int open_avdec(void * priv, const char * location)
 static bg_parameter_info_t parameters[] =
   {
     {
-      name:       "audio_options",
-      long_name:  TRS("Audio options"),
-      type:       BG_PARAMETER_SECTION,
-      gettext_domain:    PACKAGE,
-      gettext_directory: LOCALE_DIR,
+      .name =       "audio_options",
+      .long_name =  TRS("Audio options"),
+      .type =       BG_PARAMETER_SECTION,
+      .gettext_domain =    PACKAGE,
+      .gettext_directory = LOCALE_DIR,
     },
     PARAM_DYNRANGE,
     {
-      name:       "video_options",
-      long_name:  TRS("Video options"),
-      type:       BG_PARAMETER_SECTION
+      .name =       "video_options",
+      .long_name =  TRS("Video options"),
+      .type =       BG_PARAMETER_SECTION
     },
     PARAM_PP_LEVEL,
     {
-      name:       "network_options",
-      long_name:  TRS("Network options"),
-      type:       BG_PARAMETER_SECTION
+      .name =       "network_options",
+      .long_name =  TRS("Network options"),
+      .type =       BG_PARAMETER_SECTION
     },
     {
-      name:        "connect_timeout",
-      long_name:   TRS("Connect timeout (milliseconds)"),
-      type:        BG_PARAMETER_INT,
-      val_default: { val_i: 5000 },
-      val_min:     { val_i: 0 },
-      val_max:     { val_i: 2000000 },
+      .name =        "connect_timeout",
+      .long_name =   TRS("Connect timeout (milliseconds)"),
+      .type =        BG_PARAMETER_INT,
+      .val_default = { .val_i = 5000 },
+      .val_min =     { .val_i = 0 },
+      .val_max =     { .val_i = 2000000 },
     },
     {
-      name:        "read_timeout",
-      long_name:   TRS("Read timeout (milliseconds)"),
-      type:        BG_PARAMETER_INT,
-      val_default: { val_i: 5000 },
-      val_min:     { val_i: 0 },
-      val_max:     { val_i: 2000000 },
+      .name =        "read_timeout",
+      .long_name =   TRS("Read timeout (milliseconds)"),
+      .type =        BG_PARAMETER_INT,
+      .val_default = { .val_i = 5000 },
+      .val_min =     { .val_i = 0 },
+      .val_max =     { .val_i = 2000000 },
     },
     {
-      name:        "network_buffer_size",
-      long_name:   TRS("Network buffer size (kB)"),
-      type:        BG_PARAMETER_INT,
-      val_default: { val_i: 32 },
-      val_min:     { val_i: 1 },
-      val_max:     { val_i: 1000 },
+      .name =        "network_buffer_size",
+      .long_name =   TRS("Network buffer size (kB)"),
+      .type =        BG_PARAMETER_INT,
+      .val_default = { .val_i = 32 },
+      .val_min =     { .val_i = 1 },
+      .val_max =     { .val_i = 1000 },
     },
     {
-      name:        "network_bandwidth",
-      long_name:   TRS("Bandwidth"),
-      type:        BG_PARAMETER_STRINGLIST,
-      val_default: { val_str:  "524300" },
-      multi_names: (char*[]){ "14400",
+      .name =        "network_bandwidth",
+      .long_name =   TRS("Bandwidth"),
+      .type =        BG_PARAMETER_STRINGLIST,
+      .val_default = { .val_str =  "524300" },
+      .multi_names = (char*[]){ "14400",
                               "19200",
                               "28800",
                               "33600",
@@ -147,7 +147,7 @@ static bg_parameter_info_t parameters[] =
                               "1500000",
                               "10500000",
                               NULL },
-      multi_labels: (char*[]){ TRS("14.4 Kbps (Modem)"),
+      .multi_labels = (char*[]){ TRS("14.4 Kbps (Modem)"),
                                TRS("19.2 Kbps (Modem)"),
                                TRS("28.8 Kbps (Modem)"),
                                TRS("33.6 Kbps (Modem)"),
@@ -162,86 +162,86 @@ static bg_parameter_info_t parameters[] =
                                NULL },
     },
     {
-      name:       "http_options",
-      long_name:  TRS("HTTP Options"),
-      type:       BG_PARAMETER_SECTION
+      .name =       "http_options",
+      .long_name =  TRS("HTTP Options"),
+      .type =       BG_PARAMETER_SECTION
     },
     {
-      name:        "http_shoutcast_metadata",
-      long_name:   TRS("Enable shoutcast title streaming"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 }
+      .name =        "http_shoutcast_metadata",
+      .long_name =   TRS("Enable shoutcast title streaming"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 }
     },
     {
-      name:        "http_use_proxy",
-      long_name:   TRS("Use proxy"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 0 },
+      .name =        "http_use_proxy",
+      .long_name =   TRS("Use proxy"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 0 },
     },
     {
-      name:        "http_proxy_host",
-      long_name:   TRS("Proxy host"),
-      type:        BG_PARAMETER_STRING,
+      .name =        "http_proxy_host",
+      .long_name =   TRS("Proxy host"),
+      .type =        BG_PARAMETER_STRING,
     },
     {
-      name:        "http_proxy_port",
-      long_name:   TRS("Proxy port"),
-      type:        BG_PARAMETER_INT,
-      val_min:     { val_i:     1 },
-      val_max:     { val_i: 65535 },
-      val_default: { val_i:    80 },
+      .name =        "http_proxy_port",
+      .long_name =   TRS("Proxy port"),
+      .type =        BG_PARAMETER_INT,
+      .val_min =     { .val_i =     1 },
+      .val_max =     { .val_i = 65535 },
+      .val_default = { .val_i =    80 },
     },
     {
-      name:        "http_proxy_auth",
-      long_name:   TRS("Proxy needs authentication"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 0 },
+      .name =        "http_proxy_auth",
+      .long_name =   TRS("Proxy needs authentication"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 0 },
     },
     {
-      name:        "http_proxy_user",
-      long_name:   TRS("Proxy username"),
-      type:        BG_PARAMETER_STRING,
-      val_default: { val_str: (char*)0 },
+      .name =        "http_proxy_user",
+      .long_name =   TRS("Proxy username"),
+      .type =        BG_PARAMETER_STRING,
+      .val_default = { .val_str = (char*)0 },
     },
     {
-      name:        "http_proxy_pass",
-      long_name:   TRS("Proxy password"),
-      type:        BG_PARAMETER_STRING_HIDDEN,
-      val_default: { val_str: (char*)0 },
+      .name =        "http_proxy_pass",
+      .long_name =   TRS("Proxy password"),
+      .type =        BG_PARAMETER_STRING_HIDDEN,
+      .val_default = { .val_str = (char*)0 },
     },
     {
-      name:       "ftp_options",
-      long_name:  TRS("FTP Options"),
-      type:       BG_PARAMETER_SECTION
+      .name =       "ftp_options",
+      .long_name =  TRS("FTP Options"),
+      .type =       BG_PARAMETER_SECTION
     },
     {
-      name:        "ftp_anonymous",
-      long_name:   TRS("Login as anonymous"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 }
+      .name =        "ftp_anonymous",
+      .long_name =   TRS("Login as anonymous"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 }
     },
     {
-      name:        "ftp_anonymous_password",
-      long_name:   TRS("Anonymous ftp password"),
-      type:        BG_PARAMETER_STRING,
-      val_default: { val_str: "gates@nanosoft.com" }
+      .name =        "ftp_anonymous_password",
+      .long_name =   TRS("Anonymous ftp password"),
+      .type =        BG_PARAMETER_STRING,
+      .val_default = { .val_str = "gates@nanosoft.com" }
     },
     {
-      name:       "subtitle_options",
-      long_name:  TRS("Subtitle Options"),
-      type:       BG_PARAMETER_SECTION
+      .name =       "subtitle_options",
+      .long_name =  TRS("Subtitle Options"),
+      .type =       BG_PARAMETER_SECTION
     },
     {
-      name:        "seek_subtitles",
-      long_name:   TRS("Seek external subtitles"),
-      type:        BG_PARAMETER_STRINGLIST,
-      val_default:  { val_str: "never" },
-      multi_names:  (char*[]){ "never", "video", "always", (char*)0 },
-      multi_labels: (char*[]){ TRS("Never"),
+      .name =        "seek_subtitles",
+      .long_name =   TRS("Seek external subtitles"),
+      .type =        BG_PARAMETER_STRINGLIST,
+      .val_default =  { .val_str = "never" },
+      .multi_names =  (char*[]){ "never", "video", "always", (char*)0 },
+      .multi_labels = (char*[]){ TRS("Never"),
                                TRS("For video files only"),
                                TRS("Always"),
                                (char*)0 },
-      help_string:  TRS("If the input is a regular file, gmerlin_avdecoder can scan the\
+      .help_string =  TRS("If the input is a regular file, gmerlin_avdecoder can scan the\
  directory for matching subtitle files. For a file movie.mpg, possible\
  subtitle files are e.g. movie_english.srt, movie_german.srt. The\
  rule is, that the first part of the filename of the subtitle file\
@@ -251,11 +251,11 @@ static bg_parameter_info_t parameters[] =
 enabled for all files.")
     },
     {
-      name:        "default_subtitle_encoding",
-      long_name:   TRS("Default subtitle encoding"),
-      type:        BG_PARAMETER_STRING,
-      val_default: { val_str: "LATIN1" },
-      help_string: TRS("This sets the default encoding for text subtitles,\
+      .name =        "default_subtitle_encoding",
+      .long_name =   TRS("Default subtitle encoding"),
+      .type =        BG_PARAMETER_STRING,
+      .val_default = { .val_str = "LATIN1" },
+      .help_string = TRS("This sets the default encoding for text subtitles,\
 when the original encoding is unknown. It must be a character set name\
 recognized by iconv. Type 'iconv -l' at the commandline for a list of \
 supported encodings."),
@@ -272,37 +272,37 @@ static bg_parameter_info_t * get_parameters_avdec(void * priv)
 
 bg_input_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:           "i_avdec",
-      long_name:      TRS("AVDecoder plugin"),
-      description:    TRS("Plugin based on the Gmerlin avdecoder library. Supports most media formats. Playback is supported from files, URLs (with various protocols) and stdin."),
-      mimetypes:      "video/x-ms-asf audio/x-pn-realaudio-plugin video/x-pn-realvideo-plugin audio/x-pn-realaudio video/x-pn-realvideo audio/x-mpegurl audio/mpegurl audio/x-scpls audio/scpls audio/m3u",
-      extensions:     "avi asf asx wmv rm ra ram mov wav mp4 m4a 3gp qt au aiff aif mp3 mpg mpeg vob m3u pls ogg flac aac mpc spx vob wv tta gsm vp5 vp6 voc",
-      type:           BG_PLUGIN_INPUT,
-      flags:          BG_PLUGIN_FILE|BG_PLUGIN_URL,
-      priority:       BG_PLUGIN_PRIORITY_MAX,
-      create:         bg_avdec_create,
-      destroy:        bg_avdec_destroy,
-      get_parameters: get_parameters_avdec,
-      set_parameter:  bg_avdec_set_parameter,
+      .name =           "i_avdec",
+      .long_name =      TRS("AVDecoder plugin"),
+      .description =    TRS("Plugin based on the Gmerlin avdecoder library. Supports most media formats. Playback is supported from files, URLs (with various protocols) and stdin."),
+      .mimetypes =      "video/x-ms-asf audio/x-pn-realaudio-plugin video/x-pn-realvideo-plugin audio/x-pn-realaudio video/x-pn-realvideo audio/x-mpegurl audio/mpegurl audio/x-scpls audio/scpls audio/m3u",
+      .extensions =     "avi asf asx wmv rm ra ram mov wav mp4 m4a 3gp qt au aiff aif mp3 mpg mpeg vob m3u pls ogg flac aac mpc spx vob wv tta gsm vp5 vp6 voc",
+      .type =           BG_PLUGIN_INPUT,
+      .flags =          BG_PLUGIN_FILE|BG_PLUGIN_URL,
+      .priority =       BG_PLUGIN_PRIORITY_MAX,
+      .create =         bg_avdec_create,
+      .destroy =        bg_avdec_destroy,
+      .get_parameters = get_parameters_avdec,
+      .set_parameter =  bg_avdec_set_parameter,
     },
-      protocols:      "http ftp rtsp smb mms pnm stdin",
+      .protocols =      "http ftp rtsp smb mms pnm stdin",
   /* Open file/device */
-    open: open_avdec,
-    set_callbacks: bg_avdec_set_callbacks,
+    .open = open_avdec,
+    .set_callbacks = bg_avdec_set_callbacks,
   /* For file and network plugins, this can be NULL */
-    get_num_tracks: bg_avdec_get_num_tracks,
+    .get_num_tracks = bg_avdec_get_num_tracks,
     /* Return track information */
-    get_track_info: bg_avdec_get_track_info,
+    .get_track_info = bg_avdec_get_track_info,
 
     /* Set track */
-    set_track:             bg_avdec_set_track,
+    .set_track =             bg_avdec_set_track,
     /* Set streams */
-    set_audio_stream:      bg_avdec_set_audio_stream,
-    set_video_stream:      bg_avdec_set_video_stream,
-    set_subtitle_stream:   bg_avdec_set_subtitle_stream,
+    .set_audio_stream =      bg_avdec_set_audio_stream,
+    .set_video_stream =      bg_avdec_set_video_stream,
+    .set_subtitle_stream =   bg_avdec_set_subtitle_stream,
 
     /*
      *  Start decoding.
@@ -310,16 +310,16 @@ bg_input_plugin_t the_plugin =
      *  The plugin must take care of the "active" fields
      *  in the stream infos to check out, which streams are to be decoded
      */
-    start:                 bg_avdec_start,
+    .start =                 bg_avdec_start,
     /* Read one audio frame (returns FALSE on EOF) */
-    read_audio_samples:    bg_avdec_read_audio,
+    .read_audio_samples =    bg_avdec_read_audio,
     /* Read one video frame (returns FALSE on EOF) */
-    read_video_frame:      bg_avdec_read_video,
+    .read_video_frame =      bg_avdec_read_video,
 
-    has_subtitle:          bg_avdec_has_subtitle,
+    .has_subtitle =          bg_avdec_has_subtitle,
 
-    read_subtitle_text:    bg_avdec_read_subtitle_text,
-    read_subtitle_overlay: bg_avdec_read_subtitle_overlay,
+    .read_subtitle_text =    bg_avdec_read_subtitle_text,
+    .read_subtitle_overlay = bg_avdec_read_subtitle_overlay,
 
     /*
      *  Do percentage seeking (can be NULL)
@@ -327,10 +327,10 @@ bg_input_plugin_t the_plugin =
      *  function is non-NULL AND the duration field of the track info
      *  is > 0
      */
-    seek: bg_avdec_seek,
+    .seek = bg_avdec_seek,
     /* Stop playback, close all decoders */
-    stop: NULL,
-    close: bg_avdec_close,
+    .stop = NULL,
+    .close = bg_avdec_close,
   };
 
 /* Include this into all plugin modules exactly once

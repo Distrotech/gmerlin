@@ -1600,7 +1600,7 @@ static int open_avi(bgav_demuxer_context_t * ctx,
       init_iavs_stream(ctx, &strh, &ch);
     else
       {
-      bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Unknown stream type: %c%c%c%c",
+      bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Unknown stream .type = %c%c%c%c",
                (strh.fccType >> 24) & 0xff,
                (strh.fccType >> 16) & 0xff,
                (strh.fccType >> 8) & 0xff,
@@ -1896,10 +1896,10 @@ static void seek_avi(bgav_demuxer_context_t * ctx, gavl_time_t time, int scale)
 
 bgav_demuxer_t bgav_demuxer_avi =
   {
-    probe:       probe_avi,
-    open:        open_avi,
-    next_packet: next_packet_avi,
-    seek:        seek_avi,
-    close:       close_avi
+    .probe =       probe_avi,
+    .open =        open_avi,
+    .next_packet = next_packet_avi,
+    .seek =        seek_avi,
+    .close =       close_avi
 
   };

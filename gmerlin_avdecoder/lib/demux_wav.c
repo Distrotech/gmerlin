@@ -266,10 +266,10 @@ static void close_wav(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_wav =
   {
-    probe:       probe_wav,
-    open:        open_wav,
-    next_packet: next_packet_wav,
-    seek:        seek_wav,
-    close:       close_wav
+    .probe =       probe_wav,
+    .open =        open_wav,
+    .next_packet = next_packet_wav,
+    .seek =        seek_wav,
+    .close =       close_wav
   };
 

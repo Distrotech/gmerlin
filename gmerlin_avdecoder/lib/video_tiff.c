@@ -297,13 +297,13 @@ static void close_tiff(bgav_stream_t * s)
 
 static bgav_video_decoder_t decoder =
   {
-    name:   "TIFF video decoder",
-    fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('t', 'i', 'f', 'f'),
+    .name =   "TIFF video decoder",
+    .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('t', 'i', 'f', 'f'),
                             0x00  },
-    init:   init_tiff,
-    decode: decode_tiff,
-    close:  close_tiff,
-    resync: NULL,
+    .init =   init_tiff,
+    .decode = decode_tiff,
+    .close =  close_tiff,
+    .resync = NULL,
   };
 
 void bgav_init_video_decoders_tiff()

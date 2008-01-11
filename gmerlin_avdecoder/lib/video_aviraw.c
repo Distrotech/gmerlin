@@ -238,16 +238,16 @@ static int init_aviraw(bgav_stream_t * s)
 
 static bgav_video_decoder_t decoder =
   {
-    name:   "Raw video decoder for AVI",
-    fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('R', 'G', 'B', ' '),
+    .name =   "Raw video decoder for AVI",
+    .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('R', 'G', 'B', ' '),
                             BGAV_MK_FOURCC('M', 'T', 'V', ' '),
                             /* RGB3 is used by NSV, but seems to be the same as 24 bpp AVI */
                             BGAV_MK_FOURCC('R', 'G', 'B', '3'),
                             0x00  },
-    init:   init_aviraw,
-    decode: decode_aviraw,
-    close:  close_aviraw,
-    resync: NULL,
+    .init =   init_aviraw,
+    .decode = decode_aviraw,
+    .close =  close_aviraw,
+    .resync = NULL,
   };
 
 void bgav_init_video_decoders_aviraw()

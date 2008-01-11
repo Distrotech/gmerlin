@@ -60,7 +60,7 @@ static int read_chunk_header(bgav_input_context_t * ctx, chunk_header_t * ret)
 static void dump_chunk_header(chunk_header_t * ret)
   {
   bgav_dprintf("chunk_header\n");
-  bgav_dprintf("  fourcc:            ");
+  bgav_dprintf("  .fourcc =            ");
   bgav_dump_fourcc(ret->fourcc);
   bgav_dprintf("\n");
   bgav_dprintf("  size:              %d\n",ret->size);
@@ -293,9 +293,9 @@ static void close_8svx(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_8svx =
   {
-    probe:       probe_8svx,
-    open:        open_8svx,
-    next_packet: next_packet_8svx,
-    seek:        seek_8svx,
-    close:       close_8svx
+    .probe =       probe_8svx,
+    .open =        open_8svx,
+    .next_packet = next_packet_8svx,
+    .seek =        seek_8svx,
+    .close =       close_8svx
   };

@@ -60,7 +60,7 @@ static void dump_screen_descriptor(screen_descriptor_t * sd)
   bgav_dprintf("GIF Screen descriptor\n");
   bgav_dprintf("  width:              %d\n",  sd->width);
   bgav_dprintf("  height:             %d\n", sd->height);
-  bgav_dprintf("  flags:              %02x\n", sd->flags);
+  bgav_dprintf("  .flags =              %02x\n", sd->flags);
   bgav_dprintf("  bg_color:           %d\n", sd->bg_color);
   bgav_dprintf("  pixel_aspect_ratio: %d\n", sd->pixel_aspect_ratio);
   }
@@ -131,7 +131,7 @@ static int open_gif(bgav_demuxer_context_t * ctx,
       return 0;
     }
   
-  /* Check for extensions: We skip all extensions until we reach
+  /* Check for .extensions = We skip all extensions until we reach
      the first image data *or* a Graphic Control Extension */
   done = 0;
   while(!done)
@@ -362,9 +362,9 @@ static void close_gif(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_gif =
   {
-    probe:        probe_gif,
-    open:         open_gif,
-    select_track: select_track_gif,
-    next_packet:  next_packet_gif,
-    close:        close_gif
+    .probe =        probe_gif,
+    .open =         open_gif,
+    .select_track = select_track_gif,
+    .next_packet =  next_packet_gif,
+    .close =        close_gif
   };

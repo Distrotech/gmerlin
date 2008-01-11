@@ -219,7 +219,7 @@ static void add_packet(bgav_demuxer_context_t * ctx,
             priv->mdats[priv->current_mdat].size)
         {
 #if 0
-        fprintf(stderr, "offset: %lld, cur: %d, start: %lld, size: %lld\n",
+        fprintf(stderr, "offset: %lld, cur: %d, .start = %lld, size: %lld\n",
                 offset, priv->current_mdat,
                 priv->mdats[priv->current_mdat].start,
                 priv->mdats[priv->current_mdat].size);
@@ -1439,10 +1439,10 @@ static void close_quicktime(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_quicktime =
   {
-    probe:       probe_quicktime,
-    open:        open_quicktime,
-    //    next_packet: next_packet_quicktime,
-    //    seek:        seek_quicktime,
-    close:       close_quicktime
+    .probe =       probe_quicktime,
+    .open =        open_quicktime,
+    //    .next_packet = next_packet_quicktime,
+    //    .seek =        seek_quicktime,
+    .close =       close_quicktime
   };
 

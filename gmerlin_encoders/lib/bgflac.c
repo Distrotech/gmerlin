@@ -103,113 +103,113 @@ clevels[] =
   {
     {
       /* 0 */
-      blocksize:                    1152, // -b
-      max_lpc_order:                0,    // -l
-      min_residual_partition_order: 2,    // -r min,max
-      max_residual_partition_order: 2,
-      do_mid_side:                  0,    // -m
-      loose_mid_side:               0,    // -M
-      do_exhaustive_model_search:   0,    // -e
+      .blocksize =                    1152, // -b
+      .max_lpc_order =                0,    // -l
+      .min_residual_partition_order = 2,    // -r min,max
+      .max_residual_partition_order = 2,
+      .do_mid_side =                  0,    // -m
+      .loose_mid_side =               0,    // -M
+      .do_exhaustive_model_search =   0,    // -e
     },
     {
       /* 1 */
-      blocksize:                    1152, // -b
-      max_lpc_order:                0,    // -l
-      min_residual_partition_order: 2,    // -r min,max
-      max_residual_partition_order: 2,
-      do_mid_side:                  1,    // -m
-      loose_mid_side:               1,    // -M
-      do_exhaustive_model_search:   0,    // -e
+      .blocksize =                    1152, // -b
+      .max_lpc_order =                0,    // -l
+      .min_residual_partition_order = 2,    // -r min,max
+      .max_residual_partition_order = 2,
+      .do_mid_side =                  1,    // -m
+      .loose_mid_side =               1,    // -M
+      .do_exhaustive_model_search =   0,    // -e
     },
     {
       /* 2 */
-      blocksize:                    1152, // -b
-      max_lpc_order:                0,    // -l
-      min_residual_partition_order: 0,    // -r min,max
-      max_residual_partition_order: 3,
-      do_mid_side:                  1,    // -m
-      loose_mid_side:               0,    // -M
-      do_exhaustive_model_search:   0,    // -e
+      .blocksize =                    1152, // -b
+      .max_lpc_order =                0,    // -l
+      .min_residual_partition_order = 0,    // -r min,max
+      .max_residual_partition_order = 3,
+      .do_mid_side =                  1,    // -m
+      .loose_mid_side =               0,    // -M
+      .do_exhaustive_model_search =   0,    // -e
     },
     {
       /* 3 */
-      blocksize:                    4608, // -b
-      max_lpc_order:                6,    // -l
-      min_residual_partition_order: 3,    // -r min,max
-      max_residual_partition_order: 3,
-      do_mid_side:                  0,    // -m
-      loose_mid_side:               0,    // -M
-      do_exhaustive_model_search:   0,    // -e
+      .blocksize =                    4608, // -b
+      .max_lpc_order =                6,    // -l
+      .min_residual_partition_order = 3,    // -r min,max
+      .max_residual_partition_order = 3,
+      .do_mid_side =                  0,    // -m
+      .loose_mid_side =               0,    // -M
+      .do_exhaustive_model_search =   0,    // -e
     },
     {
       /* 4 */
-      blocksize:                    4608, // -b
-      max_lpc_order:                8,    // -l
-      min_residual_partition_order: 3,    // -r min,max
-      max_residual_partition_order: 3,
-      do_mid_side:                  1,    // -m
-      loose_mid_side:               1,    // -M
-      do_exhaustive_model_search:   0,    // -e
+      .blocksize =                    4608, // -b
+      .max_lpc_order =                8,    // -l
+      .min_residual_partition_order = 3,    // -r min,max
+      .max_residual_partition_order = 3,
+      .do_mid_side =                  1,    // -m
+      .loose_mid_side =               1,    // -M
+      .do_exhaustive_model_search =   0,    // -e
     },
     {
       /* 5 */
-      blocksize:                    4608, // -b
-      max_lpc_order:                8,    // -l
-      min_residual_partition_order: 3,    // -r min,max
-      max_residual_partition_order: 3,
-      do_mid_side:                  1,    // -m
-      loose_mid_side:               0,    // -M
-      do_exhaustive_model_search:   0,    // -e
+      .blocksize =                    4608, // -b
+      .max_lpc_order =                8,    // -l
+      .min_residual_partition_order = 3,    // -r min,max
+      .max_residual_partition_order = 3,
+      .do_mid_side =                  1,    // -m
+      .loose_mid_side =               0,    // -M
+      .do_exhaustive_model_search =   0,    // -e
     },
     {
       /* 6 */
-      blocksize:                    4608, // -b
-      max_lpc_order:                8,    // -l
-      min_residual_partition_order: 0,    // -r min,max
-      max_residual_partition_order: 4,
-      do_mid_side:                  1,    // -m
-      loose_mid_side:               0,    // -M
-      do_exhaustive_model_search:   0,    // -e
+      .blocksize =                    4608, // -b
+      .max_lpc_order =                8,    // -l
+      .min_residual_partition_order = 0,    // -r min,max
+      .max_residual_partition_order = 4,
+      .do_mid_side =                  1,    // -m
+      .loose_mid_side =               0,    // -M
+      .do_exhaustive_model_search =   0,    // -e
     },
     {
       /* 7 */
-      blocksize:                    4608, // -b
-      max_lpc_order:                8,    // -l
-      min_residual_partition_order: 0,    // -r min,max
-      max_residual_partition_order: 6,
-      do_mid_side:                  1,    // -m
-      loose_mid_side:               0,    // -M
-      do_exhaustive_model_search:   1,    // -e
+      .blocksize =                    4608, // -b
+      .max_lpc_order =                8,    // -l
+      .min_residual_partition_order = 0,    // -r min,max
+      .max_residual_partition_order = 6,
+      .do_mid_side =                  1,    // -m
+      .loose_mid_side =               0,    // -M
+      .do_exhaustive_model_search =   1,    // -e
     },
     {
       /* 8 */
-      blocksize:                    4608, // -b
-      max_lpc_order:                12,   // -l
-      min_residual_partition_order: 0,    // -r min,max
-      max_residual_partition_order: 6,
-      do_mid_side:                  1,    // -m
-      loose_mid_side:               0,    // -M
-      do_exhaustive_model_search:   1,    // -e
+      .blocksize =                    4608, // -b
+      .max_lpc_order =                12,   // -l
+      .min_residual_partition_order = 0,    // -r min,max
+      .max_residual_partition_order = 6,
+      .do_mid_side =                  1,    // -m
+      .loose_mid_side =               0,    // -M
+      .do_exhaustive_model_search =   1,    // -e
     }
   };
 
 static bg_parameter_info_t audio_parameters[] =
   {
     {
-      name:      "bits",
-      long_name: TRS("Bits"),
-      type:      BG_PARAMETER_STRINGLIST,
-      val_default: { val_str: "16" },
-      multi_names: (char*[]){ "8", "12", "16", "20", "24", (char*)0 },
+      .name =      "bits",
+      .long_name = TRS("Bits"),
+      .type =      BG_PARAMETER_STRINGLIST,
+      .val_default = { .val_str = "16" },
+      .multi_names = (char*[]){ "8", "12", "16", "20", "24", (char*)0 },
     },
     {
-      name:        "compression_level",
-      long_name:   TRS("Compression Level"),
-      type:        BG_PARAMETER_SLIDER_INT,
-      val_min:     { val_i: 0 },
-      val_max:     { val_i: 8 },
-      val_default: { val_i: 5 },
-      help_string: TRS("0: Fastest encoding, biggest files\n\
+      .name =        "compression_level",
+      .long_name =   TRS("Compression Level"),
+      .type =        BG_PARAMETER_SLIDER_INT,
+      .val_min =     { .val_i = 0 },
+      .val_max =     { .val_i = 8 },
+      .val_default = { .val_i = 5 },
+      .help_string = TRS("0: Fastest encoding, biggest files\n\
 8: Slowest encoding, smallest files")
     },
     { /* End of parameters */ }

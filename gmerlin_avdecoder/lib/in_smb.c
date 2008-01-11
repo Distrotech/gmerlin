@@ -183,10 +183,10 @@ static void    close_smb(bgav_input_context_t * ctx)
 
 bgav_input_t bgav_input_smb =
   {
-    name:      "samba",
-    open:      open_smb,
-    read:      read_smb,
-    seek_byte: seek_byte_smb,
-    close:     close_smb
+    .name =      "samba",
+    .open =      open_smb,
+    .read =      read_smb,
+    .seek_byte = seek_byte_smb,
+    .close =     close_smb
   };
 

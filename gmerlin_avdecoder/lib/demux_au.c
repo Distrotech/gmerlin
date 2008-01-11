@@ -258,9 +258,9 @@ static void close_au(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_au =
   {
-    probe:       probe_au,
-    open:        open_au,
-    next_packet: next_packet_au,
-    seek:        seek_au,
-    close:       close_au
+    .probe =       probe_au,
+    .open =        open_au,
+    .next_packet = next_packet_au,
+    .seek =        seek_au,
+    .close =       close_au
   };

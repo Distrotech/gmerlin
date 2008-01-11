@@ -461,9 +461,9 @@ static void close_smacker(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_smacker =
   {
-    probe:        probe_smacker,
-    open:         open_smacker,
-    select_track: select_track_smacker,
-    next_packet:  next_packet_smacker,
-    close:        close_smacker
+    .probe =        probe_smacker,
+    .open =         open_smacker,
+    .select_track = select_track_smacker,
+    .next_packet =  next_packet_smacker,
+    .close =        close_smacker
   };

@@ -416,17 +416,17 @@ static void    close_vcd(bgav_input_context_t * ctx)
 
 bgav_input_t bgav_input_vcd =
   {
-    name:          "vcd",
-    open:          open_vcd,
+    .name =          "vcd",
+    .open =          open_vcd,
 #ifdef SECTOR_ACCESS
-    read_sector:   read_sector,
-    seek_sector:   seek_sector_vcd,
+    .read_sector =   read_sector,
+    .seek_sector =   seek_sector_vcd,
 #else
-    read:          read_vcd,
-    seek_byte:     seek_byte_vcd,
+    .read =          read_vcd,
+    .seek_byte =     seek_byte_vcd,
 #endif
-    close:         close_vcd,
-    select_track:  select_track_vcd,
+    .close =         close_vcd,
+    .select_track =  select_track_vcd,
   };
 
 static char * get_device_name(CdIo_t * cdio,

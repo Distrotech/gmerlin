@@ -93,22 +93,22 @@ bg_device_info_t * bg_avdec_get_devices(bgav_device_info_t *);
 
 #define PARAM_DYNRANGE \
   {                    \
-  name: "audio_dynrange",    \
-  long_name: TRS("Dynamic range control"),         \
-  type: BG_PARAMETER_CHECKBUTTON,           \
-  val_default: { val_i: 1 },              \
-  help_string: TRS("Enable dynamic range control for codecs, which support this (currently only A52 and DTS).") \
+  .name = "audio_dynrange",    \
+  .long_name = TRS("Dynamic range control"),         \
+  .type = BG_PARAMETER_CHECKBUTTON,           \
+  .val_default = { .val_i = 1 },              \
+  .help_string = TRS("Enable dynamic range control for codecs, which support this (currently only A52 and DTS).") \
   }
 
 #define PARAM_PP_LEVEL \
   {                    \
-  name: "video_pp_level",    \
-  long_name: TRS("Postprocessing level"),         \
-  opt: "pp", \
-  type: BG_PARAMETER_SLIDER_INT,           \
-  val_default: { val_i: 1 },              \
-  val_min:     { val_i: 0 },              \
-  val_max: { val_i: 6 },              \
-  help_string: TRS("Set postprocessing (to remove compression artifacts). 0 means no postprocessing, 6 means maximum postprocessing.") \
+  .name = "video_pp_level",    \
+  .long_name = TRS("Postprocessing level"),         \
+  .opt = "pp", \
+  .type = BG_PARAMETER_SLIDER_INT,           \
+  .val_default = { .val_i = 1 },              \
+  .val_min =     { .val_i = 0 },              \
+  .val_max = { .val_i = 6 },              \
+  .help_string = TRS("Set postprocessing (to remove compression artifacts). 0 means no postprocessing, 6 means maximum postprocessing.") \
   }
 

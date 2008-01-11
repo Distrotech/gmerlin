@@ -33,7 +33,11 @@ typedef struct
   {
   AVInputFormat *avif;
   AVFormatContext *avfc;
+#if LIBAVFORMAT_VERSION_INT < ((52<<16)+(0<<8)+0)
   ByteIOContext pb;
+#else
+  ByteIOContext * pb;
+#endif
   } ffmpeg_priv_t;
 
 /* Callbacks for URLProtocol */
@@ -564,12 +568,18 @@ static int open_ffmpeg(bgav_demuxer_context_t * ctx,
   tmp_filename = bgav_sprintf("bgav:%s", ctx->input->filename);
 
   url_fopen(&priv->pb, tmp_filename, URL_RDONLY);
-
+#if LIBAVFORMAT_VERSION_INT < ((52<<16)+(0<<8)+0)
   ((URLContext*)(priv->pb.opaque))->priv_data= ctx->input;
-
+#else
+  ((URLContext*)(priv->pb->opaque))->priv_data= ctx->input;
+#endif
   priv->avif = get_format(ctx->input);
   
+#if LIBAVFORMAT_VERSION_INT < ((52<<16)+(0<<8)+0)
   if(av_open_input_stream(&avfc, &priv->pb, tmp_filename, priv->avif, &ap)<0)
+#else
+  if(av_open_input_stream(&avfc, priv->pb, tmp_filename, priv->avif, &ap)<0)
+#endif
     {
     bgav_log(ctx->opt,BGAV_LOG_ERROR,LOG_DOMAIN,
              "av_open_input_stream failed");
@@ -733,11 +743,11 @@ static void seek_ffmpeg(bgav_demuxer_context_t * ctx, int64_t time, int scale)
 
 bgav_demuxer_t bgav_demuxer_ffmpeg =
   {
-    probe:       probe_ffmpeg,
-    open:        open_ffmpeg,
-    next_packet: next_packet_ffmpeg,
-    seek:        seek_ffmpeg,
-    close:       close_ffmpeg
+    .probe =       probe_ffmpeg,
+    .open =        open_ffmpeg,
+    .next_packet = next_packet_ffmpeg,
+    .seek =        seek_ffmpeg,
+    .close =       close_ffmpeg
 
   };
 

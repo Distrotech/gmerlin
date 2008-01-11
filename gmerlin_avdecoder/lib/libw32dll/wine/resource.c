@@ -367,7 +367,7 @@ INT WINAPI LoadStringW( HINSTANCE instance, UINT resource_id,
  * loading them from the resource.
  * 
  * The resourcedata has following format:
- * start:
+ * .start =
  * 0: DWORD nrofentries
  * nrofentries * subentry:
  *	0: DWORD firstentry

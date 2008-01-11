@@ -131,43 +131,43 @@ static void set_parameter_mpv(void * data, const char * name,
 
 bg_encoder_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:           "e_mpegvideo",       /* Unique short name */
-      long_name:      TRS("MPEG-1/2 video encoder"),
-      description:     TRS("Encoder for elementary MPEG-1/2 video streams.\
+      .name =           "e_mpegvideo",       /* Unique short name */
+      .long_name =      TRS("MPEG-1/2 video encoder"),
+      .description =     TRS("Encoder for elementary MPEG-1/2 video streams.\
  Based on mjpegtools (http://mjpeg.sourceforge.net)."),
-      mimetypes:      NULL,
-      extensions:     "m1v m2v",
-      type:           BG_PLUGIN_ENCODER_VIDEO,
-      flags:          BG_PLUGIN_FILE,
-      priority:       BG_PLUGIN_PRIORITY_MAX,
-      create:         create_mpv,
-      destroy:        destroy_mpv,
-      get_parameters: get_parameters_mpv,
-      set_parameter:  set_parameter_mpv,
+      .mimetypes =      NULL,
+      .extensions =     "m1v m2v",
+      .type =           BG_PLUGIN_ENCODER_VIDEO,
+      .flags =          BG_PLUGIN_FILE,
+      .priority =       BG_PLUGIN_PRIORITY_MAX,
+      .create =         create_mpv,
+      .destroy =        destroy_mpv,
+      .get_parameters = get_parameters_mpv,
+      .set_parameter =  set_parameter_mpv,
     },
 
-    max_audio_streams:  0,
-    max_video_streams:  1,
+    .max_audio_streams =  0,
+    .max_video_streams =  1,
 
-    //    get_video_parameters: get_video_parameters_mpv,
+    //    .get_video_parameters = get_video_parameters_mpv,
 
-    get_extension:        get_extension_mpv,
+    .get_extension =        get_extension_mpv,
 
-    open:                 open_mpv,
+    .open =                 open_mpv,
 
-    add_video_stream:     add_video_stream_mpv,
+    .add_video_stream =     add_video_stream_mpv,
 
-    //    set_video_parameter:  set_video_parameter_mpv,
+    //    .set_video_parameter =  set_video_parameter_mpv,
 
-    get_video_format:     get_video_format_mpv,
+    .get_video_format =     get_video_format_mpv,
 
-    start:                start_mpv,
+    .start =                start_mpv,
 
-    write_video_frame: write_video_frame_mpv,
-    close:             close_mpv,
+    .write_video_frame = write_video_frame_mpv,
+    .close =             close_mpv,
     
   };
 

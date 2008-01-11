@@ -281,10 +281,10 @@ static void close_mtv(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_mtv =
   {
-    probe:       probe_mtv,
-    open:        open_mtv,
-    select_track: select_track_mtv,
-    next_packet: next_packet_mtv,
-    seek:        seek_mtv,
-    close:       close_mtv
+    .probe =       probe_mtv,
+    .open =        open_mtv,
+    .select_track = select_track_mtv,
+    .next_packet = next_packet_mtv,
+    .seek =        seek_mtv,
+    .close =       close_mtv
   };

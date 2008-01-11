@@ -96,8 +96,8 @@ static void close_daud(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_daud =
   {
-    probe:       probe_daud,
-    open:        open_daud,
-    next_packet: next_packet_daud,
-    close:       close_daud
+    .probe =       probe_daud,
+    .open =        open_daud,
+    .next_packet = next_packet_daud,
+    .close =       close_daud
   };

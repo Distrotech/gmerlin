@@ -28,52 +28,52 @@
 
 #define ENCODE_PARAM_MP2                 \
   {                                      \
-    name:      "ff_bit_rate_str",        \
-    long_name: TRS("Bit rate (kbps)"),        \
-    type:      BG_PARAMETER_STRINGLIST, \
-    val_default: { val_str: "128" },       \
-    multi_names: (char*[]){ "32",  "48", "56", "64", "80", "96", "112", \
+    .name =      "ff_bit_rate_str",        \
+    .long_name = TRS("Bit rate (kbps)"),        \
+    .type =      BG_PARAMETER_STRINGLIST, \
+    .val_default = { .val_str = "128" },       \
+    .multi_names = (char*[]){ "32",  "48", "56", "64", "80", "96", "112", \
                    "128", "160", "192", "224", "256", "320", "384",\
                    (char*)0 } \
   },
 
 #define ENCODE_PARAM_MP3                 \
   {                                      \
-    name:      "ff_bit_rate_str",        \
-    long_name: TRS("Bit rate (kbps)"),        \
-    type:      BG_PARAMETER_STRINGLIST, \
-    val_default: { val_str: "128" },       \
-    multi_names: (char*[]){ "32", "40", "48", "56", "64", "80", "96", \
+    .name =      "ff_bit_rate_str",        \
+    .long_name = TRS("Bit rate (kbps)"),        \
+    .type =      BG_PARAMETER_STRINGLIST, \
+    .val_default = { .val_str = "128" },       \
+    .multi_names = (char*[]){ "32", "40", "48", "56", "64", "80", "96", \
                    "112", "128", "160", "192", "224", "256", "320",\
                    (char*)0 } \
   },
 
 #define ENCODE_PARAM_AC3 \
   {                                      \
-    name:      "ff_bit_rate_str",        \
-    long_name: TRS("Bit rate (kbps)"),        \
-    type:      BG_PARAMETER_STRINGLIST, \
-    val_default: { val_str: "128" },       \
-    multi_names: (char*[]){ "32", "40", "48", "56", "64", "80", "96", "112", "128", \
+    .name =      "ff_bit_rate_str",        \
+    .long_name = TRS("Bit rate (kbps)"),        \
+    .type =      BG_PARAMETER_STRINGLIST, \
+    .val_default = { .val_str = "128" },       \
+    .multi_names = (char*[]){ "32", "40", "48", "56", "64", "80", "96", "112", "128", \
                    "160", "192", "224", "256", "320", "384", "448", "512", \
                    "576", "640", (char*)0 } \
   },
 
 #define ENCODE_PARAM_WMA \
   {                                      \
-    name:      "ff_bit_rate_str",        \
-    long_name: TRS("Bit rate (kbps)"),        \
-    type:      BG_PARAMETER_STRINGLIST, \
-    val_default: { val_str: "128" },       \
-    multi_names: (char*[]){ "24", "48", "64", "96", "128", (char*)0 } \
+    .name =      "ff_bit_rate_str",        \
+    .long_name = TRS("Bit rate (kbps)"),        \
+    .type =      BG_PARAMETER_STRINGLIST, \
+    .val_default = { .val_str = "128" },       \
+    .multi_names = (char*[]){ "24", "48", "64", "96", "128", (char*)0 } \
   },
     
     
 #define ENCODE_PARAM_VIDEO_RATECONTROL \
   {                                           \
-    name:      "rate_control",                       \
-    long_name: TRS("Rate control"),                     \
-    type:      BG_PARAMETER_SECTION,         \
+    .name =      "rate_control",                       \
+    .long_name = TRS("Rate control"),                     \
+    .type =      BG_PARAMETER_SECTION,         \
   },                                        \
     PARAM_BITRATE_VIDEO,                    \
     PARAM_BITRATE_TOLERANCE,                \
@@ -85,9 +85,9 @@
 
 #define ENCODE_PARAM_VIDEO_QUANTIZER_I \
   {                                           \
-    name:      "quantizer",                       \
-    long_name: TRS("Quantizer"),                     \
-    type:      BG_PARAMETER_SECTION,         \
+    .name =      "quantizer",                       \
+    .long_name = TRS("Quantizer"),                     \
+    .type =      BG_PARAMETER_SECTION,         \
   },                                        \
     PARAM_QMIN,                             \
     PARAM_QMAX,                             \
@@ -111,9 +111,9 @@
 
 #define ENCODE_PARAM_VIDEO_FRAMETYPES_IP \
   {                                           \
-    name:      "frame_types",                       \
-    long_name: TRS("Frame types"),                     \
-    type:      BG_PARAMETER_SECTION,         \
+    .name =      "frame_types",                       \
+    .long_name = TRS("Frame types"),                     \
+    .type =      BG_PARAMETER_SECTION,         \
   },                                        \
   PARAM_GOP_SIZE,                      \
   PARAM_SCENE_CHANGE_THRESHOLD,       \
@@ -128,9 +128,9 @@
 
 #define ENCODE_PARAM_VIDEO_ME \
   {                                           \
-    name:      "motion_estimation",                       \
-    long_name: TRS("Motion estimation"),                     \
-    type:      BG_PARAMETER_SECTION,         \
+    .name =      "motion_estimation",                       \
+    .long_name = TRS("Motion estimation"),                     \
+    .type =      BG_PARAMETER_SECTION,         \
   },                                        \
     PARAM_ME_METHOD,                        \
     PARAM_ME_CMP,\
@@ -142,9 +142,9 @@
 
 #define ENCODE_PARAM_VIDEO_ME_PRE \
   {                                           \
-    name:      "motion_estimation",                       \
-    long_name: TRS("ME pre-pass"),                     \
-    type:      BG_PARAMETER_SECTION,         \
+    .name =      "motion_estimation",                       \
+    .long_name = TRS("ME pre-pass"),                     \
+    .type =      BG_PARAMETER_SECTION,         \
   },                                        \
     PARAM_PRE_ME,\
     PARAM_ME_PRE_CMP,\
@@ -153,9 +153,9 @@
 
 #define ENCODE_PARAM_VIDEO_QPEL                 \
   {                                           \
-    name:      "qpel_motion_estimation",                       \
-    long_name: TRS("Qpel ME"),                     \
-    type:      BG_PARAMETER_SECTION,         \
+    .name =      "qpel_motion_estimation",                       \
+    .long_name = TRS("Qpel ME"),                     \
+    .type =      BG_PARAMETER_SECTION,         \
   },                                        \
     PARAM_FLAG_QPEL, \
     PARAM_ME_SUB_CMP,\
@@ -164,9 +164,9 @@
 
 #define ENCODE_PARAM_VIDEO_MASKING \
   {                                \
-    name:      "masking",                       \
-    long_name: TRS("Masking"),                     \
-    type:      BG_PARAMETER_SECTION,         \
+    .name =      "masking",                       \
+    .long_name = TRS("Masking"),                     \
+    .type =      BG_PARAMETER_SECTION,         \
   },                                        \
     PARAM_LUMI_MASKING, \
     PARAM_DARK_MASKING, \
@@ -178,9 +178,9 @@
 
 #define ENCODE_PARAM_VIDEO_MISC \
   {                                           \
-    name:      "misc",                       \
-    long_name: TRS("Misc"),                     \
-    type:      BG_PARAMETER_SECTION,         \
+    .name =      "misc",                       \
+    .long_name = TRS("Misc"),                     \
+    .type =      BG_PARAMETER_SECTION,         \
   },                                        \
     PARAM_STRICT_STANDARD_COMPLIANCE,       \
     PARAM_NOISE_REDUCTION, \

@@ -537,7 +537,7 @@ static void close_vorbis(bgav_stream_t * s)
 
 static bgav_audio_decoder_t decoder =
   {
-    fourccs: (uint32_t[]){ BGAV_MK_FOURCC('O','g', 'g', 'S'),
+    .fourccs = (uint32_t[]){ BGAV_MK_FOURCC('O','g', 'g', 'S'),
                            BGAV_MK_FOURCC('O','g', 'g', 'V'),
                            BGAV_VORBIS,
                            BGAV_MK_FOURCC('V', 'O', 'R', 'B'),
@@ -548,11 +548,11 @@ static bgav_audio_decoder_t decoder =
                            //                           BGAV_WAVID_2_FOURCC(0x6751), // Mode 3  (no header)
                            //                           BGAV_WAVID_2_FOURCC(0x6771), // Mode 3+
                            0x00 },
-    name: "Ogg vorbis audio decoder",
-    init:   init_vorbis,
-    close:  close_vorbis,
-    resync: resync_vorbis,
-    decode: decode_vorbis
+    .name = "Ogg vorbis audio decoder",
+    .init =   init_vorbis,
+    .close =  close_vorbis,
+    .resync = resync_vorbis,
+    .decode = decode_vorbis
   };
 
 void bgav_init_audio_decoders_vorbis()

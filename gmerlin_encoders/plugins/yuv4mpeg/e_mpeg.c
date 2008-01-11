@@ -415,41 +415,41 @@ static void destroy_mpeg(void * data)
 static bg_parameter_info_t common_parameters[] =
   {
     {
-      name:      "format",
-      long_name: TRS("Format"),
-      type:      BG_PARAMETER_STRINGLIST,
-      val_default: { val_str: "mpeg1" },
-      multi_names:    (char*[]) { "mpeg1",            "vcd",          "mpeg2",            "svcd",         "dvd_nav",   "dvd", (char*)0 },
-      multi_labels:   (char*[]) { TRS("MPEG-1 (generic)"), TRS("MPEG-1 (VCD)"),
+      .name =      "format",
+      .long_name = TRS("Format"),
+      .type =      BG_PARAMETER_STRINGLIST,
+      .val_default = { .val_str = "mpeg1" },
+      .multi_names =    (char*[]) { "mpeg1",            "vcd",          "mpeg2",            "svcd",         "dvd_nav",   "dvd", (char*)0 },
+      .multi_labels =   (char*[]) { TRS("MPEG-1 (generic)"), TRS("MPEG-1 (VCD)"),
                                   TRS("MPEG-2 (generic)"), TRS("MPEG-2 (SVCD)"),
                                   TRS("DVD (NAV)"), TRS("DVD"), (char*)0 },
-      help_string: TRS("Output format. Note that for some output formats (e.g. VCD), you MUST use proper settings for the audio and video streams also, since this isn't done automatically")
+      .help_string = TRS("Output format. Note that for some output formats (e.g. VCD), you MUST use proper settings for the audio and video streams also, since this isn't done automatically")
     },
     {
-      name:        "tmp_dir",
-      long_name:   TRS("Directory for temporary files"),
-      type:        BG_PARAMETER_DIRECTORY,
-      help_string: TRS("Leave empty to use the same directory as the final output file"),
+      .name =        "tmp_dir",
+      .long_name =   TRS("Directory for temporary files"),
+      .type =        BG_PARAMETER_DIRECTORY,
+      .help_string = TRS("Leave empty to use the same directory as the final output file"),
     },
     {
-      name:        "aux_stream_1",
-      long_name:   TRS("Additional stream 1"),
-      type:        BG_PARAMETER_FILE,
-      help_string: TRS("Additional stream to multiplex into the final output file. Use this if you \
+      .name =        "aux_stream_1",
+      .long_name =   TRS("Additional stream 1"),
+      .type =        BG_PARAMETER_FILE,
+      .help_string = TRS("Additional stream to multiplex into the final output file. Use this if you \
 want e.g. create mp3 or AC3 audio with some other encoder"),
     },
     {
-      name:        "aux_stream_2",
-      long_name:   TRS("Additional stream 2"),
-      type:        BG_PARAMETER_FILE,
-      help_string: TRS("Additional stream to multiplex into the final output file. Use this if you \
+      .name =        "aux_stream_2",
+      .long_name =   TRS("Additional stream 2"),
+      .type =        BG_PARAMETER_FILE,
+      .help_string = TRS("Additional stream to multiplex into the final output file. Use this if you \
 want e.g. create mp3 or AC3 audio with some other encoder"),
     },
     {
-      name:        "aux_stream_3",
-      long_name:   TRS("Additional stream 3"),
-      type:        BG_PARAMETER_FILE,
-      help_string: TRS("Additional stream to multiplex into the final output file. Use this if you \
+      .name =        "aux_stream_3",
+      .long_name =   TRS("Additional stream 3"),
+      .type =        BG_PARAMETER_FILE,
+      .help_string = TRS("Additional stream to multiplex into the final output file. Use this if you \
 want e.g. create mp3 or AC3 audio with some other encoder"),
     },
     { /* End of parameters */ }
@@ -524,48 +524,48 @@ static void set_video_parameter_mpeg(void * data, int stream,
 
 bg_encoder_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:           "e_mpeg",       /* Unique short name */
-      long_name:      TRS("MPEG 1/2 program/system stream encoder"),
-      description:      TRS("Encoder for regular .mpg files as well as VCD and DVD streams.\
+      .name =           "e_mpeg",       /* Unique short name */
+      .long_name =      TRS("MPEG 1/2 program/system stream encoder"),
+      .description =      TRS("Encoder for regular .mpg files as well as VCD and DVD streams.\
  Based on mjpegtools (http://mjpeg.sourceforge.net)"),
-      mimetypes:      NULL,
-      extensions:     "mpg",
-      type:           BG_PLUGIN_ENCODER,
-      flags:          BG_PLUGIN_FILE,
-      priority:       5,
-      create:         create_mpeg,
-      destroy:        destroy_mpeg,
-      get_parameters: get_parameters_mpeg,
-      set_parameter:  set_parameter_mpeg,
+      .mimetypes =      NULL,
+      .extensions =     "mpg",
+      .type =           BG_PLUGIN_ENCODER,
+      .flags =          BG_PLUGIN_FILE,
+      .priority =       5,
+      .create =         create_mpeg,
+      .destroy =        destroy_mpeg,
+      .get_parameters = get_parameters_mpeg,
+      .set_parameter =  set_parameter_mpeg,
     },
 
-    max_audio_streams: -1,
-    max_video_streams: -1,
+    .max_audio_streams = -1,
+    .max_video_streams = -1,
 
-    get_audio_parameters: get_audio_parameters_mpeg,
-    get_video_parameters: get_video_parameters_mpeg,
+    .get_audio_parameters = get_audio_parameters_mpeg,
+    .get_video_parameters = get_video_parameters_mpeg,
 
-    get_extension:        get_extension_mpeg,
+    .get_extension =        get_extension_mpeg,
 
-    open:                 open_mpeg,
+    .open =                 open_mpeg,
 
-    add_audio_stream:     add_audio_stream_mpeg,
-    add_video_stream:     add_video_stream_mpeg,
+    .add_audio_stream =     add_audio_stream_mpeg,
+    .add_video_stream =     add_video_stream_mpeg,
 
-    set_audio_parameter:  set_audio_parameter_mpeg,
-    set_video_parameter:  set_video_parameter_mpeg,
+    .set_audio_parameter =  set_audio_parameter_mpeg,
+    .set_video_parameter =  set_video_parameter_mpeg,
 
-    get_audio_format:     get_audio_format_mpeg,
-    get_video_format:     get_video_format_mpeg,
+    .get_audio_format =     get_audio_format_mpeg,
+    .get_video_format =     get_video_format_mpeg,
 
-    start:                start_mpeg,
+    .start =                start_mpeg,
 
-    write_audio_frame: write_audio_frame_mpeg,
-    write_video_frame: write_video_frame_mpeg,
-    close:             close_mpeg,
+    .write_audio_frame = write_audio_frame_mpeg,
+    .write_video_frame = write_video_frame_mpeg,
+    .close =             close_mpeg,
 
   };
 

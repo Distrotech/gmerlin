@@ -115,9 +115,9 @@ static void    close_pnm(bgav_input_context_t * ctx)
 
 bgav_input_t bgav_input_pnm =
   {
-    name:      "Real pnm",
-    open:      open_pnm,
-    read:      read_pnm,
-    close:     close_pnm
+    .name =      "Real pnm",
+    .open =      open_pnm,
+    .read =      read_pnm,
+    .close =     close_pnm
   };
 

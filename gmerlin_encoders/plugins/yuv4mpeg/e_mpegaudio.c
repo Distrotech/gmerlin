@@ -155,35 +155,35 @@ static bg_parameter_info_t * get_parameters_mpa(void * data)
 
 bg_encoder_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:            "e_mpegaudio",       /* Unique short name */
-      long_name:       TRS("MPEG-1 layer 1/2 audio encoder"),
-      description:     TRS("Encoder for elementary MPEG-1 layer 1/2 audio streams.\
+      .name =            "e_mpegaudio",       /* Unique short name */
+      .long_name =       TRS("MPEG-1 layer 1/2 audio encoder"),
+      .description =     TRS("Encoder for elementary MPEG-1 layer 1/2 audio streams.\
  Based on mjpegtools (http://mjpeg.sourceforge.net)."),
-      mimetypes:       NULL,
-      extensions:      "mpa",
-      type:            BG_PLUGIN_ENCODER_AUDIO,
-      flags:           BG_PLUGIN_FILE,
-      priority:        5,
-      create:            create_mpa,
-      destroy:           destroy_mpa,
-      get_parameters:    get_parameters_mpa,
-      set_parameter:     set_parameter_mpa,
+      .mimetypes =       NULL,
+      .extensions =      "mpa",
+      .type =            BG_PLUGIN_ENCODER_AUDIO,
+      .flags =           BG_PLUGIN_FILE,
+      .priority =        5,
+      .create =            create_mpa,
+      .destroy =           destroy_mpa,
+      .get_parameters =    get_parameters_mpa,
+      .set_parameter =     set_parameter_mpa,
     },
-    max_audio_streams:   1,
-    max_video_streams:   0,
+    .max_audio_streams =   1,
+    .max_video_streams =   0,
 
-    get_extension:       get_extension_mpa,
+    .get_extension =       get_extension_mpa,
 
-    open:                open_mpa,
-    add_audio_stream:    add_audio_stream_mpa,
-    get_audio_format:    get_audio_format_mpa,
+    .open =                open_mpa,
+    .add_audio_stream =    add_audio_stream_mpa,
+    .get_audio_format =    get_audio_format_mpa,
 
-    start:               start_mpa,
-    write_audio_frame:   write_audio_frame_mpa,
-    close:               close_mpa
+    .start =               start_mpa,
+    .write_audio_frame =   write_audio_frame_mpa,
+    .close =               close_mpa
   };
 
 /* Include this into all plugin modules exactly once

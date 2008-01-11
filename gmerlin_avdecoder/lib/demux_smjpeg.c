@@ -195,8 +195,8 @@ static void close_smjpeg(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_smjpeg =
   {
-    probe:       probe_smjpeg,
-    open:        open_smjpeg,
-    next_packet: next_packet_smjpeg,
-    close:       close_smjpeg
+    .probe =       probe_smjpeg,
+    .open =        open_smjpeg,
+    .next_packet = next_packet_smjpeg,
+    .close =       close_smjpeg
   };

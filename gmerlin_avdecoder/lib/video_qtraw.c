@@ -386,11 +386,11 @@ static void close_qtraw(bgav_stream_t * s)
 
 static bgav_video_decoder_t decoder =
   {
-    name:   "Quicktime raw video decoder",
-    fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('r', 'a', 'w', ' '), 0x00  },
-    init:   init_qtraw,
-    decode: decode_qtraw,
-    close:  close_qtraw,
+    .name =   "Quicktime raw video decoder",
+    .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('r', 'a', 'w', ' '), 0x00  },
+    .init =   init_qtraw,
+    .decode = decode_qtraw,
+    .close =  close_qtraw,
   };
 
 void bgav_init_video_decoders_qtraw()

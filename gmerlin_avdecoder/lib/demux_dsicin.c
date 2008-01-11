@@ -240,9 +240,9 @@ static void close_dsicin(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_dsicin =
   {
-    probe:       probe_dsicin,
-    open:        open_dsicin,
-    next_packet: next_packet_dsicin,
-    //    seek:        seek_dsicin,
-    close:       close_dsicin
+    .probe =       probe_dsicin,
+    .open =        open_dsicin,
+    .next_packet = next_packet_dsicin,
+    //    .seek =        seek_dsicin,
+    .close =       close_dsicin
   };

@@ -86,7 +86,7 @@ static void dump_header(ThpHeader * h)
   bgav_dprintf("  tag:                 %c%c%c%c (%02x%02x%02x%02x)\n",
                h->tag[0], h->tag[1], h->tag[2], h->tag[3],
                h->tag[0], h->tag[1], h->tag[2], h->tag[3]);
-  bgav_dprintf("  version:             0x%08x\n", h->version);
+  bgav_dprintf("  .version =             0x%08x\n", h->version);
   
   bgav_dprintf("  maxBufferSize:       %d\n", h->maxBufferSize);
   bgav_dprintf("  maxAudioSamples:     %d\n", h->maxAudioSamples);
@@ -321,9 +321,9 @@ static void close_thp(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_thp =
   {
-    probe:        probe_thp,
-    open:         open_thp,
-    select_track: select_track_thp,
-    next_packet:  next_packet_thp,
-    close:        close_thp
+    .probe =        probe_thp,
+    .open =         open_thp,
+    .select_track = select_track_thp,
+    .next_packet =  next_packet_thp,
+    .close =        close_thp
   };

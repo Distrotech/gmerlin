@@ -365,9 +365,9 @@ static void close_dxa(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_dxa =
   {
-    probe:        probe_dxa,
-    open:         open_dxa,
-    select_track: select_track_dxa,
-    next_packet:  next_packet_dxa,
-    close:        close_dxa
+    .probe =        probe_dxa,
+    .open =         open_dxa,
+    .select_track = select_track_dxa,
+    .next_packet =  next_packet_dxa,
+    .close =        close_dxa
   };

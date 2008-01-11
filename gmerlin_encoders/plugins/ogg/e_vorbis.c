@@ -59,43 +59,43 @@ static int add_audio_stream_vorbis(void * data, const char * language,
 
 bg_encoder_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:            "e_vorbis",       /* Unique short name */
-      long_name:       TRS("Vorbis encoder"),
-      description:     TRS("Encoder for Vorbis files"),
-      mimetypes:       NULL,
-      extensions:      "ogg",
-      type:            BG_PLUGIN_ENCODER_AUDIO,
-      flags:           BG_PLUGIN_FILE,
-      priority:        5,
-      create:            bg_ogg_encoder_create,
-      destroy:           bg_ogg_encoder_destroy,
+      .name =            "e_vorbis",       /* Unique short name */
+      .long_name =       TRS("Vorbis encoder"),
+      .description =     TRS("Encoder for Vorbis files"),
+      .mimetypes =       NULL,
+      .extensions =      "ogg",
+      .type =            BG_PLUGIN_ENCODER_AUDIO,
+      .flags =           BG_PLUGIN_FILE,
+      .priority =        5,
+      .create =            bg_ogg_encoder_create,
+      .destroy =           bg_ogg_encoder_destroy,
 #if 0
-      get_parameters:    get_parameters_vorbis,
-      set_parameter:     set_parameter_vorbis,
+      .get_parameters =    get_parameters_vorbis,
+      .set_parameter =     set_parameter_vorbis,
 #endif
     },
-    max_audio_streams:   1,
-    max_video_streams:   0,
+    .max_audio_streams =   1,
+    .max_video_streams =   0,
     
-    get_extension:       get_extension_vorbis,
+    .get_extension =       get_extension_vorbis,
     
-    open:                bg_ogg_encoder_open,
+    .open =                bg_ogg_encoder_open,
     
-    get_audio_parameters:    get_audio_parameters_vorbis,
+    .get_audio_parameters =    get_audio_parameters_vorbis,
 
-    add_audio_stream:        add_audio_stream_vorbis,
+    .add_audio_stream =        add_audio_stream_vorbis,
     
-    set_audio_parameter:     bg_ogg_encoder_set_audio_parameter,
+    .set_audio_parameter =     bg_ogg_encoder_set_audio_parameter,
 
-    start:                  bg_ogg_encoder_start,
+    .start =                  bg_ogg_encoder_start,
 
-    get_audio_format:        bg_ogg_encoder_get_audio_format,
+    .get_audio_format =        bg_ogg_encoder_get_audio_format,
     
-    write_audio_frame:   bg_ogg_encoder_write_audio_frame,
-    close:               bg_ogg_encoder_close,
+    .write_audio_frame =   bg_ogg_encoder_write_audio_frame,
+    .close =               bg_ogg_encoder_close,
   };
 
 /* Include this into all plugin modules exactly once

@@ -135,15 +135,15 @@ static void resync_png(bgav_stream_t * s)
 
 static bgav_video_decoder_t decoder =
   {
-    name:   "PNG video decoder",
-    fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('p', 'n', 'g', ' '),
+    .name =   "PNG video decoder",
+    .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('p', 'n', 'g', ' '),
                             BGAV_MK_FOURCC('M', 'P', 'N', 'G'),
                             0x00  },
-    init:   init_png,
-    decode: decode_png,
-    resync: resync_png,
-    close:  close_png,
-    resync: NULL,
+    .init =   init_png,
+    .decode = decode_png,
+    .resync = resync_png,
+    .close =  close_png,
+    .resync = NULL,
   };
 
 void bgav_init_video_decoders_png()

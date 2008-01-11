@@ -144,8 +144,8 @@ static void dump_frontend_info(struct dvb_frontend_info * info)
   {
   int i;
   bgav_dprintf("DVB frontend info\n");
-  bgav_dprintf("  name: %s\n", info->name);
-  bgav_dprintf("  type: ");
+  bgav_dprintf("  .name = %s\n", info->name);
+  bgav_dprintf("  .type = ");
   
   switch(info->type)
     {
@@ -844,8 +844,6 @@ static int read_dvb(bgav_input_context_t* ctx,
   {
   dvb_priv_t * priv;
   struct dvb_frontend_event event;
-  fd_set rset;
-  struct timeval timeout;
   int ret = 0;
   int result;
   struct pollfd pfd[1];
@@ -1104,11 +1102,11 @@ static void select_track_dvb(bgav_input_context_t * ctx, int track)
 
 bgav_input_t bgav_input_dvb =
   {
-    name:          "dvb",
-    open:          open_dvb,
-    read:          read_dvb,
-    close:         close_dvb,
-    select_track:  select_track_dvb,
+    .name =          "dvb",
+    .open =          open_dvb,
+    .read =          read_dvb,
+    .close =         close_dvb,
+    .select_track =  select_track_dvb,
   };
 
 static

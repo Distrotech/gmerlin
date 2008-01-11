@@ -364,14 +364,14 @@ static void close_dts(bgav_stream_t * s)
 
 static bgav_audio_decoder_t decoder =
   {
-    fourccs: (uint32_t[]){ BGAV_MK_FOURCC('d', 't', 's', ' '),
+    .fourccs = (uint32_t[]){ BGAV_MK_FOURCC('d', 't', 's', ' '),
                            0x00 },
-    name: "libdca based decoder",
+    .name = "libdca based decoder",
 
-    init:   init_dts,
-    decode: decode_dts,
-    close:  close_dts,
-    resync: resync_dts,
+    .init =   init_dts,
+    .decode = decode_dts,
+    .close =  close_dts,
+    .resync = resync_dts,
   };
 
 void bgav_init_audio_decoders_dca()

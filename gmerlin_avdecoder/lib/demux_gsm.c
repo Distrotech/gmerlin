@@ -132,9 +132,9 @@ static void close_gsm(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_gsm =
   {
-    probe:       probe_gsm,
-    open:        open_gsm,
-    next_packet: next_packet_gsm,
-    seek:        seek_gsm,
-    close:       close_gsm
+    .probe =       probe_gsm,
+    .open =        open_gsm,
+    .next_packet = next_packet_gsm,
+    .seek =        seek_gsm,
+    .close =       close_gsm
   };

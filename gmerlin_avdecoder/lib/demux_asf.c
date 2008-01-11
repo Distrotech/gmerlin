@@ -821,7 +821,7 @@ static int read_packet_header(asf_t * asf,
   ret->time = BGAV_PTR_2_32LE(data_ptr);     data_ptr+=4;
   ret->duration = BGAV_PTR_2_16LE(data_ptr); data_ptr+=2;
   
-  // Read payload flags:
+  // Read payload .flags =
   if(ret->flags&1)
     {
     // multiple sub-packets
@@ -1174,10 +1174,10 @@ static int select_track_asf(bgav_demuxer_context_t * ctx, int track)
 
 bgav_demuxer_t bgav_demuxer_asf =
   {
-    probe:          probe_asf,
-    open:           open_asf,
-    select_track:   select_track_asf,
-    next_packet:    next_packet_asf,
-    seek:           seek_asf,
-    close:          close_asf
+    .probe =          probe_asf,
+    .open =           open_asf,
+    .select_track =   select_track_asf,
+    .next_packet =    next_packet_asf,
+    .seek =           seek_asf,
+    .close =          close_asf
   };

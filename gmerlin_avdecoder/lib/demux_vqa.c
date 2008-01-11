@@ -267,9 +267,9 @@ static void close_vqa(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_vqa =
   {
-    probe:       probe_vqa,
-    open:        open_vqa,
-    next_packet: next_packet_vqa,
-    //    seek:        seek_vqa,
-    close:       close_vqa
+    .probe =       probe_vqa,
+    .open =        open_vqa,
+    .next_packet = next_packet_vqa,
+    //    .seek =        seek_vqa,
+    .close =       close_vqa
   };

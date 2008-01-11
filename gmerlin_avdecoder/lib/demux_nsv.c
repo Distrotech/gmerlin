@@ -843,11 +843,11 @@ static void close_nsv(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_nsv =
   {
-    probe:        probe_nsv,
-    open:         open_nsv,
-    select_track: select_track_nsv,
-    next_packet:  next_packet_nsv,
-    seek:         seek_nsv,
-    close:        close_nsv
+    .probe =        probe_nsv,
+    .open =         open_nsv,
+    .select_track = select_track_nsv,
+    .next_packet =  next_packet_nsv,
+    .seek =         seek_nsv,
+    .close =        close_nsv
   };
 

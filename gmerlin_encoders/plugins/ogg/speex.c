@@ -142,71 +142,71 @@ static void * create_speex(FILE * output, long serialno)
 static bg_parameter_info_t parameters[] =
   {
     {
-      name:        "mode",
-      long_name:   TRS("Speex mode"),
-      type:        BG_PARAMETER_STRINGLIST,
-      val_default: { val_str: "auto" },
-      multi_names:  (char*[]){ "auto", "nb",         "wb",       "uwb",            (char*)0 },
-      multi_labels: (char*[]){ TRS("Auto"), TRS("Narrowband"), TRS("Wideband"),
+      .name =        "mode",
+      .long_name =   TRS("Speex mode"),
+      .type =        BG_PARAMETER_STRINGLIST,
+      .val_default = { .val_str = "auto" },
+      .multi_names =  (char*[]){ "auto", "nb",         "wb",       "uwb",            (char*)0 },
+      .multi_labels = (char*[]){ TRS("Auto"), TRS("Narrowband"), TRS("Wideband"),
                                TRS("Ultra-wideband"), (char*)0 },
-      help_string: TRS("Encoding mode. If you select Auto, the mode will be taken from the samplerate.")
+      .help_string = TRS("Encoding mode. If you select Auto, the mode will be taken from the samplerate.")
     },
     {
-      name:      "quality",
-      long_name: TRS("Quality (10: best)"),
-      type:      BG_PARAMETER_SLIDER_INT,
-      val_min:     { val_i: 0 },
-      val_max:     { val_i: 10 },
-      val_default: { val_i: 3 },
+      .name =      "quality",
+      .long_name = TRS("Quality (10: best)"),
+      .type =      BG_PARAMETER_SLIDER_INT,
+      .val_min =     { .val_i = 0 },
+      .val_max =     { .val_i = 10 },
+      .val_default = { .val_i = 3 },
     },
     {
-      name:      "complexity",
-      long_name: TRS("Encoding complexity"),
-      type:      BG_PARAMETER_SLIDER_INT,
-      val_min:     { val_i: 0 },
-      val_max:     { val_i: 10 },
-      val_default: { val_i: 3 },
+      .name =      "complexity",
+      .long_name = TRS("Encoding complexity"),
+      .type =      BG_PARAMETER_SLIDER_INT,
+      .val_min =     { .val_i = 0 },
+      .val_max =     { .val_i = 10 },
+      .val_default = { .val_i = 3 },
     },
     {
-      name:      "nframes",
-      long_name: TRS("Frames per Ogg packet"),
-      type:      BG_PARAMETER_SLIDER_INT,
-      val_min:     { val_i: 1 },
-      val_max:     { val_i: 10 },
-      val_default: { val_i: 1 },
+      .name =      "nframes",
+      .long_name = TRS("Frames per Ogg packet"),
+      .type =      BG_PARAMETER_SLIDER_INT,
+      .val_min =     { .val_i = 1 },
+      .val_max =     { .val_i = 10 },
+      .val_default = { .val_i = 1 },
     },
     {
-      name:        "bitrate",
-      long_name:   TRS("Bitrate (kbps)"),
-      type:        BG_PARAMETER_INT,
-      val_min:     { val_i: 0 },
-      val_max:     { val_i: 128 },
-      val_default: { val_i: 8 },
-      help_string: TRS("Bitrate (in kbps). Set to 0 for seleting the standard bitrates for the encoding mode."),
+      .name =        "bitrate",
+      .long_name =   TRS("Bitrate (kbps)"),
+      .type =        BG_PARAMETER_INT,
+      .val_min =     { .val_i = 0 },
+      .val_max =     { .val_i = 128 },
+      .val_default = { .val_i = 8 },
+      .help_string = TRS("Bitrate (in kbps). Set to 0 for seleting the standard bitrates for the encoding mode."),
     },
     {
-      name:        "vbr",
-      long_name:   TRS("Variable bitrate"),
-      type:        BG_PARAMETER_CHECKBUTTON,
+      .name =        "vbr",
+      .long_name =   TRS("Variable bitrate"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
     },
     {
-      name:        "abr_bitrate",
-      long_name:   TRS("Average bitrate (kbps)"),
-      type:        BG_PARAMETER_INT,
-      val_min:     { val_i: 0 },
-      val_max:     { val_i: 128 },
-      val_default: { val_i: 0 },
-      help_string: TRS("Average bitrate (in kbps). Set to 0 for disabling ABR."),
+      .name =        "abr_bitrate",
+      .long_name =   TRS("Average bitrate (kbps)"),
+      .type =        BG_PARAMETER_INT,
+      .val_min =     { .val_i = 0 },
+      .val_max =     { .val_i = 128 },
+      .val_default = { .val_i = 0 },
+      .help_string = TRS("Average bitrate (in kbps). Set to 0 for disabling ABR."),
     },
     {
-      name:        "vad",
-      long_name:   TRS("Use voice activity detection"),
-      type:        BG_PARAMETER_CHECKBUTTON,
+      .name =        "vad",
+      .long_name =   TRS("Use voice activity detection"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
     },
     {
-      name:        "dtx",
-      long_name:   TRS("Enable file-based discontinuous transmission"),
-      type:        BG_PARAMETER_CHECKBUTTON,
+      .name =        "dtx",
+      .long_name =   TRS("Enable file-based discontinuous transmission"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
     },
     { /* End of parameters */ }
   };
@@ -319,7 +319,7 @@ static int init_speex(void * data, gavl_audio_format_t * format, bg_metadata_t *
   float quality_f;
   char *comments = (char *)0;
   int comments_length = 0;
-  SpeexMode *mode=NULL;
+  const SpeexMode *mode=NULL;
   SpeexHeader header;
   ogg_packet op;
   int dummy;
@@ -579,19 +579,19 @@ static int close_speex(void * data)
 
 bg_ogg_codec_t bg_speex_codec =
   {
-    name:      "speex",
-    long_name: TRS("Speex encoder"),
-    create: create_speex,
+    .name =      "speex",
+    .long_name = TRS("Speex encoder"),
+    .create = create_speex,
 
-    get_parameters: get_parameters_speex,
-    set_parameter:  set_parameter_speex,
+    .get_parameters = get_parameters_speex,
+    .set_parameter =  set_parameter_speex,
     
-    init_audio:     init_speex,
+    .init_audio =     init_speex,
     
     //  int (*init_video)(void*, gavl_video_format_t * format);
   
-    flush_header_pages: flush_header_pages_speex,
+    .flush_header_pages = flush_header_pages_speex,
     
-    encode_audio: write_audio_frame_speex,
-    close: close_speex,
+    .encode_audio = write_audio_frame_speex,
+    .close = close_speex,
   };

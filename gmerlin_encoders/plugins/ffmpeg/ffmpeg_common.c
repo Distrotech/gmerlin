@@ -743,7 +743,11 @@ int bg_ffmpeg_close(void * data, int do_delete)
   if(priv->initialized)
     {
     av_write_trailer(priv->ctx);
+#if LIBAVFORMAT_VERSION_INT < ((52<<16)+(0<<8)+0)
     url_fclose(&priv->ctx->pb);
+#else
+    url_fclose(priv->ctx->pb);
+#endif
     }
   if(do_delete)
     remove(priv->ctx->filename);

@@ -283,9 +283,9 @@ static void close_vmd(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_vmd =
   {
-    probe:       probe_vmd,
-    open:        open_vmd,
-    select_track: select_track_vmd,
-    next_packet: next_packet_vmd,
-    close:       close_vmd
+    .probe =       probe_vmd,
+    .open =        open_vmd,
+    .select_track = select_track_vmd,
+    .next_packet = next_packet_vmd,
+    .close =       close_vmd
   };

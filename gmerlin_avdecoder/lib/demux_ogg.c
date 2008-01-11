@@ -1960,11 +1960,11 @@ static int select_track_ogg(bgav_demuxer_context_t * ctx,
 
 bgav_demuxer_t bgav_demuxer_ogg =
   {
-    probe:        probe_ogg,
-    open:         open_ogg,
-    next_packet:  next_packet_ogg,
-    seek:         seek_ogg,
-    close:        close_ogg,
-    select_track: select_track_ogg
+    .probe =        probe_ogg,
+    .open =         open_ogg,
+    .next_packet =  next_packet_ogg,
+    .seek =         seek_ogg,
+    .close =        close_ogg,
+    .select_track = select_track_ogg
   };
 

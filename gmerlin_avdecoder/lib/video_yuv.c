@@ -632,106 +632,106 @@ static void close(bgav_stream_t * s)
 
 static bgav_video_decoder_t yuv2_decoder =
   {
-    name:   "yuv2 video decoder",
-    fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('y', 'u', 'v', '2'), 0x00  },
-    init:   init_yuv2,
-    decode: decode,
-    close:  close,
+    .name =   "yuv2 video decoder",
+    .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('y', 'u', 'v', '2'), 0x00  },
+    .init =   init_yuv2,
+    .decode = decode,
+    .close =  close,
   };
 
 #if 1
 static bgav_video_decoder_t twovuy_decoder =
   {
-    name:   "2vuy video decoder",
-    fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('2', 'v', 'u', 'y'), 0x00  },
-    init:   init_2vuy,
-    decode: decode,
-    close:  close,
+    .name =   "2vuy video decoder",
+    .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('2', 'v', 'u', 'y'), 0x00  },
+    .init =   init_2vuy,
+    .decode = decode,
+    .close =  close,
   };
 #endif
 
 static bgav_video_decoder_t yv12_decoder =
   {
-    name:   "yv12 video decoder",
-    fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('y', 'v', '1', '2'), 0x00  },
-    init:   init_yv12,
-    decode: decode,
-    close:  close,
+    .name =   "yv12 video decoder",
+    .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('y', 'v', '1', '2'), 0x00  },
+    .init =   init_yv12,
+    .decode = decode,
+    .close =  close,
   };
 
 static bgav_video_decoder_t YV12_decoder =
   {
-    name:   "YV12 video decoder",
-    fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('Y', 'V', '1', '2'), 0x00  },
-    init:   init_YV12,
-    decode: decode,
-    close:  close,
+    .name =   "YV12 video decoder",
+    .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('Y', 'V', '1', '2'), 0x00  },
+    .init =   init_YV12,
+    .decode = decode,
+    .close =  close,
   };
 
 static bgav_video_decoder_t VYUY_decoder =
   {
-    name:   "VYUY video decoder",
-    fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('V', 'Y', 'U', 'Y'),
+    .name =   "VYUY video decoder",
+    .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('V', 'Y', 'U', 'Y'),
                             BGAV_MK_FOURCC('2', 'v', 'u', 'y'),
                             0x00 },
-    init:   init_VYUY,
-    decode: decode,
-    close:  close,
+    .init =   init_VYUY,
+    .decode = decode,
+    .close =  close,
   };
 
 static bgav_video_decoder_t YVU9_decoder =
   {
-    name:   "YVU9 video decoder",
-    fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('Y', 'V', 'U', '9'), 0x00  },
-    init:   init_YVU9,
-    decode: decode,
-    close:  close,
+    .name =   "YVU9 video decoder",
+    .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('Y', 'V', 'U', '9'), 0x00  },
+    .init =   init_YVU9,
+    .decode = decode,
+    .close =  close,
   };
 
 static bgav_video_decoder_t v308_decoder =
   {
-    name:   "v308 video decoder",
-    fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('v', '3', '0', '8'), 0x00  },
-    init:   init_v308,
-    decode: decode,
-    close:  close,
+    .name =   "v308 video decoder",
+    .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('v', '3', '0', '8'), 0x00  },
+    .init =   init_v308,
+    .decode = decode,
+    .close =  close,
   };
 
 static bgav_video_decoder_t v408_decoder =
   {
-    name:   "v408 video decoder",
-    fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('v', '4', '0', '8'), 0x00  },
-    init:   init_v408,
-    decode: decode,
-    close:  close,
+    .name =   "v408 video decoder",
+    .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('v', '4', '0', '8'), 0x00  },
+    .init =   init_v408,
+    .decode = decode,
+    .close =  close,
   };
 
 static bgav_video_decoder_t v410_decoder =
   {
-    name:   "v410 video decoder",
-    fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('v', '4', '1', '0'), 0x00  },
-    init:   init_v410,
-    decode: decode,
-    close:  close,
+    .name =   "v410 video decoder",
+    .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('v', '4', '1', '0'), 0x00  },
+    .init =   init_v410,
+    .decode = decode,
+    .close =  close,
   };
 
 static bgav_video_decoder_t v210_decoder =
   {
-    name:   "v210 video decoder",
-    fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('v', '2', '1', '0'), 0x00  },
-    init:   init_v210,
-    decode: decode,
-    close:  close,
+    .name =   "v210 video decoder",
+    .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('v', '2', '1', '0'), 0x00  },
+    .init =   init_v210,
+    .decode = decode,
+    .close =  close,
   };
 
 
 static bgav_video_decoder_t yuv4_decoder =
   {
-    name:   "yuv4 video decoder",
-    fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('y', 'u', 'v', '4'), 0x00  },
-    init:   init_yuv4,
-    decode: decode,
-    close:  close,
+    .name =   "yuv4 video decoder",
+    .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('y', 'u', 'v', '4'), 0x00  },
+    .init =   init_yuv4,
+    .decode = decode,
+    .close =  close,
   };
 
 void bgav_init_video_decoders_yuv()

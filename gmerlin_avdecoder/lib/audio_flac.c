@@ -358,13 +358,13 @@ static void resync_flac(bgav_stream_t * s)
 
 static bgav_audio_decoder_t decoder =
   {
-    fourccs: (uint32_t[]){ BGAV_MK_FOURCC('F', 'L', 'A', 'C'),
+    .fourccs = (uint32_t[]){ BGAV_MK_FOURCC('F', 'L', 'A', 'C'),
                            0x00 },
-    name: "FLAC audio decoder",
-    init: init_flac,
-    close: close_flac,
-    resync: resync_flac,
-    decode: decode_flac
+    .name = "FLAC audio decoder",
+    .init = init_flac,
+    .close = close_flac,
+    .resync = resync_flac,
+    .decode = decode_flac
   };
 
 void bgav_init_audio_decoders_flac()

@@ -72,27 +72,27 @@ static void * create_flac()
 static bg_parameter_info_t parameters[] =
   {
     {
-      name:        "use_vorbis_comment",
-      long_name:   TRS("Write vorbis comment"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 },
-      help_string: TRS("Write Vorbis comment containing metadata to the file")
+      .name =        "use_vorbis_comment",
+      .long_name =   TRS("Write vorbis comment"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 },
+      .help_string = TRS("Write Vorbis comment containing metadata to the file")
     },
     {
-      name:        "use_seektable",
-      long_name:   TRS("Write seek table"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 },
-      help_string: TRS("Write seektable (strongly recommended)")
+      .name =        "use_seektable",
+      .long_name =   TRS("Write seek table"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 },
+      .help_string = TRS("Write seektable (strongly recommended)")
     },
     {
-      name:        "num_seektable_entries",
-      long_name:   TRS("Entries in the seektable"),
-      type:        BG_PARAMETER_INT,
-      val_min: { val_i: 1 },
-      val_max: { val_i: 1000000 },
-      val_default: { val_i: 100 },
-      help_string: TRS("Maximum number of entries in the seek table. Default is 100, larger numbers result in\
+      .name =        "num_seektable_entries",
+      .long_name =   TRS("Entries in the seektable"),
+      .type =        BG_PARAMETER_INT,
+      .val_min = { .val_i = 1 },
+      .val_max = { .val_i = 1000000 },
+      .val_default = { .val_i = 100 },
+      .help_string = TRS("Maximum number of entries in the seek table. Default is 100, larger numbers result in\
  shorter seeking times but also in larger files.")
     },
     { /* End of parameters */ }
@@ -473,42 +473,42 @@ static void set_audio_parameter_flac(void * data, int stream,
 
 bg_encoder_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:            "e_flac",       /* Unique short name */
-      long_name:       TRS("Flac encoder"),
-      description:     TRS("Encoder for flac files. Based on libflac (http://flac.sourceforge.net)"),
-      mimetypes:       NULL,
-      extensions:      "flac",
-      type:            BG_PLUGIN_ENCODER_AUDIO,
-      flags:           BG_PLUGIN_FILE,
-      priority:        5,
+      .name =            "e_flac",       /* Unique short name */
+      .long_name =       TRS("Flac encoder"),
+      .description =     TRS("Encoder for flac files. Based on libflac (http://flac.sourceforge.net)"),
+      .mimetypes =       NULL,
+      .extensions =      "flac",
+      .type =            BG_PLUGIN_ENCODER_AUDIO,
+      .flags =           BG_PLUGIN_FILE,
+      .priority =        5,
       
-      create:            create_flac,
-      destroy:           destroy_flac,
-      get_parameters:    get_parameters_flac,
-      set_parameter:     set_parameter_flac,
+      .create =            create_flac,
+      .destroy =           destroy_flac,
+      .get_parameters =    get_parameters_flac,
+      .set_parameter =     set_parameter_flac,
     },
-    max_audio_streams:   1,
-    max_video_streams:   0,
+    .max_audio_streams =   1,
+    .max_video_streams =   0,
     
-    get_extension:       get_extension_flac,
+    .get_extension =       get_extension_flac,
     
-    open:                open_flac,
+    .open =                open_flac,
     
-    get_audio_parameters:    bg_flac_get_parameters,
+    .get_audio_parameters =    bg_flac_get_parameters,
 
-    add_audio_stream:        add_audio_stream_flac,
+    .add_audio_stream =        add_audio_stream_flac,
     
-    set_audio_parameter:     set_audio_parameter_flac,
+    .set_audio_parameter =     set_audio_parameter_flac,
 
-    get_audio_format:        get_audio_format_flac,
+    .get_audio_format =        get_audio_format_flac,
 
-    start:                   start_flac,
+    .start =                   start_flac,
     
-    write_audio_frame:   write_audio_frame_flac,
-    close:               close_flac
+    .write_audio_frame =   write_audio_frame_flac,
+    .close =               close_flac
   };
 
 /* Include this into all plugin modules exactly once

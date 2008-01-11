@@ -67,7 +67,7 @@ static void dump_chunk_header(chunk_header_t * h)
   bgav_dprintf("Roq chunk header\n");
   bgav_dprintf("  id:   %04x\n", h->id);
   bgav_dprintf("  size: %d\n", h->size);
-  bgav_dprintf("  arg:  %04x\n", h->arg);
+  bgav_dprintf("  .arg =  %04x\n", h->arg);
   }
 #endif
 
@@ -299,8 +299,8 @@ static void close_roq(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_roq =
   {
-    probe:       probe_roq,
-    open:        open_roq,
-    next_packet: next_packet_roq,
-    close:       close_roq
+    .probe =       probe_roq,
+    .open =        open_roq,
+    .next_packet = next_packet_roq,
+    .close =       close_roq
   };

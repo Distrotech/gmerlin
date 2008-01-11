@@ -1522,10 +1522,10 @@ static int select_track_rmff(bgav_demuxer_context_t * ctx, int t)
 
 bgav_demuxer_t bgav_demuxer_rmff =
   {
-    probe:        probe_rmff,
-    open:         open_rmff,
-    select_track: select_track_rmff,
-    next_packet:  next_packet_rmff,
-    seek:         seek_rmff,
-    close:        close_rmff
+    .probe =        probe_rmff,
+    .open =         open_rmff,
+    .select_track = select_track_rmff,
+    .next_packet =  next_packet_rmff,
+    .seek =         seek_rmff,
+    .close =        close_rmff
   };

@@ -73,68 +73,68 @@ typedef struct
 codec_info_t codec_infos[] =
   {
     {
-      name:        "Voxware Metasound DirectShow decoder",
-      format_name: "Voxware Metasound",
-      fourccs:     (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x75), 0x00 },
-      dll_name:    "voxmsdec.ax",
-      type:        CODEC_DS,
-      guid:        { 0x73f7a062, 0x8829, 0x11d1,
+      .name =        "Voxware Metasound DirectShow decoder",
+      .format_name = "Voxware Metasound",
+      .fourccs =     (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x75), 0x00 },
+      .dll_name =    "voxmsdec.ax",
+      .type =        CODEC_DS,
+      .guid =        { 0x73f7a062, 0x8829, 0x11d1,
                      { 0xb5, 0x50, 0x00, 0x60, 0x97, 0x24, 0x2d, 0x8d } }
     },
     {
-      name:        "ACELP.net DirectShow decoder",
-      format_name: "ACELP.net",
-      fourccs:     (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x0130), 0x00 },
-      dll_name:    "acelpdec.ax",
-      type:        CODEC_DS,
-      guid:        { 0x4009f700, 0xaeba, 0x11d1,
+      .name =        "ACELP.net DirectShow decoder",
+      .format_name = "ACELP.net",
+      .fourccs =     (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x0130), 0x00 },
+      .dll_name =    "acelpdec.ax",
+      .type =        CODEC_DS,
+      .guid =        { 0x4009f700, 0xaeba, 0x11d1,
                      { 0x83, 0x44, 0x00, 0xc0, 0x4f, 0xb9, 0x2e, 0xb7 } }
     },
 #if 0 /* Handled by libgsm */
     {
-      name:        "msgsm ACM decoder",
-      format_name: "msgsm",
-      fourccs:     (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x0031), 0x00 },
-      dll_name:    "msgsm32.acm",
-      type:        CODEC_STD,
+      .name =        "msgsm ACM decoder",
+      .format_name = "msgsm",
+      .fourccs =     (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x0031), 0x00 },
+      .dll_name =    "msgsm32.acm",
+      .type =        CODEC_STD,
     },
 #endif
 #if 1
     {
-      name:        "Vivo G.723/Siren Audio Codec",
-      format_name: "Vivo G.723/Siren",
-      fourccs:     (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x0111),
+      .name =        "Vivo G.723/Siren Audio Codec",
+      .format_name = "Vivo G.723/Siren",
+      .fourccs =     (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x0111),
                             BGAV_WAVID_2_FOURCC(0x0112),
                             0x00 },
-      dll_name:    "vivog723.acm",
-      type:        CODEC_STD,
+      .dll_name =    "vivog723.acm",
+      .type =        CODEC_STD,
     },
 #endif
 #if 0 /* Wrong WAV ID? */ 
     {
-      name:        "Lernout & Hauspie (CELP and SBC)",
-      format_name: "Lernout & Hauspie",
-      fourccs:     (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x0072), 0x00 },
-      dll_name:    "lhacm.acm",
-      type:        CODEC_STD,
+      .name =        "Lernout & Hauspie (CELP and SBC)",
+      .format_name = "Lernout & Hauspie",
+      .fourccs =     (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x0072), 0x00 },
+      .dll_name =    "lhacm.acm",
+      .type =        CODEC_STD,
     },
 #endif
 #if 0 /* Crashes */
     {
-      name:        "DSP Group TrueSpeech(TM)",
-      format_name: "DSP Group TrueSpeech(TM)",
-      fourccs:     (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x0022), 0x00 },
-      dll_name:    "tssoft32.acm",
-      type:        CODEC_STD,
+      .name =        "DSP Group TrueSpeech(TM)",
+      .format_name = "DSP Group TrueSpeech(TM)",
+      .fourccs =     (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x0022), 0x00 },
+      .dll_name =    "tssoft32.acm",
+      .type =        CODEC_STD,
     },
 #endif
 #if 0 /* Crashes */ 
     {
-      name:        "Sony ATRAC3",
-      format_name: "Sony ATRAC3",
-      fourccs:     (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x0270), 0x00 },
-      dll_name:    "atrac3.acm",
-      type:        CODEC_STD,
+      .name =        "Sony ATRAC3",
+      .format_name = "Sony ATRAC3",
+      .fourccs =     (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x0270), 0x00 },
+      .dll_name =    "atrac3.acm",
+      .type =        CODEC_STD,
     },
 #endif
   };

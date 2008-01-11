@@ -58,43 +58,43 @@ static int add_audio_stream_flacogg(void * data, const char * language,
 
 bg_encoder_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:            "e_flacogg",       /* Unique short name */
-      long_name:       TRS("Flac in Ogg encoder"),
-      description:     TRS("Encoder for flac streams in Ogg containers. Based on libflac (http://flac.sourceforge.net)"),
-      mimetypes:       NULL,
-      extensions:      "ogg",
-      type:            BG_PLUGIN_ENCODER_AUDIO,
-      flags:           BG_PLUGIN_FILE,
-      priority:        5,
-      create:            bg_ogg_encoder_create,
-      destroy:           bg_ogg_encoder_destroy,
+      .name =            "e_flacogg",       /* Unique short name */
+      .long_name =       TRS("Flac in Ogg encoder"),
+      .description =     TRS("Encoder for flac streams in Ogg containers. Based on libflac (http://flac.sourceforge.net)"),
+      .mimetypes =       NULL,
+      .extensions =      "ogg",
+      .type =            BG_PLUGIN_ENCODER_AUDIO,
+      .flags =           BG_PLUGIN_FILE,
+      .priority =        5,
+      .create =            bg_ogg_encoder_create,
+      .destroy =           bg_ogg_encoder_destroy,
 #if 0
-      get_parameters:    get_parameters_flacogg,
-      set_parameter:     set_parameter_flacogg,
+      .get_parameters =    get_parameters_flacogg,
+      .set_parameter =     set_parameter_flacogg,
 #endif
     },
-    max_audio_streams:   1,
-    max_video_streams:   0,
+    .max_audio_streams =   1,
+    .max_video_streams =   0,
     
-    get_extension:       get_extension_flacogg,
+    .get_extension =       get_extension_flacogg,
     
-    open:                bg_ogg_encoder_open,
+    .open =                bg_ogg_encoder_open,
     
-    get_audio_parameters:    get_audio_parameters_flacogg,
+    .get_audio_parameters =    get_audio_parameters_flacogg,
 
-    add_audio_stream:        add_audio_stream_flacogg,
+    .add_audio_stream =        add_audio_stream_flacogg,
     
-    set_audio_parameter:     bg_ogg_encoder_set_audio_parameter,
+    .set_audio_parameter =     bg_ogg_encoder_set_audio_parameter,
 
-    start:                  bg_ogg_encoder_start,
+    .start =                  bg_ogg_encoder_start,
 
-    get_audio_format:        bg_ogg_encoder_get_audio_format,
+    .get_audio_format =        bg_ogg_encoder_get_audio_format,
     
-    write_audio_frame:   bg_ogg_encoder_write_audio_frame,
-    close:               bg_ogg_encoder_close,
+    .write_audio_frame =   bg_ogg_encoder_write_audio_frame,
+    .close =               bg_ogg_encoder_close,
   };
 
 /* Include this into all plugin modules exactly once

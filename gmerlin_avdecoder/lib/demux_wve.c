@@ -248,8 +248,8 @@ static void close_wve(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_wve =
   {
-    probe:       probe_wve,
-    open:        open_wve,
-    next_packet: next_packet_wve,
-    close:       close_wve
+    .probe =       probe_wve,
+    .open =        open_wve,
+    .next_packet = next_packet_wve,
+    .close =       close_wve
   };

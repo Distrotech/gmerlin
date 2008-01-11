@@ -595,11 +595,11 @@ static void close_aac(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_aac =
   {
-    probe:       probe_aac,
-    open:        open_aac,
-    select_track: select_track_aac,
-    next_packet: next_packet_aac,
-    seek:        seek_aac,
-    close:       close_aac
+    .probe =       probe_aac,
+    .open =        open_aac,
+    .select_track = select_track_aac,
+    .next_packet = next_packet_aac,
+    .seek =        seek_aac,
+    .close =       close_aac
   };
 

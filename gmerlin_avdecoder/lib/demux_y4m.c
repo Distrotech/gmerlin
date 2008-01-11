@@ -361,8 +361,8 @@ static void close_y4m(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_y4m =
   {
-    probe:       probe_y4m,
-    open:        open_y4m,
-    next_packet: next_packet_y4m,
-    close:       close_y4m
+    .probe =       probe_y4m,
+    .open =        open_y4m,
+    .next_packet = next_packet_y4m,
+    .close =       close_y4m
   };

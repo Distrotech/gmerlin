@@ -1099,12 +1099,12 @@ static void seek_time_dvd(bgav_input_context_t * ctx, int64_t t1, int scale)
 
 bgav_input_t bgav_input_dvd =
   {
-    name:          "dvd",
-    open:          open_dvd,
-    read_sector:   read_sector_dvd,
-    seek_time:     seek_time_dvd,
-    close:         close_dvd,
-    select_track:  select_track_dvd,
+    .name =          "dvd",
+    .open =          open_dvd,
+    .read_sector =   read_sector_dvd,
+    .seek_time =     seek_time_dvd,
+    .close =         close_dvd,
+    .select_track =  select_track_dvd,
   };
 
 static char * get_device_name(CdIo_t * cdio,

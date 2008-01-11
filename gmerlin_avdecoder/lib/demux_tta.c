@@ -66,7 +66,7 @@ static void dump_header(tta_header_t * h)
   {
   bgav_dprintf("tta header\n");
   
-  bgav_dprintf("  fourcc:          ");
+  bgav_dprintf("  .fourcc =          ");
   bgav_dump_fourcc(h->fourcc);
   bgav_dprintf("\n");
 
@@ -223,9 +223,9 @@ static void close_tta(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_tta =
   {
-    probe:       probe_tta,
-    open:        open_tta,
-    next_packet: next_packet_tta,
-    seek:        seek_tta,
-    close:       close_tta
+    .probe =       probe_tta,
+    .open =        open_tta,
+    .next_packet = next_packet_tta,
+    .seek =        seek_tta,
+    .close =       close_tta
   };

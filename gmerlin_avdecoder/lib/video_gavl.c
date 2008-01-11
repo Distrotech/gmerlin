@@ -53,12 +53,12 @@ static void close_gavl(bgav_stream_t * s)
 
 static bgav_video_decoder_t decoder =
   {
-    fourccs: (uint32_t[]){ BGAV_MK_FOURCC('g', 'a', 'v', 'l'),
+    .fourccs = (uint32_t[]){ BGAV_MK_FOURCC('g', 'a', 'v', 'l'),
                            0x00 },
-    name: "gavl video decoder",
-    init: init_gavl,
-    close: close_gavl,
-    decode: decode_gavl
+    .name = "gavl video decoder",
+    .init = init_gavl,
+    .close = close_gavl,
+    .decode = decode_gavl
   };
 
 void bgav_init_video_decoders_gavl()

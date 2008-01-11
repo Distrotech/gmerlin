@@ -182,11 +182,11 @@ static void    close_mms(bgav_input_context_t * ctx)
 
 bgav_input_t bgav_input_mms =
   {
-    name:          "mms (Windows Media)",
-    open:          open_mms,
-    read:          read_mms,
-    read_nonblock: read_mms_nonblock,
-    //    seek_byte: seek_byte_mms,
-    close:         close_mms
+    .name =          "mms (Windows Media)",
+    .open =          open_mms,
+    .read =          read_mms,
+    .read_nonblock = read_mms_nonblock,
+    //    .seek_byte = seek_byte_mms,
+    .close =         close_mms
   };
 

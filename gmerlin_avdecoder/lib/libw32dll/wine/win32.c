@@ -886,7 +886,7 @@ static void DumpSystemInfo(const SYSTEM_INFO* si)
     dbgprintf("  Maximum app address: %d\n", si->lpMaximumApplicationAddress);
     dbgprintf("  Active processor mask: 0x%x\n", si->dwActiveProcessorMask);
     dbgprintf("  Number of processors: %d\n", si->dwNumberOfProcessors);
-    dbgprintf("  Processor type: 0x%x\n", si->dwProcessorType);
+    dbgprintf("  Processor .type = 0x%x\n", si->dwProcessorType);
     dbgprintf("  Allocation granularity: 0x%x\n", si->dwAllocationGranularity);
     dbgprintf("  Processor level: 0x%x\n", si->wProcessorLevel);
     dbgprintf("  Processor revision: 0x%x\n", si->wProcessorRevision);
@@ -1760,7 +1760,7 @@ static long WINAPI expGetVersionExA(OSVERSIONINFOA* c)
     c->dwPlatformId=VER_PLATFORM_WIN32_NT; // let's not make DLL assume that it can read CR* registers
     strcpy(c->szCSDVersion, "Service Pack 3");
 #endif
-    dbgprintf("  Major version: 4\n  Minor version: 0\n  Build number: 0x4000457\n"
+    dbgprintf("  Major .version = 4\n  Minor .version = 0\n  Build number: 0x4000457\n"
 	      "  Platform Id: VER_PLATFORM_WIN32_NT\n Version string: 'Service Pack 3'\n");
     return 1;
 }

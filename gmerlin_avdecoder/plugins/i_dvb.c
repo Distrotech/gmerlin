@@ -65,24 +65,24 @@ static int check_device_dvb(const char * device, char ** name)
 static bg_parameter_info_t parameters[] =
   {
     {
-      name:        "dvb_channels_file",
-      long_name:   TRS("Channel file"),
-      type:        BG_PARAMETER_FILE,
-      help_string: TRS("The channels file must have the format of the dvb-utils\
+      .name =        "dvb_channels_file",
+      .long_name =   TRS("Channel file"),
+      .type =        BG_PARAMETER_FILE,
+      .help_string = TRS("The channels file must have the format of the dvb-utils\
  programs (like szap, tzap). If you don't set this file,\
  several locations like $HOME/.tzap/channels.conf will be\
  searched."),
-      gettext_domain:    PACKAGE,
-      gettext_directory: LOCALE_DIR,
+      .gettext_domain =    PACKAGE,
+      .gettext_directory = LOCALE_DIR,
     },
     PARAM_DYNRANGE,
     {
-      name:        "read_timeout",
-      long_name:   TRS("Read timeout (milliseconds)"),
-      type:        BG_PARAMETER_INT,
-      val_default: { val_i: 100 },
-      val_min:     { val_i: 0 },
-      val_max:     { val_i: 2000000 },
+      .name =        "read_timeout",
+      .long_name =   TRS("Read timeout (milliseconds)"),
+      .type =        BG_PARAMETER_INT,
+      .val_default = { .val_i = 100 },
+      .val_min =     { .val_i = 0 },
+      .val_max =     { .val_i = 2000000 },
     },
     { /* End of parameters */ }
   };
@@ -94,40 +94,40 @@ static bg_parameter_info_t * get_parameters_dvb(void * priv)
 
 bg_input_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:          "i_dvb",
-      long_name:     TRS("DVB Player"),
-      description:   TRS("Plugin for playing DVB streams from a Linux-DVB compatible card. Based on Gmerlin avdecoder."),
-      type:          BG_PLUGIN_INPUT,
-      flags:         BG_PLUGIN_TUNER,
-      priority:      BG_PLUGIN_PRIORITY_MAX,
-      create:        bg_avdec_create,
-      destroy:       bg_avdec_destroy,
-      get_parameters: get_parameters_dvb,
-      set_parameter:  bg_avdec_set_parameter,
-      find_devices: find_devices_dvb,
-      check_device: check_device_dvb,
+      .name =          "i_dvb",
+      .long_name =     TRS("DVB Player"),
+      .description =   TRS("Plugin for playing DVB streams from a Linux-DVB compatible card. Based on Gmerlin avdecoder."),
+      .type =          BG_PLUGIN_INPUT,
+      .flags =         BG_PLUGIN_TUNER,
+      .priority =      BG_PLUGIN_PRIORITY_MAX,
+      .create =        bg_avdec_create,
+      .destroy =       bg_avdec_destroy,
+      .get_parameters = get_parameters_dvb,
+      .set_parameter =  bg_avdec_set_parameter,
+      .find_devices = find_devices_dvb,
+      .check_device = check_device_dvb,
     },
-    protocols: "dvb",
+    .protocols = "dvb",
     
-    set_callbacks: bg_avdec_set_callbacks,
+    .set_callbacks = bg_avdec_set_callbacks,
     /* Open file/device */
-    open: open_dvb,
+    .open = open_dvb,
 
-    //    set_callbacks: set_callbacks_avdec,
+    //    .set_callbacks = set_callbacks_avdec,
     /* For file and network plugins, this can be NULL */
-    get_num_tracks: bg_avdec_get_num_tracks,
+    .get_num_tracks = bg_avdec_get_num_tracks,
     /* Return track information */
-    get_track_info: bg_avdec_get_track_info,
+    .get_track_info = bg_avdec_get_track_info,
 
     /* Set track */
-    set_track:             bg_avdec_set_track,
+    .set_track =             bg_avdec_set_track,
     /* Set streams */
-    set_audio_stream:      bg_avdec_set_audio_stream,
-    set_video_stream:      bg_avdec_set_video_stream,
-    set_subtitle_stream:   bg_avdec_set_subtitle_stream,
+    .set_audio_stream =      bg_avdec_set_audio_stream,
+    .set_video_stream =      bg_avdec_set_video_stream,
+    .set_subtitle_stream =   bg_avdec_set_subtitle_stream,
 
     /*
      *  Start decoding.
@@ -135,18 +135,18 @@ bg_input_plugin_t the_plugin =
      *  The plugin must take care of the "active" fields
      *  in the stream infos to check out, which streams are to be decoded
      */
-    start:                 bg_avdec_start,
+    .start =                 bg_avdec_start,
     /* Read one audio frame (returns FALSE on EOF) */
-    read_audio_samples:    bg_avdec_read_audio,
+    .read_audio_samples =    bg_avdec_read_audio,
     /* Read one video frame (returns FALSE on EOF) */
-    read_video_frame:      bg_avdec_read_video,
+    .read_video_frame =      bg_avdec_read_video,
 
-    //    has_subtitle:          bg_avdec_has_subtitle,
-    //    read_subtitle_overlay: bg_avdec_read_subtitle_overlay,
+    //    .has_subtitle =          bg_avdec_has_subtitle,
+    //    .read_subtitle_overlay = bg_avdec_read_subtitle_overlay,
     
     /* Stop playback, close all decoders */
-    stop:         NULL,
-    close:        bg_avdec_close,
+    .stop =         NULL,
+    .close =        bg_avdec_close,
   };
 
 /* Include this into all plugin modules exactly once

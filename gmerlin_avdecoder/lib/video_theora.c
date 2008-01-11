@@ -225,13 +225,13 @@ static void resync_theora(bgav_stream_t * s)
 
 static bgav_video_decoder_t decoder =
   {
-    name:   "Theora decoder",
-    fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('T', 'H', 'R', 'A'),
+    .name =   "Theora decoder",
+    .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('T', 'H', 'R', 'A'),
                             0x00  },
-    init:   init_theora,
-    decode: decode_theora,
-    close:  close_theora,
-    resync: resync_theora,
+    .init =   init_theora,
+    .decode = decode_theora,
+    .close =  close_theora,
+    .resync = resync_theora,
   };
 
 void bgav_init_video_decoders_theora()

@@ -63,10 +63,10 @@ static void    close_mem(bgav_input_context_t * ctx)
 
 static bgav_input_t input_mem =
   {
-    open:      NULL, /* Not needed */
-    read:      read_mem,
-    seek_byte: seek_byte_mem,
-    close:     close_mem
+    .open =      NULL, /* Not needed */
+    .read =      read_mem,
+    .seek_byte = seek_byte_mem,
+    .close =     close_mem
   };
 
 bgav_input_context_t * bgav_input_open_memory(uint8_t * data,
@@ -125,10 +125,10 @@ static int read_buffer(bgav_input_context_t* ctx,
 
 static bgav_input_t input_buffer =
   {
-    open:      NULL, /* Not needed */
-    read:      read_buffer,
-    //    seek_byte: seek_byte_mem,
-    close:     close_mem,
+    .open =      NULL, /* Not needed */
+    .read =      read_buffer,
+    //    .seek_byte = seek_byte_mem,
+    .close =     close_mem,
   };
 
 

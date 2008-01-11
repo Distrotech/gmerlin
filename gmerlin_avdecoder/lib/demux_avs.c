@@ -55,7 +55,7 @@ static int read_audio_header(bgav_input_context_t * input,
 static void dump_audio_header(audio_header_t * ah)
   {
   bgav_dprintf("AVS audio header\n");
-  bgav_dprintf("  type:              %d\n", ah->type);
+  bgav_dprintf("  .type =              %d\n", ah->type);
   bgav_dprintf("  size:              %d\n", ah->size);
   bgav_dprintf("  frequency_divisor: %d\n", ah->frequency_divisor);
   bgav_dprintf("  data_packing:      %d\n", ah->data_packing);
@@ -326,8 +326,8 @@ static void close_avs(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_avs =
   {
-    probe:       probe_avs,
-    open:        open_avs,
-    next_packet: next_packet_avs,
-    close:       close_avs
+    .probe =       probe_avs,
+    .open =        open_avs,
+    .next_packet = next_packet_avs,
+    .close =       close_avs
   };

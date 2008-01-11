@@ -139,7 +139,7 @@ static int parse_connection_desc(const char * line,
 #endif
 static void dump_connection_desc(bgav_sdp_connection_desc_t * c)
   {
-  bgav_dprintf( "Connection: type: %s addr: %s ttl: %d num: %d\n",
+  bgav_dprintf( "Connection: .type = %s addr: %s ttl: %d num: %d\n",
           c->type,
           c->addr,
           c->ttl,

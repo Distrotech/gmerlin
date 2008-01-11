@@ -95,18 +95,18 @@ static void close_stdin(bgav_input_context_t * ctx)
 
 bgav_input_t bgav_input_file =
   {
-    name:      "file",
-    open:      open_file,
-    read:      read_file,
-    seek_byte: seek_byte_file,
-    close:     close_file
+    .name =      "file",
+    .open =      open_file,
+    .read =      read_file,
+    .seek_byte = seek_byte_file,
+    .close =     close_file
   };
 
 bgav_input_t bgav_input_stdin =
   {
-    name:      "stdin",
-    open:      open_stdin,
-    read:      read_file,
-    close:     close_stdin
+    .name =      "stdin",
+    .open =      open_stdin,
+    .read =      read_file,
+    .close =     close_stdin
   };
 

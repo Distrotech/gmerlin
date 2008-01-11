@@ -375,11 +375,11 @@ static void close_flac(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_flac =
   {
-    probe:       probe_flac,
-    open:        open_flac,
-    next_packet: next_packet_flac,
-    seek:        seek_flac,
-    close:       close_flac
+    .probe =       probe_flac,
+    .open =        open_flac,
+    .next_packet = next_packet_flac,
+    .seek =        seek_flac,
+    .close =       close_flac
   };
 
 
