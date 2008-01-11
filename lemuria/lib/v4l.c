@@ -264,7 +264,7 @@ typedef struct
 
 static lemuria_background_data_t background =
   {
-    texture_mode: LEMURIA_TEXTURE_CLOUDS_ROTATE,
+    .texture_mode = LEMURIA_TEXTURE_CLOUDS_ROTATE,
     gradient_lemuria_v4l,
     clouds_size : 1,
   };
@@ -492,7 +492,7 @@ static void delete_v4l(void * data)
 
 effect_plugin_t v4l_effect =
   {
-    init:    init_v4l,
-    draw:    draw_v4l,
-    cleanup: delete_v4l,
+    .init =    init_v4l,
+    .draw =    draw_v4l,
+    .cleanup = delete_v4l,
   };

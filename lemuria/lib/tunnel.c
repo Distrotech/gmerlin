@@ -34,10 +34,10 @@
 
 static lemuria_light_t light =
   {
-    ambient:  { 0.2f, 0.2f, 0.4f, 1.0f },
-    diffuse:  { 1.0f, 1.0f, 1.0f, 1.0f },
-    specular: { 0.0f, 0.0f, 0.0f, 1.0f },
-    position: { 5.0f, 5.0f, 0.0f, 1.0f },
+    .ambient =  { 0.2f, 0.2f, 0.4f, 1.0f },
+    .diffuse =  { 1.0f, 1.0f, 1.0f, 1.0f },
+    .specular = { 0.0f, 0.0f, 0.0f, 1.0f },
+    .position = { 5.0f, 5.0f, 0.0f, 1.0f },
   };
 
 #define NUM_RINGS 150
@@ -237,39 +237,39 @@ static void create_ring(lemuria_engine_t * e, tunnel_data * t, ring_data * r)
 static lemuria_background_data_t tunnel_backgrounds[] =
   {
     {
-      texture_mode:    LEMURIA_TEXTURE_CLOUDS,
-      clouds_gradient: gradient_lemuria_monolith_1,
-      clouds_size: 0
+      .texture_mode =    LEMURIA_TEXTURE_CLOUDS,
+      .clouds_gradient = gradient_lemuria_monolith_1,
+      .clouds_size = 0
     },
     {
-      texture_mode:    LEMURIA_TEXTURE_CLOUDS,
-      clouds_gradient: gradient_lemuria_tunnel_1,
-      clouds_size: 0
+      .texture_mode =    LEMURIA_TEXTURE_CLOUDS,
+      .clouds_gradient = gradient_lemuria_tunnel_1,
+      .clouds_size = 0
     },
     {
-      texture_mode:    LEMURIA_TEXTURE_CLOUDS,
-      clouds_gradient: gradient_lemuria_tunnel_2,
-      clouds_size: 0
+      .texture_mode =    LEMURIA_TEXTURE_CLOUDS,
+      .clouds_gradient = gradient_lemuria_tunnel_2,
+      .clouds_size = 0
     },
     {
-      texture_mode:    LEMURIA_TEXTURE_CLOUDS,
-      clouds_gradient: gradient_lemuria_tunnel_3,
-      clouds_size: 0
+      .texture_mode =    LEMURIA_TEXTURE_CLOUDS,
+      .clouds_gradient = gradient_lemuria_tunnel_3,
+      .clouds_size = 0
     },
     {
-      texture_mode:    LEMURIA_TEXTURE_CLOUDS,
-      clouds_gradient: gradient_lemuria_tunnel_1,
-      clouds_size: 1
+      .texture_mode =    LEMURIA_TEXTURE_CLOUDS,
+      .clouds_gradient = gradient_lemuria_tunnel_1,
+      .clouds_size = 1
     },
     {
-      texture_mode:    LEMURIA_TEXTURE_CLOUDS,
-      clouds_gradient: gradient_lemuria_tunnel_2,
-      clouds_size: 1
+      .texture_mode =    LEMURIA_TEXTURE_CLOUDS,
+      .clouds_gradient = gradient_lemuria_tunnel_2,
+      .clouds_size = 1
     },
     {
-      texture_mode:    LEMURIA_TEXTURE_CLOUDS,
-      clouds_gradient: gradient_lemuria_tunnel_3,
-      clouds_size: 1
+      .texture_mode =    LEMURIA_TEXTURE_CLOUDS,
+      .clouds_gradient = gradient_lemuria_tunnel_3,
+      .clouds_size = 1
     }
   };
 
@@ -278,16 +278,16 @@ sizeof(tunnel_backgrounds)/sizeof(tunnel_backgrounds[0]);
 
 static lemuria_background_data_t goom_background =
   {
-    texture_mode:    LEMURIA_TEXTURE_GOOM,
-    clouds_gradient: (uint8_t)0,
-    clouds_size:     0
+    .texture_mode =    LEMURIA_TEXTURE_GOOM,
+    .clouds_gradient = (uint8_t)0,
+    .clouds_size =     0
   };
 
 static lemuria_background_data_t lemuria_background =
   {
-    texture_mode:    LEMURIA_TEXTURE_LEMURIA,
-    clouds_gradient: (uint8_t*)0,
-    clouds_size: 0
+    .texture_mode =    LEMURIA_TEXTURE_LEMURIA,
+    .clouds_gradient = (uint8_t*)0,
+    .clouds_size = 0
   };
 
 static void * init_tunnel(lemuria_engine_t * e)
@@ -782,7 +782,7 @@ static void delete_tunnel(void * data)
 
 effect_plugin_t tunnel_effect =
   {
-    init:    init_tunnel,
-    draw:    draw_tunnel,
-    cleanup: delete_tunnel,
+    .init =    init_tunnel,
+    .draw =    draw_tunnel,
+    .cleanup = delete_tunnel,
   };

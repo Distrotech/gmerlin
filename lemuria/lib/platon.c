@@ -35,22 +35,22 @@ void lemuria_platon_init(lemuria_engine_t * e,
 static lemuria_material_t platon_materials[] =
   {
     {
-      ref_specular: { 1.0f, 1.0f, 1.0f, 1.0f },
-      ref_ambient:  { 0.366f, 0.349f, 0.471f, 1.000f },
-      ref_diffuse:  { 0.735f, 0.699f, 0.944f, 1.000f },
-      shininess: 128
+      .ref_specular = { 1.0f, 1.0f, 1.0f, 1.0f },
+      .ref_ambient =  { 0.366f, 0.349f, 0.471f, 1.000f },
+      .ref_diffuse =  { 0.735f, 0.699f, 0.944f, 1.000f },
+      .shininess = 128
     },
     {
-      ref_specular: { 1.0f, 1.0f, 1.0f, 1.0f },
-      ref_ambient:  { 0.349f, 0.471f, 0.378f, 1.000f },
-      ref_diffuse:  { 0.700f, 0.945f, 0.758f, 1.000f },
-      shininess: 128
+      .ref_specular = { 1.0f, 1.0f, 1.0f, 1.0f },
+      .ref_ambient =  { 0.349f, 0.471f, 0.378f, 1.000f },
+      .ref_diffuse =  { 0.700f, 0.945f, 0.758f, 1.000f },
+      .shininess = 128
     },
     {
-      ref_specular: { 1.0f, 1.0f, 1.0f, 1.0f },
-      ref_ambient:  { 0.471f, 0.415f, 0.349f, 1.000f },
-      ref_diffuse:  { 0.945f, 0.834f, 0.700f, 1.000f },
-      shininess: 128
+      .ref_specular = { 1.0f, 1.0f, 1.0f, 1.0f },
+      .ref_ambient =  { 0.471f, 0.415f, 0.349f, 1.000f },
+      .ref_diffuse =  { 0.945f, 0.834f, 0.700f, 1.000f },
+      .shininess = 128
     },
     
   };

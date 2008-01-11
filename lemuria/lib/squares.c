@@ -37,18 +37,18 @@
 
 static lemuria_light_t light =
   {
-    ambient:  { 0.5f, 0.5f, 0.5f, 1.0f },
-    diffuse:  { 1.0f, 1.0f, 1.0f, 1.0f },
-    specular: { 0.0f, 0.0f, 0.0f, 0.0f },
-    position: { 3.0f, 3.0f, 2.0f, 1.0f },
+    .ambient =  { 0.5f, 0.5f, 0.5f, 1.0f },
+    .diffuse =  { 1.0f, 1.0f, 1.0f, 1.0f },
+    .specular = { 0.0f, 0.0f, 0.0f, 0.0f },
+    .position = { 3.0f, 3.0f, 2.0f, 1.0f },
   };
 
 static lemuria_material_t material =
   {
-    ref_specular: { 0.0f, 0.0f, 0.0f, 1.0f },
-    ref_ambient:  { 1.0f, 1.0f, 1.0f, 1.0f },
-    ref_diffuse:  { 1.0f, 1.0f, 1.0f, 1.0f },
-    shininess: 128
+    .ref_specular = { 0.0f, 0.0f, 0.0f, 1.0f },
+    .ref_ambient =  { 1.0f, 1.0f, 1.0f, 1.0f },
+    .ref_diffuse =  { 1.0f, 1.0f, 1.0f, 1.0f },
+    .shininess = 128
   };
 
 #define ROTATE1_EXPLODE_STEPS 20
@@ -829,7 +829,7 @@ static void delete_squares(void * e)
 
 effect_plugin_t squares_effect =
   {
-    init:    init_squares,
-    draw:    draw_squares,
-    cleanup: delete_squares
+    .init =    init_squares,
+    .draw =    draw_squares,
+    .cleanup = delete_squares
   };

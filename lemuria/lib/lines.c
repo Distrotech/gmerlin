@@ -605,7 +605,7 @@ static void draw_lines(lemuria_engine_t * e, void * user_data)
 
 effect_plugin_t lines_effect =
   {
-    init:    init_lines,
-    draw:    draw_lines,
-    cleanup: delete_lines,
+    .init =    init_lines,
+    .draw =    draw_lines,
+    .cleanup = delete_lines,
   };

@@ -73,18 +73,18 @@ typedef struct
 
 static lemuria_light_t light =
   {
-    ambient:  { 0.5f, 0.5f, 0.5f, 1.0f },
-    diffuse:  { 1.0f, 1.0f, 1.0f, 1.0f },
-    specular: { 1.0f, 1.0f, 1.0f, 1.0f },
-    position: { 30.0f, 30.0f, 10.0f, 1.0f },
+    .ambient =  { 0.5f, 0.5f, 0.5f, 1.0f },
+    .diffuse =  { 1.0f, 1.0f, 1.0f, 1.0f },
+    .specular = { 1.0f, 1.0f, 1.0f, 1.0f },
+    .position = { 30.0f, 30.0f, 10.0f, 1.0f },
   };
 
 static lemuria_material_t material =
   {
-    ref_specular: { 1.0f, 1.0f, 1.0f, 1.0f },
-    ref_ambient:  { 1.0f, 1.0f, 1.0f, 1.0f },
-    ref_diffuse:  { 1.0f, 1.0f, 1.0f, 1.0f },
-    shininess: 50
+    .ref_specular = { 1.0f, 1.0f, 1.0f, 1.0f },
+    .ref_ambient =  { 1.0f, 1.0f, 1.0f, 1.0f },
+    .ref_diffuse =  { 1.0f, 1.0f, 1.0f, 1.0f },
+    .shininess = 50
   };
 
 
@@ -450,7 +450,7 @@ static void delete_swarm(void * e)
 
 effect_plugin_t swarm_effect =
   {
-    init:    init_swarm,
-    draw:    draw_swarm,
-    cleanup: delete_swarm,
+    .init =    init_swarm,
+    .draw =    draw_swarm,
+    .cleanup = delete_swarm,
   };

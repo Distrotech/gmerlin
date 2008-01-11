@@ -43,18 +43,18 @@
 
 static lemuria_light_t light =
   {
-    ambient:  { 0.3f, 0.3f, 0.3f, 1.0f },
-    diffuse:  { 1.0f, 1.0f, 1.0f, 1.0f },
-    specular: { 1.0f, 1.0f, 1.0f, 1.0f },
-    position: { 10.0f, 10.0f, 30.0f, 1.0f },
+    .ambient =  { 0.3f, 0.3f, 0.3f, 1.0f },
+    .diffuse =  { 1.0f, 1.0f, 1.0f, 1.0f },
+    .specular = { 1.0f, 1.0f, 1.0f, 1.0f },
+    .position = { 10.0f, 10.0f, 30.0f, 1.0f },
   };
 
 static lemuria_material_t material =
   {
-    ref_specular: { 1.0f, 1.0f, 1.0f, 1.0f },
-    ref_ambient:  { 1.0f, 1.0f, 1.0f, 1.0f },
-    ref_diffuse:  { 1.0f, 1.0f, 1.0f, 1.0f },
-    shininess: 50
+    .ref_specular = { 1.0f, 1.0f, 1.0f, 1.0f },
+    .ref_ambient =  { 1.0f, 1.0f, 1.0f, 1.0f },
+    .ref_diffuse =  { 1.0f, 1.0f, 1.0f, 1.0f },
+    .shininess = 50
   };
 
 static float cassini_special_transition[2] = { 7.0, 1.0 };
@@ -995,7 +995,7 @@ static void delete_superellipse(void * e)
 
 effect_plugin_t superellipse_effect =
   {
-    init:    init_superellipse,
-    draw:    draw_superellipse,
-    cleanup: delete_superellipse,
+    .init =    init_superellipse,
+    .draw =    draw_superellipse,
+    .cleanup = delete_superellipse,
   };

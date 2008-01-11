@@ -480,7 +480,7 @@ static void delete_starfield(void * data)
 
 effect_plugin_t starfield_effect =
   {
-    init:    init_starfield,
-    draw:    draw_starfield,
-    cleanup: delete_starfield,
+    .init =    init_starfield,
+    .draw =    draw_starfield,
+    .cleanup = delete_starfield,
   };

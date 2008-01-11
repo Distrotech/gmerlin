@@ -37,22 +37,22 @@ void lemuria_fish_init(lemuria_engine_t * e,
 static lemuria_material_t fish_materials[] =
   {
     {
-      ref_specular: { 1.0f, 1.0f, 1.0f, 1.0f },
-      ref_ambient:  { 0.0f, 0.2f, 0.0f, 1.0f },
-      ref_diffuse:  { 0.0f, 0.7f, 0.0f, 1.0f },
-      shininess: 128
+      .ref_specular = { 1.0f, 1.0f, 1.0f, 1.0f },
+      .ref_ambient =  { 0.0f, 0.2f, 0.0f, 1.0f },
+      .ref_diffuse =  { 0.0f, 0.7f, 0.0f, 1.0f },
+      .shininess = 128
     },
     {
-      ref_specular: { 1.0f, 1.0f, 1.0f, 1.0f },
-      ref_ambient:  { 0.2f, 0.0f, 0.0f, 1.0f },
-      ref_diffuse:  { 0.7f, 0.0f, 0.0f, 1.0f },
-      shininess: 128
+      .ref_specular = { 1.0f, 1.0f, 1.0f, 1.0f },
+      .ref_ambient =  { 0.2f, 0.0f, 0.0f, 1.0f },
+      .ref_diffuse =  { 0.7f, 0.0f, 0.0f, 1.0f },
+      .shininess = 128
     },
     {
-      ref_specular: { 1.0f, 1.0f, 1.0f, 1.0f },
-      ref_ambient:  { 0.2f, 0.2f, 0.0f, 1.0f },
-      ref_diffuse:  { 0.7f, 0.7f, 0.0f, 1.0f },
-      shininess: 128
+      .ref_specular = { 1.0f, 1.0f, 1.0f, 1.0f },
+      .ref_ambient =  { 0.2f, 0.2f, 0.0f, 1.0f },
+      .ref_diffuse =  { 0.7f, 0.7f, 0.0f, 1.0f },
+      .shininess = 128
     },
   };
 

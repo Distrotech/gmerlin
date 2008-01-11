@@ -180,7 +180,7 @@ static void delete_oscilloscope(void * e)
 
 effect_plugin_t oscilloscope_effect =
   {
-    init:    init_oscilloscope,
-    draw:    draw_oscilloscope,
-    cleanup: delete_oscilloscope
+    .init =    init_oscilloscope,
+    .draw =    draw_oscilloscope,
+    .cleanup = delete_oscilloscope
   };

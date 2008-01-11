@@ -83,35 +83,35 @@ static struct
 worlds[] =
   {
     {
-      fog_color: { 0.0, 0.0, 0.5, 1.0 },
-      ceiling:
+      .fog_color = { 0.0, 0.0, 0.5, 1.0 },
+      .ceiling =
       {
-        texture_mode:    LEMURIA_TEXTURE_CLOUDS_ROTATE,
-        clouds_gradient: gradient_lemuria_deepsea_ceiling_1,
-        clouds_size:     0,
+        .texture_mode =    LEMURIA_TEXTURE_CLOUDS_ROTATE,
+        .clouds_gradient = gradient_lemuria_deepsea_ceiling_1,
+        .clouds_size =     0,
       },
     
-      floor:
+      .floor =
       {
-        texture_mode:    LEMURIA_TEXTURE_CLOUDS,
-        clouds_gradient: gradient_lemuria_deepsea_floor_1,
-        clouds_size:     0,
+        .texture_mode =    LEMURIA_TEXTURE_CLOUDS,
+        .clouds_gradient = gradient_lemuria_deepsea_floor_1,
+        .clouds_size =     0,
       }
     },
     {
-      fog_color: { 0.6, 0.0, 0.6, 1.0 },
-      ceiling:
+      .fog_color = { 0.6, 0.0, 0.6, 1.0 },
+      .ceiling =
       {
-        texture_mode:    LEMURIA_TEXTURE_CLOUDS_ROTATE,
-        clouds_gradient: gradient_lemuria_deepsea_ceiling_2,
-        clouds_size:     0,
+        .texture_mode =    LEMURIA_TEXTURE_CLOUDS_ROTATE,
+        .clouds_gradient = gradient_lemuria_deepsea_ceiling_2,
+        .clouds_size =     0,
       },
     
-      floor:
+      .floor =
       {
-        texture_mode:    LEMURIA_TEXTURE_CLOUDS,
-        clouds_gradient: gradient_lemuria_deepsea_floor_1,
-        clouds_size:     0,
+        .texture_mode =    LEMURIA_TEXTURE_CLOUDS,
+        .clouds_gradient = gradient_lemuria_deepsea_floor_1,
+        .clouds_size =     0,
       }
     },
   };
@@ -359,7 +359,7 @@ static void delete_deepsea(void * data)
 
 effect_plugin_t deepsea_effect =
   {
-    init:    init_deepsea,
-    draw:    draw_deepsea,
-    cleanup: delete_deepsea,
+    .init =    init_deepsea,
+    .draw =    draw_deepsea,
+    .cleanup = delete_deepsea,
   };

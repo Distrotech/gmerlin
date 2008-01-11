@@ -40,22 +40,22 @@ void lemuria_manta_init(lemuria_engine_t * e,
 static lemuria_material_t manta_materials[] =
   {
     {
-      ref_specular: { 1.0f, 1.0f, 1.0f, 1.0f },
-      ref_ambient:  { 0.52f, 0.42f, 0.13f, 1.0f },
-      ref_diffuse:  { 1.0f, 0.8f, 0.24f, 1.0f },
-      shininess: 128
+      .ref_specular = { 1.0f, 1.0f, 1.0f, 1.0f },
+      .ref_ambient =  { 0.52f, 0.42f, 0.13f, 1.0f },
+      .ref_diffuse =  { 1.0f, 0.8f, 0.24f, 1.0f },
+      .shininess = 128
     },
     {
-      ref_specular: { 1.0f, 1.0f, 1.0f, 1.0f },
-      ref_ambient:  { 0.06f, 0.57f, 0.41f, 1.0f },
-      ref_diffuse:  { 0.11f, 1.00f, 0.72f, 1.0f },
-      shininess: 128
+      .ref_specular = { 1.0f, 1.0f, 1.0f, 1.0f },
+      .ref_ambient =  { 0.06f, 0.57f, 0.41f, 1.0f },
+      .ref_diffuse =  { 0.11f, 1.00f, 0.72f, 1.0f },
+      .shininess = 128
     },
     {
-      ref_specular: { 1.0f, 1.0f, 1.0f, 1.0f },
-      ref_ambient:  { 0.60f, 0.09f, 0.43f, 1.0f },
-      ref_diffuse:  { 1.00f, 0.15f, 0.72f, 1.0f },
-      shininess: 128
+      .ref_specular = { 1.0f, 1.0f, 1.0f, 1.0f },
+      .ref_ambient =  { 0.60f, 0.09f, 0.43f, 1.0f },
+      .ref_diffuse =  { 1.00f, 0.15f, 0.72f, 1.0f },
+      .shininess = 128
     },
     
   };

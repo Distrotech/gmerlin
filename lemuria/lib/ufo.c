@@ -33,18 +33,18 @@ void lemuria_ufo_init(lemuria_engine_t * e,
 
 static lemuria_material_t ufo_material =
   {
-    ref_specular: { 0.0f, 0.0f, 0.0f, 0.0f },
-    ref_ambient:  { 0.2f, 0.2f, 0.2f, 1.0f },
-    ref_diffuse:  { 1.0f, 1.0f, 1.0f, 1.0f },
-    shininess: 128
+    .ref_specular = { 0.0f, 0.0f, 0.0f, 0.0f },
+    .ref_ambient =  { 0.2f, 0.2f, 0.2f, 1.0f },
+    .ref_diffuse =  { 1.0f, 1.0f, 1.0f, 1.0f },
+    .shininess = 128
   };
 
 static lemuria_material_t ufo_material_cockpit =
   {
-    ref_specular: { 0.6f, 0.6f, 1.0f, 1.0f },
-    ref_ambient:  { 0.2f, 0.2f, 1.0f, 1.0f },
-    ref_diffuse:  { 0.3f, 0.3f, 0.3f, 1.0f },
-    shininess: 128
+    .ref_specular = { 0.6f, 0.6f, 1.0f, 1.0f },
+    .ref_ambient =  { 0.2f, 0.2f, 1.0f, 1.0f },
+    .ref_diffuse =  { 0.3f, 0.3f, 0.3f, 1.0f },
+    .shininess = 128
   };
 
 static float ufo_radius[5] =

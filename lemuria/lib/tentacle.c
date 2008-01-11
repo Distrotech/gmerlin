@@ -165,7 +165,7 @@ static void delete_tentacle(void * d)
 
 effect_plugin_t tentacle_effect =
   {
-    init:    init_tentacle,
-    draw:    draw_tentacle,
-    cleanup: delete_tentacle,
+    .init =    init_tentacle,
+    .draw =    draw_tentacle,
+    .cleanup = delete_tentacle,
   };

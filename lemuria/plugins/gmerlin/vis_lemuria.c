@@ -180,13 +180,13 @@ static void destroy_lemuria(void * priv)
 static bg_parameter_info_t parameters[] =
   {
     {
-      name: "antialias",
-      long_name: "Antialiasing",
-      type: BG_PARAMETER_SLIDER_INT,
-      flags: BG_PARAMETER_SYNC,
-      val_min: { val_i: LEMURIA_ANTIALIAS_NONE },
-      val_max: { val_i: LEMURIA_ANTIALIAS_BEST },
-      help_string: "Antialiasing level (0 = off, highest is best)\n",
+      .name = "antialias",
+      .long_name = "Antialiasing",
+      .type = BG_PARAMETER_SLIDER_INT,
+      .flags = BG_PARAMETER_SYNC,
+      .val_min = { .val_i = LEMURIA_ANTIALIAS_NONE },
+      .val_max = { .val_i = LEMURIA_ANTIALIAS_BEST },
+      .help_string = "Antialiasing level (0 = off, highest is best)\n",
     },
     { /* End of parameters */ },
   };
@@ -300,27 +300,27 @@ static void show_frame_lemuria(void * priv)
 
 bg_visualization_plugin_t the_plugin = 
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:      "vis_lemuria",
-      long_name: TRS("Lemuria"),
-      description: TRS("OpenGL visualization with many effects"),
-      type:     BG_PLUGIN_VISUALIZATION,
-      flags:    BG_PLUGIN_VISUALIZE_GL,
-      create:   create_lemuria,
-      destroy:   destroy_lemuria,
-      get_parameters:   get_parameters_lemuria,
-      set_parameter:    set_parameter_lemuria,
-      priority:         1,
+      .name =      "vis_lemuria",
+      .long_name = TRS("Lemuria"),
+      .description = TRS("OpenGL visualization with many effects"),
+      .type =     BG_PLUGIN_VISUALIZATION,
+      .flags =    BG_PLUGIN_VISUALIZE_GL,
+      .create =   create_lemuria,
+      .destroy =   destroy_lemuria,
+      .get_parameters =   get_parameters_lemuria,
+      .set_parameter =    set_parameter_lemuria,
+      .priority =         1,
     },
-    open_win: open_lemuria,
-    update: update_lemuria,
-    draw_frame: draw_frame_lemuria,
+    .open_win = open_lemuria,
+    .update = update_lemuria,
+    .draw_frame = draw_frame_lemuria,
 
-    show_frame: show_frame_lemuria,
+    .show_frame = show_frame_lemuria,
     
-    close: close_lemuria
+    .close = close_lemuria
   };
 
 /* Include this into all plugin modules exactly once

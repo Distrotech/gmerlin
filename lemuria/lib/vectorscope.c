@@ -160,7 +160,7 @@ static void delete_vectorscope(void * d)
 
 effect_plugin_t vectorscope_effect =
   {
-    init:    init_vectorscope,
-    draw:    draw_vectorscope,
-    cleanup: delete_vectorscope
+    .init =    init_vectorscope,
+    .draw =    draw_vectorscope,
+    .cleanup = delete_vectorscope
   };

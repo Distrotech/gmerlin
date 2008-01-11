@@ -315,30 +315,30 @@ static void draw_obelisk(float z)
 static ceiling_data ceilings[] =
   {
     {
-      fog_color: { 0.8, 0.8, 1.0, 1.0 },
-      //      fog_color: { 0.0, 0.0, 0.0, 0.0 },
-      texture_size_x: 9,
-      texture_size_y: 3,
-      texture_advance: 0.005,
-      background:
+      .fog_color = { 0.8, 0.8, 1.0, 1.0 },
+      //      .fog_color = { 0.0, 0.0, 0.0, 0.0 },
+      .texture_size_x = 9,
+      .texture_size_y = 3,
+      .texture_advance = 0.005,
+      .background =
       {
-        texture_mode: LEMURIA_TEXTURE_GOOM,
-        clouds_gradient: gradient_lemuria_archaic_1,
-        clouds_size: 0
+        .texture_mode = LEMURIA_TEXTURE_GOOM,
+        .clouds_gradient = gradient_lemuria_archaic_1,
+        .clouds_size = 0
       },
       
     },
     {
-      fog_color: { 0.47, 0.48, 0.78, 1.0 },
-      //      fog_color: { 0.0, 0.0, 0.0, 0.0 },
-      texture_size_x: 10,
-      texture_size_y: 2,
-      texture_advance: -0.005,
-      background:
+      .fog_color = { 0.47, 0.48, 0.78, 1.0 },
+      //      .fog_color = { 0.0, 0.0, 0.0, 0.0 },
+      .texture_size_x = 10,
+      .texture_size_y = 2,
+      .texture_advance = -0.005,
+      .background =
       {
-        texture_mode: LEMURIA_TEXTURE_CLOUDS,
-        clouds_gradient: gradient_lemuria_archaic_1,
-        clouds_size: 0
+        .texture_mode = LEMURIA_TEXTURE_CLOUDS,
+        .clouds_gradient = gradient_lemuria_archaic_1,
+        .clouds_size = 0
                 
       },
       
@@ -349,25 +349,25 @@ static int num_ceilings = sizeof(ceilings)/sizeof(ceilings[0]);
 
 static object_data obelisk_data =
   {
-  material: {
-    ref_specular: { 0.0f, 0.0f, 0.0f, 0.0f },
-    ref_ambient:  { 0.2f, 0.2f, 0.2f, 1.0f },
-    ref_diffuse:  { 1.0f, 1.0f, 1.0f, 1.0f },
-    shininess: 128
+  .material = {
+    .ref_specular = { 0.0f, 0.0f, 0.0f, 0.0f },
+    .ref_ambient =  { 0.2f, 0.2f, 0.2f, 1.0f },
+    .ref_diffuse =  { 1.0f, 1.0f, 1.0f, 1.0f },
+    .shininess = 128
   },
   
-  light: {
-    ambient:  { 0.5f, 0.5f, 0.5f, 1.0f },
-    diffuse:  { 0.5f, 0.5f, 0.5f, 1.0f },
-    specular: { 0.0f, 0.0f, 0.0f, 0.0f },
-    position: { 0.0f, 0.0f, 0.0f, 1.0f }
+  .light = {
+    .ambient =  { 0.5f, 0.5f, 0.5f, 1.0f },
+    .diffuse =  { 0.5f, 0.5f, 0.5f, 1.0f },
+    .specular = { 0.0f, 0.0f, 0.0f, 0.0f },
+    .position = { 0.0f, 0.0f, 0.0f, 1.0f }
   },
   
 
-  delta_z: 20.0,
+  .delta_z = 20.0,
   
 
-  ceil_coords:
+  .ceil_coords =
   {
     { -SKY_X_MAX, -1.0, -600.0 },
     {  SKY_X_MAX, -1.0, -600.0 },
@@ -375,17 +375,17 @@ static object_data obelisk_data =
     { -SKY_X_MAX, 15.0, 0.0 },
   },
 
-  eye_height: OBELISK_EYE_HEIGHT,
+  .eye_height = OBELISK_EYE_HEIGHT,
 
-  floor_texture_width: archaic_desert_width,
-  floor_texture_height: archaic_desert_height,
-  floor_texture_data: archaic_desert_data,
+  .floor_texture_width = archaic_desert_width,
+  .floor_texture_height = archaic_desert_height,
+  .floor_texture_data = archaic_desert_data,
 
-  floor_texture_x: 20.0,
-  floor_texture_y: 10.0,
-  fog_density: 1.0/ 200.0,
+  .floor_texture_x = 20.0,
+  .floor_texture_y = 10.0,
+  .fog_density = 1.0/ 200.0,
   
-  draw_func: draw_obelisk
+  .draw_func = draw_obelisk
   };
 
 /*
@@ -551,42 +551,42 @@ static void draw_gates(float z)
 
 static object_data gates_data =
   {
-  material: {
-    ref_specular: { 0.0f, 0.0f, 0.0f, 1.0f },
-    ref_ambient:  { 0.3f, 0.3f, 0.3f, 1.0f },
-    ref_diffuse:  { 0.3f, 0.3f, 0.3f, 1.0f },
-    shininess: 128
+  .material = {
+    .ref_specular = { 0.0f, 0.0f, 0.0f, 1.0f },
+    .ref_ambient =  { 0.3f, 0.3f, 0.3f, 1.0f },
+    .ref_diffuse =  { 0.3f, 0.3f, 0.3f, 1.0f },
+    .shininess = 128
   },
   
-  light: {
-    ambient:  { 0.5f, 0.5f, 0.5f, 1.0f },
-    diffuse:  { 1.0f, 1.0f, 1.0f, 1.0f },
-    specular: { 0.0f, 0.0f, 0.0f, 1.0f },
-    position: { 0.0f, 0.0f, 0.0f, 1.0f }
+  .light = {
+    .ambient =  { 0.5f, 0.5f, 0.5f, 1.0f },
+    .diffuse =  { 1.0f, 1.0f, 1.0f, 1.0f },
+    .specular = { 0.0f, 0.0f, 0.0f, 1.0f },
+    .position = { 0.0f, 0.0f, 0.0f, 1.0f }
   },
   
 
-  delta_z: 15.0,
+  .delta_z = 15.0,
   
 
-  ceil_coords:
+  .ceil_coords =
   {
     { -SKY_X_MAX, 0.0, Z_MIN },
     {  SKY_X_MAX, 0.0, Z_MIN },
     {  SKY_X_MAX, 10.0, 0.0 },
     { -SKY_X_MAX, 10.0, 0.0 },
   },
-  eye_height: 3.0,
+  .eye_height = 3.0,
 
-  floor_texture_width:  gates_floor_width,
-  floor_texture_height: gates_floor_height,
-  floor_texture_data:   gates_floor_data,
+  .floor_texture_width =  gates_floor_width,
+  .floor_texture_height = gates_floor_height,
+  .floor_texture_data =   gates_floor_data,
 
-  floor_texture_x: 15.0,
-  floor_texture_y: 10.0,
-  fog_density: 1.0/ 200.0,
+  .floor_texture_x = 15.0,
+  .floor_texture_y = 10.0,
+  .fog_density = 1.0/ 200.0,
   
-  draw_func: draw_gates
+  .draw_func = draw_gates
   };
 
 static void draw_quad_mirror(float vertices[4][3], float normal[3])
@@ -906,40 +906,40 @@ static void draw_mystic(float z)
 
 static object_data mystic_data =
   {
-  material: {
-    ref_specular: { 0.0f, 0.0f, 0.0f, 1.0f },
-    ref_ambient:  { 0.2f, 0.2f, 0.2f, 1.0f },
-    ref_diffuse:  { 0.5f, 0.5f, 0.5f, 1.0f },
-    shininess: 128
+  .material = {
+    .ref_specular = { 0.0f, 0.0f, 0.0f, 1.0f },
+    .ref_ambient =  { 0.2f, 0.2f, 0.2f, 1.0f },
+    .ref_diffuse =  { 0.5f, 0.5f, 0.5f, 1.0f },
+    .shininess = 128
   },
   
-  light: {
-    ambient:  { 0.5f, 0.5f, 0.5f, 1.0f },
-    diffuse:  { 0.5f, 0.5f, 0.5f, 1.0f },
-    specular: { 0.0f, 0.0f, 0.0f, 1.0f},
-    position: { 10.0f, 10.0f, 0.0f, 1.0f }
+  .light = {
+    .ambient =  { 0.5f, 0.5f, 0.5f, 1.0f },
+    .diffuse =  { 0.5f, 0.5f, 0.5f, 1.0f },
+    .specular = { 0.0f, 0.0f, 0.0f, 1.0f},
+    .position = { 10.0f, 10.0f, 0.0f, 1.0f }
   },
   
-  delta_z: MYSTIC_DELTA_Z,
+  .delta_z = MYSTIC_DELTA_Z,
   
 
-  ceil_coords:
+  .ceil_coords =
   {
     { -SKY_X_MAX, 15.0, Z_MIN },
     {  SKY_X_MAX, 15.0, Z_MIN },
     {  SKY_X_MAX, 15.0, 0.0 },
     { -SKY_X_MAX, 15.0, 0.0 },
   },
-  eye_height: MYSTIC_EYE_HEIGHT,
+  .eye_height = MYSTIC_EYE_HEIGHT,
 
-  floor_texture_width:  mystic_floor_width,
-  floor_texture_height: mystic_floor_height,
-  floor_texture_data:   mystic_floor_data,
+  .floor_texture_width =  mystic_floor_width,
+  .floor_texture_height = mystic_floor_height,
+  .floor_texture_data =   mystic_floor_data,
 
-  floor_texture_x: 200.0,
-  floor_texture_y: 200.0,
+  .floor_texture_x = 200.0,
+  .floor_texture_y = 200.0,
   
-  draw_func: draw_mystic
+  .draw_func = draw_mystic
   };
 
 static void draw_ceiling(archaic_data * data)
@@ -1210,7 +1210,7 @@ static void delete_archaic(void * e)
 
 effect_plugin_t archaic_effect =
   {
-    init:    init_archaic,
-    draw:    draw_archaic,
-    cleanup: delete_archaic,
+    .init =    init_archaic,
+    .draw =    draw_archaic,
+    .cleanup = delete_archaic,
   };

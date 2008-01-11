@@ -94,7 +94,7 @@ static void create_bubble(lemuria_engine_t * e, bubble * b)
   b->scale_y  = 1.0 + 0.5 * sin(b->scale_angle);
   b->scale_xz = 1.0 / b->scale_y;
 
-  //  fprintf(stderr, "Size: %f, x: %f, z: %f\n", b->size, b->x, b->z);
+  //  fprintf(stderr, "Size: %f, .x = %f, z: %f\n", b->size, b->x, b->z);
 
   };
 
@@ -221,18 +221,18 @@ static void create_bubble_mesh(bubbles_data * data)
 
 static lemuria_light_t light =
   {
-    ambient:  { 0.8f, 0.8f, 0.8f, 1.0f },
-    diffuse:  { 1.0f, 1.0f, 1.0f, 1.0f },
-    specular: { 1.0f, 1.0f, 1.0f, 1.0f },
-    position: { 5.0f, 5.0f, 2.0f, 1.0f }
+    .ambient =  { 0.8f, 0.8f, 0.8f, 1.0f },
+    .diffuse =  { 1.0f, 1.0f, 1.0f, 1.0f },
+    .specular = { 1.0f, 1.0f, 1.0f, 1.0f },
+    .position = { 5.0f, 5.0f, 2.0f, 1.0f }
   };
 
 static lemuria_material_t material =
   {
-    ref_specular: { 1.0f, 1.0f, 1.0f, 1.0f },
-    ref_ambient:  { 0.5f, 0.5f, 0.5f, 1.0f },
-    ref_diffuse:  { 0.8f, 0.8f, 0.8f, 1.0f },
-    shininess: 128
+    .ref_specular = { 1.0f, 1.0f, 1.0f, 1.0f },
+    .ref_ambient =  { 0.5f, 0.5f, 0.5f, 1.0f },
+    .ref_diffuse =  { 0.8f, 0.8f, 0.8f, 1.0f },
+    .shininess = 128
   };
 
 
@@ -376,7 +376,7 @@ static void delete_bubbles(void * data)
 
 effect_plugin_t bubbles_effect =
   {
-    init:    init_bubbles,
-    draw:    draw_bubbles,
-    cleanup: delete_bubbles,
+    .init =    init_bubbles,
+    .draw =    draw_bubbles,
+    .cleanup = delete_bubbles,
   };

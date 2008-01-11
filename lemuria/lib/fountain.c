@@ -469,7 +469,7 @@ static void delete_fountain(void * user_data)
 
 effect_plugin_t fountain_effect =
   {
-    init:    init_fountain,
-    draw:    draw_fountain,
-    cleanup: delete_fountain,
+    .init =    init_fountain,
+    .draw =    draw_fountain,
+    .cleanup = delete_fountain,
   };

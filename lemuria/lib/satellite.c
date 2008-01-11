@@ -32,26 +32,26 @@ void lemuria_satellite_init(lemuria_engine_t * e,
 
 static lemuria_material_t satellite_material =
   {
-    ref_specular: { 0.0f, 0.0f, 0.0f, 1.0f },
-    ref_ambient:  { 0.2f, 0.2f, 0.2f, 1.0f },
-    ref_diffuse:  { 1.0f, 1.0f, 1.0f, 1.0f },
-    shininess: 128
+    .ref_specular = { 0.0f, 0.0f, 0.0f, 1.0f },
+    .ref_ambient =  { 0.2f, 0.2f, 0.2f, 1.0f },
+    .ref_diffuse =  { 1.0f, 1.0f, 1.0f, 1.0f },
+    .shininess = 128
   };
 
 static lemuria_material_t satellite_antenna_material =
   {
-    ref_specular: { 0.0f, 0.0f, 0.0f, 1.0f },
-    ref_ambient:  { 0.4f, 0.4f, 0.4f, 1.0f },
-    ref_diffuse:  { 1.0f, 1.0f, 1.0f, 1.0f },
-    shininess: 128
+    .ref_specular = { 0.0f, 0.0f, 0.0f, 1.0f },
+    .ref_ambient =  { 0.4f, 0.4f, 0.4f, 1.0f },
+    .ref_diffuse =  { 1.0f, 1.0f, 1.0f, 1.0f },
+    .shininess = 128
   };
 
 static lemuria_material_t satellite_solar_material =
   {
-    ref_specular: { 0.0f, 0.0f, 0.0f, 1.0f },
-    ref_ambient:  { 0.0f, 0.0f, 0.5f, 1.0f },
-    ref_diffuse:  { 0.0f, 0.0f, 1.0f, 1.0f },
-    shininess: 128
+    .ref_specular = { 0.0f, 0.0f, 0.0f, 1.0f },
+    .ref_ambient =  { 0.0f, 0.0f, 0.5f, 1.0f },
+    .ref_diffuse =  { 0.0f, 0.0f, 1.0f, 1.0f },
+    .shininess = 128
   };
 
 #define SATELLITE_RADIUS 1.0

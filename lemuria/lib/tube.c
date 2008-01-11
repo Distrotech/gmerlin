@@ -42,18 +42,18 @@
 
 static lemuria_light_t light =
   {
-    ambient:  { 0.5f, 0.5f, 0.5f, 1.0f },
-    diffuse:  { 1.0f, 1.0f, 1.0f, 1.0f },
-    specular: { 1.0f, 1.0f, 1.0f, 1.0f },
-    position: { 30.0f, 30.0f, 10.0f, 1.0f },
+    .ambient =  { 0.5f, 0.5f, 0.5f, 1.0f },
+    .diffuse =  { 1.0f, 1.0f, 1.0f, 1.0f },
+    .specular = { 1.0f, 1.0f, 1.0f, 1.0f },
+    .position = { 30.0f, 30.0f, 10.0f, 1.0f },
   };
 
 static lemuria_material_t material =
   {
-    ref_specular: { 1.0f, 1.0f, 1.0f, 1.0f },
-    ref_ambient:  { 1.0f, 1.0f, 1.0f, 1.0f },
-    ref_diffuse:  { 1.0f, 1.0f, 1.0f, 1.0f },
-    shininess: 50
+    .ref_specular = { 1.0f, 1.0f, 1.0f, 1.0f },
+    .ref_ambient =  { 1.0f, 1.0f, 1.0f, 1.0f },
+    .ref_diffuse =  { 1.0f, 1.0f, 1.0f, 1.0f },
+    .shininess = 50
   };
 
 #define EXIT_ROTATE   (1<<0) // Rotation is ready
@@ -833,7 +833,7 @@ static void delete_tube(void * e)
 
 effect_plugin_t tube_effect =
   {
-    init:    init_tube,
-    draw:    draw_tube,
-    cleanup: delete_tube
+    .init =    init_tube,
+    .draw =    draw_tube,
+    .cleanup = delete_tube
   };

@@ -35,22 +35,22 @@ void lemuria_teapot_init(lemuria_engine_t * e,
 static lemuria_material_t teapot_materials[] =
   {
     {
-      ref_specular: { 1.0f, 1.0f, 1.0f, 1.0f },
-      ref_ambient:  { 0.219f, 0.416f, 0.000f, 1.000f },
-      ref_diffuse:  { 0.439f, 0.833f, 0.000f, 1.000f },
-      shininess: 128
+      .ref_specular = { 1.0f, 1.0f, 1.0f, 1.0f },
+      .ref_ambient =  { 0.219f, 0.416f, 0.000f, 1.000f },
+      .ref_diffuse =  { 0.439f, 0.833f, 0.000f, 1.000f },
+      .shininess = 128
     },
     {
-      ref_specular: { 1.0f, 1.0f, 1.0f, 1.0f },
-      ref_ambient:  { 0.502f, 0.000f, 0.283f, 1.000f },
-      ref_diffuse:  { 1.000f, 0.000f, 0.564f, 1.000f },
-      shininess: 128
+      .ref_specular = { 1.0f, 1.0f, 1.0f, 1.0f },
+      .ref_ambient =  { 0.502f, 0.000f, 0.283f, 1.000f },
+      .ref_diffuse =  { 1.000f, 0.000f, 0.564f, 1.000f },
+      .shininess = 128
     },
     {
-      ref_specular: { 1.0f, 1.0f, 1.0f, 1.0f },
-      ref_ambient:  { 0.502f, 0.366f, 0.000f, 1.000f },
-      ref_diffuse:  { 1.000f, 0.729f, 0.000f, 1.000f },
-      shininess: 128
+      .ref_specular = { 1.0f, 1.0f, 1.0f, 1.0f },
+      .ref_ambient =  { 0.502f, 0.366f, 0.000f, 1.000f },
+      .ref_diffuse =  { 1.000f, 0.729f, 0.000f, 1.000f },
+      .shininess = 128
     },
     
   };

@@ -274,7 +274,7 @@ static void delete_xaos(void * d)
 
 effect_plugin_t xaos_effect =
   {
-    init:    init_xaos,
-    draw:    draw_xaos,
-    cleanup: delete_xaos,
+    .init =    init_xaos,
+    .draw =    draw_xaos,
+    .cleanup = delete_xaos,
   };

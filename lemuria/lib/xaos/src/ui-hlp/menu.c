@@ -128,7 +128,7 @@ static menudialog uih_perturbationdialog[] = {
   NULL_I ();
 
   Register (uih_smoothmorphdialog);
-  DIALOGCHOICE_I (gettext ("Morphing type:"), morphstypes, 0);
+  DIALOGCHOICE_I (gettext ("Morphing .type ="), morphstypes, 0);
   DIALOGINT_I (gettext ("Startuptime:"), 0);
   DIALOGINT_I (gettext ("Stoptime:"), 0);
   NULL_I ();
@@ -141,7 +141,7 @@ static menudialog uih_perturbationdialog[] = {
   DIALOGFLOAT_I (gettext ("Real width (cm):"), 29.0);
   DIALOGFLOAT_I (gettext ("Real height (cm):"), 21.0);
   DIALOGFLOAT_I (gettext ("Framerate:"), 30);
-  DIALOGCHOICE_I (gettext ("Image type:"), imgtypes, 0);
+  DIALOGCHOICE_I (gettext ("Image .type ="), imgtypes, 0);
   DIALOGCHOICE_I (gettext ("Antialiasing:"), yesno, 0);
   DIALOGCHOICE_I (gettext ("Always recalculate:"), yesno, 0);
   DIALOGCHOICE_I (gettext ("Calculate MPEG motion vectors:"), yesno, 0);
@@ -257,8 +257,8 @@ static menudialog uih_perturbationdialog[] = {
   NULL_I ();
 
   Register (uih_textposdialog);
-  DIALOGCHOICE_I (gettext ("Horizontal position:"), xtextposnames, 0);
-  DIALOGCHOICE_I (gettext ("Vertical position:"), ytextposnames, 0);
+  DIALOGCHOICE_I (gettext ("Horizontal .position ="), xtextposnames, 0);
+  DIALOGCHOICE_I (gettext ("Vertical .position ="), ytextposnames, 0);
   NULL_I ();
 
   Register (uih_fastmodedialog);

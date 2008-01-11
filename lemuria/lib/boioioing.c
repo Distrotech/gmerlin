@@ -133,21 +133,21 @@ static int num_bg_coords = sizeof(bg_coords)/sizeof(bg_coords[0]);
 
 static lemuria_background_data_t bg_goom =
   {
-    texture_mode:    LEMURIA_TEXTURE_GOOM,
-    clouds_gradient: (uint8_t*)0,
-    clouds_size: 0
+    .texture_mode =    LEMURIA_TEXTURE_GOOM,
+    .clouds_gradient = (uint8_t*)0,
+    .clouds_size = 0
   };
 
 static lemuria_background_data_t bg_lemuria =
   {
-    texture_mode: LEMURIA_TEXTURE_LEMURIA,
+    .texture_mode = LEMURIA_TEXTURE_LEMURIA,
     (uint8_t *)0,
     clouds_size : 0,
   };
 
 static lemuria_background_data_t bg_xaos =
   {
-    texture_mode: LEMURIA_TEXTURE_XAOS,
+    .texture_mode = LEMURIA_TEXTURE_XAOS,
     (uint8_t *)0,
     clouds_size : 0,
   };
@@ -287,7 +287,7 @@ static void delete_boioioing(void * data)
 
 effect_plugin_t boioioing_effect =
   {
-    init:    init_boioioing,
-    draw:    draw_boioioing,
-    cleanup: delete_boioioing,
+    .init =    init_boioioing,
+    .draw =    draw_boioioing,
+    .cleanup = delete_boioioing,
   };

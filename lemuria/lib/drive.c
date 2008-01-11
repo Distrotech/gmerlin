@@ -75,35 +75,35 @@ static float fog_color[3] = { 1.0, 1.0, 1.0 };
 
 static lemuria_background_data_t bg_drive_1 =
   {
-    texture_mode:    LEMURIA_TEXTURE_CLOUDS,
-    clouds_gradient: gradient_lemuria_drive_1,
-    clouds_size: 0
+    .texture_mode =    LEMURIA_TEXTURE_CLOUDS,
+    .clouds_gradient = gradient_lemuria_drive_1,
+    .clouds_size = 0
   };
 
 static lemuria_background_data_t bg_drive_2 =
   {
-    texture_mode:    LEMURIA_TEXTURE_CLOUDS,
-    clouds_gradient: gradient_lemuria_drive_2,
-    clouds_size: 0
+    .texture_mode =    LEMURIA_TEXTURE_CLOUDS,
+    .clouds_gradient = gradient_lemuria_drive_2,
+    .clouds_size = 0
   };
 
 static lemuria_background_data_t sky_goom =
   {
-    texture_mode:    LEMURIA_TEXTURE_GOOM,
-    clouds_gradient: (uint8_t*)0,
-    clouds_size: 0
+    .texture_mode =    LEMURIA_TEXTURE_GOOM,
+    .clouds_gradient = (uint8_t*)0,
+    .clouds_size = 0
   };
 
 static lemuria_background_data_t sky_lemuria =
   {
-    texture_mode: LEMURIA_TEXTURE_LEMURIA,
+    .texture_mode = LEMURIA_TEXTURE_LEMURIA,
     (uint8_t *)0,
     clouds_size : 0,
   };
 #if 0
 static lemuria_background_data_t sky_xaos =
   {
-    texture_mode: LEMURIA_TEXTURE_XAOS,
+    .texture_mode = LEMURIA_TEXTURE_XAOS,
     (uint8_t *)0,
     clouds_size : 0,
   };
@@ -112,17 +112,17 @@ static lemuria_background_data_t sky_xaos =
 #ifndef DRAW_MESH
 static lemuria_light_t light_0 =
   {
-    ambient:  { 0.2f, 0.2f, 0.2f, 1.0f },
-    diffuse:  { 1.0f, 1.0f, 1.0f, 1.0f },
-    specular: { 1.0f, 1.0f, 1.0f, 1.0f },
-    position: { 15.0f, 10.0f, 0.0f, 0.0f },
+    .ambient =  { 0.2f, 0.2f, 0.2f, 1.0f },
+    .diffuse =  { 1.0f, 1.0f, 1.0f, 1.0f },
+    .specular = { 1.0f, 1.0f, 1.0f, 1.0f },
+    .position = { 15.0f, 10.0f, 0.0f, 0.0f },
   };
 static lemuria_material_t material =
   {
-    ref_specular: { 1.0f, 1.0f, 1.0f, 1.0f },
-    ref_ambient:  { 1.0f, 1.0f, 1.0f, 1.0f },
-    ref_diffuse:  { 1.0f, 1.0f, 1.0f, 1.0f },
-    shininess: 50
+    .ref_specular = { 1.0f, 1.0f, 1.0f, 1.0f },
+    .ref_ambient =  { 1.0f, 1.0f, 1.0f, 1.0f },
+    .ref_diffuse =  { 1.0f, 1.0f, 1.0f, 1.0f },
+    .shininess = 50
   };
 
 #endif // DRAW_MESH
@@ -792,7 +792,7 @@ static void delete_drive(void * data)
 
 effect_plugin_t drive_effect =
   {
-    init:    init_drive,
-    draw:    draw_drive,
-    cleanup: delete_drive,
+    .init =    init_drive,
+    .draw =    draw_drive,
+    .cleanup = delete_drive,
   };

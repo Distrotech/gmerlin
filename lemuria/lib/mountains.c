@@ -106,18 +106,18 @@ typedef struct
 static ceiling_data_t ceilings[] =
   {
     {
-      x:      800.0,
-      y_min:  -10.0,
-      y_max:  100.0,
-      z_min: -1500.0,
-      z_max:  0.0,
+      .x =      800.0,
+      .y_min =  -10.0,
+      .y_max =  100.0,
+      .z_min = -1500.0,
+      .z_max =  0.0,
       
-      fog_start: 1300.0,
-      fog_end:   1500.0,
-      fog_color: { 0.0, 0.0, 0.0, 1.0 },
-      background:
+      .fog_start = 1300.0,
+      .fog_end =   1500.0,
+      .fog_color = { 0.0, 0.0, 0.0, 1.0 },
+      .background =
       {
-        texture_mode: LEMURIA_TEXTURE_LEMURIA,
+        .texture_mode = LEMURIA_TEXTURE_LEMURIA,
         (uint8_t *)0,
         clouds_size : 0,
       },
@@ -126,18 +126,18 @@ static ceiling_data_t ceilings[] =
     // The one with goom MUST be the last one!!
 
     {
-      x:      800.0,
-      y_min: -10.0,
-      y_max:  100.0,
-      z_min: -1500.0,
-      z_max:  0.0,
+      .x =      800.0,
+      .y_min = -10.0,
+      .y_max =  100.0,
+      .z_min = -1500.0,
+      .z_max =  0.0,
       
-      fog_start: 1300.0,
-      fog_end:   1500.0,
-      fog_color: { 0.0, 0.0, 0.0, 1.0 },
-      background:
+      .fog_start = 1300.0,
+      .fog_end =   1500.0,
+      .fog_color = { 0.0, 0.0, 0.0, 1.0 },
+      .background =
       {
-        texture_mode: LEMURIA_TEXTURE_GOOM,
+        .texture_mode = LEMURIA_TEXTURE_GOOM,
         (uint8_t *)0,
         clouds_size : 0,
       },
@@ -570,18 +570,18 @@ static void draw_band(mountains_data * d, line_data * near_line,
 
 static lemuria_material_t material =
   {
-    ref_specular: { 1.0f, 1.0f, 1.0f, 1.0f },
-    ref_ambient:  { 1.0f, 1.0f, 0.0f, 1.0f },
-    ref_diffuse:  { 1.0f, 1.0f, 0.0f, 1.0f },
-    shininess: 128
+    .ref_specular = { 1.0f, 1.0f, 1.0f, 1.0f },
+    .ref_ambient =  { 1.0f, 1.0f, 0.0f, 1.0f },
+    .ref_diffuse =  { 1.0f, 1.0f, 0.0f, 1.0f },
+    .shininess = 128
   };
 
 static lemuria_light_t light =
   {
-    ambient:  { 0.2f, 0.2f, 0.2f, 1.0f },
-    diffuse:  { 0.8f, 0.8f, 0.8f, 1.0f },
-    specular: { 1.0f, 1.0f, 1.0f, 1.0f },
-    position: { 0.0f, 0.0f, 2.0f, 1.0f }
+    .ambient =  { 0.2f, 0.2f, 0.2f, 1.0f },
+    .diffuse =  { 0.8f, 0.8f, 0.8f, 1.0f },
+    .specular = { 1.0f, 1.0f, 1.0f, 1.0f },
+    .position = { 0.0f, 0.0f, 2.0f, 1.0f }
   };
 
 static void draw_mountains(lemuria_engine_t * e, void * user_data)
@@ -742,7 +742,7 @@ static void delete_mountains(void * e)
 
 effect_plugin_t mountains_effect =
   {
-    init:    init_mountains,
-    draw:    draw_mountains,
-    cleanup: delete_mountains,
+    .init =    init_mountains,
+    .draw =    draw_mountains,
+    .cleanup = delete_mountains,
   };

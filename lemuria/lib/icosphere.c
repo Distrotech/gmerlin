@@ -102,7 +102,7 @@ static void update_shape(lemuria_engine_t * e, icosphere_data * d)
 
   int beat_factor;
   
-  // First run: Decay
+  // First .run = Decay
   
   float blur_factor;
 
@@ -150,7 +150,7 @@ static void update_shape(lemuria_engine_t * e, icosphere_data * d)
       d->decay_factor = 0.8;
     }
 
-  // Second run: blur
+  // Second .run = blur
   
   for(i = 0; i < NUM_ICOSPHERE_VERTICES; i++)
     {
@@ -171,7 +171,7 @@ static void update_shape(lemuria_engine_t * e, icosphere_data * d)
       }
     }
   
-  // Third run: Beats
+  // Third .run = Beats
 
   if(e->beat_detected)
     {
@@ -194,7 +194,7 @@ static void update_shape(lemuria_engine_t * e, icosphere_data * d)
 
     }
 
-  // Fourth run: update vertices
+  // Fourth .run = update vertices
 
   for(i = 0; i < NUM_ICOSPHERE_VERTICES; i++)
     {
@@ -429,18 +429,18 @@ static void * init_icosphere(lemuria_engine_t * e)
 
 static lemuria_light_t light = 
   {
-    position: { 5.0f, 5.0f, 10.0f, 1.0f },
-    ambient:  { 0.5f, 0.5f, 0.5f, 1.0f },
-    diffuse:  { 1.0f, 1.0f, 1.0f, 1.0f },
-    specular: { 1.0f, 1.0f, 1.0f, 1.0f }
+    .position = { 5.0f, 5.0f, 10.0f, 1.0f },
+    .ambient =  { 0.5f, 0.5f, 0.5f, 1.0f },
+    .diffuse =  { 1.0f, 1.0f, 1.0f, 1.0f },
+    .specular = { 1.0f, 1.0f, 1.0f, 1.0f }
   };
 
 static lemuria_material_t material =
   {
-    ref_specular: { 1.0f, 1.0f, 1.0f, 1.0f },
-    ref_ambient:  { 0.5f, 0.5f, 0.5f, 1.0f },
-    ref_diffuse:  { 1.0f, 1.0f, 1.0f, 1.0f },
-    shininess: 128
+    .ref_specular = { 1.0f, 1.0f, 1.0f, 1.0f },
+    .ref_ambient =  { 0.5f, 0.5f, 0.5f, 1.0f },
+    .ref_diffuse =  { 1.0f, 1.0f, 1.0f, 1.0f },
+    .shininess = 128
   };
 
 static void draw_icosphere(lemuria_engine_t * e, void * user_data)
@@ -581,7 +581,7 @@ static void draw_icosphere(lemuria_engine_t * e, void * user_data)
 
 effect_plugin_t icosphere_effect =
   {
-    init:    init_icosphere,
-    draw:    draw_icosphere,
-    cleanup: delete_icosphere,
+    .init =    init_icosphere,
+    .draw =    draw_icosphere,
+    .cleanup = delete_icosphere,
   };

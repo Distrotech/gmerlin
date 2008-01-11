@@ -48,7 +48,7 @@ static float colors[][2][4] =
 
 static lemuria_background_data_t background =
   {
-    texture_mode: LEMURIA_TEXTURE_CLOUDS_ROTATE,
+    .texture_mode = LEMURIA_TEXTURE_CLOUDS_ROTATE,
     gradient_lemuria_lineobjects_1,
     clouds_size : 1,
   };
@@ -870,7 +870,7 @@ static void delete_lineobjects(void * data)
 
 effect_plugin_t lineobjects_effect =
   {
-    init:    init_lineobjects,
-    draw:    draw_lineobjects,
-    cleanup: delete_lineobjects,
+    .init =    init_lineobjects,
+    .draw =    draw_lineobjects,
+    .cleanup = delete_lineobjects,
   };

@@ -104,7 +104,7 @@ static void cleanup_blur(void * data)
 
 effect_plugin_t blur_effect =
   {
-    init:    init_blur,
-    draw:    draw_blur,
-    cleanup: cleanup_blur,
+    .init =    init_blur,
+    .draw =    draw_blur,
+    .cleanup = cleanup_blur,
   };

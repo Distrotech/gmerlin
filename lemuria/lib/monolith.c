@@ -88,95 +88,95 @@ typedef struct
 
 static lemuria_background_data_t bg_clouds_1 =
   {
-    texture_mode:    LEMURIA_TEXTURE_CLOUDS,
-    clouds_gradient: gradient_lemuria_monolith_1,
-    clouds_size: 0
+    .texture_mode =    LEMURIA_TEXTURE_CLOUDS,
+    .clouds_gradient = gradient_lemuria_monolith_1,
+    .clouds_size = 0
   };
 
 static lemuria_background_data_t bg_clouds_2 =
   {
-    texture_mode:    LEMURIA_TEXTURE_CLOUDS,
-    clouds_gradient: gradient_lemuria_monolith_2,
-    clouds_size: 0
+    .texture_mode =    LEMURIA_TEXTURE_CLOUDS,
+    .clouds_gradient = gradient_lemuria_monolith_2,
+    .clouds_size = 0
   };
 
 static lemuria_background_data_t bg_clouds_3 =
   {
-    texture_mode:    LEMURIA_TEXTURE_CLOUDS,
-    clouds_gradient: gradient_lemuria_monolith_3,
-    clouds_size: 0
+    .texture_mode =    LEMURIA_TEXTURE_CLOUDS,
+    .clouds_gradient = gradient_lemuria_monolith_3,
+    .clouds_size = 0
   };
 
 static lemuria_background_data_t bg_xaos =
   {
-    texture_mode:    LEMURIA_TEXTURE_XAOS,
-    clouds_gradient: (uint8_t*)0,
-    clouds_size: 0
+    .texture_mode =    LEMURIA_TEXTURE_XAOS,
+    .clouds_gradient = (uint8_t*)0,
+    .clouds_size = 0
   };
 
 monolith_background backgrounds[] = {
   {
-    fog_color: { 0.8, 0.8, 1.0, 1.0 },
-    fog_density: 1/300.0,
-    //    fog_density: 0.0,
+    .fog_color = { 0.8, 0.8, 1.0, 1.0 },
+    .fog_density = 1/300.0,
+    //    .fog_density = 0.0,
     
-    floor_struct:
+    .floor_struct =
     {
-      texture_x:       14,
-      texture_y:       8,
-      texture_advance: 0.005,
-      coords:
+      .texture_x =       14,
+      .texture_y =       8,
+      .texture_advance = 0.005,
+      .coords =
       {
         { -300.0, -1.0, -800.0 },
         {  300.0, -1.0, -800.0 },
         {  300.0, -10.0, 0.0 },
         { -300.0, -10.0, 0.0 }
       },
-      background_data: &bg_xaos,
+      .background_data = &bg_xaos,
     },
-    ceiling_struct:
+    .ceiling_struct =
     {
-      texture_x:        15,
-      texture_y:        8,
-      texture_advance:  -0.005,
+      .texture_x =        15,
+      .texture_y =        8,
+      .texture_advance =  -0.005,
 
-      coords:
+      .coords =
       {
         { -300.0, 1.0, -800.0 },
         {  300.0, 1.0, -800.0 },
         {  300.0, 10.0, 0.0 },
         { -300.0, 10.0, 0.0 }
       },
-      background_data:  (lemuria_background_data_t*)0,
+      .background_data =  (lemuria_background_data_t*)0,
     }
   },
   {
-    fog_color: { 1.0, 0.5, 0.0, 1.0 },
-    fog_density: 1/100.0,
+    .fog_color = { 1.0, 0.5, 0.0, 1.0 },
+    .fog_density = 1/100.0,
     
-    floor_struct:
+    .floor_struct =
     {
-      texture_x:       10,
-      texture_y:       10,
-      texture_advance: 0.005,
+      .texture_x =       10,
+      .texture_y =       10,
+      .texture_advance = 0.005,
 
-      coords:
+      .coords =
       {
         { -150.0, -10.0, -400.0 },
         {  150.0, -10.0, -400.0 },
         {  150.0, -10.0, 0.0 },
         { -150.0, -10.0, 0.0 }
       },
-      background_data:  &bg_clouds_1,
+      .background_data =  &bg_clouds_1,
     },
 
-  ceiling_struct:
+  .ceiling_struct =
     {
-      texture_x:        10,
-      texture_y:        10,
-      texture_advance:  -0.005,
+      .texture_x =        10,
+      .texture_y =        10,
+      .texture_advance =  -0.005,
 
-      coords:
+      .coords =
       {
         { -150.0, 10.0, -400.0 },
         {  150.0, 10.0, -400.0 },
@@ -184,36 +184,36 @@ monolith_background backgrounds[] = {
         { -150.0, 10.0, 0.0 }
       },
 
-      background_data:  (lemuria_background_data_t*)0,
+      .background_data =  (lemuria_background_data_t*)0,
     }
   },
   {
-    fog_color: { 0.0, 1.0, 0.0, 1.0 },
-    fog_density: 1/100.0,
+    .fog_color = { 0.0, 1.0, 0.0, 1.0 },
+    .fog_density = 1/100.0,
     
-    floor_struct:
+    .floor_struct =
     {
-      texture_x:       4.0,
-      texture_y:       1.0,
-      texture_advance: -0.005,
+      .texture_x =       4.0,
+      .texture_y =       1.0,
+      .texture_advance = -0.005,
 
-      coords:
+      .coords =
       {
         { -150.0, -10.0, -400.0 },
         {  150.0, -10.0, -400.0 },
         {  150.0, -10.0, 0.0 },
         { -150.0, -10.0, 0.0 }
       },
-      background_data: &bg_clouds_3
+      .background_data = &bg_clouds_3
     },
 
-  ceiling_struct:
+  .ceiling_struct =
     {
-      texture_x:        4.0,
-      texture_y:        1.0,
-      texture_advance:  -0.005,
+      .texture_x =        4.0,
+      .texture_y =        1.0,
+      .texture_advance =  -0.005,
       
-      coords:
+      .coords =
       {
         { -150.0, 10.0, -400.0 },
         {  150.0, 10.0, -400.0 },
@@ -221,43 +221,43 @@ monolith_background backgrounds[] = {
         { -150.0, 10.0, 0.0 }
       },
 
-      background_data:  (lemuria_background_data_t*)0,
+      .background_data =  (lemuria_background_data_t*)0,
     }
   },
   {
-    fog_color: { 0.70, 1.00, 0.94, 1.0 },
-    fog_density: 1/200.0,
+    .fog_color = { 0.70, 1.00, 0.94, 1.0 },
+    .fog_density = 1/200.0,
     
-    floor_struct:
+    .floor_struct =
     {
-      texture_x:       4.0,
-      texture_y:       1.0,
-      texture_advance: -0.005,
+      .texture_x =       4.0,
+      .texture_y =       1.0,
+      .texture_advance = -0.005,
     
-      coords:
+      .coords =
       {
         { -300.0, -10.0, -1000.0 },
         {  300.0, -10.0, -1000.0 },
         {  300.0, -10.0, 0.0 },
         { -300.0, -10.0, 0.0 }
       },
-      background_data: &bg_clouds_2
+      .background_data = &bg_clouds_2
     },
 
-  ceiling_struct:
+  .ceiling_struct =
     {
-      texture_x:        4.0,
-      texture_y:        1.0,
-      texture_advance:  -0.005,
+      .texture_x =        4.0,
+      .texture_y =        1.0,
+      .texture_advance =  -0.005,
       
-      coords:
+      .coords =
       {
         { -300.0, 10.0, -1000.0 },
         {  300.0, 10.0, -1000.0 },
         {  300.0, 10.0, 0.0 },
         { -300.0, 10.0, 0.0 }
       },
-      background_data:  (lemuria_background_data_t*)0,
+      .background_data =  (lemuria_background_data_t*)0,
     }
    },
 };
@@ -267,24 +267,24 @@ num_backgrounds = sizeof(backgrounds)/sizeof(backgrounds[0]);
 
 static lemuria_background_data_t bg_goom =
   {
-    texture_mode:    LEMURIA_TEXTURE_GOOM,
-    clouds_gradient: (uint8_t*)0,
-    clouds_size: 0
+    .texture_mode =    LEMURIA_TEXTURE_GOOM,
+    .clouds_gradient = (uint8_t*)0,
+    .clouds_size = 0
   };
   
 monolith_background goom_background_1 =
   {
-    fog_color: { 0.8, 0.8, 1.0, 1.0 },
-    fog_density: 1/300.0,
-    //    fog_density: 0.0,
+    .fog_color = { 0.8, 0.8, 1.0, 1.0 },
+    .fog_density = 1/300.0,
+    //    .fog_density = 0.0,
     
-    floor_struct:
+    .floor_struct =
     {
 #if 1
-      texture_x:       14,
-      texture_y:       8,
-      texture_advance: 0.005,
-      coords:
+      .texture_x =       14,
+      .texture_y =       8,
+      .texture_advance = 0.005,
+      .coords =
       {
         { -300.0, -1.0, -800.0 },
         {  300.0, -1.0, -800.0 },
@@ -292,10 +292,10 @@ monolith_background goom_background_1 =
         { -300.0, -10.0, 0.0 }
       },
 #else
-      texture_x:       3,
-      texture_y:       3,
-      texture_advance: 0.005,
-      coords:
+      .texture_x =       3,
+      .texture_y =       3,
+      .texture_advance = 0.005,
+      .coords =
       {
         { -0.8, -1.2,  0.0 },
         {  0.8, -1.2,  0.0 },
@@ -303,23 +303,23 @@ monolith_background goom_background_1 =
         { -0.8,  0.6, 0.0 }
       },
 #endif
-      background_data: &bg_goom,
+      .background_data = &bg_goom,
     },
 
-  ceiling_struct:
+  .ceiling_struct =
     {
-      texture_x:        15,
-      texture_y:        8,
-      texture_advance:  -0.005,
+      .texture_x =        15,
+      .texture_y =        8,
+      .texture_advance =  -0.005,
 
-      coords:
+      .coords =
       {
         { -300.0, 1.0, -800.0 },
         {  300.0, 1.0, -800.0 },
         {  300.0, 10.0, 0.0 },
         { -300.0, 10.0, 0.0 }
       },
-      background_data:  (lemuria_background_data_t*)0,
+      .background_data =  (lemuria_background_data_t*)0,
     }
   };
 
@@ -493,10 +493,10 @@ static void call_list_3(monolith_data * d)
 
 static lemuria_light_t light =
   {
-    ambient:  { 0.5f, 0.5f, 0.5f, 1.0f },
-    diffuse:  { 0.5f, 0.5f, 0.5f, 1.0f },
-    specular: { 0.0f, 0.0f, 0.0f, 1.0f},
-    position: { 1.0f, 0.0f, 10.0f, 1.0f }
+    .ambient =  { 0.5f, 0.5f, 0.5f, 1.0f },
+    .diffuse =  { 0.5f, 0.5f, 0.5f, 1.0f },
+    .specular = { 0.0f, 0.0f, 0.0f, 1.0f},
+    .position = { 1.0f, 0.0f, 10.0f, 1.0f }
   };
 
 typedef struct _color_setup
@@ -510,28 +510,28 @@ typedef struct _color_setup
 static color_setup monolith_colors[] =
   {
     {
-      monolith_material:
+      .monolith_material =
       {
-        ref_specular: { 0.0f, 0.0f, 0.0f, 0.0f },
-        ref_ambient:  { 0.2f, 0.2f, 0.2f, 1.0f },
-        ref_diffuse:  { 1.0f, 1.0f, 1.0f, 1.0f },
-        shininess: 128
+        .ref_specular = { 0.0f, 0.0f, 0.0f, 0.0f },
+        .ref_ambient =  { 0.2f, 0.2f, 0.2f, 1.0f },
+        .ref_diffuse =  { 1.0f, 1.0f, 1.0f, 1.0f },
+        .shininess = 128
       },
-      fog_color:   { 0.6, 0.2, 0.2, 1.0 },
-      sky_color:   { 0.2, 0.2, 1.0, 1.0 },
-      floor_color: { 0.2, 0.2, 0.2, 1.0 },
+      .fog_color =   { 0.6, 0.2, 0.2, 1.0 },
+      .sky_color =   { 0.2, 0.2, 1.0, 1.0 },
+      .floor_color = { 0.2, 0.2, 0.2, 1.0 },
     },
     {
-      monolith_material:
+      .monolith_material =
       {
-        ref_specular: { 0.0f, 0.0f, 0.0f, 0.0f },
-        ref_ambient:  { 0.2f, 0.2f, 0.4f, 1.0f },
-        ref_diffuse:  { 1.0f, 1.0f, 1.0f, 1.0f },
-        shininess: 128
+        .ref_specular = { 0.0f, 0.0f, 0.0f, 0.0f },
+        .ref_ambient =  { 0.2f, 0.2f, 0.4f, 1.0f },
+        .ref_diffuse =  { 1.0f, 1.0f, 1.0f, 1.0f },
+        .shininess = 128
       },
-      fog_color:   { 0.6, 0.0, 0.0, 1.0 },
-      sky_color:   { 0.0, 0.0, 1.0, 1.0 },
-      floor_color: { 0.0, 0.0, 1.0, 1.0 },
+      .fog_color =   { 0.6, 0.0, 0.0, 1.0 },
+      .sky_color =   { 0.0, 0.0, 1.0, 1.0 },
+      .floor_color = { 0.0, 0.0, 1.0, 1.0 },
     }
 
     
@@ -896,7 +896,7 @@ static void delete_monolith(void * e)
 
 effect_plugin_t monolith_effect =
   {
-    init:    init_monolith,
-    draw:    draw_monolith,
-    cleanup: delete_monolith,
+    .init =    init_monolith,
+    .draw =    draw_monolith,
+    .cleanup = delete_monolith,
   };

@@ -67,27 +67,27 @@ static float bg_coords[4][3] =
 static lemuria_background_data_t backgrounds[] =
   {
     {
-      texture_mode: LEMURIA_TEXTURE_CLOUDS_ROTATE,
+      .texture_mode = LEMURIA_TEXTURE_CLOUDS_ROTATE,
       gradient_lemuria_psycho_1,
       clouds_size : 0,
     },
     {
-      texture_mode: LEMURIA_TEXTURE_CLOUDS_ROTATE,
+      .texture_mode = LEMURIA_TEXTURE_CLOUDS_ROTATE,
       gradient_lemuria_psycho_2,
       clouds_size : 0,
     },
     {
-      texture_mode: LEMURIA_TEXTURE_CLOUDS_ROTATE,
+      .texture_mode = LEMURIA_TEXTURE_CLOUDS_ROTATE,
       gradient_lemuria_psycho_3,
       clouds_size : 0,
     },
     {
-      texture_mode: LEMURIA_TEXTURE_CLOUDS_ROTATE,
+      .texture_mode = LEMURIA_TEXTURE_CLOUDS_ROTATE,
       gradient_lemuria_psycho_4,
       clouds_size : 0,
     },
     {
-      texture_mode: LEMURIA_TEXTURE_CLOUDS_ROTATE,
+      .texture_mode = LEMURIA_TEXTURE_CLOUDS_ROTATE,
       gradient_lemuria_psycho_5,
       clouds_size : 0,
     },
@@ -386,7 +386,7 @@ static void delete_psycho(void * data)
 
 effect_plugin_t psycho_effect =
   {
-    init:    init_psycho,
-    draw:    draw_psycho,
-    cleanup: delete_psycho,
+    .init =    init_psycho,
+    .draw =    draw_psycho,
+    .cleanup = delete_psycho,
   };

@@ -48,18 +48,18 @@ typedef struct cube_data_s
 
 static lemuria_light_t light =
   {
-    ambient:  { 0.5f, 0.5f, 0.5f, 1.0f },
-    diffuse:  { 1.0f, 1.0f, 1.0f, 1.0f },
-    specular: { 0.0f, 0.0f, 0.0f, 1.0f },
-    position: { 0.0f, 0.0f, 10.0f, 1.0f },
+    .ambient =  { 0.5f, 0.5f, 0.5f, 1.0f },
+    .diffuse =  { 1.0f, 1.0f, 1.0f, 1.0f },
+    .specular = { 0.0f, 0.0f, 0.0f, 1.0f },
+    .position = { 0.0f, 0.0f, 10.0f, 1.0f },
   };
 
 static lemuria_material_t material =
   {
-    ref_specular: { 0.0f, 0.0f, 0.0f, 0.0f },
-    ref_ambient:  { 0.5f, 0.5f, 0.5f, 1.0f },
-    ref_diffuse:  { 1.0f, 1.0f, 1.0f, 1.0f },
-    shininess: 128
+    .ref_specular = { 0.0f, 0.0f, 0.0f, 0.0f },
+    .ref_ambient =  { 0.5f, 0.5f, 0.5f, 1.0f },
+    .ref_diffuse =  { 1.0f, 1.0f, 1.0f, 1.0f },
+    .shininess = 128
   };
 
 static void draw_cube_normal(lemuria_engine_t * e, cube_data * data)
@@ -353,7 +353,7 @@ static void delete_cube(void * e)
 
 effect_plugin_t cube_effect =
   {
-    init:    init_cube,
-    draw:    draw_cube,
-    cleanup: delete_cube,
+    .init =    init_cube,
+    .draw =    draw_cube,
+    .cleanup = delete_cube,
   };

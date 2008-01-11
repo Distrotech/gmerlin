@@ -445,54 +445,54 @@ coords_data coords_stuff[] =
   {
 #if 1
     {
-      get_coords: get_coords_horizontal,
+      .get_coords = get_coords_horizontal,
 
-      matrix_l: matrix_zoom_out,
-      matrix_r: matrix_zoom_out,
-
-    },
-    {
-      get_coords: get_coords_horizontal_1,
-
-      matrix_l: matrix_zoom_in,
-      matrix_r: matrix_zoom_in,
+      .matrix_l = matrix_zoom_out,
+      .matrix_r = matrix_zoom_out,
 
     },
     {
-      get_coords: get_coords_horizontal,
+      .get_coords = get_coords_horizontal_1,
 
-      matrix_l: matrix_zoom_out_rotate,
-      matrix_r: matrix_zoom_out_rotate,
+      .matrix_l = matrix_zoom_in,
+      .matrix_r = matrix_zoom_in,
+
+    },
+    {
+      .get_coords = get_coords_horizontal,
+
+      .matrix_l = matrix_zoom_out_rotate,
+      .matrix_r = matrix_zoom_out_rotate,
 
     },
 #endif
     {
-      get_coords: get_coords_vertical,
+      .get_coords = get_coords_vertical,
 
-      matrix_l: matrix_zoom_out,
-      matrix_r: matrix_zoom_out,
+      .matrix_l = matrix_zoom_out,
+      .matrix_r = matrix_zoom_out,
 
     },
     {
-      get_coords: get_coords_vertical_1,
+      .get_coords = get_coords_vertical_1,
 
-      matrix_l: matrix_zoom_in,
-      matrix_r: matrix_zoom_in,
+      .matrix_l = matrix_zoom_in,
+      .matrix_r = matrix_zoom_in,
 
     },
 #if 1
     {
-      get_coords: get_coords_circular,
+      .get_coords = get_coords_circular,
 
-      matrix_l: matrix_zoom_in_rotate,
-      matrix_r: matrix_zoom_out_rotate,
+      .matrix_l = matrix_zoom_in_rotate,
+      .matrix_r = matrix_zoom_out_rotate,
 
     },
     {
-      get_coords: get_coords_circular_1,
+      .get_coords = get_coords_circular_1,
 
-      matrix_l: matrix_zoom_out_rotate,
-      matrix_r: matrix_zoom_out_rotate,
+      .matrix_l = matrix_zoom_out_rotate,
+      .matrix_r = matrix_zoom_out_rotate,
     }
 #endif
 
@@ -1006,7 +1006,7 @@ static void delete_oszi3d(void * e)
 
 effect_plugin_t oszi3d_effect =
   {
-    init:    init_oszi3d,
-    draw:    draw_oszi3d,
-    cleanup: delete_oszi3d,
+    .init =    init_oszi3d,
+    .draw =    draw_oszi3d,
+    .cleanup = delete_oszi3d,
   };
