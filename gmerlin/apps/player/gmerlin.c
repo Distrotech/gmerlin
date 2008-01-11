@@ -657,94 +657,94 @@ static bg_parameter_info_t parameters[] =
   {
 #if 0
     {
-      name:      "general_options",
-      long_name: TRS("General Options"),
-      type:      BG_PARAMETER_SECTION,
+      .name =      "general_options",
+      .long_name = TRS("General Options"),
+      .type =      BG_PARAMETER_SECTION,
     },
 #endif
     {
-      name:      "skip_error_tracks",
-      long_name: TRS("Skip error tracks"),
-      type:      BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 },
-      help_string: TRS("If a track cannot be opened, switch to the next one")
+      .name =      "skip_error_tracks",
+      .long_name = TRS("Skip error tracks"),
+      .type =      BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 },
+      .help_string = TRS("If a track cannot be opened, switch to the next one")
     },
     {
-      name:      "dont_advance",
-      long_name: TRS("Don't advance"),
-      type:      BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 0 },
+      .name =      "dont_advance",
+      .long_name = TRS("Don't advance"),
+      .type =      BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 0 },
     },
     {
-      name:      "shuffle_mode",
-      long_name: TRS("Shuffle mode"),
-      type:      BG_PARAMETER_STRINGLIST,
-      multi_names: (char*[]){"off",
+      .name =      "shuffle_mode",
+      .long_name = TRS("Shuffle mode"),
+      .type =      BG_PARAMETER_STRINGLIST,
+      .multi_names = (char*[]){"off",
                              "current",
                              "all",
                              (char*)0 },
-      multi_labels: (char*[]){TRS("Off"),
+      .multi_labels = (char*[]){TRS("Off"),
                               TRS("Current album"),
                               TRS("All open albums"),
                               (char*)0 },
-      val_default: { val_str: "Off" }
+      .val_default = { .val_str = "Off" }
     },
     {
-      name:        "show_tooltips",
-      long_name:   TRS("Show tooltips"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 },
+      .name =        "show_tooltips",
+      .long_name =   TRS("Show tooltips"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 },
     },
     {
-      name:        "mainwin_x",
-      long_name:   "mainwin_x",
-      type:        BG_PARAMETER_INT,
-      flags:       BG_PARAMETER_HIDE_DIALOG,
-      val_default: { val_i: 10 }
+      .name =        "mainwin_x",
+      .long_name =   "mainwin_x",
+      .type =        BG_PARAMETER_INT,
+      .flags =       BG_PARAMETER_HIDE_DIALOG,
+      .val_default = { .val_i = 10 }
     },
     {
-      name:        "mainwin_y",
-      long_name:   "mainwin_y",
-      type:        BG_PARAMETER_INT,
-      flags:       BG_PARAMETER_HIDE_DIALOG,
-      val_default: { val_i: 10 }
+      .name =        "mainwin_y",
+      .long_name =   "mainwin_y",
+      .type =        BG_PARAMETER_INT,
+      .flags =       BG_PARAMETER_HIDE_DIALOG,
+      .val_default = { .val_i = 10 }
     },
     {
-      name:        "show_tree_window",
-      long_name:   "show_tree_window",
-      type:        BG_PARAMETER_CHECKBUTTON,
-      flags:       BG_PARAMETER_HIDE_DIALOG,
-      val_default: { val_i: 1 }
+      .name =        "show_tree_window",
+      .long_name =   "show_tree_window",
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .flags =       BG_PARAMETER_HIDE_DIALOG,
+      .val_default = { .val_i = 1 }
     },
     {
-      name:        "show_info_window",
-      long_name:   "show_info_window",
-      type:        BG_PARAMETER_CHECKBUTTON,
-      flags:       BG_PARAMETER_HIDE_DIALOG,
-      val_default: { val_i: 0 }
+      .name =        "show_info_window",
+      .long_name =   "show_info_window",
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .flags =       BG_PARAMETER_HIDE_DIALOG,
+      .val_default = { .val_i = 0 }
     },
     {
-      name:        "show_log_window",
-      long_name:   "show_log_window",
-      type:        BG_PARAMETER_CHECKBUTTON,
-      flags:       BG_PARAMETER_HIDE_DIALOG,
-      val_default: { val_i: 0 }
+      .name =        "show_log_window",
+      .long_name =   "show_log_window",
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .flags =       BG_PARAMETER_HIDE_DIALOG,
+      .val_default = { .val_i = 0 }
     },
     {
-      name:        "volume",
-      long_name:   "Volume",
-      type:        BG_PARAMETER_FLOAT,
-      flags:       BG_PARAMETER_HIDE_DIALOG,
-      val_min:     { val_f: BG_PLAYER_VOLUME_MIN },
-      val_max:     { val_f: 0.0 },
-      val_default: { val_f: 0.0 },
+      .name =        "volume",
+      .long_name =   "Volume",
+      .type =        BG_PARAMETER_FLOAT,
+      .flags =       BG_PARAMETER_HIDE_DIALOG,
+      .val_min =     { .val_f = BG_PLAYER_VOLUME_MIN },
+      .val_max =     { .val_f = 0.0 },
+      .val_default = { .val_f = 0.0 },
     },
     {
-      name:        "skin_dir",
-      long_name:   "Skin Directory",
-      type:        BG_PARAMETER_DIRECTORY,
-      flags:       BG_PARAMETER_HIDE_DIALOG,
-      val_default: { val_str: GMERLIN_DATA_DIR"/skins/Default" },
+      .name =        "skin_dir",
+      .long_name =   "Skin Directory",
+      .type =        BG_PARAMETER_DIRECTORY,
+      .flags =       BG_PARAMETER_HIDE_DIALOG,
+      .val_default = { .val_str = GMERLIN_DATA_DIR"/skins/Default" },
     },
     { /* End of Parameters */ }
   };

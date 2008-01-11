@@ -64,18 +64,18 @@ static void destroy_flip(void * priv)
 static bg_parameter_info_t parameters[] =
   {
     {
-      gettext_domain: PACKAGE,
-      gettext_directory: LOCALE_DIR,
-      name: "flip_h",
-      long_name: TRS("Flip horizontally"),
-      type: BG_PARAMETER_CHECKBUTTON,
-      flags: BG_PARAMETER_SYNC,
+      .gettext_domain = PACKAGE,
+      .gettext_directory = LOCALE_DIR,
+      .name = "flip_h",
+      .long_name = TRS("Flip horizontally"),
+      .type = BG_PARAMETER_CHECKBUTTON,
+      .flags = BG_PARAMETER_SYNC,
     },
     {
-      name: "flip_v",
-      long_name: TRS("Flip vertically"),
-      type: BG_PARAMETER_CHECKBUTTON,
-      flags: BG_PARAMETER_SYNC,
+      .name = "flip_v",
+      .long_name = TRS("Flip vertically"),
+      .type = BG_PARAMETER_CHECKBUTTON,
+      .flags = BG_PARAMETER_SYNC,
     },
     { /* End of parameters */ },
   };
@@ -174,27 +174,27 @@ static int read_video_flip(void * priv, gavl_video_frame_t * frame, int stream)
 
 bg_fv_plugin_t the_plugin = 
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:      "fv_flip",
-      long_name: TRS("Flip image"),
-      description: TRS("Flip video images horizontally and/or vertically"),
-      type:     BG_PLUGIN_FILTER_VIDEO,
-      flags:    BG_PLUGIN_FILTER_1,
-      create:   create_flip,
-      destroy:   destroy_flip,
-      get_parameters:   get_parameters_flip,
-      set_parameter:    set_parameter_flip,
-      priority:         1,
+      .name =      "fv_flip",
+      .long_name = TRS("Flip image"),
+      .description = TRS("Flip video images horizontally and/or vertically"),
+      .type =     BG_PLUGIN_FILTER_VIDEO,
+      .flags =    BG_PLUGIN_FILTER_1,
+      .create =   create_flip,
+      .destroy =   destroy_flip,
+      .get_parameters =   get_parameters_flip,
+      .set_parameter =    set_parameter_flip,
+      .priority =         1,
     },
     
-    connect_input_port: connect_input_port_flip,
+    .connect_input_port = connect_input_port_flip,
     
-    set_input_format: set_input_format_flip,
-    get_output_format: get_output_format_flip,
+    .set_input_format = set_input_format_flip,
+    .get_output_format = get_output_format_flip,
 
-    read_video: read_video_flip,
+    .read_video = read_video_flip,
     
   };
 

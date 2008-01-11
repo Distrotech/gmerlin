@@ -289,7 +289,7 @@ static void dump_ctl_elem_id(snd_ctl_elem_id_t * id)
   fprintf(out, "    numid:     %d\n", snd_ctl_elem_id_get_numid(id));
   fprintf(out, "    device:    %d\n", snd_ctl_elem_id_get_device(id));
   fprintf(out, "    subdevice: %d\n", snd_ctl_elem_id_get_subdevice(id));
-  fprintf(out, "    name:      %s\n", snd_ctl_elem_id_get_name(id));
+  fprintf(out, "    .name =      %s\n", snd_ctl_elem_id_get_name(id));
   fprintf(out, "    index:     %d\n", snd_ctl_elem_id_get_index(id));
   fprintf(out, "    interface: %s\n",
           snd_ctl_elem_iface_name(snd_ctl_elem_id_get_interface(id)));

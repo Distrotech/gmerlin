@@ -253,24 +253,24 @@ int read_image_jpeg(void * priv, gavl_video_frame_t * frame)
 
 bg_image_reader_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:          "ir_jpeg",
-      long_name:     TRS("JPEG reader"),
-      description:   TRS("Reader for JPEG images"),
-      mimetypes:     (char*)0,
-      extensions:    "jpeg jpg",
-      type:          BG_PLUGIN_IMAGE_READER,
-      flags:         BG_PLUGIN_FILE,
-      priority:      BG_PLUGIN_PRIORITY_MAX,
-      create:        create_jpeg,
-      destroy:       destroy_jpeg,
-      //      get_parameters: get_parameters_vorbis,
-      //      set_parameter:  set_parameter_vorbis
+      .name =          "ir_jpeg",
+      .long_name =     TRS("JPEG reader"),
+      .description =   TRS("Reader for JPEG images"),
+      .mimetypes =     (char*)0,
+      .extensions =    "jpeg jpg",
+      .type =          BG_PLUGIN_IMAGE_READER,
+      .flags =         BG_PLUGIN_FILE,
+      .priority =      BG_PLUGIN_PRIORITY_MAX,
+      .create =        create_jpeg,
+      .destroy =       destroy_jpeg,
+      //      .get_parameters = get_parameters_vorbis,
+      //      .set_parameter =  set_parameter_vorbis
     },
-    read_header: read_header_jpeg,
-    read_image:  read_image_jpeg,
+    .read_header = read_header_jpeg,
+    .read_image =  read_image_jpeg,
   };
 
 /* Include this into all plugin modules exactly once

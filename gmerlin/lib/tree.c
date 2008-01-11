@@ -1187,18 +1187,18 @@ const char * bg_media_tree_get_current_track_name(bg_media_tree_t * t)
 static bg_parameter_info_t parameters[] =
   {
     {
-      name:        "use_metadata",
-      long_name:   TRS("Use metadata for track names"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 },
-      help_string: TRS("If disabled, track name will be taken from filename")
+      .name =        "use_metadata",
+      .long_name =   TRS("Use metadata for track names"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 },
+      .help_string = TRS("If disabled, track name will be taken from filename")
     },
     {
-      name:        "metadata_format",
-      long_name:   TRS("Format for track names"),
-      type:        BG_PARAMETER_STRING,
-      val_default: { val_str: "%p - %t" },
-      help_string: TRS("Format specifier for tracknames from\n\
+      .name =        "metadata_format",
+      .long_name =   TRS("Format for track names"),
+      .type =        BG_PARAMETER_STRING,
+      .val_default = { .val_str = "%p - %t" },
+      .help_string = TRS("Format specifier for tracknames from\n\
 metadata\n\
 %p:    Artist\n\
 %a:    Album\n\
@@ -1210,11 +1210,11 @@ metadata\n\
 
     },
     {
-      name:        "purge_directory",
-      long_name:   TRS("Purge directory on exit"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 },
-      help_string: TRS("Purge directory (i.e. delete\n\
+      .name =        "purge_directory",
+      .long_name =   TRS("Purge directory on exit"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 },
+      .help_string = TRS("Purge directory (i.e. delete\n\
 unused album files) at program exit")
     },
     { /* End of parameters */ }
@@ -1278,7 +1278,7 @@ static void add_directory(bg_media_tree_t * t, bg_album_t * parent,
   {
   char * tmp_string;
   DIR * dir;
-  char filename[PATH_MAX];
+  char filename[FILENAME_MAX];
 
   struct
     {
@@ -1395,7 +1395,7 @@ static int albums_have_file(bg_album_t * album, const char * filename)
 void bg_media_tree_purge_directory(bg_media_tree_t * t)
   {
   DIR * dir;
-  char filename[PATH_MAX];
+  char filename[FILENAME_MAX];
   struct dirent * dent_ptr;
 
   struct

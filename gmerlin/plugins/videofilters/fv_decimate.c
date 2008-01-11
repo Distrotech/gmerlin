@@ -141,43 +141,43 @@ static void destroy_decimate(void * priv)
 static bg_parameter_info_t parameters[] =
   {
     {
-      gettext_domain: PACKAGE,
-      gettext_directory: LOCALE_DIR,
-      name: "threshold_block",
-      long_name: TRS("Block threshold"),
-      type: BG_PARAMETER_SLIDER_FLOAT,
-      val_min: { val_f: 0.0 },
-      val_max: { val_f: 1.0 },
-      num_digits: 2,
-      flags: BG_PARAMETER_SYNC,
-      help_string: TRS("Specifies how much a block may differ from the last non-skipped block. 0 means identical blocks, 1 means completely different blocks. Note that the meaning of \"completely different\" depends on the colorspace.")
+      .gettext_domain = PACKAGE,
+      .gettext_directory = LOCALE_DIR,
+      .name = "threshold_block",
+      .long_name = TRS("Block threshold"),
+      .type = BG_PARAMETER_SLIDER_FLOAT,
+      .val_min = { .val_f = 0.0 },
+      .val_max = { .val_f = 1.0 },
+      .num_digits = 2,
+      .flags = BG_PARAMETER_SYNC,
+      .help_string = TRS("Specifies how much a block may differ from the last non-skipped block. 0 means identical blocks, 1 means completely different blocks. Note that the meaning of \"completely different\" depends on the colorspace.")
     },
     {
-      name: "threshold_total",
-      long_name: TRS("Total threshold"),
-      type: BG_PARAMETER_SLIDER_FLOAT,
-      val_min: { val_f: 0.0 },
-      val_max: { val_f: 1.0 },
-      num_digits: 2,
-      flags: BG_PARAMETER_SYNC,
-      help_string: TRS("Specifies how much a frame may differ from the last non-skipped frame. 0 means identical frames,  1 means completely different frames. Note that the meaning of \"completely different\" depends on the colorspace.")
+      .name = "threshold_total",
+      .long_name = TRS("Total threshold"),
+      .type = BG_PARAMETER_SLIDER_FLOAT,
+      .val_min = { .val_f = 0.0 },
+      .val_max = { .val_f = 1.0 },
+      .num_digits = 2,
+      .flags = BG_PARAMETER_SYNC,
+      .help_string = TRS("Specifies how much a frame may differ from the last non-skipped frame. 0 means identical frames,  1 means completely different frames. Note that the meaning of \"completely different\" depends on the colorspace.")
     },
     {
-      name: "skip_max",
-      long_name: TRS("Maximum skipped frames"),
-      type: BG_PARAMETER_INT,
-      val_min:     { val_i: 1 },
-      val_max:     { val_i: 500 },
-      val_default: { val_i: 10 },
-      flags: BG_PARAMETER_SYNC,
-      help_string: TRS("Maximum number of consecutive skipped frames")
+      .name = "skip_max",
+      .long_name = TRS("Maximum skipped frames"),
+      .type = BG_PARAMETER_INT,
+      .val_min =     { .val_i = 1 },
+      .val_max =     { .val_i = 500 },
+      .val_default = { .val_i = 10 },
+      .flags = BG_PARAMETER_SYNC,
+      .help_string = TRS("Maximum number of consecutive skipped frames")
     },
     {
-      name: "do_log",
-      long_name: TRS("Report results"),
-      type: BG_PARAMETER_CHECKBUTTON,
-      flags: BG_PARAMETER_SYNC,
-      help_string: TRS("Log reports about skipped frames"),
+      .name = "do_log",
+      .long_name = TRS("Report results"),
+      .type = BG_PARAMETER_CHECKBUTTON,
+      .flags = BG_PARAMETER_SYNC,
+      .help_string = TRS("Log reports about skipped frames"),
     },
     { /* End of parameters */ },
   };
@@ -435,28 +435,28 @@ static int read_video_decimate(void * priv,
 
 bg_fv_plugin_t the_plugin = 
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:      "fv_decimate",
-      long_name: TRS("Decimate"),
-      description: TRS("Skip almost identical frames"),
-      type:     BG_PLUGIN_FILTER_VIDEO,
-      flags:    BG_PLUGIN_FILTER_1,
-      create:   create_decimate,
-      destroy:   destroy_decimate,
-      get_parameters:   get_parameters_decimate,
-      set_parameter:    set_parameter_decimate,
-      priority:         1,
+      .name =      "fv_decimate",
+      .long_name = TRS("Decimate"),
+      .description = TRS("Skip almost identical frames"),
+      .type =     BG_PLUGIN_FILTER_VIDEO,
+      .flags =    BG_PLUGIN_FILTER_1,
+      .create =   create_decimate,
+      .destroy =   destroy_decimate,
+      .get_parameters =   get_parameters_decimate,
+      .set_parameter =    set_parameter_decimate,
+      .priority =         1,
     },
     
-    connect_input_port: connect_input_port_decimate,
+    .connect_input_port = connect_input_port_decimate,
     
-    set_input_format: set_input_format_decimate,
-    get_output_format: get_output_format_decimate,
+    .set_input_format = set_input_format_decimate,
+    .get_output_format = get_output_format_decimate,
 
-    read_video: read_video_decimate,
-    reset: reset_decimate,
+    .read_video = read_video_decimate,
+    .reset = reset_decimate,
     
   };
 

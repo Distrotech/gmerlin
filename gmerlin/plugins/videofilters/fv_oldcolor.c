@@ -112,14 +112,14 @@ static void destroy_technicolor(void * priv)
 static bg_parameter_info_t parameters[] =
   {
     {
-      gettext_domain: PACKAGE,
-      gettext_directory: LOCALE_DIR,
-      name:        "style",
-      long_name:   TRS("Style"),
-      type:        BG_PARAMETER_STRINGLIST,
-      flags: BG_PARAMETER_SYNC,
-      val_default: { val_str: "tech1" },
-      multi_names:
+      .gettext_domain = PACKAGE,
+      .gettext_directory = LOCALE_DIR,
+      .name =        "style",
+      .long_name =   TRS("Style"),
+      .type =        BG_PARAMETER_STRINGLIST,
+      .flags = BG_PARAMETER_SYNC,
+      .val_default = { .val_str = "tech1" },
+      .multi_names =
       (char*[])
       {
         "bw",
@@ -127,7 +127,7 @@ static bg_parameter_info_t parameters[] =
         "tech2",
         (char*)0
       },
-      multi_labels:
+      .multi_labels =
       (char*[])
       {
         "B/W",
@@ -137,44 +137,44 @@ static bg_parameter_info_t parameters[] =
       },
     },
     {
-      name: "strength",
-      long_name: TRS("Strength"),
-      type: BG_PARAMETER_SLIDER_FLOAT,
-      flags: BG_PARAMETER_SYNC,
-      val_min:     { val_f: 0.0 },
-      val_max:     { val_f: 1.0 },
-      val_default: { val_f: 1.0 },
-      num_digits: 3,
+      .name = "strength",
+      .long_name = TRS("Strength"),
+      .type = BG_PARAMETER_SLIDER_FLOAT,
+      .flags = BG_PARAMETER_SYNC,
+      .val_min =     { .val_f = 0.0 },
+      .val_max =     { .val_f = 1.0 },
+      .val_default = { .val_f = 1.0 },
+      .num_digits = 3,
     },
     {
-      name: "r_gain",
-      long_name: TRS("Red gain"),
-      type: BG_PARAMETER_SLIDER_FLOAT,
-      flags: BG_PARAMETER_SYNC,
-      val_min:     { val_f: 0.0 },
-      val_max:     { val_f: 2.0 },
-      val_default: { val_f: 1.0 },
-      num_digits: 3,
+      .name = "r_gain",
+      .long_name = TRS("Red gain"),
+      .type = BG_PARAMETER_SLIDER_FLOAT,
+      .flags = BG_PARAMETER_SYNC,
+      .val_min =     { .val_f = 0.0 },
+      .val_max =     { .val_f = 2.0 },
+      .val_default = { .val_f = 1.0 },
+      .num_digits = 3,
     },
     {
-      name: "g_gain",
-      long_name: TRS("Green gain"),
-      type: BG_PARAMETER_SLIDER_FLOAT,
-      flags: BG_PARAMETER_SYNC,
-      val_min:     { val_f: 0.0 },
-      val_max:     { val_f: 2.0 },
-      val_default: { val_f: 1.0 },
-      num_digits: 3,
+      .name = "g_gain",
+      .long_name = TRS("Green gain"),
+      .type = BG_PARAMETER_SLIDER_FLOAT,
+      .flags = BG_PARAMETER_SYNC,
+      .val_min =     { .val_f = 0.0 },
+      .val_max =     { .val_f = 2.0 },
+      .val_default = { .val_f = 1.0 },
+      .num_digits = 3,
     },
     {
-      name: "b_gain",
-      long_name: TRS("Blue gain"),
-      type: BG_PARAMETER_SLIDER_FLOAT,
-      flags: BG_PARAMETER_SYNC,
-      val_min:     { val_f: 0.0 },
-      val_max:     { val_f: 2.0 },
-      val_default: { val_f: 1.0 },
-      num_digits: 3,
+      .name = "b_gain",
+      .long_name = TRS("Blue gain"),
+      .type = BG_PARAMETER_SLIDER_FLOAT,
+      .flags = BG_PARAMETER_SYNC,
+      .val_min =     { .val_f = 0.0 },
+      .val_max =     { .val_f = 2.0 },
+      .val_default = { .val_f = 1.0 },
+      .num_digits = 3,
     },
     { /* End of parameters */ },
   };
@@ -330,27 +330,27 @@ static int read_video_technicolor(void * priv, gavl_video_frame_t * frame, int s
 
 bg_fv_plugin_t the_plugin = 
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:      "fv_oldcolor",
-      long_name: TRS("Old color"),
-      description: TRS("Simulate old color- and B/W movies"),
-      type:     BG_PLUGIN_FILTER_VIDEO,
-      flags:    BG_PLUGIN_FILTER_1,
-      create:   create_technicolor,
-      destroy:   destroy_technicolor,
-      get_parameters:   get_parameters_technicolor,
-      set_parameter:    set_parameter_technicolor,
-      priority:         1,
+      .name =      "fv_oldcolor",
+      .long_name = TRS("Old color"),
+      .description = TRS("Simulate old color- and B/W movies"),
+      .type =     BG_PLUGIN_FILTER_VIDEO,
+      .flags =    BG_PLUGIN_FILTER_1,
+      .create =   create_technicolor,
+      .destroy =   destroy_technicolor,
+      .get_parameters =   get_parameters_technicolor,
+      .set_parameter =    set_parameter_technicolor,
+      .priority =         1,
     },
     
-    connect_input_port: connect_input_port_technicolor,
+    .connect_input_port = connect_input_port_technicolor,
     
-    set_input_format: set_input_format_technicolor,
-    get_output_format: get_output_format_technicolor,
+    .set_input_format = set_input_format_technicolor,
+    .get_output_format = get_output_format_technicolor,
 
-    read_video: read_video_technicolor,
+    .read_video = read_video_technicolor,
     
   };
 

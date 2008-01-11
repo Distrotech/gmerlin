@@ -60,9 +60,9 @@ static void opt_visualizer(void * data, int * argc,
 static bg_cmdline_arg_t visualizer_options[] =
   {
     {
-      arg:         "-vis",
-      help_string: "options",
-      callback:    opt_visualizer,
+      .arg =         "-vis",
+      .help_string = "options",
+      .callback =    opt_visualizer,
     },
     { /* End of options */ }
     
@@ -70,12 +70,12 @@ static bg_cmdline_arg_t visualizer_options[] =
 
 bg_cmdline_app_data_t app_data =
   {
-    package:  PACKAGE,
-    version:  VERSION,
-    name:     "visualization",
-    synopsis: TRS("[<options>]\n"),
-    help_before: TRS("Visualize test\n"),
-    args: (bg_cmdline_arg_array_t[]) { { TRS("Options"),
+    .package =  PACKAGE,
+    .version =  VERSION,
+    .name =     "visualization",
+    .synopsis = TRS("[<options>]\n"),
+    .help_before = TRS("Visualize test\n"),
+    .args = (bg_cmdline_arg_array_t[]) { { TRS("Options"),
                                          visualizer_options },
                                        {  } },
   };

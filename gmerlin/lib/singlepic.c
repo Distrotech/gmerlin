@@ -71,20 +71,20 @@ static char * get_extensions(bg_plugin_registry_t * reg,
 static bg_parameter_info_t parameters_input[] =
   {
     {
-      name:      "timescale",
-      long_name: TRS("Timescale"),
-      type:      BG_PARAMETER_INT,
-      val_min:     { val_i: 1 },
-      val_max:     { val_i: 100000 },
-      val_default: { val_i: 25 }
+      .name =      "timescale",
+      .long_name = TRS("Timescale"),
+      .type =      BG_PARAMETER_INT,
+      .val_min =     { .val_i = 1 },
+      .val_max =     { .val_i = 100000 },
+      .val_default = { .val_i = 25 }
     },
     {
-      name:      "frame_duration",
-      long_name: TRS("Frame duration"),
-      type:      BG_PARAMETER_INT,
-      val_min:     { val_i: 1 },
-      val_max:     { val_i: 100000 },
-      val_default: { val_i: 1 }
+      .name =      "frame_duration",
+      .long_name = TRS("Frame duration"),
+      .type =      BG_PARAMETER_INT,
+      .val_min =     { .val_i = 1 },
+      .val_max =     { .val_i = 100000 },
+      .val_default = { .val_i = 1 }
     },
     { /* End of parameters */ }
   };
@@ -92,13 +92,13 @@ static bg_parameter_info_t parameters_input[] =
 static bg_parameter_info_t parameters_input_still[] =
   {
     {
-      name:         "display_time",
-      long_name:    TRS("Display time"),
-      type:         BG_PARAMETER_TIME,
-      val_min:      { val_time: 0 },
-      val_max:      { val_time: 3600 * (gavl_time_t)GAVL_TIME_SCALE },
-      val_default: { val_time: 0 },
-      help_string:  TRS("Time to pass until the next track will be selected. 0 means infinite.")
+      .name =         "display_time",
+      .long_name =    TRS("Display time"),
+      .type =         BG_PARAMETER_TIME,
+      .val_min =      { .val_time = 0 },
+      .val_max =      { .val_time = 3600 * (gavl_time_t)GAVL_TIME_SCALE },
+      .val_default = { .val_time = 0 },
+      .help_string =  TRS("Time to pass until the next track will be selected. 0 means infinite.")
     },
     { /* End of parameters */ }
   };
@@ -469,94 +469,94 @@ static void destroy_input(void* priv)
 
 static bg_input_plugin_t input_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:           bg_singlepic_input_name,
-      long_name:      TRS("Image video input plugin"),
-      description:    TRS("This plugin reads series of images as a video. It uses the installed image readers."),
-      extensions:     NULL, /* Filled in later */
-      type:           BG_PLUGIN_INPUT,
-      flags:          BG_PLUGIN_FILE,
-      priority:       5,
-      create:         NULL,
-      destroy:        destroy_input,
-      get_parameters: get_parameters_input,
-      set_parameter:  set_parameter_input
+      .name =           bg_singlepic_input_name,
+      .long_name =      TRS("Image video input plugin"),
+      .description =    TRS("This plugin reads series of images as a video. It uses the installed image readers."),
+      .extensions =     NULL, /* Filled in later */
+      .type =           BG_PLUGIN_INPUT,
+      .flags =          BG_PLUGIN_FILE,
+      .priority =       5,
+      .create =         NULL,
+      .destroy =        destroy_input,
+      .get_parameters = get_parameters_input,
+      .set_parameter =  set_parameter_input
     },
-    open:          open_input,
+    .open =          open_input,
 
-    //    get_num_tracks: bg_avdec_get_num_tracks,
+    //    .get_num_tracks = bg_avdec_get_num_tracks,
 
-    get_track_info: get_track_info_input,
+    .get_track_info = get_track_info_input,
     /* Set streams */
-    set_video_stream:      set_video_stream_input,
+    .set_video_stream =      set_video_stream_input,
     /*
      *  Start decoding.
      *  Track info is the track, which should be played.
      *  The plugin must take care of the "active" fields
      *  in the stream infos to check out, which streams are to be decoded
      */
-    start:                 start_input,
+    .start =                 start_input,
     /* Read one video frame (returns FALSE on EOF) */
-    read_video_frame:      read_video_frame_input,
+    .read_video_frame =      read_video_frame_input,
     /*
      *  Do percentage seeking (can be NULL)
      *  Media streams are supposed to be seekable, if this
      *  function is non-NULL AND the duration field of the track info
      *  is > 0
      */
-    seek: seek_input,
+    .seek = seek_input,
     /* Stop playback, close all decoders */
-    stop: stop_input,
-    close: close_input,
+    .stop = stop_input,
+    .close = close_input,
   };
 
 static bg_input_plugin_t input_plugin_stills =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:           bg_singlepic_stills_input_name,
-      long_name:      "Still image input plugin",
-      description:    TRS("This plugin reads images as stills. It uses the installed image readers."),
-      extensions:     NULL, /* Filled in later */
-      type:           BG_PLUGIN_INPUT,
-      flags:          BG_PLUGIN_FILE,
-      priority:       BG_PLUGIN_PRIORITY_MAX,
-      create:         NULL,
-      destroy:        destroy_input,
-      get_parameters: get_parameters_input_still,
-      set_parameter:  set_parameter_input
+      .name =           bg_singlepic_stills_input_name,
+      .long_name =      "Still image input plugin",
+      .description =    TRS("This plugin reads images as stills. It uses the installed image readers."),
+      .extensions =     NULL, /* Filled in later */
+      .type =           BG_PLUGIN_INPUT,
+      .flags =          BG_PLUGIN_FILE,
+      .priority =       BG_PLUGIN_PRIORITY_MAX,
+      .create =         NULL,
+      .destroy =        destroy_input,
+      .get_parameters = get_parameters_input_still,
+      .set_parameter =  set_parameter_input
     },
-    open:          open_stills_input,
+    .open =          open_stills_input,
 
-    set_track:     set_track_input_stills,
+    .set_track =     set_track_input_stills,
     
-    //    get_num_tracks: bg_avdec_get_num_tracks,
+    //    .get_num_tracks = bg_avdec_get_num_tracks,
 
-    get_track_info: get_track_info_input,
+    .get_track_info = get_track_info_input,
     /* Set streams */
-    set_video_stream:      set_video_stream_input,
+    .set_video_stream =      set_video_stream_input,
     /*
      *  Start decoding.
      *  Track info is the track, which should be played.
      *  The plugin must take care of the "active" fields
      *  in the stream infos to check out, which streams are to be decoded
      */
-    start:                 start_input,
+    .start =                 start_input,
     /* Read one video frame (returns FALSE on EOF) */
-    read_video_frame:      read_video_frame_input,
+    .read_video_frame =      read_video_frame_input,
     /*
      *  Do percentage seeking (can be NULL)
      *  Media streams are supposed to be seekable, if this
      *  function is non-NULL AND the duration field of the track info
      *  is > 0
      */
-    //    seek: seek_input,
+    //    .seek = seek_input,
     /* Stop playback, close all decoders */
-    stop: stop_input,
-    close: close_input,
+    .stop = stop_input,
+    .close = close_input,
   };
 
 
@@ -641,25 +641,25 @@ void * bg_singlepic_stills_input_create(bg_plugin_registry_t * reg)
 static bg_parameter_info_t parameters_encoder[] =
   {
     {
-      name:        "plugin",
-      long_name:   TRS("Plugin"),
-      type:        BG_PARAMETER_MULTI_MENU,
+      .name =        "plugin",
+      .long_name =   TRS("Plugin"),
+      .type =        BG_PARAMETER_MULTI_MENU,
     },
     {
-      name:        "frame_digits",
-      long_name:   TRS("Framenumber digits"),
-      type:        BG_PARAMETER_INT,
-      val_min:     { val_i: 1 },
-      val_max:     { val_i: 9 },
-      val_default: { val_i: 4 },
+      .name =        "frame_digits",
+      .long_name =   TRS("Framenumber digits"),
+      .type =        BG_PARAMETER_INT,
+      .val_min =     { .val_i = 1 },
+      .val_max =     { .val_i = 9 },
+      .val_default = { .val_i = 4 },
     },
     {
-      name:        "frame_offset",
-      long_name:   TRS("Framenumber offset"),
-      type:        BG_PARAMETER_INT,
-      val_min:     { val_i: 0 },
-      val_max:     { val_i: 1000000 },
-      val_default: { val_i: 0 },
+      .name =        "frame_offset",
+      .long_name =   TRS("Framenumber offset"),
+      .type =        BG_PARAMETER_INT,
+      .val_min =     { .val_i = 0 },
+      .val_max =     { .val_i = 1000000 },
+      .val_default = { .val_i = 0 },
     }
   };
 
@@ -935,47 +935,47 @@ static void destroy_encoder(void * data)
 
 bg_encoder_plugin_t encoder_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:           bg_singlepic_encoder_name,
-      long_name:      "Singlepicture encoder",
-      description:    TRS("This plugin encodes a video as a series of images. It uses the installed image writers."),
+      .name =           bg_singlepic_encoder_name,
+      .long_name =      "Singlepicture encoder",
+      .description =    TRS("This plugin encodes a video as a series of images. It uses the installed image writers."),
 
-      extensions:     NULL, /* Filled in later */
-      type:           BG_PLUGIN_ENCODER_VIDEO,
-      flags:          BG_PLUGIN_FILE,
-      priority:       BG_PLUGIN_PRIORITY_MAX,
-      create:         NULL,
-      destroy:        destroy_encoder,
-      get_parameters: get_parameters_encoder,
-      set_parameter:  set_parameter_encoder
+      .extensions =     NULL, /* Filled in later */
+      .type =           BG_PLUGIN_ENCODER_VIDEO,
+      .flags =          BG_PLUGIN_FILE,
+      .priority =       BG_PLUGIN_PRIORITY_MAX,
+      .create =         NULL,
+      .destroy =        destroy_encoder,
+      .get_parameters = get_parameters_encoder,
+      .set_parameter =  set_parameter_encoder
     },
     
     /* Maximum number of audio/video streams. -1 means infinite */
     
-    max_audio_streams: 0,
-    max_video_streams: 1,
+    .max_audio_streams = 0,
+    .max_video_streams = 1,
 
-    get_extension:     get_extension_encoder,
+    .get_extension =     get_extension_encoder,
     
     /* Open a file, filename base is without extension, which
        will be added by the plugin */
         
-    open:              open_encoder,
-    get_filename:      get_filename_encoder,
+    .open =              open_encoder,
+    .get_filename =      get_filename_encoder,
     
-    add_video_stream:  add_video_stream_encoder,
+    .add_video_stream =  add_video_stream_encoder,
     
-    get_video_format:  get_video_format_encoder,
+    .get_video_format =  get_video_format_encoder,
 
-    start:             start_encoder,
+    .start =             start_encoder,
     
-    write_video_frame: write_video_frame_encoder,
+    .write_video_frame = write_video_frame_encoder,
     
     /* Close it */
 
-    close:             close_encoder,
+    .close =             close_encoder,
   };
 
 bg_plugin_common_t * bg_singlepic_encoder_get()

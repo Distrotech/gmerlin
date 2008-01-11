@@ -220,22 +220,22 @@ static int read_image_png(void * priv, gavl_video_frame_t * frame)
 
 bg_image_reader_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:          "ir_png",
-      long_name:     TRS("PNG reader"),
-      description:   TRS("Reader for PNG images"),
-      mimetypes:     (char*)0,
-      extensions:    "png",
-      type:          BG_PLUGIN_IMAGE_READER,
-      flags:         BG_PLUGIN_FILE,
-      priority:      BG_PLUGIN_PRIORITY_MAX,
-      create:        create_png,
-      destroy:       destroy_png,
+      .name =          "ir_png",
+      .long_name =     TRS("PNG reader"),
+      .description =   TRS("Reader for PNG images"),
+      .mimetypes =     (char*)0,
+      .extensions =    "png",
+      .type =          BG_PLUGIN_IMAGE_READER,
+      .flags =         BG_PLUGIN_FILE,
+      .priority =      BG_PLUGIN_PRIORITY_MAX,
+      .create =        create_png,
+      .destroy =       destroy_png,
     },
-    read_header: read_header_png,
-    read_image:  read_image_png,
+    .read_header = read_header_png,
+    .read_image =  read_image_png,
   };
 
 /* Include this into all plugin modules exactly once

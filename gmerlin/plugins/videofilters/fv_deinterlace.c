@@ -111,12 +111,12 @@ static void destroy_deinterlace(void * priv)
 static bg_parameter_info_t scale_parameters[] =
   {
     {
-      name:        "scale_mode",
-      long_name:   TRS("Scale mode"),
-      opt:       "sm",
-      type:        BG_PARAMETER_STRINGLIST,
-      flags:     BG_PARAMETER_SYNC,
-      multi_names: (char*[]){ "auto",\
+      .name =        "scale_mode",
+      .long_name =   TRS("Scale mode"),
+      .opt =       "sm",
+      .type =        BG_PARAMETER_STRINGLIST,
+      .flags =     BG_PARAMETER_SYNC,
+      .multi_names = (char*[]){ "auto",\
                               "nearest",         \
                               "bilinear", \
                               "quadratic", \
@@ -125,7 +125,7 @@ static bg_parameter_info_t scale_parameters[] =
                               "cubic_catmull", \
                               "sinc_lanczos", \
                               (char*)0 },
-      multi_labels: (char*[]){ TRS("Auto"), \
+      .multi_labels = (char*[]){ TRS("Auto"), \
                                TRS("Nearest"),            \
                                TRS("Bilinear"), \
                                TRS("Quadratic"), \
@@ -134,19 +134,19 @@ static bg_parameter_info_t scale_parameters[] =
                                TRS("Cubic Catmull-Rom"), \
                                TRS("Sinc with Lanczos window"), \
                                (char*)0 },
-      val_default: { val_str: "auto" },
-      help_string: TRS("Choose scaling method. Auto means to choose based on the conversion quality. Nearest is fastest, Sinc with Lanczos window is slowest."),
+      .val_default = { .val_str = "auto" },
+      .help_string = TRS("Choose scaling method. Auto means to choose based on the conversion quality. Nearest is fastest, Sinc with Lanczos window is slowest."),
     },
     {
-      name:        "scale_order",
-      long_name:   TRS("Scale order"),
-      opt:         "so",
-      type:        BG_PARAMETER_INT,
-      flags:     BG_PARAMETER_SYNC,
-      val_min:     { val_i: 4 },
-      val_max:     { val_i: 1000 },
-      val_default: { val_i: 4 },
-      help_string: TRS("Order for sinc scaling."),
+      .name =        "scale_order",
+      .long_name =   TRS("Scale order"),
+      .opt =         "so",
+      .type =        BG_PARAMETER_INT,
+      .flags =     BG_PARAMETER_SYNC,
+      .val_min =     { .val_i = 4 },
+      .val_max =     { .val_i = 1000 },
+      .val_default = { .val_i = 4 },
+      .help_string = TRS("Order for sinc scaling."),
     },
     { /* */ },
   };
@@ -154,14 +154,14 @@ static bg_parameter_info_t scale_parameters[] =
 static bg_parameter_info_t parameters[] =
   {
     {
-      gettext_domain: PACKAGE,
-      gettext_directory: LOCALE_DIR,
-      name: "method",
-      long_name: TRS("Method"),
-      type: BG_PARAMETER_MULTI_MENU,
-      flags: BG_PARAMETER_SYNC,
-      val_default: { val_str: "none" },
-      multi_names:  (char*[]){ "none",
+      .gettext_domain = PACKAGE,
+      .gettext_directory = LOCALE_DIR,
+      .name = "method",
+      .long_name = TRS("Method"),
+      .type = BG_PARAMETER_MULTI_MENU,
+      .flags = BG_PARAMETER_SYNC,
+      .val_default = { .val_str = "none" },
+      .multi_names =  (char*[]){ "none",
                                "copy",
                                "scale_hw",
                                "scale_sw",
@@ -173,7 +173,7 @@ static bg_parameter_info_t parameters[] =
 #endif                               
                                (char*)0 },
       
-      multi_labels: (char*[]){ TRS("None"),
+      .multi_labels = (char*[]){ TRS("None"),
                                TRS("Scanline doubler"),
                                TRS("Scaler (hardware)"),
                                TRS("Scaler (software)"),
@@ -184,7 +184,7 @@ static bg_parameter_info_t parameters[] =
                                TRS("yuvdeinterlace (Antialiasing only)"),
 #endif
                                (char*)0 },
-      multi_descriptions: (char*[]){ TRS("Do nothing"),
+      .multi_descriptions = (char*[]){ TRS("Do nothing"),
                                      TRS("Simply double all scanlines. Very fast but \
 low image quality"), 
                                      TRS("Drop one field and change the pixel aspect ratio such that a subsequent hardware scaler will scale the image to the original height"),
@@ -195,7 +195,7 @@ low image quality"),
                                      TRS("Motion compensating deinterlacer from the mjpegtools project"),
 #endif                               
                                      (char*)0 },
-      multi_parameters: (bg_parameter_info_t*[]) { (bg_parameter_info_t*)0, // None
+      .multi_parameters = (bg_parameter_info_t*[]) { (bg_parameter_info_t*)0, // None
                                                    (bg_parameter_info_t*)0, // Copy
                                                    (bg_parameter_info_t*)0, // Scale (HW)
                                                    scale_parameters, // Scale (SW)
@@ -209,32 +209,32 @@ low image quality"),
                                                    
     },
     {
-      name:        "quality",
-      long_name:   TRS("Quality"),
-      opt:         "q",
-      type:        BG_PARAMETER_SLIDER_INT,
-      flags:     BG_PARAMETER_SYNC,
-      val_min:     { val_i: GAVL_QUALITY_FASTEST },
-      val_max:     { val_i: GAVL_QUALITY_BEST    },
-      val_default: { val_i: GAVL_QUALITY_DEFAULT },
-      help_string: TRS("Lower quality means more speed. Values above 3 enable slow high quality calculations.")
+      .name =        "quality",
+      .long_name =   TRS("Quality"),
+      .opt =         "q",
+      .type =        BG_PARAMETER_SLIDER_INT,
+      .flags =     BG_PARAMETER_SYNC,
+      .val_min =     { .val_i = GAVL_QUALITY_FASTEST },
+      .val_max =     { .val_i = GAVL_QUALITY_BEST    },
+      .val_default = { .val_i = GAVL_QUALITY_DEFAULT },
+      .help_string = TRS("Lower quality means more speed. Values above 3 enable slow high quality calculations.")
     },
     {
-      name: "force",
-      long_name: TRS("Force deinterlacing"),
-      type: BG_PARAMETER_CHECKBUTTON,
-      flags: BG_PARAMETER_SYNC,
-      help_string: "Always perform deinterlacing even if the source format pretends to be progressive",
+      .name = "force",
+      .long_name = TRS("Force deinterlacing"),
+      .type = BG_PARAMETER_CHECKBUTTON,
+      .flags = BG_PARAMETER_SYNC,
+      .help_string = "Always perform deinterlacing even if the source format pretends to be progressive",
     },
     {
-      name: "drop_mode",
-      long_name: TRS("Drop mode"),
-      type: BG_PARAMETER_STRINGLIST,
-      flags: BG_PARAMETER_SYNC,
-      val_default: { val_str: "top" },
-      help_string: TRS("For modes, which take only one source field, specify which field to drop"),
-      multi_names: (char*[]){ "top", "bottom", (char*)0 },
-      multi_labels: (char*[]){ TRS("Drop top field"),
+      .name = "drop_mode",
+      .long_name = TRS("Drop mode"),
+      .type = BG_PARAMETER_STRINGLIST,
+      .flags = BG_PARAMETER_SYNC,
+      .val_default = { .val_str = "top" },
+      .help_string = TRS("For modes, which take only one source field, specify which field to drop"),
+      .multi_names = (char*[]){ "top", "bottom", (char*)0 },
+      .multi_labels = (char*[]){ TRS("Drop top field"),
                                TRS("Drop bottom field"),
                                (char*)0 },
     },
@@ -576,28 +576,28 @@ static int read_video_deinterlace(void * priv, gavl_video_frame_t * frame, int s
 
 bg_fv_plugin_t the_plugin = 
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:      "fv_deinterlace",
-      long_name: TRS("Deinterlacer"),
-      description: TRS("Deinterlace with various algorithms"),
-      type:     BG_PLUGIN_FILTER_VIDEO,
-      flags:    BG_PLUGIN_FILTER_1,
-      create:   create_deinterlace,
-      destroy:   destroy_deinterlace,
-      get_parameters:   get_parameters_deinterlace,
-      set_parameter:    set_parameter_deinterlace,
-      priority:         1,
+      .name =      "fv_deinterlace",
+      .long_name = TRS("Deinterlacer"),
+      .description = TRS("Deinterlace with various algorithms"),
+      .type =     BG_PLUGIN_FILTER_VIDEO,
+      .flags =    BG_PLUGIN_FILTER_1,
+      .create =   create_deinterlace,
+      .destroy =   destroy_deinterlace,
+      .get_parameters =   get_parameters_deinterlace,
+      .set_parameter =    set_parameter_deinterlace,
+      .priority =         1,
     },
     
-    connect_input_port: connect_input_port_deinterlace,
+    .connect_input_port = connect_input_port_deinterlace,
     
-    set_input_format: set_input_format_deinterlace,
-    get_output_format: get_output_format_deinterlace,
+    .set_input_format = set_input_format_deinterlace,
+    .get_output_format = get_output_format_deinterlace,
     
-    read_video: read_video_deinterlace,
-    need_restart: need_restart_deinterlace,
+    .read_video = read_video_deinterlace,
+    .need_restart = need_restart_deinterlace,
   };
 
 /* Include this into all plugin modules exactly once

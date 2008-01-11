@@ -27,6 +27,7 @@
 #include <keycodes.h>
 
 #include <X11/keysym.h>
+#include <sys/select.h>
 
 #define IDLE_MAX 50
 

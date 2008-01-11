@@ -144,21 +144,21 @@ static int write_image_pnm(void *priv, gavl_video_frame_t *frame)
 static bg_parameter_info_t parameters[] =
   {
     {
-      name:        "format",
-      long_name:   TRS("Format"),
-      type:        BG_PARAMETER_STRINGLIST,
-      multi_names: (char*[]){ "binary", "ascii", (char*)0 },
-      multi_labels:  (char*[]){ TRS("Binary"), TRS("ASCII"), (char*)0 },
+      .name =        "format",
+      .long_name =   TRS("Format"),
+      .type =        BG_PARAMETER_STRINGLIST,
+      .multi_names = (char*[]){ "binary", "ascii", (char*)0 },
+      .multi_labels =  (char*[]){ TRS("Binary"), TRS("ASCII"), (char*)0 },
 
-      val_default: { val_str: "binary" },
+      .val_default = { .val_str = "binary" },
     },
     {
-      name:        "comment",
-      long_name:   TRS("Comment"),
-      type:        BG_PARAMETER_STRING,
+      .name =        "comment",
+      .long_name =   TRS("Comment"),
+      .type =        BG_PARAMETER_STRING,
 
-      val_default: { val_str: "Created with gmerlin" },
-      help_string: TRS("Comment which will be written in front of every file")
+      .val_default = { .val_str = "Created with gmerlin" },
+      .help_string = TRS("Comment which will be written in front of every file")
     },
    { /* End of parameters */ }
   };
@@ -201,25 +201,25 @@ static const char * get_extension_pnm(void * p)
 
 bg_image_writer_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:           "iw_pnm",
-      long_name:      TRS("PPM writer"),
-      description:    TRS("Writer for PPM images"),
-      mimetypes:      (char*)0,
-      extensions:     "ppm",
-      type:           BG_PLUGIN_IMAGE_WRITER,
-      flags:          BG_PLUGIN_FILE,
-      priority:       5,
-      create:         create_pnm,
-      destroy:        destroy_pnm,
-      get_parameters: get_parameters_pnm,
-      set_parameter:  set_parameter_pnm
+      .name =           "iw_pnm",
+      .long_name =      TRS("PPM writer"),
+      .description =    TRS("Writer for PPM images"),
+      .mimetypes =      (char*)0,
+      .extensions =     "ppm",
+      .type =           BG_PLUGIN_IMAGE_WRITER,
+      .flags =          BG_PLUGIN_FILE,
+      .priority =       5,
+      .create =         create_pnm,
+      .destroy =        destroy_pnm,
+      .get_parameters = get_parameters_pnm,
+      .set_parameter =  set_parameter_pnm
     },
-    get_extension: get_extension_pnm,
-    write_header:  write_header_pnm,
-    write_image:   write_image_pnm,
+    .get_extension = get_extension_pnm,
+    .write_header =  write_header_pnm,
+    .write_image =   write_image_pnm,
   };
 
 /* Include this into all plugin modules exactly once

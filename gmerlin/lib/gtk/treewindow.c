@@ -53,28 +53,28 @@ struct bg_gtk_tree_window_s
 static bg_parameter_info_t parameters[] =
   {
     {
-      name: "x",
-      long_name: "X",
-      type: BG_PARAMETER_INT,
-      val_default: { val_i: 100 }
+      .name = "x",
+      .long_name = "X",
+      .type = BG_PARAMETER_INT,
+      .val_default = { .val_i = 100 }
     },
     {
-      name: "y",
-      long_name: "Y",
-      type: BG_PARAMETER_INT,
-      val_default: { val_i: 100 }
+      .name = "y",
+      .long_name = "Y",
+      .type = BG_PARAMETER_INT,
+      .val_default = { .val_i = 100 }
     },
     {
-      name: "width",
-      long_name: "Width",
-      type: BG_PARAMETER_INT,
-      val_default: { val_i: 200 }
+      .name = "width",
+      .long_name = "Width",
+      .type = BG_PARAMETER_INT,
+      .val_default = { .val_i = 200 }
     },
     {
-      name: "height",
-      long_name: "Height",
-      type: BG_PARAMETER_INT,
-      val_default: { val_i: 300 }
+      .name = "height",
+      .long_name = "Height",
+      .type = BG_PARAMETER_INT,
+      .val_default = { .val_i = 300 }
     },
     { /* End of parameters */ }
   };

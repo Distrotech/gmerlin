@@ -730,22 +730,22 @@ static int read_image_bmp(void *priv, gavl_video_frame_t *frame)
 
 bg_image_reader_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:          "ir_bmp",
-      long_name:     TRS("BMP reader"),
-      description:    TRS("Reader for BMP images"),
-      mimetypes:     (char*)0,
-      extensions:    "bmp",
-      type:          BG_PLUGIN_IMAGE_READER,
-      flags:         BG_PLUGIN_FILE,
-      priority:      BG_PLUGIN_PRIORITY_MAX,
-      create:        create_bmp,
-      destroy:       destroy_bmp,
+      .name =          "ir_bmp",
+      .long_name =     TRS("BMP reader"),
+      .description =    TRS("Reader for BMP images"),
+      .mimetypes =     (char*)0,
+      .extensions =    "bmp",
+      .type =          BG_PLUGIN_IMAGE_READER,
+      .flags =         BG_PLUGIN_FILE,
+      .priority =      BG_PLUGIN_PRIORITY_MAX,
+      .create =        create_bmp,
+      .destroy =       destroy_bmp,
     },
-    read_header: read_header_bmp,
-    read_image:  read_image_bmp,
+    .read_header = read_header_bmp,
+    .read_image =  read_image_bmp,
   };
 
 /* Include this into all plugin modules exactly once

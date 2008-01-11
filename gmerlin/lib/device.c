@@ -33,13 +33,13 @@
 #include <unistd.h>
 
 
-static void dereference_link(const char * _src, char dst[PATH_MAX])
+static void dereference_link(const char * _src, char dst[FILENAME_MAX])
   {
   char * pos;
   int len;
   struct stat st;
 
-  char src[PATH_MAX];
+  char src[FILENAME_MAX];
 
   strcpy(src, _src);
 
@@ -53,7 +53,7 @@ static void dereference_link(const char * _src, char dst[PATH_MAX])
 
     /* Read symbolic link and copy to source */
 
-    len = readlink(src, dst, PATH_MAX);
+    len = readlink(src, dst, FILENAME_MAX);
     dst[len] = '\0';
     if(*dst == '/')
       {
@@ -73,7 +73,7 @@ bg_device_info_t * bg_device_info_append(bg_device_info_t * arr,
                                          const char * name)
   {
   int i, size = 0;
-  char real_device[PATH_MAX];
+  char real_device[FILENAME_MAX];
 
   
   if(arr)

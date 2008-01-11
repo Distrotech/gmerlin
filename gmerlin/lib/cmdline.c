@@ -284,24 +284,24 @@ static void print_help(bg_cmdline_arg_t* args, bg_help_format_t format)
 static bg_cmdline_arg_t auto_options[] =
   {
     {
-      arg:         "-help",
-      help_string: TRS("Print this help message and exit"),
-      callback:    opt_help,
+      .arg =         "-help",
+      .help_string = TRS("Print this help message and exit"),
+      .callback =    opt_help,
     },
     {
-      arg:         "-help-man",
-      help_string: TRS("Print this help message as a manual page and exit"),
-      callback:    opt_help_man,
+      .arg =         "-help-man",
+      .help_string = TRS("Print this help message as a manual page and exit"),
+      .callback =    opt_help_man,
     },
     {
-      arg:         "-help-texi",
-      help_string: TRS("Print this help message in texinfo format and exit"),
-      callback:    opt_help_texi,
+      .arg =         "-help-texi",
+      .help_string = TRS("Print this help message in texinfo format and exit"),
+      .callback =    opt_help_texi,
     },
     {
-      arg:         "-version",
-      help_string: TRS("Print version info and exit"),
-      callback:    opt_version,
+      .arg =         "-version",
+      .help_string = TRS("Print version info and exit"),
+      .callback =    opt_version,
     },
     { /* End of options */ }
   };

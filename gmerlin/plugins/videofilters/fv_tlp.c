@@ -74,26 +74,26 @@ static void destroy_tlp(void * priv)
 static bg_parameter_info_t parameters[] =
   {
     {
-      gettext_domain: PACKAGE,
-      gettext_directory: LOCALE_DIR,
-      name: "factor",
-      long_name: TRS("Strength"),
-      type: BG_PARAMETER_SLIDER_FLOAT,
-      flags: BG_PARAMETER_SYNC,
-      num_digits: 2,
-      val_min:     { val_f: 0.0 },
-      val_max:     { val_f: 1.0 },
-      val_default: { val_f: 0.5 },
-      help_string: TRS("0 means no effect, 1 means maximum (= still image)"),
+      .gettext_domain = PACKAGE,
+      .gettext_directory = LOCALE_DIR,
+      .name = "factor",
+      .long_name = TRS("Strength"),
+      .type = BG_PARAMETER_SLIDER_FLOAT,
+      .flags = BG_PARAMETER_SYNC,
+      .num_digits = 2,
+      .val_min =     { .val_f = 0.0 },
+      .val_max =     { .val_f = 1.0 },
+      .val_default = { .val_f = 0.5 },
+      .help_string = TRS("0 means no effect, 1 means maximum (= still image)"),
     },
     {
-      name: "quality",
-      long_name: TRS("Quality"),
-      type: BG_PARAMETER_SLIDER_INT,
-      flags: BG_PARAMETER_SYNC,
-      val_min:     { val_i: GAVL_QUALITY_FASTEST },
-      val_max:     { val_i: GAVL_QUALITY_BEST },
-      val_default: { val_i: GAVL_QUALITY_DEFAULT },
+      .name = "quality",
+      .long_name = TRS("Quality"),
+      .type = BG_PARAMETER_SLIDER_INT,
+      .flags = BG_PARAMETER_SYNC,
+      .val_min =     { .val_i = GAVL_QUALITY_FASTEST },
+      .val_max =     { .val_i = GAVL_QUALITY_BEST },
+      .val_default = { .val_i = GAVL_QUALITY_DEFAULT },
     },
     { /* End of parameters */ },
   };
@@ -200,28 +200,28 @@ static int read_video_tlp(void * priv, gavl_video_frame_t * frame, int stream)
 
 bg_fv_plugin_t the_plugin = 
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:      "fv_tlp",
-      long_name: TRS("Temporal lowpass"),
-      description: TRS("Simple temporal lowpass"),
-      type:     BG_PLUGIN_FILTER_VIDEO,
-      flags:    BG_PLUGIN_FILTER_1,
-      create:   create_tlp,
-      destroy:   destroy_tlp,
-      get_parameters:   get_parameters_tlp,
-      set_parameter:    set_parameter_tlp,
-      priority:         1,
+      .name =      "fv_tlp",
+      .long_name = TRS("Temporal lowpass"),
+      .description = TRS("Simple temporal lowpass"),
+      .type =     BG_PLUGIN_FILTER_VIDEO,
+      .flags =    BG_PLUGIN_FILTER_1,
+      .create =   create_tlp,
+      .destroy =   destroy_tlp,
+      .get_parameters =   get_parameters_tlp,
+      .set_parameter =    set_parameter_tlp,
+      .priority =         1,
     },
     
-    connect_input_port: connect_input_port_tlp,
+    .connect_input_port = connect_input_port_tlp,
     
-    set_input_format: set_input_format_tlp,
-    get_output_format: get_output_format_tlp,
+    .set_input_format = set_input_format_tlp,
+    .get_output_format = get_output_format_tlp,
     
-    read_video: read_video_tlp,
-    reset: reset_tlp,
+    .read_video = read_video_tlp,
+    .reset = reset_tlp,
   };
 
 /* Include this into all plugin modules exactly once

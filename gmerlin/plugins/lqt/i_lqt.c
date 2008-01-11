@@ -40,26 +40,26 @@
 static bg_parameter_info_t parameters[] = 
   {
     {
-      name:      "audio",
-      long_name: TRS("Audio"),
-      type:      BG_PARAMETER_SECTION,
+      .name =      "audio",
+      .long_name = TRS("Audio"),
+      .type =      BG_PARAMETER_SECTION,
     },
     {
-      name:      "audio_codecs",
-      opt:       "ac",
-      long_name: TRS("Audio Codecs"),
-      help_string: TRS("Sort and configure audio codecs"),
+      .name =      "audio_codecs",
+      .opt =       "ac",
+      .long_name = TRS("Audio Codecs"),
+      .help_string = TRS("Sort and configure audio codecs"),
     },
     {
-      name:      "video",
-      long_name: TRS("Video"),
-      type:      BG_PARAMETER_SECTION,
+      .name =      "video",
+      .long_name = TRS("Video"),
+      .type =      BG_PARAMETER_SECTION,
     },
     {
-      name:      "video_codecs",
-      opt:       "vc",
-      long_name: TRS("Video Codecs"),
-      help_string: TRS("Sort and configure video codecs"),
+      .name =      "video_codecs",
+      .opt =       "vc",
+      .long_name = TRS("Video Codecs"),
+      .help_string = TRS("Sort and configure video codecs"),
     },
     { /* End of parameters */ }
   };
@@ -489,39 +489,39 @@ static int start_lqt(void * data)
 
 bg_input_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:            "i_lqt",       /* Unique short name */
-      long_name:       TRS("libquicktime input plugin"),
-      description:     TRS("Input plugin based on libquicktime"),
-      mimetypes:       NULL,
-      extensions:      "mov",
-      type:            BG_PLUGIN_INPUT,
-      flags:           BG_PLUGIN_FILE,
-      priority:        5,
-      create:          create_lqt,
-      destroy:         destroy_lqt,
-      get_parameters:  get_parameters_lqt,
-      set_parameter:   set_parameter_lqt,
+      .name =            "i_lqt",       /* Unique short name */
+      .long_name =       TRS("libquicktime input plugin"),
+      .description =     TRS("Input plugin based on libquicktime"),
+      .mimetypes =       NULL,
+      .extensions =      "mov",
+      .type =            BG_PLUGIN_INPUT,
+      .flags =           BG_PLUGIN_FILE,
+      .priority =        5,
+      .create =          create_lqt,
+      .destroy =         destroy_lqt,
+      .get_parameters =  get_parameters_lqt,
+      .set_parameter =   set_parameter_lqt,
     },
     
-    open:              open_lqt,
-    get_num_tracks:    get_num_tracks_lqt,
-    get_track_info:    get_track_info_lqt,
-    //    set_audio_stream:  set_audio_stream_lqt,
-    //    set_video_stream:  set_audio_stream_lqt,
-    start:             start_lqt,
+    .open =              open_lqt,
+    .get_num_tracks =    get_num_tracks_lqt,
+    .get_track_info =    get_track_info_lqt,
+    //    .set_audio_stream =  set_audio_stream_lqt,
+    //    .set_video_stream =  set_audio_stream_lqt,
+    .start =             start_lqt,
 
-    read_audio_samples: read_audio_samples_lqt,
-    read_video_frame:   read_video_frame_lqt,
+    .read_audio_samples = read_audio_samples_lqt,
+    .read_video_frame =   read_video_frame_lqt,
 
-    has_subtitle:       has_subtitle_lqt,
-    read_subtitle_text: read_subtitle_text_lqt,
+    .has_subtitle =       has_subtitle_lqt,
+    .read_subtitle_text = read_subtitle_text_lqt,
     
-    seek:               seek_lqt,
-    //    stop:               stop_lqt,
-    close:              close_lqt
+    .seek =               seek_lqt,
+    //    .stop =               stop_lqt,
+    .close =              close_lqt
     
   };
 

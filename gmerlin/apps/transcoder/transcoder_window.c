@@ -164,65 +164,65 @@ static int start_transcode(transcoder_window_t * win);
 static bg_parameter_info_t transcoder_window_parameters[] =
   {
     {
-      name:        "display",
-      long_name:   TRS("Display"),
-      type:        BG_PARAMETER_SECTION,
+      .name =        "display",
+      .long_name =   TRS("Display"),
+      .type =        BG_PARAMETER_SECTION,
     },
     {
-      name:        "display_foreground",
-      long_name:   TRS("Foreground"),
-      type:        BG_PARAMETER_COLOR_RGB,
-      val_default: { val_color: { 1.0, 1.0, 0.0, 1.0 } }
+      .name =        "display_foreground",
+      .long_name =   TRS("Foreground"),
+      .type =        BG_PARAMETER_COLOR_RGB,
+      .val_default = { .val_color = { 1.0, 1.0, 0.0, 1.0 } }
     },
     {
-      name:        "display_foreground_error",
-      long_name:   TRS("Error foreground"),
-      type:        BG_PARAMETER_COLOR_RGB,
-      val_default: { val_color: { 1.0, 0.0, 0.0, 1.0 } }
+      .name =        "display_foreground_error",
+      .long_name =   TRS("Error foreground"),
+      .type =        BG_PARAMETER_COLOR_RGB,
+      .val_default = { .val_color = { 1.0, 0.0, 0.0, 1.0 } }
     },
     {
-      name:        "display_background",
-      long_name:   TRS("Background"),
-      type:        BG_PARAMETER_COLOR_RGB,
-      val_default: { val_color: { 0.0, 0.0, 0.0, 1.0 } }
+      .name =        "display_background",
+      .long_name =   TRS("Background"),
+      .type =        BG_PARAMETER_COLOR_RGB,
+      .val_default = { .val_color = { 0.0, 0.0, 0.0, 1.0 } }
     },
     {
-      name:        "display_font",
-      long_name:   TRS("Font"),
-      type:        BG_PARAMETER_FONT,
-      val_default: { val_str: "Sans Bold 10" }
+      .name =        "display_font",
+      .long_name =   TRS("Font"),
+      .type =        BG_PARAMETER_FONT,
+      .val_default = { .val_str = "Sans Bold 10" }
     },
     {
-      name:        "task_path",
-      long_name:   "Task path",
-      type:        BG_PARAMETER_DIRECTORY,
-      flags:       BG_PARAMETER_HIDE_DIALOG,
-      val_default: { val_str: "." },
+      .name =        "task_path",
+      .long_name =   "Task path",
+      .type =        BG_PARAMETER_DIRECTORY,
+      .flags =       BG_PARAMETER_HIDE_DIALOG,
+      .val_default = { .val_str = "." },
     },
     {
-      name:        "profile_path",
-      long_name:   "Profile path",
-      type:        BG_PARAMETER_DIRECTORY,
-      flags:       BG_PARAMETER_HIDE_DIALOG,
-      val_default: { val_str: "." },
+      .name =        "profile_path",
+      .long_name =   "Profile path",
+      .type =        BG_PARAMETER_DIRECTORY,
+      .flags =       BG_PARAMETER_HIDE_DIALOG,
+      .val_default = { .val_str = "." },
     },
     {
-      name:        "show_logwindow",
-      long_name:   "Show log window",
-      type:        BG_PARAMETER_CHECKBUTTON,
-      flags:       BG_PARAMETER_HIDE_DIALOG,
-      val_default: { val_i: 0 },
+      .name =        "show_logwindow",
+      .long_name =   "Show log window",
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .flags =       BG_PARAMETER_HIDE_DIALOG,
+      .val_default = { .val_i = 0 },
     },
     {
-      name:        "gui",
-      long_name:   TRS("GUI"),
-      type:        BG_PARAMETER_SECTION,
+      .name =        "gui",
+      .long_name =   TRS("GUI"),
+      .type =        BG_PARAMETER_SECTION,
     },
     {
-      name:        "show_tooltips",
-      long_name:   TRS("Show Tooltips"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 },
+      .name =        "show_tooltips",
+      .long_name =   TRS("Show Tooltips"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 },
     },
     { /* End of parameters */ }
   };

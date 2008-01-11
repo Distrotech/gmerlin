@@ -54,17 +54,17 @@ typedef struct
 static bg_parameter_info_t parameters[] =
   {
     {
-      name:      "esd_host",
-      long_name: TRS("Host (empty: local)"),
-      type:      BG_PARAMETER_STRING,
+      .name =      "esd_host",
+      .long_name = TRS("Host (empty: local)"),
+      .type =      BG_PARAMETER_STRING,
     },
     {
-      name:        "input_mode",
-      long_name:   TRS("Input Mode"),
-      type:        BG_PARAMETER_STRINGLIST,
-      val_default: { val_str: "record" },
-      multi_names:     (char*[]){ "record", "monitor", (char*)0 },
-      multi_labels:    (char*[]){ TRS("Record"), TRS("Monitor"), (char*)0 },
+      .name =        "input_mode",
+      .long_name =   TRS("Input Mode"),
+      .type =        BG_PARAMETER_STRINGLIST,
+      .val_default = { .val_str = "record" },
+      .multi_names =     (char*[]){ "record", "monitor", (char*)0 },
+      .multi_labels =    (char*[]){ TRS("Record"), TRS("Monitor"), (char*)0 },
     },
     { /* End of parameters */ }
   };
@@ -225,28 +225,28 @@ static void read_frame_esd(void * p, gavl_audio_frame_t * f, int num_samples)
 
 bg_ra_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:          "i_esd",
-      long_name:     TRS("EsounD input driver"),
-      description:   TRS("EsounD input driver"),
+      .name =          "i_esd",
+      .long_name =     TRS("EsounD input driver"),
+      .description =   TRS("EsounD input driver"),
 
-      mimetypes:     (char*)0,
-      extensions:    (char*)0,
-      type:          BG_PLUGIN_RECORDER_AUDIO,
-      flags:         BG_PLUGIN_RECORDER,
-      priority:      BG_PLUGIN_PRIORITY_MIN,
-      create:        create_esd,
-      destroy:       destroy_esd,
+      .mimetypes =     (char*)0,
+      .extensions =    (char*)0,
+      .type =          BG_PLUGIN_RECORDER_AUDIO,
+      .flags =         BG_PLUGIN_RECORDER,
+      .priority =      BG_PLUGIN_PRIORITY_MIN,
+      .create =        create_esd,
+      .destroy =       destroy_esd,
 
-      get_parameters: get_parameters_esd,
-      set_parameter:  set_parameter_esd
+      .get_parameters = get_parameters_esd,
+      .set_parameter =  set_parameter_esd
     },
 
-    open:                open_esd,
-    read_frame:          read_frame_esd,
-    close:               close_esd,
+    .open =                open_esd,
+    .read_frame =          read_frame_esd,
+    .close =               close_esd,
   };
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */

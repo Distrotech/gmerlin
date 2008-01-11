@@ -235,19 +235,19 @@ int write_image_jpeg(void * priv, gavl_video_frame_t * frame)
 static bg_parameter_info_t parameters[] =
   {
     {
-      name:        "quality",
-      long_name:   TRS("Quality"),
-      type:        BG_PARAMETER_SLIDER_INT,
-      val_min:     { val_i: 0 },
-      val_max:     { val_i: 100 },
-      val_default: { val_i: 95 },
+      .name =        "quality",
+      .long_name =   TRS("Quality"),
+      .type =        BG_PARAMETER_SLIDER_INT,
+      .val_min =     { .val_i = 0 },
+      .val_max =     { .val_i = 100 },
+      .val_default = { .val_i = 95 },
     },
     {
-      name:               "chroma_sampling",
-      long_name:          TRS("Chroma sampling"),
-      type:               BG_PARAMETER_STRINGLIST,
-      val_default:        { val_str: "4:2:0" },
-      multi_names: (char*[]) { "4:2:0",
+      .name =               "chroma_sampling",
+      .long_name =          TRS("Chroma sampling"),
+      .type =               BG_PARAMETER_STRINGLIST,
+      .val_default =        { .val_str = "4:2:0" },
+      .multi_names = (char*[]) { "4:2:0",
                            "4:2:2",
                            "4:4:4",
                            (char*)0 },
@@ -299,25 +299,25 @@ static const char * get_extension_jpeg(void * p)
 
 bg_image_writer_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:           "iw_jpeg",
-      long_name:      TRS("JPEG writer"),
-      description:    TRS("Writer for JPEG images"),
-      mimetypes:      (char*)0,
-      extensions:     "jpeg jpg",
-      type:           BG_PLUGIN_IMAGE_WRITER,
-      flags:          BG_PLUGIN_FILE,
-      priority:       BG_PLUGIN_PRIORITY_MAX,
-      create:         create_jpeg,
-      destroy:        destroy_jpeg,
-      get_parameters: get_parameters_jpeg,
-      set_parameter:  set_parameter_jpeg
+      .name =           "iw_jpeg",
+      .long_name =      TRS("JPEG writer"),
+      .description =    TRS("Writer for JPEG images"),
+      .mimetypes =      (char*)0,
+      .extensions =     "jpeg jpg",
+      .type =           BG_PLUGIN_IMAGE_WRITER,
+      .flags =          BG_PLUGIN_FILE,
+      .priority =       BG_PLUGIN_PRIORITY_MAX,
+      .create =         create_jpeg,
+      .destroy =        destroy_jpeg,
+      .get_parameters = get_parameters_jpeg,
+      .set_parameter =  set_parameter_jpeg
     },
-    get_extension: get_extension_jpeg,
-    write_header: write_header_jpeg,
-    write_image:  write_image_jpeg,
+    .get_extension = get_extension_jpeg,
+    .write_header = write_header_jpeg,
+    .write_image =  write_image_jpeg,
   };
 
 /* Include this into all plugin modules exactly once

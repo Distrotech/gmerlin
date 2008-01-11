@@ -103,16 +103,16 @@ static void cmd_add(void * data, int * argc, char *** _argv, int arg)
 bg_cmdline_arg_t commands[] =
   {
     {
-      arg:         "-addalbum",
-      help_arg:    "<album_file>",
-      help_string: "Add album to track list",
-      callback:    cmd_addalbum,
+      .arg =         "-addalbum",
+      .help_arg =    "<album_file>",
+      .help_string = "Add album to track list",
+      .callback =    cmd_addalbum,
     },
     {
-      arg:         "-add",
-      help_arg:    "<location>",
-      help_string: "Add <location> to the track list",
-      callback:    cmd_add,
+      .arg =         "-add",
+      .help_arg =    "<location>",
+      .help_string = "Add <location> to the track list",
+      .callback =    cmd_add,
     },
     { /* End of options */ }
   };
@@ -155,36 +155,36 @@ static void opt_launch(void * data, int * argc, char *** argv, int arg)
 static bg_cmdline_arg_t global_options[] =
   {
     {
-      arg:         "-host",
-      help_arg:    "<hostname>",
-      help_string: "Host to connect to, default is localhost",
-      callback:    opt_host,
+      .arg =         "-host",
+      .help_arg =    "<hostname>",
+      .help_string = "Host to connect to, default is localhost",
+      .callback =    opt_host,
     },
     {
-      arg:         "-port",
-      help_arg:    "<port>",
-      help_string: "Port to connect to",
-      callback:    opt_port,
+      .arg =         "-port",
+      .help_arg =    "<port>",
+      .help_string = "Port to connect to",
+      .callback =    opt_port,
     },
     {
-      arg:         "-launch",
-      help_string: "Launch new transcoder if necessary",
-      callback:    opt_launch,
+      .arg =         "-launch",
+      .help_string = "Launch new transcoder if necessary",
+      .callback =    opt_launch,
     },
     { /* End of options */ }
   };
 
 bg_cmdline_app_data_t app_data =
   {
-    package:  PACKAGE,
-    version:  VERSION,
-    name:     "gmerlin_transcoder_remote",
-    synopsis: TRS("[options] command\n"),
-    help_before: TRS("Remote control command for the Gmerlin GUI transcoder\n"),
-    args: (bg_cmdline_arg_array_t[]) { { TRS("Global options"), global_options },
+    .package =  PACKAGE,
+    .version =  VERSION,
+    .name =     "gmerlin_transcoder_remote",
+    .synopsis = TRS("[options] command\n"),
+    .help_before = TRS("Remote control command for the Gmerlin GUI transcoder\n"),
+    .args = (bg_cmdline_arg_array_t[]) { { TRS("Global options"), global_options },
                                        { TRS("Commands"),       commands       },
                                        {  } },
-    env: (bg_cmdline_ext_doc_t[])
+    .env = (bg_cmdline_ext_doc_t[])
     { { TRANSCODER_REMOTE_ENV,
         TRS("Default port for the remote control") },
       { /* End */ }

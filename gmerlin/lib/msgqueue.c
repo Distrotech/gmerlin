@@ -612,9 +612,9 @@ void bg_msg_destroy(bg_msg_t * m)
   }
 
 /* Audio frame:
-   arg_0: valid samples
-   arg_1: timestamp
-   arg_2: big endian
+   .arg_0 = valid samples
+   .arg_1 = timestamp
+   .arg_2 = big endian
 */
 
 int bg_msg_write_audio_frame(bg_msg_t * msg,
@@ -739,10 +739,10 @@ int bg_msg_read_audio_frame(bg_msg_t * msg,
   return 1;
   }
 
-/* parameters:
-   arg_0: name
-   arg_1: type (int)
-   arg_2: value
+/* .parameters =
+   .arg_0 = name
+   .arg_1 = type (int)
+   .arg_2 = value
 */
 
 void bg_msg_set_parameter(bg_msg_t * msg,

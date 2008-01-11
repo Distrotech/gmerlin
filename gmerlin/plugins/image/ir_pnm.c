@@ -623,22 +623,22 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
 
 bg_image_reader_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:          "ir_pnm",
-      long_name:     TRS("PNM reader"),
-      description:    TRS("Reader for PBM/PGM/PPM images"),
-      mimetypes:     (char*)0,
-      extensions:    "pnm ppm pbm pgm",
-      type:          BG_PLUGIN_IMAGE_READER,
-      flags:         BG_PLUGIN_FILE,
-      priority:      BG_PLUGIN_PRIORITY_MAX,
-      create:        create_pnm,
-      destroy:       destroy_pnm,
+      .name =          "ir_pnm",
+      .long_name =     TRS("PNM reader"),
+      .description =    TRS("Reader for PBM/PGM/PPM images"),
+      .mimetypes =     (char*)0,
+      .extensions =    "pnm ppm pbm pgm",
+      .type =          BG_PLUGIN_IMAGE_READER,
+      .flags =         BG_PLUGIN_FILE,
+      .priority =      BG_PLUGIN_PRIORITY_MAX,
+      .create =        create_pnm,
+      .destroy =       destroy_pnm,
     },
-    read_header: read_header_pnm,
-    read_image:  read_image_pnm,
+    .read_header = read_header_pnm,
+    .read_image =  read_image_pnm,
   };
 
 /* Include this into all plugin modules exactly once

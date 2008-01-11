@@ -45,43 +45,43 @@
 static bg_parameter_info_t static_parameters[] =
   {
     {
-      name:        "channel_mode",
-      long_name:   TRS("Channel Mode"),
-      type:        BG_PARAMETER_STRINGLIST,
-      val_default: { val_str: "stereo" },
-      multi_names:   (char*[]){ "mono", "stereo", (char*)0 },
-      multi_labels:  (char*[]){ TRS("Mono"), TRS("Stereo"), (char*)0 },
+      .name =        "channel_mode",
+      .long_name =   TRS("Channel Mode"),
+      .type =        BG_PARAMETER_STRINGLIST,
+      .val_default = { .val_str = "stereo" },
+      .multi_names =   (char*[]){ "mono", "stereo", (char*)0 },
+      .multi_labels =  (char*[]){ TRS("Mono"), TRS("Stereo"), (char*)0 },
     },
     {
-      name:        "bits",
-      long_name:   TRS("Bits"),
-      type:        BG_PARAMETER_STRINGLIST,
-      val_default: { val_str: "16" },
-      multi_names:     (char*[]){ "8", "16", (char*)0 },
+      .name =        "bits",
+      .long_name =   TRS("Bits"),
+      .type =        BG_PARAMETER_STRINGLIST,
+      .val_default = { .val_str = "16" },
+      .multi_names =     (char*[]){ "8", "16", (char*)0 },
     },
     {
-      name:        "samplerate",
-      long_name:   TRS("Samplerate [Hz]"),
-      type:        BG_PARAMETER_INT,
-      val_default: { val_i: 44100 },
-      val_min:     { val_i:  8000 },
-      val_max:     { val_i: 96000 },
+      .name =        "samplerate",
+      .long_name =   TRS("Samplerate [Hz]"),
+      .type =        BG_PARAMETER_INT,
+      .val_default = { .val_i = 44100 },
+      .val_min =     { .val_i =  8000 },
+      .val_max =     { .val_i = 96000 },
     },
     {
-      name:        "buffer_time",
-      long_name:   TRS("Buffer time"),
-      type:        BG_PARAMETER_INT,
-      val_min:     { val_i: 10    },
-      val_max:     { val_i: 10000 },
-      val_default: { val_i: 1000  },
-      help_string: TRS("Set the buffer time (in milliseconds). Larger values \
+      .name =        "buffer_time",
+      .long_name =   TRS("Buffer time"),
+      .type =        BG_PARAMETER_INT,
+      .val_min =     { .val_i = 10    },
+      .val_max =     { .val_i = 10000 },
+      .val_default = { .val_i = 1000  },
+      .help_string = TRS("Set the buffer time (in milliseconds). Larger values \
 improve recording performance on slow systems under load."),
     },
     {
-      name:        "user_device",
-      long_name:   TRS("User device"),
-      type:        BG_PARAMETER_STRING,
-      help_string: TRS("Enter a custom device to use for recording. Leave empty to use the\
+      .name =        "user_device",
+      .long_name =   TRS("User device"),
+      .type =        BG_PARAMETER_STRING,
+      .help_string = TRS("Enter a custom device to use for recording. Leave empty to use the\
  settings above"),
     },
   };
@@ -331,27 +331,27 @@ static void destroy_alsa(void * p)
 
 bg_ra_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:          "i_alsa",
-      long_name:     TRS("Alsa"),
-      description:   TRS("Alsa recorder"),
-      mimetypes:     (char*)0,
-      extensions:    (char*)0,
-      type:          BG_PLUGIN_RECORDER_AUDIO,
-      flags:         BG_PLUGIN_RECORDER,
-      priority:      BG_PLUGIN_PRIORITY_MAX,
-      create:        create_alsa,
-      destroy:       destroy_alsa,
+      .name =          "i_alsa",
+      .long_name =     TRS("Alsa"),
+      .description =   TRS("Alsa recorder"),
+      .mimetypes =     (char*)0,
+      .extensions =    (char*)0,
+      .type =          BG_PLUGIN_RECORDER_AUDIO,
+      .flags =         BG_PLUGIN_RECORDER,
+      .priority =      BG_PLUGIN_PRIORITY_MAX,
+      .create =        create_alsa,
+      .destroy =       destroy_alsa,
 
-      get_parameters: get_parameters_alsa,
-      set_parameter:  set_parameter_alsa,
+      .get_parameters = get_parameters_alsa,
+      .set_parameter =  set_parameter_alsa,
     },
 
-    open:          open_alsa,
-    read_frame:    read_frame_alsa,
-    close:         close_alsa,
+    .open =          open_alsa,
+    .read_frame =    read_frame_alsa,
+    .close =         close_alsa,
   };
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */

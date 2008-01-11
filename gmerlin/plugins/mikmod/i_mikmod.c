@@ -247,46 +247,46 @@ static void destroy_mikmod(void * data)
 static bg_parameter_info_t parameters[] = 
   {
     {
-      name:        "output",
-      long_name:   TRS("Output format"),
-      type:        BG_PARAMETER_STRINGLIST,
-      multi_names: (char*[]){ "mono8", "stereo8", "mono16", "stereo16", (char*)0 },
-      multi_labels:  (char*[]){ TRS("Mono 8bit"), TRS("Stereo 8bit"), TRS("Mono 16bit"), TRS("Stereo 16bit"), (char*)0 },
+      .name =        "output",
+      .long_name =   TRS("Output format"),
+      .type =        BG_PARAMETER_STRINGLIST,
+      .multi_names = (char*[]){ "mono8", "stereo8", "mono16", "stereo16", (char*)0 },
+      .multi_labels =  (char*[]){ TRS("Mono 8bit"), TRS("Stereo 8bit"), TRS("Mono 16bit"), TRS("Stereo 16bit"), (char*)0 },
       
-      val_default: { val_str: "stereo16" },
+      .val_default = { .val_str = "stereo16" },
     },
       {
-      name:        "mixing_frequency",
-      long_name:   TRS("Samplerate"),
-      type:         BG_PARAMETER_INT,
-      val_min:     { val_i: 4000 },
-      val_max:     { val_i: 60000 },
-      val_default: { val_i: 44100 }      
-      // help_string: "Mixing frequency for the Track"
+      .name =        "mixing_frequency",
+      .long_name =   TRS("Samplerate"),
+      .type =         BG_PARAMETER_INT,
+      .val_min =     { .val_i = 4000 },
+      .val_max =     { .val_i = 60000 },
+      .val_default = { .val_i = 44100 }      
+      // .help_string = "Mixing frequency for the Track"
     },
     {
-      name: "look_for_hidden_patterns_in_module",
-      long_name: TRS("Look for hidden patterns in module"),
-      opt:  "hidden",
-      type: BG_PARAMETER_CHECKBUTTON,
+      .name = "look_for_hidden_patterns_in_module",
+      .long_name = TRS("Look for hidden patterns in module"),
+      .opt =  "hidden",
+      .type = BG_PARAMETER_CHECKBUTTON,
     },
     {
-      name: "use_surround_mixing",
-      long_name: TRS("Use surround mixing"),
-      opt:  "sur",
-      type: BG_PARAMETER_CHECKBUTTON,
+      .name = "use_surround_mixing",
+      .long_name = TRS("Use surround mixing"),
+      .opt =  "sur",
+      .type = BG_PARAMETER_CHECKBUTTON,
     },
     {
-      name: "force_volume_fade_at_the_end_of_module",
-      long_name: TRS("Force volume fade at the end of module"),
-      opt:  "fade",
-      type: BG_PARAMETER_CHECKBUTTON,
+      .name = "force_volume_fade_at_the_end_of_module",
+      .long_name = TRS("Force volume fade at the end of module"),
+      .opt =  "fade",
+      .type = BG_PARAMETER_CHECKBUTTON,
     },
     {
-      name: "use_interpolate_mixing",
-      long_name: TRS("Use interpolate mixing"),
-      opt:  "interpol",
-      type: BG_PARAMETER_CHECKBUTTON,
+      .name = "use_interpolate_mixing",
+      .long_name = TRS("Use interpolate mixing"),
+      .opt =  "interpol",
+      .type = BG_PARAMETER_CHECKBUTTON,
     },
     { /* End of parameters */ }
   };
@@ -328,29 +328,29 @@ static void set_parameter_mikmod(void * data, const char * name,
 
 bg_input_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:            "i_mikmod",       /* Unique short name */
-      long_name:       TRS("mikmod input plugin"),
-      description:     TRS("Simple wrapper, which calls the mikmod program"),
-      mimetypes:       NULL,
-      extensions:      "it xm mod mtm  s3m stm ult far med dsm amf imf 669",
-      type:            BG_PLUGIN_INPUT,
-      flags:           BG_PLUGIN_FILE,
-      priority:        1,
-      create:          create_mikmod,
-      destroy:         destroy_mikmod,
-      get_parameters:  get_parameters_mikmod,
-      set_parameter:   set_parameter_mikmod,
+      .name =            "i_mikmod",       /* Unique short name */
+      .long_name =       TRS("mikmod input plugin"),
+      .description =     TRS("Simple wrapper, which calls the mikmod program"),
+      .mimetypes =       NULL,
+      .extensions =      "it xm mod mtm  s3m stm ult far med dsm amf imf 669",
+      .type =            BG_PLUGIN_INPUT,
+      .flags =           BG_PLUGIN_FILE,
+      .priority =        1,
+      .create =          create_mikmod,
+      .destroy =         destroy_mikmod,
+      .get_parameters =  get_parameters_mikmod,
+      .set_parameter =   set_parameter_mikmod,
     },
     
-    open:              open_mikmod,
-    get_num_tracks:    get_num_tracks_mikmod,
-    get_track_info:    get_track_info_mikmod,
+    .open =              open_mikmod,
+    .get_num_tracks =    get_num_tracks_mikmod,
+    .get_track_info =    get_track_info_mikmod,
     
-    read_audio_samples: read_audio_samples_mikmod,
-    close:              close_mikmod
+    .read_audio_samples = read_audio_samples_mikmod,
+    .close =              close_mikmod
     
   };
 

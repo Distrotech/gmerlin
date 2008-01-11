@@ -140,30 +140,30 @@ static int write_image_tiff(void *priv, gavl_video_frame_t *frame)
 static bg_parameter_info_t parameters[] =
   {
     {
-      name:        "compression",
-      long_name:   TRS("Compression"),
-      type:        BG_PARAMETER_STRINGLIST,
-      multi_names: (char*[]){ "none", "packbits", "deflate", "jpeg", (char*)0 },
-      multi_labels:  (char*[]){ TRS("None"), TRS("Packbits"), TRS("Deflate"), TRS("JPEG"),
+      .name =        "compression",
+      .long_name =   TRS("Compression"),
+      .type =        BG_PARAMETER_STRINGLIST,
+      .multi_names = (char*[]){ "none", "packbits", "deflate", "jpeg", (char*)0 },
+      .multi_labels =  (char*[]){ TRS("None"), TRS("Packbits"), TRS("Deflate"), TRS("JPEG"),
                                 (char*)0 },
 
-      val_default: { val_str: "none" },
+      .val_default = { .val_str = "none" },
     },
     {
-      name:        "jpeg_quality",
-      long_name:   TRS("JPEG quality"),
-      type:        BG_PARAMETER_SLIDER_INT,
-      val_min:     { val_i: 0 },
-      val_max:     { val_i: 100 },
-      val_default: { val_i: 75 }      
+      .name =        "jpeg_quality",
+      .long_name =   TRS("JPEG quality"),
+      .type =        BG_PARAMETER_SLIDER_INT,
+      .val_min =     { .val_i = 0 },
+      .val_max =     { .val_i = 100 },
+      .val_default = { .val_i = 75 }      
     },
     {
-      name:        "zip_quality",
-      long_name:   TRS("Deflate compression level"),
-      type:        BG_PARAMETER_SLIDER_INT,
-      val_min:     { val_i: 0 },
-      val_max:     { val_i: 9 },
-      val_default: { val_i: 6 }      
+      .name =        "zip_quality",
+      .long_name =   TRS("Deflate compression level"),
+      .type =        BG_PARAMETER_SLIDER_INT,
+      .val_min =     { .val_i = 0 },
+      .val_max =     { .val_i = 9 },
+      .val_default = { .val_i = 6 }      
     },
     { /* End of parameters */ }
   };
@@ -210,25 +210,25 @@ static const char * get_extension_tiff(void * p)
 
 bg_image_writer_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:           "iw_tiff",
-      long_name:      TRS("TIFF writer"),
-      description:    TRS("Writer for TIFF images"),
-      mimetypes:      (char*)0,
-      extensions:     "tif",
-      type:           BG_PLUGIN_IMAGE_WRITER,
-      flags:          BG_PLUGIN_FILE,
-      priority:       5,
-      create:         create_tiff,
-      destroy:        destroy_tiff,
-      get_parameters: get_parameters_tiff,
-      set_parameter:  set_parameter_tiff
+      .name =           "iw_tiff",
+      .long_name =      TRS("TIFF writer"),
+      .description =    TRS("Writer for TIFF images"),
+      .mimetypes =      (char*)0,
+      .extensions =     "tif",
+      .type =           BG_PLUGIN_IMAGE_WRITER,
+      .flags =          BG_PLUGIN_FILE,
+      .priority =       5,
+      .create =         create_tiff,
+      .destroy =        destroy_tiff,
+      .get_parameters = get_parameters_tiff,
+      .set_parameter =  set_parameter_tiff
     },
-    get_extension: get_extension_tiff,
-    write_header:  write_header_tiff,
-    write_image:   write_image_tiff,
+    .get_extension = get_extension_tiff,
+    .write_header =  write_header_tiff,
+    .write_image =   write_image_tiff,
   };
 
 /* Include this into all plugin modules exactly once

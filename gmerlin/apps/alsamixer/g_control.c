@@ -1447,68 +1447,68 @@ GtkWidget * control_widget_get_widget(control_widget_t * w)
 
 static bg_parameter_info_t playback_lock_param =
   {
-    name: "playback_locked",
-    type: BG_PARAMETER_CHECKBUTTON,
-    val_default: { val_i: 1 }
+    .name = "playback_locked",
+    .type = BG_PARAMETER_CHECKBUTTON,
+    .val_default = { .val_i = 1 }
   };
 
 static bg_parameter_info_t capture_lock_param =
   {
-    name: "capture_locked",
-    type: BG_PARAMETER_CHECKBUTTON,
-    val_default: { val_i: 1 }
+    .name = "capture_locked",
+    .type = BG_PARAMETER_CHECKBUTTON,
+    .val_default = { .val_i = 1 }
   };
 
 static bg_parameter_info_t bass_lock_param =
   {
-    name: "bass_locked",
-    type: BG_PARAMETER_CHECKBUTTON,
-    val_default: { val_i: 1 }
+    .name = "bass_locked",
+    .type = BG_PARAMETER_CHECKBUTTON,
+    .val_default = { .val_i = 1 }
   };
 
 static bg_parameter_info_t treble_lock_param =
   {
-    name: "treble_locked",
-    type: BG_PARAMETER_CHECKBUTTON,
-    val_default: { val_i: 1 }
+    .name = "treble_locked",
+    .type = BG_PARAMETER_CHECKBUTTON,
+    .val_default = { .val_i = 1 }
   };
 
 static bg_parameter_info_t upper_params[] =
   {
     {
-      name: "hidden",
-      type: BG_PARAMETER_INT,
-      val_default: { val_i: 0 }
+      .name = "hidden",
+      .type = BG_PARAMETER_INT,
+      .val_default = { .val_i = 0 }
     },
     {
-      name: "index",
-      type: BG_PARAMETER_INT,
-      val_default: { val_i: -1 }
+      .name = "index",
+      .type = BG_PARAMETER_INT,
+      .val_default = { .val_i = -1 }
     },
     {
-      name: "own_window",
-      type: BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 0 }
+      .name = "own_window",
+      .type = BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 0 }
     },
     {
-      name: "x",
-      type: BG_PARAMETER_INT,
-      val_default: { val_i: 100 }
+      .name = "x",
+      .type = BG_PARAMETER_INT,
+      .val_default = { .val_i = 100 }
     },
     {
-      name: "y",
-      type: BG_PARAMETER_INT,
-      val_default: { val_i: 100 }
+      .name = "y",
+      .type = BG_PARAMETER_INT,
+      .val_default = { .val_i = 100 }
     },
     {
-      name: "width",
-      type: BG_PARAMETER_INT,
-      val_default: { val_i: 20 }
+      .name = "width",
+      .type = BG_PARAMETER_INT,
+      .val_default = { .val_i = 20 }
     },
     {
-      name: "height",
-      type: BG_PARAMETER_INT,
-      val_default: { val_i: 100 }
+      .name = "height",
+      .type = BG_PARAMETER_INT,
+      .val_default = { .val_i = 100 }
     },
   };
 

@@ -58,20 +58,20 @@ static void destroy_png(void * priv)
 static bg_parameter_info_t parameters[] =
   {
     {
-      name:        "compression",
-      long_name:   TRS("Compression level"),
-      type:        BG_PARAMETER_SLIDER_INT,
-      val_min:     { val_i: 0 },
-      val_max:     { val_i: 9 },
-      val_default: { val_i: 9 },
+      .name =        "compression",
+      .long_name =   TRS("Compression level"),
+      .type =        BG_PARAMETER_SLIDER_INT,
+      .val_min =     { .val_i = 0 },
+      .val_max =     { .val_i = 9 },
+      .val_default = { .val_i = 9 },
     },
     {
-      name:        "bit_mode",
-      long_name:   TRS("Bits per channel"),
-      type:        BG_PARAMETER_STRINGLIST,
-      multi_names: (char*[]){ "Auto", "8", "16" },
-      val_default: { val_str: "8" },
-      help_string: TRS("If you select auto, the depth will be chosen according to the input format")
+      .name =        "bit_mode",
+      .long_name =   TRS("Bits per channel"),
+      .type =        BG_PARAMETER_STRINGLIST,
+      .multi_names = (char*[]){ "Auto", "8", "16" },
+      .val_default = { .val_str = "8" },
+      .help_string = TRS("If you select auto, the depth will be chosen according to the input format")
     },
     { /* End of parameters */ }
   };
@@ -90,25 +90,25 @@ static const char * get_extension_png(void * p)
 
 bg_image_writer_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:           "iw_png",
-      long_name:      TRS("PNG writer"),
-      description:    TRS("Writer for PNG images"),
-      mimetypes:      (char*)0,
-      extensions:     "png",
-      type:           BG_PLUGIN_IMAGE_WRITER,
-      flags:          BG_PLUGIN_FILE,
-      priority:       5,
-      create:         create_png,
-      destroy:        destroy_png,
-      get_parameters: get_parameters_png,
-      set_parameter:  bg_pngwriter_set_parameter
+      .name =           "iw_png",
+      .long_name =      TRS("PNG writer"),
+      .description =    TRS("Writer for PNG images"),
+      .mimetypes =      (char*)0,
+      .extensions =     "png",
+      .type =           BG_PLUGIN_IMAGE_WRITER,
+      .flags =          BG_PLUGIN_FILE,
+      .priority =       5,
+      .create =         create_png,
+      .destroy =        destroy_png,
+      .get_parameters = get_parameters_png,
+      .set_parameter =  bg_pngwriter_set_parameter
     },
-    get_extension: get_extension_png,
-    write_header:  bg_pngwriter_write_header,
-    write_image:   bg_pngwriter_write_image,
+    .get_extension = get_extension_png,
+    .write_header =  bg_pngwriter_write_header,
+    .write_image =   bg_pngwriter_write_image,
   };
 
 /* Include this into all plugin modules exactly once

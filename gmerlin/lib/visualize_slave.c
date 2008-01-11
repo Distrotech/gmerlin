@@ -297,13 +297,13 @@ load_plugin_gmerlin(const char * filename)
   if(!get_plugin_api_version)
     {
     fprintf(stderr, 
-            "cannot get API version: %s", dlerror());
+            "cannot get API .version = %s", dlerror());
     goto fail;
     }
   if(get_plugin_api_version() != BG_PLUGIN_API_VERSION)
     {
     fprintf(stderr, 
-            "Wrong API version: %s", dlerror());
+            "Wrong API .version = %s", dlerror());
     goto fail;
     }
   ret->plugin = dlsym(ret->dll_handle, "the_plugin");

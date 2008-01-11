@@ -450,7 +450,7 @@ scan_directory_internal(const char * directory, bg_plugin_info_t ** _file_info,
   //  bg_plugin_info_t * end = (bg_plugin_info_t *)0;
   DIR * dir;
   struct dirent * entry;
-  char filename[PATH_MAX];
+  char filename[FILENAME_MAX];
   struct stat st;
   char * pos;
   void * test_module;

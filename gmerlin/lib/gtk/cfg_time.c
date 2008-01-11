@@ -179,10 +179,10 @@ attach(void * priv, GtkWidget * table, int * row, int * num_columns)
 
 static gtk_widget_funcs_t funcs =
   {
-    get_value: get_value,
-    set_value: set_value,
-    destroy: destroy,
-    attach:  attach
+    .get_value = get_value,
+    .set_value = set_value,
+    .destroy = destroy,
+    .attach =  attach
   };
 
 void 

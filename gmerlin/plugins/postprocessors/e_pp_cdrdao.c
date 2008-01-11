@@ -89,27 +89,27 @@ static void destroy_cdrdao(void * priv)
 static bg_parameter_info_t parameters[] =
   {
     {
-      name: "cda",
-      long_name: TRS("Audio CD options"),
-      type: BG_PARAMETER_SECTION,
+      .name = "cda",
+      .long_name = TRS("Audio CD options"),
+      .type = BG_PARAMETER_SECTION,
     },
     {
-      name: "toc_file",
-      long_name: TRS("TOC file"),
-      type: BG_PARAMETER_STRING,
-      val_default: { val_str: "audiocd.toc" },
+      .name = "toc_file",
+      .long_name = TRS("TOC file"),
+      .type = BG_PARAMETER_STRING,
+      .val_default = { .val_str = "audiocd.toc" },
     },
     {
-      name: "pre_gap",
-      long_name: TRS("Gap between tracks"),
-      type: BG_PARAMETER_INT,
-      val_default: { val_i: 150 },
-      help_string: TRS("Pre gap of each track in CD frames (1/75 seconds). Default is 150 (2 sec).")
+      .name = "pre_gap",
+      .long_name = TRS("Gap between tracks"),
+      .type = BG_PARAMETER_INT,
+      .val_default = { .val_i = 150 },
+      .help_string = TRS("Pre gap of each track in CD frames (1/75 seconds). Default is 150 (2 sec).")
     },
     {
-      name: "use_cdtext",
-      long_name: TRS("Write CD-Text"),
-      type: BG_PARAMETER_CHECKBUTTON,
+      .name = "use_cdtext",
+      .long_name = TRS("Write CD-Text"),
+      .type = BG_PARAMETER_CHECKBUTTON,
     },
     CDRDAO_PARAMS,
     { /* End of parameters */ },
@@ -436,29 +436,29 @@ static void stop_cdrdao(void * data)
 
 bg_encoder_pp_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:              "e_pp_cdrdao", /* Unique short name */
-      long_name:         TRS("Audio CD generator/burner"),
-      description:       TRS("This is a frontend for generating audio CD images (optionally with CD-Text) for cdrdao (http://cdrdao.sourceforge.net). Optional burning is also supported."),
-      extensions:        "wav",
-      type:              BG_PLUGIN_ENCODER_PP,
-      flags:             BG_PLUGIN_PP,
-      create:            create_cdrdao,
-      destroy:           destroy_cdrdao,
-      get_parameters:    get_parameters_cdrdao,
-      set_parameter:     set_parameter_cdrdao,
-      priority:          1,
+      .name =              "e_pp_cdrdao", /* Unique short name */
+      .long_name =         TRS("Audio CD generator/burner"),
+      .description =       TRS("This is a frontend for generating audio CD images (optionally with CD-Text) for cdrdao (http://cdrdao.sourceforge.net). Optional burning is also supported."),
+      .extensions =        "wav",
+      .type =              BG_PLUGIN_ENCODER_PP,
+      .flags =             BG_PLUGIN_PP,
+      .create =            create_cdrdao,
+      .destroy =           destroy_cdrdao,
+      .get_parameters =    get_parameters_cdrdao,
+      .set_parameter =     set_parameter_cdrdao,
+      .priority =          1,
     },
-    max_audio_streams:   1,
-    max_video_streams:   0,
+    .max_audio_streams =   1,
+    .max_video_streams =   0,
 
-    set_callbacks:       set_callbacks_cdrdao,
-    init:                init_cdrdao,
-    add_track:           add_track_cdrdao,
-    run:                 run_cdrdao,
-    stop:                stop_cdrdao,
+    .set_callbacks =       set_callbacks_cdrdao,
+    .init =                init_cdrdao,
+    .add_track =           add_track_cdrdao,
+    .run =                 run_cdrdao,
+    .stop =                stop_cdrdao,
     
   };
 

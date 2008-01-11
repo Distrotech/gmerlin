@@ -85,10 +85,10 @@ char * window_id = (char*)0;
 static bg_parameter_info_t oa_parameters[] =
   {
     {
-      name:      "plugin",
-      long_name: "Audio output plugin",
-      opt:       "p",
-      type:      BG_PARAMETER_MULTI_MENU,
+      .name =      "plugin",
+      .long_name = "Audio output plugin",
+      .opt =       "p",
+      .type =      BG_PARAMETER_MULTI_MENU,
     },
     { /* End of parameters */ }
   };
@@ -96,16 +96,16 @@ static bg_parameter_info_t oa_parameters[] =
 static bg_parameter_info_t ov_parameters[] =
   {
     {
-      name:      "plugin",
-      long_name: "Video output plugin",
-      opt:       "p",
-      type:      BG_PARAMETER_MULTI_MENU,
+      .name =      "plugin",
+      .long_name = "Video output plugin",
+      .opt =       "p",
+      .type =      BG_PARAMETER_MULTI_MENU,
     },
     {
-      name:      "window",
-      long_name: "Window ID",
-      opt:       "w",
-      type:      BG_PARAMETER_STRING,
+      .name =      "window",
+      .long_name = "Window ID",
+      .opt =       "w",
+      .type =      BG_PARAMETER_STRING,
     },
     { /* End of parameters */ }
   };
@@ -113,10 +113,10 @@ static bg_parameter_info_t ov_parameters[] =
 static bg_parameter_info_t i_parameters[] =
   {
     {
-      name:      "plugin",
-      long_name: "input plugin",
-      opt:       "p",
-      type:      BG_PARAMETER_MULTI_MENU,
+      .name =      "plugin",
+      .long_name = "input plugin",
+      .opt =       "p",
+      .type =      BG_PARAMETER_MULTI_MENU,
     },
     { /* End of parameters */ }
   };
@@ -380,72 +380,72 @@ static void opt_v(void * data, int * argc, char *** _argv, int arg)
 static bg_cmdline_arg_t global_options[] =
   {
     {
-      arg:         "-oa",
-      help_arg:    "<audio_output_options>",
-      help_string: "Set audio output options",
-      callback:    opt_oa,
-      parameters:  oa_parameters,
+      .arg =         "-oa",
+      .help_arg =    "<audio_output_options>",
+      .help_string = "Set audio output options",
+      .callback =    opt_oa,
+      .parameters =  oa_parameters,
     },
     {
-      arg:         "-ov",
-      help_arg:    "<video_output_options>",
-      help_string: "Set video output options",
-      callback:    opt_ov,
-      parameters:  ov_parameters,
+      .arg =         "-ov",
+      .help_arg =    "<video_output_options>",
+      .help_string = "Set video output options",
+      .callback =    opt_ov,
+      .parameters =  ov_parameters,
     },
     {
-      arg:         "-i",
-      help_arg:    "<input_plugin>",
-      help_string: "Set and configure input plugin",
-      callback:    opt_i,
-      parameters:  i_parameters,
+      .arg =         "-i",
+      .help_arg =    "<input_plugin>",
+      .help_string = "Set and configure input plugin",
+      .callback =    opt_i,
+      .parameters =  i_parameters,
     },
     {
-      arg:         "-aud",
-      help_arg:    "<audio_options>",
-      help_string: "Set audio processing options",
-      callback:    opt_aud,
+      .arg =         "-aud",
+      .help_arg =    "<audio_options>",
+      .help_string = "Set audio processing options",
+      .callback =    opt_aud,
     },
     {
-      arg:         "-vid",
-      help_arg:    "<video_options>",
-      help_string: "Set video processing options",
-      callback:    opt_vid,
+      .arg =         "-vid",
+      .help_arg =    "<video_options>",
+      .help_string = "Set video processing options",
+      .callback =    opt_vid,
     },
     {
-      arg:         "-inopt",
-      help_arg:    "<input_options>",
-      help_string: "Set generic input options",
-      callback:    opt_inopt,
+      .arg =         "-inopt",
+      .help_arg =    "<input_options>",
+      .help_string = "Set generic input options",
+      .callback =    opt_inopt,
     },
     {
-      arg:         "-osd",
-      help_arg:    "<osd_options>",
-      help_string: "Set OSD options",
-      callback:    opt_osd,
+      .arg =         "-osd",
+      .help_arg =    "<osd_options>",
+      .help_string = "Set OSD options",
+      .callback =    opt_osd,
     },
     {
-      arg:         "-nt",
-      help_string: "Disable time display",
-      callback:    opt_nt,
+      .arg =         "-nt",
+      .help_string = "Disable time display",
+      .callback =    opt_nt,
     },
     {
-      arg:         "-vol",
-      help_arg:    "<volume>",
-      help_string: "Set volume in dB (max: 0.0)",
-      callback:    opt_vol,
+      .arg =         "-vol",
+      .help_arg =    "<volume>",
+      .help_string = "Set volume in dB (max: 0.0)",
+      .callback =    opt_vol,
     },
     {
-      arg:         "-v",
-      help_arg:    "level",
-      help_string: "Set verbosity level (0..4)",
-      callback:    opt_v,
+      .arg =         "-v",
+      .help_arg =    "level",
+      .help_string = "Set verbosity level (0..4)",
+      .callback =    opt_v,
     },
     {
-      arg:         "-tracks",
-      help_arg:    "<track_spec>",
-      help_string: "<track_spec> can be a ranges mixed with comma separated tracks",
-      callback:    opt_tracks,
+      .arg =         "-tracks",
+      .help_arg =    "<track_spec>",
+      .help_string = "<track_spec> can be a ranges mixed with comma separated tracks",
+      .callback =    opt_tracks,
     },
     { /* End of options */ }
   };
@@ -842,14 +842,14 @@ static void info_close_callback(bg_gtk_info_window_t * info_window,
 
 bg_cmdline_app_data_t app_data =
   {
-    package:  PACKAGE,
-    version:  VERSION,
-    name:     "gmerlin_player",
-    synopsis: TRS("[options] gml...\n"),
-    help_before: TRS("Commandline Multimedia player\n"),
-    args: (bg_cmdline_arg_array_t[]) { { TRS("Options"), global_options },
+    .package =  PACKAGE,
+    .version =  VERSION,
+    .name =     "gmerlin_player",
+    .synopsis = TRS("[options] gml...\n"),
+    .help_before = TRS("Commandline Multimedia player\n"),
+    .args = (bg_cmdline_arg_array_t[]) { { TRS("Options"), global_options },
                                        {  } },
-    files: (bg_cmdline_ext_doc_t[])
+    .files = (bg_cmdline_ext_doc_t[])
     { { "~/.gmerlin/plugins.xml",
         TRS("Cache of the plugin registry (shared by all applicatons)") },
       { "~/.gmerlin/generic/config.xml",

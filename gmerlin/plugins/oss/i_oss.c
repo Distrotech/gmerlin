@@ -47,33 +47,33 @@
 static bg_parameter_info_t parameters[] =
   {
     {
-      name:        "device",
-      long_name:   TRS("Device"),
-      type:        BG_PARAMETER_DEVICE,
-      val_default: { val_str: "/dev/dsp" },
+      .name =        "device",
+      .long_name =   TRS("Device"),
+      .type =        BG_PARAMETER_DEVICE,
+      .val_default = { .val_str = "/dev/dsp" },
     },
     {
-      name:        "channel_mode",
-      long_name:   TRS("Channel Mode"),
-      type:        BG_PARAMETER_STRINGLIST,
-      val_default: { val_str: "Stereo" },
-      multi_names:     (char*[]){ "Mono", "Stereo", (char*)0 },
-      multi_labels:     (char*[]){ TRS("Mono"), TRS("Stereo"), (char*)0 },
+      .name =        "channel_mode",
+      .long_name =   TRS("Channel Mode"),
+      .type =        BG_PARAMETER_STRINGLIST,
+      .val_default = { .val_str = "Stereo" },
+      .multi_names =     (char*[]){ "Mono", "Stereo", (char*)0 },
+      .multi_labels =     (char*[]){ TRS("Mono"), TRS("Stereo"), (char*)0 },
     },
     {
-      name:        "bits",
-      long_name:   TRS("Bits"),
-      type:        BG_PARAMETER_STRINGLIST,
-      val_default: { val_str: "16" },
-      multi_names:     (char*[]){ "8", "16", (char*)0 },
+      .name =        "bits",
+      .long_name =   TRS("Bits"),
+      .type =        BG_PARAMETER_STRINGLIST,
+      .val_default = { .val_str = "16" },
+      .multi_names =     (char*[]){ "8", "16", (char*)0 },
     },
     {
-      name:        "samplerate",
-      long_name:   TRS("Samplerate [Hz]"),
-      type:        BG_PARAMETER_INT,
-      val_default: { val_i: 44100 },
-      val_min:     { val_i:  8000 },
-      val_max:     { val_i: 96000 },
+      .name =        "samplerate",
+      .long_name =   TRS("Samplerate [Hz]"),
+      .type =        BG_PARAMETER_INT,
+      .val_default = { .val_i = 44100 },
+      .val_min =     { .val_i =  8000 },
+      .val_max =     { .val_i = 96000 },
     },
     { /* End of parameters */ }
   };
@@ -273,27 +273,27 @@ static void destroy_oss(void * p)
 
 bg_ra_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:          "i_oss",
-      long_name:     TRS("OSS"),
-      description:   TRS("OSS Recorder"),
-      mimetypes:     (char*)0,
-      extensions:    (char*)0,
-      type:          BG_PLUGIN_RECORDER_AUDIO,
-      flags:         BG_PLUGIN_RECORDER,
-      priority:      5,
-      create:        create_oss,
-      destroy:       destroy_oss,
+      .name =          "i_oss",
+      .long_name =     TRS("OSS"),
+      .description =   TRS("OSS Recorder"),
+      .mimetypes =     (char*)0,
+      .extensions =    (char*)0,
+      .type =          BG_PLUGIN_RECORDER_AUDIO,
+      .flags =         BG_PLUGIN_RECORDER,
+      .priority =      5,
+      .create =        create_oss,
+      .destroy =       destroy_oss,
 
-      get_parameters: get_parameters_oss,
-      set_parameter:  set_parameter_oss
+      .get_parameters = get_parameters_oss,
+      .set_parameter =  set_parameter_oss
     },
 
-    open:          open_oss,
-    read_frame:    read_frame_oss,
-    close:         close_oss,
+    .open =          open_oss,
+    .read_frame =    read_frame_oss,
+    .close =         close_oss,
   };
 
 /* Include this into all plugin modules exactly once

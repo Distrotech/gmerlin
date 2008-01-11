@@ -322,91 +322,91 @@ void bg_gtk_log_window_hide(bg_gtk_log_window_t * win)
 static bg_parameter_info_t parameters[] =
   {
     {
-      name:        "max_messages",
-      long_name:   TRS("Number of messages"),
-      type:        BG_PARAMETER_INT,
-      val_default: { val_i: 20 },
-      help_string: TRS("Maximum number of messages hold in the window")
+      .name =        "max_messages",
+      .long_name =   TRS("Number of messages"),
+      .type =        BG_PARAMETER_INT,
+      .val_default = { .val_i = 20 },
+      .help_string = TRS("Maximum number of messages hold in the window")
     },
     {
-      name:        "show_info",
-      long_name:   TRS("Show info massages"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 }
+      .name =        "show_info",
+      .long_name =   TRS("Show info messages"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 }
     },
     {
-      name:        "show_warning",
-      long_name:   TRS("Show warning massages"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 }
+      .name =        "show_warning",
+      .long_name =   TRS("Show warning messages"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 }
     },
     {
-      name:        "show_error",
-      long_name:   TRS("Show error massages"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 }
+      .name =        "show_error",
+      .long_name =   TRS("Show error messages"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 }
     },
     {
-      name:        "show_debug",
-      long_name:   TRS("Show debug massages"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 0 }
+      .name =        "show_debug",
+      .long_name =   TRS("Show debug messages"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 0 }
     },
     {
-      name:        "info_color",
-      long_name:   TRS("Info foreground"),
-      type:        BG_PARAMETER_COLOR_RGB,
-      val_default: { val_color: { 0.0, 0.0, 0.0 } },
-      help_string: TRS("Color for info messages"),
+      .name =        "info_color",
+      .long_name =   TRS("Info foreground"),
+      .type =        BG_PARAMETER_COLOR_RGB,
+      .val_default = { .val_color = { 0.0, 0.0, 0.0 } },
+      .help_string = TRS("Color for info messages"),
     },
     {
-      name:        "warning_color",
-      long_name:   TRS("Warning foreground"),
-      type:        BG_PARAMETER_COLOR_RGB,
-      val_default: { val_color: { 1.0, 0.5, 0.0 } },
-      help_string: TRS("Color for warning messages"),
+      .name =        "warning_color",
+      .long_name =   TRS("Warning foreground"),
+      .type =        BG_PARAMETER_COLOR_RGB,
+      .val_default = { .val_color = { 1.0, 0.5, 0.0 } },
+      .help_string = TRS("Color for warning messages"),
     },
     {
-      name:        "error_color",
-      long_name:   TRS("Error foreground"),
-      type:        BG_PARAMETER_COLOR_RGB,
-      val_default: { val_color: { 1.0, 0.0, 0.0 } },
-      help_string: TRS("Color for error messages"),
+      .name =        "error_color",
+      .long_name =   TRS("Error foreground"),
+      .type =        BG_PARAMETER_COLOR_RGB,
+      .val_default = { .val_color = { 1.0, 0.0, 0.0 } },
+      .help_string = TRS("Color for error messages"),
     },
     {
-      name:        "debug_color",
-      long_name:   TRS("Debug foreground"),
-      type:        BG_PARAMETER_COLOR_RGB,
-      val_default: { val_color: { 0.0, 0.0, 1.0 } },
-      help_string: TRS("Color for debug messages"),
+      .name =        "debug_color",
+      .long_name =   TRS("Debug foreground"),
+      .type =        BG_PARAMETER_COLOR_RGB,
+      .val_default = { .val_color = { 0.0, 0.0, 1.0 } },
+      .help_string = TRS("Color for debug messages"),
     },
     {
-      name: "x",
-      long_name: "X",
-      flags: BG_PARAMETER_HIDE_DIALOG,
-      type: BG_PARAMETER_INT,
-      val_default: { val_i: 100 }
+      .name = "x",
+      .long_name = "X",
+      .flags = BG_PARAMETER_HIDE_DIALOG,
+      .type = BG_PARAMETER_INT,
+      .val_default = { .val_i = 100 }
     },
     {
-      name: "y",
-      long_name: "Y",
-      flags: BG_PARAMETER_HIDE_DIALOG,
-      type: BG_PARAMETER_INT,
-      val_default: { val_i: 100 }
+      .name = "y",
+      .long_name = "Y",
+      .flags = BG_PARAMETER_HIDE_DIALOG,
+      .type = BG_PARAMETER_INT,
+      .val_default = { .val_i = 100 }
     },
     {
-      name: "width",
-      long_name: "Width",
-      flags: BG_PARAMETER_HIDE_DIALOG,
-      type: BG_PARAMETER_INT,
-      val_default: { val_i: 0 }
+      .name = "width",
+      .long_name = "Width",
+      .flags = BG_PARAMETER_HIDE_DIALOG,
+      .type = BG_PARAMETER_INT,
+      .val_default = { .val_i = 0 }
     },
     {
-      name: "height",
-      long_name: "Height",
-      flags: BG_PARAMETER_HIDE_DIALOG,
-      type: BG_PARAMETER_INT,
-      val_default: { val_i: 0 }
+      .name = "height",
+      .long_name = "Height",
+      .flags = BG_PARAMETER_HIDE_DIALOG,
+      .type = BG_PARAMETER_INT,
+      .val_default = { .val_i = 0 }
     },
     { /* */ }
   };

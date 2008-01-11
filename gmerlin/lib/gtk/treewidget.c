@@ -318,11 +318,11 @@ struct bg_gtk_tree_widget_s
 static bg_parameter_info_t parameters[] =
   {
     {
-      name:      "tabbed_mode",
-      long_name: "Tabbed mode",
-      type:      BG_PARAMETER_CHECKBUTTON,
-      flags:     BG_PARAMETER_HIDE_DIALOG,
-      val_default: { val_i: 1 },
+      .name =      "tabbed_mode",
+      .long_name = "Tabbed mode",
+      .type =      BG_PARAMETER_CHECKBUTTON,
+      .flags =     BG_PARAMETER_HIDE_DIALOG,
+      .val_default = { .val_i = 1 },
     },
     { /* End of parameters */ }
   };

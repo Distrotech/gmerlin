@@ -842,22 +842,22 @@ static int read_image_tiff(void *priv, gavl_video_frame_t *frame)
 
 bg_image_reader_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:          "ir_tiff",
-      long_name:     TRS("TIFF reader"),
-      description:   TRS("Reader for TIFF images"),
-      mimetypes:     (char*)0,
-      extensions:    "tif tiff",
-      type:          BG_PLUGIN_IMAGE_READER,
-      flags:         BG_PLUGIN_FILE,
-      priority:      BG_PLUGIN_PRIORITY_MAX,
-      create:        create_tiff,
-      destroy:       destroy_tiff,
+      .name =          "ir_tiff",
+      .long_name =     TRS("TIFF reader"),
+      .description =   TRS("Reader for TIFF images"),
+      .mimetypes =     (char*)0,
+      .extensions =    "tif tiff",
+      .type =          BG_PLUGIN_IMAGE_READER,
+      .flags =         BG_PLUGIN_FILE,
+      .priority =      BG_PLUGIN_PRIORITY_MAX,
+      .create =        create_tiff,
+      .destroy =       destroy_tiff,
     },
-    read_header: read_header_tiff,
-    read_image:  read_image_tiff,
+    .read_header = read_header_tiff,
+    .read_image =  read_image_tiff,
   };
 
 /* Include this into all plugin modules exactly once

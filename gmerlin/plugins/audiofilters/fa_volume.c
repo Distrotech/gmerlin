@@ -62,16 +62,16 @@ static void destroy_volume(void * priv)
 static bg_parameter_info_t parameters[] =
   {
     {
-      gettext_domain: PACKAGE,
-      gettext_directory: LOCALE_DIR,
-      name: "volume",
-      long_name: TRS("Volume"),
-      type: BG_PARAMETER_SLIDER_FLOAT,
-      flags: BG_PARAMETER_SYNC,
-      num_digits: 2,
-      val_min: { val_f: -90.0 },
-      val_max: { val_f:  20.0 },
-      val_default: { val_f: 0.0 },
+      .gettext_domain = PACKAGE,
+      .gettext_directory = LOCALE_DIR,
+      .name = "volume",
+      .long_name = TRS("Volume"),
+      .type = BG_PARAMETER_SLIDER_FLOAT,
+      .flags = BG_PARAMETER_SYNC,
+      .num_digits = 2,
+      .val_min = { .val_f = -90.0 },
+      .val_max = { .val_f =  20.0 },
+      .val_default = { .val_f = 0.0 },
     },
     { /* End of parameters */ },
   };
@@ -145,27 +145,27 @@ static int read_audio_volume(void * priv, gavl_audio_frame_t * frame, int stream
 
 bg_fa_plugin_t the_plugin = 
   {
-    common: //!< Infos and functions common to all plugin types
+    .common = //!< Infos and functions common to all plugin types
     {
       BG_LOCALE,
-      name:      "fa_volume",
-      long_name: TRS("Volume control"),
-      description: TRS("Simple volume control"),
-      type:     BG_PLUGIN_FILTER_AUDIO,
-      flags:    BG_PLUGIN_FILTER_1,
-      create:   create_volume,
-      destroy:   destroy_volume,
-      get_parameters:   get_parameters_volume,
-      set_parameter:    set_parameter_volume,
-      priority:         1,
+      .name =      "fa_volume",
+      .long_name = TRS("Volume control"),
+      .description = TRS("Simple volume control"),
+      .type =     BG_PLUGIN_FILTER_AUDIO,
+      .flags =    BG_PLUGIN_FILTER_1,
+      .create =   create_volume,
+      .destroy =   destroy_volume,
+      .get_parameters =   get_parameters_volume,
+      .set_parameter =    set_parameter_volume,
+      .priority =         1,
     },
     
-    connect_input_port: connect_input_port_volume,
+    .connect_input_port = connect_input_port_volume,
     
-    set_input_format: set_input_format_volume,
-    get_output_format: get_output_format_volume,
+    .set_input_format = set_input_format_volume,
+    .get_output_format = get_output_format_volume,
 
-    read_audio: read_audio_volume,
+    .read_audio = read_audio_volume,
     
   };
 

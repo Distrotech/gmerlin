@@ -190,22 +190,22 @@ static int read_image_tga(void * priv, gavl_video_frame_t * frame)
 
 bg_image_reader_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:          "ir_tga",
-      long_name:     TRS("TGA reader"),
-      description:   TRS("Reader for TGA images"),
-      mimetypes:     (char*)0,
-      extensions:    "tga",
-      type:          BG_PLUGIN_IMAGE_READER,
-      flags:         BG_PLUGIN_FILE,
-      priority:      BG_PLUGIN_PRIORITY_MAX,
-      create:        create_tga,
-      destroy:       destroy_tga,
+      .name =          "ir_tga",
+      .long_name =     TRS("TGA reader"),
+      .description =   TRS("Reader for TGA images"),
+      .mimetypes =     (char*)0,
+      .extensions =    "tga",
+      .type =          BG_PLUGIN_IMAGE_READER,
+      .flags =         BG_PLUGIN_FILE,
+      .priority =      BG_PLUGIN_PRIORITY_MAX,
+      .create =        create_tga,
+      .destroy =       destroy_tga,
     },
-    read_header: read_header_tga,
-    read_image:  read_image_tga,
+    .read_header = read_header_tga,
+    .read_image =  read_image_tga,
   };
 
 /* Include this into all plugin modules exactly once

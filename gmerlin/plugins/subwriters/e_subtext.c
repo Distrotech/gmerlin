@@ -125,15 +125,15 @@ static struct
 formats[] =
   {
     {
-      extension:      "srt",
-      name:           "srt",
-      write_subtitle: write_subtitle_srt,
+      .extension =      "srt",
+      .name =           "srt",
+      .write_subtitle = write_subtitle_srt,
     },
     {
-      extension:      "sub",
-      name:           "mpsub",
-      write_header:   write_header_mpsub,
-      write_subtitle: write_subtitle_mpsub,
+      .extension =      "sub",
+      .name =           "mpsub",
+      .write_header =   write_header_mpsub,
+      .write_subtitle = write_subtitle_mpsub,
     }
   };
 
@@ -228,12 +228,12 @@ static void destroy_subtext(void * data)
 static bg_parameter_info_t parameters[] =
   {
     {
-      name:         "format" ,
-      long_name:    TRS("Format"),
-      type:         BG_PARAMETER_STRINGLIST,
-      val_default:  { val_str: "srt" },
-      multi_names:  (char*[]){ "srt",           "mpsub",         (char*)0 },
-      multi_labels: (char*[]){ TRS("Subrip (.srt)"), TRS("MPlayer mpsub"), (char*)0 },
+      .name =         "format" ,
+      .long_name =    TRS("Format"),
+      .type =         BG_PARAMETER_STRINGLIST,
+      .val_default =  { .val_str = "srt" },
+      .multi_names =  (char*[]){ "srt",           "mpsub",         (char*)0 },
+      .multi_labels = (char*[]){ TRS("Subrip (.srt)"), TRS("MPlayer mpsub"), (char*)0 },
       
     },
     { /* End of parameters */ }
@@ -268,35 +268,35 @@ static void set_parameter_subtext(void * data, const char * name,
 
 bg_encoder_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:           "e_subtext",       /* Unique short name */
-      long_name:      TRS("Text subtitle exporter"),
-      description:    TRS("Plugin for exporting text subtitles. Supported formats are MPSub and SRT"),
-      mimetypes:      NULL,
-      extensions:     "srt",
-      type:           BG_PLUGIN_ENCODER_SUBTITLE_TEXT,
-      flags:          BG_PLUGIN_FILE,
-      priority:       BG_PLUGIN_PRIORITY_MAX,
-      create:         create_subtext,
-      destroy:        destroy_subtext,
-      get_parameters: get_parameters_subtext,
-      set_parameter:  set_parameter_subtext,
+      .name =           "e_subtext",       /* Unique short name */
+      .long_name =      TRS("Text subtitle exporter"),
+      .description =    TRS("Plugin for exporting text subtitles. Supported formats are MPSub and SRT"),
+      .mimetypes =      NULL,
+      .extensions =     "srt",
+      .type =           BG_PLUGIN_ENCODER_SUBTITLE_TEXT,
+      .flags =          BG_PLUGIN_FILE,
+      .priority =       BG_PLUGIN_PRIORITY_MAX,
+      .create =         create_subtext,
+      .destroy =        destroy_subtext,
+      .get_parameters = get_parameters_subtext,
+      .set_parameter =  set_parameter_subtext,
     },
 
-    max_subtitle_text_streams: 1,
+    .max_subtitle_text_streams = 1,
     
-    get_extension:        get_extension_subtext,
+    .get_extension =        get_extension_subtext,
     
-    open:                 open_subtext,
+    .open =                 open_subtext,
 
-    add_subtitle_text_stream:     add_subtitle_text_stream_subtext,
+    .add_subtitle_text_stream =     add_subtitle_text_stream_subtext,
     
-    start:                start_subtext,
+    .start =                start_subtext,
     
-    write_subtitle_text: write_subtitle_text_subtext,
-    close:             close_subtext,
+    .write_subtitle_text = write_subtitle_text_subtext,
+    .close =             close_subtext,
     
   };
 

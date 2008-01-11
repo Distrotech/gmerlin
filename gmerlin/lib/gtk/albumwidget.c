@@ -402,18 +402,18 @@ static int entry_2_iter(bg_gtk_album_widget_t * w,
 static bg_parameter_info_t parameters[] =
   {
     {
-      name:       "open_path",
-      long_name:  "Open path",
-      type:       BG_PARAMETER_DIRECTORY,
-      flags:      BG_PARAMETER_HIDE_DIALOG,
-      val_default: { val_str: "." },
+      .name =       "open_path",
+      .long_name =  "Open path",
+      .type =       BG_PARAMETER_DIRECTORY,
+      .flags =      BG_PARAMETER_HIDE_DIALOG,
+      .val_default = { .val_str = "." },
     },
     {
-      name:       "show_toolbar",
-      long_name:  "Show toolbar",
-      type:       BG_PARAMETER_CHECKBUTTON,
-      flags:      BG_PARAMETER_HIDE_DIALOG,
-      val_default: { val_i: 1 },
+      .name =       "show_toolbar",
+      .long_name =  "Show toolbar",
+      .type =       BG_PARAMETER_CHECKBUTTON,
+      .flags =      BG_PARAMETER_HIDE_DIALOG,
+      .val_default = { .val_i = 1 },
     },
     { /* End of parameters */ }
   };

@@ -19,11 +19,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#include <config.h>
+
 #include <ctype.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+
+#ifdef HAVE_SYS_SELECT_H
+#include <sys/select.h>
+#else
+#include <sys/time.h>
+#include <sys/types.h>
+#endif
+
 #include <unistd.h>
 
 #include <netdb.h> /* gethostbyname */
@@ -36,7 +46,6 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include <config.h>
 
 #include <utils.h>
 #include <bgsocket.h>

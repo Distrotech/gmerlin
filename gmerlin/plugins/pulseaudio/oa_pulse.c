@@ -79,30 +79,30 @@ static int get_delay_pulse(void * p)
 
 bg_oa_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:          "oa_pulse",
-      long_name:     TRS("Pulse"),
-      description:   TRS("PulseAudio output"),
-      mimetypes:     (char*)0,
-      extensions:    (char*)0,
-      type:          BG_PLUGIN_OUTPUT_AUDIO,
-      flags:         BG_PLUGIN_PLAYBACK,
-      priority:      BG_PLUGIN_PRIORITY_MAX,
-      create:        bg_pa_create,
-      destroy:       bg_pa_destroy,
+      .name =          "oa_pulse",
+      .long_name =     TRS("Pulse"),
+      .description =   TRS("PulseAudio output"),
+      .mimetypes =     (char*)0,
+      .extensions =    (char*)0,
+      .type =          BG_PLUGIN_OUTPUT_AUDIO,
+      .flags =         BG_PLUGIN_PLAYBACK,
+      .priority =      BG_PLUGIN_PRIORITY_MAX,
+      .create =        bg_pa_create,
+      .destroy =       bg_pa_destroy,
       
-      //      get_parameters: get_parameters_alsa,
-      //      set_parameter:  set_parameter_alsa,
+      //      .get_parameters = get_parameters_alsa,
+      //      .set_parameter =  set_parameter_alsa,
     },
 
-    open:          open_pulse,
-    start:         start_pulse,
-    write_frame:   write_frame_pulse,
-    stop:          stop_pulse,
-    close:         close_pulse,
-    get_delay:     get_delay_pulse,
+    .open =          open_pulse,
+    .start =         start_pulse,
+    .write_frame =   write_frame_pulse,
+    .stop =          stop_pulse,
+    .close =         close_pulse,
+    .get_delay =     get_delay_pulse,
   };
 
 /* Include this into all plugin modules exactly once

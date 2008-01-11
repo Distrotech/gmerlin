@@ -155,7 +155,7 @@ int main(int argc, char ** argv)
   /*
     @menu
 * Introduction: gui_intro.
-* Static and dynamic parameters: gui_statdyn.
+* Static and dynamic .parameters = gui_statdyn.
 * Configuring input plugins: gui_i.
 * Configuring filters: gui_f.
 * Log messages: gui_log.

@@ -511,11 +511,11 @@ static void destroy(bg_gtk_widget_t * w)
 
 static gtk_widget_funcs_t funcs =
   {
-    get_value: get_value,
-    set_value: set_value,
-    destroy:   destroy,
-    attach:    attach,
-    apply_sub_params: apply_sub_params,
+    .get_value = get_value,
+    .set_value = set_value,
+    .destroy =   destroy,
+    .attach =    attach,
+    .apply_sub_params = apply_sub_params,
   };
 
 static void select_row_callback(GtkTreeSelection * s, gpointer data)

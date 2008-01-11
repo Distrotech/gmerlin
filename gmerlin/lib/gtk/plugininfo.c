@@ -255,7 +255,7 @@ void bg_gtk_plugin_info_show(const bg_plugin_info_t * info, GtkWidget * parent)
   pluginwindow_t * win;
   
   flag_string = get_flag_string(info->flags);
-  text = bg_sprintf(TR("Name:\t %s\nLong name:\t %s\nType:\t %s\nFlags:\t %s\nPriority:\t %d\nDLL Filename:\t %s"),
+  text = bg_sprintf(TR("Name:\t %s\nLong .name =\t %s\nType:\t %s\nFlags:\t %s\nPriority:\t %d\nDLL Filename:\t %s"),
                     info->name, info->long_name, get_type_string(info->type),
                     flag_string, info->priority, info->module_filename);
   win = pluginwindow_create(TRD(info->long_name, info->gettext_domain), text,

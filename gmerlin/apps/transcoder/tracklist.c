@@ -1573,11 +1573,11 @@ void track_list_set_display_colors(track_list_t * t, float * fg, float * bg)
 bg_parameter_info_t parameters[] =
   {
     {
-      name:        "open_path",
-      long_name:   "Open Path",
-      type:        BG_PARAMETER_DIRECTORY,
-      flags:       BG_PARAMETER_HIDE_DIALOG,
-      val_default: { val_str: "." },
+      .name =        "open_path",
+      .long_name =   "Open Path",
+      .type =        BG_PARAMETER_DIRECTORY,
+      .flags =       BG_PARAMETER_HIDE_DIALOG,
+      .val_default = { .val_str = "." },
     },
     { /* End of parameters */ }
   };

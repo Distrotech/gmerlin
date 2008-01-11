@@ -448,30 +448,30 @@ struct bg_transcoder_s
 static bg_parameter_info_t parameters[] =
   {
     {
-      name:      "output_path",
-      long_name: TRS("Output Directory"),
-      type:      BG_PARAMETER_DIRECTORY,
-      val_default: { val_str: "." },
+      .name =      "output_path",
+      .long_name = TRS("Output Directory"),
+      .type =      BG_PARAMETER_DIRECTORY,
+      .val_default = { .val_str = "." },
     },
     {
-      name:        "delete_incomplete",
-      long_name:   TRS("Delete incomplete output files"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 },
-      help_string: TRS("Delete the encoded files if you hit the stop button. \
+      .name =        "delete_incomplete",
+      .long_name =   TRS("Delete incomplete output files"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 },
+      .help_string = TRS("Delete the encoded files if you hit the stop button. \
 This option will automatically be disabled, when the track is an URL"),
     },
     {
-      name:        "cleanup_pp",
-      long_name:   TRS("Clean up after postprocessing"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      help_string: TRS("Clean up all encoded files, which were postprocessed"),
+      .name =        "cleanup_pp",
+      .long_name =   TRS("Clean up after postprocessing"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .help_string = TRS("Clean up all encoded files, which were postprocessed"),
     },
     {
-      name:        "send_finished",
-      long_name:   TRS("Send finished files to player"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 },
+      .name =        "send_finished",
+      .long_name =   TRS("Send finished files to player"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 },
     },
     { /* End of parameters */ }
   };

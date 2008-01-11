@@ -43,9 +43,9 @@ typedef struct
 static bg_parameter_info_t parameters[] =
   {
     {
-      name:      "esd_host",
-      long_name: TRS("Host (empty: local)"),
-      type:      BG_PARAMETER_STRING,
+      .name =      "esd_host",
+      .long_name = TRS("Host (empty: local)"),
+      .type =      BG_PARAMETER_STRING,
     },
     { /* End of parameters */ }
   };
@@ -165,28 +165,28 @@ get_parameters_esd(void * priv)
 
 bg_oa_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:          "oa_esd",
-      long_name:     TRS("EsounD output driver"),
-      description:   TRS("EsounD output driver"),
-      mimetypes:     (char*)0,
-      extensions:    (char*)0,
-      type:          BG_PLUGIN_OUTPUT_AUDIO,
-      flags:         BG_PLUGIN_PLAYBACK,
-      priority:      BG_PLUGIN_PRIORITY_MIN,
-      create:        create_esd,
-      destroy:       destroy_esd,
+      .name =          "oa_esd",
+      .long_name =     TRS("EsounD output driver"),
+      .description =   TRS("EsounD output driver"),
+      .mimetypes =     (char*)0,
+      .extensions =    (char*)0,
+      .type =          BG_PLUGIN_OUTPUT_AUDIO,
+      .flags =         BG_PLUGIN_PLAYBACK,
+      .priority =      BG_PLUGIN_PRIORITY_MIN,
+      .create =        create_esd,
+      .destroy =       destroy_esd,
 
-      get_parameters: get_parameters_esd,
-      set_parameter:  set_parameter_esd
+      .get_parameters = get_parameters_esd,
+      .set_parameter =  set_parameter_esd
     },
-    open:          open_esd,
-    start:         start_esd,
-    write_frame:   write_esd,
-    stop:          stop_esd,
-    close:         close_esd,
+    .open =          open_esd,
+    .start =         start_esd,
+    .write_frame =   write_esd,
+    .stop =          stop_esd,
+    .close =         close_esd,
   };
 
 /* Include this into all plugin modules exactly once

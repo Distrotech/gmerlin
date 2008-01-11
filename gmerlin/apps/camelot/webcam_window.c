@@ -686,46 +686,46 @@ gmerlin_webcam_window_show(gmerlin_webcam_window_t * w)
 bg_parameter_info_t parameters[] =
   {
     {
-      name:        "do_monitor",
-      long_name:   TRS("Do monitor"),
-      type:      BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 0 },
-      help_string: TRS("Enable monitoring of the webcam image")
+      .name =        "do_monitor",
+      .long_name =   TRS("Do monitor"),
+      .type =      BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 0 },
+      .help_string = TRS("Enable monitoring of the webcam image")
     },
     {
-      name:        "auto_capture",
-      long_name:   TRS("Automatic capture"),
-      type:      BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 0 },
-      help_string: TRS("Automatically capture in the specified capture interval")
+      .name =        "auto_capture",
+      .long_name =   TRS("Automatic capture"),
+      .type =      BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 0 },
+      .help_string = TRS("Automatically capture in the specified capture interval")
     },
     {
-      name:        "capture_interval",
-      long_name:   TRS("Capture interval"),
-      type:        BG_PARAMETER_FLOAT,
-      val_default: { val_f: 10.0 },
-      val_min:     { val_f: 0.5 },
-      val_max:     { val_f: 1200.0 },
-      help_string: TRS("Capture interval (in seconds)"),
+      .name =        "capture_interval",
+      .long_name =   TRS("Capture interval"),
+      .type =        BG_PARAMETER_FLOAT,
+      .val_default = { .val_f = 10.0 },
+      .val_min =     { .val_f = 0.5 },
+      .val_max =     { .val_f = 1200.0 },
+      .help_string = TRS("Capture interval (in seconds)"),
     },
     {
-      name:        "output_directory",
-      long_name:   TRS("Output directory"),
-      type:        BG_PARAMETER_DIRECTORY,
-      val_default: { val_str: "/tmp/" },
+      .name =        "output_directory",
+      .long_name =   TRS("Output directory"),
+      .type =        BG_PARAMETER_DIRECTORY,
+      .val_default = { .val_str = "/tmp/" },
     },
     {
-      name:        "output_namebase",
-      long_name:   TRS("Output namebase"),
-      type:        BG_PARAMETER_STRING,
-      val_default: { val_str: "webcam-shot-%6n" },
-      help_string: TRS("Template for the output files. A mask \"%<d>n\" inserts the frame number with <n> digits (e.g. webcam-shot-%6n)")
+      .name =        "output_namebase",
+      .long_name =   TRS("Output namebase"),
+      .type =        BG_PARAMETER_STRING,
+      .val_default = { .val_str = "webcam-shot-%6n" },
+      .help_string = TRS("Template for the output files. A mask \"%<d>n\" inserts the frame number with <n> digits (e.g. webcam-shot-%6n)")
     },
     {
-      name:        "output_frame_counter",
-      long_name:   TRS("Output framecounter"),
-      type:        BG_PARAMETER_INT,
-      val_default: { val_i: 0 },
+      .name =        "output_frame_counter",
+      .long_name =   TRS("Output framecounter"),
+      .type =        BG_PARAMETER_INT,
+      .val_default = { .val_i = 0 },
     },
     { /* End of parameters */  }
   };

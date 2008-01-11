@@ -129,7 +129,7 @@ static void dump_video_window(struct video_window * win)
   fprintf(stderr, "  width:     %d\n", win->width);
   fprintf(stderr, "  height:    %d\n", win->height);
   fprintf(stderr, "  chromakey: %d\n", win->chromakey);
-  fprintf(stderr, "  flags:     %d\n", win->flags);
+  fprintf(stderr, "  .flags =     %d\n", win->flags);
   }
 
 int main(int argc, char ** argv)

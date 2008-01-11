@@ -64,13 +64,13 @@ static void destroy_pixelformat(void * priv)
 static bg_parameter_info_t parameters[] =
   {
     {
-      gettext_domain: PACKAGE,
-      gettext_directory: LOCALE_DIR,
-      name: "pixelformat",
-      long_name: TRS("Pixelformat"),
-      type: BG_PARAMETER_STRINGLIST,
-      flags: BG_PARAMETER_SYNC,
-      val_default: { val_str: "YUV 420 Planar" },
+      .gettext_domain = PACKAGE,
+      .gettext_directory = LOCALE_DIR,
+      .name = "pixelformat",
+      .long_name = TRS("Pixelformat"),
+      .type = BG_PARAMETER_STRINGLIST,
+      .flags = BG_PARAMETER_SYNC,
+      .val_default = { .val_str = "YUV 420 Planar" },
     },
     { /* End of parameters */ },
   };
@@ -192,28 +192,28 @@ static int read_video_pixelformat(void * priv,
 
 bg_fv_plugin_t the_plugin = 
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:      "fv_pixelformat",
-      long_name: TRS("Force pixelformat"),
-      description: TRS("This forces a pixelformat as input for the next filter. Its mainly used for testing."),
-      type:     BG_PLUGIN_FILTER_VIDEO,
-      flags:    BG_PLUGIN_FILTER_1,
-      create:   create_pixelformat,
-      destroy:   destroy_pixelformat,
-      get_parameters:   get_parameters_pixelformat,
-      set_parameter:    set_parameter_pixelformat,
-      priority:         1,
+      .name =      "fv_pixelformat",
+      .long_name = TRS("Force pixelformat"),
+      .description = TRS("This forces a pixelformat as input for the next filter. Its mainly used for testing."),
+      .type =     BG_PLUGIN_FILTER_VIDEO,
+      .flags =    BG_PLUGIN_FILTER_1,
+      .create =   create_pixelformat,
+      .destroy =   destroy_pixelformat,
+      .get_parameters =   get_parameters_pixelformat,
+      .set_parameter =    set_parameter_pixelformat,
+      .priority =         1,
     },
     
-    connect_input_port: connect_input_port_pixelformat,
+    .connect_input_port = connect_input_port_pixelformat,
     
-    set_input_format: set_input_format_pixelformat,
-    get_output_format: get_output_format_pixelformat,
+    .set_input_format = set_input_format_pixelformat,
+    .get_output_format = get_output_format_pixelformat,
 
-    read_video: read_video_pixelformat,
-    need_restart: need_restart_pixelformat,
+    .read_video = read_video_pixelformat,
+    .need_restart = need_restart_pixelformat,
     
   };
 

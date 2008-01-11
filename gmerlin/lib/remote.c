@@ -19,12 +19,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-#include <string.h>
-#include <unistd.h>
 
 #include <config.h>
 #include <translation.h>
 
+#ifdef HAVE_SYS_SELECT_H
+#include <sys/select.h>
+#else
+#include <sys/time.h>
+#include <sys/types.h>
+#endif
+
+#include <unistd.h>
+#include <string.h>
 
 #include <remote.h>
 #include <bgsocket.h>
@@ -283,18 +290,18 @@ void bg_remote_server_destroy(bg_remote_server_t * s)
 static bg_parameter_info_t server_parameters[] =
   {
     {
-      name:        "allow_remote",
-      long_name:   TRS("Allow connections from other machines"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 0 },
+      .name =        "allow_remote",
+      .long_name =   TRS("Allow connections from other machines"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 0 },
     },
     {
-      name:      "max_connections",
-      long_name: TRS("Maximum number of connections"),
-      type:      BG_PARAMETER_INT,
-      val_min:     { val_i: 0 },
-      val_max:     { val_i: 100 },
-      val_default: { val_i: 5 },
+      .name =      "max_connections",
+      .long_name = TRS("Maximum number of connections"),
+      .type =      BG_PARAMETER_INT,
+      .val_min =     { .val_i = 0 },
+      .val_max =     { .val_i = 100 },
+      .val_default = { .val_i = 5 },
     },
     { /* End of parameters */ }
   };

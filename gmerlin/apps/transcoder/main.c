@@ -52,24 +52,24 @@ static void opt_p(void * data, int * argc, char *** argv, int arg)
 bg_cmdline_arg_t args[] =
   {
     {
-      arg: "-p",
-      help_arg: "<file>",
-      help_string: "Load a profile from the given file",
-      callback:    opt_p,
+      .arg = "-p",
+      .help_arg = "<file>",
+      .help_string = "Load a profile from the given file",
+      .callback =    opt_p,
     },
     { /* End of args */ }
   };
 
 bg_cmdline_app_data_t app_data =
   {
-    package:  PACKAGE,
-    version:  VERSION,
-    name:     "gmerlin_transcoder",
-    synopsis: TRS("[options]\n"),
-    help_before: TRS("GTK multimedia transcoder\n"),
-    args: (bg_cmdline_arg_array_t[]) { { TRS("Options"), args },
+    .package =  PACKAGE,
+    .version =  VERSION,
+    .name =     "gmerlin_transcoder",
+    .synopsis = TRS("[options]\n"),
+    .help_before = TRS("GTK multimedia transcoder\n"),
+    .args = (bg_cmdline_arg_array_t[]) { { TRS("Options"), args },
                                        {  } },
-    env: (bg_cmdline_ext_doc_t[])
+    .env = (bg_cmdline_ext_doc_t[])
     { { TRANSCODER_REMOTE_ENV,
         TRS("Default port for the remote control") },
       { /* End */ }

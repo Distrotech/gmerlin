@@ -959,27 +959,27 @@ static bg_parameter_info_t parameters[] =
   {
 #if 0
     {
-      name:      "input",
-      long_name: TRS("Input options"),
-      type:      BG_PARAMETER_SECTION,
+      .name =      "input",
+      .long_name = TRS("Input options"),
+      .type =      BG_PARAMETER_SECTION,
     },
 #endif
     {
-      name:      "do_bypass",
-      long_name: TRS("Enable bypass mode"),
-      type:      BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 },
-      help_string: TRS("Use input plugins in bypass mode if they support it (Currently only the audio CD player).\
+      .name =      "do_bypass",
+      .long_name = TRS("Enable bypass mode"),
+      .type =      BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 },
+      .help_string = TRS("Use input plugins in bypass mode if they support it (Currently only the audio CD player).\
  This dramatically decreases CPU usage but doesn't work on all hardware setups.")
     },
     {
-      name:        "still_framerate",
-      long_name:   "Still image repitition rate",
-      type:        BG_PARAMETER_FLOAT,
-      val_default: { val_f: 10.0 },
-      val_min:     { val_f: 0.5 },
-      val_max:     { val_f: 100.0 },
-      help_string: TRS("When showing still images, gmerlin repeats them periodically to make realtime filter tweaking work."),
+      .name =        "still_framerate",
+      .long_name =   "Still image repitition rate",
+      .type =        BG_PARAMETER_FLOAT,
+      .val_default = { .val_f = 10.0 },
+      .val_min =     { .val_f = 0.5 },
+      .val_max =     { .val_f = 100.0 },
+      .help_string = TRS("When showing still images, gmerlin repeats them periodically to make realtime filter tweaking work."),
     },
     { /* End of parameters */ }
   };

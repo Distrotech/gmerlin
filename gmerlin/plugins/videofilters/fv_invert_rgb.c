@@ -85,34 +85,34 @@ static void destroy_invert(void * priv)
 static bg_parameter_info_t parameters[] =
   {
     {
-      gettext_domain: PACKAGE,
-      gettext_directory: LOCALE_DIR,
-      name:        "r",
-      long_name:   TRS("Invert red"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      flags: BG_PARAMETER_SYNC,
-      val_default: { val_i: 1 },
+      .gettext_domain = PACKAGE,
+      .gettext_directory = LOCALE_DIR,
+      .name =        "r",
+      .long_name =   TRS("Invert red"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .flags = BG_PARAMETER_SYNC,
+      .val_default = { .val_i = 1 },
     },
     {
-      name:        "g",
-      long_name:   TRS("Invert green"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      flags: BG_PARAMETER_SYNC,
-      val_default: { val_i: 1 },
+      .name =        "g",
+      .long_name =   TRS("Invert green"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .flags = BG_PARAMETER_SYNC,
+      .val_default = { .val_i = 1 },
     },
     {
-      name:        "b",
-      long_name:   TRS("Invert blue"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      flags: BG_PARAMETER_SYNC,
-      val_default: { val_i: 1 },
+      .name =        "b",
+      .long_name =   TRS("Invert blue"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .flags = BG_PARAMETER_SYNC,
+      .val_default = { .val_i = 1 },
     },
     {
-      name:        "a",
-      long_name:   TRS("Invert alpha"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      flags: BG_PARAMETER_SYNC,
-      val_default: { val_i: 1 },
+      .name =        "a",
+      .long_name =   TRS("Invert alpha"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .flags = BG_PARAMETER_SYNC,
+      .val_default = { .val_i = 1 },
     },
     { /* End of parameters */ },
   };
@@ -544,27 +544,27 @@ static int read_video_invert(void * priv, gavl_video_frame_t * frame, int stream
 
 bg_fv_plugin_t the_plugin = 
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:      "fv_invert",
-      long_name: TRS("Invert RGBA"),
-      description: TRS("Invert single color channels. RGB(A) formats are processed directly, Y'CbCr(A) formats are processed with the colormatrix."),
-      type:     BG_PLUGIN_FILTER_VIDEO,
-      flags:    BG_PLUGIN_FILTER_1,
-      create:   create_invert,
-      destroy:   destroy_invert,
-      get_parameters:   get_parameters_invert,
-      set_parameter:    set_parameter_invert,
-      priority:         1,
+      .name =      "fv_invert",
+      .long_name = TRS("Invert RGBA"),
+      .description = TRS("Invert single color channels. RGB(A) formats are processed directly, Y'CbCr(A) formats are processed with the colormatrix."),
+      .type =     BG_PLUGIN_FILTER_VIDEO,
+      .flags =    BG_PLUGIN_FILTER_1,
+      .create =   create_invert,
+      .destroy =   destroy_invert,
+      .get_parameters =   get_parameters_invert,
+      .set_parameter =    set_parameter_invert,
+      .priority =         1,
     },
     
-    connect_input_port: connect_input_port_invert,
+    .connect_input_port = connect_input_port_invert,
     
-    set_input_format: set_input_format_invert,
-    get_output_format: get_output_format_invert,
+    .set_input_format = set_input_format_invert,
+    .get_output_format = get_output_format_invert,
 
-    read_video: read_video_invert,
+    .read_video = read_video_invert,
     
   };
 

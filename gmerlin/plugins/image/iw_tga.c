@@ -142,10 +142,10 @@ static int write_image_tga(void * priv, gavl_video_frame_t * frame)
 static bg_parameter_info_t parameters[] =
   {
     {
-      name:        "rle",
-      long_name:   TRS("Do RLE compression"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 0 },
+      .name =        "rle",
+      .long_name =   TRS("Do RLE compression"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 0 },
     },
     { /* End of parameters */ }
   };
@@ -178,25 +178,25 @@ static const char * get_extension_tga(void * p)
 
 bg_image_writer_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:           "iw_tga",
-      long_name:      TRS("TGA writer"),
-      description:   TRS("Writer for TGA images"),
-      mimetypes:      (char*)0,
-      extensions:     "tga",
-      type:           BG_PLUGIN_IMAGE_WRITER,
-      flags:          BG_PLUGIN_FILE,
-      priority:       5,
-      create:         create_tga,
-      destroy:        destroy_tga,
-      get_parameters: get_parameters_tga,
-      set_parameter:  set_parameter_tga
+      .name =           "iw_tga",
+      .long_name =      TRS("TGA writer"),
+      .description =   TRS("Writer for TGA images"),
+      .mimetypes =      (char*)0,
+      .extensions =     "tga",
+      .type =           BG_PLUGIN_IMAGE_WRITER,
+      .flags =          BG_PLUGIN_FILE,
+      .priority =       5,
+      .create =         create_tga,
+      .destroy =        destroy_tga,
+      .get_parameters = get_parameters_tga,
+      .set_parameter =  set_parameter_tga
     },
-    write_header: write_header_tga,
-    get_extension: get_extension_tga,
-    write_image:  write_image_tga,
+    .write_header = write_header_tga,
+    .get_extension = get_extension_tga,
+    .write_image =  write_image_tga,
   };
 
 /* Include this into all plugin modules exactly once

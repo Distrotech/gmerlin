@@ -46,7 +46,7 @@ char * bg_search_file_read(const char * directory, const char * file)
   if(!file)
     return (char*)0;
   
-  testpath = malloc(PATH_MAX * sizeof(char));
+  testpath = malloc(FILENAME_MAX * sizeof(char));
   
   /* First step: Try home directory */
   
@@ -85,7 +85,7 @@ char * bg_search_file_write(const char * directory, const char * file)
   if(!file)
     return (char*)0;
   
-  testpath = malloc(PATH_MAX * sizeof(char));
+  testpath = malloc(FILENAME_MAX * sizeof(char));
   
   home_dir = getenv("HOME");
 

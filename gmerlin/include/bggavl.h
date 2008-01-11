@@ -101,26 +101,26 @@ void bg_gavl_video_options_set_interlace(const bg_gavl_video_options_t * opt,
 
 #define BG_GAVL_PARAM_CONVERSION_QUALITY \
   {                                      \
-  name:        "conversion_quality",     \
-  long_name:   TRS("Conversion Quality"),          \
-    opt:         "q", \
-  type:        BG_PARAMETER_SLIDER_INT,               \
-  flags:       BG_PARAMETER_SYNC,                     \
-  val_min:     { val_i: GAVL_QUALITY_FASTEST },       \
-  val_max:     { val_i: GAVL_QUALITY_BEST    },       \
-  val_default: { val_i: GAVL_QUALITY_DEFAULT },                      \
-  help_string: TRS("Set the conversion quality for format conversions. \
+  .name =        "conversion_quality",     \
+  .long_name =   TRS("Conversion Quality"),          \
+    .opt =         "q", \
+  .type =        BG_PARAMETER_SLIDER_INT,               \
+  .flags =       BG_PARAMETER_SYNC,                     \
+  .val_min =     { .val_i = GAVL_QUALITY_FASTEST },       \
+  .val_max =     { .val_i = GAVL_QUALITY_BEST    },       \
+  .val_default = { .val_i = GAVL_QUALITY_DEFAULT },                      \
+  .help_string = TRS("Set the conversion quality for format conversions. \
 Lower quality means more speed. Values above 3 enable slow high quality calculations.") \
     }
 
 #define BG_GAVL_PARAM_FRAMERATE                                 \
   {                                                             \
-  name:      "framerate",                                       \
-  long_name: TRS("Framerate"),                                       \
-  type:      BG_PARAMETER_STRINGLIST,                           \
-  flags:       BG_PARAMETER_SYNC,                     \
-  val_default: { val_str: "from_source" },                      \
-  multi_names: (char*[]){ "from_source",                      \
+  .name =      "framerate",                                       \
+  .long_name = TRS("Framerate"),                                       \
+  .type =      BG_PARAMETER_STRINGLIST,                           \
+  .flags =       BG_PARAMETER_SYNC,                     \
+  .val_default = { .val_str = "from_source" },                      \
+  .multi_names = (char*[]){ "from_source",                      \
                    "user_defined",                              \
                    "23_976",      \
                    "24", \
@@ -130,7 +130,7 @@ Lower quality means more speed. Values above 3 enable slow high quality calculat
                    "50",                                        \
                    "59_940",                                    \
                    "60", (char*)0 },                              \
-    multi_labels: (char*[]){ TRS("From Source"),                      \
+    .multi_labels = (char*[]){ TRS("From Source"),                      \
                    TRS("User defined"),                              \
                    TRS("23.976 (NTSC encapsulated film rate)"),        \
                    TRS("24 (Standard international cinema film rate)"), \
@@ -141,56 +141,56 @@ Lower quality means more speed. Values above 3 enable slow high quality calculat
                    TRS("59.940 (Double frame rate NTSC)"),     \
                    TRS("60 (Double frame rate drop-frame NTSC)"),           \
                     (char*)0 },                                         \
-  help_string: TRS("Output framerate. For user defined framerate, enter the \
+  .help_string = TRS("Output framerate. For user defined framerate, enter the \
 timescale and frame duration below (framerate = timescale / frame_duration).")\
   },                                              \
   {                                           \
-  name:      "timescale",                     \
-  long_name: TRS("Timescale"),                   \
-  type:      BG_PARAMETER_INT,              \
-  val_min:     { val_i: 1 },                \
-  val_max:     { val_i: 100000 },           \
-  val_default: { val_i: 25 },                                         \
-  help_string: TRS("Timescale for user defined output framerate (Framerate = timescale / frame_duration)."), \
+  .name =      "timescale",                     \
+  .long_name = TRS("Timescale"),                   \
+  .type =      BG_PARAMETER_INT,              \
+  .val_min =     { .val_i = 1 },                \
+  .val_max =     { .val_i = 100000 },           \
+  .val_default = { .val_i = 25 },                                         \
+  .help_string = TRS("Timescale for user defined output framerate (Framerate = timescale / frame_duration)."), \
   },                                                                  \
   {                                                                 \
-  name:      "frame_duration",                                      \
-  long_name: TRS("Frame duration"),                                    \
-  type:      BG_PARAMETER_INT,                                    \
-  val_min:     { val_i: 1 },                                      \
-  val_max:     { val_i: 100000 },                                 \
-  val_default: { val_i: 1 },                                      \
-  help_string: TRS("Frame duration for user defined output framerate (Framerate = timescale / frame_duration)."), \
+  .name =      "frame_duration",                                      \
+  .long_name = TRS("Frame duration"),                                    \
+  .type =      BG_PARAMETER_INT,                                    \
+  .val_min =     { .val_i = 1 },                                      \
+  .val_max =     { .val_i = 100000 },                                 \
+  .val_default = { .val_i = 1 },                                      \
+  .help_string = TRS("Frame duration for user defined output framerate (Framerate = timescale / frame_duration)."), \
   }
 
 #define BG_GAVL_PARAM_DEINTERLACE           \
  {                                            \
-  name:      "deinterlace_mode",              \
-  long_name: TRS("Deinterlace mode"),             \
-  opt:       "dm", \
-  type:      BG_PARAMETER_STRINGLIST,        \
-  val_default: { val_str: "none" },          \
-  multi_names:  (char*[]){ "none", "copy", "scale", (char*)0 },         \
-  multi_labels: (char*[]){ TRS("None"), TRS("Copy"), TRS("Scale"), (char*)0 },         \
-  help_string: "Specify interlace mode. Higher modes are better but slower." \
+  .name =      "deinterlace_mode",              \
+  .long_name = TRS("Deinterlace mode"),             \
+  .opt =       "dm", \
+  .type =      BG_PARAMETER_STRINGLIST,        \
+  .val_default = { .val_str = "none" },          \
+  .multi_names =  (char*[]){ "none", "copy", "scale", (char*)0 },         \
+  .multi_labels = (char*[]){ TRS("None"), TRS("Copy"), TRS("Scale"), (char*)0 },         \
+  .help_string = "Specify interlace mode. Higher modes are better but slower." \
   },                                                                   \
   {                                                                  \
-  name:      "deinterlace_drop_mode",                                            \
-  opt:       "ddm", \
-  long_name: "Drop mode",                                          \
-  type:      BG_PARAMETER_STRINGLIST,                              \
-  val_default: { val_str: "top" },                                 \
-  multi_names:   (char*[]){ "top", "bottom", (char*)0 },               \
-  multi_labels:  (char*[]){ TRS("Drop top field"), TRS("Drop bottom field"), (char*)0 },   \
-  help_string: TRS("Specifies which field the deinterlacer should drop.") \
+  .name =      "deinterlace_drop_mode",                                            \
+  .opt =       "ddm", \
+  .long_name = "Drop mode",                                          \
+  .type =      BG_PARAMETER_STRINGLIST,                              \
+  .val_default = { .val_str = "top" },                                 \
+  .multi_names =   (char*[]){ "top", "bottom", (char*)0 },               \
+  .multi_labels =  (char*[]){ TRS("Drop top field"), TRS("Drop bottom field"), (char*)0 },   \
+  .help_string = TRS("Specifies which field the deinterlacer should drop.") \
   },                                                              \
   {\
-  name:      "force_deinterlacing",           \
-  long_name: TRS("Force deinterlacing"),         \
-  opt:       "fd", \
-  type:      BG_PARAMETER_CHECKBUTTON,              \
-  val_default: { val_i: 0 },                \
-  help_string: TRS("Force deinterlacing if you want progressive output and the input format pretends to be progressive also.") \
+  .name =      "force_deinterlacing",           \
+  .long_name = TRS("Force deinterlacing"),         \
+  .opt =       "fd", \
+  .type =      BG_PARAMETER_CHECKBUTTON,              \
+  .val_default = { .val_i = 0 },                \
+  .help_string = TRS("Force deinterlacing if you want progressive output and the input format pretends to be progressive also.") \
   }                                                                  \
 
 
@@ -218,184 +218,184 @@ timescale and frame duration below (framerate = timescale / frame_duration).")\
 
 #define BG_GAVL_PARAM_SCALE_MODE                                    \
   {                                                                 \
-  name:        "scale_mode",                                          \
-  long_name:   TRS("Scale mode"),                                          \
-  opt:       "sm",                                                  \
-  type:        BG_PARAMETER_STRINGLIST,                               \
-  flags:       BG_PARAMETER_SYNC,                     \
-  multi_names: BG_GAVL_SCALE_MODE_NAMES, \
-  multi_labels: BG_GAVL_SCALE_MODE_LABELS, \
-  val_default: { val_str: "auto" },                                   \
-  help_string: TRS("Choose scaling method. Auto means to choose based on the conversion quality. Nearest is fastest, Sinc with Lanczos window is slowest."), \
+  .name =        "scale_mode",                                          \
+  .long_name =   TRS("Scale mode"),                                          \
+  .opt =       "sm",                                                  \
+  .type =        BG_PARAMETER_STRINGLIST,                               \
+  .flags =       BG_PARAMETER_SYNC,                     \
+  .multi_names = BG_GAVL_SCALE_MODE_NAMES, \
+  .multi_labels = BG_GAVL_SCALE_MODE_LABELS, \
+  .val_default = { .val_str = "auto" },                                   \
+  .help_string = TRS("Choose scaling method. Auto means to choose based on the conversion quality. Nearest is fastest, Sinc with Lanczos window is slowest."), \
   },                                                                  \
   {                                                                   \
-  name:        "scale_order",                                         \
-  long_name:   TRS("Scale order"),                                        \
-  opt:       "so",                                                  \
-  type:        BG_PARAMETER_INT,                               \
-  flags:       BG_PARAMETER_SYNC,                     \
-  val_min:     { val_i: 4 },                                 \
-  val_max:     { val_i: 1000 },                              \
-  val_default: { val_i: 4 },                                \
-  help_string: TRS("Order for sinc scaling."),\
+  .name =        "scale_order",                                         \
+  .long_name =   TRS("Scale order"),                                        \
+  .opt =       "so",                                                  \
+  .type =        BG_PARAMETER_INT,                               \
+  .flags =       BG_PARAMETER_SYNC,                     \
+  .val_min =     { .val_i = 4 },                                 \
+  .val_max =     { .val_i = 1000 },                              \
+  .val_default = { .val_i = 4 },                                \
+  .help_string = TRS("Order for sinc scaling."),\
   }
 
 #define BG_GAVL_PARAM_RESAMPLE_CHROMA \
   {                                                                 \
-  name:        "resample_chroma",                                          \
-  long_name:   TRS("Resample chroma"),                                          \
-  opt:       "sm",                                                  \
-  type:        BG_PARAMETER_CHECKBUTTON,                               \
-  flags:       BG_PARAMETER_SYNC,                     \
-    help_string: TRS("Always perform chroma resampling if chroma subsampling factors or chroma placements are different. Usually, this is only done for qualities above 3."), \
+  .name =        "resample_chroma",                                          \
+  .long_name =   TRS("Resample chroma"),                                          \
+  .opt =       "sm",                                                  \
+  .type =        BG_PARAMETER_CHECKBUTTON,                               \
+  .flags =       BG_PARAMETER_SYNC,                     \
+    .help_string = TRS("Always perform chroma resampling if chroma subsampling factors or chroma placements are different. Usually, this is only done for qualities above 3."), \
   }
 
 
 #define BG_GAVL_PARAM_ALPHA                \
     { \
-      name:        "alpha_mode", \
-      long_name:   TRS("Alpha mode"), \
-      type:        BG_PARAMETER_STRINGLIST, \
-      flags:       BG_PARAMETER_SYNC,                     \
-      val_default: { val_str: "ignore" }, \
-      multi_names: (char*[]){"ignore", "blend_color", (char*)0}, \
-      multi_labels: (char*[]){TRS("Ignore"), TRS("Blend background color"), (char*)0}, \
-    help_string: TRS("This option is used if the source has an alpha (=transparency) channel, but the output supports no transparency. Either, the transparency is ignored, or the background color you specify below is blended in."),\
+      .name =        "alpha_mode", \
+      .long_name =   TRS("Alpha mode"), \
+      .type =        BG_PARAMETER_STRINGLIST, \
+      .flags =       BG_PARAMETER_SYNC,                     \
+      .val_default = { .val_str = "ignore" }, \
+      .multi_names = (char*[]){"ignore", "blend_color", (char*)0}, \
+      .multi_labels = (char*[]){TRS("Ignore"), TRS("Blend background color"), (char*)0}, \
+    .help_string = TRS("This option is used if the source has an alpha (=transparency) channel, but the output supports no transparency. Either, the transparency is ignored, or the background color you specify below is blended in."),\
     }, \
     { \
-      name:        "background_color", \
-      long_name:   TRS("Background color"), \
-      type:      BG_PARAMETER_COLOR_RGB, \
-      flags:       BG_PARAMETER_SYNC,                     \
-      val_default: { val_color: { 0.0, 0.0, 0.0 } }, \
-      help_string: TRS("Background color to use, when alpha mode above is \"Blend background color\"."), \
+      .name =        "background_color", \
+      .long_name =   TRS("Background color"), \
+      .type =      BG_PARAMETER_COLOR_RGB, \
+      .flags =       BG_PARAMETER_SYNC,                     \
+      .val_default = { .val_color = { 0.0, 0.0, 0.0 } }, \
+      .help_string = TRS("Background color to use, when alpha mode above is \"Blend background color\"."), \
     }
 
 
 #define BG_GAVL_PARAM_SAMPLERATE                \
     {\
-      name:      "fixed_samplerate",\
-      long_name: TRS("Fixed samplerate"),\
-      type:      BG_PARAMETER_CHECKBUTTON,\
-      flags:       BG_PARAMETER_SYNC,                     \
-      val_default: { val_i: 0 },\
-      help_string: TRS("If disabled, the output samplerate is taken from the source. If enabled, the samplerate you specify below us used.")\
+      .name =      "fixed_samplerate",\
+      .long_name = TRS("Fixed samplerate"),\
+      .type =      BG_PARAMETER_CHECKBUTTON,\
+      .flags =       BG_PARAMETER_SYNC,                     \
+      .val_default = { .val_i = 0 },\
+      .help_string = TRS("If disabled, the output samplerate is taken from the source. If enabled, the samplerate you specify below us used.")\
     },\
     {\
-      name:        "samplerate",\
-      long_name:   TRS("Samplerate"),\
-      type:        BG_PARAMETER_INT,\
-      flags:       BG_PARAMETER_SYNC,                     \
-      val_min:     { val_i: 8000 },\
-      val_max:     { val_i: 192000 },\
-      val_default: { val_i: 44100 },\
-      help_string: TRS("Fixed output samplerate"),\
+      .name =        "samplerate",\
+      .long_name =   TRS("Samplerate"),\
+      .type =        BG_PARAMETER_INT,\
+      .flags =       BG_PARAMETER_SYNC,                     \
+      .val_min =     { .val_i = 8000 },\
+      .val_max =     { .val_i = 192000 },\
+      .val_default = { .val_i = 44100 },\
+      .help_string = TRS("Fixed output samplerate"),\
     }
 
 
 #define BG_GAVL_PARAM_CHANNEL_SETUP \
     { \
-      name:      "fixed_channel_setup", \
-      long_name: TRS("Fixed channel setup"), \
-      type:      BG_PARAMETER_CHECKBUTTON,\
-      flags:       BG_PARAMETER_SYNC,                     \
-      val_default: { val_i: 0 },\
-      help_string: TRS("If disabled, the output channel configuration is taken from the source. If enabled, the setup you specify below us used.") \
+      .name =      "fixed_channel_setup", \
+      .long_name = TRS("Fixed channel setup"), \
+      .type =      BG_PARAMETER_CHECKBUTTON,\
+      .flags =       BG_PARAMETER_SYNC,                     \
+      .val_default = { .val_i = 0 },\
+      .help_string = TRS("If disabled, the output channel configuration is taken from the source. If enabled, the setup you specify below us used.") \
     },                                        \
     {                                         \
-    name:        "num_front_channels",          \
-    long_name:   TRS("Front channels"),              \
-    type:        BG_PARAMETER_INT,              \
-    flags:       BG_PARAMETER_SYNC,                     \
-    val_min:     { val_i: 1 },                  \
-    val_max:     { val_i: 5 },                  \
-    val_default: { val_i: 2 },                  \
+    .name =        "num_front_channels",          \
+    .long_name =   TRS("Front channels"),              \
+    .type =        BG_PARAMETER_INT,              \
+    .flags =       BG_PARAMETER_SYNC,                     \
+    .val_min =     { .val_i = 1 },                  \
+    .val_max =     { .val_i = 5 },                  \
+    .val_default = { .val_i = 2 },                  \
     },\
     {                                         \
-    name:        TRS("num_rear_channels"),          \
-    long_name:   "Rear channels",              \
-    type:        BG_PARAMETER_INT,              \
-    flags:       BG_PARAMETER_SYNC,                     \
-    val_min:     { val_i: 0 },                  \
-    val_max:     { val_i: 3 },                  \
-    val_default: { val_i: 0 },                  \
+    .name =        TRS("num_rear_channels"),          \
+    .long_name =   "Rear channels",              \
+    .type =        BG_PARAMETER_INT,              \
+    .flags =       BG_PARAMETER_SYNC,                     \
+    .val_min =     { .val_i = 0 },                  \
+    .val_max =     { .val_i = 3 },                  \
+    .val_default = { .val_i = 0 },                  \
     },                                        \
     {                                         \
-    name:        "num_lfe_channels",          \
-    long_name:   TRS("LFE"),                        \
-    type:        BG_PARAMETER_CHECKBUTTON,     \
-    flags:       BG_PARAMETER_SYNC,                     \
-    val_default: { val_i: 0 },                  \
+    .name =        "num_lfe_channels",          \
+    .long_name =   TRS("LFE"),                        \
+    .type =        BG_PARAMETER_CHECKBUTTON,     \
+    .flags =       BG_PARAMETER_SYNC,                     \
+    .val_default = { .val_i = 0 },                  \
     },                                        \
     {                                 \
-      name:        "front_to_rear", \
-      long_name:   TRS("Front to rear mode"), \
-      type:        BG_PARAMETER_STRINGLIST, \
-      flags:       BG_PARAMETER_SYNC,                     \
-      val_default: { val_str: "copy" }, \
-      multi_names:  (char*[]){ "mute", \
+      .name =        "front_to_rear", \
+      .long_name =   TRS("Front to rear mode"), \
+      .type =        BG_PARAMETER_STRINGLIST, \
+      .flags =       BG_PARAMETER_SYNC,                     \
+      .val_default = { .val_str = "copy" }, \
+      .multi_names =  (char*[]){ "mute", \
                               "copy", \
                               "diff", \
                               (char*)0 }, \
-      multi_labels:  (char*[]){ TRS("Mute"), \
+      .multi_labels =  (char*[]){ TRS("Mute"), \
                               TRS("Copy"), \
                               TRS("Diff"), \
                               (char*)0 }, \
-      help_string: TRS("Mix mode when the output format has rear channels, \
+      .help_string = TRS("Mix mode when the output format has rear channels, \
 but the source doesn't."), \
     }, \
     { \
-      name:        "stereo_to_mono", \
-      long_name:   TRS("Stereo to mono mode"), \
-      type:        BG_PARAMETER_STRINGLIST, \
-      flags:       BG_PARAMETER_SYNC,                     \
-      val_default: { val_str: "mix" }, \
-      multi_names:  (char*[]){ "left", \
+      .name =        "stereo_to_mono", \
+      .long_name =   TRS("Stereo to mono mode"), \
+      .type =        BG_PARAMETER_STRINGLIST, \
+      .flags =       BG_PARAMETER_SYNC,                     \
+      .val_default = { .val_str = "mix" }, \
+      .multi_names =  (char*[]){ "left", \
                               "right", \
                               "mix", \
                               (char*)0 }, \
-      multi_labels:  (char*[]){ TRS("Choose left"), \
+      .multi_labels =  (char*[]){ TRS("Choose left"), \
                               TRS("Choose right"), \
                               TRS("Mix"), \
                               (char*)0 }, \
-      help_string: TRS("Mix mode when downmixing Stereo to Mono."), \
+      .help_string = TRS("Mix mode when downmixing Stereo to Mono."), \
     }
 
 
 #define BG_GAVL_PARAM_FORCE_FLOAT \
     { \
-      name:      "force_float", \
-      long_name: TRS("Force floating point"), \
-      type:      BG_PARAMETER_CHECKBUTTON,\
-      flags:       BG_PARAMETER_SYNC,                     \
-      val_default: { val_i: 0 },\
-      help_string: TRS("Force floating point processing. This will inprove the quality but might slow things down.") \
+      .name =      "force_float", \
+      .long_name = TRS("Force floating point"), \
+      .type =      BG_PARAMETER_CHECKBUTTON,\
+      .flags =       BG_PARAMETER_SYNC,                     \
+      .val_default = { .val_i = 0 },\
+      .help_string = TRS("Force floating point processing. This will inprove the quality but might slow things down.") \
     }
 
 #define BG_GAVL_PARAM_AUDIO_DITHER_MODE \
     { \
-      name:      "dither_mode", \
-      long_name: TRS("Dither mode"), \
-      type:      BG_PARAMETER_STRINGLIST,\
-      flags:       BG_PARAMETER_SYNC,                     \
-      val_default: { val_str: "auto" },\
-      multi_names:  (char*[]){ "auto", "none", "rect",        "tri",        "shaped", (char*)0 },\
-      multi_labels: (char*[]){ TRS("Auto"), TRS("None"), TRS("Rectangular"), \
+      .name =      "dither_mode", \
+      .long_name = TRS("Dither mode"), \
+      .type =      BG_PARAMETER_STRINGLIST,\
+      .flags =       BG_PARAMETER_SYNC,                     \
+      .val_default = { .val_str = "auto" },\
+      .multi_names =  (char*[]){ "auto", "none", "rect",        "tri",        "shaped", (char*)0 },\
+      .multi_labels = (char*[]){ TRS("Auto"), TRS("None"), TRS("Rectangular"), \
                                TRS("Triangular"), TRS("Shaped"), (char*)0 },\
-      help_string: TRS("Dither mode. Auto means to use the quality level. Subsequent options are ordered by increasing quality (i.e. decreasing speed).") \
+      .help_string = TRS("Dither mode. Auto means to use the quality level. Subsequent options are ordered by increasing quality (i.e. decreasing speed).") \
     }
 
 #define BG_GAVL_PARAM_RESAMPLE_MODE \
     { \
-      name:      "resample_mode", \
-      long_name: TRS("Resample mode"), \
-      type:      BG_PARAMETER_STRINGLIST,\
-      flags:       BG_PARAMETER_SYNC,                     \
-      val_default: { val_str: "auto" },\
-      multi_names:  (char*[]){ "auto", "linear", "zoh",             "sinc_fast",  "sinc_medium", "sinc_best", (char*)0 },\
-      multi_labels: (char*[]){ TRS("Auto"), TRS("Linear"), TRS("Zero order hold"), \
+      .name =      "resample_mode", \
+      .long_name = TRS("Resample mode"), \
+      .type =      BG_PARAMETER_STRINGLIST,\
+      .flags =       BG_PARAMETER_SYNC,                     \
+      .val_default = { .val_str = "auto" },\
+      .multi_names =  (char*[]){ "auto", "linear", "zoh",             "sinc_fast",  "sinc_medium", "sinc_best", (char*)0 },\
+      .multi_labels = (char*[]){ TRS("Auto"), TRS("Linear"), TRS("Zero order hold"), \
                                TRS("Sinc fast"),  TRS("Sinc medium"), TRS("Sinc best"), (char*)0 },\
-      help_string: TRS("Resample mode. Auto means to use the quality level. Subsequent options are ordered by increasing quality (i.e. decreasing speed).") \
+      .help_string = TRS("Resample mode. Auto means to use the quality level. Subsequent options are ordered by increasing quality (i.e. decreasing speed).") \
     }
 
 /* Subtitle display decisions */

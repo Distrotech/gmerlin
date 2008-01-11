@@ -78,23 +78,23 @@ static void opt_video_options(void * data, int * argc, char *** argv, int arg)
 static bg_cmdline_arg_t global_options[] =
   {
     {
-      arg:         "-co",
-      help_arg:    "<options>",
-      help_string: "Conversion options",
-      callback:    opt_video_options,
-      parameters:  conversion_parameters,
+      .arg =         "-co",
+      .help_arg =    "<options>",
+      .help_string = "Conversion options",
+      .callback =    opt_video_options,
+      .parameters =  conversion_parameters,
     },
     { /* End of options */ }
   };
 
 bg_cmdline_app_data_t app_data =
   {
-    package:  PACKAGE,
-    version:  VERSION,
-    name:     "gmerlin_imgconvert",
-    synopsis: TRS("[-co options] input_image output_image\n"),
-    help_before: TRS("Image converter\n"),
-    args: (bg_cmdline_arg_array_t[]) { { TRS("Options"), global_options },
+    .package =  PACKAGE,
+    .version =  VERSION,
+    .name =     "gmerlin_imgconvert",
+    .synopsis = TRS("[-co options] input_image output_image\n"),
+    .help_before = TRS("Image converter\n"),
+    .args = (bg_cmdline_arg_array_t[]) { { TRS("Options"), global_options },
                                        {  } },
   };
 

@@ -128,41 +128,41 @@ static void reset_tree(bg_gtk_info_window_t * w);
 
 #define EXPANDED_PARAM(n) \
   { \
-  name: n, \
-  long_name: n,\
-  type: BG_PARAMETER_CHECKBUTTON, \
-  flags: BG_PARAMETER_HIDE_DIALOG, \
+  .name = n, \
+  .long_name = n,\
+  .type = BG_PARAMETER_CHECKBUTTON, \
+  .flags = BG_PARAMETER_HIDE_DIALOG, \
   }
 
 static bg_parameter_info_t parameters[] =
   {
     {
-      name: "x",
-      long_name: "X",
-      flags: BG_PARAMETER_HIDE_DIALOG,
-      type: BG_PARAMETER_INT,
-      val_default: { val_i: 100 }
+      .name = "x",
+      .long_name = "X",
+      .flags = BG_PARAMETER_HIDE_DIALOG,
+      .type = BG_PARAMETER_INT,
+      .val_default = { .val_i = 100 }
     },
     {
-      name: "y",
-      long_name: "Y",
-      flags: BG_PARAMETER_HIDE_DIALOG,
-      type: BG_PARAMETER_INT,
-      val_default: { val_i: 100 }
+      .name = "y",
+      .long_name = "Y",
+      .flags = BG_PARAMETER_HIDE_DIALOG,
+      .type = BG_PARAMETER_INT,
+      .val_default = { .val_i = 100 }
     },
     {
-      name: "width",
-      long_name: "Width",
-      flags: BG_PARAMETER_HIDE_DIALOG,
-      type: BG_PARAMETER_INT,
-      val_default: { val_i: 0 }
+      .name = "width",
+      .long_name = "Width",
+      .flags = BG_PARAMETER_HIDE_DIALOG,
+      .type = BG_PARAMETER_INT,
+      .val_default = { .val_i = 0 }
     },
     {
-      name: "height",
-      long_name: "Height",
-      flags: BG_PARAMETER_HIDE_DIALOG,
-      type: BG_PARAMETER_INT,
-      val_default: { val_i: 0 }
+      .name = "height",
+      .long_name = "Height",
+      .flags = BG_PARAMETER_HIDE_DIALOG,
+      .type = BG_PARAMETER_INT,
+      .val_default = { .val_i = 0 }
     },
     EXPANDED_PARAM("exp_0"),
     EXPANDED_PARAM("exp_1"),
@@ -556,7 +556,7 @@ static gboolean idle_callback(gpointer data)
         arg_str = bg_msg_get_arg_string(msg, 0);
         if(arg_str)
           {
-          tmp_string = bg_sprintf(TR("Stream type:\t%s"), arg_str);
+          tmp_string = bg_sprintf(TR("Stream .type =\t%s"), arg_str);
           set_line_index(w, PATH_AUDIO_DESC, tmp_string, 1);
           free(tmp_string);
           free(arg_str);
@@ -566,7 +566,7 @@ static gboolean idle_callback(gpointer data)
         arg_str = bg_msg_get_arg_string(msg, 0);
         if(arg_str)
           {
-          tmp_string = bg_sprintf(TR("Stream type:\t%s"), arg_str);
+          tmp_string = bg_sprintf(TR("Stream .type =\t%s"), arg_str);
           set_line_index(w, PATH_VIDEO_DESC, tmp_string, 1);
           free(tmp_string);
           free(arg_str);

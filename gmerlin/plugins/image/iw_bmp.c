@@ -208,23 +208,23 @@ static const char * get_extension_bmp(void * p)
 
 bg_image_writer_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:           "iw_bmp",
-      long_name:      TRS("BMP writer"),
-      description:    TRS("Writer for BMP images"),
-      mimetypes:      (char*)0,
-      extensions:     "bmp",
-      type:           BG_PLUGIN_IMAGE_WRITER,
-      flags:          BG_PLUGIN_FILE,
-      priority:       5,
-      create:         create_bmp,
-      destroy:        destroy_bmp,
+      .name =           "iw_bmp",
+      .long_name =      TRS("BMP writer"),
+      .description =    TRS("Writer for BMP images"),
+      .mimetypes =      (char*)0,
+      .extensions =     "bmp",
+      .type =           BG_PLUGIN_IMAGE_WRITER,
+      .flags =          BG_PLUGIN_FILE,
+      .priority =       5,
+      .create =         create_bmp,
+      .destroy =        destroy_bmp,
     },
-    write_header: write_header_bmp,
-    get_extension: get_extension_bmp,
-    write_image:  write_image_bmp,
+    .write_header = write_header_bmp,
+    .get_extension = get_extension_bmp,
+    .write_image =  write_image_bmp,
   };
 
 /* Include this into all plugin modules exactly once

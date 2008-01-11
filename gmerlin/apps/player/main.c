@@ -46,19 +46,19 @@
 
 bg_cmdline_app_data_t app_data =
   {
-    package:  PACKAGE,
-    version:  VERSION,
-    name:     "gmerlin",
-    synopsis: TRS("[options] [gmls ...]\n"),
-    help_before: TRS("Gmerlin GUI Player"),
-    args: (bg_cmdline_arg_array_t[]) { {  } },
+    .package =  PACKAGE,
+    .version =  VERSION,
+    .name =     "gmerlin",
+    .synopsis = TRS("[options] [gmls ...]\n"),
+    .help_before = TRS("Gmerlin GUI Player"),
+    .args = (bg_cmdline_arg_array_t[]) { {  } },
 
-    env: (bg_cmdline_ext_doc_t[])
+    .env = (bg_cmdline_ext_doc_t[])
     { { PLAYER_REMOTE_ENV,
         TRS("Default port for the remote control") },
       { /* End */ }
     },
-    files: (bg_cmdline_ext_doc_t[])
+    .files = (bg_cmdline_ext_doc_t[])
     { { "~/.gmerlin/plugins.xml",
         TRS("Cache of the plugin registry (shared by all applicatons)") },
       { "~/.gmerlin/player/config.xml",

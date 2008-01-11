@@ -78,50 +78,50 @@ void bg_metadata_copy(bg_metadata_t * dst, const bg_metadata_t * src)
 static bg_parameter_info_t parameters[] =
   {
     {
-      name:      "artist",
-      long_name: TRS("Artist"),
-      type:      BG_PARAMETER_STRING,
+      .name =      "artist",
+      .long_name = TRS("Artist"),
+      .type =      BG_PARAMETER_STRING,
     },
     {
-      name:      "title",
-      long_name: TRS("Title"),
-      type:      BG_PARAMETER_STRING,
+      .name =      "title",
+      .long_name = TRS("Title"),
+      .type =      BG_PARAMETER_STRING,
     },
     {
-      name:      "album",
-      long_name: TRS("Album"),
-      type:      BG_PARAMETER_STRING,
+      .name =      "album",
+      .long_name = TRS("Album"),
+      .type =      BG_PARAMETER_STRING,
     },
     {
-      name:      "track",
-      long_name: TRS("Track"),
-      type:      BG_PARAMETER_INT,
+      .name =      "track",
+      .long_name = TRS("Track"),
+      .type =      BG_PARAMETER_INT,
     },
     {
-      name:      "genre",
-      long_name: TRS("Genre"),
-      type:      BG_PARAMETER_STRING,
+      .name =      "genre",
+      .long_name = TRS("Genre"),
+      .type =      BG_PARAMETER_STRING,
     },
     {
-      name:      "author",
-      long_name: TRS("Author"),
-      type:      BG_PARAMETER_STRING,
+      .name =      "author",
+      .long_name = TRS("Author"),
+      .type =      BG_PARAMETER_STRING,
     },
     {
-      name:      "copyright",
-      long_name: TRS("Copyright"),
-      type:      BG_PARAMETER_STRING,
+      .name =      "copyright",
+      .long_name = TRS("Copyright"),
+      .type =      BG_PARAMETER_STRING,
     },
     {
-      name:        "date",
-      long_name:   TRS("Date"),
-      type:        BG_PARAMETER_STRING,
-      help_string: TRS("Complete date or year only")
+      .name =        "date",
+      .long_name =   TRS("Date"),
+      .type =        BG_PARAMETER_STRING,
+      .help_string = TRS("Complete date or year only")
     },
     {
-      name:      "comment",
-      long_name: TRS("Comment"),
-      type:      BG_PARAMETER_STRING,
+      .name =      "comment",
+      .long_name = TRS("Comment"),
+      .type =      BG_PARAMETER_STRING,
     },
     { /* End of parameters */ }
   };

@@ -689,16 +689,16 @@ static void close_cdaudio(void * priv)
 static bg_parameter_info_t parameters[] =
   {
     {
-      name:      "general",
-      long_name: TRS("General"),
-      type:      BG_PARAMETER_SECTION
+      .name =      "general",
+      .long_name = TRS("General"),
+      .type =      BG_PARAMETER_SECTION
     },
     {
-      name:        "trackname_template",
-      long_name:   TRS("Trackname template"),
-      type:        BG_PARAMETER_STRING,
-      val_default: { val_str: "%p - %t" },
-      help_string: TRS("Template for track name generation from metadata\n\
+      .name =        "trackname_template",
+      .long_name =   TRS("Trackname template"),
+      .type =        BG_PARAMETER_STRING,
+      .val_default = { .val_str = "%p - %t" },
+      .help_string = TRS("Template for track name generation from metadata\n\
 %p:    Artist\n\
 %a:    Album\n\
 %g:    Genre\n\
@@ -708,130 +708,130 @@ static bg_parameter_info_t parameters[] =
 %c:    Comment")
     },
     {
-      name:        "use_cdtext",
-      long_name:   TRS("Use CD-Text"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 },
-      help_string: TRS("Try to get CD metadata from CD-Text"),
+      .name =        "use_cdtext",
+      .long_name =   TRS("Use CD-Text"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 },
+      .help_string = TRS("Try to get CD metadata from CD-Text"),
     },
     {
-      name:        "use_local",
-      long_name:   TRS("Use locally saved metadata"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 },
-      help_string: TRS("Whenever we obtain CD metadata from the internet, we save them into \
+      .name =        "use_local",
+      .long_name =   TRS("Use locally saved metadata"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 },
+      .help_string = TRS("Whenever we obtain CD metadata from the internet, we save them into \
 $HOME/.gmerlin/cdaudio_metadata. If you got wrong metadata for a CD,\
  disabling this option will retrieve the metadata again and overwrite the saved data."),
     },
 #ifdef HAVE_MUSICBRAINZ
     {
-      name:      "musicbrainz",
-      long_name: TRS("Musicbrainz"),
-      type:      BG_PARAMETER_SECTION
+      .name =      "musicbrainz",
+      .long_name = TRS("Musicbrainz"),
+      .type =      BG_PARAMETER_SECTION
     },
     {
-      name:        "use_musicbrainz",
-      long_name:   TRS("Use Musicbrainz"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 }
+      .name =        "use_musicbrainz",
+      .long_name =   TRS("Use Musicbrainz"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 }
     },
     {
-      name:        "musicbrainz_host",
-      long_name:   TRS("Server"),
-      type:        BG_PARAMETER_STRING,
-      val_default: { val_str: "mm.musicbrainz.org" }
+      .name =        "musicbrainz_host",
+      .long_name =   TRS("Server"),
+      .type =        BG_PARAMETER_STRING,
+      .val_default = { .val_str = "mm.musicbrainz.org" }
     },
     {
-      name:        "musicbrainz_port",
-      long_name:   TRS("Port"),
-      type:         BG_PARAMETER_INT,
-      val_min:      { val_i: 1 },
-      val_max:      { val_i: 65535 },
-      val_default:  { val_i: 80 }
+      .name =        "musicbrainz_port",
+      .long_name =   TRS("Port"),
+      .type =         BG_PARAMETER_INT,
+      .val_min =      { .val_i = 1 },
+      .val_max =      { .val_i = 65535 },
+      .val_default =  { .val_i = 80 }
     },
     {
-      name:        "musicbrainz_proxy_host",
-      long_name:   TRS("Proxy"),
-      type:        BG_PARAMETER_STRING,
-      help_string: TRS("Proxy server (leave empty for direct connection)")
+      .name =        "musicbrainz_proxy_host",
+      .long_name =   TRS("Proxy"),
+      .type =        BG_PARAMETER_STRING,
+      .help_string = TRS("Proxy server (leave empty for direct connection)")
     },
     {
-      name:        "musicbrainz_proxy_port",
-      long_name:   TRS("Proxy Port"),
-      type:         BG_PARAMETER_INT,
-      val_min:      { val_i: 1 },
-      val_max:      { val_i: 65535 },
-      val_default:  { val_i: 80 },
-      help_string: TRS("Proxy port")
+      .name =        "musicbrainz_proxy_port",
+      .long_name =   TRS("Proxy Port"),
+      .type =         BG_PARAMETER_INT,
+      .val_min =      { .val_i = 1 },
+      .val_max =      { .val_i = 65535 },
+      .val_default =  { .val_i = 80 },
+      .help_string = TRS("Proxy port")
     },
 #endif
 #ifdef HAVE_LIBCDDB
     {
-      name:      "cddb",
-      long_name: TRS("Cddb"),
-      type:      BG_PARAMETER_SECTION
+      .name =      "cddb",
+      .long_name = TRS("Cddb"),
+      .type =      BG_PARAMETER_SECTION
     },
     {
-      name:        "use_cddb",
-      long_name:   TRS("Use Cddb"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 }
+      .name =        "use_cddb",
+      .long_name =   TRS("Use Cddb"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 }
     },
     {
-      name:        "cddb_host",
-      long_name:   TRS("Server"),
-      type:        BG_PARAMETER_STRING,
-      val_default: { val_str: "freedb.org" }
+      .name =        "cddb_host",
+      .long_name =   TRS("Server"),
+      .type =        BG_PARAMETER_STRING,
+      .val_default = { .val_str = "freedb.org" }
     },
     {
-      name:        "cddb_port",
-      long_name:   TRS("Port"),
-      type:         BG_PARAMETER_INT,
-      val_min:      { val_i: 1 },
-      val_max:      { val_i: 65535 },
-      val_default:  { val_i: 80 }
+      .name =        "cddb_port",
+      .long_name =   TRS("Port"),
+      .type =         BG_PARAMETER_INT,
+      .val_min =      { .val_i = 1 },
+      .val_max =      { .val_i = 65535 },
+      .val_default =  { .val_i = 80 }
     },
     {
-      name:        "cddb_path",
-      long_name:   TRS("Path"),
-      type:        BG_PARAMETER_STRING,
-      val_default: { val_str: "/~cddb/cddb.cgi" }
+      .name =        "cddb_path",
+      .long_name =   TRS("Path"),
+      .type =        BG_PARAMETER_STRING,
+      .val_default = { .val_str = "/~cddb/cddb.cgi" }
     },
     {
-      name:        "cddb_proxy_host",
-      long_name:   TRS("Proxy"),
-      type:        BG_PARAMETER_STRING,
-      help_string: TRS("Proxy server (leave empty for direct connection)")
+      .name =        "cddb_proxy_host",
+      .long_name =   TRS("Proxy"),
+      .type =        BG_PARAMETER_STRING,
+      .help_string = TRS("Proxy server (leave empty for direct connection)")
     },
     {
-      name:        "cddb_proxy_port",
-      long_name:   TRS("Proxy Port"),
-      type:         BG_PARAMETER_INT,
-      val_min:      { val_i: 1 },
-      val_max:      { val_i: 65535 },
-      val_default:  { val_i: 80 },
-      help_string: TRS("Proxy port")
+      .name =        "cddb_proxy_port",
+      .long_name =   TRS("Proxy Port"),
+      .type =         BG_PARAMETER_INT,
+      .val_min =      { .val_i = 1 },
+      .val_max =      { .val_i = 65535 },
+      .val_default =  { .val_i = 80 },
+      .help_string = TRS("Proxy port")
     },
     {
-      name:        "cddb_proxy_user",
-      long_name:   TRS("Proxy username"),
-      type:        BG_PARAMETER_STRING,
-      help_string: TRS("User name for proxy (leave empty for poxies, which don't require authentication)")
+      .name =        "cddb_proxy_user",
+      .long_name =   TRS("Proxy username"),
+      .type =        BG_PARAMETER_STRING,
+      .help_string = TRS("User name for proxy (leave empty for poxies, which don't require authentication)")
     },
     {
-      name:        "cddb_proxy_pass",
-      long_name:   TRS("Proxy password"),
-      type:        BG_PARAMETER_STRING_HIDDEN,
-      help_string: TRS("Password for proxy")
+      .name =        "cddb_proxy_pass",
+      .long_name =   TRS("Proxy password"),
+      .type =        BG_PARAMETER_STRING_HIDDEN,
+      .help_string = TRS("Password for proxy")
     },
     {
-      name:        "cddb_timeout",
-      long_name:   TRS("Timeout"),
-      type:         BG_PARAMETER_INT,
-      val_min:      { val_i: 0 },
-      val_max:      { val_i: 1000 },
-      val_default:  { val_i: 10 },
-      help_string: TRS("Timeout (in seconds) for connections to the CDDB server")
+      .name =        "cddb_timeout",
+      .long_name =   TRS("Timeout"),
+      .type =         BG_PARAMETER_INT,
+      .val_min =      { .val_i = 0 },
+      .val_max =      { .val_i = 1000 },
+      .val_default =  { .val_i = 10 },
+      .help_string = TRS("Timeout (in seconds) for connections to the CDDB server")
     },
 #endif
     { /* End of parmeters */ }
@@ -930,46 +930,46 @@ static int eject_disc_cdaudio(const char * device)
 
 bg_input_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:          "i_cdaudio",
-      long_name:     TRS("Audio CD player/ripper"),
-      description:   TRS("Plugin for audio CDs. Supports both playing with direct connection from the CD-drive to the souncard and ripping with cdparanoia. Metadata are obtained from Musicbrainz, freedb or CD-text. Metadata are cached in $HOME/.gmerlin/cdaudio_metadata."),
-      type:          BG_PLUGIN_INPUT,
+      .name =          "i_cdaudio",
+      .long_name =     TRS("Audio CD player/ripper"),
+      .description =   TRS("Plugin for audio CDs. Supports both playing with direct connection from the CD-drive to the souncard and ripping with cdparanoia. Metadata are obtained from Musicbrainz, freedb or CD-text. Metadata are cached in $HOME/.gmerlin/cdaudio_metadata."),
+      .type =          BG_PLUGIN_INPUT,
 
-      flags:         BG_PLUGIN_REMOVABLE |
+      .flags =         BG_PLUGIN_REMOVABLE |
                      BG_PLUGIN_BYPASS |
                      BG_PLUGIN_KEEP_RUNNING |
                      BG_PLUGIN_INPUT_HAS_SYNC,
       
-      priority:      BG_PLUGIN_PRIORITY_MAX,
-      create:        create_cdaudio,
-      destroy:       destroy_cdaudio,
-      get_parameters: get_parameters_cdaudio,
-      set_parameter:  set_parameter_cdaudio,
-      find_devices: bg_cdaudio_find_devices,
-      check_device: bg_cdaudio_check_device,
+      .priority =      BG_PLUGIN_PRIORITY_MAX,
+      .create =        create_cdaudio,
+      .destroy =       destroy_cdaudio,
+      .get_parameters = get_parameters_cdaudio,
+      .set_parameter =  set_parameter_cdaudio,
+      .find_devices = bg_cdaudio_find_devices,
+      .check_device = bg_cdaudio_check_device,
     },
-    protocols: "cda",
+    .protocols = "cda",
   /* Open file/device */
-    open: open_cdaudio,
-    get_disc_name: get_disc_name_cdaudio,
+    .open = open_cdaudio,
+    .get_disc_name = get_disc_name_cdaudio,
 #if LIBCDIO_VERSION_NUM >= 78
-    eject_disc: eject_disc_cdaudio,
+    .eject_disc = eject_disc_cdaudio,
 #endif
-    set_callbacks: set_callbacks_cdaudio,
+    .set_callbacks = set_callbacks_cdaudio,
   /* For file and network plugins, this can be NULL */
-    get_num_tracks: get_num_tracks_cdaudio,
+    .get_num_tracks = get_num_tracks_cdaudio,
     /* Return track information */
-    get_track_info: get_track_info_cdaudio,
+    .get_track_info = get_track_info_cdaudio,
     
     /* Set track */
-    set_track:             set_track_cdaudio,
+    .set_track =             set_track_cdaudio,
     /* Set streams */
-    set_audio_stream:      set_audio_stream_cdaudio,
-    set_video_stream:      NULL,
-    set_subtitle_stream:   NULL,
+    .set_audio_stream =      set_audio_stream_cdaudio,
+    .set_video_stream =      NULL,
+    .set_subtitle_stream =   NULL,
 
     /*
      *  Start decoding.
@@ -977,15 +977,15 @@ bg_input_plugin_t the_plugin =
      *  The plugin must take care of the "active" fields
      *  in the stream infos to check out, which streams are to be decoded
      */
-    start:                 start_cdaudio,
+    .start =                 start_cdaudio,
     /* Read one audio frame (returns FALSE on EOF) */
-    read_audio_samples:    read_audio_cdaudio,
+    .read_audio_samples =    read_audio_cdaudio,
     /* Read one video frame (returns FALSE on EOF) */
-    read_video_frame:      NULL,
+    .read_video_frame =      NULL,
 
-    bypass:                bypass_cdaudio,
-    bypass_set_pause:      bypass_set_pause_cdaudio,
-    bypass_set_volume:     bypass_set_volume_cdaudio,
+    .bypass =                bypass_cdaudio,
+    .bypass_set_pause =      bypass_set_pause_cdaudio,
+    .bypass_set_volume =     bypass_set_volume_cdaudio,
 
     /*
      *  Do percentage seeking (can be NULL)
@@ -993,10 +993,10 @@ bg_input_plugin_t the_plugin =
      *  function is non-NULL AND the duration field of the track info
      *  is > 0
      */
-    seek:         seek_cdaudio,
+    .seek =         seek_cdaudio,
     /* Stop playback, close all decoders */
-    stop:         stop_cdaudio,
-    close:        close_cdaudio,
+    .stop =         stop_cdaudio,
+    .close =        close_cdaudio,
   };
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */

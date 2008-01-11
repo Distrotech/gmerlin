@@ -56,48 +56,48 @@
 static bg_parameter_info_t global_parameters[] =
   {
     {
-      name:        "surround40",
-      long_name:   TRS("Enable 4.0 Surround"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 },
-      help_string: TRS("Use the surround 4.0 (aka quadrophonic) device")
+      .name =        "surround40",
+      .long_name =   TRS("Enable 4.0 Surround"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 },
+      .help_string = TRS("Use the surround 4.0 (aka quadrophonic) device")
     },
     {
-      name:        "surround41",
-      long_name:   TRS("Enable 4.1 Surround"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 },
-      help_string: TRS("Use the surround 4.1 device")
+      .name =        "surround41",
+      .long_name =   TRS("Enable 4.1 Surround"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 },
+      .help_string = TRS("Use the surround 4.1 device")
     },
     {
-      name:        "surround50",
-      long_name:   TRS("Enable 5.0 Surround"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 },
-      help_string: TRS("Use the surround 5.0 device")
+      .name =        "surround50",
+      .long_name =   TRS("Enable 5.0 Surround"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 },
+      .help_string = TRS("Use the surround 5.0 device")
     },
     {
-      name:        "surround51",
-      long_name:   TRS("Enable 5.1 Surround"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 },
-      help_string: TRS("Use the surround 5.1 device")
+      .name =        "surround51",
+      .long_name =   TRS("Enable 5.1 Surround"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 },
+      .help_string = TRS("Use the surround 5.1 device")
     },
     {
-      name:        "user_device",
-      long_name:   TRS("User device"),
-      type:        BG_PARAMETER_STRING,
-      help_string: TRS("Enter a custom device to use for playback. Leave empty to use the\
+      .name =        "user_device",
+      .long_name =   TRS("User device"),
+      .type =        BG_PARAMETER_STRING,
+      .help_string = TRS("Enter a custom device to use for playback. Leave empty to use the\
  settings above"),
     },
     {
-      name:        "buffer_time",
-      long_name:   TRS("Buffer time"),
-      type:        BG_PARAMETER_INT,
-      val_min:     { val_i: 10    },
-      val_max:     { val_i: 10000 },
-      val_default: { val_i: 1000  },
-      help_string: TRS("Set the buffer time (in milliseconds). Larger values \
+      .name =        "buffer_time",
+      .long_name =   TRS("Buffer time"),
+      .type =        BG_PARAMETER_INT,
+      .val_min =     { .val_i = 10    },
+      .val_max =     { .val_i = 10000 },
+      .val_default = { .val_i = 1000  },
+      .help_string = TRS("Set the buffer time (in milliseconds). Larger values \
 improve playback performance on slow systems under load. Smaller values \
 decrease the latency of the volume control."),
     },
@@ -464,30 +464,30 @@ set_parameter_alsa(void * p, const char * name,
 
 bg_oa_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:          "oa_alsa",
-      long_name:     TRS("Alsa"),
-      description:   TRS("Alsa output plugin with support for channel configurations up to 5.1. Samples are sent to the soundcards in the nearest precision of the source format. Select \"Force float\" in the global audio options to enable 24, 32 or floating point playback even for 8 or 16 bit source formats."),
-      mimetypes:     (char*)0,
-      extensions:    (char*)0,
-      type:          BG_PLUGIN_OUTPUT_AUDIO,
-      flags:         BG_PLUGIN_PLAYBACK,
-      priority:      BG_PLUGIN_PRIORITY_MAX,
-      create:        create_alsa,
-      destroy:       destroy_alsa,
+      .name =          "oa_alsa",
+      .long_name =     TRS("Alsa"),
+      .description =   TRS("Alsa output plugin with support for channel configurations up to 5.1. Samples are sent to the soundcards in the nearest precision of the source format. Select \"Force float\" in the global audio options to enable 24, 32 or floating point playback even for 8 or 16 bit source formats."),
+      .mimetypes =     (char*)0,
+      .extensions =    (char*)0,
+      .type =          BG_PLUGIN_OUTPUT_AUDIO,
+      .flags =         BG_PLUGIN_PLAYBACK,
+      .priority =      BG_PLUGIN_PRIORITY_MAX,
+      .create =        create_alsa,
+      .destroy =       destroy_alsa,
       
-      get_parameters: get_parameters_alsa,
-      set_parameter:  set_parameter_alsa,
+      .get_parameters = get_parameters_alsa,
+      .set_parameter =  set_parameter_alsa,
     },
 
-    open:          open_alsa,
-    start:         start_alsa,
-    write_frame:   write_frame_alsa,
-    stop:          stop_alsa,
-    close:         close_alsa,
-    get_delay:     get_delay_alsa,
+    .open =          open_alsa,
+    .start =         start_alsa,
+    .write_frame =   write_frame_alsa,
+    .stop =          stop_alsa,
+    .close =         close_alsa,
+    .get_delay =     get_delay_alsa,
   };
 
 /* Include this into all plugin modules exactly once

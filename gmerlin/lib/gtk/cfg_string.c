@@ -96,10 +96,10 @@ static void attach(void * priv, GtkWidget * table,
 
 static gtk_widget_funcs_t funcs =
   {
-    get_value: get_value,
-    set_value: set_value,
-    destroy:   destroy,
-    attach:    attach
+    .get_value = get_value,
+    .set_value = set_value,
+    .destroy =   destroy,
+    .attach =    attach
   };
 
 void bg_gtk_create_string(bg_gtk_widget_t * w, bg_parameter_info_t * info,

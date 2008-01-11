@@ -123,23 +123,23 @@ static bg_parameter_info_t parameters[] =
   {
 #if 0
     {
-      name:      "video",
-      long_name: TRS("Video"),
-      type:      BG_PARAMETER_SECTION,
+      .name =      "video",
+      .long_name = TRS("Video"),
+      .type =      BG_PARAMETER_SECTION,
     },
 #endif
     BG_GAVL_PARAM_CONVERSION_QUALITY,
     BG_GAVL_PARAM_ALPHA,
     BG_GAVL_PARAM_RESAMPLE_CHROMA,
     {
-      name: "still_framerate",
-      long_name: TRS("Still image framerate"),
-      type:      BG_PARAMETER_FLOAT,
-      val_min:     { val_f:   1.0 },
-      val_max:     { val_f: 100.0 },
-      val_default: { val_f:  10.0 },
-      num_digits:  2,
-      help_string: TRS("Set framerate width which still images will be redisplayed periodically"),
+      .name = "still_framerate",
+      .long_name = TRS("Still image framerate"),
+      .type =      BG_PARAMETER_FLOAT,
+      .val_min =     { .val_f =   1.0 },
+      .val_max =     { .val_f = 100.0 },
+      .val_default = { .val_f =  10.0 },
+      .num_digits =  2,
+      .help_string = TRS("Set framerate width which still images will be redisplayed periodically"),
     },
     { /* End of parameters */ }
   };

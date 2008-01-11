@@ -303,11 +303,11 @@ static void destroy_wav(void * priv)
 static bg_parameter_info_t audio_parameters[] =
   {
     {
-      name:        "bits",
-      long_name:   TRS("Bits per sample"),
-      type:        BG_PARAMETER_STRINGLIST,
-      val_default: { val_str: "16" },
-      multi_names:     (char*[]){ "8", "16", "24", "32", (char*)0 },
+      .name =        "bits",
+      .long_name =   TRS("Bits per sample"),
+      .type =        BG_PARAMETER_STRINGLIST,
+      .val_default = { .val_str = "16" },
+      .multi_names =     (char*[]){ "8", "16", "24", "32", (char*)0 },
     },
     { /* End of parameters */ }
   };
@@ -315,10 +315,10 @@ static bg_parameter_info_t audio_parameters[] =
 static bg_parameter_info_t parameters[] =
   {
     {
-      name:        "write_info_chunk",
-      long_name:   TRS("Write info chunk"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 },
+      .name =        "write_info_chunk",
+      .long_name =   TRS("Write info chunk"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 },
     },
     { /* End of parameters */ }
   };
@@ -625,40 +625,40 @@ static int close_wav(void * data, int do_delete)
 
 bg_encoder_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:              "e_wav", /* Unique short name */
-      long_name:         TRS("Wave writer"),
-      description:       TRS("Simple writer for wave files, supports 8, 16, 24 and 32 bit PCM"),
-      mimetypes:         NULL,
-      extensions:        "wav",
-      type:              BG_PLUGIN_ENCODER_AUDIO,
-      flags:             BG_PLUGIN_FILE,
-      priority:          BG_PLUGIN_PRIORITY_MAX,
-      create:            create_wav,
-      destroy:           destroy_wav,
-      get_parameters:    get_parameters_wav,
-      set_parameter:     set_parameter_wav,
+      .name =              "e_wav", /* Unique short name */
+      .long_name =         TRS("Wave writer"),
+      .description =       TRS("Simple writer for wave files, supports 8, 16, 24 and 32 bit PCM"),
+      .mimetypes =         NULL,
+      .extensions =        "wav",
+      .type =              BG_PLUGIN_ENCODER_AUDIO,
+      .flags =             BG_PLUGIN_FILE,
+      .priority =          BG_PLUGIN_PRIORITY_MAX,
+      .create =            create_wav,
+      .destroy =           destroy_wav,
+      .get_parameters =    get_parameters_wav,
+      .set_parameter =     set_parameter_wav,
     },
-    max_audio_streams:   1,
-    max_video_streams:   0,
+    .max_audio_streams =   1,
+    .max_video_streams =   0,
     
-    get_extension:       get_extension_wav,
+    .get_extension =       get_extension_wav,
     
-    open:                open_wav,
+    .open =                open_wav,
     
-    get_audio_parameters:    get_audio_parameters_wav,
+    .get_audio_parameters =    get_audio_parameters_wav,
 
-    add_audio_stream:        add_audio_stream_wav,
+    .add_audio_stream =        add_audio_stream_wav,
     
-    set_audio_parameter:     set_audio_parameter_wav,
+    .set_audio_parameter =     set_audio_parameter_wav,
 
-    get_audio_format:        get_audio_format_wav,
+    .get_audio_format =        get_audio_format_wav,
 
-    start:               start_wav,
-    write_audio_frame:   write_audio_frame_wav,
-    close:               close_wav
+    .start =               start_wav,
+    .write_audio_frame =   write_audio_frame_wav,
+    .close =               close_wav
   };
 
 /* Include this into all plugin modules exactly once

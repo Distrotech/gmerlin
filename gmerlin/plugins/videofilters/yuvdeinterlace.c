@@ -1033,14 +1033,14 @@ static int antialias_frame (yuvdeinterlacer_t * di, gavl_video_frame_t * frame)
 bg_parameter_info_t yuvdeinterlacer_parameters[] =
   {
     {
-      name: "yuvdeinterlace_mode",
-      long_name: "Mode",
-      type: BG_PARAMETER_MULTI_LIST,
+      .name = "yuvdeinterlace_mode",
+      .long_name = "Mode",
+      .type = BG_PARAMETER_MULTI_LIST,
     },
     {
-      name: "just_anti_alias",
-      long_name: "Do only antialiasing",
-      type: BG_PARAMETER_CHECKBUTTON,
+      .name = "just_anti_alias",
+      .long_name = "Do only antialiasing",
+      .type = BG_PARAMETER_CHECKBUTTON,
     },
     { /* End */ }
   };

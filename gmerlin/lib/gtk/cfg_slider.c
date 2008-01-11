@@ -128,18 +128,18 @@ static void attach(void * priv, GtkWidget * table, int * row, int * num_columns)
 
 static gtk_widget_funcs_t int_funcs =
   {
-    get_value: get_value_int,
-    set_value: set_value_int,
-    destroy: destroy,
-    attach:  attach
+    .get_value = get_value_int,
+    .set_value = set_value_int,
+    .destroy = destroy,
+    .attach =  attach
   };
 
 static gtk_widget_funcs_t float_funcs =
   {
-    get_value: get_value_float,
-    set_value: set_value_float,
-    destroy: destroy,
-    attach:  attach
+    .get_value = get_value_float,
+    .set_value = set_value_float,
+    .destroy = destroy,
+    .attach =  attach
   };
 
 

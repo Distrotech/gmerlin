@@ -199,12 +199,12 @@ static void destroy_spumux(void * priv)
 static bg_parameter_info_t parameters[] =
   {
     {
-      name:        "compression",
-      long_name:   TRS("Compression level"),
-      type:        BG_PARAMETER_SLIDER_INT,
-      val_min:     { val_i: 0 },
-      val_max:     { val_i: 9 },
-      val_default: { val_i: 9 },
+      .name =        "compression",
+      .long_name =   TRS("Compression level"),
+      .type =        BG_PARAMETER_SLIDER_INT,
+      .val_min =     { .val_i = 0 },
+      .val_max =     { .val_i = 9 },
+      .val_default = { .val_i = 9 },
     },
     { /* End of parameters */ }
   };
@@ -218,39 +218,39 @@ static bg_parameter_info_t * get_parameters_spumux(void * priv)
 
 bg_encoder_plugin_t the_plugin =
   {
-    common:
+    .common =
     {
       BG_LOCALE,
-      name:           "e_spumux",       /* Unique short name */
-      long_name:      TRS("spumux overlay exporter"),
-      description:    TRS("Exports overlay subtitles into the format used by spumux\
+      .name =           "e_spumux",       /* Unique short name */
+      .long_name =      TRS("spumux overlay exporter"),
+      .description =    TRS("Exports overlay subtitles into the format used by spumux\
  (http://dvdauthor.sourceforge.net)"),
-      mimetypes:      NULL,
-      extensions:     "xml",
-      type:           BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY,
-      flags:          BG_PLUGIN_FILE,
-      priority:       BG_PLUGIN_PRIORITY_MAX,
-      create:         create_spumux,
-      destroy:        destroy_spumux,
-      get_parameters: get_parameters_spumux,
-      set_parameter:  bg_pngwriter_set_parameter,
+      .mimetypes =      NULL,
+      .extensions =     "xml",
+      .type =           BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY,
+      .flags =          BG_PLUGIN_FILE,
+      .priority =       BG_PLUGIN_PRIORITY_MAX,
+      .create =         create_spumux,
+      .destroy =        destroy_spumux,
+      .get_parameters = get_parameters_spumux,
+      .set_parameter =  bg_pngwriter_set_parameter,
       //   get_error:      get_error_spumux,
     },
 
-    max_subtitle_overlay_streams: 1,
+    .max_subtitle_overlay_streams = 1,
     
-    get_extension:        get_extension_spumux,
+    .get_extension =        get_extension_spumux,
     
-    open:                 open_spumux,
+    .open =                 open_spumux,
 
-    add_subtitle_overlay_stream:     add_subtitle_overlay_stream_spumux,
+    .add_subtitle_overlay_stream =     add_subtitle_overlay_stream_spumux,
     
-    start:                start_spumux,
+    .start =                start_spumux,
 
-    get_subtitle_overlay_format: get_subtitle_overlay_format_spumux,
+    .get_subtitle_overlay_format = get_subtitle_overlay_format_spumux,
     
-    write_subtitle_overlay: write_subtitle_overlay_spumux,
-    close:             close_spumux,
+    .write_subtitle_overlay = write_subtitle_overlay_spumux,
+    .close =             close_spumux,
   };
 
 /* Include this into all plugin modules exactly once

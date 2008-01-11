@@ -175,10 +175,10 @@ static void attach(void * priv, GtkWidget * table,
 
 static gtk_widget_funcs_t funcs =
   {
-    get_value: get_value,
-    set_value: set_value,
-    destroy:   destroy,
-    attach:    attach
+    .get_value = get_value,
+    .set_value = set_value,
+    .destroy =   destroy,
+    .attach =    attach
   };
 
 static void realize_callback(GtkWidget * _w, gpointer data)

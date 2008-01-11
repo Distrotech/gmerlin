@@ -4,7 +4,7 @@ AC_CONFIG_SRCDIR([include/player.h])
 
 AM_CONFIG_HEADER(include/config.h)
 
-AM_INIT_AUTOMAKE(gmerlin, 0.3.7)
+AM_INIT_AUTOMAKE(gmerlin, 0.3.8pre1)
 
 BG_VERSION=$VERSION
 
@@ -38,6 +38,9 @@ AC_C_BIGENDIAN
 AC_CHECK_FUNCS(vasprintf)
 AC_C99_FUNC_LRINT
 AC_C99_FUNC_LRINTF
+
+AC_CHECK_HEADERS([sys/select.h])
+
 
 AC_CHECK_DECLS([MSG_NOSIGNAL, SO_NOSIGPIPE],,,
                [#include <sys/types.h>

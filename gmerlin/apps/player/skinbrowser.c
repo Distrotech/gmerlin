@@ -59,8 +59,8 @@ static skin_info_t * scan_directory(const char * directory)
     
   DIR * dir;
   struct dirent * entry;
-  char dir_filename[PATH_MAX];
-  char skin_filename[PATH_MAX];
+  char dir_filename[FILENAME_MAX];
+  char skin_filename[FILENAME_MAX];
   struct stat st;
 
   dir = opendir(directory);

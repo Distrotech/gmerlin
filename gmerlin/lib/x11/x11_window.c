@@ -1171,87 +1171,87 @@ bg_parameter_info_t common_parameters[] =
   {
     {
       BG_LOCALE,
-      name:        "window",
-      long_name:   TRS("General"),
+      .name =        "window",
+      .long_name =   TRS("General"),
     },
     {
-      name:        "auto_resize",
-      long_name:   TRS("Auto resize window"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 }
+      .name =        "auto_resize",
+      .long_name =   TRS("Auto resize window"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 }
     },
     {
-      name:        "window_width",
-      long_name:   "Window width",
-      type:        BG_PARAMETER_INT,
-      flags:       BG_PARAMETER_HIDE_DIALOG,
-      val_default: { val_i: 320 }
+      .name =        "window_width",
+      .long_name =   "Window width",
+      .type =        BG_PARAMETER_INT,
+      .flags =       BG_PARAMETER_HIDE_DIALOG,
+      .val_default = { .val_i = 320 }
     },
     {
-      name:        "window_height",
-      long_name:   "Window height",
-      type:        BG_PARAMETER_INT,
-      flags:       BG_PARAMETER_HIDE_DIALOG,
-      val_default: { val_i: 240 }
+      .name =        "window_height",
+      .long_name =   "Window height",
+      .type =        BG_PARAMETER_INT,
+      .flags =       BG_PARAMETER_HIDE_DIALOG,
+      .val_default = { .val_i = 240 }
     },
     {
-      name:        "window_x",
-      long_name:   "Window x",
-      type:        BG_PARAMETER_INT,
-      flags:       BG_PARAMETER_HIDE_DIALOG,
-      val_default: { val_i: 100 }
+      .name =        "window_x",
+      .long_name =   "Window x",
+      .type =        BG_PARAMETER_INT,
+      .flags =       BG_PARAMETER_HIDE_DIALOG,
+      .val_default = { .val_i = 100 }
     },
     {
-      name:        "window_y",
-      long_name:   "Window y",
-      type:        BG_PARAMETER_INT,
-      flags:       BG_PARAMETER_HIDE_DIALOG,
-      val_default: { val_i: 100 }
+      .name =        "window_y",
+      .long_name =   "Window y",
+      .type =        BG_PARAMETER_INT,
+      .flags =       BG_PARAMETER_HIDE_DIALOG,
+      .val_default = { .val_i = 100 }
     },
 #if 0
     // #ifdef HAVE_LIBXV
     {
-      name:        "xv_mode",
-      long_name:   TRS("Try XVideo"),
-      type:        BG_PARAMETER_STRINGLIST,
+      .name =        "xv_mode",
+      .long_name =   TRS("Try XVideo"),
+      .type =        BG_PARAMETER_STRINGLIST,
 
-      multi_names: (char*[]){ "never", "yuv_only", "always", (char*)0},
-      multi_labels: (char*[]){ TRS("Never"),
+      .multi_names = (char*[]){ "never", "yuv_only", "always", (char*)0},
+      .multi_labels = (char*[]){ TRS("Never"),
                                TRS("For YCbCr formats only"),
                                TRS("Always"), (char*)0},
-      val_default: { val_str: "yuv_only" },
-      help_string: TRS("Choose when to try XVideo (with hardware scaling). Note that your graphics card/driver must support this."),
+      .val_default = { .val_str = "yuv_only" },
+      .help_string = TRS("Choose when to try XVideo (with hardware scaling). Note that your graphics card/driver must support this."),
     },
 #endif
     {
-      name:        "disable_xscreensaver_normal",
-      long_name:   TRS("Disable Screensaver for normal playback"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 0 }
+      .name =        "disable_xscreensaver_normal",
+      .long_name =   TRS("Disable Screensaver for normal playback"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 0 }
     },
     {
-      name:        "disable_xscreensaver_fullscreen",
-      long_name:   TRS("Disable Screensaver for fullscreen playback"),
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 }
+      .name =        "disable_xscreensaver_fullscreen",
+      .long_name =   TRS("Disable Screensaver for fullscreen playback"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 1 }
     },
     {
-      name:        "force_hw_scale",
-      long_name:   TRS("Force hardware scaling"),
-      type:        BG_PARAMETER_CHECKBUTTON,      val_default: { val_i: 1 },
-      help_string: TRS("Use hardware scaling even if it involves more CPU intensive pixelformat conversions"),
+      .name =        "force_hw_scale",
+      .long_name =   TRS("Force hardware scaling"),
+      .type =        BG_PARAMETER_CHECKBUTTON,      .val_default = { .val_i = 1 },
+      .help_string = TRS("Use hardware scaling even if it involves more CPU intensive pixelformat conversions"),
 
     },
     {
-      name:        "sw_scaler",
-      long_name:   TRS("Software scaler"),
-      type:        BG_PARAMETER_SECTION,
+      .name =        "sw_scaler",
+      .long_name =   TRS("Software scaler"),
+      .type =        BG_PARAMETER_SECTION,
     },
     {
-      name:        "scale_mode",
-      long_name:   TRS("Scale mode"),
-      type:        BG_PARAMETER_STRINGLIST,
-      multi_names:  (char*[]){ "auto",
+      .name =        "scale_mode",
+      .long_name =   TRS("Scale mode"),
+      .type =        BG_PARAMETER_STRINGLIST,
+      .multi_names =  (char*[]){ "auto",
                                "nearest",
                                "bilinear",
                                "quadratic",
@@ -1260,7 +1260,7 @@ bg_parameter_info_t common_parameters[] =
                                "cubic_catmull",
                                "sinc_lanczos",
                                (char*)0 },
-      multi_labels: (char*[]){ TRS("Auto"),
+      .multi_labels = (char*[]){ TRS("Auto"),
                                TRS("Nearest"),
                                TRS("Bilinear"),
                                TRS("Quadratic"),
@@ -1269,26 +1269,26 @@ bg_parameter_info_t common_parameters[] =
                                TRS("Cubic Catmull-Rom"),
                                TRS("Sinc with Lanczos window"),
                                (char*)0 },
-      val_default: { val_str: "auto" },
-      help_string: TRS("Choose scaling method. Auto means to choose based on the conversion quality. Nearest is fastest, Sinc with Lanczos window is slowest"),
+      .val_default = { .val_str = "auto" },
+      .help_string = TRS("Choose scaling method. Auto means to choose based on the conversion quality. Nearest is fastest, Sinc with Lanczos window is slowest"),
     },
     {
-      name:        "scale_order",
-      long_name:   TRS("Scale order"),
-      type:        BG_PARAMETER_INT,
-      val_min:     { val_i: 4 },
-      val_max:     { val_i: 1000 },
-      val_default: { val_i: 4 },
-      help_string: TRS("Order for sinc scaling"),
+      .name =        "scale_order",
+      .long_name =   TRS("Scale order"),
+      .type =        BG_PARAMETER_INT,
+      .val_min =     { .val_i = 4 },
+      .val_max =     { .val_i = 1000 },
+      .val_default = { .val_i = 4 },
+      .help_string = TRS("Order for sinc scaling"),
     },
     {
-      name:        "scale_quality",
-      long_name:   TRS("Scale quality"),
-      type:        BG_PARAMETER_SLIDER_INT,
-      val_min:     { val_i: GAVL_QUALITY_FASTEST },
-      val_max:     { val_i: GAVL_QUALITY_BEST },
-      val_default: { val_i: GAVL_QUALITY_DEFAULT },
-      help_string: TRS("Scale quality"),
+      .name =        "scale_quality",
+      .long_name =   TRS("Scale quality"),
+      .type =        BG_PARAMETER_SLIDER_INT,
+      .val_min =     { .val_i = GAVL_QUALITY_FASTEST },
+      .val_max =     { .val_i = GAVL_QUALITY_BEST },
+      .val_default = { .val_i = GAVL_QUALITY_DEFAULT },
+      .help_string = TRS("Scale quality"),
     },
     { /* End of parameters */ },
   };
