@@ -131,7 +131,7 @@ static int parse_m3u(bgav_redirector_context_t * r)
   return !!(r->num_urls);
   }
 
-bgav_redirector_t bgav_redirector_m3u = 
+const bgav_redirector_t bgav_redirector_m3u = 
   {
     .name =  "m3u/ram",
     .probe = probe_m3u,

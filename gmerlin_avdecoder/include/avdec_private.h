@@ -704,7 +704,7 @@ struct bgav_input_context_s
   void * priv;
   int64_t total_bytes; /* Maybe 0 for non seekable streams */
   int64_t position;    /* Updated also for non seekable streams */
-  bgav_input_t * input;
+  const bgav_input_t * input;
 
   /* Some input modules already fire up a demuxer */
     
@@ -947,7 +947,7 @@ struct bgav_demuxer_context_s
   {
   const bgav_options_t * opt;
   void * priv;
-  bgav_demuxer_t * demuxer;
+  const bgav_demuxer_t * demuxer;
   bgav_input_context_t * input;
   
   bgav_track_table_t * tt;
@@ -989,10 +989,10 @@ struct bgav_demuxer_context_s
 
 bgav_demuxer_context_t *
 bgav_demuxer_create(const bgav_options_t * opt,
-                    bgav_demuxer_t * demuxer,
+                    const bgav_demuxer_t * demuxer,
                     bgav_input_context_t * input);
 
-bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input);
+const bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input);
 
 void bgav_demuxer_create_buffers(bgav_demuxer_context_t * demuxer);
 void bgav_demuxer_destroy(bgav_demuxer_context_t * demuxer);

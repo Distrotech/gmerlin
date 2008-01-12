@@ -51,7 +51,7 @@ typedef struct
   int64_t samples_read;
   } esd_t;
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =      "esd_host",
@@ -63,8 +63,8 @@ static bg_parameter_info_t parameters[] =
       .long_name =   TRS("Input Mode"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "record" },
-      .multi_names =     (char*[]){ "record", "monitor", (char*)0 },
-      .multi_labels =    (char*[]){ TRS("Record"), TRS("Monitor"), (char*)0 },
+      .multi_names =     (char const *[]){ "record", "monitor", (char*)0 },
+      .multi_labels =    (char const *[]){ TRS("Record"), TRS("Monitor"), (char*)0 },
     },
     { /* End of parameters */ }
   };
@@ -105,7 +105,7 @@ static void destroy_esd(void *data)
   free(e);
   }
 
-static bg_parameter_info_t *
+static const bg_parameter_info_t *
 get_parameters_esd(void * priv)
   {
   return parameters;
@@ -223,7 +223,7 @@ static void read_frame_esd(void * p, gavl_audio_frame_t * f, int num_samples)
   priv->samples_read += samples_read;
   }
 
-bg_ra_plugin_t the_plugin =
+const bg_ra_plugin_t the_plugin =
   {
     .common =
     {

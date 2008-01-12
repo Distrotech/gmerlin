@@ -62,8 +62,8 @@
     .long_name = TRS("Motion estimation method"),\
     .type =      BG_PARAMETER_STRINGLIST,\
     .val_default = {val_str: "Zero"},\
-    .multi_names = (char *[]){"Zero", "Phods", "Log", "X1", "Epzs", "Full", (char *)0}, \
-    .multi_labels = (char *[]){TRS("Zero"), TRS("Phods"), TRS("Log"), \
+    .multi_names = (char const *[]){"Zero", "Phods", "Log", "X1", "Epzs", "Full", (char *)0}, \
+    .multi_labels = (char const *[]){TRS("Zero"), TRS("Phods"), TRS("Log"), \
 TRS("X1"), TRS("Epzs"), TRS("Full"), (char *)0} \
   }
 
@@ -389,8 +389,8 @@ consequences\n\
     .long_name = TRS("Precition method"),                \
     .type =      BG_PARAMETER_STRINGLIST,          \
     .val_default = { .val_str = "Left" },\
-multi_names: (char*[]){ "Left", "Plane", "Median", (char*)0 },    \
-multi_labels: (char*[]){ TRS("Left"), TRS("Plane"), TRS("Median"), (char*)0 },    \
+multi_names: (char const *[]){ "Left", "Plane", "Median", (char*)0 },    \
+multi_labels: (char const *[]){ TRS("Left"), TRS("Plane"), TRS("Median"), (char*)0 },    \
   }
 
 /** Quantizer */
@@ -415,7 +415,7 @@ multi_labels: (char*[]){ TRS("Left"), TRS("Plane"), TRS("Median"), (char*)0 },  
     .val_max =     { .val_i = 31 },\
   }
 
-#define COMPARE_FUNCS (char*[]){ "SAD", "SSE", "SATD", "DCT", "PSNR", \
+#define COMPARE_FUNCS (char const *[]){ "SAD", "SSE", "SATD", "DCT", "PSNR", \
                         "BIT", "RD", "ZERO", "VSAD", "VSSE", "NSSE", (char*)0 }
 
 #define COMPARE_FUNCS_HELP TRS("SAD: Sum of absolute differences\n"\
@@ -615,9 +615,9 @@ multi_labels: (char*[]){ TRS("Left"), TRS("Plane"), TRS("Median"), (char*)0 },  
     .long_name = TRS("MB decision mode"),              \
     .type = BG_PARAMETER_STRINGLIST,             \
     .val_default = { .val_str = "Use compare function" },        \
-    .multi_names = (char*[]){ "Use compare function", \
+    .multi_names = (char const *[]){ "Use compare function", \
                           "Fewest bits", "Rate distoration", (char*)0 },\
-    .multi_labels = (char*[]){ TRS("Use compare function"), \
+    .multi_labels = (char const *[]){ TRS("Use compare function"), \
                           TRS("Fewest bits"), TRS("Rate distoration"), (char*)0 },\
   }
 

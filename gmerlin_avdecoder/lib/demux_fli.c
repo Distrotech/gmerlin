@@ -217,7 +217,7 @@ static void close_fli(bgav_demuxer_context_t * ctx)
   free(priv);
   }
 
-bgav_demuxer_t bgav_demuxer_fli =
+const bgav_demuxer_t bgav_demuxer_fli =
   {
     .probe =       probe_fli,
     .open =        open_fli,

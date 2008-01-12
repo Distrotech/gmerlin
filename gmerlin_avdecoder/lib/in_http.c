@@ -51,7 +51,7 @@ typedef struct
   bgav_charset_converter_t * charset_cnv;
   } http_priv;
 
-static char * title_vars[] =
+static char const * const title_vars[] =
   {
     "icy-name",
     "ice-name",
@@ -59,7 +59,7 @@ static char * title_vars[] =
     (char*)0
   };
 
-static char * genre_vars[] =
+static char const * const genre_vars[] =
   {
     "x-audiocast-genre",
     "icy-genre",
@@ -67,7 +67,7 @@ static char * genre_vars[] =
     (char*)0
   };
 
-static char * comment_vars[] =
+static char const * const comment_vars[] =
   {
     "ice-description",
     "x-audiocast-description",
@@ -418,7 +418,7 @@ static void close_http(bgav_input_context_t * ctx)
   free(p);
   }
 
-bgav_input_t bgav_input_http =
+const bgav_input_t bgav_input_http =
   {
     .name =          "http",
     .open =          open_http,

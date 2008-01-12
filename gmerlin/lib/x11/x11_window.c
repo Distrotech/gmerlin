@@ -1167,7 +1167,7 @@ void bg_x11_window_destroy(bg_x11_window_t * w)
   free(w);
   }
 
-bg_parameter_info_t common_parameters[] =
+static const bg_parameter_info_t common_parameters[] =
   {
     {
       BG_LOCALE,
@@ -1251,7 +1251,7 @@ bg_parameter_info_t common_parameters[] =
       .name =        "scale_mode",
       .long_name =   TRS("Scale mode"),
       .type =        BG_PARAMETER_STRINGLIST,
-      .multi_names =  (char*[]){ "auto",
+      .multi_names =  (char const*[]){ "auto",
                                "nearest",
                                "bilinear",
                                "quadratic",
@@ -1260,7 +1260,7 @@ bg_parameter_info_t common_parameters[] =
                                "cubic_catmull",
                                "sinc_lanczos",
                                (char*)0 },
-      .multi_labels = (char*[]){ TRS("Auto"),
+      .multi_labels = (char const*[]){ TRS("Auto"),
                                TRS("Nearest"),
                                TRS("Bilinear"),
                                TRS("Quadratic"),
@@ -1433,7 +1433,7 @@ void bg_x11_window_set_size(bg_x11_window_t * win, int width, int height)
   win->window_height = height;
   }
 
-static struct
+static const struct
   {
   int glx_attribute;
   int is_boolean;

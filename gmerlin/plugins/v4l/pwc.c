@@ -63,7 +63,7 @@ int bg_pwc_probe(int fd)
   return 0;
   }
 
-static bg_parameter_info_t pwc_parameters[] =
+static const bg_parameter_info_t pwc_parameters[] =
   {
     {
       .name =        "pwc_general",
@@ -84,12 +84,12 @@ static bg_parameter_info_t pwc_parameters[] =
       .type =        BG_PARAMETER_STRINGLIST,
       .flags =       BG_PARAMETER_SYNC,
       .val_default = { .val_str = "Medium" },
-      .multi_labels = (char*[]){ TRS("None"),
+      .multi_labels = (char const *[]){ TRS("None"),
                               TRS("Low"),
                               TRS("Medium"),
                               TRS("High"),
                               (char*)0 },
-      .multi_names =     (char*[]){ "None",
+      .multi_names =     (char const *[]){ "None",
                               "Low",
                               "Medium",
                               "High",
@@ -147,13 +147,13 @@ static bg_parameter_info_t pwc_parameters[] =
       .type =        BG_PARAMETER_STRINGLIST,
       .flags =       BG_PARAMETER_SYNC,
       .val_default = { .val_str = "Auto" },
-      .multi_names =     (char*[]){ "Indoor",
+      .multi_names =     (char const *[]){ "Indoor",
                                   "Outdoor",
                                   "Fluorescent lighting",
                                   "Manual",
                                   "Auto",
                                   (char*)0 },
-      .multi_labels =     (char*[]){ TRS("Indoor"),
+      .multi_labels =     (char const *[]){ TRS("Indoor"),
                                    TRS("Outdoor"),
                                    TRS("Fluorescent lighting"),
                                    TRS("Manual"),

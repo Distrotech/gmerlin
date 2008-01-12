@@ -33,8 +33,8 @@
 #define HDRSIZE 12
 
 
-static const char * nuppel_sig = "NuppelVideo";
-static const char * mythtv_sig = "MythTVVideo";
+static const char const * const nuppel_sig = "NuppelVideo";
+static const char const * const mythtv_sig = "MythTVVideo";
 #define SIG_LEN 12
 
 #define AUDIO_ID 0
@@ -316,7 +316,7 @@ static void close_nuv(bgav_demuxer_context_t * ctx)
     free(ctx->tt->cur->video_streams[0].ext_data);
   }
 
-bgav_demuxer_t bgav_demuxer_nuv =
+const bgav_demuxer_t bgav_demuxer_nuv =
   {
     .probe =       probe_nuv,
     .open =        open_nuv,

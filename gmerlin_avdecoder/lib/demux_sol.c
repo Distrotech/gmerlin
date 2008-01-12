@@ -160,7 +160,7 @@ static void close_sol(bgav_demuxer_context_t * ctx)
   {
   }
 
-bgav_demuxer_t bgav_demuxer_sol =
+const bgav_demuxer_t bgav_demuxer_sol =
   {
     .probe =       probe_sol,
     .open =        open_sol,

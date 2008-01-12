@@ -300,19 +300,19 @@ static void destroy_wav(void * priv)
 
 
 
-static bg_parameter_info_t audio_parameters[] =
+static const bg_parameter_info_t audio_parameters[] =
   {
     {
       .name =        "bits",
       .long_name =   TRS("Bits per sample"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "16" },
-      .multi_names =     (char*[]){ "8", "16", "24", "32", (char*)0 },
+      .multi_names =     (char const *[]){ "8", "16", "24", "32", (char*)0 },
     },
     { /* End of parameters */ }
   };
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =        "write_info_chunk",
@@ -323,12 +323,12 @@ static bg_parameter_info_t parameters[] =
     { /* End of parameters */ }
   };
 
-static bg_parameter_info_t * get_audio_parameters_wav(void * data)
+static const bg_parameter_info_t * get_audio_parameters_wav(void * data)
   {
   return audio_parameters;
   }
 
-static bg_parameter_info_t * get_parameters_wav(void * data)
+static const bg_parameter_info_t * get_parameters_wav(void * data)
   {
   return parameters;
   }
@@ -346,7 +346,7 @@ static int write_PCMWAVEFORMAT(wav_t * wav)
      write_16(wav->output, wav->bytes_per_sample * 8));                        /* wBitsPerSample */
   }
 
-struct
+const struct
   {
   int flag;
   gavl_channel_id_t id;
@@ -467,7 +467,7 @@ static int open_wav(void * data, const char * filename,
   return result;
   }
 
-static char * wav_extension = ".wav";
+static char const * const wav_extension = ".wav";
 
 static const char * get_extension_wav(void * data)
   {
@@ -623,7 +623,7 @@ static int close_wav(void * data, int do_delete)
   return ret;
   }
 
-bg_encoder_plugin_t the_plugin =
+const bg_encoder_plugin_t the_plugin =
   {
     .common =
     {

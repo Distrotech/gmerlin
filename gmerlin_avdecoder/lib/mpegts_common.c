@@ -33,10 +33,10 @@ typedef struct
   int      ts_type;   /* From pmt */
   int      bgav_type; /* #defines from avdec_private.h */
   uint32_t fourcc;
-  char * description; /* For debugging only! */
+  const char * description; /* For debugging only! */
   } stream_type_t;
 
-stream_type_t stream_types[] =
+static const stream_type_t stream_types[] =
   {
     {
       .ts_type =     STREAM_TYPE_VIDEO_MPEG1,
@@ -94,7 +94,7 @@ stream_type_t stream_types[] =
     },
   };
 
-static stream_type_t * get_stream_type(int ts_type)
+static const stream_type_t * get_stream_type(int ts_type)
   {
   int i;
 
@@ -164,7 +164,7 @@ int bgav_pmt_section_read(uint8_t * data, int size,
 void bgav_pmt_section_dump(pmt_section_t * pmts)
   {
   int i;
-  stream_type_t * stream_type;
+  const stream_type_t * stream_type;
   
   bgav_dprintf( "PMT section:\n");
   bgav_dprintf( "  table_id:               %02x\n",   pmts->table_id);

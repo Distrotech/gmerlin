@@ -210,7 +210,7 @@ static void * create_flacogg(FILE * output, long serialno)
   return ret;
   }
 
-static bg_parameter_info_t * get_parameters_flacogg()
+static const bg_parameter_info_t * get_parameters_flacogg()
   {
   return bg_flac_get_parameters(NULL);
   }
@@ -327,7 +327,7 @@ static int close_flacogg(void * data)
   }
 
 
-bg_ogg_codec_t bg_flacogg_codec =
+const bg_ogg_codec_t bg_flacogg_codec =
   {
     .name =      "flacogg",
     .long_name = TRS("Flac encoder"),

@@ -70,7 +70,7 @@ static uint32_t swap_endian(uint32_t val)
 #endif
 
 
-struct
+static const struct
   {
   int flag;
   gavl_channel_id_t id;
@@ -171,7 +171,7 @@ void bgav_WAVEFORMAT_read(bgav_WAVEFORMAT_t * ret, uint8_t * data, int len)
     }
   }
 
-static struct
+static const struct
   {
   uint32_t fourcc;
   bgav_GUID_t guid;

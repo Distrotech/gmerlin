@@ -95,7 +95,7 @@ void gavl_video_format_fit_to_source(gavl_video_format_t * dst,
     }
   }
 
-typedef struct
+typedef const struct
   {
   gavl_interlace_mode_t mode;
   char * name;
@@ -109,7 +109,7 @@ interlace_mode_tab_t interlace_mode_tab[] =
     { GAVL_INTERLACE_MIXED,        "Mixed" }
   };
 
-static int num_interlace_modes = sizeof(interlace_mode_tab)/sizeof(interlace_mode_tab[0]);
+static const int num_interlace_modes = sizeof(interlace_mode_tab)/sizeof(interlace_mode_tab[0]);
 
 const char * gavl_interlace_mode_to_string(gavl_interlace_mode_t mode)
   {
@@ -129,14 +129,14 @@ typedef struct
   char * name;
   } chroma_placement_tab_t;
 
-chroma_placement_tab_t chroma_placement_tab[] =
+const chroma_placement_tab_t chroma_placement_tab[] =
   {
     { GAVL_CHROMA_PLACEMENT_DEFAULT, "MPEG-1/JPEG" },
     { GAVL_CHROMA_PLACEMENT_MPEG2, "MPEG-2" },
     { GAVL_CHROMA_PLACEMENT_DVPAL, "DV PAL" }
   };
 
-static int num_chroma_placements = sizeof(chroma_placement_tab)/sizeof(chroma_placement_tab_t);
+static const int num_chroma_placements = sizeof(chroma_placement_tab)/sizeof(chroma_placement_tab_t);
 
 const char * gavl_chroma_placement_to_string(gavl_chroma_placement_t mode)
   {

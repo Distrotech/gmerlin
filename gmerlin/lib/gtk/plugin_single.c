@@ -85,7 +85,7 @@ static void set_parameter(void * data, const char * name,
 
 static void button_callback(GtkWidget * w, gpointer data)
   {
-  bg_parameter_info_t * parameters;
+  const bg_parameter_info_t * parameters;
   bg_gtk_plugin_widget_single_t * widget;
   
   bg_dialog_t * dialog;

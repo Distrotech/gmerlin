@@ -648,7 +648,7 @@ static void close_vivo(bgav_demuxer_context_t * ctx)
   free(priv);
   }
 
-bgav_demuxer_t bgav_demuxer_vivo =
+const bgav_demuxer_t bgav_demuxer_vivo =
   {
     .probe =        probe_vivo,
     .open =         open_vivo,

@@ -50,7 +50,7 @@ typedef struct invert_priv_s
   
   } invert_priv_t;
 
-static float coeffs_unity[4][5] =
+static const float coeffs_unity[4][5] =
   {
     { 1.0, 0.0, 0.0, 0.0, 0.0 },
     { 0.0, 1.0, 0.0, 0.0, 0.0 },
@@ -58,7 +58,7 @@ static float coeffs_unity[4][5] =
     { 0.0, 0.0, 0.0, 1.0, 0.0 },
   };
 
-static float coeffs_invert[4][5] =
+static const float coeffs_invert[4][5] =
   {
     { -1.0,  0.0,  0.0,  0.0, 1.0 },
     {  0.0, -1.0,  0.0,  0.0, 1.0 },
@@ -82,7 +82,7 @@ static void destroy_invert(void * priv)
   free(vp);
   }
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .gettext_domain = PACKAGE,
@@ -118,7 +118,7 @@ static bg_parameter_info_t parameters[] =
   };
 
 
-static bg_parameter_info_t * get_parameters_invert(void * priv)
+static const bg_parameter_info_t * get_parameters_invert(void * priv)
   {
   return parameters;
   }
@@ -542,7 +542,7 @@ static int read_video_invert(void * priv, gavl_video_frame_t * frame, int stream
   return 1;
   }
 
-bg_fv_plugin_t the_plugin = 
+const bg_fv_plugin_t the_plugin = 
   {
     .common =
     {

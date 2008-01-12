@@ -42,7 +42,7 @@ static void    close_fd(bgav_input_context_t * ctx)
   free(priv);
   }
 
-static bgav_input_t bgav_input_fd =
+static const bgav_input_t bgav_input_fd =
   {
     .open =   NULL, /* Not needed */
     .read =   read_fd,

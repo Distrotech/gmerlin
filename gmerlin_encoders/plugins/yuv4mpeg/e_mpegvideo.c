@@ -115,7 +115,7 @@ static void destroy_mpv(void * data)
 
 /* Per stream parameters */
 
-static bg_parameter_info_t * get_parameters_mpv(void * data)
+static const bg_parameter_info_t * get_parameters_mpv(void * data)
   {
   return bg_mpv_get_parameters();
   }
@@ -129,7 +129,7 @@ static void set_parameter_mpv(void * data, const char * name,
 
 #undef SET_ENUM
 
-bg_encoder_plugin_t the_plugin =
+const bg_encoder_plugin_t the_plugin =
   {
     .common =
     {

@@ -40,7 +40,7 @@ static void codecs_unlock();
 
 
 #if (HAVE_REALDLL || HAVE_XADLL || HAVE_W32DLL)
-static const char * find_directory(char ** dirs, const char * env_name)
+static const char * find_directory(char const* const* dirs, const char * env_name)
   {
   struct stat st;
   const char * env_dir;
@@ -62,9 +62,9 @@ static const char * find_directory(char ** dirs, const char * env_name)
 #endif
 
 #ifdef HAVE_REALDLL
-static const char * env_name_real = "GMERLIN_AVDEC_CODEC_PATH_REAL";
+static char const * const env_name_real = "GMERLIN_AVDEC_CODEC_PATH_REAL";
 
-static char * real_dirs[] =
+static char const * const real_dirs[] =
   {
     "/usr/lib/codecs",
     "/usr/local/lib/codecs",

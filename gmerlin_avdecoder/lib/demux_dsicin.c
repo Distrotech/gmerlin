@@ -238,7 +238,7 @@ static void close_dsicin(bgav_demuxer_context_t * ctx)
   {
   }
 
-bgav_demuxer_t bgav_demuxer_dsicin =
+const bgav_demuxer_t bgav_demuxer_dsicin =
   {
     .probe =       probe_dsicin,
     .open =        open_dsicin,

@@ -75,19 +75,19 @@ static GtkTargetList * target_list_r = (GtkTargetList *)0;
 #define DND_TEXT_URI_LIST    3
 #define DND_TEXT_PLAIN       4
 
-static GtkTargetEntry dnd_src_entries[] = 
+static const GtkTargetEntry dnd_src_entries[] = 
   {
     { bg_gtk_atom_entries_name, 0, DND_GMERLIN_TRACKS },
     { "STRING",          0, DND_TEXT_PLAIN     },
   };
 
-static GtkTargetEntry dnd_src_entries_r[] = 
+static const GtkTargetEntry dnd_src_entries_r[] = 
   {
     { bg_gtk_atom_entries_name_r, 0, DND_GMERLIN_TRACKS_R },
     {"STRING",             0, DND_TEXT_PLAIN     },
   };
 
-static GtkTargetEntry dnd_dst_entries[] = 
+static const GtkTargetEntry dnd_dst_entries[] = 
   {
     {bg_gtk_atom_entries_name, 0, DND_GMERLIN_TRACKS },
     {"text/uri-list",          0, DND_TEXT_URI_LIST  },
@@ -95,12 +95,12 @@ static GtkTargetEntry dnd_dst_entries[] =
     {"text/plain",             0, DND_TEXT_URI_LIST  },
   };
 
-static GtkTargetEntry dnd_dst_entries_r[] = 
+static const GtkTargetEntry dnd_dst_entries_r[] = 
   {
     { bg_gtk_atom_entries_name_r, GTK_TARGET_SAME_WIDGET, DND_GMERLIN_TRACKS_R },
   };
 
-static GtkTargetEntry copy_paste_entries[] =
+static const GtkTargetEntry copy_paste_entries[] =
   {
     { bg_gtk_atom_entries_name, 0, DND_GMERLIN_TRACKS },
     { "STRING",             0, DND_TEXT_PLAIN  },
@@ -399,7 +399,7 @@ static int entry_2_iter(bg_gtk_album_widget_t * w,
 
 /* Configuration stuff */
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =       "open_path",
@@ -671,7 +671,7 @@ static void scroll_to_cursor(bg_gtk_album_widget_t * w)
 static gboolean setup_drag_dest(gpointer data)
   {
   bg_gtk_album_widget_t * w;
-  GtkTargetEntry * dst_targets;
+  const GtkTargetEntry * dst_targets;
   int num_dst_targets;
 
   w = (bg_gtk_album_widget_t*)data;

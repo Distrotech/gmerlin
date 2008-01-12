@@ -37,7 +37,7 @@ static bgav_input_context_t * create_input(bgav_t * b)
   }
 
 static bgav_demuxer_context_t *
-create_demuxer(bgav_t * b, bgav_demuxer_t * demuxer)
+create_demuxer(bgav_t * b, const bgav_demuxer_t * demuxer)
   {
   bgav_demuxer_context_t * ret;
 
@@ -48,7 +48,7 @@ create_demuxer(bgav_t * b, bgav_demuxer_t * demuxer)
 
 int bgav_init(bgav_t * ret)
   {
-  bgav_demuxer_t * demuxer = (bgav_demuxer_t *)0;
+  const bgav_demuxer_t * demuxer = (bgav_demuxer_t *)0;
   bgav_redirector_t * redirector = (bgav_redirector_t*)0;
   
   bgav_subtitle_reader_context_t * subreader, * subreaders;

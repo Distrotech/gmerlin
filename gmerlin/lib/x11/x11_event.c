@@ -34,7 +34,7 @@
 #define STATE_IGNORE ~(Mod2Mask)
 
 
-static struct
+static const struct
   {
   KeySym x11;
   int bg;

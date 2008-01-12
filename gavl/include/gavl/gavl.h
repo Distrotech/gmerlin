@@ -1526,7 +1526,7 @@ int gavl_pixelformat_conversion_penalty(gavl_pixelformat_t src,
 
 gavl_pixelformat_t 
 gavl_pixelformat_get_best(gavl_pixelformat_t src,
-                          gavl_pixelformat_t * dst_supported,
+                          const gavl_pixelformat_t * dst_supported,
                           int * penalty);
   
 

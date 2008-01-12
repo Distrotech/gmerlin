@@ -297,7 +297,7 @@ static void close_roq(bgav_demuxer_context_t * ctx)
   {
   }
 
-bgav_demuxer_t bgav_demuxer_roq =
+const bgav_demuxer_t bgav_demuxer_roq =
   {
     .probe =       probe_roq,
     .open =        open_roq,

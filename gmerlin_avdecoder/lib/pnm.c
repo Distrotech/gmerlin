@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
  *
- * $Id: pnm.c,v 1.7 2007-09-17 22:55:35 gmerlin Exp $
+ * $Id: pnm.c,v 1.8 2008-01-12 17:41:31 gmerlin Exp $
  *
  * pnm protocol implementation 
  * based upon code from joschka
@@ -115,7 +115,7 @@ struct pnm_s {
 
 /* header of rm files */
 #define RM_HEADER_SIZE 0x12
-const unsigned char rm_header[]={
+static const unsigned char rm_header[]={
         0x2e, 0x52, 0x4d, 0x46, /* object_id      ".RMF" */
         0x00, 0x00, 0x00, 0x12, /* header_size    0x12   */
         0x00, 0x00,             /* object_version 0x00   */
@@ -125,7 +125,7 @@ const unsigned char rm_header[]={
 
 /* data chunk header */
 #define PNM_DATA_HEADER_SIZE 18
-const unsigned char pnm_data_header[]={
+static const unsigned char pnm_data_header[]={
         'D','A','T','A',
          0,0,0,0,       /* data chunk size  */
          0,0,           /* object version   */
@@ -144,14 +144,14 @@ const unsigned char pnm_data_header[]={
 #define PNA_CLIENT_STRING    0x63
 #define PNA_PATH_REQUEST     0x52
 
-const char pnm_challenge[] = "0990f6b4508b51e801bd6da011ad7b56";
-const char pnm_timestamp[] = "[15/06/1999:22:22:49 00:00]";
-const char pnm_guid[]      = "3eac2411-83d5-11d2-f3ea-d7c3a51aa8b0";
-const char pnm_response[]  = "97715a899cbe41cee00dd434851535bf";
-const char client_string[] = "WinNT_9.0_6.0.6.45_plus32_MP60_en-US_686l";
+static const char pnm_challenge[] = "0990f6b4508b51e801bd6da011ad7b56";
+static const char pnm_timestamp[] = "[15/06/1999:22:22:49 00:00]";
+static const char pnm_guid[]      = "3eac2411-83d5-11d2-f3ea-d7c3a51aa8b0";
+static const char pnm_response[]  = "97715a899cbe41cee00dd434851535bf";
+static const char client_string[] = "WinNT_9.0_6.0.6.45_plus32_MP60_en-US_686l";
 
 #define PNM_HEADER_SIZE 11
-const unsigned char pnm_header[] = {
+static const unsigned char pnm_header[] = {
         'P','N','A',
         0x00, 0x0a,
         0x00, 0x14,
@@ -159,7 +159,7 @@ const unsigned char pnm_header[] = {
         0x00, 0x01 };
 
 #define PNM_CLIENT_CAPS_SIZE 126
-const unsigned char pnm_client_caps[] = {
+static const unsigned char pnm_client_caps[] = {
     0x07, 0x8a, 'p','n','r','v', 
        0, 0x90, 'p','n','r','v', 
        0, 0x64, 'd','n','e','t', 
@@ -182,18 +182,18 @@ const unsigned char pnm_client_caps[] = {
        0, 0x12, 'l','p','c','J', 
        0, 0x07, '0','5','_','6' };
 
-const uint32_t pnm_default_bandwidth=10485800;
-const uint32_t pnm_available_bandwidths[]={14400,19200,28800,33600,34430,57600,
+static const uint32_t pnm_default_bandwidth=10485800;
+static const uint32_t pnm_available_bandwidths[]={14400,19200,28800,33600,34430,57600,
                                   115200,262200,393216,524300,1544000,10485800};
 
 #define PNM_TWENTYFOUR_SIZE 16
-unsigned char pnm_twentyfour[]={
+static const unsigned char pnm_twentyfour[]={
     0xd5, 0x42, 0xa3, 0x1b, 0xef, 0x1f, 0x70, 0x24,
     0x85, 0x29, 0xb3, 0x8d, 0xba, 0x11, 0xf3, 0xd6 };
 
 /* now other data follows. marked with 0x0000 at the beginning */
-int after_chunks_length=6;
-unsigned char after_chunks[]={
+static const int after_chunks_length=6;
+static const unsigned char after_chunks[]={
     0x00, 0x00, /* mark */
     
     0x50, 0x84, /* seems to be fixated */

@@ -64,15 +64,15 @@ static void * create_theora(FILE * output, long serialno)
   return ret;
   }
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =        "chroma_mode",
       .long_name =   TRS("Chroma subsampling mode"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "420" },
-      .multi_names =  (char*[]){ "420",   "422",   "444",   (char*)0 },
-      .multi_labels = (char*[]){ "4:2:0", "4:2:2", "4:4:4", (char*)0 },
+      .multi_names =  (char const *[]){ "420",   "422",   "444",   (char*)0 },
+      .multi_labels = (char const *[]){ "4:2:0", "4:2:2", "4:4:4", (char*)0 },
     },
     {
       .name =        "cbr",
@@ -155,7 +155,7 @@ static bg_parameter_info_t parameters[] =
     { /* End of parameters */ }
   };
 
-static bg_parameter_info_t * get_parameters_theora()
+static const bg_parameter_info_t * get_parameters_theora()
   {
   return parameters;
   }
@@ -451,7 +451,7 @@ static int close_theora(void * data)
   }
 
 
-bg_ogg_codec_t bg_theora_codec =
+const bg_ogg_codec_t bg_theora_codec =
   {
     .name =      "theora",
     .long_name = TRS("Theora encoder"),

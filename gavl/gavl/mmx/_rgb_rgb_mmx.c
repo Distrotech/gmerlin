@@ -35,25 +35,25 @@
 #define INTERPOLATE_USE_16
 #include "interpolate.h"
 
-static mmx_t rgb_rgb_rgb32_upper_mask =       { 0x00ff000000ff0000LL };
-static mmx_t rgb_rgb_rgb32_middle_mask =      { 0x0000ff000000ff00LL };
-static mmx_t rgb_rgb_rgb32_lower_mask =       { 0x000000ff000000ffLL };
+static const mmx_t rgb_rgb_rgb32_upper_mask =       { 0x00ff000000ff0000LL };
+static const mmx_t rgb_rgb_rgb32_middle_mask =      { 0x0000ff000000ff00LL };
+static const mmx_t rgb_rgb_rgb32_lower_mask =       { 0x000000ff000000ffLL };
 
-static mmx_t rgb_rgb_rgb32_upper_lower_mask = { 0x00ff00ff00ff00ffLL };
+static const mmx_t rgb_rgb_rgb32_upper_lower_mask = { 0x00ff00ff00ff00ffLL };
 
-static mmx_t rgba32_alpha_mask =      { 0xFF000000FF000000LL };
+static const mmx_t rgba32_alpha_mask =      { 0xFF000000FF000000LL };
 
-static mmx_t rgb_rgb_rgb16_upper_mask =   { 0xf800f800f800f800LL };
-static mmx_t rgb_rgb_rgb16_middle_mask =  { 0x07e007e007e007e0LL };
-static mmx_t rgb_rgb_rgb16_lower_mask =   { 0x001f001f001f001fLL };
+static const mmx_t rgb_rgb_rgb16_upper_mask =   { 0xf800f800f800f800LL };
+static const mmx_t rgb_rgb_rgb16_middle_mask =  { 0x07e007e007e007e0LL };
+static const mmx_t rgb_rgb_rgb16_lower_mask =   { 0x001f001f001f001fLL };
 
-static mmx_t rgb_rgb_rgb15_upper_mask =   { 0x7C007C007C007C00LL };
-static mmx_t rgb_rgb_rgb15_middle_mask =  { 0x03e003e003e003e0LL };
-static mmx_t rgb_rgb_rgb15_lower_mask =   { 0x001f001f001f001fLL };
+static const mmx_t rgb_rgb_rgb15_upper_mask =   { 0x7C007C007C007C00LL };
+static const mmx_t rgb_rgb_rgb15_middle_mask =  { 0x03e003e003e003e0LL };
+static const mmx_t rgb_rgb_rgb15_lower_mask =   { 0x001f001f001f001fLL };
 
-static mmx_t rgb_rgb_rgb15_up_mask =      { 0x7fe07fe07fe07fe0LL };
+static const mmx_t rgb_rgb_rgb15_up_mask =      { 0x7fe07fe07fe07fe0LL };
 
-static mmx_t rgb_rgb_rgb16_up_mask =      { 0xffe0ffe0ffe0ffe0LL };
+static const mmx_t rgb_rgb_rgb16_up_mask =      { 0xffe0ffe0ffe0ffe0LL };
 
 /*
  *   Macros for pixel conversion
@@ -72,8 +72,8 @@ static mmx_t rgb_rgb_rgb16_up_mask =      { 0xffe0ffe0ffe0ffe0LL };
  *   Load pixels for 24 bit formats
  */
 
-static mmx_t rgb_rgb_rgb24_l = { 0x0000000000FFFFFFLL };
-static mmx_t rgb_rgb_rgb24_u = { 0x0000FFFFFF000000LL };
+static const mmx_t rgb_rgb_rgb24_l = { 0x0000000000FFFFFFLL };
+static const mmx_t rgb_rgb_rgb24_u = { 0x0000FFFFFF000000LL };
 
 
 #define LOAD_24 movq_m2r(*src,mm0);\
@@ -146,11 +146,11 @@ static mmx_t rgb_rgb_rgb24_u = { 0x0000FFFFFF000000LL };
  *   Write pixels for 24 bit formats (Start format is RGB32)
  */
 
-static mmx_t rgb_rgb_lower_dword   = { 0x00000000FFFFFFFFLL };
-static mmx_t rgb_rgb_upper_dword   = { 0xFFFFFFFF00000000LL };
+static const mmx_t rgb_rgb_lower_dword   = { 0x00000000FFFFFFFFLL };
+static const mmx_t rgb_rgb_upper_dword   = { 0xFFFFFFFF00000000LL };
 
-static mmx_t write_24_lower_mask   = { 0x0000000000FFFFFFLL };
-static mmx_t write_24_upper_mask   = { 0x00FFFFFF00000000LL };
+static const mmx_t write_24_lower_mask   = { 0x0000000000FFFFFFLL };
+static const mmx_t write_24_upper_mask   = { 0x00FFFFFF00000000LL };
 
 #define WRITE_24 movq_r2r(mm0, mm4);\
                  pand_m2r(write_24_upper_mask, mm4);\
@@ -192,13 +192,6 @@ static mmx_t write_24_upper_mask   = { 0x00FFFFFF00000000LL };
 
 #define WRITE_16 MOVQ_R2M(mm0,*dst);/*     mm0: P3 P3 P2 P2 P1 P1 P0 P0 */\
                  MOVQ_R2M(mm1,*(dst+8));/* mm1: P7 P7 P6 P6 P5 P5 P4 P4  */
-
-/* static mmx_t rgb_rgb_rgb32_upper_mask =   {0x00FF000000FF0000}; */
-/* static mmx_t rgb_rgb_rgb32_middle_mask =  {0x0000FF000000FF00}; */
-/* static mmx_t rgb_rgb_rgb32_lower_mask =   {0x000000FF000000FF}; */
-/* static mmx_t RGB32A_ALPHA_MASK =  {0xFF000000FF000000}; */
-
-
 
 #define INIT_SWAP_16 movq_m2r(rgb_rgb_rgb16_upper_mask, mm4);\
                      movq_m2r(rgb_rgb_rgb16_lower_mask, mm5);\
@@ -336,17 +329,17 @@ static mmx_t write_24_upper_mask   = { 0x00FFFFFF00000000LL };
                 por_r2r(mm4, mm3);\
                 por_r2r(mm5, mm3);
 
-static mmx_t rgb_rgb_swap_24_mask_11 = { 0x0000FF0000FF0000LL };
-static mmx_t rgb_rgb_swap_24_mask_12 = { 0x00000000FF0000FFLL };
-static mmx_t rgb_rgb_swap_24_mask_13 = { 0xFFFF00FF0000FF00LL };
+static const mmx_t rgb_rgb_swap_24_mask_11 = { 0x0000FF0000FF0000LL };
+static const mmx_t rgb_rgb_swap_24_mask_12 = { 0x00000000FF0000FFLL };
+static const mmx_t rgb_rgb_swap_24_mask_13 = { 0xFFFF00FF0000FF00LL };
 
-static mmx_t rgb_rgb_swap_24_mask_21 = { 0xFF00FFFFFFFFFFFFLL };
-static mmx_t rgb_rgb_swap_24_mask_22 = { 0x00000000000000FFLL };
-static mmx_t rgb_rgb_swap_24_mask_23 = { 0x00000000FFFFFF00LL };
+static const mmx_t rgb_rgb_swap_24_mask_21 = { 0xFF00FFFFFFFFFFFFLL };
+static const mmx_t rgb_rgb_swap_24_mask_22 = { 0x00000000000000FFLL };
+static const mmx_t rgb_rgb_swap_24_mask_23 = { 0x00000000FFFFFF00LL };
 
-static mmx_t rgb_rgb_swap_24_mask_31 = { 0x00000000FF000000LL };
-static mmx_t rgb_rgb_swap_24_mask_32 = { 0x000000000000FF00LL };
-static mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
+static const mmx_t rgb_rgb_swap_24_mask_31 = { 0x00000000FF000000LL };
+static const mmx_t rgb_rgb_swap_24_mask_32 = { 0x000000000000FF00LL };
+static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
 
 #define SWAP_24 movq_m2r(*src, mm0);\
                 movd_m2r(*(src+8), mm1);\

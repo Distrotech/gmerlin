@@ -47,10 +47,10 @@
 /* Debugging stuff */
 #if 0
 
-struct
+const struct
   {
   int id;
-  char * name;
+  char const * const name;
   }
 palette_names[] =
   {
@@ -104,7 +104,7 @@ static void dump_video_picture(struct video_picture * p)
 
 /* Colorspace translation stuff */
 
-static struct
+static const struct
   {
   int               v4l;
   gavl_pixelformat_t gavl;
@@ -129,7 +129,8 @@ pixelformats[] =
     // VIDEO_PALETTE_YUV410P   16      /* YUV 4:1:0 Planar */
   };
 
-static int num_pixelformats = sizeof(pixelformats)/sizeof(pixelformats[0]);
+static const int
+num_pixelformats = sizeof(pixelformats)/sizeof(pixelformats[0]);
 
 static gavl_pixelformat_t get_gavl_pixelformat(int csp)
   {
@@ -407,7 +408,7 @@ static void  destroy_v4l(void * priv)
 
 /* Configuration stuff */
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =        "device_section",
@@ -430,7 +431,7 @@ static bg_parameter_info_t parameters[] =
       .long_name = TRS("Resolution"),
       .type =      BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "QVGA (320x240)" },
-      .multi_names =     (char*[]){ "QSIF (160x112)",
+      .multi_names =     (char const *[]){ "QSIF (160x112)",
                               "QCIF (176x144)", 
                               "QVGA (320x240)", 
                               "SIF(352x240)", 
@@ -438,7 +439,7 @@ static bg_parameter_info_t parameters[] =
                               "VGA (640x480)", 
                               "User defined",
                               (char*)0 },
-      .multi_labels =     (char*[]){ TRS("QSIF (160x112)"),
+      .multi_labels =     (char const *[]){ TRS("QSIF (160x112)"),
                                    TRS("QCIF (176x144)"), 
                                    TRS("QVGA (320x240)"), 
                                    TRS("SIF(352x240)"), 
@@ -546,7 +547,7 @@ static void create_parameters(v4l_t * v4l)
     }
   }
 
-static bg_parameter_info_t * get_parameters_v4l(void * priv)
+static const bg_parameter_info_t * get_parameters_v4l(void * priv)
   {
   v4l_t * v4l;
   v4l = (v4l_t*)priv;
@@ -707,7 +708,7 @@ static void set_parameter_v4l(void * priv, const char * name,
   }
 
 
-bg_rv_plugin_t the_plugin =
+const bg_rv_plugin_t the_plugin =
   {
     .common =
     {

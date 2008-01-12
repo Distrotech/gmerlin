@@ -41,7 +41,7 @@ static mmx_t mm_tmp;
   fprintf(stderr, "%s: %016llx\n", name, mm_tmp.q);
 #endif
 
-static mmx_t factor_mask = { 0x000000000000FFFFLL };
+static const mmx_t factor_mask = { 0x000000000000FFFFLL };
 
 /*
  *  mm0: Input

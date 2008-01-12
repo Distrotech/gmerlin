@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-char * bg_language_codes[] =
+char const * const bg_language_codes[] =
   {
  "aar",
  "abk",
@@ -456,7 +456,7 @@ char * bg_language_codes[] =
  "zun",
  (char*)0,
   };
-char * bg_language_labels[] =
+char const * const bg_language_labels[] =
   {
  "Afar",
  "Abkhazian",

@@ -25,7 +25,7 @@
 
 /* Sampleformat conversion */
 
-static struct
+static const struct
   {
   lqt_sample_format_t lqt;
   gavl_sample_format_t gavl;
@@ -53,7 +53,7 @@ sampleformat_lqt_2_gavl(lqt_sample_format_t format)
 
 /* Chroma placement */
 
-static struct
+static const struct
   {
   lqt_chroma_placement_t lqt;
   gavl_chroma_placement_t gavl;
@@ -79,7 +79,7 @@ chroma_placement_lqt_2_gavl(lqt_chroma_placement_t chroma_placement)
 
 /* Interlace mode */
 
-static struct
+static const struct
   {
   lqt_interlace_mode_t lqt;
   gavl_interlace_mode_t gavl;
@@ -117,7 +117,7 @@ interlace_mode_gavl_2_lqt(gavl_interlace_mode_t interlace_mode)
 
 /* Pixelformats */
 
-static struct
+static const struct
   {
   int lqt;
   gavl_pixelformat_t gavl;
@@ -157,7 +157,7 @@ pixelformat_lqt_2_gavl(int pixelformat)
   return GAVL_PIXELFORMAT_NONE;
   }
 
-static struct
+static const struct
   {
   gavl_channel_id_t gavl;
   lqt_channel_t lqt;

@@ -108,7 +108,7 @@ static void destroy_deinterlace(void * priv)
 
 
 
-static bg_parameter_info_t scale_parameters[] =
+static const bg_parameter_info_t scale_parameters[] =
   {
     {
       .name =        "scale_mode",
@@ -116,7 +116,7 @@ static bg_parameter_info_t scale_parameters[] =
       .opt =       "sm",
       .type =        BG_PARAMETER_STRINGLIST,
       .flags =     BG_PARAMETER_SYNC,
-      .multi_names = (char*[]){ "auto",\
+      .multi_names = (char const *[]){ "auto",\
                               "nearest",         \
                               "bilinear", \
                               "quadratic", \
@@ -125,7 +125,7 @@ static bg_parameter_info_t scale_parameters[] =
                               "cubic_catmull", \
                               "sinc_lanczos", \
                               (char*)0 },
-      .multi_labels = (char*[]){ TRS("Auto"), \
+      .multi_labels = (char const *[]){ TRS("Auto"), \
                                TRS("Nearest"),            \
                                TRS("Bilinear"), \
                                TRS("Quadratic"), \
@@ -151,7 +151,7 @@ static bg_parameter_info_t scale_parameters[] =
     { /* */ },
   };
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .gettext_domain = PACKAGE,
@@ -161,7 +161,7 @@ static bg_parameter_info_t parameters[] =
       .type = BG_PARAMETER_MULTI_MENU,
       .flags = BG_PARAMETER_SYNC,
       .val_default = { .val_str = "none" },
-      .multi_names =  (char*[]){ "none",
+      .multi_names =  (char const *[]){ "none",
                                "copy",
                                "scale_hw",
                                "scale_sw",
@@ -173,7 +173,7 @@ static bg_parameter_info_t parameters[] =
 #endif                               
                                (char*)0 },
       
-      .multi_labels = (char*[]){ TRS("None"),
+      .multi_labels = (char const *[]){ TRS("None"),
                                TRS("Scanline doubler"),
                                TRS("Scaler (hardware)"),
                                TRS("Scaler (software)"),
@@ -184,7 +184,7 @@ static bg_parameter_info_t parameters[] =
                                TRS("yuvdeinterlace (Antialiasing only)"),
 #endif
                                (char*)0 },
-      .multi_descriptions = (char*[]){ TRS("Do nothing"),
+      .multi_descriptions = (char const *[]){ TRS("Do nothing"),
                                      TRS("Simply double all scanlines. Very fast but \
 low image quality"), 
                                      TRS("Drop one field and change the pixel aspect ratio such that a subsequent hardware scaler will scale the image to the original height"),
@@ -195,7 +195,7 @@ low image quality"),
                                      TRS("Motion compensating deinterlacer from the mjpegtools project"),
 #endif                               
                                      (char*)0 },
-      .multi_parameters = (bg_parameter_info_t*[]) { (bg_parameter_info_t*)0, // None
+      .multi_parameters = (bg_parameter_info_t const *[]) { (bg_parameter_info_t*)0, // None
                                                    (bg_parameter_info_t*)0, // Copy
                                                    (bg_parameter_info_t*)0, // Scale (HW)
                                                    scale_parameters, // Scale (SW)
@@ -233,15 +233,15 @@ low image quality"),
       .flags = BG_PARAMETER_SYNC,
       .val_default = { .val_str = "top" },
       .help_string = TRS("For modes, which take only one source field, specify which field to drop"),
-      .multi_names = (char*[]){ "top", "bottom", (char*)0 },
-      .multi_labels = (char*[]){ TRS("Drop top field"),
+      .multi_names = (char const *[]){ "top", "bottom", (char*)0 },
+      .multi_labels = (char const *[]){ TRS("Drop top field"),
                                TRS("Drop bottom field"),
                                (char*)0 },
     },
     { /* End of parameters */ },
   };
 
-static bg_parameter_info_t * get_parameters_deinterlace(void * priv)
+static const bg_parameter_info_t * get_parameters_deinterlace(void * priv)
   {
   return parameters;
   }
@@ -574,7 +574,7 @@ static int read_video_deinterlace(void * priv, gavl_video_frame_t * frame, int s
   return vp->deint_func(vp, frame);
   }
 
-bg_fv_plugin_t the_plugin = 
+const const bg_fv_plugin_t the_plugin = 
   {
     .common =
     {

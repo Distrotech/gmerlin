@@ -107,7 +107,7 @@ static void destroy_cropscale(void * priv)
   free(vp);
   }
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .gettext_domain = PACKAGE,
@@ -174,7 +174,7 @@ static bg_parameter_info_t parameters[] =
       .opt =         "s",
       .type =        BG_PARAMETER_STRINGLIST,
       .flags =     BG_PARAMETER_SYNC,
-      .multi_names = (char*[]){ "from_input",
+      .multi_names = (char const *[]){ "from_input",
                               "user_defined",
                               "pal_d1",
                               "pal_d1_wide",
@@ -202,7 +202,7 @@ static bg_parameter_info_t parameters[] =
                               "4cif",
                               "16cif",
                               (char*)0 },
-      .multi_labels =  (char*[]){ TRS("From Source"),
+      .multi_labels =  (char const *[]){ TRS("From Source"),
                                 TRS("User defined"),
                                 TRS("PAL DVD D1 4:3 (720 x 576)"),
                                 TRS("PAL DVD D1 16:9 (720 x 576)"),
@@ -331,7 +331,7 @@ static bg_parameter_info_t parameters[] =
       .opt =       "sm",
       .type =        BG_PARAMETER_STRINGLIST,
       .flags =     BG_PARAMETER_SYNC,
-      .multi_names = (char*[]){ "auto",\
+      .multi_names = (char const *[]){ "auto",\
                               "nearest",         \
                               "bilinear", \
                               "quadratic", \
@@ -340,7 +340,7 @@ static bg_parameter_info_t parameters[] =
                               "cubic_catmull", \
                               "sinc_lanczos", \
                               (char*)0 },
-      .multi_labels = (char*[]){ TRS("Auto"), \
+      .multi_labels = (char const *[]){ TRS("Auto"), \
                                TRS("Nearest"),            \
                                TRS("Bilinear"), \
                                TRS("Quadratic"), \
@@ -385,8 +385,8 @@ static bg_parameter_info_t parameters[] =
       .type = BG_PARAMETER_STRINGLIST,
       .flags =     BG_PARAMETER_SYNC,
       .val_default = { .val_str = "never" },
-      .multi_names = (char*[]){ "never", "auto", "always", (char*)0 },
-      .multi_labels = (char*[]){ TRS("Never"), TRS("Auto"), TRS("Always"), (char*)0 },
+      .multi_names = (char const *[]){ "never", "auto", "always", (char*)0 },
+      .multi_labels = (char const *[]){ TRS("Never"), TRS("Auto"), TRS("Always"), (char*)0 },
     },
     {
       .name =      "deinterlace_drop_mode",
@@ -395,14 +395,14 @@ static bg_parameter_info_t parameters[] =
       .type =      BG_PARAMETER_STRINGLIST,
       .flags =     BG_PARAMETER_SYNC,
       .val_default = { .val_str = "top" },
-      .multi_names =   (char*[]){ "top", "bottom", (char*)0 },
-      .multi_labels =  (char*[]){ TRS("Drop top field"), TRS("Drop bottom field"), (char*)0 },
+      .multi_names =   (char const *[]){ "top", "bottom", (char*)0 },
+      .multi_labels =  (char const *[]){ TRS("Drop top field"), TRS("Drop bottom field"), (char*)0 },
       .help_string = TRS("Specifies which field the deinterlacer should drop.")
     },
     { /* End of parameters */ },
   };
 
-static bg_parameter_info_t * get_parameters_cropscale(void * priv)
+static const bg_parameter_info_t * get_parameters_cropscale(void * priv)
   {
   return parameters;
   }
@@ -437,7 +437,7 @@ static bg_parameter_info_t * get_parameters_cropscale(void * priv)
 #define FRAME_SIZE_16CIF          26
 #define NUM_FRAME_SIZES           27
 
-static struct
+static const struct
   {
   int size;
   char * name;
@@ -473,7 +473,7 @@ framesize_strings[NUM_FRAME_SIZES] =
     { FRAME_SIZE_16CIF,          "16cif" },
   };
 
-static struct
+static const struct
   {
   int size;
   int image_width;
@@ -911,7 +911,7 @@ static int need_restart_cropscale(void * priv)
   }
 
 
-bg_fv_plugin_t the_plugin = 
+const bg_fv_plugin_t the_plugin = 
   {
     .common =
     {

@@ -65,7 +65,7 @@ if(!(cond)) return 0
 #endif
 
 #if 1 /* gmerlin_avdecoder */
-static unsigned char basis_64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static const unsigned char basis_64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 int bgav_base64encode(const unsigned char *input, int input_length, unsigned char *output, int output_length)
   {
@@ -101,7 +101,7 @@ int bgav_base64encode(const unsigned char *input, int input_length, unsigned cha
 #endif
 
 /* This assumes that an unsigned char is exactly 8 bits. Not portable code! :-) */
-static unsigned char index_64[128] = {
+static const unsigned char index_64[128] = {
   0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
   0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
   0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,   62, 0xff, 0xff, 0xff,   63,

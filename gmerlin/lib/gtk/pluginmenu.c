@@ -33,7 +33,7 @@
 #include <gui_gtk/gtkutils.h>
 
 
-static char * auto_string = TRS("Auto Select");
+static char const * const auto_string = TRS("Auto Select");
 
 struct bg_gtk_plugin_menu_s
   {

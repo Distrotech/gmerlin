@@ -615,7 +615,7 @@ typedef struct
         float flQuality;
 } FORMATDETAIL;
 
-static FORMATDETAIL aOggFormatIndexToDetail[] =
+static const FORMATDETAIL aOggFormatIndexToDetail[] =
   {
     // WAVE_FORMAT_VORBIS(48K,16Bits,Stereo)
     // { 64000/8, 80000/8, 96000/8, 112000/8, 128000/8, 160000/8, 192000/8, 240000/8, 256000/8, 350000/8, 450000/8 }, // 48K,Stereo

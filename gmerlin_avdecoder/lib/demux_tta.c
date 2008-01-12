@@ -221,7 +221,7 @@ static void close_tta(bgav_demuxer_context_t * ctx)
     free(s->ext_data);
   }
 
-bgav_demuxer_t bgav_demuxer_tta =
+const bgav_demuxer_t bgav_demuxer_tta =
   {
     .probe =       probe_tta,
     .open =        open_tta,

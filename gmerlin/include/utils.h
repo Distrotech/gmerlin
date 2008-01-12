@@ -380,8 +380,8 @@ char * bg_video_format_to_string(gavl_video_format_t * format, int use_tabs);
 
 /* @} */
 
-extern char * bg_language_codes[];
-extern char * bg_language_labels[];
+extern char const * const bg_language_codes[];
+extern char const * const bg_language_labels[];
 
 #ifdef DEBUG
 #define bg_debug(f,...) fprintf(stderr, f, __VA_ARGS__)

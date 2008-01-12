@@ -126,7 +126,7 @@ static void apply_sub_params(bg_gtk_widget_t * w)
   int selected_save;
   char ** names;
   
-  if(!list->set_param)
+  if(!list->set_param || !w->value.val_str)
     return;
   
   subsection =
@@ -238,6 +238,7 @@ static void get_value(bg_gtk_widget_t * w)
   {
   GtkTreeIter iter;
   GtkTreeModel * model;
+  char const * const * names_c;
   char ** names;
   int init;
   int i, j, do_add;
@@ -266,12 +267,14 @@ static void get_value(bg_gtk_widget_t * w)
   
   if(!names)
     {
-    names = w->info->multi_names;
+    names_c = w->info->multi_names;
     init = 1;
     }
   else
+    {
+    names_c = (char const **)names;
     init = 0;
-
+    }
   /* create translated labels */
 
   if(!priv->multi_labels && w->info->multi_labels)
@@ -282,12 +285,12 @@ static void get_value(bg_gtk_widget_t * w)
   i = 0;
   if(!init)
     {
-    while(names[i])
+    while(names_c[i])
       {
       j = 0;
       while(w->info->multi_names[j])
         {
-        if(!strcmp(names[i], w->info->multi_names[j]))
+        if(!strcmp(names_c[i], w->info->multi_names[j]))
           {
           gtk_list_store_append(GTK_LIST_STORE(model), &iter);
           if(priv->multi_labels)
@@ -330,9 +333,9 @@ static void get_value(bg_gtk_widget_t * w)
         {
         do_add = 1;
         j = 0;
-        while(names[j])
+        while(names_c[j])
           {
-          if(!strcmp(names[j], w->info->multi_names[i]))
+          if(!strcmp(names_c[j], w->info->multi_names[i]))
             {
             do_add = 0;
             break;
@@ -364,9 +367,7 @@ static void get_value(bg_gtk_widget_t * w)
 
     }
   if(!init)
-    {
     bg_strbreak_free(names);
-    }
   
   if(w->info->flags & BG_PARAMETER_SYNC)
     bg_gtk_change_callback((GtkWidget*)0, w);
@@ -509,7 +510,7 @@ static void destroy(bg_gtk_widget_t * w)
   free(priv);
   }
 
-static gtk_widget_funcs_t funcs =
+static const gtk_widget_funcs_t funcs =
   {
     .get_value = get_value,
     .set_value = set_value,
@@ -843,7 +844,7 @@ static GtkWidget * create_pixmap_button(const char * filename)
   return button;
   }
 
-static void create_list_common(bg_gtk_widget_t * w, bg_parameter_info_t * info,
+static void create_list_common(bg_gtk_widget_t * w, const bg_parameter_info_t * info,
                                bg_set_parameter_func_t set_param,
                                void * data, const char * translation_domain,
                                int is_chain)
@@ -964,7 +965,7 @@ static void create_list_common(bg_gtk_widget_t * w, bg_parameter_info_t * info,
   }
 
 void
-bg_gtk_create_multi_list(bg_gtk_widget_t * w, bg_parameter_info_t * info,
+bg_gtk_create_multi_list(bg_gtk_widget_t * w, const bg_parameter_info_t * info,
                          bg_set_parameter_func_t set_param,
                          void * data, const char * translation_domain)
   {
@@ -972,7 +973,7 @@ bg_gtk_create_multi_list(bg_gtk_widget_t * w, bg_parameter_info_t * info,
   }
 
 void
-bg_gtk_create_multi_chain(bg_gtk_widget_t * w, bg_parameter_info_t * info,
+bg_gtk_create_multi_chain(bg_gtk_widget_t * w, const bg_parameter_info_t * info,
                           bg_set_parameter_func_t set_param,
                           void * data, const char * translation_domain)
   {

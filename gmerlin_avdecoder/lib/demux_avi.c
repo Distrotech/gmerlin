@@ -1894,7 +1894,7 @@ static void seek_avi(bgav_demuxer_context_t * ctx, gavl_time_t time, int scale)
     seek_iavs(ctx, time, scale);
   }
 
-bgav_demuxer_t bgav_demuxer_avi =
+const const bgav_demuxer_t bgav_demuxer_avi =
   {
     .probe =       probe_avi,
     .open =        open_avi,

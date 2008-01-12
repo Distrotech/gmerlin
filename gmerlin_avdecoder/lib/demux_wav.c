@@ -264,7 +264,7 @@ static void close_wav(bgav_demuxer_context_t * ctx)
   free(priv);
   }
 
-bgav_demuxer_t bgav_demuxer_wav =
+const bgav_demuxer_t bgav_demuxer_wav =
   {
     .probe =       probe_wav,
     .open =        open_wav,

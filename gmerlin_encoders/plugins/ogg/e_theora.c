@@ -32,18 +32,18 @@
 
 #include "ogg_common.h"
 
-extern bg_ogg_codec_t bg_theora_codec;
-extern bg_ogg_codec_t bg_vorbis_codec;
+extern const bg_ogg_codec_t bg_theora_codec;
+extern const bg_ogg_codec_t bg_vorbis_codec;
 
 #ifdef HAVE_SPEEX
-extern bg_ogg_codec_t bg_speex_codec;
+extern const bg_ogg_codec_t bg_speex_codec;
 #endif
 
 #ifdef HAVE_FLAC
-extern bg_ogg_codec_t bg_flacogg_codec;
+extern const bg_ogg_codec_t bg_flacogg_codec;
 #endif
 
-static bg_ogg_codec_t* audio_codecs[] =
+static bg_ogg_codec_t const * const audio_codecs[] =
   {
     &bg_vorbis_codec,
 #ifdef HAVE_SPEEX
@@ -56,7 +56,7 @@ static bg_ogg_codec_t* audio_codecs[] =
 
 static int num_audio_codecs = sizeof(audio_codecs) / sizeof(audio_codecs[0]);
 
-static bg_parameter_info_t audio_parameters[] =
+static const bg_parameter_info_t audio_parameters[] =
   {
     {
       .name =      "codec",
@@ -67,33 +67,36 @@ static bg_parameter_info_t audio_parameters[] =
     { /* End of parameters */ }
   };
 
-static bg_parameter_info_t * get_audio_parameters_theora(void * data)
+static const bg_parameter_info_t * get_audio_parameters_theora(void * data)
   {
   int i;
   bg_ogg_encoder_t * e = (bg_ogg_encoder_t *)data;
 
   /* Create audio parameters */
-
-  e->audio_parameters = bg_parameter_info_copy_array(audio_parameters);
-  e->audio_parameters[0].multi_names =
-    calloc(num_audio_codecs+1, sizeof(*e->audio_parameters[0].multi_names));
-  e->audio_parameters[0].multi_labels =
-    calloc(num_audio_codecs+1, sizeof(*e->audio_parameters[0].multi_labels));
-  e->audio_parameters[0].multi_parameters =
-    calloc(num_audio_codecs+1, sizeof(*e->audio_parameters[0].multi_parameters));
-  for(i = 0; i < num_audio_codecs; i++)
+  if(!e->audio_parameters)
     {
-    e->audio_parameters[0].multi_names[i]  = bg_strdup((char*)0, audio_codecs[i]->name);
-    e->audio_parameters[0].multi_labels[i] = bg_strdup((char*)0, audio_codecs[i]->long_name);
+    e->audio_parameters = bg_parameter_info_copy_array(audio_parameters);
+    e->audio_parameters[0].multi_names_nc =
+      calloc(num_audio_codecs+1, sizeof(*e->audio_parameters[0].multi_names));
+    e->audio_parameters[0].multi_labels_nc =
+      calloc(num_audio_codecs+1, sizeof(*e->audio_parameters[0].multi_labels));
+    e->audio_parameters[0].multi_parameters_nc =
+      calloc(num_audio_codecs+1, sizeof(*e->audio_parameters[0].multi_parameters));
+    for(i = 0; i < num_audio_codecs; i++)
+      {
+      e->audio_parameters[0].multi_names_nc[i]  = bg_strdup((char*)0, audio_codecs[i]->name);
+      e->audio_parameters[0].multi_labels_nc[i] = bg_strdup((char*)0, audio_codecs[i]->long_name);
 
-    if(audio_codecs[i]->get_parameters)
-      e->audio_parameters[0].multi_parameters[i] =
-        bg_parameter_info_copy_array(audio_codecs[i]->get_parameters());
+      if(audio_codecs[i]->get_parameters)
+        e->audio_parameters[0].multi_parameters_nc[i] =
+          bg_parameter_info_copy_array(audio_codecs[i]->get_parameters());
+      }
+    bg_parameter_info_set_const_ptrs(&e->audio_parameters[0]);
     }
   return e->audio_parameters;
   }
 
-static bg_parameter_info_t * get_video_parameters_theora(void * data)
+static const bg_parameter_info_t * get_video_parameters_theora(void * data)
   {
   return bg_theora_codec.get_parameters();
   }
@@ -142,7 +145,7 @@ static void set_audio_parameter_theora(void * data, int stream,
   }
 
 
-bg_encoder_plugin_t the_plugin =
+const bg_encoder_plugin_t the_plugin =
   {
     .common =
     {

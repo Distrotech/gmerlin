@@ -25,10 +25,10 @@ bg_gtk_scrolltext_t * bg_gtk_scrolltext_create(int width, int height);
 GtkWidget * bg_gtk_scrolltext_get_widget(bg_gtk_scrolltext_t *);
 
 void bg_gtk_scrolltext_set_text(bg_gtk_scrolltext_t *, const char * text,
-                                float * fg_color, float * bg_color);
+                                const float * fg_color, const float * bg_color);
 
 void bg_gtk_scrolltext_set_colors(bg_gtk_scrolltext_t *,
-                                  float * fg_color, float * bg_color);
+                                  const float * fg_color, const float * bg_color);
 
 
 void bg_gtk_scrolltext_set_font(bg_gtk_scrolltext_t *, const char * font);

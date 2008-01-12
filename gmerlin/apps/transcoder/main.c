@@ -60,7 +60,7 @@ bg_cmdline_arg_t args[] =
     { /* End of args */ }
   };
 
-bg_cmdline_app_data_t app_data =
+const bg_cmdline_app_data_t app_data =
   {
     .package =  PACKAGE,
     .version =  VERSION,
@@ -89,7 +89,9 @@ int main(int argc, char ** argv)
     
   win = transcoder_window_create();
 
-  bg_cmdline_parse(args, &argc, &argv, win, &app_data);
+  bg_cmdline_init(&app_data);
+
+  bg_cmdline_parse(args, &argc, &argv, win);
   
   transcoder_window_run(win);
 

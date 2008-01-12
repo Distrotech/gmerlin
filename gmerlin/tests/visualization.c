@@ -37,7 +37,7 @@
 static bg_visualizer_t * visualizer = (bg_visualizer_t*)0;
 
 static bg_cfg_section_t * vis_section = (bg_cfg_section_t*)0;
-static bg_parameter_info_t * vis_parameters = (bg_parameter_info_t*)0;
+static bg_parameter_info_t const * vis_parameters = (bg_parameter_info_t*)0;
 
 
 static void opt_visualizer(void * data, int * argc,
@@ -68,16 +68,15 @@ static bg_cmdline_arg_t visualizer_options[] =
     
   };
 
-bg_cmdline_app_data_t app_data =
+const bg_cmdline_app_data_t app_data =
   {
     .package =  PACKAGE,
     .version =  VERSION,
     .name =     "visualization",
     .synopsis = TRS("[<options>]\n"),
     .help_before = TRS("Visualize test\n"),
-    .args = (bg_cmdline_arg_array_t[]) { { TRS("Options"),
-                                         visualizer_options },
-                                       {  } },
+    .args = (const bg_cmdline_arg_array_t[]) { { TRS("Options"), visualizer_options },
+                                               {  } },
   };
 
 
@@ -117,8 +116,8 @@ int main(int argc, char ** argv)
 
   vis_parameters = bg_visualizer_get_parameters(visualizer);
   visualizer_options[0].parameters = vis_parameters;
-  
-  bg_cmdline_parse(visualizer_options, &argc, &argv, NULL, &app_data);
+  bg_cmdline_init(&app_data);
+  bg_cmdline_parse(visualizer_options, &argc, &argv, NULL);
   
   /* Load input */
 

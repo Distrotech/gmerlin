@@ -78,7 +78,7 @@ static void destroy_faac(void * priv)
 
 
 
-static bg_parameter_info_t audio_parameters[] =
+static const bg_parameter_info_t audio_parameters[] =
   {
     {
       .name =        "basic",
@@ -90,13 +90,13 @@ static bg_parameter_info_t audio_parameters[] =
       .long_name =   TRS("Object type"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str =  "mpeg4_main" },
-      .multi_names = (char*[]){ "mpeg2_main",
+      .multi_names = (char const *[]){ "mpeg2_main",
                               "mpeg2_lc",
                               "mpeg4_main",
                               "mpeg4_lc",
                               "mpeg4_ltp",
                               (char*)0 },
-      .multi_labels = (char*[]){ TRS("MPEG-2 Main profile"),
+      .multi_labels = (char const *[]){ TRS("MPEG-2 Main profile"),
                                TRS("MPEG-2 Low Complexity profile (LC)"),
                                TRS("MPEG-4 Main profile"),
                                TRS("MPEG-4 Low Complexity profile (LC)"),
@@ -130,11 +130,11 @@ static bg_parameter_info_t audio_parameters[] =
       .long_name =   TRS("Block types"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str =  "Both" },
-      .multi_names = (char*[]){ "Both",
+      .multi_names = (char const *[]){ "Both",
                               "No short",
                               "No long",
                               (char*)0 },
-      .multi_labels = (char*[]){ TRS("Both"),
+      .multi_labels = (char const *[]){ TRS("Both"),
                                TRS("No short"),
                                TRS("No long"),
                                (char*)0 },
@@ -153,7 +153,7 @@ static bg_parameter_info_t audio_parameters[] =
     },
     { /* End of parameters */ }
   };
-static bg_parameter_info_t * get_audio_parameters_faac(void * data)
+static const bg_parameter_info_t * get_audio_parameters_faac(void * data)
   {
   return audio_parameters;
   }
@@ -237,7 +237,7 @@ static void set_audio_parameter_faac(void * data, int stream, const char * name,
     }
   }
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =        "do_id3v1",
@@ -256,15 +256,15 @@ static bg_parameter_info_t parameters[] =
       .long_name =   TRS("ID3V2 Encoding"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "3" },
-      .multi_names = (char*[]){ "0", "1",
+      .multi_names = (char const *[]){ "0", "1",
                                "2", "3", (char*)0 },
-      .multi_labels = (char*[]){ TRS("ISO-8859-1"), TRS("UTF-16 LE"),
+      .multi_labels = (char const *[]){ TRS("ISO-8859-1"), TRS("UTF-16 LE"),
                                TRS("UTF-16 BE"), TRS("UTF-8"), (char*)0 },
     },
     { /* End of parameters */ }
   };
 
-static bg_parameter_info_t * get_parameters_faac(void * data)
+static const bg_parameter_info_t * get_parameters_faac(void * data)
   {
   return parameters;
   }
@@ -317,7 +317,7 @@ static int open_faac(void * data, const char * filename,
   return 1;
   }
 
-static char * faac_extension = ".aac";
+static const char * faac_extension = ".aac";
 
 static const char * get_extension_faac(void * data)
   {
@@ -529,7 +529,7 @@ static int close_faac(void * data, int do_delete)
   return ret;
   }
   
-bg_encoder_plugin_t the_plugin =
+const bg_encoder_plugin_t the_plugin =
   {
     .common =
     {

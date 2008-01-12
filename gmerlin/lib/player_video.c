@@ -119,7 +119,7 @@ void bg_player_video_cleanup(bg_player_t * player)
 
 /* Configuration stuff */
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
 #if 0
     {
@@ -144,7 +144,7 @@ static bg_parameter_info_t parameters[] =
     { /* End of parameters */ }
   };
 
-bg_parameter_info_t * bg_player_get_video_parameters(bg_player_t * p)
+const bg_parameter_info_t * bg_player_get_video_parameters(bg_player_t * p)
   {
   return parameters;
   }
@@ -226,7 +226,7 @@ void bg_player_set_video_parameter(void * data, const char * name,
 
 
 
-bg_parameter_info_t *
+const bg_parameter_info_t *
 bg_player_get_video_filter_parameters(bg_player_t * p)
   {
   return bg_video_filter_chain_get_parameters(p->video_stream.fc);

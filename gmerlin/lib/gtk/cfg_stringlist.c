@@ -80,7 +80,7 @@ static void attach(void * priv, GtkWidget * table,
   (*row)++;
   }
 
-static gtk_widget_funcs_t funcs =
+static const gtk_widget_funcs_t funcs =
   {
     .get_value = get_value,
     .set_value = set_value,
@@ -134,7 +134,7 @@ realize_combo(GtkWidget *combo, gpointer   data)
   }
 
 void bg_gtk_create_stringlist(bg_gtk_widget_t * w,
-                              bg_parameter_info_t * info,
+                              const bg_parameter_info_t * info,
                               const char * translation_domain)
   {
   int i;

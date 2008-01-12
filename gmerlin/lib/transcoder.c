@@ -445,7 +445,7 @@ struct bg_transcoder_s
   
   };
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =      "output_path",
@@ -497,7 +497,7 @@ void bg_transcoder_set_parameter(void * data, const char * name, const bg_parame
     }
   }
 
-bg_parameter_info_t * bg_transcoder_get_parameters()
+const bg_parameter_info_t * bg_transcoder_get_parameters()
   {
   return parameters;
   }

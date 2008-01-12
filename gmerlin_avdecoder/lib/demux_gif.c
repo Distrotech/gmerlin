@@ -27,7 +27,7 @@
 
 #define LOG_DOMAIN "gif"
 
-static const char * gif_sig = "GIF89a";
+static char const * const gif_sig = "GIF89a";
 #define SIG_LEN 6
 
 #define GLOBAL_HEADER_LEN    13 /* Signature + screen descriptor */
@@ -360,7 +360,7 @@ static void close_gif(bgav_demuxer_context_t * ctx)
     free(priv);
   }
 
-bgav_demuxer_t bgav_demuxer_gif =
+const bgav_demuxer_t bgav_demuxer_gif =
   {
     .probe =        probe_gif,
     .open =         open_gif,

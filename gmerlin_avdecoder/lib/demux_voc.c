@@ -38,7 +38,7 @@
 #define VOC_TYPE_EXTENDED         0x08
 #define VOC_TYPE_NEW_VOICE_DATA   0x09
 
-static const char * voc_magic = "Creative Voice File\x1A";
+static char const * const voc_magic = "Creative Voice File\x1A";
 #define PROBE_LEN 26
 
 #define MAX_PACKET_LEN 2048
@@ -68,7 +68,7 @@ static int read_chunk_header(bgav_input_context_t * input,
 
 /* Fourccs */
 
-static struct
+static const struct
   {
   int codec_id;
   uint32_t fourcc;
@@ -313,7 +313,7 @@ static void close_voc(bgav_demuxer_context_t * ctx)
     free(priv);
   }
 
-bgav_demuxer_t bgav_demuxer_voc =
+const bgav_demuxer_t bgav_demuxer_voc =
   {
     .probe =       probe_voc,
     .open =        open_voc,

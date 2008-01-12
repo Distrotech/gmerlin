@@ -205,7 +205,7 @@ static int open_y4m(bgav_demuxer_context_t * ctx,
   return 1;
   }
 
-static uint8_t y_8_to_yj_8[256] = 
+static const uint8_t y_8_to_yj_8[256] = 
 {
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
@@ -359,7 +359,7 @@ static void close_y4m(bgav_demuxer_context_t * ctx)
   free(priv);
   }
 
-bgav_demuxer_t bgav_demuxer_y4m =
+const bgav_demuxer_t bgav_demuxer_y4m =
   {
     .probe =       probe_y4m,
     .open =        open_y4m,

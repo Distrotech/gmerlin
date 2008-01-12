@@ -735,7 +735,7 @@ void * bg_player_ov_thread(void * data)
   return NULL;
   }
 
-bg_parameter_info_t * bg_player_get_osd_parameters(bg_player_t * p)
+const bg_parameter_info_t * bg_player_get_osd_parameters(bg_player_t * p)
   {
   return bg_osd_get_parameters(p->ov_context->osd);
   }

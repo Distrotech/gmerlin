@@ -60,7 +60,7 @@ typedef enum
     NUM_DISPLAY_MODES
   } display_mode_t; /* Mode for the time display */
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name = "get_colors_from_skin",
@@ -114,7 +114,7 @@ static bg_parameter_info_t parameters[] =
     { /* End of parameters */ }
   };
 
-bg_parameter_info_t * display_get_parameters(display_t * display)
+const bg_parameter_info_t * display_get_parameters(display_t * display)
   {
   return parameters;
   }

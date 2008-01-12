@@ -56,8 +56,8 @@ static void destroy(bg_gtk_widget_t * w)
   free(priv);
   }
 
-static guint16 background_color_1[3] = { 0xc0c0, 0xc0c0, 0xc0c0 };
-static guint16 background_color_2[3] = { 0x8080, 0x8080, 0x8080 };
+static const guint16 background_color_1[3] = { 0xc0c0, 0xc0c0, 0xc0c0 };
+static const guint16 background_color_2[3] = { 0x8080, 0x8080, 0x8080 };
 
 static void set_button(color_t * c)
   {
@@ -173,7 +173,7 @@ static void attach(void * priv, GtkWidget * table,
   (*row)++;
   }
 
-static gtk_widget_funcs_t funcs =
+static const gtk_widget_funcs_t funcs =
   {
     .get_value = get_value,
     .set_value = set_value,
@@ -307,7 +307,7 @@ static void button_callback(GtkWidget * w, gpointer data)
   }
 
 void bg_gtk_create_color_rgba(bg_gtk_widget_t * w,
-                              bg_parameter_info_t * info,
+                              const bg_parameter_info_t * info,
                               const char * translation_domain)
   {
   color_t * priv;
@@ -318,7 +318,7 @@ void bg_gtk_create_color_rgba(bg_gtk_widget_t * w,
   }
 
 void bg_gtk_create_color_rgb(bg_gtk_widget_t * w,
-                             bg_parameter_info_t * info,
+                             const bg_parameter_info_t * info,
                              const char * translation_domain)
   {
   color_t * priv = calloc(1, sizeof(*priv));

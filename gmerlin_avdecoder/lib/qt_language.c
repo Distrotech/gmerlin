@@ -68,11 +68,11 @@
 
 /* Language / character set codecs */
 
-static struct
+static const struct
   {
   int  mac_code;  // Integer mac code
-  char language[4];   // 3 character language code
-  char * charset; // Character set (understood by iconv_open)
+  const char language[4];   // 3 character language code
+  const char * charset; // Character set (understood by iconv_open)
   }
 mac_languages[] =
   {

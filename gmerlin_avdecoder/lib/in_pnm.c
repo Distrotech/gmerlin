@@ -113,7 +113,7 @@ static void    close_pnm(bgav_input_context_t * ctx)
   free(priv);
   }
 
-bgav_input_t bgav_input_pnm =
+const bgav_input_t bgav_input_pnm =
   {
     .name =      "Real pnm",
     .open =      open_pnm,

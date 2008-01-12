@@ -61,7 +61,7 @@ static void destroy_pixelformat(void * priv)
   free(vp);
   }
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .gettext_domain = PACKAGE,
@@ -85,17 +85,18 @@ static bg_parameter_info_t * create_parameters()
 
   num = gavl_num_pixelformats();
 
-  ret->multi_names  = calloc(num+1, sizeof(*ret->multi_names));
-  ret->multi_labels = calloc(num+1, sizeof(*ret->multi_labels));
+  ret->multi_names_nc  = calloc(num+1, sizeof(*ret->multi_names));
+  ret->multi_labels_nc = calloc(num+1, sizeof(*ret->multi_labels));
+  bg_parameter_info_set_const_ptrs(ret);
   index = 0;
   for(i = 0; i < num; i++)
     {
     f = gavl_get_pixelformat(i);
     if(f != GAVL_PIXELFORMAT_NONE)
       {
-      ret->multi_names[index] = bg_strdup((char*)0,
+      ret->multi_names_nc[index] = bg_strdup((char*)0,
                                           gavl_pixelformat_to_string(f));
-      ret->multi_labels[index] = bg_strdup((char*)0,
+      ret->multi_labels_nc[index] = bg_strdup((char*)0,
                                            gavl_pixelformat_to_string(f));
       index++;
       }
@@ -104,7 +105,7 @@ static bg_parameter_info_t * create_parameters()
   return ret;
   }
 
-static bg_parameter_info_t * get_parameters_pixelformat(void * priv)
+static const bg_parameter_info_t * get_parameters_pixelformat(void * priv)
   {
   pixelformat_priv_t * vp;
   vp = (pixelformat_priv_t *)priv;
@@ -190,7 +191,7 @@ static int read_video_pixelformat(void * priv,
   return vp->read_func(vp->read_data, frame, vp->read_stream);
   }
 
-bg_fv_plugin_t the_plugin = 
+const bg_fv_plugin_t the_plugin = 
   {
     .common =
     {

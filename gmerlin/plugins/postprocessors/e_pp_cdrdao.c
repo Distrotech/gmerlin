@@ -86,7 +86,7 @@ static void destroy_cdrdao(void * priv)
   }
 
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name = "cda",
@@ -115,7 +115,7 @@ static bg_parameter_info_t parameters[] =
     { /* End of parameters */ },
   };
 
-static bg_parameter_info_t * get_parameters_cdrdao(void * data)
+static const bg_parameter_info_t * get_parameters_cdrdao(void * data)
   {
   return parameters;
   }
@@ -434,7 +434,7 @@ static void stop_cdrdao(void * data)
   bg_cdrdao_stop(cdrdao->cdr);
   }
 
-bg_encoder_pp_plugin_t the_plugin =
+const bg_encoder_pp_plugin_t the_plugin =
   {
     .common =
     {

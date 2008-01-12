@@ -333,7 +333,7 @@ static void create_sections(bg_transcoder_track_t * t,
   
   }
 
-static bg_parameter_info_t parameters_general[] =
+static const bg_parameter_info_t parameters_general[] =
   {
     {
       .name =      "name",
@@ -443,15 +443,15 @@ format doesn't support sample accurate seeking.")
 
 /* Subtitle text parameters */
 
-static bg_parameter_info_t general_parameters_subtitle_text[] =
+static const bg_parameter_info_t general_parameters_subtitle_text[] =
   {
     {
       .name =        "action",
       .long_name =   TRS("Action"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "forget" },
-      .multi_names =  (char*[]){ "forget", "transcode",           "transcode_overlay",    "blend",          (char*)0 },
-      .multi_labels = (char*[]){ TRS("Forget"), TRS("Transcode as text"),
+      .multi_names =  (char const *[]){ "forget", "transcode",           "transcode_overlay",    "blend",          (char*)0 },
+      .multi_labels = (char const *[]){ TRS("Forget"), TRS("Transcode as text"),
                                TRS("Transcode as overlay"), TRS("Blend onto video"), (char*)0 },
       .help_string = TRS("Select action for this subtitle stream.")
     },
@@ -492,14 +492,14 @@ static bg_parameter_info_t general_parameters_subtitle_text[] =
 
 /* Subtitle overlay parameters */
 
-static bg_parameter_info_t general_parameters_subtitle_overlay[] =
+static const bg_parameter_info_t general_parameters_subtitle_overlay[] =
   {
     {
       .name =        "action",
       .long_name =   TRS("Action"),
       .type =        BG_PARAMETER_STRINGLIST,
-      .multi_names =  (char*[]){ "forget", "transcode", "blend",          (char*)0 },
-      .multi_labels = (char*[]){ TRS("Forget"), TRS("Transcode"), TRS("Blend onto video"), (char*)0 },
+      .multi_names =  (char const *[]){ "forget", "transcode", "blend",          (char*)0 },
+      .multi_labels = (char const *[]){ TRS("Forget"), TRS("Transcode"), TRS("Blend onto video"), (char*)0 },
       .val_default = { .val_str = "forget" },
     },
     {
@@ -702,7 +702,7 @@ static void set_track(bg_transcoder_track_t * track,
   {
   int i;
   int subtitle_text_index, subtitle_overlay_index;
-  bg_input_plugin_t * input;
+  const bg_input_plugin_t * input;
   input = (bg_input_plugin_t *)(input_plugin->plugin);
   
   /* General parameters */
@@ -1408,7 +1408,7 @@ void bg_transcoder_track_destroy(bg_transcoder_track_t * t)
   free(t);
   }
 
-static bg_parameter_info_t general_parameters_video[] =
+static const bg_parameter_info_t general_parameters_video[] =
   {
     {
       .name =       "general",
@@ -1419,8 +1419,8 @@ static bg_parameter_info_t general_parameters_video[] =
       .name =        "action",
       .long_name =   TRS("Action"),
       .type =        BG_PARAMETER_STRINGLIST,
-      .multi_names = (char*[]){ "transcode", "forget", (char*)0 },
-      .multi_labels =  (char*[]){ TRS("Transcode"), TRS("Forget"), (char*)0 },
+      .multi_names = (char const *[]){ "transcode", "forget", (char*)0 },
+      .multi_labels =  (char const *[]){ TRS("Transcode"), TRS("Forget"), (char*)0 },
       .val_default = { .val_str = "transcode" },
     },
     {
@@ -1437,14 +1437,14 @@ static bg_parameter_info_t general_parameters_video[] =
     { /* End of parameters */ }
   };
 
-static bg_parameter_info_t general_parameters_audio[] =
+static const bg_parameter_info_t general_parameters_audio[] =
   {
     {
       .name =        "action",
       .long_name =   TRS("Action"),
       .type =        BG_PARAMETER_STRINGLIST,
-      .multi_names = (char*[]){ "transcode", "forget", (char*)0 },
-      .multi_labels =  (char*[]){ TRS("Transcode"), TRS("Forget"), (char*)0 },
+      .multi_names = (char const *[]){ "transcode", "forget", (char*)0 },
+      .multi_labels =  (char const *[]){ TRS("Transcode"), TRS("Forget"), (char*)0 },
       .val_default = { .val_str = "transcode" },
     },
     {
@@ -1487,7 +1487,7 @@ static bg_parameter_info_t general_parameters_audio[] =
 
 /* Audio stream parameters */
 
-bg_parameter_info_t *
+const bg_parameter_info_t *
 bg_transcoder_track_audio_get_general_parameters()
   {
   return general_parameters_audio;
@@ -1495,25 +1495,25 @@ bg_transcoder_track_audio_get_general_parameters()
 
 /* Video stream parameters */
 
-bg_parameter_info_t *
+const bg_parameter_info_t *
 bg_transcoder_track_video_get_general_parameters()
   {
   return general_parameters_video;
   }
 
-bg_parameter_info_t *
+const bg_parameter_info_t *
 bg_transcoder_track_subtitle_text_get_general_parameters()
   {
   return general_parameters_subtitle_text;
   }
 
-bg_parameter_info_t *
+const bg_parameter_info_t *
 bg_transcoder_track_subtitle_overlay_get_general_parameters()
   {
   return general_parameters_subtitle_overlay;
   }
 
-bg_parameter_info_t *
+const bg_parameter_info_t *
 bg_transcoder_track_get_general_parameters(bg_transcoder_track_t * t)
   {
   return parameters_general;

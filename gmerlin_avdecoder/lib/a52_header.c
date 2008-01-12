@@ -26,14 +26,14 @@
 #define LEVEL_45DB 0.5946035575013605
 #define LEVEL_6DB 0.5
 
-static uint8_t halfrate[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3};
-static int rate[] = { 32,  40,  48,  56,  64,  80,  96, 112,
+static const uint8_t halfrate[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3};
+static const int rate[] = { 32,  40,  48,  56,  64,  80,  96, 112,
                       128, 160, 192, 224, 256, 320, 384, 448,
                       512, 576, 640};
-static uint8_t lfeon[8] = {0x10, 0x10, 0x04, 0x04, 0x04, 0x01, 0x04, 0x01};
+static const uint8_t lfeon[8] = {0x10, 0x10, 0x04, 0x04, 0x04, 0x01, 0x04, 0x01};
 
-static float clev[4] = {LEVEL_3DB, LEVEL_45DB, LEVEL_6DB, LEVEL_45DB};
-static float slev[4] = {LEVEL_3DB, LEVEL_6DB,          0, LEVEL_6DB};
+static const float clev[4] = {LEVEL_3DB, LEVEL_45DB, LEVEL_6DB, LEVEL_45DB};
+static const float slev[4] = {LEVEL_3DB, LEVEL_6DB,          0, LEVEL_6DB};
 
 int bgav_a52_header_read(bgav_a52_header_t * ret, uint8_t * buf)
   {

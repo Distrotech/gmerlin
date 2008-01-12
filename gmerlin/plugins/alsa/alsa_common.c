@@ -350,17 +350,19 @@ static void append_card(bg_parameter_info_t * ret,
       num++;
     }
   
-  ret->multi_names = realloc(ret->multi_names,
+  ret->multi_names_nc = realloc(ret->multi_names_nc,
                              sizeof(*ret->multi_names) * (num+2));
 
-  ret->multi_labels = realloc(ret->multi_labels,
+  ret->multi_labels_nc = realloc(ret->multi_labels_nc,
                              sizeof(*ret->multi_labels) * (num+2));
 
-  ret->multi_names[num]  = name;
-  ret->multi_labels[num] = label;
+  ret->multi_names_nc[num]  = name;
+  ret->multi_labels_nc[num] = label;
 
-  ret->multi_names[num+1] = (char*)0;
-  ret->multi_labels[num+1] = (char*)0;
+  ret->multi_names_nc[num+1] = (char*)0;
+  ret->multi_labels_nc[num+1] = (char*)0;
+
+  bg_parameter_info_set_const_ptrs(ret);
   }
 
 void bg_alsa_create_card_parameters(bg_parameter_info_t * ret,

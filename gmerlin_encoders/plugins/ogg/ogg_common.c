@@ -135,7 +135,7 @@ int bg_ogg_encoder_add_video_stream(void * data, gavl_video_format_t * format)
   return e->num_video_streams-1;
   }
 
-void bg_ogg_encoder_init_audio_stream(void * data, int stream, bg_ogg_codec_t * codec)
+void bg_ogg_encoder_init_audio_stream(void * data, int stream, const bg_ogg_codec_t * codec)
   {
   bg_ogg_encoder_t * e = (bg_ogg_encoder_t *)data;
   e->audio_streams[stream].codec = codec;
@@ -143,7 +143,7 @@ void bg_ogg_encoder_init_audio_stream(void * data, int stream, bg_ogg_codec_t * 
   e->serialno++;
   }
 
-void bg_ogg_encoder_init_video_stream(void * data, int stream, bg_ogg_codec_t * codec)
+void bg_ogg_encoder_init_video_stream(void * data, int stream, const bg_ogg_codec_t * codec)
   {
   bg_ogg_encoder_t * e = (bg_ogg_encoder_t *)data;
   e->video_streams[stream].codec = codec;

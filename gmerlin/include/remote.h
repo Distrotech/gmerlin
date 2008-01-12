@@ -34,7 +34,7 @@ typedef struct bg_remote_server_s bg_remote_server_t;
 bg_remote_server_t * bg_remote_server_create(int default_listen_port,
                                              char * protocol_id);
 
-bg_parameter_info_t * bg_remote_server_get_parameters(bg_remote_server_t *);
+const bg_parameter_info_t * bg_remote_server_get_parameters(bg_remote_server_t *);
 
 void bg_remote_server_set_parameter(void * data,
                                     const char * name,

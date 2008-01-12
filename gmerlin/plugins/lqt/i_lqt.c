@@ -37,7 +37,7 @@
 #define PARAM_AUDIO 1
 #define PARAM_VIDEO 3
 
-static bg_parameter_info_t parameters[] = 
+static const bg_parameter_info_t parameters[] = 
   {
     {
       .name =      "audio",
@@ -407,7 +407,7 @@ static void create_parameters(i_lqt_t * e)
   
   }
 
-static bg_parameter_info_t * get_parameters_lqt(void * data)
+static const bg_parameter_info_t * get_parameters_lqt(void * data)
   {
   i_lqt_t * e = (i_lqt_t*)data;
   
@@ -487,7 +487,7 @@ static int start_lqt(void * data)
   }
 
 
-bg_input_plugin_t the_plugin =
+const bg_input_plugin_t the_plugin =
   {
     .common =
     {

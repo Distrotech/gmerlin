@@ -69,7 +69,7 @@ bg_audio_filter_chain_create(const bg_gavl_audio_options_t * opt,
  *  all installed filters and their respective parameters.
  */
 
-bg_parameter_info_t *
+const bg_parameter_info_t *
 bg_audio_filter_chain_get_parameters(bg_audio_filter_chain_t * ch);
 
 /** \brief Set a parameter for an audio chain
@@ -216,7 +216,7 @@ bg_video_filter_chain_create(const bg_gavl_video_options_t * opt,
  *  all installed filters and their respective parameters.
  */
 
-bg_parameter_info_t *
+const bg_parameter_info_t *
 bg_video_filter_chain_get_parameters(bg_video_filter_chain_t * ch);
 
 /** \brief Set a parameter for a video chain

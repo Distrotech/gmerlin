@@ -265,7 +265,7 @@ void bg_player_set_state(bg_player_t * player, int state,
                          &s);
   }
 
-bg_parameter_info_t *
+const bg_parameter_info_t *
 bg_player_get_visualization_parameters(bg_player_t *  player)
   {
   return bg_visualizer_get_parameters(player->visualizer);

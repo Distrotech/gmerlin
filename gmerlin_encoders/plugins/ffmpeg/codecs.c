@@ -32,7 +32,7 @@
     .long_name = TRS("Bit rate (kbps)"),        \
     .type =      BG_PARAMETER_STRINGLIST, \
     .val_default = { .val_str = "128" },       \
-    .multi_names = (char*[]){ "32",  "48", "56", "64", "80", "96", "112", \
+    .multi_names = (char const *[]){ "32",  "48", "56", "64", "80", "96", "112", \
                    "128", "160", "192", "224", "256", "320", "384",\
                    (char*)0 } \
   },
@@ -43,7 +43,7 @@
     .long_name = TRS("Bit rate (kbps)"),        \
     .type =      BG_PARAMETER_STRINGLIST, \
     .val_default = { .val_str = "128" },       \
-    .multi_names = (char*[]){ "32", "40", "48", "56", "64", "80", "96", \
+    .multi_names = (char const *[]){ "32", "40", "48", "56", "64", "80", "96", \
                    "112", "128", "160", "192", "224", "256", "320",\
                    (char*)0 } \
   },
@@ -54,7 +54,7 @@
     .long_name = TRS("Bit rate (kbps)"),        \
     .type =      BG_PARAMETER_STRINGLIST, \
     .val_default = { .val_str = "128" },       \
-    .multi_names = (char*[]){ "32", "40", "48", "56", "64", "80", "96", "112", "128", \
+    .multi_names = (char const *[]){ "32", "40", "48", "56", "64", "80", "96", "112", "128", \
                    "160", "192", "224", "256", "320", "384", "448", "512", \
                    "576", "640", (char*)0 } \
   },
@@ -65,7 +65,7 @@
     .long_name = TRS("Bit rate (kbps)"),        \
     .type =      BG_PARAMETER_STRINGLIST, \
     .val_default = { .val_str = "128" },       \
-    .multi_names = (char*[]){ "24", "48", "64", "96", "128", (char*)0 } \
+    .multi_names = (char const *[]){ "24", "48", "64", "96", "128", (char*)0 } \
   },
     
     
@@ -187,7 +187,7 @@
     PARAM_FLAG_GRAY, \
     PARAM_FLAG_BITEXACT
 
-static bg_parameter_info_t parameters_mpeg4[] = {
+static const bg_parameter_info_t parameters_mpeg4[] = {
   ENCODE_PARAM_VIDEO_FRAMETYPES_IPB,
   PARAM_FLAG_AC_PRED_MPEG4,
   ENCODE_PARAM_VIDEO_RATECONTROL,
@@ -205,7 +205,7 @@ static bg_parameter_info_t parameters_mpeg4[] = {
   { /* End of parameters */ }
 };
 
-static bg_parameter_info_t parameters_mpeg1[] = {
+static const bg_parameter_info_t parameters_mpeg1[] = {
   ENCODE_PARAM_VIDEO_FRAMETYPES_IPB,
   ENCODE_PARAM_VIDEO_RATECONTROL,
   ENCODE_PARAM_VIDEO_QUANTIZER_IPB,
@@ -217,7 +217,7 @@ static bg_parameter_info_t parameters_mpeg1[] = {
 };
 
 
-static bg_parameter_info_t parameters_msmpeg4v3[] = {
+static const bg_parameter_info_t parameters_msmpeg4v3[] = {
   ENCODE_PARAM_VIDEO_FRAMETYPES_IP,
   ENCODE_PARAM_VIDEO_RATECONTROL,
   ENCODE_PARAM_VIDEO_QUANTIZER_IP,
@@ -228,27 +228,27 @@ static bg_parameter_info_t parameters_msmpeg4v3[] = {
   { /* End of parameters */ }
 };
 
-static bg_parameter_info_t parameters_ac3[] = {
+static const bg_parameter_info_t parameters_ac3[] = {
   ENCODE_PARAM_AC3
   { /* End of parameters */ }
 };
 
-static bg_parameter_info_t parameters_mp2[] = {
+static const bg_parameter_info_t parameters_mp2[] = {
   ENCODE_PARAM_MP2
   { /* End of parameters */ }
 };
 
-static bg_parameter_info_t parameters_mp3[] = {
+static const bg_parameter_info_t parameters_mp3[] = {
   ENCODE_PARAM_MP3
   { /* End of parameters */ }
 };
 
-static bg_parameter_info_t parameters_wma[] = {
+static const bg_parameter_info_t parameters_wma[] = {
   ENCODE_PARAM_WMA
   { /* End of parameters */ }
 };
 
-static ffmpeg_codec_info_t audio_codecs[] =
+static const ffmpeg_codec_info_t audio_codecs[] =
   {
     {
       .name      = "pcm_s16be",
@@ -313,7 +313,7 @@ static ffmpeg_codec_info_t audio_codecs[] =
     { /* End of array */ }
   };
 
-static ffmpeg_codec_info_t video_codecs[] =
+static const ffmpeg_codec_info_t video_codecs[] =
   {
     {
       .name      = "mjpeg",
@@ -373,8 +373,8 @@ static ffmpeg_codec_info_t video_codecs[] =
     { /* End of array */ }
   };
 
-static ffmpeg_codec_info_t **
-add_codec_info(ffmpeg_codec_info_t ** info, enum CodecID id, int * num)
+static const ffmpeg_codec_info_t **
+add_codec_info(const ffmpeg_codec_info_t ** info, enum CodecID id, int * num)
   {
   int i;
   /* Check if the codec id is already in the array */
@@ -418,7 +418,7 @@ add_codec_info(ffmpeg_codec_info_t ** info, enum CodecID id, int * num)
   }
 
 static void create_codec_parameter(bg_parameter_info_t * parameter_info,
-                                   ffmpeg_codec_info_t ** infos,
+                                   const ffmpeg_codec_info_t ** infos,
                                    int num_infos)
   {
   int i;
@@ -427,28 +427,28 @@ static void create_codec_parameter(bg_parameter_info_t * parameter_info,
     bg_strdup(parameter_info[0].long_name, TRS("Codec"));
 
   parameter_info[0].type = BG_PARAMETER_MULTI_MENU;
-  parameter_info[0].multi_names =
+  parameter_info[0].multi_names_nc =
     calloc(num_infos+1, sizeof(*parameter_info[0].multi_names));
-  parameter_info[0].multi_labels =
+  parameter_info[0].multi_labels_nc =
     calloc(num_infos+1, sizeof(*parameter_info[0].multi_labels));
-  parameter_info[0].multi_parameters =
+  parameter_info[0].multi_parameters_nc =
     calloc(num_infos+1, sizeof(*parameter_info[0].multi_parameters));
 
   for(i = 0; i < num_infos; i++)
     {
-    parameter_info[0].multi_names[i]  =
-      bg_strdup(parameter_info[0].multi_names[i], infos[i]->name);
+    parameter_info[0].multi_names_nc[i]  =
+      bg_strdup(parameter_info[0].multi_names_nc[i], infos[i]->name);
 
-    parameter_info[0].multi_labels[i] =
-      bg_strdup(parameter_info[0].multi_labels[i], infos[i]->long_name);
+    parameter_info[0].multi_labels_nc[i] =
+      bg_strdup(parameter_info[0].multi_labels_nc[i], infos[i]->long_name);
 
     if(infos[i]->parameters)
-      parameter_info[0].multi_parameters[i] =
+      parameter_info[0].multi_parameters_nc[i] =
         bg_parameter_info_copy_array(infos[i]->parameters);
     }
   parameter_info[0].val_default.val_str =
     bg_strdup(parameter_info[0].val_default.val_str, infos[0]->name);
-  
+  bg_parameter_info_set_const_ptrs(&parameter_info[0]);
   }
 
 
@@ -457,7 +457,7 @@ bg_ffmpeg_create_audio_parameters(const ffmpeg_format_info_t * format_info)
   {
   int i, j, num_infos = 0;
   bg_parameter_info_t * ret;
-  ffmpeg_codec_info_t ** infos = (ffmpeg_codec_info_t**)0;
+  const ffmpeg_codec_info_t ** infos = (const ffmpeg_codec_info_t**)0;
   
   /* Create codec array */
   i = 0;
@@ -494,7 +494,7 @@ bg_ffmpeg_create_video_parameters(const ffmpeg_format_info_t * format_info)
   {
   int i, j, num_infos = 0;
   bg_parameter_info_t * ret;
-  ffmpeg_codec_info_t ** infos = (ffmpeg_codec_info_t**)0;
+  const ffmpeg_codec_info_t ** infos = (const ffmpeg_codec_info_t**)0;
 
   /* Create codec array */
   i = 0;
@@ -555,7 +555,7 @@ bg_ffmpeg_find_video_encoder(const char * name)
 
 typedef struct
   {
-  char * s;
+  const char * s;
   int i;
   } enum_t;
 
@@ -635,7 +635,7 @@ typedef struct
 
   
 
-enum_t me_method[] =
+const enum_t me_method[] =
   {
     { "Zero",  ME_ZERO },
     { "Phods", ME_PHODS },
@@ -645,14 +645,14 @@ enum_t me_method[] =
     { "Full",  ME_FULL }
   };
 
-enum_t prediction_method[] =
+const enum_t prediction_method[] =
   {
     { "Left",   FF_PRED_LEFT },
     { "Plane",  FF_PRED_PLANE },
     { "Median", FF_PRED_MEDIAN }
   };
 
-enum_t compare_func[] =
+const enum_t compare_func[] =
   {
     { "SAD",  FF_CMP_SAD },
     { "SSE",  FF_CMP_SSE },
@@ -667,7 +667,7 @@ enum_t compare_func[] =
     { "NSSE", FF_CMP_NSSE }
   };
 
-enum_t mb_decision[] =
+const enum_t mb_decision[] =
   {
     { "Use compare function", FF_MB_DECISION_SIMPLE },
     { "Fewest bits",          FF_MB_DECISION_BITS },

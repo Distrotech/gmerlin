@@ -136,7 +136,7 @@ static bg_parmeter_info_t video_parameters[] =
   };
 
 
-static bg_parameter_info_t * get_parameters_y4m(void * data)
+static const bg_parameter_info_t * get_parameters_y4m(void * data)
   {
   return parameters;
   }
@@ -150,14 +150,14 @@ static void set_parameter_y4m(void * data, char * name,
 
 /* Per stream parameters */
 
-static bg_parameter_info_t video_parameters[] =
+static const bg_parameter_info_t video_parameters[] =
   {
     {
       .name =        "chroma_mode",
       .long_name =   TRS("Chroma mode"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "auto" },
-      .multi_names = (char*[]){ "auto",
+      .multi_names = (char const *[]){ "auto",
                               "420jpeg",
                               "420mpeg2",
                               "420paldv",
@@ -167,7 +167,7 @@ static bg_parameter_info_t video_parameters[] =
                               "mono",
                               "yuva4444",
                               (char*)0 },
-      .multi_labels = (char*[]){ TRS("Auto"),
+      .multi_labels = (char const *[]){ TRS("Auto"),
                                TRS("4:2:0 (MPEG-1/JPEG)"),
                                TRS("4:2:0 (MPEG-2)"),
                                TRS("4:2:0 (PAL DV)"),
@@ -182,7 +182,7 @@ static bg_parameter_info_t video_parameters[] =
     { /* End of parameters */ }
   };
 
-static bg_parameter_info_t * get_video_parameters_y4m(void * data)
+static const bg_parameter_info_t * get_video_parameters_y4m(void * data)
   {
   return video_parameters;
   }
@@ -255,7 +255,7 @@ static void set_video_parameter_y4m(void * data, int stream, const char * name,
 
 #undef SET_ENUM
 
-bg_encoder_plugin_t the_plugin =
+const bg_encoder_plugin_t the_plugin =
   {
     .common =
     {

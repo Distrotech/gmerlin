@@ -307,7 +307,7 @@ static void close_ra(bgav_demuxer_context_t * ctx)
   }
 
 
-bgav_demuxer_t bgav_demuxer_ra =
+const bgav_demuxer_t bgav_demuxer_ra =
   {
     .probe =       probe_ra,
     .open =        open_ra,

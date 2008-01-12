@@ -134,7 +134,7 @@ static void reset_tree(bg_gtk_info_window_t * w);
   .flags = BG_PARAMETER_HIDE_DIALOG, \
   }
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name = "x",
@@ -185,7 +185,7 @@ static bg_parameter_info_t parameters[] =
     { /* End of parameters */ }
   };
 
-bg_parameter_info_t *
+const bg_parameter_info_t *
 bg_gtk_info_window_get_parameters(bg_gtk_info_window_t * win)
   {
   return parameters;
@@ -556,7 +556,7 @@ static gboolean idle_callback(gpointer data)
         arg_str = bg_msg_get_arg_string(msg, 0);
         if(arg_str)
           {
-          tmp_string = bg_sprintf(TR("Stream .type =\t%s"), arg_str);
+          tmp_string = bg_sprintf(TR("Stream type:\t%s"), arg_str);
           set_line_index(w, PATH_AUDIO_DESC, tmp_string, 1);
           free(tmp_string);
           free(arg_str);
@@ -566,7 +566,7 @@ static gboolean idle_callback(gpointer data)
         arg_str = bg_msg_get_arg_string(msg, 0);
         if(arg_str)
           {
-          tmp_string = bg_sprintf(TR("Stream .type =\t%s"), arg_str);
+          tmp_string = bg_sprintf(TR("Stream type:\t%s"), arg_str);
           set_line_index(w, PATH_VIDEO_DESC, tmp_string, 1);
           free(tmp_string);
           free(arg_str);
@@ -889,7 +889,7 @@ static void row_collapsed_callback(GtkTreeView *treeview,
 
 #define TARGET_TEXT_PLAIN 1
 
-static GtkTargetEntry copy_paste_entries[] =
+static const GtkTargetEntry copy_paste_entries[] =
   {
     { "STRING", 0, TARGET_TEXT_PLAIN },
   };

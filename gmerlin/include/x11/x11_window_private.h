@@ -52,7 +52,7 @@ typedef struct video_driver_s video_driver_t;
 typedef struct
   {
   int flags;
-  video_driver_t * driver;
+  const video_driver_t * driver;
   gavl_pixelformat_t * pixelformats;
   void * priv;
   int can_scale;
@@ -63,13 +63,13 @@ typedef struct
   int penalty;
   } driver_data_t;
 
-extern video_driver_t ximage_driver;
+extern const video_driver_t ximage_driver;
 
 #ifdef HAVE_LIBXV
-extern video_driver_t xv_driver;
+extern const video_driver_t xv_driver;
 #endif
 
-extern video_driver_t gl_driver;
+extern const video_driver_t gl_driver;
 
 #define MAX_DRIVERS 3
 

@@ -459,7 +459,7 @@ static void close_smacker(bgav_demuxer_context_t * ctx)
     free(ctx->tt->cur->video_streams[0].ext_data);
   }
 
-bgav_demuxer_t bgav_demuxer_smacker =
+const bgav_demuxer_t bgav_demuxer_smacker =
   {
     .probe =        probe_smacker,
     .open =         open_smacker,

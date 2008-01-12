@@ -114,7 +114,7 @@ static void write_subtitle_mpsub(subtext_t * s, const char * text,
   fprintf(s->output, "%s\n\n", text);
   }
 
-static struct
+static const struct
   {
   const char * extension;
   const char * name;
@@ -225,21 +225,21 @@ static void destroy_subtext(void * data)
   free(e);
   }
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =         "format" ,
       .long_name =    TRS("Format"),
       .type =         BG_PARAMETER_STRINGLIST,
       .val_default =  { .val_str = "srt" },
-      .multi_names =  (char*[]){ "srt",           "mpsub",         (char*)0 },
-      .multi_labels = (char*[]){ TRS("Subrip (.srt)"), TRS("MPlayer mpsub"), (char*)0 },
+      .multi_names =  (char const *[]){ "srt",           "mpsub",         (char*)0 },
+      .multi_labels = (char const *[]){ TRS("Subrip (.srt)"), TRS("MPlayer mpsub"), (char*)0 },
       
     },
     { /* End of parameters */ }
   };
 
-static bg_parameter_info_t * get_parameters_subtext(void * data)
+static const bg_parameter_info_t * get_parameters_subtext(void * data)
   {
   return parameters;
   }
@@ -266,7 +266,7 @@ static void set_parameter_subtext(void * data, const char * name,
     }
   }
 
-bg_encoder_plugin_t the_plugin =
+const bg_encoder_plugin_t the_plugin =
   {
     .common =
     {

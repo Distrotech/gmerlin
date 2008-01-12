@@ -232,7 +232,7 @@ int write_image_jpeg(void * priv, gavl_video_frame_t * frame)
 
 /* Configuration stuff */
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =        "quality",
@@ -247,7 +247,7 @@ static bg_parameter_info_t parameters[] =
       .long_name =          TRS("Chroma sampling"),
       .type =               BG_PARAMETER_STRINGLIST,
       .val_default =        { .val_str = "4:2:0" },
-      .multi_names = (char*[]) { "4:2:0",
+      .multi_names = (char const *[]) { "4:2:0",
                            "4:2:2",
                            "4:4:4",
                            (char*)0 },
@@ -256,7 +256,7 @@ static bg_parameter_info_t parameters[] =
     { /* End of parameters */ }
   };
 
-static bg_parameter_info_t * get_parameters_jpeg(void * p)
+static const bg_parameter_info_t * get_parameters_jpeg(void * p)
   {
   return parameters;
   }
@@ -290,14 +290,14 @@ static void set_parameter_jpeg(void * p, const char * name,
     }
   }
 
-static char * jpeg_extension = ".jpg";
+static char const * const jpeg_extension = ".jpg";
 
 static const char * get_extension_jpeg(void * p)
   {
   return jpeg_extension;
   }
 
-bg_image_writer_plugin_t the_plugin =
+const bg_image_writer_plugin_t the_plugin =
   {
     .common =
     {

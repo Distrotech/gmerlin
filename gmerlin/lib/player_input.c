@@ -955,7 +955,7 @@ void bg_player_input_bypass_set_pause(bg_player_input_context_t * ctx,
 
 /* Configuration stuff */
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
 #if 0
     {
@@ -985,7 +985,7 @@ static bg_parameter_info_t parameters[] =
   };
 
 
-bg_parameter_info_t * bg_player_get_input_parameters(bg_player_t * p)
+const bg_parameter_info_t * bg_player_get_input_parameters(bg_player_t * p)
   {
   return parameters;
   }

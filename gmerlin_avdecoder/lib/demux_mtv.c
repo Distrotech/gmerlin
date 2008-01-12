@@ -279,7 +279,7 @@ static void close_mtv(bgav_demuxer_context_t * ctx)
   free(priv);
   }
 
-bgav_demuxer_t bgav_demuxer_mtv =
+const bgav_demuxer_t bgav_demuxer_mtv =
   {
     .probe =       probe_mtv,
     .open =        open_mtv,

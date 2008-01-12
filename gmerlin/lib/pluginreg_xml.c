@@ -28,7 +28,7 @@
 #include <xmlutils.h>
 
 
-static struct
+static const struct
   {
   char * name;
   bg_plugin_type_t type;
@@ -54,7 +54,7 @@ type_names[] =
     { (char*)0,                  BG_PLUGIN_NONE }
   };
 
-static struct
+static const struct
   {
   char * name;
   int api;
@@ -67,7 +67,7 @@ api_names[] =
     { (char*)0,                  BG_PLUGIN_NONE }
   };
 
-static struct
+static const struct
   {
   char * name;
   int flag;
@@ -93,38 +93,38 @@ flag_names[] =
     { (char*)0,    0                           },
   };
 
-static const char * plugin_key            = "PLUGIN";
-static const char * plugin_registry_key   = "PLUGIN_REGISTRY";
+static const char * const plugin_key            = "PLUGIN";
+static const char * const plugin_registry_key   = "PLUGIN_REGISTRY";
 
-static const char * name_key              = "NAME";
-static const char * long_name_key         = "LONG_NAME";
-static const char * description_key       = "DESCRIPTION";
-static const char * mimetypes_key         = "MIMETYPES";
-static const char * extensions_key        = "EXTENSIONS";
-static const char * protocols_key         = "PROTOCOLS";
-static const char * module_filename_key   = "MODULE_FILENAME";
-static const char * module_time_key       = "MODULE_TIME";
-static const char * type_key              = "TYPE";
-static const char * flags_key             = "FLAGS";
-static const char * priority_key          = "PRIORITY";
-static const char * device_info_key       = "DEVICE_INFO";
-static const char * device_key            = "DEVICE";
-static const char * max_audio_streams_key = "MAX_AUDIO_STREAMS";
-static const char * max_video_streams_key = "MAX_VIDEO_STREAMS";
-static const char * max_subtitle_text_streams_key = "MAX_SUBTITLE_TEXT_STREAMS";
-static const char * max_subtitle_overlay_streams_key = "MAX_SUBTITLE_OVERLAY_STREAMS";
+static const char * const name_key              = "NAME";
+static const char * const long_name_key         = "LONG_NAME";
+static const char * const description_key       = "DESCRIPTION";
+static const char * const mimetypes_key         = "MIMETYPES";
+static const char * const extensions_key        = "EXTENSIONS";
+static const char * const protocols_key         = "PROTOCOLS";
+static const char * const module_filename_key   = "MODULE_FILENAME";
+static const char * const module_time_key       = "MODULE_TIME";
+static const char * const type_key              = "TYPE";
+static const char * const flags_key             = "FLAGS";
+static const char * const priority_key          = "PRIORITY";
+static const char * const device_info_key       = "DEVICE_INFO";
+static const char * const device_key            = "DEVICE";
+static const char * const max_audio_streams_key = "MAX_AUDIO_STREAMS";
+static const char * const max_video_streams_key = "MAX_VIDEO_STREAMS";
+static const char * const max_subtitle_text_streams_key = "MAX_SUBTITLE_TEXT_STREAMS";
+static const char * const max_subtitle_overlay_streams_key = "MAX_SUBTITLE_OVERLAY_STREAMS";
 
-static const char * parameters_key       = "PARAMETERS";
-static const char * audio_parameters_key = "AUDIO_PARAMETERS";
-static const char * video_parameters_key = "VIDEO_PARAMETERS";
-static const char * subtitle_text_parameters_key = "SUBTITLE_TEXT_PARAMETERS";
-static const char * subtitle_overlay_parameters_key = "SUBTITLE_OVERLAY_PARAMETERS";
+static const char * const parameters_key       = "PARAMETERS";
+static const char * const audio_parameters_key = "AUDIO_PARAMETERS";
+static const char * const video_parameters_key = "VIDEO_PARAMETERS";
+static const char * const subtitle_text_parameters_key = "SUBTITLE_TEXT_PARAMETERS";
+static const char * const subtitle_overlay_parameters_key = "SUBTITLE_OVERLAY_PARAMETERS";
 
-static const char * gettext_domain_key   = "GETTEXT_DOMAIN";
-static const char * gettext_directory_key       = "GETTEXT_DIRECTORY";
+static const char * const gettext_domain_key   = "GETTEXT_DOMAIN";
+static const char * const gettext_directory_key       = "GETTEXT_DIRECTORY";
 
-static const char * api_key                  = "API";
-static const char * index_key                = "INDEX";
+static const char * const api_key                  = "API";
+static const char * const index_key                = "INDEX";
 
 static bg_device_info_t *
 load_device(bg_device_info_t * arr, xmlDocPtr doc, xmlNodePtr node)

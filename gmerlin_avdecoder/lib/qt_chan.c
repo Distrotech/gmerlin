@@ -121,10 +121,10 @@ typedef enum
     CHANNEL_LABEL_ForeignLanguage        = 305
   } channel_label_t;
 
-static struct
+static const struct
   {
   channel_label_t label;
-  char * name;
+  const char * name;
   }
 channel_label_names[] =
   {
@@ -225,7 +225,7 @@ typedef enum
     CHANNEL_BIT_TopBackRight         = (1<<17)
   } channel_bit_t;
 
-static struct
+static const struct
   {
   channel_bit_t bit;
   channel_label_t label;
@@ -263,7 +263,7 @@ static channel_label_t channel_bit_2_channel_label(uint32_t bit)
   return CHANNEL_LABEL_Unknown;
   }
 
-static struct
+static const struct
   {
   gavl_channel_id_t lqt_channel;
   channel_label_t   channel_label;
@@ -424,59 +424,59 @@ typedef enum
     CHANNEL_LAYOUT_RESERVED_DO_NOT_USE= (147<<16)
 } channel_layout_t;
 
-static struct
+static const struct
   {
   channel_layout_t layout;
-  channel_label_t * channels;
+  const channel_label_t * channels;
   }
 channel_locations[] =
   {
-    { CHANNEL_LAYOUT_Mono, (channel_label_t[]){ CHANNEL_LABEL_Center } }, // a standard mono stream
+    { CHANNEL_LAYOUT_Mono, (const channel_label_t[]){ CHANNEL_LABEL_Center } }, // a standard mono stream
 
 // 2 Channel layouts
 
-    { CHANNEL_LAYOUT_Stereo,  (channel_label_t[]){ CHANNEL_LABEL_Left,
+    { CHANNEL_LAYOUT_Stereo,  (const channel_label_t[]){ CHANNEL_LABEL_Left,
                                                    CHANNEL_LABEL_Right } }, // a standard stereo stream (L R)
 
-    { CHANNEL_LAYOUT_StereoHeadphones, (channel_label_t[]){ CHANNEL_LABEL_Left,
+    { CHANNEL_LAYOUT_StereoHeadphones, (const channel_label_t[]){ CHANNEL_LABEL_Left,
                                                             CHANNEL_LABEL_Right } }, // a standard stereo stream (L R) - implied headphone playback
-    { CHANNEL_LAYOUT_MatrixStereo, (channel_label_t[]){ CHANNEL_LABEL_LeftTotal,
+    { CHANNEL_LAYOUT_MatrixStereo, (const channel_label_t[]){ CHANNEL_LABEL_LeftTotal,
                                                         CHANNEL_LABEL_RightTotal } }, // a matrix encoded stereo stream (Lt, Rt)
 
-    { CHANNEL_LAYOUT_MidSide, (channel_label_t[]){ CHANNEL_LABEL_MS_Mid,
+    { CHANNEL_LAYOUT_MidSide, (const channel_label_t[]){ CHANNEL_LABEL_MS_Mid,
                                                    CHANNEL_LABEL_MS_Side } }, // mid/side recording
 
-    { CHANNEL_LAYOUT_XY, (channel_label_t[]){ CHANNEL_LABEL_XY_X, CHANNEL_LABEL_XY_Y } }, // coincident mic pair (often 2 figure 8's)
+    { CHANNEL_LAYOUT_XY, (const channel_label_t[]){ CHANNEL_LABEL_XY_X, CHANNEL_LABEL_XY_Y } }, // coincident mic pair (often 2 figure 8's)
 
-    { CHANNEL_LAYOUT_Binaural, (channel_label_t[]){ CHANNEL_LABEL_Left,
+    { CHANNEL_LAYOUT_Binaural, (const channel_label_t[]){ CHANNEL_LABEL_Left,
                                                     CHANNEL_LABEL_Right  } }, // binaural stereo (left, right)
 
 // Symetric arrangements - same distance between speaker locations
 
-    { CHANNEL_LAYOUT_Ambisonic_B_Format, (channel_label_t[]){ CHANNEL_LABEL_Ambisonic_W,
+    { CHANNEL_LAYOUT_Ambisonic_B_Format, (const channel_label_t[]){ CHANNEL_LABEL_Ambisonic_W,
                                                               CHANNEL_LABEL_Ambisonic_X,
                                                               CHANNEL_LABEL_Ambisonic_Y,
                                                               CHANNEL_LABEL_Ambisonic_Z } }, // W, X, Y, Z
 
-    { CHANNEL_LAYOUT_Quadraphonic, (channel_label_t[]){ CHANNEL_LABEL_Left,
+    { CHANNEL_LAYOUT_Quadraphonic, (const channel_label_t[]){ CHANNEL_LABEL_Left,
                                                         CHANNEL_LABEL_Right,
                                                         CHANNEL_LABEL_LeftSurround,
                                                         CHANNEL_LABEL_RightSurround } }, // front left, front right, back left, back right
 
-    { CHANNEL_LAYOUT_Pentagonal, (channel_label_t[]){ CHANNEL_LABEL_Left,
+    { CHANNEL_LAYOUT_Pentagonal, (const channel_label_t[]){ CHANNEL_LABEL_Left,
                                                       CHANNEL_LABEL_Right,
                                                       CHANNEL_LABEL_LeftSurround,
                                                       CHANNEL_LABEL_RightSurround,
                                                       CHANNEL_LABEL_Center } }, // left, right, rear left, rear right, center
 
-    { CHANNEL_LAYOUT_Hexagonal, (channel_label_t[]){  CHANNEL_LABEL_Left,
+    { CHANNEL_LAYOUT_Hexagonal, (const channel_label_t[]){  CHANNEL_LABEL_Left,
                                                       CHANNEL_LABEL_Right,
                                                       CHANNEL_LABEL_LeftSurround,
                                                       CHANNEL_LABEL_RightSurround,
                                                       CHANNEL_LABEL_Center,
                                                       CHANNEL_LABEL_CenterSurround } }, // left, right, rear left, rear right, center, rear
 
-    { CHANNEL_LAYOUT_Octagonal, (channel_label_t[]){ CHANNEL_LABEL_Left,
+    { CHANNEL_LAYOUT_Octagonal, (const channel_label_t[]){ CHANNEL_LABEL_Left,
                                                      CHANNEL_LABEL_Right,
                                                      CHANNEL_LABEL_LeftSurround,
                                                      CHANNEL_LABEL_RightSurround,
@@ -486,7 +486,7 @@ channel_locations[] =
                                                      CHANNEL_LABEL_RightSurroundDirect } }, // front left, front right, rear left, rear right,
                                                                                             // front center, rear center, side left, side right
 
-    { CHANNEL_LAYOUT_Cube, (channel_label_t[]){ CHANNEL_LABEL_Left,
+    { CHANNEL_LAYOUT_Cube, (const channel_label_t[]){ CHANNEL_LABEL_Left,
                                                 CHANNEL_LABEL_Right,
                                                 CHANNEL_LABEL_LeftSurround,
                                                 CHANNEL_LABEL_RightSurround,
@@ -498,29 +498,29 @@ channel_locations[] =
 
 //  MPEG defined layouts
 
-    { CHANNEL_LAYOUT_MPEG_3_0_A, (channel_label_t[]){ CHANNEL_LABEL_Left,
+    { CHANNEL_LAYOUT_MPEG_3_0_A, (const channel_label_t[]){ CHANNEL_LABEL_Left,
                                                       CHANNEL_LABEL_Right,
                                                       CHANNEL_LABEL_Center } },         // L R C
 
-    { CHANNEL_LAYOUT_MPEG_4_0_A, (channel_label_t[]){ CHANNEL_LABEL_Left,
+    { CHANNEL_LAYOUT_MPEG_4_0_A, (const channel_label_t[]){ CHANNEL_LABEL_Left,
                                                       CHANNEL_LABEL_Right,
                                                       CHANNEL_LABEL_Center,
                                                       CHANNEL_LABEL_CenterSurround } },         // L R C Cs
 
-    { CHANNEL_LAYOUT_MPEG_5_0_A, (channel_label_t[]){ CHANNEL_LABEL_Left,
+    { CHANNEL_LAYOUT_MPEG_5_0_A, (const channel_label_t[]){ CHANNEL_LABEL_Left,
                                                       CHANNEL_LABEL_Right,
                                                       CHANNEL_LABEL_Center,
                                                       CHANNEL_LABEL_LeftSurround,
                                                       CHANNEL_LABEL_RightSurround } },         // L R C Ls Rs
 
-    { CHANNEL_LAYOUT_MPEG_5_1_A, (channel_label_t[]){ CHANNEL_LABEL_Left,
+    { CHANNEL_LAYOUT_MPEG_5_1_A, (const channel_label_t[]){ CHANNEL_LABEL_Left,
                                                       CHANNEL_LABEL_Right,
                                                       CHANNEL_LABEL_Center,
                                                       CHANNEL_LABEL_LFEScreen,
                                                       CHANNEL_LABEL_LeftSurround,
                                                       CHANNEL_LABEL_RightSurround } },         // L R C LFE Ls Rs
 
-    { CHANNEL_LAYOUT_MPEG_6_1_A, (channel_label_t[]){ CHANNEL_LABEL_Left,
+    { CHANNEL_LAYOUT_MPEG_6_1_A, (const channel_label_t[]){ CHANNEL_LABEL_Left,
                                                       CHANNEL_LABEL_Right,
                                                       CHANNEL_LABEL_Center,
                                                       CHANNEL_LABEL_LFEScreen,
@@ -528,7 +528,7 @@ channel_locations[] =
                                                       CHANNEL_LABEL_RightSurround,
                                                       CHANNEL_LABEL_CenterSurround } },         // L R C LFE Ls Rs Cs
 
-    { CHANNEL_LAYOUT_MPEG_7_1_A, (channel_label_t[]){ CHANNEL_LABEL_Left,
+    { CHANNEL_LAYOUT_MPEG_7_1_A, (const channel_label_t[]){ CHANNEL_LABEL_Left,
                                                       CHANNEL_LABEL_Right,
                                                       CHANNEL_LABEL_Center,
                                                       CHANNEL_LABEL_LFEScreen,
@@ -537,55 +537,55 @@ channel_locations[] =
                                                       CHANNEL_LABEL_LeftCenter,
                                                       CHANNEL_LABEL_RightCenter } }, // L R C LFE Ls Rs Lc Rc
     
-    { CHANNEL_LAYOUT_MPEG_5_0_B, (channel_label_t[]){ CHANNEL_LABEL_Left,
+    { CHANNEL_LAYOUT_MPEG_5_0_B, (const channel_label_t[]){ CHANNEL_LABEL_Left,
                                                       CHANNEL_LABEL_Right,
                                                       CHANNEL_LABEL_LeftSurround,
                                                       CHANNEL_LABEL_RightSurround,
                                                       CHANNEL_LABEL_Center } },         // L R Ls Rs C
 
-    { CHANNEL_LAYOUT_MPEG_5_1_B, (channel_label_t[]){ CHANNEL_LABEL_Left,
+    { CHANNEL_LAYOUT_MPEG_5_1_B, (const channel_label_t[]){ CHANNEL_LABEL_Left,
                                                       CHANNEL_LABEL_Right,
                                                       CHANNEL_LABEL_LeftSurround,
                                                       CHANNEL_LABEL_RightSurround,
                                                       CHANNEL_LABEL_Center,
                                                       CHANNEL_LABEL_LFEScreen } },         // L R Ls Rs C LFE
 
-    { CHANNEL_LAYOUT_MPEG_3_0_B,  (channel_label_t[]){ CHANNEL_LABEL_Center,
+    { CHANNEL_LAYOUT_MPEG_3_0_B,  (const channel_label_t[]){ CHANNEL_LABEL_Center,
                                                        CHANNEL_LABEL_Left,
                                                        CHANNEL_LABEL_Right } },        // C L R
 
-    { CHANNEL_LAYOUT_MPEG_4_0_B, (channel_label_t[]){ CHANNEL_LABEL_Center,
+    { CHANNEL_LAYOUT_MPEG_4_0_B, (const channel_label_t[]){ CHANNEL_LABEL_Center,
                                                       CHANNEL_LABEL_Left,
                                                       CHANNEL_LABEL_Right,
                                                       CHANNEL_LABEL_CenterSurround } },         // C L R Cs
 
-    { CHANNEL_LAYOUT_MPEG_5_0_D, (channel_label_t[]){ CHANNEL_LABEL_Center,
+    { CHANNEL_LAYOUT_MPEG_5_0_D, (const channel_label_t[]){ CHANNEL_LABEL_Center,
                                                       CHANNEL_LABEL_Left,
                                                       CHANNEL_LABEL_Right,
                                                       CHANNEL_LABEL_LeftSurround,
                                                       CHANNEL_LABEL_RightSurround } },         // C L R Ls Rs
 
-    { CHANNEL_LAYOUT_MPEG_5_1_D, (channel_label_t[]){ CHANNEL_LABEL_Center,
+    { CHANNEL_LAYOUT_MPEG_5_1_D, (const channel_label_t[]){ CHANNEL_LABEL_Center,
                                                       CHANNEL_LABEL_Left,
                                                       CHANNEL_LABEL_Right,
                                                       CHANNEL_LABEL_LeftSurround,
                                                       CHANNEL_LABEL_RightSurround,
                                                       CHANNEL_LABEL_LFEScreen } },         // C L R Ls Rs LFE
     
-    { CHANNEL_LAYOUT_MPEG_5_0_C, (channel_label_t[]){ CHANNEL_LABEL_Left,
+    { CHANNEL_LAYOUT_MPEG_5_0_C, (const channel_label_t[]){ CHANNEL_LABEL_Left,
                                                       CHANNEL_LABEL_Center,
                                                       CHANNEL_LABEL_Right,
                                                       CHANNEL_LABEL_LeftSurround,
                                                       CHANNEL_LABEL_RightSurround } },         // L C R Ls Rs
 
-    { CHANNEL_LAYOUT_MPEG_5_1_C, (channel_label_t[]){ CHANNEL_LABEL_Left,
+    { CHANNEL_LAYOUT_MPEG_5_1_C, (const channel_label_t[]){ CHANNEL_LABEL_Left,
                                                       CHANNEL_LABEL_Center,
                                                       CHANNEL_LABEL_Right,
                                                       CHANNEL_LABEL_LeftSurround,
                                                       CHANNEL_LABEL_RightSurround,
                                                       CHANNEL_LABEL_LFEScreen } },         // L C R Ls Rs LFE
 
-    { CHANNEL_LAYOUT_MPEG_7_1_B, (channel_label_t[]){ CHANNEL_LABEL_Center,
+    { CHANNEL_LAYOUT_MPEG_7_1_B, (const channel_label_t[]){ CHANNEL_LABEL_Center,
                                                       CHANNEL_LABEL_LeftCenter,
                                                       CHANNEL_LABEL_RightCenter,
                                                       CHANNEL_LABEL_Left,
@@ -594,7 +594,7 @@ channel_locations[] =
                                                       CHANNEL_LABEL_RightSurround,
                                                       CHANNEL_LABEL_LFEScreen  } },         // C Lc Rc L R Ls Rs LFE
 
-    { CHANNEL_LAYOUT_MPEG_7_1_C, (channel_label_t[]){ CHANNEL_LABEL_Left,
+    { CHANNEL_LAYOUT_MPEG_7_1_C, (const channel_label_t[]){ CHANNEL_LABEL_Left,
                                                       CHANNEL_LABEL_Right,
                                                       CHANNEL_LABEL_Center,
                                                       CHANNEL_LABEL_LFEScreen,
@@ -603,7 +603,7 @@ channel_locations[] =
                                                       CHANNEL_LABEL_LeftSurround,
                                                       CHANNEL_LABEL_RightSurround  } },         // L R C LFE Ls Rs Rls Rrs
 
-    { CHANNEL_LAYOUT_Emagic_Default_7_1,  (channel_label_t[]){ CHANNEL_LABEL_Left,
+    { CHANNEL_LAYOUT_Emagic_Default_7_1,  (const channel_label_t[]){ CHANNEL_LABEL_Left,
                                                                CHANNEL_LABEL_Right,
                                                                CHANNEL_LABEL_LeftSurround,
                                                                CHANNEL_LABEL_RightSurround,
@@ -612,7 +612,7 @@ channel_locations[] =
                                                                CHANNEL_LABEL_LeftCenter,
                                                                CHANNEL_LABEL_RightCenter } },//  L R Ls Rs C LFE Lc Rc
 
-    { CHANNEL_LAYOUT_SMPTE_DTV,  (channel_label_t[]){ CHANNEL_LABEL_Left,
+    { CHANNEL_LAYOUT_SMPTE_DTV,  (const channel_label_t[]){ CHANNEL_LABEL_Left,
                                                       CHANNEL_LABEL_Right,
                                                       CHANNEL_LABEL_Center,
                                                       CHANNEL_LABEL_LFEScreen,
@@ -624,37 +624,37 @@ channel_locations[] =
 
 //  ITU defined layouts
 
-    { CHANNEL_LAYOUT_ITU_2_1, (channel_label_t[]){ CHANNEL_LABEL_Left,
+    { CHANNEL_LAYOUT_ITU_2_1, (const channel_label_t[]){ CHANNEL_LABEL_Left,
                                                    CHANNEL_LABEL_Right,
                                                    CHANNEL_LABEL_CenterSurround } },            // L R Cs
 
-    { CHANNEL_LAYOUT_ITU_2_2, (channel_label_t[]){ CHANNEL_LABEL_Left,
+    { CHANNEL_LAYOUT_ITU_2_2, (const channel_label_t[]){ CHANNEL_LABEL_Left,
                                                    CHANNEL_LABEL_Right,
                                                    CHANNEL_LABEL_LeftSurround,
                                                    CHANNEL_LABEL_RightSurround } },            // L R Ls Rs
 
 // DVD defined layouts
 
-    { CHANNEL_LAYOUT_DVD_4, (channel_label_t[]){ CHANNEL_LABEL_Left,
+    { CHANNEL_LAYOUT_DVD_4, (const channel_label_t[]){ CHANNEL_LABEL_Left,
                                                  CHANNEL_LABEL_Right,
                                                  CHANNEL_LABEL_LFEScreen } },              // L R LFE
-    { CHANNEL_LAYOUT_DVD_5, (channel_label_t[]){ CHANNEL_LABEL_Left,
+    { CHANNEL_LAYOUT_DVD_5, (const channel_label_t[]){ CHANNEL_LABEL_Left,
                                                  CHANNEL_LABEL_Right,
                                                  CHANNEL_LABEL_LFEScreen,
                                                  CHANNEL_LABEL_CenterSurround } },              // L R LFE Cs
     
-    { CHANNEL_LAYOUT_DVD_6,  (channel_label_t[]){ CHANNEL_LABEL_Left,
+    { CHANNEL_LAYOUT_DVD_6,  (const channel_label_t[]){ CHANNEL_LABEL_Left,
                                                   CHANNEL_LABEL_Right,
                                                   CHANNEL_LABEL_LFEScreen,
                                                   CHANNEL_LABEL_LeftSurround,
                                                   CHANNEL_LABEL_RightSurround } },             // L R LFE Ls Rs
     
-    { CHANNEL_LAYOUT_DVD_10, (channel_label_t[]){ CHANNEL_LABEL_Left,
+    { CHANNEL_LAYOUT_DVD_10, (const channel_label_t[]){ CHANNEL_LABEL_Left,
                                                   CHANNEL_LABEL_Right,
                                                   CHANNEL_LABEL_Center,
                                                   CHANNEL_LABEL_LFEScreen  } },             // L R C LFE
     
-    { CHANNEL_LAYOUT_DVD_11,  (channel_label_t[]){ CHANNEL_LABEL_Left,
+    { CHANNEL_LAYOUT_DVD_11,  (const channel_label_t[]){ CHANNEL_LABEL_Left,
                                                    CHANNEL_LABEL_Right,
                                                    CHANNEL_LABEL_Center,
                                                    CHANNEL_LABEL_LFEScreen,
@@ -662,7 +662,7 @@ channel_locations[] =
     
     // 13 through 17 are duplicates of 8 through 12.
 
-    { CHANNEL_LAYOUT_DVD_18, (channel_label_t[]){ CHANNEL_LABEL_Left,
+    { CHANNEL_LAYOUT_DVD_18, (const channel_label_t[]){ CHANNEL_LABEL_Left,
                                                   CHANNEL_LABEL_Right,
                                                   CHANNEL_LABEL_LeftSurround,
                                                   CHANNEL_LABEL_RightSurround,
@@ -670,14 +670,14 @@ channel_locations[] =
     
     // These are the surround-based layouts
     
-    { CHANNEL_LAYOUT_AudioUnit_6_0, (channel_label_t[]){ CHANNEL_LABEL_Left,
+    { CHANNEL_LAYOUT_AudioUnit_6_0, (const channel_label_t[]){ CHANNEL_LABEL_Left,
                                                          CHANNEL_LABEL_Right,
                                                          CHANNEL_LABEL_LeftSurround,
                                                          CHANNEL_LABEL_RightSurround,
                                                          CHANNEL_LABEL_Center,
                                                          CHANNEL_LABEL_CenterSurround   } },      // L R Ls Rs C Cs
 
-    { CHANNEL_LAYOUT_AudioUnit_7_0, (channel_label_t[]){ CHANNEL_LABEL_Left,
+    { CHANNEL_LAYOUT_AudioUnit_7_0, (const channel_label_t[]){ CHANNEL_LABEL_Left,
                                                          CHANNEL_LABEL_Right,
                                                          CHANNEL_LABEL_LeftSurroundDirect,
                                                          CHANNEL_LABEL_RightSurroundDirect,
@@ -687,14 +687,14 @@ channel_locations[] =
 
 // These layouts are used for AAC Encoding within the MPEG-4 Specification
 
-    { CHANNEL_LAYOUT_AAC_6_0, (channel_label_t[]){ CHANNEL_LABEL_Center,
+    { CHANNEL_LAYOUT_AAC_6_0, (const channel_label_t[]){ CHANNEL_LABEL_Center,
                                                    CHANNEL_LABEL_Left,
                                                    CHANNEL_LABEL_Right,
                                                    CHANNEL_LABEL_LeftSurround,
                                                    CHANNEL_LABEL_RightSurround,
                                                    CHANNEL_LABEL_CenterSurround  } },            // C L R Ls Rs Cs
 
-    { CHANNEL_LAYOUT_AAC_6_1, (channel_label_t[]){ CHANNEL_LABEL_Center,
+    { CHANNEL_LAYOUT_AAC_6_1, (const channel_label_t[]){ CHANNEL_LABEL_Center,
                                                    CHANNEL_LABEL_Left,
                                                    CHANNEL_LABEL_Right,
                                                    CHANNEL_LABEL_LeftSurround,
@@ -702,7 +702,7 @@ channel_locations[] =
                                                    CHANNEL_LABEL_CenterSurround,
                                                    CHANNEL_LABEL_LFEScreen  } },            // C L R Ls Rs Cs Lfe
 
-    { CHANNEL_LAYOUT_AAC_7_0, (channel_label_t[]){ CHANNEL_LABEL_Center,
+    { CHANNEL_LAYOUT_AAC_7_0, (const channel_label_t[]){ CHANNEL_LABEL_Center,
                                                    CHANNEL_LABEL_Left,
                                                    CHANNEL_LABEL_Right,
                                                    CHANNEL_LABEL_LeftSurroundDirect,
@@ -710,7 +710,7 @@ channel_locations[] =
                                                    CHANNEL_LABEL_LeftSurround,
                                                    CHANNEL_LABEL_RightSurround  } },            // C L R Ls Rs Rls Rrs
     
-    { CHANNEL_LAYOUT_AAC_Octagonal, (channel_label_t[]){ CHANNEL_LABEL_Center,
+    { CHANNEL_LAYOUT_AAC_Octagonal, (const channel_label_t[]){ CHANNEL_LABEL_Center,
                                                          CHANNEL_LABEL_Left,
                                                          CHANNEL_LABEL_Right,
                                                          CHANNEL_LABEL_LeftSurroundDirect,
@@ -720,8 +720,8 @@ channel_locations[] =
                                                          CHANNEL_LABEL_CenterSurround  } },      // C L R Ls Rs Rls Rrs Cs
     
     /* No, sorry the following 2 a to weird. The one who has such files, can program it */
-    //    { CHANNEL_LAYOUT_TMH_10_2_std, (channel_label_t[]){  } },       // L R C Vhc Lsd Rsd Ls Rs Vhl Vhr Lw Rw Csd Cs LFE1 LFE2
-    //    { CHANNEL_LAYOUT_TMH_10_2_full, (channel_label_t[]){  } },      // TMH_10_2_std plus: Lc Rc HI VI Haptic
+    //    { CHANNEL_LAYOUT_TMH_10_2_std, (const channel_label_t[]){  } },       // L R C Vhc Lsd Rsd Ls Rs Vhl Vhr Lw Rw Csd Cs LFE1 LFE2
+    //    { CHANNEL_LAYOUT_TMH_10_2_full, (const channel_label_t[]){  } },      // TMH_10_2_std plus: Lc Rc HI VI Haptic
       
   };
 

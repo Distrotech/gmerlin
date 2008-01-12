@@ -606,30 +606,30 @@ int bgav_input_get_double_64_le(bgav_input_context_t * ctx, double * ret)
 
 /* Open input */
 
-extern bgav_input_t bgav_input_file;
-extern bgav_input_t bgav_input_stdin;
-extern bgav_input_t bgav_input_rtsp;
-extern bgav_input_t bgav_input_pnm;
-extern bgav_input_t bgav_input_mms;
-extern bgav_input_t bgav_input_http;
-extern bgav_input_t bgav_input_ftp;
+extern const bgav_input_t bgav_input_file;
+extern const bgav_input_t bgav_input_stdin;
+extern const bgav_input_t bgav_input_rtsp;
+extern const bgav_input_t bgav_input_pnm;
+extern const bgav_input_t bgav_input_mms;
+extern const bgav_input_t bgav_input_http;
+extern const bgav_input_t bgav_input_ftp;
 
 #ifdef HAVE_CDIO
-extern bgav_input_t bgav_input_vcd;
+extern const bgav_input_t bgav_input_vcd;
 
 #ifdef HAVE_DVDREAD
-extern bgav_input_t bgav_input_dvd;
+extern const bgav_input_t bgav_input_dvd;
 #endif
 
 #endif // HAVE_CDIO
 
 #ifdef HAVE_LINUXDVB
-extern bgav_input_t bgav_input_dvb;
+extern const bgav_input_t bgav_input_dvb;
 #endif
 
 
 #ifdef HAVE_SAMBA
-extern bgav_input_t bgav_input_smb;
+extern const bgav_input_t bgav_input_smb;
 #endif
 
 void bgav_inputs_dump()
@@ -1012,7 +1012,7 @@ bgav_input_context_t * bgav_input_create(const bgav_options_t * opt)
 int bgav_input_reopen(bgav_input_context_t * ctx)
   {
   gavl_time_t delay_time = GAVL_TIME_SCALE / 2;
-  bgav_input_t * input;
+  const bgav_input_t * input;
   char * url = (char*)0;
   int ret = 0;
   char * redir;

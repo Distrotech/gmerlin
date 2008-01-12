@@ -181,7 +181,7 @@ static void    close_smb(bgav_input_context_t * ctx)
   }
 
 
-bgav_input_t bgav_input_smb =
+const bgav_input_t bgav_input_smb =
   {
     .name =      "samba",
     .open =      open_smb,

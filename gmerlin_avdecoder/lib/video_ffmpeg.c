@@ -1732,7 +1732,7 @@ static void rgba32_to_rgba32(gavl_video_frame_t * dst, AVFrame * src,
 
 /* Pixel formats */
 
-static struct
+static const struct
   {
   enum PixelFormat  ffmpeg_csp;
   gavl_pixelformat_t gavl_csp;

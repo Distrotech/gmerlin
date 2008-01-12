@@ -84,18 +84,18 @@ int bgav_vorbis_comment_read(bgav_vorbis_comment_t * ret,
   }
 
  
-static char * _artist_key = "ARTIST";
-static char * _author_key = "AUTHOR";
-static char * _album_key = "ALBUM";
-static char * _title_key = "TITLE";
-// static char * _version_key = "VERSION=";
-static char * _track_number_key = "TRACKNUMBER";
-// static char * _organization_key = "ORGANIZATION=";
-static char * _genre_key = "GENRE";
-// static char * _description_key = "DESCRIPTION=";
-static char * _date_key = "DATE";
-// static char * _location_key = "LOCATION=";
-static char * _copyright_key = "COPYRIGHT";
+static char const * const artist_key = "ARTIST";
+static char const * const author_key = "AUTHOR";
+static char const * const album_key = "ALBUM";
+static char const * const title_key = "TITLE";
+// static char const * const _version_key = "VERSION=";
+static char const * const track_number_key = "TRACKNUMBER";
+// static char const * const _organization_key = "ORGANIZATION=";
+static char const * const genre_key = "GENRE";
+// static char const * const _description_key = "DESCRIPTION=";
+static char const * const date_key = "DATE";
+// static char const * const _location_key = "LOCATION=";
+static char const * const copyright_key = "COPYRIGHT";
 
 const char *
 bgav_vorbis_comment_get_field(bgav_vorbis_comment_t * vc, const char * key)
@@ -118,28 +118,28 @@ void bgav_vorbis_comment_2_metadata(bgav_vorbis_comment_t * comment,
   const char * field;
   int j;
 
-  if((field = bgav_vorbis_comment_get_field(comment, _artist_key)))
+  if((field = bgav_vorbis_comment_get_field(comment, artist_key)))
     m->artist = bgav_strdup(field);
 
-  if((field = bgav_vorbis_comment_get_field(comment, _author_key)))
+  if((field = bgav_vorbis_comment_get_field(comment, author_key)))
     m->author = bgav_strdup(field);
 
-  if((field = bgav_vorbis_comment_get_field(comment, _album_key)))
+  if((field = bgav_vorbis_comment_get_field(comment, album_key)))
     m->album = bgav_strdup(field);
 
-  if((field = bgav_vorbis_comment_get_field(comment, _title_key)))
+  if((field = bgav_vorbis_comment_get_field(comment, title_key)))
     m->title = bgav_strdup(field);
 
-  if((field = bgav_vorbis_comment_get_field(comment, _genre_key)))
+  if((field = bgav_vorbis_comment_get_field(comment, genre_key)))
     m->genre = bgav_strdup(field);
 
-  if((field = bgav_vorbis_comment_get_field(comment, _date_key)))
+  if((field = bgav_vorbis_comment_get_field(comment, date_key)))
     m->date = bgav_strdup(field);
 
-  if((field = bgav_vorbis_comment_get_field(comment, _copyright_key)))
+  if((field = bgav_vorbis_comment_get_field(comment, copyright_key)))
     m->copyright = bgav_strdup(field);
 
-  if((field = bgav_vorbis_comment_get_field(comment, _track_number_key)))
+  if((field = bgav_vorbis_comment_get_field(comment, track_number_key)))
     m->track = atoi(field);
   
   for(j = 0; j < comment->num_user_comments; j++)

@@ -686,7 +686,7 @@ static void close_cdaudio(void * priv)
 
 /* Configuration stuff */
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =      "general",
@@ -837,10 +837,10 @@ $HOME/.gmerlin/cdaudio_metadata. If you got wrong metadata for a CD,\
     { /* End of parmeters */ }
   };
 
-static bg_parameter_info_t * get_parameters_cdaudio(void * data)
+static const bg_parameter_info_t * get_parameters_cdaudio(void * data)
   {
   cdaudio_t * cd = (cdaudio_t*)data;
-  bg_parameter_info_t * srcs[3];
+  bg_parameter_info_t const * srcs[3];
 
   if(!cd->parameters)
     {
@@ -928,7 +928,7 @@ static int eject_disc_cdaudio(const char * device)
 #endif
   }
 
-bg_input_plugin_t the_plugin =
+const bg_input_plugin_t the_plugin =
   {
     .common =
     {

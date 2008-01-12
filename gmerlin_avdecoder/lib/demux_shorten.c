@@ -69,7 +69,7 @@ static void close_shorten(bgav_demuxer_context_t * ctx)
   {
   }
 
-bgav_demuxer_t bgav_demuxer_shorten =
+const bgav_demuxer_t bgav_demuxer_shorten =
   {
     .probe =       probe_shorten,
     .open =        open_shorten,

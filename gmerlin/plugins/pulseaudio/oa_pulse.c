@@ -77,7 +77,7 @@ static int get_delay_pulse(void * p)
   return ret;
   }
 
-bg_oa_plugin_t the_plugin =
+const bg_oa_plugin_t the_plugin =
   {
     .common =
     {

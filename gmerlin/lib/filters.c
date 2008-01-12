@@ -197,7 +197,7 @@ static void create_audio_parameters(bg_audio_filter_chain_t * ch)
                                         ch->parameters);
   }
 
-bg_parameter_info_t *
+const bg_parameter_info_t *
 bg_audio_filter_chain_get_parameters(bg_audio_filter_chain_t * ch)
   {
   if(!ch->parameters)
@@ -572,7 +572,7 @@ static void create_video_parameters(bg_video_filter_chain_t * ch)
   }
 
 
-bg_parameter_info_t *
+const bg_parameter_info_t *
 bg_video_filter_chain_get_parameters(bg_video_filter_chain_t * ch)
   {
   if(!ch->parameters)

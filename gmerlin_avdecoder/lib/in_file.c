@@ -93,7 +93,7 @@ static void close_stdin(bgav_input_context_t * ctx)
   /* Nothing to do here */
   }
 
-bgav_input_t bgav_input_file =
+const bgav_input_t bgav_input_file =
   {
     .name =      "file",
     .open =      open_file,
@@ -102,7 +102,7 @@ bgav_input_t bgav_input_file =
     .close =     close_file
   };
 
-bgav_input_t bgav_input_stdin =
+const bgav_input_t bgav_input_stdin =
   {
     .name =      "stdin",
     .open =      open_stdin,

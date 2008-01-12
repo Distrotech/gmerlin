@@ -31,16 +31,16 @@
 #define MOVQ_R2M(reg,mem) movq_r2m(reg, mem)
 #endif
 
-static mmx_t rgb_yuv_rgb24_l = { 0x0000000000FFFFFFLL };
-static mmx_t rgb_yuv_rgb24_u = { 0x0000FFFFFF000000LL };
+static const mmx_t rgb_yuv_rgb24_l = { 0x0000000000FFFFFFLL };
+static const mmx_t rgb_yuv_rgb24_u = { 0x0000FFFFFF000000LL };
 
-static mmx_t rgb_yuv_rgb16_upper_mask =   { 0xf800f800f800f800LL };
-static mmx_t rgb_yuv_rgb16_middle_mask =  { 0x07e007e007e007e0LL };
-static mmx_t rgb_yuv_rgb16_lower_mask =   { 0x001f001f001f001fLL };
+static const mmx_t rgb_yuv_rgb16_upper_mask =   { 0xf800f800f800f800LL };
+static const mmx_t rgb_yuv_rgb16_middle_mask =  { 0x07e007e007e007e0LL };
+static const mmx_t rgb_yuv_rgb16_lower_mask =   { 0x001f001f001f001fLL };
 
-static mmx_t rgb_yuv_rgb15_upper_mask =   { 0x7C007C007C007C00LL };
-static mmx_t rgb_yuv_rgb15_middle_mask =  { 0x03e003e003e003e0LL };
-static mmx_t rgb_yuv_rgb15_lower_mask =   { 0x001f001f001f001fLL };
+static const mmx_t rgb_yuv_rgb15_upper_mask =   { 0x7C007C007C007C00LL };
+static const mmx_t rgb_yuv_rgb15_middle_mask =  { 0x03e003e003e003e0LL };
+static const mmx_t rgb_yuv_rgb15_lower_mask =   { 0x001f001f001f001fLL };
 
 
 #define RGB_YUV_LOAD_RGB_24 movq_m2r(*src, mm0);/*            mm0: G2 R2 B1 G1 R1 B0 G0 R0 */\
@@ -150,30 +150,30 @@ static mmx_t rgb_yuv_rgb15_lower_mask =   { 0x001f001f001f001fLL };
 #define G_TO_VJ (int16_t)(-0.41869*32768.0)
 #define B_TO_VJ (int16_t)(-0.08131*32768.0)
 
-static mmx_t rgb_to_y = { w: { R_TO_Y, G_TO_Y, B_TO_Y, 0 } };
-static mmx_t rgb_to_u = { w: { R_TO_U, G_TO_U, B_TO_U, 0 } };
-static mmx_t rgb_to_v = { w: { R_TO_V, G_TO_V, B_TO_V, 0 } };
+static const mmx_t rgb_to_y = { w: { R_TO_Y, G_TO_Y, B_TO_Y, 0 } };
+static const mmx_t rgb_to_u = { w: { R_TO_U, G_TO_U, B_TO_U, 0 } };
+static const mmx_t rgb_to_v = { w: { R_TO_V, G_TO_V, B_TO_V, 0 } };
 
-static mmx_t bgr_to_y = { w: { B_TO_Y, G_TO_Y, R_TO_Y, 0 } };
-static mmx_t bgr_to_u = { w: { B_TO_U, G_TO_U, R_TO_U, 0 } };
-static mmx_t bgr_to_v = { w: { B_TO_V, G_TO_V, R_TO_V, 0 } };
+static const mmx_t bgr_to_y = { w: { B_TO_Y, G_TO_Y, R_TO_Y, 0 } };
+static const mmx_t bgr_to_u = { w: { B_TO_U, G_TO_U, R_TO_U, 0 } };
+static const mmx_t bgr_to_v = { w: { B_TO_V, G_TO_V, R_TO_V, 0 } };
 
-static mmx_t rgb_to_yj = { w: { R_TO_YJ, G_TO_YJ, B_TO_YJ, 0 } };
-static mmx_t rgb_to_uj = { w: { R_TO_UJ, G_TO_UJ, B_TO_UJ, 0 } };
-static mmx_t rgb_to_vj = { w: { R_TO_VJ, G_TO_VJ, B_TO_VJ, 0 } };
+static const mmx_t rgb_to_yj = { w: { R_TO_YJ, G_TO_YJ, B_TO_YJ, 0 } };
+static const mmx_t rgb_to_uj = { w: { R_TO_UJ, G_TO_UJ, B_TO_UJ, 0 } };
+static const mmx_t rgb_to_vj = { w: { R_TO_VJ, G_TO_VJ, B_TO_VJ, 0 } };
 
-static mmx_t bgr_to_yj = { w: { B_TO_YJ, G_TO_YJ, R_TO_YJ, 0 } };
-static mmx_t bgr_to_uj = { w: { B_TO_UJ, G_TO_UJ, R_TO_UJ, 0 } };
-static mmx_t bgr_to_vj = { w: { B_TO_VJ, G_TO_VJ, R_TO_VJ, 0 } };
+static const mmx_t bgr_to_yj = { w: { B_TO_YJ, G_TO_YJ, R_TO_YJ, 0 } };
+static const mmx_t bgr_to_uj = { w: { B_TO_UJ, G_TO_UJ, R_TO_UJ, 0 } };
+static const mmx_t bgr_to_vj = { w: { B_TO_VJ, G_TO_VJ, R_TO_VJ, 0 } };
 
 
-static mmx_t rgb_yuv_y_add = { 0x0010001000100010LL };
+static const mmx_t rgb_yuv_y_add = { 0x0010001000100010LL };
 
-static mmx_t lower_dword = { 0x00000000FFFFFFFFLL};
-static mmx_t upper_dword = { 0xFFFFFFFF00000000LL};
-static mmx_t chroma_mask = { 0x000000FF000000FFLL };
+static const mmx_t lower_dword = { 0x00000000FFFFFFFFLL};
+static const mmx_t upper_dword = { 0xFFFFFFFF00000000LL};
+static const mmx_t chroma_mask = { 0x000000FF000000FFLL };
 
-static mmx_t sign_mask =   { 0x0000008000000080LL };
+static const mmx_t sign_mask =   { 0x0000008000000080LL };
 
 #define RGB_TO_Y pxor_r2r(mm7, mm7);/*           Zero mm7 */\
                  movq_r2r(mm0, mm2);/*           mm2: 00 B1 G1 R1 00 B0 G0 R0 */\

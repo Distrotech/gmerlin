@@ -64,9 +64,9 @@ struct bg_colormatrix_s
   gavl_video_format_t format;
   };
 
-static void matrixmult(float coeffs1[4][5],
-                       float coeffs2[4][5],
-                       float result[4][5])
+static void matrixmult_cn(const float coeffs1[4][5],
+                          float coeffs2[4][5],
+                          float result[4][5])
   {
   int i, j;
 
@@ -84,7 +84,27 @@ static void matrixmult(float coeffs1[4][5],
     }
   }
 
-static float rgba_2_yuva[4][5] =
+static void matrixmult_nc(float coeffs1[4][5],
+                          const float coeffs2[4][5],
+                          float result[4][5])
+  {
+  int i, j;
+
+  for(i = 0; i < 4; i++)
+    {
+    for(j = 0; j < 5; j++)
+      {
+      result[i][j] = 
+        coeffs1[i][0] * coeffs2[0][j] +
+        coeffs1[i][1] * coeffs2[1][j] +
+        coeffs1[i][2] * coeffs2[2][j] +
+        coeffs1[i][3] * coeffs2[3][j];
+      }
+    result[i][4] += coeffs1[i][4];
+    }
+  }
+
+static const float rgba_2_yuva[4][5] =
   {
     /*       ry         gy         by   ay   oy */
     {  0.299000,  0.587000,  0.114000, 0.0, 0.0 },
@@ -97,7 +117,7 @@ static float rgba_2_yuva[4][5] =
   };
 
 
-static float yuva_2_rgba[4][5] =
+static const float yuva_2_rgba[4][5] =
   {
     /* yr         ur         vr   ar   or */
     { 1.0,  0.000000,  1.402000, 0.0, 0.0 },
@@ -113,16 +133,16 @@ static void colormatrix_rgb2yuv(float coeffs_in[4][5],
                                 float coeffs_out[4][5])
   {
   float coeffs_tmp[4][5];
-  matrixmult(rgba_2_yuva, coeffs_in, coeffs_tmp);
-  matrixmult(coeffs_tmp, yuva_2_rgba, coeffs_out);
+  matrixmult_cn(rgba_2_yuva, coeffs_in, coeffs_tmp);
+  matrixmult_nc(coeffs_tmp, yuva_2_rgba, coeffs_out);
   }
 
 static void colormatrix_yuv2rgb(float coeffs_in[4][5],
                                 float coeffs_out[4][5])
   {
   float coeffs_tmp[4][5];
-  matrixmult(yuva_2_rgba,  coeffs_in, coeffs_tmp);
-  matrixmult(coeffs_tmp, rgba_2_yuva, coeffs_out);
+  matrixmult_cn(yuva_2_rgba,  coeffs_in, coeffs_tmp);
+  matrixmult_nc(coeffs_tmp, rgba_2_yuva, coeffs_out);
   }
 
 static void colormatrix_set_4(float coeffs_in[4][5],
@@ -973,7 +993,7 @@ void bg_colormatrix_set_yuv(bg_colormatrix_t * m, float coeffs[3][4])
   init_internal(m);
   }
 
-static gavl_pixelformat_t pixelformats[] =
+static const gavl_pixelformat_t pixelformats[] =
   {
     GAVL_RGB_24,
     GAVL_RGB_48,
@@ -989,7 +1009,7 @@ static gavl_pixelformat_t pixelformats[] =
     GAVL_PIXELFORMAT_NONE,
   };
 
-static gavl_pixelformat_t pixelformats_alpha[] =
+static const gavl_pixelformat_t pixelformats_alpha[] =
   {
     GAVL_RGBA_32,
     GAVL_RGBA_64,

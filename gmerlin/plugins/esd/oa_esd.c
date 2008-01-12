@@ -40,7 +40,7 @@ typedef struct
   int samplerate;
   } esd_t;
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =      "esd_host",
@@ -157,13 +157,13 @@ static void stop_esd(void * p)
   esd_close(e->esd_socket);
   }
 
-static bg_parameter_info_t *
+static const bg_parameter_info_t *
 get_parameters_esd(void * priv)
   {
   return parameters;
   }
 
-bg_oa_plugin_t the_plugin =
+const bg_oa_plugin_t the_plugin =
   {
     .common =
     {

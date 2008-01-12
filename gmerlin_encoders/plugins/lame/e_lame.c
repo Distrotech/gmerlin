@@ -36,7 +36,7 @@
 
 /* Supported samplerates for MPEG-1/2/2.5 */
 
-static int samplerates[] =
+static const int samplerates[] =
   {
     /* MPEG-2.5 */
     8000,
@@ -83,7 +83,7 @@ static int get_samplerate(int in_rate)
 
 /* Find the correct bitrate */
 
-static int mpeg1_bitrates[] =
+static const int mpeg1_bitrates[] =
   {
     32,
     40,
@@ -101,7 +101,7 @@ static int mpeg1_bitrates[] =
     320
   };
 
-static int mpeg2_bitrates[] =
+static const int mpeg2_bitrates[] =
   {
     8,
     16,
@@ -122,7 +122,7 @@ static int mpeg2_bitrates[] =
 static int get_bitrate(int bitrate, int samplerate)
   {
   int i;
-  int * bitrates;
+  int const * bitrates;
   int diff;
   int min_diff = 1000000;
   int min_i = -1;
@@ -201,7 +201,7 @@ static void destroy_lame(void * priv)
 
 
 
-static bg_parameter_info_t audio_parameters[] =
+static const bg_parameter_info_t audio_parameters[] =
   {
     {
       .name =        "lame_general",
@@ -213,11 +213,11 @@ static bg_parameter_info_t audio_parameters[] =
       .long_name =   TRS("Bitrate mode"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "CBR" },
-      .multi_names = (char*[]){ "CBR",
+      .multi_names = (char const *[]){ "CBR",
                               "ABR",
                               "VBR",
                               (char*)0 },
-      .multi_labels = (char*[]){ TRS("Constant"),
+      .multi_labels = (char const *[]){ TRS("Constant"),
                                TRS("Average"),
                                TRS("Variable"),
                                (char*)0 },
@@ -227,11 +227,11 @@ static bg_parameter_info_t audio_parameters[] =
       .long_name =   TRS("Stereo mode"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "Auto" },
-      .multi_names = (char*[]){ "Stereo",
+      .multi_names = (char const *[]){ "Stereo",
                               "Joint stereo",
                               "Auto",
                               (char*)0 },
-      .multi_labels = (char*[]){ TRS("Stereo"),
+      .multi_labels = (char const *[]){ TRS("Stereo"),
                                TRS("Joint stereo"),
                                TRS("Auto"),
                               (char*)0 },
@@ -310,7 +310,7 @@ If your selection is no valid mp3 bitrate, we'll choose the closest value.")
     { /* End of parameters */ }
   };
 
-static bg_parameter_info_t * get_audio_parameters_lame(void * data)
+static const bg_parameter_info_t * get_audio_parameters_lame(void * data)
   {
   return audio_parameters;
   }
@@ -456,7 +456,7 @@ static void set_audio_parameter_lame(void * data, int stream,
 
 /* Global parameters */
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =        "do_id3v1",
@@ -475,15 +475,15 @@ static bg_parameter_info_t parameters[] =
       .long_name =   TRS("ID3V2 Encoding"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "3" },
-      .multi_names = (char*[]){ "0", "1",
+      .multi_names = (char const *[]){ "0", "1",
                                "2", "3", (char*)0 },
-      .multi_labels = (char*[]){ TRS("ISO-8859-1"), TRS("UTF-16 LE"),
+      .multi_labels = (char const *[]){ TRS("ISO-8859-1"), TRS("UTF-16 LE"),
                                TRS("UTF-16 BE"), TRS("UTF-8"), (char*)0 },
     },
     { /* End of parameters */ }
   };
 
-static bg_parameter_info_t * get_parameters_lame(void * data)
+static const bg_parameter_info_t * get_parameters_lame(void * data)
   {
   return parameters;
   }
@@ -701,7 +701,7 @@ static int close_lame(void * data, int do_delete)
   return 1;
   }
 
-bg_encoder_plugin_t the_plugin =
+const bg_encoder_plugin_t the_plugin =
   {
     .common =
     {

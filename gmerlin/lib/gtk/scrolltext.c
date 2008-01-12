@@ -335,8 +335,8 @@ bg_gtk_scrolltext_t * bg_gtk_scrolltext_create(int width, int height)
   }
 
 void bg_gtk_scrolltext_set_text(bg_gtk_scrolltext_t * d, const char * text,
-                                float * foreground_color,
-                                float * background_color)
+                                const float * foreground_color,
+                                const float * background_color)
   {
   d->text = bg_strdup(d->text, text);
 
@@ -346,7 +346,7 @@ void bg_gtk_scrolltext_set_text(bg_gtk_scrolltext_t * d, const char * text,
   }
 
 void bg_gtk_scrolltext_set_colors(bg_gtk_scrolltext_t * d,
-                                  float * fg_color, float * bg_color)
+                                  const float * fg_color, const float * bg_color)
   {
   memcpy(d->foreground_color, fg_color, 3 * sizeof(float));
   memcpy(d->background_color, bg_color, 3 * sizeof(float));

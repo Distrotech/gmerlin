@@ -61,7 +61,7 @@ static void dump_audio_header(audio_header_t * ah)
   bgav_dprintf("  data_packing:      %d\n", ah->data_packing);
   }
 #endif
-static uint8_t avs_sig[10] =
+static const uint8_t avs_sig[10] =
   { 0x77, 0x57, 0x10, 0x00, 0x3e, 0x01, 0xc6, 0x00, 0x08, 0x00 };
 
 typedef struct
@@ -324,7 +324,7 @@ static void close_avs(bgav_demuxer_context_t * ctx)
   free(priv);
   }
 
-bgav_demuxer_t bgav_demuxer_avs =
+const bgav_demuxer_t bgav_demuxer_avs =
   {
     .probe =       probe_avs,
     .open =        open_avs,

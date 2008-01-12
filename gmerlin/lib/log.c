@@ -35,7 +35,7 @@
 
 static int log_mask = BG_LOG_ERROR | BG_LOG_WARNING | BG_LOG_INFO;
 
-static struct
+static const struct
   {
   bg_log_level_t level;
   const char * name;

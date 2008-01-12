@@ -105,7 +105,7 @@ static void attach(void * priv, GtkWidget * table,
   (*row)++;
   }
 
-static gtk_widget_funcs_t funcs =
+static const gtk_widget_funcs_t funcs =
   {
     .get_value = get_value,
     .set_value = set_value,
@@ -175,7 +175,7 @@ static void button_callback(GtkWidget * w, gpointer data)
   
   }
 
-void bg_gtk_create_font(bg_gtk_widget_t * w, bg_parameter_info_t * info,
+void bg_gtk_create_font(bg_gtk_widget_t * w, const bg_parameter_info_t * info,
                         const char * translation_domain)
   {
   font_t * priv = calloc(1, sizeof(*priv));

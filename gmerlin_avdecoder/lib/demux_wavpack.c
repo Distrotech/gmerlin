@@ -235,7 +235,7 @@ static void close_wavpack(bgav_demuxer_context_t * ctx)
 
   }
 
-bgav_demuxer_t bgav_demuxer_wavpack =
+const bgav_demuxer_t bgav_demuxer_wavpack =
   {
     .probe =       probe_wavpack,
     .open =        open_wavpack,

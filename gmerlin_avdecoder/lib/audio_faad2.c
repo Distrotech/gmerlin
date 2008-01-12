@@ -100,7 +100,7 @@ static int get_data(bgav_stream_t * s)
   return 1;
   }
 
-static struct
+static const struct
   {
   int faad_channel;
   gavl_channel_id_t gavl_channel;

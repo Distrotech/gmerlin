@@ -139,15 +139,15 @@ static void * create_speex(FILE * output, long serialno)
   return ret;
   }
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =        "mode",
       .long_name =   TRS("Speex mode"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "auto" },
-      .multi_names =  (char*[]){ "auto", "nb",         "wb",       "uwb",            (char*)0 },
-      .multi_labels = (char*[]){ TRS("Auto"), TRS("Narrowband"), TRS("Wideband"),
+      .multi_names =  (char const *[]){ "auto", "nb",         "wb",       "uwb",            (char*)0 },
+      .multi_labels = (char const *[]){ TRS("Auto"), TRS("Narrowband"), TRS("Wideband"),
                                TRS("Ultra-wideband"), (char*)0 },
       .help_string = TRS("Encoding mode. If you select Auto, the mode will be taken from the samplerate.")
     },
@@ -212,7 +212,7 @@ static bg_parameter_info_t parameters[] =
   };
 
 
-static bg_parameter_info_t * get_parameters_speex()
+static const bg_parameter_info_t * get_parameters_speex()
   {
   return parameters;
   }
@@ -577,7 +577,7 @@ static int close_speex(void * data)
   }
 
 
-bg_ogg_codec_t bg_speex_codec =
+const bg_ogg_codec_t bg_speex_codec =
   {
     .name =      "speex",
     .long_name = TRS("Speex encoder"),

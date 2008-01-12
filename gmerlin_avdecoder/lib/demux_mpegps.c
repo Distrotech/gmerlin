@@ -1127,7 +1127,7 @@ static void close_mpegps(bgav_demuxer_context_t * ctx)
   }
 
 
-bgav_demuxer_t bgav_demuxer_mpegps =
+const bgav_demuxer_t bgav_demuxer_mpegps =
   {
     .probe =          probe_mpegps,
     .open =           open_mpegps,

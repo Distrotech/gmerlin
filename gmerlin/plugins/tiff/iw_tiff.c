@@ -137,14 +137,14 @@ static int write_image_tiff(void *priv, gavl_video_frame_t *frame)
 
 /* Configuration stuff */
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =        "compression",
       .long_name =   TRS("Compression"),
       .type =        BG_PARAMETER_STRINGLIST,
-      .multi_names = (char*[]){ "none", "packbits", "deflate", "jpeg", (char*)0 },
-      .multi_labels =  (char*[]){ TRS("None"), TRS("Packbits"), TRS("Deflate"), TRS("JPEG"),
+      .multi_names = (char const *[]){ "none", "packbits", "deflate", "jpeg", (char*)0 },
+      .multi_labels =  (char const *[]){ TRS("None"), TRS("Packbits"), TRS("Deflate"), TRS("JPEG"),
                                 (char*)0 },
 
       .val_default = { .val_str = "none" },
@@ -168,7 +168,7 @@ static bg_parameter_info_t parameters[] =
     { /* End of parameters */ }
   };
 
-static bg_parameter_info_t * get_parameters_tiff(void * p)
+static const bg_parameter_info_t * get_parameters_tiff(void * p)
   {
   return parameters;
   }
@@ -200,7 +200,7 @@ static void set_parameter_tiff(void * p, const char * name,
   
   }
 
-static char * tiff_extension = ".tif";
+static char const * const tiff_extension = ".tif";
 
 static const char * get_extension_tiff(void * p)
   {
@@ -208,7 +208,7 @@ static const char * get_extension_tiff(void * p)
   }
 
 
-bg_image_writer_plugin_t the_plugin =
+const bg_image_writer_plugin_t the_plugin =
   {
     .common =
     {

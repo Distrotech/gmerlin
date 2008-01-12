@@ -29,7 +29,7 @@
 
 #include "mmx.h"
 
-static mmx_t factor_mask = { 0x000000000000FFFFLL };
+static const mmx_t factor_mask = { 0x000000000000FFFFLL };
 
 #if 0
 static mmx_t mm_tmp;

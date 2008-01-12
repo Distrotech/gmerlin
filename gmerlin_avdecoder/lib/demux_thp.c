@@ -319,7 +319,7 @@ static void close_thp(bgav_demuxer_context_t * ctx)
     free(priv);
   }
 
-bgav_demuxer_t bgav_demuxer_thp =
+const bgav_demuxer_t bgav_demuxer_thp =
   {
     .probe =        probe_thp,
     .open =         open_thp,

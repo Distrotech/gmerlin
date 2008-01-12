@@ -51,12 +51,13 @@ void bg_lqt_create_codec_info(bg_parameter_info_t * info,
   while(codec_info[num_codecs])
     num_codecs++;
 
-  info->multi_names        = calloc(num_codecs + 1, sizeof(char*));
-  info->multi_labels       = calloc(num_codecs + 1, sizeof(char*));
-  info->multi_descriptions = calloc(num_codecs + 1, sizeof(char*));
-  info->multi_parameters   = calloc(num_codecs + 1,
-                                    sizeof(bg_parameter_info_t*));
-
+  info->multi_names_nc        = calloc(num_codecs + 1, sizeof(char*));
+  info->multi_labels_nc       = calloc(num_codecs + 1, sizeof(char*));
+  info->multi_descriptions_nc = calloc(num_codecs + 1, sizeof(char*));
+  info->multi_parameters_nc   = calloc(num_codecs + 1,
+                                       sizeof(bg_parameter_info_t*));
+  bg_parameter_info_set_const_ptrs(info);
+  
   for(i = 0; i < num_codecs; i++)
     {
     lqt_parameter_info = (encode) ? codec_info[i]->encoding_parameters :
@@ -68,48 +69,50 @@ void bg_lqt_create_codec_info(bg_parameter_info_t * info,
       info->val_default.val_str = bg_strdup((char*)0,
                                             codec_info[i]->name);
     
-    info->multi_names[i] = bg_strdup((char*)0,
+    info->multi_names_nc[i] = bg_strdup((char*)0,
                                      codec_info[i]->name);
-    info->multi_labels[i] = bg_strdup((char*)0,
+    info->multi_labels_nc[i] = bg_strdup((char*)0,
                                          codec_info[i]->long_name);
 
     if(encode)
       {
-      info->multi_descriptions[i] = bg_sprintf(TR("%s Compatible with"),
+      info->multi_descriptions_nc[i] = bg_sprintf(TR("%s Compatible with"),
                                                codec_info[i]->description);
       
       if(codec_info[i]->compatibility_flags & (LQT_FILE_QT | LQT_FILE_QT_OLD))
-        info->multi_descriptions[i] = bg_strcat(info->multi_descriptions[i], " QT");
+        info->multi_descriptions_nc[i] = bg_strcat(info->multi_descriptions_nc[i], " QT");
       if(codec_info[i]->compatibility_flags & ( LQT_FILE_MP4))
-        info->multi_descriptions[i] = bg_strcat(info->multi_descriptions[i], " MP4");
+        info->multi_descriptions_nc[i] = bg_strcat(info->multi_descriptions_nc[i], " MP4");
       if(codec_info[i]->compatibility_flags & ( LQT_FILE_M4A))
-        info->multi_descriptions[i] = bg_strcat(info->multi_descriptions[i], " M4A");
+        info->multi_descriptions_nc[i] = bg_strcat(info->multi_descriptions_nc[i], " M4A");
       if(codec_info[i]->compatibility_flags & ( LQT_FILE_AVI))
-        info->multi_descriptions[i] = bg_strcat(info->multi_descriptions[i], " AVI");
+        info->multi_descriptions_nc[i] = bg_strcat(info->multi_descriptions_nc[i], " AVI");
       if(codec_info[i]->compatibility_flags & ( LQT_FILE_3GP))
-        info->multi_descriptions[i] = bg_strcat(info->multi_descriptions[i], " 3GP");
+        info->multi_descriptions_nc[i] = bg_strcat(info->multi_descriptions_nc[i], " 3GP");
       }
-
-
+    else
+      info->multi_descriptions_nc[i] = bg_sprintf(TR("%s"),
+                                                  codec_info[i]->description);
+    
     if(num_parameters)
-      info->multi_parameters[i] = calloc(num_parameters + 1,
-                                         sizeof(bg_parameter_info_t));
+      info->multi_parameters_nc[i] = calloc(num_parameters + 1,
+                                            sizeof(bg_parameter_info_t));
     
     for(j = 0; j < num_parameters; j++)
       {
       //      if(encode)
-        info->multi_parameters[i][j].name = bg_strdup(info->multi_parameters[i][j].name,
+        info->multi_parameters_nc[i][j].name = bg_strdup(info->multi_parameters_nc[i][j].name,
                                                       lqt_parameter_info[j].name);
         //      else
         //        info->multi_parameters[i][j].name =
         //          bg_sprintf("%s.%s", info->multi_names[i], lqt_parameter_info[j].name);
 
-      info->multi_parameters[i][j].long_name = 
+      info->multi_parameters_nc[i][j].long_name = 
         bg_strdup((char*)0, lqt_parameter_info[j].real_name);
 
       if(lqt_parameter_info[j].help_string)
         {
-        info->multi_parameters[i][j].help_string = 
+        info->multi_parameters_nc[i][j].help_string = 
           bg_strdup((char*)0, lqt_parameter_info[j].help_string);
         
         }
@@ -123,69 +126,70 @@ void bg_lqt_create_codec_info(bg_parameter_info_t * info,
             if((lqt_parameter_info[j].val_min.val_int == 0) &&
                (lqt_parameter_info[j].val_max.val_int == 1))
               {
-              info->multi_parameters[i][j].type = BG_PARAMETER_CHECKBUTTON;
+              info->multi_parameters_nc[i][j].type = BG_PARAMETER_CHECKBUTTON;
               }
             else
               {
-              info->multi_parameters[i][j].type = BG_PARAMETER_SLIDER_INT;
-              info->multi_parameters[i][j].val_min.val_i =
+              info->multi_parameters_nc[i][j].type = BG_PARAMETER_SLIDER_INT;
+              info->multi_parameters_nc[i][j].val_min.val_i =
                 lqt_parameter_info[j].val_min.val_int;
-              info->multi_parameters[i][j].val_max.val_i =
+              info->multi_parameters_nc[i][j].val_max.val_i =
                 lqt_parameter_info[j].val_max.val_int;
               }
             }
           else
             {
-            info->multi_parameters[i][j].type = BG_PARAMETER_INT;
+            info->multi_parameters_nc[i][j].type = BG_PARAMETER_INT;
             }
-          info->multi_parameters[i][j].val_default.val_i =
+          info->multi_parameters_nc[i][j].val_default.val_i =
             lqt_parameter_info[j].val_default.val_int;
           break;
         case LQT_PARAMETER_FLOAT:
           if(lqt_parameter_info[j].val_min.val_float <
              lqt_parameter_info[j].val_max.val_float)
             {
-            info->multi_parameters[i][j].type = BG_PARAMETER_SLIDER_FLOAT;
-            info->multi_parameters[i][j].val_min.val_f =
+            info->multi_parameters_nc[i][j].type = BG_PARAMETER_SLIDER_FLOAT;
+            info->multi_parameters_nc[i][j].val_min.val_f =
               lqt_parameter_info[j].val_min.val_float;
-            info->multi_parameters[i][j].val_max.val_f =
+            info->multi_parameters_nc[i][j].val_max.val_f =
               lqt_parameter_info[j].val_max.val_float;
             }
           else
             {
-            info->multi_parameters[i][j].type = BG_PARAMETER_FLOAT;
+            info->multi_parameters_nc[i][j].type = BG_PARAMETER_FLOAT;
             }
-          info->multi_parameters[i][j].num_digits =
+          info->multi_parameters_nc[i][j].num_digits =
             lqt_parameter_info[j].num_digits;
 
-          info->multi_parameters[i][j].val_default.val_f =
+          info->multi_parameters_nc[i][j].val_default.val_f =
             lqt_parameter_info[j].val_default.val_float;
           break;
         case LQT_PARAMETER_STRING:
-          info->multi_parameters[i][j].type = BG_PARAMETER_STRING;
-          info->multi_parameters[i][j].val_default.val_str =
+          info->multi_parameters_nc[i][j].type = BG_PARAMETER_STRING;
+          info->multi_parameters_nc[i][j].val_default.val_str =
             bg_strdup((char*)0,
                       lqt_parameter_info[j].val_default.val_string);
           
           break;
         case LQT_PARAMETER_STRINGLIST:
-          info->multi_parameters[i][j].type = BG_PARAMETER_STRINGLIST;
-          info->multi_parameters[i][j].val_default.val_str =
+          info->multi_parameters_nc[i][j].type = BG_PARAMETER_STRINGLIST;
+          info->multi_parameters_nc[i][j].val_default.val_str =
             bg_strdup((char*)0,
                       lqt_parameter_info[j].val_default.val_string);
 
-          info->multi_parameters[i][j].multi_names =
+          info->multi_parameters_nc[i][j].multi_names_nc =
             calloc(lqt_parameter_info[j].num_stringlist_options+1,
                    sizeof(char*));
           
           for(k = 0; k < lqt_parameter_info[j].num_stringlist_options; k++)
             {
-            info->multi_parameters[i][j].multi_names[k] =
+            info->multi_parameters_nc[i][j].multi_names_nc[k] =
               bg_strdup((char*)0, lqt_parameter_info[j].stringlist_options[k]);
             }
+          bg_parameter_info_set_const_ptrs(&info->multi_parameters_nc[i][j]);
           break;
         case LQT_PARAMETER_SECTION:
-          info->multi_parameters[i][j].type = BG_PARAMETER_SECTION;
+          info->multi_parameters_nc[i][j].type = BG_PARAMETER_SECTION;
           break;
         }
       

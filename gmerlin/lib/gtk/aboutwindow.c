@@ -86,8 +86,8 @@ static gboolean delete_callback(GtkWidget * w, GdkEventAny * event,
   return TRUE;
   }
 
-static float scroll_fg[3] = { 0.0, 1.0, 1.0 };
-static float scroll_bg[3] = { 0.0, 0.0, 0.0 };
+static const float scroll_fg[3] = { 0.0, 1.0, 1.0 };
+static const float scroll_bg[3] = { 0.0, 0.0, 0.0 };
 
 bg_gtk_about_window_t *
 bg_gtk_about_window_create(const char * name, const char * version, const char * icon,

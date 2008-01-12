@@ -412,15 +412,15 @@ static void destroy_mpeg(void * data)
 
 */
 
-static bg_parameter_info_t common_parameters[] =
+static const bg_parameter_info_t common_parameters[] =
   {
     {
       .name =      "format",
       .long_name = TRS("Format"),
       .type =      BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "mpeg1" },
-      .multi_names =    (char*[]) { "mpeg1",            "vcd",          "mpeg2",            "svcd",         "dvd_nav",   "dvd", (char*)0 },
-      .multi_labels =   (char*[]) { TRS("MPEG-1 (generic)"), TRS("MPEG-1 (VCD)"),
+      .multi_names =    (char const *[]) { "mpeg1",            "vcd",          "mpeg2",            "svcd",         "dvd_nav",   "dvd", (char*)0 },
+      .multi_labels =   (char const *[]) { TRS("MPEG-1 (generic)"), TRS("MPEG-1 (VCD)"),
                                   TRS("MPEG-2 (generic)"), TRS("MPEG-2 (SVCD)"),
                                   TRS("DVD (NAV)"), TRS("DVD"), (char*)0 },
       .help_string = TRS("Output format. Note that for some output formats (e.g. VCD), you MUST use proper settings for the audio and video streams also, since this isn't done automatically")
@@ -455,7 +455,7 @@ want e.g. create mp3 or AC3 audio with some other encoder"),
     { /* End of parameters */ }
   };
 
-static bg_parameter_info_t * get_parameters_mpeg(void * data)
+static const bg_parameter_info_t * get_parameters_mpeg(void * data)
   {
   return common_parameters;
   }
@@ -488,12 +488,12 @@ static void set_parameter_mpeg(void * data, const char * name,
   }
 
 
-static bg_parameter_info_t * get_audio_parameters_mpeg(void * data)
+static const bg_parameter_info_t * get_audio_parameters_mpeg(void * data)
   {
   return bg_mpa_get_parameters();
   }
 
-static bg_parameter_info_t * get_video_parameters_mpeg(void * data)
+static const bg_parameter_info_t * get_video_parameters_mpeg(void * data)
   {
   return bg_mpv_get_parameters();
   }
@@ -522,7 +522,7 @@ static void set_video_parameter_mpeg(void * data, int stream,
   }
 
 
-bg_encoder_plugin_t the_plugin =
+const bg_encoder_plugin_t the_plugin =
   {
     .common =
     {

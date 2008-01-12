@@ -31,6 +31,6 @@ void bg_lcdproc_destroy(bg_lcdproc_t*);
  *  starts and stops the thread
  */
 
-bg_parameter_info_t * bg_lcdproc_get_parameters(bg_lcdproc_t *);
+const bg_parameter_info_t * bg_lcdproc_get_parameters(bg_lcdproc_t *);
 void bg_lcdproc_set_parameter(void * data, const char * name,
                               const bg_parameter_value_t * val);

@@ -174,7 +174,7 @@ static bg_cmdline_arg_t global_options[] =
     { /* End of options */ }
   };
 
-bg_cmdline_app_data_t app_data =
+const bg_cmdline_app_data_t app_data =
   {
     .package =  PACKAGE,
     .version =  VERSION,
@@ -197,9 +197,10 @@ int main(int argc, char ** argv)
   gavl_time_t delay_time = GAVL_TIME_SCALE / 50;
   bg_remote_client_t * remote;
   char * env;
+  bg_cmdline_init(&app_data);
   
   if(argc < 2)
-    bg_cmdline_print_help(&app_data, argv[0], 0);
+    bg_cmdline_print_help(argv[0], 0);
   
   port = TRANSCODER_REMOTE_PORT;
   env = getenv(TRANSCODER_REMOTE_ENV);
@@ -207,7 +208,7 @@ int main(int argc, char ** argv)
     port = atoi(env);
 
   
-  bg_cmdline_parse(global_options, &argc, &argv, NULL, &app_data);
+  bg_cmdline_parse(global_options, &argc, &argv, NULL);
 
   remote = bg_remote_client_create(TRANSCODER_REMOTE_ID, 0);
 
@@ -234,7 +235,7 @@ int main(int argc, char ** argv)
     else
       return -1;
     }
-  bg_cmdline_parse(commands, &argc, &argv, remote, &app_data);
+  bg_cmdline_parse(commands, &argc, &argv, remote);
 
   bg_remote_client_destroy(remote);
   return 0;

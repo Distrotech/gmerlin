@@ -48,7 +48,7 @@
 #define AUDIO_OFFSET 0
 #define VIDEO_OFFSET 32
 
-static uint8_t sync_header[12] =
+static const uint8_t sync_header[12] =
 {0x00,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0x00};
 
 static int probe_psxstr(bgav_input_context_t * input)
@@ -251,7 +251,7 @@ static void close_psxstr(bgav_demuxer_context_t * ctx)
   {
   }
 
-bgav_demuxer_t bgav_demuxer_psxstr =
+const bgav_demuxer_t bgav_demuxer_psxstr =
   {
     .probe =       probe_psxstr,
     .open =        open_psxstr,

@@ -25,11 +25,11 @@
 
 #define LOG_DOMAIN "redirector"
 
-extern bgav_redirector_t bgav_redirector_asx;
-extern bgav_redirector_t bgav_redirector_m3u;
-extern bgav_redirector_t bgav_redirector_pls;
-extern bgav_redirector_t bgav_redirector_ref;
-extern bgav_redirector_t bgav_redirector_smil;
+extern const bgav_redirector_t bgav_redirector_asx;
+extern const bgav_redirector_t bgav_redirector_m3u;
+extern const bgav_redirector_t bgav_redirector_pls;
+extern const bgav_redirector_t bgav_redirector_ref;
+extern const bgav_redirector_t bgav_redirector_smil;
 
 void bgav_redirectors_dump()
   {
@@ -43,9 +43,9 @@ void bgav_redirectors_dump()
   bgav_dprintf( "</ul>\n");
   }
 
-static struct
+static const struct
   {
-  bgav_redirector_t * r;
+  const bgav_redirector_t * r;
   char * format_name;
   }
 redirectors[] =
@@ -57,7 +57,7 @@ redirectors[] =
     { &bgav_redirector_m3u, "m3u" },
   };
 
-static int num_redirectors = sizeof(redirectors)/sizeof(redirectors[0]);
+static const int num_redirectors = sizeof(redirectors)/sizeof(redirectors[0]);
 
 bgav_redirector_t * bgav_redirector_probe(bgav_input_context_t * input)
   {

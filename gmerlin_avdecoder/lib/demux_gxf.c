@@ -191,7 +191,7 @@ static int peek_packet_header(bgav_input_context_t * input,
   return 1;
   }
 
-static struct
+static const struct
   {
   int timescale;
   int frame_duration;
@@ -640,7 +640,7 @@ static void close_gxf(bgav_demuxer_context_t * ctx)
   free(priv);
   }
 
-bgav_demuxer_t bgav_demuxer_gxf =
+const bgav_demuxer_t bgav_demuxer_gxf =
   {
     .probe =       probe_gxf,
     .open =        open_gxf,

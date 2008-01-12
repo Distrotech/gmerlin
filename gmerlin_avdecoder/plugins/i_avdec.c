@@ -84,7 +84,7 @@ static int open_avdec(void * priv, const char * location)
   }
 
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =       "audio_options",
@@ -134,7 +134,7 @@ static bg_parameter_info_t parameters[] =
       .long_name =   TRS("Bandwidth"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str =  "524300" },
-      .multi_names = (char*[]){ "14400",
+      .multi_names = (char const *[]){ "14400",
                               "19200",
                               "28800",
                               "33600",
@@ -147,7 +147,7 @@ static bg_parameter_info_t parameters[] =
                               "1500000",
                               "10500000",
                               NULL },
-      .multi_labels = (char*[]){ TRS("14.4 Kbps (Modem)"),
+      .multi_labels = (char const *[]){ TRS("14.4 Kbps (Modem)"),
                                TRS("19.2 Kbps (Modem)"),
                                TRS("28.8 Kbps (Modem)"),
                                TRS("33.6 Kbps (Modem)"),
@@ -236,8 +236,8 @@ static bg_parameter_info_t parameters[] =
       .long_name =   TRS("Seek external subtitles"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default =  { .val_str = "never" },
-      .multi_names =  (char*[]){ "never", "video", "always", (char*)0 },
-      .multi_labels = (char*[]){ TRS("Never"),
+      .multi_names =  (char const *[]){ "never", "video", "always", (char*)0 },
+      .multi_labels = (char const *[]){ TRS("Never"),
                                TRS("For video files only"),
                                TRS("Always"),
                                (char*)0 },
@@ -263,14 +263,14 @@ supported encodings."),
     { /* End of parameters */ }
   };
 
-static bg_parameter_info_t * get_parameters_avdec(void * priv)
+static const bg_parameter_info_t * get_parameters_avdec(void * priv)
   {
   return parameters;
   }
 
 
 
-bg_input_plugin_t the_plugin =
+const bg_input_plugin_t the_plugin =
   {
     .common =
     {

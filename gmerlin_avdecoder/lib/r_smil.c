@@ -28,10 +28,10 @@
 
 #define LOG_DOMAIN "r_smil"
 
-static struct
+static const struct
   {
-  char * code;
-  char * language;
+  const char * code;
+  const char * language;
   } languages[] =
   {
     { "af",    "Afrikaans" },
@@ -410,7 +410,7 @@ static int parse_smil(bgav_redirector_context_t * r)
   return result;
   }
 
-bgav_redirector_t bgav_redirector_smil = 
+const bgav_redirector_t bgav_redirector_smil = 
   {
     .name =  "smil",
     .probe = probe_smil,

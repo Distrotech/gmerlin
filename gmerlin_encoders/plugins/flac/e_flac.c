@@ -69,7 +69,7 @@ static void * create_flac()
 
 
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =        "use_vorbis_comment",
@@ -98,7 +98,7 @@ static bg_parameter_info_t parameters[] =
     { /* End of parameters */ }
   };
 
-static bg_parameter_info_t * get_parameters_flac(void * data)
+static const bg_parameter_info_t * get_parameters_flac(void * data)
   {
   return parameters;
   }
@@ -471,7 +471,7 @@ static void set_audio_parameter_flac(void * data, int stream,
   bg_flac_set_parameter(&(flac->com), name, val);
   }
 
-bg_encoder_plugin_t the_plugin =
+const bg_encoder_plugin_t the_plugin =
   {
     .common =
     {

@@ -517,7 +517,7 @@ static void set_hue_xv(driver_data_t* d,float val)
   }
 
 
-video_driver_t xv_driver =
+const video_driver_t xv_driver =
   {
     .can_scale          = 1,
     .init               = init_xv,

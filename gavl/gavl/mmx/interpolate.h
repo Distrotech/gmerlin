@@ -20,13 +20,13 @@
  * *****************************************************************/
 
 #ifdef INTERPOLATE_USE_16 /* Only used in functions, which are a bit too slow anyway */
-static mmx_t interpolate_rgb16_upper_mask =   { 0x000000000000f800LL };
-static mmx_t interpolate_rgb16_middle_mask =  { 0x00000000000007e0LL };
-static mmx_t interpolate_rgb16_lower_mask =   { 0x000000000000001fLL };
+static const mmx_t interpolate_rgb16_upper_mask =   { 0x000000000000f800LL };
+static const mmx_t interpolate_rgb16_middle_mask =  { 0x00000000000007e0LL };
+static const mmx_t interpolate_rgb16_lower_mask =   { 0x000000000000001fLL };
 
-static mmx_t interpolate_rgb15_upper_mask =   { 0x0000000000007C00LL };
-static mmx_t interpolate_rgb15_middle_mask =  { 0x00000000000003e0LL };
-static mmx_t interpolate_rgb15_lower_mask =   { 0x000000000000001fLL };
+static const mmx_t interpolate_rgb15_upper_mask =   { 0x0000000000007C00LL };
+static const mmx_t interpolate_rgb15_middle_mask =  { 0x00000000000003e0LL };
+static const mmx_t interpolate_rgb15_lower_mask =   { 0x000000000000001fLL };
 #endif
 
 #define INTERPOLATE_INIT_TEMP \

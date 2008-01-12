@@ -59,7 +59,7 @@ static void destroy_volume(void * priv)
   free(vp);
   }
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .gettext_domain = PACKAGE,
@@ -76,7 +76,7 @@ static bg_parameter_info_t parameters[] =
     { /* End of parameters */ },
   };
 
-static bg_parameter_info_t * get_parameters_volume(void * priv)
+static const bg_parameter_info_t * get_parameters_volume(void * priv)
   {
   return parameters;
   }
@@ -143,7 +143,7 @@ static int read_audio_volume(void * priv, gavl_audio_frame_t * frame, int stream
   return frame->valid_samples;
   }
 
-bg_fa_plugin_t the_plugin = 
+const bg_fa_plugin_t the_plugin = 
   {
     .common = //!< Infos and functions common to all plugin types
     {

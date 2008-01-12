@@ -60,22 +60,22 @@ static void read_frame_pulse(void * p, gavl_audio_frame_t * f,
   priv->sample_count += num_samples;
   }
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =        "channel_mode",
       .long_name =   TRS("Channel Mode"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "stereo" },
-      .multi_names =   (char*[]){ "mono", "stereo", (char*)0 },
-      .multi_labels =  (char*[]){ TRS("Mono"), TRS("Stereo"), (char*)0 },
+      .multi_names =   (char const *[]){ "mono", "stereo", (char*)0 },
+      .multi_labels =  (char const *[]){ TRS("Mono"), TRS("Stereo"), (char*)0 },
     },
     {
       .name =        "bits",
       .long_name =   TRS("Bits"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "16" },
-      .multi_names =     (char*[]){ "8", "16", (char*)0 },
+      .multi_names =     (char const *[]){ "8", "16", (char*)0 },
     },
     {
       .name =        "samplerate",
@@ -100,7 +100,7 @@ static bg_parameter_info_t parameters[] =
     { },
   };
 
-static bg_parameter_info_t * get_parameters_pulse(void * data)
+static const bg_parameter_info_t * get_parameters_pulse(void * data)
   {
   return parameters;
   }
@@ -143,7 +143,7 @@ set_parameter_pulse(void * p, const char * name,
   }
 
 
-bg_ra_plugin_t the_plugin =
+const bg_ra_plugin_t the_plugin =
   {
     .common =
     {

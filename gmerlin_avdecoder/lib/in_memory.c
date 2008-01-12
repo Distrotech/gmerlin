@@ -61,7 +61,7 @@ static void    close_mem(bgav_input_context_t * ctx)
   free(priv);
   }
 
-static bgav_input_t input_mem =
+static const bgav_input_t input_mem =
   {
     .open =      NULL, /* Not needed */
     .read =      read_mem,
@@ -123,7 +123,7 @@ static int read_buffer(bgav_input_context_t* ctx,
   
   }
 
-static bgav_input_t input_buffer =
+static const bgav_input_t input_buffer =
   {
     .open =      NULL, /* Not needed */
     .read =      read_buffer,

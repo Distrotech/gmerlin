@@ -44,7 +44,7 @@
 
 #define SAMPLES_PER_FRAME 1024
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =        "device",
@@ -57,15 +57,15 @@ static bg_parameter_info_t parameters[] =
       .long_name =   TRS("Channel Mode"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "Stereo" },
-      .multi_names =     (char*[]){ "Mono", "Stereo", (char*)0 },
-      .multi_labels =     (char*[]){ TRS("Mono"), TRS("Stereo"), (char*)0 },
+      .multi_names =     (char const *[]){ "Mono", "Stereo", (char*)0 },
+      .multi_labels =     (char const *[]){ TRS("Mono"), TRS("Stereo"), (char*)0 },
     },
     {
       .name =        "bits",
       .long_name =   TRS("Bits"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "16" },
-      .multi_names =     (char*[]){ "8", "16", (char*)0 },
+      .multi_names =     (char const *[]){ "8", "16", (char*)0 },
     },
     {
       .name =        "samplerate",
@@ -97,7 +97,7 @@ typedef struct
   int64_t samples_read;
   } oss_t;
 
-static bg_parameter_info_t *
+static const bg_parameter_info_t *
 get_parameters_oss(void * priv)
   {
   return parameters;
@@ -271,7 +271,7 @@ static void destroy_oss(void * p)
   free(priv);
   }
 
-bg_ra_plugin_t the_plugin =
+const bg_ra_plugin_t the_plugin =
   {
     .common =
     {

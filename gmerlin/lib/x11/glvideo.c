@@ -449,7 +449,7 @@ static void cleanup_gl(driver_data_t * d)
   free(priv);
   }
 
-video_driver_t gl_driver =
+const video_driver_t gl_driver =
   {
     .can_scale          = 1,
     .init               = init_gl,

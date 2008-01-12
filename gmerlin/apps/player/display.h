@@ -39,7 +39,7 @@ typedef struct display_skin_s
 
 display_t * display_create(gmerlin_t * gmerlin);
 
-bg_parameter_info_t * display_get_parameters(display_t * display);
+const bg_parameter_info_t * display_get_parameters(display_t * display);
 
 void display_set_parameter(void * data, const char * name,
                            const bg_parameter_value_t * v);

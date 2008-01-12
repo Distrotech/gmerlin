@@ -24,7 +24,7 @@ typedef struct bg_osd_s bg_osd_t;
 bg_osd_t * bg_osd_create();
 void bg_osd_destroy(bg_osd_t*); 
 
-bg_parameter_info_t * bg_osd_get_parameters(bg_osd_t*);
+const bg_parameter_info_t * bg_osd_get_parameters(bg_osd_t*);
 void bg_osd_set_parameter(void * data, const char * name,
                           const bg_parameter_value_t * val);
 

@@ -265,7 +265,7 @@ static void close_vqa(bgav_demuxer_context_t * ctx)
   free(priv);
   }
 
-bgav_demuxer_t bgav_demuxer_vqa =
+const bgav_demuxer_t bgav_demuxer_vqa =
   {
     .probe =       probe_vqa,
     .open =        open_vqa,

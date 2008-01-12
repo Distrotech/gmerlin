@@ -1445,35 +1445,35 @@ GtkWidget * control_widget_get_widget(control_widget_t * w)
   return w->w;
   }
 
-static bg_parameter_info_t playback_lock_param =
+static const bg_parameter_info_t playback_lock_param =
   {
     .name = "playback_locked",
     .type = BG_PARAMETER_CHECKBUTTON,
     .val_default = { .val_i = 1 }
   };
 
-static bg_parameter_info_t capture_lock_param =
+static const bg_parameter_info_t capture_lock_param =
   {
     .name = "capture_locked",
     .type = BG_PARAMETER_CHECKBUTTON,
     .val_default = { .val_i = 1 }
   };
 
-static bg_parameter_info_t bass_lock_param =
+static const bg_parameter_info_t bass_lock_param =
   {
     .name = "bass_locked",
     .type = BG_PARAMETER_CHECKBUTTON,
     .val_default = { .val_i = 1 }
   };
 
-static bg_parameter_info_t treble_lock_param =
+static const bg_parameter_info_t treble_lock_param =
   {
     .name = "treble_locked",
     .type = BG_PARAMETER_CHECKBUTTON,
     .val_default = { .val_i = 1 }
   };
 
-static bg_parameter_info_t upper_params[] =
+static const bg_parameter_info_t upper_params[] =
   {
     {
       .name = "hidden",

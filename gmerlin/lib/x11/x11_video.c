@@ -23,7 +23,7 @@
 #include <x11/x11.h>
 #include <x11/x11_window_private.h>
 
-static video_driver_t * drivers[] =
+static video_driver_t const * const drivers[] =
   {
     &ximage_driver,
 #ifdef HAVE_LIBXV

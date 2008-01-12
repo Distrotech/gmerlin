@@ -408,7 +408,7 @@ static void close_ftp(bgav_input_context_t * ctx)
   free(p);
   }
 
-bgav_input_t bgav_input_ftp =
+const bgav_input_t bgav_input_ftp =
   {
     .name =          "ftp",
     .open =          open_ftp,

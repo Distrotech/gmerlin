@@ -117,7 +117,7 @@ void bg_player_subtitle_cleanup(bg_player_t * player)
 
 /* Configuration stuff */
 
-bg_parameter_info_t * bg_player_get_subtitle_parameters(bg_player_t * p)
+const bg_parameter_info_t * bg_player_get_subtitle_parameters(bg_player_t * p)
   {
   return bg_text_renderer_get_parameters();
   }

@@ -420,7 +420,7 @@ static void close_ircam(bgav_demuxer_context_t * ctx)
   return;
   }
 
-bgav_demuxer_t bgav_demuxer_ircam =
+const bgav_demuxer_t bgav_demuxer_ircam =
   {
     .probe =       probe_ircam,
     .open =        open_ircam,

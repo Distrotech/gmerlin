@@ -330,7 +330,7 @@ static int select_track_tiertex(bgav_demuxer_context_t * ctx, int t)
   return 1;
   }
 
-bgav_demuxer_t bgav_demuxer_tiertex =
+const bgav_demuxer_t bgav_demuxer_tiertex =
   {
     .probe =        probe_tiertex,
     .open =         open_tiertex,

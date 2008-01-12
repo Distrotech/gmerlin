@@ -46,18 +46,18 @@
 #define MULTICHANNEL_DEVICES  1
 #define MULTICHANNEL_CREATIVE 2
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =        "multichannel_mode",
       .long_name =   TRS("Multichannel Mode"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "none" },
-      .multi_names =    (char*[]){  "none",
+      .multi_names =    (char const *[]){  "none",
                               "multidev",
                               "creative",
                               (char*)0 },
-      .multi_labels =    (char*[]){  TRS("None (Downmix)"),
+      .multi_labels =    (char const *[]){  TRS("None (Downmix)"),
                               TRS("Multiple devices"),
                               TRS("Creative Multichannel"),
                               (char*)0 },
@@ -486,7 +486,7 @@ static void destroy_oss(void * p)
   free(priv);
   }
 
-static bg_parameter_info_t *
+static const bg_parameter_info_t *
 get_parameters_oss(void * priv)
   {
   return parameters;
@@ -554,7 +554,7 @@ set_parameter_oss(void * p, const char * name,
     }
   }
 
-bg_oa_plugin_t the_plugin =
+const bg_oa_plugin_t the_plugin =
   {
     .common =
     {

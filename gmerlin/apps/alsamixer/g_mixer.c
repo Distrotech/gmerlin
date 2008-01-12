@@ -34,7 +34,7 @@ struct mixer_window_s
   int x, y, width, height;
   };
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =      "x",

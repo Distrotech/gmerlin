@@ -244,14 +244,14 @@ static void destroy_mikmod(void * data)
 
 /* Configuration */
 
-static bg_parameter_info_t parameters[] = 
+static const bg_parameter_info_t parameters[] = 
   {
     {
       .name =        "output",
       .long_name =   TRS("Output format"),
       .type =        BG_PARAMETER_STRINGLIST,
-      .multi_names = (char*[]){ "mono8", "stereo8", "mono16", "stereo16", (char*)0 },
-      .multi_labels =  (char*[]){ TRS("Mono 8bit"), TRS("Stereo 8bit"), TRS("Mono 16bit"), TRS("Stereo 16bit"), (char*)0 },
+      .multi_names = (char const *[]){ "mono8", "stereo8", "mono16", "stereo16", (char*)0 },
+      .multi_labels =  (char const *[]){ TRS("Mono 8bit"), TRS("Stereo 8bit"), TRS("Mono 16bit"), TRS("Stereo 16bit"), (char*)0 },
       
       .val_default = { .val_str = "stereo16" },
     },
@@ -291,7 +291,7 @@ static bg_parameter_info_t parameters[] =
     { /* End of parameters */ }
   };
 
-static bg_parameter_info_t * get_parameters_mikmod(void * data)
+static const bg_parameter_info_t * get_parameters_mikmod(void * data)
   {
   return parameters;
   }
@@ -326,7 +326,7 @@ static void set_parameter_mikmod(void * data, const char * name,
     mikmod->use_surround = val->val_i;
   }
 
-bg_input_plugin_t the_plugin =
+const bg_input_plugin_t the_plugin =
   {
     .common =
     {

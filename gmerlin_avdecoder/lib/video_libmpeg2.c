@@ -77,7 +77,6 @@ typedef struct
   
   } mpeg2_priv_t;
 
-int dump_packet = 1;
 
 static int get_data(bgav_stream_t*s)
   {

@@ -194,7 +194,7 @@ static void close_a52(bgav_demuxer_context_t * ctx)
   free(priv);
   }
 
-bgav_demuxer_t bgav_demuxer_a52 =
+const bgav_demuxer_t bgav_demuxer_a52 =
   {
     .probe =       probe_a52,
     .open =        open_a52,

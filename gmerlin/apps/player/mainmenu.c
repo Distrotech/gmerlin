@@ -304,7 +304,7 @@ static void set_parameter(void * data, const char * name,
 
 static void plugin_menu_configure(plugin_menu_t * m)
   {
-  bg_parameter_info_t * parameters;
+  const bg_parameter_info_t * parameters;
   bg_dialog_t * dialog;
 
   if(m->plugin_handle)

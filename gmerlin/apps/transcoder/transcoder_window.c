@@ -161,7 +161,7 @@ struct transcoder_window_s
 
 static int start_transcode(transcoder_window_t * win);
 
-static bg_parameter_info_t transcoder_window_parameters[] =
+static const bg_parameter_info_t transcoder_window_parameters[] =
   {
     {
       .name =        "display",

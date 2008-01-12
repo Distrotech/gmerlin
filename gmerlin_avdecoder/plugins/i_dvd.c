@@ -64,7 +64,7 @@ static int check_device_dvd(const char * device, char ** name)
   return bgav_check_device_dvd(device, name);
   }
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =       "dvd_chapters_as_tracks",
@@ -78,12 +78,12 @@ static bg_parameter_info_t parameters[] =
     { /* End of parameters */ }
   };
 
-static bg_parameter_info_t * get_parameters_dvd(void * priv)
+static const bg_parameter_info_t * get_parameters_dvd(void * priv)
   {
   return parameters;
   }
 
-bg_input_plugin_t the_plugin =
+const bg_input_plugin_t the_plugin =
   {
     .common =
     {

@@ -98,7 +98,7 @@ static void destroy_vcdimager(void * priv)
 
 
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name = "vcdimager",
@@ -110,8 +110,8 @@ static bg_parameter_info_t parameters[] =
       .long_name = TRS("Format"),
       .type = BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "vcd2" },
-      .multi_names = (char*[]){ "vcd11", "vcd2", "svcd", "hqsvcd", (char*)0 },
-      .multi_labels = (char*[]){ TRS("VCD 1.1"), TRS("VCD 2.0"), TRS("SVCD"), TRS("HQSVCD"), (char*)0 },
+      .multi_names = (char const *[]){ "vcd11", "vcd2", "svcd", "hqsvcd", (char*)0 },
+      .multi_labels = (char const *[]){ TRS("VCD 1.1"), TRS("VCD 2.0"), TRS("SVCD"), TRS("HQSVCD"), (char*)0 },
     },
     {
       .name = "volume_label",
@@ -141,7 +141,7 @@ static bg_parameter_info_t parameters[] =
     { /* End of parameters */ },
   };
 
-static bg_parameter_info_t * get_parameters_vcdimager(void * data)
+static const bg_parameter_info_t * get_parameters_vcdimager(void * data)
   {
   return parameters;
   }
@@ -394,7 +394,7 @@ static void stop_vcdimager(void * data)
   }
 
 
-bg_encoder_pp_plugin_t the_plugin =
+const bg_encoder_pp_plugin_t the_plugin =
   {
     .common =
     {

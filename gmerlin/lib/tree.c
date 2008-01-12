@@ -1184,7 +1184,7 @@ const char * bg_media_tree_get_current_track_name(bg_media_tree_t * t)
 
 /* Parameter stuff */
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =        "use_metadata",
@@ -1220,7 +1220,7 @@ unused album files) at program exit")
     { /* End of parameters */ }
   };
 
-bg_parameter_info_t * bg_media_tree_get_parameters(bg_media_tree_t * tree)
+const bg_parameter_info_t * bg_media_tree_get_parameters(bg_media_tree_t * tree)
   {
   return parameters;
   }

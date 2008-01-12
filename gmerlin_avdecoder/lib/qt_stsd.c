@@ -29,14 +29,22 @@
 #include <qt.h>
 #include <utils.h>
 
-extern bgav_palette_entry_t bgav_qt_default_palette_2[];
-extern bgav_palette_entry_t bgav_qt_default_palette_4[];
-extern bgav_palette_entry_t bgav_qt_default_palette_16[];
-extern bgav_palette_entry_t bgav_qt_default_palette_256[];
+extern const bgav_palette_entry_t bgav_qt_default_palette_2[];
+extern const bgav_palette_entry_t bgav_qt_default_palette_4[];
+extern const bgav_palette_entry_t bgav_qt_default_palette_16[];
+extern const bgav_palette_entry_t bgav_qt_default_palette_256[];
 
-extern bgav_palette_entry_t bgav_qt_default_palette_4_gray[];
-extern bgav_palette_entry_t bgav_qt_default_palette_16_gray[];
-extern bgav_palette_entry_t bgav_qt_default_palette_256_gray[];
+extern const bgav_palette_entry_t bgav_qt_default_palette_4_gray[];
+extern const bgav_palette_entry_t bgav_qt_default_palette_16_gray[];
+extern const bgav_palette_entry_t bgav_qt_default_palette_256_gray[];
+
+static bgav_palette_entry_t * copy_palette(const bgav_palette_entry_t * p, int num)
+  {
+  bgav_palette_entry_t * ret;
+  ret = malloc(num * sizeof(*ret));
+  memcpy(ret, p, num * sizeof(*ret));
+  return ret;
+  }
 
 /*
  *  Sample description
@@ -354,7 +362,6 @@ static int stsd_read_video(bgav_input_context_t * input,
     {
     if(!ret->format.video.ctab_id)
       {
-      ret->format.video.private_ctab = 1;
       bgav_input_skip(input, 4); /* Seed */
       bgav_input_skip(input, 2); /* Flags */
       if(!bgav_input_read_16_be(input, &(ret->format.video.ctab_size)))
@@ -376,31 +383,31 @@ static int stsd_read_video(bgav_input_context_t * input,
       switch(ret->format.video.depth)
         {
         case 1:
-          ret->format.video.ctab = bgav_qt_default_palette_2;
+          ret->format.video.ctab = copy_palette(bgav_qt_default_palette_2, 2);
           ret->format.video.ctab_size = 2;
           break;
         case 2:
-          ret->format.video.ctab = bgav_qt_default_palette_4;
+          ret->format.video.ctab = copy_palette(bgav_qt_default_palette_4, 4);
           ret->format.video.ctab_size = 4;
           break;
         case 4:
-          ret->format.video.ctab = bgav_qt_default_palette_16;
+          ret->format.video.ctab = copy_palette(bgav_qt_default_palette_16, 16);
           ret->format.video.ctab_size = 16;
           break;
         case 8:
-          ret->format.video.ctab = bgav_qt_default_palette_256;
+          ret->format.video.ctab = copy_palette(bgav_qt_default_palette_256, 256);
           ret->format.video.ctab_size = 256;
           break;
         case 34:
-          ret->format.video.ctab = bgav_qt_default_palette_4_gray;
+          ret->format.video.ctab = copy_palette(bgav_qt_default_palette_4_gray, 4);
           ret->format.video.ctab_size = 4;
           break;
         case 36:
-          ret->format.video.ctab = bgav_qt_default_palette_16_gray;
+          ret->format.video.ctab = copy_palette(bgav_qt_default_palette_16_gray, 16);
           ret->format.video.ctab_size = 16;
           break;
         case 40:
-          ret->format.video.ctab = bgav_qt_default_palette_256_gray;
+          ret->format.video.ctab = copy_palette(bgav_qt_default_palette_256_gray, 256);
           ret->format.video.ctab_size = 256;
           break;
         }
@@ -670,7 +677,7 @@ void bgav_qt_stsd_free(qt_stsd_t * c)
       }
     else if(c->entries[i].desc.type == BGAV_STREAM_VIDEO)
       {
-      if(c->entries[i].desc.format.video.private_ctab)
+      if(c->entries[i].desc.format.video.ctab)
         free(c->entries[i].desc.format.video.ctab);
       }
     else if((c->entries[i].desc.fourcc ==

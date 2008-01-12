@@ -74,7 +74,7 @@ static int parse_ref(bgav_redirector_context_t * r)
   return 1;
   }
 
-bgav_redirector_t bgav_redirector_ref = 
+const bgav_redirector_t bgav_redirector_ref = 
   {
     .name =  "[Reference]",
     .probe = probe_ref,

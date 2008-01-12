@@ -281,7 +281,7 @@ static void close_vmd(bgav_demuxer_context_t * ctx)
   free(priv);
   }
 
-bgav_demuxer_t bgav_demuxer_vmd =
+const bgav_demuxer_t bgav_demuxer_vmd =
   {
     .probe =       probe_vmd,
     .open =        open_vmd,

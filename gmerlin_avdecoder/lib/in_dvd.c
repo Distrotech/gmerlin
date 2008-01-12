@@ -166,7 +166,7 @@ static gavl_time_t get_duration(pgc_t * pgc, int start_cell, int end_cell, int a
   
   }
 
-static struct
+static const struct
   {
   int image_width;
   int image_height;
@@ -1097,7 +1097,7 @@ static void seek_time_dvd(bgav_input_context_t * ctx, int64_t t1, int scale)
   dvd->last_vobu_end_pts = pci_pack.pci_gi.vobu_s_ptm;
   }
 
-bgav_input_t bgav_input_dvd =
+const bgav_input_t bgav_input_dvd =
   {
     .name =          "dvd",
     .open =          open_dvd,

@@ -130,7 +130,7 @@ static void close_gsm(bgav_demuxer_context_t * ctx)
   return;
   }
 
-bgav_demuxer_t bgav_demuxer_gsm =
+const bgav_demuxer_t bgav_demuxer_gsm =
   {
     .probe =       probe_gsm,
     .open =        open_gsm,

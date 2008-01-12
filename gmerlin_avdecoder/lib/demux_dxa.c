@@ -363,7 +363,7 @@ static void close_dxa(bgav_demuxer_context_t * ctx)
     free(priv);
   }
 
-bgav_demuxer_t bgav_demuxer_dxa =
+const bgav_demuxer_t bgav_demuxer_dxa =
   {
     .probe =        probe_dxa,
     .open =         open_dxa,

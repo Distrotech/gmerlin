@@ -44,7 +44,7 @@
 #include <mcheck.h>
 #endif
 
-bg_cmdline_app_data_t app_data =
+const bg_cmdline_app_data_t app_data =
   {
     .package =  PACKAGE,
     .version =  VERSION,
@@ -100,7 +100,9 @@ int main(int argc, char ** argv)
 
   /* Get locations from the commandline */
 
-  bg_cmdline_parse(NULL, &argc, &argv, NULL, &app_data);
+  bg_cmdline_init(&app_data);
+  
+  bg_cmdline_parse(NULL, &argc, &argv, NULL);
   
   locations = bg_cmdline_get_locations_from_args(&argc, &argv);
 

@@ -26,7 +26,7 @@
 
 void gmerlin_create_dialog(gmerlin_t * g)
   {
-  bg_parameter_info_t * parameters;
+  const bg_parameter_info_t * parameters;
   /* Create the dialogs */
 
   /* Audio options */

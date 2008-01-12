@@ -34,7 +34,7 @@ typedef struct
   char * name;
   } pixelformat_tab_t;
 
-pixelformat_tab_t pixelformat_tab[] =
+const pixelformat_tab_t pixelformat_tab[] =
   {
     { GAVL_RGB_15, "15 bpp RGB" },
     { GAVL_BGR_15, "15 bpp BGR" },
@@ -65,7 +65,7 @@ pixelformat_tab_t pixelformat_tab[] =
     { GAVL_PIXELFORMAT_NONE, "Undefined" }
   };
 
-static int num_pixelformats = sizeof(pixelformat_tab)/sizeof(pixelformat_tab_t);
+static const int num_pixelformats = sizeof(pixelformat_tab)/sizeof(pixelformat_tab_t);
 
 int gavl_pixelformat_num_planes(gavl_pixelformat_t csp)
   {
@@ -2726,7 +2726,7 @@ int gavl_pixelformat_conversion_penalty(gavl_pixelformat_t src,
 
 gavl_pixelformat_t 
 gavl_pixelformat_get_best(gavl_pixelformat_t src,
-                          gavl_pixelformat_t * dst_supported,
+                          const gavl_pixelformat_t * dst_supported,
                           int *penalty)
   {
   int min_penalty;

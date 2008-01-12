@@ -36,18 +36,18 @@
 #include <log.h>
 #define LOG_DOMAIN "lcdproc"
 
-static const char * formats_name      = "formats";
-static const char * name_time_name    = "name_time";
-static const char * descriptions_name = "descriptions";
+static const char * const formats_name      = "formats";
+static const char * const name_time_name    = "name_time";
+static const char * const descriptions_name = "descriptions";
 
-static const char * audio_format_name        = "audio_format";
-static const char * video_format_name        = "video_format";
+static const char * const audio_format_name        = "audio_format";
+static const char * const video_format_name        = "video_format";
 
-static const char * audio_description_name   = "audio_description";
-static const char * video_description_name   = "video_description";
+static const char * const audio_description_name   = "audio_description";
+static const char * const video_description_name   = "video_description";
 
-static const char * name_name                = "name";
-static const char * time_name                = "time";
+static const char * const name_name                = "name";
+static const char * const time_name                = "time";
 
 struct bg_lcdproc_s
   {
@@ -96,7 +96,7 @@ struct bg_lcdproc_s
   bg_player_t * player;
   };
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =        "enable_lcdproc",
@@ -854,7 +854,7 @@ void bg_lcdproc_destroy(bg_lcdproc_t* l)
  *  starts and stops the thread
  */
 
-bg_parameter_info_t * bg_lcdproc_get_parameters(bg_lcdproc_t * l)
+const bg_parameter_info_t * bg_lcdproc_get_parameters(bg_lcdproc_t * l)
   {
   return parameters;
   }

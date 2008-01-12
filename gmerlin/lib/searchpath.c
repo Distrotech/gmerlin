@@ -196,7 +196,7 @@ int bg_search_file_exec(const char * file, char ** _path)
   return 0;
   }
 
-static struct
+static const struct
   {
   char * command;
   char * template;

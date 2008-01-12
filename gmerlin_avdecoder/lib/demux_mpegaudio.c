@@ -43,7 +43,7 @@
 
 /* MPEG Audio header parsing code */
 
-static int mpeg_bitrates[5][16] = {
+static const int mpeg_bitrates[5][16] = {
   /* MPEG-1 */
   { 0,  32000,  64000,  96000, 128000, 160000, 192000, 224000,    // I
        256000, 288000, 320000, 352000, 384000, 416000, 448000, 0},
@@ -59,7 +59,7 @@ static int mpeg_bitrates[5][16] = {
         64000,  80000,  96000, 112000, 128000, 144000, 160000, 0 } // II & III
 };
 
-static int mpeg_samplerates[3][3] = {
+static const int mpeg_samplerates[3][3] = {
   { 44100, 48000, 32000 }, // MPEG1
   { 22050, 24000, 16000 }, // MPEG2
   { 11025, 12000, 8000 }   // MPEG2.5
@@ -953,7 +953,7 @@ static int select_track_mpegaudio(bgav_demuxer_context_t * ctx,
   return 1;
   }
 
-bgav_demuxer_t bgav_demuxer_mpegaudio =
+const bgav_demuxer_t bgav_demuxer_mpegaudio =
   {
     .probe =        probe_mpegaudio,
     .open =         open_mpegaudio,

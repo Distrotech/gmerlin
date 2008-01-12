@@ -100,7 +100,7 @@ static void attach(void * priv, GtkWidget * table,
   (*row)++;
   }
 
-static gtk_widget_funcs_t funcs =
+static const gtk_widget_funcs_t funcs =
   {
     .get_value = get_value,
     .set_value = set_value,
@@ -109,7 +109,7 @@ static gtk_widget_funcs_t funcs =
   };
 
 
-void bg_gtk_create_file(bg_gtk_widget_t * w, bg_parameter_info_t * info,
+void bg_gtk_create_file(bg_gtk_widget_t * w, const bg_parameter_info_t * info,
                         const char * translation_domain)
   {
   file_t * priv = calloc(1, sizeof(*priv));
@@ -126,7 +126,7 @@ void bg_gtk_create_file(bg_gtk_widget_t * w, bg_parameter_info_t * info,
   w->priv = priv;
   }
 
-void bg_gtk_create_directory(bg_gtk_widget_t * w, bg_parameter_info_t * info,
+void bg_gtk_create_directory(bg_gtk_widget_t * w, const bg_parameter_info_t * info,
                              const char * translation_domain)
   {
   file_t * f;

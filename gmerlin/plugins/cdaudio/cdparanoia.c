@@ -153,7 +153,7 @@ void bg_cdaudio_rip_destroy(void * data)
   free(priv);
   }
 
-static bg_parameter_info_t parameters[] = 
+static const bg_parameter_info_t parameters[] = 
   {
     {
       .name =       "cdparanoia",
@@ -165,7 +165,7 @@ static bg_parameter_info_t parameters[] =
       .long_name =  TRS("Speed"),
       .type =       BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "Auto" },
-      .multi_names = (char*[]){ TRS("Auto"),
+      .multi_names = (char const *[]){ TRS("Auto"),
                               "4",
                               "8",
                               "16",
@@ -200,7 +200,7 @@ the attempted overlap area. Not recommended.")
     { /* End of parameters */ }
   };
 
-bg_parameter_info_t * bg_cdaudio_rip_get_parameters()
+const bg_parameter_info_t * bg_cdaudio_rip_get_parameters()
   {
   return parameters;
   }

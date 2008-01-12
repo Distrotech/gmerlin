@@ -583,7 +583,7 @@ static void reset_ladspa(void * priv)
     }
   }
 
-static bg_parameter_info_t * get_parameters_ladspa(void * priv)
+static const bg_parameter_info_t * get_parameters_ladspa(void * priv)
   {
   ladspa_priv_t * lp;
   lp = (ladspa_priv_t *)priv;
@@ -647,8 +647,9 @@ int bg_ladspa_load(bg_plugin_handle_t * ret,
   ladspa_priv_t * priv;
   bg_fa_plugin_t * af;
   af = calloc(1, sizeof(*af));
-  ret->plugin = (bg_plugin_common_t*)af;
-
+  ret->plugin_nc = (bg_plugin_common_t*)af;
+  ret->plugin = ret->plugin_nc;
+  
   af->set_input_format = set_input_format_ladspa;
   af->connect_input_port = connect_input_port_ladspa;
   af->get_output_format = get_output_format_ladspa;
@@ -657,8 +658,8 @@ int bg_ladspa_load(bg_plugin_handle_t * ret,
 
   if(info->parameters)
     {
-    ret->plugin->get_parameters = get_parameters_ladspa;
-    ret->plugin->set_parameter  = set_parameter_ladspa;
+    ret->plugin_nc->get_parameters = get_parameters_ladspa;
+    ret->plugin_nc->set_parameter  = set_parameter_ladspa;
     }
   
   priv = calloc(1, sizeof(*priv));
@@ -733,7 +734,7 @@ void bg_ladspa_unload(bg_plugin_handle_t * h)
   FREE(lp->out_c_ports);
 
   cleanup_ladspa(lp);
-  free(h->plugin);
+  free(h->plugin_nc);
   free(lp);
   }
 

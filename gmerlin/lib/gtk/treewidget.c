@@ -89,12 +89,12 @@ void bg_gtk_tree_create_atoms()
 #define DND_TEXT_URI_LIST    4
 #define DND_TEXT_PLAIN       5
 
-static GtkTargetEntry dnd_src_entries[] = 
+static const GtkTargetEntry dnd_src_entries[] = 
   {
     {bg_gtk_atom_album_name,   GTK_TARGET_SAME_WIDGET, DND_GMERLIN_ALBUM },
   };
 
-static GtkTargetEntry dnd_dst_entries[] = 
+static const GtkTargetEntry dnd_dst_entries[] = 
   {
     {bg_gtk_atom_entries_name, GTK_TARGET_SAME_APP,    DND_GMERLIN_TRACKS },
     {bg_gtk_atom_album_name,   GTK_TARGET_SAME_WIDGET, DND_GMERLIN_ALBUM  },
@@ -315,7 +315,7 @@ struct bg_gtk_tree_widget_s
 
 /* Configuration */
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =      "tabbed_mode",

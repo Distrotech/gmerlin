@@ -357,7 +357,7 @@ static void close_sphere(bgav_demuxer_context_t * ctx)
   return;
   }
 
-bgav_demuxer_t bgav_demuxer_sphere =
+const bgav_demuxer_t bgav_demuxer_sphere =
   {
     .probe =       probe_sphere,
     .open =        open_sphere,

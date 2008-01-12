@@ -105,7 +105,7 @@ void bg_parameter_value_free(bg_parameter_value_t * val,
 
   }
 
-static char ** copy_string_array(char ** arr)
+static char ** copy_string_array(char const * const * arr)
   {
   int i, num;
   char ** ret;
@@ -184,10 +184,10 @@ void bg_parameter_info_copy(bg_parameter_info_t * dst,
       dst->val_default.val_str = bg_strdup(dst->val_default.val_str,
                                            src->val_default.val_str);
       
-      dst->multi_names        = copy_string_array(src->multi_names);
-      dst->multi_labels       = copy_string_array(src->multi_labels);
-      dst->multi_descriptions = copy_string_array(src->multi_descriptions);
-
+      dst->multi_names_nc        = copy_string_array(src->multi_names);
+      dst->multi_labels_nc       = copy_string_array(src->multi_labels);
+      dst->multi_descriptions_nc = copy_string_array(src->multi_descriptions);
+      
       i = 0;
 
       if(src->multi_names)
@@ -199,14 +199,14 @@ void bg_parameter_info_copy(bg_parameter_info_t * dst,
 
         if(src->multi_parameters)
           {
-          dst->multi_parameters =
-            calloc(num_options, sizeof(*(src->multi_parameters)));
+          dst->multi_parameters_nc =
+            calloc(num_options, sizeof(*(src->multi_parameters_nc)));
           i = 0;
           
           while(src->multi_names[i])
             {
             if(src->multi_parameters[i])
-              dst->multi_parameters[i] =
+              dst->multi_parameters_nc[i] =
                 bg_parameter_info_copy_array(src->multi_parameters[i]);
             i++;
             }
@@ -220,9 +220,11 @@ void bg_parameter_info_copy(bg_parameter_info_t * dst,
       /* Copy stringlist options */
       
       if(src->multi_names)
-        dst->multi_names = copy_string_array(src->multi_names);
+        dst->multi_names_nc = copy_string_array(src->multi_names);
       if(src->multi_labels)
-        dst->multi_labels = copy_string_array(src->multi_labels);
+        dst->multi_labels_nc = copy_string_array(src->multi_labels);
+      dst->multi_names = (char const **)dst->multi_names_nc;
+      dst->multi_labels = (char const **)dst->multi_labels_nc;
       break;
     case BG_PARAMETER_COLOR_RGB:
       if(src->val_default.val_color)
@@ -247,7 +249,8 @@ void bg_parameter_info_copy(bg_parameter_info_t * dst,
     case BG_PARAMETER_SECTION:
       break;
     }
-  
+  bg_parameter_info_set_const_ptrs(dst);
+
   }
 
 bg_parameter_info_t *
@@ -289,8 +292,8 @@ void bg_parameter_info_destroy_array(bg_parameter_info_t * info)
     switch(info[index].type)
       {
       case BG_PARAMETER_STRINGLIST:
-        free_string_array(info[index].multi_names);
-        free_string_array(info[index].multi_labels);
+        free_string_array(info[index].multi_names_nc);
+        free_string_array(info[index].multi_labels_nc);
         
         if(info[index].val_default.val_str)
           free(info[index].val_default.val_str);
@@ -321,13 +324,13 @@ void bg_parameter_info_destroy_array(bg_parameter_info_t * info)
         while(info[index].multi_names[i])
           {
           if(info[index].multi_parameters[i])
-            bg_parameter_info_destroy_array(info[index].multi_parameters[i]);
+            bg_parameter_info_destroy_array(info[index].multi_parameters_nc[i]);
           i++;
           }
-        free(info[index].multi_parameters);
-        free_string_array(info[index].multi_names);
-        free_string_array(info[index].multi_labels);
-        free_string_array(info[index].multi_descriptions);
+        free(info[index].multi_parameters_nc);
+        free_string_array(info[index].multi_names_nc);
+        free_string_array(info[index].multi_labels_nc);
+        free_string_array(info[index].multi_descriptions_nc);
                 
         if(info[index].val_default.val_str)
           free(info[index].val_default.val_str);
@@ -340,7 +343,7 @@ void bg_parameter_info_destroy_array(bg_parameter_info_t * info)
   }
 
 bg_parameter_info_t *
-bg_parameter_info_concat_arrays(bg_parameter_info_t ** srcs)
+bg_parameter_info_concat_arrays(bg_parameter_info_t const ** srcs)
   {
   int i, j, dst, num_parameters;
 
@@ -459,3 +462,12 @@ bg_parameter_find(const bg_parameter_info_t * info,
     }
   return (bg_parameter_info_t*)0;
   }
+
+void bg_parameter_info_set_const_ptrs(bg_parameter_info_t * ret)
+  {
+  ret->multi_names = (char const **)ret->multi_names_nc;
+  ret->multi_labels = (char const **)ret->multi_labels_nc;
+  ret->multi_descriptions = (char const **)ret->multi_descriptions_nc;
+  ret->multi_parameters = (bg_parameter_info_t const * const *)ret->multi_parameters_nc;
+  }
+  

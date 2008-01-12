@@ -198,7 +198,7 @@ static int write_image_bmp(void * priv, gavl_video_frame_t * frame)
   return 1;
   }
 
-static char * bmp_extension = ".bmp";
+static char const * const bmp_extension = ".bmp";
 
 static const char * get_extension_bmp(void * p)
   {
@@ -206,7 +206,7 @@ static const char * get_extension_bmp(void * p)
   }
 
 
-bg_image_writer_plugin_t the_plugin =
+const bg_image_writer_plugin_t the_plugin =
   {
     .common =
     {

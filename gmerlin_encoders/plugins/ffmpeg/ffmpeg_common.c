@@ -47,18 +47,19 @@ create_format_parameters(const ffmpeg_format_info_t * formats)
   while(formats[num_formats].name)
     num_formats++;
 
-  ret[0].multi_names =
-    calloc(num_formats+1, sizeof(*ret[0].multi_names));
-  ret[0].multi_labels =
-    calloc(num_formats+1, sizeof(*ret[0].multi_labels));
+  ret[0].multi_names_nc =
+    calloc(num_formats+1, sizeof(*ret[0].multi_names_nc));
+  ret[0].multi_labels_nc =
+    calloc(num_formats+1, sizeof(*ret[0].multi_labels_nc));
 
   for(i = 0; i < num_formats; i++)
     {
-    ret[0].multi_names[i] =
-      bg_strdup(ret[0].multi_names[i], formats[i].short_name);
-    ret[0].multi_labels[i] =
-      bg_strdup(ret[0].multi_labels[i], formats[i].name);
+    ret[0].multi_names_nc[i] =
+      bg_strdup(ret[0].multi_names_nc[i], formats[i].short_name);
+    ret[0].multi_labels_nc[i] =
+      bg_strdup(ret[0].multi_labels_nc[i], formats[i].name);
     }
+  bg_parameter_info_set_const_ptrs(&ret[0]);
   ret[0].val_default.val_str =
     bg_strdup(ret[0].val_default.val_str, formats[0].short_name);
   return ret;
@@ -101,21 +102,21 @@ void bg_ffmpeg_destroy(void * data)
   free(priv);
   }
 
-bg_parameter_info_t * bg_ffmpeg_get_parameters(void * data)
+const bg_parameter_info_t * bg_ffmpeg_get_parameters(void * data)
   {
   ffmpeg_priv_t * priv;
   priv = (ffmpeg_priv_t *)data;
   return priv->parameters;
   }
 
-bg_parameter_info_t * bg_ffmpeg_get_audio_parameters(void * data)
+const bg_parameter_info_t * bg_ffmpeg_get_audio_parameters(void * data)
   {
   ffmpeg_priv_t * priv;
   priv = (ffmpeg_priv_t *)data;
   return priv->audio_parameters;
   }
 
-bg_parameter_info_t * bg_ffmpeg_get_video_parameters(void * data)
+const bg_parameter_info_t * bg_ffmpeg_get_video_parameters(void * data)
   {
   ffmpeg_priv_t * priv;
   priv = (ffmpeg_priv_t *)data;

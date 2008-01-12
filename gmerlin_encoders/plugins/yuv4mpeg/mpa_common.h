@@ -33,7 +33,7 @@ typedef struct
   sigset_t oldset;
   } bg_mpa_common_t;
 
-bg_parameter_info_t * bg_mpa_get_parameters();
+const bg_parameter_info_t * bg_mpa_get_parameters();
 
 /* Must pass a bg_mpa_common_t for parameters */
 void bg_mpa_set_parameter(void * data, const char * name,

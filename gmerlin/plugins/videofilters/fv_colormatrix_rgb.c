@@ -73,7 +73,7 @@ static void destroy_colormatrix(void * priv)
   free(vp);
   }
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .gettext_domain = PACKAGE,
@@ -322,7 +322,7 @@ static bg_parameter_info_t parameters[] =
     { /* End of parameters */ },
   };
 
-static bg_parameter_info_t * get_parameters_colormatrix(void * priv)
+static const bg_parameter_info_t * get_parameters_colormatrix(void * priv)
   {
   return parameters;
   }
@@ -433,7 +433,7 @@ static int read_video_colormatrix(void * priv, gavl_video_frame_t * frame, int s
   return 1;
   }
 
-bg_fv_plugin_t the_plugin = 
+const bg_fv_plugin_t the_plugin = 
   {
     .common =
     {

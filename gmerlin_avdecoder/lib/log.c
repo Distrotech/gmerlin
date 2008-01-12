@@ -31,7 +31,7 @@
 
 #include <avdec_private.h>
 
-static struct
+static const struct
   {
   bgav_log_level_t level;
   const char * name;

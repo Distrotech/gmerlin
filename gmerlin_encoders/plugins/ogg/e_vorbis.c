@@ -33,9 +33,9 @@
 
 #include "ogg_common.h"
 
-extern bg_ogg_codec_t bg_vorbis_codec;
+extern const bg_ogg_codec_t bg_vorbis_codec;
 
-static bg_parameter_info_t * get_audio_parameters_vorbis(void * data)
+static const bg_parameter_info_t * get_audio_parameters_vorbis(void * data)
   {
   return bg_vorbis_codec.get_parameters();
   }
@@ -57,7 +57,7 @@ static int add_audio_stream_vorbis(void * data, const char * language,
   }
 
 
-bg_encoder_plugin_t the_plugin =
+const bg_encoder_plugin_t the_plugin =
   {
     .common =
     {

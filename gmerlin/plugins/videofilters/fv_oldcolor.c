@@ -53,35 +53,35 @@ typedef struct
 #define STYLE_TECH1 1
 #define STYLE_TECH2 2
 
-static float coeffs_bw[3][4] =
+static const float coeffs_bw[3][4] =
   {
     { 0.299000,  0.587000,  0.114000, 0.0 },
     { 0.299000,  0.587000,  0.114000, 0.0 },
     { 0.299000,  0.587000,  0.114000, 0.0 },
   };
 
-static float coeffs_tech1[3][4] =
+static const float coeffs_tech1[3][4] =
   {
     { 1.0, 0.0, 0.0, 0.0 },
     { 0.0, 0.5, 0.5, 0.0 },
     { 0.0, 0.5, 0.5, 0.0 },
   };
 
-static float coeffs_tech2[3][4] =
+static const float coeffs_tech2[3][4] =
   {
     {  1.75  -0.50, -0.25, 0.0 },
     { -0.25,  1.50, -0.25, 0.0 },
     { -0.25, -0.50,  1.75, 0.0 },
   };
 
-static float coeffs_unity[3][4] =
+static const float coeffs_unity[3][4] =
   {
     { 1.0, 0.0, 0.0, 0.0 },
     { 0.0, 1.0, 0.0, 0.0 },
     { 0.0, 0.0, 1.0, 0.0 },
   };
 
-static void interpolate(float coeffs[3][4], float result[3][4], float strength, float * gain)
+static void interpolate(const float coeffs[3][4], float result[3][4], float strength, float * gain)
   {
   int i, j;
   for(i = 0; i < 3; i++)
@@ -109,7 +109,7 @@ static void destroy_technicolor(void * priv)
   free(vp);
   }
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .gettext_domain = PACKAGE,
@@ -120,7 +120,7 @@ static bg_parameter_info_t parameters[] =
       .flags = BG_PARAMETER_SYNC,
       .val_default = { .val_str = "tech1" },
       .multi_names =
-      (char*[])
+      (char const *[])
       {
         "bw",
         "tech1",
@@ -128,7 +128,7 @@ static bg_parameter_info_t parameters[] =
         (char*)0
       },
       .multi_labels =
-      (char*[])
+      (char const *[])
       {
         "B/W",
         "Technicolor 2-Stripe",
@@ -180,7 +180,7 @@ static bg_parameter_info_t parameters[] =
   };
 
 
-static bg_parameter_info_t * get_parameters_technicolor(void * priv)
+static const bg_parameter_info_t * get_parameters_technicolor(void * priv)
   {
   return parameters;
   }
@@ -328,7 +328,7 @@ static int read_video_technicolor(void * priv, gavl_video_frame_t * frame, int s
   return 1;
   }
 
-bg_fv_plugin_t the_plugin = 
+const bg_fv_plugin_t the_plugin = 
   {
     .common =
     {

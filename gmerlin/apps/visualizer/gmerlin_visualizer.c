@@ -826,16 +826,16 @@ bg_parameter_info_t parameters[] =
       .type =       BG_PARAMETER_STRINGLIST,
       .flags =      BG_PARAMETER_SYNC,
       .val_default = { .val_str = "top" },
-      .multi_names = (char*[]){ "top", "bottom", (char*)0 },
-      .multi_labels = (char*[]){ "Top", "Bottom", (char*)0 },
+      .multi_names = (char const *[]){ "top", "bottom", (char*)0 },
+      .multi_labels = (char const *[]){ "Top", "Bottom", (char*)0 },
     },
     {
       .name =       "toolbar_trigger",
       .long_name =  "Toolbar trigger",
       .type =       BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "mousekey" },
-      .multi_names = (char*[]){ "mouse", "key", "mousekey", (char*)0 },
-      .multi_labels = (char*[]){ "Mouse motion",
+      .multi_names = (char const *[]){ "mouse", "key", "mousekey", (char*)0 },
+      .multi_labels = (char const *[]){ "Mouse motion",
                                "Menu key", "Mouse motion & Menu key",
                                (char*)0 },
     },
@@ -869,7 +869,7 @@ bg_parameter_info_t parameters[] =
 
 static bg_dialog_t * create_cfg_dialog(visualizer_t * win)
   {
-  bg_parameter_info_t * info;
+  const bg_parameter_info_t * info;
   bg_dialog_t * ret;
   ret = bg_dialog_create_multi(TR("Visualizer configuration"));
 
@@ -902,7 +902,7 @@ static bg_dialog_t * create_cfg_dialog(visualizer_t * win)
 
 static void apply_config(visualizer_t * v)
   {
-  bg_parameter_info_t * info;
+  const bg_parameter_info_t * info;
   
   info = bg_visualizer_get_parameters(v->visualizer);
   
@@ -924,7 +924,7 @@ static void apply_config(visualizer_t * v)
 
 static void get_config(visualizer_t * v)
   {
-  bg_parameter_info_t * info;
+  const bg_parameter_info_t * info;
   
   bg_cfg_section_get(v->general_section, parameters,
                      get_general_parameter,

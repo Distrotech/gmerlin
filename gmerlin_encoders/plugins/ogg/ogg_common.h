@@ -29,7 +29,7 @@ typedef struct
   
   void * (*create)(FILE * output, long serialno);
 
-  bg_parameter_info_t * (*get_parameters)();
+  const bg_parameter_info_t * (*get_parameters)();
   void (*set_parameter)(void*, const char * name, const bg_parameter_value_t * v);
 
   int (*init_audio)(void*, gavl_audio_format_t * format, bg_metadata_t * metadata);
@@ -50,14 +50,14 @@ typedef struct
   
   struct
     {
-    bg_ogg_codec_t * codec;
+    const bg_ogg_codec_t * codec;
     void           * codec_priv;
     gavl_audio_format_t format;
     } * audio_streams;
 
   struct
     {
-    bg_ogg_codec_t * codec;
+    const bg_ogg_codec_t * codec;
     void           * codec_priv;
     gavl_video_format_t format;
     } * video_streams;
@@ -87,8 +87,8 @@ int bg_ogg_flush(ogg_stream_state * os, FILE * output, int force);
 int bg_ogg_encoder_add_audio_stream(void*, gavl_audio_format_t * format);
 int bg_ogg_encoder_add_video_stream(void*, gavl_video_format_t * format);
 
-void bg_ogg_encoder_init_audio_stream(void*, int stream, bg_ogg_codec_t * codec);
-void bg_ogg_encoder_init_video_stream(void*, int stream, bg_ogg_codec_t * codec);
+void bg_ogg_encoder_init_audio_stream(void*, int stream, const bg_ogg_codec_t * codec);
+void bg_ogg_encoder_init_video_stream(void*, int stream, const bg_ogg_codec_t * codec);
 
 void bg_ogg_encoder_set_audio_parameter(void*, int stream, const char * name, const bg_parameter_value_t * val);
 void bg_ogg_encoder_set_video_parameter(void*, int stream, const char * name, const bg_parameter_value_t * val);

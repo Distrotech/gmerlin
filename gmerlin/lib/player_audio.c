@@ -151,7 +151,7 @@ void bg_player_audio_cleanup(bg_player_t * player)
 
 /* Configuration stuff */
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
 #if 0
     {
@@ -171,12 +171,12 @@ static bg_parameter_info_t parameters[] =
 
 
 
-bg_parameter_info_t * bg_player_get_audio_parameters(bg_player_t * p)
+const bg_parameter_info_t * bg_player_get_audio_parameters(bg_player_t * p)
   {
   return parameters;
   }
 
-bg_parameter_info_t * bg_player_get_audio_filter_parameters(bg_player_t * p)
+const bg_parameter_info_t * bg_player_get_audio_filter_parameters(bg_player_t * p)
   {
   return bg_audio_filter_chain_get_parameters(p->audio_stream.fc);
   }

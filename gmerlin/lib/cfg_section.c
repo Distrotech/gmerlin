@@ -40,7 +40,7 @@ bg_cfg_section_t * bg_cfg_section_create(const char * name)
 
 bg_cfg_section_t *
 bg_cfg_section_create_from_parameters(const char * name,
-                                      bg_parameter_info_t * parameters)
+                                      const bg_parameter_info_t * parameters)
   {
   bg_cfg_section_t * ret;
   bg_cfg_section_t * last_child = (bg_cfg_section_t*)0;
@@ -381,8 +381,9 @@ static char * parse_string(const char * str, int * len_ret)
   return ret;
   }
 
-static bg_parameter_info_t * find_parameter(bg_parameter_info_t * info,
-                                            const char * str, int * len)
+static const bg_parameter_info_t *
+find_parameter(const bg_parameter_info_t * info,
+               const char * str, int * len)
   {
   FILE * out = stderr;
   int i;
@@ -426,7 +427,7 @@ static bg_parameter_info_t * find_parameter(bg_parameter_info_t * info,
   return &info[i];
   }
 
-static int check_option(bg_parameter_info_t * info,
+static int check_option(const bg_parameter_info_t * info,
                         char * name)
   {
   int i = 0;
@@ -444,7 +445,7 @@ static int check_option(bg_parameter_info_t * info,
 
 /* Returns characters read or 0 */
 int bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * section,
-                                              bg_parameter_info_t * parameters,
+                                              const bg_parameter_info_t * parameters,
                                               const char * str_start)
   {
   FILE * out = stderr;
@@ -452,7 +453,7 @@ int bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * section,
   const char * end_c;
   bg_cfg_item_t * item;
   int len = 0, i, index;
-  bg_parameter_info_t * info;
+  const bg_parameter_info_t * info;
   bg_cfg_section_t * subsection;
   char * tmp_string;
   
@@ -763,7 +764,7 @@ void bg_cfg_section_destroy(bg_cfg_section_t * s)
   }
 
 static void do_apply(bg_cfg_section_t * section,
-                     bg_parameter_info_t * infos,
+                     const bg_parameter_info_t * infos,
                      bg_set_parameter_func_t func,
                      void * callback_data, const char * prefix,
                      int terminate)
@@ -890,7 +891,7 @@ static void do_apply(bg_cfg_section_t * section,
   }
 
 void bg_cfg_section_apply(bg_cfg_section_t * section,
-                          bg_parameter_info_t * infos,
+                          const bg_parameter_info_t * infos,
                           bg_set_parameter_func_t func,
                           void * callback_data)
   {
@@ -898,7 +899,7 @@ void bg_cfg_section_apply(bg_cfg_section_t * section,
   }
 
 void bg_cfg_section_apply_noterminate(bg_cfg_section_t * section,
-                                      bg_parameter_info_t * infos,
+                                      const bg_parameter_info_t * infos,
                                       bg_set_parameter_func_t func,
                                       void * callback_data)
   {
@@ -906,7 +907,7 @@ void bg_cfg_section_apply_noterminate(bg_cfg_section_t * section,
   }
 
 void bg_cfg_section_get(bg_cfg_section_t * section,
-                        bg_parameter_info_t * infos,
+                        const bg_parameter_info_t * infos,
                         bg_get_parameter_func_t func,
                         void * callback_data)
   {
@@ -1164,7 +1165,7 @@ void bg_cfg_section_set_name(bg_cfg_section_t * s, const char * name,
   }
 
 void bg_cfg_section_create_items(bg_cfg_section_t * section,
-                                 bg_parameter_info_t * info)
+                                 const bg_parameter_info_t * info)
   {
   int i;
   int j;

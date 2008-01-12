@@ -75,7 +75,7 @@ void bg_metadata_copy(bg_metadata_t * dst, const bg_metadata_t * src)
 #undef MY_STRCPY
 #undef MY_INTCPY
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =      "artist",

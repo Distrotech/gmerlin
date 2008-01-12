@@ -53,7 +53,7 @@
 #define PLAYBACK_SURROUND51 6
 
 
-static bg_parameter_info_t global_parameters[] =
+static const bg_parameter_info_t global_parameters[] =
   {
     {
       .name =        "surround40",
@@ -103,7 +103,7 @@ decrease the latency of the volume control."),
     },
   };
 
-static int num_global_parameters =
+static const int num_global_parameters =
   sizeof(global_parameters)/sizeof(global_parameters[0]);
 
 typedef struct
@@ -402,7 +402,7 @@ static void destroy_alsa(void * p)
   free(priv);
   }
 
-static bg_parameter_info_t *
+static const bg_parameter_info_t *
 get_parameters_alsa(void * p)
   {
   alsa_t * priv = (alsa_t*)(p);
@@ -462,7 +462,7 @@ set_parameter_alsa(void * p, const char * name,
     }
   }
 
-bg_oa_plugin_t the_plugin =
+const bg_oa_plugin_t the_plugin =
   {
     .common =
     {

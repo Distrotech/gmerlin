@@ -193,14 +193,14 @@ clevels[] =
     }
   };
 
-static bg_parameter_info_t audio_parameters[] =
+static const bg_parameter_info_t audio_parameters[] =
   {
     {
       .name =      "bits",
       .long_name = TRS("Bits"),
       .type =      BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "16" },
-      .multi_names = (char*[]){ "8", "12", "16", "20", "24", (char*)0 },
+      .multi_names = (char const *[]){ "8", "12", "16", "20", "24", (char*)0 },
     },
     {
       .name =        "compression_level",
@@ -215,7 +215,7 @@ static bg_parameter_info_t audio_parameters[] =
     { /* End of parameters */ }
   };
 
-bg_parameter_info_t * bg_flac_get_parameters(void * data)
+const bg_parameter_info_t * bg_flac_get_parameters(void * data)
   {
   return audio_parameters;
   }

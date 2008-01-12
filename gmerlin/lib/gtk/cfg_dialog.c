@@ -47,7 +47,7 @@ typedef struct dialog_section_s
   bg_gtk_widget_t * widgets;
   int num_widgets;
 
-  bg_parameter_info_t * infos;
+  const bg_parameter_info_t * infos;
   bg_cfg_section_t * cfg_section;
 
   /* Dialog sections can be nested */
@@ -482,7 +482,7 @@ static bg_dialog_t * create_dialog(const char * title)
   }
 
 static GtkWidget * create_section(dialog_section_t * section,
-                                  bg_parameter_info_t * info,
+                                  const bg_parameter_info_t * info,
                                   bg_cfg_section_t * cfg_section,
                                   bg_set_parameter_func_t set_param,
                                   void * data,
@@ -674,7 +674,7 @@ static GtkWidget * create_section(dialog_section_t * section,
   return table;
   }
 
-static int count_sections(bg_parameter_info_t * info)
+static int count_sections(const bg_parameter_info_t * info)
   {
   int ret = 0;
   int i = 0;
@@ -698,7 +698,7 @@ static int count_sections(bg_parameter_info_t * info)
 bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
                                bg_set_parameter_func_t set_param,
                                void * callback_data,
-                               bg_parameter_info_t * info,
+                               const bg_parameter_info_t * info,
                                const char * title)
   {
   int i, index;
@@ -784,7 +784,7 @@ void bg_dialog_add_child(bg_dialog_t *d, void * _parent,
                          bg_cfg_section_t * section,
                          bg_set_parameter_func_t set_param,
                          void * callback_data,
-                         bg_parameter_info_t * info)
+                         const bg_parameter_info_t * info)
   {
   GtkTreeIter iter, parent_iter;
   int num_items;
@@ -913,7 +913,7 @@ void bg_dialog_add(bg_dialog_t *d,
                    bg_cfg_section_t * section,
                    bg_set_parameter_func_t set_param,
                    void * callback_data,
-                   bg_parameter_info_t * info)
+                   const bg_parameter_info_t * info)
   {
   bg_dialog_add_child(d, &(d->root_section), name,
                       section, set_param, callback_data, info);

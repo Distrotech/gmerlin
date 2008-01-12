@@ -296,7 +296,7 @@ static void close_mpc(bgav_demuxer_context_t * ctx)
   free(priv);
   }
 
-bgav_demuxer_t bgav_demuxer_mpc =
+const bgav_demuxer_t bgav_demuxer_mpc =
   {
     .probe =       probe_mpc,
     .open =        open_mpc,

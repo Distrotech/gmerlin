@@ -213,7 +213,7 @@ bg_cfg_section_t * bg_cfg_section_create(const char * name);
 
 bg_cfg_section_t *
 bg_cfg_section_create_from_parameters(const char * name,
-                                      bg_parameter_info_t * parameters);
+                                      const bg_parameter_info_t * parameters);
 
 /** \ingroup cfg_section
  *  \brief Create items from a parameter info
@@ -226,7 +226,7 @@ bg_cfg_section_create_from_parameters(const char * name,
 
 
 void bg_cfg_section_create_items(bg_cfg_section_t * section,
-                                 bg_parameter_info_t * parameters);
+                                 const bg_parameter_info_t * parameters);
 
 /** \ingroup cfg_section
  *  \brief Destroy a config section 
@@ -329,7 +329,7 @@ void bg_cfg_section_set_parameter(bg_cfg_section_t * section,
  */
 
 int bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * section,
-                                              bg_parameter_info_t * info,
+                                              const bg_parameter_info_t * info,
                                               const char * str);
 
 /** \ingroup cfg_section
@@ -465,7 +465,7 @@ int bg_cfg_section_get_parameter_time(bg_cfg_section_t * section,
  */ 
 
 void bg_cfg_section_apply(bg_cfg_section_t * section,
-                          bg_parameter_info_t * parameters,
+                          const bg_parameter_info_t * parameters,
                           bg_set_parameter_func_t func,
                           void * callback_data);
 
@@ -481,7 +481,7 @@ void bg_cfg_section_apply(bg_cfg_section_t * section,
  */ 
 
 void bg_cfg_section_apply_noterminate(bg_cfg_section_t * section,
-                                      bg_parameter_info_t * infos,
+                                      const bg_parameter_info_t * infos,
                                       bg_set_parameter_func_t func,
                                       void * callback_data);
 
@@ -499,7 +499,7 @@ void bg_cfg_section_apply_noterminate(bg_cfg_section_t * section,
  */ 
 
 void bg_cfg_section_get(bg_cfg_section_t * section,
-                        bg_parameter_info_t * parameters,
+                        const bg_parameter_info_t * parameters,
                         bg_get_parameter_func_t func,
                         void * callback_data);
 

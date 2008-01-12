@@ -25,7 +25,7 @@
 
 #include "ffmpeg_common.h"
 
-static ffmpeg_format_info_t formats[] =
+static const ffmpeg_format_info_t formats[] =
   {
     {
       .name =       "AVI",
@@ -142,7 +142,7 @@ static void * create_ffmpeg()
   }
 
 
-bg_encoder_plugin_t the_plugin =
+const bg_encoder_plugin_t the_plugin =
   {
     .common =
     {

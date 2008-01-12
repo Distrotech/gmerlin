@@ -24,7 +24,7 @@
 #include <math.h>
 #include <gavl/gavl.h>
 
-static struct
+static const struct
   {
   gavl_sample_format_t format;
   char * name;
@@ -51,7 +51,7 @@ const char * gavl_sample_format_to_string(gavl_sample_format_t format)
   return (char*)0;
   }
 
-static struct
+static const struct
   {
   gavl_interleave_mode_t mode;
   char * name;
@@ -77,7 +77,7 @@ const char * gavl_interleave_mode_to_string(gavl_interleave_mode_t mode)
   return (char*)0;
   }
 
-static struct
+static const struct
   {
   gavl_channel_id_t id;
   char * name;

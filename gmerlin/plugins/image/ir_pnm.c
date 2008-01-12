@@ -621,7 +621,7 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
   return 1;
   }
 
-bg_image_reader_plugin_t the_plugin =
+const bg_image_reader_plugin_t the_plugin =
   {
     .common =
     {

@@ -33,9 +33,9 @@
 #include <ogg/ogg.h>
 #include "ogg_common.h"
 
-extern bg_ogg_codec_t bg_speex_codec;
+extern const bg_ogg_codec_t bg_speex_codec;
 
-static bg_parameter_info_t * get_audio_parameters_speex(void * data)
+static const bg_parameter_info_t * get_audio_parameters_speex(void * data)
   {
   return bg_speex_codec.get_parameters();
   }
@@ -58,7 +58,7 @@ static int add_audio_stream_speex(void * data, const char * language,
 
 
 
-bg_encoder_plugin_t the_plugin =
+const bg_encoder_plugin_t the_plugin =
   {
     .common =
     {

@@ -141,7 +141,7 @@ static void pluginwindow_show(pluginwindow_t * w, int modal,
 
 
 
-static struct
+static const struct
   {
   char * name;
   bg_plugin_type_t type;
@@ -167,7 +167,7 @@ type_names[] =
     { (char*)0,         BG_PLUGIN_NONE }
   };
 
-static struct
+static const struct
   {
   char * name;
   uint32_t flag;

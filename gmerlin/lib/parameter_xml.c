@@ -27,7 +27,7 @@
 #include <utils.h>
 #include <xmlutils.h>
 
-static struct
+static const struct
   {
   char * name;
   bg_parameter_type_t type;
@@ -79,7 +79,7 @@ static bg_parameter_type_t name_2_type(const char * name)
   return 0;
   }
 
-static struct
+static const struct
   {
   char * name;
   int flag;
@@ -138,27 +138,29 @@ static char * flags_to_string(int flags)
   return ret;
   }
 
-static char * name_key             = "NAME";
-static char * long_name_key        = "LONG_NAME";
-static char * opt_key              = "OPT";
-static char * type_key             = "TYPE";
-static char * flags_key             = "FLAGS";
-static char * help_string_key      = "HELP_STRING";
-static char * default_key          = "DEFAULT";
-static char * range_key            = "RANGE";
-static char * num_digits_key       = "NUM_DIGITS";
-static char * num_key              = "NUM";
-static char * index_key            = "INDEX";
-static char * parameter_key        = "PARAMETER";
-static char * multi_names_key      = "MULTI_NAMES";
-static char * multi_labels_key     = "MULTI_LABELS";
-static char * multi_name_key       = "MULTI_NAME";
-static char * multi_label_key      = "MULTI_LABEL";
-static char * multi_parameters_key = "MULTI_PARAMETERS";
-static char * multi_parameter_key  = "MULTI_PARAMETER";
+static const char * const name_key             = "NAME";
+static const char * const long_name_key        = "LONG_NAME";
+static const char * const opt_key              = "OPT";
+static const char * const type_key             = "TYPE";
+static const char * const flags_key             = "FLAGS";
+static const char * const help_string_key      = "HELP_STRING";
+static const char * const default_key          = "DEFAULT";
+static const char * const range_key            = "RANGE";
+static const char * const num_digits_key       = "NUM_DIGITS";
+static const char * const num_key              = "NUM";
+static const char * const index_key            = "INDEX";
+static const char * const parameter_key        = "PARAMETER";
+static const char * const multi_names_key      = "MULTI_NAMES";
+static const char * const multi_name_key       = "MULTI_NAME";
+static const char * const multi_descs_key       = "MULTI_DESCS";
+static const char * const multi_desc_key       = "MULTI_DESC";
+static const char * const multi_labels_key     = "MULTI_LABELS";
+static const char * const multi_label_key      = "MULTI_LABEL";
+static const char * const multi_parameters_key = "MULTI_PARAMETERS";
+static const char * const multi_parameter_key  = "MULTI_PARAMETER";
 
-static char * gettext_domain_key     = "GETTEXT_DOMAIN";
-static char * gettext_directory_key  = "GETTEXT_DIRECTORY";
+static const char * const gettext_domain_key     = "GETTEXT_DOMAIN";
+static const char * const gettext_directory_key  = "GETTEXT_DIRECTORY";
 
 /* */
 
@@ -250,7 +252,7 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
           multi_num = atoi(tmp_string);
           free(tmp_string);
 
-          ret[index].multi_names = calloc(multi_num+1, sizeof(*(ret[index].multi_names)));
+          ret[index].multi_names_nc = calloc(multi_num+1, sizeof(*(ret[index].multi_names)));
           multi_index = 0;
           
           grandchild = child->children;
@@ -265,22 +267,51 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
             if(!BG_XML_STRCMP(grandchild->name, multi_name_key))
               {
               tmp_string = (char*)xmlNodeListGetString(xml_doc, grandchild->children, 1);
-              ret[index].multi_names[multi_index] =
-                bg_strdup(ret[index].multi_names[multi_index], tmp_string);
+              ret[index].multi_names_nc[multi_index] =
+                bg_strdup(ret[index].multi_names_nc[multi_index], tmp_string);
               free(tmp_string);
               multi_index++;
               }
             grandchild = grandchild->next;
             }
           }
+        else if(!BG_XML_STRCMP(child->name, multi_descs_key))
+          {
+          tmp_string = BG_XML_GET_PROP(child, num_key);
+          multi_num = atoi(tmp_string);
+          free(tmp_string);
+          
+          ret[index].multi_descriptions_nc = calloc(multi_num+1, sizeof(*(ret[index].multi_descriptions_nc)));
+          multi_index = 0;
+          
+          grandchild = child->children;
 
+          while(grandchild)
+            {
+            if(!grandchild->name)
+              {
+              grandchild = grandchild->next;
+              continue;
+              }
+            if(!BG_XML_STRCMP(grandchild->name, multi_desc_key))
+              {
+              tmp_string = (char*)xmlNodeListGetString(xml_doc, grandchild->children, 1);
+              ret[index].multi_descriptions_nc[multi_index] =
+                bg_strdup(ret[index].multi_descriptions_nc[multi_index], tmp_string);
+              free(tmp_string);
+              multi_index++;
+              }
+            grandchild = grandchild->next;
+            }
+          }
+        
         else if(!BG_XML_STRCMP(child->name, multi_labels_key))
           {
           tmp_string = BG_XML_GET_PROP(child, num_key);
           multi_num = atoi(tmp_string);
           free(tmp_string);
 
-          ret[index].multi_labels = calloc(multi_num+1, sizeof(*(ret[index].multi_labels)));
+          ret[index].multi_labels_nc = calloc(multi_num+1, sizeof(*(ret[index].multi_labels)));
           multi_index = 0;
           
           grandchild = child->children;
@@ -295,8 +326,8 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
             if(!BG_XML_STRCMP(grandchild->name, multi_label_key))
               {
               tmp_string = (char*)xmlNodeListGetString(xml_doc, grandchild->children, 1);
-              ret[index].multi_labels[multi_index] =
-                bg_strdup(ret[index].multi_labels[multi_index], tmp_string);
+              ret[index].multi_labels_nc[multi_index] =
+                bg_strdup(ret[index].multi_labels_nc[multi_index], tmp_string);
               free(tmp_string);
               multi_index++;
               }
@@ -309,8 +340,7 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
           multi_num = atoi(tmp_string);
           free(tmp_string);
 
-          ret[index].multi_parameters = calloc(multi_num+1, sizeof(*(ret[index].multi_labels)));
-          
+          ret[index].multi_parameters_nc = calloc(multi_num+1, sizeof(*(ret[index].multi_labels)));
           grandchild = child->children;
 
           while(grandchild)
@@ -326,7 +356,7 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
               multi_index = atoi(tmp_string);
               free(tmp_string);
 
-              ret[index].multi_parameters[multi_index] =
+              ret[index].multi_parameters_nc[multi_index] =
                 bg_xml_2_parameters(xml_doc, grandchild);
               }
             grandchild = grandchild->next;
@@ -431,8 +461,9 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
         
         child = child->next;
         }
-      
+      bg_parameter_info_set_const_ptrs(&ret[index]);
       index++;
+      
       }
     
     cur = cur->next;
@@ -443,7 +474,7 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
 
 /* */
 
-void bg_parameters_2_xml(bg_parameter_info_t * info, xmlNodePtr xml_parameters)
+void bg_parameters_2_xml(const bg_parameter_info_t * info, xmlNodePtr xml_parameters)
   {
   int multi_num, i;
   xmlNodePtr xml_info;
@@ -539,6 +570,24 @@ void bg_parameters_2_xml(bg_parameter_info_t * info, xmlNodePtr xml_parameters)
         {
         grandchild = xmlNewTextChild(child, (xmlNsPtr)0, (xmlChar*)multi_label_key, NULL);
         xmlAddChild(grandchild, BG_XML_NEW_TEXT(info[num_parameters].multi_labels[i]));
+        xmlAddChild(child, BG_XML_NEW_TEXT("\n"));
+        }
+      xmlAddChild(xml_info, BG_XML_NEW_TEXT("\n"));
+      }
+
+    if(info[num_parameters].multi_descriptions)
+      {
+      child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)multi_descs_key, NULL);
+      xmlAddChild(child, BG_XML_NEW_TEXT("\n"));
+      
+      tmp_string = bg_sprintf("%d", multi_num);
+      BG_XML_SET_PROP(child, num_key, tmp_string);
+      free(tmp_string);
+      
+      for(i = 0; i < multi_num; i++)
+        {
+        grandchild = xmlNewTextChild(child, (xmlNsPtr)0, (xmlChar*)multi_desc_key, NULL);
+        xmlAddChild(grandchild, BG_XML_NEW_TEXT(info[num_parameters].multi_descriptions[i]));
         xmlAddChild(child, BG_XML_NEW_TEXT("\n"));
         }
       xmlAddChild(xml_info, BG_XML_NEW_TEXT("\n"));

@@ -463,7 +463,7 @@ const char * bg_media_tree_get_current_track_name(bg_media_tree_t *);
 
 /* Configuration stuff */
 
-bg_parameter_info_t * bg_media_tree_get_parameters(bg_media_tree_t*);
+const bg_parameter_info_t * bg_media_tree_get_parameters(bg_media_tree_t*);
 void bg_media_tree_set_parameter(void * priv, const char * name,
                                  const bg_parameter_value_t * val);
 

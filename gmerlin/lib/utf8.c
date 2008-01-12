@@ -90,7 +90,7 @@ static char * do_convert(iconv_t cd, char * in_string, int len, int * got_error)
   return ret;
   }
 
-static char * try_charsets[] = 
+static char const * const try_charsets[] = 
   {
     "ISO8859-1",
     "UTF-8",

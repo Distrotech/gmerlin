@@ -198,7 +198,7 @@ static void destroy_frame_ximage(driver_data_t * d, gavl_video_frame_t * f)
   free(frame);
   }
 
-video_driver_t ximage_driver =
+const video_driver_t ximage_driver =
   {
     .init               = init_ximage,
     .create_frame       = create_frame_ximage,

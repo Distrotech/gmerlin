@@ -126,7 +126,8 @@ typedef struct bg_plugin_handle_s
   
   /* These are for use by applications */
   
-  bg_plugin_common_t * plugin; //!< Common structure, cast this to the derived type (e.g. \ref bg_input_plugin_t).
+  const bg_plugin_common_t * plugin; //!< Common structure, cast this to the derived type (e.g. \ref const bg_input_plugin_t).
+  bg_plugin_common_t * plugin_nc; //!< Used for dynamic allocation. Never touch this.
   const bg_plugin_info_t * info; //!< Info about this plugin
   void * priv; //!< Private handle, passed as the first argument to most plugin functions
 

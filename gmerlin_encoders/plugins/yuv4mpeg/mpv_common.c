@@ -49,15 +49,15 @@
 #define FORMAT_DVD   8
 
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =        "format",
       .long_name =   TRS("Format"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "mpeg1" },
-      .multi_names =  (char*[]){ "mpeg1",          "mpeg2",          "vcd", "svcd", "dvd", (char*)0 },
-      .multi_labels = (char*[]){ TRS("MPEG-1 (generic)"), TRS("MPEG-2 (generic)"),
+      .multi_names =  (char const *[]){ "mpeg1",          "mpeg2",          "vcd", "svcd", "dvd", (char*)0 },
+      .multi_labels = (char const *[]){ TRS("MPEG-1 (generic)"), TRS("MPEG-2 (generic)"),
                                TRS("VCD"), TRS("SVCD"), TRS("DVD (for dvdauthor)"),
                                (char*)0  },
       .help_string =  TRS("Sets the MPEG flavour. Note, that for VCD, SVCD and DVD, you MUST provide valid\
@@ -68,8 +68,8 @@ static bg_parameter_info_t parameters[] =
       .long_name =   TRS("Bitrate Mode"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "auto" },
-      .multi_names =  (char*[]){ "auto", "vbr", "cbr", (char*)0  },
-      .multi_labels = (char*[]){ TRS("Auto"), TRS("Variable"), TRS("Constant"), (char*)0  },
+      .multi_names =  (char const *[]){ "auto", "vbr", "cbr", (char*)0  },
+      .multi_labels = (char const *[]){ TRS("Auto"), TRS("Variable"), TRS("Constant"), (char*)0  },
       .help_string = TRS("Specify constant or variable bitrate. For \"Auto\", constant bitrate will be \
 used for MPEG-1, variable bitrate will be used for MPEG-2. For formats, which require CBR, this option \
 is ignored"),
@@ -98,9 +98,9 @@ fixed bitrate (e.g. VCD) this option is ignored"),
       .long_name =   TRS("Quantization matrices"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "default" },
-      .multi_names = (char*[]){ "default", "kvcd", "tmpgenc",
+      .multi_names = (char const *[]){ "default", "kvcd", "tmpgenc",
                               "hi-res", (char*)0 },
-      .multi_labels = (char*[]){ TRS("Default"), TRS("KVCD"),
+      .multi_labels = (char const *[]){ TRS("Default"), TRS("KVCD"),
                                TRS("tmpegenc"), TRS("Hi-Res"),
                                (char*)0 },
     },
@@ -126,7 +126,7 @@ for details"),
     
   };
 
-bg_parameter_info_t * bg_mpv_get_parameters()
+const bg_parameter_info_t * bg_mpv_get_parameters()
   {
   return parameters;
   }

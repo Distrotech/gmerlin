@@ -120,7 +120,7 @@ Lower quality means more speed. Values above 3 enable slow high quality calculat
   .type =      BG_PARAMETER_STRINGLIST,                           \
   .flags =       BG_PARAMETER_SYNC,                     \
   .val_default = { .val_str = "from_source" },                      \
-  .multi_names = (char*[]){ "from_source",                      \
+  .multi_names = (char const *[]){ "from_source",                      \
                    "user_defined",                              \
                    "23_976",      \
                    "24", \
@@ -130,7 +130,7 @@ Lower quality means more speed. Values above 3 enable slow high quality calculat
                    "50",                                        \
                    "59_940",                                    \
                    "60", (char*)0 },                              \
-    .multi_labels = (char*[]){ TRS("From Source"),                      \
+    .multi_labels = (char const *[]){ TRS("From Source"),                      \
                    TRS("User defined"),                              \
                    TRS("23.976 (NTSC encapsulated film rate)"),        \
                    TRS("24 (Standard international cinema film rate)"), \
@@ -170,8 +170,8 @@ timescale and frame duration below (framerate = timescale / frame_duration).")\
   .opt =       "dm", \
   .type =      BG_PARAMETER_STRINGLIST,        \
   .val_default = { .val_str = "none" },          \
-  .multi_names =  (char*[]){ "none", "copy", "scale", (char*)0 },         \
-  .multi_labels = (char*[]){ TRS("None"), TRS("Copy"), TRS("Scale"), (char*)0 },         \
+  .multi_names =  (char const *[]){ "none", "copy", "scale", (char*)0 },         \
+  .multi_labels = (char const *[]){ TRS("None"), TRS("Copy"), TRS("Scale"), (char*)0 },         \
   .help_string = "Specify interlace mode. Higher modes are better but slower." \
   },                                                                   \
   {                                                                  \
@@ -180,8 +180,8 @@ timescale and frame duration below (framerate = timescale / frame_duration).")\
   .long_name = "Drop mode",                                          \
   .type =      BG_PARAMETER_STRINGLIST,                              \
   .val_default = { .val_str = "top" },                                 \
-  .multi_names =   (char*[]){ "top", "bottom", (char*)0 },               \
-  .multi_labels =  (char*[]){ TRS("Drop top field"), TRS("Drop bottom field"), (char*)0 },   \
+  .multi_names =   (char const *[]){ "top", "bottom", (char*)0 },               \
+  .multi_labels =  (char const *[]){ TRS("Drop top field"), TRS("Drop bottom field"), (char*)0 },   \
   .help_string = TRS("Specifies which field the deinterlacer should drop.") \
   },                                                              \
   {\
@@ -195,7 +195,7 @@ timescale and frame duration below (framerate = timescale / frame_duration).")\
 
 
 #define BG_GAVL_SCALE_MODE_NAMES \
-   (char*[]){ "auto",\
+   (char const *[]){ "auto",\
               "nearest",         \
               "bilinear", \
               "quadratic", \
@@ -206,7 +206,7 @@ timescale and frame duration below (framerate = timescale / frame_duration).")\
               (char*)0 }
 
 #define BG_GAVL_SCALE_MODE_LABELS \
-  (char*[]){ TRS("Auto"), \
+  (char const *[]){ TRS("Auto"), \
              TRS("Nearest"),            \
              TRS("Bilinear"), \
              TRS("Quadratic"), \
@@ -258,8 +258,8 @@ timescale and frame duration below (framerate = timescale / frame_duration).")\
       .type =        BG_PARAMETER_STRINGLIST, \
       .flags =       BG_PARAMETER_SYNC,                     \
       .val_default = { .val_str = "ignore" }, \
-      .multi_names = (char*[]){"ignore", "blend_color", (char*)0}, \
-      .multi_labels = (char*[]){TRS("Ignore"), TRS("Blend background color"), (char*)0}, \
+      .multi_names = (char const *[]){"ignore", "blend_color", (char*)0}, \
+      .multi_labels = (char const *[]){TRS("Ignore"), TRS("Blend background color"), (char*)0}, \
     .help_string = TRS("This option is used if the source has an alpha (=transparency) channel, but the output supports no transparency. Either, the transparency is ignored, or the background color you specify below is blended in."),\
     }, \
     { \
@@ -333,11 +333,11 @@ timescale and frame duration below (framerate = timescale / frame_duration).")\
       .type =        BG_PARAMETER_STRINGLIST, \
       .flags =       BG_PARAMETER_SYNC,                     \
       .val_default = { .val_str = "copy" }, \
-      .multi_names =  (char*[]){ "mute", \
+      .multi_names =  (char const *[]){ "mute", \
                               "copy", \
                               "diff", \
                               (char*)0 }, \
-      .multi_labels =  (char*[]){ TRS("Mute"), \
+      .multi_labels =  (char const *[]){ TRS("Mute"), \
                               TRS("Copy"), \
                               TRS("Diff"), \
                               (char*)0 }, \
@@ -350,11 +350,11 @@ but the source doesn't."), \
       .type =        BG_PARAMETER_STRINGLIST, \
       .flags =       BG_PARAMETER_SYNC,                     \
       .val_default = { .val_str = "mix" }, \
-      .multi_names =  (char*[]){ "left", \
+      .multi_names =  (char const *[]){ "left", \
                               "right", \
                               "mix", \
                               (char*)0 }, \
-      .multi_labels =  (char*[]){ TRS("Choose left"), \
+      .multi_labels =  (char const *[]){ TRS("Choose left"), \
                               TRS("Choose right"), \
                               TRS("Mix"), \
                               (char*)0 }, \
@@ -379,8 +379,8 @@ but the source doesn't."), \
       .type =      BG_PARAMETER_STRINGLIST,\
       .flags =       BG_PARAMETER_SYNC,                     \
       .val_default = { .val_str = "auto" },\
-      .multi_names =  (char*[]){ "auto", "none", "rect",        "tri",        "shaped", (char*)0 },\
-      .multi_labels = (char*[]){ TRS("Auto"), TRS("None"), TRS("Rectangular"), \
+      .multi_names =  (char const *[]){ "auto", "none", "rect",        "tri",        "shaped", (char*)0 },\
+      .multi_labels = (char const *[]){ TRS("Auto"), TRS("None"), TRS("Rectangular"), \
                                TRS("Triangular"), TRS("Shaped"), (char*)0 },\
       .help_string = TRS("Dither mode. Auto means to use the quality level. Subsequent options are ordered by increasing quality (i.e. decreasing speed).") \
     }
@@ -392,8 +392,8 @@ but the source doesn't."), \
       .type =      BG_PARAMETER_STRINGLIST,\
       .flags =       BG_PARAMETER_SYNC,                     \
       .val_default = { .val_str = "auto" },\
-      .multi_names =  (char*[]){ "auto", "linear", "zoh",             "sinc_fast",  "sinc_medium", "sinc_best", (char*)0 },\
-      .multi_labels = (char*[]){ TRS("Auto"), TRS("Linear"), TRS("Zero order hold"), \
+      .multi_names =  (char const *[]){ "auto", "linear", "zoh",             "sinc_fast",  "sinc_medium", "sinc_best", (char*)0 },\
+      .multi_labels = (char const *[]){ TRS("Auto"), TRS("Linear"), TRS("Zero order hold"), \
                                TRS("Sinc fast"),  TRS("Sinc medium"), TRS("Sinc best"), (char*)0 },\
       .help_string = TRS("Resample mode. Auto means to use the quality level. Subsequent options are ordered by increasing quality (i.e. decreasing speed).") \
     }

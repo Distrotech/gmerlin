@@ -123,10 +123,10 @@ static bg_parameter_info_t i_parameters[] =
 
 
 /* Set from player */
-bg_parameter_info_t * osd_parameters;
-bg_parameter_info_t * audio_parameters;
-bg_parameter_info_t * video_parameters;
-bg_parameter_info_t * input_parameters;
+const bg_parameter_info_t * osd_parameters;
+const bg_parameter_info_t * audio_parameters;
+const bg_parameter_info_t * video_parameters;
+const bg_parameter_info_t * input_parameters;
 
 
 char * track_spec = (char*)0;
@@ -840,7 +840,7 @@ static void info_close_callback(bg_gtk_info_window_t * info_window,
   }
 #endif
 
-bg_cmdline_app_data_t app_data =
+const bg_cmdline_app_data_t app_data =
   {
     .package =  PACKAGE,
     .version =  VERSION,
@@ -954,8 +954,9 @@ int main(int argc, char ** argv)
                        bg_player_set_input_parameter, player);
     
   /* Get commandline options */
-
-  bg_cmdline_parse(global_options, &argc, &argv, NULL, &app_data);
+  bg_cmdline_init(&app_data);
+  
+  bg_cmdline_parse(global_options, &argc, &argv, NULL);
   gmls = bg_cmdline_get_locations_from_args(&argc, &argv);
 
   if(!gmls)

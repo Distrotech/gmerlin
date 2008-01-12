@@ -53,7 +53,7 @@ typedef struct
   bgav_audio_decoder_t decoder;
   } codec_info_t;
 
-static codec_info_t real_codecs[] =
+static const codec_info_t real_codecs[] =
   {
     {
       .dll_name = "sipr.so.6.0",
@@ -191,7 +191,7 @@ static int init_real(bgav_stream_t * s)
   char * path;
   int len;
   void * prop;
-  codec_info_t * info = (codec_info_t*)0;
+  const codec_info_t * info = (codec_info_t*)0;
     
   priv = calloc(1, sizeof(*priv));
   s->data.audio.decoder->priv = priv;

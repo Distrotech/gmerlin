@@ -841,7 +841,7 @@ static void close_nsv(bgav_demuxer_context_t * ctx)
   nsv_file_header_free(&priv->fh);
   }
 
-bgav_demuxer_t bgav_demuxer_nsv =
+const bgav_demuxer_t bgav_demuxer_nsv =
   {
     .probe =        probe_nsv,
     .open =         open_nsv,

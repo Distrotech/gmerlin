@@ -141,14 +141,14 @@ static int write_image_pnm(void *priv, gavl_video_frame_t *frame)
 
 /* Configuration stuff */
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =        "format",
       .long_name =   TRS("Format"),
       .type =        BG_PARAMETER_STRINGLIST,
-      .multi_names = (char*[]){ "binary", "ascii", (char*)0 },
-      .multi_labels =  (char*[]){ TRS("Binary"), TRS("ASCII"), (char*)0 },
+      .multi_names = (char const *[]){ "binary", "ascii", (char*)0 },
+      .multi_labels =  (char const *[]){ TRS("Binary"), TRS("ASCII"), (char*)0 },
 
       .val_default = { .val_str = "binary" },
     },
@@ -163,7 +163,7 @@ static bg_parameter_info_t parameters[] =
    { /* End of parameters */ }
   };
 
-static bg_parameter_info_t * get_parameters_pnm(void * p)
+static const bg_parameter_info_t * get_parameters_pnm(void * p)
   {
   return parameters;
   }
@@ -192,14 +192,14 @@ static void set_parameter_pnm(void * p, const char * name,
   }
 
 
-static char * pnm_extension = ".ppm";
+static char const * const pnm_extension = ".ppm";
 
 static const char * get_extension_pnm(void * p)
   {
   return pnm_extension;
   }
 
-bg_image_writer_plugin_t the_plugin =
+const bg_image_writer_plugin_t the_plugin =
   {
     .common =
     {

@@ -57,7 +57,7 @@ struct bg_gtk_album_window_s
 
 /* Configuration stuff */
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name = "x",

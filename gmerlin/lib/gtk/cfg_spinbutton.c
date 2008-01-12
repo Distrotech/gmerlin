@@ -107,7 +107,7 @@ attach(void * priv, GtkWidget * table, int * row, int * num_columns)
   *row += 1;
   }
 
-static gtk_widget_funcs_t int_funcs =
+static const gtk_widget_funcs_t int_funcs =
   {
     .get_value = get_value_int,
     .set_value = set_value_int,
@@ -115,7 +115,7 @@ static gtk_widget_funcs_t int_funcs =
     .attach =  attach
   };
 
-static gtk_widget_funcs_t float_funcs =
+static const gtk_widget_funcs_t float_funcs =
   {
     .get_value = get_value_float,
     .set_value = set_value_float,
@@ -124,7 +124,7 @@ static gtk_widget_funcs_t float_funcs =
   };
 
 static void create_common(bg_gtk_widget_t * w,
-                          bg_parameter_info_t * info,
+                          const bg_parameter_info_t * info,
                           float min_value,
                           float max_value,
                           const char * translation_domain)
@@ -158,7 +158,7 @@ static void create_common(bg_gtk_widget_t * w,
 
 void 
 bg_gtk_create_int(bg_gtk_widget_t * w,
-                  bg_parameter_info_t * info,
+                  const bg_parameter_info_t * info,
                   const char * translation_domain)
   {
   float min_value;
@@ -184,7 +184,7 @@ bg_gtk_create_int(bg_gtk_widget_t * w,
 
 void 
 bg_gtk_create_float(bg_gtk_widget_t * w,
-                    bg_parameter_info_t * info,
+                    const bg_parameter_info_t * info,
                     const char * translation_domain)
   {
   float min_value;

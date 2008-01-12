@@ -54,7 +54,7 @@ static void dump_chunk_header(chunk_header_t * ch)
   }
 #endif
 
-static int mmf_rates[] = { 4000, 8000, 11025, 22050, 44100 };
+static const int mmf_rates[] = { 4000, 8000, 11025, 22050, 44100 };
 
 static int mmf_rate(int code)
   {
@@ -236,7 +236,7 @@ static void close_smaf(bgav_demuxer_context_t * ctx)
     free(priv);
   }
 
-bgav_demuxer_t bgav_demuxer_smaf =
+const bgav_demuxer_t bgav_demuxer_smaf =
   {
     .probe =       probe_smaf,
     .open =        open_smaf,

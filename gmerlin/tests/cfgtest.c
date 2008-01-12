@@ -36,7 +36,7 @@ bg_cfg_section_t  * section_4;
 
 #define PARAMETER_FLAGS BG_PARAMETER_SYNC
 
-static bg_parameter_info_t multimenu_1_info[] =
+static const bg_parameter_info_t multimenu_1_info[] =
   {
     {
       .name =      "multimenu_1_checkbutton_1",
@@ -53,7 +53,7 @@ static bg_parameter_info_t multimenu_1_info[] =
     { /* End of Parameters */ }
   };
 
-static bg_parameter_info_t multimenu_2_info[] =
+static const bg_parameter_info_t multimenu_2_info[] =
   {
     {
       .name =      "multimenu_2_checkbutton_1",
@@ -70,7 +70,7 @@ static bg_parameter_info_t multimenu_2_info[] =
     { /* End of Parameters */ }
   };
 
-static bg_parameter_info_t multilist_1_info[] =
+static const bg_parameter_info_t multilist_1_info[] =
   {
     {
       .name =      "multilist_1_checkbutton_1",
@@ -87,7 +87,7 @@ static bg_parameter_info_t multilist_1_info[] =
     { /* End of Parameters */ }
   };
 
-static bg_parameter_info_t multilist_2_info[] =
+static const bg_parameter_info_t multilist_2_info[] =
   {
     {
       .name =      "multilist_2_checkbutton_1",
@@ -104,7 +104,7 @@ static bg_parameter_info_t multilist_2_info[] =
     { /* End of Parameters */ }
   };
 
-static bg_parameter_info_t multichain_1_info[] =
+static const bg_parameter_info_t multichain_1_info[] =
   {
     {
       .name =      "multichain_1_checkbutton_1",
@@ -121,7 +121,7 @@ static bg_parameter_info_t multichain_1_info[] =
     { /* End of Parameters */ }
   };
 
-static bg_parameter_info_t multichain_2_info[] =
+static const bg_parameter_info_t multichain_2_info[] =
   {
     {
       .name =      "multichain_2_checkbutton_1",
@@ -139,28 +139,28 @@ static bg_parameter_info_t multichain_2_info[] =
   };
 
 
-static bg_parameter_info_t * multilist_parameters[] =
+static const bg_parameter_info_t * multilist_parameters[] =
   {
     multilist_1_info,
     multilist_2_info,
     (bg_parameter_info_t *)0
   };
 
-static bg_parameter_info_t * multimenu_parameters[] =
+static const bg_parameter_info_t * multimenu_parameters[] =
   {
     multimenu_1_info,
     multimenu_2_info,
     (bg_parameter_info_t *)0
   };
 
-static bg_parameter_info_t * multichain_parameters[] =
+static const bg_parameter_info_t * multichain_parameters[] =
   {
     multichain_1_info,
     multichain_2_info,
     (bg_parameter_info_t *)0
   };
 
-static bg_parameter_info_t info_1[] =
+static const bg_parameter_info_t info_1[] =
   {
 #if 0
     {
@@ -248,14 +248,14 @@ static bg_parameter_info_t info_1[] =
       .type =        BG_PARAMETER_STRINGLIST,
       .flags =     PARAMETER_FLAGS,
       .val_default = { .val_str = "option_2" },
-      .multi_names =  (char *[]){ "option_1", "option_2", "option_3", NULL },
-      .multi_labels = (char *[]){ "Option 1", "Option 2", "Option 3", NULL },
+      .multi_names =  (char const *[]){ "option_1", "option_2", "option_3", NULL },
+      .multi_labels = (char const *[]){ "Option 1", "Option 2", "Option 3", NULL },
       .help_string =   "Stringlist help"
     },
     { /* End of parameters */ }
   };
     
-static bg_parameter_info_t info_2[] =
+static const bg_parameter_info_t info_2[] =
   {
 #if 0
     {
@@ -316,7 +316,7 @@ static bg_parameter_info_t info_2[] =
   };
 
 
-static bg_parameter_info_t info_3[] =
+static const bg_parameter_info_t info_3[] =
   {
 #if 0
     {
@@ -331,9 +331,9 @@ static bg_parameter_info_t info_3[] =
       .type =               BG_PARAMETER_MULTI_MENU,
       .flags =     PARAMETER_FLAGS,
       .val_default =        { .val_str = "multimenu_1" },
-      .multi_names =        (char *[]){ "multimenu_1", "multimenu_2", NULL },
-      .multi_labels =   (char *[]){ "Multimenu 1", "Multimenu 2", NULL },
-      .multi_descriptions = (char *[]){ "Multimenu 1", "Multimenu 2", NULL },
+      .multi_names =        (char const *[]){ "multimenu_1", "multimenu_2", NULL },
+      .multi_labels =   (char const *[]){ "Multimenu 1", "Multimenu 2", NULL },
+      .multi_descriptions = (char const *[]){ "Multimenu 1", "Multimenu 2", NULL },
       .multi_parameters =   multimenu_parameters,
       .help_string =   "Multimenu help",
     },
@@ -343,9 +343,9 @@ static bg_parameter_info_t info_3[] =
       .long_name =          "Multilist",
       .type =               BG_PARAMETER_MULTI_LIST,
       .flags =     PARAMETER_FLAGS,
-      .multi_names =        (char *[]){ "multilist_1", "multilist_2", NULL },
-      .multi_labels =   (char *[]){ "Multilist 1", "Multilist 2", NULL },
-      .multi_descriptions = (char *[]){ "Multilist 1", "Multilist 2", NULL },
+      .multi_names =        (char const *[]){ "multilist_1", "multilist_2", NULL },
+      .multi_labels =   (char const *[]){ "Multilist 1", "Multilist 2", NULL },
+      .multi_descriptions = (char const *[]){ "Multilist 1", "Multilist 2", NULL },
       .multi_parameters =   multilist_parameters,
       .help_string =   "Multilist help",
     },
@@ -353,16 +353,16 @@ static bg_parameter_info_t info_3[] =
     { /* End of parameters */ }
   };
 
-static bg_parameter_info_t info_4[] =
+static const bg_parameter_info_t info_4[] =
   {
     {
       .name =               "multichain",
       .long_name =          "Multichain",
       .type =               BG_PARAMETER_MULTI_CHAIN,
       .flags =     PARAMETER_FLAGS,
-      .multi_names =        (char *[]){ "multichain_1", "multichain_2", NULL },
-      .multi_labels =   (char *[]){ "Multichain 1", "Multichain 2", NULL },
-      .multi_descriptions = (char *[]){ "Multichain 1", "Multichain 2", NULL },
+      .multi_names =        (char const *[]){ "multichain_1", "multichain_2", NULL },
+      .multi_labels =   (char const *[]){ "Multichain 1", "Multichain 2", NULL },
+      .multi_descriptions = (char const *[]){ "Multichain 1", "Multichain 2", NULL },
       .multi_parameters =   multichain_parameters,
       .help_string =   "Multichain help",
     },
@@ -370,12 +370,12 @@ static bg_parameter_info_t info_4[] =
   };
 
 
-static bg_parameter_info_t * find_parameter(bg_parameter_info_t * arr,
+static const bg_parameter_info_t * find_parameter(const bg_parameter_info_t * arr,
                                             const char * name)
   {
   char * pos;
   
-  bg_parameter_info_t * ret;
+  const bg_parameter_info_t * ret;
   int i = 0, j;
   
   i = 0;
@@ -415,11 +415,11 @@ static bg_parameter_info_t * find_parameter(bg_parameter_info_t * arr,
 static void set_parameter(void * data, const char * name,
                           const bg_parameter_value_t * v)
   {
-  bg_parameter_info_t * tmp_info;
+  const bg_parameter_info_t * tmp_info;
   int i;
   char time_buf[GAVL_TIME_STRING_LEN];
 
-  tmp_info = (bg_parameter_info_t *)0;
+  tmp_info = (const bg_parameter_info_t *)0;
 
   if(!name)
     {
@@ -605,7 +605,7 @@ int main(int argc, char ** argv)
   section_3 = bg_cfg_registry_find_section(registry, "section_3");
   section_4 = bg_cfg_registry_find_section(registry, "section_4");
 
-  bg_cmdline_parse(global_options, &argc, &argv, NULL, &app_data);
+  bg_cmdline_parse(global_options, &argc, &argv, NULL);
     
   bg_gtk_init(&argc, &argv, (char*)0);
 

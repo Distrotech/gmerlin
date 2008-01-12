@@ -52,7 +52,7 @@ typedef struct
   bgav_video_decoder_t decoder;
   } codec_info_t;
 
-static codec_info_t real_codecs[] =
+static const codec_info_t real_codecs[] =
   {
     {
       .dll_name = "drvc.so",
@@ -183,7 +183,7 @@ static int init_real(bgav_stream_t * s)
   
   char codec_filename[PATH_MAX];
   rv_init_t init_data;
-  codec_info_t * info = (codec_info_t*)0;
+  const codec_info_t * info = (const codec_info_t*)0;
   real_priv_t * priv;
 
   uint32_t version;

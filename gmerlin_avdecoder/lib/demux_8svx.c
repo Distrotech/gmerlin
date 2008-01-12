@@ -291,7 +291,7 @@ static void close_8svx(bgav_demuxer_context_t * ctx)
   free(priv);
   }
 
-bgav_demuxer_t bgav_demuxer_8svx =
+const bgav_demuxer_t bgav_demuxer_8svx =
   {
     .probe =       probe_8svx,
     .open =        open_8svx,

@@ -270,7 +270,7 @@ void bg_player_interrupt_resume(bg_player_t * player);
  *  Returned parameters can be passed to \ref bg_player_set_input_parameter
  */
 
-bg_parameter_info_t * bg_player_get_input_parameters(bg_player_t *  player);
+const bg_parameter_info_t * bg_player_get_input_parameters(bg_player_t *  player);
 
 /** \brief Set an input parameter
  *  \param data Player casted to void*
@@ -287,7 +287,7 @@ void bg_player_set_input_parameter(void * data, const char * name,
  *  Returned parameters can be passed to \ref bg_player_set_audio_parameter
  */
 
-bg_parameter_info_t * bg_player_get_audio_parameters(bg_player_t * player);
+const bg_parameter_info_t * bg_player_get_audio_parameters(bg_player_t * player);
 
 /** \brief Get audio filter parameters
  *  \param player A player
@@ -296,7 +296,7 @@ bg_parameter_info_t * bg_player_get_audio_parameters(bg_player_t * player);
  *  Returned parameters can be passed to \ref bg_player_set_audio_filter_parameter
  */
 
-bg_parameter_info_t * bg_player_get_audio_filter_parameters(bg_player_t * player);
+const bg_parameter_info_t * bg_player_get_audio_filter_parameters(bg_player_t * player);
 
 /** \brief Set an audio parameter
  *  \param data Player casted to void*
@@ -320,7 +320,7 @@ void bg_player_set_audio_filter_parameter(void*data, const char * name,
  *
  *  Returned parameters can be passed to \ref bg_player_set_video_parameter
  */
-bg_parameter_info_t * bg_player_get_video_parameters(bg_player_t * player);
+const bg_parameter_info_t * bg_player_get_video_parameters(bg_player_t * player);
 
 /** \brief Get video filter parameters
  *  \param player A player
@@ -328,7 +328,7 @@ bg_parameter_info_t * bg_player_get_video_parameters(bg_player_t * player);
  *
  *  Returned parameters can be passed to \ref bg_player_set_video_parameter
  */
-bg_parameter_info_t * bg_player_get_video_filter_parameters(bg_player_t * player);
+const bg_parameter_info_t * bg_player_get_video_filter_parameters(bg_player_t * player);
 
 /** \brief Set a video parameter
  *  \param data Player casted to void*
@@ -352,7 +352,7 @@ void bg_player_set_video_filter_parameter(void*data, const char * name,
  *
  *  Returned parameters can be passed to \ref bg_player_set_subtitle_parameter
  */
-bg_parameter_info_t * bg_player_get_subtitle_parameters(bg_player_t * player);
+const bg_parameter_info_t * bg_player_get_subtitle_parameters(bg_player_t * player);
 /** \brief Set a subtitle parameter
  *  \param data Player casted to void*
  *  \param name Name
@@ -366,7 +366,7 @@ void bg_player_set_subtitle_parameter(void*data, const char * name, const bg_par
  *
  *  Returned parameters can be passed to \ref bg_player_set_osd_parameter
  */
-bg_parameter_info_t * bg_player_get_osd_parameters(bg_player_t * player);
+const bg_parameter_info_t * bg_player_get_osd_parameters(bg_player_t * player);
 /** \brief Set an OSD parameter
  *  \param data Player casted to void*
  *  \param name Name
@@ -403,7 +403,7 @@ bg_player_set_visualization_plugin(bg_player_t * p, const bg_plugin_info_t * plu
  *  \ref bg_player_set_visualization_parameter
  */
 
-bg_parameter_info_t *
+const bg_parameter_info_t *
 bg_player_get_visualization_parameters(bg_player_t *  player);
 
 /** \brief Set a visualization parameter

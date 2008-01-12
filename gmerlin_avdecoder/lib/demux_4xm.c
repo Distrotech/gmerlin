@@ -484,7 +484,7 @@ static void close_4xm(bgav_demuxer_context_t * ctx)
   free(priv);
   }
 
-bgav_demuxer_t bgav_demuxer_4xm =
+const bgav_demuxer_t bgav_demuxer_4xm =
   {
     .probe =        probe_4xm,
     .open =         open_4xm,

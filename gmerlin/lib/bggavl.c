@@ -277,7 +277,7 @@ void bg_gavl_audio_options_set_format(const bg_gavl_audio_options_t * opt,
 #define FRAME_RATE_60          9
 #define NUM_FRAME_RATES       10
 
-static struct
+static const struct
   {
   int rate;
   char * name;
@@ -296,7 +296,7 @@ framerate_strings[NUM_FRAME_RATES] =
     { FRAME_RATE_60,         "60"           },
   };
 
-static struct
+static const struct
   {
   int rate;
   int timescale;

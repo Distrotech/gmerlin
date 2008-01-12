@@ -42,22 +42,22 @@
 
 #include "alsa_common.h"
 
-static bg_parameter_info_t static_parameters[] =
+static const bg_parameter_info_t static_parameters[] =
   {
     {
       .name =        "channel_mode",
       .long_name =   TRS("Channel Mode"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "stereo" },
-      .multi_names =   (char*[]){ "mono", "stereo", (char*)0 },
-      .multi_labels =  (char*[]){ TRS("Mono"), TRS("Stereo"), (char*)0 },
+      .multi_names =   (char const *[]){ "mono", "stereo", (char*)0 },
+      .multi_labels =  (char const *[]){ TRS("Mono"), TRS("Stereo"), (char*)0 },
     },
     {
       .name =        "bits",
       .long_name =   TRS("Bits"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "16" },
-      .multi_names =     (char*[]){ "8", "16", (char*)0 },
+      .multi_names =     (char const *[]){ "8", "16", (char*)0 },
     },
     {
       .name =        "samplerate",
@@ -86,7 +86,7 @@ improve recording performance on slow systems under load."),
     },
   };
 
-static int num_static_parameters =
+static const int num_static_parameters =
   sizeof(static_parameters)/sizeof(static_parameters[0]);
 
 typedef struct
@@ -110,7 +110,7 @@ typedef struct
   int64_t samples_read;
   } alsa_t;
 
-static bg_parameter_info_t *
+static const bg_parameter_info_t *
 get_parameters_alsa(void * p)
   {
   int i;
@@ -329,7 +329,7 @@ static void destroy_alsa(void * p)
   free(priv);
   }
 
-bg_ra_plugin_t the_plugin =
+const bg_ra_plugin_t the_plugin =
   {
     .common =
     {

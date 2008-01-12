@@ -177,7 +177,7 @@ attach(void * priv, GtkWidget * table, int * row, int * num_columns)
   *row += 1;
   }
 
-static gtk_widget_funcs_t funcs =
+static const gtk_widget_funcs_t funcs =
   {
     .get_value = get_value,
     .set_value = set_value,
@@ -187,7 +187,7 @@ static gtk_widget_funcs_t funcs =
 
 void 
 bg_gtk_create_time(bg_gtk_widget_t * w,
-                   bg_parameter_info_t * info, const char * translation_domain)
+                   const bg_parameter_info_t * info, const char * translation_domain)
   {
   char * tooltip;
   GtkWidget * label;

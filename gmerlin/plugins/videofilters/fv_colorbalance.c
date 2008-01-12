@@ -143,7 +143,7 @@ static void destroy_colorbalance(void * priv)
   free(vp);
   }
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .gettext_domain = PACKAGE,
@@ -187,7 +187,7 @@ static bg_parameter_info_t parameters[] =
     { /* End of parameters */ },
   };
 
-static bg_parameter_info_t * get_parameters_colorbalance(void * priv)
+static const bg_parameter_info_t * get_parameters_colorbalance(void * priv)
   {
   return parameters;
   }
@@ -601,7 +601,7 @@ read_video_colorbalance(void * priv, gavl_video_frame_t * frame, int stream)
   return vp->read_video(vp, frame);
   }
 
-bg_fv_plugin_t the_plugin = 
+const bg_fv_plugin_t the_plugin = 
   {
     .common =
     {

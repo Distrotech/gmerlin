@@ -168,20 +168,20 @@ struct bg_transcoder_track_s
   bg_chapter_list_t * chapter_list;
   };
 
-bg_parameter_info_t *
+const bg_parameter_info_t *
 bg_transcoder_track_get_general_parameters();
 
 
-bg_parameter_info_t *
+const bg_parameter_info_t *
 bg_transcoder_track_audio_get_general_parameters();
 
-bg_parameter_info_t *
+const bg_parameter_info_t *
 bg_transcoder_track_video_get_general_parameters();
 
-bg_parameter_info_t *
+const bg_parameter_info_t *
 bg_transcoder_track_subtitle_text_get_general_parameters();
 
-bg_parameter_info_t *
+const bg_parameter_info_t *
 bg_transcoder_track_subtitle_overlay_get_general_parameters();
 
 

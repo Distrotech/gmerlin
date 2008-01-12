@@ -19,13 +19,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-static struct
+static const struct
   {
-  char * iso_639_t;
-  char * iso_639_b;
-  char * iso_639_2;
-  char * name;
-  char * family;
+  char const * const iso_639_t;
+  char const * const iso_639_b;
+  char const * const iso_639_2;
+  char const * const name;
+  char const * const family;
   }
 language_codes[] =
   {

@@ -607,7 +607,7 @@ static void close_spumux(bgav_stream_t * s)
 #endif // HAVE_LIBPNG
 
 
-static bgav_subtitle_reader_t subtitle_readers[] =
+static const bgav_subtitle_reader_t subtitle_readers[] =
   {
     {
       .name = "Subrip (srt)",
@@ -647,7 +647,7 @@ void bgav_subreaders_dump()
   bgav_dprintf( "</ul>\n");
   }
 
-static char * extensions[] =
+static char const * const extensions[] =
   {
     "srt",
     "sub",

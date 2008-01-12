@@ -55,7 +55,7 @@ static void destroy_png(void * priv)
 
 /* Configuration stuff */
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =        "compression",
@@ -69,26 +69,26 @@ static bg_parameter_info_t parameters[] =
       .name =        "bit_mode",
       .long_name =   TRS("Bits per channel"),
       .type =        BG_PARAMETER_STRINGLIST,
-      .multi_names = (char*[]){ "Auto", "8", "16" },
+      .multi_names = (char const *[]){ "Auto", "8", "16" },
       .val_default = { .val_str = "8" },
       .help_string = TRS("If you select auto, the depth will be chosen according to the input format")
     },
     { /* End of parameters */ }
   };
 
-static bg_parameter_info_t * get_parameters_png(void * p)
+static const bg_parameter_info_t * get_parameters_png(void * p)
   {
   return parameters;
   }
 
-static char * png_extension = ".png";
+static char const * const png_extension = ".png";
 
 static const char * get_extension_png(void * p)
   {
   return png_extension;
   }
 
-bg_image_writer_plugin_t the_plugin =
+const bg_image_writer_plugin_t the_plugin =
   {
     .common =
     {

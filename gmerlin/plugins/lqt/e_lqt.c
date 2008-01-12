@@ -36,7 +36,7 @@
 #define TEXT_TIME_SCALE GAVL_TIME_SCALE
 // #define TEXT_TIME_SCALE 1000
 
-static bg_parameter_info_t stream_parameters[] = 
+static const bg_parameter_info_t stream_parameters[] = 
   {
     {
       .name =      "codec",
@@ -109,7 +109,7 @@ static void * create_lqt()
   }
 
 
-static struct
+static const struct
   {
   int type_mask;
   char * extension;
@@ -507,14 +507,14 @@ static void create_parameters(e_lqt_t * e)
   
   }
 
-static bg_parameter_info_t common_parameters[] =
+static const bg_parameter_info_t common_parameters[] =
   {
     {
       .name =      "format",
       .long_name = TRS("Format"),
       .type =      BG_PARAMETER_STRINGLIST,
-      .multi_names =    (char*[]) { "quicktime", "avi", "avi_opendml",   "mp4", "m4a", "3gp", (char*)0 },
-      .multi_labels =   (char*[]) { TRS("Quicktime"), TRS("AVI"), TRS("AVI (Opendml)"),
+      .multi_names =    (char const *[]) { "quicktime", "avi", "avi_opendml",   "mp4", "m4a", "3gp", (char*)0 },
+      .multi_labels =   (char const *[]) { TRS("Quicktime"), TRS("AVI"), TRS("AVI (Opendml)"),
                                   TRS("MP4"), TRS("M4A"), TRS("3GP"), (char*)0 },
       .val_default = { .val_str = "quicktime" },
     },
@@ -536,7 +536,7 @@ static bg_parameter_info_t common_parameters[] =
     { /* End of parameters */ }
   };
 
-static bg_parameter_info_t * get_parameters_lqt(void * data)
+static const bg_parameter_info_t * get_parameters_lqt(void * data)
   {
   return common_parameters;
   }
@@ -570,7 +570,7 @@ static void set_parameter_lqt(void * data, const char * name,
   
   }
 
-static bg_parameter_info_t * get_audio_parameters_lqt(void * data)
+static const bg_parameter_info_t * get_audio_parameters_lqt(void * data)
   {
   e_lqt_t * e = (e_lqt_t*)data;
   
@@ -580,7 +580,7 @@ static bg_parameter_info_t * get_audio_parameters_lqt(void * data)
   return e->audio_parameters;
   }
 
-static bg_parameter_info_t * get_video_parameters_lqt(void * data)
+static const bg_parameter_info_t * get_video_parameters_lqt(void * data)
   {
   e_lqt_t * e = (e_lqt_t*)data;
   
@@ -680,7 +680,7 @@ static void set_video_parameter_lqt(void * data, int stream, const char * name,
 
 /* Subtitle parameters */
 
-static bg_parameter_info_t subtitle_text_parameters[] =
+static const bg_parameter_info_t subtitle_text_parameters[] =
   {
     {
       .name =      "box_top",
@@ -725,7 +725,7 @@ static bg_parameter_info_t subtitle_text_parameters[] =
     { /* End of parameters */ },
   };
 
-static bg_parameter_info_t * get_subtitle_text_parameters_lqt(void * priv)
+static const bg_parameter_info_t * get_subtitle_text_parameters_lqt(void * priv)
   {
   return subtitle_text_parameters;
   }
@@ -763,7 +763,7 @@ static void set_subtitle_text_parameter_lqt(void * priv, int stream,
     }
   }
 
-bg_encoder_plugin_t the_plugin =
+const bg_encoder_plugin_t the_plugin =
   {
     .common =
     {

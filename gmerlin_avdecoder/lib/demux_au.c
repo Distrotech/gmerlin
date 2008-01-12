@@ -256,7 +256,7 @@ static void close_au(bgav_demuxer_context_t * ctx)
   free(priv);
   }
 
-bgav_demuxer_t bgav_demuxer_au =
+const bgav_demuxer_t bgav_demuxer_au =
   {
     .probe =       probe_au,
     .open =        open_au,

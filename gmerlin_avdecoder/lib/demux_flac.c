@@ -373,7 +373,7 @@ static void close_flac(bgav_demuxer_context_t * ctx)
   free(priv);
   }
 
-bgav_demuxer_t bgav_demuxer_flac =
+const bgav_demuxer_t bgav_demuxer_flac =
   {
     .probe =       probe_flac,
     .open =        open_flac,

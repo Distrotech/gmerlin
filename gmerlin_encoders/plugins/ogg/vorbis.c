@@ -83,15 +83,15 @@ static void * create_vorbis(FILE * output, long serialno)
   return ret;
   }
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =        "bitrate_mode",
       .long_name =   TRS("Bitrate mode"),
       .type =        BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "VBR" },
-      .multi_names = (char*[]){ "vbr", "vbr_bitrate", "managed", (char*)0 },
-      .multi_labels = (char*[]){ TRS("VBR"), TRS("VBR (bitrate)"), TRS("Managed"), (char*)0 },
+      .multi_names = (char const *[]){ "vbr", "vbr_bitrate", "managed", (char*)0 },
+      .multi_labels = (char const *[]){ TRS("VBR"), TRS("VBR (bitrate)"), TRS("Managed"), (char*)0 },
       .help_string = TRS("Bitrate mode:\n\
 VBR: You specify a quality and (optionally) a minimum and maximum bitrate\n\
 VBR (bitrate): The specified nominal bitrate will be used for selecting the encoder mode.\n\
@@ -143,7 +143,7 @@ VBR is recommended, managed bitrate might result in a worse quality")
   };
 
 
-static bg_parameter_info_t * get_parameters_vorbis()
+static const bg_parameter_info_t * get_parameters_vorbis()
   {
   return parameters;
   }
@@ -408,7 +408,7 @@ static int close_vorbis(void * data)
 
 
 
-bg_ogg_codec_t bg_vorbis_codec =
+const bg_ogg_codec_t bg_vorbis_codec =
   {
     .name =      "vorbis",
     .long_name = TRS("Vorbis encoder"),

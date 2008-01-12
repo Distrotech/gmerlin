@@ -1172,7 +1172,7 @@ static int select_track_asf(bgav_demuxer_context_t * ctx, int track)
   }
 
 
-bgav_demuxer_t bgav_demuxer_asf =
+const bgav_demuxer_t bgav_demuxer_asf =
   {
     .probe =          probe_asf,
     .open =           open_asf,

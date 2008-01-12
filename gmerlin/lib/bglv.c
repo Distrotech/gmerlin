@@ -36,7 +36,7 @@
 static int lv_initialized = 0;
 pthread_mutex_t lv_initialized_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-static int bg_attributes[VISUAL_GL_ATTRIBUTE_LAST] =
+static const int bg_attributes[VISUAL_GL_ATTRIBUTE_LAST] =
   {
     [VISUAL_GL_ATTRIBUTE_NONE]             = -1, /**< No attribute. */
     [VISUAL_GL_ATTRIBUTE_BUFFER_SIZE]      = BG_GL_ATTRIBUTE_BUFFER_SIZE,
@@ -244,19 +244,19 @@ static VisUIWidget * check_widget(VisUIWidget * w, const char * name,
       list_entry = (VisListEntry*)0;
       while(visual_list_next(&(VISUAL_UI_CHOICE(w)->choices.choices), &list_entry))
         num_items++;
-      info->multi_names = calloc(num_items+1, sizeof(info->multi_names));
+      info->multi_names_nc = calloc(num_items+1, sizeof(info->multi_names_nc));
       list_entry = (VisListEntry*)0;
       for(i = 0; i < num_items; i++)
         {
         visual_list_next(&(VISUAL_UI_CHOICE(w)->choices.choices), &list_entry);
-        info->multi_names[i] = bg_strdup((char*)0, ((VisUIChoiceEntry*)(list_entry->data))->name);
+        info->multi_names_nc[i] = bg_strdup((char*)0, ((VisUIChoiceEntry*)(list_entry->data))->name);
 
         /* Check if this is the current value */
         //        visual_param_entry_compare(((VisUIChoiceEntry*)(list_entry->data))->value,
         //                                       VISUAL_UI_MUTATOR(w)->param)
         if(!i)
           {
-          info->val_default.val_str = bg_strdup((char*)0, info->multi_names[i]);
+          info->val_default.val_str = bg_strdup((char*)0, info->multi_names_nc[i]);
           }
         }
       ret = w;
@@ -271,6 +271,7 @@ static VisUIWidget * check_widget(VisUIWidget * w, const char * name,
     }
   if(ret)
     info->help_string = bg_strdup(info->help_string, w->tooltip);
+  bg_parameter_info_set_const_ptrs(info);
   return ret;
   }
 
@@ -705,7 +706,7 @@ static void show_frame_lv(void * data)
   bg_x11_window_unset_gl(priv->win);
   }
 
-static bg_parameter_info_t * get_parameters_lv(void * data)
+static const bg_parameter_info_t * get_parameters_lv(void * data)
   {
   lv_priv_t * priv;
   priv = (lv_priv_t*)data;
@@ -835,7 +836,8 @@ int bg_lv_load(bg_plugin_handle_t * ret,
   
   /* Set up callbacks */
   p = calloc(1, sizeof(*p));
-  ret->plugin = (bg_plugin_common_t*)p;
+  ret->plugin_nc = (bg_plugin_common_t*)p;
+  ret->plugin = ret->plugin_nc;
   
   if(plugin_flags & BG_PLUGIN_VISUALIZE_GL)
     {
@@ -930,13 +932,13 @@ void bg_lv_unload(bg_plugin_handle_t * h)
     bg_x11_window_destroy(priv->win);
     }
   
-  free(h->plugin);
+  free(h->plugin_nc);
   free(priv);
   }
 
 /* Callbacks */
 
-static struct
+static const struct
   {
   int bg_code;
   VisKey lv_code;

@@ -180,7 +180,7 @@ static void destroy_scope(void * priv)
   free(vp);
   }
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .gettext_domain = PACKAGE,
@@ -197,9 +197,9 @@ static bg_parameter_info_t parameters[] =
       .type = BG_PARAMETER_STRINGLIST,
       .flags = BG_PARAMETER_SYNC,
       .val_default = { .val_str = "gauss" },
-      .multi_names = (char*[]){ "gauss", "triangular", "box", 
+      .multi_names = (char const *[]){ "gauss", "triangular", "box", 
                               (char*)0 },
-      .multi_labels = (char*[]){ TRS("Gauss"), 
+      .multi_labels = (char const *[]){ TRS("Gauss"), 
                                TRS("Triangular"), 
                                TRS("Rectangular"),
                               (char*)0 },
@@ -227,7 +227,7 @@ static bg_parameter_info_t parameters[] =
     { /* End of parameters */ },
   };
 
-static bg_parameter_info_t * get_parameters_scope(void * priv)
+static const bg_parameter_info_t * get_parameters_scope(void * priv)
   {
   return parameters;
   }
@@ -494,7 +494,7 @@ static void close_scope(void * priv)
   
   }
 
-bg_visualization_plugin_t the_plugin = 
+const bg_visualization_plugin_t the_plugin = 
   {
     .common =
     {

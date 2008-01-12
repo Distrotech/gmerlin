@@ -42,9 +42,9 @@ bg_plugin_info_t * bg_singlepic_encoder_info(bg_plugin_registry_t * reg);
  *  Get the static plugin infos
  */
 
-bg_plugin_common_t * bg_singlepic_input_get();
-bg_plugin_common_t * bg_singlepic_stills_input_get();
-bg_plugin_common_t * bg_singlepic_encoder_get();
+const bg_plugin_common_t * bg_singlepic_input_get();
+const bg_plugin_common_t * bg_singlepic_stills_input_get();
+const bg_plugin_common_t * bg_singlepic_encoder_get();
 
 /*
  *  Create the plugins (These are a replacement for the create() methods

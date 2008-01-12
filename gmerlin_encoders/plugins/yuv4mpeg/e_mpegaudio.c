@@ -147,13 +147,13 @@ static const char * get_extension_mpa(void * data)
   return bg_mpa_get_extension(&mpa->com);
   }
 
-static bg_parameter_info_t * get_parameters_mpa(void * data)
+static const bg_parameter_info_t * get_parameters_mpa(void * data)
   {
   return bg_mpa_get_parameters();
   }
 
 
-bg_encoder_plugin_t the_plugin =
+const bg_encoder_plugin_t the_plugin =
   {
     .common =
     {

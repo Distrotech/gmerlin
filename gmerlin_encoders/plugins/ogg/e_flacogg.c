@@ -33,9 +33,9 @@
 #include <ogg/ogg.h>
 #include "ogg_common.h"
 
-extern bg_ogg_codec_t bg_flacogg_codec;
+extern const bg_ogg_codec_t bg_flacogg_codec;
 
-static bg_parameter_info_t * get_audio_parameters_flacogg(void * data)
+static const bg_parameter_info_t * get_audio_parameters_flacogg(void * data)
   {
   return bg_flacogg_codec.get_parameters();
   }
@@ -56,7 +56,7 @@ static int add_audio_stream_flacogg(void * data, const char * language,
   return ret;
   }
 
-bg_encoder_plugin_t the_plugin =
+const bg_encoder_plugin_t the_plugin =
   {
     .common =
     {

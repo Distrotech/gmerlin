@@ -53,7 +53,7 @@
 #define JUSTIFY_TOP    1
 #define JUSTIFY_BOTTOM 2
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =       "render_options",
@@ -94,8 +94,8 @@ static bg_parameter_info_t parameters[] =
       .long_name =  TRS("Horizontal justify"),
       .type =       BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "center" },
-      .multi_names =  (char*[]){ "center", "left", "right", (char*)0 },
-      .multi_labels = (char*[]){ TRS("Center"), TRS("Left"), TRS("Right"), (char*)0  },
+      .multi_names =  (char const *[]){ "center", "left", "right", (char*)0 },
+      .multi_labels = (char const *[]){ TRS("Center"), TRS("Left"), TRS("Right"), (char*)0  },
             
     },
     {
@@ -103,8 +103,8 @@ static bg_parameter_info_t parameters[] =
       .long_name =  TRS("Vertical justify"),
       .type =       BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "bottom" },
-      .multi_names =  (char*[]){ "center", "top", "bottom", (char*)0  },
-      .multi_labels = (char*[]){ TRS("Center"), TRS("Top"), TRS("Bottom"), (char*)0 },
+      .multi_names =  (char const *[]){ "center", "top", "bottom", (char*)0  },
+      .multi_labels = (char const *[]){ TRS("Center"), TRS("Top"), TRS("Bottom"), (char*)0 },
     },
     {
       .name =        "cache_size",
@@ -184,8 +184,8 @@ static bg_parameter_info_t parameters[] =
       .long_name =  TRS("Default Colorspace"),
       .type =       BG_PARAMETER_STRINGLIST,
       .val_default =  { .val_str = "yuv" },
-      .multi_names =  (char*[]){ "yuv", "rgb", (char*)0 },
-      .multi_labels = (char*[]){ TRS("YCrCb"), TRS("RGB"), (char*)0 },
+      .multi_names =  (char const *[]){ "yuv", "rgb", (char*)0 },
+      .multi_labels = (char const *[]){ TRS("YCrCb"), TRS("RGB"), (char*)0 },
     },
     {
       .name =       "default_framerate",
@@ -850,7 +850,7 @@ void bg_text_renderer_destroy(bg_text_renderer_t * r)
   free(r);
   }
 
-bg_parameter_info_t * bg_text_renderer_get_parameters()
+const bg_parameter_info_t * bg_text_renderer_get_parameters()
   {
   return parameters;
   }

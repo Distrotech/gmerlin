@@ -139,7 +139,7 @@ static int write_image_tga(void * priv, gavl_video_frame_t * frame)
 
 /* Configuration stuff */
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =        "rle",
@@ -150,7 +150,7 @@ static bg_parameter_info_t parameters[] =
     { /* End of parameters */ }
   };
 
-static bg_parameter_info_t * get_parameters_tga(void * p)
+static const bg_parameter_info_t * get_parameters_tga(void * p)
   {
   return parameters;
   }
@@ -168,7 +168,7 @@ static void set_parameter_tga(void * p, const char * name,
     tga->rle = val->val_i;
   }
 
-static char * tga_extension = ".tga";
+static char const * const tga_extension = ".tga";
 
 static const char * get_extension_tga(void * p)
   {
@@ -176,7 +176,7 @@ static const char * get_extension_tga(void * p)
   }
 
 
-bg_image_writer_plugin_t the_plugin =
+const bg_image_writer_plugin_t the_plugin =
   {
     .common =
     {

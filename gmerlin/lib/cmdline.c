@@ -34,6 +34,8 @@
 #include <cmdline.h>
 #include <utils.h>
 
+static const bg_cmdline_app_data_t * app_data;
+
 
 /* Terminal related functions */
 
@@ -213,7 +215,7 @@ static void print_linebreak(FILE * out, bg_help_format_t format)
     fprintf(out, "\n\n");
   }
 
-static void print_version(bg_cmdline_app_data_t * app_data)
+static void print_version(const bg_cmdline_app_data_t * app_data)
   {
   printf("%s (%s) %s\n", app_data->name, app_data->package, app_data->version);
   printf(TR("Copyright (C) 2001-2007 Members of the gmerlin project\n"));
@@ -222,7 +224,7 @@ the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\n\
 There is NO WARRANTY, to the extent permitted by law.\n"));
   }
 
-static void print_help(bg_cmdline_arg_t* args, bg_help_format_t format)
+static void print_help(const bg_cmdline_arg_t* args, bg_help_format_t format)
   {
   int i = 0;
   FILE * out = stdout;
@@ -281,7 +283,7 @@ static void print_help(bg_cmdline_arg_t* args, bg_help_format_t format)
   
   }
 
-static bg_cmdline_arg_t auto_options[] =
+static const bg_cmdline_arg_t auto_options[] =
   {
     {
       .arg =         "-help",
@@ -306,7 +308,7 @@ static bg_cmdline_arg_t auto_options[] =
     { /* End of options */ }
   };
 
-void bg_cmdline_print_help(bg_cmdline_app_data_t * app_data, char * argv0, bg_help_format_t format)
+void bg_cmdline_print_help(char * argv0, bg_help_format_t format)
   {
   int i;
   char * tmp_string;
@@ -499,28 +501,22 @@ void bg_cmdline_print_help(bg_cmdline_app_data_t * app_data, char * argv0, bg_he
 
 static void opt_help(void * data, int * argc, char *** argv, int arg)
   {
-  bg_cmdline_app_data_t * app_data =
-    (bg_cmdline_app_data_t*)data;
   if(isatty(fileno(stdout)))
-    bg_cmdline_print_help(app_data, (*argv)[0], BG_HELP_FORMAT_TERM);
+    bg_cmdline_print_help((*argv)[0], BG_HELP_FORMAT_TERM);
   else
-    bg_cmdline_print_help(app_data, (*argv)[0], BG_HELP_FORMAT_PLAIN);
+    bg_cmdline_print_help((*argv)[0], BG_HELP_FORMAT_PLAIN);
   exit(0);
   }
 
 static void opt_help_man(void * data, int * argc, char *** argv, int arg)
   {
-  bg_cmdline_app_data_t * app_data =
-    (bg_cmdline_app_data_t*)data;
-  bg_cmdline_print_help(app_data, (*argv)[0], BG_HELP_FORMAT_MAN);
+  bg_cmdline_print_help((*argv)[0], BG_HELP_FORMAT_MAN);
   exit(0);
   }
 
 static void opt_help_texi(void * data, int * argc, char *** argv, int arg)
   {
-  bg_cmdline_app_data_t * app_data =
-    (bg_cmdline_app_data_t*)data;
-  bg_cmdline_print_help(app_data, (*argv)[0], BG_HELP_FORMAT_TEXI);
+  bg_cmdline_print_help((*argv)[0], BG_HELP_FORMAT_TEXI);
   exit(0);
   }
 
@@ -547,10 +543,9 @@ void bg_cmdline_remove_arg(int * argc, char *** _argv, int arg)
 
 
 
-static void cmdline_parse(bg_cmdline_arg_t * args,
+static void cmdline_parse(const bg_cmdline_arg_t * args,
                           int * argc, char *** _argv,
                           void * callback_data,
-                          bg_cmdline_app_data_t * app_data,
                           int parse_auto)
   {
   int found;
@@ -561,7 +556,7 @@ static void cmdline_parse(bg_cmdline_arg_t * args,
 
   if(parse_auto)
     {
-    cmdline_parse(auto_options, argc, _argv, app_data, app_data, 0);
+    cmdline_parse(auto_options, argc, _argv, NULL, 0);
     }
   
   if(!args)
@@ -598,9 +593,9 @@ static void cmdline_parse(bg_cmdline_arg_t * args,
   }
 
 void bg_cmdline_parse(bg_cmdline_arg_t * args, int * argc, char *** _argv,
-                      void * callback_data, bg_cmdline_app_data_t * app_data)
+                      void * callback_data)
   {
-  cmdline_parse(args, argc, _argv, callback_data, app_data, 1);
+  cmdline_parse(args, argc, _argv, callback_data, 1);
   }
 
 
@@ -661,7 +656,7 @@ char ** bg_cmdline_get_locations_from_args(int * argc, char *** _argv)
 int bg_cmdline_apply_options(bg_cfg_section_t * section,
                              bg_set_parameter_func_t set_parameter,
                              void * data,
-                             bg_parameter_info_t * parameters,
+                             const bg_parameter_info_t * parameters,
                              const char * option_string)
   {
   if(!bg_cfg_section_set_parameters_from_string(section,
@@ -677,7 +672,7 @@ int bg_cmdline_apply_options(bg_cfg_section_t * section,
 
 
 static void print_help_parameters(int indent,
-                                  bg_parameter_info_t * parameters,
+                                  const bg_parameter_info_t * parameters,
                                   bg_help_format_t format)
   {
   int i = 0;
@@ -1079,8 +1074,13 @@ static void print_help_parameters(int indent,
 
   }
 
-void bg_cmdline_print_help_parameters(bg_parameter_info_t * parameters,
+void bg_cmdline_print_help_parameters(const bg_parameter_info_t * parameters,
                                       bg_help_format_t format)
   {
   print_help_parameters(0, parameters, format);
+  }
+
+void bg_cmdline_init(const bg_cmdline_app_data_t * data)
+  {
+  app_data = data;
   }

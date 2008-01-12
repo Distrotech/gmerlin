@@ -39,7 +39,7 @@
 #define TIC_LENGTH    7
 #define METER_WIDTH  14
 
-static struct
+static const struct
   {
   float val;
   char * label;

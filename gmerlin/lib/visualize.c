@@ -317,7 +317,7 @@ void bg_visualizer_destroy(bg_visualizer_t * v)
   }
 
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =        "width",
@@ -363,7 +363,7 @@ static bg_parameter_info_t parameters[] =
     { /* End of parameters */ }
   };
 
-bg_parameter_info_t * bg_visualizer_get_parameters(bg_visualizer_t * v)
+const bg_parameter_info_t * bg_visualizer_get_parameters(bg_visualizer_t * v)
   {
   return parameters;
   }

@@ -543,14 +543,14 @@ static bgav_id3v2_frame_t * bgav_id3v2_find_frame(bgav_id3v2_tag_t*t,
   return (bgav_id3v2_frame_t*)0;
   }
 
-static uint32_t title_tags[] =
+static const uint32_t title_tags[] =
   {
     BGAV_MK_FOURCC('T','I','T','2'),
     BGAV_MK_FOURCC('T','T','2', 0x00),
     0x0
   };
 
-static uint32_t album_tags[] =
+static const uint32_t album_tags[] =
   {
     BGAV_MK_FOURCC('T','A','L','B'),
     BGAV_MK_FOURCC('T','A','L', 0x00),
@@ -558,35 +558,35 @@ static uint32_t album_tags[] =
   };
 
 
-static uint32_t copyright_tags[] =
+static const uint32_t copyright_tags[] =
   {
     BGAV_MK_FOURCC('T','C','O','P'),
     BGAV_MK_FOURCC('T','C','R', 0x00),
     0x0
   };
 
-static uint32_t artist_tags[] =
+static const uint32_t artist_tags[] =
   {
     BGAV_MK_FOURCC('T','P','E','1'),
     BGAV_MK_FOURCC('T','P','1',0x00),
     0x00,
   };
 
-static uint32_t date_tags[] =
+static const uint32_t date_tags[] =
   {
     BGAV_MK_FOURCC('T','Y','E',0x00),
     BGAV_MK_FOURCC('T','Y','E','R'),
     0x00,
   };
 
-static uint32_t track_tags[] =
+static const uint32_t track_tags[] =
   {
     BGAV_MK_FOURCC('T', 'R', 'C', 'K'),
     BGAV_MK_FOURCC('T', 'R', 'K', 0x00),
     0x00,
   };
 
-static uint32_t genre_tags[] =
+static const uint32_t genre_tags[] =
   {
     BGAV_MK_FOURCC('T', 'C', 'O', 'N'),
     BGAV_MK_FOURCC('T', 'C', 'O', 0x00),
@@ -595,7 +595,7 @@ static uint32_t genre_tags[] =
 
 /* Author == composer */
 
-static uint32_t author_tags[] =
+static const uint32_t author_tags[] =
   {
     BGAV_MK_FOURCC('T', 'C', 'O', 'M'),
     BGAV_MK_FOURCC('T', 'C', 'M', 0x00),
@@ -603,7 +603,7 @@ static uint32_t author_tags[] =
   };
 
 
-static uint32_t comment_tags[] =
+static const uint32_t comment_tags[] =
   {
     BGAV_MK_FOURCC('C', 'O', 'M', 'M'),
     BGAV_MK_FOURCC('C', 'O', 'M', 0x00),

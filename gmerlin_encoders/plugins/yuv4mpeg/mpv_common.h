@@ -40,7 +40,7 @@ typedef struct
   sigset_t oldset;
   } bg_mpv_common_t;
 
-bg_parameter_info_t * bg_mpv_get_parameters();
+const bg_parameter_info_t * bg_mpv_get_parameters();
 
 /* Must pass a bg_mpv_common_t for data */
 void bg_mpv_set_parameter(void * data, const char * name, const bg_parameter_value_t * val);

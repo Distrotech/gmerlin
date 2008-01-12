@@ -1100,7 +1100,7 @@ static void select_track_dvb(bgav_input_context_t * ctx, int track)
   select(priv->dvr_fd+1, &rset, NULL, NULL, &timeout);
   }
 
-bgav_input_t bgav_input_dvb =
+const bgav_input_t bgav_input_dvb =
   {
     .name =          "dvb",
     .open =          open_dvb,

@@ -69,7 +69,7 @@ void bg_osd_destroy(bg_osd_t * osd)
   free(osd);
   }
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =        "enable_osd",
@@ -117,8 +117,8 @@ widths, the value will be scaled"),
       .long_name =  TRS("Horizontal justify"),
       .type =       BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "center" },
-      .multi_names =  (char*[]){ "center", "left", "right", (char*)0 },
-      .multi_labels = (char*[]){ TRS("Center"), TRS("Left"), TRS("Right"), (char*)0  },
+      .multi_names =  (char const *[]){ "center", "left", "right", (char*)0 },
+      .multi_labels = (char const *[]){ TRS("Center"), TRS("Left"), TRS("Right"), (char*)0  },
             
     },
     {
@@ -126,8 +126,8 @@ widths, the value will be scaled"),
       .long_name =  TRS("Vertical justify"),
       .type =       BG_PARAMETER_STRINGLIST,
       .val_default = { .val_str = "center" },
-      .multi_names =  (char*[]){ "center", "top", "bottom", (char*)0  },
-      .multi_labels = (char*[]){ TRS("Center"), TRS("Top"), TRS("Bottom"), (char*)0 },
+      .multi_names =  (char const *[]){ "center", "top", "bottom", (char*)0  },
+      .multi_labels = (char const *[]){ TRS("Center"), TRS("Top"), TRS("Bottom"), (char*)0 },
     },
     {
       .name =        "border_left",
@@ -176,7 +176,7 @@ widths, the value will be scaled"),
     { /* End of parameters */ }
   };
 
-bg_parameter_info_t * bg_osd_get_parameters(bg_osd_t * osd)
+const bg_parameter_info_t * bg_osd_get_parameters(bg_osd_t * osd)
   {
   return parameters;
   }

@@ -30,7 +30,7 @@
 #include <log.h>
 #define LOG_DOMAIN "oa_pulse"
 
-static struct
+static const struct
   {
   gavl_channel_id_t     ga;
   pa_channel_position_t pa;

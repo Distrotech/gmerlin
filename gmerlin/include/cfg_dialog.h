@@ -35,7 +35,7 @@ typedef struct bg_dialog_s bg_dialog_t;
 bg_dialog_t * bg_dialog_create(bg_cfg_section_t * config,
                                bg_set_parameter_func_t set_param,
                                void * callback_data,
-                               bg_parameter_info_t * info,
+                               const bg_parameter_info_t * info,
                                const char * title);
 
 /* Create a dialog, add sections later */
@@ -49,7 +49,7 @@ void bg_dialog_add(bg_dialog_t *d,
                    bg_cfg_section_t * section,
                    bg_set_parameter_func_t set_param,
                    void * callback_data,
-                   bg_parameter_info_t * info);
+                   const bg_parameter_info_t * info);
 
 /* Add child notebook to the dialog. You can pass the returned
    void pointer to subsequent calls of bg_dialog_add_child */
@@ -61,7 +61,7 @@ void bg_dialog_add_child(bg_dialog_t *d, void * parent,
                          bg_cfg_section_t * section,
                          bg_set_parameter_func_t set_param,
                          void * callback_data,
-                         bg_parameter_info_t * info);
+                         const bg_parameter_info_t * info);
 
 void bg_dialog_show(bg_dialog_t *, void * parent);
 

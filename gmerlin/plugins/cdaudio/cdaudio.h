@@ -138,7 +138,7 @@ void bg_cdaudio_rip_seek(void * data, int sector, int start_sector_lba);
 
 void bg_cdaudio_rip_close(void * data);
 
-bg_parameter_info_t * bg_cdaudio_rip_get_parameters();
+const bg_parameter_info_t * bg_cdaudio_rip_get_parameters();
 
 int
 bg_cdaudio_rip_set_parameter(void * data, const char * name,

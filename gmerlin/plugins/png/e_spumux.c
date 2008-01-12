@@ -55,7 +55,7 @@ static void * create_spumux()
   return ret;
   }
 
-static char * extension = "xml";
+static char const * const extension = "xml";
 
 static const char * get_extension_spumux(void * priv)
   {
@@ -196,7 +196,7 @@ static void destroy_spumux(void * priv)
   }
 
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =        "compression",
@@ -209,14 +209,14 @@ static bg_parameter_info_t parameters[] =
     { /* End of parameters */ }
   };
 
-static bg_parameter_info_t * get_parameters_spumux(void * priv)
+static const bg_parameter_info_t * get_parameters_spumux(void * priv)
   {
   return parameters;
   }
 
 
 
-bg_encoder_plugin_t the_plugin =
+const bg_encoder_plugin_t the_plugin =
   {
     .common =
     {

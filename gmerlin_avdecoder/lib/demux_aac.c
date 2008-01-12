@@ -44,13 +44,13 @@
                     ((h[1] & 0xf0) == 0xf0) && \
                     ((h[1] & 0x06) == 0x00))
 
-static int adts_samplerates[] =
+static const int adts_samplerates[] =
   {96000,88200,64000,48000,44100,
    32000,24000,22050,16000,12000,
    11025,8000,7350,0,0,0};
 
 #if 0
-static int samplerates[] =
+static const int samplerates[] =
   {
     96000,
     88200,
@@ -593,7 +593,7 @@ static void close_aac(bgav_demuxer_context_t * ctx)
   free(priv);
   }
 
-bgav_demuxer_t bgav_demuxer_aac =
+const bgav_demuxer_t bgav_demuxer_aac =
   {
     .probe =       probe_aac,
     .open =        open_aac,

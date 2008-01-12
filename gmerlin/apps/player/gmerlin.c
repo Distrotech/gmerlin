@@ -69,7 +69,7 @@ static void tree_play_callback(void * data)
 
 static void gmerlin_apply_config(gmerlin_t * g)
   {
-  bg_parameter_info_t * parameters;
+  const bg_parameter_info_t * parameters;
 
   parameters = display_get_parameters(g->player_window->display);
 
@@ -145,7 +145,7 @@ static void gmerlin_apply_config(gmerlin_t * g)
 
 static void gmerlin_get_config(gmerlin_t * g)
   {
-  bg_parameter_info_t * parameters;
+  const bg_parameter_info_t * parameters;
 #if 0
   parameters = display_get_parameters(g->player_window->display);
 
@@ -653,7 +653,7 @@ void gmerlin_check_next_track(gmerlin_t * g, int track)
   }
 
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
 #if 0
     {
@@ -679,11 +679,11 @@ static bg_parameter_info_t parameters[] =
       .name =      "shuffle_mode",
       .long_name = TRS("Shuffle mode"),
       .type =      BG_PARAMETER_STRINGLIST,
-      .multi_names = (char*[]){"off",
+      .multi_names = (char const *[]){"off",
                              "current",
                              "all",
                              (char*)0 },
-      .multi_labels = (char*[]){TRS("Off"),
+      .multi_labels = (char const *[]){TRS("Off"),
                               TRS("Current album"),
                               TRS("All open albums"),
                               (char*)0 },
@@ -749,7 +749,7 @@ static bg_parameter_info_t parameters[] =
     { /* End of Parameters */ }
   };
 
-bg_parameter_info_t * gmerlin_get_parameters(gmerlin_t * g)
+const bg_parameter_info_t * gmerlin_get_parameters(gmerlin_t * g)
   {
   return parameters;
   }

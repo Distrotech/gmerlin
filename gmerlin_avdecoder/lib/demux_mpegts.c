@@ -1341,7 +1341,7 @@ static int select_track_mpegts(bgav_demuxer_context_t * ctx,
     
   }
 
-bgav_demuxer_t bgav_demuxer_mpegts =
+const bgav_demuxer_t bgav_demuxer_mpegts =
   {
     .probe =        probe_mpegts,
     .open =         open_mpegts,

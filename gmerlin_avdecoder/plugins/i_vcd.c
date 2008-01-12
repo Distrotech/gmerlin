@@ -65,7 +65,7 @@ static int check_device_vcd(const char * device, char ** name)
   return bgav_check_device_vcd(device, name);
   }
 
-bg_input_plugin_t the_plugin =
+const bg_input_plugin_t the_plugin =
   {
     .common =
     {

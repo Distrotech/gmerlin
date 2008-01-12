@@ -28,84 +28,84 @@
 
 #define LOG_DOMAIN "demuxer"
 
-extern bgav_demuxer_t bgav_demuxer_asf;
-extern bgav_demuxer_t bgav_demuxer_avi;
-extern bgav_demuxer_t bgav_demuxer_rmff;
-extern bgav_demuxer_t bgav_demuxer_quicktime;
-extern bgav_demuxer_t bgav_demuxer_vivo;
-extern bgav_demuxer_t bgav_demuxer_fli;
-extern bgav_demuxer_t bgav_demuxer_flv;
+extern const bgav_demuxer_t bgav_demuxer_asf;
+extern const bgav_demuxer_t bgav_demuxer_avi;
+extern const bgav_demuxer_t bgav_demuxer_rmff;
+extern const bgav_demuxer_t bgav_demuxer_quicktime;
+extern const bgav_demuxer_t bgav_demuxer_vivo;
+extern const bgav_demuxer_t bgav_demuxer_fli;
+extern const bgav_demuxer_t bgav_demuxer_flv;
 
-extern bgav_demuxer_t bgav_demuxer_wavpack;
-extern bgav_demuxer_t bgav_demuxer_tta;
-extern bgav_demuxer_t bgav_demuxer_voc;
-extern bgav_demuxer_t bgav_demuxer_wav;
-extern bgav_demuxer_t bgav_demuxer_au;
-extern bgav_demuxer_t bgav_demuxer_ircam;
-extern bgav_demuxer_t bgav_demuxer_sphere;
-extern bgav_demuxer_t bgav_demuxer_gsm;
-extern bgav_demuxer_t bgav_demuxer_8svx;
-extern bgav_demuxer_t bgav_demuxer_aiff;
-extern bgav_demuxer_t bgav_demuxer_ra;
-extern bgav_demuxer_t bgav_demuxer_mpegaudio;
-extern bgav_demuxer_t bgav_demuxer_mpegvideo;
-extern bgav_demuxer_t bgav_demuxer_mpegps;
-extern bgav_demuxer_t bgav_demuxer_mpegts;
-extern bgav_demuxer_t bgav_demuxer_flac;
-extern bgav_demuxer_t bgav_demuxer_aac;
-extern bgav_demuxer_t bgav_demuxer_nsv;
-extern bgav_demuxer_t bgav_demuxer_4xm;
-extern bgav_demuxer_t bgav_demuxer_dsicin;
-extern bgav_demuxer_t bgav_demuxer_smaf;
-extern bgav_demuxer_t bgav_demuxer_psxstr;
-extern bgav_demuxer_t bgav_demuxer_tiertex;
-extern bgav_demuxer_t bgav_demuxer_smacker;
-extern bgav_demuxer_t bgav_demuxer_roq;
-extern bgav_demuxer_t bgav_demuxer_shorten;
-extern bgav_demuxer_t bgav_demuxer_daud;
-extern bgav_demuxer_t bgav_demuxer_nuv;
-extern bgav_demuxer_t bgav_demuxer_sol;
-extern bgav_demuxer_t bgav_demuxer_gif;
-extern bgav_demuxer_t bgav_demuxer_smjpeg;
-extern bgav_demuxer_t bgav_demuxer_vqa;
-extern bgav_demuxer_t bgav_demuxer_vmd;
-extern bgav_demuxer_t bgav_demuxer_avs;
-extern bgav_demuxer_t bgav_demuxer_wve;
-extern bgav_demuxer_t bgav_demuxer_mtv;
-extern bgav_demuxer_t bgav_demuxer_gxf;
-extern bgav_demuxer_t bgav_demuxer_dxa;
-extern bgav_demuxer_t bgav_demuxer_thp;
+extern const bgav_demuxer_t bgav_demuxer_wavpack;
+extern const bgav_demuxer_t bgav_demuxer_tta;
+extern const bgav_demuxer_t bgav_demuxer_voc;
+extern const bgav_demuxer_t bgav_demuxer_wav;
+extern const bgav_demuxer_t bgav_demuxer_au;
+extern const bgav_demuxer_t bgav_demuxer_ircam;
+extern const bgav_demuxer_t bgav_demuxer_sphere;
+extern const bgav_demuxer_t bgav_demuxer_gsm;
+extern const bgav_demuxer_t bgav_demuxer_8svx;
+extern const bgav_demuxer_t bgav_demuxer_aiff;
+extern const bgav_demuxer_t bgav_demuxer_ra;
+extern const bgav_demuxer_t bgav_demuxer_mpegaudio;
+extern const bgav_demuxer_t bgav_demuxer_mpegvideo;
+extern const bgav_demuxer_t bgav_demuxer_mpegps;
+extern const bgav_demuxer_t bgav_demuxer_mpegts;
+extern const bgav_demuxer_t bgav_demuxer_flac;
+extern const bgav_demuxer_t bgav_demuxer_aac;
+extern const bgav_demuxer_t bgav_demuxer_nsv;
+extern const bgav_demuxer_t bgav_demuxer_4xm;
+extern const bgav_demuxer_t bgav_demuxer_dsicin;
+extern const bgav_demuxer_t bgav_demuxer_smaf;
+extern const bgav_demuxer_t bgav_demuxer_psxstr;
+extern const bgav_demuxer_t bgav_demuxer_tiertex;
+extern const bgav_demuxer_t bgav_demuxer_smacker;
+extern const bgav_demuxer_t bgav_demuxer_roq;
+extern const bgav_demuxer_t bgav_demuxer_shorten;
+extern const bgav_demuxer_t bgav_demuxer_daud;
+extern const bgav_demuxer_t bgav_demuxer_nuv;
+extern const bgav_demuxer_t bgav_demuxer_sol;
+extern const bgav_demuxer_t bgav_demuxer_gif;
+extern const bgav_demuxer_t bgav_demuxer_smjpeg;
+extern const bgav_demuxer_t bgav_demuxer_vqa;
+extern const bgav_demuxer_t bgav_demuxer_vmd;
+extern const bgav_demuxer_t bgav_demuxer_avs;
+extern const bgav_demuxer_t bgav_demuxer_wve;
+extern const bgav_demuxer_t bgav_demuxer_mtv;
+extern const bgav_demuxer_t bgav_demuxer_gxf;
+extern const bgav_demuxer_t bgav_demuxer_dxa;
+extern const bgav_demuxer_t bgav_demuxer_thp;
 
 #ifdef HAVE_VORBIS
-extern bgav_demuxer_t bgav_demuxer_ogg;
+extern const bgav_demuxer_t bgav_demuxer_ogg;
 #endif
 
-extern bgav_demuxer_t bgav_demuxer_dv;
+extern const bgav_demuxer_t bgav_demuxer_dv;
 
 #ifdef HAVE_LIBA52
-extern bgav_demuxer_t bgav_demuxer_a52;
+extern const bgav_demuxer_t bgav_demuxer_a52;
 #endif
 
 #ifdef HAVE_MUSEPACK
-extern bgav_demuxer_t bgav_demuxer_mpc;
+extern const bgav_demuxer_t bgav_demuxer_mpc;
 #endif
 
 #ifdef HAVE_MJPEGTOOLS
-extern bgav_demuxer_t bgav_demuxer_y4m;
+extern const bgav_demuxer_t bgav_demuxer_y4m;
 #endif
 
 #ifdef HAVE_LIBAVFORMAT
-extern bgav_demuxer_t bgav_demuxer_ffmpeg;
+extern const bgav_demuxer_t bgav_demuxer_ffmpeg;
 #endif
 
 
 typedef struct
   {
-  bgav_demuxer_t * demuxer;
+  const bgav_demuxer_t * demuxer;
   char * format_name;
   } demuxer_t;
 
-static demuxer_t demuxers[] =
+static const demuxer_t demuxers[] =
   {
     { &bgav_demuxer_asf,       "Microsoft ASF/WMV/WMA" },
     { &bgav_demuxer_avi,       "Microsoft AVI" },
@@ -165,7 +165,7 @@ static demuxer_t demuxers[] =
     { &bgav_demuxer_vmd,  "Sierra VMD" },
   };
 
-static demuxer_t sync_demuxers[] =
+static const demuxer_t sync_demuxers[] =
   {
     { &bgav_demuxer_mpegts,    "MPEG-2 transport stream" },
     { &bgav_demuxer_mpegaudio, "Mpeg Audio" },
@@ -174,7 +174,7 @@ static demuxer_t sync_demuxers[] =
 
 static struct
   {
-  bgav_demuxer_t * demuxer;
+  const bgav_demuxer_t * demuxer;
   char * mimetype;
   }
 mimetypes[] =
@@ -182,16 +182,16 @@ mimetypes[] =
     { &bgav_demuxer_mpegaudio, "audio/mpeg" }
   };
 
-static int num_demuxers = sizeof(demuxers)/sizeof(demuxers[0]);
-static int num_sync_demuxers = sizeof(sync_demuxers)/sizeof(sync_demuxers[0]);
-static int num_mimetypes = sizeof(mimetypes)/sizeof(mimetypes[0]);
+static const int num_demuxers = sizeof(demuxers)/sizeof(demuxers[0]);
+static const int num_sync_demuxers = sizeof(sync_demuxers)/sizeof(sync_demuxers[0]);
+static const int num_mimetypes = sizeof(mimetypes)/sizeof(mimetypes[0]);
 
 static int demuxer_next_packet(bgav_demuxer_context_t * demuxer);
 
 
 #define SYNC_BYTES (32*1024)
 
-bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input)
+const bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input)
   {
   int i;
   int bytes_skipped;
@@ -273,7 +273,7 @@ bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input)
   }
 
 bgav_demuxer_context_t *
-bgav_demuxer_create(const bgav_options_t * opt, bgav_demuxer_t * demuxer,
+bgav_demuxer_create(const bgav_options_t * opt, const bgav_demuxer_t * demuxer,
                     bgav_input_context_t * input)
   {
   bgav_demuxer_context_t * ret;

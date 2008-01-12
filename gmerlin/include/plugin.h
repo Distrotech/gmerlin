@@ -132,7 +132,7 @@ typedef int (*bg_read_video_func_t)(void * priv, gavl_video_frame_t* frame, int 
 
 
 
-#define BG_PLUGIN_API_VERSION 11
+#define BG_PLUGIN_API_VERSION 12
 
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */
@@ -300,7 +300,7 @@ typedef struct bg_plugin_common_s
    *  The returned array is owned (an should be freed) by the plugin.
    */
 
-  bg_parameter_info_t * (*get_parameters)(void * priv);
+  const bg_parameter_info_t * (*get_parameters)(void * priv);
 
   /** \brief Set configuration parameter (optional)
    */
@@ -1291,7 +1291,7 @@ typedef struct bg_encoder_plugin_s
    *  The returned parameters are owned by the plugin and must not be freed.
    */
   
-  bg_parameter_info_t * (*get_audio_parameters)(void * priv);
+  const bg_parameter_info_t * (*get_audio_parameters)(void * priv);
 
   /** \brief Get video related parameters
    *  \param priv The handle returned by the create() method
@@ -1300,7 +1300,7 @@ typedef struct bg_encoder_plugin_s
    *  The returned parameters are owned by the plugin and must not be freed.
    */
 
-  bg_parameter_info_t * (*get_video_parameters)(void * priv);
+  const bg_parameter_info_t * (*get_video_parameters)(void * priv);
 
   /** \brief Get text subtitle related parameters
    *  \param priv The handle returned by the create() method
@@ -1309,7 +1309,7 @@ typedef struct bg_encoder_plugin_s
    *  The returned parameters are owned by the plugin and must not be freed.
    */
 
-  bg_parameter_info_t * (*get_subtitle_text_parameters)(void * priv);
+  const bg_parameter_info_t * (*get_subtitle_text_parameters)(void * priv);
 
   /** \brief Get overlay subtitle related parameters
    *  \param priv The handle returned by the create() method
@@ -1318,7 +1318,7 @@ typedef struct bg_encoder_plugin_s
    *  The returned parameters are owned by the plugin and must not be freed.
    */
 
-  bg_parameter_info_t * (*get_subtitle_overlay_parameters)(void * priv);
+  const bg_parameter_info_t * (*get_subtitle_overlay_parameters)(void * priv);
   
   /* Add streams. The formats can be changed, be sure to get the
    * final formats with get_[audio|video]_format after starting the plugin

@@ -201,7 +201,7 @@ static void close_dv(bgav_demuxer_context_t * ctx)
   free(priv);
   }
 
-bgav_demuxer_t bgav_demuxer_dv =
+const bgav_demuxer_t bgav_demuxer_dv =
   {
     .probe =        probe_dv,
     .open =         open_dv,

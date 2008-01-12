@@ -336,7 +336,7 @@ char * bg_gtk_convert_font_name_to_pango(const char * name)
   }
 
 
-int show_tooltips = 1;
+static int show_tooltips = 1;
 
 
 

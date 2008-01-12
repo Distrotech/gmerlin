@@ -34,7 +34,7 @@ void bg_gtk_info_window_destroy(bg_gtk_info_window_t *);
 
 /* Configuration (doesn't need a dialog) */
 
-bg_parameter_info_t *
+const bg_parameter_info_t *
 bg_gtk_info_window_get_parameters(bg_gtk_info_window_t * win);
   
 void bg_gtk_info_window_set_parameter(void * data, const char * name,

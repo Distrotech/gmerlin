@@ -188,7 +188,7 @@ static int read_image_tga(void * priv, gavl_video_frame_t * frame)
   return ret;
   }
 
-bg_image_reader_plugin_t the_plugin =
+const bg_image_reader_plugin_t the_plugin =
   {
     .common =
     {

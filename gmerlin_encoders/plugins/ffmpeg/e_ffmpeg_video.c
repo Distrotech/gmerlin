@@ -25,7 +25,7 @@
 #include "ffmpeg_common.h"
 
 
-static ffmpeg_format_info_t formats[] =
+static const ffmpeg_format_info_t formats[] =
   {
     {
       .name =       "MPEG-1 video",
@@ -51,7 +51,7 @@ static void * create_ffmpeg()
   return bg_ffmpeg_create(formats);
   }
 
-bg_encoder_plugin_t the_plugin =
+const bg_encoder_plugin_t the_plugin =
   {
     .common =
     {

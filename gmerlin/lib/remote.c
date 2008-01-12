@@ -287,7 +287,7 @@ void bg_remote_server_destroy(bg_remote_server_t * s)
   free(s);
   }
 
-static bg_parameter_info_t server_parameters[] =
+static const bg_parameter_info_t server_parameters[] =
   {
     {
       .name =        "allow_remote",
@@ -306,7 +306,7 @@ static bg_parameter_info_t server_parameters[] =
     { /* End of parameters */ }
   };
 
-bg_parameter_info_t * bg_remote_server_get_parameters(bg_remote_server_t * s)
+const bg_parameter_info_t * bg_remote_server_get_parameters(bg_remote_server_t * s)
   {
   return server_parameters;
   }

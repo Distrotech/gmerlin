@@ -880,7 +880,7 @@ static void close_flv(bgav_demuxer_context_t * ctx)
   free(priv);
   }
 
-bgav_demuxer_t bgav_demuxer_flv =
+const bgav_demuxer_t bgav_demuxer_flv =
   {
     .probe =       probe_flv,
     .open =        open_flv,

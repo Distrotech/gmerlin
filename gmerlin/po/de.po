@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: gmerlin 0.3.6\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
 "POT-Creation-Date: 2008-01-08 20:51+0100\n"
-"PO-Revision-Date: 2008-01-08 20:52+0100\n"
+"PO-Revision-Date: 2008-01-12 14:54+0100\n"
 "Last-Translator: Burkhard Plaum <gmerlin@users.sourceforge.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -3227,9 +3227,8 @@ msgid "Add <gml> to the incoming album"
 msgstr "Füge <gml> zum Eingangs-Album"
 
 #: apps/player/gmerlin_remote.c:349
-#, fuzzy
 msgid "Add <gml> to the incoming album and play it"
-msgstr "Füge <gml> zum Eingangs-Album"
+msgstr "Füge <gml> zum Eingangs-Album und starte Wiedergabe"
 
 #: apps/player/gmerlin_remote.c:354 apps/player/gmerlin_remote.c:360
 msgid "<device>"
@@ -5937,55 +5936,55 @@ msgstr ""
 #: lib/gtk/infowindow.c:503
 #, c-format
 msgid "Name:\t%s"
-msgstr ""
+msgstr "Name:\t%s"
 
 #: lib/gtk/infowindow.c:513
 #, c-format
 msgid "Input plugin:\t%s"
-msgstr "Quellenplugin:\\t%s"
+msgstr "Quellenplugin:\t%s"
 
 #: lib/gtk/infowindow.c:522
 #, c-format
 msgid "Location:\t%s"
-msgstr ""
+msgstr "Ort:\t%s"
 
 #: lib/gtk/infowindow.c:530
 #, c-format
 msgid "Track:\t%d"
-msgstr ""
+msgstr "Track:\t%d"
 
 #: lib/gtk/infowindow.c:548
 #, c-format
 msgid "Format:\t%s"
-msgstr ""
+msgstr "Format:\t%s"
 
 #: lib/gtk/infowindow.c:559 lib/gtk/infowindow.c:569
 #, c-format
 msgid "Stream type:\t%s"
-msgstr ""
+msgstr "Streamtyp:\t%s"
 
 #: lib/gtk/infowindow.c:577
 #, c-format
 msgid "Audio stream %d/%d"
-msgstr ""
+msgstr "Audiostream %d/%d"
 
 #: lib/gtk/infowindow.c:592
 #, c-format
 msgid "Subtitle stream %d/%d [%s]"
-msgstr ""
+msgstr "Untertitelstream %d/%d [%s]"
 
 #: lib/gtk/infowindow.c:607
 #, c-format
 msgid "Video stream %d/%d"
-msgstr ""
+msgstr "Videostream %d/%d"
 
 #: lib/gtk/infowindow.c:705 lib/gtk/infowindow.c:723 lib/gtk/infowindow.c:741
 msgid "Stream type"
-msgstr ""
+msgstr "Streamtyp"
 
 #: lib/gtk/infowindow.c:709 lib/gtk/infowindow.c:727 lib/gtk/infowindow.c:745
 msgid "Input format"
-msgstr ""
+msgstr "Quellenformat"
 
 #: lib/gtk/infowindow.c:773
 msgid "Input plugin"
@@ -5993,55 +5992,55 @@ msgstr "Quellenplugin"
 
 #: lib/gtk/infowindow.c:1045
 msgid "Copy selected"
-msgstr ""
+msgstr "Kopiere Auswahl"
 
 #: lib/gtk/infowindow.c:1047
 msgid "Copy all"
-msgstr ""
+msgstr "Kopiere Alles"
 
 #: lib/gtk/infowindow.c:1095
 msgid "Gmerlin Track Info"
-msgstr ""
+msgstr "Gmerlin Track Info"
 
 #: lib/gtk/treewidget.c:954
 msgid "Album name"
-msgstr ""
+msgstr "Albumname"
 
 #: lib/gtk/treewidget.c:961 lib/gtk/treewidget.c:2019
 msgid "Rename album"
-msgstr ""
+msgstr "Album umbenennen"
 
 #: lib/gtk/treewidget.c:1119
 msgid "Add device"
-msgstr ""
+msgstr "Gerät hinzufügen"
 
 #: lib/gtk/treewidget.c:1333
 msgid "Expand all"
-msgstr ""
+msgstr "Alles ausklappen"
 
 #: lib/gtk/treewidget.c:1337
 msgid "Collapse all"
-msgstr ""
+msgstr "Alles einklappen"
 
 #: lib/gtk/treewidget.c:1341
 msgid "Tabbed mode"
-msgstr ""
+msgstr "Tabbed Modus"
 
 #: lib/gtk/treewidget.c:1345
 msgid "Windowed mode"
-msgstr ""
+msgstr "Fenstermodus"
 
 #: lib/gtk/treewidget.c:1355
 msgid "Open"
-msgstr ""
+msgstr "Öffnen"
 
 #: lib/gtk/treewidget.c:1359
 msgid "Close"
-msgstr ""
+msgstr "Schließen"
 
 #: lib/gtk/treewidget.c:1363
 msgid "New..."
-msgstr "Neu"
+msgstr "Neu..."
 
 #: lib/gtk/treewidget.c:1367
 msgid "New from directory..."

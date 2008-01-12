@@ -414,7 +414,7 @@ static void    close_vcd(bgav_input_context_t * ctx)
   return;
   }
 
-bgav_input_t bgav_input_vcd =
+const bgav_input_t bgav_input_vcd =
   {
     .name =          "vcd",
     .open =          open_vcd,

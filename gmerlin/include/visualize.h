@@ -59,7 +59,7 @@ void bg_visualizer_destroy(bg_visualizer_t * v);
  *  \returns NULL terminated array of parameter descriptions
  */
 
-bg_parameter_info_t * bg_visualizer_get_parameters(bg_visualizer_t* v);
+const bg_parameter_info_t * bg_visualizer_get_parameters(bg_visualizer_t* v);
 
 /** \brief Set a parameter of a visualizer
  *  \param priv A visualizer casted to void

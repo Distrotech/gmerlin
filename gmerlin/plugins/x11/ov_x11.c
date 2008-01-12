@@ -60,7 +60,7 @@
 #define ACCEL_FIT_WINDOW        16<<8
 #define ACCEL_SHRINK_WINDOW     17<<8
 
-static bg_accelerator_t accels[] =
+static const bg_accelerator_t accels[] =
   {
     { BG_KEY_TAB,                 0, ACCEL_TOGGLE_FULLSCREEN  },
     { BG_KEY_f,                   0, ACCEL_TOGGLE_FULLSCREEN  },
@@ -660,7 +660,7 @@ static void destroy_x11(void * data)
   free(priv);
   }
 
-bg_parameter_info_t common_parameters[] =
+static const bg_parameter_info_t common_parameters[] =
   {
     {
       BG_LOCALE,
@@ -723,7 +723,7 @@ bg_parameter_info_t common_parameters[] =
 
 static void create_parameters(x11_t * priv)
   {
-  bg_parameter_info_t * parameters[3];
+  bg_parameter_info_t const * parameters[3];
 
   ensure_window(priv);
   parameters[0] = bg_x11_window_get_parameters(priv->win);
@@ -733,7 +733,7 @@ static void create_parameters(x11_t * priv)
   priv->parameters = bg_parameter_info_concat_arrays(parameters);
   }
 
-static bg_parameter_info_t * get_parameters_x11(void * data)
+static const bg_parameter_info_t * get_parameters_x11(void * data)
   {
   x11_t * priv = (x11_t*)data;
   if(!priv->parameters)
@@ -962,7 +962,7 @@ static void show_window_x11(void * data, int show)
   bg_x11_window_show(priv->win, show);
   }
 
-bg_ov_plugin_t the_plugin =
+const bg_ov_plugin_t the_plugin =
   {
     .common =
     {

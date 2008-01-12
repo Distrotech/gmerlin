@@ -319,7 +319,7 @@ void bg_gtk_log_window_hide(bg_gtk_log_window_t * win)
 
 /* Configuration stuff */
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =        "max_messages",
@@ -411,7 +411,8 @@ static bg_parameter_info_t parameters[] =
     { /* */ }
   };
 
-bg_parameter_info_t * bg_gtk_log_window_get_parameters(bg_gtk_log_window_t * w)
+const bg_parameter_info_t *
+bg_gtk_log_window_get_parameters(bg_gtk_log_window_t * w)
   {
   return parameters;
   }

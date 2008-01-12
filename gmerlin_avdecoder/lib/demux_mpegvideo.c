@@ -287,7 +287,7 @@ static void close_mpegvideo(bgav_demuxer_context_t * ctx)
   free(priv);
   }
 
-bgav_demuxer_t bgav_demuxer_mpegvideo =
+const bgav_demuxer_t bgav_demuxer_mpegvideo =
   {
     .probe =       probe_mpegvideo,
     .open =        open_mpegvideo,

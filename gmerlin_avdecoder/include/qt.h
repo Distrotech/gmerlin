@@ -375,7 +375,6 @@ typedef struct
       char compressor_name[32];
       uint16_t depth;
       uint16_t ctab_id;
-      int private_ctab;
       uint16_t ctab_size;
       bgav_palette_entry_t * ctab;
 

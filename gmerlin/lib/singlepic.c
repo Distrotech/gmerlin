@@ -68,7 +68,7 @@ static char * get_extensions(bg_plugin_registry_t * reg,
 
 /* Input stuff */
 
-static bg_parameter_info_t parameters_input[] =
+static const bg_parameter_info_t parameters_input[] =
   {
     {
       .name =      "timescale",
@@ -89,7 +89,7 @@ static bg_parameter_info_t parameters_input[] =
     { /* End of parameters */ }
   };
 
-static bg_parameter_info_t parameters_input_still[] =
+static const bg_parameter_info_t parameters_input_still[] =
   {
     {
       .name =         "display_time",
@@ -131,12 +131,12 @@ typedef struct
   int do_still;
   } input_t;
 
-static bg_parameter_info_t * get_parameters_input(void * priv)
+static const bg_parameter_info_t * get_parameters_input(void * priv)
   {
   return parameters_input;
   }
 
-static bg_parameter_info_t * get_parameters_input_still(void * priv)
+static const bg_parameter_info_t * get_parameters_input_still(void * priv)
   {
   return parameters_input_still;
   }
@@ -467,7 +467,7 @@ static void destroy_input(void* priv)
   free(priv);
   }
 
-static bg_input_plugin_t input_plugin =
+static const bg_input_plugin_t input_plugin =
   {
     .common =
     {
@@ -512,7 +512,7 @@ static bg_input_plugin_t input_plugin =
     .close = close_input,
   };
 
-static bg_input_plugin_t input_plugin_stills =
+static const bg_input_plugin_t input_plugin_stills =
   {
     .common =
     {
@@ -560,18 +560,18 @@ static bg_input_plugin_t input_plugin_stills =
   };
 
 
-bg_plugin_common_t * bg_singlepic_input_get()
+const bg_plugin_common_t * bg_singlepic_input_get()
   {
-  return (bg_plugin_common_t*)(&input_plugin);
+  return (const bg_plugin_common_t*)(&input_plugin);
   }
 
-bg_plugin_common_t * bg_singlepic_stills_input_get()
+const bg_plugin_common_t * bg_singlepic_stills_input_get()
   {
-  return (bg_plugin_common_t*)(&input_plugin_stills);
+  return (const bg_plugin_common_t*)(&input_plugin_stills);
   }
 
 static bg_plugin_info_t * get_input_info(bg_plugin_registry_t * reg,
-                                         bg_input_plugin_t * plugin)
+                                         const bg_input_plugin_t * plugin)
   {
   bg_plugin_info_t * ret;
   
@@ -638,7 +638,7 @@ void * bg_singlepic_stills_input_create(bg_plugin_registry_t * reg)
 
 /* Encoder stuff */
 
-static bg_parameter_info_t parameters_encoder[] =
+static const bg_parameter_info_t parameters_encoder[] =
   {
     {
       .name =        "plugin",
@@ -706,7 +706,7 @@ create_encoder_parameters(bg_plugin_registry_t * plugin_reg)
   return ret;
   }
 
-static bg_parameter_info_t * get_parameters_encoder(void * priv)
+static const bg_parameter_info_t * get_parameters_encoder(void * priv)
   {
   encoder_t * enc = (encoder_t *)priv;
   
@@ -933,7 +933,7 @@ static void destroy_encoder(void * data)
   }
 
 
-bg_encoder_plugin_t encoder_plugin =
+const bg_encoder_plugin_t encoder_plugin =
   {
     .common =
     {
@@ -978,7 +978,7 @@ bg_encoder_plugin_t encoder_plugin =
     .close =             close_encoder,
   };
 
-bg_plugin_common_t * bg_singlepic_encoder_get()
+const bg_plugin_common_t * bg_singlepic_encoder_get()
   {
   return (bg_plugin_common_t*)(&encoder_plugin);
   }

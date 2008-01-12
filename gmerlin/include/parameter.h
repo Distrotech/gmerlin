@@ -123,13 +123,13 @@ typedef struct bg_parameter_info_s
   
   /* Names which can be passed to set_parameter (NULL terminated) */
 
-  char ** multi_names; //!< Names for multi option parameters (NULL terminated)
+  char const * const * multi_names; //!< Names for multi option parameters (NULL terminated)
 
   /* Long names are optional, if they are NULL,
      the short names are used */
 
-  char ** multi_labels; //!< Optional labels for multi option parameters
-  char ** multi_descriptions; //!< Optional descriptions (will be displayed by info buttons)
+  char const * const * multi_labels; //!< Optional labels for multi option parameters
+  char const * const * multi_descriptions; //!< Optional descriptions (will be displayed by info buttons)
     
   /*
    *  These are parameters for each codec.
@@ -137,11 +137,20 @@ typedef struct bg_parameter_info_s
    *  of the parameters passed to the same set_parameter func
    */
 
-  struct bg_parameter_info_s ** multi_parameters; //!< Parameters for each option. The name members of these MUST be unique with respect to the rest of the parameters passed to the same set_parameter func
+  struct bg_parameter_info_s const * const * multi_parameters; //!< Parameters for each option. The name members of these MUST be unique with respect to the rest of the parameters passed to the same set_parameter func
   
   int num_digits; //!< Number of digits for floating point parameters
   
   char * help_string; //!< Help strings for tooltips or --help option 
+  
+  char ** multi_names_nc; //!< When allocating dynamically, use this instead of multi_names and call \ref bg_parameter_info_set_const_ptrs at the end
+
+  char ** multi_labels_nc; //!< When allocating dynamically, use this instead of multi_labels and call \ref bg_parameter_info_set_const_ptrs at the end
+
+  char ** multi_descriptions_nc; //!< When allocating dynamically, use this instead of multi_descriptions and call \ref bg_parameter_info_set_const_ptrs at the end 
+
+  struct bg_parameter_info_s ** multi_parameters_nc; //!< When allocating dynamically, use this instead of multi_parameters and call \ref bg_parameter_info_set_const_ptrs at the end 
+
   } bg_parameter_info_t;
 
 /* Prototype for setting/getting parameters */
@@ -196,6 +205,18 @@ bg_parameter_info_t *
 bg_parameter_info_copy_array(const bg_parameter_info_t * src);
 
 /** \ingroup parameter
+ *  \brief Set the const pointers of a dynamically allocated parameter info
+ *  \param info A parameter info
+ *
+ *  This copied the adresses of the *_nc pointers to their constant equivalents.
+ *  Use this for each parameter in routines, which dynamically allocate parameter infos.
+ */
+
+void
+bg_parameter_info_set_const_ptrs(bg_parameter_info_t * info);
+
+
+/** \ingroup parameter
  *  \brief Copy a single parameter description
  *  \param dst Destination parameter description
  *  \param src Source parameter description
@@ -245,7 +266,7 @@ void bg_parameter_value_free(bg_parameter_value_t * val,
 
 
 bg_parameter_info_t *
-bg_parameter_info_concat_arrays(bg_parameter_info_t ** srcs);
+bg_parameter_info_concat_arrays(bg_parameter_info_t const ** srcs);
 
 /** \ingroup parameter
  *  \brief Get the index for a multi-options parameter
@@ -300,7 +321,7 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
 
 
 void
-bg_parameters_2_xml(bg_parameter_info_t * info, xmlNodePtr xml_parameters);
+bg_parameters_2_xml(const bg_parameter_info_t * info, xmlNodePtr xml_parameters);
 
 
 

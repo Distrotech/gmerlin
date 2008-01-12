@@ -597,7 +597,7 @@ static void set_metadata(bgav_demuxer_context_t * ctx)
  *  ffmpeg (libavcodec/mpegaudiodec.c: mp3Frames[16], mp3Channels[16], chan_offset[9][5])
  */
 
-static struct
+static const struct
   {
   int num_channels;
   gavl_channel_id_t channels[8];
@@ -643,7 +643,7 @@ static int init_mp3on4(bgav_stream_t * s)
 /* the audio fourcc mp4a doesn't necessarily mean, that we actually
    have AAC audio */
 
-static struct
+static const struct
   {
   int objectTypeId;
   uint32_t fourcc;
@@ -1437,7 +1437,7 @@ static void close_quicktime(bgav_demuxer_context_t * ctx)
   free(ctx->priv);
   }
 
-bgav_demuxer_t bgav_demuxer_quicktime =
+const bgav_demuxer_t bgav_demuxer_quicktime =
   {
     .probe =       probe_quicktime,
     .open =        open_quicktime,

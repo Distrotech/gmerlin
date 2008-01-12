@@ -339,7 +339,7 @@ static bg_plugin_info_t * get_info(void * test_module, const char * filename)
   bg_plugin_info_t * new_info;
   bg_plugin_common_t * plugin;
   void * plugin_priv;
-  bg_parameter_info_t * parameter_info;
+  const bg_parameter_info_t * parameter_info;
   
   if(!check_plugin_version(test_module))
     {
@@ -918,7 +918,7 @@ bg_plugin_registry_get_section(bg_plugin_registry_t * reg,
   return bg_cfg_section_find_subsection(reg->config_section, plugin_name);
   }
 
-static struct
+static const struct
   {
   bg_plugin_type_t type;
   char * key;
@@ -1247,7 +1247,7 @@ fail:
 static void apply_parameters(bg_plugin_registry_t * reg,
                              bg_plugin_handle_t * ret)
   {
-  bg_parameter_info_t * parameters;
+  const bg_parameter_info_t * parameters;
   bg_cfg_section_t * section;
   
   /* Apply saved parameters */
@@ -1700,19 +1700,21 @@ void bg_plugin_registry_set_parameter_info(bg_plugin_registry_t * reg,
   num_plugins =
     bg_plugin_registry_get_num_plugins(reg, type_mask, flag_mask);
 
-  ret->multi_names      = calloc(num_plugins + 1, sizeof(*ret->multi_names));
-  ret->multi_labels     = calloc(num_plugins + 1, sizeof(*ret->multi_labels));
-  ret->multi_parameters = calloc(num_plugins + 1,
+  ret->multi_names_nc      = calloc(num_plugins + 1, sizeof(*ret->multi_names));
+  ret->multi_labels_nc     = calloc(num_plugins + 1, sizeof(*ret->multi_labels));
+  ret->multi_parameters_nc = calloc(num_plugins + 1,
                                  sizeof(*ret->multi_parameters));
 
-  ret->multi_descriptions = calloc(num_plugins + 1,
+  ret->multi_descriptions_nc = calloc(num_plugins + 1,
                                    sizeof(*ret->multi_descriptions));
+
+  bg_parameter_info_set_const_ptrs(ret);
   
   for(i = 0; i < num_plugins; i++)
     {
     info = bg_plugin_find_by_index(reg, i,
                                    type_mask, flag_mask);
-    ret->multi_names[i] = bg_strdup(NULL, info->name);
+    ret->multi_names_nc[i] = bg_strdup(NULL, info->name);
 
     /* First plugin is the default one */
     if(!i && (ret->type != BG_PARAMETER_MULTI_CHAIN)) 
@@ -1721,15 +1723,15 @@ void bg_plugin_registry_set_parameter_info(bg_plugin_registry_t * reg,
       }
     
     bg_bindtextdomain(info->gettext_domain, info->gettext_directory);
-    ret->multi_descriptions[i] = bg_strdup(NULL, TRD(info->description,
+    ret->multi_descriptions_nc[i] = bg_strdup(NULL, TRD(info->description,
                                                      info->gettext_domain));
     
-    ret->multi_labels[i] = bg_strdup(NULL, TRD(info->long_name,
+    ret->multi_labels_nc[i] = bg_strdup(NULL, TRD(info->long_name,
                                                info->gettext_domain));
     
     if(info->parameters)
       {
-      ret->multi_parameters[i] =
+      ret->multi_parameters_nc[i] =
         bg_parameter_info_copy_array(info->parameters);
       }
     }

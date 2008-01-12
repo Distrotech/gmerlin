@@ -741,7 +741,7 @@ static void seek_ffmpeg(bgav_demuxer_context_t * ctx, int64_t time, int scale)
     }
   }
 
-bgav_demuxer_t bgav_demuxer_ffmpeg =
+const bgav_demuxer_t bgav_demuxer_ffmpeg =
   {
     .probe =       probe_ffmpeg,
     .open =        open_ffmpeg,

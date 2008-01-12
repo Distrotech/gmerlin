@@ -592,7 +592,7 @@ static int read_nonblock_rtsp(bgav_input_context_t * ctx,
   }
 
 
-bgav_input_t bgav_input_rtsp =
+const bgav_input_t bgav_input_rtsp =
   {
     .name =          "rtsp (Real)",
     .open =          open_rtsp,

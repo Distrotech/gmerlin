@@ -127,7 +127,7 @@ static int parse_pls(bgav_redirector_context_t * r)
   return ret;
   }
 
-bgav_redirector_t bgav_redirector_pls = 
+const bgav_redirector_t bgav_redirector_pls = 
   {
     .name =  "pls (Shoutcast)",
     .probe = probe_pls,

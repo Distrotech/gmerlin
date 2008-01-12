@@ -35,7 +35,7 @@
 
 #define LOG_DOMAIN "mp2enc"
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name =        "bitrate",
@@ -64,7 +64,7 @@ static bg_parameter_info_t parameters[] =
     { /* End of parameters */ }
   };
 
-bg_parameter_info_t * bg_mpa_get_parameters()
+const bg_parameter_info_t * bg_mpa_get_parameters()
   {
   return parameters;
   }
@@ -125,7 +125,7 @@ static char * bg_mpa_make_commandline(bg_mpa_common_t * com,
   return ret;
   }
 
-int bitrates[2][15] = {
+static const int bitrates[2][15] = {
   {0,32,64,96,128,160,192,224,256,288,320,352,384,416,448},
   {0,32,48,56,64,80,96,112,128,160,192,224,256,320,384},
   //  {0,32,40,48,56,64,80,96,112,128,160,192,224,256,320}
