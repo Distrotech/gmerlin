@@ -25,11 +25,7 @@
  *  functions in ../mmxext
  */
 
-#ifdef MMXEXT
-#define MOVQ_R2M(reg,mem) movntq_r2m(reg, mem)
-#else
-#define MOVQ_R2M(reg,mem) movq_r2m(reg, mem)
-#endif
+#ifndef MMXEXT
 
 static const mmx_t rgb_yuv_rgb24_l = { 0x0000000000FFFFFFLL };
 static const mmx_t rgb_yuv_rgb24_u = { 0x0000FFFFFF000000LL };
@@ -1970,19 +1966,10 @@ static const mmx_t sign_mask =   { 0x0000008000000080LL };
  * -> END
  ***************************************/
 
-
-#ifdef MMXEXT
-
-void gavl_init_rgb_yuv_funcs_mmxext(gavl_pixelformat_function_table_t * tab,
-                                    int width, const gavl_video_options_t * opt)
-
-#else /* !MMXEXT */
-
 void
 gavl_init_rgb_yuv_funcs_mmx(gavl_pixelformat_function_table_t * tab,
                             int width, const gavl_video_options_t * opt)
      
-#endif /* MMXEXT */
   {
   if(width % 4)
     return;
@@ -2067,3 +2054,12 @@ gavl_init_rgb_yuv_funcs_mmx(gavl_pixelformat_function_table_t * tab,
   //  tab->rgba_32_to_yuv_422_p = rgba_32_to_yuv_422_p_mmx;
 
   }
+
+#else
+
+void gavl_init_rgb_yuv_funcs_mmxext(gavl_pixelformat_function_table_t * tab,
+                                    int width, const gavl_video_options_t * opt)
+  {
+  
+  }
+#endif /* !MMXEXT */

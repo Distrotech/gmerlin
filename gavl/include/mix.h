@@ -42,7 +42,7 @@ typedef struct gavl_mix_input_channel_s
   int index; /* Which input channel */
   union      /* Weighing factor     */
     {
-    float    f_float;
+    double    f_float;
     int8_t   f_8;
     int16_t  f_16;
     int32_t  f_32;

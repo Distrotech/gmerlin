@@ -36,13 +36,15 @@ typedef struct
 
   void (*set_volume_float)(gavl_volume_control_t * v, void * samples,
                          int num_samples);
+  void (*set_volume_double)(gavl_volume_control_t * v, void * samples,
+                            int num_samples);
   } gavl_volume_funcs_t;
 
 struct gavl_volume_control_s
   {
   gavl_audio_format_t format;
   
-  float factor_f;
+  double factor_f;
   int64_t factor_i;
   
   void (*set_volume)(gavl_volume_control_t * v,

@@ -64,6 +64,21 @@ typedef struct
 
   gavl_audio_func_t interleave_all_to_2_32;
   gavl_audio_func_t interleave_none_to_2_32;
+
+  /* 64 bit versions */
+  
+  gavl_audio_func_t interleave_none_to_all_64;
+  gavl_audio_func_t interleave_none_to_all_stereo_64;
+
+  gavl_audio_func_t interleave_all_to_none_64;
+  gavl_audio_func_t interleave_all_to_none_stereo_64;
+
+  gavl_audio_func_t interleave_2_to_all_64;
+  gavl_audio_func_t interleave_2_to_none_64;
+
+  gavl_audio_func_t interleave_all_to_2_64;
+  gavl_audio_func_t interleave_none_to_2_64;
+
   
   } gavl_interleave_table_t;
 

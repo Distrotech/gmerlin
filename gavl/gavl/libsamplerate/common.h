@@ -98,19 +98,19 @@ typedef struct SRC_PRIVATE_tag
 const char* gavl_sinc_get_name (int src_enum) ;
 const char* gavl_sinc_get_description (int src_enum) ;
 
-int gavl_sinc_set_converter (SRC_PRIVATE *psrc, int src_enum) ;
+int gavl_sinc_set_converter (SRC_PRIVATE *psrc, int src_enum, int d) ;
 
 /* In src_linear.c */
 const char* gavl_linear_get_name (int src_enum) ;
 const char* gavl_linear_get_description (int src_enum) ;
 
-int gavl_linear_set_converter (SRC_PRIVATE *psrc, int src_enum) ;
+int gavl_linear_set_converter (SRC_PRIVATE *psrc, int src_enum, int d) ;
 
 /* In src_zoh.c */
 const char* gavl_zoh_get_name (int src_enum) ;
 const char* gavl_zoh_get_description (int src_enum) ;
 
-int gavl_zoh_set_converter (SRC_PRIVATE *psrc, int src_enum) ;
+int gavl_zoh_set_converter (SRC_PRIVATE *psrc, int src_enum, int d) ;
 
 #endif	/* COMMON_H_INCLUDED */
 

@@ -43,6 +43,7 @@ static void set_factor_i(gavl_volume_control_t * v)
       break;
     case GAVL_SAMPLE_NONE:
     case GAVL_SAMPLE_FLOAT:
+    case GAVL_SAMPLE_DOUBLE:
       break;
     }
   }
@@ -138,6 +139,9 @@ void gavl_volume_control_set_format(gavl_volume_control_t * v,
 
     case GAVL_SAMPLE_FLOAT:
       v->set_volume_channel = funcs->set_volume_float;
+      break;
+    case GAVL_SAMPLE_DOUBLE:
+      v->set_volume_channel = funcs->set_volume_double;
       break;
 
     case GAVL_SAMPLE_NONE:

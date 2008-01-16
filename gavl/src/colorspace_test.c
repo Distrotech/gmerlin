@@ -2389,7 +2389,7 @@ int main(int argc, char ** argv)
       
       /* Now, initialize with MMX */
 
-#if 0
+#if 1
       gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_MMX);
       
       gavl_video_frame_clear(output_frame, &output_format);
@@ -2400,12 +2400,10 @@ int main(int argc, char ** argv)
         {
         fprintf(stderr, "MMX Version:    ");
         gavl_video_convert(cnv, input_frame, output_frame);
+        write_file(filename_buffer,
+                   output_frame, &output_format);
+        fprintf(stderr, "Wrote %s\n", filename_buffer);
         }
-      write_file(filename_buffer,
-                 output_frame, &output_format);
-      fprintf(stderr, "Wrote %s\n", filename_buffer);
-      
-      
       gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_MMXEXT);
 
       gavl_video_frame_clear(output_frame, &output_format);
@@ -2416,10 +2414,10 @@ int main(int argc, char ** argv)
         {
         fprintf(stderr, "MMXEXT Version:    ");
         gavl_video_convert(cnv, input_frame, output_frame);
+        write_file(filename_buffer,
+                   output_frame, &output_format);
+        fprintf(stderr, "Wrote %s\n", filename_buffer);
         }
-      write_file(filename_buffer,
-                 output_frame, &output_format);
-      fprintf(stderr, "Wrote %s\n", filename_buffer);
 #endif
       
       gavl_video_frame_destroy(output_frame);

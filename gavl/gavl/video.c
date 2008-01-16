@@ -25,9 +25,9 @@
 
 //#define DEBUG
 
-#ifdef DEBUG
+//#ifdef DEBUG
 #include <stdio.h>  
-#endif
+//#endif
 
 #include "gavl.h"
 #include "config.h"
@@ -113,14 +113,14 @@ static int add_context_csp(gavl_video_converter_t * cnv,
 
   if(!ctx->func)
     {
-#ifdef DEBUG
+#if 0
     fprintf(stderr, "Found no conversion from %s to %s\n",
             gavl_pixelformat_to_string(input_format->pixelformat),
             gavl_pixelformat_to_string(output_format->pixelformat));
 #endif
     return 0;
     }
-#ifdef DEBUG
+#if 0
   fprintf(stderr, "Doing pixelformat conversion from %s to %s\n",
           gavl_pixelformat_to_string(input_format->pixelformat),
           gavl_pixelformat_to_string(output_format->pixelformat));
@@ -136,9 +136,9 @@ static void scale_func(gavl_video_convert_context_t * ctx)
                           ctx->output_frame);
   }
 
-static void add_context_scale(gavl_video_converter_t * cnv,
-                       const gavl_video_format_t * input_format,
-                       const gavl_video_format_t * output_format)
+static int add_context_scale(gavl_video_converter_t * cnv,
+                             const gavl_video_format_t * input_format,
+                             const gavl_video_format_t * output_format)
   {
   gavl_video_options_t * scaler_options;
   
@@ -166,13 +166,15 @@ static void add_context_scale(gavl_video_converter_t * cnv,
   fprintf(stderr, "\n");
 #endif
   
-  gavl_video_scaler_init(ctx->scaler,
-                         input_format,
-                         output_format);
-  
+  if(!gavl_video_scaler_init(ctx->scaler,
+                             input_format,
+                             output_format))
+    {
+    //    fprintf(stderr, "Initializing scaler failed\n");
+    return 0;
+    }
   ctx->func = scale_func;
-  
-  
+  return 1;
   }
 
 static void deinterlace_func(gavl_video_convert_context_t * ctx)
@@ -267,9 +269,7 @@ int gavl_video_converter_reinit(gavl_video_converter_t * cnv)
      (tmp_format.image_width  != output_format->image_width) ||
      (tmp_format.image_height != output_format->image_height) ||
      (tmp_format.pixel_width  != output_format->pixel_width) ||
-     (tmp_format.pixel_height != output_format->pixel_height) ||
-     (((cnv->options.quality > 3) || (cnv->options.conversion_flags & GAVL_RESAMPLE_CHROMA))
-      && (tmp_format.chroma_placement != output_format->chroma_placement)))
+     (tmp_format.pixel_height != output_format->pixel_height))
     {
     do_scale = 1;
     }
@@ -396,7 +396,8 @@ int gavl_video_converter_reinit(gavl_video_converter_t * cnv)
       tmp_format1.chroma_placement = output_format->chroma_placement;
       tmp_format1.interlace_mode = output_format->interlace_mode;
       
-      add_context_scale(cnv, &tmp_format, &tmp_format1);
+      if(!add_context_scale(cnv, &tmp_format, &tmp_format1))
+        return -1;
 
       gavl_video_format_copy(&tmp_format, &tmp_format1);
       
@@ -427,7 +428,8 @@ int gavl_video_converter_reinit(gavl_video_converter_t * cnv)
         }
       tmp_format1.chroma_placement = output_format->chroma_placement;
       
-      add_context_scale(cnv, &tmp_format, &tmp_format1);
+      if(!add_context_scale(cnv, &tmp_format, &tmp_format1))
+        return -1;
 
       gavl_video_format_copy(&tmp_format, &tmp_format1);
 
@@ -451,8 +453,9 @@ int gavl_video_converter_reinit(gavl_video_converter_t * cnv)
 
   else if(do_scale)
     {
-    add_context_scale(cnv, &tmp_format,
-                      output_format);
+    if(!add_context_scale(cnv, &tmp_format,
+                          output_format))
+      return -1;
     }
 
   /* Now, create temporary frames for the contexts */

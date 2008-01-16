@@ -80,10 +80,12 @@ void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt,
     case GAVL_SCALE_AUTO:
       break;
     case GAVL_SCALE_NEAREST:
-      gavl_init_scale_funcs_nearest_c(tab);
+      if((opt->quality > 0) || (opt->accel_flags & GAVL_ACCEL_C))
+        gavl_init_scale_funcs_nearest_c(tab);
       break;
     case GAVL_SCALE_BILINEAR:
-      gavl_init_scale_funcs_bilinear_c(tab);
+      if((opt->quality > 0) || (opt->accel_flags & GAVL_ACCEL_C))
+        gavl_init_scale_funcs_bilinear_c(tab);
 #ifdef HAVE_MMX
       if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMX))
         {
@@ -98,7 +100,8 @@ void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt,
 #endif
       break;
     case GAVL_SCALE_QUADRATIC:
-      gavl_init_scale_funcs_quadratic_c(tab);
+      if((opt->quality > 0) || (opt->accel_flags & GAVL_ACCEL_C))
+        gavl_init_scale_funcs_quadratic_c(tab);
 #ifdef HAVE_MMX
       if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMX))
         {
@@ -113,7 +116,8 @@ void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt,
 #endif
       break;
     case GAVL_SCALE_CUBIC_BSPLINE:
-      gavl_init_scale_funcs_bicubic_noclip_c(tab);
+      if((opt->quality > 0) || (opt->accel_flags & GAVL_ACCEL_C))
+        gavl_init_scale_funcs_bicubic_noclip_c(tab);
 #ifdef HAVE_MMX
       if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMX))
         {
@@ -129,7 +133,8 @@ void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt,
       break;
     case GAVL_SCALE_CUBIC_MITCHELL:
     case GAVL_SCALE_CUBIC_CATMULL:
-      gavl_init_scale_funcs_bicubic_c(tab);
+      if((opt->quality > 0) || (opt->accel_flags & GAVL_ACCEL_C))
+        gavl_init_scale_funcs_bicubic_c(tab);
 #ifdef HAVE_MMX
       if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMX))
         {
@@ -145,7 +150,8 @@ void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt,
 #endif
     case GAVL_SCALE_SINC_LANCZOS:
     case GAVL_SCALE_NONE:
-      gavl_init_scale_funcs_generic_c(tab);
+      if((opt->quality > 0) || (opt->accel_flags & GAVL_ACCEL_C))
+        gavl_init_scale_funcs_generic_c(tab);
 #ifdef HAVE_MMX
       if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMX))
         {
@@ -306,18 +312,20 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
     field = (scaler->opt.deinterlace_drop_mode == GAVL_DEINTERLACE_DROP_BOTTOM) ? 0 : 1;
     for(plane = 0; plane < scaler->num_planes; plane++)
       {
-      gavl_video_scale_context_init(&(scaler->contexts[field][plane]),
+      if(!gavl_video_scale_context_init(&(scaler->contexts[field][plane]),
                                     &opt,
                                     plane, &(scaler->src_format), &(scaler->dst_format), field, 0,
-                                    scaler->src_fields, scaler->dst_fields);
+                                    scaler->src_fields, scaler->dst_fields))
+        return 0;
       }
     if(scaler->src_format.interlace_mode == GAVL_INTERLACE_MIXED)
       {
       for(plane = 0; plane < scaler->num_planes; plane++)
         {
-        gavl_video_scale_context_init(&(scaler->contexts[2][plane]),
-                                      &opt,
-                                      plane, &(scaler->src_format), &(scaler->dst_format), 0, 0, 1, 1);
+        if(!gavl_video_scale_context_init(&(scaler->contexts[2][plane]),
+                                          &opt,
+                                          plane, &(scaler->src_format), &(scaler->dst_format), 0, 0, 1, 1))
+          return 0;
         }
       }
     }
@@ -328,10 +336,11 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
       {
       for(plane = 0; plane < scaler->num_planes; plane++)
         {
-        gavl_video_scale_context_init(&(scaler->contexts[field][plane]),
-                                      &opt,
-                                      plane, &(scaler->src_format), &(scaler->dst_format), field, field,
-                                      scaler->src_fields, scaler->dst_fields);
+        if(!gavl_video_scale_context_init(&(scaler->contexts[field][plane]),
+                                          &opt,
+                                          plane, &(scaler->src_format), &(scaler->dst_format), field, field,
+                                          scaler->src_fields, scaler->dst_fields))
+          return 0;
         }
       }
 
@@ -339,9 +348,10 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
       {
       for(plane = 0; plane < scaler->num_planes; plane++)
         {
-        gavl_video_scale_context_init(&(scaler->contexts[2][plane]),
+        if(gavl_video_scale_context_init(&(scaler->contexts[2][plane]),
                                       &opt,
-                                      plane, &(scaler->src_format), &(scaler->dst_format), 0, 0, 1, 1);
+                                         plane, &(scaler->src_format), &(scaler->dst_format), 0, 0, 1, 1))
+          return 0;
         }
       }
     }

@@ -684,7 +684,7 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
     ctx->dst_size = ctx->dst_rect.w;
 
     ctx->num_directions = 1;
-    return 0;
+    return 1;
     }
 
   if(scale_x && scale_y)
@@ -838,7 +838,14 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
     ctx->func1 = get_func(&(funcs.funcs_y), src_format->pixelformat, &bits_v);
     gavl_video_scale_table_init_int(&(ctx->table_v), bits_v);
     }
-  
+
+  if(!ctx->func1 || ((ctx->num_directions == 2) && !ctx->func2))
+    {
+    //    fprintf(stderr, "Initializing scale context failed: %d %p %p\n",
+    //            ctx->num_directions,
+    //            ctx->func1, ctx->func2);
+    return 0;
+    }
 #if 0  
   /* Dump final scale tables */
   fprintf(stderr, "Horizontal table:\n");

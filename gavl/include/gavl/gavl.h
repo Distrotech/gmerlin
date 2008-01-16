@@ -141,13 +141,14 @@ int gavl_accel_supported();
   
 typedef enum
   {
-    GAVL_SAMPLE_NONE  = 0, /*!< Undefined */
-    GAVL_SAMPLE_U8    = 1, /*!< Unsigned 8 bit */
-    GAVL_SAMPLE_S8    = 2, /*!< Signed 8 bit */
-    GAVL_SAMPLE_U16   = 3, /*!< Unsigned 16 bit */
-    GAVL_SAMPLE_S16   = 4, /*!< Signed 16 bit */
-    GAVL_SAMPLE_S32   = 5, /*!< Signed 32 bit */
-    GAVL_SAMPLE_FLOAT = 6  /*!< Floating point (-1.0 .. 1.0) */
+    GAVL_SAMPLE_NONE   = 0, /*!< Undefined */
+    GAVL_SAMPLE_U8     = 1, /*!< Unsigned 8 bit */
+    GAVL_SAMPLE_S8     = 2, /*!< Signed 8 bit */
+    GAVL_SAMPLE_U16    = 3, /*!< Unsigned 16 bit */
+    GAVL_SAMPLE_S16    = 4, /*!< Signed 16 bit */
+    GAVL_SAMPLE_S32    = 5, /*!< Signed 32 bit */
+    GAVL_SAMPLE_FLOAT  = 6,  /*!< Floating point (-1.0 .. 1.0) */
+    GAVL_SAMPLE_DOUBLE = 7  /*!< Double (-1.0 .. 1.0) */
   } gavl_sample_format_t;
 
 /*! Interleave mode of the channels
@@ -204,7 +205,6 @@ typedef struct gavl_audio_format_s
   float rear_level;   /*!< linear factor for mixing rear to front */
 
   gavl_channel_id_t channel_locations[GAVL_MAX_CHANNELS];   /*!< Which channel is stored where */
-  int reserved[8];      /*!< Reserved for future extensions */
   
   } gavl_audio_format_t;
 
@@ -364,6 +364,7 @@ typedef union gavl_audio_samples_u
   int32_t  * s_32; /*!< Signed 32 bit samples */
   
   float * f; /*!< Floating point samples */
+  double * d; /*!< Double samples */
   } gavl_audio_samples_t;
 
 
@@ -384,6 +385,7 @@ typedef union gavl_audio_channels_u
   int32_t  * s_32[GAVL_MAX_CHANNELS];/*!< Signed 32 bit channels (used internally only) */
 
   float * f[GAVL_MAX_CHANNELS];/*!< Floating point channels */
+  double * d[GAVL_MAX_CHANNELS];/*!< Double channels */
   
   } gavl_audio_channels_t;
 
@@ -410,7 +412,6 @@ typedef struct gavl_audio_frame_s
   int valid_samples;             /*!< Number of actually valid samples */
   int64_t timestamp;             /*!< Timestamp in samplerate tics */
   int channel_stride;            /*!< Byte offset between channels. Total allocated size is always num_channels * channel_stride */
-  int reserved[8];               /*!< Reserved for future extensions */
   } gavl_audio_frame_t;
 
 /*!
@@ -1648,7 +1649,6 @@ struct gavl_video_format_s
   gavl_chroma_placement_t chroma_placement;/*!< Chroma placement */
 
   gavl_interlace_mode_t   interlace_mode;/*!< Interlace mode */
-  int reserved[8];      /*!< Reserved for future extensions */
   };
 
 /*!
@@ -1743,7 +1743,6 @@ typedef struct gavl_video_frame_s
   int64_t timestamp; /*!< Timestamp in stream specific units (see \ref video_format) */
   int64_t duration; /*!< Duration in stream specific units (see \ref video_format) */
   gavl_interlace_mode_t   interlace_mode;/*!< Interlace mode */
-  int reserved[8];      /*!< Reserved for future extensions */
   } gavl_video_frame_t;
 
 

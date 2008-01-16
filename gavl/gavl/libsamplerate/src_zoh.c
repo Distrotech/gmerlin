@@ -24,7 +24,8 @@
 #include "float_cast.h"
 #include "common.h"
 
-static int zoh_process (SRC_PRIVATE *psrc, SRC_DATA *data) ;
+static int zoh_process_f (SRC_PRIVATE *psrc, SRC_DATA *data) ;
+static int zoh_process_d (SRC_PRIVATE *psrc, SRC_DATA *data) ;
 static void zoh_reset (SRC_PRIVATE *psrc) ;
 
 /*========================================================================================
@@ -37,14 +38,15 @@ typedef struct
 	int		channels ;
 	long	in_count, in_used ;
 	long	out_count, out_gen ;
-	float	last_value [1] ;
+	float	last_value_f [1] ;
+	double	last_value_d [1] ;
 } ZOH_DATA ;
 
 /*----------------------------------------------------------------------------------------
 */
 
 static int
-zoh_process (SRC_PRIVATE *psrc, SRC_DATA *data)
+zoh_process_f (SRC_PRIVATE *psrc, SRC_DATA *data)
 {	ZOH_DATA 	*zoh ;
 	double		src_ratio, input_index ;
 	int			ch ;
@@ -71,7 +73,7 @@ zoh_process (SRC_PRIVATE *psrc, SRC_DATA *data)
 			src_ratio = psrc->last_ratio + zoh->out_gen * (data->src_ratio - psrc->last_ratio) / (zoh->out_count - 1) ;
 
 		for (ch = 0 ; ch < zoh->channels ; ch++)
-		{	data->data_out [zoh->out_gen] = zoh->last_value [ch] ;
+		{	data->data_out_f [zoh->out_gen] = zoh->last_value_f [ch] ;
 			zoh->out_gen ++ ;
 			} ;
 
@@ -89,7 +91,7 @@ zoh_process (SRC_PRIVATE *psrc, SRC_DATA *data)
 			src_ratio = psrc->last_ratio + zoh->out_gen * (data->src_ratio - psrc->last_ratio) / (zoh->out_count - 1) ;
 
 		for (ch = 0 ; ch < zoh->channels ; ch++)
-		{	data->data_out [zoh->out_gen] = data->data_in [zoh->in_used - zoh->channels + ch] ;
+		{	data->data_out_f [zoh->out_gen] = data->data_in_f [zoh->in_used - zoh->channels + ch] ;
 			zoh->out_gen ++ ;
 			} ;
 
@@ -109,7 +111,7 @@ zoh_process (SRC_PRIVATE *psrc, SRC_DATA *data)
 
 	if (zoh->in_used > 0)
 		for (ch = 0 ; ch < zoh->channels ; ch++)
-			zoh->last_value [ch] = data->data_in [zoh->in_used - zoh->channels + ch] ;
+			zoh->last_value_f [ch] = data->data_in_f [zoh->in_used - zoh->channels + ch] ;
 
 	/* Save current ratio rather then target ratio. */
 	psrc->last_ratio = src_ratio ;
@@ -119,6 +121,84 @@ zoh_process (SRC_PRIVATE *psrc, SRC_DATA *data)
 
 	return SRC_ERR_NO_ERROR ;
 } /* zoh_process */
+
+static int
+zoh_process_d (SRC_PRIVATE *psrc, SRC_DATA *data)
+{	ZOH_DATA 	*zoh ;
+	double		src_ratio, input_index ;
+	int			ch ;
+
+	if (psrc->private_data == NULL)
+		return SRC_ERR_NO_PRIVATE ;
+
+	zoh = (ZOH_DATA*) psrc->private_data ;
+
+	zoh->in_count = data->input_frames * zoh->channels ;
+	zoh->out_count = data->output_frames * zoh->channels ;
+	zoh->in_used = zoh->out_gen = 0 ;
+
+	src_ratio = psrc->last_ratio ;
+	input_index = psrc->last_position ;
+
+	/* Calculate samples before first sample in input array. */
+	while (input_index < 1.0 && zoh->out_gen < zoh->out_count)
+	{
+		if (zoh->in_used + zoh->channels * input_index >= zoh->in_count)
+			break ;
+
+		if (fabs (psrc->last_ratio - data->src_ratio) > SRC_MIN_RATIO_DIFF)
+			src_ratio = psrc->last_ratio + zoh->out_gen * (data->src_ratio - psrc->last_ratio) / (zoh->out_count - 1) ;
+
+		for (ch = 0 ; ch < zoh->channels ; ch++)
+		{	data->data_out_d [zoh->out_gen] = zoh->last_value_d [ch] ;
+			zoh->out_gen ++ ;
+			} ;
+
+		/* Figure out the next index. */
+		input_index += 1.0 / src_ratio ;
+		} ;
+
+	zoh->in_used += zoh->channels * lrint (floor (input_index)) ;
+	input_index -= floor (input_index) ;
+
+	/* Main processing loop. */
+	while (zoh->out_gen < zoh->out_count && zoh->in_used + zoh->channels * input_index <= zoh->in_count)
+	{
+		if (fabs (psrc->last_ratio - data->src_ratio) > SRC_MIN_RATIO_DIFF)
+			src_ratio = psrc->last_ratio + zoh->out_gen * (data->src_ratio - psrc->last_ratio) / (zoh->out_count - 1) ;
+
+		for (ch = 0 ; ch < zoh->channels ; ch++)
+		{	data->data_out_d [zoh->out_gen] = data->data_in_d [zoh->in_used - zoh->channels + ch] ;
+			zoh->out_gen ++ ;
+			} ;
+
+		/* Figure out the next index. */
+		input_index += 1.0 / src_ratio ;
+
+		zoh->in_used += zoh->channels * lrint (floor (input_index)) ;
+		input_index -= floor (input_index) ;
+		} ;
+
+	if (zoh->in_used > zoh->in_count)
+	{	input_index += zoh->in_used - zoh->in_count ;
+		zoh->in_used = zoh->in_count ;
+		} ;
+
+	psrc->last_position = input_index ;
+
+	if (zoh->in_used > 0)
+		for (ch = 0 ; ch < zoh->channels ; ch++)
+			zoh->last_value_d [ch] = data->data_in_d [zoh->in_used - zoh->channels + ch] ;
+
+	/* Save current ratio rather then target ratio. */
+	psrc->last_ratio = src_ratio ;
+
+	data->input_frames_used = zoh->in_used / zoh->channels ;
+	data->output_frames_gen = zoh->out_gen / zoh->channels ;
+
+	return SRC_ERR_NO_ERROR ;
+} /* zoh_process */
+
 
 /*------------------------------------------------------------------------------
 */
@@ -142,7 +222,7 @@ gavl_zoh_get_description (int src_enum)
 } /* zoh_get_descrition */
 
 int
-gavl_zoh_set_converter (SRC_PRIVATE *psrc, int src_enum)
+gavl_zoh_set_converter (SRC_PRIVATE *psrc, int src_enum, int d)
 {	ZOH_DATA *zoh = NULL ;
 
 	if (src_enum != SRC_ZERO_ORDER_HOLD)
@@ -157,7 +237,7 @@ gavl_zoh_set_converter (SRC_PRIVATE *psrc, int src_enum)
 		} ;
 
 	if (psrc->private_data == NULL)
-	{	zoh = calloc (1, sizeof (*zoh) + psrc->channels * sizeof (float)) ;
+	{	zoh = calloc (1, sizeof (*zoh) + psrc->channels * sizeof (double)) ;
 		if (zoh == NULL)
 			return SRC_ERR_MALLOC_FAILED ;
 		psrc->private_data = zoh ;
@@ -165,9 +245,12 @@ gavl_zoh_set_converter (SRC_PRIVATE *psrc, int src_enum)
 
 	zoh->zoh_magic_marker = ZOH_MAGIC_MARKER ;
 	zoh->channels = psrc->channels ;
-
-	psrc->process = zoh_process ;
-	psrc->reset = zoh_reset ;
+        if(d)
+          psrc->process = zoh_process_d ;
+        else
+          psrc->process = zoh_process_f ;
+          
+        psrc->reset = zoh_reset ;
 
 	zoh_reset (psrc) ;
 
@@ -186,7 +269,8 @@ zoh_reset (SRC_PRIVATE *psrc)
 		return ;
 
 	zoh->channels = psrc->channels ;
-	memset (zoh->last_value, 0, sizeof (zoh->last_value [0]) * zoh->channels) ;
+	memset (zoh->last_value_f, 0, sizeof (zoh->last_value_f [0]) * zoh->channels) ;
+	memset (zoh->last_value_d, 0, sizeof (zoh->last_value_d [0]) * zoh->channels) ;
 
 	return ;
 } /* zoh_reset */

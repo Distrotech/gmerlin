@@ -77,6 +77,31 @@ typedef struct
   gavl_audio_func_t convert_float_to_u16;
 
   gavl_audio_func_t convert_float_to_s32;
+
+  /* Int to Double  */
+
+  gavl_audio_func_t convert_s8_to_double;
+  gavl_audio_func_t convert_u8_to_double;
+
+  gavl_audio_func_t convert_s16_to_double;
+  gavl_audio_func_t convert_u16_to_double;
+
+  gavl_audio_func_t convert_s32_to_double;
+
+  /* Double to int */
+  
+  gavl_audio_func_t convert_double_to_s8;
+  gavl_audio_func_t convert_double_to_u8;
+
+  gavl_audio_func_t convert_double_to_s16;
+  gavl_audio_func_t convert_double_to_u16;
+
+  gavl_audio_func_t convert_double_to_s32;
+
+  gavl_audio_func_t convert_double_to_float;
+  gavl_audio_func_t convert_float_to_double;
+
+  
   } gavl_sampleformat_table_t;
 
 gavl_sampleformat_table_t *

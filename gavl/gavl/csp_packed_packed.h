@@ -54,6 +54,7 @@ static void (FUNC_NAME)(gavl_video_convert_context_t * ctx)
     src = (IN_TYPE*)src_save;
     dst = (OUT_TYPE*)dst_save;
 
+    
     for(j = 0; j < jmax; j++)
       {
       CONVERT

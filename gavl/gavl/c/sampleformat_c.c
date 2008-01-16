@@ -45,6 +45,7 @@ for(i = 0; i < ctx->input_format.num_channels; i++)\
 #define S_16 channels.s_16[i][j]
 #define S_32 channels.s_32[i][j]
 #define FLOAT channels.f[i][j]
+#define DOUBLE channels.d[i][j]
 
 #define RENAME(a) a ## _ni
 
@@ -59,6 +60,7 @@ for(i = 0; i < ctx->input_format.num_channels; i++)\
 #undef S_16
 #undef S_32
 #undef FLOAT
+#undef DOUBLE
 
 #undef RENAME
 
@@ -79,6 +81,7 @@ for(i = 0; i < imax; i++)\
 #define S_16 samples.s_16[i]
 #define S_32 samples.s_32[i]
 #define FLOAT samples.f[i]
+#define DOUBLE samples.d[i]
 
 #define RENAME(a) a ## _i
 

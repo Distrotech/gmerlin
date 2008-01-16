@@ -25,11 +25,6 @@
  *  functions in ../mmxext
  */
 
-#ifdef MMXEXT
-#define MOVQ_R2M(reg,mem) movntq_r2m(reg, mem)
-#else
-#define MOVQ_R2M(reg,mem) movq_r2m(reg, mem)
-#endif
 
 
 /* Constants for YUV -> RGB conversion */
@@ -275,14 +270,98 @@ static const mmx_t mmx_ff00w =   { 0xff00ff00ff00ff00LL };
                       punpckhwd_r2r (mm5, mm4);\
                       MOVQ_R2M (mm4, *(dst+24));
 
-static const mmx_t yuv_rgb_lowest_word = { 0x000000000000FFFFLL };
-static const mmx_t yuv_rgb_lowest_byte = { 0x00000000000000FFLL };
+
+
+#ifdef MMXEXT
 
 /*
  *  mm0 = B7 B6 B5 B4 B3 B2 B1 B0
  *  mm1 = R7 R6 R5 R4 R3 R2 R1 R0
  *  mm2 = G7 G6 G5 G4 G3 G2 G1 G0
  */
+
+static const mmx_t M24A= { 0x00FF0000FF0000FFLL };
+static const mmx_t M24B= { 0xFF0000FF0000FF00LL };
+static const mmx_t M24C= { 0x0000FF0000FF0000LL };
+
+#define OUTPUT_RGB_24 \
+        movq_m2r(M24A, mm4); \
+        movq_m2r(M24C, mm7); \
+        pshufw_r2r(mm1, mm5, 0x50); /* B3 B2 B3 B2  B1 B0 B1 B0 */ \
+        pshufw_r2r(mm2, mm3, 0x50); /* G3 G2 G3 G2  G1 G0 G1 G0 */ \
+        pshufw_r2r(mm0, mm6,  0x00); /* R1 R0 R1 R0  R1 R0 R1 R0 */ \
+        pand_r2r(mm4, mm5); /*    B2        B1       B0 */ \
+        pand_r2r(mm4, mm3); /*    G2        G1       G0 */ \
+        pand_r2r(mm7, mm6); /*       R1        R0       */ \
+        psllq_i2r(8, mm3); /* G2        G1       G0    */ \
+        por_r2r(mm5, mm6);\
+        por_r2r(mm3, mm6);\
+        MOVQ_R2M(mm6, *(dst));\
+        psrlq_i2r(8, mm2); /* 00 G7 G6 G5  G4 G3 G2 G1 */\
+        pshufw_r2r(mm1, mm5, 0xA5); /* B5 B4 B5 B4  B3 B2 B3 B2 */ \
+        pshufw_r2r(mm2, mm3, 0x55); /* G4 G3 G4 G3  G4 G3 G4 G3 */ \
+        pshufw_r2r(mm0, mm6, 0xA5); /* R5 R4 R5 R4  R3 R2 R3 R2 */ \
+        pand_m2r(M24B, mm5); /* B5       B4        B3    */ \
+        pand_r2r(mm7, mm3); /*       G4        G3       */ \
+        pand_r2r(mm4, mm6); /*    R4        R3       R2 */ \
+        por_r2r(mm5, mm3); /* B5    G4 B4     G3 B3    */\
+        por_r2r(mm3, mm6       );\
+        MOVQ_R2M(mm6, *(dst+8));\
+        pshufw_r2r(mm1, mm5, 0xFF); /* B7 B6 B7 B6  B7 B6 B6 B7 */\
+        pshufw_r2r(mm2, mm3, 0xFA); /* 00 G7 00 G7  G6 G5 G6 G5 */\
+        pshufw_r2r(mm0, mm6, 0xFA); /* R7 R6 R7 R6  R5 R4 R5 R4 */\
+        pand_r2r(mm7, mm5); /*       B7        B6       */\
+        pand_r2r(mm4, mm3); /*    G7        G6       G5 */\
+        pand_m2r(M24B, mm6); /* R7       R6        R5    */\
+        por_r2r(mm5, mm3);\
+        por_r2r(mm3, mm6);\
+        MOVQ_R2M(mm6, *(dst+16));
+
+
+#define OUTPUT_BGR_24 \
+        movq_m2r(M24A, mm4); \
+        movq_m2r(M24C, mm7); \
+        pshufw_r2r(mm0, mm5, 0x50); /* B3 B2 B3 B2  B1 B0 B1 B0 */ \
+        pshufw_r2r(mm2, mm3, 0x50); /* G3 G2 G3 G2  G1 G0 G1 G0 */ \
+        pshufw_r2r(mm1, mm6,  0x00); /* R1 R0 R1 R0  R1 R0 R1 R0 */ \
+        pand_r2r(mm4, mm5); /*    B2        B1       B0 */ \
+        pand_r2r(mm4, mm3); /*    G2        G1       G0 */ \
+        pand_r2r(mm7, mm6); /*       R1        R0       */ \
+        psllq_i2r(8, mm3); /* G2        G1       G0    */ \
+        por_r2r(mm5, mm6);\
+        por_r2r(mm3, mm6);\
+        MOVQ_R2M(mm6, *(dst));\
+        psrlq_i2r(8, mm2); /* 00 G7 G6 G5  G4 G3 G2 G1 */\
+        pshufw_r2r(mm0, mm5, 0xA5); /* B5 B4 B5 B4  B3 B2 B3 B2 */ \
+        pshufw_r2r(mm2, mm3, 0x55); /* G4 G3 G4 G3  G4 G3 G4 G3 */ \
+        pshufw_r2r(mm1, mm6, 0xA5); /* R5 R4 R5 R4  R3 R2 R3 R2 */ \
+        pand_m2r(M24B, mm5); /* B5       B4        B3    */ \
+        pand_r2r(mm7, mm3); /*       G4        G3       */ \
+        pand_r2r(mm4, mm6); /*    R4        R3       R2 */ \
+        por_r2r(mm5, mm3); /* B5    G4 B4     G3 B3    */\
+        por_r2r(mm3, mm6       );\
+        MOVQ_R2M(mm6, *(dst+8));\
+        pshufw_r2r(mm0, mm5, 0xFF); /* B7 B6 B7 B6  B7 B6 B6 B7 */\
+        pshufw_r2r(mm2, mm3, 0xFA); /* 00 G7 00 G7  G6 G5 G6 G5 */\
+        pshufw_r2r(mm1, mm6, 0xFA); /* R7 R6 R7 R6  R5 R4 R5 R4 */\
+        pand_r2r(mm7, mm5); /*       B7        B6       */\
+        pand_r2r(mm4, mm3); /*    G7        G6       G5 */\
+        pand_m2r(M24B, mm6); /* R7       R6        R5    */\
+        por_r2r(mm5, mm3);\
+        por_r2r(mm3, mm6);\
+        MOVQ_R2M(mm6, *(dst+16));
+
+
+#else
+
+/*
+ *  mm0 = B7 B6 B5 B4 B3 B2 B1 B0
+ *  mm1 = R7 R6 R5 R4 R3 R2 R1 R0
+ *  mm2 = G7 G6 G5 G4 G3 G2 G1 G0
+ */
+
+static const mmx_t yuv_rgb_lowest_word = { 0x000000000000FFFFLL };
+static const mmx_t yuv_rgb_lowest_byte = { 0x00000000000000FFLL };
 
 #define OUTPUT_RGB_24 pxor_r2r(mm3, mm3);/*                 Zero -> mm3 */\
                       movq_r2r(mm2, mm4);/*                 mm4: G7 G6 G5 G4 G3 G2 G1 G0 */\
@@ -442,6 +521,8 @@ static const mmx_t yuv_rgb_lowest_byte = { 0x00000000000000FFLL };
 
 
 
+#endif
+
 static const mmx_t rgba32_alphamask = {0xff000000ff000000LL};
 
 #define OUTPUT_RGBA_32 pxor_r2r (mm3, mm3);\
@@ -558,6 +639,8 @@ static const mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
  * YUY2 ->
  ***********************************************************/
 
+#ifndef MMXEXT
+
 #define FUNC_NAME   yuy2_to_rgb_15_mmx
 #define IN_TYPE     uint8_t
 #define OUT_TYPE    uint8_t
@@ -623,9 +706,10 @@ static const mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 
 #define CLEANUP emms();
 
-// #define INIT
 
 #include "../csp_packed_packed.h"
+
+#endif // !MMXEXT
 
 #define FUNC_NAME   yuy2_to_rgb_24_mmx
 #define IN_TYPE     uint8_t
@@ -660,6 +744,8 @@ static const mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 // #define INIT
 
 #include "../csp_packed_packed.h"
+
+#ifndef MMXEXT
 
 
 #define FUNC_NAME   yuy2_to_rgb_32_mmx
@@ -713,9 +799,14 @@ static const mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 
 #include "../csp_packed_packed.h"
 
+#endif // !MMXEXT
+
+
 /***********************************************************
  * UYVY ->
  ***********************************************************/
+
+#ifndef MMXEXT
 
 #define FUNC_NAME   uyvy_to_rgb_15_mmx
 #define IN_TYPE     uint8_t
@@ -782,9 +873,12 @@ static const mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 
 #define CLEANUP emms();
 
+
 // #define INIT
 
 #include "../csp_packed_packed.h"
+
+#endif // !MMXEXT
 
 #define FUNC_NAME   uyvy_to_rgb_24_mmx
 #define IN_TYPE     uint8_t
@@ -820,6 +914,7 @@ static const mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 
 #include "../csp_packed_packed.h"
 
+#ifndef MMXEXT
 
 #define FUNC_NAME   uyvy_to_rgb_32_mmx
 #define IN_TYPE     uint8_t
@@ -872,9 +967,14 @@ static const mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 
 #include "../csp_packed_packed.h"
 
+#endif // !MMXEXT
+
+
 /***************************************************
  * YUV 420 P ->
  ***************************************************/
+
+#ifndef MMXEXT
 
 #define FUNC_NAME     yuv_420_p_to_rgb_15_mmx
 #define IN_TYPE       uint8_t
@@ -952,6 +1052,8 @@ static const mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 
 #include "../csp_planar_packed.h"
 
+#endif // !MMXEXT
+
 #define FUNC_NAME     yuv_420_p_to_rgb_24_mmx
 #define IN_TYPE       uint8_t
 #define OUT_TYPE      uint8_t
@@ -990,6 +1092,8 @@ static const mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define CLEANUP emms();
 
 #include "../csp_planar_packed.h"
+
+#ifndef MMXEXT
 
 #define FUNC_NAME     yuv_420_p_to_rgb_32_mmx
 #define IN_TYPE       uint8_t
@@ -1048,9 +1152,13 @@ static const mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 
 #include "../csp_planar_packed.h"
 
+#endif // !MMXEXT
+
 /***************************************************
  * YUV 410 P ->
  ***************************************************/
+
+#ifndef MMXEXT
 
 #define FUNC_NAME     yuv_410_p_to_rgb_15_mmx
 #define IN_TYPE       uint8_t
@@ -1128,6 +1236,8 @@ static const mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 
 #include "../csp_planar_packed.h"
 
+#endif // !MMXEXT
+
 #define FUNC_NAME     yuv_410_p_to_rgb_24_mmx
 #define IN_TYPE       uint8_t
 #define OUT_TYPE      uint8_t
@@ -1166,6 +1276,8 @@ static const mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define CLEANUP emms();
 
 #include "../csp_planar_packed.h"
+
+#ifndef MMXEXT
 
 #define FUNC_NAME     yuv_410_p_to_rgb_32_mmx
 #define IN_TYPE       uint8_t
@@ -1224,9 +1336,13 @@ static const mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 
 #include "../csp_planar_packed.h"
 
+#endif // !MMXEXT
+
 /********************************************************
  * YUV 422 ->
  ********************************************************/
+
+#ifndef MMXEXT
 
 #define FUNC_NAME     yuv_422_p_to_rgb_15_mmx
 #define IN_TYPE       uint8_t
@@ -1304,6 +1420,8 @@ static const mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 
 #include "../csp_planar_packed.h"
 
+#endif // MMXEXT
+
 #define FUNC_NAME     yuv_422_p_to_rgb_24_mmx
 #define IN_TYPE       uint8_t
 #define OUT_TYPE      uint8_t
@@ -1324,6 +1442,7 @@ static const mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #include "../csp_planar_packed.h"
 
 
+
 #define FUNC_NAME     yuv_422_p_to_bgr_24_mmx
 #define IN_TYPE       uint8_t
 #define OUT_TYPE      uint8_t
@@ -1342,6 +1461,9 @@ static const mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define CLEANUP emms();
 
 #include "../csp_planar_packed.h"
+
+#ifndef MMXEXT
+
 
 #define FUNC_NAME     yuv_422_p_to_rgb_32_mmx
 #define IN_TYPE       uint8_t
@@ -1400,9 +1522,13 @@ static const mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 
 #include "../csp_planar_packed.h"
 
+#endif // !MMXEXT
+
 /********************************************************
  * YUV 411 ->
  ********************************************************/
+
+#ifndef MMXEXT
 
 #define FUNC_NAME     yuv_411_p_to_rgb_15_mmx
 #define IN_TYPE       uint8_t
@@ -1483,6 +1609,8 @@ static const mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 
 #include "../csp_planar_packed.h"
 
+#endif // MMXEXT
+
 #define FUNC_NAME     yuv_411_p_to_rgb_24_mmx
 #define IN_TYPE       uint8_t
 #define OUT_TYPE      uint8_t
@@ -1523,6 +1651,8 @@ static const mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define CLEANUP emms();
 
 #include "../csp_planar_packed.h"
+
+#ifndef MMXEXT
 
 #define FUNC_NAME     yuv_411_p_to_rgb_32_mmx
 #define IN_TYPE       uint8_t
@@ -1584,11 +1714,16 @@ static const mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 
 #include "../csp_planar_packed.h"
 
+
+#endif // !MMXEXT
+
 /* JPEG */
 
 /***************************************************
  * YUVJ 420 P ->
  ***************************************************/
+
+#ifndef MMXEXT
 
 #define FUNC_NAME     yuvj_420_p_to_rgb_15_mmx
 #define IN_TYPE       uint8_t
@@ -1666,6 +1801,8 @@ static const mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 
 #include "../csp_planar_packed.h"
 
+#endif // !MMXEXT
+
 #define FUNC_NAME     yuvj_420_p_to_rgb_24_mmx
 #define IN_TYPE       uint8_t
 #define OUT_TYPE      uint8_t
@@ -1702,6 +1839,8 @@ static const mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 
 
 #define CLEANUP emms();
+
+#ifndef MMXEXT
 
 #include "../csp_planar_packed.h"
 
@@ -1762,9 +1901,14 @@ static const mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 
 #include "../csp_planar_packed.h"
 
+#endif // !MMXEXT
+
+
 /********************************************************
  * YUVJ 422 ->
  ********************************************************/
+
+#ifndef MMXEXT
 
 #define FUNC_NAME     yuvj_422_p_to_rgb_15_mmx
 #define IN_TYPE       uint8_t
@@ -1840,6 +1984,9 @@ static const mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 
 #define CLEANUP emms();
 
+#endif // !MMXEXT
+
+
 #include "../csp_planar_packed.h"
 
 #define FUNC_NAME     yuvj_422_p_to_rgb_24_mmx
@@ -1880,6 +2027,8 @@ static const mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define CLEANUP emms();
 
 #include "../csp_planar_packed.h"
+
+#ifndef MMXEXT
 
 #define FUNC_NAME     yuvj_422_p_to_rgb_32_mmx
 #define IN_TYPE       uint8_t
@@ -1938,7 +2087,7 @@ static const mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 
 #include "../csp_planar_packed.h"
 
-
+#endif // !MMXEXT
 
 #ifdef MMXEXT
 
@@ -1959,12 +2108,29 @@ void gavl_init_yuv_rgb_funcs_mmx(gavl_pixelformat_function_table_t * tab,
   if(opt->quality && (opt->quality >= 3))
     return;
   
+  tab->yuy2_to_rgb_24 = yuy2_to_rgb_24_mmx;
+  tab->yuy2_to_bgr_24 = yuy2_to_bgr_24_mmx;
+  tab->uyvy_to_rgb_24 = uyvy_to_rgb_24_mmx;
+  tab->uyvy_to_bgr_24 = uyvy_to_bgr_24_mmx;
+  tab->yuv_420_p_to_rgb_24 = yuv_420_p_to_rgb_24_mmx;
+  tab->yuv_420_p_to_bgr_24 = yuv_420_p_to_bgr_24_mmx;
+  tab->yuv_410_p_to_rgb_24 = yuv_410_p_to_rgb_24_mmx;
+  tab->yuv_410_p_to_bgr_24 = yuv_410_p_to_bgr_24_mmx;
+  tab->yuv_422_p_to_rgb_24 = yuv_422_p_to_rgb_24_mmx;
+  tab->yuv_422_p_to_bgr_24 = yuv_422_p_to_bgr_24_mmx;
+  tab->yuv_411_p_to_rgb_24 = yuv_411_p_to_rgb_24_mmx;
+  tab->yuv_411_p_to_bgr_24 = yuv_411_p_to_bgr_24_mmx;
+  tab->yuvj_420_p_to_rgb_24 = yuvj_420_p_to_rgb_24_mmx;
+  tab->yuvj_420_p_to_bgr_24 = yuvj_420_p_to_bgr_24_mmx;
+  tab->yuvj_422_p_to_rgb_24 = yuvj_422_p_to_rgb_24_mmx;
+  tab->yuvj_422_p_to_bgr_24 = yuvj_422_p_to_bgr_24_mmx;
+
+#ifndef MMXEXT
+  
   tab->yuy2_to_rgb_15 = yuy2_to_rgb_15_mmx;
   tab->yuy2_to_bgr_15 = yuy2_to_bgr_15_mmx;
   tab->yuy2_to_rgb_16 = yuy2_to_rgb_16_mmx;
   tab->yuy2_to_bgr_16 = yuy2_to_bgr_16_mmx;
-  tab->yuy2_to_rgb_24 = yuy2_to_rgb_24_mmx;
-  tab->yuy2_to_bgr_24 = yuy2_to_bgr_24_mmx;
   tab->yuy2_to_rgb_32 = yuy2_to_rgb_32_mmx;
   tab->yuy2_to_bgr_32 = yuy2_to_bgr_32_mmx;
   tab->yuy2_to_rgba_32 = yuy2_to_rgba_32_mmx;
@@ -1973,8 +2139,6 @@ void gavl_init_yuv_rgb_funcs_mmx(gavl_pixelformat_function_table_t * tab,
   tab->uyvy_to_bgr_15 = uyvy_to_bgr_15_mmx;
   tab->uyvy_to_rgb_16 = uyvy_to_rgb_16_mmx;
   tab->uyvy_to_bgr_16 = uyvy_to_bgr_16_mmx;
-  tab->uyvy_to_rgb_24 = uyvy_to_rgb_24_mmx;
-  tab->uyvy_to_bgr_24 = uyvy_to_bgr_24_mmx;
   tab->uyvy_to_rgb_32 = uyvy_to_rgb_32_mmx;
   tab->uyvy_to_bgr_32 = uyvy_to_bgr_32_mmx;
   tab->uyvy_to_rgba_32 = uyvy_to_rgba_32_mmx;
@@ -1983,8 +2147,6 @@ void gavl_init_yuv_rgb_funcs_mmx(gavl_pixelformat_function_table_t * tab,
   tab->yuv_420_p_to_bgr_15 = yuv_420_p_to_bgr_15_mmx;
   tab->yuv_420_p_to_rgb_16 = yuv_420_p_to_rgb_16_mmx;
   tab->yuv_420_p_to_bgr_16 = yuv_420_p_to_bgr_16_mmx;
-  tab->yuv_420_p_to_rgb_24 = yuv_420_p_to_rgb_24_mmx;
-  tab->yuv_420_p_to_bgr_24 = yuv_420_p_to_bgr_24_mmx;
   tab->yuv_420_p_to_rgb_32 = yuv_420_p_to_rgb_32_mmx;
   tab->yuv_420_p_to_bgr_32 = yuv_420_p_to_bgr_32_mmx;
   tab->yuv_420_p_to_rgba_32 = yuv_420_p_to_rgba_32_mmx;
@@ -1993,8 +2155,6 @@ void gavl_init_yuv_rgb_funcs_mmx(gavl_pixelformat_function_table_t * tab,
   tab->yuv_410_p_to_bgr_15 = yuv_410_p_to_bgr_15_mmx;
   tab->yuv_410_p_to_rgb_16 = yuv_410_p_to_rgb_16_mmx;
   tab->yuv_410_p_to_bgr_16 = yuv_410_p_to_bgr_16_mmx;
-  tab->yuv_410_p_to_rgb_24 = yuv_410_p_to_rgb_24_mmx;
-  tab->yuv_410_p_to_bgr_24 = yuv_410_p_to_bgr_24_mmx;
   tab->yuv_410_p_to_rgb_32 = yuv_410_p_to_rgb_32_mmx;
   tab->yuv_410_p_to_bgr_32 = yuv_410_p_to_bgr_32_mmx;
   tab->yuv_410_p_to_rgba_32 = yuv_410_p_to_rgba_32_mmx;
@@ -2004,8 +2164,6 @@ void gavl_init_yuv_rgb_funcs_mmx(gavl_pixelformat_function_table_t * tab,
   tab->yuv_422_p_to_bgr_15 = yuv_422_p_to_bgr_15_mmx;
   tab->yuv_422_p_to_rgb_16 = yuv_422_p_to_rgb_16_mmx;
   tab->yuv_422_p_to_bgr_16 = yuv_422_p_to_bgr_16_mmx;
-  tab->yuv_422_p_to_rgb_24 = yuv_422_p_to_rgb_24_mmx;
-  tab->yuv_422_p_to_bgr_24 = yuv_422_p_to_bgr_24_mmx;
   tab->yuv_422_p_to_rgb_32 = yuv_422_p_to_rgb_32_mmx;
   tab->yuv_422_p_to_bgr_32 = yuv_422_p_to_bgr_32_mmx;
   tab->yuv_422_p_to_rgba_32 = yuv_422_p_to_rgba_32_mmx;
@@ -2014,8 +2172,6 @@ void gavl_init_yuv_rgb_funcs_mmx(gavl_pixelformat_function_table_t * tab,
   tab->yuv_411_p_to_bgr_15 = yuv_411_p_to_bgr_15_mmx;
   tab->yuv_411_p_to_rgb_16 = yuv_411_p_to_rgb_16_mmx;
   tab->yuv_411_p_to_bgr_16 = yuv_411_p_to_bgr_16_mmx;
-  tab->yuv_411_p_to_rgb_24 = yuv_411_p_to_rgb_24_mmx;
-  tab->yuv_411_p_to_bgr_24 = yuv_411_p_to_bgr_24_mmx;
   tab->yuv_411_p_to_rgb_32 = yuv_411_p_to_rgb_32_mmx;
   tab->yuv_411_p_to_bgr_32 = yuv_411_p_to_bgr_32_mmx;
   tab->yuv_411_p_to_rgba_32 = yuv_411_p_to_rgba_32_mmx;
@@ -2025,8 +2181,6 @@ void gavl_init_yuv_rgb_funcs_mmx(gavl_pixelformat_function_table_t * tab,
   tab->yuvj_420_p_to_bgr_15 = yuvj_420_p_to_bgr_15_mmx;
   tab->yuvj_420_p_to_rgb_16 = yuvj_420_p_to_rgb_16_mmx;
   tab->yuvj_420_p_to_bgr_16 = yuvj_420_p_to_bgr_16_mmx;
-  tab->yuvj_420_p_to_rgb_24 = yuvj_420_p_to_rgb_24_mmx;
-  tab->yuvj_420_p_to_bgr_24 = yuvj_420_p_to_bgr_24_mmx;
   tab->yuvj_420_p_to_rgb_32 = yuvj_420_p_to_rgb_32_mmx;
   tab->yuvj_420_p_to_bgr_32 = yuvj_420_p_to_bgr_32_mmx;
   tab->yuvj_420_p_to_rgba_32 = yuvj_420_p_to_rgba_32_mmx;
@@ -2035,9 +2189,9 @@ void gavl_init_yuv_rgb_funcs_mmx(gavl_pixelformat_function_table_t * tab,
   tab->yuvj_422_p_to_bgr_15 = yuvj_422_p_to_bgr_15_mmx;
   tab->yuvj_422_p_to_rgb_16 = yuvj_422_p_to_rgb_16_mmx;
   tab->yuvj_422_p_to_bgr_16 = yuvj_422_p_to_bgr_16_mmx;
-  tab->yuvj_422_p_to_rgb_24 = yuvj_422_p_to_rgb_24_mmx;
-  tab->yuvj_422_p_to_bgr_24 = yuvj_422_p_to_bgr_24_mmx;
   tab->yuvj_422_p_to_rgb_32 = yuvj_422_p_to_rgb_32_mmx;
   tab->yuvj_422_p_to_bgr_32 = yuvj_422_p_to_bgr_32_mmx;
   tab->yuvj_422_p_to_rgba_32 = yuvj_422_p_to_rgba_32_mmx;
+
+#endif
   }

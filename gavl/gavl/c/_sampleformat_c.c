@@ -203,6 +203,48 @@ static void RENAME(convert_s32_to_float)(gavl_audio_convert_context_t * ctx)
   CONVERSION_FUNC_END
   }
 
+/* Int to double */
+
+static void RENAME(convert_s8_to_double)(gavl_audio_convert_context_t * ctx)
+  {
+  CONVERSION_FUNC_START
+  ctx->output_frame->DOUBLE =
+    (double)(ctx->input_frame->S_8)/128.0;
+  CONVERSION_FUNC_END
+  }
+
+static void RENAME(convert_u8_to_double)(gavl_audio_convert_context_t * ctx)
+  {
+  CONVERSION_FUNC_START
+  ctx->output_frame->DOUBLE =
+    (double)(ctx->input_frame->U_8)/128.0-1.0;
+  CONVERSION_FUNC_END
+  }
+
+static void RENAME(convert_s16_to_double)(gavl_audio_convert_context_t * ctx)
+  {
+  CONVERSION_FUNC_START
+  ctx->output_frame->DOUBLE =
+    (double)(ctx->input_frame->S_16)/32768.0;
+  CONVERSION_FUNC_END
+  }
+
+static void RENAME(convert_u16_to_double)(gavl_audio_convert_context_t * ctx)
+  {
+  CONVERSION_FUNC_START
+  ctx->output_frame->DOUBLE =
+    (double)(ctx->input_frame->U_16)/32768.0-1.0;
+  CONVERSION_FUNC_END
+  }
+
+static void RENAME(convert_s32_to_double)(gavl_audio_convert_context_t * ctx)
+  {
+  CONVERSION_FUNC_START
+  ctx->output_frame->DOUBLE =
+    (double)(ctx->input_frame->S_32)/2147483648.0;
+  CONVERSION_FUNC_END
+  }
+
 /* Float to int */
 
 static void RENAME(convert_float_to_s8)(gavl_audio_convert_context_t * ctx)
@@ -256,6 +298,77 @@ static void RENAME(convert_float_to_s32)(gavl_audio_convert_context_t * ctx)
   ctx->output_frame->S_32 = tmp;
   CONVERSION_FUNC_END
   }
+
+/* Double to int */
+
+static void RENAME(convert_double_to_s8)(gavl_audio_convert_context_t * ctx)
+  {
+  long tmp;
+  CONVERSION_FUNC_START
+  tmp = lrint(ctx->input_frame->DOUBLE * 128.0);
+  CLAMP(tmp, -128, 127);
+  ctx->output_frame->S_8 = tmp;
+  CONVERSION_FUNC_END
+  }
+
+static void RENAME(convert_double_to_u8)(gavl_audio_convert_context_t * ctx)
+  {
+  long tmp;
+  CONVERSION_FUNC_START
+  tmp = lrint((ctx->input_frame->DOUBLE+1.0) * 128.0);
+  CLAMP(tmp, 0, 255);
+  ctx->output_frame->U_8 = tmp;
+  CONVERSION_FUNC_END
+  }
+
+static void RENAME(convert_double_to_s16)(gavl_audio_convert_context_t * ctx)
+  {
+  long tmp;
+  CONVERSION_FUNC_START
+  tmp = lrint((ctx->input_frame->DOUBLE) * 32768.0);
+  CLAMP(tmp, -32768, 32767);
+  ctx->output_frame->S_16 = tmp;
+
+  CONVERSION_FUNC_END
+  }
+
+static void RENAME(convert_double_to_u16)(gavl_audio_convert_context_t * ctx)
+  {
+  long tmp;
+  CONVERSION_FUNC_START
+  tmp = lrint((ctx->input_frame->DOUBLE+1.0) * 32768.0);
+  CLAMP(tmp, 0, 65535);
+  ctx->output_frame->U_16 = tmp;
+
+  CONVERSION_FUNC_END
+  }
+
+static void RENAME(convert_double_to_s32)(gavl_audio_convert_context_t * ctx)
+  {
+  int64_t tmp;
+  CONVERSION_FUNC_START
+  tmp = llrint((ctx->input_frame->DOUBLE) * 2147483648.0);
+  CLAMP(tmp, -2147483648LL, 2147483647LL);
+  ctx->output_frame->S_32 = tmp;
+  CONVERSION_FUNC_END
+  }
+
+/* float <-> double */
+
+static void RENAME(convert_double_to_float)(gavl_audio_convert_context_t * ctx)
+  {
+  CONVERSION_FUNC_START
+  ctx->output_frame->FLOAT = ctx->input_frame->DOUBLE;
+  CONVERSION_FUNC_END
+  }
+
+static void RENAME(convert_float_to_double)(gavl_audio_convert_context_t * ctx)
+  {
+  CONVERSION_FUNC_START
+  ctx->output_frame->DOUBLE = ctx->input_frame->FLOAT;
+  CONVERSION_FUNC_END
+  }
+
 
 static void RENAME(gavl_init_sampleformat_funcs_c)(gavl_sampleformat_table_t * t)
   {
@@ -314,4 +427,28 @@ static void RENAME(gavl_init_sampleformat_funcs_c)(gavl_sampleformat_table_t * t
   t->convert_float_to_u16 = RENAME(convert_float_to_u16);
 
   t->convert_float_to_s32 = RENAME(convert_float_to_s32);
+
+  /* Int to Double  */
+
+  t->convert_s8_to_double = RENAME(convert_s8_to_double);
+  t->convert_u8_to_double = RENAME(convert_u8_to_double);
+
+  t->convert_s16_to_double = RENAME(convert_s16_to_double);
+  t->convert_u16_to_double = RENAME(convert_u16_to_double);
+
+  t->convert_s32_to_double = RENAME(convert_s32_to_double);
+
+  /* Double to int */
+  
+  t->convert_double_to_s8 = RENAME(convert_double_to_s8);
+  t->convert_double_to_u8 = RENAME(convert_double_to_u8);
+
+  t->convert_double_to_s16 = RENAME(convert_double_to_s16);
+  t->convert_double_to_u16 = RENAME(convert_double_to_u16);
+
+  t->convert_double_to_s32 = RENAME(convert_double_to_s32);
+
+  t->convert_float_to_double = RENAME(convert_float_to_double);
+  t->convert_double_to_float = RENAME(convert_double_to_float);
+  
   }

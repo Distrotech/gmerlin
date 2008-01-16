@@ -19,21 +19,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-/*
- *  Support for mmxext
- *  this macro procudes another set of
- *  functions in ../mmxext
- *  I really wonder if this is the only difference between mmx and mmxext
- */
 
-#ifdef MMXEXT
-#define MOVQ_R2M(reg,mem) movntq_r2m(reg, mem)
-#else
-#define MOVQ_R2M(reg,mem) movq_r2m(reg, mem)
-#endif
 
 #define INTERPOLATE_USE_16
 #include "interpolate.h"
+
+#ifndef MMXEXT
 
 static const mmx_t rgb_rgb_rgb32_upper_mask =       { 0x00ff000000ff0000LL };
 static const mmx_t rgb_rgb_rgb32_middle_mask =      { 0x0000ff000000ff00LL };
@@ -115,7 +106,8 @@ static const mmx_t rgb_rgb_rgb24_u = { 0x0000FFFFFF000000LL };
  *   Load pixels for 15/16 bit formats
  */
 
-#define LOAD_16 movq_m2r(*src,mm0);/*     mm0: P3 P3 P2 P2 P1 P1 P0 P0 */\
+#define LOAD_16 PREFETCH(src);\
+                movq_m2r(*src,mm0);/*     mm0: P3 P3 P2 P2 P1 P1 P0 P0 */\
                 movq_m2r(*(src+8),mm1);/* mm1: P7 P7 P6 P6 P5 P5 P4 P4  */
 
 /*
@@ -1426,7 +1418,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
 #define OUT_ADVANCE 24
 #define NUM_PIXELS  8
 #define CONVERT     SWAP_24
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
 
 #define FUNC_NAME   swap_rgb_32_mmx
@@ -1439,8 +1431,8 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
     LOAD_32 \
     SWAP_32 \
     WRITE_32
+#define CLEANUP emms();
 
-#define CLEANUP     emms();
 #include "../csp_packed_packed.h"
 
 #define FUNC_NAME   swap_rgb_16_mmx
@@ -1456,7 +1448,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
 #define INIT INIT_SWAP_16
 
 
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
 
 #define FUNC_NAME   swap_rgb_15_mmx
@@ -1470,7 +1462,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
     SWAP_15 \
     WRITE_16
 #define INIT INIT_SWAP_15
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
 
 #define FUNC_NAME   rgb_15_to_16_mmx
@@ -1485,7 +1477,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
     WRITE_16
 
 #define INIT        INIT_RGB_15_TO_16
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
 
 #define FUNC_NAME   rgb_15_to_24_mmx
@@ -1498,7 +1490,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
     LOAD_16 \
     RGB_15_TO_24_SWAP
 
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
 
 #define FUNC_NAME   rgb_15_to_32_mmx
@@ -1511,7 +1503,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
     LOAD_16 \
     RGB_15_TO_32_SWAP
 
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
 
 #define FUNC_NAME   rgb_16_to_15_mmx
@@ -1525,7 +1517,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
     LOAD_16 \
     RGB_16_TO_15 \
     WRITE_16
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
 
 #define FUNC_NAME   rgb_16_to_24_mmx
@@ -1538,7 +1530,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
     LOAD_16 \
     RGB_16_TO_24_SWAP
 
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
 
 #define FUNC_NAME   rgb_16_to_32_mmx
@@ -1551,7 +1543,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
     LOAD_16 \
     RGB_16_TO_32_SWAP
 
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
 
 #define FUNC_NAME   rgb_24_to_15_mmx
@@ -1564,7 +1556,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
     LOAD_24 \
     RGB_32_TO_15_SWAP
 
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
 
 #define FUNC_NAME   rgb_24_to_16_mmx
@@ -1577,7 +1569,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
     LOAD_24 \
     RGB_32_TO_16_SWAP
 
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
 
 #define FUNC_NAME   rgb_24_to_32_mmx
@@ -1590,7 +1582,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
     LOAD_24 \
     WRITE_32
 
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
 
 #define FUNC_NAME   rgb_32_to_15_mmx
@@ -1603,7 +1595,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
     LOAD_32 \
     RGB_32_TO_15_SWAP
 
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
 
 #define FUNC_NAME   rgb_32_to_16_mmx
@@ -1616,7 +1608,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
     LOAD_32 \
     RGB_32_TO_16_SWAP
 
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
 
 #define FUNC_NAME   rgb_32_to_24_mmx
@@ -1629,7 +1621,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
     LOAD_32 \
     WRITE_24
 
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
 
 #define FUNC_NAME   rgb_15_to_16_swap_mmx
@@ -1645,7 +1637,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
 
 #define INIT INIT_SWAP_15_TO_16
 
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
 
 #define FUNC_NAME   rgb_15_to_24_swap_mmx
@@ -1658,7 +1650,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
     LOAD_16 \
     RGB_15_TO_24
 
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
 
 #define FUNC_NAME   rgb_15_to_32_swap_mmx
@@ -1671,7 +1663,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
     LOAD_16 \
     RGB_15_TO_32
 
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
 
 #define FUNC_NAME   rgb_16_to_15_swap_mmx
@@ -1687,7 +1679,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
 
 #define INIT INIT_SWAP_16_TO_15
 
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
 
 #define FUNC_NAME   rgb_16_to_24_swap_mmx
@@ -1700,7 +1692,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
     LOAD_16 \
     RGB_16_TO_24
 
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
 
 #define FUNC_NAME   rgb_16_to_32_swap_mmx
@@ -1713,7 +1705,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
     LOAD_16 \
     RGB_16_TO_32
 
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
 
 #define FUNC_NAME   rgb_24_to_15_swap_mmx
@@ -1726,7 +1718,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
     LOAD_24 \
     RGB_32_TO_15
 
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
 
 #define FUNC_NAME   rgb_24_to_16_swap_mmx
@@ -1739,7 +1731,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
     LOAD_24 \
     RGB_32_TO_16
 
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
 
 #define FUNC_NAME   rgb_24_to_32_swap_mmx
@@ -1753,7 +1745,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
     SWAP_32 \
     WRITE_32
 
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
 
 #define FUNC_NAME   rgb_32_to_15_swap_mmx
@@ -1766,7 +1758,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
     LOAD_32 \
     RGB_32_TO_15
 
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
 
 #define FUNC_NAME   rgb_32_to_16_swap_mmx
@@ -1779,7 +1771,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
     LOAD_32 \
     RGB_32_TO_16
 
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
 
 #define FUNC_NAME   rgb_32_to_24_swap_mmx
@@ -1793,7 +1785,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
     SWAP_32 \
     WRITE_24
 
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
 
 /* Conversion from RGB formats to RGBA */
@@ -1808,7 +1800,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
     LOAD_16 \
     RGB_15_TO_32_SWAP_RGBA
 
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
 
 #define FUNC_NAME   bgr_15_to_rgba_32_mmx
@@ -1821,7 +1813,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
     LOAD_16 \
     RGB_15_TO_32_RGBA
 
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
 
 
@@ -1835,7 +1827,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
     LOAD_16 \
     RGB_16_TO_32_SWAP_RGBA
 
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
 
 #define FUNC_NAME   bgr_16_to_rgba_32_mmx
@@ -1848,7 +1840,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
     LOAD_16 \
     RGB_16_TO_32_RGBA
 
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
     
 #define FUNC_NAME   rgb_24_to_rgba_32_mmx
@@ -1863,7 +1855,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
 
 #define INIT INIT_WRITE_RGBA_32
 
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
     
     
@@ -1880,7 +1872,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
 
 #define INIT INIT_WRITE_RGBA_32
 
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
 
 #define FUNC_NAME   rgb_32_to_rgba_32_mmx
@@ -1895,7 +1887,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
 
 #define INIT INIT_WRITE_RGBA_32
 
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
 
 #define FUNC_NAME   bgr_32_to_rgba_32_mmx
@@ -1911,7 +1903,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
 
 #define INIT INIT_WRITE_RGBA_32
 
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
 
 /* Conversion from RGBA to RGB formats */
@@ -1941,7 +1933,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
 #define INIT \
   INIT_RGBA_32
 
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
 
 
@@ -1961,7 +1953,7 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
 #define INIT \
   INIT_RGBA_32
 
-#define CLEANUP     emms();
+#define CLEANUP emms();
 #include "../csp_packed_packed.h"
 
 
@@ -1981,8 +1973,8 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
 #define INIT \
   INIT_RGBA_32
 
-#define CLEANUP     emms();
-#include "../csp_packed_packed.h"
+#define CLEANUP emms();
+#include  "../csp_packed_packed.h"
 
 /* rgba_32_to_bgr_16_mmx */
 
@@ -2001,8 +1993,8 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
 #define INIT \
   INIT_RGBA_32
 
-#define CLEANUP     emms();
-#include "../csp_packed_packed.h"
+#define CLEANUP emms();
+#include  "../csp_packed_packed.h"
 
 
 /* rgba_32_to_rgb_24_mmx */
@@ -2021,9 +2013,9 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
 #define INIT \
   INIT_RGBA_32
 
-#define CLEANUP     emms();
 
-#include "../csp_packed_packed.h"
+#define CLEANUP emms();
+#include  "../csp_packed_packed.h"
 
 /* rgba_32_to_bgr_24_mmx */
 
@@ -2041,8 +2033,8 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
 #define INIT \
   INIT_RGBA_32
 
-#define CLEANUP     emms();
-#include "../csp_packed_packed.h"
+#define CLEANUP emms();
+#include  "../csp_packed_packed.h"
 
 /* rgba_32_to_rgb_32_mmx */
 
@@ -2060,8 +2052,8 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
 #define INIT \
   INIT_RGBA_32
 
-#define CLEANUP     emms();
-#include "../csp_packed_packed.h"
+#define CLEANUP emms();
+#include  "../csp_packed_packed.h"
 
 /* rgba_32_to_bgr_32_mmx */
 
@@ -2080,21 +2072,13 @@ static const mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
 #define INIT \
   INIT_RGBA_32
 
-#define CLEANUP     emms();
-#include "../csp_packed_packed.h"
+#define CLEANUP emms();
+#include  "../csp_packed_packed.h"
 
-#ifdef MMXEXT
-
-void
-gavl_init_rgb_rgb_funcs_mmxext(gavl_pixelformat_function_table_t * tab,
-                               int width, const gavl_video_options_t * opt)
-
-#else /* !MMXEXT */
 
 void
 gavl_init_rgb_rgb_funcs_mmx(gavl_pixelformat_function_table_t * tab,
                             int width, const gavl_video_options_t * opt)
-#endif /* MMXEXT */
   {
   if(width % 8)
     return;
@@ -2198,3 +2182,13 @@ gavl_init_rgb_rgb_funcs_mmx(gavl_pixelformat_function_table_t * tab,
   
 
   }
+#else
+
+
+void
+gavl_init_rgb_rgb_funcs_mmxext(gavl_pixelformat_function_table_t * tab,
+                               int width, const gavl_video_options_t * opt)
+  {
+  }
+
+#endif // !MMXEXT

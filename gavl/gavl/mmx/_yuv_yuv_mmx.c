@@ -19,19 +19,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#ifndef MMXEXT
+
 #include "mmx_macros.h"
-
-/*
- *  Support for mmxext
- *  this macro procudes another set of
- *  functions in ../mmxext
- */
-
-#ifdef MMXEXT
-#define MOVQ_R2M(reg,mem) movntq_r2m(reg, mem)
-#else
-#define MOVQ_R2M(reg,mem) movq_r2m(reg, mem)
-#endif
 
 
 /* Pixel conversion Macros */
@@ -322,21 +312,12 @@
 
 #include "../csp_planar_packed.h"
 
-
-
-#ifdef MMXEXT
-
-void
-gavl_init_yuv_yuv_funcs_mmxext(gavl_pixelformat_function_table_t * tab,
-                               int width, const gavl_video_options_t * opt)
-
-#else /* !MMXEXT */     
+  
 
 void
 gavl_init_yuv_yuv_funcs_mmx(gavl_pixelformat_function_table_t * tab, int width,
                             const gavl_video_options_t * opt)
 
-#endif /* MMXEXT */
   {
   if(width % 8)
     return;
@@ -358,3 +339,13 @@ gavl_init_yuv_yuv_funcs_mmx(gavl_pixelformat_function_table_t * tab, int width,
   tab->yuv_422_p_to_uyvy      = yuv_422_p_to_uyvy_mmx;
 
   }
+
+#else // MMXEXT
+
+void
+gavl_init_yuv_yuv_funcs_mmxext(gavl_pixelformat_function_table_t * tab,
+                               int width, const gavl_video_options_t * opt)
+  {
+
+  }
+#endif

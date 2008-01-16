@@ -89,7 +89,7 @@ void gavl_mix_audio(gavl_audio_convert_context_t * ctx)
 
 static void dump_matrix(gavl_audio_format_t * in,
                         gavl_audio_format_t * out,
-                        float matrix[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS])
+                        double matrix[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS])
   {
   int i, j;
   fprintf(stderr, "Mix Matrix:\n");
@@ -106,11 +106,11 @@ static void dump_matrix(gavl_audio_format_t * in,
 
 #endif
 
-static void normalize_matrix(float ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS],
+static void normalize_matrix(double ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS],
                              int in_channels, int out_channels)
   {
-  float max_ampl;
-  float ampl;
+  double max_ampl;
+  double ampl;
   int i, j;
 
   /* Normalize matrix */
@@ -141,7 +141,7 @@ static void normalize_matrix(float ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS],
 #define IN_INDEX(id)  in_index  = gavl_channel_index(in, id);  if(in_index < 0)  goto fail;
 #define OUT_INDEX(id) out_index = gavl_channel_index(out, id); if(out_index < 0) goto fail;
 
-static void init_matrix(float ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS],
+static void init_matrix(double ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS],
                         gavl_audio_options_t * opt,
                         gavl_audio_format_t * in,
                         gavl_audio_format_t * out)
@@ -686,7 +686,7 @@ static void init_matrix(float ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS],
   }
 
 static void set_factor(gavl_mix_input_channel_t * ret,
-                       float fac, gavl_sample_format_t format)
+                       double fac, gavl_sample_format_t format)
   {
   switch(format)
     {
@@ -702,6 +702,7 @@ static void set_factor(gavl_mix_input_channel_t * ret,
       ret->factor.f_32 =    (int32_t)(fac * (INT32_MAX>>1) + 0.5);
       break;
     case GAVL_SAMPLE_FLOAT:
+    case GAVL_SAMPLE_DOUBLE:
       ret->factor.f_float = fac;
       break;
     case GAVL_SAMPLE_NONE:
@@ -710,7 +711,7 @@ static void set_factor(gavl_mix_input_channel_t * ret,
   }
 
 static void init_context(gavl_mix_matrix_t * ctx,
-                         float matrix[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS],
+                         double matrix[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS],
                          gavl_audio_format_t * in_format,
                          gavl_audio_format_t * out_format)
   {
@@ -793,7 +794,7 @@ gavl_create_mix_matrix(gavl_audio_options_t * opt,
                         gavl_audio_format_t * in,
                         gavl_audio_format_t * out)
   {
-  float mix_matrix[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS];
+  double mix_matrix[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS];
   gavl_mix_matrix_t * ret;
   ret = calloc(1, sizeof(*ret));
 

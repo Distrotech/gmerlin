@@ -34,7 +34,8 @@ typedef struct SRC_STATE_tag SRC_STATE ;
 
 /* SRC_DATA is used to pass data to src_simple() and src_process(). */
 typedef struct
-{	float	*data_in, *data_out ;
+{	float	*data_in_f, *data_out_f ;
+        double	*data_in_d, *data_out_d ;
 
 	long	input_frames, output_frames ;
 	long	input_frames_used, output_frames_gen ;
@@ -67,7 +68,7 @@ typedef long (*src_callback_t) (void *cb_data, float **data) ;
 **	Error returned in *error.
 */
 
-SRC_STATE* gavl_src_new (int converter_type, int channels, int *error) ;
+SRC_STATE* gavl_src_new (int converter_type, int channels, int *error, int d) ;
 
 /*
 **	Initilisation for callback based API : return an anonymous pointer to the

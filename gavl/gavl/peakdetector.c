@@ -178,6 +178,21 @@ static void update_channel_float(gavl_peak_detector_t * pd, void * _samples,
     }
   }
 
+static void update_channel_double(gavl_peak_detector_t * pd, void * _samples,
+                                  int num, int offset,
+                                  int advance, int channel)
+  {
+  int i;
+  double * samples = (double*)_samples;
+  samples += offset;
+  for(i = 0; i < num; i++)
+    {
+    if(*samples > pd->max_d[channel]) pd->max_d[channel] = *samples;
+    if(*samples < pd->min_d[channel]) pd->min_d[channel] = *samples;
+    samples += advance;
+    }
+  }
+
 gavl_peak_detector_t * gavl_peak_detector_create()
   {
   gavl_peak_detector_t * ret;
@@ -227,6 +242,9 @@ void gavl_peak_detector_set_format(gavl_peak_detector_t *pd,
       break;
     case GAVL_SAMPLE_FLOAT:
       pd->update_channel = update_channel_float;
+      break;
+    case GAVL_SAMPLE_DOUBLE:
+      pd->update_channel = update_channel_double;
       break;
     case GAVL_SAMPLE_NONE:
       break;
@@ -314,6 +332,7 @@ void gavl_peak_detector_reset(gavl_peak_detector_t * pd)
         }
       break;
     case GAVL_SAMPLE_FLOAT:
+    case GAVL_SAMPLE_DOUBLE:
     case GAVL_SAMPLE_NONE:
       break;
     }

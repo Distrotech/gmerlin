@@ -27,6 +27,25 @@
 #include <attributes.h>
 #include "mmx.h"
 
+/*
+ *  Support for mmxext
+ *  this macro procudes another set of
+ *  functions in ../mmxext
+ *  I really wonder if this is the only difference between mmx and mmxext
+ */
+
+#ifdef MMXEXT
+// #define MOVQ_R2M(reg,mem) movntq_r2m(reg, mem)
+#define MOVQ_R2M(reg,mem) movq_r2m(reg, mem)
+#define CLEANUP     emms();
+// #define PREFETCH(ptr) mmx_fetch(ptr,t0)
+#define PREFETCH(ptr)
+#else
+#define MOVQ_R2M(reg,mem) movq_r2m(reg, mem)
+#define CLEANUP     emms();
+#define PREFETCH(ptr)
+#endif
+
 #include "_rgb_rgb_mmx.c"
 #include "_rgb_yuv_mmx.c"
 #include "_yuv_rgb_mmx.c"

@@ -111,6 +111,16 @@ static void set_volume_float_c(gavl_volume_control_t * v,
     s[i] *= v->factor_f;
   }
 
+static void set_volume_double_c(gavl_volume_control_t * v,
+                                void * samples,
+                                int num_samples)
+  {
+  int i;
+  double * s = (double*)samples;
+  for(i = 0; i < num_samples; i++)
+    s[i] *= v->factor_f;
+  }
+
 void gavl_init_volume_funcs_c(gavl_volume_funcs_t * v)
   {
   v->set_volume_s8 = set_volume_s8_c;
@@ -122,4 +132,5 @@ void gavl_init_volume_funcs_c(gavl_volume_funcs_t * v)
   v->set_volume_s32 = set_volume_s32_c;
 
   v->set_volume_float = set_volume_float_c;
+  v->set_volume_double = set_volume_double_c;
   }

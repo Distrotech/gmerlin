@@ -26,11 +26,11 @@
 #include	"common.h"
 #include	"float_cast.h"
 
-static int psrc_set_converter (SRC_PRIVATE	*psrc, int converter_type) ;
+static int psrc_set_converter (SRC_PRIVATE	*psrc, int converter_type, int d) ;
 
 
 SRC_STATE *
-gavl_src_new (int converter_type, int channels, int *error)
+gavl_src_new (int converter_type, int channels, int *error, int d)
 {	SRC_PRIVATE	*psrc ;
 
 	if (error)
@@ -51,7 +51,7 @@ gavl_src_new (int converter_type, int channels, int *error)
 	psrc->channels = channels ;
 	psrc->mode = SRC_MODE_PROCESS ;
 
-	if (psrc_set_converter (psrc, converter_type) != SRC_ERR_NO_ERROR)
+	if (psrc_set_converter (psrc, converter_type, d) != SRC_ERR_NO_ERROR)
 	{	if (error)
 			*error = SRC_ERR_BAD_CONVERTER ;
 		free (psrc) ;
@@ -76,7 +76,7 @@ gavl_src_callback_new (src_callback_t func, int converter_type, int channels, in
 	if (error != NULL)
 		*error = 0 ;
 
-	src_state = gavl_src_new (converter_type, channels, error) ;
+	src_state = gavl_src_new (converter_type, channels, error, 0) ;
 
 	gavl_src_reset (src_state) ;
 
@@ -125,32 +125,10 @@ gavl_src_process (SRC_STATE *state, SRC_DATA *data)
 	if (data->src_ratio < (1.0 / SRC_MAX_RATIO) || data->src_ratio > (1.0 * SRC_MAX_RATIO))
 		return SRC_ERR_BAD_SRC_RATIO ;
 
-	/* And that data_in and data_out are valid. */
-	if (data->data_in == NULL || data->data_out == NULL)
-		return SRC_ERR_BAD_DATA_PTR ;
-
-	if (data->data_in == NULL)
-		data->input_frames = 0 ;
-
 	if (data->input_frames < 0)
 		data->input_frames = 0 ;
 	if (data->output_frames < 0)
 		data->output_frames = 0 ;
-
-	if (data->data_in < data->data_out)
-	{	if (data->data_in + data->input_frames * psrc->channels > data->data_out)
-		{	/*-printf ("\n\ndata_in: %p    data_out: %p\n",
-				(void*) (data->data_in + data->input_frames * psrc->channels), (void*) data->data_out) ;-*/
-			return SRC_ERR_DATA_OVERLAP ;
-			} ;
-		}
-	else if (data->data_out + data->output_frames * psrc->channels > data->data_in)
-	{	/*-printf ("\n\ndata_in : %p   ouput frames: %ld    data_out: %p\n", (void*) data->data_in, data->output_frames, (void*) data->data_out) ;
-
-		printf ("data_out: %p (%p)    data_in: %p\n", (void*) data->data_out,
-			(void*) (data->data_out + data->input_frames * psrc->channels), (void*) data->data_in) ;-*/
-		return SRC_ERR_DATA_OVERLAP ;
-		} ;
 
 	/* Set the input and output counts to zero. */
 	data->input_frames_used = 0 ;
@@ -165,96 +143,6 @@ gavl_src_process (SRC_STATE *state, SRC_DATA *data)
 
 	return error ;
 } /* gavl_src_process */
-
-long
-gavl_src_callback_read (SRC_STATE *state, double src_ratio, long frames, float *data)
-{	SRC_PRIVATE	*psrc ;
-	SRC_DATA	src_data ;
-
-	long	output_frames_gen ;
-	int		error = 0 ;
-
-	if (state == NULL)
-		return 0 ;
-
-	if (frames <= 0)
-		return 0 ;
-
-	psrc = (SRC_PRIVATE*) state ;
-
-	if (psrc->mode != SRC_MODE_CALLBACK)
-	{	psrc->error = SRC_ERR_BAD_MODE ;
-		return 0 ;
-		} ;
-
-	if (psrc->callback_func == NULL)
-	{	psrc->error = SRC_ERR_NULL_CALLBACK ;
-		return 0 ;
-		} ;
-
-	memset (&src_data, 0, sizeof (src_data)) ;
-
-	/* Check src_ratio is in range. */
-	if (src_ratio < (1.0 / SRC_MAX_RATIO) || src_ratio > (1.0 * SRC_MAX_RATIO))
-	{	psrc->error = SRC_ERR_BAD_SRC_RATIO ;
-		return 0 ;
-		} ;
-
-	/* Switch modes temporarily. */
-	src_data.src_ratio = src_ratio ;
-	src_data.data_out = data ;
-	src_data.output_frames = frames ;
-
-	src_data.data_in = psrc->saved_data ;
-	src_data.input_frames = psrc->saved_frames ;
-
-	output_frames_gen = 0 ;
-	while (output_frames_gen < frames)
-	{
-		if (src_data.input_frames == 0)
-		{	float *ptr ;
-
-			src_data.input_frames = psrc->callback_func (psrc->user_callback_data, &ptr) ;
-			src_data.data_in = ptr ;
-
-			if (src_data.input_frames == 0)
-				src_data.end_of_input = 1 ;
-			} ;
-
-		/*
-		** Now call process function. However, we need to set the mode
-		** to SRC_MODE_PROCESS first and when we return set it back to
-		** SRC_MODE_CALLBACK.
-		*/
-		psrc->mode = SRC_MODE_PROCESS ;
-		error = gavl_src_process (state, &src_data) ;
-		psrc->mode = SRC_MODE_CALLBACK ;
-
-		if (error != 0)
-			break ;
-
-		src_data.data_in += src_data.input_frames_used * psrc->channels ;
-		src_data.input_frames -= src_data.input_frames_used ;
-
-		src_data.data_out += src_data.output_frames_gen * psrc->channels ;
-		src_data.output_frames -= src_data.output_frames_gen ;
-
-		output_frames_gen += src_data.output_frames_gen ;
-
-		if (src_data.end_of_input == SRC_TRUE && src_data.output_frames_gen == 0)
-			break ;
-		} ;
-
-	psrc->saved_data = src_data.data_in ;
-	psrc->saved_frames = src_data.input_frames ;
-
-	if (error != 0)
-	{	psrc->error = error ;
-	 	return 0 ;
-		} ;
-
-	return output_frames_gen ;
-} /* gavl_src_callback_read */
 
 /*==========================================================================
 */
@@ -416,23 +304,6 @@ gavl_src_strerror (int error)
 **	output buffer at a fixed conversion ratio.
 */
 
-int
-gavl_src_simple (SRC_DATA *src_data, int converter, int channels)
-{	SRC_STATE	*src_state ;
-	int 		error ;
-
-	if ((src_state = gavl_src_new (converter, channels, &error)) == NULL)
-		return error ;
-
-	src_data->end_of_input = 1 ; /* Only one buffer worth of input. */
-
-	error = gavl_src_process (src_state, src_data) ;
-
-	src_state = gavl_src_delete (src_state) ;
-
-	return error ;
-} /* gavl_src_simple */
-
 void
 gavl_src_short_to_float_array (const short *in, float *out, int len)
 {
@@ -471,15 +342,15 @@ gavl_src_float_to_short_array (const float *in, short *out, int len)
 */
 
 static int
-psrc_set_converter (SRC_PRIVATE	*psrc, int converter_type)
+psrc_set_converter (SRC_PRIVATE	*psrc, int converter_type, int d)
 {
-	if (gavl_sinc_set_converter (psrc, converter_type) == SRC_ERR_NO_ERROR)
+	if (gavl_sinc_set_converter (psrc, converter_type, d) == SRC_ERR_NO_ERROR)
 		return SRC_ERR_NO_ERROR ;
 
-	if (gavl_zoh_set_converter (psrc, converter_type) == SRC_ERR_NO_ERROR)
+	if (gavl_zoh_set_converter (psrc, converter_type, d) == SRC_ERR_NO_ERROR)
 		return SRC_ERR_NO_ERROR ;
 
-	if (gavl_linear_set_converter (psrc, converter_type) == SRC_ERR_NO_ERROR)
+	if (gavl_linear_set_converter (psrc, converter_type, d) == SRC_ERR_NO_ERROR)
 		return SRC_ERR_NO_ERROR ;
 
 	return SRC_ERR_BAD_CONVERTER ;

@@ -147,7 +147,7 @@ static void put_samplerate_context(gavl_audio_converter_t* cnv,
     add_context(cnv, ctx);
     }
   
-  if(cnv->current_format->sample_format != GAVL_SAMPLE_FLOAT)
+  if(cnv->current_format->sample_format < GAVL_SAMPLE_FLOAT)
     {
     tmp_format->sample_format = GAVL_SAMPLE_FLOAT;
     ctx = gavl_sampleformat_context_create(&(cnv->opt),
@@ -241,7 +241,7 @@ int gavl_audio_converter_reinit(gavl_audio_converter_t* cnv)
       add_context(cnv, ctx);
       }
     
-    if((cnv->current_format->sample_format != GAVL_SAMPLE_FLOAT) &&
+    if((cnv->current_format->sample_format < GAVL_SAMPLE_FLOAT) &&
        ((cnv->opt.quality > 3) ||
         (cnv->output_format.sample_format == GAVL_SAMPLE_FLOAT)))
       {
@@ -251,6 +251,17 @@ int gavl_audio_converter_reinit(gavl_audio_converter_t* cnv)
                                              &tmp_format);
       add_context(cnv, ctx);
       }
+    else if((cnv->current_format->sample_format < GAVL_SAMPLE_DOUBLE) &&
+       ((cnv->opt.quality > 4) ||
+        (cnv->output_format.sample_format == GAVL_SAMPLE_DOUBLE)))
+      {
+      tmp_format.sample_format = GAVL_SAMPLE_DOUBLE;
+      ctx = gavl_sampleformat_context_create(&(cnv->opt),
+                                             cnv->current_format,
+                                             &tmp_format);
+      add_context(cnv, ctx);
+      }
+
     else if(gavl_bytes_per_sample(cnv->current_format->sample_format) <
             gavl_bytes_per_sample(cnv->output_format.sample_format))
       {

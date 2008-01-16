@@ -110,6 +110,15 @@ gavl_audio_frame_create(const gavl_audio_format_t * format)
         ret->channels.f[i] = &(ret->samples.f[i*num_samples]);
 
       break;
+    case GAVL_SAMPLE_DOUBLE:
+      ret->channel_stride = num_samples * sizeof(double);
+      ret->samples.d =
+        memalign(ALIGNMENT_BYTES, sizeof(double) * num_samples * format->num_channels);
+
+      for(i = 0; i < format->num_channels; i++)
+        ret->channels.d[i] = &(ret->samples.d[i*num_samples]);
+
+      break;
     case GAVL_SAMPLE_NONE:
       {
       fprintf(stderr, "Sample format not specified for audio frame\n");
@@ -160,6 +169,10 @@ void gavl_audio_frame_mute(gavl_audio_frame_t * frame,
     case GAVL_SAMPLE_FLOAT:
       for(i = 0; i < imax; i++)
         frame->samples.f[i] = 0.0;
+      break;
+    case GAVL_SAMPLE_DOUBLE:
+      for(i = 0; i < imax; i++)
+        frame->samples.d[i] = 0.0;
       break;
     }
   frame->valid_samples = format->samples_per_frame;
@@ -315,6 +328,10 @@ void gavl_audio_frame_mute_channel(gavl_audio_frame_t * frame,
     case GAVL_SAMPLE_FLOAT:
       for(i = 0; i < imax; i++)
         frame->samples.f[offset + advance * i] = 0.0;
+      break;
+    case GAVL_SAMPLE_DOUBLE:
+      for(i = 0; i < imax; i++)
+        frame->samples.d[offset + advance * i] = 0.0;
       break;
     }
   }

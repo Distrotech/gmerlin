@@ -56,6 +56,9 @@ gavl_find_interleave_converter(gavl_interleave_table_t * t,
             case 4:
               return t->interleave_all_to_2_32;
               break;
+            case 8:
+              return t->interleave_all_to_2_64;
+              break;
             }
           break;
         case GAVL_INTERLEAVE_NONE:
@@ -72,6 +75,9 @@ gavl_find_interleave_converter(gavl_interleave_table_t * t,
               case 4:
                 return t->interleave_all_to_none_stereo_32;
                 break;
+              case 8:
+                return t->interleave_all_to_none_stereo_64;
+                break;
               }
             }
           else
@@ -86,6 +92,9 @@ gavl_find_interleave_converter(gavl_interleave_table_t * t,
                 break;
               case 4:
                 return t->interleave_all_to_none_32;
+                break;
+              case 8:
+                return t->interleave_all_to_none_64;
                 break;
               }
             }
@@ -106,6 +115,9 @@ gavl_find_interleave_converter(gavl_interleave_table_t * t,
             case 4:
               return t->interleave_2_to_all_32;
               break;
+            case 8:
+              return t->interleave_2_to_all_64;
+              break;
             }
           break;
         case GAVL_INTERLEAVE_2:
@@ -121,6 +133,9 @@ gavl_find_interleave_converter(gavl_interleave_table_t * t,
               break;
             case 4:
               return t->interleave_2_to_none_32;
+              break;
+            case 8:
+              return t->interleave_2_to_none_64;
               break;
             }
           break;
@@ -143,6 +158,9 @@ gavl_find_interleave_converter(gavl_interleave_table_t * t,
               case 4:
                 return t->interleave_none_to_all_stereo_32;
                 break;
+              case 8:
+                return t->interleave_none_to_all_stereo_64;
+                break;
               }
             break;
             }
@@ -159,6 +177,9 @@ gavl_find_interleave_converter(gavl_interleave_table_t * t,
               case 4:
                 return t->interleave_none_to_all_32;
                 break;
+              case 8:
+                return t->interleave_none_to_all_64;
+                break;
               }
             }
           break;
@@ -173,6 +194,9 @@ gavl_find_interleave_converter(gavl_interleave_table_t * t,
               break;
             case 4:
               return t->interleave_none_to_2_32;
+              break;
+            case 8:
+              return t->interleave_none_to_2_64;
               break;
             }
           break;

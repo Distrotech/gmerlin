@@ -31,13 +31,14 @@ static const struct
   }
 sample_format_names[] =
   {
-    { GAVL_SAMPLE_NONE,  "Not specified" },
-    { GAVL_SAMPLE_U8,    "Unsigned 8 bit"},
-    { GAVL_SAMPLE_S8,    "Signed 8 bit"},
-    { GAVL_SAMPLE_U16,   "Unsigned 16 bit"},
-    { GAVL_SAMPLE_S16,   "Signed 16 bit"},
-    { GAVL_SAMPLE_S32,   "Signed 32 bit"},
-    { GAVL_SAMPLE_FLOAT, "Floating point"},
+    { GAVL_SAMPLE_NONE,   "Not specified" },
+    { GAVL_SAMPLE_U8,     "Unsigned 8 bit"},
+    { GAVL_SAMPLE_S8,     "Signed 8 bit"},
+    { GAVL_SAMPLE_U16,    "Unsigned 16 bit"},
+    { GAVL_SAMPLE_S16,    "Signed 16 bit"},
+    { GAVL_SAMPLE_S32,    "Signed 32 bit"},
+    { GAVL_SAMPLE_FLOAT,  "Floating point"},
+    { GAVL_SAMPLE_DOUBLE, "Double precision"},
   };
 
 const char * gavl_sample_format_to_string(gavl_sample_format_t format)
@@ -400,6 +401,9 @@ int gavl_bytes_per_sample(gavl_sample_format_t format)
       break;
     case     GAVL_SAMPLE_FLOAT:
       return sizeof(float);
+      break;
+    case     GAVL_SAMPLE_DOUBLE:
+      return sizeof(double);
       break;
     case     GAVL_SAMPLE_NONE:
       return 0;

@@ -59,6 +59,18 @@
 #undef SRC
 #undef DST
 
+#define SAMPLE_TYPE double
+#define RENAME(a) a ## _64
+#define SRC(c,s) (ctx->input_frame->channels.d[c][s])
+#define DST(c,s) (ctx->output_frame->channels.d[c][s])
+#include "_interleave_c.c"
+
+#undef SAMPLE_TYPE
+#undef RENAME
+#undef SRC
+#undef DST
+
+
 
 void gavl_init_interleave_funcs_c(gavl_interleave_table_t * t)
   {
@@ -104,4 +116,19 @@ void gavl_init_interleave_funcs_c(gavl_interleave_table_t * t)
   t->interleave_all_to_2_32           = interleave_all_to_2_32;
   t->interleave_none_to_2_32          = interleave_none_to_2_32;
 
+  /* 64 bit versions */
+  
+  t->interleave_none_to_all_64        = interleave_none_to_all_64;
+  t->interleave_none_to_all_stereo_64 = interleave_none_to_all_stereo_64;
+
+  t->interleave_all_to_none_64        = interleave_all_to_none_64;
+  t->interleave_all_to_none_stereo_64 = interleave_all_to_none_stereo_64;
+
+  t->interleave_2_to_all_64           = interleave_2_to_all_64;
+  t->interleave_2_to_none_64          = interleave_2_to_none_64;
+
+  t->interleave_all_to_2_64           = interleave_all_to_2_64;
+  t->interleave_none_to_2_64          = interleave_none_to_2_64;
+
+  
   }

@@ -121,6 +121,26 @@
 #define FACTOR(i)     channel->inputs[i].factor.f_float
 #define SAMPLE_TYPE   float
 #define TMP_TYPE      float
+#define ADJUST_TMP(i) CLAMP(i, -1.0f, 1.0f)
+
+#include "_mix_c.c"
+
+#undef RENAME
+#undef SRC
+#undef SETDST
+#undef FACTOR
+#undef SAMPLE_TYPE
+#undef TMP_TYPE
+#undef ADJUST_TMP
+
+/* Double */
+
+#define RENAME(a) a ## _double
+#define SRC(i,j)      input_frame->channels.d[SRC_INDEX(i)][j]
+#define SETDST(i,val) output_frame->channels.d[channel->index][i]=val
+#define FACTOR(i)     channel->inputs[i].factor.f_float
+#define SAMPLE_TYPE   double
+#define TMP_TYPE      double
 #define ADJUST_TMP(i) CLAMP(i, -1.0, 1.0)
 
 #include "_mix_c.c"
@@ -132,6 +152,7 @@
 #undef SAMPLE_TYPE
 #undef TMP_TYPE
 #undef ADJUST_TMP
+
 
 /* Copy routines */
 
@@ -162,6 +183,15 @@ static void copy_32(gavl_mix_output_channel_t * channel,
               input_frame->valid_samples*4);
   }
 
+static void copy_64(gavl_mix_output_channel_t * channel,
+                    const gavl_audio_frame_t * input_frame,
+                    gavl_audio_frame_t * output_frame)
+  {
+  gavl_memcpy(output_frame->channels.d[channel->index],
+              input_frame->channels.d[SRC_INDEX(0)],
+              input_frame->valid_samples*8);
+  }
+
 void gavl_setup_mix_funcs_c(gavl_mixer_table_t * t,
                             gavl_audio_format_t * f)
   {
@@ -178,6 +208,9 @@ void gavl_setup_mix_funcs_c(gavl_mixer_table_t * t,
       break;
     case 4:
       t->copy_func = copy_32;
+      break;
+    case 8:
+      t->copy_func = copy_64;
       break;
     }
   switch(f->sample_format)
@@ -234,6 +267,15 @@ void gavl_setup_mix_funcs_c(gavl_mixer_table_t * t,
       t->mix_5_to_1 = mix_5_to_1_float;
       t->mix_6_to_1 = mix_6_to_1_float;
       t->mix_all_to_1 = mix_all_to_1_float;
+      break;
+    case GAVL_SAMPLE_DOUBLE:
+      t->mix_1_to_1 = mix_1_to_1_double;
+      t->mix_2_to_1 = mix_2_to_1_double;
+      t->mix_3_to_1 = mix_3_to_1_double;
+      t->mix_4_to_1 = mix_4_to_1_double;
+      t->mix_5_to_1 = mix_5_to_1_double;
+      t->mix_6_to_1 = mix_6_to_1_double;
+      t->mix_all_to_1 = mix_all_to_1_double;
       break;
     case GAVL_SAMPLE_NONE:
       break;
