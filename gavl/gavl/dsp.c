@@ -24,10 +24,12 @@
 #include <gavl/gavl.h>
 #include <gavl/gavldsp.h>
 #include <dsp.h>
+#include <accel.h>
 
 static void init_table(gavl_dsp_context_t* ctx)
   {
-  gavl_dsp_init_c(&ctx->funcs, ctx->quality);
+  if(ctx->quality || (ctx->accel_flags & GAVL_ACCEL_C))
+    gavl_dsp_init_c(&ctx->funcs, ctx->quality);
 #ifdef HAVE_MMX
   if(ctx->accel_flags & GAVL_ACCEL_MMX)
     gavl_dsp_init_mmx(&ctx->funcs, ctx->quality);
@@ -56,6 +58,13 @@ void gavl_dsp_context_set_quality(gavl_dsp_context_t * ctx,
                                   int q)
   {
   ctx->quality = q;
+  init_table(ctx);
+  }
+
+void gavl_dsp_context_set_accel_flags(gavl_dsp_context_t * ctx,
+                                      int flags)
+  {
+  ctx->accel_flags = flags;
   init_table(ctx);
   }
 

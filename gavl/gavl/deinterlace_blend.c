@@ -27,6 +27,7 @@
 #include <gavl/gavl.h>
 #include <video.h>
 #include <deinterlace.h>
+#include <accel.h>
 
 static void deinterlace_blend(gavl_video_deinterlacer_t * d,
                               const gavl_video_frame_t * input_frame,
@@ -80,15 +81,15 @@ static void deinterlace_blend(gavl_video_deinterlacer_t * d,
   
   }
 
-void gavl_deinterlacer_init_blend(gavl_video_deinterlacer_t * d,
+int gavl_deinterlacer_init_blend(gavl_video_deinterlacer_t * d,
                                   const gavl_video_format_t * src_format)
   {
   /* Get functions */
   gavl_video_deinterlace_blend_func_table_t tab;
   memset(&tab, 0, sizeof(tab));
-
-  gavl_find_deinterlacer_blend_funcs_c(&tab, &d->opt, src_format);
-
+  if(d->opt.quality || (d->opt.accel_flags & GAVL_ACCEL_C))
+    gavl_find_deinterlacer_blend_funcs_c(&tab, &d->opt, src_format);
+  
 #if HAVE_MMX  
   if(d->opt.accel_flags & GAVL_ACCEL_MMX)
     gavl_find_deinterlacer_blend_funcs_mmx(&tab, &d->opt, src_format);
@@ -97,7 +98,7 @@ void gavl_deinterlacer_init_blend(gavl_video_deinterlacer_t * d,
 #endif
 
 
-#if 0 // TDOD: Test 3dnow
+#if 0 // TODO: Test 3dnow
   // #ifdef HAVE_3DNOW
   if((d->opt.accel_flags & GAVL_ACCEL_3DNOW) && (d->opt.quality < 3))
     gavl_find_deinterlacer_blend_funcs_3dnow(&tab, &d->opt, src_format);
@@ -171,5 +172,12 @@ void gavl_deinterlacer_init_blend(gavl_video_deinterlacer_t * d,
       break;
       
     }
+
+  if(!d->blend_func)
+    {
+    return 0;
+    }
+  
   d->func = deinterlace_blend;
+  return 1;
   }

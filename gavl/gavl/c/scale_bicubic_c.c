@@ -42,14 +42,14 @@ typedef struct {
 #else
 
 #define RECLIP_H(a,idx) \
-  if(a < ctx->min_values_h[idx]) a = ctx->min_values_h[idx];    \
-  if(a > ctx->max_values_h[idx]) a = ctx->max_values_h[idx]
+  if(GAVL_UNLIKELY(a < ctx->min_values_h[idx])) a = ctx->min_values_h[idx];    \
+  if(GAVL_UNLIKELY(a > ctx->max_values_h[idx])) a = ctx->max_values_h[idx]
 
 #define RECLIP_V(a,idx) \
-  if(a < ctx->min_values_v[idx]) a = ctx->min_values_v[idx];    \
-  if(a > ctx->max_values_v[idx]) a = ctx->max_values_v[idx]
+  if(GAVL_UNLIKELY(a < ctx->min_values_v[idx])) a = ctx->min_values_v[idx];    \
+  if(GAVL_UNLIKELY(a > ctx->max_values_v[idx])) a = ctx->max_values_v[idx]
 
-#define RECLIP_FLOAT(a) if(a < 0.0) a = 0.0; if(a > 1.0) a = 1.0
+#define RECLIP_FLOAT(a) if(GAVL_UNLIKELY(a < 0.0)) a = 0.0; if(GAVL_UNLIKELY(a > 1.0)) a = 1.0
 
 #endif
 

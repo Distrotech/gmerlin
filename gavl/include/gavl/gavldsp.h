@@ -253,6 +253,18 @@ gavl_dsp_context_t * gavl_dsp_context_create();
 void gavl_dsp_context_set_quality(gavl_dsp_context_t * ctx,
                                   int q);
 
+/** \brief Set the acceleration flags for a DSP context
+ *  \param ctx A DSP context
+ *  \param flags Flags
+ *
+ *  By default the flags are detected automatically and
+ *  functions are chosen based on the quality
+ */
+
+void gavl_dsp_context_set_accel_flags(gavl_dsp_context_t * ctx,
+                                      int flags);
+
+
 /** \brief Get the functions
  *  \param ctx A DSP context
  *  \returns The function table

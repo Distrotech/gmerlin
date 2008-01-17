@@ -92,11 +92,13 @@ void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt,
         gavl_init_scale_funcs_bilinear_y_mmx(tab, src_advance, dst_advance);
         gavl_init_scale_funcs_bilinear_x_mmx(tab, src_advance, dst_advance);
         }
+#if 0
       if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMXEXT))
         {
         gavl_init_scale_funcs_bilinear_y_mmxext(tab, src_advance, dst_advance);
         gavl_init_scale_funcs_bilinear_x_mmxext(tab, src_advance, dst_advance);
         }
+#endif
 #endif
       break;
     case GAVL_SCALE_QUADRATIC:
@@ -108,11 +110,13 @@ void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt,
         gavl_init_scale_funcs_quadratic_y_mmx(tab, src_advance, dst_advance);
         gavl_init_scale_funcs_quadratic_x_mmx(tab, src_advance, dst_advance);
         }
+#if 0
       if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMXEXT))
         {
         gavl_init_scale_funcs_quadratic_y_mmxext(tab, src_advance, dst_advance);
         gavl_init_scale_funcs_quadratic_x_mmxext(tab, src_advance, dst_advance);
         }
+#endif
 #endif
       break;
     case GAVL_SCALE_CUBIC_BSPLINE:
@@ -124,11 +128,13 @@ void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt,
         gavl_init_scale_funcs_bicubic_y_mmx(tab, src_advance, dst_advance);
         gavl_init_scale_funcs_bicubic_noclip_x_mmx(tab, src_advance, dst_advance);
         }
+#if 0
       if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMXEXT))
         {
         gavl_init_scale_funcs_bicubic_y_mmxext(tab, src_advance, dst_advance);
         gavl_init_scale_funcs_bicubic_noclip_x_mmxext(tab, src_advance, dst_advance);
         }
+#endif
 #endif
       break;
     case GAVL_SCALE_CUBIC_MITCHELL:
@@ -141,12 +147,14 @@ void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt,
         gavl_init_scale_funcs_bicubic_y_mmx(tab, src_advance, dst_advance);
         gavl_init_scale_funcs_bicubic_x_mmx(tab, src_advance, dst_advance);
         }
+#if 0
       if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMXEXT))
         {
         gavl_init_scale_funcs_bicubic_y_mmxext(tab, src_advance, dst_advance);
         gavl_init_scale_funcs_bicubic_x_mmxext(tab, src_advance, dst_advance);
         }
       break;
+#endif
 #endif
     case GAVL_SCALE_SINC_LANCZOS:
     case GAVL_SCALE_NONE:
@@ -158,11 +166,13 @@ void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt,
         gavl_init_scale_funcs_generic_y_mmx(tab, src_advance, dst_advance);
         gavl_init_scale_funcs_generic_x_mmx(tab, src_advance, dst_advance);
         }
+#if 0
       if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMXEXT))
         {
         gavl_init_scale_funcs_generic_y_mmxext(tab, src_advance, dst_advance);
         gavl_init_scale_funcs_generic_x_mmxext(tab, src_advance, dst_advance);
         }
+#endif
 #endif
       break;
     }

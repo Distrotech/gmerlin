@@ -43,7 +43,7 @@
 #define IN_PFMT GAVL_PIXELFORMAT_NONE
 
 #define IN_LOOP
-// #define OUT_LOOP
+#define OUT_LOOP
 
 
 // #define INIT_RUNS 5
@@ -105,8 +105,6 @@ typedef struct
   int num_discard;
   
   } gavl_benchmark_t;
-
-
 
 static void gavl_benchmark_run(gavl_benchmark_t * b)
   {
@@ -344,6 +342,7 @@ static void benchmark_sampleformat()
           printf("</tr>");
           }
         printf("\n");
+        fflush(stdout);
         }
       else
         {
@@ -373,6 +372,7 @@ static void benchmark_sampleformat()
             printf("</tr>");
             }
           printf("\n");
+          fflush(stdout);
           }
         }
       }
@@ -445,6 +445,7 @@ static void benchmark_mix()
       printf("</tr>");
       }
     printf("\n");
+    fflush(stdout);
     }
   
   audio_convert_context_destroy(&ctx);
@@ -453,6 +454,111 @@ static void benchmark_mix()
     printf("</table>\n");
   
   }
+
+static const struct
+  {
+  gavl_resample_mode_t mode;
+  char * name;
+  }
+resample_modes[] =
+  {
+    { GAVL_RESAMPLE_ZOH,         "Zero order hold" },
+    { GAVL_RESAMPLE_LINEAR,      "Linear" },
+    { GAVL_RESAMPLE_SINC_FAST,   "Sinc fast" },
+    { GAVL_RESAMPLE_SINC_MEDIUM, "Sinc medium" },
+    { GAVL_RESAMPLE_SINC_BEST,   "Sinc best" } 
+  };
+
+static const gavl_sample_format_t resample_sampleformats[] =
+  {
+    // GAVL_SAMPLE_U8, /*!< Unsigned 8 bit */
+    // GAVL_SAMPLE_S8, /*!< Signed 8 bit */
+    // GAVL_SAMPLE_U16, /*!< Unsigned 16 bit */
+    // GAVL_SAMPLE_S16, /*!< Signed 16 bit */
+    // GAVL_SAMPLE_S32, /*!< Signed 32 bit */
+    GAVL_SAMPLE_FLOAT,  /*!< Floating point (-1.0 .. 1.0) */
+    GAVL_SAMPLE_DOUBLE  /*!< Double (-1.0 .. 1.0) */
+  };
+
+static void benchmark_resample()
+  {
+  int num_sampleformats;
+  int num_resample_modes;
+  gavl_sample_format_t in_format;
+
+  int i, j;
+
+  audio_convert_context_t ctx;
+  gavl_benchmark_t b;
+  memset(&ctx, 0, sizeof(ctx));
+  memset(&b, 0, sizeof(b));
+
+  b.init = audio_convert_init;
+  b.func = audio_convert_func;
+  b.data = &ctx;
+  
+  ctx.in_format.num_channels = 2;
+  ctx.in_format.samplerate = 48000;
+  ctx.in_format.interleave_mode = GAVL_INTERLEAVE_NONE;
+  ctx.in_format.channel_locations[0] = GAVL_CHID_NONE;
+  ctx.in_format.samples_per_frame = 48000;
+  gavl_set_channel_setup(&ctx.in_format);
+  
+  gavl_audio_format_copy(&ctx.out_format, &ctx.in_format);
+  
+  ctx.out_format.samplerate = 44100;
+  
+  num_sampleformats =
+    sizeof(resample_sampleformats)/sizeof(resample_sampleformats[0]);
+  num_resample_modes =
+    sizeof(resample_modes)/sizeof(resample_modes[0]);
+  
+  audio_convert_context_create(&ctx);
+
+  if(do_html)
+    {
+    printf("Resampling of %d samples (%d channels), from %d to %d <p>\n",
+           ctx.in_format.samples_per_frame,
+           ctx.in_format.num_channels,
+           ctx.in_format.samplerate,
+           ctx.out_format.samplerate);
+    printf("<table border=\"1\" width=\"100%%\"><tr><td>Sampleformat</td><td>Method</td>");
+    gavl_benchmark_print_header(&b);
+    printf("</tr>\n");
+    }
+  
+  for(i = 0; i < num_sampleformats; i++)
+    {
+    in_format = resample_sampleformats[i];
+    ctx.in_format.sample_format = in_format;
+    ctx.out_format.sample_format = in_format;
+
+    for(j = 0; j < num_resample_modes; j++)
+      {
+      gavl_audio_options_set_resample_mode(ctx.opt, resample_modes[j].mode);
+  
+      printf("<td>%s</td><td>%s</td>",
+             gavl_sample_format_to_string(in_format),
+             resample_modes[j].name);
+      audio_convert_context_init(&ctx);
+      gavl_benchmark_run(&b);
+      audio_convert_context_cleanup(&ctx);
+      gavl_benchmark_print_results(&b);
+      
+      if(do_html)
+        printf("</tr>");
+      printf("\n");
+      fflush(stdout);
+      }
+    }
+  
+  audio_convert_context_destroy(&ctx);
+  
+  if(do_html)
+    printf("</table>\n");
+  
+  }
+
 
 /* Video converter */
 
@@ -475,12 +581,14 @@ static void video_convert_context_create(video_convert_context_t * ctx)
   ctx->opt = gavl_video_converter_get_options(ctx->cnv);
   }
 
-
 static int video_convert_context_init(video_convert_context_t * ctx)
   {
+  int result;
   ctx->in_frame = gavl_video_frame_create(&ctx->in_format);
   ctx->out_frame = gavl_video_frame_create(&ctx->out_format);
-  return gavl_video_converter_init(ctx->cnv, &ctx->in_format, &ctx->out_format) <= 0 ? 0 : 1;
+  result = gavl_video_converter_init(ctx->cnv, &ctx->in_format, &ctx->out_format);
+  //  fprintf(stderr, "Result: %d\n", result);
+  return result <= 0 ? 0 : 1;
   }
 
 static void video_convert_context_cleanup(video_convert_context_t * ctx)
@@ -496,8 +604,64 @@ static void video_convert_context_destroy(video_convert_context_t * ctx)
 
 static void video_convert_init(void * data)
   {
-  //  video_convert_context_t * ctx = (video_convert_context_t*)data;
+  int i, j, num;
+  int num_planes;
+  int32_t * pixels_i;
+  float * pixels_f;
+  int sub_h, sub_v;
   
+  video_convert_context_t * ctx = (video_convert_context_t*)data;
+  /* Fill frame with random numbers */
+  
+  switch(ctx->in_format.pixelformat)
+    {
+    case GAVL_RGB_FLOAT:
+      for(i = 0; i < ctx->in_format.image_height; i++)
+        {
+        pixels_f = (float*)(ctx->in_frame->planes[0] + i * ctx->in_frame->strides[0]);
+        for(j = 0; j < ctx->in_format.image_width; j++)
+          {
+          pixels_f[0] = (float)rand() / RAND_MAX;
+          pixels_f[1] = (float)rand() / RAND_MAX;
+          pixels_f[2] = (float)rand() / RAND_MAX;
+          pixels_f+=3;
+          }
+        }
+      break;
+    case GAVL_RGBA_FLOAT:
+      for(i = 0; i < ctx->in_format.image_height; i++)
+        {
+        pixels_f = (float*)(ctx->in_frame->planes[0] + i * ctx->in_frame->strides[0]);
+        for(j = 0; j < ctx->in_format.image_width; j++)
+          {
+          pixels_f[0] = (float)rand() / RAND_MAX;
+          pixels_f[1] = (float)rand() / RAND_MAX;
+          pixels_f[2] = (float)rand() / RAND_MAX;
+          pixels_f[4] = (float)rand() / RAND_MAX;
+          pixels_f+=4;
+          }
+        }
+      break;
+    default:
+      num_planes = gavl_pixelformat_num_planes(ctx->in_format.pixelformat);
+      gavl_pixelformat_chroma_sub(ctx->in_format.pixelformat, &sub_h, &sub_v);
+      num = 0;
+      for(i = 0; i < num_planes; i++)
+        {
+        num += (ctx->in_frame->strides[i] * ctx->in_format.image_height)
+          / (1 + (!!i) * (sub_v-1));
+        }
+      
+      pixels_i = (int*)(ctx->in_frame->planes[0]);
+      
+      for(i = 0; i < ctx->in_format.image_height/sub_v; i++)
+        {
+        pixels_i[i] = rand();
+        }
+      
+      break;
+    }
+    
   }
 
 static void video_convert_func(void * data)
@@ -505,6 +669,23 @@ static void video_convert_func(void * data)
   video_convert_context_t * ctx = (video_convert_context_t*)data;
   gavl_video_convert(ctx->cnv, ctx->in_frame, ctx->out_frame);
   }
+
+
+static const struct
+  {
+  gavl_scale_mode_t mode;
+  const char * name;
+  }
+scale_modes[] =
+  {
+    { GAVL_SCALE_NEAREST, "None" },
+    { GAVL_SCALE_BILINEAR, "Linear"}, 
+    { GAVL_SCALE_QUADRATIC, "Quadratic" },
+    { GAVL_SCALE_CUBIC_BSPLINE, "Cubic B-Spline" },
+    { GAVL_SCALE_CUBIC_CATMULL, "Cubic Catmull-Rom" },
+    { GAVL_SCALE_CUBIC_MITCHELL, "Cubic Mitchell-Netravali" },
+    { GAVL_SCALE_SINC_LANCZOS, "Sinc" },
+  };
 
 static void do_pixelformat(video_convert_context_t * ctx,
                            gavl_benchmark_t * b, gavl_pixelformat_t in_format,
@@ -515,7 +696,7 @@ static void do_pixelformat(video_convert_context_t * ctx,
   int in_sub_v;
   int out_sub_h;
   int out_sub_v;
-  
+  int i;
 
   gavl_pixelformat_chroma_sub(in_format, &in_sub_h, &in_sub_v);
   gavl_pixelformat_chroma_sub(out_format, &out_sub_h, &out_sub_v);
@@ -569,61 +750,26 @@ static void do_pixelformat(video_convert_context_t * ctx,
     flags = gavl_video_options_get_conversion_flags(ctx->opt);
     flags |= GAVL_RESAMPLE_CHROMA;
     gavl_video_options_set_conversion_flags(ctx->opt, flags);
-    gavl_video_options_set_scale_mode(ctx->opt, GAVL_SCALE_BILINEAR);
-    
-    if(video_convert_context_init(ctx))
-      {
-      if(do_html)
-        {
-        printf("<tr><td>%s</td><td>Linear</td>", name);
-        }
-      else
-        printf("  %s [linear]  ", name);
-      gavl_benchmark_run(b);
-      gavl_benchmark_print_results(b);
-      if(do_html)
-        printf("</tr>\n");
-      }
-    video_convert_context_cleanup(ctx);
 
-    flags = gavl_video_options_get_conversion_flags(ctx->opt);
-    gavl_video_options_set_conversion_flags(ctx->opt, flags);
-    gavl_video_options_set_scale_mode(ctx->opt, GAVL_SCALE_CUBIC_BSPLINE);
-    
-    if(video_convert_context_init(ctx))
+    for(i = 1; i < sizeof(scale_modes)/sizeof(scale_modes[0]); i++)
       {
-      if(do_html)
+      gavl_video_options_set_scale_mode(ctx->opt, scale_modes[i].mode);
+      
+      if(video_convert_context_init(ctx))
         {
-        printf("<tr><td>%s</td><td>B-Spline</td>", name);
+        if(do_html)
+          {
+          printf("<tr><td>%s</td><td>%s</td>", name, scale_modes[i].name);
+          }
+        else
+          printf("  %s [linear]  ", name);
+        gavl_benchmark_run(b);
+        gavl_benchmark_print_results(b);
+        if(do_html)
+          printf("</tr>\n");
         }
-      else
-        printf("  %s [bspline] ", name);
-      gavl_benchmark_run(b);
-      gavl_benchmark_print_results(b);
-      if(do_html)
-        printf("</tr>\n");
+      video_convert_context_cleanup(ctx);
       }
-    video_convert_context_cleanup(ctx);
-
-    flags = gavl_video_options_get_conversion_flags(ctx->opt);
-    gavl_video_options_set_conversion_flags(ctx->opt, flags);
-    gavl_video_options_set_scale_mode(ctx->opt, GAVL_SCALE_SINC_LANCZOS);
-    
-    if(video_convert_context_init(ctx))
-      {
-      if(do_html)
-        {
-        printf("<tr><td>%s</td><td>Sinc (4th order)</td>", name);
-        }
-      else
-        printf("  %s [sinc 4]  ", name);
-      gavl_benchmark_run(b);
-      gavl_benchmark_print_results(b);
-      if(do_html)
-        printf("</tr>\n");
-      }
-    video_convert_context_cleanup(ctx);
-
     }
   }
 
@@ -663,7 +809,6 @@ static void benchmark_pixelformat()
     gavl_benchmark_print_header(&b);
     printf("</tr>\n");
     }
-
   
   num_pixelformats = gavl_num_pixelformats();
   
@@ -732,7 +877,7 @@ static void benchmark_pixelformat()
 
 static void do_scale(video_convert_context_t * ctx,
                      gavl_benchmark_t * b, gavl_pixelformat_t in_format,
-                     char * name)
+                     const char * name, const char * dirs)
   {
   
   ctx->in_format.pixelformat = in_format;
@@ -742,26 +887,28 @@ static void do_scale(video_convert_context_t * ctx,
   if(video_convert_context_init(ctx))
     {
     if(do_html)
-      printf("<tr><td>%s</td><td>Nearest</td>", name);
+      printf("<tr><td>%s</td><td>%s</td><td>Nearest</td>", dirs, name);
     
     gavl_benchmark_run(b);
     gavl_benchmark_print_results(b);
     if(do_html)
       printf("</tr>\n");
     }
+  fflush(stdout);
   video_convert_context_cleanup(ctx);
 
   gavl_video_options_set_scale_mode(ctx->opt, GAVL_SCALE_BILINEAR);
   if(video_convert_context_init(ctx))
     {
     if(do_html)
-      printf("<tr><td>%s</td><td>Linear</td>", name);
+      printf("<tr><td>%s</td><td>%s</td><td>Linear</td>", dirs, name);
     
     gavl_benchmark_run(b);
     gavl_benchmark_print_results(b);
     if(do_html)
       printf("</tr>\n");
     }
+  fflush(stdout);
   video_convert_context_cleanup(ctx);
 
   
@@ -769,26 +916,28 @@ static void do_scale(video_convert_context_t * ctx,
   if(video_convert_context_init(ctx))
     {
     if(do_html)
-      printf("<tr><td>%s</td><td>Quadratic</td>", name);
+      printf("<tr><td>%s</td><td>%s</td><td>Quadratic</td>", dirs, name);
     
     gavl_benchmark_run(b);
     gavl_benchmark_print_results(b);
     if(do_html)
       printf("</tr>\n");
     }
+  fflush(stdout);
   video_convert_context_cleanup(ctx);
 
   gavl_video_options_set_scale_mode(ctx->opt, GAVL_SCALE_CUBIC_BSPLINE);
   if(video_convert_context_init(ctx))
     {
     if(do_html)
-      printf("<tr><td>%s</td><td>Cubic B-Spline</td>", name);
+      printf("<tr><td>%s</td><td>%s</td><td>Cubic B-Spline</td>", dirs, name);
     
     gavl_benchmark_run(b);
     gavl_benchmark_print_results(b);
     if(do_html)
       printf("</tr>\n");
     }
+  fflush(stdout);
   video_convert_context_cleanup(ctx);
 
 
@@ -797,26 +946,28 @@ static void do_scale(video_convert_context_t * ctx,
   if(video_convert_context_init(ctx))
     {
     if(do_html)
-      printf("<tr><td>%s</td><td>Cubic Cubic Catmull-Rom</td>", name);
+      printf("<tr><td>%s</td><td>%s</td><td>Cubic Catmull-Rom</td>", dirs, name);
     
     gavl_benchmark_run(b);
     gavl_benchmark_print_results(b);
     if(do_html)
       printf("</tr>\n");
     }
+  fflush(stdout);
   video_convert_context_cleanup(ctx);
   
   gavl_video_options_set_scale_mode(ctx->opt, GAVL_SCALE_CUBIC_MITCHELL);
   if(video_convert_context_init(ctx))
     {
     if(do_html)
-      printf("<tr><td>%s</td><td>Cubic Mitchell-Netravali</td>", name);
+      printf("<tr><td>%s</td><td>%s</td><td>Cubic Mitchell-Netravali</td>", dirs, name);
     
     gavl_benchmark_run(b);
     gavl_benchmark_print_results(b);
     if(do_html)
       printf("</tr>\n");
     }
+  fflush(stdout);
   video_convert_context_cleanup(ctx);
 
   gavl_video_options_set_scale_mode(ctx->opt, GAVL_SCALE_SINC_LANCZOS);
@@ -824,26 +975,118 @@ static void do_scale(video_convert_context_t * ctx,
   if(video_convert_context_init(ctx))
     {
     if(do_html)
-      printf("<tr><td>%s</td><td>Sinc, 4th order</td>", name);
+      printf("<tr><td>%s</td><td>%s</td><td>Sinc, 4th order</td>", dirs, name);
     
     gavl_benchmark_run(b);
     gavl_benchmark_print_results(b);
     if(do_html)
       printf("</tr>\n");
     }
+  fflush(stdout);
   video_convert_context_cleanup(ctx);
 
   
-  
   }
 
-
-static void benchmark_scale()
+static void do_scale_direction(video_convert_context_t * ctx,
+                               gavl_benchmark_t * b)
   {
   int num_pixelformats;
   gavl_pixelformat_t in_format;
   int i;
 
+  const char * dir;
+  
+  if(do_html)
+    {
+    printf("Destination size: 1024 x 1024, source size 512 for each scaled direction<p>\n");
+    printf("<table border=\"1\" width=\"100%%\"><tr><td>Direction</td><td>Flavour</td><td>Scale method</td>");
+    gavl_benchmark_print_header(b);
+    printf("</tr>\n");
+    }
+  
+  num_pixelformats = gavl_num_pixelformats();
+  
+
+  for(i = 0; i < num_pixelformats; i++)
+  //  for(i = 0; i < 3; i++)
+    {
+    in_format = gavl_get_pixelformat(i);
+    
+    if(do_html)
+      printf("<tr><td colspan=\"7\"><b>%s<b></td></tr>\n",
+             gavl_pixelformat_to_string(in_format));
+
+    ctx->out_format.image_width =  1024;
+    ctx->out_format.image_height = 1024;
+    ctx->out_format.frame_width =  1024;
+    ctx->out_format.frame_height = 1024;
+    
+    ctx->out_format.pixel_width = 1;
+    ctx->out_format.pixel_height = 1;
+
+    /* X */
+
+    dir = "x";
+    
+    gavl_video_format_copy(&ctx->in_format, &ctx->out_format);
+    
+    ctx->in_format.image_width =   512;
+    ctx->in_format.frame_width =   512;
+        
+    gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_C);
+    do_scale(ctx, b, in_format, "C    ", dir);
+    
+    gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_MMX);
+    do_scale(ctx, b, in_format, "MMX  ", dir);
+    
+    gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_C_HQ);
+    do_scale(ctx, b, in_format, "HQ   ", dir);
+
+    /* Y */
+
+    dir = "y";
+    
+    gavl_video_format_copy(&ctx->in_format, &ctx->out_format);
+    
+    ctx->in_format.image_height = 512;
+    ctx->in_format.frame_height = 512;
+    
+    gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_C);
+    do_scale(ctx, b, in_format, "C    ", dir);
+    
+    gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_MMX);
+    do_scale(ctx, b, in_format, "MMX  ", dir);
+    
+    gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_C_HQ);
+    do_scale(ctx, b, in_format, "HQ   ", dir);
+
+    /* X+Y */
+    dir = "x+y";
+    gavl_video_format_copy(&ctx->in_format, &ctx->out_format);
+    
+    ctx->in_format.image_width =  512;
+    ctx->in_format.frame_width =  512;
+    ctx->in_format.image_height = 512;
+    ctx->in_format.frame_height = 512;
+    
+    gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_C);
+    do_scale(ctx, b, in_format, "C    ", dir);
+    
+    gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_MMX);
+    do_scale(ctx, b, in_format, "MMX  ", dir);
+    
+    gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_C_HQ);
+    do_scale(ctx, b, in_format, "HQ   ", dir);
+    }
+  
+  if(do_html)
+    printf("</table>\n");
+  
+  }
+
+static void benchmark_scale()
+  {
   video_convert_context_t ctx;
   gavl_benchmark_t b;
   
@@ -853,77 +1096,200 @@ static void benchmark_scale()
   b.init = video_convert_init;
   b.func = video_convert_func;
   b.data = &ctx;
-  
-  ctx.in_format.image_width = 720;
-  ctx.in_format.image_height = 576;
-  ctx.in_format.frame_width = 720;
-  ctx.in_format.frame_height = 576;
-  
-  ctx.in_format.pixel_width = 1;
-  ctx.in_format.pixel_height = 1;
-  
-  gavl_video_format_copy(&ctx.out_format, &ctx.in_format);
 
-  ctx.out_format.image_width = 1280;
-  ctx.out_format.image_height = 1024;
-  ctx.out_format.frame_width = 1280;
-  ctx.out_format.frame_height = 1024;
-  
-  if(do_html)
-    {
-    printf("Source size: %d x %d, Destination size: %d x %d<p>\n",
-           ctx.in_format.image_width,
-           ctx.in_format.image_height,
-           ctx.out_format.image_width,
-           ctx.out_format.image_height);
-    printf("<table border=\"1\" width=\"100%%\"><tr><td>Flavour</td><td>Scale method</td>");
-    gavl_benchmark_print_header(&b);
-    printf("</tr>\n");
-    }
-  
-  num_pixelformats = gavl_num_pixelformats();
-  
   video_convert_context_create(&ctx);
+
   /* Disable autoselection */
   gavl_video_options_set_quality(ctx.opt, 0);
   
-  for(i = 0; i < num_pixelformats; i++)
-  //  for(i = 0; i < 3; i++)
-    {
-    in_format = gavl_get_pixelformat(i);
-    
-    if(do_html)
-      printf("<tr><td colspan=\"6\"><b>%s<b></td></tr>\n",
-             gavl_pixelformat_to_string(in_format));
-
-    /* C-Version */
-      
-    gavl_video_options_set_accel_flags(ctx.opt, GAVL_ACCEL_C);
-    do_scale(&ctx, &b, in_format, "C    ");
-    
-    gavl_video_options_set_accel_flags(ctx.opt, GAVL_ACCEL_MMX);
-    do_scale(&ctx, &b, in_format, "MMX  ");
-    
-    gavl_video_options_set_accel_flags(ctx.opt, GAVL_ACCEL_C_HQ);
-    do_scale(&ctx, &b, in_format, "HQ   ");
-        
-    }
+  do_scale_direction(&ctx, &b);
+  
   video_convert_context_destroy(&ctx);
   }
 
+static const struct
+  {
+  const char * name;
+  gavl_deinterlace_mode_t mode;
+  }
+deinterlace_modes[] =
+  {
+    { "Scanline doubler", GAVL_DEINTERLACE_COPY },
+    { "Upscale",          GAVL_DEINTERLACE_SCALE },
+    { "Blend",            GAVL_DEINTERLACE_BLEND },
+  };
 
+static void benchmark_deinterlace()
+  {
+  video_convert_context_t ctx;
+  gavl_benchmark_t b;
+  int num_pixelformats;
+  int num_modes;
+  int num_scale_modes;
+  int i, j;
+  memset(&ctx, 0, sizeof(ctx));
+  memset(&b, 0, sizeof(b));
+  
+  b.init = video_convert_init;
+  b.func = video_convert_func;
+  b.data = &ctx;
+
+  ctx.in_format.image_width  = 720;
+  ctx.in_format.image_height = 576;
+  ctx.in_format.frame_width  = 720;
+  ctx.in_format.frame_height = 576;
+  ctx.in_format.pixel_width  = 1;
+  ctx.in_format.pixel_height = 1;
+  ctx.in_format.interlace_mode = GAVL_INTERLACE_TOP_FIRST;
+
+  if(do_html)
+    {
+    printf("Size: %d x %d<p>\n", ctx.in_format.image_width,
+           ctx.in_format.image_height);
+    printf("<table border=\"1\" width=\"100%%\"><tr><td>Method</td><td>Flavour</td><td>Scale method</td>");
+    gavl_benchmark_print_header(&b);
+    printf("</tr>\n");
+    }
+
+  
+  gavl_video_format_copy(&ctx.out_format, &ctx.in_format);
+  ctx.out_format.interlace_mode = GAVL_INTERLACE_NONE;
+  
+  video_convert_context_create(&ctx);
+
+  /* Disable autoselection */
+  gavl_video_options_set_quality(ctx.opt, 0);
+
+  num_pixelformats = gavl_num_pixelformats();
+  num_modes = sizeof(deinterlace_modes)/sizeof(deinterlace_modes[0]);
+  num_scale_modes = sizeof(scale_modes)/sizeof(scale_modes[0]);
+  
+  for(i = 0; i < num_pixelformats; i++)
+    {
+    ctx.in_format.pixelformat = gavl_get_pixelformat(i);
+    ctx.out_format.pixelformat = ctx.in_format.pixelformat;
+
+    if(do_html)
+      printf("<tr><td colspan=\"7\"><b>%s<b></td></tr>\n",
+             gavl_pixelformat_to_string(ctx.in_format.pixelformat));
+    
+    for(j = 0; j < num_modes; j++)
+      {
+      if(deinterlace_modes[j].mode == GAVL_DEINTERLACE_SCALE)
+        continue;
+      
+      gavl_video_options_set_deinterlace_mode(ctx.opt, deinterlace_modes[j].mode);
+
+      gavl_video_options_set_accel_flags(ctx.opt, GAVL_ACCEL_C);
+
+      if(video_convert_context_init(&ctx))
+        {
+        if(do_html)
+          printf("<tr><td>%s</td><td>C</td><td></td>",
+                 deinterlace_modes[j].name);
+        
+        gavl_benchmark_run(&b);
+        gavl_benchmark_print_results(&b);
+        if(do_html)
+          printf("</tr>\n");
+        }
+      fflush(stdout);
+      video_convert_context_cleanup(&ctx);
+
+      if(deinterlace_modes[j].mode == GAVL_DEINTERLACE_COPY)
+        continue;
+      
+      gavl_video_options_set_accel_flags(ctx.opt, GAVL_ACCEL_MMX);
+
+      if(video_convert_context_init(&ctx))
+        {
+        if(do_html)
+          printf("<tr><td>%s</td><td>MMX</td><td></td>",
+                 deinterlace_modes[j].name);
+        
+        gavl_benchmark_run(&b);
+        gavl_benchmark_print_results(&b);
+        if(do_html)
+          printf("</tr>\n");
+        }
+      fflush(stdout);
+      video_convert_context_cleanup(&ctx);
+
+
+      gavl_video_options_set_accel_flags(ctx.opt, GAVL_ACCEL_MMXEXT);
+
+      if(video_convert_context_init(&ctx))
+        {
+        if(do_html)
+          printf("<tr><td>%s</td><td>MMXEXT</td><td></td>",
+                 deinterlace_modes[j].name);
+        
+        gavl_benchmark_run(&b);
+        gavl_benchmark_print_results(&b);
+        if(do_html)
+          printf("</tr>\n");
+        }
+      fflush(stdout);
+      video_convert_context_cleanup(&ctx);
+      }
+    
+    gavl_video_options_set_deinterlace_mode(ctx.opt, GAVL_DEINTERLACE_SCALE);
+    for(j = 1; j < num_scale_modes; j++)
+      {
+      gavl_video_options_set_scale_mode(ctx.opt, scale_modes[j].mode);
+
+      gavl_video_options_set_accel_flags(ctx.opt, GAVL_ACCEL_C);
+
+      if(video_convert_context_init(&ctx))
+        {
+        if(do_html)
+          printf("<tr><td>Upscale</td><td>C</td><td>%s</td>",
+                 scale_modes[j].name);
+        
+        gavl_benchmark_run(&b);
+        gavl_benchmark_print_results(&b);
+        if(do_html)
+          printf("</tr>\n");
+        }
+      fflush(stdout);
+      video_convert_context_cleanup(&ctx);
+
+      if(deinterlace_modes[j].mode == GAVL_DEINTERLACE_COPY)
+        continue;
+      
+      gavl_video_options_set_accel_flags(ctx.opt, GAVL_ACCEL_MMX);
+
+      if(video_convert_context_init(&ctx))
+        {
+        if(do_html)
+          printf("<tr><td>Upscale</td><td>MMX</td><td>%s</td>",
+                 scale_modes[j].name);
+        
+        gavl_benchmark_run(&b);
+        gavl_benchmark_print_results(&b);
+        if(do_html)
+          printf("</tr>\n");
+        }
+      fflush(stdout);
+      video_convert_context_cleanup(&ctx);
+      }
+    }
+  
+  video_convert_context_destroy(&ctx);
+  }
 
 #define BENCHMARK_SAMPLEFORMAT (1<<0)
 #define BENCHMARK_MIX          (1<<1)
 #define BENCHMARK_VOLUME       (1<<2)
 #define BENCHMARK_PEAK_DETECT  (1<<3)
 #define BENCHMARK_INTERLEAVE   (1<<4)
+#define BENCHMARK_RESAMPLE     (1<<5)
 
-#define BENCHMARK_PIXELFORMAT  (1<<5)
-#define BENCHMARK_SCALE        (1<<6)
-#define BENCHMARK_DEINTERLACE  (1<<7)
-#define BENCHMARK_INTERPOLATE  (1<<8)
-#define BENCHMARK_SAD          (1<<9)
+#define BENCHMARK_PIXELFORMAT  (1<<6)
+#define BENCHMARK_SCALE        (1<<7)
+#define BENCHMARK_DEINTERLACE  (1<<8)
+#define BENCHMARK_INTERPOLATE  (1<<9)
+#define BENCHMARK_SAD          (1<<10)
 
 static const struct
   {
@@ -943,6 +1309,7 @@ benchmark_flags[] =
     { "-deint", "Deinterlacing", BENCHMARK_DEINTERLACE},
     { "-ip", "Video frame interpolation", BENCHMARK_INTERPOLATE},
     { "-sad", "SAD routines", BENCHMARK_SAD},
+    { "-rs", "SAD routines", BENCHMARK_RESAMPLE},
   };
 
 static int get_flag(char * opt, int * flag_ret)
@@ -1005,8 +1372,11 @@ int main(int argc, char ** argv)
     if(flags & BENCHMARK_PIXELFORMAT)
       printf("<a href=\"#pfmt\">Pixelformat conversions</a><br>\n");
     if(flags & BENCHMARK_SCALE)
-      printf("<a href=\"#scale\">Pixelformat conversions</a><br>\n");
-    
+      printf("<a href=\"#scale\">Scaling routines</a><br>\n");
+    if(flags & BENCHMARK_DEINTERLACE)
+      printf("<a href=\"#deint\">Deinterlacing routines</a><br>\n");
+    if(flags & BENCHMARK_RESAMPLE)
+      printf("<a href=\"#rs\">Resampling routines</a><br>\n");
     }
   
   if(flags & BENCHMARK_SAMPLEFORMAT)
@@ -1028,6 +1398,15 @@ int main(int argc, char ** argv)
       }
     benchmark_mix();
     }
+  if(flags & BENCHMARK_RESAMPLE)
+    {
+    if(do_html)
+      {
+      printf("<a name=\"rs\"></a>");
+      printf("<h2>Resampling routines</h2>\n");
+      }
+    benchmark_resample();
+    }
   if(flags & BENCHMARK_PIXELFORMAT)
     {
     if(do_html)
@@ -1042,10 +1421,20 @@ int main(int argc, char ** argv)
     if(do_html)
       {
       printf("<a name=\"scale\"></a>");
-      printf("<h2>Video scaling</h2>\n");
+      printf("<h2>Scaling routines</h2>\n");
       }
     benchmark_scale();
     }
+  if(flags & BENCHMARK_DEINTERLACE)
+    {
+    if(do_html)
+      {
+      printf("<a name=\"deint\"></a>");
+      printf("<h2>Deinterlacing routines</h2>\n");
+      }
+    benchmark_deinterlace();
+    }
+  
   if(do_html)
     {
     printf("</body>\n</html>\n");

@@ -70,11 +70,11 @@ struct gavl_video_deinterlacer_s
 
 /* Find conversion function */
 
-void gavl_deinterlacer_init_scale(gavl_video_deinterlacer_t * d,
+int gavl_deinterlacer_init_scale(gavl_video_deinterlacer_t * d,
                                   const gavl_video_format_t * src_format);
 
 
-void gavl_deinterlacer_init_blend(gavl_video_deinterlacer_t * deint,
+int gavl_deinterlacer_init_blend(gavl_video_deinterlacer_t * deint,
                                   const gavl_video_format_t * src_format);
 
 gavl_video_deinterlace_func

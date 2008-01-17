@@ -120,7 +120,7 @@ void gavl_init_scale_funcs_bilinear_x_mmx(gavl_scale_funcs_t * tab,
                                           int src_advance, int dst_advance);
 
 /* */
-
+#if 0
 void gavl_init_scale_funcs_bicubic_y_mmxext(gavl_scale_funcs_t * tab,
                                          int src_advance,
                                          int dst_advance);
@@ -156,7 +156,7 @@ void gavl_init_scale_funcs_generic_x_mmxext(gavl_scale_funcs_t * tab,
 void gavl_init_scale_funcs_bilinear_x_mmxext(gavl_scale_funcs_t * tab,
                                           int src_advance, int dst_advance);
 
-
+#endif
 
 #endif
 

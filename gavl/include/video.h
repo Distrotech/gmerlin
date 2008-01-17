@@ -118,4 +118,5 @@ int gavl_pixelformat_can_scale(gavl_pixelformat_t in_csp, gavl_pixelformat_t out
 gavl_pixelformat_t gavl_pixelformat_get_intermediate(gavl_pixelformat_t in_csp,
                                                    gavl_pixelformat_t out_csp);
 
+
 #endif // _GAVL_VIDEO_H_

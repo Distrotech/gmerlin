@@ -80,7 +80,8 @@ int gavl_video_deinterlacer_init(gavl_video_deinterlacer_t * d,
       gavl_deinterlacer_init_scale(d, src_format);
       break;
     case GAVL_DEINTERLACE_BLEND:
-      gavl_deinterlacer_init_blend(d, src_format);
+      if(!gavl_deinterlacer_init_blend(d, src_format))
+        return 0;
       break;
     }
   return 1;

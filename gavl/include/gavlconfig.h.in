@@ -2,3 +2,13 @@
 /* GAVL Configuration flags, which are needed by applications */
 
 #define @GAVL_ENDIANESS@
+
+/* Further stuff (might be needed for optimization) */
+
+#if __GNUC__ >= 3
+
+#define GAVL_UNLIKELY(exp) __builtin_expect((exp),0)
+#define GAVL_LIKELY(exp)   __builtin_expect((exp),1)
+
+#endif
+

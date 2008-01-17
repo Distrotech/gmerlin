@@ -196,8 +196,9 @@ static int add_context_deinterlace(gavl_video_converter_t * cnv,
   deinterlacer_options = gavl_video_deinterlacer_get_options(ctx->deinterlacer);
   gavl_video_options_copy(deinterlacer_options, &(cnv->options));
   
-  gavl_video_deinterlacer_init(ctx->deinterlacer,
-                               in_format);
+  if(!gavl_video_deinterlacer_init(ctx->deinterlacer,
+                                   in_format))
+    return 0;
   
   ctx->func = deinterlace_func;
   return 1;
