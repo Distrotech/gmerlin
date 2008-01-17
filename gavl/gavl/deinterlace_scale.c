@@ -30,8 +30,7 @@ static void deinterlace_scale(gavl_video_deinterlacer_t * d,
   gavl_video_scaler_scale(d->scaler, in, out);
   }
 
-int gavl_deinterlacer_init_scale(gavl_video_deinterlacer_t * d,
-                                 const gavl_video_format_t * src_format)
+int gavl_deinterlacer_init_scale(gavl_video_deinterlacer_t * d)
   {
   gavl_video_options_t * scaler_opt;
   gavl_video_format_t in_format;
@@ -42,8 +41,8 @@ int gavl_deinterlacer_init_scale(gavl_video_deinterlacer_t * d,
   scaler_opt = gavl_video_scaler_get_options(d->scaler);
   gavl_video_options_copy(scaler_opt, &d->opt);
   
-  gavl_video_format_copy(&in_format, src_format);
-  gavl_video_format_copy(&out_format, src_format);
+  gavl_video_format_copy(&in_format, &d->format);
+  gavl_video_format_copy(&out_format, &d->format);
   
   if(in_format.interlace_mode == GAVL_INTERLACE_NONE)
     in_format.interlace_mode = GAVL_INTERLACE_TOP_FIRST;

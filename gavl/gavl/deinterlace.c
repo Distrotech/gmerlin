@@ -68,19 +68,22 @@ int gavl_video_deinterlacer_init(gavl_video_deinterlacer_t * d,
 
   d->half_height_format.image_height /= 2;
   d->half_height_format.frame_height /= 2;
+
+  d->num_planes = gavl_pixelformat_num_planes(d->format.pixelformat);
+  gavl_pixelformat_chroma_sub(d->format.pixelformat, &d->sub_h, &d->sub_v);
   
   switch(d->opt.deinterlace_mode)
     {
     case GAVL_DEINTERLACE_NONE:
       break;
     case GAVL_DEINTERLACE_COPY:
-      d->func = gavl_find_deinterlacer_copy(&(d->opt), src_format);
+      gavl_deinterlacer_init_copy(d);
       break;
     case GAVL_DEINTERLACE_SCALE:
-      gavl_deinterlacer_init_scale(d, src_format);
+      gavl_deinterlacer_init_scale(d);
       break;
     case GAVL_DEINTERLACE_BLEND:
-      if(!gavl_deinterlacer_init_blend(d, src_format))
+      if(!gavl_deinterlacer_init_blend(d))
         return 0;
       break;
     }

@@ -24,11 +24,44 @@
 #include <gavl/gavl.h>
 #include <video.h>
 #include <deinterlace.h>
+#include <accel.h>
 
 static void deinterlace_copy(gavl_video_deinterlacer_t * d,
                              const gavl_video_frame_t * input_frame,
                              gavl_video_frame_t * output_frame)
   {
+  int i, j, jmax;
+  int bytes;
+  uint8_t * src;
+  uint8_t * dst;
+  int src_field =
+    (d->opt.deinterlace_drop_mode == GAVL_DEINTERLACE_DROP_TOP) ? 1 : 0;
+  
+  jmax = d->format.image_height / 2;
+  bytes = d->line_width;
+
+    
+  for(i = 0; i < d->num_planes; i++)
+    {
+    src = input_frame->planes[i] + src_field * input_frame->strides[i];
+    dst = output_frame->planes[i];
+    
+    if(i == 1)
+      {
+      jmax /= d->sub_v;
+      bytes /= d->sub_h;
+      }
+    for(j = 0; j < jmax; j++)
+      {
+      gavl_memcpy(dst, src, bytes);
+      dst += output_frame->strides[i];
+      gavl_memcpy(dst, src, bytes);
+      dst += output_frame->strides[i];
+      src += input_frame->strides[i] * 2;
+      }
+    }
+  
+#if 0
   //  fprintf(stderr, "DEINTERLACE_COPY\n");
   /* Src field */
   gavl_video_frame_get_field(d->format.pixelformat,
@@ -50,12 +83,22 @@ static void deinterlace_copy(gavl_video_deinterlacer_t * d,
                              d->dst_field, 1);
   gavl_video_frame_copy(&d->half_height_format,
                         d->dst_field, d->src_field);
+#endif
   
   }
 
-gavl_video_deinterlace_func
-gavl_find_deinterlacer_copy(const gavl_video_options_t * opt,
-                            const gavl_video_format_t * format)
+int
+gavl_deinterlacer_init_copy(gavl_video_deinterlacer_t* d)
   {
-  return deinterlace_copy;
+  d->func = deinterlace_copy;
+  d->line_width = gavl_pixelformat_is_planar(d->format.pixelformat) ?
+    d->format.image_width *
+    gavl_pixelformat_bytes_per_component(d->format.pixelformat) :
+    d->format.image_width *
+    gavl_pixelformat_bytes_per_pixel(d->format.pixelformat);
+
+  gavl_init_memcpy();
+  
+  return 1;
   }
+

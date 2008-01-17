@@ -81,80 +81,76 @@ static void deinterlace_blend(gavl_video_deinterlacer_t * d,
   
   }
 
-int gavl_deinterlacer_init_blend(gavl_video_deinterlacer_t * d,
-                                  const gavl_video_format_t * src_format)
+int gavl_deinterlacer_init_blend(gavl_video_deinterlacer_t * d)
   {
   /* Get functions */
   gavl_video_deinterlace_blend_func_table_t tab;
   memset(&tab, 0, sizeof(tab));
   if(d->opt.quality || (d->opt.accel_flags & GAVL_ACCEL_C))
-    gavl_find_deinterlacer_blend_funcs_c(&tab, &d->opt, src_format);
+    gavl_find_deinterlacer_blend_funcs_c(&tab, &d->opt, &d->format);
   
 #if HAVE_MMX  
   if(d->opt.accel_flags & GAVL_ACCEL_MMX)
-    gavl_find_deinterlacer_blend_funcs_mmx(&tab, &d->opt, src_format);
+    gavl_find_deinterlacer_blend_funcs_mmx(&tab, &d->opt, &d->format);
   if((d->opt.accel_flags & GAVL_ACCEL_MMXEXT) && (d->opt.quality < 3))
-    gavl_find_deinterlacer_blend_funcs_mmxext(&tab, &d->opt, src_format);
+    gavl_find_deinterlacer_blend_funcs_mmxext(&tab, &d->opt, &d->format);
 #endif
 
 
 #if 0 // TODO: Test 3dnow
   // #ifdef HAVE_3DNOW
   if((d->opt.accel_flags & GAVL_ACCEL_3DNOW) && (d->opt.quality < 3))
-    gavl_find_deinterlacer_blend_funcs_3dnow(&tab, &d->opt, src_format);
+    gavl_find_deinterlacer_blend_funcs_3dnow(&tab, &d->opt, &d->format);
 #endif
   
-  d->num_planes = gavl_pixelformat_num_planes(src_format->pixelformat);
-  gavl_pixelformat_chroma_sub(src_format->pixelformat, &d->sub_h, &d->sub_v);
-  
-  switch(src_format->pixelformat)
+  switch(d->format.pixelformat)
     {
     case GAVL_RGB_15:
     case GAVL_BGR_15:
-      d->line_width = src_format->image_width;
+      d->line_width = d->format.image_width;
       d->blend_func = tab.func_packed_15;
       break;
     case GAVL_RGB_16:
     case GAVL_BGR_16:
-      d->line_width = src_format->image_width;
+      d->line_width = d->format.image_width;
       d->blend_func = tab.func_packed_16;
       break;
     case GAVL_RGB_24:
     case GAVL_BGR_24:
-      d->line_width = src_format->image_width * 3;
+      d->line_width = d->format.image_width * 3;
       d->blend_func = tab.func_8;
       break;
     case GAVL_RGB_32:
     case GAVL_BGR_32:
     case GAVL_RGBA_32:
     case GAVL_YUVA_32:
-      d->line_width = src_format->image_width * 4;
+      d->line_width = d->format.image_width * 4;
       d->blend_func = tab.func_8;
       break;
     case GAVL_RGB_48:
-      d->line_width = src_format->image_width * 3;
+      d->line_width = d->format.image_width * 3;
       d->blend_func = tab.func_16;
       break;
     case GAVL_RGB_FLOAT:
-      d->line_width = src_format->image_width * 3;
+      d->line_width = d->format.image_width * 3;
       d->blend_func = tab.func_float;
       break;
     case GAVL_RGBA_64:
-      d->line_width = src_format->image_width * 4;
+      d->line_width = d->format.image_width * 4;
       d->blend_func = tab.func_16;
       break;
     case GAVL_RGBA_FLOAT:
-      d->line_width = src_format->image_width * 4;
+      d->line_width = d->format.image_width * 4;
       d->blend_func = tab.func_float;
       break;
     case GAVL_YUY2:
     case GAVL_UYVY:
-      d->line_width = src_format->image_width * 2;
+      d->line_width = d->format.image_width * 2;
       d->blend_func = tab.func_8;
       break;
     case GAVL_YUV_444_P_16:
     case GAVL_YUV_422_P_16:
-      d->line_width = src_format->image_width;
+      d->line_width = d->format.image_width;
       d->blend_func = tab.func_16;
       break;
     case GAVL_YUV_420_P:
@@ -165,7 +161,7 @@ int gavl_deinterlacer_init_blend(gavl_video_deinterlacer_t * d,
     case GAVL_YUV_444_P:
     case GAVL_YUVJ_422_P:
     case GAVL_YUVJ_444_P:
-      d->line_width = src_format->image_width;
+      d->line_width = d->format.image_width;
       d->blend_func = tab.func_8;
       break;
     case GAVL_PIXELFORMAT_NONE:

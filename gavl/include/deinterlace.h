@@ -60,6 +60,10 @@ struct gavl_video_deinterlacer_s
   gavl_video_deinterlace_blend_func blend_func;
   
   int num_planes;
+
+  /* For blending, it's the number of components per line,
+     for copying it's the number of bytes passed to gavl_memcpy
+  */
   int line_width;
 
   int sub_h;
@@ -70,16 +74,12 @@ struct gavl_video_deinterlacer_s
 
 /* Find conversion function */
 
-int gavl_deinterlacer_init_scale(gavl_video_deinterlacer_t * d,
-                                  const gavl_video_format_t * src_format);
+int gavl_deinterlacer_init_scale(gavl_video_deinterlacer_t * d);
 
 
-int gavl_deinterlacer_init_blend(gavl_video_deinterlacer_t * deint,
-                                  const gavl_video_format_t * src_format);
+int gavl_deinterlacer_init_blend(gavl_video_deinterlacer_t * d);
 
-gavl_video_deinterlace_func
-gavl_find_deinterlacer_copy(const gavl_video_options_t * opt,
-                            const gavl_video_format_t * format);
+int gavl_deinterlacer_init_copy(gavl_video_deinterlacer_t * d);
 
 void
 gavl_find_deinterlacer_blend_funcs_c(gavl_video_deinterlace_blend_func_table_t * tab,
