@@ -22,13 +22,14 @@
 #include <gavl/gavl.h>
 #include <gavl/gavldsp.h>
 #include <dsp.h>
+#include <string.h>
 
-void gavl_dsp_interpolate_video_frame(gavl_dsp_context_t * ctx,
-                                      gavl_video_format_t * format,
-                                      gavl_video_frame_t * src_1,
-                                      gavl_video_frame_t * src_2,
-                                      gavl_video_frame_t * dst,
-                                      float factor)
+int gavl_dsp_interpolate_video_frame(gavl_dsp_context_t * ctx,
+                                     gavl_video_format_t * format,
+                                     gavl_video_frame_t * src_1,
+                                     gavl_video_frame_t * src_2,
+                                     gavl_video_frame_t * dst,
+                                     float factor)
   {
   int num_planes;
   int sub_v, sub_h;
@@ -107,6 +108,9 @@ void gavl_dsp_interpolate_video_frame(gavl_dsp_context_t * ctx,
       break;
     }
 
+  if(!interpolate)
+    return 0;
+  
   for(i = 0; i < num_planes; i++)
     {
     s1 = src_1->planes[i];
@@ -127,4 +131,161 @@ void gavl_dsp_interpolate_video_frame(gavl_dsp_context_t * ctx,
       height /= sub_v;
       }
     }
+  return 1;
+  }
+
+/* Audio frame utilities */
+
+int gavl_dsp_audio_frame_swap_endian(gavl_dsp_context_t * ctx,
+                                      gavl_audio_frame_t * frame,
+                                      const gavl_audio_format_t * format)
+  {
+  int bytes_per_sample, len, i;
+  void (*do_swap)(void * data, int len) = NULL;
+  
+  bytes_per_sample = gavl_bytes_per_sample(format->sample_format);
+  
+  switch(bytes_per_sample)
+    {
+    case 1:
+      return 1;
+      break;
+    case 2:
+      do_swap = ctx->funcs.bswap_16;
+      break;
+    case 4:
+      do_swap = ctx->funcs.bswap_32;
+      break;
+    case 8:
+      do_swap = ctx->funcs.bswap_64;
+      break;
+    default:
+      return 0;
+    }
+  
+  if(!do_swap)
+    return 0;
+  
+  switch(format->interleave_mode)
+    {
+    
+    case GAVL_INTERLEAVE_NONE:
+      len = frame->valid_samples;
+      for(i = 0; i < format->num_channels; i++)
+        do_swap(frame->channels.u_8[i], len);
+      break;
+    case GAVL_INTERLEAVE_2:
+      len = frame->valid_samples * 2;
+      for(i = 0; i < format->num_channels/2; i++)
+        do_swap(frame->channels.u_8[2*i], len);
+      
+      if(format->num_channels % 2)
+        {
+        len = frame->valid_samples;
+        do_swap(frame->channels.u_8[format->num_channels-1], len);
+        }
+    
+      break;
+    case GAVL_INTERLEAVE_ALL:
+      len = frame->valid_samples * format->num_channels;
+      do_swap(frame->samples.u_8, len);
+      break;
+    }
+  return 1;
+  }
+
+int gavl_dsp_video_frame_swap_endian(gavl_dsp_context_t * ctx,
+                                      gavl_video_frame_t * frame,
+                                      const gavl_video_format_t * format)
+  {
+  int len[GAVL_MAX_PLANES];
+  void (*do_swap)(void * data, int len) = NULL;
+  int i, j, num_planes;
+  uint8_t * src;
+  memset(len, 0, sizeof(len));
+  num_planes = 1;
+  switch(format->pixelformat)
+    {
+    case GAVL_RGB_15:
+    case GAVL_BGR_15:
+    case GAVL_RGB_16:
+    case GAVL_BGR_16:
+      len[0] = format->image_width;
+      do_swap = ctx->funcs.bswap_16;
+      break;
+    case GAVL_RGB_32:
+    case GAVL_BGR_32:
+    case GAVL_RGBA_32:
+    case GAVL_YUVA_32:
+      len[0] = format->image_width*4;
+      do_swap = ctx->funcs.bswap_32;
+      break;
+    case GAVL_RGB_48:
+      len[0] = format->image_width*3;
+      do_swap = ctx->funcs.bswap_16;
+      break;
+    case GAVL_RGBA_64:
+      len[0] = format->image_width*4;
+      do_swap = ctx->funcs.bswap_32;
+      break;
+    case GAVL_RGB_FLOAT:
+      len[0] = format->image_width*3;
+#if GAVL_SIZEOF_FLOAT == 4
+      do_swap = ctx->funcs.bswap_32;
+#elif GAVL_SIZEOF_FLOAT == 8
+      do_swap = ctx->funcs.bswap_64;
+#endif
+      break;
+    case GAVL_RGBA_FLOAT:
+      len[0] = format->image_width*4;
+#if GAVL_SIZEOF_FLOAT == 4
+      do_swap = ctx->funcs.bswap_32;
+#elif GAVL_SIZEOF_FLOAT == 8
+      do_swap = ctx->funcs.bswap_64;
+#endif
+      break;
+    case GAVL_YUV_422_P_16:
+      len[0] = format->image_width;
+      len[1] = format->image_width/2;
+      len[2] = format->image_width/2;
+      do_swap = ctx->funcs.bswap_16;
+      num_planes = 3;
+      break;
+    case GAVL_YUV_444_P_16:
+      len[0] = format->image_width;
+      len[1] = format->image_width;
+      len[2] = format->image_width;
+      do_swap = ctx->funcs.bswap_16;
+      num_planes = 3;
+      break;
+    case GAVL_YUY2:
+    case GAVL_UYVY:
+    case GAVL_RGB_24:
+    case GAVL_BGR_24:
+    case GAVL_YUV_420_P:
+    case GAVL_YUV_410_P:
+    case GAVL_YUV_422_P:
+    case GAVL_YUV_411_P:
+    case GAVL_YUV_444_P:
+    case GAVL_YUVJ_420_P:
+    case GAVL_YUVJ_422_P:
+    case GAVL_YUVJ_444_P:
+    case GAVL_PIXELFORMAT_NONE:
+      return 1;
+      break;
+    }
+
+  if(!do_swap)
+    return 0;
+
+  for(i = 0; i < num_planes; i++)
+    {
+    src = frame->planes[i];
+    for(j = 0; j < format->image_height; j++)
+      {
+      do_swap(src, len[i]);
+      src += frame->strides[i];
+      }
+    }
+  return 1;
   }

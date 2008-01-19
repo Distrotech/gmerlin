@@ -19,6 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 #include <stdlib.h>
+#include <string.h>
 
 #include <config.h>
 #include <gavl/gavl.h>
@@ -28,6 +29,7 @@
 
 static void init_table(gavl_dsp_context_t* ctx)
   {
+  memset(&ctx->funcs, 0, sizeof(ctx->funcs));
   if(ctx->quality || (ctx->accel_flags & GAVL_ACCEL_C))
     gavl_dsp_init_c(&ctx->funcs, ctx->quality);
 #ifdef HAVE_MMX

@@ -367,7 +367,6 @@ typedef union gavl_audio_samples_u
   double * d; /*!< Double samples */
   } gavl_audio_samples_t;
 
-
 /*!
   \ingroup audio_frame
   \brief Container for noninterleaved audio samples
@@ -463,15 +462,6 @@ void gavl_audio_frame_destroy(gavl_audio_frame_t * frame);
 void gavl_audio_frame_mute(gavl_audio_frame_t * frame,
                            const gavl_audio_format_t * format);
 
-/*!
-  \ingroup audio_frame
-  \brief Swap endianess an audio frame.
-  \param format The format of the frame
-  \param frame An audio frame
-*/
-
-void gavl_audio_frame_swap_endian(gavl_audio_frame_t * frame,
-                                  const gavl_audio_format_t * format);
   
   
 /*!

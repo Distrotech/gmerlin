@@ -23,6 +23,8 @@
 #include <gavl/gavl.h>
 #include <gavl/gavldsp.h>
 #include <dsp.h>
+#include <bswap.h>
+#include <math.h>
 
 #include "colorspace_tables.h"
 #include "colorspace_macros.h"
@@ -140,7 +142,7 @@ static float sad_f_c(uint8_t * src_1, uint8_t * src_2,
 
     for(j = 0; j < w; j++)
       {
-      ret += abs((*s1)-(*s2));
+      ret += fabs((*s1)-(*s2));
       s1++;
       s2++;
       }
@@ -380,6 +382,41 @@ static void interpolate_f_c(uint8_t * src_1, uint8_t * src_2,
     }
   }
 
+static void bswap_16_c(void * data, int len)
+  {
+  int i;
+  uint16_t * ptr = (uint16_t*)data;
+
+  for(i = 0; i < len; i++)
+    {
+    *ptr = bswap_16(*ptr);
+    ptr++;
+    }
+  
+  }
+
+static void bswap_32_c(void * data, int len)
+  {
+  int i;
+  uint32_t * ptr = (uint32_t*)data;
+  for(i = 0; i < len; i++)
+    {
+    *ptr = bswap_32(*ptr);
+    ptr++;
+    }
+  }
+
+static void bswap_64_c(void * data, int len)
+  {
+  int i;
+  uint64_t * ptr = (uint64_t*)data;
+  for(i = 0; i < len; i++)
+    {
+    *ptr = bswap_64(*ptr);
+    ptr++;
+    }
+  }
+
 
 
 void gavl_dsp_init_c(gavl_dsp_funcs_t * funcs, 
@@ -402,4 +439,9 @@ void gavl_dsp_init_c(gavl_dsp_funcs_t * funcs,
   funcs->interpolate_8     = interpolate_8_c;
   funcs->interpolate_16    = interpolate_16_c;
   funcs->interpolate_f     = interpolate_f_c;
+  
+  funcs->bswap_16          = bswap_16_c;
+  funcs->bswap_32          = bswap_32_c;
+  funcs->bswap_64          = bswap_64_c;
+  
   }

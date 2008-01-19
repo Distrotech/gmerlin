@@ -22,6 +22,7 @@
 
 #include <config.h>
 #include <gavl.h>
+#include <gavldsp.h>
 #include <accel.h> /* Private header */
 
 
@@ -106,6 +107,68 @@ typedef struct
   
   } gavl_benchmark_t;
 
+/* Fill frames with random numbers */
+
+static void init_video_frame(gavl_video_format_t * format, gavl_video_frame_t * f)
+  {
+  int i, j, num;
+  int num_planes;
+  int32_t * pixels_i;
+  float * pixels_f;
+  int sub_h, sub_v;
+
+  switch(format->pixelformat)
+    {
+    case GAVL_RGB_FLOAT:
+      for(i = 0; i < format->image_height; i++)
+        {
+        pixels_f = (float*)(f->planes[0] + i * f->strides[0]);
+        for(j = 0; j < format->image_width; j++)
+          {
+          pixels_f[0] = (float)rand() / RAND_MAX;
+          pixels_f[1] = (float)rand() / RAND_MAX;
+          pixels_f[2] = (float)rand() / RAND_MAX;
+          pixels_f+=3;
+          }
+        }
+      break;
+    case GAVL_RGBA_FLOAT:
+      for(i = 0; i < format->image_height; i++)
+        {
+        pixels_f = (float*)(f->planes[0] + i * f->strides[0]);
+        for(j = 0; j < format->image_width; j++)
+          {
+          pixels_f[0] = (float)rand() / RAND_MAX;
+          pixels_f[1] = (float)rand() / RAND_MAX;
+          pixels_f[2] = (float)rand() / RAND_MAX;
+          pixels_f[4] = (float)rand() / RAND_MAX;
+          pixels_f+=4;
+          }
+        }
+      break;
+    default:
+      num_planes = gavl_pixelformat_num_planes(format->pixelformat);
+      gavl_pixelformat_chroma_sub(format->pixelformat, &sub_h, &sub_v);
+      num = 0;
+      for(i = 0; i < num_planes; i++)
+        {
+        num += (f->strides[i] * format->image_height)
+          / (1 + (!!i) * (sub_v-1));
+        }
+      
+      pixels_i = (int*)(f->planes[0]);
+      
+      for(i = 0; i < format->image_height/sub_v; i++)
+        {
+        pixels_i[i] = rand();
+        }
+      
+      break;
+    }
+  
+  }
+
+
 static void gavl_benchmark_run(gavl_benchmark_t * b)
   {
   int i;
@@ -173,6 +236,10 @@ static void gavl_benchmark_print_header(gavl_benchmark_t * b)
     {
     printf("<td align=\"right\">Average</td><td align=\"right\">Minimum</td><td align=\"right\">Maximum</td><td align=\"right\">Discarded</td>");
     }
+  else
+    {
+    printf(" Average  Minimum  Maximum  Discarded");
+    }
   }
 
 static void gavl_benchmark_print_results(gavl_benchmark_t * b)
@@ -183,7 +250,7 @@ static void gavl_benchmark_print_results(gavl_benchmark_t * b)
          b->avg, b->min, b->max, b->num_discard);
     }
   else
-    printf("  Avg: %8"PRId64", Min: %8"PRId64", Max: %8"PRId64", %2d\n",
+    printf("%8"PRId64" %8"PRId64" %8"PRId64"       %4d",
            b->avg, b->min, b->max, b->num_discard);
   }
 
@@ -296,13 +363,20 @@ static void benchmark_sampleformat()
 
   audio_convert_context_create(&ctx);
 
+  printf("Conversion of %d samples, %d channels\n", ctx.in_format.samples_per_frame,
+         ctx.in_format.num_channels);
+  
   if(do_html)
     {
-    printf("Conversion of %d samples, %d channels<p>\n", ctx.in_format.samples_per_frame,
-           ctx.in_format.num_channels);
-    printf("<table border=\"1\" width=\"100%%\"><tr><td>Conversion</td><td>Dithering</td>");
+    printf("<p><table border=\"1\" width=\"100%%\"><tr><td>Conversion</td><td>Dithering</td>");
     gavl_benchmark_print_header(&b);
     printf("</tr>\n");
+    }
+  else
+    {
+    printf("\nConversion                           Dithering  ");
+    gavl_benchmark_print_header(&b);
+    printf("\n");
     }
   
   for(i = 0; i < num_sampleformats; i++)
@@ -327,7 +401,7 @@ static void benchmark_sampleformat()
                  gavl_sample_format_to_string(out_format));
           }
         else
-          printf("%s -> %s\n",
+          printf("%-16s -> %-16s -          ",
                  gavl_sample_format_to_string(in_format),
                  gavl_sample_format_to_string(out_format));
         
@@ -356,7 +430,7 @@ static void benchmark_sampleformat()
                    dither_modes[k].name);
             }
           else
-            printf("%s -> %s, Dithering: %s\n",
+            printf("%-16s -> %-16s %-10s ",
                    gavl_sample_format_to_string(in_format),
                    gavl_sample_format_to_string(out_format),
                    dither_modes[k].name);
@@ -417,24 +491,36 @@ static void benchmark_mix()
   num_sampleformats = sizeof(sampleformats)/sizeof(sampleformats[0]);
   audio_convert_context_create(&ctx);
 
+  printf("Mixing of %d samples, from %d to %d channels\n",
+         ctx.in_format.samples_per_frame,
+         ctx.in_format.num_channels,
+         ctx.out_format.num_channels);
+  
   if(do_html)
     {
-    printf("Mixing of %d samples, from %d to %d channels<p>\n",
-           ctx.in_format.samples_per_frame,
-           ctx.in_format.num_channels,
-           ctx.out_format.num_channels);
-    printf("<table border=\"1\" width=\"100%%\"><tr><td>Conversion</td>");
+    printf("<p>\n<table border=\"1\" width=\"100%%\"><tr><td>Sampleformat</td>");
     gavl_benchmark_print_header(&b);
     printf("</tr>\n");
     }
-
+  else
+    {
+    printf("\nSampleformat     ");
+    gavl_benchmark_print_header(&b);
+    printf("\n");
+    }
+  
   
   for(i = 0; i < num_sampleformats; i++)
     {
     in_format = sampleformats[i];
     ctx.in_format.sample_format = in_format;
     ctx.out_format.sample_format = in_format;
-    printf("<td>%s</td>", gavl_sample_format_to_string(in_format));
+    if(do_html)
+      {
+      printf("<td>%s</td>", gavl_sample_format_to_string(in_format));
+      }
+    else
+      printf("%-16s ", gavl_sample_format_to_string(in_format));
     audio_convert_context_init(&ctx);
     gavl_benchmark_run(&b);
     audio_convert_context_cleanup(&ctx);
@@ -515,16 +601,24 @@ static void benchmark_resample()
   
   audio_convert_context_create(&ctx);
 
+  printf("Resampling of %d samples (%d channels), from %d to %d\n",
+         ctx.in_format.samples_per_frame,
+         ctx.in_format.num_channels,
+         ctx.in_format.samplerate,
+         ctx.out_format.samplerate);
+
   if(do_html)
     {
-    printf("Resampling of %d samples (%d channels), from %d to %d <p>\n",
-           ctx.in_format.samples_per_frame,
-           ctx.in_format.num_channels,
-           ctx.in_format.samplerate,
-           ctx.out_format.samplerate);
-    printf("<table border=\"1\" width=\"100%%\"><tr><td>Sampleformat</td><td>Method</td>");
+    printf("<p>\n<table border=\"1\" width=\"100%%\"><tr><td>Sampleformat</td><td>Method</td>");
     gavl_benchmark_print_header(&b);
     printf("</tr>\n");
+    }
+  else
+    {
+    printf("\nSampleformat     Method          ");
+    gavl_benchmark_print_header(&b);
+    printf("\n");
+    
     }
   
   for(i = 0; i < num_sampleformats; i++)
@@ -537,9 +631,20 @@ static void benchmark_resample()
       {
       gavl_audio_options_set_resample_mode(ctx.opt, resample_modes[j].mode);
   
-      printf("<td>%s</td><td>%s</td>",
-             gavl_sample_format_to_string(in_format),
-             resample_modes[j].name);
+      if(do_html)
+        {
+        printf("<td>%s</td><td>%s</td>",
+               gavl_sample_format_to_string(in_format),
+               resample_modes[j].name);
+        }
+      else
+        {
+        printf("%-16s %-15s ",
+               gavl_sample_format_to_string(in_format),
+               resample_modes[j].name);
+        
+        }
+      
       audio_convert_context_init(&ctx);
       gavl_benchmark_run(&b);
       audio_convert_context_cleanup(&ctx);
@@ -602,66 +707,13 @@ static void video_convert_context_destroy(video_convert_context_t * ctx)
   gavl_video_converter_destroy(ctx->cnv);
   }
 
+
 static void video_convert_init(void * data)
   {
-  int i, j, num;
-  int num_planes;
-  int32_t * pixels_i;
-  float * pixels_f;
-  int sub_h, sub_v;
   
   video_convert_context_t * ctx = (video_convert_context_t*)data;
   /* Fill frame with random numbers */
-  
-  switch(ctx->in_format.pixelformat)
-    {
-    case GAVL_RGB_FLOAT:
-      for(i = 0; i < ctx->in_format.image_height; i++)
-        {
-        pixels_f = (float*)(ctx->in_frame->planes[0] + i * ctx->in_frame->strides[0]);
-        for(j = 0; j < ctx->in_format.image_width; j++)
-          {
-          pixels_f[0] = (float)rand() / RAND_MAX;
-          pixels_f[1] = (float)rand() / RAND_MAX;
-          pixels_f[2] = (float)rand() / RAND_MAX;
-          pixels_f+=3;
-          }
-        }
-      break;
-    case GAVL_RGBA_FLOAT:
-      for(i = 0; i < ctx->in_format.image_height; i++)
-        {
-        pixels_f = (float*)(ctx->in_frame->planes[0] + i * ctx->in_frame->strides[0]);
-        for(j = 0; j < ctx->in_format.image_width; j++)
-          {
-          pixels_f[0] = (float)rand() / RAND_MAX;
-          pixels_f[1] = (float)rand() / RAND_MAX;
-          pixels_f[2] = (float)rand() / RAND_MAX;
-          pixels_f[4] = (float)rand() / RAND_MAX;
-          pixels_f+=4;
-          }
-        }
-      break;
-    default:
-      num_planes = gavl_pixelformat_num_planes(ctx->in_format.pixelformat);
-      gavl_pixelformat_chroma_sub(ctx->in_format.pixelformat, &sub_h, &sub_v);
-      num = 0;
-      for(i = 0; i < num_planes; i++)
-        {
-        num += (ctx->in_frame->strides[i] * ctx->in_format.image_height)
-          / (1 + (!!i) * (sub_v-1));
-        }
-      
-      pixels_i = (int*)(ctx->in_frame->planes[0]);
-      
-      for(i = 0; i < ctx->in_format.image_height/sub_v; i++)
-        {
-        pixels_i[i] = rand();
-        }
-      
-      break;
-    }
-    
+  init_video_frame(&ctx->in_format, ctx->in_frame);
   }
 
 static void video_convert_func(void * data)
@@ -678,7 +730,7 @@ static const struct
   }
 scale_modes[] =
   {
-    { GAVL_SCALE_NEAREST, "None" },
+    { GAVL_SCALE_NEAREST, "Nearest" },
     { GAVL_SCALE_BILINEAR, "Linear"}, 
     { GAVL_SCALE_QUADRATIC, "Quadratic" },
     { GAVL_SCALE_CUBIC_BSPLINE, "Cubic B-Spline" },
@@ -716,12 +768,14 @@ static void do_pixelformat(video_convert_context_t * ctx,
         printf("<tr><td>%s</td><td>Not needed</td>", name);
         }
       else
-        printf("  %s           ", name);
+        printf("%-6s -                         ", name);
       
       gavl_benchmark_run(b);
       gavl_benchmark_print_results(b);
       if(do_html)
         printf("</tr>\n");
+      else
+        printf("\n");
       }
     video_convert_context_cleanup(ctx);
     }
@@ -738,12 +792,14 @@ static void do_pixelformat(video_convert_context_t * ctx,
         printf("<tr><td>%s<td>Off</td>", name);
         }
       else
-        printf("  %s [off]     ", name);
+        printf( "%-6s Off                       ", name);
       gavl_benchmark_run(b);
       gavl_benchmark_print_results(b);
       
       if(do_html)
         printf("</tr>\n");
+      else
+        printf("\n");
       }
     video_convert_context_cleanup(ctx);
 
@@ -762,11 +818,13 @@ static void do_pixelformat(video_convert_context_t * ctx,
           printf("<tr><td>%s</td><td>%s</td>", name, scale_modes[i].name);
           }
         else
-          printf("  %s [linear]  ", name);
+          printf("%-6s %-24s  ", name, scale_modes[i].name);
         gavl_benchmark_run(b);
         gavl_benchmark_print_results(b);
         if(do_html)
           printf("</tr>\n");
+        else
+          printf("\n");
         }
       video_convert_context_cleanup(ctx);
       }
@@ -799,15 +857,22 @@ static void benchmark_pixelformat()
   ctx.in_format.pixel_height = 1;
   
   gavl_video_format_copy(&ctx.out_format, &ctx.in_format);
+  printf("Image size: %d x %d\n",
+         ctx.in_format.image_width,
+         ctx.in_format.image_height);
 
   if(do_html)
     {
-    printf("Image size: %d x %d<p>\n",
-           ctx.in_format.image_width,
-           ctx.in_format.image_height);
-    printf("<table border=\"1\" width=\"100%%\"><tr><td>Flavour</td><td>Chroma resampling</td>");
+    printf("<p>\n<table border=\"1\" width=\"100%%\"><tr><td>Flavour</td><td>Chroma resampling</td>");
     gavl_benchmark_print_header(&b);
     printf("</tr>\n");
+    }
+  else
+    {
+    printf("\nFlavour Chroma resampling        ");
+    gavl_benchmark_print_header(&b);
+    printf("\n");
+    
     }
   
   num_pixelformats = gavl_num_pixelformats();
@@ -840,26 +905,28 @@ static void benchmark_pixelformat()
         continue;
 
       if(do_html)
-        printf("<tr><td colspan=\"6\"><b>%s -> %s<b></td></tr>\n",
-               gavl_pixelformat_to_string(in_format),
-               gavl_pixelformat_to_string(out_format));
-      
+        printf("<tr><td colspan=\"6\"><b>");
+      printf("%s -> %s", gavl_pixelformat_to_string(in_format),
+             gavl_pixelformat_to_string(out_format));
+      if(do_html)
+        printf("<b></td></tr>");
+      printf("\n");
       
       /* C-Version */
       
       gavl_video_options_set_accel_flags(ctx.opt, GAVL_ACCEL_C);
-      do_pixelformat(&ctx, &b, in_format, out_format, "C    ");
+      do_pixelformat(&ctx, &b, in_format, out_format, "C");
       fflush(stdout);
       gavl_video_options_set_accel_flags(ctx.opt, GAVL_ACCEL_MMX);
-      do_pixelformat(&ctx, &b, in_format, out_format, "MMX  ");
+      do_pixelformat(&ctx, &b, in_format, out_format, "MMX");
 
       fflush(stdout);
       gavl_video_options_set_accel_flags(ctx.opt, GAVL_ACCEL_MMXEXT);
-      do_pixelformat(&ctx, &b, in_format, out_format, "MMXEXT  ");
+      do_pixelformat(&ctx, &b, in_format, out_format, "MMXEXT");
 
       fflush(stdout);
       gavl_video_options_set_accel_flags(ctx.opt, GAVL_ACCEL_C_HQ);
-      do_pixelformat(&ctx, &b, in_format, out_format, "HQ   ");
+      do_pixelformat(&ctx, &b, in_format, out_format, "HQ");
       fflush(stdout);
       
 #ifdef OUT_LOOP
@@ -870,6 +937,10 @@ static void benchmark_pixelformat()
 #ifdef IN_LOOP
     }
 #endif
+
+  if(do_html)
+    printf("</table>\n");
+
   video_convert_context_destroy(&ctx);
   
   }
@@ -879,113 +950,35 @@ static void do_scale(video_convert_context_t * ctx,
                      gavl_benchmark_t * b, gavl_pixelformat_t in_format,
                      const char * name, const char * dirs)
   {
-  
+  int num_scale_modes, i;
+  num_scale_modes = sizeof(scale_modes)/sizeof(scale_modes[0]);
+
   ctx->in_format.pixelformat = in_format;
   ctx->out_format.pixelformat = in_format;
 
-  gavl_video_options_set_scale_mode(ctx->opt, GAVL_SCALE_NEAREST);
-  if(video_convert_context_init(ctx))
+  for(i = 0; i < num_scale_modes; i++)
     {
-    if(do_html)
-      printf("<tr><td>%s</td><td>%s</td><td>Nearest</td>", dirs, name);
-    
-    gavl_benchmark_run(b);
-    gavl_benchmark_print_results(b);
-    if(do_html)
-      printf("</tr>\n");
-    }
-  fflush(stdout);
-  video_convert_context_cleanup(ctx);
+    gavl_video_options_set_scale_mode(ctx->opt, scale_modes[i].mode);
 
-  gavl_video_options_set_scale_mode(ctx->opt, GAVL_SCALE_BILINEAR);
-  if(video_convert_context_init(ctx))
-    {
-    if(do_html)
-      printf("<tr><td>%s</td><td>%s</td><td>Linear</td>", dirs, name);
-    
-    gavl_benchmark_run(b);
-    gavl_benchmark_print_results(b);
-    if(do_html)
-      printf("</tr>\n");
-    }
-  fflush(stdout);
-  video_convert_context_cleanup(ctx);
+    if(video_convert_context_init(ctx))
+      {
+      if(do_html)
+        printf("<tr><td>%s</td><td>%s</td><td>%s</td>", dirs, name, scale_modes[i].name);
+      else
+        printf("%-2s        %-6s  %-24s ", dirs, name, scale_modes[i].name);
+      
+      gavl_benchmark_run(b);
+      gavl_benchmark_print_results(b);
+      if(do_html)
+        printf("</tr>");
 
-  
-  gavl_video_options_set_scale_mode(ctx->opt, GAVL_SCALE_QUADRATIC);
-  if(video_convert_context_init(ctx))
-    {
-    if(do_html)
-      printf("<tr><td>%s</td><td>%s</td><td>Quadratic</td>", dirs, name);
+      printf("\n");
+      
+      }
     
-    gavl_benchmark_run(b);
-    gavl_benchmark_print_results(b);
-    if(do_html)
-      printf("</tr>\n");
+    fflush(stdout);
+    video_convert_context_cleanup(ctx);
     }
-  fflush(stdout);
-  video_convert_context_cleanup(ctx);
-
-  gavl_video_options_set_scale_mode(ctx->opt, GAVL_SCALE_CUBIC_BSPLINE);
-  if(video_convert_context_init(ctx))
-    {
-    if(do_html)
-      printf("<tr><td>%s</td><td>%s</td><td>Cubic B-Spline</td>", dirs, name);
-    
-    gavl_benchmark_run(b);
-    gavl_benchmark_print_results(b);
-    if(do_html)
-      printf("</tr>\n");
-    }
-  fflush(stdout);
-  video_convert_context_cleanup(ctx);
-
-
-  
-  gavl_video_options_set_scale_mode(ctx->opt, GAVL_SCALE_CUBIC_CATMULL);
-  if(video_convert_context_init(ctx))
-    {
-    if(do_html)
-      printf("<tr><td>%s</td><td>%s</td><td>Cubic Catmull-Rom</td>", dirs, name);
-    
-    gavl_benchmark_run(b);
-    gavl_benchmark_print_results(b);
-    if(do_html)
-      printf("</tr>\n");
-    }
-  fflush(stdout);
-  video_convert_context_cleanup(ctx);
-  
-  gavl_video_options_set_scale_mode(ctx->opt, GAVL_SCALE_CUBIC_MITCHELL);
-  if(video_convert_context_init(ctx))
-    {
-    if(do_html)
-      printf("<tr><td>%s</td><td>%s</td><td>Cubic Mitchell-Netravali</td>", dirs, name);
-    
-    gavl_benchmark_run(b);
-    gavl_benchmark_print_results(b);
-    if(do_html)
-      printf("</tr>\n");
-    }
-  fflush(stdout);
-  video_convert_context_cleanup(ctx);
-
-  gavl_video_options_set_scale_mode(ctx->opt, GAVL_SCALE_SINC_LANCZOS);
-  gavl_video_options_set_scale_order(ctx->opt, 4);
-  if(video_convert_context_init(ctx))
-    {
-    if(do_html)
-      printf("<tr><td>%s</td><td>%s</td><td>Sinc, 4th order</td>", dirs, name);
-    
-    gavl_benchmark_run(b);
-    gavl_benchmark_print_results(b);
-    if(do_html)
-      printf("</tr>\n");
-    }
-  fflush(stdout);
-  video_convert_context_cleanup(ctx);
-
-  
   }
 
 static void do_scale_direction(video_convert_context_t * ctx,
@@ -996,13 +989,20 @@ static void do_scale_direction(video_convert_context_t * ctx,
   int i;
 
   const char * dir;
+
+  printf("\nDestination size: 1024 x 1024, source size 512 for each scaled direction\n");
   
   if(do_html)
     {
-    printf("Destination size: 1024 x 1024, source size 512 for each scaled direction<p>\n");
-    printf("<table border=\"1\" width=\"100%%\"><tr><td>Direction</td><td>Flavour</td><td>Scale method</td>");
+    printf("<p>\n<table border=\"1\" width=\"100%%\"><tr><td>Direction</td><td>Flavour</td><td>Scale method</td>");
     gavl_benchmark_print_header(b);
     printf("</tr>\n");
+    }
+  else
+    {
+    printf("Direction Flavour Scale method             ");
+    gavl_benchmark_print_header(b);
+    printf("\n");
     }
   
   num_pixelformats = gavl_num_pixelformats();
@@ -1016,7 +1016,9 @@ static void do_scale_direction(video_convert_context_t * ctx,
     if(do_html)
       printf("<tr><td colspan=\"7\"><b>%s<b></td></tr>\n",
              gavl_pixelformat_to_string(in_format));
-
+    else
+      printf("%s\n", gavl_pixelformat_to_string(in_format));
+    
     ctx->out_format.image_width =  1024;
     ctx->out_format.image_height = 1024;
     ctx->out_format.frame_width =  1024;
@@ -1035,13 +1037,13 @@ static void do_scale_direction(video_convert_context_t * ctx,
     ctx->in_format.frame_width =   512;
         
     gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_C);
-    do_scale(ctx, b, in_format, "C    ", dir);
+    do_scale(ctx, b, in_format, "C", dir);
     
     gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_MMX);
-    do_scale(ctx, b, in_format, "MMX  ", dir);
+    do_scale(ctx, b, in_format, "MMX", dir);
     
     gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_C_HQ);
-    do_scale(ctx, b, in_format, "HQ   ", dir);
+    do_scale(ctx, b, in_format, "HQ", dir);
 
     /* Y */
 
@@ -1053,13 +1055,13 @@ static void do_scale_direction(video_convert_context_t * ctx,
     ctx->in_format.frame_height = 512;
     
     gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_C);
-    do_scale(ctx, b, in_format, "C    ", dir);
+    do_scale(ctx, b, in_format, "C", dir);
     
     gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_MMX);
-    do_scale(ctx, b, in_format, "MMX  ", dir);
+    do_scale(ctx, b, in_format, "MMX", dir);
     
     gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_C_HQ);
-    do_scale(ctx, b, in_format, "HQ   ", dir);
+    do_scale(ctx, b, in_format, "HQ", dir);
 
     /* X+Y */
     dir = "x+y";
@@ -1071,13 +1073,13 @@ static void do_scale_direction(video_convert_context_t * ctx,
     ctx->in_format.frame_height = 512;
     
     gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_C);
-    do_scale(ctx, b, in_format, "C    ", dir);
+    do_scale(ctx, b, in_format, "C", dir);
     
     gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_MMX);
-    do_scale(ctx, b, in_format, "MMX  ", dir);
+    do_scale(ctx, b, in_format, "MMX", dir);
     
     gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_C_HQ);
-    do_scale(ctx, b, in_format, "HQ   ", dir);
+    do_scale(ctx, b, in_format, "HQ", dir);
     }
   
   if(do_html)
@@ -1142,15 +1144,22 @@ static void benchmark_deinterlace()
   ctx.in_format.pixel_height = 1;
   ctx.in_format.interlace_mode = GAVL_INTERLACE_TOP_FIRST;
 
+  printf("Size: %d x %d\n",
+         ctx.in_format.image_width,
+         ctx.in_format.image_height);
+  
   if(do_html)
     {
-    printf("Size: %d x %d<p>\n", ctx.in_format.image_width,
-           ctx.in_format.image_height);
-    printf("<table border=\"1\" width=\"100%%\"><tr><td>Method</td><td>Flavour</td><td>Scale method</td>");
+    printf("<p><table border=\"1\" width=\"100%%\"><tr><td>Method</td><td>Flavour</td><td>Scale method</td>");
     gavl_benchmark_print_header(&b);
     printf("</tr>\n");
     }
-
+  else
+    {
+    printf("Method           Flavour Scale method             ");
+    gavl_benchmark_print_header(&b);
+    printf("\n");
+    }
   
   gavl_video_format_copy(&ctx.out_format, &ctx.in_format);
   ctx.out_format.interlace_mode = GAVL_INTERLACE_NONE;
@@ -1172,6 +1181,9 @@ static void benchmark_deinterlace()
     if(do_html)
       printf("<tr><td colspan=\"7\"><b>%s<b></td></tr>\n",
              gavl_pixelformat_to_string(ctx.in_format.pixelformat));
+    else
+      printf("%s\n",
+             gavl_pixelformat_to_string(ctx.in_format.pixelformat));
     
     for(j = 0; j < num_modes; j++)
       {
@@ -1187,11 +1199,15 @@ static void benchmark_deinterlace()
         if(do_html)
           printf("<tr><td>%s</td><td>C</td><td></td>",
                  deinterlace_modes[j].name);
+        else
+          printf("%-16s C       -                        ",
+                 deinterlace_modes[j].name);
         
         gavl_benchmark_run(&b);
         gavl_benchmark_print_results(&b);
         if(do_html)
-          printf("</tr>\n");
+          printf("</tr>");
+        printf("\n");
         }
       fflush(stdout);
       video_convert_context_cleanup(&ctx);
@@ -1206,11 +1222,15 @@ static void benchmark_deinterlace()
         if(do_html)
           printf("<tr><td>%s</td><td>MMX</td><td></td>",
                  deinterlace_modes[j].name);
+        else
+          printf("%-16s MMX     -                        ",
+                 deinterlace_modes[j].name);
         
         gavl_benchmark_run(&b);
         gavl_benchmark_print_results(&b);
         if(do_html)
-          printf("</tr>\n");
+          printf("</tr>");
+        printf("\n");
         }
       fflush(stdout);
       video_convert_context_cleanup(&ctx);
@@ -1223,11 +1243,15 @@ static void benchmark_deinterlace()
         if(do_html)
           printf("<tr><td>%s</td><td>MMXEXT</td><td></td>",
                  deinterlace_modes[j].name);
+        else
+          printf("%-16s MMXEXT  -                        ",
+                 deinterlace_modes[j].name);
         
         gavl_benchmark_run(&b);
         gavl_benchmark_print_results(&b);
         if(do_html)
-          printf("</tr>\n");
+          printf("</tr>");
+        printf("\n");
         }
       fflush(stdout);
       video_convert_context_cleanup(&ctx);
@@ -1245,11 +1269,14 @@ static void benchmark_deinterlace()
         if(do_html)
           printf("<tr><td>Upscale</td><td>C</td><td>%s</td>",
                  scale_modes[j].name);
+        else
+          printf("Upscale          C       %-24s ", scale_modes[j].name);
         
         gavl_benchmark_run(&b);
         gavl_benchmark_print_results(&b);
         if(do_html)
-          printf("</tr>\n");
+          printf("</tr>");
+        printf("\n");
         }
       fflush(stdout);
       video_convert_context_cleanup(&ctx);
@@ -1264,19 +1291,216 @@ static void benchmark_deinterlace()
         if(do_html)
           printf("<tr><td>Upscale</td><td>MMX</td><td>%s</td>",
                  scale_modes[j].name);
+        else
+          printf("Upscale          MMX     %-24s ", scale_modes[j].name);
+
         
         gavl_benchmark_run(&b);
         gavl_benchmark_print_results(&b);
         if(do_html)
-          printf("</tr>\n");
+          printf("</tr>");
+        printf("\n");
         }
       fflush(stdout);
       video_convert_context_cleanup(&ctx);
       }
     }
+  if(do_html)
+    printf("</table>\n");
   
   video_convert_context_destroy(&ctx);
   }
+
+/* Video DSP */
+
+/* Video converter */
+
+typedef struct
+  {
+  gavl_video_format_t format;
+  
+  gavl_dsp_context_t * ctx;
+  
+  gavl_video_frame_t * frames[3];
+  int num_frames;
+  
+  } video_dsp_context_t;
+
+static void video_dsp_context_create(video_dsp_context_t * ctx, int num_frames)
+  {
+  ctx->ctx = gavl_dsp_context_create();
+  ctx->num_frames = num_frames;
+  }
+
+static void video_dsp_context_init(video_dsp_context_t * ctx)
+  {
+  int i;
+
+  for(i = 0; i < ctx->num_frames; i++)
+    ctx->frames[i] = gavl_video_frame_create(&ctx->format);
+  return;
+  }
+
+static void video_dsp_context_cleanup(video_dsp_context_t * ctx)
+  {
+  int i;
+  for(i = 0; i < ctx->num_frames; i++)
+    gavl_video_frame_destroy(ctx->frames[i]);
+  }
+
+static void video_dsp_context_destroy(video_dsp_context_t * ctx)
+  {
+  gavl_dsp_context_destroy(ctx->ctx);
+  }
+
+static void video_dsp_init(void * data)
+  {
+  int i;
+  video_dsp_context_t * ctx = (video_dsp_context_t*)data;
+  /* Fill frame with random numbers */
+  for(i = 0; i < ctx->num_frames; i++)
+    {
+    init_video_frame(&ctx->format, ctx->frames[0]);
+    }
+  }
+
+#if 0
+
+static void video_convert_func(void * data)
+  {
+  video_dsp_context_t * ctx = (video_dsp_context_t*)data;
+  gavl_video_convert(ctx->cnv, ctx->in_frame, ctx->out_frame);
+  }
+#endif
+
+static void interpolate_func(void * data)
+  {
+  video_dsp_context_t * ctx = (video_dsp_context_t*)data;
+
+  gavl_dsp_interpolate_video_frame(ctx->ctx,
+                                   &ctx->format,
+                                   ctx->frames[0],
+                                   ctx->frames[1],
+                                   ctx->frames[2],
+                                   0.5);
+  }
+
+/* Video interpolation */
+
+static void benchmark_dsp_interpolate()
+  {
+  video_dsp_context_t ctx;
+  gavl_benchmark_t b;
+  int num_pixelformats;
+  int i;
+  memset(&ctx, 0, sizeof(ctx));
+  memset(&b, 0, sizeof(b));
+  
+  b.init = video_dsp_init;
+  b.func = interpolate_func;
+  b.data = &ctx;
+
+  ctx.format.image_width  = 720;
+  ctx.format.image_height = 576;
+  ctx.format.frame_width  = 720;
+  ctx.format.frame_height = 576;
+  ctx.format.pixel_width  = 1;
+  ctx.format.pixel_height = 1;
+
+  printf("Size: %d x %d\n",
+         ctx.format.image_width,
+         ctx.format.image_height);
+  
+  if(do_html)
+    {
+    printf("<p><table border=\"1\" width=\"100%%\"><tr><td>Format</td><td>Flavour</td>");
+    gavl_benchmark_print_header(&b);
+    printf("</tr>\n");
+    }
+  else
+    {
+    printf("Format                  Flavour ");
+    gavl_benchmark_print_header(&b);
+    printf("\n");
+    }
+  
+  video_dsp_context_create(&ctx, 3);
+
+  /* Disable autoselection */
+  gavl_dsp_context_set_quality(ctx.ctx, 0);
+
+  num_pixelformats = gavl_num_pixelformats();
+  
+  for(i = 0; i < num_pixelformats; i++)
+    {
+    ctx.format.pixelformat = gavl_get_pixelformat(i);
+
+    /* C */
+
+    gavl_dsp_context_set_accel_flags(ctx.ctx, GAVL_ACCEL_C);
+    
+    video_dsp_context_init(&ctx);
+
+    if(gavl_dsp_interpolate_video_frame(ctx.ctx,
+                                        &ctx.format,
+                                        ctx.frames[0],
+                                        ctx.frames[1],
+                                        ctx.frames[2],
+                                        0.5))
+      {
+      if(do_html)
+        printf("<tr><td>%s</td><td>C</td>",
+               gavl_pixelformat_to_string(ctx.format.pixelformat));
+      else
+        printf("%-23s C       ",
+               gavl_pixelformat_to_string(ctx.format.pixelformat));
+      
+      gavl_benchmark_run(&b);
+      gavl_benchmark_print_results(&b);
+      if(do_html)
+        printf("</tr>");
+      printf("\n");
+      fflush(stdout);
+      }
+    video_dsp_context_cleanup(&ctx);
+
+    /* MMX */
+
+    gavl_dsp_context_set_accel_flags(ctx.ctx, GAVL_ACCEL_MMX);
+    
+    video_dsp_context_init(&ctx);
+
+    if(gavl_dsp_interpolate_video_frame(ctx.ctx,
+                                        &ctx.format,
+                                        ctx.frames[0],
+                                        ctx.frames[1],
+                                        ctx.frames[2],
+                                        0.5))
+      {
+      if(do_html)
+        printf("<tr><td>%s</td><td>MMX</td>",
+               gavl_pixelformat_to_string(ctx.format.pixelformat));
+      else
+        printf("%-23s MMX     ",
+               gavl_pixelformat_to_string(ctx.format.pixelformat));
+      
+      gavl_benchmark_run(&b);
+      gavl_benchmark_print_results(&b);
+      if(do_html)
+        printf("</tr>");
+      printf("\n");
+      fflush(stdout);
+      }
+    video_dsp_context_cleanup(&ctx);
+
+    }
+  
+  video_dsp_context_destroy(&ctx);
+  if(do_html)
+    printf("</table>\n");
+  
+  }
+
 
 #define BENCHMARK_SAMPLEFORMAT (1<<0)
 #define BENCHMARK_MIX          (1<<1)
@@ -1300,16 +1524,16 @@ static const struct
 benchmark_flags[] =
   {
     { "-sfmt", "Sampleformat conversions", BENCHMARK_SAMPLEFORMAT },
-    { "-mix", "Audio mixing", BENCHMARK_MIX },
-    { "-vol", "Volume control", BENCHMARK_VOLUME},
-    { "-pd", "Peak detection", BENCHMARK_PEAK_DETECT},
-    { "-il", "Interleaving conversion", BENCHMARK_INTERLEAVE},
-    { "-pfmt", "Pixelformat conversions", BENCHMARK_PIXELFORMAT },
-    { "-scale", "Scale", BENCHMARK_SCALE},
-    { "-deint", "Deinterlacing", BENCHMARK_DEINTERLACE},
-    { "-ip", "Video frame interpolation", BENCHMARK_INTERPOLATE},
-    { "-sad", "SAD routines", BENCHMARK_SAD},
-    { "-rs", "SAD routines", BENCHMARK_RESAMPLE},
+    { "-mix", "Audio mixing",              BENCHMARK_MIX },
+    { "-rs", "Resample routines",          BENCHMARK_RESAMPLE},
+    //    { "-vol", "Volume control",            BENCHMARK_VOLUME},
+    //    { "-pd", "Peak detection",             BENCHMARK_PEAK_DETECT},
+    //    { "-il", "Interleaving conversion",    BENCHMARK_INTERLEAVE},
+    { "-pfmt", "Pixelformat conversions",  BENCHMARK_PIXELFORMAT },
+    { "-scale", "Scale",                   BENCHMARK_SCALE},
+    { "-deint", "Deinterlacing",           BENCHMARK_DEINTERLACE},
+    { "-ip", "Video frame interpolation",  BENCHMARK_INTERPOLATE},
+    //    { "-sad", "SAD routines",              BENCHMARK_SAD},
   };
 
 static int get_flag(char * opt, int * flag_ret)
@@ -1324,6 +1548,30 @@ static int get_flag(char * opt, int * flag_ret)
       }
     }
   return 0;
+  }
+
+static void print_header(const char * title)
+  {
+  if(do_html)
+    printf("<h2>%s</h2>\n", title);
+  else
+    printf("\n%s\n\n", title);
+  }
+
+static void print_help()
+  {
+  int i;
+  printf("Usage: benchmark [function ...] [-html]\n");
+  printf("       benchmark -help\n\n");
+  printf("-html\n  Produce html output\n");
+  printf("-help\n  Print this help and exit\n\n");
+  printf("Function can be any combination of the following\n\n");
+
+  for(i = 0; i < sizeof(benchmark_flags)/sizeof(benchmark_flags[0]); i++)
+    {
+    printf("%s\n  %s\n", benchmark_flags[i].option, benchmark_flags[i].help);
+    }
+  printf("-a\n  Do all of the above\n");
   }
 
 int main(int argc, char ** argv)
@@ -1342,6 +1590,11 @@ int main(int argc, char ** argv)
       flags = ~0x0;
     else if(!strcmp(argv[i], "-html"))
       do_html = 1;
+    else if(!strcmp(argv[i], "-help"))
+      {
+      print_help();
+      return 0;
+      }
     i++;
     }
 
@@ -1350,7 +1603,7 @@ int main(int argc, char ** argv)
     printf("<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01//EN\">\n");
     printf("<html>\n");
     printf("<head>\n");
-    printf("<title>Gmerlin</title>\n");
+    printf("<title>gavl benchmarks</title>\n");
     printf("<link rel=\"stylesheet\" href=\"css/style.css\">\n");
     printf("</head>\n");
     printf("<body>\n");
@@ -1369,14 +1622,16 @@ int main(int argc, char ** argv)
 
     if(flags & BENCHMARK_MIX)
       printf("<a href=\"#mix\">Mixing routines</a><br>\n");
+    if(flags & BENCHMARK_RESAMPLE)
+      printf("<a href=\"#rs\">Resampling routines</a><br>\n");
     if(flags & BENCHMARK_PIXELFORMAT)
       printf("<a href=\"#pfmt\">Pixelformat conversions</a><br>\n");
     if(flags & BENCHMARK_SCALE)
       printf("<a href=\"#scale\">Scaling routines</a><br>\n");
     if(flags & BENCHMARK_DEINTERLACE)
       printf("<a href=\"#deint\">Deinterlacing routines</a><br>\n");
-    if(flags & BENCHMARK_RESAMPLE)
-      printf("<a href=\"#rs\">Resampling routines</a><br>\n");
+    if(flags & BENCHMARK_INTERPOLATE)
+      printf("<a href=\"#ip\">Video frame interpolation</a><br>\n");
     }
   
   if(flags & BENCHMARK_SAMPLEFORMAT)
@@ -1384,8 +1639,8 @@ int main(int argc, char ** argv)
     if(do_html)
       {
       printf("<a name=\"sfmt\"></a>");
-      printf("<h2>Sampleformat conversions</h2>\n");
       }
+    print_header("Sampleformat conversions");
     benchmark_sampleformat();
     }
   
@@ -1394,8 +1649,8 @@ int main(int argc, char ** argv)
     if(do_html)
       {
       printf("<a name=\"mix\"></a>");
-      printf("<h2>Mixing routines</h2>\n");
       }
+    print_header("Mixing routines");
     benchmark_mix();
     }
   if(flags & BENCHMARK_RESAMPLE)
@@ -1403,8 +1658,8 @@ int main(int argc, char ** argv)
     if(do_html)
       {
       printf("<a name=\"rs\"></a>");
-      printf("<h2>Resampling routines</h2>\n");
       }
+    print_header("Resampling routines");
     benchmark_resample();
     }
   if(flags & BENCHMARK_PIXELFORMAT)
@@ -1412,8 +1667,8 @@ int main(int argc, char ** argv)
     if(do_html)
       {
       printf("<a name=\"pfmt\"></a>");
-      printf("<h2>Pixelformat conversions</h2>\n");
       }
+    print_header("Pixelformat conversions");
     benchmark_pixelformat();
     }
   if(flags & BENCHMARK_SCALE)
@@ -1421,8 +1676,8 @@ int main(int argc, char ** argv)
     if(do_html)
       {
       printf("<a name=\"scale\"></a>");
-      printf("<h2>Scaling routines</h2>\n");
       }
+    print_header("Scaling routines");
     benchmark_scale();
     }
   if(flags & BENCHMARK_DEINTERLACE)
@@ -1430,9 +1685,18 @@ int main(int argc, char ** argv)
     if(do_html)
       {
       printf("<a name=\"deint\"></a>");
-      printf("<h2>Deinterlacing routines</h2>\n");
       }
+    print_header("Deinterlacing routines");
     benchmark_deinterlace();
+    }
+  if(flags & BENCHMARK_INTERPOLATE)
+    {
+    if(do_html)
+      {
+      printf("<a name=\"ip\"></a>");
+      }
+    print_header("Video frame interpolation");
+    benchmark_dsp_interpolate();
     }
   
   if(do_html)

@@ -60,31 +60,6 @@ static void deinterlace_copy(gavl_video_deinterlacer_t * d,
       src += input_frame->strides[i] * 2;
       }
     }
-  
-#if 0
-  //  fprintf(stderr, "DEINTERLACE_COPY\n");
-  /* Src field */
-  gavl_video_frame_get_field(d->format.pixelformat,
-                             input_frame,
-                             d->src_field,
-                             (d->opt.deinterlace_drop_mode ==
-                              GAVL_DEINTERLACE_DROP_TOP) ? 1 : 0);
-
-  /* Dst field (even) */
-  gavl_video_frame_get_field(d->format.pixelformat,
-                             output_frame,
-                             d->dst_field, 0);
-  gavl_video_frame_copy(&d->half_height_format,
-                        d->dst_field, d->src_field);
-
-  /* Dst field (odd) */
-  gavl_video_frame_get_field(d->format.pixelformat,
-                             output_frame,
-                             d->dst_field, 1);
-  gavl_video_frame_copy(&d->half_height_format,
-                        d->dst_field, d->src_field);
-#endif
-  
   }
 
 int

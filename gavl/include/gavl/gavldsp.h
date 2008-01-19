@@ -231,6 +231,24 @@ typedef struct
   
   void (*interpolate_f)(uint8_t * src_1, uint8_t * src_2, 
                         uint8_t * dst, int num, float fac);
+
+  /* \brief Do 16 bit endian swapping
+   * \param ptr Pointer to the data
+   * \param len Len in 16 bit words
+   */
+  void (*bswap_16)(void * ptr, int len);
+
+  /* \brief Do 32 byte endian swapping
+   * \param ptr Pointer to the data
+   * \param len Len in 32 bit doublewords
+   */
+  void (*bswap_32)(void * ptr, int len);
+
+  /* \brief Do 64 byte endian swapping
+   * \param ptr Pointer to the data
+   * \param len Len in 64 bit quadwords
+   */
+  void (*bswap_64)(void * ptr, int len);
   
   } gavl_dsp_funcs_t;
 
@@ -304,17 +322,60 @@ void gavl_dsp_context_destroy(gavl_dsp_context_t * ctx);
  *  \param src_2 Frame 2
  *  \param dst  Destination frame
  *  \param factor Interpolation factor
+ *  \returns 1 on success, 0 if an error occurred
  *
  *  If factor is 1.0, dst will be equal to src1,
  *  if factor is 0.0, dst will be equal to src2.
+ *
+ *  If the quality is at least GAVL_QUALITY_MIN, this function
+ *  never fails.
  */
 
-void gavl_dsp_interpolate_video_frame(gavl_dsp_context_t * ctx,
+int gavl_dsp_interpolate_video_frame(gavl_dsp_context_t * ctx,
                                       gavl_video_format_t * format,
                                       gavl_video_frame_t * src_1,
                                       gavl_video_frame_t * src_2,
                                       gavl_video_frame_t * dst,
                                       float factor);
+
+/*!
+  \brief Swap endianess an audio frame.
+  \param ctx An initialized dsp context
+  \param frame An audio frame
+  \param format The format of the frame
+  \returns 1 on success, 0 if an error occurred
+
+  If the quality is at least GAVL_QUALITY_MIN, this function
+  never fails.
+
+*/
+
+int gavl_dsp_audio_frame_swap_endian(gavl_dsp_context_t * ctx,
+                                      gavl_audio_frame_t * frame,
+                                      const gavl_audio_format_t * format);
+
+/*!
+  \brief Swap endianess a video frame.
+  \param ctx An initialized dsp context
+  \param frame A video frame
+  \param format The format of the frame
+  \returns 1 on success, 0 if an error occurred
+
+  This function swaps endianess for pixelformats, which
+  have multibyte numbers as components.
+  For 32 bit long formats with 8 bit components, it swaps the
+  pixels as if they were 32 bit integers.
+  For all other formats, it does nothing.
+
+  If the quality is at least GAVL_QUALITY_MIN, this function
+  never fails.
+
+*/
+
+int gavl_dsp_video_frame_swap_endian(gavl_dsp_context_t * ctx,
+                                      gavl_video_frame_t * frame,
+                                      const gavl_video_format_t * format);
+
 /**
  * @}
  */
