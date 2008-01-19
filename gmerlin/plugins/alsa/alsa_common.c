@@ -159,44 +159,44 @@ static snd_pcm_t * bg_alsa_open(const char * card,
         format->sample_format = GAVL_SAMPLE_S32;
       break;
     case GAVL_SAMPLE_FLOAT:
+    case GAVL_SAMPLE_DOUBLE:
       if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_FLOAT) < 0)
        {
 
 #ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
         if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S32_LE) < 0)
 #else
-          if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S32_BE) < 0)
+        if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S32_BE) < 0)
 #endif
-            {
+          {
             /* Soundcard supports no 32-bit, try 24
                (more probably supported but needs conversion) */
 #ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
-            if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S24_3LE) < 0)
+          if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S24_3LE) < 0)
 #else
-              if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S24_3BE) < 0)
+          if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S24_3BE) < 0)
 #endif
-                {
-                /* No 24 bit, try 16 */
-                if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S16) < 0)
-                  {
-                  /* Hopeless */
-                  bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_pcm_hw_params_set_format failed");
-                  goto fail;
-                  }
-                else
-                  format->sample_format = GAVL_SAMPLE_S16;
-                }
-              else
-                {
-                format->sample_format = GAVL_SAMPLE_S32;
-                if(convert_4_3)
-                  *convert_4_3 = 1;
-                }
+            {
+            /* No 24 bit, try 16 */
+            if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S16) < 0)
+              {
+              /* Hopeless */
+              bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_pcm_hw_params_set_format failed");
+              goto fail;
+              }
+            else
+              format->sample_format = GAVL_SAMPLE_S16;
             }
           else
+            {
             format->sample_format = GAVL_SAMPLE_S32;
-        
-        }
+            if(convert_4_3)
+              *convert_4_3 = 1;
+            }
+          }
+        else
+          format->sample_format = GAVL_SAMPLE_S32;
+       }
       else
         format->sample_format = GAVL_SAMPLE_FLOAT;
       break;

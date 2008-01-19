@@ -682,7 +682,8 @@ int bg_msg_write_audio_frame(bg_msg_t * msg,
  *  a valid audio frame header
  */
 
-int bg_msg_read_audio_frame(bg_msg_t * msg,
+int bg_msg_read_audio_frame(gavl_dsp_context_t * ctx,
+                            bg_msg_t * msg,
                             const gavl_audio_format_t * format,
                             gavl_audio_frame_t * frame,
                             bg_msg_read_callback_t cb,
@@ -730,10 +731,10 @@ int bg_msg_read_audio_frame(bg_msg_t * msg,
 
 #ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
   if(big_endian)
-    gavl_audio_frame_swap_endian(frame, format);
+    gavl_dsp_audio_frame_swap_endian(ctx, frame, format);
 #else
   if(!big_endian)
-    gavl_audio_frame_swap_endian(frame, format);
+    gavl_dsp_audio_frame_swap_endian(ctx, frame, format);
 #endif
   
   return 1;

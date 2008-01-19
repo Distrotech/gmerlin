@@ -691,7 +691,8 @@ static void play_cmd(bg_player_t * p,
   }
 
 static void cleanup_playback(bg_player_t * player,
-                             int old_state, int new_state, int want_new)
+                             int old_state, int new_state, int want_new,
+                             int stop_input)
   {
   if(old_state == BG_PLAYER_STATE_STOPPED)
     return;
@@ -717,6 +718,13 @@ static void cleanup_playback(bg_player_t * player,
         bg_fifo_set_state(player->audio_stream.fifo, BG_FIFO_STOPPED);
       if(DO_VIDEO(player->flags))
         bg_fifo_set_state(player->video_stream.fifo, BG_FIFO_STOPPED);
+
+      if(stop_input)
+        {
+        bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Joining input thread...");
+        pthread_join(player->input_thread, (void**)0);
+        bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Joining input thread done");
+        }
       
       if(DO_AUDIO(player->flags))
         {
@@ -751,7 +759,7 @@ static void stop_cmd(bg_player_t * player, int new_state, int want_new)
   
   old_state = bg_player_get_state(player);
 
-  cleanup_playback(player, old_state, new_state, want_new);
+  cleanup_playback(player, old_state, new_state, want_new, 0);
   
   if((old_state == BG_PLAYER_STATE_PLAYING) ||
      (old_state == BG_PLAYER_STATE_PAUSED))
@@ -781,7 +789,7 @@ static void stream_change_init(bg_player_t * player)
     bg_player_time_get(player, 1, &player->saved_state.time);
     /* Interrupt and pretend we are seeking */
     
-    cleanup_playback(player, old_state, BG_PLAYER_STATE_CHANGING, 0);
+    cleanup_playback(player, old_state, BG_PLAYER_STATE_CHANGING, 0, 1);
     cleanup_streams(player);
     bg_player_input_stop(player->input_context);
     player->old_flags = player->flags;

@@ -1,4 +1,5 @@
 AM_CFLAGS = @GTK_CFLAGS@ @FREETYPE_CFLAGS@ @FONTCONFIG_CFLAGS@
+libgmerlin_gtk_la_LDFLAGS = -version-info @LTVERSION_CURRENT@:@LTVERSION_REVISION@:@LTVERSION_AGE@
 
 lib_LTLIBRARIES = libgmerlin_gtk.la
 noinst_HEADERS = gtk_dialog.h

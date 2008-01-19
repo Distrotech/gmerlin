@@ -60,7 +60,7 @@ void bg_player_audio_destroy(bg_player_t * p)
 
 int bg_player_audio_init(bg_player_t * player, int audio_stream)
   {
-  int force_float;
+  gavl_sample_format_t force_format;
   gavl_audio_options_t * opt;
   bg_player_audio_stream_t * s;
   //  int do_filter;
@@ -87,7 +87,7 @@ int bg_player_audio_init(bg_player_t * player, int audio_stream)
   s->in_stream = 0;
   
   pthread_mutex_lock(&(s->config_mutex));
-  force_float = s->options.force_float;
+  force_format = s->options.force_format;
   bg_audio_filter_chain_init(s->fc, &(s->input_format), &(s->fifo_format));
   pthread_mutex_unlock(&(s->config_mutex));
   
@@ -101,8 +101,8 @@ int bg_player_audio_init(bg_player_t * player, int audio_stream)
   gavl_audio_format_copy(&(s->fifo_format),
                          &(s->output_format));
   
-  if(force_float)
-    s->fifo_format.sample_format = GAVL_SAMPLE_FLOAT;
+  if(force_format != GAVL_SAMPLE_NONE)
+    s->fifo_format.sample_format = force_format;
 
   bg_audio_filter_chain_set_out_format(s->fc, &(s->fifo_format));
   
@@ -160,7 +160,7 @@ static const bg_parameter_info_t parameters[] =
       .type =      BG_PARAMETER_SECTION,
     },
 #endif
-    BG_GAVL_PARAM_FORCE_FLOAT,
+    BG_GAVL_PARAM_FORCE_SAMPLEFORMAT,
     BG_GAVL_PARAM_CONVERSION_QUALITY,
     BG_GAVL_PARAM_AUDIO_DITHER_MODE,
     BG_GAVL_PARAM_SAMPLERATE,

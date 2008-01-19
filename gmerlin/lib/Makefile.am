@@ -26,6 +26,8 @@ SUBDIRS = $(gtk_subdirs) $(x11_subdirs)
 
 AM_CFLAGS = @FONTCONFIG_CFLAGS@ @FREETYPE_CFLAGS@ -DLOCALE_DIR=\"$(localedir)\" $(lv_cflags)
 
+libgmerlin_la_LDFLAGS = -version-info @LTVERSION_CURRENT@:@LTVERSION_REVISION@:@LTVERSION_AGE@
+
 libgmerlin_la_LIBADD = $(x11_libadd) @FONTCONFIG_LIBS@ @FREETYPE_LIBS@ @XML2_LIBS@ @ICONV_LIBS@ @LIBINTL@ $(lv_libs) -ldl -lpthread
 
 bin_PROGRAMS = gmerlin_visualizer_slave

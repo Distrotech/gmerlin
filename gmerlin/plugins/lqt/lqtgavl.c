@@ -1,5 +1,5 @@
 /*****************************************************************
- * gmerlin - a general purpose multimedia framework and applications
+ * lqtgavl - gavl Bindings for libquicktime
  *
  * Copyright (c) 2001 - 2008 Members of the Gmerlin project
  * gmerlin-general@lists.sourceforge.net
@@ -36,7 +36,8 @@ sampleformats[] =
     { LQT_SAMPLE_UINT8, GAVL_SAMPLE_U8 },
     { LQT_SAMPLE_INT16, GAVL_SAMPLE_S16 },
     { LQT_SAMPLE_INT32, GAVL_SAMPLE_S32 },
-    { LQT_SAMPLE_FLOAT, GAVL_SAMPLE_FLOAT }
+    { LQT_SAMPLE_FLOAT, GAVL_SAMPLE_FLOAT },
+    { LQT_SAMPLE_DOUBLE, GAVL_SAMPLE_DOUBLE }
   };
 
 static gavl_sample_format_t

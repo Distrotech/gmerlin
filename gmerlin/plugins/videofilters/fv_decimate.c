@@ -74,7 +74,7 @@ static float diff_block_i(decimate_priv_t * vp,
                           int width, int height)
   {
   int i;
-  float ret = 0.0, tmp;
+  double ret = 0.0, tmp;
   
   ret = vp->sad_func(vp->b1->planes[0], vp->b2->planes[0],
                      vp->b1->strides[0], vp->b2->strides[0],
@@ -102,9 +102,9 @@ static float diff_block_f(decimate_priv_t * vp,
   float ret = 0.0;
   
   ret = vp->dsp_funcs->sad_f(vp->b1->planes[0], vp->b2->planes[0],
-                           vp->b1->strides[0], vp->b2->strides[0],
-                           width * vp->width_mul, height);
-
+                             vp->b1->strides[0], vp->b2->strides[0],
+                             width * vp->width_mul, height);
+  
   ret *= vp->scale_factors[0];
 
   /* No planar float formats yet */

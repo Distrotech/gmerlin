@@ -1294,7 +1294,7 @@ static const bg_parameter_info_t common_parameters[] =
   };
 
 
-bg_parameter_info_t * bg_x11_window_get_parameters(bg_x11_window_t * win)
+const bg_parameter_info_t * bg_x11_window_get_parameters(bg_x11_window_t * win)
   {
   return common_parameters;
   }

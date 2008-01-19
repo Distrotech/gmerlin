@@ -733,6 +733,10 @@ int main(int argc, char ** argv)
   bg_msg_queue_t * log_queue;
   int counter = 0.0;
   bg_parameter_type_t parameter_type;
+  gavl_dsp_context_t * ctx;
+
+  ctx = gavl_dsp_context_create();
+  
   memset(&parameter_value, 0, sizeof(parameter_value));
   
   if(isatty(fileno(stdin)))
@@ -766,7 +770,8 @@ int main(int argc, char ** argv)
         audio_frame = gavl_audio_frame_create(&audio_format);
         break;
       case BG_VIS_MSG_AUDIO_DATA:
-        bg_msg_read_audio_frame(msg,
+        bg_msg_read_audio_frame(ctx,
+                                msg,
                                 &audio_format,
                                 audio_frame,
                                 msg_read_callback,
@@ -870,5 +875,8 @@ int main(int argc, char ** argv)
   
   bg_visualizer_slave_destroy(s);
   bg_msg_free(msg);
+
+  gavl_dsp_context_destroy(ctx);
+
   return 0;
   }

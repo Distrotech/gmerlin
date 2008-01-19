@@ -60,7 +60,28 @@ int bg_gavl_audio_set_parameter(void * data, const char * name, const bg_paramet
     return 1;
     }
   SP_INT(fixed_samplerate);
-  SP_INT(force_float);
+
+  if(!strcmp(name, "force_sampleformat"))
+    {
+    gavl_sample_format_t force_format = GAVL_SAMPLE_NONE;
+    if(!strcmp(val->val_str, "8"))
+      force_format = GAVL_SAMPLE_S8;
+    else if(!strcmp(val->val_str, "16"))
+      force_format = GAVL_SAMPLE_S16;
+    else if(!strcmp(val->val_str, "32"))
+      force_format = GAVL_SAMPLE_S32;
+    else if(!strcmp(val->val_str, "f"))
+      force_format = GAVL_SAMPLE_FLOAT;
+    else if(!strcmp(val->val_str, "d"))
+      force_format = GAVL_SAMPLE_DOUBLE;
+    if(force_format != opt->force_format)
+      {
+      opt->force_format = force_format;
+      opt->options_changed = 1;
+      }
+    return 1;
+    }
+  
   SP_INT(samplerate);
   SP_INT(fixed_channel_setup);
   SP_INT(num_front_channels);
@@ -253,8 +274,8 @@ void bg_gavl_audio_options_set_format(const bg_gavl_audio_options_t * opt,
     channel_index += opt->num_lfe_channels;
     
     }
-  if(opt->force_float)
-    out_format->sample_format = GAVL_SAMPLE_FLOAT;
+  if(opt->force_format != GAVL_SAMPLE_NONE)
+    out_format->sample_format = opt->force_format;
   }
 
 /* Video */

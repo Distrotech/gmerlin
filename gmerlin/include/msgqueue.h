@@ -23,6 +23,7 @@
 #define __BG_MSGQUEUE_H_
 
 #include <gavl/gavl.h>
+#include <gavl/gavldsp.h>
 #include "streaminfo.h"
 
 
@@ -378,7 +379,8 @@ int bg_msg_write_audio_frame(bg_msg_t * msg,
  *  a valid audio frame header
  */
 
-int bg_msg_read_audio_frame(bg_msg_t * msg,
+int bg_msg_read_audio_frame(gavl_dsp_context_t * ctx,
+                            bg_msg_t * msg,
                             const gavl_audio_format_t * format,
                             gavl_audio_frame_t * frame,
                             bg_msg_read_callback_t cb,

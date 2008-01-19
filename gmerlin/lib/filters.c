@@ -291,15 +291,15 @@ int bg_audio_filter_chain_init(bg_audio_filter_chain_t * ch,
   
   f = ch->filters;
   
-  if(ch->opt->force_float)
-    format_1.sample_format = GAVL_SAMPLE_FLOAT;
+  if(ch->opt->force_format != GAVL_SAMPLE_NONE)
+    format_1.sample_format = ch->opt->force_format;
   
   for(i = 0; i < ch->num_filters; i++)
     {
     gavl_audio_format_copy(&format_2, &format_1);
     
-    if(!i && ch->opt->force_float)
-      format_2.sample_format = GAVL_SAMPLE_FLOAT;
+    if(!i && (ch->opt->force_format != GAVL_SAMPLE_NONE))
+      format_2.sample_format = ch->opt->force_format;
     
     f->plugin->set_input_format(f->handle->priv, &format_2, 0);
     

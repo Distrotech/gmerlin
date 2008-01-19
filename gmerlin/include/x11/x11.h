@@ -90,7 +90,7 @@ const char * bg_x11_window_get_display_string(bg_x11_window_t * w);
 
 void bg_x11_window_destroy(bg_x11_window_t *);
 
-bg_parameter_info_t * bg_x11_window_get_parameters(bg_x11_window_t *);
+const bg_parameter_info_t * bg_x11_window_get_parameters(bg_x11_window_t *);
 
 void
 bg_x11_window_set_parameter(void * data, const char * name,
