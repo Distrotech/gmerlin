@@ -19,6 +19,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#ifndef GAVLDSP_H_INCLUDED
+#define GAVLDSP_H_INCLUDED
+
+
 /** \defgroup dsp DSP Context
  *  \brief DSP Context
  *
@@ -379,3 +383,5 @@ int gavl_dsp_video_frame_swap_endian(gavl_dsp_context_t * ctx,
 /**
  * @}
  */
+
+#endif // GAVLDSP_H_INCLUDED

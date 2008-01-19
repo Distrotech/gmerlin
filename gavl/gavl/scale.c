@@ -358,9 +358,9 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
       {
       for(plane = 0; plane < scaler->num_planes; plane++)
         {
-        if(gavl_video_scale_context_init(&(scaler->contexts[2][plane]),
-                                      &opt,
-                                         plane, &(scaler->src_format), &(scaler->dst_format), 0, 0, 1, 1))
+        if(!gavl_video_scale_context_init(&(scaler->contexts[2][plane]),
+                                          &opt,
+                                          plane, &(scaler->src_format), &(scaler->dst_format), 0, 0, 1, 1))
           return 0;
         }
       }
