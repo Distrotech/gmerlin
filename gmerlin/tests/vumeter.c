@@ -28,7 +28,7 @@
 
 typedef struct
   {
-  bg_ra_plugin_t * ra_plugin;
+  bg_recorder_plugin_t * ra_plugin;
   bg_plugin_handle_t * ra_handle;
   gavl_audio_frame_t * frame;
   bg_gtk_vumeter_t * meter;
@@ -40,8 +40,9 @@ static gboolean idle_callback(gpointer data)
   {
   idle_data_t * id = (idle_data_t *)data;
   
-  id->ra_plugin->read_frame(id->ra_handle->priv,
+  id->ra_plugin->read_audio(id->ra_handle->priv,
                             id->frame,
+                            0,
                             id->format.samples_per_frame);
   
   bg_gtk_vumeter_update(id->meter, id->frame);
@@ -84,12 +85,12 @@ int main(int argc, char ** argv)
                                         BG_PLUGIN_RECORDER_AUDIO);
   
   id.ra_handle = bg_plugin_load(plugin_reg, info);
-  id.ra_plugin = (bg_ra_plugin_t*)(id.ra_handle->plugin);
+  id.ra_plugin = (bg_recorder_plugin_t*)(id.ra_handle->plugin);
   
   /* The soundcard might be busy from last time,
      give the kernel some time to free the device */
   
-  if(!id.ra_plugin->open(id.ra_handle->priv, &id.format))
+  if(!id.ra_plugin->open(id.ra_handle->priv, &id.format, NULL))
     {
     fprintf(stderr, "Couldn't open audio device");
     return -1;

@@ -973,8 +973,6 @@ const bg_ov_plugin_t the_plugin =
       .type =          BG_PLUGIN_OUTPUT_VIDEO,
       .flags =         BG_PLUGIN_PLAYBACK | BG_PLUGIN_EMBED_WINDOW,
       .priority =      BG_PLUGIN_PRIORITY_MAX,
-      .mimetypes =     (char*)0,
-      .extensions =    (char*)0,
       .create =        create_x11,
       .destroy =       destroy_x11,
 

@@ -209,10 +209,10 @@ void bg_transcoder_pp_update(bg_transcoder_pp_t * p)
       }
     if(str)
       {
-      if(p->pp_plugin->common.extensions)
+      if(p->pp_plugin->supported_extensions)
         {
         ext = strrchr(str, '.');
-        if(!ext || !bg_string_match(ext+1, p->pp_plugin->common.extensions))
+        if(!ext || !bg_string_match(ext+1, p->pp_plugin->supported_extensions))
           {
           bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Not adding %s: Unsupported filename", str);
           free(str);

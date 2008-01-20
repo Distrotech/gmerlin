@@ -138,8 +138,6 @@ const bg_encoder_plugin_t the_plugin =
       .long_name =      TRS("MPEG-1/2 video encoder"),
       .description =     TRS("Encoder for elementary MPEG-1/2 video streams.\
  Based on mjpegtools (http://mjpeg.sourceforge.net)."),
-      .mimetypes =      NULL,
-      .extensions =     "m1v m2v",
       .type =           BG_PLUGIN_ENCODER_VIDEO,
       .flags =          BG_PLUGIN_FILE,
       .priority =       BG_PLUGIN_PRIORITY_MAX,

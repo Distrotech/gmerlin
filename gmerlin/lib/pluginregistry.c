@@ -333,9 +333,7 @@ static int check_plugin_version(void * handle)
 
 static bg_plugin_info_t * get_info(void * test_module, const char * filename)
   {
-  bg_encoder_plugin_t * encoder;
-  bg_input_plugin_t  * input;
-
+  
   bg_plugin_info_t * new_info;
   bg_plugin_common_t * plugin;
   void * plugin_priv;
@@ -365,11 +363,7 @@ static bg_plugin_info_t * get_info(void * test_module, const char * filename)
 
   new_info->description = bg_strdup(new_info->description,
                                     plugin->description);
-    
-  new_info->mimetypes =  bg_strdup(new_info->mimetypes,
-                                   plugin->mimetypes);
-  new_info->extensions = bg_strdup(new_info->extensions,
-                                   plugin->extensions);
+  
   new_info->module_filename = bg_strdup(new_info->module_filename,
                                         filename);
 
@@ -397,6 +391,7 @@ static bg_plugin_info_t * get_info(void * test_module, const char * filename)
                      BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY |
                      BG_PLUGIN_ENCODER ))
     {
+    bg_encoder_plugin_t * encoder;
     encoder = (bg_encoder_plugin_t*)plugin;
     new_info->max_audio_streams = encoder->max_audio_streams;
     new_info->max_video_streams = encoder->max_video_streams;
@@ -428,11 +423,30 @@ static bg_plugin_info_t * get_info(void * test_module, const char * filename)
     }
   if(plugin->type & BG_PLUGIN_INPUT)
     {
+    bg_input_plugin_t  * input;
     input = (bg_input_plugin_t*)plugin;
-    if(input->protocols)
+
+    if(input->get_mimetypes)
+      new_info->mimetypes =  bg_strdup(new_info->mimetypes,
+                                       input->get_mimetypes(plugin_priv));
+
+    if(input->get_extensions)
+      new_info->extensions = bg_strdup(new_info->extensions,
+                                       input->get_extensions(plugin_priv));
+    
+
+    if(input->get_protocols)
       new_info->protocols = bg_strdup(new_info->protocols,
-                                      input->protocols);
+                                      input->get_protocols(plugin_priv));
     }
+  if(plugin->type & BG_PLUGIN_IMAGE_READER)
+    {
+    bg_image_reader_plugin_t  * ir;
+    ir = (bg_image_reader_plugin_t*)plugin;
+    new_info->extensions = bg_strdup(new_info->extensions,
+                                     ir->extensions);
+    }
+  
   if(plugin->find_devices)
     new_info->devices = plugin->find_devices();
   

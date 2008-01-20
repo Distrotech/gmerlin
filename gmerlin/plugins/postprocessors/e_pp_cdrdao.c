@@ -442,7 +442,6 @@ const bg_encoder_pp_plugin_t the_plugin =
       .name =              "e_pp_cdrdao", /* Unique short name */
       .long_name =         TRS("Audio CD generator/burner"),
       .description =       TRS("This is a frontend for generating audio CD images (optionally with CD-Text) for cdrdao (http://cdrdao.sourceforge.net). Optional burning is also supported."),
-      .extensions =        "wav",
       .type =              BG_PLUGIN_ENCODER_PP,
       .flags =             BG_PLUGIN_PP,
       .create =            create_cdrdao,
@@ -451,6 +450,7 @@ const bg_encoder_pp_plugin_t the_plugin =
       .set_parameter =     set_parameter_cdrdao,
       .priority =          1,
     },
+    .supported_extensions =        "wav",
     .max_audio_streams =   1,
     .max_video_streams =   0,
 

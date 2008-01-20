@@ -132,7 +132,7 @@ typedef int (*bg_read_video_func_t)(void * priv, gavl_video_frame_t* frame, int 
 
 
 
-#define BG_PLUGIN_API_VERSION 12
+#define BG_PLUGIN_API_VERSION 13
 
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */
@@ -211,6 +211,7 @@ typedef enum
     BG_PLUGIN_FILTER_AUDIO               = (1<<13), //!< Audio filter
     BG_PLUGIN_FILTER_VIDEO               = (1<<14), //!< Video filter
     BG_PLUGIN_VISUALIZATION              = (1<<15), //!< Visualization
+    BG_PLUGIN_AV_RECORDER                = (1<<16),  //!< Audio/Video recorder
   } bg_plugin_type_t;
 
 /** \ingroup plugin
@@ -261,8 +262,6 @@ typedef struct bg_plugin_common_s
   
   char             * name;       //!< Unique short name
   char             * long_name;  //!< Humanized name for GUI widgets
-  char             * mimetypes;  //!< Mimetypes this plugin can handle (space separated)
-  char             * extensions;  //!< File extensions this plugin can handle (space separated)
   bg_plugin_type_t type;  //!< Type
   int              flags;  //!< Flags (see defines)
   
@@ -463,9 +462,25 @@ typedef struct bg_input_callbacks_s
 typedef struct bg_input_plugin_s
   {
   bg_plugin_common_t common; //!< Infos and functions common to all plugin types
-  
-  char * protocols; //!< Space separated list of protocols this plugin can handle
 
+  /** \brief Get supported protocols
+   *  \param priv The handle returned by the create() method
+   *  \returns A space separated list of protocols
+   */
+  
+  const char * (*get_protocols)(void * priv);
+  /** \brief Get supported mimetypes
+   *  \param priv The handle returned by the create() method
+   *  \returns A space separated list of mimetypes
+   */
+  const char * (*get_mimetypes)(void * priv);
+
+  /** \brief Get supported extensions
+   *  \param priv The handle returned by the create() method
+   *  \returns A space separated list of extensions
+   */
+  const char * (*get_extensions)(void * priv);
+  
   /** \brief Set callbacks
    *  \param priv The handle returned by the create() method
    *  \param callbacks Callback structure initialized by the caller before
@@ -618,7 +633,7 @@ typedef struct bg_input_plugin_s
    *  buffering mechanism.
    */
 
-  bg_read_audio_func_t read_audio_samples;
+  bg_read_audio_func_t read_audio;
 
   /** \brief Read a video frame
    *  \param priv The handle returned by the create() method
@@ -627,7 +642,7 @@ typedef struct bg_input_plugin_s
    *  \returns 1 if a frame was decoded, 0 means EOF.
    */
   
-  bg_read_video_func_t read_video_frame;
+  bg_read_video_func_t read_video;
   
   /** \brief Query if a new subtitle is available
    *  \param priv The handle returned by the create() method
@@ -774,7 +789,7 @@ typedef struct bg_oa_plugin_s
    *  \param frame The audio frame to write.
    */
   
-  void (*write_frame)(void * priv, gavl_audio_frame_t* frame);
+  void (*write_audio)(void * priv, gavl_audio_frame_t* frame);
 
   /** \brief Get the number of buffered audio samples
    *  \param priv The handle returned by the create() method
@@ -819,7 +834,7 @@ typedef struct bg_oa_plugin_s
  *  Audio recording support from the soundcard
  */
 
-typedef struct bg_ra_plugin_s
+typedef struct bg_recorder_plugin_s
   {
   bg_plugin_common_t common; //!< Infos and functions common to all plugin types
 
@@ -832,22 +847,22 @@ typedef struct bg_ra_plugin_s
    *  use a \ref gavl_audio_converter_t
    */
   
-  int (*open)(void * priv, gavl_audio_format_t * format);
-
-  /** \brief Read audio samples
-   *  \param priv The handle returned by the create() method
-   *  \param frame The frame where the samples will be copied
-   *  \param num_samples The number of samples to read
-   */
+  int (*open)(void * priv, gavl_audio_format_t * audio_format, gavl_video_format_t * video_format);
   
-  void (*read_frame)(void * priv, gavl_audio_frame_t * frame,int num_samples);
+  /** \brief Read audio samples
+   */
+  bg_read_audio_func_t read_audio;
 
+  /** \brief Read video frame
+   */
+  bg_read_video_func_t read_video;
+  
   /** \brief Close plugin
    *  \param priv The handle returned by the create() method
    */
   
   void (*close)(void * priv);
-  } bg_ra_plugin_t;
+  } bg_recorder_plugin_t;
 
 /*******************************************
  * VIDEO OUTPUT
@@ -1162,72 +1177,6 @@ typedef struct bg_ov_plugin_s
   void (*show_window)(void * priv, int show);
   } bg_ov_plugin_t;
 
-/*******************************************
- * VIDEO RECORDER
- *******************************************/
-
-/** \defgroup plugin_rv Video recorder
- *  \ingroup plugin
- *  \brief Video recorder
- */ 
-
-
-/** \ingroup plugin_rv
- *  \brief Video recorder plugin
- */
-
-typedef struct bg_rv_plugin_s
-  {
-  bg_plugin_common_t common; //!< Infos and functions common to all plugin types
-
-  /** \brief Open plugin
-   *  \param priv The handle returned by the create() method
-   *  \param format Video format
-   *
-   *  The format will be changed to the nearest format, which is supported
-   *  by the plugin. To convert the source format to the output format,
-   *  use a \ref gavl_video_converter_t
-   */
-  
-  int (*open)(void * priv, gavl_video_format_t * format);
-
-  /** \brief Allocate a video frame
-   *  \param priv The handle returned by the create() method
-   *  \returns a newly allocated video frame
-   *
-   *  This optional method allocates a video frame in a plugin specific manner
-   *  (e.g. in a shared memory segment). If this funtion is defined, all frames
-   *  which are passed to the plugin, must be allocated by this function.
-   *  Before the plugin is closed, all created frames must be freed with
-   *  the free_frame() method.
-   */
-  
-  gavl_video_frame_t * (*alloc_frame)(void * priv);
-
-  /** \brief Read a video frame
-   *  \param priv The handle returned by the create() method
-   *  \param frame Where the frame will be copied
-   *  \returns 1 if a frame was read, 0 on error
-   */
-  int (*read_frame)(void * priv, gavl_video_frame_t * frame);
-
-  /** \brief Free a frame created with the alloc_frame() method.
-   *  \param priv The handle returned by the create() method
-   *  \param frame The frame to be freed
-   */
-  
-  void (*free_frame)(void * priv, gavl_video_frame_t * frame);
-
-  /** \brief Close the plugin
-   *  \param priv The handle returned by the create() method
-   *
-   *  Close everything so the plugin can be opened with a differtent format
-   *  after.
-   */
-
-  void (*close)(void * priv);
-  
-  } bg_rv_plugin_t;
 
 /*******************************************
  * ENCODER
@@ -1599,9 +1548,10 @@ typedef struct bg_encoder_pp_plugin_s
   bg_plugin_common_t common; //!< Infos and functions common to all plugin types
   
   int max_audio_streams;  //!< Maximum number of audio streams. -1 means infinite
-
   int max_video_streams;  //!< Maximum number of video streams. -1 means infinite
 
+  char * supported_extensions;
+  
   /** \brief Set callbacks
    *  \param priv The handle returned by the create() method
    *  \param callbacks Callback structure initialized by the caller before
@@ -1678,7 +1628,8 @@ typedef struct bg_encoder_pp_plugin_s
 typedef struct bg_image_reader_plugin_s
   {
   bg_plugin_common_t common; //!< Infos and functions common to all plugin types
-
+  const char * extensions;
+  
   /** \brief Read the file header
    *  \param priv The handle returned by the create() method
    *  \param filename Filename

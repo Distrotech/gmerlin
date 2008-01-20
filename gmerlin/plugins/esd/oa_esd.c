@@ -171,8 +171,6 @@ const bg_oa_plugin_t the_plugin =
       .name =          "oa_esd",
       .long_name =     TRS("EsounD output driver"),
       .description =   TRS("EsounD output driver"),
-      .mimetypes =     (char*)0,
-      .extensions =    (char*)0,
       .type =          BG_PLUGIN_OUTPUT_AUDIO,
       .flags =         BG_PLUGIN_PLAYBACK,
       .priority =      BG_PLUGIN_PRIORITY_MIN,
@@ -184,7 +182,7 @@ const bg_oa_plugin_t the_plugin =
     },
     .open =          open_esd,
     .start =         start_esd,
-    .write_frame =   write_esd,
+    .write_audio =   write_esd,
     .stop =          stop_esd,
     .close =         close_esd,
   };

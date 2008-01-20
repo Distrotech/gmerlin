@@ -151,8 +151,6 @@ const bg_encoder_plugin_t the_plugin =
       .long_name =      TRS("FFmpeg audio/video encoder"),
       .description =    TRS("Plugin for encoding various audio/video formats with ffmpeg \
 (http://www.ffmpeg.org)."),
-      .mimetypes =      NULL,
-      .extensions =     "avi",
       .type =           BG_PLUGIN_ENCODER,
       .flags =          BG_PLUGIN_FILE,
       .priority =       5,

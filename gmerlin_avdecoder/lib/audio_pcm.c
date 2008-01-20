@@ -19,7 +19,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-
 #include <avdec_private.h>
 
 #include <stdlib.h>
@@ -483,7 +482,7 @@ static void decode_float_64_be(bgav_stream_t * s)
   pcm_t * priv;
   int num_samples, num_bytes, i;
   uint8_t * src;
-  float * dst;
+  double * dst;
   priv = (pcm_t*)(s->data.audio.decoder->priv);
 
   num_samples = priv->bytes_in_packet / (8 * s->data.audio.format.num_channels);
@@ -494,7 +493,7 @@ static void decode_float_64_be(bgav_stream_t * s)
   num_bytes   = num_samples * 8 * s->data.audio.format.num_channels;
 
   src = priv->packet_ptr;
-  dst = (float*)(priv->frame->samples.f);
+  dst = (double*)(priv->frame->samples.f);
 
   i = num_samples * s->data.audio.format.num_channels;
   
@@ -514,7 +513,7 @@ static void decode_float_64_le(bgav_stream_t * s)
   pcm_t * priv;
   int num_samples, num_bytes, i;
   uint8_t * src;
-  float * dst;
+  double * dst;
   priv = (pcm_t*)(s->data.audio.decoder->priv);
 
   num_samples = priv->bytes_in_packet / (8 * s->data.audio.format.num_channels);
@@ -525,7 +524,7 @@ static void decode_float_64_le(bgav_stream_t * s)
   num_bytes   = num_samples * 8 * s->data.audio.format.num_channels;
 
   src = priv->packet_ptr;
-  dst = (float*)(priv->frame->samples.f);
+  dst = (double*)(priv->frame->samples.f);
 
   i = num_samples * s->data.audio.format.num_channels;
   
@@ -918,7 +917,7 @@ static int init_pcm(bgav_stream_t * s)
           break;
         case 64:
           priv->decode_func = decode_float_64_le;
-          s->data.audio.format.sample_format = GAVL_SAMPLE_FLOAT;
+          s->data.audio.format.sample_format = GAVL_SAMPLE_DOUBLE;
           s->description = bgav_sprintf("Float 64 bit little endian");
           break;
         default:
@@ -948,7 +947,7 @@ static int init_pcm(bgav_stream_t * s)
         priv->decode_func = decode_float_64_be;
         s->description = bgav_sprintf("Float 64 bit big endian");
         }
-      s->data.audio.format.sample_format = GAVL_SAMPLE_FLOAT;
+      s->data.audio.format.sample_format = GAVL_SAMPLE_DOUBLE;
       priv->block_align = s->data.audio.format.num_channels * 8;
       break;
     case BGAV_MK_FOURCC('u', 'l', 'a', 'w'):
@@ -1008,7 +1007,7 @@ static int init_pcm(bgav_stream_t * s)
               priv->decode_func = decode_float_64_le;
             else
               priv->decode_func = decode_float_64_be;
-            s->data.audio.format.sample_format = GAVL_SAMPLE_FLOAT;
+            s->data.audio.format.sample_format = GAVL_SAMPLE_DOUBLE;
             s->description =
               bgav_sprintf("Float 64 bit %s endian",
                            (!(formatSpecificFlags & kAudioFormatFlagIsBigEndian) ? "little" : "big" ));

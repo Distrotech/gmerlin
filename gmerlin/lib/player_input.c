@@ -492,7 +492,7 @@ bg_player_input_read_audio(void * priv, gavl_audio_frame_t * frame, int stream, 
   ctx = (bg_player_input_context_t *)priv;
   
   bg_plugin_lock(ctx->plugin_handle);
-  result = ctx->plugin->read_audio_samples(ctx->priv, frame, stream, samples);
+  result = ctx->plugin->read_audio(ctx->priv, frame, stream, samples);
   bg_plugin_unlock(ctx->plugin_handle);
   
   if(!ctx->has_first_audio_timestamp)
@@ -520,7 +520,7 @@ bg_player_input_read_video(void * priv, gavl_video_frame_t * frame, int stream)
       {
       ctx->still_frame = gavl_video_frame_create(format);
       bg_plugin_lock(ctx->plugin_handle);
-      result = ctx->plugin->read_video_frame(ctx->priv, ctx->still_frame,
+      result = ctx->plugin->read_video(ctx->priv, ctx->still_frame,
                                              stream);
       bg_plugin_unlock(ctx->plugin_handle);
       ctx->still_frame->timestamp = 0;
@@ -536,7 +536,7 @@ bg_player_input_read_video(void * priv, gavl_video_frame_t * frame, int stream)
   else
     {
     bg_plugin_lock(ctx->plugin_handle);
-    result = ctx->plugin->read_video_frame(ctx->priv, frame, stream);
+    result = ctx->plugin->read_video(ctx->priv, frame, stream);
     bg_plugin_unlock(ctx->plugin_handle);
 #ifdef DUMP_TIMESTAMPS
     bg_debug("Input timestamp: %"PRId64"\n",

@@ -182,7 +182,8 @@ static void * create_alsa()
   }
 
 static int open_alsa(void * data,
-                    gavl_audio_format_t * format)
+                     gavl_audio_format_t * format,
+                     gavl_video_format_t * video_format)
   {
   const char * card = (char*)0;
   alsa_t * priv = (alsa_t*)(data);
@@ -285,8 +286,9 @@ static int read_frame(alsa_t * priv)
   return 0;
   }
 
-static void read_frame_alsa(void * p, gavl_audio_frame_t * f,
-                            int num_samples)
+static int read_frame_alsa(void * p, gavl_audio_frame_t * f,
+                           int stream,
+                           int num_samples)
   {
   int samples_read;
   int samples_copied;
@@ -319,6 +321,7 @@ static void read_frame_alsa(void * p, gavl_audio_frame_t * f,
     f->timestamp = priv->samples_read;
     }
   priv->samples_read += samples_read;
+  return samples_read;
   }
 
 static void destroy_alsa(void * p)
@@ -329,7 +332,7 @@ static void destroy_alsa(void * p)
   free(priv);
   }
 
-const bg_ra_plugin_t the_plugin =
+const bg_recorder_plugin_t the_plugin =
   {
     .common =
     {
@@ -337,8 +340,6 @@ const bg_ra_plugin_t the_plugin =
       .name =          "i_alsa",
       .long_name =     TRS("Alsa"),
       .description =   TRS("Alsa recorder"),
-      .mimetypes =     (char*)0,
-      .extensions =    (char*)0,
       .type =          BG_PLUGIN_RECORDER_AUDIO,
       .flags =         BG_PLUGIN_RECORDER,
       .priority =      BG_PLUGIN_PRIORITY_MAX,
@@ -350,7 +351,7 @@ const bg_ra_plugin_t the_plugin =
     },
 
     .open =          open_alsa,
-    .read_frame =    read_frame_alsa,
+    .read_audio =    read_frame_alsa,
     .close =         close_alsa,
   };
 /* Include this into all plugin modules exactly once

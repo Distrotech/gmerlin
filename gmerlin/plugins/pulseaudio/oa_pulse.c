@@ -85,8 +85,6 @@ const bg_oa_plugin_t the_plugin =
       .name =          "oa_pulse",
       .long_name =     TRS("Pulse"),
       .description =   TRS("PulseAudio output"),
-      .mimetypes =     (char*)0,
-      .extensions =    (char*)0,
       .type =          BG_PLUGIN_OUTPUT_AUDIO,
       .flags =         BG_PLUGIN_PLAYBACK,
       .priority =      BG_PLUGIN_PRIORITY_MAX,
@@ -99,7 +97,7 @@ const bg_oa_plugin_t the_plugin =
 
     .open =          open_pulse,
     .start =         start_pulse,
-    .write_frame =   write_frame_pulse,
+    .write_audio =   write_frame_pulse,
     .stop =          stop_pulse,
     .close =         close_pulse,
     .get_delay =     get_delay_pulse,

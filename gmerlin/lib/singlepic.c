@@ -475,7 +475,6 @@ static const bg_input_plugin_t input_plugin =
       .name =           bg_singlepic_input_name,
       .long_name =      TRS("Image video input plugin"),
       .description =    TRS("This plugin reads series of images as a video. It uses the installed image readers."),
-      .extensions =     NULL, /* Filled in later */
       .type =           BG_PLUGIN_INPUT,
       .flags =          BG_PLUGIN_FILE,
       .priority =       5,
@@ -499,7 +498,7 @@ static const bg_input_plugin_t input_plugin =
      */
     .start =                 start_input,
     /* Read one video frame (returns FALSE on EOF) */
-    .read_video_frame =      read_video_frame_input,
+    .read_video =      read_video_frame_input,
     /*
      *  Do percentage seeking (can be NULL)
      *  Media streams are supposed to be seekable, if this
@@ -520,7 +519,6 @@ static const bg_input_plugin_t input_plugin_stills =
       .name =           bg_singlepic_stills_input_name,
       .long_name =      "Still image input plugin",
       .description =    TRS("This plugin reads images as stills. It uses the installed image readers."),
-      .extensions =     NULL, /* Filled in later */
       .type =           BG_PLUGIN_INPUT,
       .flags =          BG_PLUGIN_FILE,
       .priority =       BG_PLUGIN_PRIORITY_MAX,
@@ -546,7 +544,7 @@ static const bg_input_plugin_t input_plugin_stills =
      */
     .start =                 start_input,
     /* Read one video frame (returns FALSE on EOF) */
-    .read_video_frame =      read_video_frame_input,
+    .read_video =      read_video_frame_input,
     /*
      *  Do percentage seeking (can be NULL)
      *  Media streams are supposed to be seekable, if this
@@ -942,7 +940,6 @@ const bg_encoder_plugin_t encoder_plugin =
       .long_name =      "Singlepicture encoder",
       .description =    TRS("This plugin encodes a video as a series of images. It uses the installed image writers."),
 
-      .extensions =     NULL, /* Filled in later */
       .type =           BG_PLUGIN_ENCODER_VIDEO,
       .flags =          BG_PLUGIN_FILE,
       .priority =       BG_PLUGIN_PRIORITY_MAX,
@@ -1003,8 +1000,6 @@ bg_plugin_info_t * bg_singlepic_encoder_info(bg_plugin_registry_t * reg)
   ret->description = bg_strdup(ret->description,
                                encoder_plugin.common.description);
   
-  ret->extensions = get_extensions(reg, BG_PLUGIN_IMAGE_WRITER,
-                                   BG_PLUGIN_FILE);
   ret->type     = encoder_plugin.common.type;
   ret->flags    = encoder_plugin.common.flags;
   ret->priority = encoder_plugin.common.priority;

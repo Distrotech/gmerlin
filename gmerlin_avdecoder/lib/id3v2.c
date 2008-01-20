@@ -93,7 +93,7 @@ int bgav_id3v2_total_bytes(bgav_id3v2_tag_t* tag)
 
 
 static bgav_id3v2_frame_t * bgav_id3v2_find_frame(bgav_id3v2_tag_t*t,
-                                                  uint32_t * fourccs);
+                                                  const uint32_t * fourccs);
 
 
 #define ENCODING_LATIN1    0x00
@@ -522,7 +522,7 @@ bgav_id3v2_tag_t * bgav_id3v2_read(bgav_input_context_t * input)
   }
 
 static bgav_id3v2_frame_t * bgav_id3v2_find_frame(bgav_id3v2_tag_t*t,
-                                           uint32_t * fourcc)
+                                                  const uint32_t * fourcc)
   {
   int i, j;
   

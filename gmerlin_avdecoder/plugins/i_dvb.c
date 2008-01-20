@@ -92,6 +92,14 @@ static const bg_parameter_info_t * get_parameters_dvb(void * priv)
   return parameters;
   }
 
+
+static char const * const protocols = "dvb";
+
+static const char * get_protocols(void * priv)
+  {
+  return protocols;
+  }
+
 const bg_input_plugin_t the_plugin =
   {
     .common =
@@ -110,7 +118,7 @@ const bg_input_plugin_t the_plugin =
       .find_devices = find_devices_dvb,
       .check_device = check_device_dvb,
     },
-    .protocols = "dvb",
+    .get_protocols = get_protocols,
     
     .set_callbacks = bg_avdec_set_callbacks,
     /* Open file/device */
@@ -137,9 +145,9 @@ const bg_input_plugin_t the_plugin =
      */
     .start =                 bg_avdec_start,
     /* Read one audio frame (returns FALSE on EOF) */
-    .read_audio_samples =    bg_avdec_read_audio,
+    .read_audio =    bg_avdec_read_audio,
     /* Read one video frame (returns FALSE on EOF) */
-    .read_video_frame =      bg_avdec_read_video,
+    .read_video =      bg_avdec_read_video,
 
     //    .has_subtitle =          bg_avdec_has_subtitle,
     //    .read_subtitle_overlay = bg_avdec_read_subtitle_overlay,

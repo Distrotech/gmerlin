@@ -92,7 +92,7 @@ int main(int argc, char ** argv)
   gavl_audio_frame_t * frame;
   
   bg_plugin_handle_t * input_handle;
-  bg_ra_plugin_t     * input_plugin;
+  bg_recorder_plugin_t     * input_plugin;
   
   bg_plugin_handle_t * ov_handle;
   
@@ -135,7 +135,7 @@ int main(int argc, char ** argv)
     return -1;
     }
   
-  input_plugin = (bg_ra_plugin_t*)(input_handle->plugin);
+  input_plugin = (bg_recorder_plugin_t*)(input_handle->plugin);
   
   /* Load output */
   info = bg_plugin_registry_get_default(plugin_reg, BG_PLUGIN_OUTPUT_VIDEO);
@@ -163,7 +163,7 @@ int main(int argc, char ** argv)
   format.num_channels   = 2;
   gavl_set_channel_setup(&format);
 
-  if(!input_plugin->open(input_handle->priv, &format))
+  if(!input_plugin->open(input_handle->priv, &format, NULL))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Opening input plugin failed");
     return -1;
@@ -180,7 +180,7 @@ int main(int argc, char ** argv)
   
   while(1)
     {
-    input_plugin->read_frame(input_handle->priv, frame, format.samples_per_frame);
+    input_plugin->read_audio(input_handle->priv, frame, 0, format.samples_per_frame);
     bg_visualizer_update(visualizer, frame);
     }
   

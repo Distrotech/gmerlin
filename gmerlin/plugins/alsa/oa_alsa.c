@@ -470,8 +470,6 @@ const bg_oa_plugin_t the_plugin =
       .name =          "oa_alsa",
       .long_name =     TRS("Alsa"),
       .description =   TRS("Alsa output plugin with support for channel configurations up to 5.1. Samples are sent to the soundcards in the nearest precision of the source format. Select \"Force float\" in the global audio options to enable 24, 32 or floating point playback even for 8 or 16 bit source formats."),
-      .mimetypes =     (char*)0,
-      .extensions =    (char*)0,
       .type =          BG_PLUGIN_OUTPUT_AUDIO,
       .flags =         BG_PLUGIN_PLAYBACK,
       .priority =      BG_PLUGIN_PRIORITY_MAX,
@@ -484,7 +482,7 @@ const bg_oa_plugin_t the_plugin =
 
     .open =          open_alsa,
     .start =         start_alsa,
-    .write_frame =   write_frame_alsa,
+    .write_audio =   write_frame_alsa,
     .stop =          stop_alsa,
     .close =         close_alsa,
     .get_delay =     get_delay_alsa,

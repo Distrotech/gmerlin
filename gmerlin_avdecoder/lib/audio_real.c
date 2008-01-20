@@ -53,7 +53,7 @@ typedef struct
   bgav_audio_decoder_t decoder;
   } codec_info_t;
 
-static const codec_info_t real_codecs[] =
+static codec_info_t real_codecs[] =
   {
     {
       .dll_name = "sipr.so.6.0",

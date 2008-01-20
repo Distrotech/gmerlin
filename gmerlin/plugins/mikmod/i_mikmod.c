@@ -326,6 +326,13 @@ static void set_parameter_mikmod(void * data, const char * name,
     mikmod->use_surround = val->val_i;
   }
 
+static char const * const extensions = "it xm mod mtm  s3m stm ult far med dsm amf imf 669";
+
+static const char * get_extensions(void * priv)
+  {
+  return extensions;
+  }
+
 const bg_input_plugin_t the_plugin =
   {
     .common =
@@ -334,8 +341,6 @@ const bg_input_plugin_t the_plugin =
       .name =            "i_mikmod",       /* Unique short name */
       .long_name =       TRS("mikmod input plugin"),
       .description =     TRS("Simple wrapper, which calls the mikmod program"),
-      .mimetypes =       NULL,
-      .extensions =      "it xm mod mtm  s3m stm ult far med dsm amf imf 669",
       .type =            BG_PLUGIN_INPUT,
       .flags =           BG_PLUGIN_FILE,
       .priority =        1,
@@ -344,12 +349,12 @@ const bg_input_plugin_t the_plugin =
       .get_parameters =  get_parameters_mikmod,
       .set_parameter =   set_parameter_mikmod,
     },
-    
+    .get_extensions =    get_extensions,
     .open =              open_mikmod,
     .get_num_tracks =    get_num_tracks_mikmod,
     .get_track_info =    get_track_info_mikmod,
     
-    .read_audio_samples = read_audio_samples_mikmod,
+    .read_audio          = read_audio_samples_mikmod,
     .close =              close_mikmod
     
   };

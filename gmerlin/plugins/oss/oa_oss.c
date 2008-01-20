@@ -562,8 +562,6 @@ const bg_oa_plugin_t the_plugin =
       .name =          "oa_oss",
       .long_name =     TRS("OSS"),
       .description =   TRS("OSS output driver"),
-      .mimetypes =     (char*)0,
-      .extensions =    (char*)0,
       .type =          BG_PLUGIN_OUTPUT_AUDIO,
       .flags =         BG_PLUGIN_PLAYBACK,
       .priority =      5,
@@ -575,7 +573,7 @@ const bg_oa_plugin_t the_plugin =
 
     .open =          open_oss,
     .start =         start_oss,
-    .write_frame =   write_frame_oss,
+    .write_audio =   write_frame_oss,
     .stop =          stop_oss,
     .close =         close_oss,
     .get_delay =     get_delay_oss,

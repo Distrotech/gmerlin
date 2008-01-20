@@ -531,8 +531,6 @@ const bg_encoder_plugin_t the_plugin =
       .long_name =      TRS("MPEG 1/2 program/system stream encoder"),
       .description =      TRS("Encoder for regular .mpg files as well as VCD and DVD streams.\
  Based on mjpegtools (http://mjpeg.sourceforge.net)"),
-      .mimetypes =      NULL,
-      .extensions =     "mpg",
       .type =           BG_PLUGIN_ENCODER,
       .flags =          BG_PLUGIN_FILE,
       .priority =       5,

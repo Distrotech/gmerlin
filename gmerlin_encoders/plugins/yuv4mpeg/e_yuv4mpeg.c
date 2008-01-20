@@ -264,8 +264,6 @@ const bg_encoder_plugin_t the_plugin =
       .long_name =      TRS("yuv4mpeg2 encoder"),
       .description =     TRS("Encoder for yuv4mpeg files.\
  Based on mjpegtools (http://mjpeg.sourceforge.net)."),
-      .mimetypes =      NULL,
-      .extensions =     "y4m",
       .type =           BG_PLUGIN_ENCODER_VIDEO,
       .flags =          BG_PLUGIN_FILE,
       .priority =       BG_PLUGIN_PRIORITY_MAX,

@@ -192,7 +192,7 @@ int main(int argc, char ** argv)
     {
     while(1)
       {
-      if(!input_plugin->read_video_frame(input_handle->priv, input_frame, 0))
+      if(!input_plugin->read_video(input_handle->priv, input_frame, 0))
         break;
       gavl_video_convert(video_converter, input_frame, output_frame);
             
@@ -212,7 +212,7 @@ int main(int argc, char ** argv)
     {
     while(1)
       {
-      if(!input_plugin->read_video_frame(input_handle->priv, output_frame, 0))
+      if(!input_plugin->read_video(input_handle->priv, output_frame, 0))
         break;
             
       diff_time = gavl_time_unscale(info->video_streams[0].format.timescale, output_frame->timestamp) - gavl_timer_get(timer);

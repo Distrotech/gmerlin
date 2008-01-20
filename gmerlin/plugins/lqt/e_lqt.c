@@ -774,8 +774,6 @@ const bg_encoder_plugin_t the_plugin =
  Writes Quicktime, AVI (optionally ODML), MP4, M4A and 3GPP. Supported codecs range from \
 high quality uncompressed formats for professional applications to consumer level formats \
 like H.264/AVC, AAC, MP3, Divx compatible etc. Also supported are chapters and text subtitles"),
-      .mimetypes =      NULL,
-      .extensions =     "mov",
       .type =           BG_PLUGIN_ENCODER,
       .flags =          BG_PLUGIN_FILE,
       .priority =       BG_PLUGIN_PRIORITY_MAX,

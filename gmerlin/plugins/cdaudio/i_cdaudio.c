@@ -928,6 +928,13 @@ static int eject_disc_cdaudio(const char * device)
 #endif
   }
 
+char const * const protocols = "cda";
+
+static const char * get_protocols(void * priv)
+  {
+  return protocols;
+  }
+
 const bg_input_plugin_t the_plugin =
   {
     .common =
@@ -951,8 +958,8 @@ const bg_input_plugin_t the_plugin =
       .find_devices = bg_cdaudio_find_devices,
       .check_device = bg_cdaudio_check_device,
     },
-    .protocols = "cda",
-  /* Open file/device */
+    .get_protocols = get_protocols,
+    /* Open file/device */
     .open = open_cdaudio,
     .get_disc_name = get_disc_name_cdaudio,
 #if LIBCDIO_VERSION_NUM >= 78
@@ -979,10 +986,8 @@ const bg_input_plugin_t the_plugin =
      */
     .start =                 start_cdaudio,
     /* Read one audio frame (returns FALSE on EOF) */
-    .read_audio_samples =    read_audio_cdaudio,
-    /* Read one video frame (returns FALSE on EOF) */
-    .read_video_frame =      NULL,
-
+    .read_audio =    read_audio_cdaudio,
+    
     .bypass =                bypass_cdaudio,
     .bypass_set_pause =      bypass_set_pause_cdaudio,
     .bypass_set_volume =     bypass_set_volume_cdaudio,

@@ -76,7 +76,7 @@ struct gmerlin_webcam_s
   
   bg_plugin_handle_t * input_handle;
 
-  bg_rv_plugin_t     * input;
+  bg_recorder_plugin_t     * input;
   
   gavl_video_frame_t * input_frame;
 
@@ -365,7 +365,7 @@ static void close_monitor(gmerlin_webcam_t * cam)
 static void open_input(gmerlin_webcam_t * cam)
   {
   bg_msg_t * msg;
-  if(!cam->input->open(cam->input_handle->priv, &cam->input_format))
+  if(!cam->input->open(cam->input_handle->priv, NULL, &cam->input_format))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,
            "Initializing %s failed, check settings",
@@ -437,7 +437,7 @@ static void handle_cmd(gmerlin_webcam_t * cam, bg_msg_t * msg)
 
       bg_plugin_ref(cam->input_handle);
 
-      cam->input = (bg_rv_plugin_t*)cam->input_handle->plugin;
+      cam->input = (bg_recorder_plugin_t*)cam->input_handle->plugin;
       open_input(cam);
       break;
     case CMD_INPUT_REOPEN:
@@ -514,7 +514,7 @@ static void * thread_func(void * data)
     if(w->input_open)
       {
       bg_plugin_lock(w->input_handle);
-      if(!w->input->read_frame(w->input_handle->priv, w->input_frame))
+      if(!w->input->read_video(w->input_handle->priv, w->input_frame, 0))
         bg_log(BG_LOG_ERROR, LOG_DOMAIN, "read_frame failed");
       bg_plugin_unlock(w->input_handle);
       frame_time = gavl_timer_get(w->timer);

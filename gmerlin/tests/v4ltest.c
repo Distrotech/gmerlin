@@ -45,7 +45,7 @@ int main(int argc, char ** argv)
   bg_plugin_handle_t * input_handle;
   bg_plugin_handle_t * output_handle;
 
-  bg_rv_plugin_t     * input;
+  bg_recorder_plugin_t     * input;
   bg_ov_plugin_t     * output;
   
   const bg_plugin_info_t * info;
@@ -83,7 +83,7 @@ int main(int argc, char ** argv)
     return -1;
     }
 
-  input = (bg_rv_plugin_t*)input_handle->plugin;
+  input = (bg_recorder_plugin_t*)input_handle->plugin;
 
   /* Load output plugin */
   
@@ -108,7 +108,7 @@ int main(int argc, char ** argv)
 
   /* Open input */
 
-  if(!input->open(input_handle->priv, &input_format))
+  if(!input->open(input_handle->priv, NULL, &input_format))
     {
     fprintf(stderr, "Opening video device fauled\n");
     return -1;
@@ -155,7 +155,7 @@ int main(int argc, char ** argv)
     {
     if(do_convert)
       {
-      if(!input->read_frame(input_handle->priv, input_frame))
+      if(!input->read_video(input_handle->priv, input_frame, 0))
         {
         fprintf(stderr, "read_frame failed\n");
         return -1;
@@ -165,7 +165,7 @@ int main(int argc, char ** argv)
     else
       {
       //      fprintf(stderr, "Get frame\n");
-      input->read_frame(input_handle->priv, frame);
+      input->read_video(input_handle->priv, frame, 0);
       }
     //    fprintf(stderr, "done\nPut frame...");
     output->put_video(output_handle->priv, frame);

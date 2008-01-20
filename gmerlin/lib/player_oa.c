@@ -332,14 +332,14 @@ void * bg_player_oa_thread(void * data)
                            ctx->player->audio_stream.frame_out);
 
         bg_plugin_lock(ctx->plugin_handle);
-        ctx->plugin->write_frame(ctx->priv,
+        ctx->plugin->write_audio(ctx->priv,
                                  ctx->player->audio_stream.frame_out);
         bg_plugin_unlock(ctx->plugin_handle);
         }
       else
         {
         bg_plugin_lock(ctx->plugin_handle);
-        ctx->plugin->write_frame(ctx->priv, frame);
+        ctx->plugin->write_audio(ctx->priv, frame);
         bg_plugin_unlock(ctx->plugin_handle);
         }
       

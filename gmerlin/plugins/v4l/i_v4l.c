@@ -190,7 +190,9 @@ typedef struct
   int flip;
   } v4l_t;
 
-static int open_v4l(void * priv, gavl_video_format_t * format)
+static int open_v4l(void * priv,
+                    gavl_audio_format_t * audio_format,
+                    gavl_video_format_t * format)
   {
   int sub_h, sub_v;
   //  int i;
@@ -340,7 +342,7 @@ static void close_v4l(void * priv)
   v4l->fd = -1;
   }
 
-static int read_frame_v4l(void * priv, gavl_video_frame_t * frame)
+static int read_frame_v4l(void * priv, gavl_video_frame_t * frame, int stream)
   {
   v4l_t * v4l;
   v4l = (v4l_t*)priv;
@@ -708,7 +710,7 @@ static void set_parameter_v4l(void * priv, const char * name,
   }
 
 
-const bg_rv_plugin_t the_plugin =
+const bg_recorder_plugin_t the_plugin =
   {
     .common =
     {
@@ -716,8 +718,6 @@ const bg_rv_plugin_t the_plugin =
       .name =          "i_v4l",
       .long_name =     TRS("V4L"),
       .description =   TRS("video4linux recording plugin. Supports only video and no tuner decives."),
-      .mimetypes =     (char*)0,
-      .extensions =    (char*)0,
       .type =          BG_PLUGIN_RECORDER_VIDEO,
       .flags =         BG_PLUGIN_RECORDER,
       .priority =      BG_PLUGIN_PRIORITY_MAX,
@@ -730,7 +730,7 @@ const bg_rv_plugin_t the_plugin =
     
     .open =       open_v4l,
     .close =      close_v4l,
-    .read_frame = read_frame_v4l,
+    .read_video = read_frame_v4l,
     
   };
 

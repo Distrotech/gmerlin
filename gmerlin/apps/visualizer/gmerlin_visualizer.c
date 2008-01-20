@@ -110,7 +110,7 @@ typedef struct
   bg_cfg_registry_t * cfg_reg;
   
   bg_plugin_handle_t * ra_handle;
-  bg_ra_plugin_t * ra_plugin;
+  bg_recorder_plugin_t * ra_plugin;
   
   const bg_plugin_info_t * ov_info;
   const bg_plugin_info_t * ra_info;
@@ -320,12 +320,12 @@ static void open_audio(visualizer_t * v)
   
   v->ra_handle = bg_plugin_load(v->plugin_reg,
                                 v->ra_info);
-  v->ra_plugin = (bg_ra_plugin_t*)(v->ra_handle->plugin);
+  v->ra_plugin = (bg_recorder_plugin_t*)(v->ra_handle->plugin);
   
   /* The soundcard might be busy from last time,
      give the kernel some time to free the device */
   
-  if(!v->ra_plugin->open(v->ra_handle->priv, &v->audio_format))
+  if(!v->ra_plugin->open(v->ra_handle->priv, &v->audio_format, NULL))
     {
     if(!was_open)
       {
@@ -338,7 +338,7 @@ static void open_audio(visualizer_t * v)
       {
       gavl_time_delay(&delay_time);
       
-      if(v->ra_plugin->open(v->ra_handle->priv, &v->audio_format))
+      if(v->ra_plugin->open(v->ra_handle->priv, &v->audio_format, NULL))
         {
         v->audio_open = 1;
         break;
@@ -944,8 +944,8 @@ static gboolean idle_func(void * data)
   v = (visualizer_t *)data;
   if(v->audio_open)
     {
-    v->ra_plugin->read_frame(v->ra_handle->priv,
-                             v->audio_frame, v->audio_format.samples_per_frame);
+    v->ra_plugin->read_audio(v->ra_handle->priv,
+                             v->audio_frame, 0, v->audio_format.samples_per_frame);
     bg_visualizer_update(v->visualizer, v->audio_frame);
     
     if(v->toolbar_visible)

@@ -145,7 +145,8 @@ static void * create_oss()
   }
 
 static int open_oss(void * data,
-                    gavl_audio_format_t * format)
+                    gavl_audio_format_t * format,
+                    gavl_video_format_t * video_format)
   {
   gavl_sample_format_t sample_format;
   int test_value;
@@ -250,7 +251,7 @@ static void close_oss(void * p)
     }
   }
 
-static void read_frame_oss(void * p, gavl_audio_frame_t * f, int num_samples)
+static int read_frame_oss(void * p, gavl_audio_frame_t * f, int stream, int num_samples)
   {
   oss_t * priv = (oss_t*)(p);
   
@@ -260,6 +261,7 @@ static void read_frame_oss(void * p, gavl_audio_frame_t * f, int num_samples)
   f->valid_samples /= priv->bytes_per_frame;
   f->timestamp = priv->samples_read;
   priv->samples_read += f->valid_samples;
+  return priv->samples_read;
   }
 
 static void destroy_oss(void * p)
@@ -271,7 +273,7 @@ static void destroy_oss(void * p)
   free(priv);
   }
 
-const bg_ra_plugin_t the_plugin =
+const bg_recorder_plugin_t the_plugin =
   {
     .common =
     {
@@ -279,8 +281,6 @@ const bg_ra_plugin_t the_plugin =
       .name =          "i_oss",
       .long_name =     TRS("OSS"),
       .description =   TRS("OSS Recorder"),
-      .mimetypes =     (char*)0,
-      .extensions =    (char*)0,
       .type =          BG_PLUGIN_RECORDER_AUDIO,
       .flags =         BG_PLUGIN_RECORDER,
       .priority =      5,
@@ -292,7 +292,7 @@ const bg_ra_plugin_t the_plugin =
     },
 
     .open =          open_oss,
-    .read_frame =    read_frame_oss,
+    .read_audio =    read_frame_oss,
     .close =         close_oss,
   };
 

@@ -60,8 +60,6 @@ const bg_encoder_plugin_t the_plugin =
       .long_name =      TRS("FFmpeg video encoder"),
       .description =    TRS("Plugin for encoding various video formats with ffmpeg \
 (http://www.ffmpeg.org)."),
-      .mimetypes =      NULL,
-      .extensions =     "m1v",
       .type =           BG_PLUGIN_ENCODER_VIDEO,
       .flags =          BG_PLUGIN_FILE,
       .priority =       5,

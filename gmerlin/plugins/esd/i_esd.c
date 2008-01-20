@@ -112,7 +112,8 @@ get_parameters_esd(void * priv)
   }
 
 static int open_esd(void * data,
-                    gavl_audio_format_t * format)
+                    gavl_audio_format_t * format,
+                    gavl_video_format_t * video_format)
   {
   int esd_format;
   const char * esd_host;
@@ -182,7 +183,8 @@ static void close_esd(void * data)
   gavl_audio_frame_destroy(e->f);
   }
 
-static void read_frame_esd(void * p, gavl_audio_frame_t * f, int num_samples)
+static int read_frame_esd(void * p, gavl_audio_frame_t * f, int stream,
+                           int num_samples)
   {
   int samples_read;
   int samples_copied;
@@ -221,9 +223,10 @@ static void read_frame_esd(void * p, gavl_audio_frame_t * f, int num_samples)
     f->timestamp = priv->samples_read;
     }
   priv->samples_read += samples_read;
+  return samples_read;
   }
 
-const bg_ra_plugin_t the_plugin =
+const bg_recorder_plugin_t the_plugin =
   {
     .common =
     {
@@ -232,8 +235,6 @@ const bg_ra_plugin_t the_plugin =
       .long_name =     TRS("EsounD input driver"),
       .description =   TRS("EsounD input driver"),
 
-      .mimetypes =     (char*)0,
-      .extensions =    (char*)0,
       .type =          BG_PLUGIN_RECORDER_AUDIO,
       .flags =         BG_PLUGIN_RECORDER,
       .priority =      BG_PLUGIN_PRIORITY_MIN,
@@ -245,7 +246,7 @@ const bg_ra_plugin_t the_plugin =
     },
 
     .open =                open_esd,
-    .read_frame =          read_frame_esd,
+    .read_audio =          read_frame_esd,
     .close =               close_esd,
   };
 /* Include this into all plugin modules exactly once

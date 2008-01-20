@@ -162,8 +162,6 @@ const bg_encoder_plugin_t the_plugin =
       .long_name =       TRS("MPEG-1 layer 1/2 audio encoder"),
       .description =     TRS("Encoder for elementary MPEG-1 layer 1/2 audio streams.\
  Based on mjpegtools (http://mjpeg.sourceforge.net)."),
-      .mimetypes =       NULL,
-      .extensions =      "mpa",
       .type =            BG_PLUGIN_ENCODER_AUDIO,
       .flags =           BG_PLUGIN_FILE,
       .priority =        5,

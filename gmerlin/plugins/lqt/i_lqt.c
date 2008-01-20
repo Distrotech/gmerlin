@@ -486,6 +486,12 @@ static int start_lqt(void * data)
   return 1;
   }
 
+char const * const extensions = "mov";
+
+static const char * get_extensions(void * priv)
+  {
+  return extensions;
+  }
 
 const bg_input_plugin_t the_plugin =
   {
@@ -495,8 +501,6 @@ const bg_input_plugin_t the_plugin =
       .name =            "i_lqt",       /* Unique short name */
       .long_name =       TRS("libquicktime input plugin"),
       .description =     TRS("Input plugin based on libquicktime"),
-      .mimetypes =       NULL,
-      .extensions =      "mov",
       .type =            BG_PLUGIN_INPUT,
       .flags =           BG_PLUGIN_FILE,
       .priority =        5,
@@ -505,7 +509,8 @@ const bg_input_plugin_t the_plugin =
       .get_parameters =  get_parameters_lqt,
       .set_parameter =   set_parameter_lqt,
     },
-    
+
+    .get_extensions =    get_extensions,
     .open =              open_lqt,
     .get_num_tracks =    get_num_tracks_lqt,
     .get_track_info =    get_track_info_lqt,
@@ -513,8 +518,8 @@ const bg_input_plugin_t the_plugin =
     //    .set_video_stream =  set_audio_stream_lqt,
     .start =             start_lqt,
 
-    .read_audio_samples = read_audio_samples_lqt,
-    .read_video_frame =   read_video_frame_lqt,
+    .read_audio = read_audio_samples_lqt,
+    .read_video =   read_video_frame_lqt,
 
     .has_subtitle =       has_subtitle_lqt,
     .read_subtitle_text = read_subtitle_text_lqt,

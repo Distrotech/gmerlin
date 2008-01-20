@@ -753,8 +753,8 @@ static int decode_video_frame(void * priv, gavl_video_frame_t * f, int stream)
   t = (bg_transcoder_t *)priv;
   s = &t->video_streams[stream];
   
-  result = s->com.in_plugin->read_video_frame(s->com.in_handle->priv,
-                                              f, s->com.in_index);
+  result = s->com.in_plugin->read_video(s->com.in_handle->priv,
+                                        f, s->com.in_index);
 
   if(!result)
     return 0;
@@ -1011,7 +1011,7 @@ static void add_audio_stream(audio_stream_t * ret,
   set_stream_param_struct_t st;
   char * language;
   
-  ret->in_func = ret->com.in_plugin->read_audio_samples;
+  ret->in_func = ret->com.in_plugin->read_audio;
   ret->in_data = ret->com.in_handle->priv;
   ret->in_stream = ret->com.in_index;
   

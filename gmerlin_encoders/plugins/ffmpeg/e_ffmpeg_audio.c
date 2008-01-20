@@ -90,8 +90,6 @@ const bg_encoder_plugin_t the_plugin =
       .long_name =      TRS("FFmpeg audio encoder"),
       .description =    TRS("Plugin for encoding various audio formats with ffmpeg \
 (http://www.ffmpeg.org)."),
-      .mimetypes =      NULL,
-      .extensions =     "avi",
       .type =           BG_PLUGIN_ENCODER_AUDIO,
       .flags =          BG_PLUGIN_FILE,
       .priority =       5,

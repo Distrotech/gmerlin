@@ -113,7 +113,6 @@ static void encoder_widget_get(encoder_widget_t * wid, bg_transcoder_encoder_inf
     }
   }
 
-
 void encoder_widget_update_sensitive(encoder_widget_t * win)
   {
   const bg_plugin_info_t * info;

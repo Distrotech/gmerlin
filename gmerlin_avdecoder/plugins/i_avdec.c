@@ -268,7 +268,28 @@ static const bg_parameter_info_t * get_parameters_avdec(void * priv)
   return parameters;
   }
 
+/* TODO: Build these dynamically */
 
+static char const * const protocols = "http ftp rtsp smb mms pnm stdin";
+
+static const char * get_protocols(void * priv)
+  {
+  return protocols;
+  }
+
+static char const * const mimetypes = "video/x-ms-asf audio/x-pn-realaudio-plugin video/x-pn-realvideo-plugin audio/x-pn-realaudio video/x-pn-realvideo audio/x-mpegurl audio/mpegurl audio/x-scpls audio/scpls audio/m3u";
+
+static const char * get_mimetypes(void * priv)
+  {
+  return mimetypes;
+  }
+
+static char const * const extensions = "avi asf asx wmv rm ra ram mov wav mp4 m4a 3gp qt au aiff aif mp3 mpg mpeg vob m3u pls ogg flac aac mpc spx vob wv tta gsm vp5 vp6 voc";
+
+static const char * get_extensions(void * priv)
+  {
+  return extensions;
+  }
 
 const bg_input_plugin_t the_plugin =
   {
@@ -278,8 +299,6 @@ const bg_input_plugin_t the_plugin =
       .name =           "i_avdec",
       .long_name =      TRS("AVDecoder plugin"),
       .description =    TRS("Plugin based on the Gmerlin avdecoder library. Supports most media formats. Playback is supported from files, URLs (with various protocols) and stdin."),
-      .mimetypes =      "video/x-ms-asf audio/x-pn-realaudio-plugin video/x-pn-realvideo-plugin audio/x-pn-realaudio video/x-pn-realvideo audio/x-mpegurl audio/mpegurl audio/x-scpls audio/scpls audio/m3u",
-      .extensions =     "avi asf asx wmv rm ra ram mov wav mp4 m4a 3gp qt au aiff aif mp3 mpg mpeg vob m3u pls ogg flac aac mpc spx vob wv tta gsm vp5 vp6 voc",
       .type =           BG_PLUGIN_INPUT,
       .flags =          BG_PLUGIN_FILE|BG_PLUGIN_URL,
       .priority =       BG_PLUGIN_PRIORITY_MAX,
@@ -288,8 +307,10 @@ const bg_input_plugin_t the_plugin =
       .get_parameters = get_parameters_avdec,
       .set_parameter =  bg_avdec_set_parameter,
     },
-      .protocols =      "http ftp rtsp smb mms pnm stdin",
-  /* Open file/device */
+    .get_protocols = get_protocols,
+    .get_mimetypes = get_mimetypes,
+    .get_extensions = get_extensions,
+    /* Open file/device */
     .open = open_avdec,
     .set_callbacks = bg_avdec_set_callbacks,
   /* For file and network plugins, this can be NULL */
@@ -312,9 +333,9 @@ const bg_input_plugin_t the_plugin =
      */
     .start =                 bg_avdec_start,
     /* Read one audio frame (returns FALSE on EOF) */
-    .read_audio_samples =    bg_avdec_read_audio,
+    .read_audio =    bg_avdec_read_audio,
     /* Read one video frame (returns FALSE on EOF) */
-    .read_video_frame =      bg_avdec_read_video,
+    .read_video =      bg_avdec_read_video,
 
     .has_subtitle =          bg_avdec_has_subtitle,
 

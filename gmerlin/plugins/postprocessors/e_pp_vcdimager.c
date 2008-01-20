@@ -402,8 +402,6 @@ const bg_encoder_pp_plugin_t the_plugin =
       .name =              "e_pp_vcdimager", /* Unique short name */
       .long_name =         TRS("VCD image generator/burner"),
       .description =       TRS("This is a frontend for generating (S)VCD images with the vcdimager tools (http://www.vcdimager.org). Burning with cdrdao (http://cdrdao.sourceforge.net) is also possible."),
-      .mimetypes =         NULL,
-      .extensions =        "mpg",
       .type =              BG_PLUGIN_ENCODER_PP,
       .flags =             BG_PLUGIN_PP,
       .create =            create_vcdimager,
@@ -412,6 +410,7 @@ const bg_encoder_pp_plugin_t the_plugin =
       .set_parameter =     set_parameter_vcdimager,
       .priority =          1,
     },
+    .supported_extensions =        "mpg",
     .max_audio_streams =   1,
     .max_video_streams =   0,
 

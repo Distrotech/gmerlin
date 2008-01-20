@@ -191,18 +191,18 @@ int main(int argc, char ** argv)
   while(1)
     {
     //    fprintf(stderr, "Read audio %d\n", audio_format.samples_per_frame);
-    if(!input_plugin->read_audio_samples(input_handle->priv,
-                                         input_frame, 0,
-                                         audio_format.samples_per_frame))
+    if(!input_plugin->read_audio(input_handle->priv,
+                                 input_frame, 0,
+                                 audio_format.samples_per_frame))
       break;
     
     if(do_convert)
       {
       gavl_audio_convert(audio_converter, input_frame, output_frame);
-      output_plugin->write_frame(output_handle->priv, output_frame);
+      output_plugin->write_audio(output_handle->priv, output_frame);
       }
     else
-      output_plugin->write_frame(output_handle->priv, input_frame);
+      output_plugin->write_audio(output_handle->priv, input_frame);
     }
   
   /* Clean up */

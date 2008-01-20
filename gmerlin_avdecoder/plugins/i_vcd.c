@@ -65,6 +65,13 @@ static int check_device_vcd(const char * device, char ** name)
   return bgav_check_device_vcd(device, name);
   }
 
+static char const * const protocols = "vcd";
+
+static const char * get_protocols(void * priv)
+  {
+  return protocols;
+  }
+
 const bg_input_plugin_t the_plugin =
   {
     .common =
@@ -83,7 +90,7 @@ const bg_input_plugin_t the_plugin =
       .find_devices = find_devices_vcd,
       .check_device = check_device_vcd,
     },
-    .protocols = "vcd",
+    .get_protocols = get_protocols,
     
     /* Open file/device */
     .open = open_vcd,
@@ -113,9 +120,9 @@ const bg_input_plugin_t the_plugin =
      */
     .start =                 bg_avdec_start,
     /* Read one audio frame (returns FALSE on EOF) */
-    .read_audio_samples =    bg_avdec_read_audio,
+    .read_audio =    bg_avdec_read_audio,
     /* Read one video frame (returns FALSE on EOF) */
-    .read_video_frame =      bg_avdec_read_video,
+    .read_video =      bg_avdec_read_video,
     /*
      *  Do percentage seeking (can be NULL)
      *  Media streams are supposed to be seekable, if this

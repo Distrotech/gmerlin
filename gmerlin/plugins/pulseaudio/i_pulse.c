@@ -25,7 +25,8 @@
 #include <utils.h>
 
 static int open_pulse(void * data,
-                      gavl_audio_format_t * format)
+                      gavl_audio_format_t * format,
+                      gavl_video_format_t * video_format)
   {
   bg_pa_t * priv;
   priv = (bg_pa_t *)data;
@@ -46,7 +47,8 @@ static void close_pulse(void * p)
   bg_pa_close(p);
   }
 
-static void read_frame_pulse(void * p, gavl_audio_frame_t * f,
+static int read_frame_pulse(void * p, gavl_audio_frame_t * f,
+                            int stream,
                             int num_samples)
   {
   bg_pa_t * priv;
@@ -58,6 +60,7 @@ static void read_frame_pulse(void * p, gavl_audio_frame_t * f,
   f->valid_samples = num_samples;
   f->timestamp = priv->sample_count;
   priv->sample_count += num_samples;
+  return num_samples;
   }
 
 static const bg_parameter_info_t parameters[] =
@@ -143,7 +146,7 @@ set_parameter_pulse(void * p, const char * name,
   }
 
 
-const bg_ra_plugin_t the_plugin =
+const bg_recorder_plugin_t the_plugin =
   {
     .common =
     {
@@ -151,8 +154,6 @@ const bg_ra_plugin_t the_plugin =
       .name =          "i_pulse",
       .long_name =     TRS("PulseAudio"),
       .description =   TRS("PulseAudio capture. You can specify the source, where we'll get the audio."),
-      .mimetypes =     (char*)0,
-      .extensions =    (char*)0,
       .type =          BG_PLUGIN_RECORDER_AUDIO,
       .flags =         BG_PLUGIN_RECORDER,
       .priority =      1,
@@ -164,7 +165,7 @@ const bg_ra_plugin_t the_plugin =
     },
     
     .open =          open_pulse,
-    .read_frame =    read_frame_pulse,
+    .read_audio =    read_frame_pulse,
     .close =         close_pulse,
   };
 /* Include this into all plugin modules exactly once

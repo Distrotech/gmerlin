@@ -225,8 +225,6 @@ const bg_encoder_plugin_t the_plugin =
       .long_name =      TRS("spumux overlay exporter"),
       .description =    TRS("Exports overlay subtitles into the format used by spumux\
  (http://dvdauthor.sourceforge.net)"),
-      .mimetypes =      NULL,
-      .extensions =     "xml",
       .type =           BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY,
       .flags =          BG_PLUGIN_FILE,
       .priority =       BG_PLUGIN_PRIORITY_MAX,
