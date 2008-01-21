@@ -16,6 +16,7 @@ charset.h \
 cmdline.h \
 config.h \
 converters.h \
+encoderinfo.h \
 fifo.h \
 filters.h \
 float_cast.h \

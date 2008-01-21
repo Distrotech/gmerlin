@@ -67,9 +67,9 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
   char * label;
   track_dialog_t * ret;
   void * parent, * child;
-  bg_transcoder_encoder_info_t encoder_info;
+  bg_encoder_info_t encoder_info;
   
-  bg_transcoder_encoder_info_get_from_track(plugin_reg, t, &encoder_info);
+  bg_encoder_info_get_from_track(plugin_reg, t, &encoder_info);
                                             
   ret = calloc(1, sizeof(*ret));
 

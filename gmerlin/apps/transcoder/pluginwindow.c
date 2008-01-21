@@ -49,7 +49,7 @@ struct plugin_window_s
   bg_plugin_registry_t * plugin_reg;
 
 
-  encoder_widget_t encoders;
+  bg_gtk_encoder_widget_t * encoders;
   };
 
 static void button_callback(GtkWidget * w, gpointer data)
@@ -85,7 +85,7 @@ static void set_video_encoder(const bg_plugin_info_t * info, void * data)
   plugin_window_t * w = (plugin_window_t*)data;
   bg_plugin_registry_set_default(w->plugin_reg,
                                  BG_PLUGIN_ENCODER_VIDEO | BG_PLUGIN_ENCODER, info->name);
-  encoder_widget_update_sensitive(&w->encoders);
+  bg_gtk_encoder_widget_update_sensitive(w->encoders);
   }
 
 static void set_subtitle_text_encoder(const bg_plugin_info_t * info, void * data)
@@ -120,16 +120,21 @@ plugin_window_create(bg_plugin_registry_t * plugin_reg,
   GtkWidget * notebook;
   ret = calloc(1, sizeof(*ret));
 
-  encoder_widget_init(&(ret->encoders), plugin_reg);
+  ret->encoders = bg_gtk_encoder_widget_create(plugin_reg,
+                                               BG_PLUGIN_ENCODER |
+                                               BG_PLUGIN_ENCODER_AUDIO | 
+                                               BG_PLUGIN_ENCODER_VIDEO |
+                                               BG_PLUGIN_ENCODER_SUBTITLE_TEXT |
+                                               BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY );
 
-  bg_gtk_plugin_widget_single_set_change_callback(ret->encoders.audio_encoder,
+  bg_gtk_encoder_widget_set_audio_change_callback(ret->encoders,
                                                   set_audio_encoder, ret);
-  bg_gtk_plugin_widget_single_set_change_callback(ret->encoders.video_encoder,
+  bg_gtk_encoder_widget_set_video_change_callback(ret->encoders,
                                                   set_video_encoder, ret);
-  bg_gtk_plugin_widget_single_set_change_callback(ret->encoders.subtitle_text_encoder,
-                                                  set_subtitle_text_encoder, ret);
   
-    
+  bg_gtk_encoder_widget_set_subtitle_text_change_callback(ret->encoders,
+                                                          set_subtitle_text_encoder, ret);
+  
   ret->tw = win;
   ret->plugin_reg = plugin_reg;
     
@@ -171,10 +176,9 @@ plugin_window_create(bg_plugin_registry_t * plugin_reg,
   label = gtk_label_new(TR("Encoders"));
   gtk_widget_show(label);
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
-                           ret->encoders.widget, label);
-
+                           bg_gtk_encoder_widget_get_widget(ret->encoders),
+                           label);
   
-
   label = gtk_label_new(TR("Inputs"));
   gtk_widget_show(label);
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
@@ -205,7 +209,7 @@ plugin_window_create(bg_plugin_registry_t * plugin_reg,
 void plugin_window_destroy(plugin_window_t * w)
   {
   bg_gtk_plugin_widget_multi_destroy(w->inputs);
-
+  bg_gtk_encoder_widget_destroy(w->encoders);
 
   free(w);
   }
@@ -213,8 +217,8 @@ void plugin_window_destroy(plugin_window_t * w)
 void plugin_window_show(plugin_window_t * w)
   {
   /* Get values from registry (they might have changed by loading a profile) */
-  encoder_widget_set_from_registry(&w->encoders,
-                                   w->plugin_reg);
+  bg_gtk_encoder_widget_set_from_registry(w->encoders,
+                                          w->plugin_reg);
   gtk_widget_show(w->window);
   }
 

@@ -43,7 +43,7 @@
 #define LOG_DOMAIN "transcoder_track"
 
 void bg_transcoder_track_create_encoder_sections(bg_transcoder_track_t * t,
-                                                 bg_transcoder_encoder_info_t * info)
+                                                 bg_encoder_info_t * info)
   {
   int i;
   
@@ -224,7 +224,7 @@ void bg_transcoder_track_create_encoder_sections(bg_transcoder_track_t * t,
 static void create_sections(bg_transcoder_track_t * t,
                             bg_cfg_section_t * track_defaults_section,
                             bg_cfg_section_t * input_section,
-                            bg_transcoder_encoder_info_t * encoder_info,
+                            bg_encoder_info_t * encoder_info,
                             bg_track_info_t * track_info)
   {
   int i, in_index;
@@ -697,7 +697,7 @@ static void set_track(bg_transcoder_track_t * track,
                       bg_plugin_handle_t * input_plugin,
                       const char * location,
                       int track_index,
-                      bg_transcoder_encoder_info_t * encoder_info,
+                      bg_encoder_info_t * encoder_info,
                       bg_plugin_registry_t * plugin_reg)
   {
   int i;
@@ -963,9 +963,9 @@ bg_transcoder_track_create(const char * url,
   
   bg_cfg_section_t * input_section;
 
-  bg_transcoder_encoder_info_t encoder_info;
+  bg_encoder_info_t encoder_info;
   
-  if(!bg_transcoder_encoder_info_get_from_registry(plugin_reg,
+  if(!bg_encoder_info_get_from_registry(plugin_reg,
                                                    &encoder_info))
     return (bg_transcoder_track_t*)0;
     
@@ -1644,7 +1644,7 @@ void bg_transcoder_track_get_duration(bg_transcoder_track_t * t, gavl_time_t * r
 void
 bg_transcoder_track_set_encoders(bg_transcoder_track_t * track,
                                  bg_plugin_registry_t * plugin_reg,
-                                 bg_transcoder_encoder_info_t * info)
+                                 bg_encoder_info_t * info)
   {
   free_encoders(track);
  

@@ -24,58 +24,7 @@
 
 #include <libxml/tree.h>
 #include <libxml/parser.h>
-
-typedef struct bg_transcoder_track_s bg_transcoder_track_t;
-
-/* Container structure for all encoding related
-   stuff. */
-
-typedef struct
-  {
-  const bg_plugin_info_t * audio_info;
-  const bg_plugin_info_t * video_info;
-  const bg_plugin_info_t * subtitle_text_info;
-  const bg_plugin_info_t * subtitle_overlay_info;
-
-  /* Global sections for encoders */
-  bg_cfg_section_t * audio_encoder_section;
-  bg_cfg_section_t * video_encoder_section;
-  bg_cfg_section_t * subtitle_text_encoder_section;
-  bg_cfg_section_t * subtitle_overlay_encoder_section;
-
-  bg_parameter_info_t * audio_encoder_parameters;
-  bg_parameter_info_t * video_encoder_parameters;
-  bg_parameter_info_t * subtitle_text_encoder_parameters;
-  bg_parameter_info_t * subtitle_overlay_encoder_parameters;
-  
-  /* Per stream sections for encoders */
-  bg_cfg_section_t * audio_stream_section;
-  bg_cfg_section_t * video_stream_section;
-  bg_cfg_section_t * subtitle_text_stream_section;
-  bg_cfg_section_t * subtitle_overlay_stream_section;
-
-  bg_parameter_info_t * audio_stream_parameters;
-  bg_parameter_info_t * video_stream_parameters;
-  bg_parameter_info_t * subtitle_text_stream_parameters;
-  bg_parameter_info_t * subtitle_overlay_stream_parameters;
-    
-  } bg_transcoder_encoder_info_t;
-
-int
-bg_transcoder_encoder_info_get_from_registry(bg_plugin_registry_t * plugin_reg,
-                                             bg_transcoder_encoder_info_t * encoder_info);
-
-int
-bg_transcoder_encoder_info_get_from_track(bg_plugin_registry_t * plugin_reg,
-                                          bg_transcoder_track_t * track,
-                                          bg_transcoder_encoder_info_t * encoder_info);
-
-void
-bg_transcoder_encoder_info_get_sections_from_track(bg_transcoder_track_t * track,
-                                                   bg_transcoder_encoder_info_t * encoder_info);
-
-
-
+#include <encoderinfo.h>
 /* This defines a track with all information
    necessary for transcoding */
 
@@ -230,10 +179,10 @@ bg_transcoder_track_create_parameters(bg_transcoder_track_t * track,
 void
 bg_transcoder_track_set_encoders(bg_transcoder_track_t * track,
                                  bg_plugin_registry_t * plugin_reg,
-                                 bg_transcoder_encoder_info_t * info);
+                                 bg_encoder_info_t * info);
 
 void bg_transcoder_track_create_encoder_sections(bg_transcoder_track_t * t,
-                                                 bg_transcoder_encoder_info_t * info);
+                                                 bg_encoder_info_t * info);
 
 
 /*

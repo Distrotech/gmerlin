@@ -19,14 +19,3 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-
-
-/* Encoder window */
-
-typedef struct encoder_window_s encoder_window_t;
-
-encoder_window_t * encoder_window_create(bg_plugin_registry_t * plugin_reg);
-
-
-void encoder_window_run(encoder_window_t * win, bg_transcoder_track_t * tracks);
-void encoder_window_destroy(encoder_window_t * win);

@@ -438,7 +438,7 @@ struct bg_transcoder_s
   bg_transcoder_track_t * transcoder_track;
 
   /* Encoder info */
-  bg_transcoder_encoder_info_t encoder_info;
+  bg_encoder_info_t encoder_info;
     
   /* Postprocess only */
   int pp_only;
@@ -3235,7 +3235,7 @@ int bg_transcoder_init(bg_transcoder_t * ret,
 
   /* Initialize encoder info */
 
-  bg_transcoder_encoder_info_get_from_track(ret->plugin_reg,
+  bg_encoder_info_get_from_track(ret->plugin_reg,
                                             ret->transcoder_track,
                                             &(ret->encoder_info));
     

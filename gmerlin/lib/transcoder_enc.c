@@ -33,7 +33,7 @@
 #define LOG_DOMAIN "transcoder"
 
 static void create_parameters(bg_plugin_registry_t * plugin_reg,
-                       bg_transcoder_encoder_info_t * encoder_info)
+                       bg_encoder_info_t * encoder_info)
   {
   /* Video */
   if(encoder_info->video_info)
@@ -88,8 +88,8 @@ static void create_parameters(bg_plugin_registry_t * plugin_reg,
   }
 
 int
-bg_transcoder_encoder_info_get_from_registry(bg_plugin_registry_t * plugin_reg,
-                                             bg_transcoder_encoder_info_t * encoder_info)
+bg_encoder_info_get_from_registry(bg_plugin_registry_t * plugin_reg,
+                                             bg_encoder_info_t * encoder_info)
   {
   memset(encoder_info, 0, sizeof(*encoder_info));
   
@@ -234,16 +234,16 @@ bg_transcoder_encoder_info_get_from_registry(bg_plugin_registry_t * plugin_reg,
   return 1;
   }
 
-int bg_transcoder_encoder_info_get_from_track(bg_plugin_registry_t * plugin_reg,
+int bg_encoder_info_get_from_track(bg_plugin_registry_t * plugin_reg,
                                                bg_transcoder_track_t * track,
-                                               bg_transcoder_encoder_info_t * encoder_info)
+                                               bg_encoder_info_t * encoder_info)
   {
   char * video_encoder;
   char * audio_encoder;
   char * subtitle_text_encoder;
   char * subtitle_overlay_encoder;
   int create_sections = 0;
-  bg_transcoder_encoder_info_t default_info;
+  bg_encoder_info_t default_info;
   memset(encoder_info, 0, sizeof(*encoder_info));
     
   audio_encoder = bg_transcoder_track_get_audio_encoder(track);
@@ -290,7 +290,7 @@ int bg_transcoder_encoder_info_get_from_track(bg_plugin_registry_t * plugin_reg,
 
   if(create_sections)
     {
-    bg_transcoder_encoder_info_get_from_registry(plugin_reg, &default_info);
+    bg_encoder_info_get_from_registry(plugin_reg, &default_info);
     bg_transcoder_track_create_encoder_sections(track, &default_info);
     }
   
@@ -303,8 +303,8 @@ int bg_transcoder_encoder_info_get_from_track(bg_plugin_registry_t * plugin_reg,
   }
 
 void
-bg_transcoder_encoder_info_get_sections_from_track(bg_transcoder_track_t * t,
-                                                   bg_transcoder_encoder_info_t * encoder_info)
+bg_encoder_info_get_sections_from_track(bg_transcoder_track_t * t,
+                                                   bg_encoder_info_t * encoder_info)
   {
   encoder_info->audio_encoder_section = t->audio_encoder_section;
   encoder_info->video_encoder_section = t->video_encoder_section;
