@@ -153,9 +153,9 @@ void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt,
         gavl_init_scale_funcs_bicubic_y_mmxext(tab, src_advance, dst_advance);
         gavl_init_scale_funcs_bicubic_x_mmxext(tab, src_advance, dst_advance);
         }
+#endif
+#endif
       break;
-#endif
-#endif
     case GAVL_SCALE_SINC_LANCZOS:
     case GAVL_SCALE_NONE:
       if((opt->quality > 0) || (opt->accel_flags & GAVL_ACCEL_C))

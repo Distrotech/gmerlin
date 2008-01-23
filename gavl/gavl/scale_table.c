@@ -190,7 +190,7 @@ void gavl_video_scale_table_init(gavl_video_scale_table_t * tab,
   
   //  fprintf(stderr, "After shift %d\n", src_width);
   //if(deinterlace || (total_fields == 2))
-  //      gavl_video_scale_table_dump(tab);
+  //  gavl_video_scale_table_dump(tab);
   
   }
 
@@ -383,6 +383,34 @@ void gavl_video_scale_table_dump(gavl_video_scale_table_t * tab)
     }
   }
 
+#if 0
+static void gavl_video_scale_table_dump_int(gavl_video_scale_table_t * tab)
+  {
+  int i, j;
+  int sum;
+  fprintf(stderr, "Scale table:\n");
+  for(i = 0; i < tab->num_pixels; i++)
+    {
+    sum = 0.0;
+    fprintf(stderr, " dst: %d", i);
+
+    for(j = 0; j < tab->factors_per_pixel; j++)
+      {
+      //      fprintf(stderr, ", fac[%d]: %f [%d]", tab->pixels[i].index + j,
+      //              tab->pixels[i].factor[j].fac_f,
+      //              tab->pixels[i].factor[j].fac_i);
+
+      fprintf(stderr, ", fac[%d]: %d ", tab->pixels[i].index + j,
+              tab->pixels[i].factor_i[j]);
+      
+      sum += tab->pixels[i].factor_i[j];
+      }
+    
+    fprintf(stderr, ", sum: %d\n", sum);
+    }
+  }
+#endif
+
 void gavl_video_scale_table_init_int(gavl_video_scale_table_t * tab,
                                      int bits)
   {
@@ -392,6 +420,7 @@ void gavl_video_scale_table_init_int(gavl_video_scale_table_t * tab,
   int min_index, max_index, fac_i_norm = 0;
   
   //  fac_max_i = (1<<bits) - 1;
+  //  fprintf(stderr, "Init int %d\n", bits);
   fac_max_i = (1<<bits);
   fac_max_f = (float)(fac_max_i);
 
@@ -429,6 +458,7 @@ void gavl_video_scale_table_init_int(gavl_video_scale_table_t * tab,
     else if(sum_i < fac_i_norm)
       tab->factors_i[min_index] += (fac_i_norm - sum_i);
     }
+  //  gavl_video_scale_table_dump_int(tab);
   }
 
 void gavl_video_scale_table_cleanup(gavl_video_scale_table_t * tab)

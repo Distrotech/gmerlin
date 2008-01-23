@@ -64,8 +64,6 @@ static const mmx_t factor_mask = { 0x000000000000FFFFLL };
   if(a < ctx->min_values_h[idx]) a = ctx->min_values_h[idx];    \
   if(a > ctx->max_values_h[idx]) a = ctx->max_values_h[idx]
 
-
-
 /* scale_uint8_x_1_x_bicubic_mmx */
 
 static void scale_uint8_x_1_x_bicubic_mmx(gavl_video_scale_context_t * ctx)
@@ -98,8 +96,9 @@ static void scale_uint8_x_1_x_bicubic_mmx(gavl_video_scale_context_t * ctx)
     pmaddwd_r2r(mm2, mm0);
     MOVQ_R2M(mm0, tmp_mm);
     tmp = tmp_mm.d[0] + tmp_mm.d[1];
+    tmp >>= 14;
     RECLIP(tmp, ctx->plane);
-    *(dst++) = tmp >> 14;
+    *(dst++) = tmp;
     }
   emms();
   }
@@ -373,8 +372,6 @@ static void scale_uint8_x_1_x_generic_mmx(gavl_video_scale_context_t * ctx)
   mmx_t tmp_mm;
   int tmp;
   
-  //  fprintf(stderr, "scale_uint8_x_1_x_generic_mmx\n");
-
   src_start = ctx->src + ctx->scanline * ctx->src_stride;
   
   pxor_r2r(mm6, mm6);
@@ -386,7 +383,7 @@ static void scale_uint8_x_1_x_generic_mmx(gavl_video_scale_context_t * ctx)
 
     jmax = ctx->table_h.factors_per_pixel / 4;
     tmp = 0;
-
+#if 1
     pxor_r2r(mm4, mm4);
 
     for(j = 0; j < jmax; j++)
@@ -411,18 +408,34 @@ static void scale_uint8_x_1_x_generic_mmx(gavl_video_scale_context_t * ctx)
 
     
     jmax = ctx->table_h.factors_per_pixel % 4;
-
+#else
+    jmax = ctx->table_h.factors_per_pixel;
+#endif    
     for(j = 0; j < jmax; j++)
       {
       tmp += *factors * *src;
       factors++;
       src++;
       }
+
     
+    //    if(tmp > (255 << 14)) tmp = 255 << 14;
+    //    if(tmp < 0) tmp = 0;
+    tmp >>= 14;
     RECLIP(tmp, ctx->plane);
-    *(dst++) = tmp >> 14;
+    *(dst++) = tmp;
+    
     }
   emms();
+#if 0
+  fprintf(stderr, "Min1: %d %d %d, max1: %d %d %d, test: %d\n",
+          ctx->min_values_h[0],
+          ctx->min_values_h[1],
+          ctx->min_values_h[2],
+          ctx->max_values_h[0],
+          ctx->max_values_h[1],
+          ctx->max_values_h[2], 255 << 14);
+#endif
   }
 
 /* scale_uint8_x_4_x_generic_mmx */

@@ -267,7 +267,7 @@ static void get_offset_internal(gavl_pixelformat_t pixelformat,
   }
 
 static void get_minmax(gavl_pixelformat_t pixelformat,
-                       uint32_t * min, uint32_t * max)
+                       int * min, int * max)
   {
   switch(pixelformat)
     {
@@ -490,7 +490,7 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
                                   int src_field, int dst_field,
                                   int src_fields, int dst_fields)
   {
-  int bits_h = 0, bits_v = 0, i;
+  int bits_h = 0, bits_v = 0;
   int sub_h_in = 1, sub_v_in = 1, sub_h_out = 1, sub_v_out = 1;
   int scale_x, scale_y;
   gavl_video_options_t tmp_opt, tmp_opt_y;
@@ -714,7 +714,7 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
       gavl_init_scale_funcs(&funcs, &tmp_opt, ctx->offset1.src_advance,
                             ctx->offset2.dst_advance);
       ctx->func1 = get_func(&(funcs.funcs_xy), src_format->pixelformat, &bits_h);
-      //      fprintf(stderr, "X AND Y\n");
+      //      fprintf(stderr, "X AND Y %d\n");
       }
     
     if(ctx->func1) /* Scaling routines for x-y are there, good */
@@ -722,6 +722,7 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
       ctx->num_directions = 1;
             
       gavl_video_scale_table_init_int(&(ctx->table_h), bits_h);
+      /* Must be bits_h since we have only one function (and thus one accuracy) */
       gavl_video_scale_table_init_int(&(ctx->table_v), bits_h);
       ctx->offset = &(ctx->offset1);
       ctx->dst_size = ctx->dst_rect.w;
@@ -857,6 +858,17 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
   
   get_minmax(src_format->pixelformat, ctx->min_values_h, ctx->max_values_h);
   get_minmax(src_format->pixelformat, ctx->min_values_v, ctx->max_values_v);
+
+#if 0
+  fprintf(stderr, "Min: %d %d %d, max: %d %d %d\n",
+          ctx->min_values_h[0],
+          ctx->min_values_h[1],
+          ctx->min_values_h[2],
+          ctx->max_values_h[0],
+          ctx->max_values_h[1],
+          ctx->max_values_h[2]);
+#endif
+#if 0
   for(i = 0; i < 4; i++)
     {
     ctx->min_values_h[i] <<= bits_h;
@@ -865,7 +877,17 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
     ctx->min_values_v[i] <<= bits_v;
     ctx->max_values_v[i] <<= bits_v;
     }
-
+#endif
+#if 0
+  fprintf(stderr, "Min: %d %d %d, max: %d %d %d\n",
+          ctx->min_values_h[0],
+          ctx->min_values_h[1],
+          ctx->min_values_h[2],
+          ctx->max_values_h[0],
+          ctx->max_values_h[1],
+          ctx->max_values_h[2]);
+#endif
+    
 #if 0
   for(i = 0; i < 4; i++)
     {

@@ -23,30 +23,22 @@
 #include <video.h>
 #include <scale.h>
 
-/* Packed formats for 15/16 colors (idea from libvisual) */
-
-typedef struct {
-	uint16_t b:5, g:6, r:5;
-} color_16;
-
-typedef struct {
-	uint16_t b:5, g:5, r:5;
-} color_15;
+#include "scale_macros.h"
 
 /* x-Direction */
 
 #define FUNC_NAME scale_rgb_15_x_quadratic_c
 #define TYPE color_15
 #define SCALE \
-  dst->r = (ctx->table_h.pixels[i].factor_i[0] * src_1->r + \
+  dst->r = DOWNSHIFT(ctx->table_h.pixels[i].factor_i[0] * src_1->r + \
             ctx->table_h.pixels[i].factor_i[1] * src_2->r + \
-            ctx->table_h.pixels[i].factor_i[2] * src_3->r) >> 16;    \
-  dst->g = (ctx->table_h.pixels[i].factor_i[0] * src_1->g + \
+            ctx->table_h.pixels[i].factor_i[2] * src_3->r, 16);    \
+  dst->g = DOWNSHIFT(ctx->table_h.pixels[i].factor_i[0] * src_1->g + \
             ctx->table_h.pixels[i].factor_i[1] * src_2->g + \
-            ctx->table_h.pixels[i].factor_i[2] * src_3->g) >> 16;    \
-  dst->b = (ctx->table_h.pixels[i].factor_i[0] * src_1->b + \
+            ctx->table_h.pixels[i].factor_i[2] * src_3->g, 16);    \
+  dst->b = DOWNSHIFT(ctx->table_h.pixels[i].factor_i[0] * src_1->b + \
             ctx->table_h.pixels[i].factor_i[1] * src_2->b + \
-            ctx->table_h.pixels[i].factor_i[2] * src_3->b) >> 16;
+            ctx->table_h.pixels[i].factor_i[2] * src_3->b, 16);
 
 #define NUM_TAPS 3
 #include "scale_x.h"
@@ -54,15 +46,15 @@ typedef struct {
 #define FUNC_NAME scale_rgb_16_x_quadratic_c
 #define TYPE color_16
 #define SCALE \
-  dst->r = (ctx->table_h.pixels[i].factor_i[0] * src_1->r +         \
+  dst->r = DOWNSHIFT(ctx->table_h.pixels[i].factor_i[0] * src_1->r +         \
             ctx->table_h.pixels[i].factor_i[1] * src_2->r +         \
-            ctx->table_h.pixels[i].factor_i[2] * src_3->r) >> 16;    \
-  dst->g = (ctx->table_h.pixels[i].factor_i[0] * src_1->g + \
+            ctx->table_h.pixels[i].factor_i[2] * src_3->r, 16);    \
+  dst->g = DOWNSHIFT(ctx->table_h.pixels[i].factor_i[0] * src_1->g + \
             ctx->table_h.pixels[i].factor_i[1] * src_2->g + \
-            ctx->table_h.pixels[i].factor_i[2] * src_3->g) >> 16;    \
-  dst->b = (ctx->table_h.pixels[i].factor_i[0] * src_1->b + \
+            ctx->table_h.pixels[i].factor_i[2] * src_3->g, 16);    \
+  dst->b = DOWNSHIFT(ctx->table_h.pixels[i].factor_i[0] * src_1->b + \
             ctx->table_h.pixels[i].factor_i[1] * src_2->b + \
-            ctx->table_h.pixels[i].factor_i[2] * src_3->b) >> 16;
+            ctx->table_h.pixels[i].factor_i[2] * src_3->b, 16);
 
 #define NUM_TAPS 3
 #include "scale_x.h"
@@ -70,9 +62,9 @@ typedef struct {
 #define FUNC_NAME scale_uint8_x_1_x_quadratic_c
 #define TYPE uint8_t
 #define SCALE \
-  dst[0] = (ctx->table_h.pixels[i].factor_i[0] * src_1[0] + \
+  dst[0] = DOWNSHIFT(ctx->table_h.pixels[i].factor_i[0] * src_1[0] + \
             ctx->table_h.pixels[i].factor_i[1] * src_2[0] + \
-            ctx->table_h.pixels[i].factor_i[2] * src_3[0]) >> 16;
+            ctx->table_h.pixels[i].factor_i[2] * src_3[0], 16);
 
 #define NUM_TAPS 3
 #include "scale_x.h"
@@ -80,15 +72,15 @@ typedef struct {
 #define FUNC_NAME scale_uint8_x_3_x_quadratic_c
 #define TYPE uint8_t
 #define SCALE \
-  dst[0] = (ctx->table_h.pixels[i].factor_i[0] * src_1[0] + \
+  dst[0] = DOWNSHIFT(ctx->table_h.pixels[i].factor_i[0] * src_1[0] + \
             ctx->table_h.pixels[i].factor_i[1] * src_2[0] + \
-            ctx->table_h.pixels[i].factor_i[2] * src_3[0]) >> 16;    \
-  dst[1] = (ctx->table_h.pixels[i].factor_i[0] * src_1[1] + \
+            ctx->table_h.pixels[i].factor_i[2] * src_3[0], 16);    \
+  dst[1] = DOWNSHIFT(ctx->table_h.pixels[i].factor_i[0] * src_1[1] + \
             ctx->table_h.pixels[i].factor_i[1] * src_2[1] + \
-            ctx->table_h.pixels[i].factor_i[2] * src_3[1]) >> 16;    \
-  dst[2] = (ctx->table_h.pixels[i].factor_i[0] * src_1[2] + \
+            ctx->table_h.pixels[i].factor_i[2] * src_3[1], 16);    \
+  dst[2] = DOWNSHIFT(ctx->table_h.pixels[i].factor_i[0] * src_1[2] + \
             ctx->table_h.pixels[i].factor_i[1] * src_2[2] + \
-            ctx->table_h.pixels[i].factor_i[2] * src_3[2]) >> 16;
+            ctx->table_h.pixels[i].factor_i[2] * src_3[2], 16);
 
 #define NUM_TAPS 3
 #include "scale_x.h"
@@ -96,18 +88,18 @@ typedef struct {
 #define FUNC_NAME scale_uint8_x_4_x_quadratic_c
 #define TYPE uint8_t
 #define SCALE \
-  dst[0] = (ctx->table_h.pixels[i].factor_i[0] * src_1[0] + \
+  dst[0] = DOWNSHIFT(ctx->table_h.pixels[i].factor_i[0] * src_1[0] + \
             ctx->table_h.pixels[i].factor_i[1] * src_2[0] + \
-            ctx->table_h.pixels[i].factor_i[2] * src_3[0]) >> 16;    \
-  dst[1] = (ctx->table_h.pixels[i].factor_i[0] * src_1[1] + \
+            ctx->table_h.pixels[i].factor_i[2] * src_3[0], 16);    \
+  dst[1] = DOWNSHIFT(ctx->table_h.pixels[i].factor_i[0] * src_1[1] + \
             ctx->table_h.pixels[i].factor_i[1] * src_2[1] + \
-            ctx->table_h.pixels[i].factor_i[2] * src_3[1]) >> 16;    \
-  dst[2] = (ctx->table_h.pixels[i].factor_i[0] * src_1[2] + \
+            ctx->table_h.pixels[i].factor_i[2] * src_3[1], 16);    \
+  dst[2] = DOWNSHIFT(ctx->table_h.pixels[i].factor_i[0] * src_1[2] + \
             ctx->table_h.pixels[i].factor_i[1] * src_2[2] + \
-            ctx->table_h.pixels[i].factor_i[2] * src_3[2]) >> 16;    \
-  dst[3] = (ctx->table_h.pixels[i].factor_i[0] * src_1[3] + \
+            ctx->table_h.pixels[i].factor_i[2] * src_3[2], 16);    \
+  dst[3] = DOWNSHIFT(ctx->table_h.pixels[i].factor_i[0] * src_1[3] + \
             ctx->table_h.pixels[i].factor_i[1] * src_2[3] + \
-            ctx->table_h.pixels[i].factor_i[2] * src_3[3]) >> 16;
+            ctx->table_h.pixels[i].factor_i[2] * src_3[3], 16);
  
 #define NUM_TAPS 3
 #include "scale_x.h"
@@ -119,7 +111,7 @@ typedef struct {
   tmp = (ctx->table_h.pixels[i].factor_i[0] * src_1[0] + \
          ctx->table_h.pixels[i].factor_i[1] * src_2[0] + \
          ctx->table_h.pixels[i].factor_i[2] * src_3[0]); \
-  dst[0] = tmp >> 16;
+  dst[0] = DOWNSHIFT(tmp, 16);
 
 #define NUM_TAPS 3
 #include "scale_x.h"
@@ -131,15 +123,15 @@ typedef struct {
   tmp = (ctx->table_h.pixels[i].factor_i[0] * src_1[0] + \
          ctx->table_h.pixels[i].factor_i[1] * src_2[0] + \
          ctx->table_h.pixels[i].factor_i[2] * src_3[0]); \
-  dst[0] = tmp >> 16; \
+  dst[0] = DOWNSHIFT(tmp, 16); \
   tmp = (ctx->table_h.pixels[i].factor_i[0] * src_1[1] + \
          ctx->table_h.pixels[i].factor_i[1] * src_2[1] + \
          ctx->table_h.pixels[i].factor_i[2] * src_3[1]); \
-  dst[1] = tmp >> 16; \
+  dst[1] = DOWNSHIFT(tmp, 16); \
   tmp = (ctx->table_h.pixels[i].factor_i[0] * src_1[2] + \
          ctx->table_h.pixels[i].factor_i[1] * src_2[2] + \
          ctx->table_h.pixels[i].factor_i[2] * src_3[2]); \
-  dst[2] = tmp >> 16;
+  dst[2] = DOWNSHIFT(tmp, 16);
 
 #define NUM_TAPS 3
 #include "scale_x.h"
@@ -151,19 +143,19 @@ typedef struct {
   tmp = (ctx->table_h.pixels[i].factor_i[0] * src_1[0] + \
          ctx->table_h.pixels[i].factor_i[1] * src_2[0] + \
          ctx->table_h.pixels[i].factor_i[2] * src_3[0]); \
-  dst[0] = tmp >> 16; \
+  dst[0] = DOWNSHIFT(tmp, 16); \
   tmp = (ctx->table_h.pixels[i].factor_i[0] * src_1[1] + \
          ctx->table_h.pixels[i].factor_i[1] * src_2[1] + \
          ctx->table_h.pixels[i].factor_i[2] * src_3[1]); \
-  dst[1] = tmp >> 16; \
+  dst[1] = DOWNSHIFT(tmp, 16); \
   tmp = (ctx->table_h.pixels[i].factor_i[0] * src_1[2] + \
          ctx->table_h.pixels[i].factor_i[1] * src_2[2] + \
          ctx->table_h.pixels[i].factor_i[2] * src_3[2]); \
-  dst[2] = tmp >> 16; \
+  dst[2] = DOWNSHIFT(tmp, 16); \
   tmp = (ctx->table_h.pixels[i].factor_i[0] * src_1[3] + \
          ctx->table_h.pixels[i].factor_i[1] * src_2[3] + \
          ctx->table_h.pixels[i].factor_i[2] * src_3[3]); \
-  dst[3] = tmp >> 16;
+  dst[3] = DOWNSHIFT(tmp, 16);
 
 #define NUM_TAPS 3
 #include "scale_x.h"
@@ -216,15 +208,15 @@ typedef struct {
 #define NO_UINT8
 
 #define SCALE                                                           \
-  dst->r = (fac_1 * src_1->r + \
+  dst->r = DOWNSHIFT(fac_1 * src_1->r + \
             fac_2 * src_2->r + \
-            fac_3 * src_3->r) >> 16;                     \
-  dst->g = (fac_1 * src_1->g + \
+            fac_3 * src_3->r, 16);                     \
+  dst->g = DOWNSHIFT(fac_1 * src_1->g + \
             fac_2 * src_2->g + \
-            fac_3 * src_3->g) >> 16;                     \
-  dst->b = (fac_1 * src_1->b + \
+            fac_3 * src_3->g, 16);                     \
+  dst->b = DOWNSHIFT(fac_1 * src_1->b + \
             fac_2 * src_2->b + \
-            fac_3 * src_3->b) >> 16;
+            fac_3 * src_3->b, 16);
 
 #define NUM_TAPS 3
 #include "scale_y.h"
@@ -239,15 +231,15 @@ typedef struct {
 #define NO_UINT8
 
 #define SCALE                                           \
-  dst->r = (fac_1 * src_1->r + \
+  dst->r = DOWNSHIFT(fac_1 * src_1->r + \
             fac_2 * src_2->r + \
-            fac_3 * src_3->r) >> 16;                     \
-  dst->g = (fac_1 * src_1->g + \
+            fac_3 * src_3->r, 16);                     \
+  dst->g = DOWNSHIFT(fac_1 * src_1->g + \
             fac_2 * src_2->g + \
-            fac_3 * src_3->g) >> 16;                     \
-  dst->b = (fac_1 * src_1->b + \
+            fac_3 * src_3->g, 16);                     \
+  dst->b = DOWNSHIFT(fac_1 * src_1->b + \
             fac_2 * src_2->b + \
-            fac_3 * src_3->b) >> 16;
+            fac_3 * src_3->b, 16);
 
 #define NUM_TAPS 3
 #include "scale_y.h"
@@ -260,9 +252,9 @@ typedef struct {
   fac_3 = ctx->table_v.pixels[ctx->scanline].factor_i[2];
 
 #define SCALE                  \
-  dst[0] = (fac_1 * src_1[0] + \
+  dst[0] = DOWNSHIFT(fac_1 * src_1[0] + \
             fac_2 * src_2[0] + \
-            fac_3 * src_3[0]) >> 16;
+            fac_3 * src_3[0], 16);
 
 #define NUM_TAPS 3
 #include "scale_y.h"
@@ -275,15 +267,15 @@ typedef struct {
   fac_3 = ctx->table_v.pixels[ctx->scanline].factor_i[2];
 
 #define SCALE                  \
-  dst[0] = (fac_1 * src_1[0] + \
+  dst[0] = DOWNSHIFT(fac_1 * src_1[0] + \
             fac_2 * src_2[0] + \
-            fac_3 * src_3[0]) >> 16;                     \
-  dst[1] = (fac_1 * src_1[1] + \
+            fac_3 * src_3[0], 16);                     \
+  dst[1] = DOWNSHIFT(fac_1 * src_1[1] + \
             fac_2 * src_2[1] + \
-            fac_3 * src_3[1]) >> 16;                     \
-  dst[2] = (fac_1 * src_1[2] + \
+            fac_3 * src_3[1], 16);                     \
+  dst[2] = DOWNSHIFT(fac_1 * src_1[2] + \
             fac_2 * src_2[2] + \
-            fac_3 * src_3[2]) >> 16;
+            fac_3 * src_3[2], 16);
 
 #define NUM_TAPS 3
 #include "scale_y.h"
@@ -297,18 +289,18 @@ typedef struct {
 
 
 #define SCALE                  \
-  dst[0] = (fac_1 * src_1[0] + \
+  dst[0] = DOWNSHIFT(fac_1 * src_1[0] + \
             fac_2 * src_2[0] +                          \
-            fac_3 * src_3[0]) >> 16;                     \
-  dst[1] = (fac_1 * src_1[1] + \
+            fac_3 * src_3[0], 16);                     \
+  dst[1] = DOWNSHIFT(fac_1 * src_1[1] + \
             fac_2 * src_2[1] + \
-            fac_3 * src_3[1]) >> 16;                     \
-  dst[2] = (fac_1 * src_1[2] + \
+            fac_3 * src_3[1], 16);                     \
+  dst[2] = DOWNSHIFT(fac_1 * src_1[2] + \
             fac_2 * src_2[2] + \
-            fac_3 * src_3[2]) >> 16;                     \
-  dst[3] = (fac_1 * src_1[3] + \
+            fac_3 * src_3[2], 16);                     \
+  dst[3] = DOWNSHIFT(fac_1 * src_1[3] + \
             fac_2 * src_2[3] + \
-            fac_3 * src_3[3]) >> 16;
+            fac_3 * src_3[3], 16);
  
 #define NUM_TAPS 3
 #include "scale_y.h"
@@ -327,7 +319,7 @@ typedef struct {
   tmp = (fac_1 * src_1[0] + \
          fac_2 * src_2[0] + \
          fac_3 * src_3[0]); \
-  dst[0] = tmp >> 16;
+  dst[0] = DOWNSHIFT(tmp, 16);
 
 #define NUM_TAPS 3
 #include "scale_y.h"
@@ -349,15 +341,15 @@ typedef struct {
   tmp = (fac_1 * src_1[0] + \
          fac_2 * src_2[0] + \
          fac_3 * src_3[0]); \
-  dst[0] = tmp >> 16; \
+  dst[0] = DOWNSHIFT(tmp, 16); \
   tmp = (fac_1 * src_1[1] + \
          fac_2 * src_2[1] + \
          fac_3 * src_3[1]); \
-  dst[1] = tmp >> 16; \
+  dst[1] = DOWNSHIFT(tmp, 16); \
   tmp = (fac_1 * src_1[2] + \
          fac_2 * src_2[2] + \
          fac_3 * src_3[2]); \
-  dst[2] = tmp >> 16;
+  dst[2] = DOWNSHIFT(tmp, 16);
 
 #define NUM_TAPS 3
 #include "scale_y.h"
@@ -375,22 +367,22 @@ typedef struct {
 #define NO_UINT8
 
 #define SCALE                                  \
-  tmp = (fac_1 * src_1[0] + \
-         fac_2 * src_2[0] + \
-         fac_3 * src_3[0]); \
-  dst[0] = tmp >> 16; \
-  tmp = (fac_1 * src_1[1] + \
-         fac_2 * src_2[1] + \
-         fac_3 * src_3[1]); \
-  dst[1] = tmp >> 16; \
-  tmp = (fac_1 * src_1[2] + \
-         fac_2 * src_2[2] + \
-         fac_3 * src_2[2]); \
-  dst[2] = tmp >> 16; \
-  tmp = (fac_1 * src_1[3] + \
-         fac_2 * src_2[3] + \
-         fac_3 * src_3[3]); \
-  dst[3] = tmp >> 16;
+  tmp = fac_1 * src_1[0] + \
+        fac_2 * src_2[0] + \
+        fac_3 * src_3[0]; \
+  dst[0] = DOWNSHIFT(tmp, 16);\
+  tmp = fac_1 * src_1[1] + \
+        fac_2 * src_2[1] + \
+        fac_3 * src_3[1]; \
+  dst[1] = DOWNSHIFT(tmp, 16); \
+  tmp = fac_1 * src_1[2] + \
+        fac_2 * src_2[2] + \
+        fac_3 * src_2[2]; \
+  dst[2] = DOWNSHIFT(tmp, 16); \
+  tmp = fac_1 * src_1[3] + \
+        fac_2 * src_2[3] + \
+        fac_3 * src_3[3]; \
+  dst[3] = DOWNSHIFT(tmp, 16);
 
 #define NUM_TAPS 3
 #include "scale_y.h"

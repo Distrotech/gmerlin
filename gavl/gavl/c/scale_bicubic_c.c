@@ -24,34 +24,7 @@
 #include <video.h>
 #include <scale.h>
 
-/* Packed formats for 15/16 colors (idea from libvisual) */
-
-typedef struct {
-	uint16_t b:5, g:6, r:5;
-} color_16;
-
-typedef struct {
-	uint16_t b:5, g:5, r:5;
-} color_15;
-
-#ifdef NOCLIP
-#define RECLIP_H(a,idx)
-#define RECLIP_V(a,idx)
-#define RECLIP_FLOAT(a)
-
-#else
-
-#define RECLIP_H(a,idx) \
-  if(GAVL_UNLIKELY(a < ctx->min_values_h[idx])) a = ctx->min_values_h[idx];    \
-  if(GAVL_UNLIKELY(a > ctx->max_values_h[idx])) a = ctx->max_values_h[idx]
-
-#define RECLIP_V(a,idx) \
-  if(GAVL_UNLIKELY(a < ctx->min_values_v[idx])) a = ctx->min_values_v[idx];    \
-  if(GAVL_UNLIKELY(a > ctx->max_values_v[idx])) a = ctx->max_values_v[idx]
-
-#define RECLIP_FLOAT(a) if(GAVL_UNLIKELY(a < 0.0)) a = 0.0; if(GAVL_UNLIKELY(a > 1.0)) a = 1.0
-
-#endif
+#include "scale_macros.h"
 
 /* x-Direction */
 
@@ -63,20 +36,23 @@ typedef struct {
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2->r +   \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3->r +   \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4->r);   \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,0);                                                        \
-  dst->r = tmp >> 16;                                                    \
+  dst->r = tmp;                                                    \
   tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1->g +   \
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2->g +   \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3->g +   \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4->g);   \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,1);                                                        \
-  dst->g = tmp >> 16;                                                    \
+  dst->g = tmp; \
   tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1->b +   \
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2->b +   \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3->b +   \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4->b);   \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,2);                                                        \
-  dst->b = tmp >> 16;                                                    \
+  dst->b = tmp;                                                    \
 
 #define NUM_TAPS 4
 #include "scale_x.h"
@@ -89,20 +65,23 @@ typedef struct {
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2->r +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3->r +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4->r);       \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,0);                                                     \
-  dst->r = tmp >> 16;                                               \
+  dst->r = tmp;                                               \
   tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1->g +      \
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2->g +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3->g +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4->g);       \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,1);                                                     \
-  dst->g = tmp >> 16;                                               \
+  dst->g = tmp;                                               \
   tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1->b + \
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2->b +    \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3->b +    \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4->b);\
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,2);                                                     \
-  dst->b = tmp >> 16;                                               \
+  dst->b = tmp;                                               \
 
 #define NUM_TAPS 4
 #include "scale_x.h"
@@ -115,8 +94,9 @@ typedef struct {
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[0] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[0]);            \
-  RECLIP_H(tmp,ctx->plane);                                               \
-  dst[0] = tmp >> 16;
+  tmp=DOWNSHIFT(tmp,16);\
+/*  RECLIP_H(tmp,ctx->plane);  */                                             \
+  dst[0] = tmp;
 
 #define NUM_TAPS 4
 #include "scale_x.h"
@@ -129,20 +109,23 @@ typedef struct {
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[0] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[0]);       \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,0);                                                         \
-  dst[0] = tmp >> 16;                                                    \
+  dst[0] = tmp;                                                    \
   tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[1] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[1] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[1] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[1]);       \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,1);                                                          \
-  dst[1] = tmp >> 16;                                                    \
+  dst[1] = tmp;                                                    \
   tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[2] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[2] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[2] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[2]);       \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,2);                                                          \
-  dst[2] = tmp >> 16;
+  dst[2] = tmp;
 
 #define NUM_TAPS 4
 #include "scale_x.h"
@@ -155,26 +138,30 @@ typedef struct {
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[0] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[0]);            \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,0);                                                         \
-  dst[0] = tmp >> 16;                                                    \
+  dst[0] = tmp;                                                    \
   tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[1] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[1] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[1] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[1]);            \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,1);                                                          \
-  dst[1] = tmp >> 16;                                                    \
+  dst[1] = tmp;                                                    \
   tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[2] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[2] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[2] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[2]);            \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,2);                                                          \
-  dst[2] = tmp >> 16;                                                    \
+  dst[2] = tmp;                                                    \
   tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[3] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[3] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[3] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[3]);            \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,3);                                                          \
-  dst[3] = tmp >> 16;
+  dst[3] = tmp;
  
 #define NUM_TAPS 4
 #include "scale_x.h"
@@ -187,8 +174,9 @@ typedef struct {
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[0] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[0]); \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,ctx->plane);                                             \
-  dst[0] = tmp >> 16;
+  dst[0] = tmp;
 
 #define NUM_TAPS 4
 #include "scale_x.h"
@@ -201,20 +189,23 @@ typedef struct {
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[0] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[0]); \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,0);                                                       \
-  dst[0] = tmp >> 16; \
+  dst[0] = tmp; \
   tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[1] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[1] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[1] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[1]); \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,1);                                               \
-  dst[1] = tmp >> 16; \
+  dst[1] = tmp; \
   tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[2] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[2] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[2] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[2]); \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,2);                                               \
-  dst[2] = tmp >> 16;
+  dst[2] = tmp;
 
 #define NUM_TAPS 4
 #include "scale_x.h"
@@ -227,26 +218,30 @@ typedef struct {
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[0] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[0]); \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,0);                                               \
-  dst[0] = tmp >> 16; \
+  dst[0] = tmp; \
   tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[1] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[1] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[1] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[1]); \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,1);                                               \
-  dst[1] = tmp >> 16; \
+  dst[1] = tmp; \
   tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[2] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[2] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[2] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[2]); \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,2);                                               \
-  dst[2] = tmp >> 16; \
+  dst[2] = tmp; \
   tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[3] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[3] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[3] + \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[3]); \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,3);                                                       \
-  dst[3] = tmp >> 16;
+  dst[3] = tmp;
 
 #define NUM_TAPS 4
 #include "scale_x.h"
@@ -320,20 +315,23 @@ typedef struct {
          fac_2 * src_2->r +    \
          fac_3 * src_3->r +                             \
          fac_4 * src_4->r);                        \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_V(tmp, 0);                                       \
-  dst->r = tmp >> 16;                                    \
+  dst->r = tmp;                                    \
   tmp = (fac_1 * src_1->g +                             \
          fac_2 * src_2->g +                             \
          fac_3 * src_3->g +                             \
          fac_4 * src_4->g);                        \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_V(tmp, 1);                                       \
-  dst->g = tmp >> 16;                                    \
+  dst->g = tmp;                                    \
   tmp = (fac_1 * src_1->b +                             \
          fac_2 * src_2->b +                             \
          fac_3 * src_3->b +                             \
          fac_4 * src_4->b);                        \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_V(tmp, 2);                                       \
-  dst->b = tmp >> 16;
+  dst->b = tmp;
 
 #define NUM_TAPS 4
 #include "scale_y.h"
@@ -355,20 +353,23 @@ typedef struct {
          fac_2 * src_2->r +                             \
          fac_3 * src_3->r +                             \
          fac_4 * src_4->r);                             \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_V(tmp, 0);                                       \
-  dst->r = tmp >> 16;                                     \
+  dst->r = tmp;                                     \
   tmp = (fac_1 * src_1->g +                             \
          fac_2 * src_2->g +                             \
          fac_3 * src_3->g +                             \
          fac_4 * src_4->g);                        \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_V(tmp, 1);                                       \
-  dst->g = tmp >> 16;                                     \
+  dst->g = tmp;                                     \
   tmp = (fac_1 * src_1->b +                             \
          fac_2 * src_2->b +                             \
          fac_3 * src_3->b +                             \
          fac_4 * src_4->b);                        \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_V(tmp, 2);                                       \
-  dst->b = tmp >> 16;                                     \
+  dst->b = tmp;                                     \
 
 #define NUM_TAPS 4
 #include "scale_y.h"
@@ -386,8 +387,9 @@ typedef struct {
          fac_2 * src_2[0] +    \
          fac_3 * src_3[0] +                     \
          fac_4 * src_4[0]);                     \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_V(tmp, ctx->plane);                      \
-  dst[0] = tmp >> 16;
+  dst[0] = tmp;
 
 #define NUM_TAPS 4
 #include "scale_y.h"
@@ -405,20 +407,23 @@ typedef struct {
          fac_2 * src_2[0] +                     \
          fac_3 * src_3[0] +                      \
          fac_4 * src_4[0]);                 \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_V(tmp, 0);                                \
-  dst[0] = tmp >> 16;                             \
+  dst[0] = tmp;                             \
   tmp = (fac_1 * src_1[1] +                             \
          fac_2 * src_2[1] +                             \
          fac_3 * src_3[1] +                             \
          fac_4 * src_4[1]);                        \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_V(tmp, ctx->plane);                              \
-  dst[1] = tmp >> 16;                                    \
+  dst[1] = tmp;                                    \
   tmp = (fac_1 * src_1[2] +                             \
          fac_2 * src_2[2] +                             \
          fac_3 * src_3[2] +                             \
          fac_4 * src_4[2]);                        \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_V(tmp, ctx->plane);                              \
-  dst[2] = tmp >> 16;
+  dst[2] = tmp;
 
 #define NUM_TAPS 4
 #include "scale_y.h"
@@ -436,26 +441,30 @@ typedef struct {
          fac_2 * src_2[0] +                     \
          fac_3 * src_3[0] +                      \
          fac_4 * src_4[0]);                 \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_V(tmp, 0);                                \
-  dst[0] = tmp >> 16;                             \
+  dst[0] = tmp;                             \
   tmp = (fac_1 * src_1[1] +                             \
          fac_2 * src_2[1] +                             \
          fac_3 * src_3[1] +                             \
          fac_4 * src_4[1]);                        \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_V(tmp, 1);                              \
-  dst[1] = tmp >> 16;                                    \
+  dst[1] = tmp;                                    \
   tmp = (fac_1 * src_1[2] +                             \
          fac_2 * src_2[2] +                             \
          fac_3 * src_3[2] +                             \
          fac_4 * src_4[2]);                        \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_V(tmp, 2);                                       \
-  dst[2] = tmp >> 16;                                    \
+  dst[2] = tmp;                                    \
   tmp = (fac_1 * src_1[3] +                             \
          fac_2 * src_2[3] +                             \
          fac_3 * src_3[3] +                             \
          fac_4 * src_4[3]);                        \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_V(tmp, 3);                              \
-  dst[3] = tmp >> 16;
+  dst[3] = tmp;
 
 
 
@@ -478,8 +487,9 @@ typedef struct {
          fac_2 * src_2[0] + \
          fac_3 * src_3[0] + \
          fac_4 * src_4[0]); \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_V(tmp, ctx->plane);                    \
-  dst[0] = tmp >> 16;
+  dst[0] = tmp;
 
 #define NUM_TAPS 4
 #include "scale_y.h"
@@ -501,20 +511,23 @@ typedef struct {
          fac_2 * src_2[0] +                    \
          fac_3 * src_3[0] +                    \
          fac_4 * src_4[0]);                    \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_V(tmp, 0);                              \
-  dst[0] = tmp >> 16;                          \
+  dst[0] = tmp;                          \
   tmp = (fac_1 * src_1[1] +                    \
          fac_2 * src_2[1] +                    \
          fac_3 * src_3[1] +                    \
          fac_4 * src_4[1]);                    \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_V(tmp, 1);                              \
-  dst[1] = tmp >> 16;                          \
+  dst[1] = tmp;                          \
   tmp = (fac_1 * src_1[2] +                    \
          fac_2 * src_2[2] +                    \
          fac_3 * src_3[2] +                    \
          fac_4 * src_4[2]);                    \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_V(tmp, 2);                              \
-  dst[2] = tmp >> 16;
+  dst[2] = tmp;
 
 #define NUM_TAPS 4
 #include "scale_y.h"
@@ -535,26 +548,30 @@ typedef struct {
          fac_2 * src_2[0] + \
          fac_3 * src_3[0] + \
          fac_4 * src_4[0]); \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_V(tmp, 0);                              \
-  dst[0] = tmp >> 16; \
+  dst[0] = tmp; \
   tmp = (fac_1 * src_1[1] + \
          fac_2 * src_2[1] + \
          fac_3 * src_3[1] + \
          fac_4 * src_4[1]); \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_V(tmp, 1);                              \
-  dst[1] = tmp >> 16; \
+  dst[1] = tmp; \
   tmp = (fac_1 * src_1[2] + \
          fac_2 * src_2[2] + \
          fac_3 * src_2[2] + \
          fac_4 * src_4[2]); \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_V(tmp, 2);                              \
-  dst[2] = tmp >> 16; \
+  dst[2] = tmp; \
   tmp = (fac_1 * src_1[3] + \
          fac_2 * src_2[3] + \
          fac_3 * src_3[3] + \
          fac_4 * src_4[3]); \
+  tmp=DOWNSHIFT(tmp,16);\
   RECLIP_V(tmp, 3);                              \
-  dst[3] = tmp >> 16;
+  dst[3] = tmp;
 
 #define NUM_TAPS 4
 #include "scale_y.h"

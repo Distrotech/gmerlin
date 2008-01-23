@@ -24,15 +24,7 @@
 #include <video.h>
 #include <scale.h>
 
-/* Packed formats for 15/16 colors (idea from libvisual) */
-
-typedef struct {
-	uint16_t b:5, g:6, r:5;
-} color_16;
-
-typedef struct {
-	uint16_t b:5, g:5, r:5;
-} color_15;
+#include <scale_macros.h>
 
 /* x-Direction */
 
@@ -57,64 +49,82 @@ typedef struct {
 #define FUNC_NAME scale_uint8_x_1_x_bilinear_c
 #define TYPE uint8_t
 #define SCALE \
-  dst[0] = (ctx->table_h.pixels[i].factor_i[0] * src_1[0] + ctx->table_h.pixels[i].factor_i[1] * src_2[0]) >> 16;
+  dst[0] = DOWNSHIFT(ctx->table_h.pixels[i].factor_i[0] * src_1[0] + ctx->table_h.pixels[i].factor_i[1] * src_2[0], 16);
 
 #include "scale_bilinear_x.h"
 
 #define FUNC_NAME scale_uint8_x_3_x_bilinear_c
 #define TYPE uint8_t
 #define SCALE \
-  dst[0] = (ctx->table_h.pixels[i].factor_i[0] * src_1[0] + ctx->table_h.pixels[i].factor_i[1] * src_2[0]) >> 16;\
-  dst[1] = (ctx->table_h.pixels[i].factor_i[0] * src_1[1] + ctx->table_h.pixels[i].factor_i[1] * src_2[1]) >> 16;\
-  dst[2] = (ctx->table_h.pixels[i].factor_i[0] * src_1[2] + ctx->table_h.pixels[i].factor_i[1] * src_2[2]) >> 16;
+  dst[0] = DOWNSHIFT(ctx->table_h.pixels[i].factor_i[0] * src_1[0] + ctx->table_h.pixels[i].factor_i[1] * src_2[0], 16);\
+  dst[1] = DOWNSHIFT(ctx->table_h.pixels[i].factor_i[0] * src_1[1] + ctx->table_h.pixels[i].factor_i[1] * src_2[1], 16);\
+  dst[2] = DOWNSHIFT(ctx->table_h.pixels[i].factor_i[0] * src_1[2] + ctx->table_h.pixels[i].factor_i[1] * src_2[2], 16);
 
 #include "scale_bilinear_x.h"
 
 #define FUNC_NAME scale_uint8_x_4_x_bilinear_c
 #define TYPE uint8_t
 #define SCALE \
-  dst[0] = (ctx->table_h.pixels[i].factor_i[0] * src_1[0] + ctx->table_h.pixels[i].factor_i[1] * src_2[0]) >> 16;\
-  dst[1] = (ctx->table_h.pixels[i].factor_i[0] * src_1[1] + ctx->table_h.pixels[i].factor_i[1] * src_2[1]) >> 16;\
-  dst[2] = (ctx->table_h.pixels[i].factor_i[0] * src_1[2] + ctx->table_h.pixels[i].factor_i[1] * src_2[2]) >> 16;\
-  dst[3] = (ctx->table_h.pixels[i].factor_i[0] * src_1[3] + ctx->table_h.pixels[i].factor_i[1] * src_2[3]) >> 16;
- 
+  dst[0] = DOWNSHIFT(ctx->table_h.pixels[i].factor_i[0] * src_1[0] + ctx->table_h.pixels[i].factor_i[1] * src_2[0], 16);\
+  dst[1] = DOWNSHIFT(ctx->table_h.pixels[i].factor_i[0] * src_1[1] + ctx->table_h.pixels[i].factor_i[1] * src_2[1], 16);\
+  dst[2] = DOWNSHIFT(ctx->table_h.pixels[i].factor_i[0] * src_1[2] + ctx->table_h.pixels[i].factor_i[1] * src_2[2], 16);\
+  dst[3] = DOWNSHIFT(ctx->table_h.pixels[i].factor_i[0] * src_1[3] + ctx->table_h.pixels[i].factor_i[1] * src_2[3], 16);
+
 #include "scale_bilinear_x.h"
 
 #define FUNC_NAME scale_uint16_x_1_x_bilinear_c
 #define TYPE uint16_t
+
+#ifdef HQ
+#define INIT int64_t tmp;
+#else
 #define INIT uint32_t tmp;
+#endif
+
 #define SCALE                                                           \
   tmp = (ctx->table_h.pixels[i].factor_i[0] * src_1[0] + ctx->table_h.pixels[i].factor_i[1] * src_2[0]); \
-  dst[0] = tmp >> 16;
+  dst[0] = DOWNSHIFT(tmp, 16);
 
 #include "scale_bilinear_x.h"
 
 
 #define FUNC_NAME scale_uint16_x_3_x_bilinear_c
 #define TYPE uint16_t
+
+#ifdef HQ
+#define INIT int64_t tmp;
+#else
 #define INIT uint32_t tmp;
+#endif
+
 #define SCALE                                                           \
   tmp = (ctx->table_h.pixels[i].factor_i[0] * src_1[0] + ctx->table_h.pixels[i].factor_i[1] * src_2[0]); \
-  dst[0] = tmp >> 16; \
+  dst[0] = DOWNSHIFT(tmp, 16); \
   tmp = (ctx->table_h.pixels[i].factor_i[0] * src_1[1] + ctx->table_h.pixels[i].factor_i[1] * src_2[1]); \
-  dst[1] = tmp >> 16; \
+  dst[1] = DOWNSHIFT(tmp, 16); \
   tmp = (ctx->table_h.pixels[i].factor_i[0] * src_1[2] + ctx->table_h.pixels[i].factor_i[1] * src_2[2]); \
-  dst[2] = tmp >> 16;
+  dst[2] = DOWNSHIFT(tmp, 16);
 
 #include "scale_bilinear_x.h"
 
 #define FUNC_NAME scale_uint16_x_4_x_bilinear_c
 #define TYPE uint16_t
+
+#ifdef HQ
+#define INIT int64_t tmp;
+#else
 #define INIT uint32_t tmp;
+#endif
+
 #define SCALE                                                           \
   tmp = (ctx->table_h.pixels[i].factor_i[0] * src_1[0] + ctx->table_h.pixels[i].factor_i[1] * src_2[0]); \
-  dst[0] = tmp >> 16; \
+  dst[0] = DOWNSHIFT(tmp, 16); \
   tmp = (ctx->table_h.pixels[i].factor_i[0] * src_1[1] + ctx->table_h.pixels[i].factor_i[1] * src_2[1]); \
-  dst[1] = tmp >> 16; \
+  dst[1] = DOWNSHIFT(tmp, 16); \
   tmp = (ctx->table_h.pixels[i].factor_i[0] * src_1[2] + ctx->table_h.pixels[i].factor_i[1] * src_2[2]); \
-  dst[2] = tmp >> 16; \
+  dst[2] = DOWNSHIFT(tmp, 16); \
   tmp = (ctx->table_h.pixels[i].factor_i[0] * src_1[3] + ctx->table_h.pixels[i].factor_i[1] * src_2[3]); \
-  dst[3] = tmp >> 16;
+  dst[3] = DOWNSHIFT(tmp, 16);
 
 #include "scale_bilinear_x.h"
 
@@ -176,7 +186,7 @@ typedef struct {
   fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
   fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
 #define SCALE \
-  dst[0] = (fac_1 * src_1[0] + fac_2 * src_2[0]) >> 16;
+  dst[0] = DOWNSHIFT(fac_1 * src_1[0] + fac_2 * src_2[0], 16);
 
 #include "scale_bilinear_y.h"
 
@@ -186,9 +196,9 @@ typedef struct {
   fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
   fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
 #define SCALE \
-  dst[0] = (fac_1 * src_1[0] + fac_2 * src_2[0]) >> 16;\
-  dst[1] = (fac_1 * src_1[1] + fac_2 * src_2[1]) >> 16;\
-  dst[2] = (fac_1 * src_1[2] + fac_2 * src_2[2]) >> 16;
+  dst[0] = DOWNSHIFT(fac_1 * src_1[0] + fac_2 * src_2[0], 16);\
+  dst[1] = DOWNSHIFT(fac_1 * src_1[1] + fac_2 * src_2[1], 16);\
+  dst[2] = DOWNSHIFT(fac_1 * src_1[2] + fac_2 * src_2[2], 16);
 
 #include "scale_bilinear_y.h"
 
@@ -198,64 +208,90 @@ typedef struct {
   fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
   fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
 #define SCALE \
-  dst[0] = (fac_1 * src_1[0] + fac_2 * src_2[0]) >> 16;\
-  dst[1] = (fac_1 * src_1[1] + fac_2 * src_2[1]) >> 16;\
-  dst[2] = (fac_1 * src_1[2] + fac_2 * src_2[2]) >> 16;\
-  dst[3] = (fac_1 * src_1[3] + fac_2 * src_2[3]) >> 16;
+  dst[0] = DOWNSHIFT(fac_1 * src_1[0] + fac_2 * src_2[0], 16);\
+  dst[1] = DOWNSHIFT(fac_1 * src_1[1] + fac_2 * src_2[1], 16);\
+  dst[2] = DOWNSHIFT(fac_1 * src_1[2] + fac_2 * src_2[2], 16);\
+  dst[3] = DOWNSHIFT(fac_1 * src_1[3] + fac_2 * src_2[3], 16);\
  
 #include "scale_bilinear_y.h"
 
 #define FUNC_NAME scale_uint16_x_1_y_bilinear_c
 #define TYPE uint16_t
+#ifdef HQ
+#define INIT int64_t tmp; \
+  int fac_1, fac_2;\
+  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
+#else
 #define INIT uint32_t tmp; \
   int fac_1, fac_2;\
   fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
   fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
+#endif
+
 #define NO_UINT8
 
 #define SCALE                                  \
   tmp = (fac_1 * src_1[0] + fac_2 * src_2[0]); \
-  dst[0] = tmp >> 16;
+  dst[0] = DOWNSHIFT(tmp, 16);
 
 #include "scale_bilinear_y.h"
 
 
 #define FUNC_NAME scale_uint16_x_3_y_bilinear_c
 #define TYPE uint16_t
-#define INIT uint32_t tmp;                      \
+
+#ifdef HQ
+#define INIT int64_t tmp; \
   int fac_1, fac_2;\
   fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
   fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
+#else
+#define INIT uint32_t tmp; \
+  int fac_1, fac_2;\
+  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
+#endif
+
 #define NO_UINT8
 
 
 #define SCALE                                  \
   tmp = (fac_1 * src_1[0] + fac_2 * src_2[0]); \
-  dst[0] = tmp >> 16; \
+  dst[0] = DOWNSHIFT(tmp, 16); \
   tmp = (fac_1 * src_1[1] + fac_2 * src_2[1]); \
-  dst[1] = tmp >> 16; \
+  dst[1] = DOWNSHIFT(tmp, 16); \
   tmp = (fac_1 * src_1[2] + fac_2 * src_2[2]); \
-  dst[2] = tmp >> 16;
+  dst[2] = DOWNSHIFT(tmp, 16);
 
 #include "scale_bilinear_y.h"
 
 #define FUNC_NAME scale_uint16_x_4_y_bilinear_c
 #define TYPE uint16_t
-#define INIT uint32_t tmp;\
+
+#ifdef HQ
+#define INIT int64_t tmp; \
   int fac_1, fac_2;\
   fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
   fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
+#else
+#define INIT uint32_t tmp; \
+  int fac_1, fac_2;\
+  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
+#endif
+
 #define NO_UINT8
 
 #define SCALE                                  \
   tmp = (fac_1 * src_1[0] + fac_2 * src_2[0]); \
-  dst[0] = tmp >> 16; \
+  dst[0] = DOWNSHIFT(tmp, 16); \
   tmp = (fac_1 * src_1[1] + fac_2 * src_2[1]); \
-  dst[1] = tmp >> 16; \
+  dst[1] = DOWNSHIFT(tmp, 16); \
   tmp = (fac_1 * src_1[2] + fac_2 * src_2[2]); \
-  dst[2] = tmp >> 16; \
+  dst[2] = DOWNSHIFT(tmp, 16); \
   tmp = (fac_1 * src_1[3] + fac_2 * src_2[3]); \
-  dst[3] = tmp >> 16;
+  dst[3] = DOWNSHIFT(tmp, 16);
 
 #include "scale_bilinear_y.h"
 
@@ -328,10 +364,10 @@ dst[0] = (fac_1 * src_1[0] + fac_2 * src_2[0]);   \
   fac_v_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];   \
   fac_v_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
 #define SCALE                                           \
-  dst[0] = (fac_v_1*(ctx->table_h.pixels[i].factor_i[0] * src_11[0] + ctx->table_h.pixels[i].factor_i[1] * src_12[0]) +\
-            fac_v_2*(ctx->table_h.pixels[i].factor_i[0] * src_21[0] + ctx->table_h.pixels[i].factor_i[1] * src_22[0]))>>16;
-
-
+  dst[0] = DOWNSHIFT(fac_v_1*(ctx->table_h.pixels[i].factor_i[0] * src_11[0] + \
+                              ctx->table_h.pixels[i].factor_i[1] * src_12[0]) +\
+                     fac_v_2*(ctx->table_h.pixels[i].factor_i[0] * src_21[0] + \
+                              ctx->table_h.pixels[i].factor_i[1] * src_22[0]), 16);
 
 #include "scale_bilinear_xy.h"
 
@@ -341,13 +377,18 @@ dst[0] = (fac_1 * src_1[0] + fac_2 * src_2[0]);   \
   fac_v_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];   \
   fac_v_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
 #define SCALE                                           \
-  dst[0] = (fac_v_1*(ctx->table_h.pixels[i].factor_i[0] * src_11[0] + ctx->table_h.pixels[i].factor_i[1] * src_12[0]) +\
-            fac_v_2*(ctx->table_h.pixels[i].factor_i[0] * src_21[0] + ctx->table_h.pixels[i].factor_i[1] * src_22[0]))>>16;\
-  dst[1] = (fac_v_1*(ctx->table_h.pixels[i].factor_i[0] * src_11[1] + ctx->table_h.pixels[i].factor_i[1] * src_12[1]) +\
-            fac_v_2*(ctx->table_h.pixels[i].factor_i[0] * src_21[1] + ctx->table_h.pixels[i].factor_i[1] * src_22[1]))>>16;\
-  dst[2] = (fac_v_1*(ctx->table_h.pixels[i].factor_i[0] * src_11[2] + ctx->table_h.pixels[i].factor_i[1] * src_12[2]) +\
-            fac_v_2*(ctx->table_h.pixels[i].factor_i[0] * src_21[2] + ctx->table_h.pixels[i].factor_i[1] * src_22[2]))>>16;
-  
+  dst[0] = DOWNSHIFT(fac_v_1*(ctx->table_h.pixels[i].factor_i[0] * src_11[0] + \
+                              ctx->table_h.pixels[i].factor_i[1] * src_12[0]) +\
+                     fac_v_2*(ctx->table_h.pixels[i].factor_i[0] * src_21[0] + \
+                              ctx->table_h.pixels[i].factor_i[1] * src_22[0]), 16);\
+  dst[1] = DOWNSHIFT(fac_v_1*(ctx->table_h.pixels[i].factor_i[0] * src_11[1] + \
+                              ctx->table_h.pixels[i].factor_i[1] * src_12[1]) +\
+                     fac_v_2*(ctx->table_h.pixels[i].factor_i[0] * src_21[1] + \
+                              ctx->table_h.pixels[i].factor_i[1] * src_22[1]), 16);\
+  dst[2] = DOWNSHIFT(fac_v_1*(ctx->table_h.pixels[i].factor_i[0] * src_11[2] + \
+                              ctx->table_h.pixels[i].factor_i[1] * src_12[2]) +\
+                     fac_v_2*(ctx->table_h.pixels[i].factor_i[0] * src_21[2] + \
+                              ctx->table_h.pixels[i].factor_i[1] * src_22[2]), 16);
 
 #include "scale_bilinear_xy.h"
 
@@ -357,14 +398,14 @@ dst[0] = (fac_1 * src_1[0] + fac_2 * src_2[0]);   \
   fac_v_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];   \
   fac_v_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
 #define SCALE                                           \
-  dst[0] = (fac_v_1*(ctx->table_h.pixels[i].factor_i[0] * src_11[0] + ctx->table_h.pixels[i].factor_i[1] * src_12[0]) +\
-            fac_v_2*(ctx->table_h.pixels[i].factor_i[0] * src_21[0] + ctx->table_h.pixels[i].factor_i[1] * src_22[0]))>>16;\
-  dst[1] = (fac_v_1*(ctx->table_h.pixels[i].factor_i[0] * src_11[1] + ctx->table_h.pixels[i].factor_i[1] * src_12[1]) +\
-            fac_v_2*(ctx->table_h.pixels[i].factor_i[0] * src_21[1] + ctx->table_h.pixels[i].factor_i[1] * src_22[1]))>>16;\
-  dst[2] = (fac_v_1*(ctx->table_h.pixels[i].factor_i[0] * src_11[2] + ctx->table_h.pixels[i].factor_i[1] * src_12[2]) +\
-            fac_v_2*(ctx->table_h.pixels[i].factor_i[0] * src_21[2] + ctx->table_h.pixels[i].factor_i[1] * src_22[2]))>>16;\
-  dst[3] = (fac_v_1*(ctx->table_h.pixels[i].factor_i[0] * src_11[3] + ctx->table_h.pixels[i].factor_i[1] * src_12[3]) +\
-            fac_v_2*(ctx->table_h.pixels[i].factor_i[0] * src_21[3] + ctx->table_h.pixels[i].factor_i[1] * src_22[3]))>>16;
+  dst[0] = DOWNSHIFT(fac_v_1*(ctx->table_h.pixels[i].factor_i[0] * src_11[0] + ctx->table_h.pixels[i].factor_i[1] * src_12[0]) +\
+            fac_v_2*(ctx->table_h.pixels[i].factor_i[0] * src_21[0] + ctx->table_h.pixels[i].factor_i[1] * src_22[0]), 16);\
+  dst[1] = DOWNSHIFT(fac_v_1*(ctx->table_h.pixels[i].factor_i[0] * src_11[1] + ctx->table_h.pixels[i].factor_i[1] * src_12[1]) +\
+            fac_v_2*(ctx->table_h.pixels[i].factor_i[0] * src_21[1] + ctx->table_h.pixels[i].factor_i[1] * src_22[1]), 16);\
+  dst[2] = DOWNSHIFT(fac_v_1*(ctx->table_h.pixels[i].factor_i[0] * src_11[2] + ctx->table_h.pixels[i].factor_i[1] * src_12[2]) +\
+            fac_v_2*(ctx->table_h.pixels[i].factor_i[0] * src_21[2] + ctx->table_h.pixels[i].factor_i[1] * src_22[2]), 16);\
+  dst[3] = DOWNSHIFT(fac_v_1*(ctx->table_h.pixels[i].factor_i[0] * src_11[3] + ctx->table_h.pixels[i].factor_i[1] * src_12[3]) +\
+            fac_v_2*(ctx->table_h.pixels[i].factor_i[0] * src_21[3] + ctx->table_h.pixels[i].factor_i[1] * src_22[3]), 16);
 
 #include "scale_bilinear_xy.h"
 
@@ -378,7 +419,7 @@ dst[0] = (fac_1 * src_1[0] + fac_2 * src_2[0]);   \
 #define SCALE                                  \
   tmp = (fac_v_1*((uint32_t)ctx->table_h.pixels[i].factor_i[0] * src_11[0] + (uint32_t)ctx->table_h.pixels[i].factor_i[1] * src_12[0])+ \
          fac_v_2*((uint32_t)ctx->table_h.pixels[i].factor_i[0] * src_21[0] + (uint32_t)ctx->table_h.pixels[i].factor_i[1] * src_22[0])); \
-  dst[0] = tmp >> 32;
+  dst[0] = DOWNSHIFT(tmp, 32);
 
 #include "scale_bilinear_xy.h"
 
@@ -392,13 +433,13 @@ dst[0] = (fac_1 * src_1[0] + fac_2 * src_2[0]);   \
 #define SCALE                                  \
   tmp = (fac_v_1*((uint32_t)ctx->table_h.pixels[i].factor_i[0] * src_11[0] + (uint32_t)ctx->table_h.pixels[i].factor_i[1] * src_12[0])+ \
          fac_v_2*((uint32_t)ctx->table_h.pixels[i].factor_i[0] * src_21[0] + (uint32_t)ctx->table_h.pixels[i].factor_i[1] * src_22[0])); \
-  dst[0] = tmp >> 32;                                                   \
+  dst[0] = DOWNSHIFT(tmp, 32);                                                   \
   tmp = (fac_v_1*((uint32_t)ctx->table_h.pixels[i].factor_i[0] * src_11[1] + (uint32_t)ctx->table_h.pixels[i].factor_i[1] * src_12[1])+ \
          fac_v_2*((uint32_t)ctx->table_h.pixels[i].factor_i[0] * src_21[1] + (uint32_t)ctx->table_h.pixels[i].factor_i[1] * src_22[1])); \
-  dst[1] = tmp >> 32;\
+  dst[1] = DOWNSHIFT(tmp, 32);\
   tmp = (fac_v_1*((uint32_t)ctx->table_h.pixels[i].factor_i[0] * src_11[2] + (uint32_t)ctx->table_h.pixels[i].factor_i[1] * src_12[2])+ \
          fac_v_2*((uint32_t)ctx->table_h.pixels[i].factor_i[0] * src_21[2] + (uint32_t)ctx->table_h.pixels[i].factor_i[1] * src_22[2])); \
-  dst[2] = tmp >> 32;
+  dst[2] = DOWNSHIFT(tmp, 32);
 
 #include "scale_bilinear_xy.h"
 
@@ -412,16 +453,16 @@ dst[0] = (fac_1 * src_1[0] + fac_2 * src_2[0]);   \
 #define SCALE                                   \
   tmp = (fac_v_1*((uint32_t)ctx->table_h.pixels[i].factor_i[0] * src_11[0] + (uint32_t)ctx->table_h.pixels[i].factor_i[1] * src_12[0])+ \
          fac_v_2*((uint32_t)ctx->table_h.pixels[i].factor_i[0] * src_21[0] + (uint32_t)ctx->table_h.pixels[i].factor_i[1] * src_22[0])); \
-  dst[0] = tmp >> 32;\
+  dst[0] = DOWNSHIFT(tmp, 32);\
   tmp = (fac_v_1*((uint32_t)ctx->table_h.pixels[i].factor_i[0] * src_11[1] + (uint32_t)ctx->table_h.pixels[i].factor_i[1] * src_12[1])+ \
          fac_v_2*((uint32_t)ctx->table_h.pixels[i].factor_i[0] * src_21[1] + (uint32_t)ctx->table_h.pixels[i].factor_i[1] * src_22[1])); \
-  dst[1] = tmp >> 32;\
+  dst[1] = DOWNSHIFT(tmp, 32);\
   tmp = (fac_v_1*((uint32_t)ctx->table_h.pixels[i].factor_i[0] * src_11[2] + (uint32_t)ctx->table_h.pixels[i].factor_i[1] * src_12[2])+ \
          fac_v_2*((uint32_t)ctx->table_h.pixels[i].factor_i[0] * src_21[2] + (uint32_t)ctx->table_h.pixels[i].factor_i[1] * src_22[2])); \
-  dst[2] = tmp >> 32;\
+  dst[2] = DOWNSHIFT(tmp, 32);\
   tmp = (fac_v_1*((uint32_t)ctx->table_h.pixels[i].factor_i[0] * src_11[3] + (uint32_t)ctx->table_h.pixels[i].factor_i[1] * src_12[3])+ \
          fac_v_2*((uint32_t)ctx->table_h.pixels[i].factor_i[0] * src_21[3] + (uint32_t)ctx->table_h.pixels[i].factor_i[1] * src_22[3])); \
-  dst[3] = tmp >> 32;
+  dst[3] = DOWNSHIFT(tmp, 32);
 
 #include "scale_bilinear_xy.h"
 

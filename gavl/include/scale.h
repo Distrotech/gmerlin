@@ -266,11 +266,11 @@ struct gavl_video_scale_context_s
   /* Minimum and maximum values for clipping.
      Values can be different for different components */
   
-  uint32_t min_values_h[4];
-  uint32_t max_values_h[4];
+  int min_values_h[4];
+  int max_values_h[4];
 
-  uint32_t min_values_v[4];
-  uint32_t max_values_v[4];
+  int min_values_v[4];
+  int max_values_v[4];
 
   /* These are used by the generic scaler */
 
