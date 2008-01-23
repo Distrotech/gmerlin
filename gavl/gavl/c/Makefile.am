@@ -36,4 +36,5 @@ scale_bilinear_xy.h \
 scale_x.h \
 scale_y.h \
 scale_generic_x.h \
-scale_generic_y.h
+scale_generic_y.h \
+scale_macros.h
