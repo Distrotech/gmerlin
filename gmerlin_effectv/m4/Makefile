@@ -57,7 +57,7 @@ AUTOMAKE = ${SHELL} /home/pix/Src/Gmerlin_cvs_new/gmerlin_effectv/missing --run 
 AWK = gawk
 CC = gcc
 CCDEPMODE = depmode=gcc3
-CFLAGS = -g -O2 -D_REENTRANT -D_FILE_OFFSET_BITS=64  -O3 -funroll-all-loops -fomit-frame-pointer -ffast-math -I/usr/local/include -I/usr/local/lib/gavl/include/ -I/usr/include/libxml2   -Wall -Wmissing-declarations -Wdeclaration-after-statement
+CFLAGS = -g -O2 -D_REENTRANT -D_FILE_OFFSET_BITS=64  -march=nocona -mtune=nocona -O3 -funroll-all-loops -fomit-frame-pointer -ffast-math -I/usr/local/include -I/usr/local/lib/gavl/include/ -I/usr/include/libxml2   -Wall -Wmissing-declarations -Wdeclaration-after-statement
 CPP = gcc -E
 CPPFLAGS = 
 CXX = g++

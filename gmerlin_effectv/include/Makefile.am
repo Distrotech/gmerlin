@@ -1,1 +1,5 @@
-noinst_HEADERS = gmerlin_effectv.h
+noinst_HEADERS = \
+EffecTV.h \
+gmerlin_effectv.h \
+utils.h \
+video.h
