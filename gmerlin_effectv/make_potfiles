@@ -1,0 +1,2 @@
+#!/bin/sh
+find . -name "*.[ch]" | cut -b 3- > po/POTFILES.in
