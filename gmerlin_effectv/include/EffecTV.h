@@ -71,7 +71,6 @@ typedef struct
 
 typedef struct _effect
   {
-  char *name;
   int (*start)(struct _effect*);
   int (*stop)(struct _effect*);
   int (*draw)(struct _effect*, RGB32 *src, RGB32 *dest);

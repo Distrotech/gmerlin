@@ -31,7 +31,6 @@ static int stop(effect * e);
 static int draw(effect * e, RGB32 *src, RGB32 *dest);
 // static int event(SDL_Event *);
 
-static char *effectname = "MatrixTV";
 
 typedef struct {
 	int mode;
@@ -81,7 +80,6 @@ static effect *matrixRegister(void)
   priv = calloc(1, sizeof( *priv));
   entry->priv = priv;
   
-  entry->name = effectname;
   entry->start = start;
   entry->stop = stop;
   entry->draw = draw;

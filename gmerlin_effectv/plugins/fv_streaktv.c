@@ -21,7 +21,6 @@ static int start(effect * e);
 static int stop(effect * e);
 static int draw(effect * e, RGB32 *src, RGB32 *dest);
 
-static char *effectname = "StreakTV";
 
 typedef struct
   {
@@ -41,7 +40,6 @@ static effect *streakRegister(void)
 	}
 	priv = calloc(1, sizeof(*priv));
         entry->priv = priv;
-        entry->name = effectname;
 	entry->start = start;
 	entry->stop = stop;
 	entry->draw = draw;

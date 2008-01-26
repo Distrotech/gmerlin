@@ -16,7 +16,6 @@ static int start(effect * e);
 static int stop(effect * e);
 static int draw(effect * e, RGB32 *src, RGB32 *dest);
 
-static char *effectname = "1DTV";
 
 typedef struct
   {
@@ -37,7 +36,6 @@ static effect *onedRegister(void)
   if(entry == NULL)
     return NULL;
 	
-  entry->name = effectname;
   entry->start = start;
   entry->stop = stop;
   entry->draw = draw;

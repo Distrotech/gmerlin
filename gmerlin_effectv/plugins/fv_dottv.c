@@ -20,7 +20,6 @@ static int draw(effect *, RGB32 *src, RGB32 *dest);
 #define DOTDEPTH 5
 #define DOTMAX (1<<DOTDEPTH)
 
-static char *effectname = "DotTV";
 
 typedef struct
   {
@@ -198,7 +197,6 @@ static effect *dotRegister()
         priv = calloc(1, sizeof(*priv));
         entry->priv = priv;
         
-	entry->name = effectname;
 	entry->start = start;
 	entry->stop = stop;
 	entry->draw = draw;

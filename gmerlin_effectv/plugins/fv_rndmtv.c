@@ -27,7 +27,6 @@ typedef struct
   int rmode; // =1;
   } rndm_t;
 
-static char *effectname = "RndmTV";
 
 static effect *rndmRegister(void)
   {
@@ -39,7 +38,6 @@ static effect *rndmRegister(void)
 
   priv = calloc(1, sizeof(*priv));
   entry->priv = priv;
-  entry->name = effectname;
   entry->start = start;
   entry->stop = stop;
   entry->draw = draw;

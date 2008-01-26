@@ -129,8 +129,6 @@ static void spiralCreateMap(effect * e);
 static WaveEl* spiralDefineWaves(effect * e);
 static void spiralMoveFocus(effect* e);
 
-// static char *effectname_base = "SpiralTV";
-// static char effectname[128] = "";
 
 typedef struct
   {
@@ -182,8 +180,6 @@ static effect *spiralRegister(void)
         
 	entry = (effect *)calloc(1, sizeof(effect));
         
-        //    strcpy(effectname, effectname_base);
-	entry->name = "SpiralTV";
 	entry->start = start;
 	entry->stop = stop;
 	entry->draw = draw;

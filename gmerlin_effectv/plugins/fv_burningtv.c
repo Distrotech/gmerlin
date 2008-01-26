@@ -22,7 +22,6 @@ static int draw(effect*, RGB32 *src, RGB32 *dest);
 #define Decay 15
 #define MAGIC_THRESHOLD 50
 
-static char *effectname = "BurningTV";
 
 typedef struct
   {
@@ -78,7 +77,6 @@ static effect *burnRegister()
 
   priv = calloc(1, sizeof(*priv));
   entry->priv = priv;
-  entry->name = effectname;
   entry->start = start;
   entry->stop = stop;
   entry->draw = draw;

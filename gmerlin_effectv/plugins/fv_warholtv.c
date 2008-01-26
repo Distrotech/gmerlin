@@ -16,7 +16,6 @@ static int start(effect * e);
 static int stop(effect * e);
 static int draw(effect * e, RGB32 *src, RGB32 *dest);
 
-static char *effectname = "WarholTV";
 
 typedef struct
   {
@@ -40,7 +39,6 @@ static effect *warholRegister(void)
 
         entry->priv = priv;
         
-	entry->name = effectname;
 	entry->start = start;
 	entry->stop = stop;
 	entry->draw = draw;

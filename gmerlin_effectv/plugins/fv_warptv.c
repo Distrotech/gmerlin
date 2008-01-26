@@ -38,7 +38,6 @@ static int start(effect *e);
 static int stop(effect *e);
 static int draw(effect *e, RGB32 *src, RGB32 *dest);
 
-static char *effectname = "warpTV";
 
 static effect *warpRegister(void)
   {
@@ -48,7 +47,6 @@ static effect *warpRegister(void)
   entry = (effect *)calloc(1, sizeof(effect));
   if(entry == NULL) return NULL;
 	
-  entry->name = effectname;
   entry->start = start;
   entry->stop = stop;
   entry->draw = draw;

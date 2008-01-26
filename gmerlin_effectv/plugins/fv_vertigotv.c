@@ -19,7 +19,6 @@ static int draw(effect * e, RGB32 *src, RGB32 *dest);
 
 // static int event(SDL_Event *event);
 
-static char *effectname = "VertigoTV";
 
 typedef struct
   {
@@ -86,7 +85,6 @@ static effect *dizzyRegister(void)
 	}
 	priv = calloc(1, sizeof(*priv));
         entry->priv = priv;
-	entry->name = effectname;
 	entry->start = start;
 	entry->stop = stop;
 	entry->draw = draw;

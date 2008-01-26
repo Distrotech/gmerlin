@@ -16,7 +16,6 @@ static int start(effect*);
 static int stop(effect*);
 static int draw(effect*, RGB32 *src, RGB32 *dest);
 
-static char *effectname = "AgingTV";
 
 typedef struct _scratch
 {
@@ -183,7 +182,6 @@ static effect *agingRegister(void)
 	entry = (effect *)calloc(1, sizeof(effect));
 	if(entry == NULL) return NULL;
 	
-	entry->name = effectname;
 	entry->start = start;
 	entry->stop = stop;
 	entry->draw = draw;

@@ -22,7 +22,6 @@ static int rgrab=0;
 static const int rthecolor=0xffffffff;
 static int rmode=1;
 
-static char *effectname = "RndmTV";
 static int state = 0;
 
 effect *rndmRegister(void)
@@ -32,7 +31,6 @@ effect *rndmRegister(void)
 	entry = (effect *)malloc(sizeof(effect));
 	if(entry == NULL) return NULL;
 
-	entry->name = effectname;
 	entry->start = start;
 	entry->stop = stop;
 	entry->draw = draw;

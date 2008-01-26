@@ -16,7 +16,6 @@ static int start(effect*);
 static int stop(effect*);
 static int draw(effect*, RGB32 *src, RGB32 *dst);
 
-static char *effectname = "cycleTV";
 
 typedef struct
   {
@@ -33,7 +32,6 @@ static effect *cycleRegister(void)
 	if(entry == NULL) return NULL;
         priv = calloc(1, sizeof(*priv));
         entry->priv = priv;
-	entry->name = effectname;
 	entry->start = start;
 	entry->stop = stop;
 	entry->draw = draw;

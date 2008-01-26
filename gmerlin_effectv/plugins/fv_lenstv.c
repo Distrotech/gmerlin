@@ -60,7 +60,6 @@ typedef struct
   } lenstv_t;
 #endif
 
-static char *effectname = "lensTV";
 
 // static int mode ;
 
@@ -92,7 +91,6 @@ effect *entry;
 	entry = (effect *)calloc(1, sizeof(effect));
 	if(entry == NULL) return NULL;
 
-	entry->name = effectname;
 	entry->start = start;
 	entry->stop = stop;
 	entry->draw = draw;

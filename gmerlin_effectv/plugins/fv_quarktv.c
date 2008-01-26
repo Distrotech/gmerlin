@@ -18,7 +18,6 @@ static int start(effect*);
 static int stop(effect*);
 static int draw(effect*,RGB32 *src, RGB32 *dest);
 
-static char *effectname = "QuarkTV";
 
 typedef struct
   {
@@ -41,7 +40,6 @@ static effect *quarkRegister(void)
         priv = calloc(1, sizeof(*priv));
         entry->priv = priv;
         
-	entry->name = effectname;
 	entry->start = start;
 	entry->stop = stop;
 	entry->draw = draw;

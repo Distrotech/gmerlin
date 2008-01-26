@@ -22,7 +22,6 @@ static int draw(effect * e, RGB32 *src, RGB32 *dest);
 #define Decay 15
 #define MAGIC_THRESHOLD 50
 
-static char *effectname = "FireTV";
 
 typedef struct
   {
@@ -76,7 +75,6 @@ static effect *fireRegister(void)
   priv = calloc(1, sizeof(*priv));
   entry->priv = priv;
   
-  entry->name = effectname;
   entry->start = start;
   entry->stop = stop;
   entry->draw = draw;

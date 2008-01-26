@@ -45,7 +45,6 @@ static int draw(effect *, RGB32 *src, RGB32 *dest);
 // static int event(SDL_Event *event);
 static void diceCreateMap(effect *);
 
-static char *effectname = "DiceTV";
 
 typedef struct
   {
@@ -73,7 +72,6 @@ static effect *diceRegister(void)
     }
 
   entry->priv = priv;
-  entry->name = effectname;
   entry->start = start;
   entry->stop = stop;
   entry->draw = draw;

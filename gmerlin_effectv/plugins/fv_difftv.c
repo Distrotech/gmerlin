@@ -29,7 +29,6 @@ static int stop(effect * e);
 static int draw(effect * e, RGB32 *src, RGB32 *dest);
 //static void diffUpdate();
 //static void diffSave();
-static char *effectname = "DiffTV";
 
 typedef struct
   {
@@ -49,7 +48,6 @@ static effect *diffRegister(void)
 	}
         priv = calloc(1, sizeof(*priv));
         entry->priv = priv;
-        entry->name = effectname;
 	entry->start = start;
 	entry->stop = stop;
 	entry->draw = draw;

@@ -18,7 +18,6 @@ static int draw(effect*, RGB32 *src, RGB32 *dest);
 
 #define SCROLL_STEPS	30
 
-static char *effectname = "BrokenTV";
 
 typedef struct
   {
@@ -39,7 +38,6 @@ static effect *scrollRegister(void)
         priv = calloc(1, sizeof(*priv));
         entry->priv = priv;
 	
-	entry->name = effectname;
 	entry->start = start;
 	entry->stop = stop;
 	entry->draw = draw;

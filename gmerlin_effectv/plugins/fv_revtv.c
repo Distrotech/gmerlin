@@ -52,7 +52,6 @@ static int vthecolor=0xffffffff;
 static int state = 0;
 #endif
 
-static char *effectname = "RevTV";
 
 static void vasulka(effect * e,
                     RGB32 *src, RGB32 *dst, int srcx, int srcy, int dstx, int dsty, int w, int h);
@@ -67,7 +66,6 @@ static effect *revRegister(void)
 
         priv = calloc(1, sizeof(*priv));
         entry->priv = priv;
-	entry->name = effectname;
 	entry->start = start;
 	entry->stop = stop;
 	entry->draw = draw;
