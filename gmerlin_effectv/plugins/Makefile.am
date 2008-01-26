@@ -30,6 +30,7 @@ fv_rndmtv.la \
 fv_shagadelictv.la \
 fv_simuratv.la \
 fv_slofasttv.la \
+fv_sparktv.la \
 fv_spiraltv.la \
 fv_streaktv.la \
 fv_timedisttv.la \

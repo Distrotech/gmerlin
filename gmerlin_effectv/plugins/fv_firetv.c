@@ -216,8 +216,15 @@ static const bg_parameter_info_t parameters[] =
       .type = BG_PARAMETER_STRINGLIST,
       .flags = BG_PARAMETER_SYNC,
       .val_default = { .val_str = "all" },
-      .multi_names = (char const *[]){ "fg", "light", "dark", (char*)0 },
-      .multi_labels = (char const *[]){ TRS("Foreground"), TRS("Light parts"),TRS("Dark parts"), (char*)0 },
+      .multi_names = (char const *[]){ "fg",
+                                       "light",
+                                       "dark",
+                                       (char*)0 },
+      
+      .multi_labels = (char const *[]){ TRS("Foreground"),
+                                        TRS("Light parts"),
+                                        TRS("Dark parts"),
+                                        (char*)0 },
     },
     { /* */ },
   };
