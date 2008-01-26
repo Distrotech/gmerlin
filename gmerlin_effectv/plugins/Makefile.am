@@ -17,6 +17,7 @@ fv_displaywalltv.la \
 fv_dottv.la \
 fv_edgeblurtv.la \
 fv_edgetv.la \
+fv_firetv.la \
 fv_lenstv.la \
 fv_matrixtv.la \
 fv_nervoustv.la \
