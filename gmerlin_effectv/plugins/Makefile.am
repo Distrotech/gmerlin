@@ -25,6 +25,7 @@ fv_lifetv.la \
 fv_matrixtv.la \
 fv_mosaictv.la \
 fv_nervoustv.la \
+fv_noisetv.la \
 fv_optv.la \
 fv_puptv.la \
 fv_quarktv.la \

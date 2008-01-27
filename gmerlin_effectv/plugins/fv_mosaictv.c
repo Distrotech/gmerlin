@@ -148,7 +148,7 @@ const bg_fv_plugin_t the_plugin =
       BG_LOCALE,
       .name =      "fv_mosaictv",
       .long_name = TRS("MosaicTV"),
-      .description = TRS("MosaicTV does mosaic mark effect on the video input. The mosaic is caused by a motion or random rain drops. Ported from EffecTV (http://effectv.sourceforge.net)."),
+      .description = TRS("MosaicTV censors the incoming objects and gives it mosaic effect. Ported from EffecTV (http://effectv.sourceforge.net)."),
       .type =     BG_PLUGIN_FILTER_VIDEO,
       .flags =    BG_PLUGIN_FILTER_1,
       .create =   create_mosaictv,
