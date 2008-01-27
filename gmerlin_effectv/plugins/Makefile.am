@@ -23,6 +23,7 @@ fv_halftv.la \
 fv_lenstv.la \
 fv_lifetv.la \
 fv_matrixtv.la \
+fv_mosaictv.la \
 fv_nervoustv.la \
 fv_optv.la \
 fv_puptv.la \
