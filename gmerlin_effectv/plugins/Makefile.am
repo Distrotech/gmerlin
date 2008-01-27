@@ -40,6 +40,7 @@ fv_sparktv.la \
 fv_spiraltv.la \
 fv_streaktv.la \
 fv_timedisttv.la \
+fv_transformtv.la \
 fv_vertigotv.la \
 fv_warholtv.la \
 fv_warptv.la

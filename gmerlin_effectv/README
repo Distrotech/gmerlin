@@ -1,0 +1,28 @@
+This package contains most effects from EffecTV (http://effectc.sourceforge.net)
+ported to gmerlin. Missing Effects are mostly the ones, which do
+things, which cannot be done within a generic filter API.
+
+This is, what *was* changed:
+
+- Moved all global variables to context structures (everything
+  is multiple-instance save now)
+
+- Made generic wrapper functions so the EffecTV functions are
+  called within the gmerlin filter API.
+
+- Transformed most interactivly changable parameters to gmerlin
+  parameters. Some additional parameters where introduced.
+
+- The only suppoorted colormodel is GAVL_BGR_32
+
+This is, what *could* be changed:
+
+- Make more things user settable
+
+- Some filters just copy frames around. They
+  could be implemented (for all pixelformats) using standard
+  gavl functions
+
+- Some other filters just work on whole 32 bit pixels. They
+  could run directly in GAVL_RGB_32, GAVL_RGBA_32 and GAVL_YUVA_32
+
