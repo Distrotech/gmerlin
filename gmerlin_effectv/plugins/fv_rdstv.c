@@ -16,10 +16,8 @@
 static int start(effect*);
 static int stop(effect*);
 static int draw(effect*, RGB32 *src, RGB32 *dest);
-// static int event(SDL_Event *event);
 
 static const int stride = 40;
-//static int method = 0;
 
 typedef struct
   {

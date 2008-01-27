@@ -15,8 +15,6 @@
 static int start(effect*);
 static int stop(effect*);
 static int draw(effect*,RGB32 *src, RGB32 *dest);
-// static int event(SDL_Event *event);
-
 
 typedef struct
   {
@@ -27,28 +25,6 @@ typedef struct
   int hheight;
   } simuratv_t;
 
-#if 0
-static RGB32 colortable[26] = {
-	0x000080, 0x0000e0, 0x0000ff,
-	0x008000, 0x00e000, 0x00ff00,
-	0x008080, 0x00e0e0, 0x00ffff,
-	0x800000, 0xe00000, 0xff0000,
-	0x800080, 0xe000e0, 0xff00ff,
-	0x808000, 0xe0e000, 0xffff00,
-	0x808080, 0xe0e0e0, 0xffffff,
-	0x76ca0a, 0x3cafaa, 0x60a848, 0x504858, 0x89ba43
-};
-static const char keytable[26] = {
-	'q', 'a', 'z',
-	'w', 's', 'x',
-	'e', 'd', 'c',
-	'r', 'f', 'v',
-	't', 'g', 'b',
-	'y', 'h', 'n',
-	'u', 'j', 'm',
-	'i', 'k', 'o', 'l', 'p'
-};
-#endif
 static void mirror_no(effect * e, RGB32 *, RGB32 *);
 static void mirror_u(effect * e, RGB32 *, RGB32 *);
 static void mirror_d(effect * e, RGB32 *, RGB32 *);

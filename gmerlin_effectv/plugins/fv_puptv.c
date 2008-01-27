@@ -17,7 +17,6 @@
 static int start(effect *);
 static int stop(effect *);
 static int draw(effect *, RGB32 *src, RGB32 *dest);
-// static int event(SDL_Event *);
 
 
 typedef struct
@@ -37,7 +36,6 @@ static void dissolutionPup(effect *, RGB32 *);
 static void verticalPup(effect *, RGB32 *);
 static void horizontalPup(effect *, RGB32 *);
 static void rasterPup(effect *, RGB32 *);
-//static void sonicPup(RGB32 *);
 
 static int resetBuffer(effect * e, RGB32 *src)
   {
@@ -321,41 +319,6 @@ static void rasterPup(effect * e, RGB32 *src)
     priv->phase -= step;
     }
   }
-
-#if 0
-static void sonicPup(RGB32 *src)
-  {
-  static int step = 16;
-  int x, y;
-  unsigned int offset;
-  RGB32 *dest;
-
-  if(priv->paramInc != 0) {
-  step += priv->paramInc;
-  if(step < 2) step = 2;
-  if(step > e->video_height) step = e->video_height;
-  priv->phase %= step;
-  }
-
-  offset = 0;
-
-  dest = priv->buffer;
-  for(y=0; y<e->video_height; y++) {
-  x = ((offset >> 16) + priv->phase)% step;
-  for(; x<e->video_width; x+=step) {
-  dest[x] = src[x];
-  }
-  src += e->video_width;
-  dest += e->video_width;
-  offset = offset*1103515245+12345;
-  }
-
-  priv->phase++;
-  while(priv->phase >= step) {
-  priv->phase -= step;
-  }
-  }
-#endif
 
 static const bg_parameter_info_t parameters[] =
   {

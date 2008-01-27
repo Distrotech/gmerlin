@@ -123,7 +123,6 @@ typedef char WaveEl;
 static int start(effect * e);
 static int stop(effect * e);
 static int draw(effect * e, RGB32 *src, RGB32 *dest);
-// static int event(SDL_Event *event);
 
 static void spiralCreateMap(effect * e);
 static WaveEl* spiralDefineWaves(effect * e);
@@ -164,13 +163,6 @@ typedef struct
   int g_focus_interval;
   double g_focus_increment;
   } spiral_t;
-
-//  = FOCUS_INCREMENT_PRESET
-
-
-// static int g_cursor_state = SDL_DISABLE;
-// static int g_cursor_local = SDL_DISABLE;
-
     
 static effect *spiralRegister(void)
 {

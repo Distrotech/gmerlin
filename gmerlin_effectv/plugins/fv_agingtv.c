@@ -37,22 +37,24 @@ typedef struct
   int scratch_lines;
   int dust_interval;
   int pits_interval;
+
+  int colorage;
   
   } agingtv_t;
 
 static void coloraging(effect * e, RGB32 *src, RGB32 *dest)
 {
-	static int c = 0x18;
 	RGB32 a, b;
 	int i;
-
-	c -= (int)(inline_fastrand(e))>>28;
-	if(c < 0) c = 0;
-	if(c > 0x18) c = 0x18;
+        agingtv_t * priv = (agingtv_t*)e->priv;
+        
+	priv->colorage -= (int)(inline_fastrand(e))>>28;
+	if(priv->colorage < 0) priv->colorage = 0;
+	if(priv->colorage > 0x18) priv->colorage = 0x18;
 	for(i=0; i<e->video_area; i++) {
 		a = *src++;
 		b = (a & 0xfcfcfc)>>2;
-		*dest++ = a - b + (c|(c<<8)|(c<<16)) + ((inline_fastrand(e)>>8)&0x101010);
+		*dest++ = a - b + (priv->colorage|(priv->colorage<<8)|(priv->colorage<<16)) + ((inline_fastrand(e)>>8)&0x101010);
 	}
 }
 
@@ -103,8 +105,8 @@ static void scratching(effect * e, RGB32 *dest)
 	}
 }
 
-static int dx[8] = { 1, 1, 0, -1, -1, -1,  0, 1};
-static int dy[8] = { 0, -1, -1, -1, 0, 1, 1, 1};
+static const int dx[8] = { 1, 1, 0, -1, -1, -1,  0, 1};
+static const int dy[8] = { 0, -1, -1, -1, 0, 1, 1, 1};
 
 static void dusts(effect * e, RGB32 *dest)
 {
@@ -211,6 +213,7 @@ static int start(effect * e)
         agingtv_t * priv = (agingtv_t*)e->priv;
 	priv->aging_mode = 0;
 	aging_mode_switch(e);
+	priv->colorage = 0x18;
 
 	priv->state = 1;
 	return 0;

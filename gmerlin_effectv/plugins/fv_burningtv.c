@@ -16,7 +16,6 @@
 static int start(effect*);
 static int stop(effect*);
 static int draw(effect*, RGB32 *src, RGB32 *dest);
-// static int event(SDL_Event *);
 
 #define MaxColor 120
 #define Decay 15
@@ -31,8 +30,6 @@ typedef struct
   int bgIsSet;
   int mode;
   } burn_t;
-
-// static int mode = 1;
 
 static void makePalette(burn_t * priv)
   {

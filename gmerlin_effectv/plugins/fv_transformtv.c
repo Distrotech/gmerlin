@@ -30,14 +30,13 @@
 static int start(effect*);
 static int stop(effect*);
 static int draw(effect*, RGB32 *src, RGB32 *dest);
-// static int event(SDL_Event *);
-// static char *effectname = "TransFormTV";
 
 typedef struct
   {
   int state;
   int *TableList[TableMax];
   int transform; /* Which transform to use */
+  int t;
   } transform_t;
 
 static int mapFromT(effect * e, int x,int y, int t) {
@@ -114,7 +113,7 @@ static int start(effect * e)
 
   }
   SquareTableInit(e);
-
+  priv->t = 0;
   priv->state = 1;
   return 0;
 }
@@ -137,28 +136,30 @@ static int stop(effect * e)
 static int draw(effect * e, RGB32 *src, RGB32 *dst)
 {
   int x,y;
-  static int t=0;
-        transform_t * priv = (transform_t *)e->priv;
-  t++;
-
-	for (y=0;y < e->video_height;y++)
-	  for (x=0;x < e->video_width;x++) {
-	    int dest,value;
-	    // printf("%d,%d\n",x,y);
-	    dest = priv->TableList[priv->transform][x + y*e->video_width];
-	    if (dest == -2) {
-	      dest = mapFromT(e, x,y,t);
-	    }
-	    if (dest == -1) {
-	      value = 0;
-	    } else {
-	      value = *(RGB32 *)(src + dest);	 
-	    }
-	    *(RGB32 *)(dst+x+y*e->video_width) = value;
-	    
-	  }
-
-	return 0;
+  transform_t * priv = (transform_t *)e->priv;
+  priv->t++;
+  
+  for (y=0;y < e->video_height;y++)
+    for (x=0;x < e->video_width;x++)
+      {
+      int dest,value;
+      // printf("%d,%d\n",x,y);
+      dest = priv->TableList[priv->transform][x + y*e->video_width];
+      if (dest == -2)
+        {
+        dest = mapFromT(e, x,y,priv->t);
+        }
+      if (dest == -1)
+        {
+        value = 0;
+        }
+      else
+        {
+        value = *(RGB32 *)(src + dest);	 
+        }
+      *(RGB32 *)(dst+x+y*e->video_width) = value;
+      }
+  return 0;
 }
 
 #if 0

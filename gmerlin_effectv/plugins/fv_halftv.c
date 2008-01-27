@@ -20,9 +20,6 @@
 static int start(effect *);
 static int stop(effect *);
 static int draw(effect * e, RGB32 *src, RGB32 *dest);
-// static int event(SDL_Event *event);
-
-// static char *effectname = "NervousHalf";
 
 typedef struct
   {

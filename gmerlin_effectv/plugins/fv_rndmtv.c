@@ -15,7 +15,6 @@
 static int start(effect*);
 static int stop(effect*);
 static int draw(effect*, RGB32 *src, RGB32 *dest);
-//static int event(SDL_Event *event);
 
 static const int rgrabtime=1;
 static const int rthecolor=0xffffffff;
@@ -72,8 +71,7 @@ static int draw(effect * e, RGB32 *src, RGB32 *dst)
     //bzero(dst, video_area*sizeof(RGB32)); // clear the screen
     if (priv->rmode==0)
       {
-      //static
-
+      
       for (i=0; i<e->video_height*e->video_width; i++)
         {
         if((inline_fastrand(e)>>24)<((*src)&0xff00)>>8)

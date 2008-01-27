@@ -34,14 +34,6 @@ static int draw(effect *e, RGB32 *src, RGB32 *dst);
 // static int event(SDL_Event *event);
 static void init(effect *e);
 
-#if 0
-static int x=16,y=16;
-static int xd=5,yd=5;
-static int lens_width=150;
-static int lens_zoom = 30;
-static int state = 0;
-static int *lens = NULL;
-#else
 typedef struct
   {
   float x;
@@ -58,10 +50,6 @@ typedef struct
   int state;
   int *lens;
   } lenstv_t;
-#endif
-
-
-// static int mode ;
 
 static void apply_lens(effect *e, int ox, int oy,RGB32 *src,RGB32 *dst)
 {

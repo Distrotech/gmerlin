@@ -26,7 +26,6 @@ static int start(effect*);
 static int stop(effect*);
 static int draw(effect*, RGB32 *src, RGB32 *dest);
 
-// static int event(SDL_Event *event);
 
 typedef struct
   {
@@ -41,16 +40,6 @@ typedef struct
   int state;
   
   } rev_t;
-
-#if 0
-
-static int vgrabtime=1;
-static int vgrab=0;
-static int linespace=6;
-static int vscale=50;
-static int vthecolor=0xffffffff;
-static int state = 0;
-#endif
 
 
 static void vasulka(effect * e,
