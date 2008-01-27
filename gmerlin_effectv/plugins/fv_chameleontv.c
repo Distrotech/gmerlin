@@ -88,6 +88,16 @@ static int stop(effect * e)
       free(priv->timebuffer);
       priv->timebuffer = NULL;
       }
+    if(priv->sum)
+      {
+      free(priv->sum);
+      priv->sum = NULL;
+      }
+    if(priv->bgimage)
+      {
+      free(priv->bgimage);
+      priv->bgimage = NULL;
+      }
     priv->state = 0;
     }
   return 0;

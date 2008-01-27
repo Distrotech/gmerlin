@@ -73,6 +73,7 @@ static int start(effect * e)
 static int stop(effect * e)
   {
   life_t * priv = (life_t *)e->priv;
+  free(priv->field);
   priv->stat = 0;
   return 0;
   }

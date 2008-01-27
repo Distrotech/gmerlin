@@ -97,6 +97,8 @@ static int stop(effect * e)
   if(priv->state)
     {
     priv->state = 0;
+    free(priv->blur[0]);
+    free(priv->blur[1]);
     }
   return 0;
   }

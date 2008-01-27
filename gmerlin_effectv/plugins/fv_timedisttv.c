@@ -86,7 +86,11 @@ static int stop(effect * e)
 			free(priv->buffer);
 			priv->buffer = NULL;
 		}
-		priv->state = 0;
+                
+                free(priv->warptime[0]);
+                free(priv->warptime[1]);
+                
+                priv->state = 0;
 	}
 	return 0;
 }

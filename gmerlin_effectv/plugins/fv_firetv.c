@@ -105,6 +105,7 @@ static int stop(effect * e)
   {
   fire_t * priv = (fire_t *)(e->priv);
   priv->state = 0;
+  free(priv->buffer);
   return 0;
   }
 

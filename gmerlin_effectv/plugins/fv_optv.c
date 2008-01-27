@@ -138,12 +138,14 @@ static int start(effect * e)
 }
 
 static int stop(effect * e)
-{
-        op_t * priv = (op_t*)e->priv;
-	priv->stat = 0;
-
-	return 0;
-}
+  {
+  int i;
+  op_t * priv = (op_t*)e->priv;
+  priv->stat = 0;
+  for(i=0; i<OPMAP_MAX; i++)
+    free(priv->opmap[i]);
+  return 1;
+  }
 
 static int draw(effect * e, RGB32 *src, RGB32 *dest)
 {
