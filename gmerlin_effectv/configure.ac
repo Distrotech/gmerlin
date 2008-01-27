@@ -5,7 +5,10 @@ AM_CONFIG_HEADER(include/config.h)
 AM_INIT_AUTOMAKE(gmerlin-effectv, 1.0.0pre1)
 
 AC_DISABLE_STATIC
+
+CFLAGS_SAVE=$CFLAGS
 AC_PROG_LIBTOOL
+CFLAGS=$CFLAGS_SAVE
 
 dnl
 dnl Check for Dependencies package

@@ -19,6 +19,7 @@ fv_dottv.la \
 fv_edgeblurtv.la \
 fv_edgetv.la \
 fv_firetv.la \
+fv_halftv.la \
 fv_lenstv.la \
 fv_lifetv.la \
 fv_matrixtv.la \
