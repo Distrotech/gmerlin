@@ -129,56 +129,6 @@ static void vasulka(effect * e,
     }
   }
 
-#if 0
-static int event(SDL_Event *event)
-{
-
-	if(event->type == SDL_KEYDOWN) {
-		switch(event->key.keysym.sym) {
-
-			case SDLK_0:
-				vgrabtime++;
-				if (vgrabtime==0)vgrabtime =1;
-				fprintf(stdout,"vgrabtime=%d\n",vgrabtime);
-				break;
-
-			case SDLK_MINUS:
-				vgrabtime--;
-				if (vgrabtime==0)vgrabtime =1;
-				fprintf(stdout,"vgrabtime=%d\n",vgrabtime);
-				break;
-
-			case SDLK_2:
-				linespace++;
-				if (linespace==0) linespace=1;
-				fprintf(stdout,"linespace=%d\n",linespace);
-				break;
-
-			case SDLK_1:
-				linespace--;
-				if (linespace==0) linespace=1;
-				fprintf(stdout,"linespace=%d\n",linespace);
-				break;
-
-			case SDLK_4:
-				vscale-=2;
-				if (vscale<=0)vscale =1;
-				fprintf(stdout,"vscale=%d\n",vscale);
-				break;
-
-			case SDLK_3:
-				vscale+=2;
-				fprintf(stdout,"vscale=%d\n",vscale);
-				break;
-
-		default:
-			break;
-		}
-	}
-
-	return 0;
-}
-#endif
 
 static const bg_parameter_info_t parameters[] =
   {

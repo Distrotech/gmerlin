@@ -187,7 +187,6 @@ static effect *agingRegister(void)
 	entry->start = start;
 	entry->stop = stop;
 	entry->draw = draw;
-        //	entry->event = NULL;
         priv = calloc(1, sizeof(*priv));
         entry->priv = priv;
 	return entry;

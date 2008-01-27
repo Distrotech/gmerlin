@@ -15,7 +15,6 @@
 static int start(effect * e);
 static int stop(effect * e);
 static int draw(effect * e, RGB32 *src, RGB32 *dest);
-// static int event(SDL_Event *event);
 
 
 typedef struct
@@ -50,7 +49,6 @@ static effect *displayWallRegister(void)
   entry->start = start;
   entry->stop = stop;
   entry->draw = draw;
-  //  entry->event = event;
   
   return entry;
   }
@@ -233,60 +231,3 @@ BG_GET_PLUGIN_API_VERSION;
 
 
 
-#if 0
-static int event(SDL_Event *event)
-  {
-  if(event->type == SDL_KEYDOWN) {
-  switch(event->key.keysym.sym) {
-  case SDLK_1:
-  case SDLK_2:
-  case SDLK_3:
-  case SDLK_4:
-  case SDLK_5:
-  case SDLK_6:
-  case SDLK_7:
-  case SDLK_8:
-  case SDLK_9:
-    scale = event->key.keysym.sym - SDLK_0;
-    break;
-  case SDLK_h:
-    dy = 0;
-    dx = 1;
-    break;
-  case SDLK_k:
-    dy = 1;
-    dx = 0;
-    break;
-  case SDLK_j:
-    dy = -1;
-    dx = 0;
-    break;
-  case SDLK_l:
-    dy = 0;
-    dx = -1;
-    break;
-  case SDLK_PAGEUP:
-    speedi = 1;
-    break;
-  case SDLK_PAGEDOWN:
-    speedi = -1;
-    break;
-  case SDLK_SPACE:
-    speed = 0;
-    break;
-  default:
-    break;
-  }
-  } else if(event->type == SDL_KEYUP) {
-  switch(event->key.keysym.sym) {
-  case SDLK_PAGEUP:
-  case SDLK_PAGEDOWN:
-    speedi = 0;
-    break;
-  default:
-    break;
-  }
-  }
-  return 0;
-  }
-#endif

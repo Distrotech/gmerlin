@@ -156,48 +156,6 @@ static void set_parameter(void * data, const char * name,
   }
 
 
-#if 0
-
-static int event(SDL_Event *event)
-{
-
-	if(event->type == SDL_KEYDOWN) {
-		switch(event->key.keysym.sym) {
-
-
-
-				case SDLK_0:
-					rgrabtime++;
-                        if (rgrabtime==0)rgrabtime =1;
-
-                        fprintf(stdout,"rgrabtime=%d\n",rgrabtime);
-                        break;
-
-
-				case SDLK_MINUS:
-                        rgrabtime--;
-                        if (rgrabtime==0)rgrabtime =1;
-
-                        fprintf(stdout,"rgrabtime=%d\n",rgrabtime);
-                        break;
-				
-				case SDLK_SPACE:
-					rmode++;
-                        if (rmode==2)rmode =0;
-
-                        fprintf(stdout,"rmode=%d\n",rmode);
-                        break;
-
-
-
-		default:
-			break;
-		}
-	}
-
-	return 0;
-}
-#endif
 
 static void * create_rndmtv()
   {

@@ -446,24 +446,6 @@ static int draw(effect * e, RGB32 *src, RGB32 *dest)
   return 0;
   }
 
-#if 0
-static int event(SDL_Event *event)
-  {
-  if(event->type == SDL_KEYDOWN) {
-  switch(event->key.keysym.sym) {
-  case SDLK_SPACE:
-    memset(map, 0, priv->map_h*priv->map_w * 2 * sizeof(int));
-    break;
-  case SDLK_r:
-    mode = ~mode;
-    break;
-  default:
-    break;
-  }
-  }
-  return 0;
-  }
-#endif
 
 static const bg_parameter_info_t parameters[] =
   {

@@ -19,7 +19,6 @@
 static int start(effect * e);
 static int stop(effect * e);
 static int draw(effect * e, RGB32 *src, RGB32 *dest);
-// static int event(SDL_Event *event);
 
 
 typedef struct
@@ -142,32 +141,6 @@ static int draw(effect * e, RGB32 *src, RGB32 *dest)
   return 0;
   }
 
-#if 0
-
-static int event(SDL_Event *event)
-  {
-  if(event->type == SDL_KEYDOWN) {
-  switch(event->key.keysym.sym) {
-  case SDLK_r:
-    palette = &palettes[(MAX_BLUR + 1)*2];
-    break;
-  case SDLK_g:
-    palette = &palettes[(MAX_BLUR + 1)];
-    break;
-  case SDLK_b:
-    palette = &palettes[0];
-    break;
-  case SDLK_w:
-    palette = &palettes[(MAX_BLUR + 1)*3];
-    break;
-  default:
-    break;
-  }
-  }
-
-  return 0;
-  }
-#endif
 
 static const bg_parameter_info_t parameters[] =
   {

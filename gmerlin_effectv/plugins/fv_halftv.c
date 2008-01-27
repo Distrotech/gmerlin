@@ -177,50 +177,6 @@ static int draw(effect * e, RGB32 *src, RGB32 *dest)
 	return 0;
 }
 
-#if 0
-static int event(SDL_Event *event)
-{
-	if(event->type == SDL_KEYDOWN) {
-		switch(event->key.keysym.sym) {
-		case SDLK_SPACE:
-			mirror++;
-			if(mirror > 2) mirror = 0;
-			break;
-		case SDLK_1:
-		case SDLK_2:
-		case SDLK_3:
-		case SDLK_4:
-			dir = event->key.keysym.sym - SDLK_1;
-			break;
-		case SDLK_KP1:
-		case SDLK_KP2:
-		case SDLK_KP3:
-		case SDLK_KP4:
-			dir = event->key.keysym.sym - SDLK_KP1;
-			break;
-		case SDLK_q:
-			mode = 0;
-			break;
-		case SDLK_w:
-			mode = 1;
-			break;
-		case SDLK_e:
-			mode = 2;
-			break;
-		case SDLK_INSERT:
-			if(delay < PLANES - 1) delay++;
-			break;
-		case SDLK_DELETE:
-			if(delay > 0) delay--;
-			break;
-		default:
-			break;
-		}
-	}
-	return 0;
-}
-
-#endif
 
 static void upper(effect * e, RGB32 *src, RGB32 *buf, RGB32 *dest, int mirror)
 {

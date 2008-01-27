@@ -14,7 +14,6 @@
 static int start(effect*);
 static int stop(effect*);
 static int draw(effect*, RGB32 *src, RGB32 *dest);
-// static int event(SDL_Event *event);
 
 
 typedef struct
@@ -96,21 +95,6 @@ static int draw(effect * e, RGB32 *src, RGB32 *dest)
 	return 0;
 }
 
-#if 0
-static int event(SDL_Event *event)
-{
-	if(event->type == SDL_KEYDOWN) {
-		switch(event->key.keysym.sym) {
-		case SDLK_SPACE:
-			bgIsSet = 0;
-			break;
-		default:
-			break;
-		}
-	}
-	return 0;
-}
-#endif
 
 static void * create_noisetv()
   {

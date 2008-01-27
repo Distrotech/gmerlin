@@ -21,7 +21,6 @@
 static int start(effect * e);
 static int stop(effect * e);
 static int draw(effect * e, RGB32 *src, RGB32 *dest);
-// static int event(SDL_Event *event);
 
 
 typedef struct
@@ -55,7 +54,6 @@ static effect *nervousRegister(void)
   entry->start = start;
   entry->stop = stop;
   entry->draw = draw;
-  //  entry->event = event;
   
   return entry;
   }
@@ -131,21 +129,6 @@ static int draw(effect * e, RGB32 *src, RGB32 *dest)
   return 0;
   }
 
-#if 0
-static int event(SDL_Event *event)
-{
-	if(event->type == SDL_KEYDOWN) {
-		switch(event->key.keysym.sym) {
-		case SDLK_SPACE:
-			mode ^= 1;
-			break;
-		default:
-			break;
-		}
-	}
-	return 0;
-}
-#endif
 
 static const bg_parameter_info_t parameters[] =
   {

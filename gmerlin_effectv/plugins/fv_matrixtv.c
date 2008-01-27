@@ -29,7 +29,6 @@
 static int start(effect * e);
 static int stop(effect * e);
 static int draw(effect * e, RGB32 *src, RGB32 *dest);
-// static int event(SDL_Event *);
 
 
 typedef struct {
@@ -467,37 +466,6 @@ static void blipSlide(effect * e, int x)
   }
   }
 
-#if 0
-static int event(SDL_Event *event)
-  {
-  if(event->type == SDL_KEYDOWN) {
-  switch(event->key.keysym.sym) {
-  case SDLK_SPACE:
-    memset(priv->cmap, CHARNUM - 1, priv->mapW * priv->mapH * sizeof(unsigned char));
-    memset(priv->vmap, 0, priv->mapW * priv->mapH * sizeof(unsigned char));
-    memset(priv->blips, 0, priv->mapW * sizeof(Blip));
-    pause = 1;
-    break;
-  case SDLK_1:
-  case SDLK_KP1:
-    mode = 0;
-    break;
-  case SDLK_2:
-  case SDLK_KP2:
-    mode = 1;
-    break;
-  default:
-    break;
-  }
-  } else if(event->type == SDL_KEYUP) {
-  if(event->key.keysym.sym == SDLK_SPACE) {
-  pause = 0;
-  }
-  }
-
-  return 0;
-  }
-#endif
 
 static const bg_parameter_info_t parameters[] =
   {

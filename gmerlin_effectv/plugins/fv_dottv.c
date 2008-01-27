@@ -200,7 +200,6 @@ static effect *dotRegister()
 	entry->start = start;
 	entry->stop = stop;
 	entry->draw = draw;
-        //	entry->event = event;
 
 
 	return entry;
@@ -393,22 +392,6 @@ static void set_parameter(void * data, const char * name,
     }
   }
 
-#if 0
-static int event(SDL_Event *event)
-{
-	if(event->type == SDL_KEYDOWN) {
-		switch(event->key.keysym.sym) {
-		case SDLK_SPACE:
-			mode ^= 1;
-			break;
-		default:
-			break;
-		}
-	}
-
-	return 0;
-}
-#endif
 
 static void * create_dottv()
   {

@@ -167,47 +167,6 @@ static int draw(effect * e, RGB32 *src, RGB32 *dest)
   return 0;
   }
 
-#if 0
-static int event(SDL_Event *event)
-  {
-  if(event->type == SDL_KEYDOWN) {
-  switch(event->key.keysym.sym) {
-  case SDLK_c:
-    g_tolerance[0] -= TOLERANCE_STEP;
-    g_tolerance[0] &= 0xFF;
-            
-    g_tolerance[1] -= TOLERANCE_STEP;
-    g_tolerance[1] &= 0xFF;
-            
-    g_tolerance[2] -= TOLERANCE_STEP;
-    g_tolerance[2] &= 0xFF;
-            
-    //            fprintf(stderr, "tol: %d,%d,%d\n", g_tolerance[0], g_tolerance[1], g_tolerance[2]);
-    break;
-  case SDLK_v:
-    g_tolerance[0] += TOLERANCE_STEP;
-    g_tolerance[0] &= 0xFF;
-            
-    g_tolerance[1] += TOLERANCE_STEP;
-    g_tolerance[1] &= 0xFF;
-            
-    g_tolerance[2] += TOLERANCE_STEP;
-    g_tolerance[2] &= 0xFF;
-            
-    //            fprintf(stderr, "tol: %d,%d,%d\n", g_tolerance[0], g_tolerance[1], g_tolerance[2]);
-    break;
-  case SDLK_SPACE:
-    break;
-            
-  default:
-    break;
-  }
-  }
-    
-  return 0;
-  }
-
-#endif
 
 static const bg_parameter_info_t parameters[] =
   {

@@ -17,7 +17,6 @@ static int start(effect * e);
 static int stop(effect * e);
 static int draw(effect * e, RGB32 *src, RGB32 *dest);
 
-// static int event(SDL_Event *event);
 
 
 typedef struct
@@ -241,47 +240,3 @@ const bg_fv_plugin_t the_plugin =
 BG_GET_PLUGIN_API_VERSION;
 
 
-#if 0
-static int event(SDL_Event *event)
-{
-	if(event->type == SDL_KEYDOWN) {
-		switch(event->key.keysym.sym) {
-		case SDLK_SPACE:
-			phase = 0.0;
-			phase_increment = 0.02;
-			zoomrate = 1.01;
-			break;
-
-		case SDLK_INSERT:
-			phase_increment += 0.01;
-			break;
-
-		case SDLK_DELETE:
-			phase_increment -= 0.01;
-			if(phase_increment < 0.01) {
-				phase_increment = 0.01;
-			}
-			break;
-
-		case SDLK_PAGEUP:
-			zoomrate += 0.01;
-			if(zoomrate > 1.1) {
-				zoomrate = 1.1;
-			}
-			break;
-
-		case SDLK_PAGEDOWN:
-			zoomrate -= 0.01;
-			if(zoomrate < 1.01) {
-				zoomrate = 1.01;
-			}
-			break;
-
-		default:
-			break;
-		}
-	}
-
-	return 0;
-}
-#endif

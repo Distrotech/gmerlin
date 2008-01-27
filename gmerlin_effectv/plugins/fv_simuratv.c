@@ -60,7 +60,6 @@ static effect *simuraRegister(void)
 	entry->start = start;
 	entry->stop = stop;
 	entry->draw = draw;
-        //	entry->event = event;
 
 	return entry;
 }
@@ -121,71 +120,6 @@ static int draw(effect * e, RGB32 *src, RGB32 *dest)
   return 0;
   }
 
-#if 0
-static int event(SDL_Event *event)
-{
-	if(event->type == SDL_KEYDOWN) {
-		switch(event->key.keysym.sym) {
-		case SDLK_a:
-		case SDLK_b:
-		case SDLK_c:
-		case SDLK_d:
-		case SDLK_e:
-		case SDLK_f:
-		case SDLK_g:
-		case SDLK_h:
-		case SDLK_i:
-		case SDLK_j:
-		case SDLK_k:
-		case SDLK_l:
-		case SDLK_m:
-		case SDLK_n:
-		case SDLK_o:
-		case SDLK_p:
-		case SDLK_q:
-		case SDLK_r:
-		case SDLK_s:
-		case SDLK_t:
-		case SDLK_u:
-		case SDLK_v:
-		case SDLK_w:
-		case SDLK_x:
-		case SDLK_y:
-		case SDLK_z:
-			color = colortable[event->key.keysym.sym - SDLK_a];
-			break;
-		case SDLK_1:
-		case SDLK_2:
-		case SDLK_3:
-		case SDLK_4:
-		case SDLK_5:
-		case SDLK_6:
-		case SDLK_7:
-		case SDLK_8:
-		case SDLK_9:
-			mirror = event->key.keysym.sym - SDLK_1;
-			break;
-		case SDLK_KP1:
-		case SDLK_KP2:
-		case SDLK_KP3:
-		case SDLK_KP4:
-		case SDLK_KP5:
-		case SDLK_KP6:
-		case SDLK_KP7:
-		case SDLK_KP8:
-		case SDLK_KP9:
-			mirror = event->key.keysym.sym - SDLK_KP1;
-			break;
-		case SDLK_SPACE:
-			color = 0;
-			break;
-		default:
-			break;
-		}
-	}
-	return 0;
-}
-#endif
 
 static void mirror_no(effect * e, RGB32 *src, RGB32 *dest)
   {

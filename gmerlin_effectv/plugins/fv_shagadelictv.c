@@ -17,7 +17,6 @@
 static int start(effect*e);
 static int stop(effect*e);
 static int draw(effect*e, RGB32 *src, RGB32 *dest);
-//static int event(SDL_Event *event);
 
 
 typedef struct
@@ -265,40 +264,3 @@ const bg_fv_plugin_t the_plugin =
 BG_GET_PLUGIN_API_VERSION;
 
 
-#if 0
-
-static int event(SDL_Event *event)
-{
-	if(event->type == SDL_KEYDOWN) {
-		switch(event->key.keysym.sym) {
-		case SDLK_1:
-			mask &= 0xffff00;
-			break;
-		case SDLK_2:
-			mask &= 0xff00ff;
-			break;
-		case SDLK_3:
-			mask &= 0xffff;
-			break;
-		default:
-			break;
-		}
-	} else if(event->type == SDL_KEYUP) {
-		switch(event->key.keysym.sym) {
-		case SDLK_1:
-			mask |= 0xff;
-			break;
-		case SDLK_2:
-			mask |= 0xff00;
-			break;
-		case SDLK_3:
-			mask |= 0xff0000;
-			break;
-		default:
-			break;
-		}
-	}
-	return 0;
-}
-
-#endif

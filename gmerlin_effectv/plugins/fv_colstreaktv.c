@@ -25,7 +25,6 @@
 static int start(effect*);
 static int stop(effect*);
 static int draw(effect*, RGB32 *src, RGB32 *dest);
-// static int event(SDL_Event *event);
 
 
 typedef struct
@@ -173,31 +172,6 @@ static void set_parameter(void * data, const char * name,
   EFFECTV_SET_PARAM_INT(blendnum);
   }
 
-#if 0
-
-static int event(SDL_Event *event)
-{
-	if(event->type == SDL_KEYDOWN) {
-		switch(event->key.keysym.sym) {
-		case SDLK_INSERT:
-			blendnum++;
-			if(blendnum > MAX_PLANES / 3) {
-				blendnum = MAX_PLANES / 3;
-			}
-			break;
-
-		case SDLK_DELETE:
-			if(blendnum > 1) blendnum--;
-			break;
-
-		default:
-			break;
-		}
-	}
-
-	return 0;
-}
-#endif
 
 static void * create_colstreaktv()
   {

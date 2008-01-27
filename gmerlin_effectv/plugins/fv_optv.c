@@ -16,7 +16,6 @@
 static int start(effect*);
 static int stop(effect*);
 static int draw(effect*, RGB32 *src, RGB32 *dest);
-// static int event(SDL_Event *event);
 
 #define OPMAP_MAX 4
 
@@ -183,89 +182,6 @@ static int draw(effect * e, RGB32 *src, RGB32 *dest)
 	return 0;
 }
 
-#if 0
-
-static int event(SDL_Event *event)
-{
-	if(event->type == SDL_KEYDOWN) {
-		switch(event->key.keysym.sym) {
-		case SDLK_1:
-			mode = 0;
-			break;
-		case SDLK_2:
-			mode = 1;
-			break;
-		case SDLK_3:
-			mode = 2;
-			break;
-		case SDLK_4:
-			mode = 3;
-			break;
-		case SDLK_INSERT:
-			if(speed >= 0) {
-				speedInc = 1;
-			} else {
-				speedInc = -1;
-			}
-			break;
-		case SDLK_DELETE:
-			if(speed >= 0) {
-				speedInc = -1;
-			} else {
-				speedInc = 1;
-			}
-			break;
-		case SDLK_SPACE:
-			speed = -speed;
-			break;
-		case SDLK_q:
-			speed = 4;
-			break;
-		case SDLK_w:
-			speed = 8;
-			break;
-		case SDLK_e:
-			speed = 16;
-			break;
-		case SDLK_r:
-			speed = 32;
-			break;
-		case SDLK_t:
-			speed = 64;
-			break;
-		case SDLK_y:
-			speed = -64;
-			break;
-		case SDLK_u:
-			speed = -32;
-			break;
-		case SDLK_i:
-			speed = -16;
-			break;
-		case SDLK_o:
-			speed = -8;
-			break;
-		case SDLK_p:
-			speed = -4;
-			break;
-		default:
-			break;
-		}
-	} else if(event->type == SDL_KEYUP) {
-		switch(event->key.keysym.sym) {
-		case SDLK_INSERT:
-			speedInc = 0;
-			break;
-		case SDLK_DELETE:
-			speedInc = 0;
-			break;
-		default:
-			break;
-		}
-	}
-	return 0;
-}
-#endif
 
 static const bg_parameter_info_t parameters[] =
   {

@@ -18,7 +18,6 @@
 static int start(effect * e);
 static int stop(effect * e);
 static int draw(effect * e, RGB32 *src, RGB32 *dest);
-// static int event(SDL_Event *);
 
 
 typedef struct
@@ -220,30 +219,6 @@ static void setBackground(effect * e, RGB32 *src)
   priv->bgIsSet = 1;
   }
 
-#if 0
-
-static int event(SDL_Event *event)
-{
-	if(event->type == SDL_KEYDOWN) {
-		switch(event->key.keysym.sym) {
-		case SDLK_SPACE:
-			bgIsSet = 0;
-			break;
-		case SDLK_1:
-		case SDLK_KP1:
-			mode = 0;
-			break;
-		case SDLK_2:
-		case SDLK_KP2:
-			mode = 1;
-			break;
-		default:
-			break;
-		}
-	}
-	return 0;
-}
-#endif
 
 static const bg_parameter_info_t parameters[] =
   {

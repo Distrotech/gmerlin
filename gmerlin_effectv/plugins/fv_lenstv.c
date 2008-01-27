@@ -31,7 +31,6 @@
 static int start(effect *e);
 static int stop(effect *e);
 static int draw(effect *e, RGB32 *src, RGB32 *dst);
-// static int event(SDL_Event *event);
 static void init(effect *e);
 
 typedef struct
@@ -82,7 +81,6 @@ effect *entry;
 	entry->start = start;
 	entry->stop = stop;
 	entry->draw = draw;
-        //	entry->event = event;
         priv = calloc(1, sizeof(*priv));
         entry->priv = priv;
 
@@ -385,66 +383,4 @@ const bg_fv_plugin_t the_plugin =
    to let the plugin loader obtain the API version */
 BG_GET_PLUGIN_API_VERSION;
 
-
-#if 0
-
-static int event(SDL_Event *event)
-{
-		if(event->type == SDL_KEYDOWN) {
-			switch(event->key.keysym.sym) {
-
-			  	case SDLK_SPACE:
-					mode=!mode;
-
-                        		//fprintf(stdout,"mode=%d\n",mode);
-				break;
-
-				default: 
-				break;
-
-			}
-		}
-
-		else { 
-			if(mode==0){
-			   if (SDL_MOUSEMOTION == event->type){
-
-				switch(event->button.button) {
-          				case SDL_BUTTON_LEFT:
-						lens_width = lens_width + (event->motion.yrel);
-						if (lens_width>video_height)lens_width=video_height;
-						if (lens_width<3)lens_width=3;
-						init();
-						clipmag();
-
-					break;
-
-					case 2: // Right button on 2 button mice / middle on three?
-        				case 4: // Right on  my wheel mouuse
-						//lens_width = event->button.y;
-						lens_zoom = lens_zoom + event->motion.yrel;
-						if (lens_zoom<5) lens_zoom=5;
-						if (lens_zoom>200) lens_zoom=200;
-						init();
-						//fprintf(stdout,"y=%d\n",y);fprintf(stdout,"x=%d\n",x);
-					break;
-					default:
-						y = y+(event->motion.yrel);
-						x = x+(event->motion.xrel);
-						clipmag();
-					//fprintf(stdout,"y=%d\n",y);fprintf(stdout,"x=%d\n",x);
-					break;
-
-
-				}
-			   }
-			}
-
-
-
-    	}
-
-	return 0;
-}
-#endif
 
