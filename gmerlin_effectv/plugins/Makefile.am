@@ -29,6 +29,7 @@ fv_noisetv.la \
 fv_optv.la \
 fv_puptv.la \
 fv_quarktv.la \
+fv_rdstv.la \
 fv_revtv.la \
 fv_rippletv.la \
 fv_rndmtv.la \
