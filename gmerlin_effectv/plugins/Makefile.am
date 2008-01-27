@@ -9,6 +9,7 @@ fv_agingtv.la \
 fv_baltantv.la \
 fv_brokentv.la \
 fv_burningtv.la \
+fv_chameleontv.la \
 fv_colstreaktv.la \
 fv_cycletv.la \
 fv_dicetv.la \
