@@ -332,6 +332,10 @@ void bg_cfg_section_set_parameter(bg_cfg_section_t * section,
       item->value.val_color[2] = value->val_color[2];
       item->value.val_color[3] = value->val_color[3];
       break;
+    case BG_CFG_POSITION:
+      item->value.val_pos[0] = value->val_pos[0];
+      item->value.val_pos[1] = value->val_pos[1];
+      break;
       
     }
   
@@ -676,6 +680,18 @@ int bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * section,
           }
         str = end;
         break;
+      case BG_PARAMETER_POSITION:
+        if(*str == '\0')
+          goto fail;
+        item->value.val_pos[0] = strtod(str, &end);
+        str = end;
+
+        if(*str == '\0')
+          goto fail;
+        str++; // ,
+        item->value.val_pos[1] = strtod(str, &end);
+        str = end;
+        break;
       case BG_PARAMETER_SECTION:
         break;
       }
@@ -732,7 +748,10 @@ void bg_cfg_section_get_parameter(bg_cfg_section_t * section,
       value->val_color[1] = item->value.val_color[1];
       value->val_color[2] = item->value.val_color[2];
       value->val_color[3] = item->value.val_color[3];
-      
+      break;
+    case BG_CFG_POSITION:
+      value->val_pos[0] = item->value.val_pos[0];
+      value->val_pos[1] = item->value.val_pos[1];
       break;
     }
   }

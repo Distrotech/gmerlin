@@ -73,6 +73,9 @@ bg_cfg_item_t * bg_cfg_item_create(const bg_parameter_info_t * info,
     case BG_PARAMETER_TIME:
       ret->type = BG_CFG_TIME;
       break;
+    case BG_PARAMETER_POSITION:
+      ret->type = BG_CFG_POSITION;
+      break;
     case BG_PARAMETER_SECTION:
       break;
     }
@@ -105,7 +108,7 @@ bg_cfg_item_t * bg_cfg_item_create(const bg_parameter_info_t * info,
         ret->value.val_color[2] = value->val_color[2];
         ret->value.val_color[3] = value->val_color[3];
         }
-      else if(info->val_default.val_color)
+      else
         {
         ret->value.val_color[0] = info->val_default.val_color[0];
         ret->value.val_color[1] = info->val_default.val_color[1];
@@ -125,6 +128,17 @@ bg_cfg_item_t * bg_cfg_item_create(const bg_parameter_info_t * info,
                                        info->val_default.val_str);
         }
       break;
+    case BG_CFG_POSITION:
+      if(value)
+        {
+        ret->value.val_pos[0] = value->val_pos[0];
+        ret->value.val_pos[1] = value->val_pos[1];
+        }
+      else
+        {
+        ret->value.val_pos[0] = info->val_default.val_pos[0];
+        ret->value.val_pos[1] = info->val_default.val_pos[1];
+        }
     }
   return ret;
   }
@@ -168,6 +182,9 @@ void bg_cfg_item_to_parameter(bg_cfg_item_t * src, bg_parameter_info_t * info)
       break;
     case BG_CFG_TIME: /* int64 */
       info->type = BG_PARAMETER_TIME;
+      break;
+    case BG_CFG_POSITION:
+      info->type = BG_PARAMETER_POSITION;
       break;
     }
   }

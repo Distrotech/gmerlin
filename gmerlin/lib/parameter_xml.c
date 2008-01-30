@@ -52,7 +52,8 @@ type_names[] =
     { "multi_menu",    BG_PARAMETER_MULTI_MENU },
     { "multi_list",    BG_PARAMETER_MULTI_LIST },
     { "multi_chain",   BG_PARAMETER_MULTI_CHAIN },
-    { "time",          BG_PARAMETER_TIME }
+    { "time",          BG_PARAMETER_TIME },
+    { "pos",           BG_PARAMETER_POSITION }
   };
 
 static const char * type_2_name(bg_parameter_type_t type)
@@ -404,6 +405,11 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
                      &(ret[index].val_default.val_color[2]),
                      &(ret[index].val_default.val_color[3]));
               break;
+            case BG_PARAMETER_POSITION:
+              sscanf(tmp_string, "%lf %lf",
+                     &(ret[index].val_default.val_pos[0]),
+                     &(ret[index].val_default.val_pos[1]));
+              break;
             case BG_PARAMETER_TIME:
               sscanf(tmp_string, "%" PRId64, &(ret[index].val_default.val_time));
               break;
@@ -430,6 +436,7 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
             case BG_PARAMETER_MULTI_CHAIN:
             case BG_PARAMETER_COLOR_RGB:
             case BG_PARAMETER_COLOR_RGBA:
+            case BG_PARAMETER_POSITION:
               break;
             case BG_PARAMETER_SLIDER_INT:
             case BG_PARAMETER_INT:
@@ -768,6 +775,20 @@ void bg_parameters_2_xml(const bg_parameter_info_t * info, xmlNodePtr xml_parame
                                   info[num_parameters].val_default.val_color[1],
                                   info[num_parameters].val_default.val_color[2],
                                   info[num_parameters].val_default.val_color[3]);
+          xmlAddChild(child, BG_XML_NEW_TEXT(tmp_string));
+          free(tmp_string);
+          
+          xmlAddChild(xml_info, BG_XML_NEW_TEXT("\n"));
+          }
+        break;
+      case BG_PARAMETER_POSITION:
+        if(info[num_parameters].val_default.val_color)
+          {
+          child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)default_key, NULL);
+
+          tmp_string = bg_sprintf("%f %f",
+                                  info[num_parameters].val_default.val_color[0],
+                                  info[num_parameters].val_default.val_color[1]);
           xmlAddChild(child, BG_XML_NEW_TEXT(tmp_string));
           free(tmp_string);
           

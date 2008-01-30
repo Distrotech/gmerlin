@@ -329,8 +329,8 @@ int bg_audio_filter_chain_init(bg_audio_filter_chain_t * ch,
     ch->in_data   = f->handle->priv;
     ch->in_stream = 0;
     
-    if(f->plugin->init)
-      f->plugin->init(f->handle->priv);
+    //    if(f->plugin->init)
+    //      f->plugin->init(f->handle->priv);
     f->plugin->get_output_format(f->handle->priv, &format_1);
 
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Initialized audio filter %s",
@@ -691,8 +691,8 @@ int bg_video_filter_chain_init(bg_video_filter_chain_t * ch,
     ch->in_data   = f->handle->priv;
     ch->in_stream = 0;
     
-    if(f->plugin->init)
-      f->plugin->init(f->handle->priv);
+    //    if(f->plugin->init)
+    //      f->plugin->init(f->handle->priv);
     f->plugin->get_output_format(f->handle->priv, &format_1);
 
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Initialized video filter %s",

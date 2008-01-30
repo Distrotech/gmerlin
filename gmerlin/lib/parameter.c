@@ -57,13 +57,19 @@ void bg_parameter_value_copy(bg_parameter_value_t * dst,
     case BG_PARAMETER_COLOR_RGB:
       memcpy(dst->val_color,
              src->val_color,
-             3 * sizeof(float));
+             3 * sizeof(dst->val_color[0]));
       dst->val_color[3] = 1.0;
       break;
     case BG_PARAMETER_COLOR_RGBA:
       memcpy(dst->val_color,
              src->val_color,
-             4 * sizeof(float));
+             4 * sizeof(dst->val_color[0]));
+      break;
+    case BG_PARAMETER_POSITION:
+      memcpy(dst->val_pos,
+             src->val_pos,
+             2 * sizeof(dst->val_pos[0]));
+      dst->val_color[3] = 1.0;
       break;
     case BG_PARAMETER_TIME:
       dst->val_time = src->val_time;
@@ -87,6 +93,7 @@ void bg_parameter_value_free(bg_parameter_value_t * val,
     case BG_PARAMETER_SECTION:
     case BG_PARAMETER_COLOR_RGB:
     case BG_PARAMETER_COLOR_RGBA:
+    case BG_PARAMETER_POSITION:
       break;
     case BG_PARAMETER_STRING:
     case BG_PARAMETER_STRING_HIDDEN:
@@ -243,6 +250,15 @@ void bg_parameter_info_copy(bg_parameter_info_t * dst,
                4 * sizeof(dst->val_default.val_color[0]));
         }
       break;
+    case BG_PARAMETER_POSITION:
+      if(src->val_default.val_color)
+        {
+        memcpy(dst->val_default.val_pos,
+               src->val_default.val_pos,
+               2 * sizeof(dst->val_default.val_pos[0]));
+        }
+      dst->num_digits        = src->num_digits;
+      break;
     case BG_PARAMETER_TIME:
       dst->val_default.val_time = src->val_default.val_time;
       break;
@@ -316,6 +332,7 @@ void bg_parameter_info_destroy_array(bg_parameter_info_t * info)
       case BG_PARAMETER_SLIDER_FLOAT:
       case BG_PARAMETER_COLOR_RGB:
       case BG_PARAMETER_COLOR_RGBA:
+      case BG_PARAMETER_POSITION:
         break;
       case BG_PARAMETER_MULTI_MENU:
       case BG_PARAMETER_MULTI_LIST:

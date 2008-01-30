@@ -51,6 +51,7 @@ typedef enum
     BG_PLUGIN_API_GMERLIN = 0, //!< Always 0 so native plugins can leave this empty
     BG_PLUGIN_API_LADSPA,      //!< Ladspa API
     BG_PLUGIN_API_LV,          //!< Libvisual
+    BG_PLUGIN_API_FREI0R,      //!< frei0r
   } bg_plugin_api_t;
 
 /** \ingroup plugin_registry

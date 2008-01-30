@@ -43,6 +43,7 @@ album.c \
 album_xml.c \
 bggavl.c \
 bgladspa.c \
+bgfrei0r.c \
 bgxml.c \
 cfg_item.c \
 cfg_registry.c \

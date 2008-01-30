@@ -44,6 +44,7 @@
 #include <log.h>
 
 #include <bgladspa.h>
+#include <bgfrei0r.h>
 
 #ifdef HAVE_LV
 #include <bglv.h>
@@ -552,6 +553,9 @@ scan_directory_internal(const char * directory, bg_plugin_info_t ** _file_info,
       case BG_PLUGIN_API_LADSPA:
         new_info = bg_ladspa_get_info(test_module, filename);
         break;
+      case BG_PLUGIN_API_FREI0R:
+        new_info = bg_frei0r_get_info(test_module, filename);
+        break;
 #ifdef HAVE_LV
       case BG_PLUGIN_API_LV:
         new_info = bg_lv_get_info(filename);
@@ -625,7 +629,7 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
   int changed = 0;
   bg_plugin_info_t * file_info;
   bg_plugin_info_t * file_info_next;
-
+  char * tmp_string, *pos;
   bg_plugin_info_t * ret;
   
   ret = scan_directory_internal(directory, _file_info,
@@ -637,9 +641,11 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
   
   while(file_info)
     {
-    /* FIXME: This goes wrong if one plugin directory is a subdirectory
-       of another. Currently, this is never the case though */
-    if(!strncmp(file_info->module_filename, directory, strlen(directory)))
+    tmp_string = bg_strdup((char*)0, file_info->module_filename);
+    pos = strrchr(tmp_string, '/');
+    if(pos) *pos = '\0';
+    
+    if(!strcmp(tmp_string, directory))
       {
       file_info_next = file_info->next;
       *_file_info = remove_from_list(*_file_info, file_info);
@@ -649,6 +655,7 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
       }
     else
       file_info = file_info->next;
+    free(tmp_string);
     }
   
   if(!changed)
@@ -660,6 +667,46 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
   return ret;
   }
 
+static bg_plugin_info_t * scan_multi(const char * path,
+                                   bg_plugin_info_t ** _file_info,
+                                   bg_cfg_section_t * section,
+                                   bg_plugin_api_t api)
+  {
+  char ** paths;
+  bg_plugin_info_t * ret = (bg_plugin_info_t *)0;
+  bg_plugin_info_t * tmp_info;
+  int do_scan;
+  int index, i;
+  paths = bg_strbreak(path, ':');
+  if(paths)
+    {
+    index = 0;
+    while(paths[index])
+      {
+      do_scan = 1;
+      for(i = 0; i < index; i++)
+        {
+        if(!strcmp(paths[index], paths[i]))
+          {
+          do_scan = 0;
+          break;
+          }
+        }
+      if(do_scan)
+        {
+        tmp_info = scan_directory(paths[index],
+                                  _file_info, 
+                                  section, api);
+        if(tmp_info)
+          ret = append_to_list(ret, tmp_info);
+        }
+      index++;
+      }
+    bg_strbreak_free(paths);
+    }
+  return ret;
+  }
+     
 bg_plugin_registry_t *
 bg_plugin_registry_create(bg_cfg_section_t * section)
   {
@@ -668,12 +715,9 @@ bg_plugin_registry_create(bg_cfg_section_t * section)
   bg_plugin_info_t * tmp_info;
   bg_plugin_info_t * tmp_info_next;
   char * filename;
-  int index, i;
-  int do_scan;
   char * env;
 
   char * path;
-  char ** paths;
     
   ret = calloc(1, sizeof(*ret));
   ret->config_section = section;
@@ -703,35 +747,18 @@ bg_plugin_registry_create(bg_cfg_section_t * section)
   else
     path = bg_sprintf("/usr/lib/ladspa:/usr/local/lib/ladspa");
 
-  paths = bg_strbreak(path, ':');
-  if(paths)
-    {
-    index = 0;
-    while(paths[index])
-      {
-      do_scan = 1;
-      for(i = 0; i < index; i++)
-        {
-        if(!strcmp(paths[index], paths[i]))
-          {
-          do_scan = 0;
-          break;
-          }
-        }
-      if(do_scan)
-        {
-        tmp_info = scan_directory(paths[index],
-                                  &file_info, 
-                                  section, BG_PLUGIN_API_LADSPA);
-        if(tmp_info)
-          ret->entries = append_to_list(ret->entries, tmp_info);
-        }
-      index++;
-      }
-    bg_strbreak_free(paths);
-    }
+  tmp_info = scan_multi(path, &file_info, section, BG_PLUGIN_API_LADSPA);
+  if(tmp_info)
+    ret->entries = append_to_list(ret->entries, tmp_info);
+  
   free(path);
-
+  
+  /* Frei0r */
+  tmp_info = scan_multi("/usr/local/lib/frei0r-1", &file_info, 
+                        section, BG_PLUGIN_API_FREI0R);
+  if(tmp_info)
+    ret->entries = append_to_list(ret->entries, tmp_info);
+    
 #ifdef HAVE_LV
   tmp_info = scan_directory(LV_PLUGIN_DIR,
                             &file_info, 
@@ -1035,6 +1062,9 @@ static void unload_plugin(bg_plugin_handle_t * h)
     case BG_PLUGIN_API_LADSPA:
       bg_ladspa_unload(h);
       break;
+    case BG_PLUGIN_API_FREI0R:
+      bg_frei0r_unload(h);
+      break;
 #ifdef HAVE_LV
     case BG_PLUGIN_API_LV:
       bg_lv_unload(h);
@@ -1218,6 +1248,10 @@ static bg_plugin_handle_t * load_plugin(bg_plugin_registry_t * reg,
         break;
       case BG_PLUGIN_API_LADSPA:
         if(!bg_ladspa_load(ret, info))
+          goto fail;
+        break;
+      case BG_PLUGIN_API_FREI0R:
+        if(!bg_frei0r_load(ret, info))
           goto fail;
         break;
 #ifdef HAVE_LV

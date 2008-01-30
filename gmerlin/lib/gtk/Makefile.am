@@ -19,6 +19,7 @@ cfg_file.c \
 cfg_font.c \
 cfg_multi_list.c \
 cfg_multi_menu.c \
+cfg_position.c \
 cfg_slider.c \
 cfg_spinbutton.c \
 cfg_string.c \

@@ -1010,8 +1010,27 @@ static void print_help_parameters(int indent,
         pos += indent+2;
         fprintf(out, TR("Seconds can be fractional (i.e. with decimal point)\n"));
         break;
-      }
+      case BG_PARAMETER_POSITION:
+        fprintf(out, TR("<x>,<y> (default: %.3f,%.3f)"),
+                parameters[i].val_default.val_pos[0],
+                parameters[i].val_default.val_pos[1]);
+        if(format == BG_HELP_FORMAT_MAN)
+          fprintf(out, "\"");
+        print_linebreak(out, format);
+        
+        do_indent(out, indent+2, format);
+        pos += indent+2;
+        
+        fprintf(out, TR("<r>, <g> and <b> are in the range 0.0..1.0"));
+        if(format != BG_HELP_FORMAT_MAN)
+          fprintf(out, "\n");
+        else
+          fprintf(out, "\n.P\n");
+        break;
 
+
+      }
+    
     do_indent(out, indent+2, format);
     pos += indent+2;
     

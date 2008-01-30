@@ -759,7 +759,7 @@ static void stop_cmd(bg_player_t * player, int new_state, int want_new)
   
   old_state = bg_player_get_state(player);
 
-  cleanup_playback(player, old_state, new_state, want_new, 0);
+  cleanup_playback(player, old_state, new_state, want_new, 1);
   
   if((old_state == BG_PLAYER_STATE_PLAYING) ||
      (old_state == BG_PLAYER_STATE_PAUSED))

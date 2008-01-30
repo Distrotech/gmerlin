@@ -70,7 +70,8 @@ typedef enum
     BG_PARAMETER_MULTI_MENU,  //!< Menu with config- and infobutton
     BG_PARAMETER_MULTI_LIST,  //!< List with config- and infobutton
     BG_PARAMETER_MULTI_CHAIN, //!< Several subitems (including suboptions) can be arranged in a chain
-    BG_PARAMETER_TIME         //!< Time
+    BG_PARAMETER_TIME,        //!< Time
+    BG_PARAMETER_POSITION     //!< Position (x/y coordinates, scaled 0..1)
   } bg_parameter_type_t;
 
 /** \ingroup parameter
@@ -84,6 +85,7 @@ typedef union
   char *  val_str; //!< For BG_PARAMETER_STRING, BG_PARAMETER_STRING_HIDDEN, BG_PARAMETER_STRINGLIST, BG_PARAMETER_FONT, BG_PARAMETER_FILE, BG_PARAMETER_DIRECTORY, BG_PARAMETER_MULTI_MENU, BG_PARAMETER_MULTI_LIST
   float val_color[4];  //!< RGBA values (0.0..1.0) for BG_PARAMETER_COLOR_RGB and BG_PARAMETER_COLOR_RGBA 
   gavl_time_t val_time; //!< For BG_PARAMETER_TIME
+  double val_pos[2];     //!< For BG_PARAMETER_POSITION
   } bg_parameter_value_t;
 
 /* Flags */

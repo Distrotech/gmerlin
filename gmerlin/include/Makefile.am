@@ -47,9 +47,11 @@ visualize.h
 
 noinst_HEADERS = \
 bgfreetype.h \
+bgfrei0r.h \
 bggavl.h \
 bglv.h \
 bgladspa.h \
+frei0r.h \
 ladspa.h \
 language_table.h \
 md5.h \

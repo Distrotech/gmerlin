@@ -205,7 +205,20 @@ void bg_msg_set_arg_color_rgba(bg_msg_t * msg, int arg, const float * value);
  */
 void bg_msg_get_arg_color_rgba(bg_msg_t * msg, int arg, float * value);
 
+/** \brief Set a position argument
+ *  \param msg A message
+ *  \param arg Argument index (starting with 0)
+ *  \param value Value
+ */
+void bg_msg_set_arg_position(bg_msg_t * msg, int arg, const double * value);
 
+
+/** \brief Get a position argument
+ *  \param msg A message
+ *  \param arg Argument index (starting with 0)
+ *  \param value Value
+ */
+void bg_msg_get_arg_position(bg_msg_t * msg, int arg, double * value);
 
 /** \brief Set a binary data argument
  *  \param msg A message

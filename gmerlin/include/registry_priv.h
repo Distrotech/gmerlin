@@ -26,7 +26,8 @@ typedef enum
     BG_CFG_STRING,
     BG_CFG_STRING_HIDDEN,
     BG_CFG_COLOR,
-    BG_CFG_TIME /* int64 */
+    BG_CFG_TIME, /* int64 */
+    BG_CFG_POSITION
   } bg_cfg_type_t;
 
 typedef struct bg_cfg_item_s     bg_cfg_item_t;

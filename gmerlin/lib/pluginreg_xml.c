@@ -64,6 +64,7 @@ api_names[] =
     { "gmerlin",                 BG_PLUGIN_API_GMERLIN },
     { "ladspa",                  BG_PLUGIN_API_LADSPA  },
     { "lv",                      BG_PLUGIN_API_LV  },
+    { "frei0r",                  BG_PLUGIN_API_FREI0R },
     { (char*)0,                  BG_PLUGIN_NONE }
   };
 

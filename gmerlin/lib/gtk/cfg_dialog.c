@@ -640,6 +640,10 @@ static GtkWidget * create_section(dialog_section_t * section,
                                   set_param, data,
                                   translation_domain);
         break;
+      case BG_PARAMETER_POSITION:
+        bg_gtk_create_position(&(section->widgets[count]), &(info[i]),
+                               translation_domain);
+        break;
       case BG_PARAMETER_SECTION:
         break;
       }
@@ -995,12 +999,20 @@ void bg_gtk_change_callback(GtkWidget * gw, gpointer data)
 
 void bg_gtk_change_callback_block(bg_gtk_widget_t * w, int block)
   {
-  if(!w->callback_widget)
-    return;
   if(block)
-    g_signal_handler_block(w->callback_widget, w->callback_id);
+    {
+    if(w->callback_widget)
+      g_signal_handler_block(w->callback_widget, w->callback_id);
+    if(w->callback_widget_2)
+      g_signal_handler_block(w->callback_widget_2, w->callback_id_2);
+    }
   else
-    g_signal_handler_unblock(w->callback_widget, w->callback_id);
+    {
+    if(w->callback_widget)
+      g_signal_handler_unblock(w->callback_widget, w->callback_id);
+    if(w->callback_widget_2)
+      g_signal_handler_unblock(w->callback_widget_2, w->callback_id_2);
+    }
   }
 
 void * bg_dialog_add_parent(bg_dialog_t *d, void * _parent, const char * label)

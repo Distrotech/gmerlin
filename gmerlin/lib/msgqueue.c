@@ -52,7 +52,7 @@
 #define TYPE_TIME           4
 #define TYPE_COLOR_RGB      5
 #define TYPE_COLOR_RGBA     6
-
+#define TYPE_POSITION       7
 
 struct bg_msg_s
   {
@@ -67,6 +67,7 @@ struct bg_msg_s
       void * val_ptr;
       gavl_time_t val_time;
       float val_color[4];
+      double val_pos[2];
       } value;
     uint8_t type;
     uint32_t size;
@@ -195,6 +196,18 @@ void bg_msg_set_arg_color_rgba(bg_msg_t * msg, int arg, const float * value)
     msg->num_args = arg + 1;
   }
 
+void bg_msg_set_arg_position(bg_msg_t * msg, int arg, const double * value)
+  {
+  if(!check_arg(arg))
+    return;
+  msg->args[arg].value.val_pos[0] = value[0];
+  msg->args[arg].value.val_pos[1] = value[1];
+  msg->args[arg].type = TYPE_POSITION;
+  if(arg+1 > msg->num_args)
+    msg->num_args = arg + 1;
+  }
+
+
 /* Get basic types */
 
 int bg_msg_get_id(bg_msg_t * msg)
@@ -242,6 +255,13 @@ void bg_msg_get_arg_color_rgba(bg_msg_t * msg, int arg, float * val)
   val[3] = msg->args[arg].value.val_color[3];
   }
 
+void bg_msg_get_arg_position(bg_msg_t * msg, int arg, double * val)
+  {
+  if(!check_arg(arg))
+    return;
+  val[0] = msg->args[arg].value.val_pos[0];
+  val[1] = msg->args[arg].value.val_pos[1];
+  }
 
 void * bg_msg_get_arg_ptr(bg_msg_t * msg, int arg, int * length)
   {
@@ -788,6 +808,9 @@ void bg_msg_set_parameter(bg_msg_t * msg,
     case BG_PARAMETER_COLOR_RGBA:  //!< RGBA Color
       bg_msg_set_arg_color_rgba(msg, 2, val->val_color);
       break;
+    case BG_PARAMETER_POSITION:  //!< RGBA Color
+      bg_msg_set_arg_position(msg, 2, val->val_pos);
+      break;
     case BG_PARAMETER_TIME:         //!< Time
       bg_msg_set_arg_time(msg, 2, val->val_time);
       break;
@@ -836,6 +859,9 @@ void bg_msg_get_parameter(bg_msg_t * msg,
       break;
     case BG_PARAMETER_COLOR_RGBA:  //!< RGBA Color
       bg_msg_get_arg_color_rgba(msg, 2, val->val_color);
+      break;
+    case BG_PARAMETER_POSITION:  //!< RGBA Color
+      bg_msg_get_arg_position(msg, 2, val->val_pos);
       break;
     case BG_PARAMETER_TIME:         //!< Time
       bg_msg_set_arg_time(msg, 2, val->val_time);

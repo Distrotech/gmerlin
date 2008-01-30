@@ -79,6 +79,10 @@ static void load_item(xmlDocPtr xml_doc, xmlNodePtr xml_item,
     {
     info.type = BG_PARAMETER_TIME;
     }
+  else if(!strcmp(tmp_type, "pos"))
+    {
+    info.type = BG_PARAMETER_POSITION;
+    }
   else
     {
     return;
@@ -122,6 +126,12 @@ static void load_item(xmlDocPtr xml_doc, xmlNodePtr xml_item,
              &(item->value.val_color[1]),
              &(item->value.val_color[2]),
              &(item->value.val_color[3]));
+      break;
+    case BG_CFG_POSITION:
+      start = tmp_string;
+      sscanf(tmp_string, "%lf %lf",
+             &(item->value.val_pos[0]),
+             &(item->value.val_pos[1]));
       break;
     }
   if(tmp_string)
@@ -293,6 +303,13 @@ void bg_cfg_section_2_xml(bg_cfg_section_t * section, xmlNodePtr xml_section)
                 item->value.val_color[1],
                 item->value.val_color[2],
                 item->value.val_color[3]);
+        xmlAddChild(xml_item, BG_XML_NEW_TEXT(buffer));
+        break;
+      case BG_CFG_POSITION:
+        BG_XML_SET_PROP(xml_item, "type", "pos");
+        sprintf(buffer, "%f %f",
+                item->value.val_pos[0],
+                item->value.val_pos[1]);
         xmlAddChild(xml_item, BG_XML_NEW_TEXT(buffer));
         break;
       }

@@ -1761,13 +1761,6 @@ typedef struct bg_audio_filter_plugin_s
   
   void (*set_input_format)(void * priv, gavl_audio_format_t * format, int port);
 
-  /** \brief Initialize
-   *  \param priv The handle returned by the create() method
-   *
-   *  Perform initialization
-   */
-
-  void (*init)(void * priv);
 
   /** \brief Reset
    *  \param priv The handle returned by the create() method
@@ -1831,15 +1824,7 @@ typedef struct bg_video_filter_plugin_s
    */
   
   void (*set_input_format)(void * priv, gavl_video_format_t * format, int port);
-
-  /** \brief Initialize
-   *  \param priv The handle returned by the create() method
-   *
-   *  Perform initialization
-   */
   
-  void (*init)(void * priv);
-
   /** \brief Reset
    *  \param priv The handle returned by the create() method
    *

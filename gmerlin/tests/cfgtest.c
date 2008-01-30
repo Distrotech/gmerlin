@@ -281,6 +281,15 @@ static const bg_parameter_info_t info_2[] =
       .help_string =   "Color RGBA help",
     },
     {
+      .name =      "position",
+      .long_name = "Position",
+      .type =      BG_PARAMETER_POSITION,
+      .flags =     PARAMETER_FLAGS,
+      .val_default = { .val_pos = { 0.5, 0.5 } },
+      .help_string =   "Position help",
+      .num_digits = 2,
+    },
+    {
       .name =        "file",
       .long_name =   "File",
       .type =        BG_PARAMETER_FILE,
@@ -462,6 +471,10 @@ static void set_parameter(void * data, const char * name,
       fprintf(stderr, "Color %s: %f %f %f %f\n", tmp_info->name,
               v->val_color[0], v->val_color[1],
               v->val_color[2], v->val_color[3]);
+      break;
+    case BG_PARAMETER_POSITION:
+      fprintf(stderr, "Position %s: %f %f\n", tmp_info->name,
+              v->val_pos[0], v->val_pos[1]);
       break;
     case BG_PARAMETER_FILE:
     case BG_PARAMETER_DIRECTORY:
