@@ -708,7 +708,8 @@ static int input_open(bgav_input_context_t * ctx,
             !strcasecmp(protocol, "mmst") ||
             !strcasecmp(protocol, "mmsu"))
       ctx->input = &bgav_input_mms;
-    else if(!strcasecmp(protocol, "http"))
+    else if(!strcasecmp(protocol, "http") ||
+            !strcasecmp(protocol, "icyx"))
       ctx->input = &bgav_input_http;
     else if(!strcasecmp(protocol, "ftp"))
       ctx->input = &bgav_input_ftp;

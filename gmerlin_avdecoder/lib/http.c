@@ -254,7 +254,6 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
     
   char * host     = (char*)0;
   char * path     = (char*)0;
-  char * protocol = (char*)0;
   char * line     = (char*)0;
   char * user     = (char*)0;
   char * pass     = (char*)0;
@@ -267,7 +266,7 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
   
   port = -1;
   if(!bgav_url_split(url,
-                     &protocol,
+                     NULL,
                      &user, /* User */
                      &pass, /* Pass */
                      &host,
@@ -284,8 +283,6 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
     }
   if(port == -1)
     port = 80;
-  if(strcasecmp(protocol, "http"))
-    goto fail;
 
   /* Check for proxy */
 
@@ -412,8 +409,6 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
     free(host);
   if(path)
     free(path);
-  if(protocol)
-    free(protocol);
   
   return ret;
   
@@ -432,8 +427,6 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
     free(host);
   if(path)
     free(path);
-  if(protocol)
-    free(protocol);
 
   if(ret)
     {
