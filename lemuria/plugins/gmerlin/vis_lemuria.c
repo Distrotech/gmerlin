@@ -177,7 +177,7 @@ static void destroy_lemuria(void * priv)
   free(vp);
   }
 
-static bg_parameter_info_t parameters[] =
+static const bg_parameter_info_t parameters[] =
   {
     {
       .name = "antialias",
@@ -191,7 +191,7 @@ static bg_parameter_info_t parameters[] =
     { /* End of parameters */ },
   };
 
-static bg_parameter_info_t * get_parameters_lemuria(void * priv)
+static const bg_parameter_info_t * get_parameters_lemuria(void * priv)
   {
   return parameters;
   }
@@ -298,7 +298,7 @@ static void show_frame_lemuria(void * priv)
   bg_x11_window_unset_gl(vp->w);
   }
 
-bg_visualization_plugin_t the_plugin = 
+const bg_visualization_plugin_t the_plugin = 
   {
     .common =
     {

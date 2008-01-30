@@ -100,6 +100,29 @@ else
   echo "Found GLU"
 fi
 
+dnl
+dnl Goom and xaos sizes
+dnl
+
+XAOS_SIZE=256
+GOOM_SIZE=256
+
+AC_ARG_WITH(xaos-size,
+[AC_HELP_STRING([--with-xaos-size=size],
+                [Set xaos size, must be power of 2, default: 256],
+                [XAOS_SIZE=${withval}])])
+
+AC_ARG_WITH(goom-size,
+[AC_HELP_STRING([--with-goom-size=size],
+                [Set goom size, must be power of 2, default: 256],
+                [GOOM_SIZE=${withval}])])
+
+AC_DEFINE_UNQUOTED(XAOS_SIZE, [$XAOS_SIZE], [Render size for xaos])
+AC_DEFINE_UNQUOTED(GOOM_SIZE, [$GOOM_SIZE], [Render size for goom])
+dnl
+dnl CFLAGS
+dnl
+
 LQT_OPT_CFLAGS($host_cpu, ["--fast-math -O2"])
 
 CFLAGS="$OPT_CFLAGS $GL_CFLAGS"

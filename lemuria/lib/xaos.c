@@ -56,7 +56,7 @@ struct lemuria_xaos_s
   int bytes_per_pixel;
   };
 
-#define XAOS_SIZE 256
+// #define XAOS_SIZE 256
 
 /* Dump palette */
 #if 0

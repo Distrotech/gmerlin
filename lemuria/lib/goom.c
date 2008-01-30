@@ -27,8 +27,8 @@
 #include <lemuria_private.h>
 
 
-#define GOOM_WIDTH  256
-#define GOOM_HEIGHT 256
+// #define GOOM_WIDTH  256
+// #define GOOM_HEIGHT 256
 
 static char * goom2_dlls[] =
   {
@@ -74,7 +74,7 @@ void lemuria_goom_create(lemuria_engine_t * e)
        (goom->goom2_update = dlsym(goom->module, "goom_update")) &&
        (goom->goom2_close = dlsym(goom->module, "goom_close")))
       {
-      goom->goom2_instance = goom->goom2_init(GOOM_WIDTH, GOOM_HEIGHT);
+      goom->goom2_instance = goom->goom2_init(GOOM_SIZE, GOOM_SIZE);
       e->goom = goom;
       fprintf(stderr, "Found goom-2k4 (DLL: %s)\n", goom2_dlls[i]);
       return;
@@ -99,10 +99,10 @@ void lemuria_goom_update(lemuria_engine_t * e)
   goom_image = goom->goom2_update(goom->goom2_instance, e->time_buffer_read, 0, -1,
                               (char*)0, (char*)0);
   
-  for(i = 0; i < GOOM_WIDTH*GOOM_HEIGHT; i++)
+  for(i = 0; i < GOOM_SIZE*GOOM_SIZE; i++)
     goom_image[4*i+3] = 0xff;
     
-  glTexImage2D(GL_TEXTURE_2D, 0, 4, GOOM_WIDTH, GOOM_HEIGHT,
+  glTexImage2D(GL_TEXTURE_2D, 0, 4, GOOM_SIZE, GOOM_SIZE,
                0, GL_RGBA, GL_UNSIGNED_BYTE, goom_image);
   glDisable(GL_TEXTURE_2D);
   
@@ -138,8 +138,8 @@ void lemuria_goom_ref(lemuria_engine_t * e)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexImage2D(GL_TEXTURE_2D, 0, 4,
-                 GOOM_WIDTH,
-                 GOOM_HEIGHT,
+                 GOOM_SIZE,
+                 GOOM_SIZE,
                  0, GL_RGBA, GL_UNSIGNED_BYTE,
                  (char*)0);
     }
