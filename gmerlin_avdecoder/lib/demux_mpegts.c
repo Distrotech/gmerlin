@@ -1034,8 +1034,7 @@ static int open_mpegts(bgav_demuxer_context_t * ctx,
       }
     }
   ctx->stream_description = bgav_sprintf("MPEG-2 transport stream");
-
-  
+  ctx->index_mode = INDEX_MODE_MPEG;
   return 1;
   }
 
@@ -1062,12 +1061,15 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
   int num_packets;
   int bytes_to_copy;
   bgav_pes_header_t pes_header;
-
+  int64_t position;
+  
   priv = (mpegts_t*)(ctx->priv);
 
   if(!priv->packet_size)
     return 0;
-    
+  
+  position = ctx->input->position;
+  
   priv->buffer_size =
     bgav_input_read_data(ctx->input,
                          priv->buffer, priv->packet_size * NUM_PACKETS);
@@ -1089,6 +1091,7 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
     if(priv->packet.transport_error)
       {
       next_packet(priv);
+      position += priv->packet_size;
       continue;
       }
     
@@ -1110,12 +1113,14 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
       if(priv->packet.adaption_field.pcr < 0)
         {
         next_packet(priv);
+        position += priv->packet_size;
         continue;
         }
       else if(priv->packet.pid !=
               priv->programs[priv->current_program].pcr_pid)
         {
         next_packet(priv);
+        position += priv->packet_size;
         continue;
         }
       else
@@ -1126,12 +1131,13 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
         }
       }
 #endif
-    s = bgav_track_find_stream(ctx->tt->cur, priv->packet.pid);
+    s = bgav_track_find_stream(ctx, priv->packet.pid);
     
     if(!s)
       {
       next_packet(priv);
       // fprintf(stderr, "Unknown PID: %d\n", priv->packet.pid);
+      position += priv->packet_size;
       continue;
       }
 #if 0
@@ -1178,6 +1184,7 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
         if(pes_header.pts < 0)
           {
           next_packet(priv);
+          position += priv->packet_size;
           continue;
           }
         ctx->timestamp_offset = -pes_header.pts;
@@ -1191,10 +1198,12 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
           if(s->time_scaled != BGAV_TIMESTAMP_UNDEFINED)
             {
             s->packet = bgav_stream_get_packet_write(s);
+            s->packet->position = position;
             }
           else if(pes_header.pts < 0)
             {
             next_packet(priv);
+            position += priv->packet_size;
             continue;
             }
           else
@@ -1204,7 +1213,10 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
             }
           }
         else
+          {
           s->packet = bgav_stream_get_packet_write(s);
+          s->packet->position = position;
+          }
         }
      
       /*
@@ -1250,6 +1262,7 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
       s->packet->data_size  += priv->packet.payload_size;
       }
     next_packet(priv);
+    position += priv->packet_size;
     }
   
   return 1;

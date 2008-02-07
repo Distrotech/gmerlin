@@ -204,7 +204,7 @@ static int open_au(bgav_demuxer_context_t * ctx,
 
   
   ctx->stream_description = bgav_sprintf("AU/SND format");
-
+  ctx->index_mode = INDEX_MODE_PCM;
   return 1;
   }
 

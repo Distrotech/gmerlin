@@ -49,7 +49,7 @@ create_demuxer(bgav_t * b, const bgav_demuxer_t * demuxer)
 int bgav_init(bgav_t * ret)
   {
   const bgav_demuxer_t * demuxer = (bgav_demuxer_t *)0;
-  bgav_redirector_t * redirector = (bgav_redirector_t*)0;
+  const bgav_redirector_t * redirector = (bgav_redirector_t*)0;
   
   bgav_subtitle_reader_context_t * subreader, * subreaders;
   
@@ -196,6 +196,10 @@ int bgav_open(bgav_t * ret, const char * location)
     goto fail;
 
   ret->location = bgav_strdup(location);
+  
+  /* Check for file index */
+  if(ret->opt.sample_accurate)
+    bgav_read_file_index(ret);
   
   return 1;
   fail:

@@ -379,6 +379,7 @@ demux_wavpack.c \
 demux_wve.c \
 device.c \
 dvframe.c \
+fileindex.c \
 http.c \
 id3v1.c \
 id3v2.c \
@@ -396,8 +397,11 @@ in_vcd.c \
 input.c \
 languages.c \
 log.c \
+md5.c \
 metadata.c \
+mpa_header.c \
 mpegts_common.c \
+mpv_header.c \
 mms.c \
 nanosoft.c \
 options.c \
@@ -454,6 +458,7 @@ r_pls.c \
 r_ref.c \
 r_smil.c \
 rtsp.c \
+sampleseek.c \
 sdp.c \
 stream.c \
 subovl_dvd.c \

@@ -246,7 +246,7 @@ static int next_packet_vmd(bgav_demuxer_context_t * ctx)
 
   frame = &priv->frame_table[priv->current_frame];
 
-  s = bgav_track_find_stream(ctx->tt->cur, frame->stream_index);
+  s = bgav_track_find_stream(ctx, frame->stream_index);
   if(s)
     {
     bgav_input_seek(ctx->input, frame->frame_offset, SEEK_SET);

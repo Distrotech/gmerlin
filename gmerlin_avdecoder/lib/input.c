@@ -820,6 +820,8 @@ void bgav_input_close(bgav_input_context_t * ctx)
     free(ctx->mimetype);
   if(ctx->filename)
     free(ctx->filename);
+  if(ctx->index_file)
+    free(ctx->index_file);
   if(ctx->url)
     free(ctx->url);
   if(ctx->id3v2)

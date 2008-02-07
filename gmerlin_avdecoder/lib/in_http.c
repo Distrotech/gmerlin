@@ -75,7 +75,7 @@ static char const * const comment_vars[] =
   };
 
 static void set_metadata_string(bgav_http_header_t * header,
-                                char * vars[], char ** str)
+                                char const * const vars[], char ** str)
   {
   const char * val;
   int i = 0;

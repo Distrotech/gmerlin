@@ -140,7 +140,7 @@ static int next_packet_sol(bgav_demuxer_context_t * ctx)
   bgav_stream_t * s;
   bgav_packet_t * p;
 
-  s = bgav_track_find_stream(ctx->tt->cur, 0);
+  s = bgav_track_find_stream(ctx, 0);
   p = bgav_stream_get_packet_write(s);
 
   bgav_packet_alloc(p, MAX_SIZE);

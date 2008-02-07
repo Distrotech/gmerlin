@@ -682,7 +682,7 @@ static int next_packet_nsv(bgav_demuxer_context_t * ctx)
     if(priv->need_pcm_format)
       s = ctx->tt->cur->video_streams;
     else
-      s = bgav_track_find_stream(ctx->tt->cur, VIDEO_ID);
+      s = bgav_track_find_stream(ctx, VIDEO_ID);
     if(s && !priv->need_pcm_format)
       {
       p = bgav_stream_get_packet_write(s);
@@ -722,7 +722,7 @@ static int next_packet_nsv(bgav_demuxer_context_t * ctx)
     if(priv->need_pcm_format)
       s = ctx->tt->cur->audio_streams;
     else
-      s = bgav_track_find_stream(ctx->tt->cur, AUDIO_ID);
+      s = bgav_track_find_stream(ctx, AUDIO_ID);
     if(s)
       {
       /* Special treatment for PCM */
@@ -806,8 +806,8 @@ static void seek_nsv(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   /* We consider the video time to be exact and calculate the audio
      time from the sync offset */
 
-  vs = bgav_track_find_stream(ctx->tt->cur, VIDEO_ID);
-  as = bgav_track_find_stream(ctx->tt->cur, AUDIO_ID);
+  vs = bgav_track_find_stream(ctx, VIDEO_ID);
+  as = bgav_track_find_stream(ctx, AUDIO_ID);
 
   if(vs)
     {

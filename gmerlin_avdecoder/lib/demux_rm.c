@@ -1220,7 +1220,6 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
   bgav_rmff_packet_header_t h;
   rm_stream_t * rs = (rm_stream_t*)0;
   int result = 0;
-  bgav_track_t * track;
   uint32_t stream_pos = 0;
   int i;
   
@@ -1228,7 +1227,6 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
 
   if(!rm->is_multirate)
     {
-    track = ctx->tt->cur;
     if(rm->header->data_size && (ctx->input->position + 10 >=
                                  rm->header->data_start + rm->header->data_size))
       {
@@ -1249,7 +1247,7 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
     else
       h.timestamp = 0;
 
-    stream = bgav_track_find_stream(track, h.stream_number);
+    stream = bgav_track_find_stream(ctx, h.stream_number);
 
     if(!stream) /* Skip unknown stuff */
       {

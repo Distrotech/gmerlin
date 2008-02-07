@@ -94,13 +94,19 @@ typedef struct
   } dvd_t;
 
 
-static void open_vts(dvd_t * dvd, int vts_index, int open_file)
+static int open_vts(const bgav_options_t * opt,
+                    dvd_t * dvd, int vts_index, int open_file)
   {
   if(vts_index == dvd->current_vts)
     {
     if(!dvd->dvd_file && open_file)
       dvd->dvd_file = DVDOpenFile(dvd->dvd_reader, vts_index, DVD_READ_TITLE_VOBS);
-    return;
+    if(!dvd->dvd_file)
+      {
+      bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Opening vts %d failed", vts_index);
+      return 0;
+      }
+    return 1;
     }
   if(dvd->vts_ifo)
     ifoClose(dvd->vts_ifo);
@@ -108,10 +114,23 @@ static void open_vts(dvd_t * dvd, int vts_index, int open_file)
   if(dvd->dvd_file)
     DVDCloseFile(dvd->dvd_file);
   if(open_file)
+    {
     dvd->dvd_file = DVDOpenFile(dvd->dvd_reader, vts_index, DVD_READ_TITLE_VOBS);
-  
+    if(!dvd->dvd_file)
+      {
+      bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Opening vts %d failed", vts_index);
+      return 0;
+      }
+    }
   dvd->vts_ifo = ifoOpen(dvd->dvd_reader, vts_index);
+
+  if(!dvd->vts_ifo)
+    {
+    bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Opening IFO for vts %d failed", vts_index);
+    return 0;
+    }
   dvd->current_vts = vts_index;
+  return 1;
   }
 
 static gavl_time_t convert_time(dvd_time_t * time)
@@ -209,7 +228,7 @@ static void guess_pixel_aspect(int width, int height, int aspect,
     }
   }
 
-static void setup_track(bgav_input_context_t * ctx,
+static int setup_track(bgav_input_context_t * ctx,
                         int title, int chapter, int angle)
   {
   int video_width = 0, video_height;
@@ -241,7 +260,9 @@ static void setup_track(bgav_input_context_t * ctx,
   new_track->priv = track_priv;
 
   /* Open VTS */
-  open_vts(dvd, ttsrpt->title[title].title_set_nr, 0);
+
+  if(!open_vts(ctx->opt, dvd, ttsrpt->title[title].title_set_nr, 0))
+    return 0;
 
   /* Get the program chain for this track/chapter */
   ttn = ttsrpt->title[title].vts_ttn;
@@ -589,8 +610,7 @@ static void setup_track(bgav_input_context_t * ctx,
 
     s->data.subtitle.video_stream = new_track->video_streams;
     }
-
-  
+  return 1;
   }
 
 #if 0
@@ -678,13 +698,15 @@ static int open_dvd(bgav_input_context_t * ctx, const char * url, char ** r)
         /* Add individual chapters as tracks */
         for(k = 0; k < ttsrpt->title[i].nr_of_ptts; k++)
           {
-          setup_track(ctx, i, k, j);
+          if(!setup_track(ctx, i, k, j))
+            return 0;
           }
         }
       else
         {
         /* Add entire titles as tracks */
-        setup_track(ctx, i, 0, j);
+        if(!setup_track(ctx, i, 0, j))
+          return 0;
         }
       }
     }
@@ -936,7 +958,7 @@ static void select_track_dvd(bgav_input_context_t * ctx, int track)
   ttn = ttsrpt->title[track_priv->title].vts_ttn;
 
   /* Open VTS */
-  open_vts(dvd, ttsrpt->title[track_priv->title].title_set_nr, 1);
+  open_vts(ctx->opt, dvd, ttsrpt->title[track_priv->title].title_set_nr, 1);
   
   vts_ptt_srpt = dvd->vts_ifo->vts_ptt_srpt;
   pgc_id = vts_ptt_srpt->title[ttn - 1].ptt[track_priv->chapter].pgcn;

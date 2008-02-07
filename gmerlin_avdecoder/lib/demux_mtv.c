@@ -183,7 +183,7 @@ static int next_packet_mtv(bgav_demuxer_context_t * ctx)
 
   if(priv->do_audio)
     {
-    s = bgav_track_find_stream(ctx->tt->cur, AUDIO_ID);
+    s = bgav_track_find_stream(ctx, AUDIO_ID);
 
     if(!s)
       {
@@ -211,7 +211,7 @@ static int next_packet_mtv(bgav_demuxer_context_t * ctx)
     }
   else
     {
-    s = bgav_track_find_stream(ctx->tt->cur, VIDEO_ID);
+    s = bgav_track_find_stream(ctx, VIDEO_ID);
 
     if(!s)
       {

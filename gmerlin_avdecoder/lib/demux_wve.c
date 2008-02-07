@@ -207,7 +207,7 @@ static int next_packet_wve(bgav_demuxer_context_t * ctx)
   switch(chunk_type)
     {
     case SCDl_TAG: // Audio data
-      s = bgav_track_find_stream(ctx->tt->cur, AUDIO_ID);
+      s = bgav_track_find_stream(ctx, AUDIO_ID);
 
       if(!s)
         {

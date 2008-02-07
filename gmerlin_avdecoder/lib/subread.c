@@ -655,13 +655,13 @@ static char const * const extensions[] =
     (char*)0
   };
 
-static bgav_subtitle_reader_t * find_subtitle_reader(const char * filename,
+static const bgav_subtitle_reader_t * find_subtitle_reader(const char * filename,
                                                      const bgav_options_t * opt)
   {
   int i;
   bgav_input_context_t * input;
   const char * extension;
-  bgav_subtitle_reader_t* ret = (bgav_subtitle_reader_t*)0;
+  const bgav_subtitle_reader_t* ret = (const bgav_subtitle_reader_t*)0;
   
   char * line = (char*)0;
   int line_alloc = 0;
@@ -723,7 +723,7 @@ bgav_subtitle_reader_open(bgav_input_context_t * input_ctx)
   int file_len;
   DIR * dir;
   struct dirent * res;
-  bgav_subtitle_reader_t * r;
+  const bgav_subtitle_reader_t * r;
   char * subtitle_filename;
   bgav_subtitle_reader_context_t * ret = (bgav_subtitle_reader_context_t *)0;
   bgav_subtitle_reader_context_t * end = (bgav_subtitle_reader_context_t *)0;

@@ -581,9 +581,9 @@ static int next_packet_vivo(bgav_demuxer_context_t * ctx)
     }
     
   if(do_audio)
-    stream = bgav_track_find_stream(ctx->tt->cur, AUDIO_STREAM_ID);
+    stream = bgav_track_find_stream(ctx, AUDIO_STREAM_ID);
   else if(do_video)
-    stream = bgav_track_find_stream(ctx->tt->cur, VIDEO_STREAM_ID);
+    stream = bgav_track_find_stream(ctx, VIDEO_STREAM_ID);
   
   if(!stream)
     {

@@ -27,8 +27,14 @@
 #include <config.h>
 #include <avdec_private.h>
 #include <codecs.h>
+#include <mpa_header.h>
 
 #define LOG_DOMAIN "mad"
+
+/* Bytes needed to decode a complete header for parsing */
+#define HEADER_SIZE 4
+#define MAX_FRAME_BYTES 2881
+
 
 typedef struct
   {
@@ -38,11 +44,13 @@ typedef struct
 
   uint8_t * buffer;
   int buffer_alloc;
-  int buffer_size;
+  int buffer_size; /* Used only for parsing */
 
   gavl_audio_frame_t * audio_frame;
   
   int do_init;
+  int64_t last_position;
+  int eof; /* For decoding the very last frame */
   } mad_priv_t;
 
 static int get_data(bgav_stream_t * s)
@@ -55,8 +63,40 @@ static int get_data(bgav_stream_t * s)
   
   p = bgav_demuxer_get_packet_read(s->demuxer, s);
   if(!p)
-    return 0;
-  
+    {
+    if(!priv->eof)
+      {
+      /* Append zeros to the end so we can decode the very last
+         frame */
+      bytes_in_buffer = (int)(priv->stream.bufend - priv->stream.next_frame);
+
+      fprintf(stderr, "Decoding last frame %d\n", bytes_in_buffer);
+
+      if(bytes_in_buffer)
+        memmove(priv->buffer,
+                priv->buffer +
+                (int)(priv->stream.next_frame - priv->stream.buffer),
+                bytes_in_buffer);
+
+      if(priv->buffer_alloc < MAD_BUFFER_GUARD + bytes_in_buffer)
+        {
+        priv->buffer_alloc = MAD_BUFFER_GUARD + bytes_in_buffer;
+        priv->buffer = realloc(priv->buffer, priv->buffer_alloc);
+        }
+      memset(priv->buffer + bytes_in_buffer, 0,
+             MAD_BUFFER_GUARD);
+      
+      mad_stream_buffer(&(priv->stream), priv->buffer,
+                        bytes_in_buffer + MAD_BUFFER_GUARD);
+
+      bgav_hexdump(priv->buffer, 16, 16);
+      
+      priv->eof = 1;
+      return 1;
+      }
+    else
+      return 0;
+    }
   
   bytes_in_buffer = (int)(priv->stream.bufend - priv->stream.next_frame);
   
@@ -108,6 +148,7 @@ static int decode_frame(bgav_stream_t * s)
         break;
       default:
         mad_frame_mute(&priv->frame);
+        fprintf(stderr, "Decode error %04x\n", priv->stream.error);
         break;
       }
     }
@@ -180,11 +221,15 @@ static int decode_frame(bgav_stream_t * s)
 static int init_mad(bgav_stream_t * s)
   {
   mad_priv_t * priv;
-
-
+  
   priv = calloc(1, sizeof(*priv));
   s->data.audio.decoder->priv = priv;
-  
+
+  if(s->action == BGAV_STREAM_PARSE)
+    {
+    priv->last_position = -1;
+    return 1;
+    }
   mad_frame_init(&priv->frame);
   mad_synth_init(&priv->synth);
   mad_stream_init(&priv->stream);
@@ -246,9 +291,87 @@ static int decode_mad(bgav_stream_t * s, gavl_audio_frame_t * f,
   }
 
 
+static void parse_mad(bgav_stream_t * s)
+  {
+  bgav_packet_t * p;
+  mad_priv_t * priv;
+  uint8_t * ptr;
+  bgav_mpa_header_t h;
+  int old_buffer_size;
+  priv = s->data.audio.decoder->priv;
+  
+  while(bgav_demuxer_peek_packet_read(s->demuxer, s, 0))
+    {
+    /* Get the packet and append data to the buffer */
+    p = bgav_demuxer_get_packet_read(s->demuxer, s);
+    
+    old_buffer_size = priv->buffer_size;
+    
+    if(priv->buffer_alloc < priv->buffer_size + p->data_size)
+      {
+      priv->buffer_alloc = priv->buffer_size + p->data_size + 1024;
+      priv->buffer = realloc(priv->buffer, priv->buffer_alloc);
+      }
+
+    if(old_buffer_size < 0)
+      {
+      memcpy(priv->buffer, p->data, p->data_size);
+      priv->buffer_size += p->data_size;
+      
+      ptr = priv->buffer - old_buffer_size;
+      }
+    else
+      {
+      memcpy(priv->buffer + priv->buffer_size, p->data, p->data_size);
+      priv->buffer_size += p->data_size;
+      
+      ptr = priv->buffer;
+      }
+    while(priv->buffer_size > HEADER_SIZE)
+      {
+      //      fprintf(stderr, "decode header: ");
+      //      bgav_hexdump(ptr, 8, 8);
+      if(!bgav_mpa_header_decode(&h, ptr))
+        {
+        bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                 "Lost sync during parsing");
+        return; 
+        }
+      /* If frame starts in the previous packet,
+         use the previous index */
+      if(ptr - priv->buffer < old_buffer_size)
+        bgav_file_index_append_packet(s->file_index,
+                                      priv->last_position,
+                                      s->duration,
+                                      1);
+      else
+        bgav_file_index_append_packet(s->file_index,
+                                      p->position,
+                                      s->duration,
+                                      1);
+      
+      s->duration += h.samples_per_frame;
+      ptr += h.frame_bytes;
+      priv->buffer_size -= h.frame_bytes;
+      }
+    if(priv->buffer_size > 0)
+      memmove(priv->buffer, ptr, priv->buffer_size);
+    priv->last_position = p->position;
+    bgav_demuxer_done_packet_read(s->demuxer, p);
+    //    fprintf( stderr, "Done with packet, %d bytes\n",
+    //             priv->buffer_size);
+    }
+  
+  }
+
+
 static void resync_mad(bgav_stream_t * s)
   {
-  
+  mad_priv_t * priv;
+  priv = s->data.audio.decoder->priv;
+  priv->eof = 0;
+  mad_frame_mute(&(priv->frame));
+  mad_synth_mute(&(priv->synth));
   }
 
 static void close_mad(bgav_stream_t * s)
@@ -261,7 +384,6 @@ static void close_mad(bgav_stream_t * s)
   mad_stream_finish(&(priv->stream));
   if(priv->buffer)
     free(priv->buffer);
-  
   
   if(priv->audio_frame)
     gavl_audio_frame_destroy(priv->audio_frame);
@@ -279,11 +401,12 @@ static bgav_audio_decoder_t decoder =
                            BGAV_MK_FOURCC('M','P','3',' '), /* NSV */
                            BGAV_MK_FOURCC('L','A','M','E'), /* NUV */
                            0x00 },
-    .name =   "Mpeg audio decoder (mad)",
-    .init =   init_mad,
-    .close =  close_mad,
+    .name   = "Mpeg audio decoder (mad)",
+    .init   = init_mad,
+    .close  = close_mad,
     .resync = resync_mad,
-    .decode = decode_mad
+    .decode = decode_mad,
+    .parse  = parse_mad,
   };
 
 void bgav_init_audio_decoders_mad()

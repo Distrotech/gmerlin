@@ -465,7 +465,7 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
   if(priv->init)
     s = bgav_track_find_stream_all(ctx->tt->cur, t.type);
   else
-    s = bgav_track_find_stream(ctx->tt->cur, t.type);
+    s = bgav_track_find_stream(ctx, t.type);
 
   if(!s)
     {

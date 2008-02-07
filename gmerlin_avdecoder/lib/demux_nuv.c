@@ -259,7 +259,7 @@ static int next_packet_nuv(bgav_demuxer_context_t * ctx)
     {
     case NUV_VIDEO:
     case NUV_EXTRADATA:
-      s = bgav_track_find_stream(ctx->tt->cur,
+      s = bgav_track_find_stream(ctx,
                                  VIDEO_ID);
       if(!s)
         {
@@ -280,7 +280,7 @@ static int next_packet_nuv(bgav_demuxer_context_t * ctx)
       bgav_packet_done_write(p);
       break;
     case NUV_AUDIO:
-      s = bgav_track_find_stream(ctx->tt->cur,
+      s = bgav_track_find_stream(ctx,
                                  AUDIO_ID);
       if(!s)
         {

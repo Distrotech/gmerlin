@@ -196,7 +196,7 @@ static int next_packet_psxstr(bgav_demuxer_context_t * ctx)
     case CDXA_TYPE_DATA:
     case CDXA_TYPE_VIDEO:
 
-      s = bgav_track_find_stream(ctx->tt->cur, channel + VIDEO_OFFSET);
+      s = bgav_track_find_stream(ctx, channel + VIDEO_OFFSET);
       if(!s)
         break;
       
@@ -230,7 +230,7 @@ static int next_packet_psxstr(bgav_demuxer_context_t * ctx)
       break;
     case CDXA_TYPE_AUDIO:
       
-      s = bgav_track_find_stream(ctx->tt->cur, channel + AUDIO_OFFSET);
+      s = bgav_track_find_stream(ctx, channel + AUDIO_OFFSET);
       if(!s)
         break;
 

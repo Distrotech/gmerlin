@@ -74,7 +74,7 @@ static int next_packet_daud(bgav_demuxer_context_t * ctx)
     return 0;
   bgav_input_skip(ctx->input, 2); // Unknown
   
-  s = bgav_track_find_stream(ctx->tt->cur, 0);
+  s = bgav_track_find_stream(ctx, 0);
   if(s)
     {
     p = bgav_stream_get_packet_write(s);

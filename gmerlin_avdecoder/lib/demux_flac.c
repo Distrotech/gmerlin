@@ -310,7 +310,7 @@ static int next_packet_flac(bgav_demuxer_context_t * ctx)
   bgav_stream_t * s;
   bgav_packet_t * p;
 
-  s = bgav_track_find_stream(ctx->tt->cur, 0);
+  s = bgav_track_find_stream(ctx, 0);
   
   /* We play dumb and read just 1024 bytes */
 

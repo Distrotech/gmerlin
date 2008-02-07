@@ -262,7 +262,7 @@ static int next_packet_thp(bgav_demuxer_context_t * ctx)
     return 0;
 
   /* Read video frame */
-  s = bgav_track_find_stream(ctx->tt->cur, VIDEO_ID);
+  s = bgav_track_find_stream(ctx, VIDEO_ID);
   if(s)
     {
     p = bgav_stream_get_packet_write(s);
@@ -285,7 +285,7 @@ static int next_packet_thp(bgav_demuxer_context_t * ctx)
     return 1;
   
   /* Read audio frame */
-  s = bgav_track_find_stream(ctx->tt->cur, AUDIO_ID);
+  s = bgav_track_find_stream(ctx, AUDIO_ID);
   if(s)
     {
     p = bgav_stream_get_packet_write(s);

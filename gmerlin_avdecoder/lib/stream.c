@@ -28,23 +28,20 @@
 int bgav_stream_start(bgav_stream_t * stream)
   {
   int result = 1;
-  if(stream->action == BGAV_STREAM_DECODE)
+  switch(stream->type)
     {
-    switch(stream->type)
-      {
-      case BGAV_STREAM_VIDEO:
-        result = bgav_video_start(stream);
-        break;
-      case BGAV_STREAM_AUDIO:
-        result = bgav_audio_start(stream);
-        break;
-      case BGAV_STREAM_SUBTITLE_OVERLAY:
-      case BGAV_STREAM_SUBTITLE_TEXT:
-        result = bgav_subtitle_start(stream);
-        break;
-      default:
-        break;
-      }
+    case BGAV_STREAM_VIDEO:
+      result = bgav_video_start(stream);
+      break;
+    case BGAV_STREAM_AUDIO:
+      result = bgav_audio_start(stream);
+      break;
+    case BGAV_STREAM_SUBTITLE_OVERLAY:
+    case BGAV_STREAM_SUBTITLE_TEXT:
+      result = bgav_subtitle_start(stream);
+      break;
+    default:
+      break;
     }
   if(result)
     stream->initialized = 1;
@@ -107,6 +104,8 @@ void bgav_stream_free(bgav_stream_t * s)
     free(s->description);
   if(s->info)
     free(s->info);
+  if(s->file_index)
+    bgav_file_index_destroy(s->file_index);
   
   if(s->packet_buffer)
     bgav_packet_buffer_destroy(s->packet_buffer);

@@ -430,6 +430,36 @@ void bgav_options_set_seamless(bgav_options_t* opt,
                                int seamless);
 
 /** \ingroup options
+ *  \brief Build file index on startup
+ *  \param opt Option container
+ *  \param enable 1 for building a file index
+ *
+ *  File indices are sample accurate offset tables for
+ *  formats, which cannot seek at all (or not with sample
+ *  accuracy.
+ *  
+ *  If index building is enabled, each call to bgav_open()
+ *  will build a file index, if none was found.
+ */
+
+void bgav_options_set_build_index(bgav_options_t* opt,
+                                  int enable);
+
+/** \ingroup options
+ *  \brief Try to be sample accurate
+ *  \param opt Option container
+ *  \param enable 1 is sample accurate mode is requested
+ *
+ *  When switching to sample accurate mode, other demultiplexing
+ *  methods are enabled, which might slow things down a bit.
+ *  Use this only when the application relies on sample accurate
+ *  positioning of streams.
+ */
+
+void bgav_options_set_sample_accurate(bgav_options_t*b, int p);
+
+
+/** \ingroup options
  *  \brief Enable external subtitle files
  *  \param opt Option container
  *  \param seek_subtitles If 1, subtitle files will be seeked for video files. If 2, subtitles
@@ -652,7 +682,7 @@ bgav_options_set_user_pass_callback(bgav_options_t* opt,
 
 /** \ingroup options
  *  \brief Function to be called if a change of the aspect ratio was detected
- *  \param data The data you passed to \ref bgav_options_set_user_pass_callback.
+ *  \param data The data you passed to \ref bgav_options_set_aspect_callback.
  *  \param stream Index of the video stream (starts with 0)
  *  \param pixel_width New pixel width
  *  \param pixel_height New pixel height
@@ -675,6 +705,27 @@ void
 bgav_options_set_aspect_callback(bgav_options_t* opt,
                                  bgav_aspect_callback callback,
                                  void * data);
+
+/** \ingroup options
+ *  \brief Function to be called periodically while an index is built
+ *  \param data The data you passed to \ref bgav_options_set_index_callback.
+ *  \param perc Percentage completed to far
+ *
+ */
+
+typedef void (*bgav_index_callback)(void*data, float percentage);
+
+/** \ingroup options
+ *  \brief Set index build callback
+ *  \param opt Option container
+ *  \param callback The callback
+ *  \param data Some data you want to get passed to the callback
+ */
+
+void
+bgav_options_set_index_callback(bgav_options_t* opt,
+                                bgav_index_callback callback,
+                                void * data);
 
 
 /* Device description */
@@ -1077,7 +1128,8 @@ const char * bgav_get_subtitle_language(bgav_t * bgav, int stream);
 typedef enum
   {
     BGAV_STREAM_MUTE = 0,  /*!< Stream is switched off */
-    BGAV_STREAM_DECODE = 1 /*!< Stream is switched on and will be decoded */
+    BGAV_STREAM_DECODE = 1, /*!< Stream is switched on and will be decoded */
+    BGAV_STREAM_PARSE  = 2 /*!< Used internally when building indices */
   }
 bgav_stream_action_t;
 
@@ -1371,6 +1423,22 @@ int bgav_read_subtitle_text(bgav_t * bgav, char ** ret, int *ret_alloc,
 int bgav_can_seek(bgav_t * bgav);
 
 /** \ingroup seeking
+ *  \brief Check if a track is seekabkle with sample accuracy
+ *  \param bgav A decoder handle
+ *  \returns 1 if the track is seekable with sample accuracy, 0 else.
+ *
+ *  If this function returns zero,  applications, which rely on
+ *  \ref bgav_seek_audio \ref bgav_seek_video and \ref bgav_seek_subtitle
+ *  can close the decoder and show an error message.
+ *
+ *  The ability of sample accurate seeking also implies, that streams can
+ *  be positioned indepentently.
+ *
+ */
+
+int bgav_can_seek_sample(bgav_t * bgav);
+
+/** \ingroup seeking
  *  \brief Seek to a specific time
  *  \param bgav A decoder handle
  *  \param time The time to seek to. 
@@ -1400,7 +1468,90 @@ void bgav_seek(bgav_t * bgav, gavl_time_t * time);
  * different. For sample accurate formats, it should always be unchanged.
  */
 
-void bgav_seek_scaled(bgav_t * bgav, gavl_time_t * time, int scale);
+void bgav_seek_scaled(bgav_t * bgav, int64_t * time, int scale);
+
+/** \ingroup seeking
+ *  \brief Get the audio duration
+ *  \param bgav A decoder handle
+ *  \returns Duration in samples
+ *
+ *  Use this only after \ref bgav_can_seek_sample returned 1.
+ */
+
+int64_t bgav_audio_duration(bgav_t * bgav, int stream);
+
+/** \ingroup seeking
+ *  \brief Get the video duration
+ *  \param bgav A decoder handle
+ *  \returns Exact duration in stream tics
+ *
+ *  Use this only after \ref bgav_can_seek_sample returned 1.
+ */
+
+int64_t bgav_video_duration(bgav_t * bgav, int stream);
+
+/** \ingroup seeking
+ *  \brief Get the subtitle duration
+ *  \param bgav A decoder handle
+ *  \returns Exact duration in stream tics
+ *
+ *  Use this only after \ref bgav_can_seek_sample returned 1.
+ */
+
+int64_t bgav_subtitle_duration(bgav_t * bgav, int stream);
+
+/** \ingroup seeking
+ *  \brief Seek to a specific audio sample
+ *  \param bgav A decoder handle
+ *  \param sample The sample to seek to
+ *
+ *  Use this only after \ref bgav_can_seek_sample returned 1.
+ */
+
+void bgav_seek_audio(bgav_t * bgav, int stream, int64_t sample);
+
+/** \ingroup seeking
+ *  \brief Seek to a specific video time
+ *  \param bgav A decoder handle
+ *  \param sample The time to seek to
+ *
+ *  Use this only after \ref bgav_can_seek_sample returned 1.
+ *  If time is between 2 frames, the earlier one will be chosen.
+ */
+
+void bgav_seek_video(bgav_t * bgav, int stream, int64_t time);
+
+/** \ingroup seeking
+ *  \brief Get the time of the previous keyframe
+ *  \param bgav A decoder handle
+ *  \param sample The time to seek to
+ *  \returns Time of the previous keyframe
+ *
+ *  Use this only after \ref bgav_can_seek_sample returned 1.
+ */
+
+int64_t bgav_video_keyframe_before(bgav_t * bgav, int stream, int64_t time);
+
+/** \ingroup seeking
+ *  \brief Get the time of the next keyframe
+ *  \param bgav A decoder handle
+ *  \param sample The time to seek to
+ *  \returns Time of the next keyframe
+ *
+ *  Use this only after \ref bgav_can_seek_sample returned 1.
+ */
+
+int64_t bgav_video_keyframe_after(bgav_t * bgav, int stream, int64_t time);
+
+
+/** \ingroup seeking
+ *  \brief Seek to a specific subtitle position
+ *
+ *  Use this only after \ref bgav_can_seek_sample returned 1.
+ *  If time is between 2 subtitles, the earlier one will be chosen.
+ */
+
+void bgav_seek_subtitle(bgav_t * bgav, int stream, int64_t time);
 
 
 /***************************************************

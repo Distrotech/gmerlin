@@ -672,7 +672,7 @@ static int next_packet_ffmpeg(bgav_demuxer_context_t * ctx)
   if(av_read_frame(priv->avfc, &pkt) < 0)
     return 0;
   
-  s = bgav_track_find_stream(ctx->tt->cur, pkt.stream_index);
+  s = bgav_track_find_stream(ctx, pkt.stream_index);
   if(!s)
     {
     av_free_packet(&pkt);

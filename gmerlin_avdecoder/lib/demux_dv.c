@@ -129,15 +129,19 @@ static int next_packet_dv(bgav_demuxer_context_t * ctx)
    *  extract the audio data
    */
 
-  as = bgav_track_find_stream(ctx->tt->cur, AUDIO_ID);
-  vs = bgav_track_find_stream(ctx->tt->cur, VIDEO_ID);
+  as = bgav_track_find_stream(ctx, AUDIO_ID);
+  vs = bgav_track_find_stream(ctx, VIDEO_ID);
   
   if(vs)
+    {
     vp = bgav_stream_get_packet_write(vs);
-  
+    vp->position = ctx->input->position;
+    }
   if(as)
+    {
     ap = bgav_stream_get_packet_write(as);
-
+    ap->position = ctx->input->position;
+    }
   if(bgav_input_read_data(ctx->input, priv->frame_buffer, priv->frame_size) < priv->frame_size)
     return 0;
   

@@ -359,6 +359,7 @@ static int open_ircam(bgav_demuxer_context_t * ctx,
   bgav_input_skip(ctx->input, HEADER_SIZE - ctx->input->position);
   ctx->data_start = ctx->input->position;
   ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
+  ctx->index_mode = INDEX_MODE_PCM;
   return 1;
   }
 

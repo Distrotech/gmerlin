@@ -395,7 +395,7 @@ static int open_aiff(bgav_demuxer_context_t * ctx,
     ctx->stream_description = bgav_sprintf("AIFF-C");
   else
     ctx->stream_description = bgav_sprintf("AIFF");
-  
+  ctx->index_mode = INDEX_MODE_PCM;
   return 1;
   }
 
@@ -444,7 +444,8 @@ static void seek_aiff(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   
   pos = time_2_pos(ctx, time_scaled);
   bgav_input_seek(ctx->input, pos, SEEK_SET);
-  ctx->tt->cur->audio_streams[0].time_scaled = time_scaled;
+
+  ctx->tt->cur->audio_streams[0].time_scaled = pos_2_time(ctx, pos);
   }
 
 static void close_aiff(bgav_demuxer_context_t * ctx)

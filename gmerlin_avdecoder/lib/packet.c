@@ -55,6 +55,17 @@ void bgav_packet_done_write(bgav_packet_t * p)
   {
   p->valid = 1;
   p->stream->in_position++;
+#if 0
+  if(p->stream->demuxer->demux_mode == DEMUX_MODE_FI)
+    {
+    s = p->stream;
+    if(s->file_index->entries[s->index_position].keyframe)
+      p->pts = s->file_index->entries[s->index_position].timestamp;
+    else
+      p->pts = BGAV_TIMESTAMP_UNDEFINED;
+    s->index_position++;
+    }
+#endif
   }
 
 void bgav_packet_set_text_subtitle(bgav_packet_t * p,

@@ -228,9 +228,9 @@ static int next_packet_vqa(bgav_demuxer_context_t * ctx)
 
   /* Audio */
   if((type == SND2_TAG) || (type == SND1_TAG))
-    s = bgav_track_find_stream(ctx->tt->cur, AUDIO_ID);
+    s = bgav_track_find_stream(ctx, AUDIO_ID);
   else if(type == VQFR_TAG)
-    s = bgav_track_find_stream(ctx->tt->cur, VIDEO_ID);
+    s = bgav_track_find_stream(ctx, VIDEO_ID);
   
   if(!s)
     {

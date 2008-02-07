@@ -165,9 +165,9 @@ static int next_packet_smjpeg(bgav_demuxer_context_t * ctx)
     return 0;
   
   if(fourcc == BGAV_MK_FOURCC('s','n','d','D'))
-    s = bgav_track_find_stream(ctx->tt->cur, AUDIO_ID);
+    s = bgav_track_find_stream(ctx, AUDIO_ID);
   else if(fourcc == BGAV_MK_FOURCC('v','i','d','D'))
-    s = bgav_track_find_stream(ctx->tt->cur, VIDEO_ID);
+    s = bgav_track_find_stream(ctx, VIDEO_ID);
   else
     return 0;
   

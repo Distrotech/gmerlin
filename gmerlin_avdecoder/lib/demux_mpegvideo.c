@@ -73,7 +73,8 @@ static int sequence_header_read(bgav_input_context_t * ctx,sequence_header_t * r
 
   if((buffer[6] & 0x20) != 0x20)
     {
-    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Cannot read sequence header: missing marker bit");
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Cannot read sequence header: missing marker bit");
     return 0;        /* missing marker_bit */
     }
   ret->bitrate = (buffer[4]<<10)|(buffer[5]<<2)|(buffer[6]>>6);
@@ -94,7 +95,7 @@ static int sequence_extension_read(bgav_input_context_t * ctx,
 
   if((buffer[3] & 0x01) != 0x01)
     {
-    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Cannot read sequence .extension = missing marker bit");
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Cannot read sequence extension: missing marker bit");
     return 0;        /* missing marker_bit */
     }
   ret->bitrate_ext = ((buffer[2]<<25) | (buffer[3]<<17)) & 0x3ffc0000;
@@ -246,7 +247,7 @@ static int next_packet_mpegvideo(bgav_demuxer_context_t * ctx)
   //  p->keyframe = 1;
 
   bgav_packet_alloc(p, BYTES_TO_READ);
-
+  p->position = ctx->input->position;
   p->data_size = bgav_input_read_data(ctx->input, p->data, BYTES_TO_READ);
   
   if(!p->data_size)

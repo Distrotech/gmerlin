@@ -435,7 +435,7 @@ static int next_packet(bgav_demuxer_context_t * ctx,
   uint32_t fourcc;
   
   bgav_packet_t * p;
-  
+  int64_t position;
   mpegps_priv_t * priv;
   bgav_stream_t * stream = (bgav_stream_t*)0;
 
@@ -461,6 +461,7 @@ static int next_packet(bgav_demuxer_context_t * ctx,
 
     else /* PES Packet */
       {
+      position = ctx->input->position;
       if(!bgav_pes_header_read(input, &(priv->pes_header)))
         {
         return 0;
@@ -490,7 +491,7 @@ static int next_packet(bgav_demuxer_context_t * ctx,
             stream = bgav_track_find_stream_all(ctx->tt->cur,
                                                 priv->pes_header.stream_id);
           else
-            stream = bgav_track_find_stream(ctx->tt->cur,
+            stream = bgav_track_find_stream(ctx,
                                             priv->pes_header.stream_id);
           if(!stream && priv->find_streams)
             {
@@ -511,7 +512,7 @@ static int next_packet(bgav_demuxer_context_t * ctx,
             stream = bgav_track_find_stream_all(ctx->tt->cur,
                                                 priv->pes_header.stream_id);
           else
-            stream = bgav_track_find_stream(ctx->tt->cur,
+            stream = bgav_track_find_stream(ctx,
                                             priv->pes_header.stream_id);
           if(!stream && priv->find_streams)
             {
@@ -530,7 +531,7 @@ static int next_packet(bgav_demuxer_context_t * ctx,
             stream = bgav_track_find_stream_all(ctx->tt->cur,
                                                 priv->pes_header.stream_id);
           else
-            stream = bgav_track_find_stream(ctx->tt->cur,
+            stream = bgav_track_find_stream(ctx,
                                             priv->pes_header.stream_id);
           if(!stream && priv->find_streams)
             {
@@ -587,7 +588,7 @@ static int next_packet(bgav_demuxer_context_t * ctx,
           stream = bgav_track_find_stream_all(ctx->tt->cur,
                                               priv->pes_header.stream_id);
         else
-          stream = bgav_track_find_stream(ctx->tt->cur,
+          stream = bgav_track_find_stream(ctx,
                                           priv->pes_header.stream_id);
         if(!stream && priv->find_streams)
           {
@@ -604,7 +605,7 @@ static int next_packet(bgav_demuxer_context_t * ctx,
           stream = bgav_track_find_stream_all(ctx->tt->cur,
                                               priv->pes_header.stream_id);
         else
-          stream = bgav_track_find_stream(ctx->tt->cur,
+          stream = bgav_track_find_stream(ctx,
                                           priv->pes_header.stream_id);
         if(!stream && priv->find_streams)
           {
@@ -628,7 +629,7 @@ static int next_packet(bgav_demuxer_context_t * ctx,
           stream = bgav_track_find_stream_all(ctx->tt->cur,
                                               priv->pes_header.stream_id);
         else
-          stream = bgav_track_find_stream(ctx->tt->cur,
+          stream = bgav_track_find_stream(ctx,
                                           priv->pes_header.stream_id);
         if(!stream && priv->find_streams)
           {
@@ -660,7 +661,7 @@ static int next_packet(bgav_demuxer_context_t * ctx,
         if(!priv->find_streams)
           {
           p = bgav_stream_get_packet_write(stream);
-        
+          p->position = position;
           bgav_packet_alloc(p, priv->pes_header.payload_size);
           if(bgav_input_read_data(input, p->data, 
                                   priv->pes_header.payload_size) <
@@ -1016,7 +1017,9 @@ static int open_mpegps(bgav_demuxer_context_t * ctx,
     for(j = 0; j < ctx->tt->tracks[i].num_subtitle_streams; j++)
       ctx->tt->tracks[i].subtitle_streams[j].not_aligned = 1;
     }
-  
+
+  ctx->index_mode = INDEX_MODE_MPEG;
+
   return 1;
   }
 

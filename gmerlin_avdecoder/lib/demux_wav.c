@@ -182,7 +182,9 @@ static int open_wav(bgav_demuxer_context_t * ctx,
     (ctx->tt->cur->audio_streams[0].codec_bitrate / 8);
 
   ctx->stream_description = bgav_sprintf("WAV Format");
-  
+
+  if(ctx->tt->cur->audio_streams[0].data.audio.bits_per_sample)
+    ctx->index_mode = INDEX_MODE_PCM;
   return 1;
   
   fail:
@@ -196,7 +198,7 @@ static int next_packet_wav(bgav_demuxer_context_t * ctx)
   wav_priv_t * priv;
   priv = (wav_priv_t *)(ctx->priv);
   
-  s = bgav_track_find_stream(ctx->tt->cur, STREAM_ID);
+  s = bgav_track_find_stream(ctx, STREAM_ID);
   
   if(!s)
     return 1;

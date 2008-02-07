@@ -20,6 +20,9 @@
  * *****************************************************************/
 
 #include <avdec_private.h>
+#include <md5.h>
+
+
 #define LOG_DOMAIN "in_file"
 #include <errno.h>
 #include <string.h>
@@ -40,7 +43,7 @@
 static int open_file(bgav_input_context_t * ctx, const char * url, char ** r)
   {
   FILE * f;
-
+  uint8_t md5sum[16];
   if(!strncmp(url, "file://", 7))
     url += 7;
   
@@ -57,9 +60,19 @@ static int open_file(bgav_input_context_t * ctx, const char * url, char ** r)
   ctx->total_bytes = BGAV_FTELL((FILE*)(ctx->priv));
     
   BGAV_FSEEK((FILE*)(ctx->priv), 0, SEEK_SET);
-
   
   ctx->filename = bgav_strdup(url);
+  
+  bgav_md5_buffer(ctx->filename, strlen(ctx->filename),
+                md5sum);
+  
+  ctx->index_file = bgav_sprintf("%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
+                                 md5sum[0], md5sum[1], md5sum[2], md5sum[3], 
+                                 md5sum[4], md5sum[5], md5sum[6], md5sum[7], 
+                                 md5sum[8], md5sum[9], md5sum[10], md5sum[11], 
+                                 md5sum[12], md5sum[13], md5sum[14], md5sum[15]);
+  
+
   return 1;
   }
 

@@ -125,8 +125,8 @@ int bgav_read_audio(bgav_t * b, gavl_audio_frame_t * frame,
   {
   int result;
   bgav_stream_t * s = &(b->tt->cur->audio_streams[stream]);
-
-  if(b->eof)
+  
+  if(b->eof || s->eof)
     return 0;
 
   result = s->data.audio.decoder->decoder->decode(s, frame, num_samples);
@@ -135,6 +135,8 @@ int bgav_read_audio(bgav_t * b, gavl_audio_frame_t * frame,
     frame->timestamp = s->out_position;
   
   s->out_position += result;
+  if(!result)
+    s->eof = 1;
   return result;
   }
 

@@ -411,7 +411,7 @@ static int next_packet_4xm(bgav_demuxer_context_t * ctx)
       case ID_pfrm:
       case ID_cfrm:
         size = BGAV_PTR_2_32LE(&header[4]);
-        s = bgav_track_find_stream(ctx->tt->cur, 0);
+        s = bgav_track_find_stream(ctx, 0);
 
         
         if(!s)
@@ -443,7 +443,7 @@ static int next_packet_4xm(bgav_demuxer_context_t * ctx)
         if(!bgav_input_read_32_le(ctx->input, &stream_id))
           return 0;
         bgav_input_skip(ctx->input, 4); // out_size
-        s = bgav_track_find_stream(ctx->tt->cur,
+        s = bgav_track_find_stream(ctx,
                                    stream_id + AUDIO_STREAM_OFFSET);
 
         if(!s)

@@ -398,7 +398,7 @@ int bgav_pmt_section_setup_track(pmt_section_t * pmts,
                                   int * extra_pcr_pid)
   {
   int i;
-  stream_type_t * st;
+  const stream_type_t * st;
   bgav_stream_t * s;
   uint8_t * desc;
   int desc_len;

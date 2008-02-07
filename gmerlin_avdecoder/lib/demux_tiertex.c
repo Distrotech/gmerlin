@@ -248,7 +248,7 @@ static int next_packet_tiertex(bgav_demuxer_context_t * ctx)
 
   if(video_size || palette_size)
     {
-    s = bgav_track_find_stream(ctx->tt->cur, VIDEO_ID);
+    s = bgav_track_find_stream(ctx, VIDEO_ID);
     if(s)
       {
       p = bgav_stream_get_packet_write(s);
@@ -282,7 +282,7 @@ static int next_packet_tiertex(bgav_demuxer_context_t * ctx)
     
     //    dump_frame_header(&fh);
     
-    s = bgav_track_find_stream(ctx->tt->cur, AUDIO_ID);
+    s = bgav_track_find_stream(ctx, AUDIO_ID);
     if(s)
       {
       p = bgav_stream_get_packet_write(s);

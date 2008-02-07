@@ -12,8 +12,11 @@ dvframe.h \
 http.h \
 id3.h \
 language_table.h \
+md5.h \
 mms.h \
+mpa_header.h \
 mpegts_common.h \
+mpv_header.h \
 nanosoft.h \
 pes_header.h \
 pngreader.h \

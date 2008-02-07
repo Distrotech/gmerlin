@@ -31,6 +31,7 @@
 
 #include <avdec_private.h>
 #include <codecs.h>
+#include <mpv_header.h>
 
 #define LOG_DOMAIN "video_libmpeg2"
 
@@ -74,9 +75,15 @@ typedef struct
   
   int init;
   int have_frame;
+
+  /* For parsing */
+  uint8_t * buffer;
+  int buffer_alloc;
+  int buffer_size;
+  bgav_mpv_sequence_header_t sh;
+  int64_t last_position;
   
   } mpeg2_priv_t;
-
 
 static int get_data(bgav_stream_t*s)
   {
@@ -178,7 +185,7 @@ static void get_format(bgav_stream_t*s,
       ret->frame_duration = 2;
       break;
     }
-
+  
   ret->image_width  = sequence->picture_width;
   ret->image_height = sequence->picture_height;
                                                                                
@@ -417,7 +424,11 @@ static int init_mpeg2(bgav_stream_t*s)
   s->data.video.decoder->priv = priv;
   priv->dec  = mpeg2_init();
   priv->info = mpeg2_info(priv->dec);
-  
+
+  if(s->action == BGAV_STREAM_PARSE)
+    {
+    return 1;
+    }
   while(1)
     {
     if(!parse(s, &state))
@@ -557,13 +568,244 @@ static void close_mpeg2(bgav_stream_t*s)
     gavl_video_frame_null(priv->frame);
     gavl_video_frame_destroy(priv->frame);
     }
-
+  if(priv->buffer)
+    free(priv->buffer);
+  
   if(priv->dec)
     mpeg2_close(priv->dec);
   
   free(priv);
 
   }
+
+#if 0
+static void parse_libmpeg2(bgav_stream_t * s)
+  {
+  bgav_packet_t * p;
+  mpeg2_priv_t * priv;
+  mpeg2_state_t state;
+  int done, duration, keyframe;
+  priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
+
+  /* Get packets from the buffer and add all frames to the index */
+  
+  while(bgav_demuxer_peek_packet_read(s->demuxer, s, 0))
+    {
+    p = bgav_demuxer_get_packet_read(s->demuxer, s);
+    mpeg2_buffer(priv->dec, p->data, p->data + p->data_size);
+    done = 0;
+    while(!done)
+      {
+      state = mpeg2_parse(priv->dec);
+      switch(state)
+        {
+        case STATE_BUFFER:
+          done = 1;
+          break;
+        case STATE_PICTURE:
+          if(s->data.video.format.image_width && 
+             !s->duration &&
+             ((priv->info->current_picture->flags & PIC_MASK_CODING_TYPE) ==
+              PIC_FLAG_CODING_TYPE_P))
+            priv->intra_slice_refresh = 1;
+
+          if(!s->data.video.format.image_width)
+            break;
+
+          if(priv->intra_slice_refresh)
+            keyframe = !!((priv->info->current_picture->flags &
+                           PIC_MASK_CODING_TYPE) ==
+                          PIC_FLAG_CODING_TYPE_P);
+          else
+            keyframe = !!((priv->info->current_picture->flags &
+                           PIC_MASK_CODING_TYPE) ==
+                          PIC_FLAG_CODING_TYPE_I);
+          
+          duration = s->data.video.format.frame_duration;
+
+          if(priv->info->current_picture->nb_fields > 2)
+            duration = (duration *
+                        priv->info->display_picture->nb_fields) / 2;
+          
+          bgav_file_index_append_packet(s->file_index,
+                                        p->position,
+                                        s->duration,
+                                        keyframe);
+          s->duration += duration;
+          break;
+        case STATE_SEQUENCE:
+          if(!s->data.video.format.image_width)
+            get_format(s, &s->data.video.format, priv->info->sequence);
+          break;
+        default:
+          break;
+        }
+      }
+    bgav_demuxer_done_packet_read(s->demuxer, p);
+    }
+  
+
+  }
+
+#else
+static void parse_libmpeg2(bgav_stream_t * s)
+  {
+  bgav_packet_t * p;
+  mpeg2_priv_t * priv;
+  int old_buffer_size;
+  int result;
+  uint8_t * ptr;
+  bgav_mpv_picture_header_t ph;
+  int keyframe;
+  
+  priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
+  memset(&ph, 0, sizeof(ph));
+  
+  while(bgav_demuxer_peek_packet_read(s->demuxer, s, 0))
+    {
+    p = bgav_demuxer_get_packet_read(s->demuxer, s);
+    old_buffer_size = priv->buffer_size;
+
+    if(priv->buffer_alloc < priv->buffer_size + p->data_size)
+      {
+      priv->buffer_alloc = priv->buffer_size + p->data_size + 1024;
+      priv->buffer = realloc(priv->buffer, priv->buffer_alloc);
+      }
+    
+    memcpy(priv->buffer + priv->buffer_size, p->data, p->data_size);
+    priv->buffer_size += p->data_size;
+    ptr = priv->buffer;
+    
+    while(priv->buffer_size > MPV_PROBE_SIZE)
+      {
+      /* Check for sequence header */
+      if(!s->data.video.format.timescale &&
+         bgav_mpv_sequence_header_probe(ptr))
+        {
+        result =
+          bgav_mpv_sequence_header_parse(s->opt,
+                                         &priv->sh,
+                                         ptr, priv->buffer_size);
+        if(!result) /* Out of data */
+          break;
+        else if(result > 0)
+          {
+          s->data.video.format.timescale      = priv->sh.timescale;
+          s->data.video.format.frame_duration = priv->sh.frame_duration;
+          ptr               += result;
+          priv->buffer_size -= result;
+          }
+        else
+          return; /* Error */
+        }
+      /* Check for sequence extension */
+      else if(s->data.video.format.timescale &&
+              !priv->sh.mpeg2 &&
+              bgav_mpv_sequence_extension_probe(ptr))
+        {
+        result =
+          bgav_mpv_sequence_extension_parse(s->opt,
+                                            &priv->sh.ext,
+                                            ptr, priv->buffer_size);
+        if(!result) /* Out of data */
+          break;
+        else if(result > 0)
+          {
+          priv->sh.mpeg2 = 1;
+          s->data.video.format.timescale      *= (priv->sh.ext.timescale_ext+1);
+          s->data.video.format.frame_duration *= (priv->sh.ext.frame_duration_ext+1);
+          ptr               += result;
+          priv->buffer_size -= result;
+          s->data.video.format.timescale      *= 2;
+          s->data.video.format.frame_duration *= 2;
+          }
+        else
+          return; /* Error */
+        }
+      /* Picture header (we skip pictures before the first sequence header) */
+      else if(s->data.video.format.timescale &&
+              bgav_mpv_picture_header_probe(ptr))
+        {
+        result =
+          bgav_mpv_picture_header_parse(s->opt,
+                                        &ph,
+                                        ptr, priv->buffer_size);
+        if(!result) /* Out of data */
+          break;
+        else if(result > 0)
+          {
+          if(!s->duration && ph.coding_type == MPV_CODING_TYPE_P)
+            priv->intra_slice_refresh = 1;
+
+          if(priv->intra_slice_refresh)
+            keyframe = ph.coding_type == MPV_CODING_TYPE_P;
+          else
+            keyframe = ph.coding_type == MPV_CODING_TYPE_I;
+            
+          if(ptr - priv->buffer < old_buffer_size)
+            bgav_file_index_append_packet(s->file_index,
+                                          priv->last_position,
+                                          s->duration,
+                                          keyframe);
+          else
+            bgav_file_index_append_packet(s->file_index,
+                                          p->position,
+                                          s->duration,
+                                          keyframe);
+
+          s->duration += s->data.video.format.frame_duration;
+          
+          ptr               += result;
+          priv->buffer_size -= result;
+          }
+        else
+          return; /* Error */
+        }
+      /* Picture coding extension */
+      else if(s->data.video.format.timescale &&
+              bgav_mpv_picture_extension_probe(ptr))
+        {
+        result =
+          bgav_mpv_picture_extension_parse(s->opt,
+                                           &ph.ext,
+                                           ptr, priv->buffer_size);
+        if(!result) /* Out of data */
+          break;
+        else if(result > 0)
+          {
+          if(ph.ext.repeat_first_field)
+            {
+            if(priv->sh.ext.progressive_sequence)
+              {
+              if(ph.ext.top_field_first)
+                s->duration += s->data.video.format.frame_duration * 2;
+              else
+                s->duration += s->data.video.format.frame_duration;
+              }
+            else if(ph.ext.progressive_frame)
+              {
+              s->duration += s->data.video.format.frame_duration / 2;
+              }
+            }
+          ptr               += result;
+          priv->buffer_size -= result;
+          }
+        else
+          return; /* Error */
+        }
+      else /* Advance by one byte */
+        {
+        ptr++;
+        priv->buffer_size--;
+        }
+      }
+    if(priv->buffer_size > 0)
+      memmove(priv->buffer, ptr, priv->buffer_size);
+    priv->last_position = p->position;
+    bgav_demuxer_done_packet_read(s->demuxer, p);
+    }
+  }
+#endif
 
 static bgav_video_decoder_t decoder =
   {
@@ -574,6 +816,7 @@ static bgav_video_decoder_t decoder =
     .decode =  decode_mpeg2,
     .close =   close_mpeg2,
     .resync =  resync_mpeg2,
+    .parse =   parse_libmpeg2,
   };
 
 void bgav_init_video_decoders_libmpeg2()

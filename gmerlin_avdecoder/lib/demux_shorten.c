@@ -51,7 +51,7 @@ static int next_packet_shorten(bgav_demuxer_context_t * ctx)
   {
   bgav_packet_t * p;
   bgav_stream_t * s;
-  s = bgav_track_find_stream(ctx->tt->cur, 0);
+  s = bgav_track_find_stream(ctx, 0);
   if(!s)
     return 1;
 

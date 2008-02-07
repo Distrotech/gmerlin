@@ -88,7 +88,7 @@ static int bgav_video_decode(bgav_stream_t * stream,
                              gavl_video_frame_t* frame)
   {
   int result;
-
+  
   result = stream->data.video.decoder->decoder->decode(stream, frame);
   /* Set the final timestamp for the frame */
   
@@ -102,6 +102,9 @@ static int bgav_video_decode(bgav_stream_t * stream,
       frame->timestamp = 0;
     }
   stream->out_position++;
+
+  if(!result)
+    stream->eof = 1;
   
   return result;
   }

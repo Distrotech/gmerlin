@@ -201,7 +201,7 @@ static int open_y4m(bgav_demuxer_context_t * ctx,
   y4m_init_frame_info(&(priv->fi));
 
   ctx->stream_description = bgav_sprintf("yuv4mpeg");
-  
+  ctx->index_mode = INDEX_MODE_SIMPLE;
   return 1;
   }
 
@@ -301,7 +301,7 @@ static int next_packet_y4m(bgav_demuxer_context_t * ctx)
 
   p->pts = priv->pts;
   p->video_frame->timestamp = priv->pts;
-  
+  p->keyframe = 1;
   if(s->data.video.format.interlace_mode == GAVL_INTERLACE_MIXED)
     {
     switch(y4m_fi_get_presentation(&priv->fi))

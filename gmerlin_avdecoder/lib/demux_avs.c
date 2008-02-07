@@ -117,8 +117,8 @@ static int next_packet_avs(bgav_demuxer_context_t * ctx)
     }
   else
     {
-    as = bgav_track_find_stream(ctx->tt->cur, AUDIO_ID);
-    vs = bgav_track_find_stream(ctx->tt->cur, VIDEO_ID);
+    as = bgav_track_find_stream(ctx, AUDIO_ID);
+    vs = bgav_track_find_stream(ctx, VIDEO_ID);
     }
   
   while(ctx->input->position - frame_start < frame_size)

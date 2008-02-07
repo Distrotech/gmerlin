@@ -69,6 +69,16 @@ void bgav_options_set_http_proxy_port(bgav_options_t*b, int p)
   b->http_proxy_port = p;
   }
 
+void bgav_options_set_build_index(bgav_options_t*b, int p)
+  {
+  b->build_index = p;
+  }
+
+void bgav_options_set_sample_accurate(bgav_options_t*b, int p)
+  {
+  b->sample_accurate = p;
+  }
+
 void bgav_options_set_http_proxy_auth(bgav_options_t*b, int i)
   {
   b->http_proxy_auth = i;
@@ -208,6 +218,8 @@ void bgav_options_destroy(bgav_options_t * opt)
 
 void bgav_options_copy(bgav_options_t * dst, const bgav_options_t * src)
   {
+  CP_INT(build_index);
+  CP_INT(sample_accurate);
   /* Generic network options */
   CP_INT(connect_timeout);
   CP_INT(read_timeout);
@@ -277,6 +289,9 @@ void bgav_options_copy(bgav_options_t * dst, const bgav_options_t * src)
 
   CP_INT(aspect_callback);
   CP_INT(aspect_callback_data);
+
+  CP_INT(index_callback);
+  CP_INT(index_callback_data);
   
   }
 
@@ -346,5 +361,14 @@ bgav_options_set_aspect_callback(bgav_options_t * opt,
   {
   opt->aspect_callback      = callback;
   opt->aspect_callback_data = data;
+  }
+
+void
+bgav_options_set_index_callback(bgav_options_t * opt,
+                                bgav_index_callback callback,
+                                void * data)
+  {
+  opt->index_callback      = callback;
+  opt->index_callback_data = data;
   }
 

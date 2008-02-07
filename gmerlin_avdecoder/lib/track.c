@@ -141,9 +141,19 @@ bgav_track_find_stream_all(bgav_track_t * t, int stream_id)
   return (bgav_stream_t *)0;
   }
 
-bgav_stream_t * bgav_track_find_stream(bgav_track_t * t, int stream_id)
+bgav_stream_t * bgav_track_find_stream(bgav_demuxer_context_t * ctx, int stream_id)
   {
   int i;
+  bgav_track_t * t;
+  if(ctx->demux_mode == DEMUX_MODE_FI)
+    {
+    if(ctx->request_stream && (stream_id == ctx->request_stream->stream_id))
+      return ctx->request_stream;
+    else
+      return (bgav_stream_t*)0;
+    }
+  t = ctx->tt->cur;
+  
   for(i = 0; i < t->num_audio_streams; i++)
     {
     if(t->audio_streams[i].stream_id == stream_id)

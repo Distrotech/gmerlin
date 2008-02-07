@@ -210,7 +210,7 @@ static int next_packet_roq(bgav_demuxer_context_t * ctx)
         bgav_input_skip(ctx->input, h.size);
         break;
       case RoQ_QUAD_CODEBOOK:
-        s = bgav_track_find_stream(ctx->tt->cur, VIDEO_ID);
+        s = bgav_track_find_stream(ctx, VIDEO_ID);
         if(!s)
           {
           bgav_input_skip(ctx->input, h.size);
@@ -231,7 +231,7 @@ static int next_packet_roq(bgav_demuxer_context_t * ctx)
         video_packet->data_size += h.size;
         break;
       case RoQ_QUAD_VQ:
-        s = bgav_track_find_stream(ctx->tt->cur, VIDEO_ID);
+        s = bgav_track_find_stream(ctx, VIDEO_ID);
         if(!s)
           {
           bgav_input_skip(ctx->input, h.size);
@@ -263,7 +263,7 @@ static int next_packet_roq(bgav_demuxer_context_t * ctx)
         break;
       case RoQ_SOUND_MONO:
       case RoQ_SOUND_STEREO:
-        s = bgav_track_find_stream(ctx->tt->cur, AUDIO_ID);
+        s = bgav_track_find_stream(ctx, AUDIO_ID);
         if(!s)
           {
           bgav_input_skip(ctx->input, h.size);

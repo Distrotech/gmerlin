@@ -547,7 +547,7 @@ static int next_packet_gxf(bgav_demuxer_context_t * ctx)
     length -= 16;
 
     //    dump_media_header(&mh);
-    s = bgav_track_find_stream(ctx->tt->cur, mh.id);
+    s = bgav_track_find_stream(ctx, mh.id);
     
     if(!s)
       {

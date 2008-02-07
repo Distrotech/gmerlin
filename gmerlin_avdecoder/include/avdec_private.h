@@ -22,7 +22,7 @@
 #include "config.h"
 
 #include <avdec.h>
-// #include <stdio.h>
+#include <stdio.h> /* Needed for fileindex stuff */
 
 #include <libintl.h>
 
@@ -35,6 +35,7 @@ typedef struct bgav_redirector_s         bgav_redirector_t;
 typedef struct bgav_redirector_context_s bgav_redirector_context_t;
 
 typedef struct bgav_packet_s          bgav_packet_t;
+typedef struct bgav_file_index_s          bgav_file_index_t;
 
 typedef struct bgav_input_s                    bgav_input_t;
 typedef struct bgav_input_context_s            bgav_input_context_t;
@@ -93,7 +94,7 @@ struct bgav_audio_decoder_s
   int (*decode)(bgav_stream_t*, gavl_audio_frame_t*, int num_samples);
   void (*close)(bgav_stream_t*);
   void (*resync)(bgav_stream_t*);
-
+  void (*parse)(bgav_stream_t*);
   bgav_audio_decoder_t * next;
   };
 
@@ -109,6 +110,7 @@ struct bgav_video_decoder_s
   int (*decode)(bgav_stream_t*, gavl_video_frame_t*);
   void (*close)(bgav_stream_t*);
   void (*resync)(bgav_stream_t*);
+  void (*parse)(bgav_stream_t*);
   bgav_video_decoder_t * next;
   };
 
@@ -127,6 +129,7 @@ struct bgav_subtitle_overlay_decoder_s
   int (*decode)(bgav_stream_t*, gavl_overlay_t*);
   void (*close)(bgav_stream_t*);
   void (*resync)(bgav_stream_t*);
+  void (*parse)(bgav_stream_t*);
   bgav_subtitle_overlay_decoder_t * next;
   };
 
@@ -134,19 +137,19 @@ struct bgav_subtitle_overlay_decoder_s
 struct bgav_audio_decoder_context_s
   {
   void * priv;
-  bgav_audio_decoder_t * decoder;
+  const bgav_audio_decoder_t * decoder;
   };
 
 struct bgav_video_decoder_context_s
   {
   void * priv;
-  bgav_video_decoder_t * decoder;
+  const bgav_video_decoder_t * decoder;
   };
 
 struct bgav_subtitle_overlay_decoder_context_s
   {
   void * priv;
-  bgav_subtitle_overlay_decoder_t * decoder;
+  const bgav_subtitle_overlay_decoder_t * decoder;
   };
 
 /* Packet */
@@ -155,6 +158,7 @@ struct bgav_subtitle_overlay_decoder_context_s
 
 struct bgav_packet_s
   {
+  int64_t position;
   int valid;
   int data_size;
   int data_alloc;
@@ -342,6 +346,11 @@ struct bgav_stream_s
   int vfr_timestamps;
 
   /*
+   *  EOF reached
+   */ 
+  int eof;
+  
+  /*
    *  This indicates, that the demuxer doesn't produce packets,
    *  which are identical to frames.
    */
@@ -353,8 +362,10 @@ struct bgav_stream_s
 
   /* The track, where this stream belongs */
   bgav_track_t * track;
-  
+  bgav_file_index_t * file_index;
+
   void (*process_packet)(bgav_stream_t * s, bgav_packet_t * p);
+  int64_t duration;
   
   union
     {
@@ -422,10 +433,7 @@ struct bgav_stream_s
       /* The video stream, onto which the subtitles will be
          displayed */
       bgav_stream_t * video_stream;
-
-      /* We need to keep an own flag for EOF, since it's a bit
-         more complicated for subtitle streams */
-      int eof;
+      
       } subtitle;
     } data;
   };
@@ -497,10 +505,12 @@ struct bgav_track_s
   bgav_stream_t * audio_streams;
   bgav_stream_t * video_streams;
   bgav_stream_t * subtitle_streams;
-
+  
   bgav_chapter_list_t * chapter_list;
   
   void * priv; /* For storing private data */  
+  
+  int has_file_index;
   };
 
 /* track.c */
@@ -527,7 +537,7 @@ bgav_track_attach_subtitle_reader(bgav_track_t * t,
                                   bgav_subtitle_reader_context_t * r);
 
 bgav_stream_t *
-bgav_track_find_stream(bgav_track_t * t, int stream_id);
+bgav_track_find_stream(bgav_demuxer_context_t * t, int stream_id);
 
 /* Clear all buffers (call BEFORE seeking) */
 
@@ -588,13 +598,17 @@ void bgav_track_table_remove_unsupported(bgav_track_table_t * t);
 
 struct bgav_options_s
   {
+  /* File index */
+  int build_index;
+  /* Try sample accurate processing */
+  int sample_accurate;
   /* Generic network options */
   int connect_timeout;
   int read_timeout;
 
   int network_bandwidth;
   int network_buffer_size;
-
+  
   /* http options */
 
   int http_use_proxy;
@@ -652,6 +666,10 @@ struct bgav_options_s
 
   bgav_aspect_callback aspect_callback;
   void * aspect_callback_data;
+  
+  bgav_index_callback index_callback;
+  void * index_callback_data;
+
   };
 
 void bgav_options_set_defaults(bgav_options_t*opt);
@@ -748,6 +766,9 @@ struct bgav_input_context_s
   
   // Stream ID, which will be used for syncing (for DVB)
   int sync_id;
+  
+  /* Inputs set this, if indexing is supported */
+  char * index_file;
   
   };
 
@@ -907,6 +928,72 @@ void bgav_superindex_seek(bgav_superindex_t * idx,
 
 void bgav_superindex_dump(bgav_superindex_t * idx);
 
+/*
+ * File index
+ *
+ * fileindex.c
+ */
+
+typedef struct
+  {
+  int keyframe;     /* 1 if the frame is a keyframe   */
+  /*
+   * Seek positon:
+   * 
+   * For 1-layer muxed files, it's the
+   * fseek() position, where the demuxer
+   * can start to parse the packet header.
+   *
+   * For 2-layer muxed files, it's the
+   * fseek() position of the lowest level
+   * paket inside which the subpacket *starts*
+   */
+  
+  uint64_t position; 
+
+  /*
+   *  Presentation time of the frame in
+   *  format-based timescale (*not* in
+   *  stream timescale)
+   */
+
+  uint64_t time;
+  
+  } bgav_file_index_entry_t;
+
+struct bgav_file_index_s
+  {
+  uint32_t num_entries;
+  uint32_t entries_alloc;
+  bgav_file_index_entry_t * entries;
+  };
+
+bgav_file_index_t * bgav_file_index_create();
+void bgav_file_index_destroy(bgav_file_index_t *);
+
+int bgav_demuxer_next_packet_fileindex(bgav_demuxer_context_t * ctx);
+
+void
+bgav_file_index_append_packet(bgav_file_index_t * idx,
+                              int64_t position,
+                              int64_t time,
+                              int keyframe);
+
+int bgav_file_index_read_header(const char * filename,
+                                bgav_input_context_t * input,
+                                int * num_tracks);
+
+void bgav_file_index_write_header(const char * filename,
+                                  FILE * output,
+                                  int num_tracks);
+
+void bgav_read_file_index(bgav_t*);
+
+void bgav_write_file_index(bgav_t*);
+
+int bgav_build_file_index(bgav_t * b);
+
+
 /* Demuxer class */
 
 struct bgav_demuxer_s
@@ -929,6 +1016,10 @@ struct bgav_demuxer_s
      if the input must be seekable but isn't */
 
   int (*select_track)(bgav_demuxer_context_t*, int track);
+
+  /* Some demuxers have their own magic to build a file index */
+  
+  void (*build_index)(bgav_demuxer_context_t*);
   };
 
 /* Demuxer flags */
@@ -937,11 +1028,28 @@ struct bgav_demuxer_s
 #define BGAV_DEMUXER_SEEK_ITERATIVE       (1<<1) /* If 1, perform iterative seeking */
 #define BGAV_DEMUXER_PEEK_FORCES_READ     (1<<2) /* This is set if only subtitle streams are read */
 #define BGAV_DEMUXER_SI_SEEKING           (1<<3) /* Demuxer is seeking */
-#define BGAV_DEMUXER_SI_NON_INTERLEAVED   (1<<4) /* Track is non-interleaved */
+//#define BGAV_DEMUXER_SI_NON_INTERLEAVED   (1<<4) /* Track is non-interleaved */
 #define BGAV_DEMUXER_SI_PRIVATE_FUNCS     (1<<5) /* We have a suprindex but use private seek/demux funcs */
 #define BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET (1<<6) /* Timestamp offset (from input) is valid */
 #define BGAV_DEMUXER_EOF                  (1<<7) /* Report EOF just once and not for each stream */
 #define BGAV_DEMUXER_HAS_DATA_START       (1<<8) /* Has data start */
+
+#define BGAV_DEMUXER_BUILD_INDEX          (1<<9) /* We're just building
+                                                    an index */
+
+/* Packets have precise timestamps and are non-interleaved
+   and adjacent int the file */
+#define INDEX_MODE_SIMPLE 1
+#define INDEX_MODE_MPEG   2
+/* For PCM soundfiles: Sample accuracy is already there */
+#define INDEX_MODE_PCM    3
+#define INDEX_MODE_CUSTOM 4 /* Demuxer builds index */
+
+
+#define DEMUX_MODE_STREAM 0
+#define DEMUX_MODE_SI_I   1 /* Interleaved with superindex */
+#define DEMUX_MODE_SI_NI  2 /* Non-interleaved with superindex */
+#define DEMUX_MODE_FI     3 /* Non-interleaved with file-index */
 
 struct bgav_demuxer_context_s
   {
@@ -953,6 +1061,8 @@ struct bgav_demuxer_context_s
   bgav_track_table_t * tt;
   char * stream_description;
 
+  int index_mode;
+  int demux_mode;
   uint32_t flags;
   
   /*
@@ -978,7 +1088,7 @@ struct bgav_demuxer_context_s
      seek to the position, where the demuxer can start working
   */
   int64_t data_start;
-    
+  
   };
 
 /* demuxer.c */
@@ -1015,6 +1125,9 @@ void
 bgav_demuxer_seek(bgav_demuxer_context_t * demuxer,
                   int64_t time, int scale);
 
+int
+bgav_demuxer_next_packet(bgav_demuxer_context_t * demuxer);
+
 /*
  *  Start a demuxer. Some demuxers (most notably quicktime)
  *  can contain nothing but urls for the real streams.
@@ -1030,7 +1143,7 @@ void bgav_demuxer_stop(bgav_demuxer_context_t * ctx);
 // bgav_packet_t *
 // bgav_demuxer_get_packet_write(bgav_demuxer_context_t * demuxer, int stream);
 
-bgav_stream_t * bgav_track_find_stream(bgav_track_t * ctx, int stream_id);
+// bgav_stream_t * bgav_track_find_stream(bgav_track_t * ctx, int stream_id);
 
 /* Redirector */
 
@@ -1060,7 +1173,7 @@ struct bgav_redirector_context_s
   };
 
 void bgav_redirector_destroy(bgav_redirector_context_t*r);
-bgav_redirector_t * bgav_redirector_probe(bgav_input_context_t * input);
+const bgav_redirector_t * bgav_redirector_probe(bgav_input_context_t * input);
 
 
 /* Actual decoder */
@@ -1086,7 +1199,7 @@ struct bgav_s
   /* Set by the seek function */
 
   int eof;
-
+  
   };
 
 /* bgav.c */
@@ -1364,7 +1477,7 @@ void bgav_correct_language(char * lang);
 struct bgav_subtitle_reader_context_s
   {
   bgav_input_context_t * input;
-  bgav_subtitle_reader_t * reader;
+  const bgav_subtitle_reader_t * reader;
 
   char * info; /* Derived from filename difference */
   char * filename; /* Name of the subtitle file */

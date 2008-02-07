@@ -371,7 +371,7 @@ static int next_packet_smacker(bgav_demuxer_context_t * ctx)
 
       size -= 4; /* Size is including counter */
       /* Audio stream */
-      s = bgav_track_find_stream(ctx->tt->cur, i + AUDIO_OFFSET);
+      s = bgav_track_find_stream(ctx, i + AUDIO_OFFSET);
       if(!s)
         bgav_input_skip(ctx->input, size);
       else
@@ -396,7 +396,7 @@ static int next_packet_smacker(bgav_demuxer_context_t * ctx)
     frame_flags >>= 1;
     }
   /* Video packet */
-  s = bgav_track_find_stream(ctx->tt->cur, VIDEO_ID);
+  s = bgav_track_find_stream(ctx, VIDEO_ID);
   if(!s)
     {
     bgav_input_skip(ctx->input, frame_end - ctx->input->position);

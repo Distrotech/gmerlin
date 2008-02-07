@@ -348,7 +348,7 @@ static void update_stream_bitrates(bgav_demuxer_context_t * ctx)
 
   for(i = 0; i < asf->num_stream_bitrates; i++)
     {
-    stream = bgav_track_find_stream(ctx->tt->cur, asf->stream_bitrates[i].stream_id);
+    stream = bgav_track_find_stream(ctx, asf->stream_bitrates[i].stream_id);
     if(stream)
       stream->container_bitrate = asf->stream_bitrates[i].bitrate;
     else
@@ -958,7 +958,7 @@ static void add_packet(bgav_demuxer_context_t * ctx,
   asf_audio_stream_t * as;
   asf_t * asf = (asf_t *)(ctx->priv);
 
-  s = bgav_track_find_stream(ctx->tt->cur, id);
+  s = bgav_track_find_stream(ctx, id);
   
   if(!s)
     return;

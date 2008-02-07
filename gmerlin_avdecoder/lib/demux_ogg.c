@@ -1506,7 +1506,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
     }
   
   
-  s = bgav_track_find_stream(ctx->tt->cur,
+  s = bgav_track_find_stream(ctx,
                              serialno);
 
   if(!s)

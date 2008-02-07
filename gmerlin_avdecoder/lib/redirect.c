@@ -59,7 +59,7 @@ redirectors[] =
 
 static const int num_redirectors = sizeof(redirectors)/sizeof(redirectors[0]);
 
-bgav_redirector_t * bgav_redirector_probe(bgav_input_context_t * input)
+const bgav_redirector_t * bgav_redirector_probe(bgav_input_context_t * input)
   {
   int i;
 

@@ -188,7 +188,7 @@ static int next_packet_dsicin(bgav_demuxer_context_t * ctx)
   pkt_size = (palette_type + 3) *
     frame_header.num_palette_colors  + frame_header.video_size;
 
-  s = bgav_track_find_stream(ctx->tt->cur, VIDEO_ID);
+  s = bgav_track_find_stream(ctx, VIDEO_ID);
   
   if(s)
     {
@@ -215,7 +215,7 @@ static int next_packet_dsicin(bgav_demuxer_context_t * ctx)
   if(!frame_header.audio_size)
     return 1;
   
-  s = bgav_track_find_stream(ctx->tt->cur, AUDIO_ID);
+  s = bgav_track_find_stream(ctx, AUDIO_ID);
 
   if(s)
     {
