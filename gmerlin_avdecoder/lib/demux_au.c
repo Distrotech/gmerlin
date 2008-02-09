@@ -246,7 +246,7 @@ static void seek_au(bgav_demuxer_context_t * ctx, gavl_time_t time, int scale)
   position *= s->data.audio.block_align;
   position += ctx->data_start;
   bgav_input_seek(ctx->input, position, SEEK_SET);
-  s->time_scaled = pos_2_time(ctx, position);
+  s->in_time = pos_2_time(ctx, position);
   }
 
 static void close_au(bgav_demuxer_context_t * ctx)

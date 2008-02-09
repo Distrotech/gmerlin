@@ -1410,7 +1410,7 @@ static void seek_rmff(bgav_demuxer_context_t * ctx, int64_t time, int scale)
     vs = (rm_video_stream_t*)(stream->priv);
     vs->com.index_record = seek_indx(&(vs->com.stream->indx), real_time,
                                  &position, &start_packet, &end_packet);
-    stream->time_scaled = (int64_t)(vs->com.stream->indx.records[vs->com.index_record].timestamp);
+    stream->in_time = (int64_t)(vs->com.stream->indx.records[vs->com.index_record].timestamp);
     vs->kf_pts = vs->com.stream->indx.records[vs->com.index_record].timestamp;
     vs->com.data_pos = vs->com.stream->indx.records[vs->com.index_record].offset;
     }
@@ -1420,7 +1420,7 @@ static void seek_rmff(bgav_demuxer_context_t * ctx, int64_t time, int scale)
     rs = (rm_stream_t*)(stream->priv);
     rs->index_record = seek_indx(&(rs->stream->indx), real_time,
                                  &position, &start_packet, &end_packet);
-    stream->time_scaled = (int64_t)(rs->stream->indx.records[rs->index_record].timestamp);
+    stream->in_time = (int64_t)(rs->stream->indx.records[rs->index_record].timestamp);
     rs->data_pos = rs->stream->indx.records[rs->index_record].offset;
     }
   

@@ -178,11 +178,11 @@ static void seek_dv(bgav_demuxer_context_t * ctx, int64_t time,
   bgav_dv_dec_set_frame_counter(priv->d, frame_pos);
   bgav_input_seek(ctx->input, file_position, SEEK_SET);
 
-  vs->time_scaled = frame_pos * vs->data.video.format.frame_duration;
-  as->time_scaled =
+  vs->in_time = frame_pos * vs->data.video.format.frame_duration;
+  as->in_time =
     gavl_time_rescale(vs->data.video.format.timescale,
                       as->data.audio.format.samplerate,
-                      vs->time_scaled);
+                      vs->in_time);
   }
 
 static int select_track_dv(bgav_demuxer_context_t * ctx, int track)

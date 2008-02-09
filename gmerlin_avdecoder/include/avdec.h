@@ -430,22 +430,6 @@ void bgav_options_set_seamless(bgav_options_t* opt,
                                int seamless);
 
 /** \ingroup options
- *  \brief Build file index on startup
- *  \param opt Option container
- *  \param enable 1 for building a file index
- *
- *  File indices are sample accurate offset tables for
- *  formats, which cannot seek at all (or not with sample
- *  accuracy.
- *  
- *  If index building is enabled, each call to bgav_open()
- *  will build a file index, if none was found.
- */
-
-void bgav_options_set_build_index(bgav_options_t* opt,
-                                  int enable);
-
-/** \ingroup options
  *  \brief Try to be sample accurate
  *  \param opt Option container
  *  \param enable 1 is sample accurate mode is requested
@@ -1489,6 +1473,20 @@ int64_t bgav_audio_duration(bgav_t * bgav, int stream);
  */
 
 int64_t bgav_video_duration(bgav_t * bgav, int stream);
+
+/** \ingroup seeking
+ *  \brief Get the number of video frames
+ *  \param bgav A decoder handle
+ *  \returns Total number of video frames
+ *
+ *  Use this only after \ref bgav_can_seek_sample returned 1.
+ *  In generic code, you should always assume, that video frames
+ *  have a variable duration, so the total number of frames is
+ *  only for informational purposes.
+ */
+
+int bgav_video_frames(bgav_t * bgav, int stream);
+
 
 /** \ingroup seeking
  *  \brief Get the subtitle duration

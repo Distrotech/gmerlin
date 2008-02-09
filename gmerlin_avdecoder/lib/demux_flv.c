@@ -647,8 +647,8 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
     
     p->pts = t.timestamp;
     
-    if(s->time_scaled < 0)
-      s->time_scaled = p->pts;
+    if(s->in_time < 0)
+      s->in_time = p->pts;
     
     p->keyframe = keyframe;
     bgav_packet_done_write(p);

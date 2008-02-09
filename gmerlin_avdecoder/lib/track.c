@@ -492,14 +492,14 @@ gavl_time_t bgav_track_resync_decoders(bgav_track_t * track, int scale)
     
     bgav_stream_resync_decoder(s);
 
-    if(s->time_scaled == BGAV_TIMESTAMP_UNDEFINED)
+    if(s->in_time == BGAV_TIMESTAMP_UNDEFINED)
       {
       bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
                "Couldn't resync audio stream after seeking, maybe EOF");
       return GAVL_TIME_UNDEFINED;
       }
-    test_time = gavl_time_rescale(s->timescale, scale, s->time_scaled);
-    s->out_position =
+    test_time = gavl_time_rescale(s->timescale, scale, s->in_time);
+    s->out_time =
       gavl_time_rescale(s->timescale,
                         s->data.audio.format.samplerate,
                         test_time);
@@ -513,9 +513,9 @@ gavl_time_t bgav_track_resync_decoders(bgav_track_t * track, int scale)
     if(s->action != BGAV_STREAM_DECODE)
       continue;
 
-    s->data.video.next_frame_time =
+    s->out_time =
       gavl_time_rescale(s->timescale, s->data.video.format.timescale,
-                        s->time_scaled);
+                        s->in_time);
     
     if(s->data.video.format.framerate_mode == GAVL_FRAMERATE_CONSTANT)
       s->data.video.next_frame_duration = s->data.video.format.frame_duration;
@@ -532,17 +532,16 @@ gavl_time_t bgav_track_resync_decoders(bgav_track_t * track, int scale)
     
     bgav_stream_resync_decoder(s);
     
-    if(s->time_scaled == BGAV_TIMESTAMP_UNDEFINED)
+    if(s->in_time == BGAV_TIMESTAMP_UNDEFINED)
       {
       bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
                "Couldn't resync video stream after seeking, maybe EOF");
       return GAVL_TIME_UNDEFINED;
       }
-    test_time = gavl_time_rescale(s->timescale, scale, s->time_scaled);
-    s->out_position = gavl_time_rescale(s->timescale,
-                                        s->data.video.format.timescale,
-                                        s->time_scaled);
-    s->out_position /= s->data.video.format.frame_duration;
+    test_time = gavl_time_rescale(s->timescale, scale, s->in_time);
+    s->out_time = gavl_time_rescale(s->timescale,
+                                    s->data.video.format.timescale,
+                                    s->in_time);
     if(test_time > ret)
       ret = test_time;
     }
@@ -586,13 +585,13 @@ int bgav_track_has_sync(bgav_track_t * t)
   for(i = 0; i < t->num_audio_streams; i++)
     {
     if((t->audio_streams[i].action == BGAV_STREAM_DECODE) &&
-       (t->audio_streams[i].time_scaled == BGAV_TIMESTAMP_UNDEFINED))
+       (t->audio_streams[i].in_time == BGAV_TIMESTAMP_UNDEFINED))
       return 0;
     }
   for(i = 0; i < t->num_video_streams; i++)
     {
     if((t->video_streams[i].action == BGAV_STREAM_DECODE) &&
-       (t->video_streams[i].time_scaled == BGAV_TIMESTAMP_UNDEFINED))
+       (t->video_streams[i].in_time == BGAV_TIMESTAMP_UNDEFINED))
       return 0;
     }
   return 1;

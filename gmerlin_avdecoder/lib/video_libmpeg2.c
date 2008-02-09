@@ -68,8 +68,6 @@ typedef struct
   int intra_slice_refresh;
   
   int do_resync;
-
-  const mpeg2_picture_t * first_iframe;
   
   int extern_aspect; /* Container sent us the aspect ratio already */
   
@@ -81,7 +79,13 @@ typedef struct
   int buffer_alloc;
   int buffer_size;
   bgav_mpv_sequence_header_t sh;
+
   int64_t last_position;
+
+  /* Specify if we have seen a P- or and I-Frame
+     since the last seek */
+  int have_p;
+  int have_i;
   
   } mpeg2_priv_t;
 
@@ -111,7 +115,7 @@ static int get_data(bgav_stream_t*s)
         gavl_time_rescale(s->timescale,
                           s->data.video.format.timescale,
                           priv->p->pts);
-      s->time_scaled = priv->p->pts;
+      s->in_time = priv->p->pts;
       }
     }
   
@@ -233,12 +237,13 @@ static void get_format(bgav_stream_t*s,
 
 static int decode_picture(bgav_stream_t*s)
   {
+  int done;
   gavl_video_format_t new_format;
   int64_t tmp;
   mpeg2_priv_t * priv;
   mpeg2_state_t state;
   priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
-  
+  done = 0;
   while(1)
     {
     if(!parse(s, &state))
@@ -246,15 +251,27 @@ static int decode_picture(bgav_stream_t*s)
     if(((state == STATE_END) || (state == STATE_SLICE) ||
         (state == STATE_INVALID_END)) && priv->info->display_fbuf)
       {
-      if(priv->first_iframe)
+      switch(priv->info->current_picture->flags & PIC_MASK_CODING_TYPE)
         {
-        if(priv->info->display_picture == priv->first_iframe)
-          {
-          priv->first_iframe = (mpeg2_picture_t*)0;
+        case PIC_FLAG_CODING_TYPE_I:
+          priv->have_i = 1;
+          done = 1;
           break;
-          }
+        case PIC_FLAG_CODING_TYPE_P:
+          priv->have_p = 1;
+          done = 1;
+          break;
+        case PIC_FLAG_CODING_TYPE_B:
+          if(priv->have_p && priv->have_i)
+            done = 1;
+          else
+            {
+            fprintf(stderr, "Old B-Frame\n");
+            //            done = 1;
+            }
+          break;
         }
-      else
+      if(done)
         break;
       }
 #if MPEG2_RELEASE >= MPEG2_VERSION(0,5,0)
@@ -373,6 +390,10 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
   
   if(priv->init)
     return 1;
+
+  if(!f)
+    fprintf(stderr, "Skip: %d\n",
+            priv->info->current_picture->flags & PIC_MASK_CODING_TYPE);
   
   if(f)
     {
@@ -422,13 +443,15 @@ static int init_mpeg2(bgav_stream_t*s)
   
   priv = calloc(1, sizeof(*priv));
   s->data.video.decoder->priv = priv;
-  priv->dec  = mpeg2_init();
-  priv->info = mpeg2_info(priv->dec);
-
+  
   if(s->action == BGAV_STREAM_PARSE)
     {
     return 1;
     }
+
+  priv->dec  = mpeg2_init();
+  priv->info = mpeg2_info(priv->dec);
+  
   while(1)
     {
     if(!parse(s, &state))
@@ -493,12 +516,14 @@ static void resync_mpeg2(bgav_stream_t*s)
   priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
 
   priv->p = (bgav_packet_t*)0;
+  priv->have_p = 0;
+  priv->have_i = 0;
   
   if(s->data.video.still_mode)
     {
     priv->picture_timestamp = gavl_time_rescale(s->timescale,
                                                 s->data.video.format.timescale,
-                                                s->time_scaled);
+                                                s->in_time);
     }
   else
     {
@@ -518,19 +543,22 @@ static void resync_mpeg2(bgav_stream_t*s)
         if(state == STATE_PICTURE)
           break;
         }
-    
+      fprintf(stderr, "Parse: %d\n",
+              priv->info->current_picture->flags & PIC_MASK_CODING_TYPE);
+      
       /* Check if we can start decoding again */
       if((priv->intra_slice_refresh)  &&
          ((priv->info->current_picture->flags & PIC_MASK_CODING_TYPE) ==
           PIC_FLAG_CODING_TYPE_P))
         {
+        priv->have_i = 1;
         break;
         }
       else if(priv->info->current_picture &&
               ((priv->info->current_picture->flags & PIC_MASK_CODING_TYPE) ==
                PIC_FLAG_CODING_TYPE_I))
         {
-        priv->first_iframe = priv->info->current_picture;
+        priv->have_i = 1;
         break;
         }
       }
@@ -539,8 +567,10 @@ static void resync_mpeg2(bgav_stream_t*s)
   //  mpeg2_skip(priv->dec, 0);
 
   /* Set next timestamps */
-
-  s->data.video.next_frame_time = priv->picture_timestamp;
+  if(s->demuxer->demux_mode == DEMUX_MODE_FI)
+    priv->picture_timestamp = s->out_time;
+  else
+    s->out_time = priv->picture_timestamp;
 
   s->data.video.next_frame_duration = s->data.video.format.frame_duration;
 
@@ -657,7 +687,6 @@ static void parse_libmpeg2(bgav_stream_t * s)
   uint8_t * ptr;
   bgav_mpv_picture_header_t ph;
   int keyframe;
-  
   priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
   memset(&ph, 0, sizeof(ph));
   
@@ -694,6 +723,7 @@ static void parse_libmpeg2(bgav_stream_t * s)
           s->data.video.format.frame_duration = priv->sh.frame_duration;
           ptr               += result;
           priv->buffer_size -= result;
+          s->timescale = s->data.video.format.timescale;
           }
         else
           return; /* Error */
@@ -718,6 +748,7 @@ static void parse_libmpeg2(bgav_stream_t * s)
           priv->buffer_size -= result;
           s->data.video.format.timescale      *= 2;
           s->data.video.format.frame_duration *= 2;
+          s->timescale = s->data.video.format.timescale;
           }
         else
           return; /* Error */
@@ -741,18 +772,22 @@ static void parse_libmpeg2(bgav_stream_t * s)
             keyframe = ph.coding_type == MPV_CODING_TYPE_P;
           else
             keyframe = ph.coding_type == MPV_CODING_TYPE_I;
-            
+
+          /* Frame started in the last packet */
           if(ptr - priv->buffer < old_buffer_size)
+            {
             bgav_file_index_append_packet(s->file_index,
                                           priv->last_position,
                                           s->duration,
                                           keyframe);
+            }
           else
+            {
             bgav_file_index_append_packet(s->file_index,
                                           p->position,
                                           s->duration,
                                           keyframe);
-
+            }
           s->duration += s->data.video.format.frame_duration;
           
           ptr               += result;

@@ -50,7 +50,8 @@ int bgav_stream_start(bgav_stream_t * stream)
 
 void bgav_stream_stop(bgav_stream_t * stream)
   {
-  if(stream->action == BGAV_STREAM_DECODE)
+  if((stream->action == BGAV_STREAM_DECODE) ||
+     (stream->action == BGAV_STREAM_PARSE))
     {
     switch(stream->type)
       {
@@ -74,9 +75,9 @@ void bgav_stream_stop(bgav_stream_t * stream)
   stream->packet = (bgav_packet_t*)0;
   stream->index_position = stream->first_index_position;
   stream->in_position = 0;
-  stream->out_position = 0;
+  stream->out_time = 0;
   stream->packet_seq = 0;
-  stream->time_scaled = BGAV_TIMESTAMP_UNDEFINED;
+  stream->in_time = BGAV_TIMESTAMP_UNDEFINED;
   stream->has_first_timestamp = 0;
   }
 
@@ -88,7 +89,7 @@ void bgav_stream_create_packet_buffer(bgav_stream_t * stream)
 void bgav_stream_init(bgav_stream_t * stream, const bgav_options_t * opt)
   {
   memset(stream, 0, sizeof(*stream));
-  stream->time_scaled = BGAV_TIMESTAMP_UNDEFINED;
+  stream->in_time = BGAV_TIMESTAMP_UNDEFINED;
   stream->first_index_position = INT_MAX;
 
   /* need to set this to -1 so we know, if this stream has packets at all */
@@ -174,8 +175,8 @@ void bgav_stream_clear(bgav_stream_t * s)
     bgav_packet_buffer_clear(s->packet_buffer);
   s->packet = (bgav_packet_t*)0;
   s->in_position  = 0;
-  s->out_position = 0;
-  s->time_scaled = BGAV_TIMESTAMP_UNDEFINED;
+  s->out_time = 0;
+  s->in_time = BGAV_TIMESTAMP_UNDEFINED;
   }
 
 void bgav_stream_resync_decoder(bgav_stream_t * s)

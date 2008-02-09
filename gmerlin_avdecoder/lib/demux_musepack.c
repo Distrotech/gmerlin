@@ -285,8 +285,8 @@ static void seek_mpc(bgav_demuxer_context_t * ctx, int64_t time, int scale)
 
   s = &(ctx->tt->cur->audio_streams[0]);
 
-  s->time_scaled = gavl_time_rescale(scale, s->timescale, time);
-  mpc_decoder_seek_sample(&(priv->dec), s->time_scaled);
+  s->in_time = gavl_time_rescale(scale, s->timescale, time);
+  mpc_decoder_seek_sample(&(priv->dec), s->in_time);
   }
 
 static void close_mpc(bgav_demuxer_context_t * ctx)

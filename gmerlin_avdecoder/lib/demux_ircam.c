@@ -413,7 +413,7 @@ static void seek_ircam(bgav_demuxer_context_t * ctx, int64_t time,
     
   position =  s->data.audio.block_align * sample + HEADER_SIZE;
   bgav_input_seek(ctx->input, position, SEEK_SET);
-  s->time_scaled = sample;
+  s->in_time = sample;
   }
 
 static void close_ircam(bgav_demuxer_context_t * ctx)

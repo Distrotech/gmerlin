@@ -486,7 +486,7 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
     stream_time = get_pts(priv);
     if(stream_time != BGAV_TIMESTAMP_UNDEFINED)
       {
-      s->time_scaled = stream_time;
+      s->in_time = stream_time;
       }
     if(priv->have_picture)
       done = 1;
@@ -518,10 +518,10 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
   else
     s->data.video.last_frame_duration = s->data.video.format.frame_duration;
   
-  if(s->time_scaled != BGAV_TIMESTAMP_UNDEFINED)
+  if(s->in_time != BGAV_TIMESTAMP_UNDEFINED)
     {
     priv->frame_pts = gavl_time_rescale(s->timescale, s->data.video.format.timescale,
-                                        s->time_scaled);
+                                        s->in_time);
     }
   else
     {

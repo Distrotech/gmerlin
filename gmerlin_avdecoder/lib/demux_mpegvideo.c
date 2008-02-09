@@ -276,8 +276,8 @@ static void seek_mpegvideo(bgav_demuxer_context_t * ctx, int64_t time,
     
   file_position = (time * (priv->byte_rate)) / scale;
   
-  s->time_scaled = gavl_time_scale(s->data.video.format.timescale, time);
-  priv->next_packet_time = s->time_scaled;
+  s->in_time = gavl_time_scale(s->data.video.format.timescale, time);
+  priv->next_packet_time = s->in_time;
   bgav_input_seek(ctx->input, file_position, SEEK_SET);
   }
 

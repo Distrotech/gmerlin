@@ -966,10 +966,10 @@ static void add_packet(bgav_demuxer_context_t * ctx,
   if(asf->do_sync)
     {
     if((s->type == BGAV_STREAM_VIDEO) &&
-       (s->time_scaled < 0) && (!keyframe || (offs > 0)))
+       (s->in_time < 0) && (!keyframe || (offs > 0)))
       return;
     else if((s->type == BGAV_STREAM_AUDIO) &&
-            (s->time_scaled < 0) && (offs > 0))
+            (s->in_time < 0) && (offs > 0))
       return;
     }
   
@@ -1021,9 +1021,9 @@ static void add_packet(bgav_demuxer_context_t * ctx,
   
   // s->packet->timestamp -= ((gavl_time_t)(asf->hdr.preroll) * GAVL_TIME_SCALE) / 1000;
   
-  if(asf->do_sync && (s->time_scaled < 0))
+  if(asf->do_sync && (s->in_time < 0))
     {
-    s->time_scaled = time;
+    s->in_time = time;
     }
   s->packet->keyframe = keyframe;
   s->packet_seq = seq;

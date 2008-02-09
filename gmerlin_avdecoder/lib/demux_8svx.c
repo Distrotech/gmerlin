@@ -282,7 +282,7 @@ static void seek_8svx(bgav_demuxer_context_t * ctx, gavl_time_t time,
   
   position =  samples_to_bytes(s, sample) + ctx->data_start;
   bgav_input_seek(ctx->input, position, SEEK_SET);
-  s->time_scaled = sample;
+  s->in_time = sample;
   }
 
 static void close_8svx(bgav_demuxer_context_t * ctx)

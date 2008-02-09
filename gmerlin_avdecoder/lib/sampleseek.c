@@ -40,15 +40,14 @@ static int file_index_seek(bgav_file_index_t * idx, int64_t time)
     tmp = (pos1 + pos2)/2;
     
     if(idx->entries[tmp].time < time)
-      pos2 = tmp;
-    else
       pos1 = tmp;
+    else
+      pos2 = tmp;
     
-    if(abs(pos1 - pos2) <= 4)
+    if(pos2 - pos1 <= 4)
       break;
     }
-
-  /* Decrease until we are the keyframe before this frame */
+  
   while((idx->entries[pos2].time > time) && pos2)
     pos2--;
   
@@ -57,8 +56,7 @@ static int file_index_seek(bgav_file_index_t * idx, int64_t time)
 
 int bgav_can_seek_sample(bgav_t * bgav)
   {
-  /* TODO */
-  return 0;
+  return bgav->tt->cur->sample_accurate;
   }
 
 int64_t bgav_audio_duration(bgav_t * bgav, int stream)
@@ -71,6 +69,14 @@ int64_t bgav_video_duration(bgav_t * bgav, int stream)
   return bgav->tt->cur->video_streams[stream].duration;
   }
 
+int bgav_video_frames(bgav_t * bgav, int stream)
+  {
+  if(bgav->tt->cur->video_streams[stream].file_index)
+    return bgav->tt->cur->video_streams[stream].file_index->num_entries;
+  else
+    return 0; 
+  }
+
 int64_t bgav_subtitle_duration(bgav_t * bgav, int stream)
   {
   return bgav->tt->cur->subtitle_streams[stream].duration;
@@ -80,47 +86,67 @@ void bgav_seek_audio(bgav_t * bgav, int stream, int64_t sample)
   {
   bgav_stream_t * s;
   int index_pos;
+  int64_t frame_time;
   s = &bgav->tt->cur->audio_streams[stream];
   bgav_stream_clear(s);
   
   index_pos = file_index_seek(s->file_index, sample);
+  frame_time = s->file_index->entries[index_pos].time;
 
-  /* Decrease until we have the keyframe before this frame */
-  while(!s->file_index->entries[index_pos].keyframe && index_pos)
+  /* Handle preroll */
+  while(index_pos &&
+        (frame_time - s->file_index->entries[index_pos].time) < s->data.audio.preroll)
     index_pos--;
-
+  
   /* Decrease until a real packet starts */
   while(index_pos &&
         (s->file_index->entries[index_pos-1].position ==
          s->file_index->entries[index_pos].position))
     index_pos--;
 
-  s->time_scaled = s->file_index->entries[index_pos].time;
+  s->in_time = s->file_index->entries[index_pos].time;
+  s->out_time = frame_time;
   
   s->index_position = index_pos;
+
+  bgav_stream_resync_decoder(s);
+  fprintf(stderr, "bgav_audio_skipto...");
+  bgav_audio_skipto(s, &sample, s->timescale);
+  fprintf(stderr, "done\n");
+  
   }
 
 void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
   {
   bgav_stream_t * s;
   int index_pos;
-  s = &bgav->tt->cur->audio_streams[stream];
+  int64_t frame_time;
+  s = &bgav->tt->cur->video_streams[stream];
   bgav_stream_clear(s);
 
   index_pos = file_index_seek(s->file_index, time);
-  
+  fprintf(stderr, "Index pos: %d\n", index_pos);
   /* Decrease until we have the keyframe before this frame */
   while(!s->file_index->entries[index_pos].keyframe && index_pos)
     index_pos--;
+
+  frame_time = s->file_index->entries[index_pos].time;
 
   /* Decrease until a real packet starts */
   while(index_pos &&
         (s->file_index->entries[index_pos-1].position ==
          s->file_index->entries[index_pos].position))
     index_pos--;
-  
-  s->time_scaled = s->file_index->entries[index_pos].time;
   s->index_position = index_pos;
+  
+  s->in_time = s->file_index->entries[index_pos].time;
+  s->out_time = frame_time;
+  bgav_stream_resync_decoder(s);
+
+  fprintf(stderr, "bgav_video_skipto %d...", index_pos);
+  bgav_video_skipto(s, &time, s->timescale);
+  fprintf(stderr, "done\n");
+  
   }
 
 int64_t bgav_video_keyframe_before(bgav_t * bgav, int stream, int64_t time)

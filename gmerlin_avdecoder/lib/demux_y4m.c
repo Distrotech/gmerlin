@@ -36,9 +36,7 @@ typedef struct
 
   y4m_cb_reader_t reader;
   uint8_t * tmp_planes[4]; /* For YUVA4444 */
-  
   int64_t pts;
-  
   } y4m_t;
 
 /* Read function to pass to the mjpegutils */
@@ -263,6 +261,15 @@ static void convert_yuva4444(uint8_t ** dst, uint8_t ** src, int size)
     }
   }
 
+static int select_track_y4m(bgav_demuxer_context_t * ctx, int track)
+  {
+  y4m_t * priv;
+  priv = (y4m_t*)(ctx->priv);
+  priv->pts = 0;
+  return 1;
+  }
+
+
 static int next_packet_y4m(bgav_demuxer_context_t * ctx)
   {
   bgav_packet_t * p;
@@ -298,9 +305,9 @@ static int next_packet_y4m(bgav_demuxer_context_t * ctx)
                          &(priv->fi), p->video_frame->planes) != Y4M_OK)
       return 0;
     }
-
+  
   p->pts = priv->pts;
-  p->video_frame->timestamp = priv->pts;
+  p->video_frame->timestamp = p->pts;
   p->keyframe = 1;
   if(s->data.video.format.interlace_mode == GAVL_INTERLACE_MIXED)
     {
@@ -361,8 +368,9 @@ static void close_y4m(bgav_demuxer_context_t * ctx)
 
 const bgav_demuxer_t bgav_demuxer_y4m =
   {
-    .probe =       probe_y4m,
-    .open =        open_y4m,
+    .probe        = probe_y4m,
+    .open         = open_y4m,
+    .select_track = select_track_y4m,
     .next_packet = next_packet_y4m,
     .close =       close_y4m
   };

@@ -491,6 +491,10 @@ bg_avdec_set_parameter(void * p, const char * name,
     {
     bgav_options_set_dvb_channels_file(avdec->opt, val->val_str);
     }
+  else if(!strcmp(name, "sample_accurate"))
+    {
+    bgav_options_set_sample_accurate(avdec->opt, val->val_i);
+    }
   }
 
 int bg_avdec_get_num_tracks(void * p)

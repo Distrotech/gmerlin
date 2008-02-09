@@ -201,7 +201,7 @@ static void seek_tta(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   for(i = 0; i < priv->current_frame; i++)
     filepos += priv->seek_table[i];
   bgav_input_seek(ctx->input, filepos, SEEK_SET);
-  s->time_scaled = priv->current_frame * priv->samples_per_frame;
+  s->in_time = priv->current_frame * priv->samples_per_frame;
   }
 
 static void close_tta(bgav_demuxer_context_t * ctx)

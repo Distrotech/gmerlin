@@ -69,10 +69,6 @@ void bgav_options_set_http_proxy_port(bgav_options_t*b, int p)
   b->http_proxy_port = p;
   }
 
-void bgav_options_set_build_index(bgav_options_t*b, int p)
-  {
-  b->build_index = p;
-  }
 
 void bgav_options_set_sample_accurate(bgav_options_t*b, int p)
   {
@@ -218,7 +214,6 @@ void bgav_options_destroy(bgav_options_t * opt)
 
 void bgav_options_copy(bgav_options_t * dst, const bgav_options_t * src)
   {
-  CP_INT(build_index);
   CP_INT(sample_accurate);
   /* Generic network options */
   CP_INT(connect_timeout);

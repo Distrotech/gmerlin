@@ -245,7 +245,7 @@ static void seek_wav(bgav_demuxer_context_t * ctx, int64_t time, int scale)
     file_position *= s->data.audio.block_align;
     }
   /* Calculate the time before we add the start offset */
-  s->time_scaled = ((int64_t)file_position * s->data.audio.format.samplerate) /
+  s->in_time = ((int64_t)file_position * s->data.audio.format.samplerate) /
     (s->codec_bitrate / 8);
   
   file_position += priv->data_start;

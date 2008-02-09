@@ -356,7 +356,7 @@ static void seek_flac(bgav_demuxer_context_t * ctx, int64_t time, int scale)
                   priv->seektable.entries[i].offset + ctx->data_start,
                   SEEK_SET);
   
-  ctx->tt->cur->audio_streams[0].time_scaled = priv->seektable.entries[i].sample_number;
+  ctx->tt->cur->audio_streams[0].in_time = priv->seektable.entries[i].sample_number;
   }
 
 static void close_flac(bgav_demuxer_context_t * ctx)

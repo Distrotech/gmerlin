@@ -260,6 +260,18 @@ when the original encoding is unknown. It must be a character set name\
 recognized by iconv. Type 'iconv -l' at the commandline for a list of \
 supported encodings."),
     },
+    {
+      .name =       "misc_options",
+      .long_name =  TRS("Misc options"),
+      .type =       BG_PARAMETER_SECTION,
+    },
+    {
+      .name =        "sample_accurate",
+      .long_name =   TRS("Sample accurate"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 0 },
+      .help_string = TRS("Try sample accurate seeking. For most formats, this is not necessary, since normal seeking works fine. Some formats are only seekable with this option enabled."),
+    },
     { /* End of parameters */ }
   };
 

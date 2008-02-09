@@ -97,7 +97,8 @@ bgav_packet_t * bgav_packet_buffer_peek_packet_read(bgav_packet_buffer_t * b, in
   return b->read_packet;
   }
 
-bgav_packet_t * bgav_packet_buffer_get_packet_read(bgav_packet_buffer_t * b, int get_duration)
+bgav_packet_t *
+bgav_packet_buffer_get_packet_read(bgav_packet_buffer_t * b, int get_duration)
   {
   bgav_packet_t * ret;
   ret = bgav_packet_buffer_peek_packet_read(b, get_duration);

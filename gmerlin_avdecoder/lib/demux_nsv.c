@@ -814,13 +814,13 @@ static void seek_nsv(bgav_demuxer_context_t * ctx, int64_t time, int scale)
     frame_position = gavl_time_rescale(scale, vs->data.video.format.timescale,
                                        sync_time);
     frame_position /= vs->data.video.format.frame_duration;
-    vs->time_scaled =
+    vs->in_time =
       frame_position * vs->data.video.format.frame_duration;
     vs->in_position = frame_position;
     }
   if(as)
     {
-    as->time_scaled =
+    as->in_time =
       gavl_time_rescale(scale, as->data.audio.format.samplerate, sync_time)+
       gavl_time_rescale(1000, as->data.audio.format.samplerate, sh.syncoffs);
     }

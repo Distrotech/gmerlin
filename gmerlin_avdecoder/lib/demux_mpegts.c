@@ -1195,7 +1195,7 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
         {
         if(priv->do_sync)
           {
-          if(s->time_scaled != BGAV_TIMESTAMP_UNDEFINED)
+          if(s->in_time != BGAV_TIMESTAMP_UNDEFINED)
             {
             s->packet = bgav_stream_get_packet_write(s);
             s->packet->position = position;
@@ -1208,7 +1208,7 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
             }
           else
             {
-            s->time_scaled = pes_header.pts + ctx->timestamp_offset;
+            s->in_time = pes_header.pts + ctx->timestamp_offset;
             s->packet = bgav_stream_get_packet_write(s);
             }
           }

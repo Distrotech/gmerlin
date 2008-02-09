@@ -66,9 +66,9 @@ int bgav_video_start(bgav_stream_t * stream)
   stream->data.video.decoder = ctx;
   stream->data.video.decoder->decoder = dec;
 
-  stream->out_position = 0;
+  stream->out_time = 0;
   stream->in_position = 0;
-  stream->time_scaled = 0;
+  stream->in_time = 0;
 
   if(!stream->timescale)
     {
@@ -101,7 +101,6 @@ static int bgav_video_decode(bgav_stream_t * stream,
     if(frame->timestamp < 0)
       frame->timestamp = 0;
     }
-  stream->out_position++;
 
   if(!result)
     stream->eof = 1;
@@ -154,9 +153,9 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale)
   
   time_scaled = gavl_time_rescale(scale, s->data.video.format.timescale, *time);
   
-  if(s->data.video.next_frame_time > time_scaled)
+  if(s->out_time > time_scaled)
     {
-    sprintf(tmp_string1, "%" PRId64, s->time_scaled);
+    sprintf(tmp_string1, "%" PRId64, s->in_time);
     sprintf(tmp_string2, "%" PRId64, time_scaled);
     bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN, 
              "Cannot skip backwards, stream_time: %s, sync_time: %s",
@@ -164,14 +163,14 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale)
     return 1;
     }
 
-  else if(s->data.video.next_frame_time + s->data.video.next_frame_duration >
+  else if(s->out_time + s->data.video.next_frame_duration >
           time_scaled)
     {
     /* Do nothing but update the time */
     *time = gavl_time_rescale(s->data.video.format.timescale,
                               scale,
-                              s->data.video.next_frame_time);
-    s->time_scaled = gavl_time_rescale(scale, s->timescale, *time);
+                              s->out_time);
+    //    s->in_time = gavl_time_rescale(scale, s->timescale, *time);
     return 1;
     }
   
@@ -186,7 +185,7 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale)
     } while((next_frame_time < time_scaled) && result);
 
   *time = gavl_time_rescale(s->data.video.format.timescale, scale, next_frame_time);
-  s->time_scaled = gavl_time_rescale(scale, s->timescale, *time);
+  s->in_time = gavl_time_rescale(scale, s->timescale, *time);
 
 
   

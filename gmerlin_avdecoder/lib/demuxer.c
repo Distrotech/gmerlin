@@ -404,10 +404,6 @@ int bgav_demuxer_start(bgav_demuxer_context_t * ctx,
         }
       }
     }
-  else if(ctx->tt->cur->has_file_index)
-    {
-    ctx->demux_mode = DEMUX_MODE_FI;
-    }
   return 1;
   }
 
@@ -657,7 +653,7 @@ bgav_demuxer_get_packet_read(bgav_demuxer_context_t * demuxer,
     if(!bgav_demuxer_next_packet(demuxer))
       return (bgav_packet_t*)0;
     }
-  s->time_scaled = ret->pts;
+  s->in_time = ret->pts;
 
   if(!s->has_first_timestamp)
     {
@@ -835,8 +831,49 @@ bgav_seek_scaled(bgav_t * b, int64_t * time, int scale)
   bgav_track_t * track = b->tt->cur;
   int num_iterations = 0;
   seek_time = *time;
-
+  
   b->demuxer->flags &= ~BGAV_DEMUXER_EOF;
+
+  if(b->tt->cur->sample_accurate)
+    {
+    for(i = 0; i < b->tt->cur->num_video_streams; i++)
+      {
+      if(b->tt->cur->video_streams[i].action != BGAV_STREAM_MUTE)
+        {
+        bgav_seek_video(b, i,
+                        gavl_time_rescale(scale,
+                                          b->tt->cur->video_streams[i].data.video.format.timescale,
+                                          *time));
+        if(i) /* We align seeking at the first frame of the first stream */
+          {
+          *time =
+            gavl_time_rescale(b->tt->cur->video_streams[i].data.video.format.timescale,
+                              scale,
+                              b->tt->cur->video_streams[i].out_time);
+          }
+        
+        }
+      }
+    
+    for(i = 0; i < b->tt->cur->num_audio_streams; i++)
+      {
+      if(b->tt->cur->audio_streams[i].action != BGAV_STREAM_MUTE)
+        {
+        bgav_seek_audio(b, i,
+                        gavl_time_rescale(scale,
+                                          b->tt->cur->audio_streams[i].data.audio.format.samplerate,
+                                          *time));
+        }
+      }
+    for(i = 0; i < b->tt->cur->num_subtitle_streams; i++)
+      {
+      if(b->tt->cur->audio_streams[i].action != BGAV_STREAM_MUTE)
+        {
+        bgav_seek_subtitle(b, i, gavl_time_unscale(scale, *time));
+        }
+      }
+    return;
+    }
   
   while(1)
     {

@@ -38,7 +38,6 @@ int main(int argc, char ** argv)
   b = bgav_create();
   opt = bgav_get_options(b);
   bgav_options_set_sample_accurate(opt, 1);
-  bgav_options_set_build_index(opt, 1);
   //  bgav_options_set_index_callback(opt, index_callback, NULL);
 
 

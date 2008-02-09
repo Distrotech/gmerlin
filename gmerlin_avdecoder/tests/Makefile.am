@@ -5,6 +5,7 @@ bgavsave \
 indextest \
 mmstest \
 rtsptest \
+seektest \
 vcdtest \
 ymltest
 
@@ -13,6 +14,9 @@ bgavdump_LDADD = $(top_srcdir)/lib/libgmerlin_avdec.la
 
 indextest_SOURCES = indextest.c
 indextest_LDADD = $(top_srcdir)/lib/libgmerlin_avdec.la
+
+seektest_SOURCES = seektest.c
+seektest_LDADD = $(top_srcdir)/lib/libgmerlin_avdec.la
 
 
 vcdtest_SOURCES = vcdtest.c

@@ -250,14 +250,14 @@ static void seek_mtv(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   
   if(ctx->tt->cur->num_audio_streams)
     {
-    ctx->tt->cur->audio_streams[0].time_scaled =
+    ctx->tt->cur->audio_streams[0].in_time =
       gavl_time_rescale(priv->video_fps,
                         ctx->tt->cur->audio_streams[0].data.audio.format.samplerate,
                         frame_number);
     }
   if(ctx->tt->cur->num_video_streams)
     {
-    ctx->tt->cur->video_streams[0].time_scaled = frame_number;
+    ctx->tt->cur->video_streams[0].in_time = frame_number;
     ctx->tt->cur->video_streams[0].in_position = frame_number;
     }
   priv->do_audio = 1;

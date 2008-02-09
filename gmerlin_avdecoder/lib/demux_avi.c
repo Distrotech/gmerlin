@@ -1321,8 +1321,8 @@ static void seek_iavs(bgav_demuxer_context_t * ctx, gavl_time_t time,
   bgav_superindex_seek(ctx->si,
                        ctx->tt->cur->video_streams,
                        time, scale);
-  ctx->tt->cur->audio_streams->time_scaled =
-    ctx->tt->cur->video_streams->time_scaled;
+  ctx->tt->cur->audio_streams->in_time =
+    ctx->tt->cur->video_streams->in_time;
   ctx->si->current_position = ctx->tt->cur->video_streams->index_position;
   bgav_input_seek(ctx->input, ctx->si->entries[ctx->si->current_position].offset,
                   SEEK_SET);

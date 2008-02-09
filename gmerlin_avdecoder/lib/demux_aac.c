@@ -571,7 +571,7 @@ static void seek_aac(bgav_demuxer_context_t * ctx, gavl_time_t time, int scale)
   if(i < 0)
     return;
   bgav_input_seek(ctx->input, priv->seek_table[i].position, SEEK_SET);
-  ctx->tt->cur->audio_streams->time_scaled = priv->seek_table[i].time_scaled;
+  ctx->tt->cur->audio_streams->in_time = priv->seek_table[i].time_scaled;
   }
 
 static int select_track_aac(bgav_demuxer_context_t * ctx, int track)

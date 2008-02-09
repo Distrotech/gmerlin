@@ -227,7 +227,7 @@ static void seek_wavpack(bgav_demuxer_context_t * ctx, int64_t time, int scale)
     bgav_input_skip(ctx->input, h.block_size - 24);
     current_pos += h.num_samples;
     }
-  s->time_scaled = current_pos;
+  s->in_time = current_pos;
   }
 
 static void close_wavpack(bgav_demuxer_context_t * ctx)

@@ -350,7 +350,7 @@ static void seek_sphere(bgav_demuxer_context_t * ctx,
     
   position =  s->data.audio.block_align * sample + HEADERSIZE;
   bgav_input_seek(ctx->input, position, SEEK_SET);
-  s->time_scaled = sample;
+  s->in_time = sample;
   }
 
 static void close_sphere(bgav_demuxer_context_t * ctx)

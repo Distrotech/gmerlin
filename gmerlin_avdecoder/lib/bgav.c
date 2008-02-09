@@ -279,6 +279,7 @@ int bgav_select_track(bgav_t * b, int track)
   int was_running = 0;
   int reset_input = 0;
   int64_t data_start = -1;
+  int i;
   if((track < 0) || (track >= b->tt->num_tracks))
     return 0;
 
@@ -398,6 +399,24 @@ int bgav_select_track(bgav_t * b, int track)
           }
         }
       }
+    /* eof flag might be present from last track */
+    b->demuxer->flags &= ~BGAV_DEMUXER_EOF;
+    }
+  
+  /* If we have a file index for this track, switch to
+     file index mode */
+
+  if(b->tt->cur->has_file_index)
+    {
+    b->demuxer->demux_mode = DEMUX_MODE_FI;
+
+    /* Index positions are -1 by default for the superindex */
+    for(i = 0; i < b->tt->cur->num_audio_streams; i++)
+      b->tt->cur->audio_streams[i].index_position = 0;
+    for(i = 0; i < b->tt->cur->num_video_streams; i++)
+      b->tt->cur->video_streams[i].index_position = 0;
+    for(i = 0; i < b->tt->cur->num_subtitle_streams; i++)
+      b->tt->cur->subtitle_streams[i].index_position = 0;
     }
   return 1;
   }

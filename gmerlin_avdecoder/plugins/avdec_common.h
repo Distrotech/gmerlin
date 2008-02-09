@@ -30,7 +30,7 @@ typedef struct
   bgav_options_t * opt;
   
   bg_input_callbacks_t * bg_callbacks;
-  
+  int sample_accurate;
   } avdec_priv;
 
 void * bg_avdec_create();

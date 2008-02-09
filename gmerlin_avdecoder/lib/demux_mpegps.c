@@ -252,6 +252,9 @@ typedef struct
   int sector_header_size;
   int64_t total_sectors;
   int64_t sector_position;
+
+  int64_t position;
+
   int start_sector; /* First nonempty sector */
 
   uint8_t * sector_buffer;
@@ -435,7 +438,6 @@ static int next_packet(bgav_demuxer_context_t * ctx,
   uint32_t fourcc;
   
   bgav_packet_t * p;
-  int64_t position;
   mpegps_priv_t * priv;
   bgav_stream_t * stream = (bgav_stream_t*)0;
 
@@ -461,7 +463,14 @@ static int next_packet(bgav_demuxer_context_t * ctx,
 
     else /* PES Packet */
       {
-      position = ctx->input->position;
+      priv->position = ctx->input->position;
+      //      fprintf(stderr, "pes: %ld %ld\n",
+      //              ctx->next_packet_pos, priv->position);
+
+      if(ctx->next_packet_pos &&
+         (priv->position >= ctx->next_packet_pos))
+        return 1;
+      
       if(!bgav_pes_header_read(input, &(priv->pes_header)))
         {
         return 0;
@@ -478,7 +487,7 @@ static int next_packet(bgav_demuxer_context_t * ctx,
 
         if((c >= 0x20) && (c <= 0x3f))  /* Subpicture */
           {
-          stream = bgav_track_find_stream(ctx->tt->cur,
+          stream = bgav_track_find_stream(ctx,
                                           priv->pes_header.stream_id);
           }
         else if((c >= 0x80) && (c <= 0x87)) /* AC3 Audio */
@@ -650,7 +659,7 @@ static int next_packet(bgav_demuxer_context_t * ctx,
       if(stream)
         {
         if((priv->do_sync) &&
-           (stream->time_scaled < 0) &&
+           (stream->in_time < 0) &&
            (priv->pes_header.pts < 0))
           {
           bgav_input_skip(input, priv->pes_header.payload_size);
@@ -661,7 +670,7 @@ static int next_packet(bgav_demuxer_context_t * ctx,
         if(!priv->find_streams)
           {
           p = bgav_stream_get_packet_write(stream);
-          p->position = position;
+          p->position = priv->position;
           bgav_packet_alloc(p, priv->pes_header.payload_size);
           if(bgav_input_read_data(input, p->data, 
                                   priv->pes_header.payload_size) <
@@ -685,8 +694,8 @@ static int next_packet(bgav_demuxer_context_t * ctx,
             //              p->pts = 0;
             
             if(priv->do_sync &&
-               (stream->time_scaled == BGAV_TIMESTAMP_UNDEFINED))
-              stream->time_scaled = p->pts;
+               (stream->in_time == BGAV_TIMESTAMP_UNDEFINED))
+              stream->in_time = p->pts;
             }
           bgav_packet_done_write(p);
           }
@@ -724,6 +733,16 @@ static int next_packet_mpegps(bgav_demuxer_context_t * ctx)
           }
         }
       else
+        return 1;
+      }
+    }
+  else if(ctx->next_packet_pos)
+    {
+    while(1)
+      {
+      if(!next_packet(ctx, ctx->input))
+        return 0;
+      if(priv->position == ctx->next_packet_pos)
         return 1;
       }
     }

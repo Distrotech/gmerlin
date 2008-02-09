@@ -71,24 +71,25 @@ int bgav_audio_start(bgav_stream_t * stream)
 
   if(!stream->timescale && stream->data.audio.format.samplerate)
     stream->timescale = stream->data.audio.format.samplerate;
-
-  if(!dec->init(stream))
-    return 0;
-
+  
   if(!stream->timescale)
     stream->timescale = stream->data.audio.format.samplerate;
 
+  if(!dec->init(stream))
+    return 0;
+  
   if(stream->has_first_timestamp && (stream->first_timestamp != BGAV_TIMESTAMP_UNDEFINED))
     {
-    stream->out_position =
+    stream->out_time =
       gavl_time_rescale(stream->timescale, stream->data.audio.format.samplerate,
                         stream->first_timestamp);
     //    if(stream->out_position < 0)
     //      stream->out_position = 0;
-    sprintf(tmp_string, "%" PRId64, stream->out_position);
+    sprintf(tmp_string, "%" PRId64, stream->out_time);
     bgav_log(stream->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Got initial audio timestamp: %s",
              tmp_string);
     }
+  
   return 1;
   }
 
@@ -129,12 +130,12 @@ int bgav_read_audio(bgav_t * b, gavl_audio_frame_t * frame,
   if(b->eof || s->eof)
     return 0;
 
+  if(frame)
+    frame->timestamp = s->out_time;
+
   result = s->data.audio.decoder->decoder->decode(s, frame, num_samples);
   
-  if(frame)
-    frame->timestamp = s->out_position;
-  
-  s->out_position += result;
+  s->out_time += result;
   if(!result)
     s->eof = 1;
   return result;
@@ -166,7 +167,7 @@ int bgav_audio_skipto(bgav_stream_t * s, int64_t * t, int scale)
   
   stream_time = gavl_time_rescale(s->timescale,
                                   scale,
-                                  s->time_scaled);
+                                  s->in_time);
   
   diff_time = *t - stream_time;
   

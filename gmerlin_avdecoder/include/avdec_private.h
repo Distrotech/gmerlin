@@ -295,7 +295,6 @@ struct bgav_stream_s
 
   uint32_t subformat; /* Real flavors, sub_ids.... */
   
-  int64_t out_position; /* In samples/frames */
   int64_t in_position;  /* In packets */
   
   /*
@@ -304,10 +303,11 @@ struct bgav_stream_s
    *  streams and the timescale from the format for video streams.
    *  Demuxers can, however, define other timescales.
    */
-
-  int64_t time_scaled;
   int timescale;
+  int64_t in_time; /* Demuxer time in demuxer timescale */
 
+  int64_t out_time; /* In codec timescale */
+  
   /* Positions in the superindex */
   
   int first_index_position;
@@ -386,6 +386,12 @@ struct bgav_stream_s
          the demuxer */
       
       int endianess;
+
+      /* Number of *samples* which must be decoded before
+         the next frame after seeking. Codecs set this, demuxers
+         can honour it when seeking. */
+      
+      int preroll;
       } audio;
     struct
       {
@@ -412,7 +418,7 @@ struct bgav_stream_s
          by the codec during resync. They are invalid except during the
          seek process */
 
-      int64_t next_frame_time;
+      //      int64_t next_frame_time -> out_time
       int     next_frame_duration;
 
       int still_mode; /* Don't always have the next picture
@@ -511,6 +517,7 @@ struct bgav_track_s
   void * priv; /* For storing private data */  
   
   int has_file_index;
+  int sample_accurate;
   };
 
 /* track.c */
@@ -598,8 +605,6 @@ void bgav_track_table_remove_unsupported(bgav_track_table_t * t);
 
 struct bgav_options_s
   {
-  /* File index */
-  int build_index;
   /* Try sample accurate processing */
   int sample_accurate;
   /* Generic network options */
@@ -1088,6 +1093,11 @@ struct bgav_demuxer_context_s
      seek to the position, where the demuxer can start working
   */
   int64_t data_start;
+
+  /* Used by MPEG style fileindex for catching
+     packets, inside which no frame starts */
+  
+  int64_t next_packet_pos;
   
   };
 

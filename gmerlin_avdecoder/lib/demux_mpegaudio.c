@@ -628,7 +628,7 @@ static void seek_mpegaudio(bgav_demuxer_context_t * ctx, int64_t time,
     pos = ((priv->data_end - priv->data_start) * gavl_time_unscale(scale, time)) / ctx->tt->cur->duration;
     }
   
-  s->time_scaled =
+  s->in_time =
     gavl_time_rescale(scale,
                       ctx->tt->cur->audio_streams[0].data.audio.format.samplerate, time);
   

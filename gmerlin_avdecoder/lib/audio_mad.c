@@ -176,12 +176,20 @@ static int decode_frame(bgav_stream_t * s)
     gavl_set_channel_setup(&(s->data.audio.format));
 
     if(priv->frame.header.flags & MAD_FLAG_MPEG_2_5_EXT)
+      {
+      s->data.audio.preroll = s->data.audio.format.samples_per_frame * 30;
       version_string = "2.5";
+      }
     else if(priv->frame.header.flags & MAD_FLAG_LSF_EXT)
+      {
+      s->data.audio.preroll = s->data.audio.format.samples_per_frame * 30;
       version_string = "2";
+      }
     else
+      {
+      s->data.audio.preroll = s->data.audio.format.samples_per_frame * 10;
       version_string = "1";
-
+      }
     if(s->codec_bitrate == BGAV_BITRATE_VBR)
       bitrate_string = bgav_sprintf("VBR");
     else
@@ -337,6 +345,7 @@ static void parse_mad(bgav_stream_t * s)
                  "Lost sync during parsing");
         return; 
         }
+      s->timescale = h.samplerate;
       /* If frame starts in the previous packet,
          use the previous index */
       if(ptr - priv->buffer < old_buffer_size)
@@ -372,6 +381,9 @@ static void resync_mad(bgav_stream_t * s)
   priv->eof = 0;
   mad_frame_mute(&(priv->frame));
   mad_synth_mute(&(priv->synth));
+
+  priv->stream.bufend = 0;
+  priv->stream.next_frame = 0;
   }
 
 static void close_mad(bgav_stream_t * s)

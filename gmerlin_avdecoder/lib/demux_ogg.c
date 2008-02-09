@@ -1551,7 +1551,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
               pframes =
                 priv->op.granulepos-(iframes<<stream_priv->keyframe_granule_shift);
               
-              s->time_scaled = (pframes + iframes) * (s->data.video.format.frame_duration);
+              s->in_time = (pframes + iframes) * (s->data.video.format.frame_duration);
               stream_priv->do_sync = 0;
               }
             }
@@ -1601,7 +1601,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
           else
             {
             stream_priv->do_sync = 0;
-            s->time_scaled = stream_priv->prev_granulepos;
+            s->in_time = stream_priv->prev_granulepos;
             }
           }
         
@@ -1645,7 +1645,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
             else
               {
               stream_priv->do_sync = 0;
-              s->time_scaled =
+              s->in_time =
                 (int64_t)s->data.video.format.frame_duration *
                 stream_priv->frame_counter;
               }
@@ -1687,7 +1687,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
           else
             {
             stream_priv->do_sync = 0;
-            s->time_scaled = stream_priv->prev_granulepos;
+            s->in_time = stream_priv->prev_granulepos;
             }
           }
         
@@ -1711,7 +1711,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
           else
             {
             stream_priv->do_sync = 0;
-            s->time_scaled = stream_priv->prev_granulepos;
+            s->in_time = stream_priv->prev_granulepos;
             }
           }
         
