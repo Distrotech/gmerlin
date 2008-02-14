@@ -30,22 +30,33 @@
 #include <avdec_private.h>
 #include <md5.h>
 
-static void dump_index(bgav_file_index_t * idx)
+static void dump_index(bgav_stream_t * s)
   {
   int i;
-  for(i = 0; i < idx->num_entries; i++)
+  for(i = 0; i < s->file_index->num_entries; i++)
     {
-    bgav_dprintf("      K: %d, P: %"PRId64", T: %"PRId64"\n",
-                 idx->entries[i].keyframe,
-                 idx->entries[i].position,
-                 idx->entries[i].time);
+    bgav_dprintf("      K: %d, P: %"PRId64", T: %"PRId64" D: ",
+                 s->file_index->entries[i].keyframe,
+                 s->file_index->entries[i].position,
+                 s->file_index->entries[i].time);
     
+    if(i < s->file_index->num_entries-1)
+      bgav_dprintf("%"PRId64"\n", s->file_index->entries[i+1].time-s->file_index->entries[i].time);
+    else
+      bgav_dprintf("%"PRId64"\n", s->duration-s->file_index->entries[i].time);
     }
   }
 
-static void dump_file_index(bgav_t * b)
+void bgav_file_index_dump(bgav_t * b)
   {
   int i, j;
+
+  if(!b->tt->tracks[0].has_file_index)
+    {
+    bgav_dprintf("No index available\n");
+    return;
+    }
+
   bgav_dprintf("Generated index table(s)\n");
   for(i = 0; i < b->tt->num_tracks; i++)
     {
@@ -53,21 +64,27 @@ static void dump_file_index(bgav_t * b)
     
     for(j = 0; j < b->tt->tracks[i].num_audio_streams; j++)
       {
-      bgav_dprintf("   Audio stream %d [%08x]\n", j+1,
-                   b->tt->tracks[i].audio_streams[j].stream_id);
-      dump_index(b->tt->tracks[i].audio_streams[j].file_index);
+      bgav_dprintf("   Audio stream %d [ID: %08x, Timescale: %d]\n", j+1,
+                   b->tt->tracks[i].audio_streams[j].stream_id,
+                   b->tt->tracks[i].audio_streams[j].timescale);
+      bgav_dprintf("   Duration: %ld\n", b->tt->tracks[i].audio_streams[j].duration);
+      dump_index(&b->tt->tracks[i].audio_streams[j]);
       }
     for(j = 0; j < b->tt->tracks[i].num_video_streams; j++)
       {
-      bgav_dprintf("   Video stream %d [%08x]\n", j+1,
-                   b->tt->tracks[i].video_streams[j].stream_id);
-      dump_index(b->tt->tracks[i].video_streams[j].file_index);
+      bgav_dprintf("   Video stream %d [ID: %08x, Timescale: %d]\n", j+1,
+                   b->tt->tracks[i].video_streams[j].stream_id,
+                   b->tt->tracks[i].video_streams[j].timescale);
+      bgav_dprintf("   Duration: %ld\n", b->tt->tracks[i].video_streams[j].duration);
+      dump_index(&b->tt->tracks[i].video_streams[j]);
       }
     for(j = 0; j < b->tt->tracks[i].num_subtitle_streams; j++)
       {
-      bgav_dprintf("   Subtitle stream %d [%08x]\n", j+1,
-                   b->tt->tracks[i].subtitle_streams[j].stream_id);
-      dump_index(b->tt->tracks[i].subtitle_streams[j].file_index);
+      bgav_dprintf("   Subtitle stream %d [ID: %08x, Timescale: %d]\n", j+1,
+                   b->tt->tracks[i].subtitle_streams[j].stream_id,
+                   b->tt->tracks[i].subtitle_streams[j].timescale);
+      bgav_dprintf("   Duration: %ld\n", b->tt->tracks[i].subtitle_streams[j].duration);
+      dump_index(&b->tt->tracks[i].subtitle_streams[j]);
       }
     }
   }
@@ -209,7 +226,6 @@ void bgav_file_index_write_header(const char * filename,
       return;
     file_time = stat_buf.st_mtime;
     }
-  fprintf(stderr, "File time write: %"PRId64"\n", file_time);
   write_64(output, file_time);
   write_32(output, num_tracks);
   }
@@ -328,7 +344,6 @@ void bgav_read_file_index(bgav_t * b)
         goto fail;
       if(!bgav_input_read_32_be(input, (uint32_t*)&s->timescale))
         goto fail;
-      fprintf(stderr, "Timescale read: %d\n", s->timescale);
       s->file_index = file_index_read_stream(input, s);
 
       if(!s->file_index)
@@ -395,8 +410,6 @@ void bgav_write_file_index(bgav_t * b)
       {
       s = &b->tt->tracks[i].video_streams[j];
       write_32(output, s->stream_id);
-
-      fprintf(stderr, "Timescale write: %d\n", s->timescale);
 
       write_32(output, s->timescale);
       file_index_write_stream(output, s->file_index, s);
@@ -591,35 +604,19 @@ int bgav_demuxer_next_packet_fileindex(bgav_demuxer_context_t * ctx)
     {
     new_pos++;
     }
+  s->index_position = new_pos;
+
   /* Tell thedemuxer where to stop */
 
   if(new_pos >= s->file_index->num_entries)
     ctx->next_packet_pos = 0x7FFFFFFFFFFFFFFFLL;
   else 
     ctx->next_packet_pos = s->file_index->entries[new_pos].position;
-        
+
+  
   if(!ctx->demuxer->next_packet(ctx))
     return 0;
 
-  if(ctx->index_mode == INDEX_MODE_MPEG)
-    {
-    /* Reset pts (would be wrong anyway) */
-    p = s->packet_buffer->read_packet;
-    if(p->valid)
-      {
-      p->pts = BGAV_TIMESTAMP_UNDEFINED;
-      p = p->next;
-
-      while(p->valid && (p != s->packet_buffer->read_packet))
-        {
-        p->pts = BGAV_TIMESTAMP_UNDEFINED;
-        p = p->next;
-        }
-      }
-    }
-  
-  s->index_position = new_pos;
-  
   return 1;
   }
 

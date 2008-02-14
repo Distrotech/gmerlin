@@ -738,10 +738,13 @@ static int next_packet_mpegps(bgav_demuxer_context_t * ctx)
     }
   else if(ctx->next_packet_pos)
     {
+    int ret = 0;
     while(1)
       {
       if(!next_packet(ctx, ctx->input))
-        return 0;
+        return ret;
+      else
+        ret = 1;
       if(priv->position == ctx->next_packet_pos)
         return 1;
       }

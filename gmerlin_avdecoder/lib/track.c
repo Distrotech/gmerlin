@@ -216,13 +216,22 @@ int bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer)
   int num_active_audio_streams = 0;
   int num_active_video_streams = 0;
   int num_active_subtitle_streams = 0;
+
+  /* We must first set the demuxer of *all* streams
+     before we initialize the decoders */
+  
+  for(i = 0; i < t->num_audio_streams; i++)
+    t->audio_streams[i].demuxer = demuxer;
+  for(i = 0; i < t->num_video_streams; i++)
+    t->video_streams[i].demuxer = demuxer;
+  for(i = 0; i < t->num_subtitle_streams; i++)
+    t->subtitle_streams[i].demuxer = demuxer;
   
   for(i = 0; i < t->num_audio_streams; i++)
     {
     if(t->audio_streams[i].action == BGAV_STREAM_MUTE)
       continue;
     num_active_audio_streams++;
-    t->audio_streams[i].demuxer = demuxer;
     if(!bgav_stream_start(&(t->audio_streams[i])))
       {
       bgav_log(demuxer->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
@@ -235,7 +244,6 @@ int bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer)
     if(t->video_streams[i].action == BGAV_STREAM_MUTE)
       continue;
     num_active_video_streams++;
-    t->video_streams[i].demuxer = demuxer;
     if(!bgav_stream_start(&(t->video_streams[i])))
       {
       bgav_log(demuxer->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
@@ -248,9 +256,6 @@ int bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer)
     if(t->subtitle_streams[i].action == BGAV_STREAM_MUTE)
       continue;
     num_active_subtitle_streams++;
-    
-    t->subtitle_streams[i].demuxer = demuxer;
-    
     if(!t->subtitle_streams[i].data.subtitle.video_stream)
       t->subtitle_streams[i].data.subtitle.video_stream =
         t->video_streams;

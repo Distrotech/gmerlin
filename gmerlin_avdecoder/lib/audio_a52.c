@@ -32,7 +32,9 @@
 #include <a52dec/a52.h>
 
 #define FRAME_SAMPLES 1536
+#define MAX_FRAME_SIZE 3840
 
+#define LOG_DOMAIN "audio_a52"
 
 typedef struct
   {
@@ -47,9 +49,14 @@ typedef struct
   bgav_packet_t * packet;
   uint8_t       * packet_ptr;
   gavl_audio_frame_t * frame;
+
+  /* For parsing only */
+  int64_t last_position;
+  int buffer_size;
+  int buffer_alloc;
+  
   } a52_priv;
 
-#define MAX_FRAME_SIZE 3840
 
 /*
  *  Parse header and read data bytes for that frame
@@ -67,8 +74,13 @@ static int get_data(bgav_stream_t * s, int num_bytes)
     if(!priv->packet)
       {
       priv->packet = bgav_demuxer_get_packet_read(s->demuxer, s);
+
+      fprintf(stderr, "Got packet %ld\n", priv->packet->position);
+
       if(!priv->packet)
         return 0;
+      //      fprintf(stderr, "Got packet:\n");
+      //      bgav_hexdump(priv->packet->data, 16, 16);
       priv->packet_ptr = priv->packet->data;
       }
     else if(priv->packet_ptr - priv->packet->data >= priv->packet->data_size)
@@ -77,6 +89,8 @@ static int get_data(bgav_stream_t * s, int num_bytes)
       priv->packet = bgav_demuxer_get_packet_read(s->demuxer, s);
       if(!priv->packet)
         return 0;
+      fprintf(stderr, "Got packet %ld\n", priv->packet->position);
+
       priv->packet_ptr = priv->packet->data;
       }
     bytes_to_copy = num_bytes - priv->bytes_in_buffer;
@@ -152,6 +166,14 @@ static int init_a52(bgav_stream_t * s)
   priv = calloc(1, sizeof(*priv));
   priv->buffer = calloc(MAX_FRAME_SIZE, 1);
   s->data.audio.decoder->priv = priv;
+
+  if(s->action == BGAV_STREAM_PARSE)
+    {
+    priv->last_position = -1;
+    return 1;
+    }
+
+
   if(!do_resync(s))
     {
     return 0;
@@ -280,6 +302,7 @@ static int decode_frame(bgav_stream_t * s)
     return 0;
 
   /* Now, decode this */
+  fprintf(stderr, "Decode frame\n");
   
   if(!a52_syncinfo(priv->buffer, &flags,
                    &sample_rate, &bit_rate))
@@ -366,7 +389,101 @@ static void close_a52(bgav_stream_t * s)
   if(priv->state)
     a52_free(priv->state);
   free(priv);
+
   }
+#if 1
+static void parse_a52(bgav_stream_t * s)
+  {
+  bgav_packet_t * p;
+  uint8_t * ptr;
+  int old_buffer_size;
+  int bytes;
+  int size_needed;
+
+  a52_priv * priv;
+  priv = (a52_priv*)s->data.audio.decoder->priv;
+  
+  while(bgav_demuxer_peek_packet_read(s->demuxer, s, 0))
+    {
+    /* Get the packet and append data to the buffer */
+    p = bgav_demuxer_get_packet_read(s->demuxer, s);
+
+    
+    //    fprintf(stderr, "Got packet:\n");
+    //    bgav_hexdump(p->data, 16, 16);
+    
+    old_buffer_size = priv->buffer_size;
+
+    if(priv->buffer_size < 0)
+      size_needed = priv->buffer_size;
+    else
+      size_needed = priv->buffer_size + p->data_size;
+        
+    if(priv->buffer_alloc < priv->buffer_size + p->data_size)
+      {
+      priv->buffer_alloc = priv->buffer_size + p->data_size + 1024;
+      priv->buffer = realloc(priv->buffer, priv->buffer_alloc);
+      }
+
+    if(old_buffer_size < 0)
+      {
+      memcpy(priv->buffer, p->data, p->data_size);
+      priv->buffer_size += p->data_size;
+      
+      ptr = priv->buffer - old_buffer_size;
+      }
+    else
+      {
+      memcpy(priv->buffer + priv->buffer_size, p->data, p->data_size);
+      priv->buffer_size += p->data_size;
+      
+      ptr = priv->buffer;
+      }
+    
+    while(priv->buffer_size >= BGAV_A52_HEADER_BYTES)
+      {
+      //      fprintf(stderr, "decode header: ");
+      //      bgav_hexdump(ptr, 16, 16);
+
+      if(!bgav_a52_header_read(&(priv->header), ptr))
+        {
+        bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                 "Lost sync during parsing");
+        return;
+        }
+      s->timescale = priv->header.samplerate;
+      /* If frame starts in the previous packet,
+         use the previous index */
+      if(ptr - priv->buffer < old_buffer_size)
+        {
+        //        fprintf(stderr, "Append packet (prev)\n");
+        bgav_file_index_append_packet(s->file_index,
+                                      priv->last_position,
+                                      s->duration,
+                                      1);
+        }
+      else
+        {
+        //        fprintf(stderr, "Append packet (this)\n");
+        bgav_file_index_append_packet(s->file_index,
+                                      p->position,
+                                      s->duration,
+                                      1);
+        }
+      s->duration += FRAME_SAMPLES;
+      ptr += priv->header.total_bytes;
+      priv->buffer_size -= priv->header.total_bytes;
+      }
+    if(priv->buffer_size > 0)
+      memmove(priv->buffer, ptr, priv->buffer_size);
+    priv->last_position = p->position;
+    bgav_demuxer_done_packet_read(s->demuxer, p);
+    //    fprintf( stderr, "Done with packet, %d bytes\n",
+    //             priv->buffer_size);
+    }
+  
+  }
+#endif
 
 static bgav_audio_decoder_t decoder =
   {
@@ -377,9 +494,10 @@ static bgav_audio_decoder_t decoder =
                            0x00 },
     .name = "liba52 based decoder",
 
-    .init =   init_a52,
+    .init   = init_a52,
     .decode = decode_a52,
-    .close =  close_a52,
+    .parse  = parse_a52,
+    .close  = close_a52,
     .resync = resync_a52,
   };
 

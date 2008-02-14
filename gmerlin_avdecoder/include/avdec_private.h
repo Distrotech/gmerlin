@@ -978,6 +978,9 @@ void bgav_file_index_destroy(bgav_file_index_t *);
 
 int bgav_demuxer_next_packet_fileindex(bgav_demuxer_context_t * ctx);
 
+void bgav_file_index_dump(bgav_t * b);
+
+
 void
 bgav_file_index_append_packet(bgav_file_index_t * idx,
                               int64_t position,

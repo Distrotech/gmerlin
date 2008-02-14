@@ -1,6 +1,6 @@
 /*****************************************************************
  
-  indextest.c
+  bgavdump.c
  
   Copyright (c) 2003-2004 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
  
@@ -17,18 +17,7 @@
  
 *****************************************************************/
 
-// #include <avdec.h>
 #include <avdec_private.h>
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-static void index_callback(void * data, float perc)
-  {
-  fprintf(stderr, "Building index %.2f %% completed\n",
-          perc * 100.0);
-  }
 
 int main(int argc, char ** argv)
   {
@@ -43,7 +32,9 @@ int main(int argc, char ** argv)
 
   if(!bgav_open(b, argv[1]))
     return -1;
-  
+
+  bgav_file_index_dump(b);
+
   bgav_close(b);
   return 0;
   }

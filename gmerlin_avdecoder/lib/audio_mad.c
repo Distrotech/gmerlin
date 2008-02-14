@@ -69,9 +69,7 @@ static int get_data(bgav_stream_t * s)
       /* Append zeros to the end so we can decode the very last
          frame */
       bytes_in_buffer = (int)(priv->stream.bufend - priv->stream.next_frame);
-
-      fprintf(stderr, "Decoding last frame %d\n", bytes_in_buffer);
-
+      
       if(bytes_in_buffer)
         memmove(priv->buffer,
                 priv->buffer +
@@ -88,8 +86,6 @@ static int get_data(bgav_stream_t * s)
       
       mad_stream_buffer(&(priv->stream), priv->buffer,
                         bytes_in_buffer + MAD_BUFFER_GUARD);
-
-      bgav_hexdump(priv->buffer, 16, 16);
       
       priv->eof = 1;
       return 1;
@@ -97,7 +93,7 @@ static int get_data(bgav_stream_t * s)
     else
       return 0;
     }
-  
+
   bytes_in_buffer = (int)(priv->stream.bufend - priv->stream.next_frame);
   
   if(priv->buffer_alloc < p->data_size + bytes_in_buffer)
@@ -131,7 +127,7 @@ static int decode_frame(bgav_stream_t * s)
   priv = s->data.audio.decoder->priv;
 
   /* Check if we need new data */
-
+  
   if(priv->stream.bufend - priv->stream.next_frame <= MAD_BUFFER_GUARD)
     if(!get_data(s))
       {
@@ -177,17 +173,26 @@ static int decode_frame(bgav_stream_t * s)
 
     if(priv->frame.header.flags & MAD_FLAG_MPEG_2_5_EXT)
       {
-      s->data.audio.preroll = s->data.audio.format.samples_per_frame * 30;
+      if(priv->frame.header.layer == 3)
+        s->data.audio.preroll = s->data.audio.format.samples_per_frame * 30;
+      else
+        s->data.audio.preroll = s->data.audio.format.samples_per_frame;
       version_string = "2.5";
       }
     else if(priv->frame.header.flags & MAD_FLAG_LSF_EXT)
       {
-      s->data.audio.preroll = s->data.audio.format.samples_per_frame * 30;
+      if(priv->frame.header.layer == 3)
+        s->data.audio.preroll = s->data.audio.format.samples_per_frame * 30;
+      else
+        s->data.audio.preroll = s->data.audio.format.samples_per_frame;
       version_string = "2";
       }
     else
       {
-      s->data.audio.preroll = s->data.audio.format.samples_per_frame * 10;
+      if(priv->frame.header.layer == 3)
+        s->data.audio.preroll = s->data.audio.format.samples_per_frame * 10;
+      else
+        s->data.audio.preroll = s->data.audio.format.samples_per_frame;
       version_string = "1";
       }
     if(s->codec_bitrate == BGAV_BITRATE_VBR)
@@ -306,6 +311,7 @@ static void parse_mad(bgav_stream_t * s)
   uint8_t * ptr;
   bgav_mpa_header_t h;
   int old_buffer_size;
+  int size_needed;
   priv = s->data.audio.decoder->priv;
   
   while(bgav_demuxer_peek_packet_read(s->demuxer, s, 0))
@@ -314,7 +320,12 @@ static void parse_mad(bgav_stream_t * s)
     p = bgav_demuxer_get_packet_read(s->demuxer, s);
     
     old_buffer_size = priv->buffer_size;
-    
+
+    if(priv->buffer_size < 0)
+      size_needed = priv->buffer_size;
+    else
+      size_needed = priv->buffer_size + p->data_size;
+        
     if(priv->buffer_alloc < priv->buffer_size + p->data_size)
       {
       priv->buffer_alloc = priv->buffer_size + p->data_size + 1024;
@@ -370,9 +381,7 @@ static void parse_mad(bgav_stream_t * s)
     //    fprintf( stderr, "Done with packet, %d bytes\n",
     //             priv->buffer_size);
     }
-  
   }
-
 
 static void resync_mad(bgav_stream_t * s)
   {

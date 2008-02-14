@@ -74,19 +74,21 @@ typedef struct
   int init;
   int have_frame;
 
+  /*
+   *  Specify how many non-B frames we saw since the
+   *  last seek. We needs this to skip old B-Frames
+   *  which are output by libmpeg2 by accident
+   */
+  
+  int non_b_count;
+  
   /* For parsing */
   uint8_t * buffer;
   int buffer_alloc;
   int buffer_size;
   bgav_mpv_sequence_header_t sh;
-
   int64_t last_position;
-
-  /* Specify if we have seen a P- or and I-Frame
-     since the last seek */
-  int have_p;
-  int have_i;
-  
+  int last_coding_type; /* Last picture type is saved here */
   } mpeg2_priv_t;
 
 static int get_data(bgav_stream_t*s)
@@ -101,7 +103,6 @@ static int get_data(bgav_stream_t*s)
   priv->p = bgav_demuxer_get_packet_read(s->demuxer, s);
   if(!priv->p)
     return 0;
-
   mpeg2_buffer(priv->dec, priv->p->data, priv->p->data + priv->p->data_size);
   
   if(priv->p->pts != BGAV_TIMESTAMP_UNDEFINED)
@@ -248,29 +249,49 @@ static int decode_picture(bgav_stream_t*s)
     {
     if(!parse(s, &state))
       return 0;
+
     if(((state == STATE_END) || (state == STATE_SLICE) ||
-        (state == STATE_INVALID_END)) && priv->info->display_fbuf)
+        (state == STATE_INVALID_END)))
       {
-      switch(priv->info->current_picture->flags & PIC_MASK_CODING_TYPE)
+#if 0
+      fprintf(stderr, "Got Picture: %d %d %d\n",
+              priv->info->current_picture ? 
+              priv->info->current_picture->flags & PIC_MASK_CODING_TYPE : 0,
+              (priv->info->display_picture) ?
+              priv->info->display_picture->flags & PIC_MASK_CODING_TYPE : 0,
+              priv->non_b_count);
+#endif
+      if((state == STATE_END) && (priv->info->display_picture))
         {
-        case PIC_FLAG_CODING_TYPE_I:
-          priv->have_i = 1;
-          done = 1;
-          break;
-        case PIC_FLAG_CODING_TYPE_P:
-          priv->have_p = 1;
-          done = 1;
-          break;
-        case PIC_FLAG_CODING_TYPE_B:
-          if(priv->have_p && priv->have_i)
-            done = 1;
-          else
-            {
-            fprintf(stderr, "Old B-Frame\n");
-            //            done = 1;
-            }
-          break;
+        fprintf(stderr, "Sequence end %p %p\n",
+                priv->info->current_picture, priv->info->display_picture);
+        done = 1;
         }
+      if(priv->info->current_picture)
+        {
+        switch(priv->info->current_picture->flags & PIC_MASK_CODING_TYPE)
+          {
+          case PIC_FLAG_CODING_TYPE_I:
+          case PIC_FLAG_CODING_TYPE_P:
+            priv->non_b_count++;
+            done = 1;
+            break;
+          case PIC_FLAG_CODING_TYPE_B:
+            if(priv->non_b_count >= 2)
+              done = 1;
+            else
+              {
+              fprintf(stderr, "Old B-Frame %d %d %d\n",
+                      priv->info->current_picture->flags & PIC_MASK_CODING_TYPE,
+                      priv->info->display_picture->flags & PIC_MASK_CODING_TYPE,
+                      priv->non_b_count);
+              //            done = 1;
+              }
+            break;
+          }
+        }      
+      if(!priv->info->display_fbuf)
+        done = 0;
       if(done)
         break;
       }
@@ -313,7 +334,7 @@ static int decode_picture(bgav_stream_t*s)
         }
       }
     }
-
+  
   if((state == STATE_END) && priv->init)
     {
     /* If we have a sequence end code after the first frame,
@@ -359,6 +380,8 @@ static int decode_picture(bgav_stream_t*s)
   
   return 1;
   }
+
+static const char picture_types[] = { "?IPB????" };
 
 static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
   {
@@ -417,14 +440,11 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
     }
   s->data.video.last_frame_time     = priv->picture_timestamp;
   s->data.video.last_frame_duration = priv->picture_duration;
-#if 0
-  fprintf(stderr, "PTS: %lld, Duration: %d, P: %d, TFF: %d, fields: %d, Interlace mode: %s\n", 
+
+#if 1
+  fprintf(stderr, "PTS: %ld, T: %c\n", 
           s->data.video.last_frame_time,
-          s->data.video.last_frame_duration,
-          !!(priv->info->display_picture->flags & PIC_FLAG_PROGRESSIVE_FRAME),
-          !!(priv->info->display_picture->flags & PIC_FLAG_TOP_FIELD_FIRST),
-          priv->info->display_picture->nb_fields,
-          (f ? gavl_interlace_mode_to_string(f->interlace_mode) : "No frame"));
+          picture_types[priv->info->display_picture->flags & PIC_MASK_CODING_TYPE]);
 #endif
   if(!s->data.video.still_mode)
     {
@@ -451,7 +471,7 @@ static int init_mpeg2(bgav_stream_t*s)
 
   priv->dec  = mpeg2_init();
   priv->info = mpeg2_info(priv->dec);
-  
+  priv->non_b_count = 0;
   while(1)
     {
     if(!parse(s, &state))
@@ -516,8 +536,7 @@ static void resync_mpeg2(bgav_stream_t*s)
   priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
 
   priv->p = (bgav_packet_t*)0;
-  priv->have_p = 0;
-  priv->have_i = 0;
+  priv->non_b_count = 0;
   
   if(s->data.video.still_mode)
     {
@@ -543,22 +562,22 @@ static void resync_mpeg2(bgav_stream_t*s)
         if(state == STATE_PICTURE)
           break;
         }
-      fprintf(stderr, "Parse: %d\n",
-              priv->info->current_picture->flags & PIC_MASK_CODING_TYPE);
+      //      fprintf(stderr, "Parse: %d\n",
+      //              priv->info->current_picture->flags & PIC_MASK_CODING_TYPE);
       
       /* Check if we can start decoding again */
       if((priv->intra_slice_refresh)  &&
          ((priv->info->current_picture->flags & PIC_MASK_CODING_TYPE) ==
           PIC_FLAG_CODING_TYPE_P))
         {
-        priv->have_i = 1;
+        //        priv->non_b_count++;
         break;
         }
       else if(priv->info->current_picture &&
               ((priv->info->current_picture->flags & PIC_MASK_CODING_TYPE) ==
                PIC_FLAG_CODING_TYPE_I))
         {
-        priv->have_i = 1;
+        //        priv->non_b_count++;
         break;
         }
       }
@@ -608,76 +627,6 @@ static void close_mpeg2(bgav_stream_t*s)
 
   }
 
-#if 0
-static void parse_libmpeg2(bgav_stream_t * s)
-  {
-  bgav_packet_t * p;
-  mpeg2_priv_t * priv;
-  mpeg2_state_t state;
-  int done, duration, keyframe;
-  priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
-
-  /* Get packets from the buffer and add all frames to the index */
-  
-  while(bgav_demuxer_peek_packet_read(s->demuxer, s, 0))
-    {
-    p = bgav_demuxer_get_packet_read(s->demuxer, s);
-    mpeg2_buffer(priv->dec, p->data, p->data + p->data_size);
-    done = 0;
-    while(!done)
-      {
-      state = mpeg2_parse(priv->dec);
-      switch(state)
-        {
-        case STATE_BUFFER:
-          done = 1;
-          break;
-        case STATE_PICTURE:
-          if(s->data.video.format.image_width && 
-             !s->duration &&
-             ((priv->info->current_picture->flags & PIC_MASK_CODING_TYPE) ==
-              PIC_FLAG_CODING_TYPE_P))
-            priv->intra_slice_refresh = 1;
-
-          if(!s->data.video.format.image_width)
-            break;
-
-          if(priv->intra_slice_refresh)
-            keyframe = !!((priv->info->current_picture->flags &
-                           PIC_MASK_CODING_TYPE) ==
-                          PIC_FLAG_CODING_TYPE_P);
-          else
-            keyframe = !!((priv->info->current_picture->flags &
-                           PIC_MASK_CODING_TYPE) ==
-                          PIC_FLAG_CODING_TYPE_I);
-          
-          duration = s->data.video.format.frame_duration;
-
-          if(priv->info->current_picture->nb_fields > 2)
-            duration = (duration *
-                        priv->info->display_picture->nb_fields) / 2;
-          
-          bgav_file_index_append_packet(s->file_index,
-                                        p->position,
-                                        s->duration,
-                                        keyframe);
-          s->duration += duration;
-          break;
-        case STATE_SEQUENCE:
-          if(!s->data.video.format.image_width)
-            get_format(s, &s->data.video.format, priv->info->sequence);
-          break;
-        default:
-          break;
-        }
-      }
-    bgav_demuxer_done_packet_read(s->demuxer, p);
-    }
-  
-
-  }
-
-#else
 static void parse_libmpeg2(bgav_stream_t * s)
   {
   bgav_packet_t * p;
@@ -687,6 +636,7 @@ static void parse_libmpeg2(bgav_stream_t * s)
   uint8_t * ptr;
   bgav_mpv_picture_header_t ph;
   int keyframe;
+  int duration;
   priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
   memset(&ph, 0, sizeof(ph));
   
@@ -728,7 +678,7 @@ static void parse_libmpeg2(bgav_stream_t * s)
         else
           return; /* Error */
         }
-      /* Check for sequence extension */
+      /* Check for sequence extension. We parse only the first one */
       else if(s->data.video.format.timescale &&
               !priv->sh.mpeg2 &&
               bgav_mpv_sequence_extension_probe(ptr))
@@ -765,33 +715,57 @@ static void parse_libmpeg2(bgav_stream_t * s)
           break;
         else if(result > 0)
           {
+          /* First frame after sequence header is a P-Frame */
           if(!s->duration && ph.coding_type == MPV_CODING_TYPE_P)
             priv->intra_slice_refresh = 1;
 
-          if(priv->intra_slice_refresh)
-            keyframe = ph.coding_type == MPV_CODING_TYPE_P;
-          else
-            keyframe = ph.coding_type == MPV_CODING_TYPE_I;
+          /*
+           * We don't generate index entries for B-frames. Instead,
+           * we add the B-frame duration to the pts of the last non-Bframe.
+           * This makes frame-refordering unneccesary and produces an Index
+           * with strictly monotonous timestamps, so we can do a binary search
+           * afterwards.
+           */
+          
+          if(ph.coding_type != MPV_CODING_TYPE_B)
+            {
+            if(priv->intra_slice_refresh)
+              keyframe = (ph.coding_type == MPV_CODING_TYPE_P);
+            else
+              keyframe = (ph.coding_type == MPV_CODING_TYPE_I);
 
-          /* Frame started in the last packet */
-          if(ptr - priv->buffer < old_buffer_size)
-            {
-            bgav_file_index_append_packet(s->file_index,
-                                          priv->last_position,
-                                          s->duration,
-                                          keyframe);
+            /* Frame started in the last packet */
+            if(ptr - priv->buffer < old_buffer_size)
+              {
+              bgav_file_index_append_packet(s->file_index,
+                                            priv->last_position,
+                                            s->duration,
+                                            keyframe);
+              }
+            else
+              {
+              bgav_file_index_append_packet(s->file_index,
+                                            p->position,
+                                            s->duration,
+                                            keyframe);
+              }
+            priv->non_b_count++;
+            s->duration += s->data.video.format.frame_duration;
             }
           else
             {
-            bgav_file_index_append_packet(s->file_index,
-                                          p->position,
-                                          s->duration,
-                                          keyframe);
+            if(priv->non_b_count >= 2)
+              {
+              s->duration += s->data.video.format.frame_duration;
+              s->file_index->entries[s->file_index->num_entries-1].time +=
+                s->data.video.format.frame_duration;
+              }
             }
-          s->duration += s->data.video.format.frame_duration;
           
           ptr               += result;
           priv->buffer_size -= result;
+
+          priv->last_coding_type = ph.coding_type;
           }
         else
           return; /* Error */
@@ -808,18 +782,25 @@ static void parse_libmpeg2(bgav_stream_t * s)
           break;
         else if(result > 0)
           {
+          duration = 0;
           if(ph.ext.repeat_first_field)
             {
             if(priv->sh.ext.progressive_sequence)
               {
               if(ph.ext.top_field_first)
-                s->duration += s->data.video.format.frame_duration * 2;
+                duration = s->data.video.format.frame_duration * 2;
               else
-                s->duration += s->data.video.format.frame_duration;
+                duration = s->data.video.format.frame_duration;
               }
             else if(ph.ext.progressive_frame)
+              duration = s->data.video.format.frame_duration / 2;
+            
+            if((ph.coding_type == MPV_CODING_TYPE_B) &&
+               (priv->non_b_count >= 2))
               {
-              s->duration += s->data.video.format.frame_duration / 2;
+              s->duration += duration;
+              s->file_index->entries[s->file_index->num_entries-1].time +=
+                duration;
               }
             }
           ptr               += result;
@@ -840,7 +821,6 @@ static void parse_libmpeg2(bgav_stream_t * s)
     bgav_demuxer_done_packet_read(s->demuxer, p);
     }
   }
-#endif
 
 static bgav_video_decoder_t decoder =
   {

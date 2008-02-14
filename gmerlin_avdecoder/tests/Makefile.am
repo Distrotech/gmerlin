@@ -2,6 +2,7 @@ bin_PROGRAMS = bgavdump
 
 noinst_PROGRAMS = \
 bgavsave \
+indexdump \
 indextest \
 mmstest \
 rtsptest \
@@ -14,6 +15,9 @@ bgavdump_LDADD = $(top_srcdir)/lib/libgmerlin_avdec.la
 
 indextest_SOURCES = indextest.c
 indextest_LDADD = $(top_srcdir)/lib/libgmerlin_avdec.la
+
+indexdump_SOURCES = indexdump.c
+indexdump_LDADD = $(top_srcdir)/lib/libgmerlin_avdec.la
 
 seektest_SOURCES = seektest.c
 seektest_LDADD = $(top_srcdir)/lib/libgmerlin_avdec.la
