@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: gmerlin 0.3.6\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
 "POT-Creation-Date: 2008-01-08 20:51+0100\n"
-"PO-Revision-Date: 2008-01-12 14:54+0100\n"
+"PO-Revision-Date: 2008-02-05 20:44+0100\n"
 "Last-Translator: Burkhard Plaum <gmerlin@users.sourceforge.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -835,7 +835,7 @@ msgstr "snd_pcm_hw_params_set_rate_near fehlgeschlagen"
 #: plugins/alsa/alsa_common.c:255
 #, c-format
 msgid "Samplerate %d not supported by device %s, using %d"
-msgstr "Abtastfrequend %d wird vom Gerät %s nicht unterstützt, nehme %d"
+msgstr "Abtastfrequenz %d wird vom Gerät %s nicht unterstützt, nehme %d"
 
 #: plugins/alsa/alsa_common.c:286
 msgid "snd_pcm_hw_params_set_period_size failed"

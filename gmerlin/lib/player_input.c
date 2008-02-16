@@ -31,6 +31,8 @@
 
 // #define DUMP_TIMESTAMPS
 
+#define DEBUG_COUNTER
+
 struct bg_player_input_context_s
   {
   /* Plugin stuff */
@@ -47,6 +49,11 @@ struct bg_player_input_context_s
   int64_t audio_samples_written;
   int64_t video_frames_written;
 
+#ifdef DEBUG_COUNTER
+  int64_t audio_sample_counter;
+  int64_t video_frame_counter;
+#endif
+  
   int has_first_audio_timestamp;
   
   /* Internal times */
@@ -446,6 +453,12 @@ void bg_player_input_cleanup(bg_player_input_context_t * ctx)
     gavl_video_frame_destroy(ctx->still_frame);
     ctx->still_frame = (gavl_video_frame_t*)0;
     }
+#ifdef DEBUG_COUNTER
+  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Audio sample counter: %"PRId64,
+         ctx->audio_sample_counter);
+  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Video frame counter: %"PRId64,
+         ctx->video_frame_counter);
+#endif
   }
 
 int bg_player_input_get_audio_format(bg_player_input_context_t * ctx)
@@ -501,6 +514,10 @@ bg_player_input_read_audio(void * priv, gavl_audio_frame_t * frame, int stream, 
     ctx->has_first_audio_timestamp = 1;
     }
   ctx->audio_samples_written += frame->valid_samples;
+#ifdef DEBUG_COUNTER
+  ctx->audio_sample_counter += frame->valid_samples;
+#endif
+
   
   return result;
   }
@@ -542,6 +559,10 @@ bg_player_input_read_video(void * priv, gavl_video_frame_t * frame, int stream)
     bg_debug("Input timestamp: %"PRId64"\n",
              gavl_time_unscale(ctx->player->video_stream.input_format.timescale,
                                frame->timestamp));
+#endif
+#ifdef DEBUG_COUNTER
+    if(result)
+      ctx->video_frame_counter++;
 #endif
     }
   return result;
@@ -611,6 +632,7 @@ static int process_audio(bg_player_input_context_t * ctx, int preload)
   if(ctx->audio_finished &&
      (!ctx->video_finished || !ctx->subtitle_finished))
     ctx->send_silence = 1;
+
 
   bg_fifo_unlock_write(s->fifo,
                        ctx->audio_finished &&
@@ -729,8 +751,9 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
                  ctx->subtitle_finished && ctx->audio_finished))
     ctx->video_finished = 1;
   else
+    {
     ctx->video_frames_written++;
-  
+    }
   if(ctx->player->video_stream.input_format.framerate_mode != GAVL_FRAMERATE_STILL)
     ctx->video_time = gavl_time_unscale(ctx->player->video_stream.input_format.timescale,
                                         video_frame->timestamp);
@@ -901,7 +924,11 @@ void bg_player_input_seek(bg_player_input_context_t * ctx,
   bg_plugin_lock(ctx->plugin_handle);
   ctx->plugin->seek(ctx->priv, time);
   bg_plugin_unlock(ctx->plugin_handle);
-
+#ifdef DEBUG_COUNTER
+  ctx->audio_sample_counter = 0;
+  ctx->video_frame_counter = 0;
+#endif  
+  
   ctx->audio_time = *time;
   ctx->video_time = *time;
   

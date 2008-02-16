@@ -39,7 +39,8 @@
 #include <log.h>
 #define LOG_DOMAIN "frei0r"
 
-static bg_parameter_info_t * create_parameters(void * dll_handle, f0r_plugin_info_t * plugin_info)
+static bg_parameter_info_t *
+create_parameters(void * dll_handle, f0r_plugin_info_t * plugin_info)
   {
   int i;
 
@@ -60,26 +61,30 @@ static bg_parameter_info_t * create_parameters(void * dll_handle, f0r_plugin_inf
   get_param_info = dlsym(dll_handle, "f0r_get_param_info");
   if(!get_param_info)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot load frei0r plugin: %s", dlerror());
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Cannot load frei0r plugin: %s", dlerror());
     return (bg_parameter_info_t *)0;
     }
   
   construct = dlsym(dll_handle, "f0r_construct");
   if(!construct)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot load frei0r plugin: %s", dlerror());
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Cannot load frei0r plugin: %s", dlerror());
     return (bg_parameter_info_t *)0;
     }
   destruct = dlsym(dll_handle, "f0r_destruct");
   if(!destruct)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot load frei0r plugin: %s", dlerror());
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Cannot load frei0r plugin: %s", dlerror());
     return (bg_parameter_info_t *)0;
     }
   get_param_value = dlsym(dll_handle, "f0r_get_param_value");
   if(!get_param_value)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot load frei0r plugin: %s", dlerror());
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Cannot load frei0r plugin: %s", dlerror());
     return (bg_parameter_info_t *)0;
     }
 
@@ -219,7 +224,7 @@ typedef struct
   
   gavl_video_format_t format;
   
-  bg_parameter_info_t * parameters;
+  const bg_parameter_info_t * parameters;
   int do_swap;
   } frei0r_t;
 
@@ -451,7 +456,8 @@ int bg_frei0r_load(bg_plugin_handle_t * ret,
   get_plugin_info = dlsym(ret->dll_handle, "f0r_get_plugin_info");
   if(!get_plugin_info)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot load frei0r plugin: %s", dlerror());
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Cannot load frei0r plugin: %s", dlerror());
     return 0;
     }
 
@@ -459,9 +465,8 @@ int bg_frei0r_load(bg_plugin_handle_t * ret,
   ret->priv = priv;
   
   get_plugin_info(&priv->plugin_info);
-
-  if(info->parameters)
-    priv->parameters = bg_parameter_info_copy_array(info->parameters);
+  
+  priv->parameters = info->parameters;
   
   /* Get function pointers */
   priv->construct = dlsym(ret->dll_handle, "f0r_construct");
@@ -494,6 +499,12 @@ int bg_frei0r_load(bg_plugin_handle_t * ret,
 
 void bg_frei0r_unload(bg_plugin_handle_t * h)
   {
-  
+  frei0r_t * vp;
+  vp = (frei0r_t *)h->priv;
+  if(vp->instance)  vp->destruct(vp->instance);
+  if(vp->in_frame)  gavl_video_frame_destroy(vp->in_frame);
+  if(vp->out_frame) gavl_video_frame_destroy(vp->out_frame);
+  free(vp);
   }
+
 

@@ -29,6 +29,7 @@ client \
 dump_plugins \
 textrenderer \
 ladspa \
+thumbnail \
 visualization \
 $(v4l_programs) \
 $(gtk_programs)
@@ -45,6 +46,9 @@ dump_plugins_LDADD = ../lib/libgmerlin.la -ldl
 
 ladspa_SOURCES = ladspa.c
 ladspa_LDADD =  -ldl
+
+thumbnail_SOURCES = thumbnail.c
+thumbnail_LDADD = ../lib/libgmerlin.la -ldl
 
 gmerlin_imgconvert_SOURCES = imgconvert.c
 gmerlin_imgconvert_LDADD = ../lib/libgmerlin.la -ldl
