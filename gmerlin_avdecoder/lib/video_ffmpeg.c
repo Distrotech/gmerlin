@@ -259,6 +259,8 @@ static int get_data(bgav_stream_t * s)
     
     priv->last_pts = p->pts;
     priv->last_dts = p->dts;
+
+
     bgav_bytebuffer_append(&priv->buf, p, FF_INPUT_BUFFER_PADDING_SIZE);
     if(!priv->parser)
       {
@@ -327,6 +329,12 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
   if(priv->have_picture)
     {
     done = 1;
+
+    stream_time = get_pts(priv);
+    if(stream_time != BGAV_TIMESTAMP_UNDEFINED)
+      {
+      s->in_time = stream_time;
+      }
     }
   while(!done)
     {
@@ -488,6 +496,7 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
       {
       s->in_time = stream_time;
       }
+    
     if(priv->have_picture)
       done = 1;
     

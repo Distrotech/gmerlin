@@ -271,9 +271,9 @@ struct bgav_dv_dec_s
   
   gavl_audio_format_t audio_format;
   gavl_video_format_t video_format;
-    
-
+  
   int64_t frame_counter;
+  int64_t sample_counter;
   };
 
 bgav_dv_dec_t * bgav_dv_dec_create()
@@ -386,9 +386,10 @@ void bgav_dv_dec_init_video(bgav_dv_dec_t * d, bgav_stream_t * s)
   gavl_video_format_copy(&(d->video_format), &(s->data.video.format));
   }
 
-void bgav_dv_dec_set_frame_counter(bgav_dv_dec_t * d, int64_t count)
+void bgav_dv_dec_set_frame_counter(bgav_dv_dec_t * d, int64_t frames, int64_t samples)
   {
-  d->frame_counter = count;
+  d->frame_counter = frames;
+  d->sample_counter = samples;
   }
 
 /* Extract audio and video packets suitable for the decoders */
@@ -509,16 +510,21 @@ static int dv_extract_audio(uint8_t* frame, uint8_t* pcm, uint8_t* pcm2,
 
 int bgav_dv_dec_get_audio_packet(bgav_dv_dec_t * d, bgav_packet_t * p)
   {
+  int samples;
   if(p)
     {
     if(!p->audio_frame)
       p->audio_frame = gavl_audio_frame_create(&(d->audio_format));
     
-    p->audio_frame->valid_samples = dv_extract_audio(d->buffer,
-                                                     p->audio_frame->channels.u_8[0],
-                                                     p->audio_frame->channels.u_8[2],
-                                                     d->profile);
+    samples = dv_extract_audio(d->buffer,
+                               p->audio_frame->channels.u_8[0],
+                               p->audio_frame->channels.u_8[2],
+                               d->profile);
     p->keyframe = 1;
+    p->pts = d->sample_counter;
+    p->audio_frame->valid_samples = samples;
+    p->duration                   = samples;
+    d->sample_counter             += samples;
     }
   return 1;
   }
@@ -530,11 +536,14 @@ void bgav_dv_dec_get_video_packet(bgav_dv_dec_t * d, bgav_packet_t * p)
     p->keyframe = 1;
 
     if(p->pts == BGAV_TIMESTAMP_UNDEFINED)
+      {
       p->pts = d->video_format.frame_duration * d->frame_counter;
+      p->duration = d->video_format.frame_duration;
+      }
     
     bgav_packet_alloc(p, d->profile->frame_size);
     memcpy(p->data, d->buffer, d->profile->frame_size);
     p->data_size = d->profile->frame_size;
+    d->frame_counter++;
     }
-  d->frame_counter++;
   }

@@ -929,7 +929,6 @@ static int open_mpegts(bgav_demuxer_context_t * ctx,
   priv->packet_start = priv->buffer;
   
   priv->first_packet_pos = ctx->input->position;
-  
   /* Scan the stream for a PAT */
 
   if(!ctx->tt)
@@ -1053,7 +1052,7 @@ static void predict_pcr_wrap(const bgav_options_t * opt, int64_t pcr)
 
 #define NUM_PACKETS 5 /* Packets to be processed at once */
 
-static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
+static int process_packet(bgav_demuxer_context_t * ctx)
   {
   int i;
   bgav_stream_t * s;
@@ -1069,10 +1068,16 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
     return 0;
   
   position = ctx->input->position;
+
+  num_packets = NUM_PACKETS;
   
+  if(ctx->next_packet_pos &&
+     (position + priv->packet_size * num_packets > ctx->next_packet_pos))
+    num_packets = (ctx->next_packet_pos - position) / priv->packet_size;
+    
   priv->buffer_size =
     bgav_input_read_data(ctx->input,
-                         priv->buffer, priv->packet_size * NUM_PACKETS);
+                         priv->buffer, priv->packet_size * num_packets);
   
   if(priv->buffer_size < priv->packet_size)
     return 0;
@@ -1266,6 +1271,45 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
     }
   
   return 1;
+  }
+
+static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
+  {
+  if(ctx->next_packet_pos)
+    {
+    int ret = 0;
+    while(1)
+      {
+      if(!process_packet(ctx))
+        {
+        if(ctx->request_stream && ctx->request_stream->packet)
+          {
+          bgav_packet_done_write(ctx->request_stream->packet);
+          ctx->request_stream->packet = (bgav_packet_t*)0;
+          }
+        return ret;
+        }
+      else
+        ret = 1;
+      if(ctx->input->position >= ctx->next_packet_pos)
+        {
+        /* We would send this packet only after the next
+           packet starts, but since we know the packet is
+           finished, we can do it now */
+        if(ctx->request_stream && ctx->request_stream->packet)
+          {
+          bgav_packet_done_write(ctx->request_stream->packet);
+          ctx->request_stream->packet = (bgav_packet_t*)0;
+          }
+        return ret;
+        }
+      }
+    }
+  else
+    {
+    return process_packet(ctx);
+    }
+  return 0;
   }
 
 static void seek_mpegts(bgav_demuxer_context_t * ctx, int64_t time, int scale)

@@ -568,6 +568,7 @@ static int open_mpegaudio(bgav_demuxer_context_t * ctx,
     {
     ctx->tt->tracks[0].name = bgav_strdup(ctx->input->metadata.title);
     }
+  ctx->index_mode = INDEX_MODE_SIMPLE;
   return 1;
   }
 
@@ -576,35 +577,51 @@ static int next_packet_mpegaudio(bgav_demuxer_context_t * ctx)
   bgav_packet_t * p;
   bgav_stream_t * s;
   mpegaudio_priv_t * priv;
+  int64_t bytes_left = -1;
   priv = (mpegaudio_priv_t*)(ctx->priv);
-
   
   if(priv->data_end && (priv->data_end - ctx->input->position < 4))
-    {
     return 0;
-    }
+  
   if(!resync(ctx, 0))
-    {
     return 0;
+  
+  if(priv->data_end)
+    {
+    bytes_left = priv->data_end - ctx->input->position;
+    if(priv->header.frame_bytes < bytes_left)
+      bytes_left = priv->header.frame_bytes;
     }
+  else
+    bytes_left = priv->header.frame_bytes;
+  
   s = ctx->tt->cur->audio_streams;
   p = bgav_stream_get_packet_write(s);
-  bgav_packet_alloc(p, priv->header.frame_bytes);
-
-  if(bgav_input_read_data(ctx->input, p->data, priv->header.frame_bytes) <
-     priv->header.frame_bytes)
+  
+  bgav_packet_alloc(p, bytes_left);
+  
+  if(bgav_input_read_data(ctx->input, p->data, bytes_left) < bytes_left)
     {
     return 0;
     }
-  p->data_size = priv->header.frame_bytes;
+  p->data_size = bytes_left;
   
   p->keyframe  = 1;
   p->pts = priv->frames * (int64_t)priv->header.samples_per_frame;
-
+  p->duration = priv->header.samples_per_frame;
+  
   bgav_packet_done_write(p);
 
   priv->frames++;
   return 1;
+  }
+
+static void resync_mpegaudio(bgav_demuxer_context_t * ctx)
+  {
+  mpegaudio_priv_t * priv;
+  bgav_stream_t * s = ctx->tt->cur->audio_streams;
+  priv = (mpegaudio_priv_t*)(ctx->priv);
+  priv->frames = s->in_time / s->data.audio.format.samples_per_frame;
   }
 
 static void seek_mpegaudio(bgav_demuxer_context_t * ctx, int64_t time,
@@ -668,6 +685,7 @@ static int select_track_mpegaudio(bgav_demuxer_context_t * ctx,
     else
       return 0;
     }
+  priv->frames = 0;
   set_stream(ctx);
   return 1;
   }
@@ -678,6 +696,7 @@ const bgav_demuxer_t bgav_demuxer_mpegaudio =
     .open =         open_mpegaudio,
     .next_packet =  next_packet_mpegaudio,
     .seek =         seek_mpegaudio,
+    .resync =       resync_mpegaudio,
     .close =        close_mpegaudio,
     .select_track = select_track_mpegaudio
   };

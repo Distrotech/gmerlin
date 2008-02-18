@@ -378,9 +378,12 @@ static int open_aiff(bgav_demuxer_context_t * ctx,
         ctx->data_start = ctx->input->position;
         ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
         priv->data_size = ch.size - 8;
+
+        ctx->tt->cur->audio_streams->duration = pos_2_time(ctx, priv->data_size + ctx->data_start);
         track->duration =
-          (pos_2_time(ctx, priv->data_size + ctx->data_start) * GAVL_TIME_SCALE)/
-          s->data.audio.format.samplerate;
+          gavl_time_unscale(s->data.audio.format.samplerate,
+                            ctx->tt->cur->audio_streams->duration);
+        
         keep_going = 0;
         break;
       default:

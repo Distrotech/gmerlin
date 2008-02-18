@@ -64,10 +64,10 @@ typedef struct
   int progressive_frame;
   } bgav_mpv_picture_extension_t;
 
-#define MPV_CODING_TYPE_I 0
-#define MPV_CODING_TYPE_P 1
-#define MPV_CODING_TYPE_B 2
-#define MPV_CODING_TYPE_D 3 /* Unsupported */
+#define MPV_CODING_TYPE_I 1
+#define MPV_CODING_TYPE_P 2
+#define MPV_CODING_TYPE_B 3
+#define MPV_CODING_TYPE_D 4 /* Unsupported */
 
 
 typedef struct

@@ -72,13 +72,13 @@ int bgav_audio_start(bgav_stream_t * stream)
   if(!stream->timescale && stream->data.audio.format.samplerate)
     stream->timescale = stream->data.audio.format.samplerate;
   
-  if(!stream->timescale)
-    stream->timescale = stream->data.audio.format.samplerate;
-
   if(!dec->init(stream))
     return 0;
+
+  if(!stream->timescale)
+    stream->timescale = stream->data.audio.format.samplerate;
   
-  if(stream->has_first_timestamp && (stream->first_timestamp != BGAV_TIMESTAMP_UNDEFINED))
+  if(stream->first_timestamp != BGAV_TIMESTAMP_UNDEFINED)
     {
     stream->out_time =
       gavl_time_rescale(stream->timescale, stream->data.audio.format.samplerate,
@@ -101,7 +101,7 @@ void bgav_audio_stop(bgav_stream_t * s)
     free(s->data.audio.decoder);
     s->data.audio.decoder = (bgav_audio_decoder_context_t*)0;
     }
-  s->has_first_timestamp = 0;
+  s->first_timestamp = BGAV_TIMESTAMP_UNDEFINED;
   }
 
 const char * bgav_get_audio_description(bgav_t * b, int s)

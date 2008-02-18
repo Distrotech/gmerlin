@@ -348,11 +348,20 @@ static int next_packet_y4m(bgav_demuxer_context_t * ctx)
     p->duration = s->data.video.format.frame_duration;
     }
   p->video_frame->duration = p->duration;
+
   priv->pts += p->duration;
   
   bgav_packet_done_write(p);
   
   return 1;
+  }
+
+static void resync_y4m(bgav_demuxer_context_t * ctx)
+  {
+  y4m_t * priv;
+  priv = (y4m_t *)(ctx->priv);
+  priv->pts = ctx->tt->cur->video_streams[0].in_time;
+  
   }
 
 static void close_y4m(bgav_demuxer_context_t * ctx)
@@ -372,5 +381,6 @@ const bgav_demuxer_t bgav_demuxer_y4m =
     .open         = open_y4m,
     .select_track = select_track_y4m,
     .next_packet = next_packet_y4m,
+    .resync      = resync_y4m,
     .close =       close_y4m
   };

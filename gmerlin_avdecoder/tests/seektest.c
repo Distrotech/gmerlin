@@ -128,9 +128,8 @@ int main(int argc, char ** argv)
     streams = bgav_num_video_streams(b, i);
     for(j = 0; j < streams; j++)
       {
-      fprintf(stderr, "VS 1: Duration: %"PRId64" Frames: %d\n",
-              bgav_video_duration(b, j),
-              bgav_video_frames(b, j));
+      fprintf(stderr, "VS 1: Duration: %"PRId64"\n",
+              bgav_video_duration(b, j));
       test_video(b, j);
       }
     streams = bgav_num_subtitle_streams(b, i);

@@ -1306,7 +1306,11 @@ static int process_packet_iavs(bgav_demuxer_context_t * ctx)
     return 0;
   bgav_dv_dec_get_video_packet(priv->dv_dec, vp);
 
-  if(vs) bgav_dv_dec_set_frame_counter(priv->dv_dec, vs->in_position);
+  if(vs) bgav_dv_dec_set_frame_counter(priv->dv_dec, vs->in_position,
+                                       gavl_time_rescale(vs->data.video.format.timescale,
+                                                         vs->data.audio.format.samplerate,
+                                                         vs->in_position *
+                                                         vs->data.video.format.frame_duration));
 
   if(ap) bgav_packet_done_write(ap);
   if(vp) bgav_packet_done_write(vp);

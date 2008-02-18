@@ -75,7 +75,6 @@ static int get_data(bgav_stream_t * s, int num_bytes)
       {
       priv->packet = bgav_demuxer_get_packet_read(s->demuxer, s);
 
-      fprintf(stderr, "Got packet %ld\n", priv->packet->position);
 
       if(!priv->packet)
         return 0;
@@ -89,7 +88,6 @@ static int get_data(bgav_stream_t * s, int num_bytes)
       priv->packet = bgav_demuxer_get_packet_read(s->demuxer, s);
       if(!priv->packet)
         return 0;
-      fprintf(stderr, "Got packet %ld\n", priv->packet->position);
 
       priv->packet_ptr = priv->packet->data;
       }
@@ -302,7 +300,6 @@ static int decode_frame(bgav_stream_t * s)
     return 0;
 
   /* Now, decode this */
-  fprintf(stderr, "Decode frame\n");
   
   if(!a52_syncinfo(priv->buffer, &flags,
                    &sample_rate, &bit_rate))
@@ -310,7 +307,6 @@ static int decode_frame(bgav_stream_t * s)
 
   a52_frame(priv->state, priv->buffer, &flags,
             &level, 0.0);
-
   if(!s->opt->audio_dynrange)
     {
     a52_dynrng(priv->state, NULL, NULL);
@@ -389,7 +385,6 @@ static void close_a52(bgav_stream_t * s)
   if(priv->state)
     a52_free(priv->state);
   free(priv);
-
   }
 #if 1
 static void parse_a52(bgav_stream_t * s)
@@ -397,7 +392,6 @@ static void parse_a52(bgav_stream_t * s)
   bgav_packet_t * p;
   uint8_t * ptr;
   int old_buffer_size;
-  int bytes;
   int size_needed;
 
   a52_priv * priv;
@@ -452,6 +446,8 @@ static void parse_a52(bgav_stream_t * s)
         return;
         }
       s->timescale = priv->header.samplerate;
+
+
       /* If frame starts in the previous packet,
          use the previous index */
       if(ptr - priv->buffer < old_buffer_size)

@@ -655,14 +655,18 @@ bgav_demuxer_get_packet_read(bgav_demuxer_context_t * demuxer,
     }
   s->in_time = ret->pts;
 
-  if(!s->has_first_timestamp)
+  if(s->first_timestamp == BGAV_TIMESTAMP_UNDEFINED)
     {
     if(ret->pts != BGAV_TIMESTAMP_UNDEFINED)
       s->first_timestamp = ret->pts;
-    s->has_first_timestamp = 1;
     }
   
   demuxer->request_stream = (bgav_stream_t*)0;
+#if 0
+  if(s->type == BGAV_STREAM_VIDEO)
+    fprintf(stderr, "Got packet %ld %d\n",
+            ret->position, ret->data_size);
+#endif
   return ret;
   }
 

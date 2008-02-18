@@ -35,7 +35,7 @@
 
 #define LOG_DOMAIN "video_libmpeg2"
 
-
+static const char picture_types[] = { "?IPB????" };
 
 /* Debug function */
 #if 0
@@ -81,6 +81,8 @@ typedef struct
    */
   
   int non_b_count;
+  int eof;
+  uint8_t sequence_end_code[4];
   
   /* For parsing */
   uint8_t * buffer;
@@ -89,6 +91,7 @@ typedef struct
   bgav_mpv_sequence_header_t sh;
   int64_t last_position;
   int last_coding_type; /* Last picture type is saved here */
+  
   } mpeg2_priv_t;
 
 static int get_data(bgav_stream_t*s)
@@ -102,7 +105,24 @@ static int get_data(bgav_stream_t*s)
     }
   priv->p = bgav_demuxer_get_packet_read(s->demuxer, s);
   if(!priv->p)
-    return 0;
+    {
+    if(!priv->eof)
+      {
+      /* Flush the last picture */
+      priv->sequence_end_code[0] = 0x00;
+      priv->sequence_end_code[1] = 0x00;
+      priv->sequence_end_code[2] = 0x01;
+      priv->sequence_end_code[3] = 0xb7;
+
+      mpeg2_buffer(priv->dec,
+                   &priv->sequence_end_code[0],
+                   &priv->sequence_end_code[4]);
+      return 1;
+      }
+    else
+      return 0;
+    }
+  priv->eof = 0;
   mpeg2_buffer(priv->dec, priv->p->data, priv->p->data + priv->p->data_size);
   
   if(priv->p->pts != BGAV_TIMESTAMP_UNDEFINED)
@@ -253,19 +273,18 @@ static int decode_picture(bgav_stream_t*s)
     if(((state == STATE_END) || (state == STATE_SLICE) ||
         (state == STATE_INVALID_END)))
       {
-#if 0
-      fprintf(stderr, "Got Picture: %d %d %d\n",
-              priv->info->current_picture ? 
-              priv->info->current_picture->flags & PIC_MASK_CODING_TYPE : 0,
-              (priv->info->display_picture) ?
-              priv->info->display_picture->flags & PIC_MASK_CODING_TYPE : 0,
-              priv->non_b_count);
+#if 1
+      fprintf(stderr, "Got Picture: C: %c D: %c\n",
+              picture_types[priv->info->current_picture ? 
+              priv->info->current_picture->flags & PIC_MASK_CODING_TYPE : 0],
+              picture_types[(priv->info->display_picture) ?
+              priv->info->display_picture->flags & PIC_MASK_CODING_TYPE : 0]);
 #endif
-      if((state == STATE_END) && (priv->info->display_picture))
+      if(state == STATE_END)
         {
-        fprintf(stderr, "Sequence end %p %p\n",
-                priv->info->current_picture, priv->info->display_picture);
-        done = 1;
+        priv->eof = 1;
+        if(priv->info->display_picture)
+          done = 1;
         }
       if(priv->info->current_picture)
         {
@@ -280,13 +299,7 @@ static int decode_picture(bgav_stream_t*s)
             if(priv->non_b_count >= 2)
               done = 1;
             else
-              {
-              fprintf(stderr, "Old B-Frame %d %d %d\n",
-                      priv->info->current_picture->flags & PIC_MASK_CODING_TYPE,
-                      priv->info->display_picture->flags & PIC_MASK_CODING_TYPE,
-                      priv->non_b_count);
-              //            done = 1;
-              }
+              fprintf(stderr, "Old B-Frame\n");
             break;
           }
         }      
@@ -381,7 +394,6 @@ static int decode_picture(bgav_stream_t*s)
   return 1;
   }
 
-static const char picture_types[] = { "?IPB????" };
 
 static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
   {
@@ -715,6 +727,8 @@ static void parse_libmpeg2(bgav_stream_t * s)
           break;
         else if(result > 0)
           {
+          fprintf(stderr, "Got picture header %c\n",
+                  picture_types[ph.coding_type]);
           /* First frame after sequence header is a P-Frame */
           if(!s->duration && ph.coding_type == MPV_CODING_TYPE_P)
             priv->intra_slice_refresh = 1;
@@ -782,6 +796,7 @@ static void parse_libmpeg2(bgav_stream_t * s)
           break;
         else if(result > 0)
           {
+          //          fprintf(stderr, "Got picture coding extension\n");
           duration = 0;
           if(ph.ext.repeat_first_field)
             {
@@ -795,13 +810,18 @@ static void parse_libmpeg2(bgav_stream_t * s)
             else if(ph.ext.progressive_frame)
               duration = s->data.video.format.frame_duration / 2;
             
-            if((ph.coding_type == MPV_CODING_TYPE_B) &&
-               (priv->non_b_count >= 2))
+            if(priv->last_coding_type == MPV_CODING_TYPE_B)
               {
-              s->duration += duration;
-              s->file_index->entries[s->file_index->num_entries-1].time +=
-                duration;
+              if(priv->non_b_count >= 2)
+                {
+                s->duration += duration;
+                s->file_index->entries[s->file_index->num_entries-1].time +=
+                  duration;
+                }
               }
+            else
+              s->duration += duration;
+            
             }
           ptr               += result;
           priv->buffer_size -= result;

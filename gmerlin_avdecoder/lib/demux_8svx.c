@@ -218,8 +218,10 @@ static int open_8svx(bgav_demuxer_context_t * ctx,
 
   total_samples = priv->data_size / as->data.audio.block_align;
   if(priv->data_size)
+    {
     ctx->tt->cur->duration =  gavl_samples_to_time(as->data.audio.format.samplerate, total_samples);
-
+    ctx->tt->cur->audio_streams->duration = total_samples;
+    }
   if(ctx->input->input->seek_byte)
       ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
 

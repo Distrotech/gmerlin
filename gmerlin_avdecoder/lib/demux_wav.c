@@ -177,14 +177,21 @@ static int open_wav(bgav_demuxer_context_t * ctx,
   if(ctx->input->input->seek_byte)
     ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
 
-  ctx->tt->cur->duration
-    = ((int64_t)priv->data_size * (int64_t)GAVL_TIME_SCALE) / 
-    (ctx->tt->cur->audio_streams[0].codec_bitrate / 8);
 
   ctx->stream_description = bgav_sprintf("WAV Format");
 
   if(ctx->tt->cur->audio_streams[0].data.audio.bits_per_sample)
+    {
     ctx->index_mode = INDEX_MODE_PCM;
+    s->duration = priv->data_size / s->data.audio.block_align;
+    ctx->tt->cur->duration = gavl_time_unscale(s->data.audio.format.samplerate,
+                                               s->duration);
+    }
+  else
+    ctx->tt->cur->duration
+      = ((int64_t)priv->data_size * (int64_t)GAVL_TIME_SCALE) / 
+      (ctx->tt->cur->audio_streams[0].codec_bitrate / 8);
+  
   return 1;
   
   fail:

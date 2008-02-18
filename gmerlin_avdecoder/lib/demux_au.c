@@ -188,9 +188,13 @@ static int open_au(bgav_demuxer_context_t * ctx,
     priv->data_size = ctx->input->total_bytes;
   priv->samples_per_block = samples_per_block;
   if(priv->data_size)
+    {
+    ctx->tt->cur->audio_streams->duration =
+      pos_2_time(ctx, ctx->data_start + priv->data_size);
     ctx->tt->cur->duration =
       gavl_samples_to_time(as->data.audio.format.samplerate,
-                           pos_2_time(ctx, ctx->data_start + priv->data_size));
+                           ctx->tt->cur->audio_streams->duration);
+    }
   
   if(ctx->input->input->seek_byte)
     ctx->flags |= BGAV_DEMUXER_CAN_SEEK;

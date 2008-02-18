@@ -1407,6 +1407,12 @@ int bgav_read_subtitle_text(bgav_t * bgav, char ** ret, int *ret_alloc,
 int bgav_can_seek(bgav_t * bgav);
 
 /** \ingroup seeking
+ *  \brief Time value indicating an invalid time
+ */
+
+#define BGAV_TIMESTAMP_UNDEFINED 0x8000000000000000LL
+
+/** \ingroup seeking
  *  \brief Check if a track is seekabkle with sample accuracy
  *  \param bgav A decoder handle
  *  \returns 1 if the track is seekable with sample accuracy, 0 else.
@@ -1465,6 +1471,18 @@ void bgav_seek_scaled(bgav_t * bgav, int64_t * time, int scale);
 int64_t bgav_audio_duration(bgav_t * bgav, int stream);
 
 /** \ingroup seeking
+ *  \brief Get the audio start time
+ *  \param bgav A decoder handle
+ *  \returns Time (in samplerate tics) of the first sample
+ *
+ *  Use this only after \ref bgav_can_seek_sample returned 1.
+ *  The returned value is equal to the timestamp of the first
+ *  decoded audio frame.
+ */
+
+int64_t bgav_audio_start_time(bgav_t * bgav, int stream);
+
+/** \ingroup seeking
  *  \brief Get the video duration
  *  \param bgav A decoder handle
  *  \returns Exact duration in stream tics
@@ -1475,17 +1493,16 @@ int64_t bgav_audio_duration(bgav_t * bgav, int stream);
 int64_t bgav_video_duration(bgav_t * bgav, int stream);
 
 /** \ingroup seeking
- *  \brief Get the number of video frames
+ *  \brief Get the video start time
  *  \param bgav A decoder handle
- *  \returns Total number of video frames
+ *  \returns Time of the first video frame in stream tics
  *
  *  Use this only after \ref bgav_can_seek_sample returned 1.
- *  In generic code, you should always assume, that video frames
- *  have a variable duration, so the total number of frames is
- *  only for informational purposes.
+ *  The returned value is equal to the timestamp of the first
+ *  decoded video frame.
  */
 
-int bgav_video_frames(bgav_t * bgav, int stream);
+int64_t bgav_video_start_time(bgav_t * bgav, int stream);
 
 
 /** \ingroup seeking
@@ -1520,23 +1537,27 @@ void bgav_seek_audio(bgav_t * bgav, int stream, int64_t sample);
 void bgav_seek_video(bgav_t * bgav, int stream, int64_t time);
 
 /** \ingroup seeking
- *  \brief Get the time of the previous keyframe
+ *  \brief Get the time of the closest keyframe before a given time
  *  \param bgav A decoder handle
- *  \param sample The time to seek to
- *  \returns Time of the previous keyframe
+ *  \param time Time
+ *  \returns Time of the previous keyframe.
  *
  *  Use this only after \ref bgav_can_seek_sample returned 1.
+ *  If there is no keyframe before the given time (i.e if time was 0),
+ *  this function returns \ref BGAV_TIMESTAMP_UNDEFINED.
  */
 
 int64_t bgav_video_keyframe_before(bgav_t * bgav, int stream, int64_t time);
 
 /** \ingroup seeking
- *  \brief Get the time of the next keyframe
+ *  \brief Get the time of the closest keyframe after a given time
  *  \param bgav A decoder handle
- *  \param sample The time to seek to
+ *  \param time Time
  *  \returns Time of the next keyframe
  *
  *  Use this only after \ref bgav_can_seek_sample returned 1.
+ *  If there is no keyframe afte the given time,
+ *  this function returns \ref BGAV_TIMESTAMP_UNDEFINED.
  */
 
 int64_t bgav_video_keyframe_after(bgav_t * bgav, int stream, int64_t time);

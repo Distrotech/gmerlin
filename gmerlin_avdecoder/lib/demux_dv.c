@@ -112,6 +112,7 @@ static int open_dv(bgav_demuxer_context_t * ctx,
 
   ctx->data_start = ctx->input->position;
   ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
+  ctx->index_mode = INDEX_MODE_SIMPLE;
   
   return 1;
   
@@ -123,7 +124,7 @@ static int next_packet_dv(bgav_demuxer_context_t * ctx)
   bgav_stream_t *as, *vs;
   dv_priv_t * priv;
   priv = (dv_priv_t *)(ctx->priv);
-
+  
   /*
    *  demuxing dv is easy: we copy the video frame and
    *  extract the audio data
@@ -151,7 +152,6 @@ static int next_packet_dv(bgav_demuxer_context_t * ctx)
     return 0;
   
   bgav_dv_dec_get_video_packet(priv->d, vp);
-
   if(ap) bgav_packet_done_write(ap);
   if(vp) bgav_packet_done_write(vp);
   return 1;
@@ -175,7 +175,11 @@ static void seek_dv(bgav_demuxer_context_t * ctx, int64_t time,
   
   file_position = frame_pos * priv->frame_size;
 
-  bgav_dv_dec_set_frame_counter(priv->d, frame_pos);
+  bgav_dv_dec_set_frame_counter(priv->d, frame_pos,
+                                gavl_time_rescale(vs->data.video.format.timescale,
+                                                  vs->data.audio.format.samplerate,
+                                                  vs->in_position *
+                                                  vs->data.video.format.frame_duration));
   bgav_input_seek(ctx->input, file_position, SEEK_SET);
 
   vs->in_time = frame_pos * vs->data.video.format.frame_duration;
@@ -189,7 +193,7 @@ static int select_track_dv(bgav_demuxer_context_t * ctx, int track)
   {
   dv_priv_t * priv;
   priv = (dv_priv_t *)(ctx->priv);
-  bgav_dv_dec_set_frame_counter(priv->d, 0);
+  bgav_dv_dec_set_frame_counter(priv->d, 0, 0);
   return 1;
   }
 
@@ -205,14 +209,26 @@ static void close_dv(bgav_demuxer_context_t * ctx)
   free(priv);
   }
 
+static int resync_dv(bgav_demuxer_context_t * ctx)
+  {
+  dv_priv_t * priv;
+  priv = (dv_priv_t *)(ctx->priv);
+  bgav_dv_dec_set_frame_counter(priv->d,
+                                ctx->tt->cur->video_streams->in_time /
+                                ctx->tt->cur->video_streams->data.video.format.frame_duration,
+                                ctx->tt->cur->audio_streams->in_time);
+  return 1;
+  }
+
+
 const bgav_demuxer_t bgav_demuxer_dv =
   {
-    .probe =        probe_dv,
-    .open =         open_dv,
+    .probe        = probe_dv,
+    .open         = open_dv,
     .select_track = select_track_dv,
-    .next_packet =  next_packet_dv,
-    
-    .seek =         seek_dv,
-    .close =        close_dv
+    .next_packet  =  next_packet_dv,
+    .resync       = resync_dv,
+    .seek         = seek_dv,
+    .close        = close_dv
   };
 

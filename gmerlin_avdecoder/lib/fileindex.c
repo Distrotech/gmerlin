@@ -30,6 +30,8 @@
 #include <avdec_private.h>
 #include <md5.h>
 
+#define LOG_DOMAIN "fileindex"
+
 static void dump_index(bgav_stream_t * s)
   {
   int i;
@@ -489,9 +491,9 @@ static int flush_stream_mpeg_video(bgav_stream_t * s)
   return 1;
   }
 
-static void flush_stream_mpeg_subtitle(bgav_stream_t * s)
+static int flush_stream_mpeg_subtitle(bgav_stream_t * s)
   {
-  
+  return 0;
   }
 
 static int build_file_index_mpeg(bgav_t * b)
@@ -507,11 +509,21 @@ static int build_file_index_mpeg(bgav_t * b)
       return 1;
 
     for(j = 0; j < b->tt->cur->num_audio_streams; j++)
-      flush_stream_mpeg_audio(&b->tt->cur->audio_streams[j]);
+      {
+      if(!flush_stream_mpeg_audio(&b->tt->cur->audio_streams[j]))
+        return 0;
+      }
     for(j = 0; j < b->tt->cur->num_video_streams; j++)
-      flush_stream_mpeg_video(&b->tt->cur->video_streams[j]);
+      {
+      if(!flush_stream_mpeg_video(&b->tt->cur->video_streams[j]))
+        return 0;
+      }
     for(j = 0; j < b->tt->cur->num_subtitle_streams; j++)
-      flush_stream_mpeg_subtitle(&b->tt->cur->subtitle_streams[j]);
+      {
+      if(!flush_stream_mpeg_subtitle(&b->tt->cur->subtitle_streams[j]))
+        return 0;
+      }
+    
     if(b->opt.index_callback)
       b->opt.index_callback(b->opt.index_callback_data,
                             (float)b->input->position / 
@@ -528,8 +540,12 @@ int bgav_build_file_index(bgav_t * b)
   int ret = 0;
 
   if(b->demuxer->index_mode == INDEX_MODE_PCM)
+    {
+    fprintf(stderr, "Got PCM soundfile %ld samples\n", b->tt->cur->audio_streams->duration);
+    for(i = 0; i < b->tt->num_tracks; i++)
+      b->tt->tracks[i].sample_accurate = 1;
     return 1;
-  
+    }
   for(i = 0; i < b->tt->num_tracks; i++)
     {
     bgav_select_track(b, i);
@@ -559,20 +575,25 @@ int bgav_build_file_index(bgav_t * b)
         ret = 1;
         break;
       case INDEX_MODE_MPEG:
-        build_file_index_mpeg(b);
+        ret = build_file_index_mpeg(b);
+        break;
+      case INDEX_MODE_PCM:
         ret = 1;
+        break;
+      default: /* No idea how to make an index */
         break;
       }
     b->demuxer->flags &= ~BGAV_DEMUXER_BUILD_INDEX;
     }
   
   if(!ret)
-    fprintf(stderr, "No idea how to make an index\n");
+    bgav_log(&b->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Building file index failed");
   else
     {
     //    fprintf(stderr, "Built index\n");
     //    dump_file_index(b);    
-    bgav_write_file_index(b);
+    if(b->demuxer->index_mode != INDEX_MODE_PCM)
+      bgav_write_file_index(b);
     set_has_file_index(b);
     }
   return ret;
@@ -580,7 +601,6 @@ int bgav_build_file_index(bgav_t * b)
 
 int bgav_demuxer_next_packet_fileindex(bgav_demuxer_context_t * ctx)
   {
-  bgav_packet_t * p;
   bgav_stream_t * s = ctx->request_stream;
   int new_pos;
   

@@ -33,7 +33,7 @@
 
 /* Bytes needed to decode a complete header for parsing */
 #define HEADER_SIZE 4
-#define MAX_FRAME_BYTES 2881
+//#define MAX_FRAME_BYTES 2881
 
 
 typedef struct
@@ -51,6 +51,10 @@ typedef struct
   int do_init;
   int64_t last_position;
   int eof; /* For decoding the very last frame */
+  
+  int partial; /* Partial frame is left in the buffer.
+                  Either we can decode this (layer 3) or
+                  we'll mute it. */
   } mad_priv_t;
 
 static int get_data(bgav_stream_t * s)
@@ -69,13 +73,18 @@ static int get_data(bgav_stream_t * s)
       /* Append zeros to the end so we can decode the very last
          frame */
       bytes_in_buffer = (int)(priv->stream.bufend - priv->stream.next_frame);
-      
-      if(bytes_in_buffer)
-        memmove(priv->buffer,
-                priv->buffer +
-                (int)(priv->stream.next_frame - priv->stream.buffer),
-                bytes_in_buffer);
+      if(!bytes_in_buffer)
+        {
+        priv->eof = 1;
+        return 0;
+        }
 
+      memmove(priv->buffer,
+              priv->buffer +
+              (int)(priv->stream.next_frame - priv->stream.buffer),
+              bytes_in_buffer);
+      //      fprintf(stderr, "Decoding last frame %d\n", bytes_in_buffer);
+      priv->partial = 1;
       if(priv->buffer_alloc < MAD_BUFFER_GUARD + bytes_in_buffer)
         {
         priv->buffer_alloc = MAD_BUFFER_GUARD + bytes_in_buffer;
@@ -123,32 +132,45 @@ static int decode_frame(bgav_stream_t * s)
   mad_priv_t * priv;
   const char * version_string;
   char * bitrate_string;
-  int i, j;
+  int i, j, done;
   priv = s->data.audio.decoder->priv;
-
-  /* Check if we need new data */
   
+  /* Check if we need new data */
   if(priv->stream.bufend - priv->stream.next_frame <= MAD_BUFFER_GUARD)
     if(!get_data(s))
       {
       return 0;
       }
-
+  done = 0;
   while(mad_frame_decode(&(priv->frame), &(priv->stream)) == -1)
     {
     switch(priv->stream.error)
       {
       case MAD_ERROR_BUFLEN:
+        if(priv->partial)
+          {
+          mad_frame_mute(&priv->frame);
+          priv->partial = 0;
+          done = 1;
+          break;
+          }
         if(!get_data(s))
+          {
           return 0;
+          }
         break;
       default:
         mad_frame_mute(&priv->frame);
         fprintf(stderr, "Decode error %04x\n", priv->stream.error);
         break;
       }
+    if(done)
+      break;
     }
-
+  
+  //  fprintf(stderr, "Decoded frame %ld\n", priv->stream.next_frame -
+  //          priv->stream.this_frame);
+  
   if(priv->do_init)
     {
     /* Get audio format and create frame */
@@ -388,6 +410,7 @@ static void resync_mad(bgav_stream_t * s)
   mad_priv_t * priv;
   priv = s->data.audio.decoder->priv;
   priv->eof = 0;
+  priv->partial = 0;
   mad_frame_mute(&(priv->frame));
   mad_synth_mute(&(priv->synth));
 
@@ -422,7 +445,7 @@ static bgav_audio_decoder_t decoder =
                            BGAV_MK_FOURCC('M','P','3',' '), /* NSV */
                            BGAV_MK_FOURCC('L','A','M','E'), /* NUV */
                            0x00 },
-    .name   = "Mpeg audio decoder (mad)",
+    .name   = "MPEG audio decoder (mad)",
     .init   = init_mad,
     .close  = close_mad,
     .resync = resync_mad,

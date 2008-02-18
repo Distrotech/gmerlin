@@ -6,7 +6,6 @@ indexdump \
 indextest \
 mmstest \
 rtsptest \
-seektest \
 vcdtest \
 ymltest
 
@@ -18,9 +17,6 @@ indextest_LDADD = $(top_srcdir)/lib/libgmerlin_avdec.la
 
 indexdump_SOURCES = indexdump.c
 indexdump_LDADD = $(top_srcdir)/lib/libgmerlin_avdec.la
-
-seektest_SOURCES = seektest.c
-seektest_LDADD = $(top_srcdir)/lib/libgmerlin_avdec.la
 
 
 vcdtest_SOURCES = vcdtest.c

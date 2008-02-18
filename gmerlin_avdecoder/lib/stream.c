@@ -28,21 +28,27 @@
 int bgav_stream_start(bgav_stream_t * stream)
   {
   int result = 1;
-  switch(stream->type)
+
+  if(!(stream->demuxer->flags & BGAV_DEMUXER_BUILD_INDEX) ||
+     (stream->demuxer->index_mode != INDEX_MODE_SIMPLE))
     {
-    case BGAV_STREAM_VIDEO:
-      result = bgav_video_start(stream);
-      break;
-    case BGAV_STREAM_AUDIO:
-      result = bgav_audio_start(stream);
-      break;
-    case BGAV_STREAM_SUBTITLE_OVERLAY:
-    case BGAV_STREAM_SUBTITLE_TEXT:
-      result = bgav_subtitle_start(stream);
-      break;
-    default:
-      break;
+    switch(stream->type)
+      {
+      case BGAV_STREAM_VIDEO:
+        result = bgav_video_start(stream);
+        break;
+      case BGAV_STREAM_AUDIO:
+        result = bgav_audio_start(stream);
+        break;
+      case BGAV_STREAM_SUBTITLE_OVERLAY:
+      case BGAV_STREAM_SUBTITLE_TEXT:
+        result = bgav_subtitle_start(stream);
+        break;
+      default:
+        break;
+      }
     }
+  
   if(result)
     stream->initialized = 1;
   return result;
@@ -78,7 +84,7 @@ void bgav_stream_stop(bgav_stream_t * stream)
   stream->out_time = 0;
   stream->packet_seq = 0;
   stream->in_time = BGAV_TIMESTAMP_UNDEFINED;
-  stream->has_first_timestamp = 0;
+  stream->first_timestamp = BGAV_TIMESTAMP_UNDEFINED;
   }
 
 void bgav_stream_create_packet_buffer(bgav_stream_t * stream)
@@ -90,6 +96,7 @@ void bgav_stream_init(bgav_stream_t * stream, const bgav_options_t * opt)
   {
   memset(stream, 0, sizeof(*stream));
   stream->in_time = BGAV_TIMESTAMP_UNDEFINED;
+  stream->first_timestamp = BGAV_TIMESTAMP_UNDEFINED;
   stream->first_index_position = INT_MAX;
 
   /* need to set this to -1 so we know, if this stream has packets at all */

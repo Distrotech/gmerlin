@@ -154,8 +154,6 @@ struct bgav_subtitle_overlay_decoder_context_s
 
 /* Packet */
 
-#define BGAV_TIMESTAMP_UNDEFINED 0x8000000000000000LL
-
 struct bgav_packet_s
   {
   int64_t position;
@@ -347,6 +345,7 @@ struct bgav_stream_s
 
   /*
    *  EOF reached
+   *  This is *only* used by the core, never by demuxers or codecs
    */ 
   int eof;
   
@@ -356,8 +355,7 @@ struct bgav_stream_s
    */
 
   int not_aligned;
-
-  int has_first_timestamp;
+  
   int64_t first_timestamp;
 
   /* The track, where this stream belongs */
@@ -1026,8 +1024,12 @@ struct bgav_demuxer_s
   int (*select_track)(bgav_demuxer_context_t*, int track);
 
   /* Some demuxers have their own magic to build a file index */
+  //  void (*build_index)(bgav_demuxer_context_t*);
+
+  /* Demuxers might need this function to update the internal state
+     after seeking with the fileindex */
   
-  void (*build_index)(bgav_demuxer_context_t*);
+  void (*resync)(bgav_demuxer_context_t*);
   };
 
 /* Demuxer flags */
