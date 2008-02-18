@@ -437,6 +437,12 @@ int bg_player_input_init(bg_player_input_context_t * ctx,
     {
     return 0;
     }
+
+#ifdef DEBUG_COUNTER
+  ctx->video_frame_counter = 0;
+  ctx->audio_sample_counter = 0;
+#endif
+  
   return 1;
   }
 
