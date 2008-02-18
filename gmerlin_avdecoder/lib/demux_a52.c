@@ -99,7 +99,7 @@ static int open_a52(bgav_demuxer_context_t * ctx,
   ctx->tt->cur->duration
     = ((int64_t)priv->data_size * (int64_t)GAVL_TIME_SCALE) / 
     (s->container_bitrate / 8);
-
+  ctx->index_mode = INDEX_MODE_SIMPLE;
   ctx->stream_description = bgav_sprintf("Raw A52");
   return 1;
   
@@ -137,9 +137,10 @@ static int next_packet_a52(bgav_demuxer_context_t * ctx)
     return 0;
 
   p->pts = FRAME_SAMPLES * priv->frame_count;
-
+  p->duration = FRAME_SAMPLES;
   p->keyframe = 1;
-
+  p->position = ctx->input->position;
+  
   priv->frame_count++;
 
   bgav_packet_alloc(p, packet_size);
