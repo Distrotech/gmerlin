@@ -765,6 +765,7 @@ static void stop_cmd(bg_player_t * player, int new_state, int want_new)
      (old_state == BG_PLAYER_STATE_PAUSED))
     {
     if((new_state == BG_PLAYER_STATE_STOPPED) ||
+       !(player->do_bypass) ||
        !(player->input_handle->info->flags & BG_PLUGIN_KEEP_RUNNING))
       player_cleanup(player);
     }
