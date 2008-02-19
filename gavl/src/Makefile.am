@@ -17,7 +17,6 @@ colorspace_time \
 deinterlace_time \
 pixelformat_penalty \
 plot_scale_kernels \
-scaletest \
 scale_time \
 timescale_test \
 volume_test
