@@ -161,7 +161,7 @@ static int decode_frame(bgav_stream_t * s)
         break;
       default:
         mad_frame_mute(&priv->frame);
-        fprintf(stderr, "Decode error %04x\n", priv->stream.error);
+        //        fprintf(stderr, "Decode error %04x\n", priv->stream.error);
         break;
       }
     if(done)
@@ -378,7 +378,7 @@ static void parse_mad(bgav_stream_t * s)
                  "Lost sync during parsing");
         return; 
         }
-      s->timescale = h.samplerate;
+      s->data.audio.format.samplerate = h.samplerate;
       /* If frame starts in the previous packet,
          use the previous index */
       if(ptr - priv->buffer < old_buffer_size)

@@ -30,7 +30,7 @@
 /* From ffmpeg */
 // gsm.h miss some essential constants
 #define GSM_BLOCK_SIZE 33
-#define GSM_FRAME_SIZE 160
+#define GSM_FRAME_SAMPLES 160
 
 // #define GSM_BLOCK_SIZE_MS 65
 // #define GSM_FRAME_SIZE_MS 320
@@ -76,7 +76,7 @@ static int init_gsm(bgav_stream_t * s)
   s->data.audio.format.interleave_mode   = GAVL_INTERLEAVE_NONE;
   s->data.audio.format.sample_format     = GAVL_SAMPLE_S16;
   
-  s->data.audio.format.samples_per_frame = priv->ms ? 2*GSM_FRAME_SIZE : GSM_FRAME_SIZE;
+  s->data.audio.format.samples_per_frame = priv->ms ? 2*GSM_FRAME_SAMPLES : GSM_FRAME_SAMPLES;
   gavl_set_channel_setup(&s->data.audio.format);
   
   priv->frame = gavl_audio_frame_create(&s->data.audio.format);
@@ -112,9 +112,9 @@ static int decode_frame(bgav_stream_t * s)
       return 0;
     priv->packet_ptr = priv->packet->data;
     }
-  else if(priv->packet_ptr - priv->packet->data +
-          GSM_BLOCK_SIZE + priv->ms * (GSM_BLOCK_SIZE-1)
-          >= priv->packet->data_size)
+  else if(priv->packet_ptr - priv->packet->data + // Data already decoded
+          GSM_BLOCK_SIZE + priv->ms * (GSM_BLOCK_SIZE-1) // Next packet
+          > priv->packet->data_size)
     {
     bgav_demuxer_done_packet_read(s->demuxer, priv->packet);
     priv->packet = bgav_demuxer_get_packet_read(s->demuxer, s);
@@ -123,15 +123,15 @@ static int decode_frame(bgav_stream_t * s)
     priv->packet_ptr = priv->packet->data;
     }
   gsm_decode(priv->gsm_state, priv->packet_ptr, priv->frame->samples.s_16);
-  priv->frame->valid_samples = GSM_FRAME_SIZE;
+  priv->frame->valid_samples = GSM_FRAME_SAMPLES;
   
   if(priv->ms)
     {
     priv->packet_ptr += GSM_BLOCK_SIZE;
     //    priv->packet_ptr += block_size-1;
     gsm_decode(priv->gsm_state, priv->packet_ptr,
-               priv->frame->samples.s_16+GSM_FRAME_SIZE);
-    priv->frame->valid_samples += GSM_FRAME_SIZE;
+               priv->frame->samples.s_16+GSM_FRAME_SAMPLES);
+    priv->frame->valid_samples += GSM_FRAME_SAMPLES;
     priv->packet_ptr += GSM_BLOCK_SIZE-1;
     }
   else
@@ -163,7 +163,7 @@ static int decode_gsm(bgav_stream_t * s,
                             f,
                             priv->frame,
                             samples_decoded, /* out_pos */
-                            GSM_FRAME_SIZE * (priv->ms + 1) -
+                            GSM_FRAME_SAMPLES * (priv->ms + 1) -
                             priv->frame->valid_samples,  /* in_pos */
                             num_samples - samples_decoded, /* out_size, */
                             priv->frame->valid_samples /* in_size */);

@@ -95,6 +95,9 @@ static int bgav_video_decode(bgav_stream_t * stream,
   if(frame && result)
     {
     frame->timestamp = stream->data.video.last_frame_time;
+    if(stream->demuxer->demux_mode == DEMUX_MODE_FI)
+      frame->timestamp += stream->first_timestamp;
+    
     frame->duration  = stream->data.video.last_frame_duration;
                 
     /* Yes, this sometimes happens due to rounding errors */

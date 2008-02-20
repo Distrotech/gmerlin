@@ -91,7 +91,6 @@ static int connect_timeout   = 5000;
 static int read_timeout      = 5000;
 static int network_bandwidth = 524300; /* 524.3 Kbps (Cable/DSL) */
 
-static int samples_to_read = 10240;
 static int frames_to_read  = 10;
 
 int main(int argc, char ** argv)
@@ -103,12 +102,13 @@ int main(int argc, char ** argv)
   int num_urls;
   int num_tracks;
   int track;
-
+  int arg_index;
   char * sub_text = (char *)0;
   int sub_text_alloc = 0;
   gavl_time_t sub_time;
   gavl_time_t sub_duration;
-    
+  int sample_accurate = 0;
+  
   bgav_t * file;
   bgav_options_t * opt;
   gavl_overlay_t ovl;
@@ -116,8 +116,7 @@ int main(int argc, char ** argv)
   gavl_audio_frame_t * af;
   gavl_video_frame_t * vf;
 
-  const gavl_audio_format_t * audio_format_c;
-  gavl_audio_format_t audio_format;
+  const gavl_audio_format_t * audio_format;
   const gavl_video_format_t * video_format;
 
   setlocale(LC_MESSAGES, "");
@@ -140,7 +139,17 @@ int main(int argc, char ** argv)
   
   file = bgav_create();
   opt = bgav_get_options(file);
-    
+
+  arg_index = 1;
+  while(arg_index < argc - 1)
+    {
+    if(!strcmp(argv[arg_index], "-s"))
+      {
+      sample_accurate = 1;
+      arg_index++;
+      }
+    }
+  
   /* Configure */
 
   bgav_options_set_connect_timeout(opt,   connect_timeout);
@@ -148,40 +157,43 @@ int main(int argc, char ** argv)
   bgav_options_set_network_bandwidth(opt, network_bandwidth);
 
   bgav_options_set_seek_subtitles(opt, 1);
+
+  if(sample_accurate)
+    bgav_options_set_sample_accurate(opt, 1);
   
   bgav_options_set_user_pass_callback(opt, user_pass_func, (void*)0);
   
-  if(!strncmp(argv[1], "vcd://", 6))
+  if(!strncmp(argv[argc-1], "vcd://", 6))
     {
-    if(!bgav_open_vcd(file, argv[1] + 5))
+    if(!bgav_open_vcd(file, argv[argc-1] + 5))
       {
       fprintf(stderr, "Could not open VCD Device %s\n",
-              argv[1] + 5);
+              argv[argc-1] + 5);
       return -1;
       }
     }
-  else if(!strncmp(argv[1], "dvd://", 6))
+  else if(!strncmp(argv[argc-1], "dvd://", 6))
     {
-    if(!bgav_open_dvd(file, argv[1] + 5))
+    if(!bgav_open_dvd(file, argv[argc-1] + 5))
       {
       fprintf(stderr, "Could not open DVD Device %s\n",
-              argv[1] + 5);
+              argv[argc-1] + 5);
       return -1;
       }
     }
-  else if(!strncmp(argv[1], "dvb://", 6))
+  else if(!strncmp(argv[argc-1], "dvb://", 6))
     {
-    if(!bgav_open_dvb(file, argv[1] + 6))
+    if(!bgav_open_dvb(file, argv[argc-1] + 6))
       {
       fprintf(stderr, "Could not open DVB Device %s\n",
-              argv[1] + 5);
+              argv[argc-1] + 5);
       return -1;
       }
     }
-  else if(!bgav_open(file, argv[1]))
+  else if(!bgav_open(file, argv[argc-1]))
     {
     fprintf(stderr, "Could not open file %s\n",
-            argv[1]);
+            argv[argc-1]);
     free(file);
     return -1;
     }
@@ -206,11 +218,17 @@ int main(int argc, char ** argv)
   for(track = 0; track < num_tracks; track++)
     {
 #endif
+    bgav_select_track(file, track);
+    if(sample_accurate && !bgav_can_seek_sample(file))
+      {
+      fprintf(stderr, "Sample accurate access not possible for track %d\n", track+1);
+      return -1;
+      }
     fprintf(stderr, "===================================\n");
     fprintf(stderr, "============ Track %3d ============\n", track+1);
     fprintf(stderr, "===================================\n");
     
-    bgav_select_track(file, track);
+
     
     num_audio_streams = bgav_num_audio_streams(file, track);
     num_video_streams = bgav_num_video_streams(file, track);
@@ -239,20 +257,23 @@ int main(int argc, char ** argv)
     bgav_dump(file);
     fprintf(stderr, "End of file contents\n");
 
-    /* Try to get one frame from each stream */
+    /* Try to get some frames from each stream */
   
     for(i = 0; i < num_audio_streams; i++)
       {
-      audio_format_c = bgav_get_audio_format(file, i);
-      gavl_audio_format_copy(&audio_format, audio_format_c);
-      audio_format.samples_per_frame = samples_to_read;
-      af = gavl_audio_frame_create(&audio_format);
-      fprintf(stderr, "Reading %d samples from audio stream %d...",
-              samples_to_read, i+1);
-      if(bgav_read_audio(file, af, i,  samples_to_read))
-        fprintf(stderr, "Done\n");
-      else
-        fprintf(stderr, "Failed\n");
+      audio_format = bgav_get_audio_format(file, i);
+      af = gavl_audio_frame_create(audio_format);
+
+      for(j = 0; j < frames_to_read; j++)
+        {
+        fprintf(stderr, "Reading %d samples from audio stream %d...",
+                audio_format->samples_per_frame, i+1);
+        if(bgav_read_audio(file, af, i, audio_format->samples_per_frame))
+          fprintf(stderr, "Done, PTS: %"PRId64", Samples: %d\n", af->timestamp, af->valid_samples);
+        else
+          fprintf(stderr, "Failed\n");
+        }
+      
       gavl_audio_frame_destroy(af);
       }
     

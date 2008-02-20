@@ -101,7 +101,6 @@ void bgav_audio_stop(bgav_stream_t * s)
     free(s->data.audio.decoder);
     s->data.audio.decoder = (bgav_audio_decoder_context_t*)0;
     }
-  s->first_timestamp = BGAV_TIMESTAMP_UNDEFINED;
   }
 
 const char * bgav_get_audio_description(bgav_t * b, int s)

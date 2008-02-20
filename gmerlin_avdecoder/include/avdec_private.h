@@ -1048,12 +1048,15 @@ struct bgav_demuxer_s
                                                     an index */
 
 /* Packets have precise timestamps and are non-interleaved
-   and adjacent int the file */
+   and adjacent in the file */
 #define INDEX_MODE_SIMPLE 1
 #define INDEX_MODE_MPEG   2
 /* For PCM soundfiles: Sample accuracy is already there */
 #define INDEX_MODE_PCM    3
-#define INDEX_MODE_CUSTOM 4 /* Demuxer builds index */
+/* File has a global index and codecs, which allow sample accuracy */
+#define INDEX_MODE_SI_SA  4
+
+// #define INDEX_MODE_CUSTOM 4 /* Demuxer builds index */
 
 
 #define DEMUX_MODE_STREAM 0

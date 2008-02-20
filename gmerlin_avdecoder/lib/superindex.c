@@ -103,12 +103,35 @@ void bgav_superindex_seek(bgav_superindex_t * idx,
        (idx->entries[i].keyframe) &&
        (idx->entries[i].time <= time_scaled))
       {
-      s->index_position = i;
-      s->in_time = idx->entries[i].time;
       break;
       }
     i--;
     }
+
+  if(i < s->first_index_position)
+    i = s->first_index_position;
+  s->in_time = idx->entries[i].time;
+  
+  /* Handle audio preroll */
+  if((s->type == BGAV_STREAM_AUDIO) && s->data.audio.preroll)
+    {
+    while(i >= s->first_index_position)
+      {
+      if((idx->entries[i].stream_id == s->stream_id) &&
+         (idx->entries[i].keyframe) &&
+         (s->in_time - idx->entries[i].time >= s->data.audio.preroll))
+        {
+        break;
+        }
+      i--;
+      }
+    }
+
+  if(i < s->first_index_position)
+    i = s->first_index_position;
+  
+  s->index_position = i;
+  s->in_time = idx->entries[i].time;
   }
 
 void bgav_superindex_dump(bgav_superindex_t * idx)

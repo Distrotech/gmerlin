@@ -177,8 +177,8 @@ static int decode_frame(bgav_stream_t * s)
   while(1)
     {
 #ifdef DUMP_DECODE
-    bgav_dprintf(stderr, "faacDecDecode %d bytes\n", priv->buf.size);
-    bgav_hexdump(priv->buf.buffer, 16, 16);
+    bgav_dprintf("faacDecDecode %d bytes\n", priv->buf.size);
+    bgav_hexdump(priv->buf.buffer, 7, 7);
 #endif
    
     priv->frame->samples.f = faacDecDecode(priv->dec,
@@ -187,7 +187,7 @@ static int decode_frame(bgav_stream_t * s)
                                            priv->buf.size);
 
 #ifdef DUMP_DECODE
-    bgav_dprintf(stderr, "Used %d bytes\n", frame_info.bytesconsumed);
+    bgav_dprintf("Used %d bytes %p\n", frame_info.bytesconsumed, priv->frame->samples.f);
 #endif
    
     bgav_bytebuffer_remove(&priv->buf, frame_info.bytesconsumed);
@@ -247,7 +247,14 @@ static int decode_frame(bgav_stream_t * s)
         break;
       }
     }
-  priv->frame->valid_samples = frame_info.samples  / s->data.audio.format.num_channels;
+
+  /* If decoding didn't fail, we might have some silent samples.
+     faad2 seems to be reporting 0 samples in this case :( */
+
+  if(!frame_info.samples)
+    priv->frame->valid_samples = 1024;
+  else
+    priv->frame->valid_samples = frame_info.samples  / s->data.audio.format.num_channels;
   priv->last_block_size = priv->frame->valid_samples;
     
   return 1;

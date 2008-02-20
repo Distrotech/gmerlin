@@ -337,20 +337,9 @@ static void check_interleave(bgav_demuxer_context_t * ctx)
     ctx->tt->cur->num_audio_streams +
     ctx->tt->cur->num_video_streams +
     ctx->tt->cur->num_subtitle_streams;
-  
-  if(num_streams <= 1)
-    return;
 
-  /* If sample accurate decoding was requested, return early */
-  if(ctx->opt->sample_accurate)
-    {
-    ctx->demux_mode = DEMUX_MODE_SI_NI;
-    return;
-    }
-  else
-    ctx->demux_mode = DEMUX_MODE_SI_I;
-  
   streams = malloc(num_streams * sizeof(*streams));
+
   index = 0;
   
   for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
@@ -362,16 +351,30 @@ static void check_interleave(bgav_demuxer_context_t * ctx)
   for(i = 0; i < ctx->tt->cur->num_subtitle_streams; i++)
     streams[index++] = &(ctx->tt->cur->subtitle_streams[i]);
   
-  if((streams[0]->last_index_position < streams[1]->first_index_position) ||
-     (streams[1]->last_index_position < streams[0]->first_index_position))
+  /* If sample accurate decoding was requested, return early */
+  if(ctx->opt->sample_accurate)
     {
     ctx->demux_mode = DEMUX_MODE_SI_NI;
-
-    /* Adjust index positions for the streams */
-    
-    for(i = 0; i < num_streams; i++)
-      streams[i]->index_position = streams[i]->first_index_position;
     }
+  /* One stream always means non-interleaved */
+  else if(num_streams <= 1)
+    {
+    ctx->demux_mode = DEMUX_MODE_SI_I;
+    }
+  else
+    {
+    ctx->demux_mode = DEMUX_MODE_SI_I;
+    
+    if((streams[0]->last_index_position < streams[1]->first_index_position) ||
+       (streams[1]->last_index_position < streams[0]->first_index_position))
+      {
+      ctx->demux_mode = DEMUX_MODE_SI_NI;
+      }
+    }
+  
+  /* Adjust index positions for the streams */
+  for(i = 0; i < num_streams; i++)
+    streams[i]->index_position = streams[i]->first_index_position;
   free(streams);
   }
 
@@ -502,8 +505,11 @@ static int next_packet_noninterleaved(bgav_demuxer_context_t * ctx)
   bgav_stream_t * s = (bgav_stream_t*)0;
   bgav_stream_t * ts;
   
-  if(ctx->request_stream->index_position >= ctx->request_stream->last_index_position)
+  if(ctx->request_stream->index_position > ctx->request_stream->last_index_position)
     {
+    if(ctx->tt->cur->sample_accurate)
+      return 0;
+    
     /* Requested stream is finished, read data from another stream
        before returning 0 */
 
@@ -840,20 +846,21 @@ bgav_seek_scaled(bgav_t * b, int64_t * time, int scale)
 
   if(b->tt->cur->sample_accurate)
     {
+    bgav_stream_t * s;
     for(i = 0; i < b->tt->cur->num_video_streams; i++)
       {
       if(b->tt->cur->video_streams[i].action != BGAV_STREAM_MUTE)
         {
+        s = &b->tt->cur->video_streams[i];
         bgav_seek_video(b, i,
-                        gavl_time_rescale(scale,
-                                          b->tt->cur->video_streams[i].data.video.format.timescale,
-                                          *time));
+                        gavl_time_rescale(scale, s->data.video.format.timescale,
+                                          *time) - s->first_timestamp);
         if(i) /* We align seeking at the first frame of the first stream */
           {
           *time =
-            gavl_time_rescale(b->tt->cur->video_streams[i].data.video.format.timescale,
+            gavl_time_rescale(s->data.video.format.timescale,
                               scale,
-                              b->tt->cur->video_streams[i].out_time);
+                              s->out_time + s->first_timestamp);
           }
         
         }
@@ -863,16 +870,17 @@ bgav_seek_scaled(bgav_t * b, int64_t * time, int scale)
       {
       if(b->tt->cur->audio_streams[i].action != BGAV_STREAM_MUTE)
         {
+        s = &b->tt->cur->audio_streams[i];
         bgav_seek_audio(b, i,
-                        gavl_time_rescale(scale,
-                                          b->tt->cur->audio_streams[i].data.audio.format.samplerate,
-                                          *time));
+                        gavl_time_rescale(scale, s->data.audio.format.samplerate,
+                                          *time) - s->first_timestamp);
         }
       }
     for(i = 0; i < b->tt->cur->num_subtitle_streams; i++)
       {
       if(b->tt->cur->audio_streams[i].action != BGAV_STREAM_MUTE)
         {
+        s = &b->tt->cur->audio_streams[i];
         bgav_seek_subtitle(b, i, gavl_time_unscale(scale, *time));
         }
       }

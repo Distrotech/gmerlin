@@ -438,8 +438,7 @@ static int next_packet_4xm(bgav_demuxer_context_t * ctx)
         break;
       case ID_snd_:
         size = BGAV_PTR_2_32LE(&header[4]);
-
-        
+       
         if(!bgav_input_read_32_le(ctx->input, &stream_id))
           return 0;
         bgav_input_skip(ctx->input, 4); // out_size

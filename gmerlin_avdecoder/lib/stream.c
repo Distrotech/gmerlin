@@ -84,7 +84,7 @@ void bgav_stream_stop(bgav_stream_t * stream)
   stream->out_time = 0;
   stream->packet_seq = 0;
   stream->in_time = BGAV_TIMESTAMP_UNDEFINED;
-  stream->first_timestamp = BGAV_TIMESTAMP_UNDEFINED;
+  //  stream->first_timestamp = BGAV_TIMESTAMP_UNDEFINED;
   }
 
 void bgav_stream_create_packet_buffer(bgav_stream_t * stream)

@@ -170,12 +170,6 @@ typedef struct
   uint32_t seek_table_size;
 
   int64_t sample_count;
-
-  struct
-    {
-    int64_t position;
-    int64_t time_scaled;
-    } * seek_table;
   
   } aac_priv_t;
 
@@ -208,8 +202,6 @@ static int open_adts(bgav_demuxer_context_t * ctx)
   adts_header_t adts;
   bgav_stream_t * s;
   aac_priv_t * priv;
-  uint32_t seek_table_alloc;
-  int64_t sample_count;
     
   priv = (aac_priv_t*)(ctx->priv);
   
@@ -221,6 +213,8 @@ static int open_adts(bgav_demuxer_context_t * ctx)
 
   if(!adts_header_read(buf, &adts))
     return 0;
+
+  s->data.audio.format.samplerate = adts.samplerate;
   
   if(adts.mpeg_version == 2)
     {
@@ -268,58 +262,9 @@ static int open_adts(bgav_demuxer_context_t * ctx)
     }
   
   //  adts_header_dump(&adts);
-  
-  /* Now, get the duration and create a seek table */
 
-  if(ctx->input->input->seek_byte && ctx->input->total_bytes)
-    {
-    seek_table_alloc = TABLE_ALLOC;
-    priv->seek_table = calloc(seek_table_alloc, sizeof(*(priv->seek_table)));
-
-    sample_count = 0;
-
-    priv->seek_table[0].position = ctx->data_start;
-    priv->seek_table[0].time_scaled     = 0;
-    priv->seek_table_size = 1;
+  ctx->index_mode = INDEX_MODE_SIMPLE;
     
-    while(1)
-      {
-      sample_count += adts.block_samples * adts.num_blocks;
-      bgav_input_skip(ctx->input, adts.frame_bytes);
-
-      /* Check is this was the last frame */
-            
-      if(ctx->input->position >= ctx->input->total_bytes)
-        break;
-
-      /* Create table entry */
-
-      if(priv->seek_table_size >= seek_table_alloc)
-        {
-        seek_table_alloc += TABLE_ALLOC;
-        priv->seek_table = realloc(priv->seek_table,
-                                   seek_table_alloc*sizeof(*(priv->seek_table)));
-        }
-
-      priv->seek_table[priv->seek_table_size].position = ctx->input->position;
-      priv->seek_table[priv->seek_table_size].time_scaled = sample_count;
-      priv->seek_table_size++;
-
-      priv->data_size = ctx->input->position - ctx->data_start;
-
-      if(bgav_input_get_data(ctx->input, buf, ADTS_SIZE) < ADTS_SIZE)
-        break;
-      
-      if(!adts_header_read(buf, &adts))
-        break;
-      }
-    bgav_input_seek(ctx->input, ctx->data_start, SEEK_SET);
-    ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
-    
-    ctx->tt->cur->duration =
-      gavl_samples_to_time(adts.samplerate, sample_count);
-    }
-  
   return 1;
   }
 
@@ -494,7 +439,9 @@ static int next_packet_adts(bgav_demuxer_context_t * ctx)
   p = bgav_stream_get_packet_write(s);
   
   p->pts = priv->sample_count;
-    
+  p->duration = adts.block_samples * adts.num_blocks;
+  p->position = ctx->input->position;
+  
   p->keyframe = 1;
 
   bgav_packet_alloc(p, adts.frame_bytes);
@@ -553,6 +500,7 @@ static int next_packet_aac(bgav_demuxer_context_t * ctx)
   return 0;
   }
 
+#if 0
 static void seek_aac(bgav_demuxer_context_t * ctx, gavl_time_t time, int scale)
   {
   aac_priv_t * priv;
@@ -573,6 +521,14 @@ static void seek_aac(bgav_demuxer_context_t * ctx, gavl_time_t time, int scale)
   bgav_input_seek(ctx->input, priv->seek_table[i].position, SEEK_SET);
   ctx->tt->cur->audio_streams->in_time = priv->seek_table[i].time_scaled;
   }
+#endif
+
+static void resync_aac(bgav_demuxer_context_t * ctx)
+  {
+  aac_priv_t * priv;
+  priv = (aac_priv_t *)(ctx->priv);
+  priv->sample_count = ctx->tt->cur->audio_streams->in_time;
+  }
 
 static int select_track_aac(bgav_demuxer_context_t * ctx, int track)
   {
@@ -587,9 +543,6 @@ static void close_aac(bgav_demuxer_context_t * ctx)
   aac_priv_t * priv;
   priv = (aac_priv_t *)(ctx->priv);
 
-  if(priv->seek_table)
-    free(priv->seek_table);
-
   free(priv);
   }
 
@@ -599,7 +552,7 @@ const bgav_demuxer_t bgav_demuxer_aac =
     .open =        open_aac,
     .select_track = select_track_aac,
     .next_packet = next_packet_aac,
-    .seek =        seek_aac,
+    .resync        = resync_aac,
     .close =       close_aac
   };
 

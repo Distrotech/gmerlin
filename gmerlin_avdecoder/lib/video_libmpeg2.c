@@ -91,6 +91,7 @@ typedef struct
   bgav_mpv_sequence_header_t sh;
   int64_t last_position;
   int last_coding_type; /* Last picture type is saved here */
+  int64_t last_pts;
   
   } mpeg2_priv_t;
 
@@ -273,7 +274,7 @@ static int decode_picture(bgav_stream_t*s)
     if(((state == STATE_END) || (state == STATE_SLICE) ||
         (state == STATE_INVALID_END)))
       {
-#if 1
+#if 0
       fprintf(stderr, "Got Picture: C: %c D: %c\n",
               picture_types[priv->info->current_picture ? 
               priv->info->current_picture->flags & PIC_MASK_CODING_TYPE : 0],
@@ -298,8 +299,8 @@ static int decode_picture(bgav_stream_t*s)
           case PIC_FLAG_CODING_TYPE_B:
             if(priv->non_b_count >= 2)
               done = 1;
-            else
-              fprintf(stderr, "Old B-Frame\n");
+            //            else
+            //              fprintf(stderr, "Old B-Frame\n");
             break;
           }
         }      
@@ -425,11 +426,11 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
   
   if(priv->init)
     return 1;
-
+#if 0
   if(!f)
     fprintf(stderr, "Skip: %d\n",
             priv->info->current_picture->flags & PIC_MASK_CODING_TYPE);
-  
+#endif
   if(f)
     {
     priv->frame->planes[0] = priv->info->display_fbuf->buf[0];
@@ -453,7 +454,7 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
   s->data.video.last_frame_time     = priv->picture_timestamp;
   s->data.video.last_frame_duration = priv->picture_duration;
 
-#if 1
+#if 0
   fprintf(stderr, "PTS: %ld, T: %c\n", 
           s->data.video.last_frame_time,
           picture_types[priv->info->display_picture->flags & PIC_MASK_CODING_TYPE]);
@@ -685,7 +686,6 @@ static void parse_libmpeg2(bgav_stream_t * s)
           s->data.video.format.frame_duration = priv->sh.frame_duration;
           ptr               += result;
           priv->buffer_size -= result;
-          s->timescale = s->data.video.format.timescale;
           }
         else
           return; /* Error */
@@ -710,7 +710,6 @@ static void parse_libmpeg2(bgav_stream_t * s)
           priv->buffer_size -= result;
           s->data.video.format.timescale      *= 2;
           s->data.video.format.frame_duration *= 2;
-          s->timescale = s->data.video.format.timescale;
           }
         else
           return; /* Error */
@@ -727,8 +726,8 @@ static void parse_libmpeg2(bgav_stream_t * s)
           break;
         else if(result > 0)
           {
-          fprintf(stderr, "Got picture header %c\n",
-                  picture_types[ph.coding_type]);
+          //          fprintf(stderr, "Got picture header %c\n",
+          //                  picture_types[ph.coding_type]);
           /* First frame after sequence header is a P-Frame */
           if(!s->duration && ph.coding_type == MPV_CODING_TYPE_P)
             priv->intra_slice_refresh = 1;
@@ -755,6 +754,8 @@ static void parse_libmpeg2(bgav_stream_t * s)
                                             priv->last_position,
                                             s->duration,
                                             keyframe);
+              if(!s->duration && (priv->last_pts != BGAV_TIMESTAMP_UNDEFINED))
+                s->first_timestamp = priv->last_pts;
               }
             else
               {
@@ -762,6 +763,8 @@ static void parse_libmpeg2(bgav_stream_t * s)
                                             p->position,
                                             s->duration,
                                             keyframe);
+              if(!s->duration && (p->pts != BGAV_TIMESTAMP_UNDEFINED))
+                s->first_timestamp = p->pts;
               }
             priv->non_b_count++;
             s->duration += s->data.video.format.frame_duration;

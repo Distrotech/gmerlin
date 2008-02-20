@@ -440,7 +440,7 @@ void bgav_options_set_seamless(bgav_options_t* opt,
  *  positioning of streams.
  */
 
-void bgav_options_set_sample_accurate(bgav_options_t*b, int p);
+void bgav_options_set_sample_accurate(bgav_options_t*opt, int enable);
 
 
 /** \ingroup options
@@ -1394,9 +1394,35 @@ int bgav_read_subtitle_text(bgav_t * bgav, char ** ret, int *ret_alloc,
  * Seek to a timestamp. This also resyncs all streams
  ***************************************************/
 
-/** \defgroup seeking Seeking
+/** \defgroup seeking Simple seek API
  *  \ingroup decoding
+ *
+ *  gmerlin_avdecoder supports multiple demultiplexing modes, some
+ *  are optimized for linear playback, some are optimized for sample
+ *  accurate random access. By default, the demuxer will be in linear
+ *  playback mode. The associated seek API is described in this section.
  */
+
+/** \defgroup sampleseek Sample accurate seek API
+ *  \ingroup decoding
+ *
+ *  This mode is optimized for sample accurate access. To use this
+ *  API, you must call \ref bgav_options_set_sample_accurate before
+ *  opening the file. After you opened the file and selected the track,
+ *  you must verify, that sample accurate access is available by checking
+ *  the return value of \ref bgav_can_seek_sample.
+ *
+ *  Sample accurate mode has a little more overhead on the demultiplexer side.
+ *  Therefore you should not enable it when not needed.
+ *  Some formats don't allow sample accurate access, other formats are *only*
+ *  seekable in sample accurate mode. For formats, which need to be parsed completely,
+ *  index files are written to $HOME/.gmerlin-avdecoder/indices. Filenames of the
+ *  indices are the MD5 sums of the filename passed to \ref bgav_open.
+ *
+ *  Sample accurate mode also implies, that all streams can be positioned
+ *  independently.
+ */
+
 
 /** \ingroup seeking
  *  \brief Check if a track is seekabkle
@@ -1407,28 +1433,6 @@ int bgav_read_subtitle_text(bgav_t * bgav, char ** ret, int *ret_alloc,
 int bgav_can_seek(bgav_t * bgav);
 
 /** \ingroup seeking
- *  \brief Time value indicating an invalid time
- */
-
-#define BGAV_TIMESTAMP_UNDEFINED 0x8000000000000000LL
-
-/** \ingroup seeking
- *  \brief Check if a track is seekabkle with sample accuracy
- *  \param bgav A decoder handle
- *  \returns 1 if the track is seekable with sample accuracy, 0 else.
- *
- *  If this function returns zero,  applications, which rely on
- *  \ref bgav_seek_audio \ref bgav_seek_video and \ref bgav_seek_subtitle
- *  can close the decoder and show an error message.
- *
- *  The ability of sample accurate seeking also implies, that streams can
- *  be positioned indepentently.
- *
- */
-
-int bgav_can_seek_sample(bgav_t * bgav);
-
-/** \ingroup seeking
  *  \brief Seek to a specific time
  *  \param bgav A decoder handle
  *  \param time The time to seek to. 
@@ -1437,6 +1441,7 @@ int bgav_can_seek_sample(bgav_t * bgav);
  */
 
 void bgav_seek(bgav_t * bgav, gavl_time_t * time);
+
 
 /** \ingroup seeking
  *  \brief Seek to a specific stream position
@@ -1456,23 +1461,54 @@ void bgav_seek(bgav_t * bgav, gavl_time_t * time);
  * 
  * The time argument might be changed to the actually seeked time, which can be
  * different. For sample accurate formats, it should always be unchanged.
+ *
+ * This function allows sample accurate seeking for some cases even in linear
+ * decoding mode. For more sophisticated sample accurate access, see \ref sampleseek.
  */
 
 void bgav_seek_scaled(bgav_t * bgav, int64_t * time, int scale);
 
-/** \ingroup seeking
+/** \ingroup sampleseek
+ *  \brief Time value indicating an invalid time
+ */
+
+#define BGAV_TIMESTAMP_UNDEFINED 0x8000000000000000LL
+
+/** \ingroup sampleseek
+ *  \brief Check if a track is seekabkle with sample accuracy
+ *  \param bgav A decoder handle
+ *  \returns 1 if the track is seekable with sample accuracy, 0 else.
+ *
+ *  If this function returns zero,  applications, which rely on
+ *  \ref bgav_seek_audio \ref bgav_seek_video and \ref bgav_seek_subtitle
+ *  should consider the file as unsupported.
+ *
+ *  The ability of sample accurate seeking also implies, that streams can
+ *  be positioned indepentently.
+ *
+ */
+
+int bgav_can_seek_sample(bgav_t * bgav);
+
+
+/** \ingroup sampleseek
  *  \brief Get the audio duration
  *  \param bgav A decoder handle
+ *  \param stream Audio stream index (starting with 0)
  *  \returns Duration in samples
  *
  *  Use this only after \ref bgav_can_seek_sample returned 1.
+ *  The duration is calculated from the total number or decodable
+ *  samples in the file. The start time (as returned by \ref bgav_audio_start_time)
+ *  is <b>not</b> included in the duration.
  */
 
 int64_t bgav_audio_duration(bgav_t * bgav, int stream);
 
-/** \ingroup seeking
+/** \ingroup sampleseek
  *  \brief Get the audio start time
  *  \param bgav A decoder handle
+ *  \param stream Audio stream index (starting with 0)
  *  \returns Time (in samplerate tics) of the first sample
  *
  *  Use this only after \ref bgav_can_seek_sample returned 1.
@@ -1482,19 +1518,24 @@ int64_t bgav_audio_duration(bgav_t * bgav, int stream);
 
 int64_t bgav_audio_start_time(bgav_t * bgav, int stream);
 
-/** \ingroup seeking
+/** \ingroup sampleseek
  *  \brief Get the video duration
  *  \param bgav A decoder handle
+ *  \param stream Video stream index (starting with 0)
  *  \returns Exact duration in stream tics
  *
  *  Use this only after \ref bgav_can_seek_sample returned 1.
+ *  The duration is calculated from the total number or decodable
+ *  frames in the file. The start time (as returned by \ref bgav_video_start_time)
+ *  is <b>not</b> included in the duration.
  */
 
 int64_t bgav_video_duration(bgav_t * bgav, int stream);
 
-/** \ingroup seeking
+/** \ingroup sampleseek
  *  \brief Get the video start time
  *  \param bgav A decoder handle
+ *  \param stream Video stream index (starting with 0)
  *  \returns Time of the first video frame in stream tics
  *
  *  Use this only after \ref bgav_can_seek_sample returned 1.
@@ -1505,9 +1546,10 @@ int64_t bgav_video_duration(bgav_t * bgav, int stream);
 int64_t bgav_video_start_time(bgav_t * bgav, int stream);
 
 
-/** \ingroup seeking
+/** \ingroup sampleseek
  *  \brief Get the subtitle duration
  *  \param bgav A decoder handle
+ *  \param stream Subtitle stream index (starting with 0)
  *  \returns Exact duration in stream tics
  *
  *  Use this only after \ref bgav_can_seek_sample returned 1.
@@ -1515,56 +1557,76 @@ int64_t bgav_video_start_time(bgav_t * bgav, int stream);
 
 int64_t bgav_subtitle_duration(bgav_t * bgav, int stream);
 
-/** \ingroup seeking
+/** \ingroup sampleseek
  *  \brief Seek to a specific audio sample
  *  \param bgav A decoder handle
+ *  \param stream Audio stream index (starting with 0)
  *  \param sample The sample to seek to
  *
  *  Use this only after \ref bgav_can_seek_sample returned 1.
+ *  The time is relative to the first decodable sample
+ *  (always starting with 0), the offset returned by
+ *  \ref bgav_audio_start_time is <b>not</b> included here.
+ *  
  */
 
 void bgav_seek_audio(bgav_t * bgav, int stream, int64_t sample);
 
-/** \ingroup seeking
+/** \ingroup sampleseek
  *  \brief Seek to a specific video time
  *  \param bgav A decoder handle
- *  \param sample The time to seek to
+ *  \param stream Video stream index (starting with 0)
+ *  \param time Time
  *
  *  Use this only after \ref bgav_can_seek_sample returned 1.
  *  If time is between 2 frames, the earlier one will be chosen.
+ *  The time is relative to the first decodable frame
+ *  (always starting with 0), the offset returned by
+ *  \ref bgav_video_start_time is <b>not</b> included here.
  */
 
 void bgav_seek_video(bgav_t * bgav, int stream, int64_t time);
 
-/** \ingroup seeking
+/** \ingroup sampleseek
  *  \brief Get the time of the closest keyframe before a given time
  *  \param bgav A decoder handle
+ *  \param stream Video stream index (starting with 0)
  *  \param time Time
  *  \returns Time of the previous keyframe.
  *
  *  Use this only after \ref bgav_can_seek_sample returned 1.
+ *  The time argument and return value are relative to the first
+ *  decodable frame of the file i.e. <b>not</b> including the offset
+ *  returned by \ref bgav_video_start_time .
  *  If there is no keyframe before the given time (i.e if time was 0),
  *  this function returns \ref BGAV_TIMESTAMP_UNDEFINED.
  */
 
 int64_t bgav_video_keyframe_before(bgav_t * bgav, int stream, int64_t time);
 
-/** \ingroup seeking
+/** \ingroup sampleseek
  *  \brief Get the time of the closest keyframe after a given time
  *  \param bgav A decoder handle
+ *  \param stream Video stream index (starting with 0)
  *  \param time Time
  *  \returns Time of the next keyframe
  *
  *  Use this only after \ref bgav_can_seek_sample returned 1.
- *  If there is no keyframe afte the given time,
+ *  The time argument and return value are relative to the first
+ *  decodable frame of the file i.e. <b>not</b> including the offset
+ *  returned by \ref bgav_video_start_time .
+ *  If there is no keyframe after the given time,
  *  this function returns \ref BGAV_TIMESTAMP_UNDEFINED.
  */
 
 int64_t bgav_video_keyframe_after(bgav_t * bgav, int stream, int64_t time);
 
 
-/** \ingroup seeking
+/** \ingroup sampleseek
  *  \brief Seek to a specific subtitle position
+ *  \param bgav A decoder handle
+ *  \param stream Subtitle stream index (starting with 0)
+ *  \param time Time
  *
  *  Use this only after \ref bgav_can_seek_sample returned 1.
  *  If time is between 2 subtitles, the earlier one will be chosen.

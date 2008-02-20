@@ -445,9 +445,8 @@ static void parse_a52(bgav_stream_t * s)
                  "Lost sync during parsing");
         return;
         }
-      s->timescale = priv->header.samplerate;
-
-
+      s->data.audio.format.samplerate = priv->header.samplerate;
+      
       /* If frame starts in the previous packet,
          use the previous index */
       if(ptr - priv->buffer < old_buffer_size)

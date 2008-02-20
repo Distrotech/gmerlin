@@ -48,8 +48,8 @@ typedef struct
   int64_t stsd_count;
   //  int64_t stsc_count;
 
-  int64_t tics; /* Time in tics (depends on time scale of this stream) */
-  int64_t total_tics;
+  //  int64_t tics; /* Time in tics (depends on time scale of this stream) */
+  //  int64_t total_tics;
 
   int skip_first_frame; /* Enabled only if the first frame has a different codec */
   int skip_last_frame; /* Enabled only if the last frame has a different codec */
@@ -91,26 +91,14 @@ typedef struct
 
 static void stream_init(stream_priv_t * s, qt_trak_t * trak)
   {
-  int i;
   s->trak = trak;
   s->stbl = &(trak->mdia.minf.stbl);
 
   s->stts_pos = (s->stbl->stts.num_entries > 1) ? 0 : -1;
   /* stsz_pos is -1 if all samples have the same size */
   s->stsz_pos = (s->stbl->stsz.sample_size) ? -1 : 0;
-
-  for(i = 0; i < s->stbl->stts.num_entries;i++)
-    {
-    s->total_tics += s->stbl->stts.entries[i].count *
-      s->stbl->stts.entries[i].duration;
-    }
   }
 
-static gavl_time_t stream_get_duration(bgav_stream_t * s)
-  {
-  stream_priv_t * priv = (stream_priv_t*)(s->priv);
-  return (priv->total_tics * GAVL_TIME_SCALE) / s->timescale;
-  }
 
 static int probe_quicktime(bgav_input_context_t * input)
   {
@@ -142,34 +130,6 @@ static int probe_quicktime(bgav_input_context_t * input)
   return 0;
   }
 
-static bgav_stream_t * find_stream(bgav_demuxer_context_t * ctx,
-                                   qt_trak_t * trak)
-  {
-  //  qt_priv_t * priv; 
-  stream_priv_t * priv;
-  int i;
-  bgav_track_t * track = ctx->tt->cur;
-  
-  for(i = 0; i < track->num_audio_streams; i++)
-    {
-    priv = (stream_priv_t *)(track->audio_streams[i].priv);
-    if(priv->trak == trak)
-      return &track->audio_streams[i];
-    }
-  for(i = 0; i < track->num_video_streams; i++)
-    {
-    priv = (stream_priv_t *)(track->video_streams[i].priv);
-    if(priv->trak == trak)
-      return &track->video_streams[i];
-    }
-  for(i = 0; i < track->num_subtitle_streams; i++)
-    {
-    priv = (stream_priv_t *)(track->subtitle_streams[i].priv);
-    if(priv->trak == trak)
-      return &track->subtitle_streams[i];
-    }
-  return (bgav_stream_t*)0;
-  }
 
 static int check_keyframe(stream_priv_t * s)
   {
@@ -322,7 +282,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
     //    if(j == priv->moov.num_tracks)
     //      return;
     
-    bgav_s = find_stream(ctx, &(priv->moov.tracks[stream_id]));
+    bgav_s = bgav_track_find_stream_all(ctx->tt->cur, stream_id);
 
     if(bgav_s && (bgav_s->type == BGAV_STREAM_AUDIO))
       {
@@ -347,10 +307,10 @@ static void build_index(bgav_demuxer_context_t * ctx)
                      bgav_s,
                      i, chunk_offset,
                      stream_id,
-                     s->tics,
+                     bgav_s->duration,
                      check_keyframe(s), chunk_samples, packet_size);
           
-          s->tics += chunk_samples;
+          bgav_s->duration += chunk_samples;
           chunk_offset += packet_size;
           /* Advance stts */
           if(s->stts_pos >= 0)
@@ -387,10 +347,10 @@ static void build_index(bgav_demuxer_context_t * ctx)
                    bgav_s,
                    i, chunk_offset,
                    stream_id,
-                   s->tics,
+                   bgav_s->duration,
                    check_keyframe(s), chunk_samples, 0);
         /* Time to sample */
-        s->tics += chunk_samples;
+        bgav_s->duration += chunk_samples;
         if(s->stts_pos >= 0)
           {
           s->stts_count++;
@@ -436,7 +396,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
                      bgav_s,
                      i, chunk_offset,
                      -1,
-                     s->tics,
+                     bgav_s->duration,
                      check_keyframe(s),
                      duration,
                      packet_size);
@@ -448,7 +408,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
                      bgav_s,
                      i, chunk_offset,
                      stream_id,
-                     s->tics,
+                     bgav_s->duration,
                      check_keyframe(s),
                      duration,
                      packet_size);
@@ -456,7 +416,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
           }
         chunk_offset += packet_size;
 
-        s->tics += duration;
+        bgav_s->duration += duration;
 
         /* Time to sample */
         if(s->stts_pos >= 0)
@@ -499,13 +459,13 @@ static void build_index(bgav_demuxer_context_t * ctx)
                    bgav_s,
                    i, chunk_offset,
                    stream_id,
-                   s->tics,
+                   bgav_s->duration,
                    check_keyframe(s), duration,
                    packet_size);
         
         chunk_offset += packet_size;
 
-        s->tics += duration;
+        bgav_s->duration += duration;
         
         /* Time to sample */
         if(s->stts_pos >= 0)
@@ -856,7 +816,6 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
   bgav_stream_t * bg_vs;
   bgav_stream_t * bg_ss;
   stream_priv_t * stream_priv;
-  gavl_time_t     stream_duration;
   qt_sample_description_t * desc;
   bgav_track_t * track;
   int skip_first_frame = 0;
@@ -898,6 +857,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       
       bg_as->priv = stream_priv;
       
+      bg_as->first_timestamp = 0;
       bg_as->timescale = trak->mdia.mdhd.time_scale;
       bg_as->fourcc    = desc->fourcc;
       bg_as->data.audio.format.num_channels = desc->format.audio.num_channels;
@@ -992,9 +952,6 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       
       bg_as->stream_id = i;
       
-      stream_duration = stream_get_duration(bg_as);
-      if(ctx->tt->cur->duration < stream_duration)
-        ctx->tt->cur->duration = stream_duration;
 
       /* Check endianess */
 
@@ -1051,6 +1008,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         stream_priv->skip_last_frame = 1;
       
       bg_vs->priv = stream_priv;
+      bg_vs->first_timestamp = 0;
       
       bg_vs->fourcc = desc->fourcc;
       bg_vs->data.video.format.image_width = desc->format.video.width;
@@ -1135,10 +1093,6 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         }
       bg_vs->stream_id = i;
 
-      stream_duration = stream_get_duration(bg_vs);
-      if(ctx->tt->cur->duration < stream_duration)
-        ctx->tt->cur->duration = stream_duration;
-      //      bgav_qt_trak_dump(&moov->tracks[i]);
       }
     /* Quicktime subtitles */
     else if(stsd->entries[0].desc.fourcc == BGAV_MK_FOURCC('t','e','x','t'))
@@ -1168,6 +1122,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         
         bg_ss->timescale = trak->mdia.mdhd.time_scale;
         bg_ss->stream_id = i;
+        bg_ss->first_timestamp = 0;
         
         stream_priv = &(priv->streams[i]);
         stream_init(stream_priv, &(moov->tracks[i]));
@@ -1194,6 +1149,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       
         bg_ss->timescale = trak->mdia.mdhd.time_scale;
         bg_ss->stream_id = i;
+        bg_ss->first_timestamp = 0;
 
         stream_priv = &(priv->streams[i]);
         stream_init(stream_priv, &(moov->tracks[i]));
@@ -1280,7 +1236,8 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
   int have_moov = 0;
   int have_mdat = 0;
   int done = 0;
-
+  gavl_time_t test_duration;
+  int i;
   /* Create track */
 
   ctx->tt = bgav_track_table_create(1);
@@ -1360,22 +1317,41 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
     }
 
   /* Get for redirecting */
-  if(!have_mdat && priv->moov.has_rmra)
+  if(!have_mdat)
     {
-    /* Redirector!!! */
-    handle_rmra(ctx, redir);
-    return 1;
+    if(priv->moov.has_rmra)
+      {
+      /* Redirector!!! */
+      handle_rmra(ctx, redir);
+      return 1;
+      }
+    else
+      return 0;
     }
   /* Initialize streams */
   quicktime_init(ctx);
 
-  if(!have_mdat)
-    {
-    return 0;
-    }
-  
+  /* Build index */
   build_index(ctx);
 
+  /* Get duration */
+  for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
+    {
+    test_duration =
+      gavl_time_unscale(ctx->tt->cur->audio_streams->data.audio.format.samplerate,
+                        ctx->tt->cur->audio_streams->duration);
+    if(ctx->tt->cur->duration < test_duration)
+      ctx->tt->cur->duration = test_duration;
+    }
+  for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
+    {
+    test_duration =
+      gavl_time_unscale(ctx->tt->cur->video_streams->data.video.format.timescale,
+                        ctx->tt->cur->video_streams->duration);
+    if(ctx->tt->cur->duration < test_duration)
+      ctx->tt->cur->duration = test_duration;
+    }
+  
   /* No packets are found */
   if(!ctx->si)
     return 0;
@@ -1413,11 +1389,11 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
     
     }
   
-  
-
   if(ctx->input->input->seek_byte)
     ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
-  
+
+  /* Seem that quicktime is always sample accurate :) */
+  ctx->index_mode = INDEX_MODE_SI_SA;
   
   return 1;
   }

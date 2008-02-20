@@ -32,7 +32,7 @@
 /* Define the variables below to get a detailed file dump
    on each open call */
 
-// #define DUMP_HEADERS
+#define DUMP_HEADERS
 // #define DUMP_INDICES
 // #define DUMP_AUDIO_TYPE
 
@@ -336,14 +336,14 @@ static void add_index_packet(bgav_superindex_t * si, bgav_stream_t * stream,
       //                at->wavex->nBlockAlign, at->dwSampleSize);
       if(stream->data.audio.block_align)
         {
-      time =
+        time =
           ((gavl_time_t)avi_as->total_bytes * (gavl_time_t)avi_as->strh.dwScale *
            samplerate) /
           (stream->data.audio.block_align * avi_as->strh.dwRate);
         }
       else
         {
-      time =
+        time =
           (samplerate * (gavl_time_t)avi_as->total_bytes *
            (gavl_time_t)avi_as->strh.dwScale) /
           (avi_as->strh.dwSampleSize * avi_as->strh.dwRate);
@@ -414,7 +414,7 @@ static int read_riff_header(bgav_input_context_t * input,
 
 
 #ifdef DUMP_HEADERS
-void dump_avih(avih_t * h)
+static void dump_avih(avih_t * h)
   {
   bgav_dprintf("avih:\n");
   bgav_dprintf("  dwMicroSecPerFrame: %d\n",    h->dwMicroSecPerFrame);
@@ -1295,26 +1295,24 @@ static int process_packet_iavs(bgav_demuxer_context_t * ctx)
     }
   
   if(vs)
-    {
     vp = bgav_stream_get_packet_write(vs);
-    }
   if(as)
-    {
     ap = bgav_stream_get_packet_write(as);
-    }
+
   if(!bgav_dv_dec_get_audio_packet(priv->dv_dec, ap))
     return 0;
   bgav_dv_dec_get_video_packet(priv->dv_dec, vp);
 
+#if 0  
   if(vs) bgav_dv_dec_set_frame_counter(priv->dv_dec, vs->in_position,
                                        gavl_time_rescale(vs->data.video.format.timescale,
                                                          vs->data.audio.format.samplerate,
                                                          vs->in_position *
                                                          vs->data.video.format.frame_duration));
-
+#endif
   if(ap) bgav_packet_done_write(ap);
-  if(vp) bgav_packet_done_write(vp);
-  
+  if(vp)
+    bgav_packet_done_write(vp);
   
   return 1;
   }
@@ -1322,16 +1320,29 @@ static int process_packet_iavs(bgav_demuxer_context_t * ctx)
 static void seek_iavs(bgav_demuxer_context_t * ctx, gavl_time_t time,
                       int scale)
   {
+  avi_priv_t * priv;
+  priv = (avi_priv_t*)(ctx->priv);
+  
   bgav_superindex_seek(ctx->si,
                        ctx->tt->cur->video_streams,
                        time, scale);
+  fprintf(stderr, "seek_iavs: %d %d\n",
+          ctx->tt->cur->audio_streams->timescale,
+          ctx->tt->cur->video_streams->timescale);
+          
   ctx->tt->cur->audio_streams->in_time =
-    ctx->tt->cur->video_streams->in_time;
+    gavl_time_rescale(ctx->tt->cur->video_streams->timescale,
+                      ctx->tt->cur->audio_streams->timescale,
+                      ctx->tt->cur->video_streams->in_time);
+  
   ctx->si->current_position = ctx->tt->cur->video_streams->index_position;
   bgav_input_seek(ctx->input, ctx->si->entries[ctx->si->current_position].offset,
                   SEEK_SET);
   ctx->tt->cur->video_streams->in_position =
     ctx->tt->cur->video_streams->index_position;
+
+  bgav_dv_dec_set_frame_counter(priv->dv_dec, ctx->tt->cur->video_streams->in_position,
+                                ctx->tt->cur->audio_streams->in_time);
   }
 
 static int next_packet_iavs_si(bgav_demuxer_context_t * ctx)
@@ -1448,8 +1459,8 @@ static int init_iavs_stream(bgav_demuxer_context_t * ctx,
     bg_vs->data.video.format.timescale = 25;
     bg_vs->data.video.format.frame_duration = 1;
     }
-  bg_vs->timescale = bg_vs->data.video.format.timescale;
-  bg_as->timescale = bg_vs->timescale;
+  //  bg_vs->timescale = bg_vs->data.video.format.timescale;
+  //  bg_as->timescale = bg_vs->timescale;
 
   ctx->flags |= BGAV_DEMUXER_SI_PRIVATE_FUNCS;
   
@@ -1526,6 +1537,14 @@ static void idx1_build_superindex(bgav_demuxer_context_t * ctx)
     }
   }
 
+static const uint32_t sa_audio_whitelist[] =
+  {
+    BGAV_WAVID_2_FOURCC(0x0001),
+    BGAV_WAVID_2_FOURCC(0x0003),
+    BGAV_WAVID_2_FOURCC(0x07),
+    BGAV_WAVID_2_FOURCC(0x06),
+    0x00,
+  };
 
 static int open_avi(bgav_demuxer_context_t * ctx,
                     bgav_redirector_context_t ** redir)
@@ -1727,7 +1746,26 @@ static int open_avi(bgav_demuxer_context_t * ctx,
   if(!ctx->tt->cur->duration)
     ctx->tt->cur->duration = GAVL_TIME_UNDEFINED;
 
-
+  /* Obtain index mode */
+#if 0
+  if(ctx->si)
+    ctx->index_mode = INDEX_MODE_SI_SA;
+  
+  for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
+    {
+    for(j = 0; j < sizeof(sa_audio_whitelist) / sizeof(sa_audio_whitelist[0]); j++)
+      {
+      if(ctx->tt->cur->audio_streams[i].fourcc == sa_audio_whitelist[j])
+        break;
+      }
+    
+    if(j == sizeof(sa_audio_whitelist) / sizeof(sa_audio_whitelist[0]))
+      {
+      ctx->index_mode = 0;
+      break;
+      }
+    }
+#endif
   
   /* Build metadata */
 

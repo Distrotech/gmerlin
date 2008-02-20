@@ -148,6 +148,7 @@ typedef struct dp_hdr_s {
 static int64_t get_pts(ffmpeg_video_priv * priv)
   {
   int64_t ret;
+  //  fprintf(stderr, "Get pts %d...", priv->pts_cache.num);
   if(!priv->pts_cache.num)
     return BGAV_TIMESTAMP_UNDEFINED;
 
@@ -157,11 +158,16 @@ static int64_t get_pts(ffmpeg_video_priv * priv)
   if(priv->pts_cache.num)
     memmove(&(priv->pts_cache.pts[0]), &(priv->pts_cache.pts[1]),
             sizeof(int64_t) * priv->pts_cache.num);
+
+  //  fprintf(stderr, "%ld\n", ret);
+
   return ret;
   }
 
 static int put_pts(ffmpeg_video_priv * priv, int64_t pts)
   {
+  //  fprintf(stderr, "*** Put pts %ld\n", pts);
+
   if(priv->pts_cache.num >= sizeof(priv->pts_cache.pts)/sizeof(priv->pts_cache.pts[0]))
     get_pts(priv);
   
