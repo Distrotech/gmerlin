@@ -417,7 +417,7 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
     /* Decode one frame */
     
 #ifdef DUMP_DECODE
-    bgav_dprintf("Decode: position: %" PRId64 " len: %d\n", s->out_position, len);
+    bgav_dprintf("Decode: position: %" PRId64 " len: %d\n", s->out_time, len);
     if(priv->parsed_frame)
       bgav_hexdump(priv->parsed_frame, 16, 16);
 #endif

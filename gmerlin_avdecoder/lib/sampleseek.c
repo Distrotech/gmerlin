@@ -83,12 +83,16 @@ void bgav_seek_audio(bgav_t * bgav, int stream, int64_t sample)
 
   if(bgav->demuxer->index_mode == INDEX_MODE_PCM)
     {
-    bgav->demuxer->demuxer->seek(bgav->demuxer, sample, s->data.audio.format.samplerate);
+    bgav->demuxer->demuxer->seek(bgav->demuxer, sample,
+                                 s->data.audio.format.samplerate);
     return;
     }
   else if(bgav->demuxer->index_mode == INDEX_MODE_SI_SA)
     {
-    bgav_superindex_seek(bgav->demuxer->si, s, sample, s->timescale);
+    bgav_superindex_seek(bgav->demuxer->si, s,
+                         gavl_time_rescale(s->data.audio.format.samplerate,
+                                           s->timescale, sample),
+                         s->timescale);
     }
   else /* Fileindex */
     {
@@ -116,7 +120,7 @@ void bgav_seek_audio(bgav_t * bgav, int stream, int64_t sample)
   
   bgav_stream_resync_decoder(s);
   //  fprintf(stderr, "bgav_audio_skipto...");
-  bgav_audio_skipto(s, &sample, s->timescale);
+  bgav_audio_skipto(s, &sample, s->data.audio.format.samplerate);
   //  fprintf(stderr, "done\n");
     
   s->in_time += s->first_timestamp;

@@ -187,7 +187,9 @@ static int decode_frame(bgav_stream_t * s)
                                            priv->buf.size);
 
 #ifdef DUMP_DECODE
-    bgav_dprintf("Used %d bytes %p\n", frame_info.bytesconsumed, priv->frame->samples.f);
+    bgav_dprintf("Used %d bytes, ptr: %p, samples: %d\n",
+                 frame_info.bytesconsumed, priv->frame->samples.f,
+                 frame_info.samples);
 #endif
    
     bgav_bytebuffer_remove(&priv->buf, frame_info.bytesconsumed);
@@ -250,9 +252,9 @@ static int decode_frame(bgav_stream_t * s)
 
   /* If decoding didn't fail, we might have some silent samples.
      faad2 seems to be reporting 0 samples in this case :( */
-
+  
   if(!frame_info.samples)
-    priv->frame->valid_samples = 1024;
+    priv->frame->valid_samples = s->data.audio.format.samples_per_frame;
   else
     priv->frame->valid_samples = frame_info.samples  / s->data.audio.format.num_channels;
   priv->last_block_size = priv->frame->valid_samples;
@@ -263,7 +265,7 @@ static int decode_frame(bgav_stream_t * s)
 static int init_faad2(bgav_stream_t * s)
   {
   faad_priv_t * priv;
-  unsigned long samplerate;
+  unsigned long samplerate = 0;
   unsigned char channels;
   char result;
   faacDecConfigurationPtr cfg;
@@ -275,8 +277,7 @@ static int init_faad2(bgav_stream_t * s)
   s->data.audio.decoder->priv = priv;
   
   /* Init the library using a DecoderSpecificInfo */
-
-
+  
   if(!s->ext_size)
     {
     if(!get_data(s))
@@ -296,15 +297,22 @@ static int init_faad2(bgav_stream_t * s)
 
   /* Some mp4 files have a wrong samplerate in the sample description,
      so we correct it here */
+  if(samplerate == 2 * s->data.audio.format.samplerate)
+    {
+    s->data.audio.format.samples_per_frame = 2048;
+    if(s->duration)
+      s->duration *= 2;
+    }
+  else
+    s->data.audio.format.samples_per_frame = 1024;
 
   s->data.audio.format.samplerate = samplerate;
-    
+  
   s->data.audio.format.num_channels = channels;
   s->data.audio.format.sample_format = GAVL_SAMPLE_FLOAT;
   //  s->data.audio.format.sample_format = GAVL_SAMPLE_S16;
   s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_ALL;
-  s->data.audio.format.samples_per_frame = 1024;
-    
+  
   cfg = faacDecGetCurrentConfiguration(priv->dec);
   cfg->outputFormat = FAAD_FMT_FLOAT;
   // cfg->outputFormat = FAAD_FMT_16BIT;
