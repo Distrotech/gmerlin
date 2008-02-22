@@ -93,8 +93,7 @@ static void (FUNC_NAME)(gavl_video_convert_context_t * ctx)
     src_u = (IN_TYPE*)src_save_u;
     src_v = (IN_TYPE*)src_save_v;
     
-    for(j = 0; j < jmax; j++)
-      {
+GAVL_LOOP_HEAD(j, jmax)
       CONVERT_YUV
       dst_y += OUT_ADVANCE_Y;
       dst_u += OUT_ADVANCE_UV;
@@ -103,7 +102,7 @@ static void (FUNC_NAME)(gavl_video_convert_context_t * ctx)
       src_y += IN_ADVANCE_Y;
       src_u += IN_ADVANCE_UV;
       src_v += IN_ADVANCE_UV;
-      }
+GAVL_LOOP_TAIL
     
     src_save_y += ctx->input_frame->strides[0];
     dst_save_y += ctx->output_frame->strides[0];
@@ -125,8 +124,7 @@ static void (FUNC_NAME)(gavl_video_convert_context_t * ctx)
     src_u = (IN_TYPE*)src_save_u;
     src_v = (IN_TYPE*)src_save_v;
     
-    for(j = 0; j < jmax; j++)
-      {
+GAVL_LOOP_HEAD(j, jmax)
       CONVERT_Y
       dst_y += OUT_ADVANCE_Y;
       dst_u += OUT_ADVANCE_UV;
@@ -135,7 +133,8 @@ static void (FUNC_NAME)(gavl_video_convert_context_t * ctx)
       src_y += IN_ADVANCE_Y;
       src_u += IN_ADVANCE_UV;
       src_v += IN_ADVANCE_UV;
-      }
+GAVL_LOOP_TAIL
+
 #endif    
     src_save_y += ctx->input_frame->strides[0];
     dst_save_y += ctx->output_frame->strides[0];
@@ -159,8 +158,7 @@ static void (FUNC_NAME)(gavl_video_convert_context_t * ctx)
     src_u = (IN_TYPE*)src_save_u;
     src_v = (IN_TYPE*)src_save_v;
     
-    for(j = 0; j < jmax; j++)
-      {
+GAVL_LOOP_HEAD(j, jmax)
       CONVERT_Y
       dst_y += OUT_ADVANCE_Y;
       dst_u += OUT_ADVANCE_UV;
@@ -169,7 +167,8 @@ static void (FUNC_NAME)(gavl_video_convert_context_t * ctx)
       src_y += IN_ADVANCE_Y;
       src_u += IN_ADVANCE_UV;
       src_v += IN_ADVANCE_UV;
-      }
+GAVL_LOOP_TAIL
+
 #endif
     src_save_y += ctx->input_frame->strides[0];
     dst_save_y += ctx->output_frame->strides[0];
@@ -193,8 +192,7 @@ static void (FUNC_NAME)(gavl_video_convert_context_t * ctx)
     src_u = (IN_TYPE*)src_save_u;
     src_v = (IN_TYPE*)src_save_v;
     
-    for(j = 0; j < jmax; j++)
-      {
+GAVL_LOOP_HEAD(j, jmax)
       CONVERT_Y
       dst_y += OUT_ADVANCE_Y;
       dst_u += OUT_ADVANCE_UV;
@@ -203,7 +201,8 @@ static void (FUNC_NAME)(gavl_video_convert_context_t * ctx)
       src_y += IN_ADVANCE_Y;
       src_u += IN_ADVANCE_UV;
       src_v += IN_ADVANCE_UV;
-      }
+GAVL_LOOP_TAIL
+  
 #endif
     src_save_y += ctx->input_frame->strides[0];
     dst_save_y += ctx->output_frame->strides[0];

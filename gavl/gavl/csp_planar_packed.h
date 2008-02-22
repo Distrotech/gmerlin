@@ -79,14 +79,14 @@ static void (FUNC_NAME)(gavl_video_convert_context_t * ctx)
     src_v = (IN_TYPE*)src_save_v;
 #endif /* !SCANLINE */
     
-    for(j = 0; j < jmax; j++)
-      {
+GAVL_LOOP_HEAD(j, jmax)
       CONVERT
       dst += OUT_ADVANCE;
       src_y += IN_ADVANCE_Y;
       src_u += IN_ADVANCE_UV;
       src_v += IN_ADVANCE_UV;
-      }
+GAVL_LOOP_TAIL
+  
 #ifndef SCANLINE
     src_save_y += ctx->input_frame->strides[0];
     dst_save += ctx->output_frame->strides[0];
@@ -97,14 +97,14 @@ static void (FUNC_NAME)(gavl_video_convert_context_t * ctx)
     src_u = (IN_TYPE*)src_save_u;
     src_v = (IN_TYPE*)src_save_v;
     
-    for(j = 0; j < jmax; j++)
-      {
+GAVL_LOOP_HEAD(j, jmax)
       CONVERT
       dst += OUT_ADVANCE;
       src_y += IN_ADVANCE_Y;
       src_u += IN_ADVANCE_UV;
       src_v += IN_ADVANCE_UV;
-      }
+GAVL_LOOP_TAIL
+
     src_save_y += ctx->input_frame->strides[0];
     dst_save += ctx->output_frame->strides[0];
 #endif
@@ -115,14 +115,13 @@ static void (FUNC_NAME)(gavl_video_convert_context_t * ctx)
     src_u = (IN_TYPE*)src_save_u;
     src_v = (IN_TYPE*)src_save_v;
     
-    for(j = 0; j < jmax; j++)
-      {
+GAVL_LOOP_HEAD(j, jmax)
       CONVERT
       dst += OUT_ADVANCE;
       src_y += IN_ADVANCE_Y;
       src_u += IN_ADVANCE_UV;
       src_v += IN_ADVANCE_UV;
-      }
+GAVL_LOOP_TAIL
     src_save_y += ctx->input_frame->strides[0];
     dst_save += ctx->output_frame->strides[0];
 #endif
@@ -133,14 +132,14 @@ static void (FUNC_NAME)(gavl_video_convert_context_t * ctx)
     src_u = (IN_TYPE*)src_save_u;
     src_v = (IN_TYPE*)src_save_v;
     
-    for(j = 0; j < jmax; j++)
-      {
+GAVL_LOOP_HEAD(j, jmax)
       CONVERT
       dst += OUT_ADVANCE;
       src_y += IN_ADVANCE_Y;
       src_u += IN_ADVANCE_UV;
       src_v += IN_ADVANCE_UV;
-      }
+GAVL_LOOP_TAIL
+
     src_save_y += ctx->input_frame->strides[0];
     dst_save += ctx->output_frame->strides[0];
 #endif
