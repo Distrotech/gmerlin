@@ -14,6 +14,7 @@ deinterlace.h \
 dsp.h \
 float_cast.h \
 interleave.h \
+macros.h \
 mix.h \
 sampleformat.h \
 samplerate.h \

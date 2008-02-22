@@ -23,6 +23,8 @@
 * Function table for pixelformats
  **************************************/
 
+#include <macros.h>
+
 typedef struct
   {
   /* Conversions among RGB formats */
