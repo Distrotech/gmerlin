@@ -36,6 +36,12 @@ typedef struct
 
 const pixelformat_tab_t pixelformat_tab[] =
   {
+    { GAVL_GRAY_8,  "8 bpp gray" },
+    { GAVL_GRAY_16, "16 bpp gray" },
+    { GAVL_GRAY_FLOAT, "Float gray" },
+    { GAVL_GRAYA_16,  "16 bpp gray + alpha" },
+    { GAVL_GRAYA_32, "32 bpp gray + alpha" },
+    { GAVL_GRAYA_FLOAT, "Float gray + alpha" },
     { GAVL_RGB_15, "15 bpp RGB" },
     { GAVL_BGR_15, "15 bpp BGR" },
     { GAVL_RGB_16, "16 bpp RGB" },
@@ -51,7 +57,10 @@ const pixelformat_tab_t pixelformat_tab[] =
     { GAVL_RGBA_FLOAT, "Float RGBA" },
     { GAVL_YUY2, "YUV 422 (YUY2)" },
     { GAVL_UYVY, "YUV 422 (UYVY)" },
-    { GAVL_YUVA_32, "YUVA 4444" },
+    { GAVL_YUVA_32, "YUVA 4444 (8 bit)" },
+    { GAVL_YUVA_64, "YUVA 4444 (16 bit)" },
+    { GAVL_YUVA_FLOAT, "YUVA 4444 (float)" },
+    { GAVL_YUV_FLOAT, "YUV 444 (float)" },
     { GAVL_YUV_420_P, "YUV 420 Planar" },
     { GAVL_YUV_410_P, "YUV 410 Planar" },
     { GAVL_YUV_411_P, "YUV 411 Planar" },
@@ -71,6 +80,12 @@ int gavl_pixelformat_num_planes(gavl_pixelformat_t csp)
   {
   switch(csp)
     {
+    case GAVL_GRAY_8:
+    case GAVL_GRAY_16:
+    case GAVL_GRAY_FLOAT:
+    case GAVL_GRAYA_16:
+    case GAVL_GRAYA_32:
+    case GAVL_GRAYA_FLOAT:
     case GAVL_RGB_15:
     case GAVL_BGR_15:
     case GAVL_RGB_16:
@@ -83,10 +98,13 @@ int gavl_pixelformat_num_planes(gavl_pixelformat_t csp)
     case GAVL_YUY2:
     case GAVL_UYVY:
     case GAVL_YUVA_32:
+    case GAVL_YUVA_64:
     case GAVL_RGB_48:
     case GAVL_RGBA_64:
     case GAVL_RGB_FLOAT:
     case GAVL_RGBA_FLOAT:
+    case GAVL_YUV_FLOAT:
+    case GAVL_YUVA_FLOAT:
       return 1;
       break;
     case GAVL_YUV_420_P:
@@ -126,10 +144,19 @@ void gavl_pixelformat_chroma_sub(gavl_pixelformat_t csp, int * sub_h,
     case GAVL_YUV_444_P_16:
     case GAVL_YUVJ_444_P:
     case GAVL_YUVA_32:
+    case GAVL_YUVA_64:
     case GAVL_RGB_48:
     case GAVL_RGBA_64:
     case GAVL_RGB_FLOAT:
     case GAVL_RGBA_FLOAT:
+    case GAVL_YUV_FLOAT:
+    case GAVL_YUVA_FLOAT:
+    case GAVL_GRAY_8:
+    case GAVL_GRAY_16:
+    case GAVL_GRAY_FLOAT:
+    case GAVL_GRAYA_16:
+    case GAVL_GRAYA_32:
+    case GAVL_GRAYA_FLOAT:
       *sub_h = 1;
       *sub_v = 1;
       break;
@@ -215,6 +242,11 @@ create_pixelformat_function_table(const gavl_video_options_t * opt,
     gavl_init_rgb_yuv_funcs_c(csp_tab, opt);
     gavl_init_yuv_rgb_funcs_c(csp_tab, opt);
     gavl_init_yuv_yuv_funcs_c(csp_tab, opt);
+    gavl_init_rgb_gray_funcs_c(csp_tab, opt);
+    gavl_init_gray_rgb_funcs_c(csp_tab, opt);
+    gavl_init_yuv_gray_funcs_c(csp_tab, opt);
+    gavl_init_gray_yuv_funcs_c(csp_tab, opt);
+    gavl_init_gray_gray_funcs_c(csp_tab, opt);
     }
   
 #ifdef HAVE_MMX
@@ -265,9 +297,567 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
 
   switch(input_pixelformat)
     {
+    case GAVL_GRAY_8:
+      switch(output_pixelformat)
+        {
+        case GAVL_GRAY_16:
+          ret = tab->gray_8_to_16;
+          break;
+        case GAVL_GRAY_FLOAT:
+          ret = tab->gray_8_to_float;
+          break;
+        case GAVL_GRAYA_16:
+          ret = tab->gray_8_to_graya_16;
+          break;
+        case GAVL_GRAYA_32:
+          ret = tab->gray_8_to_graya_32;
+          break;
+        case GAVL_GRAYA_FLOAT:
+          ret = tab->gray_8_to_graya_float;
+          break;
+        case GAVL_RGB_15:
+        case GAVL_BGR_15:
+          ret = tab->gray_8_to_rgb_15;
+          break;
+        case GAVL_RGB_16:
+        case GAVL_BGR_16:
+          ret = tab->gray_8_to_rgb_16;
+          break;
+        case GAVL_RGB_24:
+        case GAVL_BGR_24:
+          ret = tab->gray_8_to_rgb_24;
+          break;
+        case GAVL_RGB_32:
+        case GAVL_BGR_32:
+          ret = tab->gray_8_to_rgb_32;
+          break;
+        case GAVL_RGBA_32:
+          ret = tab->gray_8_to_rgba_32;
+          break;
+        case GAVL_RGB_48:
+          ret = tab->gray_8_to_rgb_48;
+          break;
+        case GAVL_RGBA_64:
+          ret = tab->gray_8_to_rgba_64;
+          break;
+        case GAVL_RGB_FLOAT:
+          ret = tab->gray_8_to_rgb_float;
+          break;
+        case GAVL_RGBA_FLOAT:
+          ret = tab->gray_8_to_rgba_float;
+          break;
+        case GAVL_YUY2:
+          ret = tab->gray_8_to_yuy2;
+          break;
+        case GAVL_UYVY:
+          ret = tab->gray_8_to_uyvy;
+          break;
+        case GAVL_YUVA_32:
+          ret = tab->gray_8_to_yuva_32;
+          break;
+        case GAVL_YUVA_64:
+          ret = tab->gray_8_to_yuva_64;
+          break;
+        case GAVL_YUVA_FLOAT:
+          ret = tab->gray_8_to_yuva_float;
+          break;
+        case GAVL_YUV_FLOAT:
+          ret = tab->gray_8_to_yuv_float;
+          break;
+        case GAVL_YUV_420_P:
+        case GAVL_YUV_410_P:
+        case GAVL_YUV_422_P:
+        case GAVL_YUV_411_P:
+        case GAVL_YUV_444_P:
+          ret = tab->gray_8_to_y_8;
+          break;
+        case GAVL_YUV_422_P_16:
+        case GAVL_YUV_444_P_16:
+          ret = tab->gray_8_to_y_16;
+          break;
+        case GAVL_YUVJ_420_P:
+        case GAVL_YUVJ_422_P:
+        case GAVL_YUVJ_444_P:
+          ret = tab->gray_8_to_yj_8;
+          break;
+          /* Keep GCC happy */
+        case GAVL_PIXELFORMAT_NONE:
+        case GAVL_GRAY_8:
+          break;
+        }
+      break;
+    case GAVL_GRAYA_16:
+      switch(output_pixelformat)
+        {
+        case GAVL_GRAY_8:
+          ret = tab->graya_16_to_gray_8;
+          break;
+        case GAVL_GRAY_16:
+          ret = tab->graya_16_to_gray_16;
+          break;
+        case GAVL_GRAY_FLOAT:
+          ret = tab->graya_16_to_gray_float;
+          break;
+        case GAVL_GRAYA_32:
+          ret = tab->graya_16_to_32;
+          break;
+        case GAVL_GRAYA_FLOAT:
+          ret = tab->graya_16_to_float;
+          break;
+        case GAVL_RGB_15:
+        case GAVL_BGR_15:
+          ret = tab->graya_16_to_rgb_15;
+          break;
+        case GAVL_RGB_16:
+        case GAVL_BGR_16:
+          ret = tab->graya_16_to_rgb_16;
+          break;
+        case GAVL_RGB_24:
+        case GAVL_BGR_24:
+          ret = tab->graya_16_to_rgb_24;
+          break;
+        case GAVL_RGB_32:
+        case GAVL_BGR_32:
+          ret = tab->graya_16_to_rgb_32;
+          break;
+        case GAVL_RGBA_32:
+          ret = tab->graya_16_to_rgba_32;
+          break;
+        case GAVL_RGB_48:
+          ret = tab->graya_16_to_rgb_48;
+          break;
+        case GAVL_RGBA_64:
+          ret = tab->graya_16_to_rgba_64;
+          break;
+        case GAVL_RGB_FLOAT:
+          ret = tab->graya_16_to_rgb_float;
+          break;
+        case GAVL_RGBA_FLOAT:
+          ret = tab->graya_16_to_rgba_float;
+          break;
+        case GAVL_YUY2:
+          ret = tab->graya_16_to_yuy2;
+          break;
+        case GAVL_UYVY:
+          ret = tab->graya_16_to_uyvy;
+          break;
+        case GAVL_YUVA_32:
+          ret = tab->graya_16_to_yuva_32;
+          break;
+        case GAVL_YUVA_64:
+          ret = tab->graya_16_to_yuva_64;
+          break;
+        case GAVL_YUVA_FLOAT:
+          ret = tab->graya_16_to_yuva_float;
+          break;
+        case GAVL_YUV_FLOAT:
+          ret = tab->graya_16_to_yuv_float;
+          break;
+        case GAVL_YUV_420_P:
+        case GAVL_YUV_410_P:
+        case GAVL_YUV_422_P:
+        case GAVL_YUV_411_P:
+        case GAVL_YUV_444_P:
+          ret = tab->graya_16_to_y_8;
+          break;
+        case GAVL_YUV_422_P_16:
+        case GAVL_YUV_444_P_16:
+          ret = tab->graya_16_to_y_16;
+          break;
+        case GAVL_YUVJ_420_P:
+        case GAVL_YUVJ_422_P:
+        case GAVL_YUVJ_444_P:
+          ret = tab->graya_16_to_yj_8;
+          break;
+          /* Keep GCC happy */
+        case GAVL_PIXELFORMAT_NONE:
+        case GAVL_GRAYA_16:
+          break;
+        }
+      break;
+
+
+    case GAVL_GRAY_16:
+      switch(output_pixelformat)
+        {
+        case GAVL_GRAY_8:
+          ret = tab->gray_16_to_8;
+          break;
+        case GAVL_GRAY_FLOAT:
+          ret  = tab->gray_16_to_float;
+          break;
+        case GAVL_GRAYA_16:
+          ret = tab->gray_16_to_graya_16;
+          break;
+        case GAVL_GRAYA_32:
+          ret = tab->gray_16_to_graya_32;
+          break;
+        case GAVL_GRAYA_FLOAT:
+          ret = tab->gray_16_to_graya_float;
+          break;
+        case GAVL_RGB_15:
+        case GAVL_BGR_15:
+          ret = tab->gray_16_to_rgb_15;
+          break;
+        case GAVL_RGB_16:
+        case GAVL_BGR_16:
+          ret = tab->gray_16_to_rgb_16;
+          break;
+        case GAVL_RGB_24:
+        case GAVL_BGR_24:
+          ret = tab->gray_16_to_rgb_24;
+          break;
+        case GAVL_RGB_32:
+        case GAVL_BGR_32:
+          ret = tab->gray_16_to_rgb_32;
+          break;
+        case GAVL_RGBA_32:
+          ret = tab->gray_16_to_rgba_32;
+          break;
+        case GAVL_RGB_48:
+          ret = tab->gray_16_to_rgb_48;
+          break;
+        case GAVL_RGBA_64:
+          ret = tab->gray_16_to_rgba_64;
+          break;
+        case GAVL_RGB_FLOAT:
+          ret = tab->gray_16_to_rgb_float;
+          break;
+        case GAVL_RGBA_FLOAT:
+          ret = tab->gray_16_to_rgba_float;
+          break;
+        case GAVL_YUY2:
+          ret = tab->gray_16_to_yuy2;
+          break;
+        case GAVL_UYVY:
+          ret = tab->gray_16_to_uyvy;
+          break;
+        case GAVL_YUVA_32:
+          ret = tab->gray_16_to_yuva_32;
+          break;
+        case GAVL_YUVA_64:
+          ret = tab->gray_16_to_yuva_64;
+          break;
+        case GAVL_YUVA_FLOAT:
+          ret = tab->gray_16_to_yuva_float;
+          break;
+        case GAVL_YUV_FLOAT:
+          ret = tab->gray_16_to_yuv_float;
+          break;
+        case GAVL_YUV_420_P:
+        case GAVL_YUV_410_P:
+        case GAVL_YUV_422_P:
+        case GAVL_YUV_411_P:
+        case GAVL_YUV_444_P:
+          ret = tab->gray_16_to_y_8;
+          break;
+        case GAVL_YUV_422_P_16:
+        case GAVL_YUV_444_P_16:
+          ret = tab->gray_16_to_y_16;
+          break;
+        case GAVL_YUVJ_420_P:
+        case GAVL_YUVJ_422_P:
+        case GAVL_YUVJ_444_P:
+          ret = tab->gray_16_to_yj_8;
+          break;
+          /* Keep GCC happy */
+        case GAVL_PIXELFORMAT_NONE:
+        case GAVL_GRAY_16:
+          break;
+        }
+      break;
+    case GAVL_GRAYA_32:
+      switch(output_pixelformat)
+        {
+        case GAVL_GRAY_8:
+          ret = tab->graya_32_to_gray_8;
+          break;
+        case GAVL_GRAY_16:
+          ret = tab->graya_32_to_gray_16;
+          break;
+        case GAVL_GRAY_FLOAT:
+          ret = tab->graya_32_to_gray_float;
+          break;
+        case GAVL_GRAYA_16:
+          ret = tab->graya_32_to_16;
+          break;
+        case GAVL_GRAYA_FLOAT:
+          ret  = tab->graya_32_to_float;
+          break;
+        case GAVL_RGB_15:
+        case GAVL_BGR_15:
+          ret = tab->graya_32_to_rgb_15;
+          break;
+        case GAVL_RGB_16:
+        case GAVL_BGR_16:
+          ret = tab->graya_32_to_rgb_16;
+          break;
+        case GAVL_RGB_24:
+        case GAVL_BGR_24:
+          ret = tab->graya_32_to_rgb_24;
+          break;
+        case GAVL_RGB_32:
+        case GAVL_BGR_32:
+          ret = tab->graya_32_to_rgb_32;
+          break;
+        case GAVL_RGBA_32:
+          ret = tab->graya_32_to_rgba_32;
+          break;
+        case GAVL_RGB_48:
+          ret = tab->graya_32_to_rgb_48;
+          break;
+        case GAVL_RGBA_64:
+          ret = tab->graya_32_to_rgba_64;
+          break;
+        case GAVL_RGB_FLOAT:
+          ret = tab->graya_32_to_rgb_float;
+          break;
+        case GAVL_RGBA_FLOAT:
+          ret = tab->graya_32_to_rgba_float;
+          break;
+        case GAVL_YUY2:
+          ret = tab->graya_32_to_yuy2;
+          break;
+        case GAVL_UYVY:
+          ret = tab->graya_32_to_uyvy;
+          break;
+        case GAVL_YUVA_32:
+          ret = tab->graya_32_to_yuva_32;
+          break;
+        case GAVL_YUVA_64:
+          ret = tab->graya_32_to_yuva_64;
+          break;
+        case GAVL_YUVA_FLOAT:
+          ret = tab->graya_32_to_yuva_float;
+          break;
+        case GAVL_YUV_FLOAT:
+          ret = tab->graya_32_to_yuv_float;
+          break;
+        case GAVL_YUV_420_P:
+        case GAVL_YUV_410_P:
+        case GAVL_YUV_422_P:
+        case GAVL_YUV_411_P:
+        case GAVL_YUV_444_P:
+          ret = tab->graya_32_to_y_8;
+          break;
+        case GAVL_YUV_422_P_16:
+        case GAVL_YUV_444_P_16:
+          ret = tab->graya_32_to_y_16;
+          break;
+        case GAVL_YUVJ_420_P:
+        case GAVL_YUVJ_422_P:
+        case GAVL_YUVJ_444_P:
+          ret = tab->graya_32_to_yj_8;
+          break;
+          /* Keep GCC happy */
+        case GAVL_PIXELFORMAT_NONE:
+        case GAVL_GRAYA_32:
+          break;
+        }
+      break;
+
+
+    case GAVL_GRAY_FLOAT:
+      switch(output_pixelformat)
+        {
+        case GAVL_GRAY_8:
+          ret = tab->gray_float_to_8;
+          break;
+        case GAVL_GRAY_16:
+          ret = tab->gray_float_to_16;
+          break;
+        case GAVL_GRAYA_16:
+          ret = tab->gray_float_to_graya_16;
+          break;
+        case GAVL_GRAYA_32:
+          ret = tab->gray_float_to_graya_32;
+          break;
+        case GAVL_GRAYA_FLOAT:
+          ret = tab->gray_float_to_graya_float;
+          break;
+        case GAVL_RGB_15:
+        case GAVL_BGR_15:
+          ret = tab->gray_float_to_rgb_15;
+          break;
+        case GAVL_RGB_16:
+        case GAVL_BGR_16:
+          ret = tab->gray_float_to_rgb_16;
+          break;
+        case GAVL_RGB_24:
+        case GAVL_BGR_24:
+          ret = tab->gray_float_to_rgb_24;
+          break;
+        case GAVL_RGB_32:
+        case GAVL_BGR_32:
+          ret = tab->gray_float_to_rgb_32;
+          break;
+        case GAVL_RGBA_32:
+          ret = tab->gray_float_to_rgba_32;
+          break;
+        case GAVL_RGB_48:
+          ret = tab->gray_float_to_rgb_48;
+          break;
+        case GAVL_RGBA_64:
+          ret = tab->gray_float_to_rgba_64;
+          break;
+        case GAVL_RGB_FLOAT:
+          ret = tab->gray_float_to_rgb_float;
+          break;
+        case GAVL_RGBA_FLOAT:
+          ret = tab->gray_float_to_rgba_float;
+          break;
+        case GAVL_YUY2:
+          ret = tab->gray_float_to_yuy2;
+          break;
+        case GAVL_UYVY:
+          ret = tab->gray_float_to_uyvy;
+          break;
+        case GAVL_YUVA_32:
+          ret = tab->gray_float_to_yuva_32;
+          break;
+        case GAVL_YUVA_64:
+          ret = tab->gray_float_to_yuva_64;
+          break;
+        case GAVL_YUVA_FLOAT:
+          ret = tab->gray_float_to_yuva_float;
+          break;
+        case GAVL_YUV_FLOAT:
+          ret = tab->gray_float_to_yuv_float;
+          break;
+        case GAVL_YUV_420_P:
+        case GAVL_YUV_410_P:
+        case GAVL_YUV_422_P:
+        case GAVL_YUV_411_P:
+        case GAVL_YUV_444_P:
+          ret = tab->gray_float_to_y_8;
+          break;
+        case GAVL_YUV_422_P_16:
+        case GAVL_YUV_444_P_16:
+          ret = tab->gray_float_to_y_16;
+          break;
+        case GAVL_YUVJ_420_P:
+        case GAVL_YUVJ_422_P:
+        case GAVL_YUVJ_444_P:
+          ret = tab->gray_float_to_yj_8;
+          break;
+          /* Keep GCC happy */
+        case GAVL_PIXELFORMAT_NONE:
+        case GAVL_GRAY_FLOAT:
+          break;
+        }
+      break;
+
+    case GAVL_GRAYA_FLOAT:
+      switch(output_pixelformat)
+        {
+        case GAVL_GRAY_8:
+          ret = tab->graya_float_to_gray_8;
+          break;
+        case GAVL_GRAY_16:
+          ret = tab->graya_float_to_gray_16;
+          break;
+        case GAVL_GRAY_FLOAT:
+          ret = tab->graya_float_to_gray_float;
+          break;
+        case GAVL_GRAYA_16:
+          ret = tab->graya_float_to_16;
+          break;
+        case GAVL_GRAYA_32:
+          ret = tab->graya_float_to_32;
+          break;
+        case GAVL_RGB_15:
+        case GAVL_BGR_15:
+          ret = tab->graya_float_to_rgb_15;
+          break;
+        case GAVL_RGB_16:
+        case GAVL_BGR_16:
+          ret = tab->graya_float_to_rgb_16;
+          break;
+        case GAVL_RGB_24:
+        case GAVL_BGR_24:
+          ret = tab->graya_float_to_rgb_24;
+          break;
+        case GAVL_RGB_32:
+        case GAVL_BGR_32:
+          ret = tab->graya_float_to_rgb_32;
+          break;
+        case GAVL_RGBA_32:
+          ret = tab->graya_float_to_rgba_32;
+          break;
+        case GAVL_RGB_48:
+          ret = tab->graya_float_to_rgb_48;
+          break;
+        case GAVL_RGBA_64:
+          ret = tab->graya_float_to_rgba_64;
+          break;
+        case GAVL_RGB_FLOAT:
+          ret = tab->graya_float_to_rgb_float;
+          break;
+        case GAVL_RGBA_FLOAT:
+          ret = tab->graya_float_to_rgba_float;
+          break;
+        case GAVL_YUY2:
+          ret = tab->graya_float_to_yuy2;
+          break;
+        case GAVL_UYVY:
+          ret = tab->graya_float_to_uyvy;
+          break;
+        case GAVL_YUVA_32:
+          ret = tab->graya_float_to_yuva_32;
+          break;
+        case GAVL_YUVA_64:
+          ret = tab->graya_float_to_yuva_64;
+          break;
+        case GAVL_YUVA_FLOAT:
+          ret = tab->graya_float_to_yuva_float;
+          break;
+        case GAVL_YUV_FLOAT:
+          ret = tab->graya_float_to_yuv_float;
+          break;
+        case GAVL_YUV_420_P:
+        case GAVL_YUV_410_P:
+        case GAVL_YUV_422_P:
+        case GAVL_YUV_411_P:
+        case GAVL_YUV_444_P:
+          ret = tab->graya_float_to_y_8;
+          break;
+        case GAVL_YUV_422_P_16:
+        case GAVL_YUV_444_P_16:
+          ret = tab->graya_float_to_y_16;
+          break;
+        case GAVL_YUVJ_420_P:
+        case GAVL_YUVJ_422_P:
+        case GAVL_YUVJ_444_P:
+          ret = tab->graya_float_to_yj_8;
+          break;
+          /* Keep GCC happy */
+        case GAVL_PIXELFORMAT_NONE:
+        case GAVL_GRAYA_FLOAT:
+          break;
+        }
+      break;
+      
     case GAVL_RGB_15:
       switch(output_pixelformat)
         {
+        case GAVL_GRAY_8:
+          ret = tab->rgb_15_to_gray_8;
+          break;
+        case GAVL_GRAY_16:
+          ret = tab->rgb_15_to_gray_16;
+          break;
+        case GAVL_GRAY_FLOAT:
+          ret = tab->rgb_15_to_gray_float;
+          break;
+        case GAVL_GRAYA_16:
+          ret = tab->rgb_15_to_graya_16;
+          break;
+        case GAVL_GRAYA_32:
+          ret = tab->rgb_15_to_graya_32;
+          break;
+        case GAVL_GRAYA_FLOAT:
+          ret = tab->rgb_15_to_graya_float;
+          break;
         case GAVL_BGR_15:
           ret = tab->swap_rgb_15;
           break;
@@ -313,6 +903,15 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
         case GAVL_YUVA_32:
           ret = tab->rgb_15_to_yuva_32;
           break;
+        case GAVL_YUVA_64:
+          ret = tab->rgb_15_to_yuva_64;
+          break;
+        case GAVL_YUVA_FLOAT:
+          ret = tab->rgb_15_to_yuva_float;
+          break;
+        case GAVL_YUV_FLOAT:
+          ret = tab->rgb_15_to_yuv_float;
+          break;
         case GAVL_YUV_420_P:
           ret = tab->rgb_15_to_yuv_420_p;
           break;
@@ -352,6 +951,24 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
     case GAVL_BGR_15:
       switch(output_pixelformat)
         {
+        case GAVL_GRAY_8:
+          ret = tab->bgr_15_to_gray_8;
+          break;
+        case GAVL_GRAY_16:
+          ret = tab->bgr_15_to_gray_16;
+          break;
+        case GAVL_GRAY_FLOAT:
+          ret = tab->bgr_15_to_gray_float;
+          break;
+        case GAVL_GRAYA_16:
+          ret = tab->bgr_15_to_graya_16;
+          break;
+        case GAVL_GRAYA_32:
+          ret = tab->bgr_15_to_graya_32;
+          break;
+        case GAVL_GRAYA_FLOAT:
+          ret = tab->bgr_15_to_graya_float;
+          break;
         case GAVL_RGB_15:
           ret = tab->swap_rgb_15;
           break;
@@ -397,6 +1014,15 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
         case GAVL_YUVA_32:
           ret = tab->bgr_15_to_yuva_32;
           break;
+        case GAVL_YUVA_64:
+          ret = tab->bgr_15_to_yuva_64;
+          break;
+        case GAVL_YUVA_FLOAT:
+          ret = tab->bgr_15_to_yuva_float;
+          break;
+        case GAVL_YUV_FLOAT:
+          ret = tab->bgr_15_to_yuv_float;
+          break;
         case GAVL_YUV_420_P:
           ret = tab->bgr_15_to_yuv_420_p;
           break;
@@ -436,6 +1062,24 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
     case GAVL_RGB_16:
       switch(output_pixelformat)
         {
+        case GAVL_GRAY_8:
+          ret = tab->rgb_16_to_gray_8;
+          break;
+        case GAVL_GRAY_16:
+          ret = tab->rgb_16_to_gray_16;
+          break;
+        case GAVL_GRAY_FLOAT:
+          ret = tab->rgb_16_to_gray_float;
+          break;
+        case GAVL_GRAYA_16:
+          ret = tab->rgb_16_to_graya_16;
+          break;
+        case GAVL_GRAYA_32:
+          ret = tab->rgb_16_to_graya_32;
+          break;
+        case GAVL_GRAYA_FLOAT:
+          ret = tab->rgb_16_to_graya_float;
+          break;
         case GAVL_RGB_15:
           ret = tab->rgb_16_to_15;
           break;
@@ -482,6 +1126,15 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
         case GAVL_YUVA_32:
           ret = tab->rgb_16_to_yuva_32;
           break;
+        case GAVL_YUVA_64:
+          ret = tab->rgb_16_to_yuva_64;
+          break;
+        case GAVL_YUVA_FLOAT:
+          ret = tab->rgb_16_to_yuva_float;
+          break;
+        case GAVL_YUV_FLOAT:
+          ret = tab->rgb_16_to_yuv_float;
+          break;
         case GAVL_YUV_420_P:
           ret = tab->rgb_16_to_yuv_420_p;
           break;
@@ -521,6 +1174,24 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
     case GAVL_BGR_16:
       switch(output_pixelformat)
         {
+        case GAVL_GRAY_8:
+          ret = tab->bgr_16_to_gray_8;
+          break;
+        case GAVL_GRAY_16:
+          ret = tab->bgr_16_to_gray_16;
+          break;
+        case GAVL_GRAY_FLOAT:
+          ret = tab->bgr_16_to_gray_float;
+          break;
+        case GAVL_GRAYA_16:
+          ret = tab->bgr_16_to_graya_16;
+          break;
+        case GAVL_GRAYA_32:
+          ret = tab->bgr_16_to_graya_32;
+          break;
+        case GAVL_GRAYA_FLOAT:
+          ret = tab->bgr_16_to_graya_float;
+          break;
         case GAVL_RGB_15:
           ret = tab->rgb_16_to_15_swap;
           break;
@@ -567,6 +1238,15 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
         case GAVL_YUVA_32:
           ret = tab->bgr_16_to_yuva_32;
           break;
+        case GAVL_YUVA_64:
+          ret = tab->bgr_16_to_yuva_64;
+          break;
+        case GAVL_YUVA_FLOAT:
+          ret = tab->bgr_16_to_yuva_float;
+          break;
+        case GAVL_YUV_FLOAT:
+          ret = tab->bgr_16_to_yuv_float;
+          break;
         case GAVL_YUV_420_P:
           ret = tab->bgr_16_to_yuv_420_p;
           break;
@@ -606,6 +1286,24 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
     case GAVL_RGB_24:
       switch(output_pixelformat)
         {
+        case GAVL_GRAY_8:
+          ret = tab->rgb_24_to_gray_8;
+          break;
+        case GAVL_GRAY_16:
+          ret = tab->rgb_24_to_gray_16;
+          break;
+        case GAVL_GRAY_FLOAT:
+          ret = tab->rgb_24_to_gray_float;
+          break;
+        case GAVL_GRAYA_16:
+          ret = tab->rgb_24_to_graya_16;
+          break;
+        case GAVL_GRAYA_32:
+          ret = tab->rgb_24_to_graya_32;
+          break;
+        case GAVL_GRAYA_FLOAT:
+          ret = tab->rgb_24_to_graya_float;
+          break;
         case GAVL_RGB_15:
           ret = tab->rgb_24_to_15;
           break;
@@ -651,6 +1349,15 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
         case GAVL_YUVA_32:
           ret = tab->rgb_24_to_yuva_32;
           break;
+        case GAVL_YUVA_64:
+          ret = tab->rgb_24_to_yuva_64;
+          break;
+        case GAVL_YUVA_FLOAT:
+          ret = tab->rgb_24_to_yuva_float;
+          break;
+        case GAVL_YUV_FLOAT:
+          ret = tab->rgb_24_to_yuv_float;
+          break;
         case GAVL_YUV_420_P:
           ret = tab->rgb_24_to_yuv_420_p;
           break;
@@ -690,6 +1397,24 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
     case GAVL_BGR_24:
       switch(output_pixelformat)
         {
+        case GAVL_GRAY_8:
+          ret = tab->bgr_24_to_gray_8;
+          break;
+        case GAVL_GRAY_16:
+          ret = tab->bgr_24_to_gray_16;
+          break;
+        case GAVL_GRAY_FLOAT:
+          ret = tab->bgr_24_to_gray_float;
+          break;
+        case GAVL_GRAYA_16:
+          ret = tab->bgr_24_to_graya_16;
+          break;
+        case GAVL_GRAYA_32:
+          ret = tab->bgr_24_to_graya_32;
+          break;
+        case GAVL_GRAYA_FLOAT:
+          ret = tab->bgr_24_to_graya_float;
+          break;
         case GAVL_RGB_15:
           ret = tab->rgb_24_to_15_swap;
           break;
@@ -735,6 +1460,15 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
         case GAVL_YUVA_32:
           ret = tab->bgr_24_to_yuva_32;
           break;
+        case GAVL_YUVA_64:
+          ret = tab->bgr_24_to_yuva_64;
+          break;
+        case GAVL_YUVA_FLOAT:
+          ret = tab->bgr_24_to_yuva_float;
+          break;
+        case GAVL_YUV_FLOAT:
+          ret = tab->bgr_24_to_yuv_float;
+          break;
         case GAVL_YUV_420_P:
           ret = tab->bgr_24_to_yuv_420_p;
           break;
@@ -774,6 +1508,24 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
     case GAVL_RGB_32:
       switch(output_pixelformat)
         {
+        case GAVL_GRAY_8:
+          ret = tab->rgb_32_to_gray_8;
+          break;
+        case GAVL_GRAY_16:
+          ret = tab->rgb_32_to_gray_16;
+          break;
+        case GAVL_GRAY_FLOAT:
+          ret = tab->rgb_32_to_gray_float;
+          break;
+        case GAVL_GRAYA_16:
+          ret = tab->rgb_32_to_graya_16;
+          break;
+        case GAVL_GRAYA_32:
+          ret = tab->rgb_32_to_graya_32;
+          break;
+        case GAVL_GRAYA_FLOAT:
+          ret = tab->rgb_32_to_graya_float;
+          break;
         case GAVL_RGB_15:
           ret = tab->rgb_32_to_15;
           break;
@@ -819,6 +1571,15 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
         case GAVL_YUVA_32:
           ret = tab->rgb_32_to_yuva_32;
           break;
+        case GAVL_YUVA_64:
+          ret = tab->rgb_32_to_yuva_64;
+          break;
+        case GAVL_YUVA_FLOAT:
+          ret = tab->rgb_32_to_yuva_float;
+          break;
+        case GAVL_YUV_FLOAT:
+          ret = tab->rgb_32_to_yuv_float;
+          break;
         case GAVL_YUV_420_P:
           ret = tab->rgb_32_to_yuv_420_p;
           break;
@@ -858,6 +1619,24 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
     case GAVL_BGR_32:
       switch(output_pixelformat)
         {
+        case GAVL_GRAY_8:
+          ret = tab->bgr_32_to_gray_8;
+          break;
+        case GAVL_GRAY_16:
+          ret = tab->bgr_32_to_gray_16;
+          break;
+        case GAVL_GRAY_FLOAT:
+          ret = tab->bgr_32_to_gray_float;
+          break;
+        case GAVL_GRAYA_16:
+          ret = tab->bgr_32_to_graya_16;
+          break;
+        case GAVL_GRAYA_32:
+          ret = tab->bgr_32_to_graya_32;
+          break;
+        case GAVL_GRAYA_FLOAT:
+          ret = tab->bgr_32_to_graya_float;
+          break;
         case GAVL_RGB_15:
           ret = tab->rgb_32_to_15_swap;
           break;
@@ -903,6 +1682,15 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
         case GAVL_YUVA_32:
           ret = tab->bgr_32_to_yuva_32;
           break;
+        case GAVL_YUVA_64:
+          ret = tab->bgr_32_to_yuva_64;
+          break;
+        case GAVL_YUVA_FLOAT:
+          ret = tab->bgr_32_to_yuva_float;
+          break;
+        case GAVL_YUV_FLOAT:
+          ret = tab->bgr_32_to_yuv_float;
+          break;
         case GAVL_YUV_420_P:
           ret = tab->bgr_32_to_yuv_420_p;
           break;
@@ -942,6 +1730,24 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
     case GAVL_RGBA_32:
       switch(output_pixelformat)
         {
+        case GAVL_GRAY_8:
+          ret = tab->rgba_32_to_gray_8;
+          break;
+        case GAVL_GRAY_16:
+          ret = tab->rgba_32_to_gray_16;
+          break;
+        case GAVL_GRAY_FLOAT:
+          ret = tab->rgba_32_to_gray_float;
+          break;
+        case GAVL_GRAYA_16:
+          ret = tab->rgba_32_to_graya_16;
+          break;
+        case GAVL_GRAYA_32:
+          ret = tab->rgba_32_to_graya_32;
+          break;
+        case GAVL_GRAYA_FLOAT:
+          ret = tab->rgba_32_to_graya_float;
+          break;
         case GAVL_RGB_15:
           ret = tab->rgba_32_to_rgb_15;
           break;
@@ -987,6 +1793,15 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
         case GAVL_YUVA_32:
           ret = tab->rgba_32_to_yuva_32;
           break;
+        case GAVL_YUVA_64:
+          ret = tab->rgba_32_to_yuva_64;
+          break;
+        case GAVL_YUVA_FLOAT:
+          ret = tab->rgba_32_to_yuva_float;
+          break;
+        case GAVL_YUV_FLOAT:
+          ret = tab->rgba_32_to_yuv_float;
+          break;
         case GAVL_YUV_420_P:
           ret = tab->rgba_32_to_yuv_420_p;
           break;
@@ -1027,6 +1842,24 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
     case GAVL_RGBA_64:
       switch(output_pixelformat)
         {
+        case GAVL_GRAY_8:
+          ret = tab->rgba_64_to_gray_8;
+          break;
+        case GAVL_GRAY_16:
+          ret = tab->rgba_64_to_gray_16;
+          break;
+        case GAVL_GRAY_FLOAT:
+          ret = tab->rgba_64_to_gray_float;
+          break;
+        case GAVL_GRAYA_16:
+          ret = tab->rgba_64_to_graya_16;
+          break;
+        case GAVL_GRAYA_32:
+          ret = tab->rgba_64_to_graya_32;
+          break;
+        case GAVL_GRAYA_FLOAT:
+          ret = tab->rgba_64_to_graya_float;
+          break;
         case GAVL_RGB_15:
           ret = tab->rgba_64_to_rgb_15;
           break;
@@ -1072,6 +1905,15 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
         case GAVL_YUVA_32:
           ret = tab->rgba_64_to_yuva_32;
           break;
+        case GAVL_YUVA_64:
+          ret = tab->rgba_64_to_yuva_64;
+          break;
+        case GAVL_YUVA_FLOAT:
+          ret = tab->rgba_64_to_yuva_float;
+          break;
+        case GAVL_YUV_FLOAT:
+          ret = tab->rgba_64_to_yuv_float;
+          break;
         case GAVL_YUV_420_P:
           ret = tab->rgba_64_to_yuv_420_p;
           break;
@@ -1112,6 +1954,24 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
     case GAVL_RGBA_FLOAT:
       switch(output_pixelformat)
         {
+        case GAVL_GRAY_8:
+          ret = tab->rgba_float_to_gray_8;
+          break;
+        case GAVL_GRAY_16:
+          ret = tab->rgba_float_to_gray_16;
+          break;
+        case GAVL_GRAY_FLOAT:
+          ret = tab->rgba_float_to_gray_float;
+          break;
+        case GAVL_GRAYA_16:
+          ret = tab->rgba_float_to_graya_16;
+          break;
+        case GAVL_GRAYA_32:
+          ret = tab->rgba_float_to_graya_32;
+          break;
+        case GAVL_GRAYA_FLOAT:
+          ret = tab->rgba_float_to_graya_float;
+          break;
         case GAVL_RGB_15:
           ret = tab->rgba_float_to_rgb_15;
           break;
@@ -1157,6 +2017,15 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
         case GAVL_YUVA_32:
           ret = tab->rgba_float_to_yuva_32;
           break;
+        case GAVL_YUVA_64:
+          ret = tab->rgba_float_to_yuva_64;
+          break;
+        case GAVL_YUVA_FLOAT:
+          ret = tab->rgba_float_to_yuva_float;
+          break;
+        case GAVL_YUV_FLOAT:
+          ret = tab->rgba_float_to_yuv_float;
+          break;
         case GAVL_YUV_420_P:
           ret = tab->rgba_float_to_yuv_420_p;
           break;
@@ -1198,6 +2067,24 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
     case GAVL_RGB_48:
       switch(output_pixelformat)
         {
+        case GAVL_GRAY_8:
+          ret = tab->rgb_48_to_gray_8;
+          break;
+        case GAVL_GRAY_16:
+          ret = tab->rgb_48_to_gray_16;
+          break;
+        case GAVL_GRAY_FLOAT:
+          ret = tab->rgb_48_to_gray_float;
+          break;
+        case GAVL_GRAYA_16:
+          ret = tab->rgb_48_to_graya_16;
+          break;
+        case GAVL_GRAYA_32:
+          ret = tab->rgb_48_to_graya_32;
+          break;
+        case GAVL_GRAYA_FLOAT:
+          ret = tab->rgb_48_to_graya_float;
+          break;
         case GAVL_RGB_15:
           ret = tab->rgb_48_to_15;
           break;
@@ -1243,6 +2130,15 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
         case GAVL_YUVA_32:
           ret = tab->rgb_48_to_yuva_32;
           break;
+        case GAVL_YUVA_64:
+          ret = tab->rgb_48_to_yuva_64;
+          break;
+        case GAVL_YUVA_FLOAT:
+          ret = tab->rgb_48_to_yuva_float;
+          break;
+        case GAVL_YUV_FLOAT:
+          ret = tab->rgb_48_to_yuv_float;
+          break;
         case GAVL_YUV_420_P:
           ret = tab->rgb_48_to_yuv_420_p;
           break;
@@ -1282,6 +2178,24 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
     case GAVL_RGB_FLOAT:
       switch(output_pixelformat)
         {
+        case GAVL_GRAY_8:
+          ret = tab->rgb_float_to_gray_8;
+          break;
+        case GAVL_GRAY_16:
+          ret = tab->rgb_float_to_gray_16;
+          break;
+        case GAVL_GRAY_FLOAT:
+          ret = tab->rgb_float_to_gray_float;
+          break;
+        case GAVL_GRAYA_16:
+          ret = tab->rgb_float_to_graya_16;
+          break;
+        case GAVL_GRAYA_32:
+          ret = tab->rgb_float_to_graya_32;
+          break;
+        case GAVL_GRAYA_FLOAT:
+          ret = tab->rgb_float_to_graya_float;
+          break;
         case GAVL_RGB_15:
           ret = tab->rgb_float_to_15;
           break;
@@ -1327,6 +2241,15 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
         case GAVL_YUVA_32:
           ret = tab->rgb_float_to_yuva_32;
           break;
+        case GAVL_YUVA_64:
+          ret = tab->rgb_float_to_yuva_64;
+          break;
+        case GAVL_YUVA_FLOAT:
+          ret = tab->rgb_float_to_yuva_float;
+          break;
+        case GAVL_YUV_FLOAT:
+          ret = tab->rgb_float_to_yuv_float;
+          break;
         case GAVL_YUV_420_P:
           ret = tab->rgb_float_to_yuv_420_p;
           break;
@@ -1369,6 +2292,24 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
     case GAVL_YUY2:
       switch(output_pixelformat)
         {
+        case GAVL_GRAY_8:
+          ret = tab->yuy2_to_gray_8;
+          break;
+        case GAVL_GRAY_16:
+          ret = tab->yuy2_to_gray_16;
+          break;
+        case GAVL_GRAY_FLOAT:
+          ret = tab->yuy2_to_gray_float;
+          break;
+        case GAVL_GRAYA_16:
+          ret = tab->yuy2_to_graya_16;
+          break;
+        case GAVL_GRAYA_32:
+          ret = tab->yuy2_to_graya_32;
+          break;
+        case GAVL_GRAYA_FLOAT:
+          ret = tab->yuy2_to_graya_float;
+          break;
         case GAVL_RGB_15:
           ret = tab->yuy2_to_rgb_15;
           break;
@@ -1444,6 +2385,15 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
         case GAVL_YUVA_32:
           ret = tab->yuy2_to_yuva_32;
           break;
+        case GAVL_YUVA_64:
+          ret = tab->yuy2_to_yuva_64;
+          break;
+        case GAVL_YUVA_FLOAT:
+          ret = tab->yuy2_to_yuva_float;
+          break;
+        case GAVL_YUV_FLOAT:
+          ret = tab->yuy2_to_yuv_float;
+          break;
         /* Keep GCC happy */
         case GAVL_PIXELFORMAT_NONE:
         case GAVL_YUY2:
@@ -1453,6 +2403,24 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
     case GAVL_UYVY:
       switch(output_pixelformat)
         {
+        case GAVL_GRAY_8:
+          ret = tab->uyvy_to_gray_8;
+          break;
+        case GAVL_GRAY_16:
+          ret = tab->uyvy_to_gray_16;
+          break;
+        case GAVL_GRAY_FLOAT:
+          ret = tab->uyvy_to_gray_float;
+          break;
+        case GAVL_GRAYA_16:
+          ret = tab->uyvy_to_graya_16;
+          break;
+        case GAVL_GRAYA_32:
+          ret = tab->uyvy_to_graya_32;
+          break;
+        case GAVL_GRAYA_FLOAT:
+          ret = tab->uyvy_to_graya_float;
+          break;
         case GAVL_RGB_15:
           ret = tab->uyvy_to_rgb_15;
           break;
@@ -1528,6 +2496,15 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
         case GAVL_YUVA_32:
           ret = tab->uyvy_to_yuva_32;
           break;
+        case GAVL_YUVA_64:
+          ret = tab->uyvy_to_yuva_64;
+          break;
+        case GAVL_YUVA_FLOAT:
+          ret = tab->uyvy_to_yuva_float;
+          break;
+        case GAVL_YUV_FLOAT:
+          ret = tab->uyvy_to_yuv_float;
+          break;
         /* Keep GCC happy */
         case GAVL_PIXELFORMAT_NONE:
         case GAVL_UYVY:
@@ -1535,9 +2512,27 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
         }
       break;
 
-    case GAVL_YUVA_32:
+     case GAVL_YUVA_32:
       switch(output_pixelformat)
         {
+        case GAVL_GRAY_8:
+          ret = tab->yuva_32_to_gray_8;
+          break;
+        case GAVL_GRAY_16:
+          ret = tab->yuva_32_to_gray_16;
+          break;
+        case GAVL_GRAY_FLOAT:
+          ret = tab->yuva_32_to_gray_float;
+          break;
+        case GAVL_GRAYA_16:
+          ret = tab->yuva_32_to_graya_16;
+          break;
+        case GAVL_GRAYA_32:
+          ret = tab->yuva_32_to_graya_32;
+          break;
+        case GAVL_GRAYA_FLOAT:
+          ret = tab->yuva_32_to_graya_float;
+          break;
         case GAVL_RGB_15:
           ret = tab->yuva_32_to_rgb_15;
           break;
@@ -1613,6 +2608,15 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
         case GAVL_UYVY:
           ret = tab->yuva_32_to_uyvy;
           break;
+        case GAVL_YUVA_64:
+          ret = tab->yuva_32_to_yuva_64;
+          break;
+        case GAVL_YUVA_FLOAT:
+          ret = tab->yuva_32_to_yuva_float;
+          break;
+        case GAVL_YUV_FLOAT:
+          ret = tab->yuva_32_to_yuv_float;
+          break;
         /* Keep GCC happy */
         case GAVL_PIXELFORMAT_NONE:
         case GAVL_YUVA_32:
@@ -1620,10 +2624,363 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
         }
       break;
 
+    case GAVL_YUVA_64:
+      switch(output_pixelformat)
+        {
+        case GAVL_GRAY_8:
+          ret = tab->yuva_64_to_gray_8;
+          break;
+        case GAVL_GRAY_16:
+          ret = tab->yuva_64_to_gray_16;
+          break;
+        case GAVL_GRAY_FLOAT:
+          ret = tab->yuva_64_to_gray_float;
+          break;
+        case GAVL_GRAYA_16:
+          ret = tab->yuva_64_to_graya_16;
+          break;
+        case GAVL_GRAYA_32:
+          ret = tab->yuva_64_to_graya_32;
+          break;
+        case GAVL_GRAYA_FLOAT:
+          ret = tab->yuva_64_to_graya_float;
+          break;
+        case GAVL_RGB_15:
+          ret = tab->yuva_64_to_rgb_15;
+          break;
+        case GAVL_BGR_15:
+          ret = tab->yuva_64_to_bgr_15;
+          break;
+        case GAVL_RGB_16:
+          ret = tab->yuva_64_to_rgb_16;
+          break;
+        case GAVL_BGR_16:
+          ret = tab->yuva_64_to_bgr_16;
+          break;
+        case GAVL_RGB_24:
+          ret = tab->yuva_64_to_rgb_24;
+          break;
+        case GAVL_BGR_24:
+          ret = tab->yuva_64_to_bgr_24;
+          break;
+        case GAVL_RGB_32:
+          ret = tab->yuva_64_to_rgb_32;
+          break;
+        case GAVL_BGR_32:
+          ret = tab->yuva_64_to_bgr_32;
+          break;
+        case GAVL_RGBA_32:
+          ret = tab->yuva_64_to_rgba_32;
+          break;
+        case GAVL_RGB_48:
+          ret = tab->yuva_64_to_rgb_48;
+          break;
+        case GAVL_RGBA_64:
+          ret = tab->yuva_64_to_rgba_64;
+          break;
+        case GAVL_RGB_FLOAT:
+          ret = tab->yuva_64_to_rgb_float;
+          break;
+        case GAVL_RGBA_FLOAT:
+          ret = tab->yuva_64_to_rgba_float;
+          break;
+        case GAVL_YUV_420_P:
+          ret = tab->yuva_64_to_yuv_420_p;
+          break;
+        case GAVL_YUV_410_P:
+          ret = tab->yuva_64_to_yuv_410_p;
+          break;
+        case GAVL_YUV_422_P:
+          ret = tab->yuva_64_to_yuv_422_p;
+          break;
+        case GAVL_YUV_422_P_16:
+          ret = tab->yuva_64_to_yuv_422_p_16;
+          break;
+        case GAVL_YUV_411_P:
+          ret = tab->yuva_64_to_yuv_411_p;
+          break;
+        case GAVL_YUV_444_P:
+          ret = tab->yuva_64_to_yuv_444_p;
+          break;
+        case GAVL_YUV_444_P_16:
+          ret = tab->yuva_64_to_yuv_444_p_16;
+          break;
+        case GAVL_YUVJ_420_P:
+          ret = tab->yuva_64_to_yuvj_420_p;
+          break;
+        case GAVL_YUVJ_422_P:
+          ret = tab->yuva_64_to_yuvj_422_p;
+          break;
+        case GAVL_YUVJ_444_P:
+          ret = tab->yuva_64_to_yuvj_444_p;
+          break;
+        case GAVL_YUY2:
+          ret = tab->yuva_64_to_yuy2;
+          break;
+        case GAVL_UYVY:
+          ret = tab->yuva_64_to_uyvy;
+          break;
+        case GAVL_YUVA_32:
+          ret = tab->yuva_64_to_yuva_32;
+          break;
+        case GAVL_YUVA_FLOAT:
+          ret = tab->yuva_64_to_yuva_float;
+          break;
+        case GAVL_YUV_FLOAT:
+          ret = tab->yuva_64_to_yuv_float;
+          break;
+        /* Keep GCC happy */
+        case GAVL_PIXELFORMAT_NONE:
+        case GAVL_YUVA_64:
+          break;
+        }
+      break;
+
+    case GAVL_YUVA_FLOAT:
+      switch(output_pixelformat)
+        {
+        case GAVL_GRAY_8:
+          ret = tab->yuva_float_to_gray_8;
+          break;
+        case GAVL_GRAY_16:
+          ret = tab->yuva_float_to_gray_16;
+          break;
+        case GAVL_GRAY_FLOAT:
+          ret = tab->yuva_float_to_gray_float;
+          break;
+        case GAVL_GRAYA_16:
+          ret = tab->yuva_float_to_graya_16;
+          break;
+        case GAVL_GRAYA_32:
+          ret = tab->yuva_float_to_graya_32;
+          break;
+        case GAVL_GRAYA_FLOAT:
+          ret = tab->yuva_float_to_graya_float;
+          break;
+        case GAVL_RGB_15:
+          ret = tab->yuva_float_to_rgb_15;
+          break;
+        case GAVL_BGR_15:
+          ret = tab->yuva_float_to_bgr_15;
+          break;
+        case GAVL_RGB_16:
+          ret = tab->yuva_float_to_rgb_16;
+          break;
+        case GAVL_BGR_16:
+          ret = tab->yuva_float_to_bgr_16;
+          break;
+        case GAVL_RGB_24:
+          ret = tab->yuva_float_to_rgb_24;
+          break;
+        case GAVL_BGR_24:
+          ret = tab->yuva_float_to_bgr_24;
+          break;
+        case GAVL_RGB_32:
+          ret = tab->yuva_float_to_rgb_32;
+          break;
+        case GAVL_BGR_32:
+          ret = tab->yuva_float_to_bgr_32;
+          break;
+        case GAVL_RGBA_32:
+          ret = tab->yuva_float_to_rgba_32;
+          break;
+        case GAVL_RGB_48:
+          ret = tab->yuva_float_to_rgb_48;
+          break;
+        case GAVL_RGBA_64:
+          ret = tab->yuva_float_to_rgba_64;
+          break;
+        case GAVL_RGB_FLOAT:
+          ret = tab->yuva_float_to_rgb_float;
+          break;
+        case GAVL_RGBA_FLOAT:
+          ret = tab->yuva_float_to_rgba_float;
+          break;
+        case GAVL_YUV_420_P:
+          ret = tab->yuva_float_to_yuv_420_p;
+          break;
+        case GAVL_YUV_410_P:
+          ret = tab->yuva_float_to_yuv_410_p;
+          break;
+        case GAVL_YUV_422_P:
+          ret = tab->yuva_float_to_yuv_422_p;
+          break;
+        case GAVL_YUV_422_P_16:
+          ret = tab->yuva_float_to_yuv_422_p_16;
+          break;
+        case GAVL_YUV_411_P:
+          ret = tab->yuva_float_to_yuv_411_p;
+          break;
+        case GAVL_YUV_444_P:
+          ret = tab->yuva_float_to_yuv_444_p;
+          break;
+        case GAVL_YUV_444_P_16:
+          ret = tab->yuva_float_to_yuv_444_p_16;
+          break;
+        case GAVL_YUVJ_420_P:
+          ret = tab->yuva_float_to_yuvj_420_p;
+          break;
+        case GAVL_YUVJ_422_P:
+          ret = tab->yuva_float_to_yuvj_422_p;
+          break;
+        case GAVL_YUVJ_444_P:
+          ret = tab->yuva_float_to_yuvj_444_p;
+          break;
+        case GAVL_YUY2:
+          ret = tab->yuva_float_to_yuy2;
+          break;
+        case GAVL_UYVY:
+          ret = tab->yuva_float_to_uyvy;
+          break;
+        case GAVL_YUVA_64:
+          ret = tab->yuva_float_to_yuva_64;
+          break;
+        case GAVL_YUVA_32:
+          ret = tab->yuva_float_to_yuva_32;
+          break;
+        case GAVL_YUV_FLOAT:
+          ret = tab->yuva_float_to_yuv_float;
+          break;
+        /* Keep GCC happy */
+        case GAVL_PIXELFORMAT_NONE:
+        case GAVL_YUVA_FLOAT:
+          break;
+        }
+      break;
+
+    case GAVL_YUV_FLOAT:
+      switch(output_pixelformat)
+        {
+        case GAVL_GRAY_8:
+          ret = tab->yuv_float_to_gray_8;
+          break;
+        case GAVL_GRAY_16:
+          ret = tab->yuv_float_to_gray_16;
+          break;
+        case GAVL_GRAY_FLOAT:
+          ret = tab->yuv_float_to_gray_float;
+          break;
+        case GAVL_GRAYA_16:
+          ret = tab->yuv_float_to_graya_16;
+          break;
+        case GAVL_GRAYA_32:
+          ret = tab->yuv_float_to_graya_32;
+          break;
+        case GAVL_GRAYA_FLOAT:
+          ret = tab->yuv_float_to_graya_float;
+          break;
+        case GAVL_RGB_15:
+          ret = tab->yuv_float_to_rgb_15;
+          break;
+        case GAVL_BGR_15:
+          ret = tab->yuv_float_to_bgr_15;
+          break;
+        case GAVL_RGB_16:
+          ret = tab->yuv_float_to_rgb_16;
+          break;
+        case GAVL_BGR_16:
+          ret = tab->yuv_float_to_bgr_16;
+          break;
+        case GAVL_RGB_24:
+          ret = tab->yuv_float_to_rgb_24;
+          break;
+        case GAVL_BGR_24:
+          ret = tab->yuv_float_to_bgr_24;
+          break;
+        case GAVL_RGB_32:
+          ret = tab->yuv_float_to_rgb_32;
+          break;
+        case GAVL_BGR_32:
+          ret = tab->yuv_float_to_bgr_32;
+          break;
+        case GAVL_RGBA_32:
+          ret = tab->yuv_float_to_rgba_32;
+          break;
+        case GAVL_RGB_48:
+          ret = tab->yuv_float_to_rgb_48;
+          break;
+        case GAVL_RGBA_64:
+          ret = tab->yuv_float_to_rgba_64;
+          break;
+        case GAVL_RGB_FLOAT:
+          ret = tab->yuv_float_to_rgb_float;
+          break;
+        case GAVL_RGBA_FLOAT:
+          ret = tab->yuv_float_to_rgba_float;
+          break;
+        case GAVL_YUV_420_P:
+          ret = tab->yuv_float_to_yuv_420_p;
+          break;
+        case GAVL_YUV_410_P:
+          ret = tab->yuv_float_to_yuv_410_p;
+          break;
+        case GAVL_YUV_422_P:
+          ret = tab->yuv_float_to_yuv_422_p;
+          break;
+        case GAVL_YUV_422_P_16:
+          ret = tab->yuv_float_to_yuv_422_p_16;
+          break;
+        case GAVL_YUV_411_P:
+          ret = tab->yuv_float_to_yuv_411_p;
+          break;
+        case GAVL_YUV_444_P:
+          ret = tab->yuv_float_to_yuv_444_p;
+          break;
+        case GAVL_YUV_444_P_16:
+          ret = tab->yuv_float_to_yuv_444_p_16;
+          break;
+        case GAVL_YUVJ_420_P:
+          ret = tab->yuv_float_to_yuvj_420_p;
+          break;
+        case GAVL_YUVJ_422_P:
+          ret = tab->yuv_float_to_yuvj_422_p;
+          break;
+        case GAVL_YUVJ_444_P:
+          ret = tab->yuv_float_to_yuvj_444_p;
+          break;
+        case GAVL_YUY2:
+          ret = tab->yuv_float_to_yuy2;
+          break;
+        case GAVL_UYVY:
+          ret = tab->yuv_float_to_uyvy;
+          break;
+        case GAVL_YUVA_64:
+          ret = tab->yuv_float_to_yuva_64;
+          break;
+        case GAVL_YUVA_32:
+          ret = tab->yuv_float_to_yuva_32;
+          break;
+        case GAVL_YUVA_FLOAT:
+          ret = tab->yuv_float_to_yuva_float;
+          break;
+        /* Keep GCC happy */
+        case GAVL_PIXELFORMAT_NONE:
+        case GAVL_YUV_FLOAT:
+          break;
+        }
+      break;
 
     case GAVL_YUV_420_P:
       switch(output_pixelformat)
         {
+        case GAVL_GRAY_8:
+          ret = tab->y_8_to_gray_8;
+          break;
+        case GAVL_GRAY_16:
+          ret = tab->y_8_to_gray_16;
+          break;
+        case GAVL_GRAY_FLOAT:
+          ret = tab->y_8_to_gray_float;
+          break;
+        case GAVL_GRAYA_16:
+          ret = tab->y_8_to_graya_16;
+          break;
+        case GAVL_GRAYA_32:
+          ret = tab->y_8_to_graya_32;
+          break;
+        case GAVL_GRAYA_FLOAT:
+          ret = tab->y_8_to_graya_float;
+          break;
         case GAVL_RGB_15:
           ret = tab->yuv_420_p_to_rgb_15;
           break;
@@ -1673,6 +3030,15 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
         case GAVL_YUVA_32:
           ret = tab->yuv_420_p_to_yuva_32;
           break;
+        case GAVL_YUVA_64:
+          ret = tab->yuv_420_p_to_yuva_64;
+          break;
+        case GAVL_YUVA_FLOAT:
+          ret = tab->yuv_420_p_to_yuva_float;
+          break;
+        case GAVL_YUV_FLOAT:
+          ret = tab->yuv_420_p_to_yuv_float;
+          break;
         case GAVL_YUV_410_P:
           ret = tab->yuv_420_p_to_yuv_410_p;
           break;
@@ -1709,6 +3075,24 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
     case GAVL_YUV_410_P:
       switch(output_pixelformat)
         {
+        case GAVL_GRAY_8:
+          ret = tab->y_8_to_gray_8;
+          break;
+        case GAVL_GRAY_16:
+          ret = tab->y_8_to_gray_16;
+          break;
+        case GAVL_GRAY_FLOAT:
+          ret = tab->y_8_to_gray_float;
+          break;
+        case GAVL_GRAYA_16:
+          ret = tab->y_8_to_graya_16;
+          break;
+        case GAVL_GRAYA_32:
+          ret = tab->y_8_to_graya_32;
+          break;
+        case GAVL_GRAYA_FLOAT:
+          ret = tab->y_8_to_graya_float;
+          break;
         case GAVL_RGB_15:
           ret = tab->yuv_410_p_to_rgb_15;
           break;
@@ -1758,6 +3142,15 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
         case GAVL_YUVA_32:
           ret = tab->yuv_410_p_to_yuva_32;
           break;
+        case GAVL_YUVA_64:
+          ret = tab->yuv_410_p_to_yuva_64;
+          break;
+        case GAVL_YUVA_FLOAT:
+          ret = tab->yuv_410_p_to_yuva_float;
+          break;
+        case GAVL_YUV_FLOAT:
+          ret = tab->yuv_410_p_to_yuv_float;
+          break;
         case GAVL_YUV_420_P:
           ret = tab->yuv_410_p_to_yuv_420_p;
           break;
@@ -1794,6 +3187,24 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
     case GAVL_YUV_422_P:
       switch(output_pixelformat)
         {
+        case GAVL_GRAY_8:
+          ret = tab->y_8_to_gray_8;
+          break;
+        case GAVL_GRAY_16:
+          ret = tab->y_8_to_gray_16;
+          break;
+        case GAVL_GRAY_FLOAT:
+          ret = tab->y_8_to_gray_float;
+          break;
+        case GAVL_GRAYA_16:
+          ret = tab->y_8_to_graya_16;
+          break;
+        case GAVL_GRAYA_32:
+          ret = tab->y_8_to_graya_32;
+          break;
+        case GAVL_GRAYA_FLOAT:
+          ret = tab->y_8_to_graya_float;
+          break;
         case GAVL_RGB_15:
           ret = tab->yuv_422_p_to_rgb_15;
           break;
@@ -1842,6 +3253,15 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
         case GAVL_YUVA_32:
           ret = tab->yuv_422_p_to_yuva_32;
           break;
+        case GAVL_YUVA_64:
+          ret = tab->yuv_422_p_to_yuva_64;
+          break;
+        case GAVL_YUVA_FLOAT:
+          ret = tab->yuv_422_p_to_yuva_float;
+          break;
+        case GAVL_YUV_FLOAT:
+          ret = tab->yuv_422_p_to_yuv_float;
+          break;
         case GAVL_YUV_420_P:
           ret = tab->yuv_422_p_to_yuv_420_p;
           break;
@@ -1879,6 +3299,24 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
     case GAVL_YUV_422_P_16:
       switch(output_pixelformat)
         {
+        case GAVL_GRAY_8:
+          ret = tab->y_16_to_gray_8;
+          break;
+        case GAVL_GRAY_16:
+          ret = tab->y_16_to_gray_16;
+          break;
+        case GAVL_GRAY_FLOAT:
+          ret = tab->y_16_to_gray_float;
+          break;
+        case GAVL_GRAYA_16:
+          ret = tab->y_16_to_graya_16;
+          break;
+        case GAVL_GRAYA_32:
+          ret = tab->y_16_to_graya_32;
+          break;
+        case GAVL_GRAYA_FLOAT:
+          ret = tab->y_16_to_graya_float;
+          break;
         case GAVL_RGB_15:
           ret = tab->yuv_422_p_16_to_rgb_15;
           break;
@@ -1927,6 +3365,15 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
         case GAVL_YUVA_32:
           ret = tab->yuv_422_p_16_to_yuva_32;
           break;
+        case GAVL_YUVA_64:
+          ret = tab->yuv_422_p_16_to_yuva_64;
+          break;
+        case GAVL_YUVA_FLOAT:
+          ret = tab->yuv_422_p_16_to_yuva_float;
+          break;
+        case GAVL_YUV_FLOAT:
+          ret = tab->yuv_422_p_16_to_yuv_float;
+          break;
         case GAVL_YUV_420_P:
           ret = tab->yuv_422_p_16_to_yuv_420_p;
           break;
@@ -1964,6 +3411,24 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
     case GAVL_YUV_411_P:
       switch(output_pixelformat)
         {
+        case GAVL_GRAY_8:
+          ret = tab->y_8_to_gray_8;
+          break;
+        case GAVL_GRAY_16:
+          ret = tab->y_8_to_gray_16;
+          break;
+        case GAVL_GRAY_FLOAT:
+          ret = tab->y_8_to_gray_float;
+          break;
+        case GAVL_GRAYA_16:
+          ret = tab->y_8_to_graya_16;
+          break;
+        case GAVL_GRAYA_32:
+          ret = tab->y_8_to_graya_32;
+          break;
+        case GAVL_GRAYA_FLOAT:
+          ret = tab->y_8_to_graya_float;
+          break;
         case GAVL_RGB_15:
           ret = tab->yuv_411_p_to_rgb_15;
           break;
@@ -2013,6 +3478,15 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
         case GAVL_YUVA_32:
           ret = tab->yuv_411_p_to_yuva_32;
           break;
+        case GAVL_YUVA_64:
+          ret = tab->yuv_411_p_to_yuva_64;
+          break;
+        case GAVL_YUVA_FLOAT:
+          ret = tab->yuv_411_p_to_yuva_float;
+          break;
+        case GAVL_YUV_FLOAT:
+          ret = tab->yuv_411_p_to_yuv_float;
+          break;
         case GAVL_YUV_420_P:
           ret = tab->yuv_411_p_to_yuv_420_p;
           break;
@@ -2049,6 +3523,24 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
     case GAVL_YUV_444_P:
       switch(output_pixelformat)
         {
+        case GAVL_GRAY_8:
+          ret = tab->y_8_to_gray_8;
+          break;
+        case GAVL_GRAY_16:
+          ret = tab->y_8_to_gray_16;
+          break;
+        case GAVL_GRAY_FLOAT:
+          ret = tab->y_8_to_gray_float;
+          break;
+        case GAVL_GRAYA_16:
+          ret = tab->y_8_to_graya_16;
+          break;
+        case GAVL_GRAYA_32:
+          ret = tab->y_8_to_graya_32;
+          break;
+        case GAVL_GRAYA_FLOAT:
+          ret = tab->y_8_to_graya_float;
+          break;
         case GAVL_RGB_15:
           ret = tab->yuv_444_p_to_rgb_15;
           break;
@@ -2098,6 +3590,15 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
         case GAVL_YUVA_32:
           ret = tab->yuv_444_p_to_yuva_32;
           break;
+        case GAVL_YUVA_64:
+          ret = tab->yuv_444_p_to_yuva_64;
+          break;
+        case GAVL_YUVA_FLOAT:
+          ret = tab->yuv_444_p_to_yuva_float;
+          break;
+        case GAVL_YUV_FLOAT:
+          ret = tab->yuv_444_p_to_yuv_float;
+          break;
         case GAVL_YUV_410_P:
           ret = tab->yuv_444_p_to_yuv_410_p;
           break;
@@ -2135,6 +3636,24 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
     case GAVL_YUV_444_P_16:
       switch(output_pixelformat)
         {
+        case GAVL_GRAY_8:
+          ret = tab->y_16_to_gray_8;
+          break;
+        case GAVL_GRAY_16:
+          ret = tab->y_16_to_gray_16;
+          break;
+        case GAVL_GRAY_FLOAT:
+          ret = tab->y_16_to_gray_float;
+          break;
+        case GAVL_GRAYA_16:
+          ret = tab->y_16_to_graya_16;
+          break;
+        case GAVL_GRAYA_32:
+          ret = tab->y_16_to_graya_32;
+          break;
+        case GAVL_GRAYA_FLOAT:
+          ret = tab->y_16_to_graya_float;
+          break;
         case GAVL_RGB_15:
           ret = tab->yuv_444_p_16_to_rgb_15;
           break;
@@ -2184,6 +3703,15 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
         case GAVL_YUVA_32:
           ret = tab->yuv_444_p_16_to_yuva_32;
           break;
+        case GAVL_YUVA_64:
+          ret = tab->yuv_444_p_16_to_yuva_64;
+          break;
+        case GAVL_YUVA_FLOAT:
+          ret = tab->yuv_444_p_16_to_yuva_float;
+          break;
+        case GAVL_YUV_FLOAT:
+          ret = tab->yuv_444_p_16_to_yuv_float;
+          break;
         case GAVL_YUV_410_P:
           ret = tab->yuv_444_p_16_to_yuv_410_p;
           break;
@@ -2221,6 +3749,24 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
     case GAVL_YUVJ_420_P:
       switch(output_pixelformat)
         {
+        case GAVL_GRAY_8:
+          ret = tab->yj_8_to_gray_8;
+          break;
+        case GAVL_GRAY_16:
+          ret = tab->yj_8_to_gray_16;
+          break;
+        case GAVL_GRAY_FLOAT:
+          ret = tab->yj_8_to_gray_float;
+          break;
+        case GAVL_GRAYA_16:
+          ret = tab->yj_8_to_graya_16;
+          break;
+        case GAVL_GRAYA_32:
+          ret = tab->yj_8_to_graya_32;
+          break;
+        case GAVL_GRAYA_FLOAT:
+          ret = tab->yj_8_to_graya_float;
+          break;
         case GAVL_RGB_15:
           ret = tab->yuvj_420_p_to_rgb_15;
           break;
@@ -2270,6 +3816,15 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
         case GAVL_YUVA_32:
           ret = tab->yuvj_420_p_to_yuva_32;
           break;
+        case GAVL_YUVA_64:
+          ret = tab->yuvj_420_p_to_yuva_64;
+          break;
+        case GAVL_YUVA_FLOAT:
+          ret = tab->yuvj_420_p_to_yuva_float;
+          break;
+        case GAVL_YUV_FLOAT:
+          ret = tab->yuvj_420_p_to_yuv_float;
+          break;
         case GAVL_YUV_422_P:
           ret = tab->yuvj_420_p_to_yuv_422_p;
           break;
@@ -2306,6 +3861,24 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
     case GAVL_YUVJ_422_P:
       switch(output_pixelformat)
         {
+        case GAVL_GRAY_8:
+          ret = tab->yj_8_to_gray_8;
+          break;
+        case GAVL_GRAY_16:
+          ret = tab->yj_8_to_gray_16;
+          break;
+        case GAVL_GRAY_FLOAT:
+          ret = tab->yj_8_to_gray_float;
+          break;
+        case GAVL_GRAYA_16:
+          ret = tab->yj_8_to_graya_16;
+          break;
+        case GAVL_GRAYA_32:
+          ret = tab->yj_8_to_graya_32;
+          break;
+        case GAVL_GRAYA_FLOAT:
+          ret = tab->yj_8_to_graya_float;
+          break;
         case GAVL_RGB_15:
           ret = tab->yuvj_422_p_to_rgb_15;
           break;
@@ -2354,6 +3927,15 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
         case GAVL_YUVA_32:
           ret = tab->yuvj_422_p_to_yuva_32;
           break;
+        case GAVL_YUVA_64:
+          ret = tab->yuvj_422_p_to_yuva_64;
+          break;
+        case GAVL_YUVA_FLOAT:
+          ret = tab->yuvj_422_p_to_yuva_float;
+          break;
+        case GAVL_YUV_FLOAT:
+          ret = tab->yuvj_422_p_to_yuv_float;
+          break;
         case GAVL_YUV_420_P:
           ret = tab->yuvj_422_p_to_yuv_420_p;
           break;
@@ -2390,6 +3972,24 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
     case GAVL_YUVJ_444_P:
       switch(output_pixelformat)
         {
+        case GAVL_GRAY_8:
+          ret = tab->yj_8_to_gray_8;
+          break;
+        case GAVL_GRAY_16:
+          ret = tab->yj_8_to_gray_16;
+          break;
+        case GAVL_GRAY_FLOAT:
+          ret = tab->yj_8_to_gray_float;
+          break;
+        case GAVL_GRAYA_16:
+          ret = tab->yj_8_to_graya_16;
+          break;
+        case GAVL_GRAYA_32:
+          ret = tab->yj_8_to_graya_32;
+          break;
+        case GAVL_GRAYA_FLOAT:
+          ret = tab->yj_8_to_graya_float;
+          break;
         case GAVL_RGB_15:
           ret = tab->yuvj_444_p_to_rgb_15;
           break;
@@ -2437,6 +4037,15 @@ gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
           break;
         case GAVL_YUVA_32:
           ret = tab->yuvj_444_p_to_yuva_32;
+          break;
+        case GAVL_YUVA_64:
+          ret = tab->yuvj_444_p_to_yuva_64;
+          break;
+        case GAVL_YUVA_FLOAT:
+          ret = tab->yuvj_444_p_to_yuva_float;
+          break;
+        case GAVL_YUV_FLOAT:
+          ret = tab->yuvj_444_p_to_yuv_float;
           break;
         case GAVL_YUV_420_P:
           ret = tab->yuvj_444_p_to_yuv_420_p;
@@ -2503,6 +4112,15 @@ int gavl_pixelformat_bytes_per_component(gavl_pixelformat_t csp)
     case GAVL_YUY2:
     case GAVL_UYVY:
     case GAVL_YUVA_32:
+    case GAVL_YUVA_64:
+    case GAVL_YUVA_FLOAT:
+    case GAVL_YUV_FLOAT:
+    case GAVL_GRAY_8:
+    case GAVL_GRAY_16:
+    case GAVL_GRAY_FLOAT:
+    case GAVL_GRAYA_16:
+    case GAVL_GRAYA_32:
+    case GAVL_GRAYA_FLOAT:
       return 0;
       break;
     case GAVL_YUV_420_P:
@@ -2531,10 +4149,14 @@ int gavl_pixelformat_bytes_per_pixel(gavl_pixelformat_t csp)
     case GAVL_PIXELFORMAT_NONE:
       return 0;
       break;
+    case GAVL_GRAY_8:
+      return 1;
     case GAVL_RGB_15:
     case GAVL_BGR_15:
     case GAVL_RGB_16:
     case GAVL_BGR_16:
+    case GAVL_GRAY_16:
+    case GAVL_GRAYA_16:
       return 2;
       break;
     case GAVL_RGB_24:
@@ -2545,18 +4167,28 @@ int gavl_pixelformat_bytes_per_pixel(gavl_pixelformat_t csp)
     case GAVL_BGR_32:
     case GAVL_RGBA_32:
     case GAVL_YUVA_32:
+    case GAVL_GRAYA_32:
       return 4;
+      break;
+    case GAVL_GRAY_FLOAT:
+      return sizeof(float);
+      break;
+    case GAVL_GRAYA_FLOAT:
+      return 2*sizeof(float);
       break;
     case GAVL_RGB_48:
       return 6;
       break;
     case GAVL_RGBA_64:
+    case GAVL_YUVA_64:
       return 8;
       break;
     case GAVL_RGB_FLOAT:
+    case GAVL_YUV_FLOAT:
       return 3*sizeof(float);
       break;
     case GAVL_RGBA_FLOAT:
+    case GAVL_YUVA_FLOAT:
       return 4*sizeof(float);
       break;
     case GAVL_YUY2:
@@ -2584,11 +4216,16 @@ int gavl_pixelformat_bits_per_pixel(gavl_pixelformat_t pixelformat)
     case GAVL_PIXELFORMAT_NONE:
       return 0;
       break;
+    case GAVL_GRAY_8:
+      return 8;
+      break;
     case GAVL_RGB_15:
     case GAVL_BGR_15:
       return 15;
     case GAVL_RGB_16:
     case GAVL_BGR_16:
+    case GAVL_GRAY_16:
+    case GAVL_GRAYA_16:
       return 16;
       break;
     case GAVL_RGB_24:
@@ -2599,18 +4236,28 @@ int gavl_pixelformat_bits_per_pixel(gavl_pixelformat_t pixelformat)
       break;
     case GAVL_RGBA_32:
     case GAVL_YUVA_32:
+    case GAVL_GRAYA_32:
       return 32;
       break;
     case GAVL_RGB_48:
       return 48;
       break;
     case GAVL_RGBA_64:
+    case GAVL_YUVA_64:
       return 64;
       break;
+    case GAVL_GRAY_FLOAT:
+      return 8*sizeof(float);
+      break;
+    case GAVL_GRAYA_FLOAT:
+      return 8*2*sizeof(float);
+      break;
     case GAVL_RGB_FLOAT:
+    case GAVL_YUV_FLOAT:
       return 8*3*sizeof(float);
       break;
     case GAVL_RGBA_FLOAT:
+    case GAVL_YUVA_FLOAT:
       return 8*4*sizeof(float);
       break;
     case GAVL_YUY2:
@@ -2827,6 +4474,12 @@ gavl_pixelformat_t gavl_pixelformat_get_intermediate(gavl_pixelformat_t in_csp,
   switch(in_csp)
     {
     case GAVL_PIXELFORMAT_NONE: return GAVL_PIXELFORMAT_NONE; break;
+    case GAVL_GRAY_8:
+    case GAVL_GRAY_16:
+    case GAVL_GRAY_FLOAT:
+    case GAVL_GRAYA_16:
+    case GAVL_GRAYA_32:
+    case GAVL_GRAYA_FLOAT:
     case GAVL_RGB_15:
     case GAVL_BGR_15:
     case GAVL_RGB_16:
@@ -2841,6 +4494,9 @@ gavl_pixelformat_t gavl_pixelformat_get_intermediate(gavl_pixelformat_t in_csp,
     case GAVL_RGB_FLOAT:
     case GAVL_RGBA_FLOAT:
     case GAVL_YUVA_32:
+    case GAVL_YUVA_64:
+    case GAVL_YUVA_FLOAT:
+    case GAVL_YUV_FLOAT:
       /*4:4:4 -> */
       switch(out_csp)
         {
@@ -2859,9 +4515,18 @@ gavl_pixelformat_t gavl_pixelformat_get_intermediate(gavl_pixelformat_t in_csp,
         case GAVL_RGBA_FLOAT:
         case GAVL_RGBA_32:
         case GAVL_YUVA_32:
+        case GAVL_YUVA_64:
+        case GAVL_YUVA_FLOAT:
+        case GAVL_YUV_FLOAT:
         case GAVL_YUV_444_P:
         case GAVL_YUVJ_444_P:
         case GAVL_YUV_444_P_16:
+        case GAVL_GRAY_8:
+        case GAVL_GRAY_16:
+        case GAVL_GRAY_FLOAT:
+        case GAVL_GRAYA_16:
+        case GAVL_GRAYA_32:
+        case GAVL_GRAYA_FLOAT:
           return GAVL_PIXELFORMAT_NONE; break;
         case GAVL_YUY2:
         case GAVL_UYVY:
@@ -2908,8 +4573,17 @@ gavl_pixelformat_t gavl_pixelformat_get_intermediate(gavl_pixelformat_t in_csp,
         case GAVL_YUV_420_P:
         case GAVL_YUV_411_P:
         case GAVL_YUV_410_P:
+        case GAVL_GRAY_8:
+        case GAVL_GRAY_16:
+        case GAVL_GRAY_FLOAT:
+        case GAVL_GRAYA_16:
+        case GAVL_GRAYA_32:
+        case GAVL_GRAYA_FLOAT:
           return GAVL_PIXELFORMAT_NONE; break;
         case GAVL_YUV_444_P_16:
+        case GAVL_YUVA_64:
+        case GAVL_YUVA_FLOAT:
+        case GAVL_YUV_FLOAT:
           return GAVL_YUV_422_P_16; break;
         case GAVL_YUV_444_P:
           return GAVL_YUV_422_P; break;
@@ -2948,12 +4622,21 @@ gavl_pixelformat_t gavl_pixelformat_get_intermediate(gavl_pixelformat_t in_csp,
         case GAVL_YUV_410_P:
         case GAVL_YUV_444_P:
         case GAVL_YUVJ_420_P:
+        case GAVL_GRAY_8:
+        case GAVL_GRAY_16:
+        case GAVL_GRAY_FLOAT:
+        case GAVL_GRAYA_16:
+        case GAVL_GRAYA_32:
+        case GAVL_GRAYA_FLOAT:
           return GAVL_PIXELFORMAT_NONE; break;
         case GAVL_YUV_422_P_16:
           return GAVL_YUV_422_P; break;
         case GAVL_YUVJ_422_P:
           return GAVL_YUVJ_420_P; break;
         case GAVL_YUV_444_P_16:
+        case GAVL_YUVA_64:
+        case GAVL_YUVA_FLOAT:
+        case GAVL_YUV_FLOAT:
           return GAVL_YUV_444_P; break;
         case GAVL_YUVJ_444_P:
           return GAVL_YUVJ_420_P; break;
@@ -2977,6 +4660,12 @@ gavl_pixelformat_t gavl_pixelformat_get_intermediate(gavl_pixelformat_t in_csp,
         case GAVL_RGBA_FLOAT:
         case GAVL_RGBA_32:
         case GAVL_YUVA_32:
+        case GAVL_GRAY_8:
+        case GAVL_GRAY_16:
+        case GAVL_GRAY_FLOAT:
+        case GAVL_GRAYA_16:
+        case GAVL_GRAYA_32:
+        case GAVL_GRAYA_FLOAT:
           return GAVL_PIXELFORMAT_NONE; break;
         case GAVL_YUV_422_P:
         case GAVL_YUY2:
@@ -2989,6 +4678,9 @@ gavl_pixelformat_t gavl_pixelformat_get_intermediate(gavl_pixelformat_t in_csp,
         case GAVL_YUV_444_P_16:
           return GAVL_PIXELFORMAT_NONE; break;
         case GAVL_YUV_422_P_16:
+        case GAVL_YUVA_64:
+        case GAVL_YUVA_FLOAT:
+        case GAVL_YUV_FLOAT:
           return GAVL_YUV_422_P; break;
         case GAVL_YUVJ_422_P:
           return GAVL_YUVJ_420_P; break;
@@ -3002,6 +4694,12 @@ gavl_pixelformat_t gavl_pixelformat_get_intermediate(gavl_pixelformat_t in_csp,
       switch(out_csp)
         {
         case GAVL_PIXELFORMAT_NONE:
+        case GAVL_GRAY_8:
+        case GAVL_GRAY_16:
+        case GAVL_GRAY_FLOAT:
+        case GAVL_GRAYA_16:
+        case GAVL_GRAYA_32:
+        case GAVL_GRAYA_FLOAT:
           return GAVL_PIXELFORMAT_NONE; break;
         case GAVL_RGB_15:
         case GAVL_BGR_15:
@@ -3034,6 +4732,9 @@ gavl_pixelformat_t gavl_pixelformat_get_intermediate(gavl_pixelformat_t in_csp,
         case GAVL_YUVJ_422_P:
           return GAVL_YUV_422_P; break;
         case GAVL_YUV_444_P_16:
+        case GAVL_YUVA_64:
+        case GAVL_YUVA_FLOAT:
+        case GAVL_YUV_FLOAT:
           return GAVL_YUV_444_P; break;
         case GAVL_YUVJ_420_P:
           return GAVL_YUV_420_P; break;
@@ -3043,6 +4744,12 @@ gavl_pixelformat_t gavl_pixelformat_get_intermediate(gavl_pixelformat_t in_csp,
       switch(out_csp)
         {
         case GAVL_PIXELFORMAT_NONE:
+        case GAVL_GRAY_8:
+        case GAVL_GRAY_16:
+        case GAVL_GRAY_FLOAT:
+        case GAVL_GRAYA_16:
+        case GAVL_GRAYA_32:
+        case GAVL_GRAYA_FLOAT:
           return GAVL_PIXELFORMAT_NONE; break;
         case GAVL_RGB_15:
         case GAVL_BGR_15:
@@ -3075,6 +4782,9 @@ gavl_pixelformat_t gavl_pixelformat_get_intermediate(gavl_pixelformat_t in_csp,
         case GAVL_YUV_422_P_16:
           return GAVL_YUVJ_422_P; break;
         case GAVL_YUV_444_P_16:
+        case GAVL_YUVA_64:
+        case GAVL_YUVA_FLOAT:
+        case GAVL_YUV_FLOAT:
           return GAVL_YUVJ_444_P; break;
         }
       break;
@@ -3083,6 +4793,12 @@ gavl_pixelformat_t gavl_pixelformat_get_intermediate(gavl_pixelformat_t in_csp,
       switch(out_csp)
         {
         case GAVL_PIXELFORMAT_NONE:
+        case GAVL_GRAY_8:
+        case GAVL_GRAY_16:
+        case GAVL_GRAY_FLOAT:
+        case GAVL_GRAYA_16:
+        case GAVL_GRAYA_32:
+        case GAVL_GRAYA_FLOAT:
           return GAVL_PIXELFORMAT_NONE; break;
         case GAVL_RGB_15:
         case GAVL_BGR_15:
@@ -3113,6 +4829,9 @@ gavl_pixelformat_t gavl_pixelformat_get_intermediate(gavl_pixelformat_t in_csp,
         case GAVL_YUV_422_P_16:
           return GAVL_PIXELFORMAT_NONE; break;
         case GAVL_YUV_444_P_16:
+        case GAVL_YUVA_64:
+        case GAVL_YUVA_FLOAT:
+        case GAVL_YUV_FLOAT:
           return GAVL_YUV_422_P_16; break;
         }
       break;
@@ -3120,6 +4839,12 @@ gavl_pixelformat_t gavl_pixelformat_get_intermediate(gavl_pixelformat_t in_csp,
       switch(out_csp)
         {
         case GAVL_PIXELFORMAT_NONE:
+        case GAVL_GRAY_8:
+        case GAVL_GRAY_16:
+        case GAVL_GRAY_FLOAT:
+        case GAVL_GRAYA_16:
+        case GAVL_GRAYA_32:
+        case GAVL_GRAYA_FLOAT:
         case GAVL_RGB_15:
         case GAVL_BGR_15:
         case GAVL_RGB_16:
@@ -3136,6 +4861,9 @@ gavl_pixelformat_t gavl_pixelformat_get_intermediate(gavl_pixelformat_t in_csp,
         case GAVL_YUVA_32:
         case GAVL_YUV_444_P:
         case GAVL_YUV_444_P_16:
+        case GAVL_YUVA_64:
+        case GAVL_YUVA_FLOAT:
+        case GAVL_YUV_FLOAT:
           return GAVL_PIXELFORMAT_NONE; break;
         case GAVL_YUV_411_P:
         case GAVL_YUV_410_P:
@@ -3158,6 +4886,12 @@ gavl_pixelformat_t gavl_pixelformat_get_intermediate(gavl_pixelformat_t in_csp,
       switch(out_csp)
         {
         case GAVL_PIXELFORMAT_NONE:
+        case GAVL_GRAY_8:
+        case GAVL_GRAY_16:
+        case GAVL_GRAY_FLOAT:
+        case GAVL_GRAYA_16:
+        case GAVL_GRAYA_32:
+        case GAVL_GRAYA_FLOAT:
         case GAVL_RGB_15:
         case GAVL_BGR_15:
         case GAVL_RGB_16:
@@ -3176,6 +4910,9 @@ gavl_pixelformat_t gavl_pixelformat_get_intermediate(gavl_pixelformat_t in_csp,
         case GAVL_YUV_444_P_16:
         case GAVL_YUVJ_444_P:
         case GAVL_YUV_422_P_16:
+        case GAVL_YUVA_64:
+        case GAVL_YUVA_FLOAT:
+        case GAVL_YUV_FLOAT:
           return GAVL_PIXELFORMAT_NONE; break;
         case GAVL_YUV_422_P:
         case GAVL_YUY2:
@@ -3209,6 +4946,9 @@ gavl_pixelformat_t gavl_pixelformat_get_intermediate(gavl_pixelformat_t in_csp,
         case GAVL_YUVA_32:
         case GAVL_YUV_444_P:
         case GAVL_YUVJ_444_P:
+        case GAVL_YUVA_64:
+        case GAVL_YUVA_FLOAT:
+        case GAVL_YUV_FLOAT:
           return GAVL_YUV_444_P_16; break;
         case GAVL_YUV_444_P_16:
         case GAVL_YUV_422_P_16:
@@ -3216,6 +4956,12 @@ gavl_pixelformat_t gavl_pixelformat_get_intermediate(gavl_pixelformat_t in_csp,
         case GAVL_YUY2:
         case GAVL_UYVY:
         case GAVL_YUVJ_422_P:
+        case GAVL_GRAY_8:
+        case GAVL_GRAY_16:
+        case GAVL_GRAY_FLOAT:
+        case GAVL_GRAYA_16:
+        case GAVL_GRAYA_32:
+        case GAVL_GRAYA_FLOAT:
           return GAVL_PIXELFORMAT_NONE; break;
         case GAVL_YUV_411_P:
         case GAVL_YUV_410_P:

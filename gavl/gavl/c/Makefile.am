@@ -3,7 +3,6 @@ noinst_LTLIBRARIES = libgavl_c.la
 
 libgavl_c_la_SOURCES = \
 blend_c.c \
-colorspace_c.c \
 colorspace_tables.c \
 deinterlace_blend_c.c \
 dsp_c.c \
@@ -16,13 +15,19 @@ scale_bilinear_c.c \
 scale_generic_c.c \
 scale_nearest_c.c \
 scale_quadratic_c.c \
-volume_c.c
+volume_c.c \
+rgb_rgb_c.c \
+rgb_yuv_c.c \
+yuv_rgb_c.c \
+yuv_yuv_c.c \
+gray_rgb_c.c \
+rgb_gray_c.c \
+gray_yuv_c.c \
+yuv_gray_c.c \
+gray_gray_c.c
+
 
 EXTRA_libgavl_c_la_SOURCES = \
-_rgb_rgb_c.c \
-_rgb_yuv_c.c \
-_yuv_rgb_c.c \
-_yuv_yuv_c.c \
 _interleave_c.c \
 _mix_c.c \
 _sampleformat_c.c

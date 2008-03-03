@@ -118,5 +118,17 @@ int gavl_pixelformat_can_scale(gavl_pixelformat_t in_csp, gavl_pixelformat_t out
 gavl_pixelformat_t gavl_pixelformat_get_intermediate(gavl_pixelformat_t in_csp,
                                                    gavl_pixelformat_t out_csp);
 
+#define CLEAR_MASK_PLANE_0 (1<<0)
+#define CLEAR_MASK_PLANE_1 (1<<1)
+#define CLEAR_MASK_PLANE_2 (1<<2)
+#define CLEAR_MASK_PLANE_3 (1<<3)
+#define CLEAR_MASK_ALL (CLEAR_MASK_PLANE_0|\
+                        CLEAR_MASK_PLANE_1|\
+                        CLEAR_MASK_PLANE_2|\
+                        CLEAR_MASK_PLANE_3)
+
+void gavl_video_frame_clear_mask(gavl_video_frame_t * frame,
+                                 const gavl_video_format_t * format, int mask);
+
 
 #endif // _GAVL_VIDEO_H_

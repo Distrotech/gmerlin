@@ -22,7 +22,7 @@
 #ifdef NOCLIP
 #define RECLIP_H(a,idx)
 #define RECLIP_V(a,idx)
-#define RECLIP_FLOAT(a)
+#define RECLIP_FLOAT(a, idx)
 #else
 
 #define RECLIP_H(a,idx) \
@@ -33,7 +33,11 @@
   if(GAVL_UNLIKELY(a < ctx->min_values_v[idx])) a = ctx->min_values_v[idx];    \
   if(GAVL_UNLIKELY(a > ctx->max_values_v[idx])) a = ctx->max_values_v[idx]
 
-#define RECLIP_FLOAT(a) if(GAVL_UNLIKELY(a < 0.0)) a = 0.0; if(GAVL_UNLIKELY(a > 1.0)) a = 1.0
+#define RECLIP_FLOAT(a, idx) \
+  if(GAVL_UNLIKELY(a < ctx->min_values_f[idx])) \
+  a = ctx->min_values_f[idx]; \
+  if(GAVL_UNLIKELY(a > ctx->max_values_f[idx])) \
+  a = ctx->max_values_f[idx]
 
 #endif
 

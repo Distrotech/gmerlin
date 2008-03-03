@@ -2,11 +2,15 @@
 noinst_LTLIBRARIES = libgavl_mmx.la
 
 libgavl_mmx_la_SOURCES = \
-colorspace_mmx.c \
 scale_x_mmx.c \
 scale_y_mmx.c \
 deinterlace_blend_mmx.c \
-dsp_mmx.c
+dsp_mmx.c \
+rgb_rgb_mmx.c \
+rgb_yuv_mmx.c \
+yuv_rgb_mmx.c \
+yuv_yuv_mmx.c
+
 
 EXTRA_libgavl_mmx_la_SOURCES = \
 _rgb_rgb_mmx.c \

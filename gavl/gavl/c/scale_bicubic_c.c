@@ -101,6 +101,28 @@
 #define NUM_TAPS 4
 #include "scale_x.h"
 
+#define FUNC_NAME scale_uint8_x_2_x_bicubic_c
+#define TYPE uint8_t
+#define INIT int64_t tmp;
+#define SCALE \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[0] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[0] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[0]);       \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_H(tmp,0);                                                         \
+  dst[0] = tmp;                                                    \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[1] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[1] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[1] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[1]);       \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_H(tmp,1);                                                          \
+  dst[1] = tmp;
+
+#define NUM_TAPS 4
+#include "scale_x.h"
+
 #define FUNC_NAME scale_uint8_x_3_x_bicubic_c
 #define TYPE uint8_t
 #define INIT int64_t tmp;
@@ -181,6 +203,29 @@
 #define NUM_TAPS 4
 #include "scale_x.h"
 
+#define FUNC_NAME scale_uint16_x_2_x_bicubic_c
+#define TYPE uint16_t
+#define INIT int64_t tmp;
+#define SCALE                                                           \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[0] +   \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[0] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[0]); \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_H(tmp,0);                                                       \
+  dst[0] = tmp; \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[1] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[1] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[1] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[1]); \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_H(tmp,1);                                               \
+  dst[1] = tmp;
+
+#define NUM_TAPS 4
+#include "scale_x.h"
+
+
 #define FUNC_NAME scale_uint16_x_3_x_bicubic_c
 #define TYPE uint16_t
 #define INIT int64_t tmp;
@@ -246,6 +291,37 @@
 #define NUM_TAPS 4
 #include "scale_x.h"
 
+#define FUNC_NAME scale_float_x_1_x_bicubic_c
+#define TYPE float
+#define SCALE                                                   \
+  dst[0] = (ctx->table_h.pixels[i].factor_f[0] * src_1[0] + \
+            ctx->table_h.pixels[i].factor_f[1] * src_2[0] +         \
+            ctx->table_h.pixels[i].factor_f[2] * src_3[0] +         \
+            ctx->table_h.pixels[i].factor_f[3] * src_4[0]);         \
+  RECLIP_FLOAT(dst[0], 0);
+
+#define NUM_TAPS 4
+#include "scale_x.h"
+
+
+#define FUNC_NAME scale_float_x_2_x_bicubic_c
+#define TYPE float
+#define SCALE                                                   \
+  dst[0] = (ctx->table_h.pixels[i].factor_f[0] * src_1[0] + \
+            ctx->table_h.pixels[i].factor_f[1] * src_2[0] +         \
+            ctx->table_h.pixels[i].factor_f[2] * src_3[0] +         \
+            ctx->table_h.pixels[i].factor_f[3] * src_4[0]);         \
+  RECLIP_FLOAT(dst[0], 0);                                                 \
+  dst[1] = (ctx->table_h.pixels[i].factor_f[0] * src_1[1] + \
+            ctx->table_h.pixels[i].factor_f[1] * src_2[1] + \
+            ctx->table_h.pixels[i].factor_f[2] * src_3[1] + \
+            ctx->table_h.pixels[i].factor_f[3] * src_4[1]);         \
+  RECLIP_FLOAT(dst[1], 1);
+
+#define NUM_TAPS 4
+#include "scale_x.h"
+
+
 
 #define FUNC_NAME scale_float_x_3_x_bicubic_c
 #define TYPE float
@@ -254,17 +330,17 @@
             ctx->table_h.pixels[i].factor_f[1] * src_2[0] +         \
             ctx->table_h.pixels[i].factor_f[2] * src_3[0] +         \
             ctx->table_h.pixels[i].factor_f[3] * src_4[0]);         \
-  RECLIP_FLOAT(dst[0]);                                                 \
+  RECLIP_FLOAT(dst[0], 0);                                                 \
   dst[1] = (ctx->table_h.pixels[i].factor_f[0] * src_1[1] + \
             ctx->table_h.pixels[i].factor_f[1] * src_2[1] + \
             ctx->table_h.pixels[i].factor_f[2] * src_3[1] + \
             ctx->table_h.pixels[i].factor_f[3] * src_4[1]);         \
-  RECLIP_FLOAT(dst[1]);                                                 \
+  RECLIP_FLOAT(dst[1], 1);                                                 \
   dst[2] = (ctx->table_h.pixels[i].factor_f[0] * src_1[2] + \
             ctx->table_h.pixels[i].factor_f[1] * src_2[2] + \
             ctx->table_h.pixels[i].factor_f[2] * src_3[2] + \
             ctx->table_h.pixels[i].factor_f[3] * src_4[2]);\
-  RECLIP_FLOAT(dst[2]);                                        \
+  RECLIP_FLOAT(dst[2], 2);                                        \
 
 
 #define NUM_TAPS 4
@@ -277,22 +353,22 @@
             ctx->table_h.pixels[i].factor_f[1] * src_2[0] +         \
             ctx->table_h.pixels[i].factor_f[2] * src_3[0] +         \
             ctx->table_h.pixels[i].factor_f[3] * src_4[0]);         \
-  RECLIP_FLOAT(dst[0]);                                                 \
+  RECLIP_FLOAT(dst[0], 0);                                                 \
   dst[1] = (ctx->table_h.pixels[i].factor_f[0] * src_1[1] +         \
             ctx->table_h.pixels[i].factor_f[1] * src_2[1] +         \
             ctx->table_h.pixels[i].factor_f[2] * src_3[1] +         \
             ctx->table_h.pixels[i].factor_f[3] * src_4[1]);         \
-  RECLIP_FLOAT(dst[1]);                                                 \
+  RECLIP_FLOAT(dst[1], 1);                                                 \
   dst[2] = (ctx->table_h.pixels[i].factor_f[0] * src_1[2] +         \
             ctx->table_h.pixels[i].factor_f[1] * src_2[2] +         \
             ctx->table_h.pixels[i].factor_f[2] * src_3[2] +         \
             ctx->table_h.pixels[i].factor_f[3] * src_4[2]);         \
-  RECLIP_FLOAT(dst[2]);                                                 \
+  RECLIP_FLOAT(dst[2], 2);                                                 \
   dst[3] = (ctx->table_h.pixels[i].factor_f[0] * src_1[3] +         \
             ctx->table_h.pixels[i].factor_f[1] * src_2[3] +         \
             ctx->table_h.pixels[i].factor_f[2] * src_3[3] +         \
             ctx->table_h.pixels[i].factor_f[3] * src_4[3]);\
-  RECLIP_FLOAT(dst[3]);                                        \
+  RECLIP_FLOAT(dst[3], 3);                                        \
 
 #define NUM_TAPS 4
 #include "scale_x.h"
@@ -394,6 +470,34 @@
 #define NUM_TAPS 4
 #include "scale_y.h"
 
+#define FUNC_NAME scale_uint8_x_2_y_bicubic_c
+#define TYPE uint8_t
+#define INIT int64_t fac_1, fac_2, fac_3, fac_4, tmp;               \
+  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];\
+  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_i[2];\
+  fac_4 = ctx->table_v.pixels[ctx->scanline].factor_i[3];
+
+#define SCALE                  \
+  tmp = (fac_1 * src_1[0] + \
+         fac_2 * src_2[0] +    \
+         fac_3 * src_3[0] +                     \
+         fac_4 * src_4[0]);                     \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_V(tmp, ctx->plane);                      \
+  dst[0] = tmp;\
+  tmp = (fac_1 * src_1[1] + \
+         fac_2 * src_2[1] +    \
+         fac_3 * src_3[1] +                     \
+         fac_4 * src_4[1]);                     \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_V(tmp, ctx->plane);                      \
+  dst[1] = tmp;
+
+#define NUM_TAPS 4
+#include "scale_y.h"
+
+
 #define FUNC_NAME scale_uint8_x_3_y_bicubic_c
 #define TYPE uint8_t
 #define INIT int64_t fac_1, fac_2, fac_3, fac_4, tmp;               \
@@ -494,6 +598,35 @@
 #define NUM_TAPS 4
 #include "scale_y.h"
 
+#define FUNC_NAME scale_uint16_x_2_y_bicubic_c
+#define TYPE uint16_t
+#define INIT int64_t tmp; \
+  int64_t fac_1, fac_2, fac_3, fac_4;                           \
+  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];   \
+  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];   \
+  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_i[2];   \
+  fac_4 = ctx->table_v.pixels[ctx->scanline].factor_i[3];
+
+#define NO_UINT8
+
+#define SCALE                                  \
+  tmp = (fac_1 * src_1[0] + \
+         fac_2 * src_2[0] + \
+         fac_3 * src_3[0] + \
+         fac_4 * src_4[0]); \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_V(tmp, ctx->plane);                    \
+  dst[0] = tmp;\
+  tmp = (fac_1 * src_1[1] + \
+         fac_2 * src_2[1] + \
+         fac_3 * src_3[1] + \
+         fac_4 * src_4[1]); \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_V(tmp, ctx->plane);                    \
+  dst[1] = tmp;
+
+#define NUM_TAPS 4
+#include "scale_y.h"
 
 #define FUNC_NAME scale_uint16_x_3_y_bicubic_c
 #define TYPE uint16_t
@@ -576,6 +709,52 @@
 #define NUM_TAPS 4
 #include "scale_y.h"
 
+#define FUNC_NAME scale_float_x_1_y_bicubic_c
+#define TYPE float
+#define INIT float fac_1, fac_2, fac_3, fac_4;\
+  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_f[0];\
+  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_f[1];\
+  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_f[2];\
+  fac_4 = ctx->table_v.pixels[ctx->scanline].factor_f[3];
+
+#define NO_UINT8
+  
+#define SCALE                  \
+  dst[0] = (fac_1 * src_1[0] + \
+            fac_2 * src_2[0] + \
+            fac_3 * src_3[0] + \
+            fac_4 * src_4[0]); \
+  RECLIP_FLOAT(dst[0], 0);
+
+#define NUM_TAPS 4
+#include "scale_y.h"
+
+
+#define FUNC_NAME scale_float_x_2_y_bicubic_c
+#define TYPE float
+#define INIT float fac_1, fac_2, fac_3, fac_4;\
+  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_f[0];\
+  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_f[1];\
+  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_f[2];\
+  fac_4 = ctx->table_v.pixels[ctx->scanline].factor_f[3];
+
+#define NO_UINT8
+  
+#define SCALE                  \
+  dst[0] = (fac_1 * src_1[0] + \
+            fac_2 * src_2[0] + \
+            fac_3 * src_3[0] + \
+            fac_4 * src_4[0]); \
+  RECLIP_FLOAT(dst[0], 0);        \
+  dst[1] = (fac_1 * src_1[1] + \
+            fac_2 * src_2[1] + \
+            fac_3 * src_3[1] + \
+            fac_4 * src_4[1]); \
+  RECLIP_FLOAT(dst[1], 1);
+
+#define NUM_TAPS 4
+#include "scale_y.h"
+
 #define FUNC_NAME scale_float_x_3_y_bicubic_c
 #define TYPE float
 #define INIT float fac_1, fac_2, fac_3, fac_4;\
@@ -591,17 +770,17 @@
             fac_2 * src_2[0] + \
             fac_3 * src_3[0] + \
             fac_4 * src_4[0]); \
-  RECLIP_FLOAT(dst[0]);        \
+  RECLIP_FLOAT(dst[0], 0);        \
   dst[1] = (fac_1 * src_1[1] + \
             fac_2 * src_2[1] + \
             fac_3 * src_3[1] + \
             fac_4 * src_4[1]); \
-  RECLIP_FLOAT(dst[1]);        \
+  RECLIP_FLOAT(dst[1], 1);        \
   dst[2] = (fac_1 * src_1[2] + \
             fac_2 * src_2[2] + \
             fac_3 * src_3[2] + \
             fac_4 * src_4[2]);\
-  RECLIP_FLOAT(dst[2]);
+  RECLIP_FLOAT(dst[2], 2);
 
 #define NUM_TAPS 4
 #include "scale_y.h"
@@ -621,22 +800,22 @@
             fac_2 * src_2[0] + \
             fac_3 * src_3[0] + \
             fac_4 * src_4[0]); \
-  RECLIP_FLOAT(dst[0]);        \
+  RECLIP_FLOAT(dst[0], 0);        \
   dst[1] = (fac_1 * src_1[1] + \
             fac_2 * src_2[1] + \
             fac_3 * src_3[1] + \
             fac_4 * src_4[1]); \
-  RECLIP_FLOAT(dst[1]);                           \
+  RECLIP_FLOAT(dst[1], 1);                           \
   dst[2] = (fac_1 * src_1[2] +                    \
             fac_2 * src_2[2] +                    \
             fac_3 * src_3[2] +                    \
             fac_4 * src_4[2]);                    \
-  RECLIP_FLOAT(dst[2]);                           \
+  RECLIP_FLOAT(dst[2], 2);                           \
   dst[3] = (fac_1 * src_1[3] +                    \
             fac_2 * src_2[3] +                    \
             fac_3 * src_3[3] +                    \
             fac_4 * src_4[3]);                    \
-  RECLIP_FLOAT(dst[3]);
+  RECLIP_FLOAT(dst[3], 3);
 
 #define NUM_TAPS 4
 #include "scale_y.h"
@@ -652,11 +831,15 @@ void gavl_init_scale_funcs_bicubic_c(gavl_scale_funcs_t * tab)
   tab->funcs_x.scale_rgb_16 =     scale_rgb_16_x_bicubic_c;
   tab->funcs_x.scale_uint8_x_1_advance =  scale_uint8_x_1_x_bicubic_c;
   tab->funcs_x.scale_uint8_x_1_noadvance =  scale_uint8_x_1_x_bicubic_c;
+  tab->funcs_x.scale_uint8_x_2 =  scale_uint8_x_2_x_bicubic_c;
   tab->funcs_x.scale_uint8_x_3 =  scale_uint8_x_3_x_bicubic_c;
   tab->funcs_x.scale_uint8_x_4 =  scale_uint8_x_4_x_bicubic_c;
   tab->funcs_x.scale_uint16_x_1 = scale_uint16_x_1_x_bicubic_c;
+  tab->funcs_x.scale_uint16_x_2 = scale_uint16_x_2_x_bicubic_c;
   tab->funcs_x.scale_uint16_x_3 = scale_uint16_x_3_x_bicubic_c;
   tab->funcs_x.scale_uint16_x_4 = scale_uint16_x_4_x_bicubic_c;
+  tab->funcs_x.scale_float_x_1 =  scale_float_x_1_x_bicubic_c;
+  tab->funcs_x.scale_float_x_2 =  scale_float_x_2_x_bicubic_c;
   tab->funcs_x.scale_float_x_3 =  scale_float_x_3_x_bicubic_c;
   tab->funcs_x.scale_float_x_4 =  scale_float_x_4_x_bicubic_c;
   tab->funcs_x.bits_rgb_15 = 16;
@@ -669,11 +852,15 @@ void gavl_init_scale_funcs_bicubic_c(gavl_scale_funcs_t * tab)
   tab->funcs_y.scale_rgb_16 =     scale_rgb_16_y_bicubic_c;
   tab->funcs_y.scale_uint8_x_1_advance =  scale_uint8_x_1_y_bicubic_c;
   tab->funcs_y.scale_uint8_x_1_noadvance =  scale_uint8_x_1_y_bicubic_c;
+  tab->funcs_y.scale_uint8_x_2 =  scale_uint8_x_2_y_bicubic_c;
   tab->funcs_y.scale_uint8_x_3 =  scale_uint8_x_3_y_bicubic_c;
   tab->funcs_y.scale_uint8_x_4 =  scale_uint8_x_4_y_bicubic_c;
   tab->funcs_y.scale_uint16_x_1 = scale_uint16_x_1_y_bicubic_c;
+  tab->funcs_y.scale_uint16_x_2 = scale_uint16_x_2_y_bicubic_c;
   tab->funcs_y.scale_uint16_x_3 = scale_uint16_x_3_y_bicubic_c;
   tab->funcs_y.scale_uint16_x_4 = scale_uint16_x_4_y_bicubic_c;
+  tab->funcs_y.scale_float_x_1 =  scale_float_x_1_y_bicubic_c;
+  tab->funcs_y.scale_float_x_2 =  scale_float_x_2_y_bicubic_c;
   tab->funcs_y.scale_float_x_3 =  scale_float_x_3_y_bicubic_c;
   tab->funcs_y.scale_float_x_4 =  scale_float_x_4_y_bicubic_c;
   tab->funcs_y.bits_rgb_15 = 16;

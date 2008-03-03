@@ -105,6 +105,31 @@ int gavl_deinterlacer_init_blend(gavl_video_deinterlacer_t * d)
   
   switch(d->format.pixelformat)
     {
+    case GAVL_GRAY_8:
+      d->line_width = d->format.image_width;
+      d->blend_func = tab.func_8;
+      break;
+    case GAVL_GRAY_16:
+      d->line_width = d->format.image_width;
+      d->blend_func = tab.func_16;
+      break;
+    case GAVL_GRAY_FLOAT:
+      d->line_width = d->format.image_width;
+      d->blend_func = tab.func_float;
+      break;
+    case GAVL_GRAYA_16:
+      d->line_width = 2 * d->format.image_width;
+      d->blend_func = tab.func_8;
+      break;
+    case GAVL_GRAYA_32:
+      d->line_width = 2 * d->format.image_width;
+      d->blend_func = tab.func_16;
+      break;
+    case GAVL_GRAYA_FLOAT:
+      d->line_width = 2 * d->format.image_width;
+      d->blend_func = tab.func_float;
+      break;
+
     case GAVL_RGB_15:
     case GAVL_BGR_15:
       d->line_width = d->format.image_width;
@@ -132,14 +157,17 @@ int gavl_deinterlacer_init_blend(gavl_video_deinterlacer_t * d)
       d->blend_func = tab.func_16;
       break;
     case GAVL_RGB_FLOAT:
+    case GAVL_YUV_FLOAT:
       d->line_width = d->format.image_width * 3;
       d->blend_func = tab.func_float;
       break;
     case GAVL_RGBA_64:
+    case GAVL_YUVA_64:
       d->line_width = d->format.image_width * 4;
       d->blend_func = tab.func_16;
       break;
     case GAVL_RGBA_FLOAT:
+    case GAVL_YUVA_FLOAT:
       d->line_width = d->format.image_width * 4;
       d->blend_func = tab.func_float;
       break;

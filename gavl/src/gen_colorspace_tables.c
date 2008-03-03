@@ -159,7 +159,72 @@ int main(int argc, char ** argv)
     }
   fprintf(source, "};\n\n");
 
+  /* y_8 -> yj_16 */
+  
+  fprintf(header, "extern const uint16_t gavl_y_8_to_yj_16[256];\n");
+  fprintf(source, "const uint16_t gavl_y_8_to_yj_16[256] = \n{\n");
+  for(i = 0; i < 256; i++)
+    {
+    if(!((i)%8))
+      fprintf(source, "  ");
+    tmp_float = ((float)(i - 16) / 219.0)*65535.0;
+    tmp_int   = (int)(tmp_float+0.5);
+    RECLIP(tmp_int, 0, 65535);
+    fprintf(source, "0x%04x, ", tmp_int);
+    if(!((i+1)%8))
+      fprintf(source, "\n");
+    }
+  fprintf(source, "};\n\n");
 
+  /* y_8 -> y_float */
+  
+  fprintf(header, "extern const float gavl_y_8_to_y_float[256];\n");
+  fprintf(source, "const float gavl_y_8_to_y_float[256] = \n{\n");
+  for(i = 0; i < 256; i++)
+    {
+    if(!((i)%8))
+      fprintf(source, "  ");
+    tmp_float = ((float)(i - 16) / 219.0);
+    RECLIP(tmp_float, 0.0, 1.0);
+    fprintf(source, "%.10f, ", tmp_float);
+    if(!((i+1)%8))
+      fprintf(source, "\n");
+    }
+  fprintf(source, "};\n\n");
+
+  /* uv_8 -> uv_float */
+  
+  fprintf(header, "extern const float gavl_uv_8_to_uv_float[256];\n");
+  fprintf(source, "const float gavl_uv_8_to_uv_float[256] = \n{\n");
+  for(i = 0; i < 256; i++)
+    {
+    if(!((i)%8))
+      fprintf(source, "  ");
+    tmp_float = ((float)(i - 0x80) / 112.0);
+    RECLIP(tmp_float, -0.5, 0.5);
+    fprintf(source, "%.10f, ", tmp_float);
+    if(!((i+1)%8))
+      fprintf(source, "\n");
+    }
+  fprintf(source, "};\n\n");
+
+  /* yj_8 -> y_float */
+  
+  fprintf(header, "extern const float gavl_yj_8_to_y_float[256];\n");
+  fprintf(source, "const float gavl_yj_8_to_y_float[256] = \n{\n");
+  for(i = 0; i < 256; i++)
+    {
+    if(!((i)%8))
+      fprintf(source, "  ");
+    tmp_float = ((float)(i) / 255.0);
+    RECLIP(tmp_float, 0.0, 1.0);
+    fprintf(source, "%.10f, ", tmp_float);
+    if(!((i+1)%8))
+      fprintf(source, "\n");
+    }
+  fprintf(source, "};\n\n");
+  
+  
   /* RGB 5/6 bit -> 8 bit */
 
     
@@ -365,7 +430,7 @@ int main(int argc, char ** argv)
     }
   fprintf(source, "};\n\n");
 
-
+  fprintf(source, "/* RGB -> YUVJ conversions */\n");
   
   fprintf(header, "extern const int gavl_r_to_yj[256];\n");
   fprintf(source, "const int gavl_r_to_yj[256] = \n{\n");
@@ -475,6 +540,120 @@ int main(int argc, char ** argv)
     }
   fprintf(source, "};\n\n");
 
+  /* */
+
+  fprintf(source, "/* RGB -> YUV float conversions */\n");
+  
+  fprintf(header, "extern const float gavl_r_to_y_float[256];\n");
+  fprintf(source, "const float gavl_r_to_y_float[256] = \n{\n");
+  for(i = 0; i < 0x100; i++)
+    {
+    if(!((i)%8))
+      fprintf(source, "  ");
+    fprintf(source, "%.8f, ", (float)i/255.0*0.29900);
+    if(!((i+1)%8))
+      fprintf(source, "\n");
+    }
+  fprintf(source, "};\n\n");
+
+  fprintf(header, "extern const float gavl_g_to_y_float[256];\n");
+  fprintf(source, "const float gavl_g_to_y_float[256] = \n{\n");
+  for(i = 0; i < 0x100; i++)
+    {
+    if(!((i)%8))
+      fprintf(source, "  ");
+    fprintf(source, "%.8f, ", (float)i/255.0*0.58700);
+    if(!((i+1)%8))
+      fprintf(source, "\n");
+    }
+  fprintf(source, "};\n\n");
+
+  fprintf(header, "extern const float gavl_b_to_y_float[256];\n");
+  fprintf(source, "const float gavl_b_to_y_float[256] = \n{\n");
+  for(i = 0; i < 0x100; i++)
+    {
+    if(!((i)%8))
+      fprintf(source, "  ");
+    fprintf(source, "%.8f, ", (float)i/255.0*0.11400);
+    if(!((i+1)%8))
+      fprintf(source, "\n");
+    }
+  fprintf(source, "};\n\n");
+    
+  fprintf(header, "extern const float gavl_r_to_u_float[256];\n");
+  fprintf(source, "const float gavl_r_to_u_float[256] = \n{\n");
+  for(i = 0; i < 0x100; i++)
+    {
+    if(!((i)%8))
+      fprintf(source, "  ");
+    fprintf(source, "%.8f, ", (float)i/255.0*(-0.16874));
+    if(!((i+1)%8))
+      fprintf(source, "\n");
+    }
+  fprintf(source, "};\n\n");
+
+  fprintf(header, "extern const float gavl_g_to_u_float[256];\n");
+  fprintf(source, "const float gavl_g_to_u_float[256] = \n{\n");
+  for(i = 0; i < 0x100; i++)
+    {
+    if(!((i)%8))
+      fprintf(source, "  ");
+    fprintf(source, "%.8f, ", (float)i/255.0*(-0.33126));
+    if(!((i+1)%8))
+      fprintf(source, "\n");
+    }
+  fprintf(source, "};\n\n");
+
+  fprintf(header, "extern const float gavl_b_to_u_float[256];\n");
+  fprintf(source, "const float gavl_b_to_u_float[256] = \n{\n");
+  for(i = 0; i < 0x100; i++)
+    {
+    if(!((i)%8))
+      fprintf(source, "  ");
+    fprintf(source, "%.8f, ", (float)i/255.0*(0.50000));
+    if(!((i+1)%8))
+      fprintf(source, "\n");
+    }
+  fprintf(source, "};\n\n");
+    
+  fprintf(header, "extern const float gavl_r_to_v_float[256];\n");
+  fprintf(source, "const float gavl_r_to_v_float[256] = \n{\n");
+  for(i = 0; i < 0x100; i++)
+    {
+    if(!((i)%8))
+      fprintf(source, "  ");
+    fprintf(source, "%.8f, ", (float)i/255.0*(0.50000));
+    if(!((i+1)%8))
+      fprintf(source, "\n");
+    }
+  fprintf(source, "};\n\n");
+
+  fprintf(header, "extern const float gavl_g_to_v_float[256];\n");
+  fprintf(source, "const float gavl_g_to_v_float[256] = \n{\n");
+  for(i = 0; i < 0x100; i++)
+    {
+    if(!((i)%8))
+      fprintf(source, "  ");
+    fprintf(source, "%.8f, ", (float)i/255.0*(-0.41869));
+    if(!((i+1)%8))
+      fprintf(source, "\n");
+    }
+  fprintf(source, "};\n\n");
+
+  fprintf(header, "extern const float gavl_b_to_v_float[256];\n");
+  fprintf(source, "const float gavl_b_to_v_float[256] = \n{\n");
+  for(i = 0; i < 0x100; i++)
+    {
+    if(!((i)%8))
+      fprintf(source, "  ");
+    fprintf(source, "%.8f, ", (float)i/255.0*(-0.08131));
+    if(!((i+1)%8))
+      fprintf(source, "\n");
+    }
+  fprintf(source, "};\n\n");
+
+
+  
     
   fprintf(source, "/* YUV -> RGB conversions */\n");
 

@@ -51,6 +51,15 @@ static void video_frame_alloc(gavl_video_frame_t * ret,
   {
   switch(format->pixelformat)
     {
+    case GAVL_GRAY_8:
+      ret->strides[0] = format->frame_width;
+      if(align)
+        ALIGN(ret->strides[0]);
+      ret->planes[0] = memalign(ALIGNMENT_BYTES,
+                                ret->strides[0] * format->frame_height);
+      break;
+    case GAVL_GRAYA_16:
+    case GAVL_GRAY_16:
     case GAVL_RGB_15:
     case GAVL_BGR_15:
     case GAVL_RGB_16:
@@ -72,6 +81,7 @@ static void video_frame_alloc(gavl_video_frame_t * ret,
     case GAVL_RGB_32:
     case GAVL_BGR_32:
     case GAVL_YUVA_32:
+    case GAVL_GRAYA_32:
       ret->strides[0] = format->frame_width*4;
       if(align)
         ALIGN(ret->strides[0]);
@@ -93,13 +103,30 @@ static void video_frame_alloc(gavl_video_frame_t * ret,
                              ret->strides[0] * format->frame_height);
       break;
     case GAVL_RGBA_64:
+    case GAVL_YUVA_64:
       ret->strides[0] = format->frame_width*8;
       if(align)
         ALIGN(ret->strides[0]);
       ret->planes[0] = memalign(ALIGNMENT_BYTES,
                              ret->strides[0] * format->frame_height);
       break;
+    case GAVL_GRAY_FLOAT:
+      ret->strides[0] = format->frame_width*sizeof(float);
+      if(align)
+        ALIGN(ret->strides[0]);
+      ret->planes[0] = memalign(ALIGNMENT_BYTES,
+                                ret->strides[0] * format->frame_height);
+      break;
+    case GAVL_GRAYA_FLOAT:
+      ret->strides[0] = 2*format->frame_width*sizeof(float);
+      if(align)
+        ALIGN(ret->strides[0]);
+      ret->planes[0] = memalign(ALIGNMENT_BYTES,
+                                ret->strides[0] * format->frame_height);
+      break;
+
     case GAVL_RGB_FLOAT:
+    case GAVL_YUV_FLOAT:
       ret->strides[0] = format->frame_width*3*sizeof(float);
       if(align)
         ALIGN(ret->strides[0]);
@@ -107,6 +134,7 @@ static void video_frame_alloc(gavl_video_frame_t * ret,
                              ret->strides[0] * format->frame_height);
       break;
     case GAVL_RGBA_FLOAT:
+    case GAVL_YUVA_FLOAT:
       ret->strides[0] = format->frame_width*4*sizeof(float);
       if(align)
         ALIGN(ret->strides[0]);
@@ -303,8 +331,8 @@ void gavl_video_frame_null(gavl_video_frame_t* frame)
   frame->planes[0] = (uint8_t*)0;
   }
 
-void gavl_video_frame_clear(gavl_video_frame_t * frame,
-                            const gavl_video_format_t * format)
+void gavl_video_frame_clear_mask(gavl_video_frame_t * frame,
+                                 const gavl_video_format_t * format, int mask)
   {
   int i, j;
   uint16_t * ptr_16;
@@ -314,6 +342,7 @@ void gavl_video_frame_clear(gavl_video_frame_t * frame,
   uint8_t * line_start;
   uint8_t * line_start_u;
   uint8_t * line_start_v;
+  int bytes;
   
   switch(format->pixelformat)
     {
@@ -327,9 +356,20 @@ void gavl_video_frame_clear(gavl_video_frame_t * frame,
     case GAVL_BGR_32:
     case GAVL_RGB_48:
     case GAVL_RGB_FLOAT:
-      memset(frame->planes[0], 0x00, format->frame_height * frame->strides[0]);
+    case GAVL_GRAY_8:
+    case GAVL_GRAY_16:
+    case GAVL_GRAY_FLOAT:
+    case GAVL_YUV_FLOAT:
+      if(mask & CLEAR_MASK_PLANE_0)
+        {
+        bytes = format->frame_width * gavl_pixelformat_bytes_per_pixel(format->pixelformat);
+        for(i = 0; i < format->frame_height; i++)
+          memset(frame->planes[0] + i * frame->strides[0], 0x00, bytes);
+        }
       break;
     case GAVL_RGBA_32:
+      if(!(mask & CLEAR_MASK_PLANE_0))
+        break;
       for(i = 0; i < format->frame_height; i++)
         {
         for(j = 0; j < format->frame_width; j++)
@@ -341,7 +381,21 @@ void gavl_video_frame_clear(gavl_video_frame_t * frame,
           }
         }
       break;
+    case GAVL_GRAYA_16:
+      if(!(mask & CLEAR_MASK_PLANE_0))
+        break;
+      for(i = 0; i < format->frame_height; i++)
+        {
+        for(j = 0; j < format->frame_width; j++)
+          {
+          frame->planes[0][2*j + i*frame->strides[0]]   = 0x00; /* Gray */
+          frame->planes[0][2*j + i*frame->strides[0]+1] = 0xFF; /* A    */
+          }
+        }
+      break;
     case GAVL_YUVA_32:
+      if(!(mask & CLEAR_MASK_PLANE_0))
+        break;
       for(i = 0; i < format->frame_height; i++)
         {
         for(j = 0; j < format->frame_width; j++)
@@ -354,6 +408,9 @@ void gavl_video_frame_clear(gavl_video_frame_t * frame,
         }
       break;
     case GAVL_RGBA_64:
+      if(!(mask & CLEAR_MASK_PLANE_0))
+        break;
+      
       line_start = frame->planes[0];
       
       for(i = 0; i < format->frame_height; i++)
@@ -370,7 +427,48 @@ void gavl_video_frame_clear(gavl_video_frame_t * frame,
         }
       
       break;
+    case GAVL_GRAYA_32:
+      if(!(mask & CLEAR_MASK_PLANE_0))
+        break;
+      
+      line_start = frame->planes[0];
+      
+      for(i = 0; i < format->frame_height; i++)
+        {
+        ptr_16 = (uint16_t*)line_start;
+        for(j = 0; j < format->frame_width; j++)
+          {
+          *(ptr_16++) = 0x0000;
+          *(ptr_16++) = 0xFFFF;
+          }
+        line_start += frame->strides[0];
+        }
+      
+      break;
+    case GAVL_YUVA_64:
+      if(!(mask & CLEAR_MASK_PLANE_0))
+        break;
+      
+      line_start = frame->planes[0];
+      
+      for(i = 0; i < format->frame_height; i++)
+        {
+        ptr_16 = (uint16_t*)line_start;
+        for(j = 0; j < format->frame_width; j++)
+          {
+          *(ptr_16++) = 0x0000;
+          *(ptr_16++) = 0x8000;
+          *(ptr_16++) = 0x8000;
+          *(ptr_16++) = 0xFFFF;
+          }
+        line_start += frame->strides[0];
+        }
+      
+      break;
     case GAVL_RGBA_FLOAT:
+    case GAVL_YUVA_FLOAT:
+      if(!(mask & CLEAR_MASK_PLANE_0))
+        break;
       line_start = frame->planes[0];
       
       for(i = 0; i < format->frame_height; i++)
@@ -386,7 +484,25 @@ void gavl_video_frame_clear(gavl_video_frame_t * frame,
         line_start += frame->strides[0];
         }
       break;
+    case GAVL_GRAYA_FLOAT:
+      if(!(mask & CLEAR_MASK_PLANE_0))
+        break;
+      line_start = frame->planes[0];
+      
+      for(i = 0; i < format->frame_height; i++)
+        {
+        ptr_float = (float*)line_start;
+        for(j = 0; j < format->frame_width; j++)
+          {
+          *(ptr_float++) = 0.0;
+          *(ptr_float++) = 1.0;
+          }
+        line_start += frame->strides[0];
+        }
+      break;
     case GAVL_YUY2:
+      if(!(mask & CLEAR_MASK_PLANE_0))
+        break;
       for(i = 0; i < format->frame_height; i++)
         {
         for(j = 0; j < format->frame_width; j++)
@@ -397,6 +513,8 @@ void gavl_video_frame_clear(gavl_video_frame_t * frame,
         }
       break;
     case GAVL_UYVY:
+      if(!(mask & CLEAR_MASK_PLANE_0))
+        break;
       for(i = 0; i < format->frame_height; i++)
         {
         for(j = 0; j < format->frame_width; j++)
@@ -407,7 +525,16 @@ void gavl_video_frame_clear(gavl_video_frame_t * frame,
         }
       break;
     case GAVL_YUV_444_P_16:
-      memset(frame->planes[0], 0x00, format->frame_height * frame->strides[0]); /* Y */
+      if(mask & CLEAR_MASK_PLANE_0)
+        {
+        bytes = format->frame_width * 2;
+        for(i = 0; i < format->frame_height; i++)
+          memset(frame->planes[0] + i * frame->strides[0], 0x00, bytes);
+        }
+      
+      if(!(mask & (CLEAR_MASK_PLANE_1 | CLEAR_MASK_PLANE_2)))
+        break;
+      
       line_start_u = frame->planes[1];
       line_start_v = frame->planes[2];
       for(i = 0; i < format->frame_height; i++)
@@ -415,17 +542,37 @@ void gavl_video_frame_clear(gavl_video_frame_t * frame,
         ptr_16_u = (uint16_t*)line_start_u;
         ptr_16_v = (uint16_t*)line_start_v;
 
-        for(j = 0; j < format->frame_width; j++)
+        if(mask & CLEAR_MASK_PLANE_1)
           {
-          *(ptr_16_u++) = 0x8000;
-          *(ptr_16_v++) = 0x8000;
+          for(j = 0; j < format->frame_width; j++)
+            {
+            *(ptr_16_u++) = 0x8000;
+            }
           }
+        
+        if(mask & CLEAR_MASK_PLANE_2)
+          {
+          for(j = 0; j < format->frame_width; j++)
+            {
+            *(ptr_16_v++) = 0x8000;
+            }
+          }
+        
         line_start_u += frame->strides[1];
         line_start_v += frame->strides[2];
         }
       break;
     case GAVL_YUV_422_P_16:
-      memset(frame->planes[0], 0x00, format->frame_height * frame->strides[0]); /* Y */
+      if(mask & CLEAR_MASK_PLANE_0)
+        {
+        bytes = format->frame_width * 2;
+        for(i = 0; i < format->frame_height; i++)
+          memset(frame->planes[0] + i * frame->strides[0], 0x00, bytes);
+        }
+      
+      if(!(mask & (CLEAR_MASK_PLANE_1 | CLEAR_MASK_PLANE_2)))
+        break;
+      
       line_start_u = frame->planes[1];
       line_start_v = frame->planes[2];
       for(i = 0; i < format->frame_height; i++)
@@ -433,39 +580,138 @@ void gavl_video_frame_clear(gavl_video_frame_t * frame,
         ptr_16_u = (uint16_t*)line_start_u;
         ptr_16_v = (uint16_t*)line_start_v;
 
-        for(j = 0; j < format->frame_width/2; j++)
+        if(mask & CLEAR_MASK_PLANE_1)
           {
-          *(ptr_16_u++) = 0x8000;
-          *(ptr_16_v++) = 0x8000;
+          for(j = 0; j < format->frame_width/2; j++)
+            {
+            *(ptr_16_u++) = 0x8000;
+            }
           }
+        if(mask & CLEAR_MASK_PLANE_2)
+          {
+          for(j = 0; j < format->frame_width/2; j++)
+            {
+            *(ptr_16_v++) = 0x8000;
+            }
+          }
+        
         line_start_u += frame->strides[1];
         line_start_v += frame->strides[2];
         }
       break;
     case GAVL_YUV_420_P:
     case GAVL_YUVJ_420_P:
-      memset(frame->planes[0], 0x00, format->frame_height * frame->strides[0]);
-      memset(frame->planes[1], 0x80, (format->frame_height * frame->strides[1])/2);
-      memset(frame->planes[2], 0x80, (format->frame_height * frame->strides[2])/2);
+      if(mask & CLEAR_MASK_PLANE_0)
+        {
+        bytes = format->frame_width;
+        for(i = 0; i < format->frame_height; i++)
+          memset(frame->planes[0] + i * frame->strides[0], 0x00, bytes);
+        }
+      if(mask & CLEAR_MASK_PLANE_1)
+        {
+        bytes = format->frame_width / 2;
+        for(i = 0; i < format->frame_height / 2; i++)
+          memset(frame->planes[1] + i * frame->strides[1], 0x80, bytes);
+        }
+      if(mask & CLEAR_MASK_PLANE_2)
+        {
+        bytes = format->frame_width / 2;
+        for(i = 0; i < format->frame_height / 2; i++)
+          memset(frame->planes[2] + i * frame->strides[2], 0x80, bytes);
+        }
       break;
     case GAVL_YUV_410_P:
-      memset(frame->planes[0], 0x00, format->frame_height * frame->strides[0]);
-      memset(frame->planes[1], 0x80, (format->frame_height * frame->strides[1])/4);
-      memset(frame->planes[2], 0x80, (format->frame_height * frame->strides[2])/4);
+      if(mask & CLEAR_MASK_PLANE_0)
+        {
+        bytes = format->frame_width;
+        for(i = 0; i < format->frame_height; i++)
+          memset(frame->planes[0] + i * frame->strides[0], 0x00, bytes);
+        }
+      if(mask & CLEAR_MASK_PLANE_1)
+        {
+        bytes = format->frame_width / 4;
+        for(i = 0; i < format->frame_height / 4; i++)
+          memset(frame->planes[1] + i * frame->strides[1], 0x80, bytes);
+        }
+      if(mask & CLEAR_MASK_PLANE_2)
+        {
+        bytes = format->frame_width / 4;
+        for(i = 0; i < format->frame_height / 4; i++)
+          memset(frame->planes[2] + i * frame->strides[2], 0x80, bytes);
+        }
+      break;
+    case GAVL_YUV_411_P:
+      if(mask & CLEAR_MASK_PLANE_0)
+        {
+        bytes = format->frame_width;
+        for(i = 0; i < format->frame_height; i++)
+          memset(frame->planes[0] + i * frame->strides[0], 0x00, bytes);
+        }
+      if(mask & CLEAR_MASK_PLANE_1)
+        {
+        bytes = format->frame_width / 4;
+        for(i = 0; i < format->frame_height; i++)
+          memset(frame->planes[1] + i * frame->strides[1], 0x80, bytes);
+        }
+      if(mask & CLEAR_MASK_PLANE_2)
+        {
+        bytes = format->frame_width / 4;
+        for(i = 0; i < format->frame_height; i++)
+          memset(frame->planes[2] + i * frame->strides[2], 0x80, bytes);
+        }
       break;
     case GAVL_YUV_422_P:
-    case GAVL_YUV_411_P:
-    case GAVL_YUV_444_P:
     case GAVL_YUVJ_422_P:
+      if(mask & CLEAR_MASK_PLANE_0)
+        {
+        bytes = format->frame_width;
+        for(i = 0; i < format->frame_height; i++)
+          memset(frame->planes[0] + i * frame->strides[0], 0x00, bytes);
+        }
+      if(mask & CLEAR_MASK_PLANE_1)
+        {
+        bytes = format->frame_width / 2;
+        for(i = 0; i < format->frame_height; i++)
+          memset(frame->planes[1] + i * frame->strides[1], 0x80, bytes);
+        }
+      if(mask & CLEAR_MASK_PLANE_2)
+        {
+        bytes = format->frame_width / 2;
+        for(i = 0; i < format->frame_height; i++)
+          memset(frame->planes[2] + i * frame->strides[2], 0x80, bytes);
+        }
+      break;
+    case GAVL_YUV_444_P:
     case GAVL_YUVJ_444_P:
-      memset(frame->planes[0], 0x00, format->frame_height * frame->strides[0]);
-      memset(frame->planes[1], 0x80, format->frame_height * frame->strides[1]);
-      memset(frame->planes[2], 0x80, format->frame_height * frame->strides[2]);
+      if(mask & CLEAR_MASK_PLANE_0)
+        {
+        bytes = format->frame_width;
+        for(i = 0; i < format->frame_height; i++)
+          memset(frame->planes[0] + i * frame->strides[0], 0x00, bytes);
+        }
+      if(mask & CLEAR_MASK_PLANE_1)
+        {
+        bytes = format->frame_width;
+        for(i = 0; i < format->frame_height; i++)
+          memset(frame->planes[1] + i * frame->strides[1], 0x80, bytes);
+        }
+      if(mask & CLEAR_MASK_PLANE_2)
+        {
+        bytes = format->frame_width;
+        for(i = 0; i < format->frame_height; i++)
+          memset(frame->planes[2] + i * frame->strides[2], 0x80, bytes);
+        }
       break;
     case GAVL_PIXELFORMAT_NONE:
       break;
-      
     }
+  }
+
+
+void gavl_video_frame_clear(gavl_video_frame_t * frame,
+                            const gavl_video_format_t * format)
+  {
+  gavl_video_frame_clear_mask(frame, format, CLEAR_MASK_ALL);  
   }
 
 static void copy_plane(gavl_video_frame_t * dst,
@@ -736,6 +982,8 @@ static flip_scanline_func find_flip_scanline_func(gavl_pixelformat_t csp)
     case GAVL_BGR_16:
     case GAVL_YUV_444_P_16:
     case GAVL_YUV_422_P_16:
+    case GAVL_GRAYA_16:
+    case GAVL_GRAY_16:
       return flip_scanline_2;
       break;
     case GAVL_RGB_24:
@@ -746,18 +994,24 @@ static flip_scanline_func find_flip_scanline_func(gavl_pixelformat_t csp)
     case GAVL_BGR_32:
     case GAVL_RGBA_32:
     case GAVL_YUVA_32:
+    case GAVL_GRAYA_32:
+    case GAVL_GRAY_FLOAT:
       return flip_scanline_4;
       break;
     case GAVL_RGB_48:
       return flip_scanline_6;
       break;
     case GAVL_RGBA_64:
+    case GAVL_YUVA_64:
+    case GAVL_GRAYA_FLOAT:
       return flip_scanline_8;
       break;
     case GAVL_RGB_FLOAT:
+    case GAVL_YUV_FLOAT:
       return flip_scanline_12;
       break;
     case GAVL_RGBA_FLOAT:
+    case GAVL_YUVA_FLOAT:
       return flip_scanline_16;
       break;
     case GAVL_YUV_420_P:
@@ -768,6 +1022,7 @@ static flip_scanline_func find_flip_scanline_func(gavl_pixelformat_t csp)
     case GAVL_YUVJ_420_P:
     case GAVL_YUVJ_422_P:
     case GAVL_YUVJ_444_P:
+    case GAVL_GRAY_8:
       return flip_scanline_1;
       break;
     case GAVL_YUY2:
@@ -1033,6 +1288,15 @@ void gavl_video_frame_get_field(gavl_pixelformat_t pixelformat,
     dst_start += frame->strides[0];                 \
     }
 
+static void fill_8_packed(gavl_video_frame_t * frame,
+                          const gavl_video_format_t * format,
+                          uint8_t color)
+  {
+  FILL_FUNC_HEAD_PACKED(uint8_t);
+  *dst = color;
+  FILL_FUNC_TAIL_PACKED(1);
+  }
+      
 static void fill_16_packed(gavl_video_frame_t * frame,
                            const gavl_video_format_t * format,
                            uint16_t color)
@@ -1090,6 +1354,24 @@ static void fill_64_packed(gavl_video_frame_t * frame,
   FILL_FUNC_HEAD_PACKED(uint16_t);
   gavl_memcpy(dst, color, 4*sizeof(*dst));
   FILL_FUNC_TAIL_PACKED(4);
+  }
+
+static void fill_float_gray(gavl_video_frame_t * frame,
+                           const gavl_video_format_t * format,
+                           float * color)
+  {
+  FILL_FUNC_HEAD_PACKED(float);
+  gavl_memcpy(dst, color, sizeof(*dst));
+  FILL_FUNC_TAIL_PACKED(1);
+  }
+
+static void fill_float_graya(gavl_video_frame_t * frame,
+                           const gavl_video_format_t * format,
+                           float * color)
+  {
+  FILL_FUNC_HEAD_PACKED(float);
+  gavl_memcpy(dst, color, 2*sizeof(*dst));
+  FILL_FUNC_TAIL_PACKED(2);
   }
 
 static void fill_float_rgb(gavl_video_frame_t * frame,
@@ -1224,11 +1506,49 @@ void gavl_video_frame_fill(gavl_video_frame_t * frame,
   uint16_t packed_16;
   uint8_t  packed_32[4];
   uint16_t packed_64[4];
+  float color_float[2];
 
   gavl_init_memcpy();
   
   switch(format->pixelformat)
     {
+    case GAVL_GRAY_8:
+      RGB_FLOAT_TO_YUVJ_8(color[0], color[1], color[2], packed_32[0],
+                          packed_32[1], packed_32[2]);
+      fill_8_packed(frame, format, packed_32[0]);
+      break;
+    case GAVL_GRAYA_16:
+      RGB_FLOAT_TO_YUVJ_8(color[0], color[1], color[2], packed_32[0],
+                          packed_32[1], packed_32[2]);
+      /* This overwrites packed_32[1] from the lone before */
+      RGB_FLOAT_TO_8(color[3], packed_32[1]);
+#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+      packed_16 = (packed_32[1] << 8) | packed_32[0];
+#else
+      packed_16 = (packed_32[0] << 8) | packed_32[1];
+#endif 
+      fill_16_packed(frame, format, packed_16);
+      break;
+    case GAVL_GRAY_16:
+      RGB_FLOAT_TO_YJ_16(color[0], color[1], color[2], packed_16);
+      fill_16_packed(frame, format, packed_16);
+      break;
+    case GAVL_GRAYA_32:
+      RGB_FLOAT_TO_YJ_16(color[0], color[1], color[2], packed_64[0]);
+      RGB_FLOAT_TO_16(color[3], packed_64[1]);
+#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+      packed_32[0] = packed_64[0] & 0xff;
+      packed_32[1] = packed_64[0] >> 8;
+      packed_32[2] = packed_64[1] & 0xff;
+      packed_32[3] = packed_64[1] >> 8;
+#else
+      packed_32[1] = packed_64[0] & 0xff;
+      packed_32[0] = packed_64[0] >> 8;
+      packed_32[3] = packed_64[1] & 0xff;
+      packed_32[2] = packed_64[1] >> 8;
+#endif 
+      fill_32_packed(frame, format, packed_32);
+      break;
     case GAVL_RGB_15:
       RGB_FLOAT_TO_8(color[0], packed_32[0]);
       RGB_FLOAT_TO_8(color[1], packed_32[1]);
@@ -1306,6 +1626,32 @@ void gavl_video_frame_fill(gavl_video_frame_t * frame,
       RGB_FLOAT_TO_16(color[2], packed_64[2]);
       RGB_FLOAT_TO_16(color[3], packed_64[3]);
       fill_64_packed(frame, format, packed_64);
+      break;
+    case GAVL_YUVA_64:
+      RGB_FLOAT_TO_YUV_16(color[0], color[1], color[2], packed_64[0],
+                          packed_64[1], packed_64[2]);
+      RGB_FLOAT_TO_16(color[3], packed_64[3]);
+      fill_planar_16(frame, format, packed_64);
+      break;
+    case GAVL_GRAY_FLOAT:
+      RGB_FLOAT_TO_Y_FLOAT(color[0], color[1], color[2], color_float[0]);
+      fill_float_gray(frame, format, color_float);
+      break;
+    case GAVL_GRAYA_FLOAT:
+      RGB_FLOAT_TO_Y_FLOAT(color[0], color[1], color[2], color_float[0]);
+      color_float[1] = color[4];
+      fill_float_graya(frame, format, color_float);
+      break;
+    case GAVL_YUV_FLOAT:
+      RGB_FLOAT_TO_YUV_FLOAT(color[0], color[1], color[2],
+                             color_float[0], color_float[1], color_float[2]);
+      fill_float_rgb(frame, format, color_float);
+      break;
+    case GAVL_YUVA_FLOAT:
+      RGB_FLOAT_TO_YUV_FLOAT(color[0], color[1], color[2],
+                             color_float[0], color_float[1], color_float[2]);
+      color_float[3] = color[3];
+      fill_float_rgba(frame, format, color);
       break;
     case GAVL_RGB_FLOAT:
       fill_float_rgb(frame, format, color);

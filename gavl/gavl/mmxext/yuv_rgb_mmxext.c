@@ -20,4 +20,4 @@
  * *****************************************************************/
 
 #define MMXEXT
-#include "../mmx/colorspace_scanline_mmx.c"
+#include "../mmx/yuv_rgb_mmx.c"

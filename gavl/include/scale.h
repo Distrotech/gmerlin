@@ -46,11 +46,15 @@ typedef struct
   gavl_video_scale_scanline_func scale_rgb_16;
   gavl_video_scale_scanline_func scale_uint8_x_1_noadvance;
   gavl_video_scale_scanline_func scale_uint8_x_1_advance;
+  gavl_video_scale_scanline_func scale_uint8_x_2;
   gavl_video_scale_scanline_func scale_uint8_x_3;
   gavl_video_scale_scanline_func scale_uint8_x_4;
   gavl_video_scale_scanline_func scale_uint16_x_1;
+  gavl_video_scale_scanline_func scale_uint16_x_2;
   gavl_video_scale_scanline_func scale_uint16_x_3;
   gavl_video_scale_scanline_func scale_uint16_x_4;
+  gavl_video_scale_scanline_func scale_float_x_1;
+  gavl_video_scale_scanline_func scale_float_x_2;
   gavl_video_scale_scanline_func scale_float_x_3;
   gavl_video_scale_scanline_func scale_float_x_4;
 
@@ -272,6 +276,9 @@ struct gavl_video_scale_context_s
   int min_values_v[4];
   int max_values_v[4];
 
+  float min_values_f[4];
+  float max_values_f[4];
+  
   /* These are used by the generic scaler */
 
   int64_t tmp[4]; /* For accumulating values */

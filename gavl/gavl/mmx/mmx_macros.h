@@ -18,11 +18,29 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
+#include <config.h>
+#include <gavl.h>
+#include <video.h>
+#include <colorspace.h>
+ 
+#include <attributes.h>
+#include "mmx.h"
 
-#include <stdlib.h> /* size_t */
+/*
+ *  Support for mmxext
+ *  this macro procudes another set of
+ *  functions in ../mmxext
+ */
 
-#include <string.h>
-
-/* TODO: Optimized memcpy routine */
-#define GAVL_MEMCPY(d, s, siz) memcpy(d, s, siz)
+#ifdef MMXEXT
+// #define MOVQ_R2M(reg,mem) movntq_r2m(reg, mem)
+#define MOVQ_R2M(reg,mem) movq_r2m(reg, mem)
+#define CLEANUP     emms();
+// #define PREFETCH(ptr) mmx_fetch(ptr,t0)
+#define PREFETCH(ptr)
+#else
+#define MOVQ_R2M(reg,mem) movq_r2m(reg, mem)
+#define CLEANUP     emms();
+#define PREFETCH(ptr)
+#endif
 

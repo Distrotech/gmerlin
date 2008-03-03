@@ -19,17 +19,5 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-#define SCANLINE
-
-#include <config.h>
-#include <gavl.h>
-#include <video.h>
-#include <colorspace.h>
-
-#include <attributes.h>
-#include "mmx.h"
-
-#include "_rgb_rgb_mmx.c"
-#include "_rgb_yuv_mmx.c"
-#include "_yuv_rgb_mmx.c"
-#include "_yuv_yuv_mmx.c"
+#define MMXEXT
+#include "../mmx/yuv_yuv_mmx.c"

@@ -1297,7 +1297,11 @@ void gavl_rectangle_f_dump(const gavl_rectangle_f_t * r);
  * Alpha flag
  */
 #define GAVL_PIXFMT_ALPHA  (1<<12)
-  
+
+  /** \ingroup video_format
+ * Flag for grayscale pixelformats
+ */
+#define GAVL_PIXFMT_GRAY   (1<<13)
   
 /*! \ingroup video_format
  * \brief Pixelformat definition
@@ -1305,96 +1309,133 @@ void gavl_rectangle_f_dump(const gavl_rectangle_f_t * r);
   
 typedef enum 
   {
- /*! \brief Undefined 
-  */
+    /*! \brief Undefined 
+     */
     GAVL_PIXELFORMAT_NONE =  0, 
 
- /*! 15 bit RGB. Each pixel is a uint16_t in native byte order. Color masks are:
-  * for red: 0x7C00, for green: 0x03e0, for blue: 0x001f
-  */
-    GAVL_RGB_15          =  1 | GAVL_PIXFMT_RGB,
- /*! 15 bit BGR. Each pixel is a uint16_t in native byte order. Color masks are:
-  * for red: 0x001f, for green: 0x03e0, for blue: 0x7C00
-  */
-    GAVL_BGR_15          =  2 | GAVL_PIXFMT_RGB,
- /*! 16 bit RGB. Each pixel is a uint16_t in native byte order. Color masks are:
-  * for red: 0xf800, for green: 0x07e0, for blue: 0x001f
-  */
-    GAVL_RGB_16          =  3 | GAVL_PIXFMT_RGB,
- /*! 16 bit BGR. Each pixel is a uint16_t in native byte order. Color masks are:
-  * for red: 0x001f, for green: 0x07e0, for blue: 0xf800
-  */
-    GAVL_BGR_16          =  4 | GAVL_PIXFMT_RGB,
- /*! 24 bit RGB. Each color is an uint8_t. Color order is RGBRGB
-  */
-    GAVL_RGB_24          =  5 | GAVL_PIXFMT_RGB,
- /*! 24 bit BGR. Each color is an uint8_t. Color order is BGRBGR
-  */
-    GAVL_BGR_24          =  6 | GAVL_PIXFMT_RGB,
- /*! 32 bit RGB. Each color is an uint8_t. Color order is RGBXRGBX, where X is unused
-  */
-    GAVL_RGB_32          =  7 | GAVL_PIXFMT_RGB,
- /*! 32 bit BGR. Each color is an uint8_t. Color order is BGRXBGRX, where X is unused
-  */
-    GAVL_BGR_32          =  8 | GAVL_PIXFMT_RGB,
- /*! 32 bit RGBA. Each color is an uint8_t. Color order is RGBARGBA
-  */
-    GAVL_RGBA_32         =  9 | GAVL_PIXFMT_RGB | GAVL_PIXFMT_ALPHA,
- /*! Packed YCbCr 4:2:2. Each component is an uint8_t. Component order is Y1 U1 Y2 V1
-  */
-    GAVL_YUY2            = 10 | GAVL_PIXFMT_YUV,
- /*! Packed YCbCr 4:2:2. Each component is an uint8_t. Component order is U1 Y1 V1 Y2
-  */
-    GAVL_UYVY            = 11 | GAVL_PIXFMT_YUV,
- /*! Packed YCbCrA 4:4:4:4. Each component is an uint8_t. Component order is YUVAYUVA
-  */
-    GAVL_YUVA_32         = 26 | GAVL_PIXFMT_YUV | GAVL_PIXFMT_ALPHA,
- /*! Planar YCbCr 4:2:0. Each component is an uint8_t. Chroma placement is defined by \ref gavl_chroma_placement_t
-  */
-    GAVL_YUV_420_P       = 12 | GAVL_PIXFMT_PLANAR | GAVL_PIXFMT_YUV,
- /*! Planar YCbCr 4:2:2. Each component is an uint8_t
-  */
-    GAVL_YUV_422_P       = 13 | GAVL_PIXFMT_PLANAR | GAVL_PIXFMT_YUV,
- /*! Planar YCbCr 4:4:4. Each component is an uint8_t
-  */
-    GAVL_YUV_444_P       = 14 | GAVL_PIXFMT_PLANAR | GAVL_PIXFMT_YUV,
- /*! Planar YCbCr 4:1:1. Each component is an uint8_t
-  */
-    GAVL_YUV_411_P       = 15 | GAVL_PIXFMT_PLANAR | GAVL_PIXFMT_YUV,
- /*! Planar YCbCr 4:1:0. Each component is an uint8_t
-  */
-    GAVL_YUV_410_P       = 16 | GAVL_PIXFMT_PLANAR | GAVL_PIXFMT_YUV,
+    /*! 8 bit gray, scaled 0x00..0xff
+     */
+    GAVL_GRAY_8          =  1 | GAVL_PIXFMT_GRAY,
+
+    /*! 16 bit gray, scaled 0x0000..0xffff
+     */
+    GAVL_GRAY_16          =  2 | GAVL_PIXFMT_GRAY,
     
- /*! Planar YCbCr 4:2:0. Each component is an uint8_t, luma and chroma values are full range (0x00 .. 0xff)
-  */
-    GAVL_YUVJ_420_P      = 17 | GAVL_PIXFMT_PLANAR | GAVL_PIXFMT_YUV | GAVL_PIXFMT_YUVJ,
- /*! Planar YCbCr 4:2:2. Each component is an uint8_t, luma and chroma values are full range (0x00 .. 0xff)
-  */
-    GAVL_YUVJ_422_P      = 18 | GAVL_PIXFMT_PLANAR | GAVL_PIXFMT_YUV | GAVL_PIXFMT_YUVJ,
- /*! Planar YCbCr 4:4:4. Each component is an uint8_t, luma and chroma values are full range (0x00 .. 0xff)
-  */
-    GAVL_YUVJ_444_P      = 19 | GAVL_PIXFMT_PLANAR | GAVL_PIXFMT_YUV | GAVL_PIXFMT_YUVJ,
+    /*! floating point gray, scaled 0.0..1.0
+     */
+    GAVL_GRAY_FLOAT       =  3 | GAVL_PIXFMT_GRAY,
+    
+    /*! 8 bit gray + alpha, scaled 0x00..0xff
+     */
+    GAVL_GRAYA_16          =  1 | GAVL_PIXFMT_GRAY | GAVL_PIXFMT_ALPHA,
 
- /*! 16 bit Planar YCbCr 4:4:4. Each component is an uint16_t in native byte order.
-  */
-    GAVL_YUV_444_P_16 = 20 | GAVL_PIXFMT_PLANAR | GAVL_PIXFMT_YUV,
- /*! 16 bit Planar YCbCr 4:2:2. Each component is an uint16_t in native byte order.
-  */
-    GAVL_YUV_422_P_16 = 21 | GAVL_PIXFMT_PLANAR | GAVL_PIXFMT_YUV,
+    /*! 16 bit gray + alpha, scaled 0x0000..0xffff
+     */
+    GAVL_GRAYA_32          =  2 | GAVL_PIXFMT_GRAY | GAVL_PIXFMT_ALPHA,
+    
+    /*! floating point gray + alpha, scaled 0.0..1.0
+     */
+    GAVL_GRAYA_FLOAT       =  3 | GAVL_PIXFMT_GRAY | GAVL_PIXFMT_ALPHA,
+    
+    /*! 15 bit RGB. Each pixel is a uint16_t in native byte order. Color masks are:
+     * for red: 0x7C00, for green: 0x03e0, for blue: 0x001f
+     */
+    GAVL_RGB_15          =  1 | GAVL_PIXFMT_RGB,
+    /*! 15 bit BGR. Each pixel is a uint16_t in native byte order. Color masks are:
+     * for red: 0x001f, for green: 0x03e0, for blue: 0x7C00
+     */
+    GAVL_BGR_15          =  2 | GAVL_PIXFMT_RGB,
+    /*! 16 bit RGB. Each pixel is a uint16_t in native byte order. Color masks are:
+     * for red: 0xf800, for green: 0x07e0, for blue: 0x001f
+     */
+    GAVL_RGB_16          =  3 | GAVL_PIXFMT_RGB,
+    /*! 16 bit BGR. Each pixel is a uint16_t in native byte order. Color masks are:
+     * for red: 0x001f, for green: 0x07e0, for blue: 0xf800
+     */
+    GAVL_BGR_16          =  4 | GAVL_PIXFMT_RGB,
+    /*! 24 bit RGB. Each color is an uint8_t. Color order is RGBRGB
+     */
+    GAVL_RGB_24          =  5 | GAVL_PIXFMT_RGB,
+    /*! 24 bit BGR. Each color is an uint8_t. Color order is BGRBGR
+     */
+    GAVL_BGR_24          =  6 | GAVL_PIXFMT_RGB,
+    /*! 32 bit RGB. Each color is an uint8_t. Color order is RGBXRGBX, where X is unused
+     */
+    GAVL_RGB_32          =  7 | GAVL_PIXFMT_RGB,
+    /*! 32 bit BGR. Each color is an uint8_t. Color order is BGRXBGRX, where X is unused
+     */
+    GAVL_BGR_32          =  8 | GAVL_PIXFMT_RGB,
+    /*! 32 bit RGBA. Each color is an uint8_t. Color order is RGBARGBA
+     */
+    GAVL_RGBA_32         =  9 | GAVL_PIXFMT_RGB | GAVL_PIXFMT_ALPHA,
 
- /*! 48 bit RGB. Each color is an uint16_t in native byte order. Color order is RGBRGB
-  */
-    GAVL_RGB_48       = 22 | GAVL_PIXFMT_RGB,
- /*! 64 bit RGBA. Each color is an uint16_t in native byte order. Color order is RGBARGBA
-  */
-    GAVL_RGBA_64      = 23 | GAVL_PIXFMT_RGB | GAVL_PIXFMT_ALPHA,
+    /*! 48 bit RGB. Each color is an uint16_t in native byte order. Color order is RGBRGB
+     */
+    GAVL_RGB_48       = 10 | GAVL_PIXFMT_RGB,
+    /*! 64 bit RGBA. Each color is an uint16_t in native byte order. Color order is RGBARGBA
+     */
+    GAVL_RGBA_64      = 11 | GAVL_PIXFMT_RGB | GAVL_PIXFMT_ALPHA,
         
- /*! float RGB. Each color is a float (0.0 .. 1.0) in native byte order. Color order is RGBRGB
-  */
-    GAVL_RGB_FLOAT    = 24 | GAVL_PIXFMT_RGB,
- /*! float RGBA. Each color is a float (0.0 .. 1.0) in native byte order. Color order is RGBARGBA
-  */
-    GAVL_RGBA_FLOAT   = 25 | GAVL_PIXFMT_RGB  | GAVL_PIXFMT_ALPHA
+    /*! float RGB. Each color is a float (0.0 .. 1.0) in native byte order. Color order is RGBRGB
+     */
+    GAVL_RGB_FLOAT    = 12 | GAVL_PIXFMT_RGB,
+    /*! float RGBA. Each color is a float (0.0 .. 1.0) in native byte order. Color order is RGBARGBA
+     */
+    GAVL_RGBA_FLOAT   = 13 | GAVL_PIXFMT_RGB  | GAVL_PIXFMT_ALPHA,
+
+    /*! Packed YCbCr 4:2:2. Each component is an uint8_t. Component order is Y1 U1 Y2 V1
+     */
+    GAVL_YUY2            = 1 | GAVL_PIXFMT_YUV,
+    /*! Packed YCbCr 4:2:2. Each component is an uint8_t. Component order is U1 Y1 V1 Y2
+     */
+    GAVL_UYVY            = 2 | GAVL_PIXFMT_YUV,
+    /*! Packed YCbCrA 4:4:4:4. Each component is an uint8_t. Component order is YUVA. Luma and chroma are video scaled, alpha is 0..255. */
+
+    GAVL_YUVA_32         = 3 | GAVL_PIXFMT_YUV | GAVL_PIXFMT_ALPHA,
+    /*! Packed YCbCrA 4:4:4:4. Each component is an uint16_t. Component order is YUVA. Luma and chroma are video scaled, alpha is 0..65535. */
+
+    GAVL_YUVA_64         = 4 | GAVL_PIXFMT_YUV | GAVL_PIXFMT_ALPHA,
+    /*!
+     * Packed YCbCr 4:4:4. Each component is a float. Luma is scaled 0.0..1.0, chroma is -0.5..0.5 */
+    GAVL_YUV_FLOAT       = 5 | GAVL_PIXFMT_YUV,
+
+    /*! Packed YCbCrA 4:4:4:4. Each component is a float. Luma is scaled 0.0..1.0, chroma is -0.5..0.5
+     */
+    GAVL_YUVA_FLOAT       = 6 | GAVL_PIXFMT_YUV | GAVL_PIXFMT_ALPHA,
+    
+    /*! Packed YCbCrA 4:4:4:4. Each component is an uint16_t. Component order is YUVA. Luma and chroma are video scaled, alpha is 0..65535.
+     */
+    
+    GAVL_YUV_420_P       = 1 | GAVL_PIXFMT_PLANAR | GAVL_PIXFMT_YUV,
+    /*! Planar YCbCr 4:2:2. Each component is an uint8_t
+     */
+    GAVL_YUV_422_P       = 2 | GAVL_PIXFMT_PLANAR | GAVL_PIXFMT_YUV,
+    /*! Planar YCbCr 4:4:4. Each component is an uint8_t
+     */
+    GAVL_YUV_444_P       = 3 | GAVL_PIXFMT_PLANAR | GAVL_PIXFMT_YUV,
+    /*! Planar YCbCr 4:1:1. Each component is an uint8_t
+     */
+    GAVL_YUV_411_P       = 4 | GAVL_PIXFMT_PLANAR | GAVL_PIXFMT_YUV,
+    /*! Planar YCbCr 4:1:0. Each component is an uint8_t
+     */
+    GAVL_YUV_410_P       = 5 | GAVL_PIXFMT_PLANAR | GAVL_PIXFMT_YUV,
+    
+    /*! Planar YCbCr 4:2:0. Each component is an uint8_t, luma and chroma values are full range (0x00 .. 0xff)
+     */
+    GAVL_YUVJ_420_P      = 6 | GAVL_PIXFMT_PLANAR | GAVL_PIXFMT_YUV | GAVL_PIXFMT_YUVJ,
+    /*! Planar YCbCr 4:2:2. Each component is an uint8_t, luma and chroma values are full range (0x00 .. 0xff)
+     */
+    GAVL_YUVJ_422_P      = 7 | GAVL_PIXFMT_PLANAR | GAVL_PIXFMT_YUV | GAVL_PIXFMT_YUVJ,
+    /*! Planar YCbCr 4:4:4. Each component is an uint8_t, luma and chroma values are full range (0x00 .. 0xff)
+     */
+    GAVL_YUVJ_444_P      = 8 | GAVL_PIXFMT_PLANAR | GAVL_PIXFMT_YUV | GAVL_PIXFMT_YUVJ,
+
+    /*! 16 bit Planar YCbCr 4:4:4. Each component is an uint16_t in native byte order.
+     */
+    GAVL_YUV_444_P_16 = 9 | GAVL_PIXFMT_PLANAR | GAVL_PIXFMT_YUV,
+    /*! 16 bit Planar YCbCr 4:2:2. Each component is an uint16_t in native byte order.
+     */
+    GAVL_YUV_422_P_16 = 10 | GAVL_PIXFMT_PLANAR | GAVL_PIXFMT_YUV,
     
   } gavl_pixelformat_t;
 
@@ -1402,6 +1443,15 @@ typedef enum
  *  Colormodel related functions
  */
 
+/*! \ingroup video_format
+ * \brief Check if a pixelformat is grayscale
+ * \param fmt A pixelformat
+ * \returns 1 if the pixelformat is grayscale, 0 else
+ */
+  
+#define gavl_pixelformat_is_gray(fmt) ((fmt) & GAVL_PIXFMT_GRAY)
+
+  
 /*! \ingroup video_format
  * \brief Check if a pixelformat is RGB based
  * \param fmt A pixelformat

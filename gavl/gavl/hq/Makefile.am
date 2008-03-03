@@ -2,5 +2,8 @@
 noinst_LTLIBRARIES = libgavl_hq.la
 
 libgavl_hq_la_SOURCES = \
-colorspace_hq.c
+rgb_rgb_hq.c \
+rgb_yuv_hq.c \
+yuv_rgb_hq.c \
+yuv_yuv_hq.c
 

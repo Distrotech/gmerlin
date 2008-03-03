@@ -110,6 +110,18 @@ static gavl_video_scale_scanline_func get_func(gavl_scale_func_tab_t * tab,
       *bits = tab->bits_uint8_noadvance;
       return tab->scale_uint8_x_3;
       break;
+    case GAVL_GRAYA_16:
+      *bits = tab->bits_uint8_noadvance;
+      return tab->scale_uint8_x_2;
+      break;
+    case GAVL_GRAY_16:
+      *bits = tab->bits_uint16;
+      return tab->scale_uint16_x_1;
+      break;
+    case GAVL_GRAYA_32:
+      *bits = tab->bits_uint16;
+      return tab->scale_uint16_x_2;
+      break;
     case GAVL_YUVA_32:
     case GAVL_RGBA_32:
       *bits = tab->bits_uint8_noadvance;
@@ -131,6 +143,7 @@ static gavl_video_scale_scanline_func get_func(gavl_scale_func_tab_t * tab,
     case GAVL_YUVJ_420_P:
     case GAVL_YUVJ_422_P:
     case GAVL_YUVJ_444_P:
+    case GAVL_GRAY_8:
       *bits = tab->bits_uint8_noadvance;
       return tab->scale_uint8_x_1_noadvance;
       break;
@@ -144,14 +157,25 @@ static gavl_video_scale_scanline_func get_func(gavl_scale_func_tab_t * tab,
       return tab->scale_uint16_x_3;
       break;
     case GAVL_RGBA_64:
+    case GAVL_YUVA_64:
       *bits = tab->bits_uint16;
       return tab->scale_uint16_x_4;
       break;
+    case GAVL_GRAY_FLOAT:
+      *bits = 0;
+      return tab->scale_float_x_1;
+      break;
+    case GAVL_GRAYA_FLOAT:
+      *bits = 0;
+      return tab->scale_float_x_2;
+      break;
+    case GAVL_YUV_FLOAT:
     case GAVL_RGB_FLOAT:
       *bits = 0;
       return tab->scale_float_x_3;
       break;
     case GAVL_RGBA_FLOAT:
+    case GAVL_YUVA_FLOAT:
       *bits = 0;
       return tab->scale_float_x_4;
       break;
@@ -172,8 +196,14 @@ static void get_offset_internal(gavl_pixelformat_t pixelformat,
       *advance = 2;
       *offset = 0;
       break;
+    case GAVL_GRAY_8:
+      *advance = 1;
+      *offset = 0;
+      break;
     case GAVL_RGB_16:
     case GAVL_BGR_16:
+    case GAVL_GRAY_16:
+    case GAVL_GRAYA_16:
       *advance = 2;
       *offset = 0;
       break;
@@ -184,11 +214,9 @@ static void get_offset_internal(gavl_pixelformat_t pixelformat,
       break;
     case GAVL_RGB_32:
     case GAVL_BGR_32:
-      *advance = 4;
-      *offset = 0;
-      break;
     case GAVL_YUVA_32:
     case GAVL_RGBA_32:
+    case GAVL_GRAYA_32:
       *advance = 4;
       *offset = 0;
       break;
@@ -252,14 +280,25 @@ static void get_offset_internal(gavl_pixelformat_t pixelformat,
       *offset = 0;
       break;
     case GAVL_RGBA_64:
+    case GAVL_YUVA_64:
       *advance = 8;
       *offset = 0;
       break;
+    case GAVL_GRAY_FLOAT:
+      *advance = sizeof(float);
+      *offset = 0;
+      break;
+    case GAVL_GRAYA_FLOAT:
+      *advance = 2 * sizeof(float);
+      *offset = 0;
+      break;
     case GAVL_RGB_FLOAT:
+    case GAVL_YUV_FLOAT:
       *advance = 3 * sizeof(float);
       *offset = 0;
       break;
     case GAVL_RGBA_FLOAT:
+    case GAVL_YUVA_FLOAT:
       *advance = 4 * sizeof(float);
       *offset = 0;
       break;
@@ -267,8 +306,17 @@ static void get_offset_internal(gavl_pixelformat_t pixelformat,
   }
 
 static void get_minmax(gavl_pixelformat_t pixelformat,
-                       int * min, int * max)
+                       int * min, int * max, float * min_f, float * max_f)
   {
+  int i;
+  for(i = 0; i < GAVL_MAX_PLANES; i++)
+    {
+    min[i] = 0;
+    max[i] = 0;
+    min_f[i] = 0.0;
+    max_f[i] = 0.0;
+    }
+
   switch(pixelformat)
     {
     case GAVL_PIXELFORMAT_NONE:
@@ -299,6 +347,8 @@ static void get_minmax(gavl_pixelformat_t pixelformat,
     case GAVL_YUVJ_422_P:
     case GAVL_YUVJ_444_P:
     case GAVL_RGBA_32:
+    case GAVL_GRAY_8:
+    case GAVL_GRAYA_16:
       min[0] = 0;
       min[1] = 0;
       min[2] = 0;
@@ -334,13 +384,17 @@ static void get_minmax(gavl_pixelformat_t pixelformat,
       break;
     case GAVL_YUV_444_P_16:
     case GAVL_YUV_422_P_16:
+    case GAVL_YUVA_64:
       min[0] = 16<<8;
       min[1] = 16<<8;
       min[2] = 16<<8;
       max[0] = 235<<8;
       max[1] = 240<<8;
       max[2] = 240<<8;
+      max[3] = (1<<16)-1;
       break;
+    case GAVL_GRAY_16:
+    case GAVL_GRAYA_32:
     case GAVL_RGB_48:
     case GAVL_RGBA_64:
       min[0] = 0;
@@ -354,6 +408,21 @@ static void get_minmax(gavl_pixelformat_t pixelformat,
       break;
     case GAVL_RGB_FLOAT:
     case GAVL_RGBA_FLOAT:
+    case GAVL_GRAY_FLOAT:
+    case GAVL_GRAYA_FLOAT:
+      max_f[0] = 1.0;
+      max_f[1] = 1.0;
+      max_f[2] = 1.0;
+      max_f[3] = 1.0;
+      break;
+    case GAVL_YUV_FLOAT:
+    case GAVL_YUVA_FLOAT:
+      max_f[0] =  1.0;
+      min_f[1] = -0.5;
+      max_f[1] =  0.5;
+      min_f[2] = -0.5;
+      max_f[2] =  0.5;
+      max_f[3] =  1.0;
       break;
     }
   }
@@ -626,8 +695,13 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
   else
     ctx->dst_frame_plane = 0;
 
+  /* Set bytes per line. We need this for copying */
+  ctx->bytes_per_line = gavl_pixelformat_is_planar(src_format->pixelformat) ?
+    ctx->dst_rect.w * gavl_pixelformat_bytes_per_component(src_format->pixelformat) :
+    ctx->dst_rect.w * gavl_pixelformat_bytes_per_pixel(src_format->pixelformat);
+  
   /* Set source and destination offsets */
-
+  
   if(ctx->num_directions == 1)
     {
     get_offset_internal(src_format->pixelformat,
@@ -660,10 +734,6 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
     }
   else if(!ctx->num_directions)
     {
-    ctx->bytes_per_line = gavl_pixelformat_is_planar(src_format->pixelformat) ?
-      ctx->dst_rect.w * gavl_pixelformat_bytes_per_component(src_format->pixelformat) :
-      ctx->dst_rect.w * gavl_pixelformat_bytes_per_pixel(src_format->pixelformat);
-
     if((src_format->pixelformat == GAVL_YUY2) ||
        (src_format->pixelformat == GAVL_UYVY) ||
        (dst_format->pixelformat == GAVL_YUY2) ||
@@ -856,8 +926,8 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
 #endif
 
   
-  get_minmax(src_format->pixelformat, ctx->min_values_h, ctx->max_values_h);
-  get_minmax(src_format->pixelformat, ctx->min_values_v, ctx->max_values_v);
+  get_minmax(src_format->pixelformat, ctx->min_values_h, ctx->max_values_h, ctx->min_values_f, ctx->max_values_f);
+  get_minmax(src_format->pixelformat, ctx->min_values_v, ctx->max_values_v, ctx->min_values_f, ctx->max_values_f);
 
 #if 0
   fprintf(stderr, "Min: %d %d %d, max: %d %d %d\n",
@@ -1116,6 +1186,13 @@ gavl_video_scale_context_init_convolve(gavl_video_scale_context_t* ctx,
     ctx->dst_frame_plane = 0;
     }
 
+  
+  ctx->bytes_per_line = 
+    gavl_pixelformat_is_planar(format->pixelformat) ?
+    ctx->dst_rect.w * gavl_pixelformat_bytes_per_component(format->pixelformat) :
+    ctx->dst_rect.w * gavl_pixelformat_bytes_per_pixel(format->pixelformat);
+
+  
   /* Set source and destination offsets */
 
   if(ctx->num_directions == 1)
@@ -1150,16 +1227,11 @@ gavl_video_scale_context_init_convolve(gavl_video_scale_context_t* ctx,
     ctx->offset2.src_offset  = ctx->offset1.dst_offset;
     
     }
-
+  
   /* Set functions */
   
   if(!ctx->num_directions)
     {
-    ctx->bytes_per_line = 
-      gavl_pixelformat_is_planar(format->pixelformat) ?
-      ctx->dst_rect.w * gavl_pixelformat_bytes_per_component(format->pixelformat) :
-      ctx->dst_rect.w * gavl_pixelformat_bytes_per_pixel(format->pixelformat);
-
     if((format->pixelformat == GAVL_YUY2) ||
        (format->pixelformat == GAVL_UYVY))
       ctx->func1 = copy_scanline_advance;
@@ -1309,8 +1381,8 @@ gavl_video_scale_context_init_convolve(gavl_video_scale_context_t* ctx,
 #endif
 
   
-  get_minmax(format->pixelformat, ctx->min_values_h, ctx->max_values_h);
-  get_minmax(format->pixelformat, ctx->min_values_v, ctx->max_values_v);
+  get_minmax(format->pixelformat, ctx->min_values_h, ctx->max_values_h, ctx->min_values_f, ctx->max_values_f);
+  get_minmax(format->pixelformat, ctx->min_values_v, ctx->max_values_v, ctx->min_values_f, ctx->max_values_f);
   for(i = 0; i < 4; i++)
     {
     ctx->min_values_h[i] <<= bits_h;

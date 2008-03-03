@@ -19,11 +19,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-#include "gavl.h"
-#include "video.h"
-#include "colorspace.h"
-#define SCANLINE
-#include "_rgb_rgb_c.c"
-#include "_rgb_yuv_c.c"
-#include "_yuv_rgb_c.c"
-#include "_yuv_yuv_c.c"
+#include <config.h>
+#include <gavl.h>
+#include <video.h>
+#include <colorspace.h>
+
+#include <attributes.h>
+#include "mmx.h"
+

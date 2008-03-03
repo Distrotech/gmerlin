@@ -57,6 +57,20 @@ int gavl_dsp_interpolate_video_frame(gavl_dsp_context_t * ctx,
     case GAVL_BGR_16:
       interpolate = ctx->funcs.interpolate_rgb16;
       break;
+    case GAVL_GRAY_8:
+      interpolate = ctx->funcs.interpolate_8;
+      break;
+    case GAVL_GRAYA_16:
+      interpolate = ctx->funcs.interpolate_8;
+      width *= 3;
+      break;
+    case GAVL_GRAY_16:
+      interpolate = ctx->funcs.interpolate_16;
+      break;
+    case GAVL_GRAYA_32:
+      interpolate = ctx->funcs.interpolate_16;
+      width *= 2;
+      break;
     case GAVL_RGB_24:
     case GAVL_BGR_24:
       interpolate = ctx->funcs.interpolate_8;
@@ -74,13 +88,23 @@ int gavl_dsp_interpolate_video_frame(gavl_dsp_context_t * ctx,
       width *= 3;
       break;
     case GAVL_RGBA_64:
+    case GAVL_YUVA_64:
       interpolate = ctx->funcs.interpolate_16;
       width *= 4;
       break;
+    case GAVL_GRAY_FLOAT:
+      interpolate = ctx->funcs.interpolate_f;
+      break;
+    case GAVL_GRAYA_FLOAT:
+      interpolate = ctx->funcs.interpolate_f;
+      width *= 2;
+      break;
     case GAVL_RGB_FLOAT:
+    case GAVL_YUV_FLOAT:
       width *= 3;
       interpolate = ctx->funcs.interpolate_f;
       break;
+    case GAVL_YUVA_FLOAT:
     case GAVL_RGBA_FLOAT:
       width *= 4;
       interpolate = ctx->funcs.interpolate_f;
@@ -210,7 +234,28 @@ int gavl_dsp_video_frame_swap_endian(gavl_dsp_context_t * ctx,
     case GAVL_BGR_15:
     case GAVL_RGB_16:
     case GAVL_BGR_16:
+    case GAVL_GRAY_16:
       len[0] = format->image_width;
+      do_swap = ctx->funcs.bswap_16;
+      break;
+    case GAVL_GRAY_FLOAT:
+      len[0] = format->image_width;
+#if GAVL_SIZEOF_FLOAT == 4
+      do_swap = ctx->funcs.bswap_32;
+#elif GAVL_SIZEOF_FLOAT == 8
+      do_swap = ctx->funcs.bswap_64;
+#endif
+      break;
+    case GAVL_GRAYA_FLOAT:
+      len[0] = format->image_width * 2;
+#if GAVL_SIZEOF_FLOAT == 4
+      do_swap = ctx->funcs.bswap_32;
+#elif GAVL_SIZEOF_FLOAT == 8
+      do_swap = ctx->funcs.bswap_64;
+#endif
+      break;
+    case GAVL_GRAYA_32:
+      len[0] = format->image_width * 2;
       do_swap = ctx->funcs.bswap_16;
       break;
     case GAVL_RGB_32:
@@ -225,10 +270,12 @@ int gavl_dsp_video_frame_swap_endian(gavl_dsp_context_t * ctx,
       do_swap = ctx->funcs.bswap_16;
       break;
     case GAVL_RGBA_64:
+    case GAVL_YUVA_64:
       len[0] = format->image_width*4;
       do_swap = ctx->funcs.bswap_32;
       break;
     case GAVL_RGB_FLOAT:
+    case GAVL_YUV_FLOAT:
       len[0] = format->image_width*3;
 #if GAVL_SIZEOF_FLOAT == 4
       do_swap = ctx->funcs.bswap_32;
@@ -237,6 +284,7 @@ int gavl_dsp_video_frame_swap_endian(gavl_dsp_context_t * ctx,
 #endif
       break;
     case GAVL_RGBA_FLOAT:
+    case GAVL_YUVA_FLOAT:
       len[0] = format->image_width*4;
 #if GAVL_SIZEOF_FLOAT == 4
       do_swap = ctx->funcs.bswap_32;
@@ -271,6 +319,8 @@ int gavl_dsp_video_frame_swap_endian(gavl_dsp_context_t * ctx,
     case GAVL_YUVJ_422_P:
     case GAVL_YUVJ_444_P:
     case GAVL_PIXELFORMAT_NONE:
+    case GAVL_GRAY_8:
+    case GAVL_GRAYA_16:
       return 1;
       break;
     }

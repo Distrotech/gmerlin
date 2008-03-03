@@ -22,7 +22,4 @@
 #define DO_ROUND
 #define HQ
 
-#include "../c/rgb_rgb_c.c"
-#include "../c/rgb_yuv_c.c"
 #include "../c/yuv_rgb_c.c"
-#include "../c/yuv_yuv_c.c"
