@@ -1439,6 +1439,46 @@ typedef enum
     
   } gavl_pixelformat_t;
 
+/*! \ingroup video_format
+ *  \brief Pixelformat for storing 1-dimensional integer data with 8 bits each */
+#define GAVL_PIXELFORMAT_1D_8 GAVL_GRAY_8
+/*! \ingroup video_format
+ *  \brief Pixelformat for storing 2-dimensional integer data with 8 bits each */
+#define GAVL_PIXELFORMAT_2D_8 GAVL_GRAYA_16
+/*! \ingroup video_format
+ *  \brief Pixelformat for storing 3-dimensional integer data with 8 bits each */
+#define GAVL_PIXELFORMAT_3D_8 GAVL_RGB_24
+/*! \ingroup video_format
+ *  \brief Pixelformat for storing 4-dimensional integer data with 8 bits each */
+#define GAVL_PIXELFORMAT_4D_8 GAVL_RGBA_32
+
+/*! \ingroup video_format
+ *  \brief Pixelformat for storing 1-dimensional integer data with 16 bits each */
+#define GAVL_PIXELFORMAT_1D_16 GAVL_GRAY_16
+/*! \ingroup video_format
+ *  \brief Pixelformat for storing 2-dimensional integer data with 16 bits each */
+#define GAVL_PIXELFORMAT_2D_16 GAVL_GRAYA_32
+/*! \ingroup video_format
+ *  \brief Pixelformat for storing 3-dimensional integer data with 16 bits each */
+#define GAVL_PIXELFORMAT_3D_16 GAVL_RGB_48
+/*! \ingroup video_format
+ *  \brief Pixelformat for storing 4-dimensional integer data with 16 bits each */
+#define GAVL_PIXELFORMAT_4D_16 GAVL_RGBA_64
+
+/*! \ingroup video_format
+ *  \brief Pixelformat for storing 1-dimensional FLOAT data */
+#define GAVL_PIXELFORMAT_1D_FLOAT GAVL_GRAY_FLOAT
+/*! \ingroup video_format
+ *  \brief Pixelformat for storing 2-dimensional FLOAT data */
+#define GAVL_PIXELFORMAT_2D_FLOAT GAVL_GRAYA_FLOAT
+/*! \ingroup video_format
+ *  \brief Pixelformat for storing 3-dimensional FLOAT data */
+#define GAVL_PIXELFORMAT_3D_FLOAT GAVL_RGB_FLOAT
+/*! \ingroup video_format
+ *  \brief Pixelformat for storing 4-dimensional FLOAT data */
+#define GAVL_PIXELFORMAT_4D_FLOAT GAVL_RGBA_FLOAT
+
+  
 /*
  *  Colormodel related functions
  */
