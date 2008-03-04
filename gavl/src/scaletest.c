@@ -26,15 +26,27 @@
 
 #include <accel.h>
 
-#define CSP GAVL_YUV_420_P
+#define SCALE_MODE GAVL_SCALE_NEAREST
+// #define SCALE_MODE GAVL_SCALE_BILINEAR
+// #define SCALE_MODE GAVL_SCALE_QUADRATIC
+// #define SCALE_MODE GAVL_SCALE_CUBIC_BSPLINE
+// #define SCALE_MODE GAVL_SCALE_CUBIC_MITCHELL
+// #define SCALE_MODE GAVL_SCALE_CUBIC_CATMULL
+// #define SCALE_MODE GAVL_SCALE_SINC_LANCZOS
+
+
+// #define CSP GAVL_YUV_420_P
 // #define CSP GAVL_RGB_32
-// #define LOOP
+#define LOOP
 
 #define IN_X 0
 #define IN_Y 0
 
 #define OUT_X 10
 #define OUT_Y 10
+
+#define SCALE_FACTOR_X 2
+#define SCALE_FACTOR_Y 1
 
 
 static void write_png(char * filename, gavl_video_format_t * format,
@@ -323,8 +335,8 @@ int main(int argc, char ** argv)
     src_rect.x = 0;
     src_rect.y = 0;
     
-    dst_rect.w = src_rect.w*2;
-    dst_rect.h = src_rect.h*2;
+    dst_rect.w = src_rect.w*SCALE_FACTOR_X;
+    dst_rect.h = src_rect.h*SCALE_FACTOR_Y;
     dst_rect.x = 0;
     dst_rect.y = 0;
 
@@ -343,12 +355,11 @@ int main(int argc, char ** argv)
     format_1.frame_height = dst_rect.h + dst_rect.y;
 
     gavl_video_options_set_defaults(opt);
-    //    gavl_video_options_set_scale_mode(opt, GAVL_SCALE_SINC_LANCZOS);
-    gavl_video_options_set_scale_mode(opt, GAVL_SCALE_BILINEAR);
+    
+    gavl_video_options_set_scale_mode(opt, SCALE_MODE);
     
     gavl_video_options_set_scale_order(opt, 5);
-    //    gavl_video_options_set_scale_mode(opt, GAVL_SCALE_CUBIC_BSPLINE);
-    // gavl_video_options_set_scale_mode(opt, GAVL_SCALE_CUBIC_MITCHELL);
+    
     //    gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_C);
     gavl_video_options_set_rectangles(opt, &src_rect, &dst_rect);
     

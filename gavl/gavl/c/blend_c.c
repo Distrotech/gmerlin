@@ -142,8 +142,6 @@ static void blend_gray_float(gavl_overlay_blend_context_t * ctx,
   uint8_t * ovl_ptr_start;
   uint8_t * dst_ptr_start;
   
-  int tmp;
-  
   ovl_ptr_start = overlay->planes[0];
   dst_ptr_start = frame->planes[0];
   
@@ -154,10 +152,8 @@ static void blend_gray_float(gavl_overlay_blend_context_t * ctx,
     
     for(j = 0; j < ctx->ovl.ovl_rect.w; j++)
       {
-      tmp = *dst_ptr;
-      BLEND_FLOAT(ovl_ptr[0], tmp, ovl_ptr[1]);
-      *(dst_ptr++) = tmp;
-      
+      BLEND_FLOAT(ovl_ptr[0], *dst_ptr, ovl_ptr[1]);
+      dst_ptr++;
       ovl_ptr+=2;
       }
     ovl_ptr_start += overlay->strides[0];
@@ -193,12 +189,12 @@ static void blend_graya_16(gavl_overlay_blend_context_t * ctx,
     for(j = 0; j < ctx->ovl.ovl_rect.w; j++)
       {
       /* Transparent frame -> Copy overlay */
-      if(!dst_ptr[3])
+      if(!dst_ptr[1])
         {
         dst_ptr[0] = ovl_ptr[0];
         dst_ptr[1] = ovl_ptr[1];
         }
-      else if(ovl_ptr[3])
+      else if(ovl_ptr[1])
         {
         /* rgba -> rgba blending */
         /* Due to the complicated arithmetics, this is
@@ -208,25 +204,21 @@ static void blend_graya_16(gavl_overlay_blend_context_t * ctx,
         a_a = RGB_8_TO_FLOAT(ovl_ptr[1]);
         a_b = RGB_8_TO_FLOAT(dst_ptr[1]);
         o_a = 1.0 - a_a;
-                
+        
         a_dst = a_a + a_b - a_a * a_b;
-
-        c_a = RGB_16_TO_FLOAT(ovl_ptr[0]);
-        c_b = RGB_16_TO_FLOAT(dst_ptr[0]);
+        
+        c_a = RGB_8_TO_FLOAT(ovl_ptr[0]);
+        c_b = RGB_8_TO_FLOAT(dst_ptr[0]);
         c_dst = (c_a * a_a + c_b * a_b * o_a) / a_dst;
         RGB_FLOAT_TO_8(c_dst, dst_ptr[0]);
-        
         RGB_FLOAT_TO_8(a_dst, dst_ptr[1]);
         }
-      
       ovl_ptr+=2;
       dst_ptr+=2;
-      
       }
     ovl_ptr_start += overlay->strides[0];
     dst_ptr_start += frame->strides[0];
     }
-  
   }
 
 
@@ -256,12 +248,12 @@ static void blend_graya_32(gavl_overlay_blend_context_t * ctx,
     for(j = 0; j < ctx->ovl.ovl_rect.w; j++)
       {
       /* Transparent frame -> Copy overlay */
-      if(!dst_ptr[3])
+      if(!dst_ptr[1])
         {
         dst_ptr[0] = ovl_ptr[0];
         dst_ptr[1] = ovl_ptr[1];
         }
-      else if(ovl_ptr[3])
+      else if(ovl_ptr[1])
         {
         /* rgba -> rgba blending */
         /* Due to the complicated arithmetics, this is
@@ -2114,11 +2106,11 @@ gavl_find_blend_func_c(gavl_overlay_blend_context_t * ctx,
       return blend_yuvj_444_p;
       break;
     case GAVL_YUV_444_P_16:
-      *overlay_format = GAVL_YUVA_32;
+      *overlay_format = GAVL_YUVA_64;
       return blend_yuv_444_p_16;
       break;
     case GAVL_YUV_422_P_16:
-      *overlay_format = GAVL_YUVA_32;
+      *overlay_format = GAVL_YUVA_64;
       return blend_yuv_422_p_16;
       break;
     case GAVL_RGB_48:

@@ -307,45 +307,57 @@ int main(int argc, char ** argv)
 
     //    if(frame_csp != GAVL_YUVA_32)
     //      continue;
-    
-    //    csp = GAVL_RGB_24;
 
     for(j = 0; j < imax; j++)
       {
       overlay_csp = gavl_get_pixelformat(j);
       if(!gavl_pixelformat_has_alpha(overlay_csp))
         continue;
-
+      //    csp = GAVL_RGB_24;
+    
       fprintf(stderr, "Frame: %s, Overlay: %s\n",
               gavl_pixelformat_to_string(frame_csp),
               gavl_pixelformat_to_string(overlay_csp));
-      
-      frame   = read_png(argv[1], &frame_format, frame_csp);
-      overlay = read_png(argv[2], &overlay_format, overlay_csp);
-      
+    
+      frame     = read_png(argv[1], &frame_format, frame_csp);
+      overlay   = read_png(argv[2], &overlay_format, overlay_csp);
+    
       ovl.dst_x = 3;
       ovl.dst_y = 3;
-      
+    
       ovl.ovl_rect.w = overlay_format.image_width;
       ovl.ovl_rect.h = overlay_format.image_height;
       ovl.ovl_rect.x = 0;
       ovl.ovl_rect.y = 0;
-      
+    
       ovl.frame = overlay;
-      
+
+    
       //      gavl_video_options_set_defaults(opt);
-      
+    
       if(!gavl_overlay_blend_context_init(blend,
                                           &frame_format, &overlay_format))
         {
         fprintf(stderr, "Blending not supported or not possible\n");
+        gavl_video_frame_destroy(frame);
+        gavl_video_frame_destroy(overlay);
+        continue;
+        }
+
+      if(overlay_format.pixelformat != overlay_csp)
+        {
+        fprintf(stderr, "Blending from %s to not %s possible\n",
+                gavl_pixelformat_to_string(overlay_csp),
+                gavl_pixelformat_to_string(frame_csp));
+        gavl_video_frame_destroy(frame);
+        gavl_video_frame_destroy(overlay);
         continue;
         }
       
       gavl_overlay_blend_context_set_overlay(blend, &ovl);
-
+    
       gavl_overlay_blend(blend, frame);
-      
+    
       sprintf(filename_buffer, "blend_%s_over_%s.png",
               gavl_pixelformat_to_string(overlay_csp),
               gavl_pixelformat_to_string(frame_csp));
@@ -353,7 +365,9 @@ int main(int argc, char ** argv)
       fprintf(stderr, "Wrote %s\n", filename_buffer);
       gavl_video_frame_destroy(frame);
       gavl_video_frame_destroy(overlay);
+
       }
+    
     }
   gavl_overlay_blend_context_destroy(blend);
   return 0;
