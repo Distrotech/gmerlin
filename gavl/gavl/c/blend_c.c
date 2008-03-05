@@ -45,10 +45,10 @@
  */
 
 #define BLEND_8(s, d, a) \
-  d = ((s - d) * a)/256 + d;
+  d = (((s - d) * a)>>8) + d;
 
 #define BLEND_16(s, d, a)                        \
-  d = ((s - d) * a)/65536 + d;
+  d = (((s - d) * a)>>16) + d;
 
 #define BLEND_FLOAT(s, d, a)                       \
   d = (s - d) * a + d;
