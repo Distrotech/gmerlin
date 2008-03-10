@@ -100,6 +100,32 @@ dnl
   fi
 
 dnl
+dnl Check for SSE3 assembly
+dnl
+
+  AC_MSG_CHECKING([if C compiler accepts SSE3 assembly])
+  AC_TRY_COMPILE([],[ __asm__ __volatile__ ("addsubpd" " %" "xmm0" ", %" "xmm1");],
+                 HAVE_SSE3=true)
+  if test $HAVE_SSE3 = true; then
+    AC_MSG_RESULT(yes)
+  else
+    AC_MSG_RESULT(no)
+  fi
+
+dnl
+dnl Check for SSSE3 assembly
+dnl
+
+  AC_MSG_CHECKING([if C compiler accepts SSSE3 assembly])
+  AC_TRY_COMPILE([],[ __asm__ __volatile__ ("psignw" " %" "xmm0" ", %" "xmm1");],
+                 HAVE_SSSE3=true)
+  if test $HAVE_SSSE3 = true; then
+    AC_MSG_RESULT(yes)
+  else
+    AC_MSG_RESULT(no)
+  fi
+
+dnl
 dnl Check for MMX intrinsics
 dnl
 
@@ -195,7 +221,8 @@ AH_TEMPLATE([HAVE_MMX],    [MMX Supported])
 AH_TEMPLATE([HAVE_3DNOW],  [3Dnow Supported])
 AH_TEMPLATE([HAVE_SSE],    [SSE Supported])
 AH_TEMPLATE([HAVE_SSE2],   [SSE2 Supported])
-
+AH_TEMPLATE([HAVE_SSE3],   [SSE3 Supported])
+AH_TEMPLATE([HAVE_SSSE3],   [SSSE3 Supported])
 
 GAVL_CHECK_SIMD_INTERNAL($1, $2)
 
@@ -218,6 +245,16 @@ if test x"$HAVE_SSE2" = "xtrue"; then
 AC_DEFINE(HAVE_SSE2)
 fi
 AM_CONDITIONAL(HAVE_SSE2, test "x$HAVE_SSE2" = "xtrue")
+
+if test x"$HAVE_SSE3" = "xtrue"; then
+AC_DEFINE(HAVE_SSE3)
+fi
+AM_CONDITIONAL(HAVE_SSE3, test "x$HAVE_SSE3" = "xtrue")
+
+if test x"$HAVE_SSSE3" = "xtrue"; then
+AC_DEFINE(HAVE_SSSE3)
+fi
+AM_CONDITIONAL(HAVE_SSSE3, test "x$HAVE_SSSE3" = "xtrue")
 
 if test x"$ARCH_X86" = "xtrue"; then
 AC_DEFINE(ARCH_X86)

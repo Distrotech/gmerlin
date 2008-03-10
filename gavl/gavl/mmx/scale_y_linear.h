@@ -60,22 +60,30 @@ static void (FUNC_NAME)(gavl_video_scale_context_t * ctx)
   /* Load factor1 */
   movd_m2r(ctx->table_v.pixels[ctx->scanline].factor_i[0], mm2);
   //  psllw_i2r(7, mm2);
+#ifdef MMXEXT
+  pshufw_r2r(mm2,mm2,0x00);
+#else
   movq_r2r(mm2, mm6);
   psllq_i2r(16, mm6);
   por_r2r(mm6, mm2);
   movq_r2r(mm2, mm6);
   psllq_i2r(32, mm6);
   por_r2r(mm6, mm2);
+#endif
 
   /* Load factor2 */
   movd_m2r(ctx->table_v.pixels[ctx->scanline].factor_i[1], mm3);
   //  psllw_i2r(7, mm3);
+#ifdef MMXEXT
+  pshufw_r2r(mm3,mm3,0x00);
+#else
   movq_r2r(mm3, mm6);
   psllq_i2r(16, mm6);
   por_r2r(mm6, mm3);
   movq_r2r(mm3, mm6);
   psllq_i2r(32, mm6);
   por_r2r(mm6, mm3);
+#endif
   
   for(i = 0; i < imax; i++)
     {
@@ -89,30 +97,28 @@ static void (FUNC_NAME)(gavl_video_scale_context_t * ctx)
 
     /* Accumulate mm0 */
     pmulhw_r2r(mm2, mm0);
-    movq_r2r(mm0, mm4);
     /* Accumulate mm1 */ 
     pmulhw_r2r(mm2, mm1);
-    movq_r2r(mm1, mm5);
 
     /* Load input 2 */
-    movq_m2r(*(src_2),mm0);
-    movq_r2r(mm0,mm1);
-    punpcklbw_r2r(mm7, mm0);
-    punpckhbw_r2r(mm7, mm1);
-    psllw_i2r(7, mm0);
-    psllw_i2r(7, mm1);
+    movq_m2r(*(src_2),mm4);
+    movq_r2r(mm4,mm5);
+    punpcklbw_r2r(mm7, mm4);
+    punpckhbw_r2r(mm7, mm5);
+    psllw_i2r(7, mm4);
+    psllw_i2r(7, mm5);
 
     /* Accumulate mm0 */
-    pmulhw_r2r(mm3, mm0);
-    paddsw_r2r(mm0, mm4);
+    pmulhw_r2r(mm3, mm4);
+    paddsw_r2r(mm4, mm0);
     /* Accumulate mm1 */ 
-    pmulhw_r2r(mm3, mm1);
-    paddsw_r2r(mm1, mm5);
+    pmulhw_r2r(mm3, mm5);
+    paddsw_r2r(mm5, mm1);
 
-    psraw_i2r(5, mm4);
-    psraw_i2r(5, mm5);
-    packuswb_r2r(mm5, mm4);
-    MOVQ_R2M(mm4, *dst);
+    psraw_i2r(5, mm0);
+    psraw_i2r(5, mm1);
+    packuswb_r2r(mm1, mm0);
+    MOVQ_R2M(mm0, *dst);
     
     dst += 8;
     src_1 += 8;

@@ -27,9 +27,9 @@
 
 #include <accel.h>
 
-#define ALL_PIXELFORMATS
-//#define IN_PIXELFORMAT GAVL_YUVA_64
-//#define OUT_PIXELFORMAT GAVL_YUVA_32
+//#define ALL_PIXELFORMATS
+#define IN_PIXELFORMAT GAVL_RGBA_FLOAT
+#define OUT_PIXELFORMAT GAVL_YUVA_FLOAT
 
 // Masks for BGR16 and RGB16 formats
 
@@ -2798,8 +2798,8 @@ int main(int argc, char ** argv)
                    output_frame, &output_format);
         fprintf(stderr, "Wrote %s\n", filename_buffer);
         }
-      gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_MMXEXT);
 
+      gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_MMXEXT);
       gavl_video_frame_clear(output_frame, &output_format);
       sprintf(filename_buffer, "%s_to_%s_mmxext.png", tmp1, tmp2);
       if(gavl_video_converter_init(cnv, &input_format, &output_format) <= 0)
@@ -2807,6 +2807,34 @@ int main(int argc, char ** argv)
       else
         {
         fprintf(stderr, "MMXEXT Version:    ");
+        gavl_video_convert(cnv, input_frame, output_frame);
+        write_file(filename_buffer,
+                   output_frame, &output_format);
+        fprintf(stderr, "Wrote %s\n", filename_buffer);
+        }
+
+      gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_SSE);
+      gavl_video_frame_clear(output_frame, &output_format);
+      sprintf(filename_buffer, "%s_to_%s_sse.png", tmp1, tmp2);
+      if(gavl_video_converter_init(cnv, &input_format, &output_format) <= 0)
+        fprintf(stderr, "No SSE Conversion defined yet\n");
+      else
+        {
+        fprintf(stderr, "SSE Version:    ");
+        gavl_video_convert(cnv, input_frame, output_frame);
+        write_file(filename_buffer,
+                   output_frame, &output_format);
+        fprintf(stderr, "Wrote %s\n", filename_buffer);
+        }
+
+      gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_SSE3);
+      gavl_video_frame_clear(output_frame, &output_format);
+      sprintf(filename_buffer, "%s_to_%s_sse3.png", tmp1, tmp2);
+      if(gavl_video_converter_init(cnv, &input_format, &output_format) <= 0)
+        fprintf(stderr, "No SSE3 Conversion defined yet\n");
+      else
+        {
+        fprintf(stderr, "SSE3 Version:    ");
         gavl_video_convert(cnv, input_frame, output_frame);
         write_file(filename_buffer,
                    output_frame, &output_format);

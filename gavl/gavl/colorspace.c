@@ -267,7 +267,26 @@ create_pixelformat_function_table(const gavl_video_options_t * opt,
     gavl_init_yuv_rgb_funcs_mmxext(csp_tab, width, opt);
     }
 #endif
-
+#ifdef HAVE_SSE
+  if(opt->accel_flags & GAVL_ACCEL_SSE)
+    {
+    //    fprintf(stderr, "Init MMXEXT functions %08x\n", real_accel_flags);
+    //    gavl_init_rgb_rgb_funcs_sse(csp_tab, opt);
+    gavl_init_rgb_yuv_funcs_sse(csp_tab, opt);
+    //    gavl_init_yuv_yuv_funcs_sse(csp_tab, opt);
+    //    gavl_init_yuv_rgb_funcs_sse(csp_tab, opt);
+    }
+#endif
+#ifdef HAVE_SSE3
+  if(opt->accel_flags & GAVL_ACCEL_SSE3)
+    {
+    //    fprintf(stderr, "Init MMXEXT functions %08x\n", real_accel_flags);
+    //    gavl_init_rgb_rgb_funcs_sse(csp_tab, opt);
+    gavl_init_rgb_yuv_funcs_sse3(csp_tab, opt);
+    //    gavl_init_yuv_yuv_funcs_sse(csp_tab, opt);
+    //    gavl_init_yuv_rgb_funcs_sse(csp_tab, opt);
+    }
+#endif
   /* High quality */
   
   if((opt->quality > 3) ||

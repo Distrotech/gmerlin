@@ -86,6 +86,16 @@ dnl
 
 dnl Checks for library functions.
 AC_CHECK_FUNCS([memalign])
+AC_CHECK_FUNCS([sched_setaffinity])
+
+
+HAVE_CLOCK_GETTIME="true"
+OLD_LIBS=$LIBS
+AC_SEARCH_LIBS([clock_gettime], [rt], , HAVE_CLOCK_GETTIME="false")
+RT_LIBS=$LIBS
+AC_SUBST(RT_LIBS)
+LIBS=$OLD_LIBS
+
 AC_C99_FUNC_LRINT
 AC_C99_FUNC_LRINTF
 
@@ -118,6 +128,7 @@ CFLAGS="$CFLAGS $OPT_CFLAGS"
 LQT_TRY_CFLAGS([-Wall], CFLAGS="$CFLAGS -Wall")
 LQT_TRY_CFLAGS([-Wmissing-declarations], CFLAGS="$CFLAGS -Wmissing-declarations" )
 LQT_TRY_CFLAGS([-Wdeclaration-after-statement], CFLAGS="$CFLAGS -Wdeclaration-after-statement")
+LQT_TRY_CFLAGS([-mfpmath=387], CFLAGS="$CFLAGS -mfpmath=387")
 
 dnl
 dnl Stuff from libsamplerate
@@ -187,5 +198,7 @@ gavl/hq/Makefile \
 gavl/mmx/Makefile \
 gavl/mmxext/Makefile \
 gavl/3dnow/Makefile \
-gavl/sse/Makefile)
+gavl/sse/Makefile \
+gavl/sse2/Makefile \
+gavl/sse3/Makefile )
 

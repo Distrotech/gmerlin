@@ -21,9 +21,13 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#ifndef __ATTRIBUTES_H_
+#define __ATTRIBUTES_H_
 /* use gcc attribs to align critical data structures */
 #ifdef ATTRIBUTE_ALIGNED_MAX
 #define ATTR_ALIGN(align) __attribute__ ((__aligned__ ((ATTRIBUTE_ALIGNED_MAX < align) ? ATTRIBUTE_ALIGNED_MAX : align)))
 #else
 #define ATTR_ALIGN(align)
 #endif
+
+#endif // __ATTRIBUTES_H_

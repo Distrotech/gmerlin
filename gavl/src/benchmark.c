@@ -33,19 +33,26 @@
 
 #include <sys/time.h>
 #include <time.h>
+#include <errno.h>
 
 #ifdef HAVE_SYS_TIMES_H
 #include <sys/times.h>
 #endif
 
-#undef ARCH_X86
+#ifdef HAVE_SCHED_SETAFFINITY
+#define __USE_GNU
+#include <sched.h>
+#endif
+
+// #undef ARCH_X86
 
 #define OUT_PFMT GAVL_RGB_24
 #define IN_PFMT GAVL_PIXELFORMAT_NONE
 
-#define IN_LOOP
-#define OUT_LOOP
+#define SCALE_X (1<<0)
+#define SCALE_Y (1<<1)
 
+static int opt_scaledir = 0;
 
 // #define INIT_RUNS 5
 // #define NUM_RUNS 10
@@ -54,8 +61,24 @@
 #define NUM_RUNS  200
 
 int do_html = 0;
+gavl_pixelformat_t opt_pfmt1 = GAVL_PIXELFORMAT_NONE;
+gavl_pixelformat_t opt_pfmt2 = GAVL_PIXELFORMAT_NONE;
 
-#if defined(ARCH_X86) || defined(HAVE_SYS_TIMES_H)
+#ifdef _POSIX_CPUTIME
+
+#define TIME_UNIT "nanoseconds returned by clock_gettime with CLOCK_PROCESS_CPUTIME_ID"
+
+static unsigned long long int get_time(int config_flags)
+  {
+  struct timespec ts;
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
+  return (uint64_t)(ts.tv_sec) * 1000000000 + ts.tv_nsec;
+  }
+
+#elif defined(ARCH_X86) || defined(HAVE_SYS_TIMES_H)
+
+#define TIME_UNIT "Units returned by rdtsc"
+
 static unsigned long long int get_time(int config_flags)
 {
 struct timeval tv;
@@ -75,7 +98,7 @@ struct timeval tv;
 }
 #else
 
-
+#define TIME_UNIT "microseconds returned by gettimeofday"
 
 static uint64_t get_time(int config_flags)
 {
@@ -90,6 +113,8 @@ return (uint64_t)(tv.tv_sec) * 1000000 + tv.tv_usec;
 #endif /* HAVE_SYS_TIMES_H */
 }
 #endif
+
+
 
 typedef struct
   {
@@ -886,21 +911,21 @@ static void benchmark_pixelformat()
    */
   gavl_video_options_set_alpha_mode(ctx.opt, GAVL_ALPHA_BLEND_COLOR);
 
-#ifndef IN_LOOP
-  in_format = IN_PFMT;
-#else
   for(i = 0; i < num_pixelformats; i++)
     {
     in_format = gavl_get_pixelformat(i);
-#endif
+
+    if((opt_pfmt1 != GAVL_PIXELFORMAT_NONE) && (opt_pfmt1 != in_format))
+      continue;
     
-#ifndef OUT_LOOP
-    out_format = OUT_PFMT;
-#else
     for(j = 0; j < num_pixelformats; j++)
       {
       out_format = gavl_get_pixelformat(j);
-#endif
+
+      if((opt_pfmt2 != GAVL_PIXELFORMAT_NONE) && (opt_pfmt2 != out_format))
+        continue;
+      
+
       if(in_format == out_format)
         continue;
 
@@ -928,16 +953,20 @@ static void benchmark_pixelformat()
       gavl_video_options_set_accel_flags(ctx.opt, GAVL_ACCEL_C_HQ);
       do_pixelformat(&ctx, &b, in_format, out_format, "HQ");
       fflush(stdout);
+
+      fflush(stdout);
+      gavl_video_options_set_accel_flags(ctx.opt, GAVL_ACCEL_SSE);
+      do_pixelformat(&ctx, &b, in_format, out_format, "SSE");
+      fflush(stdout);
+
+      fflush(stdout);
+      gavl_video_options_set_accel_flags(ctx.opt, GAVL_ACCEL_SSE3);
+      do_pixelformat(&ctx, &b, in_format, out_format, "SSE3");
+      fflush(stdout);
       
-#ifdef OUT_LOOP
       }
-#endif
-
-
-#ifdef IN_LOOP
     }
-#endif
-
+  
   if(do_html)
     printf("</table>\n");
 
@@ -1012,6 +1041,9 @@ static void do_scale_direction(video_convert_context_t * ctx,
   //  for(i = 0; i < 3; i++)
     {
     in_format = gavl_get_pixelformat(i);
+    if((opt_pfmt1 != GAVL_PIXELFORMAT_NONE) &&
+       (opt_pfmt1 != in_format))
+      continue;
     
     if(do_html)
       printf("<tr><td colspan=\"7\"><b>%s<b></td></tr>\n",
@@ -1029,59 +1061,96 @@ static void do_scale_direction(video_convert_context_t * ctx,
 
     /* X */
 
-    dir = "x";
+    if(!opt_scaledir || (opt_scaledir == SCALE_X))
+      {
+      dir = "x";
     
-    gavl_video_format_copy(&ctx->in_format, &ctx->out_format);
+      gavl_video_format_copy(&ctx->in_format, &ctx->out_format);
     
-    ctx->in_format.image_width =   512;
-    ctx->in_format.frame_width =   512;
-        
-    gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_C);
-    do_scale(ctx, b, in_format, "C", dir);
+      ctx->in_format.image_width =   512;
+      ctx->in_format.frame_width =   512;
     
-    gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_MMX);
-    do_scale(ctx, b, in_format, "MMX", dir);
+      gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_C);
+      do_scale(ctx, b, in_format, "C", dir);
     
-    gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_C_HQ);
-    do_scale(ctx, b, in_format, "HQ", dir);
+      gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_MMX);
+      do_scale(ctx, b, in_format, "MMX", dir);
+
+      gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_MMXEXT);
+      do_scale(ctx, b, in_format, "MMXEXT", dir);
+
+      gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_SSE);
+      do_scale(ctx, b, in_format, "SSE", dir);
+
+      gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_SSE2);
+      do_scale(ctx, b, in_format, "SSE2", dir);
+    
+      gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_C_HQ);
+      do_scale(ctx, b, in_format, "HQ", dir);
+      }
+    
 
     /* Y */
+    if(!opt_scaledir || (opt_scaledir == SCALE_Y))
+      {
 
-    dir = "y";
+      dir = "y";
     
-    gavl_video_format_copy(&ctx->in_format, &ctx->out_format);
+      gavl_video_format_copy(&ctx->in_format, &ctx->out_format);
     
-    ctx->in_format.image_height = 512;
-    ctx->in_format.frame_height = 512;
+      ctx->in_format.image_height = 512;
+      ctx->in_format.frame_height = 512;
     
-    gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_C);
-    do_scale(ctx, b, in_format, "C", dir);
+      gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_C);
+      do_scale(ctx, b, in_format, "C", dir);
     
-    gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_MMX);
-    do_scale(ctx, b, in_format, "MMX", dir);
-    
-    gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_C_HQ);
-    do_scale(ctx, b, in_format, "HQ", dir);
+      gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_MMX);
+      do_scale(ctx, b, in_format, "MMX", dir);
 
+      gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_MMXEXT);
+      do_scale(ctx, b, in_format, "MMXEXT", dir);
+
+      gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_SSE);
+      do_scale(ctx, b, in_format, "SSE", dir);
+
+      gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_SSE2);
+      do_scale(ctx, b, in_format, "SSE2", dir);
+    
+      gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_C_HQ);
+      do_scale(ctx, b, in_format, "HQ", dir);
+      }
     /* X+Y */
-    dir = "x+y";
-    gavl_video_format_copy(&ctx->in_format, &ctx->out_format);
+
+    if(!opt_scaledir || (opt_scaledir == (SCALE_X|SCALE_Y)))
+      {
+      fprintf(stderr, "%d\n", opt_scaledir);
+      dir = "x+y";
+      gavl_video_format_copy(&ctx->in_format, &ctx->out_format);
     
-    ctx->in_format.image_width =  512;
-    ctx->in_format.frame_width =  512;
-    ctx->in_format.image_height = 512;
-    ctx->in_format.frame_height = 512;
+      ctx->in_format.image_width =  512;
+      ctx->in_format.frame_width =  512;
+      ctx->in_format.image_height = 512;
+      ctx->in_format.frame_height = 512;
     
-    gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_C);
-    do_scale(ctx, b, in_format, "C", dir);
+      gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_C);
+      do_scale(ctx, b, in_format, "C", dir);
     
-    gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_MMX);
-    do_scale(ctx, b, in_format, "MMX", dir);
+      gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_MMX);
+      do_scale(ctx, b, in_format, "MMX", dir);
+
+      gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_MMXEXT);
+      do_scale(ctx, b, in_format, "MMXEXT", dir);
+
+      gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_SSE);
+      do_scale(ctx, b, in_format, "SSE", dir);
+
+      gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_SSE2);
+      do_scale(ctx, b, in_format, "SSE2", dir);
     
-    gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_C_HQ);
-    do_scale(ctx, b, in_format, "HQ", dir);
+      gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_C_HQ);
+      do_scale(ctx, b, in_format, "HQ", dir);
+      }
     }
-  
   if(do_html)
     printf("</table>\n");
   
@@ -1561,10 +1630,12 @@ static void print_header(const char * title)
 static void print_help()
   {
   int i;
-  printf("Usage: benchmark [function ...] [-html]\n");
+  printf("Usage: benchmark [-scaledir <dir>] [-pfmt1 <pfmt>] [-pfmt2 <pfmt>] [function ...] [-html]\n");
   printf("       benchmark -help\n\n");
+  printf("       benchmark -listpfmt\n\n");
   printf("-html\n  Produce html output\n");
   printf("-help\n  Print this help and exit\n\n");
+  printf("-listpfmt\n  List pixelformats and exit\n\n");
   printf("Function can be any combination of the following\n\n");
 
   for(i = 0; i < sizeof(benchmark_flags)/sizeof(benchmark_flags[0]); i++)
@@ -1574,14 +1645,38 @@ static void print_help()
   printf("-a\n  Do all of the above\n");
   }
 
+static void list_pfmts()
+  {
+  int i, num;
+  num = gavl_num_pixelformats();
+  
+  for(i = 0; i < num; i++)
+    {
+    printf("%s\n", gavl_pixelformat_to_string(gavl_get_pixelformat(i)));
+    }
+  }
+
 int main(int argc, char ** argv)
   {
   int i;
   int flags = 0;
   int flag;
 
-  i = 1;
 
+#ifdef HAVE_SCHED_SETAFFINITY
+  /* Force ourselves into processor 0 */
+  cpu_set_t cpuset;
+
+  CPU_ZERO(&cpuset);
+  CPU_SET(0, &cpuset);
+  if(!sched_setaffinity(0, sizeof(cpuset), &cpuset))
+    fprintf(stderr, "Running on processor 0 exclusively\n");
+  else
+    fprintf(stderr, "sched_setaffinity failed: %s\n", strerror(errno));
+#endif
+  
+  i = 1;
+  
   while(i < argc)
     {
     if(get_flag(argv[i], &flag))
@@ -1590,9 +1685,34 @@ int main(int argc, char ** argv)
       flags = ~0x0;
     else if(!strcmp(argv[i], "-html"))
       do_html = 1;
+    else if(!strcmp(argv[i], "-pfmt1"))
+      {
+      opt_pfmt1 = gavl_string_to_pixelformat(argv[i+1]);
+      i++;
+      }
+    else if(!strcmp(argv[i], "-scaledir"))
+      {
+      if(!strcmp(argv[i+1], "x"))
+        opt_scaledir = SCALE_X;
+      else if(!strcmp(argv[i+1], "y"))
+        opt_scaledir = SCALE_Y;
+      else if(!strcmp(argv[i+1], "xy"))
+        opt_scaledir = SCALE_X | SCALE_Y;
+      i++;
+      }
+    else if(!strcmp(argv[i], "-pfmt2"))
+      {
+      opt_pfmt2 = gavl_string_to_pixelformat(argv[i+1]);
+      i++;
+      }
     else if(!strcmp(argv[i], "-help"))
       {
       print_help();
+      return 0;
+      }
+    else if(!strcmp(argv[i], "-listpfmt"))
+      {
+      list_pfmts();
       return 0;
       }
     i++;
@@ -1610,7 +1730,7 @@ int main(int argc, char ** argv)
     printf("<h1>gavl Benchmarks</h1>");
     printf("These benchmarks are generated with the benchmark tool in the src/ directory of gavl.<br>");
     printf("Number of init runs: %d, number of counted runs: %d<br>\n", INIT_RUNS, NUM_RUNS);
-    printf("Times are microseconds returned by gettimeofday<br>\n");
+    printf("Times are %s<br>\n", TIME_UNIT);
     printf("<h2>/proc/cpuinfo</h2>\n");
     printf("<pre>\n");
     fflush(stdout);
@@ -1633,6 +1753,9 @@ int main(int argc, char ** argv)
     if(flags & BENCHMARK_INTERPOLATE)
       printf("<a href=\"#ip\">Video frame interpolation</a><br>\n");
     }
+  else
+    printf("Times are %s\n", TIME_UNIT);
+  
   
   if(flags & BENCHMARK_SAMPLEFORMAT)
     {

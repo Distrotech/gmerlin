@@ -39,6 +39,7 @@
 #define MM_SSE      GAVL_ACCEL_SSE
 #define MM_SSE2     GAVL_ACCEL_SSE2
 #define MM_SSE3     GAVL_ACCEL_SSE3
+#define MM_SSSE3    GAVL_ACCEL_SSSE3
 #define MM_3DNOW    GAVL_ACCEL_3DNOW
 #define MM_3DNOWEXT GAVL_ACCEL_3DNOWEXT
 
@@ -106,6 +107,9 @@ int gavl_accel_supported()
             rval |= MM_SSE2;
         if (ecx & 1)
             rval |= MM_SSE3;
+        if (ecx & 0x00000200 )
+          rval |= MM_SSSE3;
+
     }
 
     cpuid(0x80000000, max_ext_level, ebx, ecx, edx);

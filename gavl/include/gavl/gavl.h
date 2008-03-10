@@ -103,6 +103,7 @@ typedef struct gavl_video_format_s gavl_video_format_t;
 #define GAVL_ACCEL_SSE3     (1<<4) //!< Intel SSE3
 #define GAVL_ACCEL_3DNOW    (1<<5) //!< AMD 3Dnow
 #define GAVL_ACCEL_3DNOWEXT (1<<6) //!< AMD 3Dnow ext
+#define GAVL_ACCEL_SSSE3    (1<<7) //!< Intel SSSE3
 
 /** \brief Get the supported acceleration flags
  *  \returns A combination of GAVL_ACCEL_* flags.

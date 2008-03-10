@@ -18,15 +18,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
-#include <config.h>
-#include <gavl/gavl.h>
-#include <gavl/gavldsp.h>
-#include <dsp.h>
 
-
-
-void gavl_dsp_init_sse(gavl_dsp_funcs_t * funcs, 
-                       int quality)
-  {
-  
-  }
+#define SSE3
+#include "../sse/rgb_yuv_sse.c"

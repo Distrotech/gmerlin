@@ -32,8 +32,6 @@
 
 #include <inttypes.h>
 
-typedef struct
-  {
 typedef	union {
   float  sf[4];	/* Single-precision (32-bit) value */
   double df[2];	/* Double-precision (64-bit) value */
@@ -46,7 +44,7 @@ typedef	union {
   uint16_t uw[8];   /* 4 Unsigned Word */
   int8_t   b[16];   /* 8 Byte (8-bit) values */
   uint8_t  ub[16];  /* 8 Unsigned Byte */
-  } __attribute__ ((aligned(16))) sse_t;
+  } ATTR_ALIGN(16) sse_t;
 
 #define	sse_i2r(op, imm, reg) \
 	__asm__ __volatile__ (#op " %0, %%" #reg \
@@ -56,11 +54,11 @@ typedef	union {
 #define	sse_m2r(op, mem, reg) \
 	__asm__ __volatile__ (#op " %0, %%" #reg \
 			      : /* nothing */ \
-			      : "X" (mem))
+			      : "m" (mem))
 
 #define	sse_r2m(op, reg, mem) \
 	__asm__ __volatile__ (#op " %%" #reg ", %0" \
-			      : "=X" (mem) \
+			      : "=m" (mem) \
 			      : /* nothing */ )
 
 #define	sse_r2r(op, regs, regd) \
@@ -145,8 +143,8 @@ typedef	union {
   shuffles values in packed single-precision floating-point operands 
  */
 
-#define	shufps_m2r(var, reg, index)	sse_m2ri(shufps, var, reg, index)
-#define	shufps_r2r(regs, regd, index)	sse_r2ri(shufps, regs, regd, index)
+#define	shufps_m2ri(var, reg, index)	sse_m2ri(shufps, var, reg, index)
+#define	shufps_r2ri(regs, regd, index)	sse_r2ri(shufps, regs, regd, index)
 
 /*
   convert packed doubleword integers to packed single-precision
@@ -1176,4 +1174,17 @@ typedef	union {
  */
   
 #define palignr_r2ri(regs, regd, imm) sse_r2ri(palignr, regs, regd, imm)
+
+
+
+
+#ifdef SSE_DEBUG
+static sse_t debug_sse;
+#define sse_debug(r) movaps_r2m(r, debug_sse.ub); \
+   fprintf(stderr, "%s: %f %f %f %f\n", #r, \
+           debug_sse.sf[0], \
+           debug_sse.sf[1], \
+           debug_sse.sf[2], \
+           debug_sse.sf[3]);
+#endif
 

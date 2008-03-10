@@ -62,6 +62,27 @@ static mmx_t mm_tmp;
   pxor_r2r(mm3, mm3);\
   pxor_r2r(mm4, mm4);
 
+#ifdef MMXEXT
+#define LOAD_FACTOR_8(num) \
+  /* Load factor */ \
+  movd_m2r(ctx->table_v.pixels[ctx->scanline].factor_i[num], mm2);\
+  pand_r2r(mm7, mm2);\
+  pshufw_r2r(mm2,mm5,0x00)
+
+#else
+
+#define LOAD_FACTOR_8(num) \
+  /* Load factor */ \
+  movd_m2r(ctx->table_v.pixels[ctx->scanline].factor_i[num], mm2);\
+  pand_r2r(mm7, mm2);\
+  movq_r2r(mm2, mm5);\
+  psllq_i2r(16, mm5);\
+  por_r2r(mm5, mm2);\
+  movq_r2r(mm2, mm5);\
+  psllq_i2r(32, mm5);\
+  por_r2r(mm2, mm5)
+#endif  
+
 #define ACCUM_8(num)  \
   /* Load input */ \
   movq_m2r(*src,mm0);\
@@ -70,21 +91,12 @@ static mmx_t mm_tmp;
   punpckhbw_r2r(mm6, mm1); \
   psllw_i2r(7, mm0);\
   psllw_i2r(7, mm1);\
-  /* Load factor */ \
-  movd_m2r(ctx->table_v.pixels[ctx->scanline].factor_i[num], mm2);\
-  pand_r2r(mm7, mm2);\
-  /* psllw_i2r(7, mm2); */\
-  movq_r2r(mm2, mm5);\
-  psllq_i2r(16, mm5);\
-  por_r2r(mm5, mm2);\
-  movq_r2r(mm2, mm5);\
-  psllq_i2r(32, mm5);\
-  por_r2r(mm5, mm2);\
+  LOAD_FACTOR_8(num); \
   /* Accumulate mm0 */ \
-  pmulhw_r2r(mm2, mm0);\
+  pmulhw_r2r(mm5, mm0);\
   paddsw_r2r(mm0, mm3);\
   /* Accumulate mm1 */ \
-  pmulhw_r2r(mm2, mm1);\
+  pmulhw_r2r(mm5, mm1);\
   paddsw_r2r(mm1, mm4)
 
 #define OUTPUT_8 \
@@ -109,6 +121,15 @@ static mmx_t mm_tmp;
 
 #include "scale_y.h"
 
+/* scale_uint8_x_2_y_bicubic_mmx  */
+
+#define FUNC_NAME scale_uint8_x_2_y_bicubic_mmx
+#define WIDTH_MUL 2
+#define BITS 8
+#define NUM_TAPS 4
+
+#include "scale_y.h"
+
 /* scale_uint8_x_3_y_bicubic_mmx  */
 
 #define FUNC_NAME scale_uint8_x_3_y_bicubic_mmx
@@ -127,10 +148,20 @@ static mmx_t mm_tmp;
 
 #include "scale_y.h"
 
+
 /* scale_uint8_x_1_y_quadratic_mmx  */
 
 #define FUNC_NAME scale_uint8_x_1_y_quadratic_mmx
 #define WIDTH_MUL 1
+#define BITS 8
+#define NUM_TAPS 3
+
+#include "scale_y.h"
+
+/* scale_uint8_x_2_y_quadratic_mmx  */
+
+#define FUNC_NAME scale_uint8_x_2_y_quadratic_mmx
+#define WIDTH_MUL 2
 #define BITS 8
 #define NUM_TAPS 3
 
@@ -158,6 +189,15 @@ static mmx_t mm_tmp;
 
 #define FUNC_NAME scale_uint8_x_1_y_generic_mmx
 #define WIDTH_MUL 1
+#define BITS 8
+#define NUM_TAPS -1
+
+#include "scale_y.h"
+
+/* scale_uint8_x_2_y_generic_mmx  */
+
+#define FUNC_NAME scale_uint8_x_2_y_generic_mmx
+#define WIDTH_MUL 2
 #define BITS 8
 #define NUM_TAPS -1
 
@@ -205,8 +245,13 @@ void gavl_init_scale_funcs_quadratic_y_mmx(gavl_scale_funcs_t * tab,
     tab->funcs_y.scale_uint8_x_4 =  scale_uint8_x_4_y_quadratic_mmx;
     tab->funcs_y.bits_uint8_noadvance  = 14;
     }
+  else if((src_advance == 2) && (dst_advance == 2))
+    {
+    tab->funcs_y.scale_uint8_x_2 =  scale_uint8_x_2_y_quadratic_mmx;
+    tab->funcs_y.bits_uint8_noadvance = 14;
+    }
   }
-
+  
 #ifdef MMXEXT
 void gavl_init_scale_funcs_bicubic_y_mmxext(gavl_scale_funcs_t * tab,
                                             int src_advance, int dst_advance)
@@ -231,6 +276,11 @@ void gavl_init_scale_funcs_bicubic_y_mmx(gavl_scale_funcs_t * tab,
     tab->funcs_y.scale_uint8_x_4 =  scale_uint8_x_4_y_bicubic_mmx;
     tab->funcs_y.bits_uint8_noadvance  = 14;
     }
+  else if((src_advance == 2) && (dst_advance == 2))
+    {
+    tab->funcs_y.scale_uint8_x_2 =  scale_uint8_x_2_y_bicubic_mmx;
+    tab->funcs_y.bits_uint8_noadvance = 14;
+    }
   }
 
 #ifdef MMXEXT
@@ -251,6 +301,11 @@ void gavl_init_scale_funcs_generic_y_mmx(gavl_scale_funcs_t * tab,
     tab->funcs_y.scale_uint8_x_3 =  scale_uint8_x_3_y_generic_mmx;
     tab->funcs_y.bits_uint8_noadvance = 14;
     }
+  else if((src_advance == 2) && (dst_advance == 2))
+    {
+    tab->funcs_y.scale_uint8_x_2 =  scale_uint8_x_2_y_generic_mmx;
+    tab->funcs_y.bits_uint8_noadvance = 14;
+    }
   else if((src_advance == 4) && (dst_advance == 4))
     {
     tab->funcs_y.scale_uint8_x_3 =  scale_uint8_x_4_y_generic_mmx;
@@ -264,6 +319,15 @@ void gavl_init_scale_funcs_generic_y_mmx(gavl_scale_funcs_t * tab,
 
 #define FUNC_NAME scale_uint8_x_1_y_bilinear_mmx
 #define WIDTH_MUL 1
+#define BITS 8
+#define NUM_TAPS -1
+
+#include "scale_y_linear.h"
+
+/* scale_uint8_x_2_y_bilinear_mmx  */
+
+#define FUNC_NAME scale_uint8_x_2_y_bilinear_mmx
+#define WIDTH_MUL 2
 #define BITS 8
 #define NUM_TAPS -1
 
@@ -303,6 +367,11 @@ void gavl_init_scale_funcs_bilinear_y_mmx(gavl_scale_funcs_t * tab,
   else if((src_advance == 3) && (dst_advance == 3))
     {
     tab->funcs_y.scale_uint8_x_3 =  scale_uint8_x_3_y_bilinear_mmx;
+    tab->funcs_y.bits_uint8_noadvance = 14;
+    }
+  else if((src_advance == 2) && (dst_advance == 2))
+    {
+    tab->funcs_y.scale_uint8_x_2 =  scale_uint8_x_2_y_bilinear_mmx;
     tab->funcs_y.bits_uint8_noadvance = 14;
     }
   else if((src_advance == 4) && (dst_advance == 4))

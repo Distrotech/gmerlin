@@ -23,6 +23,7 @@
 #define _GAVL_SCALE_H_
 
 #include "video.h"
+#include "attributes.h"
 
 /* Typedefs */
 
@@ -124,7 +125,6 @@ void gavl_init_scale_funcs_bilinear_x_mmx(gavl_scale_funcs_t * tab,
                                           int src_advance, int dst_advance);
 
 /* */
-#if 0
 void gavl_init_scale_funcs_bicubic_y_mmxext(gavl_scale_funcs_t * tab,
                                          int src_advance,
                                          int dst_advance);
@@ -162,7 +162,49 @@ void gavl_init_scale_funcs_bilinear_x_mmxext(gavl_scale_funcs_t * tab,
 
 #endif
 
+#ifdef HAVE_SSE
+void gavl_init_scale_funcs_quadratic_y_sse(gavl_scale_funcs_t * tab,
+                                           int src_advance, int dst_advance);
+  
+void gavl_init_scale_funcs_bicubic_y_sse(gavl_scale_funcs_t * tab,
+                                         int src_advance, int dst_advance);
+
+void gavl_init_scale_funcs_bicubic_y_noclip_sse(gavl_scale_funcs_t * tab,
+                                                int src_advance, int dst_advance);
+
+void gavl_init_scale_funcs_generic_y_sse(gavl_scale_funcs_t * tab,
+                                         int src_advance, int dst_advance);
+
+void gavl_init_scale_funcs_bilinear_y_sse(gavl_scale_funcs_t * tab,
+                                          int src_advance, int dst_advance);
+
 #endif
+
+
+#ifdef HAVE_SSE2
+void gavl_init_scale_funcs_bicubic_y_sse2(gavl_scale_funcs_t * tab,
+                                         int src_advance,
+                                         int dst_advance);
+
+void gavl_init_scale_funcs_bicubic_y_noclip_sse2(gavl_scale_funcs_t * tab,
+                                                 int src_advance,
+                                                 int dst_advance);
+
+void gavl_init_scale_funcs_quadratic_y_sse2(gavl_scale_funcs_t * tab,
+                                           int src_advance,
+                                           int dst_advance);
+
+
+void gavl_init_scale_funcs_generic_y_sse2(gavl_scale_funcs_t * tab,
+                                         int src_advance,
+                                         int dst_advance);
+
+void gavl_init_scale_funcs_bilinear_y_sse2(gavl_scale_funcs_t * tab,
+                                          int src_advance, int dst_advance);
+
+
+#endif
+
 
 void gavl_init_scale_funcs(gavl_scale_funcs_t * tab,
                            gavl_video_options_t * opt,
@@ -276,8 +318,8 @@ struct gavl_video_scale_context_s
   int min_values_v[4];
   int max_values_v[4];
 
-  float min_values_f[4];
-  float max_values_f[4];
+  float ATTR_ALIGN(16) min_values_f[4];
+  float ATTR_ALIGN(16) max_values_f[4];
   
   /* These are used by the generic scaler */
 

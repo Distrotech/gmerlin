@@ -25,7 +25,7 @@ pixelformat_penalty_SOURCES = pixelformat_penalty.c
 pixelformat_penalty_LDADD = ../gavl/libgavl.la
 
 benchmark_SOURCES = benchmark.c
-benchmark_LDADD = ../gavl/libgavl.la
+benchmark_LDADD = ../gavl/libgavl.la @RT_LIBS@
 
 
 volume_test_SOURCES = volume_test.c

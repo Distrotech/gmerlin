@@ -5043,6 +5043,7 @@ INIT_RGBA_64 \
 #define CHROMA_SUB     1
 
 #include "../csp_packed_planar.h"
+
 #ifdef HQ
 void gavl_init_rgb_yuv_funcs_hq(gavl_pixelformat_function_table_t * tab, const gavl_video_options_t * opt)
 #else

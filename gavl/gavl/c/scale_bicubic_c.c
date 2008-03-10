@@ -95,7 +95,7 @@
          (int64_t)ctx->table_h.pixels[i].factor_i[2] * src_3[0] +            \
          (int64_t)ctx->table_h.pixels[i].factor_i[3] * src_4[0]);            \
   tmp=DOWNSHIFT(tmp,16);\
-/*  RECLIP_H(tmp,ctx->plane);  */                                             \
+  RECLIP_H(tmp,ctx->plane);                                                \
   dst[0] = tmp;
 
 #define NUM_TAPS 4

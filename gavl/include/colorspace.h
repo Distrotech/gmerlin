@@ -1234,7 +1234,7 @@ void gavl_init_yuv_yuv_funcs_hq(gavl_pixelformat_function_table_t *, const gavl_
 void gavl_init_yuv_rgb_funcs_hq(gavl_pixelformat_function_table_t *, const gavl_video_options_t * opt);
 
 
-#ifdef ARCH_X86
+#ifdef HAVE_MMX
 void gavl_init_rgb_rgb_funcs_mmx(gavl_pixelformat_function_table_t *,
                                  int width, const gavl_video_options_t * opt);
 
@@ -1268,4 +1268,15 @@ void
 gavl_init_yuv_rgb_funcs_mmxext(gavl_pixelformat_function_table_t *,
                                int width, const gavl_video_options_t * opt);
 
+#endif
+
+#ifdef HAVE_SSE
+void gavl_init_rgb_yuv_funcs_sse(gavl_pixelformat_function_table_t *,
+                                 const gavl_video_options_t * opt);
+
+#endif
+
+#ifdef HAVE_SSE3
+void gavl_init_rgb_yuv_funcs_sse3(gavl_pixelformat_function_table_t *,
+                                  const gavl_video_options_t * opt);
 #endif
