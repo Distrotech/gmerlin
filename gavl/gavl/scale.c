@@ -101,7 +101,7 @@ void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt,
 #ifdef HAVE_SSE
       if(opt->accel_flags & GAVL_ACCEL_SSE)
         {
-        // gavl_init_scale_funcs_bilinear_y_sse(tab, src_advance, dst_advance);
+        gavl_init_scale_funcs_bilinear_y_sse(tab, src_advance, dst_advance);
         // gavl_init_scale_funcs_bilinear_x_sse(tab, src_advance, dst_advance);
         }
 #endif

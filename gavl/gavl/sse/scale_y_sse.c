@@ -334,66 +334,42 @@ void gavl_init_scale_funcs_generic_y_sse(gavl_scale_funcs_t * tab,
   tab->funcs_y.scale_float_x_4 =  scale_float_x_4_y_generic_sse;
   }
 
-#if 0
-
 /* scale_uint8_x_1_y_bilinear_sse  */
 
-#define FUNC_NAME scale_uint8_x_1_y_bilinear_sse
+#define FUNC_NAME scale_float_x_1_y_bilinear_sse
 #define WIDTH_MUL 1
-#define NUM_TAPS -1
 
-#include "scale_y_linear_8.h"
+#include "scale_y_linear.h"
 
-/* scale_uint8_x_2_y_bilinear_sse  */
+/* scale_float_x_2_y_bilinear_sse  */
 
-#define FUNC_NAME scale_uint8_x_2_y_bilinear_sse
+#define FUNC_NAME scale_float_x_2_y_bilinear_sse
 #define WIDTH_MUL 2
-#define NUM_TAPS -1
 
-#include "scale_y_linear_8.h"
+#include "scale_y_linear.h"
 
-/* scale_uint8_x_4_y_bilinear_sse  */
+/* scale_float_x_4_y_bilinear_sse  */
 
-#define FUNC_NAME scale_uint8_x_4_y_bilinear_sse
+#define FUNC_NAME scale_float_x_4_y_bilinear_sse
 #define WIDTH_MUL 4
-#define NUM_TAPS -1
 
-#include "scale_y_linear_8.h"
+#include "scale_y_linear.h"
 
-/* scale_uint8_x_3_y_bilinear_sse  */
+/* scale_float_x_3_y_bilinear_sse  */
 
-#define FUNC_NAME scale_uint8_x_3_y_bilinear_sse
+#define FUNC_NAME scale_float_x_3_y_bilinear_sse
 #define WIDTH_MUL 3
-#define NUM_TAPS -1
 
-#include "scale_y_linear_8.h"
-
-#endif
+#include "scale_y_linear.h"
 
 void gavl_init_scale_funcs_bilinear_y_sse(gavl_scale_funcs_t * tab,
                                          int src_advance, int dst_advance)
   {
-#if 0 // Too slow
-  if((src_advance == 1) && (dst_advance == 1))
-    {
-    tab->funcs_y.scale_uint8_x_1_noadvance =  scale_uint8_x_1_y_bilinear_sse;
-    tab->funcs_y.bits_uint8_noadvance = 14;
-    }
-  else if((src_advance == 3) && (dst_advance == 3))
-    {
-    tab->funcs_y.scale_uint8_x_3 =  scale_uint8_x_3_y_bilinear_sse;
-    tab->funcs_y.bits_uint8_noadvance = 14;
-    }
-  else if((src_advance == 2) && (dst_advance == 2))
-    {
-    tab->funcs_y.scale_uint8_x_2 =  scale_uint8_x_2_y_bilinear_sse;
-    tab->funcs_y.bits_uint8_noadvance = 14;
-    }
-  else if((src_advance == 4) && (dst_advance == 4))
-    {
-    tab->funcs_y.scale_uint8_x_3 =  scale_uint8_x_4_y_bilinear_sse;
-    tab->funcs_y.scale_uint8_x_4 =  scale_uint8_x_4_y_bilinear_sse;
-    tab->funcs_y.bits_uint8_noadvance  = 14;
-    }
+#if 1 // Too slow
+  tab->funcs_y.scale_float_x_1 =  scale_float_x_1_y_bilinear_sse;
+  tab->funcs_y.scale_float_x_2 =  scale_float_x_2_y_bilinear_sse;
+  tab->funcs_y.scale_float_x_3 =  scale_float_x_3_y_bilinear_sse;
+  tab->funcs_y.scale_float_x_4 =  scale_float_x_4_y_bilinear_sse;
+  
 #endif
   }
