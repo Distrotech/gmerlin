@@ -69,10 +69,24 @@ static const mmx_t factor_mask = { 0x000000000000FFFFLL };
     pand_r2r(mm1, mm2); \
     pshufw_r2r(mm2,mm7,0x00)
 
+#define LOAD_FACTOR_1_4_NOCLIP \
+    movd_m2r(*factors, mm2); \
+    pand_r2r(mm1, mm2); \
+    pshufw_r2r(mm2,mm7,0x00)
+
 #else
 #define LOAD_FACTOR_1_4 \
     movd_m2r(*factors, mm2); \
     pand_r2r(mm1, mm2); \
+    movq_r2r(mm2, mm7); \
+    psllq_i2r(16, mm7); \
+    por_r2r(mm7, mm2); \
+    movq_r2r(mm2, mm7); \
+    psllq_i2r(32, mm7); \
+    por_r2r(mm2, mm7)
+
+#define LOAD_FACTOR_1_4_NOCLIP \
+    movd_m2r(*factors, mm2); \
     movq_r2r(mm2, mm7); \
     psllq_i2r(16, mm7); \
     por_r2r(mm7, mm2); \
@@ -170,7 +184,7 @@ static void scale_uint8_x_1_x_bilinear_mmx(gavl_video_scale_context_t * ctx)
     //    *(dst+1) = tmp_mm.ub[4];
     dst+=4;
     }
-  emms();
+  ctx->need_emms = 1;
 
   imax = ctx->dst_size % 4;
   //  imax = ctx->dst_size;
@@ -221,7 +235,7 @@ static void scale_uint8_x_1_x_bicubic_mmx(gavl_video_scale_context_t * ctx)
     RECLIP(tmp, ctx->plane);
     *(dst++) = tmp;
     }
-  emms();
+  ctx->need_emms = 1;
   }
 
 static void scale_uint16_x_1_x_bicubic_mmx(gavl_video_scale_context_t * ctx)
@@ -259,7 +273,7 @@ static void scale_uint16_x_1_x_bicubic_mmx(gavl_video_scale_context_t * ctx)
     RECLIP(tmp, ctx->plane);
     *(dst++) = tmp;
     }
-  emms();
+  ctx->need_emms = 1;
   }
 
 static void scale_uint16_x_1_x_bicubic_noclip_mmx(gavl_video_scale_context_t * ctx)
@@ -296,7 +310,7 @@ static void scale_uint16_x_1_x_bicubic_noclip_mmx(gavl_video_scale_context_t * c
     tmp >>= 13;
     *(dst++) = tmp;
     }
-  emms();
+  ctx->need_emms = 1;
   }
 
 /* scale_uint8_x_1_x_bicubic_noclip_mmx */
@@ -331,7 +345,7 @@ scale_uint8_x_1_x_bicubic_noclip_mmx(gavl_video_scale_context_t * ctx)
     MOVQ_R2M(mm0, tmp_mm);
     *(dst++) = tmp_mm.d[0] + tmp_mm.d[1];
     }
-  emms();
+  ctx->need_emms = 1;
   }
 
 #endif // !MMXEXT
@@ -425,7 +439,7 @@ static void scale_uint8_x_4_x_bicubic_mmx(gavl_video_scale_context_t * ctx)
     
     dst+=4;
     }
-  emms();
+  ctx->need_emms = 1;
   }
 
 #ifdef MMXEXT 
@@ -519,7 +533,7 @@ static void scale_uint16_x_4_x_bicubic_mmx(gavl_video_scale_context_t * ctx)
     
     dst+=8;
     }
-  emms();
+  ctx->need_emms = 1;
   }
 
 #endif // MMXEXT 
@@ -559,7 +573,7 @@ static void scale_uint16_x_4_x_bicubic_noclip_mmx(gavl_video_scale_context_t * c
     //    punpcklbw_r2r(mm6, mm0);
     psrlw_i2r(1, mm0);
     /* Load factors */
-    LOAD_FACTOR_1_4;
+    LOAD_FACTOR_1_4_NOCLIP;
     /* Multiply */
     pmulhw_r2r(mm7, mm0);
     movq_r2r(mm0, mm3);
@@ -572,7 +586,7 @@ static void scale_uint16_x_4_x_bicubic_noclip_mmx(gavl_video_scale_context_t * c
     //    punpcklbw_r2r(mm6, mm0);
     psrlw_i2r(1, mm0);
     /* Load factors */
-    LOAD_FACTOR_1_4;
+    LOAD_FACTOR_1_4_NOCLIP;
     /* Multiply */
     pmulhw_r2r(mm7, mm0);
     paddw_r2r(mm0, mm3);
@@ -585,7 +599,7 @@ static void scale_uint16_x_4_x_bicubic_noclip_mmx(gavl_video_scale_context_t * c
     //    punpcklbw_r2r(mm6, mm0);
     psrlw_i2r(1, mm0);
     /* Load factors */
-    LOAD_FACTOR_1_4;
+    LOAD_FACTOR_1_4_NOCLIP;
     /* Multiply */
     pmulhw_r2r(mm7, mm0);
     paddw_r2r(mm0, mm3);
@@ -598,7 +612,7 @@ static void scale_uint16_x_4_x_bicubic_noclip_mmx(gavl_video_scale_context_t * c
     //    punpcklbw_r2r(mm6, mm0);
     psrlw_i2r(1, mm0);
     /* Load factors */
-    LOAD_FACTOR_1_4;
+    LOAD_FACTOR_1_4_NOCLIP;
     /* Multiply */
     pmulhw_r2r(mm7, mm0);
     paddw_r2r(mm0, mm3);
@@ -611,7 +625,7 @@ static void scale_uint16_x_4_x_bicubic_noclip_mmx(gavl_video_scale_context_t * c
     
     dst+=8;
     }
-  emms();
+  ctx->need_emms = 1;
   }
 
 #ifdef MMXEXT
@@ -650,7 +664,7 @@ static void scale_uint16_x_4_x_quadratic_mmx(gavl_video_scale_context_t * ctx)
     //    punpcklbw_r2r(mm6, mm0);
     psrlw_i2r(1, mm0);
     /* Load factors */
-    LOAD_FACTOR_1_4;
+    LOAD_FACTOR_1_4_NOCLIP;
     /* Multiply */
     pmulhw_r2r(mm7, mm0);
     movq_r2r(mm0, mm3);
@@ -663,7 +677,7 @@ static void scale_uint16_x_4_x_quadratic_mmx(gavl_video_scale_context_t * ctx)
     //    punpcklbw_r2r(mm6, mm0);
     psrlw_i2r(1, mm0);
     /* Load factors */
-    LOAD_FACTOR_1_4;
+    LOAD_FACTOR_1_4_NOCLIP;
     /* Multiply */
     pmulhw_r2r(mm7, mm0);
     paddw_r2r(mm0, mm3);
@@ -676,7 +690,7 @@ static void scale_uint16_x_4_x_quadratic_mmx(gavl_video_scale_context_t * ctx)
     //    punpcklbw_r2r(mm6, mm0);
     psrlw_i2r(1, mm0);
     /* Load factors */
-    LOAD_FACTOR_1_4;
+    LOAD_FACTOR_1_4_NOCLIP;
     /* Multiply */
     pmulhw_r2r(mm7, mm0);
     paddw_r2r(mm0, mm3);
@@ -689,7 +703,7 @@ static void scale_uint16_x_4_x_quadratic_mmx(gavl_video_scale_context_t * ctx)
     
     dst+=8;
     }
-  emms();
+  ctx->need_emms = 1;
   }
 #endif // MMXEXT
 
@@ -731,7 +745,7 @@ static void scale_uint8_x_4_x_quadratic_mmx(gavl_video_scale_context_t * ctx)
     punpcklbw_r2r(mm6, mm0);
     psllw_i2r(7, mm0);
     /* Load factors */
-    LOAD_FACTOR_1_4;
+    LOAD_FACTOR_1_4_NOCLIP;
     /* Multiply */
     pmulhw_r2r(mm7, mm0);
     movq_r2r(mm0, mm3);
@@ -744,7 +758,7 @@ static void scale_uint8_x_4_x_quadratic_mmx(gavl_video_scale_context_t * ctx)
     punpcklbw_r2r(mm6, mm0);
     psllw_i2r(7, mm0);
     /* Load factors */
-    LOAD_FACTOR_1_4;
+    LOAD_FACTOR_1_4_NOCLIP;
     /* Multiply */
     pmulhw_r2r(mm7, mm0);
     paddw_r2r(mm0, mm3);
@@ -757,7 +771,7 @@ static void scale_uint8_x_4_x_quadratic_mmx(gavl_video_scale_context_t * ctx)
     punpcklbw_r2r(mm6, mm0);
     psllw_i2r(7, mm0);
     /* Load factors */
-    LOAD_FACTOR_1_4;
+    LOAD_FACTOR_1_4_NOCLIP;
     /* Multiply */
     pmulhw_r2r(mm7, mm0);
     paddw_r2r(mm0, mm3);
@@ -771,7 +785,7 @@ static void scale_uint8_x_4_x_quadratic_mmx(gavl_video_scale_context_t * ctx)
     
     dst+=4;
     }
-  emms();
+  ctx->need_emms = 1;
   }
 
 
@@ -839,7 +853,7 @@ static void scale_uint8_x_1_x_generic_mmx(gavl_video_scale_context_t * ctx)
     *(dst++) = tmp;
     
     }
-  emms();
+  ctx->need_emms = 1;
   }
 
 static void scale_uint16_x_1_x_generic_mmx(gavl_video_scale_context_t * ctx)
@@ -905,7 +919,7 @@ static void scale_uint16_x_1_x_generic_mmx(gavl_video_scale_context_t * ctx)
     *(dst++) = tmp;
     
     }
-  emms();
+  ctx->need_emms = 1;
   }
 
 
@@ -966,7 +980,7 @@ static void scale_uint8_x_4_x_generic_mmx(gavl_video_scale_context_t * ctx)
     
     dst+=4;
     }
-  emms();
+  ctx->need_emms = 1;
   
   }
 
@@ -1023,7 +1037,7 @@ static void scale_uint16_x_4_x_generic_mmx(gavl_video_scale_context_t * ctx)
     
     dst+=8;
     }
-  emms();
+  ctx->need_emms = 1;
   
   }
 
@@ -1073,7 +1087,7 @@ static void scale_uint8_x_4_x_bilinear_mmx(gavl_video_scale_context_t * ctx)
     psllw_i2r(6, mm5); /* 14 bit */
 
     /* Load factors */
-    LOAD_FACTOR_1_4; /* 14 bit */
+    LOAD_FACTOR_1_4_NOCLIP; /* 14 bit */
     /* Subtract */
     psubsw_r2r(mm5, mm0); /* s1(mm0) - s2(mm5) -> mm0 (14 bit) */
     pmulhw_r2r(mm7, mm0); /* factor * (s2 - s1) -> mm0 (12 bit) */
@@ -1088,7 +1102,7 @@ static void scale_uint8_x_4_x_bilinear_mmx(gavl_video_scale_context_t * ctx)
     
     dst+=4;
     }
-  emms();
+  ctx->need_emms = 1;
   
   }
 

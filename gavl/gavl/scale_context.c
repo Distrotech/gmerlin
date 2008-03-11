@@ -1483,5 +1483,12 @@ void gavl_video_scale_context_scale(gavl_video_scale_context_t * ctx,
       //      fprintf(stderr, "done\n");
       break;
     }
+#ifdef HAVE_MMX
+  if(ctx->need_emms)
+    {
+    __asm__ __volatile__ ("emms");
+    ctx->need_emms = 0;
+    }
+#endif
   }
 

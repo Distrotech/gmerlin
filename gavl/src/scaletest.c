@@ -463,6 +463,9 @@ int main(int argc, char ** argv)
 
       gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_SSE2);
       do_scale(scaler, "SSE2", scale_modes[j].name);
+
+      gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_SSE3);
+      do_scale(scaler, "SSE3", scale_modes[j].name);
       
       }
     

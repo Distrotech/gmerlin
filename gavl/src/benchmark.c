@@ -1084,6 +1084,9 @@ static void do_scale_direction(video_convert_context_t * ctx,
 
       gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_SSE2);
       do_scale(ctx, b, in_format, "SSE2", dir);
+
+      gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_SSE3);
+      do_scale(ctx, b, in_format, "SSE3", dir);
     
       gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_C_HQ);
       do_scale(ctx, b, in_format, "HQ", dir);
@@ -1115,6 +1118,9 @@ static void do_scale_direction(video_convert_context_t * ctx,
 
       gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_SSE2);
       do_scale(ctx, b, in_format, "SSE2", dir);
+
+      gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_SSE3);
+      do_scale(ctx, b, in_format, "SSE3", dir);
     
       gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_C_HQ);
       do_scale(ctx, b, in_format, "HQ", dir);
@@ -1146,6 +1152,9 @@ static void do_scale_direction(video_convert_context_t * ctx,
 
       gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_SSE2);
       do_scale(ctx, b, in_format, "SSE2", dir);
+
+      gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_SSE3);
+      do_scale(ctx, b, in_format, "SSE3", dir);
     
       gavl_video_options_set_accel_flags(ctx->opt, GAVL_ACCEL_C_HQ);
       do_scale(ctx, b, in_format, "HQ", dir);

@@ -102,7 +102,7 @@ void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt,
       if(opt->accel_flags & GAVL_ACCEL_SSE)
         {
         gavl_init_scale_funcs_bilinear_y_sse(tab, src_advance, dst_advance);
-        // gavl_init_scale_funcs_bilinear_x_sse(tab, src_advance, dst_advance);
+        gavl_init_scale_funcs_bilinear_x_sse(tab);
         }
 #endif
 #ifdef HAVE_SSE2
@@ -132,7 +132,7 @@ void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt,
       if(opt->accel_flags & GAVL_ACCEL_SSE)
         {
         gavl_init_scale_funcs_quadratic_y_sse(tab, src_advance, dst_advance);
-        // gavl_init_scale_funcs_quadratic_x_sse(tab, src_advance, dst_advance);
+        gavl_init_scale_funcs_quadratic_x_sse(tab);
         }
 #endif
 #ifdef HAVE_SSE2
@@ -162,7 +162,7 @@ void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt,
       if(opt->accel_flags & GAVL_ACCEL_SSE)
         {
         gavl_init_scale_funcs_bicubic_y_noclip_sse(tab, src_advance, dst_advance);
-        // gavl_init_scale_funcs_bicubic_noclip_x_sse(tab, src_advance, dst_advance);
+        gavl_init_scale_funcs_bicubic_x_noclip_sse(tab);
         }
 #endif
 #ifdef HAVE_SSE2
@@ -170,6 +170,12 @@ void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt,
         {
         gavl_init_scale_funcs_bicubic_y_noclip_sse2(tab, src_advance, dst_advance);
         //        gavl_init_scale_funcs_bicubic_x_sse2(tab, src_advance, dst_advance);
+        }
+#endif
+#ifdef HAVE_SSE3
+      if(opt->accel_flags & GAVL_ACCEL_SSE3)
+        {
+        gavl_init_scale_funcs_bicubic_x_noclip_sse3(tab);
         }
 #endif
       break;
@@ -193,7 +199,7 @@ void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt,
       if(opt->accel_flags & GAVL_ACCEL_SSE)
         {
         gavl_init_scale_funcs_bicubic_y_sse(tab, src_advance, dst_advance);
-        // gavl_init_scale_funcs_bicubic_x_sse(tab, src_advance, dst_advance);
+        gavl_init_scale_funcs_bicubic_x_sse(tab);
         }
 #endif
 #ifdef HAVE_SSE2
@@ -201,6 +207,12 @@ void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt,
         {
         gavl_init_scale_funcs_bicubic_y_sse2(tab, src_advance, dst_advance);
         //        gavl_init_scale_funcs_bicubic_x_sse2(tab, src_advance, dst_advance);
+        }
+#endif
+#ifdef HAVE_SSE3
+      if(opt->accel_flags & GAVL_ACCEL_SSE3)
+        {
+        gavl_init_scale_funcs_bicubic_x_sse3(tab);
         }
 #endif
       break;
@@ -224,7 +236,7 @@ void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt,
       if(opt->accel_flags & GAVL_ACCEL_SSE)
         {
         gavl_init_scale_funcs_generic_y_sse(tab, src_advance, dst_advance);
-        // gavl_init_scale_funcs_generic_x_sse(tab, src_advance, dst_advance);
+        gavl_init_scale_funcs_generic_x_sse(tab);
         }
 #endif
 #ifdef HAVE_SSE2
@@ -232,6 +244,12 @@ void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt,
         {
         gavl_init_scale_funcs_generic_y_sse2(tab, src_advance, dst_advance);
         //        gavl_init_scale_funcs_generic_x_sse2(tab, src_advance, dst_advance);
+        }
+#endif
+#ifdef HAVE_SSE3
+      if(opt->accel_flags & GAVL_ACCEL_SSE3)
+        {
+        gavl_init_scale_funcs_generic_x_sse3(tab);
         }
 #endif
       break;

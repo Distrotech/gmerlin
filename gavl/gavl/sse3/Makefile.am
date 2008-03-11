@@ -2,4 +2,5 @@
 noinst_LTLIBRARIES = libgavl_sse3.la
 
 libgavl_sse3_la_SOURCES = \
-rgb_yuv_sse3.c
+rgb_yuv_sse3.c \
+scale_x_sse3.c

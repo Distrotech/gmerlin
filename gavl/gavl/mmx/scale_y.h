@@ -122,7 +122,7 @@ static void (FUNC_NAME)(gavl_video_scale_context_t * ctx)
     
     }
 
-  emms();
+  ctx->need_emms = 1;
   
   imax = (ctx->dst_size * WIDTH_MUL) % 8;
   //  imax = (ctx->dst_size * WIDTH_MUL);
