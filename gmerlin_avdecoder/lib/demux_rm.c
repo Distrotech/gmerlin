@@ -363,8 +363,9 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
   priv = (rm_private_t*)(ctx->priv);
   
   bg_vs = bgav_track_add_video_stream(track, ctx->opt);
-  bg_vs->vfr_timestamps = 1;
-        
+
+  bg_vs->data.video.frametime_mode = BGAV_FRAMETIME_PTS;
+  
   rm_vs = calloc(1, sizeof(*rm_vs));
 
   /* Set container bitrate */

@@ -610,7 +610,7 @@ static int open_asf(bgav_demuxer_context_t * ctx,
       else if(bgav_GUID_equal(&guid, &guid_video_media))
         {
         bgav_vs = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
-        bgav_vs->vfr_timestamps = 1;
+        bgav_vs->data.video.frametime_mode = BGAV_FRAMETIME_PTS;
         
         bgav_vs->stream_id = stream_number;
         

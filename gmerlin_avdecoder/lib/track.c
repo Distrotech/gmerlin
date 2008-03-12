@@ -521,18 +521,22 @@ gavl_time_t bgav_track_resync_decoders(bgav_track_t * track, int scale)
     s->out_time =
       gavl_time_rescale(s->timescale, s->data.video.format.timescale,
                         s->in_time);
-    
-    if(s->data.video.format.framerate_mode == GAVL_FRAMERATE_CONSTANT)
-      s->data.video.next_frame_duration = s->data.video.format.frame_duration;
-    else if(s->vfr_timestamps)
+
+    switch(s->data.video.frametime_mode)
       {
-      p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
-      if(!p)
-        s->data.video.next_frame_duration = 0;
-      else
-        s->data.video.next_frame_duration =
-          gavl_time_rescale(s->timescale, s->data.video.format.timescale,
-                            p->duration);
+      case BGAV_FRAMETIME_CONSTANT:
+        s->data.video.next_frame_duration = s->data.video.format.frame_duration;
+        break;
+      case BGAV_FRAMETIME_PACKET:
+      case BGAV_FRAMETIME_PTS:
+        p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
+        if(!p)
+          s->data.video.next_frame_duration = 0;
+        else
+          s->data.video.next_frame_duration =
+            gavl_time_rescale(s->timescale, s->data.video.format.timescale,
+                              p->duration);
+        break;
       }
     
     bgav_stream_resync_decoder(s);

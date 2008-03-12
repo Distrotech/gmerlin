@@ -193,12 +193,12 @@ int bgav_audio_skipto(bgav_stream_t * s, int64_t * t, int scale)
       samples_skipped =
         s->data.audio.decoder->decoder->decode(s, (gavl_audio_frame_t*)0,
                                                num_samples);
+      s->out_time += samples_skipped;
       }
   if(samples_skipped < num_samples)
     {
     return 0;
     }
-  
   return 1;
   }
 

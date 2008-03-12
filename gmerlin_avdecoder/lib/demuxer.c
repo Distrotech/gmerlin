@@ -304,7 +304,7 @@ void bgav_demuxer_destroy(bgav_demuxer_context_t * ctx)
 /* Check and kick out streams, for which a header exists but no
    packets */
 
-static void check_missing_streams(bgav_demuxer_context_t * ctx)
+static void init_superindex(bgav_demuxer_context_t * ctx)
   {
   int i;
 
@@ -314,7 +314,10 @@ static void check_missing_streams(bgav_demuxer_context_t * ctx)
     if(ctx->tt->cur->audio_streams[i].last_index_position < 0)
       bgav_track_remove_audio_stream(ctx->tt->cur, i);
     else
+      {
+      ctx->tt->cur->audio_streams[i].first_timestamp = 0;
       i++;
+      }
     }
 
   i = 0;
@@ -323,7 +326,10 @@ static void check_missing_streams(bgav_demuxer_context_t * ctx)
     if(ctx->tt->cur->video_streams[i].last_index_position < 0)
       bgav_track_remove_video_stream(ctx->tt->cur, i);
     else
+      {
+      ctx->tt->cur->video_streams[i].first_timestamp = 0;
       i++;
+      }
     }
   }
 
@@ -395,7 +401,7 @@ int bgav_demuxer_start(bgav_demuxer_context_t * ctx,
 
     if(!(ctx->flags & BGAV_DEMUXER_SI_PRIVATE_FUNCS))
       {
-      check_missing_streams(ctx);
+      init_superindex(ctx);
       check_interleave(ctx);
 
       if((ctx->demux_mode == DEMUX_MODE_SI_NI) &&
@@ -592,7 +598,7 @@ static int next_packet_noninterleaved(bgav_demuxer_context_t * ctx)
 
 int bgav_demuxer_next_packet(bgav_demuxer_context_t * demuxer)
   {
-  int ret, i;
+  int ret = 0, i;
 
   if(demuxer->flags & BGAV_DEMUXER_EOF)
     return 0;
@@ -650,11 +656,16 @@ bgav_packet_t *
 bgav_demuxer_get_packet_read(bgav_demuxer_context_t * demuxer,
                              bgav_stream_t * s)
   {
+  int get_duration = 0;
   bgav_packet_t * ret = (bgav_packet_t*)0;
+  
   if(!s->packet_buffer)
     return (bgav_packet_t*)0;
+  if((s->type == BGAV_STREAM_VIDEO) && (s->data.video.frametime_mode == BGAV_FRAMETIME_PTS))
+    get_duration = 1;
+
   demuxer->request_stream = s; 
-  while(!(ret = bgav_packet_buffer_get_packet_read(s->packet_buffer, 0)))
+  while(!(ret = bgav_packet_buffer_get_packet_read(s->packet_buffer, get_duration)))
     {
     if(!bgav_demuxer_next_packet(demuxer))
       return (bgav_packet_t*)0;
@@ -681,13 +692,16 @@ bgav_demuxer_peek_packet_read(bgav_demuxer_context_t * demuxer,
                               bgav_stream_t * s, int force)
   {
   bgav_packet_t * ret;
+  int get_duration = 0;
   if(!s->packet_buffer)
     return 0;
+  if((s->type == BGAV_STREAM_VIDEO) && (s->data.video.frametime_mode == BGAV_FRAMETIME_PTS))
+    get_duration = 1;
   
   if((demuxer->flags & BGAV_DEMUXER_PEEK_FORCES_READ) || force)
     {
     demuxer->request_stream = s; 
-    while(!(ret = bgav_packet_buffer_peek_packet_read(s->packet_buffer, s->vfr_timestamps)))
+    while(!(ret = bgav_packet_buffer_peek_packet_read(s->packet_buffer, get_duration)))
       {
       if(!bgav_demuxer_next_packet(demuxer))
         return 0;
@@ -696,7 +710,7 @@ bgav_demuxer_peek_packet_read(bgav_demuxer_context_t * demuxer,
     return ret;
     }
   else
-    return bgav_packet_buffer_peek_packet_read(s->packet_buffer, s->vfr_timestamps);
+    return bgav_packet_buffer_peek_packet_read(s->packet_buffer, get_duration);
   }
 
 

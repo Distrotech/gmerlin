@@ -108,8 +108,6 @@ bgav_packet_buffer_get_packet_read(bgav_packet_buffer_t * b, int get_duration)
   return ret;
   }
 
-
-
 bgav_packet_t * bgav_packet_buffer_get_packet_write(bgav_packet_buffer_t * b, bgav_stream_t * s)
   {
   bgav_packet_t * cur;

@@ -526,7 +526,7 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
    * Update timestamp
    */
 
-  if(s->vfr_timestamps && (priv->pts_cache.num > 1))
+  if((s->data.video.frametime_mode == BGAV_FRAMETIME_PTS) && (priv->pts_cache.num > 1))
     s->data.video.last_frame_duration =
       gavl_time_rescale(s->timescale, s->data.video.format.timescale,
                         priv->pts_cache.pts[1] - priv->pts_cache.pts[0]);

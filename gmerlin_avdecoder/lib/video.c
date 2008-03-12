@@ -88,26 +88,34 @@ static int bgav_video_decode(bgav_stream_t * stream,
                              gavl_video_frame_t* frame)
   {
   int result;
+
+  if(stream->eof)
+    return 0;
   
   result = stream->data.video.decoder->decoder->decode(stream, frame);
   /* Set the final timestamp for the frame */
+
+  stream->out_time = stream->data.video.last_frame_time;
   
   if(frame && result)
     {
-    frame->timestamp = stream->data.video.last_frame_time;
+    frame->timestamp = stream->out_time;
+
     if(stream->demuxer->demux_mode == DEMUX_MODE_FI)
       frame->timestamp += stream->first_timestamp;
     
     frame->duration  = stream->data.video.last_frame_duration;
-                
+    
     /* Yes, this sometimes happens due to rounding errors */
     if(frame->timestamp < 0)
       frame->timestamp = 0;
     }
-
+  
+  stream->out_time += stream->data.video.last_frame_duration;
+  
   if(!result)
     stream->eof = 1;
-  
+  //  fprintf(stderr, "Decode video, out_time: %ld\n", stream->out_time);
   return result;
   }
 
@@ -185,7 +193,7 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale)
 
     next_frame_time = s->data.video.last_frame_time +
       s->data.video.last_frame_duration;
-    } while((next_frame_time < time_scaled) && result);
+    } while(next_frame_time < time_scaled);
 
   *time = gavl_time_rescale(s->data.video.format.timescale, scale, next_frame_time);
   s->in_time = gavl_time_rescale(scale, s->timescale, *time);

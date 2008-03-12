@@ -32,6 +32,9 @@
 
 // #define TRACK 6
 
+static int64_t audio_seek = 0;
+static int64_t video_seek = 0;
+
 /* Taken from the Unix programmer FAQ: http://www.faqs.org/faqs/unix-faq/programmer/faq/ */
 
 static struct termios stored_settings;
@@ -123,7 +126,7 @@ int main(int argc, char ** argv)
   
   if(argc == 1)
     {
-    fprintf(stderr, "Usage: bgavdump <location>\n");
+    fprintf(stderr, "Usage: bgavdump [-s] [-aseek <sample>] [-vseek <time>] <location>\n");
 
     bgav_inputs_dump();
     bgav_redirectors_dump();
@@ -147,6 +150,16 @@ int main(int argc, char ** argv)
       {
       sample_accurate = 1;
       arg_index++;
+      }
+    if(!strcmp(argv[arg_index], "-aseek"))
+      {
+      audio_seek = strtoll(argv[arg_index+1], (char**)0, 10);
+      arg_index+=2;
+      }
+    if(!strcmp(argv[arg_index], "-vseek"))
+      {
+      video_seek = strtoll(argv[arg_index+1], (char**)0, 10);
+      arg_index+=2;
       }
     }
   
@@ -263,6 +276,8 @@ int main(int argc, char ** argv)
       {
       audio_format = bgav_get_audio_format(file, i);
       af = gavl_audio_frame_create(audio_format);
+      if(sample_accurate && audio_seek)
+        bgav_seek_audio(file, i, audio_seek);
 
       for(j = 0; j < frames_to_read; j++)
         {
@@ -282,6 +297,8 @@ int main(int argc, char ** argv)
       video_format = bgav_get_video_format(file, i);
       vf = gavl_video_frame_create(video_format);
 #if 1
+      if(sample_accurate && video_seek)
+        bgav_seek_video(file, i, video_seek);
       for(j = 0; j < frames_to_read; j++)
         {
         fprintf(stderr, "Reading frame from video stream %d...", i+1);

@@ -1143,8 +1143,10 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
     
   
   bg_vs = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
-  bg_vs->vfr_timestamps = 1;
 
+  /* Will be overwritten later on */
+  bg_vs->data.video.frametime_mode = BGAV_FRAMETIME_PTS;
+  
   avi_vs = calloc(1, sizeof(*avi_vs));
 
   memcpy(&(avi_vs->strh), strh, sizeof(*strh));

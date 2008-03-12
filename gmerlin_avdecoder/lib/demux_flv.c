@@ -139,7 +139,7 @@ static void init_video_stream(bgav_demuxer_context_t * ctx)
   {
   bgav_stream_t * vs = (bgav_stream_t*)0;
   vs = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
-  vs->vfr_timestamps = 1;
+  vs->data.video.frametime_mode = BGAV_FRAMETIME_PTS;
   
   vs->stream_id = VIDEO_ID;
   vs->timescale = 1000;

@@ -173,6 +173,7 @@ void bgav_stream_dump(bgav_stream_t * s)
     bgav_dprintf("Unspecified\n");
 
   bgav_dprintf("  Timescale:         %d\n", s->timescale);
+  bgav_dprintf("  Duration:          %"PRId64"\n", s->duration);
   bgav_dprintf("  Private data:      %p\n", s->priv);
   }
 

@@ -209,7 +209,7 @@ static void close_dv(bgav_demuxer_context_t * ctx)
   free(priv);
   }
 
-static int resync_dv(bgav_demuxer_context_t * ctx)
+static void resync_dv(bgav_demuxer_context_t * ctx)
   {
   dv_priv_t * priv;
   priv = (dv_priv_t *)(ctx->priv);
@@ -217,7 +217,6 @@ static int resync_dv(bgav_demuxer_context_t * ctx)
                                 ctx->tt->cur->video_streams->in_time /
                                 ctx->tt->cur->video_streams->data.video.format.frame_duration,
                                 ctx->tt->cur->audio_streams->in_time);
-  return 1;
   }
 
 

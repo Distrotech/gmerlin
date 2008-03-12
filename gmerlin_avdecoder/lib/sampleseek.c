@@ -79,6 +79,13 @@ void bgav_seek_audio(bgav_t * bgav, int stream, int64_t sample)
   bgav_stream_t * s;
   int64_t frame_time;
   s = &bgav->tt->cur->audio_streams[stream];
+
+  if(sample >= s->duration) /* EOF */
+    {
+    s->eof = 1;
+    return;
+    }
+  
   bgav_stream_clear(s);
 
   if(bgav->demuxer->index_mode == INDEX_MODE_PCM)
@@ -132,10 +139,29 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
   bgav_stream_t * s;
   int64_t frame_time;
   s = &bgav->tt->cur->video_streams[stream];
+
+  if(time >= s->duration) /* EOF */
+    {
+    s->eof = 1;
+    return;
+    }
+
+  if(time == s->out_time)
+    {
+    return;
+    }
+  if((time > s->out_time) && (bgav_video_keyframe_after(bgav, stream, s->out_time) > time))
+    {
+    bgav_video_skipto(s, &time, s->timescale);
+    //    fprintf(stderr, "Seek by skip\n");
+    return;
+    }
+
   bgav_stream_clear(s);
 
   if(bgav->demuxer->index_mode == INDEX_MODE_SI_SA)
     {
+    
     bgav_superindex_seek(bgav->demuxer->si, s, time, s->timescale);
     }
   else /* Fileindex */
@@ -193,7 +219,10 @@ int64_t bgav_video_keyframe_before(bgav_t * bgav, int stream, int64_t time)
     }
   else /* Fileindex */
     {
-    pos = file_index_seek(s->file_index, time);
+    if(time >= s->duration)
+      pos = s->file_index->num_entries-1;
+    else
+      pos = file_index_seek(s->file_index, time);
 
     while(pos &&
           ((s->file_index->entries[pos].time >= time) ||
@@ -233,6 +262,9 @@ int64_t bgav_video_keyframe_after(bgav_t * bgav, int stream, int64_t time)
     }
   else /* Fileindex */
     {
+    if(pos >= s->duration)
+      return BGAV_TIMESTAMP_UNDEFINED;
+    
     pos = file_index_seek(s->file_index, time);
 
     while((pos < s->file_index->num_entries - 1) &&

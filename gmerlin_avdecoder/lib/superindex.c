@@ -141,19 +141,21 @@ void bgav_superindex_dump(bgav_superindex_t * idx)
   for(i = 0; i < idx->num_entries; i++)
     {
 #if 0
-    bgav_dprintf( "  No: %d ID: %d K: %d Offset: %" PRId64 " T: %" PRId64 " S: %d\n", 
+    bgav_dprintf( "  No: %d ID: %d K: %d Offset: %" PRId64 " T: %" PRId64 " D: %d S: %d\n", 
             i,
             idx->entries[i].stream_id,
             idx->entries[i].keyframe,
             idx->entries[i].offset,
             idx->entries[i].time,
+            idx->entries[i].duration,
             idx->entries[i].size);
 #else
-    bgav_dprintf( "  ID: %d K: %d Offset: %" PRId64 " T: %" PRId64 " S: %d\n", 
+    bgav_dprintf( "  ID: %d K: %d Offset: %" PRId64 " T: %" PRId64 " D: %d S: %d\n", 
             idx->entries[i].stream_id,
             idx->entries[i].keyframe,
             idx->entries[i].offset,
             idx->entries[i].time,
+            idx->entries[i].duration,
             idx->entries[i].size);
 #endif
     }
