@@ -7,12 +7,37 @@ AC_DEFUN([ACL_CHECK_AVCODEC],[
 AC_MSG_CHECKING([for build ID in libavcodec, libs: $AVCODEC_LIBS])
 CFLAGS_save=$CFLAGS
 LIBS_save=$LIBS
+
+AVCODEC_CFLAGS=`echo $AVCODEC_CFLAGS | sed 's/ //'`
+
+if test "x$AVCODEC_CFLAGS" = "x"; then
+AVCODEC_CFLAGS="-I/usr/include"
+fi
+
+CFLAGS="$CFLAGS $AVCODEC_CFLAGS"
+
+dnl Look for header
+found_header="false"
+
+AC_TRY_COMPILE([
+#include <avcodec.h>],[],[found_header="true"])
+
+if test $found_header = "false"; then
+AC_TRY_COMPILE([
+#include <ffmpeg/avcodec.h>],[], [found_header="true";AVCODEC_CFLAGS=${AVCODEC_CFLAGS}"/ffmpeg" ],)
+fi
+
+if test $found_header = "false"; then
+AC_TRY_COMPILE([
+#include <libavcodec/avcodec.h>],[], [found_header="true";AVCODEC_CFLAGS="$AVCODEC_CFLAGS/libavcodec" ],)
+fi
+
 CFLAGS="$CFLAGS $AVCODEC_CFLAGS"
 LIBS="$LIBS $AVCODEC_LIBS"
 avcodec_ok="false"
 AC_TRY_RUN([
     #include <stdio.h>
-    #include <ffmpeg/avcodec.h>
+    #include <avcodec.h>
     int main()
     {
     FILE * output;
@@ -67,24 +92,7 @@ ACL_CHECK_AVCODEC([$1])
 fi
 
 dnl
-dnl Second Peference: ffmpeg_acl
-dnl
-
-if test "x$avcodec_done" = "xfalse"; then
-  PKG_CHECK_MODULES(AVCODEC_ACL, avcodec_acl, have_avcodec_acl="true", have_avcodec_acl="false")
-  if test x"$have_avcodec_acl" = "xtrue"; then
-        AVCODEC_CFLAGS=$AVCODEC_ACL_CFLAGS
-        AVCODEC_LIBS=$AVCODEC_ACL_LIBS
-        ACL_CHECK_AVCODEC([$1])
-    if test "x$avcodec_ok" = "xtrue"; then
-      avcodec_done="true"
-      AVCODEC_VERSION=`pkg-config --modversion avcodec_acl`
-      fi
-  fi
-fi
-
-dnl
-dnl Third Perference: Autodetect
+dnl Second Perference: Autodetect
 dnl
 
 if test "x$avcodec_done" = "xfalse"; then

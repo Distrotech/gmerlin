@@ -24,7 +24,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <ffmpeg/avcodec.h>
+#include <avcodec.h>
 #include <stdio.h>
 
 #include <config.h>

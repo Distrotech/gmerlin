@@ -1234,7 +1234,8 @@ static int process_packet(bgav_demuxer_context_t * ctx)
        */
       
       bytes_to_copy =
-        priv->packet_size - (priv->ptr - priv->packet_start);
+        //        priv->packet_size - (priv->ptr - priv->packet_start);
+        188 - (priv->ptr - priv->packet_start);
       
       bgav_packet_alloc(s->packet, 1024);
 

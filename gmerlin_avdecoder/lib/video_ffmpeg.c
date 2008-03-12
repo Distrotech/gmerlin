@@ -22,7 +22,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <ffmpeg/avcodec.h>
+#include <avcodec.h>
 
 #include <config.h>
 #include <bswap.h>

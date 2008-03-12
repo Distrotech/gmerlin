@@ -23,7 +23,7 @@
 #include <string.h>
 
 #include <avdec_private.h>
-#include <ffmpeg/avformat.h>
+#include <avformat.h>
 
 #define LOG_DOMAIN "demux_ffmpeg"
 
