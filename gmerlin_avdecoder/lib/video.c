@@ -236,7 +236,6 @@ void bgav_video_resync(bgav_stream_t * s)
 int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale)
   {
   //  gavl_time_t stream_time;
-  gavl_time_t next_frame_time;
   int result;
   int64_t time_scaled;
   char tmp_string1[128];
@@ -264,18 +263,15 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale)
     //    s->in_time = gavl_time_rescale(scale, s->timescale, *time);
     return 1;
     }
-  
+  //  fprintf(stderr, "bgav_video_skipto %ld %ld -> %ld\n", s->out_time, s->data.video.next_frame_duration, time_scaled);
   do{
     result = bgav_video_decode(s, (gavl_video_frame_t*)0);
-
     if(!result)
       return 0;
-
-    next_frame_time = s->data.video.last_frame_time +
-      s->data.video.last_frame_duration;
-    } while(next_frame_time < time_scaled);
-
-  *time = gavl_time_rescale(s->data.video.format.timescale, scale, next_frame_time);
+    //    fprintf(stderr, "%ld %ld\n", s->out_time, s->data.video.next_frame_duration);
+    } while(s->out_time + s->data.video.next_frame_duration <= time_scaled);
+  //  fprintf(stderr, "%ld %ld\n", s->out_time, s->data.video.next_frame_duration);
+  *time = gavl_time_rescale(s->data.video.format.timescale, scale, s->out_time);
   s->in_time = gavl_time_rescale(scale, s->timescale, *time);
 
 

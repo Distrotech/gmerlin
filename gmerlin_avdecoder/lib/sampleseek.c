@@ -146,7 +146,7 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
     return;
     }
 
-  if(time == s->out_time)
+  if((time >= s->out_time) && (time < s->out_time + s->data.video.next_frame_duration))
     {
     return;
     }
@@ -242,7 +242,7 @@ int64_t bgav_video_keyframe_after(bgav_t * bgav, int stream, int64_t time)
   {
   int pos;
   bgav_stream_t * s;
-  s = &bgav->tt->cur->audio_streams[stream];
+  s = &bgav->tt->cur->video_streams[stream];
 
   if(bgav->demuxer->index_mode == INDEX_MODE_SI_SA)
     {
@@ -258,13 +258,18 @@ int64_t bgav_video_keyframe_after(bgav_t * bgav, int stream, int64_t time)
       pos++;
       }
     if(pos > s->last_index_position)
+      {
+      //      fprintf(stderr, "Keyframe after failed\n");
       return BGAV_TIMESTAMP_UNDEFINED;
+      }
     }
   else /* Fileindex */
     {
-    if(pos >= s->duration)
+    if(time >= s->duration)
+      {
+      //      fprintf(stderr, "Keyframe after failed\n");
       return BGAV_TIMESTAMP_UNDEFINED;
-    
+      }
     pos = file_index_seek(s->file_index, time);
 
     while((pos < s->file_index->num_entries - 1) &&
@@ -274,8 +279,11 @@ int64_t bgav_video_keyframe_after(bgav_t * bgav, int stream, int64_t time)
 
     if((s->file_index->entries[pos].time <= time) ||
        !s->file_index->entries[pos].keyframe)
+      {
+      //      fprintf(stderr, "Keyframe after failed\n");
       return BGAV_TIMESTAMP_UNDEFINED;
-  
+      }
+    //    fprintf(stderr, "Keyframe after %ld\n", s->file_index->entries[pos].time);
     return s->file_index->entries[pos].time;
     }
   /* Stupid gcc :( */

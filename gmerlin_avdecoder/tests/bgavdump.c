@@ -118,7 +118,7 @@ int main(int argc, char ** argv)
   
   gavl_audio_frame_t * af;
   gavl_video_frame_t * vf;
-
+  int64_t start_time;
   const gavl_audio_format_t * audio_format;
   const gavl_video_format_t * video_format;
 
@@ -297,15 +297,19 @@ int main(int argc, char ** argv)
       video_format = bgav_get_video_format(file, i);
       vf = gavl_video_frame_create(video_format);
 #if 1
-      if(sample_accurate && video_seek)
-        bgav_seek_video(file, i, video_seek);
+      if(sample_accurate)
+        {
+        if(video_seek)
+          bgav_seek_video(file, i, video_seek);
+        start_time = bgav_video_start_time(file, i);
+        }
       for(j = 0; j < frames_to_read; j++)
         {
         fprintf(stderr, "Reading frame from video stream %d...", i+1);
         if(bgav_read_video(file, vf, i))
           {
           fprintf(stderr, "Done, timestamp: %"PRId64", Duration: %"PRId64"\n",
-                  vf->timestamp, vf->duration);
+                  vf->timestamp - start_time, vf->duration);
           // fprintf(stderr, "First 16 bytes of first plane follow\n");
           // bgav_hexdump(vf->planes[0] + vf->strides[0] * 20, 16, 16);
           }

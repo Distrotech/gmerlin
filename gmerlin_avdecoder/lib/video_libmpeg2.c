@@ -389,6 +389,7 @@ static int decode_picture(bgav_stream_t*s)
 static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
   {
   mpeg2_priv_t * priv;
+  mpeg2_state_t state;
   priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
   
   /* Decode frame */
@@ -413,11 +414,13 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
       return 0;
     priv->have_frame = 1;
     }
-  s->out_time                       = priv->picture_timestamp;
-  s->data.video.next_frame_duration = priv->picture_duration;
   
   if(priv->init)
+    {
+    s->out_time                       = priv->picture_timestamp;
+    s->data.video.next_frame_duration = priv->picture_duration;
     return 1;
+    }
 #if 0
   if(!f)
     fprintf(stderr, "Skip: %d\n",
@@ -457,6 +460,33 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
     }
   else
     priv->picture_timestamp += priv->picture_duration;
+
+  /* Get the duration of the next picture */
+
+  /* Get the next picture header */
+
+  s->out_time = s->data.video.last_frame_time + s->data.video.last_frame_duration;
+
+  if(!s->data.video.still_mode)
+    {
+    s->data.video.next_frame_duration = s->data.video.format.frame_duration;
+    while(1)
+      {
+      if(!parse(s, &state))
+        return 1;
+      if(state == STATE_PICTURE)
+        break;
+      }
+    
+    if((priv->info->display_picture->flags & PIC_FLAG_TOP_FIELD_FIRST) &&
+       (priv->info->display_picture->nb_fields > 2))
+      {
+      s->data.video.next_frame_duration =
+        (s->data.video.next_frame_duration * priv->info->current_picture->nb_fields) / 2;
+      }
+    }
+  
+  
   return 1;
   }
 
@@ -530,6 +560,8 @@ static int init_mpeg2(bgav_stream_t*s)
   decode_mpeg2(s, (gavl_video_frame_t*)0);
   priv->init = 0;
   s->data.video.frametime_mode = BGAV_FRAMETIME_CODEC;
+  s->out_time = priv->picture_timestamp;
+  s->data.video.next_frame_duration = priv->picture_duration;
   return 1;
   }
 
