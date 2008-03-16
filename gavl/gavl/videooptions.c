@@ -49,8 +49,10 @@ void gavl_video_options_set_rectangles(gavl_video_options_t * opt,
                                        const gavl_rectangle_i_t * dst_rect)
   {
   if(!src_rect || !dst_rect)
+    {
     opt->have_rectangles = 0;
-  
+    return;
+    }
   gavl_rectangle_f_copy(&(opt->src_rect), src_rect);
   gavl_rectangle_i_copy(&(opt->dst_rect), dst_rect);
   opt->have_rectangles = 1;
