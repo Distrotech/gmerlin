@@ -43,6 +43,9 @@
 
 #define LOG_DOMAIN "ffmpeg_video"
 
+/* We support either pts based or constant framerate. No support for libmpeg2 style
+   variable framerates */
+
 // #define DUMP_DECODE
 // #define DUMP_EXTRADATA
 // #define DUMP_PARSER
@@ -90,9 +93,13 @@ typedef struct
   int extradata_size;
   
   int need_extradata; /* Get extradata from parser */
-      
-  int64_t last_pts;
-  int64_t last_dts;
+
+  /* The following 2 are used as arguments for the parser */
+  int64_t parser_pts;
+  int64_t parser_dts;
+  int64_t parser_pos;
+  int64_t parser_last_pos;
+
   int eof;
   
   struct
@@ -101,7 +108,7 @@ typedef struct
     int num;
     } pts_cache;
   
-  int delay, has_delay;
+  int has_delay;
 
 #ifdef HAVE_LIBPOSTPROC
   int do_pp;
@@ -112,7 +119,6 @@ typedef struct
 #ifdef HAVE_LIBSWSCALE
   struct SwsContext *swsContext;
 #endif
-
   
   gavl_video_frame_t * flip_frame; /* Only used if we flip AND do postprocessing */
   
@@ -127,6 +133,7 @@ typedef struct
   int parser_started;
   
   int64_t frame_pts;
+  int64_t stream_time;
   } ffmpeg_video_priv;
 
 static codec_info_t * lookup_codec(bgav_stream_t * s);
@@ -176,8 +183,7 @@ static int put_pts(ffmpeg_video_priv * priv, int64_t pts)
   return 1;
   }
 
-
-static int get_data(bgav_stream_t * s)
+static int get_data_parser(bgav_stream_t * s, int64_t * pts, int64_t * position)
   {
   int ext_len;
   int bytes_to_parse;
@@ -197,14 +203,14 @@ static int get_data(bgav_stream_t * s)
   while(!done)
     {
     /* Try to parse the stream */
-    if(priv->parser && priv->parser_started)
+    if(priv->parser_started)
       {
 #ifdef DUMP_PARSER
       bgav_dprintf("Parsing %d bytes ", priv->buf.size);
-      if(priv->last_pts != BGAV_TIMESTAMP_UNDEFINED)
-        bgav_dprintf("PTS: %" PRId64 " ", priv->last_pts);
-      if(priv->last_dts != BGAV_TIMESTAMP_UNDEFINED)
-        bgav_dprintf("DTS: %" PRId64 " ", priv->last_dts);
+      if(priv->parser_pts != BGAV_TIMESTAMP_UNDEFINED)
+        bgav_dprintf("PTS: %" PRId64 " ", priv->parser_pts);
+      if(priv->parser_dts != BGAV_TIMESTAMP_UNDEFINED)
+        bgav_dprintf("DTS: %" PRId64 "...", priv->parser_dts);
 #endif
 
       if(priv->eof)
@@ -219,8 +225,8 @@ static int get_data(bgav_stream_t * s)
                         &priv->parsed_frame_size,
                         priv->buf.buffer + priv->parsed_bytes_used,
                         bytes_to_parse,
-                        TIME_BGAV_2_FFMPEG(priv->last_pts),
-                        TIME_BGAV_2_FFMPEG(priv->last_dts));
+                        TIME_BGAV_2_FFMPEG(priv->parser_pts),
+                        TIME_BGAV_2_FFMPEG(priv->parser_dts));
 #ifdef DUMP_PARSER
       bgav_dprintf("done: bytes_used: %d frame_size: %d ",
                    priv->parsed_bytes_used, priv->parsed_frame_size);
@@ -229,13 +235,21 @@ static int get_data(bgav_stream_t * s)
         bgav_dprintf("PTS: %" PRId64 " ", priv->parser->pts);
       if(priv->parser->dts != AV_NOPTS_VALUE)
         bgav_dprintf("DTS: %" PRId64 " ", priv->parser->dts);
-      bgav_dprintf("\n");
+      bgav_dprintf("\n", priv->parser->frame_offset);
 #endif
       if(priv->parsed_frame_size)
         {
-        if(!put_pts(priv, priv->parser->pts))
-          return 0;
+        *pts = TIME_FFMPEG_2_BGAV(priv->parser->pts);
         done = 1;
+
+        if(priv->parser->frame_offset >= priv->parser_pos)
+          *position = priv->parser_pos;
+        else
+          *position = priv->parser_last_pos;
+
+#ifdef DUMP_PARSER
+        bgav_dprintf("Parser Offset: %ld\n", *position);
+#endif
         break;
         }
       else if(priv->eof) /* Sometimes, we don't get the last frame */
@@ -249,65 +263,113 @@ static int get_data(bgav_stream_t * s)
     p = bgav_demuxer_get_packet_read(s->demuxer, s);
     if(!p)
       {
-      if(priv->parser)
-        {
-        priv->eof = 1;
-        /* Parse once more to get the last frame */
-        continue;
-        }
-      else
-        {
-        priv->parsed_frame = (uint8_t*)0;
-        priv->parsed_frame_size = 0;
-        break;
-        }
+      priv->eof = 1;
+      /* Parse once more to get the last frame */
+      continue;
       }
     
-    priv->last_pts = p->pts;
-    priv->last_dts = p->dts;
+    priv->parser_pts = p->pts;
+    priv->parser_dts = p->dts;
 
+    priv->parser_last_pos = priv->parser_pos;
+    priv->parser_pos = p->position;
+    
+    //    fprintf(stderr, "** Offset: %ld\n", p->position);
+    priv->parser->cur_offset = p->position;
+    if(!priv->parser_started)
+      priv->parser->last_frame_offset = p->position;
 
+    
+    
     bgav_bytebuffer_append(&priv->buf, p, FF_INPUT_BUFFER_PADDING_SIZE);
-    if(!priv->parser)
+
+    /* Extract extradata */
+    if(priv->need_extradata)
       {
-      priv->parsed_frame = priv->buf.buffer;
-      priv->parsed_frame_size = priv->buf.size;
-#ifdef DUMP_PARSER
-      bgav_dprintf("Got complete packet %d bytes ", priv->buf.size);
-#endif      
-      if(!put_pts(priv, p->pts))
-        return 0;
-      done = 1;
-      }
-    else
-      {
-      /* Extract extradata */
-      if(priv->need_extradata)
+      ext_len = priv->parser->parser->split(priv->ctx, priv->buf.buffer,
+                                            priv->buf.size);
+      if(ext_len)
         {
-        ext_len = priv->parser->parser->split(priv->ctx, priv->buf.buffer,
-                                              priv->buf.size);
-        if(ext_len)
-          {
 #ifdef DUMP_PARSER
-          bgav_dprintf("Got extradata from parser %d bytes\n", ext_len);
-          bgav_hexdump(priv->buf.buffer, ext_len, 16);
+        bgav_dprintf("Got extradata from parser %d bytes\n", ext_len);
+        bgav_hexdump(priv->buf.buffer, ext_len, 16);
 #endif      
-          priv->extradata = calloc(1, ext_len + FF_INPUT_BUFFER_PADDING_SIZE);
-          memcpy(priv->extradata, priv->buf.buffer, ext_len);
-          priv->extradata_size = ext_len;
-          priv->need_extradata = 0;
-          
-          // ffplay doesn't remove these either
-          // bgav_bytebuffer_remove(&priv->buf, ext_len);
-          done = 1;
-          }
+        priv->extradata = calloc(1, ext_len + FF_INPUT_BUFFER_PADDING_SIZE);
+        memcpy(priv->extradata, priv->buf.buffer, ext_len);
+        priv->extradata_size = ext_len;
+        priv->need_extradata = 0;
+        
+        // ffplay doesn't remove these either
+        // bgav_bytebuffer_remove(&priv->buf, ext_len);
+        done = 1;
         }
-          
-      priv->parser_started = 1;
       }
+    priv->parser_started = 1;
+    
     bgav_demuxer_done_packet_read(s->demuxer, p);
     }
   return 1;
+  }
+
+static int get_data_normal(bgav_stream_t * s, int64_t * pts, int64_t * position)
+  {
+  int done = 0;
+  ffmpeg_video_priv * priv;
+  bgav_packet_t * p = (bgav_packet_t*)0;
+  
+  priv = (ffmpeg_video_priv*)(s->data.video.decoder->priv);
+
+  if(priv->eof)
+    {
+    priv->parsed_frame = (uint8_t*)0;
+    priv->parsed_frame_size = 0;
+    return 1;
+    }
+  
+  /* Get packet from demuxer */
+  p = bgav_demuxer_get_packet_read(s->demuxer, s);
+  if(!p)
+    {
+    priv->parsed_frame = (uint8_t*)0;
+    priv->parsed_frame_size = 0;
+    return 1;
+    }
+  
+  bgav_bytebuffer_append(&priv->buf, p, FF_INPUT_BUFFER_PADDING_SIZE);
+  
+  priv->parsed_frame = priv->buf.buffer;
+  priv->parsed_frame_size = priv->buf.size;
+#ifdef DUMP_PARSER
+  bgav_dprintf("Got complete packet %d bytes ", priv->buf.size);
+#endif      
+
+  *pts = p->pts;
+  *position = p->position;
+  done = 1;
+  bgav_demuxer_done_packet_read(s->demuxer, p);
+  
+  return 1;
+  }
+
+static int get_data(bgav_stream_t * s)
+  {
+  int64_t pts, position;
+  int ret;
+  ffmpeg_video_priv * priv;
+  priv = (ffmpeg_video_priv*)(s->data.video.decoder->priv);
+  if(priv->parser)
+    {
+    ret = get_data_parser(s, &pts, &position);
+    }
+  else
+    {
+    ret = get_data_normal(s, &pts, &position);
+    }
+  if(!ret)
+    return 0;
+  if((s->data.video.frametime_mode == BGAV_FRAMETIME_CODEC) && !put_pts(priv, pts))
+    return 0;
+  return ret;
   }
 
 static void get_format(AVCodecContext * ctx, gavl_video_format_t * format);
@@ -336,10 +398,13 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
     {
     done = 1;
 
-    stream_time = get_pts(priv);
-    if(stream_time != BGAV_TIMESTAMP_UNDEFINED)
+    if(s->data.video.frametime_mode == BGAV_FRAMETIME_CODEC)
       {
-      s->in_time = stream_time;
+      stream_time = get_pts(priv);
+      if(stream_time != BGAV_TIMESTAMP_UNDEFINED)
+        {
+        priv->stream_time = stream_time;
+        }
       }
     }
   while(!done)
@@ -351,12 +416,6 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
       }
     len = priv->parsed_frame_size;
     
-    /* If we are out of data and the codec has no B-Frames, we are done */
-    if(!priv->delay && !priv->parsed_frame)
-      {
-      done = 1;
-      break;
-      }
     /* Other Real Video oddities */
     if((s->fourcc == BGAV_MK_FOURCC('R', 'V', '1', '0')) ||
        (s->fourcc == BGAV_MK_FOURCC('R', 'V', '1', '3')) ||
@@ -417,13 +476,10 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
     /* Decode one frame */
     
 #ifdef DUMP_DECODE
-    bgav_dprintf("Decode: position: %" PRId64 " len: %d\n", s->out_time, len);
+    bgav_dprintf("Decode: out_time: %" PRId64 " len: %d\n", s->out_time, len);
     if(priv->parsed_frame)
       bgav_hexdump(priv->parsed_frame, 16, 16);
 #endif
-    
-    if(priv->has_delay && len)
-      priv->delay++;
     
     bytes_used = avcodec_decode_video(priv->ctx,
                                       priv->frame,
@@ -434,14 +490,11 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
     /* If we passed no data and got no picture, we are done here */
     if(!len && !priv->have_picture)
       return 0;
-    
-    /* Update decoding delay */
-    if(priv->has_delay && priv->have_picture)
-      priv->delay--;
+ 
     
 #ifdef DUMP_DECODE
-    bgav_dprintf("Used %d/%d bytes, got picture: %d, delay: %d, num_old_pts: %d ",
-                 bytes_used, len, priv->have_picture, priv->delay, priv->pts_cache.num);
+    bgav_dprintf("Used %d/%d bytes, got picture: %d, num_old_pts: %d ",
+                 bytes_used, len, priv->have_picture, priv->pts_cache.num);
     if(!priv->have_picture)
       bgav_dprintf("\n");
     else if(priv->frame->pict_type == FF_I_TYPE)
@@ -472,7 +525,8 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
           }
         else
           bgav_bytebuffer_flush(&priv->buf);
-        get_pts(priv);
+        if(s->data.video.frametime_mode == BGAV_FRAMETIME_CODEC)
+          get_pts(priv);
         }
       else
         {
@@ -496,11 +550,14 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
         }
       }
 
-    /* Check if we have a pts */
-    stream_time = get_pts(priv);
-    if(stream_time != BGAV_TIMESTAMP_UNDEFINED)
+    if(s->data.video.frametime_mode == BGAV_FRAMETIME_CODEC)
       {
-      s->in_time = stream_time;
+      /* Check if we have a pts */
+      stream_time = get_pts(priv);
+      if(stream_time != BGAV_TIMESTAMP_UNDEFINED)
+        {
+        priv->stream_time = stream_time;
+        }
       }
     
     if(priv->have_picture)
@@ -526,23 +583,26 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
    * Update timestamp
    */
 
-  if((s->data.video.frametime_mode == BGAV_FRAMETIME_PTS) && (priv->pts_cache.num > 1))
-    s->data.video.last_frame_duration =
-      gavl_time_rescale(s->timescale, s->data.video.format.timescale,
-                        priv->pts_cache.pts[1] - priv->pts_cache.pts[0]);
-  else
-    s->data.video.last_frame_duration = s->data.video.format.frame_duration;
-  
-  if(s->in_time != BGAV_TIMESTAMP_UNDEFINED)
+  if(s->data.video.frametime_mode == BGAV_FRAMETIME_CODEC)
     {
-    priv->frame_pts = gavl_time_rescale(s->timescale, s->data.video.format.timescale,
-                                        s->in_time);
+    if(priv->pts_cache.num > 1)
+      s->data.video.last_frame_duration =
+        gavl_time_rescale(s->timescale, s->data.video.format.timescale,
+                          priv->pts_cache.pts[1] - priv->pts_cache.pts[0]);
+    else
+      s->data.video.last_frame_duration = s->data.video.format.frame_duration;
+    
+    if(priv->stream_time != BGAV_TIMESTAMP_UNDEFINED)
+      {
+      priv->frame_pts = gavl_time_rescale(s->timescale, s->data.video.format.timescale,
+                                          priv->stream_time);
+      }
+    else
+      {
+      priv->frame_pts += s->data.video.format.frame_duration;
+      }
+    s->data.video.last_frame_time = priv->frame_pts;
     }
-  else
-    {
-    priv->frame_pts += s->data.video.format.frame_duration;
-    }
-  s->data.video.last_frame_time = priv->frame_pts;
   
   return 1;
   }
@@ -552,9 +612,13 @@ static int init(bgav_stream_t * s)
   AVCodec * codec;
   
   ffmpeg_video_priv * priv;
+
+  if(s->action == BGAV_STREAM_PARSE)
+    return;
+
   priv = calloc(1, sizeof(*priv));
   s->data.video.decoder->priv = priv;
-
+  
   /* Set up coded specific details */
   
   if(s->fourcc == BGAV_MK_FOURCC('W','V','1','F'))
@@ -574,14 +638,37 @@ static int init(bgav_stream_t * s)
     ((s->fourcc & 0xff000000) >> 24);
 #endif
   priv->ctx->codec_id = codec->id;
+
+  priv->stream_time = BGAV_TIMESTAMP_UNDEFINED;
   
   /* Initialize parser */
   if(s->not_aligned)
-    {
     priv->parser = av_parser_init(priv->ctx->codec_id);
-    //    if(priv->parser)
-    //      priv->parser->flags |= PARSER_FLAG_COMPLETE_FRAMES;
-    }
+
+
+  /*
+   *  We always assume, that we have complete frames only.
+   *  For streams, where the packets are not aligned with frames,
+   *  we need an AVParser
+   */
+  priv->ctx->flags &= ~CODEC_FLAG_TRUNCATED;
+  
+  if(codec->capabilities & CODEC_CAP_DELAY)
+    priv->has_delay = 1;
+
+  /* All codecs, which come from multiplexed MPEG streams are
+     constant framerate. This must be fixed once we want to read
+     MPEG-2...
+  */
+  if(s->data.video.frametime_mode == BGAV_FRAMETIME_CODEC)
+    s->data.video.frametime_mode = BGAV_FRAMETIME_CONSTANT;
+
+  /* ... OTOH if the codec supports B-frames, we must do the timing ourselves */
+  
+  if((codec->capabilities & CODEC_CAP_DELAY) &&
+     ((s->data.video.frametime_mode == BGAV_FRAMETIME_PACKET) ||
+      (s->data.video.frametime_mode == BGAV_FRAMETIME_PTS)))
+    s->data.video.frametime_mode = BGAV_FRAMETIME_CODEC;
   
   if(s->ext_data)
     {
@@ -687,16 +774,6 @@ static int init(bgav_stream_t * s)
       }
 
     }
-
-  /*
-   *  We always assume, that we have complete frames only.
-   *  For streams, where the packets are not aligned with frames,
-   *  we need an AVParser
-   */
-  priv->ctx->flags &= ~CODEC_FLAG_TRUNCATED;
-  
-  if(codec->capabilities & CODEC_CAP_DELAY)
-    priv->has_delay = 1;
   
   priv->ctx->workaround_bugs = FF_BUG_AUTODETECT;
   priv->ctx->error_concealment = 3;
@@ -707,6 +784,10 @@ static int init(bgav_stream_t * s)
   
   if(avcodec_open(priv->ctx, codec) != 0)
     return 0;
+
+  //  priv->ctx->skip_frame = AVDISCARD_NONREF;
+  //  priv->ctx->skip_loop_filter = AVDISCARD_ALL;
+  //  priv->ctx->skip_idct = AVDISCARD_ALL;
   
   /* Set missing format values */
 
@@ -767,16 +848,16 @@ static void resync_ffmpeg(bgav_stream_t * s)
   priv = (ffmpeg_video_priv*)(s->data.video.decoder->priv);
   avcodec_flush_buffers(priv->ctx);
   bgav_bytebuffer_flush(&priv->buf);
-  priv->delay = 0;
   priv->pts_cache.num = 0;
   priv->have_picture = 0;
+  priv->stream_time = BGAV_TIMESTAMP_UNDEFINED;
   
   if(priv->parser)
     {
     av_parser_close(priv->parser);
     priv->parser = av_parser_init(priv->ctx->codec_id);
-    priv->last_pts = BGAV_TIMESTAMP_UNDEFINED;
-    priv->last_dts = BGAV_TIMESTAMP_UNDEFINED;
+    priv->parser_pts = BGAV_TIMESTAMP_UNDEFINED;
+    priv->parser_dts = BGAV_TIMESTAMP_UNDEFINED;
     priv->parser_started = 0;
     }
   

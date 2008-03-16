@@ -195,6 +195,7 @@ static int open_mpegvideo(bgav_demuxer_context_t * ctx,
 
   s->fourcc = BGAV_MK_FOURCC('m', 'p', 'g', 'v');
   s->not_aligned = 1;
+  s->data.video.frametime_mode = BGAV_FRAMETIME_CODEC;
   
   //  bgav_stream_dump(s);
 

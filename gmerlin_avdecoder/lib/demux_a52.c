@@ -151,6 +151,7 @@ static int next_packet_a52(bgav_demuxer_context_t * ctx)
     return 0;
   
   bgav_packet_done_write(p);
+
   return 1;
   }
 

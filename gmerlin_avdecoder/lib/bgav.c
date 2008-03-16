@@ -199,7 +199,7 @@ int bgav_open(bgav_t * ret, const char * location)
   
   /* Check for file index */
   if(ret->opt.sample_accurate)
-    bgav_read_file_index(ret);
+    bgav_set_sample_accurate(ret);
   
   return 1;
   fail:
@@ -406,7 +406,7 @@ int bgav_select_track(bgav_t * b, int track)
   /* If we have a file index for this track, switch to
      file index mode */
 
-  if(b->tt->cur->has_file_index)
+  if(b->tt->cur->has_file_index && !b->demuxer->si)
     {
     b->demuxer->demux_mode = DEMUX_MODE_FI;
 

@@ -34,6 +34,10 @@ typedef struct
 static int init_gavl(bgav_stream_t * s)
   {
   gavl_t * priv;
+
+  if(s->action == BGAV_STREAM_PARSE)
+    return;
+  
   priv = calloc(1, sizeof(*priv));
   s->data.audio.decoder->priv = priv;
 
@@ -103,7 +107,8 @@ static void close_gavl(bgav_stream_t * s)
   {
   gavl_t * priv;
   priv = (gavl_t*)(s->data.audio.decoder->priv);
-  free(priv);
+  if(priv)
+    free(priv);
   }
 
 static void resync_gavl(bgav_stream_t * s)

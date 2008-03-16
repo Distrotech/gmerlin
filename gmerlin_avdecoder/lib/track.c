@@ -443,6 +443,12 @@ void bgav_track_remove_video_stream(bgav_track_t * track, int stream)
   track->num_video_streams--;
   }
 
+void bgav_track_remove_subtitle_stream(bgav_track_t * track, int stream)
+  {
+  remove_stream(track->subtitle_streams, stream, track->num_subtitle_streams);
+  track->num_subtitle_streams--;
+  }
+
 void bgav_track_remove_unsupported(bgav_track_t * track)
   {
   int i;
@@ -486,7 +492,6 @@ gavl_time_t bgav_track_resync_decoders(bgav_track_t * track, int scale)
   gavl_time_t test_time;
   
   bgav_stream_t * s;
-  bgav_packet_t * p;
   
   for(i = 0; i < track->num_audio_streams; i++)
     {
@@ -521,23 +526,6 @@ gavl_time_t bgav_track_resync_decoders(bgav_track_t * track, int scale)
     s->out_time =
       gavl_time_rescale(s->timescale, s->data.video.format.timescale,
                         s->in_time);
-
-    switch(s->data.video.frametime_mode)
-      {
-      case BGAV_FRAMETIME_CONSTANT:
-        s->data.video.next_frame_duration = s->data.video.format.frame_duration;
-        break;
-      case BGAV_FRAMETIME_PACKET:
-      case BGAV_FRAMETIME_PTS:
-        p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
-        if(!p)
-          s->data.video.next_frame_duration = 0;
-        else
-          s->data.video.next_frame_duration =
-            gavl_time_rescale(s->timescale, s->data.video.format.timescale,
-                              p->duration);
-        break;
-      }
     
     bgav_stream_resync_decoder(s);
     
@@ -604,4 +592,15 @@ int bgav_track_has_sync(bgav_track_t * t)
       return 0;
     }
   return 1;
+  }
+
+void bgav_track_mute(bgav_track_t * t)
+  {
+  int i;
+  for(i = 0; i < t->num_audio_streams; i++)
+    t->audio_streams[i].action = BGAV_STREAM_MUTE;
+  for(i = 0; i < t->num_video_streams; i++)
+    t->video_streams[i].action = BGAV_STREAM_MUTE;
+  for(i = 0; i < t->num_subtitle_streams; i++)
+    t->subtitle_streams[i].action = BGAV_STREAM_MUTE;
   }

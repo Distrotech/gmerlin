@@ -1035,7 +1035,10 @@ static int open_mpegps(bgav_demuxer_context_t * ctx,
     for(j = 0; j < ctx->tt->tracks[i].num_audio_streams; j++)
       ctx->tt->tracks[i].audio_streams[j].not_aligned = 1;
     for(j = 0; j < ctx->tt->tracks[i].num_video_streams; j++)
+      {
       ctx->tt->tracks[i].video_streams[j].not_aligned = 1;
+      ctx->tt->tracks[i].video_streams[j].data.video.frametime_mode = BGAV_FRAMETIME_CODEC;
+      }
     for(j = 0; j < ctx->tt->tracks[i].num_subtitle_streams; j++)
       ctx->tt->tracks[i].subtitle_streams[j].not_aligned = 1;
     }

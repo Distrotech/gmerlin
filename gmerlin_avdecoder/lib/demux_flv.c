@@ -41,6 +41,8 @@
 #define TYPE_DATE        11
 #define TYPE_TERMINATOR   9
 
+//#define DUMP_METADATA
+
 
 typedef struct meta_object_s meta_object_t;
 
@@ -81,6 +83,7 @@ typedef struct
   int init;
   int have_metadata;
   meta_object_t metadata;
+  int64_t audio_sample_counter;
   } flv_priv_t;
 
 static int probe_flv(bgav_input_context_t * input)
@@ -120,7 +123,7 @@ static int flv_tag_read(bgav_input_context_t * ctx, flv_tag * ret)
 static void flv_tag_dump(flv_tag * t)
   {
   bgav_dprintf("FLVTAG\n");
-  bgav_dprintf("  .type =      %d\n", t->type);
+  bgav_dprintf("  type:      %d\n", t->type);
   bgav_dprintf("  data_size: %d\n", t->data_size);
   bgav_dprintf("  timestamp: %d\n", t->timestamp);
   bgav_dprintf("  reserved:  %d\n", t->reserved);
@@ -151,6 +154,8 @@ static double int2dbl(int64_t v){
         return 0.0/0.0;
     return ldexp(((v&((1LL<<52)-1)) + (1LL<<52)) * (v>>63|1), (v>>52&0x7FF)-1075);
 }
+
+#ifdef DUMP_METADATA
 
 static void dump_meta_object(meta_object_t * obj, int num_spaces)
   {
@@ -192,6 +197,7 @@ static void dump_meta_object(meta_object_t * obj, int num_spaces)
       break;
     }
   }
+#endif
 
 static int read_meta_object(bgav_input_context_t * input,
                             meta_object_t * ret, int read_name, int read_type, int64_t end_pos)
@@ -300,7 +306,7 @@ static int read_meta_object(bgav_input_context_t * input,
       break;
     default:
       bgav_log(input->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-               "Unknown .type = %d for metadata object %s",
+               "Unknown type: %d for metadata object %s",
                ret->type, ret->name);
       return 0;
     }
@@ -397,13 +403,14 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
   bgav_stream_t * s;
   flv_priv_t * priv;
   flv_tag t;
-
+  int64_t position;
   int packet_size = 0;
   int keyframe = 1;
   int adpcm_bits;
   uint8_t tmp_8;
   priv = (flv_priv_t *)(ctx->priv);
-  
+
+  position = ctx->input->position;
   /* Previous tag size (ignore this?) */
   bgav_input_skip(ctx->input, 4);
   
@@ -452,7 +459,10 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
           init_video_stream(ctx);
         }
 #endif
-      //      dump_meta_object(&priv->metadata, 0);
+
+#ifdef DUMP_METADATA
+      dump_meta_object(&priv->metadata, 0);
+#endif
       //    bgav_input_skip_dump(ctx->input, t.data_size);
       }
     else
@@ -497,10 +507,13 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
         {
         case 0: /* Uncompressed, Big endian */
           s->fourcc = BGAV_MK_FOURCC('t', 'w', 'o', 's');
+          s->index_mode = INDEX_MODE_SIMPLE;
+          s->data.audio.block_align = s->data.audio.format.num_channels *
+            (s->data.audio.bits_per_sample / 8);
           break;
         case 1: /* Flash ADPCM */
           s->fourcc = BGAV_MK_FOURCC('F', 'L', 'A', '1');
-
+          ctx->index_mode = 0;
           /* Set block align for the case, adpcm frames are split over
              several packets */
           if(!bgav_input_get_data(ctx->input, &tmp_8, 1))
@@ -510,21 +523,28 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
           break;
         case 2: /* MP3 */
           s->fourcc = BGAV_MK_FOURCC('.', 'm', 'p', '3');
+          s->index_mode = INDEX_MODE_MPEG;
           break;
         case 3: /* Uncompressed, Little endian */
           s->fourcc = BGAV_MK_FOURCC('s', 'o', 'w', 't');
+          s->index_mode = INDEX_MODE_SIMPLE;
+          s->data.audio.block_align = s->data.audio.format.num_channels *
+            (s->data.audio.bits_per_sample / 8);
           break;
         case 5: /* NellyMoser */
           s->data.audio.format.samplerate = 8000;
           s->fourcc = BGAV_MK_FOURCC('N', 'E', 'L', 'L');
+          ctx->index_mode = 0;
           break;
         case 6: /* NellyMoser */
           s->fourcc = BGAV_MK_FOURCC('N', 'E', 'L', 'L');
+          ctx->index_mode = 0;
           break;
         default: /* Set some nonsense so we can finish initializing */
           s->fourcc = BGAV_MK_FOURCC('?', '?', '?', '?');
           bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN, "Unknown audio codec tag: %d",
                    flags >> 4);
+          ctx->index_mode = 0;
           break;
         }
       }
@@ -548,56 +568,21 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
         case 4: /* VP6 (Flash 8?) */
           s->fourcc = BGAV_MK_FOURCC('V', 'P', '6', 'F');
 
-#if 0
-          if(bgav_input_get_data(ctx->input, header, 5) < 5)
-            return 0;
-          /* Get the video size. The image is flipped vertically,
-             so we set a negative height */
-          s->data.video.format.image_height = header[3] * 16;
-          s->data.video.format.image_width  = header[4] * 16;
-          
-          s->data.video.format.frame_height = s->data.video.format.image_height;
-          s->data.video.format.frame_width  = s->data.video.format.image_width;
-          
-          /* Crop */
-          s->data.video.format.image_width  -= (header[0] >> 4);
-          s->data.video.format.image_height -= header[0] & 0x0f;
-          s->data.video.flip_y = 1; 
-#else
           if(bgav_input_get_data(ctx->input, header, 1) < 1)
             return 0;
           /* ffmpeg needs that as extrdata */
           s->ext_data = malloc(1);
           *s->ext_data = header[0];
           s->ext_size = 1;
-#endif
           break;
         case 5: /* VP6A */
           s->fourcc = BGAV_MK_FOURCC('V', 'P', '6', 'A');
-#if 0
-          if(bgav_input_get_data(ctx->input, header, 5) < 5)
-            return 0;
-          /* Get the video size. The image is flipped vertically,
-             so we set a negative height */
-          s->data.video.format.image_height = header[3] * 16;
-          s->data.video.format.image_width  = header[4] * 16;
-          
-          s->data.video.format.frame_height = s->data.video.format.image_height;
-          s->data.video.format.frame_width  = s->data.video.format.image_width;
-          
-          /* Crop */
-          s->data.video.format.image_width  -= (header[0] >> 4);
-          s->data.video.format.image_height -= header[0] & 0x0f;
-          s->data.video.flip_y = 1; 
-#else
           if(bgav_input_get_data(ctx->input, header, 1) < 1)
             return 0;
           /* ffmpeg needs that as extrdata */
           s->ext_data = malloc(1);
           *s->ext_data = header[0];
           s->ext_size = 1;
-#endif
-          
           break;
           
         default: /* Set some nonsense so we can finish initializing */
@@ -606,10 +591,11 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
                    flags & 0x0f);
           break;
         }
+      
       /* Set the framerate */
       s->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
-      /* Set some nonsense values */
       s->data.video.format.timescale = 1000;
+      /* Set some nonsense values (TODO: Remove this) */
       s->data.video.format.frame_duration = 40;
 
       /* Hopefully, FLV supports square pixels only */
@@ -641,11 +627,24 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
     p = bgav_stream_get_packet_write(s);
     bgav_packet_alloc(p, packet_size);
     p->data_size = bgav_input_read_data(ctx->input, p->data, packet_size);
-    
+    p->position = position;
     if(p->data_size < packet_size) /* Got EOF in the middle of a packet */
-      return 0; 
-    
-    p->pts = t.timestamp;
+      return 0;
+    if(s->type == BGAV_STREAM_AUDIO)
+      {
+      if(s->index_mode == INDEX_MODE_SIMPLE)
+        {
+        p->pts = priv->audio_sample_counter;
+        p->duration = p->data_size / s->data.audio.block_align;
+        priv->audio_sample_counter += p->duration;
+        }
+      else if(!s->index_mode)
+        {
+        p->pts = t.timestamp;
+        }
+      }
+    else
+      p->pts = t.timestamp;
     
     if(s->in_time < 0)
       s->in_time = p->pts;
@@ -769,7 +768,8 @@ static int open_flv(bgav_demuxer_context_t * ctx,
   /* Create track */
 
   ctx->tt = bgav_track_table_create(1);
-
+  ctx->tt->cur->duration = GAVL_TIME_UNDEFINED;
+  
   /* Skip signature */
   bgav_input_skip(ctx->input, 4);
 
@@ -800,6 +800,8 @@ static int open_flv(bgav_demuxer_context_t * ctx,
 
   ctx->data_start = ctx->input->position;
   ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
+
+  ctx->index_mode = INDEX_MODE_MIXED;
   
   /* Get packets until we saw each stream at least once */
   priv->init = 1;
@@ -838,6 +840,17 @@ static int open_flv(bgav_demuxer_context_t * ctx,
     }
   
   handle_metadata(ctx);
+
+  if(ctx->tt->cur->num_video_streams)
+    {
+    if(ctx->tt->cur->duration != GAVL_TIME_UNDEFINED)
+      {
+      ctx->tt->cur->video_streams->index_mode = INDEX_MODE_PTS;
+      ctx->tt->cur->video_streams->duration = gavl_time_scale(1000, ctx->tt->cur->duration);
+      }
+    else
+      ctx->index_mode = 0;
+    }
   
   /* Get the duration from the timestamp of the last packet if
      the stream is seekable */
@@ -870,6 +883,14 @@ static int open_flv(bgav_demuxer_context_t * ctx,
   return 0;
   }
 
+static void resync_flv(bgav_demuxer_context_t * ctx)
+  {
+  flv_priv_t * priv;
+  priv = (flv_priv_t *)(ctx->priv);
+  if(ctx->tt->cur->audio_streams && (ctx->tt->cur->audio_streams->index_mode == INDEX_MODE_SIMPLE))
+    priv->audio_sample_counter = ctx->tt->cur->audio_streams->in_position;
+  }
+
 static void close_flv(bgav_demuxer_context_t * ctx)
   {
   flv_priv_t * priv;
@@ -886,6 +907,7 @@ const bgav_demuxer_t bgav_demuxer_flv =
     .open =        open_flv,
     .next_packet = next_packet_flv,
     .seek =        seek_flv,
+    .resync =      resync_flv,
     .close =       close_flv
   };
 

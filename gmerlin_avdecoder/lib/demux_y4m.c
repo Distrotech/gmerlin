@@ -145,9 +145,11 @@ static int open_y4m(bgav_demuxer_context_t * ctx,
       s->data.video.format.interlace_mode = GAVL_INTERLACE_MIXED;
       s->data.video.format.timescale *= 2;
       s->data.video.format.frame_duration *= 2;
+      s->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
+      s->data.video.frametime_mode = BGAV_FRAMETIME_PACKET;
       break;
     }
-
+  
   result = y4m_si_get_chroma(&priv->si);
 
   switch(result)
@@ -281,7 +283,7 @@ static int next_packet_y4m(bgav_demuxer_context_t * ctx)
   s = ctx->tt->cur->video_streams;
   
   p = bgav_stream_get_packet_write(s);
-
+  p->position = ctx->input->position;
   if(!p->video_frame)
     {
     p->video_frame = gavl_video_frame_create_nopad(&(s->data.video.format));

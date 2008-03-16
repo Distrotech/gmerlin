@@ -361,6 +361,9 @@ struct bgav_stream_s
   void (*process_packet)(bgav_stream_t * s, bgav_packet_t * p);
   int64_t duration;
   
+  /* Set for INDEX_MODE_SI_PARSE for all streams, which need parsing */
+  int index_mode;
+  
   union
     {
     struct
@@ -386,6 +389,7 @@ struct bgav_stream_s
          can honour it when seeking. */
       
       int preroll;
+      
       } audio;
     struct
       {
@@ -533,6 +537,9 @@ bgav_track_remove_audio_stream(bgav_track_t * track, int stream);
 void
 bgav_track_remove_video_stream(bgav_track_t * track, int stream);
 
+void
+bgav_track_remove_subtitle_stream(bgav_track_t * track, int stream);
+
 bgav_stream_t *
 bgav_track_add_subtitle_stream(bgav_track_t * t, const bgav_options_t * opt,
                                int text, const char * encoding);
@@ -548,6 +555,9 @@ bgav_track_find_stream(bgav_demuxer_context_t * t, int stream_id);
 /* Clear all buffers (call BEFORE seeking) */
 
 void bgav_track_clear(bgav_track_t * track);
+
+/* Call after the track becomes current */
+void bgav_track_mute(bgav_track_t * t);
 
 /* Resync the decoders, return the latest time, where we can start decoding again */
 
@@ -932,6 +942,11 @@ void bgav_superindex_seek(bgav_superindex_t * idx,
 
 void bgav_superindex_dump(bgav_superindex_t * idx);
 
+void bgav_superindex_set_durations(bgav_superindex_t * idx, bgav_stream_t * s);
+
+void bgav_superindex_merge_fileindex(bgav_superindex_t * idx, bgav_stream_t * s);
+void bgav_superindex_set_size(bgav_superindex_t * ret, int size);
+
 /*
  * File index
  *
@@ -994,7 +1009,7 @@ void bgav_file_index_write_header(const char * filename,
                                   FILE * output,
                                   int num_tracks);
 
-void bgav_read_file_index(bgav_t*);
+int bgav_read_file_index(bgav_t*);
 
 void bgav_write_file_index(bgav_t*);
 
@@ -1048,14 +1063,23 @@ struct bgav_demuxer_s
 #define BGAV_DEMUXER_BUILD_INDEX          (1<<9) /* We're just building
                                                     an index */
 
-/* Packets have precise timestamps and are non-interleaved
-   and adjacent in the file */
+#define INDEX_MODE_NONE   0 /* Default: No sample accuracy */
+/* Packets have precise timestamps and durations and are adjacent in the file */
 #define INDEX_MODE_SIMPLE 1
-#define INDEX_MODE_MPEG   2
+/* Packets have precise timestamps (but no durations) and are adjacent in the file */
+#define INDEX_MODE_PTS    2
+/* MPEG Program/transport stream: Needs complete parsing */
+#define INDEX_MODE_MPEG   3
 /* For PCM soundfiles: Sample accuracy is already there */
-#define INDEX_MODE_PCM    3
+#define INDEX_MODE_PCM    4
 /* File has a global index and codecs, which allow sample accuracy */
-#define INDEX_MODE_SI_SA  4
+#define INDEX_MODE_SI_SA  5
+/* File has a global index but codecs, which need complete parsing */
+#define INDEX_MODE_SI_PARSE  6
+
+/* Stream must be completely parsed, streams can have
+   INDEX_MODE_SIMPLE, INDEX_MODE_MPEG or INDEX_MODE_PTS */
+#define INDEX_MODE_MIXED  7
 
 // #define INDEX_MODE_CUSTOM 4 /* Demuxer builds index */
 
@@ -1574,6 +1598,11 @@ void bgav_bytebuffer_append(bgav_bytebuffer_t * b, bgav_packet_t * p, int paddin
 void bgav_bytebuffer_remove(bgav_bytebuffer_t * b, int bytes);
 void bgav_bytebuffer_free(bgav_bytebuffer_t * b);
 void bgav_bytebuffer_flush(bgav_bytebuffer_t * b);
+
+/* sampleseek.c */
+int bgav_set_sample_accurate(bgav_t * b);
+
+
 
 /* Translation specific stuff */
 

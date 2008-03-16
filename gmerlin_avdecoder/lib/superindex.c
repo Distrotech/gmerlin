@@ -37,8 +37,19 @@ bgav_superindex_t * bgav_superindex_create(int size)
     ret->entries_alloc = size;
     ret->entries = calloc(ret->entries_alloc, sizeof(*(ret->entries)));
     }
-
   return ret;
+  }
+
+void bgav_superindex_set_size(bgav_superindex_t * ret, int size)
+  {
+  if(size > ret->entries_alloc)
+    {
+    ret->entries_alloc = size;
+    ret->entries = realloc(ret->entries, ret->entries_alloc * sizeof(*(ret->entries)));
+    memset(ret->entries + ret->num_entries, 0,
+           sizeof(*ret->entries) * (ret->entries_alloc - ret->num_entries));
+    }
+  ret->num_entries = size;
   }
 
 void bgav_superindex_destroy(bgav_superindex_t * idx)
@@ -84,6 +95,33 @@ void bgav_superindex_add_packet(bgav_superindex_t * idx,
     }
   
   idx->num_entries++;
+  }
+
+void bgav_superindex_set_durations(bgav_superindex_t * idx,
+                                   bgav_stream_t * s)
+  {
+  int i;
+  int last_pos;
+  if(idx->entries[s->first_index_position].duration)
+    return;
+  
+  i = s->first_index_position+1;
+  while(idx->entries[i].stream_id != s->stream_id)
+    i++;
+  
+  last_pos = s->first_index_position;
+  
+  while(i <= s->last_index_position)
+    {
+    if(idx->entries[i].stream_id == s->stream_id)
+      {
+      idx->entries[last_pos].duration = idx->entries[i].time - idx->entries[last_pos].time;
+      last_pos = i;
+      }
+    i++;
+    }
+  idx->entries[s->last_index_position].duration = s->duration -
+    idx->entries[s->last_index_position].time;
   }
 
 void bgav_superindex_seek(bgav_superindex_t * idx,
@@ -160,5 +198,47 @@ void bgav_superindex_dump(bgav_superindex_t * idx)
 #endif
     }
   }
-
   
+void bgav_superindex_merge_fileindex(bgav_superindex_t * idx, bgav_stream_t * s)
+  {
+  int64_t pts;
+  int i;
+  /* Set all times to undefined */
+  for(i = s->first_index_position; i <= s->last_index_position; i++)
+    {
+    if(idx->entries[i].stream_id == s->stream_id)
+      idx->entries[i].time = BGAV_TIMESTAMP_UNDEFINED;
+    }
+
+  /* Set pts for all packets, in which frames start */
+  
+  for(i = 0; i < s->file_index->num_entries; i++)
+    {
+    if(!i || (s->file_index->entries[i-1].position !=
+              s->file_index->entries[i].position))
+      {
+      idx->entries[s->file_index->entries[i].position].time =
+        s->file_index->entries[i].time;
+      }
+    }
+  
+  /* Set pts for all packets, in which no frames start */
+  pts = s->duration;
+  for(i = s->last_index_position; i >= s->first_index_position; i--)
+    {
+    if(idx->entries[i].stream_id != s->stream_id)
+      continue;
+    
+    if(idx->entries[i].time == BGAV_TIMESTAMP_UNDEFINED)
+      idx->entries[i].time = pts;
+    else
+      pts = idx->entries[i].time;
+    }
+
+  /* Recalculate durations */
+  idx->entries[0].duration = 0;
+  bgav_superindex_set_durations(idx, s);
+
+  //  bgav_superindex_dump(idx);
+  }
+

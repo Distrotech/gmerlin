@@ -844,6 +844,7 @@ static int init_raw(bgav_demuxer_context_t * ctx, int input_can_seek)
         {
         s = bgav_track_add_video_stream(&ctx->tt->tracks[0], ctx->opt);
         s->fourcc = BGAV_MK_FOURCC('m', 'p', 'g', 'v');
+        s->data.video.frametime_mode = BGAV_FRAMETIME_CODEC;
         }
       /* MPEG Audio */
       else if((pes_header.stream_id & 0xe0) == 0xc0)

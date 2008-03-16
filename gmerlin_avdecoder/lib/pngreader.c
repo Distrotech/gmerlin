@@ -78,7 +78,7 @@ int bgav_png_reader_read_header(bgav_png_reader_t * png,
   int bit_depth;
   int color_type;
   int has_alpha = 0;
-
+  int is_gray = 0;
   int bits = 8;
 
   png->buffer          = buffer;
@@ -145,7 +145,7 @@ int bgav_png_reader_read_header(bgav_png_reader_t * png,
         png_set_tRNS_to_alpha(png->png_ptr);
         has_alpha = 1;
         }
-      png_set_gray_to_rgb(png->png_ptr);
+      is_gray = 1;
       break;
     case PNG_COLOR_TYPE_GRAY_ALPHA: /*  (bit depths 8, 16) */
       if(bit_depth == 16)
@@ -156,7 +156,7 @@ int bgav_png_reader_read_header(bgav_png_reader_t * png,
         bits = 16;
         }
       has_alpha = 1;
-      png_set_gray_to_rgb(png->png_ptr);
+      is_gray = 1;
       break;
     case PNG_COLOR_TYPE_PALETTE:    /*  (bit depths 1, 2, 4, 8) */
       png_set_palette_to_rgb(png->png_ptr);
@@ -194,14 +194,28 @@ int bgav_png_reader_read_header(bgav_png_reader_t * png,
 
   if(bits == 8)
     {
-    if(has_alpha && (png->depth != 24))
+    if(is_gray)
+      {
+      if(has_alpha)
+        png->format.pixelformat = GAVL_GRAYA_16;
+      else
+        png->format.pixelformat = GAVL_GRAY_8;
+      }
+    else if(has_alpha && (png->depth != 24))
       png->format.pixelformat = GAVL_RGBA_32;
     else
       png->format.pixelformat = GAVL_RGB_24;
     }
   else if(bits == 16)
     {
-    if(has_alpha)
+    if(is_gray)
+      {
+      if(has_alpha)
+        png->format.pixelformat = GAVL_GRAYA_32;
+      else
+        png->format.pixelformat = GAVL_GRAY_16;
+      }
+    else if(has_alpha)
       png->format.pixelformat = GAVL_RGBA_64;
     else
       png->format.pixelformat = GAVL_RGB_48;

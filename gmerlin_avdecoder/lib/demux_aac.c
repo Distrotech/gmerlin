@@ -454,7 +454,7 @@ static int next_packet_adts(bgav_demuxer_context_t * ctx)
   bgav_packet_done_write(p);
 
   priv->sample_count += adts.block_samples * adts.num_blocks;
-
+  
   return 1;
   }
 

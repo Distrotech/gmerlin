@@ -315,6 +315,8 @@ static void init_superindex(bgav_demuxer_context_t * ctx)
       bgav_track_remove_audio_stream(ctx->tt->cur, i);
     else
       {
+      bgav_superindex_set_durations(ctx->si, &ctx->tt->cur->audio_streams[i]);
+
       ctx->tt->cur->audio_streams[i].first_timestamp = 0;
       i++;
       }
@@ -327,7 +329,22 @@ static void init_superindex(bgav_demuxer_context_t * ctx)
       bgav_track_remove_video_stream(ctx->tt->cur, i);
     else
       {
+      bgav_superindex_set_durations(ctx->si, &ctx->tt->cur->video_streams[i]);
       ctx->tt->cur->video_streams[i].first_timestamp = 0;
+      i++;
+      }
+    }
+
+  i = 0;
+  while(i < ctx->tt->cur->num_subtitle_streams)
+    {
+    if(ctx->tt->cur->subtitle_streams[i].last_index_position < 0)
+      bgav_track_remove_subtitle_stream(ctx->tt->cur, i);
+    else
+      {
+      bgav_superindex_set_durations(ctx->si, &ctx->tt->cur->subtitle_streams[i]);
+      ctx->tt->cur->subtitle_streams[i].first_timestamp =
+        ctx->si->entries[ctx->tt->cur->subtitle_streams[i].first_index_position].time;
       i++;
       }
     }
@@ -357,8 +374,8 @@ static void check_interleave(bgav_demuxer_context_t * ctx)
   for(i = 0; i < ctx->tt->cur->num_subtitle_streams; i++)
     streams[index++] = &(ctx->tt->cur->subtitle_streams[i]);
   
-  /* If sample accurate decoding was requested, return early */
-  if(ctx->opt->sample_accurate)
+  /* If sample accurate decoding was requested, use non-interleaved mode */
+  if(ctx->opt->sample_accurate || (ctx->flags & BGAV_DEMUXER_BUILD_INDEX))
     {
     ctx->demux_mode = DEMUX_MODE_SI_NI;
     }
@@ -395,10 +412,6 @@ int bgav_demuxer_start(bgav_demuxer_context_t * ctx,
   
   if(ctx->si)
     {
-#ifdef DUMP_SUPERINDEX    
-    bgav_superindex_dump(ctx->si);
-#endif
-
     if(!(ctx->flags & BGAV_DEMUXER_SI_PRIVATE_FUNCS))
       {
       init_superindex(ctx);
@@ -412,6 +425,9 @@ int bgav_demuxer_start(bgav_demuxer_context_t * ctx,
         return 0;
         }
       }
+#ifdef DUMP_SUPERINDEX    
+    bgav_superindex_dump(ctx->si);
+#endif
     }
   return 1;
   }
@@ -483,7 +499,6 @@ static int next_packet_interleaved(bgav_demuxer_context_t * ctx)
     bgav_input_skip(ctx->input,
                     ctx->si->entries[ctx->si->current_position].offset - ctx->input->position);
     }
-
   
   p = bgav_stream_get_packet_write(stream);
   bgav_packet_alloc(p, ctx->si->entries[ctx->si->current_position].size);
@@ -492,6 +507,8 @@ static int next_packet_interleaved(bgav_demuxer_context_t * ctx)
   
   p->pts = ctx->si->entries[ctx->si->current_position].time;
   p->duration = ctx->si->entries[ctx->si->current_position].duration;
+  p->position = ctx->si->current_position;
+  
   if(bgav_input_read_data(ctx->input, p->data, p->data_size) < p->data_size)
     return 0;
   
@@ -582,7 +599,8 @@ static int next_packet_noninterleaved(bgav_demuxer_context_t * ctx)
   p->pts = ctx->si->entries[s->index_position].time;
   p->duration = ctx->si->entries[s->index_position].duration;
   p->keyframe = ctx->si->entries[s->index_position].keyframe;
-    
+  p->position = s->index_position;
+  
   if(bgav_input_read_data(ctx->input, p->data, p->data_size) < p->data_size)
     return 0;
 
@@ -718,9 +736,8 @@ void
 bgav_demuxer_done_packet_read(bgav_demuxer_context_t * demuxer,
                               bgav_packet_t * p)
   {
-
   p->valid = 0;
-
+#if 0
   if((p->stream->type == BGAV_STREAM_VIDEO) &&
      !(demuxer->flags & BGAV_DEMUXER_BUILD_INDEX))
     {
@@ -748,6 +765,7 @@ bgav_demuxer_done_packet_read(bgav_demuxer_context_t * demuxer,
                         p->pts) -
       p->stream->data.video.last_frame_time;
     }
+#endif
   }
 
 /* Seek functions with superindex */

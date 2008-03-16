@@ -49,7 +49,8 @@ int bgav_video_start(bgav_stream_t * stream)
   int result;
   bgav_video_decoder_t * dec;
   bgav_video_decoder_context_t * ctx;
-
+  bgav_packet_t * p;
+  
   dec = bgav_find_video_decoder(stream);
   if(!dec)
     {
@@ -74,8 +75,43 @@ int bgav_video_start(bgav_stream_t * stream)
     {
     stream->timescale = stream->data.video.format.timescale;
     }
+
+  switch(stream->data.video.frametime_mode)
+    {
+    case BGAV_FRAMETIME_PACKET:
+    case BGAV_FRAMETIME_PTS:
+      p = bgav_demuxer_peek_packet_read(stream->demuxer, stream, 1);
+      if(!p)
+        stream-> data.video.next_frame_duration = 0;
+      else
+        stream-> data.video.next_frame_duration =
+          gavl_time_rescale(stream-> timescale, stream-> data.video.format.timescale,
+                            p->duration);
+      break;
+    case BGAV_FRAMETIME_CODEC:
+    case BGAV_FRAMETIME_CONSTANT:
+      /* later */
+      break;
+    }
   
   result = dec->init(stream);
+  if(!result)
+    return 0;
+  
+  switch(stream-> data.video.frametime_mode)
+    {
+    case BGAV_FRAMETIME_CONSTANT:
+      stream->data.video.last_frame_duration = stream->data.video.format.frame_duration;
+      stream->data.video.next_frame_duration = stream->data.video.format.frame_duration;
+      break;
+    case BGAV_FRAMETIME_PACKET:
+    case BGAV_FRAMETIME_PTS:
+      break;
+    case BGAV_FRAMETIME_CODEC:
+      /* Codec will set everything */
+      break;
+    }
+  
   return result;
   }
 
@@ -88,19 +124,49 @@ static int bgav_video_decode(bgav_stream_t * stream,
                              gavl_video_frame_t* frame)
   {
   int result;
+  bgav_packet_t * p;
 
   if(stream->eof)
     return 0;
   
   result = stream->data.video.decoder->decoder->decode(stream, frame);
-  /* Set the final timestamp for the frame */
-
-  stream->out_time = stream->data.video.last_frame_time;
-  
-  if(frame && result)
+  if(!result)
     {
-    frame->timestamp = stream->out_time;
+    stream->eof = 1;
+    return result;
+    }
+  
+  /* Update time */
+  switch(stream->data.video.frametime_mode)
+    {
+    case BGAV_FRAMETIME_CONSTANT:
+      stream->data.video.last_frame_time = stream->out_time;
+      stream->out_time += stream->data.video.format.frame_duration;
+      break;
+    case BGAV_FRAMETIME_PACKET:
+    case BGAV_FRAMETIME_PTS:
+      stream->data.video.last_frame_time = stream->out_time;
+      
+      p = bgav_demuxer_peek_packet_read(stream->demuxer, stream, 1);
+      stream->out_time = gavl_time_rescale(stream->timescale,
+                                           stream->data.video.format.timescale, p->pts);
 
+      stream->data.video.last_frame_duration = stream->data.video.next_frame_duration;
+      stream->data.video.next_frame_duration =
+        gavl_time_rescale(stream->timescale,
+                          stream->data.video.format.timescale, p->duration);
+      break;
+    case BGAV_FRAMETIME_CODEC:
+      /* Codec already set everything */
+      break;
+    }
+
+  /* Set the final timestamp for the frame */
+  
+  if(frame)
+    {
+    frame->timestamp = stream->data.video.last_frame_time;
+    
     if(stream->demuxer->demux_mode == DEMUX_MODE_FI)
       frame->timestamp += stream->first_timestamp;
     
@@ -111,11 +177,6 @@ static int bgav_video_decode(bgav_stream_t * stream,
       frame->timestamp = 0;
     }
   
-  stream->out_time += stream->data.video.last_frame_duration;
-  
-  if(!result)
-    stream->eof = 1;
-  //  fprintf(stderr, "Decode video, out_time: %ld\n", stream->out_time);
   return result;
   }
 
@@ -147,8 +208,27 @@ void bgav_video_stop(bgav_stream_t * s)
 
 void bgav_video_resync(bgav_stream_t * s)
   {
-  if(s->data.video.decoder &&
-     s->data.video.decoder->decoder->resync)
+  bgav_packet_t * p;
+  switch(s->data.video.frametime_mode)
+    {
+    case BGAV_FRAMETIME_CONSTANT:
+      break;
+    case BGAV_FRAMETIME_PACKET:
+    case BGAV_FRAMETIME_PTS:
+      p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
+      if(!p)
+        s->data.video.next_frame_duration = 0;
+      else
+        s->data.video.next_frame_duration =
+          gavl_time_rescale(s->timescale, s->data.video.format.timescale,
+                            p->duration);
+      break;
+    case BGAV_FRAMETIME_CODEC:
+      /* Codec will set everything */
+      break;
+    }
+  
+  if(s->data.video.decoder->decoder->resync)
     s->data.video.decoder->decoder->resync(s);
   
   }

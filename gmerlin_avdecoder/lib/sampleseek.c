@@ -161,8 +161,8 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
 
   if(bgav->demuxer->index_mode == INDEX_MODE_SI_SA)
     {
-    
     bgav_superindex_seek(bgav->demuxer->si, s, time, s->timescale);
+    s->out_time = bgav->demuxer->si->entries[s->index_position].time;
     }
   else /* Fileindex */
     {
@@ -288,4 +288,69 @@ void bgav_seek_subtitle(bgav_t * bgav, int stream, int64_t time)
   s = &bgav->tt->cur->audio_streams[stream];
   bgav_stream_clear(s);
   /* TODO */
+  }
+
+int bgav_set_sample_accurate(bgav_t * b)
+  {
+  int i;
+
+  switch(b->demuxer->index_mode)
+    {
+    case INDEX_MODE_NONE:
+      return 0;
+      break;
+    case INDEX_MODE_PCM:
+    case INDEX_MODE_SI_SA:
+      if(!b->input->input->seek_byte)
+        return 0;
+      /* Format is already sample accurate */
+      for(i = 0; i < b->tt->num_tracks; i++)
+        b->tt->tracks[i].sample_accurate = 1;
+      return 1;
+      break;
+    case INDEX_MODE_MPEG:
+    case INDEX_MODE_SIMPLE:
+    case INDEX_MODE_MIXED:
+      if(!b->input->index_file || !b->input->input->seek_byte)
+        return 0;
+      /* Try to read a file index */
+      if(!bgav_read_file_index(b))
+        {
+        if(bgav_build_file_index(b))
+          bgav_write_file_index(b);
+        else
+          return 0;
+        }
+      return 1;
+      break;
+    case INDEX_MODE_SI_PARSE:
+      if(!b->input->index_file || !b->input->input->seek_byte)
+        return 0;
+      /* Try to read a file index */
+      if(!bgav_read_file_index(b))
+        {
+        if(bgav_build_file_index(b))
+          bgav_write_file_index(b);
+        else
+          return 0;
+        }
+      /* Merge file index into superindex. Warning: This breaks when
+         multitrack formats with superindex appear */
+      for(i = 0; i < b->tt->tracks[0].num_audio_streams; i++)
+        {
+        if(b->tt->tracks[0].audio_streams[i].file_index)
+          {
+          bgav_superindex_merge_fileindex(b->demuxer->si,
+                                          &b->tt->tracks[0].audio_streams[i]);
+          /* After merging, the file index is no longer used */
+          //          bgav_file_index_destroy(b->tt->tracks[0].audio_streams[i].file_index);
+          //          b->tt->tracks[0].audio_streams[i].file_index = (bgav_file_index_t*)0;
+          }
+        }
+      /* After patching the superindex, we are sample accurate :) */
+      b->demuxer->index_mode = INDEX_MODE_SI_SA;
+      return 1;
+      break;
+    }
+  return 0;
   }

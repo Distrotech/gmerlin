@@ -83,6 +83,8 @@ typedef struct
   int non_b_count;
   int eof;
   uint8_t sequence_end_code[4];
+
+  int64_t stream_time;
   
   /* For parsing */
   uint8_t * buffer;
@@ -137,7 +139,7 @@ static int get_data(bgav_stream_t*s)
         gavl_time_rescale(s->timescale,
                           s->data.video.format.timescale,
                           priv->p->pts);
-      s->in_time = priv->p->pts;
+      priv->stream_time = priv->p->pts;
       }
     }
   
@@ -365,7 +367,7 @@ static int decode_picture(bgav_stream_t*s)
     tmp = priv->info->display_picture->tag;
     tmp <<= 32;
     tmp |= priv->info->display_picture->tag2;
-    priv->picture_timestamp = (tmp * s->data.video.format.timescale) / s->timescale;
+    priv->picture_timestamp = gavl_time_rescale(s->timescale, s->data.video.format.timescale, tmp);
     }
   else
     {
@@ -374,23 +376,11 @@ static int decode_picture(bgav_stream_t*s)
   /* Get this pictures duration */
   
   priv->picture_duration = s->data.video.format.frame_duration;
-
-  
-#if 0  
-  if((priv->info->display_picture->flags & PIC_FLAG_TOP_FIELD_FIRST) &&
-     (priv->info->display_picture->nb_fields > 2))
-    {
-    priv->picture_duration =
-      (priv->picture_duration * priv->info->display_picture->nb_fields) / 2;
-    }
-#else
   if(priv->info->display_picture->nb_fields > 2)
     {
     priv->picture_duration =
       (priv->picture_duration * priv->info->display_picture->nb_fields) / 2;
     }
-#endif
-  
   
   return 1;
   }
@@ -423,6 +413,8 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
       return 0;
     priv->have_frame = 1;
     }
+  s->out_time                       = priv->picture_timestamp;
+  s->data.video.next_frame_duration = priv->picture_duration;
   
   if(priv->init)
     return 1;
@@ -537,10 +529,9 @@ static int init_mpeg2(bgav_stream_t*s)
   priv->init = 1;
   decode_mpeg2(s, (gavl_video_frame_t*)0);
   priv->init = 0;
-  
+  s->data.video.frametime_mode = BGAV_FRAMETIME_CODEC;
   return 1;
   }
-
 
 static void resync_mpeg2(bgav_stream_t*s)
   {
@@ -555,7 +546,7 @@ static void resync_mpeg2(bgav_stream_t*s)
     {
     priv->picture_timestamp = gavl_time_rescale(s->timescale,
                                                 s->data.video.format.timescale,
-                                                s->in_time);
+                                                priv->stream_time);
     }
   else
     {

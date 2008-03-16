@@ -80,6 +80,7 @@ void bgav_track_table_unref(bgav_track_table_t * t)
 void bgav_track_table_select_track(bgav_track_table_t * t, int track)
   {
   t->cur = &(t->tracks[track]);
+  bgav_track_mute(t->cur);
   }
 
 void bgav_track_table_dump(bgav_track_table_t * t)

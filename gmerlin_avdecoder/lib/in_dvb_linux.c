@@ -601,6 +601,7 @@ static int load_channel_cache(bgav_input_context_t * ctx)
 
               s->timescale = 90000;
               s->not_aligned = 1;
+              s->data.video.frametime_mode = BGAV_FRAMETIME_CODEC;
               stream_child = stream_node->children;
 
               while(stream_child)
