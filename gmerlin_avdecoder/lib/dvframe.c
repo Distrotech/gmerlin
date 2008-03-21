@@ -386,9 +386,13 @@ void bgav_dv_dec_init_video(bgav_dv_dec_t * d, bgav_stream_t * s)
   gavl_video_format_copy(&(d->video_format), &(s->data.video.format));
   }
 
-void bgav_dv_dec_set_frame_counter(bgav_dv_dec_t * d, int64_t frames, int64_t samples)
+void bgav_dv_dec_set_frame_counter(bgav_dv_dec_t * d, int64_t frames)
   {
   d->frame_counter = frames;
+  }
+
+void bgav_dv_dec_set_sample_counter(bgav_dv_dec_t * d, int64_t samples)
+  {
   d->sample_counter = samples;
   }
 

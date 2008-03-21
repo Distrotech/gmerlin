@@ -358,7 +358,7 @@ static int next_packet_y4m(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
-static void resync_y4m(bgav_demuxer_context_t * ctx)
+static void resync_y4m(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
   {
   y4m_t * priv;
   priv = (y4m_t *)(ctx->priv);

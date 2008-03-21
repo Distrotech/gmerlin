@@ -523,7 +523,7 @@ static void seek_aac(bgav_demuxer_context_t * ctx, gavl_time_t time, int scale)
   }
 #endif
 
-static void resync_aac(bgav_demuxer_context_t * ctx)
+static void resync_aac(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
   {
   aac_priv_t * priv;
   priv = (aac_priv_t *)(ctx->priv);

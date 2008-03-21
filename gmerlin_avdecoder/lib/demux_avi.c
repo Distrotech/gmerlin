@@ -382,7 +382,6 @@ static void add_index_packet(bgav_superindex_t * si, bgav_stream_t * stream,
 
     /* Some AVIs can have zero packet size, which means, that
        the previous frame will be shown */
-    
     if(size)
       {
       bgav_superindex_add_packet(si,
@@ -1070,7 +1069,6 @@ static int init_audio_stream(bgav_demuxer_context_t * ctx,
   bg_as = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
   avi_as = calloc(1, sizeof(*avi_as));
   bg_as->priv = avi_as;
-  bg_as->first_timestamp = 0;
   memcpy(&(avi_as->strh), strh, sizeof(*strh));
   
   while(keep_going)
@@ -1144,7 +1142,8 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
     
   
   bg_vs = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
-  
+  bg_vs->data.video.wrong_b_timestamps = 1;
+
   avi_vs = calloc(1, sizeof(*avi_vs));
 
   memcpy(&(avi_vs->strh), strh, sizeof(*strh));
@@ -1333,9 +1332,6 @@ static void seek_iavs(bgav_demuxer_context_t * ctx, gavl_time_t time,
   bgav_superindex_seek(ctx->si,
                        ctx->tt->cur->video_streams,
                        time, scale);
-  fprintf(stderr, "seek_iavs: %d %d\n",
-          ctx->tt->cur->audio_streams->timescale,
-          ctx->tt->cur->video_streams->timescale);
           
   ctx->tt->cur->audio_streams->in_time =
     gavl_time_rescale(ctx->tt->cur->video_streams->timescale,
@@ -1348,8 +1344,8 @@ static void seek_iavs(bgav_demuxer_context_t * ctx, gavl_time_t time,
   ctx->tt->cur->video_streams->in_position =
     ctx->tt->cur->video_streams->index_position;
 
-  bgav_dv_dec_set_frame_counter(priv->dv_dec, ctx->tt->cur->video_streams->in_position,
-                                ctx->tt->cur->audio_streams->in_time);
+  bgav_dv_dec_set_frame_counter(priv->dv_dec, ctx->tt->cur->video_streams->in_position);
+  bgav_dv_dec_set_sample_counter(priv->dv_dec, ctx->tt->cur->audio_streams->in_time);
   }
 
 static int next_packet_iavs_si(bgav_demuxer_context_t * ctx)
@@ -1483,7 +1479,6 @@ static int init_iavs_stream(bgav_demuxer_context_t * ctx,
   memcpy(&video_priv->strh, strh, sizeof(*strh));
   
   bg_as = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
-  bg_as->first_timestamp = 0;
   bg_as->stream_id = DV_AUDIO_ID;
   
   /* Tell the core that we do our own demuxing */
@@ -2244,22 +2239,26 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
   return result;
   }
 
-static void resync_avi(bgav_demuxer_context_t * ctx)
+static void resync_avi(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
   {
-  int i;
   video_priv_t* avi_vs;
   audio_priv_t* avi_as;
-  
-  for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
+
+  switch(s->type)
     {
-    avi_as = (audio_priv_t*)(ctx->tt->cur->audio_streams[i].priv);
-    avi_as->sample_counter = ctx->tt->cur->audio_streams[i].in_time;
-    }
-  for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
-    {
-    avi_vs = (video_priv_t*)(ctx->tt->cur->video_streams[i].priv);
-    avi_vs->frame_counter = ctx->tt->cur->video_streams[i].in_time /
-      ctx->tt->cur->video_streams[i].data.video.format.frame_duration;
+    case BGAV_STREAM_AUDIO:
+      avi_as = (audio_priv_t*)(s->priv);
+      avi_as->sample_counter = s->in_time;
+      break;
+    case BGAV_STREAM_VIDEO:
+      avi_vs = (video_priv_t*)(s->priv);
+      avi_vs->frame_counter = s->in_time /
+        s->data.video.format.frame_duration;
+      break;
+    case BGAV_STREAM_SUBTITLE_OVERLAY:
+    case BGAV_STREAM_SUBTITLE_TEXT:
+    case BGAV_STREAM_UNKNOWN:
+      break;
     }
   }
 

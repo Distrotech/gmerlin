@@ -43,7 +43,6 @@ typedef struct
   } qt_stbl_t;
 */
 
-
 int bgav_qt_stbl_read(qt_atom_header_t * h, bgav_input_context_t * input,
                       qt_stbl_t * ret, qt_minf_t * minf)
   {
@@ -59,6 +58,12 @@ int bgav_qt_stbl_read(qt_atom_header_t * h, bgav_input_context_t * input,
       case BGAV_MK_FOURCC('s', 't', 't', 's'):
         if(!bgav_qt_stts_read(&ch, input, &(ret->stts)))
           return 0;
+        break;
+      case BGAV_MK_FOURCC('c', 't', 't', 's'):
+        if(!bgav_qt_stts_read(&ch, input, &(ret->ctts)))
+          return 0;
+        bgav_qt_ctts_shift(&(ret->ctts));
+        ret->has_ctts = 1;
         break;
       case BGAV_MK_FOURCC('s', 't', 's', 's'):
         if(!bgav_qt_stss_read(&ch, input, &(ret->stss)))

@@ -303,6 +303,8 @@ int main(int argc, char ** argv)
           bgav_seek_video(file, i, video_seek);
         start_time = bgav_video_start_time(file, i);
         }
+      else
+        start_time = 0;
       for(j = 0; j < frames_to_read; j++)
         {
         fprintf(stderr, "Reading frame from video stream %d...", i+1);

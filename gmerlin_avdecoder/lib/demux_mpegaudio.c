@@ -617,10 +617,9 @@ static int next_packet_mpegaudio(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
-static void resync_mpegaudio(bgav_demuxer_context_t * ctx)
+static void resync_mpegaudio(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
   {
   mpegaudio_priv_t * priv;
-  bgav_stream_t * s = ctx->tt->cur->audio_streams;
   priv = (mpegaudio_priv_t*)(ctx->priv);
   priv->frames = s->in_time / s->data.audio.format.samples_per_frame;
   }

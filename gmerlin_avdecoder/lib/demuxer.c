@@ -679,14 +679,31 @@ bgav_demuxer_get_packet_read(bgav_demuxer_context_t * demuxer,
   
   if(!s->packet_buffer)
     return (bgav_packet_t*)0;
-  if((s->type == BGAV_STREAM_VIDEO) && (s->data.video.frametime_mode == BGAV_FRAMETIME_PTS))
+  if((s->type == BGAV_STREAM_VIDEO) &&
+     ((s->data.video.frametime_mode == BGAV_FRAMETIME_PTS) ||
+      (s->data.video.frametime_mode == BGAV_FRAMETIME_CODEC_PTS)))
     get_duration = 1;
 
   demuxer->request_stream = s; 
   while(!(ret = bgav_packet_buffer_get_packet_read(s->packet_buffer, get_duration)))
     {
     if(!bgav_demuxer_next_packet(demuxer))
-      return (bgav_packet_t*)0;
+      {
+      if(get_duration)
+        {
+        ret = bgav_packet_buffer_get_packet_read(s->packet_buffer, 0);
+        if(!ret)
+          return (bgav_packet_t*)0;
+
+        if(s->duration)
+          ret->duration = s->duration - ret->pts;
+        else
+          ret->duration = 0;
+        break;
+        }
+      else
+        return (bgav_packet_t*)0;
+      }
     }
   s->in_time = ret->pts;
 
@@ -713,7 +730,9 @@ bgav_demuxer_peek_packet_read(bgav_demuxer_context_t * demuxer,
   int get_duration = 0;
   if(!s->packet_buffer)
     return 0;
-  if((s->type == BGAV_STREAM_VIDEO) && (s->data.video.frametime_mode == BGAV_FRAMETIME_PTS))
+  if((s->type == BGAV_STREAM_VIDEO) &&
+     ((s->data.video.frametime_mode == BGAV_FRAMETIME_PTS) ||
+      (s->data.video.frametime_mode == BGAV_FRAMETIME_CODEC_PTS)))
     get_duration = 1;
   
   if((demuxer->flags & BGAV_DEMUXER_PEEK_FORCES_READ) || force)
@@ -722,7 +741,22 @@ bgav_demuxer_peek_packet_read(bgav_demuxer_context_t * demuxer,
     while(!(ret = bgav_packet_buffer_peek_packet_read(s->packet_buffer, get_duration)))
       {
       if(!bgav_demuxer_next_packet(demuxer))
-        return 0;
+        {
+        if(get_duration)
+          {
+          ret = bgav_packet_buffer_peek_packet_read(s->packet_buffer, 0);
+          if(!ret)
+            return (bgav_packet_t*)0;
+
+          if(s->duration)
+            ret->duration = s->duration - ret->pts;
+          else
+            ret->duration = 0;
+          break;
+          }
+        else
+          return (bgav_packet_t*)0;
+        }
       }
     demuxer->request_stream = (bgav_stream_t*)0;
     return ret;

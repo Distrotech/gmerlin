@@ -60,8 +60,6 @@ int bgav_qt_stts_read(qt_atom_header_t * h,
     if(!bgav_input_read_32_be(input, &(ret->entries[i].count)) ||
        !bgav_input_read_32_be(input, &(ret->entries[i].duration)))
       return 0;
-    if(ret->entries[i].duration & 0x80000000)
-      ret->entries[i].duration = 0;
     }
   return 1;
   }
@@ -84,4 +82,18 @@ void bgav_qt_stts_dump(int indent, qt_stts_t * c)
     
     }
   bgav_diprintf(indent, "end of stts\n");
+  }
+
+void bgav_qt_ctts_shift(qt_stts_t * c)
+  {
+  int i;
+  int32_t diff;
+  if(!c->entries[0].duration)
+    return;
+  
+  for(i = 0; i < c->num_entries; i++)
+    {
+    diff = c->entries[i].duration - c->entries[0].duration;
+    c->entries[i].duration = (uint32_t)diff;
+    }
   }

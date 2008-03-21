@@ -80,8 +80,9 @@ static int read_data(bgav_stream_t * s)
   priv = (vorbis_audio_priv*)(s->data.audio.decoder->priv);
   p = bgav_demuxer_get_packet_read(s->demuxer, s);
   if(!p)
+    {
     return 0;
-
+    }
   
   buffer = ogg_sync_buffer(&priv->dec_oy, p->data_size);
   memcpy(buffer, p->data, p->data_size);
@@ -134,8 +135,10 @@ static int next_packet(bgav_stream_t * s)
     {
     p = bgav_demuxer_get_packet_read(s->demuxer, s);
     if(!p)
+      {
+      fprintf(stderr, "vorbis eof\n");
       return 0;
-    
+      }
     parse_packet(&priv->dec_op, p->data); 
     bgav_demuxer_done_packet_read(s->demuxer, p);
     }

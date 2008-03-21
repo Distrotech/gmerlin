@@ -175,8 +175,8 @@ static void seek_dv(bgav_demuxer_context_t * ctx, int64_t time,
   
   file_position = frame_pos * priv->frame_size;
 
-  bgav_dv_dec_set_frame_counter(priv->d, frame_pos,
-                                gavl_time_rescale(vs->data.video.format.timescale,
+  bgav_dv_dec_set_frame_counter(priv->d, frame_pos);
+  bgav_dv_dec_set_sample_counter(priv->d, gavl_time_rescale(vs->data.video.format.timescale,
                                                   vs->data.audio.format.samplerate,
                                                   vs->in_position *
                                                   vs->data.video.format.frame_duration));
@@ -193,7 +193,8 @@ static int select_track_dv(bgav_demuxer_context_t * ctx, int track)
   {
   dv_priv_t * priv;
   priv = (dv_priv_t *)(ctx->priv);
-  bgav_dv_dec_set_frame_counter(priv->d, 0, 0);
+  bgav_dv_dec_set_frame_counter(priv->d, 0);
+  bgav_dv_dec_set_sample_counter(priv->d, 0);
   return 1;
   }
 
@@ -209,14 +210,28 @@ static void close_dv(bgav_demuxer_context_t * ctx)
   free(priv);
   }
 
-static void resync_dv(bgav_demuxer_context_t * ctx)
+static void resync_dv(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
   {
   dv_priv_t * priv;
   priv = (dv_priv_t *)(ctx->priv);
-  bgav_dv_dec_set_frame_counter(priv->d,
-                                ctx->tt->cur->video_streams->in_time /
-                                ctx->tt->cur->video_streams->data.video.format.frame_duration,
-                                ctx->tt->cur->audio_streams->in_time);
+
+  switch(s->type)
+    {
+    case BGAV_STREAM_AUDIO:
+      bgav_dv_dec_set_frame_counter(priv->d, ctx->tt->cur->audio_streams->in_time);
+      break;
+    case BGAV_STREAM_VIDEO:
+      bgav_dv_dec_set_sample_counter(priv->d,
+                                     ctx->tt->cur->video_streams->in_time /
+                                     ctx->tt->cur->video_streams->data.video.format.frame_duration);
+      break;
+    case BGAV_STREAM_SUBTITLE_OVERLAY:
+    case BGAV_STREAM_SUBTITLE_TEXT:
+    case BGAV_STREAM_UNKNOWN:
+      break;
+    }
+
+  
   }
 
 

@@ -883,13 +883,17 @@ static int open_flv(bgav_demuxer_context_t * ctx,
   return 0;
   }
 
-static void resync_flv(bgav_demuxer_context_t * ctx)
+static void resync_flv(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
   {
   flv_priv_t * priv;
   priv = (flv_priv_t *)(ctx->priv);
-  if(ctx->tt->cur->audio_streams && (ctx->tt->cur->audio_streams->index_mode == INDEX_MODE_SIMPLE))
-    priv->audio_sample_counter = ctx->tt->cur->audio_streams->in_position;
-  }
+
+  if(s->type == BGAV_STREAM_AUDIO)
+    {
+    priv->audio_sample_counter = s->in_position;
+    }
+  }  
+
 
 static void close_flv(bgav_demuxer_context_t * ctx)
   {

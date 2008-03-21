@@ -36,6 +36,7 @@ typedef struct
   {
   qt_trak_t * trak;
   qt_stbl_t * stbl; /* For convenience */
+  int64_t ctts_pos;
   int64_t stts_pos;
   int64_t stss_pos;
   int64_t stsd_pos;
@@ -44,6 +45,7 @@ typedef struct
   int64_t stsz_pos;
 
   int64_t stts_count;
+  int64_t ctts_count;
   int64_t stss_count;
   int64_t stsd_count;
   //  int64_t stsc_count;
@@ -95,6 +97,7 @@ static void stream_init(stream_priv_t * s, qt_trak_t * trak)
   s->stbl = &(trak->mdia.minf.stbl);
 
   s->stts_pos = (s->stbl->stts.num_entries > 1) ? 0 : -1;
+  s->ctts_pos = (s->stbl->has_ctts) ? 0 : -1;
   /* stsz_pos is -1 if all samples have the same size */
   s->stsz_pos = (s->stbl->stsz.sample_size) ? -1 : 0;
   }
@@ -212,7 +215,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
   int packet_size;
   int duration;
   qt_trak_t * trak;
-  
+  int pts_offset;
   priv = (qt_priv_t *)(ctx->priv);
 
   /* 1 step: Count the total number of chunks */
@@ -386,6 +389,18 @@ static void build_index(bgav_demuxer_context_t * ctx)
           duration = s->stbl->stts.entries[s->stts_pos].duration;
         else
           duration = s->stbl->stts.entries[0].duration;
+
+        /*
+         *  We must make sure, that the pts starts at 0. This means, that
+         *  ISO compliant values will be shifted to the (wrong)
+         *  values produced by Apple Quicktime
+         */
+        
+        if(s->ctts_pos >= 0)
+          pts_offset =
+            (int32_t)s->stbl->ctts.entries[s->ctts_pos].duration;
+        else
+          pts_offset = 0;
         
         if((s->skip_first_frame && !s->stco_pos) ||
            (s->skip_last_frame &&
@@ -396,7 +411,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
                      bgav_s,
                      i, chunk_offset,
                      -1,
-                     bgav_s->duration,
+                     bgav_s->duration + pts_offset,
                      check_keyframe(s),
                      duration,
                      packet_size);
@@ -408,7 +423,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
                      bgav_s,
                      i, chunk_offset,
                      stream_id,
-                     bgav_s->duration,
+                     bgav_s->duration + pts_offset,
                      check_keyframe(s),
                      duration,
                      packet_size);
@@ -426,6 +441,16 @@ static void build_index(bgav_demuxer_context_t * ctx)
             {
             s->stts_pos++;
             s->stts_count = 0;
+            }
+          }
+        /* Composition time to sample */
+        if(s->ctts_pos >= 0)
+          {
+          s->ctts_count++;
+          if(s->ctts_count >= s->stbl->ctts.entries[s->ctts_pos].count)
+            {
+            s->ctts_pos++;
+            s->ctts_count = 0;
             }
           }
         }
@@ -857,7 +882,6 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       
       bg_as->priv = stream_priv;
       
-      bg_as->first_timestamp = 0;
       bg_as->timescale = trak->mdia.mdhd.time_scale;
       bg_as->fourcc    = desc->fourcc;
       bg_as->data.audio.format.num_channels = desc->format.audio.num_channels;
@@ -1007,7 +1031,6 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         stream_priv->skip_last_frame = 1;
       
       bg_vs->priv = stream_priv;
-      bg_vs->first_timestamp = 0;
       
       bg_vs->fourcc = desc->fourcc;
       bg_vs->data.video.format.image_width = desc->format.video.width;
@@ -1123,7 +1146,6 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         
         bg_ss->timescale = trak->mdia.mdhd.time_scale;
         bg_ss->stream_id = i;
-        bg_ss->first_timestamp = 0;
         
         stream_priv = &(priv->streams[i]);
         stream_init(stream_priv, &(moov->tracks[i]));
@@ -1150,7 +1172,6 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       
         bg_ss->timescale = trak->mdia.mdhd.time_scale;
         bg_ss->stream_id = i;
-        bg_ss->first_timestamp = 0;
 
         stream_priv = &(priv->streams[i]);
         stream_init(stream_priv, &(moov->tracks[i]));

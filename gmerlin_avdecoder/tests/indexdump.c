@@ -19,6 +19,12 @@
 
 #include <avdec_private.h>
 
+static void index_callback(void * data, float perc)
+  {
+  fprintf(stderr, "Building index %.2f %% completed\r",
+          perc * 100.0);
+  }
+
 int main(int argc, char ** argv)
   {
   bgav_t * b;
@@ -27,12 +33,13 @@ int main(int argc, char ** argv)
   b = bgav_create();
   opt = bgav_get_options(b);
   bgav_options_set_sample_accurate(opt, 1);
-  //  bgav_options_set_index_callback(opt, index_callback, NULL);
-
-
+  bgav_options_set_index_callback(opt, index_callback, NULL);
+  
   if(!bgav_open(b, argv[1]))
     return -1;
-
+  fprintf(stderr, "\n");
+  if(b->demuxer->si)
+    bgav_superindex_dump(b->demuxer->si);
   bgav_file_index_dump(b);
 
   bgav_close(b);

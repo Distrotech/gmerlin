@@ -43,7 +43,7 @@ typedef struct
 
   int offset_x_uv;
   int offset_y_uv;
-  
+  int do_resync;
   } theora_priv_t;
 
 static uint8_t * ptr_2_op(uint8_t * ptr, ogg_packet * op)
@@ -161,11 +161,20 @@ static int decode_theora(bgav_stream_t * s, gavl_video_frame_t * frame)
     p = bgav_demuxer_get_packet_read(s->demuxer, s);
     if(!p)
       return 0;
+
+    if(priv->do_resync && !p->keyframe)
+      {
+      bgav_demuxer_done_packet_read(s->demuxer, p);
+      continue;
+      }
     memcpy(&op, p->data, sizeof(op));
     op.packet = p->data + sizeof(op);
     
     if(!theora_packet_isheader(&op))
+      {
+      priv->do_resync = 0;
       break;
+      }
     bgav_demuxer_done_packet_read(s->demuxer, p);
     }
   
@@ -220,7 +229,7 @@ static void resync_theora(bgav_stream_t * s)
   {
   theora_priv_t * priv;
   priv = (theora_priv_t*)(s->data.video.decoder->priv);
-  
+  priv->do_resync = 1;
   }
 
 static bgav_video_decoder_t decoder =

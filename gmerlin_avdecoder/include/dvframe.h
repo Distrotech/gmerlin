@@ -41,7 +41,10 @@ void bgav_dv_dec_set_header(bgav_dv_dec_t*, uint8_t * data);
 int bgav_dv_dec_get_frame_size(bgav_dv_dec_t*);
 
 /* Call this after seeking */
-void bgav_dv_dec_set_frame_counter(bgav_dv_dec_t*, int64_t frames, int64_t samples);
+void bgav_dv_dec_set_frame_counter(bgav_dv_dec_t*, int64_t frames);
+
+/* Call this after seeking */
+void bgav_dv_dec_set_sample_counter(bgav_dv_dec_t*, int64_t samples);
 
 /* Sets the frame for parsing. data must be frame_size bytes long */
 

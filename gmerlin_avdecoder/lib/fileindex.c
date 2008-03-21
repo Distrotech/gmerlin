@@ -472,14 +472,22 @@ static void flush_stream_simple(bgav_stream_t * s)
     }
   }
 
-static void flush_stream_pts(bgav_stream_t * s)
+static void flush_stream_pts(bgav_stream_t * s, int force)
   {
   bgav_packet_t * p;
-  while(bgav_demuxer_peek_packet_read(s->demuxer, s, 0))
+  while(bgav_demuxer_peek_packet_read(s->demuxer, s, force))
     {
     p = bgav_demuxer_get_packet_read(s->demuxer, s);
-    bgav_file_index_append_packet(s->file_index,
-                                  p->position, p->pts, p->keyframe);
+
+    if(p->pts == 10057)
+      fprintf(stderr, "Bla\n");
+
+    
+    if(p->pts != BGAV_TIMESTAMP_UNDEFINED)
+      {
+      bgav_file_index_append_packet(s->file_index,
+                                    p->position, p->pts, p->keyframe);
+      }
     bgav_demuxer_done_packet_read(s->demuxer, p);
     }
   }
@@ -581,8 +589,8 @@ static int build_file_index_mixed(bgav_t * b)
     {
     /* Process one packet */
     if(!bgav_demuxer_next_packet(b->demuxer))
-      return 1;
-
+      break;
+    
     for(j = 0; j < b->tt->cur->num_audio_streams; j++)
       {
       switch(b->tt->cur->audio_streams[j].index_mode)
@@ -595,7 +603,7 @@ static int build_file_index_mixed(bgav_t * b)
           flush_stream_simple(&b->tt->cur->audio_streams[j]);
           break;
         case INDEX_MODE_PTS:
-          flush_stream_pts(&b->tt->cur->audio_streams[j]);
+          flush_stream_pts(&b->tt->cur->audio_streams[j], 0);
           break;
         }
       
@@ -612,7 +620,7 @@ static int build_file_index_mixed(bgav_t * b)
           flush_stream_simple(&b->tt->cur->video_streams[j]);
           break;
         case INDEX_MODE_PTS:
-          flush_stream_pts(&b->tt->cur->video_streams[j]);
+          flush_stream_pts(&b->tt->cur->video_streams[j], 0);
           break;
         }
       }
@@ -628,7 +636,7 @@ static int build_file_index_mixed(bgav_t * b)
           flush_stream_simple(&b->tt->cur->subtitle_streams[j]);
           break;
         case INDEX_MODE_PTS:
-          flush_stream_pts(&b->tt->cur->subtitle_streams[j]);
+          flush_stream_pts(&b->tt->cur->subtitle_streams[j], 0);
           break;
         }
       }
@@ -638,6 +646,36 @@ static int build_file_index_mixed(bgav_t * b)
                             (float)b->input->position / 
                             (float)b->input->total_bytes);
     }
+
+  for(j = 0; j < b->tt->cur->num_audio_streams; j++)
+    {
+    switch(b->tt->cur->audio_streams[j].index_mode)
+      {
+      case INDEX_MODE_PTS:
+        flush_stream_pts(&b->tt->cur->audio_streams[j], 1);
+        break;
+      }
+      
+    }
+  for(j = 0; j < b->tt->cur->num_video_streams; j++)
+    {
+    switch(b->tt->cur->video_streams[j].index_mode)
+      {
+      case INDEX_MODE_PTS:
+        flush_stream_pts(&b->tt->cur->video_streams[j], 1);
+        break;
+      }
+    }
+  for(j = 0; j < b->tt->cur->num_subtitle_streams; j++)
+    {
+    switch(b->tt->cur->subtitle_streams[j].index_mode)
+      {
+      case INDEX_MODE_PTS:
+        flush_stream_pts(&b->tt->cur->subtitle_streams[j], 1);
+        break;
+      }
+    }
+  
   bgav_input_seek(b->input, old_position, SEEK_SET);
   return 1;
   }

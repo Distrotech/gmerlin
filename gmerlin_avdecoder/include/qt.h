@@ -150,6 +150,7 @@ int bgav_qt_stts_read(qt_atom_header_t * h,
                       bgav_input_context_t * ctx, qt_stts_t * ret);
 void bgav_qt_stts_free(qt_stts_t * c);
 void bgav_qt_stts_dump(int indent, qt_stts_t * c);
+void bgav_qt_ctts_shift(qt_stts_t * ctts);
 
 /*
  *  Sync samples
@@ -558,6 +559,8 @@ typedef struct
   qt_atom_header_t h;
 
   qt_stts_t stts;
+  qt_stts_t ctts;
+  int has_ctts;
   qt_stss_t stss;
   qt_stsd_t stsd;
   qt_stsz_t stsz;

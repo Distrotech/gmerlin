@@ -36,7 +36,7 @@ static int init_gavl(bgav_stream_t * s)
   gavl_t * priv;
 
   if(s->action == BGAV_STREAM_PARSE)
-    return;
+    return 1;
   
   priv = calloc(1, sizeof(*priv));
   s->data.audio.decoder->priv = priv;

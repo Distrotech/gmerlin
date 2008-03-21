@@ -126,6 +126,7 @@ bgav_packet_t * bgav_packet_buffer_get_packet_write(bgav_packet_buffer_t * b, bg
   b->write_packet = b->write_packet->next;
   ret->pts = BGAV_TIMESTAMP_UNDEFINED;
   ret->dts = BGAV_TIMESTAMP_UNDEFINED;
+  ret->keyframe = 0;
   ret->stream = s;
   return ret;
   }

@@ -122,7 +122,7 @@ void bgav_seek_audio(bgav_t * bgav, int stream, int64_t sample)
     
     
     if(bgav->demuxer->demuxer->resync)
-      bgav->demuxer->demuxer->resync(bgav->demuxer);
+      bgav->demuxer->demuxer->resync(bgav->demuxer, s);
     }
   
   bgav_stream_resync_decoder(s);
@@ -184,7 +184,7 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
     s->out_time = frame_time;
     
     if(bgav->demuxer->demuxer->resync)
-      bgav->demuxer->demuxer->resync(bgav->demuxer);
+      bgav->demuxer->demuxer->resync(bgav->demuxer, s);
     }
   
   bgav_stream_resync_decoder(s);
