@@ -166,7 +166,7 @@ int bgav_audio_skipto(bgav_stream_t * s, int64_t * t, int scale)
   
   stream_time = gavl_time_rescale(s->timescale,
                                   scale,
-                                  s->in_time);
+                                  s->out_time);
   
   diff_time = *t - stream_time;
   

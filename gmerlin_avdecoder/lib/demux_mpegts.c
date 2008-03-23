@@ -145,6 +145,7 @@ static void check_pts_wrap(bgav_stream_t * s, int64_t * pts)
     bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN,
              "Detected pts wrap (%s < %s)",
              tmp_string1, tmp_string2);
+    //    fprintf(stderr, "** WRAP ***\n");
     priv->last_pts = *pts;
     *pts += priv->pts_offset;
     }
@@ -627,6 +628,7 @@ static int init_psi(bgav_demuxer_context_t * ctx,
                  "PMT section spans multiple packets, please report");
         return 0;
         }
+      //      bgav_pmt_section_dump(&priv->programs[program].pmts);
       if(priv->programs[program].pmts.section_number ||
          priv->programs[program].pmts.last_section_number)
         {
@@ -1055,14 +1057,15 @@ static void predict_pcr_wrap(const bgav_options_t * opt, int64_t pcr)
 
 static int process_packet(bgav_demuxer_context_t * ctx)
   {
-  int i;
+  int i, skip;
   bgav_stream_t * s;
   mpegts_t * priv;
   int num_packets;
   int bytes_to_copy;
   bgav_pes_header_t pes_header;
   int64_t position;
-  
+  pat_section_t pats;
+  pmt_section_t pmts;
   priv = (mpegts_t*)(ctx->priv);
 
   if(!priv->packet_size)
@@ -1137,22 +1140,52 @@ static int process_packet(bgav_demuxer_context_t * ctx)
         }
       }
 #endif
+    if(!priv->packet.pid)
+      {
+#if 0
+      bgav_pat_section_read(priv->ptr, 188 - (priv->ptr - priv->packet_start),
+                            &pats);
+      bgav_pat_section_dump(&pats);
+#endif
+      next_packet(priv);
+      //      fprintf(stderr, "Unknown PID: %d\n", priv->packet.pid);
+      position += priv->packet_size;
+      continue;
+      }
+    else if(priv->packet.pid == priv->programs[priv->current_program].program_map_pid)
+      {
+#if 0
+      skip = 1 + priv->ptr[0];
+      priv->ptr += skip;
+      
+      bgav_pmt_section_read(priv->ptr, 188 - (priv->ptr - priv->packet_start),
+                            &pmts);
+      bgav_pmt_section_dump(&pmts);
+#endif
+      next_packet(priv);
+      //      fprintf(stderr, "Unknown PID: %d\n", priv->packet.pid);
+      position += priv->packet_size;
+      continue;
+      }
+    
     s = bgav_track_find_stream(ctx, priv->packet.pid);
     
     if(!s)
       {
       next_packet(priv);
-      // fprintf(stderr, "Unknown PID: %d\n", priv->packet.pid);
+      //      fprintf(stderr, "Unknown PID: %d\n", priv->packet.pid);
       position += priv->packet_size;
       continue;
       }
 #if 0
-    fprintf(stderr, "Got packet PID: %d, s->packet: %p, %d, .type =",
-            priv->packet.pid, s->packet, priv->packet.payload_start);
-    bgav_dump_fourcc(s->fourcc);
-    fprintf(stderr, "\n");
+    if(s->type == BGAV_STREAM_AUDIO)
+      {
+      fprintf(stderr, "Got packet PID: %d, s->packet: %p, %d, type =",
+              priv->packet.pid, s->packet, priv->packet.payload_start);
+      bgav_dump_fourcc(s->fourcc);
+      fprintf(stderr, "\n");
+      }
 #endif
-    
     if(priv->packet.payload_start) /* New packet starts here */
       {
       bgav_input_reopen_memory(priv->input_mem, priv->ptr,
@@ -1170,10 +1203,13 @@ static int process_packet(bgav_demuxer_context_t * ctx)
       if(s->packet)
         {
 #if 0
-        fprintf(stderr, "Packet done: %d bytes, id: %d, .fourcc = ",
-                s->packet->data_size, s->stream_id);
-        bgav_dump_fourcc(s->fourcc);
-        fprintf(stderr, "\n");
+        if(s->type == BGAV_STREAM_VIDEO)
+          {
+          fprintf(stderr, "Packet done: %d bytes, id: %d, fourcc: ",
+                  s->packet->data_size, s->stream_id);
+          bgav_dump_fourcc(s->fourcc);
+          fprintf(stderr, " pos: %ld pts: %lld\n", s->packet->position, s->packet->pts);
+          }
 #endif
 
         bgav_packet_done_write(s->packet);

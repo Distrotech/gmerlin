@@ -340,6 +340,8 @@ static void parse_mad(bgav_stream_t * s)
     {
     /* Get the packet and append data to the buffer */
     p = bgav_demuxer_get_packet_read(s->demuxer, s);
+
+    //    fprintf(stderr, "Parse mad pts: %ld duration: %ld\n", p->pts, s->duration); 
     
     old_buffer_size = priv->buffer_size;
 
@@ -395,6 +397,7 @@ static void parse_mad(bgav_stream_t * s)
       s->duration += h.samples_per_frame;
       ptr += h.frame_bytes;
       priv->buffer_size -= h.frame_bytes;
+      //      fprintf(stderr, "Parse mad got packet %d bytes left\n", priv->buffer_size); 
       }
     if(priv->buffer_size > 0)
       memmove(priv->buffer, ptr, priv->buffer_size);

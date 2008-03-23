@@ -21,8 +21,9 @@
 
 static void index_callback(void * data, float perc)
   {
-  fprintf(stderr, "Building index %.2f %% completed\r",
+  fprintf(stdout, "Building index %.2f %% completed\r",
           perc * 100.0);
+  fflush(stdout);
   }
 
 int main(int argc, char ** argv)

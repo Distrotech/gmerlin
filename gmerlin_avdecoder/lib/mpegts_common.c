@@ -189,10 +189,10 @@ void bgav_pmt_section_dump(pmt_section_t * pmts)
     bgav_dprintf( "  Stream %d\n", i+1);
 
     if(stream_type)
-      bgav_dprintf( "    .type =       0x%02x (%s)\n",
+      bgav_dprintf( "    type:       0x%02x (%s)\n",
                     pmts->streams[i].type, stream_type->description);
     else
-      bgav_dprintf( "    .type =       0x%02x (unknown)\n",
+      bgav_dprintf( "    type:       0x%02x (unknown)\n",
                     pmts->streams[i].type);
     
     bgav_dprintf( "    PID:        0x%04x (%d)\n",
@@ -264,7 +264,7 @@ void bgav_pat_section_dump(pat_section_t * pats)
 void bgav_transport_packet_dump(transport_packet_t * p)
   {
   bgav_dprintf( "Transport packet:\n");
-  bgav_dprintf( "  Payload .start =      %d\n", p->payload_start);
+  bgav_dprintf( "  Payload start:      %d\n", p->payload_start);
   bgav_dprintf( "  PID:                0x%04x\n", p->pid);
   bgav_dprintf( "  Adaption field:     %s\n",
           (p->has_adaption_field ? "Yes" : "No"));
@@ -325,8 +325,13 @@ int bgav_transport_packet_parse(const bgav_options_t * opt,
       ret->has_payload        = 1;
       break;
     default:
-      bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Invalid packet");
-      return 0;
+
+      ret->has_adaption_field = 0;
+      ret->has_payload        = 0;
+
+      //      bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Invalid packet");
+      //      return 0;
+      break;
     }
   ret->continuity_counter = ptr[3] & 0x0f;
 

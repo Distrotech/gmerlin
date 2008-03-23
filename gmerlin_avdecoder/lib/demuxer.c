@@ -684,6 +684,7 @@ bgav_demuxer_get_packet_read(bgav_demuxer_context_t * demuxer,
       (s->data.video.frametime_mode == BGAV_FRAMETIME_CODEC_PTS)))
     get_duration = 1;
 
+  
   demuxer->request_stream = s; 
   while(!(ret = bgav_packet_buffer_get_packet_read(s->packet_buffer, get_duration)))
     {
@@ -705,6 +706,7 @@ bgav_demuxer_get_packet_read(bgav_demuxer_context_t * demuxer,
         return (bgav_packet_t*)0;
       }
     }
+  
   s->in_time = ret->pts;
 
   if(s->first_timestamp == BGAV_TIMESTAMP_UNDEFINED)

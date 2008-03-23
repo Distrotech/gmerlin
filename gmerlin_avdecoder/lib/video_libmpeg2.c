@@ -663,7 +663,7 @@ static void close_mpeg2(bgav_stream_t*s)
 
   }
 
-static void parse_libmpeg2(bgav_stream_t * s)
+static void parse_libmpeg2(bgav_stream_t * s, int flush)
   {
   bgav_packet_t * p;
   mpeg2_priv_t * priv;

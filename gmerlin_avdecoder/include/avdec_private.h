@@ -110,7 +110,7 @@ struct bgav_video_decoder_s
   int (*decode)(bgav_stream_t*, gavl_video_frame_t*);
   void (*close)(bgav_stream_t*);
   void (*resync)(bgav_stream_t*);
-  void (*parse)(bgav_stream_t*);
+  void (*parse)(bgav_stream_t*, int flush);
   bgav_video_decoder_t * next;
   };
 

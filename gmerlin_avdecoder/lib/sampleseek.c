@@ -76,10 +76,10 @@ int64_t bgav_subtitle_duration(bgav_t * bgav, int stream)
 
 void bgav_seek_audio(bgav_t * bgav, int stream, int64_t sample)
   {
-  bgav_stream_t * s;
   int64_t frame_time;
+  bgav_stream_t * s;
   s = &bgav->tt->cur->audio_streams[stream];
-
+  
   if(sample >= s->duration) /* EOF */
     {
     s->eof = 1;
@@ -105,7 +105,6 @@ void bgav_seek_audio(bgav_t * bgav, int stream, int64_t sample)
     {
     s->index_position = file_index_seek(s->file_index, sample);
     frame_time = s->file_index->entries[s->index_position].time;
-    
     /* Handle preroll */
     while(s->index_position &&
           (frame_time - s->file_index->entries[s->index_position].time) < s->data.audio.preroll)
@@ -118,8 +117,7 @@ void bgav_seek_audio(bgav_t * bgav, int stream, int64_t sample)
       s->index_position--;
     
     s->in_time = s->file_index->entries[s->index_position].time;
-    s->out_time = frame_time;
-    
+    s->out_time = s->file_index->entries[s->index_position].time;
     
     if(bgav->demuxer->demuxer->resync)
       bgav->demuxer->demuxer->resync(bgav->demuxer, s);

@@ -43,7 +43,10 @@ static void dump_index(bgav_stream_t * s)
                  s->file_index->entries[i].time);
     
     if(i < s->file_index->num_entries-1)
-      bgav_dprintf("%"PRId64"\n", s->file_index->entries[i+1].time-s->file_index->entries[i].time);
+      bgav_dprintf("%"PRId64" posdiff: %"PRId64"\n",
+                   s->file_index->entries[i+1].time-s->file_index->entries[i].time,
+                   s->file_index->entries[i+1].position-s->file_index->entries[i].position
+                   );
     else
       bgav_dprintf("%"PRId64"\n", s->duration-s->file_index->entries[i].time);
     }
@@ -125,6 +128,10 @@ bgav_file_index_append_packet(bgav_file_index_t * idx,
     idx->entries = realloc(idx->entries,
                            idx->entries_alloc * sizeof(*idx->entries));
     }
+  /* First frame is always a keyframe */
+  if(!idx->num_entries)
+    keyframe = 1;
+    
   idx->entries[idx->num_entries].position = position;
   idx->entries[idx->num_entries].time     = time;
   idx->entries[idx->num_entries].keyframe = keyframe;
@@ -364,12 +371,11 @@ int bgav_read_file_index(bgav_t * b)
       if(!s)
         goto fail;
       s->file_index = file_index_read_stream(input, s);
-
+      
       if(!s->file_index)
         {
         goto fail;
         }
-      
       }
         
     }
@@ -528,11 +534,11 @@ static int flush_stream_mpeg_audio(bgav_stream_t * s)
   return 1;
   }
 
-static int flush_stream_mpeg_video(bgav_stream_t * s)
+static int flush_stream_mpeg_video(bgav_stream_t * s, int flush)
   {
   if(!s->data.video.decoder->decoder->parse)
     return 0;
-  s->data.video.decoder->decoder->parse(s);
+  s->data.video.decoder->decoder->parse(s, flush);
   return 1;
   }
 
@@ -560,7 +566,7 @@ static int build_file_index_mpeg(bgav_t * b)
       }
     for(j = 0; j < b->tt->cur->num_video_streams; j++)
       {
-      if(!flush_stream_mpeg_video(&b->tt->cur->video_streams[j]))
+      if(!flush_stream_mpeg_video(&b->tt->cur->video_streams[j], 0))
         return 0;
       }
     for(j = 0; j < b->tt->cur->num_subtitle_streams; j++)
@@ -574,6 +580,13 @@ static int build_file_index_mpeg(bgav_t * b)
                             (float)b->input->position / 
                             (float)b->input->total_bytes);
     }
+
+  for(j = 0; j < b->tt->cur->num_video_streams; j++)
+    {
+    if(!flush_stream_mpeg_video(&b->tt->cur->video_streams[j], 1))
+      return 0;
+    }
+
   
   bgav_input_seek(b->input, old_position, SEEK_SET);
   return 1;
@@ -613,7 +626,7 @@ static int build_file_index_mixed(bgav_t * b)
       switch(b->tt->cur->video_streams[j].index_mode)
         {
         case INDEX_MODE_MPEG:
-          if(!flush_stream_mpeg_video(&b->tt->cur->video_streams[j]))
+          if(!flush_stream_mpeg_video(&b->tt->cur->video_streams[j], 0))
             return 0;
           break;
         case INDEX_MODE_SIMPLE:
@@ -664,6 +677,9 @@ static int build_file_index_mixed(bgav_t * b)
       case INDEX_MODE_PTS:
         flush_stream_pts(&b->tt->cur->video_streams[j], 1);
         break;
+      case INDEX_MODE_MPEG:
+        if(!flush_stream_mpeg_video(&b->tt->cur->video_streams[j], 1))
+          return 0;
       }
     }
   for(j = 0; j < b->tt->cur->num_subtitle_streams; j++)

@@ -74,8 +74,7 @@ static int get_data(bgav_stream_t * s, int num_bytes)
     if(!priv->packet)
       {
       priv->packet = bgav_demuxer_get_packet_read(s->demuxer, s);
-
-
+      
       if(!priv->packet)
         return 0;
       //      fprintf(stderr, "Got packet:\n");
@@ -133,8 +132,9 @@ static void done_data(bgav_stream_t * s, int num_bytes)
 static int do_resync(bgav_stream_t * s)
   {
   a52_priv * priv;
+  int skipped = 0;
   priv = (a52_priv*)(s->data.audio.decoder->priv);
-
+  
   while(1)
     {
     if(!get_data(s, BGAV_A52_HEADER_BYTES))
@@ -142,7 +142,10 @@ static int do_resync(bgav_stream_t * s)
     if(bgav_a52_header_read(&(priv->header), priv->buffer))
       return 1;
     done_data(s, 1);
+    skipped++;
     }
+  if(skipped)
+    fprintf(stderr, "A52: Skipped %d bytes\n");
   return 0;
   }
 
