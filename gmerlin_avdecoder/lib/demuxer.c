@@ -51,6 +51,7 @@ extern const bgav_demuxer_t bgav_demuxer_mpegaudio;
 extern const bgav_demuxer_t bgav_demuxer_mpegvideo;
 extern const bgav_demuxer_t bgav_demuxer_mpegps;
 extern const bgav_demuxer_t bgav_demuxer_mpegts;
+extern const bgav_demuxer_t bgav_demuxer_mxf;
 extern const bgav_demuxer_t bgav_demuxer_flac;
 extern const bgav_demuxer_t bgav_demuxer_aac;
 extern const bgav_demuxer_t bgav_demuxer_nsv;
@@ -158,6 +159,7 @@ static const demuxer_t demuxers[] =
     { &bgav_demuxer_y4m, "yuv4mpeg" },
 #endif
     { &bgav_demuxer_dv, "DV" },
+    { &bgav_demuxer_mxf, "MXF" },
     { &bgav_demuxer_sphere, "nist Sphere"},
     { &bgav_demuxer_ircam, "IRCAM" },
     { &bgav_demuxer_gsm, "raw gsm" },
