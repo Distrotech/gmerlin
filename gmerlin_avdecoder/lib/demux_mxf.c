@@ -82,7 +82,9 @@ static int select_track_mxf(bgav_demuxer_context_t * ctx, int track)
 
 static void close_mxf(bgav_demuxer_context_t * ctx)
   {
-  
+  mxf_t * priv;
+  priv = (mxf_t*)ctx->priv;
+  bgav_mxf_file_free(&priv->mxf);
   }
 
 static void resync_mxf(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
