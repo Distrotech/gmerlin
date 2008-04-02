@@ -207,7 +207,7 @@ int main(int argc, char ** argv)
     {
     fprintf(stderr, "Could not open file %s\n",
             argv[argc-1]);
-    free(file);
+    bgav_close(file);
     return -1;
     }
   

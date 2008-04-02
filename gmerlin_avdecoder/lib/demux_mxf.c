@@ -85,6 +85,7 @@ static void close_mxf(bgav_demuxer_context_t * ctx)
   mxf_t * priv;
   priv = (mxf_t*)ctx->priv;
   bgav_mxf_file_free(&priv->mxf);
+  free(priv);
   }
 
 static void resync_mxf(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
