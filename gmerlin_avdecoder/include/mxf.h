@@ -36,6 +36,23 @@ typedef struct mxf_file_s mxf_file_t;
 /* Move to the next startcode */
 int bgav_mxf_sync(bgav_input_context_t * input);
 
+#if 0
+typedef enum
+  {
+  MXF_OP_UNKNOWN,
+  MXF_OP_1a,
+  MXF_OP_1b,
+  MXF_OP_1c,
+  MXF_OP_2a,
+  MXF_OP_2b,
+  MXF_OP_2c,
+  MXF_OP_3a,
+  MXF_OP_3b,
+  MXF_OP_3c,
+  MXF_OP_ATOM,
+  } mxf_op_t;
+#endif
+
 /* Structures found in MXF files and functions to operate on them */
 
 /* KLV */
@@ -149,9 +166,10 @@ struct  mxf_descriptor_s
   uint8_t locked;
 
   /*
-   * 0 FULL_FRAME:        frame consists of a full sample in progressive scan lines
+   * 0 FULL_FRAME:      frame consists of a full sample in progressive scan lines
    * 1 SEPARATE_FIELDS: sample consists of two fields, which when interlaced produce a full sample
-   * 2 ONE_FIELD:      sample consists of two interlaced fields, but only one field is stored in the data stream
+   * 2 ONE_FIELD:       sample consists of two interlaced fields, but only one field is stored in
+   *                    the data stream
    * 3 MIXED_FIELDS
    * 4 SEGMENTED FRAME
    */
@@ -172,8 +190,9 @@ struct  mxf_descriptor_s
   int ext_size;
 
   /* Secondary */
-  uint32_t fourcc;
   mxf_metadata_t ** subdescriptors;
+  
+  int clip_wrapped;
   };
 
 void bgav_mxf_descriptor_dump(int indent, mxf_descriptor_t * d);
@@ -331,7 +350,7 @@ struct mxf_preface_s
   uint32_t num_identification_refs;
 
   mxf_ul_t content_storage_ref;
-  mxf_ul_t operational_pattern;
+  mxf_ul_t operational_pattern_ul;
 
   mxf_ul_t * essence_container_types;
   uint32_t num_essence_container_types;
@@ -342,6 +361,8 @@ struct mxf_preface_s
   /* Secondary */
   mxf_metadata_t * content_storage;
   mxf_metadata_t ** identifications;
+  
+  //  mxf_op_t operational_pattern;
   };
 
 void bgav_mxf_preface_dump(int indent, mxf_preface_t * s);
@@ -416,9 +437,10 @@ struct mxf_file_s
   mxf_index_table_segment_t ** index_segments;
   int num_index_segments;
   
-  /* Convenience arrays and pointers */
-  mxf_package_t ** material_packages;
+  /* Secondary variables */
+  int num_source_packages;
   int num_material_packages;
+  int max_sequence_components;
   };
 
 int bgav_mxf_file_read(bgav_input_context_t * input,
@@ -426,3 +448,10 @@ int bgav_mxf_file_read(bgav_input_context_t * input,
 
 void bgav_mxf_file_dump(mxf_file_t * ret);
 void bgav_mxf_file_free(mxf_file_t * ret);
+
+uint32_t bgav_mxf_get_audio_fourcc(mxf_descriptor_t * d);
+uint32_t bgav_mxf_get_video_fourcc(mxf_descriptor_t * d);
+
+bgav_stream_t * bgav_mxf_find_stream(bgav_demuxer_context_t * t,
+                                     mxf_ul_t ul);
+

@@ -1315,6 +1315,11 @@ int bgav_init(bgav_t * b);
 (p)[0] = (i) & 0xff; \
 (p)[1] = ((i)>>8) & 0xff
 
+#define BGAV_24LE_2_PTR(i, p) \
+(p)[0] = (i) & 0xff; \
+(p)[1] = ((i)>>8) & 0xff; \
+(p)[2] = ((i)>>16) & 0xff;
+
 #define BGAV_32LE_2_PTR(i, p) \
 (p)[0] = (i) & 0xff; \
 (p)[1] = ((i)>>8) & 0xff; \

@@ -31,6 +31,8 @@
 
 #define FREE(ptr) if(ptr) free(ptr);
 
+/* Debug functions */
+
 static void do_indent(int i)
   {
   while(i--)
@@ -77,6 +79,8 @@ static void dump_date(uint64_t d)
   
   }
 
+/* Read list of ULs */
+
 static mxf_ul_t * read_refs(bgav_input_context_t * input, uint32_t * num)
   {
   mxf_ul_t * ret;
@@ -95,6 +99,8 @@ static mxf_ul_t * read_refs(bgav_input_context_t * input, uint32_t * num)
   return ret;
   }
 
+/* Resolve references */
+
 static mxf_metadata_t *
 resolve_strong_ref(mxf_file_t * ret, mxf_ul_t u, mxf_metadata_type_t type)
   {
@@ -112,13 +118,17 @@ static mxf_metadata_t *
 package_by_ul(mxf_file_t * ret, mxf_ul_t u)
   {
   int i;
-  for(i = 0; i < ret->header.num_metadata; i++)
+  mxf_package_t * mp;
+  mxf_preface_t * p = (mxf_preface_t*)ret->preface;
+  
+  for(i = 0; i < ((mxf_content_storage_t*)(p->content_storage))->num_package_refs; i++)
     {
-    if((ret->header.metadata[i]->type & (MXF_TYPE_SOURCE_PACKAGE | MXF_TYPE_MATERIAL_PACKAGE)) &&
-       !memcmp(u, ((mxf_package_t*)(ret->header.metadata[i]))->package_ul, 16))
-      return ret->header.metadata[i];
+    mp = (mxf_package_t*)(((mxf_content_storage_t*)(p->content_storage))->packages[i]);
+    
+    if((mp->common.type == MXF_TYPE_SOURCE_PACKAGE) && !memcmp(u, mp->package_ul, 16))
+      return (mxf_metadata_t*)mp;
     }
-  return (void*)0;
+  return (mxf_metadata_t*)0;
   }
 
 static mxf_metadata_t **
@@ -140,6 +150,9 @@ resolve_strong_refs(mxf_file_t * file, mxf_ul_t * u, int num, mxf_metadata_type_
 /* Partial ULs */
 
 static const uint8_t mxf_klv_key[] = { 0x06,0x0e,0x2b,0x34 };
+
+static const uint8_t mxf_essence_element_key[] =
+  { 0x06,0x0e,0x2b,0x34,0x01,0x02,0x01,0x01,0x0d,0x01,0x03,0x01 };
 
 /* Complete ULs */
 
@@ -230,6 +243,73 @@ static int match_ul(const mxf_ul_t u1, const mxf_ul_t u2, int len)
   return 1;
   }
 
+#if 0
+/* Operational patterns */
+
+typedef struct
+  {
+  mxf_ul_t ul;
+  mxf_op_t op;
+  } op_map_t;
+
+op_map_t op_map[] =
+  {
+    {
+      { 0x06, 0x0e, 0x2b, 0x34, 0x04, 0x01, 0x01, 0x02, 0x0d, 0x01, 0x02, 0x01, 0x10, 0x02, 0x00, 0x00 },
+      MXF_OP_ATOM
+    },
+    {
+      { 0x06, 0x0e, 0x2b, 0x34, 0x04, 0x01, 0x01, 0x01, 0x0e, 0x06, 0x02, 0x01, 0x40, 0x01, 0x09, 0x00 },
+      MXF_OP_1a
+    },
+  };
+
+static mxf_op_t get_op(mxf_ul_t ul)
+  {
+  int i;
+  for(i = 0; i < sizeof(op_map)/sizeof(op_map[0]); i++)
+    {
+    if(!memcmp(ul, op_map[i].ul, 13))
+      return op_map[i].op;
+    }
+  return MXF_OP_UNKNOWN;
+  }
+
+static const struct
+  {
+  mxf_op_t op;
+  const char * name;
+  }
+op_names[] =
+  {
+    { MXF_OP_UNKNOWN, "Unknown" },
+    { MXF_OP_1a,      "1a"      },
+    { MXF_OP_1b,      "1b"      },
+    { MXF_OP_1c,      "1c"      },
+    { MXF_OP_2a,      "2a"      },
+    { MXF_OP_2b,      "2b"      },
+    { MXF_OP_2c,      "2c"      },
+    { MXF_OP_3a,      "3a"      },
+    { MXF_OP_3b,      "3b"      },
+    { MXF_OP_3c,      "3c"      },
+    { MXF_OP_ATOM,    "Atom"    },
+  };
+
+static const char * get_op_name(mxf_op_t op)
+  {
+  int i;
+  for(i = 0; i < sizeof(op_names)/sizeof(op_names[0]); i++)
+    {
+    if(op == op_names[i].op)
+      return op_names[i].name;
+    }
+  return (char*)0;
+  }
+
+#endif
+
+/* Stream types */
+
 typedef struct
   {
   mxf_ul_t ul;
@@ -268,7 +348,7 @@ typedef struct
   uint32_t fourcc;
   } codec_entry_t;
 
-static const codec_entry_t mxf_codec_uls[] =
+static const codec_entry_t mxf_video_codec_uls[] =
   {
     /* PictureEssenceCoding */
     { { 0x06,0x0E,0x2B,0x34,0x04,0x01,0x01,0x03,0x04,0x01,0x02,0x02,0x01,0x01,0x11,0x00 }, 14, BGAV_MK_FOURCC('m', 'p', 'g', 'v')}, /* MP@ML Long GoP */
@@ -279,6 +359,11 @@ static const codec_entry_t mxf_codec_uls[] =
     { { 0x06,0x0E,0x2B,0x34,0x04,0x01,0x01,0x01,0x04,0x01,0x02,0x02,0x02,0x01,0x02,0x00 }, 13, BGAV_MK_FOURCC('d', 'v', 'c', 'p') }, /* DV25 IEC PAL */
       //    { { 0x06,0x0E,0x2B,0x34,0x04,0x01,0x01,0x07,0x04,0x01,0x02,0x02,0x03,0x01,0x01,0x00 }, 14, CODEC_ID_JPEG2000 }, /* JPEG2000 Codestream */
       //    { { 0x06,0x0E,0x2B,0x34,0x04,0x01,0x01,0x01,0x04,0x01,0x02,0x01,0x7F,0x00,0x00,0x00 }, 13, CODEC_ID_RAWVIDEO }, /* Uncompressed */
+    { { 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00 },  0, 0x00 },
+  };
+
+static const codec_entry_t mxf_audio_codec_uls[] =
+  {
     /* SoundEssenceCompression */
     { { 0x06,0x0E,0x2B,0x34,0x04,0x01,0x01,0x01,0x04,0x02,0x02,0x01,0x00,0x00,0x00,0x00 }, 13, BGAV_MK_FOURCC('s', 'o', 'w', 't') }, /* Uncompressed */
     { { 0x06,0x0E,0x2B,0x34,0x04,0x01,0x01,0x01,0x04,0x02,0x02,0x01,0x7F,0x00,0x00,0x00 }, 13, BGAV_MK_FOURCC('s', 'o', 'w', 't') },
@@ -1104,11 +1189,13 @@ void bgav_mxf_descriptor_dump(int indent, mxf_descriptor_t * d)
   do_indent(indent);   bgav_dprintf("Descriptor\n");
   bgav_diprintf(indent+2, "UID:                    ");dump_ul(d->common.uid); 
   bgav_diprintf(indent+2, "essence_container_ul:   ");dump_ul(d->essence_container_ul);
+  bgav_diprintf(indent+2, "clip_wrapped:           %d\n", d->clip_wrapped);
   bgav_diprintf(indent+2, "essence_codec_ul:       ");dump_ul(d->essence_codec_ul);
   bgav_diprintf(indent+2, "Sample rate:            %d/%d\n", d->sample_rate_num, d->sample_rate_den); 
   bgav_diprintf(indent+2, "Aspect ratio:           %d/%d\n", d->aspect_ratio_num, d->aspect_ratio_den);
   bgav_diprintf(indent+2, "Image size:             %dx%d\n", d->width, d->height);
   bgav_diprintf(indent+2, "Bits per sample:        %d\n", d->bits_per_sample);
+  bgav_diprintf(indent+2, "Channels:               %d\n", d->channels);
   bgav_diprintf(indent+2, "Locked:                 %d\n", d->locked);
   bgav_diprintf(indent+2, "Frame layout:           %d\n", d->frame_layout);
   bgav_diprintf(indent+2, "Field dominance:        %d\n", d->field_dominance);
@@ -1123,15 +1210,14 @@ void bgav_mxf_descriptor_dump(int indent, mxf_descriptor_t * d)
     do_indent(indent+4); dump_ul_ptr(d->subdescriptor_refs[i], d->subdescriptors[i]);
     }
 
-  bgav_diprintf(indent+2, "Video line map: %d entries\n", d->video_line_map_size);
+  bgav_diprintf(indent+2, "Video line map:         %d entries\n", d->video_line_map_size);
   
   for(i = 0; i < d->video_line_map_size; i++)
     {
     bgav_diprintf(indent+4, "Entry: %d\n", d->video_line_map[i]);
     }
 
-  bgav_diprintf(indent+2, "linked track ID:      %d\n", d->linked_track_id);
-  bgav_diprintf(indent+2, "fourcc:               ");bgav_dump_fourcc(d->fourcc);bgav_dprintf("\n");
+  bgav_diprintf(indent+2, "linked track ID:        %d\n", d->linked_track_id);
   
   }
 
@@ -1139,6 +1225,8 @@ int bgav_mxf_descriptor_resolve_refs(mxf_file_t * file, mxf_descriptor_t * d)
   {
   d->subdescriptors = resolve_strong_refs(file, d->subdescriptor_refs, d->num_subdescriptor_refs,
                                           MXF_TYPE_DESCRIPTOR);
+  if(d->essence_container_ul[15] > 0x01)
+    d->clip_wrapped = 1;
   return 1;
   }
 
@@ -1377,7 +1465,8 @@ void bgav_mxf_preface_dump(int indent, mxf_preface_t * s)
     do_indent(indent+4); dump_ul_ptr(s->identification_refs[i], s->identifications[i]);
     }
   bgav_diprintf(indent+2, "Content storage:       ");dump_ul_ptr(s->content_storage_ref, s->content_storage); 
-  bgav_diprintf(indent+2, "Operational pattern:   ");dump_ul(s->operational_pattern); 
+  bgav_diprintf(indent+2, "Operational pattern:   ");dump_ul(s->operational_pattern_ul);
+                                                                                                        
   bgav_diprintf(indent+2, "Essence containers:    %d\n", s->num_essence_container_types);
   for(i = 0; i < s->num_essence_container_types; i++)
     {
@@ -1390,6 +1479,7 @@ int bgav_mxf_preface_resolve_refs(mxf_file_t * file, mxf_preface_t * d)
   d->identifications = resolve_strong_refs(file, d->identification_refs, d->num_identification_refs,
                                            MXF_TYPE_IDENTIFICATION);
   d->content_storage = resolve_strong_ref(file, d->content_storage_ref, MXF_TYPE_CONTENT_STORAGE);
+  //  d->operational_pattern = get_op(d->operational_pattern_ul);
   return 1;
   }
 
@@ -1428,7 +1518,7 @@ static int read_preface(bgav_input_context_t * input,
         return 0;
       break;
     case 0x3b09:
-      if(bgav_input_read_data(input, d->operational_pattern, 16) < 16)
+      if(bgav_input_read_data(input, d->operational_pattern_ul, 16) < 16)
         return 0;
       break;
     case 0x3b0a:
@@ -1726,18 +1816,22 @@ static mxf_descriptor_t * get_source_descriptor(mxf_file_t * file, mxf_package_t
 static int resolve_refs(mxf_file_t * ret, const bgav_options_t * opt)
   {
   int i;
+
+  /* First round */
+
   for(i = 0; i < ret->header.num_metadata; i++)
     {
     switch(ret->header.metadata[i]->type)
       {
       case MXF_TYPE_MATERIAL_PACKAGE:
+        if(!bgav_mxf_package_resolve_refs(ret, (mxf_package_t*)(ret->header.metadata[i])))
+          return 0;
+        ret->num_source_packages++;
+        break;
       case MXF_TYPE_SOURCE_PACKAGE:
         if(!bgav_mxf_package_resolve_refs(ret, (mxf_package_t*)(ret->header.metadata[i])))
           return 0;
-        break;
-      case MXF_TYPE_SOURCE_CLIP:
-        if(!bgav_mxf_source_clip_resolve_refs(ret, (mxf_source_clip_t*)(ret->header.metadata[i])))
-          return 0;
+        ret->num_material_packages++;
         break;
       case MXF_TYPE_TIMECODE_COMPONENT:
         if(!bgav_mxf_timecode_component_resolve_refs(ret, (mxf_timecode_component_t*)(ret->header.metadata[i])))
@@ -1753,8 +1847,14 @@ static int resolve_refs(mxf_file_t * ret, const bgav_options_t * opt)
           return 0;
         break;
       case MXF_TYPE_SEQUENCE:
-        if(!bgav_mxf_sequence_resolve_refs(ret, (mxf_sequence_t*)(ret->header.metadata[i])))
+        {
+        mxf_sequence_t * s;
+        s = (mxf_sequence_t*)ret->header.metadata[i];
+        if(!bgav_mxf_sequence_resolve_refs(ret, s))
           return 0;
+        if(s->num_structural_component_refs > ret->max_sequence_components)
+          ret->max_sequence_components = s->num_structural_component_refs;
+        }
         break;
       case MXF_TYPE_MULTIPLE_DESCRIPTOR:
       case MXF_TYPE_DESCRIPTOR:
@@ -1769,10 +1869,37 @@ static int resolve_refs(mxf_file_t * ret, const bgav_options_t * opt)
         if(!bgav_mxf_identification_resolve_refs(ret, (mxf_identification_t*)(ret->header.metadata[i])))
           return 0;
         break;
+      case MXF_TYPE_CRYPTO_CONTEXT:
+      case MXF_TYPE_SOURCE_CLIP:
+      case MXF_TYPE_ESSENCE_CONTAINER_DATA:
+        break;
+      }
+    }
+  
+  /* Second round */
+  for(i = 0; i < ret->header.num_metadata; i++)
+    {
+    switch(ret->header.metadata[i]->type)
+      {
+      case MXF_TYPE_SOURCE_CLIP:
+        if(!bgav_mxf_source_clip_resolve_refs(ret, (mxf_source_clip_t*)(ret->header.metadata[i])))
+          return 0;
+        break;
       case MXF_TYPE_ESSENCE_CONTAINER_DATA:
         if(!bgav_mxf_essence_container_data_resolve_refs(ret, (mxf_essence_container_data_t*)(ret->header.metadata[i])))
           return 0;
         break;
+
+      case MXF_TYPE_MATERIAL_PACKAGE:
+      case MXF_TYPE_SOURCE_PACKAGE:
+      case MXF_TYPE_TIMECODE_COMPONENT:
+      case MXF_TYPE_PREFACE:
+      case MXF_TYPE_CONTENT_STORAGE:
+      case MXF_TYPE_SEQUENCE:
+      case MXF_TYPE_MULTIPLE_DESCRIPTOR:
+      case MXF_TYPE_DESCRIPTOR:
+      case MXF_TYPE_TRACK:
+      case MXF_TYPE_IDENTIFICATION:
       case MXF_TYPE_CRYPTO_CONTEXT:
         break;
       }
@@ -1781,13 +1908,41 @@ static int resolve_refs(mxf_file_t * ret, const bgav_options_t * opt)
   return 1;
   }
 
+uint32_t bgav_mxf_get_audio_fourcc(mxf_descriptor_t * d)
+  {
+  const codec_entry_t * ce;
+
+  ce = match_codec(mxf_audio_codec_uls, d->essence_codec_ul);
+  if(ce)
+    return ce->fourcc;
+
+  ce = match_codec(mxf_sound_essence_container_uls, d->essence_container_ul);
+  
+  if(ce)
+    return ce->fourcc;
+  
+  return 0;
+  }
+
+uint32_t bgav_mxf_get_video_fourcc(mxf_descriptor_t * d)
+  {
+  const codec_entry_t * ce;
+
+  ce = match_codec(mxf_video_codec_uls, d->essence_codec_ul);
+  if(ce)
+    return ce->fourcc;
+
+  ce = match_codec(mxf_sound_essence_container_uls, d->essence_container_ul);
+  
+  if(ce)
+    return ce->fourcc;
+  
+  return 0;
+
+  }
+
 static int bgav_mxf_finalize(mxf_file_t * ret, const bgav_options_t * opt)
   {
-  int i, j, k;
-  mxf_package_t * mp;
-  mxf_track_t * mt;
-  mxf_track_t * st;
-  mxf_source_clip_t * component;
 
   if(!resolve_refs(ret, opt))
     return 0;
@@ -2157,10 +2312,16 @@ int bgav_mxf_file_read(bgav_input_context_t * input,
       if(!read_index_table_segment(input, ret, &klv))
         return 0;
       }
+    else if(UL_MATCH(klv.key, mxf_essence_element_key))
+      {
+      bgav_dprintf("Essence element for track %02x %02x %02x %02x (%ld bytes)\n",
+                   klv.key[12], klv.key[13], klv.key[14], klv.key[15], klv.length);
+      bgav_input_skip(input, klv.length);
+      }
     else
       {
       bgav_input_skip(input, klv.length);
-      bgav_mxf_klv_dump(0, &klv);
+      bgav_dprintf("Unknown KLV: "); bgav_mxf_klv_dump(0, &klv);
       }
     }
 
@@ -2237,7 +2398,10 @@ void bgav_mxf_file_dump(mxf_file_t * ret)
   {
   int i;
   bgav_dprintf("\nMXF File structure\n"); 
-
+  bgav_dprintf("source packages:                 %d\n", ret->num_source_packages);
+  bgav_dprintf("material packages:               %d\n", ret->num_material_packages);
+  bgav_dprintf("maximum components per sequence: %d\n", ret->max_sequence_components);
+  
   bgav_dprintf("  Header "); bgav_mxf_partition_dump(2, &ret->header_partition);
 
   bgav_mxf_primer_pack_dump(2, &ret->header.primer_pack);
@@ -2300,3 +2464,17 @@ void bgav_mxf_file_dump(mxf_file_t * ret)
       }
     }
   }
+
+bgav_stream_t * bgav_mxf_find_stream(bgav_demuxer_context_t * t, mxf_ul_t ul)
+  {
+  uint32_t stream_id;
+  if(!UL_MATCH(ul, mxf_essence_element_key))
+    return (bgav_stream_t *)0;
+  stream_id = ul[12] << 24 |
+    ul[13] << 16 |
+    ul[14] <<  8 |
+    ul[15];
+  return bgav_track_find_stream(t, stream_id);
+  }
+
+
