@@ -36,20 +36,20 @@ typedef struct mxf_file_s mxf_file_t;
 /* Move to the next startcode */
 int bgav_mxf_sync(bgav_input_context_t * input);
 
-#if 0
+#if 1
 typedef enum
   {
-  MXF_OP_UNKNOWN,
-  MXF_OP_1a,
-  MXF_OP_1b,
-  MXF_OP_1c,
-  MXF_OP_2a,
-  MXF_OP_2b,
-  MXF_OP_2c,
-  MXF_OP_3a,
-  MXF_OP_3b,
-  MXF_OP_3c,
-  MXF_OP_ATOM,
+  MXF_OP_UNKNOWN = 0,
+  MXF_OP_1a      = 1,
+  MXF_OP_1b      = 2,
+  MXF_OP_1c      = 3,
+  MXF_OP_2a      = 4,
+  MXF_OP_2b      = 5,
+  MXF_OP_2c      = 6,
+  MXF_OP_3a      = 7,
+  MXF_OP_3b      = 8,
+  MXF_OP_3c      = 9,
+  MXF_OP_ATOM    = 10,
   } mxf_op_t;
 #endif
 
@@ -140,6 +140,7 @@ struct mxf_metadata_s
   {
   mxf_metadata_type_t type;
   mxf_ul_t uid;
+  mxf_ul_t generation_ul;
   };
 
 void bgav_mxf_metadata_dump_common(int indent, mxf_metadata_t * m);
@@ -185,6 +186,10 @@ struct  mxf_descriptor_s
   uint32_t horizontal_subsampling;
   uint32_t vertical_subsampling;
 
+  uint64_t container_duration;
+  uint16_t block_align;
+  uint32_t avg_bps;
+  
   /* MPEG-4 extradata (in the future maybe others too) */
   uint8_t *ext_data;
   int ext_size;
@@ -232,7 +237,8 @@ struct mxf_track_s
   uint32_t edit_rate_num;
   uint32_t edit_rate_den;
   uint64_t origin;
-    
+  char * name;
+  
   /* Secondary */
   mxf_metadata_t * sequence; /* mandatory, and only one */
   };
@@ -255,7 +261,7 @@ typedef struct
 
   uint64_t creation_date;
   uint64_t modification_date;
-  
+  char * generic_name;
   /* Secondary */
   mxf_metadata_t * descriptor;
   mxf_metadata_t ** tracks;
@@ -358,11 +364,13 @@ struct mxf_preface_s
   mxf_ul_t * dm_schemes;
   uint32_t num_dm_schemes;
 
+  mxf_ul_t primary_package_ul;
+  
   /* Secondary */
   mxf_metadata_t * content_storage;
   mxf_metadata_t ** identifications;
   
-  //  mxf_op_t operational_pattern;
+  mxf_op_t operational_pattern;
   };
 
 void bgav_mxf_preface_dump(int indent, mxf_preface_t * s);
@@ -440,7 +448,10 @@ struct mxf_file_s
   /* Secondary variables */
   int num_source_packages;
   int num_material_packages;
+  int num_descriptors;
+  
   int max_sequence_components;
+  int64_t data_start;
   };
 
 int bgav_mxf_file_read(bgav_input_context_t * input,
@@ -452,6 +463,7 @@ void bgav_mxf_file_free(mxf_file_t * ret);
 uint32_t bgav_mxf_get_audio_fourcc(mxf_descriptor_t * d);
 uint32_t bgav_mxf_get_video_fourcc(mxf_descriptor_t * d);
 
-bgav_stream_t * bgav_mxf_find_stream(bgav_demuxer_context_t * t,
+bgav_stream_t * bgav_mxf_find_stream(mxf_file_t * f,
+                                     bgav_demuxer_context_t * t,
                                      mxf_ul_t ul);
 

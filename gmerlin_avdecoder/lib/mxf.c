@@ -147,6 +147,83 @@ resolve_strong_refs(mxf_file_t * file, mxf_ul_t * u, int num, mxf_metadata_type_
   return ret;
   }
 
+/* Operational pattern ULs (taken from ingex) */
+
+#define MXF_OP_L(def, name) \
+    g_##name##_op_##def##_label
+
+#define MXF_OP_L_LABEL(regver, complexity, byte14, qualifier) \
+    {0x06, 0x0e, 0x2b, 0x34, 0x04, 0x01, 0x01, regver, 0x0d, 0x01, 0x02, 0x01, complexity, byte14, qualifier, 0x00}
+    
+    
+/* OP Atom labels */
+ 
+#define MXF_ATOM_OP_L(byte14) \
+    MXF_OP_L_LABEL(0x02, 0x10, byte14, 0x00)
+
+#if 0
+static const mxf_ul_t MXF_OP_L(atom, complexity00) = 
+    MXF_ATOM_OP_L(0x00);
+    
+static const mxf_ul_t MXF_OP_L(atom, complexity01) = 
+    MXF_ATOM_OP_L(0x01);
+    
+static const mxf_ul_t MXF_OP_L(atom, complexity02) = 
+    MXF_ATOM_OP_L(0x02);
+    
+static const mxf_ul_t MXF_OP_L(atom, complexity03) = 
+    MXF_ATOM_OP_L(0x03);
+#endif
+
+//static const mxf_ul_t g_opAtomPrefix = MXF_ATOM_OP_L(0);
+
+static const mxf_ul_t op_atom =
+  { 0x06, 0x0e, 0x2b, 0x34, 0x04, 0x01, 0x01, 0xff, 0x0d, 0x01, 0x02, 0x01, 0x10, 0xff, 0x00, 0x00 };
+
+static int is_op_atom(const mxf_ul_t label)
+  {
+  int i;
+  for(i = 0; i < 16; i++)
+    {
+    if((op_atom[i] != 0xff) && (op_atom[i] != label[i]))
+      return 0;
+    }
+      
+  //  return memcmp(&g_opAtomPrefix, label, 13) == 0;
+  return 1;
+  }
+
+/* OP-1A labels */
+ 
+#define MXF_1A_OP_L(qualifier) \
+    MXF_OP_L_LABEL(0x01, 0x01, 0x01, qualifier)
+
+#if 0
+/* internal essence, stream file, multi-track */
+static const mxf_ul_t MXF_OP_L(1a, qq09) = 
+    MXF_1A_OP_L(0x09);
+#endif
+
+// static const mxf_ul_t g_op1APrefix = MXF_1A_OP_L(0);   
+
+// #define MXF_OP_L_LABEL(regver, complexity, byte14, qualifier) \
+//{ 0x06, 0x0e, 0x2b, 0x34, 0x04, 0x01, 0x01, regver, 0x0d, 0x01, 0x02, 0x01, complexity, byte14, qualifier, 0x00}
+
+static const mxf_ul_t op_1a =
+  { 0x06, 0x0e, 0x2b, 0x34, 0x04, 0x01, 0x01, 0xff,   0x0d, 0x01, 0x02, 0x01,       0x01,   0x01,      0xff, 0x00};
+
+static int is_op_1a(const mxf_ul_t label)
+  {
+  int i;
+  for(i = 0; i < 16; i++)
+    {
+    if((op_1a[i] != 0xff) && (op_1a[i] != label[i]))
+      return 0;
+    }
+  return 1;
+  //  return memcmp(&g_op1APrefix, label, 13) == 0;
+  }
+
 /* Partial ULs */
 
 static const uint8_t mxf_klv_key[] = { 0x06,0x0e,0x2b,0x34 };
@@ -275,6 +352,8 @@ static mxf_op_t get_op(mxf_ul_t ul)
   return MXF_OP_UNKNOWN;
   }
 
+#endif
+
 static const struct
   {
   mxf_op_t op;
@@ -303,10 +382,8 @@ static const char * get_op_name(mxf_op_t op)
     if(op == op_names[i].op)
       return op_names[i].name;
     }
-  return (char*)0;
+  return op_names[0].name;
   }
-
-#endif
 
 /* Stream types */
 
@@ -627,6 +704,14 @@ static int read_header_metadata(bgav_input_context_t * input,
       //      fprintf(stderr, "Skip UID:\n");
       //      bgav_input_skip_dump(input, 16);
       }
+    else if((tag == 0x0102) && m)
+      {
+      if(bgav_input_read_data(input, m->generation_ul, 16) < 16)
+        return 0;
+      //      fprintf(stderr, "Got UID: ");dump_ul(m->uid);fprintf(stderr, "\n");
+      //      fprintf(stderr, "Skip UID:\n");
+      //      bgav_input_skip_dump(input, 16);
+      }
     else if(!read_func(input, ret, m, tag, len, uid))
       return 0;
 
@@ -683,11 +768,12 @@ void bgav_mxf_content_storage_dump(int indent, mxf_content_storage_t * s)
   {
   int i;
   bgav_diprintf(indent, "Content storage\n");
-  bgav_diprintf(indent+2, "UID:        "); dump_ul(s->common.uid); 
+  bgav_diprintf(indent+2, "UID:           "); dump_ul(s->common.uid); 
+  bgav_diprintf(indent+2, "Generation UL: "); dump_ul(s->common.generation_ul); 
 
   if(s->num_package_refs)
     {
-    bgav_diprintf(indent+2, "Package refs: %d\n", s->num_package_refs);
+    bgav_diprintf(indent+2, "Package refs:  %d\n", s->num_package_refs);
     for(i = 0; i < s->num_package_refs; i++)
       {
       do_indent(indent+4); dump_ul_ptr(s->package_refs[i], s->packages[i]);
@@ -747,11 +833,14 @@ static int read_material_package(bgav_input_context_t * input,
       if(!bgav_input_read_64_be(input, &p->creation_date))
         return 0;
       break;
+    case 0x4402:
+      p->generic_name = read_utf16_string(input, size);
+      break;
     case 0x4403:
       if(!(p->track_refs = read_refs(input, &p->num_track_refs)))
         return 0;
       break;
-   default:
+    default:
 #ifdef DUMP_UNKNOWN
      bgav_dprintf("Unknown local tag in material package: %04x, %d bytes\n", tag, size);
      if(size)
@@ -777,6 +866,9 @@ static int read_source_package(bgav_input_context_t * input,
     case 0x4405:
       if(!bgav_input_read_64_be(input, &p->creation_date))
         return 0;
+      break;
+    case 0x4402:
+      p->generic_name = read_utf16_string(input, size);
       break;
     case 0x4403:
       if(!(p->track_refs = read_refs(input, &p->num_track_refs)))
@@ -811,6 +903,7 @@ void bgav_mxf_package_dump(int indent, mxf_package_t * p)
   else if(p->common.type == MXF_TYPE_MATERIAL_PACKAGE)
     bgav_diprintf(indent, "Material package:\n");
   bgav_diprintf(indent+2, "UID:           "); dump_ul(p->common.uid); 
+  bgav_diprintf(indent+2, "Generation UL: "); dump_ul(p->common.generation_ul); 
 
   bgav_diprintf(indent+2, "Package UID:       "); dump_ul(p->package_ul); 
   bgav_diprintf(indent+2, "Creation date:     "); dump_date(p->creation_date); bgav_dprintf("\n");
@@ -821,18 +914,22 @@ void bgav_mxf_package_dump(int indent, mxf_package_t * p)
     bgav_diprintf(indent+4, "Track: "); dump_ul_ptr(p->track_refs[i], p->tracks[i]); 
     }
   bgav_diprintf(indent+2, "Descriptor ref: "); dump_ul_ptr(p->descriptor_ref, p->descriptor);
+  bgav_diprintf(indent+2, "Generic Name:   %s\n",
+                (p->generic_name ? p->generic_name : "Unknown")); 
   }
 
 void bgav_mxf_package_free(mxf_package_t * p)
   {
   FREE(p->track_refs);
   FREE(p->tracks);
+  FREE(p->generic_name);
   }
 
 int bgav_mxf_package_resolve_refs(mxf_file_t * file, mxf_package_t * s)
   {
   s->tracks = resolve_strong_refs(file, s->track_refs, s->num_track_refs, MXF_TYPE_TRACK);
-  s->descriptor = resolve_strong_ref(file, s->descriptor_ref, MXF_TYPE_DESCRIPTOR | MXF_TYPE_MULTIPLE_DESCRIPTOR);
+  s->descriptor = resolve_strong_ref(file, s->descriptor_ref,
+                                     MXF_TYPE_DESCRIPTOR | MXF_TYPE_MULTIPLE_DESCRIPTOR);
   return 1;
   }
 
@@ -842,11 +939,13 @@ int bgav_mxf_package_resolve_refs(mxf_file_t * file, mxf_package_t * s)
 void bgav_mxf_source_clip_dump(int indent, mxf_source_clip_t * s)
   {
   do_indent(indent);   bgav_dprintf("Source clip:\n");
-  bgav_diprintf(indent+2, "UID:                "); dump_ul(s->common.uid); 
+  bgav_diprintf(indent+2, "UID:                "); dump_ul(s->common.uid);
+  bgav_diprintf(indent+2, "Generation UL:      "); dump_ul(s->common.generation_ul); 
   bgav_diprintf(indent+2, "source_package_ref: "); dump_ul_ptr(s->source_package_ref, s->source_package);
   bgav_diprintf(indent+2, "data_definition_ul: "); dump_ul(s->data_definition_ul);
   bgav_diprintf(indent+2, "duration:           %" PRId64 "\n", s->duration);
   bgav_diprintf(indent+2, "start_pos:          %" PRId64 "\n", s->start_position);
+  bgav_diprintf(indent+2, "source_track_id:    %d\n", s->source_track_id);
   
   }
 
@@ -945,6 +1044,9 @@ static int read_timecode_component(bgav_input_context_t * input,
 void bgav_mxf_timecode_component_dump(int indent, mxf_timecode_component_t * s)
   {
   do_indent(indent);   bgav_dprintf("Timecode component\n");
+  bgav_diprintf(indent+2, "UID:                   "); dump_ul(s->common.uid); 
+  bgav_diprintf(indent+2, "Generation UL:         "); dump_ul(s->common.generation_ul); 
+
   bgav_diprintf(indent+2, "data_definition_ul:    "); dump_ul(s->data_definition_ul); 
   bgav_diprintf(indent+2, "duration:              %"PRId64"\n", s->duration);
   bgav_diprintf(indent+2, "rounded_timecode_base: %d\n",
@@ -968,17 +1070,21 @@ void bgav_mxf_timecode_component_free(mxf_timecode_component_t * s)
 void bgav_mxf_track_dump(int indent, mxf_track_t * t)
   {
   bgav_diprintf(indent, "Track\n");
-  bgav_diprintf(indent+2, "UID:          "); dump_ul(t->common.uid); 
-  bgav_diprintf(indent+2, "Track ID:     %d\n", t->track_id);
-  bgav_diprintf(indent+2, "Track number: [%02x %02x %02x %02x]\n",
+  bgav_diprintf(indent+2, "UID:           "); dump_ul(t->common.uid); 
+  bgav_diprintf(indent+2, "Generation UL: "); dump_ul(t->common.generation_ul); 
+
+  bgav_diprintf(indent+2, "Track ID:      %d\n", t->track_id);
+  bgav_diprintf(indent+2, "Name:          %s\n", (t->name ? t->name : "Unknown"));
+  bgav_diprintf(indent+2, "Track number:  [%02x %02x %02x %02x]\n",
                                     t->track_number[0], t->track_number[1],
                                     t->track_number[2], t->track_number[3]);
-  bgav_diprintf(indent+2, "Edit rate:    %d/%d\n", t->edit_rate_num, t->edit_rate_den);
-  bgav_diprintf(indent+2, "Sequence ref: ");dump_ul_ptr(t->sequence_ref, t->sequence);
+  bgav_diprintf(indent+2, "Edit rate:     %d/%d\n", t->edit_rate_num, t->edit_rate_den);
+  bgav_diprintf(indent+2, "Sequence ref:  ");dump_ul_ptr(t->sequence_ref, t->sequence);
   }
 
 void bgav_mxf_track_free(mxf_track_t * t)
   {
+  FREE(t->name);
   }
 
 int bgav_mxf_track_resolve_refs(mxf_file_t * file, mxf_track_t * s)
@@ -998,6 +1104,9 @@ static int read_track(bgav_input_context_t * input,
     case 0x4801:
       if(!bgav_input_read_32_be(input, &t->track_id))
         return 0;
+      break;
+    case 0x4802:
+      t->name = read_utf16_string(input, size);
       break;
     case 0x4804:
       if(bgav_input_read_data(input, t->track_number, 4) < 4)
@@ -1035,6 +1144,7 @@ void bgav_mxf_sequence_dump(int indent, mxf_sequence_t * s)
   int i;
   bgav_diprintf(indent, "Sequence\n");
   bgav_diprintf(indent+2, "UID:                "); dump_ul(s->common.uid); 
+  bgav_diprintf(indent+2, "Generation UL:      "); dump_ul(s->common.generation_ul); 
 
   bgav_diprintf(indent+2, "data_definition_ul: ");dump_ul(s->data_definition_ul);
   bgav_diprintf(indent+2, "Structural components (%d):\n", s->num_structural_component_refs);
@@ -1151,6 +1261,7 @@ void bgav_mxf_identification_dump(int indent, mxf_identification_t * s)
   bgav_diprintf(indent, "Identification\n");
 
   bgav_diprintf(indent+2, "UID:               "); dump_ul(s->common.uid); 
+  bgav_diprintf(indent+2, "Generation UL:     "); dump_ul(s->common.generation_ul); 
 
   bgav_diprintf(indent+2, "thisGenerationUID: "); dump_ul(s->this_generation_ul);
   bgav_diprintf(indent+2, "Company name:      %s\n",
@@ -1188,6 +1299,7 @@ void bgav_mxf_descriptor_dump(int indent, mxf_descriptor_t * d)
   int i;
   do_indent(indent);   bgav_dprintf("Descriptor\n");
   bgav_diprintf(indent+2, "UID:                    ");dump_ul(d->common.uid); 
+  bgav_diprintf(indent+2, "Generation UL:          ");dump_ul(d->common.generation_ul); 
   bgav_diprintf(indent+2, "essence_container_ul:   ");dump_ul(d->essence_container_ul);
   bgav_diprintf(indent+2, "clip_wrapped:           %d\n", d->clip_wrapped);
   bgav_diprintf(indent+2, "essence_codec_ul:       ");dump_ul(d->essence_codec_ul);
@@ -1202,6 +1314,10 @@ void bgav_mxf_descriptor_dump(int indent, mxf_descriptor_t * d)
   bgav_diprintf(indent+2, "Active bits per sample: %d\n", d->active_bits_per_sample);
   bgav_diprintf(indent+2, "Horizontal subsampling: %d\n", d->horizontal_subsampling);
   bgav_diprintf(indent+2, "Vertical subsampling:   %d\n", d->vertical_subsampling);
+  bgav_diprintf(indent+2, "linked track ID:        %d\n", d->linked_track_id);
+  bgav_diprintf(indent+2, "Container duration:     %"PRId64"\n", d->container_duration);
+  bgav_diprintf(indent+2, "Block align:            %d\n", d->block_align);
+  bgav_diprintf(indent+2, "Avg BPS:                %d\n", d->avg_bps);
   
   bgav_diprintf(indent+2, "Subdescriptor refs:     %d\n", d->num_subdescriptor_refs);
 
@@ -1217,8 +1333,6 @@ void bgav_mxf_descriptor_dump(int indent, mxf_descriptor_t * d)
     bgav_diprintf(indent+4, "Entry: %d\n", d->video_line_map[i]);
     }
 
-  bgav_diprintf(indent+2, "linked track ID:        %d\n", d->linked_track_id);
-  
   }
 
 int bgav_mxf_descriptor_resolve_refs(mxf_file_t * file, mxf_descriptor_t * d)
@@ -1279,6 +1393,10 @@ static int read_descriptor(bgav_input_context_t * input,
       if(!(d->subdescriptor_refs = read_refs(input, &d->num_subdescriptor_refs)))
         return 0;
       break;
+    case 0x3002:
+      if(!bgav_input_read_64_be(input, &d->container_duration))
+        return 0;
+      break;
     case 0x3004:
       if(bgav_input_read_data(input, d->essence_container_ul, 16) < 16)
         return 0;
@@ -1318,6 +1436,14 @@ static int read_descriptor(bgav_input_context_t * input,
       break;
     case 0x3D02:
       if(!bgav_input_read_8(input, &d->locked))
+        return 0;
+      break;
+    case 0x3D0A:
+      if(!bgav_input_read_16_be(input, &d->block_align))
+        return 0;
+      break;
+    case 0x3D09:
+      if(!bgav_input_read_32_be(input, &d->avg_bps))
         return 0;
       break;
     case 0x3001:
@@ -1399,6 +1525,7 @@ void bgav_mxf_essence_container_data_dump(int indent, mxf_essence_container_data
   {
   do_indent(indent);   bgav_dprintf("Essence Container Data:\n");
   bgav_diprintf(indent+2, "UID:                  ");dump_ul(s->common.uid); 
+  bgav_diprintf(indent+2, "Generation UL:        "); dump_ul(s->common.generation_ul); 
   bgav_diprintf(indent+2, "Linked Package:       ");dump_ul_ptr(s->linked_package_ref, s->linked_package); 
   bgav_diprintf(indent+2, "IndexSID:             %d\n", s->index_sid);
   bgav_diprintf(indent+2, "BodySID:              %d\n", s->body_sid);
@@ -1457,6 +1584,7 @@ void bgav_mxf_preface_dump(int indent, mxf_preface_t * s)
   int i;
   do_indent(indent);   bgav_dprintf("Preface:\n");
   bgav_diprintf(indent+2, "UID:                  ");dump_ul(s->common.uid); 
+  bgav_diprintf(indent+2, "Generation UL:        ");dump_ul(s->common.generation_ul); 
   bgav_diprintf(indent+2, "Last modified date:    ");dump_date(s->last_modified_date); bgav_dprintf("\n");
   bgav_diprintf(indent+2, "Version:               %d\n", s->version);
   bgav_diprintf(indent+2, "Identifications:       %d\n", s->num_identification_refs);
@@ -1465,13 +1593,14 @@ void bgav_mxf_preface_dump(int indent, mxf_preface_t * s)
     do_indent(indent+4); dump_ul_ptr(s->identification_refs[i], s->identifications[i]);
     }
   bgav_diprintf(indent+2, "Content storage:       ");dump_ul_ptr(s->content_storage_ref, s->content_storage); 
-  bgav_diprintf(indent+2, "Operational pattern:   ");dump_ul(s->operational_pattern_ul);
-                                                                                                        
+  bgav_diprintf(indent+2, "Operational pattern:   ");dump_ul_nb(s->operational_pattern_ul);bgav_dprintf(" %s\n", get_op_name(s->operational_pattern));
   bgav_diprintf(indent+2, "Essence containers:    %d\n", s->num_essence_container_types);
   for(i = 0; i < s->num_essence_container_types; i++)
     {
     bgav_diprintf(indent+4, "Essence containers: "); dump_ul(s->essence_container_types[i]);
     }
+  bgav_diprintf(indent+2, "Primary package:      ");dump_ul(s->primary_package_ul);
+  
   }
 
 int bgav_mxf_preface_resolve_refs(mxf_file_t * file, mxf_preface_t * d)
@@ -1479,7 +1608,11 @@ int bgav_mxf_preface_resolve_refs(mxf_file_t * file, mxf_preface_t * d)
   d->identifications = resolve_strong_refs(file, d->identification_refs, d->num_identification_refs,
                                            MXF_TYPE_IDENTIFICATION);
   d->content_storage = resolve_strong_ref(file, d->content_storage_ref, MXF_TYPE_CONTENT_STORAGE);
-  //  d->operational_pattern = get_op(d->operational_pattern_ul);
+
+  if(is_op_1a(d->operational_pattern_ul))
+    d->operational_pattern = MXF_OP_1a;
+  else if(is_op_atom(d->operational_pattern_ul))
+    d->operational_pattern = MXF_OP_ATOM;
   return 1;
   }
 
@@ -1515,6 +1648,10 @@ static int read_preface(bgav_input_context_t * input,
       break;
     case 0x3b03:
       if(bgav_input_read_data(input, d->content_storage_ref, 16) < 16)
+        return 0;
+      break;
+    case 0x3b08:
+      if(bgav_input_read_data(input, d->primary_package_ul, 16) < 16)
         return 0;
       break;
     case 0x3b09:
@@ -1857,7 +1994,11 @@ static int resolve_refs(mxf_file_t * ret, const bgav_options_t * opt)
         }
         break;
       case MXF_TYPE_MULTIPLE_DESCRIPTOR:
+        if(!bgav_mxf_descriptor_resolve_refs(ret, (mxf_descriptor_t*)(ret->header.metadata[i])))
+          return 0;
+        break;
       case MXF_TYPE_DESCRIPTOR:
+        ret->num_descriptors++;
         if(!bgav_mxf_descriptor_resolve_refs(ret, (mxf_descriptor_t*)(ret->header.metadata[i])))
           return 0;
         break;
@@ -1932,7 +2073,7 @@ uint32_t bgav_mxf_get_video_fourcc(mxf_descriptor_t * d)
   if(ce)
     return ce->fourcc;
 
-  ce = match_codec(mxf_sound_essence_container_uls, d->essence_container_ul);
+  ce = match_codec(mxf_picture_essence_container_uls, d->essence_container_ul);
   
   if(ce)
     return ce->fourcc;
@@ -2086,6 +2227,12 @@ int bgav_mxf_file_read(bgav_input_context_t * input,
   {
   mxf_klv_t klv;
   int64_t last_pos, header_start_pos;
+
+  if(!input->input->seek_byte)
+    {
+    bgav_log(input->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Cannot decode MXF file from non seekable source");
+    return 0;
+    }
   /* Read header partition pack */
   if(!bgav_mxf_sync(input))
     {
@@ -2288,9 +2435,10 @@ int bgav_mxf_file_read(bgav_input_context_t * input,
         }
       }
     }
+  //  fprintf(stderr, "Header done\n");
   
-  fprintf(stderr, "Header done\n");
-
+  ret->data_start = input->position;
+  
   if(!bgav_mxf_finalize(ret, input->opt))
     {
     fprintf(stderr, "Finalizing failed");
@@ -2324,7 +2472,9 @@ int bgav_mxf_file_read(bgav_input_context_t * input,
       bgav_dprintf("Unknown KLV: "); bgav_mxf_klv_dump(0, &klv);
       }
     }
-
+  
+  bgav_input_seek(input, ret->data_start, SEEK_SET);
+  
   return 1;
   }
 
@@ -2465,11 +2615,26 @@ void bgav_mxf_file_dump(mxf_file_t * ret)
     }
   }
 
-bgav_stream_t * bgav_mxf_find_stream(bgav_demuxer_context_t * t, mxf_ul_t ul)
+bgav_stream_t * bgav_mxf_find_stream(mxf_file_t * f, bgav_demuxer_context_t * t, mxf_ul_t ul)
   {
   uint32_t stream_id;
   if(!UL_MATCH(ul, mxf_essence_element_key))
     return (bgav_stream_t *)0;
+
+  if(((mxf_preface_t*)(f->preface))->operational_pattern == MXF_OP_ATOM)
+    {
+    bgav_stream_t * ret = (bgav_stream_t *)0;
+    if(t->tt->cur->num_audio_streams)
+      ret = t->tt->cur->audio_streams;
+    if(t->tt->cur->num_video_streams)
+      ret = t->tt->cur->video_streams;
+    if(t->tt->cur->num_subtitle_streams)
+      ret = t->tt->cur->subtitle_streams;
+    if(ret && ret->action == BGAV_STREAM_MUTE)
+      return (bgav_stream_t *)0;
+    return ret;
+    }
+
   stream_id = ul[12] << 24 |
     ul[13] << 16 |
     ul[14] <<  8 |

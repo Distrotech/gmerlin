@@ -185,15 +185,15 @@ static int parse_text_node(parser_t * p, bgav_yml_node_t * ret)
   return 1;
   }
 
-static int parse_attributes(parser_t * p, bgav_yml_node_t * ret)
+static int parse_attributes(parser_t * p, bgav_yml_attr_t ** ret)
   {
   bgav_yml_attr_t * attr_end;
 
   /* We have at least one attribute here */
 
-  ret->attributes = calloc(1, sizeof(*(ret->attributes)));
-  attr_end = ret->attributes;
-
+  *ret = calloc(1, sizeof(**ret));
+  attr_end = *ret;
+  
   attr_end->name = parse_attribute_name(p);
   if(!skip_space(p))
     return 0;
@@ -207,7 +207,7 @@ static int parse_attributes(parser_t * p, bgav_yml_node_t * ret)
   while(1)
     {
     skip_space(p);
-    if((*(p->buffer) == '>') || (*(p->buffer) == '/'))
+    if((*(p->buffer) == '>') || (*(p->buffer) == '/') || (*(p->buffer) == '?'))
       return 1;
     else
       {
@@ -272,6 +272,41 @@ static int parse_tag_node(parser_t * p, bgav_yml_node_t * ret)
   {
   char * pos;
   advance(p, 1);
+
+  if(p->buffer_size < 4)
+    {
+    if(!more_data(p))
+      return 0;
+    }
+
+  if(!strncasecmp(p->buffer, "?xml", 4))
+    {
+    advance(p, 4);
+    if(!skip_space(p))
+      return 0;
+
+    if(*(p->buffer) != '>')
+      {
+      if(!parse_attributes(p, &ret->xml_attributes))
+        return 0;
+      }
+
+    if(p->buffer_size < 2)
+      {
+      if(!more_data(p))
+        return 0;
+      }
+    if(strncasecmp(p->buffer, "?>", 2))
+      return 0;
+    advance(p, 2);
+
+    if(!skip_space(p))
+      return 0;
+    if(*(p->buffer) != '<')
+      return 0;
+    advance(p, 1);
+    }
+  
   ret->name = parse_tag_name(p);
 
   switch(*(p->buffer))
@@ -281,7 +316,7 @@ static int parse_tag_node(parser_t * p, bgav_yml_node_t * ret)
         return 0;
       if(*(p->buffer) != '>')
         {
-        if(!parse_attributes(p, ret))
+        if(!parse_attributes(p, &ret->attributes))
           return 0;
         
         switch(*(p->buffer))
@@ -483,6 +518,19 @@ static void dump_node(bgav_yml_node_t * n)
   bgav_yml_attr_t * attr;
   bgav_yml_node_t * child;
 
+  if(n->xml_attributes)
+    {
+    bgav_dprintf( "<?xml ");
+
+    attr = n->xml_attributes;
+    while(attr)
+      {
+      dump_attribute(attr);
+      bgav_dprintf( " ");
+      attr = attr->next;
+      }
+    bgav_dprintf( "?>\n");
+    }
   
   if(n->name)
     {
@@ -546,6 +594,15 @@ void bgav_yml_free(bgav_yml_node_t * n)
     FREE(n->attributes->value);
     FREE(n->attributes);
     n->attributes = attr;
+    }
+
+  while(n->xml_attributes)
+    {
+    attr = n->xml_attributes->next;
+    FREE(n->xml_attributes->name);
+    FREE(n->xml_attributes->value);
+    FREE(n->xml_attributes);
+    n->xml_attributes = attr;
     }
   
   FREE(n->name);

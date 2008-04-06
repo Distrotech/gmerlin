@@ -120,6 +120,7 @@ static int get_data(bgav_stream_t*s)
       mpeg2_buffer(priv->dec,
                    &priv->sequence_end_code[0],
                    &priv->sequence_end_code[4]);
+      priv->eof = 1;
       return 1;
       }
     else
@@ -272,16 +273,24 @@ static int decode_picture(bgav_stream_t*s)
     {
     if(!parse(s, &state))
       return 0;
-
+    
+    if(state == STATE_SLICE_1ST)
+      {
+      fprintf(stderr, "SLICE 1ST\n");
+      }
+    if(state == STATE_PICTURE_2ND)
+      {
+      fprintf(stderr, "PICTURE_2ND\n");
+      }
+    
     if(((state == STATE_END) || (state == STATE_SLICE) ||
         (state == STATE_INVALID_END)))
       {
 #if 0
-      fprintf(stderr, "Got Picture: C: %c D: %c\n",
+      fprintf(stderr, "Got Picture: C: %c %df\n",
               picture_types[priv->info->current_picture ? 
               priv->info->current_picture->flags & PIC_MASK_CODING_TYPE : 0],
-              picture_types[(priv->info->display_picture) ?
-              priv->info->display_picture->flags & PIC_MASK_CODING_TYPE : 0]);
+              priv->info->current_picture->nb_fields);
 #endif
       if(state == STATE_END)
         {
