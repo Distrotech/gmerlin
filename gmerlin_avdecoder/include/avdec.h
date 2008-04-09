@@ -27,6 +27,7 @@
  */
 
 #include <gavl/gavl.h>
+#include <bgavedl.h>
 
 /** \defgroup decoding Decoding of multimedia streams
  *
@@ -831,6 +832,15 @@ const char * bgav_get_disc_name(bgav_t * bgav);
  */
 
 int bgav_open(bgav_t * bgav, const char * location);
+
+/** \ingroup opening
+ *  \brief Open an edl
+ *  \param bgav A decoder instance
+ *  \param edl The edl 
+ *  \returns 1 if the edl was successfully openend, 0 else.
+ */
+
+int bgav_open_edl(bgav_t * bgav, const bgav_edl_t * edl);
 
 /** \ingroup opening
  *  \brief Open a VCD device

@@ -241,6 +241,9 @@ struct mxf_track_s
   
   /* Secondary */
   mxf_metadata_t * sequence; /* mandatory, and only one */
+  
+  int num_packets;         /* If it's a source track: Number of klv packets found for this track */
+  int64_t max_packet_size; /* Maximum size of a klv packet */
   };
 
 void bgav_mxf_track_dump(int indent, mxf_track_t * t);

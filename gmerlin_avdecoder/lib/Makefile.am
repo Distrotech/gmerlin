@@ -380,6 +380,8 @@ demux_wavpack.c \
 demux_wve.c \
 device.c \
 dvframe.c \
+edl.c \
+edldec.c \
 fileindex.c \
 http.c \
 id3v1.c \
