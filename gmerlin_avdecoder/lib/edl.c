@@ -180,5 +180,6 @@ static void free_tracks(bgav_edl_track_t * s, int len)
 void bgav_edl_destroy(bgav_edl_t * e)
   {
   if(e->tracks) free_tracks(e->tracks, e->num_tracks);
+  if(e->url) free(e->url);
   free(e);
   }

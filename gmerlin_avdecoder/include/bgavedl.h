@@ -23,7 +23,9 @@
 
 typedef struct
   {
-  char * url;            /* Location of that segment          */
+  /* Location of that segment. If NULL, the "master url" in
+     bgav_edl_t is valid. */
+  char * url;
   int track;             /* Track index for multitrack inputs */
   int stream;            /* Index of the A/V stream           */
   int timescale;         /* Source timescale                  */
@@ -66,11 +68,12 @@ typedef struct
   {
   int num_tracks;
   bgav_edl_track_t * tracks;
+  char * url;
   } bgav_edl_t;
 
 bgav_edl_t * bgav_edl_create();
 
-bgav_edl_track_t * bgav_edl_add_track(bgav_edl_t *);
+bgav_edl_track_t * bgav_edl_add_track(bgav_edl_t * e);
 
 bgav_edl_stream_t * bgav_edl_add_audio_stram(bgav_edl_track_t * t);
 bgav_edl_stream_t * bgav_edl_add_video_stram(bgav_edl_track_t * t);

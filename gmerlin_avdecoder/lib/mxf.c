@@ -1543,7 +1543,7 @@ void bgav_mxf_descriptor_free(mxf_descriptor_t * d)
 
 void bgav_mxf_essence_container_data_dump(int indent, mxf_essence_container_data_t * s)
   {
-  do_indent(indent);   bgav_dprintf("Essence Container Data:\n");
+  bgav_diprintf(indent, "Essence Container Data:\n");
   bgav_diprintf(indent+2, "UID:                  ");dump_ul(s->common.uid); 
   bgav_diprintf(indent+2, "Generation UL:        "); dump_ul(s->common.generation_ul); 
   bgav_diprintf(indent+2, "Linked Package:       ");dump_ul_ptr(s->linked_package_ref, s->linked_package); 
