@@ -169,24 +169,25 @@ static void seek_dv(bgav_demuxer_context_t * ctx, int64_t time,
   vs = ctx->tt->cur->video_streams;
   as = ctx->tt->cur->audio_streams;
   
-  frame_pos = gavl_time_rescale(scale, vs->data.video.format.timescale,
+  vs->in_time = gavl_time_rescale(scale, vs->data.video.format.timescale,
                                 time);
-  frame_pos /= vs->data.video.format.frame_duration;
+  frame_pos = vs->in_time / vs->data.video.format.frame_duration;
   
   file_position = frame_pos * priv->frame_size;
 
-  bgav_dv_dec_set_frame_counter(priv->d, frame_pos);
-  bgav_dv_dec_set_sample_counter(priv->d, gavl_time_rescale(vs->data.video.format.timescale,
-                                                  vs->data.audio.format.samplerate,
-                                                  vs->in_position *
-                                                  vs->data.video.format.frame_duration));
-  bgav_input_seek(ctx->input, file_position, SEEK_SET);
-
   vs->in_time = frame_pos * vs->data.video.format.frame_duration;
+
   as->in_time =
     gavl_time_rescale(vs->data.video.format.timescale,
                       as->data.audio.format.samplerate,
                       vs->in_time);
+
+  fprintf(stderr, "Seek dv: %ld %ld\n", as->in_time, vs->in_time);
+  
+  bgav_dv_dec_set_frame_counter(priv->d, frame_pos);
+  bgav_dv_dec_set_sample_counter(priv->d, as->in_time);
+  bgav_input_seek(ctx->input, file_position, SEEK_SET);
+
   }
 
 static int select_track_dv(bgav_demuxer_context_t * ctx, int track)
@@ -218,12 +219,12 @@ static void resync_dv(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
   switch(s->type)
     {
     case BGAV_STREAM_AUDIO:
-      bgav_dv_dec_set_frame_counter(priv->d, ctx->tt->cur->audio_streams->in_time);
+      bgav_dv_dec_set_sample_counter(priv->d, s->in_time);
       break;
     case BGAV_STREAM_VIDEO:
-      bgav_dv_dec_set_sample_counter(priv->d,
-                                     ctx->tt->cur->video_streams->in_time /
-                                     ctx->tt->cur->video_streams->data.video.format.frame_duration);
+      bgav_dv_dec_set_frame_counter(priv->d,
+                                     s->in_time /
+                                     s->data.video.format.frame_duration);
       break;
     case BGAV_STREAM_SUBTITLE_OVERLAY:
     case BGAV_STREAM_SUBTITLE_TEXT:
