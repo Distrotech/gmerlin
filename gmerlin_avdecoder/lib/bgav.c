@@ -48,6 +48,7 @@ create_demuxer(bgav_t * b, const bgav_demuxer_t * demuxer)
 
 int bgav_init(bgav_t * ret)
   {
+  bgav_yml_node_t * yml = (bgav_yml_node_t *)0;
   const bgav_demuxer_t * demuxer = (bgav_demuxer_t *)0;
   const bgav_redirector_t * redirector = (bgav_redirector_t*)0;
   
@@ -102,12 +103,12 @@ int bgav_init(bgav_t * ret)
     if(bgav_id3v2_probe(ret->input))
       ret->input->id3v2 = bgav_id3v2_read(ret->input);
     
-    demuxer = bgav_demuxer_probe(ret->input);
+    demuxer = bgav_demuxer_probe(ret->input, &yml);
     
     if(demuxer)
       {
       ret->demuxer = create_demuxer(ret, demuxer);
-      if(!bgav_demuxer_start(ret->demuxer, &(ret->redirector)))
+      if(!bgav_demuxer_start(ret->demuxer, &(ret->redirector), yml))
         {
         goto fail;
         }
@@ -123,29 +124,30 @@ int bgav_init(bgav_t * ret)
     }
   
   ret->tt = ret->demuxer->tt;
-  bgav_track_table_ref(ret->tt);
 
-  bgav_track_table_remove_unsupported(ret->tt);
-  
-  bgav_track_table_merge_metadata(ret->tt,
-                                  &(ret->input->metadata));
-
-  /* Check for subtitle file */
-  
-  if(ret->opt.seek_subtitles &&
-     (ret->opt.seek_subtitles + ret->tt->cur->num_video_streams > 1))
+  if(ret->tt)
     {
-    subreaders = bgav_subtitle_reader_open(ret->input);
-    
-    subreader = subreaders;
-    while(subreader)
+    bgav_track_table_ref(ret->tt);
+    bgav_track_table_remove_unsupported(ret->tt);
+    bgav_track_table_merge_metadata(ret->tt,
+                                    &(ret->input->metadata));
+
+    /* Check for subtitle file */
+  
+    if(ret->opt.seek_subtitles &&
+       (ret->opt.seek_subtitles + ret->tt->cur->num_video_streams > 1))
       {
-      bgav_track_attach_subtitle_reader(ret->tt->cur,
-                                        &(ret->opt), subreader);
-      subreader = subreader->next;
+      subreaders = bgav_subtitle_reader_open(ret->input);
+    
+      subreader = subreaders;
+      while(subreader)
+        {
+        bgav_track_attach_subtitle_reader(ret->tt->cur,
+                                          &(ret->opt), subreader);
+        subreader = subreader->next;
+        }
       }
     }
-  
   return 1;
     
   fail:
@@ -170,7 +172,10 @@ int bgav_init(bgav_t * ret)
 
 int bgav_num_tracks(bgav_t * b)
   {
-  return b->tt->num_tracks;
+  if(b->tt)
+    return b->tt->num_tracks;
+  else
+    return 0;
   }
 
 bgav_t * bgav_create()
@@ -302,7 +307,7 @@ int bgav_select_track(bgav_t * b, int track)
     b->input->buffer_size = 0;
 
     b->input->input->select_track(b->input, track);
-    bgav_demuxer_start(b->demuxer, &(b->redirector));
+    bgav_demuxer_start(b->demuxer, &(b->redirector), NULL);
     return 1;
     }
 
@@ -390,7 +395,7 @@ int bgav_select_track(bgav_t * b, int track)
         }
       else
         {
-        bgav_demuxer_start(b->demuxer, &(b->redirector));
+        bgav_demuxer_start(b->demuxer, &(b->redirector), NULL);
         
         if(b->demuxer->tt)
           {
@@ -459,4 +464,12 @@ const char * bgav_get_disc_name(bgav_t * bgav)
     return bgav->input->disc_name;
   return
     (const char*)0;
+  }
+
+bgav_edl_t * bgav_get_edl(bgav_t * bgav)
+  {
+  if(bgav->demuxer && bgav->demuxer->edl)
+    return bgav->demuxer->edl;
+  else
+    return (bgav_edl_t*)0;
   }

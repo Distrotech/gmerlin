@@ -29,7 +29,6 @@
 
 
 #include <avdec_private.h>
-#include <yml.h>
 
 /* SRT format */
 

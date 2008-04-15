@@ -21,12 +21,16 @@
 
 #include "config.h"
 
+
 #include <avdec.h>
+
 #include <stdio.h> /* Needed for fileindex stuff */
 
 #include <libintl.h>
 
 #define BGAV_MK_FOURCC(a, b, c, d) ((a<<24)|(b<<16)|(c<<8)|d)
+
+typedef struct bgav_edl_dec_s bgav_edl_dec_t;
 
 typedef struct bgav_demuxer_s         bgav_demuxer_t;
 typedef struct bgav_demuxer_context_s bgav_demuxer_context_t;
@@ -58,7 +62,8 @@ typedef struct bgav_charset_converter_s bgav_charset_converter_t;
 
 typedef struct bgav_track_s bgav_track_t;
 
-#include "id3.h"
+#include <id3.h>
+#include <yml.h>
 
 struct bgav_metadata_s
   {
@@ -1024,9 +1029,13 @@ int bgav_build_file_index(bgav_t * b);
 struct bgav_demuxer_s
   {
   int  (*probe)(bgav_input_context_t*);
+  int  (*probe_yml)(bgav_yml_node_t*);
 
   int  (*open)(bgav_demuxer_context_t * ctx,
                bgav_redirector_context_t ** redir);
+  int  (*open_yml)(bgav_demuxer_context_t * ctx,
+                   bgav_yml_node_t * node);
+  
   int  (*next_packet)(bgav_demuxer_context_t*);
 
   /*
@@ -1134,6 +1143,10 @@ struct bgav_demuxer_context_s
      packets, inside which no frame starts */
   
   int64_t next_packet_pos;
+
+  /* EDL */
+
+  bgav_edl_t * edl;
   
   };
 
@@ -1148,7 +1161,8 @@ bgav_demuxer_create(const bgav_options_t * opt,
                     const bgav_demuxer_t * demuxer,
                     bgav_input_context_t * input);
 
-const bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input);
+const bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input,
+                                          bgav_yml_node_t ** yml);
 
 void bgav_demuxer_create_buffers(bgav_demuxer_context_t * demuxer);
 void bgav_demuxer_destroy(bgav_demuxer_context_t * demuxer);
@@ -1182,7 +1196,8 @@ bgav_demuxer_next_packet(bgav_demuxer_context_t * demuxer);
  */
 
 int bgav_demuxer_start(bgav_demuxer_context_t * ctx,
-                       bgav_redirector_context_t ** redir);
+                       bgav_redirector_context_t ** redir,
+                       bgav_yml_node_t * yml);
 void bgav_demuxer_stop(bgav_demuxer_context_t * ctx);
 
 
@@ -1245,6 +1260,8 @@ struct bgav_s
   /* Set by the seek function */
 
   int eof;
+
+  bgav_edl_dec_t * edl_dec;
   
   };
 
@@ -1399,7 +1416,8 @@ char * bgav_search_file_write(const bgav_options_t * opt,
 char * bgav_search_file_read(const bgav_options_t * opt,
                              const char * directory, const char * file);
 
-
+int bgav_match_regexp(const char * str, const char * regexp);
+  
 
 /* Check if file exist and is readable */
 
@@ -1609,6 +1627,8 @@ void bgav_bytebuffer_flush(bgav_bytebuffer_t * b);
 
 /* sampleseek.c */
 int bgav_set_sample_accurate(bgav_t * b);
+
+/* edldec.c */
 
 
 

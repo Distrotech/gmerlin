@@ -122,6 +122,8 @@ int main(int argc, char ** argv)
   const gavl_audio_format_t * audio_format;
   const gavl_video_format_t * video_format;
 
+  const bgav_edl_t * edl;
+  
   setlocale(LC_MESSAGES, "");
   
   if(argc == 1)
@@ -222,6 +224,13 @@ int main(int argc, char ** argv)
       }
     bgav_close(file);
     return 0;
+    }
+
+  edl = bgav_get_edl(file);
+  if(edl)
+    {
+    fprintf(stderr, "Found EDL\n");
+    bgav_edl_dump(edl);
     }
   num_tracks = bgav_num_tracks(file);
 

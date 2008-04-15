@@ -37,6 +37,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <limits.h>
+#include <regex.h>
 
 #include <utils.h>
 
@@ -574,4 +575,35 @@ char * bgav_search_file_read(const bgav_options_t * opt,
 
   free(test_path);
   return (char*)0;
+  }
+
+int bgav_match_regexp(const char * str, const char * regexp)
+  {
+  int ret = 0;
+  regex_t exp;
+  memset(&exp, 0, sizeof(exp));
+
+  /*
+    `REG_EXTENDED'
+     Treat the pattern as an extended regular expression, rather than
+     as a basic regular expression.
+
+     `REG_ICASE'
+     Ignore case when matching letters.
+
+     `REG_NOSUB'
+     Don't bother storing the contents of the MATCHES-PTR array.
+
+     `REG_NEWLINE'
+     Treat a newline in STRING as dividing STRING into multiple lines,
+     so that `$' can match before the newline and `^' can match after.
+     Also, don't permit `.' to match a newline, and don't permit
+     `[^...]' to match a newline.
+  */
+  
+  regcomp(&exp, regexp, REG_NOSUB|REG_EXTENDED);
+  if(!regexec(&exp, str, 0, NULL, 0))
+    ret = 1;
+  regfree(&exp);
+  return ret;
   }

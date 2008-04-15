@@ -27,7 +27,12 @@
  */
 
 #include <gavl/gavl.h>
-#include <bgavedl.h>
+
+/** \ingroup edl
+ *  \brief Forward declaration
+ */
+
+typedef struct bgav_edl_s bgav_edl_t;
 
 /** \defgroup decoding Decoding of multimedia streams
  *
@@ -836,7 +841,7 @@ int bgav_open(bgav_t * bgav, const char * location);
 /** \ingroup opening
  *  \brief Open an edl
  *  \param bgav A decoder instance
- *  \param edl The edl 
+ *  \param edl The edl (See \ref edl)
  *  \returns 1 if the edl was successfully openend, 0 else.
  */
 
@@ -895,6 +900,174 @@ int bgav_open_fd(bgav_t * bgav, int fd,
  */
 
 void bgav_close(bgav_t * bgav);
+
+/** \defgroup edl EDL support
+ *  \ingroup decoding
+ *  \brief EDL support
+ *
+ *  Most media files contain one or more A/V streams. In addition however, there
+ *  can be additional instructions, how the media should be played back. Basically
+ *  you can have "logical" streams, where the EDL tells how they are composed from
+ *  phyiscal streams.
+ *
+ *  To use EDLs with Gmerlin-avdecoder, note the following:
+ *
+ *  - If you do nothing, the streams are decoded as they are found in the file
+ *  - If a media file contains an EDL, it is returned by \ref bgav_get_edl
+ *  - The EDL references streams either in the file you opened, or in external
+ *    files.
+ *  - Some files contain only the EDL (with external references) but no actual media
+ *    streams. In this case, \ref bgav_num_tracks will return 0.
+ *  - To use an EDL from a decoder instance, make a local copy (\ref bgav_edl_copy),
+ *    close the decoder (\ref bgav_close) and open a new decoder with \ref bgav_open_edl
+ *    with the copied EDL
+ *  - The opened decoder will behave the same as a regular decoder
+ *  - You can also build EDLs yourself and pass them to \ref bgav_open_edl
+ *
+ * @{
+ */
+
+/** \brief One segment of a physical stream to appear in a logical stream
+ */
+
+typedef struct
+  {
+  char * url;   //!< Location of that segment. If NULL, the "master url" in bgav_edl_t is valid.
+
+  int track;        //!<  Track index for multitrack inputs
+  int stream;       //!<  Index of the A/V stream
+  int timescale;    //!<  Source timescale
+    
+  int64_t src_time; //!< Time within the source in source timescale
+  
+  /* Time and duration within the destination in destination
+     timescale */
+  int64_t dst_time;  //!< Time  within the destination in destination timescale
+  int64_t dst_duration; //!< Duration within the destination in destination timescale
+
+  /*  */
+  int32_t speed_num; //!< Playback speed numerator
+  int32_t speed_den; //!< Playback speed demoninator
+  
+  } bgav_edl_segment_t;
+
+/** \brief A locical stream
+ */
+
+typedef struct
+  {
+  bgav_edl_segment_t * segments; //!< Segments
+  int num_segments;              //!< Number of segments 
+  int timescale;                 //!< Destination timescale
+  } bgav_edl_stream_t;
+
+/** \brief A locical track
+ */
+
+typedef struct
+  {
+  int num_audio_streams;             //!< Number of logical audio streams
+  bgav_edl_stream_t * audio_streams; //!< Logical audio streams
+
+  int num_video_streams;             //!< Number of logical video streams
+  bgav_edl_stream_t * video_streams; //!< Logical video streams
+
+  int num_subtitle_text_streams;     //!< Number of logical text subtitle streams
+  bgav_edl_stream_t * subtitle_text_streams; //!< Logical text subtitle streams
+
+  int num_subtitle_overlay_streams;  //!< Number of logical overlay subtitle streams
+  bgav_edl_stream_t * subtitle_overlay_streams; //!< Logical overlay subtitle streams
+  
+  } bgav_edl_track_t;
+
+/** \brief EDL structure
+ */
+
+struct bgav_edl_s
+  {
+  int num_tracks;             //!< Number of logical tracks
+  bgav_edl_track_t * tracks;  //!< Logical tracks
+  char * url;                 //!< Filename if all streams are from the same file
+  };
+
+/** \ingroup edl
+ *  \brief Get an EDL from an open decoder
+ *  \param bgav A decoder instance
+ *  \returns The edl or NULL
+ */
+
+bgav_edl_t * bgav_get_edl(bgav_t * bgav);
+
+/** \brief Create an EDL
+ *  \returns A newly allocated EDL.
+ */
+
+bgav_edl_t * bgav_edl_create();
+
+/** \brief Add a track to an EDL
+ *  \param e An EDL
+ *  \returns The added track
+ */
+
+bgav_edl_track_t * bgav_edl_add_track(bgav_edl_t * e);
+
+/** \brief Add an audio stream to a track
+ *  \param t Track
+ *  \returns The added stream
+ */
+
+bgav_edl_stream_t * bgav_edl_add_audio_stram(bgav_edl_track_t * t);
+
+/** \brief Add a video stream to a track
+ *  \param t Track
+ *  \returns The added stream
+ */
+bgav_edl_stream_t * bgav_edl_add_video_stram(bgav_edl_track_t * t);
+
+/** \brief Add a text subtitle stream to a track
+ *  \param t Track
+ *  \returns The added stream
+ */
+
+bgav_edl_stream_t * bgav_edl_add_subtitle_text_stram(bgav_edl_track_t * t);
+
+/** \brief Add an overlay subtitle stream to a track
+ *  \param t Track
+ *  \returns The added stream
+ */
+bgav_edl_stream_t * bgav_edl_add_subtitle_overlay_stram(bgav_edl_track_t * t);
+
+/** \brief Add a segment to a stream
+ *  \param s Stream
+ *  \returns The added segment
+ */
+
+bgav_edl_segment_t * bgav_edl_add_segment(bgav_edl_stream_t * s);
+
+/** \brief Copy an EDL
+ *  \param e EDL
+ *  \returns The copied EDL
+ */
+
+bgav_edl_t * bgav_edl_copy(const bgav_edl_t * e);
+
+/** \brief Destroy an EDL and free all associated memory
+ *  \param e EDL
+ */
+
+void bgav_edl_destroy(bgav_edl_t * e);
+
+/** \brief Dump an EDL to stderr
+ *  \param e EDL
+ */
+
+void bgav_edl_dump(const bgav_edl_t * e);
+
+/** 
+ * @}
+ */
+
+
 
 /***************************************************
  * Check for redirecting: You MUST check if you opened

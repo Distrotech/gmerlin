@@ -99,6 +99,7 @@ extern const bgav_demuxer_t bgav_demuxer_y4m;
 extern const bgav_demuxer_t bgav_demuxer_ffmpeg;
 #endif
 
+extern const bgav_demuxer_t bgav_demuxer_p2xml;
 
 typedef struct
   {
@@ -174,6 +175,11 @@ static const demuxer_t sync_demuxers[] =
     { &bgav_demuxer_mpegps, "Mpeg System" },
   };
 
+static const demuxer_t yml_demuxers[] =
+  {
+    { &bgav_demuxer_p2xml,    "P2 xml importer" },
+  };
+
 static struct
   {
   const bgav_demuxer_t * demuxer;
@@ -186,6 +192,8 @@ mimetypes[] =
 
 static const int num_demuxers = sizeof(demuxers)/sizeof(demuxers[0]);
 static const int num_sync_demuxers = sizeof(sync_demuxers)/sizeof(sync_demuxers[0]);
+static const int num_yml_demuxers = sizeof(yml_demuxers)/sizeof(yml_demuxers[0]);
+
 static const int num_mimetypes = sizeof(mimetypes)/sizeof(mimetypes[0]);
 
 int bgav_demuxer_next_packet(bgav_demuxer_context_t * demuxer);
@@ -193,7 +201,8 @@ int bgav_demuxer_next_packet(bgav_demuxer_context_t * demuxer);
 
 #define SYNC_BYTES (32*1024)
 
-const bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input)
+const bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input,
+                                          bgav_yml_node_t ** yml)
   {
   int i;
   int bytes_skipped;
@@ -237,6 +246,27 @@ const bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input)
                sync_demuxers[i].format_name);
       return sync_demuxers[i].demuxer;
       }
+    }
+
+  /* Check if this is an xml like file */
+  if(bgav_yml_probe(input))
+    {
+    *yml = bgav_yml_parse(input);
+    if(!yml)
+      return (bgav_demuxer_t *)0;
+
+    for(i = 0; i < num_yml_demuxers; i++)
+      {
+      if(yml_demuxers[i].demuxer->probe_yml(*yml))
+        {
+        bgav_log(input->opt, BGAV_LOG_INFO, LOG_DOMAIN,
+                 "Detected %s format",
+                 yml_demuxers[i].format_name);
+        return yml_demuxers[i].demuxer;
+        }
+      }
+
+    
     }
   
   /* Try again with skipping initial bytes */
@@ -292,12 +322,15 @@ bgav_demuxer_create(const bgav_options_t * opt, const bgav_demuxer_t * demuxer,
 
 void bgav_demuxer_destroy(bgav_demuxer_context_t * ctx)
   {
-  ctx->demuxer->close(ctx);
+  if(ctx->demuxer->close)
+    ctx->demuxer->close(ctx);
   if(ctx->tt)
     bgav_track_table_unref(ctx->tt);
 
   if(ctx->si)
     bgav_superindex_destroy(ctx->si);
+  if(ctx->edl)
+    bgav_edl_destroy(ctx->edl);
 
   FREE(ctx->stream_description);
   free(ctx);
@@ -404,12 +437,18 @@ static void check_interleave(bgav_demuxer_context_t * ctx)
   }
 
 int bgav_demuxer_start(bgav_demuxer_context_t * ctx,
-                       bgav_redirector_context_t ** redir)
+                       bgav_redirector_context_t ** redir,
+                       bgav_yml_node_t * yml)
   {
   /* eof flag might be present from last track */
   ctx->flags &= ~BGAV_DEMUXER_EOF;
-  
-  if(!ctx->demuxer->open(ctx, redir))
+
+  if(yml)
+    {
+    if(!ctx->demuxer->open_yml(ctx, yml))
+      return 0;
+    }
+  else if(!ctx->demuxer->open(ctx, redir))
     return 0;
   
   if(ctx->si)

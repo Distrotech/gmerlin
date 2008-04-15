@@ -56,12 +56,12 @@ bgav_edl_stream_t * bgav_edl_add_video_stram(bgav_edl_track_t * t)
   
   }
 
-bgav_edl_stream_t * bgav_edl_add_subtitle_stram(bgav_edl_track_t * t)
+bgav_edl_stream_t * bgav_edl_add_subtitle_text_stram(bgav_edl_track_t * t)
   {
-  t->subtitle_streams = realloc(t->subtitle_streams, (t->num_subtitle_streams+1)*sizeof(*t->subtitle_streams));
-  memset(t->subtitle_streams + t->num_subtitle_streams, 0, sizeof(*t->subtitle_streams));
-  t->num_subtitle_streams++;
-  return t->subtitle_streams + (t->num_subtitle_streams-1);
+  t->subtitle_text_streams = realloc(t->subtitle_text_streams, (t->num_subtitle_text_streams+1)*sizeof(*t->subtitle_text_streams));
+  memset(t->subtitle_text_streams + t->num_subtitle_text_streams, 0, sizeof(*t->subtitle_text_streams));
+  t->num_subtitle_text_streams++;
+  return t->subtitle_text_streams + (t->num_subtitle_text_streams-1);
   }
 
 bgav_edl_segment_t * bgav_edl_add_segment(bgav_edl_stream_t * s)
@@ -123,8 +123,10 @@ static bgav_edl_track_t * copy_tracks(const bgav_edl_track_t * src, int len)
                                         src[i].num_audio_streams);
     ret[i].video_streams = copy_streams(src[i].video_streams,
                                         src[i].num_video_streams);
-    ret[i].subtitle_streams = copy_streams(src[i].subtitle_streams,
-                                           src[i].num_subtitle_streams);
+    ret[i].subtitle_text_streams = copy_streams(src[i].subtitle_text_streams,
+                                           src[i].num_subtitle_text_streams);
+    ret[i].subtitle_overlay_streams = copy_streams(src[i].subtitle_overlay_streams,
+                                           src[i].num_subtitle_overlay_streams);
     }
   return ret;
   }
@@ -171,8 +173,10 @@ static void free_tracks(bgav_edl_track_t * s, int len)
       free_streams(s[i].audio_streams, s[i].num_audio_streams);
     if(s[i].video_streams)
       free_streams(s[i].video_streams, s[i].num_video_streams);
-    if(s[i].subtitle_streams)
-      free_streams(s[i].subtitle_streams, s[i].num_subtitle_streams);
+    if(s[i].subtitle_text_streams)
+      free_streams(s[i].subtitle_text_streams, s[i].num_subtitle_text_streams);
+    if(s[i].subtitle_overlay_streams)
+      free_streams(s[i].subtitle_overlay_streams, s[i].num_subtitle_overlay_streams);
     }
   free(s);
   }
@@ -182,4 +186,71 @@ void bgav_edl_destroy(bgav_edl_t * e)
   if(e->tracks) free_tracks(e->tracks, e->num_tracks);
   if(e->url) free(e->url);
   free(e);
+  }
+
+static void dump_stream(const bgav_edl_stream_t* s)
+  {
+  int i;
+  bgav_edl_segment_t * seg;
+  bgav_diprintf(8, "Timescale: %d\n", s->timescale);
+  bgav_diprintf(8, "Segments:  %d\n", s->num_segments);
+  for(i = 0; i < s->num_segments; i++)
+    {
+    seg = &s->segments[i];
+    bgav_diprintf(8, "Segment\n");
+    bgav_diprintf(10, "URL:                  %s\n", (seg->url ? seg->url : "(null)"));
+    bgav_diprintf(10, "Track:                %d\n", seg->track);
+    bgav_diprintf(10, "Stream index:         %d\n", seg->stream);
+    bgav_diprintf(10, "Source timescale:     %d\n", seg->timescale);
+    bgav_diprintf(10, "Source time:          %" PRId64 "\n", seg->src_time);
+    bgav_diprintf(10, "Destination time:     %" PRId64 "\n", seg->dst_time);
+    bgav_diprintf(10, "Destination duration: %" PRId64 "\n", seg->dst_duration);
+    bgav_diprintf(10, "Playback speed:       %.3f [%d/%d]",
+                  (float)(seg->speed_num) / (float)(seg->speed_den),
+                  seg->speed_num, seg->speed_den);
+    }
+  }
+
+static void dump_track(const bgav_edl_track_t * t)
+  {
+  int i;
+  bgav_diprintf(2, "Track\n");
+  bgav_diprintf(4, "Audio streams: %d\n", t->num_audio_streams);
+  for(i = 0; i < t->num_audio_streams; i++)
+    {
+    bgav_diprintf(6, "Audio stream\n");
+    dump_stream(&t->audio_streams[i]);
+    }
+  
+  bgav_diprintf(4, "Video streams: %d\n", t->num_video_streams);
+  for(i = 0; i < t->num_video_streams; i++)
+    {
+    bgav_diprintf(6, "Video stream\n");
+    dump_stream(&t->video_streams[i]);
+    }
+
+  bgav_diprintf(4, "Subtitle text streams: %d\n", t->num_subtitle_text_streams);
+  for(i = 0; i < t->num_subtitle_text_streams; i++)
+    {
+    bgav_diprintf(6, "Subtitle text stream\n");
+    dump_stream(&t->subtitle_text_streams[i]);
+    }
+  bgav_diprintf(4, "Subtitle overlay streams: %d\n", t->num_subtitle_overlay_streams);
+  for(i = 0; i < t->num_subtitle_overlay_streams; i++)
+    {
+    bgav_diprintf(6, "Subtitle overlay stream\n");
+    dump_stream(&t->subtitle_overlay_streams[i]);
+    }
+  }
+
+void bgav_edl_dump(const bgav_edl_t * e)
+  {
+  int i;
+  bgav_dprintf("EDL\n");
+  bgav_diprintf(2, "URL:    %s\n", (e->url ? e->url : "(null)"));
+  bgav_diprintf(2, "Tracks: %d\n", e->num_tracks);
+  for(i = 0; i < e->num_tracks; i++)
+    {
+    dump_track(&e->tracks[i]);
+    }
   }

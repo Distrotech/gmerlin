@@ -358,6 +358,7 @@ demux_mtv.c \
 demux_mxf.c \
 demux_nsv.c \
 demux_nuv.c \
+demux_p2xml.c \
 demux_psxstr.c \
 demux_quicktime.c \
 demux_ra.c \

@@ -57,3 +57,6 @@ void bgav_yml_free(bgav_yml_node_t *);
 
 const char * bgav_yml_get_attribute(bgav_yml_node_t *, const char * name);
 const char * bgav_yml_get_attribute_i(bgav_yml_node_t *, const char * name);
+
+int bgav_yml_probe(bgav_input_context_t * input);
+
