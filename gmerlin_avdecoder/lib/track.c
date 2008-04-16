@@ -512,7 +512,7 @@ gavl_time_t bgav_track_resync_decoders(bgav_track_t * track, int scale)
     s->out_time =
       gavl_time_rescale(s->timescale,
                         s->data.audio.format.samplerate,
-                        test_time);
+                        s->in_time);
     if(test_time > ret)
       ret = test_time;
     }

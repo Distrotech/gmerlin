@@ -181,8 +181,6 @@ static void seek_dv(bgav_demuxer_context_t * ctx, int64_t time,
     gavl_time_rescale(vs->data.video.format.timescale,
                       as->data.audio.format.samplerate,
                       vs->in_time);
-
-  fprintf(stderr, "Seek dv: %ld %ld\n", as->in_time, vs->in_time);
   
   bgav_dv_dec_set_frame_counter(priv->d, frame_pos);
   bgav_dv_dec_set_sample_counter(priv->d, as->in_time);
