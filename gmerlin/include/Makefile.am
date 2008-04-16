@@ -8,6 +8,7 @@ SUBDIRS=gui_gtk $(x11_subdirs)
 
 pkginclude_HEADERS = \
 accelerator.h \
+bg_sem.h \
 bg_version.h \
 bgsocket.h \
 cfg_dialog.h \
