@@ -22,11 +22,17 @@ lv_cflags  =
 lv_libs  =
 endif
 
+if HAVE_POSIX_SEMAPHORES
+sem_sources =
+else
+sem_sources = uthread_sem.c
+endif
+
 SUBDIRS = $(gtk_subdirs) $(x11_subdirs)
 
 AM_CFLAGS = @FONTCONFIG_CFLAGS@ @FREETYPE_CFLAGS@ -DLOCALE_DIR=\"$(localedir)\" $(lv_cflags)
 
-libgmerlin_la_LDFLAGS = -version-info @LTVERSION_CURRENT@:@LTVERSION_REVISION@:@LTVERSION_AGE@
+libgmerlin_la_LDFLAGS = -version-info @LTVERSION_CURRENT@:@LTVERSION_REVISION@:@LTVERSION_AGE@ -export-symbols-regex ^bg_
 
 libgmerlin_la_LIBADD = $(x11_libadd) @FONTCONFIG_LIBS@ @FREETYPE_LIBS@ @XML2_LIBS@ @ICONV_LIBS@ @LIBINTL@ $(lv_libs) -ldl -lpthread
 
@@ -38,6 +44,7 @@ gmerlin_visualizer_slave_LDADD = libgmerlin.la
 lib_LTLIBRARIES = libgmerlin.la
 libgmerlin_la_SOURCES = \
 $(lv_sources) \
+$(sem_sources) \
 accelerator.c \
 album.c \
 album_xml.c \

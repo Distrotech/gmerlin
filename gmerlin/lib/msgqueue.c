@@ -36,7 +36,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <pthread.h>
-#include <semaphore.h>
+#include <bg_sem.h>
 
 #include <parameter.h>
 #include <streaminfo.h>

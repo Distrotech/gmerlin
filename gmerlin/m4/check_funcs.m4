@@ -103,6 +103,34 @@ PKG_CHECK_MODULES(LIBPOSTPROC, libpostproc >= $LIBPOSTPROC_REQUIRED,
                   have_libpostproc="true", have_libpostproc="false")
 fi
 
+if test x$have_libpostproc = xtrue; then
+LIBPOSTPROC_CFLAGS=`echo $LIBPOSTPROC_CFLAGS | sed 's/ //'`
+
+if test "x$LIBPOSTPROC_CFLAGS" = "x"; then
+LIBPOSTPROC_CFLAGS="-I/usr/include"
+fi
+
+CFLAGS_save=$CFLAGS
+CFLAGS="$CFLAGS $LIBPOSTPROC_CFLAGS"
+found_header="false"
+
+AC_TRY_COMPILE([
+#include <postprocess.h>],[],[found_header="true"])
+
+if test $found_header = "false"; then
+AC_TRY_COMPILE([
+#include <postproc/postprocess.h>],[], [found_header="true";LIBPOSTPROC_CFLAGS="$LIBPOSTPROC_CFLAGS/postproc" ],)
+fi
+
+if test $found_header = "false"; then
+AC_TRY_COMPILE([
+#include <libpostproc/postprocess.h>],[], [found_header="true";LIBPOSTPROC_CFLAGS="$LIBPOSTPROC_CFLAGS/libpostproc" ],)
+fi
+
+CFLAGS="$CFLAGS_save"
+       
+fi
+
 AC_SUBST(LIBPOSTPROC_REQUIRED)
 AC_SUBST(LIBPOSTPROC_LIBS)
 AC_SUBST(LIBPOSTPROC_CFLAGS)
@@ -139,6 +167,34 @@ if test x$test_libswscale = xtrue; then
 
 PKG_CHECK_MODULES(LIBSWSCALE, libswscale >= $LIBSWSCALE_REQUIRED,
                   have_libswscale="true", have_libswscale="false")
+fi
+
+if test x$have_libswscale = xtrue; then
+LIBSWSCALE_CFLAGS=`echo $LIBSWSCALE_CFLAGS | sed 's/ //'`
+
+if test "x$LIBSWSCALE_CFLAGS" = "x"; then
+LIBSWSCALE_CFLAGS="-I/usr/include"
+fi
+
+CFLAGS_save=$CFLAGS
+CFLAGS="$CFLAGS $LIBSWSCALE_CFLAGS"
+found_header="false"
+
+AC_TRY_COMPILE([
+#include <swscale.h>],[],[found_header="true"])
+
+if test $found_header = "false"; then
+AC_TRY_COMPILE([
+#include <swscale/swscale.h>],[], [found_header="true";LIBSWSCALE_CFLAGS="$LIBSWSCALE_CFLAGS/ffmpeg" ],)
+fi
+
+if test $found_header = "false"; then
+AC_TRY_COMPILE([
+#include <libswscale/swscale.h>],[], [found_header="true";LIBSWSCALE_CFLAGS="$LIBSWSCALE_CFLAGS/libswscale" ],)
+fi
+
+CFLAGS="$CFLAGS_save"
+       
 fi
 
 AC_SUBST(LIBSWSCALE_REQUIRED)

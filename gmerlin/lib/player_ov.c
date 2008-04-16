@@ -32,7 +32,7 @@
 #include <log.h>
 #define LOG_DOMAIN "player.video_output"
 
-// #define DUMP_TIMESTAMPS
+#define DUMP_TIMESTAMPS
 
 struct bg_player_ov_context_s
   {
@@ -286,7 +286,15 @@ static gavl_overlay_t * create_overlay(void * data, int id)
       ret->frame =
         gavl_video_frame_create(&(ctx->osd_format));
     }
-  gavl_video_frame_clear(ret->frame, &(ctx->player->video_stream.output_format));
+
+  if(id == ctx->subtitle_id)
+    gavl_video_frame_clear(ret->frame,
+                           &(ctx->player->subtitle_stream.output_format));
+  else
+    gavl_video_frame_clear(ret->frame,
+                           &(ctx->osd_format));
+    
+  
   return ret;
   }
 

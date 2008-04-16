@@ -25,9 +25,10 @@
 #include <errno.h>
 
 #include <pthread.h>
-#include <semaphore.h>
 
 #include <gavl/gavl.h>
+
+#include <bg_sem.h>
 #include <fifo.h>
 
 /* Common frame structure */

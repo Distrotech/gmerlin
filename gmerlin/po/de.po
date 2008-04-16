@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmerlin 0.3.6\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2008-01-08 20:51+0100\n"
+"POT-Creation-Date: 2008-02-21 20:49+0100\n"
 "PO-Revision-Date: 2008-02-05 20:44+0100\n"
 "Last-Translator: Burkhard Plaum <gmerlin@users.sourceforge.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -24,61 +24,61 @@ msgstr "Pause"
 msgid "PulseAudio output"
 msgstr "PulseAudio Ausgabe"
 
-#: plugins/pulseaudio/pulseaudio_common.c:183
+#: plugins/pulseaudio/pulseaudio_common.c:184
 #, c-format
 msgid "Connection to Pulseaudio failed: %s"
 msgstr "Verbindungsaufbau zu PulseAudio fehlgeschlagen: %s"
 
-#: plugins/pulseaudio/i_pulse.c:67 plugins/oss/i_oss.c:57
+#: plugins/pulseaudio/i_pulse.c:70 plugins/oss/i_oss.c:57
 #: plugins/alsa/i_alsa.c:49
 msgid "Channel Mode"
 msgstr "Kanalmodus"
 
-#: plugins/pulseaudio/i_pulse.c:71 plugins/oss/i_oss.c:61
+#: plugins/pulseaudio/i_pulse.c:74 plugins/oss/i_oss.c:61
 #: plugins/alsa/i_alsa.c:53
 msgid "Mono"
 msgstr "Mono"
 
-#: plugins/pulseaudio/i_pulse.c:71 plugins/oss/i_oss.c:61
+#: plugins/pulseaudio/i_pulse.c:74 plugins/oss/i_oss.c:61
 #: plugins/alsa/i_alsa.c:53
 msgid "Stereo"
 msgstr "Stereo"
 
-#: plugins/pulseaudio/i_pulse.c:75 plugins/oss/i_oss.c:65
+#: plugins/pulseaudio/i_pulse.c:78 plugins/oss/i_oss.c:65
 #: plugins/alsa/i_alsa.c:57
 msgid "Bits"
 msgstr "Bits"
 
-#: plugins/pulseaudio/i_pulse.c:82 plugins/oss/i_oss.c:72
+#: plugins/pulseaudio/i_pulse.c:85 plugins/oss/i_oss.c:72
 #: plugins/alsa/i_alsa.c:64
 msgid "Samplerate [Hz]"
 msgstr "Abtastfrequenz [Hz]"
 
-#: plugins/pulseaudio/i_pulse.c:90 plugins/cdaudio/i_cdaudio.c:740
+#: plugins/pulseaudio/i_pulse.c:93 plugins/cdaudio/i_cdaudio.c:740
 #: plugins/cdaudio/i_cdaudio.c:782
 msgid "Server"
 msgstr "Server"
 
-#: plugins/pulseaudio/i_pulse.c:92
+#: plugins/pulseaudio/i_pulse.c:95
 msgid "Server to connect to. Leave empty for default."
 msgstr ""
 "Server zum Verbinden. Lass dies leer um die Voreinstellungen zu verwenden."
 
-#: plugins/pulseaudio/i_pulse.c:96
+#: plugins/pulseaudio/i_pulse.c:99
 msgid "Source"
 msgstr "Quelle"
 
-#: plugins/pulseaudio/i_pulse.c:98
+#: plugins/pulseaudio/i_pulse.c:101
 msgid "Source to open. Use the PulseAudio manager for available Sources."
 msgstr ""
 "Zu Öffnende Quelle. Benutze den PulseAudio Manager um vorhandene Quellen "
 "anzeigen zu lassen."
 
-#: plugins/pulseaudio/i_pulse.c:152
+#: plugins/pulseaudio/i_pulse.c:155
 msgid "PulseAudio"
 msgstr "PulseAudio"
 
-#: plugins/pulseaudio/i_pulse.c:153
+#: plugins/pulseaudio/i_pulse.c:156
 msgid ""
 "PulseAudio capture. You can specify the source, where we'll get the audio."
 msgstr ""
@@ -126,11 +126,11 @@ msgstr "Aufnehmen"
 msgid "Monitor"
 msgstr "Monitor"
 
-#: plugins/esd/i_esd.c:171
+#: plugins/esd/i_esd.c:172
 msgid "Cannot connect to daemon"
 msgstr "Kann nicht zum Dämon verbinden"
 
-#: plugins/esd/i_esd.c:232 plugins/esd/i_esd.c:233
+#: plugins/esd/i_esd.c:235 plugins/esd/i_esd.c:236
 msgid "EsounD input driver"
 msgstr "Esound Aufnahmeplugin"
 
@@ -151,7 +151,8 @@ msgid "Compression"
 msgstr "Kompression"
 
 #: plugins/v4l/pwc.c:87 plugins/videofilters/fv_deinterlace.c:176
-#: plugins/tiff/iw_tiff.c:147 include/bggavl.h:174 include/bggavl.h:383
+#: plugins/tiff/iw_tiff.c:147 include/bggavl.h:174 include/bggavl.h:373
+#: include/bggavl.h:385
 msgid "None"
 msgstr "Kein(s)"
 
@@ -214,7 +215,7 @@ msgstr "Manuell"
 #: plugins/v4l/pwc.c:160 plugins/videofilters/fv_deinterlace.c:128
 #: plugins/videofilters/fv_cropscale.c:343
 #: plugins/videofilters/fv_cropscale.c:389 plugins/cdaudio/cdparanoia.c:168
-#: include/bggavl.h:209 include/bggavl.h:383 include/bggavl.h:396
+#: include/bggavl.h:209 include/bggavl.h:385 include/bggavl.h:398
 #: lib/x11/x11_window.c:1263
 msgid "Auto"
 msgstr "Automatisch"
@@ -247,128 +248,128 @@ msgstr "LED Einzeit (secs)"
 msgid "LED off time (secs)"
 msgstr "LED Auszeit (secs)"
 
-#: plugins/v4l/i_v4l.c:203
+#: plugins/v4l/i_v4l.c:206
 #, c-format
 msgid "Cannot open device %s: %s"
 msgstr "Kann Gerät %s nicht öffnen: %s"
 
-#: plugins/v4l/i_v4l.c:212
+#: plugins/v4l/i_v4l.c:215
 msgid "Phillips webcam detected"
 msgstr "Phillips Webcam gefunden"
 
-#: plugins/v4l/i_v4l.c:218
+#: plugins/v4l/i_v4l.c:221
 #, c-format
 msgid "VIDIOCGPICT failed: %s"
 msgstr "VIDIOCGPICT fehlgeschlagen: %s"
 
-#: plugins/v4l/i_v4l.c:242
+#: plugins/v4l/i_v4l.c:245
 #, c-format
 msgid "VIDIOCSPICT failed: %s"
 msgstr "VIDIOCSPICT fehlgeschlagen: %s"
 
-#: plugins/v4l/i_v4l.c:252
+#: plugins/v4l/i_v4l.c:255
 #, c-format
 msgid "VIDIOCGWIN failed: %s"
 msgstr "VIDIOCGWIN fehlgeschlagen: %s"
 
-#: plugins/v4l/i_v4l.c:264
+#: plugins/v4l/i_v4l.c:267
 #, c-format
 msgid "VIDIOCSWIN failed: %s (invalaid picture dimensions?)"
 msgstr "VIDIOCSWIN fehlgeschlagen: %s (Ungültige Bildgröße?)"
 
-#: plugins/v4l/i_v4l.c:298
+#: plugins/v4l/i_v4l.c:301
 #, c-format
 msgid "VIDIOCGMBUF failed: %s"
 msgstr "VIDIOCGMBUF fehlgeschlagen: %s"
 
-#: plugins/v4l/i_v4l.c:306
+#: plugins/v4l/i_v4l.c:309
 #, c-format
 msgid "mmap failed: %s"
 msgstr "mmap fehlgeschlagen: %s"
 
-#: plugins/v4l/i_v4l.c:414 plugins/oss/i_oss.c:51 plugins/oss/oa_oss.c:67
+#: plugins/v4l/i_v4l.c:417 plugins/oss/i_oss.c:51 plugins/oss/oa_oss.c:67
 #: plugins/postprocessors/cdrdao_common.h:37 lib/gtk/treewidget.c:1109
 msgid "Device"
 msgstr "Gerät"
 
-#: plugins/v4l/i_v4l.c:419
+#: plugins/v4l/i_v4l.c:422
 msgid "V4L Device"
 msgstr "V4L Gerät"
 
-#: plugins/v4l/i_v4l.c:425 plugins/v4l/i_v4l.c:430
+#: plugins/v4l/i_v4l.c:428 plugins/v4l/i_v4l.c:433
 msgid "Resolution"
 msgstr "Auflösung"
 
-#: plugins/v4l/i_v4l.c:441
+#: plugins/v4l/i_v4l.c:444
 msgid "QSIF (160x112)"
 msgstr "QSIF (160x112)"
 
-#: plugins/v4l/i_v4l.c:442
+#: plugins/v4l/i_v4l.c:445
 msgid "QCIF (176x144)"
 msgstr "QCIF (176x144)"
 
-#: plugins/v4l/i_v4l.c:443
+#: plugins/v4l/i_v4l.c:446
 msgid "QVGA (320x240)"
 msgstr "QVGA (320x240)"
 
-#: plugins/v4l/i_v4l.c:444
+#: plugins/v4l/i_v4l.c:447
 msgid "SIF(352x240)"
 msgstr "SIF(352x240)"
 
-#: plugins/v4l/i_v4l.c:445
+#: plugins/v4l/i_v4l.c:448
 msgid "CIF (352x288)"
 msgstr "CIF (352x288)"
 
-#: plugins/v4l/i_v4l.c:446
+#: plugins/v4l/i_v4l.c:449
 msgid "VGA (640x480)"
 msgstr "VGA (640x480)"
 
-#: plugins/v4l/i_v4l.c:447 plugins/videofilters/fv_cropscale.c:206
+#: plugins/v4l/i_v4l.c:450 plugins/videofilters/fv_cropscale.c:206
 #: include/bggavl.h:134
 msgid "User defined"
 msgstr "Benutzerdefiniert"
 
-#: plugins/v4l/i_v4l.c:452 plugins/videofilters/fv_cropscale.c:238
+#: plugins/v4l/i_v4l.c:455 plugins/videofilters/fv_cropscale.c:238
 msgid "User defined width"
 msgstr "Benutzerdefinierte Breite"
 
-#: plugins/v4l/i_v4l.c:460 plugins/videofilters/fv_cropscale.c:249
+#: plugins/v4l/i_v4l.c:463 plugins/videofilters/fv_cropscale.c:249
 msgid "User defined height"
 msgstr "Benutzerdefinierte Höhe"
 
-#: plugins/v4l/i_v4l.c:468
+#: plugins/v4l/i_v4l.c:471
 msgid "Settings"
 msgstr "Einstellungen"
 
-#: plugins/v4l/i_v4l.c:473 plugins/videofilters/fv_equalizer.c:330
+#: plugins/v4l/i_v4l.c:476 plugins/videofilters/fv_equalizer.c:330
 msgid "Brightness"
 msgstr "Helligkeit"
 
-#: plugins/v4l/i_v4l.c:482 plugins/videofilters/fv_equalizer.c:360
+#: plugins/v4l/i_v4l.c:485 plugins/videofilters/fv_equalizer.c:360
 msgid "Hue"
 msgstr "Ton"
 
-#: plugins/v4l/i_v4l.c:491
+#: plugins/v4l/i_v4l.c:494
 msgid "Colour"
 msgstr "Farbe"
 
-#: plugins/v4l/i_v4l.c:500 plugins/videofilters/fv_equalizer.c:340
+#: plugins/v4l/i_v4l.c:503 plugins/videofilters/fv_equalizer.c:340
 msgid "Contrast"
 msgstr "Kontrast"
 
-#: plugins/v4l/i_v4l.c:509
+#: plugins/v4l/i_v4l.c:512
 msgid "Whiteness"
 msgstr "Weißheit"
 
-#: plugins/v4l/i_v4l.c:518
+#: plugins/v4l/i_v4l.c:521
 msgid "Flip Image"
 msgstr "Spiegeln"
 
-#: plugins/v4l/i_v4l.c:716
+#: plugins/v4l/i_v4l.c:719
 msgid "V4L"
 msgstr "V4L"
 
-#: plugins/v4l/i_v4l.c:717
+#: plugins/v4l/i_v4l.c:720
 msgid "video4linux recording plugin. Supports only video and no tuner decives."
 msgstr ""
 "video4linux Aufnahmeplugin. Unterstützt nur Video und keine Tunergeräte."
@@ -512,7 +513,7 @@ msgid "Reader for PBM/PGM/PPM images"
 msgstr ""
 
 #: plugins/image/iw_bmp.c:129 plugins/image/iw_pnm.c:79
-#: plugins/oss/i_oss.c:201 plugins/oss/oa_oss.c:144 plugins/oss/oa_oss.c:154
+#: plugins/oss/i_oss.c:202 plugins/oss/oa_oss.c:144 plugins/oss/oa_oss.c:154
 #: plugins/oss/oa_oss.c:164 plugins/png/pngwriter.c:53
 #: plugins/tiff/iw_tiff.c:90 plugins/jpeg/iw_jpeg.c:92
 #, c-format
@@ -568,36 +569,36 @@ msgstr ""
 "X11 Ausgabetreiber mit Unterstützung für XVideo, XImage und OpenGL. Shared "
 "Memory (XShm) wird, wenn möglich, verwendet."
 
-#: plugins/oss/i_oss.c:173
+#: plugins/oss/i_oss.c:174
 msgid "Invalid number of bits"
 msgstr "Ungültige Anzahl an Bits"
 
-#: plugins/oss/i_oss.c:188
+#: plugins/oss/i_oss.c:189
 msgid "Invalid number of channels"
 msgstr "Ungültige Anzahl an Kanälen"
 
-#: plugins/oss/i_oss.c:211 plugins/oss/oa_oss.c:178 plugins/oss/oa_oss.c:190
+#: plugins/oss/i_oss.c:212 plugins/oss/oa_oss.c:178 plugins/oss/oa_oss.c:190
 #: plugins/oss/oa_oss.c:202
 #, c-format
 msgid "Cannot set sampleformat for %s"
 msgstr "Kann Zahlenformat für %s nicht setzen"
 
-#: plugins/oss/i_oss.c:219 plugins/oss/oa_oss.c:215
+#: plugins/oss/i_oss.c:220 plugins/oss/oa_oss.c:215
 #, c-format
 msgid "Device %s doesn't support %d channel sound"
 msgstr "Gerät %s unterstützt kein %d-Kanal Audio"
 
-#: plugins/oss/i_oss.c:228 plugins/oss/oa_oss.c:253 plugins/oss/oa_oss.c:265
+#: plugins/oss/i_oss.c:229 plugins/oss/oa_oss.c:253 plugins/oss/oa_oss.c:265
 #: plugins/oss/oa_oss.c:278
 #, c-format
 msgid "Samplerate %f kHz not supported by device %s"
 msgstr "Abtastfrequenz %f kHz wird nicht unterstützt vom Gerät %s"
 
-#: plugins/oss/i_oss.c:280 plugins/oss/oa_oss.c:563
+#: plugins/oss/i_oss.c:282 plugins/oss/oa_oss.c:563
 msgid "OSS"
 msgstr "OSS"
 
-#: plugins/oss/i_oss.c:281
+#: plugins/oss/i_oss.c:283
 msgid "OSS Recorder"
 msgstr "OSS Aufnahme"
 
@@ -659,12 +660,12 @@ msgid "Gauss"
 msgstr "Gauß"
 
 #: plugins/visualization/vis_scope.c:203 plugins/videofilters/fv_blur.c:208
-#: include/bggavl.h:384
+#: include/bggavl.h:386
 msgid "Triangular"
 msgstr "Dreieck"
 
 #: plugins/visualization/vis_scope.c:204 plugins/videofilters/fv_blur.c:209
-#: include/bggavl.h:383
+#: include/bggavl.h:385
 msgid "Rectangular"
 msgstr "Rechteck"
 
@@ -718,23 +719,23 @@ msgstr ""
 "Gib ein benutzerdefiniertes Gerät zur Aufnahme an. Oder leerlassen für obige "
 "Einstellungen."
 
-#: plugins/alsa/i_alsa.c:270
+#: plugins/alsa/i_alsa.c:271
 msgid "Dropping samples"
 msgstr "Überspringe Abtastwerte"
 
-#: plugins/alsa/i_alsa.c:274
+#: plugins/alsa/i_alsa.c:275
 msgid "snd_pcm_prepare failed"
 msgstr "snd_pcm_prepare fehlgeschlagen"
 
-#: plugins/alsa/i_alsa.c:281
+#: plugins/alsa/i_alsa.c:282
 msgid "Unknown error"
 msgstr "Unbekanner Fehler"
 
-#: plugins/alsa/i_alsa.c:338 plugins/alsa/oa_alsa.c:471
+#: plugins/alsa/i_alsa.c:341 plugins/alsa/oa_alsa.c:471
 msgid "Alsa"
 msgstr "Alsa"
 
-#: plugins/alsa/i_alsa.c:339
+#: plugins/alsa/i_alsa.c:342
 msgid "Alsa recorder"
 msgstr "Alsa Aufnahme"
 
@@ -819,7 +820,7 @@ msgid "snd_pcm_hw_params_set_access failed"
 msgstr "snd_pcm_hw_params_set_access fehlgeschlagen"
 
 #: plugins/alsa/alsa_common.c:106 plugins/alsa/alsa_common.c:120
-#: plugins/alsa/alsa_common.c:145 plugins/alsa/alsa_common.c:183
+#: plugins/alsa/alsa_common.c:145 plugins/alsa/alsa_common.c:184
 msgid "snd_pcm_hw_params_set_format failed"
 msgstr "snd_pcm_hw_params_set_format fehlgeschlagen"
 
@@ -853,33 +854,33 @@ msgstr "snd_pcm_hw_params fehlgeschlagen"
 msgid "Alsa initialization failed"
 msgstr ""
 
-#: plugins/alsa/alsa_common.c:379 plugins/alsa/alsa_common.c:468
+#: plugins/alsa/alsa_common.c:381 plugins/alsa/alsa_common.c:470
 msgid "Card"
 msgstr ""
 
-#: plugins/alsa/alsa_common.c:388
+#: plugins/alsa/alsa_common.c:390
 msgid "No soundcards found"
 msgstr ""
 
-#: plugins/alsa/alsa_common.c:395 plugins/alsa/alsa_common.c:480
+#: plugins/alsa/alsa_common.c:397 plugins/alsa/alsa_common.c:482
 msgid "Default"
 msgstr ""
 
-#: plugins/alsa/alsa_common.c:404
+#: plugins/alsa/alsa_common.c:406
 #, c-format
 msgid "control open failed (%i): %s"
 msgstr "control open fehlgeschlagen (%i): %s"
 
-#: plugins/alsa/alsa_common.c:411
+#: plugins/alsa/alsa_common.c:413
 #, c-format
 msgid "control hardware info failed (%i): %s"
 msgstr ""
 
-#: plugins/alsa/alsa_common.c:422
+#: plugins/alsa/alsa_common.c:424
 msgid "snd_ctl_pcm_next_device failed"
 msgstr "snd_ctl_pcm_next_device fehlgeschlagen"
 
-#: plugins/alsa/alsa_common.c:432
+#: plugins/alsa/alsa_common.c:434
 #, c-format
 msgid "control digital audio info failed (%i): %s"
 msgstr ""
@@ -1369,7 +1370,7 @@ msgstr ""
 msgid "Deinterlace with various algorithms"
 msgstr ""
 
-#: plugins/videofilters/colormatrix.c:1013
+#: plugins/videofilters/colormatrix.c:1033
 #: plugins/videofilters/fv_colorbalance.c:581
 #: plugins/videofilters/fv_equalizer.c:557
 #, c-format
@@ -1602,7 +1603,7 @@ msgstr "Immer"
 msgid "Specifies which field the deinterlacer should drop."
 msgstr ""
 
-#: plugins/videofilters/fv_cropscale.c:535 lib/bggavl.c:370
+#: plugins/videofilters/fv_cropscale.c:535 lib/bggavl.c:391
 #, c-format
 msgid "Unknown scale mode %s\n"
 msgstr ""
@@ -1621,11 +1622,11 @@ msgstr ""
 msgid "Pixelformat"
 msgstr "Pixelformat"
 
-#: plugins/videofilters/fv_pixelformat.c:199
+#: plugins/videofilters/fv_pixelformat.c:200
 msgid "Force pixelformat"
 msgstr ""
 
-#: plugins/videofilters/fv_pixelformat.c:200
+#: plugins/videofilters/fv_pixelformat.c:201
 msgid ""
 "This forces a pixelformat as input for the next filter. Its mainly used for "
 "testing."
@@ -1999,11 +2000,11 @@ msgstr ""
 msgid "Use interpolate mixing"
 msgstr ""
 
-#: plugins/mikmod/i_mikmod.c:335
+#: plugins/mikmod/i_mikmod.c:342
 msgid "mikmod input plugin"
 msgstr ""
 
-#: plugins/mikmod/i_mikmod.c:336
+#: plugins/mikmod/i_mikmod.c:343
 msgid "Simple wrapper, which calls the mikmod program"
 msgstr ""
 
@@ -2221,11 +2222,11 @@ msgstr ""
 msgid "Ejecting disk failed"
 msgstr ""
 
-#: plugins/cdaudio/i_cdaudio.c:937
+#: plugins/cdaudio/i_cdaudio.c:944
 msgid "Audio CD player/ripper"
 msgstr ""
 
-#: plugins/cdaudio/i_cdaudio.c:938
+#: plugins/cdaudio/i_cdaudio.c:945
 msgid ""
 "Plugin for audio CDs. Supports both playing with direct connection from the "
 "CD-drive to the souncard and ripping with cdparanoia. Metadata are obtained "
@@ -2303,17 +2304,22 @@ msgstr ""
 msgid "More than one chapter track found, using first one"
 msgstr ""
 
-#: plugins/lqt/i_lqt.c:496
+#: plugins/lqt/i_lqt.c:502
 msgid "libquicktime input plugin"
 msgstr ""
 
-#: plugins/lqt/i_lqt.c:497
+#: plugins/lqt/i_lqt.c:503
 msgid "Input plugin based on libquicktime"
 msgstr ""
 
-#: plugins/lqt/lqt_common.c:78
+#: plugins/lqt/lqt_common.c:79
 #, c-format
 msgid "%s Compatible with"
+msgstr ""
+
+#: plugins/lqt/lqt_common.c:94 lib/transcoder.c:1892 lib/transcoder.c:3471
+#, c-format
+msgid "%s"
 msgstr ""
 
 #: plugins/lqt/e_lqt.c:43
@@ -2743,56 +2749,76 @@ msgid "Mix mode when downmixing Stereo to Mono."
 msgstr ""
 
 #: include/bggavl.h:368
-msgid "Force floating point"
-msgstr "Erzwinge Fließkomma"
+#, fuzzy
+msgid "Force sampleformat"
+msgstr "Kann Zahlenformat für %s nicht setzen"
 
-#: include/bggavl.h:372
-msgid ""
-"Force floating point processing. This will inprove the quality but might "
-"slow things down."
+#: include/bggavl.h:373
+msgid "8 bit"
 msgstr ""
-"Erzwinge Fließkommaverarbeitung. Dies verbessert die Qualität, kann aber die "
-"Wiedergabe auch bremsen."
 
-#: include/bggavl.h:378
+#: include/bggavl.h:373
+msgid "16 bit"
+msgstr ""
+
+#: include/bggavl.h:373
+msgid "32 bit"
+msgstr ""
+
+#: include/bggavl.h:373
+#, fuzzy
+msgid "Float"
+msgstr "Format"
+
+#: include/bggavl.h:373
+msgid "Double"
+msgstr ""
+
+#: include/bggavl.h:374
+msgid ""
+"Force a sampleformat to be used for processing. None means to take the input "
+"format."
+msgstr ""
+
+#: include/bggavl.h:380
 msgid "Dither mode"
 msgstr ""
 
-#: include/bggavl.h:384
+#: include/bggavl.h:386
 msgid "Shaped"
 msgstr ""
 
-#: include/bggavl.h:385
+#: include/bggavl.h:387
 msgid ""
 "Dither mode. Auto means to use the quality level. Subsequent options are "
 "ordered by increasing quality (i.e. decreasing speed)."
 msgstr ""
 
-#: include/bggavl.h:391
+#: include/bggavl.h:393
 msgid "Resample mode"
 msgstr ""
 
-#: include/bggavl.h:396
+#: include/bggavl.h:398
 msgid "Linear"
 msgstr ""
 
-#: include/bggavl.h:396
+#: include/bggavl.h:398
 msgid "Zero order hold"
 msgstr ""
 
-#: include/bggavl.h:397
+#: include/bggavl.h:399
 msgid "Sinc fast"
 msgstr ""
 
-#: include/bggavl.h:397
+#: include/bggavl.h:399
 msgid "Sinc medium"
 msgstr ""
 
-#: include/bggavl.h:397
+#: include/bggavl.h:399
 msgid "Sinc best"
 msgstr ""
 
-#: include/bggavl.h:398
+#: include/bggavl.h:400
 msgid ""
 "Resample mode. Auto means to use the quality level. Subsequent options are "
 "ordered by increasing quality (i.e. decreasing speed)."
@@ -2802,12 +2828,12 @@ msgstr ""
 msgid "Input plugins"
 msgstr ""
 
-#: apps/player/pluginwindow.c:115 apps/transcoder/pluginwindow.c:178
+#: apps/player/pluginwindow.c:115 apps/transcoder/pluginwindow.c:182
 msgid "Inputs"
 msgstr ""
 
 #: apps/player/pluginwindow.c:127 apps/plugincfg/gmerlin_plugincfg.c:573
-#: apps/transcoder/pluginwindow.c:184
+#: apps/transcoder/pluginwindow.c:188
 msgid "Image readers"
 msgstr ""
 
@@ -3312,7 +3338,7 @@ msgstr "Globale Optionen"
 msgid "Commands"
 msgstr "Befehle"
 
-#: apps/player/gmerlin_remote.c:510
+#: apps/player/gmerlin_remote.c:514
 msgid "Cannot launch gmerlin process"
 msgstr "Kann keinen gmerlin Prozess starten"
 
@@ -3320,15 +3346,15 @@ msgstr "Kann keinen gmerlin Prozess starten"
 msgid "Gmerlin Plugin Configurator"
 msgstr ""
 
-#: apps/plugincfg/gmerlin_plugincfg.c:312 apps/transcoder/encoderwidget.c:234
+#: apps/plugincfg/gmerlin_plugincfg.c:312
 msgid "Encode audio into video file"
 msgstr ""
 
-#: apps/plugincfg/gmerlin_plugincfg.c:330 apps/transcoder/encoderwidget.c:236
+#: apps/plugincfg/gmerlin_plugincfg.c:330
 msgid "Encode text subtitles into video file"
 msgstr ""
 
-#: apps/plugincfg/gmerlin_plugincfg.c:350 apps/transcoder/encoderwidget.c:238
+#: apps/plugincfg/gmerlin_plugincfg.c:350
 msgid "Encode overlay subtitles into video file"
 msgstr ""
 
@@ -3344,7 +3370,7 @@ msgstr "Visualisierungen"
 msgid "Output"
 msgstr "Ausgabe"
 
-#: apps/plugincfg/gmerlin_plugincfg.c:535 apps/transcoder/pluginwindow.c:171
+#: apps/plugincfg/gmerlin_plugincfg.c:535 apps/transcoder/pluginwindow.c:176
 msgid "Encoders"
 msgstr ""
 
@@ -3384,7 +3410,7 @@ msgid "Framerate: %.2f fps"
 msgstr ""
 
 #: apps/camelot/webcam_window.c:382 apps/camelot/webcam_window.c:398
-#: apps/camelot/webcam_window.c:426 lib/singlepic.c:645
+#: apps/camelot/webcam_window.c:426 lib/singlepic.c:643
 #: lib/transcoder_track.c:352
 msgid "Plugin"
 msgstr "Plugin"
@@ -3483,7 +3509,7 @@ msgstr ""
 msgid "Output framecounter"
 msgstr ""
 
-#: apps/transcoder/pluginwindow.c:137
+#: apps/transcoder/pluginwindow.c:142
 msgid "Plugins"
 msgstr "Plugins"
 
@@ -3580,7 +3606,7 @@ msgstr ""
 
 #: apps/transcoder/transcoder_window.c:982 apps/transcoder/main.c:70
 #: apps/cmdlineplayer/gmerlin_play.c:850 tests/imgconvert.c:97
-#: tests/cfgtest.c:589 tests/visualization.c:78
+#: tests/cfgtest.c:602 tests/visualization.c:78
 msgid "Options"
 msgstr ""
 
@@ -3663,7 +3689,7 @@ msgstr ""
 msgid "Remote control command for the Gmerlin GUI transcoder\n"
 msgstr ""
 
-#: apps/transcoder/gmerlin_transcoder_remote.c:223
+#: apps/transcoder/gmerlin_transcoder_remote.c:224
 msgid "Cannot launch transcoder process"
 msgstr ""
 
@@ -3787,7 +3813,7 @@ msgstr ""
 msgid "Move selected tracks to the bottom of the tracklist"
 msgstr ""
 
-#: apps/transcoder/encoderwidget.c:528
+#: apps/transcoder/encoderwidget.c:173
 msgid "Select encoders"
 msgstr ""
 
@@ -4203,11 +4229,11 @@ msgstr ""
 msgid "Image converter\n"
 msgstr ""
 
-#: tests/cfgtest.c:587
+#: tests/cfgtest.c:600
 msgid "[Options]"
 msgstr "[Optionen]"
 
-#: tests/cfgtest.c:588
+#: tests/cfgtest.c:601
 msgid "Configure test\n"
 msgstr ""
 
@@ -4219,23 +4245,23 @@ msgstr ""
 msgid "Visualize test\n"
 msgstr ""
 
-#: tests/visualization.c:128
+#: tests/visualization.c:127
 msgid "No input plugin defined"
 msgstr ""
 
-#: tests/visualization.c:135
+#: tests/visualization.c:134
 msgid "Input plugin could not be loaded"
 msgstr ""
 
-#: tests/visualization.c:145
+#: tests/visualization.c:144
 msgid "No output plugin defined"
 msgstr "Kein Ausgabeplugin definiert"
 
-#: tests/visualization.c:152
+#: tests/visualization.c:151
 msgid "Output plugin could not be loaded"
 msgstr ""
 
-#: tests/visualization.c:169
+#: tests/visualization.c:168
 msgid "Opening input plugin failed"
 msgstr ""
 
@@ -4291,7 +4317,7 @@ msgid ""
 "Copyright:\t%s"
 msgstr ""
 
-#: lib/bgladspa.c:295 lib/bgladspa.c:672
+#: lib/bgladspa.c:295 lib/bgladspa.c:673
 #, c-format
 msgid "No symbol \"ladspa_descriptor\" found: %s"
 msgstr ""
@@ -4306,66 +4332,66 @@ msgstr ""
 msgid "Created directory %s"
 msgstr ""
 
-#: lib/pluginregistry.c:346 lib/pluginregistry.c:1196
+#: lib/pluginregistry.c:345 lib/pluginregistry.c:1240
 #, c-format
 msgid "Plugin %s has no or wrong version"
 msgstr ""
 
-#: lib/pluginregistry.c:353
+#: lib/pluginregistry.c:352
 #, c-format
 msgid "No symbol the_plugin in %s"
 msgstr ""
 
-#: lib/pluginregistry.c:358
+#: lib/pluginregistry.c:357
 #, c-format
 msgid "Warning: Plugin %s has zero priority"
 msgstr ""
 
-#: lib/pluginregistry.c:529
+#: lib/pluginregistry.c:544
 #, c-format
 msgid "Cannot dlopen %s: %s"
 msgstr ""
 
-#: lib/pluginregistry.c:997
+#: lib/pluginregistry.c:1038
 #, c-format
 msgid "bg_plugin_ref %s: %d"
 msgstr ""
 
-#: lib/pluginregistry.c:1050
+#: lib/pluginregistry.c:1094
 #, c-format
 msgid "bg_plugin_unref_nolock %s: %d"
 msgstr ""
 
-#: lib/pluginregistry.c:1060
+#: lib/pluginregistry.c:1104
 #, c-format
 msgid "bg_plugin_unref %s: %d"
 msgstr ""
 
-#: lib/pluginregistry.c:1083 lib/pluginregistry.c:1128
+#: lib/pluginregistry.c:1127 lib/pluginregistry.c:1172
 #, c-format
 msgid "No plugin found for image %s"
 msgstr ""
 
-#: lib/pluginregistry.c:1185
+#: lib/pluginregistry.c:1229
 #, c-format
 msgid "Cannot dlopen plugin %s: %s"
 msgstr ""
 
-#: lib/pluginregistry.c:1286
+#: lib/pluginregistry.c:1334
 msgid "Invalid plugin type for video output"
 msgstr ""
 
-#: lib/pluginregistry.c:1292
+#: lib/pluginregistry.c:1340
 #, c-format
 msgid "Plugin %s doesn't support embedded windows"
 msgstr ""
 
-#: lib/pluginregistry.c:1540
+#: lib/pluginregistry.c:1588
 #, c-format
 msgid "Loading plugin \"%s\" failed"
 msgstr ""
 
-#: lib/pluginregistry.c:1552 lib/pluginregistry.c:1589
+#: lib/pluginregistry.c:1600 lib/pluginregistry.c:1637
 #, c-format
 msgid "Opening %s with \"%s\" failed"
 msgstr ""
@@ -4743,11 +4769,11 @@ msgstr ""
 msgid "Undefined"
 msgstr ""
 
-#: lib/cmdline.c:219
+#: lib/cmdline.c:221
 msgid "Copyright (C) 2001-2007 Members of the gmerlin project\n"
 msgstr ""
 
-#: lib/cmdline.c:220
+#: lib/cmdline.c:222
 msgid ""
 "This is free software.  You may redistribute copies of it under the terms "
 "of\n"
@@ -4755,51 +4781,51 @@ msgid ""
 "There is NO WARRANTY, to the extent permitted by law.\n"
 msgstr ""
 
-#: lib/cmdline.c:288
+#: lib/cmdline.c:290
 msgid "Print this help message and exit"
 msgstr ""
 
-#: lib/cmdline.c:293
+#: lib/cmdline.c:295
 msgid "Print this help message as a manual page and exit"
 msgstr ""
 
-#: lib/cmdline.c:298
+#: lib/cmdline.c:300
 msgid "Print this help message in texinfo format and exit"
 msgstr ""
 
-#: lib/cmdline.c:303
+#: lib/cmdline.c:305
 msgid "Print version info and exit"
 msgstr ""
 
-#: lib/cmdline.c:336
+#: lib/cmdline.c:338
 msgid ""
 "Environment variables\n"
 "\n"
 msgstr ""
 
-#: lib/cmdline.c:350
+#: lib/cmdline.c:352
 msgid ""
 "Files\n"
 "\n"
 msgstr ""
 
-#: lib/cmdline.c:414
+#: lib/cmdline.c:416
 msgid ".SH ENVIRONMENT VARIABLES\n"
 msgstr ""
 
-#: lib/cmdline.c:429
+#: lib/cmdline.c:431
 msgid ".SH FILES\n"
 msgstr ""
 
-#: lib/cmdline.c:468
+#: lib/cmdline.c:470
 msgid "@item Environment variables\n"
 msgstr ""
 
-#: lib/cmdline.c:482
+#: lib/cmdline.c:484
 msgid "@item Files\n"
 msgstr ""
 
-#: lib/cmdline.c:704
+#: lib/cmdline.c:699
 msgid ""
 "Supported options:\n"
 "\n"
@@ -4807,92 +4833,97 @@ msgstr ""
 "Unterstützte Optionen:\n"
 "\n"
 
-#: lib/cmdline.c:783
+#: lib/cmdline.c:778
 #, c-format
 msgid "[1|0] (default: %d)"
 msgstr ""
 
-#: lib/cmdline.c:792 lib/cmdline.c:806
+#: lib/cmdline.c:787 lib/cmdline.c:801
 msgid "<number> ("
 msgstr ""
 
-#: lib/cmdline.c:798
+#: lib/cmdline.c:793
 #, c-format
 msgid "default: %d)"
 msgstr ""
 
-#: lib/cmdline.c:817
+#: lib/cmdline.c:812
 #, c-format
 msgid "default: %%.%df)"
 msgstr ""
 
-#: lib/cmdline.c:833 lib/cmdline.c:846 lib/cmdline.c:853
+#: lib/cmdline.c:828 lib/cmdline.c:841 lib/cmdline.c:848
 msgid "<string>"
 msgstr ""
 
-#: lib/cmdline.c:836
+#: lib/cmdline.c:831
 #, c-format
 msgid " (Default: %s)"
 msgstr ""
 
-#: lib/cmdline.c:863
+#: lib/cmdline.c:858
 msgid "Supported strings: "
 msgstr ""
 
-#: lib/cmdline.c:885 lib/cmdline.c:960
+#: lib/cmdline.c:880 lib/cmdline.c:955
 #, c-format
 msgid "Default: %s"
 msgstr ""
 
-#: lib/cmdline.c:892
+#: lib/cmdline.c:887
 #, c-format
 msgid "<r>,<g>,<b> (default: %.3f,%.3f,%.3f)"
 msgstr ""
 
-#: lib/cmdline.c:903
+#: lib/cmdline.c:898 lib/cmdline.c:1024
 msgid "<r>, <g> and <b> are in the range 0.0..1.0"
 msgstr ""
 
-#: lib/cmdline.c:910
+#: lib/cmdline.c:905
 #, c-format
 msgid "<r>,<g>,<b>,<a> (default: %.3f,%.3f,%.3f,%.3f)"
 msgstr ""
 
-#: lib/cmdline.c:922
+#: lib/cmdline.c:917
 msgid "<r>, <g>, <b> and <a> are in the range 0.0..1.0"
 msgstr ""
 
-#: lib/cmdline.c:929
+#: lib/cmdline.c:924
 msgid "option[{suboptions}]"
 msgstr ""
 
-#: lib/cmdline.c:938 lib/cmdline.c:978
+#: lib/cmdline.c:933 lib/cmdline.c:973
 msgid "Supported options: "
 msgstr ""
 
-#: lib/cmdline.c:966
+#: lib/cmdline.c:961
 msgid "{option[{suboptions}][:option[{suboptions}]...]}"
 msgstr ""
 
-#: lib/cmdline.c:998
+#: lib/cmdline.c:993
 msgid "{[[HH:]MM:]SS} ("
 msgstr ""
 
-#: lib/cmdline.c:1008
+#: lib/cmdline.c:1003
 #, c-format
 msgid "default: %s)"
 msgstr ""
 
-#: lib/cmdline.c:1016
+#: lib/cmdline.c:1011
 msgid "Seconds can be fractional (i.e. with decimal point)\n"
 msgstr ""
 
-#: lib/cmdline.c:1049 lib/cmdline.c:1052
+#: lib/cmdline.c:1014
+#, c-format
+msgid "<x>,<y> (default: %.3f,%.3f)"
+msgstr ""
+
+#: lib/cmdline.c:1063 lib/cmdline.c:1066
 #, c-format
 msgid "Suboptions for %s=%s"
 msgstr ""
 
-#: lib/cmdline.c:1057
+#: lib/cmdline.c:1071
 #, c-format
 msgid "Suboptions for %s"
 msgstr "Unteroptionen für %s"
@@ -4976,31 +5007,31 @@ msgstr ""
 msgid "Server connection closed"
 msgstr ""
 
-#: lib/player_thread.c:723 lib/player_thread.c:1233
-msgid "Joining audio thread..."
-msgstr ""
-
-#: lib/player_thread.c:725 lib/player_thread.c:1235
-msgid "Joining audio thread done"
-msgstr ""
-
-#: lib/player_thread.c:729 lib/player_thread.c:1239
-msgid "Joining video thread..."
-msgstr ""
-
-#: lib/player_thread.c:731 lib/player_thread.c:1241
-msgid "Joining video thread done"
-msgstr ""
-
-#: lib/player_thread.c:1228
+#: lib/player_thread.c:724 lib/player_thread.c:1237
 msgid "Joining input thread..."
 msgstr ""
 
-#: lib/player_thread.c:1230
+#: lib/player_thread.c:726 lib/player_thread.c:1239
 msgid "Joining input thread done"
 msgstr ""
 
-#: lib/player_thread.c:1293
+#: lib/player_thread.c:731 lib/player_thread.c:1242
+msgid "Joining audio thread..."
+msgstr ""
+
+#: lib/player_thread.c:733 lib/player_thread.c:1244
+msgid "Joining audio thread done"
+msgstr ""
+
+#: lib/player_thread.c:737 lib/player_thread.c:1248
+msgid "Joining video thread..."
+msgstr ""
+
+#: lib/player_thread.c:739 lib/player_thread.c:1250
+msgid "Joining video thread done"
+msgstr ""
+
+#: lib/player_thread.c:1302
 msgid "Ignoring command while playback is interrupted"
 msgstr ""
 
@@ -5083,11 +5114,6 @@ msgstr ""
 msgid "Transcoding %s [Track %d]"
 msgstr ""
 
-#: lib/transcoder.c:1892 lib/transcoder.c:3471
-#, c-format
-msgid "%s"
-msgstr ""
-
 #: lib/transcoder.c:1900
 #, c-format
 msgid ""
@@ -5168,7 +5194,7 @@ msgstr ""
 msgid "Invalid track number %d"
 msgstr "Ungültige Tracknummer %d"
 
-#: lib/transcoder.c:2223 lib/player_input.c:320
+#: lib/transcoder.c:2223 lib/player_input.c:327
 msgid "Starting input plugin failed"
 msgstr ""
 
@@ -5478,20 +5504,20 @@ msgid ""
 "readers."
 msgstr ""
 
-#: lib/singlepic.c:522
+#: lib/singlepic.c:521
 msgid ""
 "This plugin reads images as stills. It uses the installed image readers."
 msgstr ""
 
-#: lib/singlepic.c:650
+#: lib/singlepic.c:648
 msgid "Framenumber digits"
 msgstr "Dezimalstellen für Bildnummer"
 
-#: lib/singlepic.c:658
+#: lib/singlepic.c:656
 msgid "Framenumber offset"
 msgstr "Offset für Bildnummer"
 
-#: lib/singlepic.c:943
+#: lib/singlepic.c:941
 msgid ""
 "This plugin encodes a video as a series of images. It uses the installed "
 "image writers."
@@ -5757,89 +5783,99 @@ msgstr ""
 msgid "Duration (milliseconds)"
 msgstr ""
 
-#: lib/remote.c:89
+#: lib/remote.c:96
 msgid "Setting up socket failed, this instance won't be reachable via remote"
 msgstr ""
 
-#: lib/remote.c:94
+#: lib/remote.c:101
 #, c-format
 msgid "Remote socket listening at port %d"
 msgstr ""
 
-#: lib/remote.c:114
+#: lib/remote.c:121
 msgid "Reading hello line failed"
 msgstr ""
 
-#: lib/remote.c:123 lib/remote.c:421
+#: lib/remote.c:130 lib/remote.c:428
 msgid "Protocol mismatch"
 msgstr ""
 
-#: lib/remote.c:174
+#: lib/remote.c:181
 msgid "Client connection closed"
 msgstr ""
 
-#: lib/remote.c:198
+#: lib/remote.c:205
 msgid "New client connection"
 msgstr ""
 
-#: lib/remote.c:287
+#: lib/remote.c:294
 msgid "Allow connections from other machines"
 msgstr ""
 
-#: lib/remote.c:293
+#: lib/remote.c:300
 msgid "Maximum number of connections"
 msgstr ""
 
-#: lib/remote.c:393
+#: lib/remote.c:400
 msgid "Connecting failed"
 msgstr ""
 
-#: lib/remote.c:404
+#: lib/remote.c:411
 msgid "Sending initialization string failed"
 msgstr ""
 
-#: lib/remote.c:412
+#: lib/remote.c:419
 msgid "Reading welcome line failed"
 msgstr ""
 
-#: lib/player_input.c:137
+#: lib/player_input.c:144
 msgid "Aspect ratio changed"
 msgstr ""
 
-#: lib/player_input.c:363
+#: lib/player_input.c:370
 msgid "Cannot select track, skipping"
 msgstr ""
 
-#: lib/player_input.c:404
+#: lib/player_input.c:411
 msgid "Stream has neither audio nor video, skipping"
 msgstr ""
 
-#: lib/player_input.c:829
+#: lib/player_input.c:463
+#, c-format
+msgid "Audio sample counter: %<PRId64>"
+msgstr ""
+
+#: lib/player_input.c:465
+#, c-format
+msgid "Video frame counter: %<PRId64>"
+msgstr ""
+
+#: lib/player_input.c:858
 #, c-format
 msgid "Processed %s audio samples"
 msgstr ""
 
-#: lib/player_input.c:835
+#: lib/player_input.c:864
 #, c-format
 msgid "Processed %s video frames"
 msgstr ""
 
-#: lib/player_input.c:963
+#: lib/player_input.c:996
 msgid "Input options"
 msgstr ""
 
-#: lib/player_input.c:969
+#: lib/player_input.c:1002
 msgid "Enable bypass mode"
 msgstr ""
 
-#: lib/player_input.c:972
+#: lib/player_input.c:1005
 msgid ""
 "Use input plugins in bypass mode if they support it (Currently only the "
 "audio CD player). This dramatically decreases CPU usage but doesn't work on "
 "all hardware setups."
 msgstr ""
 
-#: lib/player_input.c:982
+#: lib/player_input.c:1015
 msgid ""
 "When showing still images, gmerlin repeats them periodically to make "
 "realtime filter tweaking work."
@@ -5860,66 +5896,66 @@ msgstr ""
 msgid "Could not create directory %s: %s"
 msgstr ""
 
-#: lib/socket.c:122
+#: lib/socket.c:131
 msgid "Could not resolve address"
 msgstr ""
 
-#: lib/socket.c:139
+#: lib/socket.c:148
 msgid "No known address space"
 msgstr ""
 
-#: lib/socket.c:202
+#: lib/socket.c:211
 #, c-format
 msgid "Cannot resolve address of %s: %s"
 msgstr ""
 
-#: lib/socket.c:237
+#: lib/socket.c:246
 msgid "Cannot create socket"
 msgstr ""
 
-#: lib/socket.c:244 lib/socket.c:338 lib/socket.c:374
+#: lib/socket.c:253 lib/socket.c:347 lib/socket.c:383
 msgid "Cannot set nonblocking mode"
 msgstr ""
 
-#: lib/socket.c:259
+#: lib/socket.c:268
 msgid "Connection timed out"
 msgstr ""
 
-#: lib/socket.c:265
+#: lib/socket.c:274
 #, c-format
 msgid "Connecting failed: %s"
 msgstr ""
 
-#: lib/socket.c:274
+#: lib/socket.c:283
 msgid "Cannot set blocking mode"
 msgstr ""
 
-#: lib/socket.c:288
+#: lib/socket.c:297
 msgid "Cannot create unix socket"
 msgstr ""
 
-#: lib/socket.c:299
+#: lib/socket.c:308
 msgid "Connecting unix socket failed"
 msgstr ""
 
-#: lib/socket.c:323
+#: lib/socket.c:332
 msgid "Cannot create inet server socket"
 msgstr ""
 
-#: lib/socket.c:333
+#: lib/socket.c:342
 #, c-format
 msgid "Cannot bind inet socket: %s"
 msgstr ""
 
-#: lib/socket.c:343 lib/socket.c:379
+#: lib/socket.c:352 lib/socket.c:388
 msgid "Cannot put socket into listening mode"
 msgstr ""
 
-#: lib/socket.c:359
+#: lib/socket.c:368
 msgid "Cannot create unix server socket"
 msgstr ""
 
-#: lib/socket.c:369
+#: lib/socket.c:378
 msgid "Could not bind socket"
 msgstr ""
 
@@ -6088,20 +6124,24 @@ msgid "Maximum number of messages hold in the window"
 msgstr ""
 
 #: lib/gtk/logwindow.c:333
-msgid "Show info massages"
-msgstr ""
+#, fuzzy
+msgid "Show info messages"
+msgstr "Meldungen"
 
 #: lib/gtk/logwindow.c:339
-msgid "Show warning massages"
-msgstr ""
+#, fuzzy
+msgid "Show warning messages"
+msgstr "Meldungen"
 
 #: lib/gtk/logwindow.c:345
-msgid "Show error massages"
-msgstr ""
+#, fuzzy
+msgid "Show error messages"
+msgstr "Meldungen"
 
 #: lib/gtk/logwindow.c:351
-msgid "Show debug massages"
-msgstr ""
+#, fuzzy
+msgid "Show debug messages"
+msgstr "Meldungen"
 
 #: lib/gtk/logwindow.c:357
 msgid "Info foreground"
@@ -6395,7 +6435,7 @@ msgstr ""
 msgid "Gmerlin Media Tree"
 msgstr ""
 
-#: lib/gtk/cfg_multi_list.c:789
+#: lib/gtk/cfg_multi_list.c:790
 #, c-format
 msgid "Add %s"
 msgstr ""
@@ -6536,7 +6576,7 @@ msgstr ""
 #, c-format
 msgid ""
 "Name:\t %s\n"
-"Long name:\t %s\n"
+"Long .name =\t %s\n"
 "Type:\t %s\n"
 "Flags:\t %s\n"
 "Priority:\t %d\n"
@@ -6662,11 +6702,11 @@ msgstr "Videofilter"
 msgid "Initialized video filter %s"
 msgstr "Initialisierte Videofilter %s"
 
-#: lib/bglv.c:428
+#: lib/bglv.c:429
 msgid "libvisual plugin"
 msgstr "libvisual Plugin"
 
-#: lib/bglv.c:433
+#: lib/bglv.c:434
 #, c-format
 msgid ""
 "\n"
@@ -6675,7 +6715,7 @@ msgstr ""
 "\n"
 "Author: %s"
 
-#: lib/bglv.c:440
+#: lib/bglv.c:441
 #, c-format
 msgid ""
 "\n"
@@ -6684,7 +6724,7 @@ msgstr ""
 "\n"
 "Version: %s"
 
-#: lib/bglv.c:447
+#: lib/bglv.c:448
 #, c-format
 msgid ""
 "\n"
@@ -6693,7 +6733,7 @@ msgstr ""
 "\n"
 "Über: %s"
 
-#: lib/bglv.c:454
+#: lib/bglv.c:455
 #, c-format
 msgid ""
 "\n"
@@ -6702,7 +6742,7 @@ msgstr ""
 "\n"
 "Hilfe: %s"
 
-#: lib/bglv.c:461
+#: lib/bglv.c:462
 #, c-format
 msgid ""
 "\n"
@@ -6710,6 +6750,16 @@ msgid ""
 msgstr ""
 "\n"
 "Lizenz: %s"
+
+#~ msgid "Force floating point"
+#~ msgstr "Erzwinge Fließkomma"
+
+#~ msgid ""
+#~ "Force floating point processing. This will inprove the quality but might "
+#~ "slow things down."
+#~ msgstr ""
+#~ "Erzwinge Fließkommaverarbeitung. Dies verbessert die Qualität, kann aber "
+#~ "die Wiedergabe auch bremsen."
 
 #~ msgid "Ignore linebreaks in subtitles."
 #~ msgstr "Ignoriere Zeilenumbrüche"
