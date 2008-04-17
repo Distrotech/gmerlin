@@ -261,7 +261,7 @@ typedef struct
     
   int is_cdxa; /* Nanosoft VCD rip */
     
-  int64_t data_start;
+  //  int64_t data_start;
   int64_t data_size;
   
   /* Actions for next_packet */
@@ -290,7 +290,7 @@ static void goto_sector_cdxa(bgav_demuxer_context_t * ctx, int64_t sector)
   mpegps_priv_t * priv;
   priv = (mpegps_priv_t*)(ctx->priv);
 
-  bgav_input_seek(ctx->input, priv->data_start + priv->sector_size_raw * (sector + priv->start_sector),
+  bgav_input_seek(ctx->input, ctx->data_start + priv->sector_size_raw * (sector + priv->start_sector),
                   SEEK_SET);
   bgav_input_reopen_memory(priv->input_mem,
                            NULL, 0);
@@ -833,7 +833,7 @@ static void get_duration(bgav_demuxer_context_t * ctx)
     ctx->tt->cur->duration =
       ((int64_t)(scr_end - scr_start) * GAVL_TIME_SCALE) / 90000;
 
-    bgav_input_seek(ctx->input, priv->data_start, SEEK_SET);
+    bgav_input_seek(ctx->input, ctx->data_start, SEEK_SET);
     }
   else if(ctx->input->total_bytes && priv->pack_header.mux_rate)
     {
@@ -895,7 +895,7 @@ static int init_cdxa(bgav_demuxer_context_t * ctx)
       break;
     bgav_input_skip(ctx->input, size);
     }
-  priv->data_start = ctx->input->position;
+  ctx->data_start = ctx->input->position;
   priv->data_size = size;
 
   priv->total_sectors      = priv->data_size / CDXA_SECTOR_SIZE_RAW;
@@ -942,15 +942,14 @@ static int init_mpegps(bgav_demuxer_context_t * ctx)
       break;
     }
 
-  priv->data_start = ctx->input->position;
+  ctx->data_start = ctx->input->position;
   if(ctx->input->total_bytes)
-    priv->data_size = ctx->input->total_bytes - priv->data_start;
+    priv->data_size = ctx->input->total_bytes - ctx->data_start;
 
 
   if(!pack_header_read(ctx->input, &(priv->pack_header)))
     return 0;
   
-  ctx->data_start = ctx->input->position;
   ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
   
   return 1;
@@ -1058,12 +1057,18 @@ static void seek_normal(bgav_demuxer_context_t * ctx, int64_t time,
   priv = (mpegps_priv_t*)(ctx->priv);
   
   //  file_position = (priv->pack_header.mux_rate*50*time)/GAVL_TIME_SCALE;
-  file_position = priv->data_start +
-    (priv->data_size * gavl_time_unscale(scale, time))/
-    ctx->tt->cur->duration;
+  fprintf(stderr, "%ld %ld %d %ld %ld %ld\n",
+          ctx->data_start, priv->data_size, scale, time,
+          ctx->tt->cur->duration, gavl_time_unscale(scale, time));
+  /* Using double is ugly, but in integer, this can overflow for large file (even in 64 bit).
+     We do iterative seeking at this point anyway. */
+  file_position = ctx->data_start +
+    (int64_t)(priv->data_size * (double)gavl_time_unscale(scale, time)/(double)ctx->tt->cur->duration + 0.5);
+
+  fprintf(stderr, "File position: %ld\n", file_position);
   
-  if(file_position <= priv->data_start)
-    file_position = priv->data_start+1;
+  if(file_position <= ctx->data_start)
+    file_position = ctx->data_start+1;
   if(file_position >= ctx->input->total_bytes)
     file_position = ctx->input->total_bytes - 4;
 
@@ -1080,7 +1085,7 @@ static void seek_normal(bgav_demuxer_context_t * ctx, int64_t time,
     else
       {
       file_position -= 2000; /* Go a bit back */
-      if(file_position <= priv->data_start)
+      if(file_position <= ctx->data_start)
         {
         break; /* Escape from inifinite loop */
         }

@@ -176,7 +176,7 @@ static void seek_dv(bgav_demuxer_context_t * ctx, int64_t time,
   file_position = frame_pos * priv->frame_size;
 
   vs->in_time = frame_pos * vs->data.video.format.frame_duration;
-
+  
   as->in_time =
     gavl_time_rescale(vs->data.video.format.timescale,
                       as->data.audio.format.samplerate,

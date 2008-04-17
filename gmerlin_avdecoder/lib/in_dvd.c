@@ -251,19 +251,18 @@ static int setup_track(bgav_input_context_t * ctx,
   dvd_t * dvd = (dvd_t*)(ctx->priv);
   ttsrpt = dvd->vmg_ifo->tt_srpt;
 
+  /* Open VTS */
+  
+  if(!open_vts(ctx->opt, dvd, ttsrpt->title[title].title_set_nr, 0))
+    return 0;
+  
   new_track = bgav_track_table_append_track(ctx->tt);
   track_priv = calloc(1, sizeof(*track_priv));
   track_priv->title = title;
   track_priv->chapter = chapter;
   track_priv->angle = angle;
-
   new_track->priv = track_priv;
-
-  /* Open VTS */
-
-  if(!open_vts(ctx->opt, dvd, ttsrpt->title[title].title_set_nr, 0))
-    return 0;
-
+  
   /* Get the program chain for this track/chapter */
   ttn = ttsrpt->title[title].vts_ttn;
   vts_ptt_srpt = dvd->vts_ifo->vts_ptt_srpt;
@@ -697,16 +696,12 @@ static int open_dvd(bgav_input_context_t * ctx, const char * url, char ** r)
         {
         /* Add individual chapters as tracks */
         for(k = 0; k < ttsrpt->title[i].nr_of_ptts; k++)
-          {
-          if(!setup_track(ctx, i, k, j))
-            return 0;
-          }
+          setup_track(ctx, i, k, j);
         }
       else
         {
         /* Add entire titles as tracks */
-        if(!setup_track(ctx, i, 0, j))
-          return 0;
+        setup_track(ctx, i, 0, j);
         }
       }
     }

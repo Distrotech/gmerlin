@@ -243,9 +243,7 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale)
   int64_t time_scaled;
   char tmp_string1[128];
   char tmp_string2[128];
-  
   time_scaled = gavl_time_rescale(scale, s->data.video.format.timescale, *time);
-  
   if(s->out_time > time_scaled)
     {
     sprintf(tmp_string1, "%" PRId64, s->in_time);
@@ -266,6 +264,7 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale)
     //    s->in_time = gavl_time_rescale(scale, s->timescale, *time);
     return 1;
     }
+  
   //  fprintf(stderr, "bgav_video_skipto %ld %ld -> %ld\n", s->out_time, s->data.video.next_frame_duration, time_scaled);
   do{
     result = bgav_video_decode(s, (gavl_video_frame_t*)0);
@@ -277,6 +276,7 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale)
   *time = gavl_time_rescale(s->data.video.format.timescale, scale, s->out_time);
   s->in_time = gavl_time_rescale(scale, s->timescale, *time);
 
+  //  fprintf(stderr, "bgav_video_skipto done\n");
 
   
   return 1;
