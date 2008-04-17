@@ -39,7 +39,7 @@ bgav_edl_track_t * bgav_edl_add_track(bgav_edl_t * e)
   return e->tracks + (e->num_tracks-1);
   }
 
-bgav_edl_stream_t * bgav_edl_add_audio_stram(bgav_edl_track_t * t)
+bgav_edl_stream_t * bgav_edl_add_audio_stream(bgav_edl_track_t * t)
   {
   t->audio_streams = realloc(t->audio_streams, (t->num_audio_streams+1)*sizeof(*t->audio_streams));
   memset(t->audio_streams + t->num_audio_streams, 0, sizeof(*t->audio_streams));
@@ -47,7 +47,7 @@ bgav_edl_stream_t * bgav_edl_add_audio_stram(bgav_edl_track_t * t)
   return t->audio_streams + (t->num_audio_streams-1);
   }
 
-bgav_edl_stream_t * bgav_edl_add_video_stram(bgav_edl_track_t * t)
+bgav_edl_stream_t * bgav_edl_add_video_stream(bgav_edl_track_t * t)
   {
   t->video_streams = realloc(t->video_streams, (t->num_video_streams+1)*sizeof(*t->video_streams));
   memset(t->video_streams + t->num_video_streams, 0, sizeof(*t->video_streams));
@@ -56,12 +56,20 @@ bgav_edl_stream_t * bgav_edl_add_video_stram(bgav_edl_track_t * t)
   
   }
 
-bgav_edl_stream_t * bgav_edl_add_subtitle_text_stram(bgav_edl_track_t * t)
+bgav_edl_stream_t * bgav_edl_add_subtitle_text_stream(bgav_edl_track_t * t)
   {
   t->subtitle_text_streams = realloc(t->subtitle_text_streams, (t->num_subtitle_text_streams+1)*sizeof(*t->subtitle_text_streams));
   memset(t->subtitle_text_streams + t->num_subtitle_text_streams, 0, sizeof(*t->subtitle_text_streams));
   t->num_subtitle_text_streams++;
   return t->subtitle_text_streams + (t->num_subtitle_text_streams-1);
+  }
+
+bgav_edl_stream_t * bgav_edl_add_subtitle_overlay_stream(bgav_edl_track_t * t)
+  {
+  t->subtitle_overlay_streams = realloc(t->subtitle_overlay_streams, (t->num_subtitle_overlay_streams+1)*sizeof(*t->subtitle_overlay_streams));
+  memset(t->subtitle_overlay_streams + t->num_subtitle_overlay_streams, 0, sizeof(*t->subtitle_overlay_streams));
+  t->num_subtitle_overlay_streams++;
+  return t->subtitle_overlay_streams + (t->num_subtitle_overlay_streams-1);
   }
 
 bgav_edl_segment_t * bgav_edl_add_segment(bgav_edl_stream_t * s)
@@ -205,7 +213,7 @@ static void dump_stream(const bgav_edl_stream_t* s)
     bgav_diprintf(10, "Source time:          %" PRId64 "\n", seg->src_time);
     bgav_diprintf(10, "Destination time:     %" PRId64 "\n", seg->dst_time);
     bgav_diprintf(10, "Destination duration: %" PRId64 "\n", seg->dst_duration);
-    bgav_diprintf(10, "Playback speed:       %.3f [%d/%d]",
+    bgav_diprintf(10, "Playback speed:       %.3f [%d/%d]\n",
                   (float)(seg->speed_num) / (float)(seg->speed_den),
                   seg->speed_num, seg->speed_den);
     }

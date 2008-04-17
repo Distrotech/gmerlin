@@ -1016,26 +1016,26 @@ bgav_edl_track_t * bgav_edl_add_track(bgav_edl_t * e);
  *  \returns The added stream
  */
 
-bgav_edl_stream_t * bgav_edl_add_audio_stram(bgav_edl_track_t * t);
+bgav_edl_stream_t * bgav_edl_add_audio_stream(bgav_edl_track_t * t);
 
 /** \brief Add a video stream to a track
  *  \param t Track
  *  \returns The added stream
  */
-bgav_edl_stream_t * bgav_edl_add_video_stram(bgav_edl_track_t * t);
+bgav_edl_stream_t * bgav_edl_add_video_stream(bgav_edl_track_t * t);
 
 /** \brief Add a text subtitle stream to a track
  *  \param t Track
  *  \returns The added stream
  */
 
-bgav_edl_stream_t * bgav_edl_add_subtitle_text_stram(bgav_edl_track_t * t);
+bgav_edl_stream_t * bgav_edl_add_subtitle_text_stream(bgav_edl_track_t * t);
 
 /** \brief Add an overlay subtitle stream to a track
  *  \param t Track
  *  \returns The added stream
  */
-bgav_edl_stream_t * bgav_edl_add_subtitle_overlay_stram(bgav_edl_track_t * t);
+bgav_edl_stream_t * bgav_edl_add_subtitle_overlay_stream(bgav_edl_track_t * t);
 
 /** \brief Add a segment to a stream
  *  \param s Stream

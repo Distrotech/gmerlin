@@ -177,7 +177,7 @@ static const demuxer_t sync_demuxers[] =
 
 static const demuxer_t yml_demuxers[] =
   {
-    { &bgav_demuxer_p2xml,    "P2 xml importer" },
+    { &bgav_demuxer_p2xml,    "P2 xml" },
   };
 
 static struct
