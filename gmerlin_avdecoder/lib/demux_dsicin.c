@@ -120,8 +120,7 @@ static int probe_dsicin(bgav_input_context_t * input)
   return 1;
   }
 
-static int open_dsicin(bgav_demuxer_context_t * ctx,
-                   bgav_redirector_context_t ** redir)
+static int open_dsicin(bgav_demuxer_context_t * ctx)
   {
   bgav_stream_t * s;
   file_header_t fh;

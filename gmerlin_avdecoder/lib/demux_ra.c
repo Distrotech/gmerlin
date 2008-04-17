@@ -52,8 +52,7 @@ static int probe_ra(bgav_input_context_t * input)
 
 #define RA_FILE_HEADER_PREV_SIZE 22
 
-static int open_ra(bgav_demuxer_context_t * ctx,
-                   bgav_redirector_context_t ** redir)
+static int open_ra(bgav_demuxer_context_t * ctx)
   {
   bgav_charset_converter_t * charset_cnv;
   

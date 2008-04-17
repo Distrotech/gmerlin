@@ -66,8 +66,7 @@ typedef struct
   uint32_t audio_block_size;
   } dxa_t;
 
-static int open_dxa(bgav_demuxer_context_t * ctx,
-                    bgav_redirector_context_t ** redir)
+static int open_dxa(bgav_demuxer_context_t * ctx)
   {
   dxa_t * priv;
   uint8_t flags;

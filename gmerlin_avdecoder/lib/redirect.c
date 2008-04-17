@@ -75,32 +75,51 @@ const bgav_redirector_t * bgav_redirector_probe(bgav_input_context_t * input)
   return (bgav_redirector_t*)0;
   }
 
-int bgav_is_redirector(bgav_t * b)
+static bgav_redirector_context_t * get_redir(bgav_t * b)
   {
   if(b->redirector)
+    return b->redirector;
+  else if(b->demuxer)
+    return b->demuxer->redirector;
+  else
+    return (bgav_redirector_context_t*)0;
+  }
+
+int bgav_is_redirector(bgav_t * b)
+  {
+  bgav_redirector_context_t * r;
+  r = get_redir(b);
+
+  if(r)
     return 1;
   return 0;
   }
 
 int bgav_redirector_get_num_urls(bgav_t * b)
   {
-  if(!b->redirector)
+  bgav_redirector_context_t * r;
+  r = get_redir(b);
+  if(!r)
     return 0;
-  return b->redirector->num_urls;
+  return r->num_urls;
   }
 
 const char * bgav_redirector_get_url(bgav_t * b, int index)
   {
-  if(!b->redirector)
-    return 0;
-  return b->redirector->urls[index].url;
+  bgav_redirector_context_t * r;
+  r = get_redir(b);
+  if(!r)
+    return (const char*)0;
+  return r->urls[index].url;
   }
 
 const char * bgav_redirector_get_name(bgav_t * b, int index)
   {
-  if(!b->redirector)
-    return 0;
-  return b->redirector->urls[index].name;
+  bgav_redirector_context_t * r;
+  r = get_redir(b);
+  if(!r)
+    return (const char*)0;
+  return r->urls[index].name;
   }
 
 void bgav_redirector_destroy(bgav_redirector_context_t*r)

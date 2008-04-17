@@ -179,8 +179,7 @@ static int probe_smacker(bgav_input_context_t * input)
    ptr[offs+2] = ((num >> 16) & 0xff); \
    ptr[offs+3] = ((num >> 24) & 0xff)
 
-static int open_smacker(bgav_demuxer_context_t * ctx,
-                   bgav_redirector_context_t ** redir)
+static int open_smacker(bgav_demuxer_context_t * ctx)
   {
   int i;
   bgav_stream_t * s;

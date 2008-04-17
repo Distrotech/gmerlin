@@ -891,8 +891,7 @@ static int init_raw(bgav_demuxer_context_t * ctx, int input_can_seek)
   }
 
 
-static int open_mpegts(bgav_demuxer_context_t * ctx,
-                       bgav_redirector_context_t ** redir)
+static int open_mpegts(bgav_demuxer_context_t * ctx)
   {
   int have_pat;
   int input_can_seek;
@@ -1057,15 +1056,15 @@ static void predict_pcr_wrap(const bgav_options_t * opt, int64_t pcr)
 
 static int process_packet(bgav_demuxer_context_t * ctx)
   {
-  int i, skip;
+  int i; // int skip;
   bgav_stream_t * s;
   mpegts_t * priv;
   int num_packets;
   int bytes_to_copy;
   bgav_pes_header_t pes_header;
   int64_t position;
-  pat_section_t pats;
-  pmt_section_t pmts;
+  //  pat_section_t pats;
+  //  pmt_section_t pmts;
   priv = (mpegts_t*)(ctx->priv);
 
   if(!priv->packet_size)

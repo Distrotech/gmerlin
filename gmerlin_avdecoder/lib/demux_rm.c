@@ -727,8 +727,7 @@ int bgav_demux_rm_open_with_header(bgav_demuxer_context_t * ctx,
   return 1;
   }
 
-static int open_rmff(bgav_demuxer_context_t * ctx,
-              bgav_redirector_context_t ** redir)
+static int open_rmff(bgav_demuxer_context_t * ctx)
   {
   bgav_rmff_header_t * h =
     bgav_rmff_header_read(ctx->input);

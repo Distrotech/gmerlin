@@ -131,8 +131,7 @@ typedef struct
   uint32_t next_frame;
   } thp_t;
 
-static int open_thp(bgav_demuxer_context_t * ctx,
-                    bgav_redirector_context_t ** redir)
+static int open_thp(bgav_demuxer_context_t * ctx)
   {
   thp_t * priv;
   uint8_t components[16];

@@ -129,8 +129,7 @@ static int probe_tiertex(bgav_input_context_t * input)
   return 1;
   }
 
-static int open_tiertex(bgav_demuxer_context_t * ctx,
-                   bgav_redirector_context_t ** redir)
+static int open_tiertex(bgav_demuxer_context_t * ctx)
   {
   int i;
   uint8_t buf[SEQ_FRAME_SIZE];

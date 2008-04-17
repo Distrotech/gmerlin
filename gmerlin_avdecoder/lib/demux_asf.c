@@ -445,8 +445,7 @@ static int read_metadata(bgav_demuxer_context_t * ctx)
   }
 
 
-static int open_asf(bgav_demuxer_context_t * ctx,
-                    bgav_redirector_context_t ** redir)
+static int open_asf(bgav_demuxer_context_t * ctx)
   {
   int64_t chunk_start_pos;
   

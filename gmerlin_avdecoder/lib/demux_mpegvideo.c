@@ -124,8 +124,7 @@ static int probe_mpegvideo(bgav_input_context_t * input)
   return (header == SEQUENCE_HEADER) ? 1 : 0;
   }
 
-static int open_mpegvideo(bgav_demuxer_context_t * ctx,
-                    bgav_redirector_context_t ** redir)
+static int open_mpegvideo(bgav_demuxer_context_t * ctx)
   {
   int mpeg2 = 0;
   sequence_header_t sh;

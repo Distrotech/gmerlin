@@ -955,8 +955,7 @@ static int init_mpegps(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
-static int open_mpegps(bgav_demuxer_context_t * ctx,
-                       bgav_redirector_context_t ** redir)
+static int open_mpegps(bgav_demuxer_context_t * ctx)
   {
   mpegps_priv_t * priv;
   int need_streams = 0;

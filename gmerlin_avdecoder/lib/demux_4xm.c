@@ -254,8 +254,7 @@ static int setup_video_stream(bgav_demuxer_context_t * ctx,
   }
 
 
-static int open_4xm(bgav_demuxer_context_t * ctx,
-                   bgav_redirector_context_t ** redir)
+static int open_4xm(bgav_demuxer_context_t * ctx)
   {
   int done = 0;
   fourxm_chunk_t list_chunk;

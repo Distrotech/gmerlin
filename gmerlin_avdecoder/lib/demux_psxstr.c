@@ -79,8 +79,7 @@ static int probe_psxstr(bgav_input_context_t * input)
   return 1;
   }
 
-static int open_psxstr(bgav_demuxer_context_t * ctx,
-                   bgav_redirector_context_t ** redir)
+static int open_psxstr(bgav_demuxer_context_t * ctx)
   {
   int i;
   int ret = 0;

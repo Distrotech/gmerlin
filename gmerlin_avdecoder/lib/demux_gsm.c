@@ -48,8 +48,7 @@ static int64_t bytes_2_samples(int64_t bytes)
   return (bytes / GSM_BLOCK_SIZE) * GSM_FRAME_SIZE;
   }
 
-static int open_gsm(bgav_demuxer_context_t * ctx,
-                   bgav_redirector_context_t ** redir)
+static int open_gsm(bgav_demuxer_context_t * ctx)
   {
   bgav_stream_t * as;
   int64_t total_samples;

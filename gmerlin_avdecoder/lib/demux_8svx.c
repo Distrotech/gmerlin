@@ -151,8 +151,7 @@ static int probe_8svx(bgav_input_context_t * input)
   return 0;
   }
 
-static int open_8svx(bgav_demuxer_context_t * ctx,
-                   bgav_redirector_context_t ** redir)
+static int open_8svx(bgav_demuxer_context_t * ctx)
   {
   VHDR_t hdr;
   svx_priv_t * priv;

@@ -271,8 +271,7 @@ static int next_packet_avs(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
-static int open_avs(bgav_demuxer_context_t * ctx,
-                    bgav_redirector_context_t ** redir)
+static int open_avs(bgav_demuxer_context_t * ctx)
   {
   uint8_t header[16];
   bgav_stream_t * s;

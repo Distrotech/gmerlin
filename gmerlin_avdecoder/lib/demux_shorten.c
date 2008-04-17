@@ -32,8 +32,7 @@ static int probe_shorten(bgav_input_context_t * input)
   return 0;
   }
 
-static int open_shorten(bgav_demuxer_context_t * ctx,
-                   bgav_redirector_context_t ** redir)
+static int open_shorten(bgav_demuxer_context_t * ctx)
   {
   bgav_stream_t * s;
   ctx->tt = bgav_track_table_create(1);

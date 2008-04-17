@@ -752,8 +752,7 @@ static void seek_flv(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   }
      
 
-static int open_flv(bgav_demuxer_context_t * ctx,
-                    bgav_redirector_context_t ** redir)
+static int open_flv(bgav_demuxer_context_t * ctx)
   {
   int64_t pos;
   uint8_t flags;

@@ -391,8 +391,7 @@ static void calc_framerate(int code, int * num, int * den)
   simplify_rational(num, den);
   }
 
-static int open_nsv(bgav_demuxer_context_t * ctx,
-                    bgav_redirector_context_t ** redir)
+static int open_nsv(bgav_demuxer_context_t * ctx)
   {
   bgav_stream_t * s;
   nsv_priv_t * p;

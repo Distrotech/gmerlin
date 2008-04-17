@@ -73,8 +73,7 @@ static int probe_vmd(bgav_input_context_t * input)
   return 1;
   }
 
-static int open_vmd(bgav_demuxer_context_t * ctx,
-                   bgav_redirector_context_t ** redir)
+static int open_vmd(bgav_demuxer_context_t * ctx)
   {
   vmd_priv_t * priv;
   bgav_stream_t * vs = (bgav_stream_t *)0;

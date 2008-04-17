@@ -504,8 +504,7 @@ static int init_simple(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
-static int open_mxf(bgav_demuxer_context_t * ctx,
-                    bgav_redirector_context_t ** redir)
+static int open_mxf(bgav_demuxer_context_t * ctx)
   {
   int i;
   mxf_t * priv;

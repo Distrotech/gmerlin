@@ -108,11 +108,11 @@ int bgav_init(bgav_t * ret)
     if(demuxer)
       {
       ret->demuxer = create_demuxer(ret, demuxer);
-      if(!bgav_demuxer_start(ret->demuxer, &(ret->redirector), yml))
+      if(!bgav_demuxer_start(ret->demuxer, yml))
         {
         goto fail;
         }
-      if(ret->redirector)
+      if(ret->demuxer->redirector)
         return 1;
       }
     if(!ret->demuxer)
@@ -307,7 +307,7 @@ int bgav_select_track(bgav_t * b, int track)
     b->input->buffer_size = 0;
 
     b->input->input->select_track(b->input, track);
-    bgav_demuxer_start(b->demuxer, &(b->redirector), NULL);
+    bgav_demuxer_start(b->demuxer, NULL);
     return 1;
     }
 
@@ -395,7 +395,7 @@ int bgav_select_track(bgav_t * b, int track)
         }
       else
         {
-        bgav_demuxer_start(b->demuxer, &(b->redirector), NULL);
+        bgav_demuxer_start(b->demuxer, NULL);
         
         if(b->demuxer->tt)
           {

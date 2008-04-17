@@ -299,8 +299,7 @@ static int open_adif(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
-static int open_aac(bgav_demuxer_context_t * ctx,
-                    bgav_redirector_context_t ** redir)
+static int open_aac(bgav_demuxer_context_t * ctx)
   {
   uint8_t header[4];
   aac_priv_t * priv;

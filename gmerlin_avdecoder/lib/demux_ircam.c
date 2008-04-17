@@ -233,8 +233,7 @@ static int probe_ircam(bgav_input_context_t * input)
   }
 
 
-static int open_ircam(bgav_demuxer_context_t * ctx,
-                   bgav_redirector_context_t ** redir)
+static int open_ircam(bgav_demuxer_context_t * ctx)
   {
   ircam_header_t h;
   bgav_stream_t * as;

@@ -40,8 +40,7 @@ static int probe_smjpeg(bgav_input_context_t * input)
     return 0;
   }
 
-static int open_smjpeg(bgav_demuxer_context_t * ctx,
-                    bgav_redirector_context_t ** redir)
+static int open_smjpeg(bgav_demuxer_context_t * ctx)
   {
   int done = 0;
   uint32_t tmp_32;

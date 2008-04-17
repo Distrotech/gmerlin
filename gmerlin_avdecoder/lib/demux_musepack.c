@@ -103,8 +103,7 @@ static mpc_bool_t mpc_canseek(void *t)
   return r->ctx->input->seek_byte ? TRUE : FALSE;
   }
 
-static int open_mpc(bgav_demuxer_context_t * ctx,
-                    bgav_redirector_context_t ** redir)
+static int open_mpc(bgav_demuxer_context_t * ctx)
   {
   int ape_tag_size;
   bgav_metadata_t start_metadata, end_metadata;

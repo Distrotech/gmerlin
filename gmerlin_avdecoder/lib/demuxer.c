@@ -332,6 +332,10 @@ void bgav_demuxer_destroy(bgav_demuxer_context_t * ctx)
   if(ctx->edl)
     bgav_edl_destroy(ctx->edl);
 
+  if(ctx->redirector)
+    bgav_redirector_destroy(ctx->redirector);
+  
+  
   FREE(ctx->stream_description);
   free(ctx);
   }
@@ -437,7 +441,6 @@ static void check_interleave(bgav_demuxer_context_t * ctx)
   }
 
 int bgav_demuxer_start(bgav_demuxer_context_t * ctx,
-                       bgav_redirector_context_t ** redir,
                        bgav_yml_node_t * yml)
   {
   /* eof flag might be present from last track */
@@ -448,7 +451,7 @@ int bgav_demuxer_start(bgav_demuxer_context_t * ctx,
     if(!ctx->demuxer->open_yml(ctx, yml))
       return 0;
     }
-  else if(!ctx->demuxer->open(ctx, redir))
+  else if(!ctx->demuxer->open(ctx))
     return 0;
   
   if(ctx->si)

@@ -51,8 +51,7 @@ static int probe_a52(bgav_input_context_t * input)
   return !!a52_syncinfo(test_data, &dummy_flags, &dummy_srate, &dummy_brate);
   }
 
-static int open_a52(bgav_demuxer_context_t * ctx,
-                    bgav_redirector_context_t ** redir)
+static int open_a52(bgav_demuxer_context_t * ctx)
   {
   int dummy_flags;
   int bitrate;

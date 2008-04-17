@@ -41,8 +41,7 @@ static int probe_daud(bgav_input_context_t * input)
   }
 
 
-static int open_daud(bgav_demuxer_context_t * ctx,
-                   bgav_redirector_context_t ** redir)
+static int open_daud(bgav_demuxer_context_t * ctx)
   {
   bgav_stream_t * s;
 

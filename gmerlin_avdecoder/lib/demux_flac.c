@@ -166,8 +166,7 @@ typedef struct
   seektable_t seektable;
   } flac_priv_t;
 
-static int open_flac(bgav_demuxer_context_t * ctx,
-                     bgav_redirector_context_t ** redir)
+static int open_flac(bgav_demuxer_context_t * ctx)
   {
   bgav_stream_t * s;
   uint8_t header[4];

@@ -1031,8 +1031,7 @@ struct bgav_demuxer_s
   int  (*probe)(bgav_input_context_t*);
   int  (*probe_yml)(bgav_yml_node_t*);
 
-  int  (*open)(bgav_demuxer_context_t * ctx,
-               bgav_redirector_context_t ** redir);
+  int  (*open)(bgav_demuxer_context_t * ctx);
   int  (*open_yml)(bgav_demuxer_context_t * ctx,
                    bgav_yml_node_t * node);
   
@@ -1148,6 +1147,8 @@ struct bgav_demuxer_context_s
 
   bgav_edl_t * edl;
   
+  bgav_redirector_context_t * redirector;
+  
   };
 
 /* demuxer.c */
@@ -1196,7 +1197,6 @@ bgav_demuxer_next_packet(bgav_demuxer_context_t * demuxer);
  */
 
 int bgav_demuxer_start(bgav_demuxer_context_t * ctx,
-                       bgav_redirector_context_t ** redir,
                        bgav_yml_node_t * yml);
 void bgav_demuxer_stop(bgav_demuxer_context_t * ctx);
 

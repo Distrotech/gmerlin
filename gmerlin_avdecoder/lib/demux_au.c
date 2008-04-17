@@ -96,8 +96,7 @@ static int64_t time_2_pos(bgav_demuxer_context_t * ctx, int64_t time)
   }
 
 
-static int open_au(bgav_demuxer_context_t * ctx,
-                   bgav_redirector_context_t ** redir)
+static int open_au(bgav_demuxer_context_t * ctx)
   {
   Audio_filehdr hdr;
   au_priv_t * priv;

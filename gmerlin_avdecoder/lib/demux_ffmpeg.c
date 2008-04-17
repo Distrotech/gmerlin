@@ -547,8 +547,7 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
     }
   }
 
-static int open_ffmpeg(bgav_demuxer_context_t * ctx,
-                    bgav_redirector_context_t ** redir)
+static int open_ffmpeg(bgav_demuxer_context_t * ctx)
   {
   int i;
   ffmpeg_priv_t * priv;

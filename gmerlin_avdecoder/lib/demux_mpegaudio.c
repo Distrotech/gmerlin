@@ -485,8 +485,7 @@ static bgav_track_table_t * albw_2_track(bgav_demuxer_context_t* ctx,
   return ret;
   }
 
-static int open_mpegaudio(bgav_demuxer_context_t * ctx,
-                          bgav_redirector_context_t ** redir)
+static int open_mpegaudio(bgav_demuxer_context_t * ctx)
   {
   bgav_metadata_t metadata_v1;
   bgav_metadata_t metadata_v2;

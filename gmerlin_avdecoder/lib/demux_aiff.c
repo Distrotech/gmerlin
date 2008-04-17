@@ -173,8 +173,7 @@ static char * read_meta_string(char * old, bgav_input_context_t * input,
   return old;
   }
 
-static int open_aiff(bgav_demuxer_context_t * ctx,
-                     bgav_redirector_context_t ** redir)
+static int open_aiff(bgav_demuxer_context_t * ctx)
   {
   chunk_header_t ch;
   comm_chunk_t comm;

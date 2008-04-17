@@ -1227,8 +1227,7 @@ static void get_metadata(bgav_track_t * track)
     }
   }
 
-static int open_ogg(bgav_demuxer_context_t * ctx,
-                    bgav_redirector_context_t ** redir)
+static int open_ogg(bgav_demuxer_context_t * ctx)
   {
   gavl_time_t stream_duration;
   int i, j;

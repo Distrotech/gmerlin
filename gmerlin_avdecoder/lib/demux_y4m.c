@@ -77,8 +77,7 @@ static void dump_stream_header(y4m_stream_info_t * si)
   }
 #endif
 
-static int open_y4m(bgav_demuxer_context_t * ctx,
-                    bgav_redirector_context_t ** redir)
+static int open_y4m(bgav_demuxer_context_t * ctx)
   {
   int result;
   y4m_t * priv;

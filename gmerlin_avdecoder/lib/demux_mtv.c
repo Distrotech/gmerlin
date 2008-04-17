@@ -113,8 +113,7 @@ static int probe_mtv(bgav_input_context_t * input)
   return 0;
   }
 
-static int open_mtv(bgav_demuxer_context_t * ctx,
-                   bgav_redirector_context_t ** redir)
+static int open_mtv(bgav_demuxer_context_t * ctx)
   {
   mtv_priv_t * priv;
   bgav_stream_t * s;

@@ -1185,8 +1185,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
   
   }
 
-static int handle_rmra(bgav_demuxer_context_t * ctx,
-                        bgav_redirector_context_t ** redir)
+static int handle_rmra(bgav_demuxer_context_t * ctx)
   {
   char * basename = (char*)0, *pos;
   
@@ -1199,10 +1198,10 @@ static int handle_rmra(bgav_demuxer_context_t * ctx,
       num_urls++;
     }
 
-  (*redir) = calloc(1, sizeof(**redir));
-  (*redir)->num_urls = num_urls;
-  (*redir)->opt = ctx->opt;
-  (*redir)->urls = calloc(num_urls, sizeof(*((*redir)->urls)));
+  ctx->redirector           = calloc(1, sizeof(*ctx->redirector));
+  ctx->redirector->num_urls = num_urls;
+  ctx->redirector->opt      = ctx->opt;
+  ctx->redirector->urls     = calloc(num_urls, sizeof(*(ctx->redirector->urls)));
 
   /* Some urls are relative urls */
   if(ctx->input->url)
@@ -1230,17 +1229,16 @@ static int handle_rmra(bgav_demuxer_context_t * ctx,
       /* Absolute url */
       if(strstr((char*)priv->moov.rmra.rmda[i].rdrf.data_ref, "://"))
         {
-        (*redir)->urls[index].url =
+        ctx->redirector->urls[index].url =
           bgav_strdup((char*)priv->moov.rmra.rmda[i].rdrf.data_ref);
         
         }
       /* Relative url */
       else
         {
-
-        (*redir)->urls[index].url = bgav_strdup(basename);
-        (*redir)->urls[index].url =
-          bgav_strncat((*redir)->urls[index].url,
+        ctx->redirector->urls[index].url = bgav_strdup(basename);
+        ctx->redirector->urls[index].url =
+          bgav_strncat(ctx->redirector->urls[index].url,
                        (char*)priv->moov.rmra.rmda[i].rdrf.data_ref,
                        (char*)0);
         }
@@ -1250,8 +1248,7 @@ static int handle_rmra(bgav_demuxer_context_t * ctx,
   return 1;
   }
 
-static int open_quicktime(bgav_demuxer_context_t * ctx,
-                          bgav_redirector_context_t ** redir)
+static int open_quicktime(bgav_demuxer_context_t * ctx)
   {
   qt_atom_header_t h;
   qt_priv_t * priv = (qt_priv_t*)0;
@@ -1344,7 +1341,7 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
     if(priv->moov.has_rmra)
       {
       /* Redirector!!! */
-      handle_rmra(ctx, redir);
+      handle_rmra(ctx);
       return 1;
       }
     else

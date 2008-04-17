@@ -53,8 +53,7 @@ static int probe_nuv(bgav_input_context_t * input)
   return 0;
   }
 
-static int open_nuv(bgav_demuxer_context_t * ctx,
-                    bgav_redirector_context_t ** redir)
+static int open_nuv(bgav_demuxer_context_t * ctx)
   {
   uint8_t tmp_8, subtype;
   uint32_t tmp_32;

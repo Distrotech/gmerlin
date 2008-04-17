@@ -103,8 +103,7 @@ static void skip_extension(bgav_input_context_t * input)
   
   }
 
-static int open_gif(bgav_demuxer_context_t * ctx,
-                   bgav_redirector_context_t ** redir)
+static int open_gif(bgav_demuxer_context_t * ctx)
   {
   bgav_stream_t * s;
   uint8_t ext_header[2];

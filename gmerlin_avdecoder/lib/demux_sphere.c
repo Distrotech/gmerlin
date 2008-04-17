@@ -180,8 +180,7 @@ static void sphere_header_dump(sphere_header_t * h)
   }
 #endif
 
-static int open_sphere(bgav_demuxer_context_t * ctx,
-                       bgav_redirector_context_t ** redir)
+static int open_sphere(bgav_demuxer_context_t * ctx)
   {
   sphere_header_t h;
   bgav_stream_t * as;

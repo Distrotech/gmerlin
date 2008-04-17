@@ -364,8 +364,7 @@ static int get_next_startcode(bgav_demuxer_context_t * ctx,
   return 1;
   }
 
-static int open_gxf(bgav_demuxer_context_t * ctx,
-                    bgav_redirector_context_t ** redir)
+static int open_gxf(bgav_demuxer_context_t * ctx)
   {
   uint32_t length;
   int type;

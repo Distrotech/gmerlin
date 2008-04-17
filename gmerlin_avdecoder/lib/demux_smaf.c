@@ -81,8 +81,7 @@ static int probe_smaf(bgav_input_context_t * input)
   return 0;
   }
 
-static int open_smaf(bgav_demuxer_context_t * ctx,
-                   bgav_redirector_context_t ** redir)
+static int open_smaf(bgav_demuxer_context_t * ctx)
   {
   int done = 0;
   uint8_t params;

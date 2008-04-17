@@ -1764,8 +1764,7 @@ static void duplicate_si(bgav_superindex_t * idx)
 
 
 
-static int open_avi(bgav_demuxer_context_t * ctx,
-                    bgav_redirector_context_t ** redir)
+static int open_avi(bgav_demuxer_context_t * ctx)
   {
   int i;
   avi_priv_t * p;

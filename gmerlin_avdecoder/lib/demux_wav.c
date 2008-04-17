@@ -84,8 +84,7 @@ static int find_tag(bgav_demuxer_context_t * ctx, uint32_t tag)
   return -1;
   }
 
-static int open_wav(bgav_demuxer_context_t * ctx,
-                    bgav_redirector_context_t ** redir)
+static int open_wav(bgav_demuxer_context_t * ctx)
   {
   uint8_t * buf;
   

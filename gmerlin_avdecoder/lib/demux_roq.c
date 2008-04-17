@@ -86,8 +86,7 @@ static int probe_roq(bgav_input_context_t * input)
   return 1;
   }
 
-static int open_roq(bgav_demuxer_context_t * ctx,
-                   bgav_redirector_context_t ** redir)
+static int open_roq(bgav_demuxer_context_t * ctx)
   {
   int i;
   chunk_header_t h;
