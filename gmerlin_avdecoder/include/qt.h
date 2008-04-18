@@ -706,7 +706,7 @@ typedef struct
     {
     uint32_t duration;
     uint32_t media_time;
-    float media_rate;
+    uint32_t media_rate;
     } * table;
   } qt_elst_t;
 

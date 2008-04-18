@@ -30,7 +30,7 @@
 
 #define LOG_DOMAIN "quicktime"
 
-//#define DUMP_MOOV
+#define DUMP_MOOV
 
 typedef struct
   {
@@ -66,7 +66,7 @@ typedef struct
   
   int seeking;
 
-  
+  int has_edl;
   /* Ohhhh, no, MPEG-4 can have multiple mdats... */
   
   int num_mdats;
@@ -872,6 +872,9 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         }
       bg_as = bgav_track_add_audio_stream(track, ctx->opt);
 
+      if(trak->edts.elst.num_entries > 1)
+        priv->has_edl = 1;
+      
       bgav_qt_mdhd_get_language(&trak->mdia.mdhd,
                                 bg_as->language);
       
@@ -1019,6 +1022,9 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         }
       
       bg_vs = bgav_track_add_video_stream(track, ctx->opt);
+
+      if(trak->edts.elst.num_entries > 1)
+        priv->has_edl = 1;
             
       desc = &(stsd->entries[skip_first_frame].desc);
       stream_priv = &(priv->streams[i]);
@@ -1138,6 +1144,10 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         
         bg_ss =
           bgav_track_add_subtitle_stream(track, ctx->opt, 1, charset);
+
+        if(trak->edts.elst.num_entries > 1)
+          priv->has_edl = 1;
+        
         bg_ss->description = bgav_sprintf("Quicktime subtitles");
         bg_ss->fourcc = stsd->entries[0].desc.fourcc;
         
@@ -1165,6 +1175,10 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         {
         bg_ss =
           bgav_track_add_subtitle_stream(track, ctx->opt, 1, "bgav_unicode");
+
+        if(trak->edts.elst.num_entries > 1)
+          priv->has_edl = 1;
+        
         bg_ss->description = bgav_sprintf("3gpp subtitles");
         bg_ss->fourcc = stsd->entries[0].desc.fourcc;
         bgav_qt_mdhd_get_language(&trak->mdia.mdhd,
@@ -1247,6 +1261,85 @@ static int handle_rmra(bgav_demuxer_context_t * ctx)
     }
   return 1;
   }
+
+static void set_stream_edl(qt_priv_t * priv, bgav_stream_t * s,
+                      bgav_edl_stream_t * es)
+  {
+  int i;
+  qt_elst_t * elst;
+  stream_priv_t * sp;
+  int64_t duration = 0;
+  bgav_edl_segment_t * seg;
+
+  int mdhd_ts, mvhd_ts;
+  
+  sp = (stream_priv_t *)s->priv;
+  elst = &sp->trak->edts.elst;
+
+  mvhd_ts = priv->moov.mvhd.time_scale;
+  mdhd_ts = sp->trak->mdia.mdhd.time_scale;
+
+  es->timescale = mdhd_ts;
+  
+  for(i = 0; i < elst->num_entries; i++)
+    {
+    if((int32_t)elst->table[i].media_time > -1)
+      {
+      seg = bgav_edl_add_segment(es);
+      seg->timescale    = mdhd_ts;
+      seg->src_time     = elst->table[i].media_time;
+      seg->dst_time     = duration;
+      seg->dst_duration = gavl_time_rescale(mvhd_ts, mdhd_ts,
+                                            elst->table[i].duration);
+
+      seg->speed_num = elst->table[i].media_rate;
+      seg->speed_den = 65536;
+      
+      duration += seg->dst_duration;
+      }
+    else
+      duration += gavl_time_rescale(mvhd_ts, mdhd_ts,
+                                    elst->table[i].duration);
+    }
+  
+  }
+
+static void build_edl(bgav_demuxer_context_t * ctx)
+  {
+  bgav_edl_stream_t * es;
+  bgav_edl_track_t * t;
+  
+  qt_priv_t * priv = (qt_priv_t*)ctx->priv;
+ 
+  int i;
+
+  if(!ctx->input->filename)
+    return;
+  
+  ctx->edl = bgav_edl_create();
+
+  ctx->edl->url = bgav_strdup(ctx->input->filename);
+
+  t = bgav_edl_add_track(ctx->edl);
+  
+  for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
+    {
+    es = bgav_edl_add_audio_stream(t);
+    set_stream_edl(priv, &ctx->tt->cur->audio_streams[i], es);
+    }
+  for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
+    {
+    es = bgav_edl_add_video_stream(t);
+    set_stream_edl(priv, &ctx->tt->cur->video_streams[i], es);
+    }
+  for(i = 0; i < ctx->tt->cur->num_subtitle_streams; i++)
+    {
+    es = bgav_edl_add_subtitle_text_stream(t);
+    set_stream_edl(priv, &ctx->tt->cur->subtitle_streams[i], es);
+    }
+  
+  }
+
 
 static int open_quicktime(bgav_demuxer_context_t * ctx)
   {
@@ -1374,6 +1467,10 @@ static int open_quicktime(bgav_demuxer_context_t * ctx)
   /* No packets are found */
   if(!ctx->si)
     return 0;
+
+  /* Check if we have an EDL */
+  if(priv->has_edl)
+    build_edl(ctx);
   
   priv->current_mdat = 0;
   

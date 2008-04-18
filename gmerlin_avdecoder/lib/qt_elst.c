@@ -54,7 +54,7 @@ int bgav_qt_elst_read(qt_atom_header_t * h, bgav_input_context_t * input,
     {
     if(!bgav_input_read_32_be(input, &ret->table[i].duration) ||
        !bgav_input_read_32_be(input, &ret->table[i].media_time) ||
-       !bgav_qt_read_fixed32(input, &ret->table[i].media_rate))
+       !bgav_input_read_32_be(input, &ret->table[i].media_rate))
       return 0;
     }
   return 1;
@@ -79,7 +79,8 @@ void bgav_qt_elst_dump(int indent, qt_elst_t * e)
   for(i = 0; i < e->num_entries; i++)
     {
     bgav_diprintf(indent+4, "duration: %d, media_time: %d, media_rate: %f\n",
-                  e->table[i].duration, e->table[i].media_time, e->table[i].media_rate);
+                  e->table[i].duration, e->table[i].media_time,
+                  (float)e->table[i].media_rate / 65536.0);
     }
   bgav_diprintf(indent, "end of elst\n");
   }
