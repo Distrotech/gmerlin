@@ -31,7 +31,6 @@ static const struct
   }
 sample_format_names[] =
   {
-    { GAVL_SAMPLE_NONE,   "Not specified" },
     { GAVL_SAMPLE_U8,     "Unsigned 8 bit"},
     { GAVL_SAMPLE_S8,     "Signed 8 bit"},
     { GAVL_SAMPLE_U16,    "Unsigned 16 bit"},
@@ -39,6 +38,7 @@ sample_format_names[] =
     { GAVL_SAMPLE_S32,    "Signed 32 bit"},
     { GAVL_SAMPLE_FLOAT,  "Floating point"},
     { GAVL_SAMPLE_DOUBLE, "Double precision"},
+    { GAVL_SAMPLE_NONE,   "Not specified" },
   };
 
 const char * gavl_sample_format_to_string(gavl_sample_format_t format)
@@ -52,6 +52,30 @@ const char * gavl_sample_format_to_string(gavl_sample_format_t format)
   return (char*)0;
   }
 
+gavl_sample_format_t gavl_string_to_sample_format(const char * str)
+  {
+  int i;
+  for(i = 0; i < sizeof(sample_format_names)/sizeof(sample_format_names[0]); i++)
+    {
+    if(!strcmp(str, sample_format_names[i].name))
+       return sample_format_names[i].format;
+    }
+  return GAVL_SAMPLE_NONE;
+  }
+
+int gavl_num_sample_formats()
+  {
+  return sizeof(sample_format_names)/sizeof(sample_format_names[0])-1;
+  }
+
+gavl_sample_format_t gavl_get_sample_format(int index)
+  {
+  if((index >= 0) &&
+     (index < sizeof(sample_format_names)/sizeof(sample_format_names[0])))
+    return sample_format_names[index].format;
+  return GAVL_SAMPLE_NONE;
+  }
+  
 static const struct
   {
   gavl_interleave_mode_t mode;

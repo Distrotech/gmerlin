@@ -345,6 +345,7 @@ scale_float_x_4_x_generic_sse(gavl_video_scale_context_t * ctx)
 
   }
 
+#if 0
 static void
 scale_float_x_1_x_bicubic_sse(gavl_video_scale_context_t * ctx)
   {
@@ -356,6 +357,7 @@ scale_float_x_1_x_bicubic_noclip_sse(gavl_video_scale_context_t * ctx)
   {
 
   }
+#endif
 
 void gavl_init_scale_funcs_bilinear_x_sse(gavl_scale_funcs_t * tab)
   {

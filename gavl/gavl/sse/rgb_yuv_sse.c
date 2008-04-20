@@ -25,7 +25,7 @@
 #include <colorspace.h>
 
 #include <attributes.h>
-#define SSE_DEBUG
+//#define SSE_DEBUG
 #include "sse.h"
 #include "../mmx/mmx.h"
 

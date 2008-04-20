@@ -15,7 +15,7 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- *  $Id: gdither.c,v 1.3 2007-11-15 21:20:40 gmerlin Exp $
+ *  $Id: gdither.c,v 1.4 2008-04-20 11:43:33 gmerlin Exp $
  */
 
 #include "gdither_types_internal.h"
@@ -342,7 +342,7 @@ void gdither_run(GDither s, unsigned int channel, unsigned int length,
 	for (i=0; (i + pos) < length && i < GDITHER_CONV_BLOCK; i++) {
 	    conv[i] = x[pos + i];
 	}
-	gdither_runf(s, channel, i, conv, ycast + s->channels * step);
+	gdither_runf(s, channel, i, conv, ycast + pos * step);
 	pos += i;
     }
 }

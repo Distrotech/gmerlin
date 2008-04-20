@@ -290,7 +290,7 @@ gavl_sampleformat_context_create(gavl_audio_options_t * opt,
         if(in_format->sample_format == GAVL_SAMPLE_DOUBLE)
           {
           if(in_format->interleave_mode == GAVL_INTERLEAVE_NONE)
-          ret->func = convert_gdither_ni_d;
+            ret->func = convert_gdither_ni_d;
           else if(in_format->interleave_mode == GAVL_INTERLEAVE_ALL)
             ret->func = convert_gdither_i_d;
           }

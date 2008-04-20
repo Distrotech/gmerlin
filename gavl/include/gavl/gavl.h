@@ -216,10 +216,36 @@ typedef struct gavl_audio_format_s
   \ingroup audio_format
   \brief Convert a gavl_sample_format_t to a human readable string
   \param format A sample format
+  \returns A string describing the format
  */
   
 const char * gavl_sample_format_to_string(gavl_sample_format_t format);
 
+/*! 
+  \ingroup audio_format
+  \brief Convert a string to a sample format
+  \param str String
+
+  str must be one of the strings returned by \ref gavl_sample_format_to_string
+ */
+
+gavl_sample_format_t gavl_string_to_sample_format(const char * str);
+
+/*! \ingroup audio_format
+ * \brief Get total number of supported sample formats
+ * \returns total number of supported sample formats
+ */
+
+int gavl_num_sample_formats();
+
+/*! \ingroup audio_format
+ * \brief Get the sample format from index
+ * \param index index (must be between 0 and the result of \ref gavl_num_sample_formats)
+ * \returns The sample format corresponding to index or GAVL_SAMPLE_NONE.
+ */
+
+gavl_sample_format_t gavl_get_sample_format(int index);
+  
 /*! 
   \ingroup audio_format
   \brief Convert a gavl_channel_id_t to a human readable string
