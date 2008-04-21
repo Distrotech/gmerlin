@@ -138,9 +138,13 @@ static int read_audio_volume(void * priv, gavl_audio_frame_t * frame, int stream
   volume_priv_t * vp;
   vp = (volume_priv_t *)priv;
 
-  vp->read_func(vp->read_data, frame, vp->read_stream, num_samples);
-  gavl_volume_control_apply(vp->vc, frame);
-  return frame->valid_samples;
+  if(vp->read_func(vp->read_data, frame, vp->read_stream, num_samples))
+    {
+    gavl_volume_control_apply(vp->vc, frame);
+    return frame->valid_samples;
+    }
+  else
+    return 0;
   }
 
 const bg_fa_plugin_t the_plugin = 

@@ -498,11 +498,11 @@ static int read_audio_cdaudio(void * priv,
   {
   int samples_read = 0, samples_copied;
   cdaudio_t * cd = (cdaudio_t*)priv;
-
-
   
   if(cd->current_sector > cd->index->tracks[cd->current_track].last_sector)
     {
+    if(frame)
+      frame->valid_samples = 0;
     return 0;
     }
   while(samples_read < num_samples)
