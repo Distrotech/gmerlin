@@ -1133,8 +1133,8 @@ static int read_track(bgav_input_context_t * input,
         return 0;
       break;
     case 0x4B01:
-      if(!bgav_input_read_32_be(input, &t->edit_rate_den) ||
-         !bgav_input_read_32_be(input, &t->edit_rate_num))
+      if(!bgav_input_read_32_be(input, &t->edit_rate_num) ||
+         !bgav_input_read_32_be(input, &t->edit_rate_den))
         return 0;
       break;
     case 0x4803:
@@ -1791,8 +1791,8 @@ static int read_index_table_segment(bgav_input_context_t * input,
       }
     else if(tag == 0x3f0b) // IndexEditRate
       {
-      if(!bgav_input_read_32_be(input, &idx->edit_rate_den) ||
-         !bgav_input_read_32_be(input, &idx->edit_rate_num))
+      if(!bgav_input_read_32_be(input, &idx->edit_rate_num) ||
+         !bgav_input_read_32_be(input, &idx->edit_rate_den))
         return 0;
       }
     else if(tag == 0x3f0c) // IndexStartPosition
@@ -2009,8 +2009,6 @@ static int resolve_refs(mxf_file_t * ret, const bgav_options_t * opt)
         s = (mxf_sequence_t*)ret->header.metadata[i];
         if(!bgav_mxf_sequence_resolve_refs(ret, s))
           return 0;
-        if(s->num_structural_component_refs > ret->max_sequence_components)
-          ret->max_sequence_components = s->num_structural_component_refs;
         }
         break;
       case MXF_TYPE_MULTIPLE_DESCRIPTOR:
@@ -2069,6 +2067,51 @@ static int resolve_refs(mxf_file_t * ret, const bgav_options_t * opt)
   return 1;
   }
 
+static int get_max_segments_p(mxf_metadata_t * m)
+  {
+  int i, ret = 0;
+  mxf_track_t * t;
+  mxf_package_t * p;
+  mxf_sequence_t * s;
+
+  p = (mxf_package_t *)m;
+  
+  for(i = 0; i < p->num_track_refs; i++)
+    {
+    t = (mxf_track_t *)p->tracks[i];
+    s = (mxf_sequence_t *)t->sequence;
+    if(ret < s->num_structural_component_refs)
+      ret = s->num_structural_component_refs;
+    }
+  return ret;
+  }
+
+static int get_max_segments(mxf_file_t * ret, const bgav_options_t * opt)
+  {
+  mxf_content_storage_t * cs;
+  int i;
+  int max_segments;
+  cs = (mxf_content_storage_t*)(((mxf_preface_t*)(ret->preface))->content_storage);
+
+  for(i = 0; i < cs->num_package_refs; i++)
+    {
+    if(cs->packages[i]->type == MXF_TYPE_MATERIAL_PACKAGE)
+      {
+      max_segments = get_max_segments_p(cs->packages[i]);
+      if(ret->max_material_sequence_components < max_segments)
+        ret->max_material_sequence_components = max_segments;
+      }
+    else if(cs->packages[i]->type == MXF_TYPE_SOURCE_PACKAGE)
+      {
+      max_segments = get_max_segments_p(cs->packages[i]);
+      if(ret->max_source_sequence_components < max_segments)
+        ret->max_source_sequence_components = max_segments;
+      
+      }
+    }
+  return 1;
+  }
+
 uint32_t bgav_mxf_get_audio_fourcc(mxf_descriptor_t * d)
   {
   const codec_entry_t * ce;
@@ -2107,10 +2150,11 @@ static int bgav_mxf_finalize(mxf_file_t * ret, const bgav_options_t * opt)
 
   if(!resolve_refs(ret, opt))
     return 0;
-
+  
   if(!ret->preface || !((mxf_preface_t*)(ret->preface))->content_storage)
     return 0;
 
+  get_max_segments(ret, opt);
   
 #if 0
   /*
@@ -2607,9 +2651,10 @@ void bgav_mxf_file_dump(mxf_file_t * ret)
   {
   int i;
   bgav_dprintf("\nMXF File structure\n"); 
-  bgav_dprintf("source packages:                 %d\n", ret->num_source_packages);
-  bgav_dprintf("material packages:               %d\n", ret->num_material_packages);
-  bgav_dprintf("maximum components per sequence: %d\n", ret->max_sequence_components);
+  bgav_dprintf("source packages:                          %d\n", ret->num_source_packages);
+  bgav_dprintf("material packages:                        %d\n", ret->num_material_packages);
+  bgav_dprintf("maximum components per source sequence:   %d\n", ret->max_source_sequence_components);
+  bgav_dprintf("maximum components per material sequence: %d\n", ret->max_material_sequence_components);
   
   bgav_dprintf("  Header "); bgav_mxf_partition_dump(2, &ret->header_partition);
 

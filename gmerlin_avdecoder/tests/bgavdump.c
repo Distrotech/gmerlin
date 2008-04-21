@@ -250,8 +250,6 @@ int main(int argc, char ** argv)
     fprintf(stderr, "============ Track %3d ============\n", track+1);
     fprintf(stderr, "===================================\n");
     
-
-    
     num_audio_streams = bgav_num_audio_streams(file, track);
     num_video_streams = bgav_num_video_streams(file, track);
     num_subtitle_streams = bgav_num_subtitle_streams(file, track);

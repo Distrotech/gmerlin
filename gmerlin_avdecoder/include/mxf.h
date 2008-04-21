@@ -453,7 +453,8 @@ struct mxf_file_s
   int num_material_packages;
   int num_descriptors;
   
-  int max_sequence_components;
+  int max_source_sequence_components;
+  int max_material_sequence_components;
   int64_t data_start;
   };
 
