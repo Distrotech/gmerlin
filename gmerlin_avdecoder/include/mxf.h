@@ -447,6 +447,9 @@ struct mxf_file_s
   /* Index table segments */
   mxf_index_table_segment_t ** index_segments;
   int num_index_segments;
+
+  mxf_partition_t * body_partitions;
+  int num_body_partitions;
   
   /* Secondary variables */
   int num_source_packages;

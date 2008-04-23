@@ -276,7 +276,10 @@ static const uint8_t mxf_essence_container_data_key[] =
 { 0x06, 0x0e, 0x2b, 0x34, 0x02, 0x53, 0x01, 0x01, 0x0d, 0x01, 0x01, 0x01, 0x01, 0x01, 0x23, 0x00 };
 
 static const uint8_t mxf_preface_key[] =
-{ 0x06, 0x0e, 0x2b, 0x34, 0x02, 0x53, 0x01, 0x01, 0x0d, 0x01, 0x01, 0x01, 0x01, 0x01, 0x2f, 0x00 };
+  { 0x06, 0x0e, 0x2b, 0x34, 0x02, 0x53, 0x01, 0x01, 0x0d, 0x01, 0x01, 0x01, 0x01, 0x01, 0x2f, 0x00 };
+
+static const uint8_t mxf_closed_body_partition_key[] =
+  {  0x06, 0x0e, 0x2b, 0x34, 0x02, 0x05, 0x01, 0x01, 0x0d, 0x01, 0x02, 0x01, 0x01, 0x03, 0x04, 0x00 };
 
 /* Descriptors */
 
@@ -676,17 +679,18 @@ void bgav_mxf_primer_pack_free(mxf_primer_pack_t * ret)
 
 /* Header metadata */
 
-static int read_header_metadata(bgav_input_context_t * input,
-                                mxf_file_t * ret, mxf_klv_t * klv,
-                                int (*read_func)(bgav_input_context_t * input,
-                                                 mxf_file_t * ret, mxf_metadata_t * m,
-                                                 int tag, int size, uint8_t * uid),
-                                int struct_size, mxf_metadata_type_t type)
+static mxf_metadata_t *
+read_header_metadata(bgav_input_context_t * input,
+                     mxf_file_t * ret, mxf_klv_t * klv,
+                     int (*read_func)(bgav_input_context_t * input,
+                                      mxf_file_t * ret, mxf_metadata_t * m,
+                                      int tag, int size, uint8_t * uid),
+                     int struct_size, mxf_metadata_type_t type)
   {
   uint16_t tag, len;
   int64_t end_pos;
   mxf_ul_t uid = {0};
-
+  
   mxf_metadata_t * m;
   if(struct_size)
     {
@@ -737,16 +741,7 @@ static int read_header_metadata(bgav_input_context_t * input,
       bgav_input_skip(input, end_pos - input->position);
     }
 
-  if(m)
-    {
-    ret->header.metadata =
-      realloc(ret->header.metadata,
-              (ret->header.num_metadata+1) * sizeof(*ret->header.metadata));
-    ret->header.metadata[ret->header.num_metadata] = m;
-    ret->header.num_metadata++;
-    }
-  
-  return 1;
+  return m;
   }
 
 
@@ -2323,12 +2318,20 @@ static void update_source_track(mxf_file_t * f, mxf_klv_t * klv)
     t->max_packet_size = klv->length;
   }
 
+static void append_metadata(mxf_metadata_t *** arr, int * num, mxf_metadata_t * m)
+  {
+  *arr = realloc(*arr, ((*num) + 1) * sizeof(**arr));
+  (*arr)[*num] = m;
+  (*num)++;
+  }
+
 int bgav_mxf_file_read(bgav_input_context_t * input,
                        mxf_file_t * ret)
   {
   mxf_klv_t klv;
   int64_t last_pos, header_start_pos;
-
+  mxf_metadata_t * m;
+  
   if(!input->input->seek_byte)
     {
     bgav_log(input->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Cannot decode MXF file from non seekable source");
@@ -2395,146 +2398,144 @@ int bgav_mxf_file_read(bgav_input_context_t * input,
     
     if(!bgav_mxf_klv_read(input, &klv))
       break;
-    if(1)
+
+    m = (mxf_metadata_t*)0;
+    
+    if(UL_MATCH_MOD_REGVER(klv.key, mxf_filler_key))
       {
-      if(UL_MATCH_MOD_REGVER(klv.key, mxf_filler_key))
-        {
-        //        fprintf(stderr, "Filler key: %ld\n", klv.length);
-        bgav_input_skip(input, klv.length);
-        }
-      else if(UL_MATCH(klv.key, mxf_content_storage_key))
-        {
-        if(!read_header_metadata(input, ret, &klv,
-                                 read_content_storage,
-                                 sizeof(mxf_content_storage_t),
-                                 MXF_TYPE_CONTENT_STORAGE))
-          return 0;
-        }
-      else if(UL_MATCH(klv.key, mxf_source_package_key))
-        {
-        //        fprintf(stderr, "mxf_source_package_key\n");
-        // bgav_input_skip_dump(input, klv.length);
-        if(!read_header_metadata(input, ret, &klv,
-                                 read_source_package, sizeof(mxf_package_t),
-                                 MXF_TYPE_SOURCE_PACKAGE))
-          return 0;
-        }
-      else if(UL_MATCH(klv.key, mxf_essence_container_data_key))
-        {
-        //        fprintf(stderr, "mxf_essence_container_data_key\n");
-        // bgav_input_skip_dump(input, klv.length);
-        if(!read_header_metadata(input, ret, &klv,
-                                 read_essence_container_data, sizeof(mxf_essence_container_data_t),
-                                 MXF_TYPE_ESSENCE_CONTAINER_DATA))
-          return 0;
-        }
-      else if(UL_MATCH(klv.key, mxf_material_package_key))
-        {
-        //        fprintf(stderr, "mxf_material_package_key\n");
-        //        bgav_input_skip_dump(input, klv.length);
-        if(!read_header_metadata(input, ret, &klv,
-                                 read_material_package, sizeof(mxf_package_t),
-                                 MXF_TYPE_MATERIAL_PACKAGE))
-          return 0;
-
-        }
-      else if(UL_MATCH(klv.key, mxf_sequence_key))
-        {
-        //        fprintf(stderr, "mxf_sequence_key\n");
-        if(!read_header_metadata(input, ret, &klv,
-                                 read_sequence, sizeof(mxf_sequence_t),
-                                 MXF_TYPE_SEQUENCE))
-          return 0;
-        
-        }
-      else if(UL_MATCH(klv.key, mxf_source_clip_key))
-        {
-        //        bgav_input_skip_dump(input, klv.length);
-        if(!read_header_metadata(input, ret, &klv,
-                                 read_source_clip, sizeof(mxf_source_clip_t),
-                                 MXF_TYPE_SOURCE_CLIP))
-          return 0;
-        
-        }
-      else if(UL_MATCH(klv.key, mxf_timecode_component_key))
-        {
-        //        fprintf(stderr, "mxf_timecode_component_key\n");
-        // bgav_input_skip_dump(input, klv.length);
-        if(!read_header_metadata(input, ret, &klv,
-                                 read_timecode_component, sizeof(mxf_timecode_component_t),
-                                 MXF_TYPE_TIMECODE_COMPONENT))
-          return 0;
-        }
-      else if(UL_MATCH(klv.key, mxf_static_track_key))
-        {
-        //  fprintf(stderr, "mxf_static_track_key\n");
-        //  bgav_input_skip_dump(input, klv.length);
-
-        if(!read_header_metadata(input, ret, &klv,
-                                 read_track, sizeof(mxf_track_t),
-                                 MXF_TYPE_TRACK))
-          return 0;
-        
-        }
-      else if(UL_MATCH(klv.key, mxf_preface_key))
-        {
-        //  fprintf(stderr, "mxf_static_track_key\n");
-        //  bgav_input_skip_dump(input, klv.length);
-
-        if(!read_header_metadata(input, ret, &klv,
-                                 read_preface, sizeof(mxf_preface_t),
-                                 MXF_TYPE_PREFACE))
-          return 0;
-        
-        }
-      else if(UL_MATCH(klv.key, mxf_generic_track_key))
-        {
-        //        fprintf(stderr, "mxf_generic_track_key\n");
-        //        bgav_input_skip_dump(input, klv.length);
-        if(!read_header_metadata(input, ret, &klv,
-                                 read_source_clip, sizeof(mxf_track_t),
-                                 MXF_TYPE_TRACK))
-          return 0;
-        }
-      else if(UL_MATCH(klv.key, mxf_descriptor_multiple_key))
-        {
-        if(!read_header_metadata(input, ret, &klv,
-                                 read_descriptor, sizeof(mxf_descriptor_t),
-                                 MXF_TYPE_MULTIPLE_DESCRIPTOR))
-          return 0;
-        
-        }
-      else if(UL_MATCH(klv.key, mxf_identification_key))
-        {
-        if(!read_header_metadata(input, ret, &klv,
-                                 read_identification, sizeof(mxf_identification_t),
-                                 MXF_TYPE_IDENTIFICATION))
-          return 0;
-        
-        }
-      else if(UL_MATCH(klv.key, mxf_descriptor_generic_sound_key) ||
-              UL_MATCH(klv.key, mxf_descriptor_cdci_key) ||
-              UL_MATCH(klv.key, mxf_descriptor_rgba_key) ||
-              UL_MATCH(klv.key, mxf_descriptor_mpeg2video_key) ||
-              UL_MATCH(klv.key, mxf_descriptor_wave_key) ||
-              UL_MATCH(klv.key, mxf_descriptor_aes3_key))
-        {
-        if(!read_header_metadata(input, ret, &klv,
-                                 read_descriptor, sizeof(mxf_descriptor_t),
-                                 MXF_TYPE_DESCRIPTOR))
-          return 0;
-        }
-      else
-        {
-#ifdef DUMP_UNKNOWN
-        bgav_dprintf("Unknown metadata chunk:\n");
-        bgav_mxf_klv_dump(0, &klv);
-        bgav_input_skip_dump(input, klv.length);
-#else
-        bgav_input_skip(input, klv.length);
-#endif
-        }
+      //        fprintf(stderr, "Filler key: %ld\n", klv.length);
+      bgav_input_skip(input, klv.length);
       }
+    else if(UL_MATCH(klv.key, mxf_content_storage_key))
+      {
+      if(!(m = read_header_metadata(input, ret, &klv,
+                                    read_content_storage,
+                                    sizeof(mxf_content_storage_t),
+                                    MXF_TYPE_CONTENT_STORAGE)))
+        return 0;
+        
+      }
+    else if(UL_MATCH(klv.key, mxf_source_package_key))
+      {
+      //        fprintf(stderr, "mxf_source_package_key\n");
+      // bgav_input_skip_dump(input, klv.length);
+      if(!(m = read_header_metadata(input, ret, &klv,
+                                    read_source_package, sizeof(mxf_package_t),
+                                    MXF_TYPE_SOURCE_PACKAGE)))
+        return 0;
+      }
+    else if(UL_MATCH(klv.key, mxf_essence_container_data_key))
+      {
+      //        fprintf(stderr, "mxf_essence_container_data_key\n");
+      // bgav_input_skip_dump(input, klv.length);
+      if(!(m = read_header_metadata(input, ret, &klv,
+                                    read_essence_container_data, sizeof(mxf_essence_container_data_t),
+                                    MXF_TYPE_ESSENCE_CONTAINER_DATA)))
+        return 0;
+      }
+    else if(UL_MATCH(klv.key, mxf_material_package_key))
+      {
+      //        fprintf(stderr, "mxf_material_package_key\n");
+      //        bgav_input_skip_dump(input, klv.length);
+      if(!(m = read_header_metadata(input, ret, &klv,
+                                    read_material_package, sizeof(mxf_package_t),
+                                    MXF_TYPE_MATERIAL_PACKAGE)))
+        return 0;
+      }
+    else if(UL_MATCH(klv.key, mxf_sequence_key))
+      {
+      //        fprintf(stderr, "mxf_sequence_key\n");
+      if(!(m = read_header_metadata(input, ret, &klv,
+                                    read_sequence, sizeof(mxf_sequence_t),
+                                    MXF_TYPE_SEQUENCE)))
+        return 0;
+      }
+    else if(UL_MATCH(klv.key, mxf_source_clip_key))
+      {
+      //        bgav_input_skip_dump(input, klv.length);
+      if(!(m = read_header_metadata(input, ret, &klv,
+                                    read_source_clip, sizeof(mxf_source_clip_t),
+                                    MXF_TYPE_SOURCE_CLIP)))
+        return 0;
+      }
+    else if(UL_MATCH(klv.key, mxf_timecode_component_key))
+      {
+      //        fprintf(stderr, "mxf_timecode_component_key\n");
+      // bgav_input_skip_dump(input, klv.length);
+      if(!(m = read_header_metadata(input, ret, &klv,
+                                    read_timecode_component, sizeof(mxf_timecode_component_t),
+                                    MXF_TYPE_TIMECODE_COMPONENT)))
+        return 0;
+      }
+    else if(UL_MATCH(klv.key, mxf_static_track_key))
+      {
+      //  fprintf(stderr, "mxf_static_track_key\n");
+      //  bgav_input_skip_dump(input, klv.length);
+
+      if(!(m = read_header_metadata(input, ret, &klv,
+                                    read_track, sizeof(mxf_track_t),
+                                    MXF_TYPE_TRACK)))
+        return 0;
+      }
+    else if(UL_MATCH(klv.key, mxf_preface_key))
+      {
+      //  fprintf(stderr, "mxf_static_track_key\n");
+      //  bgav_input_skip_dump(input, klv.length);
+
+      if(!(m = read_header_metadata(input, ret, &klv,
+                                    read_preface, sizeof(mxf_preface_t),
+                                    MXF_TYPE_PREFACE)))
+        return 0;
+        
+      }
+    else if(UL_MATCH(klv.key, mxf_generic_track_key))
+      {
+      //        fprintf(stderr, "mxf_generic_track_key\n");
+      //        bgav_input_skip_dump(input, klv.length);
+      if(!(m = read_header_metadata(input, ret, &klv,
+                                    read_source_clip, sizeof(mxf_track_t),
+                                    MXF_TYPE_TRACK)))
+        return 0;
+      }
+    else if(UL_MATCH(klv.key, mxf_descriptor_multiple_key))
+      {
+      if(!(m = read_header_metadata(input, ret, &klv,
+                                    read_descriptor, sizeof(mxf_descriptor_t),
+                                    MXF_TYPE_MULTIPLE_DESCRIPTOR)))
+        return 0;
+        
+      }
+    else if(UL_MATCH(klv.key, mxf_identification_key))
+      {
+      if(!(m = read_header_metadata(input, ret, &klv,
+                                    read_identification, sizeof(mxf_identification_t),
+                                    MXF_TYPE_IDENTIFICATION)))
+        return 0;
+      }
+    else if(UL_MATCH(klv.key, mxf_descriptor_generic_sound_key) ||
+            UL_MATCH(klv.key, mxf_descriptor_cdci_key) ||
+            UL_MATCH(klv.key, mxf_descriptor_rgba_key) ||
+            UL_MATCH(klv.key, mxf_descriptor_mpeg2video_key) ||
+            UL_MATCH(klv.key, mxf_descriptor_wave_key) ||
+            UL_MATCH(klv.key, mxf_descriptor_aes3_key))
+      {
+      if(!(m = read_header_metadata(input, ret, &klv,
+                                    read_descriptor, sizeof(mxf_descriptor_t),
+                                    MXF_TYPE_DESCRIPTOR)))
+        return 0;
+      }
+    else
+      {
+#ifdef DUMP_UNKNOWN
+      bgav_dprintf("Unknown metadata chunk:\n");
+      bgav_mxf_klv_dump(0, &klv);
+      bgav_input_skip_dump(input, klv.length);
+#else
+      bgav_input_skip(input, klv.length);
+#endif
+      }
+    if(m)
+      append_metadata(&ret->header.metadata, &ret->header.num_metadata, m);
     }
   //  fprintf(stderr, "Header done\n");
   
@@ -2569,6 +2570,16 @@ int bgav_mxf_file_read(bgav_input_context_t * input,
                    klv.key[12], klv.key[13], klv.key[14], klv.key[15], klv.length);
       bgav_input_skip(input, klv.length);
       }
+    else if(UL_MATCH(klv.key, mxf_closed_body_partition_key))
+      {
+      ret->body_partitions =
+        realloc(ret->body_partitions, (ret->num_body_partitions+1)
+                * sizeof(*ret->body_partitions));
+      if(!bgav_mxf_partition_read(input,
+                                  &klv, ret->body_partitions + ret->num_body_partitions))
+        return 0;
+      ret->num_body_partitions++;
+      }
     else
       {
       bgav_input_skip(input, klv.length);
@@ -2597,6 +2608,9 @@ void bgav_mxf_file_free(mxf_file_t * ret)
       }
     free(ret->index_segments);
     }
+  
+  if(ret->body_partitions)
+    free(ret->body_partitions);
   
   if(ret->header.metadata)
     {
@@ -2717,6 +2731,11 @@ void bgav_mxf_file_dump(mxf_file_t * ret)
       bgav_mxf_index_table_segment_dump(0, ret->index_segments[i]);
       }
     }
+
+  bgav_dprintf("Body partitions: %d", ret->num_body_partitions);
+  for(i = 0; i < ret->num_body_partitions; i++)
+    bgav_mxf_partition_dump(0, &ret->body_partitions[i]);
+  
   }
 
 bgav_stream_t * bgav_mxf_find_stream(mxf_file_t * f, bgav_demuxer_context_t * t, mxf_ul_t ul)

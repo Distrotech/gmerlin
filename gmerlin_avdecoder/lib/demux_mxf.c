@@ -622,12 +622,11 @@ static void seek_mxf(bgav_demuxer_context_t * ctx, int64_t time,
   
   }
 
-#if 0
+#if 1
 static int select_track_mxf(bgav_demuxer_context_t * ctx, int track)
- {
- return 0;
-  
- }
+  {
+  return 1;
+  }
 #endif
 
 static void close_mxf(bgav_demuxer_context_t * ctx)
@@ -676,8 +675,8 @@ const bgav_demuxer_t bgav_demuxer_mxf =
   {
     .probe        = probe_mxf,
     .open         = open_mxf,
-    //    .select_track = select_track_mxf,
-    .next_packet  =  next_packet_mxf,
+    .select_track = select_track_mxf,
+    .next_packet  = next_packet_mxf,
     .resync       = resync_mxf,
     .seek         = seek_mxf,
     .close        = close_mxf
@@ -821,18 +820,19 @@ static void handle_material_track(bgav_demuxer_context_t * ctx, mxf_package_t * 
                             sc->source_track_id))
         {
         seg = bgav_edl_add_segment(es);
-        seg->track = track_index;
-        seg->stream = stream_index;
+        seg->track     = track_index;
+        seg->stream    = stream_index;
         seg->timescale = mt->edit_rate_num;
-        seg->src_time      = sc->start_position * mt->edit_rate_den;
-        seg->dst_time      = duration;
+        seg->src_time  = sc->start_position * mt->edit_rate_den;
+        seg->dst_time  = duration;
+        seg->speed_num = 1;
+        seg->speed_den = 1;
         }
       
       duration += sc->duration * mt->edit_rate_den;
       }
     }
   }
-
 
 static void build_edl_mxf(bgav_demuxer_context_t * ctx)
   {
@@ -842,7 +842,12 @@ static void build_edl_mxf(bgav_demuxer_context_t * ctx)
   bgav_edl_track_t * t;
   priv = (mxf_t*)ctx->priv;
 
+  if(!ctx->input->filename)
+    return;
+    
   ctx->edl = bgav_edl_create();
+  ctx->edl->url = bgav_strdup(ctx->input->filename);
+  
   
   /* We simply open the Material packages */
   
