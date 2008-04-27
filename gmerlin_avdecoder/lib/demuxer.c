@@ -252,7 +252,7 @@ const bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input,
   if(bgav_yml_probe(input))
     {
     *yml = bgav_yml_parse(input);
-    if(!yml)
+    if(!(*yml))
       return (bgav_demuxer_t *)0;
 
     for(i = 0; i < num_yml_demuxers; i++)
