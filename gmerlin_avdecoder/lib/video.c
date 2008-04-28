@@ -146,14 +146,15 @@ static int bgav_video_decode(bgav_stream_t * stream,
     case BGAV_FRAMETIME_PACKET:
     case BGAV_FRAMETIME_PTS:
       stream->data.video.last_frame_time = stream->out_time;
+
+      stream->data.video.last_frame_duration = stream->data.video.next_frame_duration;
       
       p = bgav_demuxer_peek_packet_read(stream->demuxer, stream, 1);
       if(!p)
-        fprintf(stderr, "bgav_demuxer_peek_packet_read failed\n");
+        break;
       stream->out_time = gavl_time_rescale(stream->timescale,
                                            stream->data.video.format.timescale, p->pts);
 
-      stream->data.video.last_frame_duration = stream->data.video.next_frame_duration;
       stream->data.video.next_frame_duration =
         gavl_time_rescale(stream->timescale,
                           stream->data.video.format.timescale, p->duration);

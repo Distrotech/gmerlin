@@ -30,7 +30,7 @@
 
 #define LOG_DOMAIN "quicktime"
 
-#define DUMP_MOOV
+// #define DUMP_MOOV
 
 typedef struct
   {
