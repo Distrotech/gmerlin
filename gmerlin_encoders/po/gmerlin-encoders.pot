@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2008-01-03 18:53+0100\n"
+"POT-Creation-Date: 2008-02-21 20:51+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -304,24 +304,24 @@ msgid ""
 "ABR and VBR as well as ID3V1 and ID3V2 tags."
 msgstr ""
 
-#: plugins/ogg/flac.c:108
+#: plugins/ogg/flac.c:112
 msgid "Got no Flac ID page"
 msgstr ""
 
-#: plugins/ogg/flac.c:113 plugins/ogg/flac.c:155
+#: plugins/ogg/flac.c:117 plugins/ogg/flac.c:159
 #, c-format
 msgid "Writing to file failed: %s"
 msgstr ""
 
-#: plugins/ogg/flac.c:249
+#: plugins/ogg/flac.c:251
 msgid "FLAC__stream_encoder_init failed"
 msgstr ""
 
-#: plugins/ogg/flac.c:260
+#: plugins/ogg/flac.c:262
 msgid "FLAC__stream_encoder_init_stream failed"
 msgstr ""
 
-#: plugins/ogg/flac.c:331 plugins/flac/e_flac.c:480
+#: plugins/ogg/flac.c:333 plugins/flac/e_flac.c:480
 msgid "Flac encoder"
 msgstr ""
 
@@ -401,11 +401,11 @@ msgstr ""
 msgid "Codec"
 msgstr ""
 
-#: plugins/ogg/e_theora.c:151 plugins/ogg/theora.c:457
+#: plugins/ogg/e_theora.c:154 plugins/ogg/theora.c:457
 msgid "Theora encoder"
 msgstr ""
 
-#: plugins/ogg/e_theora.c:152
+#: plugins/ogg/e_theora.c:155
 msgid "Encoder for Theora files. Audio can be Vorbis, Flac or Speex."
 msgstr ""
 
@@ -1633,11 +1633,11 @@ msgstr ""
 msgid "Strictly enforce GOP size"
 msgstr ""
 
-#: plugins/ffmpeg/ffmpeg_common.c:447
+#: plugins/ffmpeg/ffmpeg_common.c:448
 msgid "Audio codec is not compatible with format"
 msgstr ""
 
-#: plugins/ffmpeg/ffmpeg_common.c:465
+#: plugins/ffmpeg/ffmpeg_common.c:466
 msgid "Video codec is not compatible with format"
 msgstr ""
 

@@ -103,6 +103,34 @@ PKG_CHECK_MODULES(LIBPOSTPROC, libpostproc >= $LIBPOSTPROC_REQUIRED,
                   have_libpostproc="true", have_libpostproc="false")
 fi
 
+if test x$have_libpostproc = xtrue; then
+LIBPOSTPROC_CFLAGS=`echo $LIBPOSTPROC_CFLAGS | sed 's/ //'`
+
+if test "x$LIBPOSTPROC_CFLAGS" = "x"; then
+LIBPOSTPROC_CFLAGS="-I/usr/include"
+fi
+
+CFLAGS_save=$CFLAGS
+CFLAGS="$CFLAGS $LIBPOSTPROC_CFLAGS"
+found_header="false"
+
+AC_TRY_COMPILE([
+#include <postprocess.h>],[],[found_header="true"])
+
+if test $found_header = "false"; then
+AC_TRY_COMPILE([
+#include <postproc/postprocess.h>],[], [found_header="true";LIBPOSTPROC_CFLAGS="$LIBPOSTPROC_CFLAGS/postproc" ],)
+fi
+
+if test $found_header = "false"; then
+AC_TRY_COMPILE([
+#include <libpostproc/postprocess.h>],[], [found_header="true";LIBPOSTPROC_CFLAGS="$LIBPOSTPROC_CFLAGS/libpostproc" ],)
+fi
+
+CFLAGS="$CFLAGS_save"
+       
+fi
+
 AC_SUBST(LIBPOSTPROC_REQUIRED)
 AC_SUBST(LIBPOSTPROC_LIBS)
 AC_SUBST(LIBPOSTPROC_CFLAGS)
@@ -139,6 +167,34 @@ if test x$test_libswscale = xtrue; then
 
 PKG_CHECK_MODULES(LIBSWSCALE, libswscale >= $LIBSWSCALE_REQUIRED,
                   have_libswscale="true", have_libswscale="false")
+fi
+
+if test x$have_libswscale = xtrue; then
+LIBSWSCALE_CFLAGS=`echo $LIBSWSCALE_CFLAGS | sed 's/ //'`
+
+if test "x$LIBSWSCALE_CFLAGS" = "x"; then
+LIBSWSCALE_CFLAGS="-I/usr/include"
+fi
+
+CFLAGS_save=$CFLAGS
+CFLAGS="$CFLAGS $LIBSWSCALE_CFLAGS"
+found_header="false"
+
+AC_TRY_COMPILE([
+#include <swscale.h>],[],[found_header="true"])
+
+if test $found_header = "false"; then
+AC_TRY_COMPILE([
+#include <swscale/swscale.h>],[], [found_header="true";LIBSWSCALE_CFLAGS="$LIBSWSCALE_CFLAGS/ffmpeg" ],)
+fi
+
+if test $found_header = "false"; then
+AC_TRY_COMPILE([
+#include <libswscale/swscale.h>],[], [found_header="true";LIBSWSCALE_CFLAGS="$LIBSWSCALE_CFLAGS/libswscale" ],)
+fi
+
+CFLAGS="$CFLAGS_save"
+       
 fi
 
 AC_SUBST(LIBSWSCALE_REQUIRED)
@@ -267,6 +323,45 @@ AC_DEFINE([HAVE_MJPEGTOOLS])
 fi
 
 ])
+
+dnl
+dnl Check for pulseaudio
+dnl
+
+AC_DEFUN([GMERLIN_CHECK_PULSEAUDIO],[
+
+AH_TEMPLATE([HAVE_PULSEAUDIO],
+            [Do we have pulseaudio installed?])
+
+have_pulseaudio="false"
+
+PULSEAUDIO_REQUIRED="0.9.6"
+
+AC_ARG_ENABLE(pulseaudio,
+[AC_HELP_STRING([--disable-pulseaudio],[Disable pulseaudio (default: autodetect)])],
+[case "${enableval}" in
+   yes) test_pulseaudio=true ;;
+   no)  test_pulseaudio=false ;;
+esac],[test_pulseaudio=true])
+
+if test x$test_pulseaudio = xtrue; then
+
+PKG_CHECK_MODULES(PULSEAUDIO, libpulse-simple >= $PULSEAUDIO_REQUIRED, have_pulseaudio="true", have_pulseaudio="false")
+
+fi
+
+AC_SUBST(PULSEAUDIO_REQUIRED)
+AC_SUBST(PULSEAUDIO_LIBS)
+AC_SUBST(PULSEAUDIO_CFLAGS)
+
+AM_CONDITIONAL(HAVE_PULSEAUDIO, test x$have_pulseaudio = xtrue)
+
+if test "x$have_pulseaudio" = "xtrue"; then
+AC_DEFINE([HAVE_PULSEAUDIO])
+fi
+
+])
+
 
 dnl
 dnl Vorbis
@@ -1340,4 +1435,29 @@ fi
 
 AM_CONDITIONAL(HAVE_LINUXDVB, test x$have_linuxdvb = xtrue)
 
+])
+
+dnl
+dnl OpenGL
+dnl
+AC_DEFUN([GMERLIN_CHECK_OPENGL],[
+AH_TEMPLATE([HAVE_GL],[OpenGL available])
+AH_TEMPLATE([HAVE_GLX],[GLX available])
+
+MDL_HAVE_OPENGL
+
+if test "x$have_GL" = "xyes"; then
+AC_DEFINE(HAVE_GL)
+dnl Change to true to match other macros
+have_GL=true
+fi
+
+if test "x$have_GLX" = "xyes"; then
+AC_DEFINE(HAVE_GLX)
+dnl Change to true to match other macros
+have_GLX=true
+fi
+
+AM_CONDITIONAL(HAVE_GL, test x$have_GL = xtrue)
+AM_CONDITIONAL(HAVE_GLX, test x$have_GL = xtrue)
 ])

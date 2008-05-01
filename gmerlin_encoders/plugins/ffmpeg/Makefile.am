@@ -1,6 +1,6 @@
 libdir=@GMERLIN_PLUGIN_DIR@
 AM_LDFLAGS = @GMERLIN_PLUGIN_LDFLAGS@ -avoid-version -module
-AM_CFLAGS = @AVFORMAT_CFLAGS@ -DLOCALE_DIR=\"$(localedir)\"
+AM_CFLAGS = @GMERLIN_DEP_CFLAGS@ @AVFORMAT_CFLAGS@ @AVCODEC_CFLAGS@ -DLOCALE_DIR=\"$(localedir)\"
 
 lib_LTLIBRARIES = \
 e_ffmpeg_video.la \

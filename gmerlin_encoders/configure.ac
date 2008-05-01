@@ -35,6 +35,7 @@ fi
 
 LDFLAGS=$GMERLIN_DEP_RPATH
 AC_SUBST(GMERLIN_DEP_LIBS)
+AC_SUBST(GMERLIN_DEP_CFLAGS)
 
 dnl
 dnl Required libraries
@@ -105,6 +106,12 @@ dnl mjpegtools
 dnl
 
 GMERLIN_CHECK_MJPEGTOOLS
+
+dnl
+dnl libavcodec
+dnl
+
+GMERLIN_CHECK_AVCODEC
 
 dnl
 dnl libavformat

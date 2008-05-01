@@ -7,12 +7,38 @@ AC_DEFUN([ACL_CHECK_AVFORMAT],[
 AC_MSG_CHECKING([for build ID in libavformat, libs: $AVFORMAT_LIBS])
 CFLAGS_save=$CFLAGS
 LIBS_save=$LIBS
+
+dnl Look for header
+found_header="false"
+AVFORMAT_CFLAGS=`echo $AVFORMAT_CFLAGS | sed 's/ //'`
+
+if test "x$AVFORMAT_CFLAGS" = "x"; then
+AVFORMAT_CFLAGS="-I/usr/include"
+fi
+
 CFLAGS="$CFLAGS $AVFORMAT_CFLAGS"
+
+AC_TRY_COMPILE([
+#include <avformat.h>],[],[found_header="true"])
+
+if test $found_header = "false"; then
+AC_TRY_COMPILE([
+#include <ffmpeg/avformat.h>],[], [found_header="true";AVFORMAT_CFLAGS=${AVFORMAT_CFLAGS}"/ffmpeg" ],)
+fi
+
+if test $found_header = "false"; then
+AC_TRY_COMPILE([
+#include <libavformat/avformat.h>],[], [found_header="true";AVFORMAT_CFLAGS="$AVFORMAT_CFLAGS/libavformat" ],)
+fi
+
+CFLAGS="$CFLAGS $AVFORMAT_CFLAGS"
+
+
 LIBS="$LIBS $AVFORMAT_LIBS"
 avformat_ok="false"
 AC_TRY_RUN([
     #include <stdio.h>
-    #include <ffmpeg/avformat.h>
+    #include <avformat.h>
     int main()
     {
     FILE * output;
@@ -67,24 +93,7 @@ ACL_CHECK_AVFORMAT([$1])
 fi
 
 dnl
-dnl Second Peference: ffmpeg_acl
-dnl
-
-if test "x$avformat_done" = "xfalse"; then
-  PKG_CHECK_MODULES(AVFORMAT_ACL, avformat_acl, have_avformat_acl="true", have_avformat_acl="false")
-  if test x"$have_avformat_acl" = "xtrue"; then
-        AVFORMAT_CFLAGS=$AVFORMAT_ACL_CFLAGS
-        AVFORMAT_LIBS=$AVFORMAT_ACL_LIBS
-        ACL_CHECK_AVFORMAT([$1])
-    if test "x$avformat_ok" = "xtrue"; then
-      avformat_done="true"
-      AVFORMAT_VERSION=`pkg-config --modversion avformat_acl`
-      fi
-  fi
-fi
-
-dnl
-dnl Third Perference: Autodetect
+dnl Second Perference: Autodetect
 dnl
 
 if test "x$avformat_done" = "xfalse"; then

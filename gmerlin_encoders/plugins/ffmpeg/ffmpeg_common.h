@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-#include <ffmpeg/avformat.h>
+#include <avformat.h>
 #include <gmerlin/plugin.h>
 
 typedef struct
