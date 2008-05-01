@@ -89,6 +89,7 @@ struct mxf_partition_s
 
   uint32_t num_essence_container_types;
   mxf_ul_t * essence_container_types;
+  
   };
 
 int bgav_mxf_partition_read(bgav_input_context_t * input,
@@ -449,6 +450,15 @@ typedef struct
     uint32_t element_delta;
     } * delta_entries;
   uint32_t num_delta_entries;
+
+  struct
+    {
+    int8_t temporal_offset;
+    int8_t anchor_offset;
+    uint8_t flags;
+    uint64_t offset;
+    } * entries;
+  uint32_t num_entries;
   
   } mxf_index_table_segment_t;
 
@@ -474,6 +484,10 @@ struct partition_s
   
   int max_source_sequence_components;
   int max_material_sequence_components;
+
+  int64_t start_pos;
+  int64_t end_pos;
+  
   };
 
 struct mxf_file_s

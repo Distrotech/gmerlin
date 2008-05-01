@@ -797,7 +797,7 @@ void bgav_mxf_content_storage_dump(int indent, mxf_content_storage_t * s)
     bgav_diprintf(indent+2, "Essence container refs: %d\n", s->num_essence_container_data_refs);
     for(i = 0; i < s->num_essence_container_data_refs; i++)
       {
-      do_indent(indent+4); dump_ul_ptr(s->essence_container_data_refs[i], s->essence_containers);
+      do_indent(indent+4); dump_ul_ptr(s->essence_container_data_refs[i], s->essence_containers[i]);
       }
     }
   }
@@ -1309,9 +1309,9 @@ void bgav_mxf_identification_dump(int indent, mxf_identification_t * s)
   bgav_diprintf(indent+2, "Product name:      %s\n",
                                     (s->product_name ? s->product_name :
                                      "(unknown"));
-  bgav_diprintf(indent+2, "Product version:   %d.%d.%d.%d\n", s->product_version.maj, s->product_version.min,
+  bgav_diprintf(indent+2, "Product version:   %d.%d.%d.%d.%d\n", s->product_version.maj, s->product_version.min,
                 s->product_version.tweak, s->product_version.build, s->product_version.rel);
-  bgav_diprintf(indent+2, "Toolkit version:   %d.%d.%d.%d\n", s->toolkit_version.maj, s->toolkit_version.min,
+  bgav_diprintf(indent+2, "Toolkit version:   %d.%d.%d.%d.%d\n", s->toolkit_version.maj, s->toolkit_version.min,
                 s->toolkit_version.tweak, s->toolkit_version.build, s->toolkit_version.rel);
   
   bgav_diprintf(indent+2, "Version string:    %s\n",
@@ -1889,13 +1889,33 @@ static int read_index_table_segment(bgav_input_context_t * input,
       bgav_input_skip(input, 4);
 
       idx->delta_entries =
-        malloc(idx->num_delta_entries * sizeof(idx->delta_entries));
+        malloc(idx->num_delta_entries * sizeof(*idx->delta_entries));
       for(i = 0; i < idx->num_delta_entries; i++)
         {
         if(!bgav_input_read_8(input, &idx->delta_entries[i].pos_table_index) ||
            !bgav_input_read_8(input, &idx->delta_entries[i].slice) ||
            !bgav_input_read_32_be(input, &idx->delta_entries[i].element_delta))
           return 0;
+        }
+      }
+    else if(tag == 0x3f0a) // EntryArray
+      {
+      uint32_t entry_len;
+      if(!bgav_input_read_32_be(input, &idx->num_entries))
+        return 0;
+      if(!bgav_input_read_32_be(input, &entry_len))
+        return 0;
+
+      idx->entries =
+        malloc(idx->num_entries * sizeof(*idx->entries));
+      for(i = 0; i < idx->num_entries; i++)
+        {
+        if(!bgav_input_read_8(input,     (uint8_t*)&idx->entries[i].temporal_offset) ||
+           !bgav_input_read_8(input,     (uint8_t*)&idx->entries[i].anchor_offset) ||
+           !bgav_input_read_8(input,     &idx->entries[i].flags) ||
+           !bgav_input_read_64_be(input, &idx->entries[i].offset))
+          return 0;
+        bgav_input_skip_dump(input, entry_len - 11);
         }
       }
     else
@@ -1946,6 +1966,18 @@ void bgav_mxf_index_table_segment_dump(int indent, mxf_index_table_segment_t * i
                                         idx->delta_entries[i].pos_table_index,
                                         idx->delta_entries[i].slice,
                                         idx->delta_entries[i].element_delta);
+      }
+    }
+  if(idx->num_entries)
+    {
+    bgav_diprintf(indent+2, "Entries: %d\n", idx->num_entries);
+    for(i = 0; i < idx->num_entries; i++)
+      {
+      bgav_diprintf(indent+4, "T: %d, A: %d, Flags: %02x, offset: %"PRId64"\n",
+                    idx->entries[i].temporal_offset,
+                    idx->entries[i].anchor_offset,
+                    idx->entries[i].flags,
+                    idx->entries[i].offset);
       }
     }
   }
@@ -2211,12 +2243,16 @@ static void append_metadata(mxf_metadata_t *** arr, int * num, mxf_metadata_t * 
   }
 
 static int read_partition(bgav_input_context_t * input,
-                          partition_t * p, mxf_klv_t * partition_klv)
+                          partition_t * p, mxf_klv_t * partition_klv, int64_t start_pos)
   {
   int64_t last_pos, header_start_pos;
   mxf_klv_t klv;
   mxf_metadata_t * m;
 
+  p->start_pos = start_pos;
+
+  /* end_pos will be changed by subsequent calls */
+  p->end_pos = input->total_bytes;
   if(!bgav_mxf_partition_read(input, partition_klv, &p->p))
     return 0;
 
@@ -2413,6 +2449,7 @@ static int read_partition(bgav_input_context_t * input,
 int bgav_mxf_file_read(bgav_input_context_t * input,
                        mxf_file_t * ret)
   {
+  int64_t pos;
   mxf_klv_t klv;
   
   if(!input->input->seek_byte)
@@ -2426,6 +2463,7 @@ int bgav_mxf_file_read(bgav_input_context_t * input,
     fprintf(stderr, "End of file reached\n");
     return 0;
     }
+  pos = input->position;
   if(!bgav_mxf_klv_read(input, &klv))
     return 0;
 
@@ -2436,7 +2474,7 @@ int bgav_mxf_file_read(bgav_input_context_t * input,
     //    fprintf(stderr, "Got header partition\n");
     }
   
-  if(!read_partition(input, &ret->header, &klv))
+  if(!read_partition(input, &ret->header, &klv, pos))
     return 0;
 
   if(!bgav_mxf_finalize_header(ret, input->opt))
@@ -2452,6 +2490,8 @@ int bgav_mxf_file_read(bgav_input_context_t * input,
   /* Read rest */
   while(1)
     {
+    pos = input->position;
+    
     if(!bgav_mxf_klv_read(input, &klv))
       break;
     
@@ -2483,8 +2523,13 @@ int bgav_mxf_file_read(bgav_input_context_t * input,
 
       memset(ret->body_partitions + ret->num_body_partitions, 0,
              sizeof(*ret->body_partitions));
+
+      if(!ret->num_body_partitions)
+        ret->header.end_pos = pos;
+      else
+        ret->body_partitions[ret->num_body_partitions-1].end_pos = pos;
       
-      if(!read_partition(input, ret->body_partitions + ret->num_body_partitions, &klv))
+      if(!read_partition(input, ret->body_partitions + ret->num_body_partitions, &klv, pos))
         return 0;
       ret->num_body_partitions++;
       }
@@ -2601,6 +2646,8 @@ static void dump_partition(int indent, partition_t * p)
   bgav_diprintf(indent, "material packages:                        %d\n", p->num_material_packages);
   bgav_diprintf(indent, "maximum components per source sequence:   %d\n", p->max_source_sequence_components);
   bgav_diprintf(indent, "maximum components per material sequence: %d\n", p->max_material_sequence_components);
+  bgav_diprintf(indent, "start_pos:                                %"PRId64"\n", p->start_pos);
+  bgav_diprintf(indent, "end_pos:                                  %"PRId64"\n", p->end_pos);
   
   bgav_mxf_partition_dump(2, &p->p);
 

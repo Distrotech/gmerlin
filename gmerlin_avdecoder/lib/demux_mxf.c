@@ -56,9 +56,9 @@ typedef struct
   int frame_size;
   int wrap_mode;
   
-  int64_t clip_start;
-  int64_t clip_length;
-  int64_t clip_pos;
+  int64_t start;
+  int64_t length;
+  int64_t pos;
   
   int (*next_packet)(bgav_demuxer_context_t * ctx, bgav_stream_t * s);
 
@@ -104,7 +104,7 @@ static int next_packet_clip_wrapped_const(bgav_demuxer_context_t * ctx, bgav_str
   sp = (stream_priv_t*)(s->priv);
 
   /* Need the KLV packet for this stream */
-  if(!sp->clip_start)
+  if(!sp->start)
     {
     bgav_input_seek(ctx->input, ctx->data_start, SEEK_SET);
     while(1)
@@ -115,9 +115,9 @@ static int next_packet_clip_wrapped_const(bgav_demuxer_context_t * ctx, bgav_str
       tmp_stream = bgav_mxf_find_stream(&priv->mxf, ctx, klv.key);
       if(tmp_stream == s)
         {
-        sp->clip_start  = ctx->input->position;
-        sp->clip_pos    = ctx->input->position;
-        sp->clip_length = klv.length;
+        sp->start  = ctx->input->position;
+        sp->pos    = ctx->input->position;
+        sp->length = klv.length;
         break;
         }
       else
@@ -125,25 +125,25 @@ static int next_packet_clip_wrapped_const(bgav_demuxer_context_t * ctx, bgav_str
       }
     }
   /* No packets */
-  if(!sp->clip_start)
+  if(!sp->start)
     return 0;
   /* Out of data */
-  if(sp->clip_pos >= sp->clip_start + sp->clip_length)
+  if(sp->pos >= sp->start + sp->length)
     return 0;
 
-  if(ctx->input->position != sp->clip_pos)
-    bgav_input_seek(ctx->input, sp->clip_pos, SEEK_SET);
+  if(ctx->input->position != sp->pos)
+    bgav_input_seek(ctx->input, sp->pos, SEEK_SET);
   
   bytes_to_read = sp->frame_size;
-  if(sp->clip_pos + bytes_to_read >= sp->clip_start + sp->clip_length)
-    bytes_to_read = sp->clip_start + sp->clip_length - sp->clip_pos;
+  if(sp->pos + bytes_to_read >= sp->start + sp->length)
+    bytes_to_read = sp->start + sp->length - sp->pos;
 
   p = bgav_stream_get_packet_write(s);
   p->position = ctx->input->position;
   bgav_packet_alloc(p, bytes_to_read);
   p->data_size = bgav_input_read_data(ctx->input, p->data, bytes_to_read);
 
-  sp->clip_pos += bytes_to_read;
+  sp->pos += bytes_to_read;
 
   if(p->data_size < bytes_to_read)
     return 0;
@@ -153,7 +153,7 @@ static int next_packet_clip_wrapped_const(bgav_demuxer_context_t * ctx, bgav_str
   return 1;
   }
 
-static int next_packet_frame_wrapped(bgav_demuxer_context_t * ctx, bgav_stream_t * dummy)
+static int process_packet_frame_wrapped(bgav_demuxer_context_t * ctx)
   {
   bgav_stream_t * s;
   bgav_packet_t * p;
@@ -164,6 +164,9 @@ static int next_packet_frame_wrapped(bgav_demuxer_context_t * ctx, bgav_stream_t
 
   priv = (mxf_t*)ctx->priv;
   position = ctx->input->position;
+
+  if(position > ((partition_t*)(ctx->tt->cur->priv))->end_pos)
+    return 0;
   
   if(!bgav_mxf_klv_read(ctx->input, &klv))
     return 0;
@@ -237,6 +240,28 @@ static int next_packet_frame_wrapped(bgav_demuxer_context_t * ctx, bgav_stream_t
     bgav_packet_done_write(p);
   
   return 1;
+  }
+
+static int next_packet_frame_wrapped(bgav_demuxer_context_t * ctx, bgav_stream_t * dummy)
+  {
+  if(ctx->next_packet_pos)
+    {
+    int ret = 0;
+    while(1)
+      {
+      if(!process_packet_frame_wrapped(ctx))
+        return ret;
+      else
+        ret = 1;
+      if(ctx->input->position >= ctx->next_packet_pos)
+        return ret;
+      }
+    }
+  else
+    {
+    return process_packet_frame_wrapped(ctx);
+    }
+  return 0;
   }
 
 
@@ -473,7 +498,47 @@ handle_source_track_simple(bgav_demuxer_context_t * ctx, mxf_package_t * sp, mxf
   return;
   }
 
-/* Simple initialization: One material and one source package */
+static int get_body_sid(mxf_file_t * f, mxf_package_t * p, uint32_t * ret)
+  {
+  int i;
+  mxf_essence_container_data_t * ec;
+  mxf_content_storage_t * cs;
+  
+  cs = (mxf_content_storage_t*)(((mxf_preface_t*)(f->header.preface))->content_storage);
+  
+  for(i = 0; i < cs->num_essence_container_data_refs; i++)
+    {
+    if(!cs->essence_containers[i])
+      continue;
+    ec = (mxf_essence_container_data_t*)cs->essence_containers[i];
+
+    if(p == (mxf_package_t*)ec->linked_package)
+      {
+      *ret = ec->body_sid;
+      return 1;
+      }
+    }
+  return 0;
+  }
+
+static partition_t * get_body_partition(mxf_file_t * f, mxf_package_t * p)
+  {
+  int i;
+  uint32_t body_sid;
+  if(!get_body_sid(f, p, &body_sid))
+    return (partition_t *)0;
+  if(f->header.p.body_sid == body_sid)
+    return &f->header;
+
+  for(i = 0; i < f->num_body_partitions; i++)
+    {
+    if(f->body_partitions[i].p.body_sid == body_sid)
+      return &f->body_partitions[i];
+    }
+  return (partition_t *)0;
+  }
+
+/* Simple initialization */
 static int init_simple(bgav_demuxer_context_t * ctx)
   {
   mxf_t * priv;
@@ -498,6 +563,14 @@ static int init_simple(bgav_demuxer_context_t * ctx)
       {
       sp = (mxf_package_t*)(priv->mxf.header.metadata[i]);
 
+      ctx->tt->tracks[index].priv = get_body_partition(&priv->mxf, sp);
+      
+      if(!ctx->tt->tracks[index].priv)
+        {
+        bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                 "Couldn't find partition for source package %d", index);
+        return 0;
+        }
       /* Loop over tracks */
       for(j = 0; j < sp->num_track_refs; j++)
         {
@@ -625,6 +698,9 @@ static void seek_mxf(bgav_demuxer_context_t * ctx, int64_t time,
 #if 1
 static int select_track_mxf(bgav_demuxer_context_t * ctx, int track)
   {
+  fprintf(stderr, "Select track: %ld\n",
+          ((partition_t*)(ctx->tt->cur->priv))->start_pos);
+  bgav_input_seek(ctx->input, ((partition_t*)(ctx->tt->cur->priv))->start_pos, SEEK_SET);
   return 1;
   }
 #endif
