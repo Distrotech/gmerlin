@@ -33,6 +33,10 @@ typedef struct mxf_preface_s mxf_preface_t;
 typedef struct mxf_content_storage_s mxf_content_storage_t;
 
 typedef struct mxf_file_s mxf_file_t;
+
+typedef struct partition_s partition_t;
+typedef struct mxf_partition_s mxf_partition_t;
+
 /* Move to the next startcode */
 int bgav_mxf_sync(bgav_input_context_t * input);
 
@@ -68,7 +72,7 @@ void bgav_mxf_klv_dump(int indent, mxf_klv_t * ret);
 
 /* Partition */
 
-typedef struct
+struct mxf_partition_s
   {
   uint16_t major_version;
   uint16_t minor_version;
@@ -85,7 +89,7 @@ typedef struct
 
   uint32_t num_essence_container_types;
   mxf_ul_t * essence_container_types;
-  } mxf_partition_t;
+  };
 
 int bgav_mxf_partition_read(bgav_input_context_t * input,
                             mxf_klv_t * parent,
@@ -159,6 +163,14 @@ struct  mxf_descriptor_s
   uint32_t aspect_ratio_den;
   uint32_t width;
   uint32_t height;
+  uint32_t sampled_width;
+  uint32_t sampled_height;
+  uint32_t display_width;
+  uint32_t display_height;
+
+  uint32_t sampled_x_offset;
+  uint32_t sampled_y_offset;
+  
   uint32_t channels;
   uint32_t bits_per_sample;
   uint32_t num_subdescriptor_refs;
@@ -202,7 +214,7 @@ struct  mxf_descriptor_s
 
 void bgav_mxf_descriptor_dump(int indent, mxf_descriptor_t * d);
 void bgav_mxf_descriptor_free(mxf_descriptor_t * d);
-int bgav_mxf_descriptor_resolve_refs(mxf_file_t * file, mxf_descriptor_t * d);
+int bgav_mxf_descriptor_resolve_refs(partition_t * file, mxf_descriptor_t * d);
 
 /* Sequence */
 
@@ -223,7 +235,7 @@ struct mxf_sequence_s
 
 void bgav_mxf_sequence_dump(int indent, mxf_sequence_t * s);
 void bgav_mxf_sequence_free(mxf_sequence_t * s);
-int bgav_mxf_sequence_resolve_refs(mxf_file_t * file, mxf_sequence_t * s);
+int bgav_mxf_sequence_resolve_refs(partition_t * file, mxf_sequence_t * s);
 
 /* Track */
 
@@ -248,7 +260,7 @@ struct mxf_track_s
 
 void bgav_mxf_track_dump(int indent, mxf_track_t * t);
 void bgav_mxf_track_free(mxf_track_t * t);
-int bgav_mxf_track_resolve_refs(mxf_file_t * file, mxf_track_t * t);
+int bgav_mxf_track_resolve_refs(partition_t * file, mxf_track_t * t);
 
 /* Package */
 
@@ -273,7 +285,7 @@ typedef struct
 
 void bgav_mxf_package_dump(int indent, mxf_package_t * p);
 void bgav_mxf_package_free(mxf_package_t * p);
-int bgav_mxf_package_resolve_refs(mxf_file_t * file, mxf_package_t * p);
+int bgav_mxf_package_resolve_refs(partition_t * partition, mxf_package_t * p);
 
 /* Structural component */
 
@@ -294,7 +306,7 @@ struct mxf_source_clip_s
 void bgav_mxf_source_clip_dump(int indent,
                                         mxf_source_clip_t * s);
 void bgav_mxf_source_clip_free(mxf_source_clip_t * s);
-int bgav_mxf_source_clip_resolve_refs(mxf_file_t * file, mxf_source_clip_t * s);
+int bgav_mxf_source_clip_resolve_refs(partition_t * p, mxf_source_clip_t * s);
 
 /* Timecode component */
 
@@ -311,9 +323,18 @@ struct mxf_timecode_component_s
 void bgav_mxf_timecode_component_dump(int indent,
                                       mxf_timecode_component_t * s);
 void bgav_mxf_timecode_component_free(mxf_timecode_component_t * s);
-int bgav_mxf_timecode_component_resolve_refs(mxf_file_t * file, mxf_timecode_component_t * s);
+int bgav_mxf_timecode_component_resolve_refs(partition_t * p, mxf_timecode_component_t * s);
 
 /* Identification */
+
+typedef struct
+  {
+  uint16_t maj;
+  uint16_t min;
+  uint16_t tweak;
+  uint16_t build;
+  uint16_t rel;
+  } mxf_version_t;
 
 struct mxf_identification_s
   {
@@ -322,13 +343,17 @@ struct mxf_identification_s
   char * company_name;
   char * product_name;
   char * version_string;
+  char * platform;
   mxf_ul_t product_ul;
   uint64_t modification_date;
+  
+  mxf_version_t product_version;
+  mxf_version_t toolkit_version;
   };
 
 void bgav_mxf_identification_dump(int indent, mxf_identification_t * s);
 void bgav_mxf_identification_free(mxf_identification_t * s);
-int bgav_mxf_identification_resolve_refs(mxf_file_t * file, mxf_identification_t * s);
+int bgav_mxf_identification_resolve_refs(partition_t * p, mxf_identification_t * s);
 
 /* Essence container data */
 
@@ -345,7 +370,7 @@ struct mxf_essence_container_data_s
 
 void bgav_mxf_essence_container_data_dump(int indent, mxf_essence_container_data_t * s);
 void bgav_mxf_essence_container_data_free(mxf_essence_container_data_t * s);
-int bgav_mxf_essence_container_data_resolve_refs(mxf_file_t * file, mxf_essence_container_data_t * s);
+int bgav_mxf_essence_container_data_resolve_refs(partition_t * p, mxf_essence_container_data_t * s);
 
 /* Preface */
 
@@ -368,6 +393,8 @@ struct mxf_preface_s
   uint32_t num_dm_schemes;
 
   mxf_ul_t primary_package_ul;
+
+  uint32_t object_model_version;
   
   /* Secondary */
   mxf_metadata_t * content_storage;
@@ -378,7 +405,7 @@ struct mxf_preface_s
 
 void bgav_mxf_preface_dump(int indent, mxf_preface_t * s);
 void bgav_mxf_preface_free(mxf_preface_t * s);
-int bgav_mxf_preface_resolve_refs(mxf_file_t * file, mxf_preface_t * s);
+int bgav_mxf_preface_resolve_refs(partition_t * p, mxf_preface_t * s);
 
 /* Content storage */
 
@@ -398,7 +425,7 @@ struct mxf_content_storage_s
 
 void bgav_mxf_content_storage_dump(int indent, mxf_content_storage_t * s);
 void bgav_mxf_content_storage_free(mxf_content_storage_t * s);
-int bgav_mxf_content_storage_resolve_refs(mxf_file_t * file, mxf_content_storage_t * s);
+int bgav_mxf_content_storage_resolve_refs(partition_t * p, mxf_content_storage_t * s);
 
 
 /* Index table segment */
@@ -430,27 +457,16 @@ void bgav_mxf_index_table_segment_free(mxf_index_table_segment_t * idx);
 
 /* Toplevel file structure */
 
-struct mxf_file_s
+struct partition_s
   {
-  mxf_partition_t header_partition;
+  mxf_partition_t p;
+  mxf_primer_pack_t primer_pack;
+  mxf_metadata_t ** metadata;
+  int num_metadata;
   
   /* Preface is the parent of all metadata contained in the below array */
   mxf_metadata_t * preface; 
-  
-  struct
-    {
-    mxf_primer_pack_t primer_pack;
-    mxf_metadata_t ** metadata;
-    int num_metadata;
-    } header;
 
-  /* Index table segments */
-  mxf_index_table_segment_t ** index_segments;
-  int num_index_segments;
-
-  mxf_partition_t * body_partitions;
-  int num_body_partitions;
-  
   /* Secondary variables */
   int num_source_packages;
   int num_material_packages;
@@ -458,6 +474,20 @@ struct mxf_file_s
   
   int max_source_sequence_components;
   int max_material_sequence_components;
+  };
+
+struct mxf_file_s
+  {
+  
+  partition_t header;
+
+  /* Index table segments */
+  mxf_index_table_segment_t ** index_segments;
+  int num_index_segments;
+
+  partition_t * body_partitions;
+  int num_body_partitions;
+  
   int64_t data_start;
   };
 

@@ -262,7 +262,7 @@ static void init_stream_common(bgav_demuxer_context_t * ctx, bgav_stream_t * s,
 
   /* Hack: This makes P2 audio files clip wrapped */
   if(!sd->clip_wrapped &&
-     (((mxf_preface_t*)(priv->mxf.preface))->operational_pattern == MXF_OP_ATOM) &&
+     (((mxf_preface_t*)(priv->mxf.header.preface))->operational_pattern == MXF_OP_ATOM) &&
      sp->frame_size &&
      (sp->frame_size < st->max_packet_size) &&
      (st->num_packets == 1))
@@ -363,8 +363,8 @@ static mxf_descriptor_t * get_source_descriptor(mxf_file_t * file, mxf_package_t
   mxf_descriptor_t * sub_desc;
   if(!p->descriptor)
     {
-    if((((mxf_preface_t *)(file->preface))->operational_pattern == MXF_OP_ATOM) &&
-       (file->num_descriptors == 1))
+    if((((mxf_preface_t *)(file->header.preface))->operational_pattern == MXF_OP_ATOM) &&
+       (file->header.num_descriptors == 1))
       {
       for(i = 0; i < file->header.num_metadata; i++)
         {
@@ -526,7 +526,7 @@ static int open_mxf(bgav_demuxer_context_t * ctx)
     }
   bgav_mxf_file_dump(&priv->mxf);
 
-  if(priv->mxf.max_source_sequence_components == 1)
+  if(priv->mxf.header.max_source_sequence_components == 1)
     {
     if(!init_simple(ctx))
       return 0;
@@ -538,7 +538,7 @@ static int open_mxf(bgav_demuxer_context_t * ctx)
     return 0;
     }
 
-  if(priv->mxf.max_material_sequence_components >= 1)
+  if(priv->mxf.header.max_material_sequence_components >= 1)
     build_edl_mxf(ctx);    
   
   ctx->data_start = priv->mxf.data_start;
@@ -706,7 +706,7 @@ static int get_source_stream(bgav_track_table_t * tt,
   mxf_content_storage_t * cs;
   int found;
 
-  cs = (mxf_content_storage_t*)(((mxf_preface_t*)(f->preface))->content_storage);
+  cs = (mxf_content_storage_t*)(((mxf_preface_t*)(f->header.preface))->content_storage);
   found = 0;
   *track_index = 0;
   
