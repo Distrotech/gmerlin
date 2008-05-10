@@ -11,11 +11,4 @@ rgb_yuv_mmx.c \
 yuv_rgb_mmx.c \
 yuv_yuv_mmx.c
 
-
-EXTRA_libgavl_mmx_la_SOURCES = \
-_rgb_rgb_mmx.c \
-_rgb_yuv_mmx.c \
-_yuv_rgb_mmx.c \
-_yuv_yuv_mmx.c
-
 noinst_HEADERS=mmx.h mmx_macros.h interpolate.h scale_y.h scale_y_linear.h

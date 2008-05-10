@@ -489,6 +489,20 @@ void gavl_audio_frame_destroy(gavl_audio_frame_t * frame);
 void gavl_audio_frame_mute(gavl_audio_frame_t * frame,
                            const gavl_audio_format_t * format);
 
+/*!
+  \ingroup audio_frame
+  \brief Mute a number of samples at the start of an audio frame.
+  \param frame An audio frame
+  \param format The format of the frame
+  \param num_samples Number of samples to mute
+  
+  Fills the frame with digital zero samples according to the audio format
+*/
+
+void gavl_audio_frame_mute_samples(gavl_audio_frame_t * frame,
+                                   const gavl_audio_format_t * format,
+                                   int num_samples);
+
   
   
 /*!

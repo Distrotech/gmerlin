@@ -135,12 +135,13 @@ void gavl_audio_frame_destroy(gavl_audio_frame_t * frame)
   free(frame);
   }
 
-void gavl_audio_frame_mute(gavl_audio_frame_t * frame,
-                           const gavl_audio_format_t * format)
+void gavl_audio_frame_mute_samples(gavl_audio_frame_t * frame,
+                                   const gavl_audio_format_t * format,
+                                   int num_samples)
   {
   int i;
   int imax;
-  imax = format->num_channels * format->samples_per_frame;
+  imax = format->num_channels * num_samples;
   
   switch(format->sample_format)
     {
@@ -175,7 +176,15 @@ void gavl_audio_frame_mute(gavl_audio_frame_t * frame,
         frame->samples.d[i] = 0.0;
       break;
     }
-  frame->valid_samples = format->samples_per_frame;
+  frame->valid_samples = num_samples;
+  }
+
+void gavl_audio_frame_mute(gavl_audio_frame_t * frame,
+                           const gavl_audio_format_t * format)
+  {
+  gavl_audio_frame_mute_samples(frame,
+                                format,
+                                format->samples_per_frame);
   }
 
 void gavl_audio_frame_mute_channel(gavl_audio_frame_t * frame,

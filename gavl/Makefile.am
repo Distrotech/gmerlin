@@ -1,4 +1,10 @@
-SUBDIRS = gavl src include m4 doc
+if HAVE_DOXYGEN
+DOC_SUBDIRS = doc
+else
+DOC_SUBDIRS =
+endif
+
+SUBDIRS = gavl src include m4 $(DOC_SUBDIRS)
 
 # aclocal Path
 ACLOCAL_AMFLAGS = -I m4
