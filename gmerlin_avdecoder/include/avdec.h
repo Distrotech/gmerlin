@@ -839,15 +839,6 @@ const char * bgav_get_disc_name(bgav_t * bgav);
 int bgav_open(bgav_t * bgav, const char * location);
 
 /** \ingroup opening
- *  \brief Open an edl
- *  \param bgav A decoder instance
- *  \param edl The edl (See \ref edl)
- *  \returns 1 if the edl was successfully openend, 0 else.
- */
-
-int bgav_open_edl(bgav_t * bgav, const bgav_edl_t * edl);
-
-/** \ingroup opening
  *  \brief Open a VCD device
  *  \param bgav A decoder instance
  *  \param location The device node
@@ -997,65 +988,6 @@ struct bgav_edl_s
  */
 
 bgav_edl_t * bgav_get_edl(bgav_t * bgav);
-
-/** \brief Create an EDL
- *  \returns A newly allocated EDL.
- */
-
-bgav_edl_t * bgav_edl_create();
-
-/** \brief Add a track to an EDL
- *  \param e An EDL
- *  \returns The added track
- */
-
-bgav_edl_track_t * bgav_edl_add_track(bgav_edl_t * e);
-
-/** \brief Add an audio stream to a track
- *  \param t Track
- *  \returns The added stream
- */
-
-bgav_edl_stream_t * bgav_edl_add_audio_stream(bgav_edl_track_t * t);
-
-/** \brief Add a video stream to a track
- *  \param t Track
- *  \returns The added stream
- */
-bgav_edl_stream_t * bgav_edl_add_video_stream(bgav_edl_track_t * t);
-
-/** \brief Add a text subtitle stream to a track
- *  \param t Track
- *  \returns The added stream
- */
-
-bgav_edl_stream_t * bgav_edl_add_subtitle_text_stream(bgav_edl_track_t * t);
-
-/** \brief Add an overlay subtitle stream to a track
- *  \param t Track
- *  \returns The added stream
- */
-bgav_edl_stream_t * bgav_edl_add_subtitle_overlay_stream(bgav_edl_track_t * t);
-
-/** \brief Add a segment to a stream
- *  \param s Stream
- *  \returns The added segment
- */
-
-bgav_edl_segment_t * bgav_edl_add_segment(bgav_edl_stream_t * s);
-
-/** \brief Copy an EDL
- *  \param e EDL
- *  \returns The copied EDL
- */
-
-bgav_edl_t * bgav_edl_copy(const bgav_edl_t * e);
-
-/** \brief Destroy an EDL and free all associated memory
- *  \param e EDL
- */
-
-void bgav_edl_destroy(bgav_edl_t * e);
 
 /** \brief Dump an EDL to stderr
  *  \param e EDL

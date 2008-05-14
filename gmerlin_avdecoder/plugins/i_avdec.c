@@ -327,6 +327,7 @@ const bg_input_plugin_t the_plugin =
     .set_callbacks = bg_avdec_set_callbacks,
   /* For file and network plugins, this can be NULL */
     .get_num_tracks = bg_avdec_get_num_tracks,
+    .get_edl  = bg_avdec_get_edl,
     /* Return track information */
     .get_track_info = bg_avdec_get_track_info,
 

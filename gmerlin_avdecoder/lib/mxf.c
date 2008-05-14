@@ -27,7 +27,8 @@
 
 #define LOG_DOMAIN "mxf"
 
-#define DUMP_UNKNOWN
+// #define DUMP_UNKNOWN
+// #define DUMP_ESSENCE
 
 #define FREE(ptr) if(ptr) free(ptr);
 
@@ -717,6 +718,8 @@ read_header_metadata(bgav_input_context_t * input,
         if(ret->primer_pack.entries[i].localTag == tag)
           memcpy(uid, ret->primer_pack.entries[i].uid, 16);
         }
+      if(!read_func(input, ret, m, tag, len, uid))
+        return 0;
       }
     else if((tag == 0x3C0A) && m)
       {
@@ -1369,6 +1372,9 @@ void bgav_mxf_descriptor_dump(int indent, mxf_descriptor_t * d)
   bgav_diprintf(indent+2, "Container duration:     %"PRId64"\n", d->container_duration);
   bgav_diprintf(indent+2, "Block align:            %d\n", d->block_align);
   bgav_diprintf(indent+2, "Avg BPS:                %d\n", d->avg_bps);
+  bgav_diprintf(indent+2, "Extradata:              %d bytes\n", d->ext_size);
+  if(d->ext_size)
+    bgav_hexdump(d->ext_data, d->ext_size, 16);
   
   bgav_diprintf(indent+2, "Subdescriptor refs:     %d\n", d->num_subdescriptor_refs);
 
@@ -1563,6 +1569,7 @@ static int read_descriptor(bgav_input_context_t * input,
         }
       break;
     default:
+#if 1
       /* Private uid used by SONY C0023S01.mxf */
       if(UL_MATCH(uid, mxf_sony_mpeg4_extradata))
         {
@@ -1571,6 +1578,7 @@ static int read_descriptor(bgav_input_context_t * input,
         if(bgav_input_read_data(input, d->ext_data, size) < size)
           return 0;
         }
+#endif
 #ifdef DUMP_UNKNOWN
       else
         {
@@ -1915,7 +1923,8 @@ static int read_index_table_segment(bgav_input_context_t * input,
            !bgav_input_read_8(input,     &idx->entries[i].flags) ||
            !bgav_input_read_64_be(input, &idx->entries[i].offset))
           return 0;
-        bgav_input_skip_dump(input, entry_len - 11);
+        //        bgav_input_skip_dump(input, entry_len - 11);
+        bgav_input_skip(input, entry_len - 11);
         }
       }
     else
@@ -2508,14 +2517,15 @@ int bgav_mxf_file_read(bgav_input_context_t * input,
     else if(UL_MATCH(klv.key, mxf_essence_element_key))
       {
       update_source_track(ret, &klv);
-
+#ifdef DUMP_ESSENCE
       bgav_dprintf("Essence element for track %02x %02x %02x %02x (%ld bytes)\n",
                    klv.key[12], klv.key[13], klv.key[14], klv.key[15], klv.length);
+#endif
       bgav_input_skip(input, klv.length);
       }
     else if(UL_MATCH(klv.key, mxf_closed_body_partition_key))
       {
-      bgav_dprintf("Got body partition\n");
+      //      bgav_dprintf("Got body partition\n");
       
       ret->body_partitions =
         realloc(ret->body_partitions, (ret->num_body_partitions+1)
@@ -2536,7 +2546,9 @@ int bgav_mxf_file_read(bgav_input_context_t * input,
     else
       {
       bgav_input_skip(input, klv.length);
+#ifdef DUMP_UNKNOWN
       bgav_dprintf("Unknown KLV: "); bgav_mxf_klv_dump(0, &klv);
+#endif
       }
     }
 

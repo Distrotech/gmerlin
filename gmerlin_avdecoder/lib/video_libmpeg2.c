@@ -273,7 +273,7 @@ static int decode_picture(bgav_stream_t*s)
     {
     if(!parse(s, &state))
       return 0;
-    
+#if 0    
     if(state == STATE_SLICE_1ST)
       {
       fprintf(stderr, "SLICE 1ST\n");
@@ -282,15 +282,17 @@ static int decode_picture(bgav_stream_t*s)
       {
       fprintf(stderr, "PICTURE_2ND\n");
       }
+#endif
     
     if(((state == STATE_END) || (state == STATE_SLICE) ||
         (state == STATE_INVALID_END)))
       {
 #if 0
-      fprintf(stderr, "Got Picture: C: %c %df\n",
+      fprintf(stderr, "Got Picture: C: %c D: %c\n",
               picture_types[priv->info->current_picture ? 
               priv->info->current_picture->flags & PIC_MASK_CODING_TYPE : 0],
-              priv->info->current_picture->nb_fields);
+              picture_types[priv->info->display_picture ? 
+              priv->info->display_picture->flags & PIC_MASK_CODING_TYPE : 0]);
 #endif
       if(state == STATE_END)
         {
@@ -486,8 +488,10 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
       if(state == STATE_PICTURE)
         break;
       }
-    
-    if((priv->info->display_picture->flags & PIC_FLAG_TOP_FIELD_FIRST) &&
+
+    /* priv->info->display_picture can be NULL at closed GOP boundaries */
+    if(priv->info->display_picture &&
+       (priv->info->display_picture->flags & PIC_FLAG_TOP_FIELD_FIRST) &&
        (priv->info->display_picture->nb_fields > 2))
       {
       s->data.video.next_frame_duration =

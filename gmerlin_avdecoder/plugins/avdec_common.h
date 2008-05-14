@@ -30,8 +30,13 @@ typedef struct
   bgav_options_t * opt;
   
   bg_input_callbacks_t * bg_callbacks;
-  int sample_accurate;
+  
+  bg_edl_t * edl;
   } avdec_priv;
+
+bg_edl_t * bg_avdec_convert_edl(const bgav_edl_t * edl);
+
+const bg_edl_t * bg_avdec_get_edl(void * priv);
 
 void * bg_avdec_create();
 
@@ -70,7 +75,7 @@ int bg_avdec_set_subtitle_stream(void * priv,
                                  int stream,
                                  bg_stream_action_t action);
 int bg_avdec_start(void * priv);
-void bg_avdec_seek(void * priv, gavl_time_t * t);
+void bg_avdec_seek(void * priv, int64_t * t, int scale);
 
 int bg_avdec_init(avdec_priv * avdec);
 

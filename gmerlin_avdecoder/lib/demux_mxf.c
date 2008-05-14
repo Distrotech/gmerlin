@@ -31,6 +31,8 @@
 #define CLIP_WRAPPED_CBR   1
 #define CLIP_WRAPPED_PARSE 2 /* Unsupported for now */
 
+// #define DUMP_MXF
+
 static void build_edl_mxf(bgav_demuxer_context_t * ctx);
 
 /* TODO: Find a better way */
@@ -89,6 +91,7 @@ static void set_pts(bgav_stream_t * s, stream_priv_t * sp,
     if(s->data.audio.block_align)
       p->duration = p->data_size / s->data.audio.block_align;
     sp->pts_counter += p->duration;
+    p->keyframe = 1;
     }
   }
 
@@ -237,8 +240,10 @@ static int process_packet_frame_wrapped(bgav_demuxer_context_t * ctx)
     }
   
   if(p)
+    {
+    fprintf(stderr, "Got packet\n");
     bgav_packet_done_write(p);
-  
+    }
   return 1;
   }
 
@@ -359,6 +364,12 @@ static void init_video_stream(bgav_demuxer_context_t * ctx, bgav_stream_t * s,
     {
     s->data.video.frametime_mode = BGAV_FRAMETIME_CODEC;
     s->index_mode = INDEX_MODE_MPEG;
+    }
+  else if(s->fourcc == BGAV_MK_FOURCC('m','p','4','v'))
+    {
+    s->data.video.frametime_mode = BGAV_FRAMETIME_CONSTANT;
+    s->index_mode = INDEX_MODE_MPEG;
+    s->not_aligned = 1; 
     }
   else
     s->index_mode = INDEX_MODE_SIMPLE;
@@ -597,8 +608,10 @@ static int open_mxf(bgav_demuxer_context_t * ctx)
              "Parsing MXF file failed, please report");
     return 0;
     }
+#ifdef DUMP_MXF
   bgav_mxf_file_dump(&priv->mxf);
-
+#endif
+  
   if(priv->mxf.header.max_source_sequence_components == 1)
     {
     if(!init_simple(ctx))
@@ -698,7 +711,7 @@ static void seek_mxf(bgav_demuxer_context_t * ctx, int64_t time,
 #if 1
 static int select_track_mxf(bgav_demuxer_context_t * ctx, int track)
   {
-  fprintf(stderr, "Select track: %ld\n",
+  fprintf(stderr, "Select track: %d start pos: %ld\n", track,
           ((partition_t*)(ctx->tt->cur->priv))->start_pos);
   bgav_input_seek(ctx->input, ((partition_t*)(ctx->tt->cur->priv))->start_pos, SEEK_SET);
   return 1;
@@ -884,7 +897,7 @@ static void handle_material_track(bgav_demuxer_context_t * ctx, mxf_package_t * 
     
     for(i = 0; i < ss->num_structural_component_refs; i++)
       {
-      sc = (mxf_source_clip_t*)(ss->structural_components[0]);
+      sc = (mxf_source_clip_t*)(ss->structural_components[i]);
       
       /*  */
       
@@ -896,13 +909,14 @@ static void handle_material_track(bgav_demuxer_context_t * ctx, mxf_package_t * 
                             sc->source_track_id))
         {
         seg = bgav_edl_add_segment(es);
-        seg->track     = track_index;
-        seg->stream    = stream_index;
-        seg->timescale = mt->edit_rate_num;
-        seg->src_time  = sc->start_position * mt->edit_rate_den;
-        seg->dst_time  = duration;
-        seg->speed_num = 1;
-        seg->speed_den = 1;
+        seg->track        = track_index;
+        seg->stream       = stream_index;
+        seg->timescale    = mt->edit_rate_num;
+        seg->src_time     = sc->start_position * mt->edit_rate_den;
+        seg->dst_time     = duration;
+        seg->dst_duration = sc->duration * mt->edit_rate_den;
+        seg->speed_num    = 1;
+        seg->speed_den    = 1;
         }
       
       duration += sc->duration * mt->edit_rate_den;

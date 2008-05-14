@@ -1628,8 +1628,25 @@ void bgav_bytebuffer_flush(bgav_bytebuffer_t * b);
 /* sampleseek.c */
 int bgav_set_sample_accurate(bgav_t * b);
 
-/* edldec.c */
+/* edl.c */
 
+bgav_edl_t * bgav_edl_create();
+
+bgav_edl_track_t * bgav_edl_add_track(bgav_edl_t * e);
+
+bgav_edl_stream_t * bgav_edl_add_audio_stream(bgav_edl_track_t * t);
+
+bgav_edl_stream_t * bgav_edl_add_video_stream(bgav_edl_track_t * t);
+
+bgav_edl_stream_t * bgav_edl_add_subtitle_text_stream(bgav_edl_track_t * t);
+
+bgav_edl_stream_t * bgav_edl_add_subtitle_overlay_stream(bgav_edl_track_t * t);
+
+bgav_edl_segment_t * bgav_edl_add_segment(bgav_edl_stream_t * s);
+
+bgav_edl_t * bgav_edl_copy(const bgav_edl_t * e);
+
+void bgav_edl_destroy(bgav_edl_t * e);
 
 
 /* Translation specific stuff */
