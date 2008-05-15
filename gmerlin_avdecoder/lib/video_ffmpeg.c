@@ -22,23 +22,25 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <avcodec.h>
 
 #include <config.h>
 #include <bswap.h>
+#include <config.h>
 #include <avdec_private.h>
 #include <codecs.h>
 
 #include <stdio.h>
 
+#include AVCODEC_HEADER
+
 #include <dvframe.h>
 
 #ifdef HAVE_LIBPOSTPROC
-#include <postprocess.h>
+#include POSTPROC_HEADER
 #endif
 
 #ifdef HAVE_LIBSWSCALE
-#include <swscale.h>
+#include SWSCALE_HEADER
 #endif
 
 #define LOG_DOMAIN "ffmpeg_video"

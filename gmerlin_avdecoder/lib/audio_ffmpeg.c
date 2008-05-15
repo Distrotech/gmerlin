@@ -24,11 +24,14 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <avcodec.h>
+
 #include <stdio.h>
 
 #include <config.h>
 #include <codecs.h>
+
+#include AVCODEC_HEADER
+
 
 #define LOG_DOMAIN "audio_ffmpeg"
 

@@ -21,9 +21,9 @@
 
 #include <stdlib.h>
 #include <string.h>
-
+#include <config.h>
 #include <avdec_private.h>
-#include <avformat.h>
+#include AVFORMAT_HEADER
 
 #define LOG_DOMAIN "demux_ffmpeg"
 

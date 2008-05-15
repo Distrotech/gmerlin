@@ -8,36 +8,31 @@ AC_MSG_CHECKING([for build ID in libavcodec, libs: $AVCODEC_LIBS])
 CFLAGS_save=$CFLAGS
 LIBS_save=$LIBS
 
-AVCODEC_CFLAGS=`echo $AVCODEC_CFLAGS | sed 's/ //'`
+CFLAGS="$GMERLIN_DEP_CFLAGS $CFLAGS $AVCODEC_CFLAGS"
+LIBS="$GMERLIN_DEP_LIBS $AVCODEC_LIBS"
 
-if test "x$AVCODEC_CFLAGS" = "x"; then
-AVCODEC_CFLAGS="-I/usr/include"
-fi
-
-CFLAGS="$CFLAGS $AVCODEC_CFLAGS"
+AVCODEC_HEADER=""
 
 dnl Look for header
 found_header="false"
 
 AC_TRY_COMPILE([
-#include <avcodec.h>],[],[found_header="true"])
+#include <libavcodec/avcodec.h>],[], [found_header="true";AVCODEC_HEADER="<libavcodec/avcodec.h>" ],)
 
 if test $found_header = "false"; then
 AC_TRY_COMPILE([
-#include <ffmpeg/avcodec.h>],[], [found_header="true";AVCODEC_CFLAGS=${AVCODEC_CFLAGS}"/ffmpeg" ],)
+#include <avcodec.h>],[],[found_header="true";AVCODEC_HEADER="<avcodec.h>"])
 fi
 
 if test $found_header = "false"; then
 AC_TRY_COMPILE([
-#include <libavcodec/avcodec.h>],[], [found_header="true";AVCODEC_CFLAGS="$AVCODEC_CFLAGS/libavcodec" ],)
+#include <ffmpeg/avcodec.h>],[], [found_header="true";AVCODEC_HEADER="<ffmpeg/avcodec.h>" ],)
 fi
 
-CFLAGS="$CFLAGS $AVCODEC_CFLAGS"
-LIBS="$LIBS $AVCODEC_LIBS"
 avcodec_ok="false"
 AC_TRY_RUN([
     #include <stdio.h>
-    #include <avcodec.h>
+    #include $AVCODEC_HEADER
     int main()
     {
     FILE * output;
@@ -78,6 +73,9 @@ AVCODEC_CFLAGS_save=""
 AVCODEC_LIBS_save=""
 avcodec_done="false"
 
+AH_TEMPLATE([AVCODEC_HEADER],
+            [Header for libavcodec])
+
 dnl
 dnl First preference: configure options
 dnl
@@ -105,6 +103,7 @@ fi
 
 if test "x$avcodec_done" = "xtrue"; then
   ifelse([$2], , :, [$2])
+  AC_DEFINE_UNQUOTED(AVCODEC_HEADER, $AVCODEC_HEADER)
 else
   ifelse([$3], , :, [$3])
 fi
