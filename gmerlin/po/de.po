@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmerlin 0.3.6\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2008-02-21 20:49+0100\n"
+"POT-Creation-Date: 2008-05-15 23:46+0200\n"
 "PO-Revision-Date: 2008-02-05 20:44+0100\n"
 "Last-Translator: Burkhard Plaum <gmerlin@users.sourceforge.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -54,8 +54,8 @@ msgstr "Bits"
 msgid "Samplerate [Hz]"
 msgstr "Abtastfrequenz [Hz]"
 
-#: plugins/pulseaudio/i_pulse.c:93 plugins/cdaudio/i_cdaudio.c:740
-#: plugins/cdaudio/i_cdaudio.c:782
+#: plugins/pulseaudio/i_pulse.c:93 plugins/cdaudio/i_cdaudio.c:739
+#: plugins/cdaudio/i_cdaudio.c:781
 msgid "Server"
 msgstr "Server"
 
@@ -685,15 +685,31 @@ msgstr "Oszi"
 msgid "Scope plugin"
 msgstr "Oszi Plugin"
 
+#: plugins/audiofilters/fa_sampleformat.c:70
+#, fuzzy
+msgid "Sampleformat"
+msgstr "Abtastfrequenz"
+
+#: plugins/audiofilters/fa_sampleformat.c:200 include/bggavl.h:368
+#, fuzzy
+msgid "Force sampleformat"
+msgstr "Kann Zahlenformat für %s nicht setzen"
+
+#: plugins/audiofilters/fa_sampleformat.c:201
+msgid ""
+"This forces a sampleformat as input for the next filter. Its mainly used for "
+"testing."
+msgstr ""
+
 #: plugins/audiofilters/fa_volume.c:68
 msgid "Volume"
 msgstr "Lautstärke"
 
-#: plugins/audiofilters/fa_volume.c:152
+#: plugins/audiofilters/fa_volume.c:156
 msgid "Volume control"
 msgstr "Lautstärkeeinstellung"
 
-#: plugins/audiofilters/fa_volume.c:153
+#: plugins/audiofilters/fa_volume.c:157
 msgid "Simple volume control"
 msgstr "Einfache Lautstärkeeinstellung"
 
@@ -981,7 +997,7 @@ msgstr ""
 #: plugins/postprocessors/e_pp_vcdimager.c:365
 #: plugins/postprocessors/e_pp_vcdimager.c:369
 #: plugins/postprocessors/e_pp_vcdimager.c:376
-#: plugins/postprocessors/e_pp_vcdimager.c:378 lib/tree.c:1426
+#: plugins/postprocessors/e_pp_vcdimager.c:378 lib/tree.c:1438
 #, c-format
 msgid "Removing %s"
 msgstr "Lösche %s"
@@ -2100,22 +2116,22 @@ msgstr ""
 msgid "Play command failed. Disk missing?"
 msgstr ""
 
-#: plugins/cdaudio/i_cdaudio.c:693 apps/player/cfgdialog.c:98
+#: plugins/cdaudio/i_cdaudio.c:692 apps/player/cfgdialog.c:98
 #: apps/transcoder/transcoder_window.c:1232
 #: apps/transcoder/transcoder_window.c:1257
 #: apps/transcoder/transcoder_window.c:1278 apps/transcoder/trackdialog.c:84
 #: apps/transcoder/trackdialog.c:183 apps/transcoder/trackdialog.c:247
 #: apps/transcoder/trackdialog.c:313 apps/transcoder/trackdialog.c:362
 #: apps/visualizer/gmerlin_visualizer.c:877 lib/x11/x11_window.c:1175
-#: lib/transcoder_track.c:1415
+#: lib/transcoder_track.c:1432
 msgid "General"
 msgstr ""
 
-#: plugins/cdaudio/i_cdaudio.c:698
+#: plugins/cdaudio/i_cdaudio.c:697
 msgid "Trackname template"
 msgstr ""
 
-#: plugins/cdaudio/i_cdaudio.c:701
+#: plugins/cdaudio/i_cdaudio.c:700
 msgid ""
 "Template for track name generation from metadata\n"
 "%p:    Artist\n"
@@ -2127,106 +2143,106 @@ msgid ""
 "%c:    Comment"
 msgstr ""
 
-#: plugins/cdaudio/i_cdaudio.c:712
+#: plugins/cdaudio/i_cdaudio.c:711
 msgid "Use CD-Text"
 msgstr ""
 
-#: plugins/cdaudio/i_cdaudio.c:715
+#: plugins/cdaudio/i_cdaudio.c:714
 msgid "Try to get CD metadata from CD-Text"
 msgstr ""
 
-#: plugins/cdaudio/i_cdaudio.c:719
+#: plugins/cdaudio/i_cdaudio.c:718
 msgid "Use locally saved metadata"
 msgstr ""
 
-#: plugins/cdaudio/i_cdaudio.c:722
+#: plugins/cdaudio/i_cdaudio.c:721
 msgid ""
 "Whenever we obtain CD metadata from the internet, we save them into $HOME/."
 "gmerlin/cdaudio_metadata. If you got wrong metadata for a CD, disabling this "
 "option will retrieve the metadata again and overwrite the saved data."
 msgstr ""
 
-#: plugins/cdaudio/i_cdaudio.c:729
+#: plugins/cdaudio/i_cdaudio.c:728
 msgid "Musicbrainz"
 msgstr ""
 
-#: plugins/cdaudio/i_cdaudio.c:734
+#: plugins/cdaudio/i_cdaudio.c:733
 msgid "Use Musicbrainz"
 msgstr ""
 
-#: plugins/cdaudio/i_cdaudio.c:746 plugins/cdaudio/i_cdaudio.c:788
+#: plugins/cdaudio/i_cdaudio.c:745 plugins/cdaudio/i_cdaudio.c:787
 #: lib/lcdproc.c:115
 msgid "Port"
 msgstr ""
 
-#: plugins/cdaudio/i_cdaudio.c:754 plugins/cdaudio/i_cdaudio.c:802
+#: plugins/cdaudio/i_cdaudio.c:753 plugins/cdaudio/i_cdaudio.c:801
 msgid "Proxy"
 msgstr ""
 
-#: plugins/cdaudio/i_cdaudio.c:756 plugins/cdaudio/i_cdaudio.c:804
+#: plugins/cdaudio/i_cdaudio.c:755 plugins/cdaudio/i_cdaudio.c:803
 msgid "Proxy server (leave empty for direct connection)"
 msgstr ""
 
-#: plugins/cdaudio/i_cdaudio.c:760 plugins/cdaudio/i_cdaudio.c:808
+#: plugins/cdaudio/i_cdaudio.c:759 plugins/cdaudio/i_cdaudio.c:807
 msgid "Proxy Port"
 msgstr ""
 
-#: plugins/cdaudio/i_cdaudio.c:765 plugins/cdaudio/i_cdaudio.c:813
+#: plugins/cdaudio/i_cdaudio.c:764 plugins/cdaudio/i_cdaudio.c:812
 msgid "Proxy port"
 msgstr ""
 
-#: plugins/cdaudio/i_cdaudio.c:771
+#: plugins/cdaudio/i_cdaudio.c:770
 msgid "Cddb"
 msgstr ""
 
-#: plugins/cdaudio/i_cdaudio.c:776
+#: plugins/cdaudio/i_cdaudio.c:775
 msgid "Use Cddb"
 msgstr ""
 
-#: plugins/cdaudio/i_cdaudio.c:796
+#: plugins/cdaudio/i_cdaudio.c:795
 msgid "Path"
 msgstr ""
 
-#: plugins/cdaudio/i_cdaudio.c:817
+#: plugins/cdaudio/i_cdaudio.c:816
 msgid "Proxy username"
 msgstr ""
 
-#: plugins/cdaudio/i_cdaudio.c:819
+#: plugins/cdaudio/i_cdaudio.c:818
 msgid ""
 "User name for proxy (leave empty for poxies, which don't require "
 "authentication)"
 msgstr ""
 
-#: plugins/cdaudio/i_cdaudio.c:823
+#: plugins/cdaudio/i_cdaudio.c:822
 msgid "Proxy password"
 msgstr ""
 
-#: plugins/cdaudio/i_cdaudio.c:825
+#: plugins/cdaudio/i_cdaudio.c:824
 msgid "Password for proxy"
 msgstr ""
 
-#: plugins/cdaudio/i_cdaudio.c:829
+#: plugins/cdaudio/i_cdaudio.c:828
 msgid "Timeout"
 msgstr ""
 
-#: plugins/cdaudio/i_cdaudio.c:834
+#: plugins/cdaudio/i_cdaudio.c:833
 msgid "Timeout (in seconds) for connections to the CDDB server"
 msgstr ""
 
-#: plugins/cdaudio/i_cdaudio.c:918
+#: plugins/cdaudio/i_cdaudio.c:917
 #, c-format
 msgid "Ejecting disk failed: %s"
 msgstr ""
 
-#: plugins/cdaudio/i_cdaudio.c:920
+#: plugins/cdaudio/i_cdaudio.c:919
 msgid "Ejecting disk failed"
 msgstr ""
 
-#: plugins/cdaudio/i_cdaudio.c:944
+#: plugins/cdaudio/i_cdaudio.c:943
 msgid "Audio CD player/ripper"
 msgstr ""
 
-#: plugins/cdaudio/i_cdaudio.c:945
+#: plugins/cdaudio/i_cdaudio.c:944
 msgid ""
 "Plugin for audio CDs. Supports both playing with direct connection from the "
 "CD-drive to the souncard and ripping with cdparanoia. Metadata are obtained "
@@ -2747,11 +2763,6 @@ msgstr ""
 #: include/bggavl.h:361
 msgid "Mix mode when downmixing Stereo to Mono."
 msgstr ""
-
-#: include/bggavl.h:368
-#, fuzzy
-msgid "Force sampleformat"
-msgstr "Kann Zahlenformat für %s nicht setzen"
 
 #: include/bggavl.h:373
 msgid "8 bit"
@@ -3346,15 +3357,15 @@ msgstr "Kann keinen gmerlin Prozess starten"
 msgid "Gmerlin Plugin Configurator"
 msgstr ""
 
-#: apps/plugincfg/gmerlin_plugincfg.c:312
+#: apps/plugincfg/gmerlin_plugincfg.c:312 lib/gtk/encoder.c:308
 msgid "Encode audio into video file"
 msgstr ""
 
-#: apps/plugincfg/gmerlin_plugincfg.c:330
+#: apps/plugincfg/gmerlin_plugincfg.c:330 lib/gtk/encoder.c:310
 msgid "Encode text subtitles into video file"
 msgstr ""
 
-#: apps/plugincfg/gmerlin_plugincfg.c:350
+#: apps/plugincfg/gmerlin_plugincfg.c:350 lib/gtk/encoder.c:312
 msgid "Encode overlay subtitles into video file"
 msgstr ""
 
@@ -4332,7 +4343,7 @@ msgstr ""
 msgid "Created directory %s"
 msgstr ""
 
-#: lib/pluginregistry.c:345 lib/pluginregistry.c:1240
+#: lib/pluginregistry.c:345 lib/pluginregistry.c:1248
 #, c-format
 msgid "Plugin %s has no or wrong version"
 msgstr ""
@@ -4357,41 +4368,41 @@ msgstr ""
 msgid "bg_plugin_ref %s: %d"
 msgstr ""
 
-#: lib/pluginregistry.c:1094
+#: lib/pluginregistry.c:1100
 #, c-format
 msgid "bg_plugin_unref_nolock %s: %d"
 msgstr ""
 
-#: lib/pluginregistry.c:1104
+#: lib/pluginregistry.c:1111
 #, c-format
 msgid "bg_plugin_unref %s: %d"
 msgstr ""
 
-#: lib/pluginregistry.c:1127 lib/pluginregistry.c:1172
+#: lib/pluginregistry.c:1135 lib/pluginregistry.c:1180
 #, c-format
 msgid "No plugin found for image %s"
 msgstr ""
 
-#: lib/pluginregistry.c:1229
+#: lib/pluginregistry.c:1237
 #, c-format
 msgid "Cannot dlopen plugin %s: %s"
 msgstr ""
 
-#: lib/pluginregistry.c:1334
+#: lib/pluginregistry.c:1342
 msgid "Invalid plugin type for video output"
 msgstr ""
 
-#: lib/pluginregistry.c:1340
+#: lib/pluginregistry.c:1348
 #, c-format
 msgid "Plugin %s doesn't support embedded windows"
 msgstr ""
 
-#: lib/pluginregistry.c:1588
+#: lib/pluginregistry.c:1595
 #, c-format
 msgid "Loading plugin \"%s\" failed"
 msgstr ""
 
-#: lib/pluginregistry.c:1600 lib/pluginregistry.c:1637
+#: lib/pluginregistry.c:1607 lib/pluginregistry.c:1644
 #, c-format
 msgid "Opening %s with \"%s\" failed"
 msgstr ""
@@ -5432,29 +5443,29 @@ msgstr ""
 msgid "Loading %s (plugin: %s)"
 msgstr ""
 
-#: lib/tree.c:1143 lib/transcoder_track.c:977 lib/album.c:1718
+#: lib/tree.c:1144 lib/transcoder_track.c:990 lib/album.c:1718
 #, c-format
 msgid "Loading %s failed"
 msgstr ""
 
-#: lib/tree.c:1153
+#: lib/tree.c:1154
 #, c-format
 msgid "Selecting track %d for %s failed"
 msgstr ""
 
-#: lib/tree.c:1191
+#: lib/tree.c:1192
 msgid "Use metadata for track names"
 msgstr ""
 
-#: lib/tree.c:1194
+#: lib/tree.c:1195
 msgid "If disabled, track name will be taken from filename"
 msgstr ""
 
-#: lib/tree.c:1198
+#: lib/tree.c:1199
 msgid "Format for track names"
 msgstr ""
 
-#: lib/tree.c:1201
+#: lib/tree.c:1202
 msgid ""
 "Format specifier for tracknames from\n"
 "metadata\n"
@@ -5467,22 +5478,33 @@ msgid ""
 "%c:    Comment"
 msgstr ""
 
-#: lib/tree.c:1214
+#: lib/tree.c:1215
 msgid "Purge directory on exit"
 msgstr ""
 
-#: lib/tree.c:1217
+#: lib/tree.c:1218
 msgid ""
 "Purge directory (i.e. delete\n"
 "unused album files) at program exit"
 msgstr ""
 
-#: lib/tree.c:1411
+#: lib/tree.c:1223 lib/transcoder_track.c:358
+msgid "Prefer EDL"
+msgstr ""
+
+#: lib/tree.c:1226
+msgid ""
+"For files, which contain edit decision lists and raw streams, this option "
+"selects whic one to decode. This setting is saved in the album once the file "
+"is loaded."
+msgstr ""
+
+#: lib/tree.c:1423
 #, c-format
 msgid "Purging %s"
 msgstr ""
 
-#: lib/tree.c:1528
+#: lib/tree.c:1540
 msgid "No current track for copying to favourites"
 msgstr "Kein aktueller Track zum Kopieren zu Favoriten"
 
@@ -5535,7 +5557,7 @@ msgstr "Titel"
 msgid "Album"
 msgstr "Album"
 
-#: lib/metadata.c:97 lib/transcoder_track.c:358 lib/gtk/infowindow.c:783
+#: lib/metadata.c:97 lib/transcoder_track.c:364 lib/gtk/infowindow.c:783
 msgid "Track"
 msgstr "Track"
 
@@ -5626,135 +5648,141 @@ msgstr ""
 msgid "Location"
 msgstr ""
 
-#: lib/transcoder_track.c:364
+#: lib/transcoder_track.c:360
+msgid ""
+"For files, which contain edit decision lists and raw streams, this option "
+"selects whic one to decode."
+msgstr ""
+
+#: lib/transcoder_track.c:370
 msgid "Subdirectory"
 msgstr ""
 
-#: lib/transcoder_track.c:366
+#: lib/transcoder_track.c:372
 msgid "Subdirectory, where this track will be written to"
 msgstr ""
 
-#: lib/transcoder_track.c:406
+#: lib/transcoder_track.c:412
 msgid "Postprocess only"
 msgstr ""
 
-#: lib/transcoder_track.c:408
+#: lib/transcoder_track.c:414
 msgid ""
 "Skip transcoding of this track and send the file directly to the "
 "postprocessor."
 msgstr ""
 
-#: lib/transcoder_track.c:412
+#: lib/transcoder_track.c:418
 msgid "Set start time"
 msgstr ""
 
-#: lib/transcoder_track.c:416
+#: lib/transcoder_track.c:422
 msgid ""
 "Specify a start time below. This time will be slightly wrong if the input "
 "format doesn't support sample accurate seeking."
 msgstr ""
 
-#: lib/transcoder_track.c:421
+#: lib/transcoder_track.c:427
 msgid "Start time"
 msgstr ""
 
-#: lib/transcoder_track.c:428
+#: lib/transcoder_track.c:434
 msgid "Set end time"
 msgstr ""
 
-#: lib/transcoder_track.c:432
+#: lib/transcoder_track.c:438
 msgid "Specify an end time below."
 msgstr ""
 
-#: lib/transcoder_track.c:436
+#: lib/transcoder_track.c:442
 msgid "End time"
 msgstr ""
 
-#: lib/transcoder_track.c:450 lib/transcoder_track.c:499
-#: lib/transcoder_track.c:1420 lib/transcoder_track.c:1444
+#: lib/transcoder_track.c:456 lib/transcoder_track.c:505
+#: lib/transcoder_track.c:1437 lib/transcoder_track.c:1461
 msgid "Action"
 msgstr ""
 
-#: lib/transcoder_track.c:454 lib/transcoder_track.c:502
-#: lib/transcoder_track.c:1423 lib/transcoder_track.c:1447
+#: lib/transcoder_track.c:460 lib/transcoder_track.c:508
+#: lib/transcoder_track.c:1440 lib/transcoder_track.c:1464
 msgid "Forget"
 msgstr ""
 
-#: lib/transcoder_track.c:454
+#: lib/transcoder_track.c:460
 msgid "Transcode as text"
 msgstr ""
 
-#: lib/transcoder_track.c:455
+#: lib/transcoder_track.c:461
 msgid "Transcode as overlay"
 msgstr ""
 
-#: lib/transcoder_track.c:455 lib/transcoder_track.c:502
+#: lib/transcoder_track.c:461 lib/transcoder_track.c:508
 msgid "Blend onto video"
 msgstr ""
 
-#: lib/transcoder_track.c:456
+#: lib/transcoder_track.c:462
 msgid "Select action for this subtitle stream."
 msgstr ""
 
-#: lib/transcoder_track.c:460 lib/transcoder_track.c:507
-#: lib/transcoder_track.c:1452
+#: lib/transcoder_track.c:466 lib/transcoder_track.c:513
+#: lib/transcoder_track.c:1469
 msgid "Input Language"
 msgstr ""
 
-#: lib/transcoder_track.c:466 lib/transcoder_track.c:513
-#: lib/transcoder_track.c:1458
+#: lib/transcoder_track.c:472 lib/transcoder_track.c:519
+#: lib/transcoder_track.c:1475
 msgid "Language"
 msgstr "Sprache"
 
-#: lib/transcoder_track.c:474 lib/transcoder_track.c:521
-#: lib/transcoder_track.c:1466
+#: lib/transcoder_track.c:480 lib/transcoder_track.c:527
+#: lib/transcoder_track.c:1483
 msgid "Force language"
 msgstr "Erzwinge Sprache"
 
-#: lib/transcoder_track.c:477 lib/transcoder_track.c:524
-#: lib/transcoder_track.c:1469
+#: lib/transcoder_track.c:483 lib/transcoder_track.c:530
+#: lib/transcoder_track.c:1486
 msgid ""
 "Force the given language even if the input has the language set differently."
 msgstr ""
 "Erzwinge die angegebene Sprache, selbst wenn die Quelle was anderes "
 "behautpet."
 
-#: lib/transcoder_track.c:481
+#: lib/transcoder_track.c:487
 msgid "Video stream"
 msgstr ""
 
-#: lib/transcoder_track.c:486
+#: lib/transcoder_track.c:492
 msgid ""
 "Attach subtitle stream to this video stream. For blending, this video stream "
 "will get the subtitles. For encoding, take frame dimensions and framerate "
 "from this video stream as they are sometimes needed by subtitle encoders."
 msgstr ""
 
-#: lib/transcoder_track.c:502 lib/transcoder_track.c:1423
-#: lib/transcoder_track.c:1447 lib/gtk/albumwidget.c:1512
+#: lib/transcoder_track.c:508 lib/transcoder_track.c:1440
+#: lib/transcoder_track.c:1464 lib/gtk/albumwidget.c:1512
 msgid "Transcode"
 msgstr "Transkodieren"
 
-#: lib/transcoder_track.c:528
+#: lib/transcoder_track.c:534
 msgid "Video stream to blend onto"
 msgstr ""
 
-#: lib/transcoder_track.c:1428
+#: lib/transcoder_track.c:1445
 msgid "Enable 2-pass encoding"
 msgstr ""
 
-#: lib/transcoder_track.c:1430
+#: lib/transcoder_track.c:1447
 msgid ""
 "Encode this stream in 2 passes, i.e. analyze it first and do the final "
 "transcoding in the second pass. This enables higher quality within the given "
 "bitrate constraints but roughly doubles the video encoding time."
 msgstr ""
 
-#: lib/transcoder_track.c:1473
+#: lib/transcoder_track.c:1490
 msgid "Normalize audio"
 msgstr ""
 
-#: lib/transcoder_track.c:1475
+#: lib/transcoder_track.c:1492
 msgid ""
 "This will enable 2 pass transcoding. In the first pass, the peak volume is "
 "detected. In the second pass, the stream is transcoded with normalized "
@@ -5964,7 +5992,7 @@ msgstr ""
 msgid "Got initial audio timestamp: %s"
 msgstr ""
 
-#: lib/album_xml.c:220
+#: lib/album_xml.c:226
 #, c-format
 msgid "Couldn't open album file %s"
 msgstr ""
@@ -6464,11 +6492,11 @@ msgid "No options available"
 msgstr "Keine Optionen verfügbar"
 
 #: lib/gtk/albumentry.c:51
-#, c-format
+#, fuzzy, c-format
 msgid ""
 "Name:\t %s\n"
 "Location:\t %s\n"
-"Track:\t %d/%d\n"
+"Track:\t %d/%d%s\n"
 "Plugin:\t %s\n"
 "Duration:\t %s\n"
 "Audio Streams:\t %d\n"
@@ -6484,8 +6512,16 @@ msgstr ""
 "Video Streams:\t %d\n"
 "Untertitel Streams:\t %d"
 
-#: lib/gtk/albumentry.c:55
+#: lib/gtk/albumentry.c:56
 msgid "Auto detect"
+msgstr ""
+
+#: lib/gtk/cfg_position.c:148
+msgid "X"
+msgstr ""
+
+#: lib/gtk/cfg_position.c:153
+msgid "Y"
 msgstr ""
 
 #: lib/gtk/plugininfo.c:152
@@ -6642,6 +6678,22 @@ msgstr ""
 msgid "No encoder for overlay subtitles found, check installation"
 msgstr ""
 
+#: lib/bgfrei0r.c:65 lib/bgfrei0r.c:73 lib/bgfrei0r.c:80 lib/bgfrei0r.c:87
+#: lib/bgfrei0r.c:170 lib/bgfrei0r.c:460 lib/bgfrei0r.c:475 lib/bgfrei0r.c:481
+#: lib/bgfrei0r.c:487 lib/bgfrei0r.c:493
+#, fuzzy, c-format
+msgid "Cannot load frei0r plugin: %s"
+msgstr "Kann Plugin %s nicht finden"
+
+#: lib/bgfrei0r.c:192
+#, fuzzy, c-format
+msgid ""
+"Author: %s\n"
+"%s"
+msgstr ""
+"\n"
+"Author: %s"
+
 #: lib/album.c:426
 msgid "Unnamed disc"
 msgstr "Namenlose Disk"
@@ -6671,18 +6723,31 @@ msgstr "Schließe Album %s"
 msgid "Loading %s"
 msgstr "Lade %s"
 
-#: lib/album.c:1739
+#: lib/album.c:1743
 #, c-format
 msgid "Loaded %s (track %d of %d)"
 msgstr "%s geladen (Track %d von %d)"
 
-#: lib/album.c:1880
+#: lib/album.c:1885
 msgid "Ejecting disc failed"
 msgstr "Datenträger auswerfen fehlgeschlagen"
 
-#: lib/album.c:1984
+#: lib/album.c:1989
 msgid "Invalid selection range given"
 msgstr "Ungültiger Auswahlbereich"
+
+#: lib/edldec.c:703
+msgid "Unexpected EOF, clearing frame"
+msgstr ""
+
+#: lib/edldec.c:801
+#, fuzzy
+msgid "EDL decoder"
+msgstr "Aufnahme"
+
+#: lib/edldec.c:802
+msgid "This metaplugin decodes and EDL as if it was a single file."
+msgstr ""
 
 #: lib/filters.c:189
 msgid "Audio Filters"

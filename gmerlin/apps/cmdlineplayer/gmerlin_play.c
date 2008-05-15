@@ -539,7 +539,7 @@ static int play_track(bg_player_t * player, const char * gml,
       }
     if(!bg_input_plugin_load(plugin_reg, gml, info,
                              &input_handle,
-                             (bg_input_callbacks_t*)0))
+                             (bg_input_callbacks_t*)0, 0))
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s", gml);
       return 0;

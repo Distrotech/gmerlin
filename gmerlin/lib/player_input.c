@@ -928,7 +928,7 @@ void bg_player_input_seek(bg_player_input_context_t * ctx,
   {
   int do_audio, do_video, do_subtitle;
   bg_plugin_lock(ctx->plugin_handle);
-  ctx->plugin->seek(ctx->priv, time);
+  ctx->plugin->seek(ctx->priv, time, GAVL_TIME_SCALE);
   bg_plugin_unlock(ctx->plugin_handle);
 #ifdef DEBUG_COUNTER
   ctx->audio_sample_counter = 0;
@@ -1055,7 +1055,7 @@ static void msg_input(bg_msg_t * msg, const void * data)
   
   if(d->handle)
     {
-    bg_msg_set_arg_string(msg, 0, d->handle->info->long_name);
+    bg_msg_set_arg_string(msg, 0, d->handle->plugin->long_name);
     bg_msg_set_arg_string(msg, 1, d->handle->location);
     bg_msg_set_arg_int(msg, 2, d->track);
     }

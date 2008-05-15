@@ -370,10 +370,10 @@ static void close_lqt(void * data)
   bg_track_info_free(&(e->track_info));  
   }
 
-static void seek_lqt(void * data, gavl_time_t * time)
+static void seek_lqt(void * data, gavl_time_t * time, int scale)
   {
   i_lqt_t * e = (i_lqt_t*)data;
-  lqt_gavl_seek(e->file, time);
+  lqt_gavl_seek_scaled(e->file, time, scale);
   }
 
 static void destroy_lqt(void * data)

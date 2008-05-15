@@ -83,7 +83,8 @@ typedef struct
   char * username;
   char * password;
   int save_auth;
-  
+
+  int prefer_edl;
   } bg_album_common_t;
 
 void bg_album_common_prepare_callbacks(bg_album_common_t*,bg_album_entry_t * entry);

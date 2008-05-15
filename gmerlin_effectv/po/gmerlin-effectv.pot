@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2008-01-26 15:10+0100\n"
+"POT-Creation-Date: 2008-05-15 23:48+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,11 +16,11 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: plugins/fv_1dtv.c:120
+#: plugins/fv_1dtv.c:118
 msgid "1DTV"
 msgstr ""
 
-#: plugins/fv_1dtv.c:121
+#: plugins/fv_1dtv.c:119
 msgid ""
 "1DTV is one of the most amazing effect, but that algorithm is very easy. The "
 "horizontal green line is the current scanning position and it moves down "
@@ -28,53 +28,82 @@ msgid ""
 "(http://effectv.sourceforge.net)."
 msgstr ""
 
-#: plugins/fv_shagadelictv.c:191
+#: plugins/fv_shagadelictv.c:188
 msgid "Red mask"
 msgstr ""
 
-#: plugins/fv_shagadelictv.c:198
+#: plugins/fv_shagadelictv.c:195
 msgid "Green mask"
 msgstr ""
 
-#: plugins/fv_shagadelictv.c:205
+#: plugins/fv_shagadelictv.c:202
 msgid "Blue mask"
 msgstr ""
 
-#: plugins/fv_shagadelictv.c:245
+#: plugins/fv_shagadelictv.c:242
 msgid "ShagadelicTV"
 msgstr ""
 
-#: plugins/fv_shagadelictv.c:246
+#: plugins/fv_shagadelictv.c:243
 msgid ""
 "Oh behave, ShagedelicTV makes images shagadelic! Ported from EffecTV (http://"
 "effectv.sourceforge.net)."
 msgstr ""
 
-#: plugins/fv_brokentv.c:110
+#: plugins/fv_brokentv.c:108
 msgid "BrokenTV"
 msgstr ""
 
-#: plugins/fv_brokentv.c:111
+#: plugins/fv_brokentv.c:109
 msgid ""
 "BrokenTV simulates mistuned television or mistracking video image. Ported "
 "from EffecTV (http://effectv.sourceforge.net)."
 msgstr ""
 
-#: plugins/fv_quarktv.c:118
+#: plugins/fv_quarktv.c:116
 msgid "QuarkTV"
 msgstr ""
 
-#: plugins/fv_quarktv.c:119
+#: plugins/fv_quarktv.c:117
 msgid ""
 "QuarkTV dissolves moving objects. It picks up pixels from the last eight "
 "frames randomly. Ported from EffecTV (http://effectv.sourceforge.net)."
 msgstr ""
 
-#: plugins/fv_warptv.c:227
+#: plugins/fv_chameleontv.c:227 plugins/fv_firetv.c:184 plugins/fv_dottv.c:362
+#: plugins/fv_rippletv.c:454 plugins/fv_sparktv.c:440
+#: plugins/fv_burningtv.c:177 plugins/fv_nervoustv.c:137
+#: plugins/fv_halftv.c:350 plugins/fv_spiraltv.c:307 plugins/fv_puptv.c:272
+#: plugins/fv_optv.c:190
+msgid "Mode"
+msgstr ""
+
+#: plugins/fv_chameleontv.c:233
+msgid "Appear"
+msgstr ""
+
+#: plugins/fv_chameleontv.c:234
+msgid "Disappear"
+msgstr ""
+
+#: plugins/fv_chameleontv.c:273
+msgid "ChameleonTV"
+msgstr ""
+
+#: plugins/fv_chameleontv.c:274
+msgid ""
+"When you are still in the sight of the camera for a second, you will be "
+"vanishing into the background, and disappear. When you move again, you will "
+"appear normally. By contrast, when you switch from \"disappearing mode\" to "
+"\"appearing mode\", moving objects are not shown, and a still object appears "
+"after seconds. Ported from EffecTV (http://effectv.sourceforge.net)."
+msgstr ""
+
+#: plugins/fv_warptv.c:225
 msgid "WarpTV"
 msgstr ""
 
-#: plugins/fv_warptv.c:228
+#: plugins/fv_warptv.c:226
 msgid ""
 "WarpTV does realtime goo'ing of the video input. based on warp-1.1 SDL demo "
 "by Sam Latinga (http://libSDL.org). Original version by Emmanuel Marty <core "
@@ -82,172 +111,246 @@ msgid ""
 "net)."
 msgstr ""
 
-#: plugins/fv_dottv.c:365 plugins/fv_rippletv.c:474 plugins/fv_nervoustv.c:156
-#: plugins/fv_spiraltv.c:319 plugins/fv_puptv.c:366 plugins/fv_optv.c:274
-msgid "Mode"
+#: plugins/fv_noisetv.c:110
+msgid "NoiseTV"
 msgstr ""
 
-#: plugins/fv_dottv.c:370
+#: plugins/fv_noisetv.c:111
+msgid ""
+"Black & White noise is rendered over the incoming objects. Ported from "
+"EffecTV (http://effectv.sourceforge.net)."
+msgstr ""
+
+#: plugins/fv_rdstv.c:157
+msgid "Method"
+msgstr ""
+
+#: plugins/fv_rdstv.c:162
+msgid "Wall eyed"
+msgstr ""
+
+#: plugins/fv_rdstv.c:162
+msgid "Cross Eyed"
+msgstr ""
+
+#: plugins/fv_rdstv.c:200
+msgid "RandomDotStereoTV"
+msgstr ""
+
+#: plugins/fv_rdstv.c:201
+msgid ""
+"RdsTV does rds mark effect on the video input. The rds is caused by a motion "
+"or random rain drops. Ported from EffecTV (http://effectv.sourceforge.net)."
+msgstr ""
+
+#: plugins/fv_transformtv.c:170
+msgid "Transformation"
+msgstr ""
+
+#: plugins/fv_transformtv.c:208
+msgid "TransformTV"
+msgstr ""
+
+#: plugins/fv_transformtv.c:209
+msgid ""
+"TransformTV does transform mark effect on the video input. The transform is "
+"caused by a motion or random rain drops. Ported from EffecTV (http://effectv."
+"sourceforge.net)."
+msgstr ""
+
+#: plugins/fv_firetv.c:193 plugins/fv_sparktv.c:449 plugins/fv_burningtv.c:182
+msgid "Foreground"
+msgstr ""
+
+#: plugins/fv_firetv.c:194 plugins/fv_sparktv.c:450
+msgid "Light parts"
+msgstr ""
+
+#: plugins/fv_firetv.c:195 plugins/fv_sparktv.c:451
+msgid "Dark parts"
+msgstr ""
+
+#: plugins/fv_firetv.c:236
+msgid "FireTV"
+msgstr ""
+
+#: plugins/fv_firetv.c:237
+msgid ""
+"FireTV clips moving objects and burns it. Ported from EffecTV (http://"
+"effectv.sourceforge.net)."
+msgstr ""
+
+#: plugins/fv_dottv.c:367
 msgid "Dots"
 msgstr ""
 
-#: plugins/fv_dottv.c:370
+#: plugins/fv_dottv.c:367
 msgid "hearts"
 msgstr ""
 
-#: plugins/fv_dottv.c:428
+#: plugins/fv_dottv.c:409
 msgid "DotTV"
 msgstr ""
 
-#: plugins/fv_dottv.c:429
+#: plugins/fv_dottv.c:410
 msgid ""
 "DotTV converts gray scale images to set of dots. It is hard to recognize "
 "what is shown when your eyes are close to the monitor. Ported from EffecTV "
 "(http://effectv.sourceforge.net)."
 msgstr ""
 
-#: plugins/fv_displaywalltv.c:152
+#: plugins/fv_displaywalltv.c:148
 msgid "Scale"
 msgstr ""
 
-#: plugins/fv_displaywalltv.c:161
+#: plugins/fv_displaywalltv.c:157
 msgid "Horizontal scroll speed"
 msgstr ""
 
-#: plugins/fv_displaywalltv.c:170
+#: plugins/fv_displaywalltv.c:166
 msgid "Vertical scroll speed"
 msgstr ""
 
-#: plugins/fv_displaywalltv.c:212
+#: plugins/fv_displaywalltv.c:208
 msgid "DisplaywallTV"
 msgstr ""
 
-#: plugins/fv_displaywalltv.c:213
+#: plugins/fv_displaywalltv.c:209
 msgid ""
 "Display the tiled video images. You can scroll the image or change the "
 "scale. Ported from EffecTV (http://effectv.sourceforge.net)."
 msgstr ""
 
-#: plugins/fv_simuratv.c:343 plugins/fv_edgeblurtv.c:176
-#: plugins/fv_rndmtv.c:134
+#: plugins/fv_simuratv.c:251 plugins/fv_edgeblurtv.c:149
+#: plugins/fv_rndmtv.c:130
 msgid "Color"
 msgstr ""
 
-#: plugins/fv_simuratv.c:350
+#: plugins/fv_simuratv.c:258
 msgid "Mirror mode"
 msgstr ""
 
-#: plugins/fv_simuratv.c:355
+#: plugins/fv_simuratv.c:263
 msgid "None"
 msgstr ""
 
-#: plugins/fv_simuratv.c:355
+#: plugins/fv_simuratv.c:263 plugins/fv_halftv.c:374
 msgid "Left"
 msgstr ""
 
-#: plugins/fv_simuratv.c:355
+#: plugins/fv_simuratv.c:263 plugins/fv_halftv.c:375
 msgid "Right"
 msgstr ""
 
-#: plugins/fv_simuratv.c:355
+#: plugins/fv_simuratv.c:263
 msgid "Down"
 msgstr ""
 
-#: plugins/fv_simuratv.c:355
+#: plugins/fv_simuratv.c:263
 msgid "Down left"
 msgstr ""
 
-#: plugins/fv_simuratv.c:355
+#: plugins/fv_simuratv.c:263
 msgid "Down right"
 msgstr ""
 
-#: plugins/fv_simuratv.c:355
+#: plugins/fv_simuratv.c:263
 msgid "Upper"
 msgstr ""
 
-#: plugins/fv_simuratv.c:355
+#: plugins/fv_simuratv.c:263
 msgid "Upper left"
 msgstr ""
 
-#: plugins/fv_simuratv.c:355
+#: plugins/fv_simuratv.c:263
 msgid "Upper right"
 msgstr ""
 
-#: plugins/fv_simuratv.c:411
+#: plugins/fv_simuratv.c:319
 msgid "SimuraTV"
 msgstr ""
 
-#: plugins/fv_simuratv.c:412
+#: plugins/fv_simuratv.c:320
 msgid ""
 "The origin of SimuraTV is \"SimuraEffect\", a VJ (Video Jockey) tool I made "
 "in 1995. Color effect and image mirroring are all of SimuraTV. Ported from "
 "EffecTV (http://effectv.sourceforge.net)."
 msgstr ""
 
-#: plugins/fv_baltantv.c:118
+#: plugins/fv_baltantv.c:116
 msgid "BaltanTV"
 msgstr ""
 
-#: plugins/fv_baltantv.c:119
+#: plugins/fv_baltantv.c:117
 msgid ""
 "BaltanTV is similar to the StreakTV,but BaltanTV makes after images longer "
 "than that. Ported from EffecTV (http://effectv.sourceforge.net)."
 msgstr ""
 
-#: plugins/fv_difftv.c:218
+#: plugins/fv_mosaictv.c:134
+msgid "MosaicTV"
+msgstr ""
+
+#: plugins/fv_mosaictv.c:135
+msgid ""
+"MosaicTV censors the incoming objects and gives it mosaic effect. Ported "
+"from EffecTV (http://effectv.sourceforge.net)."
+msgstr ""
+
+#: plugins/fv_difftv.c:175
 msgid "Tolerance"
 msgstr ""
 
-#: plugins/fv_difftv.c:256
+#: plugins/fv_difftv.c:213
 msgid "DiffTV"
 msgstr ""
 
-#: plugins/fv_difftv.c:257
+#: plugins/fv_difftv.c:214
 msgid ""
 "DiffTV highlights interframe differences. Ported from EffecTV (http://"
 "effectv.sourceforge.net)."
 msgstr ""
 
-#: plugins/fv_revtv.c:200
+#: plugins/fv_revtv.c:137
 msgid "Line color"
 msgstr ""
 
-#: plugins/fv_revtv.c:207
+#: plugins/fv_revtv.c:144
 msgid "Background"
 msgstr ""
 
-#: plugins/fv_revtv.c:214
+#: plugins/fv_revtv.c:151
 msgid "Spacing"
 msgstr ""
 
-#: plugins/fv_revtv.c:224
+#: plugins/fv_revtv.c:161
 msgid "Amplitude"
 msgstr ""
 
-#: plugins/fv_revtv.c:234
+#: plugins/fv_revtv.c:171
 msgid "Grab interval"
 msgstr ""
 
-#: plugins/fv_revtv.c:276
+#: plugins/fv_revtv.c:213
 msgid "RevTV"
 msgstr ""
 
-#: plugins/fv_revtv.c:277
+#: plugins/fv_revtv.c:214
 msgid ""
 "RevTV acts like a video waveform monitor for each line of video processed. "
 "This creates a pseudo 3D effect based on the brightness of the video along "
 "each line. Ported from EffecTV (http://effectv.sourceforge.net)."
 msgstr ""
 
-#: plugins/fv_matrixtv.c:508
+#: plugins/fv_matrixtv.c:474
 msgid "Blend"
 msgstr ""
 
-#: plugins/fv_matrixtv.c:543
+#: plugins/fv_matrixtv.c:509
 msgid "MatrixTV"
 msgstr ""
 
-#: plugins/fv_matrixtv.c:544
+#: plugins/fv_matrixtv.c:510
 msgid ""
 "The Matrix's visual effect has been metamorphosed to the realtime video "
 "effect. Edge-enhanced input image is reflected to the brightness of falling "
@@ -255,121 +358,145 @@ msgid ""
 "EffecTV (http://effectv.sourceforge.net)."
 msgstr ""
 
-#: plugins/fv_lenstv.c:301
+#: plugins/fv_lenstv.c:285
 msgid "X"
 msgstr ""
 
-#: plugins/fv_lenstv.c:311
+#: plugins/fv_lenstv.c:295
 msgid "Y"
 msgstr ""
 
-#: plugins/fv_lenstv.c:321
+#: plugins/fv_lenstv.c:305
 msgid "Diameter"
 msgstr ""
 
-#: plugins/fv_lenstv.c:331
+#: plugins/fv_lenstv.c:315
 msgid "Zoom"
 msgstr ""
 
-#: plugins/fv_lenstv.c:378
+#: plugins/fv_lenstv.c:362
 msgid "LensTV"
 msgstr ""
 
-#: plugins/fv_lenstv.c:379
+#: plugins/fv_lenstv.c:363
 msgid ""
 "LensTV - Based on Old school Demo Lens Effect. Ported from EffecTV (http://"
 "effectv.sourceforge.net)."
 msgstr ""
 
-#: plugins/fv_rippletv.c:479
+#: plugins/fv_rippletv.c:459
 msgid "Motion"
 msgstr ""
 
-#: plugins/fv_rippletv.c:479
+#: plugins/fv_rippletv.c:459
 msgid "Rain"
 msgstr ""
 
-#: plugins/fv_rippletv.c:483 plugins/fv_optv.c:286
+#: plugins/fv_rippletv.c:463 plugins/fv_optv.c:202
 msgid "Speed"
 msgstr ""
 
-#: plugins/fv_rippletv.c:492 plugins/fv_puptv.c:386
+#: plugins/fv_rippletv.c:472 plugins/fv_puptv.c:292
 msgid "Strength"
 msgstr ""
 
-#: plugins/fv_rippletv.c:501
+#: plugins/fv_rippletv.c:481
 msgid "Decay"
 msgstr ""
 
-#: plugins/fv_rippletv.c:551
+#: plugins/fv_rippletv.c:531
 msgid "RippleTV"
 msgstr ""
 
-#: plugins/fv_rippletv.c:552
+#: plugins/fv_rippletv.c:532
 msgid ""
 "RippleTV does ripple mark effect on the video input. The ripple is caused by "
 "a motion or random rain drops. Ported from EffecTV (http://effectv."
 "sourceforge.net)."
 msgstr ""
 
-#: plugins/fv_edgeblurtv.c:212
+#: plugins/fv_edgeblurtv.c:185
 msgid "EdgeblurTV"
 msgstr ""
 
-#: plugins/fv_edgeblurtv.c:213
+#: plugins/fv_edgeblurtv.c:186
 msgid ""
 "Detects edge and display it with motion blur effect. Ported from EffecTV "
 "(http://effectv.sourceforge.net)."
 msgstr ""
 
-#: plugins/fv_vertigotv.c:170
+#: plugins/fv_sparktv.c:492
+msgid "SparkTV"
+msgstr ""
+
+#: plugins/fv_sparktv.c:493
+msgid ""
+"Bright sparks run on incoming objects. Ported from EffecTV (http://effectv."
+"sourceforge.net)."
+msgstr ""
+
+#: plugins/fv_vertigotv.c:167
 msgid "Phase increment"
 msgstr ""
 
-#: plugins/fv_vertigotv.c:180
+#: plugins/fv_vertigotv.c:177
 msgid "Zoom rate"
 msgstr ""
 
-#: plugins/fv_vertigotv.c:221
+#: plugins/fv_vertigotv.c:218
 msgid "VertigoTV"
 msgstr ""
 
-#: plugins/fv_vertigotv.c:222
+#: plugins/fv_vertigotv.c:219
 msgid ""
 "VertigoTV is a loopback alpha blending effector with rotating and scaling. "
 "Ported from EffecTV (http://effectv.sourceforge.net)."
 msgstr ""
 
-#: plugins/fv_streaktv.c:120
+#: plugins/fv_streaktv.c:118
 msgid "StreakTV"
 msgstr ""
 
-#: plugins/fv_streaktv.c:121
+#: plugins/fv_streaktv.c:119
 msgid ""
 "StreakTV makes after images of moving objects. Ported from EffecTV (http://"
 "effectv.sourceforge.net)."
 msgstr ""
 
-#: plugins/fv_warholtv.c:95
+#: plugins/fv_warholtv.c:93
 msgid "WarholTV"
 msgstr ""
 
-#: plugins/fv_warholtv.c:96
+#: plugins/fv_warholtv.c:94
 msgid ""
 "WarholTV offers some effects like Andy Warhol's series of paintings; "
 "'Marilyn', 'Marilyn Three Times', 'Four Marilyns' etc. Ported from EffecTV "
 "(http://effectv.sourceforge.net)."
 msgstr ""
 
-#: plugins/fv_dicetv.c:252
+#: plugins/fv_burningtv.c:182
+msgid "Everything"
+msgstr ""
+
+#: plugins/fv_burningtv.c:220
+msgid "BurningTV"
+msgstr ""
+
+#: plugins/fv_burningtv.c:221
+msgid ""
+"The name describes itself. Ported from EffecTV (http://effectv.sourceforge."
+"net)."
+msgstr ""
+
+#: plugins/fv_dicetv.c:217
 msgid "Square Size"
 msgstr ""
 
-#: plugins/fv_dicetv.c:295
+#: plugins/fv_dicetv.c:260
 msgid "DiceTV"
 msgstr ""
 
-#: plugins/fv_dicetv.c:296
+#: plugins/fv_dicetv.c:261
 msgid ""
 "DiceTV 'dices' the screen up into many small squares, each defaulting to a "
 "size of 16 pixels by 16 pixels.. Each square is rotated randomly in one of "
@@ -379,60 +506,115 @@ msgid ""
 "EffecTV (http://effectv.sourceforge.net)."
 msgstr ""
 
-#: plugins/fv_timedisttv.c:149
+#: plugins/fv_timedisttv.c:151
 msgid "TimedistTV"
 msgstr ""
 
-#: plugins/fv_timedisttv.c:150
+#: plugins/fv_timedisttv.c:152
 msgid ""
 "Distorts moving objects in the sight. When it detects a moving part, it "
 "rollbacks to an old frame around that. Ported from EffecTV (http://effectv."
 "sourceforge.net)."
 msgstr ""
 
-#: plugins/fv_rndmtv.c:217
+#: plugins/fv_rndmtv.c:171
 msgid "RndmTV"
 msgstr ""
 
-#: plugins/fv_rndmtv.c:218
+#: plugins/fv_rndmtv.c:172
 msgid ""
 "RndmTV give you a noisy picture in color or B/W. Inspired by the old days "
 "when reception was poor. Ported from EffecTV (http://effectv.sourceforge."
 "net)."
 msgstr ""
 
-#: plugins/fv_nervoustv.c:161 plugins/fv_puptv.c:381
+#: plugins/fv_lifetv.c:143
+msgid "LifeTV"
+msgstr ""
+
+#: plugins/fv_lifetv.c:144
+msgid ""
+"You can play John Horton Conway's Life Game with video input. Moving objects "
+"drop seeds on the game field. Ported from EffecTV (http://effectv."
+"sourceforge.net)."
+msgstr ""
+
+#: plugins/fv_nervoustv.c:142 plugins/fv_puptv.c:287
 msgid "Random"
 msgstr ""
 
-#: plugins/fv_nervoustv.c:161
+#: plugins/fv_nervoustv.c:142 plugins/fv_halftv.c:359
 msgid "Scratch"
 msgstr ""
 
-#: plugins/fv_nervoustv.c:199
+#: plugins/fv_nervoustv.c:180
 msgid "NervousTV"
 msgstr ""
 
-#: plugins/fv_nervoustv.c:200
+#: plugins/fv_nervoustv.c:181
 msgid ""
 "NervousTV randomly re-arranges the past second of video, creating a chaotic "
 "expression of past movements. It shuffles time. There is no effect on still "
 "images. Ported from EffecTV (http://effectv.sourceforge.net)."
 msgstr ""
 
-#: plugins/fv_colstreaktv.c:152
+#: plugins/fv_colstreaktv.c:149
 msgid "Blend num"
 msgstr ""
 
-#: plugins/fv_colstreaktv.c:217
+#: plugins/fv_colstreaktv.c:189
 msgid "ColstreakTV"
 msgstr ""
 
-#: plugins/fv_colstreaktv.c:218
+#: plugins/fv_colstreaktv.c:190
 msgid ""
 "Make after images but the power of the effects are different between red, "
 "green and blue layers, so it provides colourful after images. Ported from "
 "EffecTV (http://effectv.sourceforge.net)."
+msgstr ""
+
+#: plugins/fv_halftv.c:358 plugins/fv_halftv.c:396
+msgid "Delay"
+msgstr ""
+
+#: plugins/fv_halftv.c:360
+msgid "Nervous"
+msgstr ""
+
+#: plugins/fv_halftv.c:365
+msgid "Direction"
+msgstr ""
+
+#: plugins/fv_halftv.c:376
+msgid "Top"
+msgstr ""
+
+#: plugins/fv_halftv.c:377
+msgid "Bottom"
+msgstr ""
+
+#: plugins/fv_halftv.c:381 plugins/fv_halftv.c:390
+msgid "Mirror"
+msgstr ""
+
+#: plugins/fv_halftv.c:389
+msgid "Normal"
+msgstr ""
+
+#: plugins/fv_halftv.c:391
+msgid "Copy"
+msgstr ""
+
+#: plugins/fv_halftv.c:469
+msgid "NervousHalfTV"
+msgstr ""
+
+#: plugins/fv_halftv.c:470
+msgid ""
+"SimuraTV and NervousTV mixed, make more magic! Delaying, scratching or our "
+"famous \"nervous\" effect can be added to a half of the screen. Additionally "
+"you can add mirroring effect to it. Ported from EffecTV (http://effectv."
+"sourceforge.net)."
 msgstr ""
 
 #: plugins/fv_agingtv.c:253
@@ -445,31 +627,31 @@ msgid ""
 "dust. Ported from EffecTV (http://effectv.sourceforge.net)."
 msgstr ""
 
-#: plugins/fv_edgetv.c:179
+#: plugins/fv_edgetv.c:177
 msgid "EdgeTV"
 msgstr ""
 
-#: plugins/fv_edgetv.c:180
+#: plugins/fv_edgetv.c:178
 msgid ""
 "Detects edges and display it like good old low resolution computer way. "
 "Ported from EffecTV (http://effectv.sourceforge.net)."
 msgstr ""
 
-#: plugins/fv_cycletv.c:91
+#: plugins/fv_cycletv.c:89
 msgid "CycleTV"
 msgstr ""
 
-#: plugins/fv_cycletv.c:92
+#: plugins/fv_cycletv.c:90
 msgid ""
 "CycleTV randomly cycles the color palette. Ported from EffecTV (http://"
 "effectv.sourceforge.net)."
 msgstr ""
 
-#: plugins/fv_slofasttv.c:133
+#: plugins/fv_slofasttv.c:130
 msgid "SlofastTV"
 msgstr ""
 
-#: plugins/fv_slofasttv.c:134
+#: plugins/fv_slofasttv.c:131
 msgid ""
 "SloFastTV plays back the current video input at non-constant speed: while "
 "the buffer fills the video is played back at half the frame rate, when the "
@@ -480,59 +662,59 @@ msgid ""
 "sourceforge.net)."
 msgstr ""
 
-#: plugins/fv_spiraltv.c:305
+#: plugins/fv_spiraltv.c:293
 msgid "Concentric A"
 msgstr ""
 
-#: plugins/fv_spiraltv.c:306
+#: plugins/fv_spiraltv.c:294
 msgid "Sawtooth Up"
 msgstr ""
 
-#: plugins/fv_spiraltv.c:307
+#: plugins/fv_spiraltv.c:295
 msgid "Sawtooth Down"
 msgstr ""
 
-#: plugins/fv_spiraltv.c:308
+#: plugins/fv_spiraltv.c:296
 msgid "Triangle"
 msgstr ""
 
-#: plugins/fv_spiraltv.c:309
+#: plugins/fv_spiraltv.c:297
 msgid "Sinusoidal"
 msgstr ""
 
-#: plugins/fv_spiraltv.c:310
+#: plugins/fv_spiraltv.c:298
 msgid "Concentric B"
 msgstr ""
 
-#: plugins/fv_spiraltv.c:311
+#: plugins/fv_spiraltv.c:299
 msgid "Lens"
 msgstr ""
 
-#: plugins/fv_spiraltv.c:312
+#: plugins/fv_spiraltv.c:300
 msgid "Flat"
 msgstr ""
 
-#: plugins/fv_spiraltv.c:328
+#: plugins/fv_spiraltv.c:316
 msgid "Focus interval"
 msgstr ""
 
-#: plugins/fv_spiraltv.c:337
+#: plugins/fv_spiraltv.c:325
 msgid "Center x"
 msgstr ""
 
-#: plugins/fv_spiraltv.c:347
+#: plugins/fv_spiraltv.c:335
 msgid "Center y"
 msgstr ""
 
-#: plugins/fv_spiraltv.c:357
+#: plugins/fv_spiraltv.c:345
 msgid "Depth shift"
 msgstr ""
 
-#: plugins/fv_spiraltv.c:682
+#: plugins/fv_spiraltv.c:537
 msgid "SpiralTV"
 msgstr ""
 
-#: plugins/fv_spiraltv.c:683
+#: plugins/fv_spiraltv.c:538
 msgid ""
 "I admit that 'SpiralTV' is a misnomer; it doesn't actually spiral. What it "
 "does do is segment the screen image into a series of concentric circles, "
@@ -541,57 +723,57 @@ msgid ""
 "onscreen! Ported from EffecTV (http://effectv.sourceforge.net)."
 msgstr ""
 
-#: plugins/fv_puptv.c:377
+#: plugins/fv_puptv.c:283
 msgid "Horizontal"
 msgstr ""
 
-#: plugins/fv_puptv.c:378
+#: plugins/fv_puptv.c:284
 msgid "Vertical"
 msgstr ""
 
-#: plugins/fv_puptv.c:379
+#: plugins/fv_puptv.c:285
 msgid "Diagonal"
 msgstr ""
 
-#: plugins/fv_puptv.c:380
+#: plugins/fv_puptv.c:286
 msgid "Dissolution"
 msgstr ""
 
-#: plugins/fv_puptv.c:382
+#: plugins/fv_puptv.c:288
 msgid "Raster"
 msgstr ""
 
-#: plugins/fv_puptv.c:441
+#: plugins/fv_puptv.c:347
 msgid "PupTV"
 msgstr ""
 
-#: plugins/fv_puptv.c:442
+#: plugins/fv_puptv.c:348
 msgid ""
 "PupTV does pup mark effect on the video input. The pup is caused by a motion "
 "or random rain drops. Ported from EffecTV (http://effectv.sourceforge.net)."
 msgstr ""
 
-#: plugins/fv_optv.c:280
+#: plugins/fv_optv.c:196
 msgid "Maelstrom"
 msgstr ""
 
-#: plugins/fv_optv.c:280
+#: plugins/fv_optv.c:196
 msgid "Radiation"
 msgstr ""
 
-#: plugins/fv_optv.c:281
+#: plugins/fv_optv.c:197
 msgid "Perspective horizontal stripes"
 msgstr ""
 
-#: plugins/fv_optv.c:282
+#: plugins/fv_optv.c:198
 msgid "Vertical stripes"
 msgstr ""
 
-#: plugins/fv_optv.c:339
+#: plugins/fv_optv.c:255
 msgid "OpTV"
 msgstr ""
 
-#: plugins/fv_optv.c:340
+#: plugins/fv_optv.c:256
 msgid ""
 "Traditional black-white optical animation is now resurrected as a real-time "
 "video effect. Input images are binarized and combined with various optical "

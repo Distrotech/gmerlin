@@ -190,7 +190,7 @@ static void close_goom(void * priv)
     }
   }
 
-bg_visualization_plugin_t the_plugin = 
+const bg_visualization_plugin_t the_plugin = 
   {
     common:
     {

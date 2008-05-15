@@ -420,16 +420,16 @@ static int set_track_input_stills(void * priv, int track)
   return 1;
   }
 
-static void seek_input(void * priv, gavl_time_t * time)
+static void seek_input(void * priv, int64_t * time, int scale)
   {
   input_t * inp = (input_t *)priv;
+  int64_t time_scaled = gavl_time_rescale(scale, inp->timescale, *time);
+  
+  inp->current_frame = inp->frame_start + time_scaled / inp->frame_duration;
 
-  inp->current_frame = inp->frame_start + gavl_time_to_frames(inp->timescale,
-                                                              inp->frame_duration,
-                                                              *time);
-  *time = gavl_frames_to_time(inp->timescale,
-                              inp->frame_duration,
-                              inp->current_frame - inp->frame_start);
+  time_scaled = (int64_t)inp->current_frame * inp->frame_duration;
+  
+  *time = gavl_time_rescale(inp->timescale, scale, time_scaled);
   }
 
 static void stop_input(void * priv)

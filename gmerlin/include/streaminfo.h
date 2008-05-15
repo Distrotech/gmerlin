@@ -52,6 +52,7 @@ typedef struct
   char * description; //!< Something like MPEG-1 audio layer 3, 128 kbps
   char   language[4]; //!< The language in ISO 639-2 (3 character code+'\\0')
   char * info;        //!< Directors comments etc...
+  int64_t duration;   //!< Duration in timescale tics
   } bg_audio_info_t;
 
 /** \ingroup streaminfo
@@ -67,6 +68,7 @@ typedef struct
   char language[4]; //!< The language in ISO 639-2 (3 character code+'\\0')
   char * info;        //!< Info about this stream
   int is_still;       //!< 1 if this is a still image stream
+  int64_t duration;   //!< Duration in timescale tics
   } bg_video_info_t;
 
 /** \ingroup streaminfo
@@ -82,7 +84,9 @@ typedef struct
   char * info;        //!< Info about this stream
 
   int is_text; //!< 1 if subtitles are in text format (0 for overlay subtitles)
+  int timescale; //!< Timescale
   gavl_video_format_t format; //!< Format of overlay subtitles
+  int64_t duration;   //!< Duration in timescale tics
   } bg_subtitle_info_t;
 
 /** \ingroup streaminfo
@@ -363,7 +367,6 @@ bg_chapter_list_t * bg_chapter_list_load(const char * filename);
 typedef struct
   {
   int seekable; //!< 1 if track is seekable (duration must be > 0 then)
-  //  int redirector; //!< 1 if we are a redirector, the url field must be valid then
   char * name;             //!< Name of the track (can be NULL)
   char * description;      //!< Technical desription of the format
   int64_t duration;        //!< Duration

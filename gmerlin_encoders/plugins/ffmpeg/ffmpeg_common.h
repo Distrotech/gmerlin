@@ -19,7 +19,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-#include <avformat.h>
+#include <config.h>
+#include AVFORMAT_HEADER
 #include <gmerlin/plugin.h>
 
 typedef struct

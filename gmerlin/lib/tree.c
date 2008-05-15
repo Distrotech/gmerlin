@@ -1138,7 +1138,8 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
     bg_album_common_prepare_callbacks(&t->com, t->com.current_entry);
     if(!bg_input_plugin_load(t->com.plugin_reg,
                              t->com.current_entry->location, info,
-                             &(ret), &t->com.input_callbacks))
+                             &(ret), &t->com.input_callbacks,
+                             !!(t->com.current_entry->flags & BG_ALBUM_ENTRY_EDL)))
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Loading %s failed",
              (char*)t->com.current_entry->location);
@@ -1217,6 +1218,13 @@ metadata\n\
       .help_string = TRS("Purge directory (i.e. delete\n\
 unused album files) at program exit")
     },
+    {
+      .name =        "prefer_edl",
+      .long_name =   TRS("Prefer EDL"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 0 },
+      .help_string = TRS("For files, which contain edit decision lists and raw streams, this option selects whic one to decode. This setting is saved in the album once the file is loaded.")
+    },
     { /* End of parameters */ }
   };
 
@@ -1244,6 +1252,10 @@ void bg_media_tree_set_parameter(void * priv, const char * name,
   else if(!strcmp(name, "purge_directory"))
     {
     tree->purge_directory = val->val_i;
+    }
+  else if(!strcmp(name, "prefer_edl"))
+    {
+    tree->com.prefer_edl = val->val_i;
     }
   }
 

@@ -133,7 +133,7 @@ typedef struct bg_plugin_handle_s
   void * priv; //!< Private handle, passed as the first argument to most plugin functions
 
   char * location; //!< Applications can save the argument of an open call here
-  
+  bg_edl_t * edl; //!< EDL
   } bg_plugin_handle_t;
 
 /*
@@ -263,20 +263,39 @@ void bg_plugin_registry_free_plugins(char ** plugins);
  *  \param info Plugin to use (can be NULL for autodetection)
  *  \param ret Will return the plugin handle.
  *  \param callbacks Input callbacks (only for authentication)
+ *  \param prefer_edl If 1 EDLs are preferred over raw streams
  *  \returns 1 on success, 0 on error.
  *
  *  This is a convenience function to load an input file. If info is
  *  NULL, the plugin will be autodetected. The handle is stored in ret.
  *  If ret is non-null before the call, the old plugin will be unrefed.
- *  If an error occurred, error_msg might contain a human readable error
- *  message. The error string must be freed by the caller.
  */
 
 int bg_input_plugin_load(bg_plugin_registry_t * reg,
                          const char * location,
                          const bg_plugin_info_t * info,
                          bg_plugin_handle_t ** ret,
-                         bg_input_callbacks_t * callbacks);
+                         bg_input_callbacks_t * callbacks, int prefer_edl);
+
+/** \ingroup plugin_registry
+ *  \brief Load and open an edl decoder
+ *  \param reg A plugin registry
+ *  \param edl The edl to open
+ *  \param info Plugin to use (can be NULL for autodetection)
+ *  \param ret Will return the plugin handle.
+ *  \param callbacks Input callbacks (only for authentication)
+ *  \returns 1 on success, 0 on error.
+ *
+ *  This is a convenience function to load an input file. If info is
+ *  NULL, the plugin will be autodetected. The handle is stored in ret.
+ *  If ret is non-null before the call, the old plugin will be unrefed.
+ */
+
+int bg_input_plugin_load_edl(bg_plugin_registry_t * reg,
+                             const bg_edl_t * edl,
+                             const bg_plugin_info_t * info,
+                             bg_plugin_handle_t ** ret,
+                             bg_input_callbacks_t * callbacks);
 
 /* Set the supported extensions and mimetypes for a plugin */
 

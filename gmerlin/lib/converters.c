@@ -403,10 +403,14 @@ int bg_video_converter_read(void * priv, gavl_video_frame_t* frame, int stream)
     else
       result = cnv->read_func(cnv->read_priv, frame, cnv->read_stream);
     if(cnv->rescale_timestamps)
+      {
       frame->timestamp = gavl_time_rescale(cnv->in_format.timescale,
                                              cnv->out_format.timescale,
                                              frame->timestamp);
-    
+      frame->duration  = gavl_time_rescale(cnv->in_format.timescale,
+                                           cnv->out_format.timescale,
+                                           frame->duration);
+      }
     return result;
     }
   else

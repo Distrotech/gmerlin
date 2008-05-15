@@ -26,6 +26,7 @@
 #include "parameter.h"
 #include "streaminfo.h"
 #include "accelerator.h"
+#include "edl.h"
 
 /** \defgroup plugin Plugins
  *  \brief Plugin types and associated functions
@@ -510,6 +511,13 @@ typedef struct bg_input_plugin_s
   int (*open_fd)(void * priv, int fd, int64_t total_bytes,
                  const char * mimetype);
 
+  /** \brief Get the edl (optional)
+   *  \param priv The handle returned by the create() method
+   *  \returns The edl if any
+   */
+
+  const bg_edl_t * (*get_edl)(void * priv);
+    
   /** \brief Get the disc name (optional)
    *  \param priv The handle returned by the create() method
    *  \returns The name of the disc if any
@@ -722,15 +730,16 @@ typedef struct bg_input_plugin_s
   /** \brief Seek within a media track
    *  \param priv The handle returned by the create() method
    *  \param time Time to seek to
+   *  \param scale Scale in which time is given
    *  
    *  Media streams are supposed to be seekable, if this
    *  function is non-NULL AND the duration field of the track info
    *  is > 0 AND the seekable flag in the track info is nonzero.
    *  The time argument might be changed to the correct value
    */
-
-  void (*seek)(void * priv, gavl_time_t * time);
-
+  
+  void (*seek)(void * priv, int64_t * time, int scale);
+  
   /** \brief Stop playback
    *  \param priv The handle returned by the create() method
    *  

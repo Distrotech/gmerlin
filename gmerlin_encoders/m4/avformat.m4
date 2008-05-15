@@ -10,35 +10,27 @@ LIBS_save=$LIBS
 
 dnl Look for header
 found_header="false"
-AVFORMAT_CFLAGS=`echo $AVFORMAT_CFLAGS | sed 's/ //'`
 
-if test "x$AVFORMAT_CFLAGS" = "x"; then
-AVFORMAT_CFLAGS="-I/usr/include"
-fi
-
-CFLAGS="$CFLAGS $AVFORMAT_CFLAGS"
+CFLAGS="$CFLAGS $GMERLIN_DEP_CFLAGS $AVFORMAT_CFLAGS"
+LIBS="$LIBS $GMERLIN_DEP_LIBS"
 
 AC_TRY_COMPILE([
-#include <avformat.h>],[],[found_header="true"])
+#include <libavformat/avformat.h>],[], [found_header="true";AVFORMAT_HEADER="<libavformat/avformat.h>" ],)
 
 if test $found_header = "false"; then
 AC_TRY_COMPILE([
-#include <ffmpeg/avformat.h>],[], [found_header="true";AVFORMAT_CFLAGS=${AVFORMAT_CFLAGS}"/ffmpeg" ],)
+#include <ffmpeg/avformat.h>],[], [found_header="true";AVFORMAT_HEADER="<ffmpeg/avformat.h>" ],)
 fi
 
 if test $found_header = "false"; then
 AC_TRY_COMPILE([
-#include <libavformat/avformat.h>],[], [found_header="true";AVFORMAT_CFLAGS="$AVFORMAT_CFLAGS/libavformat" ],)
+#include <avformat.h>],[],[found_header="true";AVFORMAT_HEADER="<avformat.h>"])
 fi
 
-CFLAGS="$CFLAGS $AVFORMAT_CFLAGS"
-
-
-LIBS="$LIBS $AVFORMAT_LIBS"
 avformat_ok="false"
 AC_TRY_RUN([
     #include <stdio.h>
-    #include <avformat.h>
+    #include $AVFORMAT_HEADER
     int main()
     {
     FILE * output;

@@ -1713,7 +1713,7 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
   
   if(!bg_input_plugin_load(album->com->plugin_reg,
                            url, info,
-                           &(album->com->load_handle), &(album->com->input_callbacks)))
+                           &(album->com->load_handle), &(album->com->input_callbacks), album->com->prefer_edl))
     {
     bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Loading %s failed", url);
     return (bg_album_entry_t*)0;
@@ -1736,6 +1736,10 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
     new_entry->location = bg_strdup(new_entry->location, url);
     new_entry->index = i;
     new_entry->total_tracks = num_entries;
+
+    if(album->com->load_handle->edl)
+      new_entry->flags |= BG_ALBUM_ENTRY_EDL;
+    
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Loaded %s (track %d of %d)", url,
            new_entry->index+1, new_entry->total_tracks);
     
@@ -1792,7 +1796,8 @@ int bg_album_refresh_entry(bg_album_t * album,
   if(!bg_input_plugin_load(album->com->plugin_reg,
                            entry->location,
                            info,
-                           &(album->com->load_handle), &(album->com->input_callbacks)))
+                           &(album->com->load_handle), &(album->com->input_callbacks),
+                           !!(entry->flags & BG_ALBUM_ENTRY_EDL)))
     {
     entry->flags |= BG_ALBUM_ENTRY_ERROR;
     bg_album_entry_changed(album, entry);

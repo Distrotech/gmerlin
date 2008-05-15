@@ -354,6 +354,12 @@ static const bg_parameter_info_t parameters_general[] =
       .flags =     BG_PARAMETER_HIDE_DIALOG,
     },
     {
+      .name =      "prefer_edl",
+      .long_name = TRS("Prefer EDL"),
+      .type =      BG_PARAMETER_CHECKBUTTON,
+      .help_string = TRS("For files, which contain edit decision lists and raw streams, this option selects whic one to decode."),
+    },
+    {
       .name =      "track",
       .long_name = TRS("Track"),
       .type =      BG_PARAMETER_INT,
@@ -668,6 +674,10 @@ void bg_transcoder_track_create_parameters(bg_transcoder_track_t * track,
        !strcmp(track->general_parameters[i].name, "set_end_time") ||
        !strcmp(track->general_parameters[i].name, "end_time"))
       track->general_parameters[i].flags &= ~BG_PARAMETER_HIDE_DIALOG;
+    
+    if(!strcmp(track->general_parameters[i].name, "prefer_edl"))
+      track->general_parameters[i].flags |= BG_PARAMETER_HIDE_DIALOG;
+    
     i++;
     }
   
@@ -960,24 +970,31 @@ bg_transcoder_track_create(const char * url,
   bg_plugin_handle_t     * plugin_handle = (bg_plugin_handle_t*)0;
   int num_tracks;
   int streams_enabled = 0;
+  int prefer_edl;
   
   bg_cfg_section_t * input_section;
 
   bg_encoder_info_t encoder_info;
   
-  if(!bg_encoder_info_get_from_registry(plugin_reg,
-                                                   &encoder_info))
+  if(!bg_encoder_info_get_from_registry(plugin_reg, &encoder_info))
     return (bg_transcoder_track_t*)0;
     
   /* Load the plugin */
+
+  bg_cfg_section_get_parameter_int(track_defaults_section, "prefer_edl", &prefer_edl);
+  
   
   if(!bg_input_plugin_load(plugin_reg, url,
-                           input_info, &plugin_handle, (bg_input_callbacks_t*)0))
+                           input_info, &plugin_handle, (bg_input_callbacks_t*)0, prefer_edl))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Loading %s failed", url);
     return (bg_transcoder_track_t*)0;
     }
-
+  if(plugin_handle->edl)
+    bg_cfg_section_set_parameter_int(track_defaults_section, "prefer_edl", 1);
+  else
+    bg_cfg_section_set_parameter_int(track_defaults_section, "prefer_edl", 0);
+  
   input = (bg_input_plugin_t*)(plugin_handle->plugin);
   
   input_section = bg_plugin_registry_get_section(plugin_reg,

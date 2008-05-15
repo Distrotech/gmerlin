@@ -1035,7 +1035,8 @@ void bg_plugin_ref(bg_plugin_handle_t * h)
   bg_plugin_lock(h);
   h->refcount++;
 
-  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "bg_plugin_ref %s: %d", h->info->name, h->refcount);
+  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "bg_plugin_ref %s: %d",
+         h->plugin->name, h->refcount);
 
   bg_plugin_unlock(h);
   
@@ -1053,23 +1054,26 @@ static void unload_plugin(bg_plugin_handle_t * h)
                        h->plugin->get_parameter,
                        h->priv);
     }
-  switch(h->info->api)
+  if(h->info)
     {
-    case BG_PLUGIN_API_GMERLIN:
-      if(h->priv && h->plugin->destroy)
-        h->plugin->destroy(h->priv);
-      break;
-    case BG_PLUGIN_API_LADSPA:
-      bg_ladspa_unload(h);
-      break;
-    case BG_PLUGIN_API_FREI0R:
-      bg_frei0r_unload(h);
-      break;
+    switch(h->info->api)
+      {
+      case BG_PLUGIN_API_GMERLIN:
+        if(h->priv && h->plugin->destroy)
+          h->plugin->destroy(h->priv);
+        break;
+      case BG_PLUGIN_API_LADSPA:
+        bg_ladspa_unload(h);
+        break;
+      case BG_PLUGIN_API_FREI0R:
+        bg_frei0r_unload(h);
+        break;
 #ifdef HAVE_LV
-    case BG_PLUGIN_API_LV:
-      bg_lv_unload(h);
-      break;
+      case BG_PLUGIN_API_LV:
+        bg_lv_unload(h);
+        break;
 #endif
+      }
     }
   if(h->location) free(h->location);
 
@@ -1084,14 +1088,17 @@ static void unload_plugin(bg_plugin_handle_t * h)
   if(h->dll_handle)
     dlclose(h->dll_handle);
 #endif
-  
+  if(h->edl)
+    bg_edl_destroy(h->edl);
+  pthread_mutex_destroy(&h->mutex);
   free(h);
   }
 
 void bg_plugin_unref_nolock(bg_plugin_handle_t * h)
   {
   h->refcount--;
-  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "bg_plugin_unref_nolock %s: %d", h->info->name, h->refcount);
+  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "bg_plugin_unref_nolock %s: %d",
+         h->plugin->name, h->refcount);
   if(!h->refcount)
     unload_plugin(h);
   }
@@ -1101,7 +1108,8 @@ void bg_plugin_unref(bg_plugin_handle_t * h)
   int refcount;
   bg_plugin_lock(h);
   h->refcount--;
-  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "bg_plugin_unref %s: %d", h->info->name, h->refcount);
+  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "bg_plugin_unref %s: %d",
+         h->plugin->name, h->refcount);
 
   refcount = h->refcount;
   bg_plugin_unlock(h);
@@ -1508,7 +1516,7 @@ static void load_input_plugin(bg_plugin_registry_t * reg,
                               const bg_plugin_info_t * info,
                               bg_plugin_handle_t ** ret)
   {
-  if(!(*ret) || strcmp((*ret)->info->name, info->name))
+  if(!(*ret) || !(*ret)->info || strcmp((*ret)->info->name, info->name))
     {
     if(*ret)
       {
@@ -1519,11 +1527,11 @@ static void load_input_plugin(bg_plugin_registry_t * reg,
     }
   }
 
-int bg_input_plugin_load(bg_plugin_registry_t * reg,
-                         const char * location,
-                         const bg_plugin_info_t * info,
-                         bg_plugin_handle_t ** ret,
-                         bg_input_callbacks_t * callbacks)
+static int input_plugin_load(bg_plugin_registry_t * reg,
+                             const char * location,
+                             const bg_plugin_info_t * info,
+                             bg_plugin_handle_t ** ret,
+                             bg_input_callbacks_t * callbacks)
   {
   const char * real_location;
   char * protocol = (char*)0, * path = (char*)0;
@@ -1533,7 +1541,6 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
   bg_input_plugin_t * plugin;
   int try_and_error = 1;
   const bg_plugin_info_t * first_plugin = (const bg_plugin_info_t*)0;
-  
   
   if(!location)
     return 0;
@@ -1644,6 +1651,45 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
       }
     }
   return 0;
+  }
+
+int bg_input_plugin_load(bg_plugin_registry_t * reg,
+                         const char * location,
+                         const bg_plugin_info_t * info,
+                         bg_plugin_handle_t ** ret,
+                         bg_input_callbacks_t * callbacks, int prefer_edl)
+  {
+  bg_input_plugin_t * plugin;
+  const bg_edl_t * edl_c;
+  bg_edl_t * edl;
+  int num_tracks = 1;
+  if(!input_plugin_load(reg, location, info, ret, callbacks))
+    return 0;
+
+  plugin = (bg_input_plugin_t*)((*ret)->plugin);
+
+  if(plugin->get_num_tracks)
+    num_tracks = plugin->get_num_tracks((*ret)->priv);
+  
+  if(num_tracks && (!plugin->get_edl || !prefer_edl))
+    return 1;
+  
+  edl_c = plugin->get_edl((*ret)->priv);
+  
+  if(!edl_c)
+    return 1;
+  
+  /* Load EDL instead */
+  edl = bg_edl_copy(edl_c);
+
+  if(!bg_input_plugin_load_edl(reg, edl, info, ret,
+                               callbacks))
+    {
+    bg_edl_destroy(edl);
+    return 0;
+    }
+  (*ret)->edl = edl;
+  return 1;
   }
 
 void

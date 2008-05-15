@@ -2233,7 +2233,7 @@ static int start_input(bg_transcoder_t * ret)
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot seek to start point");
       goto fail;
       }
-    ret->in_plugin->seek(ret->in_handle->priv, &(ret->start_time));
+    ret->in_plugin->seek(ret->in_handle->priv, &(ret->start_time), GAVL_TIME_SCALE);
 
     /* This happens, if the decoder reached EOF during the seek */
 

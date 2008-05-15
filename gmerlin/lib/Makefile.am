@@ -62,6 +62,8 @@ charset.c \
 cmdline.c \
 converters.c \
 device.c \
+edl.c \
+edldec.c \
 fifo.c \
 filters.c \
 formats.c \

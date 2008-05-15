@@ -17,6 +17,7 @@ charset.h \
 cmdline.h \
 config.h \
 converters.h \
+edl.h \
 encoderinfo.h \
 fifo.h \
 filters.h \

@@ -95,7 +95,7 @@ int main(int argc, char ** argv)
                            argv[1],
                            (const bg_plugin_info_t*)0,
                            &input_handle,
-                           (bg_input_callbacks_t*)0))
+                           (bg_input_callbacks_t*)0, 0))
     {
     fprintf(stderr, "Cannot open %s\n", argv[1]);
     return -1;

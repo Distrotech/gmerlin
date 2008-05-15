@@ -592,7 +592,7 @@ static int bypass_cdaudio(void * priv)
   return 1;
   }
 
-static void seek_cdaudio(void * priv, gavl_time_t * time)
+static void seek_cdaudio(void * priv, int64_t * time, int scale)
   {
   /* We seek with frame accuracy (1/75 seconds) */
 
@@ -605,7 +605,7 @@ static void seek_cdaudio(void * priv, gavl_time_t * time)
   if(cd->do_bypass)
     {
     sector = cd->index->tracks[cd->current_track].first_sector +
-      (*time * 75) / GAVL_TIME_SCALE;
+      (*time * 75) / scale;
     
     last_sector = cd->index->tracks[cd->current_track].last_sector;
 
@@ -614,7 +614,7 @@ static void seek_cdaudio(void * priv, gavl_time_t * time)
       if((i == cd->index->num_tracks - 1) || !cd->index->tracks[i+1].is_audio)
         last_sector = cd->index->tracks[i].last_sector;
       }
-    *time = ((int64_t)sector * GAVL_TIME_SCALE) / 75;
+    *time = ((int64_t)sector * scale) / 75;
     if(!bg_cdaudio_play(cd->cdio, sector, last_sector))
       return;
     
@@ -639,9 +639,8 @@ static void seek_cdaudio(void * priv, gavl_time_t * time)
       cd->frame = gavl_audio_frame_create(&format);
       cd->rip_initialized = 1;
       }
-
-
-    sample_position = gavl_time_to_samples(44100, *time);
+    
+    sample_position = gavl_time_rescale(scale, 44100, *time);
         
     cd->current_sector =
       sample_position / 588 + cd->index->tracks[cd->current_track].first_sector;

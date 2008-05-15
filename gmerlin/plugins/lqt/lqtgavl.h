@@ -201,7 +201,19 @@ int lqt_gavl_decode_audio(quicktime_t * file,
  **/
 
 void lqt_gavl_seek(quicktime_t * file, gavl_time_t * time);
-  
+
+/** \ingroup decode
+ *  \brief Seek all tracks to a specific point given as a scaled time
+ *  \param file A quicktime handle
+ *  \param time The scaled time to seek to
+ *  \param scale The timescale
+ *
+ * This call sets the time argument to the real time, we have now.
+ * It might be changed if you seek between 2 video frames.
+ **/
+
+void lqt_gavl_seek_scaled(quicktime_t * file, gavl_time_t * time, int scale);
+
                    
 /** \ingroup decode
  *  \brief Get the total duration

@@ -419,6 +419,11 @@ int lqt_gavl_decode_audio(quicktime_t * file, int track,
 
 void lqt_gavl_seek(quicktime_t * file, gavl_time_t * time)
   {
+  lqt_gavl_seek_scaled(file, time, GAVL_TIME_SCALE);
+  }
+
+void lqt_gavl_seek_scaled(quicktime_t * file, gavl_time_t * time, int scale)
+  {
   int imax;
   int i;
   int64_t video_time_save  = -1;
@@ -434,7 +439,7 @@ void lqt_gavl_seek(quicktime_t * file, gavl_time_t * time)
   for(i = 0; i < imax; i++)
     {
     timescale = lqt_video_time_scale(file, i);
-    time_scaled = gavl_time_scale(timescale, *time);
+    time_scaled = gavl_time_rescale(scale, timescale, *time);
     lqt_seek_video(file, i, time_scaled);
     if(!i)
       {
@@ -450,7 +455,7 @@ void lqt_gavl_seek(quicktime_t * file, gavl_time_t * time)
   for(i = 0; i < imax; i++)
     {
     timescale = quicktime_sample_rate(file, i);
-    time_scaled = gavl_time_scale(timescale, *time);
+    time_scaled = gavl_time_rescale(scale, timescale, *time);
     quicktime_set_audio_position(file, time_scaled, i);
     }
 
@@ -461,10 +466,11 @@ void lqt_gavl_seek(quicktime_t * file, gavl_time_t * time)
       continue;
     
     timescale = lqt_text_time_scale(file, i);
-    time_scaled = gavl_time_scale(timescale, *time);
+    time_scaled = gavl_time_rescale(scale, timescale, *time);
     lqt_set_text_time(file, i, time_scaled);
     }
   }
+
 
 uint8_t ** lqt_gavl_rows_create(quicktime_t * file, int track)
   {
