@@ -72,6 +72,8 @@ AC_SUBST(AVFORMAT_CFLAGS)
 
 if test "x$have_avformat" = "xtrue"; then
 AC_DEFINE([HAVE_LIBAVFORMAT])
+AC_DEFINE_UNQUOTED(AVFORMAT_HEADER, $AVFORMAT_HEADER)
+
 fi
 
 ])
@@ -85,6 +87,7 @@ AC_DEFUN([GMERLIN_CHECK_LIBPOSTPROC],[
 
 AH_TEMPLATE([HAVE_LIBPOSTPROC],
             [Do we have libpostproc installed?])
+AH_TEMPLATE([POSTPROC_HEADER], [libpostproc header])
 
 have_libpostproc=false
 
@@ -104,28 +107,26 @@ PKG_CHECK_MODULES(LIBPOSTPROC, libpostproc >= $LIBPOSTPROC_REQUIRED,
 fi
 
 if test x$have_libpostproc = xtrue; then
-LIBPOSTPROC_CFLAGS=`echo $LIBPOSTPROC_CFLAGS | sed 's/ //'`
-
-if test "x$LIBPOSTPROC_CFLAGS" = "x"; then
-LIBPOSTPROC_CFLAGS="-I/usr/include"
-fi
 
 CFLAGS_save=$CFLAGS
-CFLAGS="$CFLAGS $LIBPOSTPROC_CFLAGS"
+CFLAGS="$CFLAGS $GMERLIN_DEP_CFLAGS $LIBPOSTPROC_CFLAGS"
 found_header="false"
 
 AC_TRY_COMPILE([
-#include <postprocess.h>],[],[found_header="true"])
+#include <libpostproc/postprocess.h>],[], [found_header="true";POSTPROC_HEADER="<libpostproc/postprocess.h>" ],)
+
 
 if test $found_header = "false"; then
 AC_TRY_COMPILE([
-#include <postproc/postprocess.h>],[], [found_header="true";LIBPOSTPROC_CFLAGS="$LIBPOSTPROC_CFLAGS/postproc" ],)
+#include <postproc/postprocess.h>],[], [found_header="true";POSTPROC_HEADER="<postproc/postprocess.h>" ],)
 fi
 
 if test $found_header = "false"; then
 AC_TRY_COMPILE([
-#include <libpostproc/postprocess.h>],[], [found_header="true";LIBPOSTPROC_CFLAGS="$LIBPOSTPROC_CFLAGS/libpostproc" ],)
+#include <postprocess.h>],[],[found_header="true";POSTPROC_HEADER="<postprocess.h>"])
 fi
+
+
 
 CFLAGS="$CFLAGS_save"
        
@@ -139,6 +140,7 @@ AM_CONDITIONAL(HAVE_LIBPOSTPROC, test x$have_libpostproc = xtrue)
 
 if test "x$have_libpostproc" = "xtrue"; then
 AC_DEFINE([HAVE_LIBPOSTPROC])
+AC_DEFINE_UNQUOTED(POSTPROC_HEADER, $POSTPROC_HEADER)
 fi
 
 ])
@@ -151,6 +153,7 @@ AC_DEFUN([GMERLIN_CHECK_LIBSWSCALE],[
 
 AH_TEMPLATE([HAVE_LIBSWSCALE],
             [Do we have libswscale installed?])
+AH_TEMPLATE([SWSCALE_HEADER], [libswscale header])
 
 have_libswscale=false
 
@@ -170,27 +173,22 @@ PKG_CHECK_MODULES(LIBSWSCALE, libswscale >= $LIBSWSCALE_REQUIRED,
 fi
 
 if test x$have_libswscale = xtrue; then
-LIBSWSCALE_CFLAGS=`echo $LIBSWSCALE_CFLAGS | sed 's/ //'`
-
-if test "x$LIBSWSCALE_CFLAGS" = "x"; then
-LIBSWSCALE_CFLAGS="-I/usr/include"
-fi
 
 CFLAGS_save=$CFLAGS
-CFLAGS="$CFLAGS $LIBSWSCALE_CFLAGS"
+CFLAGS="$CFLAGS $GMERLIN_DEP_CFLAGS $LIBSWSCALE_CFLAGS"
 found_header="false"
 
 AC_TRY_COMPILE([
-#include <swscale.h>],[],[found_header="true"])
+#include <libswscale/swscale.h>],[], [found_header="true";SWSCALE_HEADER="<libswscale/swscale.h>"],)
 
 if test $found_header = "false"; then
 AC_TRY_COMPILE([
-#include <swscale/swscale.h>],[], [found_header="true";LIBSWSCALE_CFLAGS="$LIBSWSCALE_CFLAGS/ffmpeg" ],)
+#include <swscale/swscale.h>],[], [found_header="true";SWSCALE_HEADER="<swscale/swscale.h>"],)
 fi
 
 if test $found_header = "false"; then
 AC_TRY_COMPILE([
-#include <libswscale/swscale.h>],[], [found_header="true";LIBSWSCALE_CFLAGS="$LIBSWSCALE_CFLAGS/libswscale" ],)
+#include <swscale.h>],[],[found_header="true";SWSCALE_HEADER="<swscale.h>"])
 fi
 
 CFLAGS="$CFLAGS_save"
@@ -205,6 +203,7 @@ AM_CONDITIONAL(HAVE_LIBSWSCALE, test x$have_libswscale = xtrue)
 
 if test "x$have_libswscale" = "xtrue"; then
 AC_DEFINE([HAVE_LIBSWSCALE])
+AC_DEFINE_UNQUOTED(SWSCALE_HEADER, $SWSCALE_HEADER)
 fi
 
 ])

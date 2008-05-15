@@ -236,19 +236,19 @@ typedef struct
   void (*interpolate_f)(uint8_t * src_1, uint8_t * src_2, 
                         uint8_t * dst, int num, float fac);
 
-  /* \brief Do 16 bit endian swapping
+  /** \brief Do 16 bit endian swapping
    * \param ptr Pointer to the data
    * \param len Len in 16 bit words
    */
   void (*bswap_16)(void * ptr, int len);
 
-  /* \brief Do 32 byte endian swapping
+  /** \brief Do 32 byte endian swapping
    * \param ptr Pointer to the data
    * \param len Len in 32 bit doublewords
    */
   void (*bswap_32)(void * ptr, int len);
 
-  /* \brief Do 64 byte endian swapping
+  /** \brief Do 64 byte endian swapping
    * \param ptr Pointer to the data
    * \param len Len in 64 bit quadwords
    */

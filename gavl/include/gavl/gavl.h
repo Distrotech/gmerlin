@@ -135,10 +135,11 @@ int gavl_accel_supported();
 */
 #define GAVL_MAX_CHANNELS 128
   
-/*! Format of one audio sample
-  \ingroup audio_format
-  For multibyte numbers, the byte order is always machine native endian
-*/
+/** \ingroup audio_format
+ *  \brief Format of one audio sample
+ * 
+ * For multibyte numbers, the byte order is always machine native endian
+ */
   
 typedef enum
   {
@@ -152,9 +153,10 @@ typedef enum
     GAVL_SAMPLE_DOUBLE = 7  /*!< Double (-1.0 .. 1.0) */
   } gavl_sample_format_t;
 
-/*! Interleave mode of the channels
-  \ingroup audio_format
-*/
+/** \ingroup audio_format
+ *
+ *  Interleave mode of the channels
+ */
   
 typedef enum
   {
@@ -163,10 +165,11 @@ typedef enum
     GAVL_INTERLEAVE_ALL  = 2  /*!< Everything interleaved                 */
   } gavl_interleave_mode_t;
 
-/*! Audio channel setup
-  \ingroup audio_format
-
-  These are the channel locations used to identify the channel order for an audio format
+/** \ingroup audio_format
+ *  \brief Audio channel setup
+ *
+ * These are the channel locations used to identify the channel order
+ * for an audio format
  */
   
 typedef enum
@@ -186,15 +189,15 @@ typedef enum
     GAVL_CHID_AUX,                /*!< Additional channel (can be more than one) */
   } gavl_channel_id_t;
 
-/*! Audio Format
-  \ingroup audio_format
-
-  Structure describing an audio format. The samples_per_frame member is used
-  exclusively by \ref gavl_audio_frame_create to determine how many bytes to
-  allocate.
+/** \ingroup audio_format
+ *  \brief Audio Format
+ *
+ * Structure describing an audio format. The samples_per_frame member is used
+ * exclusively by \ref gavl_audio_frame_create to determine how many bytes to
+ * allocate.
  */
   
-typedef struct gavl_audio_format_s
+typedef struct 
   {
   int samples_per_frame;  /*!< Maximum number of samples per frame */
   int samplerate;         /*!< Samplerate */
@@ -379,7 +382,7 @@ int gavl_bytes_per_sample(gavl_sample_format_t format);
   \brief Container for interleaved audio samples
  */
   
-typedef union gavl_audio_samples_u
+typedef union 
   {
   uint8_t * u_8; /*!< Unsigned 8 bit samples */
   int8_t *  s_8; /*!< Signed 8 bit samples */
@@ -399,7 +402,7 @@ typedef union gavl_audio_samples_u
   \brief Container for noninterleaved audio samples
  */
   
-typedef union gavl_audio_channels_u
+typedef union
   {
   uint8_t * u_8[GAVL_MAX_CHANNELS];/*!< Unsigned 8 bit channels */
   int8_t *  s_8[GAVL_MAX_CHANNELS];/*!< Signed 8 bit channels */
@@ -431,7 +434,7 @@ typedef union gavl_audio_channels_u
   
  */
   
-typedef struct gavl_audio_frame_s
+typedef struct 
   {
   gavl_audio_samples_t  samples; /*!< Sample pointer for interleaved formats         */ 
   gavl_audio_channels_t channels;/*!< Channel pointer for non interleaved formats    */
@@ -1855,7 +1858,7 @@ void gavl_video_format_fit_to_source(gavl_video_format_t * dst,
  * Video frame
  */
   
-typedef struct gavl_video_frame_s
+typedef struct
   {
   uint8_t * planes[GAVL_MAX_PLANES]; /*!< Pointers to the planes */
   int strides[GAVL_MAX_PLANES];      /*!< For each plane, this stores the byte offset between the scanlines */
