@@ -1,7 +1,7 @@
 AM_CFLAGS = @X_CFLAGS@ -DLOCALE_DIR=\"$(localedir)\"
 
 if HAVE_XV
-xv_sources = xvvideo.c
+xv_sources = xvideo.c
 else
 xv_sources =
 endif
