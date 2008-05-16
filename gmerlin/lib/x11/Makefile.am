@@ -18,7 +18,7 @@ x11_window.c \
 glvideo.c \
 overlay.c \
 ximage.c \
-xvideo.c
+$(xv_sources)
 
 libx11_la_LIBADD =  @GMERLIN_DEP_LIBS@ @X_LIBS@ @XINERAMA_LIBS@ @XV_LIBS@ @GL_LIBS@
 
