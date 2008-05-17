@@ -43,8 +43,8 @@ dnl
 
 AC_DEFUN([GMERLIN_CHECK_AVFORMAT],[
 
-AH_TEMPLATE([HAVE_LIBAVFORMAT],
-            [Do we have libavformat installed?])
+AH_TEMPLATE([HAVE_LIBAVFORMAT], [Do we have libavformat installed?])
+AH_TEMPLATE([AVFORMAT_HEADER], [libavformat header])
 
 have_avformat=false
 
@@ -73,7 +73,6 @@ AC_SUBST(AVFORMAT_CFLAGS)
 if test "x$have_avformat" = "xtrue"; then
 AC_DEFINE([HAVE_LIBAVFORMAT])
 AC_DEFINE_UNQUOTED(AVFORMAT_HEADER, $AVFORMAT_HEADER)
-
 fi
 
 ])
@@ -1134,6 +1133,8 @@ AC_DEFUN([GMERLIN_CHECK_DCA],[
 AH_TEMPLATE([HAVE_DCA], [ libdca found ])
 
 have_dca="false"
+have_dts="false"
+
 DCA_REQUIRED="0.0.2"
 
 AC_ARG_ENABLE(libcda,
@@ -1144,13 +1145,16 @@ AC_ARG_ENABLE(libcda,
 esac],[test_libdca=true])
 
 if test x$test_libdca = xtrue; then
-PKG_CHECK_MODULES(DCA, libdts >= $DCA_REQUIRED, have_dca="true", have_dca="false")
+PKG_CHECK_MODULES(DCA, libdca >= $DCA_REQUIRED, have_dca="true", have_dca="false")
+
+if test "x$have_dca" != "xtrue"; then
+PKG_CHECK_MODULES(DCA, libdts >= $DCA_REQUIRED, have_dts="true", have_dts="false")
 
 dnl
 dnl Some systems need -ldts_pic
 dnl
 
-if test x$have_dca = xtrue; then
+if test x$have_dts = xtrue; then
 have_libdts_pic=false
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
@@ -1166,8 +1170,10 @@ fi
 CFLAGS=$OLD_CFLAGS
 LIBS=$OLD_LIBS
 
-fi
+have_libdca=true
 
+fi
+fi
 fi
 
 AM_CONDITIONAL(HAVE_DCA, test x$have_dca = xtrue)
