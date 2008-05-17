@@ -1,3 +1,5 @@
+INCLUDES = -I$(top_srcdir)/include
+
 AM_CFLAGS = @X_CFLAGS@ -DLOCALE_DIR=\"$(localedir)\"
 AM_LDFLAGS = @GMERLIN_PLUGIN_LDFLAGS@ -avoid-version -module
 

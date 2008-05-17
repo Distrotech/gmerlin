@@ -1,3 +1,5 @@
+INCLUDES = -I$(top_srcdir)/include
+
 if HAVE_X11
 x11_subdirs = x11
 x11_libadd = x11/libx11.la

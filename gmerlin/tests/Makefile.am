@@ -1,3 +1,5 @@
+INCLUDES = -I$(top_srcdir)/include
+
 AM_CFLAGS = @GTK_CFLAGS@ @XML2_CFLAGS@
 
 if HAVE_GTK

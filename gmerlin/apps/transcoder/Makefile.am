@@ -1,3 +1,5 @@
+INCLUDES = -I$(top_srcdir)/include
+
 AM_CFLAGS = @XML2_CFLAGS@ @GTK_CFLAGS@
 
 Desktopdir = $(datadir)/applications
@@ -19,11 +21,11 @@ tracklist.c
 gmerlin_transcoder_remote_SOURCES = gmerlin_transcoder_remote.c
 
 gmerlin_transcoder_LDADD = \
-@top_srcdir@/lib/gtk/libgmerlin_gtk.la \
-@top_srcdir@/lib/libgmerlin.la
+$(top_builddir)/lib/gtk/libgmerlin_gtk.la \
+$(top_builddir)/lib/libgmerlin.la
 
 gmerlin_transcoder_remote_LDADD = \
-@top_srcdir@/lib/libgmerlin.la
+$(top_builddir)/lib/libgmerlin.la
 
 noinst_HEADERS = \
 encoderwidget.h \

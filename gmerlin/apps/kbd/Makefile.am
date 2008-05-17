@@ -1,3 +1,5 @@
+INCLUDES = -I$(top_srcdir)/include
+
 AM_CFLAGS = @XML2_CFLAGS@ @GTK_CFLAGS@
 
 Desktopdir = $(datadir)/applications
@@ -21,7 +23,7 @@ noinst_HEADERS = \
 kbd.h \
 kbd_remote.h
 
-gmerlin_kbd_LDADD = ../../lib/libgmerlin.la @X_LIBS@
-gmerlin_kbd_config_LDADD = ../../lib/libgmerlin.la ../../lib/gtk/libgmerlin_gtk.la
+gmerlin_kbd_LDADD = $(top_builddir)/lib/libgmerlin.la @X_LIBS@
+gmerlin_kbd_config_LDADD = $(top_builddir)/lib/libgmerlin.la $(top_builddir)/lib/gtk/libgmerlin_gtk.la
 
 

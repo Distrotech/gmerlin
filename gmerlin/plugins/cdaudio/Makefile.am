@@ -1,3 +1,5 @@
+INCLUDES = -I$(top_srcdir)/include
+
 AM_LDFLAGS = @GMERLIN_PLUGIN_LDFLAGS@ -avoid-version -module
 
 if HAVE_MUSICBRAINZ

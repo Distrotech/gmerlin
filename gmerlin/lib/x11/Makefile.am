@@ -1,3 +1,5 @@
+INCLUDES = -I$(top_srcdir)/include
+
 AM_CFLAGS = @X_CFLAGS@ -DLOCALE_DIR=\"$(localedir)\"
 
 if HAVE_XV

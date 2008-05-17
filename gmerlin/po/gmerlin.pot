@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2008-05-17 21:26+0200\n"
+"POT-Creation-Date: 2008-05-18 00:07+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1802,7 +1802,6 @@ msgid "Blue -> Alpha"
 msgstr ""
 
 #: plugins/videofilters/fv_colormatrix_rgb.c:442
-#: plugins/videofilters/fv_colormatrix.c:182
 msgid "RGB Colormatrix"
 msgstr ""
 
@@ -1881,18 +1880,6 @@ msgstr ""
 
 #: plugins/videofilters/fv_blur.c:397
 msgid "Blur filter based on gavl. Supports triangular, box and gauss blur."
-msgstr ""
-
-#: plugins/videofilters/fv_colormatrix.c:71
-msgid "Colormatrix horizontally"
-msgstr ""
-
-#: plugins/videofilters/fv_colormatrix.c:77
-msgid "Colormatrix vertically"
-msgstr ""
-
-#: plugins/videofilters/fv_colormatrix.c:183
-msgid "Colormatrix video images horizontally and/or vertically"
 msgstr ""
 
 #: plugins/videofilters/fv_invert_rgb.c:91

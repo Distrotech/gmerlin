@@ -1,3 +1,5 @@
+INCLUDES = -I$(top_srcdir)/include
+
 AM_CFLAGS = @XML2_CFLAGS@ @GTK_CFLAGS@
 
 bin_PROGRAMS = gmerlin_plugincfg
@@ -7,5 +9,5 @@ Desktop_DATA = gmerlin-plugincfg.desktop
 
 gmerlin_plugincfg_SOURCES = gmerlin_plugincfg.c
 gmerlin_plugincfg_LDADD = \
-@top_srcdir@/lib/gtk/libgmerlin_gtk.la \
-@top_srcdir@/lib/libgmerlin.la
+$(top_builddir)/lib/gtk/libgmerlin_gtk.la \
+$(top_builddir)/lib/libgmerlin.la

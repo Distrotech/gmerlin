@@ -131,6 +131,52 @@ LDFLAGS="$GMERLIN_DEP_RPATH"
 AC_SUBST(GMERLIN_DEP_LIBS)
 
 dnl
+dnl Doxygen
+dnl
+
+test_doxygen="true"
+have_doxygen="false"
+
+AC_ARG_WITH(doxygen,
+    AC_HELP_STRING([--without-doxygen],
+    [disable doxygen documentation generation]),
+    test_doxygen="false")
+
+if test "x$test_doxygen" = "xtrue"; then
+  AC_CHECK_PROG(DOXYGEN, doxygen, "doxygen")
+  if test -z "$DOXYGEN"; then
+    AC_MSG_ERROR([Doxygen not found, use --without-doxygen to disable documentation generation])
+  else
+    have_doxygen="true"
+  fi
+fi
+
+AM_CONDITIONAL(HAVE_DOXYGEN, test "x$have_doxygen" = "xtrue")
+
+dnl
+dnl texinfo
+dnl
+
+test_texinfo="true"
+have_texinfo="false"
+
+AC_ARG_WITH(texinfo,
+    AC_HELP_STRING([--without-texinfo],
+    [disable texinfo documentation generation]),
+    test_texinfo="false")
+
+if test "x$test_texinfo" = "xtrue"; then
+  AC_CHECK_PROG(TEXINFO, makeinfo, "makeinfo")
+  if test -z "$TEXINFO"; then
+    AC_MSG_ERROR([Texinfo not found, use --without-texinfo to disable documentation generation])
+  else
+    have_texinfo="true"
+  fi
+fi
+
+AM_CONDITIONAL(HAVE_TEXINFO, test "x$have_texinfo" = "xtrue")
+
+dnl
 dnl Check for Libraries
 dnl
 
@@ -798,6 +844,11 @@ AC_SUBST(GMERLIN_PLUGIN_DIR)
 INCLUDES='-I$(top_builddir)/include'
 AC_SUBST(INCLUDES)
 
+dnl Absolute src path for doxygen
+
+TOP_SRCDIR=`cd ${srcdir} && pwd` 
+AC_SUBST(TOP_SRCDIR)
+
 dnl LDFLAGS for plugins
 GMERLIN_PLUGIN_LDFLAGS='-export-symbols $(top_srcdir)/plugin.sym'
 AC_SUBST(GMERLIN_PLUGIN_LDFLAGS)
@@ -825,6 +876,7 @@ apps/visualizer/gmerlin-visualizer.desktop \
 apps/kbd/Makefile \
 apps/kbd/gmerlin-kbd.desktop \
 doc/Makefile \
+doc/Doxyfile \
 icons/Makefile \
 m4/Makefile \
 tests/Makefile \

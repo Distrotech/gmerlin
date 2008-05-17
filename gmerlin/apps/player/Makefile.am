@@ -1,3 +1,5 @@
+INCLUDES = -I$(top_srcdir)/include
+
 AM_CFLAGS = @XML2_CFLAGS@ @GTK_CFLAGS@ -DLOCALE_DIR=\"$(localedir)\"
 
 Desktopdir = $(datadir)/applications
@@ -31,7 +33,7 @@ player_remote.h \
 playerwindow.h \
 pluginwindow.h
 
-gmerlin_LDADD = ../../lib/libgmerlin.la ../../lib/gtk/libgmerlin_gtk.la
-gmerlin_remote_LDADD = ../../lib/libgmerlin.la
+gmerlin_LDADD = $(top_builddir)/lib/libgmerlin.la $(top_builddir)/lib/gtk/libgmerlin_gtk.la
+gmerlin_remote_LDADD = $(top_builddir)/lib/libgmerlin.la
 
 EXTRA_DIST = gmerlin_launcher
