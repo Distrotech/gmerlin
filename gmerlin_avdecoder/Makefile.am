@@ -7,7 +7,13 @@ else
 gmerlin_subdirs =
 endif
 
-SUBDIRS = lib $(gmerlin_subdirs) tests include m4 po doc
+if HAVE_DOXYGEN
+DOC_SUBDIRS = doc
+else
+DOC_SUBDIRS =
+endif
+
+SUBDIRS = lib $(gmerlin_subdirs) tests include m4 po $(DOC_SUBDIRS)
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = gmerlin_avdec.pc

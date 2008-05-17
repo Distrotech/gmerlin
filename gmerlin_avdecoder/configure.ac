@@ -86,6 +86,30 @@ LDFLAGS="$GMERLIN_DEP_RPATH"
 
 
 dnl
+dnl Doxygen
+dnl
+
+test_doxygen="true"
+have_doxygen="false"
+
+AC_ARG_WITH(doxygen,
+    AC_HELP_STRING([--without-doxygen],
+    [disable documentation generation]),
+    test_doxygen="false")
+
+if test "x$test_doxygen" = "xtrue"; then
+  AC_CHECK_PROG(DOXYGEN, doxygen, "doxygen")
+  if test -z "$DOXYGEN"; then
+    AC_MSG_ERROR([Doxygen not found, use --without-doxygen to disable documentation generation])
+  else
+    have_doxygen="true"
+  fi
+fi
+
+AM_CONDITIONAL(HAVE_DOXYGEN, test "x$have_doxygen" = "xtrue")
+
+
+dnl
 dnl Check for Libraries
 dnl
 
@@ -107,6 +131,7 @@ dnl gmerlin
 dnl 
 
 have_gmerlin="false"
+gmerlin_wrong_prefix="false"
 
 GMERLIN_REQUIRED="0.3.7"
 
@@ -122,14 +147,34 @@ if test x$test_gmerlin = xtrue; then
 PKG_CHECK_MODULES(GMERLIN, gmerlin >= $GMERLIN_REQUIRED, have_gmerlin="true",
 have_gmerlin="false")
 
-GMERLIN_PLUGIN_DIR=`pkg-config --variable=prefix gmerlin`"/lib/gmerlin/plugins"
+if test "x$have_gmerlin" = "xtrue"; then
+gmerlin_prefix=`pkg-config --variable=prefix gmerlin`
+
+if test "x${prefix}" = "xNONE"; then
+avdec_prefix=${ac_default_prefix}
+else
+avdec_prefix=${prefix}
+fi
+
+dnl Clean up path names
+gmerlin_prefix=`cd ${gmerlin_prefix} && pwd` 
+avdec_prefix=`cd ${avdec_prefix} && pwd` 
+
+if test "x$gmerlin_prefix" != "x$avdec_prefix"; then
+AC_MSG_WARN([Gmerlin found, but in wrong prefix. Plugins will not be installed.])
+gmerlin_wrong_prefix="true"
+have_gmerlin="false"
+else
+gmerlin_plugindir='$(libdir)/gmerlin/plugins'
+fi
+fi
 
 dnl LDFLAGS for plugins
 GMERLIN_PLUGIN_LDFLAGS="-export-symbols "`pkg-config --variable=prefix gmerlin`"/share/gmerlin/plugin.sym"
 
 fi
 
-AC_SUBST(GMERLIN_PLUGIN_DIR)
+AC_SUBST(gmerlin_plugindir)
 AC_SUBST(GMERLIN_REQUIRED)
 AC_SUBST(GMERLIN_PLUGIN_LDFLAGS)
 
@@ -380,12 +425,18 @@ if test "x$LQT_PROFILE" = "xtrue"; then
 LIBS="$LIBS $GAVL_LIBS -pg"
 fi
 
+dnl Absolute src path for doxygen
+
+TOP_SRCDIR=`cd ${srcdir} && pwd` 
+AC_SUBST(TOP_SRCDIR)
+
 dnl
 dnl Output
 dnl 
 
 AC_CONFIG_FILES([Makefile 
 doc/Makefile \
+doc/Doxyfile \
 po/Makefile.in \
 gmerlin_avdec.spec \
 gmerlin_avdec.pc \
@@ -413,6 +464,8 @@ if test "x$have_gmerlin" = "xtrue"; then
 echo "Found (CFLAGS=$GMERLIN_CFLAGS LIBS=$GMERLIN_LIBS)"
 elif test "x$test_gmerlin" = "xfalse"; then
 echo "Disabled"
+elif test "x$gmerlin_wrong_prefix" = "xtrue"; then
+echo "Wrong installation prefix"
 else
 echo "Missing (Go to http://gmerlin.sourceforge.net)"
 fi

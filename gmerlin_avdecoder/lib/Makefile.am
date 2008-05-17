@@ -1,6 +1,8 @@
 
 lib_LTLIBRARIES = libgmerlin_avdec.la
 
+INCLUDES = -I$(top_srcdir)/include
+
 noinst_HEADERS = pnm.h targa.h
 
 if HAVE_VORBIS
@@ -205,9 +207,9 @@ endif
 if HAVE_W32DLL
 win32_subdirs = libw32dll
 win32_libs = \
-libw32dll/DirectShow/libds_filter.la \
-libw32dll/dmo/libdmo_filter.la \
-libw32dll/wine/libwine.la \
+$(top_builddir)/lib/libw32dll/DirectShow/libds_filter.la \
+$(top_builddir)/lib/libw32dll/dmo/libdmo_filter.la \
+$(top_builddir)/lib/libw32dll/wine/libwine.la \
 -lpthread
 win32_sources = video_win32.c audio_qtwin32.c audio_win32.c win32codec.c
 else
@@ -266,7 +268,7 @@ $(theora_libs) \
 $(speex_libs) \
 $(libpostproc_libs) \
 $(libswscale_libs) \
-GSM610/libgsm.la \
+$(top_builddir)/lib/GSM610/libgsm.la \
 @ICONV_LIBS@ \
 @LIBINTL@ \
 -lm
