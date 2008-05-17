@@ -305,6 +305,38 @@ static bg_plugin_info_t * remove_from_list(bg_plugin_info_t * list,
   return list;
   }
 
+static bg_plugin_info_t * remove_duplicate(bg_plugin_info_t * list)
+  {
+  bg_plugin_info_t * info_1, * info_2, * next;
+  int del = 0;
+  info_1 = list;
+
+  while(info_1)
+    {
+    /* Check if info_1 is already in the list */
+    info_2 = list;
+    del = 0;
+    
+    while(info_2 != info_1)
+      {
+      if(info_1->name && info_2->name &&
+         !strcmp(info_1->name, info_2->name))
+        {
+        next = info_1->next;
+        list = remove_from_list(list, info_1);
+        info_1 = next;
+        del = 1;
+        break;
+        }
+      else
+        info_2 = info_2->next;
+      }
+    if(!del)
+      info_1 = info_1->next;
+    }
+  return list;
+  }
+
 static bg_plugin_info_t * append_to_list(bg_plugin_info_t * list,
                                          bg_plugin_info_t * info)
   {
@@ -734,13 +766,17 @@ bg_plugin_registry_create(bg_cfg_section_t * section)
     }
 
   /* Native plugins */
-  tmp_info = scan_directory(GMERLIN_PLUGIN_DIR,
-                            &file_info, 
-                            section, BG_PLUGIN_API_GMERLIN);
+  env = getenv("GMERLIN_PLUGIN_PATH");
+  if(env)
+    path = bg_sprintf("%s:%s", env, GMERLIN_PLUGIN_DIR);
+  else
+    path = bg_sprintf("%s", GMERLIN_PLUGIN_DIR);
+  
+  tmp_info = scan_multi(path, &file_info, section, BG_PLUGIN_API_GMERLIN);
   if(tmp_info)
     ret->entries = append_to_list(ret->entries, tmp_info);
   /* Ladspa plugins */
-
+  
   env = getenv("LADSPA_PATH");
   if(env)
     path = bg_sprintf("%s:/usr/lib/ladspa:/usr/local/lib/ladspa", env);
@@ -786,6 +822,9 @@ bg_plugin_registry_create(bg_cfg_section_t * section)
   ret->entries = sort_by_priority(ret->entries);
   bg_plugin_registry_save(ret->entries);
 
+  /* Remove duplicate external plugins */
+  ret->entries = remove_duplicate(ret->entries);
+  
   /* Kick out unsupported plugins */
   tmp_info = ret->entries;
 
