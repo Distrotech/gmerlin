@@ -867,7 +867,7 @@ LIBS="$GMERLIN_DEP_LIBS -lFLAC -lm"
     BGAV_FLAC_MAJOR=`cat flac_version | cut -d . -f 1`
     BGAV_FLAC_MINOR=`cat flac_version | cut -d . -f 2`
     BGAV_FLAC_PATCHLEVEL=`cat flac_version | cut -d . -f 3`
-#    rm -f flac_version
+    rm -f flac_version
   ],
     # program could not be run
     AC_MSG_RESULT(no)
@@ -1170,7 +1170,7 @@ fi
 CFLAGS=$OLD_CFLAGS
 LIBS=$OLD_LIBS
 
-have_libdca=true
+have_dca="true"
 
 fi
 fi
