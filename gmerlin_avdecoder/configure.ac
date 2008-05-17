@@ -131,9 +131,8 @@ dnl gmerlin
 dnl 
 
 have_gmerlin="false"
-gmerlin_wrong_prefix="false"
 
-GMERLIN_REQUIRED="0.3.7"
+GMERLIN_REQUIRED="0.3.8"
 
 AC_ARG_ENABLE(gmerlin,
 [AC_HELP_STRING([--disable-gmerlin],[Disable gmerlin plugins (default: autodetect)])],
@@ -147,27 +146,7 @@ if test x$test_gmerlin = xtrue; then
 PKG_CHECK_MODULES(GMERLIN, gmerlin >= $GMERLIN_REQUIRED, have_gmerlin="true",
 have_gmerlin="false")
 
-if test "x$have_gmerlin" = "xtrue"; then
-gmerlin_prefix=`pkg-config --variable=prefix gmerlin`
-
-if test "x${prefix}" = "xNONE"; then
-avdec_prefix=${ac_default_prefix}
-else
-avdec_prefix=${prefix}
-fi
-
-dnl Clean up path names
-gmerlin_prefix=`cd ${gmerlin_prefix} && pwd` 
-avdec_prefix=`cd ${avdec_prefix} && pwd` 
-
-if test "x$gmerlin_prefix" != "x$avdec_prefix"; then
-AC_MSG_WARN([Gmerlin found, but in wrong prefix. Plugins will not be installed.])
-gmerlin_wrong_prefix="true"
-have_gmerlin="false"
-else
 gmerlin_plugindir='$(libdir)/gmerlin/plugins'
-fi
-fi
 
 dnl LDFLAGS for plugins
 GMERLIN_PLUGIN_LDFLAGS="-export-symbols "`pkg-config --variable=prefix gmerlin`"/share/gmerlin/plugin.sym"
