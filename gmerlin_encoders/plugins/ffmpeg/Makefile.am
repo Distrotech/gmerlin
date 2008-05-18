@@ -1,8 +1,11 @@
-libdir=@GMERLIN_PLUGIN_DIR@
+gmerlin_plugindir = @gmerlin_plugindir@
+
+INCLUDES = -I$(top_srcdir)/include
+
 AM_LDFLAGS = @GMERLIN_PLUGIN_LDFLAGS@ -avoid-version -module
 AM_CFLAGS = @GMERLIN_DEP_CFLAGS@ @AVFORMAT_CFLAGS@ @AVCODEC_CFLAGS@ -DLOCALE_DIR=\"$(localedir)\"
 
-lib_LTLIBRARIES = \
+gmerlin_plugin_LTLIBRARIES = \
 e_ffmpeg_video.la \
 e_ffmpeg_audio.la \
 e_ffmpeg.la

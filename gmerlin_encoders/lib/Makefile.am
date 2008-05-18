@@ -1,3 +1,5 @@
+INCLUDES = -I$(top_srcdir)/include
+
 if HAVE_FLAC
 flac_libs = libbgflac.la
 else

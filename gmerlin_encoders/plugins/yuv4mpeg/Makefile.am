@@ -1,8 +1,11 @@
-libdir=@GMERLIN_PLUGIN_DIR@
+gmerlin_plugindir = @gmerlin_plugindir@
+
+INCLUDES = -I$(top_srcdir)/include
+
 AM_LDFLAGS = @GMERLIN_PLUGIN_LDFLAGS@ -avoid-version -module
 AM_CFLAGS = @MJPEGTOOLS_CFLAGS@ -DLOCALE_DIR=\"$(localedir)\"
 
-lib_LTLIBRARIES = e_yuv4mpeg.la e_mpegvideo.la e_mpegaudio.la e_mpeg.la
+gmerlin_plugin_LTLIBRARIES = e_yuv4mpeg.la e_mpegvideo.la e_mpegaudio.la e_mpeg.la
 
 e_yuv4mpeg_la_SOURCES  = e_yuv4mpeg.c y4m_common.c
 e_yuv4mpeg_la_LIBADD = @GMERLIN_DEP_LIBS@ @MJPEGTOOLS_LIBS@
