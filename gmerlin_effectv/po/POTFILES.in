@@ -39,7 +39,6 @@ plugins/fv_spiraltv.c
 plugins/fv_puptv.c
 plugins/fv_optv.c
 include/gmerlin_effectv.h
-include/config.h
 include/EffecTV.h
 include/utils.h
 include/video.h

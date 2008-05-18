@@ -1,9 +1,10 @@
-libdir=@GMERLIN_PLUGIN_DIR@
+INCLUDES = -I$(top_srcdir)/include
+gmerlin_plugindir=@gmerlin_plugindir@
 AM_LDFLAGS = @GMERLIN_PLUGIN_LDFLAGS@ -avoid-version -module
 AM_CFLAGS =  -DLOCALE_DIR=\"$(localedir)\"
-LIBS = @GMERLIN_DEP_LIBS@ @top_srcdir@/lib/libgmerlin_effectv.la
+LIBS = @GMERLIN_DEP_LIBS@ $(top_builddir)/lib/libgmerlin_effectv.la
 
-lib_LTLIBRARIES = \
+gmerlin_plugin_LTLIBRARIES = \
 fv_1dtv.la \
 fv_agingtv.la \
 fv_baltantv.la \

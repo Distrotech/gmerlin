@@ -1,3 +1,4 @@
+INCLUDES = -I$(top_srcdir)/include
 noinst_LTLIBRARIES = libgmerlin_effectv.la
 AM_CFLAGS = -DLOCALE_DIR=\"$(localedir)\"
 
