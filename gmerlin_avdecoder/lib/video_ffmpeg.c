@@ -422,7 +422,7 @@ static int get_data_normal(bgav_stream_t * s, int64_t * pts, int64_t * position,
 
 static int get_data(bgav_stream_t * s)
   {
-  int64_t pts, position, duration;
+  int64_t pts = 0, position = 0, duration = 0;
   int ret;
   ffmpeg_video_priv * priv;
   priv = (ffmpeg_video_priv*)(s->data.video.decoder->priv);

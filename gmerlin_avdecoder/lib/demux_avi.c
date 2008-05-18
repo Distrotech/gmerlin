@@ -2215,7 +2215,7 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
           {
           avi_as = (audio_priv_t*)s->priv;
           p->pts = avi_as->sample_counter;
-          avi_vs->frame_counter += p->data_size / s->data.audio.block_align;
+          avi_as->sample_counter += p->data_size / s->data.audio.block_align;
           if(s->action == BGAV_STREAM_PARSE)
             s->duration = avi_as->sample_counter;
           p->keyframe = 1;

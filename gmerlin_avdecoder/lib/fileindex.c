@@ -30,6 +30,8 @@
 #include <avdec_private.h>
 #include <md5.h>
 
+#include <dirent.h>
+
 #define LOG_DOMAIN "fileindex"
 
 static void dump_index(bgav_stream_t * s)
@@ -395,6 +397,104 @@ int bgav_read_file_index(bgav_t * b)
   return 0;
   }
 
+typedef struct
+  {
+  char * name;
+  off_t size;
+  time_t time;
+  } index_file_t;
+
+static void purge_cache(const char * filename,
+                        int max_size)
+  {
+  int num_files;
+  int files_alloc;
+  index_file_t * files = (index_file_t *)0;
+  int64_t total_size;
+  int64_t max_total_size;
+  time_t time_min;
+  int index;
+  char * directory, *pos;
+  DIR * dir;
+  struct dirent * res;
+  struct stat st;
+  int i;
+  
+  union
+    {
+    struct dirent d;
+    char b[sizeof (struct dirent) + NAME_MAX];
+    } u;
+
+  directory = bgav_strdup(filename);
+  pos = strrchr(directory, '/');
+  if(!pos)
+    {
+    free(directory);
+    return;
+    }
+  *pos = '\0';
+
+  dir = opendir(directory);
+  if(!dir)
+    return;
+  
+  /* Get all index files with their sizes and mtimes */
+  num_files = 0;
+  files_alloc = 0;
+  total_size = 0;
+  while(!readdir_r(dir, &u.d, &res))
+    {
+    if(res->d_type == DT_REG)
+      {
+      if(num_files + 1 > files_alloc)
+        {
+        files_alloc += 128;
+        files = realloc(files, files_alloc * sizeof(*files));
+        memset(files + num_files, 0,
+               (files_alloc - num_files) * sizeof(*files));
+        }
+      files[num_files].name = bgav_sprintf("%s/%s", directory, res->d_name);
+
+      if(!stat(files[num_files].name, &st))
+        {
+        files[num_files].time = st.st_mtime;
+        files[num_files].size = st.st_size;
+        }
+      num_files++;
+      total_size += files[num_files].size;
+      }
+    }
+
+  max_total_size = (int64_t)max_size * 1024 * 1024;
+
+  while(total_size > max_total_size)
+    {
+    /* Look for the file to be deleted */
+    time_min = 0;
+    index = -1;
+    for(i = 0; i < num_files; i++)
+      {
+      if(files[i].time &&
+         ((files[i].time < time_min) || !time_min))
+        {
+        time_min = files[i].time;
+        index = i;
+        }
+      }
+    if(index == -1)
+      break;
+    remove(files[i].name);
+    total_size -= files[i].size;
+    }
+
+  for(i = 0; i < num_files; i++)
+    {
+    if(files[i].name) free(files[i].name);
+    }
+  free(files);
+  }
+
 void bgav_write_file_index(bgav_t * b)
   {
   int i, j;
@@ -406,14 +506,11 @@ void bgav_write_file_index(bgav_t * b)
   if(!b->input->index_file || !b->input->filename)
     return;
   
-  
   filename = 
     bgav_search_file_write(&b->opt,
                            "indices", b->input->index_file);
-
+  
   output = fopen(filename, "w");
-
-  free(filename);
   
   bgav_file_index_write_header(b->input->filename,
                                output,
@@ -459,6 +556,12 @@ void bgav_write_file_index(bgav_t * b)
       }
     }
   fclose(output);
+  
+  if(b->opt.cache_size > 0)
+    purge_cache(filename, b->opt.cache_size);
+  
+  free(filename);
+
   }
 
 /*
@@ -827,9 +930,14 @@ static int bgav_build_file_index_si_parse(bgav_t * b)
   return 1;
   }
 
-int bgav_build_file_index(bgav_t * b)
+int bgav_build_file_index(bgav_t * b, gavl_time_t * time_needed)
   {
   int ret;
+  
+  gavl_timer_t * timer = gavl_timer_create();
+
+  gavl_timer_start(timer);
+  
   switch(b->demuxer->index_mode)
     {
     case INDEX_MODE_MPEG:
@@ -847,8 +955,11 @@ int bgav_build_file_index(bgav_t * b)
   if(!ret)
     {
     bgav_log(&b->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Building file index failed");
+    gavl_timer_destroy(timer);
     return 0;
     }
+  *time_needed = gavl_timer_get(timer);
+  gavl_timer_destroy(timer);
   set_has_file_index(b);
   return 1;
   }

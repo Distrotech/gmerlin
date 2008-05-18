@@ -75,6 +75,16 @@ void bgav_options_set_sample_accurate(bgav_options_t*b, int p)
   b->sample_accurate = p;
   }
 
+void bgav_options_set_cache_time(bgav_options_t*opt, int t)
+  {
+  opt->cache_time = t;
+  }
+
+void bgav_options_set_cache_size(bgav_options_t*opt, int s)
+  {
+  opt->cache_size = s;
+  }
+
 void bgav_options_set_http_proxy_auth(bgav_options_t*b, int i)
   {
   b->http_proxy_auth = i;
@@ -190,6 +200,8 @@ void bgav_options_set_defaults(bgav_options_t * b)
   b->default_subtitle_encoding = bgav_strdup("LATIN1");
   b->dvd_chapters_as_tracks = 0;
   b->audio_dynrange = 1;
+  b->cache_time = 500;
+  b->cache_size = 20;
   // Test
   b->prefer_ffmpeg_demuxers = 0;
   }
@@ -215,6 +227,8 @@ void bgav_options_destroy(bgav_options_t * opt)
 void bgav_options_copy(bgav_options_t * dst, const bgav_options_t * src)
   {
   CP_INT(sample_accurate);
+  CP_INT(cache_time);
+  CP_INT(cache_size);
   /* Generic network options */
   CP_INT(connect_timeout);
   CP_INT(read_timeout);

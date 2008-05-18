@@ -299,7 +299,7 @@ void bgav_seek_subtitle(bgav_t * bgav, int stream, int64_t time)
 int bgav_set_sample_accurate(bgav_t * b)
   {
   int i;
-
+  gavl_time_t t;
   switch(b->demuxer->index_mode)
     {
     case INDEX_MODE_NONE:
@@ -322,8 +322,11 @@ int bgav_set_sample_accurate(bgav_t * b)
       /* Try to read a file index */
       if(!bgav_read_file_index(b))
         {
-        if(bgav_build_file_index(b))
-          bgav_write_file_index(b);
+        if(bgav_build_file_index(b, &t))
+          {
+          if(!b->opt.cache_time || ((t*1000)/GAVL_TIME_SCALE > b->opt.cache_time))
+            bgav_write_file_index(b);
+          }
         else
           return 0;
         }
@@ -335,8 +338,11 @@ int bgav_set_sample_accurate(bgav_t * b)
       /* Try to read a file index */
       if(!bgav_read_file_index(b))
         {
-        if(bgav_build_file_index(b))
-          bgav_write_file_index(b);
+        if(bgav_build_file_index(b, &t))
+          {
+          if(!b->opt.cache_time || ((t*1000)/GAVL_TIME_SCALE > b->opt.cache_time))
+            bgav_write_file_index(b);
+          }
         else
           return 0;
         }

@@ -850,7 +850,7 @@ static void handle_material_track(bgav_demuxer_context_t * ctx, mxf_package_t * 
   mxf_source_clip_t * sc;
   mxf_t * priv;
   bgav_edl_stream_t * es = (bgav_edl_stream_t*)0;
-  int track_index, stream_index;
+  int track_index, stream_index = 0;
   bgav_edl_segment_t * seg;
   int64_t duration = 0;
   priv = (mxf_t*)ctx->priv;

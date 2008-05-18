@@ -448,6 +448,29 @@ void bgav_options_set_seamless(bgav_options_t* opt,
 
 void bgav_options_set_sample_accurate(bgav_options_t*opt, int enable);
 
+/** \ingroup options
+ *  \brief Set the index creation time for caching
+ *  \param opt Option container
+ *  \param t Time (in milliseconds) needed for creating the index
+ *
+ *  This option controls, which indices are cached, based on the
+ *  time needed for creating the index. Indices, whose creation takes
+ *  longer than the specified time will be cached. If you set this to
+ *  zero, all indices are cached.
+ */
+
+void bgav_options_set_cache_time(bgav_options_t*opt, int t);
+
+/** \ingroup options
+ *  \brief Set the maximum total size of the index cache
+ *  \param opt Option container
+ *  \param s Maximum size (in megabytes) of the whole cache directory
+ *
+ *  If a new index is created and the size becomes larger than
+ *  the maximum size, older indices will be deleted. Zero means infinite.
+ */
+
+void bgav_options_set_cache_size(bgav_options_t*opt, int s);
 
 /** \ingroup options
  *  \brief Enable external subtitle files

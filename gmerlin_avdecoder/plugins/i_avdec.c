@@ -272,6 +272,20 @@ supported encodings."),
       .val_default = { .val_i = 0 },
       .help_string = TRS("Try sample accurate seeking. For most formats, this is not necessary, since normal seeking works fine. Some formats are only seekable with this option enabled."),
     },
+    {
+      .name =        "cache_time",
+      .long_name =   TRS("Cache time (milliseconds)"),
+      .type =        BG_PARAMETER_INT,
+      .val_default = { .val_i = 500 },
+      .help_string = TRS("If building an index takes longer than the specified time, it will be cached."),
+    },
+    {
+      .name =        "cache_size",
+      .long_name =   TRS("Cache size (Megabytes)"),
+      .type =        BG_PARAMETER_INT,
+      .val_default = { .val_i = 20 },
+      .help_string = TRS("Set the maximum total size of the cache directory."),
+    },
     { /* End of parameters */ }
   };
 

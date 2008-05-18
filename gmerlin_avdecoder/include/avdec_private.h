@@ -624,6 +624,9 @@ struct bgav_options_s
   {
   /* Try sample accurate processing */
   int sample_accurate;
+  int cache_time;
+  int cache_size;
+  
   /* Generic network options */
   int connect_timeout;
   int read_timeout;
@@ -1021,8 +1024,7 @@ int bgav_read_file_index(bgav_t*);
 
 void bgav_write_file_index(bgav_t*);
 
-int bgav_build_file_index(bgav_t * b);
-
+int bgav_build_file_index(bgav_t * b, gavl_time_t * time_needed);
 
 /* Demuxer class */
 
