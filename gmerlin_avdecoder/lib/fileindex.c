@@ -405,7 +405,7 @@ typedef struct
   } index_file_t;
 
 static void purge_cache(const char * filename,
-                        int max_size)
+                        int max_size, const bgav_options_t * opt)
   {
   int num_files;
   int files_alloc;
@@ -445,6 +445,9 @@ static void purge_cache(const char * filename,
   total_size = 0;
   while(!readdir_r(dir, &u.d, &res))
     {
+    if(!res)
+      break;
+    
     if(res->d_type == DT_REG)
       {
       if(num_files + 1 > files_alloc)
@@ -461,11 +464,12 @@ static void purge_cache(const char * filename,
         files[num_files].time = st.st_mtime;
         files[num_files].size = st.st_size;
         }
-      num_files++;
       total_size += files[num_files].size;
+      num_files++;
       }
     }
-
+  closedir(dir);
+  
   max_total_size = (int64_t)max_size * 1024 * 1024;
 
   while(total_size > max_total_size)
@@ -484,10 +488,13 @@ static void purge_cache(const char * filename,
       }
     if(index == -1)
       break;
-    remove(files[i].name);
-    total_size -= files[i].size;
+    bgav_log(opt, BGAV_LOG_INFO, LOG_DOMAIN,
+             "Removing %s to keep maximum cache size", files[index].name);
+    remove(files[index].name);
+    files[index].time = 0;
+    total_size -= files[index].size;
     }
-
+  
   for(i = 0; i < num_files; i++)
     {
     if(files[i].name) free(files[i].name);
@@ -558,7 +565,7 @@ void bgav_write_file_index(bgav_t * b)
   fclose(output);
   
   if(b->opt.cache_size > 0)
-    purge_cache(filename, b->opt.cache_size);
+    purge_cache(filename, b->opt.cache_size, &b->opt);
   
   free(filename);
 
@@ -959,6 +966,9 @@ int bgav_build_file_index(bgav_t * b, gavl_time_t * time_needed)
     return 0;
     }
   *time_needed = gavl_timer_get(timer);
+  bgav_log(&b->opt, BGAV_LOG_INFO, LOG_DOMAIN,
+           "Built file index in %.2f seconds",
+           gavl_time_to_seconds(*time_needed));
   gavl_timer_destroy(timer);
   set_has_file_index(b);
   return 1;

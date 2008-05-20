@@ -370,33 +370,35 @@ static void parse_mad(bgav_stream_t * s)
       
       ptr = priv->buffer;
       }
-    while(priv->buffer_size > HEADER_SIZE)
+    while(priv->buffer_size >= HEADER_SIZE)
       {
       //      fprintf(stderr, "decode header: ");
       //      bgav_hexdump(ptr, 8, 8);
-      if(!bgav_mpa_header_decode(&h, ptr))
+      if(bgav_mpa_header_decode(&h, ptr))
         {
-        bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-                 "Lost sync during parsing");
-        return; 
-        }
-      s->data.audio.format.samplerate = h.samplerate;
-      /* If frame starts in the previous packet,
-         use the previous index */
-      if(ptr - priv->buffer < old_buffer_size)
-        bgav_file_index_append_packet(s->file_index,
-                                      priv->last_position,
-                                      s->duration,
-                                      1);
-      else
-        bgav_file_index_append_packet(s->file_index,
-                                      p->position,
-                                      s->duration,
-                                      1);
+        s->data.audio.format.samplerate = h.samplerate;
+        /* If frame starts in the previous packet,
+           use the previous index */
+        if(ptr - priv->buffer < old_buffer_size)
+          bgav_file_index_append_packet(s->file_index,
+                                        priv->last_position,
+                                        s->duration,
+                                        1);
+        else
+          bgav_file_index_append_packet(s->file_index,
+                                        p->position,
+                                        s->duration,
+                                        1);
       
-      s->duration += h.samples_per_frame;
-      ptr += h.frame_bytes;
-      priv->buffer_size -= h.frame_bytes;
+        s->duration += h.samples_per_frame;
+        ptr += h.frame_bytes;
+        priv->buffer_size -= h.frame_bytes;
+        }
+      else
+        {
+        ptr++;
+        priv->buffer_size--;
+        }
       //      fprintf(stderr, "Parse mad got packet %d bytes left\n", priv->buffer_size); 
       }
     if(priv->buffer_size > 0)

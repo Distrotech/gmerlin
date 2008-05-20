@@ -648,7 +648,9 @@ static int next_packet(bgav_demuxer_context_t * ctx,
           stream->fourcc = BGAV_MK_FOURCC('V', 'C', '-', '1');
           }
         }
-      else if((priv->pes_header.stream_id != 0xbe) && (priv->pes_header.stream_id != 0xbf))
+      else if((priv->pes_header.stream_id != 0xbe) &&
+              (priv->pes_header.stream_id != 0xbf) &&
+              (priv->pes_header.stream_id != 0xb9))
         {
         // Print a warning except for padding stream (0xbe) and private_stream_2 (0xbf)
         bgav_log(ctx->opt, BGAV_LOG_WARNING,

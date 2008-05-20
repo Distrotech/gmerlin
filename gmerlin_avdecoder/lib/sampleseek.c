@@ -214,6 +214,8 @@ int64_t bgav_video_keyframe_before(bgav_t * bgav, int stream, int64_t time)
       }
     if(pos < s->first_index_position)
       return BGAV_TIMESTAMP_UNDEFINED;
+    else
+      return bgav->demuxer->si->entries[pos].time;
     }
   else /* Fileindex */
     {
