@@ -112,20 +112,25 @@ CFLAGS="$CFLAGS $GMERLIN_DEP_CFLAGS $LIBPOSTPROC_CFLAGS"
 found_header="false"
 
 AC_TRY_COMPILE([
+#include <inttypes.h>
 #include <libpostproc/postprocess.h>],[], [found_header="true";POSTPROC_HEADER="<libpostproc/postprocess.h>" ],)
 
 
 if test $found_header = "false"; then
 AC_TRY_COMPILE([
+#include <inttypes.h> 
 #include <postproc/postprocess.h>],[], [found_header="true";POSTPROC_HEADER="<postproc/postprocess.h>" ],)
 fi
 
 if test $found_header = "false"; then
 AC_TRY_COMPILE([
+#include <inttypes.h> 
 #include <postprocess.h>],[],[found_header="true";POSTPROC_HEADER="<postprocess.h>"])
 fi
 
-
+if test $found_header = "false"; then
+have_libpostproc=false
+fi
 
 CFLAGS="$CFLAGS_save"
        
@@ -178,15 +183,18 @@ CFLAGS="$CFLAGS $GMERLIN_DEP_CFLAGS $LIBSWSCALE_CFLAGS"
 found_header="false"
 
 AC_TRY_COMPILE([
+#include <inttypes.h>
 #include <libswscale/swscale.h>],[], [found_header="true";SWSCALE_HEADER="<libswscale/swscale.h>"],)
 
 if test $found_header = "false"; then
 AC_TRY_COMPILE([
+#include <inttypes.h>
 #include <swscale/swscale.h>],[], [found_header="true";SWSCALE_HEADER="<swscale/swscale.h>"],)
 fi
 
 if test $found_header = "false"; then
 AC_TRY_COMPILE([
+#include <inttypes.h>
 #include <swscale.h>],[],[found_header="true";SWSCALE_HEADER="<swscale.h>"])
 fi
 
