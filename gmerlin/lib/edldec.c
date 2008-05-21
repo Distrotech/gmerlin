@@ -684,8 +684,8 @@ static int read_video_edl(void * priv, gavl_video_frame_t* frame, int stream)
     init_video_segment(vs);
     }
 
-  fprintf(stderr, "read_video_edl: %ld %ld %ld\n",
-          vs->first_pts, vs->out_time, vs->segment_end_time);
+  //  fprintf(stderr, "read_video_edl: %ld %ld %ld\n",
+  //          vs->first_pts, vs->out_time, vs->segment_end_time);
   
   seg = &vs->segments[vs->current_segment];
   if(!seg->src)
