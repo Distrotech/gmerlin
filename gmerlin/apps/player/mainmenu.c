@@ -1243,24 +1243,30 @@ GtkWidget * main_menu_get_widget(main_menu_t * m)
 
 void main_menu_set_tree_window_item(main_menu_t * m, int state)
   {
-  g_signal_handler_block(G_OBJECT(m->windows_menu.mediatree), m->windows_menu.mediatree_id);
+  g_signal_handler_block(G_OBJECT(m->windows_menu.mediatree),
+                         m->windows_menu.mediatree_id);
   gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(m->windows_menu.mediatree), state);
-  g_signal_handler_unblock(G_OBJECT(m->windows_menu.mediatree), m->windows_menu.mediatree_id);
+  g_signal_handler_unblock(G_OBJECT(m->windows_menu.mediatree),
+                           m->windows_menu.mediatree_id);
   
   }
 
 void main_menu_set_info_window_item(main_menu_t * m, int state)
   {
-  g_signal_handler_block(G_OBJECT(m->windows_menu.infowindow), m->windows_menu.infowindow_id);
+  g_signal_handler_block(G_OBJECT(m->windows_menu.infowindow),
+                         m->windows_menu.infowindow_id);
   gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(m->windows_menu.infowindow), state);
-  g_signal_handler_unblock(G_OBJECT(m->windows_menu.infowindow), m->windows_menu.infowindow_id);
+  g_signal_handler_unblock(G_OBJECT(m->windows_menu.infowindow),
+                           m->windows_menu.infowindow_id);
   }
 
 void main_menu_set_log_window_item(main_menu_t * m, int state)
   {
-  g_signal_handler_block(G_OBJECT(m->windows_menu.logwindow), m->windows_menu.logwindow_id);
+  g_signal_handler_block(G_OBJECT(m->windows_menu.logwindow),
+                         m->windows_menu.logwindow_id);
   gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(m->windows_menu.logwindow), state);
-  g_signal_handler_unblock(G_OBJECT(m->windows_menu.logwindow), m->windows_menu.logwindow_id);
+  g_signal_handler_unblock(G_OBJECT(m->windows_menu.logwindow),
+                           m->windows_menu.logwindow_id);
   }
 
 void main_menu_set_plugin_window_item(main_menu_t * m, int state)
