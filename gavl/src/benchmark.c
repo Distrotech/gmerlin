@@ -64,7 +64,8 @@ int do_html = 0;
 gavl_pixelformat_t opt_pfmt1 = GAVL_PIXELFORMAT_NONE;
 gavl_pixelformat_t opt_pfmt2 = GAVL_PIXELFORMAT_NONE;
 
-#ifdef _POSIX_CPUTIME
+// #ifdef _POSIX_CPUTIME
+#ifdef HAVE_CLOCK_GETTIME
 
 #define TIME_UNIT "nanoseconds returned by clock_gettime with CLOCK_PROCESS_CPUTIME_ID"
 
