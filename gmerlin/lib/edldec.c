@@ -74,19 +74,11 @@ typedef struct
 
 typedef struct
   {
-  audio_source_t * src;
+  source_common_t * src;
   const bg_edl_segment_t * seg;
   int64_t mute_start;
   int64_t mute_duration;
-  } audio_segment_t;
-
-typedef struct
-  {
-  video_source_t * src;
-  const bg_edl_segment_t * seg;
-  int64_t mute_start;
-  int64_t mute_duration;
-  } video_segment_t;
+  } segment_t;
 
 typedef struct
   {
@@ -109,7 +101,7 @@ typedef struct
 typedef struct
   {
   int num_segments;
-  audio_segment_t * segments;
+  segment_t * segments;
 
   int num_sources;
   audio_source_t * sources;
@@ -131,7 +123,7 @@ typedef struct
 typedef struct
   {
   int num_segments;
-  video_segment_t * segments;
+  segment_t * segments;
 
   gavl_video_format_t * format;
   
@@ -195,6 +187,49 @@ typedef struct
   
   } edl_dec_t;
 
+/* Timing functions */
+
+/*
+  |---------------------------------> out_time
+  |               |-----------------> in_time
+
+  0             dst_time
+*/
+  
+static int64_t get_source_offset(const bg_edl_stream_t * st,
+                                 segment_t * s, int64_t out_time, int64_t out_scale)
+  {
+  int64_t seg_offset;    /* in out timescale */
+  int64_t source_offset; /* in out timescale */
+  seg_offset = out_time - gavl_time_rescale(st->timescale, out_scale, s->seg->dst_time);
+  source_offset = gavl_time_rescale(s->seg->timescale, out_scale, s->seg->src_time);
+  return source_offset + seg_offset;
+  }
+
+static int seek_segment(const bg_edl_stream_t * st,
+                        segment_t * segs, int nsegs, int64_t out_time, int out_scale)
+  {
+  /* Rescale to edit granularity */
+  int64_t t = gavl_time_rescale(out_scale, st->timescale, out_time);
+  int i;
+  for(i = 0; i < nsegs; i++)
+    {
+    if(segs[i].src)
+      {
+      if((segs[i].seg->dst_time <= t) &&
+         (segs[i].seg->dst_time + segs[i].seg->dst_duration > t))
+        return i;
+      }
+    else
+      {
+      if((segs[i].mute_start <= t) &&
+         (segs[i].mute_start + segs[i].mute_duration > t))
+        return i;
+      }
+    }
+  return -1;
+  }
+
 /* Stream initialization */
 
 static const bg_edl_segment_t * find_same_source(const bg_edl_segment_t * segments,
@@ -222,10 +257,9 @@ static const bg_edl_segment_t * find_same_source(const bg_edl_segment_t * segmen
     }
   return (bg_edl_segment_t *)0;
   }
-
                            
 static void add_audio_segment(edl_dec_t * dec, int track, int stream,
-                             const bg_edl_segment_t * seg)
+                              const bg_edl_segment_t * seg)
   {
   int i;
   audio_source_t * source = (audio_source_t*)0;
@@ -233,7 +267,7 @@ static void add_audio_segment(edl_dec_t * dec, int track, int stream,
   
   bg_audio_info_t * ai;
   audio_stream_t * s = &dec->tracks[track].audio_streams[stream];
-  audio_segment_t * as;
+  segment_t * as;
   ai = &dec->track_info[track].audio_streams[stream];
 
   if(seg->dst_time > ai->duration)
@@ -263,7 +297,7 @@ static void add_audio_segment(edl_dec_t * dec, int track, int stream,
       {
       if(same_source_seg == s->segments[i].seg)
         {
-        source = s->segments[i].src;
+        source = (audio_source_t*)s->segments[i].src;
         break;
         }
       }
@@ -278,11 +312,10 @@ static void add_audio_segment(edl_dec_t * dec, int track, int stream,
     source->com.stream = seg->stream;
     source->cnv = bg_audio_converter_create(dec->a_opt);
     }
-  as->src = source;
+  as->src = (source_common_t*)source;
   as->seg = seg;
   ai->duration = seg->dst_time + seg->dst_duration;
   }
-
 
 static int add_video_segment(edl_dec_t * dec, int track, int stream,
                              const bg_edl_segment_t * seg)
@@ -293,7 +326,7 @@ static int add_video_segment(edl_dec_t * dec, int track, int stream,
   
   bg_video_info_t * vi;
   video_stream_t * s = &dec->tracks[track].video_streams[stream];
-  video_segment_t * vs;
+  segment_t * vs;
   vi = &dec->track_info[track].video_streams[stream];
   
   if(seg->dst_time > vi->duration)
@@ -323,7 +356,7 @@ static int add_video_segment(edl_dec_t * dec, int track, int stream,
       {
       if(same_source_seg == s->segments[i].seg)
         {
-        source = s->segments[i].src;
+        source = (video_source_t*)s->segments[i].src;
         break;
         }
       }
@@ -338,46 +371,61 @@ static int add_video_segment(edl_dec_t * dec, int track, int stream,
     source->com.stream = seg->stream;
     source->cnv = bg_video_converter_create(dec->v_opt);
     }
-  vs->src = source;
+  vs->src = (source_common_t*)source;
   vs->seg = seg;
   vi->duration = seg->dst_time + seg->dst_duration;
   return 1;
   }
 
 
-/* Initialize segments for immediate playback */
+/* Initialize segments for immediate playback. out_time must be set before */
 
 static void init_audio_segment(audio_stream_t * as)
   {
-  audio_segment_t * seg;
+  segment_t * seg;
   int64_t t;
+  audio_source_t * src;
   seg = &as->segments[as->current_segment];
   if(seg->seg)
     {
-    as->segment_end_time = gavl_time_rescale(as->es->timescale, as->format->samplerate,
-                                             seg->seg->dst_time + seg->seg->dst_duration);
-    t = seg->seg->src_time;
-    seg->src->com.plugin->seek(seg->src->com.handle->priv, &t, seg->seg->timescale);
+    as->segment_end_time =
+      gavl_time_rescale(as->es->timescale, as->format->samplerate,
+                        seg->seg->dst_time + seg->seg->dst_duration);
+    t = get_source_offset(as->es, seg, as->out_time, as->format->samplerate);
+    
+    seg->src->plugin->seek(seg->src->handle->priv,
+                           &t, as->format->samplerate);
+    src = (audio_source_t *)(seg->src);
+    if(src->cnv)
+      bg_audio_converter_reset(src->cnv);
     }
   else
-    as->segment_end_time = gavl_time_rescale(as->es->timescale, as->format->samplerate,
-                                             seg->mute_start + seg->mute_duration);
+    as->segment_end_time =
+      gavl_time_rescale(as->es->timescale, as->format->samplerate,
+                        seg->mute_start + seg->mute_duration);
   }
 
 static void init_video_segment(video_stream_t * vs)
   {
-  video_segment_t * seg;
+  segment_t * seg;
   int64_t t;
+  video_source_t * src;
   seg = &vs->segments[vs->current_segment];
   if(seg->seg)
     {
-    vs->segment_start_time = gavl_time_rescale(vs->es->timescale, vs->format->timescale,
-                                               seg->seg->dst_time);
-    vs->segment_end_time = gavl_time_rescale(vs->es->timescale, vs->format->timescale,
-                                             seg->seg->dst_time + seg->seg->dst_duration);
-    t = seg->seg->src_time;
+    vs->segment_start_time =
+      gavl_time_rescale(vs->es->timescale, vs->format->timescale,
+                        seg->seg->dst_time);
+    vs->segment_end_time =
+      gavl_time_rescale(vs->es->timescale, vs->format->timescale,
+                        seg->seg->dst_time + seg->seg->dst_duration);
+    t = get_source_offset(vs->es, seg, vs->out_time, vs->format->timescale);
     
-    seg->src->com.plugin->seek(seg->src->com.handle->priv, &t, seg->seg->timescale);
+    seg->src->plugin->seek(seg->src->handle->priv, &t, vs->format->timescale);
+
+    src = (video_source_t *)(seg->src);
+    if(src->cnv)
+      bg_video_converter_reset(src->cnv);
     }
   else
     {
@@ -457,9 +505,21 @@ static int init_source_common(edl_dec_t * dec,
   if(com->plugin->set_track && !com->plugin->set_track(com->handle->priv, com->track))
     return 0;
   com->ti = com->plugin->get_track_info(com->handle->priv, com->track);
+
+  if(!com->ti->seekable)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "EDL only works with seekable sources");
+    return 0;
+    }
   com->read_stream = com->stream;
   com->read_data = com->handle->priv;
   return 1;
+  }
+
+static void cleanup_source_common(source_common_t * com)
+  {
+  if(com->handle)
+    bg_plugin_unref(com->handle);
   }
 
 static int start_edl(void * priv)
@@ -524,8 +584,8 @@ static int start_edl(void * priv)
     as->current_segment = 0;
     init_audio_segment(as);
 
-    fprintf(stderr, "Audio format:\n");
-    gavl_audio_format_dump(as->format);
+    //    fprintf(stderr, "Audio format:\n");
+    //    gavl_audio_format_dump(as->format);
 
     }
   
@@ -587,8 +647,8 @@ static int read_audio_edl(void * priv, gavl_audio_frame_t* frame, int stream,
   edl_dec_t * dec;
   audio_stream_t * as;
   int num;
-  audio_segment_t * seg;
-    
+  segment_t * seg;
+  audio_source_t * src;
   dec = (edl_dec_t*)priv;
   as = &dec->tracks[dec->current_track].audio_streams[stream];
 
@@ -643,8 +703,9 @@ static int read_audio_edl(void * priv, gavl_audio_frame_t* frame, int stream,
       }
     else
       {
-      seg->src->read_func(seg->src->com.read_data, as->frame, seg->src->com.read_stream,
-                          num);
+      src = (audio_source_t *)(seg->src);
+      src->read_func(seg->src->read_data, as->frame, seg->src->read_stream,
+                     num);
       }
     
     num = gavl_audio_frame_copy(as->format,
@@ -667,8 +728,8 @@ static int read_video_edl(void * priv, gavl_video_frame_t* frame, int stream)
   {
   edl_dec_t * dec;
   video_stream_t * vs;
-  video_segment_t * seg;
-
+  segment_t * seg;
+  video_source_t * src;
   dec = (edl_dec_t*)priv;
   vs = &dec->tracks[dec->current_track].video_streams[stream];
 
@@ -698,7 +759,9 @@ static int read_video_edl(void * priv, gavl_video_frame_t* frame, int stream)
     }
   else
     {
-    if(!seg->src->read_func(seg->src->com.read_data, frame, seg->src->com.read_stream))
+    src = (video_source_t *)seg->src;
+    
+    if(!src->read_func(src->com.read_data, frame, src->com.read_stream))
       {
       bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Unexpected EOF, clearing frame");
       gavl_video_frame_clear(frame, vs->format);
@@ -744,10 +807,10 @@ static int read_subtitle_text_edl(void * priv,
 static void seek_edl(void * priv, int64_t * time, int scale)
   {
   edl_dec_t * dec;
-  int i, j;
+  int i;
   track_t * t;
   bg_edl_track_t * et;
-  
+  int64_t time_scaled;
   dec = (edl_dec_t*)priv;
   t = &dec->tracks[dec->current_track];
   et = &dec->edl->tracks[dec->current_track];
@@ -756,11 +819,40 @@ static void seek_edl(void * priv, int64_t * time, int scale)
     {
     if(t->audio_streams[i].action != BG_STREAM_ACTION_DECODE)
       continue;
+    time_scaled = gavl_time_rescale(scale, t->audio_streams[i].format->samplerate,
+                                    *time);
+    t->audio_streams[i].current_segment =
+      seek_segment(t->audio_streams[i].es,
+                   t->audio_streams[i].segments,
+                   t->audio_streams[i].num_segments,
+                   time_scaled, t->audio_streams[i].format->samplerate);
+    if(t->audio_streams[i].current_segment < 0)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Seeked out of range");
+      return;
+      }
+    t->audio_streams[i].out_time = time_scaled;
+    init_audio_segment(&t->audio_streams[i]);
     }
   for(i = 0; i < et->num_video_streams; i++)
     {
     if(t->video_streams[i].action != BG_STREAM_ACTION_DECODE)
       continue;
+
+    time_scaled = gavl_time_rescale(scale, t->video_streams[i].format->timescale,
+                                    *time);
+    t->video_streams[i].current_segment =
+      seek_segment(t->video_streams[i].es,
+                   t->video_streams[i].segments,
+                   t->video_streams[i].num_segments,
+                   time_scaled, t->video_streams[i].format->timescale);
+    if(t->video_streams[i].current_segment < 0)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Seeked out of range");
+      return;
+      }
+    t->video_streams[i].out_time = time_scaled;
+    init_video_segment(&t->video_streams[i]);
     
     }
   for(i = 0; i < et->num_subtitle_text_streams; i++)
@@ -780,16 +872,90 @@ static void seek_edl(void * priv, int64_t * time, int scale)
 
 static void close_edl(void * priv)
   {
+  int i, j, k;
   edl_dec_t * dec;
   dec = (edl_dec_t*)priv;
 
+  for(i = 0; i < dec->edl->num_tracks; i++)
+    {
+    for(j = 0; j < dec->edl->tracks[i].num_audio_streams; j++)
+      {
+      /* Close sources */
+      for(k = 0; k < dec->tracks[i].audio_streams[j].num_sources; k++)
+        {
+        cleanup_source_common(&dec->tracks[i].audio_streams[j].sources[k].com);
+        if(dec->tracks[i].audio_streams[j].sources[k].cnv)
+          bg_audio_converter_destroy(dec->tracks[i].audio_streams[j].sources[k].cnv);
+        }
+      if(dec->tracks[i].audio_streams[j].sources)
+        free(dec->tracks[i].audio_streams[j].sources);
+      
+      if(dec->tracks[i].audio_streams[j].segments)
+        free(dec->tracks[i].audio_streams[j].segments);
+      if(dec->tracks[i].audio_streams[j].frame)
+        gavl_audio_frame_destroy(dec->tracks[i].audio_streams[j].frame);
+      }
+    if(dec->tracks[i].audio_streams)
+      free(dec->tracks[i].audio_streams);
+    
+    for(j = 0; j < dec->edl->tracks[i].num_video_streams; j++)
+      {
+      /* Close sources */
+      for(k = 0; k < dec->tracks[i].video_streams[j].num_sources; k++)
+        {
+        cleanup_source_common(&dec->tracks[i].video_streams[j].sources[k].com);
+        if(dec->tracks[i].video_streams[j].sources[k].cnv)
+          bg_video_converter_destroy(dec->tracks[i].video_streams[j].sources[k].cnv);
+        }
+      if(dec->tracks[i].video_streams[j].sources)
+        free(dec->tracks[i].video_streams[j].sources);
+
+      if(dec->tracks[i].video_streams[j].segments)
+        free(dec->tracks[i].video_streams[j].segments);
+      
+
+      }
+    if(dec->tracks[i].video_streams)
+      free(dec->tracks[i].video_streams);
+
+    for(j = 0; j < dec->edl->tracks[i].num_subtitle_text_streams; j++)
+      {
+      
+      }
+    for(j = 0; j < dec->edl->tracks[i].num_subtitle_overlay_streams; j++)
+      {
+      
+      }
+    }
+  if(dec->tracks)
+    {
+    free(dec->tracks);
+    dec->tracks = (track_t*)0;
+    }
+  if(dec->track_info)
+    {
+    for(i = 0; i < dec->edl->num_tracks; i++)
+      {
+      bg_track_info_free(&dec->track_info[i]);
+      }
+    free(dec->track_info);
+    dec->track_info = (bg_track_info_t*)0;
+    
+    }
+  
   }
 
 static void destroy_edl(void * priv)
   {
   edl_dec_t * dec;
   dec = (edl_dec_t*)priv;
+  if(dec->tracks)
+    close_edl(priv);
 
+  gavl_audio_options_destroy(dec->a_opt);
+  gavl_video_options_destroy(dec->v_opt);
+
+  free(priv);
   }
 
 static const bg_input_plugin_t edl_plugin =
@@ -858,7 +1024,7 @@ int bg_input_plugin_load_edl(bg_plugin_registry_t * reg,
   track_t * t;
   edl_dec_t * priv;
   bg_plugin_handle_t * ret;
-  
+  gavl_time_t test_duration;
   if(*ret1)
     bg_plugin_unref(*ret1);
   
@@ -890,6 +1056,8 @@ int bg_input_plugin_load_edl(bg_plugin_registry_t * reg,
     ti    = &priv->track_info[i];
     t     = &priv->tracks[i];
     
+    ti->seekable = 1;
+    
     ti->num_audio_streams = track->num_audio_streams;
     
     ti->audio_streams = calloc(ti->num_audio_streams,
@@ -910,7 +1078,9 @@ int bg_input_plugin_load_edl(bg_plugin_registry_t * reg,
         {
         add_audio_segment(priv, i, j, &stream->segments[k]);
         }
-      
+      test_duration = gavl_time_unscale(stream->timescale, ti->audio_streams[j].duration);
+      if(ti->duration < test_duration)
+        ti->duration = test_duration;
       }
     
     /* Video streams */
@@ -926,14 +1096,20 @@ int bg_input_plugin_load_edl(bg_plugin_registry_t * reg,
       {
       stream = &track->video_streams[j];
 
-      t->video_streams[j].sources = calloc(stream->num_segments,
-                                           sizeof(*t->video_streams[j].sources));
+      t->video_streams[j].sources =
+        calloc(stream->num_segments,
+               sizeof(*t->video_streams[j].sources));
       
       t->video_streams[j].es = stream;
       for(k = 0; k < stream->num_segments; k++)
         {
         add_video_segment(priv, i, j, &stream->segments[k]);
         }
+      test_duration =
+        gavl_time_unscale(stream->timescale, ti->video_streams[j].duration);
+      if(ti->duration < test_duration)
+        ti->duration = test_duration;
+
       }
     /* Subtitle text streams */
     
@@ -944,6 +1120,11 @@ int bg_input_plugin_load_edl(bg_plugin_registry_t * reg,
         {
         seg = &stream->segments[k];
         }
+      test_duration =
+        gavl_time_unscale(stream->timescale,
+                          ti->subtitle_streams[j].duration);
+      if(ti->duration < test_duration)
+        ti->duration = test_duration;
       
       }
     /* Subtitle overlay streams */
@@ -954,6 +1135,11 @@ int bg_input_plugin_load_edl(bg_plugin_registry_t * reg,
         {
         seg = &stream->segments[k];
         }
+      test_duration =
+        gavl_time_unscale(stream->timescale,
+                          ti->subtitle_streams[j+track->num_subtitle_text_streams].duration);
+      if(ti->duration < test_duration)
+        ti->duration = test_duration;
       }
     }
   return 1;

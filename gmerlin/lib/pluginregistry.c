@@ -1114,6 +1114,9 @@ static void unload_plugin(bg_plugin_handle_t * h)
 #endif
       }
     }
+  else if(h->priv && h->plugin->destroy)
+    h->plugin->destroy(h->priv);
+  
   if(h->location) free(h->location);
 
 #if 0
