@@ -775,6 +775,7 @@ bg_plugin_registry_create(bg_cfg_section_t * section)
   tmp_info = scan_multi(path, &file_info, section, BG_PLUGIN_API_GMERLIN);
   if(tmp_info)
     ret->entries = append_to_list(ret->entries, tmp_info);
+  free(path);
   /* Ladspa plugins */
   
   env = getenv("LADSPA_PATH");

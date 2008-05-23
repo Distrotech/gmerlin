@@ -440,7 +440,8 @@ void bg_alsa_create_card_parameters(bg_parameter_info_t * ret,
       append_card(ret, name, label);
       
       }
-      
+    snd_ctl_close(handle);
+    
     next_card:
     if (snd_card_next(&card) < 0)
       break;

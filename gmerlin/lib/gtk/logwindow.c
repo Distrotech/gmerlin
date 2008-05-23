@@ -294,6 +294,8 @@ bg_gtk_log_window_t * bg_gtk_log_window_create(void (*close_callback)(bg_gtk_log
 
 void bg_gtk_log_window_destroy(bg_gtk_log_window_t * win)
   {
+  if(win->last_error)
+    free(win->last_error);
   gtk_widget_destroy(win->window);
   free(win);
   }

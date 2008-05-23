@@ -744,6 +744,14 @@ static void stream_menu_init(stream_menu_t * s, gmerlin_t * gmerlin,
     }
   }
 
+static void stream_menu_free(stream_menu_t * s)
+  {
+  if(s->stream_items)
+    free(s->stream_items);
+  if(s->ids)
+    free(s->ids);
+  }
+
 static void stream_menu_finalize(stream_menu_t * s)
   {
   if(s->plugin_menu.menu)
@@ -1220,6 +1228,11 @@ void main_menu_destroy(main_menu_t * m)
   plugin_menu_free(&m->audio_stream_menu.plugin_menu);
   plugin_menu_free(&m->video_stream_menu.plugin_menu);
   plugin_menu_free(&m->visualization_menu.plugin_menu);
+
+  stream_menu_free(&m->audio_stream_menu);
+  stream_menu_free(&m->video_stream_menu);
+  stream_menu_free(&m->subtitle_stream_menu);
+  
   free(m);
   }
 
