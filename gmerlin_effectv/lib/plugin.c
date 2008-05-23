@@ -99,6 +99,7 @@ void bg_effectv_destroy(void*priv)
     if(p->e->background)        free(p->e->background);
     if(p->e->diff)              free(p->e->diff);
     if(p->e->diff2)             free(p->e->diff2);
+    free(p->e);
     }
   free(p);
   }
