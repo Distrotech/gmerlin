@@ -29,6 +29,7 @@
 
 #include <avdec_private.h>
 #include <md5.h>
+#include <limits.h>
 
 #include <dirent.h>
 

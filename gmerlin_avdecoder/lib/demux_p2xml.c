@@ -25,6 +25,7 @@
 
 #include <sys/types.h>
 #include <dirent.h>
+#include <limits.h>
 
 static char * find_file_nocase(const char * dir, const char * file)
   {

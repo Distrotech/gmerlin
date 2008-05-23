@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2008-05-17 19:17+0200\n"
+"POT-Creation-Date: 2008-05-23 17:45+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -193,11 +193,28 @@ msgid ""
 "enabled."
 msgstr ""
 
-#: plugins/i_avdec.c:312
+#: plugins/i_avdec.c:277
+msgid "Cache time (milliseconds)"
+msgstr ""
+
+#: plugins/i_avdec.c:280
+msgid ""
+"If building an index takes longer than the specified time, it will be cached."
+msgstr ""
+
+#: plugins/i_avdec.c:284
+msgid "Cache size (Megabytes)"
+msgstr ""
+
+#: plugins/i_avdec.c:287
+msgid "Set the maximum total size of the cache directory."
+msgstr ""
+
+#: plugins/i_avdec.c:326
 msgid "AVDecoder plugin"
 msgstr ""
 
-#: plugins/i_avdec.c:313
+#: plugins/i_avdec.c:327
 msgid ""
 "Plugin based on the Gmerlin avdecoder library. Supports most media formats. "
 "Playback is supported from files, URLs (with various protocols) and stdin."
@@ -294,7 +311,7 @@ msgstr ""
 msgid "Detected %s redirector"
 msgstr ""
 
-#: lib/audio_a52.c:448 lib/audio_mad.c:380
+#: lib/audio_a52.c:448
 msgid "Lost sync during parsing"
 msgstr ""
 
@@ -1110,8 +1127,18 @@ msgstr ""
 msgid "Unknown packet type"
 msgstr ""
 
-#: lib/fileindex.c:849
+#: lib/fileindex.c:493
+#, c-format
+msgid "Removing %s to keep maximum cache size"
+msgstr ""
+
+#: lib/fileindex.c:965
 msgid "Building file index failed"
+msgstr ""
+
+#: lib/fileindex.c:971
+#, c-format
+msgid "Built file index in %.2f seconds"
 msgstr ""
 
 #: lib/demux_voc.c:233
@@ -1138,7 +1165,7 @@ msgstr ""
 msgid "Unknown ID %02x in private stream 1"
 msgstr ""
 
-#: lib/demux_mpegps.c:655
+#: lib/demux_mpegps.c:657
 #, c-format
 msgid "Unknown PES ID %02x"
 msgstr ""
