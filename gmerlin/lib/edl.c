@@ -288,3 +288,68 @@ void bg_edl_dump(const bg_edl_t * e)
     dump_track(&e->tracks[i]);
     }
   }
+
+void bg_edl_append_track_info(bg_edl_t * e, const bg_track_info_t * info, const char * url, int index)
+  {
+  bg_edl_track_t * t;
+  bg_edl_stream_t * s;
+  bg_edl_segment_t * seg;
+  int i;
+  
+  t = bg_edl_add_track(e);
+
+  for(i = 0; i < info->num_audio_streams; i++)
+    {
+    s = bg_edl_add_audio_stream(t);
+    seg = bg_edl_add_segment(s);
+    s->timescale = info->audio_streams[i].format.samplerate;
+    seg->timescale = s->timescale;
+    
+    if(info->audio_streams[i].duration)
+      seg->dst_duration = info->audio_streams[i].duration;
+    else
+      seg->dst_duration = gavl_time_rescale(GAVL_TIME_SCALE, s->timescale, info->duration);
+    seg->speed_num = 1;
+    seg->speed_den = 1;
+    seg->url = bg_strdup((char*)0, url);
+    seg->track = index;
+    seg->stream = i;
+    }
+  for(i = 0; i < info->num_video_streams; i++)
+    {
+    s = bg_edl_add_video_stream(t);
+    seg = bg_edl_add_segment(s);
+    s->timescale = info->video_streams[i].format.timescale;
+    seg->timescale = s->timescale;
+
+    if(info->video_streams[i].duration)
+      seg->dst_duration = info->video_streams[i].duration;
+    else
+      seg->dst_duration = gavl_time_rescale(GAVL_TIME_SCALE, s->timescale, info->duration);
+    seg->speed_num = 1;
+    seg->speed_den = 1;
+    seg->url = bg_strdup((char*)0, url);
+    seg->track = index;
+    seg->stream = i;
+    }
+  for(i = 0; i < info->num_subtitle_streams; i++)
+    {
+    if(info->subtitle_streams[i].is_text)
+      s = bg_edl_add_subtitle_text_stream(t);
+    else
+      s = bg_edl_add_subtitle_overlay_stream(t);
+    seg = bg_edl_add_segment(s);
+    s->timescale = info->subtitle_streams[i].timescale;
+    seg->timescale = s->timescale;
+
+    if(info->subtitle_streams[i].duration)
+      seg->dst_duration = info->subtitle_streams[i].duration;
+    else
+      seg->dst_duration = gavl_time_rescale(GAVL_TIME_SCALE, s->timescale, info->duration);
+    seg->speed_num = 1;
+    seg->speed_den = 1;
+    seg->url = bg_strdup((char*)0, url);
+    seg->track = index;
+    seg->stream = i;
+    }
+  }

@@ -66,6 +66,7 @@ converters.c \
 device.c \
 edl.c \
 edldec.c \
+edl_xml.c \
 fifo.c \
 filters.c \
 formats.c \

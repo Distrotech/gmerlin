@@ -893,6 +893,7 @@ plugins/alsa/Makefile \
 plugins/audiofilters/Makefile \
 plugins/x11/Makefile \
 plugins/cdaudio/Makefile \
+plugins/edl/Makefile \
 plugins/esd/Makefile \
 plugins/lqt/Makefile \
 plugins/oss/Makefile \

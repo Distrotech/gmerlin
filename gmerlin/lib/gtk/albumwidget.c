@@ -201,6 +201,7 @@ typedef struct
   GtkWidget * transcode_item;
   GtkWidget * rename_item;
   GtkWidget * refresh_item;
+  GtkWidget * export_edl_item;
   GtkWidget * info_item;
 
   
@@ -490,6 +491,7 @@ static void set_sensitive(bg_gtk_album_widget_t * w)
     do_set_sensitive(w->rename_selected_button, 0);
 
     do_set_sensitive(w->menu.selected_menu.refresh_item, 0);
+    do_set_sensitive(w->menu.selected_menu.export_edl_item, 0);
     do_set_sensitive(w->menu.selected_menu.transcode_item, 0);
     do_set_sensitive(w->menu.edit_menu.copy_to_favourites_item, 0);
 
@@ -517,6 +519,7 @@ static void set_sensitive(bg_gtk_album_widget_t * w)
     do_set_sensitive(w->copy_button, 1);
 
     do_set_sensitive(w->menu.selected_menu.refresh_item, 1);
+    do_set_sensitive(w->menu.selected_menu.export_edl_item, 1);
     do_set_sensitive(w->menu.edit_menu.copy_to_favourites_item, 1);
     do_set_sensitive(w->menu.selected_menu.transcode_item, 1);
     
@@ -542,6 +545,7 @@ static void set_sensitive(bg_gtk_album_widget_t * w)
     do_set_sensitive(w->copy_button, 1);
 
     do_set_sensitive(w->menu.selected_menu.refresh_item, 1);
+    do_set_sensitive(w->menu.selected_menu.export_edl_item, 1);
     do_set_sensitive(w->menu.edit_menu.copy_to_favourites_item, 1);
     do_set_sensitive(w->copy_to_favourites_button, 1);
 
@@ -1327,6 +1331,24 @@ static void menu_callback(GtkWidget * w, gpointer data)
     {
     bg_album_refresh_selected(widget->album);
     }
+  else if(w == widget->menu.selected_menu.export_edl_item)
+    {
+    bg_edl_t * edl;
+
+    tmp_string = bg_gtk_get_filename_write("Export edl",
+                                           (char**)0,
+                                           1, widget->treeview);
+    if(tmp_string)
+      {
+      edl = bg_album_selected_to_edl(widget->album);
+      if(edl)
+        {
+        bg_edl_save(edl, tmp_string);
+        bg_edl_destroy(edl);
+        }
+      free(tmp_string);
+      }
+    }
   /* Sort */
   else if(w == widget->menu.album_menu.sort_item)
     {
@@ -1514,10 +1536,14 @@ static void init_menu(bg_gtk_album_widget_t * w)
   if((type == BG_ALBUM_TYPE_REGULAR) ||
      (type == BG_ALBUM_TYPE_FAVOURITES) ||
      (type == BG_ALBUM_TYPE_INCOMING))
+    {
     w->menu.selected_menu.refresh_item =
       create_item(w, w->menu.selected_menu.menu, TR("Refresh"),
                   "refresh_16.png");
-  
+    w->menu.selected_menu.export_edl_item =
+      create_item(w, w->menu.selected_menu.menu, TR("Export as EDL"),
+                  (char*)0);
+    }
   gtk_widget_set_sensitive(w->menu.selected_menu.rename_item, 0);
   
  

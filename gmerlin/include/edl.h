@@ -22,6 +22,9 @@
 #ifndef __BG_EDL_H_
 #define __BG_EDL_H_
 
+#include <parameter.h>
+#include <streaminfo.h>
+
 /** \defgroup edl EDL support
  *  \ingroup decoding
  *  \brief EDL support
@@ -75,7 +78,6 @@ typedef struct
   /*  */
   int32_t speed_num; //!< Playback speed numerator
   int32_t speed_den; //!< Playback speed demoninator
-  
   } bg_edl_segment_t;
 
 /** \brief A locical stream
@@ -137,6 +139,11 @@ bg_edl_t * bg_edl_copy(const bg_edl_t * e);
 void bg_edl_destroy(bg_edl_t * e);
 
 void bg_edl_dump(const bg_edl_t * e);
+
+bg_edl_t * bg_edl_load(const char * filename);
+void bg_edl_save(const bg_edl_t * edl, const char * filename);
+
+void bg_edl_append_track_info(bg_edl_t * e, const bg_track_info_t * info, const char * url, int index);
 
 /**
  * @}

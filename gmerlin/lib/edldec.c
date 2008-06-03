@@ -963,7 +963,7 @@ static const bg_input_plugin_t edl_plugin =
     .common =
     {
       BG_LOCALE,
-      .name =           "i_edl",
+      .name =           "i_edldec",
       .long_name =      TRS("EDL decoder"),
       .description =    TRS("This metaplugin decodes and EDL as if it was a single file."),
       .type =           BG_PLUGIN_INPUT,

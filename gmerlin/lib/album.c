@@ -825,17 +825,6 @@ void bg_album_select_error_tracks(bg_album_t * album)
   bg_album_changed(album);
   }
 
-void bg_album_refresh_selected(bg_album_t * album)
-  {
-  bg_album_entry_t * cur;
-  cur = album->entries;
-  while(cur)
-    {
-    if(cur->flags & BG_ALBUM_ENTRY_SELECTED)
-      bg_album_refresh_entry(album, cur);
-    cur = cur->next;
-    }
-  }
 
 static bg_album_entry_t * copy_selected(bg_album_t * album)
   {
@@ -1772,8 +1761,8 @@ int bg_album_get_unique_id(bg_album_t * album)
   return album->com->highest_id;
   }
 
-int bg_album_refresh_entry(bg_album_t * album,
-                           bg_album_entry_t * entry)
+static int refresh_entry(bg_album_t * album,
+                         bg_album_entry_t * entry, bg_edl_t * edl)
   {
   const bg_plugin_info_t * info;
   //  char * system_location;
@@ -1810,12 +1799,51 @@ int bg_album_refresh_entry(bg_album_t * album,
                                       entry->index);
 
   bg_album_common_set_auth_info(album->com, entry);
+
+  if(edl) /* Need timescales */
+    {
+    if(plugin->set_track)
+      plugin->set_track(album->com->load_handle->priv, entry->index);
+    if(plugin->start)
+      plugin->start(album->com->load_handle->priv);
+    bg_edl_append_track_info(edl, track_info, entry->location, entry->index);
+    }
   
   bg_album_update_entry(album, entry, track_info, 1);
   plugin->close(album->com->load_handle->priv);
   bg_album_entry_changed(album, entry);
   return 1;
   }
+
+void bg_album_refresh_selected(bg_album_t * album)
+  {
+  bg_album_entry_t * cur;
+  cur = album->entries;
+  while(cur)
+    {
+    if(cur->flags & BG_ALBUM_ENTRY_SELECTED)
+      refresh_entry(album, cur, (bg_edl_t *)0);
+    cur = cur->next;
+    }
+  }
+
+bg_edl_t * bg_album_selected_to_edl(bg_album_t * album)
+  {
+  bg_edl_t * ret;
+  bg_album_entry_t * cur;
+
+  ret = bg_edl_create();
+  
+  cur = album->entries;
+  while(cur)
+    {
+    if(cur->flags & BG_ALBUM_ENTRY_SELECTED)
+      refresh_entry(album, cur, ret);
+    cur = cur->next;
+    }
+  return ret;
+  }
+
 
 void bg_album_copy_selected_to_favourites(bg_album_t * a)
   {
@@ -2291,3 +2319,4 @@ bg_album_entry_t * bg_album_entry_copy(bg_album_t * a, bg_album_entry_t * e)
                                  
   return ret;
   }
+

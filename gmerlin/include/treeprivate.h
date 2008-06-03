@@ -194,9 +194,6 @@ void bg_album_insert_entries_before(bg_album_t * album,
                                     bg_album_entry_t * new_entries,
                                     bg_album_entry_t * after);
 
-int bg_album_refresh_entry(bg_album_t *,
-                           bg_album_entry_t * entry);
-
 /*
  *   Load a single URL, perform redirection and return
  *   zero (for error) or more entries
