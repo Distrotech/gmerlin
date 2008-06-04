@@ -61,7 +61,10 @@ static int open_edl(void * data, const char * arg)
   edl_t * e = (edl_t*)data;
   e->edl = bg_edl_load(arg);
   if(e->edl)
+    {
+    bg_edl_dump(e->edl);
     return 1;
+    }
   return 0;
   }
 
