@@ -302,6 +302,10 @@ int bgav_set_sample_accurate(bgav_t * b)
   {
   int i;
   gavl_time_t t;
+
+  if(!b->demuxer)
+    return 0;
+  
   switch(b->demuxer->index_mode)
     {
     case INDEX_MODE_NONE:
