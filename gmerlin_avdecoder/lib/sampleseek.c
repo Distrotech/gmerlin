@@ -100,6 +100,10 @@ void bgav_seek_audio(bgav_t * bgav, int stream, int64_t sample)
                          gavl_time_rescale(s->data.audio.format.samplerate,
                                            s->timescale, sample),
                          s->timescale);
+
+    s->out_time = gavl_time_rescale(s->timescale, s->data.audio.format.samplerate,
+                                    s->in_time);
+    
     }
   else /* Fileindex */
     {

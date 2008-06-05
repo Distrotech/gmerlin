@@ -906,6 +906,24 @@ int bgav_open_fd(bgav_t * bgav, int fd,
                  int64_t total_size,
                  const char * mimetype);
 
+/** \ingroup opening
+ *  \brief Open a decoder with callbacks
+ *  \param bgav A decoder instance
+ *  \param read_callback Callback for reading data
+ *  \param seek_callback Callback for seeking
+ *  \param priv Private argument for the callbacks
+ *  \param filename The filename of the input or NULL if this info is not known.
+ *  \param mimetype The mimetype of the input or NULL if this info is not known.
+ *  \returns 1 on success, 0 else.
+ */
+
+int bgav_open_callbacks(bgav_t * b,
+                        int (*read_callback)(void * priv, uint8_t * data, int len),
+                        int64_t (*seek_callback)(void * priv, uint64_t pos, int whence),
+                        void * priv,
+                        const char * filename, const char * mimetype);
+ 
+
 /* Close and destroy everything */
 
 /** \ingroup decoder

@@ -388,6 +388,7 @@ fileindex.c \
 http.c \
 id3v1.c \
 id3v2.c \
+in_cb.c \
 in_dvb_linux.c \
 in_dvd.c \
 in_fd.c \

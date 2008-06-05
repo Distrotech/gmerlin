@@ -967,14 +967,16 @@ bgav_seek_scaled(bgav_t * b, int64_t * time, int scale)
         bgav_seek_video(b, i,
                         gavl_time_rescale(scale, s->data.video.format.timescale,
                                           *time) - s->first_timestamp);
-        if(i) /* We align seeking at the first frame of the first stream */
-          {
-          *time =
-            gavl_time_rescale(s->data.video.format.timescale,
-                              scale,
-                              s->out_time + s->first_timestamp);
-          }
+        /*
+         *  We align seeking at the first frame of the last video stream
+         *  Note, that in 99.9 % of all cases, the last stream will be the
+         *  first one as well
+         */
         
+        *time =
+          gavl_time_rescale(s->data.video.format.timescale,
+                            scale,
+                            s->out_time + s->first_timestamp);
         }
       }
     
