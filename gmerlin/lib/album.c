@@ -146,7 +146,8 @@ void bg_album_update_entry(bg_album_t * album,
       /* Take filename minus extension */
       else
         {
-        entry->name = bg_get_track_name_default(entry->location);
+        entry->name =
+          bg_get_track_name_default(entry->location, entry->index, entry->total_tracks);
         }
       }
     }
@@ -1806,7 +1807,8 @@ static int refresh_entry(bg_album_t * album,
       plugin->set_track(album->com->load_handle->priv, entry->index);
     if(plugin->start)
       plugin->start(album->com->load_handle->priv);
-    bg_edl_append_track_info(edl, track_info, entry->location, entry->index);
+    bg_edl_append_track_info(edl, track_info, entry->location, entry->index,
+                             entry->total_tracks);
     }
   
   bg_album_update_entry(album, entry, track_info, 1);

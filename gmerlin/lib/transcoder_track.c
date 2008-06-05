@@ -707,6 +707,7 @@ static void set_track(bg_transcoder_track_t * track,
                       bg_plugin_handle_t * input_plugin,
                       const char * location,
                       int track_index,
+                      int total_tracks,
                       bg_encoder_info_t * encoder_info,
                       bg_plugin_registry_t * plugin_reg)
   {
@@ -728,7 +729,8 @@ static void set_track(bg_transcoder_track_t * track,
         track->general_parameters[i].val_default.val_str = bg_strdup((char*)0,
                                                                      track_info->name);
       else
-        track->general_parameters[i].val_default.val_str = bg_get_track_name_default(location);
+        track->general_parameters[i].val_default.val_str =
+          bg_get_track_name_default(location, track_index, total_tracks);
       track->general_parameters[i].flags &= ~BG_PARAMETER_HIDE_DIALOG;
       }
     else if(!strcmp(track->general_parameters[i].name, "audio_encoder"))
@@ -1001,6 +1003,9 @@ bg_transcoder_track_create(const char * url,
                                                  plugin_handle->info->name);
   
   /* Decide what to load */
+
+  num_tracks = input->get_num_tracks ? 
+    input->get_num_tracks(plugin_handle->priv) : 1;
   
   if(track >= 0)
     {
@@ -1027,7 +1032,8 @@ bg_transcoder_track_create(const char * url,
       streams_enabled = 1;
       }
     
-    set_track(new_track, track_info, plugin_handle, url, track, &encoder_info, plugin_reg);
+    set_track(new_track, track_info, plugin_handle, url, track, num_tracks,
+              &encoder_info, plugin_reg);
     create_sections(new_track, track_defaults_section, input_section,
                     &encoder_info, track_info);
     if(streams_enabled)
@@ -1036,10 +1042,7 @@ bg_transcoder_track_create(const char * url,
   else
     {
     /* Load all tracks */
-
-    num_tracks = input->get_num_tracks ? 
-      input->get_num_tracks(plugin_handle->priv) : 1;
-
+    
     for(i = 0; i < num_tracks; i++)
       {
       track_info = input->get_track_info(plugin_handle->priv, i);
@@ -1074,7 +1077,8 @@ bg_transcoder_track_create(const char * url,
         streams_enabled = 1;
         }
       
-      set_track(new_track, track_info, plugin_handle, url, i, &encoder_info, plugin_reg);
+      set_track(new_track, track_info, plugin_handle, url, i, num_tracks,
+                &encoder_info, plugin_reg);
       create_sections(new_track, track_defaults_section, input_section,
                       &encoder_info, track_info);
       if(streams_enabled)

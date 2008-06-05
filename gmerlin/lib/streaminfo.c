@@ -113,25 +113,35 @@ void bg_set_track_name_default(bg_track_info_t * info,
   
   }
 
-char * bg_get_track_name_default(const char * location)
+char * bg_get_track_name_default(const char * location, int track, int num_tracks)
   {
   const char * start_pos;
   const char * end_pos;
+  char * tmp_string, *ret;
   
   if(bg_string_is_url(location))
     {
-    return bg_strdup((char*)0, location);
+    tmp_string = bg_strdup((char*)0, location);
     }
-  
-  start_pos = strrchr(location, '/');
-  if(start_pos)
-    start_pos++;
   else
-    start_pos = location;
-  end_pos = strrchr(start_pos, '.');
-  if(!end_pos)
-    end_pos = &(start_pos[strlen(start_pos)]);
-  return bg_system_to_utf8(start_pos, end_pos - start_pos);
-  
+    {
+    start_pos = strrchr(location, '/');
+    if(start_pos)
+      start_pos++;
+    else
+      start_pos = location;
+    end_pos = strrchr(start_pos, '.');
+    if(!end_pos)
+      end_pos = &(start_pos[strlen(start_pos)]);
+    tmp_string = bg_system_to_utf8(start_pos, end_pos - start_pos);
+    }
+  if(num_tracks < 2)
+    return tmp_string;
+  else
+    {
+    ret = bg_sprintf("%s [%d]", tmp_string, track + 1);
+    free(tmp_string);
+    return ret;
+    }
   }
 

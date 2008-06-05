@@ -26,6 +26,7 @@
 
 #include <pluginregistry.h>
 #include <converters.h>
+#include <utils.h>
 
 #include <log.h>
 #define LOG_DOMAIN "edldec"
@@ -393,8 +394,7 @@ static void init_audio_segment(audio_stream_t * as)
                         seg->seg->dst_time + seg->seg->dst_duration);
     t = get_source_offset(as->es, seg, as->out_time, as->format->samplerate);
     
-    seg->src->plugin->seek(seg->src->handle->priv,
-                           &t, as->format->samplerate);
+    seg->src->plugin->seek(seg->src->handle->priv, &t, as->format->samplerate);
     src = (audio_source_t *)(seg->src);
     if(src->cnv)
       bg_audio_converter_reset(src->cnv);
@@ -658,7 +658,7 @@ static int read_audio_edl(void * priv, gavl_audio_frame_t* frame, int stream,
   while(samples_decoded < num_samples)
     {
     num = as->format->samples_per_frame;
-
+    
     /* Check for end of frame */
     if(samples_decoded + num > num_samples)
       num = num_samples - samples_decoded;
@@ -704,8 +704,9 @@ static int read_audio_edl(void * priv, gavl_audio_frame_t* frame, int stream,
     else
       {
       src = (audio_source_t *)(seg->src);
-      src->read_func(seg->src->read_data, as->frame, seg->src->read_stream,
-                     num);
+      if(!src->read_func(seg->src->read_data, as->frame, seg->src->read_stream,
+                         num))
+        return samples_decoded;
       }
     
     num = gavl_audio_frame_copy(as->format,
@@ -1055,6 +1056,8 @@ int bg_input_plugin_load_edl(bg_plugin_registry_t * reg,
     track = &edl->tracks[i];
     ti    = &priv->track_info[i];
     t     = &priv->tracks[i];
+    
+    ti->name = bg_strdup(ti->name, track->name);
     
     ti->seekable = 1;
     

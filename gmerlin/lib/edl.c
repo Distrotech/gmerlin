@@ -152,6 +152,9 @@ static bg_edl_track_t * copy_tracks(const bg_edl_track_t * src, int len)
   for(i = 0; i < len; i++)
     {
     /* Copy pointers */
+
+    ret[i].name = bg_strdup((char*)0, src[i].name);
+    
     ret[i].audio_streams = copy_streams(src[i].audio_streams,
                                         src[i].num_audio_streams);
     ret[i].video_streams = copy_streams(src[i].video_streams,
@@ -201,6 +204,8 @@ static void free_streams(bg_edl_stream_t * s, int len)
 static void free_tracks(bg_edl_track_t * s, int len)
   {
   int i;
+  if(s->name)
+    free(s->name);
   for(i = 0; i < len; i++)
     {
     if(s[i].audio_streams)
@@ -248,7 +253,7 @@ static void dump_stream(const bg_edl_stream_t* s)
 static void dump_track(const bg_edl_track_t * t)
   {
   int i;
-  bg_diprintf(2, "Track\n");
+  bg_diprintf(2, "Track: %s\n", t->name);
   bg_diprintf(4, "Audio streams: %d\n", t->num_audio_streams);
   for(i = 0; i < t->num_audio_streams; i++)
     {
@@ -289,7 +294,8 @@ void bg_edl_dump(const bg_edl_t * e)
     }
   }
 
-void bg_edl_append_track_info(bg_edl_t * e, const bg_track_info_t * info, const char * url, int index)
+void bg_edl_append_track_info(bg_edl_t * e, const bg_track_info_t * info,
+                              const char * url, int index, int total_tracks)
   {
   bg_edl_track_t * t;
   bg_edl_stream_t * s;
@@ -298,6 +304,8 @@ void bg_edl_append_track_info(bg_edl_t * e, const bg_track_info_t * info, const 
   
   t = bg_edl_add_track(e);
 
+  t->name = bg_get_track_name_default(url, index, total_tracks);
+  
   for(i = 0; i < info->num_audio_streams; i++)
     {
     s = bg_edl_add_audio_stream(t);
