@@ -89,7 +89,7 @@ static int64_t seek_byte_file(bgav_input_context_t * ctx,
   return BGAV_FTELL((FILE*)(ctx->priv));
   }
 
-static void    close_file(bgav_input_context_t * ctx)
+static void close_file(bgav_input_context_t * ctx)
   {
   if(ctx->priv)
     fclose((FILE*)(ctx->priv));

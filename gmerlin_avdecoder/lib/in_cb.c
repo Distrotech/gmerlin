@@ -20,15 +20,16 @@
  * *****************************************************************/
 
 #include <stdlib.h>
+#include <string.h>
 
 #include <avdec_private.h>
+#include <utils.h>
 
 typedef struct
   {
   void * priv;
   int   (*read_callback)(void * priv, uint8_t * data, int len);
   int64_t (*seek_callback)(void * priv, uint64_t pos, int whence);
-  int64_t total_bytes;
   } cb_t;
 
 static int     read_callbacks(bgav_input_context_t* ctx,
@@ -85,8 +86,8 @@ bgav_input_open_callbacks(int (*read_callback)(void * priv, uint8_t * data, int 
     {
     ret->input = &bgav_input_callbacks;
     c->seek_callback = seek_callback;
-    c->total_bytes = c->read_callback(c->priv, 0, SEEK_END);
-    c->read_callback(c->priv, 0, SEEK_SET);
+    ret->total_bytes = c->seek_callback(c->priv, 0, SEEK_END);
+    c->seek_callback(c->priv, 0, SEEK_SET);
     }
   else
     {
@@ -95,6 +96,20 @@ bgav_input_open_callbacks(int (*read_callback)(void * priv, uint8_t * data, int 
   ret->priv = c;
   ret->filename = bgav_strdup(filename);
   ret->mimetype = bgav_strdup(mimetype);
+
+  if(ret->filename)
+    {
+    uint8_t md5sum[16];
+    bgav_md5_buffer(ret->filename, strlen(ret->filename),
+                    md5sum);
+    ret->index_file =
+      bgav_sprintf("%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
+                   md5sum[0], md5sum[1], md5sum[2], md5sum[3], 
+                   md5sum[4], md5sum[5], md5sum[6], md5sum[7], 
+                   md5sum[8], md5sum[9], md5sum[10], md5sum[11], 
+                   md5sum[12], md5sum[13], md5sum[14], md5sum[15]);
+    }
+  
   return ret;
   }
 

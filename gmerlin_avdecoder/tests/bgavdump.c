@@ -35,6 +35,34 @@
 static int64_t audio_seek = 0;
 static int64_t video_seek = 0;
 
+/* Callback based reading: We do a simple stdio mapping here */
+
+#ifdef HAVE_FSEEKO
+#define BGAV_FSEEK fseeko
+#else
+#define BGAV_FSEEK fseek
+#endif
+
+#ifdef HAVE_FTELLO
+#define BGAV_FTELL ftello
+#else
+#define BGAV_FSEEK ftell
+#endif
+
+static int read_callback(void * priv, uint8_t * data, int len)
+  {
+  FILE * f = (FILE*)priv;
+  return fread(data, 1, len, f);
+  }
+
+static int64_t seek_callback(void * priv, uint64_t pos, int whence)
+  {
+  FILE * f = (FILE*)priv;
+  
+  BGAV_FSEEK(f, pos, whence);
+  return BGAV_FTELL(f);
+  }
+
 /* Taken from the Unix programmer FAQ: http://www.faqs.org/faqs/unix-faq/programmer/faq/ */
 
 static struct termios stored_settings;
@@ -98,6 +126,8 @@ static int frames_to_read  = 10;
 
 int main(int argc, char ** argv)
   {
+  FILE * cb_file = (FILE *)0;
+  
   int i, j;
   int num_audio_streams;
   int num_video_streams;
@@ -201,6 +231,26 @@ int main(int argc, char ** argv)
     if(!bgav_open_dvb(file, argv[argc-1] + 6))
       {
       fprintf(stderr, "Could not open DVB Device %s\n",
+              argv[argc-1] + 6);
+      return -1;
+      }
+    }
+  else if(!strncmp(argv[argc-1], "cb://", 5))
+    {
+    cb_file = fopen(argv[argc-1] + 5, "r");
+    if(!cb_file)
+      {
+      fprintf(stderr, "Could not open file %s via callbacks\n",
+              argv[argc-1] + 5);
+      return -1;
+      }
+    if(!bgav_open_callbacks(file,
+                            read_callback,
+                            seek_callback,
+                            cb_file,
+                            argv[argc-1] + 5, (const char *)0))
+      {
+      fprintf(stderr, "Could not open file %s via callbacks\n",
               argv[argc-1] + 5);
       return -1;
       }
@@ -377,6 +427,9 @@ int main(int argc, char ** argv)
     free(sub_text);
     
   bgav_close(file);
-    
+
+  if(cb_file)
+    fclose(cb_file);
+  
   return -1;
   }
