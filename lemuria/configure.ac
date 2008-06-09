@@ -140,7 +140,7 @@ AC_CONFIG_SUBDIRS(lib/xaos)
 
 AC_SUBST(GL_LIBS,   $GL_LIBS)
 
-AC_OUTPUT(Makefile lib/Makefile lib/meshes/Makefile lib/images/Makefile lib/gradients/Makefile plugins/Makefile plugins/gmerlin/Makefile plugins/libvisual/Makefile include/Makefile lemuria.spec)
+AC_OUTPUT(Makefile lib/Makefile lib/meshes/Makefile lib/images/Makefile lib/gradients/Makefile plugins/Makefile plugins/gmerlin/Makefile plugins/libvisual/Makefile include/Makefile utils/Makefile lemuria.spec)
 
 echo
 echo

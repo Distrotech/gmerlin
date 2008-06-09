@@ -1,4 +1,4 @@
-SUBDIRS = po include lib plugins m4
+SUBDIRS = po include lib plugins m4 utils
 
 ACLOCAL_AMFLAGS = -I m4
 

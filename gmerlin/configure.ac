@@ -880,6 +880,7 @@ doc/Makefile \
 doc/Doxyfile \
 icons/Makefile \
 m4/Makefile \
+utils/Makefile \
 tests/Makefile \
 include/Makefile \
 include/bg_version.h \

@@ -201,6 +201,7 @@ doc/Makefile \
 doc/Doxyfile \
 src/Makefile \
 m4/Makefile \
+utils/Makefile \
 include/Makefile \
 include/gavl/Makefile \
 include/gavl/gavl_version.h \

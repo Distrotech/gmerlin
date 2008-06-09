@@ -151,6 +151,7 @@ gmerlin_encoders.spec \
 include/Makefile \
 lib/Makefile \
 m4/Makefile \
+utils/Makefile \
 plugins/Makefile \
 plugins/flac/Makefile \
 plugins/ogg/Makefile \
