@@ -28,7 +28,6 @@
 #define GAVL_H_INCLUDED
 
 #include <inttypes.h>
-#include <gavlconfig.h>
 
 #include "gavltime.h"
 

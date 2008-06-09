@@ -64,14 +64,9 @@ dnl
 dnl Check for compiler flags
 dnl  
 
-GAVL_ENDIANESS="GAVL_PROCESSOR_LITTLE_ENDIAN"
-
 AC_C_ATTRIBUTE_ALIGNED
 
-AC_C_BIGENDIAN(GAVL_ENDIANESS="GAVL_PROCESSOR_BIG_ENDIAN",,AC_MSG_ERROR("Cannot detect endianess"))
-AC_SUBST(GAVL_ENDIANESS)
-
-
+AC_C_BIGENDIAN(,,AC_MSG_ERROR("Cannot detect endianess"))
 
 dnl
 dnl Check for Dependencies package
@@ -185,21 +180,7 @@ AC_CHECK_SIZEOF(long,0)
 AC_CHECK_SIZEOF(float,4)
 AC_CHECK_SIZEOF(double,8)
 
-GAVL_SIZEOF_FLOAT=$ac_cv_sizeof_float
-GAVL_SIZEOF_DOUBLE=$ac_cv_sizeof_double
-
-UD_CHECK_IEEE
-
-if test "x$HAVE_IEEEFLOAT" = "xyes"; then
-GAVL_IEEE_FLOAT=1
-else
-GAVL_IEEE_FLOAT=0
-fi
-
-
-AC_SUBST(GAVL_IEEE_FLOAT)
-AC_SUBST(GAVL_SIZEOF_FLOAT)
-AC_SUBST(GAVL_SIZEOF_DOUBLE)
+dnl UD_CHECK_IEEE
 
 dnl Absolute src path for doxygen
 
@@ -221,7 +202,6 @@ doc/Doxyfile \
 src/Makefile \
 m4/Makefile \
 include/Makefile \
-include/gavlconfig.h \
 include/gavl/Makefile \
 include/gavl/gavl_version.h \
 gavl/Makefile \

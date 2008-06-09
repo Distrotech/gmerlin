@@ -279,7 +279,7 @@ static void decode_s_32_swap(bgav_stream_t * s)
   
   }
 
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+#ifndef WORDS_BIGENDIAN
 #define decode_s_16_le decode_s_16
 #define decode_s_16_be decode_s_16_swap
 #define decode_s_32_le decode_s_32
@@ -725,7 +725,7 @@ static int init_pcm(bgav_stream_t * s)
         {
         s->description = bgav_sprintf("%d bit PCM (big endian)", s->data.audio.bits_per_sample);
         s->data.audio.format.sample_format = GAVL_SAMPLE_S16;
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+#ifndef WORDS_BIGENDIAN
         priv->decode_func = decode_s_16_swap;
 #else
         priv->decode_func = decode_s_16;
@@ -741,7 +741,7 @@ static int init_pcm(bgav_stream_t * s)
         {
         s->description = bgav_sprintf("%d bit PCM (big endian)", s->data.audio.bits_per_sample);
         s->data.audio.format.sample_format = GAVL_SAMPLE_S32;
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+#ifndef WORDS_BIGENDIAN
         priv->decode_func = decode_s_32_swap;
 #else
         priv->decode_func = decode_s_32;
@@ -772,7 +772,7 @@ static int init_pcm(bgav_stream_t * s)
           s->data.audio.format.sample_format = GAVL_SAMPLE_U16;
         else
           s->data.audio.format.sample_format = GAVL_SAMPLE_S16;
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+#ifndef WORDS_BIGENDIAN
         priv->decode_func = decode_s_16;
 #else
         priv->decode_func = decode_s_16_swap;
@@ -788,7 +788,7 @@ static int init_pcm(bgav_stream_t * s)
         {
         s->description = bgav_sprintf("%d bit PCM (little endian)", s->data.audio.bits_per_sample);
         s->data.audio.format.sample_format = GAVL_SAMPLE_S32;
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+#ifndef WORDS_BIGENDIAN
         priv->decode_func = decode_s_32;
 #else
         priv->decode_func = decode_s_32_swap;
@@ -810,7 +810,7 @@ static int init_pcm(bgav_stream_t * s)
         case 16:
           s->description = bgav_sprintf("%d bit PCM (little endian)", s->data.audio.bits_per_sample);
           s->data.audio.format.sample_format = GAVL_SAMPLE_S16;
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+#ifndef WORDS_BIGENDIAN
           priv->decode_func = decode_s_16;
 #else
           priv->decode_func = decode_s_16_swap;
@@ -824,7 +824,7 @@ static int init_pcm(bgav_stream_t * s)
         case 32:
           s->description = bgav_sprintf("%d bit PCM (little endian)", s->data.audio.bits_per_sample);
           s->data.audio.format.sample_format = GAVL_SAMPLE_S32;
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+#ifndef WORDS_BIGENDIAN
           priv->decode_func = decode_s_32;
 #else
           priv->decode_func = decode_s_32_swap;
@@ -850,7 +850,7 @@ static int init_pcm(bgav_stream_t * s)
         {
         case 16:
           s->data.audio.format.sample_format = GAVL_SAMPLE_S16;
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+#ifndef WORDS_BIGENDIAN
           priv->decode_func = decode_s_16_swap;
 #else
           priv->decode_func = decode_s_16;
@@ -885,7 +885,7 @@ static int init_pcm(bgav_stream_t * s)
     case BGAV_MK_FOURCC('i', 'n', '3', '2'):
       if(s->data.audio.endianess == BGAV_ENDIANESS_LITTLE)
         {
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+#ifndef WORDS_BIGENDIAN
         priv->decode_func = decode_s_32;
 #else
         priv->decode_func = decode_s_32_swap;
@@ -893,7 +893,7 @@ static int init_pcm(bgav_stream_t * s)
         }
       else
         {
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+#ifndef WORDS_BIGENDIAN
         priv->decode_func = decode_s_32_swap;
 #else
         priv->decode_func = decode_s_32;

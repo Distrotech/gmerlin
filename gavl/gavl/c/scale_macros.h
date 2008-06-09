@@ -19,6 +19,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#include <accel.h>
+
 #ifdef NOCLIP
 #define RECLIP_H(a,idx)
 #define RECLIP_V(a,idx)

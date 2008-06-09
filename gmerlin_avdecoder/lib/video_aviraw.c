@@ -64,7 +64,7 @@ static void scanline_8(uint8_t * src, uint8_t * dst,
 static void scanline_16(uint8_t * src, uint8_t * dst,
                         int num_pixels, bgav_palette_entry_t * pal)
   {
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+#ifndef WORDS_BIGENDIAN
   memcpy(dst, src, num_pixels * 2);
 #else
   int i;
@@ -79,7 +79,7 @@ static void scanline_16(uint8_t * src, uint8_t * dst,
 static void scanline_16_swap(uint8_t * src, uint8_t * dst,
                         int num_pixels, bgav_palette_entry_t * pal)
   {
-#ifdef GAVL_PROCESSOR_BIG_ENDIAN
+#ifdef WORDS_BIGENDIAN
   memcpy(dst, src, num_pixels * 2);
 #else
   int i;

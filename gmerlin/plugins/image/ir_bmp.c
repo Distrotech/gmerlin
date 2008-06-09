@@ -649,7 +649,7 @@ static int read_image_bmp(void *priv, gavl_video_frame_t *frame)
       {
       frame_ptr = frame_ptr_start; 
       
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+#ifndef WORDS_BIGENDIAN
       memcpy(frame_ptr, buffer_ptr, p->width * 2);
       buffer_ptr += p->width * 2;
 #else

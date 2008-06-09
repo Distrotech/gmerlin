@@ -23,6 +23,8 @@ _cc_minor=`echo $cc_version | cut -d'.' -f2`
 
 if test $_cc_major -ge 4; then
   _opt_mcpu="-mtune"
+elif test $_cc_major -ge 3 -a $_cc_minor -ge 4; then
+  _opt_mcpu="-mtune"
 else
   _opt_mcpu="-mcpu"
 fi
@@ -312,7 +314,7 @@ fi
 if test "$_cc_major" -ge "3" && test "$_cc_minor" -ge "3" || test "$_cc_major" -ge "4"; then
 	case "$proc" in
 	     970*) if test $IsDarwin = yes; then
-		      _march="$_opt_mcpu=G5 -mpowerpc64 -mpowerpc-gpopt -falign-loops=16 -force_cpusubtype_ALL" _mcpu='-mtune=G5'
+		      _march="$_opt_mcpu=G5 -mpowerpc64 -mpowerpc-gpopt -falign-loops=16" _mcpu='-mtune=G5'
 		   else
 		      _march="$_opt_mcpu=970" _mcpu='-mtune=970'
 		   fi

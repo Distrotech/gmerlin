@@ -304,7 +304,7 @@ static void convert_scanline_gray_32(uint8_t * _dst, uint8_t * _src, int width, 
 
 #if 0
 
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+#ifndef WORDS_BIGENDIAN
 static float
 float32_read (unsigned char *cptr)
 {       int             exponent, mantissa, negative ;

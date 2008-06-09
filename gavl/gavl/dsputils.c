@@ -240,17 +240,17 @@ int gavl_dsp_video_frame_swap_endian(gavl_dsp_context_t * ctx,
       break;
     case GAVL_GRAY_FLOAT:
       len[0] = format->image_width;
-#if GAVL_SIZEOF_FLOAT == 4
+#if SIZEOF_FLOAT == 4
       do_swap = ctx->funcs.bswap_32;
-#elif GAVL_SIZEOF_FLOAT == 8
+#elif SIZEOF_FLOAT == 8
       do_swap = ctx->funcs.bswap_64;
 #endif
       break;
     case GAVL_GRAYA_FLOAT:
       len[0] = format->image_width * 2;
-#if GAVL_SIZEOF_FLOAT == 4
+#if SIZEOF_FLOAT == 4
       do_swap = ctx->funcs.bswap_32;
-#elif GAVL_SIZEOF_FLOAT == 8
+#elif SIZEOF_FLOAT == 8
       do_swap = ctx->funcs.bswap_64;
 #endif
       break;
@@ -277,18 +277,18 @@ int gavl_dsp_video_frame_swap_endian(gavl_dsp_context_t * ctx,
     case GAVL_RGB_FLOAT:
     case GAVL_YUV_FLOAT:
       len[0] = format->image_width*3;
-#if GAVL_SIZEOF_FLOAT == 4
+#if SIZEOF_FLOAT == 4
       do_swap = ctx->funcs.bswap_32;
-#elif GAVL_SIZEOF_FLOAT == 8
+#elif SIZEOF_FLOAT == 8
       do_swap = ctx->funcs.bswap_64;
 #endif
       break;
     case GAVL_RGBA_FLOAT:
     case GAVL_YUVA_FLOAT:
       len[0] = format->image_width*4;
-#if GAVL_SIZEOF_FLOAT == 4
+#if SIZEOF_FLOAT == 4
       do_swap = ctx->funcs.bswap_32;
-#elif GAVL_SIZEOF_FLOAT == 8
+#elif SIZEOF_FLOAT == 8
       do_swap = ctx->funcs.bswap_64;
 #endif
       break;

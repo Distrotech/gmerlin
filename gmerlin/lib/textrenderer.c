@@ -819,7 +819,7 @@ static int load_font(bg_text_renderer_t * r)
 bg_text_renderer_t * bg_text_renderer_create()
   {
   bg_text_renderer_t * ret = calloc(1, sizeof(*ret));
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+#ifndef WORDS_BIGENDIAN
   ret->cnv = bg_charset_converter_create("UTF-8", "UCS-4LE");
 #else
   ret->cnv = bg_charset_converter_create("UTF-8", "UCS-4BE");

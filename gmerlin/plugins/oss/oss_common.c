@@ -46,7 +46,7 @@ bg_oss_set_sample_format(int fd, gavl_sample_format_t format)
       break;
     case GAVL_SAMPLE_U16:
 
-#ifdef GAVL_PROCESSOR_BIG_ENDIAN
+#ifdef WORDS_BIGENDIAN
       i_tmp = AFMT_U16_BE;
 #else
       i_tmp = AFMT_U16_LE;
@@ -74,7 +74,7 @@ bg_oss_set_sample_format(int fd, gavl_sample_format_t format)
     case AFMT_S8:
       ret = GAVL_SAMPLE_S8;
       break;
-#ifdef GAVL_PROCESSOR_BIG_ENDIAN
+#ifdef WORDS_BIGENDIAN
     case AFMT_U16_BE:
       ret = GAVL_SAMPLE_U16;
       break;

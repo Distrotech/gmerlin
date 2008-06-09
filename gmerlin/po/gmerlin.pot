@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2008-05-18 00:07+0200\n"
+"POT-Creation-Date: 2008-06-09 22:52+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -851,7 +851,7 @@ msgstr ""
 msgid "Alsa initialization failed"
 msgstr ""
 
-#: plugins/alsa/alsa_common.c:381 plugins/alsa/alsa_common.c:470
+#: plugins/alsa/alsa_common.c:381 plugins/alsa/alsa_common.c:471
 msgid "Card"
 msgstr ""
 
@@ -859,7 +859,7 @@ msgstr ""
 msgid "No soundcards found"
 msgstr ""
 
-#: plugins/alsa/alsa_common.c:397 plugins/alsa/alsa_common.c:482
+#: plugins/alsa/alsa_common.c:397 plugins/alsa/alsa_common.c:483
 msgid "Default"
 msgstr ""
 
@@ -2079,7 +2079,7 @@ msgstr ""
 #: apps/transcoder/trackdialog.c:183 apps/transcoder/trackdialog.c:247
 #: apps/transcoder/trackdialog.c:313 apps/transcoder/trackdialog.c:362
 #: apps/visualizer/gmerlin_visualizer.c:877 lib/x11/x11_window.c:1175
-#: lib/transcoder_track.c:1432
+#: lib/transcoder_track.c:1436
 msgid "General"
 msgstr ""
 
@@ -2526,6 +2526,16 @@ msgstr ""
 msgid "Simple writer for wave files, supports 8, 16, 24 and 32 bit PCM"
 msgstr ""
 
+#: plugins/edl/i_edl.c:89
+msgid "Parser for gmerlin EDLs"
+msgstr ""
+
+#: plugins/edl/i_edl.c:90
+msgid ""
+"This parses the XML file and exports an EDL, which can be played with the "
+"builtin EDL decoder."
+msgstr ""
+
 #: include/bggavl.h:105
 msgid "Conversion Quality"
 msgstr ""
@@ -2599,7 +2609,7 @@ msgid "Deinterlace mode"
 msgstr ""
 
 #: include/bggavl.h:174 include/bggavl.h:341 apps/transcoder/tracklist.c:960
-#: lib/gtk/albumwidget.c:1477 lib/gtk/albumwidget.c:2861
+#: lib/gtk/albumwidget.c:1499 lib/gtk/albumwidget.c:2887
 msgid "Copy"
 msgstr ""
 
@@ -2935,7 +2945,7 @@ msgstr ""
 msgid "Display"
 msgstr ""
 
-#: apps/player/cfgdialog.c:135 apps/player/mainmenu.c:994
+#: apps/player/cfgdialog.c:135 apps/player/mainmenu.c:1002
 msgid "Media Tree"
 msgstr ""
 
@@ -2943,7 +2953,7 @@ msgstr ""
 msgid "Remote control"
 msgstr ""
 
-#: apps/player/cfgdialog.c:153 apps/player/mainmenu.c:1000
+#: apps/player/cfgdialog.c:153 apps/player/mainmenu.c:1008
 #: apps/transcoder/transcoder_window.c:1327
 #: apps/visualizer/gmerlin_visualizer.c:893
 msgid "Log window"
@@ -2953,8 +2963,8 @@ msgstr ""
 msgid "LCDproc"
 msgstr ""
 
-#: apps/player/mainmenu.c:733 apps/player/mainmenu.c:762
-#: apps/player/mainmenu.c:1183
+#: apps/player/mainmenu.c:733 apps/player/mainmenu.c:770
+#: apps/player/mainmenu.c:1191
 msgid "Options..."
 msgstr ""
 
@@ -2966,161 +2976,161 @@ msgstr ""
 msgid "Output plugin..."
 msgstr ""
 
-#: apps/player/mainmenu.c:757
+#: apps/player/mainmenu.c:765
 msgid "Enable visualizations"
 msgstr ""
 
-#: apps/player/mainmenu.c:766 lib/gtk/treewidget.c:1401
+#: apps/player/mainmenu.c:774 lib/gtk/treewidget.c:1401
 msgid "Plugin..."
 msgstr ""
 
-#: apps/player/mainmenu.c:894 apps/player/mainmenu.c:950
-#: apps/player/mainmenu.c:973
+#: apps/player/mainmenu.c:902 apps/player/mainmenu.c:958
+#: apps/player/mainmenu.c:981
 #, c-format
 msgid "Stream %d [%s]"
 msgstr ""
 
-#: apps/player/mainmenu.c:896 apps/player/mainmenu.c:953
-#: apps/player/mainmenu.c:976
+#: apps/player/mainmenu.c:904 apps/player/mainmenu.c:961
+#: apps/player/mainmenu.c:984
 #, c-format
 msgid "Stream %d"
 msgstr ""
 
-#: apps/player/mainmenu.c:916
+#: apps/player/mainmenu.c:924
 #, c-format
 msgid "Chapter %d [%s]"
 msgstr ""
 
-#: apps/player/mainmenu.c:997
+#: apps/player/mainmenu.c:1005
 msgid "Info window"
 msgstr ""
 
-#: apps/player/mainmenu.c:1007 apps/transcoder/transcoder_window.c:855
+#: apps/player/mainmenu.c:1015 apps/transcoder/transcoder_window.c:855
 msgid "About..."
 msgstr ""
 
-#: apps/player/mainmenu.c:1009 apps/transcoder/transcoder_window.c:856
+#: apps/player/mainmenu.c:1017 apps/transcoder/transcoder_window.c:856
 msgid "Userguide"
 msgstr ""
 
-#: apps/player/mainmenu.c:1030 apps/transcoder/transcoder_window.c:839
+#: apps/player/mainmenu.c:1038 apps/transcoder/transcoder_window.c:839
 msgid "Preferences..."
 msgstr ""
 
-#: apps/player/mainmenu.c:1038
+#: apps/player/mainmenu.c:1046
 msgid "Input plugins..."
 msgstr ""
 
-#: apps/player/mainmenu.c:1043
+#: apps/player/mainmenu.c:1051
 msgid "Skins..."
 msgstr ""
 
-#: apps/player/mainmenu.c:1047
+#: apps/player/mainmenu.c:1055
 msgid "Multimedia keys..."
 msgstr ""
 
-#: apps/player/mainmenu.c:1053
+#: apps/player/mainmenu.c:1061
 msgid "Seek forward"
 msgstr ""
 
-#: apps/player/mainmenu.c:1060
+#: apps/player/mainmenu.c:1068
 msgid "Seek backward"
 msgstr ""
 
-#: apps/player/mainmenu.c:1067
+#: apps/player/mainmenu.c:1075
 msgid "Increase volume"
 msgstr ""
 
-#: apps/player/mainmenu.c:1074
+#: apps/player/mainmenu.c:1082
 msgid "Decrease volume"
 msgstr ""
 
-#: apps/player/mainmenu.c:1080 apps/player/gmerlin_remote.c:337
+#: apps/player/mainmenu.c:1088 apps/player/gmerlin_remote.c:337
 msgid "Toggle mute"
 msgstr ""
 
-#: apps/player/mainmenu.c:1086
+#: apps/player/mainmenu.c:1094
 msgid "Next track"
 msgstr ""
 
-#: apps/player/mainmenu.c:1091
+#: apps/player/mainmenu.c:1099
 msgid "Previous track"
 msgstr ""
 
-#: apps/player/mainmenu.c:1096
+#: apps/player/mainmenu.c:1104
 msgid "Next chapter"
 msgstr ""
 
-#: apps/player/mainmenu.c:1102
+#: apps/player/mainmenu.c:1110
 msgid "Previous chapter"
 msgstr ""
 
-#: apps/player/mainmenu.c:1107 lib/gtk/treewidget.c:1325
+#: apps/player/mainmenu.c:1115 lib/gtk/treewidget.c:1325
 #: lib/gtk/treewidget.c:2022
 msgid "Goto current track"
 msgstr ""
 
-#: apps/player/mainmenu.c:1114
+#: apps/player/mainmenu.c:1122
 msgid "Copy current track to favourites"
 msgstr ""
 
-#: apps/player/mainmenu.c:1122
+#: apps/player/mainmenu.c:1130
 msgid "Seek to start"
 msgstr ""
 
-#: apps/player/mainmenu.c:1127
+#: apps/player/mainmenu.c:1135
 msgid "Pause"
 msgstr ""
 
-#: apps/player/mainmenu.c:1132
+#: apps/player/mainmenu.c:1140
 msgid "Quit gmerlin"
 msgstr ""
 
-#: apps/player/mainmenu.c:1143
+#: apps/player/mainmenu.c:1151
 msgid "Transcoder"
 msgstr ""
 
-#: apps/player/mainmenu.c:1147 apps/visualizer/gmerlin_visualizer.c:885
+#: apps/player/mainmenu.c:1155 apps/visualizer/gmerlin_visualizer.c:885
 msgid "Visualizer"
 msgstr ""
 
-#: apps/player/mainmenu.c:1151
+#: apps/player/mainmenu.c:1159
 msgid "Mixer"
 msgstr ""
 
-#: apps/player/mainmenu.c:1158
+#: apps/player/mainmenu.c:1166
 msgid "Audio..."
 msgstr ""
 
-#: apps/player/mainmenu.c:1162
+#: apps/player/mainmenu.c:1170
 msgid "Video..."
 msgstr ""
 
-#: apps/player/mainmenu.c:1166
+#: apps/player/mainmenu.c:1174
 msgid "Subtitles..."
 msgstr ""
 
-#: apps/player/mainmenu.c:1170
+#: apps/player/mainmenu.c:1178
 msgid "Chapters..."
 msgstr ""
 
-#: apps/player/mainmenu.c:1175
+#: apps/player/mainmenu.c:1183
 msgid "Visualization..."
 msgstr ""
 
-#: apps/player/mainmenu.c:1179
+#: apps/player/mainmenu.c:1187
 msgid "Windows..."
 msgstr ""
 
-#: apps/player/mainmenu.c:1187
+#: apps/player/mainmenu.c:1195
 msgid "Commands..."
 msgstr ""
 
-#: apps/player/mainmenu.c:1191
+#: apps/player/mainmenu.c:1199
 msgid "Accessories..."
 msgstr ""
 
-#: apps/player/mainmenu.c:1195
+#: apps/player/mainmenu.c:1203
 msgid "Help..."
 msgstr ""
 
@@ -3141,7 +3151,7 @@ msgid "Normal foreground"
 msgstr ""
 
 #: apps/player/display.c:86 apps/transcoder/transcoder_window.c:179
-#: lib/gtk/logwindow.c:371
+#: lib/gtk/logwindow.c:373
 msgid "Error foreground"
 msgstr ""
 
@@ -3656,11 +3666,11 @@ msgstr ""
 msgid "Cannot launch transcoder process"
 msgstr ""
 
-#: apps/transcoder/tracklist.c:805 lib/gtk/albumwidget.c:2854
+#: apps/transcoder/tracklist.c:805 lib/gtk/albumwidget.c:2880
 msgid "Add files"
 msgstr ""
 
-#: apps/transcoder/tracklist.c:926 lib/gtk/albumwidget.c:1422
+#: apps/transcoder/tracklist.c:926 lib/gtk/albumwidget.c:1444
 msgid "Files..."
 msgstr ""
 
@@ -3681,7 +3691,7 @@ msgid "Move Down"
 msgstr ""
 
 #: apps/transcoder/tracklist.c:942 lib/gtk/treewidget.c:1375
-#: lib/gtk/albumwidget.c:1463
+#: lib/gtk/albumwidget.c:1485
 msgid "Remove"
 msgstr ""
 
@@ -3697,26 +3707,26 @@ msgstr ""
 msgid "Change encoders..."
 msgstr ""
 
-#: apps/transcoder/tracklist.c:955 lib/gtk/albumwidget.c:1470
-#: lib/gtk/albumwidget.c:2859
+#: apps/transcoder/tracklist.c:955 lib/gtk/albumwidget.c:1492
+#: lib/gtk/albumwidget.c:2885
 msgid "Cut"
 msgstr ""
 
-#: apps/transcoder/tracklist.c:964 lib/gtk/albumwidget.c:1484
-#: lib/gtk/albumwidget.c:2863
+#: apps/transcoder/tracklist.c:964 lib/gtk/albumwidget.c:1506
+#: lib/gtk/albumwidget.c:2889
 msgid "Paste"
 msgstr ""
 
-#: apps/transcoder/tracklist.c:975 lib/gtk/albumwidget.c:1546
+#: apps/transcoder/tracklist.c:975 lib/gtk/albumwidget.c:1572
 #: lib/gtk/cfg_device.c:339
 msgid "Add..."
 msgstr ""
 
-#: apps/transcoder/tracklist.c:981 lib/gtk/albumwidget.c:1560
+#: apps/transcoder/tracklist.c:981 lib/gtk/albumwidget.c:1586
 msgid "Selected..."
 msgstr ""
 
-#: apps/transcoder/tracklist.c:987 lib/gtk/albumwidget.c:1553
+#: apps/transcoder/tracklist.c:987 lib/gtk/albumwidget.c:1579
 msgid "Edit..."
 msgstr ""
 
@@ -3724,7 +3734,7 @@ msgstr ""
 msgid "Postprocess..."
 msgstr ""
 
-#: apps/transcoder/tracklist.c:1197 lib/gtk/albumwidget.c:2889
+#: apps/transcoder/tracklist.c:1197 lib/gtk/albumwidget.c:2915
 msgid "Total playback time"
 msgstr ""
 
@@ -4295,7 +4305,7 @@ msgstr ""
 msgid "Created directory %s"
 msgstr ""
 
-#: lib/pluginregistry.c:377 lib/pluginregistry.c:1287
+#: lib/pluginregistry.c:377 lib/pluginregistry.c:1291
 #, c-format
 msgid "Plugin %s has no or wrong version"
 msgstr ""
@@ -4315,46 +4325,46 @@ msgstr ""
 msgid "Cannot dlopen %s: %s"
 msgstr ""
 
-#: lib/pluginregistry.c:1077
+#: lib/pluginregistry.c:1078
 #, c-format
 msgid "bg_plugin_ref %s: %d"
 msgstr ""
 
-#: lib/pluginregistry.c:1139
+#: lib/pluginregistry.c:1143
 #, c-format
 msgid "bg_plugin_unref_nolock %s: %d"
 msgstr ""
 
-#: lib/pluginregistry.c:1150
+#: lib/pluginregistry.c:1154
 #, c-format
 msgid "bg_plugin_unref %s: %d"
 msgstr ""
 
-#: lib/pluginregistry.c:1174 lib/pluginregistry.c:1219
+#: lib/pluginregistry.c:1178 lib/pluginregistry.c:1223
 #, c-format
 msgid "No plugin found for image %s"
 msgstr ""
 
-#: lib/pluginregistry.c:1276
+#: lib/pluginregistry.c:1280
 #, c-format
 msgid "Cannot dlopen plugin %s: %s"
 msgstr ""
 
-#: lib/pluginregistry.c:1381
+#: lib/pluginregistry.c:1385
 msgid "Invalid plugin type for video output"
 msgstr ""
 
-#: lib/pluginregistry.c:1387
+#: lib/pluginregistry.c:1391
 #, c-format
 msgid "Plugin %s doesn't support embedded windows"
 msgstr ""
 
-#: lib/pluginregistry.c:1634
+#: lib/pluginregistry.c:1638
 #, c-format
 msgid "Loading plugin \"%s\" failed"
 msgstr ""
 
-#: lib/pluginregistry.c:1646 lib/pluginregistry.c:1683
+#: lib/pluginregistry.c:1650 lib/pluginregistry.c:1687
 #, c-format
 msgid "Opening %s with \"%s\" failed"
 msgstr ""
@@ -5378,7 +5388,7 @@ msgstr ""
 msgid "Loading %s (plugin: %s)"
 msgstr ""
 
-#: lib/tree.c:1144 lib/transcoder_track.c:990 lib/album.c:1718
+#: lib/tree.c:1144 lib/transcoder_track.c:992 lib/album.c:1708
 #, c-format
 msgid "Loading %s failed"
 msgstr ""
@@ -5634,12 +5644,12 @@ msgid "End time"
 msgstr ""
 
 #: lib/transcoder_track.c:456 lib/transcoder_track.c:505
-#: lib/transcoder_track.c:1437 lib/transcoder_track.c:1461
+#: lib/transcoder_track.c:1441 lib/transcoder_track.c:1465
 msgid "Action"
 msgstr ""
 
 #: lib/transcoder_track.c:460 lib/transcoder_track.c:508
-#: lib/transcoder_track.c:1440 lib/transcoder_track.c:1464
+#: lib/transcoder_track.c:1444 lib/transcoder_track.c:1468
 msgid "Forget"
 msgstr ""
 
@@ -5660,22 +5670,22 @@ msgid "Select action for this subtitle stream."
 msgstr ""
 
 #: lib/transcoder_track.c:466 lib/transcoder_track.c:513
-#: lib/transcoder_track.c:1469
+#: lib/transcoder_track.c:1473
 msgid "Input Language"
 msgstr ""
 
 #: lib/transcoder_track.c:472 lib/transcoder_track.c:519
-#: lib/transcoder_track.c:1475
+#: lib/transcoder_track.c:1479
 msgid "Language"
 msgstr ""
 
 #: lib/transcoder_track.c:480 lib/transcoder_track.c:527
-#: lib/transcoder_track.c:1483
+#: lib/transcoder_track.c:1487
 msgid "Force language"
 msgstr ""
 
 #: lib/transcoder_track.c:483 lib/transcoder_track.c:530
-#: lib/transcoder_track.c:1486
+#: lib/transcoder_track.c:1490
 msgid ""
 "Force the given language even if the input has the language set differently."
 msgstr ""
@@ -5691,8 +5701,8 @@ msgid ""
 "from this video stream as they are sometimes needed by subtitle encoders."
 msgstr ""
 
-#: lib/transcoder_track.c:508 lib/transcoder_track.c:1440
-#: lib/transcoder_track.c:1464 lib/gtk/albumwidget.c:1512
+#: lib/transcoder_track.c:508 lib/transcoder_track.c:1444
+#: lib/transcoder_track.c:1468 lib/gtk/albumwidget.c:1534
 msgid "Transcode"
 msgstr ""
 
@@ -5700,22 +5710,22 @@ msgstr ""
 msgid "Video stream to blend onto"
 msgstr ""
 
-#: lib/transcoder_track.c:1445
+#: lib/transcoder_track.c:1449
 msgid "Enable 2-pass encoding"
 msgstr ""
 
-#: lib/transcoder_track.c:1447
+#: lib/transcoder_track.c:1451
 msgid ""
 "Encode this stream in 2 passes, i.e. analyze it first and do the final "
 "transcoding in the second pass. This enables higher quality within the given "
 "bitrate constraints but roughly doubles the video encoding time."
 msgstr ""
 
-#: lib/transcoder_track.c:1490
+#: lib/transcoder_track.c:1494
 msgid "Normalize audio"
 msgstr ""
 
-#: lib/transcoder_track.c:1492
+#: lib/transcoder_track.c:1496
 msgid ""
 "This will enable 2 pass transcoding. In the first pass, the peak volume is "
 "detected. In the second pass, the stream is transcoded with normalized "
@@ -6043,7 +6053,7 @@ msgstr ""
 msgid "New from directory..."
 msgstr ""
 
-#: lib/gtk/treewidget.c:1371 lib/gtk/albumwidget.c:1502
+#: lib/gtk/treewidget.c:1371 lib/gtk/albumwidget.c:1524
 msgid "Rename..."
 msgstr ""
 
@@ -6055,7 +6065,7 @@ msgstr ""
 msgid "Add device..."
 msgstr ""
 
-#: lib/gtk/treewidget.c:1395 lib/gtk/albumwidget.c:1566
+#: lib/gtk/treewidget.c:1395 lib/gtk/albumwidget.c:1592
 msgid "Album..."
 msgstr ""
 
@@ -6076,55 +6086,55 @@ msgstr ""
 msgid "%s messages"
 msgstr ""
 
-#: lib/gtk/logwindow.c:326
+#: lib/gtk/logwindow.c:328
 msgid "Number of messages"
 msgstr ""
 
-#: lib/gtk/logwindow.c:329
+#: lib/gtk/logwindow.c:331
 msgid "Maximum number of messages hold in the window"
 msgstr ""
 
-#: lib/gtk/logwindow.c:333
+#: lib/gtk/logwindow.c:335
 msgid "Show info messages"
 msgstr ""
 
-#: lib/gtk/logwindow.c:339
+#: lib/gtk/logwindow.c:341
 msgid "Show warning messages"
 msgstr ""
 
-#: lib/gtk/logwindow.c:345
+#: lib/gtk/logwindow.c:347
 msgid "Show error messages"
 msgstr ""
 
-#: lib/gtk/logwindow.c:351
+#: lib/gtk/logwindow.c:353
 msgid "Show debug messages"
 msgstr ""
 
-#: lib/gtk/logwindow.c:357
+#: lib/gtk/logwindow.c:359
 msgid "Info foreground"
 msgstr ""
 
-#: lib/gtk/logwindow.c:360
+#: lib/gtk/logwindow.c:362
 msgid "Color for info messages"
 msgstr ""
 
-#: lib/gtk/logwindow.c:364
+#: lib/gtk/logwindow.c:366
 msgid "Warning foreground"
 msgstr ""
 
-#: lib/gtk/logwindow.c:367
+#: lib/gtk/logwindow.c:369
 msgid "Color for warning messages"
 msgstr ""
 
-#: lib/gtk/logwindow.c:374
+#: lib/gtk/logwindow.c:376
 msgid "Color for error messages"
 msgstr ""
 
-#: lib/gtk/logwindow.c:378
+#: lib/gtk/logwindow.c:380
 msgid "Debug foreground"
 msgstr ""
 
-#: lib/gtk/logwindow.c:381
+#: lib/gtk/logwindow.c:383
 msgid "Color for debug messages"
 msgstr ""
 
@@ -6236,130 +6246,134 @@ msgstr ""
 msgid "URL:"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1118
+#: lib/gtk/albumwidget.c:1122
 msgid "Track name"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1128
+#: lib/gtk/albumwidget.c:1132
 msgid "Rename entry"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1140
+#: lib/gtk/albumwidget.c:1144
 #, c-format
 msgid "Add files to album %s"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1166
+#: lib/gtk/albumwidget.c:1170
 #, c-format
 msgid "Add URLS to album %s"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1250
+#: lib/gtk/albumwidget.c:1254
 #, c-format
 msgid "Add albums to %s"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1424
+#: lib/gtk/albumwidget.c:1446
 msgid "URLs..."
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1426
+#: lib/gtk/albumwidget.c:1448
 msgid "Albums..."
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1438
+#: lib/gtk/albumwidget.c:1460
 msgid "Copy to favourites"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1447
+#: lib/gtk/albumwidget.c:1469
 msgid "Move to top"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1455
+#: lib/gtk/albumwidget.c:1477
 msgid "Move to bottom"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1491
+#: lib/gtk/albumwidget.c:1513
 msgid "Find..."
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1505
+#: lib/gtk/albumwidget.c:1527
 msgid "Info..."
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1518
+#: lib/gtk/albumwidget.c:1541
 msgid "Refresh"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1531
+#: lib/gtk/albumwidget.c:1544
+msgid "Export as EDL"
+msgstr ""
+
+#: lib/gtk/albumwidget.c:1557
 msgid "Save as..."
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1535
+#: lib/gtk/albumwidget.c:1561
 msgid "Sort"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1572
+#: lib/gtk/albumwidget.c:1598
 msgid "Select error tracks"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:1575
+#: lib/gtk/albumwidget.c:1601
 msgid "Show toolbar"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:2856
+#: lib/gtk/albumwidget.c:2882
 msgid "Add URLs"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:2869
+#: lib/gtk/albumwidget.c:2895
 msgid "Close album and eject disc"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:2875
+#: lib/gtk/albumwidget.c:2901
 msgid "Copy selected tracks to favourites"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:2878
+#: lib/gtk/albumwidget.c:2904
 msgid "Rename selected track"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:2881
+#: lib/gtk/albumwidget.c:2907
 msgid "Show track info"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:2884
+#: lib/gtk/albumwidget.c:2910
 msgid "Find tracks"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:3085
+#: lib/gtk/albumwidget.c:3111
 msgid "Backward search hit top, continuing at bottom"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:3094
+#: lib/gtk/albumwidget.c:3120
 msgid "Backward search: No tracks found"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:3113
+#: lib/gtk/albumwidget.c:3139
 msgid "Forward search hit bottom, continuing at top"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:3122
+#: lib/gtk/albumwidget.c:3148
 msgid "Forward search: No tracks found"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:3246
+#: lib/gtk/albumwidget.c:3272
 msgid "Exact match"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:3247
+#: lib/gtk/albumwidget.c:3273
 msgid "String is an exact substring"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:3251
+#: lib/gtk/albumwidget.c:3277
 msgid "Match case"
 msgstr ""
 
-#: lib/gtk/albumwidget.c:3252
+#: lib/gtk/albumwidget.c:3278
 msgid "Match upper and lower case"
 msgstr ""
 
@@ -6610,57 +6624,65 @@ msgid ""
 "%s"
 msgstr ""
 
-#: lib/album.c:426
+#: lib/album.c:427
 msgid "Unnamed disc"
 msgstr ""
 
-#: lib/album.c:483
+#: lib/album.c:484
 #, c-format
 msgid "Album %s already open"
 msgstr ""
 
-#: lib/album.c:488
+#: lib/album.c:489
 #, c-format
 msgid "Opening album %s"
 msgstr ""
 
-#: lib/album.c:620
+#: lib/album.c:621
 #, c-format
 msgid "Not closing album %s (open_count > 0)"
 msgstr ""
 
-#: lib/album.c:623
+#: lib/album.c:624
 #, c-format
 msgid "Closing album %s"
 msgstr ""
 
-#: lib/album.c:1700
+#: lib/album.c:1690
 #, c-format
 msgid "Loading %s"
 msgstr ""
 
-#: lib/album.c:1743
+#: lib/album.c:1733
 #, c-format
 msgid "Loaded %s (track %d of %d)"
 msgstr ""
 
-#: lib/album.c:1885
+#: lib/album.c:1915
 msgid "Ejecting disc failed"
 msgstr ""
 
-#: lib/album.c:1989
+#: lib/album.c:2019
 msgid "Invalid selection range given"
 msgstr ""
 
-#: lib/edldec.c:703
+#: lib/edldec.c:511
+msgid "EDL only works with seekable sources"
+msgstr ""
+
+#: lib/edldec.c:767
 msgid "Unexpected EOF, clearing frame"
 msgstr ""
 
-#: lib/edldec.c:801
+#: lib/edldec.c:832 lib/edldec.c:852
+msgid "Seeked out of range"
+msgstr ""
+
+#: lib/edldec.c:968
 msgid "EDL decoder"
 msgstr ""
 
-#: lib/edldec.c:802
+#: lib/edldec.c:969
 msgid "This metaplugin decodes and EDL as if it was a single file."
 msgstr ""
 

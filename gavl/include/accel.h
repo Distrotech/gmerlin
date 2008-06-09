@@ -54,3 +54,17 @@ int gavl_video_options_get_accel_flags(gavl_video_options_t * opt);
 void gavl_init_memcpy();
 
 extern void * (*gavl_memcpy)(void *to, const void *from, size_t len);
+
+/* Branch prediction */
+
+#if __GNUC__ >= 3
+
+#define GAVL_UNLIKELY(exp) __builtin_expect((exp),0)
+#define GAVL_LIKELY(exp)   __builtin_expect((exp),1)
+
+#else
+
+#define GAVL_UNLIKELY(exp) exp
+#define GAVL_LIKELY(exp)   exp
+
+#endif

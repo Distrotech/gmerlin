@@ -148,7 +148,7 @@ static void convert_4_to_3(alsa_t * priv, gavl_audio_frame_t * frame)
   
   for(i = 0; i < imax; i++)
     {
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+#ifndef WORDS_BIGENDIAN
     dst[0] = src[1];
     dst[1] = src[2];
     dst[2] = src[3];

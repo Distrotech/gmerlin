@@ -126,7 +126,7 @@ static int write_fourcc(FILE * output, char c1, char c2, char c3, char c4)
 
 /* Functions for writing signed integers */
 
-#ifdef GAVL_PROCESSOR_BIG_ENDIAN
+#ifdef WORDS_BIGENDIAN
 static void convert_16_be(struct wav_s*w, uint8_t * samples, int num_samples)
   {
   int i;
@@ -567,7 +567,7 @@ static int start_wav(void * data)
       break;
     case 2:
       wav->format.sample_format = GAVL_SAMPLE_S16;
-#ifdef GAVL_PROCESSOR_BIG_ENDIAN
+#ifdef WORDS_BIGENDIAN
       wav->convert_func = convert_16_be;
 #endif
       break;
@@ -576,7 +576,7 @@ static int start_wav(void * data)
       wav->format.sample_format = GAVL_SAMPLE_S32;
       break;
     case 4:
-#ifdef GAVL_PROCESSOR_BIG_ENDIAN
+#ifdef WORDS_BIGENDIAN
       wav->convert_func = convert_32_be;
 #endif
       wav->format.sample_format = GAVL_SAMPLE_S32;

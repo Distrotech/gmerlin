@@ -39,6 +39,7 @@ dnl
 
 AC_CHECK_HEADERS(byteswap.h)
 
+AC_C_BIGENDIAN(,,AC_MSG_ERROR("Cannot detect endianess"))
 
 AC_SYS_LARGEFILE
 AC_FUNC_FSEEKO

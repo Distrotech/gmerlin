@@ -128,7 +128,7 @@ int bg_pa_open(bg_pa_t * p, int record)
     case GAVL_SAMPLE_S16:
       //    case GAVL_SAMPLE_FLOAT: 
       p->format.sample_format = GAVL_SAMPLE_S16;
-#ifdef GAVL_PROCESSOR_BIG_ENDIAN
+#ifdef WORDS_BIGENDIAN
       ss.format = PA_SAMPLE_S16BE;
 #else
       ss.format = PA_SAMPLE_S16LE;
@@ -136,7 +136,7 @@ int bg_pa_open(bg_pa_t * p, int record)
       break;
     case GAVL_SAMPLE_S32:
 #if 0
-#ifdef GAVL_PROCESSOR_BIG_ENDIAN
+#ifdef WORDS_BIGENDIAN
       ss.format = PA_SAMPLE_S32BE;
 #else
       ss.format = PA_SAMPLE_S32LE;

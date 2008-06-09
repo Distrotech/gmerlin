@@ -256,7 +256,7 @@ static int decode_dvdsub(bgav_stream_t * s, gavl_overlay_t * ovl)
   for(i = 0; i < 4; i++)
     {
     local_palette[i] = ifo_palette[palette[i]] << 8 | alpha[i] << 4 | alpha[i];
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+#ifndef WORDS_BIGENDIAN
     local_palette[i] = bswap_32(local_palette[i]);
 #endif
     }

@@ -1522,7 +1522,7 @@ void gavl_video_frame_fill(gavl_video_frame_t * frame,
                           packed_32[1], packed_32[2]);
       /* This overwrites packed_32[1] from the lone before */
       RGB_FLOAT_TO_8(color[3], packed_32[1]);
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+#ifndef WORDS_BIGENDIAN
       packed_16 = (packed_32[1] << 8) | packed_32[0];
 #else
       packed_16 = (packed_32[0] << 8) | packed_32[1];
@@ -1536,7 +1536,7 @@ void gavl_video_frame_fill(gavl_video_frame_t * frame,
     case GAVL_GRAYA_32:
       RGB_FLOAT_TO_YJ_16(color[0], color[1], color[2], packed_64[0]);
       RGB_FLOAT_TO_16(color[3], packed_64[1]);
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+#ifndef WORDS_BIGENDIAN
       packed_32[0] = packed_64[0] & 0xff;
       packed_32[1] = packed_64[0] >> 8;
       packed_32[2] = packed_64[1] & 0xff;

@@ -113,7 +113,7 @@ static int read_header_png(void * priv, const char * filename,
     case PNG_COLOR_TYPE_GRAY:       /*  (bit depths 1, 2, 4, 8, 16) */
       if(bit_depth == 16)
         {
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+#ifndef WORDS_BIGENDIAN
         png_set_swap(png->png_ptr);
 #endif
         bits = 16;
@@ -130,7 +130,7 @@ static int read_header_png(void * priv, const char * filename,
     case PNG_COLOR_TYPE_GRAY_ALPHA: /*  (bit depths 8, 16) */
       if(bit_depth == 16)
         {
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+#ifndef WORDS_BIGENDIAN
         png_set_swap(png->png_ptr);
 #endif
         bits = 16;
@@ -154,7 +154,7 @@ static int read_header_png(void * priv, const char * filename,
         }
       if(bit_depth == 16)
         {
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+#ifndef WORDS_BIGENDIAN
         png_set_swap(png->png_ptr);
 #endif
         bits = 16;
@@ -163,7 +163,7 @@ static int read_header_png(void * priv, const char * filename,
     case PNG_COLOR_TYPE_RGB_ALPHA:  /*  (bit_depths 8, 16) */
       if(bit_depth == 16)
         {
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+#ifndef WORDS_BIGENDIAN
         png_set_swap(png->png_ptr);
 #endif
         bits = 16;

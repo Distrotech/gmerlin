@@ -255,7 +255,7 @@ set_parameter_scope(void * priv, const char * name,
     fg_g = (int)(vp->fg_float[1] * 255.0 + 0.5);
     fg_b = (int)(vp->fg_float[2] * 255.0 + 0.5);
     
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+#ifndef WORDS_BIGENDIAN
     vp->fg_int = fg_r | (fg_g << 8) | (fg_b << 16) | 0xff000000;
 #else
     vp->fg_int = (fg_r<<24) | (fg_g << 16) | (fg_b << 8) | 0x000000ff;

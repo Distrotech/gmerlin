@@ -81,7 +81,7 @@ int bg_pngwriter_write_header(void * priv, const char * filename,
       break;
       
     }
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+#ifndef WORDS_BIGENDIAN
   if(bits > 8)
     png->transform_flags |= PNG_TRANSFORM_SWAP_ENDIAN;
 #endif

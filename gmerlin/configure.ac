@@ -42,10 +42,11 @@ AC_CHECK_SIZEOF(long)
 AC_CHECK_SIZEOF(float)
 AC_CHECK_SIZEOF(double)
 
-AC_C_BIGENDIAN
 AC_CHECK_FUNCS(vasprintf)
 AC_C99_FUNC_LRINT
 AC_C99_FUNC_LRINTF
+
+AC_C_BIGENDIAN(,,AC_MSG_ERROR("Cannot detect endianess"))
 
 AC_CHECK_HEADERS([sys/select.h])
 

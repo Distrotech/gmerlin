@@ -646,7 +646,7 @@ int bg_msg_write_audio_frame(bg_msg_t * msg,
   int len, bytes_per_sample, i;
   bg_msg_set_arg_int(msg, 0, frame->valid_samples);
   bg_msg_set_arg_time(msg, 1, frame->timestamp);
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+#ifndef WORDS_BIGENDIAN
   bg_msg_set_arg_int(msg, 2, 0);
 #else
   bg_msg_set_arg_int(msg, 2, 1);
@@ -749,7 +749,7 @@ int bg_msg_read_audio_frame(gavl_dsp_context_t * ctx,
       break;
     }
 
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+#ifndef WORDS_BIGENDIAN
   if(big_endian)
     gavl_dsp_audio_frame_swap_endian(ctx, frame, format);
 #else

@@ -124,7 +124,7 @@ static snd_pcm_t * bg_alsa_open(const char * card,
         format->sample_format = GAVL_SAMPLE_S16;
       break;
     case GAVL_SAMPLE_S32:
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+#ifndef WORDS_BIGENDIAN
       if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S32_LE) < 0)
 #else
       if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S32_BE) < 0)
@@ -132,7 +132,7 @@ static snd_pcm_t * bg_alsa_open(const char * card,
         {
         /* Soundcard supports no 32-bit, try 24
            (more probably supported but needs conversion) */
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+#ifndef WORDS_BIGENDIAN
         if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S24_3LE) < 0)
 #else
         if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S24_3BE) < 0)
@@ -163,7 +163,7 @@ static snd_pcm_t * bg_alsa_open(const char * card,
       if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_FLOAT) < 0)
        {
 
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+#ifndef WORDS_BIGENDIAN
         if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S32_LE) < 0)
 #else
         if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S32_BE) < 0)
@@ -171,7 +171,7 @@ static snd_pcm_t * bg_alsa_open(const char * card,
           {
             /* Soundcard supports no 32-bit, try 24
                (more probably supported but needs conversion) */
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+#ifndef WORDS_BIGENDIAN
           if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S24_3LE) < 0)
 #else
           if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S24_3BE) < 0)
