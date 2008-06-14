@@ -44,6 +44,9 @@
 
 #include "colormatrix.h"
 
+#define CLAMP_Y(val) (val > 1.0) ? 1.0 : ((val < 0.0) ? 0.0 : val)
+#define CLAMP_UV(val) (val > 0.5) ? 0.5 : ((val < -0.5) ? -0.5 : val)
+
 typedef struct equalizer_priv_s
   {
   int brightness;
@@ -54,7 +57,7 @@ typedef struct equalizer_priv_s
   bg_colormatrix_t * mat;
   float coeffs[3][4];
   
-  /* Offsets and advance */
+  /* Offsets (in bytes) and advance (in components) */
   int offset[3];
   int advance[2];
   
@@ -141,6 +144,37 @@ static void process_sh_C(uint8_t *udst, uint8_t *vdst,
     }
   }
 
+static void process_sh_float_C(uint8_t *udst1, uint8_t *vdst1,
+                               int dststride, 
+                               int w, int h, float hue, float sat, int advance)
+  {
+  int i, index;
+  const float s= sin(hue) * sat;
+  const float c= cos(hue) * sat;
+
+  float * udst;
+  float * vdst;
+  
+  while (h--)
+    {
+    index = 0;
+    udst = (float*)udst1;
+    vdst = (float*)vdst1;
+    
+    for (i = 0; i<w; i++)
+      {
+      float new_u= (c*udst[index] - s*vdst[index]);
+      float new_v= (s*udst[index] + c*vdst[index]);
+      udst[index]= CLAMP_UV(new_u);
+      vdst[index]= CLAMP_UV(new_v);
+      index += advance;
+      }
+    udst1 += dststride;
+    vdst1 += dststride;
+    }
+  }
+
+
 static void process_bc_C(unsigned char *dest, int dstride,
                          int w, int h, int brightness, int contrast, int advance)
   {
@@ -163,6 +197,32 @@ static void process_bc_C(unsigned char *dest, int dstride,
     dest += dstride;
     }
   }
+
+static void process_bc_float_C(uint8_t *ydst1, int dststride, 
+                               int w, int h, int brightness1, int contrast1, int advance)
+  {
+  int i, index;
+  float * ydst;
+  float contrast, brightness;
+  float new_y;
+  contrast = (contrast1+100.0) / 100.0;
+  brightness = (brightness1+100.0)/100.0 - 0.5 * (1.0 + contrast);
+  
+  while (h--)
+    {
+    index = 0;
+    ydst = (float*)ydst1;
+    
+    for (i = 0; i<w; i++)
+      {
+      new_y = contrast * ydst[index] + brightness;
+      ydst[index] = CLAMP_Y(new_y);
+      index += advance;
+      }
+    ydst1 += dststride;
+    }
+  }
+
 
 static void process_bcj_C(unsigned char *dest, int dstride,
                           int w, int h, int brightness, int contrast, int advance)
@@ -250,6 +310,31 @@ static void process_bc16_C(unsigned char *dest1, int dstride,
     }
   }
 
+static void process_bcj16_C(unsigned char *dest1, int dstride,
+                            int w, int h, int brightness1, int contrast1, int advance)
+  {
+  int i, index;
+  int64_t pel;
+  uint16_t * dest;
+  int64_t brightness, contrast;
+  
+  contrast = ((contrast1+100)*256*256)/100;
+  brightness = ((brightness1+100)*511*256)/200-128*256 - (contrast*256)/512;
+  
+  while (h--)
+    {
+    dest = (uint16_t *)dest1;
+    index = 0;
+    for (i = w; i; i--)
+      {
+      pel = (((int64_t)dest[index] * contrast)>>16) + brightness;
+      if(pel & 0xFFFF0000LL) pel= (-pel)>>63;
+      dest[index] = pel;
+      index += advance;
+      }
+    dest1 += dstride;
+    }
+  }
 
 
 static int read_video_fast(equalizer_priv_t * vp,
@@ -267,29 +352,31 @@ static int read_video_fast(equalizer_priv_t * vp,
                    vp->format.image_height,
                    vp->brightness, vp->contrast, vp->advance[0]);
     }
-  
-  if((vp->hue != 0.0) || (vp->saturation != 1.0))
+
+  if(vp->process_sh)
     {
-    if(gavl_pixelformat_is_planar(vp->format.pixelformat))
+    if((vp->hue != 0.0) || (vp->saturation != 1.0))
       {
-      vp->process_sh(frame->planes[1] + vp->offset[1],
-                     frame->planes[2] + vp->offset[2],
-                     frame->strides[1],
-                     vp->chroma_width,
-                     vp->chroma_height,
-                     vp->hue, vp->saturation, vp->advance[1]);
-      }
-    else
-      {
-      vp->process_sh(frame->planes[0] + vp->offset[1],
-                     frame->planes[0] + vp->offset[2],
-                     frame->strides[0],
-                     vp->chroma_width,
-                     vp->chroma_height,
-                     vp->hue, vp->saturation, vp->advance[1]);
+      if(gavl_pixelformat_is_planar(vp->format.pixelformat))
+        {
+        vp->process_sh(frame->planes[1] + vp->offset[1],
+                       frame->planes[2] + vp->offset[2],
+                       frame->strides[1],
+                       vp->chroma_width,
+                       vp->chroma_height,
+                       vp->hue, vp->saturation, vp->advance[1]);
+        }
+      else
+        {
+        vp->process_sh(frame->planes[0] + vp->offset[1],
+                       frame->planes[0] + vp->offset[2],
+                       frame->strides[0],
+                       vp->chroma_width,
+                       vp->chroma_height,
+                       vp->hue, vp->saturation, vp->advance[1]);
+        }
       }
     }
-  
   return 1;
   }
 
@@ -453,16 +540,50 @@ static void set_input_format_equalizer(void * priv, gavl_video_format_t * format
   int sub_h, sub_v;
   equalizer_priv_t * vp;
   vp = (equalizer_priv_t *)priv;
-
-  vp->process_bc = process_bc_C;
-  vp->process_sh = process_sh_C;
+  
   vp->use_matrix = 0;
-
+  
   if(port)
     return;
   
   switch(format->pixelformat)
     {
+    case GAVL_GRAY_8:
+      vp->advance[0] = 1;
+      vp->offset[0]  = 0;
+      vp->process_bc = process_bcj_C;
+      vp->process_sh = NULL;
+      break;
+    case GAVL_GRAYA_16:
+      vp->advance[0] = 2;
+      vp->offset[0]  = 0;
+      vp->process_bc = process_bcj_C;
+      vp->process_sh = NULL;
+      break;
+    case GAVL_GRAY_16:
+      vp->advance[0] = 1;
+      vp->offset[0]  = 0;
+      vp->process_bc = process_bcj16_C;
+      vp->process_sh = NULL;
+      break;
+    case GAVL_GRAYA_32:
+      vp->advance[0] = 2;
+      vp->offset[0]  = 0;
+      vp->process_bc = process_bcj16_C;
+      vp->process_sh = NULL;
+      break;
+    case GAVL_GRAY_FLOAT:
+      vp->advance[0] = 1;
+      vp->offset[0]  = 0;
+      vp->process_bc = process_bc_float_C;
+      vp->process_sh = NULL;
+      break;
+    case GAVL_GRAYA_FLOAT:
+      vp->advance[0] = 2;
+      vp->offset[0]  = 0;
+      vp->process_bc = process_bc_float_C;
+      vp->process_sh = NULL;
+      break;
     case GAVL_RGB_15:
     case GAVL_BGR_15:
     case GAVL_RGB_16:
@@ -484,14 +605,44 @@ static void set_input_format_equalizer(void * priv, gavl_video_format_t * format
       vp->offset[0]  = 0;
       vp->offset[1]  = 0;
       vp->offset[2]  = 0;
+      vp->process_bc = process_bc_C;
+      vp->process_sh = process_sh_C;
       break;
     case GAVL_YUVA_32:
-      format->pixelformat = GAVL_YUVA_32;
       vp->advance[0] = 4;
       vp->advance[1] = 4;
       vp->offset[0]  = 0;
       vp->offset[1]  = 1;
       vp->offset[2]  = 2;
+      vp->process_bc = process_bc_C;
+      vp->process_sh = process_sh_C;
+      break;
+    case GAVL_YUVA_64:
+      vp->advance[0] = 4;
+      vp->advance[1] = 4;
+      vp->offset[0]  = 0;
+      vp->offset[1]  = 2;
+      vp->offset[2]  = 4;
+      vp->process_bc = process_bc16_C;
+      vp->process_sh = process_sh16_C;
+      break;
+    case GAVL_YUV_FLOAT:
+      vp->advance[0] = 3;
+      vp->advance[1] = 3;
+      vp->offset[0]  = 0;
+      vp->offset[1]  = sizeof(float);
+      vp->offset[2]  = 2*sizeof(float);
+      vp->process_bc = process_bc_float_C;
+      vp->process_sh = process_sh_float_C;
+      break;
+    case GAVL_YUVA_FLOAT:
+      vp->advance[0] = 4;
+      vp->advance[1] = 4;
+      vp->offset[0]  = 0;
+      vp->offset[1]  = sizeof(float);
+      vp->offset[2]  = 2*sizeof(float);
+      vp->process_bc = process_bc_float_C;
+      vp->process_sh = process_sh_float_C;
       break;
     case GAVL_YUY2:
       vp->advance[0] = 2;
@@ -499,6 +650,8 @@ static void set_input_format_equalizer(void * priv, gavl_video_format_t * format
       vp->offset[0]  = 0;
       vp->offset[1]  = 1;
       vp->offset[2]  = 3;
+      vp->process_bc = process_bc_C;
+      vp->process_sh = process_sh_C;
       break;
     case GAVL_UYVY:
       vp->advance[0] = 2;
@@ -506,12 +659,19 @@ static void set_input_format_equalizer(void * priv, gavl_video_format_t * format
       vp->offset[0]  = 1;
       vp->offset[1]  = 0;
       vp->offset[2]  = 2;
+      vp->process_bc = process_bc_C;
+      vp->process_sh = process_sh_C;
       break;
     case GAVL_YUV_444_P_16:
     case GAVL_YUV_422_P_16:
+      vp->advance[0] = 1;
+      vp->advance[1] = 1;
+      vp->offset[0]  = 0;
+      vp->offset[1]  = 0;
+      vp->offset[2]  = 0;
       vp->process_bc = process_bc16_C;
       vp->process_sh = process_sh16_C;
-      /* Fall thrhough */
+      break;
     case GAVL_YUV_420_P:
     case GAVL_YUV_410_P:
     case GAVL_YUV_411_P:
@@ -521,11 +681,14 @@ static void set_input_format_equalizer(void * priv, gavl_video_format_t * format
       vp->offset[0]  = 0;
       vp->offset[1]  = 0;
       vp->offset[2]  = 0;
+      vp->process_bc = process_bc_C;
+      vp->process_sh = process_sh_C;
       break;
     case GAVL_YUVJ_420_P:
     case GAVL_YUVJ_422_P:
     case GAVL_YUVJ_444_P:
       vp->process_bc = process_bcj_C;
+      vp->process_sh = process_sh_C;
       vp->advance[0] = 1;
       vp->advance[1] = 1;
       vp->offset[0]  = 0;

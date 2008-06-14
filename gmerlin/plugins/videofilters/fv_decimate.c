@@ -253,6 +253,33 @@ set_input_format_decimate(void * priv,
 
     switch(vp->format.pixelformat)
       {
+      case GAVL_GRAY_8:
+        vp->scale_factors[0] = 1.0/(1.0*255.0);
+        vp->sad_func = vp->dsp_funcs->sad_8;
+        break;
+      case GAVL_GRAYA_16:
+        vp->scale_factors[0] = 1.0/(2.0*255.0);
+        vp->sad_func = vp->dsp_funcs->sad_8;
+        vp->width_mul = 2;
+        break;
+      case GAVL_GRAY_16:
+        vp->scale_factors[0] = 1.0/(1.0*65535.0);
+        vp->sad_func = vp->dsp_funcs->sad_16;
+        break;
+      case GAVL_GRAYA_32:
+        vp->scale_factors[0] = 1.0/(2.0*65535.0);
+        vp->sad_func = vp->dsp_funcs->sad_16;
+        vp->width_mul = 2;
+        break;
+      case GAVL_GRAY_FLOAT:
+        vp->scale_factors[0] = 1.0;
+        vp->diff_block = diff_block_f;
+        break;
+      case GAVL_GRAYA_FLOAT:
+        vp->scale_factors[0] = 1.0/2.0;
+        vp->diff_block = diff_block_f;
+        vp->width_mul = 2;
+        break;
       case GAVL_RGB_15:
       case GAVL_BGR_15:
         vp->scale_factors[0] = 1.0/(3.0*255.0);
@@ -325,6 +352,24 @@ set_input_format_decimate(void * priv,
         vp->scale_factors[0] = 
           1.0/(235.0 - 16.0 + 2.0 * (240.0 - 16.0) + 255.0);
         vp->sad_func = vp->dsp_funcs->sad_8;
+        vp->width_mul = 4;
+        break;
+      case GAVL_YUVA_64:
+        vp->scale_factors[0] = 
+          1.0/((235.0 - 16.0)*256.0 + 2.0 * (240.0 - 16.0)*256.0 + 255.0*256.0);
+        vp->sad_func = vp->dsp_funcs->sad_16;
+        vp->width_mul = 4;
+        break;
+      case GAVL_YUV_FLOAT:
+        vp->scale_factors[0] = 
+          1.0/3.0;
+        vp->diff_block = diff_block_f;
+        vp->width_mul = 3;
+        break;
+      case GAVL_YUVA_FLOAT:
+        vp->scale_factors[0] = 
+          1.0/4.0;
+        vp->diff_block = diff_block_f;
         vp->width_mul = 4;
         break;
       case GAVL_YUY2:

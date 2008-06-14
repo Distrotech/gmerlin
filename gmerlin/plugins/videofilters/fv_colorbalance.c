@@ -35,6 +35,8 @@
 
 #include "colormatrix.h"
 
+#define CLAMP_FLOAT(val) (val > 1.0) ? 1.0 : ((val < 0.0) ? 0.0 : val)
+
 typedef struct colorbalance_priv_s
   {
   float gain[3];
@@ -456,6 +458,7 @@ static void process_rgb_float(colorbalance_priv_t * vp, gavl_video_frame_t * fra
   float gain_norm[3];
   float * dest;
   uint8_t * dest1;
+  float tmp;
   int w = vp->format.image_width;
   int h = vp->format.image_height;
 
@@ -468,9 +471,12 @@ static void process_rgb_float(colorbalance_priv_t * vp, gavl_video_frame_t * fra
     dest = (float *)dest1;
     for (i = 0; i<w; i++)
       {
-      dest[0] *= gain_norm[0];
-      dest[1] *= gain_norm[1];
-      dest[2] *= gain_norm[2];
+      tmp = dest[0] * gain_norm[0];
+      dest[0] = CLAMP_FLOAT(tmp);
+      tmp = dest[1] * gain_norm[1];
+      dest[1] = CLAMP_FLOAT(tmp);
+      tmp = dest[2] * gain_norm[2];
+      dest[2] = CLAMP_FLOAT(tmp);
       dest += 3;
       }
     dest1 += frame->strides[0];
@@ -483,6 +489,7 @@ static void process_rgba_float(colorbalance_priv_t * vp, gavl_video_frame_t * fr
   float gain_norm[3];
   float * dest;
   uint8_t * dest1;
+  float tmp;
   int w = vp->format.image_width;
   int h = vp->format.image_height;
 
@@ -495,9 +502,12 @@ static void process_rgba_float(colorbalance_priv_t * vp, gavl_video_frame_t * fr
     dest = (float *)dest1;
     for (i = 0; i<w; i++)
       {
-      dest[0] *= gain_norm[0];
-      dest[1] *= gain_norm[1];
-      dest[2] *= gain_norm[2];
+      tmp = dest[0] * gain_norm[0];
+      dest[0] = CLAMP_FLOAT(tmp);
+      tmp = dest[1] * gain_norm[1];
+      dest[1] = CLAMP_FLOAT(tmp);
+      tmp = dest[2] * gain_norm[2];
+      dest[2] = CLAMP_FLOAT(tmp);
       dest += 4;
       }
     dest1 += frame->strides[0];
@@ -558,6 +568,15 @@ static void set_input_format_colorbalance(void * priv, gavl_video_format_t * for
     case GAVL_YUVJ_420_P:
     case GAVL_YUVJ_422_P:
     case GAVL_YUVJ_444_P:
+    case GAVL_GRAY_8:
+    case GAVL_GRAY_16:
+    case GAVL_GRAY_FLOAT:
+    case GAVL_GRAYA_16:
+    case GAVL_GRAYA_32:
+    case GAVL_GRAYA_FLOAT:
+    case GAVL_YUV_FLOAT:
+    case GAVL_YUVA_FLOAT:
+    case GAVL_YUVA_64:
       vp->use_matrix = 1;
       break;
     case GAVL_PIXELFORMAT_NONE:

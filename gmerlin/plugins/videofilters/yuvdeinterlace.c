@@ -243,6 +243,15 @@ void yuvdeinterlacer_init(yuvdeinterlacer_t * ret,
     case GAVL_RGBA_32:
     case GAVL_YUVA_32:
     case GAVL_RGBA_64:
+    case GAVL_GRAY_8: 
+    case GAVL_GRAY_16:
+    case GAVL_GRAY_FLOAT:
+    case GAVL_GRAYA_16:
+    case GAVL_GRAYA_32:
+    case GAVL_GRAYA_FLOAT:
+    case GAVL_YUV_FLOAT:
+    case GAVL_YUVA_FLOAT:
+    case GAVL_YUVA_64:
     case GAVL_RGBA_FLOAT:
       format->pixelformat = GAVL_YUV_444_P;
       break;

@@ -75,12 +75,17 @@ static void check_gl(bg_x11_window_t * win,
   
   formats_ret[format_index++] = GAVL_RGB_24;
   formats_ret[format_index++] = GAVL_RGBA_32;
-
   formats_ret[format_index++] = GAVL_RGB_48;
   formats_ret[format_index++] = GAVL_RGBA_64;
-
   formats_ret[format_index++] = GAVL_RGB_FLOAT;
   formats_ret[format_index++] = GAVL_RGBA_FLOAT;
+
+  formats_ret[format_index++] = GAVL_GRAY_8;
+  formats_ret[format_index++] = GAVL_GRAYA_16;
+  formats_ret[format_index++] = GAVL_GRAY_16;
+  formats_ret[format_index++] = GAVL_GRAYA_32;
+  formats_ret[format_index++] = GAVL_GRAY_FLOAT;
+  formats_ret[format_index++] = GAVL_GRAYA_FLOAT;
   
   bg_x11_window_set_gl(win);
   
@@ -101,7 +106,7 @@ static int init_gl(driver_data_t * d)
   priv = calloc(1, sizeof(*priv));
   d->priv = priv;
   
-  d->pixelformats = malloc(8*sizeof(*d->pixelformats));
+  d->pixelformats = malloc(13*sizeof(*d->pixelformats));
   check_gl(d->win, d->pixelformats, priv);
   
   return 1;
@@ -116,6 +121,30 @@ static void create_texture(gl_priv_t * priv,
   gavl_video_format_t texture_format;
   switch(pixelformat)
     {
+    case GAVL_GRAY_8:
+      ret->type   = GL_LUMINANCE;
+      ret->format = GL_UNSIGNED_BYTE;
+      break;
+    case GAVL_GRAYA_16:
+      ret->type   = GL_LUMINANCE_ALPHA;
+      ret->format = GL_UNSIGNED_BYTE;
+      break;
+    case GAVL_GRAY_16:
+      ret->type   = GL_LUMINANCE;
+      ret->format = GL_UNSIGNED_SHORT;
+      break;
+    case GAVL_GRAYA_32:
+      ret->type   = GL_LUMINANCE_ALPHA;
+      ret->format = GL_UNSIGNED_SHORT;
+      break;
+    case GAVL_GRAY_FLOAT:
+      ret->type   = GL_LUMINANCE;
+      ret->format = GL_FLOAT;
+      break;
+    case GAVL_GRAYA_FLOAT:
+      ret->type   = GL_LUMINANCE_ALPHA;
+      ret->format = GL_FLOAT;
+      break;
     case GAVL_RGB_24:
       ret->type   = GL_RGB;
       ret->format = GL_UNSIGNED_BYTE;

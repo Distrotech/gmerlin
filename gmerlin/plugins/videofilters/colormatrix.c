@@ -31,6 +31,9 @@
 #include <log.h>
 #define LOG_DOMAIN "colormatrix"
 
+#define CLAMP_FLOAT(val) (val > 1.0) ? 1.0 : ((val < 0.0) ? 0.0 : val)
+#define CLAMP_FLOAT_UV(val) (val > 0.5) ? 0.5 : ((val < -0.5) ? -0.5 : val)
+
 typedef struct
   {
   float coeffs_f[4][5];
@@ -188,6 +191,178 @@ void bg_colormatrix_destroy(bg_colormatrix_t * m)
   }
 
 /* */
+
+/* Gray */
+
+static void process_gray_8(bg_colormatrix_t * m,
+                           gavl_video_frame_t * in)
+  {
+  int g;
+  int i, j;
+  uint8_t * src;
+  for(i = 0; i < m->format.image_height; i++)
+    {
+    src = in->planes[0]  + i * in->strides[0];
+    
+    for(j = 0; j < m->format.image_width; j++)
+      {
+      g =
+        ((m->yuva.coeffs_i[0][0] * src[0]) >> 8) +
+        m->yuva.coeffs_i[0][4];
+      
+      src[0] = (uint8_t)((g & ~0xFF)?((-g) >> 31) : g);
+      src++;
+      }
+    }
+  
+  }
+
+
+static void process_graya_16(bg_colormatrix_t * m,
+                             gavl_video_frame_t * in)
+  {
+  int g, a;
+  int i, j;
+  uint8_t * src;
+  for(i = 0; i < m->format.image_height; i++)
+    {
+    src = in->planes[0]  + i * in->strides[0];
+    
+    for(j = 0; j < m->format.image_width; j++)
+      {
+      g =
+        ((m->yuva.coeffs_i[0][0] * (src[0]) +
+          m->yuva.coeffs_i[0][3] * src[1]) >> 8) +
+        m->yuva.coeffs_i[0][4];
+      
+      a =
+        ((m->yuva.coeffs_i[3][0] * (src[0]) +
+          m->yuva.coeffs_i[3][3] * src[1]) >> 8) +
+        m->yuva.coeffs_i[3][4];
+
+      src[0] = (uint8_t)((g & ~0xFF)?((-g) >> 31) : g);
+      src[1] = (uint8_t)((a & ~0xFF)?((-a) >> 31) : a);
+      
+      src += 2;
+      }
+    }
+  
+  }
+
+/* */
+
+static void process_gray_16(bg_colormatrix_t * m,
+                           gavl_video_frame_t * in)
+  {
+  int64_t g;
+  int i, j;
+  uint16_t * src;
+  for(i = 0; i < m->format.image_height; i++)
+    {
+    src = (uint16_t*)(in->planes[0]  + i * in->strides[0]);
+    
+    for(j = 0; j < m->format.image_width; j++)
+      {
+      g =
+        (((int64_t)m->yuva.coeffs_i[0][0] * src[0]) >> 16) +
+        m->yuva.coeffs_i[0][4];
+      
+      src[0] = (uint16_t)((g & ~0xFFFF)?((-g) >> 63) : g);
+      src++;
+      }
+    }
+  
+  }
+
+
+static void process_graya_32(bg_colormatrix_t * m,
+                             gavl_video_frame_t * in)
+  {
+  int64_t g, a;
+  int i, j;
+  uint16_t * src;
+  for(i = 0; i < m->format.image_height; i++)
+    {
+    src = (uint16_t*)(in->planes[0]  + i * in->strides[0]);
+    
+    for(j = 0; j < m->format.image_width; j++)
+      {
+      g =
+        (((int64_t)m->yuva.coeffs_i[0][0] * (src[0]) +
+          m->yuva.coeffs_i[0][3] * src[1]) >> 16) +
+        m->yuva.coeffs_i[0][4];
+      
+      a =
+        (((int64_t)m->yuva.coeffs_i[3][0] * (src[0]) +
+          m->yuva.coeffs_i[3][3] * src[1]) >> 16) +
+        m->yuva.coeffs_i[3][4];
+      
+      src[0] = (uint16_t)((g & ~0xFFFF)?((-g) >> 63) : g);
+      src[1] = (uint16_t)((a & ~0xFFFF)?((-a) >> 63) : a);
+      
+      src += 2;
+      }
+    }
+  
+  }
+
+
+static void process_gray_float(bg_colormatrix_t * m,
+                               gavl_video_frame_t * in)
+  {
+  float g;
+  int i, j;
+  float * src;
+  for(i = 0; i < m->format.image_height; i++)
+    {
+    src = (float*)(in->planes[0]  + i * in->strides[0]);
+    
+    for(j = 0; j < m->format.image_width; j++)
+      {
+      g =
+        (m->yuva.coeffs_f[0][0] * src[0]) + m->yuva.coeffs_f[0][4];
+      
+      src[0] = CLAMP_FLOAT(g);
+      src++;
+      }
+    }
+  
+  }
+
+
+static void process_graya_float(bg_colormatrix_t * m,
+                                gavl_video_frame_t * in)
+  {
+  float g, a;
+  int i, j;
+  float * src;
+  for(i = 0; i < m->format.image_height; i++)
+    {
+    src = (float*)(in->planes[0]  + i * in->strides[0]);
+    
+    for(j = 0; j < m->format.image_width; j++)
+      {
+      g =
+        ((m->yuva.coeffs_f[0][0] * (src[0]) +
+          m->yuva.coeffs_f[0][3] * src[1])) +
+        m->yuva.coeffs_f[0][4];
+      
+      a =
+        ((m->yuva.coeffs_f[3][0] * (src[0]) +
+          m->yuva.coeffs_f[3][3] * src[1])) +
+        m->yuva.coeffs_f[3][4];
+      
+      src[0] = CLAMP_FLOAT(g);
+      src[1] = CLAMP_FLOAT(a);
+      
+      src += 2;
+      }
+    }
+  
+  }
+
+
+
 
 
 /* RGB(A) 8 bit */
@@ -524,9 +699,9 @@ static void process_rgb_float(bg_colormatrix_t * m,
         m->rgba.coeffs_f[2][1] * src[1] + 
         m->rgba.coeffs_f[2][2] * src[2] +
         m->rgba.coeffs_f[2][4];
-      src[0] = r;
-      src[1] = g;
-      src[2] = b;
+      src[0] = CLAMP_FLOAT(r);
+      src[1] = CLAMP_FLOAT(g);
+      src[2] = CLAMP_FLOAT(b);
       src += 3;
       }
     }
@@ -569,10 +744,92 @@ static void process_rgba_float(bg_colormatrix_t * m,
         m->rgba.coeffs_f[3][2] * src[2] +
         m->rgba.coeffs_f[3][3] * src[3] +
         m->rgba.coeffs_f[3][4];
-      src[0] = r;
-      src[1] = g;
-      src[2] = b;
-      src[3] = a;
+      src[0] = CLAMP_FLOAT(r);
+      src[1] = CLAMP_FLOAT(g);
+      src[2] = CLAMP_FLOAT(b);
+      src[3] = CLAMP_FLOAT(a);
+      
+      src += 4;
+      }
+    }
+  }
+
+static void process_yuv_float(bg_colormatrix_t * m,
+                              gavl_video_frame_t * in)
+  {
+  int i, j;
+  float * src;
+  float y, u, v;
+  for(i = 0; i < m->format.image_height; i++)
+    {
+    src = (float *)(in->planes[0]  + i * in->strides[0]);
+    
+    for(j = 0; j < m->format.image_width; j++)
+      {
+      y =
+        m->yuva.coeffs_f[0][0] * src[0] +
+        m->yuva.coeffs_f[0][1] * src[1] + 
+        m->yuva.coeffs_f[0][2] * src[2] +
+        m->yuva.coeffs_f[0][4];
+      u =
+        m->yuva.coeffs_f[1][0] * src[0] +
+        m->yuva.coeffs_f[1][1] * src[1] + 
+        m->yuva.coeffs_f[1][2] * src[2] +
+        m->yuva.coeffs_f[1][4];
+      v =
+        m->yuva.coeffs_f[2][0] * src[0] +
+        m->yuva.coeffs_f[2][1] * src[1] + 
+        m->yuva.coeffs_f[2][2] * src[2] +
+        m->yuva.coeffs_f[2][4];
+      src[0] = CLAMP_FLOAT(y);
+      src[1] = CLAMP_FLOAT_UV(u);
+      src[2] = CLAMP_FLOAT_UV(v);
+      src += 3;
+      }
+    }
+  }
+
+
+static void process_yuva_float(bg_colormatrix_t * m,
+                               gavl_video_frame_t * in)
+  {
+  int i, j;
+  float * src;
+  float y, u, v, a;
+  for(i = 0; i < m->format.image_height; i++)
+    {
+    src = (float *)(in->planes[0]  + i * in->strides[0]);
+    
+    for(j = 0; j < m->format.image_width; j++)
+      {
+      y =
+        m->yuva.coeffs_f[0][0] * src[0] +
+        m->yuva.coeffs_f[0][1] * src[1] + 
+        m->yuva.coeffs_f[0][2] * src[2] +
+        m->yuva.coeffs_f[0][3] * src[3] +
+        m->yuva.coeffs_f[0][4];
+      u =
+        m->yuva.coeffs_f[1][0] * src[0] +
+        m->yuva.coeffs_f[1][1] * src[1] + 
+        m->yuva.coeffs_f[1][2] * src[2] +
+        m->yuva.coeffs_f[1][3] * src[3] +
+        m->yuva.coeffs_f[1][4];
+      v =
+        m->yuva.coeffs_f[2][0] * src[0] +
+        m->yuva.coeffs_f[2][1] * src[1] + 
+        m->yuva.coeffs_f[2][2] * src[2] +
+        m->yuva.coeffs_f[2][3] * src[3] +
+        m->yuva.coeffs_f[2][4];
+      a =
+        m->yuva.coeffs_f[3][0] * src[0] +
+        m->yuva.coeffs_f[3][1] * src[1] + 
+        m->yuva.coeffs_f[3][2] * src[2] +
+        m->yuva.coeffs_f[3][3] * src[3] +
+        m->yuva.coeffs_f[3][4];
+      src[0] = CLAMP_FLOAT(y);
+      src[1] = CLAMP_FLOAT_UV(u);
+      src[2] = CLAMP_FLOAT_UV(v);
+      src[3] = CLAMP_FLOAT(a);
       
       src += 4;
       }
@@ -632,6 +889,61 @@ static void process_yuva_32(bg_colormatrix_t * m,
     }
   
   }
+
+static void process_yuva_64(bg_colormatrix_t * m,
+                            gavl_video_frame_t * in)
+  {
+  int64_t y, u, v, a;
+  int i, j;
+  uint16_t * src;
+  for(i = 0; i < m->format.image_height; i++)
+    {
+    src = (uint16_t*)(in->planes[0]  + i * in->strides[0]);
+    
+    for(j = 0; j < m->format.image_width; j++)
+      {
+      y =
+        (((int64_t)m->yuva.coeffs_i[0][0] * (src[0] - 0x1000) +
+          m->yuva.coeffs_i[0][1] * (src[1] - 0x8000) + 
+          m->yuva.coeffs_i[0][2] * (src[2] - 0x8000) + 
+          m->yuva.coeffs_i[0][3] * src[3]) >> 16) +
+        m->yuva.coeffs_i[0][4];
+      y += 0x1000;
+      
+      u =
+        (((int64_t)m->yuva.coeffs_i[1][0] * (src[0] - 0x1000) +
+          m->yuva.coeffs_i[1][1] * (src[1] - 0x8000) + 
+          m->yuva.coeffs_i[1][2] * (src[2] - 0x8000) + 
+          m->yuva.coeffs_i[1][3] * src[3]) >> 16) +
+        m->yuva.coeffs_i[1][4];
+      u += 0x8000;
+      
+      v =
+        (((int64_t)m->yuva.coeffs_i[2][0] * (src[0] - 0x1000) +
+          m->yuva.coeffs_i[2][1] * (src[1] - 0x8000) + 
+          m->yuva.coeffs_i[2][2] * (src[2] - 0x8000) + 
+          m->yuva.coeffs_i[2][3] * src[3]) >> 16) +
+        m->yuva.coeffs_i[2][4];
+      v += 0x8000;
+
+      a =
+        (((int64_t)m->yuva.coeffs_i[3][0] * (src[0] - 0x1000) +
+          m->yuva.coeffs_i[3][1] * (src[1] - 0x8000) + 
+          m->yuva.coeffs_i[3][2] * (src[2] - 0x8000) + 
+          m->yuva.coeffs_i[3][3] * src[3]) >> 16) +
+        m->yuva.coeffs_i[3][4];
+
+      src[0] = (uint16_t)((y & ~0xFFFF)?((-y) >> 63) : y);
+      src[1] = (uint16_t)((u & ~0xFFFF)?((-u) >> 63) : u);
+      src[2] = (uint16_t)((v & ~0xFFFF)?((-v) >> 63) : v);
+      src[3] = (uint16_t)((a & ~0xFFFF)?((-a) >> 63) : a);
+      
+      src += 4;
+      }
+    }
+  
+  }
+
 
 
 static void process_444j(bg_colormatrix_t * m,
@@ -957,6 +1269,39 @@ static void init_internal(bg_colormatrix_t*m)
       m->func = process_444_16;
       matrix_f_to_16_yuv(&m->yuva);
       break;
+      /* */
+    case GAVL_GRAY_8:
+      matrix_f_to_8(&m->yuva);
+      m->func = process_gray_8;
+      break;
+    case GAVL_GRAY_16:
+      matrix_f_to_16(&m->yuva);
+      m->func = process_gray_16;
+      break;
+    case GAVL_GRAY_FLOAT:
+      m->func = process_gray_float;
+      break;
+    case GAVL_GRAYA_16:
+      matrix_f_to_8(&m->yuva);
+      m->func = process_graya_16;
+      break;
+    case GAVL_GRAYA_32:
+      matrix_f_to_16(&m->yuva);
+      m->func = process_graya_32;
+      break;
+    case GAVL_GRAYA_FLOAT:
+      m->func = process_graya_float;
+      break;
+    case GAVL_YUV_FLOAT:
+      m->func = process_yuv_float;
+      break;
+    case GAVL_YUVA_FLOAT:
+      m->func = process_yuva_float;
+      break;
+    case GAVL_YUVA_64:
+      m->func = process_yuva_64;
+      matrix_f_to_16_yuv(&m->yuva);
+      break;
     default:
       break;
     }
@@ -1006,6 +1351,15 @@ static const gavl_pixelformat_t pixelformats[] =
     GAVL_YUV_444_P,
     GAVL_YUV_444_P_16,
     GAVL_YUVA_32,
+    GAVL_GRAY_8,
+    GAVL_GRAY_16,
+    GAVL_GRAY_FLOAT,
+    GAVL_GRAYA_16,
+    GAVL_GRAYA_32,
+    GAVL_GRAYA_FLOAT,
+    GAVL_YUV_FLOAT,
+    GAVL_YUVA_FLOAT,
+    GAVL_YUVA_64,
     GAVL_PIXELFORMAT_NONE,
   };
 

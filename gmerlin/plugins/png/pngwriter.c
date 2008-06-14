@@ -85,22 +85,44 @@ int bg_pngwriter_write_header(void * priv, const char * filename,
   if(bits > 8)
     png->transform_flags |= PNG_TRANSFORM_SWAP_ENDIAN;
 #endif
-  
-  if(gavl_pixelformat_has_alpha(format->pixelformat))
+
+  if(gavl_pixelformat_is_gray(format->pixelformat))
     {
-    color_type = PNG_COLOR_TYPE_RGBA;
-    if(bits == 8)
-      format->pixelformat = GAVL_RGBA_32;
+    if(gavl_pixelformat_has_alpha(format->pixelformat))
+      {
+      color_type = PNG_COLOR_TYPE_GRAY_ALPHA;
+      if(bits == 8)
+        format->pixelformat = GAVL_GRAYA_16;
+      else
+        format->pixelformat = GAVL_GRAYA_32;
+      }
     else
-      format->pixelformat = GAVL_RGBA_64;
+      {
+      color_type = PNG_COLOR_TYPE_GRAY;
+      if(bits == 8)
+        format->pixelformat = GAVL_GRAY_8;
+      else
+        format->pixelformat = GAVL_GRAY_16;
+      }
     }
   else
     {
-    color_type = PNG_COLOR_TYPE_RGB;
-    if(bits == 8)
-      format->pixelformat = GAVL_RGB_24;
+    if(gavl_pixelformat_has_alpha(format->pixelformat))
+      {
+      color_type = PNG_COLOR_TYPE_RGBA;
+      if(bits == 8)
+        format->pixelformat = GAVL_RGBA_32;
+      else
+        format->pixelformat = GAVL_RGBA_64;
+      }
     else
-      format->pixelformat = GAVL_RGB_48;
+      {
+      color_type = PNG_COLOR_TYPE_RGB;
+      if(bits == 8)
+        format->pixelformat = GAVL_RGB_24;
+      else
+        format->pixelformat = GAVL_RGB_48;
+      }
     }
   
   png_set_compression_level(png->png_ptr, png->compression_level);

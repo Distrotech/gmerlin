@@ -60,7 +60,7 @@ static int read_header_png(void * priv, const char * filename,
   int bit_depth;
   int color_type;
   int has_alpha = 0;
-
+  int is_gray = 0;
   png_byte signature[8];
   png_t * png = (png_t*)priv;
 
@@ -125,7 +125,8 @@ static int read_header_png(void * priv, const char * filename,
         png_set_tRNS_to_alpha(png->png_ptr);
         has_alpha = 1;
         }
-      png_set_gray_to_rgb(png->png_ptr);
+      // png_set_gray_to_rgb(png->png_ptr);
+      is_gray = 1;
       break;
     case PNG_COLOR_TYPE_GRAY_ALPHA: /*  (bit depths 8, 16) */
       if(bit_depth == 16)
@@ -136,7 +137,8 @@ static int read_header_png(void * priv, const char * filename,
         bits = 16;
         }
       has_alpha = 1;
-      png_set_gray_to_rgb(png->png_ptr);
+      // png_set_gray_to_rgb(png->png_ptr);
+      is_gray = 1;
       break;
     case PNG_COLOR_TYPE_PALETTE:    /*  (bit depths 1, 2, 4, 8) */
       png_set_palette_to_rgb(png->png_ptr);
@@ -172,21 +174,40 @@ static int read_header_png(void * priv, const char * filename,
       break;
     }
 
-  if(bits == 8)
+  if(is_gray)
     {
-    if(has_alpha)
-      format->pixelformat = GAVL_RGBA_32;
-    else
-      format->pixelformat = GAVL_RGB_24;
+    if(bits == 8)
+      {
+      if(has_alpha)
+        format->pixelformat = GAVL_GRAYA_16;
+      else
+        format->pixelformat = GAVL_GRAY_8;
+      }
+    else if(bits == 16)
+      {
+      if(has_alpha)
+        format->pixelformat = GAVL_GRAYA_32;
+      else
+        format->pixelformat = GAVL_GRAY_16;
+      }
     }
-  else if(bits == 16)
+  else
     {
-    if(has_alpha)
-      format->pixelformat = GAVL_RGBA_64;
-    else
-      format->pixelformat = GAVL_RGB_48;
+    if(bits == 8)
+      {
+      if(has_alpha)
+        format->pixelformat = GAVL_RGBA_32;
+      else
+        format->pixelformat = GAVL_RGB_24;
+      }
+    else if(bits == 16)
+      {
+      if(has_alpha)
+        format->pixelformat = GAVL_RGBA_64;
+      else
+        format->pixelformat = GAVL_RGB_48;
+      }
     }
-
   
   gavl_video_format_copy(&(png->format), format);
   return 1;
