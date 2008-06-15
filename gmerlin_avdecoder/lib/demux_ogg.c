@@ -1873,7 +1873,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
             break;
         
           p = bgav_stream_get_packet_write(s);
-
+          
           bgav_packet_set_text_subtitle(p, (char*)(priv->op.packet + 1 + len_bytes),
                                         -1, granulepos, subtitle_duration);
           set_packet_pos(priv, stream_priv, &page_continued, p);

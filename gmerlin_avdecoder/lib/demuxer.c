@@ -992,10 +992,10 @@ bgav_seek_scaled(bgav_t * b, int64_t * time, int scale)
       }
     for(i = 0; i < b->tt->cur->num_subtitle_streams; i++)
       {
-      if(b->tt->cur->audio_streams[i].action != BGAV_STREAM_MUTE)
+      if(b->tt->cur->subtitle_streams[i].action != BGAV_STREAM_MUTE)
         {
-        s = &b->tt->cur->audio_streams[i];
-        bgav_seek_subtitle(b, i, gavl_time_unscale(scale, *time));
+        s = &b->tt->cur->subtitle_streams[i];
+        bgav_seek_subtitle(b, i, gavl_time_rescale(scale, s->timescale, *time));
         }
       }
     return;

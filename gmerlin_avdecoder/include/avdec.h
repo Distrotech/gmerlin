@@ -395,15 +395,6 @@ void bgav_options_set_default_subtitle_encoding(bgav_options_t* opt,
                                                 const char* encoding);
 
 /** \ingroup options
- *  \brief Handle DVD chapters as tracks
- *  \param opt Option container
- *  \param chapters_as_tracks 1 to handle DVD chapters like individual tracks, 0 else
- */
-
-void bgav_options_set_dvd_chapters_as_tracks(bgav_options_t* opt,
-                                             int chapters_as_tracks);
-
-/** \ingroup options
  *  \brief Enable dynamic range control
  *  \param opt Option container
  *  \param audio_dynrange 1 for enabling dynamic range control.

@@ -283,8 +283,9 @@ int bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer)
       video_stream->action = BGAV_STREAM_MUTE;
       }
     
-    if(!video_format->image_width || !video_format->image_height ||
-       !video_format->timescale || !video_format->frame_duration)
+    if((!video_format->image_width || !video_format->image_height ||
+        !video_format->timescale || !video_format->frame_duration) &&
+       (video_stream->action != BGAV_STREAM_PARSE))
       {
       bgav_log(demuxer->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
                "Starting subtitle decoder for stream %d failed (cannot get video format)",
@@ -307,8 +308,9 @@ int bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer)
       }
     }
 
-  if(!num_active_audio_streams && !num_active_video_streams &&
-     num_active_subtitle_streams)
+  if((!num_active_audio_streams && !num_active_video_streams &&
+     num_active_subtitle_streams) ||
+     (demuxer->demux_mode == DEMUX_MODE_FI))
     demuxer->flags |= BGAV_DEMUXER_PEEK_FORCES_READ;
   else
     demuxer->flags &= ~BGAV_DEMUXER_PEEK_FORCES_READ;

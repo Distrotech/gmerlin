@@ -868,9 +868,13 @@ static int init_ffmpeg(bgav_stream_t * s)
       s->data.video.frametime_mode = BGAV_FRAMETIME_CODEC;
       priv->do_timing = 1;
       }
-    if(s->data.video.frametime_mode == BGAV_FRAMETIME_PTS)
+    else if(s->data.video.frametime_mode == BGAV_FRAMETIME_PTS)
       {
       s->data.video.frametime_mode = BGAV_FRAMETIME_CODEC_PTS;
+      priv->do_timing = 1;
+      }
+    else if(s->data.video.frametime_mode == BGAV_FRAMETIME_CODEC_PTS)
+      {
       priv->do_timing = 1;
       }
     }

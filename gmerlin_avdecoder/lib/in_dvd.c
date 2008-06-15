@@ -100,11 +100,13 @@ static int open_vts(const bgav_options_t * opt,
   if(vts_index == dvd->current_vts)
     {
     if(!dvd->dvd_file && open_file)
-      dvd->dvd_file = DVDOpenFile(dvd->dvd_reader, vts_index, DVD_READ_TITLE_VOBS);
-    if(!dvd->dvd_file)
       {
-      bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Opening vts %d failed", vts_index);
-      return 0;
+      dvd->dvd_file = DVDOpenFile(dvd->dvd_reader, vts_index, DVD_READ_TITLE_VOBS);
+      if(!dvd->dvd_file)
+        {
+        bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Opening vts %d failed", vts_index);
+        return 0;
+        }
       }
     return 1;
     }
@@ -266,7 +268,8 @@ static int setup_track(bgav_input_context_t * ctx,
   /* Get the program chain for this track/chapter */
   ttn = ttsrpt->title[title].vts_ttn;
   vts_ptt_srpt = dvd->vts_ifo->vts_ptt_srpt;
-  
+
+#if 0  
   /* Get name and chapters */
   if(ctx->opt->dvd_chapters_as_tracks)
     {
@@ -301,6 +304,7 @@ static int setup_track(bgav_input_context_t * ctx,
   /* All chapters in one track */
   else
     {
+#endif
     if(ttsrpt->title[title].nr_of_angles > 1)
       new_track->name = bgav_sprintf("Title %02d Angle %d",
                                      title+1, angle+1);
@@ -340,14 +344,18 @@ static int setup_track(bgav_input_context_t * ctx,
     
     track_priv->end_cell =
       track_priv->chapters[track_priv->num_chapters-1].end_cell;
+#if 0
     }
-
+#endif
   /* Get duration */
+#if 0  
+
   if(ctx->opt->dvd_chapters_as_tracks)
     new_track->duration =
       get_duration(pgc, track_priv->start_cell, track_priv->end_cell, angle);
   else
     {
+#endif
     new_track->chapter_list =
       bgav_chapter_list_create(GAVL_TIME_SCALE, track_priv->num_chapters);
     new_track->duration = 0;
@@ -359,7 +367,9 @@ static int setup_track(bgav_input_context_t * ctx,
           track_priv->chapters[i-1].duration;
       new_track->duration += track_priv->chapters[i].duration;
       }
+#if 0  
     }
+#endif
   
   /* Setup streams */
 
@@ -623,7 +633,7 @@ static void dump_vmg_ifo(ifo_handle_t * vmg_ifo)
 
 static int open_dvd(bgav_input_context_t * ctx, const char * url, char ** r)
   {
-  int i, j, k;
+  int i, j;
   dvd_t * priv;
   tt_srpt_t *ttsrpt;
   char volid[32];
@@ -692,6 +702,7 @@ static int open_dvd(bgav_input_context_t * ctx, const char * url, char ** r)
     {
     for(j = 0; j < ttsrpt->title[i].nr_of_angles; j++)
       {
+#if 0
       if(ctx->opt->dvd_chapters_as_tracks)
         {
         /* Add individual chapters as tracks */
@@ -700,9 +711,12 @@ static int open_dvd(bgav_input_context_t * ctx, const char * url, char ** r)
         }
       else
         {
+#endif
         /* Add entire titles as tracks */
         setup_track(ctx, i, 0, j);
+#if 0
         }
+#endif
       }
     }
   

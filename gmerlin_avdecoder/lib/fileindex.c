@@ -682,10 +682,12 @@ static int build_file_index_mpeg(bgav_t * b)
       }
     for(j = 0; j < b->tt->cur->num_subtitle_streams; j++)
       {
-      if(!flush_stream_mpeg_subtitle(&b->tt->cur->subtitle_streams[j]))
-        return 0;
+      if(!b->tt->cur->subtitle_streams[j].data.subtitle.subreader)
+        {
+        if(!flush_stream_mpeg_subtitle(&b->tt->cur->subtitle_streams[j]))
+          return 0;
+        }
       }
-    
     if(b->opt.index_callback)
       b->opt.index_callback(b->opt.index_callback_data,
                             (float)b->input->position / 
@@ -750,18 +752,21 @@ static int build_file_index_mixed(bgav_t * b)
       }
     for(j = 0; j < b->tt->cur->num_subtitle_streams; j++)
       {
-      switch(b->tt->cur->subtitle_streams[j].index_mode)
+      if(!b->tt->cur->subtitle_streams[j].data.subtitle.subreader)
         {
-        case INDEX_MODE_MPEG:
-          if(!flush_stream_mpeg_subtitle(&b->tt->cur->subtitle_streams[j]))
-            return 0;
-          break;
-        case INDEX_MODE_SIMPLE:
-          flush_stream_simple(&b->tt->cur->subtitle_streams[j]);
-          break;
-        case INDEX_MODE_PTS:
-          flush_stream_pts(&b->tt->cur->subtitle_streams[j], 0);
-          break;
+        switch(b->tt->cur->subtitle_streams[j].index_mode)
+          {
+          case INDEX_MODE_MPEG:
+            if(!flush_stream_mpeg_subtitle(&b->tt->cur->subtitle_streams[j]))
+              return 0;
+            break;
+          case INDEX_MODE_SIMPLE:
+            flush_stream_simple(&b->tt->cur->subtitle_streams[j]);
+            break;
+          case INDEX_MODE_PTS:
+            flush_stream_pts(&b->tt->cur->subtitle_streams[j], 0);
+            break;
+          }
         }
       }
     
@@ -795,11 +800,14 @@ static int build_file_index_mixed(bgav_t * b)
     }
   for(j = 0; j < b->tt->cur->num_subtitle_streams; j++)
     {
-    switch(b->tt->cur->subtitle_streams[j].index_mode)
+    if(!b->tt->cur->subtitle_streams[j].data.subtitle.subreader)
       {
-      case INDEX_MODE_PTS:
-        flush_stream_pts(&b->tt->cur->subtitle_streams[j], 1);
-        break;
+      switch(b->tt->cur->subtitle_streams[j].index_mode)
+        {
+        case INDEX_MODE_PTS:
+          flush_stream_pts(&b->tt->cur->subtitle_streams[j], 1);
+          break;
+        }
       }
     }
   
@@ -814,7 +822,6 @@ static int bgav_build_file_index_parseall(bgav_t * b)
   int ret = 0;
   bgav_stream_t * s;
   
-
   for(i = 0; i < b->tt->num_tracks; i++)
     {
     bgav_select_track(b, i);
@@ -831,8 +838,11 @@ static int bgav_build_file_index_parseall(bgav_t * b)
       }
     for(j = 0; j < b->tt->cur->num_subtitle_streams; j++)
       {
-      b->tt->cur->subtitle_streams[j].file_index = bgav_file_index_create();
-      bgav_set_subtitle_stream(b, j, BGAV_STREAM_PARSE);
+      if(!b->tt->cur->subtitle_streams[j].data.subtitle.subreader)
+        {
+        b->tt->cur->subtitle_streams[j].file_index = bgav_file_index_create();
+        bgav_set_subtitle_stream(b, j, BGAV_STREAM_PARSE);
+        }
       }
 
     bgav_start(b);

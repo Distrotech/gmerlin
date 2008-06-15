@@ -79,7 +79,7 @@ void bgav_packet_set_text_subtitle(bgav_packet_t * p,
   bgav_packet_alloc(p, len+2);
   memcpy(p->data, text, len);
   p->data_size = len;
-  
+  p->keyframe = 1;
   p->pts = start;
   p->duration = duration;
   p->data_size = len + 1;

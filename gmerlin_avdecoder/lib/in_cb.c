@@ -24,6 +24,7 @@
 
 #include <avdec_private.h>
 #include <utils.h>
+#include <md5.h>
 
 typedef struct
   {

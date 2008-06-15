@@ -66,6 +66,7 @@ static int check_device_dvd(const char * device, char ** name)
 
 static const bg_parameter_info_t parameters[] =
   {
+#if 0
     {
       .name =       "dvd_chapters_as_tracks",
       .long_name =  TRS("Handle chapters as tracks"),
@@ -74,6 +75,7 @@ static const bg_parameter_info_t parameters[] =
       .gettext_domain =    PACKAGE,
       .gettext_directory = LOCALE_DIR,
     },
+#endif
     PARAM_DYNRANGE,
     { /* End of parameters */ }
   };

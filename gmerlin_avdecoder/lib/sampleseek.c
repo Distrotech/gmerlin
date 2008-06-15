@@ -140,6 +140,7 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
   {
   bgav_stream_t * s;
   int64_t frame_time;
+  //  fprintf(stderr, "bgav_seek_video %ld...", time);
   s = &bgav->tt->cur->video_streams[stream];
 
   if(time >= s->duration) /* EOF */
@@ -154,6 +155,7 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
     }
   if((time > s->out_time) && (bgav_video_keyframe_after(bgav, stream, s->out_time) > time))
     {
+    //    fprintf(stderr, "bgav_video_skipto %ld %ld...", s->out_time, time);
     bgav_video_skipto(s, &time, s->timescale);
     //    fprintf(stderr, "Seek by skip\n");
     return;
@@ -188,12 +190,16 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
     if(bgav->demuxer->demuxer->resync)
       bgav->demuxer->demuxer->resync(bgav->demuxer, s);
     }
+
+  //  fprintf(stderr, "bgav_stream_resync_decoder\n");
   
   bgav_stream_resync_decoder(s);
 
-  //  fprintf(stderr, "bgav_video_skipto %d...", s->index_position);
+  //  fprintf(stderr, "bgav_video_skipto %ld %ld...", s->out_time, time);
   bgav_video_skipto(s, &time, s->timescale);
   //  fprintf(stderr, "done\n");
+
+  //  fprintf(stderr, "bgav_seek_video done\n");
   
   }
 
@@ -297,9 +303,43 @@ int64_t bgav_video_keyframe_after(bgav_t * bgav, int stream, int64_t time)
 void bgav_seek_subtitle(bgav_t * bgav, int stream, int64_t time)
   {
   bgav_stream_t * s;
-  s = &bgav->tt->cur->audio_streams[stream];
+  s = &bgav->tt->cur->subtitle_streams[stream];
   bgav_stream_clear(s);
   /* TODO */
+
+  if(s->data.subtitle.subreader)
+    {
+    /* Clear EOF state */
+    s->eof = 0;
+    bgav_subtitle_reader_seek(s, time, s->timescale);
+    return;
+    }
+
+  bgav_stream_clear(s);
+
+  if(bgav->demuxer->index_mode == INDEX_MODE_SI_SA)
+    {
+    bgav_superindex_seek(bgav->demuxer->si, s, time, s->timescale);
+    s->out_time = bgav->demuxer->si->entries[s->index_position].time;
+    }
+  else /* Fileindex */
+    {
+    s->index_position = file_index_seek(s->file_index, time);
+    //  fprintf(stderr, "Index pos: %d\n", s->index_position);
+
+    /* Decrease until a real packet starts */
+    while(s->index_position &&
+          (s->file_index->entries[s->index_position-1].position ==
+           s->file_index->entries[s->index_position].position))
+      s->index_position--;
+    
+    s->in_time = s->file_index->entries[s->index_position].time;
+    s->out_time = s->in_time;
+    
+    if(bgav->demuxer->demuxer->resync)
+      bgav->demuxer->demuxer->resync(bgav->demuxer, s);
+    }
+  
   }
 
 int bgav_set_sample_accurate(bgav_t * b)
