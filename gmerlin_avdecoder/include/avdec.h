@@ -1364,11 +1364,15 @@ const gavl_video_format_t * bgav_get_video_format(bgav_t * bgav, int stream);
  *
  *  Note, that you can trust the return value of this function only, if you enabled
  *  the stream (see \ref bgav_set_subtitle_stream) and started the decoders
- *  (see \ref bgav_start). For overlay subtitles, this is the video format of the decoded
- *  overlays. For text subtitles, it's the format of the associated video stream.
+ *  (see \ref bgav_start). For overlay subtitles, this is the video format
+ *  of the decoded overlays.
+ *  For text subtitles, it's the format of the associated video stream.
+ *  The timescale member is always the timescale of the subtitles (not the
+ *  video frames).
  */
 
-const gavl_video_format_t * bgav_get_subtitle_format(bgav_t * bgav, int stream);
+const gavl_video_format_t *
+bgav_get_subtitle_format(bgav_t * bgav, int stream);
 
 /** \ingroup stream_info
  *  \brief Check if a subtitle is text or graphics based
@@ -1532,10 +1536,13 @@ int bgav_read_subtitle_overlay(bgav_t * bgav, gavl_overlay_t * ovl, int stream);
     yet available, but there might come others at a later point in the stream.
     If this function returns 0 and \ref bgav_has_subtitle returned 1 before,
     it means, that you reached the end of the subtitle stream.
+    start_time and duration are scaled by the timescale of the subtitle stream
+    (see \ref bgav_get_subtitle_format).
 */
 
 int bgav_read_subtitle_text(bgav_t * bgav, char ** ret, int *ret_alloc,
-                            gavl_time_t * start_time, gavl_time_t * duration, int stream);
+                            int64_t * start_time, int64_t * duration,
+                            int stream);
 
 /***************************************************
  * Seek to a timestamp. This also resyncs all streams

@@ -146,9 +146,9 @@ int bgav_read_subtitle_text(bgav_t * b, char ** ret, int *ret_alloc,
     (*ret)[p->data_size] = '\0';
     }
   
-  *start_time = gavl_time_unscale(s->timescale, p->pts);
-  *duration   = gavl_time_unscale(s->timescale, p->duration);
-
+  *start_time = p->pts;
+  *duration   = p->duration;
+  
   remove_cr(*ret);
     
   if(s->packet_buffer)
@@ -214,15 +214,12 @@ int bgav_has_subtitle(bgav_t * b, int stream)
 
 void bgav_subtitle_dump(bgav_stream_t * s)
   {
-  if(s->type == BGAV_STREAM_SUBTITLE_OVERLAY)
-    {
-    bgav_dprintf( "  Format:\n");
-    gavl_video_format_dump(&(s->data.subtitle.format));
-    }
-  else
+  if(s->type == BGAV_STREAM_SUBTITLE_TEXT)
     {
     bgav_dprintf( "  Character set:     %s\n", s->data.subtitle.charset);
     }
+  bgav_dprintf( "  Format:\n");
+  gavl_video_format_dump(&(s->data.subtitle.format));
   }
 
 int bgav_subtitle_start(bgav_stream_t * s)
@@ -248,7 +245,6 @@ int bgav_subtitle_start(bgav_stream_t * s)
       s->data.subtitle.cnv =
         bgav_charset_converter_create(s->opt, s->opt->default_subtitle_encoding,
                                       "UTF-8");
-    return 1;
     }
   else
     {
@@ -279,6 +275,7 @@ int bgav_subtitle_start(bgav_stream_t * s)
     if(!dec->init(s))
       return 0;
     }
+  s->data.subtitle.format.timescale = s->timescale;
   return 1;
   }
 

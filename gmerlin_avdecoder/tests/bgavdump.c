@@ -121,7 +121,7 @@ static int user_pass_func(void * data, const char * resource, char ** user, char
 static int connect_timeout   = 5000;
 static int read_timeout      = 5000;
 static int network_bandwidth = 524300; /* 524.3 Kbps (Cable/DSL) */
-
+static int seek_subtitles    = 2;
 static int frames_to_read  = 10;
 
 int main(int argc, char ** argv)
@@ -200,6 +200,7 @@ int main(int argc, char ** argv)
   bgav_options_set_connect_timeout(opt,   connect_timeout);
   bgav_options_set_read_timeout(opt,      read_timeout);
   bgav_options_set_network_bandwidth(opt, network_bandwidth);
+  bgav_options_set_seek_subtitles(opt, seek_subtitles);
 
   bgav_options_set_seek_subtitles(opt, 1);
 

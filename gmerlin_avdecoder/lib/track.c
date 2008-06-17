@@ -114,7 +114,6 @@ bgav_track_attach_subtitle_reader(bgav_track_t * t,
                             (char*)0, r);
   if(r->info)
     ret->info = bgav_strdup(r->info);
-  ret->timescale = GAVL_TIME_SCALE;
   return ret;
   }
 

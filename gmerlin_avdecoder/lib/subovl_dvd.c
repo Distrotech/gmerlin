@@ -51,7 +51,6 @@ static int init_dvdsub(bgav_stream_t * s)
 
   gavl_video_format_copy(&(s->data.subtitle.format), video_stream_format);
   s->data.subtitle.format.pixelformat = GAVL_YUVA_32;
-  
   return 1;
   }
 
@@ -299,8 +298,12 @@ static int decode_dvdsub(bgav_stream_t * s, gavl_overlay_t * ovl)
                local_palette);
 
   /* Set rest of overlay structure */
-  ovl->frame->timestamp = gavl_time_unscale(s->timescale, priv->pts + start_date * 900);
-  ovl->frame->duration = gavl_time_unscale(100, end_date - start_date);
+  //  ovl->frame->timestamp = gavl_time_unscale(s->timescale, priv->pts + start_date * 900);
+  //  ovl->frame->duration = gavl_time_unscale(100, end_date - start_date);
+
+  ovl->frame->timestamp = priv->pts + start_date * 900;
+  ovl->frame->duration = 900 * (end_date - start_date);
+  
   ovl->ovl_rect.x = 0;
   ovl->ovl_rect.y = 0;
   ovl->ovl_rect.w = x2 - x1 + 1;

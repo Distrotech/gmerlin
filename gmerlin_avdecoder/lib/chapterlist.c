@@ -41,6 +41,7 @@ void bgav_chapter_list_dump(bgav_chapter_list_t * list)
   gavl_time_t t;
   
   bgav_dprintf("============ Chapter list =============\n");
+  bgav_dprintf("Timescale: %d\n", list->timescale);
   for(i = 0; i < list->num_chapters; i++)
     {
     t = gavl_time_unscale(list->timescale, 

@@ -41,6 +41,12 @@ static int probe_srt(char * line)
   return 0;
   }
 
+static int init_srt(bgav_stream_t * s)
+  {
+  s->timescale = 1000;
+  return 1;
+  }
+
 static int read_srt(bgav_stream_t * s)
   {
   int lines_read, line_len;
@@ -71,17 +77,17 @@ static int read_srt(bgav_stream_t * s)
   start += a2;
   start *= 60;
   start += a3;
-  start *= GAVL_TIME_SCALE;
-  start += a4 * (GAVL_TIME_SCALE/1000);
+  start *= 1000;
+  start += a4;
 
   end  = b1;
   end *= 60;
   end += b2;
   end *= 60;
   end += b3;
-  end *= GAVL_TIME_SCALE;
-  end += b4 * (GAVL_TIME_SCALE/1000);
-
+  end *= 1000;
+  end += b4;
+  
   ctx->p->pts = start;
   ctx->p->duration = end - start;
 
@@ -155,7 +161,7 @@ static int init_mpsub(bgav_stream_t * s)
   mpsub_priv_t * priv = calloc(1, sizeof(*priv));
   ctx = s->data.subtitle.subreader;
   ctx->priv = priv;
-
+  s->timescale = GAVL_TIME_SCALE;
   while(1)
     {
     if(!bgav_input_read_line(ctx->input, &ctx->line, &ctx->line_alloc, 0, &line_len))
@@ -495,7 +501,7 @@ static int init_spumux(bgav_stream_t * s)
   bgav_subtitle_reader_context_t * ctx;
   spumux_t * priv;
   ctx = s->data.subtitle.subreader;
-
+  s->timescale = GAVL_TIME_SCALE;
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;
     
@@ -610,6 +616,7 @@ static const bgav_subtitle_reader_t subtitle_readers[] =
   {
     {
       .name = "Subrip (srt)",
+      .init =               init_srt,
       .probe =              probe_srt,
       .read_subtitle_text = read_srt,
     },

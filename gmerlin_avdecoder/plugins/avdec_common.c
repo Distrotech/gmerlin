@@ -396,18 +396,17 @@ int bg_avdec_init(avdec_priv * avdec)
     if(num_chapters)
       {
       avdec->track_info[i].chapter_list = bg_chapter_list_create(num_chapters);
+      avdec->track_info[i].chapter_list->timescale = chapter_timescale;
       for(j = 0; j < num_chapters; j++)
         {
         avdec->track_info[i].chapter_list->chapters[j].name =
           bg_strdup(avdec->track_info[i].chapter_list->chapters[j].name,
                     bgav_get_chapter_name(avdec->dec, i, j));
         avdec->track_info[i].chapter_list->chapters[j].time =
-          gavl_time_unscale(chapter_timescale,
-                            bgav_get_chapter_time(avdec->dec, i, j));
+          bgav_get_chapter_time(avdec->dec, i, j);
         }
       bg_chapter_list_set_default_names(avdec->track_info[i].chapter_list);
       }
-
     }
   return 1;
   }
