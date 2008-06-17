@@ -65,6 +65,11 @@ struct bg_player_ov_context_s
   int64_t frames_written;
   
   bg_accelerator_map_t * accel_map;
+
+  int64_t current_subtitle_time;
+  int64_t current_subtitle_duration;
+  int64_t next_subtitle_time;
+  
   };
 
 /* Callback functions */
@@ -558,7 +563,8 @@ void bg_player_ov_set_subtitle_format(void * data)
                          &ctx->player->subtitle_stream.input_format);
   
   /* Add subtitle stream for plugin */
-
+  fprintf(stderr, "Subtitle: %d\n",
+          ctx->player->subtitle_stream.output_format.timescale);
   
   ctx->subtitle_id =
     ctx->plugin->add_overlay_stream(ctx->priv,
@@ -670,13 +676,17 @@ void * bg_player_ov_thread(void * data)
         {
         ctx->next_subtitle = bg_fifo_try_lock_read(ctx->player->subtitle_stream.fifo,
                                                   &state);
+        if(ctx->next_subtitle)
+          ctx->next_subtitle_time =
+            gavl_time_unscale(ctx->player->subtitle_stream.output_format.timescale,
+                              ctx->next_subtitle->frame->timestamp);
         }
       /* Check if the overlay is expired */
       if(ctx->has_subtitle)
         {
         if(bg_overlay_too_old(ctx->frame_time,
-                              ctx->current_subtitle.frame->timestamp,
-                              ctx->current_subtitle.frame->duration))
+                              ctx->current_subtitle_time,
+                              ctx->current_subtitle_duration))
           {
           ctx->plugin->set_overlay(ctx->priv, ctx->subtitle_id, (gavl_overlay_t*)0);
           ctx->has_subtitle = 0;
@@ -687,18 +697,27 @@ void * bg_player_ov_thread(void * data)
       
       if(ctx->next_subtitle)
         {
-        if(!bg_overlay_too_new(ctx->frame_time,
-                               ctx->next_subtitle->frame->timestamp))
+        if(!bg_overlay_too_new(ctx->frame_time, ctx->next_subtitle_time))
           {
           memcpy(&tmp_overlay, ctx->next_subtitle, sizeof(tmp_overlay));
           memcpy(ctx->next_subtitle, &(ctx->current_subtitle),
                  sizeof(tmp_overlay));
           memcpy(&(ctx->current_subtitle), &tmp_overlay, sizeof(tmp_overlay));
+
+          ctx->current_subtitle_time =
+            gavl_time_unscale(ctx->player->subtitle_stream.output_format.timescale,
+                              ctx->current_subtitle.frame->timestamp);
+
+          ctx->current_subtitle_duration =
+            gavl_time_unscale(ctx->player->subtitle_stream.output_format.timescale,
+                              ctx->current_subtitle.frame->duration);
+          
           ctx->plugin->set_overlay(ctx->priv, ctx->subtitle_id,
                                    &(ctx->current_subtitle));
           
           ctx->has_subtitle = 1;
           ctx->next_subtitle = (gavl_overlay_t*)0;
+          ctx->next_subtitle_time = GAVL_TIME_UNDEFINED;
           bg_fifo_unlock_read(ctx->player->subtitle_stream.fifo);
           }
         }

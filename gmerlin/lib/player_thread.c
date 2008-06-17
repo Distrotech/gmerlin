@@ -207,8 +207,20 @@ static void msg_subpicture_description(bg_msg_t * msg, const void * data)
 
 static void msg_num_chapters(bg_msg_t * msg, const void * data)
   {
+  bg_chapter_list_t * l;
+  l = (bg_chapter_list_t *)data;
   bg_msg_set_id(msg, BG_PLAYER_MSG_NUM_CHAPTERS);
-  bg_msg_set_arg_int(msg, 0, *((int*)data));
+
+  if(l)
+    {
+    bg_msg_set_arg_int(msg, 0, l->num_chapters);
+    bg_msg_set_arg_int(msg, 1, l->timescale);
+    }
+  else
+    {
+    bg_msg_set_arg_int(msg, 0, 0);
+    bg_msg_set_arg_int(msg, 1, 0);
+    }
   }
 
 struct chapter_info_s
@@ -229,6 +241,7 @@ static void msg_chapter_info(bg_msg_t * msg, const void * data)
 static void msg_chapter_changed(bg_msg_t * msg, const void * data)
   {
   bg_msg_set_id(msg, BG_PLAYER_MSG_CHAPTER_CHANGED);
+  //  fprintf(stderr, "New chapter: %d\n", *((int*)data));
   bg_msg_set_arg_int(msg, 0, *((int*)data));
   }
 
@@ -435,7 +448,7 @@ static void player_cleanup(bg_player_t * player)
 static void init_playback(bg_player_t * p, gavl_time_t time,
                           int flags)
   {
-  int num_chapters, i;
+  int i;
   struct stream_info_s si;
   struct chapter_info_s ci;
 
@@ -499,25 +512,21 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
 
   /* Send chapter info */
 
-  if(p->track_info->chapter_list)
-    num_chapters = p->track_info->chapter_list->num_chapters;
-  else
-    num_chapters = 0;
   bg_msg_queue_list_send(p->message_queues,
                          msg_num_chapters,
-                         &(num_chapters));
-
-  ci.l = p->track_info->chapter_list;
+                         p->track_info->chapter_list);
   
-  for(ci.index = 0; ci.index < num_chapters; ci.index++)
-    {
-    bg_msg_queue_list_send(p->message_queues,
-                           msg_chapter_info,
-                           &(ci));
-    }
+  ci.l = p->track_info->chapter_list;
 
-  if(num_chapters)
+  if(ci.l)
     {
+    for(ci.index = 0; ci.index < ci.l->num_chapters; ci.index++)
+      {
+      bg_msg_queue_list_send(p->message_queues,
+                             msg_chapter_info,
+                             &(ci));
+      }
+
     p->current_chapter = 0;
     bg_msg_queue_list_send(p->message_queues,
                            msg_chapter_changed,
@@ -990,7 +999,9 @@ static void chapter_cmd(bg_player_t * player, int chapter)
      (chapter < 0) ||
      (chapter >= player->track_info->chapter_list->num_chapters))
     return;
-  seek_cmd(player, player->track_info->chapter_list->chapters[chapter].time);
+  seek_cmd(player,
+           gavl_time_unscale(player->track_info->chapter_list->timescale,
+                             player->track_info->chapter_list->chapters[chapter].time));
   }
 
 /* Process command, return FALSE if thread should be ended */

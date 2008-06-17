@@ -68,6 +68,7 @@ typedef struct stream_menu_s
 
 typedef struct chapter_menu_s
   {
+  int timescale;
   int num_chapters;
   int chapters_alloc;
   guint * ids;
@@ -827,7 +828,8 @@ static void stream_menu_set_index(stream_menu_t * s, int index)
 
   }
 
-static void chapter_menu_set_num(gmerlin_t * g, chapter_menu_t * s, int num)
+static void chapter_menu_set_num(gmerlin_t * g, chapter_menu_t * s,
+                                 int num, int timescale)
   {
   int i;
   if(num > s->chapters_alloc)
@@ -840,6 +842,7 @@ static void chapter_menu_set_num(gmerlin_t * g, chapter_menu_t * s, int num)
       s->chapter_items[i] = create_chapter_item(g, s, &(s->ids[i]));
     s->chapters_alloc = num;
     }
+  s->timescale = timescale;
   for(i = 0; i < num; i++)
     gtk_widget_show(s->chapter_items[i]);
   for(i = num; i < s->chapters_alloc; i++)
@@ -879,13 +882,13 @@ void main_menu_set_num_streams(main_menu_t * m,
   }
 
 void main_menu_set_num_chapters(main_menu_t * m,
-                                int num)
+                                int num, int timescale)
   {
   if(!num)
     gtk_widget_set_sensitive(m->chapter_item, 0);
   else
     gtk_widget_set_sensitive(m->chapter_item, 1);
-  chapter_menu_set_num(m->g, &m->chapter_menu, num);
+  chapter_menu_set_num(m->g, &m->chapter_menu, num, timescale);
   }
 
 void main_menu_set_audio_info(main_menu_t * m, int stream,
@@ -916,7 +919,8 @@ void main_menu_set_chapter_info(main_menu_t * m, int chapter,
   char time_string[GAVL_TIME_STRING_LEN];
   GtkWidget * w;
 
-  gavl_time_prettyprint(time, time_string);
+  gavl_time_prettyprint(gavl_time_unscale(m->chapter_menu.timescale, time),
+                        time_string);
   
   if(name)
     label = bg_sprintf("%s [%s]", name, time_string);

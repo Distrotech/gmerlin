@@ -133,7 +133,7 @@ typedef int (*bg_read_video_func_t)(void * priv, gavl_video_frame_t* frame, int 
 
 
 
-#define BG_PLUGIN_API_VERSION 13
+#define BG_PLUGIN_API_VERSION 14
 
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */
@@ -1315,8 +1315,8 @@ typedef struct bg_encoder_plugin_s
    *  \returns Index of this stream (starting with 0)
    */
   
-  int (*add_subtitle_text_stream)(void * priv, const char * language);
-
+  int (*add_subtitle_text_stream)(void * priv, const char * language, int * timescale);
+  
   /** \brief Add a text subtitle stream
    *  \param priv The handle returned by the create() method
    *  \param language as ISO 639-2 code (3 characters+'\\0') or NULL
@@ -1480,9 +1480,9 @@ typedef struct bg_encoder_plugin_s
    */
   
   int (*write_subtitle_text)(void * data,const char * text,
-                             gavl_time_t start,
-                             gavl_time_t duration, int stream);
-
+                             int64_t start,
+                             int64_t duration, int stream);
+  
   /** \brief Write an overlay subtitle
    *  \param priv The handle returned by the create() method
    *  \param ovl An overlay

@@ -1083,7 +1083,7 @@ static void add_subtitle_text_stream(subtitle_text_stream_t * ret,
     
     ret->com.com.out_index =
       ret->com.com.out_plugin->add_subtitle_text_stream(ret->com.com.out_handle->priv,
-                                                        language);
+                                                        language, &ret->com.out_format.timescale);
     
     if(t->encoder_info.subtitle_text_stream_parameters &&
        s->encoder_section_text && ret->com.com.out_plugin->set_subtitle_text_parameter)
@@ -1351,14 +1351,16 @@ static int audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
   }
 
 
-static void correct_subtitle_timestamp(gavl_time_t * start, gavl_time_t * duration,
+static void correct_subtitle_timestamp(subtitle_stream_t * s,
+                                       int64_t * start,
+                                       int64_t * duration,
                                        bg_transcoder_t * t)
   {
   /* Correct timestamps */
 
   if(t->start_time != GAVL_TIME_UNDEFINED)
     {
-    *start -= t->start_time;
+    *start -= gavl_time_scale(s->in_format.timescale, t->start_time);
     if(*start < 0)
       {
       *duration += *start;
@@ -1367,6 +1369,11 @@ static void correct_subtitle_timestamp(gavl_time_t * start, gavl_time_t * durati
       *start = 0;
       }
     }
+  /* Rescale */
+  *start = gavl_time_rescale(s->in_format.timescale, s->out_format.timescale,
+                             *start);
+  *duration = gavl_time_rescale(s->in_format.timescale, s->out_format.timescale,
+                                *duration);
   }
 
 static int decode_subtitle_overlay(subtitle_stream_t * s, bg_transcoder_t * t,
@@ -1396,7 +1403,7 @@ static int decode_subtitle_overlay(subtitle_stream_t * s, bg_transcoder_t * t,
       return 0;
       }
 
-    correct_subtitle_timestamp(&st->subtitle_start,
+    correct_subtitle_timestamp(&st->com, &st->subtitle_start,
                                &st->subtitle_duration, t);
     
     ovl->frame->timestamp     = st->subtitle_start;
@@ -1415,7 +1422,7 @@ static int decode_subtitle_overlay(subtitle_stream_t * s, bg_transcoder_t * t,
       s->eof = 1;
       return 0;
       }
-    correct_subtitle_timestamp(&ovl->frame->timestamp,
+    correct_subtitle_timestamp(s, &ovl->frame->timestamp,
                                &ovl->frame->duration, t);
     }
   return 1;
@@ -1443,7 +1450,7 @@ static int decode_subtitle_text(subtitle_text_stream_t * s, bg_transcoder_t * t)
     return 0;
     }
 
-  correct_subtitle_timestamp(&s->subtitle_start,
+  correct_subtitle_timestamp(&s->com, &s->subtitle_start,
                              &s->subtitle_duration, t);
   
   return 1;

@@ -443,7 +443,8 @@ static void handle_message(player_window_t * win,
       break;
     case BG_PLAYER_MSG_NUM_CHAPTERS:
       arg_i_1 = bg_msg_get_arg_int(msg, 0);
-      main_menu_set_num_chapters(win->main_menu, arg_i_1);
+      arg_i_2 = bg_msg_get_arg_int(msg, 1);
+      main_menu_set_num_chapters(win->main_menu, arg_i_1, arg_i_2);
       break;
     case BG_PLAYER_MSG_CHAPTER_INFO:
       arg_i_1 = bg_msg_get_arg_int(msg, 0);

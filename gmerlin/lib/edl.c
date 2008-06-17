@@ -347,7 +347,7 @@ void bg_edl_append_track_info(bg_edl_t * e, const bg_track_info_t * info,
     else
       s = bg_edl_add_subtitle_overlay_stream(t);
     seg = bg_edl_add_segment(s);
-    s->timescale = info->subtitle_streams[i].timescale;
+    s->timescale = info->subtitle_streams[i].format.timescale;
     seg->timescale = s->timescale;
 
     if(info->subtitle_streams[i].duration)

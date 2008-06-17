@@ -494,12 +494,8 @@ int bg_player_input_get_video_format(bg_player_input_context_t * ctx)
 int
 bg_player_input_get_subtitle_format(bg_player_input_context_t * ctx)
   {
-  if(!ctx->player->track_info->subtitle_streams[ctx->player->current_subtitle_stream].is_text)
-    {
-    gavl_video_format_copy(&(ctx->player->subtitle_stream.input_format),
-                           &(ctx->player->track_info->subtitle_streams[ctx->player->current_subtitle_stream].format));
-    
-    }
+  gavl_video_format_copy(&(ctx->player->subtitle_stream.input_format),
+                         &(ctx->player->track_info->subtitle_streams[ctx->player->current_subtitle_stream].format));
   return 1;
   }
 

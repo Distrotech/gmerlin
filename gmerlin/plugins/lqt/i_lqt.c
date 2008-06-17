@@ -103,14 +103,12 @@ static void * create_lqt()
 static void setup_chapters(i_lqt_t * e, int track)
   {
   int i, num;
-  int timescale;
   int64_t timestamp, duration;
   char * text = (char*)0;
   int text_alloc = 0;
-  gavl_time_t chapter_time;
   
   e->track_info.chapter_list = bg_chapter_list_create(0);
-  timescale = lqt_text_time_scale(e->file, track);
+  e->track_info.chapter_list->timescale = lqt_text_time_scale(e->file, track);
 
   num = lqt_text_samples(e->file, track);
   
@@ -118,8 +116,7 @@ static void setup_chapters(i_lqt_t * e, int track)
     {
     if(lqt_read_text(e->file, track, &text, &text_alloc, &timestamp, &duration))
       {
-      chapter_time = gavl_time_unscale(timescale, timestamp);
-      bg_chapter_list_insert(e->track_info.chapter_list, i, chapter_time, text);
+      bg_chapter_list_insert(e->track_info.chapter_list, i, timestamp, text);
       }
     else
       break;
@@ -315,21 +312,10 @@ static int read_subtitle_text_lqt(void * priv,
                                   int64_t * start_time,
                                   int64_t * duration, int stream)
   {
-  int64_t start_time_scaled, duration_scaled;
   i_lqt_t * e = (i_lqt_t*)priv;
-
-  if(lqt_read_text(e->file, stream, text, text_alloc,
-                   &start_time_scaled, &duration_scaled))
-    {
-    *start_time = gavl_time_unscale(e->subtitle_streams[stream].timescale,
-                                    start_time_scaled);
-    *duration   = gavl_time_unscale(e->subtitle_streams[stream].timescale,
-                                    duration_scaled);
-    return 1;
-    }
-  return 0;
+  return lqt_read_text(e->file, stream, text, text_alloc,
+                       start_time, duration);
   }
-
 
 /* Read one video frame (returns FALSE on EOF) */
 static

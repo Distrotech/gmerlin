@@ -167,10 +167,12 @@ static int open_subtext(void * data, const char * filename,
   return 1;
   }
 
-static int add_subtitle_text_stream_subtext(void * data, const char * language)
+static int add_subtitle_text_stream_subtext(void * data, const char * language,
+                                            int * timescale)
   {
   subtext_t * e;
   e = (subtext_t *)data;
+  *timescale = GAVL_TIME_SCALE;
   return 0;
   }
 

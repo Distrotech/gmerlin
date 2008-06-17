@@ -37,6 +37,10 @@ void bg_chapter_list_2_xml(bg_chapter_list_t * list, xmlNodePtr xml_list)
   int i;
   xmlNodePtr xml_chapter;
 
+  tmp_string = bg_sprintf("%d", list->timescale);
+  BG_XML_SET_PROP(xml_list, "timescale", tmp_string);
+  free(tmp_string);
+  
   xmlAddChild(xml_list, BG_XML_NEW_TEXT("\n"));
   
   for(i = 0; i < list->num_chapters; i++)
@@ -65,6 +69,14 @@ bg_xml_2_chapter_list(xmlDocPtr xml_doc, xmlNodePtr xml_list)
   xmlNodePtr node;
   
   ret = bg_chapter_list_create(0);
+  ret->timescale = GAVL_TIME_SCALE;
+  
+  tmp_string = (char*)BG_XML_GET_PROP(xml_list, "timescale");
+  if(tmp_string)
+    {
+    ret->timescale = atoi(tmp_string);
+    xmlFree(tmp_string);
+    }
   
   node = xml_list->children;
   index = 0;

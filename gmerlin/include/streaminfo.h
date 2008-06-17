@@ -84,7 +84,6 @@ typedef struct
   char * info;        //!< Info about this stream
 
   int is_text; //!< 1 if subtitles are in text format (0 for overlay subtitles)
-  int timescale; //!< Timescale
   gavl_video_format_t format; //!< Format of overlay subtitles
   int64_t duration;   //!< Duration in timescale tics
   } bg_subtitle_info_t;
@@ -235,9 +234,10 @@ void bg_metadata_set_parameter(void * data, const char * name,
 typedef struct
   {
   int num_chapters;       //!< Number of chapters
+  int timescale;          //!< Scale of the timestamps
   struct
     {
-    gavl_time_t time;     //!< Start time (seekpoint) of this chapter
+    int64_t time;        //!< Start time (seekpoint) of this chapter
     char * name;          //!< Name for this chapter (or NULL if unavailable)
     } * chapters;         //!< Chapters
   } bg_chapter_list_t;

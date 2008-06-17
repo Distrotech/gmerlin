@@ -51,6 +51,8 @@ int bg_player_subtitle_init(bg_player_t * player, int subtitle_stream)
     return 1;
   
   s = &(player->subtitle_stream);
+
+  bg_player_input_get_subtitle_format(player->input_context);
   
   if(DO_SUBTITLE_TEXT(player->flags))
     {
@@ -60,7 +62,6 @@ int bg_player_subtitle_init(bg_player_t * player, int subtitle_stream)
       bg_text_renderer_init(player->subtitle_stream.renderer,
                             (gavl_video_format_t*)0,
                             &(player->subtitle_stream.input_format));
-
       
       bg_text_renderer_get_frame_format(player->subtitle_stream.renderer,
                                         &(player->video_stream.input_format));
@@ -79,12 +80,12 @@ int bg_player_subtitle_init(bg_player_t * player, int subtitle_stream)
     }
   else
     {
-    bg_player_input_get_subtitle_format(player->input_context);
-    
     if(DO_SUBTITLE_ONLY(player->flags))
       {
       gavl_video_format_copy(&(player->video_stream.input_format),
                              &player->subtitle_stream.input_format);
+      gavl_video_format_copy(&(player->video_stream.output_format),
+                             &(player->video_stream.input_format));
       }
     }
   

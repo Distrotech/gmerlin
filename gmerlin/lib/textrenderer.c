@@ -1105,8 +1105,13 @@ void bg_text_renderer_init(bg_text_renderer_t * r,
                            const gavl_video_format_t * frame_format,
                            gavl_video_format_t * overlay_format)
   {
+  int timescale, frame_duration;
+  
   pthread_mutex_lock(&r->config_mutex);
 
+  timescale      = overlay_format->timescale;
+  frame_duration = overlay_format->frame_duration;
+    
   if(frame_format)
     {
     gavl_video_format_copy(&(r->frame_format), frame_format);
@@ -1130,9 +1135,13 @@ void bg_text_renderer_init(bg_text_renderer_t * r,
   
   init_nolock(r);
 
+  r->overlay_format.timescale      = timescale;
+  r->overlay_format.frame_duration = frame_duration;
+
   gavl_video_format_copy(overlay_format, &(r->overlay_format));
 
   r->config_changed = 0;
+
   
   pthread_mutex_unlock(&r->config_mutex);
   }

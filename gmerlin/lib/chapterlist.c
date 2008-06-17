@@ -135,12 +135,13 @@ void bg_chapter_list_set_default_names(bg_chapter_list_t * list)
   }
 
 int bg_chapter_list_get_current(bg_chapter_list_t * list,
-                                 gavl_time_t time)
+                                gavl_time_t time)
   {
   int i;
+  int64_t time_scaled = gavl_time_scale(list->timescale, time);
   for(i = 0; i < list->num_chapters-1; i++)
     {
-    if(time < list->chapters[i+1].time)
+    if(time_scaled < list->chapters[i+1].time)
       return i;
     }
   return list->num_chapters-1;
@@ -150,9 +151,10 @@ int bg_chapter_list_changed(bg_chapter_list_t * list,
                             gavl_time_t time, int * current_chapter)
   {
   int ret = 0;
+  int64_t time_scaled = gavl_time_scale(list->timescale, time);
   while(*current_chapter < list->num_chapters-1)
     {
-    if(time >= list->chapters[(*current_chapter)+1].time)
+    if(time_scaled >= list->chapters[(*current_chapter)+1].time)
       {
       (*current_chapter)++;
       ret = 1;

@@ -90,6 +90,7 @@ static int add_subtitle_overlay_stream_spumux(void * priv, const char * language
   spumux_t * spumux = (spumux_t*)priv;
   gavl_video_format_copy((&spumux->format), format);
   spumux->format.pixelformat = GAVL_RGBA_32;
+  spumux->format.timescale = GAVL_TIME_SCALE;
   return 1;
   }
 

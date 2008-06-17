@@ -86,7 +86,8 @@ typedef struct
   struct
     {
     char language[4];
-    gavl_time_t last_end_time;
+    int timescale;
+    int64_t last_end_time;
 
     uint16_t text_box[4];
 
@@ -207,7 +208,7 @@ static int add_audio_stream_lqt(void * data, const char * language,
   return e->num_audio_streams-1;
   }
 
-static int add_subtitle_text_stream_lqt(void * data, const char * language)
+static int add_subtitle_text_stream_lqt(void * data, const char * language, int * timescale)
   {
   e_lqt_t * e = (e_lqt_t*)data;
 
@@ -221,6 +222,7 @@ static int add_subtitle_text_stream_lqt(void * data, const char * language)
 
   strncpy(e->subtitle_text_streams[e->num_subtitle_text_streams].language,
           language, 3);
+  e->subtitle_text_streams[e->num_subtitle_text_streams].timescale = *timescale;
   
   e->num_subtitle_text_streams++;
   return e->num_subtitle_text_streams-1;
@@ -292,7 +294,7 @@ static int start_lqt(void * data)
   /* Add the subtitle tracks */
   for(i = 0; i < e->num_subtitle_text_streams; i++)
     {
-    lqt_add_text_track(e->file, TEXT_TIME_SCALE);
+    lqt_add_text_track(e->file, e->subtitle_text_streams[i].timescale);
     lqt_set_text_language(e->file, i, e->subtitle_text_streams[i].language);
     
     lqt_set_text_box(e->file, i,
@@ -318,7 +320,7 @@ static int start_lqt(void * data)
   /* Add the chapter track */
   if(e->chapter_list)
     {
-    lqt_add_text_track(e->file, GAVL_TIME_SCALE);
+    lqt_add_text_track(e->file, e->chapter_list->timescale);
     e->chapter_track_id = e->num_subtitle_text_streams;
     lqt_set_chapter_track(e->file, e->chapter_track_id);
     }
@@ -359,27 +361,21 @@ static int write_video_frame_lqt(void * data, gavl_video_frame_t* frame,
   }
 
 static int write_subtitle_text_lqt(void * data,const char * text,
-                                   gavl_time_t start,
-                                   gavl_time_t duration, int stream)
+                                   int64_t start,
+                                   int64_t duration, int stream)
   {
   e_lqt_t * e = (e_lqt_t*)data;
-  int64_t duration_scaled;
   
   /* Put empty subtitle if the last end time is not equal to
      this start time */
   if(e->subtitle_text_streams[stream].last_end_time < start)
     {
-    duration_scaled =
-      gavl_time_scale(TEXT_TIME_SCALE,
-                      start - e->subtitle_text_streams[stream].last_end_time);
     if(lqt_write_text(e->file, stream, "",
-                      duration_scaled))
+                      start - e->subtitle_text_streams[stream].last_end_time))
       return 0;
     }
-
-  duration_scaled = gavl_time_scale(TEXT_TIME_SCALE, duration);
-
-  if(lqt_write_text(e->file, stream, text, duration_scaled))
+  
+  if(lqt_write_text(e->file, stream, text, duration))
     return 0;
   e->subtitle_text_streams[stream].last_end_time = start + duration;
   return 1;
@@ -405,7 +401,8 @@ static int close_lqt(void * data, int do_delete)
         bg_log(BG_LOG_WARNING, LOG_DOMAIN,
                "Omitting chapter %d: time (%f) > duration (%f)",
                i+1,
-               gavl_time_to_seconds(e->chapter_list->chapters[i].time),
+               gavl_time_to_seconds(gavl_time_unscale(e->chapter_list->timescale,
+                                                      e->chapter_list->chapters[i].time)),
                gavl_time_to_seconds(e->duration));
         break;
         }

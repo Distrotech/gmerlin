@@ -63,7 +63,7 @@ void main_menu_destroy(main_menu_t *);
 GtkWidget * main_menu_get_widget(main_menu_t *);
 
 void main_menu_set_num_chapters(main_menu_t * m,
-                                int num);
+                                int num, int scale);
 
 void main_menu_set_num_streams(main_menu_t *,
                                int audio_streams,
