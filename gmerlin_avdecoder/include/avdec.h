@@ -933,19 +933,14 @@ void bgav_close(bgav_t * bgav);
  *  you can have "logical" streams, where the EDL tells how they are composed from
  *  phyiscal streams.
  *
- *  To use EDLs with Gmerlin-avdecoder, note the following:
+ *  To use EDLs with Gmerlin-avdecoder, call \ref bgav_get_edl, make a local copy of
+ *  the EDL structure and call \ref bgav_close.
  *
- *  - If you do nothing, the streams are decoded as they are found in the file
- *  - If a media file contains an EDL, it is returned by \ref bgav_get_edl
- *  - The EDL references streams either in the file you opened, or in external
- *    files.
- *  - Some files contain only the EDL (with external references) but no actual media
- *    streams. In this case, \ref bgav_num_tracks will return 0.
- *  - To use an EDL from a decoder instance, make a local copy (\ref bgav_edl_copy),
- *    close the decoder (\ref bgav_close) and open a new decoder with \ref bgav_open_edl
- *    with the copied EDL
- *  - The opened decoder will behave the same as a regular decoder
- *  - You can also build EDLs yourself and pass them to \ref bgav_open_edl
+ *  Some files contain only the EDL (with external references) but no actual media
+ *  streams. In this case, \ref bgav_num_tracks will return 0.
+ *
+ *  Gmerlin-avdecoder has no means of composing the logical EDL tracks from physical
+ *  files. The Gmerlin library has an edl decoder plugin.
  *
  * @{
  */
@@ -955,7 +950,7 @@ void bgav_close(bgav_t * bgav);
 
 typedef struct
   {
-  char * url;   //!< Location of that segment. If NULL, the "master url" in bgav_edl_t is valid.
+  char * url;   //!< Location of that segment. If NULL, the "master url" in \ref bgav_edl_t is valid.
 
   int track;        //!<  Track index for multitrack inputs
   int stream;       //!<  Index of the A/V stream
@@ -1030,8 +1025,6 @@ void bgav_edl_dump(const bgav_edl_t * e);
 /** 
  * @}
  */
-
-
 
 /***************************************************
  * Check for redirecting: You MUST check if you opened

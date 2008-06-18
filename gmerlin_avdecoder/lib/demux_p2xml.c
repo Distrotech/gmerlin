@@ -127,6 +127,10 @@ static int open_p2xml(bgav_demuxer_context_t * ctx, bgav_yml_node_t * yml)
   const char * root_name = (const char*)0;
   char * filename;
   char * tmp_string;
+
+  int duration;
+  int edit_unit_scale;
+  int edit_unit_duration;
   
   if(!ctx->input || !ctx->input->filename)
     return 0;

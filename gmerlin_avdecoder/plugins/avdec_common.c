@@ -682,9 +682,6 @@ static bg_edl_track_t * copy_tracks(const bgav_edl_track_t * src, int len)
   bg_edl_track_t * ret;
   ret = calloc(len, sizeof(*ret));
   
-  /* Copy integers */
-  memcpy(ret, src, len * sizeof(*ret));
-  
   for(i = 0; i < len; i++)
     {
     /* Copy pointers */
