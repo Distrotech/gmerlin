@@ -18,7 +18,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
+ 
+#ifndef GAVLTIME_H_INCLUDED
+#define GAVLTIME_H_INCLUDED
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*! \defgroup time Time
  */
@@ -223,3 +229,10 @@ gavl_time_t gavl_timer_get(gavl_timer_t * timer);
  */
 
 void gavl_timer_set(gavl_timer_t * timer, gavl_time_t t);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* GAVLTIME_H_INCLUDED */
+
