@@ -103,7 +103,10 @@ static int probe_p2xml(bgav_yml_node_t * node)
   return 0;
   }
 
-static void init_stream(bgav_yml_node_t * node, bgav_edl_stream_t * s, char * filename)
+static void init_stream(bgav_yml_node_t * node,
+                        bgav_edl_stream_t * s, char * filename,
+                        int duration, int edit_unit_num,
+                        int edit_unit_den)
   {
   bgav_edl_segment_t * seg;
   seg = bgav_edl_add_segment(s);
@@ -113,6 +116,9 @@ static void init_stream(bgav_yml_node_t * node, bgav_edl_stream_t * s, char * fi
   seg->src_time = 0;
   seg->dst_time = 0;
   seg->dst_duration = -1;
+  s->timescale = edit_unit_den;
+  seg->timescale = edit_unit_den;
+  seg->dst_duration = duration * edit_unit_num;
   }
 
 static int open_p2xml(bgav_demuxer_context_t * ctx, bgav_yml_node_t * yml)
@@ -128,9 +134,9 @@ static int open_p2xml(bgav_demuxer_context_t * ctx, bgav_yml_node_t * yml)
   char * filename;
   char * tmp_string;
 
-  int duration;
-  int edit_unit_scale;
-  int edit_unit_duration;
+  int duration = 0;
+  int edit_unit_num = 0;
+  int edit_unit_den = 0;
   
   if(!ctx->input || !ctx->input->filename)
     return 0;
@@ -169,6 +175,15 @@ static int open_p2xml(bgav_demuxer_context_t * ctx, bgav_yml_node_t * yml)
       node = node->next;
       continue;
       }
+    else if(!strcasecmp(node->name, "Duration"))
+      {
+      duration = atoi(node->children->str);
+      }
+    else if(!strcasecmp(node->name, "EditUnit"))
+      {
+      sscanf(node->children->str, "%d/%d", &edit_unit_num,
+             &edit_unit_den);
+      }
     else if(!strcasecmp(node->name, "ClipContent"))
       {
       node = node->children;
@@ -181,6 +196,9 @@ static int open_p2xml(bgav_demuxer_context_t * ctx, bgav_yml_node_t * yml)
       }
     else if(!strcasecmp(node->name, "EssenceList"))
       {
+      if(!duration || !edit_unit_num || !edit_unit_den)
+        return 0;
+      
       node = node->children;
       continue;
       }
@@ -192,7 +210,8 @@ static int open_p2xml(bgav_demuxer_context_t * ctx, bgav_yml_node_t * yml)
         if(filename)
           {
           s = bgav_edl_add_audio_stream(t);
-          init_stream(node, s, filename);
+          init_stream(node, s, filename,
+                      duration, edit_unit_num, edit_unit_den);
           }
         else
           fprintf(stderr, "Got no file for audio stream %d\n", t->num_audio_streams);
@@ -207,7 +226,8 @@ static int open_p2xml(bgav_demuxer_context_t * ctx, bgav_yml_node_t * yml)
         if(filename)
           {
           s = bgav_edl_add_video_stream(t);
-          init_stream(node, s, filename);
+          init_stream(node, s, filename,
+                      duration, edit_unit_num, edit_unit_den);
           }
         else
           fprintf(stderr, "Got no file for video stream %d\n", t->num_video_streams);
@@ -215,6 +235,7 @@ static int open_p2xml(bgav_demuxer_context_t * ctx, bgav_yml_node_t * yml)
       }
     node = node->next;
     }
+  
   return 1;
   }
 

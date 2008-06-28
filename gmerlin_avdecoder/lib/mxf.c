@@ -399,10 +399,10 @@ typedef struct
 
 /* SMPTE RP224 http://www.smpte-ra.org/mdd/index.html */
 static const stream_entry_t mxf_data_definition_uls[] = {
-    { { 0x06,0x0E,0x2B,0x34,0x04,0x01,0x01,0x01,0x01,0x03,0x02,0x02,0x01,0x00,0x00,0x00 }, BGAV_STREAM_VIDEO },
-    { { 0x06,0x0E,0x2B,0x34,0x04,0x01,0x01,0x01,0x01,0x03,0x02,0x02,0x02,0x00,0x00,0x00 }, BGAV_STREAM_AUDIO },
-    { { 0x06,0x0E,0x2B,0x34,0x04,0x01,0x01,0x05,0x01,0x03,0x02,0x02,0x02,0x02,0x00,0x00 }, BGAV_STREAM_AUDIO },
-    { { 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00 }, BGAV_STREAM_UNKNOWN /* CODEC_TYPE_DATA */},
+  { { 0x06,0x0E,0x2B,0x34,0x04,0x01,0x01,0x01,0x01,0x03,0x02,0x02,0x01,0x00,0x00,0x00 }, BGAV_STREAM_VIDEO },
+  { { 0x06,0x0E,0x2B,0x34,0x04,0x01,0x01,0x01,0x01,0x03,0x02,0x02,0x02,0x00,0x00,0x00 }, BGAV_STREAM_AUDIO },
+  { { 0x06,0x0E,0x2B,0x34,0x04,0x01,0x01,0x05,0x01,0x03,0x02,0x02,0x02,0x02,0x00,0x00 }, BGAV_STREAM_AUDIO },
+  { { 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00 }, BGAV_STREAM_UNKNOWN /* CODEC_TYPE_DATA */},
 };
 
 static const stream_entry_t * match_stream(const stream_entry_t * se, const mxf_ul_t u1)
@@ -444,8 +444,8 @@ static const codec_entry_t mxf_video_codec_uls[] =
       14, BGAV_MK_FOURCC('m', 'p', '4', 'v') }, /* XDCAM proxy_pal030926.mxf */
     { { 0x06,0x0E,0x2B,0x34,0x04,0x01,0x01,0x01,0x04,0x01,0x02,0x02,0x02,0x01,0x02,0x00 },
       13, BGAV_MK_FOURCC('d', 'v', 'c', 'p') }, /* DV25 IEC PAL */
-      //    { { 0x06,0x0E,0x2B,0x34,0x04,0x01,0x01,0x07,0x04,0x01,0x02,0x02,0x03,0x01,0x01,0x00 }, 14, CODEC_ID_JPEG2000 }, /* JPEG2000 Codestream */
-      //    { { 0x06,0x0E,0x2B,0x34,0x04,0x01,0x01,0x01,0x04,0x01,0x02,0x01,0x7F,0x00,0x00,0x00 }, 13, CODEC_ID_RAWVIDEO }, /* Uncompressed */
+    // { { 0x06,0x0E,0x2B,0x34,0x04,0x01,0x01,0x07,0x04,0x01,0x02,0x02,0x03,0x01,0x01,0x00 }, 14, CODEC_ID_JPEG2000 }, /* JPEG2000 Codestream */
+    // { { 0x06,0x0E,0x2B,0x34,0x04,0x01,0x01,0x01,0x04,0x01,0x02,0x01,0x7F,0x00,0x00,0x00 }, 13, CODEC_ID_RAWVIDEO }, /* Uncompressed */
     { { 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00 },  0, 0x00 },
   };
 
@@ -628,10 +628,7 @@ void bgav_mxf_partition_dump(int indent, mxf_partition_t * ret)
     {
     bgav_diprintf(indent+4, "Essence container: ");
     dump_ul(ret->essence_container_types[i]);
-    
     }
-
-  
   }
 
 void bgav_mxf_partition_free(mxf_partition_t * ret)
@@ -651,7 +648,6 @@ int bgav_mxf_primer_pack_read(bgav_input_context_t * input,
      (len != 18))
     return 0;
   ret->entries = malloc(ret->num_entries * sizeof(*ret->entries));
-
   for(i = 0; i < ret->num_entries; i++)
     {
     if(!bgav_input_read_16_be(input, &ret->entries[i].localTag) ||
@@ -669,7 +665,6 @@ void bgav_mxf_primer_pack_dump(int indent, mxf_primer_pack_t * ret)
     {
     bgav_diprintf(indent+2, "LocalTag: %04x, UID: ", ret->entries[i].localTag);
     dump_ul(ret->entries[i].uid);
-    
     }
   }
 
@@ -691,7 +686,6 @@ read_header_metadata(bgav_input_context_t * input,
   uint16_t tag, len;
   int64_t end_pos;
   mxf_ul_t uid = {0};
-  
   mxf_metadata_t * m;
   if(struct_size)
     {
@@ -809,7 +803,8 @@ int bgav_mxf_content_storage_resolve_refs(partition_t * p, mxf_content_storage_t
   {
   s->packages = resolve_strong_refs(p, s->package_refs, s->num_package_refs,
                                     MXF_TYPE_SOURCE_PACKAGE | MXF_TYPE_MATERIAL_PACKAGE);
-  s->essence_containers = resolve_strong_refs(p, s->essence_container_data_refs, s->num_essence_container_data_refs,
+  s->essence_containers = resolve_strong_refs(p, s->essence_container_data_refs,
+                                              s->num_essence_container_data_refs,
                                               MXF_TYPE_ESSENCE_CONTAINER_DATA);
   
   return 1;
@@ -1200,7 +1195,6 @@ int bgav_mxf_sequence_resolve_refs(partition_t * p, mxf_sequence_t * s)
   return 1;
   }
 
-
 static int read_sequence(bgav_input_context_t * input,
                          partition_t * ret, mxf_metadata_t * m,
                          int tag, int size, uint8_t * uid)
@@ -1308,10 +1302,10 @@ void bgav_mxf_identification_dump(int indent, mxf_identification_t * s)
   bgav_diprintf(indent+2, "thisGenerationUID: "); dump_ul(s->this_generation_ul);
   bgav_diprintf(indent+2, "Company name:      %s\n",
                                     (s->company_name ? s->company_name :
-                                     "(unknown"));
+                                     "(unknown)"));
   bgav_diprintf(indent+2, "Product name:      %s\n",
                                     (s->product_name ? s->product_name :
-                                     "(unknown"));
+                                     "(unknown)"));
   bgav_diprintf(indent+2, "Product version:   %d.%d.%d.%d.%d\n", s->product_version.maj, s->product_version.min,
                 s->product_version.tweak, s->product_version.build, s->product_version.rel);
   bgav_diprintf(indent+2, "Toolkit version:   %d.%d.%d.%d.%d\n", s->toolkit_version.maj, s->toolkit_version.min,
@@ -1319,10 +1313,10 @@ void bgav_mxf_identification_dump(int indent, mxf_identification_t * s)
   
   bgav_diprintf(indent+2, "Version string:    %s\n",
                                     (s->version_string ? s->version_string :
-                                     "(unknown"));
+                                     "(unknown)"));
   bgav_diprintf(indent+2, "Platform:          %s\n",
                                     (s->platform ? s->platform :
-                                     "(unknown"));
+                                     "(unknown)"));
 
   bgav_diprintf(indent+2, "ProductUID:        "); dump_ul(s->product_ul);
   

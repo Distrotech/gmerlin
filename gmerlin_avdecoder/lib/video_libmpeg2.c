@@ -884,7 +884,7 @@ static void parse_libmpeg2(bgav_stream_t * s, int flush)
 
 static bgav_video_decoder_t decoder =
   {
-    .fourccs = (uint32_t[]){ BGAV_MK_FOURCC('m','p','g','v'), 0x00 },
+    .fourccs = (uint32_t[]){ BGAV_MK_FOURCC('m','p','g','v'), BGAV_MK_FOURCC('x','d','v','e'), 0x00 },
     .name =    "libmpeg2 decoder",
 
     .init =    init_mpeg2,

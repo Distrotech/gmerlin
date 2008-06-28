@@ -31,7 +31,7 @@
 #define CLIP_WRAPPED_CBR   1
 #define CLIP_WRAPPED_PARSE 2 /* Unsupported for now */
 
-// #define DUMP_MXF
+#define DUMP_MXF
 
 static void build_edl_mxf(bgav_demuxer_context_t * ctx);
 
