@@ -884,9 +884,22 @@ static void parse_libmpeg2(bgav_stream_t * s, int flush)
 
 static bgav_video_decoder_t decoder =
   {
-    .fourccs = (uint32_t[]){ BGAV_MK_FOURCC('m','p','g','v'), BGAV_MK_FOURCC('x','d','v','e'), 0x00 },
+    .fourccs = (uint32_t[]){ /* Set by MPEG demuxers */
+                             BGAV_MK_FOURCC('m','p','g','v'),
+                             /* Quicktime fourccs */
+                             BGAV_MK_FOURCC('x','d','v','e'), // XDCAM
+                             BGAV_MK_FOURCC('h','d','v','2'), // 1080i60 25 Mbps CBR
+                             BGAV_MK_FOURCC('h','d','v','3'), // 1080i50 25 Mbps CBR
+                             BGAV_MK_FOURCC('h','d','v','6'), // 1080p24 25 Mbps CBR
+                             BGAV_MK_FOURCC('h','d','v','7'), // 1080p25 25 Mbps CBR
+                             BGAV_MK_FOURCC('h','d','v','8'), // 1080p30 25 Mbps CBR
+                             BGAV_MK_FOURCC('x','d','v','2'), // 1080i60 35 Mbps VBR
+                             BGAV_MK_FOURCC('x','d','v','3'), // 1080i50 35 Mbps VBR
+                             BGAV_MK_FOURCC('x','d','v','6'), // 1080p24 35 Mbps VBR
+                             BGAV_MK_FOURCC('x','d','v','7'), // 1080p25 35 Mbps VBR
+                             BGAV_MK_FOURCC('x','d','v','8'), // 1080p30 35 Mbps VBR
+                             0x00 },
     .name =    "libmpeg2 decoder",
-
     .init =    init_mpeg2,
     .decode =  decode_mpeg2,
     .close =   close_mpeg2,
