@@ -200,7 +200,7 @@ void bg_lqt_create_codec_info(bg_parameter_info_t * info,
 
 static const void * get_value(lqt_parameter_info_t * lqt_parameter_info,
                         const char * name,
-                        const bg_parameter_value_t * val)
+                        const bg_parameter_value_t * val, float * dummy_f)
   {
   int index;
   index = 0;
@@ -215,7 +215,8 @@ static const void * get_value(lqt_parameter_info_t * lqt_parameter_info,
           return &(val->val_i);
           break;
         case LQT_PARAMETER_FLOAT:
-          return &(val->val_f);
+          *dummy_f = val->val_f;
+          return dummy_f;
           break;
         case LQT_PARAMETER_STRING:
         case LQT_PARAMETER_STRINGLIST:
@@ -238,7 +239,8 @@ void bg_lqt_set_audio_parameter(quicktime_t * file,
                                 lqt_parameter_info_t * lqt_parameter_info)
   {
   const void * val_ptr;
-  val_ptr = get_value(lqt_parameter_info, name, val);
+  float dummy_f;
+  val_ptr = get_value(lqt_parameter_info, name, val, &dummy_f);
   if(val_ptr)
     {
     lqt_set_audio_parameter(file, stream, name, val_ptr);
@@ -253,7 +255,8 @@ void bg_lqt_set_video_parameter(quicktime_t * file,
                                 lqt_parameter_info_t * lqt_parameter_info)
   {
   const void * val_ptr;
-  val_ptr = get_value(lqt_parameter_info, name, val);
+  float dummy_f;
+  val_ptr = get_value(lqt_parameter_info, name, val, &dummy_f);
   if(val_ptr)
     {
     lqt_set_video_parameter(file, stream, name, val_ptr);

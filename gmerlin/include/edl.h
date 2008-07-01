@@ -34,20 +34,20 @@
  *  you can have "logical" streams, where the EDL tells how they are composed from
  *  phyiscal streams.
  *
- *  To use EDLs with Gmerlin-avdecoder, note the following:
+ *  To use EDLs with gmerlin, note the following:
  *
  *  - If you do nothing, the streams are decoded as they are found in the file
- *  - If a media file contains an EDL, it is returned by \ref bgav_get_edl
+ *  - If a media file contains an EDL, it is returned by the get_edl() method of
+ *    the input plugin.
  *  - The EDL references streams either in the file you opened, or in external
  *    files.
  *  - Some files contain only the EDL (with external references) but no actual media
- *    streams. In this case, \ref bgav_num_tracks will return 0.
- *  - To use an EDL from a decoder instance, make a local copy (\ref bgav_edl_copy),
- *    close the decoder (\ref bgav_close) and open a new decoder with \ref bgav_open_edl
- *    with the copied EDL
- *  - The opened decoder will behave the same as a regular decoder
- *  - You can also build EDLs yourself and pass them to \ref bgav_open_edl
- *
+ *    streams. In this case, the \ref get_num_tracks method will return 0.
+ *  - The gmerlin library contains a builtin EDL decoder plugin, which opens the
+ *    elementary streams and decodes the EDL as if it was a simple file. It can be used
+ *    by calling \ref bg_input_plugin_load. It will fire up an EDL decoder for files, which
+ *    contain only EDL data and no media. For other files, the behaviour is controlled by the
+ *    prefer_edl argument.
  * @{
  */
 

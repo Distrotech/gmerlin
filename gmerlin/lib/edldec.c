@@ -571,7 +571,8 @@ static int start_edl(void * priv)
         {
         if(bg_audio_converter_init(asrc->cnv, asrc->format, as->format))
           {
-          bg_audio_converter_connect_input(asrc->cnv, asrc->read_func, asrc->com.read_data,
+          bg_audio_converter_connect_input(asrc->cnv, asrc->read_func,
+                                           asrc->com.read_data,
                                            asrc->com.read_stream);
           asrc->read_func = bg_audio_converter_read;
           asrc->com.read_data = asrc->cnv;
@@ -625,7 +626,8 @@ static int start_edl(void * priv)
         {
         if(bg_video_converter_init(vsrc->cnv, vsrc->format, vs->format))
           {
-          bg_video_converter_connect_input(vsrc->cnv, vsrc->read_func, vsrc->com.read_data,
+          bg_video_converter_connect_input(vsrc->cnv, vsrc->read_func,
+                                           vsrc->com.read_data,
                                            vsrc->com.read_stream);
           vsrc->read_func = bg_video_converter_read;
           vsrc->com.read_data = vsrc->cnv;
@@ -704,11 +706,12 @@ static int read_audio_edl(void * priv, gavl_audio_frame_t* frame, int stream,
     else
       {
       src = (audio_source_t *)(seg->src);
-      if(!src->read_func(seg->src->read_data, as->frame, seg->src->read_stream,
+      if(!src->read_func(seg->src->read_data,
+                         as->frame,
+                         seg->src->read_stream,
                          num))
         return samples_decoded;
       }
-    
     num = gavl_audio_frame_copy(as->format,
                                 frame,
                                 as->frame,
@@ -723,7 +726,6 @@ static int read_audio_edl(void * priv, gavl_audio_frame_t* frame, int stream,
   as->out_time += samples_decoded;
   return samples_decoded;
   }
-
 
 static int read_video_edl(void * priv, gavl_video_frame_t* frame, int stream)
   {
