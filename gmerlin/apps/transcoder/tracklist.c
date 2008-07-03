@@ -1476,6 +1476,8 @@ void track_list_destroy(track_list_t * t)
   char * tmp_path;
   bg_transcoder_track_t * tmp_track;
 
+  bg_transcoder_track_global_free(&t->track_global);
+  
   tmp_path = bg_search_file_write("transcoder", "tracks.xml");
 
   if(tmp_path)

@@ -1123,7 +1123,11 @@ void transcoder_window_destroy(transcoder_window_t* w)
 
   if(w->task_path)
     free(w->task_path);
-
+  if(w->profile_path)
+    free(w->profile_path);
+  
+  bg_msg_queue_destroy(w->msg_queue);
+  
   bg_remote_server_destroy(w->remote);
   
   //  g_object_unref(w->tooltips);

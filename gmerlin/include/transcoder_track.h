@@ -179,10 +179,10 @@ bg_transcoder_track_create_parameters(bg_transcoder_track_t * track,
 void
 bg_transcoder_track_set_encoders(bg_transcoder_track_t * track,
                                  bg_plugin_registry_t * plugin_reg,
-                                 bg_encoder_info_t * info);
+                                 const bg_encoder_info_t * info);
 
 void bg_transcoder_track_create_encoder_sections(bg_transcoder_track_t * t,
-                                                 bg_encoder_info_t * info);
+                                                 const bg_encoder_info_t * info);
 
 
 /*

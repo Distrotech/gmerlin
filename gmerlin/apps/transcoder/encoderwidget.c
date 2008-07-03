@@ -64,15 +64,16 @@ static void encoder_window_get(encoder_window_t * win)
 
   bg_encoder_info_get_from_track(win->plugin_reg, first_selected, &info);
   
-  bg_encoder_info_get_sections_from_track(first_selected,
-                                                     &info);
+  bg_encoder_info_get_sections_from_track(first_selected, &info);
   
   bg_gtk_encoder_widget_get(win->encoder_widget, &info);
   bg_gtk_encoder_widget_update_sensitive(win->encoder_widget);
   }
 
 #define COPY_SECTION(sec) if(info.sec) info.sec = bg_cfg_section_copy(info.sec)
-#define FREE_SECTION(sec) if(info.sec) bg_cfg_section_destroy(info.sec)
+#define FREE_SECTION(sec) if(info.sec) \
+   bg_cfg_section_destroy(info.sec); \
+   info.sec = (bg_cfg_section_t*)0;
 
 static void encoder_window_apply(encoder_window_t * win)
   {
@@ -86,7 +87,7 @@ static void encoder_window_apply(encoder_window_t * win)
   
   /* The sections come either out of the registry or from the first transcoder track.
      Now, we need to make local copies of all sections to avoid some crashes */
-  
+
   COPY_SECTION(audio_encoder_section);
   COPY_SECTION(video_encoder_section);
   COPY_SECTION(subtitle_text_encoder_section);
@@ -95,13 +96,12 @@ static void encoder_window_apply(encoder_window_t * win)
   COPY_SECTION(video_stream_section);
   COPY_SECTION(subtitle_text_stream_section);
   COPY_SECTION(subtitle_overlay_stream_section);
-  
+
   while(track)
     {
     if(track->selected)
       {
-      bg_transcoder_track_set_encoders(track, win->plugin_reg,
-                                       &info);
+      bg_transcoder_track_set_encoders(track, win->plugin_reg, &info);
       }
     track = track->next;
     }

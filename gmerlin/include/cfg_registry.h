@@ -241,7 +241,7 @@ void bg_cfg_section_destroy(bg_cfg_section_t * section);
  *  \returns A newly allocated section with all values copied from src.
  */
 
-bg_cfg_section_t * bg_cfg_section_copy(bg_cfg_section_t * src);
+bg_cfg_section_t * bg_cfg_section_copy(const bg_cfg_section_t * src);
 
 /** \ingroup cfg_section
  *  \brief Restore a configuration section from a previously copied one

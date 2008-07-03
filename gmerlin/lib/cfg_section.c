@@ -779,6 +779,12 @@ void bg_cfg_section_destroy(bg_cfg_section_t * s)
   {
   free_contents(s);
   free(s->name);
+
+  if(s->gettext_domain)
+    free(s->gettext_domain);
+  if(s->gettext_directory)
+    free(s->gettext_directory);
+  
   free(s);
   }
 
@@ -1110,7 +1116,7 @@ static void copy_contents(const bg_cfg_section_t * src, bg_cfg_section_t * ret)
 
 /* Copy one config section to another */
 
-bg_cfg_section_t * bg_cfg_section_copy(bg_cfg_section_t * src)
+bg_cfg_section_t * bg_cfg_section_copy(const bg_cfg_section_t * src)
   {
   bg_cfg_section_t * ret;
   

@@ -54,6 +54,12 @@ struct bg_gtk_plugin_widget_single_s
   bg_cfg_section_t * subtitle_text_section;
   bg_cfg_section_t * subtitle_overlay_section;
 
+  int section_priv;
+  int audio_section_priv;
+  int video_section_priv;
+  int subtitle_text_section_priv;
+  int subtitle_overlay_section_priv;
+  
   int32_t type_mask;
   int32_t flag_mask;
   void (*set_plugin)(const bg_plugin_info_t *, void*);
@@ -213,6 +219,12 @@ static void change_callback(GtkWidget * w, gpointer data)
     widget->handle = (bg_plugin_handle_t*)0;
     }
   update_sensitive(widget);
+
+  if(widget->section_priv)
+    {
+    bg_cfg_section_destroy(widget->section);
+    widget->section_priv = 0;
+    }
   
   widget->section = bg_plugin_registry_get_section(widget->reg,
                                                    widget->info->name);
@@ -223,23 +235,47 @@ static void change_callback(GtkWidget * w, gpointer data)
                            BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY|
                            BG_PLUGIN_ENCODER))
     {
+    if(widget->audio_section_priv)
+      {
+      bg_cfg_section_destroy(widget->audio_section);
+      widget->audio_section_priv = 0;
+      }
+    
     if(widget->info->audio_parameters)
       widget->audio_section =
         bg_cfg_section_find_subsection(widget->section, "$audio");
     else
       widget->audio_section = (bg_cfg_section_t*)0;
 
+    if(widget->video_section_priv)
+      {
+      bg_cfg_section_destroy(widget->video_section);
+      widget->video_section_priv = 0;
+      }
+    
     if(widget->info->video_parameters)
       widget->video_section =
         bg_cfg_section_find_subsection(widget->section, "$video");
     else
       widget->video_section = (bg_cfg_section_t*)0;
 
+    if(widget->subtitle_text_section_priv)
+      {
+      bg_cfg_section_destroy(widget->subtitle_text_section);
+      widget->subtitle_text_section_priv = 0;
+      }
+    
     if(widget->info->subtitle_text_parameters)
       widget->subtitle_text_section =
         bg_cfg_section_find_subsection(widget->section, "$subtitle_text");
     else
       widget->subtitle_text_section = (bg_cfg_section_t*)0;
+
+    if(widget->subtitle_overlay_section_priv)
+      {
+      bg_cfg_section_destroy(widget->subtitle_overlay_section);
+      widget->subtitle_overlay_section_priv = 0;
+      }
     
     if(widget->info->subtitle_overlay_parameters)
       widget->subtitle_overlay_section =
@@ -369,6 +405,22 @@ void bg_gtk_plugin_widget_single_destroy(bg_gtk_plugin_widget_single_t * w)
   {
   if(w->handle)
     bg_plugin_unref(w->handle);
+  
+  if(w->section_priv)
+    bg_cfg_section_destroy(w->section);
+  
+  if(w->audio_section_priv)
+    bg_cfg_section_destroy(w->audio_section);
+
+  if(w->video_section_priv)
+    bg_cfg_section_destroy(w->video_section);
+
+  if(w->subtitle_text_section_priv)
+    bg_cfg_section_destroy(w->subtitle_text_section);
+
+  if(w->subtitle_overlay_section_priv)
+    bg_cfg_section_destroy(w->subtitle_overlay_section);
+  
   free(w);
   }
 
@@ -515,44 +567,88 @@ bg_gtk_plugin_widget_single_get_subtitle_overlay_section(bg_gtk_plugin_widget_si
 
 void
 bg_gtk_plugin_widget_single_set_section(bg_gtk_plugin_widget_single_t * w,
-                                        bg_cfg_section_t * s)
+                                        const bg_cfg_section_t * s)
   {
-  w->section = s;
+  if(w->section_priv)
+    bg_cfg_section_destroy(w->section);
+
+  if(s)
+    {
+    w->section_priv = 1;
+    w->section = bg_cfg_section_copy(s);
+    }
+  else
+    w->section_priv = 0;
   }
 
 void
 bg_gtk_plugin_widget_single_set_audio_section(bg_gtk_plugin_widget_single_t * w,
-                                              bg_cfg_section_t * s)
+                                              const bg_cfg_section_t * s)
   {
-  w->audio_section = s;
+  if(w->audio_section_priv)
+    bg_cfg_section_destroy(w->audio_section);
+
+  if(s)
+    {
+    w->audio_section_priv = 1;
+    w->audio_section = bg_cfg_section_copy(s);
+    }
+  else
+    w->audio_section_priv = 0;
+
   }
 
 void
 bg_gtk_plugin_widget_single_set_video_section(bg_gtk_plugin_widget_single_t * w,
-                                              bg_cfg_section_t * s)
+                                              const bg_cfg_section_t * s)
   {
-  w->video_section = s;
+  if(w->video_section_priv)
+    bg_cfg_section_destroy(w->video_section);
 
+  if(s)
+    {
+    w->video_section_priv = 1;
+    w->video_section = bg_cfg_section_copy(s);
+    }
+  else
+    w->video_section_priv = 0;
   }
 
 void
 bg_gtk_plugin_widget_single_set_subtitle_text_section(bg_gtk_plugin_widget_single_t * w,
-                                                      bg_cfg_section_t * s)
+                                                      const bg_cfg_section_t * s)
   {
-  w->subtitle_text_section = s;
+  if(w->subtitle_text_section_priv)
+    bg_cfg_section_destroy(w->subtitle_text_section);
 
+  if(s)
+    {
+    w->subtitle_text_section_priv = 1;
+    w->subtitle_text_section = bg_cfg_section_copy(s);
+    }
+  else
+    w->subtitle_text_section_priv = 0;
   }
 
 void
 bg_gtk_plugin_widget_single_set_subtitle_overlay_section(bg_gtk_plugin_widget_single_t * w,
-                                                         bg_cfg_section_t * s)
+                                                         const bg_cfg_section_t * s)
   {
-  w->subtitle_overlay_section = s;
-  
-  }
+  if(w->subtitle_overlay_section_priv)
+    bg_cfg_section_destroy(w->subtitle_overlay_section);
 
-void bg_gtk_plugin_widget_single_show_buttons(bg_gtk_plugin_widget_single_t * w,
-                                              int show)
+  if(s)
+    {
+    w->subtitle_overlay_section_priv = 1;
+    w->subtitle_overlay_section = bg_cfg_section_copy(s);
+    }
+  else
+    w->subtitle_overlay_section_priv = 0;
+  }
+    
+void
+bg_gtk_plugin_widget_single_show_buttons(bg_gtk_plugin_widget_single_t * w,
+                                         int show)
   {
   if(show)
     {
