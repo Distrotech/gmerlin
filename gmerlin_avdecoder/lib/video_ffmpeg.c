@@ -352,8 +352,11 @@ static int get_data_parser(bgav_stream_t * s, int64_t * pts,
     //    fprintf(stderr, "** Offset: %ld\n", p->position);
     priv->parser->cur_offset = p->position;
     if(!priv->parser_started)
+#if LIBAVCODEC_BUILD >= ((51<<16)+(57<<8)+1)
+      priv->parser->next_frame_offset = p->position;
+#else
       priv->parser->last_frame_offset = p->position;
-   
+#endif    
     bgav_bytebuffer_append(&priv->buf, p, FF_INPUT_BUFFER_PADDING_SIZE);
 
     /* Extract extradata */

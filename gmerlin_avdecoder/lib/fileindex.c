@@ -596,8 +596,8 @@ static void flush_stream_pts(bgav_stream_t * s, int force)
     {
     p = bgav_demuxer_get_packet_read(s->demuxer, s);
 
-    if(p->pts == 10057)
-      fprintf(stderr, "Bla\n");
+//    if(p->pts == 10057)
+//      fprintf(stderr, "Bla\n");
 
     
     if(p->pts != BGAV_TIMESTAMP_UNDEFINED)
