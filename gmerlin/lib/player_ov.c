@@ -563,8 +563,6 @@ void bg_player_ov_set_subtitle_format(void * data)
                          &ctx->player->subtitle_stream.input_format);
   
   /* Add subtitle stream for plugin */
-  fprintf(stderr, "Subtitle: %d\n",
-          ctx->player->subtitle_stream.output_format.timescale);
   
   ctx->subtitle_id =
     ctx->plugin->add_overlay_stream(ctx->priv,
