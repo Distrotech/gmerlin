@@ -784,7 +784,8 @@ bgav_demuxer_peek_packet_read(bgav_demuxer_context_t * demuxer,
   if((demuxer->flags & BGAV_DEMUXER_PEEK_FORCES_READ) || force)
     {
     demuxer->request_stream = s; 
-    while(!(ret = bgav_packet_buffer_peek_packet_read(s->packet_buffer, get_duration)))
+    while(!(ret = bgav_packet_buffer_peek_packet_read(s->packet_buffer,
+                                                      get_duration)))
       {
       if(!bgav_demuxer_next_packet(demuxer))
         {

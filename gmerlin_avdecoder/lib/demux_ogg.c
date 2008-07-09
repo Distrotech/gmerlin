@@ -35,6 +35,7 @@
    - Speex
    - Flac
    - OGM video (Typically some divx variant)
+   - OGM Text subtitles
 */
 
 
@@ -703,8 +704,10 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         s->stream_id = serialno;
         s->index_mode = INDEX_MODE_SIMPLE;
 
-        input_mem = bgav_input_open_memory(priv->op.packet + 1, priv->op.bytes - 1, s->opt);
-
+        input_mem =
+          bgav_input_open_memory(priv->op.packet + 1,
+                                 priv->op.bytes - 1, s->opt);
+        
         if(!ogm_header_read(input_mem, &ogm_header))
           {
           bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Reading OGM header failed");
@@ -1514,7 +1517,8 @@ static void metadata_changed(bgav_demuxer_context_t * ctx)
   priv->metadata_changed = 0;
   }
 
-static void set_packet_pos(ogg_t * op, stream_priv_t * sp, int * page_continued,
+static void set_packet_pos(ogg_t * op, stream_priv_t * sp,
+                           int * page_continued,
                            bgav_packet_t * p)
   {
   if(*page_continued)
@@ -1634,12 +1638,12 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
       priv->nonbos_seen = 1;
       }
   
-    s = bgav_track_find_stream(ctx,
-                               serialno);
+    s = bgav_track_find_stream(ctx, serialno);
 
     if(!s)
       {
-      if(!ctx->next_packet_pos || (ctx->input->position >= ctx->next_packet_pos))
+      if(!ctx->next_packet_pos ||
+         (ctx->input->position >= ctx->next_packet_pos))
         done = 1;
       
       priv->page_valid = 0;
@@ -1841,8 +1845,10 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
           p->data_size = priv->op.bytes;
 
           if(stream_priv->prev_granulepos >= 0)
+            {
             p->pts = stream_priv->prev_granulepos;
-        
+            }
+          
           if((s->action == BGAV_STREAM_PARSE) && (priv->op.granulepos))
             s->duration = priv->op.granulepos;
 
