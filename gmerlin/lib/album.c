@@ -1770,7 +1770,7 @@ static int refresh_entry(bg_album_t * album,
 
   bg_input_plugin_t * plugin;
   bg_track_info_t * track_info;
-    
+  int i;
   /* Check, which plugin to use */
 
   if(entry->plugin)
@@ -1805,10 +1805,30 @@ static int refresh_entry(bg_album_t * album,
     {
     if(plugin->set_track)
       plugin->set_track(album->com->load_handle->priv, entry->index);
+
+    if(plugin->set_audio_stream)
+      {
+      for(i = 0; i < track_info->num_audio_streams; i++)
+        plugin->set_audio_stream(album->com->load_handle->priv,
+                                 i, BG_STREAM_ACTION_DECODE);
+      }
+    if(plugin->set_video_stream)
+      {
+      for(i = 0; i < track_info->num_video_streams; i++)
+        plugin->set_video_stream(album->com->load_handle->priv,
+                                 i, BG_STREAM_ACTION_DECODE);
+      }
+    if(plugin->set_subtitle_stream)
+      {
+      for(i = 0; i < track_info->num_subtitle_streams; i++)
+        plugin->set_subtitle_stream(album->com->load_handle->priv,
+                                    i, BG_STREAM_ACTION_DECODE);
+      }
+    
     if(plugin->start)
       plugin->start(album->com->load_handle->priv);
     bg_edl_append_track_info(edl, track_info, entry->location, entry->index,
-                             entry->total_tracks);
+                             entry->total_tracks, entry->name);
     }
   
   bg_album_update_entry(album, entry, track_info, 1);

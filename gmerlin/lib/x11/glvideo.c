@@ -72,7 +72,12 @@ static void check_gl(bg_x11_window_t * win,
   int format_index = 0;
   
   const char * extensions;
-  
+
+  if(!win->gl_vi)
+    {
+    formats_ret[0] = GAVL_PIXELFORMAT_NONE;
+    return;
+    }
   formats_ret[format_index++] = GAVL_RGB_24;
   formats_ret[format_index++] = GAVL_RGBA_32;
   formats_ret[format_index++] = GAVL_RGB_48;

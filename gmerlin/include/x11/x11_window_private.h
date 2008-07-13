@@ -204,7 +204,9 @@ struct bg_x11_window_s
 
   bg_x11_window_callbacks_t * callbacks;
 
-  XVisualInfo * vi;
+  XVisualInfo * gl_vi;
+  Visual * visual;
+  int depth;
   
 #ifdef HAVE_GLX
   GLXContext glxcontext;

@@ -83,7 +83,7 @@ const bg_oa_plugin_t the_plugin =
     {
       BG_LOCALE,
       .name =          "oa_pulse",
-      .long_name =     TRS("Pulse"),
+      .long_name =     TRS("PulseAudio"),
       .description =   TRS("PulseAudio output"),
       .type =          BG_PLUGIN_OUTPUT_AUDIO,
       .flags =         BG_PLUGIN_PLAYBACK,

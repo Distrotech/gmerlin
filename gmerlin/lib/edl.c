@@ -295,7 +295,8 @@ void bg_edl_dump(const bg_edl_t * e)
   }
 
 void bg_edl_append_track_info(bg_edl_t * e, const bg_track_info_t * info,
-                              const char * url, int index, int total_tracks)
+                              const char * url, int index, int total_tracks,
+                              const char * name)
   {
   bg_edl_track_t * t;
   bg_edl_stream_t * s;
@@ -304,7 +305,10 @@ void bg_edl_append_track_info(bg_edl_t * e, const bg_track_info_t * info,
   
   t = bg_edl_add_track(e);
 
-  t->name = bg_get_track_name_default(url, index, total_tracks);
+  if(name)
+    t->name = bg_strdup(t->name, name);
+  else
+    t->name = bg_get_track_name_default(url, index, total_tracks);
   
   for(i = 0; i < info->num_audio_streams; i++)
     {
@@ -353,7 +357,9 @@ void bg_edl_append_track_info(bg_edl_t * e, const bg_track_info_t * info,
     if(info->subtitle_streams[i].duration)
       seg->dst_duration = info->subtitle_streams[i].duration;
     else
-      seg->dst_duration = gavl_time_rescale(GAVL_TIME_SCALE, s->timescale, info->duration);
+      seg->dst_duration = gavl_time_rescale(GAVL_TIME_SCALE,
+                                            s->timescale,
+                                            info->duration);
     seg->speed_num = 1;
     seg->speed_den = 1;
     seg->url = bg_strdup((char*)0, url);

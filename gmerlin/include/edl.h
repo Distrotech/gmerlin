@@ -147,7 +147,7 @@ void bg_edl_save(const bg_edl_t * edl, const char * filename);
 
 void bg_edl_append_track_info(bg_edl_t * e,
                               const bg_track_info_t * info, const char * url,
-                              int index, int num_tracks);
+                              int index, int num_tracks, const char * name);
 
 /**
  * @}

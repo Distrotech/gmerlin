@@ -36,7 +36,7 @@ static gavl_pixelformat_t get_pixelformat(bg_x11_window_t * win)
   pf = XListPixmapFormats(win->dpy, &num_pf);
   for(i = 0; i < num_pf; i++)
     {
-    if(pf[i].depth == win->vi->depth)
+    if(pf[i].depth == win->depth)
       bpp = pf[i].bits_per_pixel;
     }
   XFree(pf);
@@ -45,33 +45,33 @@ static gavl_pixelformat_t get_pixelformat(bg_x11_window_t * win)
   switch(bpp)
     {
     case 16:
-      if((win->vi->visual->red_mask == 63488) &&
-         (win->vi->visual->green_mask == 2016) &&
-         (win->vi->visual->blue_mask == 31))
+      if((win->visual->red_mask == 63488) &&
+         (win->visual->green_mask == 2016) &&
+         (win->visual->blue_mask == 31))
         ret = GAVL_RGB_16;
-      else if((win->vi->visual->blue_mask == 63488) &&
-              (win->vi->visual->green_mask == 2016) &&
-              (win->vi->visual->red_mask == 31))
+      else if((win->visual->blue_mask == 63488) &&
+              (win->visual->green_mask == 2016) &&
+              (win->visual->red_mask == 31))
         ret = GAVL_BGR_16;
       break;
     case 24:
-      if((win->vi->visual->red_mask == 0xff) && 
-         (win->vi->visual->green_mask == 0xff00) &&
-         (win->vi->visual->blue_mask == 0xff0000))
+      if((win->visual->red_mask == 0xff) && 
+         (win->visual->green_mask == 0xff00) &&
+         (win->visual->blue_mask == 0xff0000))
         ret = GAVL_RGB_24;
-      else if((win->vi->visual->red_mask == 0xff0000) && 
-         (win->vi->visual->green_mask == 0xff00) &&
-         (win->vi->visual->blue_mask == 0xff))
+      else if((win->visual->red_mask == 0xff0000) && 
+         (win->visual->green_mask == 0xff00) &&
+         (win->visual->blue_mask == 0xff))
         ret = GAVL_BGR_24;
       break;
     case 32:
-      if((win->vi->visual->red_mask == 0xff) && 
-         (win->vi->visual->green_mask == 0xff00) &&
-         (win->vi->visual->blue_mask == 0xff0000))
+      if((win->visual->red_mask == 0xff) && 
+         (win->visual->green_mask == 0xff00) &&
+         (win->visual->blue_mask == 0xff0000))
         ret = GAVL_RGB_32;
-      else if((win->vi->visual->red_mask == 0xff0000) && 
-         (win->vi->visual->green_mask == 0xff00) &&
-         (win->vi->visual->blue_mask == 0xff))
+      else if((win->visual->red_mask == 0xff0000) && 
+         (win->visual->green_mask == 0xff00) &&
+         (win->visual->blue_mask == 0xff))
         ret = GAVL_BGR_32;
       break;
     }
@@ -103,8 +103,8 @@ static gavl_video_frame_t * create_frame_ximage(driver_data_t * d)
   if(w->have_shm)
     {
     /* Create Shm Image */
-    frame->x11_image = XShmCreateImage(w->dpy, w->vi->visual,
-                                       w->vi->depth, ZPixmap,
+    frame->x11_image = XShmCreateImage(w->dpy, w->visual,
+                                       w->depth, ZPixmap,
                                        NULL, &(frame->shminfo),
                                        w->window_format.frame_width,
                                        w->window_format.frame_height);
@@ -132,7 +132,7 @@ static gavl_video_frame_t * create_frame_ximage(driver_data_t * d)
     {
     /* Use gavl to allocate memory aligned scanlines */
     ret = gavl_video_frame_create(&w->window_format);
-    frame->x11_image = XCreateImage(w->dpy, w->vi->visual, w->vi->depth,
+    frame->x11_image = XCreateImage(w->dpy, w->visual, w->depth,
                                     ZPixmap,
                                     0, (char*)(ret->planes[0]),
                                     w->window_format.frame_width,

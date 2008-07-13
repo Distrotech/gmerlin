@@ -29,8 +29,10 @@
 int bg_x11_window_init_gl(bg_x11_window_t * win)
   {
 #ifdef HAVE_GLX
+  if(!win->gl_vi)
+    return 0;
   win->glxcontext =
-    glXCreateContext(win->dpy, win->vi, NULL, True);
+    glXCreateContext(win->dpy, win->gl_vi, NULL, True);
   if(win->glxcontext == NULL)
     return 0;
   return 1;

@@ -764,12 +764,12 @@ static int create_window(bg_x11_window_t * w,
   Atom wm_protocols[2];
   XWMHints * wmhints;
   
-//  int i;
+  //  int i;
   /* Stuff for making the cursor */
   
   XSetWindowAttributes attr;
   unsigned long attr_flags;
-
+  
   if((!w->dpy) && !open_display(w))
     return 0;
 
@@ -782,7 +782,7 @@ static int create_window(bg_x11_window_t * w,
   /* Not clear why this is needed. Not creating the colormap
      results in a BadMatch error */
   w->colormap = XCreateColormap(w->dpy, RootWindow(w->dpy, w->screen),
-                                w->vi->visual,
+                                w->visual,
                                 AllocNone);
   
   /* Setup event mask */
@@ -819,9 +819,9 @@ static int create_window(bg_x11_window_t * w,
                                 0 /* x */,
                                 0 /* y */,
                                 width, height,
-                                0 /* border_width */, w->vi->depth,
+                                0 /* border_width */, w->depth,
                                 InputOutput,
-                                w->vi->visual,
+                                w->visual,
                                 attr_flags,
                                 &attr);
   
@@ -855,8 +855,8 @@ static int create_window(bg_x11_window_t * w,
                                      0 /* x */,
                                      0 /* y */,
                                      width, height,
-                                     0 /* border_width */, w->vi->depth,
-                                     InputOutput, w->vi->visual,
+                                     0 /* border_width */, w->depth,
+                                     InputOutput, w->visual,
                                      attr_flags,
                                      &attr);
 
@@ -878,7 +878,7 @@ static int create_window(bg_x11_window_t * w,
                     0,
                     0,
                     InputOnly,
-                    w->vi->visual,
+                    vi->visual,
                     attr_flags_input_only,
                     &attr);
 #endif
@@ -1150,8 +1150,8 @@ void bg_x11_window_destroy(bg_x11_window_t * w)
   if(w->xinerama)
     XFree(w->xinerama);
 #endif
-  if(w->vi)
-    XFree(w->vi);
+  if(w->gl_vi)
+    XFree(w->gl_vi);
   
   if(w->dpy)
     XCloseDisplay(w->dpy);
@@ -1465,7 +1465,7 @@ int bg_x11_window_realize(bg_x11_window_t * win)
   /* Attributes we need for video playback */
 
   int attr_list[64];
-
+  int screen;
   for(i = 0; i < BG_GL_ATTRIBUTE_NUM; i++)
     {
     if(!win->gl_attributes[i].changed)
@@ -1496,30 +1496,26 @@ int bg_x11_window_realize(bg_x11_window_t * win)
   if(!win->dpy && !open_display(win))
     return 0;
   
-  win->vi = glXChooseVisual(win->dpy, win->screen, attr_list);
+  //  win->gl_vi = glXChooseVisual(win->dpy, win->screen, attr_list);
   
-  if(!win->vi)
-    fprintf(stderr, "Could not get GL Visual\n");
+  if(!win->gl_vi)
+    {
+    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Could not get GL Visual");
+
+    screen = DefaultScreen(win->dpy);
+    win->visual = DefaultVisual(win->dpy, screen);
+    win->depth = DefaultDepth(win->dpy, screen);
+    }
+  else
+    {
+    win->visual = win->gl_vi->visual;
+    win->depth  = win->gl_vi->depth;
+    }
   
   ret = create_window(win, win->window_width, win->window_height);
   bg_x11_window_init_gl(win);
   return ret;
   }
-
-#if 0
-int bg_x11_window_create_window_gl(bg_x11_window_t * win,
-                                   int * attr_list )
-  {
-#ifdef HAVE_GLX
-  if(!win->dpy && !open_display(win))
-    return 0;
-  win->vi = glXChooseVisual(win->dpy, win->screen, attr_list);
-  return create_window(win, win->window_width, win->window_height);
-#else
-  return 0;
-#endif
-  }
-#endif
 
 /* Handle X11 events, callbacks are called from here */
 void bg_x11_window_set_callbacks(bg_x11_window_t * win,

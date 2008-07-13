@@ -26,23 +26,23 @@
 #include <utils.h>
 #include <xmlutils.h>
 
-static const char * const edl_key             = "GMERLIN_EDL";
-static const char * const tracks_key          = "tracks";
-static const char * const track_key           = "track";
-static const char * const audio_streams_key   = "audio_streams";
-static const char * const video_streams_key   = "video_streams";
+static const char * const edl_key           = "GMERLIN_EDL";
+static const char * const tracks_key        = "tracks";
+static const char * const track_key         = "track";
+static const char * const audio_streams_key = "audio_streams";
+static const char * const video_streams_key = "video_streams";
 static const char * const subtitle_text_streams_key   = "subtitle_text_streams";
 static const char * const subtitle_overlay_streams_key   = "subtitle_overlay_streams";
-static const char * const stream_key   = "stream";
-static const char * const segment_key   = "segment";
-static const char * const segments_key   = "segments";
-static const char * const url_key   = "url";
-static const char * const track_index_key   = "tindex";
-static const char * const stream_index_key   = "sindex";
-static const char * const src_time_key       = "stime";
-static const char * const dst_time_key       = "dtime";
-static const char * const dst_duration_key   = "duration";
-static const char * const speed_key          = "speed";
+static const char * const stream_key       = "stream";
+static const char * const segment_key      = "segment";
+static const char * const segments_key     = "segments";
+static const char * const url_key          = "url";
+static const char * const track_index_key  = "tindex";
+static const char * const stream_index_key = "sindex";
+static const char * const src_time_key     = "stime";
+static const char * const dst_time_key     = "dtime";
+static const char * const dst_duration_key = "duration";
+static const char * const speed_key        = "speed";
 
 static void load_segments(xmlDocPtr doc, 
                           xmlNodePtr node,
@@ -446,8 +446,8 @@ void bg_edl_save(const bg_edl_t * edl, const char * filename)
         xmlAddChild(streams_node, BG_XML_NEW_TEXT("\n"));
         xmlAddChild(child_node, BG_XML_NEW_TEXT("\n"));
 
-        save_streams(streams_node, edl->tracks[i].subtitle_text_streams,
-                     edl->tracks[i].num_subtitle_text_streams);
+        save_streams(streams_node, edl->tracks[i].subtitle_overlay_streams,
+                     edl->tracks[i].num_subtitle_overlay_streams);
         }
       
       xmlAddChild(xml_edl, BG_XML_NEW_TEXT("\n"));
