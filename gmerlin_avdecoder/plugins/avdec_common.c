@@ -290,17 +290,18 @@ int bg_avdec_start(void * priv)
     str = bgav_get_video_description(avdec->dec, i);
     if(str)
       avdec->current_track->video_streams[i].description = bg_strdup(NULL, str);
+    avdec->current_track->video_streams[i].duration =
+      bgav_video_duration(avdec->dec, i);
+    
     }
   for(i = 0; i < avdec->current_track->num_audio_streams; i++)
     {
     gavl_audio_format_copy(&(avdec->current_track->audio_streams[i].format),
                            bgav_get_audio_format(avdec->dec, i));
-
     
     str = bgav_get_audio_description(avdec->dec, i);
     if(str)
       avdec->current_track->audio_streams[i].description = bg_strdup(NULL, str);
-
     str = bgav_get_audio_info(avdec->dec, i);
     if(str)
       avdec->current_track->audio_streams[i].info = bg_strdup(NULL, str);
@@ -308,6 +309,9 @@ int bg_avdec_start(void * priv)
     str = bgav_get_audio_language(avdec->dec, i);
     if(str && *str)
       memcpy(avdec->current_track->audio_streams[i].language, str, 4);
+
+    avdec->current_track->audio_streams[i].duration =
+      bgav_audio_duration(avdec->dec, i);
     }
   for(i = 0; i < avdec->current_track->num_subtitle_streams; i++)
     {
@@ -323,6 +327,10 @@ int bg_avdec_start(void * priv)
       {
       avdec->current_track->subtitle_streams[i].is_text = 1;
       }
+    avdec->current_track->subtitle_streams[i].duration =
+      bgav_subtitle_duration(avdec->dec, i);
+
+
     format = bgav_get_subtitle_format(avdec->dec, i);
     gavl_video_format_copy(&avdec->current_track->subtitle_streams[i].format,
                            format);

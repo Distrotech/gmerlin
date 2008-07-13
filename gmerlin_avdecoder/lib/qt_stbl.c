@@ -69,6 +69,11 @@ int bgav_qt_stbl_read(qt_atom_header_t * h, bgav_input_context_t * input,
         if(!bgav_qt_stss_read(&ch, input, &(ret->stss)))
           return 0;
         break;
+      case BGAV_MK_FOURCC('s', 't', 'p', 's'):
+        if(!bgav_qt_stss_read(&ch, input, &(ret->stps)))
+          return 0;
+        ret->has_stps = 1;
+        break;
       case BGAV_MK_FOURCC('s', 't', 's', 'd'):
         /* Read stsd */
         if(!bgav_qt_stsd_read(&ch, input, &(ret->stsd)))
@@ -103,6 +108,7 @@ void bgav_qt_stbl_free(qt_stbl_t * c)
   {
   bgav_qt_stts_free(&(c->stts));
   bgav_qt_stss_free(&(c->stss));
+  bgav_qt_stss_free(&(c->stps));
   bgav_qt_stsd_free(&(c->stsd));
   bgav_qt_stsz_free(&(c->stsz));
   bgav_qt_stsc_free(&(c->stsc));
@@ -118,5 +124,10 @@ void bgav_qt_stbl_dump(int indent, qt_stbl_t * c)
   bgav_qt_stsz_dump(indent+2, &(c->stsz));
   bgav_qt_stsc_dump(indent+2, &(c->stsc));
   bgav_qt_stco_dump(indent+2, &(c->stco));
+  if(c->has_ctts)
+    bgav_qt_stts_dump(indent+2, &(c->ctts));
+  if(c->has_stps)
+    bgav_qt_stss_dump(indent+2, &(c->stps));
+    
   bgav_diprintf(indent, "end of stbl\n");
   }

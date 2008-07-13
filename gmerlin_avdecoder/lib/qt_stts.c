@@ -73,7 +73,12 @@ void bgav_qt_stts_free(qt_stts_t * c)
 void bgav_qt_stts_dump(int indent, qt_stts_t * c)
   {
   int i;
-  bgav_diprintf(indent, "stts\n");
+  bgav_diprintf(indent, "%c%c%c%c\n",
+                (c->h.fourcc & 0xFF000000) >> 24,
+                (c->h.fourcc & 0x00FF0000) >> 16,
+                (c->h.fourcc & 0x0000FF00) >> 8,
+                (c->h.fourcc & 0x000000FF));
+  
   bgav_diprintf(indent+2, "num_entries: %d\n", c->num_entries);
   for(i = 0; i < c->num_entries; i++)
     {

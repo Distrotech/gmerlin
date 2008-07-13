@@ -97,7 +97,7 @@ static void remove_cr(char * str)
   }
 
 int bgav_read_subtitle_text(bgav_t * b, char ** ret, int *ret_alloc,
-                            gavl_time_t * start_time, gavl_time_t * duration,
+                            int64_t * start_time, int64_t * duration,
                             int stream)
   {
   int out_len;

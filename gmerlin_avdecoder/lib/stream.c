@@ -214,7 +214,6 @@ void bgav_stream_resync_decoder(bgav_stream_t * s)
 
 int bgav_stream_skipto(bgav_stream_t * s, gavl_time_t * time, int scale)
   {
-  
   if(s->action != BGAV_STREAM_DECODE)
     return 1;
   

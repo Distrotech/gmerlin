@@ -28,6 +28,8 @@
 
 #include <qt.h>
 
+#define LOG_DOMAIN "qt_udta"
+
 #if 0
 
 typedef struct
@@ -102,6 +104,14 @@ static char * read_string(qt_atom_header_t * h,
     if(!bgav_input_read_16_be(ctx, &size) ||
        !bgav_input_read_16_be(ctx, &lang))
       return NULL;
+
+    if(ctx->position + size > h->start_position + h->size)
+      {
+      bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+               "Skipping garbage in udta atom");
+      bgav_qt_atom_skip(ctx, h);
+      return (char*)0;
+      }
     
     ret = malloc(size + 1);
     if(bgav_input_read_data(ctx, (uint8_t*)ret, size) < size)

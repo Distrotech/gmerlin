@@ -39,6 +39,7 @@ typedef struct
   int64_t ctts_pos;
   int64_t stts_pos;
   int64_t stss_pos;
+  int64_t stps_pos;
   int64_t stsd_pos;
   int64_t stsc_pos;
   int64_t stco_pos;
@@ -139,13 +140,32 @@ static int check_keyframe(stream_priv_t * s)
   int ret;
   if(!s->stbl->stss.num_entries)
     return 1;
-  if(s->stss_pos >= s->stbl->stss.num_entries)
+  if((s->stss_pos >= s->stbl->stss.num_entries) &&
+     (s->stps_pos >= s->stbl->stps.num_entries))
     return 0;
 
   s->stss_count++;
-  ret = (s->stbl->stss.entries[s->stss_pos] == s->stss_count) ? 1 : 0;
-  if(ret)
-    s->stss_pos++;
+
+  /* Try stts */
+  if(s->stss_pos < s->stbl->stss.num_entries)
+    {
+    ret = (s->stbl->stss.entries[s->stss_pos] == s->stss_count) ? 1 : 0;
+    if(ret)
+      {
+      s->stss_pos++;
+      return ret;
+      }
+    }
+  /* Try stps */
+  if(s->stps_pos < s->stbl->stps.num_entries)
+    {
+    ret = (s->stbl->stps.entries[s->stps_pos] == s->stss_count) ? 1 : 0;
+    if(ret)
+      {
+      s->stps_pos++;
+      return ret;
+      }
+    }
   return ret;
   }
 

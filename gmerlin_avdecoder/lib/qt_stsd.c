@@ -706,7 +706,7 @@ void bgav_qt_stsd_dump(int indent, qt_stsd_t * s)
   
   for(i = 0; i < s->num_entries; i++)
     {
-    bgav_diprintf(indent+2, "Sample .description = %d\n", i);
+    bgav_diprintf(indent+2, "Sample description: = %d\n", i);
     bgav_diprintf(indent+2, "Raw data: %d bytes\n", s->entries[i].data_size);
     bgav_hexdump(s->entries[i].data, s->entries[i].data_size, 16);
     

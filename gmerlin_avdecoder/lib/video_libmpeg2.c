@@ -170,49 +170,55 @@ static void get_format(bgav_stream_t*s,
                        const mpeg2_sequence_t * sequence)
   {
   mpeg2_priv_t * priv;
+  int container_time;
   priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
-  
-  switch(sequence->frame_period)
-    {
-    /* Original timscale is 27.000.000, a bit too much for us */
 
-    /* We choose duration/scale so that the duration is always even.
-       Since the MPEG-2 repeat stuff happens at half-frametime level,
-       we nevertheless get 100% precise timestamps
-    */
+  container_time = (ret->timescale > 0) && (ret->frame_duration > 0);
+
+  if(!container_time)
+    {
+    switch(sequence->frame_period)
+      {
+      /* Original timscale is 27.000.000, a bit too much for us */
+
+      /* We choose duration/scale so that the duration is always even.
+         Since the MPEG-2 repeat stuff happens at half-frametime level,
+         we nevertheless get 100% precise timestamps
+      */
     
-    case 1126125: /* 24000 / 1001 */
-      ret->timescale = 48000;
-      ret->frame_duration = 2002;
-      break;
-    case 1125000: /* 24 / 1 */
-      ret->timescale = 48;
-      ret->frame_duration = 2;
-      break;
-    case 1080000: /* 25 / 1 */
-      ret->timescale = 50;
-      ret->frame_duration = 2;
-      break;
-    case 900900: /* 30000 / 1001 */
-      ret->timescale = 60000;
-      ret->frame_duration = 2002;
-      break;
-    case 900000: /* 30 / 1 */
-      ret->timescale = 60;
-      ret->frame_duration = 2;
-      break;
-    case 540000: /* 50 / 1 */
-      ret->timescale = 100;
-      ret->frame_duration = 2;
-      break;
-    case 450450: /* 60000 / 1001 */
-      ret->timescale = 120000;
-      ret->frame_duration = 2002;
-      break;
-    case 450000: /* 60 / 1 */
-      ret->timescale = 120;
-      ret->frame_duration = 2;
-      break;
+      case 1126125: /* 24000 / 1001 */
+        ret->timescale = 48000;
+        ret->frame_duration = 2002;
+        break;
+      case 1125000: /* 24 / 1 */
+        ret->timescale = 48;
+        ret->frame_duration = 2;
+        break;
+      case 1080000: /* 25 / 1 */
+        ret->timescale = 50;
+        ret->frame_duration = 2;
+        break;
+      case 900900: /* 30000 / 1001 */
+        ret->timescale = 60000;
+        ret->frame_duration = 2002;
+        break;
+      case 900000: /* 30 / 1 */
+        ret->timescale = 60;
+        ret->frame_duration = 2;
+        break;
+      case 540000: /* 50 / 1 */
+        ret->timescale = 100;
+        ret->frame_duration = 2;
+        break;
+      case 450450: /* 60000 / 1001 */
+        ret->timescale = 120000;
+        ret->frame_duration = 2002;
+        break;
+      case 450000: /* 60 / 1 */
+        ret->timescale = 120;
+        ret->frame_duration = 2;
+        break;
+      }
     }
   
   ret->image_width  = sequence->picture_width;
@@ -238,14 +244,17 @@ static void get_format(bgav_stream_t*s,
   
   else if(sequence->chroma_height == sequence->height)
     ret->pixelformat = GAVL_YUV_422_P;
-  
-  if(sequence->flags & SEQ_FLAG_MPEG2)
-    ret->framerate_mode = GAVL_FRAMERATE_VARIABLE;
-  else /* MPEG-1 is always constant framerate */
+
+  if(!container_time)
     {
-    ret->timescale /= 2;
-    ret->frame_duration /= 2;
-    s->data.video.frametime_mode = BGAV_FRAMETIME_CONSTANT;
+    if(sequence->flags & SEQ_FLAG_MPEG2)
+      ret->framerate_mode = GAVL_FRAMERATE_VARIABLE;
+    else /* MPEG-1 is always constant framerate */
+      {
+      ret->timescale /= 2;
+      ret->frame_duration /= 2;
+      s->data.video.frametime_mode = BGAV_FRAMETIME_CONSTANT;
+      }
     }
 
   //  dump_sequence_header(sequence);

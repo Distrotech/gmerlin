@@ -357,7 +357,8 @@ static int advance_current_spumux(bgav_stream_t * s)
   return 1;
   }
 
-static gavl_time_t parse_time_spumux(const char * str, int timescale, int frame_duration)
+static gavl_time_t parse_time_spumux(const char * str,
+                                     int timescale, int frame_duration)
   {
   int h, m, s, f;
   gavl_time_t ret;
@@ -369,7 +370,8 @@ static gavl_time_t parse_time_spumux(const char * str, int timescale, int frame_
   ret *= 60;
   ret += s;
   ret *= GAVL_TIME_SCALE;
-  ret += gavl_frames_to_time(timescale, frame_duration, f);
+  if(f)
+    ret += gavl_frames_to_time(timescale, frame_duration, f);
   return ret;
   }
 
@@ -396,7 +398,8 @@ static int read_spumux(bgav_stream_t * s)
   start_time = bgav_yml_get_attribute_i(priv->cur, "start");
   if(!start_time)
     {
-    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "yml node has no start attribute");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "yml node has no start attribute");
     return 0;
     }
   
@@ -405,7 +408,8 @@ static int read_spumux(bgav_stream_t * s)
     filename = bgav_yml_get_attribute_i(priv->cur, "image");
     if(!filename)
       {
-      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "yml node has no filename attribute");
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "yml node has no filename attribute");
       return 0;
       }
     if(!bgav_slurp_file(filename, &priv->buffer, &priv->buffer_alloc,
@@ -498,6 +502,7 @@ static int read_spumux(bgav_stream_t * s)
 
 static int init_spumux(bgav_stream_t * s)
   {
+  const char * tmp;
   bgav_subtitle_reader_context_t * ctx;
   spumux_t * priv;
   ctx = s->data.subtitle.subreader;
@@ -514,10 +519,21 @@ static int init_spumux(bgav_stream_t * s)
     }
   if(!priv->yml->name || strcasecmp(priv->yml->name, "subpictures"))
     return 0;
+
+  /* Get duration */
+  if(!init_current_spumux(s))
+    return 0;
+  
+  do{
+    tmp = bgav_yml_get_attribute_i(priv->cur, "end");
+    s->duration = parse_time_spumux(tmp,
+                                    s->data.subtitle.format.timescale,
+                                    s->data.subtitle.format.frame_duration);
+    } while(advance_current_spumux(s));
   
   if(!init_current_spumux(s))
     return 0;
-
+  
   priv->reader = bgav_png_reader_create(0);
 
   gavl_video_format_copy(&s->data.subtitle.format,
@@ -532,11 +548,10 @@ static int init_spumux(bgav_stream_t * s)
   //  gavl_video_format_dump(&s->data.subtitle.format);
   
   s->data.subtitle.format.pixelformat = priv->format.pixelformat;
-  s->data.subtitle.format.timescale = GAVL_TIME_SCALE;
+  s->data.subtitle.format.timescale   = GAVL_TIME_SCALE;
   
   return 1;
   }
-
 
 static void seek_spumux(bgav_stream_t * s, int64_t time1, int scale)
   {

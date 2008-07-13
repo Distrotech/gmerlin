@@ -125,8 +125,8 @@ void bgav_superindex_set_durations(bgav_superindex_t * idx,
   }
 
 void bgav_superindex_seek(bgav_superindex_t * idx,
-                         bgav_stream_t * s,
-                         int64_t time, int scale)
+                          bgav_stream_t * s,
+                          int64_t time, int scale)
   {
   int i;
   int64_t time_scaled;
@@ -145,11 +145,11 @@ void bgav_superindex_seek(bgav_superindex_t * idx,
       }
     i--;
     }
-
+  
   if(i < s->first_index_position)
     i = s->first_index_position;
   s->in_time = idx->entries[i].time;
-  
+
   /* Handle audio preroll */
   if((s->type == BGAV_STREAM_AUDIO) && s->data.audio.preroll)
     {
@@ -167,7 +167,7 @@ void bgav_superindex_seek(bgav_superindex_t * idx,
 
   if(i < s->first_index_position)
     i = s->first_index_position;
-  
+
   s->index_position = i;
   s->in_time = idx->entries[i].time;
   }

@@ -559,13 +559,19 @@ typedef struct
   qt_atom_header_t h;
 
   qt_stts_t stts;
-  qt_stts_t ctts;
-  int has_ctts;
   qt_stss_t stss;
+  
   qt_stsd_t stsd;
   qt_stsz_t stsz;
   qt_stsc_t stsc;
   qt_stco_t stco;
+
+  /* Optional stuff */
+  qt_stss_t stps;
+  int has_stps;
+  qt_stts_t ctts;
+  int has_ctts;
+  
   } qt_stbl_t;
 
 int bgav_qt_stbl_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
