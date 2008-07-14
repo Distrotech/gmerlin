@@ -605,7 +605,17 @@ static int set_subtitle_stream_edl(void * priv, int stream, bg_stream_action_t a
   {
   edl_dec_t * dec;
   dec = (edl_dec_t*)priv;
-  return 0;
+
+  if(stream >= dec->edl->tracks[dec->current_track].num_subtitle_text_streams)
+    {
+    dec->tracks[dec->current_track].subtitle_overlay_streams[stream -
+                                                             dec->edl->tracks[dec->current_track].num_subtitle_text_streams].action = action;
+    }
+  else
+    {
+    dec->tracks[dec->current_track].subtitle_text_streams[stream].action = action;
+    }
+  return 1;
   }
 
 /* Start streams */
@@ -1019,9 +1029,9 @@ static int read_video_edl(void * priv, gavl_video_frame_t* frame, int stream)
 
 static int has_subtitle_edl(void * priv, int stream)
   {
-  edl_dec_t * dec;
-  dec = (edl_dec_t*)priv;
-  return 0;
+  //  edl_dec_t * dec;
+  //  dec = (edl_dec_t*)priv;
+  return 1;
   }
 
 
@@ -1144,7 +1154,7 @@ static int read_subtitle_text_edl(void * priv,
   d.duration   = duration;
 
   d.s =
-    &dec->tracks[dec->current_track].subtitle_overlay_streams[stream];
+    &dec->tracks[dec->current_track].subtitle_text_streams[stream];
   
   return decode_subtitle(decode_subtitle_text, &d);
   }
@@ -1173,7 +1183,7 @@ static void seek_edl(void * priv, int64_t * time, int scale)
                    time_scaled, t->audio_streams[i].format->samplerate);
     if(t->audio_streams[i].current_segment < 0)
       {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Seeked out of range");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Seeked audio out of range");
       return;
       }
     t->audio_streams[i].out_time = time_scaled;
@@ -1193,7 +1203,7 @@ static void seek_edl(void * priv, int64_t * time, int scale)
                    time_scaled, t->video_streams[i].format->timescale);
     if(t->video_streams[i].current_segment < 0)
       {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Seeked out of range");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Seeked video out of range");
       return;
       }
     t->video_streams[i].out_time = time_scaled;
@@ -1204,13 +1214,43 @@ static void seek_edl(void * priv, int64_t * time, int scale)
     {
     if(t->subtitle_text_streams[i].action != BG_STREAM_ACTION_DECODE)
       continue;
+
+    time_scaled = gavl_time_rescale(scale, t->subtitle_text_streams[i].format->timescale,
+                                    *time);
     
+    t->subtitle_text_streams[i].current_segment =
+      seek_segment(t->subtitle_text_streams[i].es,
+                   t->subtitle_text_streams[i].segments,
+                   t->subtitle_text_streams[i].num_segments,
+                   time_scaled, t->subtitle_text_streams[i].format->timescale);
+    if(t->subtitle_text_streams[i].current_segment < 0)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Seeked text subtitles out of range");
+      return;
+      }
+    t->subtitle_text_streams[i].out_time = time_scaled;
+    init_subtitle_segment(&t->subtitle_text_streams[i]);
     }
   for(i = 0; i < et->num_subtitle_overlay_streams; i++)
     {
     if(t->subtitle_overlay_streams[i].action != BG_STREAM_ACTION_DECODE)
       continue;
+
+    time_scaled = gavl_time_rescale(scale, t->subtitle_overlay_streams[i].format->timescale,
+                                    *time);
     
+    t->subtitle_overlay_streams[i].current_segment =
+      seek_segment(t->subtitle_overlay_streams[i].es,
+                   t->subtitle_overlay_streams[i].segments,
+                   t->subtitle_overlay_streams[i].num_segments,
+                   time_scaled, t->subtitle_overlay_streams[i].format->timescale);
+    if(t->subtitle_overlay_streams[i].current_segment < 0)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Seeked text subtitles out of range");
+      return;
+      }
+    t->subtitle_overlay_streams[i].out_time = time_scaled;
+    init_subtitle_segment(&t->subtitle_overlay_streams[i]);
     }
         
   }
@@ -1257,20 +1297,41 @@ static void close_edl(void * priv)
 
       if(dec->tracks[i].video_streams[j].segments)
         free(dec->tracks[i].video_streams[j].segments);
-      
-
       }
     if(dec->tracks[i].video_streams)
       free(dec->tracks[i].video_streams);
 
     for(j = 0; j < dec->edl->tracks[i].num_subtitle_text_streams; j++)
       {
-      
+      /* Close sources */
+      for(k = 0; k < dec->tracks[i].subtitle_text_streams[j].num_sources; k++)
+        cleanup_source_common(&dec->tracks[i].subtitle_text_streams[j].sources[k].com);
+      if(dec->tracks[i].subtitle_text_streams[j].sources)
+        free(dec->tracks[i].subtitle_text_streams[j].sources);
+      if(dec->tracks[i].subtitle_text_streams[j].segments)
+        free(dec->tracks[i].subtitle_text_streams[j].segments);
       }
+    if(dec->tracks[i].subtitle_text_streams)
+      free(dec->tracks[i].subtitle_text_streams);
+
     for(j = 0; j < dec->edl->tracks[i].num_subtitle_overlay_streams; j++)
       {
+      /* Close sources */
+      for(k = 0; k < dec->tracks[i].subtitle_overlay_streams[j].num_sources; k++)
+        {
+        cleanup_source_common(&dec->tracks[i].subtitle_overlay_streams[j].sources[k].com);
+        if(dec->tracks[i].subtitle_overlay_streams[j].sources[k].cnv)
+          bg_video_converter_destroy(dec->tracks[i].subtitle_overlay_streams[j].sources[k].cnv);
+        }
+      if(dec->tracks[i].subtitle_overlay_streams[j].sources)
+        free(dec->tracks[i].subtitle_overlay_streams[j].sources);
+
+      if(dec->tracks[i].subtitle_overlay_streams[j].segments)
+        free(dec->tracks[i].subtitle_overlay_streams[j].segments);
       
       }
+    if(dec->tracks[i].subtitle_overlay_streams)
+      free(dec->tracks[i].subtitle_overlay_streams);
     }
   if(dec->tracks)
     {
@@ -1473,6 +1534,13 @@ int bg_input_plugin_load_edl(bg_plugin_registry_t * reg,
     for(j = 0; j < track->num_subtitle_text_streams; j++)
       {
       stream = &track->subtitle_text_streams[j];
+
+      t->subtitle_text_streams[j].sources =
+        calloc(stream->num_segments,
+               sizeof(*t->subtitle_text_streams[j].sources));
+
+      t->subtitle_text_streams[j].es = stream;
+
       for(k = 0; k < stream->num_segments; k++)
         {
         add_subtitle_text_segment(priv, i, j, &stream->segments[k]);
@@ -1488,6 +1556,14 @@ int bg_input_plugin_load_edl(bg_plugin_registry_t * reg,
     for(j = 0; j < track->num_subtitle_overlay_streams; j++)
       {
       stream = &track->subtitle_overlay_streams[j];
+      
+      t->subtitle_overlay_streams[j].sources =
+        calloc(stream->num_segments,
+               sizeof(*t->subtitle_overlay_streams[j].sources));
+
+      t->subtitle_overlay_streams[j].es = stream;
+
+
       for(k = 0; k < stream->num_segments; k++)
         {
         add_subtitle_overlay_segment(priv, i, j, &stream->segments[k]);

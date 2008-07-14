@@ -975,7 +975,7 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
 void bg_x11_window_handle_events(bg_x11_window_t * win, int milliseconds)
   {
   XEvent evt;
-
+  
   if(win->wait_for_completion)
     {
     while(win->wait_for_completion)
