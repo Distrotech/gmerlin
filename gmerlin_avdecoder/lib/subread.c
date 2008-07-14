@@ -930,7 +930,7 @@ void bgav_subtitle_reader_seek(bgav_stream_t * s,
   {
   int titles_skipped;
   bgav_subtitle_reader_context_t * ctx;
-  gavl_time_t time = gavl_time_unscale(scale, time1);
+  int64_t time = gavl_time_rescale(scale, s->timescale, time1);
   
   ctx = s->data.subtitle.subreader;
 
@@ -950,7 +950,7 @@ void bgav_subtitle_reader_seek(bgav_stream_t * s,
         if(ctx->p->pts + ctx->p->duration < time)
           {
           titles_skipped++;
-        continue;
+          continue;
           }
         else
           break;

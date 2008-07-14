@@ -892,7 +892,22 @@ static int bgav_build_file_index_parseall(bgav_t * b)
       s->timescale = s->data.video.format.timescale;
       }
 
-
+    /* Switch off streams again */
+    for(j = 0; j < b->tt->cur->num_audio_streams; j++)
+      {
+      bgav_set_audio_stream(b, j, BGAV_STREAM_MUTE);
+      }
+    for(j = 0; j < b->tt->cur->num_video_streams; j++)
+      {
+      bgav_set_video_stream(b, j, BGAV_STREAM_MUTE);
+      }
+    for(j = 0; j < b->tt->cur->num_subtitle_streams; j++)
+      {
+      if(!b->tt->cur->subtitle_streams[j].data.subtitle.subreader)
+        {
+        bgav_set_subtitle_stream(b, j, BGAV_STREAM_MUTE);
+        }
+      }
     }
   return ret;
   }
@@ -938,6 +953,7 @@ static int bgav_build_file_index_si_parse(bgav_t * b)
           b->demuxer->request_stream = &b->tt->cur->audio_streams[j];
           }
         }
+      bgav_set_audio_stream(b, j, BGAV_STREAM_MUTE);
       }
     b->demuxer->flags &= ~BGAV_DEMUXER_BUILD_INDEX;
     }
