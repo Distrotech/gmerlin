@@ -194,7 +194,8 @@ void bgav_options_set_defaults(bgav_options_t * b)
   b->ftp_anonymous = 1;
   b->default_subtitle_encoding = bgav_strdup("LATIN1");
   b->audio_dynrange = 1;
-  b->cache_time = 500;
+  //  b->cache_time = 500;
+  b->cache_time = 0;
   b->cache_size = 20;
   // Test
   b->prefer_ffmpeg_demuxers = 0;

@@ -32,8 +32,15 @@
 #include <limits.h>
 
 #include <dirent.h>
+#include <ctype.h>
 
 #define LOG_DOMAIN "fileindex"
+
+#define INDEX_SIGNATURE "BGAVINDEX"
+
+/* Version must be increased each time the fileformat
+   changes */
+#define INDEX_VERSION 1
 
 static void dump_index(bgav_stream_t * s)
   {
@@ -149,7 +156,8 @@ bgav_file_index_append_packet(bgav_file_index_t * idx,
  * All multibyte numbers are big endian
  * (network byte order)
  *
- * 1. Signature "BGAVINDEX\n"
+ * 1. Signature "BGAVINDEX <version>\n"
+ *    (Version is the INDEX_VERSION defined above)
  * 2. Filename terminated with \n
  * 3. File time (st_mtime returned by stat(2)) (64
  * 4. Number of tracks (32)
@@ -167,7 +175,6 @@ bgav_file_index_append_packet(bgav_file_index_t * idx,
  *              5.2.7.3 time (64)
  */
 
-#define SIG "BGAVINDEX"
 
 int bgav_file_index_read_header(const char * filename,
                                 bgav_input_context_t * input,
@@ -179,13 +186,23 @@ int bgav_file_index_read_header(const char * filename,
   int line_alloc = 0;
   uint32_t ntracks;
   struct stat stat_buf;
+  int sig_len;
+  sig_len = strlen(INDEX_SIGNATURE);
   
   if(!bgav_input_read_line(input, &line, &line_alloc, 0, NULL))
     goto fail;
-  if(strcmp(line, SIG))
+  /* Check signature */
+  if(strncmp(line, INDEX_SIGNATURE, sig_len))
     goto fail;
+  /* Check version */
+  if((strlen(line) < sig_len + 2) || !isdigit(*(line + sig_len + 1)))
+    goto fail;
+  if(atoi(line + sig_len + 1) != INDEX_VERSION)
+    goto fail;
+  
   if(!bgav_input_read_line(input, &line, &line_alloc, 0, NULL))
     goto fail;
+  /* Check filename */
   if(strcmp(line, filename))
     goto fail;
   if(!bgav_input_read_64_be(input, &file_time))
@@ -239,7 +256,7 @@ void bgav_file_index_write_header(const char * filename,
   uint64_t file_time = 0;
   struct stat stat_buf;
 
-  fprintf(output, "%s\n", SIG);
+  fprintf(output, "%s %d\n", INDEX_SIGNATURE, INDEX_VERSION);
   fprintf(output, "%s\n", filename);
 
   if(filename[0] == '/')
