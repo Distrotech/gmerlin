@@ -1578,13 +1578,13 @@ static codec_info_t codec_infos[] =
                     0x00 } },
     
     /*     CODEC_ID_WMV3, */
-#ifndef HAVE_W32DLL
+    // #ifndef HAVE_W32DLL
     
     // [wmv3 @ 0xb63fe128]Old WMV3 version detected, only I-frames will be decoded
     { "FFmpeg WMV3 decoder", "Window Media Video 9", CODEC_ID_WMV3,
       (uint32_t[]){ BGAV_MK_FOURCC('W', 'M', 'V', '3'),
                0x00 } }, 
-#endif
+    // #endif
 
     /*     CODEC_ID_LOCO, */
     { "FFmpeg LOCO decoder", "LOCO", CODEC_ID_LOCO,
