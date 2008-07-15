@@ -101,12 +101,18 @@ typedef union
 #define BG_PARAMETER_HIDE_DIALOG  (1<<1) //!< Don't make a configuration widget (for objects, which change values themselves)
 
 /** \ingroup parameter
+ *  \brief Typedef for parmeter description
+ */
+
+typedef struct bg_parameter_info_s bg_parameter_info_t;
+
+/** \ingroup parameter
  *  \brief Parmeter description
  *
  *  Usually, parameter infos are passed around as NULL-terminated arrays.
  */
 
-typedef struct bg_parameter_info_s
+struct bg_parameter_info_s
   {
   char * name; //!< Unique name. Can contain alphanumeric characters plus underscore.
   char * long_name; //!< Long name (for labels)
@@ -153,7 +159,7 @@ typedef struct bg_parameter_info_s
 
   struct bg_parameter_info_s ** multi_parameters_nc; //!< When allocating dynamically, use this instead of multi_parameters and call \ref bg_parameter_info_set_const_ptrs at the end 
 
-  } bg_parameter_info_t;
+  };
 
 /* Prototype for setting/getting parameters */
 

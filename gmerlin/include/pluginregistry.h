@@ -55,10 +55,16 @@ typedef enum
   } bg_plugin_api_t;
 
 /** \ingroup plugin_registry
+ *  \brief Typedef for plugin info
+ */
+
+typedef struct bg_plugin_info_s  bg_plugin_info_t;
+
+/** \ingroup plugin_registry
  *  \brief Information about a plugin
  */
 
-typedef struct bg_plugin_info_s
+struct bg_plugin_info_s
   {
   char * gettext_domain; //!< First argument for bindtextdomain(). 
   char * gettext_directory; //!< Second argument for bindtextdomain().
@@ -83,7 +89,7 @@ typedef struct bg_plugin_info_s
   
   bg_device_info_t * devices; //!< Device list returned by the plugin
   
-  struct bg_plugin_info_s * next; //!< Used for chaining, never touch this
+  bg_plugin_info_t * next; //!< Used for chaining, never touch this
 
   bg_parameter_info_t * parameters; //!< Parameters, which can be passed to the plugin
   
@@ -98,7 +104,7 @@ typedef struct bg_plugin_info_s
   bg_parameter_info_t * subtitle_text_parameters; //!< Parameters, which can be passed to set_subtitle_text_parameter
   bg_parameter_info_t * subtitle_overlay_parameters; //!< Parameters, which can be passed to set_subtitle_overlay_parameter
   
-  } bg_plugin_info_t;
+  };
 
 /** \ingroup plugin_registry
  *  \brief Opaque handle for a plugin registry
@@ -109,6 +115,12 @@ typedef struct bg_plugin_info_s
 typedef struct bg_plugin_registry_s bg_plugin_registry_t;
 
 /** \ingroup plugin_registry
+ *  \brief Typedef for plugin handle
+ */
+
+typedef struct bg_plugin_handle_s bg_plugin_handle_t;
+
+/** \ingroup plugin_registry
  *  \brief Handle of a loaded plugin
  *
  *  When you load a plugin, the shared module will be loaded. Then, the
@@ -116,7 +128,7 @@ typedef struct bg_plugin_registry_s bg_plugin_registry_t;
  *  is stored in the priv member of the returned handle.
  */
 
-typedef struct bg_plugin_handle_s
+struct bg_plugin_handle_s
   {
   /* Private members, should not be accessed! */
     
@@ -127,14 +139,14 @@ typedef struct bg_plugin_handle_s
   
   /* These are for use by applications */
   
-  const bg_plugin_common_t * plugin; //!< Common structure, cast this to the derived type (e.g. \ref const bg_input_plugin_t).
+  const bg_plugin_common_t * plugin; //!< Common structure, cast this to the derived type (e.g. \ref bg_input_plugin_t).
   bg_plugin_common_t * plugin_nc; //!< Used for dynamic allocation. Never touch this.
   const bg_plugin_info_t * info; //!< Info about this plugin
   void * priv; //!< Private handle, passed as the first argument to most plugin functions
 
   char * location; //!< Applications can save the argument of an open call here
   bg_edl_t * edl; //!< EDL
-  } bg_plugin_handle_t;
+  };
 
 /*
  *  pluginregistry.c

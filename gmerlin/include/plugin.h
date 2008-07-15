@@ -253,10 +253,16 @@ void bg_device_info_destroy(bg_device_info_t * arr);
 /* Common part */
 
 /** \ingroup plugin
+ *  \brief Typedef for base structure common to all plugins
+ */
+
+typedef struct bg_plugin_common_s bg_plugin_common_t;
+
+/** \ingroup plugin
  *  \brief Base structure common to all plugins
  */
 
-typedef struct bg_plugin_common_s
+struct bg_plugin_common_s
   {
   char * gettext_domain; //!< First argument for bindtextdomain().
   char * gettext_directory; //!< Second argument for bindtextdomain().
@@ -336,7 +342,7 @@ typedef struct bg_plugin_common_s
   
   bg_device_info_t * (*find_devices)();
     
-  } bg_plugin_common_t;
+  };
 
 /*
  *  Plugin callbacks: Functions called by the
@@ -349,6 +355,13 @@ typedef struct bg_plugin_common_s
 /* Input plugin */
 
 /** \ingroup plugin_i
+ *  \brief typedef for input callbacks
+ *
+ */
+
+typedef struct bg_input_callbacks_s bg_input_callbacks_t;
+
+/** \ingroup plugin_i
  *  \brief Callbacks for input plugins
  *
  *  Passing the callback structure to the plugin is optional. Futhermore,
@@ -356,7 +369,7 @@ typedef struct bg_plugin_common_s
  *  might use the callbacks for propagating events.
  */
 
-typedef struct bg_input_callbacks_s
+struct bg_input_callbacks_s
   {
   /** \brief Track changed
    *  \param data The data member of this bg_input_callbacks_s struct
@@ -445,22 +458,29 @@ typedef struct bg_input_callbacks_s
   
   void * data; //!< Application specific data passed as the first argument to all callbacks.
   
-  } bg_input_callbacks_t;
+  };
 
 /*************************************************
  * MEDIA INPUT
  *************************************************/
 
 /** \ingroup plugin_i
+ *  \brief Typedef for input plugin
+ */
+
+typedef struct bg_input_plugin_s bg_input_plugin_t;
+
+
+/** \ingroup plugin_i
  *  \brief Input plugin
  *
  *  This is for all kinds of media inputs (files, disks, urls, etc), except recording from
- *  hardware devices (see \ref plugin_ra and \ref plugin_rv).
+ *  hardware devices (see \ref plugin_r).
  *
  *
  */
 
-typedef struct bg_input_plugin_s
+struct bg_input_plugin_s
   {
   bg_plugin_common_t common; //!< Infos and functions common to all plugin types
 
@@ -757,7 +777,7 @@ typedef struct bg_input_plugin_s
 
   void (*close)(void * priv);
   
-  } bg_input_plugin_t;
+  };
 
 /** \defgroup plugin_oa Audio output
  *  \ingroup plugin
@@ -765,12 +785,18 @@ typedef struct bg_input_plugin_s
  */ 
 
 /** \ingroup plugin_oa
+ *  \brief Typedef for audio output plugin
+ */
+
+typedef struct bg_oa_plugin_s bg_oa_plugin_t;
+
+/** \ingroup plugin_oa
  *  \brief Audio output plugin
  *
  *  This plugin type implements audio playback through a soundcard.
  */
 
-typedef struct bg_oa_plugin_s
+struct bg_oa_plugin_s
   {
   bg_plugin_common_t common; //!< Infos and functions common to all plugin types
 
@@ -826,24 +852,30 @@ typedef struct bg_oa_plugin_s
    */
   
   void (*close)(void * priv);
-  } bg_oa_plugin_t;
+  };
 
 /*******************************************
  * AUDIO RECORDER
  *******************************************/
 
-/** \defgroup plugin_ra Audio recorder
+/** \defgroup plugin_r Recorder
  *  \ingroup plugin
- *  \brief Audio recorder
+ *  \brief Recorder
  */ 
 
-/** \ingroup plugin_ra
- *  \brief Audio recorder
- *
- *  Audio recording support from the soundcard
+/** \ingroup plugin_r
+ *  \brief Typedef for recorder
  */
 
-typedef struct bg_recorder_plugin_s
+typedef struct bg_recorder_plugin_s bg_recorder_plugin_t;
+
+/** \ingroup plugin_ra
+ *  \brief Recorder
+ *
+ *  Recording support from hardware devices
+ */
+
+struct bg_recorder_plugin_s
   {
   bg_plugin_common_t common; //!< Infos and functions common to all plugin types
 
@@ -871,7 +903,7 @@ typedef struct bg_recorder_plugin_s
    */
   
   void (*close)(void * priv);
-  } bg_recorder_plugin_t;
+  };
 
 /*******************************************
  * VIDEO OUTPUT
@@ -885,11 +917,18 @@ typedef struct bg_recorder_plugin_s
  */ 
 
 /** \ingroup plugin_ov
+ * \brief Typedef for callbacks for the video output plugin
+ *
+ */
+
+typedef struct bg_ov_callbacks_s bg_ov_callbacks_t;
+
+/** \ingroup plugin_ov
  * \brief Callbacks for the video output plugin
  *
  */
 
-typedef struct bg_ov_callbacks_s
+struct bg_ov_callbacks_s
   {
   /** \brief Accelerator map
    *
@@ -1006,9 +1045,15 @@ typedef struct bg_ov_callbacks_s
   void (*hue_callback)(void * data, float val);
   
   void * data;//!< Application specific data passed as the first argument to all callbacks.
-  } bg_ov_callbacks_t;
+  };
 
 /* Plugin structure */
+
+/** \ingroup plugin_ov
+ * \brief Typedef for video output plugin
+ */
+
+typedef struct bg_ov_plugin_s bg_ov_plugin_t;
 
 /** \ingroup plugin_ov
  * \brief Video output plugin
@@ -1018,7 +1063,7 @@ typedef struct bg_ov_callbacks_s
  * which is owned by the plugin.
  */
 
-typedef struct bg_ov_plugin_s
+struct bg_ov_plugin_s
   {
   bg_plugin_common_t common; //!< Infos and functions common to all plugin types
 
@@ -1184,8 +1229,7 @@ typedef struct bg_ov_plugin_s
    *  \param show 1 for showing, 0 for hiding
    */
   void (*show_window)(void * priv, int show);
-  } bg_ov_plugin_t;
-
+  };
 
 /*******************************************
  * ENCODER
@@ -1197,10 +1241,17 @@ typedef struct bg_ov_plugin_s
  */ 
 
 /** \ingroup plugin_e
+ *  \brief Typedef for encoder plugin
+ */
+
+typedef struct bg_encoder_plugin_s bg_encoder_plugin_t;
+
+
+/** \ingroup plugin_e
  *  \brief Encoder plugin
  */
 
-typedef struct bg_encoder_plugin_s
+struct bg_encoder_plugin_s
   {
   bg_plugin_common_t common; //!< Infos and functions common to all plugin types
   
@@ -1501,7 +1552,7 @@ typedef struct bg_encoder_plugin_s
    */
 
   int (*close)(void * data, int do_delete);
-  } bg_encoder_plugin_t;
+  };
 
 
 /*******************************************
@@ -1548,18 +1599,25 @@ typedef struct
   } bg_e_pp_callbacks_t;
 
 /** \ingroup plugin_e_pp
+ *  \brief Typedef for encoding postprocessor
+ *
+ */
+
+typedef struct bg_encoder_pp_plugin_s bg_encoder_pp_plugin_t;
+
+/** \ingroup plugin_e_pp
  *  \brief Encoding postprocessor
  *
  */
 
-typedef struct bg_encoder_pp_plugin_s
+struct bg_encoder_pp_plugin_s
   {
   bg_plugin_common_t common; //!< Infos and functions common to all plugin types
   
   int max_audio_streams;  //!< Maximum number of audio streams. -1 means infinite
   int max_video_streams;  //!< Maximum number of video streams. -1 means infinite
 
-  char * supported_extensions;
+  char * supported_extensions; //!< Supported file extensions (space separated)
   
   /** \brief Set callbacks
    *  \param priv The handle returned by the create() method
@@ -1618,7 +1676,7 @@ typedef struct bg_encoder_pp_plugin_s
    */
   
   void (*stop)(void * priv);
-  } bg_encoder_pp_plugin_t;
+  };
 
 
 /** \defgroup plugin_ir Image support
@@ -1631,13 +1689,18 @@ typedef struct bg_encoder_pp_plugin_s
  *  @{
  */
 
+/** \brief Typedef for image reader plugin
+ */
+
+typedef struct bg_image_reader_plugin_s bg_image_reader_plugin_t;
+
 /** \brief Image reader plugin
  */
 
-typedef struct bg_image_reader_plugin_s
+struct bg_image_reader_plugin_s
   {
   bg_plugin_common_t common; //!< Infos and functions common to all plugin types
-  const char * extensions;
+  const char * extensions; //!< Supported file extensions (space separated)
   
   /** \brief Read the file header
    *  \param priv The handle returned by the create() method
@@ -1659,14 +1722,19 @@ typedef struct bg_image_reader_plugin_s
    *  and the plugin is reset.
    */
   int (*read_image)(void * priv, gavl_video_frame_t * frame);
-  } bg_image_reader_plugin_t;
+  };
+
+/** \brief Typedef for image writer plugin
+ *
+ */
+
+typedef struct bg_image_writer_plugin_s bg_image_writer_plugin_t;
 
 /** \brief Image writer plugin
  *
  */
 
-
-typedef struct bg_image_writer_plugin_s
+struct bg_image_writer_plugin_s
   {
   bg_plugin_common_t common; //!< Infos and functions common to all plugin types
 
@@ -1705,7 +1773,7 @@ typedef struct bg_image_writer_plugin_s
    */
 
   int (*write_image)(void * priv, gavl_video_frame_t * frame);
-  } bg_image_writer_plugin_t;
+  } ;
 
 /**
  *  @}
@@ -1739,11 +1807,17 @@ typedef struct bg_image_writer_plugin_s
 
 /* Filters */
 
+/** \brief Typedef for audio filter plugin
+ *
+ */
+
+typedef struct bg_fa_plugin_s bg_fa_plugin_t;
+
 /** \brief Audio filter plugin
  *
  */
 
-typedef struct bg_audio_filter_plugin_s
+struct bg_fa_plugin_s
   {
   bg_plugin_common_t common; //!< Infos and functions common to all plugin types
 
@@ -1804,13 +1878,19 @@ typedef struct bg_audio_filter_plugin_s
  
   bg_read_audio_func_t read_audio;
     
-  } bg_fa_plugin_t;
+  };
+
+/** \brief Typedef for video filter plugin
+ *
+ */
+
+typedef struct bg_fv_plugin_s bg_fv_plugin_t;
 
 /** \brief Video filter plugin
  *
  */
 
-typedef struct bg_video_filter_plugin_s
+struct bg_fv_plugin_s
   {
   bg_plugin_common_t common; //!< Infos and functions common to all plugin types
 
@@ -1867,7 +1947,7 @@ typedef struct bg_video_filter_plugin_s
 
   bg_read_video_func_t read_video;
     
-  } bg_fv_plugin_t;
+  };
 
 
 /**
@@ -1884,7 +1964,14 @@ typedef struct bg_video_filter_plugin_s
  *  @{
  */
 
-/** \brief Video filter plugin
+/** \brief Typedef for audio visualization plugin
+ *
+ */
+
+typedef struct bg_visualization_plugin_s bg_visualization_plugin_t;
+
+
+/** \brief Audio visualization plugin
  *
  *  These plugins get audio samples and run visualizations of them.
  *  Output can be either into a \ref gavl_video_frame_t or directly
@@ -1898,7 +1985,7 @@ typedef struct bg_video_filter_plugin_s
  *  use the \ref bg_visualizer_t module to use visualizations.
  */
 
-typedef struct bg_visualization_plugin_s
+struct bg_visualization_plugin_s
   {
   bg_plugin_common_t common; //!< Infos and functions common to all plugin types
   /** \brief return callback \param priv The handle returned by the
@@ -1977,7 +2064,7 @@ typedef struct bg_visualization_plugin_s
   
   void (*close)(void * priv);
   
-  } bg_visualization_plugin_t;
+  };
 
 
 

@@ -179,8 +179,9 @@ int main(int argc, char ** argv)
     printf("<body>\n");
     printf("<h1>Plugins</h1>\n");
     printf("The following are only the plugins, you can download from this site.\n");
-    printf("Gmerlin applications also load <a href=\"http://www.ladspa.org\" target=\"_top\">ladspa</a> and\n");
-    printf("<a href=\"http://sourceforge.net/projects/libvisual\" target=\"_top\">libvisual</a> plugins.\n");
+    printf("Gmerlin applications also load <a href=\"http://www.ladspa.org\" target=\"_top\">ladspa</a>, \n");
+    printf("<a href=\"http://sourceforge.net/projects/libvisual\" target=\"_top\">libvisual</a> \n");
+    printf("and <a href=\"http://www.piksel.org/frei0r\" target=\"_top\">frei0r</a> plugins.\n");
     printf("<p>\n");
 
     }

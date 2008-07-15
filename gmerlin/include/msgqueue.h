@@ -381,6 +381,7 @@ int bg_msg_write_audio_frame(bg_msg_t * msg,
                              bg_msg_write_callback_t cb, void * cb_data);
 
 /** \brief Read an audio frame
+ *  \param ctx A gavl dsp context
  *  \param msg Message containing the frame header
  *  \param format Audio format
  *  \param frame An audio frame
@@ -389,7 +390,8 @@ int bg_msg_write_audio_frame(bg_msg_t * msg,
  *  \returns 1 on success, 0 on error
  *
  *  Before you can use this function, msg must contain
- *  a valid audio frame header
+ *  a valid audio frame header. The DSP context is needed to convert
+ *  the endianess if necessary.
  */
 
 int bg_msg_read_audio_frame(gavl_dsp_context_t * ctx,

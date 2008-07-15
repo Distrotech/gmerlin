@@ -405,8 +405,6 @@ void bg_track_info_free(bg_track_info_t * info);
  *  \brief Set the track name from the filename/URL
  *  \param info Track info
  *  \param location filename or URL
- *  \param track Track index
- *  \param num_tracks Total number of tracks of the location
  *
  *  This is used for cases, where the input plugin didn't set a track name,
  *  and the name cannot (or shouldn't) be set from the metadata.

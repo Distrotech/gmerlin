@@ -26,7 +26,7 @@
 #include "streaminfo.h"
 
 /** \defgroup edl EDL support
- *  \ingroup decoding
+ *  \ingroup plugin_i
  *  \brief EDL support
  *
  *  Most media files contain one or more A/V streams. In addition however, there
