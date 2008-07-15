@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmerlin 0.3.6\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2008-06-09 22:52+0200\n"
+"POT-Creation-Date: 2008-07-15 22:31+0200\n"
 "PO-Revision-Date: 2008-02-05 20:44+0100\n"
 "Last-Translator: Burkhard Plaum <gmerlin@users.sourceforge.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -16,9 +16,9 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: plugins/pulseaudio/oa_pulse.c:86
-msgid "Pulse"
-msgstr "Pause"
+#: plugins/pulseaudio/oa_pulse.c:86 plugins/pulseaudio/i_pulse.c:155
+msgid "PulseAudio"
+msgstr "PulseAudio"
 
 #: plugins/pulseaudio/oa_pulse.c:87
 msgid "PulseAudio output"
@@ -74,10 +74,6 @@ msgstr ""
 "Zu Öffnende Quelle. Benutze den PulseAudio Manager um vorhandene Quellen "
 "anzeigen zu lassen."
 
-#: plugins/pulseaudio/i_pulse.c:155
-msgid "PulseAudio"
-msgstr "PulseAudio"
-
 #: plugins/pulseaudio/i_pulse.c:156
 msgid ""
 "PulseAudio capture. You can specify the source, where we'll get the audio."
@@ -85,25 +81,25 @@ msgstr ""
 "PulseAudio Aufnahme. Du kannst die Quelle bestimmen, wo wir das Signal "
 "herbekommen."
 
-#: plugins/subwriters/e_subtext.c:232 plugins/image/iw_pnm.c:148
-#: plugins/postprocessors/e_pp_vcdimager.c:110 plugins/lqt/e_lqt.c:514
+#: plugins/subwriters/e_subtext.c:234 plugins/image/iw_pnm.c:148
+#: plugins/postprocessors/e_pp_vcdimager.c:110 plugins/lqt/e_lqt.c:511
 #: lib/gtk/infowindow.c:692
 msgid "Format"
 msgstr "Format"
 
-#: plugins/subwriters/e_subtext.c:236
+#: plugins/subwriters/e_subtext.c:238
 msgid "Subrip (.srt)"
 msgstr "Subrip (.srt)"
 
-#: plugins/subwriters/e_subtext.c:236
+#: plugins/subwriters/e_subtext.c:238
 msgid "MPlayer mpsub"
 msgstr "MPlayer mpsub"
 
-#: plugins/subwriters/e_subtext.c:275 lib/gtk/plugininfo.c:158
+#: plugins/subwriters/e_subtext.c:277 lib/gtk/plugininfo.c:158
 msgid "Text subtitle exporter"
 msgstr "Text Untertitel exporter"
 
-#: plugins/subwriters/e_subtext.c:276
+#: plugins/subwriters/e_subtext.c:278
 msgid ""
 "Plugin for exporting text subtitles. Supported formats are MPSub and SRT"
 msgstr ""
@@ -341,11 +337,11 @@ msgstr "Benutzerdefinierte Höhe"
 msgid "Settings"
 msgstr "Einstellungen"
 
-#: plugins/v4l/i_v4l.c:476 plugins/videofilters/fv_equalizer.c:330
+#: plugins/v4l/i_v4l.c:476 plugins/videofilters/fv_equalizer.c:417
 msgid "Brightness"
 msgstr "Helligkeit"
 
-#: plugins/v4l/i_v4l.c:485 plugins/videofilters/fv_equalizer.c:360
+#: plugins/v4l/i_v4l.c:485 plugins/videofilters/fv_equalizer.c:447
 msgid "Hue"
 msgstr "Ton"
 
@@ -353,7 +349,7 @@ msgstr "Ton"
 msgid "Colour"
 msgstr "Farbe"
 
-#: plugins/v4l/i_v4l.c:503 plugins/videofilters/fv_equalizer.c:340
+#: plugins/v4l/i_v4l.c:503 plugins/videofilters/fv_equalizer.c:427
 msgid "Contrast"
 msgstr "Kontrast"
 
@@ -1386,9 +1382,9 @@ msgstr ""
 msgid "Deinterlace with various algorithms"
 msgstr ""
 
-#: plugins/videofilters/colormatrix.c:1033
-#: plugins/videofilters/fv_colorbalance.c:581
-#: plugins/videofilters/fv_equalizer.c:557
+#: plugins/videofilters/colormatrix.c:1387
+#: plugins/videofilters/fv_colorbalance.c:600
+#: plugins/videofilters/fv_equalizer.c:720
 #, c-format
 msgid "Pixelformat: %s"
 msgstr ""
@@ -1656,7 +1652,7 @@ msgstr ""
 msgid "Zoom vertically"
 msgstr ""
 
-#: plugins/videofilters/fv_zoom.c:137 plugins/lqt/e_lqt.c:721
+#: plugins/videofilters/fv_zoom.c:137 plugins/lqt/e_lqt.c:718
 #: include/bggavl.h:267
 msgid "Background color"
 msgstr ""
@@ -1685,34 +1681,34 @@ msgstr "Zeitlicher Tiefpass"
 msgid "Simple temporal lowpass"
 msgstr "Einfacher zeitlicher Tiefpass"
 
-#: plugins/videofilters/fv_colorbalance.c:152
+#: plugins/videofilters/fv_colorbalance.c:154
 #: plugins/videofilters/fv_oldcolor.c:151
 msgid "Red gain"
 msgstr ""
 
-#: plugins/videofilters/fv_colorbalance.c:162
+#: plugins/videofilters/fv_colorbalance.c:164
 #: plugins/videofilters/fv_oldcolor.c:161
 msgid "Green gain"
 msgstr ""
 
-#: plugins/videofilters/fv_colorbalance.c:172
+#: plugins/videofilters/fv_colorbalance.c:174
 #: plugins/videofilters/fv_oldcolor.c:171
 msgid "Blue gain"
 msgstr ""
 
-#: plugins/videofilters/fv_colorbalance.c:182
+#: plugins/videofilters/fv_colorbalance.c:184
 msgid "Normalize"
 msgstr ""
 
-#: plugins/videofilters/fv_colorbalance.c:185
+#: plugins/videofilters/fv_colorbalance.c:187
 msgid "Normalize for constant luminance."
 msgstr ""
 
-#: plugins/videofilters/fv_colorbalance.c:610
+#: plugins/videofilters/fv_colorbalance.c:629
 msgid "Colorbalance"
 msgstr ""
 
-#: plugins/videofilters/fv_colorbalance.c:611
+#: plugins/videofilters/fv_colorbalance.c:630
 msgid ""
 "Apply gain for red, green and blue. RGB formats are processed directly, "
 "Y'CbCr formats are processed by the colormatrix."
@@ -1880,16 +1876,16 @@ msgstr ""
 msgid "Log reports about skipped frames"
 msgstr ""
 
-#: plugins/videofilters/fv_decimate.c:432
+#: plugins/videofilters/fv_decimate.c:477
 #, c-format
 msgid "Skipped %d frames"
 msgstr ""
 
-#: plugins/videofilters/fv_decimate.c:442
+#: plugins/videofilters/fv_decimate.c:487
 msgid "Decimate"
 msgstr ""
 
-#: plugins/videofilters/fv_decimate.c:443
+#: plugins/videofilters/fv_decimate.c:488
 msgid "Skip almost identical frames"
 msgstr ""
 
@@ -1939,15 +1935,15 @@ msgid ""
 "(A) formats are processed with the colormatrix."
 msgstr ""
 
-#: plugins/videofilters/fv_equalizer.c:350
+#: plugins/videofilters/fv_equalizer.c:437
 msgid "Saturation"
 msgstr ""
 
-#: plugins/videofilters/fv_equalizer.c:586
+#: plugins/videofilters/fv_equalizer.c:749
 msgid "Equalizer"
 msgstr ""
 
-#: plugins/videofilters/fv_equalizer.c:587
+#: plugins/videofilters/fv_equalizer.c:750
 msgid ""
 "Control hue, saturation, contrast and brightness. For Y'CbCr, it uses "
 "routines based on the vf_eq and vf_hue filters from the MPlayer project. For "
@@ -2104,13 +2100,13 @@ msgid "Play command failed. Disk missing?"
 msgstr ""
 
 #: plugins/cdaudio/i_cdaudio.c:692 apps/player/cfgdialog.c:98
-#: apps/transcoder/transcoder_window.c:1232
-#: apps/transcoder/transcoder_window.c:1257
-#: apps/transcoder/transcoder_window.c:1278 apps/transcoder/trackdialog.c:84
+#: apps/transcoder/transcoder_window.c:1236
+#: apps/transcoder/transcoder_window.c:1261
+#: apps/transcoder/transcoder_window.c:1282 apps/transcoder/trackdialog.c:84
 #: apps/transcoder/trackdialog.c:183 apps/transcoder/trackdialog.c:247
 #: apps/transcoder/trackdialog.c:313 apps/transcoder/trackdialog.c:362
 #: apps/visualizer/gmerlin_visualizer.c:877 lib/x11/x11_window.c:1175
-#: lib/transcoder_track.c:1436
+#: lib/transcoder_track.c:1463
 msgid "General"
 msgstr ""
 
@@ -2237,25 +2233,25 @@ msgid ""
 "cdaudio_metadata."
 msgstr ""
 
-#: plugins/png/e_spumux.c:203 plugins/png/iw_png.c:62
+#: plugins/png/e_spumux.c:204 plugins/png/iw_png.c:62
 msgid "Compression level"
 msgstr ""
 
-#: plugins/png/e_spumux.c:225
+#: plugins/png/e_spumux.c:226
 msgid "spumux overlay exporter"
 msgstr ""
 
-#: plugins/png/e_spumux.c:226
+#: plugins/png/e_spumux.c:227
 msgid ""
 "Exports overlay subtitles into the format used by spumux (http://dvdauthor."
 "sourceforge.net)"
 msgstr ""
 
-#: plugins/png/ir_png.c:227
+#: plugins/png/ir_png.c:248
 msgid "PNG reader"
 msgstr ""
 
-#: plugins/png/ir_png.c:228
+#: plugins/png/ir_png.c:249
 msgid "Reader for PNG images"
 msgstr ""
 
@@ -2303,15 +2299,15 @@ msgstr ""
 msgid "Sort and configure video codecs"
 msgstr ""
 
-#: plugins/lqt/i_lqt.c:247
+#: plugins/lqt/i_lqt.c:244
 msgid "More than one chapter track found, using first one"
 msgstr ""
 
-#: plugins/lqt/i_lqt.c:502
+#: plugins/lqt/i_lqt.c:488
 msgid "libquicktime input plugin"
 msgstr ""
 
-#: plugins/lqt/i_lqt.c:503
+#: plugins/lqt/i_lqt.c:489
 msgid "Input plugin based on libquicktime"
 msgstr ""
 
@@ -2320,7 +2316,7 @@ msgstr ""
 msgid "%s Compatible with"
 msgstr ""
 
-#: plugins/lqt/lqt_common.c:94 lib/transcoder.c:1892 lib/transcoder.c:3471
+#: plugins/lqt/lqt_common.c:94 lib/transcoder.c:1899 lib/transcoder.c:3478
 #, c-format
 msgid "%s"
 msgstr ""
@@ -2329,91 +2325,91 @@ msgstr ""
 msgid "Codec"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:154
+#: plugins/lqt/e_lqt.c:155
 #, c-format
 msgid "Cannot open file %s"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:406
+#: plugins/lqt/e_lqt.c:402
 #, c-format
 msgid "Omitting chapter %d: time (%f) > duration (%f)"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:441
+#: plugins/lqt/e_lqt.c:438
 msgid "Making streamable...."
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:443
+#: plugins/lqt/e_lqt.c:440
 msgid "Making streamable....done"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:517
+#: plugins/lqt/e_lqt.c:514
 msgid "Quicktime"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:517
+#: plugins/lqt/e_lqt.c:514
 msgid "AVI"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:517
+#: plugins/lqt/e_lqt.c:514
 msgid "AVI (Opendml)"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:518
+#: plugins/lqt/e_lqt.c:515
 msgid "MP4"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:518
+#: plugins/lqt/e_lqt.c:515
 msgid "M4A"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:518
+#: plugins/lqt/e_lqt.c:515
 msgid "3GP"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:523
+#: plugins/lqt/e_lqt.c:520
 msgid "Make streamable"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:525
+#: plugins/lqt/e_lqt.c:522
 msgid "Make the file streamable afterwards (uses twice the diskspace)"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:529
+#: plugins/lqt/e_lqt.c:526
 msgid "Maximum RIFF size"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:534
+#: plugins/lqt/e_lqt.c:531
 msgid ""
 "Maximum RIFF size (in MB) for OpenDML AVIs. The default (1GB) is reasonable "
 "and should only be changed by people who know what they do."
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:687
+#: plugins/lqt/e_lqt.c:684
 msgid "Text box (top)"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:694
+#: plugins/lqt/e_lqt.c:691
 msgid "Text box (left)"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:701
+#: plugins/lqt/e_lqt.c:698
 msgid "Text box (bottom)"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:708
+#: plugins/lqt/e_lqt.c:705
 msgid "Text box (right)"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:715 lib/textrenderer.c:65
+#: plugins/lqt/e_lqt.c:712 lib/textrenderer.c:65
 msgid "Text color"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:772
+#: plugins/lqt/e_lqt.c:769
 msgid "Quicktime encoder"
 msgstr ""
 
-#: plugins/lqt/e_lqt.c:773
+#: plugins/lqt/e_lqt.c:770
 msgid ""
 "Encoder based on libquicktime (http://libquicktime.sourceforge.net) Writes "
 "Quicktime, AVI (optionally ODML), MP4, M4A and 3GPP. Supported codecs range "
@@ -2881,7 +2877,7 @@ msgstr "Nicht weiterschalten"
 msgid "Shuffle mode"
 msgstr "Zufallswiedergabe"
 
-#: apps/player/gmerlin.c:686 apps/player/mainmenu.c:719
+#: apps/player/gmerlin.c:686 apps/player/mainmenu.c:720
 msgid "Off"
 msgstr "Aus"
 
@@ -2926,7 +2922,7 @@ msgid ""
 "directory."
 msgstr ""
 
-#: apps/player/cfgdialog.c:38 lib/gtk/plugin_single.c:322
+#: apps/player/cfgdialog.c:38 lib/gtk/plugin_single.c:358
 msgid "Audio options"
 msgstr "Audio Optionen"
 
@@ -2934,7 +2930,7 @@ msgstr "Audio Optionen"
 msgid "Audio filters"
 msgstr "Audio Filter"
 
-#: apps/player/cfgdialog.c:53 lib/gtk/plugin_single.c:330
+#: apps/player/cfgdialog.c:53 lib/gtk/plugin_single.c:366
 msgid "Video options"
 msgstr "Video Optionen"
 
@@ -2977,7 +2973,7 @@ msgstr "OSD"
 msgid "Display"
 msgstr "Display"
 
-#: apps/player/cfgdialog.c:135 apps/player/mainmenu.c:1002
+#: apps/player/cfgdialog.c:135 apps/player/mainmenu.c:1006
 msgid "Media Tree"
 msgstr "Media Tree"
 
@@ -2985,8 +2981,8 @@ msgstr "Media Tree"
 msgid "Remote control"
 msgstr "Fernbedienung"
 
-#: apps/player/cfgdialog.c:153 apps/player/mainmenu.c:1008
-#: apps/transcoder/transcoder_window.c:1327
+#: apps/player/cfgdialog.c:153 apps/player/mainmenu.c:1012
+#: apps/transcoder/transcoder_window.c:1331
 #: apps/visualizer/gmerlin_visualizer.c:893
 msgid "Log window"
 msgstr "Meldungen"
@@ -2995,174 +2991,174 @@ msgstr "Meldungen"
 msgid "LCDproc"
 msgstr "LCDproc"
 
-#: apps/player/mainmenu.c:733 apps/player/mainmenu.c:770
-#: apps/player/mainmenu.c:1191
+#: apps/player/mainmenu.c:734 apps/player/mainmenu.c:771
+#: apps/player/mainmenu.c:1195
 msgid "Options..."
 msgstr "Optionen..."
 
-#: apps/player/mainmenu.c:737
+#: apps/player/mainmenu.c:738
 msgid "Filters..."
 msgstr "Filter..."
 
-#: apps/player/mainmenu.c:740
+#: apps/player/mainmenu.c:741
 msgid "Output plugin..."
 msgstr "Ausgabeplugin..."
 
-#: apps/player/mainmenu.c:765
+#: apps/player/mainmenu.c:766
 msgid "Enable visualizations"
 msgstr "Verwende Visualisierungen"
 
-#: apps/player/mainmenu.c:774 lib/gtk/treewidget.c:1401
+#: apps/player/mainmenu.c:775 lib/gtk/treewidget.c:1401
 msgid "Plugin..."
 msgstr "Plugin..."
 
-#: apps/player/mainmenu.c:902 apps/player/mainmenu.c:958
-#: apps/player/mainmenu.c:981
+#: apps/player/mainmenu.c:905 apps/player/mainmenu.c:962
+#: apps/player/mainmenu.c:985
 #, c-format
 msgid "Stream %d [%s]"
 msgstr "Stream %d [%s]"
 
-#: apps/player/mainmenu.c:904 apps/player/mainmenu.c:961
-#: apps/player/mainmenu.c:984
+#: apps/player/mainmenu.c:907 apps/player/mainmenu.c:965
+#: apps/player/mainmenu.c:988
 #, c-format
 msgid "Stream %d"
 msgstr "Stream %d"
 
-#: apps/player/mainmenu.c:924
+#: apps/player/mainmenu.c:928
 #, c-format
 msgid "Chapter %d [%s]"
 msgstr "Kapitel %d [%s]"
 
-#: apps/player/mainmenu.c:1005
+#: apps/player/mainmenu.c:1009
 msgid "Info window"
 msgstr "Track information"
 
-#: apps/player/mainmenu.c:1015 apps/transcoder/transcoder_window.c:855
+#: apps/player/mainmenu.c:1019 apps/transcoder/transcoder_window.c:855
 msgid "About..."
 msgstr "Über..."
 
-#: apps/player/mainmenu.c:1017 apps/transcoder/transcoder_window.c:856
+#: apps/player/mainmenu.c:1021 apps/transcoder/transcoder_window.c:856
 msgid "Userguide"
 msgstr "Benutzerhandbuch"
 
-#: apps/player/mainmenu.c:1038 apps/transcoder/transcoder_window.c:839
+#: apps/player/mainmenu.c:1042 apps/transcoder/transcoder_window.c:839
 msgid "Preferences..."
 msgstr "Präferenzen..."
 
-#: apps/player/mainmenu.c:1046
+#: apps/player/mainmenu.c:1050
 msgid "Input plugins..."
 msgstr "Quellenplugins..."
 
-#: apps/player/mainmenu.c:1051
+#: apps/player/mainmenu.c:1055
 msgid "Skins..."
 msgstr "Skins..."
 
-#: apps/player/mainmenu.c:1055
+#: apps/player/mainmenu.c:1059
 msgid "Multimedia keys..."
 msgstr "Multimedia Tasten..."
 
-#: apps/player/mainmenu.c:1061
+#: apps/player/mainmenu.c:1065
 msgid "Seek forward"
 msgstr "Vorwärts suchen"
 
-#: apps/player/mainmenu.c:1068
+#: apps/player/mainmenu.c:1072
 msgid "Seek backward"
 msgstr "Rückwärts suchen"
 
-#: apps/player/mainmenu.c:1075
+#: apps/player/mainmenu.c:1079
 msgid "Increase volume"
 msgstr "Lauter"
 
-#: apps/player/mainmenu.c:1082
+#: apps/player/mainmenu.c:1086
 msgid "Decrease volume"
 msgstr "Leiser"
 
-#: apps/player/mainmenu.c:1088 apps/player/gmerlin_remote.c:337
+#: apps/player/mainmenu.c:1092 apps/player/gmerlin_remote.c:337
 msgid "Toggle mute"
 msgstr "Stummschalten"
 
-#: apps/player/mainmenu.c:1094
+#: apps/player/mainmenu.c:1098
 msgid "Next track"
 msgstr "Nächster Track"
 
-#: apps/player/mainmenu.c:1099
+#: apps/player/mainmenu.c:1103
 msgid "Previous track"
 msgstr "Vorheriger Track"
 
-#: apps/player/mainmenu.c:1104
+#: apps/player/mainmenu.c:1108
 msgid "Next chapter"
 msgstr "Nächstes Kapitel"
 
-#: apps/player/mainmenu.c:1110
+#: apps/player/mainmenu.c:1114
 msgid "Previous chapter"
 msgstr "Vorheriges Kapitel"
 
-#: apps/player/mainmenu.c:1115 lib/gtk/treewidget.c:1325
+#: apps/player/mainmenu.c:1119 lib/gtk/treewidget.c:1325
 #: lib/gtk/treewidget.c:2022
 msgid "Goto current track"
 msgstr "Gehe zum nächsten Track"
 
-#: apps/player/mainmenu.c:1122
+#: apps/player/mainmenu.c:1126
 msgid "Copy current track to favourites"
 msgstr "Kopiere aktuellen Track zu Favoriten"
 
-#: apps/player/mainmenu.c:1130
+#: apps/player/mainmenu.c:1134
 msgid "Seek to start"
 msgstr "Zum Anfang suchen"
 
-#: apps/player/mainmenu.c:1135
+#: apps/player/mainmenu.c:1139
 msgid "Pause"
 msgstr "Pause"
 
-#: apps/player/mainmenu.c:1140
+#: apps/player/mainmenu.c:1144
 msgid "Quit gmerlin"
 msgstr "Gmerlin beenden"
 
-#: apps/player/mainmenu.c:1151
+#: apps/player/mainmenu.c:1155
 msgid "Transcoder"
 msgstr ""
 
-#: apps/player/mainmenu.c:1155 apps/visualizer/gmerlin_visualizer.c:885
+#: apps/player/mainmenu.c:1159 apps/visualizer/gmerlin_visualizer.c:885
 msgid "Visualizer"
 msgstr ""
 
-#: apps/player/mainmenu.c:1159
+#: apps/player/mainmenu.c:1163
 msgid "Mixer"
 msgstr "Mischpult"
 
-#: apps/player/mainmenu.c:1166
+#: apps/player/mainmenu.c:1170
 msgid "Audio..."
 msgstr "Audio..."
 
-#: apps/player/mainmenu.c:1170
+#: apps/player/mainmenu.c:1174
 msgid "Video..."
 msgstr "Video..."
 
-#: apps/player/mainmenu.c:1174
+#: apps/player/mainmenu.c:1178
 msgid "Subtitles..."
 msgstr "Untertitel..."
 
-#: apps/player/mainmenu.c:1178
+#: apps/player/mainmenu.c:1182
 msgid "Chapters..."
 msgstr "Kapitel"
 
-#: apps/player/mainmenu.c:1183
+#: apps/player/mainmenu.c:1187
 msgid "Visualization..."
 msgstr "Visualisierung..."
 
-#: apps/player/mainmenu.c:1187
+#: apps/player/mainmenu.c:1191
 msgid "Windows..."
 msgstr "Fenster..."
 
-#: apps/player/mainmenu.c:1195
+#: apps/player/mainmenu.c:1199
 msgid "Commands..."
 msgstr "Befehle..."
 
-#: apps/player/mainmenu.c:1199
+#: apps/player/mainmenu.c:1203
 msgid "Accessories..."
 msgstr "Zubehör..."
 
-#: apps/player/mainmenu.c:1203
+#: apps/player/mainmenu.c:1207
 msgid "Help..."
 msgstr "Hilfe..."
 
@@ -3635,49 +3631,49 @@ msgstr ""
 msgid "Help"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:1204
+#: apps/transcoder/transcoder_window.c:1208
 msgid "Transcoder configuration"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:1209
+#: apps/transcoder/transcoder_window.c:1213
 msgid "Output options"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:1219
+#: apps/transcoder/transcoder_window.c:1223
 msgid "Track defaults"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:1227
+#: apps/transcoder/transcoder_window.c:1231
 msgid "Audio defaults"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:1242
-#: apps/transcoder/transcoder_window.c:1266 apps/transcoder/trackdialog.c:190
+#: apps/transcoder/transcoder_window.c:1246
+#: apps/transcoder/transcoder_window.c:1270 apps/transcoder/trackdialog.c:190
 #: apps/transcoder/trackdialog.c:254
 msgid "Filters"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:1254
+#: apps/transcoder/transcoder_window.c:1258
 msgid "Video defaults"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:1273
+#: apps/transcoder/transcoder_window.c:1277
 msgid "Text subtitle defaults"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:1287 apps/transcoder/trackdialog.c:320
+#: apps/transcoder/transcoder_window.c:1291 apps/transcoder/trackdialog.c:320
 msgid "Textrenderer"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:1296
+#: apps/transcoder/transcoder_window.c:1300
 msgid "Overlay subtitle defaults"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:1307
+#: apps/transcoder/transcoder_window.c:1311
 msgid "Window"
 msgstr ""
 
-#: apps/transcoder/transcoder_window.c:1317
+#: apps/transcoder/transcoder_window.c:1321
 msgid "Remote"
 msgstr ""
 
@@ -4335,7 +4331,7 @@ msgstr ""
 msgid "Remixing to stereo for filter \"%s\""
 msgstr ""
 
-#: lib/searchpath.c:133 lib/transcoder.c:1808 lib/stringutils.c:560
+#: lib/searchpath.c:133 lib/transcoder.c:1815 lib/stringutils.c:560
 #, c-format
 msgid "Created directory %s"
 msgstr ""
@@ -5015,31 +5011,31 @@ msgstr ""
 msgid "Server connection closed"
 msgstr ""
 
-#: lib/player_thread.c:724 lib/player_thread.c:1237
+#: lib/player_thread.c:733 lib/player_thread.c:1248
 msgid "Joining input thread..."
 msgstr ""
 
-#: lib/player_thread.c:726 lib/player_thread.c:1239
+#: lib/player_thread.c:735 lib/player_thread.c:1250
 msgid "Joining input thread done"
 msgstr ""
 
-#: lib/player_thread.c:731 lib/player_thread.c:1242
+#: lib/player_thread.c:740 lib/player_thread.c:1253
 msgid "Joining audio thread..."
 msgstr ""
 
-#: lib/player_thread.c:733 lib/player_thread.c:1244
+#: lib/player_thread.c:742 lib/player_thread.c:1255
 msgid "Joining audio thread done"
 msgstr ""
 
-#: lib/player_thread.c:737 lib/player_thread.c:1248
+#: lib/player_thread.c:746 lib/player_thread.c:1259
 msgid "Joining video thread..."
 msgstr ""
 
-#: lib/player_thread.c:739 lib/player_thread.c:1250
+#: lib/player_thread.c:748 lib/player_thread.c:1261
 msgid "Joining video thread done"
 msgstr ""
 
-#: lib/player_thread.c:1302
+#: lib/player_thread.c:1313
 msgid "Ignoring command while playback is interrupted"
 msgstr ""
 
@@ -5094,163 +5090,163 @@ msgstr ""
 msgid "Encoding audio failed"
 msgstr ""
 
-#: lib/transcoder.c:1600
+#: lib/transcoder.c:1607
 msgid "Encoding video failed"
 msgstr ""
 
-#: lib/transcoder.c:1685 lib/transcoder.c:1735
+#: lib/transcoder.c:1692 lib/transcoder.c:1742
 msgid "Encoding subtitles failed"
 msgstr ""
 
-#: lib/transcoder.c:1802
+#: lib/transcoder.c:1809
 #, c-format
 msgid "Cannot create directory %s: %s, using default"
 msgstr ""
 
-#: lib/transcoder.c:1880
+#: lib/transcoder.c:1887
 #, c-format
 msgid "Postprocessing %s"
 msgstr ""
 
-#: lib/transcoder.c:1884 lib/transcoder.c:3469
+#: lib/transcoder.c:1891 lib/transcoder.c:3476
 #, c-format
 msgid "Transcoding %s [Track %d, Pass %d/%d]"
 msgstr ""
 
-#: lib/transcoder.c:1889
+#: lib/transcoder.c:1896
 #, c-format
 msgid "Transcoding %s [Track %d]"
 msgstr ""
 
-#: lib/transcoder.c:1900
+#: lib/transcoder.c:1907
 #, c-format
 msgid ""
 "Metadata:\n"
 "%s"
 msgstr ""
 
-#: lib/transcoder.c:1915
+#: lib/transcoder.c:1922
 #, c-format
 msgid ""
 "Audio stream %d input format:\n"
 "%s"
 msgstr ""
 
-#: lib/transcoder.c:1920
+#: lib/transcoder.c:1927
 #, c-format
 msgid ""
 "Audio stream %d output format:\n"
 "%s"
 msgstr ""
 
-#: lib/transcoder.c:1933
+#: lib/transcoder.c:1940
 #, c-format
 msgid ""
 "Video stream %d input format:\n"
 "%s"
 msgstr ""
 
-#: lib/transcoder.c:1938
+#: lib/transcoder.c:1945
 #, c-format
 msgid ""
 "Video stream %d output format:\n"
 "%s"
 msgstr ""
 
-#: lib/transcoder.c:1950 lib/transcoder.c:1969
+#: lib/transcoder.c:1957 lib/transcoder.c:1976
 #, c-format
 msgid "Text subtitle stream %d: Blending onto video stream %d"
 msgstr ""
 
-#: lib/transcoder.c:1955 lib/transcoder.c:1974
+#: lib/transcoder.c:1962 lib/transcoder.c:1981
 #, c-format
 msgid "Text subtitle stream %d: Exporting to file"
 msgstr ""
 
-#: lib/transcoder.c:2012
+#: lib/transcoder.c:2019
 #, c-format
 msgid "Audio stream %d -> file: %s"
 msgstr ""
 
-#: lib/transcoder.c:2027
+#: lib/transcoder.c:2034
 #, c-format
 msgid "Video stream %d -> %s"
 msgstr ""
 
-#: lib/transcoder.c:2038
+#: lib/transcoder.c:2045
 #, c-format
 msgid "Output file: %s"
 msgstr "Ausgabedatei: %s"
 
-#: lib/transcoder.c:2051
+#: lib/transcoder.c:2058
 #, c-format
 msgid "Cannot find plugin %s"
 msgstr "Kann Plugin %s nicht finden"
 
-#: lib/transcoder.c:2058
+#: lib/transcoder.c:2065
 #, c-format
 msgid "Cannot open plugin %s"
 msgstr "Kann Plugin %s nicht öffnen"
 
-#: lib/transcoder.c:2075
+#: lib/transcoder.c:2082
 #, c-format
 msgid "Cannot open %s with plugin %s"
 msgstr ""
 
-#: lib/transcoder.c:2091
+#: lib/transcoder.c:2098
 #, c-format
 msgid "Invalid track number %d"
 msgstr "Ungültige Tracknummer %d"
 
-#: lib/transcoder.c:2223 lib/player_input.c:327
+#: lib/transcoder.c:2230 lib/player_input.c:327
 msgid "Starting input plugin failed"
 msgstr ""
 
-#: lib/transcoder.c:2233 lib/transcoder.c:2242
+#: lib/transcoder.c:2240 lib/transcoder.c:2249
 msgid "Cannot seek to start point"
 msgstr ""
 
-#: lib/transcoder.c:2253
+#: lib/transcoder.c:2260
 msgid "End time if before start time"
 msgstr ""
 
-#: lib/transcoder.c:2483 lib/transcoder.c:2531
+#: lib/transcoder.c:2490 lib/transcoder.c:2538
 msgid "Subtitle stream cannot be handled"
 msgstr ""
 
-#: lib/transcoder.c:2555
+#: lib/transcoder.c:2562
 msgid "Input and output are the same file"
 msgstr ""
 
-#: lib/transcoder.c:2576
+#: lib/transcoder.c:2583
 #, c-format
 msgid "Could not open %s"
 msgstr "Kann %s nicht öffnen"
 
-#: lib/transcoder.c:2587
+#: lib/transcoder.c:2594
 #, c-format
 msgid "Could not start %s"
 msgstr "Konnte %s nicht starten"
 
-#: lib/transcoder.c:3216
+#: lib/transcoder.c:3223
 msgid "Zero peaks detected (silent file?). Disabling normalization."
 msgstr ""
 
-#: lib/transcoder.c:3222
+#: lib/transcoder.c:3229
 #, c-format
 msgid "Correcting volume by %.2f dB"
 msgstr ""
 
-#: lib/transcoder.c:3279
+#: lib/transcoder.c:3286
 msgid "No stream to encode"
 msgstr ""
 
-#: lib/transcoder.c:3666
+#: lib/transcoder.c:3673
 #, c-format
 msgid "Video stream %d: Transcoded %s frames"
 msgstr ""
 
-#: lib/transcoder.c:3677
+#: lib/transcoder.c:3684
 #, c-format
 msgid "Audio stream %d: Transcoded %s samples"
 msgstr ""
@@ -5308,6 +5304,11 @@ msgstr ""
 #: lib/x11/x11_window.c:1286 lib/x11/x11_window.c:1291
 msgid "Scale quality"
 msgstr ""
+
+#: lib/x11/x11_window.c:1503
+#, fuzzy
+msgid "Could not get GL Visual"
+msgstr "Kann %s nicht öffnen"
 
 #: lib/textrenderer.c:60
 msgid "Render options"
@@ -5696,12 +5697,12 @@ msgid "End time"
 msgstr ""
 
 #: lib/transcoder_track.c:456 lib/transcoder_track.c:505
-#: lib/transcoder_track.c:1441 lib/transcoder_track.c:1465
+#: lib/transcoder_track.c:1468 lib/transcoder_track.c:1492
 msgid "Action"
 msgstr ""
 
 #: lib/transcoder_track.c:460 lib/transcoder_track.c:508
-#: lib/transcoder_track.c:1444 lib/transcoder_track.c:1468
+#: lib/transcoder_track.c:1471 lib/transcoder_track.c:1495
 msgid "Forget"
 msgstr ""
 
@@ -5722,22 +5723,22 @@ msgid "Select action for this subtitle stream."
 msgstr ""
 
 #: lib/transcoder_track.c:466 lib/transcoder_track.c:513
-#: lib/transcoder_track.c:1473
+#: lib/transcoder_track.c:1500
 msgid "Input Language"
 msgstr ""
 
 #: lib/transcoder_track.c:472 lib/transcoder_track.c:519
-#: lib/transcoder_track.c:1479
+#: lib/transcoder_track.c:1506
 msgid "Language"
 msgstr "Sprache"
 
 #: lib/transcoder_track.c:480 lib/transcoder_track.c:527
-#: lib/transcoder_track.c:1487
+#: lib/transcoder_track.c:1514
 msgid "Force language"
 msgstr "Erzwinge Sprache"
 
 #: lib/transcoder_track.c:483 lib/transcoder_track.c:530
-#: lib/transcoder_track.c:1490
+#: lib/transcoder_track.c:1517
 msgid ""
 "Force the given language even if the input has the language set differently."
 msgstr ""
@@ -5755,8 +5756,8 @@ msgid ""
 "from this video stream as they are sometimes needed by subtitle encoders."
 msgstr ""
 
-#: lib/transcoder_track.c:508 lib/transcoder_track.c:1444
-#: lib/transcoder_track.c:1468 lib/gtk/albumwidget.c:1534
+#: lib/transcoder_track.c:508 lib/transcoder_track.c:1471
+#: lib/transcoder_track.c:1495 lib/gtk/albumwidget.c:1534
 msgid "Transcode"
 msgstr "Transkodieren"
 
@@ -5764,22 +5765,22 @@ msgstr "Transkodieren"
 msgid "Video stream to blend onto"
 msgstr ""
 
-#: lib/transcoder_track.c:1449
+#: lib/transcoder_track.c:1476
 msgid "Enable 2-pass encoding"
 msgstr ""
 
-#: lib/transcoder_track.c:1451
+#: lib/transcoder_track.c:1478
 msgid ""
 "Encode this stream in 2 passes, i.e. analyze it first and do the final "
 "transcoding in the second pass. This enables higher quality within the given "
 "bitrate constraints but roughly doubles the video encoding time."
 msgstr ""
 
-#: lib/transcoder_track.c:1494
+#: lib/transcoder_track.c:1521
 msgid "Normalize audio"
 msgstr ""
 
-#: lib/transcoder_track.c:1496
+#: lib/transcoder_track.c:1523
 msgid ""
 "This will enable 2 pass transcoding. In the first pass, the peak volume is "
 "detected. In the second pass, the stream is transcoded with normalized "
@@ -5875,32 +5876,32 @@ msgstr ""
 msgid "Video frame counter: %<PRId64>"
 msgstr ""
 
-#: lib/player_input.c:858
+#: lib/player_input.c:854
 #, c-format
 msgid "Processed %s audio samples"
 msgstr ""
 
-#: lib/player_input.c:864
+#: lib/player_input.c:860
 #, c-format
 msgid "Processed %s video frames"
 msgstr ""
 
-#: lib/player_input.c:996
+#: lib/player_input.c:992
 msgid "Input options"
 msgstr ""
 
-#: lib/player_input.c:1002
+#: lib/player_input.c:998
 msgid "Enable bypass mode"
 msgstr ""
 
-#: lib/player_input.c:1005
+#: lib/player_input.c:1001
 msgid ""
 "Use input plugins in bypass mode if they support it (Currently only the "
 "audio CD player). This dramatically decreases CPU usage but doesn't work on "
 "all hardware setups."
 msgstr ""
 
-#: lib/player_input.c:1015
+#: lib/player_input.c:1011
 msgid ""
 "When showing still images, gmerlin repeats them periodically to make "
 "realtime filter tweaking work."
@@ -6200,11 +6201,11 @@ msgstr ""
 msgid "Question"
 msgstr "Frage"
 
-#: lib/gtk/plugin_multi.c:270 lib/gtk/plugin_single.c:315
+#: lib/gtk/plugin_multi.c:270 lib/gtk/plugin_single.c:351
 msgid "Plugin info"
 msgstr ""
 
-#: lib/gtk/plugin_multi.c:273 lib/gtk/plugin_single.c:310
+#: lib/gtk/plugin_multi.c:273 lib/gtk/plugin_single.c:346
 msgid "Plugin options"
 msgstr ""
 
@@ -6729,32 +6730,40 @@ msgstr "Lade %s"
 msgid "Loaded %s (track %d of %d)"
 msgstr "%s geladen (Track %d von %d)"
 
-#: lib/album.c:1915
+#: lib/album.c:1935
 msgid "Ejecting disc failed"
 msgstr "Datenträger auswerfen fehlgeschlagen"
 
-#: lib/album.c:2019
+#: lib/album.c:2039
 msgid "Invalid selection range given"
 msgstr "Ungültiger Auswahlbereich"
 
-#: lib/edldec.c:511
+#: lib/edldec.c:640
 msgid "EDL only works with seekable sources"
 msgstr ""
 
-#: lib/edldec.c:767
+#: lib/edldec.c:1019
 msgid "Unexpected EOF, clearing frame"
 msgstr ""
 
-#: lib/edldec.c:832 lib/edldec.c:852
-msgid "Seeked out of range"
+#: lib/edldec.c:1186
+msgid "Seeked audio out of range"
 msgstr ""
 
-#: lib/edldec.c:968
+#: lib/edldec.c:1206
+msgid "Seeked video out of range"
+msgstr ""
+
+#: lib/edldec.c:1228 lib/edldec.c:1249
+msgid "Seeked text subtitles out of range"
+msgstr ""
+
+#: lib/edldec.c:1373
 #, fuzzy
 msgid "EDL decoder"
 msgstr "Aufnahme"
 
-#: lib/edldec.c:969
+#: lib/edldec.c:1374
 msgid "This metaplugin decodes and EDL as if it was a single file."
 msgstr ""
 
@@ -6824,6 +6833,9 @@ msgid ""
 msgstr ""
 "\n"
 "Lizenz: %s"
+
+#~ msgid "Pulse"
+#~ msgstr "Pause"
 
 #~ msgid "Force floating point"
 #~ msgstr "Erzwinge Fließkomma"

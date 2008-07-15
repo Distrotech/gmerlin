@@ -6,7 +6,8 @@ gmerlin_transcoder.texi \
 gmerlin_transcoder_remote.texi \
 gmerlin_play.texi \
 gmerlin_player.texi \
-plugins.texi
+plugins.texi \
+gavl.tags
 
 if HAVE_DOXYGEN
 doxygen_output = apiref
