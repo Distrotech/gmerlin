@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2008-06-09 22:53+0200\n"
+"POT-Creation-Date: 2008-07-15 22:23+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -220,15 +220,15 @@ msgid ""
 "Playback is supported from files, URLs (with various protocols) and stdin."
 msgstr ""
 
-#: plugins/i_dvd.c:71
+#: plugins/i_dvd.c:72
 msgid "Handle chapters as tracks"
 msgstr ""
 
-#: plugins/i_dvd.c:100
+#: plugins/i_dvd.c:102
 msgid "DVD Player"
 msgstr ""
 
-#: plugins/i_dvd.c:101
+#: plugins/i_dvd.c:103
 msgid "Plugin for playing DVDs. Based on Gmerlin avdecoder."
 msgstr ""
 
@@ -385,35 +385,35 @@ msgstr ""
 msgid "Reading session description failed"
 msgstr ""
 
-#: lib/demux_quicktime.c:253
+#: lib/demux_quicktime.c:273
 msgid "No packets in movie"
 msgstr ""
 
-#: lib/demux_quicktime.c:739
+#: lib/demux_quicktime.c:759
 msgid "Chapters detected but stream is not seekable"
 msgstr ""
 
-#: lib/demux_quicktime.c:745
+#: lib/demux_quicktime.c:765
 msgid "More than one chapter track, choosing first"
 msgstr ""
 
-#: lib/demux_quicktime.c:762
+#: lib/demux_quicktime.c:782
 msgid "Unknown encoding for chapter names"
 msgstr ""
 
-#: lib/demux_quicktime.c:805
+#: lib/demux_quicktime.c:825
 msgid "Read error while setting up chapter list"
 msgstr ""
 
-#: lib/demux_quicktime.c:923
+#: lib/demux_quicktime.c:943
 msgid "Invalid mp3on4 channel configuration"
 msgstr ""
 
-#: lib/demux_quicktime.c:1390
+#: lib/demux_quicktime.c:1410
 msgid "Non streamable file on non seekable source"
 msgstr ""
 
-#: lib/demux_quicktime.c:1399
+#: lib/demux_quicktime.c:1419
 msgid "Reading moov atom failed"
 msgstr ""
 
@@ -422,7 +422,7 @@ msgstr ""
 msgid "Skipped %d bytes in MPEG audio stream"
 msgstr ""
 
-#: lib/subtitle.c:267
+#: lib/subtitle.c:263
 #, c-format
 msgid "No subtitle decoder found for fourcc %c%c%c%c (0x%08x)"
 msgstr ""
@@ -465,12 +465,12 @@ msgstr ""
 msgid "length of MP4DecConfigDescrTag too short: %d < 13"
 msgstr ""
 
-#: lib/in_vcd.c:254 lib/in_dvd.c:652
+#: lib/in_vcd.c:254 lib/in_dvd.c:662
 #, c-format
 msgid "cdio_close_tray failed: %s"
 msgstr ""
 
-#: lib/in_vcd.c:258 lib/in_dvd.c:656
+#: lib/in_vcd.c:258 lib/in_dvd.c:666
 msgid "cdio_close_tray failed"
 msgstr ""
 
@@ -505,29 +505,29 @@ msgstr ""
 msgid "Info"
 msgstr ""
 
-#: lib/demux_ogg.c:215
+#: lib/demux_ogg.c:216
 #, c-format
 msgid "Unknown stream type \"%.8s\" in OGM header"
 msgstr ""
 
-#: lib/demux_ogg.c:510 lib/demux_ogg.c:894
+#: lib/demux_ogg.c:511 lib/demux_ogg.c:897
 msgid "EOF while setting up track"
 msgstr ""
 
-#: lib/demux_ogg.c:669 lib/demux_ogg.c:710
+#: lib/demux_ogg.c:670 lib/demux_ogg.c:713
 msgid "Reading OGM header failed"
 msgstr ""
 
-#: lib/demux_ogg.c:731
+#: lib/demux_ogg.c:734
 #, c-format
 msgid "Unsupported stream (serialno: %d)"
 msgstr ""
 
-#: lib/demux_ogg.c:1086
+#: lib/demux_ogg.c:1089
 msgid "Page has no BOS marker"
 msgstr ""
 
-#: lib/demux_ogg.c:1094
+#: lib/demux_ogg.c:1097
 msgid "Setting up track failed"
 msgstr ""
 
@@ -569,11 +569,11 @@ msgstr ""
 msgid "Codec DLL %s not found"
 msgstr ""
 
-#: lib/mxf.c:2466
+#: lib/mxf.c:2460
 msgid "Cannot decode MXF file from non seekable source"
 msgstr ""
 
-#: lib/mxf.c:2481
+#: lib/mxf.c:2475
 msgid "Could not find header partition"
 msgstr ""
 
@@ -586,17 +586,17 @@ msgstr ""
 msgid "Uncompression failed"
 msgstr ""
 
-#: lib/track.c:238
+#: lib/track.c:237
 #, c-format
 msgid "Starting audio decoder for stream %d failed"
 msgstr ""
 
-#: lib/track.c:250
+#: lib/track.c:249
 #, c-format
 msgid "Starting video decoder for stream %d failed"
 msgstr ""
 
-#: lib/track.c:266
+#: lib/track.c:265
 #, c-format
 msgid "Cannot decode subtitles from stream %d (no video)"
 msgstr ""
@@ -612,26 +612,26 @@ msgstr ""
 msgid "Starting subtitle decoder for stream %d failed"
 msgstr ""
 
-#: lib/track.c:404
+#: lib/track.c:405
 #, c-format
 msgid "No audio decoder found for WAVId 0x%04x"
 msgstr ""
 
-#: lib/track.c:407 lib/audio.c:60
+#: lib/track.c:408 lib/audio.c:60
 #, c-format
 msgid "No audio decoder found for fourcc %c%c%c%c (0x%08x)"
 msgstr ""
 
-#: lib/track.c:417 lib/video.c:58
+#: lib/track.c:418 lib/video.c:58
 #, c-format
 msgid "No video decoder found for fourcc %c%c%c%c (0x%08x)"
 msgstr ""
 
-#: lib/track.c:508
+#: lib/track.c:509
 msgid "Couldn't resync audio stream after seeking, maybe EOF"
 msgstr ""
 
-#: lib/track.c:535
+#: lib/track.c:536
 msgid "Couldn't resync video stream after seeking, maybe EOF"
 msgstr ""
 
@@ -781,7 +781,7 @@ msgstr ""
 msgid "EOF"
 msgstr ""
 
-#: lib/video_png.c:71 lib/subread.c:421
+#: lib/video_png.c:71 lib/subread.c:431
 msgid "Reading png header failed"
 msgstr ""
 
@@ -793,20 +793,20 @@ msgstr ""
 msgid "PTS cache full"
 msgstr ""
 
-#: lib/video_ffmpeg.c:914
+#: lib/video_ffmpeg.c:921
 msgid "Ran out of data during extradata scanning"
 msgstr ""
 
-#: lib/video_ffmpeg.c:1019
+#: lib/video_ffmpeg.c:1026
 msgid "Could not get initial frame"
 msgstr ""
 
-#: lib/video_ffmpeg.c:1797
+#: lib/video_ffmpeg.c:1808
 #, c-format
 msgid "Cannot find %s"
 msgstr ""
 
-#: lib/video_ffmpeg.c:2218
+#: lib/video_ffmpeg.c:2229
 msgid "Unsupported pixelformat for postprocessing"
 msgstr ""
 
@@ -871,39 +871,39 @@ msgstr ""
 msgid "Setting palette %d entries"
 msgstr ""
 
-#: lib/in_dvd.c:106 lib/in_dvd.c:121
+#: lib/in_dvd.c:107 lib/in_dvd.c:123
 #, c-format
 msgid "Opening vts %d failed"
 msgstr ""
 
-#: lib/in_dvd.c:129
+#: lib/in_dvd.c:131
 #, c-format
 msgid "Opening IFO for vts %d failed"
 msgstr ""
 
-#: lib/in_dvd.c:407
+#: lib/in_dvd.c:417
 msgid "Detected still cell"
 msgstr ""
 
-#: lib/in_dvd.c:664
+#: lib/in_dvd.c:674
 msgid "DVDOpen failed"
 msgstr ""
 
-#: lib/in_dvd.c:680
+#: lib/in_dvd.c:690
 msgid "ifoOpen failed"
 msgstr ""
 
-#: lib/in_dvd.c:775 lib/in_dvd.c:1048
+#: lib/in_dvd.c:789 lib/in_dvd.c:1062
 #, c-format
 msgid "Reading NAV packet at sector %d failed"
 msgstr ""
 
-#: lib/in_dvd.c:877
+#: lib/in_dvd.c:891
 #, c-format
 msgid "Reading blocks at %d failed"
 msgstr ""
 
-#: lib/in_dvd.c:1222
+#: lib/in_dvd.c:1236
 #, c-format
 msgid "Cannot open DVD Device %s"
 msgstr ""
@@ -925,38 +925,38 @@ msgstr ""
 msgid "Invalid samplerate"
 msgstr ""
 
-#: lib/subread.c:393 lib/subread.c:550
+#: lib/subread.c:402 lib/subread.c:575
 msgid "yml node has no start attribute"
 msgstr ""
 
-#: lib/subread.c:402
+#: lib/subread.c:412
 msgid "yml node has no filename attribute"
 msgstr ""
 
-#: lib/subread.c:408
+#: lib/subread.c:418
 #, c-format
 msgid "Reading file %s failed"
 msgstr ""
 
-#: lib/subread.c:416
+#: lib/subread.c:426
 #, c-format
 msgid "Reading png header failed: %s"
 msgstr ""
 
-#: lib/subread.c:436
+#: lib/subread.c:446
 msgid "Overlay too large"
 msgstr ""
 
-#: lib/subread.c:450
+#: lib/subread.c:460
 #, c-format
 msgid "Parsing time string %s failed"
 msgstr ""
 
-#: lib/subread.c:506
+#: lib/subread.c:517
 msgid "Parsing spumux file failed"
 msgstr ""
 
-#: lib/subread.c:561
+#: lib/subread.c:586
 msgid "Error parsing start attribute"
 msgstr ""
 
@@ -987,7 +987,7 @@ msgstr ""
 msgid "Unknown pixelformat %d"
 msgstr ""
 
-#: lib/subovl_dvd.c:243
+#: lib/subovl_dvd.c:242
 #, c-format
 msgid "Unknown command %02x, decoding is doomed to failure"
 msgstr ""
@@ -1109,7 +1109,7 @@ msgstr ""
 msgid "Non interleaved file from non seekable source"
 msgstr ""
 
-#: lib/demuxer.c:1022
+#: lib/demuxer.c:1023
 msgid "Undefined sync time after seeking"
 msgstr ""
 
@@ -1127,16 +1127,16 @@ msgstr ""
 msgid "Unknown packet type"
 msgstr ""
 
-#: lib/fileindex.c:493
+#: lib/fileindex.c:510
 #, c-format
 msgid "Removing %s to keep maximum cache size"
 msgstr ""
 
-#: lib/fileindex.c:965
+#: lib/fileindex.c:1004
 msgid "Building file index failed"
 msgstr ""
 
-#: lib/fileindex.c:971
+#: lib/fileindex.c:1010
 #, c-format
 msgid "Built file index in %.2f seconds"
 msgstr ""
@@ -1160,6 +1160,10 @@ msgstr ""
 msgid "Compression %c%c%c%c not supported"
 msgstr ""
 
+#: lib/qt_udta.c:111
+msgid "Skipping garbage in udta atom"
+msgstr ""
+
 #: lib/demux_mpegps.c:589
 #, c-format
 msgid "Unknown ID %02x in private stream 1"
@@ -1170,20 +1174,20 @@ msgstr ""
 msgid "Unknown PES ID %02x"
 msgstr ""
 
-#: lib/video_libmpeg2.c:340
+#: lib/video_libmpeg2.c:350
 msgid "Detected change of image size, not handled yet"
 msgstr ""
 
-#: lib/video_libmpeg2.c:348
+#: lib/video_libmpeg2.c:358
 #, c-format
 msgid "Detected change of pixel aspect ratio: %dx%d"
 msgstr ""
 
-#: lib/video_libmpeg2.c:369
+#: lib/video_libmpeg2.c:379
 msgid "Detected MPEG still image"
 msgstr ""
 
-#: lib/video_libmpeg2.c:566
+#: lib/video_libmpeg2.c:576
 msgid "Detected Intra slice refresh"
 msgstr ""
 
@@ -1485,25 +1489,25 @@ msgstr ""
 msgid "Bytes per sample is zero"
 msgstr ""
 
-#: lib/audio_vorbis.c:200 lib/audio_vorbis.c:239 lib/audio_vorbis.c:283
-#: lib/audio_vorbis.c:319 lib/audio_vorbis.c:369 lib/audio_vorbis.c:396
+#: lib/audio_vorbis.c:198 lib/audio_vorbis.c:237 lib/audio_vorbis.c:281
+#: lib/audio_vorbis.c:317 lib/audio_vorbis.c:367 lib/audio_vorbis.c:394
 msgid "decode: vorbis_synthesis_headerin: not a vorbis header"
 msgstr ""
 
-#: lib/audio_vorbis.c:222
+#: lib/audio_vorbis.c:220
 #, c-format
 msgid "Vorbis decoder: Init data too small (%d bytes)"
 msgstr ""
 
-#: lib/audio_vorbis.c:268
+#: lib/audio_vorbis.c:266
 msgid "ext size too small"
 msgstr ""
 
-#: lib/audio_vorbis.c:350
+#: lib/audio_vorbis.c:348
 msgid "No OVHS Atom found"
 msgstr ""
 
-#: lib/audio_vorbis.c:387
+#: lib/audio_vorbis.c:385
 msgid "No extradata found"
 msgstr ""
 
