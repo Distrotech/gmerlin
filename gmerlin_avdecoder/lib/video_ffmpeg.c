@@ -1717,6 +1717,11 @@ static codec_info_t codec_infos[] =
                     0x00 } },
 #endif
     /*     CODEC_ID_DNXHD, */
+#if LIBAVCODEC_BUILD >= ((51<<16)+(40<<8)+0)
+    { "FFmpeg DNxHD Video decoder", "DNxHD", CODEC_ID_DNXHD,
+      (uint32_t[]){ BGAV_MK_FOURCC('A', 'V', 'd', 'n'),
+               0x00 } },
+#endif
     /*     CODEC_ID_THP, */
 #if LIBAVCODEC_BUILD >= ((51<<16)+(40<<8)+4)
     { "FFmpeg THP Video decoder", "THP Video", CODEC_ID_THP,
@@ -1754,7 +1759,6 @@ static codec_info_t codec_infos[] =
       CODEC_ID_VB,
       (uint32_t[]){ BGAV_MK_FOURCC('V','B','V','1'), 0x00 } },
 #endif
-    
     
   };
 
