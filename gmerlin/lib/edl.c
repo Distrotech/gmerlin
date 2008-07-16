@@ -307,6 +307,8 @@ void bg_edl_append_track_info(bg_edl_t * e, const bg_track_info_t * info,
 
   if(name)
     t->name = bg_strdup(t->name, name);
+  else if(info->name)
+    t->name = bg_strdup(t->name, info->name);
   else
     t->name = bg_get_track_name_default(url, index, total_tracks);
   

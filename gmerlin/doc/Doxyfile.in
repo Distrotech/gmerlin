@@ -423,7 +423,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT                  = @TOP_SRCDIR@/doc/mainpage.incl @TOP_SRCDIR@/include/log.h @TOP_SRCDIR@/include/parameter.h @TOP_SRCDIR@/include/cfg_registry.h @TOP_SRCDIR@/include/streaminfo.h @TOP_SRCDIR@/include/converters.h @TOP_SRCDIR@/include/plugin.h @TOP_SRCDIR@/include/keycodes.h @TOP_SRCDIR@/include/pluginregistry.h @TOP_SRCDIR@/include/filters.h @TOP_SRCDIR@/include/msgqueue.h @TOP_SRCDIR@/include/fifo.h @TOP_SRCDIR@/include/player.h @TOP_SRCDIR@/include/playermsg.h @TOP_SRCDIR@/include/utils.h @TOP_SRCDIR@/include/charset.h @TOP_SRCDIR@/include/subprocess.h @TOP_SRCDIR@/include/visualize.h
+INPUT                  = @TOP_SRCDIR@/doc/mainpage.incl @TOP_SRCDIR@/include/log.h @TOP_SRCDIR@/include/parameter.h @TOP_SRCDIR@/include/cfg_registry.h @TOP_SRCDIR@/include/streaminfo.h @TOP_SRCDIR@/include/edl.h @TOP_SRCDIR@/include/converters.h @TOP_SRCDIR@/include/plugin.h @TOP_SRCDIR@/include/keycodes.h @TOP_SRCDIR@/include/pluginregistry.h @TOP_SRCDIR@/include/filters.h @TOP_SRCDIR@/include/msgqueue.h @TOP_SRCDIR@/include/fifo.h @TOP_SRCDIR@/include/player.h @TOP_SRCDIR@/include/playermsg.h @TOP_SRCDIR@/include/utils.h @TOP_SRCDIR@/include/charset.h @TOP_SRCDIR@/include/subprocess.h @TOP_SRCDIR@/include/visualize.h
 
 # If the value of the INPUT tag contains directories, you can use the 
 # FILE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp 

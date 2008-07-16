@@ -42,7 +42,7 @@
  *  - The EDL references streams either in the file you opened, or in external
  *    files.
  *  - Some files contain only the EDL (with external references) but no actual media
- *    streams. In this case, the \ref get_num_tracks method will return 0.
+ *    streams. In this case, the get_num_tracks() method of the input plugin will return 0.
  *  - The gmerlin library contains a builtin EDL decoder plugin, which opens the
  *    elementary streams and decodes the EDL as if it was a simple file. It can be used
  *    by calling \ref bg_input_plugin_load. It will fire up an EDL decoder for files, which
@@ -51,7 +51,7 @@
  * @{
  */
 
-/** \brief Forward declaration
+/** \brief Forward declaration for the EDL
  */
 
 typedef struct bg_edl_s bg_edl_t;
@@ -95,7 +95,7 @@ typedef struct
 
 typedef struct
   {
-  char * name;
+  char * name; //!< Optional name of that track
   
   int num_audio_streams;             //!< Number of logical audio streams
   bg_edl_stream_t * audio_streams; //!< Logical audio streams
@@ -121,29 +121,107 @@ struct bg_edl_s
   char * url;                 //!< Filename if all streams are from the same file
   };
 
+/** \brief Create an empty EDL
+ *  \returns A newly allocated EDL
+ */
 
 bg_edl_t * bg_edl_create();
 
+/** \brief Append a track to the EDL
+    \param e An EDL
+ *  \returns The new track
+ */
+
 bg_edl_track_t * bg_edl_add_track(bg_edl_t * e);
+
+/** \brief Append an audio stream to an EDL track
+    \param t An EDL track
+ *  \returns The new stream
+ */
 
 bg_edl_stream_t * bg_edl_add_audio_stream(bg_edl_track_t * t);
 
+/** \brief Append a video stream to an EDL track
+    \param t An EDL track
+ *  \returns The new stream
+ */
+
 bg_edl_stream_t * bg_edl_add_video_stream(bg_edl_track_t * t);
+
+/** \brief Append a text subtitle stream to an EDL track
+    \param t An EDL track
+ *  \returns The new stream
+ */
 
 bg_edl_stream_t * bg_edl_add_subtitle_text_stream(bg_edl_track_t * t);
 
+/** \brief Append an overlay subtitle stream to an EDL track
+    \param t An EDL track
+ *  \returns The new stream
+ */
+
 bg_edl_stream_t * bg_edl_add_subtitle_overlay_stream(bg_edl_track_t * t);
+
+/** \brief Append a segment to an EDL stream
+    \param s An EDL stream
+ *  \returns The new segment
+ */
 
 bg_edl_segment_t * bg_edl_add_segment(bg_edl_stream_t * s);
 
+/** \brief Copy an entire EDL
+    \param e An EDL
+ *  \returns Copy of the EDL
+ */
+
 bg_edl_t * bg_edl_copy(const bg_edl_t * e);
+
+/** \brief Destroy an EDL and free all memory
+    \param e An EDL
+ */
 
 void bg_edl_destroy(bg_edl_t * e);
 
+/** \brief Dump an EDL to stderr
+    \param e An EDL
+
+    Mainly used for debugging
+ */
+
 void bg_edl_dump(const bg_edl_t * e);
 
+/** \brief Save an EDL to an xml file
+    \param e An EDL
+    \param filename Name of the file
+
+ */
+
+
+void bg_edl_save(const bg_edl_t * e, const char * filename);
+
+/** \brief Load an EDL from an xml file
+    \param filename Name of the file
+    \returns The EDL or NULL.
+*/
+
 bg_edl_t * bg_edl_load(const char * filename);
-void bg_edl_save(const bg_edl_t * edl, const char * filename);
+
+/** \brief Append a \ref bg_track_info_t to the EDL
+    \param e An EDL
+    \param info A track info (see \ref bg_track_info_t)
+    \param url The location of the track
+    \param index The index of the track in the location
+    \param num_tracks The total number of the tracks in the location
+    \param name An optional name.
+
+    This function takes a track info (e.g. from an opened input plugin)
+    and creates an EDL track, which corresponds to that track.
+    
+    If name is NULL, the track name will be constructed from the filename.
+    
+ *
+ */
+
 
 void bg_edl_append_track_info(bg_edl_t * e,
                               const bg_track_info_t * info, const char * url,
