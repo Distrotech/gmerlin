@@ -908,7 +908,7 @@ int bgav_open_fd(bgav_t * bgav, int fd,
  *  \returns 1 on success, 0 else.
  */
 
-int bgav_open_callbacks(bgav_t * b,
+int bgav_open_callbacks(bgav_t * bgav,
                         int (*read_callback)(void * priv, uint8_t * data, int len),
                         int64_t (*seek_callback)(void * priv, uint64_t pos, int whence),
                         void * priv,
