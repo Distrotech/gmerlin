@@ -22,10 +22,12 @@
 #include <config.h>
 #include "EffecTV.h"
 #include <gavl/gavl.h>
+#include <gavl/gavldsp.h>
 #include <gmerlin/plugin.h>
 #include <gmerlin/translation.h>
 
-#define BG_EFFECTV_REUSE_OUTPUT (1<<0)
+#define BG_EFFECTV_REUSE_OUTPUT   (1<<0)
+#define BG_EFFECTV_COLOR_AGNOSTIC (1<<1)
 
 typedef struct
   {
@@ -41,7 +43,10 @@ typedef struct
   int started;
 
   int flags;
-  
+
+#ifdef WORDS_BIGENDIAN
+  gavl_dsp_context_t * dsp_ctx;
+#endif
   } bg_effectv_plugin_t;
 
 void bg_effectv_destroy(void * priv);

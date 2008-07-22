@@ -2,7 +2,7 @@ AC_INIT
 AC_CONFIG_SRCDIR([include/gmerlin_effectv.h])
 
 AM_CONFIG_HEADER(include/config.h)
-AM_INIT_AUTOMAKE(gmerlin-effectv, 1.0.0pre1)
+AM_INIT_AUTOMAKE(gmerlin-effectv, 1.0.0)
 
 AC_DISABLE_STATIC
 
@@ -38,6 +38,13 @@ fi
 
 LDFLAGS=$GMERLIN_DEP_RPATH
 AC_SUBST(GMERLIN_DEP_LIBS)
+
+dnl
+dnl Features
+dnl
+
+AC_CHECK_SIZEOF(float,4)
+AC_C_BIGENDIAN(,,AC_MSG_ERROR("Cannot detect endianess"))
 
 dnl
 dnl Required libraries

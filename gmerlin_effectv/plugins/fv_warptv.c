@@ -213,7 +213,7 @@ static void doWarp (effect *e, int xw, int yw, int cw,RGB32 *src,RGB32 *dst)
 
 static void * create_warptv()
   {
-  return bg_effectv_create(warpRegister, 0);
+  return bg_effectv_create(warpRegister, BG_EFFECTV_COLOR_AGNOSTIC);
   }
 
 const bg_fv_plugin_t the_plugin = 

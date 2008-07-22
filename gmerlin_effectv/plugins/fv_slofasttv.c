@@ -118,7 +118,7 @@ static int draw(effect * e, RGB32 *src, RGB32 *dest)
 
 static void * create_slofasttv()
   {
-  return bg_effectv_create(slofastRegister, 0);
+  return bg_effectv_create(slofastRegister, BG_EFFECTV_COLOR_AGNOSTIC);
   }
 
 const bg_fv_plugin_t the_plugin = 

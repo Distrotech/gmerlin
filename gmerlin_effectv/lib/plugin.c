@@ -36,6 +36,20 @@ void bg_effectv_connect_input_port(void * priv,
     }
   }
 
+static gavl_pixelformat_t agn_formats[] =
+  {
+    GAVL_RGB_32,
+    GAVL_BGR_32,
+    GAVL_RGBA_32,
+    GAVL_YUVA_32,
+    GAVL_GRAYA_32,
+#if SIZEOF_FLOAT == 4
+    GAVL_GRAY_FLOAT,
+#endif
+    GAVL_PIXELFORMAT_NONE,
+  };
+
+
 void bg_effectv_set_input_format(void * priv, gavl_video_format_t * format, int port)
   {
   bg_effectv_plugin_t * vp;
@@ -44,8 +58,15 @@ void bg_effectv_set_input_format(void * priv, gavl_video_format_t * format, int 
   if(port)
     return;
 
-  /* TODO: bswap for big endian */
-  format->pixelformat = GAVL_BGR_32;
+  if(vp->flags & BG_EFFECTV_COLOR_AGNOSTIC)
+    {
+    format->pixelformat = gavl_pixelformat_get_best(format->pixelformat,
+                                                    agn_formats, (int*)0);
+    }
+  else
+    {
+    format->pixelformat = GAVL_BGR_32;
+    }
 
   if(vp->started)
     {
@@ -81,6 +102,14 @@ void * bg_effectv_create(effectRegisterFunc * f, int flags)
   ret = calloc(1, sizeof(*ret));
   ret->e = f();
   ret->flags = flags;
+
+#ifdef WORDS_BIGENDIAN
+  if(!(ret->flags & BG_EFFECTV_COLOR_AGNOSTIC))
+    {
+    ret->dsp_ctx = gavl_dsp_context_create();
+    }
+#endif
+
   return ret;
   }
 
@@ -101,6 +130,12 @@ void bg_effectv_destroy(void*priv)
     if(p->e->diff2)             free(p->e->diff2);
     free(p->e);
     }
+
+#ifdef WORDS_BIGENDIAN
+  if(ret->dsp_ctx)
+    gavl_dsp_context_destroy(ret->dsp_ctx);
+#endif
+
   free(p);
   }
 
@@ -124,6 +159,11 @@ int bg_effectv_read_video(void * priv, gavl_video_frame_t * frame, int stream)
   if(!vp->read_func(vp->read_data, vp->in_frame, vp->read_stream))
     return 0;
 
+#ifdef WORDS_BIGENDIAN
+  if(!(vp->flags & BG_EFFECTV_COLOR_AGNOSTIC))
+    gavl_dsp_video_frame_swap_endian(ret->dsp_ctx,
+                                     vp->in_frame, &vp->format);
+#endif
   /* Frame not padded, good */
   if((frame->strides[0] == vp->format.image_width * 4) &&
      !(vp->flags & BG_EFFECTV_REUSE_OUTPUT))
@@ -142,6 +182,12 @@ int bg_effectv_read_video(void * priv, gavl_video_frame_t * frame, int stream)
                 (RGB32*)vp->out_frame->planes[0]);
     gavl_video_frame_copy(&vp->format, frame, vp->out_frame);
     }
+
+#ifdef WORDS_BIGENDIAN
+  if(!(vp->flags & BG_EFFECTV_COLOR_AGNOSTIC))
+    gavl_dsp_video_frame_swap_endian(ret->dsp_ctx,
+                                     frame, &vp->format);
+#endif
   frame->timestamp = vp->in_frame->timestamp;
   frame->duration = vp->in_frame->duration;
   return 1;

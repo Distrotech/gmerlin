@@ -335,7 +335,7 @@ static void set_parameter(void * data, const char * name,
 
 static void * create_puptv()
   {
-  return bg_effectv_create(pupRegister, 0);
+  return bg_effectv_create(pupRegister, BG_EFFECTV_COLOR_AGNOSTIC);
   }
 
 const bg_fv_plugin_t the_plugin = 

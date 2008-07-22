@@ -168,7 +168,7 @@ static void set_parameter(void * data, const char * name,
 
 static void * create_nervoustv()
   {
-  return bg_effectv_create(nervousRegister, 0);
+  return bg_effectv_create(nervousRegister, BG_EFFECTV_COLOR_AGNOSTIC);
   }
 
 const bg_fv_plugin_t the_plugin = 

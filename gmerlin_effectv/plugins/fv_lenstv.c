@@ -348,7 +348,7 @@ static void set_parameter(void * data, const char * name,
 
 static void * create_lenstv()
   {
-  return bg_effectv_create(lensRegister, 0);
+  return bg_effectv_create(lensRegister, BG_EFFECTV_COLOR_AGNOSTIC);
   }
 
 
