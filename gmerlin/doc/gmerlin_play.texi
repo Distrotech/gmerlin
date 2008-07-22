@@ -117,7 +117,7 @@ Set and configure input plugin@*
 @table @r
 @item @b{p}=option[@{suboptions@}]@*@*
 Supported options: i_avdec i_cdaudio i_dvd i_vcd i_singlepic_stills i_lqt 
-i_singlepic i_mikmod@*@*
+i_edl i_singlepic i_mikmod@*@*
 Default: i_avdec@*@*
 input plugin@*@*
 @b{Suboptions for p=i_avdec}@*@*
@@ -178,6 +178,21 @@ Default subtitle encoding@*@*
 This sets the default encoding for text subtitles,when the original
 encoding is unknown. It must be a character set namerecognized by iconv.
 Type 'iconv -l' at the commandline for a list of supported encodings.
+@*@*
+@item @b{sample_accurate}=[1|0] (default: 0)@*@*
+Sample accurate@*@*
+Try sample accurate seeking. For most formats, this is not necessary,
+since normal seeking works fine. Some formats are only seekable with
+this option enabled.
+@*@*
+@item @b{cache_time}=<number> (default: 500)@*@*
+Cache time (milliseconds)@*@*
+If building an index takes longer than the specified time, it will be
+cached.
+@*@*
+@item @b{cache_size}=<number> (default: 20)@*@*
+Cache size (Megabytes)@*@*
+Set the maximum total size of the cache directory.
 @*@*
 @end table
 @b{Suboptions for p=i_cdaudio}@*@*
@@ -268,8 +283,6 @@ overlap area. Not recommended.
 @end table
 @b{Suboptions for p=i_dvd}@*@*
 @table @r
-@item @b{dvd_chapters_as_tracks}=[1|0] (default: 1)@*@*
-Handle chapters as tracks@*@*
 @item @b{audio_dynrange}=[1|0] (default: 1)@*@*
 Dynamic range control@*@*
 Enable dynamic range control for codecs, which support this (currently
@@ -302,7 +315,7 @@ ffmpeg_svq3 ffmpeg_mjpg ffmpeg_mjpegb ffmpeg_TGA ffmpeg_TIFF
 ffmpeg_8BPS ffmpeg_indeo ffmpeg_rpza ffmpeg_smc ffmpeg_cinepak 
 ffmpeg_cyuv ffmpeg_rle ffmpeg_wrle ffmpeg_dv_ntsc ffmpeg_dv_pal 
 ffmpeg_dv_avi ffmpeg_dv50_pal ffmpeg_dv50_ntsc ffmpeg_ffvhuff jpeg 
-mjpa
+mjpa ffmpeg_msmpeg4v3_wmp ffmpeg_dnxhd
 
 Video Codecs@*@*
 Sort and configure video codecs
@@ -407,6 +420,16 @@ Grayscale mode@*@*
 @item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
 Grayscale mode@*@*
 @end table
+@b{Suboptions for ffmpeg_msmpeg4v3_wmp}@*@*
+@table @r
+@item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
+Grayscale mode@*@*
+@end table
+@b{Suboptions for ffmpeg_dnxhd}@*@*
+@table @r
+@item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
+Grayscale mode@*@*
+@end table
 @end table
 @b{Suboptions for p=i_singlepic}@*@*
 @table @r
@@ -437,10 +460,12 @@ Use interpolate mixing@*@*
 @item -aud <audio_options>
 Set audio processing options@*
 @table @r
-@item @b{force_float}=[1|0] (default: 0)@*@*
-Force floating point@*@*
-Force floating point processing. This will inprove the quality but might
-slow things down.
+@item @b{force_sampleformat}=<string>@*@*
+Supported strings: none 8 16 32 f d@*@*
+Default: none@*@*
+Force sampleformat@*@*
+Force a sampleformat to be used for processing. None means to take the input
+format.
 @*@*
 @item @b{q}=<number> (1..5, default: 2)@*@*
 Conversion Quality@*@*

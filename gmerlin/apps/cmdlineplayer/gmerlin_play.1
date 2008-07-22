@@ -1,4 +1,4 @@
-.TH GMERLIN_PLAYER 1 "December 2007" Gmerlin "User Manuals"
+.TH GMERLIN_PLAYER 1 "July 2008" Gmerlin "User Manuals"
 .SH NAME
 gmerlin_player
 .SH SYNOPSIS
@@ -20,7 +20,7 @@ Set audio output options
 .RS 2
 .BR p "=option[{suboptions}]"
 .P
-Supported options: oa_alsa oa_oss oa_esd
+Supported options: oa_alsa oa_pulse oa_oss oa_esd
 .P
 Default: oa_alsa
 .P
@@ -32,7 +32,7 @@ Audio output plugin
 .RS 2
 .BR card "=<string>"
 .P
-Supported strings: default hw:0,0
+Supported strings: default hw:0,0 hw:0,1
 .P
 Default: default
 .P
@@ -209,7 +209,7 @@ Set and configure input plugin
 .RS 2
 .BR p "=option[{suboptions}]"
 .P
-Supported options: i_avdec i_cdaudio i_dvd i_vcd i_singlepic_stills i_lqt i_singlepic i_mikmod
+Supported options: i_avdec i_cdaudio i_dvd i_vcd i_singlepic_stills i_lqt i_edl i_singlepic i_mikmod
 .P
 Default: i_avdec
 .P
@@ -305,7 +305,7 @@ files are e.g. movie_english.srt, movie_german.srt. The rule is, that
 the first part of the filename of the subtitle file must be equal to the
 movie filename up to the extension. Furthermore, the subtitle filename
 must have an extension supported by any of the subtitle readers.
-Subtitle seeking can be disabled, enabled for video files orenabled for
+Subtitle seeking can be disabled, enabled for video files or enabled for
 all files.
 
 .P
@@ -318,12 +318,36 @@ encoding is unknown. It must be a character set namerecognized by iconv.
 Type 'iconv -l' at the commandline for a list of supported encodings.
 
 .P
+.BR sample_accurate "=[1|0] (default: 0)"
+.P
+Sample accurate
+.P
+Try sample accurate seeking. For most formats, this is not necessary,
+since normal seeking works fine. Some formats are only seekable with
+this option enabled.
+
+.P
+.BR cache_time "=<number> (default: 500)"
+.P
+Cache time (milliseconds)
+.P
+If building an index takes longer than the specified time, it will be
+cached.
+
+.P
+.BR cache_size "=<number> (default: 20)"
+.P
+Cache size (Megabytes)
+.P
+Set the maximum total size of the cache directory.
+
+.P
 .RE
 .B Suboptions for p=i_cdaudio
 
 .P
 .RS 2
-.BR trackname_template "=<string> (Default: 0x2 - %)"
+.BR trackname_template "=<string> (Default: 0x7f6b79009a40 - %)"
 .P
 Trackname template
 .P
@@ -468,10 +492,6 @@ overlap area. Not recommended.
 
 .P
 .RS 2
-.BR dvd_chapters_as_tracks "=[1|0] (default: 1)"
-.P
-Handle chapters as tracks
-.P
 .BR audio_dynrange "=[1|0] (default: 1)"
 .P
 Dynamic range control
@@ -518,7 +538,7 @@ ffmpeg_svq3 ffmpeg_mjpg ffmpeg_mjpegb ffmpeg_TGA ffmpeg_TIFF
 ffmpeg_8BPS ffmpeg_indeo ffmpeg_rpza ffmpeg_smc ffmpeg_cinepak 
 ffmpeg_cyuv ffmpeg_rle ffmpeg_wrle ffmpeg_dv_ntsc ffmpeg_dv_pal 
 ffmpeg_dv_avi ffmpeg_dv50_pal ffmpeg_dv50_ntsc ffmpeg_ffvhuff jpeg 
-mjpa
+mjpa ffmpeg_msmpeg4v3_wmp ffmpeg_dnxhd
 
 Video Codecs
 .P
@@ -531,7 +551,7 @@ Sort and configure video codecs
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
-Schwarzweß Modus
+Grayscale mode
 .P
 .RE
 .B Suboptions for ffmpeg_mpg4
@@ -540,7 +560,7 @@ Schwarzweß Modus
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
-Schwarzweß Modus
+Grayscale mode
 .P
 .RE
 .B Suboptions for ffmpeg_msmpeg4v1
@@ -549,7 +569,7 @@ Schwarzweß Modus
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
-Schwarzweß Modus
+Grayscale mode
 .P
 .RE
 .B Suboptions for ffmpeg_msmpeg4v2
@@ -558,7 +578,7 @@ Schwarzweß Modus
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
-Schwarzweß Modus
+Grayscale mode
 .P
 .RE
 .B Suboptions for ffmpeg_msmpeg4v3
@@ -567,7 +587,7 @@ Schwarzweß Modus
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
-Schwarzweß Modus
+Grayscale mode
 .P
 .RE
 .B Suboptions for ffmpeg_h263
@@ -576,7 +596,7 @@ Schwarzweß Modus
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
-Schwarzweß Modus
+Grayscale mode
 .P
 .RE
 .B Suboptions for ffmpeg_h264
@@ -585,7 +605,7 @@ Schwarzweß Modus
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
-Schwarzweß Modus
+Grayscale mode
 .P
 .RE
 .B Suboptions for ffmpeg_i263
@@ -594,7 +614,7 @@ Schwarzweß Modus
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
-Schwarzweß Modus
+Grayscale mode
 .P
 .RE
 .B Suboptions for ffmpeg_svq1
@@ -603,7 +623,7 @@ Schwarzweß Modus
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
-Schwarzweß Modus
+Grayscale mode
 .P
 .RE
 .B Suboptions for ffmpeg_svq3
@@ -612,7 +632,7 @@ Schwarzweß Modus
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
-Schwarzweß Modus
+Grayscale mode
 .P
 .RE
 .B Suboptions for ffmpeg_mjpg
@@ -621,7 +641,7 @@ Schwarzweß Modus
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
-Schwarzweß Modus
+Grayscale mode
 .P
 .RE
 .B Suboptions for ffmpeg_indeo
@@ -630,7 +650,7 @@ Schwarzweß Modus
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
-Schwarzweß Modus
+Grayscale mode
 .P
 .RE
 .B Suboptions for ffmpeg_cinepak
@@ -639,7 +659,7 @@ Schwarzweß Modus
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
-Schwarzweß Modus
+Grayscale mode
 .P
 .RE
 .B Suboptions for ffmpeg_cyuv
@@ -648,7 +668,7 @@ Schwarzweß Modus
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
-Schwarzweß Modus
+Grayscale mode
 .P
 .RE
 .B Suboptions for ffmpeg_dv_ntsc
@@ -657,7 +677,7 @@ Schwarzweß Modus
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
-Schwarzweß Modus
+Grayscale mode
 .P
 .RE
 .B Suboptions for ffmpeg_dv_pal
@@ -666,7 +686,7 @@ Schwarzweß Modus
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
-Schwarzweß Modus
+Grayscale mode
 .P
 .RE
 .B Suboptions for ffmpeg_dv_avi
@@ -675,7 +695,7 @@ Schwarzweß Modus
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
-Schwarzweß Modus
+Grayscale mode
 .P
 .RE
 .B Suboptions for ffmpeg_dv50_pal
@@ -684,7 +704,7 @@ Schwarzweß Modus
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
-Schwarzweß Modus
+Grayscale mode
 .P
 .RE
 .B Suboptions for ffmpeg_dv50_ntsc
@@ -693,7 +713,7 @@ Schwarzweß Modus
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
-Schwarzweß Modus
+Grayscale mode
 .P
 .RE
 .B Suboptions for ffmpeg_ffvhuff
@@ -702,7 +722,25 @@ Schwarzweß Modus
 .RS 2
 .BR ff_flag_gray "=[1|0] (default: 0)"
 .P
-Schwarzweß Modus
+Grayscale mode
+.P
+.RE
+.B Suboptions for ffmpeg_msmpeg4v3_wmp
+
+.P
+.RS 2
+.BR ff_flag_gray "=[1|0] (default: 0)"
+.P
+Grayscale mode
+.P
+.RE
+.B Suboptions for ffmpeg_dnxhd
+
+.P
+.RS 2
+.BR ff_flag_gray "=[1|0] (default: 0)"
+.P
+Grayscale mode
 .P
 .RE
 .RE
@@ -761,12 +799,16 @@ Use interpolate mixing
 Set audio processing options
 .RE
 .RS 2
-.BR force_float "=[1|0] (default: 0)"
+.BR force_sampleformat "=<string>"
 .P
-Force floating point
+Supported strings: none 8 16 32 f d
 .P
-Force floating point processing. This will inprove the quality but might
-slow things down.
+Default: none
+.P
+Force sampleformat
+.P
+Force a sampleformat to be used for processing. None means to take the input
+format.
 
 .P
 .BR q "=<number> (1..5, default: 2)"

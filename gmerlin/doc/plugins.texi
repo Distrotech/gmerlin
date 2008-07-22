@@ -83,6 +83,15 @@ i_lqt.so
 @item Description
 Input plugin based on libquicktime
 @end table
+@subsection Parser for gmerlin EDLs
+@table @i
+@item Internal name
+i_edl
+@item Module
+i_edl.so
+@item Description
+This parses the XML file and exports an EDL, which can be played with the builtin EDL decoder.
+@end table
 @subsection Image video input plugin
 @table @i
 @item Internal name
@@ -113,7 +122,7 @@ oa_alsa.so
 @item Description
 Alsa output plugin with support for channel configurations up to 5.1. Samples are sent to the soundcards in the nearest precision of the source format. Select "Force float" in the global audio options to enable 24, 32 or floating point playback even for 8 or 16 bit source formats.
 @end table
-@subsection Pulse
+@subsection PulseAudio
 @table @i
 @item Internal name
 oa_pulse
@@ -527,6 +536,15 @@ Writer for TIFF images
 @node plugin_fa
 @section Audio filters
 
+@subsection Force sampleformat
+@table @i
+@item Internal name
+fa_sampleformat
+@item Module
+fa_sampleformat.so
+@item Description
+This forces a sampleformat as input for the next filter. Its mainly used for testing.
+@end table
 @subsection Volume control
 @table @i
 @item Internal name
@@ -539,6 +557,33 @@ Simple volume control
 @node plugin_fv
 @section Video filters
 
+@subsection 1DTV
+@table @i
+@item Internal name
+fv_onedtv
+@item Module
+fv_1dtv.so
+@item Description
+1DTV is one of the most amazing effect, but that algorithm is very easy. The horizontal green line is the current scanning position and it moves down every frame. So only moving objects is distorted. Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
+@subsection AgingTV
+@table @i
+@item Internal name
+fv_agingtv
+@item Module
+fv_agingtv.so
+@item Description
+AgingTV ages video input stream in realtime. Discolors, scratches, puts dust. Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
+@subsection BaltanTV
+@table @i
+@item Internal name
+fv_baltantv
+@item Module
+fv_baltantv.so
+@item Description
+BaltanTV is similar to the StreakTV,but BaltanTV makes after images longer than that. Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
 @subsection Blur
 @table @i
 @item Internal name
@@ -547,6 +592,33 @@ fv_blur
 fv_blur.so
 @item Description
 Blur filter based on gavl. Supports triangular, box and gauss blur.
+@end table
+@subsection BrokenTV
+@table @i
+@item Internal name
+fv_brokentv
+@item Module
+fv_brokentv.so
+@item Description
+BrokenTV simulates mistuned television or mistracking video image. Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
+@subsection BurningTV
+@table @i
+@item Internal name
+fv_burningtv
+@item Module
+fv_burningtv.so
+@item Description
+The name describes itself. Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
+@subsection ChameleonTV
+@table @i
+@item Internal name
+fv_chameleontv
+@item Module
+fv_chameleontv.so
+@item Description
+When you are still in the sight of the camera for a second, you will be vanishing into the background, and disappear. When you move again, you will appear normally. By contrast, when you switch from "disappearing mode" to "appearing mode", moving objects are not shown, and a still object appears after seconds. Ported from EffecTV (http://effectv.sourceforge.net).
 @end table
 @subsection Colorbalance
 @table @i
@@ -557,6 +629,15 @@ fv_colorbalance.so
 @item Description
 Apply gain for red, green and blue. RGB formats are processed directly, Y'CbCr formats are processed by the colormatrix.
 @end table
+@subsection ColstreakTV
+@table @i
+@item Internal name
+fv_colstreaktv
+@item Module
+fv_colstreaktv.so
+@item Description
+Make after images but the power of the effects are different between red, green and blue layers, so it provides colourful after images. Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
 @subsection Crop & Scale
 @table @i
 @item Internal name
@@ -565,6 +646,15 @@ fv_cropscale
 fv_cropscale.so
 @item Description
 Crop and scale video images. Has lots of standard video formats as presets. Can also do chroma placement correction and simple deinterlacing
+@end table
+@subsection CycleTV
+@table @i
+@item Internal name
+fv_cycletv
+@item Module
+fv_cycletv.so
+@item Description
+CycleTV randomly cycles the color palette. Ported from EffecTV (http://effectv.sourceforge.net).
 @end table
 @subsection Decimate
 @table @i
@@ -584,6 +674,60 @@ fv_deinterlace.so
 @item Description
 Deinterlace with various algorithms
 @end table
+@subsection DiceTV
+@table @i
+@item Internal name
+fv_dicetv
+@item Module
+fv_dicetv.so
+@item Description
+DiceTV 'dices' the screen up into many small squares, each defaulting to a size of 16 pixels by 16 pixels.. Each square is rotated randomly in one of four directions: up (no change), down (180 degrees, or upside down), right (90 degrees clockwise), or left (90 degrees counterclockwise). The direction of each square normally remains consistent between each frame. Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
+@subsection DiffTV
+@table @i
+@item Internal name
+fv_difftv
+@item Module
+fv_difftv.so
+@item Description
+DiffTV highlights interframe differences. Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
+@subsection DisplaywallTV
+@table @i
+@item Internal name
+fv_displaywalltv
+@item Module
+fv_displaywalltv.so
+@item Description
+Display the tiled video images. You can scroll the image or change the scale. Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
+@subsection DotTV
+@table @i
+@item Internal name
+fv_dottv
+@item Module
+fv_dottv.so
+@item Description
+DotTV converts gray scale images to set of dots. It is hard to recognize what is shown when your eyes are close to the monitor. Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
+@subsection EdgeTV
+@table @i
+@item Internal name
+fv_edgetv
+@item Module
+fv_edgetv.so
+@item Description
+Detects edges and display it like good old low resolution computer way. Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
+@subsection EdgeblurTV
+@table @i
+@item Internal name
+fv_edgeblurtv
+@item Module
+fv_edgeblurtv.so
+@item Description
+Detects edge and display it with motion blur effect. Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
 @subsection Equalizer
 @table @i
 @item Internal name
@@ -592,6 +736,15 @@ fv_equalizer
 fv_equalizer.so
 @item Description
 Control hue, saturation, contrast and brightness. For Y'CbCr, it uses routines based on the vf_eq and vf_hue filters from the MPlayer project. For RGB formats, it uses the colormatrix.
+@end table
+@subsection FireTV
+@table @i
+@item Internal name
+fv_firetv
+@item Module
+fv_firetv.so
+@item Description
+FireTV clips moving objects and burns it. Ported from EffecTV (http://effectv.sourceforge.net).
 @end table
 @subsection Flip image
 @table @i
@@ -620,6 +773,69 @@ fv_invert_rgb.so
 @item Description
 Invert single color channels. RGB(A) formats are processed directly, Y'CbCr(A) formats are processed with the colormatrix.
 @end table
+@subsection LensTV
+@table @i
+@item Internal name
+fv_lenstv
+@item Module
+fv_lenstv.so
+@item Description
+LensTV - Based on Old school Demo Lens Effect. Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
+@subsection LifeTV
+@table @i
+@item Internal name
+fv_lifetv
+@item Module
+fv_lifetv.so
+@item Description
+You can play John Horton Conway's Life Game with video input. Moving objects drop seeds on the game field. Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
+@subsection MatrixTV
+@table @i
+@item Internal name
+fv_matrixtv
+@item Module
+fv_matrixtv.so
+@item Description
+The Matrix's visual effect has been metamorphosed to the realtime video effect. Edge-enhanced input image is reflected to the brightness of falling letters. Blending with the input image is also available. Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
+@subsection MosaicTV
+@table @i
+@item Internal name
+fv_mosaictv
+@item Module
+fv_mosaictv.so
+@item Description
+MosaicTV censors the incoming objects and gives it mosaic effect. Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
+@subsection NervousHalfTV
+@table @i
+@item Internal name
+fv_halftv
+@item Module
+fv_halftv.so
+@item Description
+SimuraTV and NervousTV mixed, make more magic! Delaying, scratching or our famous "nervous" effect can be added to a half of the screen. Additionally you can add mirroring effect to it. Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
+@subsection NervousTV
+@table @i
+@item Internal name
+fv_nervoustv
+@item Module
+fv_nervoustv.so
+@item Description
+NervousTV randomly re-arranges the past second of video, creating a chaotic expression of past movements. It shuffles time. There is no effect on still images. Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
+@subsection NoiseTV
+@table @i
+@item Internal name
+fv_noisetv
+@item Module
+fv_noisetv.so
+@item Description
+Black & White noise is rendered over the incoming objects. Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
 @subsection Old color
 @table @i
 @item Internal name
@@ -628,6 +844,33 @@ fv_oldcolor
 fv_oldcolor.so
 @item Description
 Simulate old color- and B/W movies
+@end table
+@subsection OpTV
+@table @i
+@item Internal name
+fv_optv
+@item Module
+fv_optv.so
+@item Description
+Traditional black-white optical animation is now resurrected as a real-time video effect. Input images are binarized and combined with various optical pattern. You can change its animation speed and direction with a keyboard. Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
+@subsection PupTV
+@table @i
+@item Internal name
+fv_puptv
+@item Module
+fv_puptv.so
+@item Description
+PupTV does pup mark effect on the video input. The pup is caused by a motion or random rain drops. Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
+@subsection QuarkTV
+@table @i
+@item Internal name
+fv_quarktv
+@item Module
+fv_quarktv.so
+@item Description
+QuarkTV dissolves moving objects. It picks up pixels from the last eight frames randomly. Ported from EffecTV (http://effectv.sourceforge.net).
 @end table
 @subsection RGB Colormatrix
 @table @i
@@ -638,6 +881,96 @@ fv_colormatrix_rgb.so
 @item Description
 Generic colormatrix (RGBA). You pass the coefficients in RGB(A) coordinates, but the processing will work in Y'CbCr(A) as well.
 @end table
+@subsection RandomDotStereoTV
+@table @i
+@item Internal name
+fv_rdstv
+@item Module
+fv_rdstv.so
+@item Description
+RdsTV does rds mark effect on the video input. The rds is caused by a motion or random rain drops. Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
+@subsection RevTV
+@table @i
+@item Internal name
+fv_revtv
+@item Module
+fv_revtv.so
+@item Description
+RevTV acts like a video waveform monitor for each line of video processed. This creates a pseudo 3D effect based on the brightness of the video along each line. Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
+@subsection RippleTV
+@table @i
+@item Internal name
+fv_rippletv
+@item Module
+fv_rippletv.so
+@item Description
+RippleTV does ripple mark effect on the video input. The ripple is caused by a motion or random rain drops. Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
+@subsection RndmTV
+@table @i
+@item Internal name
+fv_rndmtv
+@item Module
+fv_rndmtv.so
+@item Description
+RndmTV give you a noisy picture in color or B/W. Inspired by the old days when reception was poor. Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
+@subsection ShagadelicTV
+@table @i
+@item Internal name
+fv_shagadelictv
+@item Module
+fv_shagadelictv.so
+@item Description
+Oh behave, ShagedelicTV makes images shagadelic! Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
+@subsection SimuraTV
+@table @i
+@item Internal name
+fv_simuratv
+@item Module
+fv_simuratv.so
+@item Description
+The origin of SimuraTV is "SimuraEffect", a VJ (Video Jockey) tool I made in 1995. Color effect and image mirroring are all of SimuraTV. Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
+@subsection SlofastTV
+@table @i
+@item Internal name
+fv_slofasttv
+@item Module
+fv_slofasttv.so
+@item Description
+SloFastTV plays back the current video input at non-constant speed: while the buffer fills the video is played back at half the frame rate, when the buffer is full it plays back at the double rate until it has caught up with the live video again. This causes the actual image to be delayed from 0 to about half a second. Movements that previously had a constant speed will appear very slow and then very fast. Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
+@subsection SparkTV
+@table @i
+@item Internal name
+fv_sparktv
+@item Module
+fv_sparktv.so
+@item Description
+Bright sparks run on incoming objects. Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
+@subsection SpiralTV
+@table @i
+@item Internal name
+fv_spiraltv
+@item Module
+fv_spiraltv.so
+@item Description
+I admit that 'SpiralTV' is a misnomer; it doesn't actually spiral. What it does do is segment the screen image into a series of concentric circles, each of which is slightly out of phase (timewise) from its neighbors. Or to put it more simply, it really messes with changing (i.e. Moving) objects onscreen! Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
+@subsection StreakTV
+@table @i
+@item Internal name
+fv_streaktv
+@item Module
+fv_streaktv.so
+@item Description
+StreakTV makes after images of moving objects. Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
 @subsection Temporal lowpass
 @table @i
 @item Internal name
@@ -646,6 +979,51 @@ fv_tlp
 fv_tlp.so
 @item Description
 Simple temporal lowpass
+@end table
+@subsection TimedistTV
+@table @i
+@item Internal name
+fv_timedisttv
+@item Module
+fv_timedisttv.so
+@item Description
+Distorts moving objects in the sight. When it detects a moving part, it rollbacks to an old frame around that. Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
+@subsection TransformTV
+@table @i
+@item Internal name
+fv_transformtv
+@item Module
+fv_transformtv.so
+@item Description
+TransformTV does transform mark effect on the video input. The transform is caused by a motion or random rain drops. Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
+@subsection VertigoTV
+@table @i
+@item Internal name
+fv_vertigotv
+@item Module
+fv_vertigotv.so
+@item Description
+VertigoTV is a loopback alpha blending effector with rotating and scaling. Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
+@subsection WarholTV
+@table @i
+@item Internal name
+fv_warholtv
+@item Module
+fv_warholtv.so
+@item Description
+WarholTV offers some effects like Andy Warhol's series of paintings; 'Marilyn', 'Marilyn Three Times', 'Four Marilyns' etc. Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
+@subsection WarpTV
+@table @i
+@item Internal name
+fv_warptv
+@item Module
+fv_warptv.so
+@item Description
+WarpTV does realtime goo'ing of the video input. based on warp-1.1 SDL demo by Sam Latinga (http://libSDL.org). Original version by Emmanuel Marty <core at ggi-project dawt org>. Ported from EffecTV (http://effectv.sourceforge.net).
 @end table
 @subsection Y'CbCr(A) Colormatrix
 @table @i
@@ -685,4 +1063,13 @@ vis_lemuria
 vis_lemuria.so
 @item Description
 OpenGL visualization with many effects
+@end table
+@subsection Goom
+@table @i
+@item Internal name
+vis_goom
+@item Module
+vis_goom.so
+@item Description
+Goom plugin
 @end table
