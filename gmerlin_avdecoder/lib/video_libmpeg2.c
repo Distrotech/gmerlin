@@ -95,6 +95,9 @@ typedef struct
   int last_coding_type; /* Last picture type is saved here */
   int64_t last_pts;
   
+  int do_timecodes;
+  gavl_timecode_t gop_timecode;
+  gavl_timecode_t out_timecode;
   } mpeg2_priv_t;
 
 static int get_data(bgav_stream_t*s)
@@ -159,9 +162,26 @@ static int parse(bgav_stream_t*s, mpeg2_state_t * state)
       {
       if(!get_data(s))
         return 0;
+      continue;
       }
-    else
-      return 1;
+    
+    if(*state == STATE_GOP)
+      {
+      /* Handle timecodes */
+      if(priv->do_timecodes)
+        {
+        gavl_timecode_from_hmsf(&priv->gop_timecode,
+                                priv->info->gop->hours,
+                                priv->info->gop->minutes,
+                                priv->info->gop->seconds,
+                                priv->info->gop->pictures);
+        }
+      else if(!s->data.video.timecode_format.int_framerate)
+        {
+        priv->do_timecodes = 1;
+        }
+      }
+    return 1;
     }
   }
 
@@ -370,6 +390,7 @@ static int decode_picture(bgav_stream_t*s)
           }
         }
       }
+
     }
   
   if((state == STATE_END) && priv->init)
@@ -497,6 +518,7 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
         return 1;
       if(state == STATE_PICTURE)
         break;
+
       }
 
     /* priv->info->display_picture can be NULL at closed GOP boundaries */
@@ -560,6 +582,8 @@ static int init_mpeg2(bgav_stream_t*s)
     {
     if(!parse(s, &state))
       return 0;
+    
+    
     if(state == STATE_PICTURE)
       break;
     }

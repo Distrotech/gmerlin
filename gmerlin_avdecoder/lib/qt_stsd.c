@@ -190,6 +190,23 @@ static void stsd_dump_subtitle_tx3g(int indent, qt_sample_description_t * d)
     bgav_qt_ftab_dump(indent, &d->format.subtitle_tx3g.ftab);
   }
 
+static void stsd_dump_timecode(int indent, qt_sample_description_t * d)
+  {
+  bgav_diprintf(indent, "fourcc:       ");
+  bgav_dump_fourcc(d->fourcc);
+  bgav_dprintf( "\n");
+
+  bgav_diprintf(indent, "reserved2     %d\n", d->format.timecode.reserved2);
+  bgav_diprintf(indent, "flags         %d\n", d->format.timecode.flags);
+  bgav_diprintf(indent, "timescale     %d\n", d->format.timecode.timescale);
+  bgav_diprintf(indent, "frameduration %d\n", d->format.timecode.frameduration);
+  bgav_diprintf(indent, "numframes     %d\n", d->format.timecode.numframes);
+  bgav_diprintf(indent, "reserved3     %02x\n",
+         d->format.timecode.reserved3);
+  
+  }
+
+
 static int stsd_read_common(bgav_input_context_t * input,
                             qt_sample_description_t * ret)
   {
@@ -427,12 +444,12 @@ static int stsd_read_video(bgav_input_context_t * input,
         ret->has_esds = 1;
         break;
       case BGAV_MK_FOURCC('a', 'v', 'c', 'C'):
-        ret->avcC_offset = input->position;
-        ret->avcC_size   = h.size - 8;
+        ret->format.video.avcC_offset = input->position;
+        ret->format.video.avcC_size   = h.size - 8;
         bgav_qt_atom_skip(input, &h);
         break;
       case BGAV_MK_FOURCC('S', 'M', 'I', ' '):
-        ret->has_SMI = 1;
+        ret->format.video.has_SMI = 1;
         bgav_qt_atom_skip(input, &h);
         break;
       case BGAV_MK_FOURCC('p', 'a', 's', 'p'):
@@ -562,6 +579,22 @@ static int stsd_read_subtitle_tx3g(bgav_input_context_t * input,
   return 1;
   }
 
+static int stsd_read_timecode(bgav_input_context_t * input,
+                          qt_sample_description_t * ret)
+  {
+  if(!bgav_input_read_fourcc(input, &ret->fourcc) ||
+     (bgav_input_read_data(input, ret->reserved, 6) < 6) ||
+     !bgav_input_read_16_be(input, &ret->data_reference_index) ||
+     !bgav_input_read_32_be(input, &ret->format.timecode.reserved2) ||
+     !bgav_input_read_32_be(input, &ret->format.timecode.flags) ||
+     !bgav_input_read_32_be(input, &ret->format.timecode.timescale) ||
+     !bgav_input_read_32_be(input, &ret->format.timecode.frameduration) ||
+     !bgav_input_read_8(input, &ret->format.timecode.numframes) ||
+     !bgav_input_read_8(input, &ret->format.timecode.reserved3))
+    return 0;
+  return 1;
+  }
+
 
 int bgav_qt_stsd_read(qt_atom_header_t * h, bgav_input_context_t * input,
                       qt_stsd_t * ret)
@@ -644,6 +677,7 @@ int bgav_qt_stsd_finalize(qt_stsd_t * c, qt_trak_t * trak,
       if(!result)
         return 0;
       }
+    /* 3GP text subtitles */
     else if(!strncmp((char*)trak->mdia.minf.stbl.stsd.entries[0].data,
                      "tx3g", 4)) 
       {
@@ -651,6 +685,18 @@ int bgav_qt_stsd_finalize(qt_stsd_t * c, qt_trak_t * trak,
                                          c->entries[i].data_size, opt);
       
       result = stsd_read_subtitle_tx3g(input_mem, &(c->entries[i].desc));
+      bgav_input_destroy(input_mem);
+      if(!result)
+        return 0;
+      }
+    /* Timecode */
+    else if(!strncmp((char*)trak->mdia.minf.stbl.stsd.entries[0].data,
+                     "tmcd", 4)) 
+      {
+      input_mem = bgav_input_open_memory(c->entries[i].data,
+                                         c->entries[i].data_size, opt);
+      
+      result = stsd_read_timecode(input_mem, &(c->entries[i].desc));
       bgav_input_destroy(input_mem);
       if(!result)
         return 0;
@@ -706,11 +752,10 @@ void bgav_qt_stsd_dump(int indent, qt_stsd_t * s)
   
   for(i = 0; i < s->num_entries; i++)
     {
-    bgav_diprintf(indent+2, "Sample description: = %d\n", i);
-    bgav_diprintf(indent+2, "Raw data: %d bytes\n", s->entries[i].data_size);
+    bgav_diprintf(indent+2, "Sample description: %d\n", i);
+    bgav_diprintf(indent+2, "Raw data:           %d bytes\n", s->entries[i].data_size);
     bgav_hexdump(s->entries[i].data, s->entries[i].data_size, 16);
     
-
     if(s->entries[i].desc.type == BGAV_STREAM_AUDIO)
       {
       stsd_dump_common(indent+2, &s->entries[i].desc);
@@ -736,6 +781,10 @@ void bgav_qt_stsd_dump(int indent, qt_stsd_t * s)
     else if(s->entries[i].desc.fourcc == BGAV_MK_FOURCC('t','x','3','g'))
       {
       stsd_dump_subtitle_tx3g(indent+2, &s->entries[i].desc);
+      }
+    else if(s->entries[i].desc.fourcc == BGAV_MK_FOURCC('t','m','c','d'))
+      {
+      stsd_dump_timecode(indent+2, &s->entries[i].desc);
       }
     }
   }

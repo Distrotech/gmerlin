@@ -1112,18 +1112,18 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       
       if(bg_vs->fourcc == BGAV_MK_FOURCC('S', 'V', 'Q', '3'))
         {
-        if(stsd->entries[skip_first_frame].desc.has_SMI)
+        if(stsd->entries[skip_first_frame].desc.format.video.has_SMI)
           {
           bg_vs->ext_size = stsd->entries[0].data_size;
           bg_vs->ext_data = stsd->entries[0].data;
           }
         }
       else if((bg_vs->fourcc == BGAV_MK_FOURCC('a', 'v', 'c', '1')) &&
-              (stsd->entries[0].desc.avcC_offset))
+              (stsd->entries[0].desc.format.video.avcC_offset))
         {
         bg_vs->ext_data = stsd->entries[skip_first_frame].data +
-          stsd->entries[0].desc.avcC_offset;
-        bg_vs->ext_size = stsd->entries[skip_first_frame].desc.avcC_size;
+          stsd->entries[0].desc.format.video.avcC_offset;
+        bg_vs->ext_size = stsd->entries[skip_first_frame].desc.format.video.avcC_size;
         }
       
       /* Set mp4 extradata */

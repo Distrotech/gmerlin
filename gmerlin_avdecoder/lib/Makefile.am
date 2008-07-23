@@ -451,7 +451,9 @@ qt_stsd.c \
 qt_stss.c \
 qt_stsz.c \
 qt_stts.c \
+qt_tcmi.c \
 qt_tkhd.c \
+qt_tmcd.c \
 qt_trak.c \
 qt_tref.c \
 qt_udta.c \

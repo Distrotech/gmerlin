@@ -405,6 +405,7 @@ struct bgav_stream_s
       
       bgav_video_decoder_context_t * decoder;
       gavl_video_format_t format;
+      gavl_timecode_format_t timecode_format;
       int palette_size;
       bgav_palette_entry_t * palette;
       int palette_changed;

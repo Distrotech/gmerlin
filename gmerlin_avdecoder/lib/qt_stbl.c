@@ -120,7 +120,8 @@ void bgav_qt_stbl_dump(int indent, qt_stbl_t * c)
   bgav_diprintf(indent, "stbl\n");
   bgav_qt_stsd_dump(indent+2, &(c->stsd));
   bgav_qt_stts_dump(indent+2, &(c->stts));
-  bgav_qt_stss_dump(indent+2, &(c->stss));
+  if(c->stss.num_entries)
+    bgav_qt_stss_dump(indent+2, &(c->stss));
   bgav_qt_stsz_dump(indent+2, &(c->stsz));
   bgav_qt_stsc_dump(indent+2, &(c->stsc));
   bgav_qt_stco_dump(indent+2, &(c->stco));

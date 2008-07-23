@@ -383,6 +383,12 @@ typedef struct
       int has_pasp;
       qt_fiel_t fiel;
       int has_fiel;
+
+      /* Data for avc1 (offset relative to data) */
+      int avcC_offset;
+      int avcC_size;
+      
+      int has_SMI;
       } video;
     struct
       {
@@ -442,6 +448,15 @@ typedef struct
       int has_ftab;
       qt_ftab_t ftab;
       } subtitle_tx3g;
+    struct
+      {
+      uint32_t reserved2;
+      uint32_t flags;
+      uint32_t timescale;
+      uint32_t frameduration;
+      uint8_t numframes;
+      uint8_t reserved3;
+      } timecode;
     } format;
   qt_esds_t esds;
   int has_esds;
@@ -449,12 +464,6 @@ typedef struct
   qt_glbl_t glbl;
   int has_glbl;
   
-  /* Data for avc1 (offset relative to data) */
-
-  int avcC_offset;
-  int avcC_size;
-  
-  int has_SMI;
   
   } qt_sample_description_t ;
 
@@ -665,6 +674,40 @@ int bgav_qt_gmin_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
 void bgav_qt_gmin_free(qt_gmin_t * g);
 void bgav_qt_gmin_dump(int indent, qt_gmin_t * g);
 
+/* Timecode media info */
+
+typedef struct
+  {
+  int version;
+  uint32_t flags;
+  uint16_t font;
+  uint16_t face;
+  uint16_t size;
+  uint16_t txtcolor[3];
+  uint16_t bgcolor[3];
+  char fontname[256];
+  } qt_tcmi_t;
+
+int bgav_qt_tcmi_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
+                      qt_tcmi_t * ret);
+
+void bgav_qt_tcmi_free(qt_tcmi_t * g);
+void bgav_qt_tcmi_dump(int indent, qt_tcmi_t * g);
+
+/* tmcd */
+
+typedef struct
+  {
+  qt_tcmi_t tcmi;
+  } qt_tmcd_t;
+
+int bgav_qt_tmcd_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
+                      qt_tmcd_t * ret);
+
+void bgav_qt_tmcd_free(qt_tmcd_t * g);
+void bgav_qt_tmcd_dump(int indent, qt_tmcd_t * g);
+
+
 /*
  *  Generic media header
  */
@@ -673,8 +716,10 @@ typedef struct
   {
   int has_gmin;
   qt_gmin_t gmin;
-
+  
   int has_text; /* We don't parse this just check if it's there */
+  int has_tmcd;
+  qt_tmcd_t tmcd;
   } qt_gmhd_t;
 
 int bgav_qt_gmhd_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
