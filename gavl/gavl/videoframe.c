@@ -308,6 +308,7 @@ gavl_video_frame_t * gavl_video_frame_create(const gavl_video_format_t * format)
   gavl_video_frame_t * ret = calloc(1, sizeof(gavl_video_frame_t));
   if(format)
     video_frame_alloc(ret, format, 1);
+  ret->timecode = GAVL_TIMECODE_INVALID_MASK;
   return ret;
   }
 
@@ -316,6 +317,7 @@ gavl_video_frame_t * gavl_video_frame_create_nopad(const gavl_video_format_t * f
   gavl_video_frame_t * ret = calloc(1, sizeof(gavl_video_frame_t));
   if(format)
     video_frame_alloc(ret, format, 0);
+  ret->timecode = GAVL_TIMECODE_INVALID_MASK;
   return ret;
   }
 

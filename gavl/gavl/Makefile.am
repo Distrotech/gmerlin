@@ -76,6 +76,7 @@ scale_context.c \
 scale_kernels.c \
 scale_table.c \
 time.c \
+timecode.c \
 timer.c \
 video.c \
 videoformat.c \

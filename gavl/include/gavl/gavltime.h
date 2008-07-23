@@ -53,7 +53,6 @@ typedef int64_t gavl_time_t;
 
 /*! \ingroup time
  * \brief Convert a number of samples to a time for a given samplerate
- * \todo Write this as an overflow save function
  */
 
 gavl_time_t gavl_samples_to_time(int samplerate, int64_t samples);
@@ -63,14 +62,12 @@ gavl_time_t gavl_samples_to_time(int samplerate, int64_t samples);
  * \param samplerate Samplerate
  * \param time Time
  * \returns Number of audio samples
- * \todo Write this as an overflow save function
  */
 
 int64_t gavl_time_to_samples(int samplerate, gavl_time_t time);
 
 /*! \ingroup time
  * \brief Convert a number of video frames to a time for a given framerate
- * \todo Write this as an overflow save function
  */
 
 gavl_time_t gavl_frames_to_time(int rate_num, int rate_den, int64_t frames);
@@ -82,7 +79,6 @@ gavl_time_t gavl_frames_to_time(int rate_num, int rate_den, int64_t frames);
  * \param rate_den Denominator of the framerate
  * \param time Time
  * \returns Number of frames
- * \todo Write this as an overflow save function
  */
 
 int64_t gavl_time_to_frames(int rate_num, int rate_den, gavl_time_t time); 
@@ -92,7 +88,6 @@ int64_t gavl_time_to_frames(int rate_num, int rate_den, gavl_time_t time);
  * \param scale Time scale
  * \param time Time scaled by \ref GAVL_TIME_SCALE
  * \returns Time scaled by scale
- * \todo Write this as an overflow save function
  */
 
 int64_t gavl_time_scale(int scale, gavl_time_t time);
@@ -102,7 +97,6 @@ int64_t gavl_time_scale(int scale, gavl_time_t time);
  * \param scale Time scale
  * \param time Time scaled by scale
  * \returns Time scaled by \ref GAVL_TIME_SCALE
- * \todo Write this as an overflow save function
  */
 
 gavl_time_t gavl_time_unscale(int scale, int64_t time);
@@ -113,7 +107,6 @@ gavl_time_t gavl_time_unscale(int scale, int64_t time);
  * \param scale2 New time base
  * \param time Time scaled by scale1
  * \returns Time scaled by scale2
- * \todo Write this as an overflow save function
  */
 
 int64_t gavl_time_rescale(int scale1, int scale2, int64_t time);

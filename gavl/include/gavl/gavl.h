@@ -41,6 +41,8 @@ extern "C" {
 
 typedef struct gavl_video_format_s gavl_video_format_t;
 
+#include "timecode.h"
+  
 /* Quality levels */
   
 /** \defgroup quality Quality settings
@@ -1866,6 +1868,7 @@ typedef struct
   int64_t timestamp; /*!< Timestamp in stream specific units (see \ref video_format) */
   int64_t duration; /*!< Duration in stream specific units (see \ref video_format) */
   gavl_interlace_mode_t   interlace_mode;/*!< Interlace mode */
+  gavl_timecode_t timecode; /*!< Timecode associated with this frame */
   } gavl_video_frame_t;
 
 

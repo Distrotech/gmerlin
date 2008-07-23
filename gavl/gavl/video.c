@@ -507,6 +507,7 @@ void gavl_video_convert(gavl_video_converter_t * cnv,
   output_frame->timestamp = input_frame->timestamp;
   output_frame->duration = input_frame->duration;
   output_frame->interlace_mode = input_frame->interlace_mode;
+  output_frame->timecode = input_frame->timecode;
   
   tmp_ctx = cnv->first_context;
 
