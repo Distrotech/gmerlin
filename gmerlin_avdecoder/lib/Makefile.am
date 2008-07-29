@@ -476,6 +476,7 @@ subtitle.c \
 superindex.c \
 targa.c \
 tcp.c \
+timecode.c \
 track.c \
 tracktable.c \
 translation.c \

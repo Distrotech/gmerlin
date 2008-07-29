@@ -62,6 +62,8 @@ typedef struct bgav_charset_converter_s bgav_charset_converter_t;
 
 typedef struct bgav_track_s bgav_track_t;
 
+typedef struct bgav_timecode_table_s bgav_timecode_table_t;
+
 #include <id3.h>
 #include <yml.h>
 
@@ -368,6 +370,14 @@ struct bgav_stream_s
   
   /* Set for INDEX_MODE_SI_PARSE for all streams, which need parsing */
   int index_mode;
+
+  /* timecode table (for video streams only for now) */
+  bgav_timecode_table_t * timecode_table;
+  
+  int has_codec_timecode;
+  gavl_timecode_t codec_timecode;
+
+  gavl_timecode_format_t timecode_format;
   
   union
     {
@@ -405,7 +415,6 @@ struct bgav_stream_s
       
       bgav_video_decoder_context_t * decoder;
       gavl_video_format_t format;
-      gavl_timecode_format_t timecode_format;
       int palette_size;
       bgav_palette_entry_t * palette;
       int palette_changed;
@@ -1658,3 +1667,27 @@ void bgav_translation_init();
 
 /* For static strings */
 #define TRS(s) (s)
+
+/* timecode.c */
+
+typedef struct
+  {
+  int64_t pts;
+  gavl_timecode_t timecode;
+  } bgav_timecode_table_entry_t;
+
+struct bgav_timecode_table_s
+  {
+  int num_entries;
+  bgav_timecode_table_entry_t * entries;
+  };
+
+bgav_timecode_table_t *
+bgav_timecode_table_create(int num);
+
+void
+bgav_timecode_table_destroy(bgav_timecode_table_t *);
+
+gavl_timecode_t
+bgav_timecode_table_get_timecode(bgav_timecode_table_t * table,
+                                 int64_t pts);

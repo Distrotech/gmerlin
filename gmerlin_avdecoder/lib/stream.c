@@ -125,6 +125,9 @@ void bgav_stream_free(bgav_stream_t * s)
       (s->type == BGAV_STREAM_SUBTITLE_OVERLAY)) &&
      s->data.subtitle.subreader)
     bgav_subtitle_reader_destroy(s);
+
+  if(s->timecode_table)
+    bgav_timecode_table_destroy(s->timecode_table);
   }
 
 void bgav_stream_dump(bgav_stream_t * s)

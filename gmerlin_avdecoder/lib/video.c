@@ -170,15 +170,33 @@ static int bgav_video_decode(bgav_stream_t * stream,
   if(frame)
     {
     frame->timestamp = stream->data.video.last_frame_time;
+
+    /* Set timecode */
+    if(stream->timecode_table)
+      frame->timecode =
+        bgav_timecode_table_get_timecode(stream->timecode_table,
+                                         frame->timestamp);
+    else if(stream->has_codec_timecode)
+      {
+      frame->timecode = stream->codec_timecode;
+      stream->has_codec_timecode = 0;
+      }
+    else
+      frame->timecode = GAVL_TIMECODE_UNDEFINED;
     
     if(stream->demuxer->demux_mode == DEMUX_MODE_FI)
       frame->timestamp += stream->first_timestamp;
     
     frame->duration  = stream->data.video.last_frame_duration;
+
+                                                     
     
     /* Yes, this sometimes happens due to rounding errors */
     if(frame->timestamp < 0)
       frame->timestamp = 0;
+
+                                                     
+      
     }
   
   return result;
