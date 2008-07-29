@@ -798,6 +798,8 @@ void gavl_video_frame_copy(const gavl_video_format_t * format,
   
   }
 
+
+
 static void flip_scanline_1(uint8_t * dst, uint8_t * src, int len)
   {
   int i;
@@ -1703,4 +1705,13 @@ void gavl_video_frame_fill(gavl_video_frame_t * frame,
       fprintf(stderr, "Pixelformat not specified for video frame\n");
       return;
     }
+  }
+
+void gavl_video_frame_copy_metadata(gavl_video_frame_t * dst,
+                                    const gavl_video_frame_t * src)
+  {
+  dst->timestamp       = src->timestamp;
+  dst->duration        = src->duration;
+  dst->timecode        = src->timecode;
+  dst->interlace_mode  = src->interlace_mode;
   }

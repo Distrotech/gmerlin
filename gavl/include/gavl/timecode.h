@@ -46,6 +46,8 @@ typedef uint64_t gavl_timecode_t; //!< Typedef for timecodes
 #define GAVL_TIMECODE_DROP_FRAME (1<<0) //!< NTSC drop frame is used
 #define GAVL_TIMECODE_COUNTER    (1<<1) //!< Timecodes are simple frame counters
 
+#define GAVL_TIMECODE_UNDEFINED GAVL_TIMECODE_INVALID_MASK //! Convenience macro
+  
 /** \brief Timecode format
  *
  *  The timecode format should always be associated with

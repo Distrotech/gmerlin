@@ -1957,7 +1957,8 @@ void gavl_video_frame_fill(gavl_video_frame_t * frame,
 
   The source and destination formats must be identical, as this routine does no
   format conversion. The scanlines however can be padded differently in the source and destination.
- 
+  This function only copies the image data. For copying the metadata (timestamp etc.) use#
+  \ref gavl_video_frame_copy_metadata.
 */
 
 void gavl_video_frame_copy(const gavl_video_format_t * format,
@@ -2025,6 +2026,22 @@ void gavl_video_frame_copy_flip_xy(const gavl_video_format_t * format,
                                    gavl_video_frame_t * dst,
                                   const gavl_video_frame_t * src);
 
+/*!
+  \ingroup video_frame
+  \brief Copy metadata of one video frame to another
+  \param dst Destination 
+  \param src Source
+
+  This function only copies the metadata (timestamp, duration, timecode). For copying the image data
+  use \ref gavl_video_frame_copy.
+
+  Since 1.1.0.
+*/
+
+void gavl_video_frame_copy_metadata(gavl_video_frame_t * dst,
+                                    const gavl_video_frame_t * src);
+
+  
 /*!
   \ingroup video_frame
   \brief Get a subframe of another frame
