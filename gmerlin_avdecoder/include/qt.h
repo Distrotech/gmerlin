@@ -1073,3 +1073,8 @@ int bgav_qt_read_fixed16(bgav_input_context_t * ctx,
 int bgav_qt_get_language(int mac_code, char * ret);
 const char * bgav_qt_get_charset(int mac_code);
 
+/* Timecode support */
+
+void bgav_qt_init_timecodes(bgav_input_context_t * ctx,
+                            bgav_stream_t * s,
+                            qt_trak_t * trak);

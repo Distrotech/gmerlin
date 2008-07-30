@@ -79,6 +79,9 @@ typedef struct
     int64_t start;
     int64_t size;
     } * mdats;
+  
+  qt_trak_t * timecode_track;
+  int num_timecode_tracks;
   } qt_priv_t;
 
 /*
@@ -1213,9 +1216,28 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         bg_ss->process_packet = process_packet_subtitle_tx3g;
         }
       }
+    else if(stsd->entries[0].desc.fourcc == BGAV_MK_FOURCC('t','m','c','d'))
+      {
+      priv->num_timecode_tracks++;
+      if(priv->num_timecode_tracks > 1)
+        {
+        bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                 "More than one timecode track, ignoring them all");
+        priv->timecode_track = (qt_trak_t*)0;
+        }
+      else
+        priv->timecode_track = trak;
+      }
     }
   
   set_metadata(ctx);
+
+  if(priv->timecode_track && (ctx->tt->cur->num_video_streams == 1))
+    {
+    bgav_qt_init_timecodes(ctx->input,
+                           &ctx->tt->cur->video_streams[0],
+                           priv->timecode_track);
+    }
   
   }
 

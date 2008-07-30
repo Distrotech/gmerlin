@@ -452,6 +452,7 @@ qt_stss.c \
 qt_stsz.c \
 qt_stts.c \
 qt_tcmi.c \
+qt_timecode.c \
 qt_tkhd.c \
 qt_tmcd.c \
 qt_trak.c \
