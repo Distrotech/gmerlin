@@ -166,11 +166,15 @@ static int parse(bgav_stream_t*s, mpeg2_state_t * state)
     
     if(*state == STATE_GOP)
       {
-      if(!s->timecode_format.int_framerate)
-        s->timecode_format.int_framerate =
+      if(!s->data.video.format.timecode_format.int_framerate)
+        {
+        s->data.video.format.timecode_format.int_framerate =
           (int)((float)s->data.video.format.timescale /
                 (float)s->data.video.format.frame_duration+0.5);
-      
+        if(priv->info->gop->flags & GOP_FLAG_DROP_FRAME)
+          s->data.video.format.timecode_format.flags |=
+            GAVL_TIMECODE_DROP_FRAME;
+        }
       gavl_timecode_from_hmsf(&priv->gop_timecode,
                               priv->info->gop->hours,
                               priv->info->gop->minutes,
@@ -487,12 +491,22 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
     }
   s->data.video.last_frame_time     = priv->picture_timestamp;
   s->data.video.last_frame_duration = priv->picture_duration;
-
+  
 #if 0
   fprintf(stderr, "PTS: %ld, T: %c\n", 
           s->data.video.last_frame_time,
           picture_types[priv->info->display_picture->flags & PIC_MASK_CODING_TYPE]);
 #endif
+
+  if(((priv->info->display_picture->flags & PIC_MASK_CODING_TYPE) ==
+      PIC_FLAG_CODING_TYPE_I) &&
+     priv->has_gop_timecode)
+    {
+    s->codec_timecode = priv->gop_timecode;
+    s->has_codec_timecode = 1;
+    priv->has_gop_timecode = 0;
+    }
+  
   if(!s->data.video.still_mode)
     {
     priv->have_frame = 0;

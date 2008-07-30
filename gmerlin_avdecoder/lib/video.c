@@ -120,6 +120,7 @@ const char * bgav_get_video_description(bgav_t * b, int s)
   return b->tt->cur->video_streams[s].description;
   }
 
+
 static int bgav_video_decode(bgav_stream_t * stream,
                              gavl_video_frame_t* frame)
   {
@@ -188,15 +189,11 @@ static int bgav_video_decode(bgav_stream_t * stream,
       frame->timestamp += stream->first_timestamp;
     
     frame->duration  = stream->data.video.last_frame_duration;
-
-                                                     
     
     /* Yes, this sometimes happens due to rounding errors */
     if(frame->timestamp < 0)
       frame->timestamp = 0;
-
-                                                     
-      
+    
     }
   
   return result;

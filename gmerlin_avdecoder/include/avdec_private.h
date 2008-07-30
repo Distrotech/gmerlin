@@ -376,8 +376,6 @@ struct bgav_stream_s
   
   int has_codec_timecode;
   gavl_timecode_t codec_timecode;
-
-  gavl_timecode_format_t timecode_format;
   
   union
     {
