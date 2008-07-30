@@ -57,10 +57,18 @@ typedef uint64_t gavl_timecode_t; //!< Typedef for timecodes
   
 typedef struct
   {
-  int int_framerate; //!< Integer framerate
+  int int_framerate; //!< Integer framerate. A value of zero signals, that no timecodes are available.
   int flags;         //!< Zero or more of the flags defined above
   } gavl_timecode_format_t;
 
+/** \brief Dump a timecode format to stderr
+ *  \arg f A timecode format
+ *
+ *  Used mainly for debugging
+ */
+  
+void gavl_timecode_format_dump(const gavl_timecode_format_t * f);
+  
 /** \brief Extract the time part of the timecode
  *  \param tc A timecode
  *  \param hours If non NULL, returns the hours

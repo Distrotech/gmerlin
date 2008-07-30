@@ -83,6 +83,7 @@ typedef struct
     {
     int quicktime_index;
     unsigned char ** rows;
+    int has_timecodes;
     } * video_streams;
   struct
     {
@@ -225,6 +226,9 @@ static int open_lqt(void * data, const char * arg)
         e->video_streams[e->track_info.num_video_streams].rows = lqt_gavl_rows_create(e->file, i);
         
         e->track_info.num_video_streams++;
+
+        
+
         }
       }
     }

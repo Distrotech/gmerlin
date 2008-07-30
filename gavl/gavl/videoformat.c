@@ -65,6 +65,14 @@ void gavl_video_format_dump(const gavl_video_format_t * format)
     {
     fprintf(stderr, "  Chroma placement: %s\n", gavl_chroma_placement_to_string(format->chroma_placement));
     }
+  if(format->timecode_format.int_framerate)
+    {
+    fprintf(stderr, "  Timecode framerate: %d\n", format->timecode_format.int_framerate);
+    fprintf(stderr, "  Timecode flags:     ");
+    if(format->timecode_format.flags & GAVL_TIMECODE_DROP_FRAME)
+      fprintf(stderr, "Drop");
+    fprintf(stderr, "\n");
+    }
   }
 
 /* We always enlarge the image */

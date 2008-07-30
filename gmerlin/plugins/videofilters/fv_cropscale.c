@@ -898,8 +898,7 @@ static int read_video_cropscale(void * priv, gavl_video_frame_t * frame, int str
   
   gavl_video_scaler_scale(vp->scaler, vp->frame, frame);
   
-  frame->timestamp = vp->frame->timestamp;
-  frame->duration = vp->frame->duration;
+  gavl_video_frame_copy_metadata(frame, vp->frame);
   return 1;
   }
 

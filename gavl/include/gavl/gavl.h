@@ -1774,6 +1774,8 @@ struct gavl_video_format_s
   gavl_chroma_placement_t chroma_placement;/*!< Chroma placement */
 
   gavl_interlace_mode_t   interlace_mode;/*!< Interlace mode */
+
+  gavl_timecode_format_t  timecode_format;/*!< Optional timecode format */
   };
 
 /*!

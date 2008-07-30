@@ -282,3 +282,9 @@ void gavl_timecode_prettyprint(const gavl_timecode_format_t * tf,
   else
     sprintf(ptr, "%02d:%02d:%02d:%04d", hours, minutes, seconds, frames);
   }
+  
+void gavl_timecode_format_dump(const gavl_timecode_format_t * f)
+  {
+  
+  }
+     

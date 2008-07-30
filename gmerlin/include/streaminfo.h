@@ -63,7 +63,7 @@ typedef struct
 
 typedef struct
   {
-  gavl_video_format_t format; //!< Format (invalid until after the start function was called)
+  gavl_video_format_t format; //!< Format (invalid before the start function was called)
   char * description; //!< Something like MPEG-1 video 1150 kbps
   char language[4]; //!< The language in ISO 639-2 (3 character code+'\\0')
   char * info;        //!< Info about this stream

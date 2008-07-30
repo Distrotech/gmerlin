@@ -421,7 +421,7 @@ static int deinterlace_gavl(struct deinterlace_priv_s * vp,
   
   if(!vp->read_func(vp->read_data, vp->frame, vp->read_stream))
     return 0;
-
+  
   gavl_video_deinterlacer_deinterlace(vp->deint, vp->frame, frame);
 
   frame->timestamp = vp->frame->timestamp;

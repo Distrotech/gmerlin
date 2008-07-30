@@ -193,8 +193,9 @@ static int read_video_tlp(void * priv, gavl_video_frame_t * frame, int stream)
     
     gavl_video_frame_copy(&vp->format, vp->frame_1, frame);
     }
-  frame->timestamp     = vp->frame_2->timestamp;
-  frame->duration = vp->frame_2->duration;
+
+  gavl_video_frame_copy_metadata(frame, vp->frame_2);
+
   return 1;
   }
 
