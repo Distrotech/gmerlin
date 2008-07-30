@@ -60,14 +60,6 @@ typedef struct
   int int_framerate; //!< Integer framerate. A value of zero signals, that no timecodes are available.
   int flags;         //!< Zero or more of the flags defined above
   } gavl_timecode_format_t;
-
-/** \brief Dump a timecode format to stderr
- *  \arg f A timecode format
- *
- *  Used mainly for debugging
- */
-  
-void gavl_timecode_format_dump(const gavl_timecode_format_t * f);
   
 /** \brief Extract the time part of the timecode
  *  \param tc A timecode
@@ -129,19 +121,17 @@ void gavl_timecode_from_ymd(gavl_timecode_t * tc,
  */
   
 int64_t gavl_timecode_to_framecount(const gavl_timecode_format_t * tf,
-                                    const gavl_video_format_t * vf,
                                     gavl_timecode_t tc);
 
 /** \brief Get a timecode from the frame count
  *  \param tf The timecode format
  *  \param vf The video format
- *  \param tc A timecode
  *  \param fc The frame count
+ *  \returns The timecode corresponding to the framecount
  */
 
-void gavl_timecode_from_framecount(const gavl_timecode_format_t * tf,
-                                   gavl_timecode_t * tc,
-                                   int64_t fc);
+gavl_timecode_t gavl_timecode_from_framecount(const gavl_timecode_format_t * tf,
+                                              int64_t fc);
 
 /** \brief Dump a timecode to stderr
  *  \param tf The timecode format

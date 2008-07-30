@@ -141,7 +141,6 @@ void gavl_timecode_from_ymd(gavl_timecode_t * tc,
  */
   
 int64_t gavl_timecode_to_framecount(const gavl_timecode_format_t * tf,
-                                    const gavl_video_format_t * vf,
                                     gavl_timecode_t tc)
   {
   int hours, minutes, seconds, frames, sign;
@@ -190,21 +189,20 @@ int64_t gavl_timecode_to_framecount(const gavl_timecode_format_t * tf,
  *  \param fc The frame count
  */
 
-void gavl_timecode_from_framecount(const gavl_timecode_format_t * tf,
-                                   gavl_timecode_t * tc,
-                                   int64_t fc)
+gavl_timecode_t gavl_timecode_from_framecount(const gavl_timecode_format_t * tf,
+                                              int64_t fc)
   {
   int hours, minutes, seconds, frames;
-
+  gavl_timecode_t ret;
   if(tf->flags & GAVL_TIMECODE_COUNTER)
-    *tc = fc;
-
-  *tc = 0;
+    return fc;
+  
+  ret = 0;
 
   if(fc < 0)
     {
     fc = -fc;
-    *tc |= GAVL_TIMECODE_SIGN_MASK;
+    ret |= GAVL_TIMECODE_SIGN_MASK;
     }
   
   if(tf->flags & GAVL_TIMECODE_DROP_FRAME)
@@ -227,8 +225,9 @@ void gavl_timecode_from_framecount(const gavl_timecode_format_t * tf,
   
   hours   = fc % 24;
   
-  gavl_timecode_from_hmsf(tc, hours, minutes,
+  gavl_timecode_from_hmsf(&ret, hours, minutes,
                           seconds, frames);
+  return ret;
   }
 
 /** \brief Dump a timecode to stderr
@@ -276,15 +275,10 @@ void gavl_timecode_prettyprint(const gavl_timecode_format_t * tf,
     }
 
   if(tf->int_framerate < 100)
-    sprintf(ptr, "%02d:%02d:%02d:%02d", hours, minutes, seconds, frames);
+    sprintf(ptr, "%02d:%02d:%02d.%02d", hours, minutes, seconds, frames);
   else if(tf->int_framerate < 1000)
-    sprintf(ptr, "%02d:%02d:%02d:%03d", hours, minutes, seconds, frames);
+    sprintf(ptr, "%02d:%02d:%02d.%03d", hours, minutes, seconds, frames);
   else
-    sprintf(ptr, "%02d:%02d:%02d:%04d", hours, minutes, seconds, frames);
+    sprintf(ptr, "%02d:%02d:%02d.%04d", hours, minutes, seconds, frames);
   }
   
-void gavl_timecode_format_dump(const gavl_timecode_format_t * f)
-  {
-  
-  }
-     

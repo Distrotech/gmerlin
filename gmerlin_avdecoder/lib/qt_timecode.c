@@ -136,9 +136,12 @@ void bgav_qt_init_timecodes(bgav_input_context_t * input,
   
   s->timecode_table = table;
   
+  bgav_input_seek(input, last_pos, SEEK_SET);
   return;
   
 fail:
+  bgav_input_seek(input, last_pos, SEEK_SET);
+  
   bgav_timecode_table_destroy(table);
   s->data.video.format.timecode_format.int_framerate = 0;
   return;

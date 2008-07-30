@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2008-07-15 22:23+0200\n"
+"POT-Creation-Date: 2008-07-31 00:36+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -340,6 +340,14 @@ msgstr ""
 msgid "Cannot open %s: %s"
 msgstr ""
 
+#: lib/qt_timecode.c:49
+msgid "Timecode tracks in non-seekable sources not supported"
+msgstr ""
+
+#: lib/qt_timecode.c:108
+msgid "EOF while reading timecode"
+msgstr ""
+
 #: lib/sdp.c:531 lib/sdp.c:696
 #, c-format
 msgid "Invalid line %d: %s"
@@ -385,35 +393,39 @@ msgstr ""
 msgid "Reading session description failed"
 msgstr ""
 
-#: lib/demux_quicktime.c:273
+#: lib/demux_quicktime.c:276
 msgid "No packets in movie"
 msgstr ""
 
-#: lib/demux_quicktime.c:759
+#: lib/demux_quicktime.c:762
 msgid "Chapters detected but stream is not seekable"
 msgstr ""
 
-#: lib/demux_quicktime.c:765
+#: lib/demux_quicktime.c:768
 msgid "More than one chapter track, choosing first"
 msgstr ""
 
-#: lib/demux_quicktime.c:782
+#: lib/demux_quicktime.c:785
 msgid "Unknown encoding for chapter names"
 msgstr ""
 
-#: lib/demux_quicktime.c:825
+#: lib/demux_quicktime.c:828
 msgid "Read error while setting up chapter list"
 msgstr ""
 
-#: lib/demux_quicktime.c:943
+#: lib/demux_quicktime.c:946
 msgid "Invalid mp3on4 channel configuration"
 msgstr ""
 
-#: lib/demux_quicktime.c:1410
+#: lib/demux_quicktime.c:1225
+msgid "More than one timecode track, ignoring them all"
+msgstr ""
+
+#: lib/demux_quicktime.c:1432
 msgid "Non streamable file on non seekable source"
 msgstr ""
 
-#: lib/demux_quicktime.c:1419
+#: lib/demux_quicktime.c:1441
 msgid "Reading moov atom failed"
 msgstr ""
 
@@ -992,7 +1004,7 @@ msgstr ""
 msgid "Unknown command %02x, decoding is doomed to failure"
 msgstr ""
 
-#: lib/video.c:253
+#: lib/video.c:268
 #, c-format
 msgid "Cannot skip backwards, stream_time: %s, sync_time: %s"
 msgstr ""
@@ -1174,20 +1186,20 @@ msgstr ""
 msgid "Unknown PES ID %02x"
 msgstr ""
 
-#: lib/video_libmpeg2.c:350
+#: lib/video_libmpeg2.c:371
 msgid "Detected change of image size, not handled yet"
 msgstr ""
 
-#: lib/video_libmpeg2.c:358
+#: lib/video_libmpeg2.c:379
 #, c-format
 msgid "Detected change of pixel aspect ratio: %dx%d"
 msgstr ""
 
-#: lib/video_libmpeg2.c:379
+#: lib/video_libmpeg2.c:401
 msgid "Detected MPEG still image"
 msgstr ""
 
-#: lib/video_libmpeg2.c:576
+#: lib/video_libmpeg2.c:611
 msgid "Detected Intra slice refresh"
 msgstr ""
 
