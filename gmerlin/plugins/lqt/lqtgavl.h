@@ -95,11 +95,15 @@ void lqt_gavl_add_audio_track(quicktime_t * file,
  * This function will change the format parameter according to
  * what you must pass to the encode calls. If the format is different
  * from the source format, you need a \ref gavl_video_converter_t.
+ *
+ * If the video format contains a valid timecode format, a timecode track
+ * will be added and attached to the video stream. If you don't like this,
+ * set format->timecode_format.int_framerate to 0 before calling this function.
  */
 
 void lqt_gavl_add_video_track(quicktime_t * file,
-                               gavl_video_format_t * format,
-                               lqt_codec_info_t * codec);
+                              gavl_video_format_t * format,
+                              lqt_codec_info_t * codec);
 
 /* Encode audio/video */
 
@@ -115,6 +119,9 @@ void lqt_gavl_add_video_track(quicktime_t * file,
  *  The format must be the same as returned by \ref lqt_gavl_add_audio_track.
  *  The samples_per_frame member of the frame can be larger than
  *  the samples_per_frame member of the format.
+ *
+ *  If the frame contains a valid timecode and timecodes are enabled for this
+ *  track, it is written to the file as well.
  */
 
 int lqt_gavl_encode_video(quicktime_t * file, int track,

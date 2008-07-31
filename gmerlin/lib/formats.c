@@ -135,6 +135,30 @@ char * bg_video_format_to_string(gavl_video_format_t * format, int use_tabs)
     ret = bg_strcat(ret, str);
     free(str);
     }
+
+  if(format->timecode_format.int_framerate)
+    {
+    if(!use_tabs)
+      s = TR("\nTimecode rate:    %d");
+    else
+      s = TR("\nTimecode rate:\t%d");
+    str = bg_sprintf(s, format->timecode_format.int_framerate);
+    ret = bg_strcat(ret, str);
+    free(str);
+
+    if(format->timecode_format.flags)
+      {
+      if(!use_tabs)
+        s = TR("\nTimecode flags: ");
+      else
+        s = TR("\nTimecode flags:\t");
+      ret = bg_strcat(ret, s);
+      
+      if(format->timecode_format.flags &
+         GAVL_TIMECODE_DROP_FRAME)
+        ret = bg_strcat(ret, TR("Drop "));
+      }
+    }
   return ret;
   }
 

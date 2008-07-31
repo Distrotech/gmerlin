@@ -460,6 +460,9 @@ int bg_video_converter_read(void * priv, gavl_video_frame_t* frame, int stream)
     
     frame->timestamp = cnv->out_pts;
     cnv->out_pts += cnv->out_format.frame_duration;
+
+    /* Clear timecode */
+    frame->timecode = GAVL_TIMECODE_UNDEFINED;
     }
   return 1;
   }

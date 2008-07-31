@@ -204,6 +204,44 @@ channel_gavl_2_lqt(gavl_channel_id_t ch)
   return LQT_CHANNEL_UNKNOWN;
   }
 
+/* Timecode flags */
+
+static const struct
+  {
+  int gavl;
+  uint32_t lqt;
+  }
+timecode_flags[] =
+  {
+    { GAVL_TIMECODE_DROP_FRAME, LQT_TIMECODE_DROP },
+  };
+
+static int timecode_flags_lqt_2_gavl(uint32_t lqt)
+  {
+  int i;
+  int ret = 0;
+  for(i = 0; i < sizeof(timecode_flags)/sizeof(timecode_flags[0]); i++)
+    {
+    if(lqt & timecode_flags[i].lqt)
+      ret |= timecode_flags[i].gavl;
+    }
+  return ret;
+  }
+
+static uint32_t timecode_flags_gavl_2_lqt(int gavl)
+  {
+  int i;
+  uint32_t ret = 0;
+  for(i = 0; i < sizeof(timecode_flags)/sizeof(timecode_flags[0]); i++)
+    {
+    if(gavl & timecode_flags[i].gavl)
+      ret |= timecode_flags[i].lqt;
+    }
+  return ret;
+  }
+
+/* Audio encoding */
+
 void lqt_gavl_add_audio_track(quicktime_t * file,
                                gavl_audio_format_t * format,
                                lqt_codec_info_t * codec)
@@ -260,15 +298,37 @@ void lqt_gavl_add_video_track(quicktime_t * file,
                          interlace_mode_gavl_2_lqt(format->interlace_mode));
   
   format->pixelformat = pixelformat_lqt_2_gavl(lqt_get_cmodel(file, track));
+
+  if(format->timecode_format.int_framerate > 0)
+    {
+    lqt_add_timecode_track(file, track,
+                           timecode_flags_gavl_2_lqt(format->timecode_format.flags),
+                           format->timecode_format.int_framerate);
+    }
   }
-
-
 
 int lqt_gavl_encode_video(quicktime_t * file, int track,
                            gavl_video_frame_t * frame, uint8_t ** rows)
   {
   int i, height;
   int result;
+  int tc_framerate;
+  uint32_t tc_flags;
+    
+  /* Write timecode */
+
+  if(lqt_has_timecode_track(file, track, &tc_flags, &tc_framerate) &&
+     (frame->timecode != GAVL_TIMECODE_UNDEFINED))
+    {
+    gavl_timecode_format_t f;
+    f.int_framerate = tc_framerate;
+    f.flags         = timecode_flags_lqt_2_gavl(tc_flags);
+    
+    lqt_write_timecode(file, track,
+                       gavl_timecode_to_framecount(&f, frame->timecode));
+    
+    }
+                       
   
   if(lqt_colormodel_is_planar(lqt_get_cmodel(file, track)))
     {
@@ -335,6 +395,8 @@ int lqt_gavl_get_video_format(quicktime_t * file,
                               gavl_video_format_t * format, int encode)
   {
   int constant_framerate;
+  int tc_framerate;
+  uint32_t tc_flags;
   if(track >= quicktime_video_tracks(file) ||
      track < 0)
     return 0;
@@ -352,6 +414,12 @@ int lqt_gavl_get_video_format(quicktime_t * file,
   format->frame_duration = lqt_frame_duration(file, track,
                                               &constant_framerate);
 
+  if(lqt_has_timecode_track(file, track, &tc_flags, &tc_framerate))
+    {
+    format->timecode_format.int_framerate = tc_framerate;
+    format->timecode_format.flags = timecode_flags_lqt_2_gavl(tc_flags);
+    }
+  
   if(encode)
     {
     if((lqt_get_file_type(file) & (LQT_FILE_AVI|LQT_FILE_AVI_ODML)))
@@ -380,14 +448,28 @@ int lqt_gavl_decode_video(quicktime_t * file, int track,
                           gavl_video_frame_t * frame, uint8_t ** rows)
   {
   int i, height;
+  uint32_t tc;
+  uint32_t tc_flags;
+  int      tc_framerate;
+  
   if(quicktime_video_position(file, track) >=
      quicktime_video_length(file, track))
     return 0;
   
   frame->timestamp = lqt_frame_time(file, track);
 
-
-
+  if(lqt_has_timecode_track(file, track, &tc_flags,
+                            &tc_framerate) &&
+     lqt_read_timecode(file, track, &tc))
+    {
+    gavl_timecode_format_t f;
+    f.int_framerate = tc_framerate;
+    f.flags = timecode_flags_lqt_2_gavl(tc_flags);
+    frame->timecode = gavl_timecode_from_framecount(&f, tc);
+    }
+  else
+    frame->timecode = GAVL_TIMECODE_UNDEFINED;
+  
   if(lqt_colormodel_is_planar(lqt_get_cmodel(file, track)))
     {
     lqt_set_row_span(file, track, frame->strides[0]);

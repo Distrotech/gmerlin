@@ -483,7 +483,7 @@ void bg_msg_set_arg_video_format(bg_msg_t * msg, int arg,
   uint8_t * ptr;
   uint8_t * pos;
 
-  ptr = bg_msg_set_arg_ptr(msg, arg, 39);
+  ptr = bg_msg_set_arg_ptr(msg, arg, 47);
   
   pos = ptr;
   
@@ -499,7 +499,8 @@ void bg_msg_set_arg_video_format(bg_msg_t * msg, int arg,
   pos = set_8(pos, format->framerate_mode);
   pos = set_8(pos, format->interlace_mode);
   pos = set_8(pos, format->chroma_placement);
-  
+  pos = set_32(pos, format->timecode_format.int_framerate);
+  pos = set_32(pos, format->timecode_format.flags);
   }
 
 void bg_msg_get_arg_video_format(bg_msg_t * msg, int arg,
@@ -513,21 +514,22 @@ void bg_msg_get_arg_video_format(bg_msg_t * msg, int arg,
   
   pos = ptr;
 
-  pos = get_32(pos, &(tmp)); format->frame_width      = tmp;
-  pos = get_32(pos, &(tmp)); format->frame_height     = tmp;
-  pos = get_32(pos, &(tmp)); format->image_width      = tmp;
-  pos = get_32(pos, &(tmp)); format->image_height     = tmp;
-  pos = get_32(pos, &(tmp)); format->pixel_width      = tmp;
-  pos = get_32(pos, &(tmp)); format->pixel_height     = tmp;
-  pos = get_32(pos, &(tmp)); format->pixelformat       = tmp;
-  pos = get_32(pos, &(tmp)); format->timescale        = tmp;
-  pos = get_32(pos, &(tmp)); format->frame_duration   = tmp;
-  pos = get_8(pos,  &(tmp)); format->framerate_mode   = tmp;
-  pos = get_8(pos,  &(tmp)); format->interlace_mode   = tmp;
-  pos = get_8(pos,  &(tmp)); format->chroma_placement = tmp;
+  pos = get_32(pos, &(tmp)); format->frame_width                   = tmp;
+  pos = get_32(pos, &(tmp)); format->frame_height                  = tmp;
+  pos = get_32(pos, &(tmp)); format->image_width                   = tmp;
+  pos = get_32(pos, &(tmp)); format->image_height                  = tmp;
+  pos = get_32(pos, &(tmp)); format->pixel_width                   = tmp;
+  pos = get_32(pos, &(tmp)); format->pixel_height                  = tmp;
+  pos = get_32(pos, &(tmp)); format->pixelformat                   = tmp;
+  pos = get_32(pos, &(tmp)); format->timescale                     = tmp;
+  pos = get_32(pos, &(tmp)); format->frame_duration                = tmp;
+  pos = get_8(pos,  &(tmp)); format->framerate_mode                = tmp;
+  pos = get_8(pos,  &(tmp)); format->interlace_mode                = tmp;
+  pos = get_8(pos,  &(tmp)); format->chroma_placement              = tmp;
+  pos = get_32(pos, &(tmp)); format->timecode_format.int_framerate = tmp;
+  pos = get_32(pos, &(tmp)); format->timecode_format.flags         = tmp;
   
   free(ptr);
-  
   }
 
 /*
