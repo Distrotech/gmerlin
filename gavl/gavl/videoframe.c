@@ -1635,7 +1635,7 @@ void gavl_video_frame_fill(gavl_video_frame_t * frame,
       RGB_FLOAT_TO_YUV_16(color[0], color[1], color[2], packed_64[0],
                           packed_64[1], packed_64[2]);
       RGB_FLOAT_TO_16(color[3], packed_64[3]);
-      fill_planar_16(frame, format, packed_64);
+      fill_64_packed(frame, format, packed_64);
       break;
     case GAVL_GRAY_FLOAT:
       RGB_FLOAT_TO_Y_FLOAT(color[0], color[1], color[2], color_float[0]);

@@ -149,11 +149,11 @@ int64_t gavl_timecode_to_framecount(const gavl_timecode_format_t * tf,
     return tc;
 
   sign = (tc & GAVL_TIMECODE_SIGN_MASK) ? -1 : 1;
+  gavl_timecode_to_hmsf(tc, &hours, &minutes, &seconds, &frames);
   
   if(tf->flags & GAVL_TIMECODE_DROP_FRAME)
     {
     uint64_t total_minutes;
-    gavl_timecode_to_hmsf(tc, &hours, &minutes, &seconds, &frames);
 
     /*
       http://www.andrewduncan.ws/Timecodes/Timecodes.html
@@ -169,12 +169,10 @@ int64_t gavl_timecode_to_framecount(const gavl_timecode_format_t * tf,
     
     return sign * (1800 * total_minutes
                    + 30 * seconds + frames
-                   - 2 * (total_minutes - total_minutes % 10));
+                   - 2 * (total_minutes - total_minutes / 10));
     }
   else
     {
-    gavl_timecode_to_hmsf(tc, &hours, &minutes, &seconds, &frames);
-    
     return sign * ((int64_t)frames +
                    tf->int_framerate * ((int64_t)(seconds) +
                                         60 * ((int64_t)(minutes) +
@@ -211,7 +209,7 @@ gavl_timecode_t gavl_timecode_from_framecount(const gavl_timecode_format_t * tf,
 
     D = fc / 17982;
     M = fc % 17982;
-    fc +=  18*D + 2*((M - 2) % 1798);
+    fc +=  18*D + 2*((M - 2) / 1798);
     }
   
   frames  = fc % tf->int_framerate;

@@ -1477,7 +1477,7 @@ static void blend_yuv_410_p(gavl_overlay_blend_context_t * ctx,
                             gavl_video_frame_t * frame,
                             gavl_video_frame_t * overlay)
   {
-    int i, j, imax, jmax;
+  int i, j, imax, jmax;
   uint8_t * ovl_ptr;
   uint8_t * dst_ptr_y;
   uint8_t * dst_ptr_u;
@@ -1524,7 +1524,7 @@ static void blend_yuv_410_p(gavl_overlay_blend_context_t * ctx,
       tmp = *dst_ptr_v;
       BLEND_8(ovl_ptr[2], tmp, ovl_ptr[3]);
       *(dst_ptr_v++) = tmp;
-
+      
       /* Y1 */
       tmp = *dst_ptr_y;
       BLEND_8(ovl_ptr[4], tmp, ovl_ptr[7]);
@@ -1635,7 +1635,7 @@ static void blend_yuv_410_p(gavl_overlay_blend_context_t * ctx,
 
       /* Y3 */
       tmp = *dst_ptr_y;
-      BLEND_8(ovl_ptr[12], tmp, ovl_ptr[16]);
+      BLEND_8(ovl_ptr[12], tmp, ovl_ptr[15]);
       *(dst_ptr_y++) = tmp;
             
       ovl_ptr+=16;
