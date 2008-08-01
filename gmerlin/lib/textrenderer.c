@@ -231,6 +231,7 @@ struct bg_text_renderer_s
   double font_size;
   
   float color[4];
+  float color_config[4];
   float alpha_f;
   int   alpha_i;
 
@@ -271,6 +272,8 @@ struct bg_text_renderer_s
 
   int config_changed;
 
+  int fixed_width;
+  
   int default_width, default_height;
   gavl_pixelformat_t default_csp;
   float default_framerate;
@@ -388,6 +391,94 @@ static void render_rgba_32(bg_text_renderer_t * r, cache_entry_t * glyph,
   *dst_y += glyph->advance_y;
   }
 
+static void render_graya_16(bg_text_renderer_t * r, cache_entry_t * glyph,
+                            gavl_video_frame_t * frame,
+                            int * dst_x, int * dst_y)
+  {
+  FT_BitmapGlyph bitmap_glyph;
+  uint8_t * src_ptr, * dst_ptr, * src_ptr_start, * dst_ptr_start;
+  int i, j, i_tmp, jmax;
+#ifdef FT_STROKER_H
+  int alpha_i;
+#endif
+ 
+
+#ifdef FT_STROKER_H
+  bitmap_glyph = (FT_BitmapGlyph)(glyph->glyph_stroke);
+#else
+  bitmap_glyph = (FT_BitmapGlyph)(glyph->glyph);
+#endif
+  
+  if(!bitmap_glyph->bitmap.buffer)
+    {
+    *dst_x += glyph->advance_x;
+    *dst_y += glyph->advance_y;
+    return;
+    }
+
+  src_ptr_start = bitmap_glyph->bitmap.buffer;
+  dst_ptr_start = frame->planes[0] + (*dst_y - bitmap_glyph->top) *
+    frame->strides[0] + (*dst_x + bitmap_glyph->left) * 2;
+  
+  jmax = MY_MIN(bitmap_glyph->bitmap.width, 
+                bitmap_glyph->bitmap.pitch);
+    
+  for(i = 0; i < bitmap_glyph->bitmap.rows; i++)
+    {
+    src_ptr = src_ptr_start;
+    dst_ptr = dst_ptr_start;
+    
+    for(j = 0; j < jmax; j++)
+      {
+      i_tmp = ((int)*src_ptr * (int)r->alpha_i) >> 8;
+      if(i_tmp > dst_ptr[1])
+        dst_ptr[1] = i_tmp;
+      src_ptr++;
+      dst_ptr += 2;
+      }
+    src_ptr_start += bitmap_glyph->bitmap.pitch;
+    dst_ptr_start += frame->strides[0];
+    }
+  // #if 0
+#ifdef FT_STROKER_H
+  bitmap_glyph = (FT_BitmapGlyph)(glyph->glyph);
+
+  src_ptr_start = bitmap_glyph->bitmap.buffer;
+  dst_ptr_start = frame->planes[0] + (*dst_y - bitmap_glyph->top) *
+    frame->strides[0] + (*dst_x + bitmap_glyph->left) * 2;
+
+  jmax = MY_MIN(bitmap_glyph->bitmap.width, 
+                bitmap_glyph->bitmap.pitch);
+  
+  
+  for(i = 0; i < bitmap_glyph->bitmap.rows; i++)
+    {
+    src_ptr = src_ptr_start;
+    dst_ptr = dst_ptr_start;
+    
+    for(j = 0; j < jmax; j++)
+      {
+      if(*src_ptr)
+        {
+        alpha_i = *src_ptr;
+        
+        dst_ptr[0] = (int)dst_ptr[0] +
+          ((alpha_i * ((int)(r->color_i[0]) - (int)dst_ptr[0])) >> 8);
+        }
+      src_ptr++;
+      dst_ptr += 2;
+      }
+    src_ptr_start += bitmap_glyph->bitmap.pitch;
+    dst_ptr_start += frame->strides[0];
+    }
+  
+#endif
+  
+  *dst_x += glyph->advance_x;
+  *dst_y += glyph->advance_y;
+  }
+
+
 static void render_rgba_64(bg_text_renderer_t * r, cache_entry_t * glyph,
                            gavl_video_frame_t * frame,
                            int * dst_x, int * dst_y)
@@ -485,6 +576,96 @@ static void render_rgba_64(bg_text_renderer_t * r, cache_entry_t * glyph,
 
   }
 
+static void render_graya_32(bg_text_renderer_t * r, cache_entry_t * glyph,
+                            gavl_video_frame_t * frame,
+                            int * dst_x, int * dst_y)
+  {
+  FT_BitmapGlyph bitmap_glyph;
+  uint8_t * src_ptr, * src_ptr_start, * dst_ptr_start;
+  uint16_t * dst_ptr;
+  int i, j, i_tmp, jmax;
+#ifdef FT_STROKER_H
+  int alpha_i;
+#endif
+
+#ifdef FT_STROKER_H
+  bitmap_glyph = (FT_BitmapGlyph)(glyph->glyph_stroke);
+#else
+  bitmap_glyph = (FT_BitmapGlyph)(glyph->glyph);
+#endif
+  
+  if(!bitmap_glyph->bitmap.buffer)
+    {
+    *dst_x += glyph->advance_x;
+    *dst_y += glyph->advance_y;
+    return;
+    }
+
+  src_ptr_start = bitmap_glyph->bitmap.buffer;
+  dst_ptr_start = frame->planes[0] + (*dst_y - bitmap_glyph->top) *
+    frame->strides[0] + (*dst_x + bitmap_glyph->left) * 4;
+
+  jmax = MY_MIN(bitmap_glyph->bitmap.width, 
+                bitmap_glyph->bitmap.pitch);
+    
+  for(i = 0; i < bitmap_glyph->bitmap.rows; i++)
+    {
+    src_ptr = src_ptr_start;
+    dst_ptr = (uint16_t*)dst_ptr_start;
+    
+    for(j = 0; j < jmax; j++)
+      {
+      i_tmp = ((int)*src_ptr * (int)r->alpha_i) >> 8;
+      if(i_tmp > dst_ptr[1])
+        dst_ptr[1] = i_tmp;
+      
+      src_ptr++;
+      dst_ptr += 2;
+      }
+    src_ptr_start += bitmap_glyph->bitmap.pitch;
+    dst_ptr_start += frame->strides[0];
+    }
+  // #if 0
+#ifdef FT_STROKER_H
+  /* Render border */
+  bitmap_glyph = (FT_BitmapGlyph)(glyph->glyph);
+
+  src_ptr_start = bitmap_glyph->bitmap.buffer;
+  dst_ptr_start = frame->planes[0] + (*dst_y - bitmap_glyph->top) *
+    frame->strides[0] + (*dst_x + bitmap_glyph->left) * 4;
+
+  jmax = MY_MIN(bitmap_glyph->bitmap.width, 
+                bitmap_glyph->bitmap.pitch);
+  
+  for(i = 0; i < bitmap_glyph->bitmap.rows; i++)
+    {
+    src_ptr = src_ptr_start;
+    dst_ptr = (uint16_t*)dst_ptr_start;
+    
+    for(j = 0; j < jmax; j++)
+      {
+      if(*src_ptr)
+        {
+        //        alpha_i = ((int)*src_ptr * (int)r->color_i[3]) >> 8;
+        alpha_i = *src_ptr;
+        
+        dst_ptr[0] = (int)dst_ptr[0] +
+          ((alpha_i * ((int64_t)(r->color_i[0]) - (int64_t)dst_ptr[0])) >> 8);
+        }
+      src_ptr++;
+      dst_ptr += 2;
+      }
+    src_ptr_start += bitmap_glyph->bitmap.pitch;
+    dst_ptr_start += frame->strides[0];
+    }
+  
+#endif
+  
+  *dst_x += glyph->advance_x;
+  *dst_y += glyph->advance_y;
+  }
+
+
 static void render_rgba_float(bg_text_renderer_t * r, cache_entry_t * glyph,
                               gavl_video_frame_t * frame,
                               int * dst_x, int * dst_y)
@@ -577,6 +758,97 @@ static void render_rgba_float(bg_text_renderer_t * r, cache_entry_t * glyph,
 
   }
 
+static void render_graya_float(bg_text_renderer_t * r, cache_entry_t * glyph,
+                               gavl_video_frame_t * frame,
+                               int * dst_x, int * dst_y)
+  {
+  FT_BitmapGlyph bitmap_glyph;
+  uint8_t * src_ptr, * src_ptr_start, * dst_ptr_start;
+  float * dst_ptr;
+  int i, j, jmax;
+  float f_tmp;
+#ifdef FT_STROKER_H
+  float alpha_f;
+#endif
+
+#ifdef FT_STROKER_H
+  bitmap_glyph = (FT_BitmapGlyph)(glyph->glyph_stroke);
+#else
+  bitmap_glyph = (FT_BitmapGlyph)(glyph->glyph);
+#endif
+  
+  if(!bitmap_glyph->bitmap.buffer)
+    {
+    *dst_x += glyph->advance_x;
+    *dst_y += glyph->advance_y;
+    return;
+    }
+
+  src_ptr_start = bitmap_glyph->bitmap.buffer;
+  dst_ptr_start = frame->planes[0] + (*dst_y - bitmap_glyph->top) *
+    frame->strides[0] + (*dst_x + bitmap_glyph->left) * 2 * sizeof(float);
+
+
+  jmax = MY_MIN(bitmap_glyph->bitmap.width, 
+                bitmap_glyph->bitmap.pitch);
+
+  for(i = 0; i < bitmap_glyph->bitmap.rows; i++)
+    {
+    src_ptr = src_ptr_start;
+    dst_ptr = (float*)dst_ptr_start;
+    
+    for(j = 0; j < jmax; j++)
+      {
+      f_tmp = ((float)*src_ptr * r->alpha_f) / 255.0;
+      if(f_tmp > dst_ptr[1])
+        dst_ptr[1] = f_tmp;
+      
+      src_ptr++;
+      dst_ptr += 2;
+      }
+    src_ptr_start += bitmap_glyph->bitmap.pitch;
+    dst_ptr_start += frame->strides[0];
+    }
+  // #if 0
+#ifdef FT_STROKER_H
+  /* Render border */
+  bitmap_glyph = (FT_BitmapGlyph)(glyph->glyph);
+  
+  src_ptr_start = bitmap_glyph->bitmap.buffer;
+  dst_ptr_start = frame->planes[0] + (*dst_y - bitmap_glyph->top) *
+    frame->strides[0] + (*dst_x + bitmap_glyph->left) * 2 * sizeof(float);
+
+  jmax = MY_MIN(bitmap_glyph->bitmap.width, 
+                bitmap_glyph->bitmap.pitch);
+  
+  for(i = 0; i < bitmap_glyph->bitmap.rows; i++)
+    {
+    src_ptr = src_ptr_start;
+    dst_ptr = (float*)dst_ptr_start;
+    
+    for(j = 0; j < jmax; j++)
+      {
+      if(*src_ptr)
+        {
+        alpha_f = (float)(*src_ptr) / 255.0;
+        
+        dst_ptr[0] = dst_ptr[0] + alpha_f * (r->color[0] - dst_ptr[0]);
+        }
+      src_ptr++;
+      dst_ptr += 2;
+      }
+    src_ptr_start += bitmap_glyph->bitmap.pitch;
+    dst_ptr_start += frame->strides[0];
+    }
+  
+#endif
+  
+  *dst_x += glyph->advance_x;
+  *dst_y += glyph->advance_y;
+
+  }
+
+
 static void alloc_glyph_cache(bg_text_renderer_t * r, int size)
   {
   int i;
@@ -619,6 +891,7 @@ static cache_entry_t * get_glyph(bg_text_renderer_t * r, uint32_t unicode)
   {
   int i, index;
   cache_entry_t * entry;
+  
   FT_BitmapGlyph bitmap_glyph;
       
   for(i = 0; i < r->cache_size; i++)
@@ -677,14 +950,22 @@ static cache_entry_t * get_glyph(bg_text_renderer_t * r, uint32_t unicode)
 #else
   bitmap_glyph = (FT_BitmapGlyph)(entry->glyph);
 #endif
-
-  entry->bbox.xmin = bitmap_glyph->left;
-  entry->bbox.ymin = -bitmap_glyph->top;
-  entry->bbox.xmax = entry->bbox.xmin + bitmap_glyph->bitmap.width;
-  entry->bbox.ymax = entry->bbox.ymin + bitmap_glyph->bitmap.rows;
-
+  
   entry->advance_x = entry->glyph->advance.x>>16;
   entry->advance_y = entry->glyph->advance.y>>16;
+
+  if(r->fixed_width)
+    {
+    entry->bbox.xmin = 0;
+    entry->bbox.xmax = entry->advance_x;
+    }
+  else
+    {
+    entry->bbox.xmin = bitmap_glyph->left;
+    entry->bbox.xmax = entry->bbox.xmin + bitmap_glyph->bitmap.width;
+    }
+  entry->bbox.ymin = -bitmap_glyph->top;
+  entry->bbox.ymax = entry->bbox.ymin + bitmap_glyph->bitmap.rows;
 
     
   entry->unicode = unicode;
@@ -764,6 +1045,7 @@ static int load_font(bg_text_renderer_t * r)
   /* Load face */
   
   err = FT_New_Face(r->library, (char*)filename, 0, &r->face);
+
   
   if(err)
     {
@@ -775,6 +1057,8 @@ static int load_font(bg_text_renderer_t * r)
     return 0;
     }
 
+  r->fixed_width = FT_IS_FIXED_WIDTH(r->face);
+  
   if(r->font)
     {
     FcPatternDestroy(fc_pattern);
@@ -896,10 +1180,10 @@ void bg_text_renderer_set_parameter(void * data, const char * name,
   /* */
   else if(!strcmp(name, "color"))
     {
-    r->color[0] = val->val_color[0];
-    r->color[1] = val->val_color[1];
-    r->color[2] = val->val_color[2];
-    r->color[3] = 0.0;
+    r->color_config[0] = val->val_color[0];
+    r->color_config[1] = val->val_color[1];
+    r->color_config[2] = val->val_color[2];
+    r->color_config[3] = 0.0;
     r->alpha_f  = val->val_color[3];
     }
 #ifdef FT_STROKER_H
@@ -994,8 +1278,14 @@ void bg_text_renderer_set_parameter(void * data, const char * name,
 #define g_float_to_v  (-0.41869)
 #define b_float_to_v  (-0.08131)
 
-#define Y_FLOAT_TO_8(val) (int)(val * 219.0) + 16;
-#define UV_FLOAT_TO_8(val) (int)(val * 224.0) + 128;
+#define Y_FLOAT_TO_8(val) (int)(val * 219.0+0.5) + 16;
+#define UV_FLOAT_TO_8(val) (int)(val * 224.0+0.5) + 128;
+
+#define GRAY_FLOAT_TO_8(val) (int)(val * 255.0+0.5);
+#define GRAY_FLOAT_TO_16(val) (int)(val * 65535.0+0.5);
+
+#define Y_FLOAT_TO_16(val,dst)  dst=(int)(val * 219.0 * (float)0x100+0.5) + 0x1000;
+#define UV_FLOAT_TO_16(val,dst) dst=(int)(val * 224.0 * (float)0x100+0.5) + 0x8000;
 
 #define RGB_FLOAT_TO_Y_8(r, g, b, y)                              \
   y_tmp = r_float_to_y * r + g_float_to_y * g + b_float_to_y * b; \
@@ -1008,6 +1298,35 @@ void bg_text_renderer_set_parameter(void * data, const char * name,
   u = UV_FLOAT_TO_8(u_tmp);                                        \
   v = UV_FLOAT_TO_8(v_tmp);
 
+#define RGB_FLOAT_TO_Y_16(r, g, b, y)                              \
+  y_tmp = r_float_to_y * r + g_float_to_y * g + b_float_to_y * b; \
+  Y_FLOAT_TO_16(y_tmp, y);
+
+#define RGB_FLOAT_TO_YUV_16(r, g, b, y, u, v)                      \
+  RGB_FLOAT_TO_Y_16(r, g, b, y)                                    \
+  u_tmp = r_float_to_u * r + g_float_to_u * g + b_float_to_u * b; \
+  v_tmp = r_float_to_v * r + g_float_to_v * g + b_float_to_v * b; \
+  UV_FLOAT_TO_16(u_tmp, u);                                        \
+  UV_FLOAT_TO_16(v_tmp, v);
+
+#define RGB_FLOAT_TO_YUV_FLOAT(r, g, b, y, u, v)                      \
+  y = r_float_to_y * r + g_float_to_y * g + b_float_to_y * b; \
+  u = r_float_to_u * r + g_float_to_u * g + b_float_to_u * b; \
+  v = r_float_to_v * r + g_float_to_v * g + b_float_to_v * b;
+
+#define RGB_FLOAT_TO_Y_FLOAT(r, g, b, y, u, v)                      \
+  y = r_float_to_y * r + g_float_to_y * g + b_float_to_y * b;
+
+#define RGB_FLOAT_TO_GRAY_16(r, g, b, y)                              \
+  y_tmp = r_float_to_y * r + g_float_to_y * g + b_float_to_y * b; \
+  y = GRAY_FLOAT_TO_16(y_tmp);
+
+#define RGB_FLOAT_TO_GRAY_8(r, g, b, y)                              \
+  y_tmp = r_float_to_y * r + g_float_to_y * g + b_float_to_y * b; \
+  y = GRAY_FLOAT_TO_8(y_tmp);
+
+#define RGB_FLOAT_TO_GRAY_FLOAT(r, g, b, y)                              \
+  y = r_float_to_y * r + g_float_to_y * g + b_float_to_y * b;
 
 static
 void init_nolock(bg_text_renderer_t * r)
@@ -1048,10 +1367,10 @@ void init_nolock(bg_text_renderer_t * r)
       r->overlay_format.pixelformat = GAVL_RGBA_32;
       r->alpha_i = (int)(r->alpha_f*255.0+0.5);
 #ifdef FT_STROKER_H 
-      r->color_i[0] = (int)(r->color[0]*255.0+0.5);
-      r->color_i[1] = (int)(r->color[1]*255.0+0.5);
-      r->color_i[2] = (int)(r->color[2]*255.0+0.5);
-      r->color_i[3] = (int)(r->color[3]*255.0+0.5);
+      r->color_i[0] = (int)(r->color_config[0]*255.0+0.5);
+      r->color_i[1] = (int)(r->color_config[1]*255.0+0.5);
+      r->color_i[2] = (int)(r->color_config[2]*255.0+0.5);
+      r->color_i[3] = (int)(r->color_config[3]*255.0+0.5);
 #endif
       r->render_func = render_rgba_32;
       }
@@ -1060,10 +1379,10 @@ void init_nolock(bg_text_renderer_t * r)
       r->overlay_format.pixelformat = GAVL_RGBA_64;
       r->alpha_i = (int)(r->alpha_f*65535.0+0.5);
 #ifdef FT_STROKER_H 
-      r->color_i[0] = (int)(r->color[0]*65535.0+0.5);
-      r->color_i[1] = (int)(r->color[1]*65535.0+0.5);
-      r->color_i[2] = (int)(r->color[2]*65535.0+0.5);
-      r->color_i[3] = (int)(r->color[3]*65535.0+0.5);
+      r->color_i[0] = (int)(r->color_config[0]*65535.0+0.5);
+      r->color_i[1] = (int)(r->color_config[1]*65535.0+0.5);
+      r->color_i[2] = (int)(r->color_config[2]*65535.0+0.5);
+      r->color_i[3] = (int)(r->color_config[3]*65535.0+0.5);
 #endif
       r->render_func = render_rgba_64;
       }
@@ -1071,25 +1390,138 @@ void init_nolock(bg_text_renderer_t * r)
       {
       r->overlay_format.pixelformat = GAVL_RGBA_FLOAT;
       r->render_func = render_rgba_float;
+      r->color[0] = r->color_config[0];
+      r->color[1] = r->color_config[1];
+      r->color[2] = r->color_config[2];
       }
     }
-  else
+  else if(gavl_pixelformat_is_yuv(r->frame_format.pixelformat))
     {
-    r->overlay_format.pixelformat = GAVL_YUVA_32;
-    r->alpha_i = (int)(r->alpha_f*255.0+0.5);
+    if(gavl_pixelformat_is_planar(r->frame_format.pixelformat))
+      {
+      switch(gavl_pixelformat_bytes_per_component(r->frame_format.pixelformat))
+        {
+        case 1:
+          r->overlay_format.pixelformat = GAVL_YUVA_32;
+          r->alpha_i = (int)(r->alpha_f*255.0+0.5);
 #ifdef FT_STROKER_H 
-
-    RGB_FLOAT_TO_YUV_8(r->color[0],
-                       r->color[1],
-                       r->color[2],
-                       r->color_i[0],
-                       r->color_i[1],
-                       r->color_i[2]);
-    r->color_i[3] = (int)(r->color[3]*255.0+0.5);
+          RGB_FLOAT_TO_YUV_8(r->color_config[0],
+                             r->color_config[1],
+                             r->color_config[2],
+                             r->color_i[0],
+                             r->color_i[1],
+                             r->color_i[2]);
+          r->color_i[3] = (int)(r->color[3]*255.0+0.5);
 #endif
-    r->render_func = render_rgba_32;
+          r->render_func = render_rgba_32;
+          break; 
+        case 2:
+          r->overlay_format.pixelformat = GAVL_YUVA_64;
+          r->alpha_i = (int)(r->alpha_f*65535.0+0.5);
+#ifdef FT_STROKER_H 
+          RGB_FLOAT_TO_YUV_16(r->color_config[0],
+                              r->color_config[1],
+                              r->color_config[2],
+                              r->color_i[0],
+                              r->color_i[1],
+                              r->color_i[2]);
+          r->color_i[3] = (int)(r->color[3]*65535.0+0.5);
+#endif
+          r->render_func = render_rgba_64;
+          break; 
+        }
+      }
+    else /* Packed */
+      {
+      switch(gavl_pixelformat_bytes_per_pixel(r->frame_format.pixelformat))
+        {
+        case 2: /* YUY2, UYVY */
+        case 4: /* YUVA32 */
+          r->overlay_format.pixelformat = GAVL_YUVA_32;
+          r->alpha_i = (int)(r->alpha_f*255.0+0.5);
+#ifdef FT_STROKER_H 
+          RGB_FLOAT_TO_YUV_8(r->color_config[0],
+                             r->color_config[1],
+                             r->color_config[2],
+                             r->color_i[0],
+                             r->color_i[1],
+                             r->color_i[2]);
+          r->color_i[3] = (int)(r->color[3]*255.0+0.5);
+#endif
+          r->render_func = render_rgba_32;
+          break; 
+        case 8: /* YUVA 64 */
+          r->overlay_format.pixelformat = GAVL_YUVA_64;
+          r->alpha_i = (int)(r->alpha_f*65535.0+0.5);
+#ifdef FT_STROKER_H 
+          RGB_FLOAT_TO_YUV_16(r->color_config[0],
+                              r->color_config[1],
+                              r->color_config[2],
+                              r->color_i[0],
+                              r->color_i[1],
+                              r->color_i[2]);
+          r->color_i[3] = (int)(r->color[3]*65535.0+0.5);
+#endif
+          r->render_func = render_rgba_64;
+          break; 
+        case 3*sizeof(float): /* YUV float */
+        case 4*sizeof(float): /* YUVA float */
+          r->overlay_format.pixelformat = GAVL_YUVA_FLOAT;
+#ifdef FT_STROKER_H 
+          RGB_FLOAT_TO_YUV_FLOAT(r->color_config[0],
+                                 r->color_config[1],
+                                 r->color_config[2],
+                                 r->color[0],
+                                 r->color[1],
+                                 r->color[2]);
+#endif
+          r->render_func = render_rgba_float;
+          break; 
+        }
+      }
     }
-
+  else // Gray
+    {
+    switch(r->frame_format.pixelformat)
+      {
+      case GAVL_GRAY_8:
+      case GAVL_GRAYA_16:
+        r->overlay_format.pixelformat = GAVL_GRAYA_16;
+        r->alpha_i = (int)(r->alpha_f*255.0+0.5);
+#ifdef FT_STROKER_H 
+        RGB_FLOAT_TO_GRAY_8(r->color_config[0],
+                            r->color_config[1],
+                            r->color_config[2],
+                            r->color_i[0]);
+#endif
+        r->render_func = render_graya_16;
+        break;
+      case GAVL_GRAY_16:
+      case GAVL_GRAYA_32:
+        r->overlay_format.pixelformat = GAVL_GRAYA_32;
+        r->alpha_i = (int)(r->alpha_f*65535.0+0.5);
+#ifdef FT_STROKER_H 
+        RGB_FLOAT_TO_GRAY_16(r->color_config[0],
+                             r->color_config[1],
+                             r->color_config[2],
+                             r->color_i[0]);
+#endif
+        r->render_func = render_graya_32;
+        break;
+      case GAVL_GRAY_FLOAT:
+      case GAVL_GRAYA_FLOAT:
+        r->overlay_format.pixelformat = GAVL_GRAYA_FLOAT;
+        r->render_func = render_graya_float;
+        RGB_FLOAT_TO_GRAY_FLOAT(r->color_config[0],
+                                r->color_config[1],
+                                r->color_config[2],
+                                r->color[0]);
+        break;
+      default:
+        break;
+      }
+    }
+  
   /* */
   
   gavl_rectangle_i_set_all(&(r->max_bbox), &(r->overlay_format));

@@ -28,6 +28,7 @@ fv_flip.la \
 fv_invert_rgb.la \
 fv_oldcolor.la \
 fv_pixelformat.la \
+fv_tcdisplay.la \
 fv_tctweak.la \
 fv_tlp.la \
 fv_zoom.la
@@ -48,6 +49,9 @@ fv_oldcolor_la_SOURCES  = fv_oldcolor.c colormatrix.c
 fv_pixelformat_la_SOURCES  = fv_pixelformat.c
 
 fv_tlp_la_SOURCES  = fv_tlp.c
+
+fv_tcdisplay_la_SOURCES  = fv_tcdisplay.c
+fv_tcdisplay_la_CFLAGS   = @FREETYPE_CFLAGS@ -DLOCALE_DIR=\"$(localedir)\"
 
 fv_tctweak_la_SOURCES  = fv_tctweak.c
 

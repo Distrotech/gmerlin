@@ -32,6 +32,13 @@
 
 #define LOG_DOMAIN "fv_tctweak"
 
+#define MODE_OFF              0
+#define MODE_INTERPOLATE      1
+#define MODE_REMOVE_REDUNDANT 2
+#define MODE_REMOVE_ALL       3
+#define MODE_ADD              4
+#define MODE_ADD_FIRST        5
+
 typedef struct
   {
   bg_read_video_func_t read_func;
@@ -39,7 +46,13 @@ typedef struct
   int read_stream;
   
   gavl_video_format_t format;
-  
+  gavl_timecode_t last_timecode;
+  int mode;
+
+  int int_framerate;
+  int drop;
+  int hours, minutes, seconds, frames;
+  gavl_timecode_t first_timecode;
   } tc_priv_t;
 
 static void * create_tctweak()
@@ -64,64 +77,72 @@ static const bg_parameter_info_t parameters[] =
       .name = "mode",
       .long_name = TRS("Mode"),
       .type = BG_PARAMETER_STRINGLIST,
-      .flags = BG_PARAMETER_SYNC,
-      .multi_names = (char*[]){ TRS("interpolate"),
-                                TRS("add"),
-                                TRS("delete"),
+      .multi_names = (const char*[]){ "off",
+                                "interpolate",
+                                "remove_redundant",
+                                "remove_all",
+                                "add",
+                                "add_first",
                                 (char*)0 },
-      .multi_labels = (char*[]){ TRS("Interpolate existing"),
-                                TRS("Add new"),
-                                TRS("Erase"),
-                                (char*)0 },
+      .multi_labels = (const char*[]){TRS("Do nothing"),
+                                      TRS("Interpolate nonexisting"),
+                                      TRS("Remove redundant"),
+                                      TRS("Remove all"),
+                                      TRS("Add new"),
+                                      TRS("Add new (first only)"),
+                                      (char*)0 },
+      .val_default  = { .val_str = "off" },
     },
     {
-      .name = "zoom_v",
-      .long_name = TRS("Zoom vertically"),
-      .type = BG_PARAMETER_SLIDER_FLOAT,
-      .flags = BG_PARAMETER_SYNC,
-      .num_digits = 2,
-      .val_min = { .val_f = 0.5 },
-      .val_max = { .val_f = 2.0 },
-      .val_default = { .val_f = 1.0 },
-
+      .name      = "int_framerate",
+      .long_name = "Integer framerate",
+      .type      = BG_PARAMETER_INT,
+      .val_min     = { .val_i = 1 },
+      .val_max     = { .val_i = 999 },
+      .val_default = { .val_i = 25 },
+      .help_string = TRS("Set the integer framerate used when adding new timecodes"),
     },
     {
-    .name =        "scale_mode",
-    .long_name =   TRS("Scale mode"),
-    .opt =         "sm",
-    .type =        BG_PARAMETER_STRINGLIST,
-    .flags = BG_PARAMETER_SYNC,
-    .multi_names = BG_GAVL_SCALE_MODE_NAMES,
-    .multi_labels = BG_GAVL_SCALE_MODE_LABELS,
-    .val_default = { .val_str = "auto" },
-    .help_string = TRS("Choose scaling method. Auto means to choose based on the conversion quality. Nearest is fastest, Sinc with Lanczos window is slowest."),
+      .name      = "drop",
+      .long_name = "Drop frame",
+      .type      = BG_PARAMETER_CHECKBUTTON,
+      .help_string = TRS("Set the if drop frame is used when adding new timecodes"),
     },
     {
-      .name =        "scale_order",
-      .long_name =   TRS("Scale order"),
-      .opt =       "so",
-      .type =        BG_PARAMETER_INT,
-      .flags = BG_PARAMETER_SYNC,
-      .val_min =     { .val_i = 4 },
-      .val_max =     { .val_i = 1000 },
-      .val_default = { .val_i = 4 },
-      .help_string = TRS("Order for sinc scaling."),
+      .name      = "hours",
+      .long_name = "Start hour",
+      .type      = BG_PARAMETER_INT,
+      .val_min     = { .val_i = 0 },
+      .val_max     = { .val_i = 23 },
+      .val_default = { .val_i = 0 },
+      .help_string = TRS("Set the start hours used when adding new timecodes"),
     },
     {
-      .name = "quality",
-      .long_name = TRS("Quality"),
-      .type = BG_PARAMETER_SLIDER_INT,
-      .flags = BG_PARAMETER_SYNC,
-      .val_min =     { .val_i = GAVL_QUALITY_FASTEST },
-      .val_max =     { .val_i = GAVL_QUALITY_BEST },
-      .val_default = { .val_i = GAVL_QUALITY_DEFAULT },
+      .name      = "minutes",
+      .long_name = "Start minute",
+      .type      = BG_PARAMETER_INT,
+      .val_min     = { .val_i = 0 },
+      .val_max     = { .val_i = 59 },
+      .val_default = { .val_i = 0 },
+      .help_string = TRS("Set the start minutes used when adding new timecodes"),
     },
     {
-      .name = "bg_color",
-      .long_name = TRS("Background color"),
-      .type = BG_PARAMETER_COLOR_RGBA,
-      .flags = BG_PARAMETER_SYNC,
-      .val_default = { .val_color = { 0.0, 0.0, 0.0, 1.0 } },
+      .name      = "seconds",
+      .long_name = "Start second",
+      .type      = BG_PARAMETER_INT,
+      .val_min     = { .val_i = 0 },
+      .val_max     = { .val_i = 59 },
+      .val_default = { .val_i = 0 },
+      .help_string = TRS("Set the start seconds used when adding new timecodes"),
+    },
+    {
+      .name      = "frames",
+      .long_name = "Start frames",
+      .type      = BG_PARAMETER_INT,
+      .val_min     = { .val_i = 0 },
+      .val_max     = { .val_i = 999 },
+      .val_default = { .val_i = 0 },
+      .help_string = TRS("Set the start frames used when adding new timecodes"),
     },
     { /* End of parameters */ },
   };
@@ -140,7 +161,34 @@ set_parameter_tctweak(void * priv, const char * name,
 
   if(!name)
     return;
-
+  if(!strcmp(name, "mode"))
+    {
+    if(!strcmp(val->val_str, "off"))
+      vp->mode = MODE_OFF;
+    else if(!strcmp(val->val_str, "interpolate"))
+      vp->mode = MODE_INTERPOLATE;
+    else if(!strcmp(val->val_str, "remove_redundant"))
+      vp->mode = MODE_REMOVE_REDUNDANT;
+    else if(!strcmp(val->val_str, "remove_all"))
+      vp->mode = MODE_REMOVE_ALL;
+    else if(!strcmp(val->val_str, "add"))
+      vp->mode = MODE_ADD;
+    else if(!strcmp(val->val_str, "add_first"))
+      vp->mode = MODE_ADD_FIRST;
+    }
+  else if(!strcmp(name, "int_framerate"))
+    vp->int_framerate = val->val_i;
+  else if(!strcmp(name, "drop"))
+    vp->drop = val->val_i;
+  else if(!strcmp(name, "hours"))
+    vp->hours = val->val_i;
+  else if(!strcmp(name, "minutes"))
+    vp->minutes = val->val_i;
+  else if(!strcmp(name, "seconds"))
+    vp->seconds = val->val_i;
+  else if(!strcmp(name, "frames"))
+    vp->frames = val->val_i;
+  
   }
 
 static void connect_input_port_tctweak(void * priv,
@@ -165,8 +213,35 @@ static void set_input_format_tctweak(void * priv,
   tc_priv_t * vp;
   vp = (tc_priv_t *)priv;
   
-  if(!port)
-    gavl_video_format_copy(&vp->format, format);
+  if(port)
+    return;
+  
+  gavl_video_format_copy(&vp->format, format);
+  
+  vp->last_timecode = GAVL_TIMECODE_UNDEFINED;
+  switch(vp->mode)
+    {
+    case MODE_OFF:
+    case MODE_INTERPOLATE:
+    case MODE_REMOVE_REDUNDANT:
+      break;
+    case MODE_REMOVE_ALL:
+      vp->format.timecode_format.int_framerate = 0;
+      vp->format.timecode_format.flags         = 0;
+      break;
+    case MODE_ADD:
+    case MODE_ADD_FIRST:
+      vp->format.timecode_format.int_framerate = vp->int_framerate;
+      vp->format.timecode_format.flags = 0;
+      if(vp->drop)
+        vp->format.timecode_format.flags |= GAVL_TIMECODE_DROP_FRAME;
+      gavl_timecode_from_hmsf(&vp->first_timecode,
+                              vp->hours,
+                              vp->minutes,
+                              vp->seconds,
+                              vp->frames);
+      break;
+    }
   }
 
 static void get_output_format_tctweak(void * priv,
@@ -178,15 +253,86 @@ static void get_output_format_tctweak(void * priv,
   gavl_video_format_copy(format, &vp->format);
   }
 
+static gavl_timecode_t do_increment(tc_priv_t * vp, gavl_timecode_t tc)
+  {
+  int64_t frames;
+  frames = gavl_timecode_to_framecount(&vp->format.timecode_format,
+                                       tc);
+  frames++;
+  return gavl_timecode_from_framecount(&vp->format.timecode_format,
+                                       frames);
+  }
+
 static int read_video_tctweak(void * priv, gavl_video_frame_t * frame,
                          int stream)
   {
   tc_priv_t * vp;
+  gavl_timecode_t tc;
   vp = (tc_priv_t *)priv;
 
   if(!vp->read_func(vp->read_data, frame, vp->read_stream))
     return 0;
   
+  if(!vp->format.timecode_format.int_framerate)
+    return 1;
+  
+  switch(vp->mode)
+    {
+    case MODE_OFF:
+      break;
+    case MODE_INTERPOLATE:
+      if(frame->timecode == GAVL_TIMECODE_UNDEFINED)
+        {
+        if(vp->last_timecode)
+          frame->timecode = do_increment(vp, vp->last_timecode);
+        }
+      vp->last_timecode = frame->timecode;
+      break;
+    case MODE_REMOVE_REDUNDANT:
+      if(frame->timecode != GAVL_TIMECODE_UNDEFINED)
+        {
+        if(vp->last_timecode == GAVL_TIMECODE_UNDEFINED)
+          {
+          vp->last_timecode = frame->timecode;
+          return 1;
+          }
+        tc = do_increment(vp, vp->last_timecode);
+        if(tc == frame->timecode)
+          {
+          frame->timecode = GAVL_TIMECODE_UNDEFINED;
+          }
+        else
+          {
+          fprintf(stderr, "Non continous timecode: ");
+          gavl_timecode_dump(&vp->format.timecode_format, tc);
+          fprintf(stderr, " != ");
+          gavl_timecode_dump(&vp->format.timecode_format, frame->timecode);
+          fprintf(stderr, "\n");
+          }
+        vp->last_timecode = tc;
+        }
+      else if(vp->last_timecode != GAVL_TIMECODE_UNDEFINED)
+        vp->last_timecode = do_increment(vp, vp->last_timecode);
+      break;
+    case MODE_REMOVE_ALL:
+      frame->timecode = GAVL_TIMECODE_UNDEFINED;
+      break;
+    case MODE_ADD:
+    case MODE_ADD_FIRST:
+      if(vp->last_timecode == GAVL_TIMECODE_UNDEFINED)
+        {
+        frame->timecode = vp->first_timecode;
+        vp->last_timecode = frame->timecode;
+        }
+      else if(vp->mode == MODE_ADD)
+        {
+        frame->timecode = do_increment(vp, vp->last_timecode);
+        vp->last_timecode = frame->timecode;
+        }
+      else
+        frame->timecode = GAVL_TIMECODE_UNDEFINED;
+      break;
+    }
   return 1;
   }
 
@@ -197,7 +343,7 @@ const bg_fv_plugin_t the_plugin =
       BG_LOCALE,
       .name =      "fv_tctweak",
       .long_name = TRS("Tweak timecodes"),
-      .description = TRS("Add/Remove/Interpolate timecodes"),
+      .description = TRS("Add/remove/interpolate timecodes"),
       .type =     BG_PLUGIN_FILTER_VIDEO,
       .flags =    BG_PLUGIN_FILTER_1,
       .create =   create_tctweak,

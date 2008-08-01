@@ -1321,7 +1321,7 @@ static void close_edl(void * priv)
         {
         cleanup_source_common(&dec->tracks[i].subtitle_overlay_streams[j].sources[k].com);
         if(dec->tracks[i].subtitle_overlay_streams[j].sources[k].cnv)
-          bg_video_converter_destroy(dec->tracks[i].subtitle_overlay_streams[j].sources[k].cnv);
+          gavl_video_converter_destroy(dec->tracks[i].subtitle_overlay_streams[j].sources[k].cnv);
         }
       if(dec->tracks[i].subtitle_overlay_streams[j].sources)
         free(dec->tracks[i].subtitle_overlay_streams[j].sources);
