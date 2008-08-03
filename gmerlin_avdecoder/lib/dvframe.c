@@ -551,3 +551,110 @@ void bgav_dv_dec_get_video_packet(bgav_dv_dec_t * d, bgav_packet_t * p)
     d->frame_counter++;
     }
   }
+
+static int GetSSYBPack(bgav_dv_dec_t * d,
+                       int packNum, uint8_t * pack)
+  {
+  int i, j, k;
+
+  /* process all DIF sequences */
+  
+  for(i = 0; i < d->profile->difseg_size; i++)
+    {
+    /* there are two DIF blocks in the subcode section */
+    
+    for (j = 0; j < 2; j++)
+      {
+      /* each block has 6 packets */
+      
+      for(k = 0; k < 6; k++)
+        {
+        /* calculate address: 150 DIF blocks per sequence, 80 bytes
+           per DIF block, subcode blocks start at block 1, block and
+           packet have 3 bytes header, packet is 8 bytes long
+           (including header) */
+        const uint8_t *s =
+          &d->buffer[ i * 150 * 80 + 1 * 80 + j * 80 + 3 + k * 8 + 3 ];
+        // printf("ssyb %d: %2.2x %2.2x %2.2x %2.2x %2.2x\n",
+        // j * 6 + k, s[0], s[1], s[2], s[3], s[4]);
+        if ( s[ 0 ] == packNum )
+          {
+          pack[ 0 ] = s[ 0 ];
+          pack[ 1 ] = s[ 1 ];
+          pack[ 2 ] = s[ 2 ];
+          pack[ 3 ] = s[ 3 ];
+          pack[ 4 ] = s[ 4 ];
+          return 1;
+          }
+        }
+      }
+    }
+  return 0;
+  }
+
+int bgav_dv_dec_get_date(bgav_dv_dec_t * d,
+                         int * year, int * month, int * day)
+  {
+  uint8_t pack[5];
+  if(!GetSSYBPack(d, dv_video_recdate, pack))
+    return 0;
+  if(year)
+    {
+    *year = ( pack[4] & 0xf ) + 10 * ( ( pack[4] >> 4 ) & 0xf );
+    if(*year < 25 )
+      *year += 2000;
+    else
+      *year += 1900;
+    }
+  if(month)
+    {
+    *month = (pack[3]&0xf) + 10 * ( (pack[3] >> 4 ) & 0x1 );
+    }
+  if(day)
+    {
+    *day = ( pack[2] & 0xf ) + 10 * ( ( pack[2] >> 4 ) & 0x3 );
+    }
+  return 1;
+  }
+
+int bgav_dv_dec_get_time(bgav_dv_dec_t * d,
+                         int * hour, int * minute, int * second)
+  {
+  uint8_t pack[5];
+  if(!GetSSYBPack(d, dv_video_rectime, pack))
+    return 0;
+  if(hour)
+    {
+    *hour = ( pack[4] & 0xf ) + 10 * ( ( pack[4] >> 4 ) & 0x3 );
+    }
+  if(minute)
+    {
+    *minute = ( pack[3] & 0xf ) + 10 * ( ( pack[3] >> 4 ) & 0x7 );
+    }
+  if(second)
+    {
+    *second = ( pack[2] & 0xf ) + 10 * ( ( pack[2] >> 4 ) & 0x7 );
+    }
+  return 1;
+  }
+
+int bgav_dv_dec_get_timecode(bgav_dv_dec_t * d,
+                             gavl_timecode_t * tc)
+  {
+  int frame, minute, second, hour;
+  uint8_t pack[5];
+  if(!GetSSYBPack(d, dv_timecode, pack))
+    return 0;
+
+  frame  = ( pack[1] & 0xf ) + 10 * ( ( pack[1] >> 4 ) & 0x3 );
+  second = ( pack[2] & 0xf ) + 10 * ( ( pack[2] >> 4 ) & 0x7 );
+  minute = ( pack[3] & 0xf ) + 10 * ( ( pack[3] >> 4 ) & 0x7 );
+  hour   = ( pack[4] & 0xf ) + 10 * ( ( pack[4] >> 4 ) & 0x3 );
+
+  gavl_timecode_from_hmsf(tc,
+                          hour,
+                          minute,
+                          second,
+                          frame);
+  return 1;
+  }

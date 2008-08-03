@@ -64,3 +64,13 @@ void bgav_dv_dec_init_video(bgav_dv_dec_t*, bgav_stream_t * s);
 int bgav_dv_dec_get_audio_packet(bgav_dv_dec_t*, bgav_packet_t * p);
 void bgav_dv_dec_get_video_packet(bgav_dv_dec_t*, bgav_packet_t * p);
 
+int bgav_dv_dec_get_date(bgav_dv_dec_t * d,
+                         int * year, int * month, int * day);
+
+int bgav_dv_dec_get_time(bgav_dv_dec_t * d,
+                         int * hour, int * minute, int * second);
+
+int bgav_dv_dec_get_timecode(bgav_dv_dec_t * d,
+                             gavl_timecode_t * tc);
+
+

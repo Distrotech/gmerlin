@@ -158,6 +158,7 @@ typedef struct
   int read_mode;
 
   int64_t last_parse_pts;
+  bgav_dv_dec_t * dvdec;
   
   } ffmpeg_video_priv;
 
@@ -468,7 +469,6 @@ static int decode_picture(bgav_stream_t * s)
   ffmpeg_video_priv * priv;
   /* We get the DV format info ourselfes, since the values
      ffmpeg returns are not reliable */
-  bgav_dv_dec_t * dvdec;
   packet_info_t * pi;
   int min_pts_index;
   
@@ -520,14 +520,13 @@ static int decode_picture(bgav_stream_t * s)
     /* DV Video ugliness */
     if(priv->need_format && (priv->info->ffmpeg_id == CODEC_ID_DVVIDEO))
       {
-      dvdec = bgav_dv_dec_create();
-      bgav_dv_dec_set_header(dvdec, priv->buf.buffer);
-      bgav_dv_dec_set_frame(dvdec, priv->buf.buffer);
+      priv->dvdec = bgav_dv_dec_create();
+      bgav_dv_dec_set_header(priv->dvdec, priv->buf.buffer);
+      bgav_dv_dec_set_frame(priv->dvdec, priv->buf.buffer);
 
-      bgav_dv_dec_get_pixel_aspect(dvdec, &s->data.video.format.pixel_width,
+      bgav_dv_dec_get_pixel_aspect(priv->dvdec,
+                                   &s->data.video.format.pixel_width,
                                    &s->data.video.format.pixel_height);
-      
-      bgav_dv_dec_destroy(dvdec);
       }
     
     /* Palette terror */
@@ -1147,6 +1146,11 @@ static void close_ffmpeg(bgav_stream_t * s)
     gavl_video_frame_destroy(priv->dst_field);
     }
 
+  if(priv->dvdec)
+    {
+    bgav_dv_dec_destroy(priv->dvdec);
+    }
+  
   if(priv->extradata)
     free(priv->extradata);
 #ifdef HAVE_LIBPOSTPROC
