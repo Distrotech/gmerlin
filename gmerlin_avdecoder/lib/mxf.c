@@ -799,7 +799,7 @@ void bgav_mxf_content_storage_dump(int indent, mxf_content_storage_t * s)
     }
   }
 
-int bgav_mxf_content_storage_resolve_refs(partition_t * p, mxf_content_storage_t * s)
+static int bgav_mxf_content_storage_resolve_refs(partition_t * p, mxf_content_storage_t * s)
   {
   s->packages = resolve_strong_refs(p, s->package_refs, s->num_package_refs,
                                     MXF_TYPE_SOURCE_PACKAGE | MXF_TYPE_MATERIAL_PACKAGE);
@@ -936,11 +936,41 @@ void bgav_mxf_package_free(mxf_package_t * p)
   FREE(p->generic_name);
   }
 
-int bgav_mxf_package_resolve_refs(partition_t * p, mxf_package_t * s)
+static int bgav_mxf_package_resolve_refs(partition_t * p, mxf_package_t * s)
   {
   s->tracks = resolve_strong_refs(p, s->track_refs, s->num_track_refs, MXF_TYPE_TRACK);
   s->descriptor = resolve_strong_ref(p, s->descriptor_ref,
                                      MXF_TYPE_DESCRIPTOR | MXF_TYPE_MULTIPLE_DESCRIPTOR);
+  return 1;
+  }
+
+static int bgav_mxf_package_resolve_refs_2(partition_t * p, mxf_package_t * s)
+  {
+  int i;
+  mxf_sequence_t * seq;
+  for(i = 0; i < s->num_track_refs; i++)
+    {
+    if(!s->tracks[i])
+      continue;
+    seq = (mxf_sequence_t *)(((mxf_track_t *)(s->tracks[i]))->sequence);
+
+    switch(seq->stream_type)
+      {
+      case BGAV_STREAM_AUDIO:
+        s->num_audio_tracks++;
+        break;
+      case BGAV_STREAM_VIDEO:
+        s->num_video_tracks++;
+        break;
+      case BGAV_STREAM_UNKNOWN:
+        if(seq->is_timecode)
+          {
+          s->num_timecode_tracks++;
+          s->timecode_track = s->tracks[i];
+          }
+        break;
+      }
+    }
   return 1;
   }
 
@@ -2084,6 +2114,21 @@ static int resolve_refs(partition_t * ret, const bgav_options_t * opt)
       case MXF_TYPE_TRACK:
       case MXF_TYPE_IDENTIFICATION:
       case MXF_TYPE_CRYPTO_CONTEXT:
+        break;
+      }
+    }
+
+  /* 3rd round */
+  for(i = 0; i < ret->num_metadata; i++)
+    {
+    switch(ret->metadata[i]->type)
+      {
+      case MXF_TYPE_MATERIAL_PACKAGE:
+      case MXF_TYPE_SOURCE_PACKAGE:
+        if(!bgav_mxf_package_resolve_refs_2(ret, (mxf_package_t*)(ret->metadata[i])))
+          return 0;
+        break;
+      default:
         break;
       }
     }

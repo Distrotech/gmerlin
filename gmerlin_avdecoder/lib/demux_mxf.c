@@ -241,7 +241,6 @@ static int process_packet_frame_wrapped(bgav_demuxer_context_t * ctx)
   
   if(p)
     {
-    fprintf(stderr, "Got packet\n");
     bgav_packet_done_write(p);
     }
   return 1;
@@ -352,6 +351,29 @@ static void init_audio_stream(bgav_demuxer_context_t * ctx, bgav_stream_t * s,
     }
   }
 
+static void init_timecode_track(bgav_stream_t * vs, mxf_track_t * timecode_track)
+  {
+  mxf_sequence_t * seq;
+  mxf_timecode_component_t * tc;
+  
+  seq = (mxf_sequence_t *)(timecode_track->sequence);
+  tc = (mxf_timecode_component_t *)(seq->structural_components[0]);
+
+  /* Timecode format */
+  vs->data.video.format.timecode_format.int_framerate =
+    tc->rounded_timecode_base;
+
+  if(tc->drop_frame)
+    vs->data.video.format.timecode_format.flags |= GAVL_TIMECODE_DROP_FRAME;
+  
+  /* First timecode only */
+  vs->timecode_table = bgav_timecode_table_create(1);
+  vs->timecode_table->entries[0].pts = 0;
+  vs->timecode_table->entries[0].timecode =
+    gavl_timecode_from_framecount(&vs->data.video.format.timecode_format,
+                                  tc->start_timecode);
+  }
+
 static void init_video_stream(bgav_demuxer_context_t * ctx, bgav_stream_t * s,
                               mxf_track_t * st, mxf_descriptor_t * sd,
                               uint32_t fourcc)
@@ -426,7 +448,8 @@ static mxf_descriptor_t * get_source_descriptor(mxf_file_t * file, mxf_package_t
   }
 
 static void
-handle_source_track_simple(bgav_demuxer_context_t * ctx, mxf_package_t * sp, mxf_track_t * t,
+handle_source_track_simple(bgav_demuxer_context_t * ctx,
+                           mxf_package_t * sp, mxf_track_t * t,
                            bgav_track_t * bt)
   {
   mxf_descriptor_t * sd;
@@ -487,6 +510,9 @@ handle_source_track_simple(bgav_demuxer_context_t * ctx, mxf_package_t * sp, mxf
         return;
       s = bgav_track_add_video_stream(bt, ctx->opt);
       init_video_stream(ctx, s, t, sd, fourcc);
+
+      if(sp->timecode_track && (sp->num_timecode_tracks == 1))
+        init_timecode_track(s, (mxf_track_t*)sp->timecode_track);
       }
 
     /* Should not happen */

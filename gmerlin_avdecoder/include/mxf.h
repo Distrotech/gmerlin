@@ -215,7 +215,6 @@ struct  mxf_descriptor_s
 
 void bgav_mxf_descriptor_dump(int indent, mxf_descriptor_t * d);
 void bgav_mxf_descriptor_free(mxf_descriptor_t * d);
-int bgav_mxf_descriptor_resolve_refs(partition_t * file, mxf_descriptor_t * d);
 
 /* Sequence */
 
@@ -236,7 +235,6 @@ struct mxf_sequence_s
 
 void bgav_mxf_sequence_dump(int indent, mxf_sequence_t * s);
 void bgav_mxf_sequence_free(mxf_sequence_t * s);
-int bgav_mxf_sequence_resolve_refs(partition_t * file, mxf_sequence_t * s);
 
 /* Track */
 
@@ -261,7 +259,6 @@ struct mxf_track_s
 
 void bgav_mxf_track_dump(int indent, mxf_track_t * t);
 void bgav_mxf_track_free(mxf_track_t * t);
-int bgav_mxf_track_resolve_refs(partition_t * file, mxf_track_t * t);
 
 /* Package */
 
@@ -281,12 +278,17 @@ typedef struct
   /* Secondary */
   mxf_metadata_t * descriptor;
   mxf_metadata_t ** tracks;
-  
+
+  /* Tertiary */
+  int num_audio_tracks;
+  int num_video_tracks;
+  int num_timecode_tracks;
+  mxf_metadata_t * timecode_track;
+
   } mxf_package_t;
 
 void bgav_mxf_package_dump(int indent, mxf_package_t * p);
 void bgav_mxf_package_free(mxf_package_t * p);
-int bgav_mxf_package_resolve_refs(partition_t * partition, mxf_package_t * p);
 
 /* Structural component */
 
@@ -307,7 +309,6 @@ struct mxf_source_clip_s
 void bgav_mxf_source_clip_dump(int indent,
                                         mxf_source_clip_t * s);
 void bgav_mxf_source_clip_free(mxf_source_clip_t * s);
-int bgav_mxf_source_clip_resolve_refs(partition_t * p, mxf_source_clip_t * s);
 
 /* Timecode component */
 
@@ -324,7 +325,6 @@ struct mxf_timecode_component_s
 void bgav_mxf_timecode_component_dump(int indent,
                                       mxf_timecode_component_t * s);
 void bgav_mxf_timecode_component_free(mxf_timecode_component_t * s);
-int bgav_mxf_timecode_component_resolve_refs(partition_t * p, mxf_timecode_component_t * s);
 
 /* Identification */
 
@@ -354,7 +354,6 @@ struct mxf_identification_s
 
 void bgav_mxf_identification_dump(int indent, mxf_identification_t * s);
 void bgav_mxf_identification_free(mxf_identification_t * s);
-int bgav_mxf_identification_resolve_refs(partition_t * p, mxf_identification_t * s);
 
 /* Essence container data */
 
@@ -371,7 +370,6 @@ struct mxf_essence_container_data_s
 
 void bgav_mxf_essence_container_data_dump(int indent, mxf_essence_container_data_t * s);
 void bgav_mxf_essence_container_data_free(mxf_essence_container_data_t * s);
-int bgav_mxf_essence_container_data_resolve_refs(partition_t * p, mxf_essence_container_data_t * s);
 
 /* Preface */
 
@@ -406,7 +404,6 @@ struct mxf_preface_s
 
 void bgav_mxf_preface_dump(int indent, mxf_preface_t * s);
 void bgav_mxf_preface_free(mxf_preface_t * s);
-int bgav_mxf_preface_resolve_refs(partition_t * p, mxf_preface_t * s);
 
 /* Content storage */
 
@@ -426,7 +423,6 @@ struct mxf_content_storage_s
 
 void bgav_mxf_content_storage_dump(int indent, mxf_content_storage_t * s);
 void bgav_mxf_content_storage_free(mxf_content_storage_t * s);
-int bgav_mxf_content_storage_resolve_refs(partition_t * p, mxf_content_storage_t * s);
 
 
 /* Index table segment */
