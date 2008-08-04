@@ -52,7 +52,7 @@ static void scale_uint8_x_1_xy_nearest_c(gavl_video_scale_context_t * ctx)
   {
   int i;
   uint8_t * src;
-  src = (uint8_t*)(ctx->src + ctx->table_v.pixels[ctx->scanline].index * ctx->src_stride);
+  src = ctx->src + ctx->table_v.pixels[ctx->scanline].index * ctx->src_stride;
 
   SCALE_FUNC_HEAD
     *(ctx->dst) = *(src + ctx->table_h.pixels[i].index * ctx->offset->src_advance);
@@ -77,15 +77,13 @@ static void scale_uint8_x_3_xy_nearest_c(gavl_video_scale_context_t * ctx)
 static void scale_uint8_x_4_xy_nearest_c(gavl_video_scale_context_t * ctx)
   {
   int i;
-  uint8_t * src, *src1;
-  src = (uint8_t*)(ctx->src + ctx->table_v.pixels[ctx->scanline].index * ctx->src_stride);
+  uint32_t * src, *dst;
+  src = (uint32_t*)(ctx->src + ctx->table_v.pixels[ctx->scanline].index * ctx->src_stride);
+  dst = (uint32_t*)(ctx->dst);
+  
   SCALE_FUNC_HEAD
-    src1 = src + ctx->table_h.pixels[i].index*4;
-    ctx->dst[0] = src1[0];
-    ctx->dst[1] = src1[1];
-    ctx->dst[2] = src1[2];
-    ctx->dst[3] = src1[3];
-    ctx->dst += ctx->offset->dst_advance;
+    *dst = src[ctx->table_h.pixels[i].index];
+    dst++;
   SCALE_FUNC_TAIL
   }
 
@@ -390,16 +388,19 @@ static void scale_float_x_4_y_nearest_c(gavl_video_scale_context_t * ctx)
          ctx->offset->src_advance * ctx->dst_rect.w);
   }
 
-void gavl_init_scale_funcs_nearest_c(gavl_scale_funcs_t * tab)
+void gavl_init_scale_funcs_nearest_c(gavl_scale_funcs_t * tab, int src_advance, int dst_advance)
   {
   //   fprintf(stderr, "gavl_init_scale_funcs_nearest_c\n");
-  
   tab->funcs_xy.scale_rgb_15 =     scale_rgb_16_xy_nearest_c;
   tab->funcs_xy.scale_rgb_16 =     scale_rgb_16_xy_nearest_c;
   tab->funcs_xy.scale_uint8_x_1_advance =  scale_uint8_x_1_xy_nearest_c;
   tab->funcs_xy.scale_uint8_x_1_noadvance =  scale_uint8_x_1_xy_nearest_c;
   tab->funcs_xy.scale_uint8_x_2 =  scale_rgb_16_xy_nearest_c;
-  tab->funcs_xy.scale_uint8_x_3 =  scale_uint8_x_3_xy_nearest_c;
+
+  if((src_advance == 4) && (dst_advance == 4))
+    tab->funcs_xy.scale_uint8_x_3 =  scale_uint8_x_4_xy_nearest_c;
+  else
+    tab->funcs_xy.scale_uint8_x_3 =  scale_uint8_x_3_xy_nearest_c;
   tab->funcs_xy.scale_uint8_x_4 =  scale_uint8_x_4_xy_nearest_c;
   tab->funcs_xy.scale_uint16_x_1 = scale_uint16_x_1_xy_nearest_c;
   tab->funcs_xy.scale_uint16_x_2 = scale_uint8_x_4_xy_nearest_c;
@@ -421,7 +422,12 @@ void gavl_init_scale_funcs_nearest_c(gavl_scale_funcs_t * tab)
   tab->funcs_x.scale_uint8_x_1_noadvance =  scale_uint8_x_1_x_nearest_c;
   tab->funcs_x.scale_uint8_x_1_advance =  scale_uint8_x_1_x_nearest_c;
   tab->funcs_x.scale_uint8_x_2 =  scale_rgb_16_x_nearest_c;
-  tab->funcs_x.scale_uint8_x_3 =  scale_uint8_x_3_x_nearest_c;
+
+  if((src_advance == 4) && (dst_advance == 4))
+    tab->funcs_x.scale_uint8_x_4 =  scale_uint8_x_4_x_nearest_c;
+  else
+    tab->funcs_x.scale_uint8_x_3 =  scale_uint8_x_3_x_nearest_c;
+  
   tab->funcs_x.scale_uint8_x_4 =  scale_uint8_x_4_x_nearest_c;
   tab->funcs_x.scale_uint16_x_1 = scale_uint16_x_1_x_nearest_c;
   tab->funcs_x.scale_uint16_x_2 = scale_uint8_x_4_x_nearest_c;
@@ -443,7 +449,12 @@ void gavl_init_scale_funcs_nearest_c(gavl_scale_funcs_t * tab)
   tab->funcs_y.scale_uint8_x_1_advance =  scale_uint8_x_1_y_nearest_c;
   tab->funcs_y.scale_uint8_x_1_noadvance =  scale_uint8_x_1_y_nearest_c;
   tab->funcs_y.scale_uint8_x_2 =  scale_rgb_16_y_nearest_c;
-  tab->funcs_y.scale_uint8_x_3 =  scale_uint8_x_3_y_nearest_c;
+
+  if((src_advance == 4) && (dst_advance == 4))
+    tab->funcs_y.scale_uint8_x_3 =  scale_uint8_x_4_y_nearest_c;
+  else
+    tab->funcs_y.scale_uint8_x_3 =  scale_uint8_x_3_y_nearest_c;
+
   tab->funcs_y.scale_uint8_x_4 =  scale_uint8_x_4_y_nearest_c;
   tab->funcs_y.scale_uint16_x_1 = scale_uint16_x_1_y_nearest_c;
   tab->funcs_y.scale_uint16_x_2 = scale_uint8_x_4_y_nearest_c;

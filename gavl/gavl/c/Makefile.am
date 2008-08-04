@@ -37,7 +37,6 @@ colorspace_tables.h \
 colorspace_macros.h \
 scale_bilinear_x.h \
 scale_bilinear_y.h \
-scale_bilinear_xy.h \
 scale_x.h \
 scale_y.h \
 scale_generic_x.h \

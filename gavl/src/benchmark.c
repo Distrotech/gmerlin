@@ -757,12 +757,14 @@ static const struct
 scale_modes[] =
   {
     { GAVL_SCALE_NEAREST, "Nearest" },
+#if 0
     { GAVL_SCALE_BILINEAR, "Linear"}, 
     { GAVL_SCALE_QUADRATIC, "Quadratic" },
     { GAVL_SCALE_CUBIC_BSPLINE, "Cubic B-Spline" },
     { GAVL_SCALE_CUBIC_CATMULL, "Cubic Catmull-Rom" },
     { GAVL_SCALE_CUBIC_MITCHELL, "Cubic Mitchell-Netravali" },
     { GAVL_SCALE_SINC_LANCZOS, "Sinc" },
+#endif
   };
 
 static void do_pixelformat(video_convert_context_t * ctx,
@@ -1130,7 +1132,7 @@ static void do_scale_direction(video_convert_context_t * ctx,
 
     if(!opt_scaledir || (opt_scaledir == (SCALE_X|SCALE_Y)))
       {
-      fprintf(stderr, "%d\n", opt_scaledir);
+      //      fprintf(stderr, "%d\n", opt_scaledir);
       dir = "x+y";
       gavl_video_format_copy(&ctx->in_format, &ctx->out_format);
     

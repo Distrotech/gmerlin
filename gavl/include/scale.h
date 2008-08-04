@@ -75,7 +75,9 @@ typedef struct
   gavl_scale_func_tab_t funcs_xy;
   } gavl_scale_funcs_t;
 
-void gavl_init_scale_funcs_nearest_c(gavl_scale_funcs_t * tab);
+void gavl_init_scale_funcs_nearest_c(gavl_scale_funcs_t * tab,
+                                     int src_advance,
+                                     int dst_advance);
 
 void gavl_init_scale_funcs_bilinear_c(gavl_scale_funcs_t * tab);
 

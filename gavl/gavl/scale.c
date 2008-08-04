@@ -81,7 +81,7 @@ void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt,
       break;
     case GAVL_SCALE_NEAREST:
       if((opt->quality > 0) || (opt->accel_flags & GAVL_ACCEL_C))
-        gavl_init_scale_funcs_nearest_c(tab);
+        gavl_init_scale_funcs_nearest_c(tab, src_advance, dst_advance);
       break;
     case GAVL_SCALE_BILINEAR:
       if((opt->quality > 0) || (opt->accel_flags & GAVL_ACCEL_C))
