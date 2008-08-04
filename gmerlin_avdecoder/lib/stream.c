@@ -191,6 +191,7 @@ void bgav_stream_clear(bgav_stream_t * s)
   s->in_position  = 0;
   s->out_time = 0;
   s->in_time = BGAV_TIMESTAMP_UNDEFINED;
+  s->eof = 0;
   }
 
 void bgav_stream_resync_decoder(bgav_stream_t * s)

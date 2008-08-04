@@ -85,6 +85,8 @@ void bgav_seek_audio(bgav_t * bgav, int stream, int64_t sample)
     s->eof = 1;
     return;
     }
+
+  bgav->demuxer->flags &= ~BGAV_DEMUXER_EOF;
   
   bgav_stream_clear(s);
 
@@ -92,7 +94,7 @@ void bgav_seek_audio(bgav_t * bgav, int stream, int64_t sample)
     {
     bgav->demuxer->demuxer->seek(bgav->demuxer, sample,
                                  s->data.audio.format.samplerate);
-    return;
+    //    return;
     }
   else if(bgav->demuxer->index_mode == INDEX_MODE_SI_SA)
     {
@@ -143,6 +145,8 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
   //  fprintf(stderr, "bgav_seek_video %ld...", time);
   s = &bgav->tt->cur->video_streams[stream];
 
+  bgav->demuxer->flags &= ~BGAV_DEMUXER_EOF;
+  
   if(time >= s->duration) /* EOF */
     {
     s->eof = 1;
@@ -305,8 +309,8 @@ void bgav_seek_subtitle(bgav_t * bgav, int stream, int64_t time)
   bgav_stream_t * s;
   s = &bgav->tt->cur->subtitle_streams[stream];
   bgav_stream_clear(s);
-  /* TODO */
-
+  bgav->demuxer->flags &= ~BGAV_DEMUXER_EOF;
+  
   if(s->data.subtitle.subreader)
     {
     /* Clear EOF state */
