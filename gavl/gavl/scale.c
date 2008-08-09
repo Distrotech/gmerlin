@@ -99,9 +99,14 @@ void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt,
     case 2:
       if((opt->quality > 0) || (opt->accel_flags & GAVL_ACCEL_C))
         {
-        gavl_init_scale_funcs_bilinear_c(tab);
-        if(scale_table->normalized)
-          gavl_init_scale_funcs_bilinear_fast_c(tab);
+        if(scale_table->do_clip)
+          gavl_init_scale_funcs_bilinear_c(tab);
+        else
+          {
+          gavl_init_scale_funcs_bilinear_noclip_c(tab);
+          if(scale_table->normalized)
+            gavl_init_scale_funcs_bilinear_fast_c(tab);
+          }
         }
 #ifdef HAVE_MMX
       if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMX))

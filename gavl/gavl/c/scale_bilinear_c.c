@@ -24,366 +24,562 @@
 #include <video.h>
 #include <scale.h>
 
-#include <scale_macros.h>
+#include "scale_macros.h"
 
 /* x-Direction */
 
 #define FUNC_NAME scale_rgb_15_x_bilinear_c
 #define TYPE color_15
-#define SCALE \
-  dst->r = (ctx->table_h.pixels[i].factor_i[0] * src_1->r + ctx->table_h.pixels[i].factor_i[1] * src_2->r) >> 16;\
-  dst->g = (ctx->table_h.pixels[i].factor_i[0] * src_1->g + ctx->table_h.pixels[i].factor_i[1] * src_2->g) >> 16;\
-  dst->b = (ctx->table_h.pixels[i].factor_i[0] * src_1->b + ctx->table_h.pixels[i].factor_i[1] * src_2->b) >> 16;
+#define INIT int64_t tmp;
+#define SCALE                                                \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1->r +   \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2->r);   \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_H(tmp,0);                                                        \
+  dst->r = tmp;                                                    \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1->g +   \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2->g);   \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_H(tmp,1);                                                        \
+  dst->g = tmp; \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1->b +   \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2->b);   \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_H(tmp,2);                                                        \
+  dst->b = tmp;                                                    \
 
-#include "scale_bilinear_x.h"
+#define NUM_TAPS 3
+#include "scale_x.h"
 
 #define FUNC_NAME scale_rgb_16_x_bilinear_c
 #define TYPE color_16
+#define INIT int64_t tmp;
 #define SCALE \
-  dst->r = (ctx->table_h.pixels[i].factor_i[0] * src_1->r + ctx->table_h.pixels[i].factor_i[1] * src_2->r) >> 16;\
-  dst->g = (ctx->table_h.pixels[i].factor_i[0] * src_1->g + ctx->table_h.pixels[i].factor_i[1] * src_2->g) >> 16;\
-  dst->b = (ctx->table_h.pixels[i].factor_i[0] * src_1->b + ctx->table_h.pixels[i].factor_i[1] * src_2->b) >> 16;
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1->r +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2->r);       \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_H(tmp,0);                                                     \
+  dst->r = tmp;                                               \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1->g +      \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2->g);       \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_H(tmp,1);                                                     \
+  dst->g = tmp;                                               \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1->b + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2->b);\
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_H(tmp,2);                                                     \
+  dst->b = tmp;                                               \
 
-#include "scale_bilinear_x.h"
+#define NUM_TAPS 3
+#include "scale_x.h"
 
 #define FUNC_NAME scale_uint8_x_1_x_bilinear_c
 #define TYPE uint8_t
+#define INIT int64_t tmp;
 #define SCALE \
-  dst[0] = DOWNSHIFT(ctx->table_h.pixels[i].factor_i[0] * src_1[0] + ctx->table_h.pixels[i].factor_i[1] * src_2[0], 16);
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[0] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0]);            \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_H(tmp,ctx->plane);                                                \
+  dst[0] = tmp;
 
-#include "scale_bilinear_x.h"
+#define NUM_TAPS 3
+#include "scale_x.h"
 
 #define FUNC_NAME scale_uint8_x_2_x_bilinear_c
 #define TYPE uint8_t
+#define INIT int64_t tmp;
 #define SCALE \
-  dst[0] = DOWNSHIFT(ctx->table_h.pixels[i].factor_i[0] * src_1[0] + ctx->table_h.pixels[i].factor_i[1] * src_2[0], 16);\
-  dst[1] = DOWNSHIFT(ctx->table_h.pixels[i].factor_i[0] * src_1[1] + ctx->table_h.pixels[i].factor_i[1] * src_2[1], 16);
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[0] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0]);       \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_H(tmp,0);                                                         \
+  dst[0] = tmp;                                                    \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[1] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[1]);       \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_H(tmp,1);                                                          \
+  dst[1] = tmp;
 
-#include "scale_bilinear_x.h"
-
+#define NUM_TAPS 3
+#include "scale_x.h"
 
 #define FUNC_NAME scale_uint8_x_3_x_bilinear_c
 #define TYPE uint8_t
+#define INIT int64_t tmp;
 #define SCALE \
-  dst[0] = DOWNSHIFT(ctx->table_h.pixels[i].factor_i[0] * src_1[0] + ctx->table_h.pixels[i].factor_i[1] * src_2[0], 16);\
-  dst[1] = DOWNSHIFT(ctx->table_h.pixels[i].factor_i[0] * src_1[1] + ctx->table_h.pixels[i].factor_i[1] * src_2[1], 16);\
-  dst[2] = DOWNSHIFT(ctx->table_h.pixels[i].factor_i[0] * src_1[2] + ctx->table_h.pixels[i].factor_i[1] * src_2[2], 16);
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[0] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0]);       \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_H(tmp,0);                                                         \
+  dst[0] = tmp;                                                    \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[1] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[1]);       \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_H(tmp,1);                                                          \
+  dst[1] = tmp;                                                    \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[2] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[2]);       \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_H(tmp,2);                                                          \
+  dst[2] = tmp;
 
-#include "scale_bilinear_x.h"
+#define NUM_TAPS 3
+#include "scale_x.h"
 
 #define FUNC_NAME scale_uint8_x_4_x_bilinear_c
 #define TYPE uint8_t
+#define INIT int64_t tmp;
 #define SCALE \
-  dst[0] = DOWNSHIFT(ctx->table_h.pixels[i].factor_i[0] * src_1[0] + ctx->table_h.pixels[i].factor_i[1] * src_2[0], 16);\
-  dst[1] = DOWNSHIFT(ctx->table_h.pixels[i].factor_i[0] * src_1[1] + ctx->table_h.pixels[i].factor_i[1] * src_2[1], 16);\
-  dst[2] = DOWNSHIFT(ctx->table_h.pixels[i].factor_i[0] * src_1[2] + ctx->table_h.pixels[i].factor_i[1] * src_2[2], 16);\
-  dst[3] = DOWNSHIFT(ctx->table_h.pixels[i].factor_i[0] * src_1[3] + ctx->table_h.pixels[i].factor_i[1] * src_2[3], 16);
-
-#include "scale_bilinear_x.h"
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[0] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0]);            \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_H(tmp,0);                                                         \
+  dst[0] = tmp;                                                    \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[1] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[1]);            \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_H(tmp,1);                                                          \
+  dst[1] = tmp;                                                    \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[2] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[2]);            \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_H(tmp,2);                                                          \
+  dst[2] = tmp;                                                    \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[3] +            \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[3]);            \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_H(tmp,3);                                                          \
+  dst[3] = tmp;
+ 
+#define NUM_TAPS 3
+#include "scale_x.h"
 
 #define FUNC_NAME scale_uint16_x_1_x_bilinear_c
 #define TYPE uint16_t
-
-#ifdef HQ
 #define INIT int64_t tmp;
-#else
-#define INIT uint32_t tmp;
-#endif
+#define SCALE                                                \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[0] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0]); \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_H(tmp,ctx->plane);                                             \
+  dst[0] = tmp;
 
-#define SCALE                                                           \
-  tmp = (ctx->table_h.pixels[i].factor_i[0] * src_1[0] + ctx->table_h.pixels[i].factor_i[1] * src_2[0]); \
-  dst[0] = DOWNSHIFT(tmp, 16);
-
-#include "scale_bilinear_x.h"
+#define NUM_TAPS 3
+#include "scale_x.h"
 
 #define FUNC_NAME scale_uint16_x_2_x_bilinear_c
 #define TYPE uint16_t
-
-#ifdef HQ
 #define INIT int64_t tmp;
-#else
-#define INIT uint32_t tmp;
-#endif
-
 #define SCALE                                                           \
-  tmp = (ctx->table_h.pixels[i].factor_i[0] * src_1[0] + ctx->table_h.pixels[i].factor_i[1] * src_2[0]); \
-  dst[0] = DOWNSHIFT(tmp, 16); \
-  tmp = (ctx->table_h.pixels[i].factor_i[0] * src_1[1] + ctx->table_h.pixels[i].factor_i[1] * src_2[1]); \
-  dst[1] = DOWNSHIFT(tmp, 16);
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[0] +   \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0]); \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_H(tmp,0);                                                       \
+  dst[0] = tmp; \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[1] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[1]); \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_H(tmp,1);                                               \
+  dst[1] = tmp;
 
-#include "scale_bilinear_x.h"
+#define NUM_TAPS 3
+#include "scale_x.h"
+
 
 #define FUNC_NAME scale_uint16_x_3_x_bilinear_c
 #define TYPE uint16_t
-
-#ifdef HQ
 #define INIT int64_t tmp;
-#else
-#define INIT uint32_t tmp;
-#endif
-
 #define SCALE                                                           \
-  tmp = (ctx->table_h.pixels[i].factor_i[0] * src_1[0] + ctx->table_h.pixels[i].factor_i[1] * src_2[0]); \
-  dst[0] = DOWNSHIFT(tmp, 16); \
-  tmp = (ctx->table_h.pixels[i].factor_i[0] * src_1[1] + ctx->table_h.pixels[i].factor_i[1] * src_2[1]); \
-  dst[1] = DOWNSHIFT(tmp, 16); \
-  tmp = (ctx->table_h.pixels[i].factor_i[0] * src_1[2] + ctx->table_h.pixels[i].factor_i[1] * src_2[2]); \
-  dst[2] = DOWNSHIFT(tmp, 16);
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[0] +   \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0]); \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_H(tmp,0);                                                       \
+  dst[0] = tmp; \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[1] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[1]); \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_H(tmp,1);                                               \
+  dst[1] = tmp; \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[2] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[2]); \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_H(tmp,2);                                               \
+  dst[2] = tmp;
 
-#include "scale_bilinear_x.h"
+#define NUM_TAPS 3
+#include "scale_x.h"
 
 #define FUNC_NAME scale_uint16_x_4_x_bilinear_c
 #define TYPE uint16_t
-
-#ifdef HQ
 #define INIT int64_t tmp;
-#else
-#define INIT uint32_t tmp;
-#endif
-
 #define SCALE                                                           \
-  tmp = (ctx->table_h.pixels[i].factor_i[0] * src_1[0] + ctx->table_h.pixels[i].factor_i[1] * src_2[0]); \
-  dst[0] = DOWNSHIFT(tmp, 16); \
-  tmp = (ctx->table_h.pixels[i].factor_i[0] * src_1[1] + ctx->table_h.pixels[i].factor_i[1] * src_2[1]); \
-  dst[1] = DOWNSHIFT(tmp, 16); \
-  tmp = (ctx->table_h.pixels[i].factor_i[0] * src_1[2] + ctx->table_h.pixels[i].factor_i[1] * src_2[2]); \
-  dst[2] = DOWNSHIFT(tmp, 16); \
-  tmp = (ctx->table_h.pixels[i].factor_i[0] * src_1[3] + ctx->table_h.pixels[i].factor_i[1] * src_2[3]); \
-  dst[3] = DOWNSHIFT(tmp, 16);
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[0] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0]); \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_H(tmp,0);                                               \
+  dst[0] = tmp; \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[1] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[1]); \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_H(tmp,1);                                               \
+  dst[1] = tmp; \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[2] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[2]); \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_H(tmp,2);                                               \
+  dst[2] = tmp; \
+  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[3] + \
+         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[3]); \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_H(tmp,3);                                                       \
+  dst[3] = tmp;
 
-#include "scale_bilinear_x.h"
+#define NUM_TAPS 3
+#include "scale_x.h"
 
 #define FUNC_NAME scale_float_x_1_x_bilinear_c
 #define TYPE float
-#define SCALE                                                           \
-  dst[0] = (ctx->table_h.pixels[i].factor_f[0] * src_1[0] + ctx->table_h.pixels[i].factor_f[1] * src_2[0]);
+#define SCALE                                                   \
+  dst[0] = (ctx->table_h.pixels[i].factor_f[0] * src_1[0] + \
+            ctx->table_h.pixels[i].factor_f[1] * src_2[0]);         \
+  RECLIP_FLOAT(dst[0], 0);
 
-#include "scale_bilinear_x.h"
+#define NUM_TAPS 3
+#include "scale_x.h"
+
 
 #define FUNC_NAME scale_float_x_2_x_bilinear_c
 #define TYPE float
-#define SCALE                                                           \
-  dst[0] = (ctx->table_h.pixels[i].factor_f[0] * src_1[0] + ctx->table_h.pixels[i].factor_f[1] * src_2[0]); \
-  dst[1] = (ctx->table_h.pixels[i].factor_f[0] * src_1[1] + ctx->table_h.pixels[i].factor_f[1] * src_2[1]);
+#define SCALE                                                   \
+  dst[0] = (ctx->table_h.pixels[i].factor_f[0] * src_1[0] + \
+            ctx->table_h.pixels[i].factor_f[1] * src_2[0]);         \
+  RECLIP_FLOAT(dst[0], 0);                                                 \
+  dst[1] = (ctx->table_h.pixels[i].factor_f[0] * src_1[1] + \
+            ctx->table_h.pixels[i].factor_f[1] * src_2[1]);         \
+  RECLIP_FLOAT(dst[1], 1);
 
-#include "scale_bilinear_x.h"
+#define NUM_TAPS 3
+#include "scale_x.h"
 
 
 
 #define FUNC_NAME scale_float_x_3_x_bilinear_c
 #define TYPE float
-#define SCALE                                                           \
-  dst[0] = (ctx->table_h.pixels[i].factor_f[0] * src_1[0] + ctx->table_h.pixels[i].factor_f[1] * src_2[0]); \
-  dst[1] = (ctx->table_h.pixels[i].factor_f[0] * src_1[1] + ctx->table_h.pixels[i].factor_f[1] * src_2[1]); \
-  dst[2] = (ctx->table_h.pixels[i].factor_f[0] * src_1[2] + ctx->table_h.pixels[i].factor_f[1] * src_2[2]);
+#define SCALE                                                   \
+  dst[0] = (ctx->table_h.pixels[i].factor_f[0] * src_1[0] + \
+            ctx->table_h.pixels[i].factor_f[1] * src_2[0]);         \
+  RECLIP_FLOAT(dst[0], 0);                                                 \
+  dst[1] = (ctx->table_h.pixels[i].factor_f[0] * src_1[1] + \
+            ctx->table_h.pixels[i].factor_f[1] * src_2[1]);         \
+  RECLIP_FLOAT(dst[1], 1);                                                 \
+  dst[2] = (ctx->table_h.pixels[i].factor_f[0] * src_1[2] + \
+            ctx->table_h.pixels[i].factor_f[1] * src_2[2]);\
+  RECLIP_FLOAT(dst[2], 2);                                        \
 
-#include "scale_bilinear_x.h"
+
+#define NUM_TAPS 3
+#include "scale_x.h"
 
 #define FUNC_NAME scale_float_x_4_x_bilinear_c
 #define TYPE float
 #define SCALE                                                           \
-  dst[0] = (ctx->table_h.pixels[i].factor_f[0] * src_1[0] + ctx->table_h.pixels[i].factor_f[1] * src_2[0]); \
-  dst[1] = (ctx->table_h.pixels[i].factor_f[0] * src_1[1] + ctx->table_h.pixels[i].factor_f[1] * src_2[1]); \
-  dst[2] = (ctx->table_h.pixels[i].factor_f[0] * src_1[2] + ctx->table_h.pixels[i].factor_f[1] * src_2[2]); \
-  dst[3] = (ctx->table_h.pixels[i].factor_f[0] * src_1[3] + ctx->table_h.pixels[i].factor_f[1] * src_2[3]); \
+  dst[0] = (ctx->table_h.pixels[i].factor_f[0] * src_1[0] +         \
+            ctx->table_h.pixels[i].factor_f[1] * src_2[0]);         \
+  RECLIP_FLOAT(dst[0], 0);                                                 \
+  dst[1] = (ctx->table_h.pixels[i].factor_f[0] * src_1[1] +         \
+            ctx->table_h.pixels[i].factor_f[1] * src_2[1]);         \
+  RECLIP_FLOAT(dst[1], 1);                                                 \
+  dst[2] = (ctx->table_h.pixels[i].factor_f[0] * src_1[2] +         \
+            ctx->table_h.pixels[i].factor_f[1] * src_2[2]);         \
+  RECLIP_FLOAT(dst[2], 2);                                                 \
+  dst[3] = (ctx->table_h.pixels[i].factor_f[0] * src_1[3] +         \
+            ctx->table_h.pixels[i].factor_f[1] * src_2[3]);\
+  RECLIP_FLOAT(dst[3], 3);                                        \
 
-#include "scale_bilinear_x.h"
-
+#define NUM_TAPS 3
+#include "scale_x.h"
 
 /* y-Direction */
 
 #define FUNC_NAME scale_rgb_15_y_bilinear_c
 #define TYPE color_15
-#define INIT int fac_1, fac_2;\
+#define INIT int64_t fac_1, fac_2;        \
+  int64_t tmp; \
   fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
   fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
 
 #define NO_UINT8
 
 #define SCALE                                                           \
-  dst->r = (fac_1 * src_1->r + fac_2 * src_2->r) >> 16;\
-  dst->g = (fac_1 * src_1->g + fac_2 * src_2->g) >> 16;\
-  dst->b = (fac_1 * src_1->b + fac_2 * src_2->b) >> 16;
+  tmp = (fac_1 * src_1->r + \
+         fac_2 * src_2->r);                        \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_V(tmp, 0);                                       \
+  dst->r = tmp;                                    \
+  tmp = (fac_1 * src_1->g +                             \
+         fac_2 * src_2->g);                        \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_V(tmp, 1);                                       \
+  dst->g = tmp;                                    \
+  tmp = (fac_1 * src_1->b +                             \
+         fac_2 * src_2->b);                        \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_V(tmp, 2);                                       \
+  dst->b = tmp;
 
-#include "scale_bilinear_y.h"
+#define NUM_TAPS 3
+#include "scale_y.h"
 
 #define FUNC_NAME scale_rgb_16_y_bilinear_c
 #define TYPE color_16
-#define INIT int fac_1, fac_2;\
+#define INIT int64_t fac_1, fac_2;\
+  int64_t tmp;                                                  \
   fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
   fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
+
+
 #define NO_UINT8
 
 #define SCALE                                           \
-  dst->r = (fac_1 * src_1->r + fac_2 * src_2->r) >> 16;\
-  dst->g = (fac_1 * src_1->g + fac_2 * src_2->g) >> 16;\
-  dst->b = (fac_1 * src_1->b + fac_2 * src_2->b) >> 16;
+  tmp = (fac_1 * src_1->r +                             \
+         fac_2 * src_2->r);                             \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_V(tmp, 0);                                       \
+  dst->r = tmp;                                     \
+  tmp = (fac_1 * src_1->g +                             \
+         fac_2 * src_2->g);                        \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_V(tmp, 1);                                       \
+  dst->g = tmp;                                     \
+  tmp = (fac_1 * src_1->b +                             \
+         fac_2 * src_2->b);                        \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_V(tmp, 2);                                       \
+  dst->b = tmp;                                     \
 
-#include "scale_bilinear_y.h"
+#define NUM_TAPS 3
+#include "scale_y.h"
 
 #define FUNC_NAME scale_uint8_x_1_y_bilinear_c
 #define TYPE uint8_t
-#define INIT int fac_1, fac_2;\
+#define INIT int64_t fac_1, fac_2, tmp;               \
   fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
   fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
-#define SCALE \
-  dst[0] = DOWNSHIFT(fac_1 * src_1[0] + fac_2 * src_2[0], 16);
 
-#include "scale_bilinear_y.h"
+#define SCALE                  \
+  tmp = (fac_1 * src_1[0] + \
+         fac_2 * src_2[0]);                     \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_V(tmp, ctx->plane);                      \
+  dst[0] = tmp;
+
+#define NUM_TAPS 3
+#include "scale_y.h"
 
 #define FUNC_NAME scale_uint8_x_2_y_bilinear_c
 #define TYPE uint8_t
-#define INIT int fac_1, fac_2;\
+#define INIT int64_t fac_1, fac_2, tmp;               \
   fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
   fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
-#define SCALE \
-  dst[0] = DOWNSHIFT(fac_1 * src_1[0] + fac_2 * src_2[0], 16);\
-  dst[1] = DOWNSHIFT(fac_1 * src_1[1] + fac_2 * src_2[1], 16);
 
-#include "scale_bilinear_y.h"
+#define SCALE                  \
+  tmp = (fac_1 * src_1[0] + \
+         fac_2 * src_2[0]);                     \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_V(tmp, ctx->plane);                      \
+  dst[0] = tmp;\
+  tmp = (fac_1 * src_1[1] + \
+         fac_2 * src_2[1]);                     \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_V(tmp, ctx->plane);                      \
+  dst[1] = tmp;
+
+#define NUM_TAPS 3
+#include "scale_y.h"
+
 
 #define FUNC_NAME scale_uint8_x_3_y_bilinear_c
 #define TYPE uint8_t
-#define INIT int fac_1, fac_2;\
+#define INIT int64_t fac_1, fac_2, tmp;               \
   fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
   fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
-#define SCALE \
-  dst[0] = DOWNSHIFT(fac_1 * src_1[0] + fac_2 * src_2[0], 16);\
-  dst[1] = DOWNSHIFT(fac_1 * src_1[1] + fac_2 * src_2[1], 16);\
-  dst[2] = DOWNSHIFT(fac_1 * src_1[2] + fac_2 * src_2[2], 16);
 
-#include "scale_bilinear_y.h"
+#define SCALE               \
+  tmp = (fac_1 * src_1[0] +    \
+         fac_2 * src_2[0]);                 \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_V(tmp, 0);                                \
+  dst[0] = tmp;                             \
+  tmp = (fac_1 * src_1[1] +                             \
+         fac_2 * src_2[1]);                        \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_V(tmp, ctx->plane);                              \
+  dst[1] = tmp;                                    \
+  tmp = (fac_1 * src_1[2] +                             \
+         fac_2 * src_2[2]);                        \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_V(tmp, ctx->plane);                              \
+  dst[2] = tmp;
+
+#define NUM_TAPS 3
+#include "scale_y.h"
 
 #define FUNC_NAME scale_uint8_x_4_y_bilinear_c
 #define TYPE uint8_t
-#define INIT int fac_1, fac_2;\
+#define INIT int64_t fac_1, fac_2, tmp;               \
   fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
   fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
-#define SCALE \
-  dst[0] = DOWNSHIFT(fac_1 * src_1[0] + fac_2 * src_2[0], 16);\
-  dst[1] = DOWNSHIFT(fac_1 * src_1[1] + fac_2 * src_2[1], 16);\
-  dst[2] = DOWNSHIFT(fac_1 * src_1[2] + fac_2 * src_2[2], 16);\
-  dst[3] = DOWNSHIFT(fac_1 * src_1[3] + fac_2 * src_2[3], 16);\
- 
-#include "scale_bilinear_y.h"
+
+#define SCALE               \
+  tmp = (fac_1 * src_1[0] +    \
+         fac_2 * src_2[0]);                 \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_V(tmp, 0);                                \
+  dst[0] = tmp;                             \
+  tmp = (fac_1 * src_1[1] +                             \
+         fac_2 * src_2[1]);                        \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_V(tmp, 1);                              \
+  dst[1] = tmp;                                    \
+  tmp = (fac_1 * src_1[2] +                             \
+         fac_2 * src_2[2]);                        \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_V(tmp, 2);                                       \
+  dst[2] = tmp;                                    \
+  tmp = (fac_1 * src_1[3] +                             \
+         fac_2 * src_2[3]);                        \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_V(tmp, 3);                              \
+  dst[3] = tmp;
+
+
+
+#define NUM_TAPS 3
+#include "scale_y.h"
 
 #define FUNC_NAME scale_uint16_x_1_y_bilinear_c
 #define TYPE uint16_t
-#ifdef HQ
 #define INIT int64_t tmp; \
-  int fac_1, fac_2;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
+  int64_t fac_1, fac_2;                           \
+  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];   \
   fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
-#else
-#define INIT uint32_t tmp; \
-  int fac_1, fac_2;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
-#endif
 
 #define NO_UINT8
 
 #define SCALE                                  \
-  tmp = (fac_1 * src_1[0] + fac_2 * src_2[0]); \
-  dst[0] = DOWNSHIFT(tmp, 16);
+  tmp = (fac_1 * src_1[0] + \
+         fac_2 * src_2[0]); \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_V(tmp, ctx->plane);                    \
+  dst[0] = tmp;
 
-#include "scale_bilinear_y.h"
-
+#define NUM_TAPS 3
+#include "scale_y.h"
 
 #define FUNC_NAME scale_uint16_x_2_y_bilinear_c
 #define TYPE uint16_t
-
-#ifdef HQ
 #define INIT int64_t tmp; \
-  int fac_1, fac_2;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
+  int64_t fac_1, fac_2;                           \
+  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];   \
   fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
-#else
-#define INIT uint32_t tmp; \
-  int fac_1, fac_2;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
-#endif
 
 #define NO_UINT8
 
-
 #define SCALE                                  \
-  tmp = (fac_1 * src_1[0] + fac_2 * src_2[0]); \
-  dst[0] = DOWNSHIFT(tmp, 16); \
-  tmp = (fac_1 * src_1[1] + fac_2 * src_2[1]); \
-  dst[1] = DOWNSHIFT(tmp, 16);
+  tmp = (fac_1 * src_1[0] + \
+         fac_2 * src_2[0]); \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_V(tmp, ctx->plane);                    \
+  dst[0] = tmp;\
+  tmp = (fac_1 * src_1[1] + \
+         fac_2 * src_2[1]); \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_V(tmp, ctx->plane);                    \
+  dst[1] = tmp;
 
-#include "scale_bilinear_y.h"
+#define NUM_TAPS 3
+#include "scale_y.h"
 
 #define FUNC_NAME scale_uint16_x_3_y_bilinear_c
 #define TYPE uint16_t
-
-#ifdef HQ
-#define INIT int64_t tmp; \
-  int fac_1, fac_2;\
+#define INIT int64_t tmp;                      \
+  int64_t fac_1, fac_2;                           \
   fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
   fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
-#else
-#define INIT uint32_t tmp; \
-  int fac_1, fac_2;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
-#endif
 
 #define NO_UINT8
 
-
 #define SCALE                                  \
-  tmp = (fac_1 * src_1[0] + fac_2 * src_2[0]); \
-  dst[0] = DOWNSHIFT(tmp, 16); \
-  tmp = (fac_1 * src_1[1] + fac_2 * src_2[1]); \
-  dst[1] = DOWNSHIFT(tmp, 16); \
-  tmp = (fac_1 * src_1[2] + fac_2 * src_2[2]); \
-  dst[2] = DOWNSHIFT(tmp, 16);
+  tmp = (fac_1 * src_1[0] +                    \
+         fac_2 * src_2[0]);                    \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_V(tmp, 0);                              \
+  dst[0] = tmp;                          \
+  tmp = (fac_1 * src_1[1] +                    \
+         fac_2 * src_2[1]);                    \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_V(tmp, 1);                              \
+  dst[1] = tmp;                          \
+  tmp = (fac_1 * src_1[2] +                    \
+         fac_2 * src_2[2]);                    \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_V(tmp, 2);                              \
+  dst[2] = tmp;
 
-#include "scale_bilinear_y.h"
+#define NUM_TAPS 3
+#include "scale_y.h"
 
 #define FUNC_NAME scale_uint16_x_4_y_bilinear_c
 #define TYPE uint16_t
-
-#ifdef HQ
-#define INIT int64_t tmp; \
-  int fac_1, fac_2;\
+#define INIT int64_t tmp;\
+  int64_t fac_1, fac_2;\
   fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
   fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
-#else
-#define INIT uint32_t tmp; \
-  int fac_1, fac_2;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
-#endif
 
 #define NO_UINT8
 
 #define SCALE                                  \
-  tmp = (fac_1 * src_1[0] + fac_2 * src_2[0]); \
-  dst[0] = DOWNSHIFT(tmp, 16); \
-  tmp = (fac_1 * src_1[1] + fac_2 * src_2[1]); \
-  dst[1] = DOWNSHIFT(tmp, 16); \
-  tmp = (fac_1 * src_1[2] + fac_2 * src_2[2]); \
-  dst[2] = DOWNSHIFT(tmp, 16); \
-  tmp = (fac_1 * src_1[3] + fac_2 * src_2[3]); \
-  dst[3] = DOWNSHIFT(tmp, 16);
+  tmp = (fac_1 * src_1[0] + \
+         fac_2 * src_2[0]); \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_V(tmp, 0);                              \
+  dst[0] = tmp; \
+  tmp = (fac_1 * src_1[1] + \
+         fac_2 * src_2[1]); \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_V(tmp, 1);                              \
+  dst[1] = tmp; \
+  tmp = (fac_1 * src_1[2] + \
+         fac_2 * src_2[2]); \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_V(tmp, 2);                              \
+  dst[2] = tmp; \
+  tmp = (fac_1 * src_1[3] + \
+         fac_2 * src_2[3]); \
+  tmp=DOWNSHIFT(tmp,16);\
+  RECLIP_V(tmp, 3);                              \
+  dst[3] = tmp;
 
-#include "scale_bilinear_y.h"
+#define NUM_TAPS 3
+#include "scale_y.h"
 
 #define FUNC_NAME scale_float_x_1_y_bilinear_c
 #define TYPE float
 #define INIT float fac_1, fac_2;\
   fac_1 = ctx->table_v.pixels[ctx->scanline].factor_f[0];\
   fac_2 = ctx->table_v.pixels[ctx->scanline].factor_f[1];
+
 #define NO_UINT8
   
-#define SCALE                                                           \
-  dst[0] = (fac_1 * src_1[0] + fac_2 * src_2[0]);
+#define SCALE                  \
+  dst[0] = (fac_1 * src_1[0] + \
+            fac_2 * src_2[0]); \
+  RECLIP_FLOAT(dst[0], 0);
 
-#include "scale_bilinear_y.h"
+#define NUM_TAPS 3
+#include "scale_y.h"
 
 
 #define FUNC_NAME scale_float_x_2_y_bilinear_c
@@ -391,45 +587,72 @@
 #define INIT float fac_1, fac_2;\
   fac_1 = ctx->table_v.pixels[ctx->scanline].factor_f[0];\
   fac_2 = ctx->table_v.pixels[ctx->scanline].factor_f[1];
+
 #define NO_UINT8
   
-#define SCALE                                                           \
-  dst[0] = (fac_1 * src_1[0] + fac_2 * src_2[0]); \
-  dst[1] = (fac_1 * src_1[1] + fac_2 * src_2[1]);
+#define SCALE                  \
+  dst[0] = (fac_1 * src_1[0] + \
+            fac_2 * src_2[0]); \
+  RECLIP_FLOAT(dst[0], 0);        \
+  dst[1] = (fac_1 * src_1[1] + \
+            fac_2 * src_2[1]); \
+  RECLIP_FLOAT(dst[1], 1);
 
-#include "scale_bilinear_y.h"
-
+#define NUM_TAPS 3
+#include "scale_y.h"
 
 #define FUNC_NAME scale_float_x_3_y_bilinear_c
 #define TYPE float
 #define INIT float fac_1, fac_2;\
   fac_1 = ctx->table_v.pixels[ctx->scanline].factor_f[0];\
   fac_2 = ctx->table_v.pixels[ctx->scanline].factor_f[1];
+
 #define NO_UINT8
   
-#define SCALE                                                           \
-  dst[0] = (fac_1 * src_1[0] + fac_2 * src_2[0]); \
-  dst[1] = (fac_1 * src_1[1] + fac_2 * src_2[1]); \
-  dst[2] = (fac_1 * src_1[2] + fac_2 * src_2[2]);
+#define SCALE                  \
+  dst[0] = (fac_1 * src_1[0] + \
+            fac_2 * src_2[0]); \
+  RECLIP_FLOAT(dst[0], 0);        \
+  dst[1] = (fac_1 * src_1[1] + \
+            fac_2 * src_2[1]); \
+  RECLIP_FLOAT(dst[1], 1);        \
+  dst[2] = (fac_1 * src_1[2] + \
+            fac_2 * src_2[2]);\
+  RECLIP_FLOAT(dst[2], 2);
 
-#include "scale_bilinear_y.h"
+#define NUM_TAPS 3
+#include "scale_y.h"
 
 #define FUNC_NAME scale_float_x_4_y_bilinear_c
 #define TYPE float
-#define INIT float fac_1, fac_2;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_f[0];\
+#define INIT float fac_1, fac_2;                  \
+  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_f[0];   \
   fac_2 = ctx->table_v.pixels[ctx->scanline].factor_f[1];
+
 #define NO_UINT8
 
-#define SCALE                                     \
-dst[0] = (fac_1 * src_1[0] + fac_2 * src_2[0]);   \
-  dst[1] = (fac_1 * src_1[1] + fac_2 * src_2[1]); \
-  dst[2] = (fac_1 * src_1[2] + fac_2 * src_2[2]); \
-  dst[3] = (fac_1 * src_1[3] + fac_2 * src_2[3]); \
+#define SCALE                  \
+  dst[0] = (fac_1 * src_1[0] + \
+            fac_2 * src_2[0]); \
+  RECLIP_FLOAT(dst[0], 0);        \
+  dst[1] = (fac_1 * src_1[1] + \
+            fac_2 * src_2[1]); \
+  RECLIP_FLOAT(dst[1], 1);                           \
+  dst[2] = (fac_1 * src_1[2] +                    \
+            fac_2 * src_2[2]);                    \
+  RECLIP_FLOAT(dst[2], 2);                           \
+  dst[3] = (fac_1 * src_1[3] +                    \
+            fac_2 * src_2[3]);                    \
+  RECLIP_FLOAT(dst[3], 3);
 
-#include "scale_bilinear_y.h"
+#define NUM_TAPS 3
+#include "scale_y.h"
 
+#ifdef NOCLIP
+void gavl_init_scale_funcs_bilinear_noclip_c(gavl_scale_funcs_t * tab)
+#else
 void gavl_init_scale_funcs_bilinear_c(gavl_scale_funcs_t * tab)
+#endif
   {
   //  fprintf(stderr, "gavl_init_scale_funcs_bilinear_c\n");
   tab->funcs_x.scale_rgb_15 =     scale_rgb_15_x_bilinear_c;
@@ -455,8 +678,8 @@ void gavl_init_scale_funcs_bilinear_c(gavl_scale_funcs_t * tab)
 
   tab->funcs_y.scale_rgb_15 =     scale_rgb_15_y_bilinear_c;
   tab->funcs_y.scale_rgb_16 =     scale_rgb_16_y_bilinear_c;
-  tab->funcs_y.scale_uint8_x_1_noadvance =  scale_uint8_x_1_y_bilinear_c;
   tab->funcs_y.scale_uint8_x_1_advance =  scale_uint8_x_1_y_bilinear_c;
+  tab->funcs_y.scale_uint8_x_1_noadvance =  scale_uint8_x_1_y_bilinear_c;
   tab->funcs_y.scale_uint8_x_2 =  scale_uint8_x_2_y_bilinear_c;
   tab->funcs_y.scale_uint8_x_3 =  scale_uint8_x_3_y_bilinear_c;
   tab->funcs_y.scale_uint8_x_4 =  scale_uint8_x_4_y_bilinear_c;

@@ -104,6 +104,7 @@ void gavl_init_scale_funcs_nearest_c(gavl_scale_funcs_t * tab,
 */
 
 void gavl_init_scale_funcs_bilinear_c(gavl_scale_funcs_t * tab);
+void gavl_init_scale_funcs_bilinear_noclip_c(gavl_scale_funcs_t * tab);
 void gavl_init_scale_funcs_bilinear_fast_c(gavl_scale_funcs_t * tab);
 
 void gavl_init_scale_funcs_quadratic_c(gavl_scale_funcs_t * tab);
