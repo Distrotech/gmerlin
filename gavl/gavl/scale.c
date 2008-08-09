@@ -72,20 +72,37 @@ gavl_video_scaler_t * gavl_video_scaler_create()
   }
 
 void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt,
-                           int src_advance, int dst_advance)
+                           int src_advance, int dst_advance,
+                           gavl_video_scale_table_t * tab_h,
+                           gavl_video_scale_table_t * tab_v)
   {
-  /* Get scale functions */
-  switch(opt->scale_mode)
+  gavl_video_scale_table_t * scale_table;
+
+  memset(tab, 0, sizeof(*tab));
+  /* Only nearest is faster for x && y */
+  if(tab_h && tab_v)
     {
-    case GAVL_SCALE_AUTO:
-      break;
-    case GAVL_SCALE_NEAREST:
+    if((tab_h->factors_per_pixel == 1) &&
+       (tab_v->factors_per_pixel == 1))
+      gavl_init_scale_funcs_nearest_c(tab, src_advance, dst_advance);
+    return;
+    }
+  
+  scale_table = (tab_h ? tab_h : tab_v);
+
+  if(scale_table->factors_per_pixel < 2)
+    return;
+  
+  /* Get scale functions */
+  switch(scale_table->factors_per_pixel)
+    {
+    case 2:
       if((opt->quality > 0) || (opt->accel_flags & GAVL_ACCEL_C))
-        gavl_init_scale_funcs_nearest_c(tab, src_advance, dst_advance);
-      break;
-    case GAVL_SCALE_BILINEAR:
-      if((opt->quality > 0) || (opt->accel_flags & GAVL_ACCEL_C))
+        {
         gavl_init_scale_funcs_bilinear_c(tab);
+        if(scale_table->normalized)
+          gavl_init_scale_funcs_bilinear_fast_c(tab);
+        }
 #ifdef HAVE_MMX
       if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMX))
         {
@@ -113,7 +130,7 @@ void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt,
         }
 #endif
       break;
-    case GAVL_SCALE_QUADRATIC:
+    case 3:
       if((opt->quality > 0) || (opt->accel_flags & GAVL_ACCEL_C))
         gavl_init_scale_funcs_quadratic_c(tab);
 #ifdef HAVE_MMX
@@ -143,81 +160,83 @@ void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt,
         }
 #endif
       break;
-    case GAVL_SCALE_CUBIC_BSPLINE:
-      if((opt->quality > 0) || (opt->accel_flags & GAVL_ACCEL_C))
-        gavl_init_scale_funcs_bicubic_noclip_c(tab);
+    case 4:
+      if(!scale_table->do_clip)
+        {
+        if((opt->quality > 0) || (opt->accel_flags & GAVL_ACCEL_C))
+          gavl_init_scale_funcs_bicubic_noclip_c(tab);
 #ifdef HAVE_MMX
-      if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMX))
-        {
-        gavl_init_scale_funcs_bicubic_y_mmx(tab, src_advance, dst_advance);
-        gavl_init_scale_funcs_bicubic_noclip_x_mmx(tab, src_advance, dst_advance);
-        }
-      if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMXEXT))
-        {
-        gavl_init_scale_funcs_bicubic_y_mmxext(tab, src_advance, dst_advance);
-        gavl_init_scale_funcs_bicubic_noclip_x_mmxext(tab, src_advance, dst_advance);
-        }
+        if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMX))
+          {
+          gavl_init_scale_funcs_bicubic_y_mmx(tab, src_advance, dst_advance);
+          gavl_init_scale_funcs_bicubic_noclip_x_mmx(tab, src_advance, dst_advance);
+          }
+        if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMXEXT))
+          {
+          gavl_init_scale_funcs_bicubic_y_mmxext(tab, src_advance, dst_advance);
+          gavl_init_scale_funcs_bicubic_noclip_x_mmxext(tab, src_advance, dst_advance);
+          }
 #endif
 #ifdef HAVE_SSE
-      if(opt->accel_flags & GAVL_ACCEL_SSE)
-        {
-        gavl_init_scale_funcs_bicubic_y_noclip_sse(tab, src_advance, dst_advance);
-        gavl_init_scale_funcs_bicubic_x_noclip_sse(tab);
-        }
+        if(opt->accel_flags & GAVL_ACCEL_SSE)
+          {
+          gavl_init_scale_funcs_bicubic_y_noclip_sse(tab, src_advance, dst_advance);
+          gavl_init_scale_funcs_bicubic_x_noclip_sse(tab);
+          }
 #endif
 #ifdef HAVE_SSE2
-      if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_SSE2))
-        {
-        gavl_init_scale_funcs_bicubic_y_noclip_sse2(tab, src_advance, dst_advance);
-        //        gavl_init_scale_funcs_bicubic_x_sse2(tab, src_advance, dst_advance);
-        }
+        if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_SSE2))
+          {
+          gavl_init_scale_funcs_bicubic_y_noclip_sse2(tab, src_advance, dst_advance);
+          //        gavl_init_scale_funcs_bicubic_x_sse2(tab, src_advance, dst_advance);
+          }
 #endif
 #ifdef HAVE_SSE3
-      if(opt->accel_flags & GAVL_ACCEL_SSE3)
-        {
-        gavl_init_scale_funcs_bicubic_x_noclip_sse3(tab);
-        }
+        if(opt->accel_flags & GAVL_ACCEL_SSE3)
+          {
+          gavl_init_scale_funcs_bicubic_x_noclip_sse3(tab);
+          }
 #endif
-      break;
-    case GAVL_SCALE_CUBIC_MITCHELL:
-    case GAVL_SCALE_CUBIC_CATMULL:
-      if((opt->quality > 0) || (opt->accel_flags & GAVL_ACCEL_C))
-        gavl_init_scale_funcs_bicubic_c(tab);
+        }
+      else
+        {
+        if((opt->quality > 0) || (opt->accel_flags & GAVL_ACCEL_C))
+          gavl_init_scale_funcs_bicubic_c(tab);
 #ifdef HAVE_MMX
-      if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMX))
-        {
-        gavl_init_scale_funcs_bicubic_y_mmx(tab, src_advance, dst_advance);
-        gavl_init_scale_funcs_bicubic_x_mmx(tab, src_advance, dst_advance);
-        }
-      if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMXEXT))
-        {
-        gavl_init_scale_funcs_bicubic_y_mmxext(tab, src_advance, dst_advance);
-        gavl_init_scale_funcs_bicubic_x_mmxext(tab, src_advance, dst_advance);
-        }
+        if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMX))
+          {
+          gavl_init_scale_funcs_bicubic_y_mmx(tab, src_advance, dst_advance);
+          gavl_init_scale_funcs_bicubic_x_mmx(tab, src_advance, dst_advance);
+          }
+        if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMXEXT))
+          {
+          gavl_init_scale_funcs_bicubic_y_mmxext(tab, src_advance, dst_advance);
+          gavl_init_scale_funcs_bicubic_x_mmxext(tab, src_advance, dst_advance);
+          }
 #endif
 #ifdef HAVE_SSE
-      if(opt->accel_flags & GAVL_ACCEL_SSE)
-        {
-        gavl_init_scale_funcs_bicubic_y_sse(tab, src_advance, dst_advance);
-        gavl_init_scale_funcs_bicubic_x_sse(tab);
-        }
+        if(opt->accel_flags & GAVL_ACCEL_SSE)
+          {
+          gavl_init_scale_funcs_bicubic_y_sse(tab, src_advance, dst_advance);
+          gavl_init_scale_funcs_bicubic_x_sse(tab);
+          }
 #endif
 #ifdef HAVE_SSE2
-      if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_SSE2))
-        {
-        gavl_init_scale_funcs_bicubic_y_sse2(tab, src_advance, dst_advance);
-        //        gavl_init_scale_funcs_bicubic_x_sse2(tab, src_advance, dst_advance);
-        }
+        if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_SSE2))
+          {
+          gavl_init_scale_funcs_bicubic_y_sse2(tab, src_advance, dst_advance);
+          //        gavl_init_scale_funcs_bicubic_x_sse2(tab, src_advance, dst_advance);
+          }
 #endif
 #ifdef HAVE_SSE3
-      if(opt->accel_flags & GAVL_ACCEL_SSE3)
-        {
-        gavl_init_scale_funcs_bicubic_x_sse3(tab);
-        }
+        if(opt->accel_flags & GAVL_ACCEL_SSE3)
+          {
+          gavl_init_scale_funcs_bicubic_x_sse3(tab);
+          }
 #endif
+        }
       break;
-    case GAVL_SCALE_SINC_LANCZOS:
-    case GAVL_SCALE_NONE:
+    default:
       if((opt->quality > 0) || (opt->accel_flags & GAVL_ACCEL_C))
         gavl_init_scale_funcs_generic_c(tab);
 #ifdef HAVE_MMX

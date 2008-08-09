@@ -46,9 +46,9 @@
 /* Downshifting routines, with and without rounding */
 
 #ifdef HQ
-#define DOWNSHIFT(a, bits) ((a) + (1<<(bits-1)))>>bits
+#define DOWNSHIFT(a, bits) (((a) + (1<<(bits-1)))>>bits)
 #else
-#define DOWNSHIFT(a, bits) (a) >> bits
+#define DOWNSHIFT(a, bits) ((a) >> bits)
 #endif
 
 /* Packed formats for 15/16 colors (idea from libvisual) */

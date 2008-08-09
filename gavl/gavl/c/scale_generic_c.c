@@ -595,7 +595,11 @@ ctx->tmp[3] = 0;
 
 #include "scale_generic_y.h"
 
+#ifdef NOCLIP
+void gavl_init_scale_funcs_generic_noclip_c(gavl_scale_funcs_t * tab)
+#else
 void gavl_init_scale_funcs_generic_c(gavl_scale_funcs_t * tab)
+#endif
   {
   //  fprintf(stderr, "gavl_init_scale_funcs_generic_c\n");
   tab->funcs_x.scale_rgb_15 =     scale_rgb_15_x_generic_c;

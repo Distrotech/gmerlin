@@ -70,6 +70,7 @@ scale_float_x_1_x_bicubic_sse3(gavl_video_scale_context_t * ctx)
 
   }
 
+#if 0
 static void
 scale_float_x_1_x_bicubic_noclip_sse3(gavl_video_scale_context_t * ctx)
   {
@@ -102,6 +103,7 @@ scale_float_x_1_x_bicubic_noclip_sse3(gavl_video_scale_context_t * ctx)
     }
   
   }
+#endif
 
 static void
 scale_float_x_1_x_generic_sse3(gavl_video_scale_context_t * ctx)

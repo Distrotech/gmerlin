@@ -30,6 +30,26 @@
 
 typedef struct gavl_video_scale_context_s gavl_video_scale_context_t;
 
+typedef struct
+  {
+  int index; /* Index of the first row/column */
+  int32_t * factor_i;
+  float * factor_f;
+  } gavl_video_scale_pixel_t;
+
+typedef struct
+  {
+  int pixels_alloc;
+  int factors_alloc;
+  int num_pixels; /* Number of pixels (rows/columns) in the output area */
+  float * factors_f;
+  int32_t * factors_i;
+  gavl_video_scale_pixel_t  * pixels;
+  int factors_per_pixel;
+  int do_clip; /* Use routines with clipping */
+  int normalized;
+  } gavl_video_scale_table_t;
+
 typedef void
 (*gavl_video_scale_scanline_func)(gavl_video_scale_context_t*);
 
@@ -79,16 +99,21 @@ void gavl_init_scale_funcs_nearest_c(gavl_scale_funcs_t * tab,
                                      int src_advance,
                                      int dst_advance);
 
+/* TODO: gavl_init_scale_funcs_bilinear_clip_c
+   gavl_init_scale_funcs_quadratic_clip_c
+*/
+
 void gavl_init_scale_funcs_bilinear_c(gavl_scale_funcs_t * tab);
+void gavl_init_scale_funcs_bilinear_fast_c(gavl_scale_funcs_t * tab);
 
 void gavl_init_scale_funcs_quadratic_c(gavl_scale_funcs_t * tab);
 
 void gavl_init_scale_funcs_bicubic_c(gavl_scale_funcs_t * tab);
-
 void gavl_init_scale_funcs_bicubic_noclip_c(gavl_scale_funcs_t * tab);
 
 
 void gavl_init_scale_funcs_generic_c(gavl_scale_funcs_t * tab);
+void gavl_init_scale_funcs_generic_noclip_c(gavl_scale_funcs_t * tab);
 
 
 #ifdef HAVE_MMX
@@ -129,39 +154,41 @@ void gavl_init_scale_funcs_bilinear_x_mmx(gavl_scale_funcs_t * tab,
 
 /* */
 void gavl_init_scale_funcs_bicubic_y_mmxext(gavl_scale_funcs_t * tab,
-                                         int src_advance,
-                                         int dst_advance);
+                                            int src_advance,
+                                            int dst_advance);
 
 void gavl_init_scale_funcs_quadratic_y_mmxext(gavl_scale_funcs_t * tab,
-                                           int src_advance,
-                                           int dst_advance);
+                                              int src_advance,
+                                              int dst_advance);
 
 
 void gavl_init_scale_funcs_generic_y_mmxext(gavl_scale_funcs_t * tab,
-                                         int src_advance,
-                                         int dst_advance);
+                                            int src_advance,
+                                            int dst_advance);
 
 void gavl_init_scale_funcs_bilinear_y_mmxext(gavl_scale_funcs_t * tab,
-                                          int src_advance, int dst_advance);
+                                             int src_advance,
+                                             int dst_advance);
 
 void gavl_init_scale_funcs_bicubic_x_mmxext(gavl_scale_funcs_t * tab,
-                                         int src_advance,
-                                         int dst_advance);
+                                            int src_advance,
+                                            int dst_advance);
 
 void gavl_init_scale_funcs_quadratic_x_mmxext(gavl_scale_funcs_t * tab,
-                                           int src_advance,
-                                           int dst_advance);
+                                              int src_advance,
+                                              int dst_advance);
 
 void gavl_init_scale_funcs_bicubic_noclip_x_mmxext(gavl_scale_funcs_t * tab,
-                                                int src_advance,
-                                                int dst_advance);
+                                                   int src_advance,
+                                                   int dst_advance);
 
 void gavl_init_scale_funcs_generic_x_mmxext(gavl_scale_funcs_t * tab,
-                                         int src_advance,
-                                         int dst_advance);
+                                            int src_advance,
+                                            int dst_advance);
 
 void gavl_init_scale_funcs_bilinear_x_mmxext(gavl_scale_funcs_t * tab,
-                                          int src_advance, int dst_advance);
+                                             int src_advance,
+                                             int dst_advance);
 
 #endif
 
@@ -232,25 +259,10 @@ void gavl_init_scale_funcs_generic_x_sse3(gavl_scale_funcs_t * tab);
 void gavl_init_scale_funcs(gavl_scale_funcs_t * tab,
                            gavl_video_options_t * opt,
                            int src_advance,
-                           int dst_advance);
+                           int dst_advance,
+                           gavl_video_scale_table_t * tab_h,
+                           gavl_video_scale_table_t * tab_v);
 
-typedef struct
-  {
-  int index; /* Index of the first row/column */
-  int32_t * factor_i;
-  float * factor_f;
-  } gavl_video_scale_pixel_t;
-
-typedef struct
-  {
-  int pixels_alloc;
-  int factors_alloc;
-  int num_pixels; /* Number of pixels (rows/columns) in the output area */
-  float * factors_f;
-  int32_t * factors_i;
-  gavl_video_scale_pixel_t  * pixels;
-  int factors_per_pixel;
-  } gavl_video_scale_table_t;
 
 void gavl_video_scale_table_init(gavl_video_scale_table_t * tab,
                                  gavl_video_options_t * opt,

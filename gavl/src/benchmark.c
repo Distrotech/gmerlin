@@ -756,9 +756,11 @@ static const struct
   }
 scale_modes[] =
   {
-    { GAVL_SCALE_NEAREST, "Nearest" },
 #if 0
+    { GAVL_SCALE_NEAREST, "Nearest" },
+#endif
     { GAVL_SCALE_BILINEAR, "Linear"}, 
+#if 0
     { GAVL_SCALE_QUADRATIC, "Quadratic" },
     { GAVL_SCALE_CUBIC_BSPLINE, "Cubic B-Spline" },
     { GAVL_SCALE_CUBIC_CATMULL, "Cubic Catmull-Rom" },

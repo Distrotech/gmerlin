@@ -12,7 +12,9 @@ sampleformat_c.c \
 scale_bicubic_c.c \
 scale_bicubic_noclip_c.c \
 scale_bilinear_c.c \
+scale_bilinear_fast_c.c \
 scale_generic_c.c \
+scale_generic_noclip_c.c \
 scale_nearest_c.c \
 scale_quadratic_c.c \
 volume_c.c \

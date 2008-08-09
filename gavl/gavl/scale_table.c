@@ -21,6 +21,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <float.h>
 
 #include <gavl/gavl.h>
 #include <scale.h>
@@ -75,6 +76,8 @@ static void normalize_table(gavl_video_scale_table_t * tab);
 
 static void alloc_table(gavl_video_scale_table_t * tab,
                         int num_pixels);
+
+static void check_clip(gavl_video_scale_table_t * tab);
 
 void gavl_video_scale_table_init(gavl_video_scale_table_t * tab,
                                  gavl_video_options_t * opt,
@@ -184,13 +187,16 @@ void gavl_video_scale_table_init(gavl_video_scale_table_t * tab,
   //  gavl_video_scale_table_dump(tab);
   
   shift_borders(tab, src_width);
+  // if(opt->scale_mode == GAVL_SCALE_SINC_LANCZOS)
+  normalize_table(tab);
   
-  if(opt->scale_mode == GAVL_SCALE_SINC_LANCZOS)
-    normalize_table(tab);
+  check_clip(tab);
   
   //  fprintf(stderr, "After shift %d\n", src_width);
   //if(deinterlace || (total_fields == 2))
   //  gavl_video_scale_table_dump(tab);
+
+  
   
   }
 
@@ -215,6 +221,11 @@ gavl_video_scale_table_init_convolve(gavl_video_scale_table_t * tab,
 
   if(opt->conversion_flags & GAVL_CONVOLVE_NORMALIZE)
     normalize_table(tab);   
+  else
+    tab->normalized = 0;
+  
+  check_clip(tab);
+
   //  gavl_video_scale_table_dump(tab);
   }
 
@@ -258,11 +269,17 @@ static void normalize_table(gavl_video_scale_table_t * tab)
     for(j = 0; j < tab->factors_per_pixel; j++)
       sum += tab->pixels[i].factor_f[j];
 
+    /* This is to prevent accidental setting of clipping functions due to
+       rounding errors. For usual applications, it should not be noticable
+    */
+    sum += FLT_EPSILON;
+    
     // fprintf(stderr, "sum: %f\n", sum);
     
     for(j = 0; j < tab->factors_per_pixel; j++)
       tab->pixels[i].factor_f[j] /= sum;
     }
+  tab->normalized = 1;
   }
 
 /* Shift the borders of the table such that no indices are out of range.
@@ -450,7 +467,7 @@ void gavl_video_scale_table_init_int(gavl_video_scale_table_t * tab,
         }
       index++;
       }
-    if(!i)
+   if(!i)
       fac_i_norm = (int)(sum_f * fac_max_i + 0.5);
     
     if(sum_i > fac_i_norm)
@@ -490,3 +507,31 @@ void gavl_video_scale_table_shift_indices(gavl_video_scale_table_t * tab,
     }
   }
 
+static void check_clip(gavl_video_scale_table_t * tab)
+  {
+  int i, j;
+  float sum;
+
+  tab->do_clip = 0;
+  
+  for(i = 0; i < tab->num_pixels; i++)
+    {
+    sum = 0.0;
+    for(j = 0; j < tab->factors_per_pixel; j++)
+      {
+      sum += tab->pixels[i].factor_f[j];
+      
+      if(tab->pixels[i].factor_f[j] < 0.0 ||
+         tab->pixels[i].factor_f[j] > 1.0)
+        {
+        tab->do_clip = 1;
+        return;
+        }
+      }
+    if(sum > 1.0)
+      {
+      tab->do_clip = 1;
+      return;
+      }
+    }
+  }
