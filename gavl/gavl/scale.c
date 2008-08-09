@@ -132,7 +132,12 @@ void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt,
       break;
     case 3:
       if((opt->quality > 0) || (opt->accel_flags & GAVL_ACCEL_C))
-        gavl_init_scale_funcs_quadratic_c(tab);
+        {
+        if(scale_table->do_clip)
+          gavl_init_scale_funcs_quadratic_c(tab);
+        else
+          gavl_init_scale_funcs_quadratic_noclip_c(tab);
+        }
 #ifdef HAVE_MMX
       if((opt->quality < 3) && (opt->accel_flags & GAVL_ACCEL_MMX))
         {

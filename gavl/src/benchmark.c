@@ -758,10 +758,10 @@ scale_modes[] =
   {
 #if 0
     { GAVL_SCALE_NEAREST, "Nearest" },
-#endif
     { GAVL_SCALE_BILINEAR, "Linear"}, 
-#if 0
+#endif
     { GAVL_SCALE_QUADRATIC, "Quadratic" },
+#if 0
     { GAVL_SCALE_CUBIC_BSPLINE, "Cubic B-Spline" },
     { GAVL_SCALE_CUBIC_CATMULL, "Cubic Catmull-Rom" },
     { GAVL_SCALE_CUBIC_MITCHELL, "Cubic Mitchell-Netravali" },

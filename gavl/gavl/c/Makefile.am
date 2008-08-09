@@ -17,6 +17,7 @@ scale_generic_c.c \
 scale_generic_noclip_c.c \
 scale_nearest_c.c \
 scale_quadratic_c.c \
+scale_quadratic_noclip_c.c \
 volume_c.c \
 rgb_rgb_c.c \
 rgb_yuv_c.c \
