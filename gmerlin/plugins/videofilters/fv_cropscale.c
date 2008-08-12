@@ -331,24 +331,8 @@ static const bg_parameter_info_t parameters[] =
       .opt =       "sm",
       .type =        BG_PARAMETER_STRINGLIST,
       .flags =     BG_PARAMETER_SYNC,
-      .multi_names = (char const *[]){ "auto",\
-                              "nearest",         \
-                              "bilinear", \
-                              "quadratic", \
-                              "cubic_bspline", \
-                              "cubic_mitchell", \
-                              "cubic_catmull", \
-                              "sinc_lanczos", \
-                              (char*)0 },
-      .multi_labels = (char const *[]){ TRS("Auto"), \
-                               TRS("Nearest"),            \
-                               TRS("Bilinear"), \
-                               TRS("Quadratic"), \
-                               TRS("Cubic B-Spline"), \
-                               TRS("Cubic Mitchell-Netravali"), \
-                               TRS("Cubic Catmull-Rom"), \
-                               TRS("Sinc with Lanczos window"), \
-                               (char*)0 },
+      .multi_names = BG_GAVL_SCALE_MODE_NAMES,
+      .multi_labels = BG_GAVL_SCALE_MODE_LABELS,
       .val_default = { .val_str = "auto" },
       .help_string = TRS("Choose scaling method. Auto means to choose based on the conversion quality. Nearest is fastest, Sinc with Lanczos window is slowest."),
     },
@@ -362,6 +346,28 @@ static const bg_parameter_info_t parameters[] =
       .val_max =     { .val_i = 1000 },
       .val_default = { .val_i = 4 },
       .help_string = TRS("Order for sinc scaling."),
+    },
+    {
+      .name      =  "downscale_filter",
+      .long_name =  "Antialiasing for downscaling",
+      .type =        BG_PARAMETER_STRINGLIST,
+      .flags =     BG_PARAMETER_SYNC,
+      .multi_names = BG_GAVL_DOWNSCALE_FILTER_NAMES,
+      .multi_labels = BG_GAVL_DOWNSCALE_FILTER_LABELS,
+      .val_default = { .val_str = "auto" },
+      .help_string = TRS("Specifies the antialiasing filter to be used when downscaling images."),
+    },
+    {
+      .name      =  "downscale_blur",
+      .long_name =  "Blur factor for downscaling",
+      .type =        BG_PARAMETER_SLIDER_FLOAT,
+      .flags =     BG_PARAMETER_SYNC,
+      .val_default = { .val_f = 1.0 },
+      .val_min     = { .val_f = 0.0 },
+      .val_max     = { .val_f = 2.0 },
+      .num_digits  = 2,
+      .help_string = TRS("Specifies how much blurring should be applied when downscaling. Smaller values can speed up scaling, but might result in strong aliasing."),
+      
     },
     {
       .name =        "quality",
@@ -512,31 +518,6 @@ frame_size_sizes[NUM_FRAME_SIZES] =
     { FRAME_SIZE_16CIF,           1408, 1152,   12,   11 },
   };
 
-static gavl_scale_mode_t string_to_scale_mode(const char * str)
-  {
-  if(!strcmp(str, "auto"))
-    return GAVL_SCALE_AUTO;
-  else if(!strcmp(str, "nearest"))
-    return GAVL_SCALE_NEAREST;
-  else if(!strcmp(str, "bilinear"))
-    return GAVL_SCALE_BILINEAR;
-  else if(!strcmp(str, "quadratic"))
-    return GAVL_SCALE_QUADRATIC;
-  else if(!strcmp(str, "cubic_bspline"))
-    return GAVL_SCALE_CUBIC_BSPLINE;
-  else if(!strcmp(str, "cubic_mitchell"))
-    return GAVL_SCALE_CUBIC_MITCHELL;
-  else if(!strcmp(str, "cubic_catmull"))
-    return GAVL_SCALE_CUBIC_CATMULL;
-  else if(!strcmp(str, "sinc_lanczos"))
-    return GAVL_SCALE_SINC_LANCZOS;
-  else
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Unknown scale mode %s\n", str);
-    return GAVL_SCALE_AUTO;
-    }
-  }
-
 static void set_parameter_cropscale(void * priv, const char * name,
                                     const bg_parameter_value_t * val)
   {
@@ -545,6 +526,8 @@ static void set_parameter_cropscale(void * priv, const char * name,
   int new_deinterlace;
   gavl_deinterlace_drop_mode_t new_drop_mode;
   gavl_scale_mode_t new_scale_mode;
+  gavl_downscale_filter_t new_downscale_filter;
+  
   vp = (cropscale_priv_t *)priv;
 
   if(!name)
@@ -674,10 +657,27 @@ static void set_parameter_cropscale(void * priv, const char * name,
     }
   else if(!strcmp(name, "scale_mode"))
     {
-    new_scale_mode = string_to_scale_mode(val->val_str);
+    new_scale_mode = bg_gavl_string_to_scale_mode(val->val_str);
     if(new_scale_mode != gavl_video_options_get_scale_mode(vp->opt))
       {
       gavl_video_options_set_scale_mode(vp->opt, new_scale_mode);
+      vp->need_reinit = 1;
+      }
+    }
+  else if(!strcmp(name, "downscale_filter"))
+    {
+    new_downscale_filter = bg_gavl_string_to_downscale_filter(val->val_str);
+    if(new_downscale_filter != gavl_video_options_get_downscale_filter(vp->opt))
+      {
+      gavl_video_options_set_downscale_filter(vp->opt, new_downscale_filter);
+      vp->need_reinit = 1;
+      }
+    }
+  else if(!strcmp(name, "downscale_blur"))
+    {
+    if(val->val_f != gavl_video_options_get_downscale_blur(vp->opt))
+      {
+      gavl_video_options_set_downscale_blur(vp->opt, val->val_f);
       vp->need_reinit = 1;
       }
     }

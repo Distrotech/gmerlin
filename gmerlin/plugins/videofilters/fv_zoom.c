@@ -123,6 +123,29 @@ static const bg_parameter_info_t parameters[] =
       .val_default = { .val_i = 4 },
       .help_string = TRS("Order for sinc scaling."),
     },
+
+    {
+      .name      =  "downscale_filter",
+      .long_name =  "Antialiasing for downscaling",
+      .type =        BG_PARAMETER_STRINGLIST,
+      .flags =     BG_PARAMETER_SYNC,
+      .multi_names = BG_GAVL_DOWNSCALE_FILTER_NAMES,
+      .multi_labels = BG_GAVL_DOWNSCALE_FILTER_LABELS,
+      .val_default = { .val_str = "auto" },
+      .help_string = TRS("Specifies the antialiasing filter to be used when downscaling images."),
+    },
+    {
+      .name      =  "downscale_blur",
+      .long_name =  "Blur factor for downscaling",
+      .type =        BG_PARAMETER_SLIDER_FLOAT,
+      .flags =     BG_PARAMETER_SYNC,
+      .val_default = { .val_f = 1.0 },
+      .val_min     = { .val_f = 0.0 },
+      .val_max     = { .val_f = 2.0 },
+      .num_digits  = 2,
+      .help_string = TRS("Specifies how much blurring should be applied when downscaling. Smaller values can speed up scaling, but might result in strong aliasing."),
+      
+    },
     {
       .name = "quality",
       .long_name = TRS("Quality"),
@@ -151,6 +174,8 @@ static void set_parameter_zoom(void * priv, const char * name, const bg_paramete
   {
   zs_priv_t * vp;
   gavl_scale_mode_t scale_mode;
+  gavl_downscale_filter_t new_downscale_filter;
+
   vp = (zs_priv_t *)priv;
 
   if(!name)
@@ -197,6 +222,26 @@ static void set_parameter_zoom(void * priv, const char * name, const bg_paramete
       vp->changed = 1;
       }
     }
+  else if(!strcmp(name, "downscale_filter"))
+    {
+    new_downscale_filter = bg_gavl_string_to_downscale_filter(val->val_str);
+    if(new_downscale_filter != gavl_video_options_get_downscale_filter(vp->opt))
+      {
+      gavl_video_options_set_downscale_filter(vp->opt, new_downscale_filter);
+      vp->changed = 1;
+      }
+    }
+  else if(!strcmp(name, "downscale_blur"))
+    {
+    if(val->val_f != gavl_video_options_get_downscale_blur(vp->opt))
+      {
+      gavl_video_options_set_downscale_blur(vp->opt, val->val_f);
+      vp->changed = 1;
+      }
+    }
+
+
+  
   else if(!strcmp(name, "bg_color"))
     {
     memcpy(vp->bg_color, val->val_color, sizeof(vp->bg_color));

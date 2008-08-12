@@ -394,6 +394,24 @@ gavl_scale_mode_t bg_gavl_string_to_scale_mode(const char * str)
       
   }
 
+gavl_downscale_filter_t bg_gavl_string_to_downscale_filter(const char * str)
+  {
+  if(!strcmp(str, "auto"))
+    return GAVL_DOWNSCALE_FILTER_AUTO;
+  else if(!strcmp(str, "none"))
+    return GAVL_DOWNSCALE_FILTER_NONE;
+  else if(!strcmp(str, "wide"))
+    return GAVL_DOWNSCALE_FILTER_WIDE;
+  else if(!strcmp(str, "gauss"))
+    return GAVL_DOWNSCALE_FILTER_GAUSS;
+  else
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Unknown scale mode %s\n", str);
+    return GAVL_DOWNSCALE_FILTER_GAUSS;
+    }
+  }
+
+
 int bg_gavl_video_set_parameter(void * data, const char * name,
                                 const bg_parameter_value_t * val)
   {

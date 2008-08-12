@@ -83,7 +83,7 @@ void bg_gavl_video_options_set_rectangles(const bg_gavl_video_options_t * opt,
                                           int do_crop);
 
 gavl_scale_mode_t bg_gavl_string_to_scale_mode(const char * str);
-
+gavl_downscale_filter_t bg_gavl_string_to_downscale_filter(const char * str);
 
 #if 0
 void bg_gavl_video_options_set_framerate(const bg_gavl_video_options_t *,
@@ -215,6 +215,20 @@ timescale and frame duration below (framerate = timescale / frame_duration).")\
              TRS("Cubic Catmull-Rom"), \
              TRS("Sinc with Lanczos window"), \
             (char*)0 }
+
+#define BG_GAVL_DOWNSCALE_FILTER_NAMES \
+  (char const *[]){ "auto", \
+                    "none", \
+                    "wide", \
+                    "gauss", \
+                    (char*)0 }
+
+#define BG_GAVL_DOWNSCALE_FILTER_LABELS \
+  (char const *[]){ TRS("Auto"), \
+                    TRS("None"),            \
+                    TRS("Widening"), \
+                    TRS("Gaussian preblur"), \
+                    (char*)0 }
 
 #define BG_GAVL_PARAM_SCALE_MODE                                    \
   {                                                                 \
