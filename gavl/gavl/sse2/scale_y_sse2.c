@@ -277,9 +277,9 @@ static mmx_t mm_tmp;
 #define INIT        INIT_8
 #define ACCUM       ACCUM_8
 #define OUTPUT      OUTPUT_8
-#define INIT_C        INIT_C_8
-#define ACCUM_C       ACCUM_C_8
-#define OUTPUT_C      OUTPUT_C_8
+#define INIT_C      INIT_C_8
+#define ACCUM_C     ACCUM_C_8
+#define OUTPUT_C    OUTPUT_C_8
 
 #include "scale_y.h"
 

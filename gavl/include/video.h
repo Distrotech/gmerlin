@@ -62,6 +62,9 @@ struct gavl_video_options_s
   int have_rectangles;
   
   int keep_aspect;
+  
+  gavl_downscale_filter_t downscale_filter;
+  float downscale_blur;
   };
 
 typedef struct gavl_video_convert_context_s gavl_video_convert_context_t;

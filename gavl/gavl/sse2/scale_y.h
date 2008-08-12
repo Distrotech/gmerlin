@@ -40,7 +40,7 @@ static void (FUNC_NAME)(gavl_video_scale_context_t * ctx)
     ctx->src + ctx->table_v.pixels[ctx->scanline].index * ctx->src_stride;
   
   /* While destination is not aligned... */
-  imax = (((long)(src_start)) % 16)/BYTES;
+  imax = (16 - (((long)(src_start)) % 16))/BYTES;
   //  imax = ctx->dst_size * BYTES * WIDTH_MUL;
 
   for(i = 0; i < imax; i++)
@@ -83,6 +83,7 @@ static void (FUNC_NAME)(gavl_video_scale_context_t * ctx)
     OUTPUT_C;
     dst+=BYTES;
     src_start+=BYTES;
+    //    fprintf(stderr, "Src start: %p\n", src_start);
     }
   
   imax = (ctx->dst_size * BYTES * WIDTH_MUL - (dst - ctx->dst)) / (16*BYTES);
@@ -129,7 +130,7 @@ static void (FUNC_NAME)(gavl_video_scale_context_t * ctx)
     
     }
 
-  imax = (ctx->dst_size * BYTES * WIDTH_MUL - (dst - ctx->dst));
+  imax = (ctx->dst_size * BYTES * WIDTH_MUL - (dst - ctx->dst)) / BYTES;
   
   //  imax = (ctx->dst_size * WIDTH_MUL);
   

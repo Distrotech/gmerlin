@@ -41,6 +41,8 @@ void gavl_video_options_set_defaults(gavl_video_options_t * opt)
   opt->accel_flags = gavl_accel_supported();
   opt->scale_order = 4;
   opt->quality = GAVL_QUALITY_DEFAULT;
+  opt->downscale_blur = 1.0;
+  opt->downscale_filter = GAVL_DOWNSCALE_FILTER_WIDE;
   gavl_init_memcpy();
   }
   
@@ -189,6 +191,40 @@ void gavl_video_options_get_background_color(gavl_video_options_t * opt,
   memcpy(color, opt->background_float, 3*sizeof(*color));
   }
 
+void gavl_video_options_set_downscale_filter(gavl_video_options_t * opt,
+                                             gavl_downscale_filter_t f)
+  {
+  opt->downscale_filter = f;
+  
+  }
+  
+gavl_downscale_filter_t
+gavl_video_options_get_downscale_filter(gavl_video_options_t * opt)
+  {
+  return opt->downscale_filter;
+  }
+
+void gavl_video_options_set_downscale_blur(gavl_video_options_t * opt,
+                                           float f)
+  {
+  opt->downscale_blur = f;
+  }
+  
+
+/*!  \ingroup video_options
+ *   \brief Get blur factor for downscaling
+ *   \param opt Video options
+ *   \returns Factor
+ *
+ *  Since 1.1.0
+ */
+  
+float gavl_video_options_get_downscale_blur(gavl_video_options_t * opt)
+  {
+  return opt->downscale_blur;
+  }
+
+
 gavl_video_options_t * gavl_video_options_create()
   {
   gavl_video_options_t * ret = calloc(1, sizeof(*ret));
@@ -206,3 +242,4 @@ void gavl_video_options_destroy(gavl_video_options_t * opt)
   {
   free(opt);
   }
+

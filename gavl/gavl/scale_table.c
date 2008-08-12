@@ -22,15 +22,38 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <float.h>
+#include <math.h>
 
 #include <gavl/gavl.h>
 #include <scale.h>
 
+/* Conversion between src and dst coordinates */
+
+#define DST_TO_SRC(c) ((double)c)/scale_factor+src_off
+
+#define ROUND(val) (val >= 0.0) ? (int)(val+0.5):(int)(val-0.5)
+
+static void shift_borders(gavl_video_scale_table_t * tab, int src_width);
+
+static void normalize_table(gavl_video_scale_table_t * tab);
+
+static void alloc_table(gavl_video_scale_table_t * tab,
+                        int num_pixels);
+
+static void check_clip(gavl_video_scale_table_t * tab);
+
+static void get_preblur_coeffs(double scale_factor,
+                               gavl_video_options_t * opt,
+                               int * num_ret,
+                               float ** coeffs_ret);
+
+static void convolve_preblur(float * src_1, int src_len_1,
+                             float * src_2, int src_len_2,
+                             float * dst);
+
 /*
  * Creation of the scale tables, the most ugly part.
  * The tables are for one dimension only, for 2D scaling, we'll have 2 tables.
- * Nearest neighbour and bilinear scaling routines scale in 2 dimensions at once
- * using 2 tables. Higher order scaling is done for each dimension separately.
  * 
  * We have 3 values: src_size (double), src_off (double)
  * and dst_size (int).
@@ -59,39 +82,63 @@
  *   image border
  *
  * - Convert the floating point coefficients to integer with the specified bit
- *   resolution requsted by the scaling routine.
+ *   resolution requested by the scaling routine.
  *
  */
-
-
-/* Conversion between src and dst coordinates */
-
-#define DST_TO_SRC(c) ((double)c)/scale_factor+src_off
-
-#define ROUND(val) (val >= 0.0) ? (int)(val+0.5):(int)(val-0.5)
-
-static void shift_borders(gavl_video_scale_table_t * tab, int src_width);
-
-static void normalize_table(gavl_video_scale_table_t * tab);
-
-static void alloc_table(gavl_video_scale_table_t * tab,
-                        int num_pixels);
-
-static void check_clip(gavl_video_scale_table_t * tab);
-
+                    
 void gavl_video_scale_table_init(gavl_video_scale_table_t * tab,
                                  gavl_video_options_t * opt,
                                  double src_off, double src_size,
                                  int dst_size, int src_width)
   {
+  int widen;
+
   double t;
   int i, j, src_index_min, src_index_nearest;
   double src_index_f;
-    
+  float widen_factor;
+  float * preblur_factors = (float*)0;
+  int num_preblur_factors = 0;
+  int num_tmp_factors = 0;
+  float * tmp_factors;
+  
   gavl_video_scale_get_weight weight_func;
   
   double scale_factor;
+  scale_factor = (double)(dst_size) / src_size;
 
+  widen = 0;
+
+  if(scale_factor < 1.0)
+    {
+    switch(opt->downscale_filter)
+      {
+      case GAVL_DOWNSCALE_FILTER_AUTO: //!< Auto selection based on quality
+        if(opt->quality < 2)
+          break;
+        else
+          {
+          get_preblur_coeffs(scale_factor,
+                             opt,
+                             &num_preblur_factors,
+                             &preblur_factors);
+          }
+        break;
+      case GAVL_DOWNSCALE_FILTER_NONE: //!< Fastest method, might produce heavy aliasing artifacts
+        break;
+      case GAVL_DOWNSCALE_FILTER_WIDE: //!< Widen the filter curve according to the scaling ratio. 
+        if(opt->downscale_blur > 0.0)
+          widen = 1;
+        break;
+      case GAVL_DOWNSCALE_FILTER_GAUSS: //!< Do a Gaussian preblur
+        get_preblur_coeffs(scale_factor,
+                           opt,
+                           &num_preblur_factors,
+                           &preblur_factors);
+        break;
+      }
+    }
+  
   //  src_off = -0.25;
   
   /* Get the kernel generator */
@@ -99,8 +146,27 @@ void gavl_video_scale_table_init(gavl_video_scale_table_t * tab,
   weight_func =
     gavl_video_scale_get_weight_func(opt, &(tab->factors_per_pixel));
 
+  num_tmp_factors = tab->factors_per_pixel;
+  
+  if(num_preblur_factors)
+    {
+    tmp_factors = malloc(sizeof(*tmp_factors) * num_tmp_factors);
+    
+    tab->factors_per_pixel += num_preblur_factors - 1;
+    }
+  
+  if(widen)
+    {
+    widen_factor = ceil(opt->downscale_blur / scale_factor);
+    tab->factors_per_pixel *= (int)(widen_factor);
+    }
+  else
+    widen_factor = 1.0;
+
+  
   //  fprintf(stderr, "tab->factors_per_pixel: %d, src_width: %d\n",
   //          tab->factors_per_pixel, src_width);
+  
   
   if(tab->factors_per_pixel > src_width)
     {
@@ -131,7 +197,6 @@ void gavl_video_scale_table_init(gavl_video_scale_table_t * tab,
 
   alloc_table(tab, dst_size);
  
-  scale_factor = (double)(dst_size) / src_size;
   
   for(i = 0; i < dst_size; i++)
     {
@@ -149,7 +214,8 @@ void gavl_video_scale_table_init(gavl_video_scale_table_t * tab,
     
     src_index_nearest = ROUND(src_index_f);
 
-    src_index_min = src_index_nearest - tab->factors_per_pixel/2;
+    //    src_index_min = src_index_nearest - tab->factors_per_pixel/2;
+    src_index_min = src_index_nearest - num_tmp_factors/2;
     
     if(((double)src_index_nearest < src_index_f) && !(tab->factors_per_pixel % 2))
       {
@@ -173,14 +239,31 @@ void gavl_video_scale_table_init(gavl_video_scale_table_t * tab,
     
     /* Normalized distance of the destination pixel to the first source pixel
        in src coordinates */    
-    t = src_index_f - src_index_min;
-    
-    for(j = 0; j < tab->factors_per_pixel; j++)
+    t = (src_index_f - src_index_min)/widen_factor;
+
+    if(num_preblur_factors)
       {
-      tab->pixels[i].factor_f[j] = weight_func(opt, t);
-      //      fprintf(stderr, "t: %f, w: %f\n", t, weight_func(opt, t));
-      t -= 1.0;
+      for(j = 0; j < num_tmp_factors; j++)
+        {
+        tmp_factors[j] = weight_func(opt, t);
+        //        fprintf(stderr, "j: %d, t: %f, w: %f\n", j, t, weight_func(opt, t));
+        t -= 1.0;
+        }
+      
+      convolve_preblur(tmp_factors, num_tmp_factors,
+                       preblur_factors, num_preblur_factors,
+                       tab->pixels[i].factor_f);
       }
+    else
+      {
+      for(j = 0; j < tab->factors_per_pixel; j++)
+        {
+        tab->pixels[i].factor_f[j] = weight_func(opt, t);
+        //      fprintf(stderr, "j: %d, t: %f, w: %f\n", j, t, weight_func(opt, t));
+        t -= 1.0 /widen_factor;
+        }
+      }
+    
     }
 
   //  fprintf(stderr, "Before shift\n");
@@ -534,4 +617,60 @@ static void check_clip(gavl_video_scale_table_t * tab)
       return;
       }
     }
+  }
+
+static void get_preblur_coeffs(double scale_factor,
+                               gavl_video_options_t * opt,
+                               int * num_ret,
+                               float ** coeffs_ret)
+  {
+  *num_ret = 0;
+
+  /* Gaussian lowpass */
+  if(opt->downscale_filter == GAVL_DOWNSCALE_FILTER_GAUSS)
+    {
+    int i;
+    float tmp;
+    float f_co = 0.25 * scale_factor;
+    int n = (int)(ceil(0.398 / f_co));
+
+    if(n && (opt->downscale_blur >= 0.0))
+      {
+      *num_ret = 2 * n + 1;
+      *coeffs_ret = malloc(*num_ret * sizeof(**coeffs_ret));
+      
+      for(i = -n; i <= n; i++)
+        {
+        tmp = 3.011 * f_co * (float)i / opt->downscale_blur;
+        (*coeffs_ret)[i+n] = exp(-M_PI * tmp * tmp);
+        }
+      }
+    }
+  
+  if(!(*num_ret))
+    *coeffs_ret = NULL;
+  
+  }
+
+static void convolve_preblur(float * src_1, int src_len_1,
+                             float * src_2, int src_len_2,
+                             float * dst)
+  {
+  int m, n, nmax;
+  
+  nmax = src_len_1 + src_len_2 - 1;
+  
+  for(n = 0; n < nmax; n++)
+    {
+    dst[n] = 0.0;
+
+    for(m = 0; m < src_len_1; m++)
+      {
+      if((n - m >= 0) && (n - m < src_len_2))
+        dst[n] += src_1[m] * src_2[n-m];
+      }
+    
+    }
+  
+  
   }

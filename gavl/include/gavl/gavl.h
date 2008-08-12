@@ -2203,6 +2203,23 @@ typedef enum
   } gavl_scale_mode_t;
 
 /** \ingroup video_options
+ *  Antialiasing filters 
+ *
+ *  Specifies the antialiasing filter to be used
+ *  when downscaling images.
+ *
+ *  Since 1.1.0
+ */
+  
+typedef enum
+  {
+    GAVL_DOWNSCALE_FILTER_AUTO = 0, //!< Auto selection based on quality
+    GAVL_DOWNSCALE_FILTER_NONE, //!< Fastest method, might produce heavy aliasing artifacts
+    GAVL_DOWNSCALE_FILTER_WIDE, //!< Widen the filter curve according to the scaling ratio. 
+    GAVL_DOWNSCALE_FILTER_GAUSS, //!< Do a Gaussian preblur
+  } gavl_downscale_filter_t;
+  
+/** \ingroup video_options
  * Opaque container for video conversion options
  *
  * You don't want to know what's inside.
@@ -2418,7 +2435,59 @@ void gavl_video_options_set_deinterlace_drop_mode(gavl_video_options_t * opt,
   
 gavl_deinterlace_drop_mode_t
 gavl_video_options_get_deinterlace_drop_mode(gavl_video_options_t * opt);
- 
+
+/*!  \ingroup video_options
+ *   \brief Set antialiasing filter for downscaling
+ *   \param opt Video options
+ *   \param f Filter type (see \ref gavl_downscale_filter_t)
+ *
+ *  Since 1.1.0
+ */
+
+void gavl_video_options_set_downscale_filter(gavl_video_options_t * opt,
+                                             gavl_downscale_filter_t f);
+  
+
+/*! \ingroup video_options
+ *  \brief Get the antialiasing filter for downscaling
+ *  \param opt Video options
+ *  \returns antialiasing filter for downscaling
+ *
+ *  Since 1.1.0
+ */
+  
+gavl_downscale_filter_t
+gavl_video_options_get_downscale_filter(gavl_video_options_t * opt);
+
+/*!  \ingroup video_options
+ *   \brief Set blur factor for downscaling
+ *   \param opt Video options
+ *   \param f Factor
+ *
+ *   Specifies an additional blur-factor for downscaling. The
+ *   default value of 1.0 calculates the preblur coefficients
+ *   according the the downsample factor. Larger values mean
+ *   more blurring (and slower scaling), smaller values mean
+ *   less blurring (and probably more aliasing artifacts),
+ *   0 is equivalent to
+ *   calling \ref gavl_video_options_set_downscale_filter
+ *   with GAVL_DOWNSCALE_FILTER_NONE as argument.
+ *
+ *  Since 1.1.0
+ */
+
+void gavl_video_options_set_downscale_blur(gavl_video_options_t * opt,
+                                           float f);
+
+/*!  \ingroup video_options
+ *   \brief Get blur factor for downscaling
+ *   \param opt Video options
+ *   \returns Factor
+ *
+ *  Since 1.1.0
+ */
+  
+float gavl_video_options_get_downscale_blur(gavl_video_options_t * opt);
   
 /***************************************************
  * Create and destroy video converters

@@ -43,7 +43,7 @@ void * memalign (size_t align, size_t size);
 #define memalign(align,size) malloc (size)
 #endif
 
-#define ALIGNMENT_BYTES 8
+#define ALIGNMENT_BYTES 16
 #define ALIGN(a) a=((a+ALIGNMENT_BYTES-1)/ALIGNMENT_BYTES)*ALIGNMENT_BYTES
 
 static void video_frame_alloc(gavl_video_frame_t * ret,
