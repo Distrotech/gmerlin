@@ -883,6 +883,7 @@ static int read_video_cropscale(void * priv, gavl_video_frame_t * frame, int str
         break;
       }
     gavl_video_scaler_init(vp->scaler, &vp->in_format, &vp->out_format);
+    vp->need_reinit = 0;
     }
 
   if(!vp->frame)

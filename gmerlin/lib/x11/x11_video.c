@@ -324,13 +324,18 @@ void bg_x11_window_set_rectangles(bg_x11_window_t * w,
                                                    w->window_frame);
         else
           gavl_video_frame_destroy(w->window_frame);
+        w->window_frame = (gavl_video_frame_t*)0;
         }
-      
+      }
+
+    if(!w->window_frame)
+      {
       if(w->current_driver->driver->create_frame)
         w->window_frame = w->current_driver->driver->create_frame(w->current_driver);
       else
         w->window_frame = gavl_video_frame_create(&w->window_format);
       }
+    
     /* Clear window */
     gavl_video_frame_clear(w->window_frame, &(w->window_format));
     
