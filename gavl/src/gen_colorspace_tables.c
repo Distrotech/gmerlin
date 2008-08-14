@@ -200,7 +200,7 @@ int main(int argc, char ** argv)
     {
     if(!((i)%8))
       fprintf(source, "  ");
-    tmp_float = ((float)(i - 0x80) / 112.0);
+    tmp_float = ((float)(i - 0x80) / 224.0);
     RECLIP(tmp_float, -0.5, 0.5);
     fprintf(source, "%.10f, ", tmp_float);
     if(!((i+1)%8))
