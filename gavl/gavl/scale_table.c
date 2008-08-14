@@ -27,6 +27,8 @@
 #include <gavl/gavl.h>
 #include <scale.h>
 
+#define BLUR_THRESHOLD 5.0e-3
+
 /* Conversion between src and dst coordinates */
 
 #define DST_TO_SRC(c) ((double)c)/scale_factor+src_off
@@ -100,7 +102,7 @@ void gavl_video_scale_table_init(gavl_video_scale_table_t * tab,
   float * preblur_factors = (float*)0;
   int num_preblur_factors = 0;
   int num_tmp_factors = 0;
-  float * tmp_factors;
+  float * tmp_factors = (float*)0;
   
   gavl_video_scale_get_weight weight_func;
   
@@ -127,7 +129,7 @@ void gavl_video_scale_table_init(gavl_video_scale_table_t * tab,
       case GAVL_DOWNSCALE_FILTER_NONE: //!< Fastest method, might produce heavy aliasing artifacts
         break;
       case GAVL_DOWNSCALE_FILTER_WIDE: //!< Widen the filter curve according to the scaling ratio. 
-        if(opt->downscale_blur > 0.0)
+        if(opt->downscale_blur > BLUR_THRESHOLD)
           widen = 1;
         break;
       case GAVL_DOWNSCALE_FILTER_GAUSS: //!< Do a Gaussian preblur
@@ -214,18 +216,19 @@ void gavl_video_scale_table_init(gavl_video_scale_table_t * tab,
     
     src_index_nearest = ROUND(src_index_f);
 
-    //    src_index_min = src_index_nearest - tab->factors_per_pixel/2;
+    tab->pixels[i].index = src_index_nearest - tab->factors_per_pixel/2;
     src_index_min = src_index_nearest - num_tmp_factors/2;
-    
+#if 0
     if(((double)src_index_nearest < src_index_f) && !(tab->factors_per_pixel % 2))
       {
       src_index_min++;
+      tab->pixels[i].index++;
       }
-
-    tab->pixels[i].index = src_index_min;
-
-    //    fprintf(stderr, "src_index_f: %f, src_index_nearest: %d, src_index_min: %d, dst_index: %d\n",
-    //            src_index_f, src_index_nearest, src_index_min, i);
+#endif
+    //    fprintf(stderr, "src_index_f: %f, src_index_nearest: %d, src_index_min: %d, pixel.index: %d, dst_index: %d\n",
+    //            src_index_f, src_index_nearest, src_index_min,
+    //            tab->pixels[i].index,
+    //            i);
     
     /* For nearest neighbour, we don't need any factors */
     if(tab->factors_per_pixel == 1)
@@ -239,10 +242,10 @@ void gavl_video_scale_table_init(gavl_video_scale_table_t * tab,
     
     /* Normalized distance of the destination pixel to the first source pixel
        in src coordinates */    
-    t = (src_index_f - src_index_min)/widen_factor;
 
     if(num_preblur_factors)
       {
+      t = (src_index_f - src_index_min)/widen_factor;
       for(j = 0; j < num_tmp_factors; j++)
         {
         tmp_factors[j] = weight_func(opt, t);
@@ -256,6 +259,7 @@ void gavl_video_scale_table_init(gavl_video_scale_table_t * tab,
       }
     else
       {
+      t = (src_index_f - tab->pixels[i].index)/widen_factor;
       for(j = 0; j < tab->factors_per_pixel; j++)
         {
         tab->pixels[i].factor_f[j] = weight_func(opt, t);
@@ -263,7 +267,13 @@ void gavl_video_scale_table_init(gavl_video_scale_table_t * tab,
         t -= 1.0 /widen_factor;
         }
       }
-    
+#if 0
+    for(j = 0; j < tab->factors_per_pixel; j++)
+      {
+      fprintf(stderr, "%d %f\n", j,
+              tab->pixels[i].factor_f[j]);
+      }
+#endif
     }
 
   //  fprintf(stderr, "Before shift\n");
@@ -274,7 +284,12 @@ void gavl_video_scale_table_init(gavl_video_scale_table_t * tab,
   normalize_table(tab);
   
   check_clip(tab);
-  
+
+  if(tmp_factors)
+    free(tmp_factors);
+  if(preblur_factors)
+    free(preblur_factors);
+    
   //  fprintf(stderr, "After shift %d\n", src_width);
   //if(deinterlace || (total_fields == 2))
   //  gavl_video_scale_table_dump(tab);
@@ -634,7 +649,7 @@ static void get_preblur_coeffs(double scale_factor,
     float f_co = 0.25 * scale_factor;
     int n = (int)(ceil(0.398 / f_co));
 
-    if(n && (opt->downscale_blur >= 0.0))
+    if(n && (opt->downscale_blur >= BLUR_THRESHOLD))
       {
       *num_ret = 2 * n + 1;
       *coeffs_ret = malloc(*num_ret * sizeof(**coeffs_ret));
