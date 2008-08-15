@@ -161,7 +161,7 @@ static const bg_parameter_info_t parameters[] =
     },
     {
       .name =        "border_right",
-      .long_name =   TRS("Left border"),
+      .long_name =   TRS("Right border"),
       .type =        BG_PARAMETER_INT,
       .val_min =     { .val_i = 0     },
       .val_max =     { .val_i = 65535 },
@@ -283,8 +283,10 @@ static void set_input_format_tcdisplay(void * priv,
   
   if(port)
     return;
+
   
   gavl_video_format_copy(&vp->format, format);
+
   bg_text_renderer_init(vp->renderer,
                         &vp->format,
                         &vp->ovl_format);
@@ -292,10 +294,13 @@ static void set_input_format_tcdisplay(void * priv,
   gavl_overlay_blend_context_init(vp->blender,
                                   &vp->format,
                                   &vp->ovl_format);
+
   if(vp->ovl.frame)
     gavl_video_frame_destroy(vp->ovl.frame);
   vp->ovl.frame = gavl_video_frame_create(&vp->ovl_format);
   vp->last_timecode = GAVL_TIMECODE_UNDEFINED;
+
+
   }
 
 static void get_output_format_tcdisplay(void * priv,
@@ -313,9 +318,11 @@ static int read_video_tcdisplay(void * priv, gavl_video_frame_t * frame,
   tc_priv_t * vp;
   char str[GAVL_TIMECODE_STRING_LEN];
   vp = (tc_priv_t *)priv;
+
   
   if(!vp->read_func(vp->read_data, frame, vp->read_stream))
     return 0;
+
 
   if(frame->timecode == GAVL_TIMECODE_UNDEFINED)
     {
@@ -339,22 +346,26 @@ static int read_video_tcdisplay(void * priv, gavl_video_frame_t * frame,
     vp->last_timecode = frame->timecode;
     }
 
+  
   gavl_timecode_prettyprint(&vp->format.timecode_format,
                             vp->last_timecode, str);
   
   //  fprintf(stderr, "Got timecode: %s\n", str);
 
+  
   bg_text_renderer_render(vp->renderer, str, &vp->ovl);
   // bg_text_renderer_render(vp->renderer, "Blah", &vp->ovl);
   gavl_overlay_blend_context_set_overlay(vp->blender, &vp->ovl);
   
   gavl_overlay_blend(vp->blender, frame);
+
   return 1;
   }
 
 static void reset_tcdisplay(void * priv)
   {
   tc_priv_t * vp;
+  vp = (tc_priv_t *)priv;
   vp->last_timecode = GAVL_TIMECODE_UNDEFINED;
   }
 

@@ -111,7 +111,7 @@ widths, the value will be scaled"),
       .val_default = { .val_f = 2.0 },
       .num_digits =  2,
     },
-#endif    
+#endif
     {
       .name =       "justify_h",
       .long_name =  TRS("Horizontal justify"),
@@ -119,7 +119,6 @@ widths, the value will be scaled"),
       .val_default = { .val_str = "center" },
       .multi_names =  (char const *[]){ "center", "left", "right", (char*)0 },
       .multi_labels = (char const *[]){ TRS("Center"), TRS("Left"), TRS("Right"), (char*)0  },
-            
     },
     {
       .name =       "justify_v",
@@ -140,7 +139,7 @@ widths, the value will be scaled"),
     },
     {
       .name =        "border_right",
-      .long_name =   TRS("Left border"),
+      .long_name =   TRS("Right border"),
       .type =        BG_PARAMETER_INT,
       .val_min =     { .val_i = 0     },
       .val_max =     { .val_i = 65535 },

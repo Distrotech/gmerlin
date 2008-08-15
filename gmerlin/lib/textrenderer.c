@@ -127,7 +127,7 @@ static const bg_parameter_info_t parameters[] =
     },
     {
       .name =        "border_right",
-      .long_name =   TRS("Left border"),
+      .long_name =   TRS("Right border"),
       .type =        BG_PARAMETER_INT,
       .val_min =     { .val_i = 0     },
       .val_max =     { .val_i = 65535 },
@@ -936,6 +936,11 @@ static cache_entry_t * get_glyph(bg_text_renderer_t * r, uint32_t unicode)
                          (FT_Vector*)0, 1 ))
     return (cache_entry_t*)0;
 
+  entry->advance_x = r->face->glyph->advance.x >> 6;
+  // entry->advance_y = r->face->glyph->metrics.vertAdvance >> 6;
+  entry->advance_y = 0;
+  
+  
 #ifdef FT_STROKER_H
   if(FT_Glyph_To_Bitmap( &(entry->glyph_stroke),
                          FT_RENDER_MODE_NORMAL,
@@ -951,23 +956,34 @@ static cache_entry_t * get_glyph(bg_text_renderer_t * r, uint32_t unicode)
   bitmap_glyph = (FT_BitmapGlyph)(entry->glyph);
 #endif
   
-  entry->advance_x = entry->glyph->advance.x>>16;
-  entry->advance_y = entry->glyph->advance.y>>16;
+  //  entry->advance_x = entry->glyph->advance.x>>16;
+  //  entry->advance_y = entry->glyph->advance.y>>16;
 
+  
   if(r->fixed_width)
     {
     entry->bbox.xmin = 0;
     entry->bbox.xmax = entry->advance_x;
+
+
+    entry->bbox.ymin = -r->face->size->metrics.ascender >> 6;
+    entry->bbox.ymax = -r->face->size->metrics.descender >> 6;
+
+    //    fprintf(stderr, "ymin: %d (%d), ymax: %d (%d)\n",
+    //            entry->bbox.ymin, -bitmap_glyph->top,
+    //            entry->bbox.ymax,
+    //            -bitmap_glyph->top + bitmap_glyph->bitmap.rows);
+    
     }
   else
     {
     entry->bbox.xmin = bitmap_glyph->left;
     entry->bbox.xmax = entry->bbox.xmin + bitmap_glyph->bitmap.width;
-    }
-  entry->bbox.ymin = -bitmap_glyph->top;
-  entry->bbox.ymax = entry->bbox.ymin + bitmap_glyph->bitmap.rows;
 
-    
+    entry->bbox.ymin = -bitmap_glyph->top;
+    entry->bbox.ymax = entry->bbox.ymin + bitmap_glyph->bitmap.rows;
+    }
+  
   entry->unicode = unicode;
   return entry;
   }
@@ -992,6 +1008,8 @@ static void unload_font(bg_text_renderer_t * r)
 static int load_font(bg_text_renderer_t * r)
   {
   int err;
+  FT_Matrix matrix;
+
   FcPattern *fc_pattern = (FcPattern *)0;
   FcPattern *fc_pattern_1 = (FcPattern *)0;
   FcChar8 *filename;
@@ -1058,6 +1076,16 @@ static int load_font(bg_text_renderer_t * r)
     }
 
   r->fixed_width = FT_IS_FIXED_WIDTH(r->face);
+#if 0
+  fprintf(stderr, "Font bbox: %d %d %d %d\n",
+          r->face->bbox.xMin,
+          r->face->bbox.xMax,
+          r->face->bbox.yMin,
+          r->face->bbox.yMax);
+#endif
+  //  fprintf(stderr, "ascender: %d, descender: %d, height: %d\n",
+  //          r->face->ascender, r->face->descender,
+  //          r->face->height);
   
   if(r->font)
     {
@@ -1085,15 +1113,24 @@ static int load_font(bg_text_renderer_t * r)
   
   sar = (float)(r->frame_format.pixel_width) /
     (float)(r->frame_format.pixel_height);
-
-  font_size_scaled = r->font_size * sar * (float)(r->frame_format.image_width) / 640.0;
+  //  sar = 1.0;
   
+  font_size_scaled = r->font_size * sar * (float)(r->frame_format.image_width) / 640.0;
   
   err = FT_Set_Char_Size(r->face,                     /* handle to face object           */
                          0,                           /* char_width in 1/64th of points  */
                          (int)(font_size_scaled*64.0+0.5),/* char_height in 1/64th of points */
-                         (int)(72.0/sar+0.5),         /* horizontal device resolution    */
+                         72,         /* horizontal device resolution    */
                          72 );                        /* vertical device resolution      */
+
+  matrix.xx = (FT_Fixed)( (1.0/sar) * 0x10000L );
+  matrix.yx = 0;
+  matrix.xy = 0;
+  matrix.yy = 0x10000L; // 1.0
+
+  FT_Set_Transform(r->face,
+                   &matrix,
+                   (FT_Vector*)0);
   
   clear_glyph_cache(r);
   r->font_loaded = 1;
