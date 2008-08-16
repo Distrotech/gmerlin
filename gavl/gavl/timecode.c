@@ -268,7 +268,7 @@ void gavl_timecode_prettyprint(const gavl_timecode_format_t * tf,
 
   if(month && day)
     {
-    sprintf(ptr, "%04d-%02d-%02d-", year, month, day);
+    sprintf(ptr, "%04d-%02d-%02d ", year, month, day);
     ptr += strlen(ptr);
     }
 
