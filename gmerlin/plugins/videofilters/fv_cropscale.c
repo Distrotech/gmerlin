@@ -126,7 +126,7 @@ static const bg_parameter_info_t parameters[] =
       .val_max =     { .val_f = 100000.0 },
       .val_default = { .val_f = 0.0 },
       .num_digits = 3,
-      .help_string = TRS("Cut this many pixels from the left border of the source frames.")
+      .help_string = TRS("Cut this many pixels from the left border of the source images.")
     },
     {
       .name =      "crop_right",
@@ -138,7 +138,7 @@ static const bg_parameter_info_t parameters[] =
       .val_max =     { .val_f = 100000.0 },
       .val_default = { .val_f = 0.0 },
       .num_digits = 3,
-      .help_string = TRS("Cut this many pixels from the right border of the source frames.")
+      .help_string = TRS("Cut this many pixels from the right border of the source images.")
     },
     {
       .name =      "crop_top",
@@ -150,7 +150,7 @@ static const bg_parameter_info_t parameters[] =
       .val_max =     { .val_f = 100000.0 },
       .val_default = { .val_f = 0.0 },
       .num_digits = 3,
-      .help_string = TRS("Cut this many pixels from the top border of the source frames.")
+      .help_string = TRS("Cut this many pixels from the top border of the source images.")
     },
     {
       .name =      "crop_bottom",
@@ -162,15 +162,15 @@ static const bg_parameter_info_t parameters[] =
       .val_max =     { .val_f = 100000.0 },
       .val_default = { .val_f = 0.0 },
       .num_digits = 3,
-      .help_string = TRS("Cut this many pixels from the bottom border of the source frames.")    },
+      .help_string = TRS("Cut this many pixels from the bottom border of the source images.")    },
     {
       .name = "frame_size_section",
-      .long_name = TRS("Frame size"),
+      .long_name = TRS("Image size"),
       .type = BG_PARAMETER_SECTION,
     },
     {
       .name =        "frame_size",
-      .long_name =   TRS("Frame Size"),
+      .long_name =   TRS("Image size"),
       .opt =         "s",
       .type =        BG_PARAMETER_STRINGLIST,
       .flags =     BG_PARAMETER_SYNC,
@@ -231,7 +231,7 @@ static const bg_parameter_info_t parameters[] =
                                 TRS("16CIF (1408 × 1152)"),
                                 (char*)0 },
       .val_default = { .val_str = "from_input" },
-      .help_string = TRS("Set the output frame size. For a user defined size, you must specify the width and height as well as the pixel width and pixel height (for nonsquare pixels)."),
+      .help_string = TRS("Set the output image size. For a user defined size, you must specify the width and height as well as the pixel width and pixel height."),
     },
     {
       .name =      "user_image_width",
@@ -242,7 +242,7 @@ static const bg_parameter_info_t parameters[] =
       .val_min =     { .val_i = 1 },
       .val_max =     { .val_i = 100000 },
       .val_default = { .val_i = 640 },
-      .help_string = TRS("User defined width in pixels. Only meaningful if you selected \"User defined\" for the framesize."),
+      .help_string = TRS("User defined width in pixels. Only meaningful if you selected \"User defined\" for the image size."),
     },
     {                                       
       .name =      "user_image_height",
@@ -253,7 +253,7 @@ static const bg_parameter_info_t parameters[] =
       .val_min =     { .val_i = 1 },
       .val_max =     { .val_i = 100000 },
       .val_default = { .val_i = 480 },
-      .help_string = TRS("User defined height in pixels. Only meaningful if you selected \"User defined\" for the framesize."),
+      .help_string = TRS("User defined height in pixels. Only meaningful if you selected \"User defined\" for the image size."),
       },
     {
       .name =      "user_pixel_width",
@@ -264,7 +264,7 @@ static const bg_parameter_info_t parameters[] =
       .val_min =     { .val_i = 1 },
       .val_max =     { .val_i = 100000 },
       .val_default = { .val_i = 1 },
-      .help_string = TRS("User defined pixel width. Only meaningful if you selected \"User defined\" for the framesize."),
+      .help_string = TRS("User defined pixel width. Only meaningful if you selected \"User defined\" for the image size."),
     },
     {                                       
       .name =      "user_pixel_height",
@@ -275,7 +275,7 @@ static const bg_parameter_info_t parameters[] =
       .val_min =     { .val_i = 1 },
       .val_max =     { .val_i = 100000 },
       .val_default = { .val_i = 1 },
-      .help_string = TRS("User defined pixel height. Only meaningful if you selected \"User defined\" for the framesize."),
+      .help_string = TRS("User defined pixel height. Only meaningful if you selected \"User defined\" for the image size."),
     },
     {
       .name = "borders_section",
@@ -293,7 +293,7 @@ static const bg_parameter_info_t parameters[] =
     },
     {
       .name =      "border_color",
-      .long_name = TRS("Border_color"),
+      .long_name = TRS("Border color"),
       .opt =       "bc",
       .type =      BG_PARAMETER_COLOR_RGB,
       .flags =     BG_PARAMETER_SYNC,

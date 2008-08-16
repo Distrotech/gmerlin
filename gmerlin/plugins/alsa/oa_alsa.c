@@ -469,7 +469,7 @@ const bg_oa_plugin_t the_plugin =
       BG_LOCALE,
       .name =          "oa_alsa",
       .long_name =     TRS("Alsa"),
-      .description =   TRS("Alsa output plugin with support for channel configurations up to 5.1. Samples are sent to the soundcards in the nearest precision of the source format. Select \"Force float\" in the global audio options to enable 24, 32 or floating point playback even for 8 or 16 bit source formats."),
+      .description =   TRS("Alsa output plugin with support for channel configurations up to 5.1"),
       .type =          BG_PLUGIN_OUTPUT_AUDIO,
       .flags =         BG_PLUGIN_PLAYBACK,
       .priority =      BG_PLUGIN_PRIORITY_MAX,

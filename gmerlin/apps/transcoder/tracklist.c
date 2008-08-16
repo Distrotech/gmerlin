@@ -1248,19 +1248,7 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg,
     create_pixmap_button(ret,
                          "paste_16.png",
                          TRS("Paste tracks from clipboard"));
-  
-#if 0
-  ret->up_button =
-    create_pixmap_button(ret,
-                         "top_16.png",
-                         TRS("Move selected tracks to the top of the tracklist"));
-  
-  ret->down_button =
-    create_pixmap_button(ret,
-                         "bottom_16.png",
-                         TRS("Move selected tracks to the bottom of the tracklist"));
-  
-#endif
+ 
   
   gtk_widget_set_sensitive(ret->delete_button, 0);
   gtk_widget_set_sensitive(ret->encoder_button, 0);

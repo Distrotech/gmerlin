@@ -30,6 +30,8 @@
 #include <config.h>
 #include <translation.h>
 
+#include <errno.h>
+
 #include <plugin.h>
 #include <log.h>
 #define LOG_DOMAIN "ir_bmp"
@@ -221,7 +223,7 @@ static int read_header_bmp(void *priv,const char *filename, gavl_video_format_t 
   p->bmp_file = fopen(filename,"rb");
     
   if(!p->bmp_file)
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Can't open File %s", filename);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open file %s: %s", filename, strerror(errno));
 
   /* read filesize */
   
@@ -231,13 +233,13 @@ static int read_header_bmp(void *priv,const char *filename, gavl_video_format_t 
 
   if(fread(type, 1, 2, p->bmp_file)!=2)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN,"Can't read File type");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot read File type");
     fclose(p->bmp_file);
     return 0;
     }
   if(strncmp(type, "BM", 2))
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN,"File isn't a BMP");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,"File is no BMP");
     fclose(p->bmp_file);
     return 0;
     }
@@ -281,7 +283,7 @@ static int read_header_bmp(void *priv,const char *filename, gavl_video_format_t 
   if ((p->width < 1) || (p->height < 1) || (p->width > 8192) || (p->height > 8192))
     {
     fclose(p->bmp_file);
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN,"Can't detect width or height");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,"Cannot detect image dimensions");
     return 0;
     }
 
@@ -290,7 +292,7 @@ static int read_header_bmp(void *priv,const char *filename, gavl_video_format_t 
   if ((p->bitcount != 1) && (p->bitcount != 4) && (p->bitcount != 8) && (p->bitcount != 16) && (p->bitcount != 24) && (p->bitcount != 32))
     {
     fclose(p->bmp_file);
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN,"Bitcount not suported (bitcount: %d)", p->bitcount);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,"Depth %d not supported", p->bitcount);
     return 0;
     }
   

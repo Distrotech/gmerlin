@@ -198,7 +198,7 @@ const bg_fv_plugin_t the_plugin =
       BG_LOCALE,
       .name =      "fv_pixelformat",
       .long_name = TRS("Force pixelformat"),
-      .description = TRS("This forces a pixelformat as input for the next filter. Its mainly used for testing."),
+      .description = TRS("Forces a pixelformat as input for the next filter. Its mainly used for testing."),
       .type =     BG_PLUGIN_FILTER_VIDEO,
       .flags =    BG_PLUGIN_FILTER_1,
       .create =   create_pixelformat,

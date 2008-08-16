@@ -91,7 +91,7 @@ void bg_lqt_create_codec_info(bg_parameter_info_t * info,
         info->multi_descriptions_nc[i] = bg_strcat(info->multi_descriptions_nc[i], " 3GP");
       }
     else
-      info->multi_descriptions_nc[i] = bg_sprintf(TR("%s"),
+      info->multi_descriptions_nc[i] = bg_sprintf("%s",
                                                   codec_info[i]->description);
     
     if(num_parameters)

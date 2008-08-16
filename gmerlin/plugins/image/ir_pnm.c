@@ -135,7 +135,7 @@ static int read_header_pnm(void *priv,const char *filename, gavl_video_format_t 
 
   if(*ptr != 'P')
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN,"File isn't a pnm");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "File is no pnm");
     return 0;
     }
   
@@ -161,7 +161,7 @@ static int read_header_pnm(void *priv,const char *filename, gavl_video_format_t 
         {
         if(*ptr != '#')
           {
-          bg_log(BG_LOG_ERROR, LOG_DOMAIN,"File must not be a pnm (%.1s%.1s%.1s)",ptr-1,ptr, ptr+1);
+          bg_log(BG_LOG_ERROR, LOG_DOMAIN,"File is no pnm (%.1s%.1s%.1s)",ptr-1,ptr, ptr+1);
           p->is_pnm = 0;
           break;
           }
@@ -178,7 +178,7 @@ static int read_header_pnm(void *priv,const char *filename, gavl_video_format_t 
       if(!isspace(*(ptr-1))) 
         {
         p->is_pnm = 0;
-        bg_log(BG_LOG_ERROR, LOG_DOMAIN,"Can't read width");
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN,"Cannot read width");
         break;
         }
       p->width = atoi(ptr);
@@ -191,7 +191,7 @@ static int read_header_pnm(void *priv,const char *filename, gavl_video_format_t 
       if(!isspace(*(ptr-1))) 
         {
         p->is_pnm = 0;
-        bg_log(BG_LOG_ERROR, LOG_DOMAIN,"Can't read height");
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN,"Cannot read height");
         break;
         }
       p->height = atoi(ptr);
@@ -204,7 +204,7 @@ static int read_header_pnm(void *priv,const char *filename, gavl_video_format_t 
       if(!isspace(*(ptr-1))) 
         {
         p->is_pnm = 0;
-        bg_log(BG_LOG_ERROR, LOG_DOMAIN,"Can't read maxval");
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN,"Cannot read maxval");
         break;
         }
 
@@ -228,13 +228,13 @@ static int read_header_pnm(void *priv,const char *filename, gavl_video_format_t 
 
   if(p->is_pnm == 7)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN,"Sorry PAM format not suported");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,"PAM format not suported");
     return 0;
     }
   
   if(p->is_pnm == 0)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN,"File isn't a pnm (%.1s%.1s%.1s)",ptr-1,ptr, ptr+1);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,"File is no pnm (%.1s%.1s%.1s)",ptr-1,ptr, ptr+1);
     return 0;
     }
 

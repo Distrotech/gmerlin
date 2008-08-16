@@ -1,2 +1,2 @@
 #!/bin/sh
-find . -name "*.[ch]" | cut -b 3- > po/POTFILES.in
+find . -name "*.[ch]" | cut -b 3- | grep -v build_normal | grep -v build_debug > po/POTFILES.in

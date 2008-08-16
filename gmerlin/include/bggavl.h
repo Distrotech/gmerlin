@@ -326,8 +326,8 @@ timescale and frame duration below (framerate = timescale / frame_duration).")\
     .val_default = { .val_i = 2 },                  \
     },\
     {                                         \
-    .name =        TRS("num_rear_channels"),          \
-    .long_name =   "Rear channels",              \
+    .name =        "num_rear_channels",          \
+    .long_name =   TRS("Rear channels"),              \
     .type =        BG_PARAMETER_INT,              \
     .flags =       BG_PARAMETER_SYNC,                     \
     .val_min =     { .val_i = 0 },                  \

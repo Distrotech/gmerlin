@@ -1906,7 +1906,7 @@ static void send_init_messages(bg_transcoder_t * t)
     tmp_string = bg_sprintf(TR("Transcoding %s [Track %d]"), t->location, t->track+1);
     }
   bg_transcoder_send_msg_start(t->message_queues, tmp_string);
-  bg_log(BG_LOG_INFO, LOG_DOMAIN, "%s", tmp_string);
+  bg_log_notranslate(BG_LOG_INFO, LOG_DOMAIN, "%s", tmp_string);
   free(tmp_string);
     
   bg_transcoder_send_msg_metadata(t->message_queues, &t->metadata);
@@ -3485,7 +3485,7 @@ static void next_pass(bg_transcoder_t * t)
   /* Send message */
   tmp_string = bg_sprintf(TR("Transcoding %s [Track %d, Pass %d/%d]"), t->location, t->track+1, t->pass, t->total_passes);
   bg_transcoder_send_msg_start(t->message_queues, tmp_string);
-  bg_log(BG_LOG_INFO, LOG_DOMAIN, "%s", tmp_string);
+  bg_log_notranslate(BG_LOG_INFO, LOG_DOMAIN, "%s", tmp_string);
   free(tmp_string);
 
   gavl_timer_start(t->timer);

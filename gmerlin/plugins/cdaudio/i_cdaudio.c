@@ -756,7 +756,7 @@ $HOME/.gmerlin/cdaudio_metadata. If you got wrong metadata for a CD,\
     },
     {
       .name =        "musicbrainz_proxy_port",
-      .long_name =   TRS("Proxy Port"),
+      .long_name =   TRS("Proxy port"),
       .type =         BG_PARAMETER_INT,
       .val_min =      { .val_i = 1 },
       .val_max =      { .val_i = 65535 },
@@ -804,7 +804,7 @@ $HOME/.gmerlin/cdaudio_metadata. If you got wrong metadata for a CD,\
     },
     {
       .name =        "cddb_proxy_port",
-      .long_name =   TRS("Proxy Port"),
+      .long_name =   TRS("Proxy port"),
       .type =         BG_PARAMETER_INT,
       .val_min =      { .val_i = 1 },
       .val_max =      { .val_i = 65535 },
