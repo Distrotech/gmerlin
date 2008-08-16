@@ -318,7 +318,7 @@ static int read_video_tcdisplay(void * priv, gavl_video_frame_t * frame,
   tc_priv_t * vp;
   char str[GAVL_TIMECODE_STRING_LEN];
   vp = (tc_priv_t *)priv;
-
+  char * pos;
   
   if(!vp->read_func(vp->read_data, frame, vp->read_stream))
     return 0;
@@ -349,6 +349,10 @@ static int read_video_tcdisplay(void * priv, gavl_video_frame_t * frame,
   
   gavl_timecode_prettyprint(&vp->format.timecode_format,
                             vp->last_timecode, str);
+
+  pos = strchr(str, ' ');
+  if(pos)
+    *pos = '\n';
   
   //  fprintf(stderr, "Got timecode: %s\n", str);
 
