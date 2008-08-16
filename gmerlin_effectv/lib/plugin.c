@@ -190,5 +190,6 @@ int bg_effectv_read_video(void * priv, gavl_video_frame_t * frame, int stream)
 #endif
   frame->timestamp = vp->in_frame->timestamp;
   frame->duration = vp->in_frame->duration;
+  frame->timecode = vp->in_frame->timecode;
   return 1;
   }

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmerlin-avdecoder 0.1.6\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2008-07-31 00:36+0200\n"
+"POT-Creation-Date: 2008-08-16 12:52+0200\n"
 "PO-Revision-Date: 2008-01-04 02:25+0100\n"
 "Last-Translator: Burkhard Plaum <gmerlin@users.sourceforge.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -609,12 +609,12 @@ msgstr "DS_AudioDecoder_Open fehlgeschlagen"
 msgid "Codec DLL %s not found"
 msgstr "Codec DLL %s nicht gefunden"
 
-#: lib/mxf.c:2460
+#: lib/mxf.c:2505
 #, fuzzy
 msgid "Cannot decode MXF file from non seekable source"
 msgstr "Kann dieses Format nur von suchbaren Quellen spielen"
 
-#: lib/mxf.c:2475
+#: lib/mxf.c:2520
 #, fuzzy
 msgid "Could not find header partition"
 msgstr "Konnte Antwort nicht lesen"
@@ -837,24 +837,24 @@ msgstr "Lesen des PNG Headers fehlgeschlagen"
 msgid "Decode png failed"
 msgstr "Dekodieren des PNGs fehlgeschlagen"
 
-#: lib/video_ffmpeg.c:179
+#: lib/video_ffmpeg.c:180
 msgid "PTS cache full"
 msgstr ""
 
-#: lib/video_ffmpeg.c:921
+#: lib/video_ffmpeg.c:920
 msgid "Ran out of data during extradata scanning"
 msgstr "Datenende während des Lesens der Extradaten"
 
-#: lib/video_ffmpeg.c:1026
+#: lib/video_ffmpeg.c:1025
 msgid "Could not get initial frame"
 msgstr "Konnte kein erstes Bild bekommen"
 
-#: lib/video_ffmpeg.c:1808
+#: lib/video_ffmpeg.c:1812
 #, c-format
 msgid "Cannot find %s"
 msgstr "Kann %s nicht finden"
 
-#: lib/video_ffmpeg.c:2229
+#: lib/video_ffmpeg.c:2233
 msgid "Unsupported pixelformat for postprocessing"
 msgstr "Nicht unterstütztes Pixelformat für Nachbearbeitung"
 
@@ -1123,25 +1123,25 @@ msgstr "Gegenseite hat Verbindung geschlossen"
 msgid "Unvalid URL"
 msgstr "Ungültige URL"
 
-#: lib/demux_mxf.c:307
+#: lib/demux_mxf.c:306
 msgid "Clip wrapped tracks with nonconstant framesize not supported"
 msgstr ""
 
-#: lib/demux_mxf.c:340
+#: lib/demux_mxf.c:339
 msgid "Rounding fractional audio samplerate"
 msgstr ""
 
-#: lib/demux_mxf.c:582
+#: lib/demux_mxf.c:608
 #, c-format
 msgid "Couldn't find partition for source package %d"
 msgstr ""
 
-#: lib/demux_mxf.c:608
+#: lib/demux_mxf.c:634
 #, fuzzy
 msgid "Parsing MXF file failed, please report"
 msgstr "Parsing der Spumuxdatei fehlgeschlagen"
 
-#: lib/demux_mxf.c:623
+#: lib/demux_mxf.c:649
 msgid "Unsupported MXF type, please report"
 msgstr ""
 

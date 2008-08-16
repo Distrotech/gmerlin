@@ -41,7 +41,7 @@
 /* Another dirty trick: This is normally in ui.c,
    which we don't have */
 
-uih_context *uih;
+// uih_context *uih;
 
 struct lemuria_xaos_s
   {
@@ -250,13 +250,13 @@ static void draw_xaos(lemuria_engine_t * e, void * data)
   glBegin(GL_QUADS);
   glTexCoord2f(0.0, 0.0);
   glVertex3f(-XAOS_HALF_WIDTH, -XAOS_HALF_HEIGHT, 0.0);
-
+  
   glTexCoord2f(1.0, 0.0);
   glVertex3f( XAOS_HALF_WIDTH, -XAOS_HALF_HEIGHT, 0.0);
-
+  
   glTexCoord2f(1.0, 1.0);
   glVertex3f( XAOS_HALF_WIDTH, XAOS_HALF_HEIGHT, 0.0);
-
+  
   glTexCoord2f(0.0, 1.0);
   glVertex3f(-XAOS_HALF_WIDTH, XAOS_HALF_HEIGHT, 0.0);
   

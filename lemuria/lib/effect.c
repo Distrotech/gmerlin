@@ -106,9 +106,9 @@ static effect_info foreground_effects[] =
 
 static effect_info background_effects[] = 
   {
+//    { &xaos_effect, "xaos", "XaoS" },
     { &mountains_effect, "mountains", "Mountains" },
     { &drive_effect, "drive", "Drive" },
-//     &xaos_effect,
     { &deepsea_effect, "deepsea", "Deep sea" },
     { &lineobjects_effect, "lineobjects", "Line objects" },
     //    &v4l_effect,

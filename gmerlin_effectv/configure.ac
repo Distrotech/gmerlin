@@ -2,7 +2,7 @@ AC_INIT
 AC_CONFIG_SRCDIR([include/gmerlin_effectv.h])
 
 AM_CONFIG_HEADER(include/config.h)
-AM_INIT_AUTOMAKE(gmerlin-effectv, 1.0.0)
+AM_INIT_AUTOMAKE(gmerlin-effectv, 1.1.0)
 
 AC_DISABLE_STATIC
 
@@ -50,7 +50,7 @@ dnl
 dnl Required libraries
 dnl
 
-GMERLIN_REQUIRED="0.3.8"
+GMERLIN_REQUIRED="0.4.0"
 PKG_CHECK_MODULES(GMERLIN, gmerlin >= $GMERLIN_REQUIRED, , AC_MSG_ERROR("gmerlin not found"))
 
 gmerlin_plugindir='$(libdir)/gmerlin/plugins'
