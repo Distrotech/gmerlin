@@ -2394,7 +2394,11 @@ msgid ""
 "Whenever we obtain CD metadata from the internet, we save them into $HOME/."
 "gmerlin/cdaudio_metadata. If you got wrong metadata for a CD, disabling this "
 "option will retrieve the metadata again and overwrite the saved data."
-msgstr "Immer wenn wir CD Metadaten aus dem Internet bekommen, speichern wir diese in $HOME/.gmerlin/cdaudio_metadata. Wenn Du falsche Metadaten für eine CD bekommen hast, kannst Du diese Option abschalten und die Metadaten werden erneut geholt und die gespeicherten überschrieben."
+msgstr ""
+"Immer wenn wir CD Metadaten aus dem Internet bekommen, speichern wir diese "
+"in $HOME/.gmerlin/cdaudio_metadata. Wenn Du falsche Metadaten für eine CD "
+"bekommen hast, kannst Du diese Option abschalten und die Metadaten werden "
+"erneut geholt und die gespeicherten überschrieben."
 
 #: plugins/cdaudio/i_cdaudio.c:728
 msgid "Musicbrainz"
