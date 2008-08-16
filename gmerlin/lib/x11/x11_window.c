@@ -1496,12 +1496,11 @@ int bg_x11_window_realize(bg_x11_window_t * win)
   if(!win->dpy && !open_display(win))
     return 0;
   
-  //  win->gl_vi = glXChooseVisual(win->dpy, win->screen, attr_list);
+  win->gl_vi = glXChooseVisual(win->dpy, win->screen, attr_list);
   
   if(!win->gl_vi)
     {
     bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Could not get GL Visual");
-
     screen = DefaultScreen(win->dpy);
     win->visual = DefaultVisual(win->dpy, screen);
     win->depth = DefaultDepth(win->dpy, screen);
