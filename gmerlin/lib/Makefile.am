@@ -71,6 +71,7 @@ fifo.c \
 filters.c \
 formats.c \
 hexdump.c \
+imagetransform.c \
 lcdproc.c \
 log.c \
 md5.c \

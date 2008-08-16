@@ -87,7 +87,9 @@ void bg_plugin_info_destroy(bg_plugin_info_t * info)
     free(info->module_filename);
   if(info->devices)
     bg_device_info_destroy(info->devices);
-
+  if(info->cmp_name)
+    free(info->cmp_name);
+  
   if(info->parameters)
     bg_parameter_info_destroy_array(info->parameters);
   if(info->audio_parameters)
@@ -116,13 +118,40 @@ static void free_info_list(bg_plugin_info_t * entries)
     }
   }
 
+static void make_cmp_name(bg_plugin_info_t * i)
+  {
+  char * tmp_string;
+  int len;
+  bg_bindtextdomain(i->gettext_domain,
+                    i->gettext_directory);
+
+  tmp_string =
+    bg_utf8_to_system(TRD(i->long_name, i->gettext_domain), -1);
+  
+  len = strxfrm((char*)0, tmp_string, 0);
+  i->cmp_name = malloc(len+1);
+  strxfrm(i->cmp_name, tmp_string, len+1);
+  free(tmp_string);
+
+
+  }
+
 static int compare_swap(bg_plugin_info_t * i1,
                         bg_plugin_info_t * i2)
   {
   if((i1->flags & BG_PLUGIN_FILTER_1) &&
      (i2->flags & BG_PLUGIN_FILTER_1))
     {
-    return strcmp(i1->long_name, i2->long_name) > 0;
+    if(!i1->cmp_name)
+      {
+      make_cmp_name(i1);
+      }
+    if(!i2->cmp_name)
+      {
+      make_cmp_name(i2);
+      }
+
+    return strcmp(i1->cmp_name, i2->cmp_name) > 0;
     }
   else if((!(i1->flags & BG_PLUGIN_FILTER_1)) &&
           (!(i2->flags & BG_PLUGIN_FILTER_1)))
@@ -386,7 +415,7 @@ static bg_plugin_info_t * get_info(void * test_module, const char * filename)
     return (bg_plugin_info_t*)0;
     }
   if(!plugin->priority)
-    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Warning: Plugin %s has zero priority",
+    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Plugin %s has zero priority",
            plugin->name);
   new_info = calloc(1, sizeof(*new_info));
   new_info->name = bg_strdup(new_info->name, plugin->name);
@@ -573,7 +602,7 @@ scan_directory_internal(const char * directory, bg_plugin_info_t ** _file_info,
     test_module = dlopen(filename, RTLD_NOW);
     if(!test_module)
       {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot dlopen %s: %s", filename, dlerror());
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "dlopen failed for %s: %s", filename, dlerror());
       continue;
       }
 
@@ -1277,7 +1306,7 @@ static bg_plugin_handle_t * load_plugin(bg_plugin_registry_t * reg,
       ret->dll_handle = dlopen(info->module_filename, RTLD_NOW | RTLD_GLOBAL);
       if(!ret->dll_handle)
         {
-        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot dlopen plugin %s: %s", info->module_filename,
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "dlopen failed for %s: %s", info->module_filename,
                dlerror());
         goto fail;
         }

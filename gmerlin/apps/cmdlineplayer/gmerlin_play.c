@@ -717,7 +717,7 @@ static int handle_message(bg_player_t * player,
       arg_i1 = bg_msg_get_arg_int(message, 2);
       if(arg_i1)
         {
-        bg_log(BG_LOG_INFO, LOG_DOMAIN, "Subpicture streams %d", arg_i1);
+        bg_log(BG_LOG_INFO, LOG_DOMAIN, "Subtitle streams %d", arg_i1);
         }
       break;
     case BG_PLAYER_MSG_AUDIO_STREAM:

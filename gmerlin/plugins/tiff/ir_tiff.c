@@ -96,7 +96,7 @@ static toff_t seek_function(thandle_t fd, toff_t off, int whence)
   else if (whence == SEEK_END) p->buffer_size += off;
 
   if (p->buffer_position > p->buffer_size) {
-  bg_log(BG_LOG_ERROR, LOG_DOMAIN, "codec_tiff: warning, seek overshot buffer.");
+  bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Seeked beyond buffer.");
   return -1;
   }
 

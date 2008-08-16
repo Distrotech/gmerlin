@@ -22,6 +22,7 @@ encoderinfo.h \
 fifo.h \
 filters.h \
 float_cast.h \
+imagetransform.h \
 keycodes.h \
 lcdproc.h \
 log.h \

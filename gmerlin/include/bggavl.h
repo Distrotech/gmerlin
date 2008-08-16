@@ -142,7 +142,7 @@ Lower quality means more speed. Values above 3 enable slow high quality calculat
                    TRS("60 (Double frame rate drop-frame NTSC)"),           \
                     (char*)0 },                                         \
   .help_string = TRS("Output framerate. For user defined framerate, enter the \
-timescale and frame duration below (framerate = timescale / frame_duration).")\
+timescale and frame duration below (framerate = timescale / frame duration).")\
   },                                              \
   {                                           \
   .name =      "timescale",                     \
@@ -151,7 +151,7 @@ timescale and frame duration below (framerate = timescale / frame_duration).")\
   .val_min =     { .val_i = 1 },                \
   .val_max =     { .val_i = 100000 },           \
   .val_default = { .val_i = 25 },                                         \
-  .help_string = TRS("Timescale for user defined output framerate (Framerate = timescale / frame_duration)."), \
+  .help_string = TRS("Timescale for user defined output framerate (Framerate = timescale / frame duration)."), \
   },                                                                  \
   {                                                                 \
   .name =      "frame_duration",                                      \
@@ -160,7 +160,7 @@ timescale and frame duration below (framerate = timescale / frame_duration).")\
   .val_min =     { .val_i = 1 },                                      \
   .val_max =     { .val_i = 100000 },                                 \
   .val_default = { .val_i = 1 },                                      \
-  .help_string = TRS("Frame duration for user defined output framerate (Framerate = timescale / frame_duration)."), \
+  .help_string = TRS("Frame duration for user defined output framerate (Framerate = timescale / frame duration)."), \
   }
 
 #define BG_GAVL_PARAM_DEINTERLACE           \

@@ -325,7 +325,7 @@ static void get_value(bg_gtk_widget_t * w)
     i = 0;
     while(w->info->multi_names[i])
       {
-      /* Test, if we didn't alreary add this */
+      /* Test, if we didn't already add this */
       
       if(init)
         do_add = 1;

@@ -33,7 +33,7 @@ int alsa_mixer_control_read(alsa_mixer_control_t * c)
   {
   if(snd_hctl_elem_read(c->hctl, c->val))
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_hctl_elem_read Failed");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_hctl_elem_read failed");
     return 0;
     }
   return 1;
@@ -44,7 +44,7 @@ int alsa_mixer_control_write(alsa_mixer_control_t * c)
   {
   if(snd_hctl_elem_write(c->hctl, c->val))
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_hctl_elem_write Failed");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_hctl_elem_write failed");
     return 0;
     }
   return 1;

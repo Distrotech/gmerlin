@@ -104,6 +104,8 @@ struct bg_plugin_info_s
   bg_parameter_info_t * subtitle_text_parameters; //!< Parameters, which can be passed to set_subtitle_text_parameter
   bg_parameter_info_t * subtitle_overlay_parameters; //!< Parameters, which can be passed to set_subtitle_overlay_parameter
   
+  char * cmp_name; //!< Name used for alphabetical sorting. Not for external use.
+  
   };
 
 /** \ingroup plugin_registry

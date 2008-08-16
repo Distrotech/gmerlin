@@ -257,7 +257,7 @@ static void do_capture(gmerlin_webcam_t * cam)
     
   if(!cam->capture)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Do capture: No plugin loaded");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "do_capture: No plugin loaded");
     goto fail;
     }
   

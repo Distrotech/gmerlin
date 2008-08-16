@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2008-08-16 02:38+0200\n"
+"POT-Creation-Date: 2008-08-16 20:31+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2584,7 +2584,7 @@ msgid "Writer for TIFF images"
 msgstr ""
 
 #: plugins/tiff/ir_tiff.c:99
-msgid "codec_tiff: warning, seek overshot buffer."
+msgid "Seeked beyond buffer."
 msgstr ""
 
 #: plugins/tiff/ir_tiff.c:581
@@ -2740,7 +2740,7 @@ msgstr ""
 #: include/bggavl.h:144
 msgid ""
 "Output framerate. For user defined framerate, enter the timescale and frame "
-"duration below (framerate = timescale / frame_duration)."
+"duration below (framerate = timescale / frame duration)."
 msgstr ""
 
 #: include/bggavl.h:149 lib/singlepic.c:75
@@ -2749,8 +2749,8 @@ msgstr ""
 
 #: include/bggavl.h:154
 msgid ""
-"Timescale for user defined output framerate (Framerate = timescale / "
-"frame_duration)."
+"Timescale for user defined output framerate (Framerate = timescale / frame "
+"duration)."
 msgstr ""
 
 #: include/bggavl.h:158 lib/singlepic.c:83
@@ -2760,7 +2760,7 @@ msgstr ""
 #: include/bggavl.h:163
 msgid ""
 "Frame duration for user defined output framerate (Framerate = timescale / "
-"frame_duration)."
+"frame duration)."
 msgstr ""
 
 #: include/bggavl.h:169
@@ -3518,7 +3518,7 @@ msgid "Image writers"
 msgstr ""
 
 #: apps/camelot/webcam.c:260
-msgid "Do capture: No plugin loaded"
+msgid "do_capture: No plugin loaded"
 msgstr ""
 
 #: apps/camelot/webcam.c:278
@@ -4087,7 +4087,7 @@ msgstr ""
 
 #: apps/cmdlineplayer/gmerlin_play.c:720
 #, c-format
-msgid "Subpicture streams %d"
+msgid "Subtitle streams %d"
 msgstr ""
 
 #: apps/cmdlineplayer/gmerlin_play.c:732
@@ -4296,11 +4296,11 @@ msgid ""
 msgstr ""
 
 #: apps/alsamixer/card.c:36
-msgid "snd_hctl_elem_read Failed"
+msgid "snd_hctl_elem_read failed"
 msgstr ""
 
 #: apps/alsamixer/card.c:47
-msgid "snd_hctl_elem_write Failed"
+msgid "snd_hctl_elem_write failed"
 msgstr ""
 
 #: apps/alsamixer/card.c:117
@@ -4476,12 +4476,12 @@ msgstr ""
 
 #: lib/pluginregistry.c:389
 #, c-format
-msgid "Warning: Plugin %s has zero priority"
+msgid "Plugin %s has zero priority"
 msgstr ""
 
-#: lib/pluginregistry.c:576
+#: lib/pluginregistry.c:576 lib/pluginregistry.c:1280
 #, c-format
-msgid "Cannot dlopen %s: %s"
+msgid "dlopen failed for %s: %s"
 msgstr ""
 
 #: lib/pluginregistry.c:1078
@@ -4502,11 +4502,6 @@ msgstr ""
 #: lib/pluginregistry.c:1178 lib/pluginregistry.c:1223
 #, c-format
 msgid "No plugin found for image %s"
-msgstr ""
-
-#: lib/pluginregistry.c:1280
-#, c-format
-msgid "Cannot dlopen plugin %s: %s"
 msgstr ""
 
 #: lib/pluginregistry.c:1385
