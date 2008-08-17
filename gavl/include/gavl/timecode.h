@@ -118,6 +118,9 @@ void gavl_timecode_from_ymd(gavl_timecode_t * tc,
  *  \param vf The video format
  *  \param tc A timecode
  *  \returns The frame count
+ *
+ *  If the time is larger than 24 hours, the framecount is calculated from
+ *  00:00:00, January 1, 1970
  */
   
 int64_t gavl_timecode_to_framecount(const gavl_timecode_format_t * tf,
@@ -128,6 +131,9 @@ int64_t gavl_timecode_to_framecount(const gavl_timecode_format_t * tf,
  *  \param vf The video format
  *  \param fc The frame count
  *  \returns The timecode corresponding to the framecount
+ *
+ *  If the date fields are non-zero, the framecount is calculated from
+ *  00:00:00, January 1, 1970
  */
 
 gavl_timecode_t gavl_timecode_from_framecount(const gavl_timecode_format_t * tf,

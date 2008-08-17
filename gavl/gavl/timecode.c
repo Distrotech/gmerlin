@@ -19,6 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#include <time.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
@@ -144,12 +145,28 @@ int64_t gavl_timecode_to_framecount(const gavl_timecode_format_t * tf,
                                     gavl_timecode_t tc)
   {
   int hours, minutes, seconds, frames, sign;
-  
+  int year, month, day;
+  int64_t total_hours;
   if(tf->flags & GAVL_TIMECODE_COUNTER)
     return tc;
 
   sign = (tc & GAVL_TIMECODE_SIGN_MASK) ? -1 : 1;
   gavl_timecode_to_hmsf(tc, &hours, &minutes, &seconds, &frames);
+  gavl_timecode_to_ymd(tc, &year, &month, &day);
+
+  total_hours = hours;
+  
+  if(month && day)
+    {
+    struct tm tm;
+    tm.tm_sec = 0;
+    tm.tm_min = 0;
+    tm.tm_hour = 0;
+    tm.tm_mday = day - 1;
+    tm.tm_mon = month - 1;
+    tm.tm_year  = year;
+    total_hours += mktime(&tm) / 3600;
+    }
   
   if(tf->flags & GAVL_TIMECODE_DROP_FRAME)
     {
@@ -165,7 +182,7 @@ int64_t gavl_timecode_to_framecount(const gavl_timecode_format_t * tf,
       where div means integer division with no remainder.
      */
     
-    total_minutes = 60 * (uint64_t)hours + minutes;
+    total_minutes = 60 * total_hours + minutes;
     
     return sign * (1800 * total_minutes
                    + 30 * seconds + frames
@@ -176,7 +193,7 @@ int64_t gavl_timecode_to_framecount(const gavl_timecode_format_t * tf,
     return sign * ((int64_t)frames +
                    tf->int_framerate * ((int64_t)(seconds) +
                                         60 * ((int64_t)(minutes) +
-                                              60 * ((int64_t)(hours)))));
+                                              60 * (total_hours))));
     }
   }
 
@@ -191,6 +208,9 @@ gavl_timecode_t gavl_timecode_from_framecount(const gavl_timecode_format_t * tf,
                                               int64_t fc)
   {
   int hours, minutes, seconds, frames;
+  //  int frames;
+  struct tm tm;
+  time_t ti;
   gavl_timecode_t ret;
   if(tf->flags & GAVL_TIMECODE_COUNTER)
     return fc;
@@ -214,17 +234,33 @@ gavl_timecode_t gavl_timecode_from_framecount(const gavl_timecode_format_t * tf,
   
   frames  = fc % tf->int_framerate;
   fc /= tf->int_framerate;
+
+  if(fc < 24*3600)
+    {
+    seconds = fc % 60;
+    fc /= 60;
+    
+    minutes = fc % 60;
+    fc /= 60;
+    
+    hours   = fc % 24;
+    
+    gavl_timecode_from_hmsf(&ret, hours, minutes,
+                            seconds, frames);
+    }
+  else
+    {
+    ti = fc;
+    localtime_r(&ti, &tm);
+    tm.tm_mon++;
+    tm.tm_mday++;
+    
+    gavl_timecode_from_ymd(&ret, tm.tm_year, tm.tm_mon,
+                           tm.tm_mday);
+    gavl_timecode_from_hmsf(&ret, tm.tm_hour, tm.tm_min,
+                            tm.tm_sec, frames);
+    }
   
-  seconds = fc % 60;
-  fc /= 60;
-  
-  minutes = fc % 60;
-  fc /= 60;
-  
-  hours   = fc % 24;
-  
-  gavl_timecode_from_hmsf(&ret, hours, minutes,
-                          seconds, frames);
   return ret;
   }
 
