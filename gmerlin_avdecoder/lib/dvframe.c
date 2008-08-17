@@ -365,6 +365,20 @@ void bgav_dv_dec_get_pixel_aspect(bgav_dv_dec_t * d, int * pixel_width, int * pi
   *pixel_height = d->profile->sar[is16_9].den;
   }
 
+void bgav_dv_dec_get_timecode_format(bgav_dv_dec_t * d,
+                                     gavl_timecode_format_t * tf)
+  {
+  if(d->profile)
+    {
+    tf->int_framerate = d->profile->ltc_divisor;
+    if(d->profile->frame_rate_base == 1001)
+      tf->flags = GAVL_TIMECODE_DROP_FRAME;
+    else
+      tf->flags = 0;
+    }
+  
+  }
+
 void bgav_dv_dec_init_video(bgav_dv_dec_t * d, bgav_stream_t * s)
   {
   s->fourcc = BGAV_MK_FOURCC('d', 'v', 'c', ' ');

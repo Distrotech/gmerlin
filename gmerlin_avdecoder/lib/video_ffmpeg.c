@@ -160,6 +160,8 @@ typedef struct
   int64_t last_parse_pts;
   bgav_dv_dec_t * dvdec;
   
+  gavl_timecode_t last_dv_timecode;
+  
   } ffmpeg_video_priv;
 
 static int my_get_buffer(struct AVCodecContext *c, AVFrame *pic)
@@ -518,16 +520,68 @@ static int decode_picture(bgav_stream_t * s)
       }
     
     /* DV Video ugliness */
-    if(priv->need_format && (priv->info->ffmpeg_id == CODEC_ID_DVVIDEO))
+    if(priv->info->ffmpeg_id == CODEC_ID_DVVIDEO)
       {
-      priv->dvdec = bgav_dv_dec_create();
-      bgav_dv_dec_set_header(priv->dvdec, priv->buf.buffer);
+      if(priv->need_format)
+        {
+        priv->dvdec = bgav_dv_dec_create();
+        bgav_dv_dec_set_header(priv->dvdec, priv->buf.buffer);
+        }
+      
       bgav_dv_dec_set_frame(priv->dvdec, priv->buf.buffer);
 
-      bgav_dv_dec_get_pixel_aspect(priv->dvdec,
-                                   &s->data.video.format.pixel_width,
-                                   &s->data.video.format.pixel_height);
+      if(priv->need_format)
+        {
+        bgav_dv_dec_get_pixel_aspect(priv->dvdec,
+                                     &s->data.video.format.pixel_width,
+                                     &s->data.video.format.pixel_height);
+        
+        if(!s->data.video.format.timecode_format.int_framerate)
+          {
+          bgav_dv_dec_get_timecode_format(priv->dvdec,
+                                          &s->data.video.format.timecode_format);
+          }
+        }
+      /* Extract timecodes */
+      if(s->opt->dv_datetime)
+        {
+        int year, month, day;
+        int hour, minute, second;
+
+        gavl_timecode_t tc = 0;
+        
+        if(bgav_dv_dec_get_date(priv->dvdec, &year, &month, &day) &&
+           bgav_dv_dec_get_time(priv->dvdec, &hour, &minute, &second))
+          {
+          gavl_timecode_from_ymd(&tc,
+                                 year, month, day);
+          gavl_timecode_from_hmsf(&tc,
+                                 hour, minute, second, 0);
+          
+          if((priv->last_dv_timecode != GAVL_TIMECODE_UNDEFINED) &&
+             (tc != priv->last_dv_timecode))
+            {
+            if(s->data.video.format.timecode_format.flags & GAVL_TIMECODE_DROP_FRAME)
+              {
+              if(!second && (minute % 10))
+                gavl_timecode_from_hmsf(&tc,
+                                        hour, minute, second, 2);
+              }
+            s->codec_timecode = tc;
+            s->has_codec_timecode = 1;
+            }
+          priv->last_dv_timecode = tc;
+          }
+        }
+      else
+        {
+        if(bgav_dv_dec_get_timecode(priv->dvdec,
+                                    &s->codec_timecode))
+          s->has_codec_timecode = 1;
+        }
       }
+    
+    
     
     /* Palette terror */
     if(s->data.video.palette_changed)
@@ -1014,7 +1068,7 @@ static int init_ffmpeg(bgav_stream_t * s)
   //  priv->ctx->skip_idct = AVDISCARD_ALL;
   
   /* Set missing format values */
-
+  priv->last_dv_timecode = GAVL_TIMECODE_UNDEFINED;
   
   priv->need_format = 1;
   priv->have_picture = 0;
@@ -1092,6 +1146,7 @@ static void resync_ffmpeg(bgav_stream_t * s)
   priv->demuxer_eof = 0;
   priv->parser_eof = 0;
   priv->codec_eof = 0;
+  priv->last_dv_timecode = GAVL_TIMECODE_UNDEFINED;
   if(priv->do_timing)
     {
     for(i = 0; i < FF_MAX_B_FRAMES+1; i++)

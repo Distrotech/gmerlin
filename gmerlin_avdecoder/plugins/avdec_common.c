@@ -524,6 +524,10 @@ bg_avdec_set_parameter(void * p, const char * name,
     {
     bgav_options_set_cache_time(avdec->opt, val->val_i);
     }
+  else if(!strcmp(name, "dv_datetime"))
+    {
+    bgav_options_set_dv_datetime(avdec->opt, val->val_i);
+    }
   }
 
 int bg_avdec_get_num_tracks(void * p)

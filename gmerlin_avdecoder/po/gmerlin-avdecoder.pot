@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2008-08-16 12:52+0200\n"
+"POT-Creation-Date: 2008-08-17 03:39+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -210,11 +210,15 @@ msgstr ""
 msgid "Set the maximum total size of the cache directory."
 msgstr ""
 
-#: plugins/i_avdec.c:326
+#: plugins/i_avdec.c:291
+msgid "Export date and time as timecodes for DV"
+msgstr ""
+
+#: plugins/i_avdec.c:331
 msgid "AVDecoder plugin"
 msgstr ""
 
-#: plugins/i_avdec.c:327
+#: plugins/i_avdec.c:332
 msgid ""
 "Plugin based on the Gmerlin avdecoder library. Supports most media formats. "
 "Playback is supported from files, URLs (with various protocols) and stdin."
@@ -801,24 +805,24 @@ msgstr ""
 msgid "Decode png failed"
 msgstr ""
 
-#: lib/video_ffmpeg.c:180
+#: lib/video_ffmpeg.c:182
 msgid "PTS cache full"
 msgstr ""
 
-#: lib/video_ffmpeg.c:920
+#: lib/video_ffmpeg.c:974
 msgid "Ran out of data during extradata scanning"
 msgstr ""
 
-#: lib/video_ffmpeg.c:1025
+#: lib/video_ffmpeg.c:1079
 msgid "Could not get initial frame"
 msgstr ""
 
-#: lib/video_ffmpeg.c:1812
+#: lib/video_ffmpeg.c:1867
 #, c-format
 msgid "Cannot find %s"
 msgstr ""
 
-#: lib/video_ffmpeg.c:2233
+#: lib/video_ffmpeg.c:2288
 msgid "Unsupported pixelformat for postprocessing"
 msgstr ""
 

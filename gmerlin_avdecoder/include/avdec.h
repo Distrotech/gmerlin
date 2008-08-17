@@ -518,6 +518,15 @@ void bgav_options_set_dvb_channels_file(bgav_options_t* opt,
 void bgav_options_set_prefer_ffmpeg_demuxers(bgav_options_t* opt,
                                              int prefer);
 
+/** \ingroup options
+ *  \brief Exports the date and time as timecode field of DV streams
+ *  \param opt Option container
+ *  \param datetime 1 to export date and time as timecodes, 0 else
+ */
+
+void bgav_options_set_dv_datetime(bgav_options_t* opt,
+                                  int datetime);
+
 
 /** \ingroup options
  *  \brief Enumeration for log levels

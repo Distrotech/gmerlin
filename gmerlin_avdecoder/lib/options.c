@@ -174,6 +174,13 @@ void bgav_options_set_prefer_ffmpeg_demuxers(bgav_options_t* opt,
   opt->prefer_ffmpeg_demuxers = prefer;
   }
 
+void bgav_options_set_dv_datetime(bgav_options_t* opt,
+                                  int datetime)
+  {
+  opt->dv_datetime = datetime;
+  }
+
+
 #define FREE(ptr) if(ptr) free(ptr)
 
 void bgav_options_free(bgav_options_t*opt)
@@ -268,6 +275,7 @@ void bgav_options_copy(bgav_options_t * dst, const bgav_options_t * src)
   CP_INT(audio_dynrange);
   
   CP_INT(prefer_ffmpeg_demuxers);
+  CP_INT(dv_datetime);
   /* Callbacks */
   
   CP_INT(name_change_callback);
