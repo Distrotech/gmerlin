@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmerlin 0.3.6\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2008-08-16 20:31+0200\n"
-"PO-Revision-Date: 2008-08-16 22:06+0200\n"
+"POT-Creation-Date: 2008-08-17 03:01+0200\n"
+"PO-Revision-Date: 2008-08-17 03:34+0200\n"
 "Last-Translator: Burkhard Plaum <gmerlin@users.sourceforge.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -1826,11 +1826,11 @@ msgstr "RGB"
 msgid "Default Framerate"
 msgstr "Voreingestellte Bildwiederholrate"
 
-#: plugins/videofilters/fv_tcdisplay.c:378
+#: plugins/videofilters/fv_tcdisplay.c:382
 msgid "Display timecodes"
 msgstr "Timecodes einblenden"
 
-#: plugins/videofilters/fv_tcdisplay.c:379
+#: plugins/videofilters/fv_tcdisplay.c:383
 msgid "Burn timecodes into video frames"
 msgstr "Brenne Timecodes in Videobilder"
 
@@ -3771,14 +3771,18 @@ msgid ""
 "%d    Inserts date\n"
 "%<i>n Inserts Frame number with <i> digits"
 msgstr ""
+"Erweiterung wird vom Plugin angefügt.\n"
+"%t    Fügt Zeit ein\n"
+"%d    Fügt Datum ein\n"
+"%<i>n Fügt Bildnummer mit <i> Stellen ein"
 
 #: apps/camelot/webcam_window.c:594
 msgid "Filename base"
-msgstr ""
+msgstr "Basis für Dateinamen"
 
 #: apps/camelot/webcam_window.c:603
 msgid "Frame counter"
-msgstr ""
+msgstr "Bilderzähler"
 
 #: apps/camelot/webcam_window.c:620
 msgid "Output files"
@@ -3794,37 +3798,37 @@ msgstr "Monitor aktiv"
 
 #: apps/camelot/webcam_window.c:693
 msgid "Enable monitoring of the webcam image"
-msgstr ""
+msgstr "Verwende Monitoring des Webcambildes"
 
 #: apps/camelot/webcam_window.c:700
 msgid "Automatically capture in the specified capture interval"
-msgstr ""
+msgstr "Speichere automatisch Aufnahmen im angegebenen Intervall"
 
 #: apps/camelot/webcam_window.c:704
 msgid "Capture interval"
-msgstr ""
+msgstr "Aufnahmeintervall"
 
 #: apps/camelot/webcam_window.c:709
 msgid "Capture interval (in seconds)"
-msgstr ""
+msgstr "Aufnahmeintervall (in Sekunden)"
 
 #: apps/camelot/webcam_window.c:713
 msgid "Output directory"
-msgstr ""
+msgstr "Ausgabeverzeichnis"
 
 #: apps/camelot/webcam_window.c:719
 msgid "Output namebase"
-msgstr ""
+msgstr "Ausgabe Namensbasis"
 
 #: apps/camelot/webcam_window.c:722
 msgid ""
 "Template for the output files. A mask \"%<d>n\" inserts the frame number "
 "with <n> digits (e.g. webcam-shot-%6n)"
-msgstr ""
+msgstr "Schablone für die Ausgabedateien. Eine Maske \"%<d>n\" fügt die Bildnummer mit <n> Stellen ein (z.B. webcam-shot-%6n)"
 
 #: apps/camelot/webcam_window.c:726
 msgid "Output framecounter"
-msgstr ""
+msgstr "Bilderzähler der Ausgabe"
 
 #: apps/transcoder/pluginwindow.c:142
 msgid "Plugins"
@@ -4195,31 +4199,31 @@ msgstr "Kein Audio"
 #: apps/visualizer/gmerlin_visualizer.c:496
 #, c-format
 msgid "Changed recording plugin to %s"
-msgstr ""
+msgstr "Aufnahmeplugin geändert zu %s"
 
 #: apps/visualizer/gmerlin_visualizer.c:513 lib/gtk/plugininfo.c:154
 msgid "Audio recorder"
-msgstr ""
+msgstr "Audiorecorder"
 
 #: apps/visualizer/gmerlin_visualizer.c:523 lib/gtk/plugininfo.c:153
 msgid "Video output"
-msgstr ""
+msgstr "Videoausgabe"
 
 #: apps/visualizer/gmerlin_visualizer.c:874
 msgid "Visualizer configuration"
-msgstr ""
+msgstr "Visualisierer-Konfiguration"
 
 #: apps/visualizer/gmerlin_visualizer.c:1021
 msgid "Gmerlin visualizer"
-msgstr ""
+msgstr "Gmerlin Visualisierer"
 
 #: apps/visualizer/gmerlin_visualizer.c:1024
 msgid "Configure"
-msgstr ""
+msgstr "Konfigurieren"
 
 #: apps/visualizer/gmerlin_visualizer.c:1026
 msgid "Recording and display plugins"
-msgstr ""
+msgstr "Aufnahme- und Anzeigeplugins"
 
 #: apps/visualizer/gmerlin_visualizer.c:1028
 msgid "Restart visualization"
@@ -4263,12 +4267,12 @@ msgstr "Name: %s"
 #: apps/cmdlineplayer/gmerlin_play.c:710
 #, c-format
 msgid "Audio streams %d"
-msgstr ""
+msgstr "Audio streams %d"
 
 #: apps/cmdlineplayer/gmerlin_play.c:715
 #, c-format
 msgid "Video streams %d"
-msgstr ""
+msgstr "Video streams %d"
 
 #: apps/cmdlineplayer/gmerlin_play.c:720
 #, c-format
@@ -4284,6 +4288,11 @@ msgid ""
 "Output format:\n"
 "%s"
 msgstr ""
+"Spiele Audiostream %d\n"
+"Quellenformat:\n"
+"%s\n"
+"Ausgabeformat:\n"
+"%s"
 
 #: apps/cmdlineplayer/gmerlin_play.c:747
 #, c-format
@@ -4294,46 +4303,51 @@ msgid ""
 "Output format:\n"
 "%s"
 msgstr ""
+"Spiele Videostream %d\n"
+"Quellenformat:\n"
+"%s\n"
+"Ausgabeformat:\n"
+"%s"
 
 #: apps/cmdlineplayer/gmerlin_play.c:754
 #, c-format
 msgid "Format: %s"
-msgstr ""
+msgstr "Format: %s"
 
 #: apps/cmdlineplayer/gmerlin_play.c:758
 #, c-format
 msgid "Audio stream: %s"
-msgstr ""
+msgstr "Audiostream: %s"
 
 #: apps/cmdlineplayer/gmerlin_play.c:762
 #, c-format
 msgid "Video stream: %s"
-msgstr ""
+msgstr "Videostream: %s"
 
 #: apps/cmdlineplayer/gmerlin_play.c:766
 #, c-format
 msgid "Subtitle stream: %s"
-msgstr ""
+msgstr "Untertitelstream: %s"
 
 #: apps/cmdlineplayer/gmerlin_play.c:771
 msgid "Player cleaned up"
-msgstr ""
+msgstr "Spieler aufgeräumt"
 
 #: apps/cmdlineplayer/gmerlin_play.c:786
 msgid "Player now playing"
-msgstr ""
+msgstr "Spieler spielt jetzt"
 
 #: apps/cmdlineplayer/gmerlin_play.c:790
 msgid "Player now seeking"
-msgstr ""
+msgstr "Spieler sucht jetzt"
 
 #: apps/cmdlineplayer/gmerlin_play.c:793
 msgid "Player now changing"
-msgstr ""
+msgstr "Spieler wechselt jetzt"
 
 #: apps/cmdlineplayer/gmerlin_play.c:810
 msgid "Player finishing"
-msgstr ""
+msgstr "Spieler beendet jetzt"
 
 #: apps/cmdlineplayer/gmerlin_play.c:848
 msgid "[options] gml...\n"
@@ -4341,13 +4355,13 @@ msgstr "[Optionen] gml...\n"
 
 #: apps/cmdlineplayer/gmerlin_play.c:849
 msgid "Commandline Multimedia player\n"
-msgstr ""
+msgstr "Kommandozeilen-Multimediaplayer\n"
 
 #: apps/cmdlineplayer/gmerlin_play.c:856
 msgid ""
 "Default plugin parameters are read from there. Use gmerlin_plugincfg to "
 "change them."
-msgstr ""
+msgstr "Voreingestellte Pluginparameter werden von hier gelesen. Nehme gmerlin_plugincfg um die zu ändern"
 
 #: apps/kbd/kbd_daemon.c:204
 #, c-format
@@ -4361,11 +4375,11 @@ msgstr ""
 #: apps/kbd/kbd_daemon.c:310
 #, c-format
 msgid "State %02x -> %02x\n"
-msgstr ""
+msgstr "Status %02x -> %02x\n"
 
 #: apps/kbd/kbd_daemon.c:349
 msgid "Reloaded keys"
-msgstr ""
+msgstr "Tasten neu geladen"
 
 #: apps/kbd/kbd_config.c:52
 msgid "Shift"
@@ -4481,6 +4495,8 @@ msgid ""
 "Could not find any Alsa mixers.\n"
 "Check your setup!\n"
 msgstr ""
+"Konnte keine Alsa-Mischer finden.\n"
+"Überprüfe deine Einstellungen.\n"
 
 #: apps/alsamixer/card.c:36
 msgid "snd_hctl_elem_read failed"
@@ -4644,73 +4660,73 @@ msgstr ""
 #: lib/bgladspa.c:295 lib/bgladspa.c:673
 #, c-format
 msgid "No symbol \"ladspa_descriptor\" found: %s"
-msgstr ""
+msgstr "Kein Symbol \"ladspa_descriptor\" gefunden: %s"
 
 #: lib/bgladspa.c:390
 #, c-format
 msgid "Remixing to stereo for filter \"%s\""
-msgstr ""
+msgstr "Mische zu Stereo für Filter %s"
 
 #: lib/searchpath.c:133 lib/transcoder.c:1825 lib/stringutils.c:560
 #, c-format
 msgid "Created directory %s"
 msgstr "Verzeichnis erstellt: %s"
 
-#: lib/pluginregistry.c:377 lib/pluginregistry.c:1291
+#: lib/pluginregistry.c:406 lib/pluginregistry.c:1320
 #, c-format
 msgid "Plugin %s has no or wrong version"
 msgstr "Plugin %s hat keine oder eine falsche Version"
 
-#: lib/pluginregistry.c:384
+#: lib/pluginregistry.c:413
 #, c-format
 msgid "No symbol the_plugin in %s"
 msgstr "Kein Symbol \"the_plugin\" in %s"
 
-#: lib/pluginregistry.c:389
+#: lib/pluginregistry.c:418
 #, c-format
 msgid "Plugin %s has zero priority"
 msgstr "Plugin %s hat Null als Priorität"
 
-#: lib/pluginregistry.c:576 lib/pluginregistry.c:1280
+#: lib/pluginregistry.c:605 lib/pluginregistry.c:1309
 #, c-format
 msgid "dlopen failed for %s: %s"
 msgstr "dlopen fehlgeschlagen für %s: %s"
 
-#: lib/pluginregistry.c:1078
+#: lib/pluginregistry.c:1107
 #, c-format
 msgid "bg_plugin_ref %s: %d"
 msgstr "bg_plugin_ref %s: %d"
 
-#: lib/pluginregistry.c:1143
+#: lib/pluginregistry.c:1172
 #, c-format
 msgid "bg_plugin_unref_nolock %s: %d"
 msgstr "bg_plugin_unref_nolock %s: %d"
 
-#: lib/pluginregistry.c:1154
+#: lib/pluginregistry.c:1183
 #, c-format
 msgid "bg_plugin_unref %s: %d"
 msgstr "bg_plugin_unref %s: %d"
 
-#: lib/pluginregistry.c:1178 lib/pluginregistry.c:1223
+#: lib/pluginregistry.c:1207 lib/pluginregistry.c:1252
 #, c-format
 msgid "No plugin found for image %s"
 msgstr "Kein Plugin gefunden für Bild %s"
 
-#: lib/pluginregistry.c:1385
+#: lib/pluginregistry.c:1414
 msgid "Invalid plugin type for video output"
 msgstr "Ungültiger Plugintyp für Videoausgabe"
 
-#: lib/pluginregistry.c:1391
+#: lib/pluginregistry.c:1420
 #, c-format
 msgid "Plugin %s doesn't support embedded windows"
 msgstr "Plugin %s unterstützt keine eingebetteten Fenster"
 
-#: lib/pluginregistry.c:1638
+#: lib/pluginregistry.c:1667
 #, c-format
 msgid "Loading plugin \"%s\" failed"
 msgstr "Laden von Plugin \"%s\" fehlgeschlagen"
 
-#: lib/pluginregistry.c:1650 lib/pluginregistry.c:1687
+#: lib/pluginregistry.c:1679 lib/pluginregistry.c:1716
 #, c-format
 msgid "Opening %s with \"%s\" failed"
 msgstr "Öffnen von %s mit \"%s\" fehlgeschlagen"
@@ -4737,16 +4753,20 @@ msgid ""
 "Desired image with, the visualization plugin might override this for no "
 "apparent reason"
 msgstr ""
+"Gewünschte Bildbreite. Das Visualisierungsplugin kann dies ohne erkennbaren "
+"Grund überschreiben."
 
 #: lib/visualize.c:334
 msgid "Height"
-msgstr ""
+msgstr "Höhe"
 
 #: lib/visualize.c:340
 msgid ""
 "Desired image height, the visualization plugin might override this for no "
 "apparent reason"
 msgstr ""
+"Gewünschte Bildhöhe. Das Visualisierungsplugin kann dies ohne erkennbaren "
+"Grund überschreiben."
 
 #: lib/visualize.c:354
 msgid "Gain"
@@ -5135,19 +5155,19 @@ msgstr ""
 
 #: lib/cmdline.c:290
 msgid "Print this help message and exit"
-msgstr ""
+msgstr "Gib diese Hilfe aus und beende"
 
 #: lib/cmdline.c:295
 msgid "Print this help message as a manual page and exit"
-msgstr ""
+msgstr "Gib diese Hilfe als Manualpage aus und beende"
 
 #: lib/cmdline.c:300
 msgid "Print this help message in texinfo format and exit"
-msgstr ""
+msgstr "Gib diese Hilfe im texinfo-Format aus und beende"
 
 #: lib/cmdline.c:305
 msgid "Print version info and exit"
-msgstr ""
+msgstr "Gib Version aus und beende"
 
 #: lib/cmdline.c:338
 msgid ""
@@ -5167,19 +5187,19 @@ msgstr ""
 
 #: lib/cmdline.c:416
 msgid ".SH ENVIRONMENT VARIABLES\n"
-msgstr ""
+msgstr ".SH UMGEBUNGSVARIABLEN\n"
 
 #: lib/cmdline.c:431
 msgid ".SH FILES\n"
-msgstr ""
+msgstr ".SH DATEIEN"
 
 #: lib/cmdline.c:470
 msgid "@item Environment variables\n"
-msgstr ""
+msgstr "@item Umgebungsvariablen"
 
 #: lib/cmdline.c:484
 msgid "@item Files\n"
-msgstr ""
+msgstr "@item Dateien\n"
 
 #: lib/cmdline.c:699
 msgid ""
@@ -5192,30 +5212,30 @@ msgstr ""
 #: lib/cmdline.c:778
 #, c-format
 msgid "[1|0] (default: %d)"
-msgstr ""
+msgstr "[1|0] (Voreinstellung: %d)"
 
 #: lib/cmdline.c:787 lib/cmdline.c:801
 msgid "<number> ("
-msgstr ""
+msgstr "<Zahl> ("
 
 #: lib/cmdline.c:793
 #, c-format
 msgid "default: %d)"
-msgstr ""
+msgstr "Voreinstellung: %d)"
 
 #: lib/cmdline.c:812
 #, c-format
 msgid "default: %%.%df)"
-msgstr ""
+msgstr "Voreinstellung: %%.%df)"
 
 #: lib/cmdline.c:828 lib/cmdline.c:841 lib/cmdline.c:848
 msgid "<string>"
-msgstr ""
+msgstr "<zeichenkette>"
 
 #: lib/cmdline.c:831
 #, c-format
 msgid " (Default: %s)"
-msgstr ""
+msgstr " (Voreinstellung: %s)"
 
 #: lib/cmdline.c:858
 msgid "Supported strings: "
@@ -5224,60 +5244,60 @@ msgstr ""
 #: lib/cmdline.c:880 lib/cmdline.c:955
 #, c-format
 msgid "Default: %s"
-msgstr ""
+msgstr "Voreinstellung: %s"
 
 #: lib/cmdline.c:887
 #, c-format
 msgid "<r>,<g>,<b> (default: %.3f,%.3f,%.3f)"
-msgstr ""
+msgstr "<r>,<g>,<b> (Voreinstellung: %.3f,%.3f,%.3f)"
 
 #: lib/cmdline.c:898 lib/cmdline.c:1024
 msgid "<r>, <g> and <b> are in the range 0.0..1.0"
-msgstr ""
+msgstr "<r>, <g> und <b> sind im Bereich 0.0..1.0"
 
 #: lib/cmdline.c:905
 #, c-format
 msgid "<r>,<g>,<b>,<a> (default: %.3f,%.3f,%.3f,%.3f)"
-msgstr ""
+msgstr "<r>,<g>,<b>,<a> (Voreinstellung: %.3f,%.3f,%.3f,%.3f)"
 
 #: lib/cmdline.c:917
 msgid "<r>, <g>, <b> and <a> are in the range 0.0..1.0"
-msgstr ""
+msgstr "<r>, <g> <b> und <a> sind im Bereich 0.0..1.0"
 
 #: lib/cmdline.c:924
 msgid "option[{suboptions}]"
-msgstr ""
+msgstr "option[{unteroptionen}]"
 
 #: lib/cmdline.c:933 lib/cmdline.c:973
 msgid "Supported options: "
-msgstr ""
+msgstr "Unterstützte Optionen: "
 
 #: lib/cmdline.c:961
 msgid "{option[{suboptions}][:option[{suboptions}]...]}"
-msgstr ""
+msgstr "{option[{unteroptionen}][:option[{unteroptionen}]...]}"
 
 #: lib/cmdline.c:993
 msgid "{[[HH:]MM:]SS} ("
-msgstr ""
+msgstr "{[[HH:]MM:]SS} ("
 
 #: lib/cmdline.c:1003
 #, c-format
 msgid "default: %s)"
-msgstr ""
+msgstr "Voreinstellung: %s)"
 
 #: lib/cmdline.c:1011
 msgid "Seconds can be fractional (i.e. with decimal point)\n"
-msgstr ""
+msgstr "Sekunden können gebrochen sein (d.h. mit Dezimalpunkt)"
 
 #: lib/cmdline.c:1014
 #, c-format
 msgid "<x>,<y> (default: %.3f,%.3f)"
-msgstr ""
+msgstr "<x>,<y> (Voreinstellung: %.3f,%.3f)"
 
 #: lib/cmdline.c:1063 lib/cmdline.c:1066
 #, c-format
 msgid "Suboptions for %s=%s"
-msgstr ""
+msgstr "Unteroptionen %s=%s"
 
 #: lib/cmdline.c:1071
 #, c-format
@@ -5292,36 +5312,36 @@ msgstr "Ändere Bildwiederholfrequenz %5.2f (%s) -> %5.2f (%s)"
 #: lib/converters.c:354
 #, c-format
 msgid "Initialized video converter, %d steps"
-msgstr ""
+msgstr "Initialisierte Videokonverter (%d Schritte)"
 
 #: lib/lcdproc.c:103
 msgid "Enable LCDproc"
-msgstr ""
+msgstr "Schalte LCDproc ein"
 
 #: lib/lcdproc.c:109
 msgid "Hostname"
-msgstr ""
+msgstr "Rechnername"
 
 #: lib/lcdproc.c:123
 msgid "Display track name and time"
-msgstr ""
+msgstr "Zeige Name und Zeit an"
 
 #: lib/lcdproc.c:129
 msgid "Display audio/video formats"
-msgstr ""
+msgstr "Zeige Audio- und Videoformate an"
 
 #: lib/lcdproc.c:135
 msgid "Display audio/video descriptions"
-msgstr ""
+msgstr "Zeige Audio- und Videobeschreibnungen an"
 
 #: lib/lcdproc.c:162 lib/lcdproc.c:167
 msgid "Sending command failed"
-msgstr ""
+msgstr "Befehl schicken fehlgeschlagen"
 
 #: lib/lcdproc.c:190
 #, c-format
 msgid "Command \"%s\" not unserstood by server"
-msgstr ""
+msgstr "Befehl \"%s\" vom Server nicht verstanden"
 
 #: lib/lcdproc.c:211
 #, c-format
@@ -6856,12 +6876,18 @@ msgstr ""
 #, c-format
 msgid ""
 "Name:\t %s\n"
-"Long .name =\t %s\n"
+"Long name:\t %s\n"
 "Type:\t %s\n"
 "Flags:\t %s\n"
 "Priority:\t %d\n"
 "DLL Filename:\t %s"
 msgstr ""
+"Name:\t %s\n"
+"Langer name:\t %s\n"
+"Typ:\t %s\n"
+"Flags:\t %s\n"
+"Priorität:\t %d\n"
+"DLL Dateiname:\t %s"
 
 #: lib/gtk/auth.c:73
 msgid "Authentication"
@@ -6908,19 +6934,19 @@ msgstr "Prozess [%d] beendet, Rückgabewert: %d"
 
 #: lib/transcoder_enc.c:104
 msgid "No video encoder found, check installation"
-msgstr ""
+msgstr "Kein Enkoder für Video gefunden, prüfe Installation"
 
 #: lib/transcoder_enc.c:117
 msgid "No audio encoder found, check installation"
-msgstr ""
+msgstr "Kein Enkoder für Audio gefunden, prüfe Installation"
 
 #: lib/transcoder_enc.c:131
 msgid "No encoder for text subtitles found, check installation"
-msgstr ""
+msgstr "Kein Enkoder für Textuntertitel gefunden, prüfe Installation"
 
 #: lib/transcoder_enc.c:146
 msgid "No encoder for overlay subtitles found, check installation"
-msgstr ""
+msgstr "Kein Enkoder für Overlayuntertitel gefunden, prüfe Installation"
 
 #: lib/bgfrei0r.c:65 lib/bgfrei0r.c:73 lib/bgfrei0r.c:80 lib/bgfrei0r.c:87
 #: lib/bgfrei0r.c:170 lib/bgfrei0r.c:460 lib/bgfrei0r.c:475 lib/bgfrei0r.c:481
@@ -6982,23 +7008,23 @@ msgstr "Ungültiger Auswahlbereich"
 
 #: lib/edldec.c:640
 msgid "EDL only works with seekable sources"
-msgstr ""
+msgstr "EDL funktioniert nur mit suchbaren Quellen"
 
 #: lib/edldec.c:1019
 msgid "Unexpected EOF, clearing frame"
-msgstr ""
+msgstr "Unerwartetes Dateiende, lösche Bild"
 
 #: lib/edldec.c:1186
 msgid "Seeked audio out of range"
-msgstr ""
+msgstr "Audiosuche reichte außerhalb des Bereichs"
 
 #: lib/edldec.c:1206
 msgid "Seeked video out of range"
-msgstr ""
+msgstr "Videosuche reichte außerhalb des Bereichs"
 
 #: lib/edldec.c:1228 lib/edldec.c:1249
 msgid "Seeked text subtitles out of range"
-msgstr ""
+msgstr "Textuntertitel-Suche reichte außerhalb des Bereichs"
 
 #: lib/edldec.c:1373
 msgid "EDL decoder"
