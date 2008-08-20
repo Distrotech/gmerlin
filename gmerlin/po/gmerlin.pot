@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2008-08-17 03:01+0200\n"
+"POT-Creation-Date: 2008-08-17 19:15+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -204,7 +204,7 @@ msgstr ""
 #: plugins/v4l/pwc.c:160 plugins/videofilters/fv_deinterlace.c:128
 #: plugins/videofilters/fv_cropscale.c:395 plugins/cdaudio/cdparanoia.c:168
 #: include/bggavl.h:209 include/bggavl.h:227 include/bggavl.h:399
-#: include/bggavl.h:412 lib/x11/x11_window.c:1263
+#: include/bggavl.h:412 lib/x11/x11_window.c:1248
 msgid "Auto"
 msgstr ""
 
@@ -1170,48 +1170,48 @@ msgstr ""
 #: plugins/videofilters/fv_deinterlace.c:115
 #: plugins/videofilters/fv_cropscale.c:325
 #: plugins/videofilters/fv_cropscale.c:330 plugins/videofilters/fv_zoom.c:106
-#: include/bggavl.h:236 lib/x11/x11_window.c:1252
+#: include/bggavl.h:236 lib/x11/x11_window.c:1237
 msgid "Scale mode"
 msgstr ""
 
 #: plugins/videofilters/fv_deinterlace.c:129 include/bggavl.h:210
-#: lib/x11/x11_window.c:1264
+#: lib/x11/x11_window.c:1249
 msgid "Nearest"
 msgstr ""
 
 #: plugins/videofilters/fv_deinterlace.c:130 include/bggavl.h:211
-#: lib/x11/x11_window.c:1265
+#: lib/x11/x11_window.c:1250
 msgid "Bilinear"
 msgstr ""
 
 #: plugins/videofilters/fv_deinterlace.c:131 include/bggavl.h:212
-#: lib/x11/x11_window.c:1266
+#: lib/x11/x11_window.c:1251
 msgid "Quadratic"
 msgstr ""
 
 #: plugins/videofilters/fv_deinterlace.c:132 include/bggavl.h:213
-#: lib/x11/x11_window.c:1267
+#: lib/x11/x11_window.c:1252
 msgid "Cubic B-Spline"
 msgstr ""
 
 #: plugins/videofilters/fv_deinterlace.c:133 include/bggavl.h:214
-#: lib/x11/x11_window.c:1268
+#: lib/x11/x11_window.c:1253
 msgid "Cubic Mitchell-Netravali"
 msgstr ""
 
 #: plugins/videofilters/fv_deinterlace.c:134 include/bggavl.h:215
-#: lib/x11/x11_window.c:1269
+#: lib/x11/x11_window.c:1254
 msgid "Cubic Catmull-Rom"
 msgstr ""
 
 #: plugins/videofilters/fv_deinterlace.c:135 include/bggavl.h:216
-#: lib/x11/x11_window.c:1270
+#: lib/x11/x11_window.c:1255
 msgid "Sinc with Lanczos window"
 msgstr ""
 
 #: plugins/videofilters/fv_deinterlace.c:138
 #: plugins/videofilters/fv_cropscale.c:337 plugins/videofilters/fv_zoom.c:113
-#: include/bggavl.h:243
+#: include/bggavl.h:243 lib/x11/x11_window.c:1258
 msgid ""
 "Choose scaling method. Auto means to choose based on the conversion quality. "
 "Nearest is fastest, Sinc with Lanczos window is slowest."
@@ -1219,14 +1219,14 @@ msgstr ""
 
 #: plugins/videofilters/fv_deinterlace.c:142
 #: plugins/videofilters/fv_cropscale.c:341 plugins/videofilters/fv_zoom.c:117
-#: include/bggavl.h:247 lib/x11/x11_window.c:1277
+#: include/bggavl.h:247 lib/x11/x11_window.c:1262
 msgid "Scale order"
 msgstr ""
 
 #: plugins/videofilters/fv_deinterlace.c:149
 #: plugins/videofilters/fv_cropscale.c:348 plugins/videofilters/fv_zoom.c:124
-#: include/bggavl.h:254
-msgid "Order for sinc scaling."
+#: include/bggavl.h:254 lib/x11/x11_window.c:1267
+msgid "Order for sinc scaling"
 msgstr ""
 
 #: plugins/videofilters/fv_deinterlace.c:160
@@ -1564,11 +1564,11 @@ msgstr ""
 msgid "Deinterlace"
 msgstr ""
 
-#: plugins/videofilters/fv_cropscale.c:395 lib/x11/x11_window.c:1219
+#: plugins/videofilters/fv_cropscale.c:395
 msgid "Never"
 msgstr ""
 
-#: plugins/videofilters/fv_cropscale.c:395 lib/x11/x11_window.c:1221
+#: plugins/videofilters/fv_cropscale.c:395
 msgid "Always"
 msgstr ""
 
@@ -4766,6 +4766,10 @@ msgstr ""
 msgid "Floating point"
 msgstr ""
 
+#: lib/formats.c:195
+msgid "Double precision"
+msgstr ""
+
 #: lib/formats.c:198
 msgid "Not interleaved"
 msgstr ""
@@ -5138,12 +5142,8 @@ msgstr ""
 msgid "Connection to server established, display size: %dx%d"
 msgstr ""
 
-#: lib/lcdproc.c:287
+#: lib/lcdproc.c:287 lib/lcdproc.c:792
 msgid "Connection to server closed due to error"
-msgstr ""
-
-#: lib/lcdproc.c:792
-msgid "Server connection closed due to error"
 msgstr ""
 
 #: lib/lcdproc.c:886
@@ -5309,7 +5309,7 @@ msgstr ""
 
 #: lib/transcoder.c:2044
 #, c-format
-msgid "Video stream %d -> %s"
+msgid "Video stream %d -> file: %s"
 msgstr ""
 
 #: lib/transcoder.c:2055
@@ -5394,57 +5394,33 @@ msgstr ""
 msgid "Auto resize window"
 msgstr ""
 
-#: lib/x11/x11_window.c:1215
-msgid "Try XVideo"
-msgstr ""
-
-#: lib/x11/x11_window.c:1220
-msgid "For YCbCr formats only"
-msgstr ""
-
-#: lib/x11/x11_window.c:1223
-msgid ""
-"Choose when to try XVideo (with hardware scaling). Note that your graphics "
-"card/driver must support this."
-msgstr ""
-
-#: lib/x11/x11_window.c:1228
+#: lib/x11/x11_window.c:1213
 msgid "Disable Screensaver for normal playback"
 msgstr ""
 
-#: lib/x11/x11_window.c:1234
+#: lib/x11/x11_window.c:1219
 msgid "Disable Screensaver for fullscreen playback"
 msgstr ""
 
-#: lib/x11/x11_window.c:1240
+#: lib/x11/x11_window.c:1225
 msgid "Force hardware scaling"
 msgstr ""
 
-#: lib/x11/x11_window.c:1242
+#: lib/x11/x11_window.c:1227
 msgid ""
 "Use hardware scaling even if it involves more CPU intensive pixelformat "
 "conversions"
 msgstr ""
 
-#: lib/x11/x11_window.c:1247
+#: lib/x11/x11_window.c:1232
 msgid "Software scaler"
 msgstr ""
 
-#: lib/x11/x11_window.c:1273
-msgid ""
-"Choose scaling method. Auto means to choose based on the conversion quality. "
-"Nearest is fastest, Sinc with Lanczos window is slowest"
-msgstr ""
-
-#: lib/x11/x11_window.c:1282
-msgid "Order for sinc scaling"
-msgstr ""
-
-#: lib/x11/x11_window.c:1286 lib/x11/x11_window.c:1291
+#: lib/x11/x11_window.c:1271 lib/x11/x11_window.c:1276
 msgid "Scale quality"
 msgstr ""
 
-#: lib/x11/x11_window.c:1503
+#: lib/x11/x11_window.c:1488
 msgid "Could not get GL Visual"
 msgstr ""
 
@@ -5526,8 +5502,8 @@ msgstr ""
 #: lib/tree.c:1226
 msgid ""
 "For files, which contain edit decision lists and raw streams, this option "
-"selects whic one to decode. This setting is saved in the album once the file "
-"is loaded."
+"selects which one to decode. This setting is saved in the album once the "
+"file is loaded."
 msgstr ""
 
 #: lib/tree.c:1423

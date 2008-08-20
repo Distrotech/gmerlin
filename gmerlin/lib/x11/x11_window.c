@@ -1208,21 +1208,6 @@ static const bg_parameter_info_t common_parameters[] =
       .flags =       BG_PARAMETER_HIDE_DIALOG,
       .val_default = { .val_i = 100 }
     },
-#if 0
-    // #ifdef HAVE_LIBXV
-    {
-      .name =        "xv_mode",
-      .long_name =   TRS("Try XVideo"),
-      .type =        BG_PARAMETER_STRINGLIST,
-
-      .multi_names = (char*[]){ "never", "yuv_only", "always", (char*)0},
-      .multi_labels = (char*[]){ TRS("Never"),
-                               TRS("For YCbCr formats only"),
-                               TRS("Always"), (char*)0},
-      .val_default = { .val_str = "yuv_only" },
-      .help_string = TRS("Choose when to try XVideo (with hardware scaling). Note that your graphics card/driver must support this."),
-    },
-#endif
     {
       .name =        "disable_xscreensaver_normal",
       .long_name =   TRS("Disable Screensaver for normal playback"),
@@ -1270,7 +1255,7 @@ static const bg_parameter_info_t common_parameters[] =
                                TRS("Sinc with Lanczos window"),
                                (char*)0 },
       .val_default = { .val_str = "auto" },
-      .help_string = TRS("Choose scaling method. Auto means to choose based on the conversion quality. Nearest is fastest, Sinc with Lanczos window is slowest"),
+      .help_string = TRS("Choose scaling method. Auto means to choose based on the conversion quality. Nearest is fastest, Sinc with Lanczos window is slowest."),
     },
     {
       .name =        "scale_order",

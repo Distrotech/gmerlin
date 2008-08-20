@@ -146,7 +146,7 @@ static const bg_parameter_info_t scale_parameters[] =
       .val_min =     { .val_i = 4 },
       .val_max =     { .val_i = 1000 },
       .val_default = { .val_i = 4 },
-      .help_string = TRS("Order for sinc scaling."),
+      .help_string = TRS("Order for sinc scaling"),
     },
     { /* */ },
   };

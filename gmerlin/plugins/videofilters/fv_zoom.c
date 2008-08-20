@@ -121,7 +121,7 @@ static const bg_parameter_info_t parameters[] =
       .val_min =     { .val_i = 4 },
       .val_max =     { .val_i = 1000 },
       .val_default = { .val_i = 4 },
-      .help_string = TRS("Order for sinc scaling."),
+      .help_string = TRS("Order for sinc scaling"),
     },
 
     {
@@ -363,9 +363,9 @@ static int read_video_zoom(void * priv, gavl_video_frame_t * frame,
   gavl_video_frame_fill(frame, &vp->format, vp->bg_color);
   
   gavl_video_scaler_scale(vp->scaler, vp->frame, frame);
+
+  gavl_video_frame_copy_metadata(frame, vp->frame);
   
-  frame->timestamp = vp->frame->timestamp;
-  frame->duration = vp->frame->duration;
   return 1;
   }
 

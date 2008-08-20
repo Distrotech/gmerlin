@@ -192,7 +192,7 @@ TRU("Unsigned 16 bit")
 TRU("Signed 16 bit")
 TRU("Signed 32 bit")
 TRU("Floating point")
-
+TRU("Double precision")
 // gavl_interleave_mode_t
 
 TRU("Not interleaved")

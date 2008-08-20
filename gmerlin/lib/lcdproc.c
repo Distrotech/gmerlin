@@ -789,7 +789,7 @@ static void * thread_func(void * data)
     if(!result && (l->fd >= 0))
       {
       close(l->fd);
-      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Server connection closed due to error");
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Connection to server closed due to error");
       l->fd = -1;
       }
     

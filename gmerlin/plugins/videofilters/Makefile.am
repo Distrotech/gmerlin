@@ -31,6 +31,7 @@ fv_pixelformat.la \
 fv_tcdisplay.la \
 fv_tctweak.la \
 fv_tlp.la \
+fv_transform.la \
 fv_zoom.la
 
 fv_blur_la_SOURCES  = fv_blur.c
@@ -54,6 +55,8 @@ fv_tcdisplay_la_SOURCES  = fv_tcdisplay.c
 fv_tcdisplay_la_CFLAGS   = @FREETYPE_CFLAGS@ -DLOCALE_DIR=\"$(localedir)\"
 
 fv_tctweak_la_SOURCES  = fv_tctweak.c
+
+fv_transform_la_SOURCES  = fv_transform.c
 
 fv_cropscale_la_SOURCES  = fv_cropscale.c
 

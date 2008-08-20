@@ -2041,7 +2041,7 @@ static void send_file_messages(bg_transcoder_t * t)
           {
           bg_transcoder_send_msg_video_file(t->message_queues,
                                             i, t->video_streams[i].com.output_filename, t->pp_only);
-          bg_log(BG_LOG_INFO, LOG_DOMAIN, "Video stream %d -> %s", i+1,
+          bg_log(BG_LOG_INFO, LOG_DOMAIN, "Video stream %d -> file: %s", i+1,
                  t->video_streams[i].com.output_filename);
           if(t->send_finished)
             send_file(t->video_streams[i].com.output_filename);

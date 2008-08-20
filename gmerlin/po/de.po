@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmerlin 0.3.6\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2008-08-17 03:01+0200\n"
-"PO-Revision-Date: 2008-08-17 03:34+0200\n"
+"POT-Creation-Date: 2008-08-17 19:15+0200\n"
+"PO-Revision-Date: 2008-08-17 19:17+0200\n"
 "Last-Translator: Burkhard Plaum <gmerlin@users.sourceforge.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -211,7 +211,7 @@ msgstr "Manuell"
 #: plugins/v4l/pwc.c:160 plugins/videofilters/fv_deinterlace.c:128
 #: plugins/videofilters/fv_cropscale.c:395 plugins/cdaudio/cdparanoia.c:168
 #: include/bggavl.h:209 include/bggavl.h:227 include/bggavl.h:399
-#: include/bggavl.h:412 lib/x11/x11_window.c:1263
+#: include/bggavl.h:412 lib/x11/x11_window.c:1248
 msgid "Auto"
 msgstr "Automatisch"
 
@@ -1215,48 +1215,48 @@ msgstr ""
 #: plugins/videofilters/fv_deinterlace.c:115
 #: plugins/videofilters/fv_cropscale.c:325
 #: plugins/videofilters/fv_cropscale.c:330 plugins/videofilters/fv_zoom.c:106
-#: include/bggavl.h:236 lib/x11/x11_window.c:1252
+#: include/bggavl.h:236 lib/x11/x11_window.c:1237
 msgid "Scale mode"
 msgstr "Skaliermethode"
 
 #: plugins/videofilters/fv_deinterlace.c:129 include/bggavl.h:210
-#: lib/x11/x11_window.c:1264
+#: lib/x11/x11_window.c:1249
 msgid "Nearest"
 msgstr "Nächstes Pixel"
 
 #: plugins/videofilters/fv_deinterlace.c:130 include/bggavl.h:211
-#: lib/x11/x11_window.c:1265
+#: lib/x11/x11_window.c:1250
 msgid "Bilinear"
 msgstr "Bilinear"
 
 #: plugins/videofilters/fv_deinterlace.c:131 include/bggavl.h:212
-#: lib/x11/x11_window.c:1266
+#: lib/x11/x11_window.c:1251
 msgid "Quadratic"
 msgstr "Quadratisch"
 
 #: plugins/videofilters/fv_deinterlace.c:132 include/bggavl.h:213
-#: lib/x11/x11_window.c:1267
+#: lib/x11/x11_window.c:1252
 msgid "Cubic B-Spline"
 msgstr "Kubisch B-Spline"
 
 #: plugins/videofilters/fv_deinterlace.c:133 include/bggavl.h:214
-#: lib/x11/x11_window.c:1268
+#: lib/x11/x11_window.c:1253
 msgid "Cubic Mitchell-Netravali"
 msgstr "Kubisch Mitchell-Netravali"
 
 #: plugins/videofilters/fv_deinterlace.c:134 include/bggavl.h:215
-#: lib/x11/x11_window.c:1269
+#: lib/x11/x11_window.c:1254
 msgid "Cubic Catmull-Rom"
 msgstr "Kubisch Catmull-Rom"
 
 #: plugins/videofilters/fv_deinterlace.c:135 include/bggavl.h:216
-#: lib/x11/x11_window.c:1270
+#: lib/x11/x11_window.c:1255
 msgid "Sinc with Lanczos window"
 msgstr "sin(x)/x mit Lanczos Fenster"
 
 #: plugins/videofilters/fv_deinterlace.c:138
 #: plugins/videofilters/fv_cropscale.c:337 plugins/videofilters/fv_zoom.c:113
-#: include/bggavl.h:243
+#: include/bggavl.h:243 lib/x11/x11_window.c:1258
 msgid ""
 "Choose scaling method. Auto means to choose based on the conversion quality. "
 "Nearest is fastest, Sinc with Lanczos window is slowest."
@@ -1267,14 +1267,14 @@ msgstr ""
 
 #: plugins/videofilters/fv_deinterlace.c:142
 #: plugins/videofilters/fv_cropscale.c:341 plugins/videofilters/fv_zoom.c:117
-#: include/bggavl.h:247 lib/x11/x11_window.c:1277
+#: include/bggavl.h:247 lib/x11/x11_window.c:1262
 msgid "Scale order"
 msgstr "Skalierordnung"
 
 #: plugins/videofilters/fv_deinterlace.c:149
 #: plugins/videofilters/fv_cropscale.c:348 plugins/videofilters/fv_zoom.c:124
-#: include/bggavl.h:254
-msgid "Order for sinc scaling."
+#: include/bggavl.h:254 lib/x11/x11_window.c:1267
+msgid "Order for sinc scaling"
 msgstr "Ordnung für sinc Skalierung"
 
 #: plugins/videofilters/fv_deinterlace.c:160
@@ -1352,8 +1352,8 @@ msgid ""
 "Lower quality means more speed. Values above 3 enable slow high quality "
 "calculations."
 msgstr ""
-"Niedrige Qualität heißt höhere Geschwindigkeit. Werte über 3 schalten "
-"langsame, hochqualitative Berechnungen ein."
+"Niedrige Qualität heißt höhere Geschwindigkeit. Werte über 3 aktivieren "
+"langsame, hochqualitative Berechnungen."
 
 #: plugins/videofilters/fv_deinterlace.c:224 include/bggavl.h:189
 msgid "Force deinterlacing"
@@ -1637,11 +1637,11 @@ msgstr ""
 msgid "Deinterlace"
 msgstr "Deinterlace"
 
-#: plugins/videofilters/fv_cropscale.c:395 lib/x11/x11_window.c:1219
+#: plugins/videofilters/fv_cropscale.c:395
 msgid "Never"
 msgstr "Nie"
 
-#: plugins/videofilters/fv_cropscale.c:395 lib/x11/x11_window.c:1221
+#: plugins/videofilters/fv_cropscale.c:395
 msgid "Always"
 msgstr "Immer"
 
@@ -3824,7 +3824,9 @@ msgstr "Ausgabe Namensbasis"
 msgid ""
 "Template for the output files. A mask \"%<d>n\" inserts the frame number "
 "with <n> digits (e.g. webcam-shot-%6n)"
-msgstr "Schablone für die Ausgabedateien. Eine Maske \"%<d>n\" fügt die Bildnummer mit <n> Stellen ein (z.B. webcam-shot-%6n)"
+msgstr ""
+"Schablone für die Ausgabedateien. Eine Maske \"%<d>n\" fügt die Bildnummer "
+"mit <n> Stellen ein (z.B. webcam-shot-%6n)"
 
 #: apps/camelot/webcam_window.c:726
 msgid "Output framecounter"
@@ -4361,16 +4363,19 @@ msgstr "Kommandozeilen-Multimediaplayer\n"
 msgid ""
 "Default plugin parameters are read from there. Use gmerlin_plugincfg to "
 "change them."
-msgstr "Voreingestellte Pluginparameter werden von hier gelesen. Nehme gmerlin_plugincfg um die zu ändern"
+msgstr ""
+"Voreingestellte Pluginparameter werden von hier gelesen. Nehme "
+"gmerlin_plugincfg um die zu ändern"
 
 #: apps/kbd/kbd_daemon.c:204
 #, c-format
 msgid "Grabbing key (Code: %d, modifiers: %s) failed"
 msgstr ""
+"Exklusiver Zugriff auf Taste (Code: %d, Modifizierer: %s) fehlgeschlagen"
 
 #: apps/kbd/kbd_daemon.c:239
 msgid "Exiting"
-msgstr ""
+msgstr "Beende"
 
 #: apps/kbd/kbd_daemon.c:310
 #, c-format
@@ -4483,12 +4488,12 @@ msgstr "Taste löschen"
 
 #: apps/alsamixer/g_card.c:639
 msgid "Card controls"
-msgstr ""
+msgstr "Einstellungen für Karte"
 
 #: apps/alsamixer/g_card.c:644
 #, c-format
 msgid "Controls for %s"
-msgstr ""
+msgstr "Einstellungen für %s"
 
 #: apps/alsamixer/main.c:33
 msgid ""
@@ -4831,6 +4836,10 @@ msgid ""
 "Pixel size:   %d x %d\n"
 "Pixel format: %s\n"
 msgstr ""
+"Rahmengröße: %d x %d\"\n"
+"Bildgröße:   %d x %d\"\n"
+"Pixelgröße:  %d x %d\"\n"
+"Pixelformat: %s\n"
 
 #: lib/formats.c:87
 #, c-format
@@ -4840,38 +4849,42 @@ msgid ""
 "Pixel size:\t %d x %d\n"
 "Pixel format:\t %s\n"
 msgstr ""
+"Rahmengröße:\t %d x %d\n"
+"Bildgröße:\t   %d x %d\n"
+"Pixelgröße:\t  %d x %d\n"
+"Pixelformat:\t %s\n"
 
 #: lib/formats.c:98
 msgid "Still image\n"
-msgstr ""
+msgstr "Standbild\n"
 
 #: lib/formats.c:103
 #, c-format
 msgid "Framerate:    %f fps [%d / %d]%s\n"
-msgstr ""
+msgstr "Bildwiderholrate: %f fps [%d / %d]%s\n"
 
 #: lib/formats.c:105
 #, c-format
 msgid "Framerate:\t%f fps [%d / %d]%s\n"
-msgstr ""
+msgstr "Bildwiderholrate:\t %f fps [%d / %d]%s\n"
 
 #: lib/formats.c:111
 msgid " (constant)"
-msgstr ""
+msgstr "(konstant)"
 
 #: lib/formats.c:112
 msgid " (variable)"
-msgstr ""
+msgstr " (variabel)"
 
 #: lib/formats.c:118
 #, c-format
 msgid "Interlace mode:   %s"
-msgstr ""
+msgstr "Interlacemodus:   %s"
 
 #: lib/formats.c:120
 #, c-format
 msgid "Interlace mode:\t%s"
-msgstr ""
+msgstr "Interlacemodus:\t%s"
 
 #: lib/formats.c:131
 #, c-format
@@ -4879,6 +4892,8 @@ msgid ""
 "\n"
 "Chroma placement: %s"
 msgstr ""
+"\n"
+"Farbebenenplatzierung: %s"
 
 #: lib/formats.c:133
 #, c-format
@@ -4886,6 +4901,8 @@ msgid ""
 "\n"
 "Chroma placement:\t%s"
 msgstr ""
+"\n"
+"Farbebenenplatzierung:\t%s"
 
 #: lib/formats.c:142
 #, c-format
@@ -4893,6 +4910,8 @@ msgid ""
 "\n"
 "Timecode rate:    %d"
 msgstr ""
+"\n"
+"Timecoderate:    %d"
 
 #: lib/formats.c:144
 #, c-format
@@ -4900,126 +4919,136 @@ msgid ""
 "\n"
 "Timecode rate:\t%d"
 msgstr ""
+"\n"
+"Timecoderate:\t%d"
 
 #: lib/formats.c:152
 msgid ""
 "\n"
 "Timecode flags: "
 msgstr ""
+"\n"
+"Timecodeflags: "
 
 #: lib/formats.c:154
 msgid ""
 "\n"
 "Timecode flags:\t"
 msgstr ""
+"\n"
+"Timecodeflags:\t"
 
 #: lib/formats.c:159
 msgid "Drop "
-msgstr ""
+msgstr "Drop"
 
 #: lib/formats.c:172
 msgid "Unknown channel"
-msgstr ""
+msgstr "Unbekannter Kanal"
 
 #: lib/formats.c:173
 msgid "Front C"
-msgstr ""
+msgstr "Vorne C"
 
 #: lib/formats.c:174
 msgid "Front L"
-msgstr ""
+msgstr "Vorne L"
 
 #: lib/formats.c:175
 msgid "Front R"
-msgstr ""
+msgstr "Vorne R"
 
 #: lib/formats.c:176
 msgid "Front CL"
-msgstr ""
+msgstr "Vorne CL"
 
 #: lib/formats.c:177
 msgid "Front CR"
-msgstr ""
+msgstr "Vorne CR"
 
 #: lib/formats.c:178
 msgid "Rear C"
-msgstr ""
+msgstr "Hinten C"
 
 #: lib/formats.c:179
 msgid "Rear L"
-msgstr ""
+msgstr "Hinten L"
 
 #: lib/formats.c:180
 msgid "Rear R"
-msgstr ""
+msgstr "Hinten R"
 
 #: lib/formats.c:181
 msgid "Side L"
-msgstr ""
+msgstr "Seite L"
 
 #: lib/formats.c:182
 msgid "Side R"
-msgstr ""
+msgstr "Seite R"
 
 #: lib/formats.c:184
 msgid "AUX"
-msgstr ""
+msgstr "AUX"
 
 #: lib/formats.c:188
 msgid "Not specified"
-msgstr ""
+msgstr "Unspezifiziert"
 
 #: lib/formats.c:189
 msgid "Unsigned 8 bit"
-msgstr ""
+msgstr "Vorzeichenlos 8 bit"
 
 #: lib/formats.c:190
 msgid "Signed 8 bit"
-msgstr ""
+msgstr "8 bit mit Vorzeichen"
 
 #: lib/formats.c:191
 msgid "Unsigned 16 bit"
-msgstr ""
+msgstr "Vorzeichenlos 16 bit"
 
 #: lib/formats.c:192
 msgid "Signed 16 bit"
-msgstr ""
+msgstr "16 bit mit Vorzeichen"
 
 #: lib/formats.c:193
 msgid "Signed 32 bit"
-msgstr ""
+msgstr "32 bit mit Vorzeichen"
 
 #: lib/formats.c:194
 msgid "Floating point"
-msgstr ""
+msgstr "Fließkomma"
+
+#: lib/formats.c:195
+msgid "Double precision"
+msgstr "Doppelte Genauigkeit"
 
 #: lib/formats.c:198
 msgid "Not interleaved"
-msgstr ""
+msgstr "Nicht interleaved"
 
 #: lib/formats.c:199
 msgid "Interleaved channel pairs"
-msgstr ""
+msgstr "Interleavte Kanalpaare"
 
 #: lib/formats.c:200
 msgid "All channels interleaved"
-msgstr ""
+msgstr "Alle Kanäle interleaved"
 
 #: lib/formats.c:204
 msgid "None (Progressive)"
-msgstr ""
+msgstr "Keiner (progressiv)"
 
 #: lib/formats.c:205
 msgid "Top field first"
-msgstr ""
+msgstr "Oberes Feld zuerst"
 
 #: lib/formats.c:206
 msgid "Bottom field first"
-msgstr ""
+msgstr "Unteres Feld zuerst"
 
 #: lib/formats.c:207
 msgid "Mixed"
-msgstr ""
+msgstr "Gemischt"
 
 #: lib/formats.c:210
 msgid "MPEG-1/JPEG"
@@ -5191,11 +5220,11 @@ msgstr ".SH UMGEBUNGSVARIABLEN\n"
 
 #: lib/cmdline.c:431
 msgid ".SH FILES\n"
-msgstr ".SH DATEIEN"
+msgstr ".SH DATEIEN\n"
 
 #: lib/cmdline.c:470
 msgid "@item Environment variables\n"
-msgstr "@item Umgebungsvariablen"
+msgstr "@item Umgebungsvariablen\n"
 
 #: lib/cmdline.c:484
 msgid "@item Files\n"
@@ -5239,7 +5268,7 @@ msgstr " (Voreinstellung: %s)"
 
 #: lib/cmdline.c:858
 msgid "Supported strings: "
-msgstr ""
+msgstr "Unterstützte Kennzeichner:"
 
 #: lib/cmdline.c:880 lib/cmdline.c:955
 #, c-format
@@ -5287,7 +5316,7 @@ msgstr "Voreinstellung: %s)"
 
 #: lib/cmdline.c:1011
 msgid "Seconds can be fractional (i.e. with decimal point)\n"
-msgstr "Sekunden können gebrochen sein (d.h. mit Dezimalpunkt)"
+msgstr "Sekunden können gebrochen sein (d.h. mit Dezimalpunkt)\n"
 
 #: lib/cmdline.c:1014
 #, c-format
@@ -5346,117 +5375,115 @@ msgstr "Befehl \"%s\" vom Server nicht verstanden"
 #: lib/lcdproc.c:211
 #, c-format
 msgid "Could not resolve adress for: %s"
-msgstr ""
+msgstr "Konnte Adresse nicht auflösen für %s"
 
 #: lib/lcdproc.c:218
 #, c-format
 msgid "Could not connect to server at %s:%d"
-msgstr ""
+msgstr "Konnte keine Verbindung zum Server %s:%d aufbauen"
 
 #: lib/lcdproc.c:228
 msgid "Could not send hello message"
-msgstr ""
+msgstr "Konnte keine \"hello\" Nachricht schicken"
 
 #: lib/lcdproc.c:234
 msgid "Could not get server welcome line"
-msgstr ""
+msgstr "Konnte keine \"welcome\" Zeile bekommen"
 
 #: lib/lcdproc.c:243
 #, c-format
 msgid "Invalid answer: %s"
-msgstr ""
+msgstr "Ungültige Antwort: %s"
 
 #: lib/lcdproc.c:275
 #, c-format
 msgid "Connection to server established, display size: %dx%d"
-msgstr ""
+msgstr "Verbindung zum Server hergestellt, Displaygröße: %dx%d"
 
-#: lib/lcdproc.c:287
+#: lib/lcdproc.c:287 lib/lcdproc.c:792
 msgid "Connection to server closed due to error"
-msgstr ""
-
-#: lib/lcdproc.c:792
-msgid "Server connection closed due to error"
-msgstr ""
+msgstr "Verbindung zum Server aufgrund eines Fehlers geschlossen"
 
 #: lib/lcdproc.c:886
 msgid "Server connection closed"
-msgstr ""
+msgstr "Serververbindung beendet"
 
 #: lib/player_thread.c:733 lib/player_thread.c:1248
 msgid "Joining input thread..."
-msgstr ""
+msgstr "Beende Quellenthread..."
 
 #: lib/player_thread.c:735 lib/player_thread.c:1250
 msgid "Joining input thread done"
-msgstr ""
+msgstr "Beenden des Quellenthreads abgeschlossen"
 
 #: lib/player_thread.c:740 lib/player_thread.c:1253
 msgid "Joining audio thread..."
-msgstr ""
+msgstr "Beende Audiothread..."
 
 #: lib/player_thread.c:742 lib/player_thread.c:1255
 msgid "Joining audio thread done"
-msgstr ""
+msgstr "Beenden des Audiothreads abgeschlossen"
 
 #: lib/player_thread.c:746 lib/player_thread.c:1259
 msgid "Joining video thread..."
-msgstr ""
+msgstr "Beende Videothread..."
 
 #: lib/player_thread.c:748 lib/player_thread.c:1261
 msgid "Joining video thread done"
-msgstr ""
+msgstr "Beenden des Videothreads abgeschlossen"
 
 #: lib/player_thread.c:1313
 msgid "Ignoring command while playback is interrupted"
-msgstr ""
+msgstr "Ignoriere Befehl während das Absplielen unterbrochen ist"
 
 #: lib/charset.c:96
 msgid "Invalid Multibyte sequence"
-msgstr ""
+msgstr "Ungültige Multibyte-Sequenz"
 
 #: lib/charset.c:99
 msgid "Incomplete Multibyte sequence"
-msgstr ""
+msgstr "Unvollständige Multibyte-Sequenz"
 
 #: lib/transcoder.c:452
 msgid "Output Directory"
-msgstr ""
+msgstr "Ausgabeverzeichnis"
 
 #: lib/transcoder.c:458
 msgid "Delete incomplete output files"
-msgstr ""
+msgstr "Lösche unvollständige Ausgabedateien"
 
 #: lib/transcoder.c:461
 msgid ""
 "Delete the encoded files if you hit the stop button. This option will "
 "automatically be disabled, when the track is an URL"
 msgstr ""
+"Lösche enkodierte Dateien wenn Du den \"Stop\"-Button drückst. Diese Option "
+"wird automatisch deaktiviert, wenn der Track eine URL ist."
 
 #: lib/transcoder.c:466
 msgid "Clean up after postprocessing"
-msgstr ""
+msgstr "Aufräumen nach der Weiterverarbeitung"
 
 #: lib/transcoder.c:468
 msgid "Clean up all encoded files, which were postprocessed"
-msgstr ""
+msgstr "Lösche alle enkodierten Dateien, die weiterverarbeitet wurden"
 
 #: lib/transcoder.c:472
 msgid "Send finished files to player"
-msgstr ""
+msgstr "Schicke fertige Dateien zum Player"
 
 #: lib/transcoder.c:1231
 msgid "Multipass encoding not supported by encoder plugin"
-msgstr ""
+msgstr "Multipassenkodierung wird vom Enkoderplugin nicht unterstützt"
 
 #: lib/transcoder.c:1238
 #, c-format
 msgid "Using statistics file: %s"
-msgstr ""
+msgstr "Benutze Statistikdatei: %s"
 
 #: lib/transcoder.c:1244
 msgid "Multipass encoding not supported by codec"
-msgstr ""
+msgstr "Multipassenkodierung wird vom Codec nicht unterstützt"
 
 #: lib/transcoder.c:1349
 msgid "Encoding audio failed"
@@ -5473,22 +5500,22 @@ msgstr "Untertitel Enkodieren fehlgeschlagen"
 #: lib/transcoder.c:1819
 #, c-format
 msgid "Cannot create directory %s: %s, using default"
-msgstr ""
+msgstr "Kann Verzeichnis %s nicht erstellen: %s, nehme Voreinstellung"
 
 #: lib/transcoder.c:1897
 #, c-format
 msgid "Postprocessing %s"
-msgstr ""
+msgstr "Weiterverarbeitung von %s"
 
 #: lib/transcoder.c:1901 lib/transcoder.c:3486
 #, c-format
 msgid "Transcoding %s [Track %d, Pass %d/%d]"
-msgstr ""
+msgstr "Transkodiere %s [Track %d, Durchgang %d/%d]"
 
 #: lib/transcoder.c:1906
 #, c-format
 msgid "Transcoding %s [Track %d]"
-msgstr ""
+msgstr "Transkodiere %s [Track %d]"
 
 #: lib/transcoder.c:1917
 #, c-format
@@ -5496,6 +5523,8 @@ msgid ""
 "Metadata:\n"
 "%s"
 msgstr ""
+"Metadaten:\n"
+"%s"
 
 #: lib/transcoder.c:1932
 #, c-format
@@ -5503,6 +5532,8 @@ msgid ""
 "Audio stream %d input format:\n"
 "%s"
 msgstr ""
+"Audiostream %d, Quellformat:\n"
+"%s"
 
 #: lib/transcoder.c:1937
 #, c-format
@@ -5510,6 +5541,8 @@ msgid ""
 "Audio stream %d output format:\n"
 "%s"
 msgstr ""
+"Audiostream %d, Ausgabeformat:\n"
+"%s"
 
 #: lib/transcoder.c:1950
 #, c-format
@@ -5517,6 +5550,8 @@ msgid ""
 "Video stream %d input format:\n"
 "%s"
 msgstr ""
+"Videostream %d, Quellformat:\n"
+"%s"
 
 #: lib/transcoder.c:1955
 #, c-format
@@ -5524,26 +5559,28 @@ msgid ""
 "Video stream %d output format:\n"
 "%s"
 msgstr ""
+"Videostream %d, Ausgabeformat:\n"
+"%s"
 
 #: lib/transcoder.c:1967 lib/transcoder.c:1986
 #, c-format
 msgid "Text subtitle stream %d: Blending onto video stream %d"
-msgstr ""
+msgstr "Text-Untertitelstream %d: Mische auf Videostream %d"
 
 #: lib/transcoder.c:1972 lib/transcoder.c:1991
 #, c-format
 msgid "Text subtitle stream %d: Exporting to file"
-msgstr ""
+msgstr "Text-Untertitelstream %d: Exportiere in Datei"
 
 #: lib/transcoder.c:2029
 #, c-format
 msgid "Audio stream %d -> file: %s"
-msgstr ""
+msgstr "Audiostream %d -> Datei: %s"
 
 #: lib/transcoder.c:2044
 #, c-format
-msgid "Video stream %d -> %s"
-msgstr ""
+msgid "Video stream %d -> file: %s"
+msgstr "Videostream %d -> Datei: %s"
 
 #: lib/transcoder.c:2055
 #, c-format
@@ -5563,7 +5600,7 @@ msgstr "Kann Plugin %s nicht öffnen"
 #: lib/transcoder.c:2092
 #, c-format
 msgid "Cannot open %s with plugin %s"
-msgstr ""
+msgstr "Kann %s nicht mit Plugin %s öffnen"
 
 #: lib/transcoder.c:2108
 #, c-format
@@ -5572,23 +5609,23 @@ msgstr "Ungültige Tracknummer %d"
 
 #: lib/transcoder.c:2240 lib/player_input.c:327
 msgid "Starting input plugin failed"
-msgstr ""
+msgstr "Starten des Quellplugins fehlgeschlagen"
 
 #: lib/transcoder.c:2250 lib/transcoder.c:2259
 msgid "Cannot seek to start point"
-msgstr ""
+msgstr "Kann nicht zum Startpunkt suchen"
 
 #: lib/transcoder.c:2270
 msgid "End time if before start time"
-msgstr ""
+msgstr "Endzeit vor Anfangszeit"
 
 #: lib/transcoder.c:2500 lib/transcoder.c:2548
 msgid "Subtitle stream cannot be handled"
-msgstr ""
+msgstr "Untertitelstream kann nicht verarbeitet werden"
 
 #: lib/transcoder.c:2572
 msgid "Input and output are the same file"
-msgstr ""
+msgstr "Quelle und Ausgabe sind die gleiche Datei"
 
 #: lib/transcoder.c:2593
 #, c-format
@@ -5602,82 +5639,60 @@ msgstr "Konnte %s nicht starten"
 
 #: lib/transcoder.c:3233
 msgid "Zero peaks detected (silent file?). Disabling normalization."
-msgstr ""
+msgstr "Null Spitzenwerte detektiert (stumme Datei?). Deaktiviere Normierung"
 
 #: lib/transcoder.c:3239
 #, c-format
 msgid "Correcting volume by %.2f dB"
-msgstr ""
+msgstr "Korrigiere Lautstärke um %.2f dB"
 
 #: lib/transcoder.c:3296
 msgid "No stream to encode"
-msgstr ""
+msgstr "Kein Stream zum Enkodieren"
 
 #: lib/transcoder.c:3683
 #, c-format
 msgid "Video stream %d: Transcoded %s frames"
-msgstr ""
+msgstr "Videostream %d: %s Bilder transkodiert"
 
 #: lib/transcoder.c:3694
 #, c-format
 msgid "Audio stream %d: Transcoded %s samples"
-msgstr ""
+msgstr "Audiostream %d: %s Abtastwerte transkodiert"
 
 #: lib/x11/x11_window.c:1179
 msgid "Auto resize window"
-msgstr ""
+msgstr "Fenstergröße automatisch ändern"
 
-#: lib/x11/x11_window.c:1215
-msgid "Try XVideo"
-msgstr ""
-
-#: lib/x11/x11_window.c:1220
-msgid "For YCbCr formats only"
-msgstr ""
-
-#: lib/x11/x11_window.c:1223
-msgid ""
-"Choose when to try XVideo (with hardware scaling). Note that your graphics "
-"card/driver must support this."
-msgstr ""
-
-#: lib/x11/x11_window.c:1228
+#: lib/x11/x11_window.c:1213
 msgid "Disable Screensaver for normal playback"
-msgstr ""
+msgstr "Deaktiviere Bildschirmschoner für normales Abspielen"
 
-#: lib/x11/x11_window.c:1234
+#: lib/x11/x11_window.c:1219
 msgid "Disable Screensaver for fullscreen playback"
-msgstr ""
+msgstr "Deaktiviere Bildschirmschoner für Abspielen im Vollbildmodus"
 
-#: lib/x11/x11_window.c:1240
+#: lib/x11/x11_window.c:1225
 msgid "Force hardware scaling"
-msgstr ""
+msgstr "Erzwinge Hardwareskalierung"
 
-#: lib/x11/x11_window.c:1242
+#: lib/x11/x11_window.c:1227
 msgid ""
 "Use hardware scaling even if it involves more CPU intensive pixelformat "
 "conversions"
 msgstr ""
+"Benutze Hardwareskalierung auch wenn es mehr rechenaufwendige Pixelformat-"
+"Umwandlungen erfordert"
 
-#: lib/x11/x11_window.c:1247
+#: lib/x11/x11_window.c:1232
 msgid "Software scaler"
-msgstr ""
+msgstr "Softwareskalierer"
 
-#: lib/x11/x11_window.c:1273
-msgid ""
-"Choose scaling method. Auto means to choose based on the conversion quality. "
-"Nearest is fastest, Sinc with Lanczos window is slowest"
-msgstr ""
-
-#: lib/x11/x11_window.c:1282
-msgid "Order for sinc scaling"
-msgstr ""
-
-#: lib/x11/x11_window.c:1286 lib/x11/x11_window.c:1291
+#: lib/x11/x11_window.c:1271 lib/x11/x11_window.c:1276
 msgid "Scale quality"
-msgstr ""
+msgstr "Skalierungsqualität"
 
-#: lib/x11/x11_window.c:1503
+#: lib/x11/x11_window.c:1488
 msgid "Could not get GL Visual"
 msgstr "Kein GL Visual erhalten"
 
@@ -5695,39 +5710,39 @@ msgstr "Favoriten"
 
 #: lib/tree.c:1108
 msgid "Doubleclick on a track first"
-msgstr ""
+msgstr "Erst auf einen Track doppelklicken"
 
 #: lib/tree.c:1131
 #, c-format
 msgid "Cannot open %s: no plugin found"
-msgstr ""
+msgstr "Kann %s nicht öffnen: Kein Plugin gefunden"
 
 #: lib/tree.c:1135
 #, c-format
 msgid "Loading %s (plugin: %s)"
-msgstr ""
+msgstr "Lade %s (Plugin: %s)"
 
 #: lib/tree.c:1144 lib/transcoder_track.c:992 lib/album.c:1708
 #, c-format
 msgid "Loading %s failed"
-msgstr ""
+msgstr "Laden von %s fehlgeschlagen"
 
 #: lib/tree.c:1154
 #, c-format
 msgid "Selecting track %d for %s failed"
-msgstr ""
+msgstr "Auswahl des Tracks %d für %s fehlgeschlagen"
 
 #: lib/tree.c:1192
 msgid "Use metadata for track names"
-msgstr ""
+msgstr "Benutze Metadaten für Tracknamen"
 
 #: lib/tree.c:1195
 msgid "If disabled, track name will be taken from filename"
-msgstr ""
+msgstr "Wenn deaktiviert, wird der Trackname aus dem Dateinamen erzeugt"
 
 #: lib/tree.c:1199
 msgid "Format for track names"
-msgstr ""
+msgstr "Format für Tracknamen"
 
 #: lib/tree.c:1202
 msgid ""
@@ -5741,32 +5756,40 @@ msgid ""
 "%y:    Year\n"
 "%c:    Comment"
 msgstr ""
+"Format für Erzeugung von Tracknamen aus Metadaten\n"
+"%p:    Künstler\n"
+"%a:    Album\n"
+"%g:    Genre\n"
+"%t:    Trackname\n"
+"%<d>n: Tracknummer mit <d> Stellen\n"
+"%y:    Jahr\n"
+"%c:    Kommentar"
 
 #: lib/tree.c:1215
 msgid "Purge directory on exit"
-msgstr ""
+msgstr "Reinige Verzeichnis beim Beenden"
 
 #: lib/tree.c:1218
 msgid ""
 "Purge directory (i.e. delete\n"
 "unused album files) at program exit"
-msgstr ""
+msgstr "Reinige Verzeichnis (d.h. lösche unbenutzte Albumdateien) beim Beenden"
 
 #: lib/tree.c:1223 lib/transcoder_track.c:358
 msgid "Prefer EDL"
-msgstr ""
+msgstr "EDl bevorzugen"
 
 #: lib/tree.c:1226
 msgid ""
 "For files, which contain edit decision lists and raw streams, this option "
-"selects whic one to decode. This setting is saved in the album once the file "
-"is loaded."
+"selects which one to decode. This setting is saved in the album once the "
+"file is loaded."
 msgstr ""
 
 #: lib/tree.c:1423
 #, c-format
 msgid "Purging %s"
-msgstr ""
+msgstr "Bereinige %s"
 
 #: lib/tree.c:1540
 msgid "No current track for copying to favourites"
@@ -5839,11 +5862,11 @@ msgstr "Copyright"
 
 #: lib/metadata.c:117
 msgid "Date"
-msgstr ""
+msgstr "Datum"
 
 #: lib/metadata.c:119
 msgid "Complete date or year only"
-msgstr ""
+msgstr "Komplettes Datum oder nur das Jahr"
 
 #: lib/metadata.c:400
 #, c-format
@@ -7100,6 +7123,9 @@ msgid ""
 msgstr ""
 "\n"
 "Lizenz: %s"
+
+#~ msgid "Order for sinc scaling."
+#~ msgstr "Ordnung für sinc Skalierung"
 
 #~ msgid "Proxy Port"
 #~ msgstr "Proxy Port"

@@ -1223,7 +1223,7 @@ unused album files) at program exit")
       .long_name =   TRS("Prefer EDL"),
       .type =        BG_PARAMETER_CHECKBUTTON,
       .val_default = { .val_i = 0 },
-      .help_string = TRS("For files, which contain edit decision lists and raw streams, this option selects whic one to decode. This setting is saved in the album once the file is loaded.")
+      .help_string = TRS("For files, which contain edit decision lists and raw streams, this option selects which one to decode. This setting is saved in the album once the file is loaded.")
     },
     { /* End of parameters */ }
   };

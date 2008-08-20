@@ -216,6 +216,21 @@ timescale and frame duration below (framerate = timescale / frame duration).")\
              TRS("Sinc with Lanczos window"), \
             (char*)0 }
 
+#define BG_GAVL_TRANSFORM_MODE_NAMES \
+   (char const *[]){ "auto",\
+              "nearest",         \
+              "bilinear", \
+              "quadratic", \
+              (char*)0 }
+
+#define BG_GAVL_TRANSFORM_MODE_LABELS \
+  (char const *[]){ TRS("Auto"), \
+             TRS("Nearest"),            \
+             TRS("Bilinear"), \
+             TRS("Quadratic"), \
+             TRS("Cubic B-Spline"), \
+            (char*)0 }
+
 #define BG_GAVL_DOWNSCALE_FILTER_NAMES \
   (char const *[]){ "auto", \
                     "none", \
@@ -251,7 +266,7 @@ timescale and frame duration below (framerate = timescale / frame duration).")\
   .val_min =     { .val_i = 4 },                                 \
   .val_max =     { .val_i = 1000 },                              \
   .val_default = { .val_i = 4 },                                \
-  .help_string = TRS("Order for sinc scaling."),\
+  .help_string = TRS("Order for sinc scaling"),\
   }
 
 #define BG_GAVL_PARAM_RESAMPLE_CHROMA \
