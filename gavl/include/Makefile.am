@@ -17,6 +17,7 @@ mix.h \
 sampleformat.h \
 samplerate.h \
 scale.h \
+transform.h \
 video.h \
 volume.h
 
