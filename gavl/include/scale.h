@@ -99,10 +99,6 @@ void gavl_init_scale_funcs_nearest_c(gavl_scale_funcs_t * tab,
                                      int src_advance,
                                      int dst_advance);
 
-/* TODO: gavl_init_scale_funcs_bilinear_clip_c
-   gavl_init_scale_funcs_quadratic_clip_c
-*/
-
 void gavl_init_scale_funcs_bilinear_c(gavl_scale_funcs_t * tab);
 void gavl_init_scale_funcs_bilinear_noclip_c(gavl_scale_funcs_t * tab);
 void gavl_init_scale_funcs_bilinear_fast_c(gavl_scale_funcs_t * tab);

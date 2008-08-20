@@ -133,5 +133,10 @@ gavl_pixelformat_t gavl_pixelformat_get_intermediate(gavl_pixelformat_t in_csp,
 void gavl_video_frame_clear_mask(gavl_video_frame_t * frame,
                                  const gavl_video_format_t * format, int mask);
 
+void gavl_pixelformat_get_offset(gavl_pixelformat_t pixelformat,
+                                 int plane,
+                                 int * advance, int * offset);
+
+
 
 #endif // _GAVL_VIDEO_H_

@@ -78,6 +78,9 @@ scale_table.c \
 time.c \
 timecode.c \
 timer.c \
+transform.c \
+transform_context.c \
+transform_table.c \
 video.c \
 videoformat.c \
 videoframe.c \

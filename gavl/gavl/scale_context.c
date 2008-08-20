@@ -183,128 +183,6 @@ static gavl_video_scale_scanline_func get_func(gavl_scale_func_tab_t * tab,
   return (gavl_video_scale_scanline_func)0;
   }
 
-static void get_offset_internal(gavl_pixelformat_t pixelformat,
-                                int plane,
-                                int * advance, int * offset)
-  {
-  switch(pixelformat)
-    {
-    case GAVL_PIXELFORMAT_NONE:
-      break;
-    case GAVL_RGB_15:
-    case GAVL_BGR_15:
-      *advance = 2;
-      *offset = 0;
-      break;
-    case GAVL_GRAY_8:
-      *advance = 1;
-      *offset = 0;
-      break;
-    case GAVL_RGB_16:
-    case GAVL_BGR_16:
-    case GAVL_GRAY_16:
-    case GAVL_GRAYA_16:
-      *advance = 2;
-      *offset = 0;
-      break;
-    case GAVL_RGB_24:
-    case GAVL_BGR_24:
-      *advance = 3;
-      *offset = 0;
-      break;
-    case GAVL_RGB_32:
-    case GAVL_BGR_32:
-    case GAVL_YUVA_32:
-    case GAVL_RGBA_32:
-    case GAVL_GRAYA_32:
-      *advance = 4;
-      *offset = 0;
-      break;
-    case GAVL_YUY2:
-      switch(plane)
-        {
-        /* YUYV */
-        case 0:
-          *advance = 2;
-          *offset = 0;
-          break;
-        case 1:
-          *advance = 4;
-          *offset = 1;
-          break;
-        case 2:
-          *advance = 4;
-          *offset = 3;
-          break;
-        }
-      break;
-    case GAVL_UYVY:
-      switch(plane)
-        {
-        /* UYVY */
-        case 0:
-          *advance = 2;
-          *offset = 1;
-          break;
-        case 1:
-          *advance = 4;
-          *offset = 0;
-          break;
-        case 2:
-          *advance = 4;
-          *offset = 2;
-          break;
-        }
-      break;
-    case GAVL_YUV_420_P:
-    case GAVL_YUV_422_P:
-    case GAVL_YUV_444_P:
-    case GAVL_YUV_411_P:
-    case GAVL_YUV_410_P:
-      *advance = 1;
-      *offset = 0;
-      break;
-    case GAVL_YUVJ_420_P:
-    case GAVL_YUVJ_422_P:
-    case GAVL_YUVJ_444_P:
-      *advance = 1;
-      *offset = 0;
-      break;
-    case GAVL_YUV_444_P_16:
-    case GAVL_YUV_422_P_16:
-      *advance = 2;
-      *offset = 0;
-      break;
-    case GAVL_RGB_48:
-      *advance = 6;
-      *offset = 0;
-      break;
-    case GAVL_RGBA_64:
-    case GAVL_YUVA_64:
-      *advance = 8;
-      *offset = 0;
-      break;
-    case GAVL_GRAY_FLOAT:
-      *advance = sizeof(float);
-      *offset = 0;
-      break;
-    case GAVL_GRAYA_FLOAT:
-      *advance = 2 * sizeof(float);
-      *offset = 0;
-      break;
-    case GAVL_RGB_FLOAT:
-    case GAVL_YUV_FLOAT:
-      *advance = 3 * sizeof(float);
-      *offset = 0;
-      break;
-    case GAVL_RGBA_FLOAT:
-    case GAVL_YUVA_FLOAT:
-      *advance = 4 * sizeof(float);
-      *offset = 0;
-      break;
-    }
-  }
-
 static void get_minmax(gavl_pixelformat_t pixelformat,
                        int * min, int * max, float * min_f, float * max_f)
   {
@@ -704,9 +582,9 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
   
   if(ctx->num_directions == 1)
     {
-    get_offset_internal(src_format->pixelformat,
+    gavl_pixelformat_get_offset(src_format->pixelformat,
                 plane, &ctx->offset1.src_advance, &ctx->offset1.src_offset);
-    get_offset_internal(dst_format->pixelformat,
+    gavl_pixelformat_get_offset(dst_format->pixelformat,
                 plane, &ctx->offset1.dst_advance, &ctx->offset1.dst_offset);
 
     /* We set this once here */
@@ -716,9 +594,9 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
     }
   else if(ctx->num_directions == 2)
     {
-    get_offset_internal(src_format->pixelformat,
+    gavl_pixelformat_get_offset(src_format->pixelformat,
                 plane, &ctx->offset1.src_advance, &ctx->offset1.src_offset);
-    get_offset_internal(dst_format->pixelformat,
+    gavl_pixelformat_get_offset(dst_format->pixelformat,
                 plane, &ctx->offset2.dst_advance, &ctx->offset2.dst_offset);
 
     ctx->offset1.dst_offset = 0;
@@ -743,9 +621,9 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
       ctx->func1 = copy_scanline_noadvance;
 
     /* Set source and destination offsets */
-    get_offset_internal(src_format->pixelformat,
+    gavl_pixelformat_get_offset(src_format->pixelformat,
                 plane, &ctx->offset1.src_advance, &ctx->offset1.src_offset);
-    get_offset_internal(dst_format->pixelformat,
+    gavl_pixelformat_get_offset(dst_format->pixelformat,
                 plane, &ctx->offset1.dst_advance, &ctx->offset1.dst_offset);
 
     /* We set this once here */
@@ -1200,9 +1078,9 @@ gavl_video_scale_context_init_convolve(gavl_video_scale_context_t* ctx,
 
   if(ctx->num_directions == 1)
     {
-    get_offset_internal(format->pixelformat,
+    gavl_pixelformat_get_offset(format->pixelformat,
                 plane, &ctx->offset1.src_advance, &ctx->offset1.src_offset);
-    get_offset_internal(format->pixelformat,
+    gavl_pixelformat_get_offset(format->pixelformat,
                 plane, &ctx->offset1.dst_advance, &ctx->offset1.dst_offset);
 
     /* We set this once here */
@@ -1212,10 +1090,10 @@ gavl_video_scale_context_init_convolve(gavl_video_scale_context_t* ctx,
     }
   else if(ctx->num_directions == 2)
     {
-    get_offset_internal(format->pixelformat,
+    gavl_pixelformat_get_offset(format->pixelformat,
                 plane, &ctx->offset1.src_advance, &ctx->offset1.src_offset);
 
-    get_offset_internal(format->pixelformat,
+    gavl_pixelformat_get_offset(format->pixelformat,
                 plane, &ctx->offset2.dst_advance, &ctx->offset2.dst_offset);
 
     ctx->offset1.dst_offset = 0;
@@ -1242,9 +1120,9 @@ gavl_video_scale_context_init_convolve(gavl_video_scale_context_t* ctx,
       ctx->func1 = copy_scanline_noadvance;
     
     /* Set source and destination offsets */
-    get_offset_internal(format->pixelformat,
+    gavl_pixelformat_get_offset(format->pixelformat,
                 plane, &ctx->offset1.src_advance, &ctx->offset1.src_offset);
-    get_offset_internal(format->pixelformat,
+    gavl_pixelformat_get_offset(format->pixelformat,
                 plane, &ctx->offset1.dst_advance, &ctx->offset1.dst_offset);
 
     /* We set this once here */

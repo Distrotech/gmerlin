@@ -2896,6 +2896,92 @@ void gavl_overlay_blend_context_set_overlay(gavl_overlay_blend_context_t * ctx,
   
 void gavl_overlay_blend(gavl_overlay_blend_context_t * ctx,
                         gavl_video_frame_t * dst_frame);
+
+/*! \defgroup video_transform Image transformation
+ * \ingroup video
+ *
+ * gavl includes a generic image transformation engine.
+ * You pass a function pointer to the init function, which
+ * transforms the destination coordinates into source
+ * coordinates.
+ *
+ * The interpolation method is set with
+ * \ref gavl_video_options_set_scale_mode, but not all modes
+ * are supported. When initialized with an invalid scale mode,
+ * the transformation engine will silently choose the closest one.
+ *
+ * @{
+ */
+
+/** \brief Opaque image transformation engine.
+ *
+ * You don't want to know what's inside.
+ */
+
+typedef struct gavl_image_transform_s gavl_image_transform_t;
+
+/** \brief Function describing the method
+ *  \param priv User data
+ *  \param xdst X-coordinate of the destination
+ *  \param ydst Y-coordinate of the destination
+ *  \param xsrc Returns X-coordinate of the source
+ *  \param ysrc Returns Y-coordinate of the source
+ *
+ *  All coordinates are in fractional pixels. 0,0 is the
+ *  upper left corner. Return negative values or values
+ *  larger than the dimesion to signal that a pixel is outside
+ *  the source image.
+ */
+ 
+typedef void (*gavl_image_transform_func)(void * priv,
+                                          double xdst,
+                                          double ydst,
+                                          double * xsrc,
+                                          double * ysrc);
+
+
+/** \brief Create a transformation engine
+ *  \returns A newly allocated transformation engine
+ */
+  
+gavl_image_transform_t * gavl_image_transform_create();
+
+/** \brief Destroy a transformation engine
+ *  \param t A transformation engine
+ */
+
+void gavl_image_transform_destroy(gavl_image_transform_t * t);
+
+/** \brief Destroy a transformation engine
+ *  \param t A transformation engine
+ *  \param Format (can be changed)
+ *  \param func Coordinate transform function
+ *  \param priv The priv argument for func
+ */
+
+  
+void gavl_image_transform_init(gavl_image_transform_t * t,
+                               gavl_video_format_t * format,
+                               gavl_image_transform_func func, void * priv);
+
+/** \brief Transform an image
+ *  \param t A transformation engine
+ *  \param Input frame
+ *  \param Output frame
+ */
+  
+void gavl_image_transform_transform(gavl_image_transform_t * t,
+                                    gavl_video_frame_t * in_frame,
+                                    gavl_video_frame_t * out_frame);
+
+gavl_video_options_t *
+gavl_image_transform_get_options(gavl_image_transform_t * t);
+  
+/**
+ * @}
+ */
+
+  
   
 #ifdef __cplusplus
 }

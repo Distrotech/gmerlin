@@ -5005,3 +5005,127 @@ gavl_pixelformat_t gavl_pixelformat_get_intermediate(gavl_pixelformat_t in_csp,
     }
   return GAVL_PIXELFORMAT_NONE;
   }
+
+void gavl_pixelformat_get_offset(gavl_pixelformat_t pixelformat,
+                                 int plane,
+                                 int * advance, int * offset)
+  {
+  switch(pixelformat)
+    {
+    case GAVL_PIXELFORMAT_NONE:
+      break;
+    case GAVL_RGB_15:
+    case GAVL_BGR_15:
+      *advance = 2;
+      *offset = 0;
+      break;
+    case GAVL_GRAY_8:
+      *advance = 1;
+      *offset = 0;
+      break;
+    case GAVL_RGB_16:
+    case GAVL_BGR_16:
+    case GAVL_GRAY_16:
+    case GAVL_GRAYA_16:
+      *advance = 2;
+      *offset = 0;
+      break;
+    case GAVL_RGB_24:
+    case GAVL_BGR_24:
+      *advance = 3;
+      *offset = 0;
+      break;
+    case GAVL_RGB_32:
+    case GAVL_BGR_32:
+    case GAVL_YUVA_32:
+    case GAVL_RGBA_32:
+    case GAVL_GRAYA_32:
+      *advance = 4;
+      *offset = 0;
+      break;
+    case GAVL_YUY2:
+      switch(plane)
+        {
+        /* YUYV */
+        case 0:
+          *advance = 2;
+          *offset = 0;
+          break;
+        case 1:
+          *advance = 4;
+          *offset = 1;
+          break;
+        case 2:
+          *advance = 4;
+          *offset = 3;
+          break;
+        }
+      break;
+    case GAVL_UYVY:
+      switch(plane)
+        {
+        /* UYVY */
+        case 0:
+          *advance = 2;
+          *offset = 1;
+          break;
+        case 1:
+          *advance = 4;
+          *offset = 0;
+          break;
+        case 2:
+          *advance = 4;
+          *offset = 2;
+          break;
+        }
+      break;
+    case GAVL_YUV_420_P:
+    case GAVL_YUV_422_P:
+    case GAVL_YUV_444_P:
+    case GAVL_YUV_411_P:
+    case GAVL_YUV_410_P:
+      *advance = 1;
+      *offset = 0;
+      break;
+    case GAVL_YUVJ_420_P:
+    case GAVL_YUVJ_422_P:
+    case GAVL_YUVJ_444_P:
+      *advance = 1;
+      *offset = 0;
+      break;
+    case GAVL_YUV_444_P_16:
+    case GAVL_YUV_422_P_16:
+      *advance = 2;
+      *offset = 0;
+      break;
+    case GAVL_RGB_48:
+      *advance = 6;
+      *offset = 0;
+      break;
+    case GAVL_RGBA_64:
+    case GAVL_YUVA_64:
+      *advance = 8;
+      *offset = 0;
+      break;
+    case GAVL_GRAY_FLOAT:
+      *advance = sizeof(float);
+      *offset = 0;
+      break;
+    case GAVL_GRAYA_FLOAT:
+      *advance = 2 * sizeof(float);
+      *offset = 0;
+      break;
+    case GAVL_RGB_FLOAT:
+    case GAVL_YUV_FLOAT:
+      *advance = 3 * sizeof(float);
+      *offset = 0;
+      break;
+    case GAVL_RGBA_FLOAT:
+    case GAVL_YUVA_FLOAT:
+      *advance = 4 * sizeof(float);
+      *offset = 0;
+      break;
+    }
+
+  }
+
