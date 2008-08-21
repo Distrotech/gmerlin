@@ -424,7 +424,7 @@ void gavl_init_scale_funcs_nearest_c(gavl_scale_funcs_t * tab, int src_advance, 
   tab->funcs_x.scale_uint8_x_2 =  scale_rgb_16_x_nearest_c;
 
   if((src_advance == 4) && (dst_advance == 4))
-    tab->funcs_x.scale_uint8_x_4 =  scale_uint8_x_4_x_nearest_c;
+    tab->funcs_x.scale_uint8_x_3 =  scale_uint8_x_4_x_nearest_c;
   else
     tab->funcs_x.scale_uint8_x_3 =  scale_uint8_x_3_x_nearest_c;
   

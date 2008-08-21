@@ -135,6 +135,7 @@ void gavl_image_transform_transform(gavl_image_transform_t * t,
     {
     for(j = 0; j < t->num_planes; j++)
       {
+      //      fprintf(stderr, "Transform: %d\n", field);
       gavl_transform_context_transform(&t->contexts[field][j],
                                        in_frame, out_frame);
       }
@@ -145,7 +146,8 @@ void gavl_image_transform_transform(gavl_image_transform_t * t,
       {
       for(j = 0; j < t->num_planes; j++)
         {
-        
+        gavl_transform_context_transform(&t->contexts[i][j],
+                                         in_frame, out_frame);
         }
       }
     }

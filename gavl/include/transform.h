@@ -70,6 +70,7 @@ typedef struct
   {
   gavl_transform_pixel_t ** pixels;
   int factors_per_pixel; /* Per dimension */
+  int bits;
   } gavl_transform_table_t;
 
 void gavl_transform_table_init(gavl_transform_table_t * t,

@@ -37,10 +37,13 @@ static void transform_rgb_16_nearest_c(gavl_transform_context_t * ctx)
   uint16_t * src, *dst;
   dst = (uint16_t*)(ctx->dst);
   TRANSFORM_FUNC_HEAD
-    src = (uint16_t*)(ctx->src +
-                      ctx->pixels[i].index_y * ctx->src_stride) +
-    ctx->pixels[i].index_x;
-     *dst = *src;
+    if(!ctx->pixels[i].outside)
+      {
+      src = (uint16_t*)(ctx->src +
+                        ctx->pixels[i].index_y * ctx->src_stride) +
+        ctx->pixels[i].index_x;
+      *dst = *src;
+      }
   dst++;
   TRANSFORM_FUNC_TAIL
   }
@@ -51,10 +54,13 @@ static void transform_uint8_x_1_nearest_c(gavl_transform_context_t * ctx)
   uint8_t * src, *dst;
   dst = (uint8_t*)(ctx->dst);
   TRANSFORM_FUNC_HEAD
+    if(!ctx->pixels[i].outside)
+      {
     src = (uint8_t*)(ctx->src +
                       ctx->pixels[i].index_y * ctx->src_stride) +
     ctx->pixels[i].index_x * ctx->advance;
   *dst = *src;
+      }
   dst+=ctx->advance;
   TRANSFORM_FUNC_TAIL
   }
@@ -65,12 +71,15 @@ static void transform_uint8_x_3_nearest_c(gavl_transform_context_t * ctx)
   uint8_t * src, *dst;
   dst = (uint8_t*)(ctx->dst);
   TRANSFORM_FUNC_HEAD
+    if(!ctx->pixels[i].outside)
+      {
     src = (uint8_t*)(ctx->src +
                       ctx->pixels[i].index_y * ctx->src_stride) +
     ctx->pixels[i].index_x * ctx->advance;
   dst[0] = src[0];
   dst[1] = src[1];
   dst[2] = src[2];
+      }
   dst+=ctx->advance;
   TRANSFORM_FUNC_TAIL
   }
@@ -81,10 +90,13 @@ static void transform_uint8_x_4_nearest_c(gavl_transform_context_t * ctx)
   uint32_t * src, *dst;
   dst = (uint32_t*)(ctx->dst);
   TRANSFORM_FUNC_HEAD
+    if(!ctx->pixels[i].outside)
+      {
     src = (uint32_t*)(ctx->src +
                       ctx->pixels[i].index_y * ctx->src_stride) +
     ctx->pixels[i].index_x;
      *dst = *src;
+      }
   dst++;
   TRANSFORM_FUNC_TAIL
   }
@@ -95,12 +107,15 @@ static void transform_uint16_x_3_nearest_c(gavl_transform_context_t * ctx)
   uint16_t * src, *dst;
   dst = (uint16_t*)(ctx->dst);
   TRANSFORM_FUNC_HEAD
+    if(!ctx->pixels[i].outside)
+      {
     src = (uint16_t*)(ctx->src +
                       ctx->pixels[i].index_y * ctx->src_stride) +
     ctx->pixels[i].index_x * 3;
      dst[0] = src[0];
      dst[1] = src[1];
      dst[2] = src[2];
+      }
   dst+=3;
   TRANSFORM_FUNC_TAIL
   }
@@ -111,10 +126,13 @@ static void transform_uint16_x_4_nearest_c(gavl_transform_context_t * ctx)
   uint64_t * src, *dst;
   dst = (uint64_t*)(ctx->dst);
   TRANSFORM_FUNC_HEAD
+    if(!ctx->pixels[i].outside)
+      {
     src = (uint64_t*)(ctx->src +
                       ctx->pixels[i].index_y * ctx->src_stride) +
     ctx->pixels[i].index_x;
      *dst = *src;
+      }
   dst++;
   TRANSFORM_FUNC_TAIL
   }
@@ -126,10 +144,13 @@ transform_float_x_1_nearest_c(gavl_transform_context_t * ctx)
   float * src, *dst;
   dst = (float*)(ctx->dst);
   TRANSFORM_FUNC_HEAD
+    if(!ctx->pixels[i].outside)
+      {
     src = (float*)(ctx->src +
                       ctx->pixels[i].index_y * ctx->src_stride) +
     ctx->pixels[i].index_x;
      *dst = *src;
+      }
   dst++;
   TRANSFORM_FUNC_TAIL
   }
@@ -141,11 +162,14 @@ transform_float_x_2_nearest_c(gavl_transform_context_t * ctx)
   float * src, *dst;
   dst = (float*)(ctx->dst);
   TRANSFORM_FUNC_HEAD
+    if(!ctx->pixels[i].outside)
+      {
     src = (float*)(ctx->src +
                       ctx->pixels[i].index_y * ctx->src_stride) +
     ctx->pixels[i].index_x * 2;
      dst[0] = src[0];
      dst[1] = src[1];
+      }
   dst+=2;
   TRANSFORM_FUNC_TAIL
   }
@@ -157,12 +181,15 @@ transform_float_x_3_nearest_c(gavl_transform_context_t * ctx)
   float * src, *dst;
   dst = (float*)(ctx->dst);
   TRANSFORM_FUNC_HEAD
+    if(!ctx->pixels[i].outside)
+      {
     src = (float*)(ctx->src +
                       ctx->pixels[i].index_y * ctx->src_stride) +
     ctx->pixels[i].index_x * 3;
      dst[0] = src[0];
      dst[1] = src[1];
      dst[2] = src[2];
+      }
   dst+=3;
   TRANSFORM_FUNC_TAIL
   }
@@ -174,6 +201,9 @@ transform_float_x_4_nearest_c(gavl_transform_context_t * ctx)
   float * src, *dst;
   dst = (float*)(ctx->dst);
   TRANSFORM_FUNC_HEAD
+    if(!ctx->pixels[i].outside)
+      {
+      
     src = (float*)(ctx->src +
                       ctx->pixels[i].index_y * ctx->src_stride) +
     ctx->pixels[i].index_x * 4;
@@ -181,6 +211,7 @@ transform_float_x_4_nearest_c(gavl_transform_context_t * ctx)
      dst[1] = src[1];
      dst[2] = src[2];
      dst[3] = src[3];
+      }
   dst+=4;
   TRANSFORM_FUNC_TAIL
   }

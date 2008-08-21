@@ -39,7 +39,6 @@ void gavl_transform_table_init(gavl_transform_table_t * tab,
   double x_src_f, y_src_f, x_dst_f, y_dst_f;
   int x_src_nearest, y_src_nearest;
   double t;
-
   double w_x[MAX_TRANSFORM_FILTER];
   double w_y;
   
@@ -78,6 +77,9 @@ void gavl_transform_table_init(gavl_transform_table_t * tab,
       
       func(priv, x_dst_f, y_dst_f, &x_src_f, &y_src_f);
 
+      //      fprintf(stderr, "Transform: %f %f -> %f %f\n",
+      //              x_src_f, y_src_f, x_dst_f, y_dst_f);
+
       x_src_f = (x_src_f - off_x) / scale_x;
       y_src_f = (y_src_f - off_y) / scale_y;
       
@@ -85,9 +87,10 @@ void gavl_transform_table_init(gavl_transform_table_t * tab,
          (y_src_f < 0.0) || (y_src_f > (double)height))
         {
         tab->pixels[i][j].outside = 1;
+        //        fprintf(stderr, "Outside\n");
         continue;
         }
-      
+
       /* ... */
       x_src_nearest = ROUND(x_src_f);
       y_src_nearest = ROUND(y_src_f);

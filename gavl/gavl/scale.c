@@ -90,12 +90,15 @@ void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt,
   
   scale_table = (tab_h ? tab_h : tab_v);
 
-  if(scale_table->factors_per_pixel < 2)
+  if(scale_table->factors_per_pixel < 1)
     return;
   
   /* Get scale functions */
   switch(scale_table->factors_per_pixel)
     {
+    case 1:
+      gavl_init_scale_funcs_nearest_c(tab, src_advance, dst_advance);
+      break;
     case 2:
       if((opt->quality > 0) || (opt->accel_flags & GAVL_ACCEL_C))
         {

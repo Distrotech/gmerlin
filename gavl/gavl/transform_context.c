@@ -125,6 +125,21 @@ static gavl_transform_scanline_func get_func(gavl_transform_funcs_t * tab,
   }
 
 
+static void init_func_tab(gavl_video_options_t * opt,
+                          gavl_transform_context_t * ctx,
+                          gavl_transform_funcs_t * func_tab)
+  {
+  switch(ctx->tab.factors_per_pixel)
+    {
+    case 1:
+    default:
+      gavl_init_transform_funcs_nearest_c(func_tab, ctx->advance);
+      break;
+    }
+  
+  }
+
+
 
 void
 gavl_transform_context_init(gavl_image_transform_t * t,
@@ -132,6 +147,8 @@ gavl_transform_context_init(gavl_image_transform_t * t,
                             int field_index, int plane_index,
                             gavl_image_transform_func func, void * priv)
   {
+  gavl_transform_funcs_t func_tab;
+    
   float off_x, off_y;
   float scale_x, scale_y;
   int sub_h, sub_v;
@@ -215,7 +232,12 @@ gavl_transform_context_init(gavl_image_transform_t * t,
                             ctx->dst_width, ctx->dst_height);
 
   /* Get function */
-  
+
+  init_func_tab(&opt, ctx, &func_tab);
+
+  ctx->func = get_func(&func_tab,
+                       t->format.pixelformat,
+                       &ctx->tab.bits);
   }
 
 void gavl_transform_context_transform(gavl_transform_context_t * ctx,
@@ -244,8 +266,9 @@ void gavl_transform_context_transform(gavl_transform_context_t * ctx,
   
   for(i = 0; i < ctx->dst_height; i++)
     {
+    ctx->pixels = ctx->tab.pixels[i];
     ctx->func(ctx);
     
-    dst += dst_stride;
+    ctx->dst += dst_stride;
     }
   }

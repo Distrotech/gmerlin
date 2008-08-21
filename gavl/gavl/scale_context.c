@@ -658,7 +658,7 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
     if((tmp_opt.scale_mode == tmp_opt_y.scale_mode) &&
        (tmp_opt.scale_order == tmp_opt_y.scale_order))
       {
-        gavl_init_scale_funcs(&funcs, &tmp_opt, ctx->offset1.src_advance,
+      gavl_init_scale_funcs(&funcs, &tmp_opt, ctx->offset1.src_advance,
                             ctx->offset2.dst_advance, &(ctx->table_h), &(ctx->table_v));
       ctx->func1 = get_func(&(funcs.funcs_xy), src_format->pixelformat, &bits_h);
       //      fprintf(stderr, "X AND Y %d\n");
