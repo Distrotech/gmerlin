@@ -267,8 +267,10 @@ void gavl_transform_table_init(gavl_transform_table_t * tab,
       for(k = 0; k < tab->factors_per_pixel; k++)
         {
         //        fprintf(stderr, "%d w_x(%f)\n", k, t);
-          
+        
         w_x[k] = weight_func(opt, t);
+
+
         t -= 1.0;
         }
 
@@ -278,7 +280,7 @@ void gavl_transform_table_init(gavl_transform_table_t * tab,
         {
         /* Y-weight */
         w_y = weight_func(opt, t);
-
+        
         //        fprintf(stderr, "%d w_y(%f)\n", k, t);
         
         for(l = 0; l < tab->factors_per_pixel; l++)
@@ -356,7 +358,7 @@ void gavl_transform_table_init_int(gavl_transform_table_t * tab,
         }
       
       if(sum_i > fac_max_i)
-        tab->pixels[i][j].factors_i[min_index_k][min_index_l]
+        tab->pixels[i][j].factors_i[max_index_k][max_index_l]
           -= (sum_i - fac_max_i);
       else if(sum_i < fac_max_i)
         tab->pixels[i][j].factors_i[min_index_k][min_index_l]

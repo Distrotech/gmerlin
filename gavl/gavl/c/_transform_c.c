@@ -789,7 +789,7 @@
         (TMP_TYPE_8)ctx->pixels[i].factors_i[2][1] * src_2[7] +   \
         (TMP_TYPE_8)ctx->pixels[i].factors_i[2][2] * src_2[11];   \
   tmp=DOWNSHIFT(tmp,16);\
-  dst[2] = tmp;
+  dst[3] = tmp;
 #elif NUM_TAPS == 4
 #define TRANSFORM \
   tmp = (TMP_TYPE_8)ctx->pixels[i].factors_i[0][0] * src_0[0] +  \
