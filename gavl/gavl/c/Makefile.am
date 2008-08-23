@@ -19,7 +19,10 @@ scale_generic_noclip_c.c \
 scale_nearest_c.c \
 scale_quadratic_c.c \
 scale_quadratic_noclip_c.c \
+transform_bilinear_c.c \
+transform_bicubic_c.c \
 transform_nearest_c.c \
+transform_quadratic_c.c \
 volume_c.c \
 rgb_rgb_c.c \
 rgb_yuv_c.c \
@@ -35,7 +38,8 @@ gray_gray_c.c
 EXTRA_libgavl_c_la_SOURCES = \
 _interleave_c.c \
 _mix_c.c \
-_sampleformat_c.c
+_sampleformat_c.c \
+_transform_c.c
 
 noinst_HEADERS= \
 colorspace_tables.h \
@@ -46,4 +50,5 @@ scale_x.h \
 scale_y.h \
 scale_generic_x.h \
 scale_generic_y.h \
-scale_macros.h
+scale_macros.h \
+transform_c.h

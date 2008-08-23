@@ -22,6 +22,7 @@
 #include <gavl/gavl.h>
 #include <video.h>
 #include <transform.h>
+#include <stdio.h>
 
 static gavl_transform_scanline_func get_func(gavl_transform_funcs_t * tab,
                                              gavl_pixelformat_t pixelformat,
@@ -70,7 +71,7 @@ static gavl_transform_scanline_func get_func(gavl_transform_funcs_t * tab,
       break;
     case GAVL_YUY2:
       *bits = tab->bits_uint8_advance;
-      return tab->transform_uint8_x_1_noadvance;
+      return tab->transform_uint8_x_1_advance;
       break;
     case GAVL_UYVY:
       *bits = tab->bits_uint8_advance;
@@ -132,11 +133,21 @@ static void init_func_tab(gavl_video_options_t * opt,
   switch(ctx->tab.factors_per_pixel)
     {
     case 1:
-    default:
       gavl_init_transform_funcs_nearest_c(func_tab, ctx->advance);
       break;
+    case 2:
+      gavl_init_transform_funcs_bilinear_c(func_tab, ctx->advance);
+      break;
+    case 3:
+      gavl_init_transform_funcs_quadratic_c(func_tab, ctx->advance);
+      break;
+    case 4:
+      gavl_init_transform_funcs_bicubic_c(func_tab, ctx->advance);
+      break;
+    default:
+      fprintf(stderr, "BUG: Filter taps > 4 in image transform\n");
+      break;
     }
-  
   }
 
 
@@ -148,7 +159,8 @@ gavl_transform_context_init(gavl_image_transform_t * t,
                             gavl_image_transform_func func, void * priv)
   {
   gavl_transform_funcs_t func_tab;
-    
+  int bits;
+  
   float off_x, off_y;
   float scale_x, scale_y;
   int sub_h, sub_v;
@@ -233,11 +245,17 @@ gavl_transform_context_init(gavl_image_transform_t * t,
 
   /* Get function */
 
-  init_func_tab(&opt, ctx, &func_tab);
+  init_func_tab(opt, ctx, &func_tab);
 
   ctx->func = get_func(&func_tab,
                        t->format.pixelformat,
-                       &ctx->tab.bits);
+                       &bits);
+
+  /* Now we know the bits, convert to int */
+  if(bits)
+    gavl_transform_table_init_int(&ctx->tab,
+                                  bits, ctx->dst_width, ctx->dst_height);
+  
   }
 
 void gavl_transform_context_transform(gavl_transform_context_t * ctx,
@@ -246,7 +264,7 @@ void gavl_transform_context_transform(gavl_transform_context_t * ctx,
   {
   int i;
   int dst_stride;
-
+  uint8_t * dst_save;
   /* Things set while transforming */
   //  uint8_t * src; /* Beginning of plane */
   //  int src_stride;
@@ -259,16 +277,17 @@ void gavl_transform_context_transform(gavl_transform_context_t * ctx,
   
   ctx->src_stride = src->strides[ctx->plane] * ctx->num_fields;
 
-  ctx->dst = dst->planes[ctx->plane] +
+  dst_save = dst->planes[ctx->plane] +
     ctx->offset + ctx->field * dst->strides[ctx->plane];
   
   dst_stride = dst->strides[ctx->plane] * ctx->num_fields;
   
   for(i = 0; i < ctx->dst_height; i++)
     {
+    ctx->dst = dst_save;
     ctx->pixels = ctx->tab.pixels[i];
     ctx->func(ctx);
     
-    ctx->dst += dst_stride;
+    dst_save += dst_stride;
     }
   }

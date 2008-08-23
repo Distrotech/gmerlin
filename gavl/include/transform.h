@@ -64,13 +64,19 @@ typedef struct
 
 void gavl_init_transform_funcs_nearest_c(gavl_transform_funcs_t * tab,
                                          int advance);
+void gavl_init_transform_funcs_bilinear_c(gavl_transform_funcs_t * tab,
+                                          int advance);
+void gavl_init_transform_funcs_quadratic_c(gavl_transform_funcs_t * tab,
+                                           int advance);
+void gavl_init_transform_funcs_bicubic_c(gavl_transform_funcs_t * tab,
+                                         int advance);
+
 
 
 typedef struct 
   {
   gavl_transform_pixel_t ** pixels;
   int factors_per_pixel; /* Per dimension */
-  int bits;
   } gavl_transform_table_t;
 
 void gavl_transform_table_init(gavl_transform_table_t * t,
@@ -78,6 +84,10 @@ void gavl_transform_table_init(gavl_transform_table_t * t,
                                gavl_image_transform_func func, void * priv,
                                float off_x, float off_y, float scale_x,
                                float scale_y, int width, int height);
+
+void gavl_transform_table_init_int(gavl_transform_table_t * tab,
+                                   int bits, int width, int height);
+
 
 /* Context is for one plane and field */
 

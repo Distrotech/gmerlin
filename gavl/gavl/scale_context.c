@@ -667,10 +667,12 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
     if(ctx->func1) /* Scaling routines for x-y are there, good */
       {
       ctx->num_directions = 1;
-            
-      gavl_video_scale_table_init_int(&(ctx->table_h), bits_h);
+      if(bits_h)
+        {
+        gavl_video_scale_table_init_int(&(ctx->table_h), bits_h);
       /* Must be bits_h since we have only one function (and thus one accuracy) */
-      gavl_video_scale_table_init_int(&(ctx->table_v), bits_h);
+        gavl_video_scale_table_init_int(&(ctx->table_v), bits_h);
+        }
       ctx->offset = &(ctx->offset1);
       ctx->dst_size = ctx->dst_rect.w;
       
@@ -711,17 +713,18 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
                               ctx->offset1.dst_advance,
                               &(ctx->table_h), NULL);
         ctx->func1 = get_func(&funcs.funcs_x, src_format->pixelformat, &bits_h);
+        if(bits_h)
+          gavl_video_scale_table_init_int(&(ctx->table_h), bits_h);
         
-        gavl_video_scale_table_init_int(&(ctx->table_h), bits_h);
-
-            gavl_init_scale_funcs(&funcs, &tmp_opt_y,
+        gavl_init_scale_funcs(&funcs, &tmp_opt_y,
                               ctx->offset2.src_advance,
                               ctx->offset2.dst_advance,
                               NULL, &(ctx->table_v));
         ctx->func2 = get_func(&funcs.funcs_y,
                               src_format->pixelformat, &bits_v);
 
-        gavl_video_scale_table_init_int(&(ctx->table_v), bits_v);
+        if(bits_v)
+          gavl_video_scale_table_init_int(&(ctx->table_v), bits_v);
         }
       else
         {
@@ -735,22 +738,23 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
         
         gavl_video_scale_table_shift_indices(&(ctx->table_h), -src_rect_i.x);
 
-            gavl_init_scale_funcs(&funcs, &tmp_opt_y,
+        gavl_init_scale_funcs(&funcs, &tmp_opt_y,
                               ctx->offset1.src_advance,
                               ctx->offset1.dst_advance,
                               NULL, &(ctx->table_v));
         ctx->func1 = get_func(&funcs.funcs_y, src_format->pixelformat, &bits_v);
 
-        gavl_video_scale_table_init_int(&(ctx->table_v), bits_v);
+        if(bits_v)
+          gavl_video_scale_table_init_int(&(ctx->table_v), bits_v);
 
-            gavl_init_scale_funcs(&funcs, &tmp_opt,
+        gavl_init_scale_funcs(&funcs, &tmp_opt,
                               ctx->offset2.src_advance,
                               ctx->offset2.dst_advance,
                               &(ctx->table_h), NULL);
         ctx->func2 = get_func(&(funcs.funcs_x),
                               src_format->pixelformat, &bits_h);
-        
-        gavl_video_scale_table_init_int(&(ctx->table_h), bits_h);
+        if(bits_h)
+          gavl_video_scale_table_init_int(&(ctx->table_h), bits_h);
         }
       
       /* Allocate temporary buffer */
@@ -771,8 +775,8 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
                           &(ctx->table_h), NULL);
     ctx->func1 = get_func(&(funcs.funcs_x), src_format->pixelformat, &bits_h);
 
-
-    gavl_video_scale_table_init_int(&(ctx->table_h), bits_h);
+    if(bits_h)
+      gavl_video_scale_table_init_int(&(ctx->table_h), bits_h);
     }
   else if(scale_y)
     {
@@ -788,7 +792,8 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
                           NULL, &(ctx->table_v));
     ctx->func1 = get_func(&(funcs.funcs_y), src_format->pixelformat, &bits_v);
     
-    gavl_video_scale_table_init_int(&(ctx->table_v), bits_v);
+    if(bits_v)
+      gavl_video_scale_table_init_int(&(ctx->table_v), bits_v);
     }
 
   if(!ctx->func1 || ((ctx->num_directions == 2) && !ctx->func2))
@@ -805,11 +810,13 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
   fprintf(stderr, "Vertical table:\n");
   gavl_video_scale_table_dump(&(ctx->table_v));
 #endif
-
   
-  get_minmax(src_format->pixelformat, ctx->min_values_h, ctx->max_values_h, ctx->min_values_f, ctx->max_values_f);
-  get_minmax(src_format->pixelformat, ctx->min_values_v, ctx->max_values_v, ctx->min_values_f, ctx->max_values_f);
-
+  get_minmax(src_format->pixelformat, ctx->min_values_h,
+             ctx->max_values_h, ctx->min_values_f, ctx->max_values_f);
+  
+  get_minmax(src_format->pixelformat, ctx->min_values_v,
+             ctx->max_values_v, ctx->min_values_f, ctx->max_values_f);
+  
 #if 0
   fprintf(stderr, "Min: %d %d %d, max: %d %d %d\n",
           ctx->min_values_h[0],
