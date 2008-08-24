@@ -120,7 +120,7 @@
         (TMP_TYPE_8)ctx->pixels[i].factors_i[2][0] * src_2[0].g +  \
         (TMP_TYPE_8)ctx->pixels[i].factors_i[2][1] * src_2[1].g +  \
         (TMP_TYPE_8)ctx->pixels[i].factors_i[2][2] * src_2[2].g +  \
-        (TMP_TYPE_8)ctx->pixels[i].factors_i[2][2] * src_2[3].g +  \
+        (TMP_TYPE_8)ctx->pixels[i].factors_i[2][3] * src_2[3].g +  \
         (TMP_TYPE_8)ctx->pixels[i].factors_i[3][0] * src_3[0].g +  \
         (TMP_TYPE_8)ctx->pixels[i].factors_i[3][1] * src_3[1].g +  \
         (TMP_TYPE_8)ctx->pixels[i].factors_i[3][2] * src_3[2].g +  \
