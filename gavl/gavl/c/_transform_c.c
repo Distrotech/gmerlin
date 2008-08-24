@@ -25,8 +25,8 @@
 #include <transform.h>
 #include "scale_macros.h"
 
-#define TMP_TYPE_8 int64_t
-#define TMP_TYPE_16 int64_t
+#define TMP_TYPE_8 int
+#define TMP_TYPE_16 uint32_t
 /* transform_rgb_15_c */
 
 #define FUNC_NAME transform_rgb_15_c
