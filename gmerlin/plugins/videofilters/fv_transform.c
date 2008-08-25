@@ -34,6 +34,7 @@
 #define LOG_DOMAIN "fv_transform"
 
 #define MODE_ROTATE 0
+#define MODE_AFFINE 1
 
 typedef struct
   {
@@ -56,11 +57,23 @@ typedef struct
   int mode;
   
   float bg_color[4];
+  float sar;
   
   /* Some transforms can be described by a matrix */
   double matrix[2][3];
 
+  /* Rotate */
   float rotate_angle;
+
+  /* Perspective */
+
+  /* Generic affine */
+  double affine_xx;
+  double affine_xy;
+  double affine_yx;
+  double affine_yy;
+  double affine_ox;
+  double affine_oy;
   
   } transform_t;
 
@@ -100,8 +113,8 @@ static const bg_parameter_info_t parameters[] =
       .opt =         "tm",
       .type =        BG_PARAMETER_STRINGLIST,
       .flags = BG_PARAMETER_SYNC,
-      .multi_names = (const char*[]){ "rotate", (char*)0 },
-      .multi_labels = (const char*[]){ TRS("Rotate"), (char*)0 },
+      .multi_names = (const char*[]){ "rotate", "affine", (char*)0 },
+      .multi_labels = (const char*[]){ TRS("Rotate"), TRS("Generic affine"), (char*)0 },
       .val_default = { .val_str = "rotate" },
       .help_string = TRS("Choose Transformation method. Each method can be configured in it's section."),
       
@@ -140,13 +153,80 @@ static const bg_parameter_info_t parameters[] =
     },
     {
       .name      =  "rotate_angle",
-      .long_name =  "Angle",
+      .long_name =  TRS("Angle"),
       .type =        BG_PARAMETER_SLIDER_FLOAT,
       .flags =     BG_PARAMETER_SYNC,
       .val_default = { .val_f = 0.0 },
-      .val_min = { .val_f = 0.0 },
+      .val_min = { .val_f = -360.0 },
       .val_max = { .val_f = 360.0 },
       .num_digits = 2,
+    },
+    {
+    .name =        "mode_affine",
+    .long_name =   TRS("Generic affine"),
+    .type =        BG_PARAMETER_SECTION,
+    },
+    {
+      .name      =  "affine_xx",
+      .long_name =  TRS("X -> X"),
+      .type =        BG_PARAMETER_FLOAT,
+      .flags =     BG_PARAMETER_SYNC,
+      .val_default = { .val_f = 1.0 },
+      .val_min = { .val_f =   -2.0 },
+      .val_max = { .val_f =    2.0 },
+      .num_digits = 3,
+    },
+    {
+      .name      =  "affine_xy",
+      .long_name =  TRS("X -> Y"),
+      .type =        BG_PARAMETER_FLOAT,
+      .flags =     BG_PARAMETER_SYNC,
+      .val_default = { .val_f = 0.0 },
+      .val_min = { .val_f =   -2.0 },
+      .val_max = { .val_f =    2.0 },
+      .num_digits = 3,
+    },
+    {
+      .name      =  "affine_yx",
+      .long_name =  TRS("Y -> X"),
+      .type =        BG_PARAMETER_FLOAT,
+      .flags =     BG_PARAMETER_SYNC,
+      .val_default = { .val_f = 0.0 },
+      .val_min = { .val_f =   -2.0 },
+      .val_max = { .val_f =    2.0 },
+      .num_digits = 3,
+    },
+    {
+      .name      =  "affine_yy",
+      .long_name =  TRS("Y -> Y"),
+      .type =        BG_PARAMETER_FLOAT,
+      .flags =     BG_PARAMETER_SYNC,
+      .val_default = { .val_f = 1.0 },
+      .val_min = { .val_f =   -2.0 },
+      .val_max = { .val_f =    2.0 },
+      .num_digits = 3,
+    },
+    {
+      .name      =  "affine_ox",
+      .long_name =  TRS("X Offset"),
+      .type =        BG_PARAMETER_FLOAT,
+      .flags =     BG_PARAMETER_SYNC,
+      .val_default = { .val_f = 0.0 },
+      .val_min = { .val_f =   -1.0 },
+      .val_max = { .val_f =    1.0 },
+      .num_digits = 3,
+      .help_string = TRS("Normalized X offset. 1 corresponds to image with."),
+    },
+    {
+      .name      =  "affine_oy",
+      .long_name =  TRS("Y Offset"),
+      .type =        BG_PARAMETER_FLOAT,
+      .flags =     BG_PARAMETER_SYNC,
+      .val_default = { .val_f = 0.0 },
+      .val_min = { .val_f =   -1.0 },
+      .val_max = { .val_f =    1.0 },
+      .num_digits = 3,
+      .help_string = TRS("Normalized Y offset. 1 corresponds to image height."),
     },
     { /* End of parameters */ },
   };
@@ -191,6 +271,8 @@ static void set_parameter_transform(void * priv, const char * name, const bg_par
     int new_mode = 0;
     if(!strcmp(val->val_str, "rotate"))
       new_mode = MODE_ROTATE;
+    else if(!strcmp(val->val_str, "affine"))
+      new_mode = MODE_AFFINE;
 
     if(new_mode != vp->mode)
       {
@@ -203,6 +285,54 @@ static void set_parameter_transform(void * priv, const char * name, const bg_par
     if(vp->rotate_angle != val->val_f)
       {
       vp->rotate_angle = val->val_f;
+      vp->changed = 1;
+      }
+    }
+  else if(!strcmp(name, "affine_xx"))
+    {
+    if(vp->affine_xx != val->val_f)
+      {
+      vp->affine_xx = val->val_f;
+      vp->changed = 1;
+      }
+    }
+  else if(!strcmp(name, "affine_xy"))
+    {
+    if(vp->affine_xy != val->val_f)
+      {
+      vp->affine_xy = val->val_f;
+      vp->changed = 1;
+      }
+    }
+  else if(!strcmp(name, "affine_yx"))
+    {
+    if(vp->affine_yx != val->val_f)
+      {
+      vp->affine_yx = val->val_f;
+      vp->changed = 1;
+      }
+    }
+  else if(!strcmp(name, "affine_yy"))
+    {
+    if(vp->affine_yy != val->val_f)
+      {
+      vp->affine_yy = val->val_f;
+      vp->changed = 1;
+      }
+    }
+  else if(!strcmp(name, "affine_ox"))
+    {
+    if(vp->affine_ox != val->val_f)
+      {
+      vp->affine_ox = val->val_f;
+      vp->changed = 1;
+      }
+    }
+  else if(!strcmp(name, "affine_oy"))
+    {
+    if(vp->affine_oy != val->val_f)
+      {
+      vp->affine_oy = val->val_f;
       vp->changed = 1;
       }
     }
@@ -231,14 +361,17 @@ static void set_input_format_transform(void * priv,
   vp = (transform_t *)priv;
 
   if(!port)
+    {
     gavl_video_format_copy(&vp->format, format);
 
-  if(vp->frame)
-    {
-    gavl_video_frame_destroy(vp->frame);
-    vp->frame = (gavl_video_frame_t*)0;
+    if(vp->frame)
+      {
+      gavl_video_frame_destroy(vp->frame);
+      vp->frame = (gavl_video_frame_t*)0;
+      }
+    vp->sar = (double)format->pixel_width / (double)format->pixel_height;
+    vp->changed = 1;
     }
-  vp->changed = 1;
   }
 
 static void get_output_format_transform(void * priv,
@@ -277,33 +410,91 @@ static void matrixmult(double src1[2][3], double src2[2][3], double dst[2][3])
 
   }
 
-static void init_matrix_rotate(transform_t * vp)
+static void matrix_invert(double src[2][3], double dst[2][3])
+  {
+  double det;
+  det = src[0][0] * src[1][1] - src[1][0] * src[0][1];
+
+  if(det == 0.0)
+    {
+    dst[0][0] = 0.0;
+    dst[0][1] = 0.0;
+    dst[1][0] = 0.0;
+    dst[1][1] = 0.0;
+    dst[0][2] = 0.0;
+    dst[1][2] = 0.0;
+    }
+
+  dst[0][0] = src[1][1] / det;
+  dst[0][1] = -src[0][1] / det;
+  dst[1][0] = -src[1][0] / det;
+  dst[1][1] = src[0][0] / det;
+  dst[0][2] = (src[0][1] * src[1][2] - src[0][2] * src[1][1]) / det;
+  dst[1][2] = (src[0][2] * src[1][0] - src[0][0] * src[1][2]) / det;
+  }
+
+static void init_transform_matrix(transform_t * vp, double mat[2][3])
   {
   double mat1[2][3];
   double mat2[2][3];
+  double mat3[2][3];
+  
+  /* Pixel coordinates -> Undistorted centered coordinates */
+  mat1[0][0] = 1.0 * vp->sar;
+  mat1[1][0] = 0.0;
+  mat1[0][1] = 0.0;
+  mat1[1][1] = 1.0;
+  mat1[0][2] = -0.5 * vp->format.image_width * vp->sar;
+  mat1[1][2] = -0.5 * vp->format.image_height;
+  
+  /* Undistorted centered coordinates -> Pixel coordinates */
+  mat2[0][0] = 1.0 / vp->sar;
+  mat2[1][0] = 0.0;
+  mat2[0][1] = 0.0;
+  mat2[1][1] = 1.0;
+  mat2[0][2] = 0.5 * vp->format.image_width;
+  mat2[1][2] = 0.5 * vp->format.image_height;
+  
+  matrixmult(mat, mat1, mat3);
+  matrixmult(mat2, mat3, vp->matrix);
+  
+  
+  }
+
+static void init_matrix_rotate(transform_t * vp)
+  {
+  double mat[2][3];
   double sin_angle, cos_angle;
 
   sin_angle = sin(vp->rotate_angle / 180.0 * M_PI);
   cos_angle = cos(vp->rotate_angle / 180.0 * M_PI);
-    
-  mat1[0][0] = 1.0;
-  mat1[1][0] = 0.0;
-  mat1[0][1] = 0.0;
-  mat1[1][1] = 1.0;
-  mat1[0][2] = -0.5 * vp->format.image_width;
-  mat1[1][2] = -0.5 * vp->format.image_height;
 
-  mat2[0][0] = cos_angle;
-  mat2[1][0] = sin_angle;
-  mat2[0][1] = -sin_angle;
-  mat2[1][1] = cos_angle;
-  mat2[0][2] = 0.0;
-  mat2[1][2] = 0.0;
 
-  matrixmult(mat2, mat1, vp->matrix);
-  vp->matrix[0][2] += 0.5 * vp->format.image_width;
-  vp->matrix[1][2] += 0.5 * vp->format.image_height;
+  mat[0][0] = cos_angle;
+  mat[1][0] = sin_angle;
+  mat[0][1] = -sin_angle;
+  mat[1][1] = cos_angle;
+  mat[0][2] = 0.0;
+  mat[1][2] = 0.0;
+
+  init_transform_matrix(vp, mat);
   
+  }
+
+static void init_matrix_affine(transform_t * vp)
+  {
+  double mat1[2][3];
+  double mat2[2][3];
+  mat1[0][0] = vp->affine_xx;
+  mat1[1][0] = vp->affine_yx;
+  mat1[0][1] = vp->affine_xy;
+  mat1[1][1] = vp->affine_yy;
+  mat1[0][2] = vp->affine_ox * vp->format.image_width;
+  mat1[1][2] = vp->affine_oy * vp->format.image_height;
+
+  matrix_invert(mat1, mat2);
+
+  init_transform_matrix(vp, mat2);
   }
 
 static void init_transform(transform_t * vp)
@@ -315,11 +506,14 @@ static void init_transform(transform_t * vp)
       init_matrix_rotate(vp);
       func = transform_func_matrix;
       break;
+    case MODE_AFFINE:
+      init_matrix_affine(vp);
+      func = transform_func_matrix;
+      break;
     }
 
   gavl_video_options_set_scale_mode(vp->opt, vp->scale_mode);
   gavl_video_options_set_quality(vp->opt, vp->quality);
-  
   
   gavl_image_transform_init(vp->transform, &vp->format,
                             func, vp);

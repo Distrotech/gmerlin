@@ -317,8 +317,8 @@ static int read_video_tcdisplay(void * priv, gavl_video_frame_t * frame,
   {
   tc_priv_t * vp;
   char str[GAVL_TIMECODE_STRING_LEN];
-  vp = (tc_priv_t *)priv;
   char * pos;
+  vp = (tc_priv_t *)priv;
   
   if(!vp->read_func(vp->read_data, frame, vp->read_stream))
     return 0;

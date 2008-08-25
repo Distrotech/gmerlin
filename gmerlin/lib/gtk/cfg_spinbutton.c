@@ -203,7 +203,10 @@ bg_gtk_create_float(bg_gtk_widget_t * w,
   w->funcs = &float_funcs;
   create_common(w, info, min_value, max_value, translation_domain );
   s = (spinbutton_t *)(w->priv);
+
+  bg_gtk_change_callback_block(w, 1);
   gtk_spin_button_set_digits(GTK_SPIN_BUTTON(s->spinbutton),
                              info->num_digits);
-
+  bg_gtk_change_callback_block(w, 0);
+  
   }
