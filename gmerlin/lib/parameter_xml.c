@@ -692,16 +692,6 @@ void bg_parameters_2_xml(const bg_parameter_info_t * info, xmlNodePtr xml_parame
           
           xmlAddChild(xml_info, BG_XML_NEW_TEXT("\n"));
           }
-        if(info[num_parameters].num_digits)
-          {
-          child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)num_digits_key, NULL);
-
-          tmp_string = bg_sprintf("%d", info[num_parameters].num_digits);
-          xmlAddChild(child, BG_XML_NEW_TEXT(tmp_string));
-          free(tmp_string);
-          
-          xmlAddChild(xml_info, BG_XML_NEW_TEXT("\n"));
-          }
         break;
       case BG_PARAMETER_TIME:
         if(info[num_parameters].val_default.val_time)
@@ -782,13 +772,14 @@ void bg_parameters_2_xml(const bg_parameter_info_t * info, xmlNodePtr xml_parame
           }
         break;
       case BG_PARAMETER_POSITION:
-        if(info[num_parameters].val_default.val_color)
+        if((info[num_parameters].val_default.val_pos[0] != 0.0) ||
+           (info[num_parameters].val_default.val_pos[1] != 0.0))
           {
           child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)default_key, NULL);
 
           tmp_string = bg_sprintf("%f %f",
-                                  info[num_parameters].val_default.val_color[0],
-                                  info[num_parameters].val_default.val_color[1]);
+                                  info[num_parameters].val_default.val_pos[0],
+                                  info[num_parameters].val_default.val_pos[1]);
           xmlAddChild(child, BG_XML_NEW_TEXT(tmp_string));
           free(tmp_string);
           
@@ -796,6 +787,18 @@ void bg_parameters_2_xml(const bg_parameter_info_t * info, xmlNodePtr xml_parame
           }
         break;
       }
+
+    if(info[num_parameters].num_digits)
+      {
+      child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)num_digits_key, NULL);
+      
+      tmp_string = bg_sprintf("%d", info[num_parameters].num_digits);
+      xmlAddChild(child, BG_XML_NEW_TEXT(tmp_string));
+      free(tmp_string);
+      
+      xmlAddChild(xml_info, BG_XML_NEW_TEXT("\n"));
+      }
+    
     xmlAddChild(xml_parameters, BG_XML_NEW_TEXT("\n"));
     
     num_parameters++;

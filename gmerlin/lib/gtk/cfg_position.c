@@ -159,10 +159,13 @@ bg_gtk_create_position(bg_gtk_widget_t * w,
   
   w->priv = s;
 
+  bg_gtk_change_callback_block(w, 1);
+  
   gtk_spin_button_set_digits(GTK_SPIN_BUTTON(s->spinbutton_x),
                              info->num_digits);
   gtk_spin_button_set_digits(GTK_SPIN_BUTTON(s->spinbutton_y),
                              info->num_digits);
+  bg_gtk_change_callback_block(w, 0);
   
   }
 

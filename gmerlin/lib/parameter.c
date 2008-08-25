@@ -69,7 +69,6 @@ void bg_parameter_value_copy(bg_parameter_value_t * dst,
       memcpy(dst->val_pos,
              src->val_pos,
              2 * sizeof(dst->val_pos[0]));
-      dst->val_color[3] = 1.0;
       break;
     case BG_PARAMETER_TIME:
       dst->val_time = src->val_time;

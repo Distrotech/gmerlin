@@ -221,6 +221,7 @@ timescale and frame duration below (framerate = timescale / frame duration).")\
               "nearest",         \
               "bilinear", \
               "quadratic", \
+              "cubic_bspline", \
               (char*)0 }
 
 #define BG_GAVL_TRANSFORM_MODE_LABELS \

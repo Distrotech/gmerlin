@@ -35,6 +35,7 @@
 
 #define MODE_ROTATE 0
 #define MODE_AFFINE 1
+#define MODE_PERSPECTIVE 2
 
 typedef struct
   {
@@ -61,12 +62,18 @@ typedef struct
   
   /* Some transforms can be described by a matrix */
   double matrix[2][3];
+  double matrix3[3][3];
 
   /* Rotate */
   float rotate_angle;
 
   /* Perspective */
 
+  double perspective_tr[2];
+  double perspective_tl[2];
+  double perspective_br[2];
+  double perspective_bl[2];
+  
   /* Generic affine */
   double affine_xx;
   double affine_xy;
@@ -74,7 +81,7 @@ typedef struct
   double affine_yy;
   double affine_ox;
   double affine_oy;
-  
+    
   } transform_t;
 
 static void * create_transform()
@@ -113,8 +120,12 @@ static const bg_parameter_info_t parameters[] =
       .opt =         "tm",
       .type =        BG_PARAMETER_STRINGLIST,
       .flags = BG_PARAMETER_SYNC,
-      .multi_names = (const char*[]){ "rotate", "affine", (char*)0 },
-      .multi_labels = (const char*[]){ TRS("Rotate"), TRS("Generic affine"), (char*)0 },
+      .multi_names = (const char*[]){ "rotate", "affine", "perspective",
+                                      (char*)0 },
+      .multi_labels = (const char*[]){ TRS("Rotate"),
+                                       TRS("Generic affine"),
+                                       TRS("Perspective"),
+                                       (char*)0 },
       .val_default = { .val_str = "rotate" },
       .help_string = TRS("Choose Transformation method. Each method can be configured in it's section."),
       
@@ -125,8 +136,8 @@ static const bg_parameter_info_t parameters[] =
     .opt =         "im",
     .type =        BG_PARAMETER_STRINGLIST,
     .flags = BG_PARAMETER_SYNC,
-    .multi_names = BG_GAVL_SCALE_MODE_NAMES,
-    .multi_labels = BG_GAVL_SCALE_MODE_LABELS,
+    .multi_names = BG_GAVL_TRANSFORM_MODE_NAMES,
+    .multi_labels = BG_GAVL_TRANSFORM_MODE_LABELS,
     .val_default = { .val_str = "auto" },
     .help_string = TRS("Choose interpolation method. Auto means to choose based on the conversion quality. Nearest is fastest, Bicubic is slowest."),
     },
@@ -228,6 +239,47 @@ static const bg_parameter_info_t parameters[] =
       .num_digits = 3,
       .help_string = TRS("Normalized Y offset. 1 corresponds to image height."),
     },
+    {
+    .name =        "mode_perspective",
+    .long_name =   TRS("Perspective"),
+    .type =        BG_PARAMETER_SECTION,
+    },
+    {
+      .name      =  "perspective_tl",
+      .long_name =  TRS("Top left"),
+      .type =        BG_PARAMETER_POSITION,
+      .flags =     BG_PARAMETER_SYNC,
+      .val_default = { .val_pos = { 0.0, 0.0 } },
+      .num_digits = 2,
+      .help_string = TRS("Top left corner in normalized image coordinates"),
+    },
+    {
+      .name      =  "perspective_tr",
+      .long_name =  TRS("Top right"),
+      .type =        BG_PARAMETER_POSITION,
+      .flags =     BG_PARAMETER_SYNC,
+      .val_default = { .val_pos = { 1.0, 0.0 } },
+      .num_digits = 2,
+      .help_string = TRS("Top right corner in normalized image coordinates"),
+    },
+    {
+      .name      =  "perspective_bl",
+      .long_name =  TRS("Bottom left"),
+      .type =        BG_PARAMETER_POSITION,
+      .flags =     BG_PARAMETER_SYNC,
+      .val_default = { .val_pos = { 0.0, 1.0 } },
+      .num_digits = 2,
+      .help_string = TRS("Bottom left corner in normalized image coordinates"),
+    },
+    {
+      .name      =  "perspective_br",
+      .long_name =  TRS("Bottom right"),
+      .type =        BG_PARAMETER_POSITION,
+      .flags =     BG_PARAMETER_SYNC,
+      .val_default = { .val_pos = { 1.0, 1.0 } },
+      .num_digits = 2,
+      .help_string = TRS("Bottom right corner in normalized image coordinates"),
+    },
     { /* End of parameters */ },
   };
 static const bg_parameter_info_t * get_parameters_transform(void * priv)
@@ -235,7 +287,9 @@ static const bg_parameter_info_t * get_parameters_transform(void * priv)
   return parameters;
   }
 
-static void set_parameter_transform(void * priv, const char * name, const bg_parameter_value_t * val)
+static void
+set_parameter_transform(void * priv, const char * name,
+                        const bg_parameter_value_t * val)
   {
   transform_t * vp;
   gavl_scale_mode_t scale_mode;
@@ -273,6 +327,8 @@ static void set_parameter_transform(void * priv, const char * name, const bg_par
       new_mode = MODE_ROTATE;
     else if(!strcmp(val->val_str, "affine"))
       new_mode = MODE_AFFINE;
+    else if(!strcmp(val->val_str, "perspective"))
+      new_mode = MODE_PERSPECTIVE;
 
     if(new_mode != vp->mode)
       {
@@ -336,6 +392,47 @@ static void set_parameter_transform(void * priv, const char * name, const bg_par
       vp->changed = 1;
       }
     }
+  else if(!strcmp(name, "perspective_tl"))
+    {
+    if((vp->perspective_tl[0] != val->val_pos[0]) ||
+       (vp->perspective_tl[1] != val->val_pos[1]))
+      {
+      vp->perspective_tl[0] = val->val_pos[0];
+      vp->perspective_tl[1] = val->val_pos[1];
+      vp->changed = 1;
+      }
+    }
+  else if(!strcmp(name, "perspective_tr"))
+    {
+    if((vp->perspective_tr[0] != val->val_pos[0]) ||
+       (vp->perspective_tr[1] != val->val_pos[1]))
+      {
+      vp->perspective_tr[0] = val->val_pos[0];
+      vp->perspective_tr[1] = val->val_pos[1];
+      vp->changed = 1;
+      }
+    }
+  else if(!strcmp(name, "perspective_bl"))
+    {
+    if((vp->perspective_bl[0] != val->val_pos[0]) ||
+       (vp->perspective_bl[1] != val->val_pos[1]))
+      {
+      vp->perspective_bl[0] = val->val_pos[0];
+      vp->perspective_bl[1] = val->val_pos[1];
+      vp->changed = 1;
+      }
+    }
+  else if(!strcmp(name, "perspective_br"))
+    {
+    if((vp->perspective_br[0] != val->val_pos[0]) ||
+       (vp->perspective_br[1] != val->val_pos[1]))
+      {
+      vp->perspective_br[0] = val->val_pos[0];
+      vp->perspective_br[1] = val->val_pos[1];
+      vp->changed = 1;
+      }
+    }
+
   }
 
 static void connect_input_port_transform(void * priv,
@@ -417,12 +514,13 @@ static void matrix_invert(double src[2][3], double dst[2][3])
 
   if(det == 0.0)
     {
-    dst[0][0] = 0.0;
+    dst[0][0] = 1.0;
     dst[0][1] = 0.0;
     dst[1][0] = 0.0;
-    dst[1][1] = 0.0;
+    dst[1][1] = 1.0;
     dst[0][2] = 0.0;
     dst[1][2] = 0.0;
+    return;
     }
 
   dst[0][0] = src[1][1] / det;
@@ -497,6 +595,254 @@ static void init_matrix_affine(transform_t * vp)
   init_transform_matrix(vp, mat2);
   }
 
+/* Perspective: Ported from the Gimp */
+
+
+static void transform_func_matrix3(void * priv,
+                                   double x,
+                                   double y,
+                                   double *newx,
+                                   double *newy)
+  {
+  double  w;
+  transform_t * vp;
+  vp = (transform_t *)priv;
+  w = vp->matrix3[2][0] * x + vp->matrix3[2][1] * y + vp->matrix3[2][2];
+  
+  if (w == 0.0)
+    w = 1.0;
+  else
+    w = 1.0/w;
+
+  *newx = (vp->matrix3[0][0] * x +
+           vp->matrix3[0][1] * y +
+           vp->matrix3[0][2]) * w;
+  *newy = (vp->matrix3[1][0] * x +
+           vp->matrix3[1][1] * y +
+           vp->matrix3[1][2]) * w;
+}
+
+static void
+matrix3_mult(double src1[3][3], double src2[3][3],
+             double dst[3][3])
+  {
+  int         i, j;
+  double      t1, t2, t3;
+
+  for (i = 0; i < 3; i++)
+    {
+    t1 = src1[i][0];
+    t2 = src1[i][1];
+    t3 = src1[i][2];
+    
+    for (j = 0; j < 3; j++)
+      {
+      dst[i][j]  = t1 * src2[0][j];
+      dst[i][j] += t2 * src2[1][j];
+      dst[i][j] += t3 * src2[2][j];
+      }
+    }
+  }
+
+static void
+transform_matrix_perspective(double matrix[3][3],
+                             int width,
+                             int height,
+                             // double t_x1,
+                             // double t_y1,
+                             double tl[2],
+                             // double t_x2,
+                             // double t_y2,
+                             double tr[2],
+                             // double t_x3,
+                             // double t_y3,
+                             double bl[2],
+                             // double t_x4,
+                             // double t_y4,
+                             double br[2]
+                             )
+  {
+  double base[3][3];
+  double trafo[3][3];
+  double     scalex;
+  double     scaley;
+  
+  scalex = scaley = 1.0;
+  
+  if (width > 0)
+    scalex = 1.0 / (double) width;
+  
+  if (height > 0)
+    scaley = 1.0 / (double) height;
+
+  base[0][0] = scalex;
+  base[0][1] = 0.0;
+  base[0][2] = 0.0;
+  base[1][0] = 0.0;
+  base[1][1] = scaley;
+  base[1][2] = 0.0;
+  base[2][0] = 0.0;
+  base[2][1] = 0.0;
+  base[2][2] = 1.0;
+    
+  // gimp_matrix3_scale(matrix, scalex, scaley);
+  
+  /* Determine the perspective transform that maps from
+   * the unit cube to the transformed coordinates
+   */
+    {
+    double dx1, dx2, dx3, dy1, dy2, dy3;
+
+    dx1 = tr[0] - br[0];
+    dx2 = bl[0] - br[0];
+    dx3 = tl[0] - tr[0] + br[0] - bl[0];
+
+    dy1 = tr[1] - br[1];
+    dy2 = bl[1] - br[1];
+    dy3 = tl[1] - tr[1] + br[1] - bl[1];
+
+    /*  Is the mapping affine?  */
+    if ((dx3 == 0.0) && (dy3 == 0.0))
+      {
+      trafo[0][0] = tr[0] - tl[0];
+      trafo[0][1] = br[0] - tr[0];
+      trafo[0][2] = tl[0];
+      trafo[1][0] = tr[1] - tl[1];
+      trafo[1][1] = br[1] - tr[1];
+      trafo[1][2] = tl[1];
+      trafo[2][0] = 0.0;
+      trafo[2][1] = 0.0;
+      }
+    else
+      {
+      double det1, det2;
+
+      det1 = dx3 * dy2 - dy3 * dx2;
+      det2 = dx1 * dy2 - dy1 * dx2;
+
+      trafo[2][0] = (det2 == 0.0) ? 1.0 : det1 / det2;
+      
+      det1 = dx1 * dy3 - dy1 * dx3;
+      
+      trafo[2][1] = (det2 == 0.0) ? 1.0 : det1 / det2;
+      
+      trafo[0][0] = tr[0] - tl[0] + trafo[2][0] * tr[0];
+      trafo[0][1] = bl[0] - tl[0] + trafo[2][1] * bl[0];
+      trafo[0][2] = tl[0];
+      
+      trafo[1][0] = tr[1] - tl[1] + trafo[2][0] * tr[1];
+      trafo[1][1] = bl[1] - tl[1] + trafo[2][1] * bl[1];
+      trafo[1][2] = tl[1];
+      }
+
+    trafo[2][2] = 1.0;
+  }
+    
+  matrix3_mult(trafo, base, matrix);
+}
+
+static double
+matrix3_determinant(double matrix[3][3])
+  {
+  double determinant;
+
+  determinant  = (matrix[0][0] *
+                  (matrix[1][1] * matrix[2][2] -
+                   matrix[1][2] * matrix[2][1]));
+  determinant -= (matrix[1][0] *
+                  (matrix[0][1] * matrix[2][2] -
+                   matrix[0][2] * matrix[2][1]));
+  determinant += (matrix[2][0] *
+                  (matrix[0][1] * matrix[1][2] -
+                   matrix[0][2] * matrix[1][1]));
+
+  return determinant;
+}
+
+
+static void
+matrix3_invert (double mat[3][3], double inv[3][3])
+  {
+  double     det;
+  
+  det = matrix3_determinant (mat);
+  
+  if (det == 0.0)
+    return;
+  
+  det = 1.0 / det;
+  
+  inv[0][0] =   (mat[1][1] * mat[2][2] -
+                 mat[1][2] * mat[2][1]) * det;
+
+  inv[1][0] = - (mat[1][0] * mat[2][2] -
+                 mat[1][2] * mat[2][0]) * det;
+
+  inv[2][0] =   (mat[1][0] * mat[2][1] -
+                 mat[1][1] * mat[2][0]) * det;
+
+  inv[0][1] = - (mat[0][1] * mat[2][2] -
+                 mat[0][2] * mat[2][1]) * det;
+
+  inv[1][1] =   (mat[0][0] * mat[2][2] -
+                 mat[0][2] * mat[2][0]) * det;
+
+  inv[2][1] = - (mat[0][0] * mat[2][1] -
+                 mat[0][1] * mat[2][0]) * det;
+
+  inv[0][2] =   (mat[0][1] * mat[1][2] -
+                 mat[0][2] * mat[1][1]) * det;
+
+  inv[1][2] = - (mat[0][0] * mat[1][2] -
+                 mat[0][2] * mat[1][0]) * det;
+
+  inv[2][2] =   (mat[0][0] * mat[1][1] -
+                 mat[0][1] * mat[1][0]) * det;
+
+}
+
+
+static void init_perspective(transform_t * vp)
+  {
+  double tl[2];
+  double tr[2];
+  double bl[2];
+  double br[2];
+
+  double mat[3][3];
+  
+  tl[0] = vp->perspective_tl[0] * vp->format.image_width;
+  tl[1] = vp->perspective_tl[1] * vp->format.image_height;
+
+  tr[0] = vp->perspective_tr[0] * vp->format.image_width;
+  tr[1] = vp->perspective_tr[1] * vp->format.image_height;
+
+  bl[0] = vp->perspective_bl[0] * vp->format.image_width;
+  bl[1] = vp->perspective_bl[1] * vp->format.image_height;
+
+  br[0] = vp->perspective_br[0] * vp->format.image_width;
+  br[1] = vp->perspective_br[1] * vp->format.image_height;
+  
+  transform_matrix_perspective(mat,
+                               vp->format.image_width,
+                               vp->format.image_height,
+                               // double t_x1,
+                               // double t_y1,
+                               tl,
+                               // double t_x2,
+                               // double t_y2,
+                               tr,
+                               // double t_x3,
+                               // double t_y3,
+                               bl,
+                               // double t_x4,
+                               // double t_y4,
+                               br
+                               );
+
+  matrix3_invert(mat, vp->matrix3);
+  }
+
 static void init_transform(transform_t * vp)
   {
   gavl_image_transform_func func;
@@ -510,6 +856,9 @@ static void init_transform(transform_t * vp)
       init_matrix_affine(vp);
       func = transform_func_matrix;
       break;
+    case MODE_PERSPECTIVE:
+      init_perspective(vp);
+      func = transform_func_matrix3;
     }
 
   gavl_video_options_set_scale_mode(vp->opt, vp->scale_mode);
