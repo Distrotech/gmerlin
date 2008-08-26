@@ -291,3 +291,9 @@ void gavl_transform_context_transform(gavl_transform_context_t * ctx,
     dst_save += dst_stride;
     }
   }
+
+void
+gavl_transform_context_free(gavl_transform_context_t * ctx)
+  {
+  gavl_transform_table_free(&ctx->tab);
+  }

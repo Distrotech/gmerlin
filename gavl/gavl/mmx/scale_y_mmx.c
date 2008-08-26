@@ -320,7 +320,6 @@ void gavl_init_scale_funcs_generic_y_mmx(gavl_scale_funcs_t * tab,
 #define FUNC_NAME scale_uint8_x_1_y_bilinear_mmx
 #define WIDTH_MUL 1
 #define BITS 8
-#define NUM_TAPS -1
 
 #include "scale_y_linear.h"
 
@@ -329,7 +328,6 @@ void gavl_init_scale_funcs_generic_y_mmx(gavl_scale_funcs_t * tab,
 #define FUNC_NAME scale_uint8_x_2_y_bilinear_mmx
 #define WIDTH_MUL 2
 #define BITS 8
-#define NUM_TAPS -1
 
 #include "scale_y_linear.h"
 
@@ -338,7 +336,6 @@ void gavl_init_scale_funcs_generic_y_mmx(gavl_scale_funcs_t * tab,
 #define FUNC_NAME scale_uint8_x_4_y_bilinear_mmx
 #define WIDTH_MUL 4
 #define BITS 8
-#define NUM_TAPS -1
 
 #include "scale_y_linear.h"
 
@@ -347,7 +344,6 @@ void gavl_init_scale_funcs_generic_y_mmx(gavl_scale_funcs_t * tab,
 #define FUNC_NAME scale_uint8_x_3_y_bilinear_mmx
 #define WIDTH_MUL 3
 #define BITS 8
-#define NUM_TAPS -1
 
 #include "scale_y_linear.h"
 

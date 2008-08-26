@@ -33,10 +33,17 @@ gavl_image_transform_t * gavl_image_transform_create()
   return ret;
   }
 
-
 void gavl_image_transform_destroy(gavl_image_transform_t * t)
   {
-
+  int i, j;
+  for(i = 0; i < 3; i++)
+    {
+    for(j = 0; j < GAVL_MAX_PLANES; j++)
+      {
+      gavl_transform_context_free(&t->contexts[i][j]);
+      }
+    }
+  free(t);
   }
 
 /** \brief Destroy a transformation engine

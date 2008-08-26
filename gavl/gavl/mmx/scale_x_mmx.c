@@ -186,9 +186,8 @@ static void scale_uint8_x_1_x_bilinear_mmx(gavl_video_scale_context_t * ctx)
     }
   ctx->need_emms = 1;
 
+#if 1
   imax = ctx->dst_size % 4;
-  //  imax = ctx->dst_size;
-  
   for(i = 0; i < imax; i++)
     {
     src = (src_start + ctx->table_h.pixels[index].index);
@@ -197,7 +196,7 @@ static void scale_uint8_x_1_x_bilinear_mmx(gavl_video_scale_context_t * ctx)
     dst++;
     index++;
     }
-  
+#endif
   }
 
 

@@ -89,6 +89,10 @@ void gavl_transform_table_init_int(gavl_transform_table_t * tab,
                                    int bits, int width, int height);
 
 
+void
+gavl_transform_table_free(gavl_transform_table_t * tab);
+
+
 /* Context is for one plane and field */
 
 struct gavl_transform_context_s
@@ -121,6 +125,9 @@ void
 gavl_transform_context_transform(gavl_transform_context_t * ctx,
                                  const gavl_video_frame_t * src,
                                  gavl_video_frame_t * dst);
+
+void
+gavl_transform_context_free(gavl_transform_context_t * ctx);
 
 struct gavl_image_transform_s
   {

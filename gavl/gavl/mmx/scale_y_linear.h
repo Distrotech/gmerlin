@@ -136,7 +136,11 @@ static void (FUNC_NAME)(gavl_video_scale_context_t * ctx)
   for(i = 0; i < imax; i++)
     {
     tmp = (*src_1 * ctx->table_v.pixels[ctx->scanline].factor_i[0] +
-           *src_2 * ctx->table_v.pixels[ctx->scanline].factor_i[1]) >> 7;
+           *src_2 * ctx->table_v.pixels[ctx->scanline].factor_i[1]) >> 14;
+    //    tmp = (ctx->table_v.pixels[ctx->scanline].factor_i[0] +
+    //           ctx->table_v.pixels[ctx->scanline].factor_i[1]) >> 14;
+    
+
     *dst = (uint8_t)((tmp & ~0xFF)?((-tmp) >> 31) : tmp);
     /* Accum */
     dst++;

@@ -195,12 +195,9 @@ void gavl_transform_table_init(gavl_transform_table_t * tab,
   gavl_video_scale_get_weight weight_func;
 
   /* (re)alloc */
-  if(tab->pixels)
-    {
-    if(tab->pixels[0])
-      free(tab->pixels[0]);
-    free(tab->pixels);
-    }
+
+  gavl_transform_table_free(tab);
+  
   
   /* Get factors per pixel and filter_func */
   weight_func =
@@ -368,3 +365,14 @@ void gavl_transform_table_init_int(gavl_transform_table_t * tab,
     }
   }
 
+void
+gavl_transform_table_free(gavl_transform_table_t * tab)
+  {
+  if(tab->pixels)
+    {
+    if(tab->pixels[0])
+      free(tab->pixels[0]);
+    free(tab->pixels);
+    tab->pixels = NULL;
+    }
+  }
