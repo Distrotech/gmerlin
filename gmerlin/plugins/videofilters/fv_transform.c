@@ -36,6 +36,7 @@
 #define MODE_ROTATE 0
 #define MODE_AFFINE 1
 #define MODE_PERSPECTIVE 2
+#define MODE_LENS_EFFECT 3
 
 typedef struct
   {
@@ -81,7 +82,16 @@ typedef struct
   double affine_yy;
   double affine_ox;
   double affine_oy;
-    
+
+  /* Lens effect */
+
+  double lens_effect_pos[2];
+  double lens_effect_diameter;
+  double lens_effect_zoom;
+  double lens_effect_pos_real[2];
+
+  double lens_effect_radius_2;
+  
   } transform_t;
 
 static void * create_transform()
@@ -121,10 +131,12 @@ static const bg_parameter_info_t parameters[] =
       .type =        BG_PARAMETER_STRINGLIST,
       .flags = BG_PARAMETER_SYNC,
       .multi_names = (const char*[]){ "rotate", "affine", "perspective",
+                                      "lens_effect",
                                       (char*)0 },
       .multi_labels = (const char*[]){ TRS("Rotate"),
                                        TRS("Generic affine"),
                                        TRS("Perspective"),
+                                       TRS("Lens effect"),
                                        (char*)0 },
       .val_default = { .val_str = "rotate" },
       .help_string = TRS("Choose Transformation method. Each method can be configured in it's section."),
@@ -280,8 +292,45 @@ static const bg_parameter_info_t parameters[] =
       .num_digits = 2,
       .help_string = TRS("Bottom right corner in normalized image coordinates"),
     },
+    {
+    .name =        "mode_lens_effect",
+    .long_name =   TRS("Lens effect"),
+    .type =        BG_PARAMETER_SECTION,
+    },
+    {
+      .name      =  "lens_effect_pos",
+      .long_name =  TRS("Position"),
+      .type =        BG_PARAMETER_POSITION,
+      .flags =     BG_PARAMETER_SYNC,
+      .val_default = { .val_pos = { 0.5, 0.5 } },
+      .num_digits = 2,
+      .help_string = TRS("Center of the lens"),
+    },
+    {
+      .name      = "lens_effect_diameter",
+      .long_name =  TRS("Diameter"),
+      .type =        BG_PARAMETER_SLIDER_FLOAT,
+      .flags =     BG_PARAMETER_SYNC,
+      .val_default = { .val_f = 0.25 },
+      .val_min     = { .val_f = 0.0 },
+      .val_max     = { .val_f = 1.0 },
+      .num_digits = 2,
+      .help_string = TRS("Diamater of the lens (1 is image size)"),
+    },
+    {
+      .name      = "lens_effect_zoom",
+      .long_name =  TRS("Zoom"),
+      .type =        BG_PARAMETER_SLIDER_FLOAT,
+      .flags =     BG_PARAMETER_SYNC,
+      .val_default = { .val_f = 20.0 },
+      .val_min     = { .val_f = 5.0 },
+      .val_max     = { .val_f = 200.0 },
+      .num_digits = 2,
+      .help_string = TRS("Zoom factor"),
+    },
     { /* End of parameters */ },
   };
+
 static const bg_parameter_info_t * get_parameters_transform(void * priv)
   {
   return parameters;
@@ -329,6 +378,8 @@ set_parameter_transform(void * priv, const char * name,
       new_mode = MODE_AFFINE;
     else if(!strcmp(val->val_str, "perspective"))
       new_mode = MODE_PERSPECTIVE;
+    else if(!strcmp(val->val_str, "lens_effect"))
+      new_mode = MODE_LENS_EFFECT;
 
     if(new_mode != vp->mode)
       {
@@ -432,7 +483,32 @@ set_parameter_transform(void * priv, const char * name,
       vp->changed = 1;
       }
     }
-
+  else if(!strcmp(name, "lens_effect_pos"))
+    {
+    if((vp->lens_effect_pos[0] != val->val_pos[0]) ||
+       (vp->lens_effect_pos[1] != val->val_pos[1]))
+      {
+      vp->lens_effect_pos[0] = val->val_pos[0];
+      vp->lens_effect_pos[1] = val->val_pos[1];
+      vp->changed = 1;
+      }
+    }
+  else if(!strcmp(name, "lens_effect_diameter"))
+    {
+    if(vp->lens_effect_diameter != val->val_f)
+      {
+      vp->lens_effect_diameter = val->val_f;
+      vp->changed = 1;
+      }
+    }
+  else if(!strcmp(name, "lens_effect_zoom"))
+    {
+    if(vp->lens_effect_zoom != val->val_f)
+      {
+      vp->lens_effect_zoom = val->val_f;
+      vp->changed = 1;
+      }
+    }
   }
 
 static void connect_input_port_transform(void * priv,
@@ -843,6 +919,57 @@ static void init_perspective(transform_t * vp)
   matrix3_invert(mat, vp->matrix3);
   }
 
+static void init_lens_effect(transform_t * vp)
+  {
+  vp->lens_effect_pos_real[0] =
+    vp->lens_effect_pos[0] * vp->format.image_width;
+  vp->lens_effect_pos_real[1] =
+    vp->lens_effect_pos[1] * vp->format.image_height;
+
+  vp->lens_effect_radius_2 =
+    ((double)vp->format.image_width * vp->sar >
+     (double)vp->format.image_height) ?
+    (vp->lens_effect_diameter * vp->format.image_height + 0.5) :
+    (vp->lens_effect_diameter * vp->format.image_width * vp->sar + 0.5);
+  vp->lens_effect_radius_2 /= 2;
+  vp->lens_effect_radius_2 *= vp->lens_effect_radius_2;
+  }
+
+static void transform_func_lens_effect(void * priv,
+                                       double x,
+                                       double y,
+                                       double *newx,
+                                       double *newy)
+  {
+  transform_t * vp;
+  double distance;
+  double shift;
+  double x1, y1;
+  
+  vp = (transform_t *)priv;
+
+  x1 = (x - vp->lens_effect_pos_real[0]) * vp->sar;
+  y1 = y - vp->lens_effect_pos_real[1];
+  
+  distance = x1 * x1 + y1 * y1 - vp->lens_effect_radius_2;
+  
+  if(distance > 0)
+    {
+    *newx = x;
+    *newy = y;
+    return;
+    }
+  else
+    {
+    shift = vp->lens_effect_zoom /
+      sqrt(vp->lens_effect_zoom * vp->lens_effect_zoom - distance);
+    
+    *newx = vp->lens_effect_pos_real[0] + x1 * shift / vp->sar;
+    *newy = vp->lens_effect_pos_real[1] + y1 * shift;
+    }
+  }
+
+
 static void init_transform(transform_t * vp)
   {
   gavl_image_transform_func func;
@@ -859,6 +986,10 @@ static void init_transform(transform_t * vp)
     case MODE_PERSPECTIVE:
       init_perspective(vp);
       func = transform_func_matrix3;
+      break;
+    case MODE_LENS_EFFECT:
+      init_lens_effect(vp);
+      func = transform_func_lens_effect;
     }
 
   gavl_video_options_set_scale_mode(vp->opt, vp->scale_mode);
