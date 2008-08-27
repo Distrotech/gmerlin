@@ -37,6 +37,9 @@
 #define MODE_AFFINE 1
 #define MODE_PERSPECTIVE 2
 #define MODE_LENS_EFFECT 3
+#define MODE_WHIRL       4
+
+#define EQUAL(a, b) (fabs(a - b) < 1.0e-5)
 
 typedef struct
   {
@@ -57,6 +60,7 @@ typedef struct
   gavl_scale_mode_t scale_mode;
 
   int mode;
+  int do_transform;
   
   float bg_color[4];
   float sar;
@@ -91,6 +95,17 @@ typedef struct
   double lens_effect_pos_real[2];
 
   double lens_effect_radius_2;
+
+  /* Whirl */
+  double whirl_radius;
+  double whirl_pinch;
+  double whirl_angle;
+  double whirl_center[2];
+
+  double whirl_center_real[2];
+  double whirl_radius_real;
+  double whirl_radius2;
+  double whirl_angle_real;
   
   } transform_t;
 
@@ -131,12 +146,13 @@ static const bg_parameter_info_t parameters[] =
       .type =        BG_PARAMETER_STRINGLIST,
       .flags = BG_PARAMETER_SYNC,
       .multi_names = (const char*[]){ "rotate", "affine", "perspective",
-                                      "lens_effect",
+                                      "lens_effect", "whirl",
                                       (char*)0 },
       .multi_labels = (const char*[]){ TRS("Rotate"),
                                        TRS("Generic affine"),
                                        TRS("Perspective"),
                                        TRS("Lens effect"),
+                                       TRS("Pinch/whirl"),
                                        (char*)0 },
       .val_default = { .val_str = "rotate" },
       .help_string = TRS("Choose Transformation method. Each method can be configured in it's section."),
@@ -318,15 +334,58 @@ static const bg_parameter_info_t parameters[] =
       .help_string = TRS("Diamater of the lens (1 is image size)"),
     },
     {
-      .name      = "lens_effect_zoom",
-      .long_name =  TRS("Zoom"),
-      .type =        BG_PARAMETER_SLIDER_FLOAT,
-      .flags =     BG_PARAMETER_SYNC,
+      .name        = "lens_effect_zoom",
+      .long_name   = TRS("Zoom"),
+      .type        = BG_PARAMETER_SLIDER_FLOAT,
+      .flags       = BG_PARAMETER_SYNC,
       .val_default = { .val_f = 20.0 },
       .val_min     = { .val_f = 5.0 },
       .val_max     = { .val_f = 200.0 },
-      .num_digits = 2,
+      .num_digits  = 2,
       .help_string = TRS("Zoom factor"),
+    },
+    {
+      .name =        "mode_whirl",
+      .long_name =   TRS("Pinch/whirl"),
+      .type =        BG_PARAMETER_SECTION,
+    },
+    {
+      .name =        "whirl_center",
+      .long_name =   TRS("Center"),
+      .type =        BG_PARAMETER_POSITION,
+      .flags =     BG_PARAMETER_SYNC,
+      .val_default = { .val_pos = { 0.5, 0.5 } },
+      .num_digits = 2,
+    },
+    {
+      .name =        "whirl_radius",
+      .long_name =   TRS("Radius"),
+      .type        = BG_PARAMETER_SLIDER_FLOAT,
+      .flags       = BG_PARAMETER_SYNC,
+      .val_default = { .val_f = 0.5 },
+      .val_min     = { .val_f = 0.0 },
+      .val_max     = { .val_f = 1.0 },
+      .num_digits  = 2,
+    },
+    {
+      .name =        "whirl_pinch",
+      .long_name =   TRS("Pinch"),
+      .type        = BG_PARAMETER_SLIDER_FLOAT,
+      .flags       = BG_PARAMETER_SYNC,
+      .val_default = { .val_f = 0.5 },
+      .val_min     = { .val_f = 0.0 },
+      .val_max     = { .val_f = 1.0 },
+      .num_digits  = 2,
+    },
+    {
+      .name =        "whirl_angle",
+      .long_name =   TRS("Angle"),
+      .type        = BG_PARAMETER_SLIDER_FLOAT,
+      .flags       = BG_PARAMETER_SYNC,
+      .val_default = { .val_f = 30.0 },
+      .val_min     = { .val_f = 0.0 },
+      .val_max     = { .val_f = 360.0 },
+      .num_digits  = 2,
     },
     { /* End of parameters */ },
   };
@@ -380,7 +439,9 @@ set_parameter_transform(void * priv, const char * name,
       new_mode = MODE_PERSPECTIVE;
     else if(!strcmp(val->val_str, "lens_effect"))
       new_mode = MODE_LENS_EFFECT;
-
+    else if(!strcmp(val->val_str, "whirl"))
+      new_mode = MODE_WHIRL;
+    
     if(new_mode != vp->mode)
       {
       vp->mode = new_mode;
@@ -509,6 +570,40 @@ set_parameter_transform(void * priv, const char * name,
       vp->changed = 1;
       }
     }
+  else if(!strcmp(name, "whirl_radius"))
+    {
+    if(vp->whirl_radius != val->val_f)
+      {
+      vp->whirl_radius = val->val_f;
+      vp->changed = 1;
+      }
+    }
+  else if(!strcmp(name, "whirl_pinch"))
+    {
+    if(vp->whirl_pinch != val->val_f)
+      {
+      vp->whirl_pinch = val->val_f;
+      vp->changed = 1;
+      }
+    }
+  else if(!strcmp(name, "whirl_angle"))
+    {
+    if(vp->whirl_angle != val->val_f)
+      {
+      vp->whirl_angle = val->val_f;
+      vp->changed = 1;
+      }
+    }
+  else if(!strcmp(name, "whirl_center"))
+    {
+    if((vp->whirl_center[0] != val->val_pos[0]) ||
+       (vp->whirl_center[1] != val->val_pos[1]))
+      {
+      vp->whirl_center[0] = val->val_pos[0];
+      vp->whirl_center[1] = val->val_pos[1];
+      vp->changed = 1;
+      }
+    }
   }
 
 static void connect_input_port_transform(void * priv,
@@ -524,7 +619,6 @@ static void connect_input_port_transform(void * priv,
     vp->read_data = data;
     vp->read_stream = stream;
     }
-  
   }
 
 static void set_input_format_transform(void * priv,
@@ -562,8 +656,13 @@ static void transform_func_matrix(void * priv,
   {
   transform_t * vp;
   vp = (transform_t *)priv;
-  *src_x = dst_x * vp->matrix[0][0] + dst_y * vp->matrix[0][1] + vp->matrix[0][2];
-  *src_y = dst_x * vp->matrix[1][0] + dst_y * vp->matrix[1][1] + vp->matrix[1][2];
+  *src_x = dst_x * vp->matrix[0][0] +
+    dst_y * vp->matrix[0][1] +
+    vp->matrix[0][2];
+  
+  *src_y = dst_x * vp->matrix[1][0] +
+    dst_y * vp->matrix[1][1] +
+    vp->matrix[1][2];
   }
 
 static void matrixmult(double src1[2][3], double src2[2][3], double dst[2][3])
@@ -580,7 +679,6 @@ static void matrixmult(double src1[2][3], double src2[2][3], double dst[2][3])
       }
     dst[i][2] += src1[i][2];
     }
-
   }
 
 static void matrix_invert(double src[2][3], double dst[2][3])
@@ -631,8 +729,6 @@ static void init_transform_matrix(transform_t * vp, double mat[2][3])
   
   matrixmult(mat, mat1, mat3);
   matrixmult(mat2, mat3, vp->matrix);
-  
-  
   }
 
 static void init_matrix_rotate(transform_t * vp)
@@ -640,6 +736,13 @@ static void init_matrix_rotate(transform_t * vp)
   double mat[2][3];
   double sin_angle, cos_angle;
 
+  if(EQUAL(vp->rotate_angle, 0.0) ||
+     EQUAL(vp->rotate_angle, 360.0))
+    {
+    vp->do_transform = 0;
+    return;
+    }
+  
   sin_angle = sin(vp->rotate_angle / 180.0 * M_PI);
   cos_angle = cos(vp->rotate_angle / 180.0 * M_PI);
 
@@ -666,6 +769,17 @@ static void init_matrix_affine(transform_t * vp)
   mat1[0][2] = vp->affine_ox * vp->format.image_width;
   mat1[1][2] = vp->affine_oy * vp->format.image_height;
 
+  if(EQUAL(vp->affine_xx, 1.0) &&
+     EQUAL(vp->affine_xy, 0.0) &&
+     EQUAL(vp->affine_yx, 0.0) &&
+     EQUAL(vp->affine_yy, 1.0) &&
+     EQUAL(vp->affine_ox, 0.0) &&
+     EQUAL(vp->affine_oy, 0.0))
+    {
+    vp->do_transform = 0;
+    return;
+    }
+  
   matrix_invert(mat1, mat2);
 
   init_transform_matrix(vp, mat2);
@@ -886,6 +1000,19 @@ static void init_perspective(transform_t * vp)
   double br[2];
 
   double mat[3][3];
+
+  if(EQUAL(vp->perspective_tl[0], 0.0) &&
+     EQUAL(vp->perspective_tl[1], 0.0) &&
+     EQUAL(vp->perspective_tr[0], 1.0) &&
+     EQUAL(vp->perspective_tr[1], 0.0) &&
+     EQUAL(vp->perspective_bl[0], 0.0) &&
+     EQUAL(vp->perspective_bl[1], 1.0) &&
+     EQUAL(vp->perspective_br[0], 1.0) &&
+     EQUAL(vp->perspective_br[1], 1.0))
+    {
+    vp->do_transform = 0;
+    return;
+    }
   
   tl[0] = vp->perspective_tl[0] * vp->format.image_width;
   tl[1] = vp->perspective_tl[1] * vp->format.image_height;
@@ -921,6 +1048,12 @@ static void init_perspective(transform_t * vp)
 
 static void init_lens_effect(transform_t * vp)
   {
+  if(EQUAL(vp->lens_effect_diameter, 0.0))
+    {
+    vp->do_transform = 0;
+    return 0;
+    }
+  
   vp->lens_effect_pos_real[0] =
     vp->lens_effect_pos[0] * vp->format.image_width;
   vp->lens_effect_pos_real[1] =
@@ -969,10 +1102,81 @@ static void transform_func_lens_effect(void * priv,
     }
   }
 
+static void init_whirl(transform_t * vp)
+  {
+  if(EQUAL(vp->whirl_radius, 0.0) ||
+     (EQUAL(vp->whirl_angle, 0.0) &&
+      EQUAL(vp->whirl_pinch, 0.0)))
+    {
+    vp->do_transform = 0;
+    return;
+    }
+  
+  vp->whirl_center_real[0] =
+    vp->whirl_center[0] * vp->format.image_width;
+  vp->whirl_center_real[1] =
+    vp->whirl_center[1] * vp->format.image_height;
+  vp->whirl_radius_real =
+    vp->format.image_width * vp->sar > vp->format.image_height ?
+    vp->format.image_width * vp->sar : vp->format.image_height;
+  vp->whirl_radius_real *= 0.5;
+  vp->whirl_radius2 = vp->whirl_radius_real * vp->whirl_radius_real *
+    vp->whirl_radius;
+  vp->whirl_angle_real = vp->whirl_angle * M_PI / 180.0;
+  }
+
+static void transform_func_whirl(void * priv,
+                                 double x,
+                                 double y,
+                                 double *newx,
+                                 double *newy)
+  {
+  transform_t * vp;
+  double dx, dy, d, dist, factor, sina, cosa, ang;
+  vp = (transform_t *)priv;
+  
+  dx = (x - vp->whirl_center_real[0]) * vp->sar;
+  dy = y - vp->whirl_center_real[1];
+
+  /* Distance^2 to center of *circle* (scaled ellipse) */
+  d = dx * dx + dy * dy;
+
+  /*  If we are inside circle, then distort.
+   *  Else, just return the same position
+   */
+  
+  if(d >= vp->whirl_radius2)
+    {
+    *newx = x;
+    *newy = y;
+    return;
+    }
+  dist = sqrt(d / vp->whirl_radius) / vp->whirl_radius_real;
+
+  /* Pinch */
+  factor = pow(sin(M_PI / 2 * dist), -vp->whirl_pinch);
+  dx *= factor;
+  dy *= factor;
+
+  /* Whirl */
+  factor = 1.0 - dist;
+  
+  ang = vp->whirl_angle_real * factor * factor;
+  
+  sina = sin(ang);
+  cosa = cos(ang);
+  
+  *newx = (cosa * dx - sina * dy) / vp->sar + vp->whirl_center_real[0];
+  *newy = (sina * dx + cosa * dy)           + vp->whirl_center_real[1];
+  }
 
 static void init_transform(transform_t * vp)
   {
+  vp->changed = 0;
+  
   gavl_image_transform_func func;
+  vp->do_transform = 1;
+
   switch(vp->mode)
     {
     case MODE_ROTATE:
@@ -990,15 +1194,19 @@ static void init_transform(transform_t * vp)
     case MODE_LENS_EFFECT:
       init_lens_effect(vp);
       func = transform_func_lens_effect;
+    case MODE_WHIRL:
+      init_whirl(vp);
+      func = transform_func_whirl;
     }
-
+  if(!vp->do_transform)
+    return;
+  
   gavl_video_options_set_scale_mode(vp->opt, vp->scale_mode);
   gavl_video_options_set_quality(vp->opt, vp->quality);
   
   gavl_image_transform_init(vp->transform, &vp->format,
                             func, vp);
   
-  vp->changed = 0;
   }
 
 static int read_video_transform(void * priv, gavl_video_frame_t * frame,
@@ -1006,6 +1214,14 @@ static int read_video_transform(void * priv, gavl_video_frame_t * frame,
   {
   transform_t * vp;
   vp = (transform_t *)priv;
+
+  //  fprintf (stderr, "vp->do_transform: %d\n", vp->do_transform);
+
+  if(vp->changed)
+    init_transform(vp);
+    
+  if(!vp->do_transform)
+    return vp->read_func(vp->read_data, frame, vp->read_stream);
   
   if(!vp->frame)
     {
@@ -1015,8 +1231,6 @@ static int read_video_transform(void * priv, gavl_video_frame_t * frame,
   if(!vp->read_func(vp->read_data, vp->frame, vp->read_stream))
     return 0;
 
-  if(vp->changed)
-    init_transform(vp);
   
   gavl_video_frame_fill(frame, &vp->format, vp->bg_color);
   
