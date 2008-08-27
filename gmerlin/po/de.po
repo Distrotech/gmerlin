@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmerlin 0.3.6\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2008-08-17 19:15+0200\n"
-"PO-Revision-Date: 2008-08-17 19:17+0200\n"
+"POT-Creation-Date: 2008-08-28 00:06+0200\n"
+"PO-Revision-Date: 2008-08-28 00:12+0200\n"
 "Last-Translator: Burkhard Plaum <gmerlin@users.sourceforge.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -147,8 +147,8 @@ msgid "Compression"
 msgstr "Kompression"
 
 #: plugins/v4l/pwc.c:87 plugins/videofilters/fv_deinterlace.c:176
-#: plugins/tiff/iw_tiff.c:147 include/bggavl.h:174 include/bggavl.h:228
-#: include/bggavl.h:387 include/bggavl.h:399
+#: plugins/tiff/iw_tiff.c:147 include/bggavl.h:174 include/bggavl.h:244
+#: include/bggavl.h:403 include/bggavl.h:415
 msgid "None"
 msgstr "Kein(s)"
 
@@ -210,8 +210,8 @@ msgstr "Manuell"
 
 #: plugins/v4l/pwc.c:160 plugins/videofilters/fv_deinterlace.c:128
 #: plugins/videofilters/fv_cropscale.c:395 plugins/cdaudio/cdparanoia.c:168
-#: include/bggavl.h:209 include/bggavl.h:227 include/bggavl.h:399
-#: include/bggavl.h:412 lib/x11/x11_window.c:1248
+#: include/bggavl.h:209 include/bggavl.h:228 include/bggavl.h:243
+#: include/bggavl.h:415 include/bggavl.h:428 lib/x11/x11_window.c:1248
 msgid "Auto"
 msgstr "Automatisch"
 
@@ -649,12 +649,12 @@ msgid "Gauss"
 msgstr "Gauß"
 
 #: plugins/visualization/vis_scope.c:203 plugins/videofilters/fv_blur.c:208
-#: include/bggavl.h:400
+#: include/bggavl.h:416
 msgid "Triangular"
 msgstr "Dreieck"
 
 #: plugins/visualization/vis_scope.c:204 plugins/videofilters/fv_blur.c:209
-#: include/bggavl.h:399
+#: include/bggavl.h:415
 msgid "Rectangular"
 msgstr "Rechteck"
 
@@ -678,7 +678,7 @@ msgstr "Oszi Plugin"
 msgid "Sampleformat"
 msgstr "Zahlenformat"
 
-#: plugins/audiofilters/fa_sampleformat.c:200 include/bggavl.h:382
+#: plugins/audiofilters/fa_sampleformat.c:200 include/bggavl.h:398
 msgid "Force sampleformat"
 msgstr "Erzwinge Zahlenformat"
 
@@ -1215,27 +1215,27 @@ msgstr ""
 #: plugins/videofilters/fv_deinterlace.c:115
 #: plugins/videofilters/fv_cropscale.c:325
 #: plugins/videofilters/fv_cropscale.c:330 plugins/videofilters/fv_zoom.c:106
-#: include/bggavl.h:236 lib/x11/x11_window.c:1237
+#: include/bggavl.h:252 lib/x11/x11_window.c:1237
 msgid "Scale mode"
 msgstr "Skaliermethode"
 
 #: plugins/videofilters/fv_deinterlace.c:129 include/bggavl.h:210
-#: lib/x11/x11_window.c:1249
+#: include/bggavl.h:229 lib/x11/x11_window.c:1249
 msgid "Nearest"
 msgstr "Nächstes Pixel"
 
 #: plugins/videofilters/fv_deinterlace.c:130 include/bggavl.h:211
-#: lib/x11/x11_window.c:1250
+#: include/bggavl.h:230 lib/x11/x11_window.c:1250
 msgid "Bilinear"
 msgstr "Bilinear"
 
 #: plugins/videofilters/fv_deinterlace.c:131 include/bggavl.h:212
-#: lib/x11/x11_window.c:1251
+#: include/bggavl.h:231 lib/x11/x11_window.c:1251
 msgid "Quadratic"
 msgstr "Quadratisch"
 
 #: plugins/videofilters/fv_deinterlace.c:132 include/bggavl.h:213
-#: lib/x11/x11_window.c:1252
+#: include/bggavl.h:232 lib/x11/x11_window.c:1252
 msgid "Cubic B-Spline"
 msgstr "Kubisch B-Spline"
 
@@ -1256,7 +1256,7 @@ msgstr "sin(x)/x mit Lanczos Fenster"
 
 #: plugins/videofilters/fv_deinterlace.c:138
 #: plugins/videofilters/fv_cropscale.c:337 plugins/videofilters/fv_zoom.c:113
-#: include/bggavl.h:243 lib/x11/x11_window.c:1258
+#: include/bggavl.h:259 lib/x11/x11_window.c:1258
 msgid ""
 "Choose scaling method. Auto means to choose based on the conversion quality. "
 "Nearest is fastest, Sinc with Lanczos window is slowest."
@@ -1267,13 +1267,13 @@ msgstr ""
 
 #: plugins/videofilters/fv_deinterlace.c:142
 #: plugins/videofilters/fv_cropscale.c:341 plugins/videofilters/fv_zoom.c:117
-#: include/bggavl.h:247 lib/x11/x11_window.c:1262
+#: include/bggavl.h:263 lib/x11/x11_window.c:1262
 msgid "Scale order"
 msgstr "Skalierordnung"
 
 #: plugins/videofilters/fv_deinterlace.c:149
 #: plugins/videofilters/fv_cropscale.c:348 plugins/videofilters/fv_zoom.c:124
-#: include/bggavl.h:254 lib/x11/x11_window.c:1267
+#: include/bggavl.h:270 lib/x11/x11_window.c:1267
 msgid "Order for sinc scaling"
 msgstr "Ordnung für sinc Skalierung"
 
@@ -1340,6 +1340,7 @@ msgid "Motion compensating deinterlacer from the mjpegtools project"
 msgstr "Deinterlacer mir Bewegungsausgleich vom mjpegtools Projekt."
 
 #: plugins/videofilters/fv_deinterlace.c:213
+#: plugins/videofilters/fv_transform.c:174
 #: plugins/videofilters/fv_cropscale.c:374 plugins/videofilters/fv_zoom.c:151
 #: plugins/videofilters/fv_tlp.c:91 plugins/videofilters/fv_blur.c:248
 #: plugins/jpeg/iw_jpeg.c:239
@@ -1392,6 +1393,188 @@ msgstr "Deinterlacer"
 #: plugins/videofilters/fv_deinterlace.c:585
 msgid "Deinterlace with various algorithms"
 msgstr "Deinterlacer mit verschiedenen Methoden"
+
+#: plugins/videofilters/fv_transform.c:139
+#: plugins/videofilters/fv_tcdisplay.c:80 plugins/cdaudio/i_cdaudio.c:692
+#: apps/player/cfgdialog.c:98 apps/transcoder/transcoder_window.c:1236
+#: apps/transcoder/transcoder_window.c:1261
+#: apps/transcoder/transcoder_window.c:1282 apps/transcoder/trackdialog.c:84
+#: apps/transcoder/trackdialog.c:183 apps/transcoder/trackdialog.c:247
+#: apps/transcoder/trackdialog.c:313 apps/transcoder/trackdialog.c:362
+#: apps/visualizer/gmerlin_visualizer.c:877 lib/x11/x11_window.c:1175
+#: lib/transcoder_track.c:1463
+msgid "General"
+msgstr "Generell"
+
+#: plugins/videofilters/fv_transform.c:144
+msgid "Transformation mode"
+msgstr "Transformationsmodus"
+
+#: plugins/videofilters/fv_transform.c:151
+#: plugins/videofilters/fv_transform.c:190
+msgid "Rotate"
+msgstr "Drehen"
+
+#: plugins/videofilters/fv_transform.c:152
+#: plugins/videofilters/fv_transform.c:205
+msgid "Generic affine"
+msgstr "Allgemein affin"
+
+#: plugins/videofilters/fv_transform.c:153
+#: plugins/videofilters/fv_transform.c:272
+msgid "Perspective"
+msgstr "Perspective"
+
+#: plugins/videofilters/fv_transform.c:154
+#: plugins/videofilters/fv_transform.c:313
+msgid "Lens effect"
+msgstr "Linseneffekt"
+
+#: plugins/videofilters/fv_transform.c:155
+#: plugins/videofilters/fv_transform.c:349
+msgid "Pinch/whirl"
+msgstr "Quetschen/wirbeln"
+
+#: plugins/videofilters/fv_transform.c:158
+msgid ""
+"Choose Transformation method. Each method can be configured in it's section."
+msgstr ""
+"Wähle Transformationsmethode. Jede Methode kann in einer eigenen Sektion "
+"konfiguriert werden."
+
+#: plugins/videofilters/fv_transform.c:163
+msgid "Interpolation mode"
+msgstr "Interpolationsmethode"
+
+#: plugins/videofilters/fv_transform.c:170
+msgid ""
+"Choose interpolation method. Auto means to choose based on the conversion "
+"quality. Nearest is fastest, Bicubic is slowest."
+msgstr ""
+"Wähle die Interpolationsmethode. Automatisch heißt Wahl aufgrund der "
+"Qualität. \"Nächstes Pixel\" ist am schnellsten, Bikubisch ist am "
+"langsamsten."
+
+#: plugins/videofilters/fv_transform.c:183 plugins/videofilters/fv_zoom.c:160
+#: plugins/lqt/e_lqt.c:718 include/bggavl.h:297
+msgid "Background color"
+msgstr "Hintergrundfarbe"
+
+#: plugins/videofilters/fv_transform.c:195
+#: plugins/videofilters/fv_transform.c:382
+msgid "Angle"
+msgstr "Winkel"
+
+#: plugins/videofilters/fv_transform.c:210
+msgid "X -> X"
+msgstr "X -> X"
+
+#: plugins/videofilters/fv_transform.c:220
+msgid "X -> Y"
+msgstr "X -> Y"
+
+#: plugins/videofilters/fv_transform.c:230
+msgid "Y -> X"
+msgstr "Y -> X"
+
+#: plugins/videofilters/fv_transform.c:240
+msgid "Y -> Y"
+msgstr "Y -> Y"
+
+#: plugins/videofilters/fv_transform.c:250
+msgid "X Offset"
+msgstr "X Offset"
+
+#: plugins/videofilters/fv_transform.c:257
+msgid "Normalized X offset. 1 corresponds to image with."
+msgstr "Normierter X-Offset. 1 enspricht Bildbreite."
+
+#: plugins/videofilters/fv_transform.c:261
+msgid "Y Offset"
+msgstr "Y Offset"
+
+#: plugins/videofilters/fv_transform.c:268
+msgid "Normalized Y offset. 1 corresponds to image height."
+msgstr "Normierter Y-Offset. 1 enspricht Bildhöhe."
+
+#: plugins/videofilters/fv_transform.c:277
+msgid "Top left"
+msgstr "Oben links"
+
+#: plugins/videofilters/fv_transform.c:282
+msgid "Top left corner in normalized image coordinates"
+msgstr "Obere linke Ecke in normierten Bildkoordinaten"
+
+#: plugins/videofilters/fv_transform.c:286
+msgid "Top right"
+msgstr "Oben rechts"
+
+#: plugins/videofilters/fv_transform.c:291
+msgid "Top right corner in normalized image coordinates"
+msgstr "Obere rechte Ecke in normierten Bildkoordinaten"
+
+#: plugins/videofilters/fv_transform.c:295
+msgid "Bottom left"
+msgstr "Unten links"
+
+#: plugins/videofilters/fv_transform.c:300
+msgid "Bottom left corner in normalized image coordinates"
+msgstr "Untere linke Ecke in normierten Bildkoordinaten"
+
+#: plugins/videofilters/fv_transform.c:304
+msgid "Bottom right"
+msgstr "Unten rechts"
+
+#: plugins/videofilters/fv_transform.c:309
+msgid "Bottom right corner in normalized image coordinates"
+msgstr "Untere rechte Ecke in normierten Bildkoordinaten"
+
+#: plugins/videofilters/fv_transform.c:318
+msgid "Position"
+msgstr "Position"
+
+#: plugins/videofilters/fv_transform.c:323
+msgid "Center of the lens"
+msgstr "Mitte der Linse"
+
+#: plugins/videofilters/fv_transform.c:327
+msgid "Diameter"
+msgstr "Durchmesser"
+
+#: plugins/videofilters/fv_transform.c:334
+msgid "Diamater of the lens (1 is image size)"
+msgstr "Durchmesser der Linse (1 entspricht Bildgröße)"
+
+#: plugins/videofilters/fv_transform.c:338 plugins/videofilters/fv_zoom.c:378
+msgid "Zoom"
+msgstr "Zoom"
+
+#: plugins/videofilters/fv_transform.c:345
+msgid "Zoom factor"
+msgstr "Vergrößerungsfaktor"
+
+#: plugins/videofilters/fv_transform.c:354
+#: plugins/videofilters/fv_tcdisplay.c:131
+#: plugins/videofilters/fv_tcdisplay.c:140 lib/textrenderer.c:98
+#: lib/textrenderer.c:107 lib/osd.c:121 lib/osd.c:129
+msgid "Center"
+msgstr "Mitte"
+
+#: plugins/videofilters/fv_transform.c:362
+msgid "Radius"
+msgstr "Radius"
+
+#: plugins/videofilters/fv_transform.c:372
+msgid "Pinch"
+msgstr "Quetschen"
+
+#: plugins/videofilters/fv_transform.c:1250
+msgid "Transform"
+msgstr "Transformation"
+
+#: plugins/videofilters/fv_transform.c:1251
+msgid "Transform the image with different methods"
+msgstr "Transformiere das Bild mit verschiedenen Methoden"
 
 #: plugins/videofilters/colormatrix.c:1387
 #: plugins/videofilters/fv_colorbalance.c:600
@@ -1678,17 +1861,6 @@ msgstr ""
 "Erzwingt ein Pixelformat als Eingabe für das nächste Filter. Wird "
 "überwiegend zum Testen benutzt."
 
-#: plugins/videofilters/fv_tcdisplay.c:80 plugins/cdaudio/i_cdaudio.c:692
-#: apps/player/cfgdialog.c:98 apps/transcoder/transcoder_window.c:1236
-#: apps/transcoder/transcoder_window.c:1261
-#: apps/transcoder/transcoder_window.c:1282 apps/transcoder/trackdialog.c:84
-#: apps/transcoder/trackdialog.c:183 apps/transcoder/trackdialog.c:247
-#: apps/transcoder/trackdialog.c:313 apps/transcoder/trackdialog.c:362
-#: apps/visualizer/gmerlin_visualizer.c:877 lib/x11/x11_window.c:1175
-#: lib/transcoder_track.c:1463
-msgid "General"
-msgstr "Generell"
-
 #: plugins/videofilters/fv_tcdisplay.c:85 plugins/videofilters/fv_tctweak.c:88
 msgid "Interpolate missing"
 msgstr "Interpoliere fehlende"
@@ -1718,12 +1890,6 @@ msgstr "Schrift"
 #: plugins/videofilters/fv_tcdisplay.c:127 lib/textrenderer.c:94 lib/osd.c:117
 msgid "Horizontal justify"
 msgstr "Horizontale Ausrichtung"
-
-#: plugins/videofilters/fv_tcdisplay.c:131
-#: plugins/videofilters/fv_tcdisplay.c:140 lib/textrenderer.c:98
-#: lib/textrenderer.c:107 lib/osd.c:121 lib/osd.c:129
-msgid "Center"
-msgstr "Mitte"
 
 #: plugins/videofilters/fv_tcdisplay.c:131 lib/textrenderer.c:98 lib/osd.c:121
 msgid "Left"
@@ -1841,15 +2007,6 @@ msgstr "Zoome horizontal"
 #: plugins/videofilters/fv_zoom.c:95
 msgid "Zoom vertically"
 msgstr "Zoome vertikal"
-
-#: plugins/videofilters/fv_zoom.c:160 plugins/lqt/e_lqt.c:718
-#: include/bggavl.h:281
-msgid "Background color"
-msgstr "Hintergrundfarbe"
-
-#: plugins/videofilters/fv_zoom.c:378
-msgid "Zoom"
-msgstr "Zoom"
 
 #: plugins/videofilters/fv_zoom.c:379
 msgid "Zoom horizontally and/or vertically"
@@ -2233,7 +2390,7 @@ msgstr "Mono 16bit"
 msgid "Stereo 16bit"
 msgstr "Stereo 16bit"
 
-#: plugins/mikmod/i_mikmod.c:260 include/bggavl.h:300
+#: plugins/mikmod/i_mikmod.c:260 include/bggavl.h:316
 msgid "Samplerate"
 msgstr "Abtastrate"
 
@@ -2912,7 +3069,7 @@ msgstr ""
 msgid "Deinterlace mode"
 msgstr "Deinterlacemethode"
 
-#: include/bggavl.h:174 include/bggavl.h:355 apps/transcoder/tracklist.c:960
+#: include/bggavl.h:174 include/bggavl.h:371 apps/transcoder/tracklist.c:960
 #: lib/gtk/albumwidget.c:1499 lib/gtk/albumwidget.c:2887
 msgid "Copy"
 msgstr "Kopieren"
@@ -2929,19 +3086,19 @@ msgstr ""
 "Erzwinge Deinterlacing wenn Du progressive Ausgabe willst und das "
 "Quellenformat behauptet, ebenfalls progressiv zu sein."
 
-#: include/bggavl.h:229
+#: include/bggavl.h:245
 msgid "Widening"
 msgstr "Verbreiterung"
 
-#: include/bggavl.h:230
+#: include/bggavl.h:246
 msgid "Gaussian preblur"
 msgstr "Gauß'scher Vorweichzeichner"
 
-#: include/bggavl.h:260
+#: include/bggavl.h:276
 msgid "Resample chroma"
 msgstr "Farbebenen resamplen."
 
-#: include/bggavl.h:264
+#: include/bggavl.h:280
 msgid ""
 "Always perform chroma resampling if chroma subsampling factors or chroma "
 "placements are different. Usually, this is only done for qualities above 3."
@@ -2949,19 +3106,19 @@ msgstr ""
 "Mache immer Farbenebenen-Resampling, wenn die Farbplazierungen verschieden "
 "sind. Normalerweise wird dies nur für Qualitätsstufen über 3 gemacht."
 
-#: include/bggavl.h:271
+#: include/bggavl.h:287
 msgid "Alpha mode"
 msgstr "Transparenzmodus"
 
-#: include/bggavl.h:276
+#: include/bggavl.h:292
 msgid "Ignore"
 msgstr "Ignorieren"
 
-#: include/bggavl.h:276
+#: include/bggavl.h:292
 msgid "Blend background color"
 msgstr "Hintergrundfarbe einblenden"
 
-#: include/bggavl.h:277
+#: include/bggavl.h:293
 msgid ""
 "This option is used if the source has an alpha (=transparency) channel, but "
 "the output supports no transparency. Either, the transparency is ignored, or "
@@ -2972,18 +3129,18 @@ msgstr ""
 "Transparenz ignoriert, oder eine Hintergrundfarbe, die Du unten angibst, "
 "wird eingeblendet."
 
-#: include/bggavl.h:285
+#: include/bggavl.h:301
 msgid ""
 "Background color to use, when alpha mode above is \"Blend background color\"."
 msgstr ""
 "Hintergrundfarbe, die verwendet wird, wenn der Transparenzmodus oben auf "
 "\"Hintergrundfarbe einblenden\" steht."
 
-#: include/bggavl.h:292
+#: include/bggavl.h:308
 msgid "Fixed samplerate"
 msgstr "Feste Abtastrate"
 
-#: include/bggavl.h:296
+#: include/bggavl.h:312
 msgid ""
 "If disabled, the output samplerate is taken from the source. If enabled, the "
 "samplerate you specify below us used."
@@ -2992,15 +3149,15 @@ msgstr ""
 "übernommen. Wenn eingeschaltet, wird die Abtastrate, die Du unten angibst, "
 "genommen."
 
-#: include/bggavl.h:306
+#: include/bggavl.h:322
 msgid "Fixed output samplerate"
 msgstr "Feste Abtastrate für die Ausgabe"
 
-#: include/bggavl.h:313
+#: include/bggavl.h:329
 msgid "Fixed channel setup"
 msgstr "Feste Kanalkonfiguration"
 
-#: include/bggavl.h:317
+#: include/bggavl.h:333
 msgid ""
 "If disabled, the output channel configuration is taken from the source. If "
 "enabled, the setup you specify below us used."
@@ -3008,76 +3165,76 @@ msgstr ""
 "Wenn ausgeschaltet, wird die Kanalkonfiguration von der Quelle übernommen. "
 "Wenn eingeschaltet, wird die Konfiguration, die Du unten angibst, verwendet."
 
-#: include/bggavl.h:321
+#: include/bggavl.h:337
 msgid "Front channels"
 msgstr "Frontkanäle"
 
-#: include/bggavl.h:330
+#: include/bggavl.h:346
 msgid "Rear channels"
 msgstr "Hinterkanäle"
 
-#: include/bggavl.h:339 lib/formats.c:183
+#: include/bggavl.h:355 lib/formats.c:183
 msgid "LFE"
 msgstr "Subwoofer"
 
-#: include/bggavl.h:346
+#: include/bggavl.h:362
 msgid "Front to rear mode"
 msgstr "Vorne nach hinten modus"
 
-#: include/bggavl.h:354
+#: include/bggavl.h:370
 msgid "Mute"
 msgstr "Stumm"
 
-#: include/bggavl.h:356
+#: include/bggavl.h:372
 msgid "Diff"
 msgstr "Differenz"
 
-#: include/bggavl.h:358
+#: include/bggavl.h:374
 msgid ""
 "Mix mode when the output format has rear channels, but the source doesn't."
 msgstr "Mischmodus wenn die Ausgabe Hinterkanäle hat, aber die Quelle nicht."
 
-#: include/bggavl.h:363
+#: include/bggavl.h:379
 msgid "Stereo to mono mode"
 msgstr "Stereo nach Mono Mode"
 
-#: include/bggavl.h:371
+#: include/bggavl.h:387
 msgid "Choose left"
 msgstr "Nehme Links"
 
-#: include/bggavl.h:372
+#: include/bggavl.h:388
 msgid "Choose right"
 msgstr "Nehme Rechts"
 
-#: include/bggavl.h:373
+#: include/bggavl.h:389
 msgid "Mix"
 msgstr "Mischen"
 
-#: include/bggavl.h:375
+#: include/bggavl.h:391
 msgid "Mix mode when downmixing Stereo to Mono."
 msgstr "Mischmethode zum Heruntermischen von Stereo auf Mono."
 
-#: include/bggavl.h:387
+#: include/bggavl.h:403
 msgid "8 bit"
 msgstr "8 bit"
 
-#: include/bggavl.h:387
+#: include/bggavl.h:403
 msgid "16 bit"
 msgstr "16 bit"
 
-#: include/bggavl.h:387
+#: include/bggavl.h:403
 msgid "32 bit"
 msgstr "32 bit"
 
-#: include/bggavl.h:387
+#: include/bggavl.h:403
 msgid "Float"
 msgstr "Fließkomma"
 
-#: include/bggavl.h:387
+#: include/bggavl.h:403
 msgid "Double"
 msgstr "Fließkomma (doppelt)"
 
-#: include/bggavl.h:388
+#: include/bggavl.h:404
 msgid ""
 "Force a sampleformat to be used for processing. None means to take the input "
 "format."
@@ -3085,15 +3242,15 @@ msgstr ""
 "Erzwinge Zahlenformat für die Verarbeitung. Kein(s) bedeutet nehme das "
 "Quellenformat."
 
-#: include/bggavl.h:394
+#: include/bggavl.h:410
 msgid "Dither mode"
 msgstr "Dithermodus"
 
-#: include/bggavl.h:400
+#: include/bggavl.h:416
 msgid "Shaped"
 msgstr "Geformt"
 
-#: include/bggavl.h:401
+#: include/bggavl.h:417
 msgid ""
 "Dither mode. Auto means to use the quality level. Subsequent options are "
 "ordered by increasing quality (i.e. decreasing speed)."
@@ -3102,31 +3259,31 @@ msgstr ""
 "Optionen sind nach aufsteigender Qualität (absteigender Geschwindigkeit) "
 "geordnet."
 
-#: include/bggavl.h:407
+#: include/bggavl.h:423
 msgid "Resample mode"
 msgstr "Resamplemodus"
 
-#: include/bggavl.h:412
+#: include/bggavl.h:428
 msgid "Linear"
 msgstr "Linear"
 
-#: include/bggavl.h:412
+#: include/bggavl.h:428
 msgid "Zero order hold"
 msgstr "0. Ordnung halten"
 
-#: include/bggavl.h:413
+#: include/bggavl.h:429
 msgid "Sinc fast"
 msgstr "Sinc (schnellste Berechnung)"
 
-#: include/bggavl.h:413
+#: include/bggavl.h:429
 msgid "Sinc medium"
 msgstr "Sinc (mittel)"
 
-#: include/bggavl.h:413
+#: include/bggavl.h:429
 msgid "Sinc best"
 msgstr "Sinc (beste Qualität)"
 
-#: include/bggavl.h:414
+#: include/bggavl.h:430
 msgid ""
 "Resample mode. Auto means to use the quality level. Subsequent options are "
 "ordered by increasing quality (i.e. decreasing speed)."
@@ -5179,8 +5336,8 @@ msgid ""
 "This is free software.  You may redistribute copies of it under the terms "
 "of\n"
 "the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\n"
-"There is NO WARRANTY, to the extent permitted by law.\n"
-msgstr ""
+"There is NO WARRANTY.\n"
+msgstr "Dies ist freie Software, die unter den Bedingungen der GNU General Public License <http://www.gnu.org/licenses/gpl.html> weitergegeben werden kann. Es gibt KEINE HAFTUNG."
 
 #: lib/cmdline.c:290
 msgid "Print this help message and exit"
@@ -5784,7 +5941,7 @@ msgid ""
 "For files, which contain edit decision lists and raw streams, this option "
 "selects which one to decode. This setting is saved in the album once the "
 "file is loaded."
-msgstr ""
+msgstr "Für Dateien, die EDLs und Rohstreams enthalten, letg diese Option fest, welche von beiden abgespielt werden soll. Die Einstellung wird im Album gespeichert, sobald die Datei geladen wurde."
 
 #: lib/tree.c:1423
 #, c-format
@@ -5797,26 +5954,26 @@ msgstr "Kein aktueller Track zum Kopieren zu Favoriten"
 
 #: lib/singlepic.c:96
 msgid "Display time"
-msgstr ""
+msgstr "Anzeigedauer"
 
 #: lib/singlepic.c:101
 msgid "Time to pass until the next track will be selected. 0 means infinite."
-msgstr ""
+msgstr "Zeit, die vergeht, bis der nächste Track gewählt wird. 0 heißt unendlich."
 
 #: lib/singlepic.c:476
 msgid "Image video input plugin"
-msgstr ""
+msgstr "Bilder als Video"
 
 #: lib/singlepic.c:477
 msgid ""
 "This plugin reads series of images as a video. It uses the installed image "
 "readers."
-msgstr ""
+msgstr "Dieses Plugin liest eine Reihe Bilder als Video. Es benutzt die installierten Bildimporteure."
 
 #: lib/singlepic.c:521
 msgid ""
 "This plugin reads images as stills. It uses the installed image readers."
-msgstr ""
+msgstr "Dieses Plugin liest Standbilder. Es benutzt die installierten Bildimporteure."
 
 #: lib/singlepic.c:648
 msgid "Framenumber digits"

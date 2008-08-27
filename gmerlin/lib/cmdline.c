@@ -221,7 +221,7 @@ static void print_version(const bg_cmdline_app_data_t * app_data)
   printf(TR("Copyright (C) 2001-2007 Members of the gmerlin project\n"));
   printf(TR("This is free software.  You may redistribute copies of it under the terms of\n\
 the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\n\
-There is NO WARRANTY, to the extent permitted by law.\n"));
+There is NO WARRANTY.\n"));
   }
 
 static void print_help(const bg_cmdline_arg_t* args, bg_help_format_t format)
