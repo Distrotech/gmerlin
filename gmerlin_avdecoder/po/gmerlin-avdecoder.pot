@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2008-08-17 03:39+0200\n"
+"POT-Creation-Date: 2008-08-29 22:41+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -473,7 +473,7 @@ msgstr ""
 
 #: lib/rmff.c:909
 #, c-format
-msgid "Unsupported packet header .version = %d"
+msgid "Unsupported packet header version: %d"
 msgstr ""
 
 #: lib/qt_esds.c:120
@@ -549,7 +549,7 @@ msgstr ""
 
 #: lib/demux_avi.c:1844
 #, c-format
-msgid "Unknown stream .type = %c%c%c%c"
+msgid "Unknown stream type: %c%c%c%c"
 msgstr ""
 
 #: lib/audio_win32.c:310
@@ -768,7 +768,7 @@ msgstr ""
 
 #: lib/demux_flv.c:309
 #, c-format
-msgid "Unknown type: %d for metadata object %s"
+msgid "Unknown type %d for metadata object %s"
 msgstr ""
 
 #: lib/demux_flv.c:545
@@ -856,16 +856,14 @@ msgstr ""
 msgid "Got initial audio timestamp: %s"
 msgstr ""
 
-#: lib/audio.c:174
-#, c-format
-msgid ""
-"Cannot skip backwards: Stream time: %<PRId64> skip time: %<PRId64> "
-"difference: %<PRId64>"
-msgstr ""
-
 #: lib/audio.c:181
 #, c-format
-msgid "Skipping %<PRId64> samples"
+msgid "Cannot skip backwards: Stream time: %s skip time: %s difference: %s"
+msgstr ""
+
+#: lib/audio.c:191
+#, c-format
+msgid "Skipping %s samples"
 msgstr ""
 
 #: lib/demux_thp.c:145 lib/demux_dxa.c:88
@@ -879,7 +877,7 @@ msgstr ""
 
 #: lib/video_tga.c:175
 #, c-format
-msgid "Cannot detect image .type = %d"
+msgid "Cannot detect image type: %d"
 msgstr ""
 
 #: lib/video_tga.c:271
@@ -1136,7 +1134,7 @@ msgstr ""
 
 #: lib/demux_vivo.c:326
 #, c-format
-msgid "Unknown timestamp .type = %s"
+msgid "Unknown timestamp type: %s"
 msgstr ""
 
 #: lib/demux_vivo.c:578

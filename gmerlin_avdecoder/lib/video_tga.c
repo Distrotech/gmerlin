@@ -172,7 +172,7 @@ static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
     if(s->data.video.format.pixelformat == GAVL_PIXELFORMAT_NONE)
       {
       bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-               "Cannot detect image .type = %d", priv->tga.image_type);
+               "Cannot detect image type: %d", priv->tga.image_type);
       return 0;
       }
     if(priv->is_mono)

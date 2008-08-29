@@ -323,7 +323,7 @@ static int vivo_header_read(vivo_header_t * ret, bgav_input_context_t * input)
             {
             if(strcmp(pos, "relative"))
               bgav_log(input->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-                       "Unknown timestamp .type = %s",
+                       "Unknown timestamp type: %s",
                       pos);
             }
           else if(check_key(buffer, "TimeUnitNumerator", &pos))

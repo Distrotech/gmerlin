@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmerlin-avdecoder 0.1.6\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2008-08-17 03:39+0200\n"
-"PO-Revision-Date: 2008-01-04 02:25+0100\n"
+"POT-Creation-Date: 2008-08-29 22:41+0200\n"
+"PO-Revision-Date: 2008-08-29 22:47+0200\n"
 "Last-Translator: Burkhard Plaum <gmerlin@users.sourceforge.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -190,13 +190,12 @@ msgstr ""
 "Kommandozeile ein, um eine Liste unterstützter Zeichensätze zu bekommen."
 
 #: plugins/i_avdec.c:265
-#, fuzzy
 msgid "Misc options"
-msgstr "Audio Optionen"
+msgstr "Verschiedene Optionen"
 
 #: plugins/i_avdec.c:270
 msgid "Sample accurate"
-msgstr ""
+msgstr "Samplegenau"
 
 #: plugins/i_avdec.c:273
 msgid ""
@@ -204,28 +203,34 @@ msgid ""
 "normal seeking works fine. Some formats are only seekable with this option "
 "enabled."
 msgstr ""
+"Versuche Samplegenaues Suchen. Für die meisten Formate ist dies nicht nötig, "
+"da normales Suchen gut funktioniert. Einige Formate sind nur suchbar, wenn "
+"diese Option aktiviert ist."
 
 #: plugins/i_avdec.c:277
-#, fuzzy
 msgid "Cache time (milliseconds)"
-msgstr "Maximale Wartezeit zum Lesen (Millisekunden)"
+msgstr "Zeit fürs Zwischenspeichern (Millisekunden)"
 
 #: plugins/i_avdec.c:280
 msgid ""
 "If building an index takes longer than the specified time, it will be cached."
 msgstr ""
+"Wenn die Erstellung eines Index länger als die angebene Zeit dauert, wird er "
+"zwischengespeichert."
 
 #: plugins/i_avdec.c:284
 msgid "Cache size (Megabytes)"
-msgstr ""
+msgstr "Größe des Indexspeichers (Megabytes)"
 
 #: plugins/i_avdec.c:287
 msgid "Set the maximum total size of the cache directory."
 msgstr ""
+"Gib die maximale Gesamtgröße des Verzeichnisses an, in dem Indizes "
+"gespeichert werden."
 
 #: plugins/i_avdec.c:291
 msgid "Export date and time as timecodes for DV"
-msgstr ""
+msgstr "Exportiere Datum und Uhrzeit als Timecodes für DV"
 
 #: plugins/i_avdec.c:331
 msgid "AVDecoder plugin"
@@ -341,9 +346,8 @@ msgid "Detected %s redirector"
 msgstr "Weiterleitungsdatei: %s"
 
 #: lib/audio_a52.c:448
-#, fuzzy
 msgid "Lost sync during parsing"
-msgstr "Synchronisation während der Initialisierung verloren"
+msgstr "Synchronisation während des Einlesens verloren"
 
 #: lib/in_smb.c:99
 #, c-format
@@ -372,12 +376,11 @@ msgstr "Kann %s nicht öffnen: %s"
 
 #: lib/qt_timecode.c:49
 msgid "Timecode tracks in non-seekable sources not supported"
-msgstr ""
+msgstr "Timecode tracks in nicht suchbarer Quelle werden nicht unterstützt"
 
 #: lib/qt_timecode.c:108
-#, fuzzy
 msgid "EOF while reading timecode"
-msgstr "Dateiende während der Trackinitialisierung"
+msgstr "Dateiende beim Lesen des Timecodes"
 
 #: lib/sdp.c:531 lib/sdp.c:696
 #, c-format
@@ -449,9 +452,8 @@ msgid "Invalid mp3on4 channel configuration"
 msgstr "Ungültige mp3on4 Kanalkonfiguration"
 
 #: lib/demux_quicktime.c:1225
-#, fuzzy
 msgid "More than one timecode track, ignoring them all"
-msgstr "Mehr als ein Kapiteltrack, nehme ersten"
+msgstr "Mehr als ein Timecodetrack, ignoriere alle"
 
 #: lib/demux_quicktime.c:1432
 msgid "Non streamable file on non seekable source"
@@ -500,8 +502,8 @@ msgid "No Opaque data there"
 msgstr "Keine binären Daten gefunden."
 
 #: lib/rmff.c:909
-#, fuzzy, c-format
-msgid "Unsupported packet header .version = %d"
+#, c-format
+msgid "Unsupported packet header version: %d"
 msgstr "Nicht unterstützte Header version: %d"
 
 #: lib/qt_esds.c:120
@@ -576,8 +578,8 @@ msgid "Setting up track failed"
 msgstr "Trackinitialisierung fehlgeschlagen"
 
 #: lib/demux_avi.c:1844
-#, fuzzy, c-format
-msgid "Unknown stream .type = %c%c%c%c"
+#, c-format
+msgid "Unknown stream type: %c%c%c%c"
 msgstr "Unbekannter Streamtyp: %c%c%c%c"
 
 #: lib/audio_win32.c:310
@@ -614,14 +616,12 @@ msgid "Codec DLL %s not found"
 msgstr "Codec DLL %s nicht gefunden"
 
 #: lib/mxf.c:2505
-#, fuzzy
 msgid "Cannot decode MXF file from non seekable source"
-msgstr "Kann dieses Format nur von suchbaren Quellen spielen"
+msgstr "Kann MXF nicht von nichtsuchbaren Quellen dekodieren"
 
 #: lib/mxf.c:2520
-#, fuzzy
 msgid "Could not find header partition"
-msgstr "Konnte Antwort nicht lesen"
+msgstr "Konnte Kopfpartition nicht lesen"
 
 #: lib/qt_cmov.c:66
 #, c-format
@@ -803,8 +803,8 @@ msgid "DMO_VideoDecoder_Open failed %d"
 msgstr "DMO_VideoDecoder_Open fehlgeschlagen %d"
 
 #: lib/demux_flv.c:309
-#, fuzzy, c-format
-msgid "Unknown type: %d for metadata object %s"
+#, c-format
+msgid "Unknown type %d for metadata object %s"
 msgstr "Unbekannter Typ %d for Metadatenobjekt %s"
 
 #: lib/demux_flv.c:545
@@ -843,7 +843,7 @@ msgstr "Dekodieren des PNGs fehlgeschlagen"
 
 #: lib/video_ffmpeg.c:182
 msgid "PTS cache full"
-msgstr ""
+msgstr "PTS Speicher voll"
 
 #: lib/video_ffmpeg.c:974
 msgid "Ran out of data during extradata scanning"
@@ -892,17 +892,15 @@ msgstr "Kein Audio Dekoder gefunden für WAV ID 0x%04x"
 msgid "Got initial audio timestamp: %s"
 msgstr "Erster Audio Zeitstempel gelesen: %s"
 
-#: lib/audio.c:174
-#, fuzzy, c-format
-msgid ""
-"Cannot skip backwards: Stream time: %<PRId64> skip time: %<PRId64> "
-"difference: %<PRId64>"
-msgstr ""
-"Kann nicht rückwärts springen: Streamzeit: %f, Zielzeit: %f, Differenz: %s"
-
 #: lib/audio.c:181
-#, fuzzy, c-format
-msgid "Skipping %<PRId64> samples"
+#, c-format
+msgid "Cannot skip backwards: Stream time: %s skip time: %s difference: %s"
+msgstr ""
+"Kann nicht rückwärts springen: Streamzeit: %s, Zielzeit: %s, Differenz: %s"
+
+#: lib/audio.c:191
+#, c-format
+msgid "Skipping %s samples"
 msgstr "Überspringe %s Abtastwerte"
 
 #: lib/demux_thp.c:145 lib/demux_dxa.c:88
@@ -915,8 +913,8 @@ msgid "tga_read_from_memory failed: %s (%d bytes)"
 msgstr "tga_read_from_memory fehlgeschlagen: %s (%d bytes)"
 
 #: lib/video_tga.c:175
-#, fuzzy, c-format
-msgid "Cannot detect image .type = %d"
+#, c-format
+msgid "Cannot detect image type: %d"
 msgstr "Kann Bildtyp nicht erkennen: %d"
 
 #: lib/video_tga.c:271
@@ -925,14 +923,14 @@ msgid "Setting palette %d entries"
 msgstr "Setze Palette: %d Einträge"
 
 #: lib/in_dvd.c:107 lib/in_dvd.c:123
-#, fuzzy, c-format
+#, c-format
 msgid "Opening vts %d failed"
-msgstr "Neuöffnen von %s fehlgeschlagen"
+msgstr "Öffnen von vts %d fehlgeschlagen"
 
 #: lib/in_dvd.c:131
-#, fuzzy, c-format
+#, c-format
 msgid "Opening IFO for vts %d failed"
-msgstr "Lesen von Blocks ab Sektor %d schlug fehl."
+msgstr "Öffnen des IFO für VTS %d schlug fehl."
 
 #: lib/in_dvd.c:417
 msgid "Detected still cell"
@@ -962,9 +960,8 @@ msgid "Cannot open DVD Device %s"
 msgstr "Kann DVD Gerät %s nicht öffnen"
 
 #: lib/mpv_header.c:96
-#, fuzzy
 msgid "Cannot read sequence header: illegal framerate"
-msgstr "Kann Sequence header nicht lesen: Fehlendes Marker Bit"
+msgstr "Kann Sequence header nicht lesen: Unerlaubte Bildwiederholrate"
 
 #: lib/demux_smaf.c:108
 msgid "MIDI like files not supported"
@@ -1130,24 +1127,25 @@ msgstr "Ungültige URL"
 #: lib/demux_mxf.c:306
 msgid "Clip wrapped tracks with nonconstant framesize not supported"
 msgstr ""
+"\"Clip wrapped\" Tracks mit nichtkonstanter Bildwiederholrate werden nicht "
+"unterstützt"
 
 #: lib/demux_mxf.c:339
 msgid "Rounding fractional audio samplerate"
-msgstr ""
+msgstr "Runde gebrochene Audioabtastrate"
 
 #: lib/demux_mxf.c:608
 #, c-format
 msgid "Couldn't find partition for source package %d"
-msgstr ""
+msgstr "Konnte keine Partition für \"Source package\" %d finden"
 
 #: lib/demux_mxf.c:634
-#, fuzzy
 msgid "Parsing MXF file failed, please report"
-msgstr "Parsing der Spumuxdatei fehlgeschlagen"
+msgstr "Parsen der MXF-Datei fehlgeschlagen, bitte berichten"
 
 #: lib/demux_mxf.c:649
 msgid "Unsupported MXF type, please report"
-msgstr ""
+msgstr "Unbekannter MXF-Typ, bitte berichten"
 
 #: lib/demuxer.c:235 lib/demuxer.c:245 lib/demuxer.c:263
 #: lib/demux_ffmpeg.c:128
@@ -1174,8 +1172,8 @@ msgid "Unknown extended header: %s"
 msgstr "Unbekanner erweiterter Header: %s"
 
 #: lib/demux_vivo.c:326
-#, fuzzy, c-format
-msgid "Unknown timestamp .type = %s"
+#, c-format
+msgid "Unknown timestamp type: %s"
 msgstr "Unbekanner Typ für Zeitstempel: %s"
 
 #: lib/demux_vivo.c:578
@@ -1185,17 +1183,16 @@ msgstr "Unbekannter Pakettyp"
 #: lib/fileindex.c:510
 #, c-format
 msgid "Removing %s to keep maximum cache size"
-msgstr ""
+msgstr "Lösche %s um maximale Zwischenspeichergröße zu erhalten"
 
 #: lib/fileindex.c:1004
-#, fuzzy
 msgid "Building file index failed"
-msgstr "Lesen der Datei %s fehlgeschlagen"
+msgstr "Erstellen des Dateiindex fehlgeschlagen"
 
 #: lib/fileindex.c:1010
-#, fuzzy, c-format
+#, c-format
 msgid "Built file index in %.2f seconds"
-msgstr "Lesen der Datei %s fehlgeschlagen"
+msgstr "Dateiindex in %.2f Sekunden erstellt"
 
 #: lib/demux_voc.c:233
 #, c-format
@@ -1218,7 +1215,7 @@ msgstr "Kompression %c%c%c%c nicht unterstützt"
 
 #: lib/qt_udta.c:111
 msgid "Skipping garbage in udta atom"
-msgstr ""
+msgstr "Überspringe Schrott in udta-Atom"
 
 #: lib/demux_mpegps.c:589
 #, c-format

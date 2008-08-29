@@ -170,15 +170,25 @@ int bgav_audio_skipto(bgav_stream_t * s, int64_t * t, int scale)
   
   if(num_samples < 0)
     {
+    char str1[128];
+    char str2[128];
+    char str3[128];
+    sprintf(str1, "%"PRId64, s->out_time);
+    sprintf(str2, "%"PRId64, skip_time);
+    sprintf(str3, "%"PRId64, num_samples);
+    
     bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-             "Cannot skip backwards: Stream time: %"PRId64" skip time: %"PRId64" difference: %"PRId64,
-             s->out_time, skip_time, num_samples);
+             "Cannot skip backwards: Stream time: %s skip time: %s difference: %s",
+             str1, str2, str3);
     }
   else
     if(num_samples > 0)
       {
+      char str1[128];
+      sprintf(str1, "%"PRId64, num_samples);
+      
       bgav_log(s->opt, BGAV_LOG_DEBUG, LOG_DOMAIN,
-               "Skipping %"PRId64" samples", num_samples);
+               "Skipping %s samples", str1);
       
       samples_skipped =
         s->data.audio.decoder->decoder->decode(s, (gavl_audio_frame_t*)0,

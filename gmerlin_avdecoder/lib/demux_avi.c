@@ -1841,7 +1841,7 @@ static int open_avi(bgav_demuxer_context_t * ctx)
       init_iavs_stream(ctx, &strh, &ch);
     else
       {
-      bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Unknown stream .type = %c%c%c%c",
+      bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Unknown stream type: %c%c%c%c",
                (strh.fccType >> 24) & 0xff,
                (strh.fccType >> 16) & 0xff,
                (strh.fccType >> 8) & 0xff,
