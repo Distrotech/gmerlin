@@ -408,7 +408,7 @@ int bg_player_input_init(bg_player_input_context_t * ctx,
      !ctx->player->track_info->num_video_streams)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,
-            "Stream has neither audio nor video, skipping");
+            "Track has neither audio nor video, skipping");
     return 0;
     }
   
@@ -448,6 +448,8 @@ int bg_player_input_init(bg_player_input_context_t * ctx,
 
 void bg_player_input_cleanup(bg_player_input_context_t * ctx)
   {
+  char tmp_string[128];
+  
   bg_player_input_stop(ctx);
   if(ctx->plugin_handle)
     bg_plugin_unref(ctx->plugin_handle);
@@ -460,10 +462,15 @@ void bg_player_input_cleanup(bg_player_input_context_t * ctx)
     ctx->still_frame = (gavl_video_frame_t*)0;
     }
 #ifdef DEBUG_COUNTER
-  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Audio sample counter: %"PRId64,
-         ctx->audio_sample_counter);
-  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Video frame counter: %"PRId64,
-         ctx->video_frame_counter);
+  sprintf(tmp_string, "%" PRId64, ctx->audio_sample_counter);
+  
+  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Audio sample counter: %s",
+         tmp_string);
+
+  sprintf(tmp_string, "%" PRId64, ctx->video_frame_counter);
+
+  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Video frame counter: %s",
+         tmp_string);
 #endif
   }
 

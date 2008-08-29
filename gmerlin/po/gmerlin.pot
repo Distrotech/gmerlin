@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2008-08-28 00:06+0200\n"
+"POT-Creation-Date: 2008-08-29 22:13+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -5810,7 +5810,7 @@ msgstr ""
 #: lib/transcoder_track.c:360
 msgid ""
 "For files, which contain edit decision lists and raw streams, this option "
-"selects whic one to decode."
+"selects which one to decode."
 msgstr ""
 
 #: lib/transcoder_track.c:370
@@ -6022,45 +6022,45 @@ msgid "Cannot select track, skipping"
 msgstr ""
 
 #: lib/player_input.c:411
-msgid "Stream has neither audio nor video, skipping"
+msgid "Track has neither audio nor video, skipping"
 msgstr ""
 
-#: lib/player_input.c:463
+#: lib/player_input.c:467
 #, c-format
-msgid "Audio sample counter: %<PRId64>"
+msgid "Audio sample counter: %s"
 msgstr ""
 
-#: lib/player_input.c:465
+#: lib/player_input.c:472
 #, c-format
-msgid "Video frame counter: %<PRId64>"
+msgid "Video frame counter: %s"
 msgstr ""
 
-#: lib/player_input.c:854
+#: lib/player_input.c:861
 #, c-format
 msgid "Processed %s audio samples"
 msgstr ""
 
-#: lib/player_input.c:860
+#: lib/player_input.c:867
 #, c-format
 msgid "Processed %s video frames"
 msgstr ""
 
-#: lib/player_input.c:992
+#: lib/player_input.c:999
 msgid "Input options"
 msgstr ""
 
-#: lib/player_input.c:998
+#: lib/player_input.c:1005
 msgid "Enable bypass mode"
 msgstr ""
 
-#: lib/player_input.c:1001
+#: lib/player_input.c:1008
 msgid ""
 "Use input plugins in bypass mode if they support it (Currently only the "
 "audio CD player). This dramatically decreases CPU usage but doesn't work on "
 "all hardware setups."
 msgstr ""
 
-#: lib/player_input.c:1011
+#: lib/player_input.c:1018
 msgid ""
 "When showing still images, gmerlin repeats them periodically to make "
 "realtime filter tweaking work."
@@ -6610,7 +6610,7 @@ msgid ""
 "This is free software.  You may redistribute copies of it under the terms "
 "of\n"
 "the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\n"
-"There is NO WARRANTY, to the extent permitted by law."
+"There is NO WARRANTY."
 msgstr ""
 
 #: lib/gtk/treewindow.c:177
@@ -6735,7 +6735,7 @@ msgid "Keep Running"
 msgstr ""
 
 #: lib/gtk/plugininfo.c:184
-msgid "Has Sync"
+msgid "Can Sync"
 msgstr ""
 
 #: lib/gtk/plugininfo.c:185

@@ -181,7 +181,7 @@ flag_names[] =
     { TRS("Playback"),    BG_PLUGIN_PLAYBACK       }, /* Output plugins for playback    */
     { TRS("Bypass"),      BG_PLUGIN_BYPASS         }, /* Bypass                         */
     { TRS("Keep Running"), BG_PLUGIN_KEEP_RUNNING   }, /* Plugin should not be stopped and restarted if tracks change */
-    { TRS("Has Sync"),     BG_PLUGIN_INPUT_HAS_SYNC }, /* FOR INPUTS ONLY: Plugin will set the time via callback */
+    { TRS("Can Sync"),     BG_PLUGIN_INPUT_HAS_SYNC }, /* FOR INPUTS ONLY: Plugin will set the time via callback */
     { TRS("Tuner"),       BG_PLUGIN_TUNER           }, /* Plugin has tuner */
     { TRS("Filter with 1 input"),  BG_PLUGIN_FILTER_1 },
     { TRS("Renders via gmerlin"),  BG_PLUGIN_VISUALIZE_FRAME },

@@ -357,7 +357,7 @@ static const bg_parameter_info_t parameters_general[] =
       .name =      "prefer_edl",
       .long_name = TRS("Prefer EDL"),
       .type =      BG_PARAMETER_CHECKBUTTON,
-      .help_string = TRS("For files, which contain edit decision lists and raw streams, this option selects whic one to decode."),
+      .help_string = TRS("For files, which contain edit decision lists and raw streams, this option selects which one to decode."),
     },
     {
       .name =      "track",

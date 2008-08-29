@@ -173,7 +173,7 @@ bg_gtk_about_window_create(const char * name, const char * version, const char *
   label3 =
     gtk_label_new(TR("This is free software.  You may redistribute copies of it under the terms of\n\
 the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\n\
-There is NO WARRANTY, to the extent permitted by law."));
+There is NO WARRANTY."));
   
   gtk_widget_show(label3);
   

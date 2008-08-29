@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmerlin 0.3.6\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2008-08-28 00:06+0200\n"
-"PO-Revision-Date: 2008-08-28 00:12+0200\n"
+"POT-Creation-Date: 2008-08-29 22:13+0200\n"
+"PO-Revision-Date: 2008-08-29 22:17+0200\n"
 "Last-Translator: Burkhard Plaum <gmerlin@users.sourceforge.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -97,7 +97,7 @@ msgstr "MPlayer mpsub"
 
 #: plugins/subwriters/e_subtext.c:277 lib/gtk/plugininfo.c:158
 msgid "Text subtitle exporter"
-msgstr "Text Untertitel exporter"
+msgstr "Exporteur für Textuntertitel"
 
 #: plugins/subwriters/e_subtext.c:278
 msgid ""
@@ -5337,7 +5337,10 @@ msgid ""
 "of\n"
 "the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\n"
 "There is NO WARRANTY.\n"
-msgstr "Dies ist freie Software, die unter den Bedingungen der GNU General Public License <http://www.gnu.org/licenses/gpl.html> weitergegeben werden kann. Es gibt KEINE HAFTUNG."
+msgstr ""
+"Dies ist freie Software, die unter den Bedingungen der GNU General Public "
+"License <http://www.gnu.org/licenses/gpl.html> weitergegeben werden kann.\n"
+"Es gibt KEINE HAFTUNG.\n"
 
 #: lib/cmdline.c:290
 msgid "Print this help message and exit"
@@ -5941,7 +5944,10 @@ msgid ""
 "For files, which contain edit decision lists and raw streams, this option "
 "selects which one to decode. This setting is saved in the album once the "
 "file is loaded."
-msgstr "Für Dateien, die EDLs und Rohstreams enthalten, letg diese Option fest, welche von beiden abgespielt werden soll. Die Einstellung wird im Album gespeichert, sobald die Datei geladen wurde."
+msgstr ""
+"Für Dateien, die EDLs und Rohstreams enthalten, letg diese Option fest, "
+"welche von beiden abgespielt werden soll. Die Einstellung wird im Album "
+"gespeichert, sobald die Datei geladen wurde."
 
 #: lib/tree.c:1423
 #, c-format
@@ -5958,7 +5964,8 @@ msgstr "Anzeigedauer"
 
 #: lib/singlepic.c:101
 msgid "Time to pass until the next track will be selected. 0 means infinite."
-msgstr "Zeit, die vergeht, bis der nächste Track gewählt wird. 0 heißt unendlich."
+msgstr ""
+"Zeit, die vergeht, bis der nächste Track gewählt wird. 0 heißt unendlich."
 
 #: lib/singlepic.c:476
 msgid "Image video input plugin"
@@ -5968,12 +5975,15 @@ msgstr "Bilder als Video"
 msgid ""
 "This plugin reads series of images as a video. It uses the installed image "
 "readers."
-msgstr "Dieses Plugin liest eine Reihe Bilder als Video. Es benutzt die installierten Bildimporteure."
+msgstr ""
+"Dieses Plugin liest eine Reihe Bilder als Video. Es benutzt die "
+"installierten Bildimporteure."
 
 #: lib/singlepic.c:521
 msgid ""
 "This plugin reads images as stills. It uses the installed image readers."
-msgstr "Dieses Plugin liest Standbilder. Es benutzt die installierten Bildimporteure."
+msgstr ""
+"Dieses Plugin liest Standbilder. Es benutzt die installierten Bildimporteure."
 
 #: lib/singlepic.c:648
 msgid "Framenumber digits"
@@ -5988,6 +5998,8 @@ msgid ""
 "This plugin encodes a video as a series of images. It uses the installed "
 "image writers."
 msgstr ""
+"Dieses Plugin exportiert Video als Bilderserie. Es benutzt die installierten "
+"Bildexportplugins"
 
 #: lib/metadata.c:82
 msgid "Artist"
@@ -6028,52 +6040,52 @@ msgstr "Komplettes Datum oder nur das Jahr"
 #: lib/metadata.c:400
 #, c-format
 msgid "Author:\t %s\n"
-msgstr ""
+msgstr "Autor:\t %s\n"
 
 #: lib/metadata.c:405
 #, c-format
 msgid "Artist:\t %s\n"
-msgstr ""
+msgstr "Künstler:\t %s\n"
 
 #: lib/metadata.c:410
 #, c-format
 msgid "Title:\t %s\n"
-msgstr ""
+msgstr "Titel:\t %s\n"
 
 #: lib/metadata.c:415
 #, c-format
 msgid "Album:\t %s\n"
-msgstr ""
+msgstr "Album:\t %s\n"
 
 #: lib/metadata.c:420
 #, c-format
 msgid "Copyright:\t %s\n"
-msgstr ""
+msgstr "Copyright:\t %s\n"
 
 #: lib/metadata.c:425
 #, c-format
 msgid "Genre:\t %s\n"
-msgstr ""
+msgstr "Genre:\t %s\n"
 
 #: lib/metadata.c:430
 #, c-format
 msgid "Date:\t %s\n"
-msgstr ""
+msgstr "Datum:\t %s\n"
 
 #: lib/metadata.c:435
 #, c-format
 msgid "Track:\t %d\n"
-msgstr ""
+msgstr "Track:\t %d\n"
 
 #: lib/metadata.c:440
 #, c-format
 msgid "Comment:\t %s\n"
-msgstr ""
+msgstr "Kommentar:\t %s\n"
 
 #: lib/bgxml.c:77
 #, c-format
 msgid "Cannot stat %s: %s"
-msgstr ""
+msgstr "Kann Dateistatus von %s nicht ermitteln: %s"
 
 #: lib/player_audio.c:224
 msgid "Restarting playback due to changed audio options"
@@ -6086,92 +6098,98 @@ msgstr "Starte Abspielen neu wegen geänderter Audiofilter"
 #: lib/transcoder_track.c:340 lib/gtk/infowindow.c:768
 #: lib/gtk/treewidget.c:1113 lib/gtk/chapterdialog.c:184
 msgid "Name"
-msgstr ""
+msgstr "Name"
 
 #: lib/transcoder_track.c:346 lib/gtk/infowindow.c:778
 msgid "Location"
-msgstr ""
+msgstr "Ort"
 
 #: lib/transcoder_track.c:360
 msgid ""
 "For files, which contain edit decision lists and raw streams, this option "
-"selects whic one to decode."
+"selects which one to decode."
 msgstr ""
+"Für Dateien, die EDLs und Rohstreams enthalten, letg diese Option fest, "
+"welche von beiden abgespielt werden soll."
 
 #: lib/transcoder_track.c:370
 msgid "Subdirectory"
-msgstr ""
+msgstr "Unterverzeichnis"
 
 #: lib/transcoder_track.c:372
 msgid "Subdirectory, where this track will be written to"
-msgstr ""
+msgstr "Unterverzeichnis, in das die Tracks geschrieben werden"
 
 #: lib/transcoder_track.c:412
 msgid "Postprocess only"
-msgstr ""
+msgstr "Nur Weiterverarbeiten"
 
 #: lib/transcoder_track.c:414
 msgid ""
 "Skip transcoding of this track and send the file directly to the "
 "postprocessor."
 msgstr ""
+"Überspringe Transkodieren dieses Tracks und schicke die Datei direkt zum "
+"Weiterverarbeiten"
 
 #: lib/transcoder_track.c:418
 msgid "Set start time"
-msgstr ""
+msgstr "Setze die Startzeit"
 
 #: lib/transcoder_track.c:422
 msgid ""
 "Specify a start time below. This time will be slightly wrong if the input "
 "format doesn't support sample accurate seeking."
 msgstr ""
+"Gib unten eine Startzeit an. Diese Zeit wird geringfügig falsch sein, wenn "
+"die Quelle kein exaktes Suchen unterstützt."
 
 #: lib/transcoder_track.c:427
 msgid "Start time"
-msgstr ""
+msgstr "Startzeit"
 
 #: lib/transcoder_track.c:434
 msgid "Set end time"
-msgstr ""
+msgstr "Setzte Endzeit"
 
 #: lib/transcoder_track.c:438
 msgid "Specify an end time below."
-msgstr ""
+msgstr "Gib unten eine Endzeit an"
 
 #: lib/transcoder_track.c:442
 msgid "End time"
-msgstr ""
+msgstr "Endzeit"
 
 #: lib/transcoder_track.c:456 lib/transcoder_track.c:505
 #: lib/transcoder_track.c:1468 lib/transcoder_track.c:1492
 msgid "Action"
-msgstr ""
+msgstr "Aktion"
 
 #: lib/transcoder_track.c:460 lib/transcoder_track.c:508
 #: lib/transcoder_track.c:1471 lib/transcoder_track.c:1495
 msgid "Forget"
-msgstr ""
+msgstr "Vergessen"
 
 #: lib/transcoder_track.c:460
 msgid "Transcode as text"
-msgstr ""
+msgstr "Transkodiere als Text"
 
 #: lib/transcoder_track.c:461
 msgid "Transcode as overlay"
-msgstr ""
+msgstr "Transkodiere als Overlay"
 
 #: lib/transcoder_track.c:461 lib/transcoder_track.c:508
 msgid "Blend onto video"
-msgstr ""
+msgstr "Mische aufs Video"
 
 #: lib/transcoder_track.c:462
 msgid "Select action for this subtitle stream."
-msgstr ""
+msgstr "Wähle Aktion für diesen Untertitelstream"
 
 #: lib/transcoder_track.c:466 lib/transcoder_track.c:513
 #: lib/transcoder_track.c:1500
 msgid "Input Language"
-msgstr ""
+msgstr "Ursprüngliche Sprache"
 
 #: lib/transcoder_track.c:472 lib/transcoder_track.c:519
 #: lib/transcoder_track.c:1506
@@ -6193,7 +6211,7 @@ msgstr ""
 
 #: lib/transcoder_track.c:487
 msgid "Video stream"
-msgstr ""
+msgstr "Videostream"
 
 #: lib/transcoder_track.c:492
 msgid ""
@@ -6201,6 +6219,10 @@ msgid ""
 "will get the subtitles. For encoding, take frame dimensions and framerate "
 "from this video stream as they are sometimes needed by subtitle encoders."
 msgstr ""
+"Hänge Untertitelstream an diesen Videostream an. Wenn der Stream auf das "
+"Video gemischt wird, ist dies der Videostream, der die Untertitel bekommt. "
+"Für das Enkodieren werden Bildwiederholrate und -größe von diesem "
+"Videostream genommen, da diese manchmal von Enkodern gebraucht werden."
 
 #: lib/transcoder_track.c:508 lib/transcoder_track.c:1471
 #: lib/transcoder_track.c:1495 lib/gtk/albumwidget.c:1534
@@ -6209,11 +6231,11 @@ msgstr "Transkodieren"
 
 #: lib/transcoder_track.c:534
 msgid "Video stream to blend onto"
-msgstr ""
+msgstr "Videostream zum draufmischen"
 
 #: lib/transcoder_track.c:1476
 msgid "Enable 2-pass encoding"
-msgstr ""
+msgstr "Aktiviere 2-Pass Enkodierung"
 
 #: lib/transcoder_track.c:1478
 msgid ""
@@ -6221,10 +6243,13 @@ msgid ""
 "transcoding in the second pass. This enables higher quality within the given "
 "bitrate constraints but roughly doubles the video encoding time."
 msgstr ""
+"Enkodiere diesen Stream in 2 Durchläufen, d.h. analysiere ihn erst und "
+"enkodiere ihn endgütlig im zweiten Durchlauf. Dies bringt bessere Qualität "
+"für eine gegebene Bitrate aber verdoppelt in etwa die Enkodierzeit."
 
 #: lib/transcoder_track.c:1521
 msgid "Normalize audio"
-msgstr ""
+msgstr "Normiere Audio"
 
 #: lib/transcoder_track.c:1523
 msgid ""
@@ -6232,214 +6257,226 @@ msgid ""
 "detected. In the second pass, the stream is transcoded with normalized "
 "volume."
 msgstr ""
+"Dies wird 2-pass Enkodieren aktivieren. Im ersten Durchgang wird die "
+"Spitzenlautstärke ermittelt. Im zweiten Durchgang wird der Stream mit "
+"normierter Lautstärke transkodiert."
 
 #: lib/osd.c:76
 msgid "Enable OSD"
-msgstr ""
+msgstr "Aktiviere OSD"
 
 #: lib/osd.c:83
 msgid "Size"
-msgstr ""
+msgstr "Größe"
 
 #: lib/osd.c:89
 msgid ""
 "Specify fontsize for OSD. The value you enter, is for an image width of 640. "
 "For other widths, the value will be scaled"
 msgstr ""
+"Gib die Schriftgröße für OSD an. Der Wert gilt für eine Bildbreite von 640. "
+"Für andere Breiten wird er skaliert."
 
 #: lib/osd.c:160
 msgid "Bottom border"
-msgstr ""
+msgstr "Unterer Rand"
 
 #: lib/osd.c:169
 msgid "Duration (milliseconds)"
-msgstr ""
+msgstr "Dauer (Millisekunden)"
 
 #: lib/remote.c:96
 msgid "Setting up socket failed, this instance won't be reachable via remote"
 msgstr ""
+"Initialisierung des Sockets fehlgeschlagen. Diese Instanz wird nicht mit der "
+"Fernbedienung erreichbar sein."
 
 #: lib/remote.c:101
 #, c-format
 msgid "Remote socket listening at port %d"
-msgstr ""
+msgstr "Socket für Fernbedienung lauscht an Port %d"
 
 #: lib/remote.c:121
 msgid "Reading hello line failed"
-msgstr ""
+msgstr "Lesen der Begrüßungszeile fehlgeschlagen"
 
 #: lib/remote.c:130 lib/remote.c:428
 msgid "Protocol mismatch"
-msgstr ""
+msgstr "Protokolle stimmen nicht überein"
 
 #: lib/remote.c:181
 msgid "Client connection closed"
-msgstr ""
+msgstr "Clientverbindung geschlossen"
 
 #: lib/remote.c:205
 msgid "New client connection"
-msgstr ""
+msgstr "Neue Clientverbindung"
 
 #: lib/remote.c:294
 msgid "Allow connections from other machines"
-msgstr ""
+msgstr "Erlaube Verbindungen von anderen Maschinen"
 
 #: lib/remote.c:300
 msgid "Maximum number of connections"
-msgstr ""
+msgstr "Maximale Zahl der Verbindungen"
 
 #: lib/remote.c:400
 msgid "Connecting failed"
-msgstr ""
+msgstr "Verbindung fehlgeschlagen"
 
 #: lib/remote.c:411
 msgid "Sending initialization string failed"
-msgstr ""
+msgstr "Senden des Initialisierungsstrings fehlgeschlagen"
 
 #: lib/remote.c:419
 msgid "Reading welcome line failed"
-msgstr ""
+msgstr "Lesen der Bergrüßungszeile fehlgeschlagen"
 
 #: lib/player_input.c:144
 msgid "Aspect ratio changed"
-msgstr ""
+msgstr "Aspektverhältnis geändert"
 
 #: lib/player_input.c:370
 msgid "Cannot select track, skipping"
-msgstr ""
+msgstr "Kann Track nicht auswählen, überspringe"
 
 #: lib/player_input.c:411
-msgid "Stream has neither audio nor video, skipping"
-msgstr ""
+msgid "Track has neither audio nor video, skipping"
+msgstr "Track hat weder Audio noch Video, überspringe ihn."
 
-#: lib/player_input.c:463
+#: lib/player_input.c:467
 #, c-format
-msgid "Audio sample counter: %<PRId64>"
-msgstr ""
+msgid "Audio sample counter: %s"
+msgstr "Audiosamplezähler: %s"
 
-#: lib/player_input.c:465
+#: lib/player_input.c:472
 #, c-format
-msgid "Video frame counter: %<PRId64>"
-msgstr ""
+msgid "Video frame counter: %s"
+msgstr "Bilderzähler: %s"
 
-#: lib/player_input.c:854
+#: lib/player_input.c:861
 #, c-format
 msgid "Processed %s audio samples"
-msgstr ""
+msgstr "%s Audiosamples verarbeitet"
 
-#: lib/player_input.c:860
+#: lib/player_input.c:867
 #, c-format
 msgid "Processed %s video frames"
-msgstr ""
+msgstr "%s Videobilder verarbeitet"
 
-#: lib/player_input.c:992
+#: lib/player_input.c:999
 msgid "Input options"
-msgstr ""
+msgstr "Quellenoptionen"
 
-#: lib/player_input.c:998
+#: lib/player_input.c:1005
 msgid "Enable bypass mode"
-msgstr ""
+msgstr "Aktiviere Umgehungsmodus"
 
-#: lib/player_input.c:1001
+#: lib/player_input.c:1008
 msgid ""
 "Use input plugins in bypass mode if they support it (Currently only the "
 "audio CD player). This dramatically decreases CPU usage but doesn't work on "
 "all hardware setups."
 msgstr ""
+"Benutze Quellenplugins im Umgehungsmodus wenn sie es unterstützen (momentan "
+"nur der Audio-CD Spieler). Dies verringert die CPU-Belastung erheblich aber "
+"funktioniert nicht mit allen Hardwarekonfigurationen."
 
-#: lib/player_input.c:1011
+#: lib/player_input.c:1018
 msgid ""
 "When showing still images, gmerlin repeats them periodically to make "
 "realtime filter tweaking work."
 msgstr ""
+"Wenn Standbilder gezeigt werden, wiederholt Gmerlin sie periodisch. Dies "
+"ermöglicht Herumspielen an den Filtereinstellungen in Echtzeit. "
 
 #: lib/chapterlist.c:133
 #, c-format
 msgid "Chapter %d"
-msgstr ""
+msgstr "Kapitel %d"
 
 #: lib/stringutils.c:175
 #, c-format
 msgid "Cannot open file \"%s\" for writing"
-msgstr ""
+msgstr "Kann Datei \"%s\" nicht zum Schreiben öffnen"
 
 #: lib/stringutils.c:555
 #, c-format
 msgid "Could not create directory %s: %s"
-msgstr ""
+msgstr "Kann Verzeichnis %s nicht erstellen: %s"
 
 #: lib/socket.c:131
 msgid "Could not resolve address"
-msgstr ""
+msgstr "Kann Adresse nicht auflösen"
 
 #: lib/socket.c:148
 msgid "No known address space"
-msgstr ""
+msgstr "Unbekannter Adressraum"
 
 #: lib/socket.c:211
 #, c-format
 msgid "Cannot resolve address of %s: %s"
-msgstr ""
+msgstr "Kann Adresse von %s nicht auflösen: %s"
 
 #: lib/socket.c:246
 msgid "Cannot create socket"
-msgstr ""
+msgstr "Kann Socket nicht erzeugen"
 
 #: lib/socket.c:253 lib/socket.c:347 lib/socket.c:383
 msgid "Cannot set nonblocking mode"
-msgstr ""
+msgstr "Kann nicht in Nichtblockiermodus wechseln"
 
 #: lib/socket.c:268
 msgid "Connection timed out"
-msgstr ""
+msgstr "Zeitüberschreitung beim Verbinden"
 
 #: lib/socket.c:274
 #, c-format
 msgid "Connecting failed: %s"
-msgstr ""
+msgstr "Verbindung fehlgeschlagen: %s"
 
 #: lib/socket.c:283
 msgid "Cannot set blocking mode"
-msgstr ""
+msgstr "Kann nicht in Blockiermodus wechseln"
 
 #: lib/socket.c:297
 msgid "Cannot create unix socket"
-msgstr ""
+msgstr "Kann keinen UNIX-Socket erzeugen"
 
 #: lib/socket.c:308
 msgid "Connecting unix socket failed"
-msgstr ""
+msgstr "Verbindung vom UNIX-Socket fehlgeschlagen"
 
 #: lib/socket.c:332
 msgid "Cannot create inet server socket"
-msgstr ""
+msgstr "Kann keinen Inet-Serversocket erzeugen"
 
 #: lib/socket.c:342
 #, c-format
 msgid "Cannot bind inet socket: %s"
-msgstr ""
+msgstr "Kann Socket nicht binden: %s"
 
 #: lib/socket.c:352 lib/socket.c:388
 msgid "Cannot put socket into listening mode"
-msgstr ""
+msgstr "Kann Socket nicht in Lauschmodus schalten"
 
 #: lib/socket.c:368
 msgid "Cannot create unix server socket"
-msgstr ""
+msgstr "Kann keinen UNIX-Serversocket erzeugen"
 
 #: lib/socket.c:378
 msgid "Could not bind socket"
-msgstr ""
+msgstr "Kann Socket nicht binden"
 
 #: lib/player_oa.c:295
 #, c-format
 msgid "Got initial audio timestamp: %s"
-msgstr ""
+msgstr "Erster Audiozeitstempel erhalten: %s"
 
 #: lib/album_xml.c:226
 #, c-format
 msgid "Couldn't open album file %s"
-msgstr ""
+msgstr "Konnte Albumdatei %s nicht öffnen"
 
 #: lib/gtk/infowindow.c:503
 #, c-format
@@ -6585,15 +6622,15 @@ msgstr "Neues Album"
 #: lib/gtk/logwindow.c:238
 #, c-format
 msgid "%s messages"
-msgstr ""
+msgstr "%s Meldungen"
 
 #: lib/gtk/logwindow.c:328
 msgid "Number of messages"
-msgstr ""
+msgstr "Zahl der Meldungen"
 
 #: lib/gtk/logwindow.c:331
 msgid "Maximum number of messages hold in the window"
-msgstr ""
+msgstr "Maximale Zahl der Meldungen die im Fenster gehalten werden"
 
 #: lib/gtk/logwindow.c:335
 msgid "Show info messages"
@@ -6613,31 +6650,31 @@ msgstr "Zeige Debugmeldungen"
 
 #: lib/gtk/logwindow.c:359
 msgid "Info foreground"
-msgstr ""
+msgstr "Info Vordergrund"
 
 #: lib/gtk/logwindow.c:362
 msgid "Color for info messages"
-msgstr ""
+msgstr "Farbe für Infomeldungen"
 
 #: lib/gtk/logwindow.c:366
 msgid "Warning foreground"
-msgstr ""
+msgstr "Warnung Vordergrund"
 
 #: lib/gtk/logwindow.c:369
 msgid "Color for warning messages"
-msgstr ""
+msgstr "Farbe für Warnungen"
 
 #: lib/gtk/logwindow.c:376
 msgid "Color for error messages"
-msgstr ""
+msgstr "Farbe für Fehlermeldungen"
 
 #: lib/gtk/logwindow.c:380
 msgid "Debug foreground"
-msgstr ""
+msgstr "Debug Vordergrund"
 
 #: lib/gtk/logwindow.c:383
 msgid "Color for debug messages"
-msgstr ""
+msgstr "Farbe für Debugmeldungen"
 
 #: lib/gtk/question.c:93
 msgid "Question"
@@ -6645,11 +6682,11 @@ msgstr "Frage"
 
 #: lib/gtk/plugin_multi.c:270 lib/gtk/plugin_single.c:351
 msgid "Plugin info"
-msgstr ""
+msgstr "Plugininformation"
 
 #: lib/gtk/plugin_multi.c:273 lib/gtk/plugin_single.c:346
 msgid "Plugin options"
-msgstr ""
+msgstr "Pluginoptionen"
 
 #: lib/gtk/plugin_multi.c:384
 msgid "Priority"
@@ -6690,22 +6727,22 @@ msgstr "Lösche Kapitel"
 #: lib/gtk/cfg_time.c:216
 #, c-format
 msgid "%s (Hours)"
-msgstr ""
+msgstr "%s (Stunden)"
 
 #: lib/gtk/cfg_time.c:220
 #, c-format
 msgid "%s (Minutes)"
-msgstr ""
+msgstr "%s (Minuten)"
 
 #: lib/gtk/cfg_time.c:224
 #, c-format
 msgid "%s (Seconds)"
-msgstr ""
+msgstr "%s (Sekunden)"
 
 #: lib/gtk/cfg_time.c:228
 #, c-format
 msgid "%s (Milliseconds)"
-msgstr ""
+msgstr "%s (Millisekunden)"
 
 #: lib/gtk/cfg_time.c:252
 msgid "h:"
@@ -6721,7 +6758,7 @@ msgstr "s:"
 
 #: lib/gtk/cfg_time.c:265
 msgid "ms:"
-msgstr ""
+msgstr "ms:"
 
 #: lib/gtk/fileentry.c:85
 msgid "Select a directory"
@@ -6733,27 +6770,27 @@ msgstr "Wähle eine Datei"
 
 #: lib/gtk/fileentry.c:161 lib/gtk/cfg_font.c:197
 msgid "Browse..."
-msgstr ""
+msgstr "Durchsuchen..."
 
 #: lib/gtk/pluginmenu.c:36
 msgid "Auto Select"
-msgstr ""
+msgstr "Automatisch"
 
 #: lib/gtk/pluginmenu.c:107
 msgid "Plugin: "
-msgstr ""
+msgstr "Plugin: "
 
 #: lib/gtk/urlselect.c:177
 msgid "URL:"
-msgstr ""
+msgstr "URL:"
 
 #: lib/gtk/albumwidget.c:1122
 msgid "Track name"
-msgstr ""
+msgstr "Trackname"
 
 #: lib/gtk/albumwidget.c:1132
 msgid "Rename entry"
-msgstr ""
+msgstr "Eintrag umbenennen"
 
 #: lib/gtk/albumwidget.c:1144
 #, c-format
@@ -6804,7 +6841,7 @@ msgstr "Neu Laden"
 
 #: lib/gtk/albumwidget.c:1544
 msgid "Export as EDL"
-msgstr ""
+msgstr "Als EDL exportieren"
 
 #: lib/gtk/albumwidget.c:1557
 msgid "Save as..."
@@ -6828,7 +6865,7 @@ msgstr "Füge URLs hinzu"
 
 #: lib/gtk/albumwidget.c:2895
 msgid "Close album and eject disc"
-msgstr ""
+msgstr "Schließe Album und werfe Disk aus"
 
 #: lib/gtk/albumwidget.c:2901
 msgid "Copy selected tracks to favourites"
@@ -6844,23 +6881,23 @@ msgstr "Zeige Trackinformationen"
 
 #: lib/gtk/albumwidget.c:2910
 msgid "Find tracks"
-msgstr ""
+msgstr "Suche Tracks"
 
 #: lib/gtk/albumwidget.c:3111
 msgid "Backward search hit top, continuing at bottom"
-msgstr ""
+msgstr "Rückwärtssuche hat Angang erreicht, mache am Ende weiter"
 
 #: lib/gtk/albumwidget.c:3120
 msgid "Backward search: No tracks found"
-msgstr ""
+msgstr "Rückwärtssuche: Keine Tracks gefunden"
 
 #: lib/gtk/albumwidget.c:3139
 msgid "Forward search hit bottom, continuing at top"
-msgstr ""
+msgstr "Vorwärtssuche hat Ende erreicht. Mache am Anfang weiter"
 
 #: lib/gtk/albumwidget.c:3148
 msgid "Forward search: No tracks found"
-msgstr ""
+msgstr "Vorwärtssuche: Keine Tracks gefunden"
 
 #: lib/gtk/albumwidget.c:3272
 msgid "Exact match"
@@ -6868,7 +6905,7 @@ msgstr "Genaue Übereinstimmung"
 
 #: lib/gtk/albumwidget.c:3273
 msgid "String is an exact substring"
-msgstr ""
+msgstr "String ist ein exakter Teilstring"
 
 #: lib/gtk/albumwidget.c:3277
 msgid "Match case"
@@ -6900,17 +6937,20 @@ msgid ""
 "This is free software.  You may redistribute copies of it under the terms "
 "of\n"
 "the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\n"
-"There is NO WARRANTY, to the extent permitted by law."
+"There is NO WARRANTY."
 msgstr ""
+"Dies ist freie Software, die unter den Bedingungen der GNU General Public "
+"License <http://www.gnu.org/licenses/gpl.html> weitergegeben werden kann.\n"
+"Es gibt KEINE HAFTUNG."
 
 #: lib/gtk/treewindow.c:177
 msgid "Gmerlin Media Tree"
-msgstr ""
+msgstr "Gmerlin Media Tree"
 
 #: lib/gtk/cfg_multi_list.c:790
 #, c-format
 msgid "Add %s"
-msgstr ""
+msgstr "%s hinzufügen"
 
 #: lib/gtk/multiinfo.c:142
 #, c-format
@@ -6918,6 +6958,8 @@ msgid ""
 "Name:\t %s\n"
 "Label:\t %s"
 msgstr ""
+"Name:\t %s\n"
+"Bezeichnung:\t %s"
 
 #: lib/gtk/multiinfo.c:149
 msgid "Not available"
@@ -6958,15 +7000,15 @@ msgstr ""
 
 #: lib/gtk/albumentry.c:56
 msgid "Auto detect"
-msgstr ""
+msgstr "Automatisch"
 
 #: lib/gtk/cfg_position.c:148
 msgid "X"
-msgstr ""
+msgstr "X"
 
 #: lib/gtk/cfg_position.c:153
 msgid "Y"
-msgstr ""
+msgstr "Y"
 
 #: lib/gtk/plugininfo.c:152
 msgid "Audio output"
@@ -6978,31 +7020,31 @@ msgstr "Videoaufnahme"
 
 #: lib/gtk/plugininfo.c:156
 msgid "Audio encoder"
-msgstr ""
+msgstr "Audioenkoder"
 
 #: lib/gtk/plugininfo.c:157
 msgid "Video encoder"
-msgstr ""
+msgstr "Videoenkoder"
 
 #: lib/gtk/plugininfo.c:159
 msgid "Overlay subtitle exporter"
-msgstr ""
+msgstr "Exporteur für Overlayuntertitel"
 
 #: lib/gtk/plugininfo.c:160
 msgid "Audio/Video encoder"
-msgstr ""
+msgstr "Audio-/Videoenkoder"
 
 #: lib/gtk/plugininfo.c:161
 msgid "Image reader"
-msgstr ""
+msgstr "Bildimporteur"
 
 #: lib/gtk/plugininfo.c:162
 msgid "Image writer"
-msgstr ""
+msgstr "Bildexporteur"
 
 #: lib/gtk/plugininfo.c:163
 msgid "Encoding postprocessor"
-msgstr ""
+msgstr "Weiterverarbeitung"
 
 #: lib/gtk/plugininfo.c:164
 msgid "Audio filter"
@@ -7026,31 +7068,31 @@ msgstr "Wiedergabe"
 
 #: lib/gtk/plugininfo.c:182
 msgid "Bypass"
-msgstr ""
+msgstr "Umgehen"
 
 #: lib/gtk/plugininfo.c:183
 msgid "Keep Running"
-msgstr ""
+msgstr "Laufenlassen"
 
 #: lib/gtk/plugininfo.c:184
-msgid "Has Sync"
-msgstr ""
+msgid "Can Sync"
+msgstr "Kann synchronisieren"
 
 #: lib/gtk/plugininfo.c:185
 msgid "Tuner"
-msgstr ""
+msgstr "Tuner"
 
 #: lib/gtk/plugininfo.c:186
 msgid "Filter with 1 input"
-msgstr ""
+msgstr "Filter mit einem Eingang"
 
 #: lib/gtk/plugininfo.c:187
 msgid "Renders via gmerlin"
-msgstr ""
+msgstr "Rendert mit Gmerlin"
 
 #: lib/gtk/plugininfo.c:188
 msgid "Renders via OpenGL"
-msgstr ""
+msgstr "Rendert mit OpenGL"
 
 #: lib/gtk/plugininfo.c:258
 #, c-format
