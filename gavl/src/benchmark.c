@@ -756,17 +756,13 @@ static const struct
   }
 scale_modes[] =
   {
-#if 0
-    { GAVL_SCALE_NEAREST, "Nearest" },
+    //    { GAVL_SCALE_NEAREST, "Nearest" },
     { GAVL_SCALE_BILINEAR, "Linear"}, 
-#endif
-    { GAVL_SCALE_QUADRATIC, "Quadratic" },
-#if 0
-    { GAVL_SCALE_CUBIC_BSPLINE, "Cubic B-Spline" },
-    { GAVL_SCALE_CUBIC_CATMULL, "Cubic Catmull-Rom" },
-    { GAVL_SCALE_CUBIC_MITCHELL, "Cubic Mitchell-Netravali" },
-    { GAVL_SCALE_SINC_LANCZOS, "Sinc" },
-#endif
+    //    { GAVL_SCALE_QUADRATIC, "Quadratic" },
+    //    { GAVL_SCALE_CUBIC_BSPLINE, "Cubic B-Spline" },
+    //    { GAVL_SCALE_CUBIC_CATMULL, "Cubic Catmull-Rom" },
+    //    { GAVL_SCALE_CUBIC_MITCHELL, "Cubic Mitchell-Netravali" },
+    //    { GAVL_SCALE_SINC_LANCZOS, "Sinc" },
   };
 
 static void do_pixelformat(video_convert_context_t * ctx,

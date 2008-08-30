@@ -26,24 +26,27 @@
 
 #include "scale_macros.h"
 
+#define TMP_TYPE_8 int64_t
+#define TMP_TYPE_16 int64_t
+
 /* x-Direction */
 
 #define FUNC_NAME scale_rgb_15_x_bilinear_c
 #define TYPE color_15
-#define INIT int64_t tmp;
+#define INIT TMP_TYPE_8 tmp;
 #define SCALE                                                \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1->r +   \
-         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2->r);   \
+  tmp = ((TMP_TYPE_8)ctx->table_h.pixels[i].factor_i[0] * src_1->r +   \
+         (TMP_TYPE_8)ctx->table_h.pixels[i].factor_i[1] * src_2->r);   \
   tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,0);                                                        \
   dst->r = tmp;                                                    \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1->g +   \
-         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2->g);   \
+  tmp = ((TMP_TYPE_8)ctx->table_h.pixels[i].factor_i[0] * src_1->g +   \
+         (TMP_TYPE_8)ctx->table_h.pixels[i].factor_i[1] * src_2->g);   \
   tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,1);                                                        \
   dst->g = tmp; \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1->b +   \
-         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2->b);   \
+  tmp = ((TMP_TYPE_8)ctx->table_h.pixels[i].factor_i[0] * src_1->b +   \
+         (TMP_TYPE_8)ctx->table_h.pixels[i].factor_i[1] * src_2->b);   \
   tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,2);                                                        \
   dst->b = tmp;                                                    \
@@ -53,20 +56,20 @@
 
 #define FUNC_NAME scale_rgb_16_x_bilinear_c
 #define TYPE color_16
-#define INIT int64_t tmp;
+#define INIT TMP_TYPE_8 tmp;
 #define SCALE \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1->r +            \
-         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2->r);       \
+  tmp = ((TMP_TYPE_8)ctx->table_h.pixels[i].factor_i[0] * src_1->r +            \
+         (TMP_TYPE_8)ctx->table_h.pixels[i].factor_i[1] * src_2->r);       \
   tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,0);                                                     \
   dst->r = tmp;                                               \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1->g +      \
-         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2->g);       \
+  tmp = ((TMP_TYPE_8)ctx->table_h.pixels[i].factor_i[0] * src_1->g +      \
+         (TMP_TYPE_8)ctx->table_h.pixels[i].factor_i[1] * src_2->g);       \
   tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,1);                                                     \
   dst->g = tmp;                                               \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1->b + \
-         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2->b);\
+  tmp = ((TMP_TYPE_8)ctx->table_h.pixels[i].factor_i[0] * src_1->b + \
+         (TMP_TYPE_8)ctx->table_h.pixels[i].factor_i[1] * src_2->b);\
   tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,2);                                                     \
   dst->b = tmp;                                               \
@@ -76,10 +79,10 @@
 
 #define FUNC_NAME scale_uint8_x_1_x_bilinear_c
 #define TYPE uint8_t
-#define INIT int64_t tmp;
+#define INIT TMP_TYPE_8 tmp;
 #define SCALE \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[0] +            \
-         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0]);            \
+  tmp = ((TMP_TYPE_8)ctx->table_h.pixels[i].factor_i[0] * src_1[0] +            \
+         (TMP_TYPE_8)ctx->table_h.pixels[i].factor_i[1] * src_2[0]);            \
   tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,ctx->plane);                                                \
   dst[0] = tmp;
@@ -89,15 +92,15 @@
 
 #define FUNC_NAME scale_uint8_x_2_x_bilinear_c
 #define TYPE uint8_t
-#define INIT int64_t tmp;
+#define INIT TMP_TYPE_8 tmp;
 #define SCALE \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[0] +            \
-         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0]);       \
+  tmp = ((TMP_TYPE_8)ctx->table_h.pixels[i].factor_i[0] * src_1[0] +            \
+         (TMP_TYPE_8)ctx->table_h.pixels[i].factor_i[1] * src_2[0]);       \
   tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,0);                                                         \
   dst[0] = tmp;                                                    \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[1] +            \
-         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[1]);       \
+  tmp = ((TMP_TYPE_8)ctx->table_h.pixels[i].factor_i[0] * src_1[1] +            \
+         (TMP_TYPE_8)ctx->table_h.pixels[i].factor_i[1] * src_2[1]);       \
   tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,1);                                                          \
   dst[1] = tmp;
@@ -107,20 +110,20 @@
 
 #define FUNC_NAME scale_uint8_x_3_x_bilinear_c
 #define TYPE uint8_t
-#define INIT int64_t tmp;
+#define INIT TMP_TYPE_8 tmp;
 #define SCALE \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[0] +            \
-         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0]);       \
+  tmp = ((TMP_TYPE_8)ctx->table_h.pixels[i].factor_i[0] * src_1[0] +            \
+         (TMP_TYPE_8)ctx->table_h.pixels[i].factor_i[1] * src_2[0]);       \
   tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,0);                                                         \
   dst[0] = tmp;                                                    \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[1] +            \
-         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[1]);       \
+  tmp = ((TMP_TYPE_8)ctx->table_h.pixels[i].factor_i[0] * src_1[1] +            \
+         (TMP_TYPE_8)ctx->table_h.pixels[i].factor_i[1] * src_2[1]);       \
   tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,1);                                                          \
   dst[1] = tmp;                                                    \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[2] +            \
-         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[2]);       \
+  tmp = ((TMP_TYPE_8)ctx->table_h.pixels[i].factor_i[0] * src_1[2] +            \
+         (TMP_TYPE_8)ctx->table_h.pixels[i].factor_i[1] * src_2[2]);       \
   tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,2);                                                          \
   dst[2] = tmp;
@@ -130,25 +133,25 @@
 
 #define FUNC_NAME scale_uint8_x_4_x_bilinear_c
 #define TYPE uint8_t
-#define INIT int64_t tmp;
+#define INIT TMP_TYPE_8 tmp;
 #define SCALE \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[0] +            \
-         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0]);            \
+  tmp = ((TMP_TYPE_8)ctx->table_h.pixels[i].factor_i[0] * src_1[0] +            \
+         (TMP_TYPE_8)ctx->table_h.pixels[i].factor_i[1] * src_2[0]);            \
   tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,0);                                                         \
   dst[0] = tmp;                                                    \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[1] +            \
-         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[1]);            \
+  tmp = ((TMP_TYPE_8)ctx->table_h.pixels[i].factor_i[0] * src_1[1] +            \
+         (TMP_TYPE_8)ctx->table_h.pixels[i].factor_i[1] * src_2[1]);            \
   tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,1);                                                          \
   dst[1] = tmp;                                                    \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[2] +            \
-         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[2]);            \
+  tmp = ((TMP_TYPE_8)ctx->table_h.pixels[i].factor_i[0] * src_1[2] +            \
+         (TMP_TYPE_8)ctx->table_h.pixels[i].factor_i[1] * src_2[2]);            \
   tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,2);                                                          \
   dst[2] = tmp;                                                    \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[3] +            \
-         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[3]);            \
+  tmp = ((TMP_TYPE_8)ctx->table_h.pixels[i].factor_i[0] * src_1[3] +            \
+         (TMP_TYPE_8)ctx->table_h.pixels[i].factor_i[1] * src_2[3]);            \
   tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,3);                                                          \
   dst[3] = tmp;
@@ -158,10 +161,10 @@
 
 #define FUNC_NAME scale_uint16_x_1_x_bilinear_c
 #define TYPE uint16_t
-#define INIT int64_t tmp;
+#define INIT TMP_TYPE_16 tmp;
 #define SCALE                                                \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[0] + \
-         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0]); \
+  tmp = ((TMP_TYPE_16)ctx->table_h.pixels[i].factor_i[0] * src_1[0] + \
+         (TMP_TYPE_16)ctx->table_h.pixels[i].factor_i[1] * src_2[0]); \
   tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,ctx->plane);                                             \
   dst[0] = tmp;
@@ -171,15 +174,15 @@
 
 #define FUNC_NAME scale_uint16_x_2_x_bilinear_c
 #define TYPE uint16_t
-#define INIT int64_t tmp;
+#define INIT TMP_TYPE_16 tmp;
 #define SCALE                                                           \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[0] +   \
-         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0]); \
+  tmp = ((TMP_TYPE_16)ctx->table_h.pixels[i].factor_i[0] * src_1[0] +   \
+         (TMP_TYPE_16)ctx->table_h.pixels[i].factor_i[1] * src_2[0]); \
   tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,0);                                                       \
   dst[0] = tmp; \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[1] + \
-         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[1]); \
+  tmp = ((TMP_TYPE_16)ctx->table_h.pixels[i].factor_i[0] * src_1[1] + \
+         (TMP_TYPE_16)ctx->table_h.pixels[i].factor_i[1] * src_2[1]); \
   tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,1);                                               \
   dst[1] = tmp;
@@ -190,20 +193,20 @@
 
 #define FUNC_NAME scale_uint16_x_3_x_bilinear_c
 #define TYPE uint16_t
-#define INIT int64_t tmp;
+#define INIT TMP_TYPE_16 tmp;
 #define SCALE                                                           \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[0] +   \
-         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0]); \
+  tmp = ((TMP_TYPE_16)ctx->table_h.pixels[i].factor_i[0] * src_1[0] +   \
+         (TMP_TYPE_16)ctx->table_h.pixels[i].factor_i[1] * src_2[0]); \
   tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,0);                                                       \
   dst[0] = tmp; \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[1] + \
-         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[1]); \
+  tmp = ((TMP_TYPE_16)ctx->table_h.pixels[i].factor_i[0] * src_1[1] + \
+         (TMP_TYPE_16)ctx->table_h.pixels[i].factor_i[1] * src_2[1]); \
   tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,1);                                               \
   dst[1] = tmp; \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[2] + \
-         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[2]); \
+  tmp = ((TMP_TYPE_16)ctx->table_h.pixels[i].factor_i[0] * src_1[2] + \
+         (TMP_TYPE_16)ctx->table_h.pixels[i].factor_i[1] * src_2[2]); \
   tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,2);                                               \
   dst[2] = tmp;
@@ -213,25 +216,25 @@
 
 #define FUNC_NAME scale_uint16_x_4_x_bilinear_c
 #define TYPE uint16_t
-#define INIT int64_t tmp;
+#define INIT TMP_TYPE_16 tmp;
 #define SCALE                                                           \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[0] + \
-         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[0]); \
+  tmp = ((TMP_TYPE_16)ctx->table_h.pixels[i].factor_i[0] * src_1[0] + \
+         (TMP_TYPE_16)ctx->table_h.pixels[i].factor_i[1] * src_2[0]); \
   tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,0);                                               \
   dst[0] = tmp; \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[1] + \
-         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[1]); \
+  tmp = ((TMP_TYPE_16)ctx->table_h.pixels[i].factor_i[0] * src_1[1] + \
+         (TMP_TYPE_16)ctx->table_h.pixels[i].factor_i[1] * src_2[1]); \
   tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,1);                                               \
   dst[1] = tmp; \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[2] + \
-         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[2]); \
+  tmp = ((TMP_TYPE_16)ctx->table_h.pixels[i].factor_i[0] * src_1[2] + \
+         (TMP_TYPE_16)ctx->table_h.pixels[i].factor_i[1] * src_2[2]); \
   tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,2);                                               \
   dst[2] = tmp; \
-  tmp = ((int64_t)ctx->table_h.pixels[i].factor_i[0] * src_1[3] + \
-         (int64_t)ctx->table_h.pixels[i].factor_i[1] * src_2[3]); \
+  tmp = ((TMP_TYPE_16)ctx->table_h.pixels[i].factor_i[0] * src_1[3] + \
+         (TMP_TYPE_16)ctx->table_h.pixels[i].factor_i[1] * src_2[3]); \
   tmp=DOWNSHIFT(tmp,16);\
   RECLIP_H(tmp,3);                                                       \
   dst[3] = tmp;
