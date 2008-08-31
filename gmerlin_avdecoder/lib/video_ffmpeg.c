@@ -1395,13 +1395,24 @@ static codec_info_t codec_infos[] =
     /*     CODEC_ID_DVVIDEO, */
     { "FFmpeg DV decoder", "DV Video", CODEC_ID_DVVIDEO,
       (uint32_t[]){ BGAV_MK_FOURCC('d', 'v', 's', 'd'), 
-               BGAV_MK_FOURCC('D', 'V', 'S', 'D'), 
-               BGAV_MK_FOURCC('d', 'v', 'h', 'd'), 
-               BGAV_MK_FOURCC('d', 'v', 'c', ' '), 
-               BGAV_MK_FOURCC('d', 'v', 'c', 'p'), 
-               BGAV_MK_FOURCC('d', 'v', 'p', 'p'), 
-               BGAV_MK_FOURCC('d', 'v', 's', 'l'), 
-               BGAV_MK_FOURCC('d', 'v', '2', '5'),
+                    BGAV_MK_FOURCC('D', 'V', 'S', 'D'), 
+                    BGAV_MK_FOURCC('d', 'v', 'h', 'd'), 
+                    BGAV_MK_FOURCC('d', 'v', 's', 'l'), 
+                    BGAV_MK_FOURCC('d', 'v', '2', '5'),
+
+                    BGAV_MK_FOURCC('d', 'v', 'c', 'p') , /* DV PAL */
+                    BGAV_MK_FOURCC('d', 'v', 'c', ' ') , /* DV NTSC */
+                    BGAV_MK_FOURCC('d', 'v', 'p', 'p') , /* DVCPRO PAL produced by FCP */
+                    BGAV_MK_FOURCC('d', 'v', '5', 'p') , /* DVCPRO50 PAL produced by FCP */
+                    BGAV_MK_FOURCC('d', 'v', '5', 'n') , /* DVCPRO50 NTSC produced by FCP */
+                    BGAV_MK_FOURCC('A', 'V', 'd', 'v') , /* AVID DV */
+                    BGAV_MK_FOURCC('A', 'V', 'd', '1') , /* AVID DV */
+                    BGAV_MK_FOURCC('d', 'v', 'h', 'q') , /* DVCPRO HD 720p50 */
+                    BGAV_MK_FOURCC('d', 'v', 'h', 'p') , /* DVCPRO HD 720p60 */
+                    BGAV_MK_FOURCC('d', 'v', 'h', '5') , /* DVCPRO HD 50i produced by FCP */
+                    BGAV_MK_FOURCC('d', 'v', 'h', '6') , /* DVCPRO HD 60i produced by FCP */
+                    BGAV_MK_FOURCC('d', 'v', 'h', '3') , /* DVCPRO HD 30p produced by FCP */
+                    
                0x00 } },
     
     { "FFmpeg DVCPRO50 decoder", "DVCPRO50 Video", CODEC_ID_DVVIDEO,

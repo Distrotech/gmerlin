@@ -50,6 +50,7 @@ typedef struct AVRational{
 typedef struct DVprofile
   {
   int              dsf;                 /* value of the dsf in the DV header */
+  int              video_stype;         /* stype for VAUX source pack */
   int              frame_size;          /* total size of one frame in bytes */
   int              difseg_size;         /* number of DIF segments per DIF channel */
   int              n_difchan;           /* number of DIF channels per frame */
@@ -61,7 +62,8 @@ typedef struct DVprofile
   AVRational       sar[2];              /* sample aspect ratios for 4:3 and 16:9 */
   //  const uint16_t  *video_place;         /* positions of all DV macro blocks */
   gavl_pixelformat_t pix_fmt;             /* picture pixel format */
-  
+  int              bpm;                 /* blocks per macroblock */
+  // const uint8_t   *block_sizes;         /* AC block sizes, in bits */
   int              audio_stride;        /* size of audio_shuffle table */
   int              audio_min_samples[3];/* min ammount of audio samples */
   /* for 48Khz, 44.1Khz and 32Khz */
@@ -100,11 +102,9 @@ static const uint16_t dv_audio_shuffle625[12][9] = {
   {  31,  67, 103,  21,  57,  93,  11,  47,  83},
 };
 
-
-
-static const DVprofile dv_profiles[] =
-  {
+static const DVprofile dv_profiles[] = {
     { .dsf = 0,
+      .video_stype = 0x0,
       .frame_size = 120000,        /* IEC 61834, SMPTE-314M - 525/60 (NTSC) */
       .difseg_size = 10,
       .n_difchan = 1,
@@ -116,12 +116,15 @@ static const DVprofile dv_profiles[] =
       .sar = {{10, 11}, {40, 33}},
       //      .video_place = dv_place_411,
       .pix_fmt = GAVL_YUV_411_P,
+      .bpm = 6,
+      //      .block_sizes = block_sizes_dv2550,
       .audio_stride = 90,
       .audio_min_samples = { 1580, 1452, 1053 }, /* for 48, 44.1 and 32Khz */
       .audio_samples_dist = { 1600, 1602, 1602, 1602, 1602 }, /* per SMPTE-314M */
       .audio_shuffle = dv_audio_shuffle525,
     },
     { .dsf = 1,
+      .video_stype = 0x0,
       .frame_size = 144000,        /* IEC 61834 - 625/50 (PAL) */
       .difseg_size = 12,
       .n_difchan = 1,
@@ -133,12 +136,15 @@ static const DVprofile dv_profiles[] =
       .sar = {{59, 54}, {118, 81}},
       //      .video_place = dv_place_420,
       .pix_fmt = GAVL_YUV_420_P,
+      .bpm = 6,
+      //      .block_sizes = block_sizes_dv2550,
       .audio_stride = 108,
       .audio_min_samples = { 1896, 1742, 1264 }, /* for 48, 44.1 and 32Khz */
       .audio_samples_dist = { 1920, 1920, 1920, 1920, 1920 },
-      .audio_shuffle = dv_audio_shuffle625,
+      //      .audio_shuffle = dv_audio_shuffle625,
     },
     { .dsf = 1,
+      .video_stype = 0x0,
       .frame_size = 144000,        /* SMPTE-314M - 625/50 (PAL) */
       .difseg_size = 12,
       .n_difchan = 1,
@@ -148,14 +154,17 @@ static const DVprofile dv_profiles[] =
       .height = 576,
       .width = 720,
       .sar = {{59, 54}, {118, 81}},
-//      .video_place = dv_place_411P,
+      //      .video_place = dv_place_411P,
       .pix_fmt = GAVL_YUV_411_P,
+      .bpm = 6,
+      //      .block_sizes = block_sizes_dv2550,
       .audio_stride = 108,
       .audio_min_samples = { 1896, 1742, 1264 }, /* for 48, 44.1 and 32Khz */
       .audio_samples_dist = { 1920, 1920, 1920, 1920, 1920 },
       .audio_shuffle = dv_audio_shuffle625,
     },
     { .dsf = 0,
+      .video_stype = 0x4,
       .frame_size = 240000,        /* SMPTE-314M - 525/60 (NTSC) 50 Mbps */
       .difseg_size = 10,           /* also known as "DVCPRO50" */
       .n_difchan = 2,
@@ -165,14 +174,17 @@ static const DVprofile dv_profiles[] =
       .height = 480,
       .width = 720,
       .sar = {{10, 11}, {40, 33}},
-//      .video_place = dv_place_422_525,
+      //      .video_place = dv_place_422_525,
       .pix_fmt = GAVL_YUV_422_P,
+      .bpm = 6,
+      //      .block_sizes = block_sizes_dv2550,
       .audio_stride = 90,
       .audio_min_samples = { 1580, 1452, 1053 }, /* for 48, 44.1 and 32Khz */
       .audio_samples_dist = { 1600, 1602, 1602, 1602, 1602 }, /* per SMPTE-314M */
       .audio_shuffle = dv_audio_shuffle525,
     },
     { .dsf = 1,
+      .video_stype = 0x4,
       .frame_size = 288000,        /* SMPTE-314M - 625/50 (PAL) 50 Mbps */
       .difseg_size = 12,           /* also known as "DVCPRO50" */
       .n_difchan = 2,
@@ -182,14 +194,98 @@ static const DVprofile dv_profiles[] =
       .height = 576,
       .width = 720,
       .sar = {{59, 54}, {118, 81}},
-//      .video_place = dv_place_422_625,
+      //      .video_place = dv_place_422_625,
       .pix_fmt = GAVL_YUV_422_P,
+      .bpm = 6,
+      //      .block_sizes = block_sizes_dv2550,
       .audio_stride = 108,
       .audio_min_samples = { 1896, 1742, 1264 }, /* for 48, 44.1 and 32Khz */
       .audio_samples_dist = { 1920, 1920, 1920, 1920, 1920 },
       .audio_shuffle = dv_audio_shuffle625,
+    },
+    { .dsf = 0,
+      .video_stype = 0x14,
+      .frame_size = 480000,        /* SMPTE-370M - 1080i60 100 Mbps */
+      .difseg_size = 10,           /* also known as "DVCPRO HD" */
+      .n_difchan = 4,
+      .frame_rate = 30000,
+      .ltc_divisor = 30,
+      .frame_rate_base = 1001,
+      .height = 1080,
+      .width = 1280,
+      .sar = {{1, 1}, {1, 1}},
+      //      .video_place = dv_place_1080i60,
+      .pix_fmt = GAVL_YUV_422_P,
+      .bpm = 8,
+      //      .block_sizes = block_sizes_dv100,
+      .audio_stride = 90,
+      .audio_min_samples = { 1580, 1452, 1053 }, /* for 48, 44.1 and 32Khz */
+      .audio_samples_dist = { 1600, 1602, 1602, 1602, 1602 }, /* per SMPTE-314M */
+      .audio_shuffle = dv_audio_shuffle525,
+    },
+    { .dsf = 1,
+      .video_stype = 0x14,
+      .frame_size = 576000,        /* SMPTE-370M - 1080i50 100 Mbps */
+      .difseg_size = 12,           /* also known as "DVCPRO HD" */
+      .n_difchan = 4,
+      .frame_rate = 25,
+      .frame_rate_base = 1,
+      .ltc_divisor = 25,
+      .height = 1080,
+      .width = 1440,
+      .sar = {{1, 1}, {1, 1}},
+      //      .video_place = dv_place_1080i50,
+      .pix_fmt = GAVL_YUV_422_P,
+      .bpm = 8,
+      //      .block_sizes = block_sizes_dv100,
+      .audio_stride = 108,
+      .audio_min_samples = { 1896, 1742, 1264 }, /* for 48, 44.1 and 32Khz */
+      .audio_samples_dist = { 1920, 1920, 1920, 1920, 1920 },
+      .audio_shuffle = dv_audio_shuffle625,
+    },
+    { .dsf = 0,
+      .video_stype = 0x18,
+      .frame_size = 240000,        /* SMPTE-370M - 720p60 100 Mbps */
+      .difseg_size = 10,           /* also known as "DVCPRO HD" */
+      .n_difchan = 2,
+      .frame_rate = 60000,
+      .ltc_divisor = 60,
+      .frame_rate_base = 1001,
+      .height = 720,
+      .width = 960,
+      .sar = {{1, 1}, {1, 1}},
+      //      .video_place = dv_place_720p60,
+      .pix_fmt = GAVL_YUV_422_P,
+      .bpm = 8,
+      //      .block_sizes = block_sizes_dv100,
+      .audio_stride = 90,
+      .audio_min_samples = { 1580, 1452, 1053 }, /* for 48, 44.1 and 32Khz */
+      .audio_samples_dist = { 1600, 1602, 1602, 1602, 1602 }, /* per SMPTE-314M */
+      .audio_shuffle = dv_audio_shuffle525,
+    },
+    { .dsf = 1,
+      .video_stype = 0x18,
+      .frame_size = 288000,        /* SMPTE-370M - 720p50 100 Mbps */
+      .difseg_size = 12,           /* also known as "DVCPRO HD" */
+      .n_difchan = 2,
+      .frame_rate = 50,
+      .ltc_divisor = 50,
+      .frame_rate_base = 1,
+      .height = 720,
+      .width = 960,
+      .sar = {{1, 1}, {1, 1}},
+      //      .video_place = dv_place_720p50,
+      .pix_fmt = GAVL_YUV_422_P,
+      .bpm = 8,
+      //      .block_sizes = block_sizes_dv100,
+      .audio_stride = 90,
+      .audio_min_samples = { 1580, 1452, 1053 }, /* for 48, 44.1 and 32Khz */
+      .audio_samples_dist = { 1600, 1602, 1602, 1602, 1602 }, /* per SMPTE-314M */
+      .audio_shuffle = dv_audio_shuffle525,
     }
-  };
+};
+
+#if 0
 
 static const DVprofile* dv_frame_profile(uint8_t* frame)
   {
@@ -220,6 +316,28 @@ static const DVprofile* dv_frame_profile(uint8_t* frame)
       return &dv_profiles[2]; /* PAL 25Mbps 4:1:1 */
     }
   }
+
+#else
+static const DVprofile* dv_frame_profile(const uint8_t* frame)
+{
+   int i;
+
+   int dsf = (frame[3] & 0x80) >> 7;
+
+   int stype = frame[80*5 + 48 + 3] & 0x1f;
+
+   /* 576i50 25Mbps 4:1:1 is a special case */
+   if (dsf == 1 && stype == 0 && frame[5] & 0x07) {
+       return &dv_profiles[2];
+   }
+
+   for (i=0; i<sizeof(dv_profiles)/sizeof(DVprofile); i++)
+       if (dsf == dv_profiles[i].dsf && stype == dv_profiles[i].video_stype)
+           return &dv_profiles[i];
+
+   return NULL;
+}
+#endif
 
 enum dv_pack_type {
      dv_header525     = 0x3f, /* see dv_write_pack for important details on */
@@ -274,7 +392,9 @@ struct bgav_dv_dec_s
   
   int64_t frame_counter;
   int64_t sample_counter;
+  int ach;
   };
+
 
 bgav_dv_dec_t * bgav_dv_dec_create()
   {
@@ -317,8 +437,8 @@ static const int dv_audio_frequency[3] = {
 void bgav_dv_dec_init_audio(bgav_dv_dec_t * d, bgav_stream_t * s)
   {
   const uint8_t* as_pack;
-  int freq, stype, smpls, quant, ach;
-
+  int freq, stype, smpls, quant;
+  
   as_pack = dv_extract_pack(d->buffer, dv_audio_source);
   if (!as_pack || !d->profile)
     {    /* No audio ? */
@@ -331,15 +451,18 @@ void bgav_dv_dec_init_audio(bgav_dv_dec_t * d, bgav_stream_t * s)
   quant = as_pack[4] & 0x07; /* 0 - 16bit linear, 1 - 12bit nonlinear */
 
   /* note: ach counts PAIRS of channels (i.e. stereo channels) */
-  ach = (stype == 2 || (quant && (freq == 2))) ? 2 : 1;
-
+  if(stype == 3)
+    d->ach = 4;
+  else
+    d->ach = (stype == 2 || (quant && (freq == 2))) ? 2 : 1;
+  
   s->data.audio.format.samplerate = dv_audio_frequency[freq];
   
-  s->data.audio.format.num_channels = ach * 2;
+  s->data.audio.format.num_channels = d->ach * 2;
   //  s->data.audio.format.num_channels = dv_is_4ch(d->dv) ? 4 : 2;
   s->data.audio.format.sample_format =  GAVL_SAMPLE_S16;
 
-  if(ach == 1)
+  if(d->ach == 1)
     s->data.audio.format.interleave_mode =  GAVL_INTERLEAVE_ALL;
   else
     s->data.audio.format.interleave_mode =  GAVL_INTERLEAVE_2;
@@ -436,108 +559,108 @@ static inline uint16_t dv_audio_12to16(uint16_t sample)
   return result;
   }
 
-static int dv_extract_audio(uint8_t* frame, uint8_t* pcm, uint8_t* pcm2,
+static int dv_extract_audio(uint8_t* frame, uint8_t* ppcm[4],
                             const DVprofile *sys)
-  {
-  int size, chan, i, j, d, of, smpls, freq, quant, half_ch;
-  uint16_t lc, rc;
-  const uint8_t* as_pack;
+{
+    int size, chan, i, j, d, of, smpls, freq, quant, half_ch;
+    uint16_t lc, rc;
+    const uint8_t* as_pack;
+    uint8_t *pcm, ipcm;
 
-  as_pack = dv_extract_pack(frame, dv_audio_source);
-  if (!as_pack)    /* No audio ? */
-    return 0;
+    as_pack = dv_extract_pack(frame, dv_audio_source);
+    if (!as_pack)    /* No audio ? */
+        return 0;
 
-  smpls = as_pack[1] & 0x3f; /* samples in this frame - min. samples */
-  freq = (as_pack[4] >> 3) & 0x07; /* 0 - 48KHz, 1 - 44,1kHz, 2 - 32 kHz */
-  quant = as_pack[4] & 0x07; /* 0 - 16bit linear, 1 - 12bit nonlinear */
+    smpls = as_pack[1] & 0x3f; /* samples in this frame - min. samples */
+    freq = (as_pack[4] >> 3) & 0x07; /* 0 - 48KHz, 1 - 44,1kHz, 2 - 32 kHz */
+    quant = as_pack[4] & 0x07; /* 0 - 16bit linear, 1 - 12bit nonlinear */
 
-  if (quant > 1)
-    return -1; /* Unsupported quantization */
+    if (quant > 1)
+        return -1; /* Unsupported quantization */
 
-  size = (sys->audio_min_samples[freq] + smpls) * 4; /* 2ch, 2bytes */
-  half_ch = sys->difseg_size/2;
+    size = (sys->audio_min_samples[freq] + smpls) * 4; /* 2ch, 2bytes */
+    half_ch = sys->difseg_size/2;
 
-  /* for each DIF channel */
-  for (chan = 0; chan < sys->n_difchan; chan++)
-    {
-    /* for each DIF segment */
-    for (i = 0; i < sys->difseg_size; i++)
-      {
-      frame += 6 * 80; /* skip DIF segment header */
-      if (quant == 1 && i == half_ch)
-        {
-        /* next stereo channel (12bit mode only) */
-        if (!pcm2)
-          break;
-        else
-          pcm = pcm2;
-        }
-      
-      /* for each AV sequence */
-      for (j = 0; j < 9; j++)
-        {
-        for (d = 8; d < 80; d += 2)
-          {
-          if (quant == 0)
-            {  /* 16bit quantization */
-            of = sys->audio_shuffle[i][j] + (d - 8)/2 * sys->audio_stride;
-            if (of*2 >= size)
-              continue;
-            
-            pcm[of*2] = frame[d+1]; // FIXME: may be we have to admit
-            pcm[of*2+1] = frame[d]; //        that DV is a big endian PCM
-            if (pcm[of*2+1] == 0x80 && pcm[of*2] == 0x00)
-              pcm[of*2+1] = 0;
+    /* We work with 720p frames split in half, thus even frames have channels 0,1 and odd 2,3 */
+    ipcm = (sys->height == 720 && ((frame[1]>>2)&0x3) == 0)?2:0;
+    pcm = ppcm[ipcm++];
+
+    /* for each DIF channel */
+    for (chan = 0; chan < sys->n_difchan; chan++) {
+        /* for each DIF segment */
+        for (i = 0; i < sys->difseg_size; i++) {
+            frame += 6 * 80; /* skip DIF segment header */
+            if (quant == 1 && i == half_ch) {
+                /* next stereo channel (12bit mode only) */
+                pcm = ppcm[ipcm++];
+                if (!pcm)
+                    break;
             }
-          else
-            {           /* 12bit quantization */
-            lc = ((uint16_t)frame[d] << 4) |
-              ((uint16_t)frame[d+2] >> 4);
-            rc = ((uint16_t)frame[d+1] << 4) |
-              ((uint16_t)frame[d+2] & 0x0f);
-            lc = (lc == 0x800 ? 0 : dv_audio_12to16(lc));
-            rc = (rc == 0x800 ? 0 : dv_audio_12to16(rc));
-            
-            of = sys->audio_shuffle[i%half_ch][j] + (d - 8)/3 * sys->audio_stride;
-            if (of*2 >= size)
-              continue;
-            
-            pcm[of*2] = lc & 0xff; // FIXME: may be we have to admit
-            pcm[of*2+1] = lc >> 8; //        that DV is a big endian PCM
-            of = sys->audio_shuffle[i%half_ch+half_ch][j] +
-              (d - 8)/3 * sys->audio_stride;
-            pcm[of*2] = rc & 0xff; // FIXME: may be we have to admit
-            pcm[of*2+1] = rc >> 8; //        that DV is a big endian PCM
-            ++d;
+
+            /* for each AV sequence */
+            for (j = 0; j < 9; j++) {
+                for (d = 8; d < 80; d += 2) {
+                    if (quant == 0) {  /* 16bit quantization */
+                        of = sys->audio_shuffle[i][j] + (d - 8)/2 * sys->audio_stride;
+                        if (of*2 >= size)
+                            continue;
+
+                        pcm[of*2] = frame[d+1]; // FIXME: may be we have to admit
+                        pcm[of*2+1] = frame[d]; //        that DV is a big endian PCM
+                        if (pcm[of*2+1] == 0x80 && pcm[of*2] == 0x00)
+                            pcm[of*2+1] = 0;
+                    } else {           /* 12bit quantization */
+                        lc = ((uint16_t)frame[d] << 4) |
+                             ((uint16_t)frame[d+2] >> 4);
+                        rc = ((uint16_t)frame[d+1] << 4) |
+                             ((uint16_t)frame[d+2] & 0x0f);
+                        lc = (lc == 0x800 ? 0 : dv_audio_12to16(lc));
+                        rc = (rc == 0x800 ? 0 : dv_audio_12to16(rc));
+
+                        of = sys->audio_shuffle[i%half_ch][j] + (d - 8)/3 * sys->audio_stride;
+                        if (of*2 >= size)
+                            continue;
+
+                        pcm[of*2] = lc & 0xff; // FIXME: may be we have to admit
+                        pcm[of*2+1] = lc >> 8; //        that DV is a big endian PCM
+                        of = sys->audio_shuffle[i%half_ch+half_ch][j] +
+                            (d - 8)/3 * sys->audio_stride;
+                        pcm[of*2] = rc & 0xff; // FIXME: may be we have to admit
+                        pcm[of*2+1] = rc >> 8; //        that DV is a big endian PCM
+                        ++d;
+                    }
+                }
+
+                frame += 16 * 80; /* 15 Video DIFs + 1 Audio DIF */
             }
-          }
-        
-        frame += 16 * 80; /* 15 Video DIFs + 1 Audio DIF */
         }
-      }
-    
-    /* next stereo channel (50Mbps only) */
-    if(!pcm2)
-      break;
-    pcm = pcm2;
+
+        /* next stereo channel (50Mbps and 100Mbps only) */
+        pcm = ppcm[ipcm++];
+        if (!pcm)
+            break;
     }
-  
-  return size / 4;
-  }
+
+    return size;
+}
 
 
 int bgav_dv_dec_get_audio_packet(bgav_dv_dec_t * d, bgav_packet_t * p)
   {
-  int samples;
+  int samples, i;
+
+  uint8_t * pcm[4];
+
+  for(i = 0; i < d->ach; i++)
+    pcm[i] = p->audio_frame->channels.u_8[i*2];
+  
   if(p)
     {
     if(!p->audio_frame)
       p->audio_frame = gavl_audio_frame_create(&(d->audio_format));
     
     samples = dv_extract_audio(d->buffer,
-                               p->audio_frame->channels.u_8[0],
-                               p->audio_frame->channels.u_8[2],
-                               d->profile);
+                               pcm, d->profile);
     p->keyframe = 1;
     p->pts = d->sample_counter;
     p->audio_frame->valid_samples = samples;
