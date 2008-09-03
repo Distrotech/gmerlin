@@ -84,6 +84,8 @@ static void set_pts(bgav_stream_t * s, stream_priv_t * sp,
       p->duration = s->data.video.format.frame_duration;
       sp->pts_counter += p->duration;
       }
+    if(sp->frame_size)
+      p->keyframe = 1;
     }
   else if(s->type == BGAV_STREAM_AUDIO)
     {
@@ -816,6 +818,10 @@ static void resync_mxf(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
   {
   stream_priv_t * sp = s->priv;
   sp->pts_counter = s->in_time;
+  
+  if(s->file_index)
+    sp->pos = s->file_index->entries[s->index_position].position;
+  
   }
 
 const bgav_demuxer_t bgav_demuxer_mxf =
