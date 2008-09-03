@@ -133,10 +133,12 @@ static int open_p2xml(bgav_demuxer_context_t * ctx, bgav_yml_node_t * yml)
   const char * root_name = (const char*)0;
   char * filename;
   char * tmp_string;
-
+  const char * attr;
   int duration = 0;
   int edit_unit_num = 0;
   int edit_unit_den = 0;
+
+  int have_audio = 1;
   
   if(!ctx->input || !ctx->input->filename)
     return 0;
@@ -202,7 +204,7 @@ static int open_p2xml(bgav_demuxer_context_t * ctx, bgav_yml_node_t * yml)
       node = node->children;
       continue;
       }
-    else if(!strcasecmp(node->name, "Audio"))
+    else if(!strcasecmp(node->name, "Audio") && have_audio)
       {
       if(root_name && audio_directory)
         {
@@ -219,6 +221,10 @@ static int open_p2xml(bgav_demuxer_context_t * ctx, bgav_yml_node_t * yml)
       }
     else if(!strcasecmp(node->name, "Video"))
       {
+      attr = bgav_yml_get_attribute(node, "ValidAudioFlag");
+      if(attr && !strcasecmp(attr, "false"))
+        have_audio = 0;
+      
       if(root_name && video_directory)
         {
         tmp_string = bgav_sprintf("%s.mxf", root_name);
@@ -231,6 +237,7 @@ static int open_p2xml(bgav_demuxer_context_t * ctx, bgav_yml_node_t * yml)
           }
         else
           fprintf(stderr, "Got no file for video stream %d\n", t->num_video_streams);
+        free(tmp_string);
         }
       }
     node = node->next;

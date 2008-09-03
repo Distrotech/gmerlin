@@ -29,7 +29,7 @@
 
 #define PROBE_LEN 512
 
-#define YML_REGEXP "<\\?xml( *[^=]+ *= *\"[^\"]*\")* *\\?>|<[:alnum:]+[^ ]*( *[^=]+ *= *\"[^\"]*\")* */? *>"
+#define YML_REGEXP "<\\?xml( *[^=]+ *= *[\"'][^\"']*[\"'])* *\\?>|<[:alnum:]+[^ ]*( *[^=]+ *= *[\"'][^\"']*[\"'])* */? *>"
 
 int bgav_yml_probe(bgav_input_context_t * input)
   {
@@ -650,7 +650,7 @@ const char * bgav_yml_get_attribute(bgav_yml_node_t * n, const char * name)
   attr = n->attributes;
   while(attr)
     {
-    if(attr->name && !strcmp(attr->name, name))
+    if(attr->name && !strcasecmp(attr->name, name))
       return attr->value;
     attr = attr->next;
     }

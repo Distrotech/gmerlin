@@ -31,7 +31,7 @@
 #define CLIP_WRAPPED_CBR   1
 #define CLIP_WRAPPED_PARSE 2 /* Unsupported for now */
 
-#define DUMP_MXF
+// #define DUMP_MXF
 
 static void build_edl_mxf(bgav_demuxer_context_t * ctx);
 
@@ -737,9 +737,40 @@ static void seek_mxf(bgav_demuxer_context_t * ctx, int64_t time,
 #if 1
 static int select_track_mxf(bgav_demuxer_context_t * ctx, int track)
   {
-  fprintf(stderr, "Select track: %d start pos: %ld\n", track,
-          ((partition_t*)(ctx->tt->cur->priv))->start_pos);
+  int j;
+  stream_priv_t * sp;
+  //  fprintf(stderr, "Select track: %d start pos: %ld\n", track,
+  //          ((partition_t*)(ctx->tt->cur->priv))->start_pos);
   bgav_input_seek(ctx->input, ((partition_t*)(ctx->tt->cur->priv))->start_pos, SEEK_SET);
+  
+  for(j = 0; j < ctx->tt->cur->num_audio_streams; j++)
+    {
+    sp = ctx->tt->cur->audio_streams[j].priv;
+    if(sp)
+      {
+      sp->pos = sp->start;
+      sp->eof = 0;
+      }
+    }
+  for(j = 0; j < ctx->tt->cur->num_video_streams; j++)
+    {
+    sp = ctx->tt->cur->video_streams[j].priv;
+    if(sp)
+      {
+      sp->pos = sp->start;
+      sp->eof = 0;
+      }
+    }
+  /* Not supported yet but well.. */
+  for(j = 0; j < ctx->tt->cur->num_subtitle_streams; j++)
+    {
+    sp = ctx->tt->cur->subtitle_streams[j].priv;
+    if(sp)
+      {
+      sp->pos = sp->start;
+      sp->eof = 0;
+      }
+    }
   return 1;
   }
 #endif
@@ -783,7 +814,8 @@ static void close_mxf(bgav_demuxer_context_t * ctx)
 
 static void resync_mxf(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
   {
-  
+  stream_priv_t * sp = s->priv;
+  sp->pts_counter = s->in_time;
   }
 
 const bgav_demuxer_t bgav_demuxer_mxf =

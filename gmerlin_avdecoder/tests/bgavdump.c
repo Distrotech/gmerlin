@@ -183,16 +183,18 @@ int main(int argc, char ** argv)
       sample_accurate = 1;
       arg_index++;
       }
-    if(!strcmp(argv[arg_index], "-aseek"))
+    else if(!strcmp(argv[arg_index], "-aseek"))
       {
       audio_seek = strtoll(argv[arg_index+1], (char**)0, 10);
       arg_index+=2;
       }
-    if(!strcmp(argv[arg_index], "-vseek"))
+    else if(!strcmp(argv[arg_index], "-vseek"))
       {
       video_seek = strtoll(argv[arg_index+1], (char**)0, 10);
       arg_index+=2;
       }
+    else
+      arg_index++;
     }
   
   /* Configure */
