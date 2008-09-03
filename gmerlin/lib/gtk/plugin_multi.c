@@ -136,7 +136,7 @@ static void select_row_callback(GtkTreeSelection * s, gpointer data)
     {
     g_signal_handler_block(G_OBJECT(win->extensions),
                            win->extensions_changed_id);
-    if(win->info->flags & BG_PLUGIN_FILE)
+    if((win->info->flags & BG_PLUGIN_FILE) && win->info->extensions)
       {
       gtk_entry_set_text(GTK_ENTRY(win->extensions),
                          win->info->extensions);

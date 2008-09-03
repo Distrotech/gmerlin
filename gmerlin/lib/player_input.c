@@ -419,7 +419,8 @@ int bg_player_input_init(bg_player_input_context_t * ctx,
   
   /* Check for bypass mode */
   
-  if(do_bypass && (ctx->plugin_handle->info->flags & BG_PLUGIN_BYPASS))
+  if(do_bypass && ctx->plugin_handle->info &&
+     (ctx->plugin_handle->info->flags & BG_PLUGIN_BYPASS))
     {
     /* Initialize volume for bypass mode */
     bg_player_input_bypass_set_volume(ctx, ctx->player->volume);
