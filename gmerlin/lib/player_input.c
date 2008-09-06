@@ -325,6 +325,12 @@ int bg_player_input_start(bg_player_input_context_t * ctx)
     if(!ctx->plugin->start(ctx->priv))
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Starting input plugin failed");
+
+      if(ctx->plugin_handle)
+        bg_plugin_unref(ctx->plugin_handle);
+      ctx->plugin_handle = NULL;
+      ctx->plugin = NULL;
+      
       return 0;
       }
     }
