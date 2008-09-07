@@ -424,8 +424,8 @@ but the source doesn't."), \
       .type =      BG_PARAMETER_STRINGLIST,\
       .flags =       BG_PARAMETER_SYNC,                     \
       .val_default = { .val_str = "auto" },\
-      .multi_names =  (char const *[]){ "auto", "linear", "zoh",             "sinc_fast",  "sinc_medium", "sinc_best", (char*)0 },\
-      .multi_labels = (char const *[]){ TRS("Auto"), TRS("Linear"), TRS("Zero order hold"), \
+      .multi_names =  (char const *[]){ "auto", "zoh", "linear", "sinc_fast",  "sinc_medium", "sinc_best", (char*)0 },\
+      .multi_labels = (char const *[]){ TRS("Auto"), TRS("Zero order hold"), TRS("Linear"), \
                                TRS("Sinc fast"),  TRS("Sinc medium"), TRS("Sinc best"), (char*)0 },\
       .help_string = TRS("Resample mode. Auto means to use the quality level. Subsequent options are ordered by increasing quality (i.e. decreasing speed).") \
     }
