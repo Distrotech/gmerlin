@@ -1,5 +1,5 @@
 /*
-** Copyright (C) 2002-2004 Erik de Castro Lopo <erikd@mega-nerd.com>
+** Copyright (C) 2002-2008 Erik de Castro Lopo <erikd@mega-nerd.com>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -16,6 +16,12 @@
 ** Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 */
 
+/*
+** This code is part of Secret Rabibt Code aka libsamplerate. A commercial
+** use license for this code is available, please see:
+**		http://www.mega-nerd.com/SRC/procedure.html
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,72 +32,46 @@
 
 #define	SINC_MAGIC_MARKER	MAKE_MAGIC (' ', 's', 'i', 'n', 'c', ' ')
 
-#define	ARRAY_LEN(x)		((int) (sizeof (x) / sizeof ((x) [0])))
-
 /*========================================================================================
-**	Macros for handling the index into the array for the filter.
-**	Double precision floating point is not accurate enough so use a 64 bit
-**	fixed point value instead. SHIFT_BITS (current value of 48) is the number
-**	of bits to the right of the decimal point.
-**	The rest of the macros are for retrieving the fractional and integer parts
-**	and for converting floats and ints to the fixed point format or from the
-**	fixed point type back to integers and floats.
 */
 
 #define MAKE_INCREMENT_T(x) 	((increment_t) (x))
 
-#define	SHIFT_BITS				16
+#define	SHIFT_BITS				12
 #define	FP_ONE					((double) (((increment_t) 1) << SHIFT_BITS))
-
-#define	DOUBLE_TO_FP(x)			(lrint ((x) * FP_ONE))
-#define	INT_TO_FP(x)			(((increment_t) (x)) << SHIFT_BITS)
-
-#define	FP_FRACTION_PART(x)		((x) & ((((increment_t) 1) << SHIFT_BITS) - 1))
-#define	FP_INTEGER_PART(x)		((x) & (((increment_t) -1) << SHIFT_BITS))
-
-#define	FP_TO_INT(x)			(((x) >> SHIFT_BITS))
-#define	FP_TO_DOUBLE(x)			(FP_FRACTION_PART (x) / FP_ONE)
+#define	INV_FP_ONE				(1.0 / FP_ONE)
 
 /*========================================================================================
- */
+*/
 
 typedef int32_t increment_t ;
-typedef float	coeff_f_t ;
-typedef double	coeff_d_t ;
+typedef double	coeff_t ;
 
-enum
-  {
-    STATE_BUFFER_START	= 101,
-    STATE_DATA_CONTINUE	= 102,
-    STATE_BUFFER_END	= 103,
-    STATE_FINISHED
-  } ;
+#include "fastest_coeffs.h"
+#include "mid_qual_coeffs.h"
+#include "high_qual_coeffs.h"
 
 typedef struct
-  {	int		sinc_magic_marker ;
+{	int		sinc_magic_marker ;
 
-  int		channels ;
-  long	in_count, in_used ;
-  long	out_count, out_gen ;
+	int		channels ;
+	long	in_count, in_used ;
+	long	out_count, out_gen ;
 
-  int		coeff_half_len, index_inc ;
-  int		has_diffs ;
+	int		coeff_half_len, index_inc ;
 
-  double	src_ratio, input_index ;
+	double	src_ratio, input_index ;
 
-  int		coeff_len ;
-  coeff_f_t const *coeffs_f ;
-  coeff_d_t const *coeffs_d ;
+	coeff_t const	*coeffs ;
 
-  int		b_current, b_end, b_real_end, b_len ;
-  int d;
-  float	 buffer_f [1] ;
-  double buffer_d [1] ;
+	int		b_current, b_end, b_real_end, b_len ;
+        int d;
+        float	buffer_f [1] ;
+	double	buffer_d [1] ;
+} SINC_FILTER ;
 
-  } SINC_FILTER ;
-
-static int sinc_process_f (SRC_PRIVATE *psrc, SRC_DATA *data) ;
-static int sinc_process_d (SRC_PRIVATE *psrc, SRC_DATA *data) ;
+static int sinc_vari_process_d (SRC_PRIVATE *psrc, SRC_DATA *data) ;
+static int sinc_vari_process_f (SRC_PRIVATE *psrc, SRC_DATA *data) ;
 
 static double calc_output_f (SINC_FILTER *filter, increment_t increment, increment_t start_filter_index, int ch) ;
 static double calc_output_d (SINC_FILTER *filter, increment_t increment, increment_t start_filter_index, int ch) ;
@@ -101,641 +81,633 @@ static void prepare_data_d (SINC_FILTER *filter, SRC_DATA *data, int half_filter
 
 static void sinc_reset (SRC_PRIVATE *psrc) ;
 
-static coeff_f_t const high_qual_coeffs_f [] =
-  {
-#include "high_qual_coeffs.h"
-  } ; /* high_qual_coeffs */
+static inline increment_t
+double_to_fp (double x)
+{	if (sizeof (increment_t) == 8)
+		return (llrint ((x) * FP_ONE)) ;
+	return (lrint ((x) * FP_ONE)) ;
+} /* double_to_fp */
 
-static coeff_f_t const mid_qual_coeffs_f [] =
-  {
-#include "mid_qual_coeffs.h"
-  } ; /* mid_qual_coeffs */
+static inline increment_t
+int_to_fp (int x)
+{	return (((increment_t) (x)) << SHIFT_BITS) ;
+} /* int_to_fp */
 
-static coeff_f_t const fastest_coeffs_f [] =
-  {
-#include "fastest_coeffs.h"
-  } ; /* fastest_coeffs */
+static inline int
+fp_to_int (increment_t x)
+{	return (((x) >> SHIFT_BITS)) ;
+} /* fp_to_int */
 
-static coeff_d_t const high_qual_coeffs_d [] =
-  {
-#include "high_qual_coeffs.h"
-  } ; /* high_qual_coeffs */
+static inline increment_t
+fp_fraction_part (increment_t x)
+{	return ((x) & ((((increment_t) 1) << SHIFT_BITS) - 1)) ;
+} /* fp_fraction_part */
 
-static coeff_d_t const mid_qual_coeffs_d [] =
-  {
-#include "mid_qual_coeffs.h"
-  } ; /* mid_qual_coeffs */
-
-static coeff_d_t const fastest_coeffs_d [] =
-  {
-#include "fastest_coeffs.h"
-  } ; /* fastest_coeffs */
+static inline double
+fp_to_double (increment_t x)
+{	return fp_fraction_part (x) * INV_FP_ONE ;
+} /* fp_to_double */
 
 
 /*----------------------------------------------------------------------------------------
- */
+*/
 
 const char*
-gavl_sinc_get_name (int src_enum)
-  {
-  switch (src_enum)
-    {	case SRC_SINC_BEST_QUALITY :
-          return "Best Sinc Interpolator" ;
+sinc_get_name (int src_enum)
+{
+	switch (src_enum)
+	{	case SRC_SINC_BEST_QUALITY :
+			return "Best Sinc Interpolator" ;
 
-    case SRC_SINC_MEDIUM_QUALITY :
-      return "Medium Sinc Interpolator" ;
+		case SRC_SINC_MEDIUM_QUALITY :
+			return "Medium Sinc Interpolator" ;
 
-    case SRC_SINC_FASTEST :
-      return "Fastest Sinc Interpolator" ;
-    } ;
+		case SRC_SINC_FASTEST :
+			return "Fastest Sinc Interpolator" ;
 
-  return NULL ;
-  } /* sinc_get_descrition */
+		default: break ;
+		} ;
+
+	return NULL ;
+} /* sinc_get_descrition */
 
 const char*
-gavl_sinc_get_description (int src_enum)
-  {
-  switch (src_enum)
-    {	case SRC_SINC_BEST_QUALITY :
-          return "Band limited sinc interpolation, best quality, 97dB SNR, 96% BW." ;
+sinc_get_description (int src_enum)
+{
+	switch (src_enum)
+	{	case SRC_SINC_FASTEST :
+			return "Band limited sinc interpolation, fastest, 97dB SNR, 80% BW." ;
 
-    case SRC_SINC_MEDIUM_QUALITY :
-      return "Band limited sinc interpolation, medium quality, 97dB SNR, 90% BW." ;
+		case SRC_SINC_MEDIUM_QUALITY :
+			return "Band limited sinc interpolation, medium quality, 121dB SNR, 90% BW." ;
 
-    case SRC_SINC_FASTEST :
-      return "Band limited sinc interpolation, fastest, 97dB SNR, 80% BW." ;
-    } ;
+		case SRC_SINC_BEST_QUALITY :
+			return "Band limited sinc interpolation, best quality, 145dB SNR, 96% BW." ;
 
-  return NULL ;
-  } /* sinc_get_descrition */
+		default :
+			break ;
+		} ;
+
+	return NULL ;
+} /* sinc_get_descrition */
 
 int
 gavl_sinc_set_converter (SRC_PRIVATE *psrc, int src_enum, int d)
-  {	SINC_FILTER *filter, temp_filter ;
-  int count, bits ;
+{	SINC_FILTER *filter, temp_filter ;
+	increment_t count ;
+	int bits ;
 
-  /* Quick sanity check. */
-  if (SHIFT_BITS >= sizeof (increment_t) * 8 - 1)
-    return SRC_ERR_SHIFT_BITS ;
+	/* Quick sanity check. */
+	if (SHIFT_BITS >= sizeof (increment_t) * 8 - 1)
+		return SRC_ERR_SHIFT_BITS ;
 
-  if (psrc->private_data != NULL)
-    {	filter = (SINC_FILTER*) psrc->private_data ;
-    if (filter->sinc_magic_marker != SINC_MAGIC_MARKER)
-      {	free (psrc->private_data) ;
-      psrc->private_data = NULL ;
-      } ;
-    } ;
+	if (psrc->private_data != NULL)
+	{	filter = (SINC_FILTER*) psrc->private_data ;
+		if (filter->sinc_magic_marker != SINC_MAGIC_MARKER)
+		{	free (psrc->private_data) ;
+			psrc->private_data = NULL ;
+			} ;
+		} ;
 
-  memset (&temp_filter, 0, sizeof (temp_filter)) ;
+	memset (&temp_filter, 0, sizeof (temp_filter)) ;
 
-  temp_filter.sinc_magic_marker = SINC_MAGIC_MARKER ;
-  temp_filter.channels = psrc->channels ;
+	temp_filter.sinc_magic_marker = SINC_MAGIC_MARKER ;
+	temp_filter.channels = psrc->channels ;
+        if(d)
+          {
+          psrc->const_process = sinc_vari_process_d ;
+          psrc->vari_process = sinc_vari_process_d ;
+          }
+        else
+          {
+          psrc->const_process = sinc_vari_process_f ;
+          psrc->vari_process = sinc_vari_process_f ;
+          }
+	psrc->reset = sinc_reset ;
 
-  if(d)
-    psrc->process = sinc_process_d ;
-  else
-    psrc->process = sinc_process_f ;
-  psrc->reset = sinc_reset ;
+	switch (src_enum)
+	{	case SRC_SINC_FASTEST :
+				temp_filter.coeffs = fastest_coeffs.coeffs ;
+				temp_filter.coeff_half_len = ARRAY_LEN (fastest_coeffs.coeffs) - 1 ;
+				temp_filter.index_inc = fastest_coeffs.increment ;
+				break ;
 
-  switch (src_enum)
-    {	case SRC_SINC_BEST_QUALITY :
-          temp_filter.coeffs_d = high_qual_coeffs_d ;
-          temp_filter.coeffs_f = high_qual_coeffs_f ;
-          temp_filter.coeff_half_len = ARRAY_LEN (high_qual_coeffs_f) - 1 ;
-          temp_filter.index_inc = 128 ;
-          temp_filter.has_diffs = SRC_FALSE ;
-          temp_filter.coeff_len = ARRAY_LEN (high_qual_coeffs_f) ;
-          break ;
+		case SRC_SINC_MEDIUM_QUALITY :
+				temp_filter.coeffs = slow_mid_qual_coeffs.coeffs ;
+				temp_filter.coeff_half_len = ARRAY_LEN (slow_mid_qual_coeffs.coeffs) - 1 ;
+				temp_filter.index_inc = slow_mid_qual_coeffs.increment ;
+				break ;
 
-    case SRC_SINC_MEDIUM_QUALITY :
-      temp_filter.coeffs_d = mid_qual_coeffs_d ;
-      temp_filter.coeffs_f = mid_qual_coeffs_f ;
-      temp_filter.coeff_half_len = ARRAY_LEN (mid_qual_coeffs_f) - 1 ;
-      temp_filter.index_inc = 128 ;
-      temp_filter.has_diffs = SRC_FALSE ;
-      temp_filter.coeff_len = ARRAY_LEN (mid_qual_coeffs_f) ;
-      break ;
+		case SRC_SINC_BEST_QUALITY :
+				temp_filter.coeffs = slow_high_qual_coeffs.coeffs ;
+				temp_filter.coeff_half_len = ARRAY_LEN (slow_high_qual_coeffs.coeffs) - 1 ;
+				temp_filter.index_inc = slow_high_qual_coeffs.increment ;
+				break ;
 
-    case SRC_SINC_FASTEST :
-      temp_filter.coeffs_d = fastest_coeffs_d ;
-      temp_filter.coeffs_f = fastest_coeffs_f ;
-      temp_filter.coeff_half_len = ARRAY_LEN (fastest_coeffs_f) - 1 ;
-      temp_filter.index_inc = 128 ;
-      temp_filter.has_diffs = SRC_FALSE ;
-      temp_filter.coeff_len = ARRAY_LEN (fastest_coeffs_f) ;
-      break ;
+		default :
+				return SRC_ERR_BAD_CONVERTER ;
+		} ;
 
-    default :
-      return SRC_ERR_BAD_CONVERTER ;
-    } ;
+	/*
+	** FIXME : This needs to be looked at more closely to see if there is
+	** a better way. Need to look at prepare_data () at the same time.
+	*/
 
-  /*
-  ** FIXME : This needs to be looked at more closely to see if there is
-  ** a better way. Need to look at prepare_data () at the same time.
-  */
+	temp_filter.b_len = 2 * lrint (1.0 + temp_filter.coeff_half_len / (temp_filter.index_inc * 1.0) * SRC_MAX_RATIO) ;
+	temp_filter.b_len = MAX (temp_filter.b_len, 4096) ;
+	temp_filter.b_len *= temp_filter.channels ;
+        temp_filter.d = d; 
+        if(d)
+          {
+          if ((filter = calloc (1, sizeof (SINC_FILTER) + sizeof (filter->buffer_d [0]) * (temp_filter.b_len + temp_filter.channels))) == NULL)
+            return SRC_ERR_MALLOC_FAILED ;
 
-  temp_filter.b_len = 1000 + 2 * lrint (0.5 + temp_filter.coeff_len / (temp_filter.index_inc * 1.0) * SRC_MAX_RATIO) ;
-  temp_filter.b_len *= temp_filter.channels ;
+          }
+        else
+          {
+          if ((filter = calloc (1, sizeof (SINC_FILTER) + sizeof (filter->buffer_f [0]) * (temp_filter.b_len + temp_filter.channels))) == NULL)
+            return SRC_ERR_MALLOC_FAILED ;
+          }
 
-  if(d)
-    {
-    if ((filter = calloc (1, sizeof (SINC_FILTER) + sizeof (filter->buffer_d [0]) * (temp_filter.b_len + temp_filter.channels))) == NULL)
-      return SRC_ERR_MALLOC_FAILED ;
-    }
-  else
-    {
-    if ((filter = calloc (1, sizeof (SINC_FILTER) + sizeof (filter->buffer_f [0]) * (temp_filter.b_len + temp_filter.channels))) == NULL)
-      return SRC_ERR_MALLOC_FAILED ;
-    }
+	*filter = temp_filter ;
+	memset (&temp_filter, 0xEE, sizeof (temp_filter)) ;
 
-  temp_filter.d = d;
+	psrc->private_data = filter ;
 
-  *filter = temp_filter ;
-  memset (&temp_filter, 0xEE, sizeof (temp_filter)) ;
+	sinc_reset (psrc) ;
 
-  psrc->private_data = filter ;
+	count = filter->coeff_half_len ;
+	for (bits = 0 ; (MAKE_INCREMENT_T (1) << bits) < count ; bits++)
+		count |= (MAKE_INCREMENT_T (1) << bits) ;
 
-  sinc_reset (psrc) ;
+	if (bits + SHIFT_BITS - 1 >= (int) (sizeof (increment_t) * 8))
+		return SRC_ERR_FILTER_LEN ;
 
-  count = filter->coeff_half_len ;
-  for (bits = 0 ; (1 << bits) < count ; bits++)
-    count |= (1 << bits) ;
-
-  if (bits + SHIFT_BITS - 1 >= (int) (sizeof (increment_t) * 8))
-    return SRC_ERR_FILTER_LEN ;
-
-  return SRC_ERR_NO_ERROR ;
-  } /* sinc_set_converter */
+	return SRC_ERR_NO_ERROR ;
+} /* sinc_set_converter */
 
 static void
 sinc_reset (SRC_PRIVATE *psrc)
-  {	SINC_FILTER *filter ;
+{	SINC_FILTER *filter ;
 
-  filter = (SINC_FILTER*) psrc->private_data ;
-  if (filter == NULL)
-    return ;
+	filter = (SINC_FILTER*) psrc->private_data ;
+	if (filter == NULL)
+		return ;
 
-  filter->b_current = filter->b_end = 0 ;
-  filter->b_real_end = -1 ;
+	filter->b_current = filter->b_end = 0 ;
+	filter->b_real_end = -1 ;
 
-  filter->src_ratio = filter->input_index = 0.0 ;
-
-  if(!filter->d)
-    memset (filter->buffer_f, 0, filter->b_len * sizeof (filter->buffer_f [0])) ;
-  else
-    memset (filter->buffer_d, 0, filter->b_len * sizeof (filter->buffer_d [0])) ;
-
-  /* Set this for a sanity check */
-  if(!filter->d)
-    memset (filter->buffer_f + filter->b_len, 0xAA, filter->channels * sizeof (filter->buffer_f [0])) ;
-  else
-    memset (filter->buffer_d + filter->b_len, 0xAA, filter->channels * sizeof (filter->buffer_d [0])) ;
-  } /* sinc_reset */
+	filter->src_ratio = filter->input_index = 0.0 ;
+        if(filter->d)
+          {
+          memset (filter->buffer_d, 0, filter->b_len * sizeof (filter->buffer_d [0])) ;
+          /* Set this for a sanity check */
+          memset (filter->buffer_d + filter->b_len, 0xAA, filter->channels * sizeof (filter->buffer_d [0])) ;
+          }
+        else
+          {
+          memset (filter->buffer_f, 0, filter->b_len * sizeof (filter->buffer_f [0])) ;
+          /* Set this for a sanity check */
+          memset (filter->buffer_f + filter->b_len, 0xAA, filter->channels * sizeof (filter->buffer_f [0])) ;
+          }
+          
+} /* sinc_reset */
 
 /*========================================================================================
 **	Beware all ye who dare pass this point. There be dragons here.
 */
 
 static int
-sinc_process_f (SRC_PRIVATE *psrc, SRC_DATA *data)
-  {	SINC_FILTER *filter ;
-  double		input_index, src_ratio, count, float_increment, terminate, rem ;
-  increment_t	increment, start_filter_index ;
-  int			half_filter_chan_len, samples_in_hand, ch ;
+sinc_vari_process_f (SRC_PRIVATE *psrc, SRC_DATA *data)
+{	SINC_FILTER *filter ;
+	double		input_index, src_ratio, count, float_increment, terminate, rem ;
+	increment_t	increment, start_filter_index ;
+	int			half_filter_chan_len, samples_in_hand, ch ;
 
-  if (psrc->private_data == NULL)
-    return SRC_ERR_NO_PRIVATE ;
+	if (psrc->private_data == NULL)
+		return SRC_ERR_NO_PRIVATE ;
 
-  filter = (SINC_FILTER*) psrc->private_data ;
+	filter = (SINC_FILTER*) psrc->private_data ;
+#if 0
+	/* If there is not a problem, this will be optimised out. */
+	if (sizeof (filter->buffer [0]) != sizeof (data->data_in [0]))
+		return SRC_ERR_SIZE_INCOMPATIBILITY ;
+#endif
+	filter->in_count = data->input_frames * filter->channels ;
+	filter->out_count = data->output_frames * filter->channels ;
+	filter->in_used = filter->out_gen = 0 ;
 
-  /* If there is not a problem, this will be optimised out. */
-  if (sizeof (filter->buffer_f [0]) != sizeof (data->data_in_f [0]))
-    return SRC_ERR_SIZE_INCOMPATIBILITY ;
+	src_ratio = psrc->last_ratio ;
 
-  filter->in_count = data->input_frames * filter->channels ;
-  filter->out_count = data->output_frames * filter->channels ;
-  filter->in_used = filter->out_gen = 0 ;
+	/* Check the sample rate ratio wrt the buffer len. */
+	count = (filter->coeff_half_len + 2.0) / filter->index_inc ;
+	if (MIN (psrc->last_ratio, data->src_ratio) < 1.0)
+		count /= MIN (psrc->last_ratio, data->src_ratio) ;
 
-  src_ratio = psrc->last_ratio ;
+	/* Maximum coefficientson either side of center point. */
+	half_filter_chan_len = filter->channels * (lrint (count) + 1) ;
 
-  /* Check the sample rate ratio wrt the buffer len. */
-  count = (filter->coeff_half_len + 2.0) / filter->index_inc ;
-  if (MIN (psrc->last_ratio, data->src_ratio) < 1.0)
-    count /= MIN (psrc->last_ratio, data->src_ratio) ;
+	input_index = psrc->last_position ;
+	float_increment = filter->index_inc ;
 
-  /* Maximum coefficientson either side of center point. */
-  half_filter_chan_len = filter->channels * (lrint (count) + 1) ;
+	rem = fmod_one (input_index) ;
+	filter->b_current = (filter->b_current + filter->channels * lrint (input_index - rem)) % filter->b_len ;
+	input_index = rem ;
 
-  input_index = psrc->last_position ;
-  float_increment = filter->index_inc ;
+	terminate = 1.0 / src_ratio + 1e-20 ;
 
-  rem = fmod (input_index, 1.0) ;
-  filter->b_current = (filter->b_current + filter->channels * lrint (input_index - rem)) % filter->b_len ;
-  input_index = rem ;
+	/* Main processing loop. */
+	while (filter->out_gen < filter->out_count)
+	{
+		/* Need to reload buffer? */
+		samples_in_hand = (filter->b_end - filter->b_current + filter->b_len) % filter->b_len ;
 
-  terminate = 1.0 / src_ratio + 1e-20 ;
+		if (samples_in_hand <= half_filter_chan_len)
+		{	prepare_data_f (filter, data, half_filter_chan_len) ;
 
-  /* Main processing loop. */
-  while (filter->out_gen < filter->out_count)
-    {
-    /* Need to reload buffer? */
-    samples_in_hand = (filter->b_end - filter->b_current + filter->b_len) % filter->b_len ;
+			samples_in_hand = (filter->b_end - filter->b_current + filter->b_len) % filter->b_len ;
+			if (samples_in_hand <= half_filter_chan_len)
+				break ;
+			} ;
 
-    if (samples_in_hand <= half_filter_chan_len)
-      {	prepare_data_f (filter, data, half_filter_chan_len) ;
+		/* This is the termination condition. */
+		if (filter->b_real_end >= 0)
+		{	if (filter->b_current + input_index + terminate >= filter->b_real_end)
+				break ;
+			} ;
 
-      samples_in_hand = (filter->b_end - filter->b_current + filter->b_len) % filter->b_len ;
-      if (samples_in_hand <= half_filter_chan_len)
-        break ;
-      } ;
+		if (filter->out_count > 0 && fabs (psrc->last_ratio - data->src_ratio) > 1e-10)
+			src_ratio = psrc->last_ratio + filter->out_gen * (data->src_ratio - psrc->last_ratio) / filter->out_count ;
 
-    /* This is the termination condition. */
-    if (filter->b_real_end >= 0)
-      {	if (filter->b_current + input_index + terminate >= filter->b_real_end)
-        break ;
-      } ;
+		float_increment = filter->index_inc * 1.0 ;
+		if (src_ratio < 1.0)
+			float_increment = filter->index_inc * src_ratio ;
 
-    if (fabs (psrc->last_ratio - data->src_ratio) > 1e-10)
-      src_ratio = psrc->last_ratio + filter->out_gen * (data->src_ratio - psrc->last_ratio) / (filter->out_count - 1) ;
+		increment = double_to_fp (float_increment) ;
 
-    float_increment = filter->index_inc * 1.0 ;
-    if (src_ratio < 1.0)
-      float_increment = filter->index_inc * src_ratio ;
+		start_filter_index = double_to_fp (input_index * float_increment) ;
 
-    increment = DOUBLE_TO_FP (float_increment) ;
+		for (ch = 0 ; ch < filter->channels ; ch++)
+		{	data->data_out_f [filter->out_gen] = (float) ((float_increment / filter->index_inc) *
+											calc_output_f (filter, increment, start_filter_index, ch)) ;
+			filter->out_gen ++ ;
+			} ;
 
-    start_filter_index = DOUBLE_TO_FP (input_index * float_increment) ;
+		/* Figure out the next index. */
+		input_index += 1.0 / src_ratio ;
+		rem = fmod_one (input_index) ;
 
-    for (ch = 0 ; ch < filter->channels ; ch++)
-      {	data->data_out_f [filter->out_gen] = (float_increment / filter->index_inc) *
-          calc_output_f (filter, increment, start_filter_index, ch) ;
-      filter->out_gen ++ ;
-      } ;
+		filter->b_current = (filter->b_current + filter->channels * lrint (input_index - rem)) % filter->b_len ;
+		input_index = rem ;
+		} ;
 
-    /* Figure out the next index. */
-    input_index += 1.0 / src_ratio ;
-    rem = fmod (input_index, 1.0) ;
+	psrc->last_position = input_index ;
 
-    filter->b_current = (filter->b_current + filter->channels * lrint (input_index - rem)) % filter->b_len ;
-    input_index = rem ;
-    } ;
+	/* Save current ratio rather then target ratio. */
+	psrc->last_ratio = src_ratio ;
 
-  psrc->last_position = input_index ;
+	data->input_frames_used = filter->in_used / filter->channels ;
+	data->output_frames_gen = filter->out_gen / filter->channels ;
 
-  /* Save current ratio rather then target ratio. */
-  psrc->last_ratio = src_ratio ;
-
-  data->input_frames_used = filter->in_used / filter->channels ;
-  data->output_frames_gen = filter->out_gen / filter->channels ;
-
-  return SRC_ERR_NO_ERROR ;
-  } /* sinc_process */
+	return SRC_ERR_NO_ERROR ;
+} /* sinc_vari_process_f */
 
 static int
-sinc_process_d (SRC_PRIVATE *psrc, SRC_DATA *data)
-  {	SINC_FILTER *filter ;
-  double		input_index, src_ratio, count, float_increment, terminate, rem ;
-  increment_t	increment, start_filter_index ;
-  int			half_filter_chan_len, samples_in_hand, ch ;
+sinc_vari_process_d (SRC_PRIVATE *psrc, SRC_DATA *data)
+{	SINC_FILTER *filter ;
+	double		input_index, src_ratio, count, float_increment, terminate, rem ;
+	increment_t	increment, start_filter_index ;
+	int			half_filter_chan_len, samples_in_hand, ch ;
 
-  if (psrc->private_data == NULL)
-    return SRC_ERR_NO_PRIVATE ;
+	if (psrc->private_data == NULL)
+		return SRC_ERR_NO_PRIVATE ;
 
-  filter = (SINC_FILTER*) psrc->private_data ;
+	filter = (SINC_FILTER*) psrc->private_data ;
+#if 0
+	/* If there is not a problem, this will be optimised out. */
+	if (sizeof (filter->buffer [0]) != sizeof (data->data_in [0]))
+		return SRC_ERR_SIZE_INCOMPATIBILITY ;
+#endif
+	filter->in_count = data->input_frames * filter->channels ;
+	filter->out_count = data->output_frames * filter->channels ;
+	filter->in_used = filter->out_gen = 0 ;
 
-  /* If there is not a problem, this will be optimised out. */
-  if (sizeof (filter->buffer_d [0]) != sizeof (data->data_in_d [0]))
-    return SRC_ERR_SIZE_INCOMPATIBILITY ;
+	src_ratio = psrc->last_ratio ;
 
-  filter->in_count = data->input_frames * filter->channels ;
-  filter->out_count = data->output_frames * filter->channels ;
-  filter->in_used = filter->out_gen = 0 ;
+	/* Check the sample rate ratio wrt the buffer len. */
+	count = (filter->coeff_half_len + 2.0) / filter->index_inc ;
+	if (MIN (psrc->last_ratio, data->src_ratio) < 1.0)
+		count /= MIN (psrc->last_ratio, data->src_ratio) ;
 
-  src_ratio = psrc->last_ratio ;
+	/* Maximum coefficientson either side of center point. */
+	half_filter_chan_len = filter->channels * (lrint (count) + 1) ;
 
-  /* Check the sample rate ratio wrt the buffer len. */
-  count = (filter->coeff_half_len + 2.0) / filter->index_inc ;
-  if (MIN (psrc->last_ratio, data->src_ratio) < 1.0)
-    count /= MIN (psrc->last_ratio, data->src_ratio) ;
+	input_index = psrc->last_position ;
+	float_increment = filter->index_inc ;
 
-  /* Maximum coefficientson either side of center point. */
-  half_filter_chan_len = filter->channels * (lrint (count) + 1) ;
+	rem = fmod_one (input_index) ;
+	filter->b_current = (filter->b_current + filter->channels * lrint (input_index - rem)) % filter->b_len ;
+	input_index = rem ;
 
-  input_index = psrc->last_position ;
-  float_increment = filter->index_inc ;
+	terminate = 1.0 / src_ratio + 1e-20 ;
 
-  rem = fmod (input_index, 1.0) ;
-  filter->b_current = (filter->b_current + filter->channels * lrint (input_index - rem)) % filter->b_len ;
-  input_index = rem ;
+	/* Main processing loop. */
+	while (filter->out_gen < filter->out_count)
+	{
+		/* Need to reload buffer? */
+		samples_in_hand = (filter->b_end - filter->b_current + filter->b_len) % filter->b_len ;
 
-  terminate = 1.0 / src_ratio + 1e-20 ;
+		if (samples_in_hand <= half_filter_chan_len)
+		{	prepare_data_d (filter, data, half_filter_chan_len) ;
 
-  /* Main processing loop. */
-  while (filter->out_gen < filter->out_count)
-    {
-    /* Need to reload buffer? */
-    samples_in_hand = (filter->b_end - filter->b_current + filter->b_len) % filter->b_len ;
+			samples_in_hand = (filter->b_end - filter->b_current + filter->b_len) % filter->b_len ;
+			if (samples_in_hand <= half_filter_chan_len)
+				break ;
+			} ;
 
-    if (samples_in_hand <= half_filter_chan_len)
-      {	prepare_data_d (filter, data, half_filter_chan_len) ;
+		/* This is the termination condition. */
+		if (filter->b_real_end >= 0)
+		{	if (filter->b_current + input_index + terminate >= filter->b_real_end)
+				break ;
+			} ;
 
-      samples_in_hand = (filter->b_end - filter->b_current + filter->b_len) % filter->b_len ;
-      if (samples_in_hand <= half_filter_chan_len)
-        break ;
-      } ;
+		if (filter->out_count > 0 && fabs (psrc->last_ratio - data->src_ratio) > 1e-10)
+			src_ratio = psrc->last_ratio + filter->out_gen * (data->src_ratio - psrc->last_ratio) / filter->out_count ;
 
-    /* This is the termination condition. */
-    if (filter->b_real_end >= 0)
-      {	if (filter->b_current + input_index + terminate >= filter->b_real_end)
-        break ;
-      } ;
+		float_increment = filter->index_inc * 1.0 ;
+		if (src_ratio < 1.0)
+			float_increment = filter->index_inc * src_ratio ;
 
-    if (fabs (psrc->last_ratio - data->src_ratio) > 1e-10)
-      src_ratio = psrc->last_ratio + filter->out_gen * (data->src_ratio - psrc->last_ratio) / (filter->out_count - 1) ;
+		increment = double_to_fp (float_increment) ;
 
-    float_increment = filter->index_inc * 1.0 ;
-    if (src_ratio < 1.0)
-      float_increment = filter->index_inc * src_ratio ;
+		start_filter_index = double_to_fp (input_index * float_increment) ;
 
-    increment = DOUBLE_TO_FP (float_increment) ;
+		for (ch = 0 ; ch < filter->channels ; ch++)
+		{	data->data_out_d [filter->out_gen] = (float) ((float_increment / filter->index_inc) *
+											calc_output_d (filter, increment, start_filter_index, ch)) ;
+			filter->out_gen ++ ;
+			} ;
 
-    start_filter_index = DOUBLE_TO_FP (input_index * float_increment) ;
+		/* Figure out the next index. */
+		input_index += 1.0 / src_ratio ;
+		rem = fmod_one (input_index) ;
 
-    for (ch = 0 ; ch < filter->channels ; ch++)
-      {	data->data_out_d [filter->out_gen] = (float_increment / filter->index_inc) *
-          calc_output_d (filter, increment, start_filter_index, ch) ;
-      filter->out_gen ++ ;
-      } ;
+		filter->b_current = (filter->b_current + filter->channels * lrint (input_index - rem)) % filter->b_len ;
+		input_index = rem ;
+		} ;
 
-    /* Figure out the next index. */
-    input_index += 1.0 / src_ratio ;
-    rem = fmod (input_index, 1.0) ;
+	psrc->last_position = input_index ;
 
-    filter->b_current = (filter->b_current + filter->channels * lrint (input_index - rem)) % filter->b_len ;
-    input_index = rem ;
-    } ;
+	/* Save current ratio rather then target ratio. */
+	psrc->last_ratio = src_ratio ;
 
-  psrc->last_position = input_index ;
+	data->input_frames_used = filter->in_used / filter->channels ;
+	data->output_frames_gen = filter->out_gen / filter->channels ;
 
-  /* Save current ratio rather then target ratio. */
-  psrc->last_ratio = src_ratio ;
-
-  data->input_frames_used = filter->in_used / filter->channels ;
-  data->output_frames_gen = filter->out_gen / filter->channels ;
-
-  return SRC_ERR_NO_ERROR ;
-  } /* sinc_process */
+	return SRC_ERR_NO_ERROR ;
+} /* sinc_vari_process_d */
 
 
 /*----------------------------------------------------------------------------------------
- */
+*/
 
 static void
 prepare_data_f (SINC_FILTER *filter, SRC_DATA *data, int half_filter_chan_len)
-  {	int len = 0 ;
+{	int len = 0 ;
 
-  if (filter->b_real_end >= 0)
-    return ;	/* This doesn't make sense, so return. */
+	if (filter->b_real_end >= 0)
+		return ;	/* This doesn't make sense, so return. */
 
-  if (filter->b_current == 0)
-    {	/* Initial state. Set up zeros at the start of the buffer and
-        ** then load new data after that.
-        */
-    len = filter->b_len - 2 * half_filter_chan_len ;
+	if (filter->b_current == 0)
+	{	/* Initial state. Set up zeros at the start of the buffer and
+		** then load new data after that.
+		*/
+		len = filter->b_len - 2 * half_filter_chan_len ;
 
-    filter->b_current = filter->b_end = half_filter_chan_len ;
-    }
-  else if (filter->b_end + half_filter_chan_len + filter->channels < filter->b_len)
-    {	/*  Load data at current end position. */
-    len = MAX (filter->b_len - filter->b_current - half_filter_chan_len, 0) ;
-    }
-  else
-    {	/* Move data at end of buffer back to the start of the buffer. */
-    len = filter->b_end - filter->b_current ;
-    memmove (filter->buffer_f, filter->buffer_f + filter->b_current - half_filter_chan_len,
-             (half_filter_chan_len + len) * sizeof (filter->buffer_f [0])) ;
+		filter->b_current = filter->b_end = half_filter_chan_len ;
+		}
+	else if (filter->b_end + half_filter_chan_len + filter->channels < filter->b_len)
+	{	/*  Load data at current end position. */
+		len = MAX (filter->b_len - filter->b_current - half_filter_chan_len, 0) ;
+		}
+	else
+	{	/* Move data at end of buffer back to the start of the buffer. */
+		len = filter->b_end - filter->b_current ;
+		memmove (filter->buffer_f, filter->buffer_f + filter->b_current - half_filter_chan_len,
+						(half_filter_chan_len + len) * sizeof (filter->buffer_f [0])) ;
 
-    filter->b_current = half_filter_chan_len ;
-    filter->b_end = filter->b_current + len ;
+		filter->b_current = half_filter_chan_len ;
+		filter->b_end = filter->b_current + len ;
 
-    /* Now load data at current end of buffer. */
-    len = MAX (filter->b_len - filter->b_current - half_filter_chan_len, 0) ;
-    } ;
+		/* Now load data at current end of buffer. */
+		len = MAX (filter->b_len - filter->b_current - half_filter_chan_len, 0) ;
+		} ;
 
-  len = MIN (filter->in_count - filter->in_used, len) ;
-  len -= (len % filter->channels) ;
+	len = MIN (filter->in_count - filter->in_used, len) ;
+	len -= (len % filter->channels) ;
 
-  memcpy (filter->buffer_f + filter->b_end, data->data_in_f + filter->in_used,
-          len * sizeof (filter->buffer_f [0])) ;
+	memcpy (filter->buffer_f + filter->b_end, data->data_in_f + filter->in_used,
+						len * sizeof (filter->buffer_f [0])) ;
 
-  filter->b_end += len ;
-  filter->in_used += len ;
+	filter->b_end += len ;
+	filter->in_used += len ;
 
-  if (filter->in_used == filter->in_count &&
-      filter->b_end - filter->b_current < 2 * half_filter_chan_len && data->end_of_input)
-    {	/* Handle the case where all data in the current buffer has been
-        ** consumed and this is the last buffer.
-        */
+	if (filter->in_used == filter->in_count &&
+			filter->b_end - filter->b_current < 2 * half_filter_chan_len && data->end_of_input)
+	{	/* Handle the case where all data in the current buffer has been
+		** consumed and this is the last buffer.
+		*/
 
-    if (filter->b_len - filter->b_end < half_filter_chan_len + 5)
-      {	/* If necessary, move data down to the start of the buffer. */
-      len = filter->b_end - filter->b_current ;
-      memmove (filter->buffer_f, filter->buffer_f + filter->b_current - half_filter_chan_len,
-               (half_filter_chan_len + len) * sizeof (filter->buffer_f [0])) ;
+		if (filter->b_len - filter->b_end < half_filter_chan_len + 5)
+		{	/* If necessary, move data down to the start of the buffer. */
+			len = filter->b_end - filter->b_current ;
+			memmove (filter->buffer_f, filter->buffer_f + filter->b_current - half_filter_chan_len,
+							(half_filter_chan_len + len) * sizeof (filter->buffer_f [0])) ;
 
-      filter->b_current = half_filter_chan_len ;
-      filter->b_end = filter->b_current + len ;
-      } ;
+			filter->b_current = half_filter_chan_len ;
+			filter->b_end = filter->b_current + len ;
+			} ;
 
-    filter->b_real_end = filter->b_end ;
-    len = half_filter_chan_len + 5 ;
+		filter->b_real_end = filter->b_end ;
+		len = half_filter_chan_len + 5 ;
 
-    memset (filter->buffer_f + filter->b_end, 0, len * sizeof (filter->buffer_f [0])) ;
-    filter->b_end += len ;
-    } ;
+		memset (filter->buffer_f + filter->b_end, 0, len * sizeof (filter->buffer_f [0])) ;
+		filter->b_end += len ;
+		} ;
 
-  return ;
-  } /* prepare_data_f */
+	return ;
+} /* prepare_data_f */
 
 static void
 prepare_data_d (SINC_FILTER *filter, SRC_DATA *data, int half_filter_chan_len)
-  {	int len = 0 ;
+{	int len = 0 ;
 
-  if (filter->b_real_end >= 0)
-    return ;	/* This doesn't make sense, so return. */
+	if (filter->b_real_end >= 0)
+		return ;	/* This doesn't make sense, so return. */
 
-  if (filter->b_current == 0)
-    {	/* Initial state. Set up zeros at the start of the buffer and
-        ** then load new data after that.
-        */
-    len = filter->b_len - 2 * half_filter_chan_len ;
+	if (filter->b_current == 0)
+	{	/* Initial state. Set up zeros at the start of the buffer and
+		** then load new data after that.
+		*/
+		len = filter->b_len - 2 * half_filter_chan_len ;
 
-    filter->b_current = filter->b_end = half_filter_chan_len ;
-    }
-  else if (filter->b_end + half_filter_chan_len + filter->channels < filter->b_len)
-    {	/*  Load data at current end position. */
-    len = MAX (filter->b_len - filter->b_current - half_filter_chan_len, 0) ;
-    }
-  else
-    {	/* Move data at end of buffer back to the start of the buffer. */
-    len = filter->b_end - filter->b_current ;
-    memmove (filter->buffer_d, filter->buffer_d + filter->b_current - half_filter_chan_len,
-             (half_filter_chan_len + len) * sizeof (filter->buffer_d [0])) ;
+		filter->b_current = filter->b_end = half_filter_chan_len ;
+		}
+	else if (filter->b_end + half_filter_chan_len + filter->channels < filter->b_len)
+	{	/*  Load data at current end position. */
+		len = MAX (filter->b_len - filter->b_current - half_filter_chan_len, 0) ;
+		}
+	else
+	{	/* Move data at end of buffer back to the start of the buffer. */
+		len = filter->b_end - filter->b_current ;
+		memmove (filter->buffer_d, filter->buffer_d + filter->b_current - half_filter_chan_len,
+						(half_filter_chan_len + len) * sizeof (filter->buffer_d [0])) ;
 
-    filter->b_current = half_filter_chan_len ;
-    filter->b_end = filter->b_current + len ;
+		filter->b_current = half_filter_chan_len ;
+		filter->b_end = filter->b_current + len ;
 
-    /* Now load data at current end of buffer. */
-    len = MAX (filter->b_len - filter->b_current - half_filter_chan_len, 0) ;
-    } ;
+		/* Now load data at current end of buffer. */
+		len = MAX (filter->b_len - filter->b_current - half_filter_chan_len, 0) ;
+		} ;
 
-  len = MIN (filter->in_count - filter->in_used, len) ;
-  len -= (len % filter->channels) ;
+	len = MIN (filter->in_count - filter->in_used, len) ;
+	len -= (len % filter->channels) ;
 
-  memcpy (filter->buffer_d + filter->b_end, data->data_in_d + filter->in_used,
-          len * sizeof (filter->buffer_d [0])) ;
+	memcpy (filter->buffer_d + filter->b_end, data->data_in_d + filter->in_used,
+						len * sizeof (filter->buffer_d [0])) ;
 
-  filter->b_end += len ;
-  filter->in_used += len ;
+	filter->b_end += len ;
+	filter->in_used += len ;
 
-  if (filter->in_used == filter->in_count &&
-      filter->b_end - filter->b_current < 2 * half_filter_chan_len && data->end_of_input)
-    {	/* Handle the case where all data in the current buffer has been
-        ** consumed and this is the last buffer.
-        */
+	if (filter->in_used == filter->in_count &&
+			filter->b_end - filter->b_current < 2 * half_filter_chan_len && data->end_of_input)
+	{	/* Handle the case where all data in the current buffer has been
+		** consumed and this is the last buffer.
+		*/
 
-    if (filter->b_len - filter->b_end < half_filter_chan_len + 5)
-      {	/* If necessary, move data down to the start of the buffer. */
-      len = filter->b_end - filter->b_current ;
-      memmove (filter->buffer_d, filter->buffer_d + filter->b_current - half_filter_chan_len,
-               (half_filter_chan_len + len) * sizeof (filter->buffer_d [0])) ;
+		if (filter->b_len - filter->b_end < half_filter_chan_len + 5)
+		{	/* If necessary, move data down to the start of the buffer. */
+			len = filter->b_end - filter->b_current ;
+			memmove (filter->buffer_d, filter->buffer_d + filter->b_current - half_filter_chan_len,
+							(half_filter_chan_len + len) * sizeof (filter->buffer_d [0])) ;
 
-      filter->b_current = half_filter_chan_len ;
-      filter->b_end = filter->b_current + len ;
-      } ;
+			filter->b_current = half_filter_chan_len ;
+			filter->b_end = filter->b_current + len ;
+			} ;
 
-    filter->b_real_end = filter->b_end ;
-    len = half_filter_chan_len + 5 ;
+		filter->b_real_end = filter->b_end ;
+		len = half_filter_chan_len + 5 ;
 
-    memset (filter->buffer_d + filter->b_end, 0, len * sizeof (filter->buffer_d [0])) ;
-    filter->b_end += len ;
-    } ;
+		memset (filter->buffer_d + filter->b_end, 0, len * sizeof (filter->buffer_d [0])) ;
+		filter->b_end += len ;
+		} ;
 
-  return ;
-  } /* prepare_data_d */
+	return ;
+} /* prepare_data_d */
 
 
 
 static double
 calc_output_f (SINC_FILTER *filter, increment_t increment, increment_t start_filter_index, int ch)
-  {	double		fraction, left, right, icoeff ;
-  increment_t	filter_index, max_filter_index ;
-  int			data_index, coeff_count, indx ;
+{	double		fraction, left, right, icoeff ;
+	increment_t	filter_index, max_filter_index ;
+	int			data_index, coeff_count, indx ;
 
-  /* Convert input parameters into fixed point. */
-  max_filter_index = INT_TO_FP (filter->coeff_half_len) ;
+	/* Convert input parameters into fixed point. */
+	max_filter_index = int_to_fp (filter->coeff_half_len) ;
 
-  /* First apply the left half of the filter. */
-  filter_index = start_filter_index ;
-  coeff_count = (max_filter_index - filter_index) / increment ;
-  filter_index = filter_index + coeff_count * increment ;
-  data_index = filter->b_current - filter->channels * coeff_count ;
+	/* First apply the left half of the filter. */
+	filter_index = start_filter_index ;
+	coeff_count = (max_filter_index - filter_index) / increment ;
+	filter_index = filter_index + coeff_count * increment ;
+	data_index = filter->b_current - filter->channels * coeff_count + ch ;
 
-  left = 0.0 ;
-  do
-    {	fraction = FP_TO_DOUBLE (filter_index) ;
-    indx = FP_TO_INT (filter_index) ;
+	left = 0.0 ;
+	do
+	{	fraction = fp_to_double (filter_index) ;
+		indx = fp_to_int (filter_index) ;
 
-    icoeff = filter->coeffs_f [indx] + fraction * (filter->coeffs_f [indx + 1] - filter->coeffs_f [indx]) ;
+		icoeff = filter->coeffs [indx] + fraction * (filter->coeffs [indx + 1] - filter->coeffs [indx]) ;
 
-    left += icoeff * filter->buffer_f [data_index + ch] ;
+		left += icoeff * filter->buffer_f [data_index] ;
 
-    filter_index -= increment ;
-    data_index = data_index + filter->channels ;
-    }
-  while (filter_index >= MAKE_INCREMENT_T (0)) ;
+		filter_index -= increment ;
+		data_index = data_index + filter->channels ;
+		}
+	while (filter_index >= MAKE_INCREMENT_T (0)) ;
 
-  /* Now apply the right half of the filter. */
-  filter_index = increment - start_filter_index ;
-  coeff_count = (max_filter_index - filter_index) / increment ;
-  filter_index = filter_index + coeff_count * increment ;
-  data_index = filter->b_current + filter->channels * (1 + coeff_count) ;
+	/* Now apply the right half of the filter. */
+	filter_index = increment - start_filter_index ;
+	coeff_count = (max_filter_index - filter_index) / increment ;
+	filter_index = filter_index + coeff_count * increment ;
+	data_index = filter->b_current + filter->channels * (1 + coeff_count) + ch ;
 
-  right = 0.0 ;
-  do
-    {	fraction = FP_TO_DOUBLE (filter_index) ;
-    indx = FP_TO_INT (filter_index) ;
+	right = 0.0 ;
+	do
+	{	fraction = fp_to_double (filter_index) ;
+		indx = fp_to_int (filter_index) ;
 
-    icoeff = filter->coeffs_f [indx] + fraction * (filter->coeffs_f [indx + 1] - filter->coeffs_f [indx]) ;
+		icoeff = filter->coeffs [indx] + fraction * (filter->coeffs [indx + 1] - filter->coeffs [indx]) ;
 
-    right += icoeff * filter->buffer_f [data_index + ch] ;
+		right += icoeff * filter->buffer_f [data_index] ;
 
-    filter_index -= increment ;
-    data_index = data_index - filter->channels ;
-    }
-  while (filter_index > MAKE_INCREMENT_T (0)) ;
+		filter_index -= increment ;
+		data_index = data_index - filter->channels ;
+		}
+	while (filter_index > MAKE_INCREMENT_T (0)) ;
 
-  return (left + right) ;
-  } /* calc_output */
+	return (left + right) ;
+} /* calc_output_f */
 
 static double
 calc_output_d (SINC_FILTER *filter, increment_t increment, increment_t start_filter_index, int ch)
-  {	double		fraction, left, right, icoeff ;
-  increment_t	filter_index, max_filter_index ;
-  int			data_index, coeff_count, indx ;
+{	double		fraction, left, right, icoeff ;
+	increment_t	filter_index, max_filter_index ;
+	int			data_index, coeff_count, indx ;
 
-  /* Convert input parameters into fixed point. */
-  max_filter_index = INT_TO_FP (filter->coeff_half_len) ;
+	/* Convert input parameters into fixed point. */
+	max_filter_index = int_to_fp (filter->coeff_half_len) ;
 
-  /* First apply the left half of the filter. */
-  filter_index = start_filter_index ;
-  coeff_count = (max_filter_index - filter_index) / increment ;
-  filter_index = filter_index + coeff_count * increment ;
-  data_index = filter->b_current - filter->channels * coeff_count ;
+	/* First apply the left half of the filter. */
+	filter_index = start_filter_index ;
+	coeff_count = (max_filter_index - filter_index) / increment ;
+	filter_index = filter_index + coeff_count * increment ;
+	data_index = filter->b_current - filter->channels * coeff_count + ch ;
 
-  left = 0.0 ;
-  do
-    {	fraction = FP_TO_DOUBLE (filter_index) ;
-    indx = FP_TO_INT (filter_index) ;
+	left = 0.0 ;
+	do
+	{	fraction = fp_to_double (filter_index) ;
+		indx = fp_to_int (filter_index) ;
 
-    icoeff = filter->coeffs_d [indx] + fraction * (filter->coeffs_d [indx + 1] - filter->coeffs_d [indx]) ;
+		icoeff = filter->coeffs [indx] + fraction * (filter->coeffs [indx + 1] - filter->coeffs [indx]) ;
 
-    left += icoeff * filter->buffer_d [data_index + ch] ;
+		left += icoeff * filter->buffer_d [data_index] ;
 
-    filter_index -= increment ;
-    data_index = data_index + filter->channels ;
-    }
-  while (filter_index >= MAKE_INCREMENT_T (0)) ;
+		filter_index -= increment ;
+		data_index = data_index + filter->channels ;
+		}
+	while (filter_index >= MAKE_INCREMENT_T (0)) ;
 
-  /* Now apply the right half of the filter. */
-  filter_index = increment - start_filter_index ;
-  coeff_count = (max_filter_index - filter_index) / increment ;
-  filter_index = filter_index + coeff_count * increment ;
-  data_index = filter->b_current + filter->channels * (1 + coeff_count) ;
+	/* Now apply the right half of the filter. */
+	filter_index = increment - start_filter_index ;
+	coeff_count = (max_filter_index - filter_index) / increment ;
+	filter_index = filter_index + coeff_count * increment ;
+	data_index = filter->b_current + filter->channels * (1 + coeff_count) + ch ;
 
-  right = 0.0 ;
-  do
-    {	fraction = FP_TO_DOUBLE (filter_index) ;
-    indx = FP_TO_INT (filter_index) ;
+	right = 0.0 ;
+	do
+	{	fraction = fp_to_double (filter_index) ;
+		indx = fp_to_int (filter_index) ;
 
-    icoeff = filter->coeffs_d [indx] + fraction * (filter->coeffs_d [indx + 1] - filter->coeffs_d [indx]) ;
+		icoeff = filter->coeffs [indx] + fraction * (filter->coeffs [indx + 1] - filter->coeffs [indx]) ;
 
-    right += icoeff * filter->buffer_d [data_index + ch] ;
+		right += icoeff * filter->buffer_d [data_index] ;
 
-    filter_index -= increment ;
-    data_index = data_index - filter->channels ;
-    }
-  while (filter_index > MAKE_INCREMENT_T (0)) ;
+		filter_index -= increment ;
+		data_index = data_index - filter->channels ;
+		}
+	while (filter_index > MAKE_INCREMENT_T (0)) ;
 
-  return (left + right) ;
-  } /* calc_output */
-
-
-/*
-** Do not edit or modify anything in this comment block.
-** The arch-tag line is a file identity tag for the GNU Arch 
-** revision control system.
-**
-** arch-tag: db8efe06-2fbd-487e-be8f-bfc01e68c19f
-*/
+	return (left + right) ;
+} /* calc_output_d */
 

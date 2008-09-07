@@ -159,7 +159,7 @@ gavl_transform_context_init(gavl_image_transform_t * t,
                             gavl_image_transform_func func, void * priv)
   {
   gavl_transform_funcs_t func_tab;
-  int bits;
+  int bits = 0;
   
   float off_x, off_y;
   float scale_x, scale_y;

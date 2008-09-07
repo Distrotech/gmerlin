@@ -79,7 +79,7 @@ SRC_STATE* gavl_src_new (int converter_type, int channels, int *error, int d) ;
 */
 
 SRC_STATE* gavl_src_callback_new (src_callback_t func, int converter_type, int channels,
-				int *error, void* cb_data) ;
+				int *error, void* cb_data, int d) ;
 
 /*
 **	Cleanup all internal allocations.

@@ -1,5 +1,5 @@
 /*
-** Copyright (C) 2002-2004 Erik de Castro Lopo <erikd@mega-nerd.com>
+** Copyright (C) 2002-2008 Erik de Castro Lopo <erikd@mega-nerd.com>
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -16,6 +16,12 @@
 ** Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 */
 
+/*
+** This code is part of Secret Rabibt Code aka libsamplerate. A commercial
+** use license for this code is available, please see:
+**		http://www.mega-nerd.com/SRC/procedure.html
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,8 +30,8 @@
 #include "float_cast.h"
 #include "common.h"
 
-static int zoh_process_f (SRC_PRIVATE *psrc, SRC_DATA *data) ;
-static int zoh_process_d (SRC_PRIVATE *psrc, SRC_DATA *data) ;
+static int zoh_vari_process_f (SRC_PRIVATE *psrc, SRC_DATA *data) ;
+static int zoh_vari_process_d (SRC_PRIVATE *psrc, SRC_DATA *data) ;
 static void zoh_reset (SRC_PRIVATE *psrc) ;
 
 /*========================================================================================
@@ -36,25 +42,34 @@ static void zoh_reset (SRC_PRIVATE *psrc) ;
 typedef struct
 {	int		zoh_magic_marker ;
 	int		channels ;
+	int		reset ;
 	long	in_count, in_used ;
 	long	out_count, out_gen ;
 	float	last_value_f [1] ;
 	double	last_value_d [1] ;
-} ZOH_DATA ;
+        int d;
+  } ZOH_DATA ;
 
 /*----------------------------------------------------------------------------------------
 */
 
 static int
-zoh_process_f (SRC_PRIVATE *psrc, SRC_DATA *data)
+zoh_vari_process_f (SRC_PRIVATE *psrc, SRC_DATA *data)
 {	ZOH_DATA 	*zoh ;
-	double		src_ratio, input_index ;
+	double		src_ratio, input_index, rem ;
 	int			ch ;
 
 	if (psrc->private_data == NULL)
 		return SRC_ERR_NO_PRIVATE ;
 
 	zoh = (ZOH_DATA*) psrc->private_data ;
+
+	if (zoh->reset)
+	{	/* If we have just been reset, set the last_value data. */
+		for (ch = 0 ; ch < zoh->channels ; ch++)
+			zoh->last_value_f [ch] = data->data_in_f [ch] ;
+		zoh->reset = 0 ;
+		} ;
 
 	zoh->in_count = data->input_frames * zoh->channels ;
 	zoh->out_count = data->output_frames * zoh->channels ;
@@ -69,8 +84,8 @@ zoh_process_f (SRC_PRIVATE *psrc, SRC_DATA *data)
 		if (zoh->in_used + zoh->channels * input_index >= zoh->in_count)
 			break ;
 
-		if (fabs (psrc->last_ratio - data->src_ratio) > SRC_MIN_RATIO_DIFF)
-			src_ratio = psrc->last_ratio + zoh->out_gen * (data->src_ratio - psrc->last_ratio) / (zoh->out_count - 1) ;
+		if (zoh->out_count > 0 && fabs (psrc->last_ratio - data->src_ratio) > SRC_MIN_RATIO_DIFF)
+			src_ratio = psrc->last_ratio + zoh->out_gen * (data->src_ratio - psrc->last_ratio) / zoh->out_count ;
 
 		for (ch = 0 ; ch < zoh->channels ; ch++)
 		{	data->data_out_f [zoh->out_gen] = zoh->last_value_f [ch] ;
@@ -81,14 +96,15 @@ zoh_process_f (SRC_PRIVATE *psrc, SRC_DATA *data)
 		input_index += 1.0 / src_ratio ;
 		} ;
 
-	zoh->in_used += zoh->channels * lrint (floor (input_index)) ;
-	input_index -= floor (input_index) ;
+	rem = fmod_one (input_index) ;
+	zoh->in_used += zoh->channels * lrint (input_index - rem) ;
+	input_index = rem ;
 
 	/* Main processing loop. */
 	while (zoh->out_gen < zoh->out_count && zoh->in_used + zoh->channels * input_index <= zoh->in_count)
 	{
-		if (fabs (psrc->last_ratio - data->src_ratio) > SRC_MIN_RATIO_DIFF)
-			src_ratio = psrc->last_ratio + zoh->out_gen * (data->src_ratio - psrc->last_ratio) / (zoh->out_count - 1) ;
+		if (zoh->out_count > 0 && fabs (psrc->last_ratio - data->src_ratio) > SRC_MIN_RATIO_DIFF)
+			src_ratio = psrc->last_ratio + zoh->out_gen * (data->src_ratio - psrc->last_ratio) / zoh->out_count ;
 
 		for (ch = 0 ; ch < zoh->channels ; ch++)
 		{	data->data_out_f [zoh->out_gen] = data->data_in_f [zoh->in_used - zoh->channels + ch] ;
@@ -97,13 +113,14 @@ zoh_process_f (SRC_PRIVATE *psrc, SRC_DATA *data)
 
 		/* Figure out the next index. */
 		input_index += 1.0 / src_ratio ;
+		rem = fmod_one (input_index) ;
 
-		zoh->in_used += zoh->channels * lrint (floor (input_index)) ;
-		input_index -= floor (input_index) ;
+		zoh->in_used += zoh->channels * lrint (input_index - rem) ;
+		input_index = rem ;
 		} ;
 
 	if (zoh->in_used > zoh->in_count)
-	{	input_index += zoh->in_used - zoh->in_count ;
+	{	input_index += (zoh->in_used - zoh->in_count) / zoh->channels ;
 		zoh->in_used = zoh->in_count ;
 		} ;
 
@@ -120,18 +137,25 @@ zoh_process_f (SRC_PRIVATE *psrc, SRC_DATA *data)
 	data->output_frames_gen = zoh->out_gen / zoh->channels ;
 
 	return SRC_ERR_NO_ERROR ;
-} /* zoh_process */
+} /* zoh_vari_process_f */
 
 static int
-zoh_process_d (SRC_PRIVATE *psrc, SRC_DATA *data)
+zoh_vari_process_d (SRC_PRIVATE *psrc, SRC_DATA *data)
 {	ZOH_DATA 	*zoh ;
-	double		src_ratio, input_index ;
+	double		src_ratio, input_index, rem ;
 	int			ch ;
 
 	if (psrc->private_data == NULL)
 		return SRC_ERR_NO_PRIVATE ;
 
 	zoh = (ZOH_DATA*) psrc->private_data ;
+
+	if (zoh->reset)
+	{	/* If we have just been reset, set the last_value data. */
+		for (ch = 0 ; ch < zoh->channels ; ch++)
+			zoh->last_value_d [ch] = data->data_in_d [ch] ;
+		zoh->reset = 0 ;
+		} ;
 
 	zoh->in_count = data->input_frames * zoh->channels ;
 	zoh->out_count = data->output_frames * zoh->channels ;
@@ -146,8 +170,8 @@ zoh_process_d (SRC_PRIVATE *psrc, SRC_DATA *data)
 		if (zoh->in_used + zoh->channels * input_index >= zoh->in_count)
 			break ;
 
-		if (fabs (psrc->last_ratio - data->src_ratio) > SRC_MIN_RATIO_DIFF)
-			src_ratio = psrc->last_ratio + zoh->out_gen * (data->src_ratio - psrc->last_ratio) / (zoh->out_count - 1) ;
+		if (zoh->out_count > 0 && fabs (psrc->last_ratio - data->src_ratio) > SRC_MIN_RATIO_DIFF)
+			src_ratio = psrc->last_ratio + zoh->out_gen * (data->src_ratio - psrc->last_ratio) / zoh->out_count ;
 
 		for (ch = 0 ; ch < zoh->channels ; ch++)
 		{	data->data_out_d [zoh->out_gen] = zoh->last_value_d [ch] ;
@@ -158,14 +182,15 @@ zoh_process_d (SRC_PRIVATE *psrc, SRC_DATA *data)
 		input_index += 1.0 / src_ratio ;
 		} ;
 
-	zoh->in_used += zoh->channels * lrint (floor (input_index)) ;
-	input_index -= floor (input_index) ;
+	rem = fmod_one (input_index) ;
+	zoh->in_used += zoh->channels * lrint (input_index - rem) ;
+	input_index = rem ;
 
 	/* Main processing loop. */
 	while (zoh->out_gen < zoh->out_count && zoh->in_used + zoh->channels * input_index <= zoh->in_count)
 	{
-		if (fabs (psrc->last_ratio - data->src_ratio) > SRC_MIN_RATIO_DIFF)
-			src_ratio = psrc->last_ratio + zoh->out_gen * (data->src_ratio - psrc->last_ratio) / (zoh->out_count - 1) ;
+		if (zoh->out_count > 0 && fabs (psrc->last_ratio - data->src_ratio) > SRC_MIN_RATIO_DIFF)
+			src_ratio = psrc->last_ratio + zoh->out_gen * (data->src_ratio - psrc->last_ratio) / zoh->out_count ;
 
 		for (ch = 0 ; ch < zoh->channels ; ch++)
 		{	data->data_out_d [zoh->out_gen] = data->data_in_d [zoh->in_used - zoh->channels + ch] ;
@@ -174,13 +199,14 @@ zoh_process_d (SRC_PRIVATE *psrc, SRC_DATA *data)
 
 		/* Figure out the next index. */
 		input_index += 1.0 / src_ratio ;
+		rem = fmod_one (input_index) ;
 
-		zoh->in_used += zoh->channels * lrint (floor (input_index)) ;
-		input_index -= floor (input_index) ;
+		zoh->in_used += zoh->channels * lrint (input_index - rem) ;
+		input_index = rem ;
 		} ;
 
 	if (zoh->in_used > zoh->in_count)
-	{	input_index += zoh->in_used - zoh->in_count ;
+	{	input_index += (zoh->in_used - zoh->in_count) / zoh->channels ;
 		zoh->in_used = zoh->in_count ;
 		} ;
 
@@ -197,14 +223,14 @@ zoh_process_d (SRC_PRIVATE *psrc, SRC_DATA *data)
 	data->output_frames_gen = zoh->out_gen / zoh->channels ;
 
 	return SRC_ERR_NO_ERROR ;
-} /* zoh_process */
+} /* zoh_vari_process_d */
 
 
 /*------------------------------------------------------------------------------
 */
 
 const char*
-gavl_zoh_get_name (int src_enum)
+zoh_get_name (int src_enum)
 {
 	if (src_enum == SRC_ZERO_ORDER_HOLD)
 		return "ZOH Interpolator" ;
@@ -213,7 +239,7 @@ gavl_zoh_get_name (int src_enum)
 } /* zoh_get_name */
 
 const char*
-gavl_zoh_get_description (int src_enum)
+zoh_get_description (int src_enum)
 {
 	if (src_enum == SRC_ZERO_ORDER_HOLD)
 		return "Zero order hold interpolator, very fast, poor quality." ;
@@ -237,7 +263,7 @@ gavl_zoh_set_converter (SRC_PRIVATE *psrc, int src_enum, int d)
 		} ;
 
 	if (psrc->private_data == NULL)
-	{	zoh = calloc (1, sizeof (*zoh) + psrc->channels * sizeof (double)) ;
+	{	zoh = calloc (1, sizeof (*zoh) + psrc->channels * sizeof (float)) ;
 		if (zoh == NULL)
 			return SRC_ERR_MALLOC_FAILED ;
 		psrc->private_data = zoh ;
@@ -245,12 +271,19 @@ gavl_zoh_set_converter (SRC_PRIVATE *psrc, int src_enum, int d)
 
 	zoh->zoh_magic_marker = ZOH_MAGIC_MARKER ;
 	zoh->channels = psrc->channels ;
+        zoh->d = d;
         if(d)
-          psrc->process = zoh_process_d ;
+          {
+          psrc->const_process = zoh_vari_process_d ;
+          psrc->vari_process = zoh_vari_process_d ;
+          }
         else
-          psrc->process = zoh_process_f ;
-          
-        psrc->reset = zoh_reset ;
+          {
+          psrc->const_process = zoh_vari_process_f ;
+          psrc->vari_process = zoh_vari_process_f ;
+          }
+        
+	psrc->reset = zoh_reset ;
 
 	zoh_reset (psrc) ;
 
@@ -269,16 +302,12 @@ zoh_reset (SRC_PRIVATE *psrc)
 		return ;
 
 	zoh->channels = psrc->channels ;
-	memset (zoh->last_value_f, 0, sizeof (zoh->last_value_f [0]) * zoh->channels) ;
-	memset (zoh->last_value_d, 0, sizeof (zoh->last_value_d [0]) * zoh->channels) ;
-
+	zoh->reset = 1 ;
+        if(zoh->d)
+          memset (zoh->last_value_d, 0, sizeof (zoh->last_value_d [0]) * zoh->channels) ;
+        else
+          memset (zoh->last_value_f, 0, sizeof (zoh->last_value_f [0]) * zoh->channels) ;
+          
 	return ;
 } /* zoh_reset */
-/*
-** Do not edit or modify anything in this comment block.
-** The arch-tag line is a file identity tag for the GNU Arch 
-** revision control system.
-**
-** arch-tag: 808e62f8-2e4a-44a6-840f-180a3e41af01
-*/
 

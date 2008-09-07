@@ -302,12 +302,12 @@ void gavl_transform_table_init_int(gavl_transform_table_t * tab,
   int min_index_k, max_index_k;
   int min_index_l, max_index_l;
   int fac_i_norm = 0;
+  int have_fac_i_norm = 0;
   
   //  fac_max_i = (1<<bits) - 1;
   //  fprintf(stderr, "Init int %d\n", bits);
   fac_max_i = (1<<bits);
   fac_max_f = (float)(fac_max_i);
-  int have_fac_i_norm = 0;
   
   for(i = 0; i < height; i++)
     {
