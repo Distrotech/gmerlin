@@ -97,7 +97,7 @@
     PARAM_QCOMPRESS,                        \
     PARAM_QBLUR,                            \
     PARAM_QUANTIZER_NOISE_SHAPING,          \
-    PARAM_FLAG_TRELLIS_QUANT
+    PARAM_TRELLIS
 
 #define ENCODE_PARAM_VIDEO_QUANTIZER_IP \
   ENCODE_PARAM_VIDEO_QUANTIZER_I,               \
@@ -778,7 +778,11 @@ bg_ffmpeg_set_codec_parameter(AVCodecContext * ctx, const char * name,
   PARAM_FLAG("ff_flag_emu_edge",CODEC_FLAG_EMU_EDGE);
   PARAM_FLAG("ff_flag_normalize_aqp",CODEC_FLAG_NORMALIZE_AQP);
   PARAM_FLAG("ff_flag_alt_scan",CODEC_FLAG_ALT_SCAN);
+#if LIBAVCODEC_VERSION_INT < ((52<<16)+(0<<8)+0)
   PARAM_FLAG("ff_flag_trellis_quant",CODEC_FLAG_TRELLIS_QUANT);
+#else
+  PARAM_INT("ff_trellis",trellis);
+#endif
   PARAM_FLAG("ff_flag_bitexact",CODEC_FLAG_BITEXACT);
   PARAM_FLAG("ff_flag_ac_pred",CODEC_FLAG_AC_PRED);
   PARAM_FLAG("ff_flag_h263p_umv",CODEC_FLAG_H263P_UMV);

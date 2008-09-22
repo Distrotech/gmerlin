@@ -592,8 +592,11 @@ static int init(bgav_stream_t * s)
   priv->ctx->sample_rate     = s->data.audio.format.samplerate;
   priv->ctx->block_align     = s->data.audio.block_align;
   priv->ctx->bit_rate        = s->codec_bitrate;
+#if LIBAVCODEC_VERSION_INT < ((52<<16)+(0<<8)+0)
   priv->ctx->bits_per_sample = s->data.audio.bits_per_sample;
-
+#else
+  priv->ctx->bits_per_coded_sample = s->data.audio.bits_per_sample;
+#endif  
   if(priv->info->codec_tag != -1)
     priv->ctx->codec_tag = priv->info->codec_tag;
   else

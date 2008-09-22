@@ -451,12 +451,16 @@ static void init_audio_stream(bgav_demuxer_context_t * ctx,
   s->fourcc = map->fourcc;
 
   st->discard = AVDISCARD_NONE;
-  
+
   if(map->bits)
     s->data.audio.bits_per_sample = map->bits;
   else
-    s->data.audio.bits_per_sample = codec->bits_per_sample;
+#if LIBAVCODEC_VERSION_INT < ((52<<16)+(0<<8)+0)
+    s->data.audio.bits_per_sample = codec->bits_per_coded_sample;
+#else
 
+#endif
+  
   s->data.audio.block_align = codec->block_align;
   if(!s->data.audio.block_align &&
      map->bits)
@@ -532,8 +536,11 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
   s->data.video.format.pixel_height = codec->sample_aspect_ratio.den;
   if(!s->data.video.format.pixel_width) s->data.video.format.pixel_width = 1;
   if(!s->data.video.format.pixel_height) s->data.video.format.pixel_height = 1;
+#if LIBAVCODEC_VERSION_INT < ((52<<16)+(0<<8)+0)
   s->data.video.depth = codec->bits_per_sample;
-  
+#else
+  s->data.video.depth = codec->bits_per_coded_sample;
+#endif
   s->ext_size = codec->extradata_size;
   s->ext_data = codec->extradata;
   s->container_bitrate = codec->bit_rate;

@@ -883,7 +883,12 @@ static int init_ffmpeg(bgav_stream_t * s)
   priv->ctx = avcodec_alloc_context();
   priv->ctx->width = s->data.video.format.frame_width;
   priv->ctx->height = s->data.video.format.frame_height;
+#if LIBAVCODEC_VERSION_INT < ((52<<16)+(0<<8)+0)
   priv->ctx->bits_per_sample = s->data.video.depth;
+#else
+  priv->ctx->bits_per_coded_sample = s->data.video.depth;
+#endif  
+
 #if 1
   priv->ctx->codec_tag   =
     ((s->fourcc & 0x000000ff) << 24) |

@@ -929,7 +929,8 @@ RC buffer size") \
   }
 
 /** Quantizer */
-#define PARAM_FLAG_TRELLIS_QUANT   \
+#if LIBAVCODEC_VERSION_INT < ((52<<16)+(0<<8)+0)
+#define PARAM_TRELLIS   \
   {                              \
     .name =        "ff_flag_trellis_quant", \
     .long_name =   TRS("Use trellis quantization"),      \
@@ -937,6 +938,16 @@ RC buffer size") \
     .val_default = { .val_i = 0 },    \
     .help_string = TRS("Use trellis quantization (improves quality)") \
   }
+#else
+#define PARAM_TRELLIS   \
+  {                              \
+    .name =        "ff_trellis", \
+    .long_name =   TRS("Use trellis quantization"),      \
+    .type =        BG_PARAMETER_CHECKBUTTON, \
+    .val_default = { .val_i = 0 },    \
+    .help_string = TRS("Use trellis quantization (improves quality)") \
+  }
+#endif
 
 #define PARAM_FLAG_BITEXACT   \
   {                              \
