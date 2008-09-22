@@ -143,8 +143,10 @@ int bg_pa_open(bg_pa_t * p, int record)
 #endif
       break;
 #endif
-    case GAVL_SAMPLE_FLOAT: 
     case GAVL_SAMPLE_DOUBLE: 
+      p->format.sample_format = GAVL_SAMPLE_FLOAT;
+      /* Fall through */
+    case GAVL_SAMPLE_FLOAT: 
       ss.format = PA_SAMPLE_FLOAT32NE;
       break;
 
