@@ -363,6 +363,7 @@ demux_nuv.c \
 demux_p2xml.c \
 demux_psxstr.c \
 demux_quicktime.c \
+demux_r3d.c \
 demux_ra.c \
 demux_rm.c \
 demux_roq.c \
