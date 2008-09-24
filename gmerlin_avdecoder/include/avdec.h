@@ -1642,6 +1642,8 @@ void bgav_seek_scaled(bgav_t * bgav, int64_t * time, int scale);
  *  The ability of sample accurate seeking also implies, that streams can
  *  be positioned indepentently.
  *
+ *  If \ref bgav_options_set_sample_accurate was not called, this function will
+ *  return zero for any file.
  */
 
 int bgav_can_seek_sample(bgav_t * bgav);
