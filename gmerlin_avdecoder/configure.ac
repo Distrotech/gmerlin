@@ -221,6 +221,12 @@ dnl
 GMERLIN_CHECK_LIBTIFF
 
 dnl
+dnl openjpeg
+dnl
+
+GMERLIN_CHECK_OPENJPEG
+
+dnl
 dnl libsmbclient
 dnl
 
@@ -548,6 +554,15 @@ elif test "x$test_libtiff" = "xfalse"; then
 echo "Disabled"
 else
 echo "Missing (Go to http://www.remotesensing.org/libtiff/)"
+fi
+
+echo -n "libopenjpeg:            "
+if test "x$have_openjpeg" = "xtrue"; then
+echo "Found (CFLAGS=$OPENJPEG_CFLAGS LIBS=$OPENJPEG_LIBS)"
+elif test "x$test_openjpeg" = "xfalse"; then
+echo "Disabled"
+else
+echo "Missing (Go to http://www.openjpeg.org)"
 fi
 
 echo -n "libmpeg2 (mpeg2dec)     "

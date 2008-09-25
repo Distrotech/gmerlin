@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-// #define DUMP_SUPERINDEX    
+#define DUMP_SUPERINDEX    
 #include <avdec_private.h>
 
 #include <stdio.h>
@@ -357,7 +357,6 @@ static void init_superindex(bgav_demuxer_context_t * ctx)
     else
       {
       bgav_superindex_set_durations(ctx->si, &ctx->tt->cur->audio_streams[i]);
-
       ctx->tt->cur->audio_streams[i].first_timestamp = 0;
       i++;
       }
@@ -389,6 +388,8 @@ static void init_superindex(bgav_demuxer_context_t * ctx)
       i++;
       }
     }
+  if(ctx->tt->cur->duration == GAVL_TIME_UNDEFINED)
+    bgav_track_calc_duration(ctx->tt->cur);
   }
 
 static void check_interleave(bgav_demuxer_context_t * ctx)

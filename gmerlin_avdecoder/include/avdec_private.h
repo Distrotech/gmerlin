@@ -601,6 +601,10 @@ void bgav_track_dump(bgav_t * b, bgav_track_t * t);
 
 int bgav_track_has_sync(bgav_track_t * t);
 
+/* Calculate duration from stream durations */
+void bgav_track_calc_duration(bgav_track_t * t);
+
+/* Tracktable */
 
 typedef struct
   {
@@ -609,8 +613,6 @@ typedef struct
   bgav_track_t * cur;
   int refcount;
   } bgav_track_table_t;
-
-/* Tracktable */
 
 bgav_track_table_t * bgav_track_table_create(int num_tracks);
 bgav_track_t * bgav_track_table_append_track(bgav_track_table_t * t);

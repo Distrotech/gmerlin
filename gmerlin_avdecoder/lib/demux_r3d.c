@@ -25,6 +25,9 @@
 
 #define LOG_DOMAIN "demux_r3d"
 
+#define AUDIO_ID 0
+#define VIDEO_ID 1
+
 typedef struct
   {
   uint32_t len;
@@ -64,7 +67,6 @@ typedef struct
 static int read_red1(bgav_input_context_t * ctx,
                      red1_t * ret)
   {
-  chunk_t ch;
   //  if(!read_chunk_header(ctx, &ch))
   //    return 0;
   if(!bgav_input_read_32_be(ctx, &ret->unknown1) ||
@@ -88,9 +90,6 @@ static int read_red1(bgav_input_context_t * ctx,
 
   if(bgav_input_read_data(ctx, (uint8_t*)(ret->name), 257) < 257)
     return 0;
-  
-  if(ch.len > ctx->position)
-    bgav_input_skip(ctx, ch.len - ctx->position);
   return 1;
   }
 
@@ -116,6 +115,86 @@ static void dump_red1(red1_t * red1)
   bgav_dprintf("  unknown15:       %d\n", red1->unknown15);
   bgav_dprintf("  name:            %s\n", red1->name);
   }
+
+/* Packet headers are not used, we build a superindex instead.
+   They are left here for reference */
+
+#if 0
+
+/* Audio packet header */
+
+typedef struct
+  {
+  uint32_t pts;      /* in PTS timescale tics */
+  uint32_t samplerate; /* Samplerate            */
+  uint32_t samples; /* Samples * channels in this packet */
+  uint32_t packetno; /* Packet counter */
+  uint32_t unknown5; /* 0f180303 */
+  uint32_t unknown6; /* Always 0 */
+  } audio_header_t;
+
+static int read_audio_header(bgav_input_context_t * ctx,
+                             audio_header_t * ret)
+  {
+  //  if(!read_chunk_header(ctx, &ch))
+  //    return 0;
+  if(!bgav_input_read_32_be(ctx, &ret->pts) ||
+     !bgav_input_read_32_be(ctx, &ret->samplerate) ||
+     !bgav_input_read_32_be(ctx, &ret->samples) ||
+     !bgav_input_read_32_be(ctx, &ret->packetno) ||
+     !bgav_input_read_32_be(ctx, &ret->unknown5) ||
+     !bgav_input_read_32_be(ctx, &ret->unknown6))
+    return 0;
+  return 1;
+  }
+
+static void dump_audio_header(audio_header_t * h)
+  {
+  bgav_dprintf("Audio packet header:\n");
+  bgav_dprintf("  PTS:        %d\n", h->pts);
+  bgav_dprintf("  samplerate: %d\n", h->samplerate);
+  bgav_dprintf("  samples:    %d\n", h->samples);
+  bgav_dprintf("  packetno:   %d\n", h->packetno);
+  bgav_dprintf("  Unknown5:   %d (%08x)\n",
+               h->unknown5,
+               h->unknown5);
+  bgav_dprintf("  Unknown6:   %d (%08x)\n",
+               h->unknown6,
+               h->unknown6);
+  }
+
+/* Video packet header */
+
+typedef struct
+  {
+  uint32_t pts;
+  uint32_t packetno;
+  uint32_t unknown3;
+  } video_header_t;
+
+static int read_video_header(bgav_input_context_t * ctx,
+                             video_header_t * ret)
+  {
+  //  if(!read_chunk_header(ctx, &ch))
+  //    return 0;
+  if(!bgav_input_read_32_be(ctx, &ret->pts) ||
+     !bgav_input_read_32_be(ctx, &ret->packetno) ||
+     !bgav_input_read_32_be(ctx, &ret->unknown3))
+    return 0;
+  return 1;
+  }
+
+static void dump_video_header(video_header_t * h)
+  {
+  bgav_dprintf("Video packet header:\n");
+  bgav_dprintf("  PTS:      %d\n", h->pts);
+  bgav_dprintf("  packetno: %d\n", h->packetno);
+  bgav_dprintf("  Unknown3: %d (%08x)\n",
+               h->unknown3,
+               h->unknown3);
+  }
+
+#endif
 
 /* Footer */
 
@@ -235,11 +314,62 @@ static int probe_r3d(bgav_input_context_t * input)
   return 0;
   }
 
+static void build_superindex(bgav_demuxer_context_t * ctx)
+  {
+  int i;
+  int audio_pos = 0, video_pos = 0;
+  bgav_stream_t * s;
+  r3d_priv_t * priv;
+  int do_audio;
+  int duration;
+  int offset;
+  priv = (r3d_priv_t *)ctx->priv;
+
+  ctx->si = bgav_superindex_create(priv->reob.audio_packets +
+                                   priv->reob.video_packets);
+
+  for(i = 0; i < priv->reob.audio_packets+priv->reob.video_packets; i++)
+    {
+    do_audio = 0;
+    if(audio_pos < priv->reob.audio_packets &&
+       ((video_pos >= priv->reob.video_packets) ||
+        priv->rdao[audio_pos] < priv->rdvo[video_pos]))
+      {
+      /* Add audio packet */
+      s = ctx->tt->cur->audio_streams;
+      offset = 24+8;
+      duration = (priv->rdas[audio_pos]-offset) / 16; /* 4 bytes * 4 channels */
+      bgav_superindex_add_packet(ctx->si,
+                                 s, priv->rdao[audio_pos] + offset,
+                                 priv->rdas[audio_pos] - offset,
+                                 s->stream_id,
+                                 s->duration,
+                                 1, duration);
+      audio_pos++;
+      }
+    else
+      {
+      /* Add video packet */
+      s = ctx->tt->cur->video_streams;
+      offset = 12+8;
+      duration = s->data.video.format.frame_duration;
+      bgav_superindex_add_packet(ctx->si,
+                                 s, priv->rdvo[video_pos] + offset,
+                                 priv->rdvs[video_pos] - offset,
+                                 s->stream_id,
+                                 s->duration,
+                                 1, duration);
+      video_pos++;
+      }
+    s->duration += duration;
+    }
+  }
+
 static int open_r3d(bgav_demuxer_context_t * ctx)
   {
   chunk_t ch;
   r3d_priv_t * priv;
-
+  bgav_stream_t * s;
   if(!ctx->input->input->seek_byte)
     {
     bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
@@ -272,45 +402,84 @@ static int open_r3d(bgav_demuxer_context_t * ctx)
              "Got no footer");
     return 0;
     }
-    
   
   if(!read_reob(ctx->input, &priv->reob))
     return 0;
   dump_reob(&priv->reob);
   
   /* Read indices */
-  priv->rdvo = read_index(ctx->input,
-                          priv->reob.video_packets,
-                          BGAV_MK_FOURCC('R','D','V','O'),
-                          priv->reob.rdvo_offset);
 
-  if(!priv->rdvo)
-    return 0; 
-  
-  priv->rdvs = read_index(ctx->input,
-                          priv->reob.video_packets,
-                          BGAV_MK_FOURCC('R','D','V','S'),
-                          priv->reob.rdvs_offset);
-  if(!priv->rdvs)
-    return 0; 
-  priv->rdao = read_index(ctx->input,
-                          priv->reob.audio_packets,
-                          BGAV_MK_FOURCC('R','D','A','O'),
-                          priv->reob.rdao_offset);
-  if(!priv->rdao)
-    return 0; 
-  priv->rdas = read_index(ctx->input,
-                          priv->reob.video_packets,
-                          BGAV_MK_FOURCC('R','D','A','S'),
-                          priv->reob.rdas_offset);
-  if(!priv->rdas)
-    return 0; 
-  
-  bgav_input_seek(ctx->input, 0, SEEK_SET);
+  if(priv->reob.video_packets)
+    {
+    priv->rdvo = read_index(ctx->input,
+                            priv->reob.video_packets,
+                            BGAV_MK_FOURCC('R','D','V','O'),
+                            priv->reob.rdvo_offset);
+    if(!priv->rdvo)
+      return 0; 
     
+    priv->rdvs = read_index(ctx->input,
+                            priv->reob.video_packets,
+                            BGAV_MK_FOURCC('R','D','V','S'),
+                            priv->reob.rdvs_offset);
+    if(!priv->rdvs)
+      return 0; 
+
+    
+    }
+  if(priv->reob.audio_packets)
+    {
+    priv->rdao = read_index(ctx->input,
+                            priv->reob.audio_packets,
+                            BGAV_MK_FOURCC('R','D','A','O'),
+                            priv->reob.rdao_offset);
+    if(!priv->rdao)
+      return 0; 
+    priv->rdas = read_index(ctx->input,
+                            priv->reob.video_packets,
+                            BGAV_MK_FOURCC('R','D','A','S'),
+                            priv->reob.rdas_offset);
+    if(!priv->rdas)
+      return 0; 
+    
+    }
+
+  ctx->tt = bgav_track_table_create(1);
+  /* Add video stream */
+  if(priv->reob.video_packets)
+    {
+    s = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
+    s->data.video.format.image_width = priv->red1.width;
+    s->data.video.format.image_height = priv->red1.height;
+    s->data.video.format.frame_width = priv->red1.width;
+    s->data.video.format.frame_height = priv->red1.height;
+    s->data.video.format.pixel_width = 1;
+    s->data.video.format.pixel_height = 1;
+    s->data.video.format.timescale = priv->red1.video_timescale;
+    s->data.video.format.frame_duration = priv->red1.frame_duration;
+    s->fourcc = BGAV_MK_FOURCC('R', '3', 'D', '1');
+    //    s->fourcc = BGAV_MK_FOURCC('j','p','e','g');
+    s->stream_id = VIDEO_ID;
+    }
+  /* Add audio stream */
+  if(priv->reob.audio_packets)
+    {
+    s = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
+    s->data.audio.format.samplerate = 48000;
+    s->data.audio.format.num_channels = 4;
+    s->data.audio.block_align = 16;
+    s->data.audio.bits_per_sample = 32; // 24 actually, the lowest byte is 0
+    s->fourcc = BGAV_MK_FOURCC('t','w','o','s');
+    s->stream_id = AUDIO_ID;
+    }
+
+  bgav_input_seek(ctx->input, 0, SEEK_SET);
+  
+#if 0
+  
   while(1)
     {
-    fprintf(stderr, "Offset: %ld ", ctx->input->position);
+    // fprintf(stderr, "Offset: %ld ", ctx->input->position);
     
     if(!read_chunk_header(ctx->input, &ch))
       {
@@ -330,10 +499,34 @@ static int open_r3d(bgav_demuxer_context_t * ctx)
       }
     else
 #endif
+#if 0
+    if(ch.fourcc == BGAV_MK_FOURCC('R','E','D','A'))
+      {
+      audio_header_t h;
+      read_audio_header(ctx->input, &h);
+      dump_audio_header(&h);
+      bgav_input_skip(ctx->input, ch.len - 8 - 24);
+      }
+    else
+#endif
+      if(ch.fourcc == BGAV_MK_FOURCC('R','E','D','V'))
+      {
+      video_header_t h;
+      read_video_header(ctx->input, &h);
+      dump_video_header(&h);
+      bgav_input_skip(ctx->input, ch.len - 8 - 12);
+      }
+    else
       bgav_input_skip(ctx->input, ch.len - 8);
     }
+#endif
+
+  build_superindex(ctx);
+
+  ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
+  ctx->index_mode = INDEX_MODE_SI_SA;
   
-  return 0;
+  return 1;
   }
 
 static int next_packet_r3d(bgav_demuxer_context_t * ctx)
@@ -352,6 +545,12 @@ static void close_r3d(bgav_demuxer_context_t * ctx)
   {
   r3d_priv_t * priv;
   priv = (r3d_priv_t*)(ctx->priv);
+
+  if(priv->rdvo) free(priv->rdvo);
+  if(priv->rdvs) free(priv->rdvs);
+  if(priv->rdao) free(priv->rdao);
+  if(priv->rdas) free(priv->rdas);
+  
   free(priv);
   }
 

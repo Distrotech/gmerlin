@@ -251,6 +251,10 @@ void bgav_codecs_init(bgav_options_t * opt)
   bgav_init_video_decoders_png();
 #endif
 
+#ifdef HAVE_OPENJPEG
+  bgav_init_video_decoders_openjpeg();
+#endif
+
 #ifdef HAVE_LIBTIFF
   bgav_init_video_decoders_tiff();
 #endif

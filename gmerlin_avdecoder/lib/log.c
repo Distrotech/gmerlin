@@ -28,6 +28,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <avdec_private.h>
 
@@ -63,9 +64,7 @@ void bgav_log(const bgav_options_t * opt,
   {
   char * msg_string;
   va_list argp; /* arg ptr */
-#ifndef HAVE_VASPRINTF
   int len;
-#endif
 
   format = TRD(format);
     
@@ -78,7 +77,11 @@ void bgav_log(const bgav_options_t * opt,
 #else
   vasprintf(&msg_string, format, argp);
 #endif
-
+  len = strlen(msg_string);
+  
+  if(msg_string[len - 1] == '\n')
+    msg_string[len - 1] = '\0';
+  
   va_end(argp);
   
   if(!opt || !opt->log_callback)

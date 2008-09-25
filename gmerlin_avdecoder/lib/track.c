@@ -576,6 +576,38 @@ int bgav_track_skipto(bgav_track_t * track, int64_t * time, int scale)
   return 1;
   }
 
+void bgav_track_calc_duration(bgav_track_t * t)
+  {
+  int i;
+  gavl_time_t test_duration;
+  /* Get duration */
+  for(i = 0; i < t->num_audio_streams; i++)
+    {
+    test_duration =
+      gavl_time_unscale(t->audio_streams[i].data.audio.format.samplerate,
+                        t->audio_streams[i].duration);
+    if(t->duration < test_duration)
+      t->duration = test_duration;
+    }
+  for(i = 0; i < t->num_video_streams; i++)
+    {
+    test_duration =
+      gavl_time_unscale(t->video_streams[i].data.video.format.timescale,
+                        t->video_streams[i].duration);
+    if(t->duration < test_duration)
+      t->duration = test_duration;
+    }
+  for(i = 0; i < t->num_subtitle_streams; i++)
+    {
+    test_duration =
+      gavl_time_unscale(t->subtitle_streams[i].timescale,
+                        t->subtitle_streams[i].duration);
+    if(t->duration < test_duration)
+      t->duration = test_duration;
+    }
+  }
+
+
 int bgav_track_has_sync(bgav_track_t * t)
   {
   int i;

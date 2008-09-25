@@ -1487,25 +1487,7 @@ static int open_quicktime(bgav_demuxer_context_t * ctx)
 
   /* Build index */
   build_index(ctx);
-
-  /* Get duration */
-  for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
-    {
-    test_duration =
-      gavl_time_unscale(ctx->tt->cur->audio_streams->data.audio.format.samplerate,
-                        ctx->tt->cur->audio_streams->duration);
-    if(ctx->tt->cur->duration < test_duration)
-      ctx->tt->cur->duration = test_duration;
-    }
-  for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
-    {
-    test_duration =
-      gavl_time_unscale(ctx->tt->cur->video_streams->data.video.format.timescale,
-                        ctx->tt->cur->video_streams->duration);
-    if(ctx->tt->cur->duration < test_duration)
-      ctx->tt->cur->duration = test_duration;
-    }
-  
+    
   /* No packets are found */
   if(!ctx->si)
     return 0;

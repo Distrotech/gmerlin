@@ -45,6 +45,17 @@ png_libs =
 png_sources =
 endif
 
+if HAVE_OPENJPEG
+openjpeg_cflags =  @OPENJPEG_CFLAGS@
+openjpeg_libs =    @OPENJPEG_LIBS@
+openjpeg_sources = video_openjpeg.c
+else
+openjpeg_cflags =
+openjpeg_libs =
+openjpeg_sources =
+endif
+
+
 if HAVE_LIBTIFF
 tiff_cflags =  @TIFF_CFLAGS@
 tiff_libs =    @TIFF_LIBS@
@@ -249,6 +260,7 @@ $(vorbis_libs) \
 $(libmpeg2_libs) \
 $(win32_libs) \
 $(png_libs) \
+$(openjpeg_libs) \
 $(tiff_libs) \
 $(dvdread_libs) \
 $(faad2_libs) \
@@ -279,6 +291,7 @@ AM_CFLAGS = \
 $(vorbis_cflags) \
 $(mad_cflags) \
 $(png_cflags) \
+$(openjpeg_cflags) \
 $(tiff_cflags) \
 $(faad2_cflags) \
 $(flac_cflags) \
@@ -301,6 +314,7 @@ $(libmpeg2_sources) \
 $(vorbis_sources) \
 $(faad2_sources) \
 $(png_sources) \
+$(openjpeg_sources) \
 $(tiff_sources) \
 $(win32_sources) \
 $(mad_sources) \

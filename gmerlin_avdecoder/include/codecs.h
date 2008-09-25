@@ -44,6 +44,10 @@ void bgav_init_audio_decoders_mad();
 void bgav_init_video_decoders_png();
 #endif
 
+#ifdef HAVE_OPENJPEG
+void bgav_init_video_decoders_openjpeg();
+#endif
+
 #ifdef HAVE_LIBTIFF
 void bgav_init_video_decoders_tiff();
 #endif
