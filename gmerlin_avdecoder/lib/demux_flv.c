@@ -854,7 +854,7 @@ static int open_flv(bgav_demuxer_context_t * ctx)
   /* Get the duration from the timestamp of the last packet if
      the stream is seekable */
   
-  if((ctx->tt->cur->duration != GAVL_TIME_UNDEFINED) &&
+  if((ctx->tt->cur->duration == GAVL_TIME_UNDEFINED) &&
      ctx->input->input->seek_byte)
     {
     pos = ctx->input->position;
