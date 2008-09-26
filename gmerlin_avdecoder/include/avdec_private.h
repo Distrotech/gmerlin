@@ -678,6 +678,9 @@ struct bgav_options_s
   int prefer_ffmpeg_demuxers;
 
   int dv_datetime;
+  
+  int shrink;
+  
   /* Callbacks */
 
   bgav_log_callback log_callback;

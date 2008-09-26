@@ -527,6 +527,18 @@ void bgav_options_set_prefer_ffmpeg_demuxers(bgav_options_t* opt,
 void bgav_options_set_dv_datetime(bgav_options_t* opt,
                                   int datetime);
 
+/** \ingroup options
+ *  \brief Shrink factor
+ *  \param opt Option container
+ *  \param Exponent of the shrink factor
+ *
+ *  This enables downscaling of images while decoding.
+ *  Currently only supported for JPEG-2000.
+ */
+
+void bgav_options_set_shrink(bgav_options_t* opt,
+                             int factor);
+
 
 /** \ingroup options
  *  \brief Enumeration for log levels

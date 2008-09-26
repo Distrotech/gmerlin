@@ -63,8 +63,6 @@ typedef struct
   opj_event_mgr_t event_mgr;		/* event manager */
   opj_dinfo_t* dinfo;	/* handle to a decompressor */
 
-  void (*debayer_func)(int ** planes, int width, int height,
-                       float * out, int out_stride);
   opj_image_t *img;
   
   } openjpeg_priv_t;
@@ -74,135 +72,47 @@ typedef struct
 /* pretty simple but astonishingly very effective "debayer" function 
  */
 
+#define CLIP(arg, dst) tmp = (arg); \
+   /* Clip */ \
+   tmp = (tmp & ~0xFFFF)?0xFFFF:((tmp<0)?0:tmp); \
+   /* Saturate */ \
+   dst = tmp | (tmp >> 12);
+
 static void
-redcode_ycbcr2rgb_fullscale(int ** planes, int width, int height,
-                            float * out, int out_stride)
+redcode_ycbcr2rgb(int ** planes, int width,
+                  int height, uint16_t * out, int out_stride)
   {
   int x,y;
-  int pix_max = 4096;
-  int mask = pix_max - 1;
-  float *o;
+  int tmp;
+  const int pix_max = 4096;
+  const int mask = pix_max - 1;
+  out_stride /= 2;
   for (y = 0; y < height; y++)
     {
-    fprintf(stderr, "y: %d\n", y);
+    uint16_t *o = out + y * out_stride;
     for (x = 0; x < width; x++)
       {
-      int i = x + y*width;
-      int i_p = (y > 0) ? i-width : i;
-      int i_n = (y < (height-1)) ? i + width : i;
-      float y1n = planes[0][i_n] & mask;
-      float y1  = planes[0][i] & mask;
-      float cb  = (planes[1][i] & mask)   - pix_max/2;
-      float cr  = (planes[2][i] & mask)   - pix_max/2;
-      float y2  = (planes[3][i] & mask);
-      float y2p = (planes[3][i_p] & mask);
+      int i = y*width + x;
+      int y1  = (planes[0][i] & mask);
+      int cb  = (planes[1][i] & mask)  - pix_max/2;
+      int cr  = (planes[2][i] & mask)  - pix_max/2;
+      int y2  = (planes[3][i] & mask);
+      
+      int b_ = cb << 4;
+      int r_ = cr << 4;
 
-      float b_ = cb /(pix_max/2);
-      float r_ = cr /(pix_max/2);
-      float g_ = 0.0;
-		
-      float y_[4] = {y1 / pix_max, 
-                     (y2 + y2p)/2 / pix_max, 
-                     (y1 + y1n)/2 / pix_max, 
-                     y2 / pix_max};
-
-      int j;
-      int yc = 0;
-
-      o = out + (height-1-y)*(out_stride / sizeof(float))
-        + x*3;
-
-      for (j = 0; j < 6; j += 3)
-        {
-        o[j+0] = r_ + y_[yc];
-        o[j+1] = g_ + y_[yc];
-        o[j+2] = b_ + y_[yc];
-        yc++;
-        }
-
-      if(height-1-y > 1)
-        {
-        o = out + (height-1-y)*(out_stride / sizeof(float))
-          + x*3 - out_stride / sizeof(float);
-        
-        for (j = 0; j < 6; j += 3)
-          {
-          o[j+0] = r_ + y_[yc];
-          o[j+1] = g_ + y_[yc];
-          o[j+2] = b_ + y_[yc];
-          yc++;
-          }
-        
-        }
+      /* 12 -> 16 bits */
+      int y = ((y1 + y2)>>1)<<4;
+      
+      CLIP(r_ + y, *o++);
+      CLIP(   + y, *o++);
+      CLIP(b_ + y, *o++);
+      //			*o++ = 1.0;
       }
     }
   }
 
-static void
-redcode_ycbcr2rgb_halfscale(int ** planes, int width, int height,
-                            float * out, int out_stride)
-  {
-  int x,y;
-  int pix_max = 4096;
-  int mask = pix_max - 1;
-
-  for (y = 0; y < height; y++)
-    {
-    float *o = out + width * (height - y - 1);
-    for (x = 0; x < width; x++)
-      {
-      int i = y*height + x;
-      float y1  = (planes[0][i] & mask);
-      float cb  = (planes[1][i] & mask)  - pix_max/2;
-      float cr  = (planes[2][i] & mask)  - pix_max/2;
-      float y2  = (planes[3][i] & mask);
-
-      float b_ = cb /(pix_max/2);
-      float r_ = cr /(pix_max/2);
-      float g_ = 0.0;
-			
-      float y = (y1 + y2)/2 / pix_max;
-
-      *o++ = r_ + y;
-      *o++ = g_ + y;
-      *o++ = b_ + y;
-      *o++ = 1.0;
-      }
-    }
-  }
-
-static void
-redcode_ycbcr2rgb_quarterscale(int ** planes, int width, int height,
-                               float * out, int out_stride)
-  {
-  int x,y;
-  int pix_max = 4096;
-  int mask = pix_max - 1;
-
-  for (y = 0; y < height; y += 2)
-    {
-    float *o = out + (width/2) * (height/2 - y/2 - 1);
-    for (x = 0; x < width; x += 2)
-      {
-      int i = y * width + x;
-      float y1  = planes[0][i] & mask;
-      float cb  = (planes[1][i] & mask)  - pix_max/2;
-      float cr  = (planes[2][i] & mask)  - pix_max/2;
-      float y2  = planes[3][i] & mask;
-
-      float b_ = cb /(pix_max/2);
-      float r_ = cr /(pix_max/2);
-      float g_ = 0.0;
-			
-      float y = (y1 + y2)/2 / pix_max;
-			
-      *o++ = r_ + y;
-      *o++ = g_ + y;
-      *o++ = b_ + y;
-      *o++ = 1.0;
-      }
-    }
-  }
+/* Decode function */
 
 static int decode_openjpeg(bgav_stream_t * s, gavl_video_frame_t * f)
   {
@@ -230,40 +140,50 @@ static int decode_openjpeg(bgav_stream_t * s, gavl_video_frame_t * f)
                          p->data, p->data_size);
       
       priv->img = opj_decode(priv->dinfo, cio);
+
+      /* close the byte stream */
+      opj_cio_close(cio);
+            
       if(priv->need_format)
         {
         s->data.video.format.image_width  = priv->img->x1 - priv->img->x0; 
         s->data.video.format.image_height = priv->img->y1 - priv->img->y0; 
+        s->data.video.format.image_width  /= (1 << s->opt->shrink);
+        s->data.video.format.image_height /= (1 << s->opt->shrink);
+        
         s->data.video.format.frame_width  = s->data.video.format.image_width; 
         s->data.video.format.frame_height = s->data.video.format.image_height; 
         
+
         if(s->fourcc == BGAV_MK_FOURCC('R', '3', 'D', '1'))
           {
-          s->data.video.format.pixelformat = GAVL_RGB_FLOAT;
-          priv->debayer_func = redcode_ycbcr2rgb_fullscale;
+          s->data.video.format.pixelformat = GAVL_RGB_48;
           }
         }
       priv->have_frame = 1;
       }
     if(f)
       {
-      if(priv->debayer_func)
+      if(s->fourcc == BGAV_MK_FOURCC('R', '3', 'D', '1'))
         {
         int i;
         int* planes[4];
         for(i = 0; i < 4; i++)
           planes[i] = priv->img->comps[i].data;
 
-        priv->debayer_func(planes, priv->img->comps[0].w, priv->img->comps[0].h,
-                        (float*)f->planes[0], f->strides[0]);
+        
+        redcode_ycbcr2rgb(planes, priv->img->comps[0].w,
+                          priv->img->comps[0].h,
+                          (uint16_t*)f->planes[0], f->strides[0]);
         }
       else
         {
         
         }
       priv->have_frame = 0;
+      opj_image_destroy(priv->img);
       }
-      
+    
     }
   if(p)
     bgav_demuxer_done_packet_read(s->demuxer, p);
@@ -284,6 +204,8 @@ static int init_openjpeg(bgav_stream_t * s)
   opj_set_default_decoder_parameters(&priv->parameters);
   priv->parameters.decod_format = JP2_CFMT;
 
+  priv->parameters.cp_reduce = s->opt->shrink;
+  
 #if 0  
   if(scale == 2)
     {
@@ -322,18 +244,20 @@ static void close_openjpeg(bgav_stream_t * s)
   {
   openjpeg_priv_t * priv;
   priv = (openjpeg_priv_t*)(s->data.video.decoder->priv);
+  
+  /* free remaining structures */
+  if(priv->dinfo)
+    opj_destroy_decompress(priv->dinfo);
+  
   free(priv);
   }
 
-#if 0
 static void resync_openjpeg(bgav_stream_t * s)
   {
   openjpeg_priv_t * priv;
   priv = (openjpeg_priv_t*)(s->data.video.decoder->priv);
-  bgav_openjpeg_reader_reset(priv->openjpeg_reader);
-  priv->have_header = 0;
+  priv->have_frame = 0;
   }
-#endif
 
 static bgav_video_decoder_t decoder =
   {
@@ -342,7 +266,7 @@ static bgav_video_decoder_t decoder =
                               0x00  },
     .init =   init_openjpeg,
     .decode = decode_openjpeg,
-    //    .resync = resync_openjpeg,
+    .resync = resync_openjpeg,
     .close =  close_openjpeg,
     .resync = NULL,
   };

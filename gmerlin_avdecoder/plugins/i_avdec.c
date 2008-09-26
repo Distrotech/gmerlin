@@ -101,6 +101,15 @@ static const bg_parameter_info_t parameters[] =
     },
     PARAM_PP_LEVEL,
     {
+      .name      =  "shrink",
+      .long_name =  TRS("Shrink factor"),
+      .type      =  BG_PARAMETER_SLIDER_INT,
+      .val_min     = { .val_i = 0 },
+      .val_max     = { .val_i = 3 },
+      .val_default = { .val_i = 0 },
+      .help_string = TRS("This enables downscaling of images while decoding. Currently only supported for JPEG-2000."),
+    },
+    {
       .name =       "network_options",
       .long_name =  TRS("Network options"),
       .type =       BG_PARAMETER_SECTION

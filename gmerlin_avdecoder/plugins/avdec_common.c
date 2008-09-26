@@ -528,6 +528,10 @@ bg_avdec_set_parameter(void * p, const char * name,
     {
     bgav_options_set_dv_datetime(avdec->opt, val->val_i);
     }
+  else if(!strcmp(name, "shrink"))
+    {
+    bgav_options_set_shrink(avdec->opt, val->val_i);
+    }
   }
 
 int bg_avdec_get_num_tracks(void * p)

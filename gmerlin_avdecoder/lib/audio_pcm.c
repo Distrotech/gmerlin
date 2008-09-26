@@ -697,6 +697,7 @@ static int get_packet(bgav_stream_t * s)
                            priv->bytes_in_packet))
     priv->bytes_in_packet = priv->p->duration * priv->block_align;
   priv->packet_ptr = priv->p->data;
+    
   return 1;
   }
 
