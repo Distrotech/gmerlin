@@ -58,7 +58,8 @@ typedef float
 
 gavl_video_scale_get_weight
 gavl_video_scale_get_weight_func(gavl_video_options_t * opt,
-                                 int * num_points);
+                                 int * num_points)
+  __attribute__ ((visibility("default")));
 
 /* Scale functions */
 

@@ -26,6 +26,9 @@
 extern "C" {
 #endif
 
+#pragma GCC visibility push(default)
+
+  
 /** \defgroup timecode Timecodes
  *  \brief Timecode definitions
  *
@@ -165,6 +168,7 @@ void gavl_timecode_prettyprint(const gavl_timecode_format_t * tf,
  * @}
  */
 
+#pragma GCC visibility pop
   
 #ifdef __cplusplus
 }

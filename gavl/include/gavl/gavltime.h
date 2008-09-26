@@ -26,6 +26,8 @@
 extern "C" {
 #endif
 
+#pragma GCC visibility push(default)
+  
 /*! \defgroup time Time
  */
 
@@ -223,6 +225,8 @@ gavl_time_t gavl_timer_get(gavl_timer_t * timer);
 
 void gavl_timer_set(gavl_timer_t * timer, gavl_time_t t);
 
+#pragma GCC visibility pop
+  
 #ifdef __cplusplus
 }
 #endif

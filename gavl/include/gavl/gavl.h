@@ -42,6 +42,8 @@ extern "C" {
 typedef struct gavl_video_format_s gavl_video_format_t;
 
 #include "timecode.h"
+
+#pragma GCC visibility push(default)
   
 /* Quality levels */
   
@@ -2981,7 +2983,7 @@ gavl_image_transform_get_options(gavl_image_transform_t * t);
  * @}
  */
 
-  
+#pragma GCC visibility pop
   
 #ifdef __cplusplus
 }

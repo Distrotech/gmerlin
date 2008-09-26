@@ -42,11 +42,13 @@
   
 
 void gavl_audio_options_set_accel_flags(gavl_audio_options_t * opt,
-                                        int accel_flags);
+                                        int accel_flags)
+  __attribute__ ((visibility("default")));
 int gavl_audio_options_get_accel_flags(gavl_audio_options_t * opt);
 
 void gavl_video_options_set_accel_flags(gavl_video_options_t * opt,
-                                        int accel_flags);
+                                        int accel_flags)
+  __attribute__ ((visibility("default")));
 int gavl_video_options_get_accel_flags(gavl_video_options_t * opt);
 
 /* Optimized memcpy versions */

@@ -22,6 +22,7 @@
 #ifndef GAVLDSP_H_INCLUDED
 #define GAVLDSP_H_INCLUDED
 
+#pragma GCC visibility push(default)
 
 /** \defgroup dsp DSP Context
  *  \brief DSP Context
@@ -379,6 +380,8 @@ int gavl_dsp_audio_frame_swap_endian(gavl_dsp_context_t * ctx,
 int gavl_dsp_video_frame_swap_endian(gavl_dsp_context_t * ctx,
                                       gavl_video_frame_t * frame,
                                       const gavl_video_format_t * format);
+
+#pragma GCC visibility pop
 
 /**
  * @}
