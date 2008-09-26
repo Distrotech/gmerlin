@@ -1602,7 +1602,7 @@ static int video_iteration(video_stream_t * s, bg_transcoder_t * t)
   ret = s->com.out_plugin->write_video_frame(s->com.out_handle->priv,
                                              s->frame,
                                              s->com.out_index);
-
+#if 0
   fprintf(stderr, "Timecode: ");
   if(s->frame->timecode != GAVL_TIMECODE_UNDEFINED)
     {
@@ -1611,7 +1611,7 @@ static int video_iteration(video_stream_t * s, bg_transcoder_t * t)
     }
   else
     fprintf(stderr, "undefined\n");
-
+#endif
   
   if(!ret)
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Encoding video failed");
