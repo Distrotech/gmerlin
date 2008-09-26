@@ -261,7 +261,7 @@ static int open_input(void * priv, const char * filename)
 
   bg_set_track_name_default(&(inp->track_info), filename);
   
-  inp->track_info.seekable = 1;
+  inp->track_info.flags |= (BG_TRACK_SEEKABLE|BG_TRACK_PAUSABLE);
   return 1;
   }
 

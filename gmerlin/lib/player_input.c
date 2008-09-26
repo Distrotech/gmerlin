@@ -404,7 +404,8 @@ int bg_player_input_init(bg_player_input_context_t * ctx,
   ctx->player->track_info = ctx->plugin->get_track_info(ctx->priv,
                                                         track_index);
   
-  if(ctx->plugin->seek && ctx->player->track_info->seekable &&
+  if(ctx->plugin->seek &&
+     (ctx->player->track_info->flags & BG_TRACK_SEEKABLE) &&
      (ctx->player->track_info->duration > 0))
     ctx->player->can_seek = 1;
   else

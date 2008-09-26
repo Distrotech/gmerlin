@@ -32,6 +32,8 @@
  *
  *  These structures describe media tracks with their streams.
  *  They are returned by the input plugin.
+ *
+ *  @{
  */
 
 /************************************************
@@ -55,8 +57,7 @@ typedef struct
   int64_t duration;   //!< Duration in timescale tics
   } bg_audio_info_t;
 
-/** \ingroup streaminfo
- *  \brief Description of a video stream
+/** \brief Description of a video stream
  *
  *  Unknown fields can be NULL.
  */
@@ -71,8 +72,7 @@ typedef struct
   int64_t duration;   //!< Duration in timescale tics
   } bg_video_info_t;
 
-/** \ingroup streaminfo
- *  \brief Description of a subtitle stream
+/** \brief Description of a subtitle stream
  *
  *  Unknown fields can be NULL.
  */
@@ -88,8 +88,7 @@ typedef struct
   int64_t duration;   //!< Duration in timescale tics
   } bg_subtitle_info_t;
 
-/** \ingroup streaminfo
- *  \brief Description of metadata
+/** \brief Description of metadata
  *
  *  Unknown fields can be NULL. Strings here MUST be in UTF-8
  */
@@ -109,15 +108,13 @@ typedef struct
   char * copyright;//!< Copyright
   } bg_metadata_t;
 
-/** \ingroup streaminfo
- *  \brief Free all strings in a metadata structure
+/** \brief Free all strings in a metadata structure
  *  \param m Metadata
  */
 
 void bg_metadata_free(bg_metadata_t * m);
 
-/** \ingroup streaminfo
- *  \brief Copy metadata
+/** \brief Copy metadata
  *  \param dst Destination
  *  \param src Source
  *
@@ -127,8 +124,7 @@ void bg_metadata_free(bg_metadata_t * m);
 
 void bg_metadata_copy(bg_metadata_t * dst, const bg_metadata_t * src);
 
-/** \ingroup streaminfo
- *  \brief Create trackname from metadata
+/** \brief Create trackname from metadata
  *  \param m Metadata
  *  \param format Format string
  *  \returns A newly allocated track name or NULL
@@ -151,8 +147,7 @@ void bg_metadata_copy(bg_metadata_t * dst, const bg_metadata_t * src);
 
 char * bg_create_track_name(const bg_metadata_t * m, const char * format);
 
-/** \ingroup streaminfo
- *  \brief Convert metadata to a humanized string
+/** \brief Convert metadata to a humanized string
  *  \param m Metadata
  *  \param use_tabs Indicate, that tabs (\\t) should be used in the output
  *  \returns A newly allocated string
@@ -160,8 +155,7 @@ char * bg_create_track_name(const bg_metadata_t * m, const char * format);
 
 char * bg_metadata_to_string(const bg_metadata_t * m, int use_tabs);
 
-/** \ingroup streaminfo
- *  \brief Try to get the year from the metadata
+/** \brief Try to get the year from the metadata
  *  \param m Metadata
  *  \returns The year as int
  *
@@ -173,8 +167,7 @@ int bg_metadata_get_year(const bg_metadata_t * m);
 
 /* XML Interface */
 
-/** \ingroup streaminfo
- *  \brief Convert a libxml2 node into a metadata struct
+/** \brief Convert a libxml2 node into a metadata struct
  *  \param xml_doc Pointer to the xml document
  *  \param xml_metadata Pointer to the xml node containing the metadata
  *  \param ret Metadata container, where the info will be stored
@@ -186,8 +179,7 @@ int bg_metadata_get_year(const bg_metadata_t * m);
 void bg_xml_2_metadata(xmlDocPtr xml_doc, xmlNodePtr xml_metadata,
                        bg_metadata_t * ret);
 
-/** \ingroup streaminfo
- *  \brief Convert a metadata struct into a libxml2 node
+/** \brief Convert a metadata struct into a libxml2 node
  *  \param ret Metadata
  *  \param xml_metadata Pointer to the xml node for the metadata
  *
@@ -197,8 +189,7 @@ void bg_xml_2_metadata(xmlDocPtr xml_doc, xmlNodePtr xml_metadata,
 void bg_metadata_2_xml(xmlNodePtr xml_metadata,
                        bg_metadata_t * ret);
 
-/** \ingroup streaminfo
- *  \brief Get parameters for editing metadata
+/** \brief Get parameters for editing metadata
  *  \param m Metadata
  *  \returns A NULL-terminated array of parameter descriptions
  *
@@ -212,8 +203,7 @@ void bg_metadata_2_xml(xmlNodePtr xml_metadata,
 
 bg_parameter_info_t * bg_metadata_get_parameters(bg_metadata_t * m);
 
-/** \ingroup streaminfo
- *  \brief Change metadata by setting parameters
+/** \brief Change metadata by setting parameters
  *  \param data Metadata casted to void
  *  \param name Name of the parameter
  *  \param v Value
@@ -223,8 +213,7 @@ void bg_metadata_set_parameter(void * data, const char * name,
                                const bg_parameter_value_t * v);
 
 
-/** \ingroup streaminfo
- *  \brief Chapter list
+/** \brief Chapter list
  *
  *  Chapters in gmerlin are simply an array of
  *  seekpoints with (optionally) associated names.
@@ -242,30 +231,26 @@ typedef struct
     } * chapters;         //!< Chapters
   } bg_chapter_list_t;
 
-/** \ingroup streaminfo
- *  \brief Create chapter list
+/** \brief Create chapter list
  *  \param num_chapters Initial number of chapters
  */
 
 
 bg_chapter_list_t * bg_chapter_list_create(int num_chapters);
 
-/** \ingroup streaminfo
- *  \brief Copy chapter list
+/** \brief Copy chapter list
  *  \param list Chapter list
  */
 
 bg_chapter_list_t * bg_chapter_list_copy(const bg_chapter_list_t * list);
 
 
-/** \ingroup streaminfo
- *  \brief Destroy chapter list
+/** \brief Destroy chapter list
  *  \param list A chapter list
  */
 
 void bg_chapter_list_destroy(bg_chapter_list_t * list);
-/** \ingroup streaminfo
- *  \brief Insert a chapter into a chapter list
+/** \brief Insert a chapter into a chapter list
  *  \param list A chapter list
  *  \param index Position (starting with 0) where the new chapter will be placed
  *  \param time Start time of the chapter
@@ -275,16 +260,14 @@ void bg_chapter_list_destroy(bg_chapter_list_t * list);
 void bg_chapter_list_insert(bg_chapter_list_t * list, int index,
                             int64_t time, const char * name);
 
-/** \ingroup streaminfo
- *  \brief Delete a chapter from a chapter list
+/** \brief Delete a chapter from a chapter list
  *  \param list A chapter list
  *  \param index Position (starting with 0) of the chapter to delete
  */
 
 void bg_chapter_list_delete(bg_chapter_list_t * list, int index);
 
-/** \ingroup streaminfo
- *  \brief Set default chapter names
+/** \brief Set default chapter names
  *  \param list A chapter list
  *
  *  If no names for the chapters are avaiable, this function will
@@ -293,8 +276,7 @@ void bg_chapter_list_delete(bg_chapter_list_t * list, int index);
 
 void bg_chapter_list_set_default_names(bg_chapter_list_t * list);
 
-/** \ingroup streaminfo
- *  \brief Get current chapter
+/** \brief Get current chapter
  *  \param list A chapter list
  *  \param time Playback time
  *  \returns The current chapter index
@@ -306,8 +288,7 @@ void bg_chapter_list_set_default_names(bg_chapter_list_t * list);
 int bg_chapter_list_get_current(bg_chapter_list_t * list,
                                  gavl_time_t time);
 
-/** \ingroup streaminfo
- *  \brief Get current chapter
+/** \brief Get current chapter
  *  \param list A chapter list
  *  \param time Playback time
  *  \param current_chapter Returns the current chapter
@@ -321,8 +302,7 @@ int bg_chapter_list_changed(bg_chapter_list_t * list,
                             gavl_time_t time, int * current_chapter);
 
 
-/** \ingroup streaminfo
- *  \brief Convert a chapter list into a libxml2 node
+/** \brief Convert a chapter list into a libxml2 node
  *  \param list Chapter list
  *  \param xml_list Pointer to the xml node for the chapter list
  *
@@ -331,8 +311,7 @@ int bg_chapter_list_changed(bg_chapter_list_t * list,
 
 void bg_chapter_list_2_xml(bg_chapter_list_t * list, xmlNodePtr xml_list);
 
-/** \ingroup streaminfo
- *  \brief Convert libxml2 node into a chapter list
+/** \brief Convert libxml2 node into a chapter list
  *  \param xml_doc Pointer to the xml document
  *  \param xml_list Pointer to the xml node for chapter list
  *  \returns The chapter list from the xml node
@@ -343,33 +322,32 @@ void bg_chapter_list_2_xml(bg_chapter_list_t * list, xmlNodePtr xml_list);
 bg_chapter_list_t *
 bg_xml_2_chapter_list(xmlDocPtr xml_doc, xmlNodePtr xml_list);
 
-/** \ingroup streaminfo
- *  \brief Save a chapter list to a file
+/** \brief Save a chapter list to a file
  *  \param list A chapter list
  *  \param filename Where to save the list
  */
 
 void bg_chapter_list_save(bg_chapter_list_t * list, const char * filename);
 
-/** \ingroup streaminfo
- *  \brief Load a chapter list from a file
+/** \brief Load a chapter list from a file
  *  \param filename From where to load the list
  *  \returns A newly created chapter list or NULL
  */
 
 bg_chapter_list_t * bg_chapter_list_load(const char * filename);
 
+#define BG_TRACK_SEEKABLE (1<<0)
+#define BG_TRACK_PAUSABLE (1<<1)
 
-/** \ingroup streaminfo
- *  \brief Track info
+/** \brief Track info
  */
 
 typedef struct
   {
-  int seekable; //!< 1 if track is seekable (duration must be > 0 then)
-  char * name;             //!< Name of the track (can be NULL)
-  char * description;      //!< Technical desription of the format
-  int64_t duration;        //!< Duration
+  int flags;             //!< 1 if track is seekable (duration must be > 0 then)
+  char * name;           //!< Name of the track (can be NULL)
+  char * description;    //!< Technical desription of the format
+  int64_t duration;      //!< Duration
   
   int num_audio_streams;   //!< Number of audio streams
   int num_video_streams;   //!< Number of video streams
@@ -389,8 +367,7 @@ typedef struct
   
   } bg_track_info_t;
 
-/** \ingroup streaminfo
- *  \brief Free all allocated memory in a track info
+/** \brief Free all allocated memory in a track info
  *  \param info Track info
  *
  *  This one can be called by plugins to free
@@ -401,8 +378,7 @@ typedef struct
 
 void bg_track_info_free(bg_track_info_t * info);
 
-/** \ingroup streaminfo
- *  \brief Set the track name from the filename/URL
+/** \brief Set the track name from the filename/URL
  *  \param info Track info
  *  \param location filename or URL
  *
@@ -415,8 +391,7 @@ void bg_track_info_free(bg_track_info_t * info);
 void bg_set_track_name_default(bg_track_info_t * info,
                                const char * location);
 
-/** \ingroup streaminfo
- *  \brief Get a track name from the filename/URL
+/** \brief Get a track name from the filename/URL
  *  \param location filename or URL
  *  \returns A newly allocated track name which must be freed by the caller
  *  \param track Track index
@@ -427,5 +402,10 @@ void bg_set_track_name_default(bg_track_info_t * info,
  */
 
 char * bg_get_track_name_default(const char * location, int track, int num_tracks);
+
+/**
+ *  @}
+ */
+
 
 #endif // /__BG_STREAMINFO_H_

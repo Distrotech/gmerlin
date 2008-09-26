@@ -133,7 +133,7 @@ typedef int (*bg_read_video_func_t)(void * priv, gavl_video_frame_t* frame, int 
 
 
 
-#define BG_PLUGIN_API_VERSION 14
+#define BG_PLUGIN_API_VERSION 15
 
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */

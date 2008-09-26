@@ -635,7 +635,7 @@ static int init_source_common(edl_dec_t * dec,
     return 0;
   com->ti = com->plugin->get_track_info(com->handle->priv, com->track);
 
-  if(!com->ti->seekable)
+  if(!(com->ti->flags & BG_TRACK_SEEKABLE))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "EDL only works with seekable sources");
     return 0;
@@ -1463,7 +1463,7 @@ int bg_input_plugin_load_edl(bg_plugin_registry_t * reg,
     
     ti->name = bg_strdup(ti->name, track->name);
     
-    ti->seekable = 1;
+    ti->flags |= (BG_TRACK_SEEKABLE|BG_TRACK_PAUSABLE);
     
     ti->num_audio_streams = track->num_audio_streams;
     

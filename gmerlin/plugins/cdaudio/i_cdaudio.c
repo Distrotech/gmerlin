@@ -219,7 +219,7 @@ static int open_cdaudio(void * data, const char * arg)
          GAVL_TIME_SCALE) / 75;
       cd->track_info[j].description = bg_strdup(NULL, TR("CD audio track"));
       cd->track_info[j].metadata.track = j+1;
-      cd->track_info[j].seekable = 1;
+      cd->track_info[j].flags = BG_TRACK_SEEKABLE | BG_TRACK_PAUSABLE;
       }
     }
 

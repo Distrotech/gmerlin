@@ -177,7 +177,7 @@ static int open_lqt(void * data, const char * arg)
   num_text_streams  = lqt_text_tracks(e->file);
 
   e->track_info.duration = 0;
-  e->track_info.seekable = 1;
+  e->track_info.flags = BG_TRACK_SEEKABLE | BG_TRACK_PAUSABLE;
   if(num_audio_streams)
     {
     e->audio_streams = calloc(num_audio_streams, sizeof(*e->audio_streams));

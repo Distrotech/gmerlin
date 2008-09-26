@@ -1051,7 +1051,7 @@ static void init_lens_effect(transform_t * vp)
   if(EQUAL(vp->lens_effect_diameter, 0.0))
     {
     vp->do_transform = 0;
-    return 0;
+    return;
     }
   
   vp->lens_effect_pos_real[0] =
@@ -1172,9 +1172,9 @@ static void transform_func_whirl(void * priv,
 
 static void init_transform(transform_t * vp)
   {
+  gavl_image_transform_func func;
   vp->changed = 0;
   
-  gavl_image_transform_func func;
   vp->do_transform = 1;
 
   switch(vp->mode)

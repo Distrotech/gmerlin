@@ -378,9 +378,9 @@ static const bg_parameter_info_t parameters_general[] =
       .flags =     BG_PARAMETER_HIDE_DIALOG,
     },
     {
-      .name =      "seekable",
-      .long_name = "Seekable",
-      .type =      BG_PARAMETER_CHECKBUTTON,
+      .name =      "flags",
+      .long_name = "Flags",
+      .type =      BG_PARAMETER_INT,
       .flags =     BG_PARAMETER_HIDE_DIALOG,
     },
     {
@@ -775,8 +775,10 @@ static void set_track(bg_transcoder_track_t * track,
           bg_strdup(track->general_parameters[i].val_default.val_str,
                     input->get_disc_name(input_plugin->priv));
       }
-    else if(!strcmp(track->general_parameters[i].name, "seekable"))
-      track->general_parameters[i].val_default.val_i = track_info->seekable;
+    else if(!strcmp(track->general_parameters[i].name, "flags"))
+      {
+      track->general_parameters[i].val_default.val_i = track_info->flags;
+      }
     else if(!strcmp(track->general_parameters[i].name, "location"))
       track->general_parameters[i].val_default.val_str = bg_strdup((char*)0, location);
 
@@ -788,12 +790,12 @@ static void set_track(bg_transcoder_track_t * track,
 
     else if(!strcmp(track->general_parameters[i].name, "set_start_time"))
       {
-      if(track_info->seekable)
+      if(track_info->flags & BG_TRACK_SEEKABLE)
         track->general_parameters[i].flags &= ~BG_PARAMETER_HIDE_DIALOG;
       }
     else if(!strcmp(track->general_parameters[i].name, "start_time"))
       {
-      if(track_info->seekable)
+      if(track_info->flags & BG_TRACK_SEEKABLE)
         {
         track->general_parameters[i].flags &= ~BG_PARAMETER_HIDE_DIALOG;
         track->general_parameters[i].val_max.val_time = track_info->duration;

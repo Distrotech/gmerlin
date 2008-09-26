@@ -22,12 +22,14 @@
 #include <stdio.h>
 #include <utils.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 int main(int argc, char ** argv)
   {
   char * th = bg_get_tumbnail_file(argv[1]);
   printf("Thumbnail: %s\n", th);
   free(th);
+  return 0;
   }
 
 
