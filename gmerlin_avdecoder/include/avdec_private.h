@@ -709,7 +709,9 @@ struct bgav_options_s
 
   };
 
-void bgav_options_set_defaults(bgav_options_t*opt);
+void bgav_options_set_defaults(bgav_options_t*opt)
+  __attribute__ ((visibility("default")));
+
 void bgav_options_free(bgav_options_t*opt);
 
 /* Overloadable input module */
@@ -813,7 +815,8 @@ struct bgav_input_context_s
 
 /* Read functions return FALSE on error */
 
-int bgav_input_read_data(bgav_input_context_t*, uint8_t*, int);
+int bgav_input_read_data(bgav_input_context_t*, uint8_t*, int)
+  __attribute__ ((visibility("default")));
 int bgav_input_read_string_pascal(bgav_input_context_t*, char*);
 
 int bgav_input_read_8(bgav_input_context_t*,uint8_t*);
@@ -872,9 +875,11 @@ int bgav_input_read_convert_line(bgav_input_context_t*,
 
 int bgav_input_read_sector(bgav_input_context_t*, uint8_t*);
 
-int bgav_input_open(bgav_input_context_t *, const char * url);
+int bgav_input_open(bgav_input_context_t *, const char * url)
+  __attribute__ ((visibility("default")));
 
-void bgav_input_close(bgav_input_context_t * ctx);
+void bgav_input_close(bgav_input_context_t * ctx)
+  __attribute__ ((visibility("default")));
 void bgav_input_destroy(bgav_input_context_t * ctx);
 
 void bgav_input_skip(bgav_input_context_t *, int64_t);
@@ -882,7 +887,8 @@ void bgav_input_skip(bgav_input_context_t *, int64_t);
 /* Reopen  the input. Not all inputs can do this */
 int bgav_input_reopen(bgav_input_context_t*);
 
-bgav_input_context_t * bgav_input_create(const bgav_options_t * opt);
+bgav_input_context_t * bgav_input_create(const bgav_options_t * opt)
+  __attribute__ ((visibility("default")));
 
 /* For debugging purposes only: if you encounter data,
    hexdump them to stderr and skip them */
@@ -963,7 +969,7 @@ void bgav_superindex_seek(bgav_superindex_t * idx,
                           bgav_stream_t * s,
                           int64_t time, int scale);
 
-void bgav_superindex_dump(bgav_superindex_t * idx);
+void bgav_superindex_dump(bgav_superindex_t * idx) __attribute__ ((visibility("default")));
 
 void bgav_superindex_set_durations(bgav_superindex_t * idx, bgav_stream_t * s);
 
@@ -1015,7 +1021,7 @@ void bgav_file_index_destroy(bgav_file_index_t *);
 
 int bgav_demuxer_next_packet_fileindex(bgav_demuxer_context_t * ctx);
 
-void bgav_file_index_dump(bgav_t * b);
+void bgav_file_index_dump(bgav_t * b) __attribute__ ((visibility("default")));
 
 
 void
@@ -1398,7 +1404,10 @@ int bgav_init(bgav_t * b);
 void bgav_dump_fourcc(uint32_t fourcc);
 void bgav_hexdump(uint8_t * data, int len, int linebreak);
 char * bgav_sprintf(const char * format,...)   __attribute__ ((format (printf, 1, 2)));
-char * bgav_strndup(const char * start, const char * end);
+
+
+char * bgav_strndup(const char * start, const char * end)
+  __attribute__ ((visibility("default")));
 char * bgav_strdup(const char * str);
 
 char * bgav_strncat(char * old, const char * start, const char * end);

@@ -366,9 +366,12 @@ int bg_avdec_init(avdec_priv * avdec)
     avdec->track_info[i].num_video_streams = bgav_num_video_streams(avdec->dec, i);
     avdec->track_info[i].num_subtitle_streams =
       bgav_num_subtitle_streams(avdec->dec, i);
-    avdec->track_info[i].seekable = bgav_can_seek(avdec->dec);
 
-                
+    if(bgav_can_seek(avdec->dec))
+      avdec->track_info[i].flags |= BG_TRACK_SEEKABLE;
+    if(bgav_can_pause(avdec->dec))
+      avdec->track_info[i].flags |= BG_TRACK_PAUSABLE;
+    
     if(avdec->track_info[i].num_audio_streams)
       {
       avdec->track_info[i].audio_streams =

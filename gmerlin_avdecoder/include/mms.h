@@ -23,7 +23,8 @@ typedef struct bgav_mms_s bgav_mms_t;
 
 /* Open an mms url, return opaque structure */
 
-bgav_mms_t * bgav_mms_open(const bgav_options_t * opt, const char * url);
+bgav_mms_t * bgav_mms_open(const bgav_options_t * opt, const char * url)
+  __attribute__ ((visibility("default")));
 
 /* After a successful open call, the ASF header can obtained
    with the following function */

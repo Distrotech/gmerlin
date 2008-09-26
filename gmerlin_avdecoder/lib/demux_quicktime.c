@@ -140,7 +140,7 @@ static int probe_quicktime(bgav_input_context_t * input)
 
 static int check_keyframe(stream_priv_t * s)
   {
-  int ret;
+  int ret = 0;
   if(!s->stbl->stss.num_entries)
     return 1;
   if((s->stss_pos >= s->stbl->stss.num_entries) &&
@@ -1390,8 +1390,6 @@ static int open_quicktime(bgav_demuxer_context_t * ctx)
   int have_moov = 0;
   int have_mdat = 0;
   int done = 0;
-  gavl_time_t test_duration;
-  int i;
   /* Create track */
 
   ctx->tt = bgav_track_table_create(1);

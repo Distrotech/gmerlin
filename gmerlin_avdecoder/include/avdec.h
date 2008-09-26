@@ -28,6 +28,8 @@
 
 #include <gavl/gavl.h>
 
+#pragma GCC visibility push(default)
+
 /** \ingroup edl
  *  \brief Forward declaration
  */
@@ -1473,7 +1475,16 @@ const char * bgav_get_subtitle_description(bgav_t * bgav, int stream);
 
 const char * bgav_get_subtitle_info(bgav_t * bgav, int stream);
 
+/** \ingroup stream_info
+ *  \brief Query if a track is pausable
+ *  \param bgav A decoder instance
+ *  \returns 1 is decoding can be paused for a longer time, 0 else
+ *
+ *  Check this if you intend to pause decoding. Pausing a livestream
+ *  doesn't make sense, so in this case 0 is returned.
+ */
 
+int bgav_can_pause(bgav_t * bgav);
 
 /***************************************************
  * Decoding functions
@@ -1867,3 +1878,5 @@ void bgav_redirectors_dump();
  */
 
 void bgav_subreaders_dump();
+
+#pragma GCC visibility pop

@@ -50,10 +50,13 @@ typedef struct bgav_yml_node_s
   struct bgav_yml_node_s * children;
   } bgav_yml_node_t;
 
-bgav_yml_node_t * bgav_yml_parse(bgav_input_context_t * input);
+bgav_yml_node_t * bgav_yml_parse(bgav_input_context_t * input)
+  __attribute__ ((visibility("default")));
 
-void bgav_yml_dump(bgav_yml_node_t *);
-void bgav_yml_free(bgav_yml_node_t *);
+void bgav_yml_dump(bgav_yml_node_t *)
+  __attribute__ ((visibility("default")));
+void bgav_yml_free(bgav_yml_node_t *)
+  __attribute__ ((visibility("default")));
 
 const char * bgav_yml_get_attribute(bgav_yml_node_t *, const char * name);
 const char * bgav_yml_get_attribute_i(bgav_yml_node_t *, const char * name);

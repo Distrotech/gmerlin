@@ -969,6 +969,8 @@ static int bgav_mxf_package_resolve_refs_2(partition_t * p, mxf_package_t * s)
           s->timecode_track = s->tracks[i];
           }
         break;
+      default:
+        break;
       }
     }
   return 1;
@@ -1035,7 +1037,7 @@ static int read_source_clip(bgav_input_context_t * input,
   return 1;
   }
 
-int bgav_mxf_source_clip_resolve_refs(partition_t * p, mxf_source_clip_t * s)
+static int bgav_mxf_source_clip_resolve_refs(partition_t * p, mxf_source_clip_t * s)
   {
   s->source_package = package_by_ul(p, s->source_package_ref);
   return 1;
@@ -1096,7 +1098,7 @@ void bgav_mxf_timecode_component_dump(int indent, mxf_timecode_component_t * s)
   bgav_diprintf(indent+2, "drop_frame:            %d\n", s->drop_frame);
   }
 
-int bgav_mxf_timecode_component_resolve_refs(partition_t * p, mxf_timecode_component_t * s)
+static int bgav_mxf_timecode_component_resolve_refs(partition_t * p, mxf_timecode_component_t * s)
   {
   return 1;
   }
@@ -1130,7 +1132,7 @@ void bgav_mxf_track_free(mxf_track_t * t)
   FREE(t->name);
   }
 
-int bgav_mxf_track_resolve_refs(partition_t * p, mxf_track_t * s)
+static int bgav_mxf_track_resolve_refs(partition_t * p, mxf_track_t * s)
   {
   s->sequence = resolve_strong_ref(p, s->sequence_ref, MXF_TYPE_SEQUENCE);
   return 1;
@@ -1209,7 +1211,7 @@ void bgav_mxf_sequence_free(mxf_sequence_t * s)
     free(s->structural_components);
   }
 
-int bgav_mxf_sequence_resolve_refs(partition_t * p, mxf_sequence_t * s)
+static int bgav_mxf_sequence_resolve_refs(partition_t * p, mxf_sequence_t * s)
   {
   const stream_entry_t * se;
   
@@ -1362,7 +1364,7 @@ void bgav_mxf_identification_free(mxf_identification_t * s)
   FREE(s->platform);
   }
 
-int bgav_mxf_identification_resolve_refs(partition_t * p, mxf_identification_t * s)
+static int bgav_mxf_identification_resolve_refs(partition_t * p, mxf_identification_t * s)
   {
   return 1;
   }
@@ -1416,7 +1418,7 @@ void bgav_mxf_descriptor_dump(int indent, mxf_descriptor_t * d)
 
   }
 
-int bgav_mxf_descriptor_resolve_refs(partition_t * p, mxf_descriptor_t * d)
+static int bgav_mxf_descriptor_resolve_refs(partition_t * p, mxf_descriptor_t * d)
   {
   d->subdescriptors = resolve_strong_refs(p, d->subdescriptor_refs, d->num_subdescriptor_refs,
                                           MXF_TYPE_DESCRIPTOR);
@@ -1638,7 +1640,7 @@ void bgav_mxf_essence_container_data_dump(int indent, mxf_essence_container_data
   bgav_diprintf(indent+2, "BodySID:              %d\n", s->body_sid);
   }
 
-int bgav_mxf_essence_container_data_resolve_refs(partition_t * p, mxf_essence_container_data_t * d)
+static int bgav_mxf_essence_container_data_resolve_refs(partition_t * p, mxf_essence_container_data_t * d)
   {
   d->linked_package = package_by_ul(p, d->linked_package_ref);
   return 1;
@@ -1711,7 +1713,7 @@ void bgav_mxf_preface_dump(int indent, mxf_preface_t * s)
   
   }
 
-int bgav_mxf_preface_resolve_refs(partition_t * p, mxf_preface_t * d)
+static int bgav_mxf_preface_resolve_refs(partition_t * p, mxf_preface_t * d)
   {
   d->identifications = resolve_strong_refs(p, d->identification_refs, d->num_identification_refs,
                                            MXF_TYPE_IDENTIFICATION);

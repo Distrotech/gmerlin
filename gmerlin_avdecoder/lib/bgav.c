@@ -473,3 +473,12 @@ bgav_edl_t * bgav_get_edl(bgav_t * bgav)
   else
     return (bgav_edl_t*)0;
   }
+
+int bgav_can_pause(bgav_t * bgav)
+  {
+  if(bgav->tt && (bgav->tt->cur->duration != GAVL_TIME_UNDEFINED))
+    return 1;
+  if(bgav->input && bgav->input->input->seek_byte)
+    return 1;
+  return 0;
+  }
