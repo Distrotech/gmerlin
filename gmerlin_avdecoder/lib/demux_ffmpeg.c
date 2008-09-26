@@ -456,9 +456,9 @@ static void init_audio_stream(bgav_demuxer_context_t * ctx,
     s->data.audio.bits_per_sample = map->bits;
   else
 #if LIBAVCODEC_VERSION_INT < ((52<<16)+(0<<8)+0)
-    s->data.audio.bits_per_sample = codec->bits_per_coded_sample;
+    s->data.audio.bits_per_sample = codec->bits_per_sample;
 #else
-
+    s->data.audio.bits_per_sample = codec->bits_per_coded_sample;
 #endif
   
   s->data.audio.block_align = codec->block_align;
