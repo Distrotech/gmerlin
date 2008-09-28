@@ -386,13 +386,15 @@ AC_SUBST(OPT_CFLAGS)
 dnl
 dnl Common CFLAGS
 dnl
+LIB_CFLAGS=""
 
 CFLAGS="$CFLAGS -D_REENTRANT -D_FILE_OFFSET_BITS=64 $GAVL_CFLAGS"
 
 LQT_TRY_CFLAGS(-Wall, CFLAGS="$CFLAGS -Wall", )
 LQT_TRY_CFLAGS(-Wmissing-declarations, CFLAGS="$CFLAGS -Wmissing-declarations", )
 LQT_TRY_CFLAGS(-Wdeclaration-after-statement, CFLAGS="$CFLAGS -Wdeclaration-after-statement")
-LQT_TRY_CFLAGS(-fvisibility=hidden, CFLAGS="$CFLAGS -fvisibility=hidden", )
+LQT_TRY_CFLAGS(-fvisibility=hidden,
+               LIB_CFLAGS="$LIB_CFLAGS -fvisibility=hidden", )
 
 
 dnl The following is necessary so the win32 dll loader also gets compiled

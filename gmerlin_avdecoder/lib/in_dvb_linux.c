@@ -65,6 +65,9 @@ typedef struct
   int * filter_fds;
   int num_filter_fds;
   int filter_fds_alloc;
+  int eit_filter;
+  
+  int eit_version;
   
   struct dvb_frontend_info fe_info;
 
@@ -78,8 +81,12 @@ typedef struct
 
   char * channels_conf_file;
   
-  } dvb_priv_t;
+  int service_id;
 
+  int name_changed;
+  int metadata_changed;
+  
+  } dvb_priv_t;
 
 static void set_num_filters(dvb_priv_t * priv, int num)
   {
@@ -839,6 +846,307 @@ static void close_dvb(bgav_input_context_t * ctx)
   free(priv);
   }
 
+static const struct
+  {
+  int id;
+  const char * charset;
+  }
+eit_charsets[] =
+  {
+    { 0x01, "ISO8859-5" },
+    { 0x02, "ISO8859-6" },
+    { 0x03, "ISO8859-7" },
+    { 0x04, "ISO8859-8" },
+    { 0x05, "ISO8859-9" },
+    { 0x06, "ISO8859-10" },
+    { 0x07, "ISO8859-11" },
+    { 0x08, "ISO8859-12" },
+    { 0x09, "ISO8859-13" },
+    { 0x0A, "ISO8859-14" },
+    { 0x0B, "ISO8859-15" },
+    { 0x11, "ISO-10646/UCS2" },
+    //    { 0x12, NULL }
+    { 0x13, "GB2312" },
+    { 0x14, "BIG5" },
+  };
+
+static char * decode_eit_string(const bgav_options_t * opt,
+                                uint8_t * pos,
+                                int len)
+  {
+  char * ret;
+  int i;
+  const char * charset = (const char*)0;
+  bgav_charset_converter_t * cnv;
+  if(!(*pos))
+    return (char*)0;
+  
+  /* Detect charset */
+  if(*pos >= 0x20)
+    {
+    charset = "ISO_6937";
+    }
+  else if(*pos == 0x10)
+    {
+    }
+  else
+    {
+    for(i = 0; i < sizeof(eit_charsets)/sizeof(eit_charsets[0]); i++)
+      {
+      if(*pos == eit_charsets[i].id)
+        {
+        charset = eit_charsets[i].charset;
+        pos++;
+        len--;
+        break;
+        }
+      }
+    }
+  if(!charset)
+    {
+    return (char*)0;
+    }
+
+  cnv = bgav_charset_converter_create(opt, charset, "UTF-8");
+  ret = bgav_convert_string(cnv, (char*)pos, len, (int *)0);
+  bgav_charset_converter_destroy(cnv);
+  return ret;
+  }
+
+#define bcdtoint(i) ((((i & 0xf0) >> 4) * 10) + (i & 0x0f))
+
+/* Extract UTC time and date encoded in modified julian date format and return it as a time_t.
+ */
+static void dvb_mjdtime (uint8_t *buf, struct tm *tma)
+  {
+  int i;
+  unsigned int year, month, day, hour, min, sec;
+  unsigned long int mjd;
+  time_t t;
+
+  memset(tma, 0, sizeof(*tma));
+  
+  mjd = (unsigned int)(buf[0] & 0xff) << 8;
+  mjd +=(unsigned int)(buf[1] & 0xff);
+  hour =(unsigned char)bcdtoint(buf[2] & 0xff);
+  min = (unsigned char)bcdtoint(buf[3] & 0xff);
+  sec = (unsigned char)bcdtoint(buf[4] & 0xff);
+  year =(unsigned long)((mjd - 15078.2)/365.25);
+  month=(unsigned long)((mjd - 14956.1 - (unsigned long)(year * 365.25))/30.6001);
+  day = mjd - 14956 - (unsigned long)(year * 365.25) - (unsigned long)(month * 30.6001);
+
+  if (month == 14 || month == 15)
+    i = 1;
+  else
+    i = 0;
+  year += i;
+  month = month - 1 - i * 12;
+
+  tma->tm_sec=sec;
+  tma->tm_min=min;
+  tma->tm_hour=hour;
+  tma->tm_mday=day;
+  tma->tm_mon=month-1;
+  tma->tm_year=year;
+  t = timegm(tma);
+  localtime_r(&t,tma);
+  }
+
+static void check_eit(bgav_input_context_t* ctx)
+  {
+  uint8_t eit[8192];
+  int len;
+  int bytes_read;
+  dvb_priv_t * priv;
+  uint8_t * pos, *start, *descriptors_end;
+  uint64_t tmp;
+  struct tm start_time;
+  fd_set rset;
+  int version;
+  struct timeval timeout;
+  char * pos_c;
+  //  char * tmp_string;
+  priv = (dvb_priv_t *)(ctx->priv);
+  
+  FD_ZERO(&rset);
+  FD_SET (priv->filter_fds[priv->eit_filter], &rset);
+  timeout.tv_sec  = 0;
+  timeout.tv_usec = 0;
+  if(select(priv->filter_fds[priv->eit_filter]+1,
+            &rset, 
+            NULL, NULL, &timeout) <= 0)
+    return;
+  
+  /* Read EIT */
+  if(read(priv->filter_fds[priv->eit_filter],
+          eit, 3) < 3)
+    return;
+  len = ((eit[1] & 0x0f) << 8) | eit[2];
+  bytes_read  = read(priv->filter_fds[priv->eit_filter],
+                     &eit[3], len);
+  if(bytes_read < len)
+    return;
+  len += 3;
+
+  start = eit;
+  pos = start + 3;
+
+  tmp = BGAV_PTR_2_16BE(pos); pos+=2;
+
+  //  fprintf(stderr, "Service id %ld (%d)\n", tmp,
+  //          priv->service_id);
+  
+  if(tmp != priv->service_id)
+    return;
+
+  version = (*pos & 0x7F) >> 2;
+  //  fprintf(stderr, "version: %d [%d]\n", version, priv->eit_version);
+#if 1
+  if(priv->eit_version == version)
+    return;
+#endif
+  pos++;
+
+  /*
+   section_number               8
+   last_section_number          8
+   transport_stream_id         16
+   original_network_id         16
+   segment_last_section_number  8
+   last_table_id                8
+  */
+  
+  pos += 8;
+  
+  //  bgav_hexdump(pos, 16, 16);
+
+  while(pos - start + 4 < len)
+    {
+    tmp = BGAV_PTR_2_16BE(pos); pos+=2;
+    //    fprintf(stderr, "Event ID: %ld\n", tmp);
+
+    //    fprintf(stderr, "Start time hex:\n");
+    //    bgav_hexdump(pos, 5, 5);
+    
+    dvb_mjdtime(pos, &start_time);
+    pos += 5;
+
+    //    fprintf(stderr, "Start time: %s", asctime(&start_time));
+    
+    tmp = BGAV_PTR_2_24BE(pos); pos+=3;
+    //    fprintf(stderr, "Duration:   %06lx\n", tmp);
+
+    tmp = BGAV_PTR_2_16BE(pos); pos+=2;
+    
+    descriptors_end = pos + (tmp & 0x0fff);
+    
+    //    fprintf(stderr, "Running status:   %ld\n", tmp >> 13);
+    //    fprintf(stderr, "Descriptors loop length:   %ld\n", tmp & 0x0fff);
+    
+    if(tmp >> 13 == 0x04)
+      {
+      int desc_len, desc_tag;
+      uint8_t * end_pos;
+      bgav_metadata_t * m;
+
+      char time_string[32]; /* 26 actually */
+      asctime_r(&start_time, time_string);
+      pos_c = strchr(time_string, '\n');
+      if(pos_c)
+        *pos_c = '\0';
+      
+      /* Parse descriptors */
+
+      m = &ctx->tt->cur->metadata;
+
+      if(m->date && !strcmp(m->date, time_string))
+        {
+        /* Already read this */
+        pos = descriptors_end;
+        continue;
+        }
+      
+      priv->name_changed = 1;
+      priv->metadata_changed = 1;
+      
+      bgav_metadata_free(m);
+      
+      while(1)
+        {
+        desc_tag = *pos; pos++;
+        desc_len = *pos; pos++;
+
+        end_pos = pos + len;
+
+        switch(desc_tag)
+          {
+          case 0x4d: // short_event_descriptor
+            pos+=3; // ISO_639_language_code
+            
+            tmp = *pos; pos++;// event_name_length
+            
+            if(ctx->opt->name_change_callback ||
+               ctx->opt->metadata_change_callback)
+              {
+              m->title = decode_eit_string(ctx->opt, pos, tmp);
+
+              // fprintf(stderr, "Name: %s\n", tmp_string);
+              //            priv->eit_version = version;
+              }
+            pos += tmp;
+            
+            tmp = *pos; pos++;// text_length
+            
+            if(ctx->opt->metadata_change_callback)
+              {
+              m->comment = decode_eit_string(ctx->opt,
+                                             pos, tmp);
+              //            fprintf(stderr, "Text: %s\n", m.comment);
+              }
+            pos += tmp;
+            break;
+          default:
+            fprintf(stderr, "Tag: %d, len: %d\n", desc_tag, desc_len);
+            bgav_hexdump(pos, desc_len, 16);
+            break;
+          }
+        
+        if(ctx->opt->metadata_change_callback)
+          {
+          m->date = bgav_strdup(time_string);
+          
+          ctx->opt->metadata_change_callback(ctx->opt->metadata_change_callback_data,
+                                             m);
+          
+          }
+        pos = end_pos;
+        if(pos >= descriptors_end)
+          break;
+        }
+      //      fprintf(stderr, "Descriptor tag: 0x%02x\n", desc_tag);
+      //      fprintf(stderr, "Descriptor len: %d\n", desc_len);
+      }
+    else
+      {
+      pos = descriptors_end;
+      }
+    
+    }
+
+  if(ctx->opt->name_change_callback && priv->name_changed)
+    {
+    ctx->opt->name_change_callback(ctx->opt->name_change_callback_data,
+                                   ctx->tt->cur->metadata.title);
+    priv->name_changed = 0;
+    }
+  if(ctx->opt->metadata_change_callback && priv->metadata_changed)
+    {
+    ctx->opt->metadata_change_callback(ctx->opt->metadata_change_callback_data,
+                                       &ctx->tt->cur->metadata);
+    priv->metadata_changed = 0;
+    }
+  }
+
 static int read_dvb(bgav_input_context_t* ctx,
                     uint8_t * buffer, int len)
   {
@@ -852,12 +1160,14 @@ static int read_dvb(bgav_input_context_t* ctx,
   
   /* Flush events */
   while (ioctl(priv->fe_fd, FE_GET_EVENT, &event) != -1);
-
+  
   pfd[0].fd = priv->dvr_fd;
   pfd[0].events = POLLIN;
 
   while(ret < len)
     {
+    check_eit(ctx);
+    
     result = poll(pfd, 1, ctx->opt->read_timeout ? ctx->opt->read_timeout : -1);
     if(!result)
       {
@@ -897,6 +1207,9 @@ static int read_dvb(bgav_input_context_t* ctx,
       return ret;
       }
     ret += result;
+
+    /* Check EIT */
+    check_eit(ctx);
     }
   return ret;
   }
@@ -915,10 +1228,30 @@ static int setup_pes_filter(const bgav_options_t * opt,
   if(ioctl(fd, DMX_SET_PES_FILTER, &params) < 0)
     {
     bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-             "Setting filter failed: %s", strerror(errno));
+             "Setting pes filter failed: %s", strerror(errno));
     return 0;
     }
   return 1;
+  }
+
+static int setup_section_filter(const bgav_options_t * opt,
+                                int fd, uint16_t pid, int pidtype,
+                                uint8_t table, uint8_t mask)
+  {
+  struct dmx_sct_filter_params params;
+  memset(&params, 0, sizeof(params)); 
+  params.pid      = pid;
+  params.filter.filter[0] = table; 
+  params.filter.mask[0] = mask;
+  params.flags = DMX_IMMEDIATE_START;
+  
+  if (ioctl(fd, DMX_SET_FILTER, &params) < 0)
+    {
+    bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Setting section filter failed: %s", strerror(errno));
+    return 0;
+    }
+  return 1; 
   }
 
 static int setup_filters(bgav_input_context_t * ctx,
@@ -933,7 +1266,7 @@ static int setup_filters(bgav_input_context_t * ctx,
   priv = (dvb_priv_t *)(ctx->priv);
 
   set_num_filters(priv, track->num_audio_streams +
-                  track->num_video_streams + channel->extra_pcr_pid);
+                  track->num_video_streams + channel->extra_pcr_pid + 1);
   
   filter_index = 0;
 
@@ -1060,6 +1393,22 @@ static int setup_filters(bgav_input_context_t * ctx,
                          channel->pcr_pid))
       return 0;
     }
+
+  /* EIT Filter */
+  priv->eit_filter = filter_index++;
+  priv->eit_version = -1;
+  if(ioctl(priv->filter_fds[priv->eit_filter],
+           DMX_SET_BUFFER_SIZE,8192*10) < 0)
+    {
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Setting section filter buffer failed: %s", strerror(errno));
+    return 0;
+    }
+  
+  if(!setup_section_filter(ctx->opt,
+                           priv->filter_fds[priv->eit_filter],
+                           0x12,DMX_PES_OTHER,0x4e, 0xff))
+    return 0;
   
   bgav_log(ctx->opt, BGAV_LOG_INFO, LOG_DOMAIN,
            "Filters initialized successfully");
@@ -1097,7 +1446,11 @@ static void select_track_dvb(bgav_input_context_t * ctx, int track)
   FD_SET (priv->dvr_fd, &rset);
   timeout.tv_sec  = 2;
   timeout.tv_usec = 0;
+  priv->service_id = priv->channels[track].service_id;
   select(priv->dvr_fd+1, &rset, NULL, NULL, &timeout);
+
+  /* Clear metadata so they are reread */
+  bgav_metadata_free(&ctx->tt->cur->metadata);
   }
 
 const bgav_input_t bgav_input_dvb =
