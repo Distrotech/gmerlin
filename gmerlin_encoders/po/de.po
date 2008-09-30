@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2008-02-21 20:51+0100\n"
+"POT-Creation-Date: 2008-09-30 21:37+0200\n"
 "PO-Revision-Date: 2007-11-18 22:25+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1733,61 +1733,61 @@ msgstr ""
 msgid "Use alternative scantable"
 msgstr "Verwende alternative Scantabelle"
 
-#: plugins/ffmpeg/params.h:935
+#: plugins/ffmpeg/params.h:936 plugins/ffmpeg/params.h:945
 msgid "Use trellis quantization"
 msgstr "Verwende Trellis Quantisierung"
 
-#: plugins/ffmpeg/params.h:938
+#: plugins/ffmpeg/params.h:939 plugins/ffmpeg/params.h:948
 msgid "Use trellis quantization (improves quality)"
 msgstr "Verwende Trellis Quantisierung (verbessert Qualität)"
 
 # ...
-#: plugins/ffmpeg/params.h:944
+#: plugins/ffmpeg/params.h:955
 msgid "Use only bitexact stuff"
 msgstr "Verwende nur bitgenaue Sachen"
 
-#: plugins/ffmpeg/params.h:947
+#: plugins/ffmpeg/params.h:958
 msgid "Use only bitexact stuff (except (i)dct)"
 msgstr "Verwende nur bitgenaue Sachen (ausser (i)dct)"
 
-#: plugins/ffmpeg/params.h:953
+#: plugins/ffmpeg/params.h:964
 msgid "Advanced intra coding"
 msgstr "Fortgeschrittlene Intra Codierung"
 
-#: plugins/ffmpeg/params.h:961
+#: plugins/ffmpeg/params.h:972
 msgid "MPEG-4 AC prediction"
 msgstr "MPEG-4 AC Vorhersage"
 
 # plural?
-#: plugins/ffmpeg/params.h:969
+#: plugins/ffmpeg/params.h:980
 msgid "Unlimited motion vector"
 msgstr "Unbegrenzter Bewegungsvektor"
 
-#: plugins/ffmpeg/params.h:977
+#: plugins/ffmpeg/params.h:988
 msgid "CBP RD"
 msgstr "CBP RD"
 
-#: plugins/ffmpeg/params.h:980
+#: plugins/ffmpeg/params.h:991
 msgid "Use rate distortion optimization for cbp"
 msgstr "Verwende Ratenverzerr Optimierung für cbp"
 
-#: plugins/ffmpeg/params.h:986
+#: plugins/ffmpeg/params.h:997
 msgid "QP RD"
 msgstr "QP RD"
 
-#: plugins/ffmpeg/params.h:989
+#: plugins/ffmpeg/params.h:1000
 msgid "Use rate distortion optimization for qp selection"
 msgstr "Benutze Ratenverzerrungs-Optimierung für qp Auswahl"
 
-#: plugins/ffmpeg/params.h:995
+#: plugins/ffmpeg/params.h:1006
 msgid "Alternative inter vlc"
 msgstr "Alternatives inter vlc"
 
-#: plugins/ffmpeg/params.h:1004
+#: plugins/ffmpeg/params.h:1015
 msgid "OBMC"
 msgstr "OBMC"
 
-#: plugins/ffmpeg/params.h:1007
+#: plugins/ffmpeg/params.h:1018
 msgid ""
 "Overlapped block motion compensation (only supported with with simple MB "
 "decision)"
@@ -1795,28 +1795,28 @@ msgstr ""
 "Überlappender Block-Bewegungsausgleich (nur unterstützt mit einfacher MB-"
 "Entscheidung)"
 
-#: plugins/ffmpeg/params.h:1013
+#: plugins/ffmpeg/params.h:1024
 msgid "Loop filter"
 msgstr "Schleifenfilter"
 
-#: plugins/ffmpeg/params.h:1021
+#: plugins/ffmpeg/params.h:1032
 msgid "H263P slice struct"
 msgstr "H263P slice struct"
 
-#: plugins/ffmpeg/params.h:1030
+#: plugins/ffmpeg/params.h:1041
 msgid "Close all GOPs"
 msgstr "Schließe alle GOPs"
 
-#: plugins/ffmpeg/params.h:1038
+#: plugins/ffmpeg/params.h:1049
 msgid "Allow fast encoding"
 msgstr "Erlaube schnelles Codieren"
 
-#: plugins/ffmpeg/params.h:1041
+#: plugins/ffmpeg/params.h:1052
 msgid "Allow non spec compliant speedup tricks"
 msgstr "Erlaube Beschleunigungstricks, die nicht der Spezifikation entsprechen"
 
 # durchsetzung
-#: plugins/ffmpeg/params.h:1048
+#: plugins/ffmpeg/params.h:1059
 msgid "Strictly enforce GOP size"
 msgstr "Strenge Einhaltung der GOP Größe"
 

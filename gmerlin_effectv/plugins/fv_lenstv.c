@@ -257,11 +257,11 @@ static void init(effect *e) {
                 iy = 0;
             }
             offset = (iy * e->video_width + ix);
-			priv->lens[(r - y)*priv->lens_width_i + r - x] = -offset;
-			priv->lens[(r + y)*priv->lens_width_i + r + x] = offset;
+            priv->lens[(r - y)*priv->lens_width_i + r - x] = -offset;
+            priv->lens[(r + y)*priv->lens_width_i + r + x] = offset;
             offset = (-iy * e->video_width + ix);
-			priv->lens[(r + y)*priv->lens_width_i + r - x] = -offset;
-			priv->lens[(r - y)*priv->lens_width_i + r + x] = offset;
+            priv->lens[(r + y)*priv->lens_width_i + r - x] = -offset;
+            priv->lens[(r - y)*priv->lens_width_i + r + x] = offset;
         }
     }
 }
@@ -269,11 +269,15 @@ static void init(effect *e) {
 static void clipmag(effect *e)
   {
   lenstv_t * priv = (lenstv_t*)e->priv;
-  if (priv->yi<0-(priv->lens_width_i/2)+1)priv->yi=0-(priv->lens_width_i/2)+1;
-  if (priv->yi>=e->video_height-priv->lens_width_i/2-1)priv->yi=e->video_height-priv->lens_width_i/2-1;
+  if(priv->yi<0-(priv->lens_width_i/2)+1)
+    priv->yi=0-(priv->lens_width_i/2)+1;
+  if(priv->yi>=e->video_height-priv->lens_width_i/2-1)
+    priv->yi=e->video_height-priv->lens_width_i/2-1;
 
-  if (priv->xi<0-(priv->lens_width_i/2)+1) priv->xi=0-priv->lens_width_i/2+1;
-  if(priv->xi>=e->video_width-priv->lens_width_i/2-1)priv->xi=e->video_width-priv->lens_width_i/2-1;
+  if(priv->xi<0-(priv->lens_width_i/2)+1)
+    priv->xi=0-priv->lens_width_i/2+1;
+  if(priv->xi>=e->video_width-priv->lens_width_i/2-1)
+    priv->xi=e->video_width-priv->lens_width_i/2-1;
   }
 
 

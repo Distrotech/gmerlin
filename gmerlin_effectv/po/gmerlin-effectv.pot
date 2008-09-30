@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2008-05-15 23:48+0200\n"
+"POT-Creation-Date: 2008-09-30 21:37+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -358,27 +358,27 @@ msgid ""
 "EffecTV (http://effectv.sourceforge.net)."
 msgstr ""
 
-#: plugins/fv_lenstv.c:285
+#: plugins/fv_lenstv.c:289
 msgid "X"
 msgstr ""
 
-#: plugins/fv_lenstv.c:295
+#: plugins/fv_lenstv.c:299
 msgid "Y"
 msgstr ""
 
-#: plugins/fv_lenstv.c:305
+#: plugins/fv_lenstv.c:309
 msgid "Diameter"
 msgstr ""
 
-#: plugins/fv_lenstv.c:315
+#: plugins/fv_lenstv.c:319
 msgid "Zoom"
 msgstr ""
 
-#: plugins/fv_lenstv.c:362
+#: plugins/fv_lenstv.c:366
 msgid "LensTV"
 msgstr ""
 
-#: plugins/fv_lenstv.c:363
+#: plugins/fv_lenstv.c:367
 msgid ""
 "LensTV - Based on Old school Demo Lens Effect. Ported from EffecTV (http://"
 "effectv.sourceforge.net)."
