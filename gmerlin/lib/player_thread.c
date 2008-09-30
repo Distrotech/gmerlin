@@ -324,8 +324,15 @@ static void start_playback(bg_player_t * p, int new_state)
 static void pause_cmd(bg_player_t * p)
   {
   int state;
-  state = bg_player_get_state(p);
 
+  if(!p->can_pause)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot pause live stream");
+    return;
+    }
+
+  state = bg_player_get_state(p);
+  
   if(state == BG_PLAYER_STATE_PLAYING)
     {
     interrupt_cmd(p, BG_PLAYER_STATE_PAUSED);

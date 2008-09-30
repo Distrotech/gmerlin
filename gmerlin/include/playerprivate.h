@@ -222,6 +222,7 @@ struct bg_player_s
   /* Can we seek? */
 
   int can_seek;
+  int can_pause;
   int do_bypass; /* Bypass mode */
   
   /* Message stuff */

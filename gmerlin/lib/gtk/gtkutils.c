@@ -30,6 +30,9 @@
 #include <stdio.h>
 #include <ctype.h>
 
+#include <config.h>
+
+
 #include <gui_gtk/gtkutils.h>
 
 #include <fontconfig/fontconfig.h>
@@ -410,7 +413,7 @@ void bg_gtk_tooltips_set_tip(GtkWidget * w, const char * str,
   {
   GValue val = { 0 };
   
-  str = dgettext(translation_domain, str);
+  str = TR_DOM(str);
   //  gtk_widget_set_tooltip_text(w, str);
 
   if(!tooltip_quark)

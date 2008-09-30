@@ -410,6 +410,11 @@ int bg_player_input_init(bg_player_input_context_t * ctx,
     ctx->player->can_seek = 1;
   else
     ctx->player->can_seek = 0;
+
+  if(ctx->player->track_info->flags & BG_TRACK_PAUSABLE)
+    ctx->player->can_pause = 1;
+  else
+    ctx->player->can_pause = 0;
   
   if(!ctx->player->track_info->num_audio_streams &&
      !ctx->player->track_info->num_video_streams)

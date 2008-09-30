@@ -398,6 +398,21 @@ void set_line_index(bg_gtk_info_window_t * w, int iter_index, char * line,
   set_line(w, &iter, line, sensitive);
   }
 
+static void remove_children(bg_gtk_info_window_t * w, GtkTreeIter * parent)
+  {
+  GtkTreeModel * model;
+  GtkTreeIter child;
+  
+  model = gtk_tree_view_get_model(GTK_TREE_VIEW(w->treeview));
+
+  while(gtk_tree_model_iter_children(GTK_TREE_MODEL(model),
+                                     &child, parent))
+    {
+    gtk_tree_store_remove(GTK_TREE_STORE(model), &child);
+    }
+  
+  }
+
 static void set_line_multi(bg_gtk_info_window_t * w,
                            int parent_index,
                            char * line)
@@ -416,7 +431,7 @@ static void set_line_multi(bg_gtk_info_window_t * w,
   
   gtk_tree_store_set(GTK_TREE_STORE(model), &parent, COLUMN_FG_COLOR,
                      FG_SENSITIVE, -1);
-
+  remove_children(w, &parent);
   
   while(tmp_strings[i])
     {
@@ -663,20 +678,6 @@ static gboolean configure_callback(GtkWidget * w, GdkEventConfigure *event,
 
 #define FREE(str) if(str) free(str);str=(char*)0;
 
-static void remove_children(bg_gtk_info_window_t * w, GtkTreeIter * parent)
-  {
-  GtkTreeModel * model;
-  GtkTreeIter child;
-  
-  model = gtk_tree_view_get_model(GTK_TREE_VIEW(w->treeview));
-
-  while(gtk_tree_model_iter_children(GTK_TREE_MODEL(model),
-                                     &child, parent))
-    {
-    gtk_tree_store_remove(GTK_TREE_STORE(model), &child);
-    }
-  
-  }
 
 static void reset_tree(bg_gtk_info_window_t * w)
   {
