@@ -1462,6 +1462,13 @@ int bgav_tcp_connect(const bgav_options_t * opt,
 int bgav_tcp_send(const bgav_options_t * opt,
                   int fd, uint8_t * data, int len);
 
+struct addrinfo * bgav_hostbyname(const bgav_options_t * opt,
+                                  const char * hostname, int port, int socktype);
+
+/* udp.c */
+int bgav_udp_open_read(const bgav_options_t * opt, int port);
+int bgav_udp_read(int fd, uint8_t * data, int len);
+
 /* Charset utilities (charset.c) */
 
 

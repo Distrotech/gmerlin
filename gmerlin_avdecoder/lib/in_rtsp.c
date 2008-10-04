@@ -28,15 +28,18 @@
 #include <rtsp.h>
 #include <rmff.h>
 #include <bswap.h>
+#include <rtp.h>
 
 #define LOG_DOMAIN "in_rtsp"
 
+// #define USER_AGENT "RealMedia Player Version 6.0.9.1235 (linux-2.0-libc6-i386-gcc2.95)"
+#define USER_AGENT "QuickTime/7.4.1 (qtver=7.4.1;os=Windows NT 5.1Service Pack 2)"
 /* We support multiple server types */
 
 #define SERVER_TYPE_GENERIC   0
 #define SERVER_TYPE_REAL      1
-#define SERVER_TYPE_QTSS      2
-#define SERVER_TYPE_DARWIN    3
+//#define SERVER_TYPE_QTSS      2
+//#define SERVER_TYPE_DARWIN    3
 
 extern bgav_demuxer_t bgav_demuxer_rmff;
 
@@ -266,13 +269,11 @@ static int open_and_describe(bgav_input_context_t * ctx,
   const char * var;
   rtsp_priv_t * priv = (rtsp_priv_t *)(ctx->priv);
   
-  bgav_rtsp_set_user_agent(priv->r,
-                           "RealMedia Player Version 6.0.9.1235 (linux-2.0-libc6-i386-gcc2.95)");
-
   /* Open URL */
 
   bgav_rtsp_schedule_field(priv->r,
-                           "User-Agent: RealMedia Player Version 6.0.9.1235 (linux-2.0-libc6-i386-gcc2.95)");
+                           "User-Agent: "USER_AGENT);
+#if 1
   bgav_rtsp_schedule_field(priv->r,
                            "ClientChallenge: 9e26d33f2984236010ef6253fb1887f7");
   bgav_rtsp_schedule_field(priv->r,
@@ -287,7 +288,7 @@ static int open_and_describe(bgav_input_context_t * ctx,
                            "ClientID: Linux_2.4_6.0.9.1235_play32_RN01_EN_586");
   bgav_rtsp_schedule_field(priv->r,
                            "Pragma: initiate-session");
-
+#endif
   if(!bgav_rtsp_open(priv->r, url, got_redirected))
     return 0;
 
@@ -301,8 +302,16 @@ static int open_and_describe(bgav_input_context_t * ctx,
     {
     priv->challenge1 = bgav_strdup(var);
     priv->type = SERVER_TYPE_REAL;
-    //    bgav_log(ctx->opt, BGAV_LOG_DEBUG, LOG_DOMAIN, "Real Server, challenge %s", var);
+    bgav_log(ctx->opt, BGAV_LOG_DEBUG, LOG_DOMAIN,
+             "Real Server, challenge %s", var);
     }
+  else
+    {
+    if(!bgav_rtsp_reopen(priv->r))
+      return 0;
+    }
+  
+#if 0
   else
     {
     var = bgav_rtsp_get_answer(priv->r, "Server");
@@ -315,12 +324,12 @@ static int open_and_describe(bgav_input_context_t * ctx,
         }
       }
     }
-
-#if 0
+#endif
+  
+#if 1
   if(priv->type == SERVER_TYPE_GENERIC)
     {
-    //    bgav_log(ctx->opt, BGAV_LOG_DEBUG, LOG_DOMAIN, "Generic RTSP code\n");
-    //    return 0;
+    bgav_log(ctx->opt, BGAV_LOG_DEBUG, LOG_DOMAIN, "Generic RTSP code\n");
     }
 #endif
 
@@ -346,6 +355,7 @@ static int open_and_describe(bgav_input_context_t * ctx,
       bgav_rtsp_schedule_field(priv->r,
                                "Require: com.real.retain-entity-for-setup");
       break;
+#if 0
     case SERVER_TYPE_QTSS:
       bgav_rtsp_schedule_field(priv->r,
                                "Accept: application/sdp");
@@ -354,9 +364,17 @@ static int open_and_describe(bgav_input_context_t * ctx,
       bgav_rtsp_schedule_field(priv->r,
                                "User-Agent: QTS (qtver=6.0;os=Windows NT 5.0Service Pack 3)");
       break;
+#endif
     default:
       bgav_rtsp_schedule_field(priv->r,
                                "Accept: application/sdp");
+      bgav_rtsp_schedule_field(priv->r,
+                               "Bandwidth: 384000");
+      bgav_rtsp_schedule_field(priv->r,
+                               "Accept-Language: en-US");
+      bgav_rtsp_schedule_field(priv->r,
+                               "User-Agent: "USER_AGENT);
+
     }
     
   if(!bgav_rtsp_request_describe(priv->r, got_redirected))
@@ -372,17 +390,188 @@ static int is_real_smil(bgav_sdp_t * s)
     return 1;
   return 0;
   }
-     
+
+static int init_real(bgav_input_context_t * ctx, bgav_sdp_t * sdp, char * session_id)
+  {
+  rtsp_priv_t * priv;
+  char * stream_rules = (char*)0;
+  char challenge2[64];
+  char checksum[34];
+  char * field;
+  int ret = 0;
+  priv = ctx->priv;
+
+  priv->next_packet = next_packet_rdt;
+  
+  if(is_real_smil(sdp))
+    {
+    bgav_log(ctx->opt, BGAV_LOG_DEBUG, LOG_DOMAIN, "Got smil redirector");
+    priv->has_smil = 1;
+    }
+  else
+    {
+    priv->rmff_header =
+      bgav_rmff_header_create_from_sdp(ctx->opt, sdp,
+                                       &stream_rules);
+    if(!priv->rmff_header)
+      goto fail;
+    ctx->demuxer = bgav_demuxer_create(ctx->opt, &bgav_demuxer_rmff, ctx);
+    if(!bgav_demux_rm_open_with_header(ctx->demuxer,
+                                       priv->rmff_header))
+      return 0;
+    }
+  
+  /* Setup */
+  
+  real_calc_response_and_checksum(challenge2, checksum, priv->challenge1);
+
+  field = bgav_sprintf("RealChallenge2: %s, sd=%s", challenge2, checksum);
+  bgav_rtsp_schedule_field(priv->r, field);free(field);
+  
+  field = bgav_sprintf("If-Match: %s", session_id);
+  bgav_rtsp_schedule_field(priv->r, field);free(field);
+  bgav_rtsp_schedule_field(priv->r, "Transport: x-pn-tng/tcp;mode=play,rtp/avp/tcp;unicast;mode=play");
+  field = bgav_sprintf("%s/streamid=0", ctx->url);
+
+  if(!bgav_rtsp_request_setup(priv->r,field))
+    {
+    free(field);
+    goto fail;
+    }
+  free(field);
+  
+  if(priv->rmff_header && (priv->rmff_header->prop.num_streams > 1))
+    {
+    field = bgav_sprintf("If-Match: %s", session_id);
+    bgav_rtsp_schedule_field(priv->r, field);free(field);
+    bgav_rtsp_schedule_field(priv->r, "Transport: x-pn-tng/tcp;mode=play,rtp/avp/tcp;unicast;mode=play");
+    field = bgav_sprintf("%s/streamid=1", ctx->url);
+    if(!bgav_rtsp_request_setup(priv->r,field))
+      {
+      free(field);
+      goto fail;
+      }
+    free(field);
+    }
+
+  /* Set Parameter */
+
+  field = bgav_sprintf("Subscribe: %s", stream_rules);
+  bgav_rtsp_schedule_field(priv->r, field);free(field);
+  if(!bgav_rtsp_request_setparameter(priv->r))
+    goto fail;
+  /* Play */
+
+  bgav_rtsp_schedule_field(priv->r, "Range: npt=0-");
+  if(!bgav_rtsp_request_play(priv->r))
+    goto fail;
+
+  ret = 1;
+  
+  fail:
+  if(stream_rules)
+    free(stream_rules);
+  return ret;
+  }
+
+static int init_stream_generic(bgav_input_context_t * ctx, bgav_stream_t * s, int * port,
+                               char ** session_id)
+  {
+  rtsp_priv_t * priv = (rtsp_priv_t*)ctx->priv;
+  rtp_stream_priv_t * sp = (rtp_stream_priv_t *)s->priv;
+  char * field;
+
+  if(!sp || !sp->control_url)
+    return 0;
+  
+  field = bgav_sprintf("Transport: RTP/AVP/UDP;unicast;client_port=%d-%d",
+                       *port, (*port)+1);
+
+  bgav_rtsp_schedule_field(priv->r, "x-retransmit: our-retransmit");
+  bgav_rtsp_schedule_field(priv->r, "x-dynamic-rate: 1");
+  bgav_rtsp_schedule_field(priv->r, "x-transport-options: late-tolerance=2.900000");
+    
+  bgav_rtsp_schedule_field(priv->r,
+                           "User-Agent: "USER_AGENT);
+  bgav_rtsp_schedule_field(priv->r,
+                           "Accept-Language: en-US");
+  
+  /* Send setup request */
+  bgav_rtsp_schedule_field(priv->r, field);free(field);
+  //  bgav_rtsp_schedule_field(priv->r, "Range: npt=0-");
+
+  if(!bgav_rtsp_request_setup(priv->r,sp->control_url))
+    return 0;
+  
+  if(!(*session_id))
+    {
+    const char * var;
+    var = bgav_rtsp_get_answer(priv->r, "Session");
+    if(var)
+      *session_id = bgav_strdup(var);
+    }
+  sp->rtp_fd = bgav_udp_open_read(ctx->opt, *port);
+  if(sp->rtp_fd < 0)
+    return 0;
+  
+  sp->rtcp_fd = bgav_udp_open_read(ctx->opt, (*port)+1);
+  if(sp->rtcp_fd < 0)
+    return 0;
+
+  *port += 2;
+
+  
+  return 1;
+  }
+
+static int init_generic(bgav_input_context_t * ctx, bgav_sdp_t * sdp)
+  {
+  rtsp_priv_t * priv;
+  bgav_stream_t * s;
+  int i;
+  int port = 5000; /* TODO: Base port */
+  char * session_id = (char *)0;
+  char * field;
+  priv = ctx->priv;
+
+  ctx->demuxer = bgav_demuxer_create(ctx->opt, &bgav_demuxer_rtp, ctx);
+  if(!bgav_demuxer_rtp_open(ctx->demuxer, sdp))
+    return 0;
+
+  /* Transport negotiation */
+  for(i = 0; i < ctx->demuxer->tt->cur->num_audio_streams; i++)
+    {
+    s = &ctx->demuxer->tt->cur->audio_streams[i];
+    if(!init_stream_generic(ctx, s, &port, &session_id))
+      return 0;
+    }
+  for(i = 0; i < ctx->demuxer->tt->cur->num_video_streams; i++)
+    {
+    s = &ctx->demuxer->tt->cur->video_streams[i];
+    if(!init_stream_generic(ctx, s, &port, &session_id))
+      return 0;
+    }
+  /* Play */
+  if(session_id)
+    {
+    field = bgav_sprintf("Session: %s", session_id);
+    bgav_rtsp_schedule_field(priv->r, field);free(field);
+    }
+
+  bgav_rtsp_schedule_field(priv->r, "Range: npt=0-");
+  if(!bgav_rtsp_request_play(priv->r))
+    return 0;
+  
+  return 1;
+  }
+
+
 static int open_rtsp(bgav_input_context_t * ctx, const char * url, char ** r)
   {
   rtsp_priv_t * priv;
   bgav_sdp_t * sdp;
-  char * stream_rules = (char*)0;
   const char * var;
-  char * field;
   char * session_id = (char*)0;
-  char challenge2[64];
-  char checksum[34];
   int num_redirections = 0;
   int got_redirected = 0;
   
@@ -390,7 +579,8 @@ static int open_rtsp(bgav_input_context_t * ctx, const char * url, char ** r)
   priv->r = bgav_rtsp_create(ctx->opt);
 
   ctx->priv = priv;
-
+  ctx->url = bgav_strdup(url);
+  
   while(num_redirections < 5)
     {
     got_redirected = 0;
@@ -413,114 +603,51 @@ static int open_rtsp(bgav_input_context_t * ctx, const char * url, char ** r)
     else
       break;
     }
-
+  
   if(num_redirections == 5)
     goto fail;
-  
-  var = bgav_rtsp_get_answer(priv->r,"ETag");
-  if(!var)
+
+  if(priv->type == SERVER_TYPE_REAL)
     {
-    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Got no ETag");
-    goto fail;
+    var = bgav_rtsp_get_answer(priv->r,"ETag");
+    if(!var)
+      {
+      bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Got no ETag");
+      goto fail;
+      }
+    else
+      session_id=bgav_strdup(var);
     }
-  else
-    session_id=bgav_strdup(var);
   
   sdp = bgav_rtsp_get_sdp(priv->r);
 
+  bgav_sdp_dump(sdp);
+  
   /* Set up input metadata from sdp */
   ctx->metadata.title = bgav_strdup(sdp->session_name);
   ctx->metadata.comment = bgav_strdup(sdp->session_description);
+
   
   switch(priv->type)
     {
     case SERVER_TYPE_REAL:
-      priv->next_packet = next_packet_rdt;
-
-      if(is_real_smil(sdp))
-        {
-        bgav_log(ctx->opt, BGAV_LOG_DEBUG, LOG_DOMAIN, "Got smil redirector");
-        priv->has_smil = 1;
-        }
-      else
-        {
-        priv->rmff_header =
-          bgav_rmff_header_create_from_sdp(ctx->opt, sdp,
-                                           &stream_rules);
-        if(!priv->rmff_header)
-          goto fail;
-        ctx->demuxer = bgav_demuxer_create(ctx->opt, &bgav_demuxer_rmff, ctx);
-        if(!bgav_demux_rm_open_with_header(ctx->demuxer,
-                                           priv->rmff_header))
-          return 0;
-        }
+      if(!init_real(ctx, sdp, session_id))
+        goto fail;
+      break;
+    case SERVER_TYPE_GENERIC:
+      if(!init_generic(ctx, sdp))
+        goto fail;
       break;
     }
   
-  /* Setup */
-  
-  real_calc_response_and_checksum(challenge2, checksum, priv->challenge1);
-
-  field = bgav_sprintf("RealChallenge2: %s, sd=%s", challenge2, checksum);
-  bgav_rtsp_schedule_field(priv->r, field);free(field);
-  
-  field = bgav_sprintf("If-Match: %s", session_id);
-  bgav_rtsp_schedule_field(priv->r, field);free(field);
-  bgav_rtsp_schedule_field(priv->r, "Transport: x-pn-tng/tcp;mode=play,rtp/avp/tcp;unicast;mode=play");
-  field = bgav_sprintf("%s/streamid=0", url);
-
-  if(!bgav_rtsp_request_setup(priv->r,field))
-    {
-    free(field);
-    goto fail;
-    }
-  free(field);
-  
-  if(priv->rmff_header && (priv->rmff_header->prop.num_streams > 1))
-    {
-    field = bgav_sprintf("If-Match: %s", session_id);
-    bgav_rtsp_schedule_field(priv->r, field);free(field);
-    bgav_rtsp_schedule_field(priv->r, "Transport: x-pn-tng/tcp;mode=play,rtp/avp/tcp;unicast;mode=play");
-    field = bgav_sprintf("%s/streamid=1", url);
-    if(!bgav_rtsp_request_setup(priv->r,field))
-      {
-      free(field);
-      goto fail;
-      }
-    free(field);
-    }
-
-  /* Set Parameter */
-
-  field = bgav_sprintf("Subscribe: %s", stream_rules);
-  bgav_rtsp_schedule_field(priv->r, field);free(field);
-  if(!bgav_rtsp_request_setparameter(priv->r))
-    goto fail;
-  /* Play */
-
-  bgav_rtsp_schedule_field(priv->r, "Range: npt=0-");
-  if(!bgav_rtsp_request_play(priv->r))
-    goto fail;
-  
-  ctx->do_buffer = 1;
-
-  if(stream_rules)
-    free(stream_rules);
-  if(priv->challenge1)
-    {
-    free(priv->challenge1);
-    priv->challenge1 = (char*)0;
-    }
   if(session_id)
     free(session_id);
-
-  ctx->url = bgav_strdup(url);
+  
+  ctx->do_buffer = 1;
   
   return 1;
 
   fail:
-  if(stream_rules)
-    free(stream_rules);
   if(priv->challenge1)
     {
     free(priv->challenge1);

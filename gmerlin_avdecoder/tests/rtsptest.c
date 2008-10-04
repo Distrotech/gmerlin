@@ -24,7 +24,6 @@ int main(int argc, char ** argv)
   
   rtsp = bgav_rtsp_create(&opt);
 
-  bgav_rtsp_set_user_agent(rtsp, "RealMedia Player Version 6.0.9.1235 (linux-2.0-libc6-i386-gcc2.95)");
   bgav_rtsp_open(rtsp, argv[1], &got_redirected);
 
   if(got_redirected)

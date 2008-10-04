@@ -139,7 +139,7 @@ static int parse_connection_desc(const char * line,
 #endif
 static void dump_connection_desc(bgav_sdp_connection_desc_t * c)
   {
-  bgav_dprintf( "Connection: .type = %s addr: %s ttl: %d num: %d\n",
+  bgav_dprintf( "Connection: type: %s addr: %s ttl: %d num: %d\n",
           c->type,
           c->addr,
           c->ttl,
@@ -636,6 +636,8 @@ int bgav_sdp_parse(const bgav_options_t * opt,
   int num_lines;
   int line_index;
   int i_tmp;
+
+  fprintf(stderr, "sdp (raw): %s\n", data);
   
   memset(ret, 0, sizeof(*ret));
     
@@ -898,4 +900,40 @@ int bgav_sdp_get_attr_int(bgav_sdp_attr_t * attrs, int num_attrs,
       }
     }
   return 0;
+  }
+
+static int get_format_attr(bgav_sdp_attr_t * attrs, int num_attrs, int format, char ** ret,
+                           const char * key)
+  {
+  char * rest;
+  int tmp;
+  int i;
+  for(i = 0; i < num_attrs; i++)
+    {
+    if(!strcmp(attrs[i].name, key))
+      {
+      if(!isdigit(attrs[i].val.str[0]))
+        break;
+      tmp = strtol(attrs[i].val.str, &rest, 10);
+      if((rest != attrs[i].val.str) &&
+         (tmp == format))
+        {
+        while(isspace(*rest))
+          rest++;
+        *ret = rest;
+        return 1;
+        }
+      }
+    }
+  return 0;
+  }
+
+int bgav_sdp_get_attr_rtpmap(bgav_sdp_attr_t * attrs, int num_attrs, int format, char ** ret)
+  {
+  return get_format_attr(attrs, num_attrs, format, ret, "rtpmap");
+  }
+
+int bgav_sdp_get_attr_fmtp(bgav_sdp_attr_t * attrs, int num_attrs, int format, char ** ret)
+  {
+  return get_format_attr(attrs, num_attrs, format, ret, "fmtp");
   }

@@ -186,6 +186,10 @@ int bgav_sdp_get_attr_data(bgav_sdp_attr_t * attrs, int num_attrs,
 int bgav_sdp_get_attr_int(bgav_sdp_attr_t * attrs, int num_attrs,
                           const char * name, int*);
 
+int bgav_sdp_get_attr_rtpmap(bgav_sdp_attr_t * attrs, int num_attrs, int format, char ** ret);
+int bgav_sdp_get_attr_fmtp(bgav_sdp_attr_t * attrs, int num_attrs, int format, char ** ret);
+
+
 /* Init, free */
 
 int bgav_sdp_parse(const bgav_options_t * opt,

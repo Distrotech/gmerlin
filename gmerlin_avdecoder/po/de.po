@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmerlin-avdecoder 0.1.6\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2008-08-29 22:41+0200\n"
+"POT-Creation-Date: 2008-10-02 00:05+0200\n"
 "PO-Revision-Date: 2008-08-29 22:47+0200\n"
 "Last-Translator: Burkhard Plaum <gmerlin@users.sourceforge.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -25,138 +25,148 @@ msgid "Video options"
 msgstr "Video Optionen"
 
 #: plugins/i_avdec.c:105
+msgid "Shrink factor"
+msgstr ""
+
+#: plugins/i_avdec.c:110
+msgid ""
+"This enables downscaling of images while decoding. Currently only supported "
+"for JPEG-2000."
+msgstr ""
+
+#: plugins/i_avdec.c:114
 msgid "Network options"
 msgstr "Netzwerk"
 
-#: plugins/i_avdec.c:110
+#: plugins/i_avdec.c:119
 msgid "Connect timeout (milliseconds)"
 msgstr "Maximale Wartezeit zum Verbinden (Millisekunden)"
 
-#: plugins/i_avdec.c:118 plugins/i_dvb.c:81
+#: plugins/i_avdec.c:127 plugins/i_dvb.c:81
 msgid "Read timeout (milliseconds)"
 msgstr "Maximale Wartezeit zum Lesen (Millisekunden)"
 
-#: plugins/i_avdec.c:126
+#: plugins/i_avdec.c:135
 msgid "Network buffer size (kB)"
 msgstr "Netzwerk Puffergröße (kB)"
 
-#: plugins/i_avdec.c:134
+#: plugins/i_avdec.c:143
 msgid "Bandwidth"
 msgstr "Bandbreite"
 
-#: plugins/i_avdec.c:150
+#: plugins/i_avdec.c:159
 msgid "14.4 Kbps (Modem)"
 msgstr "14.4 Kbps (Modem)"
 
-#: plugins/i_avdec.c:151
+#: plugins/i_avdec.c:160
 msgid "19.2 Kbps (Modem)"
 msgstr "19.2 Kbps (Modem)"
 
-#: plugins/i_avdec.c:152
+#: plugins/i_avdec.c:161
 msgid "28.8 Kbps (Modem)"
 msgstr "28.8 Kbps (Modem)"
 
-#: plugins/i_avdec.c:153
+#: plugins/i_avdec.c:162
 msgid "33.6 Kbps (Modem)"
 msgstr "33.6 Kbps (Modem)"
 
-#: plugins/i_avdec.c:154
+#: plugins/i_avdec.c:163
 msgid "34.4 Kbps (Modem)"
 msgstr "34.4 Kbps (Modem)"
 
-#: plugins/i_avdec.c:155
+#: plugins/i_avdec.c:164
 msgid "57.6 Kbps (Modem)"
 msgstr "57.6 Kbps (Modem)"
 
-#: plugins/i_avdec.c:156
+#: plugins/i_avdec.c:165
 msgid "115.2 Kbps (ISDN)"
 msgstr "115.2 Kbps (ISDN)"
 
-#: plugins/i_avdec.c:157
+#: plugins/i_avdec.c:166
 msgid "262.2 Kbps (Cable/DSL)"
 msgstr "262.2 Kbps (Kabel/DSL)"
 
-#: plugins/i_avdec.c:158
+#: plugins/i_avdec.c:167
 msgid "393.2 Kbps (Cable/DSL)"
 msgstr "393.2 Kbps (Kabel/DSL)"
 
-#: plugins/i_avdec.c:159
+#: plugins/i_avdec.c:168
 msgid "524.3 Kbps (Cable/DSL)"
 msgstr "524.3 Kbps (Kabel/DSL)"
 
-#: plugins/i_avdec.c:160
+#: plugins/i_avdec.c:169
 msgid "1.5 Mbps (T1)"
 msgstr "1.5 Mbps (T1)"
 
-#: plugins/i_avdec.c:161
+#: plugins/i_avdec.c:170
 msgid "10.5 Mbps (LAN)"
 msgstr "10.5 Mbps (LAN)"
 
-#: plugins/i_avdec.c:166
+#: plugins/i_avdec.c:175
 msgid "HTTP Options"
 msgstr "HTTP Optionen"
 
-#: plugins/i_avdec.c:171
+#: plugins/i_avdec.c:180
 msgid "Enable shoutcast title streaming"
 msgstr "Benutze shoutcast Songtitel"
 
-#: plugins/i_avdec.c:177
+#: plugins/i_avdec.c:186
 msgid "Use proxy"
 msgstr "Benutze Proxy"
 
-#: plugins/i_avdec.c:183
+#: plugins/i_avdec.c:192
 msgid "Proxy host"
 msgstr "Proxy Host"
 
-#: plugins/i_avdec.c:188
+#: plugins/i_avdec.c:197
 msgid "Proxy port"
 msgstr "Proxy Port"
 
-#: plugins/i_avdec.c:196
+#: plugins/i_avdec.c:205
 msgid "Proxy needs authentication"
 msgstr "Proxy braucht Authentifizierung"
 
-#: plugins/i_avdec.c:202
+#: plugins/i_avdec.c:211
 msgid "Proxy username"
 msgstr "Proxy Benutzername"
 
-#: plugins/i_avdec.c:208
+#: plugins/i_avdec.c:217
 msgid "Proxy password"
 msgstr "Proxy Passwort"
 
-#: plugins/i_avdec.c:214
+#: plugins/i_avdec.c:223
 msgid "FTP Options"
 msgstr "FTP Optionen"
 
-#: plugins/i_avdec.c:219
+#: plugins/i_avdec.c:228
 msgid "Login as anonymous"
 msgstr "Anonym einloggen"
 
-#: plugins/i_avdec.c:225
+#: plugins/i_avdec.c:234
 msgid "Anonymous ftp password"
 msgstr "Passwort für anonymen Login"
 
-#: plugins/i_avdec.c:231
+#: plugins/i_avdec.c:240
 msgid "Subtitle Options"
 msgstr "Untertitel Optionen"
 
-#: plugins/i_avdec.c:236
+#: plugins/i_avdec.c:245
 msgid "Seek external subtitles"
 msgstr "Suche nach externen Untertiteln"
 
-#: plugins/i_avdec.c:240
+#: plugins/i_avdec.c:249
 msgid "Never"
 msgstr "Nie"
 
-#: plugins/i_avdec.c:241
+#: plugins/i_avdec.c:250
 msgid "For video files only"
 msgstr "Nur für Videodateien"
 
-#: plugins/i_avdec.c:242
+#: plugins/i_avdec.c:251
 msgid "Always"
 msgstr "Immer"
 
-#: plugins/i_avdec.c:244
+#: plugins/i_avdec.c:253
 msgid ""
 "If the input is a regular file, gmerlin_avdecoder can scan the directory for "
 "matching subtitle files. For a file movie.mpg, possible subtitle files are e."
@@ -175,11 +185,11 @@ msgstr ""
 "Suchen nach Untertiteln kann ganz abgeschaletet, nur für Videodateien "
 "eingeschaletet oder ganz eingeschaletet werden."
 
-#: plugins/i_avdec.c:255
+#: plugins/i_avdec.c:264
 msgid "Default subtitle encoding"
 msgstr "Zeichensatz für Untertitel"
 
-#: plugins/i_avdec.c:258
+#: plugins/i_avdec.c:267
 msgid ""
 "This sets the default encoding for text subtitles,when the original encoding "
 "is unknown. It must be a character set namerecognized by iconv. Type 'iconv -"
@@ -189,15 +199,15 @@ msgstr ""
 "ist. Der Zeichensatz muß von iconv unterstützt werden. Gib 'iconv -l' an der "
 "Kommandozeile ein, um eine Liste unterstützter Zeichensätze zu bekommen."
 
-#: plugins/i_avdec.c:265
+#: plugins/i_avdec.c:274
 msgid "Misc options"
 msgstr "Verschiedene Optionen"
 
-#: plugins/i_avdec.c:270
+#: plugins/i_avdec.c:279
 msgid "Sample accurate"
 msgstr "Samplegenau"
 
-#: plugins/i_avdec.c:273
+#: plugins/i_avdec.c:282
 msgid ""
 "Try sample accurate seeking. For most formats, this is not necessary, since "
 "normal seeking works fine. Some formats are only seekable with this option "
@@ -207,36 +217,36 @@ msgstr ""
 "da normales Suchen gut funktioniert. Einige Formate sind nur suchbar, wenn "
 "diese Option aktiviert ist."
 
-#: plugins/i_avdec.c:277
+#: plugins/i_avdec.c:286
 msgid "Cache time (milliseconds)"
 msgstr "Zeit fürs Zwischenspeichern (Millisekunden)"
 
-#: plugins/i_avdec.c:280
+#: plugins/i_avdec.c:289
 msgid ""
 "If building an index takes longer than the specified time, it will be cached."
 msgstr ""
 "Wenn die Erstellung eines Index länger als die angebene Zeit dauert, wird er "
 "zwischengespeichert."
 
-#: plugins/i_avdec.c:284
+#: plugins/i_avdec.c:293
 msgid "Cache size (Megabytes)"
 msgstr "Größe des Indexspeichers (Megabytes)"
 
-#: plugins/i_avdec.c:287
+#: plugins/i_avdec.c:296
 msgid "Set the maximum total size of the cache directory."
 msgstr ""
 "Gib die maximale Gesamtgröße des Verzeichnisses an, in dem Indizes "
 "gespeichert werden."
 
-#: plugins/i_avdec.c:291
+#: plugins/i_avdec.c:300
 msgid "Export date and time as timecodes for DV"
 msgstr "Exportiere Datum und Uhrzeit als Timecodes für DV"
 
-#: plugins/i_avdec.c:331
+#: plugins/i_avdec.c:340
 msgid "AVDecoder plugin"
 msgstr "AVDecoder plugin"
 
-#: plugins/i_avdec.c:332
+#: plugins/i_avdec.c:341
 msgid ""
 "Plugin based on the Gmerlin avdecoder library. Supports most media formats. "
 "Playback is supported from files, URLs (with various protocols) and stdin."
@@ -335,7 +345,7 @@ msgstr "Öffne Quelle neu (Track wurde zurückgesetzt)"
 msgid "Multichannel GSM not supported"
 msgstr "Mehrkanal GSM ist nicht unterstützt"
 
-#: lib/audio_ffmpeg.c:733
+#: lib/audio_ffmpeg.c:736
 #, c-format
 msgid "Codec not found: %s"
 msgstr "Codec nicht gefunden: %s"
@@ -455,11 +465,11 @@ msgstr "Ungültige mp3on4 Kanalkonfiguration"
 msgid "More than one timecode track, ignoring them all"
 msgstr "Mehr als ein Timecodetrack, ignoriere alle"
 
-#: lib/demux_quicktime.c:1432
+#: lib/demux_quicktime.c:1430
 msgid "Non streamable file on non seekable source"
 msgstr "Nicht streambare Datei von nicht suchbarer Quelle"
 
-#: lib/demux_quicktime.c:1441
+#: lib/demux_quicktime.c:1439
 msgid "Reading moov atom failed"
 msgstr "Lesen des moov Atoms fehlgeschlagen"
 
@@ -535,19 +545,19 @@ msgstr "read_toc fehlgeschlagen für %s"
 msgid "faacDecDecode failed %s"
 msgstr "faacDecDecode fehlgeschlagen %s"
 
-#: lib/log.c:41
+#: lib/log.c:42
 msgid "Debug"
 msgstr "Debug"
 
-#: lib/log.c:42
+#: lib/log.c:43
 msgid "Warning"
 msgstr "Warnung"
 
-#: lib/log.c:43
+#: lib/log.c:44
 msgid "Error"
 msgstr "Fehler"
 
-#: lib/log.c:44
+#: lib/log.c:45
 msgid "Info"
 msgstr "Info"
 
@@ -615,11 +625,11 @@ msgstr "DS_AudioDecoder_Open fehlgeschlagen"
 msgid "Codec DLL %s not found"
 msgstr "Codec DLL %s nicht gefunden"
 
-#: lib/mxf.c:2505
+#: lib/mxf.c:2507
 msgid "Cannot decode MXF file from non seekable source"
 msgstr "Kann MXF nicht von nichtsuchbaren Quellen dekodieren"
 
-#: lib/mxf.c:2520
+#: lib/mxf.c:2522
 msgid "Could not find header partition"
 msgstr "Konnte Kopfpartition nicht lesen"
 
@@ -845,20 +855,20 @@ msgstr "Dekodieren des PNGs fehlgeschlagen"
 msgid "PTS cache full"
 msgstr "PTS Speicher voll"
 
-#: lib/video_ffmpeg.c:974
+#: lib/video_ffmpeg.c:979
 msgid "Ran out of data during extradata scanning"
 msgstr "Datenende während des Lesens der Extradaten"
 
-#: lib/video_ffmpeg.c:1079
+#: lib/video_ffmpeg.c:1084
 msgid "Could not get initial frame"
 msgstr "Konnte kein erstes Bild bekommen"
 
-#: lib/video_ffmpeg.c:1867
+#: lib/video_ffmpeg.c:1883
 #, c-format
 msgid "Cannot find %s"
 msgstr "Kann %s nicht finden"
 
-#: lib/video_ffmpeg.c:2288
+#: lib/video_ffmpeg.c:2304
 msgid "Unsupported pixelformat for postprocessing"
 msgstr "Nicht unterstütztes Pixelformat für Nachbearbeitung"
 
@@ -1124,45 +1134,45 @@ msgstr "Gegenseite hat Verbindung geschlossen"
 msgid "Unvalid URL"
 msgstr "Ungültige URL"
 
-#: lib/demux_mxf.c:306
+#: lib/demux_mxf.c:308
 msgid "Clip wrapped tracks with nonconstant framesize not supported"
 msgstr ""
 "\"Clip wrapped\" Tracks mit nichtkonstanter Bildwiederholrate werden nicht "
 "unterstützt"
 
-#: lib/demux_mxf.c:339
+#: lib/demux_mxf.c:341
 msgid "Rounding fractional audio samplerate"
 msgstr "Runde gebrochene Audioabtastrate"
 
-#: lib/demux_mxf.c:608
+#: lib/demux_mxf.c:610
 #, c-format
 msgid "Couldn't find partition for source package %d"
 msgstr "Konnte keine Partition für \"Source package\" %d finden"
 
-#: lib/demux_mxf.c:634
+#: lib/demux_mxf.c:636
 msgid "Parsing MXF file failed, please report"
 msgstr "Parsen der MXF-Datei fehlgeschlagen, bitte berichten"
 
-#: lib/demux_mxf.c:649
+#: lib/demux_mxf.c:651
 msgid "Unsupported MXF type, please report"
 msgstr "Unbekannter MXF-Typ, bitte berichten"
 
-#: lib/demuxer.c:235 lib/demuxer.c:245 lib/demuxer.c:263
+#: lib/demuxer.c:237 lib/demuxer.c:247 lib/demuxer.c:265
 #: lib/demux_ffmpeg.c:128
 #, c-format
 msgid "Detected %s format"
 msgstr "Format erkannt: %s"
 
-#: lib/demuxer.c:287
+#: lib/demuxer.c:289
 #, c-format
 msgid "Detected %s format after skipping %d bytes"
 msgstr "Format erkannt: %s (nach Überspringen von %d Bytes)"
 
-#: lib/demuxer.c:468
+#: lib/demuxer.c:471
 msgid "Non interleaved file from non seekable source"
 msgstr "Nicht interleavte Datei von nicht suchbarer Quelle"
 
-#: lib/demuxer.c:1023
+#: lib/demuxer.c:1026
 msgid "Undefined sync time after seeking"
 msgstr "Undefinierte Synchronisationszeit nach Suchen"
 
@@ -1287,11 +1297,11 @@ msgstr "Lesen von Metadaten schlug fehl."
 msgid "Speex needs extradata"
 msgstr "Speex braucht Extradaten"
 
-#: lib/demux_ffmpeg.c:584
+#: lib/demux_ffmpeg.c:591
 msgid "av_open_input_stream failed"
 msgstr "av_open_input_stream fehlgeschlagen"
 
-#: lib/demux_ffmpeg.c:594
+#: lib/demux_ffmpeg.c:601
 msgid "av_find_stream_info failed"
 msgstr "av_find_stream_info fehlgeschlagen"
 
@@ -1427,115 +1437,125 @@ msgstr "Konnte Spieldauern der Programme nicht ermitteln, Suchen deaktiviert"
 msgid "Next PCR wrap in %s"
 msgstr "Nächster Zeitrückprung in %s"
 
-#: lib/in_dvb_linux.c:248
+#: lib/in_dvb_linux.c:255
 #, c-format
 msgid "Setting channel failed: %s"
 msgstr "Kanal einstellen fehlgeschlagen: %s"
 
-#: lib/in_dvb_linux.c:265
+#: lib/in_dvb_linux.c:272
 msgid "Setting channel failed: Event queue overflow"
 msgstr "Kanal einstellen fehlgeschlagen: Ereigniswarteschlange übergelaufen"
 
-#: lib/in_dvb_linux.c:271
+#: lib/in_dvb_linux.c:278
 msgid "Setting frequency failed"
 msgstr "Einstellen der Frequenz fehlgeschlagen"
 
-#: lib/in_dvb_linux.c:292
+#: lib/in_dvb_linux.c:299
 #, c-format
 msgid "Reading status failed: %s"
 msgstr "Lesen des Status fehlgeschlagen: %s"
 
-#: lib/in_dvb_linux.c:300
+#: lib/in_dvb_linux.c:307
 msgid "Waiting for lock"
 msgstr "Warte auf Frequenzeinstellung"
 
-#: lib/in_dvb_linux.c:305
+#: lib/in_dvb_linux.c:312
 msgid "Locking timed out"
 msgstr "Wartezeit für Frequenzeinstellung überschritten"
 
-#: lib/in_dvb_linux.c:309
+#: lib/in_dvb_linux.c:316
 msgid "Frontend locked successfully"
 msgstr "Frequenz erfolgreich eingestellt"
 
-#: lib/in_dvb_linux.c:347
+#: lib/in_dvb_linux.c:354
 #, c-format
 msgid "Setting PAT filter failed: %s"
 msgstr "PAT Filter setzen fehlgeschlagen: %s"
 
-#: lib/in_dvb_linux.c:356
+#: lib/in_dvb_linux.c:363
 msgid "Parsing PAT failed"
 msgstr "Parsen der PAT fehlgeschlagen"
 
-#: lib/in_dvb_linux.c:381
+#: lib/in_dvb_linux.c:388
 #, c-format
 msgid "Cannot find service ID %d in PAT (recreate channels.conf)"
 msgstr ""
 "Kann Service ID %d in der PAT nicht finden (Neuerzeugen der channels.conf "
 "könnte hier helfen)"
 
-#: lib/in_dvb_linux.c:396
+#: lib/in_dvb_linux.c:403
 #, c-format
 msgid "Setting PMT filter failed: %s"
 msgstr "Setzen des PMT Filters fehlgeschlagen: %s"
 
-#: lib/in_dvb_linux.c:406
+#: lib/in_dvb_linux.c:413
 msgid "Parsing PMT failed"
 msgstr "Parsen der PMT fehlgeschlagen"
 
-#: lib/in_dvb_linux.c:472
+#: lib/in_dvb_linux.c:479
 #, c-format
 msgid "Channel cache %s cannot be opened: %s"
 msgstr "Kanalcache %s kann nicht geöffnet werden: %s"
 
-#: lib/in_dvb_linux.c:511
+#: lib/in_dvb_linux.c:518
 msgid "Channel cache older than channels.conf"
 msgstr "Kanalcache ist älter alt channels.conf"
 
-#: lib/in_dvb_linux.c:742
+#: lib/in_dvb_linux.c:749
 #, c-format
 msgid "Cannot open frontend device %s: %s"
 msgstr "Kann Frontendgerät %s nicht öffnen: %s"
 
-#: lib/in_dvb_linux.c:749
+#: lib/in_dvb_linux.c:756
 msgid "Cannot get frontend info"
 msgstr "Kann kein Frontendinfo bekommen"
 
-#: lib/in_dvb_linux.c:758
+#: lib/in_dvb_linux.c:765
 msgid "Cannot get frontend status"
 msgstr "Kann keinen Frontendstaus bekommen"
 
-#: lib/in_dvb_linux.c:774
+#: lib/in_dvb_linux.c:781
 msgid "Found no channels.conf file"
 msgstr "Keine channels.conf Datei gefunden"
 
-#: lib/in_dvb_linux.c:786
+#: lib/in_dvb_linux.c:793
 msgid "Regenerating channel cache"
 msgstr "Erzeuge Kanalcache neu"
 
-#: lib/in_dvb_linux.c:800
+#: lib/in_dvb_linux.c:807
 msgid "Using channel cache"
 msgstr "Benutze Kanalcache"
 
-#: lib/in_dvb_linux.c:866 lib/in_dvb_linux.c:887
+#: lib/in_dvb_linux.c:1176 lib/in_dvb_linux.c:1197
 msgid "Reading timed out (check cable connections)"
 msgstr "Zeitüberschreitung beim Lesen (Antenne eingesteckt?)"
 
-#: lib/in_dvb_linux.c:878
+#: lib/in_dvb_linux.c:1188
 #, c-format
 msgid "poll failed: %s"
 msgstr "poll fehlgeschlagen: %s"
 
-#: lib/in_dvb_linux.c:896
+#: lib/in_dvb_linux.c:1206
 #, c-format
 msgid "read failed: %s"
 msgstr "Lesen fehlgeschlagen: %s"
 
-#: lib/in_dvb_linux.c:918
-#, c-format
-msgid "Setting filter failed: %s"
+#: lib/in_dvb_linux.c:1231
+#, fuzzy, c-format
+msgid "Setting pes filter failed: %s"
 msgstr "Filter setzen fehlgeschlagen: %s"
 
-#: lib/in_dvb_linux.c:1065
+#: lib/in_dvb_linux.c:1251
+#, fuzzy, c-format
+msgid "Setting section filter failed: %s"
+msgstr "Filter setzen fehlgeschlagen: %s"
+
+#: lib/in_dvb_linux.c:1404
+#, fuzzy, c-format
+msgid "Setting section filter buffer failed: %s"
+msgstr "Filter setzen fehlgeschlagen: %s"
+
+#: lib/in_dvb_linux.c:1414
 msgid "Filters initialized successfully"
 msgstr "Filter erfolgreich initialisiert"
 
@@ -1579,21 +1599,21 @@ msgstr "Unbekanntes Atom [%c%c%c%c] auf oberster Ebene"
 msgid "Unknown atom inside [%c%c%c%c] (fourcc: [%c%c%c%c], size: %s)"
 msgstr "Unbekanntes Atom innerhalb [%c%c%c%c] (fourcc: [%c%c%c%c], Größe: %s)"
 
-#: lib/audio_pcm.c:753 lib/audio_pcm.c:835 lib/audio_pcm.c:865
+#: lib/audio_pcm.c:754 lib/audio_pcm.c:836 lib/audio_pcm.c:866
 #, c-format
 msgid "%d audio bits not supported."
 msgstr "%d Audio Bits werden nicht unterstützt"
 
-#: lib/audio_pcm.c:846
+#: lib/audio_pcm.c:847
 msgid "Could not get initial packet"
 msgstr "Konnte kein anfängliches Paket bekommen"
 
-#: lib/audio_pcm.c:974
+#: lib/audio_pcm.c:975
 #, c-format
 msgid "extradata too small (%d < %ld)"
 msgstr "Extradaten zu klein (%d < %ld)"
 
-#: lib/audio_pcm.c:1073
+#: lib/audio_pcm.c:1074
 msgid "Unknown fourcc"
 msgstr "Unkekannte Kennung"
 
@@ -1612,6 +1632,33 @@ msgstr "raSetFlavor fehlgeschlagen"
 #: lib/audio_real.c:479
 msgid "raDecode failed"
 msgstr "raDecode fehlgeschlagen"
+
+#: lib/demux_r3d.c:275
+msgid "Wrong index tag (broken file)"
+msgstr ""
+
+#: lib/demux_r3d.c:281
+#, fuzzy
+msgid "Index chunk too small"
+msgstr "ext size zu klein"
+
+#: lib/demux_r3d.c:290
+msgid "Unexpected EOF in index"
+msgstr ""
+
+#: lib/demux_r3d.c:380
+#, fuzzy
+msgid "R3D cannot be read from nonseekable sources"
+msgstr "Kann nur von suchbaren Quellen spielen"
+
+#: lib/demux_r3d.c:392
+#, fuzzy
+msgid "Got no header"
+msgstr "Kein ETag empfangen"
+
+#: lib/demux_r3d.c:407
+msgid "Got no footer"
+msgstr ""
 
 #: lib/in_mms.c:82
 msgid "Initializing asf demuxer failed"

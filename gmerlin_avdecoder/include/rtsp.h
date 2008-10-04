@@ -30,13 +30,14 @@ typedef struct bgav_rtsp_s bgav_rtsp_t;
 bgav_rtsp_t * bgav_rtsp_create(const bgav_options_t * opt)
   __attribute__ ((visibility("default")));
 
-void bgav_rtsp_set_user_agent(bgav_rtsp_t * r, const char * user_agent)
-  __attribute__ ((visibility("default")));
 
 /* Open the URL and send the OPTIONS request */
 
 int bgav_rtsp_open(bgav_rtsp_t *, const char * url, int * got_redirected)
   __attribute__ ((visibility("default")));
+
+int bgav_rtsp_reopen(bgav_rtsp_t * rtsp);
+
 
 void bgav_rtsp_close(bgav_rtsp_t *);
 

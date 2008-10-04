@@ -482,6 +482,7 @@ r_m3u.c \
 r_pls.c \
 r_ref.c \
 r_smil.c \
+rtp.c \
 rtsp.c \
 sampleseek.c \
 sdp.c \
@@ -496,6 +497,7 @@ timecode.c \
 track.c \
 tracktable.c \
 translation.c \
+udp.c \
 utils.c \
 video.c \
 video_gavl.c \

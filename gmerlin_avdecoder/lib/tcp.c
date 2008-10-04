@@ -43,21 +43,6 @@
 #define MSG_NOSIGNAL 0
 #endif
 
-#if 0
-typedef struct 
-  {
-  int addr_type; /* AF_INET or AF_INET6 */
-                                                                               
-  union
-    {
-    struct in_addr  ipv4_addr;
-    struct in6_addr ipv6_addr;
-    } addr;
-                                                                               
-  int port;
-  } host_address_t;
-#endif
-
 /* Utility functions */
 
 static int create_socket(int domain, int type, int protocol)
@@ -78,78 +63,6 @@ static int create_socket(int domain, int type, int protocol)
 #endif
   return ret;
   }
-
-
-#if 0
-
-static int hostbyname(const bgav_options_t * opt,
-                      host_address_t * a, const char * hostname)
-  {
-  struct hostent   h_ent;
-  struct hostent * h_ent_p;
-  int gethostbyname_buffer_size;
-                                                                               
-  char * gethostbyname_buffer = (char*)0;
-  int result, herr;
-  int ret = 0;
-
-  if(inet_aton(hostname, &(a->addr.ipv4_addr)))
-    {
-    a->addr_type = AF_INET;
-    return 1;
-    }
-  
-  gethostbyname_buffer_size = 1024;
-  gethostbyname_buffer = malloc(gethostbyname_buffer_size);
-  
-  while((result = gethostbyname_r(hostname,
-                                  &h_ent,
-                                  gethostbyname_buffer,
-                                  gethostbyname_buffer_size,
-                                  &h_ent_p, &herr)) == ERANGE)
-    {
-    gethostbyname_buffer_size *= 2;
-    gethostbyname_buffer = realloc(gethostbyname_buffer,
-                                  gethostbyname_buffer_size);
-    }
-                                                                               
-  /* Fill in return value           */
-                                                                               
-  if(result || (h_ent_p == NULL))
-    {
-    bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-             "Could not resolve address %s", hostname);
-    goto fail;
-    }
-  if(h_ent_p->h_addrtype == AF_INET)
-    {
-    a->addr_type = AF_INET;
-    memcpy(&(a->addr.ipv4_addr),
-           h_ent_p->h_addr, sizeof(a->addr.ipv4_addr));
-    }
-  else if(h_ent_p->h_addrtype == AF_INET6)
-    {
-    a->addr_type = AF_INET6;
-    memcpy(&(a->addr.ipv6_addr),
-           h_ent_p->h_addr, sizeof(a->addr.ipv6_addr));
-    }
-  else
-    {
-    bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-             "Could not resolve address %s: No known address space",
-             hostname);
-    goto fail;
-    }
-  ret = 1;
-
-  fail:
-                                                                               
-  if(gethostbyname_buffer)
-    free(gethostbyname_buffer);
-  return ret;
-  }
-
-#endif
 
 static void address_set_port(struct addrinfo * info, int port)
   {
@@ -178,9 +91,8 @@ static void address_set_port(struct addrinfo * info, int port)
     }
   }
 
-
-static struct addrinfo * hostbyname(const bgav_options_t * opt,
-                                    const char * hostname, int port, int socktype)
+struct addrinfo * bgav_hostbyname(const bgav_options_t * opt,
+                                  const char * hostname, int port, int socktype)
   {
   int err;
   struct in_addr ipv4_addr;
@@ -195,8 +107,8 @@ static struct addrinfo * hostbyname(const bgav_options_t * opt,
   hints.ai_flags    = 0;
 
   /* prevent DNS lookup for numeric IP addresses */
-
-  if(inet_aton(hostname, &(ipv4_addr)))
+  
+  if(hostname && inet_aton(hostname, &(ipv4_addr)))
     hints.ai_flags |= AI_NUMERICHOST;
 
   if((err = getaddrinfo(hostname, (char*)0 /* service */,
@@ -276,7 +188,7 @@ int bgav_tcp_connect(const bgav_options_t * opt,
   struct addrinfo * addr;
   int ret;
   
-  addr = hostbyname(opt, host, port, SOCK_STREAM);
+  addr = bgav_hostbyname(opt, host, port, SOCK_STREAM);
   if(!addr)
     return -1;
   ret = socket_connect_inet(opt, addr);
