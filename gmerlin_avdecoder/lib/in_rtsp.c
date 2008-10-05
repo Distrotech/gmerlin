@@ -32,8 +32,8 @@
 
 #define LOG_DOMAIN "in_rtsp"
 
-// #define USER_AGENT "RealMedia Player Version 6.0.9.1235 (linux-2.0-libc6-i386-gcc2.95)"
-#define USER_AGENT "QuickTime/7.4.1 (qtver=7.4.1;os=Windows NT 5.1Service Pack 2)"
+#define USER_AGENT "RealMedia Player Version 6.0.9.1235 (linux-2.0-libc6-i386-gcc2.95)"
+//#define USER_AGENT "QuickTime/7.4.1 (qtver=7.4.1;os=Windows NT 5.1Service Pack 2)"
 /* We support multiple server types */
 
 #define SERVER_TYPE_GENERIC   0
@@ -355,16 +355,6 @@ static int open_and_describe(bgav_input_context_t * ctx,
       bgav_rtsp_schedule_field(priv->r,
                                "Require: com.real.retain-entity-for-setup");
       break;
-#if 0
-    case SERVER_TYPE_QTSS:
-      bgav_rtsp_schedule_field(priv->r,
-                               "Accept: application/sdp");
-      bgav_rtsp_schedule_field(priv->r,
-                               "Accept-Language: en");
-      bgav_rtsp_schedule_field(priv->r,
-                               "User-Agent: QTS (qtver=6.0;os=Windows NT 5.0Service Pack 3)");
-      break;
-#endif
     default:
       bgav_rtsp_schedule_field(priv->r,
                                "Accept: application/sdp");
@@ -484,21 +474,16 @@ static int init_stream_generic(bgav_input_context_t * ctx, bgav_stream_t * s, in
   if(!sp || !sp->control_url)
     return 0;
   
-  field = bgav_sprintf("Transport: RTP/AVP/UDP;unicast;client_port=%d-%d",
+  field = bgav_sprintf("Transport: RTP/AVP;unicast;client_port=%d-%d",
                        *port, (*port)+1);
-
-  bgav_rtsp_schedule_field(priv->r, "x-retransmit: our-retransmit");
-  bgav_rtsp_schedule_field(priv->r, "x-dynamic-rate: 1");
-  bgav_rtsp_schedule_field(priv->r, "x-transport-options: late-tolerance=2.900000");
-    
-  bgav_rtsp_schedule_field(priv->r,
-                           "User-Agent: "USER_AGENT);
-  bgav_rtsp_schedule_field(priv->r,
-                           "Accept-Language: en-US");
   
   /* Send setup request */
   bgav_rtsp_schedule_field(priv->r, field);free(field);
   //  bgav_rtsp_schedule_field(priv->r, "Range: npt=0-");
+  bgav_rtsp_schedule_field(priv->r,
+                           "User-Agent: "USER_AGENT);
+  //  bgav_rtsp_schedule_field(priv->r,
+  //                           "Accept-Language: en-US");
 
   if(!bgav_rtsp_request_setup(priv->r,sp->control_url))
     return 0;
@@ -524,14 +509,100 @@ static int init_stream_generic(bgav_input_context_t * ctx, bgav_stream_t * s, in
   return 1;
   }
 
+/*
+ * Handle things like
+ * url=rtsp://live.polito.it/accademia/2007/accademia-2007-02-28.mov/TrackID=0;seq=37253;rtptime=2299148613,url=rtsp://live.polito.it/accademia/2007/accademia-2007-02-28.mov/TrackID=1;seq=18653;rtptime=4265967293
+*/
+
+static const char * get_rtpinfo_var(const char * str, const char * name,
+                                    int * len)
+  {
+  const char * pos1, *pos2;
+
+  pos1 = strstr(str, name);
+  if(!pos1)
+    return (char*)0;
+  pos2 = strchr(pos1, ';');
+  if(!pos2)
+    pos2 = pos1 + strlen(pos1);
+  pos1 += strlen(name);
+  *len = pos2 - pos1;
+  return pos1;
+  }
+
+static int handle_rtpinfo(bgav_input_context_t * ctx,
+                          const char * rtpinfo)
+  {
+  char ** streams;
+  int i, j, len;
+  rtsp_priv_t * priv;
+  bgav_stream_t * s;
+  rtp_stream_priv_t * sp;
+  const char * var;
+  int var_len;
+  
+  streams = bgav_stringbreak(rtpinfo, ',');
+
+  i = 0;
+  while(streams[i])
+    {
+    var = get_rtpinfo_var(streams[i], "url=", &var_len);
+    if(!var)
+      return 0;
+    s = (bgav_stream_t*)0;
+    /* Search for the bgav stream */
+    for(j = 0; j < ctx->demuxer->tt->cur->num_video_streams; j++)
+      {
+      sp = ctx->demuxer->tt->cur->video_streams[j].priv;
+      if(!strncmp(sp->control_url, var, var_len))
+        {
+        s = &ctx->demuxer->tt->cur->video_streams[j];
+        break;
+        }
+      }
+    if(!s)
+      {
+      for(j = 0; j < ctx->demuxer->tt->cur->num_audio_streams; j++)
+        {
+        sp = ctx->demuxer->tt->cur->audio_streams[j].priv;
+        if(!strncmp(sp->control_url, var, var_len))
+          {
+          s = &ctx->demuxer->tt->cur->audio_streams[j];
+          break;
+          }
+        }
+      }
+    if(s && sp)
+      {
+      var = get_rtpinfo_var(streams[i], "rtptime=", &var_len);
+      if(!var)
+        return 0;
+      
+      sp->first_rtptime = strtoul(var, (char**)0, 10);
+      
+      var = get_rtpinfo_var(streams[i], "seq=", &var_len);
+      if(!var)
+        return 0;
+      
+      sp->first_seq = strtoul(var, (char**)0, 10);
+      }
+    
+    i++;
+    }
+  bgav_stringbreak_free(streams);
+  return 1;
+  }
+
 static int init_generic(bgav_input_context_t * ctx, bgav_sdp_t * sdp)
   {
   rtsp_priv_t * priv;
   bgav_stream_t * s;
   int i;
-  int port = 5000; /* TODO: Base port */
+  //  int port = 5001; /* TODO: Base port */
+  int port = 32980; /* TODO: Base port */
   char * session_id = (char *)0;
   char * field;
+  const char * var;
   priv = ctx->priv;
 
   ctx->demuxer = bgav_demuxer_create(ctx->opt, &bgav_demuxer_rtp, ctx);
@@ -539,15 +610,15 @@ static int init_generic(bgav_input_context_t * ctx, bgav_sdp_t * sdp)
     return 0;
 
   /* Transport negotiation */
-  for(i = 0; i < ctx->demuxer->tt->cur->num_audio_streams; i++)
-    {
-    s = &ctx->demuxer->tt->cur->audio_streams[i];
-    if(!init_stream_generic(ctx, s, &port, &session_id))
-      return 0;
-    }
   for(i = 0; i < ctx->demuxer->tt->cur->num_video_streams; i++)
     {
     s = &ctx->demuxer->tt->cur->video_streams[i];
+    if(!init_stream_generic(ctx, s, &port, &session_id))
+      return 0;
+    }
+  for(i = 0; i < ctx->demuxer->tt->cur->num_audio_streams; i++)
+    {
+    s = &ctx->demuxer->tt->cur->audio_streams[i];
     if(!init_stream_generic(ctx, s, &port, &session_id))
       return 0;
     }
@@ -561,6 +632,16 @@ static int init_generic(bgav_input_context_t * ctx, bgav_sdp_t * sdp)
   bgav_rtsp_schedule_field(priv->r, "Range: npt=0-");
   if(!bgav_rtsp_request_play(priv->r))
     return 0;
+  
+  var = bgav_rtsp_get_answer(priv->r, "RTP-Info");
+  if(!var)
+    {
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Got no RTP-Info from server");
+    return 0;
+    }
+  
+  handle_rtpinfo(ctx, var);
   
   return 1;
   }
@@ -633,6 +714,7 @@ static int open_rtsp(bgav_input_context_t * ctx, const char * url, char ** r)
     case SERVER_TYPE_REAL:
       if(!init_real(ctx, sdp, session_id))
         goto fail;
+      ctx->do_buffer = 1;
       break;
     case SERVER_TYPE_GENERIC:
       if(!init_generic(ctx, sdp))
@@ -643,7 +725,6 @@ static int open_rtsp(bgav_input_context_t * ctx, const char * url, char ** r)
   if(session_id)
     free(session_id);
   
-  ctx->do_buffer = 1;
   
   return 1;
 

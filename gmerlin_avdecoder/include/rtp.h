@@ -23,6 +23,8 @@
 
 extern bgav_demuxer_t bgav_demuxer_rtp;
 
+#define RTP_MAX_PACKET_LENGTH 1500
+
 int bgav_demuxer_rtp_open(bgav_demuxer_context_t * ctx,
                           bgav_sdp_t * sdp);
   
@@ -39,15 +41,39 @@ typedef struct
   uint32_t timestamp;
   uint32_t ssrc;
   uint32_t csrc_list[15];
-  
   } rtp_header_t;
+
+typedef struct
+  {
+  rtp_header_t h;
+  uint8_t buffer[RTP_MAX_PACKET_LENGTH];
+  uint8_t * buf;
+  int len;
+  int valid;
+  } rtp_packet_t;
+
+typedef struct bgav_rtp_packet_buffer_s bgav_rtp_packet_buffer_t;
+
+bgav_rtp_packet_buffer_t * rtp_packet_buffer_create();
+void rtp_packet_buffer_destroy(bgav_rtp_packet_buffer_t *);
+
+rtp_packet_t *
+rtp_packet_buffer_get_write(bgav_rtp_packet_buffer_t *);
+
+void rtp_packet_buffer_done_write(bgav_rtp_packet_buffer_t *, rtp_packet_t *);
+
+rtp_packet_t *
+rtp_packet_buffer_get_read(bgav_rtp_packet_buffer_t *);
+
+void rtp_packet_buffer_done_read(bgav_rtp_packet_buffer_t *, rtp_packet_t *);
 
 typedef struct
   {
   char * control_url;
   int rtp_fd;
   int rtcp_fd;
-  
+  int64_t first_rtptime;
+  int first_seq;
   char ** fmtp;
   int (*process)(bgav_stream_t * s, rtp_header_t * h, uint8_t * data, int len);
 

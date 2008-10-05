@@ -98,7 +98,7 @@ static int rtsp_send_request(bgav_rtsp_t * rtsp,
 #endif
   
   if(!bgav_http_header_send(rtsp->opt, rtsp->request_fields, rtsp->fd) ||
-     !bgav_tcp_send(rtsp->opt, rtsp->fd, (uint8_t*)"\r\n\r\n", 4))
+     !bgav_tcp_send(rtsp->opt, rtsp->fd, (uint8_t*)"\r\n", 2))
     goto fail;
   
   bgav_http_header_reset(rtsp->request_fields);

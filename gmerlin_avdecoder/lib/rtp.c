@@ -196,14 +196,6 @@ typedef struct
   int (*init)(bgav_stream_t * s);
   } static_payload_t;
 
-typedef struct
-  {
-  struct pollfd * pollfds;
-  int num_pollfds;
-
-  bgav_input_context_t * input_mem;
-  } rtp_priv_t;
-
 static const static_payload_t static_payloads[] =
   {
     // 0          PCMU          A              8000          1     [RFC3551]
@@ -267,6 +259,14 @@ static const dynamic_payload_t dynamic_audio_payloads[] =
     { },
   };
 
+typedef struct
+  {
+  struct pollfd * pollfds;
+  int num_pollfds;
+
+  bgav_input_context_t * input_mem;
+  } rtp_priv_t;
+
 static void check_dynamic(bgav_stream_t * s, const dynamic_payload_t * dynamic_payloads,
                           const char * rtpmap)
   {
@@ -292,7 +292,6 @@ static void check_dynamic(bgav_stream_t * s, const dynamic_payload_t * dynamic_p
     i++;
     }
   }
-
 
 static int find_codec(bgav_stream_t * s, bgav_sdp_media_desc_t * md, int format_index)
   {
@@ -359,6 +358,8 @@ static int find_codec(bgav_stream_t * s, bgav_sdp_media_desc_t * md, int format_
         {
         s->fourcc = static_payloads[i].fourcc;
         s->timescale = static_payloads[i].timescale;
+        if(static_payloads[i].init)
+          static_payloads[i].init(s);
         return 1;
         }
       i++;
@@ -423,21 +424,10 @@ init_stream(bgav_demuxer_context_t * ctx,
   return 1;
   }
 
-static int bgav_rtp_read_packet(bgav_stream_t * s, bgav_packet_t * p)
-  {
-  return 0;
-
-  }
-
-static void bgav_rtp_cleanup(bgav_stream_t * s)
-  {
-  
-  }
-
-#define RTP_MAX_PACKET_LENGTH 1500
 
 static int next_packet_rtp(bgav_demuxer_context_t * ctx)
   {
+  int ret = 0;
   uint8_t buf[RTP_MAX_PACKET_LENGTH];
   rtp_priv_t * priv;
   int i, index;
@@ -445,7 +435,7 @@ static int next_packet_rtp(bgav_demuxer_context_t * ctx)
   rtp_stream_priv_t * sp;
   rtp_header_t rh;
   rtcp_rr_t rr;
-
+  bgav_stream_t * s;
   priv = (rtp_priv_t *)ctx->priv;
   
   if(!priv->pollfds)
@@ -483,20 +473,28 @@ static int next_packet_rtp(bgav_demuxer_context_t * ctx)
     
     for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
       {
+      s = &ctx->tt->cur->audio_streams[i];
+      sp = s->priv;
       if(priv->pollfds[index].revents & POLLIN)
         {
         /* Read Audio RTP Data */
         bytes_read = bgav_udp_read(priv->pollfds[index].fd,
                                    buf, RTP_MAX_PACKET_LENGTH);
-        fprintf(stderr, "Got Audio RTP Data: %d bytes\n", bytes_read);
+        // fprintf(stderr, "Got Audio RTP Data: %d bytes\n", bytes_read);
 
         bgav_input_reopen_memory(priv->input_mem, buf, bytes_read);
         
         if(rtp_header_read(priv->input_mem, &rh))
           {
+          // fprintf(stderr, "Audio PTS 1: %u\n", rh.timestamp);
+          rh.timestamp -= sp->first_rtptime;
+          // fprintf(stderr, "Audio PTS 2: %u\n", rh.timestamp);
+          if(sp->process)
+            sp->process(s, &rh,
+                        buf + priv->input_mem->position,
+                        bytes_read - priv->input_mem->position);
           //          rtp_header_dump(&rh);
           }
-        
         }
       index++;
       if(priv->pollfds[index].revents & POLLIN)
@@ -505,14 +503,14 @@ static int next_packet_rtp(bgav_demuxer_context_t * ctx)
         bytes_read = bgav_udp_read(priv->pollfds[index].fd,
                                    buf, RTP_MAX_PACKET_LENGTH);
         
-        fprintf(stderr, "Got Audio RTCP Data: %d bytes\n", bytes_read);
+        // fprintf(stderr, "Got Audio RTCP Data: %d bytes\n", bytes_read);
 
         if(buf[1] == 200)
           {
           bgav_input_reopen_memory(priv->input_mem, buf, bytes_read);
           if(rtcp_rr_read(priv->input_mem, &rr))
             {
-            rtcp_rr_dump(&rr);
+            //            rtcp_rr_dump(&rr);
             }
           }
         }
@@ -520,19 +518,27 @@ static int next_packet_rtp(bgav_demuxer_context_t * ctx)
       }
     for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
       {
+      s = &ctx->tt->cur->video_streams[i];
+      sp = s->priv;
       if(priv->pollfds[index].revents & POLLIN)
         {
         /* Read Video RTP Data */
         bytes_read = bgav_udp_read(priv->pollfds[index].fd,
                                    buf, RTP_MAX_PACKET_LENGTH);
-        fprintf(stderr, "Got Video RTP Data: %d bytes\n", bytes_read);
+        // fprintf(stderr, "Got Video RTP Data: %d bytes\n", bytes_read);
         bgav_input_reopen_memory(priv->input_mem, buf, bytes_read);
 
         if(rtp_header_read(priv->input_mem, &rh))
           {
+          // fprintf(stderr, "Video PTS 1: %u\n", rh.timestamp);
+          rh.timestamp -= sp->first_rtptime;
+          // fprintf(stderr, "Video PTS 2: %u\n", rh.timestamp);
+          if(sp->process)
+            sp->process(s, &rh,
+                        buf + priv->input_mem->position,
+                        bytes_read - priv->input_mem->position);
           //          rtp_header_dump(&rh);
           }
-        
         }
       index++;
       if(priv->pollfds[index].revents & POLLIN)
@@ -540,14 +546,15 @@ static int next_packet_rtp(bgav_demuxer_context_t * ctx)
         /* Read Video RTCP Data */
         bytes_read = bgav_udp_read(priv->pollfds[index].fd,
                                    buf, RTP_MAX_PACKET_LENGTH);
-        fprintf(stderr, "Got Video RTCP Data: %d bytes\n", bytes_read);
+        // fprintf(stderr, "Got Video RTCP Data: %d bytes\n", bytes_read);
         bgav_input_reopen_memory(priv->input_mem, buf, bytes_read);
         
         }
       index++;
       }
+    ret = 1;
     }
-  return 0;
+  return ret;
   }
 
 static void close_rtp(bgav_demuxer_context_t * ctx)
@@ -660,8 +667,11 @@ static char * find_fmtp(char ** fmtp, char * key)
   return (char*)0;
   }
 
-static int process_mpeg4_generic_audio(bgav_stream_t * s, rtp_header_t * h, uint8_t * data, int len)
+static int
+process_mpeg4_generic_audio(bgav_stream_t * s, rtp_header_t * h,
+                            uint8_t * data, int len)
   {
+  
   return 0;
   }
 
@@ -709,21 +719,166 @@ static int init_mpeg4_generic_audio(bgav_stream_t * s)
   return 1;
   }
 
+static void send_nal(bgav_stream_t * s, uint8_t * nal, int len,
+                     int64_t time)
+  {
+  uint8_t start_sequence[]= { 0, 0, 1 };
+  if(s->packet && (s->packet->pts != time))
+    {
+    bgav_packet_done_write(s->packet);
+    s->packet = (bgav_packet_t*)0;
+    }
+  
+  if(!s->packet)
+    {
+    s->packet = bgav_stream_get_packet_write(s);
+    s->packet->data_size = 0;
+    s->packet->pts = time;
+    }
+  
+  bgav_packet_alloc(s->packet, s->packet->data_size + sizeof(start_sequence) + len);
+  memcpy(s->packet->data + s->packet->data_size, start_sequence, sizeof(start_sequence));
+  s->packet->data_size += sizeof(start_sequence);
+
+  memcpy(s->packet->data + s->packet->data_size, nal, len);
+  s->packet->data_size += len;
+  
+  }
+
+static void append_nal(bgav_stream_t * s, uint8_t * nal, int len)
+  {
+  if(!s->packet)
+    return;
+  bgav_packet_alloc(s->packet, s->packet->data_size + len);
+  memcpy(s->packet->data + s->packet->data_size, nal, len);
+  s->packet->data_size += len;
+  }
+
+
 static int process_h264(bgav_stream_t * s, rtp_header_t * h, uint8_t * data, int len)
   {
-  return 0;
+  uint8_t global_nal = (*data & 0x1f);
+
+  if(global_nal >= 1 && global_nal <= 23)
+    {
+    /* One packet one nal */
+    send_nal(s, data, len, h->timestamp);
+    return 1;
+    }
+
+  switch(global_nal)
+    {
+    case 24: // STAP-A (one packet, multiple nals)
+      //      fprintf(stderr, "STAP-A (one packet, multiple nals)\n");
+      data++;
+      len--;
+
+      while(len > 2)
+        {
+        uint16_t nal_size;
+        nal_size = BGAV_PTR_2_16BE(data);data+=2;
+        send_nal(s, data, nal_size, h->timestamp);
+        len -= (2 + nal_size);
+        }
+      break;
+    case 28: // FU-A (fragmented nal)
+      {
+      uint8_t nal_header;
+      //      fprintf(stderr, "FU-A (fragmented nal)\n");
+      
+      nal_header = *data & 0xe0;
+      data++;
+      len--;                  // skip the fu_indicator
+      if(*data >> 7) /* Start bit set */
+        {
+        nal_header |= (*data & 0x1f);
+        send_nal(s, &nal_header, 1, h->timestamp);
+        }
+      data++;
+      len--;                  // skip the fu_indicator
+      append_nal(s, data, len);
+      }
+      break;
+    default:
+      fprintf(stderr, "Unsupported NAL type: %d\n",
+              global_nal);
+      break;
+    }
+  
+  return 1;
   }
 
 static int init_h264(bgav_stream_t * s)
   {
-  return 0;
+  rtp_stream_priv_t * sp;
+  char * value;
+  uint8_t start_sequence[]= { 0, 0, 1 };
+  sp = s->priv;
+
+  /* Get extradata from the sprop-parameter-sets */
+  value = find_fmtp(sp->fmtp, "sprop-parameter-sets");
+  if(!value)
+    return 0;
+
+  while(*value)
+    {
+    char base64packet[1024];
+    uint8_t decoded_packet[1024];
+    uint32_t packet_size;
+    char *dst = base64packet;
+    int len = 0;
+    
+    while (*value && *value != ','
+           && (dst - base64packet) < sizeof(base64packet) - 1)
+      {
+      *dst++ = *value++;
+      len++;
+      }
+    *dst++ = '\0';
+    
+    if (*value == ',')
+      value++;
+
+    packet_size=bgav_base64decode(base64packet,
+                                  len,
+                                  decoded_packet, sizeof(decoded_packet));
+    if(packet_size)
+      {
+      s->ext_data = realloc(s->ext_data,
+                            s->ext_size + sizeof(start_sequence) + packet_size);
+      memcpy(s->ext_data + s->ext_size, start_sequence, sizeof(start_sequence));
+      s->ext_size += sizeof(start_sequence);
+      memcpy(s->ext_data + s->ext_size, decoded_packet, packet_size);
+
+      s->ext_size += packet_size;
+      
+      }
+    }
+  // fprintf(stderr, "Got H.264 extradata %d bytes\n", s->ext_size);
+  // bgav_hexdump(s->ext_data, s->ext_size, 16);
+
+  /* Get packetization-mode */
+  s->data.video.frametime_mode = BGAV_FRAMETIME_PTS;
+  s->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
+  sp->process = process_h264;
+  return 1;
   }
 
 static int process_mpa(bgav_stream_t * s, rtp_header_t * h, uint8_t * data, int len)
   {
   rtp_stream_priv_t * sp;
+  bgav_packet_t * p;
   sp = s->priv;
   
+  p = bgav_stream_get_packet_write(s);
+  bgav_packet_alloc(p, len - 4);
+
+  p->keyframe = 1;
+  p->pts      = h->timestamp;
+  memcpy(p->data, data + 4, len - 4);
+  p->data_size = len - 4;
+  bgav_packet_done_write(p);
+  return 1;
   }
 
 static int init_mpa(bgav_stream_t * s)
@@ -731,5 +886,5 @@ static int init_mpa(bgav_stream_t * s)
   rtp_stream_priv_t * sp;
   sp = s->priv;
   sp->process = process_mpa;
+  return 1;
   }
-

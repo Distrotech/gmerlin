@@ -341,6 +341,7 @@ audio_pcm.c \
 asmrp.c \
 base64.c \
 bgav.c \
+bitstream.c \
 bytebuffer.c \
 chapterlist.c \
 charset.c \
@@ -483,6 +484,7 @@ r_pls.c \
 r_ref.c \
 r_smil.c \
 rtp.c \
+rtpbuffer.c \
 rtsp.c \
 sampleseek.c \
 sdp.c \
