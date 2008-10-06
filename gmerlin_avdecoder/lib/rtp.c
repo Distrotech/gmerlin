@@ -29,6 +29,9 @@
 // #include <inttypes.h>
 #include <rtp.h>
 
+#define FOURCC_UNKNOWN BGAV_MK_FOURCC('?','?','?','?')
+#define LOG_DOMAIN "rtp"
+
 /* Stream specific init and parse functions are at the end of the file */
 
 /* mpeg4-generic */
@@ -286,7 +289,12 @@ static void check_dynamic(bgav_stream_t * s, const dynamic_payload_t * dynamic_p
       {
       s->fourcc = dynamic_payloads[i].fourcc;
       if(dynamic_payloads[i].init)
-        dynamic_payloads[i].init(s);
+        if(!dynamic_payloads[i].init(s))
+          {
+          /* Make the stream undecodable */
+          s->fourcc = FOURCC_UNKNOWN;
+          return;
+          }
       break;
       }
     i++;
@@ -359,7 +367,10 @@ static int find_codec(bgav_stream_t * s, bgav_sdp_media_desc_t * md, int format_
         s->fourcc = static_payloads[i].fourcc;
         s->timescale = static_payloads[i].timescale;
         if(static_payloads[i].init)
-          static_payloads[i].init(s);
+          {
+          if(!static_payloads[i].init(s))
+            s->fourcc = FOURCC_UNKNOWN;
+          }
         return 1;
         }
       i++;
@@ -380,6 +391,8 @@ init_stream(bgav_demuxer_context_t * ctx,
 
   sp = calloc(1, sizeof(*sp));
   s->priv = sp;
+
+  sp->buf = bgav_rtp_packet_buffer_create(ctx->opt);
   
   if(!find_codec(s, md, format_index))
     return 0;
@@ -424,6 +437,41 @@ init_stream(bgav_demuxer_context_t * ctx,
   return 1;
   }
 
+static int read_rtp_packet(rtp_priv_t * priv, bgav_stream_t * s)
+  {
+  rtp_packet_t * p;
+  rtp_stream_priv_t * sp;
+  int bytes_read;
+  sp = s->priv;
+  /* Read packet */
+  p = bgav_rtp_packet_buffer_get_write(sp->buf);
+  
+  bytes_read = bgav_udp_read(sp->rtp_fd,
+                             p->buffer, RTP_MAX_PACKET_LENGTH);
+  
+  if(s->action != BGAV_STREAM_DECODE)
+    return 1;
+  
+  bgav_input_reopen_memory(priv->input_mem, p->buffer, bytes_read);
+  
+  if(!rtp_header_read(priv->input_mem, &p->h))
+    return 0;
+
+  p->buf = p->buffer + priv->input_mem->position;
+  p->len = bytes_read - priv->input_mem->position;
+  
+  p->h.timestamp -= sp->first_rtptime;
+  bgav_rtp_packet_buffer_done_write(sp->buf, p);
+
+  /* Flush packet buffer */
+  while((p = bgav_rtp_packet_buffer_get_read(sp->buf)))
+    {
+    if(sp->process)
+      sp->process(s, &p->h, p->buf, p->len);
+    bgav_rtp_packet_buffer_done_read(sp->buf, p);
+    }
+  return 1;
+  }
 
 static int next_packet_rtp(bgav_demuxer_context_t * ctx)
   {
@@ -433,7 +481,6 @@ static int next_packet_rtp(bgav_demuxer_context_t * ctx)
   int i, index;
   int bytes_read;
   rtp_stream_priv_t * sp;
-  rtp_header_t rh;
   rtcp_rr_t rr;
   bgav_stream_t * s;
   priv = (rtp_priv_t *)ctx->priv;
@@ -477,24 +524,7 @@ static int next_packet_rtp(bgav_demuxer_context_t * ctx)
       sp = s->priv;
       if(priv->pollfds[index].revents & POLLIN)
         {
-        /* Read Audio RTP Data */
-        bytes_read = bgav_udp_read(priv->pollfds[index].fd,
-                                   buf, RTP_MAX_PACKET_LENGTH);
-        // fprintf(stderr, "Got Audio RTP Data: %d bytes\n", bytes_read);
-
-        bgav_input_reopen_memory(priv->input_mem, buf, bytes_read);
-        
-        if(rtp_header_read(priv->input_mem, &rh))
-          {
-          // fprintf(stderr, "Audio PTS 1: %u\n", rh.timestamp);
-          rh.timestamp -= sp->first_rtptime;
-          // fprintf(stderr, "Audio PTS 2: %u\n", rh.timestamp);
-          if(sp->process)
-            sp->process(s, &rh,
-                        buf + priv->input_mem->position,
-                        bytes_read - priv->input_mem->position);
-          //          rtp_header_dump(&rh);
-          }
+        read_rtp_packet(priv, s);
         }
       index++;
       if(priv->pollfds[index].revents & POLLIN)
@@ -522,23 +552,7 @@ static int next_packet_rtp(bgav_demuxer_context_t * ctx)
       sp = s->priv;
       if(priv->pollfds[index].revents & POLLIN)
         {
-        /* Read Video RTP Data */
-        bytes_read = bgav_udp_read(priv->pollfds[index].fd,
-                                   buf, RTP_MAX_PACKET_LENGTH);
-        // fprintf(stderr, "Got Video RTP Data: %d bytes\n", bytes_read);
-        bgav_input_reopen_memory(priv->input_mem, buf, bytes_read);
-
-        if(rtp_header_read(priv->input_mem, &rh))
-          {
-          // fprintf(stderr, "Video PTS 1: %u\n", rh.timestamp);
-          rh.timestamp -= sp->first_rtptime;
-          // fprintf(stderr, "Video PTS 2: %u\n", rh.timestamp);
-          if(sp->process)
-            sp->process(s, &rh,
-                        buf + priv->input_mem->position,
-                        bytes_read - priv->input_mem->position);
-          //          rtp_header_dump(&rh);
-          }
+        read_rtp_packet(priv, s);
         }
       index++;
       if(priv->pollfds[index].revents & POLLIN)
@@ -667,11 +681,105 @@ static char * find_fmtp(char ** fmtp, char * key)
   return (char*)0;
   }
 
-static int
-process_mpeg4_generic_audio(bgav_stream_t * s, rtp_header_t * h,
-                            uint8_t * data, int len)
+/* mpeg-4 AU parsing */
+
+static int mpeg4_au_read(rtp_stream_priv_t * sp,
+                         bgav_bitstream_t * b,
+                         mpeg4_au_t * ret)
   {
+  if(!bgav_bitstream_get(b, &ret->size, sp->priv.mpeg4_generic.sizelength) ||
+     !bgav_bitstream_get(b, &ret->delta, sp->priv.mpeg4_generic.indexlength))
+    {
+    return 0;
+    }
+  return sp->priv.mpeg4_generic.sizelength +
+    sp->priv.mpeg4_generic.indexlength;
+  }
+
+static int mpeg4_aus_read(bgav_stream_t * s,
+                          uint8_t * data, int len)
+  {
+  int num_read = 0;
+  uint8_t * pos;
+  bgav_bitstream_t bs;
+  rtp_stream_priv_t * sp;
+  int total_bits;
+
+  //  fprintf(stderr, "mpeg4_aus_read: ");
+  //  bgav_hexdump(data, 16, 16);
   
+  total_bits = BGAV_PTR_2_16BE(data);data+=2;
+  
+  sp = s->priv;
+  sp->priv.mpeg4_generic.num_aus = 0;
+  bgav_bitstream_init(&bs, data, (total_bits+7)/8);
+  while(bgav_bitstream_get_bits(&bs) >= 8)
+    {
+    if(sp->priv.mpeg4_generic.aus_alloc < sp->priv.mpeg4_generic.num_aus + 1)
+      {
+      sp->priv.mpeg4_generic.aus_alloc += 10;
+      sp->priv.mpeg4_generic.aus =
+        realloc(sp->priv.mpeg4_generic.aus,
+                sp->priv.mpeg4_generic.aus_alloc *
+                sizeof(*sp->priv.mpeg4_generic.aus));
+      memset(sp->priv.mpeg4_generic.aus +
+             sp->priv.mpeg4_generic.num_aus, 0,
+             10 * sizeof(*sp->priv.mpeg4_generic.aus));
+      }
+    if(!mpeg4_au_read(sp, &bs,
+                      &sp->priv.mpeg4_generic.aus[sp->priv.mpeg4_generic.num_aus]))
+      return 0;
+    sp->priv.mpeg4_generic.num_aus++;
+    }
+  return (total_bits+7)/8 + 2;
+  }
+
+static void dump_aus(mpeg4_au_t * aus, int num)
+  {
+  int i;
+  fprintf(stderr, "Access units: %d\n", num);
+  for(i = 0; i < num; i++)
+    {
+    fprintf(stderr, "  AU %d, size: %d, delta: %d\n", i, aus[i].size, aus[i].delta);
+    }
+  }
+     
+static int
+process_aac(bgav_stream_t * s, rtp_header_t * h,
+            uint8_t * data, int len)
+  {
+  rtp_stream_priv_t * sp;
+  int aus_len;
+  sp = s->priv;
+
+  aus_len = mpeg4_aus_read(s, data, len);
+  if(!aus_len)
+    return 0;
+
+  data += aus_len;
+  //  dump_aus(sp->priv.mpeg4_generic.aus,
+  //           sp->priv.mpeg4_generic.num_aus);
+  
+  if(sp->priv.mpeg4_generic.num_aus == 1)
+    {
+    /* Single AU: Can be one fragment or one packet */
+    if(s->packet && (s->packet->pts != h->timestamp))
+      {
+      bgav_packet_done_write(s->packet);
+      s->packet = (bgav_packet_t*)0;
+      }
+    if(!s->packet)
+      {
+      s->packet = bgav_stream_get_packet_write(s);
+      s->packet->data_size = 0;
+      s->packet->pts = h->timestamp;
+      }
+    bgav_packet_alloc(s->packet, s->packet->data_size +
+                      sp->priv.mpeg4_generic.aus[0].size);
+    memcpy(s->packet->data + s->packet->data_size,
+           data, sp->priv.mpeg4_generic.aus[0].size);
+    s->packet->data_size += sp->priv.mpeg4_generic.aus[0].size;
+    }
   return 0;
   }
 
@@ -683,12 +791,41 @@ static int init_mpeg4_generic_audio(bgav_stream_t * s)
   sp = s->priv;
   if(!sp->fmtp)
     return 0;
+  
+  var = find_fmtp(sp->fmtp, "mode");
+  if(!var)
+    {
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "No audio mode for mpeg4-generic");
+    return 0;
+    }
+  if(!strcasecmp(var, "AAC-hbr"))
+    {
+    sp->process = process_aac;
+    }
+  else if(!strcasecmp(var, "AAC-lbr"))
+    {
+    sp->process = process_aac;
+    }
+  else
+    {
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Unknown audio mode for mpeg4-generic: %s", var);
+    return 0;
+    }
 
+  var = find_fmtp(sp->fmtp, "maxDisplacement");
+  if(var && atoi(var))
+    {
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Interleaved audio not yet supported for mpeg4-generic");
+    return 0;
+    }
   var = find_fmtp(sp->fmtp, "sizelength");
   if(!var)
     return 0;
   sp->priv.mpeg4_generic.sizelength = atoi(var);
-
+  
   var = find_fmtp(sp->fmtp, "indexlength");
   if(!var)
     return 0;
@@ -698,7 +835,7 @@ static int init_mpeg4_generic_audio(bgav_stream_t * s)
   if(!var)
     return 0;
   sp->priv.mpeg4_generic.indexdeltalength = atoi(var);
-
+  
   var = find_fmtp(sp->fmtp, "config");
   if(var)
     {
@@ -713,9 +850,6 @@ static int init_mpeg4_generic_audio(bgav_stream_t * s)
       i++;
       }
     }
-  
-  sp->process = process_mpeg4_generic_audio;
-  
   return 1;
   }
 
@@ -857,7 +991,7 @@ static int init_h264(bgav_stream_t * s)
   // fprintf(stderr, "Got H.264 extradata %d bytes\n", s->ext_size);
   // bgav_hexdump(s->ext_data, s->ext_size, 16);
 
-  /* Get packetization-mode */
+  /* TODO: Get packetization-mode */
   s->data.video.frametime_mode = BGAV_FRAMETIME_PTS;
   s->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
   sp->process = process_h264;

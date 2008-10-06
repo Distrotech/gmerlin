@@ -312,6 +312,7 @@ int bgav_read_line_fd(int fd, char ** ret, int * ret_alloc, int milliseconds)
     {
     *ret_alloc = BYTES_TO_ALLOC;
     *ret = realloc(*ret, *ret_alloc);
+    **ret = '\0';
     }
   pos = *ret;
   while(1)

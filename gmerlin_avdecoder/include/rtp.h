@@ -54,18 +54,28 @@ typedef struct
 
 typedef struct bgav_rtp_packet_buffer_s bgav_rtp_packet_buffer_t;
 
-bgav_rtp_packet_buffer_t * rtp_packet_buffer_create();
-void rtp_packet_buffer_destroy(bgav_rtp_packet_buffer_t *);
+bgav_rtp_packet_buffer_t * bgav_rtp_packet_buffer_create();
+void bgav_rtp_packet_buffer_destroy(bgav_rtp_packet_buffer_t *);
 
 rtp_packet_t *
-rtp_packet_buffer_get_write(bgav_rtp_packet_buffer_t *);
+bgav_rtp_packet_buffer_get_write(bgav_rtp_packet_buffer_t *);
 
-void rtp_packet_buffer_done_write(bgav_rtp_packet_buffer_t *, rtp_packet_t *);
+void bgav_rtp_packet_buffer_done_write(bgav_rtp_packet_buffer_t *, rtp_packet_t *);
 
 rtp_packet_t *
-rtp_packet_buffer_get_read(bgav_rtp_packet_buffer_t *);
+bgav_rtp_packet_buffer_get_read(bgav_rtp_packet_buffer_t *);
 
-void rtp_packet_buffer_done_read(bgav_rtp_packet_buffer_t *, rtp_packet_t *);
+void bgav_rtp_packet_buffer_done_read(bgav_rtp_packet_buffer_t *, rtp_packet_t *);
+
+
+typedef struct
+  {
+  int size;
+  int delta;
+  int dts_delta;
+  int pts_delta;
+  int keyftrame;
+  } mpeg4_au_t;
 
 typedef struct
   {
@@ -76,7 +86,9 @@ typedef struct
   int first_seq;
   char ** fmtp;
   int (*process)(bgav_stream_t * s, rtp_header_t * h, uint8_t * data, int len);
-
+  
+  bgav_rtp_packet_buffer_t * buf;
+  
   union
     {
     struct
@@ -84,9 +96,11 @@ typedef struct
       int sizelength;
       int indexlength;
       int indexdeltalength;
+      int num_aus;
+      mpeg4_au_t * aus;
+      int aus_alloc;
       } mpeg4_generic;
-    
     } priv;
-
+  
   } rtp_stream_priv_t;
 

@@ -50,8 +50,8 @@ const char * bgav_http_header_status_line(bgav_http_header_t * h);
 
 /* Reading of http header */
 
-void bgav_http_header_revc(const bgav_options_t * opt,
-                           bgav_http_header_t*, int fd);
+int bgav_http_header_revc(const bgav_options_t * opt,
+                          bgav_http_header_t*, int fd);
 
 const char * bgav_http_header_get_var(bgav_http_header_t*,
                                       const char * name);

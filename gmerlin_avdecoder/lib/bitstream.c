@@ -27,6 +27,8 @@ void bgav_bitstream_init(bgav_bitstream_t * b, const uint8_t * pos,
   b->pos = pos;
   b->end = pos + len;
   b->bit_cache = 8;
+  b->c = *pos;
+  b->pos++;
   }
 
 int bgav_bitstream_get_long(bgav_bitstream_t * b, int64_t * ret1,  int bits)
@@ -39,9 +41,10 @@ int bgav_bitstream_get_long(bgav_bitstream_t * b, int64_t * ret1,  int bits)
     {
     if(!b->bit_cache)
       {
-      b->pos++;
       if(b->pos >= b->end)
         return 0;
+      b->c = *b->pos;
+      b->pos++;
       b->bit_cache = 8;
       }
     bits_to_copy = bits - bits_read;
@@ -49,7 +52,7 @@ int bgav_bitstream_get_long(bgav_bitstream_t * b, int64_t * ret1,  int bits)
       bits_to_copy = b->bit_cache;
     
     ret <<= bits_to_copy;
-    ret |= ((*b->pos) >> (b->bit_cache-bits_to_copy)) & ((1<<bits_to_copy)-1);
+    ret |= (b->c >> (b->bit_cache-bits_to_copy)) & (((1<<bits_to_copy)-1));
     bits_read += bits_to_copy;
     b->bit_cache -= bits_to_copy;
     }
@@ -64,4 +67,9 @@ int bgav_bitstream_get(bgav_bitstream_t * b, int * ret,  int bits)
     return 0;
   *ret = tmp;
   return 1;
+  }
+
+int bgav_bitstream_get_bits(bgav_bitstream_t * b)
+  {
+  return b->bit_cache + 8 * (b->end - b->pos);
   }

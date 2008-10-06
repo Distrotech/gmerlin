@@ -21,6 +21,7 @@
 
 #include <avdec_private.h>
 #include <rtp.h>
+#include <stdlib.h>
 
 #define MAX_PACKETS 10
 
@@ -30,24 +31,25 @@ struct bgav_rtp_packet_buffer_s
   int next_seq;
   const bgav_options_t * opt;
   int num;
+  uint64_t seq_offset;
   };
 
-bgav_rtp_packet_buffer_t * rtp_packet_buffer_create(const bgav_options_t * opt)
+bgav_rtp_packet_buffer_t * bgav_rtp_packet_buffer_create(const bgav_options_t * opt)
   {
-  int i;
   bgav_rtp_packet_buffer_t * ret;
   ret = calloc(1, sizeof(*ret));
   ret->next_seq = -1;
   ret->opt = opt;
+  return ret;
   }
 
-void rtp_packet_buffer_destroy(bgav_rtp_packet_buffer_t * b)
+void bgav_rtp_packet_buffer_destroy(bgav_rtp_packet_buffer_t * b)
   {
   free(b);
   }
 
 rtp_packet_t *
-rtp_packet_buffer_get_write(bgav_rtp_packet_buffer_t * b)
+bgav_rtp_packet_buffer_get_write(bgav_rtp_packet_buffer_t * b)
   {
   int i;
   for(i = 0; i < MAX_PACKETS; i++)
@@ -58,20 +60,90 @@ rtp_packet_buffer_get_write(bgav_rtp_packet_buffer_t * b)
   return (rtp_packet_t*)0;
   }
 
-void rtp_packet_buffer_done_write(bgav_rtp_packet_buffer_t * b, rtp_packet_t * p)
+void bgav_rtp_packet_buffer_done_write(bgav_rtp_packet_buffer_t * b, rtp_packet_t * p)
   {
   p->valid = 1;
   b->num++;
+  if(b->next_seq == -1)
+    b->next_seq = p->h.sequence_number;
   }
 
 rtp_packet_t *
-rtp_packet_buffer_get_read(bgav_rtp_packet_buffer_t * b)
+bgav_rtp_packet_buffer_get_read(bgav_rtp_packet_buffer_t * b)
   {
+  int min_seq, max_seq, i;
+  int min_index;
+  int test;
   
+  for(i = 0; i < MAX_PACKETS; i++)
+    {
+    if(b->packets[i].valid & (b->next_seq == b->packets[i].h.sequence_number))
+      return &b->packets[i];
+    }
+  if(b->num < MAX_PACKETS)
+    return (rtp_packet_t*)0;
+
+  /* Drop packets */
+  
+  min_seq = 0x10000;
+  max_seq = -1;
+
+  for(i = 0; i < MAX_PACKETS; i++)
+    {
+    if(b->packets[i].valid)
+      {
+      if(min_seq > b->packets[i].h.sequence_number)
+        {
+        min_seq = b->packets[i].h.sequence_number;
+        min_index = i;
+        }
+      if(max_seq < b->packets[i].h.sequence_number)
+        max_seq = b->packets[i].h.sequence_number;
+      }
+    }
+  
+  /* No wrap */
+  if(max_seq - min_seq < 0x8000)
+    return &b->packets[min_index];
+
+  min_seq = 0x10000;
+  
+  for(i = 0; i < MAX_PACKETS; i++)
+    {
+    if(b->packets[i].valid)
+      {
+      test = b->packets[i].h.sequence_number > 0x8000 ?
+        (int)b->packets[i].h.sequence_number - 0x10000 :
+        b->packets[i].h.sequence_number;
+      
+      if(min_seq > test)
+        {
+        min_seq = test;
+        min_index = i;
+        }
+      }
+    }
+  return &b->packets[min_index];
   }
 
-void rtp_packet_buffer_done_read(bgav_rtp_packet_buffer_t * b, rtp_packet_t * p)
+void bgav_rtp_packet_buffer_done_read(bgav_rtp_packet_buffer_t * b, rtp_packet_t * p)
   {
+  int i;
   p->valid = 0;
   b->num--;
+  
+  /* Delete obsolete packets */
+  for(i = 0; i < MAX_PACKETS; i++)
+    {
+    if(b->packets[i].valid & (b->packets[i].h.sequence_number <
+                              p->h.sequence_number))
+      {
+      b->packets[i].valid = 0;
+      b->num--;
+      }
+    }
+
+  b->next_seq = p->h.sequence_number+1;
+  if(b->next_seq > 0xffff)
+    b->next_seq = 0;
   }

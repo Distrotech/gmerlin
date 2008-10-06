@@ -105,7 +105,8 @@ static int rtsp_send_request(bgav_rtsp_t * rtsp,
   
   /* Read answers */
   bgav_http_header_reset(rtsp->answers);
-  bgav_http_header_revc(rtsp->opt, rtsp->answers, rtsp->fd);
+  if(!bgav_http_header_revc(rtsp->opt, rtsp->answers, rtsp->fd))
+    return 0;
   
   /* Handle redirection */
   
@@ -307,13 +308,11 @@ int bgav_rtsp_reopen(bgav_rtsp_t * rtsp)
     close(rtsp->fd);
   return do_connect(rtsp, &got_redirected, 0);
   }
-     
 
 bgav_sdp_t * bgav_rtsp_get_sdp(bgav_rtsp_t * r)
   {
   return &(r->sdp);
   }
-
 
 void bgav_rtsp_close(bgav_rtsp_t * r)
   {

@@ -1720,6 +1720,7 @@ typedef struct
   const uint8_t * pos;
   const uint8_t * end;
   int bit_cache;
+  uint8_t c;
   } bgav_bitstream_t;
 
 void bgav_bitstream_init(bgav_bitstream_t * b, const uint8_t * pos, 
@@ -1727,3 +1728,4 @@ void bgav_bitstream_init(bgav_bitstream_t * b, const uint8_t * pos,
 
 int bgav_bitstream_get(bgav_bitstream_t * b, int * ret,  int bits);
 int bgav_bitstream_get_long(bgav_bitstream_t * b, int64_t * ret,  int bits);
+int bgav_bitstream_get_bits(bgav_bitstream_t * b);

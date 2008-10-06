@@ -534,11 +534,11 @@ static int handle_rtpinfo(bgav_input_context_t * ctx,
                           const char * rtpinfo)
   {
   char ** streams;
-  int i, j, len;
-  rtsp_priv_t * priv;
+  int i, j;
+
   bgav_stream_t * s;
   rtp_stream_priv_t * sp;
-  const char * var;
+  const char * var, *pos1, *pos2;
   int var_len;
   
   streams = bgav_stringbreak(rtpinfo, ',');
@@ -549,12 +549,30 @@ static int handle_rtpinfo(bgav_input_context_t * ctx,
     var = get_rtpinfo_var(streams[i], "url=", &var_len);
     if(!var)
       return 0;
+    pos1 = strrchr(var, '/');
+
+    fprintf(stderr, "Pos: %p, var: %p, pos - var: %d, var_len: %d\n",
+            pos1, var, pos1 - var, var_len);
+    
+    if(pos1)
+      var_len -= (int)(pos1 - var);
+    else
+      pos1 = var;
+    
     s = (bgav_stream_t*)0;
     /* Search for the bgav stream */
     for(j = 0; j < ctx->demuxer->tt->cur->num_video_streams; j++)
       {
       sp = ctx->demuxer->tt->cur->video_streams[j].priv;
-      if(!strncmp(sp->control_url, var, var_len))
+
+      pos2 = strrchr(sp->control_url, '/');
+      if(!pos2)
+        pos2 = sp->control_url;
+
+      fprintf(stderr, "pos1: %s, pos2: %s, var_len: %d\n",
+              pos1, pos2, var_len);
+      
+      if(!strncmp(pos1, pos2, var_len))
         {
         s = &ctx->demuxer->tt->cur->video_streams[j];
         break;
@@ -565,7 +583,15 @@ static int handle_rtpinfo(bgav_input_context_t * ctx,
       for(j = 0; j < ctx->demuxer->tt->cur->num_audio_streams; j++)
         {
         sp = ctx->demuxer->tt->cur->audio_streams[j].priv;
-        if(!strncmp(sp->control_url, var, var_len))
+
+        pos2 = strrchr(sp->control_url, '/');
+        if(!pos2)
+          pos2 = sp->control_url;
+
+        fprintf(stderr, "pos1: %s, pos2: %s, var_len: %d\n",
+                pos1, pos2, var_len);
+        
+        if(!strncmp(pos1, pos2, var_len))
           {
           s = &ctx->demuxer->tt->cur->audio_streams[j];
           break;
@@ -576,9 +602,13 @@ static int handle_rtpinfo(bgav_input_context_t * ctx,
       {
       var = get_rtpinfo_var(streams[i], "rtptime=", &var_len);
       if(!var)
+        {
+        fprintf(stderr, "Got no first rtptime\n"); 
         return 0;
-      
+        }
       sp->first_rtptime = strtoul(var, (char**)0, 10);
+
+      fprintf(stderr, "First rtptime: %d\n", sp->first_rtptime); 
       
       var = get_rtpinfo_var(streams[i], "seq=", &var_len);
       if(!var)

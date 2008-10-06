@@ -101,20 +101,24 @@ int bgav_http_header_send(const bgav_options_t * opt, bgav_http_header_t * h, in
 
 /* Reading of http header */
 
-void bgav_http_header_revc(const bgav_options_t * opt,
-                           bgav_http_header_t * h, int fd)
+int bgav_http_header_revc(const bgav_options_t * opt,
+                          bgav_http_header_t * h, int fd)
   {
+  int ret = 0;
   char * answer = (char*)0;
   int answer_alloc = 0;
-
+  
   while(bgav_read_line_fd(fd, &answer, &answer_alloc, opt->connect_timeout))
     {
     if(*answer == '\0')
       break;
     bgav_http_header_add_line(h, answer);
+    ret = 1;
     }
+  
   if(answer)
     free(answer);
+  return ret;
   }
 
 int bgav_http_header_status_code(bgav_http_header_t * h)
