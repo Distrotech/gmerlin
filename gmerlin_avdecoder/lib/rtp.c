@@ -270,6 +270,30 @@ typedef struct
   bgav_input_context_t * input_mem;
   } rtp_priv_t;
 
+
+static void cleanup_stream_rtp(bgav_stream_t * s)
+  {
+  rtp_stream_priv_t * priv = s->priv;
+  
+  if(s->ext_data)
+    free(s->ext_data);
+
+  if(!priv) return;
+
+  if(priv->rtp_fd > 0)
+    close(priv->rtp_fd);
+  if(priv->rtcp_fd > 0)
+    close(priv->rtcp_fd);
+  
+  if(priv->control_url) free(priv->control_url);
+  if(priv->fmtp) bgav_stringbreak_free(priv->fmtp);
+  if(priv->buf) bgav_rtp_packet_buffer_destroy(priv->buf);
+  if(priv->free_priv)
+    priv->free_priv(priv);
+  free(priv);
+  }
+
+
 static void check_dynamic(bgav_stream_t * s, const dynamic_payload_t * dynamic_payloads,
                           const char * rtpmap)
   {
@@ -387,6 +411,7 @@ init_stream(bgav_demuxer_context_t * ctx,
   rtp_stream_priv_t * sp;
   char * control, *tmp_string;
   int i;
+  s->cleanup = cleanup_stream_rtp;
   fprintf(stderr, "Got stream (format: %s)\n", md->formats[format_index]);
 
   sp = calloc(1, sizeof(*sp));
@@ -573,7 +598,20 @@ static int next_packet_rtp(bgav_demuxer_context_t * ctx)
 
 static void close_rtp(bgav_demuxer_context_t * ctx)
   {
+  rtp_priv_t * priv = ctx->priv;
+  if(!priv)
+    return;
   
+  if(priv->input_mem)
+    {
+    bgav_input_close(priv->input_mem);
+    bgav_input_destroy(priv->input_mem);
+    }
+  if(priv->pollfds)
+    free(priv->pollfds);
+
+  
+  free(priv);
   }
 
 int bgav_demuxer_rtp_open(bgav_demuxer_context_t * ctx,
@@ -699,8 +737,6 @@ static int mpeg4_au_read(rtp_stream_priv_t * sp,
 static int mpeg4_aus_read(bgav_stream_t * s,
                           uint8_t * data, int len)
   {
-  int num_read = 0;
-  uint8_t * pos;
   bgav_bitstream_t bs;
   rtp_stream_priv_t * sp;
   int total_bits;
@@ -783,6 +819,12 @@ process_aac(bgav_stream_t * s, rtp_header_t * h,
   return 0;
   }
 
+static void cleanup_mpeg4_generic_audio(rtp_stream_priv_t * priv)
+  {
+  if(priv->priv.mpeg4_generic.aus)
+    free(priv->priv.mpeg4_generic.aus);
+  }
+
 static int init_mpeg4_generic_audio(bgav_stream_t * s)
   {
   rtp_stream_priv_t * sp;
@@ -791,6 +833,7 @@ static int init_mpeg4_generic_audio(bgav_stream_t * s)
   sp = s->priv;
   if(!sp->fmtp)
     return 0;
+  sp->free_priv = cleanup_mpeg4_generic_audio;
   
   var = find_fmtp(sp->fmtp, "mode");
   if(!var)

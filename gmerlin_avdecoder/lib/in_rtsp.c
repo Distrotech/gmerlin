@@ -551,7 +551,7 @@ static int handle_rtpinfo(bgav_input_context_t * ctx,
       return 0;
     pos1 = strrchr(var, '/');
 
-    fprintf(stderr, "Pos: %p, var: %p, pos - var: %d, var_len: %d\n",
+    fprintf(stderr, "Pos: %p, var: %p, pos - var: %ld, var_len: %d\n",
             pos1, var, pos1 - var, var_len);
     
     if(pos1)
@@ -622,6 +622,7 @@ static int handle_rtpinfo(bgav_input_context_t * ctx,
 
 static int init_generic(bgav_input_context_t * ctx, bgav_sdp_t * sdp)
   {
+  int ret = 0;
   rtsp_priv_t * priv;
   bgav_stream_t * s;
   int i;
@@ -634,20 +635,20 @@ static int init_generic(bgav_input_context_t * ctx, bgav_sdp_t * sdp)
 
   ctx->demuxer = bgav_demuxer_create(ctx->opt, &bgav_demuxer_rtp, ctx);
   if(!bgav_demuxer_rtp_open(ctx->demuxer, sdp))
-    return 0;
+    goto fail;
 
   /* Transport negotiation */
   for(i = 0; i < ctx->demuxer->tt->cur->num_video_streams; i++)
     {
     s = &ctx->demuxer->tt->cur->video_streams[i];
     if(!init_stream_generic(ctx, s, &port, &session_id))
-      return 0;
+      goto fail;
     }
   for(i = 0; i < ctx->demuxer->tt->cur->num_audio_streams; i++)
     {
     s = &ctx->demuxer->tt->cur->audio_streams[i];
     if(!init_stream_generic(ctx, s, &port, &session_id))
-      return 0;
+      goto fail;
     }
   /* Play */
   if(session_id)
@@ -658,8 +659,8 @@ static int init_generic(bgav_input_context_t * ctx, bgav_sdp_t * sdp)
 
   bgav_rtsp_schedule_field(priv->r, "Range: npt=0-");
   if(!bgav_rtsp_request_play(priv->r))
-    return 0;
-  
+    goto fail;
+    
   var = bgav_rtsp_get_answer(priv->r, "RTP-Info");
   if(!var)
     {
@@ -669,6 +670,11 @@ static int init_generic(bgav_input_context_t * ctx, bgav_sdp_t * sdp)
     }
   
   handle_rtpinfo(ctx, var);
+
+  ret = 1;
+  fail:
+  if(session_id)
+    free(session_id);
   
   return 1;
   }
@@ -781,6 +787,9 @@ static void close_rtsp(bgav_input_context_t * ctx)
   //  if(priv->rmff_header)
   //    bgav_rmff_header_destroy(priv->rmff_header);
 
+  /* Send a teardown request */
+  
+  
   if(priv->packet)
     free(priv->packet);
   

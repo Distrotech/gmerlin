@@ -292,7 +292,6 @@ bgav_rtsp_t * bgav_rtsp_create(const bgav_options_t * opt)
   return ret;
   }
 
-
 int bgav_rtsp_open(bgav_rtsp_t * rtsp, const char * url,
                    int * got_redirected)
   {
@@ -316,6 +315,8 @@ bgav_sdp_t * bgav_rtsp_get_sdp(bgav_rtsp_t * r)
 
 void bgav_rtsp_close(bgav_rtsp_t * r)
   {
+  rtsp_send_request(r,"TEARDOWN",r->url, NULL);
+  
   bgav_http_header_destroy(r->answers);
   bgav_http_header_destroy(r->request_fields);
   bgav_sdp_free(&(r->sdp));

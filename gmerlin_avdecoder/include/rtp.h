@@ -77,7 +77,7 @@ typedef struct
   int keyftrame;
   } mpeg4_au_t;
 
-typedef struct
+typedef struct rtp_stream_priv_s
   {
   char * control_url;
   int rtp_fd;
@@ -88,6 +88,8 @@ typedef struct
   int (*process)(bgav_stream_t * s, rtp_header_t * h, uint8_t * data, int len);
   
   bgav_rtp_packet_buffer_t * buf;
+  
+  void (*free_priv)(struct rtp_stream_priv_s*);
   
   union
     {

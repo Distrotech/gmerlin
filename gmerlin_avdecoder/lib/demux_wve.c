@@ -83,8 +83,6 @@ static int open_wve(bgav_demuxer_context_t * ctx)
   /* Create track */
   ctx->tt = bgav_track_table_create(1);
 
-  priv = calloc(1, sizeof(*priv));
-  ctx->priv = priv;
 
   /* Process file header */
   bgav_input_skip(ctx->input, 4); // Skip signature
