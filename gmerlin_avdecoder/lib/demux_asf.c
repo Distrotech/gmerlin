@@ -275,6 +275,30 @@ typedef struct
                         /* individual media streams             */
   } asf_main_header_t;
 
+static void cleanup_stream_asf(bgav_stream_t * s)
+  {
+  asf_audio_stream_t * as;
+  if(s->type == BGAV_STREAM_AUDIO)
+    {
+    as = (asf_audio_stream_t*)s->priv;
+
+    if(s->ext_data)
+      free(s->ext_data);
+
+    if(as->scramble_buffer)
+      free(as->scramble_buffer);
+    if(s->priv)
+      free(s->priv);
+    }
+  else
+    {
+    if(s->ext_data)
+      free(s->ext_data);
+    if(s->priv)
+      free(s->priv);
+    }
+  }
+
 typedef struct
   {
   uint64_t packets_read;
@@ -548,6 +572,7 @@ static int open_asf(bgav_demuxer_context_t * ctx)
         {
         
         bgav_as = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
+        bgav_as->cleanup = cleanup_stream_asf;
         bgav_as->stream_id = stream_number;
 
         asf_as  = calloc(1, sizeof(*asf_as));
@@ -610,6 +635,7 @@ static int open_asf(bgav_demuxer_context_t * ctx)
         {
         bgav_vs = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
         bgav_vs->data.video.frametime_mode = BGAV_FRAMETIME_PTS;
+        bgav_vs->cleanup = cleanup_stream_asf;
         
         bgav_vs->stream_id = stream_number;
         
@@ -1129,9 +1155,6 @@ static void seek_asf(bgav_demuxer_context_t * ctx, int64_t time, int scale)
 
 static void close_asf(bgav_demuxer_context_t * ctx)
   {
-  int i;
-  asf_audio_stream_t * as;
-
   asf_t * asf = (asf_t *)(ctx->priv);
 
   if(asf->packet_buffer)
@@ -1140,26 +1163,6 @@ static void close_asf(bgav_demuxer_context_t * ctx)
   if(asf->stream_bitrates)
     free(asf->stream_bitrates);
   
-  for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
-    {
-    as = (asf_audio_stream_t*)ctx->tt->cur->audio_streams[i].priv;
-
-    if(ctx->tt->cur->audio_streams[i].ext_data)
-      free(ctx->tt->cur->audio_streams[i].ext_data);
-
-    if(as->scramble_buffer)
-      free(as->scramble_buffer);
-    if(ctx->tt->cur->audio_streams[i].priv)
-      free(ctx->tt->cur->audio_streams[i].priv);
-    }
-  for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
-    {
-    if(ctx->tt->cur->video_streams[i].ext_data)
-      free(ctx->tt->cur->video_streams[i].ext_data);
-    
-    if(ctx->tt->cur->video_streams[i].priv)
-      free(ctx->tt->cur->video_streams[i].priv);
-    }
   free(ctx->priv);
   }
 

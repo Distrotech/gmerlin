@@ -367,6 +367,9 @@ struct bgav_stream_s
 
   void (*process_packet)(bgav_stream_t * s, bgav_packet_t * p);
   int64_t duration;
+
+  /* Cleanup function (can be set by demuxers) */
+  void (*cleanup)(bgav_stream_t * s);
   
   /* Set for INDEX_MODE_SI_PARSE for all streams, which need parsing */
   int index_mode;

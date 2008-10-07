@@ -587,9 +587,6 @@ static int handle_rtpinfo(bgav_input_context_t * ctx,
         pos2 = strrchr(sp->control_url, '/');
         if(!pos2)
           pos2 = sp->control_url;
-
-        fprintf(stderr, "pos1: %s, pos2: %s, var_len: %d\n",
-                pos1, pos2, var_len);
         
         if(!strncmp(pos1, pos2, var_len))
           {
@@ -603,12 +600,12 @@ static int handle_rtpinfo(bgav_input_context_t * ctx,
       var = get_rtpinfo_var(streams[i], "rtptime=", &var_len);
       if(!var)
         {
-        fprintf(stderr, "Got no first rtptime\n"); 
+        //        fprintf(stderr, "Got no first rtptime\n"); 
         return 0;
         }
       sp->first_rtptime = strtoul(var, (char**)0, 10);
 
-      fprintf(stderr, "First rtptime: %d\n", sp->first_rtptime); 
+      //      fprintf(stderr, "First rtptime: %d\n", sp->first_rtptime); 
       
       var = get_rtpinfo_var(streams[i], "seq=", &var_len);
       if(!var)

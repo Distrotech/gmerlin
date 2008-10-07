@@ -454,6 +454,7 @@ static void close_aiff(bgav_demuxer_context_t * ctx)
   {
   aiff_priv_t * priv;
   priv = (aiff_priv_t *)ctx->priv;
+  free(priv);
   }
 
 const bgav_demuxer_t bgav_demuxer_aiff =

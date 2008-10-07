@@ -29,6 +29,15 @@
 
 #define PROBE_SIZE 2048 /* Same as in MPlayer */
 
+static void cleanup_stream_ffmpeg(bgav_stream_t * s)
+  {
+  if(s->type == BGAV_STREAM_VIDEO)
+    {
+    if(s->priv)
+      free(s->priv);
+    }
+  }
+
 typedef struct
   {
   AVInputFormat *avif;
@@ -499,6 +508,7 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
     {
     s = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
     s->fourcc = tag;
+    s->cleanup = cleanup_stream_ffmpeg;
     }
   else
     {
@@ -647,17 +657,12 @@ static int open_ffmpeg(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
+
 static void close_ffmpeg(bgav_demuxer_context_t * ctx)
   {
   ffmpeg_priv_t * priv;
-  int i;
   priv = (ffmpeg_priv_t*)ctx->priv;
 
-  for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
-    {
-    if(ctx->tt->cur->video_streams[i].priv)
-      free(ctx->tt->cur->video_streams[i].priv);
-    }
   av_close_input_file(priv->avfc);
   if(priv)
     free(priv);

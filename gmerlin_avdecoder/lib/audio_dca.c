@@ -61,7 +61,7 @@ static int get_data(bgav_stream_t * s, int num_bytes)
   {
   int bytes_to_copy;
   dts_priv * priv;
-  priv = (dts_priv*)(s->data.audio.decoder->priv);
+  priv = s->data.audio.decoder->priv;
 
   if(priv->buffer_alloc < num_bytes)
     {

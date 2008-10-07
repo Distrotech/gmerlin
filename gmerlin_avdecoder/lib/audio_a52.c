@@ -67,7 +67,7 @@ static int get_data(bgav_stream_t * s, int num_bytes)
   {
   int bytes_to_copy;
   a52_priv * priv;
-  priv = (a52_priv*)(s->data.audio.decoder->priv);
+  priv = s->data.audio.decoder->priv;
   
   while(priv->bytes_in_buffer < num_bytes)
     {
@@ -112,7 +112,7 @@ static void done_data(bgav_stream_t * s, int num_bytes)
   a52_priv * priv;
   int bytes_left;
   
-  priv = (a52_priv*)(s->data.audio.decoder->priv);
+  priv = s->data.audio.decoder->priv;
 
   bytes_left = priv->bytes_in_buffer - num_bytes;
   
@@ -133,7 +133,7 @@ static int do_resync(bgav_stream_t * s)
   {
   a52_priv * priv;
   //  int skipped = 0;
-  priv = (a52_priv*)(s->data.audio.decoder->priv);
+  priv = s->data.audio.decoder->priv;
   
   while(1)
     {
@@ -152,7 +152,7 @@ static int do_resync(bgav_stream_t * s)
 static void resync_a52(bgav_stream_t * s)
   {
   a52_priv * priv;
-  priv = (a52_priv*)(s->data.audio.decoder->priv);
+  priv = s->data.audio.decoder->priv;
 
   priv->packet = (bgav_packet_t*)0;
   priv->packet_ptr = (uint8_t*)0;
@@ -295,7 +295,7 @@ static int decode_frame(bgav_stream_t * s)
   sample_t level = 1.0;
   
   a52_priv * priv;
-  priv = (a52_priv*)s->data.audio.decoder->priv;
+  priv = s->data.audio.decoder->priv;
 
   if(!do_resync(s))
     return 0;
@@ -344,7 +344,7 @@ static int decode_a52(bgav_stream_t * s,
   int samples_decoded = 0;
   int samples_copied;
   a52_priv * priv;
-  priv = (a52_priv*)s->data.audio.decoder->priv;
+  priv = s->data.audio.decoder->priv;
 
   while(samples_decoded < num_samples)
     {
@@ -379,7 +379,7 @@ static int decode_a52(bgav_stream_t * s,
 static void close_a52(bgav_stream_t * s)
   {
   a52_priv * priv;
-  priv = (a52_priv*)s->data.audio.decoder->priv;
+  priv = s->data.audio.decoder->priv;
 
   if(priv->frame)
     gavl_audio_frame_destroy(priv->frame);
@@ -398,7 +398,7 @@ static void parse_a52(bgav_stream_t * s)
   int size_needed;
 
   a52_priv * priv;
-  priv = (a52_priv*)s->data.audio.decoder->priv;
+  priv = s->data.audio.decoder->priv;
   
   while(bgav_demuxer_peek_packet_read(s->demuxer, s, 0))
     {

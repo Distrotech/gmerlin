@@ -1056,6 +1056,41 @@ static int probe_avi(bgav_input_context_t * input)
   
   }
 
+static void cleanup_stream_avi(bgav_stream_t * s)
+  {
+  if(s->type == BGAV_STREAM_AUDIO)
+    {
+    audio_priv_t * avi_as;
+    if(s->ext_data)
+      free(s->ext_data);
+    avi_as = (audio_priv_t*)(s->priv);
+    if(avi_as)
+      {
+      if(avi_as->has_indx)
+        free_indx(&(avi_as->indx));
+      free(avi_as);
+      }
+    }
+  else if(s->type == BGAV_STREAM_VIDEO)
+    {
+    video_priv_t * avi_vs;
+    if(s->data.video.palette_size)
+      free(s->data.video.palette);
+    if(s->ext_data)
+      free(s->ext_data);
+
+    avi_vs = (video_priv_t*)(s->priv);
+
+    if(avi_vs)
+      {
+      if(avi_vs->has_indx)
+        free_indx(&(avi_vs->indx));
+      free(avi_vs);
+      }
+    
+    }
+  }
+
 static int init_audio_stream(bgav_demuxer_context_t * ctx,
                              strh_t * strh, chunk_header_t * ch)
   {
@@ -1069,6 +1104,7 @@ static int init_audio_stream(bgav_demuxer_context_t * ctx,
   bg_as = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
   avi_as = calloc(1, sizeof(*avi_as));
   bg_as->priv = avi_as;
+  bg_as->cleanup = cleanup_stream_avi;
   memcpy(&(avi_as->strh), strh, sizeof(*strh));
   
   while(keep_going)
@@ -1143,6 +1179,7 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
   
   bg_vs = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
   bg_vs->data.video.wrong_b_timestamps = 1;
+  bg_vs->cleanup = cleanup_stream_avi;
 
   avi_vs = calloc(1, sizeof(*avi_vs));
 
@@ -1472,6 +1509,7 @@ static int init_iavs_stream(bgav_demuxer_context_t * ctx,
   
   bg_vs = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
   bg_vs->stream_id = DV_VIDEO_ID;
+  bg_vs->cleanup = cleanup_stream_avi;
   
   video_priv = calloc(1, sizeof(*video_priv));
   bg_vs->priv = video_priv;
@@ -1480,6 +1518,7 @@ static int init_iavs_stream(bgav_demuxer_context_t * ctx,
   
   bg_as = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
   bg_as->stream_id = DV_AUDIO_ID;
+  bg_as->cleanup = cleanup_stream_avi;
   
   /* Tell the core that we do our own demuxing */
   ctx->flags |= BGAV_DEMUXER_SI_PRIVATE_FUNCS;
@@ -2072,12 +2111,10 @@ static void select_track_avi(bgav_demuxer_context_t * ctx, int track)
   }
 #endif
 
+
 static void close_avi(bgav_demuxer_context_t * ctx)
   {
-  int i;
   avi_priv_t * priv;
-  audio_priv_t * avi_as;
-  video_priv_t * avi_vs;
   
   priv = (avi_priv_t*)(ctx->priv);
   
@@ -2093,35 +2130,6 @@ static void close_avi(bgav_demuxer_context_t * ctx)
     if(priv->dv_frame_buffer)
       free(priv->dv_frame_buffer);
     free(priv);
-    }
-  for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
-    {
-    if(ctx->tt->cur->audio_streams[i].ext_data)
-      free(ctx->tt->cur->audio_streams[i].ext_data);
-    avi_as = (audio_priv_t*)(ctx->tt->cur->audio_streams[i].priv);
-    if(avi_as)
-      {
-      if(avi_as->has_indx)
-        free_indx(&(avi_as->indx));
-      free(avi_as);
-      }
-    }
-  
-  for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
-    {
-    if(ctx->tt->cur->video_streams[i].data.video.palette_size)
-      free(ctx->tt->cur->video_streams[i].data.video.palette);
-    if(ctx->tt->cur->video_streams[i].ext_data)
-      free(ctx->tt->cur->video_streams[i].ext_data);
-
-    avi_vs = (video_priv_t*)(ctx->tt->cur->video_streams[i].priv);
-
-    if(avi_vs)
-      {
-      if(avi_vs->has_indx)
-        free_indx(&(avi_vs->indx));
-      free(avi_vs);
-      }
     }
   }
 

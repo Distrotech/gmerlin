@@ -73,6 +73,12 @@ static uint32_t seek_indx(bgav_rmff_indx_t * indx, uint32_t millisecs,
   return ret;
   }
 
+static void cleanup_stream_rm(bgav_stream_t * s)
+  {
+  if(s->priv) free(s->priv);
+  if(s->ext_data) free(s->ext_data);
+  }
+
 /* Get position for multirate files */
 
 static int get_multirate_offsets(bgav_demuxer_context_t * ctx,
@@ -144,7 +150,7 @@ static void init_audio_stream(bgav_demuxer_context_t * ctx,
 
     
   bg_as = bgav_track_add_audio_stream(track, ctx->opt);
-
+  bg_as->cleanup = cleanup_stream_rm;
   /* Set container bitrate */
   bg_as->container_bitrate = stream->mdpr.avg_bit_rate;
 
@@ -323,6 +329,7 @@ static void init_audio_stream_mp3(bgav_demuxer_context_t * ctx, bgav_rmff_stream
   priv = (rm_private_t*)(ctx->priv);
   
   bg_as = bgav_track_add_audio_stream(track, ctx->opt);
+  bg_as->cleanup = cleanup_stream_rm;
 
   /* Set container bitrate */
   bg_as->container_bitrate = stream->mdpr.avg_bit_rate;
@@ -363,6 +370,7 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
   priv = (rm_private_t*)(ctx->priv);
   
   bg_vs = bgav_track_add_video_stream(track, ctx->opt);
+  bg_vs->cleanup = cleanup_stream_rm;
 
   bg_vs->data.video.frametime_mode = BGAV_FRAMETIME_PTS;
   
@@ -1440,37 +1448,12 @@ static void seek_rmff(bgav_demuxer_context_t * ctx, int64_t time, int scale)
     }
   }
 
+
 static void close_rmff(bgav_demuxer_context_t * ctx)
   {
-  rm_audio_stream_t * as;
-  rm_video_stream_t * vs;
   rm_private_t * priv;
-  bgav_track_t * track;
-  int i;
   priv = (rm_private_t *)ctx->priv;
-
-  if(ctx->tt)
-    {
-    track = ctx->tt->cur;
-    
-    for(i = 0; i < track->num_audio_streams; i++)
-      {
-      as = (rm_audio_stream_t*)(track->audio_streams[i].priv);
-      if(as) free(as);
-      
-      if(track->audio_streams[i].ext_data)
-        free(track->audio_streams[i].ext_data);
-      }
-    for(i = 0; i < track->num_video_streams; i++)
-      {
-      vs = (rm_video_stream_t*)(track->video_streams[i].priv);
-      if(vs) free(vs);
-      
-      if(track->video_streams[i].ext_data)
-        free(track->video_streams[i].ext_data);
-      }
-    }
-
+  
   if(priv)
     {
     if(priv->header)

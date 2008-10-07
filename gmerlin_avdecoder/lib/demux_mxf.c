@@ -449,6 +449,11 @@ static mxf_descriptor_t * get_source_descriptor(mxf_file_t * file, mxf_package_t
   return (mxf_descriptor_t*)0;
   }
 
+static void cleanup_stream_mxf(bgav_stream_t * s)
+  {
+  if(s->priv) free(s->priv);
+  }
+
 static void
 handle_source_track_simple(bgav_demuxer_context_t * ctx,
                            mxf_package_t * sp, mxf_track_t * t,
@@ -503,6 +508,7 @@ handle_source_track_simple(bgav_demuxer_context_t * ctx,
       if(!fourcc)
         return;
       s = bgav_track_add_audio_stream(bt, ctx->opt);
+      s->cleanup = cleanup_stream_mxf;
       init_audio_stream(ctx, s, t, sd, fourcc);
       }
     else if(ss->stream_type == BGAV_STREAM_VIDEO)
@@ -511,6 +517,7 @@ handle_source_track_simple(bgav_demuxer_context_t * ctx,
       if(!fourcc)
         return;
       s = bgav_track_add_video_stream(bt, ctx->opt);
+      s->cleanup = cleanup_stream_mxf;
       init_video_stream(ctx, s, t, sd, fourcc);
 
       if(sp->timecode_track && (sp->num_timecode_tracks == 1))
@@ -777,40 +784,12 @@ static int select_track_mxf(bgav_demuxer_context_t * ctx, int track)
   }
 #endif
 
+
 static void close_mxf(bgav_demuxer_context_t * ctx)
   {
-  int i, j;
   mxf_t * priv;
-  stream_priv_t * sp;
   priv = (mxf_t*)ctx->priv;
   bgav_mxf_file_free(&priv->mxf);
-
-  if(ctx->tt)
-    {
-    for(i = 0; i < ctx->tt->num_tracks; i++)
-      {
-      for(j = 0; j < ctx->tt->tracks[i].num_audio_streams; j++)
-        {
-        sp = ctx->tt->tracks[i].audio_streams[j].priv;
-        if(sp)
-          free(sp);
-        }
-      for(j = 0; j < ctx->tt->tracks[i].num_video_streams; j++)
-        {
-        sp = ctx->tt->tracks[i].video_streams[j].priv;
-        if(sp)
-          free(sp);
-        }
-      /* Not supported yet but well.. */
-      for(j = 0; j < ctx->tt->tracks[i].num_subtitle_streams; j++)
-        {
-        sp = ctx->tt->tracks[i].subtitle_streams[j].priv;
-        if(sp)
-          free(sp);
-        }
-      }
-    }
-  
   free(priv);
   }
 

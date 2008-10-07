@@ -37,9 +37,6 @@
 #define AUDIO_ID 0
 #define VIDEO_ID 1
 
-typedef struct
-  {
-  } wve_priv_t;
 
 static int probe_wve(bgav_input_context_t * input)
   {
@@ -82,7 +79,6 @@ static int open_wve(bgav_demuxer_context_t * ctx)
   
   uint8_t byte, subbyte;
   
-  wve_priv_t * priv;
 
   /* Create track */
   ctx->tt = bgav_track_table_create(1);
@@ -187,14 +183,11 @@ static int open_wve(bgav_demuxer_context_t * ctx)
 static int next_packet_wve(bgav_demuxer_context_t * ctx)
   {
   uint8_t preamble[EA_PREAMBLE_SIZE];
-  wve_priv_t * priv;
   uint32_t chunk_size, chunk_type;
   bgav_stream_t * s;
   bgav_packet_t * p;
   
   
-  priv = (wve_priv_t*)(ctx->priv);
-
   if(bgav_input_read_data(ctx->input, preamble, EA_PREAMBLE_SIZE) <
      EA_PREAMBLE_SIZE)
     return 0;
@@ -239,10 +232,6 @@ static int next_packet_wve(bgav_demuxer_context_t * ctx)
 
 static void close_wve(bgav_demuxer_context_t * ctx)
   {
-  wve_priv_t * priv;
-
-  priv = (wve_priv_t*)(ctx->priv);
-  
   }
 
 const bgav_demuxer_t bgav_demuxer_wve =

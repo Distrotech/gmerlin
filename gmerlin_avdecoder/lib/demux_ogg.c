@@ -477,6 +477,20 @@ static uint32_t detect_stream(ogg_packet * op)
   return 0;
   }
 
+static void cleanup_stream_ogg(bgav_stream_t * s)
+  {
+  stream_priv_t * stream_priv;
+  stream_priv = (stream_priv_t*)(s->priv);
+  if(stream_priv)
+    {
+    ogg_stream_clear(&stream_priv->os);
+    bgav_metadata_free(&stream_priv->metadata);
+    free(stream_priv);
+    }
+  if(s->ext_data)
+    free(s->ext_data);
+  }
+
 /* Set up a track, which starts at start position */
 
 static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
@@ -537,6 +551,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
       {
       case FOURCC_VORBIS:
         s = bgav_track_add_audio_stream(track, ctx->opt);
+        s->cleanup = cleanup_stream_ogg;
         s->fourcc = FOURCC_VORBIS;
         s->index_mode = INDEX_MODE_PTS;
         s->priv   = ogg_stream;
@@ -561,6 +576,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         break;
       case FOURCC_THEORA:
         s = bgav_track_add_video_stream(track, ctx->opt);
+        s->cleanup = cleanup_stream_ogg;
         s->fourcc = FOURCC_THEORA;
         s->index_mode = INDEX_MODE_PTS;
         s->priv   = ogg_stream;
@@ -591,6 +607,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         break;
       case FOURCC_FLAC_NEW:
         s = bgav_track_add_audio_stream(track, ctx->opt);
+        s->cleanup = cleanup_stream_ogg;
         s->fourcc = FOURCC_FLAC;
         s->priv   = ogg_stream;
         s->index_mode = INDEX_MODE_PTS;
@@ -615,6 +632,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         break;
       case FOURCC_FLAC:
         s = bgav_track_add_audio_stream(track, ctx->opt);
+        s->cleanup = cleanup_stream_ogg;
         s->fourcc = FOURCC_FLAC;
         s->index_mode = INDEX_MODE_PTS;
         ogg_stream->fourcc_priv = FOURCC_FLAC;
@@ -630,6 +648,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         break;
       case FOURCC_SPEEX:
         s = bgav_track_add_audio_stream(track, ctx->opt);
+        s->cleanup = cleanup_stream_ogg;
         s->fourcc = FOURCC_SPEEX;
         s->index_mode = INDEX_MODE_PTS;
         s->priv   = ogg_stream;
@@ -657,6 +676,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
       case FOURCC_OGM_VIDEO:
         
         s = bgav_track_add_video_stream(track, ctx->opt);
+        s->cleanup = cleanup_stream_ogg;
       
         s->priv   = ogg_stream;
         s->stream_id = serialno;
@@ -700,6 +720,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
       case FOURCC_OGM_TEXT:
         s = bgav_track_add_subtitle_stream(track, ctx->opt, 1,
                                            (const char*)0);
+        s->cleanup = cleanup_stream_ogg;
         s->priv   = ogg_stream;
         s->stream_id = serialno;
         s->index_mode = INDEX_MODE_SIMPLE;
@@ -2039,12 +2060,12 @@ static void seek_ogg(bgav_demuxer_context_t * ctx, int64_t time, int scale)
     }
   }
 
+
 static void close_ogg(bgav_demuxer_context_t * ctx)
   {
-  int i, j;
+  int i;
   ogg_t * priv;
   track_priv_t * track_priv;
-  stream_priv_t * stream_priv;
   
   for(i = 0; i < ctx->tt->num_tracks; i++)
     {
@@ -2052,32 +2073,6 @@ static void close_ogg(bgav_demuxer_context_t * ctx)
     if(track_priv->unsupported_streams)
       free(track_priv->unsupported_streams);
     free(track_priv);
-    
-    for(j = 0; j < ctx->tt->tracks[i].num_audio_streams; j++)
-      {
-      stream_priv = (stream_priv_t*)(ctx->tt->tracks[i].audio_streams[j].priv);
-      if(stream_priv)
-        {
-        ogg_stream_clear(&stream_priv->os);
-        bgav_metadata_free(&stream_priv->metadata);
-        free(stream_priv);
-        }
-      if(ctx->tt->tracks[i].audio_streams[j].ext_data)
-        free(ctx->tt->tracks[i].audio_streams[j].ext_data);
-      }
-
-    for(j = 0; j < ctx->tt->tracks[i].num_video_streams; j++)
-      {
-      stream_priv = (stream_priv_t*)(ctx->tt->tracks[i].video_streams[j].priv);
-      if(stream_priv)
-        {
-        ogg_stream_clear(&stream_priv->os);
-        bgav_metadata_free(&stream_priv->metadata);
-        free(stream_priv);
-        }
-      if(ctx->tt->tracks[i].video_streams[j].ext_data)
-        free(ctx->tt->tracks[i].video_streams[j].ext_data);
-      }
     }
   
   priv = (ogg_t *)ctx->priv;

@@ -166,6 +166,12 @@ typedef struct
   seektable_t seektable;
   } flac_priv_t;
 
+static void cleanup_stream_flac(bgav_stream_t * s)
+  {
+  if(s->ext_data)
+    free(s->ext_data);
+  }
+
 static int open_flac(bgav_demuxer_context_t * ctx)
   {
   bgav_stream_t * s;
@@ -205,7 +211,7 @@ static int open_flac(bgav_demuxer_context_t * ctx)
       case 0: // STREAMINFO
         /* Add audio stream */
         s = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
-
+        s->cleanup = cleanup_stream_flac;
         s->ext_size = STREAMINFO_SIZE + 4;
         s->ext_data = malloc(s->ext_size);
 
@@ -366,8 +372,6 @@ static void close_flac(bgav_demuxer_context_t * ctx)
   if(priv->seektable.num_entries)
     free(priv->seektable.entries);
 
-  if(ctx->tt->cur->audio_streams[0].ext_data)
-    free(ctx->tt->cur->audio_streams[0].ext_data);
 
   free(priv);
   }
