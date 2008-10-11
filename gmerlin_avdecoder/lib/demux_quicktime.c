@@ -877,7 +877,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
   
   track = ctx->tt->cur;
   
-  ctx->tt->cur->duration = 0;
+  //  ctx->tt->cur->duration = 0;
 
   priv->streams = calloc(moov->num_tracks, sizeof(*(priv->streams)));
   
