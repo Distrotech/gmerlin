@@ -27,7 +27,26 @@ extern bgav_demuxer_t bgav_demuxer_rtp;
 
 int bgav_demuxer_rtp_open(bgav_demuxer_context_t * ctx,
                           bgav_sdp_t * sdp);
-  
+
+/* rtp statistics for generating receiver reports */
+
+typedef struct
+  {
+  uint16_t max_seq;        /* highest seq. number seen */
+  uint32_t cycles;         /* shifted count of seq. number cycles */
+  uint32_t base_seq;       /* base seq number */
+  uint32_t bad_seq;        /* last 'bad' seq number + 1 */
+  uint32_t probation;      /* sequ. packets till source is valid */
+  uint32_t received;       /* packets received */
+  uint32_t expected_prior; /* packet expected at last interval */
+  uint32_t received_prior; /* packet received at last interval */
+  uint32_t transit;        /* relative trans time for prev pkt */
+  uint32_t jitter;         /* estimated jitter */
+  /* ... */
+  int initialized;
+  gavl_timer_t * timer;
+  gavl_time_t time_offset;
+  } rtp_stats_t;
 
 typedef struct
   {
@@ -38,7 +57,7 @@ typedef struct
   uint8_t marker;
   uint8_t payload_type;
   uint16_t sequence_number;
-  uint32_t timestamp;
+  uint64_t timestamp;
   uint32_t ssrc;
   uint32_t csrc_list[15];
   } rtp_header_t;
@@ -52,9 +71,12 @@ typedef struct
   int valid;
   } rtp_packet_t;
 
+
 typedef struct bgav_rtp_packet_buffer_s bgav_rtp_packet_buffer_t;
 
-bgav_rtp_packet_buffer_t * bgav_rtp_packet_buffer_create();
+bgav_rtp_packet_buffer_t *
+bgav_rtp_packet_buffer_create(const bgav_options_t * opt,
+                              rtp_stats_t * stats, int timescale);
 void bgav_rtp_packet_buffer_destroy(bgav_rtp_packet_buffer_t *);
 
 rtp_packet_t *
@@ -85,11 +107,21 @@ typedef struct rtp_stream_priv_s
   int64_t first_rtptime;
   int first_seq;
   char ** fmtp;
+
+  uint32_t server_ssrc;
+  uint32_t client_ssrc;
+  uint32_t lsr;
+  int sr_count;
+  
+  struct addrinfo * rtcp_addr;
+    
   int (*process)(bgav_stream_t * s, rtp_header_t * h, uint8_t * data, int len);
   
   bgav_rtp_packet_buffer_t * buf;
   
   void (*free_priv)(struct rtp_stream_priv_s*);
+  
+  rtp_stats_t stats;
   
   union
     {
@@ -106,3 +138,43 @@ typedef struct rtp_stream_priv_s
   
   } rtp_stream_priv_t;
 
+/* RTCP Stuff */
+
+#define MAX_RTCP_REPORTS 31
+#define RR_MAX_SIZE (8+(MAX_RTCP_REPORTS*24))
+
+typedef struct
+  {
+  uint8_t version;
+  uint8_t padding;
+  uint8_t rc;
+  uint8_t type;
+  uint16_t length;
+  uint32_t ssrc;
+
+  /* These miss in Receiver report */
+  uint64_t ntp_time;
+  uint32_t rtp_time;
+  uint32_t packet_count;
+  uint32_t octet_count;
+
+  /* Report blocks */
+  
+  struct
+    {
+    uint32_t ssrc;
+    uint8_t fraction_lost;
+    uint32_t cumulative_lost;
+    uint32_t highest_ext_seq;
+    uint32_t jitter;
+    uint32_t lsr;
+    uint32_t dlsr;
+    } reports[MAX_RTCP_REPORTS];
+  } rtcp_sr_t;
+
+
+
+int bgav_rtcp_sr_read(bgav_input_context_t * ctx, rtcp_sr_t * ret);
+int bgav_rtcp_rr_write(rtcp_sr_t * r, uint8_t * data);
+void bgav_rtcp_sr_dump(rtcp_sr_t * r);
+void bgav_rtcp_rr_setup(bgav_stream_t * s, rtcp_sr_t * r);

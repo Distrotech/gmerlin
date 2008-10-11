@@ -23,6 +23,8 @@
 #include <ctype.h>
 #include <string.h>
 #include <poll.h>
+#include <unistd.h>
+#include <netdb.h>
 
 
 #include <avdec_private.h>
@@ -42,7 +44,6 @@ static int init_h264(bgav_stream_t * s);
 
 static int init_mpa(bgav_stream_t * s);
 
-
 static int rtp_header_read(bgav_input_context_t * ctx,
                            rtp_header_t * ret)
   {
@@ -58,8 +59,9 @@ static int rtp_header_read(bgav_input_context_t * ctx,
   ret->payload_type    = (h >> 16) & 0x7f;
   ret->sequence_number = (h)       & 0xffff;
 
-  if(!bgav_input_read_32_be(ctx, &ret->timestamp))
+  if(!bgav_input_read_32_be(ctx, &h))
     return 0;
+  ret->timestamp = h;
   if(!bgav_input_read_32_be(ctx, &ret->ssrc))
     return 0;
   for(i = 0; i < ret->csrc_count; i++)
@@ -70,6 +72,7 @@ static int rtp_header_read(bgav_input_context_t * ctx,
   return 1;
   }
 
+#if 0
 static void rtp_header_dump(rtp_header_t * h)
   {
   int i;
@@ -81,106 +84,14 @@ static void rtp_header_dump(rtp_header_t * h)
   bgav_dprintf("  marker:       %d\n", h->marker);
   bgav_dprintf("  payload_type: %d\n", h->payload_type);
   bgav_dprintf("  seq:          %d\n", h->sequence_number);
-  bgav_dprintf("  timestamp:    %u\n", h->timestamp);
+  bgav_dprintf("  timestamp:    %"PRId64"\n", h->timestamp);
   for(i = 0; i < h->csrc_count; i++)
     {
     bgav_dprintf("  csrc[%d]:    %d\n", i, h->csrc_list[i]);
     }
   }
+#endif
 
-/* RTCP Sender report */
-
-#define MAX_RTCP_REPORTS 31
-
-typedef struct
-  {
-  uint8_t version;
-  uint8_t padding;
-  uint8_t rc;
-  uint8_t type;
-  uint16_t length;
-  uint32_t ssrc;
-
-  /* These miss in Receiver report */
-  uint64_t ntp_time;
-  uint32_t rtp_time;
-  uint32_t packet_count;
-  uint32_t octet_count;
-
-  /* Report blocks */
-  
-  struct
-    {
-    uint32_t ssrc;
-    uint8_t fraction_lost;
-    uint32_t cumulative_lost;
-    uint32_t highest_ext_seq;
-    uint32_t jitter;
-    uint32_t lsr;
-    uint32_t dlsr;
-    } reports[MAX_RTCP_REPORTS];
-  } rtcp_rr_t;
-
-static int rtcp_rr_read(bgav_input_context_t * ctx, rtcp_rr_t * ret)
-  {
-  uint16_t h;
-  int i;
-  if(!bgav_input_read_16_be(ctx, &h))
-    return 0;
-  ret->version         = (h >> 14) & 0x03;
-  ret->padding         = (h >> 13) & 0x01;
-  ret->rc              = (h >>  8) & 0x1f;
-  ret->type            = (h) & 0xff;
-
-  if(!bgav_input_read_16_be(ctx, &ret->length) ||
-     !bgav_input_read_32_be(ctx, &ret->ssrc) ||
-     !bgav_input_read_64_be(ctx, &ret->ntp_time) ||
-     !bgav_input_read_32_be(ctx, &ret->rtp_time) ||
-     !bgav_input_read_32_be(ctx, &ret->packet_count) ||
-     !bgav_input_read_32_be(ctx, &ret->octet_count))
-    return 0;
-
-  for(i = 0; i < ret->rc; i++)
-    {
-    if(!bgav_input_read_32_be(ctx, &ret->reports[i].ssrc) ||
-       !bgav_input_read_8(ctx, &ret->reports[i].fraction_lost) ||
-       !bgav_input_read_24_be(ctx, &ret->reports[i].cumulative_lost) ||
-       !bgav_input_read_32_be(ctx, &ret->reports[i].highest_ext_seq) ||
-       !bgav_input_read_32_be(ctx, &ret->reports[i].jitter) ||
-       !bgav_input_read_32_be(ctx, &ret->reports[i].lsr) ||
-       !bgav_input_read_32_be(ctx, &ret->reports[i].dlsr))
-      return 0;
-    }
-  return 1;
-  }
-
-static void rtcp_rr_dump(rtcp_rr_t * r)
-  {
-  int i;
-  bgav_dprintf("RTCP RR\n");
-  bgav_dprintf("  version:      %d\n", r->version);
-  bgav_dprintf("  padding:      %d\n", r->padding);
-  bgav_dprintf("  rc:           %d\n", r->rc);
-  bgav_dprintf("  type:         %d\n", r->type);
-  bgav_dprintf("  length:       %d\n", r->length);
-  bgav_dprintf("  ssrc:         %u\n", r->ssrc);
-  bgav_dprintf("  ntp_time:     %"PRIu64"\n", r->ntp_time);
-  bgav_dprintf("  rtp_time:     %u\n", r->rtp_time);
-  bgav_dprintf("  packet_count: %u\n", r->packet_count);
-  bgav_dprintf("  octet_count:  %u\n", r->octet_count);
-
-  for(i = 0; i < r->rc; i++)
-    {
-    bgav_dprintf("  Report %d\n", i+1);
-    bgav_dprintf("    ssrc:            %d\n", r->reports[i].ssrc);
-    bgav_dprintf("    fraction_lost:   %d\n", r->reports[i].fraction_lost);
-    bgav_dprintf("    cumulative_lost: %d\n", r->reports[i].cumulative_lost);
-    bgav_dprintf("    highest_ext_seq: %d\n", r->reports[i].highest_ext_seq);
-    bgav_dprintf("    jitter:          %d\n", r->reports[i].jitter);
-    bgav_dprintf("    lsr:             %d\n", r->reports[i].lsr);
-    bgav_dprintf("    dlsr:            %d\n", r->reports[i].dlsr);
-    }
-  }
 /* */
 
 typedef struct
@@ -288,6 +199,8 @@ static void cleanup_stream_rtp(bgav_stream_t * s)
   if(priv->control_url) free(priv->control_url);
   if(priv->fmtp) bgav_stringbreak_free(priv->fmtp);
   if(priv->buf) bgav_rtp_packet_buffer_destroy(priv->buf);
+  if(priv->stats.timer) gavl_timer_destroy(priv->stats.timer);
+  if(priv->rtcp_addr) freeaddrinfo(priv->rtcp_addr);
   if(priv->free_priv)
     priv->free_priv(priv);
   free(priv);
@@ -416,16 +329,17 @@ init_stream(bgav_demuxer_context_t * ctx,
 
   sp = calloc(1, sizeof(*sp));
   s->priv = sp;
-
-  sp->buf = bgav_rtp_packet_buffer_create(ctx->opt);
-  
+  sp->stats.timer = gavl_timer_create();
+  sp->client_ssrc = rand();
   if(!find_codec(s, md, format_index))
     return 0;
   
   fprintf(stderr, "fourcc: ");
   bgav_dump_fourcc(s->fourcc);
   fprintf(stderr, " timescale: %d\n", s->timescale);
-
+  
+  sp->buf = bgav_rtp_packet_buffer_create(s->opt, &sp->stats, s->timescale);
+  
   i = 0;
   if(sp->fmtp)
     {
@@ -458,7 +372,7 @@ init_stream(bgav_demuxer_context_t * ctx,
 
   if(!sp->control_url)
     sp->control_url = bgav_sprintf("%s/%s", ctx->input->url, control);
-  fprintf(stderr, "Control: %s\n", sp->control_url);
+  // fprintf(stderr, "Control: %s\n", sp->control_url);
   return 1;
   }
 
@@ -486,11 +400,18 @@ static int read_rtp_packet(rtp_priv_t * priv, bgav_stream_t * s)
   p->len = bytes_read - priv->input_mem->position;
   
   p->h.timestamp -= sp->first_rtptime;
+
+  //  if(s->type == BGAV_STREAM_VIDEO)
+  //    fprintf(stderr, "Write: %d %08x\n", p->h.sequence_number, p->h.ssrc);
+
   bgav_rtp_packet_buffer_done_write(sp->buf, p);
 
   /* Flush packet buffer */
   while((p = bgav_rtp_packet_buffer_get_read(sp->buf)))
     {
+    //    if(s->type == BGAV_STREAM_VIDEO)
+    //      fprintf(stderr, "Read: %d %08x\n", p->h.sequence_number, p->h.ssrc);
+
     if(sp->process)
       sp->process(s, &p->h, p->buf, p->len);
     bgav_rtp_packet_buffer_done_read(sp->buf, p);
@@ -498,100 +419,142 @@ static int read_rtp_packet(rtp_priv_t * priv, bgav_stream_t * s)
   return 1;
   }
 
+static void read_rtcp_packet(rtp_priv_t * priv, bgav_stream_t * s)
+  {
+  rtp_stream_priv_t * sp;
+  int bytes_read;
+  rtcp_sr_t rr;
+  uint8_t buf[RTP_MAX_PACKET_LENGTH];
+  sp = s->priv;
+  /* Read packet */
+  bytes_read = bgav_udp_read(sp->rtcp_fd,
+                             buf, RTP_MAX_PACKET_LENGTH);
+  
+  // fprintf(stderr, "Got Audio RTCP Data: %d bytes\n", bytes_read);
+      
+  if(buf[1] == 200)
+    {
+    bgav_input_reopen_memory(priv->input_mem, buf, bytes_read);
+    if(!bgav_rtcp_sr_read(priv->input_mem, &rr))
+      return;
+
+    //    bgav_rtcp_sr_dump(&rr);
+    sp->lsr = (rr.ntp_time >> 16) && 0xFFFFFFFF;
+    sp->sr_count++;
+    if(sp->sr_count >= 5)
+      {
+      sp->sr_count = 0;
+      memset(&rr, 0, sizeof(rr));
+      /* Send seceiver report */
+      bgav_rtcp_rr_setup(s, &rr);
+      bytes_read = bgav_rtcp_rr_write(&rr, buf);
+      if(sendto(sp->rtcp_fd, buf, bytes_read, 0,
+                sp->rtcp_addr->ai_addr, sp->rtcp_addr->ai_addrlen) < bytes_read)
+        fprintf(stderr, "Sending receiver report failed\n");
+      //      else
+      //        fprintf(stderr, "Sent receiver report\n");
+      }
+    }
+  }
+
+static void init_pollfds(bgav_demuxer_context_t * ctx)
+  {
+  rtp_priv_t * priv;
+  int i, index;
+  rtp_stream_priv_t * sp;
+  priv = ctx->priv;
+
+  priv->num_pollfds = (ctx->tt->cur->num_audio_streams +
+                       ctx->tt->cur->num_video_streams)*2;
+  priv->pollfds = calloc(priv->num_pollfds, sizeof(*priv->pollfds));
+  
+  index = 0;
+  for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
+    {
+    sp = (rtp_stream_priv_t *)ctx->tt->cur->audio_streams[i].priv;
+    priv->pollfds[index].fd = sp->rtp_fd;
+    priv->pollfds[index].events = POLLIN;
+    index++;
+    priv->pollfds[index].fd = sp->rtcp_fd;
+    priv->pollfds[index].events = POLLIN;
+    index++;
+    }
+  for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
+    {
+    sp = (rtp_stream_priv_t *)ctx->tt->cur->video_streams[i].priv;
+    priv->pollfds[index].fd = sp->rtp_fd;
+    priv->pollfds[index].events = POLLIN;
+    index++;
+    priv->pollfds[index].fd = sp->rtcp_fd;
+    priv->pollfds[index].events = POLLIN;
+    index++;
+    }
+  
+  }
+
+static void handle_pollfds(bgav_demuxer_context_t * ctx)
+  {
+  //  int bytes_read;
+  rtp_priv_t * priv;
+  int i, index;
+  rtp_stream_priv_t * sp;
+  bgav_stream_t * s;
+  priv = ctx->priv;
+
+  index = 0;
+    
+  for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
+    {
+    s = &ctx->tt->cur->audio_streams[i];
+    sp = s->priv;
+    if(priv->pollfds[index].revents & POLLIN)
+      {
+      read_rtp_packet(priv, s);
+      }
+    index++;
+    if(priv->pollfds[index].revents & POLLIN)
+      {
+      /* Read Audio RTCP Data */
+      read_rtcp_packet(priv, s);
+      }
+    index++;
+    }
+  for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
+    {
+    s = &ctx->tt->cur->video_streams[i];
+    sp = s->priv;
+    if(priv->pollfds[index].revents & POLLIN)
+      {
+      read_rtp_packet(priv, s);
+      }
+    index++;
+    if(priv->pollfds[index].revents & POLLIN)
+      {
+      /* Read Video RTCP Data */
+      read_rtcp_packet(priv, s);
+      }
+    index++;
+    }
+  }
+
 static int next_packet_rtp(bgav_demuxer_context_t * ctx)
   {
   int ret = 0;
-  uint8_t buf[RTP_MAX_PACKET_LENGTH];
   rtp_priv_t * priv;
-  int i, index;
-  int bytes_read;
-  rtp_stream_priv_t * sp;
-  rtcp_rr_t rr;
-  bgav_stream_t * s;
   priv = (rtp_priv_t *)ctx->priv;
   
   if(!priv->pollfds)
-    {
-    priv->num_pollfds = (ctx->tt->cur->num_audio_streams +
-      ctx->tt->cur->num_video_streams)*2;
-    priv->pollfds = calloc(priv->num_pollfds, sizeof(*priv->pollfds));
-    
-    index = 0;
-    for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
-      {
-      sp = (rtp_stream_priv_t *)ctx->tt->cur->audio_streams[i].priv;
-      priv->pollfds[index].fd = sp->rtp_fd;
-      priv->pollfds[index].events = POLLIN;
-      index++;
-      priv->pollfds[index].fd = sp->rtcp_fd;
-      priv->pollfds[index].events = POLLIN;
-      index++;
-      }
-    for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
-      {
-      sp = (rtp_stream_priv_t *)ctx->tt->cur->video_streams[i].priv;
-      priv->pollfds[index].fd = sp->rtp_fd;
-      priv->pollfds[index].events = POLLIN;
-      index++;
-      priv->pollfds[index].fd = sp->rtcp_fd;
-      priv->pollfds[index].events = POLLIN;
-      index++;
-      }
-    }
+    init_pollfds(ctx);
   
   if(poll(priv->pollfds, priv->num_pollfds, ctx->opt->read_timeout) > 0)
     {
-    index = 0;
-    
-    for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
-      {
-      s = &ctx->tt->cur->audio_streams[i];
-      sp = s->priv;
-      if(priv->pollfds[index].revents & POLLIN)
-        {
-        read_rtp_packet(priv, s);
-        }
-      index++;
-      if(priv->pollfds[index].revents & POLLIN)
-        {
-        /* Read Audio RTCP Data */
-        bytes_read = bgav_udp_read(priv->pollfds[index].fd,
-                                   buf, RTP_MAX_PACKET_LENGTH);
-        
-        // fprintf(stderr, "Got Audio RTCP Data: %d bytes\n", bytes_read);
-
-        if(buf[1] == 200)
-          {
-          bgav_input_reopen_memory(priv->input_mem, buf, bytes_read);
-          if(rtcp_rr_read(priv->input_mem, &rr))
-            {
-            //            rtcp_rr_dump(&rr);
-            }
-          }
-        }
-      index++;
-      }
-    for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
-      {
-      s = &ctx->tt->cur->video_streams[i];
-      sp = s->priv;
-      if(priv->pollfds[index].revents & POLLIN)
-        {
-        read_rtp_packet(priv, s);
-        }
-      index++;
-      if(priv->pollfds[index].revents & POLLIN)
-        {
-        /* Read Video RTCP Data */
-        bytes_read = bgav_udp_read(priv->pollfds[index].fd,
-                                   buf, RTP_MAX_PACKET_LENGTH);
-        // fprintf(stderr, "Got Video RTCP Data: %d bytes\n", bytes_read);
-        bgav_input_reopen_memory(priv->input_mem, buf, bytes_read);
-        
-        }
-      index++;
-      }
+    handle_pollfds(ctx);
     ret = 1;
+    }
+  if(ret)
+    {
+    while(poll(priv->pollfds, priv->num_pollfds, 0) > 0)
+      handle_pollfds(ctx);
     }
   return ret;
   }
@@ -770,6 +733,7 @@ static int mpeg4_aus_read(bgav_stream_t * s,
   return (total_bits+7)/8 + 2;
   }
 
+#if 0
 static void dump_aus(mpeg4_au_t * aus, int num)
   {
   int i;
@@ -779,7 +743,8 @@ static void dump_aus(mpeg4_au_t * aus, int num)
     fprintf(stderr, "  AU %d, size: %d, delta: %d\n", i, aus[i].size, aus[i].delta);
     }
   }
-     
+#endif
+
 static int
 process_aac(bgav_stream_t * s, rtp_header_t * h,
             uint8_t * data, int len)

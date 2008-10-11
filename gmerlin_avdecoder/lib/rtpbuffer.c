@@ -32,14 +32,139 @@ struct bgav_rtp_packet_buffer_s
   const bgav_options_t * opt;
   int num;
   uint64_t seq_offset;
+  rtp_stats_t * stats;
+  int timescale;
+  
+  int timestamp_wrap;
+  int64_t timestamp_offset;
+  int64_t last_timestamp;
   };
 
-bgav_rtp_packet_buffer_t * bgav_rtp_packet_buffer_create(const bgav_options_t * opt)
+/* Statistics handling (from RFC 1889) */
+
+#define RTP_SEQ_MOD (1<<16)
+
+static void init_stats(rtp_stats_t *s, uint16_t seq, int64_t timestamp,
+                       int timescale)
+  {
+  s->base_seq = seq - 1;
+  s->max_seq = seq;
+  s->bad_seq = RTP_SEQ_MOD + 1;
+  s->cycles = 0;
+  s->received = 0;
+  s->received_prior = 0;
+  s->expected_prior = 0;
+  /* other initialization */
+  s->initialized = 1;
+  gavl_timer_stop(s->timer);
+  gavl_timer_set(s->timer, 0);
+  gavl_timer_start(s->timer);
+  
+  s->time_offset = gavl_time_unscale(timescale, timestamp);
+  }
+
+static int update_stats(rtp_stats_t * s, uint16_t seq,
+                        uint64_t timestamp, int timescale)
+  {
+  uint16_t udelta = seq - s->max_seq;
+  const int MAX_DROPOUT = 3000;
+  const int MAX_MISORDER = 100;
+  const int MIN_SEQUENTIAL = 2;
+  int64_t arrival;
+  
+  /* Jitter estimation */
+  int transit;
+  int d;
+  
+  /*
+   * Source is not valid until MIN_SEQUENTIAL packets with
+   * sequential sequence numbers have been received.
+   */
+  if (s->probation)
+    {
+    /* packet is in sequence */
+    if (seq == s->max_seq + 1)
+      {
+      s->probation--;
+      s->max_seq = seq;
+      if (s->probation == 0)
+        {
+        init_stats(s, seq, timestamp, timescale);
+        s->received++;
+        return 1;
+        }
+      }
+    else
+      {
+      s->probation = MIN_SEQUENTIAL - 1;
+      s->max_seq = seq;
+      }
+    return 0;
+    }
+  else if (udelta < MAX_DROPOUT)
+    {
+    /* in order, with permissible gap */
+    if (seq < s->max_seq)
+      {
+      /*
+       * Sequence number wrapped - count another 64K cycle.
+       */
+      s->cycles += RTP_SEQ_MOD;
+      }
+    s->max_seq = seq;
+    }
+  else if (udelta <= RTP_SEQ_MOD - MAX_MISORDER)
+    {
+    /* the sequence number made a very large jump */
+    if (seq == s->bad_seq)
+      {
+      /*
+       * Two sequential packets -- assume that the other side
+       * restarted without telling us so just re-sync
+       * (i.e., pretend this was the first packet).
+       */
+      init_stats(s, seq, timestamp, timescale);
+      }
+    else
+      {
+      s->bad_seq = (seq + 1) & (RTP_SEQ_MOD-1);
+      return 0;
+      }
+    }
+  else
+    {
+    /* duplicate or reordered packet */
+    }
+  s->received++;
+
+  /* Jitter estimation */
+  arrival = gavl_time_scale(timescale,
+                            gavl_timer_get(s->timer) + s->time_offset);
+  
+  transit = arrival - timestamp;
+  d = transit - s->transit;
+  s->transit = transit;
+  if (d < 0)
+    d = -d;
+  s->jitter += d - ((s->jitter + 8) >> 4);
+  
+  
+  return 1;
+  }
+
+/* */ 
+
+bgav_rtp_packet_buffer_t *
+bgav_rtp_packet_buffer_create(const bgav_options_t * opt,
+                              rtp_stats_t * stats, int timescale)
   {
   bgav_rtp_packet_buffer_t * ret;
   ret = calloc(1, sizeof(*ret));
+  ret->stats = stats;
   ret->next_seq = -1;
   ret->opt = opt;
+  ret->timescale = timescale;
+  ret->last_timestamp = BGAV_TIMESTAMP_UNDEFINED;
   return ret;
   }
 
@@ -60,12 +185,46 @@ bgav_rtp_packet_buffer_get_write(bgav_rtp_packet_buffer_t * b)
   return (rtp_packet_t*)0;
   }
 
-void bgav_rtp_packet_buffer_done_write(bgav_rtp_packet_buffer_t * b, rtp_packet_t * p)
+void bgav_rtp_packet_buffer_done_write(bgav_rtp_packet_buffer_t * b,
+                                       rtp_packet_t * p)
   {
   p->valid = 1;
   b->num++;
   if(b->next_seq == -1)
     b->next_seq = p->h.sequence_number;
+  
+  /* Correct timestamp */
+  //  fprintf(stderr, "RTP Time 1: %ld (%ld)", p->h.timestamp, b->last_timestamp);
+  if((b->last_timestamp != BGAV_TIMESTAMP_UNDEFINED) &&
+     (int64_t)b->last_timestamp - (int64_t)p->h.timestamp > 0x80000000LL)
+    b->timestamp_wrap = 1;
+  else if(b->timestamp_wrap &&
+          (p->h.timestamp > 0x80000000LL))
+    {
+    b->timestamp_wrap = 0;
+    b->timestamp_offset += 0x100000000LL;
+    }
+
+  //  fprintf(stderr, "Wrap: %d\n", b->timestamp_wrap);
+  
+  b->last_timestamp = p->h.timestamp;
+  
+  if(b->timestamp_wrap && 
+     (p->h.timestamp < 0x80000000LL))
+    p->h.timestamp += 0x100000000LL + b->timestamp_offset;
+  else
+    p->h.timestamp += b->timestamp_offset;
+
+  //  fprintf(stderr, "RTP Time 2: %ld\n", p->h.timestamp);
+  
+  /* Update statistics */
+  if(!b->stats->initialized)
+    init_stats(b->stats, p->h.sequence_number, p->h.timestamp,
+               b->timescale);
+  else
+    update_stats(b->stats, p->h.sequence_number, p->h.timestamp,
+                 b->timescale);
+  
   }
 
 rtp_packet_t *
@@ -78,7 +237,9 @@ bgav_rtp_packet_buffer_get_read(bgav_rtp_packet_buffer_t * b)
   for(i = 0; i < MAX_PACKETS; i++)
     {
     if(b->packets[i].valid & (b->next_seq == b->packets[i].h.sequence_number))
+      {
       return &b->packets[i];
+      }
     }
   if(b->num < MAX_PACKETS)
     return (rtp_packet_t*)0;

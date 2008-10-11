@@ -1386,6 +1386,11 @@ int bgav_init(bgav_t * b);
 (p)[1] = ((i)>>16) & 0xff; \
 (p)[0] = ((i)>>24) & 0xff;
 
+#define BGAV_24BE_2_PTR(i, p) \
+(p)[2] = (i) & 0xff; \
+(p)[1] = ((i)>>8) & 0xff; \
+(p)[0] = ((i)>>16) & 0xff;
+
 #define BGAV_64BE_2_PTR(i, p) \
 (p)[7] = (i) & 0xff; \
 (p)[6] = ((i)>>8) & 0xff; \
@@ -1469,8 +1474,12 @@ struct addrinfo * bgav_hostbyname(const bgav_options_t * opt,
                                   const char * hostname, int port, int socktype);
 
 /* udp.c */
-int bgav_udp_open_read(const bgav_options_t * opt, int port);
+int bgav_udp_open(const bgav_options_t * opt, int port);
 int bgav_udp_read(int fd, uint8_t * data, int len);
+
+int bgav_udp_write(const bgav_options_t * opt,
+                   int fd, uint8_t * data, int len,
+                   struct addrinfo * addr);
 
 /* Charset utilities (charset.c) */
 

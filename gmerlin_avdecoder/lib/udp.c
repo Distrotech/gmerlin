@@ -29,15 +29,17 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <string.h>
+#include <string.h>
 
 
 #include <avdec_private.h>
 
 #define LOG_DOMAIN "udp"
 
-int bgav_udp_open_read(const bgav_options_t * opt, int port)
+int bgav_udp_open(const bgav_options_t * opt, int port)
   {
   int ret;
+  size_t tmp;
   struct sockaddr_in name;
   //  struct addrinfo * addr;
   //  addr = bgav_hostbyname(opt, (const char * hostname)0, port, SOCK_DGRAM);
@@ -48,7 +50,7 @@ int bgav_udp_open_read(const bgav_options_t * opt, int port)
     bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Cannot create socket");
     return -1;
     }
-
+  
   /* Give the socket a name. */
   name.sin_family = AF_INET;
   name.sin_port = htons (port);
@@ -56,11 +58,19 @@ int bgav_udp_open_read(const bgav_options_t * opt, int port)
   
   if (bind(ret, (struct sockaddr *) &name, sizeof (name)) < 0)
     {
-    bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Cannot bind inet socket: %s", strerror(errno));
+    bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Cannot bind inet socket: %s", strerror(errno));
     return -1;
     }
 
-  bgav_log(opt, BGAV_LOG_INFO, LOG_DOMAIN, "UDP Socket bound on port %d\n", port);
+  getsockopt(ret, SOL_SOCKET, SO_RCVBUF, &tmp, sizeof(tmp));
+  //  fprintf(stderr, "RCVBUF: %ld\n", tmp);
+  tmp = 65536;
+  setsockopt(ret, SOL_SOCKET, SO_RCVBUF, &tmp, sizeof(tmp));
+
+  
+  bgav_log(opt, BGAV_LOG_INFO, LOG_DOMAIN,
+           "UDP Socket bound on port %d\n", port);
 
   //  freeaddrinfo(addr);
   return ret;
@@ -84,9 +94,22 @@ int bgav_udp_read(int fd, uint8_t * data, int len)
   return bytes_read;
   }
 
-#if 0
-int bgav_udp_open_write(int port)
+int bgav_udp_write(const bgav_options_t * opt,
+                   int fd, uint8_t * data, int len,
+                   struct addrinfo * addr)
   {
-  int ret;
+  for(;;)
+    {
+    if(sendto(fd, data, len, 0, addr->ai_addr, addr->ai_addrlen) < len)
+      {
+      if((errno == EAGAIN) ||
+         (errno == EINTR))
+        {
+        bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Sending UDP packet failed: %s\n", strerror(errno));
+        return -1;
+        }
+      }
+    }
+  return len;
   }
-#endif

@@ -24,11 +24,17 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <ctype.h>
 
 #include <rtsp.h>
 #include <rmff.h>
 #include <bswap.h>
 #include <rtp.h>
+//#include <sys/types.h>
+#include <sys/socket.h>
+//#include <netdb.h>
+
+
 
 #define LOG_DOMAIN "in_rtsp"
 
@@ -263,6 +269,22 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
   }
 
 
+static const char * get_answer_var(const char * str, const char * name,
+                                   int * len)
+  {
+  const char * pos1, *pos2;
+  
+  pos1 = strstr(str, name);
+  if(!pos1)
+    return (char*)0;
+  pos2 = strchr(pos1, ';');
+  if(!pos2)
+    pos2 = pos1 + strlen(pos1);
+  pos1 += strlen(name);
+  *len = pos2 - pos1;
+  return pos1;
+  }
+
 static int open_and_describe(bgav_input_context_t * ctx,
                              const char * url, int * got_redirected)
   {
@@ -305,12 +327,13 @@ static int open_and_describe(bgav_input_context_t * ctx,
     bgav_log(ctx->opt, BGAV_LOG_DEBUG, LOG_DOMAIN,
              "Real Server, challenge %s", var);
     }
+#if 0
   else
     {
     if(!bgav_rtsp_reopen(priv->r))
       return 0;
     }
-  
+#endif
 #if 0
   else
     {
@@ -464,12 +487,92 @@ static int init_real(bgav_input_context_t * ctx, bgav_sdp_t * sdp, char * sessio
   return ret;
   }
 
-static int init_stream_generic(bgav_input_context_t * ctx, bgav_stream_t * s, int * port,
+static int rtp_parse_range(const char * range, int * ret)
+  {
+  const char * pos;
+  char * rest;
+  
+  ret[0] = strtol(range, &rest, 10);
+  if(range == rest)
+    return 0;
+  pos = rest;
+  while(isspace(*pos))
+    pos++;
+
+  if(*pos != '-')
+    return 0;
+  pos++;
+
+  while(isspace(*pos))
+    pos++;
+  
+  ret[1] = strtol(pos, &rest, 10);
+  if(pos == rest)
+    return 0;
+  return 1;
+  }
+
+static int handle_stream_transport(bgav_stream_t * s,
+                                   const char * transport)
+  {
+  const char * var;
+  int var_len = 0;
+
+  int server_ports[2] = { 0, 0 };
+  int client_ports[2] = { 0, 0 };
+  //  int i;
+  rtp_stream_priv_t * sp = (rtp_stream_priv_t *)s->priv;
+
+  if(!(var = get_answer_var(transport, "client_port=", &var_len)) ||
+     !rtp_parse_range(var, client_ports))
+    {
+    return 0;
+    }
+  bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Client ports: %d %d\n",
+             client_ports[0], client_ports[1]);
+    
+  if(!(var = get_answer_var(transport, "server_port=", &var_len)) ||
+     !rtp_parse_range(var, server_ports))
+    
+    return 0;
+
+  bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Server ports: %d %d\n",
+           server_ports[0], server_ports[1]);
+  
+  if((var = get_answer_var(transport, "source=", &var_len)))
+    {
+    char * ip = bgav_strndup(var, var + var_len);
+    sp->rtcp_addr =
+      bgav_hostbyname(s->opt,
+                      ip, server_ports[1], SOCK_DGRAM);
+    if(!sp->rtcp_addr)
+      {
+      free(ip);
+      return 0;
+      }
+    bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Server adress: %s\n", ip);
+    free(ip);
+    }
+  else
+    return 0;
+
+  if((var = get_answer_var(transport, "ssrc=", &var_len)))
+    sp->server_ssrc = strtoul(var, (char**)0, 16);
+
+  bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN, "ssrc: %08x\n",
+           sp->server_ssrc);
+  
+  return 1;
+  }
+
+static int init_stream_generic(bgav_input_context_t * ctx,
+                               bgav_stream_t * s, int * port,
                                char ** session_id)
   {
   rtsp_priv_t * priv = (rtsp_priv_t*)ctx->priv;
   rtp_stream_priv_t * sp = (rtp_stream_priv_t *)s->priv;
   char * field;
+  const char * var;
 
   if(!sp || !sp->control_url)
     return 0;
@@ -490,16 +593,20 @@ static int init_stream_generic(bgav_input_context_t * ctx, bgav_stream_t * s, in
   
   if(!(*session_id))
     {
-    const char * var;
     var = bgav_rtsp_get_answer(priv->r, "Session");
     if(var)
       *session_id = bgav_strdup(var);
     }
-  sp->rtp_fd = bgav_udp_open_read(ctx->opt, *port);
+  
+  var = bgav_rtsp_get_answer(priv->r, "Transport");
+  if(!var || !handle_stream_transport(s, var))
+    return 0;
+  
+  sp->rtp_fd = bgav_udp_open(ctx->opt, *port);
   if(sp->rtp_fd < 0)
     return 0;
   
-  sp->rtcp_fd = bgav_udp_open_read(ctx->opt, (*port)+1);
+  sp->rtcp_fd = bgav_udp_open(ctx->opt, (*port)+1);
   if(sp->rtcp_fd < 0)
     return 0;
 
@@ -512,23 +619,8 @@ static int init_stream_generic(bgav_input_context_t * ctx, bgav_stream_t * s, in
 /*
  * Handle things like
  * url=rtsp://live.polito.it/accademia/2007/accademia-2007-02-28.mov/TrackID=0;seq=37253;rtptime=2299148613,url=rtsp://live.polito.it/accademia/2007/accademia-2007-02-28.mov/TrackID=1;seq=18653;rtptime=4265967293
-*/
+ */
 
-static const char * get_rtpinfo_var(const char * str, const char * name,
-                                    int * len)
-  {
-  const char * pos1, *pos2;
-
-  pos1 = strstr(str, name);
-  if(!pos1)
-    return (char*)0;
-  pos2 = strchr(pos1, ';');
-  if(!pos2)
-    pos2 = pos1 + strlen(pos1);
-  pos1 += strlen(name);
-  *len = pos2 - pos1;
-  return pos1;
-  }
 
 static int handle_rtpinfo(bgav_input_context_t * ctx,
                           const char * rtpinfo)
@@ -546,13 +638,10 @@ static int handle_rtpinfo(bgav_input_context_t * ctx,
   i = 0;
   while(streams[i])
     {
-    var = get_rtpinfo_var(streams[i], "url=", &var_len);
+    var = get_answer_var(streams[i], "url=", &var_len);
     if(!var)
       return 0;
     pos1 = strrchr(var, '/');
-
-    fprintf(stderr, "Pos: %p, var: %p, pos - var: %ld, var_len: %d\n",
-            pos1, var, pos1 - var, var_len);
     
     if(pos1)
       var_len -= (int)(pos1 - var);
@@ -569,9 +658,6 @@ static int handle_rtpinfo(bgav_input_context_t * ctx,
       if(!pos2)
         pos2 = sp->control_url;
 
-      fprintf(stderr, "pos1: %s, pos2: %s, var_len: %d\n",
-              pos1, pos2, var_len);
-      
       if(!strncmp(pos1, pos2, var_len))
         {
         s = &ctx->demuxer->tt->cur->video_streams[j];
@@ -597,7 +683,7 @@ static int handle_rtpinfo(bgav_input_context_t * ctx,
       }
     if(s && sp)
       {
-      var = get_rtpinfo_var(streams[i], "rtptime=", &var_len);
+      var = get_answer_var(streams[i], "rtptime=", &var_len);
       if(!var)
         {
         //        fprintf(stderr, "Got no first rtptime\n"); 
@@ -607,7 +693,7 @@ static int handle_rtpinfo(bgav_input_context_t * ctx,
 
       //      fprintf(stderr, "First rtptime: %d\n", sp->first_rtptime); 
       
-      var = get_rtpinfo_var(streams[i], "seq=", &var_len);
+      var = get_answer_var(streams[i], "seq=", &var_len);
       if(!var)
         return 0;
       
