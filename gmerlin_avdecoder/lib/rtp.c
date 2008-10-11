@@ -43,6 +43,11 @@ static int init_mpeg4_generic_audio(bgav_stream_t * s);
 static int init_h264(bgav_stream_t * s);
 
 static int init_mpa(bgav_stream_t * s);
+static int init_mpv(bgav_stream_t * s);
+
+
+static int init_mp4v_es(bgav_stream_t * s);
+
 
 static int rtp_header_read(bgav_input_context_t * ctx,
                            rtp_header_t * ret)
@@ -154,7 +159,7 @@ static const static_payload_t static_payloads[] =
     // 31         H261          V              90000               [RFC2032]
     { 31, BGAV_MK_FOURCC('h','2','6','1'), 0, 90000 },
     // 32         MPV           V              90000               [RFC2250]
-    { 32, BGAV_MK_FOURCC('m','p','g','v'), 0, 90000 },
+    { 32, BGAV_MK_FOURCC('m','p','g','v'), 0, 90000, init_mpv },
     // 33         MP2T          AV             90000               [RFC2250]
     // 34         H263          V              90000               [Zhu]
     { 34, BGAV_MK_FOURCC('h','2','6','3'), 0, 90000 },
@@ -164,6 +169,7 @@ static const static_payload_t static_payloads[] =
 static const dynamic_payload_t dynamic_video_payloads[] =
   {
     { "H264", BGAV_MK_FOURCC('h', '2', '6', '4'), init_h264 },
+    { "MP4V-ES", BGAV_MK_FOURCC('m', 'p', '4', 'v'), init_mp4v_es },
     { },
   };
 
@@ -398,6 +404,10 @@ static int read_rtp_packet(rtp_priv_t * priv, bgav_stream_t * s)
 
   p->buf = p->buffer + priv->input_mem->position;
   p->len = bytes_read - priv->input_mem->position;
+
+  /* Handle padding */
+  if(p->h.padding)
+    p->len -= p->buf[p->len-1];
   
   p->h.timestamp -= sp->first_rtptime;
 
@@ -1006,7 +1016,10 @@ static int init_h264(bgav_stream_t * s)
   return 1;
   }
 
-static int process_mpa(bgav_stream_t * s, rtp_header_t * h, uint8_t * data, int len)
+/* MPEG Audio */
+
+static int
+process_mpa(bgav_stream_t * s, rtp_header_t * h, uint8_t * data, int len)
   {
   rtp_stream_priv_t * sp;
   bgav_packet_t * p;
@@ -1029,4 +1042,125 @@ static int init_mpa(bgav_stream_t * s)
   sp = s->priv;
   sp->process = process_mpa;
   return 1;
+  }
+
+/* MPEG Video */
+
+static int
+process_mpv(bgav_stream_t * s, rtp_header_t * h, uint8_t * data, int len)
+  {
+  rtp_stream_priv_t * sp;
+  bgav_packet_t * p;
+  uint32_t i;
+  sp = s->priv;
+  
+  p = bgav_stream_get_packet_write(s);
+
+  i = BGAV_PTR_2_32BE(data);
+  if(i & (1 << 26)) /* MPEG-2 */
+    {
+    data += 8;
+    len -= 8;
+    }
+  else
+    {
+    data += 4;
+    len -= 4;
+    }
+  
+  bgav_packet_alloc(p, len);
+
+  p->keyframe = 1;
+  p->pts      = h->timestamp;
+  memcpy(p->data, data, len);
+  p->data_size = len;
+  bgav_packet_done_write(p);
+  return 1;
+  }
+
+static int init_mpv(bgav_stream_t * s)
+  {
+  rtp_stream_priv_t * sp;
+  sp = s->priv;
+  sp->process = process_mpv;
+  return 1;
+  }
+
+/* MP4V-ES */
+
+static int process_mp4v_es(bgav_stream_t * s,
+                           rtp_header_t * h, uint8_t * data, int len)
+  {
+#if 1
+  if(!h->marker) /* No frame ends here */
+    {
+    if(!s->packet)
+      {
+      s->packet = bgav_stream_get_packet_write(s);
+      s->packet->data_size = 0;
+      s->packet->pts = h->timestamp;
+      }
+    bgav_packet_alloc(s->packet, s->packet->data_size + len);
+    memcpy(s->packet->data + s->packet->data_size, data, len);
+    s->packet->data_size += len;
+    }
+  else
+    {
+    if(s->packet)
+      {
+      bgav_packet_alloc(s->packet, s->packet->data_size + len);
+      memcpy(s->packet->data + s->packet->data_size, data, len);
+      s->packet->data_size += len;
+      //      bgav_hexdump(s->packet->data, 16, 16);
+      bgav_packet_done_write(s->packet);
+      s->packet = (bgav_packet_t*)0;
+      }
+    else
+      {
+      bgav_packet_t * p;
+      p = bgav_stream_get_packet_write(s);
+      bgav_packet_alloc(p, len);
+      memcpy(p->data, data, len);
+      //      bgav_hexdump(p->data, 16, 16);
+      p->data_size = len;
+      bgav_packet_done_write(p);
+      }
+    }
+#else
+  bgav_packet_t * p;
+  p = bgav_stream_get_packet_write(s);
+  bgav_packet_alloc(p, len);
+  memcpy(p->data, data, len);
+  //  bgav_hexdump(p->data, 16, 16);
+  p->data_size = len;
+  p->pts = h->timestamp;
+  bgav_packet_done_write(p);
+#endif
+  
+  return 1;
+  }
+
+static int init_mp4v_es(bgav_stream_t * s)
+  {
+  char * value;
+  rtp_stream_priv_t * sp;
+  int i;
+
+  sp = s->priv;
+  
+  value = find_fmtp(sp->fmtp, "config");
+  if(!value)
+    return 0;
+
+  s->ext_size = strlen(value)/2;
+  s->ext_data = malloc(s->ext_size);
+  //  s->not_aligned = 1;
+  i = 0;
+  while(i < s->ext_size)
+    {
+    s->ext_data[i] = hex_to_byte(value);
+    value += 2;
+    i++;
+    }
+  sp->process = process_mp4v_es;
   }
