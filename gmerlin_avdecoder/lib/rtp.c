@@ -1069,8 +1069,7 @@ process_mpv(bgav_stream_t * s, rtp_header_t * h, uint8_t * data, int len)
     }
   
   bgav_packet_alloc(p, len);
-
-  p->keyframe = 1;
+  
   p->pts      = h->timestamp;
   memcpy(p->data, data, len);
   p->data_size = len;
