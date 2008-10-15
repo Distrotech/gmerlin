@@ -66,40 +66,59 @@ static int rtsp_send_request(bgav_rtsp_t * rtsp,
   const char * var;
   int status;
   char * line = (char*)0;
-  rtsp->cseq++;
-  line = bgav_sprintf("%s %s RTSP/1.0\r\n", command, what);
-#ifdef DUMP_REQUESTS
-  bgav_dprintf("Sending: %s", line);
-#endif  
-  if(!bgav_tcp_send(rtsp->opt, rtsp->fd, (uint8_t*)line, strlen(line)))
-    goto fail;
-
-  free(line);
+  char * request;
+  int i;
   
-  line = bgav_sprintf("CSeq: %u\r\n", rtsp->cseq);
-#ifdef DUMP_REQUESTS
-  bgav_dprintf("Sending: %s", line);
-#endif  
-  write(rtsp->fd, line, strlen(line));
-  free(line);
+  /* We must send the whole request at once so that
+     RTSP aware NATs/firewalls recognize our requests and
+     open the UDP ports for us
+  */
+  
+  rtsp->cseq++;
+  request = bgav_sprintf("%s %s RTSP/1.0\r\n", command, what);
+  
+  //  if(!bgav_tcp_send(rtsp->opt, rtsp->fd, (uint8_t*)line, strlen(line)))
+  //    goto fail;
+  //  free(line);
+
+  for(i = 0; i < rtsp->request_fields->num_lines; i++)
+    {
+    request = bgav_strncat(request, rtsp->request_fields->lines[i].line,
+                           (char*)0);
+    request = bgav_strncat(request, "\r\n",
+                           (char*)0);
+    }
+  
+  //  if(!bgav_http_header_send(rtsp->opt, rtsp->request_fields, rtsp->fd))
+  //    goto fail;
 
   if(rtsp->session)
     {
-    line = bgav_sprintf("Session: %s\r\n", rtsp->session);
-#ifdef DUMP_REQUESTS
-    bgav_dprintf("Sending: %s", line);
-#endif  
-    write(rtsp->fd, line, strlen(line));
+    line = bgav_sprintf("Session: %s\r\n", rtsp->session,
+                           (char*)0);
+    request = bgav_strncat(request, line,
+                           (char*)0);
     free(line);
     }
-#ifdef DUMP_REQUESTS
-  bgav_dprintf("Sending request\n");
-  bgav_http_header_dump(rtsp->request_fields);
-#endif
   
-  if(!bgav_http_header_send(rtsp->opt, rtsp->request_fields, rtsp->fd) ||
-     !bgav_tcp_send(rtsp->opt, rtsp->fd, (uint8_t*)"\r\n", 2))
+  line = bgav_sprintf("CSeq: %u\r\n", rtsp->cseq);
+  request = bgav_strncat(request, line,
+                           (char*)0);
+  free(line);
+
+  request = bgav_strncat(request, "\r\n",
+                           (char*)0);
+
+#ifdef DUMP_REQUESTS
+  bgav_dprintf("Sending request:\n%s", request);
+#endif  
+  
+  if(!bgav_tcp_send(rtsp->opt, rtsp->fd, request, strlen(request)))
+    {
+    free(request);
     goto fail;
+    }
+  free(request);
   
   bgav_http_header_reset(rtsp->request_fields);
   

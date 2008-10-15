@@ -93,27 +93,36 @@ static void address_set_port(struct addrinfo * info, int port)
     }
   }
 
-struct addrinfo * bgav_hostbyname(const bgav_options_t * opt,
-                                  const char * hostname, int port, int socktype)
+struct addrinfo *
+bgav_hostbyname(const bgav_options_t * opt,
+                const char * hostname, int port, int socktype, int flags)
   {
   int err;
   struct in_addr ipv4_addr;
   
   struct addrinfo hints;
   struct addrinfo * ret;
-
+  char * service = (char*)0;
+  
   memset(&hints, 0, sizeof(hints));
-  hints.ai_family   = PF_UNSPEC;
+  //  hints.ai_family   = AF_UNSPEC;
+  hints.ai_family   = AF_INET;
   hints.ai_socktype = socktype; // SOCK_STREAM, SOCK_DGRAM
-  hints.ai_protocol = 0; // 0
-  hints.ai_flags    = 0;
-
+  hints.ai_protocol = 0; // PF_INET, PF_INET6
+  hints.ai_flags    = flags;
+  
   /* prevent DNS lookup for numeric IP addresses */
   
   if(hostname && inet_aton(hostname, &(ipv4_addr)))
     hints.ai_flags |= AI_NUMERICHOST;
-
-  if((err = getaddrinfo(hostname, (char*)0 /* service */,
+  
+  if(!hostname)
+    {
+    service = bgav_sprintf("%d", port);
+    hints.ai_flags |= AI_NUMERICSERV;
+    }
+  
+  if((err = getaddrinfo(hostname, service /* service */,
                         &hints, &ret)))
     {
     bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
@@ -122,7 +131,11 @@ struct addrinfo * bgav_hostbyname(const bgav_options_t * opt,
     return (struct addrinfo *)0;
     }
 
-  address_set_port(ret, port);
+  if(hostname)
+    address_set_port(ret, port);
+  
+  if(service)
+    free(service);
   
   return ret;
   }
@@ -190,7 +203,7 @@ int bgav_tcp_connect(const bgav_options_t * opt,
   struct addrinfo * addr;
   int ret;
   
-  addr = bgav_hostbyname(opt, host, port, SOCK_STREAM);
+  addr = bgav_hostbyname(opt, host, port, SOCK_STREAM, 0);
   if(!addr)
     return -1;
   ret = socket_connect_inet(opt, addr);

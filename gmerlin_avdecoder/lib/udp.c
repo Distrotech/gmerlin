@@ -39,10 +39,11 @@
 int bgav_udp_open(const bgav_options_t * opt, int port)
   {
   int ret;
-  size_t tmp;
-  struct sockaddr_in name;
-  //  struct addrinfo * addr;
-  //  addr = bgav_hostbyname(opt, (const char * hostname)0, port, SOCK_DGRAM);
+  size_t tmp = 0;
+  //  struct sockaddr_in name;
+  socklen_t optlen;
+  struct addrinfo * addr;
+  addr = bgav_hostbyname(opt, (const char *)0, port, SOCK_DGRAM, AI_PASSIVE);
 
   /* Create the socket */
   if((ret = socket(PF_INET, SOCK_DGRAM, 0)) < 0)
@@ -52,19 +53,23 @@ int bgav_udp_open(const bgav_options_t * opt, int port)
     }
   
   /* Give the socket a name. */
-  name.sin_family = AF_INET;
-  name.sin_port = htons (port);
-  name.sin_addr.s_addr = htonl (INADDR_ANY);
+  //  name.sin_family = AF_INET;
+  //  name.sin_port = htons (port);
+  //  name.sin_addr.s_addr = htonl (INADDR_ANY);
   
-  if (bind(ret, (struct sockaddr *) &name, sizeof (name)) < 0)
+  //  if (bind(ret, (struct sockaddr *) &name, sizeof (name)) < 0)
+
+  fprintf(stderr, "Bind\n");
+  
+  if(bind(ret, addr->ai_addr, addr->ai_addrlen) < 0)
     {
     bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
              "Cannot bind inet socket: %s", strerror(errno));
     return -1;
     }
 
-  getsockopt(ret, SOL_SOCKET, SO_RCVBUF, &tmp, sizeof(tmp));
-  //  fprintf(stderr, "RCVBUF: %ld\n", tmp);
+  getsockopt(ret, SOL_SOCKET, SO_RCVBUF, &tmp, &optlen);
+  fprintf(stderr, "RCVBUF: %ld\n", tmp);
   tmp = 65536;
   setsockopt(ret, SOL_SOCKET, SO_RCVBUF, &tmp, sizeof(tmp));
 

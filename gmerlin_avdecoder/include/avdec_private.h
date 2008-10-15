@@ -1471,7 +1471,8 @@ int bgav_tcp_send(const bgav_options_t * opt,
                   int fd, uint8_t * data, int len);
 
 struct addrinfo * bgav_hostbyname(const bgav_options_t * opt,
-                                  const char * hostname, int port, int socktype);
+                                  const char * hostname,
+                                  int port, int socktype, int flags);
 
 /* udp.c */
 int bgav_udp_open(const bgav_options_t * opt, int port);

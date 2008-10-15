@@ -228,7 +228,7 @@ static void check_dynamic(bgav_stream_t * s, const dynamic_payload_t * dynamic_p
   while(dynamic_payloads[i].name)
     {
     if((strlen(dynamic_payloads[i].name) == pos2 - pos1) &&
-       !strncmp(dynamic_payloads[i].name, pos1, pos2 - pos1))
+       !strncasecmp(dynamic_payloads[i].name, pos1, pos2 - pos1))
       {
       s->fourcc = dynamic_payloads[i].fourcc;
       if(dynamic_payloads[i].init)
@@ -1162,4 +1162,5 @@ static int init_mp4v_es(bgav_stream_t * s)
     i++;
     }
   sp->process = process_mp4v_es;
+  return 1;
   }

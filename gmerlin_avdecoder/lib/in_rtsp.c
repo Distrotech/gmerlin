@@ -544,7 +544,7 @@ static int handle_stream_transport(bgav_stream_t * s,
     char * ip = bgav_strndup(var, var + var_len);
     sp->rtcp_addr =
       bgav_hostbyname(s->opt,
-                      ip, server_ports[1], SOCK_DGRAM);
+                      ip, server_ports[1], SOCK_DGRAM, 0);
     if(!sp->rtcp_addr)
       {
       free(ip);
@@ -574,17 +574,26 @@ static int init_stream_generic(bgav_input_context_t * ctx,
   char * field;
   const char * var;
 
+  /* Open ports */
+  sp->rtp_fd = bgav_udp_open(ctx->opt, *port);
+  if(sp->rtp_fd < 0)
+    return 0;
+  
+  sp->rtcp_fd = bgav_udp_open(ctx->opt, (*port)+1);
+  if(sp->rtcp_fd < 0)
+    return 0;
+
   if(!sp || !sp->control_url)
     return 0;
   
-  field = bgav_sprintf("Transport: RTP/AVP;unicast;client_port=%d-%d",
+  field = bgav_sprintf("Transport: RTP/AVP/UDP;unicast;client_port=%d-%d",
                        *port, (*port)+1);
   
   /* Send setup request */
   bgav_rtsp_schedule_field(priv->r, field);free(field);
   //  bgav_rtsp_schedule_field(priv->r, "Range: npt=0-");
-  bgav_rtsp_schedule_field(priv->r,
-                           "User-Agent: "USER_AGENT);
+  //  bgav_rtsp_schedule_field(priv->r,
+  //                           "User-Agent: "USER_AGENT);
   //  bgav_rtsp_schedule_field(priv->r,
   //                           "Accept-Language: en-US");
 
@@ -601,17 +610,8 @@ static int init_stream_generic(bgav_input_context_t * ctx,
   var = bgav_rtsp_get_answer(priv->r, "Transport");
   if(!var || !handle_stream_transport(s, var))
     return 0;
-  
-  sp->rtp_fd = bgav_udp_open(ctx->opt, *port);
-  if(sp->rtp_fd < 0)
-    return 0;
-  
-  sp->rtcp_fd = bgav_udp_open(ctx->opt, (*port)+1);
-  if(sp->rtcp_fd < 0)
-    return 0;
 
   *port += 2;
-
   
   return 1;
   }
@@ -712,8 +712,9 @@ static int init_generic(bgav_input_context_t * ctx, bgav_sdp_t * sdp)
   rtsp_priv_t * priv;
   bgav_stream_t * s;
   int i;
-  //  int port = 5001; /* TODO: Base port */
-  int port = 32980; /* TODO: Base port */
+  //  int port = 5000; /* TODO: Base port */
+  //  int port = 32980; /* TODO: Base port */
+  int port = 52010;
   char * session_id = (char *)0;
   char * field;
   const char * var;
