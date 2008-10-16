@@ -39,7 +39,7 @@ int bgav_rtsp_open(bgav_rtsp_t *, const char * url, int * got_redirected)
 int bgav_rtsp_reopen(bgav_rtsp_t * rtsp);
 
 
-void bgav_rtsp_close(bgav_rtsp_t *);
+void bgav_rtsp_close(bgav_rtsp_t *, int teardown);
 
 /* Return raw socket */
 

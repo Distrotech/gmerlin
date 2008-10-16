@@ -76,10 +76,6 @@ static int rtsp_send_request(bgav_rtsp_t * rtsp,
   
   rtsp->cseq++;
   request = bgav_sprintf("%s %s RTSP/1.0\r\n", command, what);
-  
-  //  if(!bgav_tcp_send(rtsp->opt, rtsp->fd, (uint8_t*)line, strlen(line)))
-  //    goto fail;
-  //  free(line);
 
   for(i = 0; i < rtsp->request_fields->num_lines; i++)
     {
@@ -88,14 +84,10 @@ static int rtsp_send_request(bgav_rtsp_t * rtsp,
     request = bgav_strncat(request, "\r\n",
                            (char*)0);
     }
-  
-  //  if(!bgav_http_header_send(rtsp->opt, rtsp->request_fields, rtsp->fd))
-  //    goto fail;
 
   if(rtsp->session)
     {
-    line = bgav_sprintf("Session: %s\r\n", rtsp->session,
-                           (char*)0);
+    line = bgav_sprintf("Session: %s\r\n", rtsp->session);
     request = bgav_strncat(request, line,
                            (char*)0);
     free(line);
@@ -113,7 +105,7 @@ static int rtsp_send_request(bgav_rtsp_t * rtsp,
   bgav_dprintf("Sending request:\n%s", request);
 #endif  
   
-  if(!bgav_tcp_send(rtsp->opt, rtsp->fd, request, strlen(request)))
+  if(!bgav_tcp_send(rtsp->opt, rtsp->fd, (uint8_t*)request, strlen(request)))
     {
     free(request);
     goto fail;
@@ -154,7 +146,6 @@ static int rtsp_send_request(bgav_rtsp_t * rtsp,
   bgav_dprintf("Got answer %d:\n", status);
   bgav_http_header_dump(rtsp->answers);
 #endif  
-  
 
   if(status != 200)
     {
@@ -332,9 +323,10 @@ bgav_sdp_t * bgav_rtsp_get_sdp(bgav_rtsp_t * r)
   return &(r->sdp);
   }
 
-void bgav_rtsp_close(bgav_rtsp_t * r)
+void bgav_rtsp_close(bgav_rtsp_t * r, int teardown)
   {
-  rtsp_send_request(r,"TEARDOWN",r->url, NULL);
+  if(teardown)
+    rtsp_send_request(r,"TEARDOWN",r->url, NULL);
   
   bgav_http_header_destroy(r->answers);
   bgav_http_header_destroy(r->request_fields);

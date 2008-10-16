@@ -69,6 +69,15 @@ void bgav_options_set_http_proxy_port(bgav_options_t*b, int p)
   b->http_proxy_port = p;
   }
 
+void bgav_options_set_rtp_port_base(bgav_options_t*b, int p)
+  {
+  b->rtp_port_base = p;
+  }
+
+void bgav_options_set_rtp_try_tcp(bgav_options_t*b, int p)
+  {
+  b->rtp_try_tcp = p;
+  }
 
 void bgav_options_set_sample_accurate(bgav_options_t*b, int p)
   {
@@ -210,7 +219,7 @@ void bgav_options_set_defaults(bgav_options_t * b)
   b->cache_time = 500;
   b->cache_size = 20;
   // Test
-  b->prefer_ffmpeg_demuxers = 0;
+  b->rtp_try_tcp = 1;
   }
 
 bgav_options_t * bgav_options_create()
@@ -243,6 +252,9 @@ void bgav_options_copy(bgav_options_t * dst, const bgav_options_t * src)
   CP_INT(network_bandwidth);
   CP_INT(network_buffer_size);
 
+  CP_INT(rtp_try_tcp);
+  CP_INT(rtp_port_base);
+  
   /* http options */
 
   CP_INT(http_use_proxy);

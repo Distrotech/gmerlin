@@ -185,6 +185,7 @@ typedef struct
   int num_pollfds;
 
   bgav_input_context_t * input_mem;
+  int tcp;
   } rtp_priv_t;
 
 
@@ -213,7 +214,8 @@ static void cleanup_stream_rtp(bgav_stream_t * s)
   }
 
 
-static void check_dynamic(bgav_stream_t * s, const dynamic_payload_t * dynamic_payloads,
+static void check_dynamic(bgav_stream_t * s,
+                          const dynamic_payload_t * dynamic_payloads,
                           const char * rtpmap)
   {
   const char * pos1, *pos2;
@@ -244,7 +246,8 @@ static void check_dynamic(bgav_stream_t * s, const dynamic_payload_t * dynamic_p
     }
   }
 
-static int find_codec(bgav_stream_t * s, bgav_sdp_media_desc_t * md, int format_index)
+static int find_codec(bgav_stream_t * s, bgav_sdp_media_desc_t * md,
+                      int format_index)
   {
   int format = atoi(md->formats[0]);
   int i;
@@ -375,24 +378,38 @@ init_stream(bgav_demuxer_context_t * ctx,
     if(tmp_string) /* Complete URL */
       sp->control_url = bgav_strdup(control);
     }
-
   if(!sp->control_url)
     sp->control_url = bgav_sprintf("%s/%s", ctx->input->url, control);
   // fprintf(stderr, "Control: %s\n", sp->control_url);
   return 1;
   }
 
-static int read_rtp_packet(rtp_priv_t * priv, bgav_stream_t * s)
+static int read_rtp_packet(bgav_demuxer_context_t * ctx,
+                           bgav_stream_t * s, int len)
   {
   rtp_packet_t * p;
   rtp_stream_priv_t * sp;
   int bytes_read;
+  rtp_priv_t * priv;
+  priv = ctx->priv;
+  
   sp = s->priv;
   /* Read packet */
   p = bgav_rtp_packet_buffer_get_write(sp->buf);
-  
-  bytes_read = bgav_udp_read(sp->rtp_fd,
-                             p->buffer, RTP_MAX_PACKET_LENGTH);
+
+  if(!len)
+    {
+    bytes_read = bgav_udp_read(sp->rtp_fd,
+                               p->buffer, RTP_MAX_PACKET_LENGTH);
+    }
+  else
+    {
+    if(len > RTP_MAX_PACKET_LENGTH)
+      return 0;
+    if(bgav_input_read_data(ctx->input, p->buffer, len) < len)
+      return 0;
+    bytes_read = len;
+    }
   
   if(s->action != BGAV_STREAM_DECODE)
     return 1;
@@ -429,16 +446,32 @@ static int read_rtp_packet(rtp_priv_t * priv, bgav_stream_t * s)
   return 1;
   }
 
-static void read_rtcp_packet(rtp_priv_t * priv, bgav_stream_t * s)
+static int read_rtcp_packet(bgav_demuxer_context_t * ctx,
+                             bgav_stream_t * s, int len)
   {
+  rtp_priv_t * priv;
+
   rtp_stream_priv_t * sp;
   int bytes_read;
   rtcp_sr_t rr;
   uint8_t buf[RTP_MAX_PACKET_LENGTH];
   sp = s->priv;
+  priv = ctx->priv;
   /* Read packet */
-  bytes_read = bgav_udp_read(sp->rtcp_fd,
-                             buf, RTP_MAX_PACKET_LENGTH);
+
+  if(!len)
+    {
+    bytes_read = bgav_udp_read(sp->rtcp_fd,
+                               buf, RTP_MAX_PACKET_LENGTH);
+    }
+  else
+    {
+    if(len > RTP_MAX_PACKET_LENGTH)
+      return 0;
+    if(bgav_input_read_data(ctx->input, buf, len) < len)
+      return 0;
+    bytes_read = len;
+    }
   
   // fprintf(stderr, "Got Audio RTCP Data: %d bytes\n", bytes_read);
       
@@ -446,12 +479,19 @@ static void read_rtcp_packet(rtp_priv_t * priv, bgav_stream_t * s)
     {
     bgav_input_reopen_memory(priv->input_mem, buf, bytes_read);
     if(!bgav_rtcp_sr_read(priv->input_mem, &rr))
-      return;
+      return 0;
 
     //    bgav_rtcp_sr_dump(&rr);
     sp->lsr = (rr.ntp_time >> 16) && 0xFFFFFFFF;
     sp->sr_count++;
-    if(sp->sr_count >= 5)
+
+    /* TODO: The standard has more sophisticated formulas
+     * for calculating the interval for receiver reports.
+     * Here we assume a constant fraction of the number
+     * (not bandwidth!) of the sender reports
+     */
+    
+    if((sp->sr_count >= 5) && !len)
       {
       sp->sr_count = 0;
       memset(&rr, 0, sizeof(rr));
@@ -465,6 +505,7 @@ static void read_rtcp_packet(rtp_priv_t * priv, bgav_stream_t * s)
       //        fprintf(stderr, "Sent receiver report\n");
       }
     }
+  return 1;
   }
 
 static void init_pollfds(bgav_demuxer_context_t * ctx)
@@ -519,13 +560,13 @@ static void handle_pollfds(bgav_demuxer_context_t * ctx)
     sp = s->priv;
     if(priv->pollfds[index].revents & POLLIN)
       {
-      read_rtp_packet(priv, s);
+      read_rtp_packet(ctx, s, 0);
       }
     index++;
     if(priv->pollfds[index].revents & POLLIN)
       {
       /* Read Audio RTCP Data */
-      read_rtcp_packet(priv, s);
+      read_rtcp_packet(ctx, s, 0);
       }
     index++;
     }
@@ -535,36 +576,88 @@ static void handle_pollfds(bgav_demuxer_context_t * ctx)
     sp = s->priv;
     if(priv->pollfds[index].revents & POLLIN)
       {
-      read_rtp_packet(priv, s);
+      read_rtp_packet(ctx, s, 0);
       }
     index++;
     if(priv->pollfds[index].revents & POLLIN)
       {
       /* Read Video RTCP Data */
-      read_rtcp_packet(priv, s);
+      read_rtcp_packet(ctx, s, 0);
       }
     index++;
     }
   }
 
+static int read_tcp_packet(bgav_demuxer_context_t * ctx,
+                           int channel, int len)
+  {
+  rtp_priv_t * priv;
+  int i;
+  rtp_stream_priv_t * sp;
+  bgav_stream_t * s;
+  priv = ctx->priv;
+  
+  for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
+    {
+    s = &ctx->tt->cur->audio_streams[i];
+    sp = s->priv;
+    if(sp->interleave_base == channel)
+      return read_rtp_packet(ctx, s, len);
+    else if(sp->interleave_base+1 == channel)
+      return read_rtcp_packet(ctx, s, len);
+    }
+  for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
+    {
+    s = &ctx->tt->cur->video_streams[i];
+    sp = s->priv;
+    if(sp->interleave_base == channel)
+      return read_rtp_packet(ctx, s, len);
+    else if(sp->interleave_base+1 == channel)
+      return read_rtcp_packet(ctx, s, len);
+    }
+  return 0;
+  }
+                           
+
 static int next_packet_rtp(bgav_demuxer_context_t * ctx)
   {
   int ret = 0;
   rtp_priv_t * priv;
+
   priv = (rtp_priv_t *)ctx->priv;
-  
-  if(!priv->pollfds)
-    init_pollfds(ctx);
-  
-  if(poll(priv->pollfds, priv->num_pollfds, ctx->opt->read_timeout) > 0)
+
+  if(priv->tcp)
     {
-    handle_pollfds(ctx);
-    ret = 1;
+    uint8_t c = 0;
+    uint16_t len;
+    
+    while(c != '$')
+      {
+      if(!bgav_input_read_8(ctx->input, &c))
+        return 0;
+      }
+    if(!bgav_input_read_8(ctx->input, &c) ||
+       !bgav_input_read_16_be(ctx->input, &len))
+      return 0;
+    
+    /* Process packet */
+    return read_tcp_packet(ctx, c, len);
     }
-  if(ret)
+  else
     {
-    while(poll(priv->pollfds, priv->num_pollfds, 0) > 0)
+    if(!priv->pollfds)
+      init_pollfds(ctx);
+    
+    if(poll(priv->pollfds, priv->num_pollfds, ctx->opt->read_timeout) > 0)
+      {
       handle_pollfds(ctx);
+      ret = 1;
+      }
+    if(ret)
+      {
+      while(poll(priv->pollfds, priv->num_pollfds, 0) > 0)
+        handle_pollfds(ctx);
+      }
     }
   return ret;
   }
@@ -586,6 +679,15 @@ static void close_rtp(bgav_demuxer_context_t * ctx)
   
   free(priv);
   }
+
+void bgav_rtp_set_tcp(bgav_demuxer_context_t * ctx)
+  {
+  rtp_priv_t * priv = ctx->priv;
+  if(!priv)
+    return;
+  priv->tcp = 1;
+  }
+
 
 int bgav_demuxer_rtp_open(bgav_demuxer_context_t * ctx,
                           bgav_sdp_t * sdp)
@@ -691,6 +793,7 @@ static char * find_fmtp(char ** fmtp, char * key)
     }
   return (char*)0;
   }
+
 
 /* mpeg-4 AU parsing */
 
@@ -1164,3 +1267,4 @@ static int init_mp4v_es(bgav_stream_t * s)
   sp->process = process_mp4v_es;
   return 1;
   }
+

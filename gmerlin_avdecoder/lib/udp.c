@@ -59,8 +59,6 @@ int bgav_udp_open(const bgav_options_t * opt, int port)
   
   //  if (bind(ret, (struct sockaddr *) &name, sizeof (name)) < 0)
 
-  fprintf(stderr, "Bind\n");
-  
   if(bind(ret, addr->ai_addr, addr->ai_addrlen) < 0)
     {
     bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
@@ -68,8 +66,7 @@ int bgav_udp_open(const bgav_options_t * opt, int port)
     return -1;
     }
 
-  getsockopt(ret, SOL_SOCKET, SO_RCVBUF, &tmp, &optlen);
-  fprintf(stderr, "RCVBUF: %ld\n", tmp);
+  //  getsockopt(ret, SOL_SOCKET, SO_RCVBUF, &tmp, &optlen);
   tmp = 65536;
   setsockopt(ret, SOL_SOCKET, SO_RCVBUF, &tmp, sizeof(tmp));
 

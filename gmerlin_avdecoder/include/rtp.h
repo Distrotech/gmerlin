@@ -28,6 +28,8 @@ extern bgav_demuxer_t bgav_demuxer_rtp;
 int bgav_demuxer_rtp_open(bgav_demuxer_context_t * ctx,
                           bgav_sdp_t * sdp);
 
+void bgav_rtp_set_tcp(bgav_demuxer_context_t * ctx);
+
 /* rtp statistics for generating receiver reports */
 
 typedef struct
@@ -108,6 +110,8 @@ typedef struct rtp_stream_priv_s
   int first_seq;
   char ** fmtp;
 
+  int interleave_base;
+  
   uint32_t server_ssrc;
   uint32_t client_ssrc;
   uint32_t lsr;

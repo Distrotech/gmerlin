@@ -80,7 +80,8 @@ typedef struct rtsp_priv_s
   /* RDT Specific */
   uint32_t prev_ts;
   uint32_t prev_stream_number;
-  
+
+  int tcp;
   } rtsp_priv_t;
 
 static void packet_alloc(rtsp_priv_t * priv, int size)
@@ -480,6 +481,7 @@ static int init_real(bgav_input_context_t * ctx, bgav_sdp_t * sdp, char * sessio
     goto fail;
 
   ret = 1;
+  priv->tcp = 1;
   
   fail:
   if(stream_rules)
@@ -513,7 +515,7 @@ static int rtp_parse_range(const char * range, int * ret)
   }
 
 static int handle_stream_transport(bgav_stream_t * s,
-                                   const char * transport)
+                                   const char * transport, int tcp)
   {
   const char * var;
   int var_len = 0;
@@ -522,39 +524,44 @@ static int handle_stream_transport(bgav_stream_t * s,
   int client_ports[2] = { 0, 0 };
   //  int i;
   rtp_stream_priv_t * sp = (rtp_stream_priv_t *)s->priv;
-
-  if(!(var = get_answer_var(transport, "client_port=", &var_len)) ||
-     !rtp_parse_range(var, client_ports))
-    {
-    return 0;
-    }
-  bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Client ports: %d %d\n",
-             client_ports[0], client_ports[1]);
-    
-  if(!(var = get_answer_var(transport, "server_port=", &var_len)) ||
-     !rtp_parse_range(var, server_ports))
-    
-    return 0;
-
-  bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Server ports: %d %d\n",
-           server_ports[0], server_ports[1]);
   
-  if((var = get_answer_var(transport, "source=", &var_len)))
+  if(!tcp)
     {
-    char * ip = bgav_strndup(var, var + var_len);
-    sp->rtcp_addr =
-      bgav_hostbyname(s->opt,
-                      ip, server_ports[1], SOCK_DGRAM, 0);
-    if(!sp->rtcp_addr)
+    if(!(var = get_answer_var(transport, "client_port=", &var_len)) ||
+       !rtp_parse_range(var, client_ports))
       {
-      free(ip);
       return 0;
       }
-    bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Server adress: %s\n", ip);
-    free(ip);
+    bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Client ports: %d %d\n",
+             client_ports[0], client_ports[1]);
+    
+    if(!(var = get_answer_var(transport, "server_port=", &var_len)) ||
+       !rtp_parse_range(var, server_ports))
+    
+      return 0;
+
+    bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Server ports: %d %d\n",
+             server_ports[0], server_ports[1]);
+  
+    if((var = get_answer_var(transport, "source=", &var_len)))
+      {
+      char * ip = bgav_strndup(var, var + var_len);
+      sp->rtcp_addr =
+        bgav_hostbyname(s->opt,
+                        ip, server_ports[1], SOCK_DGRAM, 0);
+      if(!sp->rtcp_addr)
+        {
+        free(ip);
+        return 0;
+        }
+      bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Server adress: %s\n", ip);
+      free(ip);
+      }
+    else
+      return 0;
+
     }
-  else
-    return 0;
+  
 
   if((var = get_answer_var(transport, "ssrc=", &var_len)))
     sp->server_ssrc = strtoul(var, (char**)0, 16);
@@ -567,27 +574,36 @@ static int handle_stream_transport(bgav_stream_t * s,
 
 static int init_stream_generic(bgav_input_context_t * ctx,
                                bgav_stream_t * s, int * port,
-                               char ** session_id)
+                               char ** session_id, int tcp)
   {
   rtsp_priv_t * priv = (rtsp_priv_t*)ctx->priv;
   rtp_stream_priv_t * sp = (rtp_stream_priv_t *)s->priv;
   char * field;
   const char * var;
 
-  /* Open ports */
-  sp->rtp_fd = bgav_udp_open(ctx->opt, *port);
-  if(sp->rtp_fd < 0)
-    return 0;
-  
-  sp->rtcp_fd = bgav_udp_open(ctx->opt, (*port)+1);
-  if(sp->rtcp_fd < 0)
-    return 0;
-
   if(!sp || !sp->control_url)
     return 0;
+
+  if(!tcp)
+    {
+    /* Open ports */
+    sp->rtp_fd = bgav_udp_open(ctx->opt, *port);
+    if(sp->rtp_fd < 0)
+      return 0;
   
-  field = bgav_sprintf("Transport: RTP/AVP/UDP;unicast;client_port=%d-%d",
-                       *port, (*port)+1);
+    sp->rtcp_fd = bgav_udp_open(ctx->opt, (*port)+1);
+    if(sp->rtcp_fd < 0)
+      return 0;
+    field = bgav_sprintf("Transport: RTP/AVP/UDP;unicast;client_port=%d-%d",
+                         *port, (*port)+1);
+    }
+  else
+    {
+    field = bgav_sprintf("Transport: RTP/AVP/TCP;unicast;interleaved=%d-%d",
+                         *port, (*port)+1);
+    
+    sp->interleave_base = *port;
+    }
   
   /* Send setup request */
   bgav_rtsp_schedule_field(priv->r, field);free(field);
@@ -608,7 +624,7 @@ static int init_stream_generic(bgav_input_context_t * ctx,
     }
   
   var = bgav_rtsp_get_answer(priv->r, "Transport");
-  if(!var || !handle_stream_transport(s, var))
+  if(!var || !handle_stream_transport(s, var, tcp))
     return 0;
 
   *port += 2;
@@ -706,35 +722,45 @@ static int handle_rtpinfo(bgav_input_context_t * ctx,
   return 1;
   }
 
-static int init_generic(bgav_input_context_t * ctx, bgav_sdp_t * sdp)
+static int init_generic(bgav_input_context_t * ctx, bgav_sdp_t * sdp, int tcp)
   {
   int ret = 0;
   rtsp_priv_t * priv;
   bgav_stream_t * s;
   int i;
-  //  int port = 5000; /* TODO: Base port */
-  //  int port = 32980; /* TODO: Base port */
-  int port = 52010;
+  int port;
   char * session_id = (char *)0;
   char * field;
   const char * var;
   priv = ctx->priv;
-
+  
   ctx->demuxer = bgav_demuxer_create(ctx->opt, &bgav_demuxer_rtp, ctx);
   if(!bgav_demuxer_rtp_open(ctx->demuxer, sdp))
     goto fail;
 
+  if(tcp)
+    port = 0; /* Interleace channel */
+  else
+    {
+    if(ctx->opt->rtp_port_base <= 1024)
+      port = rand() % (65535 - 10000) + 10000;
+    else
+      port = ctx->opt->rtp_port_base;
+    if(port & 1)
+      port++;
+    }
+  
   /* Transport negotiation */
   for(i = 0; i < ctx->demuxer->tt->cur->num_video_streams; i++)
     {
     s = &ctx->demuxer->tt->cur->video_streams[i];
-    if(!init_stream_generic(ctx, s, &port, &session_id))
+    if(!init_stream_generic(ctx, s, &port, &session_id, tcp))
       goto fail;
     }
   for(i = 0; i < ctx->demuxer->tt->cur->num_audio_streams; i++)
     {
     s = &ctx->demuxer->tt->cur->audio_streams[i];
-    if(!init_stream_generic(ctx, s, &port, &session_id))
+    if(!init_stream_generic(ctx, s, &port, &session_id, tcp))
       goto fail;
     }
   /* Play */
@@ -766,7 +792,6 @@ static int init_generic(bgav_input_context_t * ctx, bgav_sdp_t * sdp)
   return 1;
   }
 
-
 static int open_rtsp(bgav_input_context_t * ctx, const char * url, char ** r)
   {
   rtsp_priv_t * priv;
@@ -775,7 +800,6 @@ static int open_rtsp(bgav_input_context_t * ctx, const char * url, char ** r)
   char * session_id = (char*)0;
   int num_redirections = 0;
   int got_redirected = 0;
-  
   priv = calloc(1, sizeof(*priv));
   priv->r = bgav_rtsp_create(ctx->opt);
 
@@ -837,7 +861,13 @@ static int open_rtsp(bgav_input_context_t * ctx, const char * url, char ** r)
       ctx->do_buffer = 1;
       break;
     case SERVER_TYPE_GENERIC:
-      if(!init_generic(ctx, sdp))
+      if(ctx->opt->rtp_try_tcp && init_generic(ctx, sdp, 1))
+        {
+        bgav_rtp_set_tcp(ctx->demuxer);
+        priv->tcp = 1;
+        break;
+        }
+      if(!init_generic(ctx, sdp, 0))
         goto fail;
       break;
     }
@@ -867,9 +897,10 @@ static void close_rtsp(bgav_input_context_t * ctx)
   priv = (rtsp_priv_t*)(ctx->priv);
   if(!priv)
     return;
-  if(priv->r)
-    bgav_rtsp_close(priv->r);
 
+  if(priv->r)
+    bgav_rtsp_close(priv->r, !priv->tcp);
+  
   /* Header is always destroyed by the demuxer */
   //  if(priv->rmff_header)
   //    bgav_rmff_header_destroy(priv->rmff_header);
@@ -889,25 +920,36 @@ static int do_read(bgav_input_context_t* ctx,
   int bytes_read;
   rtsp_priv_t * priv;
   int bytes_to_copy;
+  int fd;
   priv = (rtsp_priv_t*)(ctx->priv);
   bytes_read = 0;
-  while(bytes_read < len)
+  if(priv->next_packet)
     {
-    if(!priv->packet_len)
+    while(bytes_read < len)
       {
-      if(!priv->next_packet(ctx, block))
-        return bytes_read;
+      if(!priv->packet_len)
+        {
+        if(!priv->next_packet(ctx, block))
+          return bytes_read;
+        }
+
+      bytes_to_copy = (priv->packet_len < (len - bytes_read)) ?
+        priv->packet_len : (len - bytes_read);
+      memcpy(buffer + bytes_read, priv->packet_ptr, bytes_to_copy);
+
+      bytes_read += bytes_to_copy;
+      priv->packet_ptr += bytes_to_copy;
+      priv->packet_len -= bytes_to_copy;
       }
-
-    bytes_to_copy = (priv->packet_len < (len - bytes_read)) ?
-      priv->packet_len : (len - bytes_read);
-    memcpy(buffer + bytes_read, priv->packet_ptr, bytes_to_copy);
-
-    bytes_read += bytes_to_copy;
-    priv->packet_ptr += bytes_to_copy;
-    priv->packet_len -= bytes_to_copy;
+    return bytes_read;
     }
-  return bytes_read;
+
+  fd = bgav_rtsp_get_fd(priv->r);
+
+  if(block)
+    return bgav_read_data_fd(fd, buffer, len, ctx->opt->read_timeout);
+  else
+    return bgav_read_data_fd(fd, buffer, len, 0);
   }
 
 static int read_rtsp(bgav_input_context_t* ctx,
@@ -1164,7 +1206,8 @@ static void call_hash (char *key, char *challenge, int len)
 
 
 
-static void calc_response (char *result, char *field) {
+static void calc_response (char *result, char *field)
+  {
 
   char buf1[128];
   char buf2[128];
@@ -1191,7 +1234,7 @@ static void calc_response (char *result, char *field) {
 
   memcpy (result, field, 16);
 
-}
+  }
 
 
 static void calc_response_string (char *result, char *challenge)
@@ -1224,7 +1267,8 @@ static void calc_response_string (char *result, char *challenge)
   }
 }
 
-static void real_calc_response_and_checksum (char *response, char *chksum, char *challenge)
+static void
+real_calc_response_and_checksum (char *response, char *chksum, char *challenge)
   {
   int   ch_len, table_len, resp_len;
   int   i;

@@ -263,6 +263,33 @@ void bgav_options_set_connect_timeout(bgav_options_t * opt, int timeout);
 void bgav_options_set_read_timeout(bgav_options_t * opt, int timeout);
 
 /** \ingroup options
+ *  \brief Set RTP port pase
+ *  \param opt Option container
+ *  \param p Port base
+ *
+ *  Values below and including 1024 enable random
+ *  ports. Random ports should be used if you have no or an
+ *  RTSP aware firewall. Values above 1024 enable a fixed base port.
+ *  For usual videos (one audio- one videostream) you need 4 consecutive
+ *  open ports starting with the base port. If your firewall blocks all UDP
+ *  traffic, use \ref bgav_options_set_rtp_try_tcp.
+ */
+
+
+void bgav_options_set_rtp_port_base(bgav_options_t*b, int p);
+
+/** \ingroup options
+ *  \brief Try TCP before UDP
+ *  \param opt Option container
+ *  \param enable 1 to try TCP, 0 else
+ *
+ *  Use this if your firewall blocks all UDP traffic. Not all servers,
+ *  however, support TCP fallback.
+ */
+
+void bgav_options_set_rtp_try_tcp(bgav_options_t*b, int enable);
+
+/** \ingroup options
  *  \brief Set network bandwidth
  *  \param opt Option container
  *  \param bandwidth Bandwidth of your internet connection (in bits per second)

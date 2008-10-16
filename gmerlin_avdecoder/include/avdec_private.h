@@ -646,6 +646,12 @@ struct bgav_options_s
 
   int network_bandwidth;
   int network_buffer_size;
+
+  /* 0..1024:     Randomize       */
+  /* 1025..65536: Fixed port base */
+  
+  int rtp_port_base;
+  int rtp_try_tcp; /* try TCP before falling back to UDP */
   
   /* http options */
 
