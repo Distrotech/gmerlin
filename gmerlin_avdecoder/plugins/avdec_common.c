@@ -476,6 +476,14 @@ bg_avdec_set_parameter(void * p, const char * name,
     {
     bgav_options_set_http_proxy_pass(avdec->opt, val->val_str);
     }
+  else if(!strcmp(name, "rtp_try_tcp"))
+    {
+    bgav_options_set_rtp_try_tcp(avdec->opt, val->val_i);
+    }
+  else if(!strcmp(name, "rtp_port_base"))
+    {
+    bgav_options_set_rtp_port_base(avdec->opt, val->val_i);
+    }
   else if(!strcmp(name, "ftp_anonymous_password"))
     {
     bgav_options_set_ftp_anonymous_password(avdec->opt, val->val_str);

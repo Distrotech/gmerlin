@@ -219,6 +219,27 @@ static const bg_parameter_info_t parameters[] =
       .val_default = { .val_str = (char*)0 },
     },
     {
+      .name =       "rtsp_options",
+      .long_name =  TRS("RTSP Options"),
+      .type =       BG_PARAMETER_SECTION
+    },
+    {
+      .name =        "rtp_try_tcp",
+      .long_name =   TRS("Try RTP over TCP"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 0 },
+      .help_string = TRS("Use this if your filewall blocks all UDP traffic. Not all servers support TCP"),
+    },
+    {
+      .name =        "rtp_port_base",
+      .long_name =   TRS("Port base for RTP"),
+      .type =        BG_PARAMETER_INT,
+      .val_min =     { .val_i =     0 },
+      .val_max =     { .val_i = 65530 },
+      .val_default = { .val_i =     0 },
+      .help_string = TRS("Port base for RTP over UDP. Values of 1024 or smaller enable random ports (recommended for RTSP aware firewalls). Values larger than 1024 define the base port. 2 consecutive ports are used for each A/V stream, these must be accessable through the firewall. Odd values are rounded to the next even value."),
+    },
+    {
       .name =       "ftp_options",
       .long_name =  TRS("FTP Options"),
       .type =       BG_PARAMETER_SECTION

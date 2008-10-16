@@ -198,9 +198,9 @@ static void cleanup_stream_rtp(bgav_stream_t * s)
 
   if(!priv) return;
 
-  if(priv->rtp_fd > 0)
+  if(priv->rtp_fd >= 0)
     close(priv->rtp_fd);
-  if(priv->rtcp_fd > 0)
+  if(priv->rtcp_fd >= 0)
     close(priv->rtcp_fd);
   
   if(priv->control_url) free(priv->control_url);

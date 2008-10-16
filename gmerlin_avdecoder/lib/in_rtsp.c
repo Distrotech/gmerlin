@@ -139,9 +139,7 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
           return 0;
         
         }
-              
       }
-    
     
     /* Check for a ping request */
     
@@ -603,6 +601,8 @@ static int init_stream_generic(bgav_input_context_t * ctx,
                          *port, (*port)+1);
     
     sp->interleave_base = *port;
+    sp->rtp_fd = -1;
+    sp->rtcp_fd = -1;
     }
   
   /* Send setup request */
@@ -743,7 +743,7 @@ static int init_generic(bgav_input_context_t * ctx, bgav_sdp_t * sdp, int tcp)
   else
     {
     if(ctx->opt->rtp_port_base <= 1024)
-      port = rand() % (65535 - 10000) + 10000;
+      port = rand() % (65530 - 10000) + 10000;
     else
       port = ctx->opt->rtp_port_base;
     if(port & 1)
