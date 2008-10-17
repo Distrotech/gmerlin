@@ -744,7 +744,7 @@ static int init_generic(bgav_input_context_t * ctx, bgav_sdp_t * sdp, int tcp)
     goto fail;
 
   if(tcp)
-    port = 0; /* Interleace channel */
+    port = 0; /* Interleave channel */
   else
     {
     if(ctx->opt->rtp_port_base <= 1024)
@@ -794,7 +794,7 @@ static int init_generic(bgav_input_context_t * ctx, bgav_sdp_t * sdp, int tcp)
   if(session_id)
     free(session_id);
   
-  return 1;
+  return ret;
   }
 
 static int open_rtsp(bgav_input_context_t * ctx, const char * url, char ** r)

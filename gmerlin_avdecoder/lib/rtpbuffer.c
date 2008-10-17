@@ -245,10 +245,9 @@ bgav_rtp_packet_buffer_get_read(bgav_rtp_packet_buffer_t * b)
     return (rtp_packet_t*)0;
 
   /* Drop packets */
-  
   min_seq = 0x10000;
   max_seq = -1;
-
+  
   for(i = 0; i < MAX_PACKETS; i++)
     {
     if(b->packets[i].valid)

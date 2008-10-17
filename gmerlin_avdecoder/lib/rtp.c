@@ -31,7 +31,7 @@
 // #include <inttypes.h>
 #include <rtp.h>
 
-#define FOURCC_UNKNOWN BGAV_MK_FOURCC('?','?','?','?')
+// #define FOURCC_UNKNOWN BGAV_MK_FOURCC('?','?','?','?')
 #define LOG_DOMAIN "rtp"
 
 /* Stream specific init and parse functions are at the end of the file */
@@ -172,6 +172,7 @@ static const dynamic_payload_t dynamic_video_payloads[] =
     { "H264", BGAV_MK_FOURCC('h', '2', '6', '4'), init_h264 },
     { "MP4V-ES", BGAV_MK_FOURCC('m', 'p', '4', 'v'), init_mp4v_es },
     { "H263-1998", BGAV_MK_FOURCC('h', '2', '6', '3'), init_h263_1998 },
+    { "H263-2000", BGAV_MK_FOURCC('h', '2', '6', '3'), init_h263_1998 },
     { },
   };
 
@@ -215,7 +216,6 @@ static void cleanup_stream_rtp(bgav_stream_t * s)
   free(priv);
   }
 
-
 static void check_dynamic(bgav_stream_t * s,
                           const dynamic_payload_t * dynamic_payloads,
                           const char * rtpmap)
@@ -239,7 +239,7 @@ static void check_dynamic(bgav_stream_t * s,
         if(!dynamic_payloads[i].init(s))
           {
           /* Make the stream undecodable */
-          s->fourcc = FOURCC_UNKNOWN;
+          s->fourcc = 0;
           return;
           }
       break;
@@ -317,7 +317,7 @@ static int find_codec(bgav_stream_t * s, bgav_sdp_media_desc_t * md,
         if(static_payloads[i].init)
           {
           if(!static_payloads[i].init(s))
-            s->fourcc = FOURCC_UNKNOWN;
+            s->fourcc = 0;
           }
         return 1;
         }
