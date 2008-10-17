@@ -684,6 +684,38 @@ void bgav_rtp_set_tcp(bgav_demuxer_context_t * ctx)
   priv->tcp = 1;
   }
 
+static gavl_time_t get_duration(bgav_sdp_t * sdp)
+  {
+  char * str, *rest;
+  double lower, upper;
+  
+  if(!bgav_sdp_get_attr_string(sdp->attributes, sdp->num_attributes,
+                               "range", &str))
+    return GAVL_TIME_UNDEFINED;
+  
+  if(strncasecmp(str, "npt=", 4))
+    return GAVL_TIME_UNDEFINED;
+  
+  str+=4;
+
+  lower = strtod(str, &rest);
+  if(rest == str)
+    return GAVL_TIME_UNDEFINED;
+
+  if(*rest != '-')
+    return GAVL_TIME_UNDEFINED;
+
+  str = rest + 1;
+
+  upper = strtod(str, &rest);
+  if(rest == str)
+    return GAVL_TIME_UNDEFINED;
+  
+  if(fabs(lower) > 0.001)
+    return GAVL_TIME_UNDEFINED;
+  
+  return gavl_seconds_to_time(upper);
+  }
 
 int bgav_demuxer_rtp_open(bgav_demuxer_context_t * ctx,
                           bgav_sdp_t * sdp)
@@ -701,9 +733,9 @@ int bgav_demuxer_rtp_open(bgav_demuxer_context_t * ctx,
 
   for(i = 0; i < sdp->num_media; i++)
     {
-    fprintf(stderr, "Media %d, media: %s, protocol: %s\n",
-            i, sdp->media[i].media,
-            sdp->media[i].protocol);
+    //    fprintf(stderr, "Media %d, media: %s, protocol: %s\n",
+    //            i, sdp->media[i].media,
+    //            sdp->media[i].protocol);
 
     if(!strcmp(sdp->media[i].media, "audio"))
       {
@@ -727,6 +759,10 @@ int bgav_demuxer_rtp_open(bgav_demuxer_context_t * ctx,
         }
       }
     }
+
+  /* Check for duration */
+  ctx->tt->cur->duration = get_duration(sdp);
+  
   return 1;
   }
 
