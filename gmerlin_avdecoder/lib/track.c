@@ -374,19 +374,19 @@ void bgav_track_free(bgav_track_t * t)
   if(t->chapter_list)
     bgav_chapter_list_destroy(t->chapter_list);
   
-  if(t->num_audio_streams)
+  if(t->audio_streams)
     {
     for(i = 0; i < t->num_audio_streams; i++)
       bgav_stream_free(&(t->audio_streams[i]));
     free(t->audio_streams);
     }
-  if(t->num_video_streams)
+  if(t->video_streams)
     {
     for(i = 0; i < t->num_video_streams; i++)
       bgav_stream_free(&(t->video_streams[i]));
     free(t->video_streams);
     }
-  if(t->num_subtitle_streams)
+  if(t->subtitle_streams)
     {
     for(i = 0; i < t->num_subtitle_streams; i++)
       bgav_stream_free(&(t->subtitle_streams[i]));

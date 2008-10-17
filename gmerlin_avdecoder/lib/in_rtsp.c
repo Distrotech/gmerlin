@@ -579,6 +579,9 @@ static int init_stream_generic(bgav_input_context_t * ctx,
   char * field;
   const char * var;
 
+  if(!s->fourcc)
+    return 1;
+  
   if(!sp || !sp->control_url)
     return 0;
 
@@ -668,8 +671,9 @@ static int handle_rtpinfo(bgav_input_context_t * ctx,
     /* Search for the bgav stream */
     for(j = 0; j < ctx->demuxer->tt->cur->num_video_streams; j++)
       {
+      if(!ctx->demuxer->tt->cur->video_streams[j].fourcc)
+        continue;
       sp = ctx->demuxer->tt->cur->video_streams[j].priv;
-
       pos2 = strrchr(sp->control_url, '/');
       if(!pos2)
         pos2 = sp->control_url;
@@ -684,8 +688,9 @@ static int handle_rtpinfo(bgav_input_context_t * ctx,
       {
       for(j = 0; j < ctx->demuxer->tt->cur->num_audio_streams; j++)
         {
+        if(!ctx->demuxer->tt->cur->audio_streams[j].fourcc)
+          continue;
         sp = ctx->demuxer->tt->cur->audio_streams[j].priv;
-
         pos2 = strrchr(sp->control_url, '/');
         if(!pos2)
           pos2 = sp->control_url;

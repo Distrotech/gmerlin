@@ -334,7 +334,7 @@ init_stream(bgav_demuxer_context_t * ctx,
   char * control, *tmp_string;
   int i;
   s->cleanup = cleanup_stream_rtp;
-  fprintf(stderr, "Got stream (format: %s)\n", md->formats[format_index]);
+  //  fprintf(stderr, "Got stream (format: %s)\n", md->formats[format_index]);
 
   sp = calloc(1, sizeof(*sp));
   s->priv = sp;
@@ -343,21 +343,11 @@ init_stream(bgav_demuxer_context_t * ctx,
   if(!find_codec(s, md, format_index))
     return 0;
   
-  fprintf(stderr, "fourcc: ");
-  bgav_dump_fourcc(s->fourcc);
-  fprintf(stderr, " timescale: %d\n", s->timescale);
+  //  fprintf(stderr, "fourcc: ");
+  //  bgav_dump_fourcc(s->fourcc);
+  //  fprintf(stderr, " timescale: %d\n", s->timescale);
   
   sp->buf = bgav_rtp_packet_buffer_create(s->opt, &sp->stats, s->timescale);
-  
-  i = 0;
-  if(sp->fmtp)
-    {
-    while(sp->fmtp[i])
-      {
-      fprintf(stderr, "fmtp[%d]: %s\n", i, sp->fmtp[i]);
-      i++;
-      }
-    }
   
   /* Get control URL */
   if(!bgav_sdp_get_attr_string(md->attributes, md->num_attributes,
@@ -615,7 +605,11 @@ static int read_tcp_packet(bgav_demuxer_context_t * ctx,
     else if(sp->interleave_base+1 == channel)
       return read_rtcp_packet(ctx, s, len);
     }
-  return 0;
+
+  /* No stream found: Skip and return 1 */
+  
+  bgav_input_skip(ctx->input, len);
+  return 1;
   }
                            
 

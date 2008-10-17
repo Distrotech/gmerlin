@@ -192,10 +192,11 @@ int bgav_rtsp_request_describe(bgav_rtsp_t *rtsp, int * got_redirected)
     goto fail;
   
   content_length = atoi(var);
-    
+  
   buf = malloc(content_length+1);
-    
-  if(bgav_read_data_fd(rtsp->fd, (uint8_t*)buf, content_length, rtsp->opt->read_timeout) <
+  
+  if(bgav_read_data_fd(rtsp->fd, (uint8_t*)buf,
+                       content_length, rtsp->opt->read_timeout) <
      content_length)
     {
     bgav_log(rtsp->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
@@ -325,7 +326,7 @@ bgav_sdp_t * bgav_rtsp_get_sdp(bgav_rtsp_t * r)
 
 void bgav_rtsp_close(bgav_rtsp_t * r, int teardown)
   {
-  if(teardown)
+  if(teardown && (r->fd >= 0))
     rtsp_send_request(r,"TEARDOWN",r->url, NULL);
   
   bgav_http_header_destroy(r->answers);
