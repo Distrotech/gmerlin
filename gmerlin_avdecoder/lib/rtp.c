@@ -48,6 +48,7 @@ static int init_mpv(bgav_stream_t * s);
 
 static int init_mp4v_es(bgav_stream_t * s);
 
+static int init_h263_1998(bgav_stream_t * s);
 
 static int rtp_header_read(bgav_input_context_t * ctx,
                            rtp_header_t * ret)
@@ -170,6 +171,7 @@ static const dynamic_payload_t dynamic_video_payloads[] =
   {
     { "H264", BGAV_MK_FOURCC('h', '2', '6', '4'), init_h264 },
     { "MP4V-ES", BGAV_MK_FOURCC('m', 'p', '4', 'v'), init_mp4v_es },
+    { "H263-1998", BGAV_MK_FOURCC('h', '2', '6', '3'), init_h263_1998 },
     { },
   };
 
@@ -332,7 +334,7 @@ init_stream(bgav_demuxer_context_t * ctx,
   {
   rtp_stream_priv_t * sp;
   char * control, *tmp_string;
-  int i;
+  //  int i;
   s->cleanup = cleanup_stream_rtp;
   //  fprintf(stderr, "Got stream (format: %s)\n", md->formats[format_index]);
 
@@ -1262,3 +1264,68 @@ static int init_mp4v_es(bgav_stream_t * s)
   return 1;
   }
 
+/* H263-1998 */
+
+static int process_h263_1998(bgav_stream_t * s,
+                             rtp_header_t * h, uint8_t * data, int len)
+  {
+  rtp_stream_priv_t * sp;
+  int p_bit;
+  int skip = 2;
+
+  //  fprintf(stderr, "process_h263_1998: %d\n", len);
+  
+  sp = s->priv;
+
+  p_bit = !!(data[0] & 0x4);
+  
+  if(!s->packet)
+    {
+    // incomplete packet without initial fragment
+    if(!p_bit)
+      return 1;
+    s->packet = bgav_stream_get_packet_write(s);
+    s->packet->data_size = 0;
+    s->packet->pts = h->timestamp;
+    }
+
+  /* Get length */
+  if(data[0]&0x2) // v bit - skip one more
+    ++skip;
+
+  skip += (data[1]>>3)|((data[0]&0x1)<<5); // plen - skip that many bytes
+
+  data += skip;
+  len -= skip;
+
+  if(p_bit)
+    {
+    bgav_packet_alloc(s->packet, s->packet->data_size + len + 2);
+    /* Make startcodes complete */
+    s->packet->data[s->packet->data_size]   = 0;
+    s->packet->data[s->packet->data_size+1] = 0;
+    s->packet->data_size += 2;
+    }
+  else
+    bgav_packet_alloc(s->packet, s->packet->data_size + len);
+  
+  memcpy(s->packet->data + s->packet->data_size, data, len);
+  //  bgav_hexdump(p->data, 16, 16);
+  s->packet->data_size += len;
+  
+  if(h->marker)
+    {
+    bgav_packet_done_write(s->packet);
+    s->packet = (bgav_packet_t*)0;
+    }
+  return 1;
+  }
+
+static int init_h263_1998(bgav_stream_t * s)
+  {
+  rtp_stream_priv_t * sp;
+  sp = s->priv;
+
+  sp->process = process_h263_1998;
+  return 1;
+  }
