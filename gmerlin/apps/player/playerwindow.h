@@ -21,7 +21,7 @@
 
 #include <gui_gtk/button.h>
 #include <gui_gtk/slider.h>
-#include <msgqueue.h>
+#include <gmerlin/msgqueue.h>
 
 typedef struct
   {

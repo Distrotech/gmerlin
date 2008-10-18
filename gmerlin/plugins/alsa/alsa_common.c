@@ -20,12 +20,12 @@
  * *****************************************************************/
 
 #include <config.h>
-#include <translation.h>
+#include <gmerlin/translation.h>
 
-#include <parameter.h>
-#include <utils.h>
+#include <gmerlin/parameter.h>
+#include <gmerlin/utils.h>
 
-#include <log.h>
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "alsa_common"
 
 #include "alsa_common.h"

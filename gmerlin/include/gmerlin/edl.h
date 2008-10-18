@@ -22,8 +22,8 @@
 #ifndef __BG_EDL_H_
 #define __BG_EDL_H_
 
-#include "parameter.h"
-#include "streaminfo.h"
+#include <gmerlin/parameter.h>
+#include <gmerlin/streaminfo.h>
 
 /** \defgroup edl EDL support
  *  \ingroup plugin_i

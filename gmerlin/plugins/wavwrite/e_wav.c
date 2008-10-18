@@ -29,12 +29,12 @@
 #include <time.h>
 
 #include <config.h>
-#include <translation.h>
+#include <gmerlin/translation.h>
 
 
-#include <plugin.h>
-#include <utils.h>
-#include <log.h>
+#include <gmerlin/plugin.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "e_wav"
 
 /* Speaker configurations for WAVEFORMATEXTENSIBLE */

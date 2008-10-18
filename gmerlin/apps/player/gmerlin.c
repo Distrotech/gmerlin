@@ -25,13 +25,13 @@
 
 #include <config.h>
 
-#include <translation.h>
-#include <keycodes.h>
+#include <gmerlin/translation.h>
+#include <gmerlin/keycodes.h>
  
 #include "gmerlin.h"
 #include "player_remote.h"
 
-#include <utils.h>
+#include <gmerlin/utils.h>
 #include <gui_gtk/auth.h>
 #include <gui_gtk/gtkutils.h>
 

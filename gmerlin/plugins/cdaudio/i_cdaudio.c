@@ -26,11 +26,11 @@
 #include <unistd.h>
 
 #include <config.h>
-#include <translation.h>
+#include <gmerlin/translation.h>
 
 #include "cdaudio.h"
-#include <utils.h>
-#include <log.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/log.h>
 
 #define LOG_DOMAIN "i_cdaudio"
 

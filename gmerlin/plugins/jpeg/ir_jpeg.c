@@ -24,11 +24,11 @@
 
 #include <config.h>
 
-#include <translation.h>
+#include <gmerlin/translation.h>
 
-#include <plugin.h>
+#include <gmerlin/plugin.h>
 
-#include <log.h>
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "ir_jpeg"
 
 

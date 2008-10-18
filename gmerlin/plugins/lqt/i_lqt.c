@@ -23,11 +23,11 @@
 #include <ctype.h>
 
 #include <config.h>
-#include <translation.h>
+#include <gmerlin/translation.h>
 
-#include <plugin.h>
-#include <utils.h>
-#include <log.h>
+#include <gmerlin/plugin.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/log.h>
 
 #include "lqt_common.h"
 #include "lqtgavl.h"

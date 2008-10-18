@@ -22,14 +22,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <translation.h>
+#include <gmerlin/translation.h>
 
 #include <bgfreetype.h>
 
-#include <parameter.h>
-#include <textrenderer.h>
-#include <osd.h>
-#include <utils.h>
+#include <gmerlin/parameter.h>
+#include <gmerlin/textrenderer.h>
+#include <gmerlin/osd.h>
+#include <gmerlin/utils.h>
 
 struct bg_osd_s
   {

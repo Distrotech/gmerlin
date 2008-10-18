@@ -21,18 +21,18 @@
 
 #include <gtk/gtk.h>
 
-#include <player.h>
-#include <cfg_registry.h>
-#include <pluginregistry.h>
-#include <tree.h>
+#include <gmerlin/player.h>
+#include <gmerlin/cfg_registry.h>
+#include <gmerlin/pluginregistry.h>
+#include <gmerlin/tree.h>
 #include <gui_gtk/tree.h>
 #include <gui_gtk/infowindow.h>
 #include <gui_gtk/logwindow.h>
-#include <lcdproc.h>
+#include <gmerlin/lcdproc.h>
 
-#include <cfg_dialog.h>
+#include <gmerlin/cfg_dialog.h>
 
-#include <remote.h>
+#include <gmerlin/remote.h>
 
 typedef struct gmerlin_s gmerlin_t;
 

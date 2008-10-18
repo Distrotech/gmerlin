@@ -21,7 +21,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <utils.h>
+#include <gmerlin/utils.h>
 
 #include "gtk_dialog.h"
 

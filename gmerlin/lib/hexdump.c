@@ -20,7 +20,7 @@
  * *****************************************************************/
 
 #include <stdio.h>
-#include <utils.h>
+#include <gmerlin/utils.h>
 
 void bg_hexdump(uint8_t * data, int len, int linebreak)
   {

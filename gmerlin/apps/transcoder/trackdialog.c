@@ -24,16 +24,16 @@
 #include <string.h>
 
 #include <config.h>
-#include <translation.h>
+#include <gmerlin/translation.h>
 
-#include <pluginregistry.h>
-#include <utils.h>
+#include <gmerlin/pluginregistry.h>
+#include <gmerlin/utils.h>
 
-#include <cfg_dialog.h>
-#include <transcoder_track.h>
+#include <gmerlin/cfg_dialog.h>
+#include <gmerlin/transcoder_track.h>
 #include "trackdialog.h"
 
-#include <textrenderer.h>
+#include <gmerlin/textrenderer.h>
 
 
 struct track_dialog_s

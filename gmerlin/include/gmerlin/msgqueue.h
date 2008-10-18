@@ -24,7 +24,7 @@
 
 #include <gavl/gavl.h>
 #include <gavl/gavldsp.h>
-#include "streaminfo.h"
+#include <gmerlin/streaminfo.h>
 
 
 /** \defgroup messages Messages

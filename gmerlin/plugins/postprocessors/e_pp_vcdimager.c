@@ -24,12 +24,12 @@
 #include <stdio.h>
 
 #include <config.h>
-#include <translation.h>
+#include <gmerlin/translation.h>
 
-#include <plugin.h>
-#include <utils.h>
-#include <log.h>
-#include <subprocess.h>
+#include <gmerlin/plugin.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/log.h>
+#include <gmerlin/subprocess.h>
 #include "cdrdao_common.h"
 
 #define LOG_DOMAIN "vcdimager"

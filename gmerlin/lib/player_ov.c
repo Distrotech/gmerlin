@@ -23,13 +23,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <keycodes.h>
-#include <accelerator.h>
+#include <gmerlin/keycodes.h>
+#include <gmerlin/accelerator.h>
 
-#include <player.h>
+#include <gmerlin/player.h>
 #include <playerprivate.h>
 
-#include <log.h>
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "player.video_output"
 
 // #define DUMP_TIMESTAMPS

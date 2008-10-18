@@ -30,19 +30,19 @@
 #include <sys/types.h>
 
 #include <config.h>
-#include <translation.h>
+#include <gmerlin/translation.h>
 
-#include <pluginregistry.h>
-#include <log.h>
-#include <msgqueue.h>
-#include <transcoder.h>
-#include <transcodermsg.h>
-#include <utils.h>
-#include <bggavl.h>
+#include <gmerlin/pluginregistry.h>
+#include <gmerlin/log.h>
+#include <gmerlin/msgqueue.h>
+#include <gmerlin/transcoder.h>
+#include <gmerlin/transcodermsg.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/bggavl.h>
 
-#include <textrenderer.h>
-#include <converters.h>
-#include <filters.h>
+#include <gmerlin/textrenderer.h>
+#include <gmerlin/converters.h>
+#include <gmerlin/filters.h>
 
 #define LOG_DOMAIN "transcoder"
 

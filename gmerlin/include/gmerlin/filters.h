@@ -21,8 +21,8 @@
 
 
 #include <gavl/gavl.h>
-#include <bggavl.h>
-#include <plugin.h>
+#include <gmerlin/bggavl.h>
+#include <gmerlin/plugin.h>
 
 
 

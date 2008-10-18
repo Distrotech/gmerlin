@@ -31,7 +31,7 @@
 #include <gtk/gtk.h>
 #include <gui_gtk/display.h>
 #include <gui_gtk/gtkutils.h>
-#include <utils.h>
+#include <gmerlin/utils.h>
 
 #define DIGIT_0     0
 #define DIGIT_1     1

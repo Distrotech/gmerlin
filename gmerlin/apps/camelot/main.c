@@ -20,10 +20,10 @@
  * *****************************************************************/
 
 #include <gtk/gtk.h>
-#include <utils.h>
+#include <gmerlin/utils.h>
 #include <stdlib.h>
-#include <plugin.h>
-#include <pluginregistry.h>
+#include <gmerlin/plugin.h>
+#include <gmerlin/pluginregistry.h>
 #include <gui_gtk/gtkutils.h>
 
 

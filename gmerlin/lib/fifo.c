@@ -28,8 +28,8 @@
 
 #include <gavl/gavl.h>
 
-#include <bg_sem.h>
-#include <fifo.h>
+#include <gmerlin/bg_sem.h>
+#include <gmerlin/fifo.h>
 
 /* Common frame structure */
 

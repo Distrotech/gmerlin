@@ -28,12 +28,12 @@
 
 #include <config.h>
 
-#include <tree.h>
+#include <gmerlin/tree.h>
 #include <treeprivate.h>
-#include <utils.h>
+#include <gmerlin/utils.h>
 #include <xmlutils.h>
 
-#include <log.h>
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "album"
 
 /* Load an entry from a node */
@@ -137,6 +137,12 @@ static bg_album_entry_t * load_entry(bg_album_t * album,
     else if(!BG_XML_STRCMP(node->name, "TOTAL_TRACKS"))
       {
       sscanf(tmp_string, "%d", &(ret->total_tracks));
+      }
+    else if(!BG_XML_STRCMP(node->name, "MTIME"))
+      {
+      int64_t mtime;
+      sscanf(tmp_string, "%"PRId64"", &(mtime));
+      ret->mtime = mtime;
       }
     
     if(tmp_string)
@@ -418,6 +424,16 @@ static void save_entry(bg_album_t * a, bg_album_entry_t * entry, xmlNodePtr pare
     xmlAddChild(xml_entry, BG_XML_NEW_TEXT("\n"));
     }
 
+  /* Mtime */
+  if(entry->mtime)
+    {
+    node = xmlNewTextChild(xml_entry, (xmlNsPtr)0, (xmlChar*)"MTIME", NULL);
+    c_tmp = bg_sprintf("%"PRId64, (int64_t)(entry->mtime));
+    xmlAddChild(node, BG_XML_NEW_TEXT(c_tmp));
+    free(c_tmp);
+    xmlAddChild(xml_entry, BG_XML_NEW_TEXT("\n"));
+    }
+  
   /* Authentication */
 
   if((entry->flags & BG_ALBUM_ENTRY_SAVE_AUTH) && entry->username && entry->password)

@@ -32,7 +32,7 @@
 #include <gui_gtk/audio.h>
 #include <gui_gtk/gtkutils.h>
 
-#include <utils.h>
+#include <gmerlin/utils.h>
 
 /* Some constants */
 

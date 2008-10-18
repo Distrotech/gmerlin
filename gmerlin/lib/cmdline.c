@@ -28,11 +28,11 @@
 #include <time.h>
 
 #include <config.h>
-#include <translation.h>
+#include <gmerlin/translation.h>
 
-#include <cfg_registry.h>
-#include <cmdline.h>
-#include <utils.h>
+#include <gmerlin/cfg_registry.h>
+#include <gmerlin/cmdline.h>
+#include <gmerlin/utils.h>
 
 static const bg_cmdline_app_data_t * app_data;
 

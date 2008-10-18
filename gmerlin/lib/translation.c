@@ -23,7 +23,7 @@
 #include <pthread.h>
 #include <locale.h>
 
-#include <translation.h>
+#include <gmerlin/translation.h>
 
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;

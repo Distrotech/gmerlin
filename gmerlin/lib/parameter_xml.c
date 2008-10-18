@@ -23,8 +23,8 @@
 #include <string.h>
 // #include <locale.h>
 
-#include <parameter.h>
-#include <utils.h>
+#include <gmerlin/parameter.h>
+#include <gmerlin/utils.h>
 #include <xmlutils.h>
 
 static const struct

@@ -24,7 +24,7 @@
 #include <stdio.h>
 
 #include <config.h>
-#include <translation.h>
+#include <gmerlin/translation.h>
 
 #include "cdaudio.h"
 #define DO_NOT_WANT_PARANOIA_COMPATIBILITY

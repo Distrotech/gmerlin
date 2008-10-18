@@ -27,8 +27,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <pluginregistry.h>
-#include <utils.h>
+#include <gmerlin/pluginregistry.h>
+#include <gmerlin/utils.h>
 
 #if 0
 static void dump_format(gavl_audio_format_t * format)

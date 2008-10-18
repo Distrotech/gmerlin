@@ -21,10 +21,10 @@
 
 
 #include <string.h>
-#include <pluginregistry.h>
-#include <tree.h>
-#include <transcoder_track.h>
-#include <utils.h>
+#include <gmerlin/pluginregistry.h>
+#include <gmerlin/tree.h>
+#include <gmerlin/transcoder_track.h>
+#include <gmerlin/utils.h>
 #include <xmlutils.h>
 
 static void section_2_xml(bg_cfg_section_t * s, xmlNodePtr node)

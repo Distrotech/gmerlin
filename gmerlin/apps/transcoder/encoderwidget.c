@@ -25,8 +25,8 @@
 
 #include <config.h>
 
-#include <pluginregistry.h>
-#include <transcoder_track.h>
+#include <gmerlin/pluginregistry.h>
+#include <gmerlin/transcoder_track.h>
 
 #include <gui_gtk/plugin.h>
 #include <gui_gtk/gtkutils.h>

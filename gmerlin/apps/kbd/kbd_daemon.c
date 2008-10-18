@@ -33,10 +33,10 @@
 
 /* Gmerlin includes */
 #include <config.h>
-#include <utils.h>
-#include <remote.h>
-#include <subprocess.h>
-#include <log.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/remote.h>
+#include <gmerlin/subprocess.h>
+#include <gmerlin/log.h>
 
 #define LOG_DOMAIN "gmerlin_kbd"
 

@@ -23,7 +23,7 @@
 
 #include <config.h>
 
-#include <cfg_dialog.h>
+#include <gmerlin/cfg_dialog.h>
 
 #include <gui_gtk/gtkutils.h>
 

@@ -23,11 +23,11 @@
 
 
 #include <config.h>
-#include <plugin.h>
-#include <translation.h>
-#include <keycodes.h>
-#include <utils.h>
-#include <log.h>
+#include <gmerlin/plugin.h>
+#include <gmerlin/translation.h>
+#include <gmerlin/keycodes.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "ov_x11"
 
 #include <x11/x11.h>

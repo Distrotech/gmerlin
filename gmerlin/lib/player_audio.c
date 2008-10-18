@@ -23,11 +23,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <log.h>
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "player.audio"
 
-#include "player.h"
-#include "playerprivate.h"
+#include <gmerlin/player.h>
+#include <playerprivate.h>
 
 void bg_player_audio_create(bg_player_t * p, bg_plugin_registry_t * plugin_reg)
   {

@@ -22,7 +22,7 @@
 #ifndef __BG_CFG_REGISTRY_H_
 #define __BG_CFG_REGISTRY_H_
 
-#include "parameter.h"
+#include <gmerlin/parameter.h>
 
 /** \defgroup cfg_registry Configuration registry
  *

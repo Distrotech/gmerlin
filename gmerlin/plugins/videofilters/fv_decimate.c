@@ -23,10 +23,10 @@
 #include <string.h>
 
 #include <config.h>
-#include <translation.h>
-#include <plugin.h>
-#include <utils.h>
-#include <log.h>
+#include <gmerlin/translation.h>
+#include <gmerlin/plugin.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/log.h>
 
 #include <gavl/gavldsp.h>
 

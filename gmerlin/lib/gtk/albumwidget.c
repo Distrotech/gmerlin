@@ -29,14 +29,14 @@
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
 
-#include <tree.h>
-#include <utils.h>
+#include <gmerlin/tree.h>
+#include <gmerlin/utils.h>
 
-#include <log.h>
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "gtk_albumwidget"
 
 #include <gui_gtk/tree.h>
-#include <cfg_dialog.h>
+#include <gmerlin/cfg_dialog.h>
 #include <gui_gtk/fileselect.h>
 #include <gui_gtk/urlselect.h>
 #include <gui_gtk/albumentry.h>

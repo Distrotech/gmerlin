@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include <musicbrainz/mb_c.h>
 
-#include <utils.h>
+#include <gmerlin/utils.h>
 #include "cdaudio.h"
 
 #if 0

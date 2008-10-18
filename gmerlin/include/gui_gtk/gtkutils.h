@@ -20,7 +20,7 @@
  * *****************************************************************/
 
 
-#include <translation.h>
+#include <gmerlin/translation.h>
 
 GdkPixbuf * bg_gtk_pixbuf_scale_alpha(GdkPixbuf * src,
                                       int dest_width,

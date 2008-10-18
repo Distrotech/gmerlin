@@ -31,15 +31,15 @@
 #include <errno.h>
 
 #include <config.h>
-#include <translation.h>
-#include <plugin.h>
+#include <gmerlin/translation.h>
+#include <gmerlin/plugin.h>
 
 #include <linux/videodev.h>
 
 #include <unistd.h>
-#include <utils.h>
+#include <gmerlin/utils.h>
 
-#include <log.h>
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "i_v4l"
 
 #include "pwc.h"

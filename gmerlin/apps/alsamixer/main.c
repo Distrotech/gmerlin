@@ -22,8 +22,8 @@
 #include <stdlib.h>
 
 #include <config.h>
-#include <translation.h>
-#include <utils.h>
+#include <gmerlin/translation.h>
+#include <gmerlin/utils.h>
 #include "gui.h"
 #include <gui_gtk/gtkutils.h>
 #include <gui_gtk/message.h>

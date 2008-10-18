@@ -31,10 +31,10 @@
 #include <limits.h>
 
 #include <config.h>
-#include <utils.h>
-#include <subprocess.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/subprocess.h>
 
-#include <log.h>
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "utils"
 
 char * bg_search_file_read(const char * directory, const char * file)

@@ -24,7 +24,7 @@
 #include <sys/soundcard.h>
 
 #include <gavl/gavl.h>
-#include <utils.h>
+#include <gmerlin/utils.h>
 
 #include "oss_common.h"
 

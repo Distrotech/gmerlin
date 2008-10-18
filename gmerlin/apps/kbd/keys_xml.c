@@ -25,7 +25,7 @@
 #include <libxml/tree.h>
 #include <libxml/parser.h>
 
-#include <utils.h>
+#include <gmerlin/utils.h>
 
 #include <xmlutils.h>
 

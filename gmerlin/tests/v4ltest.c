@@ -21,9 +21,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <utils.h>
-#include <plugin.h>
-#include <pluginregistry.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/plugin.h>
+#include <gmerlin/pluginregistry.h>
 
 int keep_going = 1;
 

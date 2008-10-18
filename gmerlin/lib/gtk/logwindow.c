@@ -25,8 +25,8 @@
 
 #include <config.h>
 
-#include <log.h>
-#include <utils.h>
+#include <gmerlin/log.h>
+#include <gmerlin/utils.h>
 
 #include <gui_gtk/logwindow.h>
 #include <gui_gtk/gtkutils.h>

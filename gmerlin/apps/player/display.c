@@ -24,11 +24,11 @@
 #include <string.h>
 #include "gmerlin.h"
 
-#include <utils.h>
+#include <gmerlin/utils.h>
 #include <xmlutils.h>
 #include <config.h>
 
-#include <translation.h>
+#include <gmerlin/translation.h>
 
 #include <gui_gtk/display.h>
 #include <gui_gtk/gtkutils.h>

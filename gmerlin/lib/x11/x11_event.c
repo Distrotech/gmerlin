@@ -24,7 +24,7 @@
 #include <x11/x11.h>
 #include <x11/x11_window_private.h>
 
-#include <keycodes.h>
+#include <gmerlin/keycodes.h>
 
 #include <X11/keysym.h>
 #include <sys/select.h>

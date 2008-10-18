@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-#include <plugin.h>
+#include <gmerlin/plugin.h>
 
 #define YUVD_MODE_ANTIALIAS 0
 #define YUVD_MODE_DEINT_1   1

@@ -20,9 +20,9 @@
  * *****************************************************************/
 
 #include <config.h>
-#include <translation.h>
+#include <gmerlin/translation.h>
 #include "gmerlin.h"
-#include <utils.h>
+#include <gmerlin/utils.h>
 #include <gdk/gdkkeysyms.h>
 
 #include <gui_gtk/aboutwindow.h>

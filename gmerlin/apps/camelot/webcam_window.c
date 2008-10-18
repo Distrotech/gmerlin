@@ -25,9 +25,9 @@
 #include <gtk/gtk.h>
 
 #include <config.h>
-#include <plugin.h>
-#include <utils.h>
-#include <pluginregistry.h>
+#include <gmerlin/plugin.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/pluginregistry.h>
 
 #include "webcam.h"
 #include "webcam_window.h"
@@ -38,7 +38,7 @@
 #include <gui_gtk/gtkutils.h>
 #include <gui_gtk/aboutwindow.h>
 
-#include <log.h>
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "camelot"
 
 #define DELAY_TIME 100

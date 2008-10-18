@@ -23,8 +23,8 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "player.h"
-#include "playerprivate.h"
+#include <gmerlin/player.h>
+#include <playerprivate.h>
 
 // #define NUM_SUBTITLE_FRAMES 2 /* How many overlays are in the fifo */
 

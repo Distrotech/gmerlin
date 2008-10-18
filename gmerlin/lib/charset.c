@@ -27,9 +27,9 @@
 #include <stdio.h>
 
 #include <config.h>
-#include <charset.h>
+#include <gmerlin/charset.h>
 
-#include <log.h>
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "charset"
 
 struct bg_charset_converter_s

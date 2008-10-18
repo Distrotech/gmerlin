@@ -28,11 +28,11 @@
 #include <string.h>
 #include <stdio.h>
 
-#include <tree.h>
-#include <utils.h>
+#include <gmerlin/tree.h>
+#include <gmerlin/utils.h>
 
 //#include <parameter.h>
-#include <cfg_dialog.h>
+#include <gmerlin/cfg_dialog.h>
 #include <gui_gtk/tree.h>
 #include <gui_gtk/fileselect.h>
 #include <gui_gtk/gtkutils.h>
@@ -970,6 +970,7 @@ static void rename_selected_album(bg_gtk_tree_widget_t * w)
 
 static void add_dir_callback(char * dir, int recursive,
                              int subdirs_as_subalbums,
+                             int watch,
                              const char * plugin,
                              void * data)
   {
@@ -978,7 +979,7 @@ static void add_dir_callback(char * dir, int recursive,
   gtk_widget_set_sensitive(w->treeview, 0);
   bg_media_tree_add_directory(w->tree, w->selected_album,
                               dir,
-                              recursive, subdirs_as_subalbums, plugin);
+                              recursive, subdirs_as_subalbums, watch, plugin);
   gtk_widget_set_sensitive(w->treeview, 1);
   }
 

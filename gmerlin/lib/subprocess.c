@@ -34,8 +34,8 @@
 
 #include <config.h>
 
-#include <subprocess.h>
-#include <log.h>
+#include <gmerlin/subprocess.h>
+#include <gmerlin/log.h>
 
 #define READ  0
 #define WRITE 1

@@ -24,14 +24,14 @@
 #include <stdio.h>
 
 #include <config.h>
-#include <translation.h>
-#include <plugin.h>
-#include <utils.h>
-#include <log.h>
-#include <bggavl.h>
+#include <gmerlin/translation.h>
+#include <gmerlin/plugin.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/log.h>
+#include <gmerlin/bggavl.h>
 #include <bgfreetype.h>
 
-#include <textrenderer.h>
+#include <gmerlin/textrenderer.h>
 
 #define LOG_DOMAIN "fv_tcdisplay"
 

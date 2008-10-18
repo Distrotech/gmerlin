@@ -29,14 +29,14 @@
 #include <unistd.h>
 
 #include <config.h>
-#include <translation.h>
+#include <gmerlin/translation.h>
 
 
-#include <cfg_registry.h>
-#include <pluginregistry.h>
+#include <gmerlin/cfg_registry.h>
+#include <gmerlin/pluginregistry.h>
 #include <config.h>
-#include <utils.h>
-#include <singlepic.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/singlepic.h>
 
 #if 0
 char * bg_singlepic_ouput_name = "e_singlepic";

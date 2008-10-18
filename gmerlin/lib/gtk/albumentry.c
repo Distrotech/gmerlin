@@ -25,8 +25,8 @@
 #include <gtk/gtk.h>
 
 #include <config.h>
-#include <tree.h>
-#include <utils.h>
+#include <gmerlin/tree.h>
+#include <gmerlin/utils.h>
 #include <gui_gtk/albumentry.h>
 #include <gui_gtk/textview.h>
 #include <gui_gtk/gtkutils.h>

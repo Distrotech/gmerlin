@@ -23,10 +23,10 @@
 #define __BG_PLUGIN_H_
 
 #include <gavl/gavl.h>
-#include "parameter.h"
-#include "streaminfo.h"
-#include "accelerator.h"
-#include "edl.h"
+#include <gmerlin/parameter.h>
+#include <gmerlin/streaminfo.h>
+#include <gmerlin/accelerator.h>
+#include <gmerlin/edl.h>
 
 /** \defgroup plugin Plugins
  *  \brief Plugin types and associated functions

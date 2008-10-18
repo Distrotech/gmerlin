@@ -24,12 +24,12 @@
 #include <string.h>
 
 #include <config.h>
-#include <pluginregistry.h>
-#include <msgqueue.h>
-#include <transcoder.h>
-#include <transcodermsg.h>
-#include <utils.h>
-#include <log.h>
+#include <gmerlin/pluginregistry.h>
+#include <gmerlin/msgqueue.h>
+#include <gmerlin/transcoder.h>
+#include <gmerlin/transcodermsg.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/log.h>
 
 #define LOG_DOMAIN "postprocessor"
 

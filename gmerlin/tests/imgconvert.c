@@ -21,13 +21,13 @@
 
 #include <string.h>
 
-#include <pluginregistry.h>
-#include <utils.h>
-#include <bggavl.h>
-#include <cmdline.h>
+#include <gmerlin/pluginregistry.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/bggavl.h>
+#include <gmerlin/cmdline.h>
 
 #include <config.h>
-#include <translation.h>
+#include <gmerlin/translation.h>
 
 bg_parameter_info_t conversion_parameters[] =
   {

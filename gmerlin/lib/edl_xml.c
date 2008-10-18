@@ -21,9 +21,9 @@
 
 #include <inttypes.h>
 #include <string.h>
-#include <edl.h>
+#include <gmerlin/edl.h>
 
-#include <utils.h>
+#include <gmerlin/utils.h>
 #include <xmlutils.h>
 
 static const char * const edl_key           = "GMERLIN_EDL";

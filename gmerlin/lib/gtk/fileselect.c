@@ -30,13 +30,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <gtk/gtk.h>
-#include <pluginregistry.h>
+#include <gmerlin/pluginregistry.h>
 #include <gui_gtk/fileselect.h>
 #include <gui_gtk/question.h>
 #include <gui_gtk/gtkutils.h>
 #include <gui_gtk/plugin.h>
 
-#include <utils.h>
+#include <gmerlin/utils.h>
 
 struct bg_gtk_filesel_s
   {
@@ -46,9 +46,9 @@ struct bg_gtk_filesel_s
   void (*add_files)(char ** files, const char * plugin,
                     void * data);
 
-  void (*add_dir)(char * dir, int recursive, int subdirs_as_subalbums, const char * plugin,
-                  void * data);
-    
+  void (*add_dir)(char * dir, int recursive, int subdirs_as_subalbums,
+                  int watch, const char * plugin, void * data);
+  
   void (*close_notify)(bg_gtk_filesel_t * f, void * data);
   
   void * callback_data;
@@ -60,6 +60,7 @@ struct bg_gtk_filesel_s
 
   GtkWidget * recursive;
   GtkWidget * subdirs_as_subalbums;
+  GtkWidget * watch;
   };
 
 static void add_files(bg_gtk_filesel_t * f)
@@ -115,6 +116,7 @@ static void add_dir(bg_gtk_filesel_t * f)
   f->add_dir(tmp,
              gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(f->recursive)),
              gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(f->subdirs_as_subalbums)),
+             gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(f->watch)),
              plugin,
              f->callback_data);
   gtk_widget_set_sensitive(f->filesel, 1);
@@ -171,7 +173,9 @@ static bg_gtk_filesel_t *
 filesel_create(const char * title,
                void (*add_files)(char ** files, const char * plugin,
                                  void * data),
-               void (*add_dir)(char * dir, int recursive, int subdirs_as_subalbums,
+               void (*add_dir)(char * dir, int recursive,
+                               int subdirs_as_subalbums,
+                               int watch,
                                const char * plugin,
                                void * data),
                void (*close_notify)(bg_gtk_filesel_t *,
@@ -227,11 +231,17 @@ filesel_create(const char * title,
     
     ret->subdirs_as_subalbums =
       gtk_check_button_new_with_label(TR("Add subdirectories as subalbums"));
-    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(ret->subdirs_as_subalbums), 1);
-
     gtk_widget_show(ret->subdirs_as_subalbums);
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(ret->subdirs_as_subalbums), 1);
+    
+    ret->watch =
+      gtk_check_button_new_with_label(TR("Watch directories"));
+    gtk_widget_show(ret->watch);
+    
     gtk_box_pack_start_defaults(GTK_BOX(extra),
                                 ret->subdirs_as_subalbums);
+    gtk_box_pack_start_defaults(GTK_BOX(extra),
+                                ret->watch);
     }
   
   /* Create plugin menu */
@@ -294,6 +304,7 @@ bg_gtk_filesel_t *
 bg_gtk_dirsel_create(const char * title,
                      void (*add_dir)(char * dir, int recursive,
                                      int subdirs_as_subalbums,
+                                     int watch,
                                      const char * plugin,
                                      void * data),
                      void (*close_notify)(bg_gtk_filesel_t *,

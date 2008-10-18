@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-#include "transcoder_track.h"
+#include <gmerlin/transcoder_track.h>
 
 typedef struct bg_transcoder_s bg_transcoder_t;
 

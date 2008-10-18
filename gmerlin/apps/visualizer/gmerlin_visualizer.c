@@ -22,9 +22,9 @@
 #include <string.h>
 
 #include <config.h>
-#include <translation.h>
-#include <pluginregistry.h>
-#include <cfg_dialog.h>
+#include <gmerlin/translation.h>
+#include <gmerlin/pluginregistry.h>
+#include <gmerlin/cfg_dialog.h>
 
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
@@ -33,12 +33,12 @@
 #include <gui_gtk/audio.h>
 #include <gui_gtk/plugin.h>
 #include <gui_gtk/logwindow.h>
-#include <utils.h>
-#include <visualize.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/visualize.h>
 
 #include <gdk/gdkx.h>
 
-#include <log.h>
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "gmerlin_visualizer"
 
 #define TOOLBAR_TRIGGER_KEY   (1<<0)

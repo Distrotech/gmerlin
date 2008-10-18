@@ -27,10 +27,10 @@
 
 #include <gavl/gavl.h>
 
-#include <parameter.h>
-#include <bggavl.h>
+#include <gmerlin/parameter.h>
+#include <gmerlin/bggavl.h>
 
-#include <log.h>
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "bggavl"
 
 #define SP_INT(s) if(!strcmp(name, # s)) \

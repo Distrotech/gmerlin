@@ -32,16 +32,16 @@
 
 #include <config.h>
 
-#include <cfg_registry.h>
-#include <pluginregistry.h>
+#include <gmerlin/cfg_registry.h>
+#include <gmerlin/pluginregistry.h>
 #include <pluginreg_priv.h>
 #include <config.h>
-#include <utils.h>
-#include <singlepic.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/singlepic.h>
 
-#include <translation.h>
+#include <gmerlin/translation.h>
 
-#include <log.h>
+#include <gmerlin/log.h>
 
 #include <bgladspa.h>
 #include <bgfrei0r.h>

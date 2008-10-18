@@ -27,9 +27,9 @@
 #include "gtk_dialog.h"
 #include <gui_gtk/gtkutils.h>
 
-#include <log.h>
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "cfg_dialog"
-#include <utils.h>
+#include <gmerlin/utils.h>
 
 enum
 {

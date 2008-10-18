@@ -25,8 +25,8 @@
 /* Plugin registry */
 #include <pthread.h>
 
-#include "plugin.h"
-#include "cfg_registry.h"
+#include <gmerlin/plugin.h>
+#include <gmerlin/cfg_registry.h>
 
 /** \defgroup plugin_registry Plugin registry
  *  \brief Database of all installed plugins

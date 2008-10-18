@@ -24,11 +24,11 @@
 
 #include <config.h>
 
-#include <cfg_dialog.h>
-#include <streaminfo.h>
+#include <gmerlin/cfg_dialog.h>
+#include <gmerlin/streaminfo.h>
 #include <gui_gtk/chapterdialog.h>
 #include <gui_gtk/gtkutils.h>
-#include <utils.h>
+#include <gmerlin/utils.h>
 
 
 enum

@@ -22,9 +22,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <cfg_registry.h>
+#include <gmerlin/cfg_registry.h>
 #include <registry_priv.h>
-#include <utils.h>
+#include <gmerlin/utils.h>
 
 bg_cfg_item_t * bg_cfg_item_create_empty(const char * name)
   {

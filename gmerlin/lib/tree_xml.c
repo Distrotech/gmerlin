@@ -23,9 +23,9 @@
 
 #include <xmlutils.h>
 
-#include <tree.h>
+#include <gmerlin/tree.h>
 #include <treeprivate.h>
-#include <utils.h>
+#include <gmerlin/utils.h>
 
 static bg_album_t * append_album(bg_album_t * list, bg_album_t * new_album)
   {
@@ -106,21 +106,15 @@ static bg_album_t * load_album(xmlDocPtr xml_doc,
     tmp_string = (char*)xmlNodeListGetString(xml_doc, child->children, 1);
 
     if(!BG_XML_STRCMP(child->name, "NAME"))
-      {
       ret->name = bg_strdup(ret->name, tmp_string);
-      }
     else if(!BG_XML_STRCMP(child->name, "LOCATION"))
-      {
       ret->xml_file = bg_strdup(ret->xml_file, tmp_string);
-      }
     else if(!BG_XML_STRCMP(child->name, "DEVICE"))
-      {
       ret->device = bg_strdup(ret->device, tmp_string);
-      }
+    else if(!BG_XML_STRCMP(child->name, "WATCH_DIR"))
+      ret->watch_dir = bg_strdup(ret->watch_dir, tmp_string);
     else if(!BG_XML_STRCMP(child->name, "PLUGIN"))
-      {
       ret->plugin_info = bg_plugin_find_by_name(ret->com->plugin_reg, tmp_string);
-      }
     if(tmp_string)
       xmlFree(tmp_string);
     child = child->next;
@@ -260,6 +254,11 @@ static void save_album(bg_album_t * album, xmlNodePtr parent)
     node = xmlNewTextChild(xml_album, (xmlNsPtr)0, (xmlChar*)"DEVICE", NULL);
     xmlAddChild(node, BG_XML_NEW_TEXT(album->device));
     }
+  if(album->watch_dir)
+    {
+    node = xmlNewTextChild(xml_album, (xmlNsPtr)0, (xmlChar*)"WATCH_DIR", NULL);
+    xmlAddChild(node, BG_XML_NEW_TEXT(album->watch_dir));
+    }
   xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
 
   if(album->plugin_info)
@@ -268,9 +267,6 @@ static void save_album(bg_album_t * album, xmlNodePtr parent)
     xmlAddChild(node, BG_XML_NEW_TEXT(album->plugin_info->name));
     }
   xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
-
-  
-  
   child = album->children;
 
   while(child)

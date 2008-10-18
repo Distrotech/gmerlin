@@ -22,13 +22,13 @@
 #include <config.h>
 #include <libvisual/libvisual.h>
 
-#include <pluginregistry.h>
-#include <translation.h>
-#include <keycodes.h>
+#include <gmerlin/pluginregistry.h>
+#include <gmerlin/translation.h>
+#include <gmerlin/keycodes.h>
 
 #include <bglv.h>
-#include <utils.h>
-#include <log.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/log.h>
 
 /* Fixme: for now, we assume, that X11 is always present... */
 #include <x11/x11.h>

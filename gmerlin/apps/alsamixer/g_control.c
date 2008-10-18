@@ -20,12 +20,12 @@
  * *****************************************************************/
 
 #include <config.h>
-#include <translation.h>
-#include <utils.h>
-#include <parameter.h>
+#include <gmerlin/translation.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/parameter.h>
 #include "gui.h"
 
-#include <log.h>
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "g_control"
 
 #include <gui_gtk/aboutwindow.h>

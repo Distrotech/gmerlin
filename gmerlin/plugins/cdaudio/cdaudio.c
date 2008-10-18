@@ -24,10 +24,10 @@
 #include <string.h>
 
 #include <config.h>
-#include <translation.h>
+#include <gmerlin/translation.h>
 
 
-#include <utils.h>
+#include <gmerlin/utils.h>
 #include <math.h> /* pow for volume calculation */
 
 
@@ -38,7 +38,7 @@
 #include "cdaudio.h"
 #include "sha1.h"
 
-#include <log.h>
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "cdaudio"
 
 

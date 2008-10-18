@@ -23,10 +23,10 @@
 
 #include <config.h>
 
-#include <parameter.h>
-#include <streaminfo.h>
-#include <utils.h>
-#include <translation.h>
+#include <gmerlin/parameter.h>
+#include <gmerlin/streaminfo.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/translation.h>
 
 bg_chapter_list_t * bg_chapter_list_create(int num_chapters)
   {

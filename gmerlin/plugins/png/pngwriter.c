@@ -25,13 +25,13 @@
 #include <errno.h>
 
 #include <config.h>
-#include <translation.h>
+#include <gmerlin/translation.h>
 
-#include <log.h>
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "pngwriter"
 
-#include <plugin.h>
-#include <utils.h>
+#include <gmerlin/plugin.h>
+#include <gmerlin/utils.h>
 
 #include <png.h>
 

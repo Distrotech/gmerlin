@@ -20,19 +20,19 @@
  * *****************************************************************/
 
 #include <pthread.h>
-#include "config.h"
+#include <config.h>
 
-#include "pluginregistry.h"
-#include "fifo.h"
-#include "utils.h"
-#include "bggavl.h"
-#include "textrenderer.h"
-#include "osd.h"
-#include "converters.h"
-#include "filters.h"
-#include "visualize.h"
+#include <gmerlin/pluginregistry.h>
+#include <gmerlin/fifo.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/bggavl.h>
+#include <gmerlin/textrenderer.h>
+#include <gmerlin/osd.h>
+#include <gmerlin/converters.h>
+#include <gmerlin/filters.h>
+#include <gmerlin/visualize.h>
 
-#include "translation.h"
+#include <gmerlin/translation.h>
 
 /* Each thread get it's private context */
 

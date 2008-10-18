@@ -47,10 +47,10 @@
 #include <arpa/inet.h>
 
 
-#include <utils.h>
-#include <bgsocket.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/bgsocket.h>
 
-#include <log.h>
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "tcpsocket"
 
 #if !HAVE_DECL_MSG_NOSIGNAL

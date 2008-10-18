@@ -27,18 +27,28 @@
 
 #include <wctype.h>
 
+/* For stat/opendir */
+
+#include <limits.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <dirent.h>
+
 
 #include <config.h>
 
-#include <tree.h>
+#include <gmerlin/tree.h>
 #include <treeprivate.h>
 
-#include <charset.h>
+#include <gmerlin/charset.h>
 
-#include <utils.h>
-#include <translation.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/translation.h>
 
-#include <log.h>
+
+
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "album"
 
 /*
@@ -339,6 +349,29 @@ void bg_album_insert_urls_before(bg_album_t * a,
     }
   }
 
+void bg_album_insert_file_before(bg_album_t * a,
+                                 char * file,
+                                 const char * plugin,
+                                 bg_album_entry_t * after,
+                                 time_t mtime)
+  {
+  bg_album_entry_t * new_entries;
+  bg_album_entry_t * e;
+  
+  new_entries = bg_album_load_url(a, file, plugin);
+  e = new_entries;
+  while(e)
+    {
+    e->mtime = mtime;
+    e->flags |= BG_ALBUM_ENTRY_SYNC;
+    e = e->next;
+    }
+  bg_album_insert_entries_before(a, new_entries, after);
+  //    bg_album_changed(a);
+    
+  }
+
+
 void bg_album_insert_urls_after(bg_album_t * a,
                                 char ** locations,
                                 const char * plugin,
@@ -473,6 +506,100 @@ bg_album_type_t bg_album_get_type(bg_album_t * a)
   return a->type;
   }
 
+static bg_album_entry_t *
+find_next_with_location(bg_album_t * a, char * filename, bg_album_entry_t * before)
+  {
+  if(!before)
+    before = a->entries;
+  else
+    before = before->next;
+  while(before)
+    {
+    if(!strcmp(before->location, filename))
+      break;
+    before = before->next;
+    }
+  return before;
+  }
+
+static void sync_dir_add(bg_album_t * a, char * filename, time_t mtime)
+  {
+  bg_album_insert_file_before(a,
+                              filename,
+                              (const char*)0,
+                              (bg_album_entry_t*)0,
+                              mtime);
+  }
+
+static void sync_dir_modify(bg_album_t * a, char * filename, time_t mtime)
+  {
+  bg_album_delete_with_file(a, filename);
+  sync_dir_add(a, filename, mtime);
+  }
+
+static void sync_with_dir(bg_album_t * a)
+  {
+  //  char * tmp_string;
+  DIR * dir;
+  char filename[FILENAME_MAX];
+  struct dirent * dent_ptr;
+  struct stat stat_buf;
+  bg_album_entry_t * e;
+
+  struct
+    {
+    struct dirent d;
+    char b[NAME_MAX]; /* Make sure there is enough memory */
+    } dent;
+
+  dir = opendir(a->watch_dir);
+  if(!dir)
+    return;
+
+  while(!readdir_r(dir, &(dent.d), &dent_ptr))
+    {
+    if(!dent_ptr)
+      break;
+
+    if(dent.d.d_name[0] == '.') /* Don't import hidden files */
+      continue;
+    
+    sprintf(filename, "%s/%s", a->watch_dir, dent.d.d_name);
+    
+    if(stat(filename, &stat_buf))
+      continue;
+    
+    /* Add directory as subalbum */
+    if(S_ISDIR(stat_buf.st_mode))
+      continue;
+    else if(S_ISREG(stat_buf.st_mode))
+      {
+      e = find_next_with_location(a, filename, (bg_album_entry_t *)0);
+      
+      if(e)
+        {
+        while(e)
+          {
+          if(e->mtime != stat_buf.st_mtime)
+            {
+            sync_dir_modify(a, filename, stat_buf.st_mtime);
+            break;
+            }
+          else
+            e->flags |= BG_ALBUM_ENTRY_SYNC;
+          e = find_next_with_location(a, filename, e);
+          }
+        }
+      else
+        sync_dir_add(a, filename, stat_buf.st_mtime);
+      }
+    }
+  closedir(dir);
+
+  bg_album_delete_unsync(a);
+  
+  }
+
 int bg_album_open(bg_album_t * a)
   {
   char * tmp_filename;
@@ -564,6 +691,12 @@ int bg_album_open(bg_album_t * a)
       break;
     }
   a->open_count++;
+
+  if((a->type == BG_ALBUM_TYPE_REGULAR) &&
+     a->watch_dir) 
+    {
+    sync_with_dir(a);    
+    }
   return 1;
   }
 
@@ -810,6 +943,155 @@ void bg_album_delete_selected(bg_album_t * album)
     }
   //  bg_album_changed(album);  
   }
+
+void bg_album_delete_unsync(bg_album_t * album)
+  {
+  int num_selected = 0;
+  bg_album_entry_t * cur;
+  bg_album_entry_t * cur_next;
+  bg_album_entry_t * new_entries_end = (bg_album_entry_t *)0;
+  bg_album_entry_t * new_entries;
+  int index, i;
+  int * indices = (int*)0;
+  
+  if(!album->entries)
+    return;
+
+  cur = album->entries;
+
+  num_selected = bg_album_num_unsync(album);
+  
+  if(!num_selected)
+    return;
+  
+  if(album->delete_callback)
+    {
+    indices = malloc((num_selected +1)*sizeof(*indices));
+    }
+  
+  cur = album->entries;
+  new_entries = (bg_album_entry_t*)0;
+  index = 0;
+  i = 0;
+  
+  while(cur)
+    {
+    cur_next = cur->next;
+
+    if(!(cur->flags & BG_ALBUM_ENTRY_SYNC))
+      {
+      if(cur == album->com->current_entry)
+        {
+        album->com->current_entry = (bg_album_entry_t*)0;
+        album->com->current_album = (bg_album_t*)0;
+        }
+      bg_album_entry_destroy(cur);
+      if(indices)
+        indices[i] = index;
+      i++;
+      }
+    else
+      {
+      if(!new_entries)
+        {
+        new_entries = cur;
+        new_entries_end = cur;
+        }
+      else
+        {
+        new_entries_end->next = cur;
+        new_entries_end = new_entries_end->next;
+        }
+      }
+    cur = cur_next;
+    index++;
+    }
+  if(new_entries)
+    new_entries_end->next = (bg_album_entry_t*)0;
+  album->entries = new_entries;
+  
+  delete_shuffle_list(album);
+
+  if(indices)
+    {
+    indices[i] = -1;
+    album->delete_callback(album, indices, album->delete_callback_data);
+    free(indices);
+    }
+  //  bg_album_changed(album);  
+  }
+
+
+void bg_album_delete_with_file(bg_album_t * album, const char * filename)
+  {
+  bg_album_entry_t * cur;
+  bg_album_entry_t * cur_next;
+  bg_album_entry_t * new_entries_end = (bg_album_entry_t *)0;
+  bg_album_entry_t * new_entries;
+  int index, i;
+  int * indices = (int*)0;
+  
+  if(!album->entries)
+    return;
+
+  cur = album->entries;
+    
+  cur = album->entries;
+  new_entries = (bg_album_entry_t*)0;
+  index = 0;
+  i = 0;
+  
+  while(cur)
+    {
+    cur_next = cur->next;
+
+    if(!strcmp(cur->location, filename))
+      {
+      if(cur == album->com->current_entry)
+        {
+        album->com->current_entry = (bg_album_entry_t*)0;
+        album->com->current_album = (bg_album_t*)0;
+        }
+      bg_album_entry_destroy(cur);
+      if(album->delete_callback)
+        {
+        indices = realloc(indices, (i+1) * sizeof(indices));
+        indices[i] = index;
+        }
+      i++;
+      }
+    else
+      {
+      if(!new_entries)
+        {
+        new_entries = cur;
+        new_entries_end = cur;
+        }
+      else
+        {
+        new_entries_end->next = cur;
+        new_entries_end = new_entries_end->next;
+        }
+      }
+    cur = cur_next;
+    index++;
+    }
+  if(new_entries)
+    new_entries_end->next = (bg_album_entry_t*)0;
+  album->entries = new_entries;
+  
+  delete_shuffle_list(album);
+
+  if(indices)
+    {
+    indices = realloc(indices, (i+1) * sizeof(indices));
+    
+    indices[i] = -1;
+    album->delete_callback(album, indices, album->delete_callback_data);
+    free(indices);
+    }
+  }
+
 
 void bg_album_select_error_tracks(bg_album_t * album)
   {
@@ -2000,6 +2282,20 @@ int bg_album_num_selected(bg_album_t * a)
   return ret;
   }
 
+int bg_album_num_unsync(bg_album_t * a)
+  {
+  bg_album_entry_t * e;
+  int ret = 0;
+  e = a->entries;
+  while(e)
+    {
+    if(!(e->flags & BG_ALBUM_ENTRY_SYNC))
+      ret++;
+    e = e->next;
+    }
+  return ret;
+  }
+
 int bg_album_entry_is_selected(bg_album_t * a, int entry)
   {
   bg_album_entry_t * e;
@@ -2342,3 +2638,12 @@ bg_album_entry_t * bg_album_entry_copy(bg_album_t * a, bg_album_entry_t * e)
   return ret;
   }
 
+void bg_album_set_watch_dir(bg_album_t * a,
+                            const char * dir)
+  {
+  char * pos;
+  a->watch_dir = bg_strdup(a->watch_dir, dir);
+  pos = a->watch_dir + strlen(a->watch_dir) - 1;
+  if(*pos == '\n')
+    *pos = '\0';
+  }

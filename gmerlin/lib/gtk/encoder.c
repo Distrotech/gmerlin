@@ -22,7 +22,7 @@
 #include <config.h>
 #include <string.h>
 
-#include <translation.h>
+#include <gmerlin/translation.h>
 
 #include <gtk/gtk.h>
 #include <gui_gtk/plugin.h>

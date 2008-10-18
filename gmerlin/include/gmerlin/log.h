@@ -24,8 +24,8 @@
 
 /* Gmerlin log facilities */
 
-#include "parameter.h"
-#include "msgqueue.h"
+#include <gmerlin/parameter.h>
+#include <gmerlin/msgqueue.h>
 
 #include <libintl.h>
 

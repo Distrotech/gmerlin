@@ -25,9 +25,9 @@
 #include <ctype.h>
 
 #include <gavl/gavl.h>
-#include <parameter.h>
-#include <streaminfo.h>
-#include <utils.h>
+#include <gmerlin/parameter.h>
+#include <gmerlin/streaminfo.h>
+#include <gmerlin/utils.h>
 
 #define MY_FREE(ptr) \
   if(ptr) \

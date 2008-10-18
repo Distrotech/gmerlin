@@ -20,7 +20,7 @@
  * *****************************************************************/
 
 #include <stdio.h>
-#include <player.h>
+#include <gmerlin/player.h>
 #include <playerprivate.h>
 
 void bg_player_set_oa_plugin(bg_player_t * p, bg_plugin_handle_t * handle)

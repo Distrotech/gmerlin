@@ -23,8 +23,8 @@
 #include <gui_gtk/audio.h>
 #include <gui_gtk/gtkutils.h>
 
-#include <pluginregistry.h>
-#include <utils.h>
+#include <gmerlin/pluginregistry.h>
+#include <gmerlin/utils.h>
 
 typedef struct
   {

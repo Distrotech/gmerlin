@@ -22,9 +22,9 @@
 #include <string.h>
 #include <locale.h>
 
-#include <pluginregistry.h>
+#include <gmerlin/pluginregistry.h>
 #include <pluginreg_priv.h>
-#include <utils.h>
+#include <gmerlin/utils.h>
 #include <xmlutils.h>
 
 

@@ -32,15 +32,15 @@
 /* Gmerlin */
 
 #include <config.h>
-#include <translation.h>
+#include <gmerlin/translation.h>
 
 
 #include <bgfreetype.h>
 
-#include <parameter.h>
-#include <textrenderer.h>
-#include <utils.h>
-#include <charset.h>
+#include <gmerlin/parameter.h>
+#include <gmerlin/textrenderer.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/charset.h>
 
 // #undef FT_STROKER_H
 

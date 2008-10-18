@@ -27,7 +27,7 @@
 #include <gui_gtk/slider.h>
 #include <gui_gtk/gtkutils.h>
 
-#include <utils.h>
+#include <gmerlin/utils.h>
 #include <xmlutils.h>
 
 struct bg_gtk_slider_s

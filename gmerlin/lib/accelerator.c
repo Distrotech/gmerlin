@@ -23,8 +23,8 @@
 #include <string.h>
 #include <stdio.h>
 
-#include <accelerator.h>
-#include <keycodes.h>
+#include <gmerlin/accelerator.h>
+#include <gmerlin/keycodes.h>
 
 struct bg_accelerator_map_s
   {

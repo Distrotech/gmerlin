@@ -22,10 +22,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <parameter.h>
-#include <textrenderer.h>
-#include <utils.h>
-#include <pluginregistry.h>
+#include <gmerlin/parameter.h>
+#include <gmerlin/textrenderer.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/pluginregistry.h>
 
 int main(int argc, char ** argv)
   {

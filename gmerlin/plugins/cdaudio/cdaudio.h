@@ -20,7 +20,7 @@
  * *****************************************************************/
 
 #include <config.h>
-#include <plugin.h>
+#include <gmerlin/plugin.h>
 
 #include <cdio/cdio.h>
 

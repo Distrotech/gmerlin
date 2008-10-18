@@ -24,22 +24,22 @@
 #include <stdio.h>
 
 #include <config.h>
-#include <translation.h>
+#include <gmerlin/translation.h>
 
-#include <pluginregistry.h>
-#include <tree.h>
-#include <transcoder_track.h>
-#include <utils.h>
+#include <gmerlin/pluginregistry.h>
+#include <gmerlin/tree.h>
+#include <gmerlin/transcoder_track.h>
+#include <gmerlin/utils.h>
 
-#include <bggavl.h>
+#include <gmerlin/bggavl.h>
 
-#include <textrenderer.h>
+#include <gmerlin/textrenderer.h>
 
-#include <converters.h>
-#include <filters.h>
+#include <gmerlin/converters.h>
+#include <gmerlin/filters.h>
 
 
-#include <log.h>
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "transcoder_track"
 
 void bg_transcoder_track_create_encoder_sections(bg_transcoder_track_t * t,

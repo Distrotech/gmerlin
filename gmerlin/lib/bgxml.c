@@ -30,12 +30,12 @@
 
 #include <errno.h>
 
-#include <utils.h>
+#include <gmerlin/utils.h>
 #include <xmlutils.h>
 
 #define BLOCK_SIZE 2048
 
-#include <log.h>
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "xmlutils"
 
 int bg_xml_write_callback(void * context, const char * buffer,

@@ -21,7 +21,7 @@
 
 #include <inttypes.h>
 #include <config.h>
-#include <float_cast.h>
+#include <gmerlin/float_cast.h>
 
 #include <unistd.h>
 #include <errno.h>
@@ -36,14 +36,14 @@
 #include <string.h>
 #include <stdio.h>
 #include <pthread.h>
-#include <bg_sem.h>
+#include <gmerlin/bg_sem.h>
 
-#include <parameter.h>
-#include <streaminfo.h>
-#include <msgqueue.h>
+#include <gmerlin/parameter.h>
+#include <gmerlin/streaminfo.h>
+#include <gmerlin/msgqueue.h>
 
-#include <utils.h>
-#include <bgsocket.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/bgsocket.h>
 
 #define TYPE_INT            0
 #define TYPE_FLOAT          1

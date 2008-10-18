@@ -25,8 +25,8 @@
 
 #include <config.h>
 
-#include <parameter.h>
-#include <utils.h>
+#include <gmerlin/parameter.h>
+#include <gmerlin/utils.h>
 #include <gui_gtk/gtkutils.h>
 #include <gui_gtk/multiinfo.h>
 #include <gui_gtk/textview.h>

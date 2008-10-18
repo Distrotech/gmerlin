@@ -22,7 +22,7 @@
 #include <pulseaudio_common.h>
 #include <string.h>
 
-#include <utils.h>
+#include <gmerlin/utils.h>
 
 static int open_pulse(void * data,
                       gavl_audio_format_t * format,

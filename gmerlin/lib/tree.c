@@ -33,12 +33,12 @@
 
 /* Gmerlin includes */
 #include <config.h>
-#include <translation.h>
+#include <gmerlin/translation.h>
 
-#include <tree.h>
+#include <gmerlin/tree.h>
 #include <treeprivate.h>
-#include <utils.h>
-#include <log.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/log.h>
 
 #define LOG_DOMAIN "mediatree"
 
@@ -1285,6 +1285,7 @@ static void add_directory(bg_media_tree_t * t, bg_album_t * parent,
                           const char * directory,
                           int recursive,
                           int subdirs_to_subalbums,
+                          int watch,
                           const char * plugin,
                           int depth)
   {
@@ -1326,6 +1327,9 @@ static void add_directory(bg_media_tree_t * t, bg_album_t * parent,
     free(tmp_string);
     }
   
+  if(watch)
+    bg_album_set_watch_dir(a, directory);
+  
   /* Scan for regular files and directories */
   
   dir = opendir(directory);
@@ -1340,8 +1344,7 @@ static void add_directory(bg_media_tree_t * t, bg_album_t * parent,
     if(!dent_ptr)
       break;
     
-
-    if(dent.d.d_name[0] == '.') /* Don't import hidden directories */
+    if(dent.d.d_name[0] == '.') /* Don't import hidden files */
       continue;
     
     sprintf(filename, "%s/%s", directory, dent.d.d_name);
@@ -1354,11 +1357,21 @@ static void add_directory(bg_media_tree_t * t, bg_album_t * parent,
     if(recursive && S_ISDIR(stat_buf.st_mode))
       {
       add_directory(t, a, filename, recursive, subdirs_to_subalbums,
+                    watch,
                     plugin, depth + 1);
       }
     else if(S_ISREG(stat_buf.st_mode))
       {
-      bg_album_insert_urls_before(a, urls, plugin, NULL);
+      if(watch)
+        bg_album_insert_file_before(a, filename,
+                                    plugin,
+                                    (bg_album_entry_t *)0,
+                                    stat_buf.st_mtime);
+      else
+        bg_album_insert_file_before(a, filename,
+                                    plugin,
+                                    (bg_album_entry_t *)0,
+                                    0);
       }
     if(t->change_callback)
       t->change_callback(t, t->change_callback_data);
@@ -1380,11 +1393,13 @@ void bg_media_tree_add_directory(bg_media_tree_t * t, bg_album_t * parent,
                                  const char * directory,
                                  int recursive,
                                  int subdirs_to_subalbums,
+                                 int watch,
                                  const char * plugin)
   {
   add_directory(t, parent, directory, recursive, subdirs_to_subalbums,
+                watch,
                 plugin, 0);
-
+  
   }
 
 static int albums_have_file(bg_album_t * album, const char * filename)

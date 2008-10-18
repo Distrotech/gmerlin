@@ -27,7 +27,7 @@
 #include <gui_gtk/auth.h>
 #include <gui_gtk/gtkutils.h>
 
-#include <utils.h>
+#include <gmerlin/utils.h>
 
 typedef struct
   {

@@ -26,22 +26,22 @@
 
 #include <config.h>
 
-#include <translation.h>
+#include <gmerlin/translation.h>
 
-#include <pluginregistry.h>
-#include <utils.h>
+#include <gmerlin/pluginregistry.h>
+#include <gmerlin/utils.h>
 
-#include <cfg_dialog.h>
-#include <transcoder_track.h>
-#include <msgqueue.h>
-#include <transcoder.h>
-#include <transcodermsg.h>
+#include <gmerlin/cfg_dialog.h>
+#include <gmerlin/transcoder_track.h>
+#include <gmerlin/msgqueue.h>
+#include <gmerlin/transcoder.h>
+#include <gmerlin/transcodermsg.h>
 
-#include <remote.h>
-#include <textrenderer.h>
+#include <gmerlin/remote.h>
+#include <gmerlin/textrenderer.h>
 
-#include <converters.h>
-#include <filters.h>
+#include <gmerlin/converters.h>
+#include <gmerlin/filters.h>
 
 #include <gui_gtk/display.h>
 #include <gui_gtk/scrolltext.h>

@@ -26,9 +26,9 @@
 #include <libxml/tree.h>
 #include <libxml/parser.h>
 
-#include <parameter.h>
-#include <streaminfo.h>
-#include <utils.h>
+#include <gmerlin/parameter.h>
+#include <gmerlin/streaminfo.h>
+#include <gmerlin/utils.h>
 #include <xmlutils.h>
 
 #define XML_2_INT(key)                          \

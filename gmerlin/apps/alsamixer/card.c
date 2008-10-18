@@ -20,10 +20,10 @@
  * *****************************************************************/
 
 #include <config.h>
-#include <translation.h>
+#include <gmerlin/translation.h>
 
-#include <utils.h>
-#include <log.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "card"
 
 

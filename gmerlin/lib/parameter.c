@@ -22,8 +22,8 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <utils.h>
-#include <parameter.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/parameter.h>
 
 void bg_parameter_value_copy(bg_parameter_value_t * dst,
                              const bg_parameter_value_t * src,

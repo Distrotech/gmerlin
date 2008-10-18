@@ -22,18 +22,18 @@
 
 #include <config.h>
 
-#include <translation.h>
-#include <parameter.h>
-#include <player.h>
-#include <lcdproc.h>
-#include <bgsocket.h>
+#include <gmerlin/translation.h>
+#include <gmerlin/parameter.h>
+#include <gmerlin/player.h>
+#include <gmerlin/lcdproc.h>
+#include <gmerlin/bgsocket.h>
 
 #include <string.h>
 #include <sys/types.h> /* pid_t */
 #include <unistd.h>
-#include <utils.h>
+#include <gmerlin/utils.h>
 
-#include <log.h>
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "lcdproc"
 
 static const char * const formats_name      = "formats";

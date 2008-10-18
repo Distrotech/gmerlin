@@ -24,7 +24,7 @@
 
 #include <wchar.h> /* wchar_t */
 
-#include "pluginregistry.h"
+#include <gmerlin/pluginregistry.h>
 
 /* Entry flags                 */
 /* Flags should not be changed */
@@ -35,6 +35,8 @@
 #define BG_ALBUM_ENTRY_REDIRECTOR (1<<3)
 #define BG_ALBUM_ENTRY_SAVE_AUTH  (1<<4)
 #define BG_ALBUM_ENTRY_EDL        (1<<5)
+
+#define BG_ALBUM_ENTRY_SYNC       (1<<6) /* Used only internally */
 
 /*
  *  Shuffle mode passed to bg_media_tree_next() and
@@ -78,7 +80,7 @@ typedef struct bg_album_entry_s
 
   wchar_t * name_w;
   int len_w;
-  
+  time_t mtime;
   } bg_album_entry_t;
 
 typedef struct bg_album_s bg_album_t;
@@ -379,6 +381,7 @@ void bg_media_tree_add_directory(bg_media_tree_t * t, bg_album_t * parent,
                                  const char * directory,
                                  int recursive,
                                  int subdirs_to_subalbums,
+                                 int watch,
                                  const char * plugin);
 
 /* Gets a root album */

@@ -29,14 +29,14 @@
 #include <string.h>
 
 
-#include <utils.h>
-#include <pluginregistry.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/pluginregistry.h>
 #include <bgfrei0r.h>
 #include <frei0r.h>
 
-#include <translation.h>
+#include <gmerlin/translation.h>
 
-#include <log.h>
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "frei0r"
 
 static bg_parameter_info_t *

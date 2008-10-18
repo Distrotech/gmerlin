@@ -26,11 +26,11 @@
 #include <stdlib.h>
 
 #include <config.h>
-#include <utils.h>
-#include <plugin.h>
-#include <pluginregistry.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/plugin.h>
+#include <gmerlin/pluginregistry.h>
 
-#include <log.h>
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "webcam"
 
 #include "webcam.h"

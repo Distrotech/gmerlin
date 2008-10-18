@@ -26,9 +26,9 @@
 #include <config.h>
 
 #include "gmerlin.h"
-#include <utils.h>
+#include <gmerlin/utils.h>
 #include <xmlutils.h>
-#include <keycodes.h>
+#include <gmerlin/keycodes.h>
 
 #include <gui_gtk/gtkutils.h>
 

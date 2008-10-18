@@ -26,9 +26,9 @@
 
 #include <config.h>
 
-#include <pluginregistry.h>
-#include <utils.h>
-#include <cfg_dialog.h>
+#include <gmerlin/pluginregistry.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/cfg_dialog.h>
 
 #include <gui_gtk/plugin.h>
 #include <gui_gtk/gtkutils.h>

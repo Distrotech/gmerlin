@@ -22,9 +22,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <player.h>
+#include <gmerlin/player.h>
 #include <playerprivate.h>
-#include <log.h>
+#include <gmerlin/log.h>
 
 #define LOG_DOMAIN "player.audio_output"
 

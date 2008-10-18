@@ -23,9 +23,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <parameter.h>
-#include <streaminfo.h>
-#include <msgqueue.h>
+#include <gmerlin/parameter.h>
+#include <gmerlin/streaminfo.h>
+#include <gmerlin/msgqueue.h>
 #include <gavl/gavl.h>
 
 #define BUFFER_SIZE 1024

@@ -23,8 +23,8 @@
 #include <stdio.h>
 
 #include <config.h>
-#include <translation.h>
-#include <plugin.h>
+#include <gmerlin/translation.h>
+#include <gmerlin/plugin.h>
 
 #include <png.h>
 

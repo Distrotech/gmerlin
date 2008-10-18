@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gmerlin 0.3.6\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
-"POT-Creation-Date: 2008-08-29 22:13+0200\n"
+"POT-Creation-Date: 2008-10-02 00:04+0200\n"
 "PO-Revision-Date: 2008-09-30 20:59+0200\n"
 "Last-Translator: Burkhard Plaum <gmerlin@users.sourceforge.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -24,7 +24,7 @@ msgstr "PulseAudio"
 msgid "PulseAudio output"
 msgstr "PulseAudio Ausgabe"
 
-#: plugins/pulseaudio/pulseaudio_common.c:184
+#: plugins/pulseaudio/pulseaudio_common.c:186
 #, c-format
 msgid "Connection to Pulseaudio failed: %s"
 msgstr "Verbindungsaufbau zu PulseAudio fehlgeschlagen: %s"
@@ -83,7 +83,7 @@ msgstr ""
 
 #: plugins/subwriters/e_subtext.c:234 plugins/image/iw_pnm.c:148
 #: plugins/postprocessors/e_pp_vcdimager.c:110 plugins/lqt/e_lqt.c:511
-#: lib/gtk/infowindow.c:692
+#: lib/gtk/infowindow.c:693
 msgid "Format"
 msgstr "Format"
 
@@ -283,7 +283,7 @@ msgid "mmap failed: %s"
 msgstr "mmap fehlgeschlagen: %s"
 
 #: plugins/v4l/i_v4l.c:417 plugins/oss/i_oss.c:51 plugins/oss/oa_oss.c:67
-#: plugins/postprocessors/cdrdao_common.h:37 lib/gtk/treewidget.c:1109
+#: plugins/postprocessors/cdrdao_common.h:37 lib/gtk/treewidget.c:1110
 msgid "Device"
 msgstr "Gerät"
 
@@ -995,7 +995,7 @@ msgstr "%s geschrieben"
 #: plugins/postprocessors/e_pp_vcdimager.c:365
 #: plugins/postprocessors/e_pp_vcdimager.c:369
 #: plugins/postprocessors/e_pp_vcdimager.c:376
-#: plugins/postprocessors/e_pp_vcdimager.c:378 lib/tree.c:1438
+#: plugins/postprocessors/e_pp_vcdimager.c:378 lib/tree.c:1453
 #, c-format
 msgid "Removing %s"
 msgstr "Lösche %s"
@@ -1402,7 +1402,7 @@ msgstr "Deinterlacer mit verschiedenen Methoden"
 #: apps/transcoder/trackdialog.c:183 apps/transcoder/trackdialog.c:247
 #: apps/transcoder/trackdialog.c:313 apps/transcoder/trackdialog.c:362
 #: apps/visualizer/gmerlin_visualizer.c:877 lib/x11/x11_window.c:1175
-#: lib/transcoder_track.c:1463
+#: lib/transcoder_track.c:1465
 msgid "General"
 msgstr "Generell"
 
@@ -2369,8 +2369,8 @@ msgstr "Kann das mikmod programm nicht finden"
 msgid "Unrecognized fileformat"
 msgstr "Unbekanntens Dateiformat"
 
-#: plugins/mikmod/i_mikmod.c:251 lib/gtk/infowindow.c:714
-#: lib/gtk/infowindow.c:732 lib/gtk/infowindow.c:750
+#: plugins/mikmod/i_mikmod.c:251 lib/gtk/infowindow.c:715
+#: lib/gtk/infowindow.c:733 lib/gtk/infowindow.c:751
 msgid "Output format"
 msgstr "Ausgabeformat"
 
@@ -2695,7 +2695,7 @@ msgstr "Exporteur für PNG Bilder"
 
 #: plugins/lqt/i_lqt.c:44 apps/plugincfg/gmerlin_plugincfg.c:280
 #: apps/transcoder/trackdialog.c:174 lib/player_audio.c:159
-#: lib/gtk/infowindow.c:701
+#: lib/gtk/infowindow.c:702
 msgid "Audio"
 msgstr "Audio"
 
@@ -2708,7 +2708,7 @@ msgid "Sort and configure audio codecs"
 msgstr "Sortiere und konfiguriere Audio Codecs"
 
 #: plugins/lqt/i_lqt.c:55 apps/transcoder/trackdialog.c:239
-#: lib/player_video.c:127 lib/gtk/infowindow.c:719
+#: lib/player_video.c:127 lib/gtk/infowindow.c:720
 msgid "Video"
 msgstr "Video"
 
@@ -3264,12 +3264,12 @@ msgid "Resample mode"
 msgstr "Resamplemodus"
 
 #: include/bggavl.h:428
-msgid "Linear"
-msgstr "Linear"
-
-#: include/bggavl.h:428
 msgid "Zero order hold"
 msgstr "0. Ordnung halten"
+
+#: include/bggavl.h:428
+msgid "Linear"
+msgstr "Linear"
 
 #: include/bggavl.h:429
 msgid "Sinc fast"
@@ -3425,7 +3425,7 @@ msgid "Text subtitles"
 msgstr "Text Untertitel"
 
 #: apps/player/cfgdialog.c:83 apps/transcoder/trackdialog.c:305
-#: apps/transcoder/trackdialog.c:354 lib/gtk/infowindow.c:737
+#: apps/transcoder/trackdialog.c:354 lib/gtk/infowindow.c:738
 msgid "Subtitles"
 msgstr "Untertitel"
 
@@ -3481,7 +3481,7 @@ msgstr "Ausgabeplugin..."
 msgid "Enable visualizations"
 msgstr "Verwende Visualisierungen"
 
-#: apps/player/mainmenu.c:775 lib/gtk/treewidget.c:1401
+#: apps/player/mainmenu.c:775 lib/gtk/treewidget.c:1402
 msgid "Plugin..."
 msgstr "Plugin..."
 
@@ -3566,8 +3566,8 @@ msgstr "Nächstes Kapitel"
 msgid "Previous chapter"
 msgstr "Vorheriges Kapitel"
 
-#: apps/player/mainmenu.c:1119 lib/gtk/treewidget.c:1325
-#: lib/gtk/treewidget.c:2022
+#: apps/player/mainmenu.c:1119 lib/gtk/treewidget.c:1326
+#: lib/gtk/treewidget.c:2023
 msgid "Goto current track"
 msgstr "Gehe zum nächsten Track"
 
@@ -4198,7 +4198,7 @@ msgstr "Verschiebe hoch"
 msgid "Move Down"
 msgstr "Verschiebe nach unten"
 
-#: apps/transcoder/tracklist.c:942 lib/gtk/treewidget.c:1375
+#: apps/transcoder/tracklist.c:942 lib/gtk/treewidget.c:1376
 #: lib/gtk/albumwidget.c:1485
 msgid "Remove"
 msgstr "Löschen"
@@ -4294,7 +4294,7 @@ msgstr "Wähle Enkoder"
 msgid "Track options"
 msgstr "Trackoptionen"
 
-#: apps/transcoder/trackdialog.c:93 lib/gtk/infowindow.c:696
+#: apps/transcoder/trackdialog.c:93 lib/gtk/infowindow.c:697
 msgid "Metadata"
 msgstr "Metadaten"
 
@@ -5568,31 +5568,36 @@ msgstr "Verbindung zum Server aufgrund eines Fehlers geschlossen"
 msgid "Server connection closed"
 msgstr "Serververbindung beendet"
 
-#: lib/player_thread.c:733 lib/player_thread.c:1248
+#: lib/player_thread.c:330
+#, fuzzy
+msgid "Cannot pause live stream"
+msgstr "Kann Datei %s nicht öffnen"
+
+#: lib/player_thread.c:740 lib/player_thread.c:1255
 msgid "Joining input thread..."
 msgstr "Beende Quellenthread..."
 
-#: lib/player_thread.c:735 lib/player_thread.c:1250
+#: lib/player_thread.c:742 lib/player_thread.c:1257
 msgid "Joining input thread done"
 msgstr "Beenden des Quellenthreads abgeschlossen"
 
-#: lib/player_thread.c:740 lib/player_thread.c:1253
+#: lib/player_thread.c:747 lib/player_thread.c:1260
 msgid "Joining audio thread..."
 msgstr "Beende Audiothread..."
 
-#: lib/player_thread.c:742 lib/player_thread.c:1255
+#: lib/player_thread.c:749 lib/player_thread.c:1262
 msgid "Joining audio thread done"
 msgstr "Beenden des Audiothreads abgeschlossen"
 
-#: lib/player_thread.c:746 lib/player_thread.c:1259
+#: lib/player_thread.c:753 lib/player_thread.c:1266
 msgid "Joining video thread..."
 msgstr "Beende Videothread..."
 
-#: lib/player_thread.c:748 lib/player_thread.c:1261
+#: lib/player_thread.c:755 lib/player_thread.c:1268
 msgid "Joining video thread done"
 msgstr "Beenden des Videothreads abgeschlossen"
 
-#: lib/player_thread.c:1313
+#: lib/player_thread.c:1320
 msgid "Ignoring command while playback is interrupted"
 msgstr "Ignoriere Befehl während das Absplielen unterbrochen ist"
 
@@ -5882,7 +5887,7 @@ msgstr "Kann %s nicht öffnen: Kein Plugin gefunden"
 msgid "Loading %s (plugin: %s)"
 msgstr "Lade %s (Plugin: %s)"
 
-#: lib/tree.c:1144 lib/transcoder_track.c:992 lib/album.c:1708
+#: lib/tree.c:1144 lib/transcoder_track.c:994 lib/album.c:1990
 #, c-format
 msgid "Loading %s failed"
 msgstr "Laden von %s fehlgeschlagen"
@@ -5949,12 +5954,12 @@ msgstr ""
 "welche von beiden abgespielt werden soll. Die Einstellung wird im Album "
 "gespeichert, sobald die Datei geladen wurde."
 
-#: lib/tree.c:1423
+#: lib/tree.c:1438
 #, c-format
 msgid "Purging %s"
 msgstr "Bereinige %s"
 
-#: lib/tree.c:1540
+#: lib/tree.c:1555
 msgid "No current track for copying to favourites"
 msgstr "Kein aktueller Track zum Kopieren zu Favoriten"
 
@@ -6013,7 +6018,7 @@ msgstr "Titel"
 msgid "Album"
 msgstr "Album"
 
-#: lib/metadata.c:97 lib/transcoder_track.c:364 lib/gtk/infowindow.c:783
+#: lib/metadata.c:97 lib/transcoder_track.c:364 lib/gtk/infowindow.c:784
 msgid "Track"
 msgstr "Track"
 
@@ -6095,12 +6100,12 @@ msgstr "Starte Abspielen neu wegen geänderter Audioeinstellungen"
 msgid "Restarting playback due to changed audio filters"
 msgstr "Starte Abspielen neu wegen geänderter Audiofilter"
 
-#: lib/transcoder_track.c:340 lib/gtk/infowindow.c:768
-#: lib/gtk/treewidget.c:1113 lib/gtk/chapterdialog.c:184
+#: lib/transcoder_track.c:340 lib/gtk/infowindow.c:769
+#: lib/gtk/treewidget.c:1114 lib/gtk/chapterdialog.c:184
 msgid "Name"
 msgstr "Name"
 
-#: lib/transcoder_track.c:346 lib/gtk/infowindow.c:778
+#: lib/transcoder_track.c:346 lib/gtk/infowindow.c:779
 msgid "Location"
 msgstr "Ort"
 
@@ -6161,12 +6166,12 @@ msgid "End time"
 msgstr "Endzeit"
 
 #: lib/transcoder_track.c:456 lib/transcoder_track.c:505
-#: lib/transcoder_track.c:1468 lib/transcoder_track.c:1492
+#: lib/transcoder_track.c:1470 lib/transcoder_track.c:1494
 msgid "Action"
 msgstr "Aktion"
 
 #: lib/transcoder_track.c:460 lib/transcoder_track.c:508
-#: lib/transcoder_track.c:1471 lib/transcoder_track.c:1495
+#: lib/transcoder_track.c:1473 lib/transcoder_track.c:1497
 msgid "Forget"
 msgstr "Vergessen"
 
@@ -6187,22 +6192,22 @@ msgid "Select action for this subtitle stream."
 msgstr "Wähle Aktion für diesen Untertitelstream"
 
 #: lib/transcoder_track.c:466 lib/transcoder_track.c:513
-#: lib/transcoder_track.c:1500
+#: lib/transcoder_track.c:1502
 msgid "Input Language"
 msgstr "Ursprüngliche Sprache"
 
 #: lib/transcoder_track.c:472 lib/transcoder_track.c:519
-#: lib/transcoder_track.c:1506
+#: lib/transcoder_track.c:1508
 msgid "Language"
 msgstr "Sprache"
 
 #: lib/transcoder_track.c:480 lib/transcoder_track.c:527
-#: lib/transcoder_track.c:1514
+#: lib/transcoder_track.c:1516
 msgid "Force language"
 msgstr "Erzwinge Sprache"
 
 #: lib/transcoder_track.c:483 lib/transcoder_track.c:530
-#: lib/transcoder_track.c:1517
+#: lib/transcoder_track.c:1519
 msgid ""
 "Force the given language even if the input has the language set differently."
 msgstr ""
@@ -6224,8 +6229,8 @@ msgstr ""
 "Für das Enkodieren werden Bildwiederholrate und -größe von diesem "
 "Videostream genommen, da diese manchmal von Enkodern gebraucht werden."
 
-#: lib/transcoder_track.c:508 lib/transcoder_track.c:1471
-#: lib/transcoder_track.c:1495 lib/gtk/albumwidget.c:1534
+#: lib/transcoder_track.c:508 lib/transcoder_track.c:1473
+#: lib/transcoder_track.c:1497 lib/gtk/albumwidget.c:1534
 msgid "Transcode"
 msgstr "Transkodieren"
 
@@ -6233,11 +6238,11 @@ msgstr "Transkodieren"
 msgid "Video stream to blend onto"
 msgstr "Videostream zum draufmischen"
 
-#: lib/transcoder_track.c:1476
+#: lib/transcoder_track.c:1478
 msgid "Enable 2-pass encoding"
 msgstr "Aktiviere 2-Pass Enkodierung"
 
-#: lib/transcoder_track.c:1478
+#: lib/transcoder_track.c:1480
 msgid ""
 "Encode this stream in 2 passes, i.e. analyze it first and do the final "
 "transcoding in the second pass. This enables higher quality within the given "
@@ -6247,11 +6252,11 @@ msgstr ""
 "enkodiere ihn endgütlig im zweiten Durchlauf. Dies bringt bessere Qualität "
 "für eine gegebene Bitrate aber verdoppelt in etwa die Enkodierzeit."
 
-#: lib/transcoder_track.c:1521
+#: lib/transcoder_track.c:1523
 msgid "Normalize audio"
 msgstr "Normiere Audio"
 
-#: lib/transcoder_track.c:1523
+#: lib/transcoder_track.c:1525
 msgid ""
 "This will enable 2 pass transcoding. In the first pass, the peak volume is "
 "detected. In the second pass, the stream is transcoded with normalized "
@@ -6336,43 +6341,43 @@ msgstr "Lesen der Bergrüßungszeile fehlgeschlagen"
 msgid "Aspect ratio changed"
 msgstr "Aspektverhältnis geändert"
 
-#: lib/player_input.c:370
+#: lib/player_input.c:376
 msgid "Cannot select track, skipping"
 msgstr "Kann Track nicht auswählen, überspringe"
 
-#: lib/player_input.c:411
+#: lib/player_input.c:423
 msgid "Track has neither audio nor video, skipping"
 msgstr "Track hat weder Audio noch Video, überspringe ihn."
 
-#: lib/player_input.c:467
+#: lib/player_input.c:480
 #, c-format
 msgid "Audio sample counter: %s"
 msgstr "Audiosamplezähler: %s"
 
-#: lib/player_input.c:472
+#: lib/player_input.c:485
 #, c-format
 msgid "Video frame counter: %s"
 msgstr "Bilderzähler: %s"
 
-#: lib/player_input.c:861
+#: lib/player_input.c:874
 #, c-format
 msgid "Processed %s audio samples"
 msgstr "%s Audiosamples verarbeitet"
 
-#: lib/player_input.c:867
+#: lib/player_input.c:880
 #, c-format
 msgid "Processed %s video frames"
 msgstr "%s Videobilder verarbeitet"
 
-#: lib/player_input.c:999
+#: lib/player_input.c:1012
 msgid "Input options"
 msgstr "Quellenoptionen"
 
-#: lib/player_input.c:1005
+#: lib/player_input.c:1018
 msgid "Enable bypass mode"
 msgstr "Aktiviere Umgehungsmodus"
 
-#: lib/player_input.c:1008
+#: lib/player_input.c:1021
 msgid ""
 "Use input plugins in bypass mode if they support it (Currently only the "
 "audio CD player). This dramatically decreases CPU usage but doesn't work on "
@@ -6382,7 +6387,7 @@ msgstr ""
 "nur der Audio-CD Spieler). Dies verringert die CPU-Belastung erheblich aber "
 "funktioniert nicht mit allen Hardwarekonfigurationen."
 
-#: lib/player_input.c:1018
+#: lib/player_input.c:1031
 msgid ""
 "When showing still images, gmerlin repeats them periodically to make "
 "realtime filter tweaking work."
@@ -6473,77 +6478,77 @@ msgstr "Kann Socket nicht binden"
 msgid "Got initial audio timestamp: %s"
 msgstr "Erster Audiozeitstempel erhalten: %s"
 
-#: lib/album_xml.c:226
+#: lib/album_xml.c:232
 #, c-format
 msgid "Couldn't open album file %s"
 msgstr "Konnte Albumdatei %s nicht öffnen"
 
-#: lib/gtk/infowindow.c:503
+#: lib/gtk/infowindow.c:518
 #, c-format
 msgid "Name:\t%s"
 msgstr "Name:\t%s"
 
-#: lib/gtk/infowindow.c:513
+#: lib/gtk/infowindow.c:528
 #, c-format
 msgid "Input plugin:\t%s"
 msgstr "Quellenplugin:\t%s"
 
-#: lib/gtk/infowindow.c:522
+#: lib/gtk/infowindow.c:537
 #, c-format
 msgid "Location:\t%s"
 msgstr "Ort:\t%s"
 
-#: lib/gtk/infowindow.c:530
+#: lib/gtk/infowindow.c:545
 #, c-format
 msgid "Track:\t%d"
 msgstr "Track:\t%d"
 
-#: lib/gtk/infowindow.c:548
+#: lib/gtk/infowindow.c:563
 #, c-format
 msgid "Format:\t%s"
 msgstr "Format:\t%s"
 
-#: lib/gtk/infowindow.c:559 lib/gtk/infowindow.c:569
+#: lib/gtk/infowindow.c:574 lib/gtk/infowindow.c:584
 #, c-format
 msgid "Stream type:\t%s"
 msgstr "Streamtyp:\t%s"
 
-#: lib/gtk/infowindow.c:577
+#: lib/gtk/infowindow.c:592
 #, c-format
 msgid "Audio stream %d/%d"
 msgstr "Audiostream %d/%d"
 
-#: lib/gtk/infowindow.c:592
+#: lib/gtk/infowindow.c:607
 #, c-format
 msgid "Subtitle stream %d/%d [%s]"
 msgstr "Untertitelstream %d/%d [%s]"
 
-#: lib/gtk/infowindow.c:607
+#: lib/gtk/infowindow.c:622
 #, c-format
 msgid "Video stream %d/%d"
 msgstr "Videostream %d/%d"
 
-#: lib/gtk/infowindow.c:705 lib/gtk/infowindow.c:723 lib/gtk/infowindow.c:741
+#: lib/gtk/infowindow.c:706 lib/gtk/infowindow.c:724 lib/gtk/infowindow.c:742
 msgid "Stream type"
 msgstr "Streamtyp"
 
-#: lib/gtk/infowindow.c:709 lib/gtk/infowindow.c:727 lib/gtk/infowindow.c:745
+#: lib/gtk/infowindow.c:710 lib/gtk/infowindow.c:728 lib/gtk/infowindow.c:746
 msgid "Input format"
 msgstr "Quellenformat"
 
-#: lib/gtk/infowindow.c:773
+#: lib/gtk/infowindow.c:774
 msgid "Input plugin"
 msgstr "Quellenplugin"
 
-#: lib/gtk/infowindow.c:1045
+#: lib/gtk/infowindow.c:1046
 msgid "Copy selected"
 msgstr "Kopiere Auswahl"
 
-#: lib/gtk/infowindow.c:1047
+#: lib/gtk/infowindow.c:1048
 msgid "Copy all"
 msgstr "Kopiere Alles"
 
-#: lib/gtk/infowindow.c:1095
+#: lib/gtk/infowindow.c:1096
 msgid "Gmerlin Track Info"
 msgstr "Gmerlin Track Info"
 
@@ -6551,71 +6556,71 @@ msgstr "Gmerlin Track Info"
 msgid "Album name"
 msgstr "Albumname"
 
-#: lib/gtk/treewidget.c:961 lib/gtk/treewidget.c:2019
+#: lib/gtk/treewidget.c:961 lib/gtk/treewidget.c:2020
 msgid "Rename album"
 msgstr "Album umbenennen"
 
-#: lib/gtk/treewidget.c:1119
+#: lib/gtk/treewidget.c:1120
 msgid "Add device"
 msgstr "Gerät hinzufügen"
 
-#: lib/gtk/treewidget.c:1333
+#: lib/gtk/treewidget.c:1334
 msgid "Expand all"
 msgstr "Alles ausklappen"
 
-#: lib/gtk/treewidget.c:1337
+#: lib/gtk/treewidget.c:1338
 msgid "Collapse all"
 msgstr "Alles einklappen"
 
-#: lib/gtk/treewidget.c:1341
+#: lib/gtk/treewidget.c:1342
 msgid "Tabbed mode"
 msgstr "Tabbed Modus"
 
-#: lib/gtk/treewidget.c:1345
+#: lib/gtk/treewidget.c:1346
 msgid "Windowed mode"
 msgstr "Fenstermodus"
 
-#: lib/gtk/treewidget.c:1355
+#: lib/gtk/treewidget.c:1356
 msgid "Open"
 msgstr "Öffnen"
 
-#: lib/gtk/treewidget.c:1359
+#: lib/gtk/treewidget.c:1360
 msgid "Close"
 msgstr "Schließen"
 
-#: lib/gtk/treewidget.c:1363
+#: lib/gtk/treewidget.c:1364
 msgid "New..."
 msgstr "Neu..."
 
-#: lib/gtk/treewidget.c:1367
+#: lib/gtk/treewidget.c:1368
 msgid "New from directory..."
 msgstr "Neu von Verzeichnis..."
 
-#: lib/gtk/treewidget.c:1371 lib/gtk/albumwidget.c:1524
+#: lib/gtk/treewidget.c:1372 lib/gtk/albumwidget.c:1524
 msgid "Rename..."
 msgstr "Umbenennen..."
 
-#: lib/gtk/treewidget.c:1384
+#: lib/gtk/treewidget.c:1385
 msgid "Scan for devices"
 msgstr "Suche nach Geräten"
 
-#: lib/gtk/treewidget.c:1388
+#: lib/gtk/treewidget.c:1389
 msgid "Add device..."
 msgstr "Füge Gerät hinzu..."
 
-#: lib/gtk/treewidget.c:1395 lib/gtk/albumwidget.c:1592
+#: lib/gtk/treewidget.c:1396 lib/gtk/albumwidget.c:1592
 msgid "Album..."
 msgstr "Album..."
 
-#: lib/gtk/treewidget.c:1408
+#: lib/gtk/treewidget.c:1409
 msgid "Tree..."
 msgstr "Baum..."
 
-#: lib/gtk/treewidget.c:2017
+#: lib/gtk/treewidget.c:2018
 msgid "Delete album"
 msgstr "Lösche Album"
 
-#: lib/gtk/treewidget.c:2026
+#: lib/gtk/treewidget.c:2027
 msgid "New album"
 msgstr "Neues Album"
 
@@ -6700,13 +6705,18 @@ msgstr "Protokolle"
 msgid "Extensions"
 msgstr "Erweiterungen"
 
-#: lib/gtk/fileselect.c:221
+#: lib/gtk/fileselect.c:225
 msgid "Recursive"
 msgstr "Rekursiv"
 
-#: lib/gtk/fileselect.c:229
+#: lib/gtk/fileselect.c:233
 msgid "Add subdirectories as subalbums"
 msgstr "Füge Unterverzeichnisse als Unteralben hinzu"
+
+#: lib/gtk/fileselect.c:238
+#, fuzzy
+msgid "Watch directories"
+msgstr "Verzeichnis erstellt: %s"
 
 #: lib/gtk/chapterdialog.c:193
 msgid "Time"
@@ -7186,45 +7196,45 @@ msgstr ""
 "Author: %s\n"
 "%s"
 
-#: lib/album.c:427
+#: lib/album.c:460
 msgid "Unnamed disc"
 msgstr "Namenlose Disk"
 
-#: lib/album.c:484
+#: lib/album.c:611
 #, c-format
 msgid "Album %s already open"
 msgstr "Album %s ist bereits offen"
 
-#: lib/album.c:489
+#: lib/album.c:616
 #, c-format
 msgid "Opening album %s"
 msgstr "Öffne Album %s"
 
-#: lib/album.c:621
+#: lib/album.c:754
 #, c-format
 msgid "Not closing album %s (open_count > 0)"
 msgstr "Werde Album %s nicht schließen (open_count > 0)"
 
-#: lib/album.c:624
+#: lib/album.c:757
 #, c-format
 msgid "Closing album %s"
 msgstr "Schließe Album %s"
 
-#: lib/album.c:1690
+#: lib/album.c:1972
 #, c-format
 msgid "Loading %s"
 msgstr "Lade %s"
 
-#: lib/album.c:1733
+#: lib/album.c:2015
 #, c-format
 msgid "Loaded %s (track %d of %d)"
 msgstr "%s geladen (Track %d von %d)"
 
-#: lib/album.c:1935
+#: lib/album.c:2217
 msgid "Ejecting disc failed"
 msgstr "Datenträger auswerfen fehlgeschlagen"
 
-#: lib/album.c:2039
+#: lib/album.c:2335
 msgid "Invalid selection range given"
 msgstr "Ungültiger Auswahlbereich"
 

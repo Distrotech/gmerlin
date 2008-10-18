@@ -19,13 +19,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-#include <converters.h>
+#include <gmerlin/converters.h>
 
 #include <config.h>
-#include <translation.h>
+#include <gmerlin/translation.h>
 
 
-#include <log.h>
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "converters"
 
 #define ABSDIFF(x,y) ((x)>(y)?(x)-(y):(y)-(x))

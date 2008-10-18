@@ -27,7 +27,7 @@
 #include <gui_gtk/scrolltext.h>
 #include <gui_gtk/gtkutils.h>
 
-#include <utils.h>
+#include <gmerlin/utils.h>
 
 #define TIMEOUT_INTERVAL 30
 #define SCROLL_ADVANCE   1

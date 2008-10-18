@@ -28,13 +28,13 @@
 
 
 #include <config.h>
-#include <player.h>
-#include <pluginregistry.h>
+#include <gmerlin/player.h>
+#include <gmerlin/pluginregistry.h>
 #include <gavl/gavl.h>
-#include <utils.h>
-#include <cmdline.h>
-#include <log.h>
-#include <translation.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/cmdline.h>
+#include <gmerlin/log.h>
+#include <gmerlin/translation.h>
 
 #ifdef INFO_WINDOW
 #include <gtk/gtk.h>

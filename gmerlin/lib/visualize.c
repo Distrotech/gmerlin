@@ -24,20 +24,20 @@
 #include <gavl/gavl.h>
 
 #include <config.h>
-#include <translation.h>
+#include <gmerlin/translation.h>
 
-#include <pluginregistry.h>
-#include <visualize.h>
+#include <gmerlin/pluginregistry.h>
+#include <gmerlin/visualize.h>
 #include <visualize_priv.h>
-#include <utils.h>
-#include <subprocess.h>
-#include <msgqueue.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/subprocess.h>
+#include <gmerlin/msgqueue.h>
 #include <unistd.h>
 
 #include <pthread.h>
 #include <sys/signal.h>
 
-#include <log.h>
+#include <gmerlin/log.h>
 
 #define LOG_DOMAIN "visualizer"
 

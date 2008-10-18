@@ -21,7 +21,7 @@
 
 
 #include <gavl/gavl.h>
-#include <cfg_registry.h>
+#include <gmerlin/cfg_registry.h>
 
 /* Audio monitor, will have level meters and other stuff */
 

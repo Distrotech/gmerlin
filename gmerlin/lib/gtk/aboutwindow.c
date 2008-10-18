@@ -31,7 +31,7 @@
 #include <gui_gtk/scrolltext.h>
 #include <gui_gtk/urllink.h>
 
-#include <utils.h>
+#include <gmerlin/utils.h>
 
 struct bg_gtk_about_window_s
   {

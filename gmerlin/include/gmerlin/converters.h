@@ -20,7 +20,7 @@
  * *****************************************************************/
 
 #include <gavl/gavl.h>
-#include <plugin.h>
+#include <gmerlin/plugin.h>
 
 /** \defgroup converters A/V Converters
  * 

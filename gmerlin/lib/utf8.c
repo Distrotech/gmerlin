@@ -25,7 +25,7 @@
 #include <errno.h>
 #include <langinfo.h>
 #include <iconv.h>
-#include <utils.h>
+#include <gmerlin/utils.h>
 
 #define BYTES_INCREMENT 10
 

@@ -24,14 +24,14 @@
 
 #include <config.h>
 
-#include <utils.h>
-#include <pluginregistry.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/pluginregistry.h>
 
-#include <visualize.h>
-#include <translation.h>
+#include <gmerlin/visualize.h>
+#include <gmerlin/translation.h>
 
-#include <cmdline.h>
-#include <log.h>
+#include <gmerlin/cmdline.h>
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "visualization"
 
 static bg_visualizer_t * visualizer = (bg_visualizer_t*)0;

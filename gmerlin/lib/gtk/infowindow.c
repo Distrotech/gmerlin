@@ -25,18 +25,18 @@
 #include <gtk/gtk.h>
 
 #include <config.h>
-#include <translation.h>
+#include <gmerlin/translation.h>
 
-#include <parameter.h>
-#include <streaminfo.h>
+#include <gmerlin/parameter.h>
+#include <gmerlin/streaminfo.h>
 //#include <msgqueue.h>
-#include <player.h>
-#include <playermsg.h>
+#include <gmerlin/player.h>
+#include <gmerlin/playermsg.h>
 #include <gui_gtk/infowindow.h>
 //#include <gui_gtk/textview.h>
 #include <gui_gtk/gtkutils.h>
 
-#include <utils.h>
+#include <gmerlin/utils.h>
 
 /* This is missing in the gtk headers */
 

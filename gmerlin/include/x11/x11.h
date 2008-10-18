@@ -19,8 +19,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-#include "../parameter.h"
-#include "../accelerator.h"
+#include <gmerlin/parameter.h>
+#include <gmerlin/accelerator.h>
 #include <gavl/gavl.h>
 
 /* Min- Max values for Hue, Saturation, Brightness and Contrast */

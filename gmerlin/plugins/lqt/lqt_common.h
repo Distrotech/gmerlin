@@ -22,7 +22,7 @@
 #include <lqt.h>
 #include <lqt_codecinfo.h>
 #include <colormodels.h>
-#include <parameter.h>
+#include <gmerlin/parameter.h>
 
 void bg_lqt_create_codec_info(bg_parameter_info_t * parameter_info,
                               int audio, int video, int encode, int decode);

@@ -52,7 +52,7 @@ struct sem {
 #define _SEMAPHORE_H_
 
 /*
- * $Id: bg_sem.h,v 1.1 2008-04-16 22:29:59 gmerlin Exp $
+ * $Id: bg_sem.h,v 1.1 2008-10-18 20:33:30 gmerlin Exp $
  *
  * semaphore.h: POSIX 1003.1b semaphores
 */

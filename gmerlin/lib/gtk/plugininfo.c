@@ -25,8 +25,8 @@
 
 #include <config.h>
 
-#include <utils.h>
-#include <pluginregistry.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/pluginregistry.h>
 #include <gui_gtk/plugin.h>
 #include <gui_gtk/textview.h>
 #include <gui_gtk/gtkutils.h>

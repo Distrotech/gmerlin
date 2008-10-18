@@ -24,12 +24,12 @@
 #include <string.h>
 
 #include <config.h>
-#include <translation.h>
+#include <gmerlin/translation.h>
 
 
-#include <cfg_registry.h>
+#include <gmerlin/cfg_registry.h>
 #include <registry_priv.h>
-#include <utils.h>
+#include <gmerlin/utils.h>
 
 bg_cfg_section_t * bg_cfg_section_create(const char * name)
   {

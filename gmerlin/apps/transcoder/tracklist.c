@@ -27,10 +27,10 @@
 
 #include <config.h>
 
-#include <pluginregistry.h>
-#include <utils.h>
+#include <gmerlin/pluginregistry.h>
+#include <gmerlin/utils.h>
 
-#include <tree.h>
+#include <gmerlin/tree.h>
 
 #include <gui_gtk/fileselect.h>
 #include <gui_gtk/urlselect.h>
@@ -41,7 +41,7 @@
 #include <gui_gtk/chapterdialog.h>
 #include <gui_gtk/gtkutils.h>
 
-#include <transcoder_track.h>
+#include <gmerlin/transcoder_track.h>
 #include "tracklist.h"
 #include "trackdialog.h"
 #include "encoderwidget.h"

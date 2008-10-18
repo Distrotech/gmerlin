@@ -22,9 +22,9 @@
 #ifndef __BG_PLAYER_H_
 #define __BG_PLAYER_H_
 
-#include "playermsg.h"
-#include "pluginregistry.h"
-#include "msgqueue.h"
+#include <gmerlin/playermsg.h>
+#include <gmerlin/pluginregistry.h>
+#include <gmerlin/msgqueue.h>
 
 /** \defgroup player Player
  *  \brief Multimedia player

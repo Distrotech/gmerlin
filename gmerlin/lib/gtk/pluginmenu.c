@@ -25,9 +25,9 @@
 #include <string.h>
 
 #include <config.h>
-#include <translation.h>
+#include <gmerlin/translation.h>
 
-#include <pluginregistry.h>
+#include <gmerlin/pluginregistry.h>
 
 #include <gui_gtk/plugin.h>
 #include <gui_gtk/gtkutils.h>

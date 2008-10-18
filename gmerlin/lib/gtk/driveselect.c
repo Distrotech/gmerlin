@@ -27,13 +27,13 @@
 
 #include <config.h>
 
-#include <pluginregistry.h>
+#include <gmerlin/pluginregistry.h>
 #include <gui_gtk/plugin.h>
 
 #include <gui_gtk/driveselect.h>
 #include <gui_gtk/gtkutils.h>
 
-#include <utils.h>
+#include <gmerlin/utils.h>
 
 struct bg_gtk_drivesel_s
   {

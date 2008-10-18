@@ -21,7 +21,7 @@
 
 #include <gtk/gtk.h>
 #include "alsamixer.h"
-#include <cfg_registry.h>
+#include <gmerlin/cfg_registry.h>
 
 typedef struct card_widget_s card_widget_t;
 

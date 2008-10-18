@@ -26,9 +26,9 @@
 
 #include <gavl/gavl.h>
 #include <colormatrix.h>
-#include <translation.h>
+#include <gmerlin/translation.h>
 
-#include <log.h>
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "colormatrix"
 
 #define CLAMP_FLOAT(val) (val > 1.0) ? 1.0 : ((val < 0.0) ? 0.0 : val)

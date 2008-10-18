@@ -25,15 +25,15 @@
 #include <errno.h>
 
 #include <inttypes.h>
-#include <plugin.h>
+#include <gmerlin/plugin.h>
 #include <math.h>
 #include <ctype.h>
 
 #include <config.h>
-#include <translation.h>
+#include <gmerlin/translation.h>
 
 
-#include <log.h>
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "ir_pnm"
 
 #define Bits_16  (1<<8)

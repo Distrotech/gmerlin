@@ -22,9 +22,9 @@
 #include <stdio.h>
 #include <gtk/gtk.h>
 
-#include <parameter.h>
-#include <streaminfo.h>
-#include <utils.h>
+#include <gmerlin/parameter.h>
+#include <gmerlin/streaminfo.h>
+#include <gmerlin/utils.h>
 
 #include <gui_gtk/chapterdialog.h>
 #include <gui_gtk/gtkutils.h>

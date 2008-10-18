@@ -21,8 +21,8 @@
 
 #include <stdlib.h>
 #include <gtk/gtk.h>
-#include <tree.h>
-#include <utils.h>
+#include <gmerlin/tree.h>
+#include <gmerlin/utils.h>
 #include <gui_gtk/tree.h>
 #include <gui_gtk/gtkutils.h>
 

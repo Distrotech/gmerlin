@@ -32,9 +32,9 @@
 
 #include <X11/Xutil.h>
 
-#include <translation.h>
-#include <utils.h>
-#include <log.h>
+#include <gmerlin/translation.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "x11"
 
 #include <x11/x11.h>

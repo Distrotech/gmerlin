@@ -23,9 +23,9 @@
 
 
 #include <config.h>
-#include <translation.h>
+#include <gmerlin/translation.h>
 
-#include <utils.h>
+#include <gmerlin/utils.h>
 
 static char * get_dB(float val)
   {

@@ -24,8 +24,8 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <bgsocket.h>
-#include <utils.h>
+#include <gmerlin/bgsocket.h>
+#include <gmerlin/utils.h>
 
 #define INET_PORT 1122
 #define UNIX_NAME "blubberplatsch"

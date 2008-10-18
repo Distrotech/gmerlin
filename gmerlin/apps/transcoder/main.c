@@ -26,8 +26,8 @@
 #include <gtk/gtk.h>
 #include <gui_gtk/gtkutils.h>
 
-#include <pluginregistry.h>
-#include <cmdline.h>
+#include <gmerlin/pluginregistry.h>
+#include <gmerlin/cmdline.h>
 
 #include "transcoder_window.h"
 #include "transcoder_remote.h"

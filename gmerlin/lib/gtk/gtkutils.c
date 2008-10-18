@@ -39,7 +39,7 @@
 
 #include <pango/pangofc-fontmap.h>
 
-#include <utils.h>
+#include <gmerlin/utils.h>
 
 GdkPixbuf * bg_gtk_pixbuf_scale_alpha(GdkPixbuf * src,
                                       int dest_width,

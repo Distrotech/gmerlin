@@ -24,7 +24,7 @@
 
 #include <libxml/tree.h>
 #include <libxml/parser.h>
-#include <encoderinfo.h>
+#include <gmerlin/encoderinfo.h>
 /* This defines a track with all information
    necessary for transcoding */
 

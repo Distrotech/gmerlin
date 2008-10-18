@@ -38,10 +38,10 @@
 #include <sys/stat.h>
 
 #include <unistd.h>
-#include <charset.h>
+#include <gmerlin/charset.h>
 
-#include <utils.h>
-#include <log.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "utils"
 
 #include <md5.h>

@@ -20,8 +20,8 @@
  * *****************************************************************/
 
 #include <config.h>
-#include <plugin.h>
-#include <translation.h>
+#include <gmerlin/plugin.h>
+#include <gmerlin/translation.h>
 
 #include <pulse/simple.h>
 #include <pulse/error.h>

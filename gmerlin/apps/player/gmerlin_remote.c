@@ -22,14 +22,14 @@
 #include <string.h>
 
 #include <config.h>
-#include <cfg_registry.h>
-#include <cmdline.h>
-#include <utils.h>
-#include <remote.h>
-#include <translation.h>
+#include <gmerlin/cfg_registry.h>
+#include <gmerlin/cmdline.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/remote.h>
+#include <gmerlin/translation.h>
 #include "player_remote.h"
 
-#include <log.h>
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "gmerlin_remote"
 
 static void cmd_play(void * data, int * argc, char *** _argv, int arg)

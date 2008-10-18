@@ -19,14 +19,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-#include <gavl/gavl.h>
-#include <edl.h>
-#include <utils.h>
-
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
+
+#include <gavl/gavl.h>
+#include <gmerlin/edl.h>
+#include <gmerlin/utils.h>
+
 
 static void bg_dprintf(const char * format, ...)
   {

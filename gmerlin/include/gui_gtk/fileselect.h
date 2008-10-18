@@ -41,6 +41,7 @@ bg_gtk_filesel_t *
 bg_gtk_dirsel_create(const char * title,
                      void (*add_dir)(char * dir, int recursive,
                                      int subdirs_as_subalbums,
+                                     int watch,
                                      const char * plugin,
                                      void * data),
                      void (*close_notify)(bg_gtk_filesel_t *,

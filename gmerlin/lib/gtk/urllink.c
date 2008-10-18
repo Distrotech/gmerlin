@@ -22,7 +22,7 @@
 #include <gtk/gtk.h>
 #include <stdlib.h>
 
-#include <utils.h>
+#include <gmerlin/utils.h>
 #include <gui_gtk/urllink.h>
 
 struct bg_gtk_urllink_s

@@ -20,7 +20,7 @@
  * *****************************************************************/
 
 #include <config.h>
-#include <translation.h>
+#include <gmerlin/translation.h>
 
 #include "gmerlin.h"
 

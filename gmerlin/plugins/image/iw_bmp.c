@@ -22,15 +22,15 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <utils.h>
+#include <gmerlin/utils.h>
 #include <inttypes.h>
 #include <errno.h>
 
 #include <config.h>
-#include <translation.h>
+#include <gmerlin/translation.h>
 
-#include <plugin.h>
-#include <log.h>
+#include <gmerlin/plugin.h>
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "iw_bmp"
 
 

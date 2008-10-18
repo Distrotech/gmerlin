@@ -27,16 +27,16 @@
 #include <stdio.h>
 
 #include <config.h>
-#include <translation.h>
+#include <gmerlin/translation.h>
 
 #include "kbd.h"
 #include "kbd_remote.h"
 #include <gui_gtk/gtkutils.h>
-#include <utils.h>
-#include <remote.h>
-#include <log.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/remote.h>
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "gmerlin_kbd_config"
-#include <subprocess.h>
+#include <gmerlin/subprocess.h>
 
 static int ignore_mask = GDK_MOD2_MASK;
 

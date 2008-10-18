@@ -1,6 +1,6 @@
 
 AC_INIT
-AC_CONFIG_SRCDIR([include/player.h])
+AC_CONFIG_SRCDIR([include/gmerlin/player.h])
 
 AM_CONFIG_HEADER(include/config.h)
 
@@ -672,6 +672,14 @@ dnl
 GMERLIN_CHECK_MJPEGTOOLS
 
 dnl
+dnl inotify
+dnl
+
+AH_TEMPLATE([HAVE_INOTIFY], [System supports inotify])
+
+AC_CHECK_FUNC(inotify_init,AC_DEFINE(HAVE_INOTIFY))
+
+dnl
 dnl Applications
 dnl
 
@@ -883,7 +891,8 @@ m4/Makefile \
 utils/Makefile \
 tests/Makefile \
 include/Makefile \
-include/bg_version.h \
+include/gmerlin/Makefile \
+include/gmerlin/bg_version.h \
 include/gui_gtk/Makefile \
 include/x11/Makefile \
 lib/Makefile \

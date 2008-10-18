@@ -24,8 +24,8 @@
 #include <stdio.h>
 #include <sys/time.h>
 
-#include "player.h"
-#include "playerprivate.h"
+#include <gmerlin/player.h>
+#include <playerprivate.h>
 
 static void wait_notify(bg_player_t * p)
   {

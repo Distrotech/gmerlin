@@ -22,7 +22,7 @@
 #ifndef __BG_ENCODERINFO_H_
 #define __BG_ENCODERINFO_H_
 
-#include <pluginregistry.h>
+#include <gmerlin/pluginregistry.h>
 
 /* Information about an encoder setup */
 

@@ -22,9 +22,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <parameter.h>
-#include <streaminfo.h>
-#include <utils.h>
+#include <gmerlin/parameter.h>
+#include <gmerlin/streaminfo.h>
+#include <gmerlin/utils.h>
 #include <xmlutils.h>
 
 #define CHAPTER_KEY "CHAPTER"

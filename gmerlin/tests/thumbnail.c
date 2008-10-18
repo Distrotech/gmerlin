@@ -20,7 +20,7 @@
  ******************************************************************/
 
 #include <stdio.h>
-#include <utils.h>
+#include <gmerlin/utils.h>
 #include <stdio.h>
 #include <stdlib.h>
 

@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-#include <utils.h>
+#include <gmerlin/utils.h>
 #include <cddb/cddb.h>
 
 

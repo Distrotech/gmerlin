@@ -28,9 +28,9 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <pluginregistry.h>
-#include <utils.h>
-#include <log.h>
+#include <gmerlin/pluginregistry.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/log.h>
 
 static char * output_plugin_name = "ov_x11";
 

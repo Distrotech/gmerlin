@@ -23,9 +23,9 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <player.h>
+#include <gmerlin/player.h>
 #include <playerprivate.h>
-#include <log.h>
+#include <gmerlin/log.h>
 
 #define LOG_DOMAIN "player.input"
 
@@ -923,6 +923,9 @@ void bg_player_input_preload(bg_player_input_context_t * ctx)
   int do_audio;
   int do_video;
   int do_subtitle;
+
+  if(!(ctx->player->track_info->flags & BG_TRACK_PAUSABLE))
+    return;
   
   do_audio = !!DO_AUDIO(ctx->player->flags);
   do_video = !!DO_VIDEO(ctx->player->flags);

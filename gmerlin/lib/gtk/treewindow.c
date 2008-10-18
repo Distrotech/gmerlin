@@ -26,7 +26,7 @@
 
 #include <config.h>
 
-#include <tree.h>
+#include <gmerlin/tree.h>
 #include <gui_gtk/tree.h>
 #include <gui_gtk/gtkutils.h>
 

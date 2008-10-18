@@ -19,6 +19,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#include <config.h>
+#include <time.h>
 
 /* Flags should not be changed */
 
@@ -85,6 +87,11 @@ typedef struct
   int save_auth;
 
   int prefer_edl;
+
+#ifdef HAVE_INOTIFY
+  int inotify_wd;
+#endif
+
   } bg_album_common_t;
 
 void bg_album_common_prepare_callbacks(bg_album_common_t*,bg_album_entry_t * entry);
@@ -103,7 +110,7 @@ struct bg_album_s
   char * device;      /* Device */
   
   char * disc_name;   /* Set by open_removable */
-
+  char * watch_dir;   /* Directory to watch */
   
   const bg_plugin_info_t * plugin_info;
   bg_plugin_handle_t      * handle;
@@ -141,8 +148,6 @@ struct bg_album_s
   void (*insert_callback)(bg_album_t*,
                           int start, int num, void * data);
   void * insert_callback_data;
-
-  
   
   /* Coordinates in the screen */
 
@@ -158,7 +163,10 @@ struct bg_album_s
   /* Here, dialogs can store additional config data */
     
   bg_cfg_section_t * cfg_section;
-    
+
+#ifdef HAVE_INOTIFY
+  int inotify_fd;
+#endif
   };
 
 /* album.c */
@@ -193,6 +201,21 @@ void bg_album_insert_entries_after(bg_album_t * album,
 void bg_album_insert_entries_before(bg_album_t * album,
                                     bg_album_entry_t * new_entries,
                                     bg_album_entry_t * after);
+
+void bg_album_insert_file_before(bg_album_t * a,
+                                 char * file,
+                                 const char * plugin,
+                                 bg_album_entry_t * after,
+                                 time_t mtime);
+
+void bg_album_set_watch_dir(bg_album_t * a,
+                            const char * dir);
+
+void bg_album_delete_with_file(bg_album_t * album, const char * filename);
+
+void bg_album_delete_unsync(bg_album_t * album);
+int bg_album_num_unsync(bg_album_t * a);
+
 
 /*
  *   Load a single URL, perform redirection and return

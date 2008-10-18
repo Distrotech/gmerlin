@@ -22,8 +22,8 @@
 #include <string.h>
 
 #include <config.h>
-#include <pluginregistry.h>
-#include <utils.h>
+#include <gmerlin/pluginregistry.h>
+#include <gmerlin/utils.h>
 
 #include <stdio.h>
 

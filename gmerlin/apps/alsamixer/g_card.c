@@ -20,9 +20,9 @@
  * *****************************************************************/
 
 #include <config.h>
-#include <translation.h>
+#include <gmerlin/translation.h>
 
-#include <utils.h>
+#include <gmerlin/utils.h>
 #include "gui.h"
 
 #include <gui_gtk/gtkutils.h>

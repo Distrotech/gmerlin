@@ -25,7 +25,7 @@
 #include <gtk/gtk.h>
 #include <gui_gtk/fileentry.h>
 #include <gui_gtk/gtkutils.h>
-#include <utils.h>
+#include <gmerlin/utils.h>
 
 struct bg_gtk_file_entry_s
   {

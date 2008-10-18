@@ -21,7 +21,7 @@
 
 
 #include <config.h>
-#include <translation.h>
+#include <gmerlin/translation.h>
 
 #ifdef HAVE_SYS_SELECT_H
 #include <sys/select.h>
@@ -33,10 +33,10 @@
 #include <unistd.h>
 #include <string.h>
 
-#include <remote.h>
-#include <bgsocket.h>
-#include <utils.h>
-#include <log.h>
+#include <gmerlin/remote.h>
+#include <gmerlin/bgsocket.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/log.h>
 
 /* For INADDR_ Macros */
 

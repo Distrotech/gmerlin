@@ -27,16 +27,16 @@
 
 #include <config.h>
 
-#include <cfg_registry.h>
-#include <pluginregistry.h>
-#include <translation.h>
+#include <gmerlin/cfg_registry.h>
+#include <gmerlin/pluginregistry.h>
+#include <gmerlin/translation.h>
 
 #include <bgladspa.h>
 
 
-#include <log.h>
+#include <gmerlin/log.h>
 
-#include <utils.h>
+#include <gmerlin/utils.h>
 
 
 #define LOG_DOMAIN "ladspa"

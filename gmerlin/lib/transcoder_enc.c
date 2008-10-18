@@ -24,12 +24,12 @@
 #include <stdio.h>
 
 #include <config.h>
-#include <pluginregistry.h>
-#include <tree.h>
-#include <transcoder_track.h>
-#include <utils.h>
+#include <gmerlin/pluginregistry.h>
+#include <gmerlin/tree.h>
+#include <gmerlin/transcoder_track.h>
+#include <gmerlin/utils.h>
 
-#include <log.h>
+#include <gmerlin/log.h>
 #define LOG_DOMAIN "transcoder"
 
 static void create_parameters(bg_plugin_registry_t * plugin_reg,

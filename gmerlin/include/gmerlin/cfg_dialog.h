@@ -22,7 +22,7 @@
 #ifndef __BG_CFG_DIALOG_H_
 #define __BG_CFG_DIALOG_H_
 
-#include "cfg_registry.h"
+#include <gmerlin/cfg_registry.h>
 
 /* Opaque pointer, will look different with all toolkits */
 

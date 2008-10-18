@@ -29,13 +29,13 @@
 
 #include <config.h>
 
-#include <player.h>
+#include <gmerlin/player.h>
 
 #include "gmerlin.h"
 #include "player_remote.h"
 
-#include <utils.h>
-#include <cmdline.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/cmdline.h>
 #include <gui_gtk/gtkutils.h>
 
 // #define MTRACE

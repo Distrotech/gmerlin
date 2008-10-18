@@ -25,7 +25,7 @@
 #include <ctype.h>
 #include <unistd.h>
 
-#include <utils.h>
+#include <gmerlin/utils.h>
 
 #define HOSTNAME_MAX_LEN 512
 

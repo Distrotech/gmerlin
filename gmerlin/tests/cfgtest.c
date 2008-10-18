@@ -24,8 +24,8 @@
 #include <string.h>
 #include <stdio.h>
 
-#include <cfg_dialog.h>
-#include <cmdline.h>
+#include <gmerlin/cfg_dialog.h>
+#include <gmerlin/cmdline.h>
 
 #include <gui_gtk/gtkutils.h>
 
