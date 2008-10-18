@@ -39,13 +39,13 @@ $(dvb_modules)
 noinst_HEADERS = avdec_common.h
 
 i_avdec_la_SOURCES = i_avdec.c avdec_common.c
-i_avdec_la_LIBADD = $(top_builddir)/lib/libgmerlin_avdec.la
+i_avdec_la_LIBADD = $(top_builddir)/lib/libgmerlin_avdec.la @GMERLIN_LIBS@
 
 i_vcd_la_SOURCES = i_vcd.c avdec_common.c
-i_vcd_la_LIBADD = $(top_builddir)/lib/libgmerlin_avdec.la
+i_vcd_la_LIBADD = $(top_builddir)/lib/libgmerlin_avdec.la @GMERLIN_LIBS@
 
 i_dvd_la_SOURCES = i_dvd.c avdec_common.c
-i_dvd_la_LIBADD = $(top_builddir)/lib/libgmerlin_avdec.la
+i_dvd_la_LIBADD = $(top_builddir)/lib/libgmerlin_avdec.la @GMERLIN_LIBS@
 
 i_dvb_la_SOURCES = i_dvb.c avdec_common.c
-i_dvb_la_LIBADD = $(top_builddir)/lib/libgmerlin_avdec.la
+i_dvb_la_LIBADD = $(top_builddir)/lib/libgmerlin_avdec.la @GMERLIN_LIBS@
