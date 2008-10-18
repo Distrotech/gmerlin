@@ -8,5 +8,7 @@ AM_CFLAGS = -DLOCALE_DIR=\"$(localedir)\"
 lib_LTLIBRARIES = fa_volume.la fa_sampleformat.la
 
 fa_volume_la_SOURCES  = fa_volume.c 
+fa_volume_la_LIBADD  =  @MODULE_LIBADD@
 
 fa_sampleformat_la_SOURCES  = fa_sampleformat.c
+fa_sampleformat_la_LIBADD  =  @MODULE_LIBADD@

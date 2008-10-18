@@ -10,6 +10,6 @@ lib_LTLIBRARIES = oa_esd.la i_esd.la
 oa_esd_la_SOURCES = oa_esd.c
 i_esd_la_SOURCES  = i_esd.c
 
-oa_esd_la_LIBADD = @GMERLIN_DEP_LIBS@ @ESD_LIBS@
-i_esd_la_LIBADD = @GMERLIN_DEP_LIBS@ @ESD_LIBS@
+oa_esd_la_LIBADD = @GMERLIN_DEP_LIBS@ @ESD_LIBS@ @MODULE_LIBADD@
+i_esd_la_LIBADD = @GMERLIN_DEP_LIBS@ @ESD_LIBS@ @MODULE_LIBADD@
 

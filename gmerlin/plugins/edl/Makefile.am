@@ -8,4 +8,5 @@ AM_CFLAGS = -DLOCALE_DIR=\"$(localedir)\"
 lib_LTLIBRARIES = i_edl.la 
 
 i_edl_la_SOURCES = i_edl.c 
+i_edl_la_LIBADD =  @MODULE_LIBADD@
 

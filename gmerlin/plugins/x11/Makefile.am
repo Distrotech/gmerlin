@@ -9,7 +9,7 @@ lib_LTLIBRARIES = \
 ov_x11.la
 
 ov_x11_la_SOURCES = ov_x11.c x11_window.c
-ov_x11_la_LIBADD =  @GMERLIN_DEP_LIBS@ @X_LIBS@ @XINERAMA_LIBS@ @XV_LIBS@
+ov_x11_la_LIBADD =  @GMERLIN_DEP_LIBS@ @X_LIBS@ @XINERAMA_LIBS@ @XV_LIBS@ @MODULE_LIBADD@
 
 noinst_HEADERS = x11_window.h
 

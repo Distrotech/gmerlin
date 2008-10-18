@@ -853,6 +853,10 @@ AC_SUBST(GMERLIN_PLUGIN_DIR)
 INCLUDES='-I$(top_builddir)/include'
 AC_SUBST(INCLUDES)
 
+dnl Link all modules to libgmerlin so we can use them from within plugins
+MODULE_LIBADD='$(top_builddir)/lib/libgmerlin.la'
+AC_SUBST(MODULE_LIBADD)
+
 dnl Absolute src path for doxygen
 
 TOP_SRCDIR=`cd ${srcdir} && pwd` 

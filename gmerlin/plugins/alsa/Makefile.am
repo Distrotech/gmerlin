@@ -10,7 +10,7 @@ lib_LTLIBRARIES = oa_alsa.la i_alsa.la
 oa_alsa_la_SOURCES = oa_alsa.c alsa_common.c
 i_alsa_la_SOURCES  = i_alsa.c alsa_common.c
 
-oa_alsa_la_LIBADD = @GMERLIN_DEP_LIBS@ @ALSA_LIBS@
-i_alsa_la_LIBADD = @GMERLIN_DEP_LIBS@ @ALSA_LIBS@
+oa_alsa_la_LIBADD = @GMERLIN_DEP_LIBS@ @ALSA_LIBS@ @MODULE_LIBADD@
+i_alsa_la_LIBADD = @GMERLIN_DEP_LIBS@ @ALSA_LIBS@ @MODULE_LIBADD@
 
 noinst_HEADERS = alsa_common.h
