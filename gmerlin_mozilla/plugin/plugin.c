@@ -40,6 +40,8 @@ REAL_MIME_DESCRIPTION
 
 #include <gmerlin/log.h>
 
+static NPNetscapeFuncs *browser_funcs;
+
 char* NP_GetMIMEDescription(void)
   {
   fprintf(stderr, "GET MIME DESCRIPTION\n");
@@ -144,7 +146,8 @@ NPError NPP_NewStream(NPP        instance,
   
   gmerlin_mozilla_set_url(priv, new_url);
   free(new_url);
-  
+  browser_funcs->destroystream(instance, stream, NPRES_DONE);
+
   return NPERR_NO_ERROR;
   }
 
@@ -166,6 +169,7 @@ NPError NP_Initialize(NPNetscapeFuncs *aNPNFuncs,
                       NPPluginFuncs *aNPPFuncs)
   {
   fprintf(stderr, "INITIALIZE %d %d\n", aNPPFuncs->version, aNPPFuncs->size);
+  browser_funcs = aNPNFuncs;
   aNPPFuncs->newp = NPP_New;
   aNPPFuncs->destroy = NPP_Destroy;
   aNPPFuncs->setwindow = NPP_SetWindow;
