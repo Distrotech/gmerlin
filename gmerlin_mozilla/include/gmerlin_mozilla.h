@@ -2,6 +2,8 @@
 #include <npapi.h>
 #include <config.h>
 
+#include <pthread.h>
+
 #include <gmerlin/player.h>
 
 #include <gtk/gtk.h>
@@ -9,22 +11,25 @@
 typedef struct bg_mozilla_s        bg_mozilla_t;
 typedef struct bg_mozilla_widget_s bg_mozilla_widget_t;
 typedef struct plugin_window_s plugin_window_t;
+typedef struct bg_mozilla_buffer_s  bg_mozilla_buffer_t;
 
-bg_mozilla_widget_t * bg_mozilla_widget_create(bg_mozilla_t * m);
-void bg_mozilla_widget_set_window(bg_mozilla_widget_t * m,
-                                  GdkNativeWindow window_id);
+#define BUFFER_SIZE 4096 /* Need to finetune */
 
-void bg_mozilla_widget_init_menu(bg_mozilla_widget_t * m);
-
-void bg_mozilla_widget_destroy(bg_mozilla_widget_t *);
+#define STATE_IDLE     0
+#define STATE_STARTING 1
+#define STATE_PLAYING  2
 
 struct bg_mozilla_s
   {
+  int state;
+
   bg_player_t * player;
   bg_cfg_registry_t * cfg_reg;
   bg_plugin_registry_t * plugin_reg;
 
   char * orig_url;
+  char * new_url;
+  char * new_mimetype;
   
   struct
     {
@@ -49,6 +54,15 @@ struct bg_mozilla_s
   const bg_plugin_info_t * ov_info;
   
   char * display_string;
+  
+  bg_mozilla_buffer_t * buffer;
+  
+  int playing;
+  
+  pthread_t start_thread;
+  
+  int start_finished;
+  pthread_mutex_t start_finished_mutex;
   };
 
 plugin_window_t * bg_mozilla_plugin_window_create(bg_mozilla_t * m);
@@ -64,9 +78,12 @@ void gmerlin_mozilla_set_oa_plugin(bg_mozilla_t*,
                                    const bg_plugin_info_t * info);
 void gmerlin_mozilla_set_ov_plugin(bg_mozilla_t*,
                                    const bg_plugin_info_t * info);
-void gmerlin_mozilla_set_url(bg_mozilla_t * m, const char * url);
+
+void gmerlin_mozilla_set_stream(bg_mozilla_t * m, const char * url, const char * mimetype);
+void gmerlin_mozilla_start(bg_mozilla_t * m);
 
 
+/* GUI */
 
 typedef struct
   {
@@ -118,4 +135,23 @@ struct bg_mozilla_widget_s
   int toolbar_state;
 
   };
+
+bg_mozilla_widget_t * bg_mozilla_widget_create(bg_mozilla_t * m);
+void bg_mozilla_widget_set_window(bg_mozilla_widget_t * m,
+                                  GdkNativeWindow window_id);
+
+void bg_mozilla_widget_init_menu(bg_mozilla_widget_t * m);
+
+void bg_mozilla_widget_destroy(bg_mozilla_widget_t *);
+
+/* Buffer (passes data from the Browser to the player */
+
+bg_mozilla_buffer_t * bg_mozilla_buffer_create( );
+void bg_mozilla_buffer_destroy(bg_mozilla_buffer_t *);
+
+/* A final call with 0 len signals EOF */
+int bg_mozilla_buffer_write(bg_mozilla_buffer_t *,
+                            void * data, int len);
+
+int bg_mozilla_buffer_read(void *, uint8_t * data, int len);
 

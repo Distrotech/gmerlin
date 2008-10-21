@@ -202,11 +202,28 @@ static gboolean idle_callback(void * data)
   bg_msg_t * msg;
   bg_mozilla_widget_t * w = data;
 
-  while((msg = bg_msg_queue_try_lock_read(w->m->msg_queue)))
+  if(w->m->state == STATE_STARTING)
     {
-    handle_message(w, msg);
-    bg_msg_queue_unlock_read(w->m->msg_queue);
+    pthread_mutex_lock(&w->m->start_finished_mutex);
+    if(w->m->start_finished)
+      {
+      w->m->start_finished = 0;
+      fprintf(stderr, "Joining start thread...");
+      pthread_join(w->m->start_thread, (void**)0);
+      fprintf(stderr, "done\n");
+      }
+    pthread_mutex_unlock(&w->m->start_finished_mutex);
+    w->m->state = STATE_PLAYING;
     }
+  else if(w->m->state == STATE_PLAYING)
+    {
+    while((msg = bg_msg_queue_try_lock_read(w->m->msg_queue)))
+      {
+      handle_message(w, msg);
+      bg_msg_queue_unlock_read(w->m->msg_queue);
+      }
+    }
+  
   w->idle_counter++;
 
   if((w->toolbar_state == TOOLBAR_VISIBLE) &&
@@ -250,7 +267,7 @@ static void focus_callback(GtkWidget *widget,
                            GdkEventFocus *event,
                            gpointer   data)
   {
-  bg_mozilla_widget_t * w = data;
+  //  bg_mozilla_widget_t * w = data;
   if(event->in)
     fprintf(stderr, "Focus in\n");
   else

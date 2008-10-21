@@ -80,8 +80,9 @@ dnl
 dnl Compile IDL
 dnl
 
-dnl echo "$GECKO_XPIDL -w -m header -I $GECKO_IDLDIR -I plugin -e include/nsIScriptableGmerlinPlugin.h plugin/nsIScriptableGmerlinPlugin.idl"
-dnl $GECKO_XPIDL -w -m header -I $GECKO_IDLDIR -I plugin -e include/nsIScriptableGmerlinPlugin.h plugin/nsIScriptableGmerlinPlugin.idl
+echo "$GECKO_XPIDL -w -m header -I $GECKO_IDLDIR -I plugin -e include/scriptable.h plugin/gmerlin-mozilla.idl"
+$GECKO_XPIDL -w -m header -I $GECKO_IDLDIR -I plugin -e include/scriptable.h plugin/gmerlin-mozilla.idl
+$GECKO_XPIDL -w -m typelib -I $GECKO_IDLDIR -I plugin -e plugin/gmerlin-mozilla.xpt plugin/gmerlin-mozilla.idl
 
 dnl
 dnl Output

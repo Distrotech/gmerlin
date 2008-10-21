@@ -12,7 +12,8 @@ bg_mozilla_t * gmerlin_mozilla_create()
   char * tmp_path;
   char * old_locale;
   ret = calloc(1, sizeof(*ret));
-
+  ret->buffer = bg_mozilla_buffer_create();
+  pthread_mutex_init(&ret->start_finished_mutex, NULL);
   /* Set the LC_NUMERIC locale to "C" so we read floats right */
   old_locale = setlocale(LC_NUMERIC, "C");
   
@@ -124,6 +125,15 @@ void gmerlin_mozilla_set_ov_plugin(bg_mozilla_t * m,
     }
   }
 
+void gmerlin_mozilla_set_stream(bg_mozilla_t * m,
+                                const char * url,
+                                const char * mimetype)
+  {
+  m->new_url      = bg_strdup(m->new_url, url); 
+  m->new_mimetype = bg_strdup(m->new_mimetype, mimetype);
+  fprintf(stderr, "Set URL: %s %s\n", m->new_url, m->new_mimetype);
+  }
+
 /* Append URL to list */
 
 static void append_url(bg_mozilla_t * m, const char * url,
@@ -153,6 +163,12 @@ static void append_url(bg_mozilla_t * m, const char * url,
     
     if(ti->url) /* Redirection */
       {
+      if(depth > 5)
+        {
+        fprintf(stderr, "Too many redirections\n");
+        return;
+        }
+      
       fprintf(stderr, "%s is redirector to %s\n", url, ti->url);
       append_url(m, ti->url, depth+1, playing);
       }
@@ -161,7 +177,7 @@ static void append_url(bg_mozilla_t * m, const char * url,
       if(!(*playing))
         {
         bg_player_play(m->player, h,
-                       0,
+                       i,
                        0, (ti->name ? ti->name : "Livestream"));
         *playing = 1;
         }
@@ -171,14 +187,97 @@ static void append_url(bg_mozilla_t * m, const char * url,
   bg_plugin_unref(h);
   }
 
-void gmerlin_mozilla_set_url(bg_mozilla_t * m, const char * url)
+
+static void * start_func(void * priv)
   {
-  int playing = 0;
-  if(m->orig_url && !strcmp(m->orig_url, url))
-    return;
-  m->orig_url = bg_strdup(m->orig_url, url);
-  fprintf(stderr, "Set URL: %s\n", m->orig_url);
+  int num_tracks, i, num;
+  const bg_plugin_info_t * info;
+  bg_input_plugin_t * input;
+  bg_track_info_t * ti;
+  bg_mozilla_t * m = priv;
+  bg_plugin_handle_t * h = (bg_plugin_handle_t *)0;
   
-  append_url(m, url, 0, &playing);
+  fprintf(stderr, "gmerlin_mozilla_start\n");
+    
+  if(m->orig_url && !strcmp(m->orig_url, m->new_url))
+    goto fail;
+  m->orig_url = bg_strdup(m->orig_url, m->new_url);
   
+  /* TODO: If we have more than one callback capable plugin
+     (unlikely), we must to proper selection */
+
+  num = bg_plugin_registry_get_num_plugins(m->plugin_reg,
+                                           BG_PLUGIN_INPUT,
+                                           BG_PLUGIN_CALLBACKS);
+  
+  if(!num)
+    {
+    fprintf(stderr, "No plugin\n");
+    goto fail;
+    }
+  info = bg_plugin_find_by_index(m->plugin_reg, 0,
+                                 BG_PLUGIN_INPUT,
+                                 BG_PLUGIN_CALLBACKS);
+  if(!info)
+    goto fail;
+  
+  h = bg_plugin_load(m->plugin_reg, info);
+  if(!h)
+    goto fail;
+
+  if(!num)
+    {
+    fprintf(stderr, "No plugin\n");
+    goto fail;
+    }
+  
+  input = (bg_input_plugin_t *)h->plugin;
+
+  if(!input->open_callbacks)
+    {
+    bg_plugin_unref(h);
+    goto fail;
+    }
+
+  if(!input->open_callbacks(h->priv,
+                            bg_mozilla_buffer_read,
+                            NULL, /* Seek callback */
+                            m->buffer, m->orig_url, m->new_mimetype))
+    {
+    bg_plugin_unref(h);
+    fprintf(stderr, "Open callbacks failed\n");
+    goto fail;
+    }
+  if(!input->get_num_tracks)
+    num_tracks = 1;
+  else
+    num_tracks = input->get_num_tracks(h->priv);
+
+  for(i = 0; i < num_tracks; i++)
+    {
+    ti = input->get_track_info(h->priv, i);
+    if(ti->url) /* Redirection */
+      append_url(m, m->orig_url, 0, &m->playing);
+    else if(!m->playing)
+      {
+      bg_player_play(m->player, h,
+                     i,
+                     0, (ti->name ? ti->name : "Livestream"));
+      m->playing = 1;
+      }
+    }
+  pthread_mutex_lock(&m->start_finished_mutex);
+  m->start_finished = 1;
+  pthread_mutex_unlock(&m->start_finished_mutex);
+  
+  fail:
+  if(h)
+    bg_plugin_unref(h);
+  return NULL;
+  }
+
+void gmerlin_mozilla_start(bg_mozilla_t * m)
+  {
+  pthread_create(&(m->start_thread), (pthread_attr_t*)0, start_func, m);
+  m->state = STATE_STARTING;
   }
