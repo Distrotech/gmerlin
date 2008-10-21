@@ -211,9 +211,9 @@ static gboolean idle_callback(void * data)
       fprintf(stderr, "Joining start thread...");
       pthread_join(w->m->start_thread, (void**)0);
       fprintf(stderr, "done\n");
+      w->m->state = STATE_PLAYING;
       }
     pthread_mutex_unlock(&w->m->start_finished_mutex);
-    w->m->state = STATE_PLAYING;
     }
   else if(w->m->state == STATE_PLAYING)
     {

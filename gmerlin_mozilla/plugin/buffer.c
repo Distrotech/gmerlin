@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define NUM_FRAMES 2
+#define NUM_FRAMES 6
 
 typedef struct
   {
@@ -53,9 +53,9 @@ void bg_mozilla_buffer_destroy(bg_mozilla_buffer_t * b)
 int bg_mozilla_buffer_write(bg_mozilla_buffer_t * b,
                             void * data, int len)
   {
-  fprintf(stderr, "Wait write...");
+  //  fprintf(stderr, "Wait write...");
   sem_wait(&(b->w->consumed));
-  fprintf(stderr, "Wait write...done\n");
+  //  fprintf(stderr, "Wait write...done\n");
 
   if(len > BUFFER_SIZE)
     len = BUFFER_SIZE;
@@ -79,7 +79,7 @@ int bg_mozilla_buffer_read(void * b1,
   int bytes_to_copy;
   int buf_size;
   bg_mozilla_buffer_t * b = b1;
-  // fprintf(stderr, "bg_mozilla_buffer_read %d %d\n", bytes_read, len);
+  //  fprintf(stderr, "bg_mozilla_buffer_read %d %d %d\n", bytes_read, len, b->eof);
 
   if(b->eof)
     return 0;
