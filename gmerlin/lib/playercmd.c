@@ -26,7 +26,6 @@
 void bg_player_set_oa_plugin(bg_player_t * p, bg_plugin_handle_t * handle)
   {
   bg_msg_t * msg;
-
   bg_plugin_ref(handle);
   
   msg = bg_msg_queue_lock_write(p->command_queue);

@@ -121,7 +121,7 @@ typedef int (*bg_read_video_func_t)(void * priv, gavl_video_frame_t* frame, int 
 #define BG_PLUGIN_VISUALIZE_GL (1<<13)  //!< Visualization plugin outputs via OpenGL
 
 #define BG_PLUGIN_PP  (1<<14)  //!< Postprocessor
-
+#define BG_PLUGIN_CALLBACKS     (1<<15)  //!< Plugin can be opened from callbacks
 
 #define BG_PLUGIN_UNSUPPORTED  (1<<24)  //!< Plugin is not supported. Only for a foreign API plugins
 
@@ -133,7 +133,7 @@ typedef int (*bg_read_video_func_t)(void * priv, gavl_video_frame_t* frame, int 
 
 
 
-#define BG_PLUGIN_API_VERSION 15
+#define BG_PLUGIN_API_VERSION 16
 
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */
@@ -531,6 +531,21 @@ struct bg_input_plugin_s
   int (*open_fd)(void * priv, int fd, int64_t total_bytes,
                  const char * mimetype);
 
+  /** \brief Open plugin with callbacks (optional)
+   *  \param priv The handle returned by the create() method
+   *  \param read_callback Callback for reading data
+   *  \param seek_callback Callback for seeking
+   *  \param cb_priv Private argument for the callbacks
+   *  \param filename The filename of the input or NULL if this info is not known.
+   *  \param mimetype The mimetype of the input or NULL if this info is not known.
+   *  \returns 1 on success, 0 on failure
+   */
+
+  int (*open_callbacks)(void * priv,
+                        int (*read_callback)(void * priv, uint8_t * data, int len),
+                        int64_t (*seek_callback)(void * priv, uint64_t pos, int whence),
+                        void * cb_priv, const char * filename, const char * mimetype);
+  
   /** \brief Get the edl (optional)
    *  \param priv The handle returned by the create() method
    *  \returns The edl if any

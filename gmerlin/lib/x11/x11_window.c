@@ -522,8 +522,6 @@ static int open_display(bg_x11_window_t * w)
     }
   else
     {
-  
-    
     fullscreen_id = strrchr(w->display_string_parent, ':');
     if(!fullscreen_id)
       {
@@ -552,7 +550,6 @@ static int open_display(bg_x11_window_t * w)
       w->fullscreen.parent = None;
     else
       w->fullscreen.parent = strtoul(fullscreen_id, (char **)0, 16);
-    
     }
 
   w->screen = DefaultScreen(w->dpy);
@@ -672,7 +669,7 @@ void bg_x11_window_init(bg_x11_window_t * w)
   if((w->fullscreen.parent != w->root) &&
      window_is_viewable(w->dpy, w->fullscreen.parent))
     {
-    fprintf(stderr, "Is fullscreen\n");
+    // fprintf(stderr, "Is fullscreen\n");
     
     if(!w->is_fullscreen)
       send_event = 1;
@@ -701,7 +698,7 @@ void bg_x11_window_init(bg_x11_window_t * w)
                       (int*)0, (int*)0,
                       &w->window_width, &w->window_height);
 #endif
-
+  fprintf(stderr, "Window size: %dx%d\n", w->window_width, w->window_height);
   if((send_event >= 0) && w->callbacks &&
      w->callbacks->set_fullscreen)
     w->callbacks->set_fullscreen(w->callbacks->data, send_event);
@@ -870,8 +867,8 @@ static int create_window(bg_x11_window_t * w,
     XSetWMProtocols(w->dpy, w->fullscreen.win, wm_protocols, 2);
     w->fullscreen.toplevel = w->fullscreen.win;
 
-    w->fullscreen.focus_child =
 #if 0
+    w->fullscreen.focus_child =
       XCreateWindow(w->dpy, w->fullscreen.win,
                     0, 0,
                     width, height,

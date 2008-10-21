@@ -932,13 +932,15 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
             button_number = 5;
             break;
           }
-        if(w->callbacks->button_callback && (evt->type == ButtonPress))
+        if(w->callbacks->button_callback &&
+           (evt->type == ButtonPress))
           w->callbacks->button_callback(w->callbacks->data,
                                         x_src,
                                         y_src,
                                         button_number,
                                         x11_to_key_mask(evt->xbutton.state));
-        else if(w->callbacks->button_release_callback && (evt->type == ButtonRelease))
+        else if(w->callbacks->button_release_callback &&
+                (evt->type == ButtonRelease))
           w->callbacks->button_release_callback(w->callbacks->data,
                                                 x_src,
                                                 y_src,
@@ -966,7 +968,7 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
         XSendEvent(button_event.display,
                    button_event.window,
                    False, 0, (XEvent *)(&button_event));
-        // XFlush(w->dpy);
+        //        XFlush(w->dpy);
         }
 
     }

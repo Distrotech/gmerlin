@@ -1752,7 +1752,7 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
     return 1;
 
   /* Debug */
-  bg_edl_save(edl_c, "test.edl");
+  //  bg_edl_save(edl_c, "test.edl");
     
   /* Load EDL instead */
   edl = bg_edl_copy(edl_c);

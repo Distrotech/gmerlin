@@ -186,6 +186,7 @@ void bg_player_time_get(bg_player_t * player, int exact,
   {
   bg_player_oa_context_t * ctx;
   int samples_in_soundcard;
+  
   ctx = player->oa_context;
   if(!exact || (ctx->sync_mode == SYNC_INPUT))
     {
@@ -422,7 +423,8 @@ void bg_player_oa_set_volume(bg_player_oa_context_t * ctx,
 int bg_player_oa_get_latency(bg_player_oa_context_t * ctx)
   {
   int ret;
-  if(!ctx->priv || !ctx->plugin || !ctx->plugin->get_delay)
+  if(!ctx->priv || !ctx->plugin || !ctx->plugin->get_delay ||
+     !ctx->output_open)
     {
     return 0;
     }
