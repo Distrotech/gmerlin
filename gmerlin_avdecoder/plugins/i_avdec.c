@@ -32,25 +32,10 @@
 
 #include "avdec_common.h"
 
-static int open_avdec(void * priv, const char * location)
+static int open_common(avdec_priv * avdec)
   {
-  int i, result;
+  int i;
   const char * str;
-  avdec_priv * avdec;
-  bgav_options_t * opt;
-  
-  avdec = (avdec_priv*)(priv);
-
-  avdec->dec = bgav_create();
-  opt = bgav_get_options(avdec->dec);
-
-  bgav_options_copy(opt, avdec->opt);
-  
-  if(!bgav_open(avdec->dec, location))
-    {
-    return 0;
-    }
-  
   if(bgav_is_redirector(avdec->dec))
     {
     avdec->num_tracks = bgav_redirector_get_num_urls(avdec->dec);
@@ -71,16 +56,45 @@ static int open_avdec(void * priv, const char * location)
       }
     return 1;
     }
-  result = bg_avdec_init(avdec);
+  return bg_avdec_init(avdec);
+  }
 
-  /* Set default track name */
-#if 0
-  if(result && (avdec->num_tracks == 1) && !avdec->track_info->name)
-    {
-    bg_set_track_name_default(avdec->track_info, location);
-    }
-#endif
-  return result;
+
+static int open_callbacks_avdec(void * priv,
+                                int (*read_callback)(void * priv, uint8_t * data, int len),
+                                int64_t (*seek_callback)(void * priv, uint64_t pos, int whence),
+                                void * cb_priv, const char * filename, const char * mimetype)
+  {
+  avdec_priv * avdec;
+  bgav_options_t * opt;
+  
+  avdec = (avdec_priv*)(priv);
+
+  avdec->dec = bgav_create();
+  opt = bgav_get_options(avdec->dec);
+
+  bgav_options_copy(opt, avdec->opt);
+  
+  if(!bgav_open_callbacks(avdec->dec, read_callback, seek_callback, cb_priv, filename, mimetype))
+    return 0;
+  return open_common(avdec);
+  }
+
+static int open_avdec(void * priv, const char * location)
+  {
+  avdec_priv * avdec;
+  bgav_options_t * opt;
+  
+  avdec = (avdec_priv*)(priv);
+
+  avdec->dec = bgav_create();
+  opt = bgav_get_options(avdec->dec);
+
+  bgav_options_copy(opt, avdec->opt);
+  
+  if(!bgav_open(avdec->dec, location))
+    return 0;
+  return open_common(avdec);
   }
 
 
@@ -361,7 +375,7 @@ const bg_input_plugin_t the_plugin =
       .long_name =      TRS("AVDecoder plugin"),
       .description =    TRS("Plugin based on the Gmerlin avdecoder library. Supports most media formats. Playback is supported from files, URLs (with various protocols) and stdin."),
       .type =           BG_PLUGIN_INPUT,
-      .flags =          BG_PLUGIN_FILE|BG_PLUGIN_URL,
+      .flags =          BG_PLUGIN_FILE|BG_PLUGIN_URL|BG_PLUGIN_CALLBACKS,
       .priority =       BG_PLUGIN_PRIORITY_MAX,
       .create =         bg_avdec_create,
       .destroy =        bg_avdec_destroy,
@@ -373,6 +387,7 @@ const bg_input_plugin_t the_plugin =
     .get_extensions = get_extensions,
     /* Open file/device */
     .open = open_avdec,
+    .open_callbacks = open_callbacks_avdec,
     .set_callbacks = bg_avdec_set_callbacks,
   /* For file and network plugins, this can be NULL */
     .get_num_tracks = bg_avdec_get_num_tracks,
