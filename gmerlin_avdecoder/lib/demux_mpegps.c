@@ -268,6 +268,8 @@ typedef struct
   
   int find_streams;
   int do_sync;
+
+  int is_running;
   
   /* Headers */
 
@@ -332,6 +334,31 @@ static int read_sector_input(bgav_demuxer_context_t * ctx)
   bgav_input_reopen_memory(priv->input_mem,
                            priv->sector_buffer + priv->sector_header_size,
                            priv->sector_size);
+  return 1;
+  }
+
+static int select_track_mpegps(bgav_demuxer_context_t * ctx, int track)
+  {
+  mpegps_priv_t * priv;
+  priv = (mpegps_priv_t*)(ctx->priv);
+
+  /* If we didn't run yet, we do nothing.
+     This prevents reopening of the input. */
+
+  fprintf(stderr, "select_track_mpegps %d\n", priv->is_running);
+  
+  if(!priv->is_running)
+    return 1;
+
+  priv->is_running = 0;
+  
+  if(ctx->data_start != ctx->input->position)
+    {
+    if(ctx->input->input->seek_byte)
+      bgav_input_seek(ctx->input, ctx->data_start, SEEK_SET);
+    else
+      return 0;
+    }
   return 1;
   }
 
@@ -508,6 +535,9 @@ static int next_packet(bgav_demuxer_context_t * ctx,
             stream->timescale = 90000;
             stream->fourcc = BGAV_MK_FOURCC('.', 'a', 'c', '3');
             stream->stream_id = priv->pes_header.stream_id;
+            /* Hack: This is set by the core later. We must set it here,
+               because we buffer packets during initialization */
+            stream->demuxer = ctx;
             }
           }
         else if(((c >= 0x88) && (c <= 0x8F)) ||
@@ -529,6 +559,10 @@ static int next_packet(bgav_demuxer_context_t * ctx,
             stream->timescale = 90000;
             stream->fourcc = BGAV_MK_FOURCC('d', 't', 's', ' ');
             stream->stream_id = priv->pes_header.stream_id;
+            /* Hack: This is set by the core later. We must set it here,
+               because we buffer packets during initialization */
+            stream->demuxer = ctx;
+
             }
           }
         else if((c >= 0xA0) && (c <= 0xA7)) /* LPCM Audio */
@@ -548,6 +582,9 @@ static int next_packet(bgav_demuxer_context_t * ctx,
             stream->timescale = 90000;
             stream->fourcc = BGAV_MK_FOURCC('L', 'P', 'C', 'M');
             stream->stream_id = priv->pes_header.stream_id;
+            /* Hack: This is set by the core later. We must set it here,
+               because we buffer packets during initialization */
+            stream->demuxer = ctx;
             }
 
           /* Set stream format */
@@ -605,6 +642,9 @@ static int next_packet(bgav_demuxer_context_t * ctx,
           stream->fourcc = BGAV_MK_FOURCC('.', 'm', 'p', '3');
           stream->timescale = 90000;
           stream->stream_id = priv->pes_header.stream_id;
+          /* Hack: This is set by the core later. We must set it here,
+             because we buffer packets during initialization */
+          stream->demuxer = ctx;
           }
         }
       /* Video stream */
@@ -628,6 +668,9 @@ static int next_packet(bgav_demuxer_context_t * ctx,
             stream->fourcc = BGAV_MK_FOURCC('C', 'A', 'V', 'S');
           else
             stream->fourcc = BGAV_MK_FOURCC('m', 'p', 'g', 'v');
+          /* Hack: This is set by the core later. We must set it here,
+             because we buffer packets during initialization */
+          stream->demuxer = ctx;
           }
         }
       else if((priv->pes_header.stream_id >= 0xfd55) && (priv->pes_header.stream_id <= 0xfd5f))
@@ -646,6 +689,9 @@ static int next_packet(bgav_demuxer_context_t * ctx,
           stream->stream_id = priv->pes_header.stream_id;
           stream->timescale = 90000;
           stream->fourcc = BGAV_MK_FOURCC('V', 'C', '-', '1');
+          /* Hack: This is set by the core later. We must set it here,
+             because we buffer packets during initialization */
+          stream->demuxer = ctx;
           }
         }
       else if((priv->pes_header.stream_id != 0xbe) &&
@@ -669,42 +715,45 @@ static int next_packet(bgav_demuxer_context_t * ctx,
           }
 
         /* Create packet */
-        if(!priv->find_streams)
+        /* Fill packets even is we initialize. The packets won't have to be
+           re-read when we start decoding and we don't need to reopen the input
+         */
+        //        if(!priv->find_streams)
+        //          {
+        p = bgav_stream_get_packet_write(stream);
+        p->position = priv->position;
+        bgav_packet_alloc(p, priv->pes_header.payload_size);
+        if(bgav_input_read_data(input, p->data, 
+                                priv->pes_header.payload_size) <
+           priv->pes_header.payload_size)
           {
-          p = bgav_stream_get_packet_write(stream);
-          p->position = priv->position;
-          bgav_packet_alloc(p, priv->pes_header.payload_size);
-          if(bgav_input_read_data(input, p->data, 
-                                  priv->pes_header.payload_size) <
-             priv->pes_header.payload_size)
-            {
-            bgav_packet_done_write(p);
-            return 0;
-            }
-          p->data_size = priv->pes_header.payload_size;
-        
-          if(priv->pes_header.pts != BGAV_TIMESTAMP_UNDEFINED)
-            {
-            if(!(ctx->flags & BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET))
-              {
-              ctx->timestamp_offset = -priv->pes_header.pts;
-              ctx->flags |= BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET;
-              }
-            
-            p->pts = priv->pes_header.pts + ctx->timestamp_offset;
-            //            if(p->pts < 0)
-            //              p->pts = 0;
-            
-            if(priv->do_sync &&
-               (stream->in_time == BGAV_TIMESTAMP_UNDEFINED))
-              stream->in_time = p->pts;
-            }
           bgav_packet_done_write(p);
+          return 0;
           }
-        else
+        p->data_size = priv->pes_header.payload_size;
+        
+        if(priv->pes_header.pts != BGAV_TIMESTAMP_UNDEFINED)
           {
-          bgav_input_skip(ctx->input, priv->pes_header.payload_size);
+          if(!(ctx->flags & BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET))
+            {
+            ctx->timestamp_offset = -priv->pes_header.pts;
+            ctx->flags |= BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET;
+            }
+            
+          p->pts = priv->pes_header.pts + ctx->timestamp_offset;
+          //            if(p->pts < 0)
+          //              p->pts = 0;
+            
+          if(priv->do_sync &&
+             (stream->in_time == BGAV_TIMESTAMP_UNDEFINED))
+            stream->in_time = p->pts;
           }
+        bgav_packet_done_write(p);
+        //        }
+        //      else
+        //          {
+        //          bgav_input_skip(ctx->input, priv->pes_header.payload_size);
+        //          }
         
         got_packet = 1;
         }
@@ -715,6 +764,9 @@ static int next_packet(bgav_demuxer_context_t * ctx,
       
       }
     }
+
+  if(!priv->find_streams)
+    priv->is_running = 1;
   
   return 1;
   }
@@ -952,7 +1004,7 @@ static int init_mpegps(bgav_demuxer_context_t * ctx)
   if(!pack_header_read(ctx->input, &(priv->pack_header)))
     return 0;
   
-  ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
+  //  ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
   
   return 1;
   }
@@ -1165,7 +1217,8 @@ const bgav_demuxer_t bgav_demuxer_mpegps =
   {
     .probe =          probe_mpegps,
     .open =           open_mpegps,
-    .next_packet =    next_packet_mpegps,
+    .select_track =   select_track_mpegps,
+    .next_packet  =   next_packet_mpegps,
     .seek =           seek_mpegps,
     .close =          close_mpegps
   };

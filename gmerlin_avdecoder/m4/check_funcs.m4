@@ -1531,3 +1531,14 @@ fi
 AM_CONDITIONAL(HAVE_GL, test x$have_GL = xtrue)
 AM_CONDITIONAL(HAVE_GLX, test x$have_GL = xtrue)
 ])
+
+dnl
+dnl inotify
+dnl
+
+AC_DEFUN([GMERLIN_CHECK_INOTIFY],[
+have_inotify="false"
+AH_TEMPLATE([HAVE_INOTIFY], [System supports inotify])
+AC_CHECK_FUNC(inotify_init,have_inotify="true";AC_DEFINE(HAVE_INOTIFY))
+
+])

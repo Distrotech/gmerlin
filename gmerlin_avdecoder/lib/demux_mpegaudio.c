@@ -637,7 +637,9 @@ static void seek_mpegaudio(bgav_demuxer_context_t * ctx, int64_t time,
     {
     pos =
       bgav_xing_get_seek_position(&(priv->xing),
-                                  100.0 * (float)gavl_time_unscale(scale, time) / (float)(ctx->tt->cur->duration));
+                                  100.0 *
+                                  (float)gavl_time_unscale(scale, time) /
+                                  (float)(ctx->tt->cur->duration));
     }
   else /* CBR */
     {
@@ -677,6 +679,8 @@ static int select_track_mpegaudio(bgav_demuxer_context_t * ctx,
     priv->data_end   = priv->albw->tracks[track].end_pos;
     }
   //  return;
+  fprintf(stderr, "select_track_mpegaudio: %d %d\n",
+          ctx->input->position, priv->data_start);
   if(ctx->input->position != priv->data_start)
     {
     if(ctx->input->input->seek_byte)
