@@ -675,9 +675,7 @@ dnl
 dnl inotify
 dnl
 
-AH_TEMPLATE([HAVE_INOTIFY], [System supports inotify])
-
-AC_CHECK_FUNC(inotify_init,AC_DEFINE(HAVE_INOTIFY))
+GMERLIN_CHECK_INOTIFY
 
 dnl
 dnl Applications
