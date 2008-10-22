@@ -193,11 +193,19 @@ int32 NPP_Write(NPP instance, NPStream* stream, int32 offset,
   bg_mozilla_t * priv;
   int ret;
   priv = (bg_mozilla_t *)instance->pdata;
-  fprintf(stderr, "NPP_Write %d\n", len);
+  //  fprintf(stderr, "NPP_Write %d...", len);
   //  bg_hexdump(buf, len, 16);
+
+  if(len > 1024)
+    len = 1024;
+  
   ret = bg_mozilla_buffer_write(priv->buffer, buf, len);
+  //  fprintf(stderr, "NPP_Write done\n");
   if(priv->state == STATE_IDLE)
     gmerlin_mozilla_start(priv);
+
+
+  //  fprintf(stderr, "NPP_Write done\n");
   return ret;
   }
 

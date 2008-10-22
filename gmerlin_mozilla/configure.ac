@@ -18,6 +18,12 @@ GMERLIN_GTK_REQUIRED="0.4.0"
 PKG_CHECK_MODULES(GMERLIN_GTK, gmerlin-gtk >= $GMERLIN_GTK_REQUIRED, , AC_MSG_ERROR("gmerlin not found"))
 AC_SUBST(GMERLIN_GTK_REQUIRED)
 
+GMERLIN_CHECK_INOTIFY
+
+if test "x$have_inotify" != "xtrue"; then
+  AC_MSG_ERROR(No inotify found, need recent linux kernel)
+fi
+
 dnl
 dnl Check for Mozilla
 dnl

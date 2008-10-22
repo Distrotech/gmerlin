@@ -238,7 +238,7 @@ static void * start_func(void * priv)
     bg_plugin_unref(h);
     goto fail;
     }
-
+  
   if(!input->open_callbacks(h->priv,
                             bg_mozilla_buffer_read,
                             NULL, /* Seek callback */

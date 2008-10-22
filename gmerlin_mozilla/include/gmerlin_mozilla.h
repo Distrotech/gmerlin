@@ -13,7 +13,7 @@ typedef struct bg_mozilla_widget_s bg_mozilla_widget_t;
 typedef struct plugin_window_s plugin_window_t;
 typedef struct bg_mozilla_buffer_s  bg_mozilla_buffer_t;
 
-#define BUFFER_SIZE (10*4096) /* Need to finetune */
+#define BUFFER_SIZE (1024) /* Need to finetune */
 
 #define STATE_IDLE     0
 #define STATE_STARTING 1
