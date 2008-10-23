@@ -128,6 +128,8 @@ static int get_data(bgav_stream_t*s)
     else
       return 0;
     }
+  //  fprintf(stderr, "pos: %ld, pts: %ld\n",
+  //          priv->p->position, priv->p->pts);
   priv->eof = 0;
   mpeg2_buffer(priv->dec, priv->p->data, priv->p->data + priv->p->data_size);
   

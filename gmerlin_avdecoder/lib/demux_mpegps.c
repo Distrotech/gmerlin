@@ -718,8 +718,8 @@ static int next_packet(bgav_demuxer_context_t * ctx,
         /* Fill packets even is we initialize. The packets won't have to be
            re-read when we start decoding and we don't need to reopen the input
          */
-        //        if(!priv->find_streams)
-        //          {
+        if(!priv->find_streams)
+          {
         p = bgav_stream_get_packet_write(stream);
         p->position = priv->position;
         bgav_packet_alloc(p, priv->pes_header.payload_size);
@@ -741,7 +741,7 @@ static int next_packet(bgav_demuxer_context_t * ctx,
             }
             
           p->pts = priv->pes_header.pts + ctx->timestamp_offset;
-          //            if(p->pts < 0)
+          // if(p->pts < 0)
           //              p->pts = 0;
             
           if(priv->do_sync &&
@@ -749,11 +749,11 @@ static int next_packet(bgav_demuxer_context_t * ctx,
             stream->in_time = p->pts;
           }
         bgav_packet_done_write(p);
-        //        }
-        //      else
-        //          {
-        //          bgav_input_skip(ctx->input, priv->pes_header.payload_size);
-        //          }
+          }
+        else
+          {
+          bgav_input_skip(ctx->input, priv->pes_header.payload_size);
+          }
         
         got_packet = 1;
         }
