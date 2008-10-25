@@ -193,7 +193,7 @@ int32 NPP_Write(NPP instance, NPStream* stream, int32 offset,
   bg_mozilla_t * priv;
   int ret;
   priv = (bg_mozilla_t *)instance->pdata;
-  //  fprintf(stderr, "NPP_Write %d...", len);
+  //  fprintf(stderr, "NPP_Write %d %d...", offset, len);
   //  bg_hexdump(buf, len, 16);
 
   if(len > 1024)
@@ -230,7 +230,7 @@ NPError NPP_NewStream(NPP        instance,
   bg_mozilla_t * priv;
   priv = (bg_mozilla_t *)instance->pdata;
   new_url = bg_uri_to_string(stream->url, -1);
-  fprintf(stderr, "NewStream %s (%s)\n", new_url, type);
+  fprintf(stderr, "NewStream %s (%s), size: %d\n", new_url, type, stream->end);
   
   gmerlin_mozilla_set_stream(priv, new_url, type);
   free(new_url);

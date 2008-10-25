@@ -83,6 +83,18 @@ AC_SUBST(GECKO_IDLDIR)
 CFLAGS="-g -Wmissing-declarations -Wall"
 
 dnl
+dnl 
+dnl
+
+if test "x$prefix" = xNONE; then
+   prefix="${ac_default_prefix}"
+fi
+
+GMERLIN_MOZILLA_DATA_DIR="$prefix/share/$PACKAGE"
+AC_DEFINE_UNQUOTED(GMERLIN_MOZILLA_DATA_DIR, "$GMERLIN_MOZILLA_DATA_DIR", Directory for other data)
+AC_SUBST(GMERLIN_MOZILLA_DATA_DIR)
+
+dnl
 dnl Compile IDL
 dnl
 
@@ -97,6 +109,8 @@ dnl
 AC_CONFIG_FILES([Makefile 
 include/Makefile \
 plugin/Makefile \
+skins/Makefile \
+skins/Default/Makefile \
 m4/Makefile ])
 
 AC_OUTPUT

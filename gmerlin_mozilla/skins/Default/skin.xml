@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<WEBPLUGINSKIN>
+  <PLUGINWIN>
+    <SCROLLTEXT>
+       <BACKGROUND>0.878431373 0.925490196 0.870588235</BACKGROUND>
+       <FOREGROUND_NORMAL>0.0 0.0 0.0</FOREGROUND_NORMAL>
+       <FOREGROUND_ERROR>0.75 0.0 0.0</FOREGROUND_ERROR>
+    </SCROLLTEXT>
+    <PLAYBUTTON>
+      <NORMAL>play_button.png</NORMAL>
+      <HIGHLIGHT>play_button_hl.png</HIGHLIGHT>
+      <PRESSED>play_button_cl.png</PRESSED>
+    </PLAYBUTTON>
+    <PAUSEBUTTON>
+      <NORMAL>pause_button.png</NORMAL>
+      <HIGHLIGHT>pause_button_hl.png</HIGHLIGHT>
+      <PRESSED>pause_button_cl.png</PRESSED>
+    </PAUSEBUTTON>
+    <STOPBUTTON>
+      <X>57</X><Y>123</Y>
+      <NORMAL>stop_button.png</NORMAL>
+      <HIGHLIGHT>stop_button_hl.png</HIGHLIGHT>
+      <PRESSED>stop_button_cl.png</PRESSED>
+    </STOPBUTTON>
+    <SEEKSLIDER>
+      <BACKGROUND>seek_bg.png</BACKGROUND>
+      <BACKGROUND_L>seek_bg_l.png</BACKGROUND_L>
+      <BACKGROUND_R>seek_bg_r.png</BACKGROUND_R>
+      <NORMAL>seek_slider.png</NORMAL>
+      <HIGHLIGHT>seek_slider_hl.png</HIGHLIGHT>
+      <PRESSED>seek_slider_cl.png</PRESSED>
+      <INACTIVE>seek_slider_in.png</INACTIVE>
+    </SEEKSLIDER>
+    <VOLUMESLIDER>
+      <X>252</X><Y>7</Y>
+      <BACKGROUND>volume_bg.png</BACKGROUND>
+      <NORMAL>volume_slider.png</NORMAL>
+      <HIGHLIGHT>volume_slider_hl.png</HIGHLIGHT>
+      <PRESSED>volume_slider_cl.png</PRESSED>
+      <INACTIVE>volume_slider_in.png</INACTIVE>
+    </VOLUMESLIDER>
+  </PLUGINWIN>
+</WEBPLUGINSKIN>

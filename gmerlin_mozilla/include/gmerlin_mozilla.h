@@ -7,6 +7,10 @@
 #include <gmerlin/player.h>
 
 #include <gtk/gtk.h>
+#include <gmerlin/gui_gtk/scrolltext.h>
+#include <gmerlin/gui_gtk/slider.h>
+#include <gmerlin/gui_gtk/button.h>
+#include <gmerlin/gui_gtk/display.h>
 
 typedef struct bg_mozilla_s        bg_mozilla_t;
 typedef struct bg_mozilla_widget_s bg_mozilla_widget_t;
@@ -109,6 +113,24 @@ typedef struct
   
   } main_menu_t;
 
+typedef struct
+  {
+  bg_gtk_button_skin_t play_button;
+  bg_gtk_button_skin_t pause_button;
+  bg_gtk_button_skin_t stop_button;
+  
+  bg_gtk_slider_skin_t seek_slider;
+  // bg_gtk_slider_skin_t volume_slider;
+
+  char * directory;
+  } bg_mozilla_widget_skin_t;
+
+char * bg_mozilla_widget_skin_load(bg_mozilla_widget_skin_t * s,
+                                   char * directory);
+
+void bg_mozilla_widget_skin_destroy(bg_mozilla_widget_skin_t *);
+
+
 struct bg_mozilla_widget_s
   {
   GtkWidget * plug;
@@ -119,10 +141,14 @@ struct bg_mozilla_widget_s
   GtkWidget * socket;
   GtkWidget * button;
   GtkWidget * controls;
+  GtkWidget * table;
   
   bg_mozilla_t * m;
   
   int width, height;
+
+  float fg_normal[3];
+  float bg[3];
   
   guint resize_id;
   guint idle_id;
@@ -133,7 +159,13 @@ struct bg_mozilla_widget_s
   int toolbar_height;
   
   int toolbar_state;
+  
+  bg_gtk_scrolltext_t * scrolltext;
+  bg_gtk_slider_t     * seek_slider;
+  gavl_time_t duration;
 
+  bg_mozilla_widget_skin_t skin;
+  char * skin_directory;
   };
 
 bg_mozilla_widget_t * bg_mozilla_widget_create(bg_mozilla_t * m);

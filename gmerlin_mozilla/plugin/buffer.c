@@ -24,7 +24,7 @@ struct bg_mozilla_buffer_s
 bg_mozilla_buffer_t * bg_mozilla_buffer_create()
   {
   bg_mozilla_buffer_t * ret = calloc(1, sizeof(*ret));
-  ret->filename = bg_create_unique_filename("/tmp/gmerlin_mozilla_%d");
+  ret->filename = bg_create_unique_filename("/tmp/gmerlin_mozilla_05%d");
   ret->write_file = fopen(ret->filename, "w");
   ret->read_file = fopen(ret->filename, "r");
   
@@ -90,12 +90,14 @@ static int handle_inotify(bg_mozilla_buffer_t * b, int to)
     struct inotify_event *event = ( struct inotify_event * ) &buffer[ i ];
     if(event->mask & IN_MODIFY)
       {
+      //      fprintf(stderr, "inotify modified\n");
       }
     if(event->mask & IN_CLOSE_WRITE)
       {
       inotify_rm_watch(b->inotify_fd, b->inotify_wd);
       close(b->inotify_fd);
       b->inotify_fd = -1;
+      //      fprintf(stderr, "inotify closed\n");
       }
     i += EVENT_SIZE + event->len;
     }
@@ -113,12 +115,12 @@ int bg_mozilla_buffer_read(void * b1,
 
   while(bytes_read < len)
     {
-    fprintf(stderr, "Read %ld\n", ftell(b->read_file));
+    //    fprintf(stderr, "Read %ld %d...", ftell(b->read_file), len - bytes_read);
     result = fread(data + bytes_read, 1,
                    len - bytes_read, b->read_file);
-    fprintf(stderr, "Done %d\n", result);
+    //    fprintf(stderr, "done %d\n", result);
     
-    if(!result && feof(b->read_file)) /* Hit end of file? */
+    if((result < len - bytes_read) && feof(b->read_file)) /* Hit end of file? */
       {
       if(b->inotify_fd >= 0)
         {

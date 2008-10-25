@@ -29,10 +29,16 @@ static void size_allocate(GtkWidget     *widget,
 
   w->width = a->width;
   w->height = a->height;
-  w->toolbar_height = 32;
+  w->toolbar_height = 38;
   fprintf(stderr, "Embed size allocate: %dx%d+%d+%d\n",
           a->width, a->height, a->x, a->y);
   
+  gtk_widget_set_size_request(bg_gtk_scrolltext_get_widget(w->scrolltext),
+                              a->width, 16);
+  //  gtk_widget_set_size_request(bg_gtk_slider_get_widget(w->seek_slider),
+  //                              a->width, 20);
+  
+                              
   g_signal_handler_block(w->box, w->resize_id);
 
   if(w->socket)
@@ -43,6 +49,7 @@ static void size_allocate(GtkWidget     *widget,
     w->toolbar_pos = a->height - w->toolbar_height;
     gtk_fixed_move(GTK_FIXED(w->box), w->controls, 0,
                    w->toolbar_pos);
+    gtk_container_check_resize(GTK_CONTAINER(w->table));
     }
   g_signal_handler_unblock(w->box, w->resize_id);
   }
@@ -145,7 +152,16 @@ bg_mozilla_widget_t * bg_mozilla_widget_create(bg_mozilla_t * m)
   bg_mozilla_widget_t * w;
   w = calloc(1, sizeof(*w));
   w->m = m;
+  w->fg_normal[0] = 1.0;
+  w->fg_normal[1] = 0.5;
+  w->fg_normal[2] = 0.0;
+  
   bg_mozilla_widget_init_menu(w);
+  
+  w->skin_directory =
+    bg_mozilla_widget_skin_load(&w->skin,
+                                (char *)0);
+  fprintf(stderr, "Loaded skin %s\n", w->skin_directory);
   return w;
   }
 
@@ -155,13 +171,35 @@ static void handle_message(bg_mozilla_widget_t * w,
   gavl_time_t time;
   int id;
   int arg_i;
+  float arg_f;
+  char * tmp_string;
+  char time_str[GAVL_TIME_STRING_LEN];
+  char duration_str[GAVL_TIME_STRING_LEN];
+  
   id = bg_msg_get_id(msg);
   
   switch(id)
     {
     case BG_PLAYER_MSG_TIME_CHANGED:
       time = bg_msg_get_arg_time(msg, 0);
-      fprintf(stderr, "Time: %f\n", gavl_time_to_seconds(time));
+      
+      gavl_time_prettyprint(time, time_str);
+      //      gavl_time_prettyprint(duration_str, time);
+      if(w->duration != GAVL_TIME_UNDEFINED)
+        {
+        gavl_time_prettyprint(w->duration, duration_str);
+        tmp_string = bg_sprintf("%s / %s", time_str, duration_str);
+        
+        bg_gtk_slider_set_pos(w->seek_slider,
+                              gavl_time_to_seconds(time)/
+                              gavl_time_to_seconds(w->duration));
+        }
+      else
+        tmp_string = bg_sprintf("%s", time_str);
+      
+      bg_gtk_scrolltext_set_text(w->scrolltext, tmp_string,
+                                 w->fg_normal, w->bg);
+      free(tmp_string);
       break;
     case BG_PLAYER_MSG_VOLUME_CHANGED:
       break;
@@ -180,7 +218,12 @@ static void handle_message(bg_mozilla_widget_t * w,
           fprintf(stderr, "State: Error\n");
           break;
         case BG_PLAYER_STATE_BUFFERING:
-          fprintf(stderr, "State: Buffering\n");
+          arg_f = bg_msg_get_arg_float(msg, 1);
+          // fprintf(stderr, "State: Buffering\n");
+          tmp_string = bg_sprintf("Buffering: %d %%", (int)(100.0 * arg_f + 0.5));
+          bg_gtk_scrolltext_set_text(w->scrolltext, tmp_string,
+                                     w->fg_normal, w->bg);
+          free(tmp_string);
           break;
         case BG_PLAYER_STATE_PLAYING:
           fprintf(stderr, "State: Playing\n");
@@ -193,7 +236,20 @@ static void handle_message(bg_mozilla_widget_t * w,
           break;
         }
       break;
-      
+    case BG_PLAYER_MSG_TRACK_DURATION:
+      w->duration = bg_msg_get_arg_time(msg, 0);
+      arg_i = bg_msg_get_arg_int(msg, 1);
+      if(arg_i)
+        bg_gtk_slider_set_state(w->seek_slider,
+                                BG_GTK_SLIDER_ACTIVE);
+      else if(w->duration != GAVL_TIME_UNDEFINED)
+        {
+        bg_gtk_slider_set_state(w->seek_slider,
+                                BG_GTK_SLIDER_INACTIVE);
+        }
+      else
+        bg_gtk_slider_set_state(w->seek_slider,
+                                BG_GTK_SLIDER_HIDDEN);
     }
   }
 
@@ -281,7 +337,6 @@ void bg_mozilla_widget_set_window(bg_mozilla_widget_t * w,
   {
   GdkDisplay * dpy;
   GdkColor gdk_black = { 0, 0, 0, 0 };
-
   
   if(w->plug)
     gtk_widget_destroy(w->plug);
@@ -290,7 +345,7 @@ void bg_mozilla_widget_set_window(bg_mozilla_widget_t * w,
     return;
   
   w->socket = gtk_socket_new();
-
+  
   //  gtk_widget_set_events(w->socket, GDK_BUTTON_PRESS_MASK);
   //  g_signal_connect(w->socket, "button-press-event",
   //                   G_CALLBACK(button_press_callback), w);
@@ -300,7 +355,7 @@ void bg_mozilla_widget_set_window(bg_mozilla_widget_t * w,
   gtk_widget_modify_bg(w->socket, GTK_STATE_PRELIGHT, &gdk_black);
   gtk_widget_modify_bg(w->socket, GTK_STATE_SELECTED, &gdk_black);
   gtk_widget_modify_bg(w->socket, GTK_STATE_INSENSITIVE, &gdk_black);
-
+  
   gtk_widget_show(w->socket);
   
   w->controls = gtk_event_box_new();
@@ -310,30 +365,55 @@ void bg_mozilla_widget_set_window(bg_mozilla_widget_t * w,
 
   /* Prepare for reparenting */
   g_object_ref(w->controls);
+
   
-  w->button = gtk_button_new_with_label("Bla");
-  gtk_widget_show(w->button);
   
-  gtk_container_add(GTK_CONTAINER(w->controls),
-                    w->button);
+  //  w->button = gtk_button_new_with_label("Bla");
+  //  gtk_widget_show(w->button);
   
+  //  gtk_container_add(GTK_CONTAINER(w->controls),
+  //                  w->button);
+    //  
   //  g_signal_connect(G_OBJECT(w->button),
   //                   "size-allocate",
   //                   G_CALLBACK(size_allocate_test), NULL);
+
+  w->scrolltext = bg_gtk_scrolltext_create(0, 0);
+  bg_gtk_scrolltext_set_text(w->scrolltext, "Gmerlin mozilla plugin",
+                             w->fg_normal, w->bg);
+
+  w->seek_slider = bg_gtk_slider_create();
+  fprintf(stderr, "Setting skin...");
+  bg_gtk_slider_set_skin(w->seek_slider, &w->skin.seek_slider, w->skin_directory);
+  fprintf(stderr, "done\n");
+  
+  w->table = gtk_table_new(2, 3, 0);
+
+  gtk_table_attach(GTK_TABLE(w->table),
+                   bg_gtk_scrolltext_get_widget(w->scrolltext),
+                   0, 3, 0, 1, GTK_EXPAND|GTK_FILL, GTK_FILL, 0, 0);
+  gtk_table_attach(GTK_TABLE(w->table),
+                   bg_gtk_slider_get_widget(w->seek_slider),
+                   0, 3, 1, 2, GTK_EXPAND|GTK_FILL, GTK_FILL, 0, 0);
+  
+  gtk_widget_show(w->table);
+  
+  gtk_container_add(GTK_CONTAINER(w->controls),
+                    w->table);
+
   
   w->box = gtk_fixed_new();
   
   gtk_fixed_put(GTK_FIXED(w->box), w->socket, 0, 0);
   gtk_fixed_put(GTK_FIXED(w->box), w->controls, 0, 0);
   //  gtk_fixed_put(GTK_FIXED(w->box), w->button, 10, 10);
-
+  
   w->resize_id = g_signal_connect(G_OBJECT(w->box),
                                   "size-allocate",
                                   G_CALLBACK(size_allocate), w);
   
-  //  gtk_widget_set_size_request(w->box, 320, 240);
   gtk_widget_show(w->box);
-
+    
   w->plug = gtk_plug_new(window_id);
 
   gtk_widget_add_events(w->socket,
