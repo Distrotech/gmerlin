@@ -101,10 +101,14 @@ static gboolean configure_callback(GtkWidget * w, GdkEventConfigure * evt,
   {
   GdkColor bg;
   bg_gtk_scrolltext_t * st = (bg_gtk_scrolltext_t *)data;
-  
 
+  if((st->width == evt->width) && (st->height == evt->height))
+    return FALSE;
+  
   st->width = evt->width;
   st->height = evt->height;
+
+  //  fprintf(stderr, "Scrolltext size: %d x %d\n", st->width, st->height);
   
   if(st->pixmap_2)
     {
@@ -132,7 +136,7 @@ static gboolean configure_callback(GtkWidget * w, GdkEventConfigure * evt,
                          0, 0, st->width, st->height);
       gdk_draw_drawable(st->pixmap_2, st->gc, st->pixmap_1,
                         0, 0, (st->width - st->text_width)/2,
-                        0, st->width, st->height);
+                        0, st->text_width, st->height);
       }
     }
   else
@@ -277,7 +281,7 @@ static void create_text_pixmap(bg_gtk_scrolltext_t * st)
                        0, 0, st->width, st->height);
     gdk_draw_drawable(st->pixmap_2, st->gc, st->pixmap_1,
                       0, 0, (st->width - st->text_width)/2,
-                      0, st->width, st->height);
+                      0, st->text_width, st->height);
     }
   else
     {
@@ -311,12 +315,19 @@ bg_gtk_scrolltext_t * bg_gtk_scrolltext_create(int width, int height)
 
   ret = calloc(1, sizeof(*ret));
 
-  ret->width = width;
-  ret->height = height;
-
   ret->drawingarea = gtk_drawing_area_new();
-  gtk_widget_set_size_request(ret->drawingarea,
-                              ret->width, ret->height);
+
+  if((width >= 0) && (height >= 0))
+    {
+    ret->width = width;
+    ret->height = height;
+    gtk_widget_set_size_request(ret->drawingarea,
+                                ret->width, ret->height);
+    }
+  else
+    {
+    gtk_widget_set_size_request(ret->drawingarea, 16, 16);
+    }
   
   g_signal_connect(G_OBJECT(ret->drawingarea),
                    "realize", G_CALLBACK(realize_callback),

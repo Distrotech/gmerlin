@@ -25,7 +25,7 @@
 #include <gmerlin/parameter.h>
 #include <gmerlin/streaminfo.h>
 #include <gmerlin/utils.h>
-#include <xmlutils.h>
+#include <gmerlin/xmlutils.h>
 
 #define CHAPTER_KEY "CHAPTER"
 #define CHAPTERS_KEY "CHAPTERS"

@@ -25,7 +25,7 @@
 #include <gmerlin/pluginregistry.h>
 #include <pluginreg_priv.h>
 #include <gmerlin/utils.h>
-#include <xmlutils.h>
+#include <gmerlin/xmlutils.h>
 
 
 static const struct

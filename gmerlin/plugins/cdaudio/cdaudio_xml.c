@@ -21,7 +21,7 @@
 
 #include <string.h>
 #include <gmerlin/utils.h>
-#include <xmlutils.h>
+#include <gmerlin/xmlutils.h>
 
 #include "cdaudio.h"
 

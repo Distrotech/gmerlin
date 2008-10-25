@@ -35,6 +35,9 @@ typedef struct
   char * name;
   
   char * pixmap_background;
+  char * pixmap_background_l;
+  char * pixmap_background_r;
+  
   char * pixmap_normal;
   char * pixmap_highlight;
   char * pixmap_pressed;
@@ -75,8 +78,6 @@ void
 bg_gtk_slider_set_scroll_callback(bg_gtk_slider_t * s,
                                   void (*func)(bg_gtk_slider_t*, int up, void*),
                                   void* data);
-
-                                 
 
 void bg_gtk_slider_set_skin(bg_gtk_slider_t *,
                             bg_gtk_slider_skin_t*,

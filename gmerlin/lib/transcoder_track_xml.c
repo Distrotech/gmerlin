@@ -25,7 +25,7 @@
 #include <gmerlin/tree.h>
 #include <gmerlin/transcoder_track.h>
 #include <gmerlin/utils.h>
-#include <xmlutils.h>
+#include <gmerlin/xmlutils.h>
 
 static void section_2_xml(bg_cfg_section_t * s, xmlNodePtr node)
   {

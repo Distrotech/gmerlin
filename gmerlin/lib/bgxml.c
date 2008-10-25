@@ -31,7 +31,7 @@
 #include <errno.h>
 
 #include <gmerlin/utils.h>
-#include <xmlutils.h>
+#include <gmerlin/xmlutils.h>
 
 #define BLOCK_SIZE 2048
 

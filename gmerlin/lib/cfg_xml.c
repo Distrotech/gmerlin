@@ -26,7 +26,7 @@
 #include <gmerlin/cfg_registry.h>
 #include <registry_priv.h>
 #include <gmerlin/utils.h>
-#include <xmlutils.h>
+#include <gmerlin/xmlutils.h>
 
 static void load_item(xmlDocPtr xml_doc, xmlNodePtr xml_item,
                       bg_cfg_section_t * cfg_section)

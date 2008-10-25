@@ -27,7 +27,7 @@
 #include "gmerlin.h"
 
 #include <gmerlin/utils.h>
-#include <xmlutils.h>
+#include <gmerlin/xmlutils.h>
 
 static const char * default_skin_directory = GMERLIN_DATA_DIR"/skins/Default";
 

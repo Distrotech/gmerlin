@@ -24,7 +24,7 @@
 #include <gmerlin/edl.h>
 
 #include <gmerlin/utils.h>
-#include <xmlutils.h>
+#include <gmerlin/xmlutils.h>
 
 static const char * const edl_key           = "GMERLIN_EDL";
 static const char * const tracks_key        = "tracks";

@@ -31,7 +31,7 @@
 #include <gmerlin/tree.h>
 #include <treeprivate.h>
 #include <gmerlin/utils.h>
-#include <xmlutils.h>
+#include <gmerlin/xmlutils.h>
 
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "album"

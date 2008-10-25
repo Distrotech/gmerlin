@@ -28,7 +28,7 @@
 #include <gui_gtk/button.h>
 #include <gui_gtk/gtkutils.h>
 #include <gmerlin/utils.h>
-#include <xmlutils.h>
+#include <gmerlin/xmlutils.h>
 
 struct bg_gtk_button_s
   {

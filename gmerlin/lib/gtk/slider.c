@@ -28,11 +28,13 @@
 #include <gui_gtk/gtkutils.h>
 
 #include <gmerlin/utils.h>
-#include <xmlutils.h>
+#include <gmerlin/xmlutils.h>
 
 struct bg_gtk_slider_s
   {
   GdkPixbuf * pixbuf_background;
+  GdkPixbuf * pixbuf_background_l;
+  GdkPixbuf * pixbuf_background_r;
   GdkPixbuf * pixbuf_normal;
   GdkPixbuf * pixbuf_highlight;
   GdkPixbuf * pixbuf_pressed;
@@ -250,22 +252,143 @@ static gboolean motion_callback(GtkWidget * w, GdkEventMotion * evt,
   return TRUE;
   }
 
+/* Set background image. We don't do this before the
+   widget is realized */
+
 static void set_background(bg_gtk_slider_t * s)
   {
   GdkPixmap * pixmap;
-  bg_gdk_pixbuf_render_pixmap_and_mask(s->pixbuf_background,
-                                    &pixmap, NULL);
   
-  s->width  = gdk_pixbuf_get_width(s->pixbuf_background);
-  s->height = gdk_pixbuf_get_height(s->pixbuf_background);
-#if 0
+  if(!s->pixbuf_background_l ||
+     !s->pixbuf_background_r)
+    {
+    bg_gdk_pixbuf_render_pixmap_and_mask(s->pixbuf_background,
+                                         &pixmap, NULL);
+    s->width  = gdk_pixbuf_get_width(s->pixbuf_background);
+    s->height = gdk_pixbuf_get_height(s->pixbuf_background);
+    }
+  else
+    {
+    int width, height;
+    
+    if(!s->width || !s->height)
+      return;
+    
+    pixmap =
+      gdk_pixmap_new(GTK_LAYOUT(s->background_layout)->bin_window,
+                     s->width, s->height, -1);
+    
+    if(s->vertical)
+      {
+      int dest_y = 0, dest_y_end;
+      width = gdk_pixbuf_get_width(s->pixbuf_background);
+      height = gdk_pixbuf_get_height(s->pixbuf_background_l);
+
+      /* Draw top */
+      gdk_draw_pixbuf(pixmap,
+                      (GdkGC*)0,
+                      s->pixbuf_background_l,
+                      0,
+                      0,
+                      0,      // gint dest_x,
+                      dest_y, // gint dest_y,
+                      width,
+                      height,
+                      GDK_RGB_DITHER_NONE,
+                      0, 0);
+      dest_y += height;
+      
+      dest_y_end = s->height - gdk_pixbuf_get_height(s->pixbuf_background_r);
+      height = gdk_pixbuf_get_height(s->pixbuf_background);
+      
+      while(dest_y < dest_y_end)
+        {
+        if(dest_y + height > dest_y_end)
+          height = dest_y_end - dest_y;
+        gdk_draw_pixbuf(pixmap,
+                        (GdkGC*)0,
+                        s->pixbuf_background,
+                        0,
+                        0,
+                        0,      // gint dest_x,
+                        dest_y, // gint dest_y,
+                        width,
+                        height,
+                        GDK_RGB_DITHER_NONE,
+                        0, 0);
+        dest_y += height;
+        }
+      gdk_draw_pixbuf(pixmap,
+                      (GdkGC*)0,
+                      s->pixbuf_background_r,
+                      0,
+                      0,
+                      0,      // gint dest_x,
+                      dest_y, // gint dest_y,
+                      width,
+                      height,
+                      GDK_RGB_DITHER_NONE,
+                      0, 0);
+      }
+    else
+      {
+      int dest_x = 0, dest_x_end;
+      height = gdk_pixbuf_get_height(s->pixbuf_background);
+
+      width = gdk_pixbuf_get_width(s->pixbuf_background_l);
+      gdk_draw_pixbuf(pixmap,
+                      (GdkGC *)0,
+                      s->pixbuf_background_l,
+                      0,
+                      0,
+                      dest_x,
+                      0,
+                      width,
+                      height,
+                      GDK_RGB_DITHER_NONE,
+                      0, 0);
+      dest_x += width;
+
+      dest_x_end = s->width - gdk_pixbuf_get_width(s->pixbuf_background_r);
+      width = gdk_pixbuf_get_width(s->pixbuf_background);
+
+      while(dest_x < dest_x_end)
+        {
+        if(dest_x + width > dest_x_end)
+          width = dest_x_end - dest_x;
+        
+        gdk_draw_pixbuf(pixmap,
+                        (GdkGC*)0,
+                        s->pixbuf_background,
+                        0,
+                        0,
+                        dest_x,      // gint dest_x,
+                        0, // gint dest_y,
+                        width,
+                        height,
+                        GDK_RGB_DITHER_NONE,
+                        0, 0);
+        dest_x += width;
+        }
+      gdk_draw_pixbuf(pixmap,
+                      (GdkGC*)0,
+                      s->pixbuf_background_r,
+                      0,
+                      0,
+                      dest_x,      // gint dest_x,
+                      0, // gint dest_y,
+                      width,
+                      height,
+                      GDK_RGB_DITHER_NONE,
+                      0, 0);
+      }
+    }
+
   if(s->vertical)
     s->total_size = s->height;
   else
     s->total_size = s->width;
-#endif
-  gtk_widget_set_size_request(s->background_layout, s->width, s->height);
-
+  
   bg_gtk_set_widget_bg_pixmap(s->background_layout, pixmap);
   
   g_object_unref(G_OBJECT(pixmap));
@@ -274,12 +397,6 @@ static void set_background(bg_gtk_slider_t * s)
 static void set_shape(bg_gtk_slider_t * s)
   {
   GdkBitmap * mask;
-#if 0
-  if(s->vertical)
-    s->slider_size = gdk_pixbuf_get_height(s->pixbuf_normal);
-  else
-    s->slider_size = gdk_pixbuf_get_width(s->pixbuf_normal);
-#endif
   bg_gdk_pixbuf_render_pixmap_and_mask(s->pixbuf_normal,
                                        NULL, &mask);
 
@@ -293,15 +410,38 @@ static void realize_callback(GtkWidget * w,
   {
   bg_gtk_slider_t * s;
   s = (bg_gtk_slider_t *)data;
-
+  
   if((w == s->background_layout) && (s->pixbuf_background))
     set_background(s);
   else if((w == s->slider_eventbox) && (s->pixbuf_normal))
     set_shape(s);
-    
-  //  if(b->pixbuf_normal)
-  //    set_shape(b);
   }
+
+static void size_allocate_callback(GtkWidget * w, GtkAllocation * evt,
+                                   gpointer data)
+  {
+
+  bg_gtk_slider_t * s;
+  s = (bg_gtk_slider_t *)data;
+  
+  if((s->width == evt->width) && (s->height == evt->height))
+    return;
+
+  //  fprintf(stderr, "Slider size: %d %d\n", evt->width, evt->height);
+  
+  s->width = evt->width;
+  s->height = evt->height;
+
+  if(s->pixbuf_background)
+    set_background(s);
+
+  if(s->vertical)
+    s->total_size = evt->height;
+  else 
+    s->total_size = evt->width;
+  
+  }
+
 
 bg_gtk_slider_t * bg_gtk_slider_create()
   {
@@ -333,6 +473,17 @@ bg_gtk_slider_t * bg_gtk_slider_create()
   g_signal_connect(G_OBJECT(ret->slider_eventbox),
                    "button_press_event",
                    G_CALLBACK (button_press_callback),
+                   ret);
+
+#if 0
+  g_signal_connect(G_OBJECT(ret->background_layout),
+                   "configure-event", G_CALLBACK(configure_callback),
+                   ret);
+#endif
+  
+  g_signal_connect(G_OBJECT(ret->background_layout),
+                   "size-allocate",
+                   G_CALLBACK (size_allocate_callback),
                    ret);
 
   g_signal_connect(G_OBJECT(ret->background_layout),
@@ -419,6 +570,11 @@ void bg_gtk_slider_set_state(bg_gtk_slider_t * s,
 void bg_gtk_slider_destroy(bg_gtk_slider_t * s)
   {
   g_object_unref(s->pixbuf_background);
+  if(s->pixbuf_background_l)
+    g_object_unref(s->pixbuf_background_l);
+  if(s->pixbuf_background_r)
+    g_object_unref(s->pixbuf_background_r);
+    
   g_object_unref(s->pixbuf_normal);
   g_object_unref(s->pixbuf_highlight);
   g_object_unref(s->pixbuf_pressed);
@@ -458,7 +614,10 @@ static GdkPixbuf * make_pixbuf(GdkPixbuf * old,
     g_object_unref(G_OBJECT(old));
   
   ret = gdk_pixbuf_new_from_file(filename, NULL);
-
+  if(!ret)
+    {
+    fprintf(stderr, "Couldn't load pixbuf %s\n", filename);
+    }
   
   return ret;
   }
@@ -492,6 +651,19 @@ void bg_gtk_slider_set_skin(bg_gtk_slider_t * s,
   s->pixbuf_background = make_pixbuf(s->pixbuf_background, tmp_string);
   free(tmp_string);
 
+  if(skin->pixmap_background_l)
+    {
+    tmp_string = bg_sprintf("%s/%s", directory, skin->pixmap_background_l);
+    s->pixbuf_background_l = make_pixbuf(s->pixbuf_background_l, tmp_string);
+    free(tmp_string);
+    }
+  if(skin->pixmap_background_r)
+    {
+    tmp_string = bg_sprintf("%s/%s", directory, skin->pixmap_background_r);
+    s->pixbuf_background_r = make_pixbuf(s->pixbuf_background_r, tmp_string);
+    free(tmp_string);
+    }
+    
   if(GTK_LAYOUT(s->background_layout)->bin_window)
     set_background(s);
   if(s->slider_eventbox->window)
@@ -514,6 +686,33 @@ void bg_gtk_slider_set_skin(bg_gtk_slider_t * s,
     s->total_size  = gdk_pixbuf_get_width(s->pixbuf_background);
     s->slider_size = gdk_pixbuf_get_width(s->pixbuf_normal);
     }
+
+  gtk_widget_set_size_request(s->slider_eventbox,
+                              gdk_pixbuf_get_width(s->pixbuf_normal),
+                              gdk_pixbuf_get_height(s->pixbuf_normal));
+  
+  /* Request minimum size */
+  if(s->pixbuf_background_l && s->pixbuf_background_r)
+    {
+    if(s->vertical)
+      {
+      gtk_widget_set_size_request(s->background_layout,
+                                  gdk_pixbuf_get_width(s->pixbuf_background),
+                                  gdk_pixbuf_get_height(s->pixbuf_background_l)+
+                                  gdk_pixbuf_get_height(s->pixbuf_background_r));
+      }
+    else
+      {
+      gtk_widget_set_size_request(s->background_layout,
+                                  gdk_pixbuf_get_width(s->pixbuf_background_l)+
+                                  gdk_pixbuf_get_width(s->pixbuf_background_r),
+                                  gdk_pixbuf_get_height(s->pixbuf_background));
+      }
+    }
+  else
+    gtk_widget_set_size_request(s->background_layout,
+                                gdk_pixbuf_get_width(s->pixbuf_background),
+                                gdk_pixbuf_get_height(s->pixbuf_background));
   }
 
 /* Get stuff */
@@ -522,7 +721,6 @@ void bg_gtk_slider_get_coords(bg_gtk_slider_t * s, int * x, int * y)
   {
   *x = s->x;
   *y = s->y;
-  
   }
 
 GtkWidget * bg_gtk_slider_get_widget(bg_gtk_slider_t * s)
@@ -564,6 +762,10 @@ void bg_gtk_slider_skin_load(bg_gtk_slider_skin_t * s,
       s->pixmap_inactive = bg_strdup(s->pixmap_inactive, tmp_string);
     else if(!BG_XML_STRCMP(node->name, "BACKGROUND"))
       s->pixmap_background = bg_strdup(s->pixmap_background, tmp_string);
+    else if(!BG_XML_STRCMP(node->name, "BACKGROUND_L"))
+      s->pixmap_background_l = bg_strdup(s->pixmap_background_l, tmp_string);
+    else if(!BG_XML_STRCMP(node->name, "BACKGROUND_R"))
+      s->pixmap_background_r = bg_strdup(s->pixmap_background_r, tmp_string);
     node = node->next;
     xmlFree(tmp_string);
     }
@@ -579,6 +781,8 @@ void bg_gtk_slider_skin_free(bg_gtk_slider_skin_t * s)
   MY_FREE(s->pixmap_pressed);
   MY_FREE(s->pixmap_inactive);
   MY_FREE(s->pixmap_background);
+  MY_FREE(s->pixmap_background_l);
+  MY_FREE(s->pixmap_background_r);
   }
 #undef MY_FREE
 

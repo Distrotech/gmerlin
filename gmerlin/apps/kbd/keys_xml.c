@@ -27,7 +27,7 @@
 
 #include <gmerlin/utils.h>
 
-#include <xmlutils.h>
+#include <gmerlin/xmlutils.h>
 
 #include "kbd.h"
 

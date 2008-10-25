@@ -32,7 +32,7 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "player.video_output"
 
-// #define DUMP_TIMESTAMPS
+//#define DUMP_TIMESTAMPS
 
 struct bg_player_ov_context_s
   {

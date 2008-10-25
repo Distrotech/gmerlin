@@ -29,7 +29,7 @@
 #include <gmerlin/parameter.h>
 #include <gmerlin/streaminfo.h>
 #include <gmerlin/utils.h>
-#include <xmlutils.h>
+#include <gmerlin/xmlutils.h>
 
 #define XML_2_INT(key)                          \
 if(!BG_XML_STRCMP(node->name, #key))                 \

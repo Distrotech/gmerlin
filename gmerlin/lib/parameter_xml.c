@@ -25,7 +25,7 @@
 
 #include <gmerlin/parameter.h>
 #include <gmerlin/utils.h>
-#include <xmlutils.h>
+#include <gmerlin/xmlutils.h>
 
 static const struct
   {

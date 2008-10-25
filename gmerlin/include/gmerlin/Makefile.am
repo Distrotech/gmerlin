@@ -35,6 +35,7 @@ transcoder_track.h \
 translation.h \
 tree.h \
 utils.h \
-visualize.h
+visualize.h \
+xmlutils.h
 
 EXTRA_DIST = bg_version.h.in

@@ -27,7 +27,7 @@
 
 #include "gmerlin.h"
 #include <gmerlin/utils.h>
-#include <xmlutils.h>
+#include <gmerlin/xmlutils.h>
 #include <gmerlin/keycodes.h>
 
 #include <gui_gtk/gtkutils.h>

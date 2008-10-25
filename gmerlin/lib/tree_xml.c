@@ -21,7 +21,7 @@
 
 #include <string.h>
 
-#include <xmlutils.h>
+#include <gmerlin/xmlutils.h>
 
 #include <gmerlin/tree.h>
 #include <treeprivate.h>
