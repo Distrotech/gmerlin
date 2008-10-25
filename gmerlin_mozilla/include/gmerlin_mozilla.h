@@ -35,6 +35,8 @@ struct bg_mozilla_s
   char * new_url;
   char * new_mimetype;
   
+  int is_local;
+  
   struct
     {
     char * name;
@@ -166,6 +168,7 @@ struct bg_mozilla_widget_s
 
   bg_mozilla_widget_skin_t skin;
   char * skin_directory;
+  int seek_active;
   };
 
 bg_mozilla_widget_t * bg_mozilla_widget_create(bg_mozilla_t * m);

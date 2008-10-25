@@ -132,6 +132,10 @@ void gmerlin_mozilla_set_stream(bg_mozilla_t * m,
   m->new_url      = bg_strdup(m->new_url, url); 
   m->new_mimetype = bg_strdup(m->new_mimetype, mimetype);
   fprintf(stderr, "Set URL: %s %s\n", m->new_url, m->new_mimetype);
+  if(!strncmp(url, "file://", 7) || (url[0] == '/'))
+    m->is_local = 1;
+  else
+    m->is_local = 0;
   }
 
 /* Append URL to list */
@@ -238,16 +242,31 @@ static void * start_func(void * priv)
     bg_plugin_unref(h);
     goto fail;
     }
-  
-  if(!input->open_callbacks(h->priv,
-                            bg_mozilla_buffer_read,
-                            NULL, /* Seek callback */
-                            m->buffer, m->orig_url, m->new_mimetype))
+
+  if(!m->is_local)
     {
-    bg_plugin_unref(h);
-    fprintf(stderr, "Open callbacks failed\n");
-    goto fail;
+    fprintf(stderr, "Open stream\n");
+    if(!input->open_callbacks(h->priv,
+                              bg_mozilla_buffer_read,
+                              NULL, /* Seek callback */
+                              m->buffer, m->orig_url, m->new_mimetype))
+      {
+      bg_plugin_unref(h);
+      fprintf(stderr, "Open callbacks failed\n");
+      goto fail;
+      }
     }
+  else
+    {
+    fprintf(stderr, "Open local\n");
+    if(!input->open(h->priv, m->orig_url))
+      {
+      bg_plugin_unref(h);
+      fprintf(stderr, "Open failed\n");
+      goto fail;
+      }
+    }
+  
   if(!input->get_num_tracks)
     num_tracks = 1;
   else
@@ -278,6 +297,14 @@ static void * start_func(void * priv)
 
 void gmerlin_mozilla_start(bg_mozilla_t * m)
   {
-  pthread_create(&(m->start_thread), (pthread_attr_t*)0, start_func, m);
-  m->state = STATE_STARTING;
+  if(m->is_local)
+    {
+    start_func(m);
+    m->state = STATE_PLAYING;
+    }
+  else
+    {
+    pthread_create(&(m->start_thread), (pthread_attr_t*)0, start_func, m);
+    m->state = STATE_STARTING;
+    }
   }

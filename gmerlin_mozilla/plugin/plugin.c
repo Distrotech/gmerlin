@@ -233,8 +233,15 @@ NPError NPP_NewStream(NPP        instance,
   fprintf(stderr, "NewStream %s (%s), size: %d\n", new_url, type, stream->end);
   
   gmerlin_mozilla_set_stream(priv, new_url, type);
+
+  if(priv->is_local)
+    {
+    browser_funcs.destroystream(instance, stream, NPRES_DONE);
+    gmerlin_mozilla_start(priv);
+    
+    }
+
   free(new_url);
-  //  browser_funcs.destroystream(instance, stream, NPRES_DONE);
 
   return NPERR_NO_ERROR;
   }
@@ -266,10 +273,11 @@ static void set_plugin_funcs(NPPluginFuncs *aNPPFuncs)
 
 static void set_browser_funcs(NPNetscapeFuncs * aNPNFuncs)
   {
-  if(aNPNFuncs->size != sizeof(NPNetscapeFuncs))
-    fprintf(stderr, "Incompatible struct size %d %d\n",
-            aNPNFuncs->size, (int)sizeof(browser_funcs));
-  memcpy(&browser_funcs, aNPNFuncs, sizeof(browser_funcs));
+  //  if(aNPNFuncs->size != sizeof(NPNetscapeFuncs))
+  //    fprintf(stderr, "Incompatible struct size %d %d\n",
+  //            aNPNFuncs->size, (int)sizeof(browser_funcs));
+  browser_funcs.destroystream = aNPNFuncs->destroystream;
+  //  memcpy(&browser_funcs, aNPNFuncs, sizeof(browser_funcs));
   return;
   }
 
@@ -284,7 +292,7 @@ NPError NP_Initialize(NPNetscapeFuncs *aNPNFuncs,
                      BG_LOG_ERROR |
                      BG_LOG_INFO);
   set_plugin_funcs(aNPPFuncs);
-  //  set_browser_funcs(aNPNFuncs);
+  set_browser_funcs(aNPNFuncs);
   return NPERR_NO_ERROR;
   }
 

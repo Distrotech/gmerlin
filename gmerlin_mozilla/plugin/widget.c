@@ -147,6 +147,60 @@ static gboolean key_press_callback(GtkWidget * wid, GdkEventKey * evt,
   return TRUE;
   }
 
+/* Slider callbacks */
+
+static void seek_change_callback(bg_gtk_slider_t * slider, float perc,
+                                 void * data)
+  {
+  bg_mozilla_widget_t * win = (bg_mozilla_widget_t *)data;
+
+  win->seek_active = 1;
+  
+  //  bg_mozilla_widget_t * win = (bg_mozilla_widget_t *)data;
+
+  //  display_set_time(win->display, (gavl_time_t)(perc *
+  //                                               (float)win->duration + 0.5));
+  }
+
+static void seek_release_callback(bg_gtk_slider_t * slider, float perc,
+                                  void * data)
+  {
+  gavl_time_t time;
+  bg_mozilla_widget_t * win = (bg_mozilla_widget_t *)data;
+
+  time = (gavl_time_t)(perc * (double)win->duration);
+  
+  //  bg_mozilla_widget_t * win = (bg_mozilla_widget_t *)data;
+  bg_player_seek(win->m->player, time);
+  
+  }
+
+static void
+slider_scroll_callback(bg_gtk_slider_t * slider, int up, void * data)
+  {
+  bg_mozilla_widget_t * win = (bg_mozilla_widget_t *)data;
+
+#if 0  
+  if(slider == win->volume_slider)
+    {
+    if(up)
+      bg_player_set_volume_rel(win->m->player, 1.0);
+    else
+      bg_player_set_volume_rel(win->m->player, -1.0);
+    }
+  else
+#endif
+    if(slider == win->seek_slider)
+    {
+    if(up)
+      bg_player_seek_rel(win->m->player, 2 * GAVL_TIME_SCALE);
+    else
+      bg_player_seek_rel(win->m->player, -2 * GAVL_TIME_SCALE);
+    }
+  
+  }
+
+
 bg_mozilla_widget_t * bg_mozilla_widget_create(bg_mozilla_t * m)
   {
   bg_mozilla_widget_t * w;
@@ -383,6 +437,17 @@ void bg_mozilla_widget_set_window(bg_mozilla_widget_t * w,
                              w->fg_normal, w->bg);
 
   w->seek_slider = bg_gtk_slider_create();
+
+  bg_gtk_slider_set_change_callback(w->seek_slider,
+                                    seek_change_callback, w);
+  
+  bg_gtk_slider_set_release_callback(w->seek_slider,
+                                     seek_release_callback, w);
+
+  bg_gtk_slider_set_scroll_callback(w->seek_slider,
+                                    slider_scroll_callback, w);
+
+
   fprintf(stderr, "Setting skin...");
   bg_gtk_slider_set_skin(w->seek_slider, &w->skin.seek_slider, w->skin_directory);
   fprintf(stderr, "done\n");
