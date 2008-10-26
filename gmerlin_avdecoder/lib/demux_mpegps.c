@@ -345,7 +345,7 @@ static int select_track_mpegps(bgav_demuxer_context_t * ctx, int track)
   /* If we didn't run yet, we do nothing.
      This prevents reopening of the input. */
 
-  fprintf(stderr, "select_track_mpegps %d\n", priv->is_running);
+  // fprintf(stderr, "select_track_mpegps %d\n", priv->is_running);
   
   if(!priv->is_running)
     return 1;

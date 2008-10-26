@@ -30,6 +30,7 @@ extern const bgav_redirector_t bgav_redirector_m3u;
 extern const bgav_redirector_t bgav_redirector_pls;
 extern const bgav_redirector_t bgav_redirector_ref;
 extern const bgav_redirector_t bgav_redirector_smil;
+extern const bgav_redirector_t bgav_redirector_rtsptext;
 
 void bgav_redirectors_dump()
   {
@@ -40,6 +41,7 @@ void bgav_redirectors_dump()
   bgav_dprintf( "<li>%s\n", bgav_redirector_pls.name);
   bgav_dprintf( "<li>%s\n", bgav_redirector_ref.name);
   bgav_dprintf( "<li>%s\n", bgav_redirector_smil.name);
+  bgav_dprintf( "<li>%s\n", bgav_redirector_rtsptext.name);
   bgav_dprintf( "</ul>\n");
   }
 
@@ -55,6 +57,7 @@ redirectors[] =
     { &bgav_redirector_ref, "MS Referece" },
     { &bgav_redirector_smil, "smil" },
     { &bgav_redirector_m3u, "m3u" },
+    { &bgav_redirector_rtsptext, "rtsptext" },
   };
 
 static const int num_redirectors = sizeof(redirectors)/sizeof(redirectors[0]);

@@ -481,6 +481,7 @@ rmff.c \
 r_asx.c \
 r_m3u.c \
 r_pls.c \
+r_rtsptext.c \
 r_ref.c \
 r_smil.c \
 rtcp.c \

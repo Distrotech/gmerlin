@@ -501,7 +501,7 @@ static int open_mpegaudio(bgav_demuxer_context_t * ctx)
   
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;    
-  
+  priv->data_start = ctx->input->position;
   if(ctx->input->id3v2)
     {
     bgav_id3v2_2_metadata(ctx->input->id3v2, &(metadata_v2));
@@ -679,8 +679,9 @@ static int select_track_mpegaudio(bgav_demuxer_context_t * ctx,
     priv->data_end   = priv->albw->tracks[track].end_pos;
     }
   //  return;
-  fprintf(stderr, "select_track_mpegaudio: %d %d\n",
+  fprintf(stderr, "select_track_mpegaudio %d %d\n",
           ctx->input->position, priv->data_start);
+  
   if(ctx->input->position != priv->data_start)
     {
     if(ctx->input->input->seek_byte)
