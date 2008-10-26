@@ -35,6 +35,7 @@ bg_mozilla_t * gmerlin_mozilla_create()
   ret->player = bg_player_create(ret->plugin_reg);
 
   bg_player_set_volume(ret->player, 0.0);
+  bg_player_set_visualization(ret->player, 1);
   
   ret->widget = bg_mozilla_widget_create(ret);
   ret->plugin_window =
@@ -82,7 +83,7 @@ void gmerlin_mozilla_destroy(bg_mozilla_t* m)
   if(m->orig_url) free(m->orig_url);
 
   bg_mozilla_widget_destroy(m->widget);
-  
+  bg_mozilla_embed_info_free(&m->ei);
   free(m);
   }
 
@@ -104,6 +105,12 @@ void gmerlin_mozilla_set_oa_plugin(bg_mozilla_t * m,
   m->oa_handle = bg_plugin_load(m->plugin_reg, info);
   bg_player_set_oa_plugin(m->player, m->oa_handle);
   fprintf(stderr, "Loaded OA %s\n", m->oa_handle->info->name);
+  }
+
+void gmerlin_mozilla_set_vis_plugin(bg_mozilla_t* m,
+                                   const bg_plugin_info_t * info)
+  {
+  bg_player_set_visualization_plugin(m->player, info);
   }
 
 void gmerlin_mozilla_set_ov_plugin(bg_mozilla_t * m,

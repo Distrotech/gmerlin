@@ -1,6 +1,15 @@
 pkgdatadir = $(datadir)/@PACKAGE@/skins/Default
 
 skin_data = \
+pause_button.png \
+pause_button_hl.png \
+pause_button_cl.png \
+stop_button.png \
+stop_button_hl.png \
+stop_button_cl.png \
+play_button.png \
+play_button_hl.png \
+play_button_cl.png \
 seek_bg.png \
 seek_bg_l.png \
 seek_bg_r.png \

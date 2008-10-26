@@ -23,6 +23,24 @@ typedef struct bg_mozilla_buffer_s  bg_mozilla_buffer_t;
 #define STATE_STARTING 1
 #define STATE_PLAYING  2
 
+#define MODE_GENERIC   0
+#define MODE_REAL      1
+#define MODE_QUICKTIME 2
+#define MODE_WMP       3
+
+typedef struct
+  {
+  int mode;
+  char * src;
+  } bg_mozilla_embed_info_t;
+
+void bg_mozilla_embed_info_set_parameter(bg_mozilla_embed_info_t *,
+                                         const char * name,
+                                         const char * value);
+
+int bg_mozilla_embed_info_check(bg_mozilla_embed_info_t *);
+void bg_mozilla_embed_info_free(bg_mozilla_embed_info_t *);
+
 struct bg_mozilla_s
   {
   int state;
@@ -36,6 +54,8 @@ struct bg_mozilla_s
   char * new_mimetype;
   
   int is_local;
+
+  bg_mozilla_embed_info_t ei;
   
   struct
     {
@@ -69,6 +89,9 @@ struct bg_mozilla_s
   
   int start_finished;
   pthread_mutex_t start_finished_mutex;
+
+  /* Configuration sections */
+  bg_cfg_section_t * gui_section;
   };
 
 plugin_window_t * bg_mozilla_plugin_window_create(bg_mozilla_t * m);
@@ -84,8 +107,11 @@ void gmerlin_mozilla_set_oa_plugin(bg_mozilla_t*,
                                    const bg_plugin_info_t * info);
 void gmerlin_mozilla_set_ov_plugin(bg_mozilla_t*,
                                    const bg_plugin_info_t * info);
+void gmerlin_mozilla_set_vis_plugin(bg_mozilla_t*,
+                                   const bg_plugin_info_t * info);
 
-void gmerlin_mozilla_set_stream(bg_mozilla_t * m, const char * url, const char * mimetype);
+void gmerlin_mozilla_set_stream(bg_mozilla_t * m,
+                                const char * url, const char * mimetype);
 void gmerlin_mozilla_start(bg_mozilla_t * m);
 
 
@@ -143,7 +169,6 @@ struct bg_mozilla_widget_s
   GtkWidget * socket;
   GtkWidget * button;
   GtkWidget * controls;
-  GtkWidget * table;
   
   bg_mozilla_t * m;
   
@@ -166,6 +191,11 @@ struct bg_mozilla_widget_s
   bg_gtk_slider_t     * seek_slider;
   gavl_time_t duration;
 
+  bg_gtk_button_t     * pause_button;
+  bg_gtk_button_t     * stop_button;
+  bg_gtk_button_t     * play_button;
+
+  
   bg_mozilla_widget_skin_t skin;
   char * skin_directory;
   int seek_active;
@@ -174,6 +204,11 @@ struct bg_mozilla_widget_s
 bg_mozilla_widget_t * bg_mozilla_widget_create(bg_mozilla_t * m);
 void bg_mozilla_widget_set_window(bg_mozilla_widget_t * m,
                                   GdkNativeWindow window_id);
+
+void bg_mozilla_widget_set_parameter(void * m, const char * name,
+                                     const bg_parameter_value_t * val);
+
+bg_parameter_info_t * bg_mozilla_widget_get_parameters(void * m);
 
 void bg_mozilla_widget_init_menu(bg_mozilla_widget_t * m);
 

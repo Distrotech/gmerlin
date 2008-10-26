@@ -7,6 +7,7 @@ struct plugin_window_s
   bg_gtk_plugin_widget_multi_t  * input_plugins;
   bg_gtk_plugin_widget_single_t * audio_output_plugins;
   bg_gtk_plugin_widget_single_t * video_output_plugins;
+  bg_gtk_plugin_widget_single_t * vis_plugins;
 
   GtkWidget * window;
   } ;
@@ -35,6 +36,17 @@ static void set_video_output(const bg_plugin_info_t * info, void * data)
                                  BG_PLUGIN_OUTPUT_VIDEO,
                                  info->name);
   gmerlin_mozilla_set_ov_plugin(m, info);
+  }
+
+static void set_visualization(const bg_plugin_info_t * info, void * data)
+  {
+  bg_mozilla_t * m = data;
+  bg_plugin_registry_set_default(m->plugin_reg,
+                                 BG_PLUGIN_VISUALIZATION,
+                                 info->name);
+  fprintf(stderr, "gmerlin_mozilla_set_vis_plugin %s\n",
+          info->long_name);
+  gmerlin_mozilla_set_vis_plugin(m, info);
   }
 
 plugin_window_t * bg_mozilla_plugin_window_create(bg_mozilla_t * m)
@@ -86,9 +98,19 @@ plugin_window_t * bg_mozilla_plugin_window_create(bg_mozilla_t * m)
     bg_gtk_plugin_widget_single_create("Video", reg,
                                        BG_PLUGIN_OUTPUT_VIDEO,
                                        BG_PLUGIN_PLAYBACK);
-  bg_gtk_plugin_widget_single_set_change_callback(ret->video_output_plugins, set_video_output, m);
+  bg_gtk_plugin_widget_single_set_change_callback(ret->video_output_plugins,
+                                                  set_video_output, m);
 
-    /* Pack */
+  ret->vis_plugins =
+    bg_gtk_plugin_widget_single_create("Visualization", reg,
+                                       BG_PLUGIN_VISUALIZATION,
+                                       BG_PLUGIN_VISUALIZE_FRAME |
+                                       BG_PLUGIN_VISUALIZE_GL);
+  
+  bg_gtk_plugin_widget_single_set_change_callback(ret->vis_plugins,
+                                                  set_visualization, m);
+  
+  /* Pack */
   
   table = gtk_table_new(1, 1, 0);
   gtk_table_set_col_spacings(GTK_TABLE(table), 5);
@@ -103,7 +125,10 @@ plugin_window_t * bg_mozilla_plugin_window_create(bg_mozilla_t * m)
   bg_gtk_plugin_widget_single_attach(ret->video_output_plugins,
                                      table,
                                      &row, &num_columns);
-
+  bg_gtk_plugin_widget_single_attach(ret->vis_plugins,
+                                     table,
+                                     &row, &num_columns);
+  
   gtk_widget_show(table);
   
   label = gtk_label_new(TR("Output"));
@@ -119,6 +144,9 @@ plugin_window_t * bg_mozilla_plugin_window_create(bg_mozilla_t * m)
                                 bg_gtk_plugin_widget_single_get_plugin(ret->audio_output_plugins));
   gmerlin_mozilla_set_ov_plugin(m,
                                 bg_gtk_plugin_widget_single_get_plugin(ret->video_output_plugins));
+
+  gmerlin_mozilla_set_vis_plugin(m,
+                                 bg_gtk_plugin_widget_single_get_plugin(ret->vis_plugins));
   
 
   

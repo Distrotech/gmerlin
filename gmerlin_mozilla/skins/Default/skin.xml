@@ -17,7 +17,6 @@
       <PRESSED>pause_button_cl.png</PRESSED>
     </PAUSEBUTTON>
     <STOPBUTTON>
-      <X>57</X><Y>123</Y>
       <NORMAL>stop_button.png</NORMAL>
       <HIGHLIGHT>stop_button_hl.png</HIGHLIGHT>
       <PRESSED>stop_button_cl.png</PRESSED>

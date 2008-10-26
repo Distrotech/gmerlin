@@ -2,9 +2,6 @@
 #include <gmerlin/utils.h>
 #include <gdk/gdkkeysyms.h>
 
-// #include <ovBox.h>
-// #include <drawer.h>
-
 #define TOOLBAR_VISIBLE 0
 #define TOOLBAR_HIDING  1
 #define TOOLBAR_HIDDEN  2
@@ -29,14 +26,17 @@ static void size_allocate(GtkWidget     *widget,
 
   w->width = a->width;
   w->height = a->height;
-  w->toolbar_height = 38;
+  w->toolbar_height = 40;
   fprintf(stderr, "Embed size allocate: %dx%d+%d+%d\n",
           a->width, a->height, a->x, a->y);
   
+  gtk_widget_set_size_request(bg_gtk_button_get_widget(w->stop_button),
+                              20, 20);
+  
   gtk_widget_set_size_request(bg_gtk_scrolltext_get_widget(w->scrolltext),
-                              a->width, 16);
-  //  gtk_widget_set_size_request(bg_gtk_slider_get_widget(w->seek_slider),
-  //                              a->width, 20);
+                              a->width-20, 20);
+  gtk_widget_set_size_request(bg_gtk_slider_get_widget(w->seek_slider),
+                              a->width, 20);
   
                               
   g_signal_handler_block(w->box, w->resize_id);
@@ -49,7 +49,7 @@ static void size_allocate(GtkWidget     *widget,
     w->toolbar_pos = a->height - w->toolbar_height;
     gtk_fixed_move(GTK_FIXED(w->box), w->controls, 0,
                    w->toolbar_pos);
-    gtk_container_check_resize(GTK_CONTAINER(w->table));
+    //    gtk_container_check_resize(GTK_CONTAINER(w->table));
     }
   g_signal_handler_unblock(w->box, w->resize_id);
   }
@@ -384,7 +384,74 @@ static void focus_callback(GtkWidget *widget,
     fprintf(stderr, "Focus out\n");
   }
 
+static void create_controls(bg_mozilla_widget_t * w)
+  {
+  w->controls = gtk_fixed_new();
 
+  gtk_fixed_set_has_window(GTK_FIXED(w->controls), TRUE);
+  
+  //  g_signal_connect(G_OBJECT(w->controls),
+  //                   "size-allocate",
+  //                   G_CALLBACK(size_allocate), NULL);
+
+  /* Prepare for reparenting */
+  g_object_ref(w->controls);
+  
+  //  w->button = gtk_button_new_with_label("Bla");
+  //  gtk_widget_show(w->button);
+  
+  //  gtk_container_add(GTK_CONTAINER(w->controls),
+  //                  w->button);
+    //  
+  //  g_signal_connect(G_OBJECT(w->button),
+  //                   "size-allocate",
+  //                   G_CALLBACK(size_allocate_test), NULL);
+
+  w->scrolltext = bg_gtk_scrolltext_create(0, 0);
+  bg_gtk_scrolltext_set_text(w->scrolltext, "Gmerlin mozilla plugin",
+                             w->fg_normal, w->bg);
+#if 1
+  w->stop_button = bg_gtk_button_create();
+  w->pause_button = bg_gtk_button_create();
+  w->play_button = bg_gtk_button_create();
+
+  bg_gtk_button_set_skin(w->stop_button,
+                         &w->skin.stop_button, w->skin_directory);
+  bg_gtk_button_set_skin(w->pause_button,
+                         &w->skin.pause_button, w->skin_directory);
+  bg_gtk_button_set_skin(w->play_button,
+                         &w->skin.play_button, w->skin_directory);
+#endif
+  
+  w->seek_slider = bg_gtk_slider_create();
+
+
+  
+  bg_gtk_slider_set_change_callback(w->seek_slider,
+                                    seek_change_callback, w);
+  
+  bg_gtk_slider_set_release_callback(w->seek_slider,
+                                     seek_release_callback, w);
+
+  bg_gtk_slider_set_scroll_callback(w->seek_slider,
+                                    slider_scroll_callback, w);
+  
+  bg_gtk_slider_set_skin(w->seek_slider, &w->skin.seek_slider, w->skin_directory);
+
+  
+  gtk_fixed_put(GTK_FIXED(w->controls),
+                   bg_gtk_button_get_widget(w->stop_button),
+                   0, 0);
+  
+  gtk_fixed_put(GTK_FIXED(w->controls),
+                bg_gtk_scrolltext_get_widget(w->scrolltext),
+                20, 0);
+  gtk_fixed_put(GTK_FIXED(w->controls),
+                bg_gtk_slider_get_widget(w->seek_slider),
+                0, 20);
+  
+  
+  }
 
 void bg_mozilla_widget_set_window(bg_mozilla_widget_t * w,
                                   GdkNativeWindow window_id)
@@ -411,61 +478,8 @@ void bg_mozilla_widget_set_window(bg_mozilla_widget_t * w,
   gtk_widget_modify_bg(w->socket, GTK_STATE_INSENSITIVE, &gdk_black);
   
   gtk_widget_show(w->socket);
-  
-  w->controls = gtk_event_box_new();
-  //  g_signal_connect(G_OBJECT(w->controls),
-  //                   "size-allocate",
-  //                   G_CALLBACK(size_allocate), NULL);
 
-  /* Prepare for reparenting */
-  g_object_ref(w->controls);
-
-  
-  
-  //  w->button = gtk_button_new_with_label("Bla");
-  //  gtk_widget_show(w->button);
-  
-  //  gtk_container_add(GTK_CONTAINER(w->controls),
-  //                  w->button);
-    //  
-  //  g_signal_connect(G_OBJECT(w->button),
-  //                   "size-allocate",
-  //                   G_CALLBACK(size_allocate_test), NULL);
-
-  w->scrolltext = bg_gtk_scrolltext_create(0, 0);
-  bg_gtk_scrolltext_set_text(w->scrolltext, "Gmerlin mozilla plugin",
-                             w->fg_normal, w->bg);
-
-  w->seek_slider = bg_gtk_slider_create();
-
-  bg_gtk_slider_set_change_callback(w->seek_slider,
-                                    seek_change_callback, w);
-  
-  bg_gtk_slider_set_release_callback(w->seek_slider,
-                                     seek_release_callback, w);
-
-  bg_gtk_slider_set_scroll_callback(w->seek_slider,
-                                    slider_scroll_callback, w);
-
-
-  fprintf(stderr, "Setting skin...");
-  bg_gtk_slider_set_skin(w->seek_slider, &w->skin.seek_slider, w->skin_directory);
-  fprintf(stderr, "done\n");
-  
-  w->table = gtk_table_new(2, 3, 0);
-
-  gtk_table_attach(GTK_TABLE(w->table),
-                   bg_gtk_scrolltext_get_widget(w->scrolltext),
-                   0, 3, 0, 1, GTK_EXPAND|GTK_FILL, GTK_FILL, 0, 0);
-  gtk_table_attach(GTK_TABLE(w->table),
-                   bg_gtk_slider_get_widget(w->seek_slider),
-                   0, 3, 1, 2, GTK_EXPAND|GTK_FILL, GTK_FILL, 0, 0);
-  
-  gtk_widget_show(w->table);
-  
-  gtk_container_add(GTK_CONTAINER(w->controls),
-                    w->table);
-
+  create_controls(w);
   
   w->box = gtk_fixed_new();
   

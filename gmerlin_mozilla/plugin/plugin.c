@@ -4,7 +4,7 @@
 
 #include <gmerlin_mozilla.h>
 
-#define GENERAL_MIME_DESCRIPTION \
+static const char * general_mime_description =
 "application/x-ogg:ogg:Ogg-Multimedia;" \
 "application/ogg:ogg:Ogg-Multimedia;" \
 "audio/ogg:ogg,oga:Ogg Audio;" \
@@ -19,13 +19,13 @@
 "audio/x-wav:wav:WAV-Audio;" \
 "audio/mpeg:mp3:MP3-Audio;" \
 "application/x-nsv-vp3-mp3:nsv:NullSoft video;" \
-"video/flv:flv:Flash-Video;"
+"video/flv:flv:Flash-Video;";
 
-#define QUICKTIME_MIME_DESCRIPTION \
-"video/quicktime:mov:Quicktime Video;"
+static const char * quicktime_mime_description =
+"video/quicktime:mov:Quicktime Video;";
 
 #if 1
-#define WMP_MIME_DESCRIPTION \
+static const char * wmp_mime_description =
 "application/x-mplayer2:avi,wma,wmv:AVI-Video;" \
 "video/x-ms-asf-plugin:asf,wmv:ASF-Video;" \
 "video/x-msvideo:avi:AVI-Video;" \
@@ -36,9 +36,9 @@
 "video/x-ms-wm:wmv:ASF-Video;" \
 "application/x-ms-wms:wms:Windows Media video;" \
 "application/asx:asx:Microsoft ASX playlist;" \
-"audio/x-ms-wma:wma:Windows Media audio;"
+"audio/x-ms-wma:wma:Windows Media audio;";
 #else
-#define WMP_MIME_DESCRIPTION \
+static const char * wmp_mime_description =
 "application/asx:*:Media Files;" \
 "video/x-ms-asf-plugin:*:Media Files;" \
 "video/x-msvideo:avi,*:AVI;" \
@@ -56,19 +56,41 @@
 "audio/x-ms-wma:wma,*:Windows Media;" \
 "application/x-drm-v2:asx,*:Windows Media;" \
 "audio/wav:wav,*:Microsoft wave file;" \
-"audio/x-wav:wav,*:Microsoft wave file;"
+"audio/x-wav:wav,*:Microsoft wave file;";
 #endif
 
-#define REAL_MIME_DESCRIPTION \
+static const char * real_mime_description =
   "audio/x-pn-realaudio:ram,rm:RealAudio;" \
   "application/vnd.rn-realmedia:rm:RealMedia;" \
   "application/vnd.rn-realaudio:ra,ram:RealAudio;" \
   "video/vnd.rn-realvideo:rv:RealVideo;" \
   "audio/x-realaudio:ra:RealAudio;" \
   "audio/x-pn-realaudio-plugin:rpm:RealAudio;" \
-  "application/smil:smil:SMIL;"
+"application/smil:smil:SMIL;";
 
 #define GMERLIN
+
+static int check_mime_type(const char * types, const char * type)
+  {
+  int type_len = strlen(type);
+  const char * pos;
+  pos = types;
+
+  while(1)
+    {
+    if(!strncmp(pos, type, type_len) &&
+       (pos[type_len] == ':'))
+      return 1;
+
+    pos = strchr(pos, ';');
+    if(!pos)
+      break;
+    pos++;
+    if(*pos == '\0')
+      break;
+    }
+  return 0;
+  }
 
 /* Browser entry types */
 
@@ -89,10 +111,19 @@ QUICKTIME_MIME_DESCRIPTION
 
 static NPNetscapeFuncs  browser_funcs;
 
+static char * mime_info = (char *)0;
+
 char* NP_GetMIMEDescription(void)
   {
+  if(!mime_info)
+    mime_info = bg_sprintf("%s%s%s%s",
+                           wmp_mime_description,
+                           real_mime_description,
+                           general_mime_description,
+                           quicktime_mime_description);
+  
   fprintf(stderr, "GET MIME DESCRIPTION\n");
-  return(MIME_TYPES_DESCRIPTION);
+  return(mime_info);
   }
 
 NPError NP_GetValue(void *instance, 
@@ -125,9 +156,33 @@ NPError NPP_New(NPMIMEType pluginType,
                 int16 argc, char *argn[],
                 char *argv[], NPSavedData *saved)
   {
+  int i;
   bg_mozilla_t * priv;
   priv = gmerlin_mozilla_create();
   instance->pdata = priv;
+
+  for(i = 0; i < argc; i++)
+    {
+    if(!strcmp(argn[i], "type"))
+      {
+      if(check_mime_type(general_mime_description, argv[i]))
+        priv->ei.mode = MODE_GENERIC;
+      if(check_mime_type(real_mime_description, argv[i]))
+        priv->ei.mode = MODE_REAL;
+      if(check_mime_type(wmp_mime_description, argv[i]))
+        priv->ei.mode = MODE_WMP;
+      if(check_mime_type(quicktime_mime_description, argv[i]))
+        priv->ei.mode = MODE_QUICKTIME;
+      
+      }
+    bg_mozilla_embed_info_set_parameter(&priv->ei, argn[i], argv[i]);
+    }
+  if(!bg_mozilla_embed_info_check(&priv->ei))
+    {
+    gmerlin_mozilla_destroy(priv);
+    instance->pdata = NULL;
+    return NPERR_INVALID_PLUGIN_ERROR;
+    }
   return NPERR_NO_ERROR;
   }
 
@@ -181,9 +236,9 @@ NPError NPP_SetValue(NPP instance,
 
 int32 NPP_WriteReady(NPP instance, NPStream* stream)
   {
-  bg_mozilla_t * priv;
+  //  bg_mozilla_t * priv;
   //  fprintf(stderr, "NPP_WriteReady\n");
-  priv = (bg_mozilla_t *)instance->pdata;
+  //  priv = (bg_mozilla_t *)instance->pdata;
   return BUFFER_SIZE;
   }
 
@@ -230,7 +285,8 @@ NPError NPP_NewStream(NPP        instance,
   bg_mozilla_t * priv;
   priv = (bg_mozilla_t *)instance->pdata;
   new_url = bg_uri_to_string(stream->url, -1);
-  fprintf(stderr, "NewStream %s (%s), size: %d\n", new_url, type, stream->end);
+  fprintf(stderr, "NewStream %s (%s), size: %d\n",
+          new_url, type, stream->end);
   
   gmerlin_mozilla_set_stream(priv, new_url, type);
 
@@ -308,5 +364,6 @@ NPError NP_GetEntryPoints(NPPluginFuncs *aNPPFuncs)
 NPError NP_Shutdown(void)
   {
   fprintf(stderr, "SHUTDOWN\n");
+  if(mime_info) free(mime_info);
   return NPERR_NO_ERROR;
   }
