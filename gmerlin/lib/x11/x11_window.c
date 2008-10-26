@@ -636,6 +636,10 @@ void bg_x11_window_get_coords(bg_x11_window_t * w,
 static int window_is_viewable(Display * dpy, Window w)
   {
   XWindowAttributes attr;
+
+  if(w == None)
+    return 0;
+  
   XGetWindowAttributes(dpy, w, &attr);
   if(attr.map_state == IsViewable)
     return 1;
@@ -698,7 +702,7 @@ void bg_x11_window_init(bg_x11_window_t * w)
                       (int*)0, (int*)0,
                       &w->window_width, &w->window_height);
 #endif
-  fprintf(stderr, "Window size: %dx%d\n", w->window_width, w->window_height);
+  //  fprintf(stderr, "Window size: %dx%d\n", w->window_width, w->window_height);
   if((send_event >= 0) && w->callbacks &&
      w->callbacks->set_fullscreen)
     w->callbacks->set_fullscreen(w->callbacks->data, send_event);

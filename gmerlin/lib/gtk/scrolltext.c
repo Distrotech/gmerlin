@@ -102,7 +102,8 @@ static gboolean configure_callback(GtkWidget * w, GdkEventConfigure * evt,
   GdkColor bg;
   bg_gtk_scrolltext_t * st = (bg_gtk_scrolltext_t *)data;
 
-  if((st->width == evt->width) && (st->height == evt->height))
+  if((st->width == evt->width) && (st->height == evt->height) &&
+     (st->pixmap_2))
     return FALSE;
   
   st->width = evt->width;

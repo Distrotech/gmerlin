@@ -274,6 +274,9 @@ static int x11_window_next_event(bg_x11_window_t * w,
 static int window_is_mapped(Display * dpy, Window w)
   {
   XWindowAttributes attr;
+  if(w == None)
+    return 0;
+
   XGetWindowAttributes(dpy, w, &attr);
   if(attr.map_state != IsUnmapped)
     return 1;
@@ -283,6 +286,8 @@ static int window_is_mapped(Display * dpy, Window w)
 static int window_is_viewable(Display * dpy, Window w)
   {
   XWindowAttributes attr;
+  if(w == None)
+    return 0;
   XGetWindowAttributes(dpy, w, &attr);
   if(attr.map_state == IsViewable)
     return 1;
