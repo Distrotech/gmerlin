@@ -94,7 +94,7 @@ void bgav_rmff_prop_dump(bgav_rmff_prop_t * p)
   bgav_dprintf( "  index_offset:    %d\n", p->index_offset);
   bgav_dprintf( "  data_offset:     %d\n", p->data_offset);
   bgav_dprintf( "  num_streams:     %d\n", p->num_streams);
-  bgav_dprintf( "  .flags =           %d\n", p->flags);
+  bgav_dprintf( "  flags:           %d\n", p->flags);
   }
 
 int bgav_rmff_prop_read(bgav_rmff_chunk_t * c,
@@ -224,8 +224,8 @@ void bgav_rmff_logical_stream_dump(bgav_rmff_logical_stream_t * l)
   for(i = 0; i < l->num_properties; i++)
     {
     bgav_dprintf( "  Property %d\n", i);
-    bgav_dprintf( "    .name =  %s\n", l->properties[i].name);
-    bgav_dprintf( "    .type =  %d\n", l->properties[i].type);
+    bgav_dprintf( "    name:  %s\n", l->properties[i].name);
+    bgav_dprintf( "    type:  %d\n", l->properties[i].type);
     bgav_dprintf( "    value, %d bytes\n", l->properties[i].value_length);
     bgav_hexdump(l->properties[i].value_data, l->properties[i].value_length, 16);
     }
@@ -720,6 +720,19 @@ static int select_mlti_data(const uint8_t *mlti_chunk, int mlti_size, int select
   if(bgav_sdp_get_attr_int(attrs, num_attrs, name, &i_tmp)) \
     dst = i_tmp;
 
+#define GET_ATTR_LENGTH(attrs, num_attrs, name, dst) \
+  if(bgav_sdp_get_attr_string(attrs, num_attrs, name, &buffer)) \
+    { \
+    double t; \
+    char ** rest; \
+    if(!strncmp(buffer, "npt=", 4)) \
+      { \
+      t = strtod(buffer + 4, &rest); \
+      if(rest != buffer + 4) \
+        dst = (int)(t * 1000.0+0.5); \
+      } \
+    }
+
 #define GET_ATTR_DATA(attrs, num_attrs, name, dst, dst_len)  \
   if(bgav_sdp_get_attr_data(attrs, num_attrs, name, &buffer, &(i_tmp)) \
      && i_tmp)       \
@@ -801,7 +814,8 @@ bgav_rmff_header_create_from_sdp(const bgav_options_t * opt, bgav_sdp_t * sdp,
                  "AvgPacketSize", ret->streams[i].mdpr.avg_packet_size );
     GET_ATTR_INT(sdp->media[i].attributes, sdp->media[i].num_attributes,
                  "Preroll", ret->streams[i].mdpr.preroll );
-
+    GET_ATTR_LENGTH(sdp->media[i].attributes, sdp->media[i].num_attributes,
+                 "length", ret->streams[i].mdpr.duration );
     GET_ATTR_STRING(sdp->media[i].attributes, sdp->media[i].num_attributes,
                     "StreamName", ret->streams[i].mdpr.stream_name,
                     ret->streams[i].mdpr.stream_name_size);
@@ -861,7 +875,9 @@ bgav_rmff_header_create_from_sdp(const bgav_options_t * opt, bgav_sdp_t * sdp,
     ret->streams[i].mdpr.type_specific_len =
       select_mlti_data(opaque_data, opaque_data_len, matches[0],
                        &(ret->streams[i].mdpr.type_specific_data));
-    
+
+    if(ret->prop.duration < ret->streams[i].mdpr.duration)
+      ret->prop.duration = ret->streams[i].mdpr.duration;
     }
 
     
