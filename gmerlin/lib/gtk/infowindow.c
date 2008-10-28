@@ -121,6 +121,8 @@ struct bg_gtk_info_window_s
     GtkWidget * copy_selected;
     GtkWidget * menu;
     } menu;
+
+  guint idle_id;
   
   };
 
@@ -1152,7 +1154,7 @@ bg_gtk_info_window_create(bg_player_t * player,
   
   /* Set callbacks */
   
-  g_timeout_add(DELAY_TIME, idle_callback, (gpointer)ret);
+  ret->idle_id = g_timeout_add(DELAY_TIME, idle_callback, (gpointer)ret);
   g_signal_connect(G_OBJECT(ret->window), "delete_event",
                    G_CALLBACK(delete_callback), (gpointer)ret);
 
@@ -1181,6 +1183,8 @@ void bg_gtk_info_window_destroy(bg_gtk_info_window_t * w)
   if(w->clipboard)
     free(w->clipboard);
 
+  g_source_remove(w->idle_id);
+  
   for(i = 0; i < PATH_NUM; i++)
     {
     if(w->paths[i])
