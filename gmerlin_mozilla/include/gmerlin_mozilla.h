@@ -11,6 +11,8 @@
 #include <gmerlin/gui_gtk/slider.h>
 #include <gmerlin/gui_gtk/button.h>
 #include <gmerlin/gui_gtk/display.h>
+#include <gmerlin/gui_gtk/infowindow.h>
+#include <gmerlin/cfg_dialog.h>
 
 typedef struct bg_mozilla_s        bg_mozilla_t;
 typedef struct bg_mozilla_widget_s bg_mozilla_widget_t;
@@ -89,9 +91,14 @@ struct bg_mozilla_s
   
   int start_finished;
   pthread_mutex_t start_finished_mutex;
-
+  
   /* Configuration sections */
   bg_cfg_section_t * gui_section;
+  bg_cfg_section_t * infowindow_section;
+  
+  /* Config dialog */
+  bg_dialog_t * cfg_dialog;
+  bg_gtk_info_window_t * info_window;
   };
 
 plugin_window_t * bg_mozilla_plugin_window_create(bg_mozilla_t * m);
@@ -114,6 +121,7 @@ void gmerlin_mozilla_set_stream(bg_mozilla_t * m,
                                 const char * url, const char * mimetype);
 void gmerlin_mozilla_start(bg_mozilla_t * m);
 
+void gmerlin_mozilla_create_dialog(bg_mozilla_t * g);
 
 /* GUI */
 
@@ -125,6 +133,7 @@ typedef struct
     {
     GtkWidget * copy;
     GtkWidget * launch;
+    GtkWidget * info;
     GtkWidget * menu;
     } url_menu;
   
@@ -136,6 +145,9 @@ typedef struct
     GtkWidget * plugins;
     GtkWidget * menu;
     } config_menu;
+
+  GtkWidget * fullscreen;
+  GtkWidget * windowed;
   
   GtkWidget * config_item;
   
@@ -158,16 +170,25 @@ char * bg_mozilla_widget_skin_load(bg_mozilla_widget_skin_t * s,
 
 void bg_mozilla_widget_skin_destroy(bg_mozilla_widget_skin_t *);
 
+typedef struct
+  {
+  GtkWidget * window;
+  GtkWidget * box;
+  GtkWidget * socket;
+  int width;
+  int height;
+  guint resize_id;
+  } bg_mozilla_window_t;
 
 struct bg_mozilla_widget_s
   {
-  GtkWidget * plug;
-  GtkWidget * box;
   main_menu_t menu;
   
   /* Top parent */
-  GtkWidget * socket;
-  GtkWidget * button;
+  bg_mozilla_window_t normal_win;
+  bg_mozilla_window_t fullscreen_win;
+  bg_mozilla_window_t * current_win;
+  
   GtkWidget * controls;
   
   bg_mozilla_t * m;
@@ -175,9 +196,9 @@ struct bg_mozilla_widget_s
   int width, height;
 
   float fg_normal[3];
+  float fg_error[3];
   float bg[3];
   
-  guint resize_id;
   guint idle_id;
   guint popup_time;
   
@@ -199,16 +220,19 @@ struct bg_mozilla_widget_s
   bg_mozilla_widget_skin_t skin;
   char * skin_directory;
   int seek_active;
+  int autohide_toolbar;
   };
 
 bg_mozilla_widget_t * bg_mozilla_widget_create(bg_mozilla_t * m);
 void bg_mozilla_widget_set_window(bg_mozilla_widget_t * m,
                                   GdkNativeWindow window_id);
 
-void bg_mozilla_widget_set_parameter(void * m, const char * name,
-                                     const bg_parameter_value_t * val);
+void bg_mozilla_widget_toggle_fullscreen(bg_mozilla_widget_t * m);
 
-bg_parameter_info_t * bg_mozilla_widget_get_parameters(void * m);
+const bg_parameter_info_t * bg_mozilla_widget_get_parameters(bg_mozilla_widget_t * m);
+
+void bg_mozilla_widget_set_parameter(void * priv, const char * name,
+                                     const bg_parameter_value_t * v);
 
 void bg_mozilla_widget_init_menu(bg_mozilla_widget_t * m);
 

@@ -19,9 +19,23 @@ static void menu_callback(GtkWidget * w, gpointer data)
   {
   bg_mozilla_widget_t * widget = data;
   if(w == widget->menu.config_menu.plugins)
-    {
-    fprintf(stderr, "menu_callback: %p\n", widget->m->plugin_window);
     bg_mozilla_plugin_window_show(widget->m->plugin_window);
+  else if(w == widget->menu.config_menu.preferences)
+    bg_dialog_show(widget->m->cfg_dialog, NULL);
+  else if(w == widget->menu.url_menu.info)
+    bg_gtk_info_window_show(widget->m->info_window);
+  else if(w == widget->menu.fullscreen)
+    {
+    bg_mozilla_widget_toggle_fullscreen(widget->m->widget);
+    gtk_widget_hide(widget->menu.fullscreen);
+    gtk_widget_show(widget->menu.windowed);
+                    
+    }
+  else if(w == widget->menu.windowed)
+    {
+    bg_mozilla_widget_toggle_fullscreen(widget->m->widget);
+    gtk_widget_hide(widget->menu.windowed);
+    gtk_widget_show(widget->menu.fullscreen);
     }
   }
 
@@ -111,6 +125,8 @@ void bg_mozilla_widget_init_menu(bg_mozilla_widget_t * m)
   m->menu.url_menu.menu = create_menu();
   m->menu.url_menu.copy = create_pixmap_item(TR("Copy"), "copy_16.png",
                                              m, m->menu.url_menu.menu);
+  m->menu.url_menu.info = create_pixmap_item(TR("Info"), "info_16.png",
+                                             m, m->menu.url_menu.menu);
   m->menu.url_menu.launch = create_item(TR("Launch"),
                                         m, m->menu.url_menu.menu);
 
@@ -136,5 +152,12 @@ void bg_mozilla_widget_init_menu(bg_mozilla_widget_t * m)
   m->menu.url_item = create_submenu_item(TR("Options..."),
                                          m->menu.config_menu.menu,
                                          m->menu.menu);
+
+  m->menu.fullscreen = create_pixmap_item(TR("Fullscreen"), "fullscreen_16.png",
+                                          m, m->menu.menu);
+  m->menu.windowed = create_pixmap_item(TR("Windowed"), "windowed_16.png",
+                                        m, m->menu.menu);
+
+  gtk_widget_hide(m->menu.windowed);
   gtk_widget_show(m->menu.menu);
   }

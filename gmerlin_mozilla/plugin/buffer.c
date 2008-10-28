@@ -24,7 +24,7 @@ struct bg_mozilla_buffer_s
 bg_mozilla_buffer_t * bg_mozilla_buffer_create()
   {
   bg_mozilla_buffer_t * ret = calloc(1, sizeof(*ret));
-  ret->filename = bg_create_unique_filename("/tmp/gmerlin_mozilla_05%d");
+  ret->filename = bg_create_unique_filename("/tmp/gmerlin_mozilla_%05x");
   ret->write_file = fopen(ret->filename, "w");
   ret->read_file = fopen(ret->filename, "r");
   

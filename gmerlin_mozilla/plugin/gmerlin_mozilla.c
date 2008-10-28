@@ -5,6 +5,12 @@
 #include <gmerlin_mozilla.h>
 #include <gmerlin/utils.h>
 
+static void infowindow_close_callback(bg_gtk_info_window_t * w, void * data)
+  {
+  bg_mozilla_t * m = data;
+  gtk_widget_set_sensitive(m->widget->menu.url_menu.info, 1);
+  }
+
 bg_mozilla_t * gmerlin_mozilla_create()
   {
   bg_mozilla_t * ret;
@@ -37,7 +43,6 @@ bg_mozilla_t * gmerlin_mozilla_create()
   bg_player_set_volume(ret->player, 0.0);
   bg_player_set_visualization(ret->player, 1);
   
-  ret->widget = bg_mozilla_widget_create(ret);
   ret->plugin_window =
     bg_mozilla_plugin_window_create(ret);
 
@@ -46,6 +51,23 @@ bg_mozilla_t * gmerlin_mozilla_create()
   bg_player_add_message_queue(ret->player,
                               ret->msg_queue);
   
+  ret->info_window = bg_gtk_info_window_create(ret->player,
+                                               infowindow_close_callback, 
+                                               ret);
+
+  ret->widget = bg_mozilla_widget_create(ret);
+  
+  /* Create config sections */
+  ret->gui_section =
+    bg_cfg_registry_find_section(ret->cfg_reg, "GUI");
+  ret->infowindow_section =
+    bg_cfg_registry_find_section(ret->cfg_reg, "infowindow");
+  
+  /* Create config dialog */
+  gmerlin_mozilla_create_dialog(ret);
+
+  
+  
   bg_player_run(ret->player);
   
   return ret;
@@ -53,6 +75,7 @@ bg_mozilla_t * gmerlin_mozilla_create()
 
 void gmerlin_mozilla_destroy(bg_mozilla_t* m)
   {
+  const bg_parameter_info_t * parameters;
   char * tmp_path;
   char * old_locale;
   /* Shutdown player */
@@ -65,6 +88,12 @@ void gmerlin_mozilla_destroy(bg_mozilla_t* m)
   old_locale = setlocale(LC_NUMERIC, "C");
   
   bg_plugin_registry_destroy(m->plugin_reg);
+
+  /* Get parameters */
+  parameters = bg_gtk_info_window_get_parameters(m->info_window);
+  bg_cfg_section_get(m->infowindow_section, parameters,
+                     bg_gtk_info_window_get_parameter,
+                     (void*)(m->info_window));
 
   
   /* Save configuration */
@@ -82,6 +111,9 @@ void gmerlin_mozilla_destroy(bg_mozilla_t* m)
   if(m->display_string) free(m->display_string);
   if(m->orig_url) free(m->orig_url);
 
+  
+  bg_gtk_info_window_destroy(m->info_window);
+  
   bg_mozilla_widget_destroy(m->widget);
   bg_mozilla_embed_info_free(&m->ei);
   free(m);
