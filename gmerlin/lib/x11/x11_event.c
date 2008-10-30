@@ -659,14 +659,16 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
         {
         w->normal.child = None;
         w->normal.child_xembed = 0;
-        bg_accelerator_map_clear(w->normal.child_accel_map);
+        if(w->normal.child_accel_map)
+          bg_accelerator_map_clear(w->normal.child_accel_map);
         // XDefineCursor(w->dpy, w->normal.win, w->fullscreen_cursor);
         }
       if(evt->xdestroywindow.event == w->fullscreen.win)
         {
         w->fullscreen.child = None;
         w->fullscreen.child_xembed = 0;
-        bg_accelerator_map_clear(w->normal.child_accel_map);
+        if(w->fullscreen.child_accel_map)
+          bg_accelerator_map_clear(w->fullscreen.child_accel_map);
         // XDefineCursor(w->dpy, w->fullscreen.win,
         //              w->fullscreen_cursor);
         }
