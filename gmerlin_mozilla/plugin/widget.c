@@ -19,17 +19,19 @@ static void gmerlin_button_callback(bg_gtk_button_t * b, void * data)
     }
   if(b == w->play_button)
     {
-    if(w->m->is_local)
+    switch(w->m->url_mode)
       {
-      
-      }
-    else /* Locally opened URL */
-      {
-      
-      }
-    else /* Stream */
-      {
-
+      case URL_MODE_LOCAL:
+        gmerlin_mozilla_start(w->m);
+        break;
+      case URL_MODE_REDIRECT:
+        w->m->url = bg_strdup(w->m->url, w->m->current_url);
+        gmerlin_mozilla_start(w->m);
+        break;
+      case URL_MODE_STREAM:
+        if(w->m->reload_url)
+          w->m->reload_url(w->m);
+        break;
       }
     }
   if(b == w->pause_button)
@@ -358,6 +360,10 @@ static void handle_message(bg_mozilla_widget_t * w,
           gdk_window_raise(w->controls->window);
           break;
         case BG_PLAYER_STATE_PLAYING:
+          gtk_widget_show(bg_gtk_button_get_widget(w->stop_button));
+          gtk_widget_hide(bg_gtk_button_get_widget(w->play_button));
+          
+          
           fprintf(stderr, "State: Playing\n");
           break;
         case BG_PLAYER_STATE_STOPPED:
@@ -378,7 +384,7 @@ static void handle_message(bg_mozilla_widget_t * w,
             gtk_widget_hide(bg_gtk_button_get_widget(w->stop_button));
             gtk_widget_show(bg_gtk_button_get_widget(w->play_button));
 
-            w->m->state == STATE_IDLE;
+            w->m->state = STATE_IDLE;
             }
           break;
         }

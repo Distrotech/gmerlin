@@ -30,6 +30,10 @@ typedef struct bg_mozilla_buffer_s  bg_mozilla_buffer_t;
 #define MODE_QUICKTIME 2
 #define MODE_WMP       3
 
+#define URL_MODE_STREAM   0
+#define URL_MODE_LOCAL    1
+#define URL_MODE_REDIRECT 2
+
 typedef struct
   {
   int mode;
@@ -53,14 +57,18 @@ struct bg_mozilla_s
   bg_cfg_registry_t * cfg_reg;
   bg_plugin_registry_t * plugin_reg;
 
-  char * orig_url;
-  char * new_url;
-  char * new_mimetype;
+  char * uri; /* Directly from browser */
   
-  int is_local;
-
+  char * url;
+  char * mimetype;
+  
+  char * current_url;
+  
+  int url_mode;
+  
   bg_mozilla_embed_info_t ei;
-  
+
+#if 0  
   struct
     {
     char * name;
@@ -68,7 +76,8 @@ struct bg_mozilla_s
     } * url_list;
   int num_urls;
   int current_url;
-
+#endif
+  
   bg_msg_queue_t * msg_queue;
   
   /* Gtk Stuff */
@@ -125,8 +134,8 @@ void gmerlin_mozilla_set_ov_plugin(bg_mozilla_t*,
 void gmerlin_mozilla_set_vis_plugin(bg_mozilla_t*,
                                    const bg_plugin_info_t * info);
 
-void gmerlin_mozilla_set_stream(bg_mozilla_t * m,
-                                const char * url, const char * mimetype);
+int gmerlin_mozilla_set_stream(bg_mozilla_t * m,
+                               const char * url, const char * mimetype);
 void gmerlin_mozilla_start(bg_mozilla_t * m);
 
 void gmerlin_mozilla_create_dialog(bg_mozilla_t * g);

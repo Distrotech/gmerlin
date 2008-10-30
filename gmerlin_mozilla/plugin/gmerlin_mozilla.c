@@ -109,8 +109,9 @@ void gmerlin_mozilla_destroy(bg_mozilla_t* m)
   
   /* Free strings */
   if(m->display_string) free(m->display_string);
-  if(m->orig_url) free(m->orig_url);
-
+  if(m->url)         free(m->url);
+  if(m->uri)         free(m->uri);
+  if(m->current_url) free(m->current_url);
   
   bg_gtk_info_window_destroy(m->info_window);
   
@@ -136,7 +137,6 @@ void gmerlin_mozilla_set_oa_plugin(bg_mozilla_t * m,
     bg_plugin_unref(m->oa_handle);
   m->oa_handle = bg_plugin_load(m->plugin_reg, info);
   bg_player_set_oa_plugin(m->player, m->oa_handle);
-  fprintf(stderr, "Loaded OA %s\n", m->oa_handle->info->name);
   }
 
 void gmerlin_mozilla_set_vis_plugin(bg_mozilla_t* m,
@@ -159,27 +159,31 @@ void gmerlin_mozilla_set_ov_plugin(bg_mozilla_t * m,
     {
     m->ov_handle = bg_ov_plugin_load(m->plugin_reg, m->ov_info,
                                      m->display_string);
-    fprintf(stderr, "Loaded OV %s\n", m->ov_handle->info->name);
     bg_player_set_ov_plugin(m->player, m->ov_handle);
     }
   }
 
-void gmerlin_mozilla_set_stream(bg_mozilla_t * m,
-                                const char * url,
-                                const char * mimetype)
+int gmerlin_mozilla_set_stream(bg_mozilla_t * m,
+                               const char * url,
+                               const char * mimetype)
   {
-  m->new_url      = bg_strdup(m->new_url, url); 
-  m->new_mimetype = bg_strdup(m->new_mimetype, mimetype);
-  fprintf(stderr, "Set URL: %s %s\n", m->new_url, m->new_mimetype);
+  //  if(m->url && !strcmp(url, m->url))
+  //    return 0;
+  
+  m->url      = bg_strdup(m->url, url); 
+  m->mimetype = bg_strdup(m->mimetype, mimetype);
+  fprintf(stderr, "Set URL: %s %s\n", m->url, m->mimetype);
+
   if(!strncmp(url, "file://", 7) || (url[0] == '/'))
     {
-    m->is_local = 1;
+    m->url_mode = URL_MODE_LOCAL;
     }
   else
     {
-    m->is_local = 0;
+    m->url_mode = URL_MODE_STREAM;
     m->buffer = bg_mozilla_buffer_create();
     }
+  return 1;
   }
 
 /* Append URL to list */
@@ -224,6 +228,8 @@ static void append_url(bg_mozilla_t * m, const char * url,
       {
       if(!(*playing))
         {
+        m->current_url = bg_strdup(m->current_url, url);
+        m->url_mode = URL_MODE_REDIRECT;
         bg_player_play(m->player, h,
                        i,
                        0, (ti->name ? ti->name : "Livestream"));
@@ -244,12 +250,8 @@ static void * start_func(void * priv)
   bg_track_info_t * ti;
   bg_mozilla_t * m = priv;
   bg_plugin_handle_t * h = (bg_plugin_handle_t *)0;
-  
+  m->playing = 0;
   fprintf(stderr, "gmerlin_mozilla_start\n");
-    
-  if(m->orig_url && !strcmp(m->orig_url, m->new_url))
-    goto fail;
-  m->orig_url = bg_strdup(m->orig_url, m->new_url);
   
   /* TODO: If we have more than one callback capable plugin
      (unlikely), we must to proper selection */
@@ -281,7 +283,7 @@ static void * start_func(void * priv)
   
   input = (bg_input_plugin_t *)h->plugin;
   
-  if(!m->is_local)
+  if(m->url_mode == URL_MODE_STREAM)
     {
     fprintf(stderr, "Open stream\n");
 
@@ -294,7 +296,7 @@ static void * start_func(void * priv)
     if(!input->open_callbacks(h->priv,
                               bg_mozilla_buffer_read,
                               NULL, /* Seek callback */
-                              m->buffer, m->orig_url, m->new_mimetype))
+                              m->buffer, m->url, m->mimetype))
       {
       bg_plugin_unref(h);
       fprintf(stderr, "Open callbacks failed\n");
@@ -304,7 +306,7 @@ static void * start_func(void * priv)
   else
     {
     fprintf(stderr, "Open local\n");
-    if(!input->open(h->priv, m->orig_url))
+    if(!input->open(h->priv, m->url))
       {
       bg_plugin_unref(h);
       fprintf(stderr, "Open failed\n");
@@ -321,9 +323,10 @@ static void * start_func(void * priv)
     {
     ti = input->get_track_info(h->priv, i);
     if(ti->url) /* Redirection */
-      append_url(m, m->orig_url, 0, &m->playing);
+      append_url(m, ti->url, 0, &m->playing);
     else if(!m->playing)
       {
+      m->current_url = bg_strdup(m->current_url, m->url);
       bg_player_play(m->player, h,
                      i,
                      0, (ti->name ? ti->name : "Livestream"));
@@ -342,7 +345,7 @@ static void * start_func(void * priv)
 
 void gmerlin_mozilla_start(bg_mozilla_t * m)
   {
-  if(m->is_local)
+  if(m->url_mode != URL_MODE_STREAM)
     {
     start_func(m);
     m->state = STATE_PLAYING;

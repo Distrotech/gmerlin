@@ -153,9 +153,7 @@ NPError NP_GetValue(void *instance,
 
 static void reload_url(bg_mozilla_t * m)
   {
-  NPN_GetURL(m->instance, 
-             m->orig_url,
-             (const char*)0);
+  browser_funcs.geturl(m->instance, m->uri, (const char*)0);
   }
 
 NPError NPP_New(NPMIMEType pluginType,
@@ -271,8 +269,7 @@ int32 NPP_Write(NPP instance, NPStream* stream, int32 offset,
   //  fprintf(stderr, "NPP_Write done\n");
   if(priv->state == STATE_IDLE)
     gmerlin_mozilla_start(priv);
-
-
+  
   //  fprintf(stderr, "NPP_Write done\n");
   return ret;
   }
@@ -298,13 +295,17 @@ NPError NPP_NewStream(NPP        instance,
   char * new_url;
   bg_mozilla_t * priv;
   priv = (bg_mozilla_t *)instance->pdata;
-  new_url = bg_uri_to_string(stream->url, -1);
+
+  priv->uri = bg_strdup(priv->uri, stream->url);
+    
+  new_url = bg_uri_to_string(priv->uri, -1);
+  
   fprintf(stderr, "NewStream %s (%s), size: %d\n",
           new_url, type, stream->end);
   
   gmerlin_mozilla_set_stream(priv, new_url, type);
-
-  if(priv->is_local)
+  
+  if(priv->url_mode == URL_MODE_LOCAL)
     {
     browser_funcs.destroystream(instance, stream, NPRES_DONE);
     gmerlin_mozilla_start(priv);
