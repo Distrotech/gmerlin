@@ -18,7 +18,6 @@ bg_mozilla_t * gmerlin_mozilla_create()
   char * tmp_path;
   char * old_locale;
   ret = calloc(1, sizeof(*ret));
-  ret->buffer = bg_mozilla_buffer_create();
   pthread_mutex_init(&ret->start_finished_mutex, NULL);
   /* Set the LC_NUMERIC locale to "C" so we read floats right */
   old_locale = setlocale(LC_NUMERIC, "C");
@@ -66,6 +65,7 @@ bg_mozilla_t * gmerlin_mozilla_create()
   /* Create config dialog */
   gmerlin_mozilla_create_dialog(ret);
 
+  ret->player_state = BG_PLAYER_STATE_STOPPED;
   
   
   bg_player_run(ret->player);
@@ -172,9 +172,14 @@ void gmerlin_mozilla_set_stream(bg_mozilla_t * m,
   m->new_mimetype = bg_strdup(m->new_mimetype, mimetype);
   fprintf(stderr, "Set URL: %s %s\n", m->new_url, m->new_mimetype);
   if(!strncmp(url, "file://", 7) || (url[0] == '/'))
+    {
     m->is_local = 1;
+    }
   else
+    {
     m->is_local = 0;
+    m->buffer = bg_mozilla_buffer_create();
+    }
   }
 
 /* Append URL to list */
@@ -275,16 +280,17 @@ static void * start_func(void * priv)
     }
   
   input = (bg_input_plugin_t *)h->plugin;
-
-  if(!input->open_callbacks)
-    {
-    bg_plugin_unref(h);
-    goto fail;
-    }
-
+  
   if(!m->is_local)
     {
     fprintf(stderr, "Open stream\n");
+
+    if(!input->open_callbacks)
+      {
+      bg_plugin_unref(h);
+      goto fail;
+      }
+    
     if(!input->open_callbacks(h->priv,
                               bg_mozilla_buffer_read,
                               NULL, /* Seek callback */

@@ -47,6 +47,8 @@ struct bg_mozilla_s
   {
   int state;
 
+  int player_state;
+  
   bg_player_t * player;
   bg_cfg_registry_t * cfg_reg;
   bg_plugin_registry_t * plugin_reg;
@@ -99,6 +101,12 @@ struct bg_mozilla_s
   /* Config dialog */
   bg_dialog_t * cfg_dialog;
   bg_gtk_info_window_t * info_window;
+
+  void (*reload_url)(struct bg_mozilla_s*);
+    
+  /* External stuff */
+  void * instance;
+
   };
 
 plugin_window_t * bg_mozilla_plugin_window_create(bg_mozilla_t * m);

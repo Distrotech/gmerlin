@@ -19,15 +19,26 @@ static void gmerlin_button_callback(bg_gtk_button_t * b, void * data)
     }
   if(b == w->play_button)
     {
-    
+    if(w->m->is_local)
+      {
+      
+      }
+    else /* Locally opened URL */
+      {
+      
+      }
+    else /* Stream */
+      {
+
+      }
     }
   if(b == w->pause_button)
     {
     
     }
-      
+  
   }
-     
+
 static void show_toolbar(bg_mozilla_widget_t * w)
   {
   w->toolbar_state = TOOLBAR_VISIBLE;
@@ -45,12 +56,17 @@ static void resize_toolbar(bg_mozilla_widget_t * w)
   
   gtk_widget_set_size_request(bg_gtk_button_get_widget(w->stop_button),
                               20, 20);
+  gtk_widget_set_size_request(bg_gtk_button_get_widget(w->play_button),
+                              20, 20);
+  gtk_widget_set_size_request(bg_gtk_button_get_widget(w->pause_button),
+                              20, 20);
   gtk_widget_set_size_request(bg_gtk_scrolltext_get_widget(w->scrolltext),
                               win->width-20, 20);
   gtk_widget_set_size_request(bg_gtk_slider_get_widget(w->seek_slider),
                               win->width, 20);
-  
-  g_signal_handler_block(win->box, win->resize_id);
+
+  if(win->resize_id > 0)
+    g_signal_handler_block(win->box, win->resize_id);
   
   if(w->controls)
     {
@@ -58,9 +74,23 @@ static void resize_toolbar(bg_mozilla_widget_t * w)
     w->toolbar_pos = win->height - w->toolbar_height;
     gtk_fixed_move(GTK_FIXED(win->box), w->controls, 0,
                    w->toolbar_pos);
-    //    gtk_container_check_resize(GTK_CONTAINER(w->table));
     }
-  g_signal_handler_unblock(win->box, win->resize_id);
+  if(win->resize_id > 0)
+    g_signal_handler_unblock(win->box, win->resize_id);
+  }
+
+static void window_size_allocate(GtkWidget     *widget,
+                                 GtkAllocation *a,
+                                 gpointer       user_data)
+  {
+  bg_mozilla_widget_t * w;
+  w = user_data;
+  // fprintf(stderr, "window_size_allocate: %d x %d\n", a->width, a->height);
+
+  if((a->width == w->fullscreen_win.width) && (a->height == w->fullscreen_win.height))
+    return;
+  w->fullscreen_win.width = a->width;
+  w->fullscreen_win.height = a->height;
   }
 
 static void size_allocate(GtkWidget     *widget,
@@ -68,8 +98,8 @@ static void size_allocate(GtkWidget     *widget,
                           gpointer       user_data)
   {
   bg_mozilla_widget_t * w;
-  w = user_data;
   bg_mozilla_window_t * win;
+  w = user_data;
 
   if(widget == w->normal_win.box)
     win = &w->normal_win;
@@ -321,16 +351,38 @@ static void handle_message(bg_mozilla_widget_t * w,
                                      w->fg_normal, w->bg);
           free(tmp_string);
           break;
+        case BG_PLAYER_STATE_STARTING:
+          gtk_widget_show(w->normal_win.socket);
+          gtk_widget_show(w->fullscreen_win.socket);
+          gtk_widget_show(w->controls);
+          gdk_window_raise(w->controls->window);
+          break;
         case BG_PLAYER_STATE_PLAYING:
           fprintf(stderr, "State: Playing\n");
           break;
         case BG_PLAYER_STATE_STOPPED:
-          fprintf(stderr, "State: Stopped\n");
-          break;
         case BG_PLAYER_STATE_CHANGING:
-          fprintf(stderr, "State: Changing\n");
+          if(w->m->player_state != BG_PLAYER_STATE_STOPPED)
+            {
+            if(w->m->buffer)
+              {
+              bg_mozilla_buffer_destroy(w->m->buffer); 
+              w->m->buffer = (bg_mozilla_buffer_t*)0;
+              }
+            gtk_widget_hide(w->normal_win.socket);
+            gtk_widget_hide(w->fullscreen_win.socket);
+            
+            // w->m->is_local = 0;
+            fprintf(stderr, "State: Stopped\n");
+
+            gtk_widget_hide(bg_gtk_button_get_widget(w->stop_button));
+            gtk_widget_show(bg_gtk_button_get_widget(w->play_button));
+
+            w->m->state == STATE_IDLE;
+            }
           break;
         }
+      w->m->player_state = arg_i;
       break;
     case BG_PLAYER_MSG_TRACK_DURATION:
       w->duration = bg_msg_get_arg_time(msg, 0);
@@ -442,7 +494,14 @@ static void create_controls(bg_mozilla_widget_t * w)
   w->stop_button = bg_gtk_button_create();
   w->pause_button = bg_gtk_button_create();
   w->play_button = bg_gtk_button_create();
-
+    
+  gtk_widget_hide(bg_gtk_button_get_widget(w->play_button));
+  gtk_widget_hide(bg_gtk_button_get_widget(w->pause_button));
+  
+  bg_gtk_button_set_callback(w->stop_button, gmerlin_button_callback, w);
+  bg_gtk_button_set_callback(w->pause_button, gmerlin_button_callback, w);
+  bg_gtk_button_set_callback(w->play_button, gmerlin_button_callback, w);
+  
   bg_gtk_button_set_skin(w->stop_button,
                          &w->skin.stop_button, w->skin_directory);
   bg_gtk_button_set_skin(w->pause_button,
@@ -462,11 +521,19 @@ static void create_controls(bg_mozilla_widget_t * w)
                                     slider_scroll_callback, w);
   
   bg_gtk_slider_set_skin(w->seek_slider, &w->skin.seek_slider, w->skin_directory);
-  
+
   gtk_fixed_put(GTK_FIXED(w->controls),
                 bg_gtk_button_get_widget(w->stop_button),
                 0, 0);
-  
+#if 1
+  gtk_fixed_put(GTK_FIXED(w->controls),
+                bg_gtk_button_get_widget(w->play_button),
+                0, 0);
+  gtk_fixed_put(GTK_FIXED(w->controls),
+                bg_gtk_button_get_widget(w->pause_button),
+                0, 0);
+#endif
+
   gtk_fixed_put(GTK_FIXED(w->controls),
                 bg_gtk_scrolltext_get_widget(w->scrolltext),
                 20, 0);
@@ -479,19 +546,32 @@ static void init_window(bg_mozilla_widget_t * w,
                         bg_mozilla_window_t * win, int fullscreen)
   {
   GdkColor gdk_black = { 0, 0, 0, 0 };
+
+  gtk_widget_modify_bg(win->window, GTK_STATE_NORMAL, &gdk_black);
+  gtk_widget_modify_bg(win->window, GTK_STATE_ACTIVE, &gdk_black);
+  gtk_widget_modify_bg(win->window, GTK_STATE_PRELIGHT, &gdk_black);
+  gtk_widget_modify_bg(win->window, GTK_STATE_SELECTED, &gdk_black);
+  gtk_widget_modify_bg(win->window, GTK_STATE_INSENSITIVE, &gdk_black);
+  
   win->socket = gtk_socket_new();
   gtk_widget_modify_bg(win->socket, GTK_STATE_NORMAL, &gdk_black);
   gtk_widget_modify_bg(win->socket, GTK_STATE_ACTIVE, &gdk_black);
   gtk_widget_modify_bg(win->socket, GTK_STATE_PRELIGHT, &gdk_black);
   gtk_widget_modify_bg(win->socket, GTK_STATE_SELECTED, &gdk_black);
   gtk_widget_modify_bg(win->socket, GTK_STATE_INSENSITIVE, &gdk_black);
-  gtk_widget_show(win->socket);
+  // gtk_widget_show(win->socket);
 
+  
+  
   win->box = gtk_fixed_new();
   gtk_fixed_put(GTK_FIXED(win->box), win->socket, 0, 0);
-  win->resize_id = g_signal_connect(G_OBJECT(win->box),
-                                    "size-allocate",
-                                    G_CALLBACK(size_allocate), w);
+  
+  if(!fullscreen)
+    {
+    win->resize_id = g_signal_connect(G_OBJECT(win->box),
+                                      "size-allocate",
+                                      G_CALLBACK(size_allocate), w);
+    }
   
   gtk_widget_show(win->box);
   
@@ -500,10 +580,24 @@ static void init_window(bg_mozilla_widget_t * w,
                         GDK_BUTTON_RELEASE_MASK|
                         GDK_KEY_PRESS_MASK|
                         GDK_FOCUS_CHANGE_MASK);
+
+  gtk_widget_add_events(win->window,
+                        GDK_BUTTON_PRESS_MASK|
+                        GDK_BUTTON_RELEASE_MASK|
+                        GDK_KEY_PRESS_MASK);
+
+
   g_signal_connect(win->socket, "button-press-event",
                    G_CALLBACK(button_press_callback), w);
   g_signal_connect(win->socket, "button-release-event",
                    G_CALLBACK(button_release_callback), w);
+
+  g_signal_connect(win->window, "button-press-event",
+                   G_CALLBACK(button_press_callback), w);
+  g_signal_connect(win->window, "button-release-event",
+                   G_CALLBACK(button_release_callback), w);
+  
+
   g_signal_connect(win->socket, "key-press-event",
                    G_CALLBACK(key_press_callback), w);
   g_signal_connect(win->socket, "plug-added",
@@ -540,7 +634,7 @@ void bg_mozilla_widget_set_window(bg_mozilla_widget_t * w,
   //                   G_CALLBACK(button_press_callback), w);
   w->normal_win.window = gtk_plug_new(window_id);
   w->fullscreen_win.window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-  gtk_window_fullscreen(GTK_WINDOW(w->fullscreen_win.window));
+  // gtk_window_fullscreen(GTK_WINDOW(w->fullscreen_win.window));
   // gtk_window_set_resizable(GTK_WINDOW(w->fullscreen_win.window), FALSE);
   
   init_window(w, &w->normal_win, 0);
@@ -607,9 +701,28 @@ void bg_mozilla_widget_toggle_fullscreen(bg_mozilla_widget_t * m)
   /* Normal to fullscreen */
   if(m->current_win == &m->normal_win)
     {
+    gulong resize_id;
+    resize_id = g_signal_connect(G_OBJECT(m->fullscreen_win.window),
+                                 "size-allocate",
+                                 G_CALLBACK(window_size_allocate), m);
     gtk_widget_show(m->fullscreen_win.window);
     gtk_window_fullscreen(GTK_WINDOW(m->fullscreen_win.window));
 
+    /* HACK: Actually I didn't mess with mozillas event-loop,
+       but we need the fullscreen size right after the window was created */
+    while(gtk_events_pending())
+      gtk_main_iteration();
+    
+    g_signal_handler_disconnect(G_OBJECT(m->fullscreen_win.window),
+                                resize_id);
+
+    gtk_widget_set_size_request(m->fullscreen_win.box,
+                                m->fullscreen_win.width,
+                                m->fullscreen_win.height);
+    gtk_widget_set_size_request(m->fullscreen_win.socket,
+                                m->fullscreen_win.width,
+                                m->fullscreen_win.height);
+    
     m->current_win = &m->fullscreen_win;
     }
   /* Fullscreen to normal */

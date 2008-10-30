@@ -151,6 +151,13 @@ NPError NP_GetValue(void *instance,
   return NPERR_NO_ERROR;
   }
 
+static void reload_url(bg_mozilla_t * m)
+  {
+  NPN_GetURL(m->instance, 
+             m->orig_url,
+             (const char*)0);
+  }
+
 NPError NPP_New(NPMIMEType pluginType,
                 NPP instance, uint16 mode,
                 int16 argc, char *argn[],
@@ -160,7 +167,10 @@ NPError NPP_New(NPMIMEType pluginType,
   bg_mozilla_t * priv;
   priv = gmerlin_mozilla_create();
   instance->pdata = priv;
-
+  
+  priv->instance = instance;
+  priv->reload_url = reload_url;
+  
   for(i = 0; i < argc; i++)
     {
     if(!strcmp(argn[i], "type"))
@@ -251,10 +261,13 @@ int32 NPP_Write(NPP instance, NPStream* stream, int32 offset,
   //  fprintf(stderr, "NPP_Write %d %d...", offset, len);
   //  bg_hexdump(buf, len, 16);
 
-  if(len > 1024)
-    len = 1024;
+  if(!priv->buffer) /* Player was stopped, close the stream */
+    {
+    return -1;
+    }
   
   ret = bg_mozilla_buffer_write(priv->buffer, buf, len);
+  
   //  fprintf(stderr, "NPP_Write done\n");
   if(priv->state == STATE_IDLE)
     gmerlin_mozilla_start(priv);
@@ -271,7 +284,8 @@ NPError NPP_DestroyStream(NPP instance,
   priv = (bg_mozilla_t *)instance->pdata;
   fprintf(stderr, "NPP_DestroyStream\n");
   /* Signal EOF */
-  bg_mozilla_buffer_write(priv->buffer, (void*)0, 0);
+  if(priv->buffer)
+    bg_mozilla_buffer_write(priv->buffer, (void*)0, 0);
   return NPERR_NO_ERROR;
   }
 
@@ -294,9 +308,12 @@ NPError NPP_NewStream(NPP        instance,
     {
     browser_funcs.destroystream(instance, stream, NPRES_DONE);
     gmerlin_mozilla_start(priv);
+    }
+  else
+    {
     
     }
-
+  
   free(new_url);
 
   return NPERR_NO_ERROR;
@@ -333,6 +350,7 @@ static void set_browser_funcs(NPNetscapeFuncs * aNPNFuncs)
   //    fprintf(stderr, "Incompatible struct size %d %d\n",
   //            aNPNFuncs->size, (int)sizeof(browser_funcs));
   browser_funcs.destroystream = aNPNFuncs->destroystream;
+  browser_funcs.geturl = aNPNFuncs->geturl;
   //  memcpy(&browser_funcs, aNPNFuncs, sizeof(browser_funcs));
   return;
   }

@@ -27,10 +27,12 @@ bg_mozilla_buffer_t * bg_mozilla_buffer_create()
   ret->filename = bg_create_unique_filename("/tmp/gmerlin_mozilla_%05x");
   ret->write_file = fopen(ret->filename, "w");
   ret->read_file = fopen(ret->filename, "r");
+
+  //  fprintf(stderr, "Tmp file: %s\n", ret->filename);
   
   ret->inotify_fd = inotify_init();
   ret->inotify_wd = inotify_add_watch(ret->inotify_fd,
-                                      ret->filename, IN_MODIFY | IN_CLOSE_WRITE);
+                                      ret->filename, IN_MODIFY  | IN_CLOSE_WRITE);
   return ret;
   }
 
@@ -76,11 +78,13 @@ static int handle_inotify(bg_mozilla_buffer_t * b, int to)
     //        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Connection timed out");
     return 0;
     }
+
+  //  fprintf(stderr, "inotify read...\n");
   result = read(b->inotify_fd, buffer, BUF_LEN);
   
   if(result < 0)
     {
-    fprintf(stderr, "inotify Read failed\n");
+    //    fprintf(stderr, "inotify Read failed\n");
     return 0;
     }
 
@@ -97,13 +101,12 @@ static int handle_inotify(bg_mozilla_buffer_t * b, int to)
       inotify_rm_watch(b->inotify_fd, b->inotify_wd);
       close(b->inotify_fd);
       b->inotify_fd = -1;
-      //      fprintf(stderr, "inotify closed\n");
+      //      fprintf(stderr, "inotify closed %08x %s\n", event->mask, event->name);
       }
     i += EVENT_SIZE + event->len;
     }
   return 1;
   }
-
 
 /* b is a bg_mozilla_buffer_t */
 int bg_mozilla_buffer_read(void * b1,
@@ -112,13 +115,16 @@ int bg_mozilla_buffer_read(void * b1,
   int bytes_read = 0;
   int result;
   bg_mozilla_buffer_t * b = b1;
+  int64_t last_pos;
+
+  last_pos = ftell(b->read_file);
+
+  //  fprintf(stderr, "Read %ld %d...", last_pos, len - bytes_read);
 
   while(bytes_read < len)
     {
-    //    fprintf(stderr, "Read %ld %d...", ftell(b->read_file), len - bytes_read);
     result = fread(data + bytes_read, 1,
                    len - bytes_read, b->read_file);
-    //    fprintf(stderr, "done %d\n", result);
     
     if((result < len - bytes_read) && feof(b->read_file)) /* Hit end of file? */
       {
@@ -126,7 +132,7 @@ int bg_mozilla_buffer_read(void * b1,
         {
         if(!handle_inotify(b, 10000))
           break;
-        clearerr(b->read_file);
+        fseek(b->read_file, last_pos, SEEK_SET);
         }
       else
         break;
@@ -134,7 +140,10 @@ int bg_mozilla_buffer_read(void * b1,
     else
       bytes_read += result;
     }
-  
+  //  fprintf(stderr, "done %d\n", bytes_read);
+  /* Flush inotify events */
+  if(b->inotify_fd >= 0)
+    handle_inotify(b, 0);
   return bytes_read;
   }
 
@@ -144,9 +153,11 @@ int bg_mozilla_buffer_write(bg_mozilla_buffer_t * b,
      //int bg_mozilla_buffer_read(void * b1,
      //                           uint8_t * data, int len)
   {
+  //  fprintf(stderr, "Write: %ld %d\n", ftell(b->write_file), len);
   if(!len)
     {
     fclose(b->write_file);
+    b->write_file = NULL;
     return 0;
     }
   else
