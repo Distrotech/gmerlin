@@ -354,16 +354,9 @@ void bg_x11_window_set_rectangles(bg_x11_window_t * w,
 
 #undef PADD_IMAGE_SIZE
 
-void bg_x11_window_put_frame(bg_x11_window_t * w, gavl_video_frame_t * f)
+void bg_x11_window_put_frame_internal(bg_x11_window_t * w,
+                                      gavl_video_frame_t * f)
   {
-  int i;
-
-  if(!w->current_driver->driver->add_overlay_stream)
-    {
-    for(i = 0; i < w->num_overlay_streams; i++)
-      gavl_overlay_blend(w->overlay_streams[i].ctx, f);
-    }
-  
   if(w->do_sw_scale)
     {
     gavl_video_scaler_scale(w->scaler, f, w->window_frame);
@@ -374,8 +367,39 @@ void bg_x11_window_put_frame(bg_x11_window_t * w, gavl_video_frame_t * f)
     {
     w->current_driver->driver->put_frame(w->current_driver, f);
     }
-  
   }
+
+void bg_x11_window_put_frame(bg_x11_window_t * w, gavl_video_frame_t * f)
+  {
+  int i;
+  w->still_mode = 0;
+  if(!w->current_driver->driver->add_overlay_stream)
+    {
+    for(i = 0; i < w->num_overlay_streams; i++)
+      gavl_overlay_blend(w->overlay_streams[i].ctx, f);
+    }
+  bg_x11_window_put_frame_internal(w, f);
+  }
+
+void bg_x11_window_put_still(bg_x11_window_t * w, gavl_video_frame_t * f)
+  {
+  int i;
+  w->still_mode = 1;
+
+  if(!w->still_frame)
+    w->still_frame = bg_x11_window_create_frame(w);
+  
+  gavl_video_frame_copy(&w->video_format, w->still_frame, f);
+  
+  if(!w->current_driver->driver->add_overlay_stream)
+    {
+    for(i = 0; i < w->num_overlay_streams; i++)
+      gavl_overlay_blend(w->overlay_streams[i].ctx, w->still_frame);
+    }
+  
+  bg_x11_window_put_frame_internal(w, w->still_frame);
+  }
+
 
 void bg_x11_window_close_video(bg_x11_window_t * w)
   {
@@ -387,6 +411,14 @@ void bg_x11_window_close_video(bg_x11_window_t * w)
     else
       gavl_video_frame_destroy(w->window_frame);
     w->window_frame = (gavl_video_frame_t*)0;
+    }
+  if(w->still_frame)
+    {
+    if(w->current_driver->driver->destroy_frame)
+      w->current_driver->driver->destroy_frame(w->current_driver, w->still_frame);
+    else
+      gavl_video_frame_destroy(w->still_frame);
+    w->still_frame = (gavl_video_frame_t*)0;
     }
   
   if(w->overlay_streams)

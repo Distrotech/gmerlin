@@ -538,13 +538,15 @@ struct bg_input_plugin_s
    *  \param cb_priv Private argument for the callbacks
    *  \param filename The filename of the input or NULL if this info is not known.
    *  \param mimetype The mimetype of the input or NULL if this info is not known.
+   *  \param total_bytes total number of bytes or 0 if this info is not known.
    *  \returns 1 on success, 0 on failure
    */
 
   int (*open_callbacks)(void * priv,
                         int (*read_callback)(void * priv, uint8_t * data, int len),
                         int64_t (*seek_callback)(void * priv, uint64_t pos, int whence),
-                        void * cb_priv, const char * filename, const char * mimetype);
+                        void * cb_priv, const char * filename, const char * mimetype,
+                        int64_t total_bytes);
   
   /** \brief Get the edl (optional)
    *  \param priv The handle returned by the create() method

@@ -414,6 +414,10 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
     
   switch(evt->type)
     {
+    case Expose:
+      if(w->still_mode && w->still_frame)
+        bg_x11_window_put_frame_internal(w, w->still_frame);
+      break;
     case PropertyNotify:
       if(evt->xproperty.atom == w->_XEMBED_INFO)
         {

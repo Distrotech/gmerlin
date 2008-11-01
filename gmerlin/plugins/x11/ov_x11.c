@@ -925,7 +925,7 @@ static void put_video_x11(void * data, gavl_video_frame_t * frame)
 static void put_still_x11(void * data, gavl_video_frame_t * frame)
   {
   x11_t * priv = (x11_t*)data;
-  bg_x11_window_put_frame(priv->win, frame);
+  bg_x11_window_put_still(priv->win, frame);
   
   }
 

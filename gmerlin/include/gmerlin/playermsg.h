@@ -76,7 +76,7 @@
  *  else if(state == BG_PLAYER_STATE_ERROR)
  *    arg2: String describing the error
  *  else if(state == BG_PLAYER_STATE_PLAYING)
- *    arg2: Integer (1 if player can seek withing the current track)
+ *    arg2: Integer (1 if player can pause playback without messing up the data source)
  */
 
 #define BG_PLAYER_CMD_SETSTATE 3

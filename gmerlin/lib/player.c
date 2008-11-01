@@ -218,6 +218,7 @@ struct state_struct
   int state;
   float percentage;
   int want_new;
+  int can_pause;
   };
 
 static void msg_state(bg_msg_t * msg,
@@ -238,6 +239,10 @@ static void msg_state(bg_msg_t * msg,
     {
     bg_msg_set_arg_int(msg, 1, s->want_new);
     }
+  else if(s->state == BG_PLAYER_STATE_PLAYING)
+    {
+    bg_msg_set_arg_int(msg, 1, s->can_pause);
+    }
   }
 
 void bg_player_set_state(bg_player_t * player, int state,
@@ -249,8 +254,7 @@ void bg_player_set_state(bg_player_t * player, int state,
   pthread_mutex_unlock(&(player->state_mutex));
 
   /* Broadcast this message */
-
-  
+ 
   //  memset(&state, 0, sizeof(state));
     
   s.state = state;
@@ -259,6 +263,8 @@ void bg_player_set_state(bg_player_t * player, int state,
     s.percentage = *((const float*)arg1);
   else if(state == BG_PLAYER_STATE_CHANGING)
     s.want_new = *((const int*)arg1);
+  else if(state == BG_PLAYER_STATE_PLAYING)
+    s.can_pause = *((const int*)arg1);
   
   bg_msg_queue_list_send(player->message_queues,
                          msg_state,

@@ -303,10 +303,9 @@ static void start_playback(bg_player_t * p, int new_state)
     want_new = 0;
     bg_player_set_state(p, new_state, &want_new, NULL);
     }
-  else
-    bg_player_set_state(p, new_state, NULL, NULL);
-    
-
+  else if(new_state == BG_PLAYER_STATE_PLAYING)
+    bg_player_set_state(p, new_state, &p->can_pause, NULL);
+  
   /* Start timer */
   
   bg_player_time_start(p);
@@ -361,10 +360,7 @@ static int init_audio_stream(bg_player_t * p)
   {
   if(!bg_player_audio_init(p, p->current_audio_stream))
     {
-    //    bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
-    //                    "Cannot setup audio playback", NULL);
-    bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
-                        NULL, NULL);
+    bg_player_set_state(p, BG_PLAYER_STATE_ERROR, NULL, NULL);
     return 0;
     }
   return 1;  
@@ -667,7 +663,6 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
       bg_player_input_bypass_set_pause(p->input_context, 1);
     if(DO_VIDEO(p->flags))
       bg_player_ov_update_still(p->ov_context);
-
     }
   else
     start_playback(p, BG_PLAYER_STATE_PLAYING);

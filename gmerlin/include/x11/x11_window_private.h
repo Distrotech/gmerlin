@@ -265,7 +265,13 @@ struct bg_x11_window_s
   float saturation;
   float contrast;
   float hue;
+
+  gavl_video_frame_t * still_frame;
+  int still_mode;
   };
+
+void bg_x11_window_put_frame_internal(bg_x11_window_t * win,
+                                      gavl_video_frame_t * frame);
 
 /* Private functions */
 
