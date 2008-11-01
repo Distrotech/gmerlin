@@ -1,1 +1,1 @@
-SUBDIRS = plugin include skins
+SUBDIRS = plugin include skins m4
