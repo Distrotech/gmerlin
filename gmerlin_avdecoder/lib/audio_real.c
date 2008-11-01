@@ -56,7 +56,7 @@ typedef struct
 static codec_info_t real_codecs[] =
   {
     {
-      .dll_name = "sipr.so.6.0",
+      .dll_name = "sipr.so",
       .format_name = "Real Audio sipr",
       decoder:
       {

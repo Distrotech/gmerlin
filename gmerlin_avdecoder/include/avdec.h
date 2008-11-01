@@ -962,7 +962,7 @@ int bgav_open_callbacks(bgav_t * bgav,
                         int (*read_callback)(void * priv, uint8_t * data, int len),
                         int64_t (*seek_callback)(void * priv, uint64_t pos, int whence),
                         void * priv,
-                        const char * filename, const char * mimetype);
+                        const char * filename, const char * mimetype, int64_t total_bytes);
  
 
 /* Close and destroy everything */

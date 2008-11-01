@@ -251,7 +251,7 @@ int main(int argc, char ** argv)
                             read_callback,
                             seek_callback,
                             cb_file,
-                            argv[argc-1] + 5, (const char *)0))
+                            argv[argc-1] + 5, (const char *)0, 0))
       {
       fprintf(stderr, "Could not open file %s via callbacks\n",
               argv[argc-1] + 5);

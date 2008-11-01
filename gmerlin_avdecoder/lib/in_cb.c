@@ -74,7 +74,7 @@ bgav_input_context_t *
 bgav_input_open_callbacks(int (*read_callback)(void * priv, uint8_t * data, int len),
                           int64_t (*seek_callback)(void * priv, uint64_t pos, int whence),
                           void * priv,
-                          const char * filename, const char * mimetype,
+                          const char * filename, const char * mimetype, int64_t total_bytes,
                           bgav_options_t * opt)
   {
   bgav_input_context_t * ret;
@@ -97,7 +97,8 @@ bgav_input_open_callbacks(int (*read_callback)(void * priv, uint8_t * data, int 
   ret->priv = c;
   ret->filename = bgav_strdup(filename);
   ret->mimetype = bgav_strdup(mimetype);
-
+  ret->total_bytes = total_bytes;
+  
   if(ret->filename)
     {
     uint8_t md5sum[16];
@@ -118,11 +119,11 @@ int bgav_open_callbacks(bgav_t * b,
                         int (*read_callback)(void * priv, uint8_t * data, int len),
                         int64_t (*seek_callback)(void * priv, uint64_t pos, int whence),
                         void * priv,
-                        const char * filename, const char * mimetype)
+                        const char * filename, const char * mimetype, int64_t total_bytes)
   {
   bgav_codecs_init(&b->opt);
   b->input = bgav_input_open_callbacks(read_callback, seek_callback,
-                                       priv, filename, mimetype,
+                                       priv, filename, mimetype, total_bytes,
                                        &b->opt);
   if(!b->input)
     return 0;

@@ -63,7 +63,8 @@ static int open_common(avdec_priv * avdec)
 static int open_callbacks_avdec(void * priv,
                                 int (*read_callback)(void * priv, uint8_t * data, int len),
                                 int64_t (*seek_callback)(void * priv, uint64_t pos, int whence),
-                                void * cb_priv, const char * filename, const char * mimetype)
+                                void * cb_priv, const char * filename, const char * mimetype,
+                                int64_t total_bytes)
   {
   avdec_priv * avdec;
   bgav_options_t * opt;
@@ -75,7 +76,8 @@ static int open_callbacks_avdec(void * priv,
 
   bgav_options_copy(opt, avdec->opt);
   
-  if(!bgav_open_callbacks(avdec->dec, read_callback, seek_callback, cb_priv, filename, mimetype))
+  if(!bgav_open_callbacks(avdec->dec, read_callback, seek_callback, cb_priv, filename, mimetype,
+                          total_bytes))
     return 0;
   return open_common(avdec);
   }
