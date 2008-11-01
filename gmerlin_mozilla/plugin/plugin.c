@@ -19,7 +19,12 @@ static const char * general_mime_description =
 "audio/x-wav:wav:WAV-Audio;" \
 "audio/mpeg:mp3:MP3-Audio;" \
 "application/x-nsv-vp3-mp3:nsv:NullSoft video;" \
-"video/flv:flv:Flash-Video;";
+"video/flv:flv:Flash-Video;" \
+"video/mp4:mp4,m4v:MPEG-4 Video;" \
+;
+
+static const char * vlc_mime_description =
+"application/x-vlc-plugin:vlc:Videolan;";
 
 static const char * quicktime_mime_description =
 "video/quicktime:mov:Quicktime Video;";
@@ -95,12 +100,6 @@ static int check_mime_type(const char * types, const char * type)
 /* Browser entry types */
 
 #ifdef GMERLIN
-#define MIME_TYPES_DESCRIPTION \
-/* "application/gmerlin:gmr:Gmerlin test;" */\
-WMP_MIME_DESCRIPTION \
-REAL_MIME_DESCRIPTION \
-GENERAL_MIME_DESCRIPTION \
-QUICKTIME_MIME_DESCRIPTION
 
 #define PLUGIN_NAME "Gmerlin web plugin"
 // #define PLUGIN_NAME "Windows Media Player Plug-in"
@@ -109,20 +108,20 @@ QUICKTIME_MIME_DESCRIPTION
 
 #include <gmerlin/log.h>
 
-static NPNetscapeFuncs  browser_funcs;
 
 static char * mime_info = (char *)0;
 
 char* NP_GetMIMEDescription(void)
   {
   if(!mime_info)
-    mime_info = bg_sprintf("%s%s%s%s",
+    mime_info = bg_sprintf("%s%s%s%s%s",
                            wmp_mime_description,
                            real_mime_description,
                            general_mime_description,
-                           quicktime_mime_description);
+                           quicktime_mime_description,
+                           vlc_mime_description);
   
-  fprintf(stderr, "GET MIME DESCRIPTION\n");
+  //  fprintf(stderr, "GET MIME DESCRIPTION\n");
   return(mime_info);
   }
 
@@ -153,7 +152,7 @@ NPError NP_GetValue(void *instance,
 
 static void reload_url(bg_mozilla_t * m)
   {
-  browser_funcs.geturl(m->instance, m->uri, (const char*)0);
+  bg_NPN_GetURL(m->instance, m->uri, (const char*)0);
   }
 
 NPError NPP_New(NPMIMEType pluginType,
@@ -167,6 +166,9 @@ NPError NPP_New(NPMIMEType pluginType,
   instance->pdata = priv;
   
   priv->instance = instance;
+
+  gmerlin_mozilla_create_scriptable(priv);
+
   priv->reload_url = reload_url;
   
   for(i = 0; i < argc; i++)
@@ -181,7 +183,8 @@ NPError NPP_New(NPMIMEType pluginType,
         priv->ei.mode = MODE_WMP;
       if(check_mime_type(quicktime_mime_description, argv[i]))
         priv->ei.mode = MODE_QUICKTIME;
-      
+      if(check_mime_type(vlc_mime_description, argv[i]))
+        priv->ei.mode = MODE_VLC;
       }
     bg_mozilla_embed_info_set_parameter(&priv->ei, argn[i], argv[i]);
     }
@@ -190,6 +193,18 @@ NPError NPP_New(NPMIMEType pluginType,
     gmerlin_mozilla_destroy(priv);
     instance->pdata = NULL;
     return NPERR_INVALID_PLUGIN_ERROR;
+    }
+  if(((priv->ei.mode == MODE_VLC) && (priv->ei.target)) ||
+     (priv->ei.src && (!strncmp(priv->ei.src, "rtsp", 4) ||
+                       !strncmp(priv->ei.src, "mms", 3))))
+    {
+    if(priv->ei.target)
+      priv->url      = bg_strdup(priv->url,      priv->ei.target); 
+    else
+      priv->url      = bg_strdup(priv->url,      priv->ei.src); 
+    
+    priv->mimetype = bg_strdup(priv->mimetype, priv->ei.type);
+    priv->url_mode = URL_MODE_LOCAL;
     }
   return NPERR_NO_ERROR;
   }
@@ -210,7 +225,6 @@ NPError NPP_GetValue(NPP instance,
                      void *value)
   {
   bg_mozilla_t * priv;
-  fprintf(stderr, "NPP_GetValue %d\n", variable);
   priv = (bg_mozilla_t *)instance->pdata;
   switch(variable)
     {
@@ -219,7 +233,16 @@ NPError NPP_GetValue(NPP instance,
       break;
     case NPPVpluginNeedsXEmbed:
       *((PRBool *) value) = PR_TRUE;
+      return NPERR_GENERIC_ERROR;
+      break;
+    case NPPVpluginScriptableNPObject:
+      bg_NPN_RetainObject(priv->scriptable);
+      *((NPObject**) value) = priv->scriptable;
+      fprintf(stderr, "NPP_GetValue NPPVpluginScriptableNPObject %p\n",
+              priv->scriptable);
+      break;
     default:
+      fprintf(stderr, "NPP_GetValue %d\n", variable);
       return NPERR_GENERIC_ERROR;
     }
   return NPERR_NO_ERROR;
@@ -303,11 +326,11 @@ NPError NPP_NewStream(NPP        instance,
   fprintf(stderr, "NewStream %s (%s), size: %d\n",
           new_url, type, stream->end);
   
-  gmerlin_mozilla_set_stream(priv, new_url, type);
+  gmerlin_mozilla_set_stream(priv, new_url, type, stream->end);
   
   if(priv->url_mode == URL_MODE_LOCAL)
     {
-    browser_funcs.destroystream(instance, stream, NPRES_DONE);
+    bg_NPN_DestroyStream(instance, stream, NPRES_DONE);
     gmerlin_mozilla_start(priv);
     }
   else
@@ -345,16 +368,6 @@ static void set_plugin_funcs(NPPluginFuncs *aNPPFuncs)
   aNPPFuncs->destroystream = NPP_DestroyStream;
   }
 
-static void set_browser_funcs(NPNetscapeFuncs * aNPNFuncs)
-  {
-  //  if(aNPNFuncs->size != sizeof(NPNetscapeFuncs))
-  //    fprintf(stderr, "Incompatible struct size %d %d\n",
-  //            aNPNFuncs->size, (int)sizeof(browser_funcs));
-  browser_funcs.destroystream = aNPNFuncs->destroystream;
-  browser_funcs.geturl = aNPNFuncs->geturl;
-  //  memcpy(&browser_funcs, aNPNFuncs, sizeof(browser_funcs));
-  return;
-  }
 
 
 NPError NP_Initialize(NPNetscapeFuncs *aNPNFuncs,
@@ -367,18 +380,10 @@ NPError NP_Initialize(NPNetscapeFuncs *aNPNFuncs,
                      BG_LOG_ERROR |
                      BG_LOG_INFO);
   set_plugin_funcs(aNPPFuncs);
-  set_browser_funcs(aNPNFuncs);
+  bg_mozilla_init_browser_funcs(aNPNFuncs);
+  gmerlin_mozilla_init_scriptable();
   return NPERR_NO_ERROR;
   }
-
-#if 0 /* Mac only */
-NPError NP_GetEntryPoints(NPPluginFuncs *aNPPFuncs)
-  {
-  fprintf(stderr, "GetEntryPoints\n");
-  set_plugin_funcs(aNPPFuncs);
-  return NPERR_NO_ERROR;
-  }
-#endif
 
 NPError NP_Shutdown(void)
   {

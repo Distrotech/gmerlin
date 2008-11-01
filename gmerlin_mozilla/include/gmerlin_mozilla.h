@@ -29,6 +29,7 @@ typedef struct bg_mozilla_buffer_s  bg_mozilla_buffer_t;
 #define MODE_REAL      1
 #define MODE_QUICKTIME 2
 #define MODE_WMP       3
+#define MODE_VLC       4
 
 #define URL_MODE_STREAM   0
 #define URL_MODE_LOCAL    1
@@ -38,6 +39,8 @@ typedef struct
   {
   int mode;
   char * src;
+  char * target;
+  char * type;
   } bg_mozilla_embed_info_t;
 
 void bg_mozilla_embed_info_set_parameter(bg_mozilla_embed_info_t *,
@@ -61,6 +64,7 @@ struct bg_mozilla_s
   
   char * url;
   char * mimetype;
+  int64_t total_bytes;
   
   char * current_url;
   
@@ -112,10 +116,10 @@ struct bg_mozilla_s
   bg_gtk_info_window_t * info_window;
 
   void (*reload_url)(struct bg_mozilla_s*);
-    
-  /* External stuff */
-  void * instance;
 
+  /* Filled by browser interface (plugin.c) */
+  void * instance;
+  void * scriptable;
   };
 
 plugin_window_t * bg_mozilla_plugin_window_create(bg_mozilla_t * m);
@@ -135,10 +139,13 @@ void gmerlin_mozilla_set_vis_plugin(bg_mozilla_t*,
                                    const bg_plugin_info_t * info);
 
 int gmerlin_mozilla_set_stream(bg_mozilla_t * m,
-                               const char * url, const char * mimetype);
+                               const char * url, const char * mimetype, int64_t total_bytes);
 void gmerlin_mozilla_start(bg_mozilla_t * m);
 
 void gmerlin_mozilla_create_dialog(bg_mozilla_t * g);
+
+void gmerlin_mozilla_create_scriptable(bg_mozilla_t * g);
+void gmerlin_mozilla_init_scriptable();
 
 /* GUI */
 
@@ -238,6 +245,7 @@ struct bg_mozilla_widget_s
   char * skin_directory;
   int seek_active;
   int autohide_toolbar;
+  int can_pause;
   };
 
 bg_mozilla_widget_t * bg_mozilla_widget_create(bg_mozilla_t * m);
@@ -266,3 +274,77 @@ int bg_mozilla_buffer_write(bg_mozilla_buffer_t *,
 
 int bg_mozilla_buffer_read(void *, uint8_t * data, int len);
 
+/* Browser functions wrapped by struct */
+
+NPError bg_NPN_GetURL(NPP instance, 
+                      const char* url,
+                      const char* target);
+
+NPError bg_NPN_DestroyStream(NPP     instance, 
+                          NPStream* stream, 
+                             NPError   reason);
+
+void *bg_NPN_MemAlloc (uint32 size);
+
+void bg_NPN_MemFree(void* ptr);
+
+NPError bg_NPN_GetValue(NPP instance, NPNVariable variable, void * value);
+
+NPError bg_NPN_SetValue(NPP instance, NPPVariable variable, void * value);
+
+void bg_NPN_InvalidateRect(NPP instance, NPRect * invalidRect);
+
+void bg_NPN_InvalidateRegion(NPP instance, NPRegion invalidRegion);
+
+void bg_NPN_ForceRedraw(NPP instance);
+
+void bg_NPN_ReleaseVariantValue(NPVariant * variant);
+
+NPIdentifier bg_NPN_GetStringIdentifier(const NPUTF8 * name);
+
+void bg_NPN_GetStringIdentifiers(const NPUTF8 ** names,
+                              int32_t nameCount,
+                                 NPIdentifier * identifiers);
+
+NPIdentifier bg_NPN_GetIntIdentifier(int32_t intid);
+
+bool bg_NPN_IdentifierIsString(NPIdentifier * identifier);
+
+NPUTF8 * bg_NPN_UTF8FromIdentifier(NPIdentifier identifier);
+
+int32_t bg_NPN_IntFromIdentifier(NPIdentifier identifier);
+
+NPObject * bg_NPN_CreateObject(NPP npp, NPClass * aClass);
+
+NPObject * bg_NPN_RetainObject(NPObject * npobj);
+
+void bg_NPN_ReleaseObject(NPObject * npobj);
+
+bool bg_NPN_Invoke(NPP npp, NPObject * npobj, NPIdentifier methodName,
+                   const NPVariant * args, uint32_t argCount, NPVariant * result);
+
+bool bg_NPN_InvokeDefault(NPP npp, NPObject * npobj, const NPVariant * args,
+                          uint32_t argCount, NPVariant * result);
+
+bool bg_NPN_Evaluate(NPP npp, NPObject * npobj, NPString * script,
+                     NPVariant * result);
+
+bool bg_NPN_GetProperty(NPP npp, NPObject * npobj, NPIdentifier propertyName,
+                        NPVariant * result);
+
+bool bg_NPN_SetProperty(NPP npp, NPObject * npobj, NPIdentifier propertyName,
+                        const NPVariant * result);
+
+bool bg_NPN_RemoveProperty(NPP npp, NPObject * npobj, NPIdentifier propertyName);
+
+bool bg_NPN_HasProperty(NPP npp, NPObject * npobj, NPIdentifier propertyName);
+
+bool bg_NPN_HasMethod(NPP npp, NPObject * npobj, NPIdentifier methodName);
+
+void bg_mozilla_init_browser_funcs(NPNetscapeFuncs * funcs);
+
+/* Commands (from the script or the GUI) */
+
+void bg_mozilla_play(bg_mozilla_t * m);
+void bg_mozilla_stop(bg_mozilla_t * m);
+void bg_mozilla_pause(bg_mozilla_t * m);

@@ -27,15 +27,10 @@ static void menu_callback(GtkWidget * w, gpointer data)
   else if(w == widget->menu.fullscreen)
     {
     bg_mozilla_widget_toggle_fullscreen(widget->m->widget);
-    gtk_widget_hide(widget->menu.fullscreen);
-    gtk_widget_show(widget->menu.windowed);
-                    
     }
   else if(w == widget->menu.windowed)
     {
     bg_mozilla_widget_toggle_fullscreen(widget->m->widget);
-    gtk_widget_hide(widget->menu.windowed);
-    gtk_widget_show(widget->menu.fullscreen);
     }
   }
 
@@ -89,6 +84,7 @@ static GtkWidget * create_item(const char * label,
   return ret;
   }
 
+#if 0
 static GtkWidget * create_toggle_item(const char * label,
                                       bg_mozilla_widget_t * m,
                                       GtkWidget * menu, guint * id)
@@ -105,6 +101,7 @@ static GtkWidget * create_toggle_item(const char * label,
   gtk_menu_shell_append(GTK_MENU_SHELL(menu), ret);
   return ret;
   }
+#endif
 
 static GtkWidget * create_submenu_item(const char * label,
                                        GtkWidget * child_menu,

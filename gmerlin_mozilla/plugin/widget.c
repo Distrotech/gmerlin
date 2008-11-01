@@ -8,6 +8,45 @@
 #define TOOLBAR_HIDING  1
 #define TOOLBAR_HIDDEN  2
 
+void bg_mozilla_play(bg_mozilla_t * m)
+  {
+  if(m->player_state == BG_PLAYER_STATE_PLAYING)
+    return;
+  
+  if(m->player_state == BG_PLAYER_STATE_PAUSED)
+    {
+    bg_player_pause(m->player);
+    return;
+    }
+
+  switch(m->url_mode)
+    {
+    case URL_MODE_LOCAL:
+      gmerlin_mozilla_start(m);
+      break;
+    case URL_MODE_REDIRECT:
+      m->url = bg_strdup(m->url, m->current_url);
+      gmerlin_mozilla_start(m);
+      break;
+    case URL_MODE_STREAM:
+      if(m->reload_url)
+        m->reload_url(m);
+      break;
+    }
+
+  }
+
+void bg_mozilla_stop(bg_mozilla_t * m)
+  {
+  bg_player_stop(m->player);
+  }
+
+void bg_mozilla_pause(bg_mozilla_t * m)
+  {
+  bg_player_pause(m->player);
+  }
+
+
 static void gmerlin_button_callback(bg_gtk_button_t * b, void * data)
   {
   bg_mozilla_widget_t * w;
@@ -15,30 +54,16 @@ static void gmerlin_button_callback(bg_gtk_button_t * b, void * data)
 
   if(b == w->stop_button)
     {
-    bg_player_stop(w->m->player);
+    bg_mozilla_stop(w->m);
     }
   if(b == w->play_button)
     {
-    switch(w->m->url_mode)
-      {
-      case URL_MODE_LOCAL:
-        gmerlin_mozilla_start(w->m);
-        break;
-      case URL_MODE_REDIRECT:
-        w->m->url = bg_strdup(w->m->url, w->m->current_url);
-        gmerlin_mozilla_start(w->m);
-        break;
-      case URL_MODE_STREAM:
-        if(w->m->reload_url)
-          w->m->reload_url(w->m);
-        break;
-      }
+    bg_mozilla_play(w->m);
     }
   if(b == w->pause_button)
     {
-    
+    bg_mozilla_pause(w->m);
     }
-  
   }
 
 static void show_toolbar(bg_mozilla_widget_t * w)
@@ -54,8 +79,6 @@ static void resize_toolbar(bg_mozilla_widget_t * w)
   bg_mozilla_window_t * win;
   win = w->current_win;
   
-  w->toolbar_height = 40;
-  
   gtk_widget_set_size_request(bg_gtk_button_get_widget(w->stop_button),
                               20, 20);
   gtk_widget_set_size_request(bg_gtk_button_get_widget(w->play_button),
@@ -64,9 +87,19 @@ static void resize_toolbar(bg_mozilla_widget_t * w)
                               20, 20);
   gtk_widget_set_size_request(bg_gtk_scrolltext_get_widget(w->scrolltext),
                               win->width-20, 20);
-  gtk_widget_set_size_request(bg_gtk_slider_get_widget(w->seek_slider),
-                              win->width, 20);
 
+  if(w->duration != GAVL_TIME_UNDEFINED)
+    {
+    gtk_widget_set_size_request(bg_gtk_slider_get_widget(w->seek_slider),
+                                win->width, 20);
+    w->toolbar_height = 40;
+    }
+  else
+    {
+    gtk_widget_hide(bg_gtk_slider_get_widget(w->seek_slider));
+    w->toolbar_height = 20;
+    }
+  
   if(win->resize_id > 0)
     g_signal_handler_block(win->box, win->resize_id);
   
@@ -338,6 +371,8 @@ static void handle_message(bg_mozilla_widget_t * w,
         {
         case BG_PLAYER_STATE_PAUSED:
           fprintf(stderr, "State: Paused\n");
+          gtk_widget_hide(bg_gtk_button_get_widget(w->pause_button));
+          gtk_widget_show(bg_gtk_button_get_widget(w->play_button));
           break;
         case BG_PLAYER_STATE_SEEKING:
           fprintf(stderr, "State: Seeking\n");
@@ -360,11 +395,16 @@ static void handle_message(bg_mozilla_widget_t * w,
           gdk_window_raise(w->controls->window);
           break;
         case BG_PLAYER_STATE_PLAYING:
-          gtk_widget_show(bg_gtk_button_get_widget(w->stop_button));
+          w->can_pause = bg_msg_get_arg_int(msg, 1);
+          
+          if(w->can_pause)
+            gtk_widget_show(bg_gtk_button_get_widget(w->pause_button));
+          else
+            gtk_widget_show(bg_gtk_button_get_widget(w->stop_button));
+          
           gtk_widget_hide(bg_gtk_button_get_widget(w->play_button));
-          
-          
-          fprintf(stderr, "State: Playing\n");
+          resize_toolbar(w);
+          fprintf(stderr, "State: Playing %d\n", w->can_pause);
           break;
         case BG_PLAYER_STATE_STOPPED:
         case BG_PLAYER_STATE_CHANGING:
@@ -381,10 +421,15 @@ static void handle_message(bg_mozilla_widget_t * w,
             // w->m->is_local = 0;
             fprintf(stderr, "State: Stopped\n");
 
-            gtk_widget_hide(bg_gtk_button_get_widget(w->stop_button));
+            if(w->can_pause)
+              gtk_widget_hide(bg_gtk_button_get_widget(w->pause_button));
+            else
+              gtk_widget_hide(bg_gtk_button_get_widget(w->stop_button));
             gtk_widget_show(bg_gtk_button_get_widget(w->play_button));
-
+            
             w->m->state = STATE_IDLE;
+            bg_gtk_scrolltext_set_text(w->scrolltext, TR("Stopped"),
+                                       w->fg_normal, w->bg);
             }
           break;
         }
@@ -687,6 +732,11 @@ void bg_mozilla_widget_set_window(bg_mozilla_widget_t * w,
     bg_player_set_ov_plugin(w->m->player, w->m->ov_handle);
     }
   w->idle_id = g_timeout_add(50, idle_callback, (gpointer)w);
+
+  /* If we have the url already, we start playing */
+  if(w->m->url && (w->m->url_mode == URL_MODE_LOCAL))
+    gmerlin_mozilla_start(w->m);
+  
   }
 
 void bg_mozilla_widget_destroy(bg_mozilla_widget_t * m)
@@ -730,6 +780,9 @@ void bg_mozilla_widget_toggle_fullscreen(bg_mozilla_widget_t * m)
                                 m->fullscreen_win.height);
     
     m->current_win = &m->fullscreen_win;
+
+    gtk_widget_hide(m->menu.fullscreen);
+    gtk_widget_show(m->menu.windowed);
     }
   /* Fullscreen to normal */
   else
@@ -738,6 +791,9 @@ void bg_mozilla_widget_toggle_fullscreen(bg_mozilla_widget_t * m)
     m->current_win = &m->normal_win;
     m->fullscreen_win.width = 0;
     m->fullscreen_win.height = 0;
+ 
+    gtk_widget_hide(m->menu.windowed);
+    gtk_widget_show(m->menu.fullscreen);
     }
   
   gtk_fixed_put(GTK_FIXED(m->current_win->box), m->controls, 0, 0);

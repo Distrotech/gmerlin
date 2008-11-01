@@ -165,13 +165,14 @@ void gmerlin_mozilla_set_ov_plugin(bg_mozilla_t * m,
 
 int gmerlin_mozilla_set_stream(bg_mozilla_t * m,
                                const char * url,
-                               const char * mimetype)
+                               const char * mimetype, int64_t total_bytes)
   {
   //  if(m->url && !strcmp(url, m->url))
   //    return 0;
   
   m->url      = bg_strdup(m->url, url); 
   m->mimetype = bg_strdup(m->mimetype, mimetype);
+  m->total_bytes = total_bytes;
   fprintf(stderr, "Set URL: %s %s\n", m->url, m->mimetype);
 
   if(!strncmp(url, "file://", 7) || (url[0] == '/'))
@@ -188,7 +189,7 @@ int gmerlin_mozilla_set_stream(bg_mozilla_t * m,
 
 /* Append URL to list */
 
-static void append_url(bg_mozilla_t * m, const char * url,
+static int append_url(bg_mozilla_t * m, const char * url,
                        int depth, int * playing)
   {
   bg_input_plugin_t * input;
@@ -201,7 +202,7 @@ static void append_url(bg_mozilla_t * m, const char * url,
                            &h, (bg_input_callbacks_t*)0, 0))
     {
     fprintf(stderr, "Loading URL failed\n");
-    return;
+    return 0;
     }
   input = (bg_input_plugin_t *)h->plugin;
 
@@ -218,11 +219,16 @@ static void append_url(bg_mozilla_t * m, const char * url,
       if(depth > 5)
         {
         fprintf(stderr, "Too many redirections\n");
-        return;
+        bg_plugin_unref(h);
+        return 0;
         }
       
-      fprintf(stderr, "%s is redirector to %s\n", url, ti->url);
-      append_url(m, ti->url, depth+1, playing);
+      fprintf(stderr, "%s is redirector to %s (depth: %d)\n", url, ti->url, depth);
+      if(!append_url(m, ti->url, depth+1, playing))
+        {
+        bg_plugin_unref(h);
+        return 0;
+        }
       }
     else
       {
@@ -239,6 +245,7 @@ static void append_url(bg_mozilla_t * m, const char * url,
       }
     }
   bg_plugin_unref(h);
+  return 1;
   }
 
 
@@ -296,9 +303,9 @@ static void * start_func(void * priv)
     if(!input->open_callbacks(h->priv,
                               bg_mozilla_buffer_read,
                               NULL, /* Seek callback */
-                              m->buffer, m->url, m->mimetype))
+                              m->buffer, m->url, m->mimetype, m->total_bytes))
       {
-      bg_plugin_unref(h);
+      //      bg_plugin_unref(h);
       fprintf(stderr, "Open callbacks failed\n");
       goto fail;
       }
@@ -308,7 +315,7 @@ static void * start_func(void * priv)
     fprintf(stderr, "Open local\n");
     if(!input->open(h->priv, m->url))
       {
-      bg_plugin_unref(h);
+      //      bg_plugin_unref(h);
       fprintf(stderr, "Open failed\n");
       goto fail;
       }
@@ -323,7 +330,10 @@ static void * start_func(void * priv)
     {
     ti = input->get_track_info(h->priv, i);
     if(ti->url) /* Redirection */
-      append_url(m, ti->url, 0, &m->playing);
+      {
+      if(!append_url(m, ti->url, 0, &m->playing))
+        goto fail;
+      }
     else if(!m->playing)
       {
       m->current_url = bg_strdup(m->current_url, m->url);
