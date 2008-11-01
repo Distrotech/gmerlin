@@ -13,6 +13,8 @@ void bg_mozilla_embed_info_set_parameter(bg_mozilla_embed_info_t * e,
     e->target = bg_strdup(e->target, value);
   else if(!strcmp(name, "type"))
     e->type = bg_strdup(e->type, value);
+  else if(!strcmp(name, "id"))
+    e->id = bg_strdup(e->id, value);
   }
 
 int bg_mozilla_embed_info_check(bg_mozilla_embed_info_t * e)
@@ -21,8 +23,8 @@ int bg_mozilla_embed_info_check(bg_mozilla_embed_info_t * e)
           e->mode, e->target);
   if((e->mode == MODE_REAL) && !e->src)
     return 0;
-  if((e->mode == MODE_VLC) && !e->target)
-    return 0;
+  //  if((e->mode == MODE_VLC) && !e->target)
+  //    return 1;
   return 1;
   }
 
@@ -31,4 +33,5 @@ void bg_mozilla_embed_info_free(bg_mozilla_embed_info_t * e)
   if(e->src)    free(e->src);
   if(e->target) free(e->target);
   if(e->type)   free(e->type);
+  if(e->id)   free(e->id);
   }

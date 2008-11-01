@@ -741,10 +741,15 @@ void bg_mozilla_widget_set_window(bg_mozilla_widget_t * w,
 
 void bg_mozilla_widget_destroy(bg_mozilla_widget_t * m)
   {
-  gtk_widget_destroy(m->normal_win.window);
-  gtk_widget_destroy(m->fullscreen_win.window);
-  g_object_unref(m->controls);
-  g_source_remove(m->idle_id);
+  if(m->normal_win.window)
+    gtk_widget_destroy(m->normal_win.window);
+  if(m->fullscreen_win.window)
+    gtk_widget_destroy(m->fullscreen_win.window);
+  if(m->controls)
+    g_object_unref(m->controls);
+
+  if(m->idle_id > 0)
+    g_source_remove(m->idle_id);
   free(m);
   }
 

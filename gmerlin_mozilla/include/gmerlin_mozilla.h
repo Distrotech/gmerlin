@@ -41,6 +41,7 @@ typedef struct
   char * src;
   char * target;
   char * type;
+  char * id;
   } bg_mozilla_embed_info_t;
 
 void bg_mozilla_embed_info_set_parameter(bg_mozilla_embed_info_t *,

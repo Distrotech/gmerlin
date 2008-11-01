@@ -1,4 +1,5 @@
 #include <gmerlin_mozilla.h>
+#include <string.h>
 
 #define SCRIPT_PLAY       0
 #define SCRIPT_STOP       1
@@ -69,7 +70,10 @@ static bool scriptable_hasMethod(NPObject * npobj, const NPIdentifier name)
   int func;
   func = find_func(name);
   if(func < 0)
+    {
+    fprintf(stderr, "Has method %s\n", bg_NPN_UTF8FromIdentifier(name));
     return false;
+    }
   return true;
   }
 
@@ -93,6 +97,7 @@ static bool scriptable_invoke(NPObject * npobj,
   switch(func)
     {
     case SCRIPT_PLAY:
+      fprintf(stderr, "Play\n");
       bg_mozilla_play(m);
       break;
     case SCRIPT_STOP:
@@ -115,19 +120,53 @@ static bool scriptable_invokeDefault(NPObject * npobj,
                                      uint32_t argCount,
                                      NPVariant * result)
   {
+  fprintf(stderr, "Invoke default\n");
   return false;
   }
 
 static bool scriptable_hasProperty(NPObject * npobj,
                             NPIdentifier name)
   {
+  Scriptable * s;
+  bg_mozilla_t * m;
+
+  s = (Scriptable *)npobj;
+  m = s->npp->pdata;
+  
+  if(!strcmp(bg_NPN_UTF8FromIdentifier(name), "id"))
+    return m->ei.id ? true : false;
+  
+  fprintf(stderr, "Has property %s\n", bg_NPN_UTF8FromIdentifier(name));
   return false;
+  }
+
+static void set_variant_string(NPVariant * result,
+                               const char * str)
+  {
+  result->value.stringValue.utf8length = strlen(str);
+  result->value.stringValue.utf8characters =
+    bg_NPN_MemAlloc(result->value.stringValue.utf8length+1);
+  strcpy(result->value.stringValue.utf8characters, str);
+  result->type = NPVariantType_String;
   }
 
 static bool scriptable_getProperty(NPObject * npobj,
                                    NPIdentifier name,
                                    NPVariant * result)
   {
+  Scriptable * s;
+  bg_mozilla_t * m;
+
+  s = (Scriptable *)npobj;
+  m = s->npp->pdata;
+
+  fprintf(stderr, "Get property %s\n", bg_NPN_UTF8FromIdentifier(name));
+
+  if(!strcmp(bg_NPN_UTF8FromIdentifier(name), "id"))
+    {
+    set_variant_string(result, m->ei.id);
+    return true;
+    }
   return false;
   }
 
@@ -135,6 +174,7 @@ static bool scriptable_setProperty(NPObject * npobj,
                                    NPIdentifier name,
                                    const NPVariant * value)
   {
+  fprintf(stderr, "Set property %s\n", bg_NPN_UTF8FromIdentifier(name));
   return false;
   }
 

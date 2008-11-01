@@ -129,7 +129,6 @@ NPError NP_GetValue(void *instance,
                     NPPVariable variable, 
                     void *aValue)
   {
-  fprintf(stderr, "NP_GetValue %d\n", variable);
   switch(variable)
     {
     case NPPVpluginNameString:
@@ -145,6 +144,7 @@ NPError NP_GetValue(void *instance,
       *((PRBool *) aValue) = PR_TRUE;
       break;
     default:
+      fprintf(stderr, "NP_GetValue %d\n", variable);
       return NPERR_GENERIC_ERROR;
     }
   return NPERR_NO_ERROR;
@@ -161,7 +161,16 @@ NPError NPP_New(NPMIMEType pluginType,
                 char *argv[], NPSavedData *saved)
   {
   int i;
+  int val_i;
   bg_mozilla_t * priv;
+
+  /* Get toolkit */
+  if((bg_NPN_GetValue(instance, NPNVToolkit, &val_i) != NPERR_NO_ERROR) ||
+     (val_i != 2))
+    {
+    return NPERR_INVALID_PLUGIN_ERROR;
+    }
+  
   priv = gmerlin_mozilla_create();
   instance->pdata = priv;
   
@@ -170,7 +179,8 @@ NPError NPP_New(NPMIMEType pluginType,
   gmerlin_mozilla_create_scriptable(priv);
 
   priv->reload_url = reload_url;
-  
+
+    
   for(i = 0; i < argc; i++)
     {
     if(!strcmp(argn[i], "type"))
@@ -187,11 +197,14 @@ NPError NPP_New(NPMIMEType pluginType,
         priv->ei.mode = MODE_VLC;
       }
     bg_mozilla_embed_info_set_parameter(&priv->ei, argn[i], argv[i]);
+
+    fprintf(stderr, "Set parameter: %s %s\n", argn[i], argv[i]);
     }
   if(!bg_mozilla_embed_info_check(&priv->ei))
     {
     gmerlin_mozilla_destroy(priv);
     instance->pdata = NULL;
+    fprintf(stderr, "Bad embed info\n");
     return NPERR_INVALID_PLUGIN_ERROR;
     }
   if(((priv->ei.mode == MODE_VLC) && (priv->ei.target)) ||
@@ -206,6 +219,7 @@ NPError NPP_New(NPMIMEType pluginType,
     priv->mimetype = bg_strdup(priv->mimetype, priv->ei.type);
     priv->url_mode = URL_MODE_LOCAL;
     }
+  
   return NPERR_NO_ERROR;
   }
 
@@ -388,6 +402,20 @@ NPError NP_Initialize(NPNetscapeFuncs *aNPNFuncs,
 NPError NP_Shutdown(void)
   {
   fprintf(stderr, "SHUTDOWN\n");
-  if(mime_info) free(mime_info);
   return NPERR_NO_ERROR;
   }
+
+
+#if defined(__GNUC__)
+
+static void cleanup_mimeinfo() __attribute__ ((destructor));
+
+static void cleanup_mimeinfo()
+  {
+  if(mime_info)
+    free(mime_info);
+  }
+
+#endif
+
+

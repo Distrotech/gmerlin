@@ -95,14 +95,6 @@ AC_DEFINE_UNQUOTED(GMERLIN_MOZILLA_DATA_DIR, "$GMERLIN_MOZILLA_DATA_DIR", Direct
 AC_SUBST(GMERLIN_MOZILLA_DATA_DIR)
 
 dnl
-dnl Compile IDL
-dnl
-
-echo "$GECKO_XPIDL -w -m header -I $GECKO_IDLDIR -I plugin -e include/scriptable.h plugin/gmerlin-mozilla.idl"
-$GECKO_XPIDL -w -m header -I $GECKO_IDLDIR -I plugin -e include/scriptable.h plugin/gmerlin-mozilla.idl
-$GECKO_XPIDL -w -m typelib -I $GECKO_IDLDIR -I plugin -e plugin/gmerlin-mozilla.xpt plugin/gmerlin-mozilla.idl
-
-dnl
 dnl Output
 dnl 
 
