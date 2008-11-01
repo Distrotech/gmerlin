@@ -120,6 +120,7 @@ static int open_smb(bgav_input_context_t * ctx, const char * url, char ** redire
     }
   
   ctx->total_bytes = len;
+  ctx->can_pause = 1;
 
   return 1;
   

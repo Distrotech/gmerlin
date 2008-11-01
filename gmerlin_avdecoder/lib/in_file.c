@@ -71,8 +71,7 @@ static int open_file(bgav_input_context_t * ctx, const char * url, char ** r)
                                  md5sum[4], md5sum[5], md5sum[6], md5sum[7], 
                                  md5sum[8], md5sum[9], md5sum[10], md5sum[11], 
                                  md5sum[12], md5sum[13], md5sum[14], md5sum[15]);
-  
-
+  ctx->can_pause = 1;
   return 1;
   }
 

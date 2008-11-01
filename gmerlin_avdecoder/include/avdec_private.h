@@ -801,7 +801,7 @@ struct bgav_input_context_s
      need to prebuffer data */
     
   int do_buffer;
-
+  int can_pause;
   /* For sector based access */
 
   int sector_size;

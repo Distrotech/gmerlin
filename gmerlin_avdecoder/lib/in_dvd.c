@@ -731,6 +731,7 @@ static int open_dvd(bgav_input_context_t * ctx, const char * url, char ** r)
   ctx->sector_size        = 2048;
   ctx->sector_size_raw    = 2048;
   ctx->sector_header_size = 0;
+  ctx->can_pause = 1;
   
   return 1;
   }
