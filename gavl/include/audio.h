@@ -22,6 +22,8 @@
 /* Private structures for the audio converter */
 
 #include <gavl.h>
+#include <samplerate.h>
+
 #include "config.h"
 
 struct gavl_audio_options_s
@@ -53,6 +55,14 @@ typedef void (*gavl_audio_func_t)(struct gavl_audio_convert_context_s * ctx);
 typedef struct gavl_samplerate_converter_s gavl_samplerate_converter_t;
 
 typedef struct gavl_audio_dither_context_s gavl_audio_dither_context_t;
+
+struct gavl_samplerate_converter_s
+  {
+  int num_resamplers;
+  SRC_STATE ** resamplers;
+  SRC_DATA data;
+  double ratio;
+  };
 
 struct gavl_audio_convert_context_s
   {

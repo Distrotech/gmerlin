@@ -31,13 +31,6 @@
 
 #include <samplerate.h>
 
-struct gavl_samplerate_converter_s
-  {
-  int num_resamplers;
-  SRC_STATE ** resamplers;
-  SRC_DATA data;
-  double ratio;
-  };
 
 static int get_filter_type(gavl_audio_options_t * opt)
   {

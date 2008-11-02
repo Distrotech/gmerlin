@@ -3,7 +3,7 @@
 
 noinst_LTLIBRARIES = libsamplerate.la
 
-EXTRA_DIST = Version_script.in check_asm.sh
+EXTRA_DIST = 
 CLEANFILES = src_sinc.s
 
 COEFF_HDRS = high_qual_coeffs.h mid_qual_coeffs.h fastest_coeffs.h

@@ -333,11 +333,11 @@ int gavl_audio_converter_reinit(gavl_audio_converter_t* cnv)
   }
 
 static void alloc_frames(gavl_audio_converter_t* cnv,
-                         int in_samples)
+                         int in_samples, double new_ratio)
   {
   gavl_audio_convert_context_t * ctx;
-  
-  if(cnv->input_format.samples_per_frame >= in_samples)
+  int out_samples_needed;  
+  if((cnv->input_format.samples_per_frame >= in_samples) && (new_ratio < 0.0))
     return;
   
   cnv->input_format.samples_per_frame = in_samples;
@@ -345,29 +345,31 @@ static void alloc_frames(gavl_audio_converter_t* cnv,
   /* Set the samples_per_frame member of all intermediate formats */
   
   ctx = cnv->contexts;
-  
-  while(ctx)
+  out_samples_needed = in_samples;  
+
+  while(ctx->next)
     {
-    ctx->input_format.samples_per_frame = in_samples;
+    ctx->input_format.samples_per_frame = out_samples_needed;
     
-    if(ctx->input_format.samplerate != ctx->output_format.samplerate)
+    if(ctx->samplerate_converter)
       {
-      in_samples =
-        (in_samples * ctx->output_format.samplerate) /
-        ctx->input_format.samplerate + 10;
+      /* Varispeed */
+      if(new_ratio > 0.0)
+        {
+        out_samples_needed = 
+          (int)(0.5 * (ctx->samplerate_converter->ratio + new_ratio) * out_samples_needed) + 10;
+        }
+      /* Constant ratio */
+      else
+        {
+        out_samples_needed =
+          (out_samples_needed * ctx->output_format.samplerate) /
+          ctx->input_format.samplerate + 10;
+        }
       }
-    ctx->output_format.samples_per_frame = in_samples;
-    ctx = ctx->next;
-    }
-  
-  /* Create temporary buffers */
-  ctx = cnv->contexts;
-  
-  while(ctx)
-    {
-    //    dump_context(ctx);
-    if(ctx->next)
+    if(ctx->output_format.samples_per_frame < out_samples_needed)
       {
+      ctx->output_format.samples_per_frame = out_samples_needed + 1024;
       if(ctx->output_frame)
         gavl_audio_frame_destroy(ctx->output_frame);
       ctx->output_frame = gavl_audio_frame_create(&(ctx->output_format));
@@ -375,7 +377,6 @@ static void alloc_frames(gavl_audio_converter_t* cnv,
       }
     ctx = ctx->next;
     }
-  
   }
 
 int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
@@ -402,7 +403,7 @@ void gavl_audio_convert(gavl_audio_converter_t * cnv,
   cnv->contexts->input_frame = input_frame;
   cnv->last_context->output_frame = output_frame;
   
-  alloc_frames(cnv, input_frame->valid_samples);
+  alloc_frames(cnv, input_frame->valid_samples, -1.0);
   
   ctx = cnv->contexts;
   
