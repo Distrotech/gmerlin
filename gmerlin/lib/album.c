@@ -101,9 +101,9 @@ void bg_album_set_default_location(bg_album_t * album)
     }
   }
 
-void bg_album_update_entry(bg_album_t * album,
-                           bg_album_entry_t * entry,
-                           bg_track_info_t  * track_info, int callback)
+static void entry_from_track_info(bg_album_common_t * com,
+                                  bg_album_entry_t * entry,
+                                  bg_track_info_t  * track_info)
   {
   int i;
   int name_set = 0;
@@ -139,10 +139,10 @@ void bg_album_update_entry(bg_album_t * album,
 
     /* Track info has a name */
     
-    if(album->com->use_metadata && album->com->metadata_format)
+    if(com && com->use_metadata && com->metadata_format)
       {
       entry->name = bg_create_track_name(&(track_info->metadata),
-                                         album->com->metadata_format);
+                                         com->metadata_format);
       if(entry->name)
         name_set = 1;
       }
@@ -171,8 +171,27 @@ void bg_album_update_entry(bg_album_t * album,
     entry->total_tracks = 1;
     entry->flags = BG_ALBUM_ENTRY_REDIRECTOR;
     }
+  
+  }
+
+void bg_album_update_entry(bg_album_t * album,
+                           bg_album_entry_t * entry,
+                           bg_track_info_t  * track_info, int callback)
+  {
+  entry_from_track_info(album->com, entry, track_info);
   if(callback)
     bg_album_entry_changed(album, entry);
+  }
+
+bg_album_entry_t *
+bg_album_entry_create_from_track_info(bg_track_info_t * track_info,
+                                      const char * url)
+  {
+  bg_album_entry_t * ret;
+  ret = bg_album_entry_create();
+  ret->location = bg_strdup(ret->location, url);
+  entry_from_track_info(NULL, ret, track_info);
+  return ret;
   }
 
 bg_album_t * bg_album_create(bg_album_common_t * com, bg_album_type_t type,
@@ -736,7 +755,7 @@ int bg_album_entries_count(bg_album_entry_t * e)
   }
 
 
-bg_album_entry_t * bg_album_entry_create(bg_album_t * album)
+bg_album_entry_t * bg_album_entry_create()
   {
   bg_album_entry_t * ret;
   ret = calloc(1, sizeof(*ret));
@@ -2003,7 +2022,7 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
     {
     track_info = plugin->get_track_info(album->com->load_handle->priv, i);
     
-    new_entry = bg_album_entry_create(album);
+    new_entry = bg_album_entry_create();
     //    new_entry->location = bg_system_to_utf8(url, strlen(url));
     new_entry->location = bg_strdup(new_entry->location, url);
     new_entry->index = i;
@@ -2605,7 +2624,7 @@ bg_album_entry_t * bg_album_entry_copy(bg_album_t * a, bg_album_entry_t * e)
   {
   bg_album_entry_t * ret;
   /* Also sets unique ID */
-  ret = bg_album_entry_create(a);
+  ret = bg_album_entry_create();
 
   ret->name = bg_strdup(ret->name, e->name);
   ret->location = bg_strdup(ret->location, e->location);

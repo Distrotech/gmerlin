@@ -156,4 +156,14 @@ const char * bg_log_level_to_string(bg_log_level_t level);
 
 void bg_log_set_verbose(int mask);
 
+/** \ingroup log
+ *  \brief Get last error message
+ *  \returns The last error message, must be freed
+ *
+ *  Use this only if you didn't set an log destination and you
+ *  can make sure, that only your thread can trigger an error.
+ */
+
+char * bg_log_last_error();
+
 #endif // __BG_LOG_H_

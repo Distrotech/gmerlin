@@ -263,9 +263,18 @@ void bg_album_insert_xml_after(bg_album_t * a, const char * xml_string,
 bg_album_entry_t *
 bg_album_entries_new_from_xml(const char * xml_string);
 
+bg_album_entry_t *
+bg_album_entry_create_from_track_info(bg_track_info_t * track_info,
+                                      const char * url);
+
+
 /* Destroy the list returned from the function above */
 
 void bg_album_entries_destroy(bg_album_entry_t*);
+
+
+
+char * bg_album_entries_save_to_memory(bg_album_entry_t * e);
 
 /* Check, how many they are */
 int bg_album_entries_count(bg_album_entry_t*);

@@ -46,7 +46,7 @@ static bg_album_entry_t * load_entry(bg_album_t * album,
   bg_album_entry_t * ret;
   char * tmp_string;
 
-  ret = bg_album_entry_create(album);
+  ret = bg_album_entry_create();
   ret->total_tracks = 1;
   if(current)
     *current = 0;
@@ -554,9 +554,9 @@ static xmlDocPtr album_2_xml(bg_album_t * a)
   return xml_doc;
   }
 
-static xmlDocPtr selected_2_xml(bg_album_t * a, int preserve_current)
+static xmlDocPtr entries_2_xml(bg_album_entry_t * entry, int preserve_current,
+                               int selected)
   {
-  bg_album_entry_t * entry;
   xmlDocPtr  xml_doc;
   xmlNodePtr xml_album;
   
@@ -568,16 +568,13 @@ static xmlDocPtr selected_2_xml(bg_album_t * a, int preserve_current)
 
   xmlAddChild(xml_album, BG_XML_NEW_TEXT("\n"));
 
-  entry = a->entries;
-
   while(entry)
     {
-    if(entry->flags & BG_ALBUM_ENTRY_SELECTED)
-      save_entry(a, entry, xml_album, preserve_current);
+    if((entry->flags & BG_ALBUM_ENTRY_SELECTED) || !selected)
+      save_entry(NULL, entry, xml_album, preserve_current);
     entry = entry->next;
     }
   return xml_doc;
-  
   }
 
 /* Output routines for writing to memory */
@@ -650,7 +647,29 @@ char * bg_album_save_selected_to_memory(bg_album_t * a, int preserve_current)
   
   memset(&ctx, 0, sizeof(ctx));
   
-  xml_doc = selected_2_xml(a, preserve_current);
+  xml_doc = entries_2_xml(a->entries, preserve_current, 1);
+  
+  b = xmlOutputBufferCreateIO(bg_xml_write_callback,
+                              bg_xml_close_callback,
+                              &ctx,
+                              (xmlCharEncodingHandlerPtr)0);
+  
+  xmlSaveFileTo(b,
+                xml_doc,
+                (const char*)0);
+  xmlFreeDoc(xml_doc);
+  return ctx.buffer;
+  }
+
+char * bg_album_entries_save_to_memory(bg_album_entry_t * e)
+  {
+  xmlDocPtr  xml_doc;
+  bg_xml_output_mem_t ctx;
+  xmlOutputBufferPtr b;
+  
+  memset(&ctx, 0, sizeof(ctx));
+  
+  xml_doc = entries_2_xml(e, 0, 0);
   
   b = xmlOutputBufferCreateIO(bg_xml_write_callback,
                               bg_xml_close_callback,

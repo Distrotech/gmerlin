@@ -29,11 +29,15 @@
 
 #include <stdarg.h>
 #include <stdio.h>
+#include <pthread.h>
 
 #include <gmerlin/log.h>
 #include <gmerlin/utils.h>
 
 static int log_mask = BG_LOG_ERROR | BG_LOG_WARNING | BG_LOG_INFO;
+
+static char * last_error = (char*)0;
+pthread_mutex_t last_error_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static const struct
   {
@@ -84,6 +88,12 @@ static void logs_internal(bg_log_level_t level, const char * domain,
                 domain,
                 bg_log_level_to_string(level),
                 lines[i]);
+        if(level == BG_LOG_ERROR)
+          {
+          pthread_mutex_lock(&last_error_mutex);
+          last_error = bg_strdup(last_error, lines[i]);
+          pthread_mutex_unlock(&last_error_mutex);
+          }
         i++;
         }
       bg_strbreak_free(lines);
@@ -155,3 +165,24 @@ void bg_log_set_verbose(int mask)
   {
   log_mask = mask;
   }
+
+char * bg_log_last_error()
+  {
+  char * ret;
+  pthread_mutex_lock(&last_error_mutex);
+  ret = bg_strdup(NULL, last_error);
+  pthread_mutex_unlock(&last_error_mutex);
+  return ret;
+  }
+
+#if defined(__GNUC__)
+
+static void cleanup_log() __attribute__ ((destructor));
+
+static void cleanup_log()
+  {
+  if(last_error)
+    free(last_error);
+  }
+
+#endif

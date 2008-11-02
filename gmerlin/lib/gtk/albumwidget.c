@@ -979,7 +979,6 @@ static void do_copy(bg_gtk_album_widget_t * w)
   GtkClipboard *clipboard;
   GdkAtom clipboard_atom;
   
-  // clipboard_atom = gdk_atom_intern ("PRIMARY", FALSE);
   clipboard_atom = gdk_atom_intern ("CLIPBOARD", FALSE);   
   clipboard = gtk_clipboard_get(clipboard_atom);
   
