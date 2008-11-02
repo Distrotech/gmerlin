@@ -1,0 +1,17 @@
+#!/bin/sh
+MODULE=@PKGLIBDIR@/libgmerlin-mozilla.so
+
+if test "x$HOME" = "x"; then
+  echo HOME unset, exiting
+  exit 1
+fi
+
+DIR="$HOME/.mozilla/plugins"
+
+if test ! -d $DIR; then
+  echo Creating $DIR
+  mkdir -p $DIR
+fi
+
+ln -s $MODULE $DIR
+  
