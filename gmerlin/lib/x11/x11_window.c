@@ -550,6 +550,9 @@ static int open_display(bg_x11_window_t * w)
       w->fullscreen.parent = None;
     else
       w->fullscreen.parent = strtoul(fullscreen_id, (char **)0, 16);
+
+    //    fprintf(stderr, "Initialized windows: %ld %ld\n",
+    //            w->normal.parent, w->fullscreen.parent);
     }
 
   w->screen = DefaultScreen(w->dpy);
@@ -603,7 +606,8 @@ void bg_x11_window_get_coords(bg_x11_window_t * w,
   unsigned int border_width_return;
   unsigned int depth_return;
   //  Window child_return;
-  
+
+  fprintf(stderr, "Get geometry 1 %ld\n", win);
   XGetGeometry(w->dpy, win, &root_return, &x_return, &y_return,
                &width_return, &height_return,
                &border_width_return, &depth_return);
@@ -624,6 +628,7 @@ void bg_x11_window_get_coords(bg_x11_window_t * w,
   
   if((x || y) && (parent_return != root_return))
     {
+    fprintf(stderr, "Get geometry 2 %ld\n", parent_return);
     XGetGeometry(w->dpy, parent_return, &root_return,
                  &x_return, &y_return,
                  &width_return, &height_return,
@@ -673,7 +678,7 @@ void bg_x11_window_init(bg_x11_window_t * w)
   if((w->fullscreen.parent != w->root) &&
      window_is_viewable(w->dpy, w->fullscreen.parent))
     {
-    // fprintf(stderr, "Is fullscreen\n");
+    fprintf(stderr, "Is fullscreen\n");
     
     if(!w->is_fullscreen)
       send_event = 1;
@@ -691,6 +696,8 @@ void bg_x11_window_init(bg_x11_window_t * w)
 #if 1
   if(w->current->parent != w->root)
     {
+    fprintf(stderr, "bg_x11_window_init %ld %ld\n", w->current->win,
+            w->current->parent);
     bg_x11_window_get_coords(w, w->current->parent,
                       (int*)0, (int*)0,
                       &w->window_width, &w->window_height);

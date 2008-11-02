@@ -758,7 +758,11 @@ static void cleanup_playback(bg_player_t * player,
   if(new_state == BG_PLAYER_STATE_STOPPED)
     {
     if(DO_VISUALIZE(player->flags))
+      {
+      /* Must clear this here */
+      player->flags &= ~PLAYER_DO_VISUALIZE;
       bg_visualizer_close(player->visualizer);
+      }
     bg_player_ov_standby(player->ov_context);
     }
   return;

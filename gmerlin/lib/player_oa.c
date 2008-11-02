@@ -319,7 +319,6 @@ void * bg_player_oa_thread(void * data)
         }
       else
         {
-        
         pthread_mutex_lock(&(ctx->player->audio_stream.volume_mutex));
         gavl_volume_control_apply(ctx->player->audio_stream.volume,
                                   frame);

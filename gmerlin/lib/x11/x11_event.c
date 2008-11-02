@@ -475,9 +475,13 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
             if(evt->xclient.window == cur->win)
               {
               cur->parent_xembed = 1;
-              /* In gtk this isn't necessary, didn't try other
-                 toolkits */
-              cur->parent = evt->xclient.data.l[3];
+              /*
+               *  In gtk this isn't necessary, didn't try other
+               *  toolkits. Strange that this is sometimes called with
+               *  None as parent window, so we're better off ignoring this here
+               */
+              
+              // cur->parent = evt->xclient.data.l[3];
               
               if(window_is_mapped(w->dpy, cur->parent))
                 {
@@ -808,6 +812,7 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
         }
       else if(evt->xmap.window == w->fullscreen.toplevel)
         {
+        fprintf(stderr, "w->fullscreen.toplevel mapped %ld\n", w->fullscreen.parent); 
         bg_x11_window_init(w);
         bg_x11_window_show(w, 1);
         }
