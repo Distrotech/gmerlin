@@ -1,6 +1,7 @@
 #include <gmerlin_mozilla.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/translation.h>
+#include <gmerlin/log.h>
 #include <gdk/gdkkeysyms.h>
 #include <string.h>
 
@@ -466,24 +467,25 @@ static gboolean idle_callback(void * data)
       fprintf(stderr, "Joining start thread...");
       pthread_join(w->m->start_thread, (void**)0);
       fprintf(stderr, "done\n");
-      w->m->state = STATE_PLAYING;
+      if(!w->m->ti)
+        w->m->state = STATE_ERROR;
+      else
+        w->m->state = STATE_PLAYING;
       }
     pthread_mutex_unlock(&w->m->start_finished_mutex);
     }
-  else if(w->m->state == STATE_PLAYING)
+  while((msg = bg_msg_queue_try_lock_read(w->m->msg_queue)))
     {
-    while((msg = bg_msg_queue_try_lock_read(w->m->msg_queue)))
-      {
-      handle_message(w, msg);
-      bg_msg_queue_unlock_read(w->m->msg_queue);
-      }
+    handle_message(w, msg);
+    bg_msg_queue_unlock_read(w->m->msg_queue);
     }
   
   w->idle_counter++;
 
   if((w->toolbar_state == TOOLBAR_VISIBLE) &&
      (w->idle_counter > 150) &&
-     w->autohide_toolbar)
+     w->autohide_toolbar &&
+     (w->m->state == STATE_PLAYING))
     w->toolbar_state = TOOLBAR_HIDING;
   
   if(w->toolbar_state == TOOLBAR_HIDING)
@@ -859,4 +861,19 @@ void bg_mozilla_widget_set_parameter(void * priv, const char * name,
   else if(!strcmp(name, "background"))
     memcpy(m->bg, v->val_color, 3 * sizeof(float));
   
+  }
+
+void bg_mozilla_widget_set_error(bg_mozilla_widget_t * m)
+  {
+  char * msg = bg_log_last_error();
+  fprintf(stderr, "Last error: %s\n", msg);
+  if(msg)
+    {
+    bg_gtk_scrolltext_set_text(m->scrolltext, msg,
+                               m->fg_error, m->bg);
+    free(msg);
+    }
+  else
+    bg_gtk_scrolltext_set_text(m->scrolltext, TR("Error"),
+                               m->fg_error, m->bg);
   }

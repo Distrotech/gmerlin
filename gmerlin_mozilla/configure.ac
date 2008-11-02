@@ -4,6 +4,8 @@ AM_CONFIG_HEADER(include/config.h)
 AM_INIT_AUTOMAKE(1.8.5)
 AC_PROG_LIBTOOL
 
+
+
 dnl
 dnl Check for Libraries
 dnl
@@ -90,6 +92,9 @@ if test "x$prefix" = xNONE; then
    prefix="${ac_default_prefix}"
 fi
 
+PKGLIBDIR="$prefix/lib/$PACKAGE"
+AC_SUBST(PKGLIBDIR)
+
 GMERLIN_MOZILLA_DATA_DIR="$prefix/share/$PACKAGE"
 AC_DEFINE_UNQUOTED(GMERLIN_MOZILLA_DATA_DIR, "$GMERLIN_MOZILLA_DATA_DIR", Directory for other data)
 AC_SUBST(GMERLIN_MOZILLA_DATA_DIR)
@@ -99,6 +104,8 @@ dnl Output
 dnl 
 
 AC_CONFIG_FILES([Makefile 
+gmerlin-mozilla-enable \
+gmerlin-mozilla-disable \
 include/Makefile \
 plugin/Makefile \
 skins/Makefile \

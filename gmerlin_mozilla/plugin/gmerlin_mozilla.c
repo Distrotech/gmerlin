@@ -5,6 +5,9 @@
 #include <gmerlin_mozilla.h>
 #include <gmerlin/utils.h>
 
+#define LOG_DOMAIN "gmerlin_mozilla"
+#include <gmerlin/log.h>
+
 static void infowindow_close_callback(bg_gtk_info_window_t * w, void * data)
   {
   bg_mozilla_t * m = data;
@@ -112,6 +115,7 @@ void gmerlin_mozilla_destroy(bg_mozilla_t* m)
   if(m->url)         free(m->url);
   if(m->uri)         free(m->uri);
   if(m->current_url) free(m->current_url);
+  if(m->clipboard) bg_album_entries_destroy(m->clipboard);
   
   bg_gtk_info_window_destroy(m->info_window);
   
@@ -187,10 +191,23 @@ int gmerlin_mozilla_set_stream(bg_mozilla_t * m,
   return 1;
   }
 
+static void do_play(bg_mozilla_t * m, const char * url, int track, bg_track_info_t * ti,
+                    bg_plugin_handle_t * h)
+  {
+  m->current_url = bg_strdup(m->current_url, url);
+  bg_player_play(m->player, h,
+                 track,
+                 0, (ti->name ? ti->name : "Livestream"));
+  m->playing = 1;
+  m->input_handle = h;
+  bg_plugin_ref(m->input_handle);
+  m->ti = ti;
+  }
+
 /* Append URL to list */
 
 static int append_url(bg_mozilla_t * m, const char * url,
-                       int depth, int * playing)
+                       int depth)
   {
   bg_input_plugin_t * input;
   int num_tracks, i;
@@ -218,13 +235,14 @@ static int append_url(bg_mozilla_t * m, const char * url,
       {
       if(depth > 5)
         {
-        fprintf(stderr, "Too many redirections\n");
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+               "Too many redirections");
         bg_plugin_unref(h);
         return 0;
         }
       
       fprintf(stderr, "%s is redirector to %s (depth: %d)\n", url, ti->url, depth);
-      if(!append_url(m, ti->url, depth+1, playing))
+      if(!append_url(m, ti->url, depth+1))
         {
         bg_plugin_unref(h);
         return 0;
@@ -232,14 +250,10 @@ static int append_url(bg_mozilla_t * m, const char * url,
       }
     else
       {
-      if(!(*playing))
+      if(!(m->playing))
         {
-        m->current_url = bg_strdup(m->current_url, url);
         m->url_mode = URL_MODE_REDIRECT;
-        bg_player_play(m->player, h,
-                       i,
-                       0, (ti->name ? ti->name : "Livestream"));
-        *playing = 1;
+        do_play(m, url, i, ti, h);
         }
       fprintf(stderr, "%s is real stream\n", ti->url);
       }
@@ -259,6 +273,14 @@ static void * start_func(void * priv)
   bg_plugin_handle_t * h = (bg_plugin_handle_t *)0;
   m->playing = 0;
   fprintf(stderr, "gmerlin_mozilla_start\n");
+
+  /* Cleanup earlier playback */
+  if(m->input_handle)
+    {
+    bg_plugin_unref(m->input_handle);
+    m->input_handle = NULL;
+    }
+  m->ti = NULL;
   
   /* TODO: If we have more than one callback capable plugin
      (unlikely), we must to proper selection */
@@ -305,6 +327,8 @@ static void * start_func(void * priv)
                               NULL, /* Seek callback */
                               m->buffer, m->url, m->mimetype, m->total_bytes))
       {
+      bg_mozilla_widget_set_error(m->widget);
+      
       //      bg_plugin_unref(h);
       fprintf(stderr, "Open callbacks failed\n");
       goto fail;
@@ -315,6 +339,7 @@ static void * start_func(void * priv)
     fprintf(stderr, "Open local\n");
     if(!input->open(h->priv, m->url))
       {
+      bg_mozilla_widget_set_error(m->widget);
       //      bg_plugin_unref(h);
       fprintf(stderr, "Open failed\n");
       goto fail;
@@ -331,25 +356,24 @@ static void * start_func(void * priv)
     ti = input->get_track_info(h->priv, i);
     if(ti->url) /* Redirection */
       {
-      if(!append_url(m, ti->url, 0, &m->playing))
+      if(!append_url(m, ti->url, 0))
+        {
+        bg_mozilla_widget_set_error(m->widget);
         goto fail;
+        }
       }
     else if(!m->playing)
-      {
-      m->current_url = bg_strdup(m->current_url, m->url);
-      bg_player_play(m->player, h,
-                     i,
-                     0, (ti->name ? ti->name : "Livestream"));
-      m->playing = 1;
-      }
+      do_play(m, m->url, i, ti, h);
     }
-  pthread_mutex_lock(&m->start_finished_mutex);
-  m->start_finished = 1;
-  pthread_mutex_unlock(&m->start_finished_mutex);
   
   fail:
   if(h)
     bg_plugin_unref(h);
+
+  pthread_mutex_lock(&m->start_finished_mutex);
+  m->start_finished = 1;
+  pthread_mutex_unlock(&m->start_finished_mutex);
+
   return NULL;
   }
 
@@ -362,7 +386,7 @@ void gmerlin_mozilla_start(bg_mozilla_t * m)
     }
   else
     {
-    pthread_create(&(m->start_thread), (pthread_attr_t*)0, start_func, m);
     m->state = STATE_STARTING;
+    pthread_create(&(m->start_thread), (pthread_attr_t*)0, start_func, m);
     }
   }

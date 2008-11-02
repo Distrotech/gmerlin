@@ -1,6 +1,6 @@
 common_sources =
 
-lib_LTLIBRARIES = libgmerlin-mozilla.la
+pkglib_LTLIBRARIES = libgmerlin-mozilla.la
 
 AM_LDFLAGS = -avoid-version -module -export-dynamic
 AM_CFLAGS = @MOZPLUG_CFLAGS@ @GMERLIN_CFLAGS@ @GMERLIN_GTK_CFLAGS@

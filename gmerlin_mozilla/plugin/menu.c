@@ -1,6 +1,117 @@
+#include <string.h>
 #include <gmerlin_mozilla.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/translation.h>
+
+#define DND_GMERLIN_TRACKS   1
+#define DND_TEXT_URI_LIST    2
+#define DND_TEXT_PLAIN       3
+
+static const GtkTargetEntry copy_entries[] = 
+  {
+    {bg_gtk_atom_entries_name, 0, DND_GMERLIN_TRACKS },
+    {"text/uri-list",          0, DND_TEXT_URI_LIST  },
+    {"STRING",                 0, DND_TEXT_PLAIN  },
+    {"text/plain",             0, DND_TEXT_URI_LIST  },
+  };
+
+static void clipboard_get_func(GtkClipboard *clipboard,
+                               GtkSelectionData *selection_data,
+                               guint info,
+                               gpointer data)
+  {
+  bg_album_entry_t * e;
+  GdkAtom type_atom;
+  char * str;
+  char * tmp_string_1;
+  char * tmp_string_2;
+  bg_mozilla_t * w = (bg_mozilla_t*)data;
+  type_atom = gdk_atom_intern("STRING", FALSE);
+  if(!type_atom)
+    return;
+  
+  switch(info)
+    {
+    case DND_GMERLIN_TRACKS:
+      str = bg_album_entries_save_to_memory(w->clipboard);
+      gtk_selection_data_set(selection_data, type_atom, 8, (uint8_t*)str,
+                             strlen(str)+1);
+      free(str);
+      break;
+    case DND_TEXT_URI_LIST:
+      e = w->clipboard;
+      str = (char*)0;
+      while(e)
+        {
+        tmp_string_1 = bg_string_to_uri(e->location, -1);
+        tmp_string_2 = bg_sprintf("%s\r\n", tmp_string_1);
+        str = bg_strcat(str, tmp_string_2);
+        free(tmp_string_1);
+        free(tmp_string_2);
+        e = e->next;
+        }
+      gtk_selection_data_set(selection_data, type_atom, 8, (uint8_t*)str,
+                             strlen(str)+1);
+      free(str);
+      break;
+    case DND_TEXT_PLAIN:
+      e = w->clipboard;
+      str = (char*)0;
+      while(e)
+        {
+        tmp_string_2 = bg_sprintf("%s\n", (char*)e->location);
+        str = bg_strcat(str, tmp_string_2);
+        free(tmp_string_2);
+        e = e->next;
+        }
+      gtk_selection_data_set(selection_data, type_atom, 8, (uint8_t*)str,
+                             strlen(str)+1);
+      free(str);
+      break;
+      
+      //      break;
+    }
+  }
+
+static void clipboard_clear_func(GtkClipboard *clipboard,
+                                 gpointer data)
+  {
+  bg_mozilla_t * w = (bg_mozilla_t*)data;
+  if(w->clipboard)
+    {
+    bg_album_entries_destroy(w->clipboard);
+    w->clipboard = (bg_album_entry_t*)0;
+    }
+  }
+
+static void do_copy(bg_mozilla_t * m)
+  {
+  GtkClipboard *clipboard;
+  GdkAtom clipboard_atom;
+
+  clipboard_atom = gdk_atom_intern ("CLIPBOARD", FALSE);   
+  clipboard = gtk_clipboard_get(clipboard_atom);
+  
+  gtk_clipboard_set_with_data(clipboard,
+                              copy_entries,
+                              sizeof(copy_entries)/
+                              sizeof(copy_entries[0]),
+                              clipboard_get_func,
+                              clipboard_clear_func,
+                              (gpointer)m);
+  
+  if(m->clipboard)
+    {
+    bg_album_entries_destroy(m->clipboard);
+    m->clipboard = (bg_album_entry_t*)0;
+    }
+  if(m->ti && m->current_url)
+    {
+    m->clipboard = bg_album_entry_create_from_track_info(m->ti,
+                                                         m->current_url);
+    }
+  }
+
 
 static GtkWidget * create_menu()
   {
@@ -24,6 +135,8 @@ static void menu_callback(GtkWidget * w, gpointer data)
     bg_dialog_show(widget->m->cfg_dialog, NULL);
   else if(w == widget->menu.url_menu.info)
     bg_gtk_info_window_show(widget->m->info_window);
+  else if(w == widget->menu.url_menu.copy)
+    do_copy(widget->m);
   else if(w == widget->menu.fullscreen)
     {
     bg_mozilla_widget_toggle_fullscreen(widget->m->widget);

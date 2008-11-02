@@ -12,18 +12,23 @@
 #include <gmerlin/gui_gtk/button.h>
 #include <gmerlin/gui_gtk/display.h>
 #include <gmerlin/gui_gtk/infowindow.h>
+
 #include <gmerlin/cfg_dialog.h>
+#include <gmerlin/tree.h>
+#include <gmerlin/gui_gtk/tree.h>
 
 typedef struct bg_mozilla_s        bg_mozilla_t;
 typedef struct bg_mozilla_widget_s bg_mozilla_widget_t;
 typedef struct plugin_window_s plugin_window_t;
 typedef struct bg_mozilla_buffer_s  bg_mozilla_buffer_t;
 
+
 #define BUFFER_SIZE (1024) /* Need to finetune */
 
 #define STATE_IDLE     0
 #define STATE_STARTING 1
 #define STATE_PLAYING  2
+#define STATE_ERROR    3
 
 #define MODE_GENERIC   0
 #define MODE_REAL      1
@@ -72,7 +77,9 @@ struct bg_mozilla_s
   int url_mode;
   
   bg_mozilla_embed_info_t ei;
-
+  
+  bg_track_info_t * ti;
+  
 #if 0  
   struct
     {
@@ -94,8 +101,11 @@ struct bg_mozilla_s
   
   bg_plugin_handle_t * oa_handle;
   bg_plugin_handle_t * ov_handle;
+  bg_plugin_handle_t * input_handle;
   
   const bg_plugin_info_t * ov_info;
+
+  bg_album_entry_t * clipboard;
   
   char * display_string;
   
@@ -263,6 +273,8 @@ void bg_mozilla_widget_set_parameter(void * priv, const char * name,
 void bg_mozilla_widget_init_menu(bg_mozilla_widget_t * m);
 
 void bg_mozilla_widget_destroy(bg_mozilla_widget_t *);
+
+void bg_mozilla_widget_set_error(bg_mozilla_widget_t * m);
 
 /* Buffer (passes data from the Browser to the player */
 

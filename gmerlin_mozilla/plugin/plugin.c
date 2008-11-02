@@ -293,9 +293,15 @@ int32 NPP_Write(NPP instance, NPStream* stream, int32 offset,
   bg_mozilla_t * priv;
   int ret;
   priv = (bg_mozilla_t *)instance->pdata;
-  //  fprintf(stderr, "NPP_Write %d %d...", offset, len);
+  //  fprintf(stderr, "NPP_Write %d\n", priv->state);
   //  bg_hexdump(buf, len, 16);
 
+  if(priv->state == STATE_ERROR)
+    {
+    bg_mozilla_buffer_destroy(priv->buffer);
+    priv->buffer = NULL;
+    }
+  
   if(!priv->buffer) /* Player was stopped, close the stream */
     {
     return -1;
@@ -387,12 +393,13 @@ static void set_plugin_funcs(NPPluginFuncs *aNPPFuncs)
 NPError NP_Initialize(NPNetscapeFuncs *aNPNFuncs,
                       NPPluginFuncs *aNPPFuncs)
   {
-  fprintf(stderr, "INITIALIZE %d %d\n", aNPPFuncs->version, aNPPFuncs->size);
+  // fprintf(stderr, "INITIALIZE %d %d\n", aNPPFuncs->version, aNPPFuncs->size);
   
   bg_log_set_verbose(BG_LOG_DEBUG |
                      BG_LOG_WARNING |
                      BG_LOG_ERROR |
                      BG_LOG_INFO);
+  
   set_plugin_funcs(aNPPFuncs);
   bg_mozilla_init_browser_funcs(aNPNFuncs);
   gmerlin_mozilla_init_scriptable();

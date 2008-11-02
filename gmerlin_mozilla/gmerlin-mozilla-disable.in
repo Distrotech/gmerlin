@@ -1,0 +1,12 @@
+#!/bin/sh
+
+if test "x$HOME" = "x"; then
+  echo HOME unset, exiting
+  exit 1
+fi
+
+MODULE="$HOME/.mozilla/plugins/libgmerlin-mozilla.so"
+
+if test -h $MODULE; then
+  rm -f $MODULE
+fi

@@ -1,0 +1,15 @@
+This is a mozilla based browser plugin, which plays audio and video
+streams (and local files) within firefox (and probably other gecko-based
+browsers too). It's in an experimental stage, but already quite functional.
+Please note the following:
+
+- It supports *only* linux and gtk-2. On other OSes, it won't compile,
+  when loaded from a non-gtk2 browser, it won't initialize.
+
+- It's scriptable through the npruntime API, but not many functions are
+  implemented yet.
+
+- Installation happens the usual autotools way. This won't however put the
+  module into a mozilla directory. Instead, each user can en-disable the
+  plugin with the scripts 'gmerlin-mozilla-enable' and 'gmerlin-mozilla-disable'
+
