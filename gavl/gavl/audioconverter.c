@@ -115,6 +115,7 @@ static void add_context(gavl_audio_converter_t* cnv,
     cnv->last_context = ctx;
     cnv->contexts     = ctx;
     }
+  ctx->output_format.samples_per_frame = 0;
   cnv->current_format = &(ctx->output_format);
   cnv->num_conversions++;
   }
