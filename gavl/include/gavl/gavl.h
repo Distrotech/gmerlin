@@ -823,6 +823,21 @@ int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
                               const gavl_audio_format_t * output_format);
 
 /*! \ingroup audio_converter
+ *  \brief Initialize an audio converter just for resampling.
+ *  \param cnv An audio converter
+ *  \param format Input and output format. (They are the same except for output samplerate ratio will vary)
+ *  \returns The number of single conversion steps necessary to perform the
+ *           conversion.  Unlike, gavl_audio_converter_init, it should never 
+ *           return 0. If the sample_format < GALV_SAMPLE_FLOAT extra conversions 
+ *           will be added to the internal conversion chain. 
+ *
+ * This function can be called multiple times with one instance
+ */
+
+int gavl_audio_converter_init_resample(gavl_audio_converter_t * cnv,
+                                   const gavl_audio_format_t * format);
+
+/*! \ingroup audio_converter
  *  \brief Reinitialize an audio converter
  *  \param cnv An audio converter
  *  \returns The number of single conversion steps necessary to perform the
@@ -856,6 +871,44 @@ void gavl_audio_convert(gavl_audio_converter_t * cnv,
                         gavl_audio_frame_t * output_frame);
 
 
+/*! \ingroup audio_converter
+ *  \brief Set samplerate converstion ratio 
+ *  \param cnv An resample only audio converter created with gavl_audio_converter_init_resample
+ *  \param ratio  desired src_ratio  
+ *
+ *	 Max ratio = 256, Min ratio = 1/256 as defined by libsamplerate
+ *	 You should set this function before you call gavl_audio_converter_resample
+ *	 for the very first time.  If you call this function continually before subsequent
+ *	 calls to gavl_audio_converter_resample, the internal libsamplrate will step sample
+ *	 rate conversion up to the new ratio on your output audio frame in 
+ *	 gavl_audio_converter_resample.  If you do NOT call this 
+ *	 function before gavl_audio_converter_resample libsamplerate will linearly ramp 
+ *	 the previous src_ratio to the new ratio for the given output audio frame in 
+ *	 gavl_audio_converter_resample.
+ */
+ 
+int gavl_audio_converter_set_resample_ratio(gavl_audio_converter_t * cnv, 
+		double ratio ) ;
+
+
+/*! \ingroup audio_converter
+ *  \brief Convert audio
+ *  \param cnv An audio converter
+ *  \param input_frame Input frame
+ *  \param output_frame Output frame
+ *  \param ratio  src_ratio  (output_frame.samplerate = ratio * input_frame.samplerate)
+ *
+ *  Be careful when resampling: gavl will
+ *  assume, that your output frame is big enough.
+ *  Minimum size for output_frame_size =
+ *  input_frame_size * ratio  (where ratio can be max 256.0 as defined by libsamplerate)
+ *
+ */
+  
+void gavl_audio_converter_resample(gavl_audio_converter_t * cnv,
+                              gavl_audio_frame_t * input_frame,
+                              gavl_audio_frame_t * output_frame,
+                              double ratio);
 
 
 /** \defgroup volume_control Volume control
