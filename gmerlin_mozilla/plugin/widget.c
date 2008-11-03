@@ -379,7 +379,7 @@ static void handle_message(bg_mozilla_widget_t * w,
           fprintf(stderr, "State: Seeking\n");
           break;
         case BG_PLAYER_STATE_ERROR:
-          fprintf(stderr, "State: Error\n");
+          bg_mozilla_widget_set_error(w);
           break;
         case BG_PLAYER_STATE_BUFFERING:
           arg_f = bg_msg_get_arg_float(msg, 1);
@@ -595,6 +595,12 @@ static void create_controls(bg_mozilla_widget_t * w)
                 0, 20);
   }
 
+static gboolean plug_removed_callback(GtkWidget * w, gpointer data)
+  {
+  /* Reuse socket */
+  return TRUE;
+  }
+
 static void init_window(bg_mozilla_widget_t * w,
                         bg_mozilla_window_t * win, int fullscreen)
   {
@@ -665,10 +671,15 @@ static void init_window(bg_mozilla_widget_t * w,
   g_signal_connect(G_OBJECT(win->socket), "focus-out-event",
                    G_CALLBACK(focus_callback),
                    w);
+
+  g_signal_connect(G_OBJECT(win->socket), "plug-removed",
+                   G_CALLBACK(plug_removed_callback),
+                   w);
   
   gtk_container_add(GTK_CONTAINER(win->window), win->box);
   
   }
+
 
 void bg_mozilla_widget_set_window(bg_mozilla_widget_t * w,
                                   GdkNativeWindow window_id)
@@ -681,11 +692,12 @@ void bg_mozilla_widget_set_window(bg_mozilla_widget_t * w,
   if(w->normal_win.socket)
     return;
   
-  
   //  gtk_widget_set_events(w->socket, GDK_BUTTON_PRESS_MASK);
   //  g_signal_connect(w->socket, "button-press-event",
   //                   G_CALLBACK(button_press_callback), w);
   w->normal_win.window = gtk_plug_new(window_id);
+
+  
   w->fullscreen_win.window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   // gtk_window_fullscreen(GTK_WINDOW(w->fullscreen_win.window));
   // gtk_window_set_resizable(GTK_WINDOW(w->fullscreen_win.window), FALSE);
@@ -749,6 +761,8 @@ void bg_mozilla_widget_destroy(bg_mozilla_widget_t * m)
     gtk_widget_destroy(m->fullscreen_win.window);
   if(m->controls)
     g_object_unref(m->controls);
+  if(m->scrolltext)
+    bg_gtk_scrolltext_destroy(m->scrolltext);
 
   if(m->idle_id > 0)
     g_source_remove(m->idle_id);
@@ -865,8 +879,9 @@ void bg_mozilla_widget_set_parameter(void * priv, const char * name,
 
 void bg_mozilla_widget_set_error(bg_mozilla_widget_t * m)
   {
+#if 1
+  
   char * msg = bg_log_last_error();
-  fprintf(stderr, "Last error: %s\n", msg);
   if(msg)
     {
     bg_gtk_scrolltext_set_text(m->scrolltext, msg,
@@ -876,4 +891,5 @@ void bg_mozilla_widget_set_error(bg_mozilla_widget_t * m)
   else
     bg_gtk_scrolltext_set_text(m->scrolltext, TR("Error"),
                                m->fg_error, m->bg);
+#endif
   }

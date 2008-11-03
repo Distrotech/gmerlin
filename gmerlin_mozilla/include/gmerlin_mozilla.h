@@ -47,6 +47,7 @@ typedef struct
   char * target;
   char * type;
   char * id;
+  char * controls;
   } bg_mozilla_embed_info_t;
 
 void bg_mozilla_embed_info_set_parameter(bg_mozilla_embed_info_t *,
@@ -121,6 +122,7 @@ struct bg_mozilla_s
   /* Configuration sections */
   bg_cfg_section_t * gui_section;
   bg_cfg_section_t * infowindow_section;
+  bg_cfg_section_t * visualization_section;
   
   /* Config dialog */
   bg_dialog_t * cfg_dialog;

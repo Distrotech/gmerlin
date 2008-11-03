@@ -1,10 +1,11 @@
 #include <gmerlin_mozilla.h>
 #include <string.h>
 
-#define SCRIPT_PLAY       0
-#define SCRIPT_STOP       1
-#define SCRIPT_PAUSE      2
-#define SCRIPT_FULLSCREEN 3
+#define SCRIPT_PLAY           0
+#define SCRIPT_STOP           1
+#define SCRIPT_PAUSE          2
+#define SCRIPT_FULLSCREEN     3
+#define SCRIPT_SETDISPLAYSIZE 4
 
 static struct
   {
@@ -18,6 +19,12 @@ funcs[] =
     { "stop",       SCRIPT_STOP },
     { "pause",      SCRIPT_PAUSE },
     { "fullscreen", SCRIPT_FULLSCREEN },
+    { "SetFullScreen", SCRIPT_FULLSCREEN }, // Real player
+    /* WMP */
+    { "Play",       SCRIPT_PLAY }, // WMP
+    { "SetDisplaySize", SCRIPT_SETDISPLAYSIZE }, // WMP
+    { "Stop",       SCRIPT_STOP }, // WMP
+    { "Pause",      SCRIPT_PAUSE }, // WMP
     { /* End */ },
   };
 
@@ -109,6 +116,13 @@ static bool scriptable_invoke(NPObject * npobj,
     case SCRIPT_FULLSCREEN:
       bg_mozilla_widget_toggle_fullscreen(m->widget);
       break;
+    case SCRIPT_SETDISPLAYSIZE:
+      if((argCount == 1) && (args[0].type == NPVariantType_Int32) &&
+         (args[0].value.intValue == 3))
+        {
+        bg_mozilla_widget_toggle_fullscreen(m->widget);
+        }
+      break;
     }
   
   // fprintf(stderr, "Invoke %s\n", bg_NPN_UTF8FromIdentifier(name));
@@ -143,10 +157,11 @@ static bool scriptable_hasProperty(NPObject * npobj,
 static void set_variant_string(NPVariant * result,
                                const char * str)
   {
+  char * string;
   result->value.stringValue.utf8length = strlen(str);
-  result->value.stringValue.utf8characters =
-    bg_NPN_MemAlloc(result->value.stringValue.utf8length+1);
-  strcpy(result->value.stringValue.utf8characters, str);
+  string = bg_NPN_MemAlloc(result->value.stringValue.utf8length+1);
+  strcpy(string, str);
+  result->value.stringValue.utf8characters = string;
   result->type = NPVariantType_String;
   }
 

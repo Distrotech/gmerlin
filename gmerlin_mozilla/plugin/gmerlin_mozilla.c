@@ -64,6 +64,8 @@ bg_mozilla_t * gmerlin_mozilla_create()
     bg_cfg_registry_find_section(ret->cfg_reg, "GUI");
   ret->infowindow_section =
     bg_cfg_registry_find_section(ret->cfg_reg, "infowindow");
+  ret->visualization_section =
+    bg_cfg_registry_find_section(ret->cfg_reg, "visualize");
   
   /* Create config dialog */
   gmerlin_mozilla_create_dialog(ret);
