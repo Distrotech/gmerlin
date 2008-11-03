@@ -777,7 +777,7 @@ static int input_open(bgav_input_context_t * ctx,
   return ret;
   }
 
-int bgav_input_open(bgav_input_context_t * ctx,
+static int do_open(bgav_input_context_t * ctx,
                     const char *url)
   {
   int ret = 0;
@@ -801,6 +801,32 @@ int bgav_input_open(bgav_input_context_t * ctx,
     }
   
   free(tmp_url);
+  return ret;
+  }
+
+
+int bgav_input_open(bgav_input_context_t * ctx,
+                    const char *url)
+  {
+  int ret;
+  ret = do_open(ctx, url);
+  if(!ret && ctx->input == &bgav_input_mms)
+    {
+    char * new_url;
+    char * pos;
+    if(ctx->priv)
+      {
+      ctx->input->close(ctx);
+      ctx->priv = NULL;
+      }
+    pos = strstr(url, "://");
+    if(!pos)
+      return 0;
+    new_url = bgav_sprintf("http%s", pos);
+    bgav_log(ctx->opt, BGAV_LOG_INFO, LOG_DOMAIN, "mms connection failed, trying http");
+    ret = do_open(ctx, new_url);
+    free(new_url);
+    }
   return ret;
   }
 
