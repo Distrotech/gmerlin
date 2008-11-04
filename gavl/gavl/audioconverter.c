@@ -518,6 +518,7 @@ int gavl_audio_converter_set_resample_ratio(gavl_audio_converter_t * cnv,
 			for (j=0; j < ctx->samplerate_converter->num_resamplers; j++)
 				gavl_src_set_ratio( ctx->samplerate_converter->resamplers[j], ratio);
 		}
+		ctx->samplerate_converter->ratio = ratio;
 		ctx = ctx->next;
 	}
 	return 1;
