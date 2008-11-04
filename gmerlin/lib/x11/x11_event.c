@@ -306,7 +306,7 @@ static void register_xembed_accelerators(bg_x11_window_t * w,
   i = 0;
   while(accels[i].key != BG_KEY_NONE)
     {
-    bg_x11_window_send_xembed_message(w, win->win,
+    bg_x11_window_send_xembed_message(w, win->parent,
                                       CurrentTime,
                                       XEMBED_REGISTER_ACCELERATOR,
                                       accels[i].id,
@@ -480,14 +480,14 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
                *  toolkits. Strange that this is sometimes called with
                *  None as parent window, so we're better off ignoring this here
                */
-              
+              // fprintf(stderr, "XEMBED_EMBEDDED_NOTIFY %08lx %08lx\n",
+              // cur->parent, evt->xclient.data.l[3]);
               // cur->parent = evt->xclient.data.l[3];
               
               if(window_is_mapped(w->dpy, cur->parent))
                 {
                 unsigned long buffer[2];
-                
-                
+                                
                 buffer[0] = 0; // Version
                 buffer[1] = XEMBED_MAPPED; 
                 
@@ -581,6 +581,9 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
             cur->modality = 0;
             break;
           case XEMBED_REGISTER_ACCELERATOR:
+            /* Don't process our own accelerators */
+            
+            
             /* Child wants to register an accelerator */
             /*
               detail	accelerator_id
@@ -626,6 +629,7 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
             break;
           case XEMBED_ACTIVATE_ACCELERATOR:
             /* Check if we have the accelerator */
+            //  fprintf(stderr, "Activate accelerator\n");
             if(w->callbacks && w->callbacks->accel_map &&
                w->callbacks->accel_callback &&
                bg_accelerator_map_has_accel_with_id(w->callbacks->accel_map,
@@ -772,6 +776,7 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
         motion_event.y_root = evt->xmotion.y_root;
         motion_event.state  = evt->xmotion.state;
         motion_event.same_screen = evt->xmotion.same_screen;
+
         
         XSendEvent(motion_event.display,
                    motion_event.window,
@@ -793,7 +798,7 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
         w->normal.mapped = 1;
         /* Kindly ask for keyboard focus */
         if(w->normal.parent_xembed)
-          bg_x11_window_send_xembed_message(w, evt->xmap.window,
+          bg_x11_window_send_xembed_message(w, w->normal.parent,
                                             CurrentTime,
                                             XEMBED_REQUEST_FOCUS,
                                             0, 0, 0);
@@ -803,7 +808,7 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
         w->fullscreen.mapped = 1;
         /* Kindly ask for keyboard focus */
         if(w->fullscreen.parent_xembed)
-          bg_x11_window_send_xembed_message(w, evt->xmap.window,
+          bg_x11_window_send_xembed_message(w, w->fullscreen.parent,
                                             CurrentTime,
                                             XEMBED_REQUEST_FOCUS,
                                             0, 0, 0);
@@ -812,7 +817,6 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
         }
       else if(evt->xmap.window == w->fullscreen.toplevel)
         {
-        fprintf(stderr, "w->fullscreen.toplevel mapped %ld\n", w->fullscreen.parent); 
         bg_x11_window_init(w);
         bg_x11_window_show(w, 1);
         }
@@ -906,6 +910,7 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
         key_event.type = evt->type;
         key_event.keycode = evt->xkey.keycode;
         key_event.state = evt->xkey.state;
+
         XSendEvent(key_event.display,
                    key_event.window,
                    False, 0, (XEvent *)(&key_event));

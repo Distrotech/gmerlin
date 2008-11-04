@@ -68,7 +68,6 @@ typedef struct
   char * description; //!< Something like MPEG-1 video 1150 kbps
   char language[4]; //!< The language in ISO 639-2 (3 character code+'\\0')
   char * info;        //!< Info about this stream
-  int is_still;       //!< 1 if this is a still image stream
   int64_t duration;   //!< Duration in timescale tics
   } bg_video_info_t;
 

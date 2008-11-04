@@ -293,7 +293,8 @@ static int open_stills_input(void * priv, const char * filename)
   inp->track_info.video_streams =
     calloc(1, sizeof(*inp->track_info.video_streams));
   
-  inp->track_info.video_streams[0].is_still = 1;
+  inp->track_info.video_streams[0].format.framerate_mode =
+    GAVL_FRAMERATE_STILL;
   
   inp->track_info.duration = inp->display_time;
   

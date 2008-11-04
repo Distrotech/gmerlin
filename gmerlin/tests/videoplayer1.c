@@ -140,7 +140,7 @@ int main(int argc, char ** argv)
 
   /* Initialize output plugin */
     
-  if(!output_plugin->open(output_handle->priv, &video_format))
+  if(!output_plugin->open(output_handle->priv, &video_format, 1))
     {
     fprintf(stderr, "Cannot open output plugin %s\n",
             output_handle->info->name);

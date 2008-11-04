@@ -59,8 +59,11 @@ typedef struct bg_album_entry_s
   gavl_time_t duration;
 
   int num_audio_streams;
-  int num_still_streams;
   int num_video_streams;
+  /* Need to distinguish between
+     normal and still streams here, because they get different
+     icons in the widget */
+  int num_still_streams; 
   int num_subtitle_streams;
 
   /*

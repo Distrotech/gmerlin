@@ -114,7 +114,8 @@ static void entry_from_track_info(bg_album_common_t * com,
 
   for(i = 0; i < track_info->num_video_streams; i++)
     {
-    if(track_info->video_streams[i].is_still)
+    if(track_info->video_streams[i].format.framerate_mode ==
+       GAVL_FRAMERATE_STILL)
       entry->num_still_streams++;
     else
       entry->num_video_streams++;
@@ -505,7 +506,8 @@ static int open_device(bg_album_t * a)
     new_entry->num_video_streams = 0;
     for(j = 0; j < track_info->num_video_streams; j++)
       {
-      if(track_info->video_streams[j].is_still)
+      if(track_info->video_streams[j].format.framerate_mode ==
+         GAVL_FRAMERATE_STILL)
         new_entry->num_still_streams++;
       else
         new_entry->num_video_streams++;

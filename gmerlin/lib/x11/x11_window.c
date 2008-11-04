@@ -607,7 +607,6 @@ void bg_x11_window_get_coords(bg_x11_window_t * w,
   unsigned int depth_return;
   //  Window child_return;
 
-  fprintf(stderr, "Get geometry 1 %ld\n", win);
   XGetGeometry(w->dpy, win, &root_return, &x_return, &y_return,
                &width_return, &height_return,
                &border_width_return, &depth_return);
@@ -678,7 +677,7 @@ void bg_x11_window_init(bg_x11_window_t * w)
   if((w->fullscreen.parent != w->root) &&
      window_is_viewable(w->dpy, w->fullscreen.parent))
     {
-    fprintf(stderr, "Is fullscreen\n");
+    //    fprintf(stderr, "Is fullscreen\n");
     
     if(!w->is_fullscreen)
       send_event = 1;
@@ -696,8 +695,8 @@ void bg_x11_window_init(bg_x11_window_t * w)
 #if 1
   if(w->current->parent != w->root)
     {
-    fprintf(stderr, "bg_x11_window_init %ld %ld\n", w->current->win,
-            w->current->parent);
+    //    fprintf(stderr, "bg_x11_window_init %ld %ld\n", w->current->win,
+    //            w->current->parent);
     bg_x11_window_get_coords(w, w->current->parent,
                       (int*)0, (int*)0,
                       &w->window_width, &w->window_height);
@@ -1603,7 +1602,7 @@ void bg_x11_window_send_xembed_message(bg_x11_window_t * w, Window win, long tim
   xclient.data.l[2] = detail;
   xclient.data.l[3] = data1;
   xclient.data.l[4] = data2;
-
+  
   XSendEvent(w->dpy, win,
              False, NoEventMask, (XEvent *)&xclient);
   XSync(w->dpy, False);

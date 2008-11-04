@@ -121,7 +121,7 @@ int main(int argc, char ** argv)
     
   /* Open output */
 
-  if(!output->open(output_handle->priv, &output_format))
+  if(!output->open(output_handle->priv, &output_format, 1))
     {
     fprintf(stderr, "Opening video device fauled\n");
     return -1;

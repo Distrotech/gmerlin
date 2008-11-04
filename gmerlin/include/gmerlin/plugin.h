@@ -1127,7 +1127,7 @@ struct bg_ov_plugin_s
    *  use a \ref gavl_video_converter_t
    */
   
-  int  (*open)(void * priv, gavl_video_format_t * format);
+  int  (*open)(void * priv, gavl_video_format_t * format, int keep_aspect);
   
   /** \brief Allocate a video frame
    *  \param priv The handle returned by the create() method

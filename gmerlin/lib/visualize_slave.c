@@ -668,7 +668,7 @@ static void init_plugin(bg_visualizer_slave_t * v)
     gavl_video_format_copy(&v->video_format_out, &v->video_format_in_real);
     
     /* Open OV Plugin */
-    v->ov_plugin->open(v->ov_handle->priv, &v->video_format_out);
+    v->ov_plugin->open(v->ov_handle->priv, &v->video_format_out, 0);
     
     /* Initialize video converter */
     

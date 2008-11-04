@@ -439,7 +439,7 @@ int bg_player_ov_init(bg_player_ov_context_t * ctx)
   
   bg_plugin_lock(ctx->plugin_handle);
   result = ctx->plugin->open(ctx->priv,
-                             &(ctx->player->video_stream.output_format));
+                             &(ctx->player->video_stream.output_format), 1);
   
   ctx->plugin->set_window_title(ctx->priv, "Video output");
   

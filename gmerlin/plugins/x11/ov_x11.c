@@ -62,25 +62,25 @@
 
 static const bg_accelerator_t accels[] =
   {
-    { BG_KEY_TAB,                 0, ACCEL_TOGGLE_FULLSCREEN  },
-    { BG_KEY_f,                   0, ACCEL_TOGGLE_FULLSCREEN  },
-    { BG_KEY_ESCAPE,              0, ACCEL_EXIT_FULLSCREEN    },
+    { BG_KEY_TAB,                      0, ACCEL_TOGGLE_FULLSCREEN },
+    { BG_KEY_f,                        0, ACCEL_TOGGLE_FULLSCREEN },
+    { BG_KEY_ESCAPE,                   0, ACCEL_EXIT_FULLSCREEN   },
     { BG_KEY_HOME,   BG_KEY_CONTROL_MASK, ACCEL_RESET_ZOOMSQUEEZE },
-    { BG_KEY_HOME,   0, ACCEL_FIT_WINDOW                          },
-    { BG_KEY_HOME,   BG_KEY_SHIFT_MASK, ACCEL_SHRINK_WINDOW       },
+    { BG_KEY_HOME,                     0, ACCEL_FIT_WINDOW        },
+    { BG_KEY_HOME,     BG_KEY_SHIFT_MASK, ACCEL_SHRINK_WINDOW     },
     { BG_KEY_PLUS,   BG_KEY_CONTROL_MASK, ACCEL_INC_SQUEEZE       },
     { BG_KEY_MINUS,  BG_KEY_CONTROL_MASK, ACCEL_DEC_SQUEEZE       },
-    { BG_KEY_PLUS,   BG_KEY_ALT_MASK, ACCEL_INC_ZOOM              },
-    { BG_KEY_MINUS,  BG_KEY_ALT_MASK, ACCEL_DEC_ZOOM              },
-    { BG_KEY_b,                   0, ACCEL_DEC_BRIGHTNESS        },
-    { BG_KEY_B,      BG_KEY_SHIFT_MASK, ACCEL_INC_BRIGHTNESS        },
-    { BG_KEY_s,                   0, ACCEL_DEC_SATURATION        },
-    { BG_KEY_S,      BG_KEY_SHIFT_MASK, ACCEL_INC_SATURATION        },
-    { BG_KEY_c,                   0, ACCEL_DEC_CONTRAST        },
-    { BG_KEY_C,      BG_KEY_SHIFT_MASK, ACCEL_INC_CONTRAST        },
-    { BG_KEY_h,                   0, ACCEL_DEC_HUE        },
-    { BG_KEY_H,      BG_KEY_SHIFT_MASK, ACCEL_INC_HUE        },
-    { BG_KEY_NONE,   0,           0                           },
+    { BG_KEY_PLUS,       BG_KEY_ALT_MASK, ACCEL_INC_ZOOM          },
+    { BG_KEY_MINUS,      BG_KEY_ALT_MASK, ACCEL_DEC_ZOOM          },
+    { BG_KEY_b,                        0, ACCEL_DEC_BRIGHTNESS    },
+    { BG_KEY_B,        BG_KEY_SHIFT_MASK, ACCEL_INC_BRIGHTNESS    },
+    { BG_KEY_s,                        0, ACCEL_DEC_SATURATION    },
+    { BG_KEY_S,        BG_KEY_SHIFT_MASK, ACCEL_INC_SATURATION    },
+    { BG_KEY_c,                        0, ACCEL_DEC_CONTRAST      },
+    { BG_KEY_C,        BG_KEY_SHIFT_MASK, ACCEL_INC_CONTRAST      },
+    { BG_KEY_h,                        0, ACCEL_DEC_HUE           },
+    { BG_KEY_H,        BG_KEY_SHIFT_MASK, ACCEL_INC_HUE           },
+    { BG_KEY_NONE,                     0,  0                      },
   };
 
 typedef struct
@@ -129,6 +129,8 @@ typedef struct
   float brightness;
   float saturation;
   float contrast;
+
+  int keep_aspect;
   
   } x11_t;
 
@@ -149,11 +151,20 @@ static void set_drawing_coords(x11_t * priv)
   priv->window_format.image_height = priv->window_height;
   
   gavl_rectangle_f_set_all(&priv->src_rect_f, &priv->video_format);
-  gavl_rectangle_fit_aspect(&priv->dst_rect,
-                            &priv->video_format,
-                            &priv->src_rect_f,
-                            &priv->window_format,
-                            zoom_factor, squeeze_factor);
+
+  if(priv->keep_aspect)
+    {
+    gavl_rectangle_fit_aspect(&priv->dst_rect,
+                              &priv->video_format,
+                              &priv->src_rect_f,
+                              &priv->window_format,
+                              zoom_factor, squeeze_factor);
+    }
+  else
+    {
+    gavl_rectangle_i_set_all(&priv->dst_rect, &priv->window_format);
+    }
+  
   gavl_rectangle_crop_to_format_scale(&priv->src_rect_f,
                                       &priv->dst_rect,
                                       &priv->video_format,
@@ -856,12 +867,12 @@ static void set_window_title_x11(void * data, const char * title)
   bg_x11_window_set_title(priv->win, title);
   }
 
-static int open_x11(void * data, gavl_video_format_t * format)
+static int open_x11(void * data, gavl_video_format_t * format, int keep_aspect)
   {
   x11_t * priv = (x11_t*)data;
   int result;
   ensure_window_realized(priv);
-
+  
   result = bg_x11_window_open_video(priv->win, format);
   gavl_video_format_copy(&priv->video_format, format);
   gavl_video_format_copy(&priv->window_format, format);
@@ -870,6 +881,7 @@ static int open_x11(void * data, gavl_video_format_t * format)
   priv->window_format.pixel_width = 1;
   priv->window_format.pixel_height = 1;
   
+  priv->keep_aspect = keep_aspect;
   priv->is_open = 1;
   set_drawing_coords(priv);
   

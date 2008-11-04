@@ -164,6 +164,7 @@ int bg_x11_window_set_hue(bg_x11_window_t*, float val);
 
 
 void bg_x11_window_put_frame(bg_x11_window_t*, gavl_video_frame_t * frame);
+void bg_x11_window_put_still(bg_x11_window_t*, gavl_video_frame_t * frame);
 
 
 

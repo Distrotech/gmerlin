@@ -317,7 +317,7 @@ static void open_monitor(gmerlin_webcam_t * cam)
 
   /* Open monitor */
   
-  if(!cam->monitor->open(cam->monitor_handle->priv, &cam->monitor_format))
+  if(!cam->monitor->open(cam->monitor_handle->priv, &cam->monitor_format, 1))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Opening monitor plugin failed");
     }

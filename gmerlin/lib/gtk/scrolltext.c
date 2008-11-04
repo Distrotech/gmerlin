@@ -46,7 +46,7 @@ struct bg_gtk_scrolltext_s
   float background_color[3];
 
   int do_scroll;
-  guint timeout_tag;
+  gulong timeout_tag;
     
   PangoFontDescription* font_desc;
     
@@ -90,26 +90,28 @@ static gboolean expose_callback(GtkWidget * w, GdkEventExpose * evt,
                                 gpointer data)
   {
   bg_gtk_scrolltext_t * st = (bg_gtk_scrolltext_t *)data;
+  //  fprintf(stderr, "Expose callback %d %d\n", st->width, st->height);
+  
   gdk_draw_drawable(st->drawingarea->window, st->gc, st->pixmap_2,
                     0, 0, 0, 0, st->width, st->height);
   
   return TRUE;
   }
 
-static gboolean configure_callback(GtkWidget * w, GdkEventConfigure * evt,
+static void size_allocate_callback(GtkWidget * w, GtkAllocation * evt,
                                    gpointer data)
+     //static gboolean configure_callback(GtkWidget * w, GdkEventConfigure * evt,
+     //                                   gpointer data)
   {
   GdkColor bg;
   bg_gtk_scrolltext_t * st = (bg_gtk_scrolltext_t *)data;
-
+  
   if((st->width == evt->width) && (st->height == evt->height) &&
      (st->pixmap_2))
-    return FALSE;
+    return;
   
   st->width = evt->width;
   st->height = evt->height;
-
-  //  fprintf(stderr, "Scrolltext size: %d x %d\n", st->width, st->height);
   
   if(st->pixmap_2)
     {
@@ -144,6 +146,13 @@ static gboolean configure_callback(GtkWidget * w, GdkEventConfigure * evt,
     {
     st->pixmap_width  = evt->width + 10;
     st->pixmap_height = evt->height + 10;
+
+    // fprintf(stderr, "realize: %d %d\n", st->pixmap_width, st->pixmap_height);
+    st->pixmap_2 = gdk_pixmap_new(st->drawingarea->window,
+                                  st->pixmap_width, st->pixmap_height, -1);
+    
+    if(st->text)
+      create_text_pixmap(st);
     }
 
   if(st->pixmap_1)
@@ -155,13 +164,13 @@ static gboolean configure_callback(GtkWidget * w, GdkEventConfigure * evt,
       }
     }
   //  expose_callback(w, NULL, data);
-  return FALSE;
+  return;
   }
 
 static gboolean timeout_func(gpointer data)
   {
   bg_gtk_scrolltext_t * st = (bg_gtk_scrolltext_t*)data;
-
+  
   if(!st->do_scroll)
     return FALSE;
   
@@ -226,6 +235,8 @@ static void create_text_pixmap(bg_gtk_scrolltext_t * st)
   if(st->do_scroll)
     {
     g_source_remove(st->timeout_tag);
+    st->do_scroll = 0;
+    st->timeout_tag = 0;
     }
   
   /* Set up pixmap */
@@ -262,6 +273,9 @@ static void create_text_pixmap(bg_gtk_scrolltext_t * st)
   if(st->pixmap_1)
     g_object_unref(G_OBJECT(st->pixmap_1));
 
+  //  fprintf(stderr, "Create text pixmap %sd x %d\n",
+  //          st->text_width, st->height);
+  
   st->pixmap_1 = gdk_pixmap_new(st->drawingarea->window,
                                 st->text_width, st->height, -1);
 
@@ -303,11 +317,6 @@ static void realize_callback(GtkWidget * w, gpointer data)
   st->is_realized = 1;
   st->gc = gdk_gc_new(st->drawingarea->window);
 
-  st->pixmap_2 = gdk_pixmap_new(st->drawingarea->window,
-                                st->pixmap_width, st->pixmap_height, -1);
-  
-  if(st->text)
-    create_text_pixmap(st);
   }
 
 bg_gtk_scrolltext_t * bg_gtk_scrolltext_create(int width, int height)
@@ -337,8 +346,12 @@ bg_gtk_scrolltext_t * bg_gtk_scrolltext_create(int width, int height)
                    "expose-event", G_CALLBACK(expose_callback),
                    ret);
 
+  //  g_signal_connect(G_OBJECT(ret->drawingarea),
+  //                   "configure-event", G_CALLBACK(configure_callback),
+  //                   ret);
+
   g_signal_connect(G_OBJECT(ret->drawingarea),
-                   "configure-event", G_CALLBACK(configure_callback),
+                   "size-allocate", G_CALLBACK(size_allocate_callback),
                    ret);
   
   gtk_widget_show(ret->drawingarea);
@@ -378,7 +391,7 @@ void bg_gtk_scrolltext_set_font(bg_gtk_scrolltext_t * d, const char * font)
 
 void bg_gtk_scrolltext_destroy(bg_gtk_scrolltext_t * d)
   {
-  if(d->do_scroll)
+  if(d->timeout_tag)
     g_source_remove(d->timeout_tag);
   if(d->font_desc)
     pango_font_description_free(d->font_desc);
