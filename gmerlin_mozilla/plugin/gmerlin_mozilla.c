@@ -89,6 +89,8 @@ void gmerlin_mozilla_destroy(bg_mozilla_t* m)
   if(m->ov_handle) bg_plugin_unref(m->ov_handle);
   if(m->oa_handle) bg_plugin_unref(m->oa_handle);
 
+  if(m->input_handle) bg_plugin_unref(m->input_handle);
+  
   /* Set the LC_NUMERIC locale to "C" so we read floats right */
   old_locale = setlocale(LC_NUMERIC, "C");
   
@@ -257,7 +259,7 @@ static int append_url(bg_mozilla_t * m, const char * url,
         m->url_mode = URL_MODE_REDIRECT;
         do_play(m, url, i, ti, h);
         }
-      fprintf(stderr, "%s is real stream\n", ti->url);
+      //      fprintf(stderr, "%s is real stream\n", url);
       }
     }
   bg_plugin_unref(h);
@@ -274,7 +276,7 @@ static void * start_func(void * priv)
   bg_mozilla_t * m = priv;
   bg_plugin_handle_t * h = (bg_plugin_handle_t *)0;
   m->playing = 0;
-  fprintf(stderr, "gmerlin_mozilla_start\n");
+  //  fprintf(stderr, "gmerlin_mozilla_start\n");
 
   /* Cleanup earlier playback */
   if(m->input_handle)
@@ -316,7 +318,7 @@ static void * start_func(void * priv)
   
   if(m->url_mode == URL_MODE_STREAM)
     {
-    fprintf(stderr, "Open stream\n");
+    //  fprintf(stderr, "Open stream\n");
 
     if(!input->open_callbacks)
       {
@@ -332,18 +334,18 @@ static void * start_func(void * priv)
       bg_mozilla_widget_set_error(m->widget);
       
       //      bg_plugin_unref(h);
-      fprintf(stderr, "Open callbacks failed\n");
+      //      fprintf(stderr, "Open callbacks failed\n");
       goto fail;
       }
     }
   else
     {
-    fprintf(stderr, "Open local\n");
+    //    fprintf(stderr, "Open local\n");
     if(!input->open(h->priv, m->url))
       {
       bg_mozilla_widget_set_error(m->widget);
       //      bg_plugin_unref(h);
-      fprintf(stderr, "Open failed\n");
+      //      fprintf(stderr, "Open failed\n");
       goto fail;
       }
     }

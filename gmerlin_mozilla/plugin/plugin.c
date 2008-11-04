@@ -172,6 +172,8 @@ NPError NPP_New(NPMIMEType pluginType,
     }
   
   priv = gmerlin_mozilla_create();
+  //  fprintf(stderr, "NPP_New: %p\n", priv);
+
   instance->pdata = priv;
   
   priv->instance = instance;
@@ -204,7 +206,7 @@ NPError NPP_New(NPMIMEType pluginType,
     {
     gmerlin_mozilla_destroy(priv);
     instance->pdata = NULL;
-    fprintf(stderr, "Bad embed info\n");
+    //    fprintf(stderr, "Bad embed info\n");
     return NPERR_INVALID_PLUGIN_ERROR;
     }
   if(((priv->ei.mode == MODE_VLC) && (priv->ei.target)) ||
@@ -227,8 +229,8 @@ NPError NPP_Destroy(NPP instance,
                     NPSavedData **saved)
   {
   bg_mozilla_t * priv;
-  fprintf(stderr, "DESTROY\n");
   priv = (bg_mozilla_t *)instance->pdata;
+  //  fprintf(stderr, "NPP_Destroy %p\n", priv);
   gmerlin_mozilla_destroy(priv);
   return NPERR_NO_ERROR;
   }
@@ -252,8 +254,6 @@ NPError NPP_GetValue(NPP instance,
     case NPPVpluginScriptableNPObject:
       bg_NPN_RetainObject(priv->scriptable);
       *((NPObject**) value) = priv->scriptable;
-      fprintf(stderr, "NPP_GetValue NPPVpluginScriptableNPObject %p\n",
-              priv->scriptable);
       break;
     default:
       fprintf(stderr, "NPP_GetValue %d\n", variable);
@@ -369,7 +369,8 @@ NPError NPP_SetWindow(NPP instance, NPWindow *window)
   {
   bg_mozilla_t * priv;
   priv = (bg_mozilla_t *)instance->pdata;
-  //  fprintf(stderr, "SetWindow %ld\n", (int64_t)window->window);
+  //  fprintf(stderr, "SetWindow %08x (priv: %p)\n", (int64_t)window->window,
+  //          priv);
   gmerlin_mozilla_set_window(priv,
                              (GdkNativeWindow)(((int64_t)window->window)));
   return NPERR_NO_ERROR;
@@ -394,12 +395,12 @@ NPError NP_Initialize(NPNetscapeFuncs *aNPNFuncs,
                       NPPluginFuncs *aNPPFuncs)
   {
   // fprintf(stderr, "INITIALIZE %d %d\n", aNPPFuncs->version, aNPPFuncs->size);
-  
+#if 0
   bg_log_set_verbose(BG_LOG_DEBUG |
                      BG_LOG_WARNING |
                      BG_LOG_ERROR |
                      BG_LOG_INFO);
-  
+#endif
   set_plugin_funcs(aNPPFuncs);
   bg_mozilla_init_browser_funcs(aNPNFuncs);
   gmerlin_mozilla_init_scriptable();
@@ -408,7 +409,7 @@ NPError NP_Initialize(NPNetscapeFuncs *aNPNFuncs,
 
 NPError NP_Shutdown(void)
   {
-  fprintf(stderr, "SHUTDOWN\n");
+  //  fprintf(stderr, "SHUTDOWN\n");
   return NPERR_NO_ERROR;
   }
 

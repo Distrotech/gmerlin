@@ -88,7 +88,7 @@ static void resize_toolbar(bg_mozilla_widget_t * w)
                               20, 20);
   gtk_widget_set_size_request(bg_gtk_scrolltext_get_widget(w->scrolltext),
                               win->width-20, 20);
-
+  
   if(w->duration != GAVL_TIME_UNDEFINED)
     {
     gtk_widget_set_size_request(bg_gtk_slider_get_widget(w->seek_slider),
@@ -151,7 +151,7 @@ static void size_allocate(GtkWidget     *widget,
   win->width = a->width;
   win->height = a->height;
 
-  fprintf(stderr, "size_allocate: %d x %d\n", a->width, a->height);
+  // fprintf(stderr, "size_allocate: %d x %d\n", a->width, a->height);
 
   g_signal_handler_block(win->box, win->resize_id);
   if(win == w->current_win)
@@ -191,7 +191,7 @@ static gboolean button_press_callback(GtkWidget * wid, GdkEventButton * evt,
   bg_mozilla_widget_t * w;
   w = data;
   w->idle_counter = 0;
-  fprintf(stderr, "button_press_callback %d\n", evt->button);
+  //  fprintf(stderr, "button_press_callback %d\n", evt->button);
 
   GTK_WIDGET_SET_FLAGS(w->current_win->socket, GTK_CAN_FOCUS);
   gtk_widget_grab_focus(w->current_win->socket);
@@ -223,7 +223,7 @@ static gboolean button_release_callback(GtkWidget * wid, GdkEventButton * evt,
   w = data;
   //  show_toolbar(w);
   w->idle_counter = 0;
-  fprintf(stderr, "button_release_callback %d\n", evt->button);
+  //  fprintf(stderr, "button_release_callback %d\n", evt->button);
   if(evt->button == 3)
     {
     w->popup_time = evt->time;
@@ -239,7 +239,7 @@ static gboolean key_press_callback(GtkWidget * wid, GdkEventKey * evt,
   {
   bg_mozilla_widget_t * w;
   w = data;
-  fprintf(stderr, "key_press_callback\n");
+  // fprintf(stderr, "key_press_callback\n");
 
   switch(evt->keyval)
     {
@@ -253,10 +253,11 @@ static gboolean key_press_callback(GtkWidget * wid, GdkEventKey * evt,
                      // gtk_get_current_event_time()
                      evt->time
                      );
+      return TRUE;
       break;
     }
   
-  return TRUE;
+  return FALSE;
   }
 
 /* Slider callbacks */
@@ -371,7 +372,7 @@ static void handle_message(bg_mozilla_widget_t * w,
       switch(arg_i)
         {
         case BG_PLAYER_STATE_PAUSED:
-          fprintf(stderr, "State: Paused\n");
+          //          fprintf(stderr, "State: Paused\n");
           gtk_widget_hide(bg_gtk_button_get_widget(w->pause_button));
           gtk_widget_show(bg_gtk_button_get_widget(w->play_button));
           break;
@@ -507,7 +508,7 @@ static void plug_added_callback(GtkWidget * w, gpointer data)
   gtk_widget_grab_focus(w);
   }
 
-#if 1
+#if 0
 static void grab_notify_callback(GtkWidget *widget,
                                  gboolean   was_grabbed,
                                  gpointer   data)
@@ -520,7 +521,8 @@ static void grab_notify_callback(GtkWidget *widget,
     gtk_widget_grab_focus(w->current_win->socket);
     }
   }
-#endif
+
+
 static void focus_callback(GtkWidget *widget,
                            GdkEventFocus *event,
                            gpointer   data)
@@ -531,6 +533,7 @@ static void focus_callback(GtkWidget *widget,
   else
     fprintf(stderr, "Focus out\n");
   }
+#endif
 
 static void create_controls(bg_mozilla_widget_t * w)
   {
@@ -662,6 +665,7 @@ static void init_window(bg_mozilla_widget_t * w,
   g_signal_connect(win->socket, "plug-added",
                    G_CALLBACK(plug_added_callback),
                    w);
+#if 0
   g_signal_connect(G_OBJECT(win->socket), "grab-notify",
                    G_CALLBACK(grab_notify_callback),
                    w);
@@ -671,7 +675,7 @@ static void init_window(bg_mozilla_widget_t * w,
   g_signal_connect(G_OBJECT(win->socket), "focus-out-event",
                    G_CALLBACK(focus_callback),
                    w);
-
+#endif
   g_signal_connect(G_OBJECT(win->socket), "plug-removed",
                    G_CALLBACK(plug_removed_callback),
                    w);
@@ -732,6 +736,9 @@ void bg_mozilla_widget_set_window(bg_mozilla_widget_t * w,
                (long unsigned int)gtk_socket_get_id(GTK_SOCKET(w->normal_win.socket)),
                (long unsigned int)gtk_socket_get_id(GTK_SOCKET(w->fullscreen_win.socket)));
 
+  fprintf(stderr, "Got display string: %s\n",
+          w->m->display_string);
+  
   if(w->m->ov_info)
     {
     if(w->m->ov_handle)
