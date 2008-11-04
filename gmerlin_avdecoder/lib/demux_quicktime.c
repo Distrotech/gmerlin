@@ -1098,9 +1098,15 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       bg_vs->data.video.format.frame_duration =
         trak->mdia.minf.stbl.stts.entries[0].duration;
 
-      if((trak->mdia.minf.stbl.stts.num_entries == 1) ||
-         ((trak->mdia.minf.stbl.stts.num_entries == 2) &&
-          (trak->mdia.minf.stbl.stts.entries[1].count == 1)))
+      /* Some quicktime movies have just a still image */
+      if((trak->mdia.minf.stbl.stts.num_entries == 1) &&
+              (trak->mdia.minf.stbl.stts.entries[0].count == 1))
+        {
+        bg_vs->data.video.format.framerate_mode = GAVL_FRAMERATE_STILL;
+        }
+      else if((trak->mdia.minf.stbl.stts.num_entries == 1) ||
+              ((trak->mdia.minf.stbl.stts.num_entries == 2) &&
+               (trak->mdia.minf.stbl.stts.entries[1].count == 1)))
         bg_vs->data.video.format.framerate_mode = GAVL_FRAMERATE_CONSTANT;
       else
         {
