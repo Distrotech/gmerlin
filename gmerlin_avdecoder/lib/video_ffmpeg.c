@@ -390,7 +390,8 @@ static int get_data_parser(bgav_stream_t * s, int64_t * pts,
   return 1;
   }
 
-static int get_data_normal(bgav_stream_t * s, int64_t * pts, int64_t * position, int64_t * duration)
+static int get_data_normal(bgav_stream_t * s, int64_t * pts,
+                           int64_t * position, int64_t * duration)
   {
   ffmpeg_video_priv * priv;
   bgav_packet_t * p = (bgav_packet_t*)0;

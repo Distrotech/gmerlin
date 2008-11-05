@@ -1612,6 +1612,7 @@ static void idx1_build_superindex(bgav_demuxer_context_t * ctx)
   bgav_stream_t * stream;
   avi_priv_t * avi;
   int64_t base_offset;
+  int first_pos;
   
   avi = (avi_priv_t*)(ctx->priv);
 
@@ -1633,14 +1634,20 @@ static void idx1_build_superindex(bgav_demuxer_context_t * ctx)
 
   ctx->si = bgav_superindex_create(avi->idx1.num_entries);
 
-  if(avi->idx1.entries[0].dwChunkOffset == 4)
+  /* Some files have a bogus 7Fxx entry as the first one */
+  first_pos = 0;
+  
+  if(avi->idx1.entries[first_pos].ckid ==
+     BGAV_MK_FOURCC('7', 'F', 'x', 'x'))
+    first_pos++;
+  if(avi->idx1.entries[first_pos].dwChunkOffset == 4)
     base_offset = 4 + ctx->data_start;
   else
     /* For invalid files, which have the index relative to file start */
     base_offset = 4 + ctx->data_start -
-      (avi->idx1.entries[0].dwChunkOffset - 4);
+      ((int)avi->idx1.entries[first_pos].dwChunkOffset - 4);
   
-  for(i = 0; i < avi->idx1.num_entries; i++)
+  for(i = first_pos; i < avi->idx1.num_entries; i++)
     {
     stream_id = get_stream_id(avi->idx1.entries[i].ckid);
 
