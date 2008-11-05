@@ -91,9 +91,9 @@ static gboolean expose_callback(GtkWidget * w, GdkEventExpose * evt,
   {
   bg_gtk_scrolltext_t * st = (bg_gtk_scrolltext_t *)data;
   //  fprintf(stderr, "Expose callback %d %d\n", st->width, st->height);
-  
-  gdk_draw_drawable(st->drawingarea->window, st->gc, st->pixmap_da,
-                    0, 0, 0, 0, st->width, st->height);
+  if(st->pixmap_da)
+    gdk_draw_drawable(st->drawingarea->window, st->gc, st->pixmap_da,
+                      0, 0, 0, 0, st->width, st->height);
   
   return TRUE;
   }
@@ -129,7 +129,6 @@ static void size_allocate_callback(GtkWidget * w, GtkAllocation * evt,
       st->pixmap_da = gdk_pixmap_new(st->drawingarea->window,
                                     st->pixmap_width, st->pixmap_height, -1);
       }
-
     /* Put pixmap_string onto pixmap_da if we won't scroll */
     if(st->width >= st->text_width)
       {
@@ -139,9 +138,10 @@ static void size_allocate_callback(GtkWidget * w, GtkAllocation * evt,
       gdk_draw_rectangle(st->pixmap_da,
                          st->gc, TRUE,
                          0, 0, st->width, st->height);
-      gdk_draw_drawable(st->pixmap_da, st->gc, st->pixmap_string,
-                        0, 0, (st->width - st->text_width)/2,
-                        0, st->text_width, st->height);
+      if(st->pixmap_string)
+        gdk_draw_drawable(st->pixmap_da, st->gc, st->pixmap_string,
+                          0, 0, (st->width - st->text_width)/2,
+                          0, st->text_width, st->height);
       }
     }
   else
@@ -213,9 +213,8 @@ static void create_text_pixmap(bg_gtk_scrolltext_t * st)
   
   int height;
 
-  if(!st->is_realized)
+  if(!st->is_realized || !st->width || ! st->height)
     return;
-  
   
   /* Create pango layout */
   
@@ -274,7 +273,7 @@ static void create_text_pixmap(bg_gtk_scrolltext_t * st)
   if(st->pixmap_string)
     g_object_unref(G_OBJECT(st->pixmap_string));
 
-  //  fprintf(stderr, "Create text pixmap %sd x %d\n",
+  //  fprintf(stderr, "Create text pixmap %d x %d\n",
   //          st->text_width, st->height);
   
   st->pixmap_string = gdk_pixmap_new(st->drawingarea->window,
