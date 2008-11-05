@@ -627,7 +627,6 @@ void bg_x11_window_get_coords(bg_x11_window_t * w,
   
   if((x || y) && (parent_return != root_return))
     {
-    fprintf(stderr, "Get geometry 2 %ld\n", parent_return);
     XGetGeometry(w->dpy, parent_return, &root_return,
                  &x_return, &y_return,
                  &width_return, &height_return,
