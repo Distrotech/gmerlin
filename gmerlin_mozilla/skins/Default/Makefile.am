@@ -17,7 +17,15 @@ seek_slider_cl.png \
 seek_slider_hl.png \
 seek_slider_in.png \
 seek_slider.png \
-skin.xml
+skin.xml \
+volume_button.png \
+volume_button_hl.png \
+volume_button_cl.png \
+volume_bg.png \
+volume_slider_cl.png \
+volume_slider_hl.png \
+volume_slider_in.png \
+volume_slider.png
 
 pkgdata_DATA = $(skin_data)
 EXTRA_DIST = $(skin_data)

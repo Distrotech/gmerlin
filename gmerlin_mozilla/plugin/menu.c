@@ -2,6 +2,7 @@
 #include <gmerlin_mozilla.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/translation.h>
+#include <gdk/gdkkeysyms.h>
 
 #define DND_GMERLIN_TRACKS   1
 #define DND_TEXT_URI_LIST    2
@@ -268,6 +269,12 @@ void bg_mozilla_widget_init_menu(bg_mozilla_widget_t * m)
   m->menu.windowed = create_pixmap_item(TR("Windowed"), "windowed_16.png",
                                         m, m->menu.menu);
 
+  gtk_widget_add_accelerator(m->menu.windowed,
+                             "activate",
+                             m->accel_group,
+                             GDK_Escape, 0, GTK_ACCEL_VISIBLE);
+
+  
   gtk_widget_hide(m->menu.windowed);
   gtk_widget_show(m->menu.menu);
   }

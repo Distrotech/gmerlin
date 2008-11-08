@@ -62,7 +62,7 @@ struct bg_mozilla_s
   int state;
 
   int player_state;
-  
+  float volume;
   bg_player_t * player;
   bg_cfg_registry_t * cfg_reg;
   bg_plugin_registry_t * plugin_reg;
@@ -120,9 +120,11 @@ struct bg_mozilla_s
   pthread_mutex_t start_finished_mutex;
   
   /* Configuration sections */
+  bg_cfg_section_t * general_section;
   bg_cfg_section_t * gui_section;
   bg_cfg_section_t * infowindow_section;
   bg_cfg_section_t * visualization_section;
+  bg_cfg_section_t * osd_section;
   
   /* Config dialog */
   bg_dialog_t * cfg_dialog;
@@ -160,6 +162,16 @@ void gmerlin_mozilla_create_dialog(bg_mozilla_t * g);
 void gmerlin_mozilla_create_scriptable(bg_mozilla_t * g);
 void gmerlin_mozilla_init_scriptable();
 
+const bg_parameter_info_t *
+gmerlin_mozilla_get_parameters(bg_mozilla_t * g);
+
+void gmerlin_mozilla_set_parameter(void * data, const char * name,
+                                   const bg_parameter_value_t * val);
+
+int gmerlin_mozilla_get_parameter(void * data,
+                                  const char * name,
+                                  bg_parameter_value_t * val);
+
 /* GUI */
 
 typedef struct
@@ -195,9 +207,10 @@ typedef struct
   bg_gtk_button_skin_t play_button;
   bg_gtk_button_skin_t pause_button;
   bg_gtk_button_skin_t stop_button;
+  bg_gtk_button_skin_t volume_button;
   
   bg_gtk_slider_skin_t seek_slider;
-  // bg_gtk_slider_skin_t volume_slider;
+  bg_gtk_slider_skin_t volume_slider;
 
   char * directory;
   } bg_mozilla_widget_skin_t;
@@ -219,6 +232,8 @@ typedef struct
 
 struct bg_mozilla_widget_s
   {
+  GtkAccelGroup * accel_group;
+  
   main_menu_t menu;
   
   /* Top parent */
@@ -227,6 +242,7 @@ struct bg_mozilla_widget_s
   bg_mozilla_window_t * current_win;
   
   GtkWidget * controls;
+  GtkWidget * volume_window;
   
   bg_mozilla_t * m;
   
@@ -247,12 +263,13 @@ struct bg_mozilla_widget_s
   
   bg_gtk_scrolltext_t * scrolltext;
   bg_gtk_slider_t     * seek_slider;
+  bg_gtk_slider_t     * volume_slider;
   gavl_time_t duration;
 
   bg_gtk_button_t     * pause_button;
   bg_gtk_button_t     * stop_button;
   bg_gtk_button_t     * play_button;
-
+  bg_gtk_button_t     * volume_button;
   
   bg_mozilla_widget_skin_t skin;
   char * skin_directory;

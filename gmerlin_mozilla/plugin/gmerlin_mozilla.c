@@ -66,6 +66,11 @@ bg_mozilla_t * gmerlin_mozilla_create()
     bg_cfg_registry_find_section(ret->cfg_reg, "infowindow");
   ret->visualization_section =
     bg_cfg_registry_find_section(ret->cfg_reg, "visualize");
+  ret->osd_section =
+    bg_cfg_registry_find_section(ret->cfg_reg, "osd");
+
+  ret->general_section =
+    bg_cfg_registry_find_section(ret->cfg_reg, "general");
   
   /* Create config dialog */
   gmerlin_mozilla_create_dialog(ret);
@@ -83,6 +88,8 @@ void gmerlin_mozilla_destroy(bg_mozilla_t* m)
   const bg_parameter_info_t * parameters;
   char * tmp_path;
   char * old_locale;
+  /* Save config data */
+  
   /* Shutdown player */
   bg_player_quit(m->player);
   bg_player_destroy(m->player);
@@ -97,6 +104,11 @@ void gmerlin_mozilla_destroy(bg_mozilla_t* m)
   bg_plugin_registry_destroy(m->plugin_reg);
 
   /* Get parameters */
+  parameters = gmerlin_mozilla_get_parameters(m);
+  
+  bg_cfg_section_get(m->general_section, parameters,
+                     gmerlin_mozilla_get_parameter, m);
+  
   parameters = bg_gtk_info_window_get_parameters(m->info_window);
   bg_cfg_section_get(m->infowindow_section, parameters,
                      bg_gtk_info_window_get_parameter,
@@ -393,4 +405,59 @@ void gmerlin_mozilla_start(bg_mozilla_t * m)
     m->state = STATE_STARTING;
     pthread_create(&(m->start_thread), (pthread_attr_t*)0, start_func, m);
     }
+  }
+
+static const bg_parameter_info_t parameters[] =
+  {
+    {
+      .name =        "volume",
+      .long_name =   "Volume",
+      .type =        BG_PARAMETER_FLOAT,
+      .flags =       BG_PARAMETER_HIDE_DIALOG,
+      .val_min =     { .val_f = BG_PLAYER_VOLUME_MIN },
+      .val_max =     { .val_f = 0.0 },
+      .val_default = { .val_f = 0.0 },
+    },
+#if 0
+    {
+      .name =        "skin_dir",
+      .long_name =   "Skin Directory",
+      .type =        BG_PARAMETER_DIRECTORY,
+      .flags =       BG_PARAMETER_HIDE_DIALOG,
+      .val_default = { .val_str = GMERLIN_DATA_DIR"/skins/Default" },
+    },
+#endif
+    { /* End of Parameters */ }
+  };
+
+const bg_parameter_info_t * gmerlin_mozilla_get_parameters(bg_mozilla_t * g)
+  {
+  return parameters;
+  }
+
+void gmerlin_mozilla_set_parameter(void * data, const char * name,
+                                   const bg_parameter_value_t * val)
+  {
+  bg_mozilla_t * g = data;
+  if(!name)
+    return;
+  else if(!strcmp(name, "volume"))
+    {
+    bg_player_set_volume(g->player, val->val_f);
+    g->volume = val->val_f;
+    }
+  }
+
+int gmerlin_mozilla_get_parameter(void * data,
+                                  const char * name,
+                                  bg_parameter_value_t * val)
+  {
+  bg_mozilla_t * g = data;
+  if(!name)
+    return 0;
+  else if(!strcmp(name, "volume"))
+    {
+    val->val_f = g->volume;
+    }
+  return 0;
   }

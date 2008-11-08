@@ -21,6 +21,11 @@
       <HIGHLIGHT>stop_button_hl.png</HIGHLIGHT>
       <PRESSED>stop_button_cl.png</PRESSED>
     </STOPBUTTON>
+    <VOLUMEBUTTON>
+      <NORMAL>volume_button.png</NORMAL>
+      <HIGHLIGHT>volume_button_hl.png</HIGHLIGHT>
+      <PRESSED>volume_button_cl.png</PRESSED>
+    </VOLUMEBUTTON>
     <SEEKSLIDER>
       <BACKGROUND>seek_bg.png</BACKGROUND>
       <BACKGROUND_L>seek_bg_l.png</BACKGROUND_L>
@@ -31,7 +36,6 @@
       <INACTIVE>seek_slider_in.png</INACTIVE>
     </SEEKSLIDER>
     <VOLUMESLIDER>
-      <X>252</X><Y>7</Y>
       <BACKGROUND>volume_bg.png</BACKGROUND>
       <NORMAL>volume_slider.png</NORMAL>
       <HIGHLIGHT>volume_slider_hl.png</HIGHLIGHT>

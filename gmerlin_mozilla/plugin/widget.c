@@ -65,6 +65,15 @@ static void gmerlin_button_callback(bg_gtk_button_t * b, void * data)
     {
     bg_mozilla_pause(w->m);
     }
+  if(b == w->volume_button)
+    {
+    int x, y;
+    GtkWidget * wid = bg_gtk_button_get_widget(b);
+    gdk_window_get_origin(wid->window, &x, &y);
+    gdk_window_move_resize(w->volume_window->window, x, y - 80, 20, 80);
+    gtk_widget_show(w->volume_window);
+    gdk_window_move(w->volume_window->window, x, y - 80);
+    }
   }
 
 static void show_toolbar(bg_mozilla_widget_t * w)
@@ -84,10 +93,16 @@ static void resize_toolbar(bg_mozilla_widget_t * w)
                               20, 20);
   gtk_widget_set_size_request(bg_gtk_button_get_widget(w->play_button),
                               20, 20);
+  gtk_widget_set_size_request(bg_gtk_button_get_widget(w->volume_button),
+                              20, 20);
   gtk_widget_set_size_request(bg_gtk_button_get_widget(w->pause_button),
                               20, 20);
   gtk_widget_set_size_request(bg_gtk_scrolltext_get_widget(w->scrolltext),
-                              win->width-20, 20);
+                              win->width-40, 20);
+
+  gtk_fixed_move(GTK_FIXED(w->controls),
+                 bg_gtk_button_get_widget(w->volume_button),
+                 win->width-20, 0);
   
   if(w->duration != GAVL_TIME_UNDEFINED)
     {
@@ -293,7 +308,6 @@ slider_scroll_callback(bg_gtk_slider_t * slider, int up, void * data)
   {
   bg_mozilla_widget_t * win = (bg_mozilla_widget_t *)data;
 
-#if 0  
   if(slider == win->volume_slider)
     {
     if(up)
@@ -302,7 +316,6 @@ slider_scroll_callback(bg_gtk_slider_t * slider, int up, void * data)
       bg_player_set_volume_rel(win->m->player, -1.0);
     }
   else
-#endif
     if(slider == win->seek_slider)
     {
     if(up)
@@ -313,12 +326,28 @@ slider_scroll_callback(bg_gtk_slider_t * slider, int up, void * data)
   
   }
 
+static void volume_change_callback(bg_gtk_slider_t * slider, float perc,
+                                   void * data)
+  {
+  float volume;
+  bg_mozilla_widget_t * win = (bg_mozilla_widget_t *)data;
+  
+  volume = BG_PLAYER_VOLUME_MIN - BG_PLAYER_VOLUME_MIN * perc;
+  if(volume > 0.0)
+    volume = 0.0;
+  
+  bg_player_set_volume(win->m->player, volume);
+  win->m->volume = volume;
+  }
+
+
 
 bg_mozilla_widget_t * bg_mozilla_widget_create(bg_mozilla_t * m)
   {
   bg_mozilla_widget_t * w;
   w = calloc(1, sizeof(*w));
   w->m = m;
+  w->accel_group = gtk_accel_group_new();
   
   bg_mozilla_widget_init_menu(w);
   
@@ -535,10 +564,18 @@ static void focus_callback(GtkWidget *widget,
   }
 #endif
 
+static void volume_leave_notify_callback(GtkWidget * w, GdkEventCrossing *event,
+                                         gpointer data)
+  {
+  bg_mozilla_widget_t * wid = data;
+  gtk_widget_hide(wid->volume_window);
+  }
+
 static void create_controls(bg_mozilla_widget_t * w)
   {
   w->controls = gtk_fixed_new();
-
+  
+  
   gtk_fixed_set_has_window(GTK_FIXED(w->controls), TRUE);
   
   /* Prepare for reparenting */
@@ -550,6 +587,7 @@ static void create_controls(bg_mozilla_widget_t * w)
   w->stop_button = bg_gtk_button_create();
   w->pause_button = bg_gtk_button_create();
   w->play_button = bg_gtk_button_create();
+  w->volume_button = bg_gtk_button_create();
     
   gtk_widget_hide(bg_gtk_button_get_widget(w->play_button));
   gtk_widget_hide(bg_gtk_button_get_widget(w->pause_button));
@@ -557,6 +595,7 @@ static void create_controls(bg_mozilla_widget_t * w)
   bg_gtk_button_set_callback(w->stop_button, gmerlin_button_callback, w);
   bg_gtk_button_set_callback(w->pause_button, gmerlin_button_callback, w);
   bg_gtk_button_set_callback(w->play_button, gmerlin_button_callback, w);
+  bg_gtk_button_set_callback(w->volume_button, gmerlin_button_callback, w);
   
   bg_gtk_button_set_skin(w->stop_button,
                          &w->skin.stop_button, w->skin_directory);
@@ -564,6 +603,8 @@ static void create_controls(bg_mozilla_widget_t * w)
                          &w->skin.pause_button, w->skin_directory);
   bg_gtk_button_set_skin(w->play_button,
                          &w->skin.play_button, w->skin_directory);
+  bg_gtk_button_set_skin(w->volume_button,
+                         &w->skin.volume_button, w->skin_directory);
   
   w->seek_slider = bg_gtk_slider_create();
   
@@ -596,6 +637,35 @@ static void create_controls(bg_mozilla_widget_t * w)
   gtk_fixed_put(GTK_FIXED(w->controls),
                 bg_gtk_slider_get_widget(w->seek_slider),
                 0, 20);
+  gtk_fixed_put(GTK_FIXED(w->controls),
+                bg_gtk_button_get_widget(w->volume_button),
+                0, 0);
+
+  /* Volume slider */
+  w->volume_window = gtk_window_new(GTK_WINDOW_POPUP);
+
+  gtk_widget_set_events(w->volume_window, GDK_LEAVE_NOTIFY_MASK);
+  g_signal_connect(w->volume_window, "leave-notify-event",
+                   G_CALLBACK(volume_leave_notify_callback), w);
+  
+  w->volume_slider = bg_gtk_slider_create();
+  
+  bg_gtk_slider_set_skin(w->volume_slider,
+                         &w->skin.volume_slider,
+                         w->skin_directory);
+
+  bg_gtk_slider_set_pos(w->volume_slider,
+                        (w->m->volume - BG_PLAYER_VOLUME_MIN)/
+                        (-BG_PLAYER_VOLUME_MIN));
+  
+  bg_gtk_slider_set_scroll_callback(w->volume_slider,
+                                    slider_scroll_callback, w);
+  bg_gtk_slider_set_change_callback(w->volume_slider,
+                                    volume_change_callback, w);
+  gtk_container_add(GTK_CONTAINER(w->volume_window),
+                    bg_gtk_slider_get_widget(w->volume_slider));
+  gtk_widget_realize(w->volume_window);
+  
   }
 
 static gboolean plug_removed_callback(GtkWidget * w, gpointer data)
@@ -700,9 +770,10 @@ void bg_mozilla_widget_set_window(bg_mozilla_widget_t * w,
   //  g_signal_connect(w->socket, "button-press-event",
   //                   G_CALLBACK(button_press_callback), w);
   w->normal_win.window = gtk_plug_new(window_id);
-
   
   w->fullscreen_win.window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  gtk_window_add_accel_group(GTK_WINDOW(w->fullscreen_win.window), w->accel_group);
+  
   // gtk_window_fullscreen(GTK_WINDOW(w->fullscreen_win.window));
   // gtk_window_set_resizable(GTK_WINDOW(w->fullscreen_win.window), FALSE);
   
@@ -773,6 +844,9 @@ void bg_mozilla_widget_destroy(bg_mozilla_widget_t * m)
 
   if(m->idle_id > 0)
     g_source_remove(m->idle_id);
+
+  g_object_unref(m->accel_group);
+
   free(m);
   }
 

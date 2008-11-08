@@ -23,6 +23,10 @@ static void widget_skin_load(bg_mozilla_widget_skin_t * s,
       {
       bg_gtk_slider_skin_load(&(s->seek_slider), doc, child);
       }
+    else if(!BG_XML_STRCMP(child->name, "VOLUMESLIDER"))
+      {
+      bg_gtk_slider_skin_load(&(s->volume_slider), doc, child);
+      }
     else if(!BG_XML_STRCMP(child->name, "PLAYBUTTON"))
       {
       bg_gtk_button_skin_load(&(s->play_button), doc, child);
@@ -34,6 +38,10 @@ static void widget_skin_load(bg_mozilla_widget_skin_t * s,
     else if(!BG_XML_STRCMP(child->name, "STOPBUTTON"))
       {
       bg_gtk_button_skin_load(&(s->stop_button), doc, child);
+      }
+    else if(!BG_XML_STRCMP(child->name, "VOLUMEBUTTON"))
+      {
+      bg_gtk_button_skin_load(&(s->volume_button), doc, child);
       }
     child = child->next;
     }
@@ -107,6 +115,7 @@ char * bg_mozilla_widget_skin_load(bg_mozilla_widget_skin_t * s,
 void bg_mozilla_widget_skin_destroy(bg_mozilla_widget_skin_t * s)
   {
   bg_gtk_slider_skin_free(&s->seek_slider);
+  bg_gtk_slider_skin_free(&s->volume_slider);
   bg_gtk_button_skin_free(&s->stop_button);
   bg_gtk_button_skin_free(&s->pause_button);
   bg_gtk_button_skin_free(&s->play_button);
