@@ -28,6 +28,9 @@ extern bgav_demuxer_t bgav_demuxer_rtp;
 int bgav_demuxer_rtp_open(bgav_demuxer_context_t * ctx,
                           bgav_sdp_t * sdp);
 
+void bgav_demuxer_rtp_start(bgav_demuxer_context_t * ctx);
+void bgav_demuxer_rtp_stop(bgav_demuxer_context_t * ctx);
+
 void bgav_rtp_set_tcp(bgav_demuxer_context_t * ctx);
 
 /* rtp statistics for generating receiver reports */
@@ -35,7 +38,7 @@ void bgav_rtp_set_tcp(bgav_demuxer_context_t * ctx);
 typedef struct
   {
   uint16_t max_seq;        /* highest seq. number seen */
-  uint32_t cycles;         /* shifted count of seq. number cycles */
+  int64_t cycles;         /* shifted count of seq. number cycles */
   uint32_t base_seq;       /* base seq number */
   uint32_t bad_seq;        /* last 'bad' seq number + 1 */
   uint32_t probation;      /* sequ. packets till source is valid */
@@ -58,21 +61,22 @@ typedef struct
   uint8_t csrc_count;
   uint8_t marker;
   uint8_t payload_type;
-  uint16_t sequence_number;
+  uint64_t sequence_number; /* These 2 are smaller in the rtp header,
+                               we make them 64 bit because we add offsets */
   uint64_t timestamp;
   uint32_t ssrc;
   uint32_t csrc_list[15];
   } rtp_header_t;
 
-typedef struct
+typedef struct rtp_packet_s
   {
   rtp_header_t h;
   uint8_t buffer[RTP_MAX_PACKET_LENGTH];
   uint8_t * buf;
   int len;
-  int valid;
+  int broken; /* 1 if sequence number gap */
+  struct rtp_packet_s * next;
   } rtp_packet_t;
-
 
 typedef struct bgav_rtp_packet_buffer_s bgav_rtp_packet_buffer_t;
 
@@ -82,14 +86,22 @@ bgav_rtp_packet_buffer_create(const bgav_options_t * opt,
 void bgav_rtp_packet_buffer_destroy(bgav_rtp_packet_buffer_t *);
 
 rtp_packet_t *
-bgav_rtp_packet_buffer_get_write(bgav_rtp_packet_buffer_t *);
+bgav_rtp_packet_buffer_lock_write(bgav_rtp_packet_buffer_t *);
 
-void bgav_rtp_packet_buffer_done_write(bgav_rtp_packet_buffer_t *, rtp_packet_t *);
+void bgav_rtp_packet_buffer_unlock_write(bgav_rtp_packet_buffer_t *);
+
+void bgav_rtp_packet_buffer_set_eof(bgav_rtp_packet_buffer_t *);
+int bgav_rtp_packet_buffer_get_eof(bgav_rtp_packet_buffer_t *);
+
+#if 0
+rtp_packet_t *
+bgav_rtp_packet_buffer_lock_read(bgav_rtp_packet_buffer_t *);
+#endif
 
 rtp_packet_t *
-bgav_rtp_packet_buffer_get_read(bgav_rtp_packet_buffer_t *);
+bgav_rtp_packet_buffer_try_lock_read(bgav_rtp_packet_buffer_t *);
 
-void bgav_rtp_packet_buffer_done_read(bgav_rtp_packet_buffer_t *, rtp_packet_t *);
+void bgav_rtp_packet_buffer_unlock_read(bgav_rtp_packet_buffer_t *);
 
 
 typedef struct

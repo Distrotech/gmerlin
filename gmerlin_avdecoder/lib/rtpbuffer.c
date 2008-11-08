@@ -22,22 +22,45 @@
 #include <avdec_private.h>
 #include <rtp.h>
 #include <stdlib.h>
+#include <pthread.h>
+#define LOG_DOMAIN "rtpstack"
 
-#define MAX_PACKETS 10
+// #define MAX_PACKETS 10
+
+#define MAX_DROPOUT 3000
+#define MAX_MISORDER 100
+#define MIN_SEQUENTIAL 2
+
+typedef struct packet_s
+  {
+  rtp_packet_t p;
+  struct packet_s * next;
+  } packet_t;
 
 struct bgav_rtp_packet_buffer_s
   {
-  rtp_packet_t packets[MAX_PACKETS];
-  int next_seq;
+  rtp_packet_t * read_packets;
+  rtp_packet_t * read_packet;
+  
+  rtp_packet_t * write_packets;
+  rtp_packet_t * write_packets_end;
+  rtp_packet_t * write_packet;
+
+  pthread_mutex_t read_mutex;
+  pthread_mutex_t write_mutex;
+  
+  int64_t last_seq;
   const bgav_options_t * opt;
   int num;
-  uint64_t seq_offset;
   rtp_stats_t * stats;
   int timescale;
   
   int timestamp_wrap;
   int64_t timestamp_offset;
   int64_t last_timestamp;
+
+  pthread_mutex_t eof_mutex;
+  int eof;
   };
 
 /* Statistics handling (from RFC 1889) */
@@ -67,9 +90,6 @@ static int update_stats(rtp_stats_t * s, uint16_t seq,
                         uint64_t timestamp, int timescale)
   {
   uint16_t udelta = seq - s->max_seq;
-  const int MAX_DROPOUT = 3000;
-  const int MAX_MISORDER = 100;
-  const int MIN_SEQUENTIAL = 2;
   int64_t arrival;
   
   /* Jitter estimation */
@@ -161,37 +181,50 @@ bgav_rtp_packet_buffer_create(const bgav_options_t * opt,
   bgav_rtp_packet_buffer_t * ret;
   ret = calloc(1, sizeof(*ret));
   ret->stats = stats;
-  ret->next_seq = -1;
+  ret->last_seq = -1;
   ret->opt = opt;
   ret->timescale = timescale;
   ret->last_timestamp = BGAV_TIMESTAMP_UNDEFINED;
+  pthread_mutex_init(&ret->read_mutex, NULL);
+  pthread_mutex_init(&ret->write_mutex, NULL);
+  pthread_mutex_init(&ret->eof_mutex, NULL);
   return ret;
   }
 
 void bgav_rtp_packet_buffer_destroy(bgav_rtp_packet_buffer_t * b)
   {
+  pthread_mutex_destroy(&b->read_mutex);
+  pthread_mutex_destroy(&b->write_mutex);
+  pthread_mutex_destroy(&b->eof_mutex);
   free(b);
   }
 
 rtp_packet_t *
-bgav_rtp_packet_buffer_get_write(bgav_rtp_packet_buffer_t * b)
+bgav_rtp_packet_buffer_lock_write(bgav_rtp_packet_buffer_t * b)
   {
-  int i;
-  for(i = 0; i < MAX_PACKETS; i++)
+  pthread_mutex_lock(&b->write_mutex);
+  if(!b->write_packets)
     {
-    if(!b->packets[i].valid)
-      return &b->packets[i];
+    b->write_packet = calloc(1, sizeof(*b->write_packet));
     }
-  return (rtp_packet_t*)0;
+  else
+    {
+    b->write_packet = b->write_packets;
+    b->write_packets = b->write_packets->next;
+    if(!b->write_packets)
+      b->write_packets_end = NULL;
+    }
+  pthread_mutex_unlock(&b->write_mutex);
+  return b->write_packet;
   }
 
-void bgav_rtp_packet_buffer_done_write(bgav_rtp_packet_buffer_t * b,
-                                       rtp_packet_t * p)
+void bgav_rtp_packet_buffer_unlock_write(bgav_rtp_packet_buffer_t * b)
   {
-  p->valid = 1;
-  b->num++;
-  if(b->next_seq == -1)
-    b->next_seq = p->h.sequence_number;
+  int drop = 0;
+  rtp_packet_t * p = b->write_packet;
+  
+  //  if(b->next_seq == -1)
+  //    b->next_seq = p->h.sequence_number;
   
   /* Correct timestamp */
   //  fprintf(stderr, "RTP Time 1: %ld (%ld)", p->h.timestamp, b->last_timestamp);
@@ -224,86 +257,133 @@ void bgav_rtp_packet_buffer_done_write(bgav_rtp_packet_buffer_t * b,
   else
     update_stats(b->stats, p->h.sequence_number, p->h.timestamp,
                  b->timescale);
+
+  /* Update sequence number */
+  p->h.sequence_number += b->stats->cycles;
   
+  /* Insert into read buffer */
+  pthread_mutex_lock(&b->read_mutex);
+  if(!b->read_packets)
+    {
+    b->read_packets = b->write_packet;
+    b->read_packets->next = NULL;
+    }
+  else if((b->last_seq >= 0) &&
+          (b->last_seq > b->write_packet->h.sequence_number))
+    {
+    drop = 1;
+    bgav_log(b->opt, BGAV_LOG_WARNING, LOG_DOMAIN, "Dropping obsolete packet");
+    }
+  else
+    {
+    rtp_packet_t * tmp;
+    p = b->read_packets;
+    
+    if(b->read_packets->h.sequence_number ==
+       b->write_packet->h.sequence_number)
+      {
+      bgav_log(b->opt, BGAV_LOG_WARNING, LOG_DOMAIN, "Dropping duplicate packet");
+      drop = 1;
+      }
+    else if(b->read_packets->h.sequence_number >
+            b->write_packet->h.sequence_number)
+      {
+      b->write_packet->next = b->read_packets;
+      b->read_packets       = b->write_packet;
+      b->write_packet = NULL;
+      }
+    else
+      {
+      while(p->next)
+        {
+        if(p->next->h.sequence_number > b->write_packet->h.sequence_number)
+          break;
+        p = p->next;
+        }
+      tmp = p->next;
+      p->next = b->write_packet;
+      p->next->next = tmp;
+      b->write_packet = NULL;
+      }
+    }
+  if(!drop)
+    b->num++;
+  
+  pthread_mutex_unlock(&b->read_mutex);
+
+  if(drop)
+    {
+    /* Push back */
+    pthread_mutex_lock(&b->write_mutex);
+    b->write_packet->next = b->write_packets;
+    b->write_packets = b->write_packet;
+    pthread_mutex_unlock(&b->write_mutex);
+    }
+  b->write_packet = NULL;
   }
 
 rtp_packet_t *
-bgav_rtp_packet_buffer_get_read(bgav_rtp_packet_buffer_t * b)
+bgav_rtp_packet_buffer_try_lock_read(bgav_rtp_packet_buffer_t * b)
   {
-  int min_seq, max_seq, i;
-  int min_index;
-  int test;
-  
-  for(i = 0; i < MAX_PACKETS; i++)
+  pthread_mutex_lock(&b->read_mutex);
+  if(!b->read_packets)
     {
-    if(b->packets[i].valid & (b->next_seq == b->packets[i].h.sequence_number))
-      {
-      return &b->packets[i];
-      }
+    pthread_mutex_unlock(&b->read_mutex);
+    return (rtp_packet_t *)0;
     }
-  if(b->num < MAX_PACKETS)
-    return (rtp_packet_t*)0;
+  /* Waiting for packet */
+  if((b->last_seq != -1) &&
+     (b->read_packets->h.sequence_number != b->last_seq+1) &&
+     (b->num < MAX_MISORDER))
+    {
+    pthread_mutex_unlock(&b->read_mutex);
+    return (rtp_packet_t *)0;
+    }
+  
+  b->read_packet = b->read_packets;
 
-  /* Drop packets */
-  min_seq = 0x10000;
-  max_seq = -1;
-  
-  for(i = 0; i < MAX_PACKETS; i++)
+  if((b->last_seq >= 0) && 
+     (b->read_packet->h.sequence_number != b->last_seq+1))
     {
-    if(b->packets[i].valid)
-      {
-      if(min_seq > b->packets[i].h.sequence_number)
-        {
-        min_seq = b->packets[i].h.sequence_number;
-        min_index = i;
-        }
-      if(max_seq < b->packets[i].h.sequence_number)
-        max_seq = b->packets[i].h.sequence_number;
-      }
+    bgav_log(b->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+             "%"PRId64" packet(s) missing",
+             b->read_packet->h.sequence_number - b->last_seq+1);
+    b->read_packet->broken = 1;
     }
-  
-  /* No wrap */
-  if(max_seq - min_seq < 0x8000)
-    return &b->packets[min_index];
+  else
+    b->read_packet->broken = 0;
 
-  min_seq = 0x10000;
+  b->last_seq = b->read_packet->h.sequence_number;
   
-  for(i = 0; i < MAX_PACKETS; i++)
-    {
-    if(b->packets[i].valid)
-      {
-      test = b->packets[i].h.sequence_number > 0x8000 ?
-        (int)b->packets[i].h.sequence_number - 0x10000 :
-        b->packets[i].h.sequence_number;
-      
-      if(min_seq > test)
-        {
-        min_seq = test;
-        min_index = i;
-        }
-      }
-    }
-  return &b->packets[min_index];
+  b->read_packets = b->read_packets->next;
+  b->num--;
+  pthread_mutex_unlock(&b->read_mutex);
+  return b->read_packet;
   }
 
-void bgav_rtp_packet_buffer_done_read(bgav_rtp_packet_buffer_t * b, rtp_packet_t * p)
+void bgav_rtp_packet_buffer_unlock_read(bgav_rtp_packet_buffer_t * b)
   {
-  int i;
-  p->valid = 0;
-  b->num--;
+  /* Push back */
+  pthread_mutex_lock(&b->write_mutex);
+  b->read_packet->next = b->write_packets;
+  b->write_packets = b->read_packet;
+  pthread_mutex_unlock(&b->write_mutex);
   
-  /* Delete obsolete packets */
-  for(i = 0; i < MAX_PACKETS; i++)
-    {
-    if(b->packets[i].valid & (b->packets[i].h.sequence_number <
-                              p->h.sequence_number))
-      {
-      b->packets[i].valid = 0;
-      b->num--;
-      }
-    }
+  b->read_packet = NULL;
+  }
 
-  b->next_seq = p->h.sequence_number+1;
-  if(b->next_seq > 0xffff)
-    b->next_seq = 0;
+void bgav_rtp_packet_buffer_set_eof(bgav_rtp_packet_buffer_t * b)
+  {
+  pthread_mutex_lock(&b->eof_mutex);
+  b->eof = 1;
+  pthread_mutex_unlock(&b->eof_mutex);
+  }
+
+int bgav_rtp_packet_buffer_get_eof(bgav_rtp_packet_buffer_t * b)
+  {
+  int ret;
+  pthread_mutex_lock(&b->eof_mutex);
+  ret = b->eof;
+  pthread_mutex_unlock(&b->eof_mutex);
+  return ret;
   }

@@ -640,7 +640,6 @@ static int init_stream_generic(bgav_input_context_t * ctx,
  * url=rtsp://live.polito.it/accademia/2007/accademia-2007-02-28.mov/TrackID=0;seq=37253;rtptime=2299148613,url=rtsp://live.polito.it/accademia/2007/accademia-2007-02-28.mov/TrackID=1;seq=18653;rtptime=4265967293
  */
 
-
 static int handle_rtpinfo(bgav_input_context_t * ctx,
                           const char * rtpinfo)
   {
@@ -768,6 +767,13 @@ static int init_generic(bgav_input_context_t * ctx, bgav_sdp_t * sdp, int tcp)
     if(!init_stream_generic(ctx, s, &port, &session_id, tcp))
       goto fail;
     }
+  if(tcp)
+    bgav_rtp_set_tcp(ctx->demuxer);
+  else
+    {
+    /* Start read thread before play request */
+    bgav_demuxer_rtp_start(ctx->demuxer);
+    }
   /* Play */
   if(session_id)
     {
@@ -776,6 +782,7 @@ static int init_generic(bgav_input_context_t * ctx, bgav_sdp_t * sdp, int tcp)
     }
 
   bgav_rtsp_schedule_field(priv->r, "Range: npt=0-");
+  
   if(!bgav_rtsp_request_play(priv->r))
     goto fail;
     
@@ -789,6 +796,9 @@ static int init_generic(bgav_input_context_t * ctx, bgav_sdp_t * sdp, int tcp)
   
   handle_rtpinfo(ctx, var);
 
+  if(tcp)
+    bgav_demuxer_rtp_start(ctx->demuxer);
+  
   ret = 1;
   fail:
   if(session_id)
@@ -868,7 +878,6 @@ static int open_rtsp(bgav_input_context_t * ctx, const char * url, char ** r)
     case SERVER_TYPE_GENERIC:
       if(ctx->opt->rtp_try_tcp && init_generic(ctx, sdp, 1))
         {
-        bgav_rtp_set_tcp(ctx->demuxer);
         priv->tcp = 1;
         break;
         }
@@ -902,7 +911,12 @@ static void close_rtsp(bgav_input_context_t * ctx)
   priv = (rtsp_priv_t*)(ctx->priv);
   if(!priv)
     return;
-
+  
+  if(priv->type == SERVER_TYPE_GENERIC)
+    {
+    /* Stop read thread */
+    //    bgav_demuxer_rtp_stop(ctx->demuxer);
+    }
   if(priv->r)
     bgav_rtsp_close(priv->r, !priv->tcp);
   
@@ -911,7 +925,6 @@ static void close_rtsp(bgav_input_context_t * ctx)
   //    bgav_rmff_header_destroy(priv->rmff_header);
 
   /* Send a teardown request */
-  
   
   if(priv->packet)
     free(priv->packet);

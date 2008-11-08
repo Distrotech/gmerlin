@@ -50,6 +50,12 @@ AC_CHECK_DECLS([MSG_NOSIGNAL, SO_NOSIGPIPE],,,
 	       #include <sys/socket.h>])
 
 dnl
+dnl Semaphores
+dnl
+
+GMERLIN_CHECK_SEMAPHORES
+
+dnl
 dnl Gettext
 dnl
 
