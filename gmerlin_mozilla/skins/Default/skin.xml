@@ -42,5 +42,6 @@
       <PRESSED>volume_slider_cl.png</PRESSED>
       <INACTIVE>volume_slider_in.png</INACTIVE>
     </VOLUMESLIDER>
+    <LOGO>logo.png</LOGO>
   </PLUGINWIN>
 </WEBPLUGINSKIN>

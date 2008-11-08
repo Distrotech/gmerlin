@@ -25,7 +25,8 @@ volume_bg.png \
 volume_slider_cl.png \
 volume_slider_hl.png \
 volume_slider_in.png \
-volume_slider.png
+volume_slider.png \
+logo.png
 
 pkgdata_DATA = $(skin_data)
 EXTRA_DIST = $(skin_data)

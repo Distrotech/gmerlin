@@ -135,6 +135,7 @@ static void window_size_allocate(GtkWidget     *widget,
                                  gpointer       user_data)
   {
   bg_mozilla_widget_t * w;
+  int pixbuf_width, pixbuf_height;
   w = user_data;
   // fprintf(stderr, "window_size_allocate: %d x %d\n", a->width, a->height);
 
@@ -142,6 +143,14 @@ static void window_size_allocate(GtkWidget     *widget,
     return;
   w->fullscreen_win.width = a->width;
   w->fullscreen_win.height = a->height;
+
+  pixbuf_width = gdk_pixbuf_get_width(w->logo_pixbuf);
+  pixbuf_height = gdk_pixbuf_get_height(w->logo_pixbuf);
+  
+  gtk_fixed_move(GTK_FIXED(w->fullscreen_win.box),
+                w->fullscreen_win.logo_image,
+                (w->fullscreen_win.width - pixbuf_width)/2,
+                (w->fullscreen_win.height - pixbuf_height)/2);
   }
 
 static void size_allocate(GtkWidget     *widget,
@@ -150,23 +159,51 @@ static void size_allocate(GtkWidget     *widget,
   {
   bg_mozilla_widget_t * w;
   bg_mozilla_window_t * win;
+  int pixbuf_width, pixbuf_height;
   w = user_data;
-
-  if(widget == w->normal_win.box)
-    win = &w->normal_win;
-  else
-    {
-    win = &w->fullscreen_win;
-    if((win->width > 10) && (win->height > 10))
-      return;
-    }
+  
+  win = &w->normal_win;
   if((a->width == win->width) && (a->height == win->height))
     return;
-
+  
   win->width = a->width;
   win->height = a->height;
 
-  // fprintf(stderr, "size_allocate: %d x %d\n", a->width, a->height);
+  if(!win->logo_image)
+    {
+    if(!w->logo_pixbuf_scaled)
+      {
+      pixbuf_width = gdk_pixbuf_get_width(w->logo_pixbuf);
+      pixbuf_height = gdk_pixbuf_get_height(w->logo_pixbuf);
+
+      if(pixbuf_width > win->width)
+        {
+        pixbuf_height = (pixbuf_height * win->width) / pixbuf_width;
+        pixbuf_width = win->width;
+        }
+      if(pixbuf_height > win->height)
+        {
+        pixbuf_width = (pixbuf_width * win->height) / pixbuf_height;
+        pixbuf_height = win->height;
+        }
+      
+      w->logo_pixbuf_scaled = gdk_pixbuf_scale_simple(w->logo_pixbuf,
+                                                      pixbuf_width,
+                                                      pixbuf_height,
+                                                      GDK_INTERP_BILINEAR);
+      }
+    win->logo_image = gtk_image_new_from_pixbuf(w->logo_pixbuf_scaled);
+    gtk_widget_show(win->logo_image);
+    
+    
+    pixbuf_width = gdk_pixbuf_get_width(w->logo_pixbuf_scaled);
+    pixbuf_height = gdk_pixbuf_get_height(w->logo_pixbuf_scaled);
+    
+    gtk_fixed_put(GTK_FIXED(win->box), win->logo_image,
+                  (win->width - pixbuf_width)/2,
+                  (win->height - pixbuf_height)/2);
+    }
+  //  fprintf(stderr, "size_allocate: %d x %d\n", a->width, a->height);
 
   g_signal_handler_block(win->box, win->resize_id);
   if(win == w->current_win)
@@ -420,12 +457,15 @@ static void handle_message(bg_mozilla_widget_t * w,
           free(tmp_string);
           break;
         case BG_PLAYER_STATE_STARTING:
+          break;
+        case BG_PLAYER_STATE_PLAYING:
+          gtk_widget_hide(w->normal_win.logo_image);
+          gtk_widget_hide(w->fullscreen_win.logo_image);
           gtk_widget_show(w->normal_win.socket);
           gtk_widget_show(w->fullscreen_win.socket);
           gtk_widget_show(w->controls);
           gdk_window_raise(w->controls->window);
-          break;
-        case BG_PLAYER_STATE_PLAYING:
+          
           w->can_pause = bg_msg_get_arg_int(msg, 1);
           
           if(w->can_pause)
@@ -448,6 +488,9 @@ static void handle_message(bg_mozilla_widget_t * w,
               }
             gtk_widget_hide(w->normal_win.socket);
             gtk_widget_hide(w->fullscreen_win.socket);
+            
+            gtk_widget_show(w->normal_win.logo_image);
+            gtk_widget_show(w->fullscreen_win.logo_image);
             
             // w->m->is_local = 0;
             fprintf(stderr, "State: Stopped\n");
@@ -653,7 +696,7 @@ static void create_controls(bg_mozilla_widget_t * w)
   bg_gtk_slider_set_skin(w->volume_slider,
                          &w->skin.volume_slider,
                          w->skin_directory);
-
+  
   bg_gtk_slider_set_pos(w->volume_slider,
                         (w->m->volume - BG_PLAYER_VOLUME_MIN)/
                         (-BG_PLAYER_VOLUME_MIN));
@@ -758,6 +801,7 @@ static void init_window(bg_mozilla_widget_t * w,
 void bg_mozilla_widget_set_window(bg_mozilla_widget_t * w,
                                   GdkNativeWindow window_id)
   {
+  char * tmp_string;
   GdkDisplay * dpy;
   
   if(w->normal_win.window)
@@ -772,7 +816,8 @@ void bg_mozilla_widget_set_window(bg_mozilla_widget_t * w,
   w->normal_win.window = gtk_plug_new(window_id);
   
   w->fullscreen_win.window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-  gtk_window_add_accel_group(GTK_WINDOW(w->fullscreen_win.window), w->accel_group);
+  gtk_window_add_accel_group(GTK_WINDOW(w->fullscreen_win.window),
+                             w->accel_group);
   
   // gtk_window_fullscreen(GTK_WINDOW(w->fullscreen_win.window));
   // gtk_window_set_resizable(GTK_WINDOW(w->fullscreen_win.window), FALSE);
@@ -785,6 +830,21 @@ void bg_mozilla_widget_set_window(bg_mozilla_widget_t * w,
                                 GTK_RESIZE_QUEUE);
   
   create_controls(w);
+
+  if(w->skin.logo)
+    {
+    tmp_string = bg_sprintf("%s/%s", w->skin_directory,
+                           w->skin.logo);
+    fprintf(stderr, "Loading logo %s\n", tmp_string);
+    w->logo_pixbuf = gdk_pixbuf_new_from_file(tmp_string, NULL);
+    free(tmp_string);
+    }
+
+  w->fullscreen_win.logo_image = gtk_image_new_from_pixbuf(w->logo_pixbuf);
+  gtk_widget_show(w->fullscreen_win.logo_image);
+    
+  gtk_fixed_put(GTK_FIXED(w->fullscreen_win.box),
+                w->fullscreen_win.logo_image, 0, 0);
   
   gtk_fixed_put(GTK_FIXED(w->current_win->box), w->controls, 0, 0);
   
@@ -807,8 +867,8 @@ void bg_mozilla_widget_set_window(bg_mozilla_widget_t * w,
                (long unsigned int)gtk_socket_get_id(GTK_SOCKET(w->normal_win.socket)),
                (long unsigned int)gtk_socket_get_id(GTK_SOCKET(w->fullscreen_win.socket)));
 
-  fprintf(stderr, "Got display string: %s\n",
-          w->m->display_string);
+  //  fprintf(stderr, "Got display string: %s\n",
+  //          w->m->display_string);
   
   if(w->m->ov_info)
     {
@@ -960,8 +1020,6 @@ void bg_mozilla_widget_set_parameter(void * priv, const char * name,
 
 void bg_mozilla_widget_set_error(bg_mozilla_widget_t * m)
   {
-#if 1
-  
   char * msg = bg_log_last_error();
   if(msg)
     {
@@ -972,5 +1030,4 @@ void bg_mozilla_widget_set_error(bg_mozilla_widget_t * m)
   else
     bg_gtk_scrolltext_set_text(m->scrolltext, TR("Error"),
                                m->fg_error, m->bg);
-#endif
   }

@@ -9,6 +9,7 @@ static const char * default_skin_directory = GMERLIN_MOZILLA_DATA_DIR"/skins/Def
 static void widget_skin_load(bg_mozilla_widget_skin_t * s,
                              xmlDocPtr doc, xmlNodePtr node)
   {
+  char * tmp_string;
   xmlNodePtr child;
   //  char * tmp_string;
   child = node->children;
@@ -20,29 +21,24 @@ static void widget_skin_load(bg_mozilla_widget_skin_t * s,
       continue;
       }
     else if(!BG_XML_STRCMP(child->name, "SEEKSLIDER"))
-      {
       bg_gtk_slider_skin_load(&(s->seek_slider), doc, child);
-      }
     else if(!BG_XML_STRCMP(child->name, "VOLUMESLIDER"))
-      {
       bg_gtk_slider_skin_load(&(s->volume_slider), doc, child);
-      }
     else if(!BG_XML_STRCMP(child->name, "PLAYBUTTON"))
-      {
       bg_gtk_button_skin_load(&(s->play_button), doc, child);
-      }
     else if(!BG_XML_STRCMP(child->name, "PAUSEBUTTON"))
-      {
       bg_gtk_button_skin_load(&(s->pause_button), doc, child);
-      }
     else if(!BG_XML_STRCMP(child->name, "STOPBUTTON"))
-      {
       bg_gtk_button_skin_load(&(s->stop_button), doc, child);
-      }
     else if(!BG_XML_STRCMP(child->name, "VOLUMEBUTTON"))
-      {
       bg_gtk_button_skin_load(&(s->volume_button), doc, child);
+    else if(!BG_XML_STRCMP(child->name, "LOGO"))
+      {
+      tmp_string = (char*)xmlNodeListGetString(doc, child->children, 1);
+      s->logo = bg_strdup(s->logo, tmp_string);
+      xmlFree(tmp_string);
       }
+    
     child = child->next;
     }
   }
@@ -119,4 +115,5 @@ void bg_mozilla_widget_skin_destroy(bg_mozilla_widget_skin_t * s)
   bg_gtk_button_skin_free(&s->stop_button);
   bg_gtk_button_skin_free(&s->pause_button);
   bg_gtk_button_skin_free(&s->play_button);
+  if(s->logo) free(s->logo);
   }

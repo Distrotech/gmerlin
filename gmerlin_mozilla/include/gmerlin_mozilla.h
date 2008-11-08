@@ -211,7 +211,7 @@ typedef struct
   
   bg_gtk_slider_skin_t seek_slider;
   bg_gtk_slider_skin_t volume_slider;
-
+  char * logo;
   char * directory;
   } bg_mozilla_widget_skin_t;
 
@@ -228,6 +228,7 @@ typedef struct
   int width;
   int height;
   guint resize_id;
+  GtkWidget * logo_image;
   } bg_mozilla_window_t;
 
 struct bg_mozilla_widget_s
@@ -245,6 +246,8 @@ struct bg_mozilla_widget_s
   GtkWidget * volume_window;
   
   bg_mozilla_t * m;
+  GdkPixbuf * logo_pixbuf;
+  GdkPixbuf * logo_pixbuf_scaled;
   
   int width, height;
 
