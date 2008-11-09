@@ -203,6 +203,16 @@ static void size_allocate(GtkWidget     *widget,
                   (win->width - pixbuf_width)/2,
                   (win->height - pixbuf_height)/2);
     }
+  else
+    {
+    pixbuf_width = gdk_pixbuf_get_width(w->logo_pixbuf_scaled);
+    pixbuf_height = gdk_pixbuf_get_height(w->logo_pixbuf_scaled);
+    
+    gtk_fixed_move(GTK_FIXED(win->box), win->logo_image,
+                   (win->width - pixbuf_width)/2,
+                   (win->height - pixbuf_height)/2);
+    }
+  
   //  fprintf(stderr, "size_allocate: %d x %d\n", a->width, a->height);
 
   g_signal_handler_block(win->box, win->resize_id);
@@ -907,6 +917,11 @@ void bg_mozilla_widget_destroy(bg_mozilla_widget_t * m)
 
   g_object_unref(m->accel_group);
 
+  if(m->logo_pixbuf)
+    g_object_unref(m->logo_pixbuf);
+  if(m->logo_pixbuf_scaled)
+    g_object_unref(m->logo_pixbuf_scaled);
+  
   free(m);
   }
 

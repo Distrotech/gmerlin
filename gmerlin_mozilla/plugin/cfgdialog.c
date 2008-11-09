@@ -43,8 +43,8 @@ void gmerlin_mozilla_create_dialog(bg_mozilla_t * g)
                 (void*)(g->player),
                 parameters);
 
-  bg_cfg_section_apply(g->visualization_section, parameters,
-                       bg_player_set_visualization_parameter,
+  bg_cfg_section_apply(g->osd_section, parameters,
+                       bg_player_set_osd_parameter,
                        (void*)(g->player));
   
   /* This gets no widget */
