@@ -311,6 +311,8 @@ struct bg_gtk_tree_widget_s
   GtkAccelGroup * album_accel_group;
   
   GtkWidget * toplevel_window;
+
+  gulong timeout_tag;
   };
 
 /* Configuration */
@@ -327,7 +329,8 @@ static const bg_parameter_info_t parameters[] =
     { /* End of parameters */ }
   };
 
-static void set_parameter(void * data, const char * name, const bg_parameter_value_t * val)
+static void set_parameter(void * data, const char * name,
+                          const bg_parameter_value_t * val)
   {
   bg_gtk_tree_widget_t * wid;
   wid = (bg_gtk_tree_widget_t*)data;
@@ -378,8 +381,9 @@ static gint is_window_of(gconstpointer a, gconstpointer b)
  *  or NULL if there is none
  */
 
-static bg_gtk_album_window_t * album_is_open(bg_gtk_tree_widget_t * widget,
-                                             bg_album_t * album)
+static bg_gtk_album_window_t *
+album_is_open(bg_gtk_tree_widget_t * widget,
+              bg_album_t * album)
   {
   GList * tmp_list;
   tmp_list = g_list_find_custom(widget->album_windows,
@@ -1872,10 +1876,19 @@ static void notebook_change_page(GtkWidget * widget, GtkNotebookPage *page, int 
     }
   }
 
+static gboolean timeout_func(void * data)
+  {
+  bg_gtk_tree_widget_t * w = data;
+  bg_media_tree_check_sync(w->tree);
+  return TRUE;
+  }
+
 /* Constructor */
 
 bg_gtk_tree_widget_t *
-bg_gtk_tree_widget_create(bg_media_tree_t * tree, GtkAccelGroup * accel_group, GtkWidget * toplevel_window)
+bg_gtk_tree_widget_create(bg_media_tree_t * tree,
+                          GtkAccelGroup * accel_group,
+                          GtkWidget * toplevel_window)
   {
   GtkWidget * scrolledwindow;
   GtkWidget * buttonbox;
@@ -2072,7 +2085,10 @@ bg_gtk_tree_widget_create(bg_media_tree_t * tree, GtkAccelGroup * accel_group, G
   bg_cfg_section_apply(ret->cfg_section, parameters, set_parameter, ret);
   
   bg_gtk_tree_widget_update(ret, 1);
-  
+
+#ifdef HAVE_INOTIFY
+  ret->timeout_tag = g_timeout_add(500, timeout_func, (gpointer)ret);
+#endif
   return ret;
   }
 
@@ -2090,8 +2106,8 @@ void bg_gtk_tree_widget_destroy(bg_gtk_tree_widget_t * w)
     w->album_windows = g_list_remove(w->album_windows, (gpointer)win);
     bg_gtk_album_window_destroy(win, 0);
     }
-
-  
+  if(w->timeout_tag > 0)
+    g_source_remove(w->timeout_tag);
   free(w);
   }
 

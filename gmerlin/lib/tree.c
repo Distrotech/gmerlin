@@ -42,6 +42,10 @@
 
 #define LOG_DOMAIN "mediatree"
 
+#ifdef HAVE_INOTIFY
+#include <sys/inotify.h>
+#endif
+
 static int nth_in_list(bg_album_t * children, bg_album_t * child)
   {
   int ret;
@@ -384,8 +388,9 @@ static void add_device_plugins(bg_media_tree_t * ret,
   
   }
 
-bg_media_tree_t * bg_media_tree_create(const char * filename,
-                                       bg_plugin_registry_t * plugin_reg)
+bg_media_tree_t *
+bg_media_tree_create(const char * filename,
+                     bg_plugin_registry_t * plugin_reg)
   {
   bg_media_tree_t * ret;
   const char * pos1;
@@ -401,7 +406,10 @@ bg_media_tree_t * bg_media_tree_create(const char * filename,
 
   ret->com.input_callbacks.user_pass = get_user_pass;
   ret->com.input_callbacks.data      = &(ret->com);
-  
+
+#ifdef HAVE_INOTIFY
+  ret->com.inotify_fd = inotify_init();
+#endif
   
   ret->filename = bg_strdup(ret->filename, filename);
   pos1 = strrchr(ret->filename, '/');
@@ -463,6 +471,11 @@ void bg_media_tree_destroy(bg_media_tree_t * t)
   
   if(t->filename)
     free(t->filename);
+
+#ifdef HAVE_INOTIFY
+  close(t->com.inotify_fd);
+#endif
+  
   free(t);
   }
 
@@ -1571,5 +1584,58 @@ void bg_media_tree_copy_current_to_favourites(bg_media_tree_t * t)
     bg_album_close(t->com.favourites);
   }
 
+#ifdef HAVE_INOTIFY
 
+#define EVENT_SIZE  ( sizeof (struct inotify_event) )
+#define BUF_LEN     ( 1024 * ( EVENT_SIZE + 16 ) )
+
+void bg_media_tree_check_sync(bg_media_tree_t * t)
+  {
+  int i, result;
+  char buffer[BUF_LEN];
+  bg_album_t * a;
+  struct timeval timeout;
+
+  fd_set read_fds;
+  
+  /* Wait for event */
+  timeout.tv_sec = 0;
+  timeout.tv_usec = 0;
+  FD_ZERO(&read_fds);
+  FD_SET(t->com.inotify_fd, &read_fds);
+  if(!select(t->com.inotify_fd+1,
+             &read_fds, (fd_set*)0, (fd_set*)0,&timeout))
+    return;
+
+    //  fprintf(stderr, "inotify read...\n");
+  result = read(t->com.inotify_fd, buffer, BUF_LEN);
+  
+  if(result < 0)
+    {
+    //    fprintf(stderr, "inotify Read failed\n");
+    return;
+    }
+
+  i = 0;
+  while ( i < result )
+    {
+    struct inotify_event *event =
+      ( struct inotify_event * ) &buffer[i];
+    
+    a = t->children;
+    while(a)
+      {
+      if(bg_album_inotify(a, (uint8_t*)(&buffer[ i ])))
+        break;
+      a = a->next;
+      }
+    i += EVENT_SIZE + event->len;
+    }
+  }
+
+#else
+
+void bg_media_tree_check_sync(bg_media_tree_t * t) { }
+
+#endif
 

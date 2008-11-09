@@ -51,6 +51,10 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "album"
 
+#ifdef HAVE_INOTIFY
+#include <sys/inotify.h>
+#endif
+
 /*
  *  This must be called, whenever the tracks in an album
  *  change.
@@ -202,7 +206,9 @@ bg_album_t * bg_album_create(bg_album_common_t * com, bg_album_type_t type,
   ret->com = com;
   ret->parent = parent;
   ret->type = type;
-  
+#ifdef HAVE_INOTIFY
+  ret->inotify_wd = -1;
+#endif
   return ret;
   }
 
@@ -558,6 +564,68 @@ static void sync_dir_modify(bg_album_t * a, char * filename, time_t mtime)
   sync_dir_add(a, filename, mtime);
   }
 
+int bg_album_inotify(bg_album_t * a, uint8_t * event1)
+  {
+#ifdef HAVE_INOTIFY
+  char * filename;
+  bg_album_t * child;
+  struct stat stat_buf;
+  
+  if(a->inotify_wd >= 0)
+    {
+    struct inotify_event *event =
+      ( struct inotify_event * ) event1;
+
+    if(event->wd == a->inotify_wd)
+      {
+      switch(event->mask)
+        {
+        case IN_DELETE:
+        case IN_MOVED_FROM:
+          filename = bg_sprintf("%s/%s", a->watch_dir,
+                                event->name);
+          bg_log(BG_LOG_INFO, LOG_DOMAIN,
+                 "%s disappeared, updating album",
+                 filename);
+          bg_album_delete_with_file(a, filename);
+          free(filename);
+          break;
+        case IN_CLOSE_WRITE:
+        case IN_MOVED_TO:
+          filename = bg_sprintf("%s/%s", a->watch_dir,
+                                event->name);
+          bg_log(BG_LOG_INFO, LOG_DOMAIN,
+                 "%s appeared, updating album",
+                 filename);
+          if(stat(filename, &stat_buf))
+            {
+            free(filename);
+            return 1;
+            }
+          sync_dir_add(a, filename, stat_buf.st_mtime);
+          free(filename);
+          break;
+        }
+      return 1;
+      }
+    }
+
+  /* Not our event, try children */
+  child = a->children;
+  while(child)
+    {
+    if(bg_album_inotify(child, event1))
+      return 1;
+    child = child->next;
+    }
+  return 0;
+  
+#else
+  return 0;
+#endif
+  }
+
+
 static void sync_with_dir(bg_album_t * a)
   {
   //  char * tmp_string;
@@ -716,10 +784,17 @@ int bg_album_open(bg_album_t * a)
   if((a->type == BG_ALBUM_TYPE_REGULAR) &&
      a->watch_dir) 
     {
-    sync_with_dir(a);    
+    sync_with_dir(a);
+#ifdef HAVE_INOTIFY
+    a->inotify_wd = inotify_add_watch(a->com->inotify_fd,
+                                      a->watch_dir,
+                                      IN_CLOSE_WRITE | IN_DELETE |
+                                      IN_MOVED_TO | IN_MOVED_FROM);
+#endif
     }
   return 1;
   }
+
 
 void bg_album_entry_destroy(bg_album_entry_t * entry)
   {
@@ -824,6 +899,17 @@ void bg_album_close(bg_album_t *a )
     bg_cfg_section_destroy(a->cfg_section);
     a->cfg_section = (bg_cfg_section_t*)0;
     }
+
+#ifdef HAVE_INOTIFY
+  if(a->inotify_wd >= 0)
+    {
+    inotify_rm_watch(a->com->inotify_fd, a->inotify_wd);
+    a->inotify_wd = -1;
+    }
+#endif
+
+  // if(a->watch_dir)
+    
   }
 
 void bg_album_set_expanded(bg_album_t * a, int expanded)

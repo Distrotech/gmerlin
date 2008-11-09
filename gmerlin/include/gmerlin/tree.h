@@ -366,6 +366,9 @@ bg_album_t * bg_media_tree_get_incoming(bg_media_tree_t *);
 bg_album_t * bg_media_tree_get_device_album(bg_media_tree_t *,
                                             const char * gml);
 
+void bg_media_tree_check_sync(bg_media_tree_t * t);
+
+
 void
 bg_media_tree_set_change_callback(bg_media_tree_t *,
                                   void (*change_callback)(bg_media_tree_t*,

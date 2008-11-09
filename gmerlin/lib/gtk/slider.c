@@ -420,18 +420,23 @@ static void realize_callback(GtkWidget * w,
 static void size_allocate_callback(GtkWidget * w, GtkAllocation * evt,
                                    gpointer data)
   {
-
+  double old_pos;
   bg_gtk_slider_t * s;
   s = (bg_gtk_slider_t *)data;
   
   if((s->width == evt->width) && (s->height == evt->height))
     return;
 
+  if(s->total_size)
+    old_pos = (float)(s->pos)/(float)(s->total_size - s->slider_size);
+  else
+    old_pos = 0.0;
+  
   //  fprintf(stderr, "Slider size: %d %d\n", evt->width, evt->height);
   
   s->width = evt->width;
   s->height = evt->height;
-
+  
   if(s->pixbuf_background)
     set_background(s);
 
@@ -439,7 +444,9 @@ static void size_allocate_callback(GtkWidget * w, GtkAllocation * evt,
     s->total_size = evt->height;
   else 
     s->total_size = evt->width;
-  
+
+  if(old_pos != 0.0)
+    bg_gtk_slider_set_pos(s, old_pos);
   }
 
 

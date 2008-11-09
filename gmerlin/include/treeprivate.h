@@ -89,7 +89,7 @@ typedef struct
   int prefer_edl;
 
 #ifdef HAVE_INOTIFY
-  int inotify_wd;
+  int inotify_fd;
 #endif
 
   } bg_album_common_t;
@@ -165,9 +165,12 @@ struct bg_album_s
   bg_cfg_section_t * cfg_section;
 
 #ifdef HAVE_INOTIFY
-  int inotify_fd;
+  int inotify_wd;
 #endif
   };
+
+/* Returns 0 on systems without inotify */
+int bg_album_inotify(bg_album_t * a, uint8_t * event1);
 
 /* album.c */
 
