@@ -187,7 +187,7 @@ static int init_a52(bgav_stream_t * s)
   s->codec_bitrate = priv->header.bitrate;
   s->data.audio.format.samples_per_frame = FRAME_SAMPLES;
   s->data.audio.format.sample_format = GAVL_SAMPLE_FLOAT;
-  
+  s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_NONE; 
   if(priv->header.lfe)
     {
     s->data.audio.format.num_channels = 1;

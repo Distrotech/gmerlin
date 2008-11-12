@@ -73,7 +73,7 @@ static int lavf_write(URLContext *h, unsigned char *buf, int size)
   return -1;
   }
 
-static offset_t lavf_seek(URLContext *h, offset_t pos, int whence)
+static int64_t lavf_seek(URLContext *h, int64_t pos, int whence)
   {
   bgav_input_context_t * input;
   input = (bgav_input_context_t *)h->priv_data;
