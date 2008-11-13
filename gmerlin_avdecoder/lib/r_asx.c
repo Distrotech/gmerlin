@@ -31,8 +31,8 @@
 static int probe_asx(bgav_input_context_t * input)
   {
   char * pos;
-  char buf[4];
-
+  char buf[16];
+  int i;
   /* We accept all files, which end with .asx */
 
   if(input->filename)
@@ -45,13 +45,16 @@ static int probe_asx(bgav_input_context_t * input)
         return 1;
       }
     }
-  if(bgav_input_get_data(input, (uint8_t*)buf, 4) < 4)
+  if(bgav_input_get_data(input, (uint8_t*)buf, 16) < 16)
     return 0;
-  if((buf[0] == '<') &&
-     (tolower(buf[1]) == 'a') && 
-     (tolower(buf[2]) == 's') && 
-     (tolower(buf[3]) == 'x'))
-    return 1;
+  for(i = 0; i < 16-4; i++)
+    {
+    if((buf[i+0] == '<') &&
+       (tolower(buf[i+1]) == 'a') && 
+       (tolower(buf[i+2]) == 's') && 
+       (tolower(buf[i+3]) == 'x'))
+      return 1;
+    }
   return 0;
   }
 

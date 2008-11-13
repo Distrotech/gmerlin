@@ -67,7 +67,10 @@ static int parse_ref(bgav_redirector_context_t * r)
         r->urls[r->num_urls-1].name = bgav_sprintf("Stream %d (%s)",
                                                    r->num_urls,
                                                    pos);
-        r->urls[r->num_urls-1].url = bgav_strdup(pos);
+        if(!strncasecmp(pos, "http://", 7))
+          r->urls[r->num_urls-1].url = bgav_sprintf("mmsh%s", pos+4);
+        else
+          r->urls[r->num_urls-1].url = bgav_sprintf("%s", pos);
         }
       }
     }

@@ -489,6 +489,11 @@ static int read_rtcp_packet(bgav_demuxer_context_t * ctx,
       //        fprintf(stderr, "Sent receiver report\n");
       }
     }
+  else if(buf[1] == 203)
+    {
+    fprintf(stderr, "Got RTCP goodbye\n");
+    }
+  
   return 1;
   }
 

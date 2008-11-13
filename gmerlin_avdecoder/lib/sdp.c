@@ -140,10 +140,7 @@ static int parse_connection_desc(const char * line,
 static void dump_connection_desc(bgav_sdp_connection_desc_t * c)
   {
   bgav_dprintf( "Connection: type: %s addr: %s ttl: %d num: %d\n",
-          c->type,
-          c->addr,
-          c->ttl,
-          c->num_addr);
+                c->type, c->addr, c->ttl, c->num_addr);
   }
 
 static void free_connection_desc(bgav_sdp_connection_desc_t * c)
@@ -374,18 +371,25 @@ static int parse_attr(const char * line,
 
 /* Returns the number of attributes (==lines) or 0 */
 
-static int parse_attributes(char ** lines, bgav_sdp_attr_t ** ret)
+static int parse_attributes(char ** lines, bgav_sdp_attr_t ** ret,
+                            int num_attr)
   {
   int num_lines, i;
   bgav_sdp_attr_t * attributes;
   num_lines = 1;
   while(lines[num_lines] && (lines[num_lines][0] == 'a'))
     num_lines++;
-
-  attributes = calloc(num_lines + 1, sizeof(*attributes));
+  
+  attributes =
+    realloc(*ret, (num_attr + num_lines + 1)*sizeof(*attributes));
+  
+  memset(attributes + num_attr, 0,
+         sizeof(*attributes) * (num_lines + 1));
+  
   for(i = 0; i < num_lines; i++)
     {
-    parse_attr(lines[i], &(attributes[i]));
+    parse_attr(lines[i],
+               &(attributes[num_attr + i]));
     }
   *ret = attributes;
   return num_lines;
@@ -408,21 +412,21 @@ static void dump_attributes(bgav_sdp_attr_t * attr)
       case BGAV_SDP_TYPE_NONE:
         return;
       case BGAV_SDP_TYPE_INT:
-        bgav_dprintf( "(integer): %d\n", attr[index].val.i);
+        bgav_dprintf("(integer): %d\n", attr[index].val.i);
         break;
       case BGAV_SDP_TYPE_STRING:
-        bgav_dprintf( "(string): %s\n", attr[index].val.str);
+        bgav_dprintf("(string): %s\n", attr[index].val.str);
         break;
       case BGAV_SDP_TYPE_GENERIC:
-        bgav_dprintf( "(generic): %s\n", attr[index].val.str);
+        bgav_dprintf("(generic): %s\n", attr[index].val.str);
         break;
       case BGAV_SDP_TYPE_DATA:
-        bgav_dprintf( ": binary data (%d bytes), hexdump follows\n",
-                attr[index].data_len);
+        bgav_dprintf(": binary data (%d bytes), hexdump follows\n",
+                     attr[index].data_len);
         bgav_hexdump(attr[index].val.data, attr[index].data_len, 16);
         break;
       case BGAV_SDP_TYPE_BOOLEAN:
-        bgav_dprintf( "\n");
+        bgav_dprintf("\n");
       }
     index++;
     }
@@ -462,7 +466,9 @@ static void free_attributes(bgav_sdp_attr_t ** attr)
 
 /* Returns the number of lines used */
 
-static int parse_media(const bgav_options_t * opt, char ** lines, bgav_sdp_media_desc_t * ret)
+static int parse_media(const bgav_options_t * opt,
+                       char ** lines,
+                       bgav_sdp_media_desc_t * ret)
   {
   int num_lines, line_index, i, i_tmp;
   char ** strings = (char**)0;
@@ -554,7 +560,8 @@ static int parse_media(const bgav_options_t * opt, char ** lines, bgav_sdp_media
         line_index++;
         break;
       case 'a': //  a=* (zero or more session attribute lines)
-        i_tmp = parse_attributes(&(lines[line_index]), &(ret->attributes));
+        i_tmp = parse_attributes(&(lines[line_index]), &(ret->attributes),
+                                 ret->num_attributes);
         line_index += i_tmp;
         ret->num_attributes = i_tmp;
         break;
@@ -752,7 +759,8 @@ int bgav_sdp_parse(const bgav_options_t * opt,
         line_index++;
         break;
       case 'a': //  a=* (zero or more session attribute lines)
-        i_tmp = parse_attributes(&(lines[line_index]), &(ret->attributes));
+        i_tmp = parse_attributes(&(lines[line_index]), &(ret->attributes),
+                                 ret->num_attributes);
         line_index += i_tmp;
         ret->num_attributes = i_tmp;
         break;

@@ -61,7 +61,9 @@ void bgav_http_header_dump(bgav_http_header_t*);
 
 /* http connection */
 
-bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt, char ** redirect_url,
+bgav_http_t * bgav_http_open(const char * url,
+                             const bgav_options_t * opt,
+                             char ** redirect_url,
                              bgav_http_header_t* extra_header);
 
 void bgav_http_close(bgav_http_t *);

@@ -117,7 +117,6 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
   if(priv->eof)
     return 0;
   
-
   fd = bgav_rtsp_get_fd(priv->r);
   
   while(1)

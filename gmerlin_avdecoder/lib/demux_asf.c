@@ -303,7 +303,6 @@ typedef struct
   {
   uint64_t packets_read;
   asf_main_header_t hdr;
-  int packet_size;
   uint8_t * packet_buffer;
   int64_t data_size;
   int do_sync;
@@ -726,8 +725,8 @@ static int open_asf(bgav_demuxer_context_t * ctx)
 
   /* Set the packet size */
   
-  asf->packet_size = asf->hdr.max_pktsize;
-  asf->packet_buffer = malloc(asf->packet_size);
+  ctx->packet_size = asf->hdr.max_pktsize;
+  asf->packet_buffer = malloc(ctx->packet_size);
   
   ctx->data_start = ctx->input->position;
   ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
@@ -786,7 +785,7 @@ static void dump_packet_header(asf_packet_header_t * h)
 #endif
 /* Returns the number of bytes used or -1 */
 
-static int read_packet_header(asf_t * asf,
+static int read_packet_header(bgav_demuxer_context_t * ctx, asf_t * asf,
                               asf_packet_header_t * ret,
                               uint8_t * data)
   {
@@ -839,7 +838,7 @@ static int read_packet_header(asf_t * asf,
   else
     {
     // Padding (relative) size
-    ret->plen=asf->packet_size-ret->padding;
+    ret->plen=ctx->packet_size-ret->padding;
     }
   
   // Read time & duration:
@@ -1072,11 +1071,11 @@ static int next_packet_asf(bgav_demuxer_context_t * ctx)
     return 0;
   
   if(bgav_input_read_data(ctx->input, asf->packet_buffer,
-                          asf->packet_size) < asf->packet_size)
+                          ctx->packet_size) < ctx->packet_size)
     return 0;
   
   data_ptr = asf->packet_buffer +
-    read_packet_header(asf, &pkt_hdr, asf->packet_buffer);
+    read_packet_header(ctx, asf, &pkt_hdr, asf->packet_buffer);
 
   for(i = 0; i < pkt_hdr.segs; i++)
     {
@@ -1139,7 +1138,7 @@ static void seek_asf(bgav_demuxer_context_t * ctx, int64_t time, int scale)
                gavl_time_to_seconds(ctx->tt->cur->duration)));
   
   filepos = ctx->data_start +
-    asf->packet_size * asf->packets_read;
+    ctx->packet_size * asf->packets_read;
   
   bgav_input_seek(ctx->input, filepos, SEEK_SET);
 

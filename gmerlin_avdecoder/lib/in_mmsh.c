@@ -1,0 +1,293 @@
+/*****************************************************************
+ * gmerlin-avdecoder - a general purpose multimedia decoding library
+ *
+ * Copyright (c) 2001 - 2008 Members of the Gmerlin project
+ * gmerlin-general@lists.sourceforge.net
+ * http://gmerlin.sourceforge.net
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * *****************************************************************/
+
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <avdec_private.h>
+#include <http.h>
+
+#define LOG_DOMAIN "in_mmsh"
+
+typedef struct
+  {
+  bgav_http_t * h;
+
+  int buffer_alloc;
+  int buffer_size;
+  uint8_t * buffer;
+  uint8_t * pos;
+
+  int have_header;
+  } mmsh_priv;
+
+extern bgav_demuxer_t bgav_demuxer_asf;
+
+#define ASF_STREAMING_CLEAR     0x4324          // $C
+#define ASF_STREAMING_DATA      0x4424          // $D
+#define ASF_STREAMING_END_TRANS 0x4524          // $E
+#define ASF_STREAMING_HEADER    0x4824          // $H
+
+static int read_data(bgav_input_context_t* ctx,
+                     uint8_t * buffer, int len, int block)
+  {
+  int fd;
+  mmsh_priv * p = (mmsh_priv *)(ctx->priv);
+  
+  fd = bgav_http_get_fd(p->h);
+  
+  if(block)
+    return bgav_read_data_fd(fd, buffer, len, ctx->opt->read_timeout);
+  else
+    return bgav_read_data_fd(fd, buffer, len, 0);
+  }
+
+typedef struct
+  {
+  uint16_t type;
+  uint16_t size;
+  uint32_t sequence_number;
+  uint16_t unknown;
+  uint16_t size_confirm;
+  } stream_chunck_t;
+
+static int stream_chunk_read(bgav_input_context_t* ctx,
+                             stream_chunck_t * ch, int block)
+  {
+  uint8_t buffer[12];
+  uint8_t * pos = buffer;
+  if(read_data(ctx, buffer, 12, block) < 12)
+    return 0;
+#ifdef WORDS_BIGENDIAN  
+  ch->type            = BGAV_PTR_2_16BE(pos); pos+=2;
+#else
+  ch->type            = BGAV_PTR_2_16LE(pos); pos+=2;
+#endif
+  ch->size            = BGAV_PTR_2_16LE(pos); pos+=2;
+  ch->sequence_number = BGAV_PTR_2_32LE(pos); pos+=4;
+  ch->unknown         = BGAV_PTR_2_16LE(pos); pos+=2;
+  ch->size_confirm    = BGAV_PTR_2_16LE(pos); pos+=2;
+  return 1;
+  }
+
+static void stream_chunk_dump(stream_chunck_t * ch)
+  {
+  bgav_dprintf("Type:        %c%c\n", ch->type >> 8, ch->type & 0xff);
+  bgav_dprintf("Size:        %d\n",   ch->size);
+  bgav_dprintf("Seq:         %d\n",   ch->sequence_number);
+  bgav_dprintf("Unknown:     %d\n",   ch->unknown);
+  bgav_dprintf("SizeConfirm: %d\n",   ch->size_confirm);
+  }
+
+static int open_mmsh(bgav_input_context_t * ctx, const char * url, char ** r)
+  {
+  const char * var;
+  mmsh_priv * p;
+  //  stream_chunck_t sc;
+  
+  bgav_http_header_t * header = (bgav_http_header_t*)0;
+  
+  p = calloc(1, sizeof(*p));
+
+  header = bgav_http_header_create();
+  
+  bgav_http_header_add_line(header, "Accept: */*");
+  bgav_http_header_add_line(header, "User-Agent: NSPlayer/4.1.0.3856");
+  bgav_http_header_add_line(header,
+                            "Pragma: xClientGUID={c77e7400-738a-11d2-9add-0020af0a3278}");
+  bgav_http_header_add_line(header,
+                            "Pragma: no-cache,rate=1.000000,stream-time=0,stream-offset=0:0,request-context=1,max-duration=0");
+  bgav_http_header_add_line(header, "Connection: Close");
+  
+  p->h = bgav_http_open(url, ctx->opt, r, header);
+  
+  if(!p->h)
+    {
+    free(p);
+    return 0;
+    }
+  ctx->priv = p;
+  
+  bgav_http_header_destroy(header);
+  
+  header = bgav_http_get_header(p->h);
+  
+//  bgav_http_header_dump(header);
+
+#if 0  
+  var = bgav_http_header_get_var(header, "Content-Length");
+  if(var)
+    ctx->total_bytes = atoi(var);
+#endif
+
+  var = bgav_http_header_get_var(header, "Content-Type");
+  if(var)
+    ctx->mimetype = bgav_strdup(var);
+  ctx->url = bgav_strdup(url);
+
+  ctx->demuxer = bgav_demuxer_create(ctx->opt, &bgav_demuxer_asf, ctx);
+  if(!bgav_demuxer_start(ctx->demuxer, NULL))
+    {
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Initializing asf demuxer failed");
+    return 0;
+    }
+  fprintf(stderr, "Got header\n");
+  
+  /* Close and reopen connection */
+  bgav_http_close(p->h);
+  
+  //  bgav_http_header_destroy(header);
+  header = bgav_http_header_create();
+  
+  bgav_http_header_add_line(header,
+                            "Accept: */*");
+
+  bgav_http_header_add_line(header,
+                            "User-Agent: NSPlayer/4.1.0.3856");
+  
+  bgav_http_header_add_line(header,
+                            "Pragma: xClientGUID={c77e7400-738a-11d2-9add-0020af0a3278}");
+  bgav_http_header_add_line(header,
+                            "Pragma: no-cache,rate=1.000000,stream-time=0,stream-offset=0:0,request-context=1,max-duration=0");
+  bgav_http_header_add_line(header,
+                            "Connection: Close");
+
+  bgav_http_header_add_line(header,
+                            "Pragma: xPlayStrm=1");
+  bgav_http_header_add_line(header,
+                            "Pragma: stream-switch-entry=");
+
+  p->h = bgav_http_open(url, ctx->opt,
+                        r, header);
+  
+  if(!p->h)
+    {
+    free(p);
+    return 0;
+    }
+
+  header = bgav_http_get_header(p->h);
+  
+  bgav_http_header_dump(header);
+  
+  return 1;
+  }
+
+static int fill_buffer(bgav_input_context_t* ctx, int block)
+  {
+  stream_chunck_t ch;
+  mmsh_priv * p = (mmsh_priv  *)(ctx->priv);
+  
+  while(1)
+    {
+    if(!stream_chunk_read(ctx, &ch, block))
+      return 0;
+    fprintf(stderr, "Packet size: %d\n", ctx->demuxer->packet_size);
+    stream_chunk_dump(&ch);
+    
+    if(p->buffer_alloc < ch.size - 8)
+      {
+      p->buffer_alloc = ch.size + 1024;
+      p->buffer = realloc(p->buffer, p->buffer_alloc);
+      }
+    if(read_data(ctx, p->buffer, ch.size - 8, 1) < ch.size - 8)
+      return 0;
+    
+    switch(ch.type)
+      {
+      case ASF_STREAMING_HEADER:
+        if(!p->have_header)
+          {
+          p->buffer_size = ch.size - 8;
+          p->pos = p->buffer;
+          p->have_header = 1;
+          return 1;
+          }
+        break;
+      case ASF_STREAMING_DATA:
+        if(p->have_header)
+          {
+          p->buffer_size = ch.size - 8;
+          p->pos = p->buffer;
+          return 1;
+          }
+        break;
+      }
+    
+    }
+  return 0;
+  }
+
+static int do_read(bgav_input_context_t* ctx,
+                   uint8_t * buffer, int len, int block)
+  {
+  int bytes_read = 0;
+  int bytes_to_copy;
+  mmsh_priv * p = (mmsh_priv*)(ctx->priv);
+  
+  while(bytes_read < len)
+    {
+    if(!p->buffer || (p->pos - p->buffer >= p->buffer_size))
+      if(!fill_buffer(ctx, block))
+        return bytes_read;
+
+    bytes_to_copy = p->buffer_size - (p->pos - p->buffer);
+
+    if(bytes_to_copy > len - bytes_read)
+      bytes_to_copy = len - bytes_read;
+    
+    memcpy(buffer + bytes_read, p->pos, bytes_to_copy);
+    p->pos += bytes_to_copy;
+    bytes_read += bytes_to_copy;
+    }
+  return bytes_read;
+  }
+
+static int read_mmsh(bgav_input_context_t* ctx,
+                     uint8_t * buffer, int len)
+  {
+  return do_read(ctx, buffer, len, 1);
+  }
+
+static int read_nonblock_mmsh(bgav_input_context_t * ctx,
+                              uint8_t * buffer, int len)
+  {
+  return do_read(ctx, buffer, len, 0);
+  }
+
+static void close_mmsh(bgav_input_context_t * ctx)
+  {
+  mmsh_priv * p = (mmsh_priv  *)(ctx->priv);
+  bgav_http_close(p->h);
+  free(p);
+  }
+
+const bgav_input_t bgav_input_mmsh =
+  {
+    .name =          "mmsh",
+    .open =          open_mmsh,
+    .read =          read_mmsh,
+    .read_nonblock = read_nonblock_mmsh,
+    .close =         close_mmsh,
+  };
+

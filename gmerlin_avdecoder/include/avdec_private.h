@@ -1139,6 +1139,8 @@ struct bgav_demuxer_context_s
   bgav_track_table_t * tt;
   char * stream_description;
 
+  int packet_size; /* Optional, if it's fixed */
+  
   int index_mode;
   int demux_mode;
   uint32_t flags;

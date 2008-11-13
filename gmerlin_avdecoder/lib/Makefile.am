@@ -413,6 +413,7 @@ in_ftp.c \
 in_http.c \
 in_memory.c \
 in_mms.c \
+in_mmsh.c \
 in_pnm.c \
 in_rtsp.c \
 in_vcd.c \

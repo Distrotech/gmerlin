@@ -209,6 +209,16 @@ const bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input,
   int i;
   int bytes_skipped;
   uint8_t skip;
+
+#if 1
+  uint8_t header[32];
+  
+  if(bgav_input_get_data(input, header, 32) == 32)
+    {
+    fprintf(stderr, "Probe:\n");
+    bgav_hexdump(header, 32, 16);
+    }
+#endif
   
 #ifdef HAVE_LIBAVFORMAT
   if(input->opt->prefer_ffmpeg_demuxers)

@@ -95,29 +95,31 @@ static void set_metadata_string(bgav_http_header_t * header,
 static int open_http(bgav_input_context_t * ctx, const char * url, char ** r)
   {
   const char * var;
-  bgav_http_header_t * header;
   http_priv * p;
-    
-  bgav_http_header_t * extra_header = (bgav_http_header_t*)0;
+  
+  bgav_http_header_t * header = (bgav_http_header_t*)0;
   
   p = calloc(1, sizeof(*p));
-  
+
+  header = bgav_http_header_create();
+    
+  bgav_http_header_add_line(header, "User-Agent: gmerlin/0.3.3");
+  bgav_http_header_add_line(header, "Accept: */*");
+    
   if(ctx->opt->http_shoutcast_metadata)
-    {
-    extra_header = bgav_http_header_create();
-    bgav_http_header_add_line(extra_header, "Icy-MetaData:1");
-    }
+    bgav_http_header_add_line(header, "Icy-MetaData:1");
   
-  p->h = bgav_http_open(url, ctx->opt,
-                        r, extra_header);
+  p->h = bgav_http_open(url, ctx->opt, r, header);
   
   if(!p->h)
     {
     free(p);
     return 0;
     }
+  
   ctx->priv = p;
   
+  bgav_http_header_destroy(header);
   header = bgav_http_get_header(p->h);
   
 //  bgav_http_header_dump(header);
@@ -141,8 +143,6 @@ static int open_http(bgav_input_context_t * ctx, const char * url, char ** r)
 
     p->charset_cnv = bgav_charset_converter_create(ctx->opt, "ISO-8859-1", "UTF-8");
     }
-  if(extra_header)
-    bgav_http_header_destroy(extra_header);
 
   /* Get Metadata */
 
@@ -414,7 +414,8 @@ static void close_http(bgav_input_context_t * ctx)
   if(p->chunk_buffer)
     free(p->chunk_buffer);
   bgav_http_close(p->h);
-
+  if(p->charset_cnv)
+    bgav_charset_converter_destroy(p->charset_cnv);
   free(p);
   }
 

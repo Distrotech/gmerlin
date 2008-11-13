@@ -261,16 +261,18 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
   char * line     = (char*)0;
   char * user     = (char*)0;
   char * pass     = (char*)0;
+  char * protocol = (char*)0;
   
   const char * real_host;
   int real_port;
   
   bgav_http_header_t * request_header = (bgav_http_header_t*)0;
   bgav_http_t * ret = (bgav_http_t *)0;
+  int mhttp; /* Different header fields for Windows media server :) */
   
   port = -1;
   if(!bgav_url_split(url,
-                     NULL,
+                     &protocol,
                      &user, /* User */
                      &pass, /* Pass */
                      &host,
@@ -288,6 +290,9 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
   if(port == -1)
     port = 80;
 
+  if(protocol && !strcmp(protocol, "mhttp"))
+    mhttp = 1;
+  
   /* Check for proxy */
 
   if(opt->http_use_proxy)
@@ -327,23 +332,22 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
   line = bgav_sprintf("Host: %s", host);
   bgav_http_header_add_line(request_header, line);
   free(line);
-
-  bgav_http_header_add_line(request_header, "User-Agent: gmerlin/0.3.3");
-  bgav_http_header_add_line(request_header, "Accept: */*");
-
+  
   ret = do_connect(real_host, real_port, opt, request_header, extra_header);
   if(!ret)
     goto fail;
-  /* Check status code */
 
+  /* Check status code */
   status = bgav_http_header_status_code(ret->header);
 
+  bgav_http_header_dump(ret->header);
+    
   if(status == 401)
     {
     /* Ok, they won't let us in, try to get a username and/or password */
     bgav_http_close(ret);
     ret = (bgav_http_t*)0;
-
+    
     if((!user || !pass) && opt->user_pass_callback)
       {
       if(user) { free(user); user = (char*)0; }
@@ -352,12 +356,12 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
       if(!opt->user_pass_callback(opt->user_pass_callback_data, host, &user, &pass))
         goto fail;
       }
-
+    
     if(!user || !pass)
       goto fail;
-
+    
     /* Now, user and pass should be the authentication data */
-
+    
     userpass_enc = encode_user_pass(user, pass);
     line = bgav_sprintf("Authorization: Basic %s", userpass_enc);
     bgav_http_header_add_line(request_header, line);
@@ -369,7 +373,6 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
       goto fail;
     /* Check status code */
     status = bgav_http_header_status_code(ret->header);
-    
     }
     
   if(status >= 400) /* Error */

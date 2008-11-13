@@ -613,6 +613,7 @@ extern const bgav_input_t bgav_input_pnm;
 extern const bgav_input_t bgav_input_mms;
 extern const bgav_input_t bgav_input_http;
 extern const bgav_input_t bgav_input_ftp;
+extern const bgav_input_t bgav_input_mmsh;
 
 #ifdef HAVE_CDIO
 extern const bgav_input_t bgav_input_vcd;
@@ -705,14 +706,17 @@ static int input_open(bgav_input_context_t * ctx,
     else if(!strcasecmp(protocol, "pnm"))
       ctx->input = &bgav_input_pnm;
     else if(!strcasecmp(protocol, "mms") ||
-            !strcasecmp(protocol, "mmst") ||
-            !strcasecmp(protocol, "mmsu"))
+            !strcasecmp(protocol, "mmst")
+            //            || !strcasecmp(protocol, "mmsu")
+            )
       ctx->input = &bgav_input_mms;
     else if(!strcasecmp(protocol, "http") ||
             !strcasecmp(protocol, "icyx"))
       ctx->input = &bgav_input_http;
     else if(!strcasecmp(protocol, "ftp"))
       ctx->input = &bgav_input_ftp;
+    else if(!strcasecmp(protocol, "mmsh"))
+      ctx->input = &bgav_input_mmsh;
     else if(!strcasecmp(protocol, "file"))
       ctx->input = &bgav_input_file;
     else if(!strcasecmp(protocol, "stdin") || !strcmp(url, "-"))
