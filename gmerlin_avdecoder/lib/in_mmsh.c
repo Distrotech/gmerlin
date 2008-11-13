@@ -186,9 +186,19 @@ static int open_mmsh(bgav_input_context_t * ctx, const char * url, char ** r)
     return 0;
     }
 
-  header = bgav_http_get_header(p->h);
+  fprintf(stderr, "Packet size: %d\n", ctx->demuxer->packet_size);
+
+  if(p->buffer_alloc < ctx->demuxer->packet_size)
+    {
+    p->buffer_alloc = ctx->demuxer->packet_size;
+    p->buffer = realloc(p->buffer, p->buffer_alloc);
+    }
+  p->pos = p->buffer;
+  p->buffer_size = 0;
   
-  bgav_http_header_dump(header);
+  //  header = bgav_http_get_header(p->h);
+  
+  //  bgav_http_header_dump(header);
   
   return 1;
   }
@@ -196,30 +206,32 @@ static int open_mmsh(bgav_input_context_t * ctx, const char * url, char ** r)
 static int fill_buffer(bgav_input_context_t* ctx, int block)
   {
   stream_chunck_t ch;
+  int len;
   mmsh_priv * p = (mmsh_priv  *)(ctx->priv);
-  
+
   while(1)
     {
     if(!stream_chunk_read(ctx, &ch, block))
       return 0;
-    fprintf(stderr, "Packet size: %d\n", ctx->demuxer->packet_size);
-    stream_chunk_dump(&ch);
+    //    stream_chunk_dump(&ch);
+
+    len = ch.size - 8;
     
-    if(p->buffer_alloc < ch.size - 8)
+    if(p->buffer_alloc < len)
       {
-      p->buffer_alloc = ch.size + 1024;
+      p->buffer_alloc = len + 1024;
       p->buffer = realloc(p->buffer, p->buffer_alloc);
       }
-    if(read_data(ctx, p->buffer, ch.size - 8, 1) < ch.size - 8)
+    if(read_data(ctx, p->buffer, len, 1) < len)
       return 0;
+    p->pos = p->buffer;
     
     switch(ch.type)
       {
       case ASF_STREAMING_HEADER:
         if(!p->have_header)
           {
-          p->buffer_size = ch.size - 8;
-          p->pos = p->buffer;
+          p->buffer_size = len;
           p->have_header = 1;
           return 1;
           }
@@ -227,8 +239,13 @@ static int fill_buffer(bgav_input_context_t* ctx, int block)
       case ASF_STREAMING_DATA:
         if(p->have_header)
           {
-          p->buffer_size = ch.size - 8;
-          p->pos = p->buffer;
+          if(ctx->demuxer->packet_size < len)
+            return 0;
+          
+          /* Pad with zeros */
+          if(ctx->demuxer->packet_size > len)
+            memset(p->buffer + len, 0, ctx->demuxer->packet_size - len);
+          p->buffer_size = ctx->demuxer->packet_size;
           return 1;
           }
         break;
@@ -247,14 +264,18 @@ static int do_read(bgav_input_context_t* ctx,
   
   while(bytes_read < len)
     {
-    if(!p->buffer || (p->pos - p->buffer >= p->buffer_size))
+    if(!p->buffer_size || (p->pos - p->buffer >= p->buffer_size))
+      {
       if(!fill_buffer(ctx, block))
         return bytes_read;
-
+      }
     bytes_to_copy = p->buffer_size - (p->pos - p->buffer);
 
     if(bytes_to_copy > len - bytes_read)
       bytes_to_copy = len - bytes_read;
+
+    //    fprintf(stderr, "do_read: %d %d %d\n", bytes_read, bytes_to_copy,
+    //            (p->pos - p->buffer));
     
     memcpy(buffer + bytes_read, p->pos, bytes_to_copy);
     p->pos += bytes_to_copy;
