@@ -29,7 +29,7 @@
 
 #include <inttypes.h>
 
-#include "gavltime.h"
+#include <gavl/gavltime.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,7 +41,7 @@ extern "C" {
 
 typedef struct gavl_video_format_s gavl_video_format_t;
 
-#include "timecode.h"
+#include <gavl/timecode.h>
 
 #pragma GCC visibility push(default)
   
