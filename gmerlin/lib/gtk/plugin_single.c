@@ -567,83 +567,125 @@ bg_gtk_plugin_widget_single_get_subtitle_overlay_section(bg_gtk_plugin_widget_si
 
 void
 bg_gtk_plugin_widget_single_set_section(bg_gtk_plugin_widget_single_t * w,
-                                        const bg_cfg_section_t * s)
+                                        bg_cfg_section_t * s, int copy)
   {
   if(w->section_priv)
     bg_cfg_section_destroy(w->section);
 
-  if(s)
+  if(copy)
     {
-    w->section_priv = 1;
-    w->section = bg_cfg_section_copy(s);
+    if(s)
+      {
+      w->section_priv = 1;
+      w->section = bg_cfg_section_copy(s);
+      }
+    else
+      w->section_priv = 0;
     }
   else
+    {
+    w->section = s;
     w->section_priv = 0;
+    }
+  
   }
 
 void
 bg_gtk_plugin_widget_single_set_audio_section(bg_gtk_plugin_widget_single_t * w,
-                                              const bg_cfg_section_t * s)
+                                              bg_cfg_section_t * s, int copy)
   {
   if(w->audio_section_priv)
     bg_cfg_section_destroy(w->audio_section);
 
-  if(s)
+  if(copy)
     {
-    w->audio_section_priv = 1;
-    w->audio_section = bg_cfg_section_copy(s);
+    if(s)
+      {
+      w->audio_section_priv = 1;
+      w->audio_section = bg_cfg_section_copy(s);
+      }
+    else
+      w->audio_section_priv = 0;
     }
   else
+    {
+    w->audio_section = s;
     w->audio_section_priv = 0;
+    }
 
   }
 
 void
 bg_gtk_plugin_widget_single_set_video_section(bg_gtk_plugin_widget_single_t * w,
-                                              const bg_cfg_section_t * s)
+                                              bg_cfg_section_t * s, int copy)
   {
   if(w->video_section_priv)
     bg_cfg_section_destroy(w->video_section);
 
-  if(s)
+  if(copy)
     {
-    w->video_section_priv = 1;
-    w->video_section = bg_cfg_section_copy(s);
+    if(s)
+      {
+      w->video_section_priv = 1;
+      w->video_section = bg_cfg_section_copy(s);
+      }
+    else
+      w->video_section_priv = 0;
     }
   else
+    {
+    w->video_section = s;
     w->video_section_priv = 0;
+    }
   }
 
 void
 bg_gtk_plugin_widget_single_set_subtitle_text_section(bg_gtk_plugin_widget_single_t * w,
-                                                      const bg_cfg_section_t * s)
+                                                      bg_cfg_section_t * s, int copy)
   {
   if(w->subtitle_text_section_priv)
     bg_cfg_section_destroy(w->subtitle_text_section);
 
-  if(s)
+  if(copy)
     {
-    w->subtitle_text_section_priv = 1;
-    w->subtitle_text_section = bg_cfg_section_copy(s);
+    if(s)
+      {
+      w->subtitle_text_section_priv = 1;
+      w->subtitle_text_section = bg_cfg_section_copy(s);
+      }
+    else
+      w->subtitle_text_section_priv = 0;
     }
   else
+    {
+    w->subtitle_text_section = s;
     w->subtitle_text_section_priv = 0;
+    }
   }
 
 void
 bg_gtk_plugin_widget_single_set_subtitle_overlay_section(bg_gtk_plugin_widget_single_t * w,
-                                                         const bg_cfg_section_t * s)
+                                                         bg_cfg_section_t * s, int copy)
   {
   if(w->subtitle_overlay_section_priv)
     bg_cfg_section_destroy(w->subtitle_overlay_section);
 
-  if(s)
+  if(copy)
     {
-    w->subtitle_overlay_section_priv = 1;
-    w->subtitle_overlay_section = bg_cfg_section_copy(s);
+
+    if(s)
+      {
+      w->subtitle_overlay_section_priv = 1;
+      w->subtitle_overlay_section = bg_cfg_section_copy(s);
+      }
+    else
+      w->subtitle_overlay_section_priv = 0;
     }
   else
+    {
+    w->subtitle_overlay_section = s;
     w->subtitle_overlay_section_priv = 0;
+    }
   }
     
 void

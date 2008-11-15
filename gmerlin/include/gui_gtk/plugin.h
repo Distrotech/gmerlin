@@ -109,23 +109,23 @@ bg_gtk_plugin_widget_single_get_subtitle_overlay_section(bg_gtk_plugin_widget_si
 
 void
 bg_gtk_plugin_widget_single_set_section(bg_gtk_plugin_widget_single_t * w,
-                                        const bg_cfg_section_t * s);
+                                        bg_cfg_section_t * s, int copy);
 
 void
 bg_gtk_plugin_widget_single_set_audio_section(bg_gtk_plugin_widget_single_t * w,
-                                              const bg_cfg_section_t * s);
+                                              bg_cfg_section_t * s, int copy);
 
 void
 bg_gtk_plugin_widget_single_set_video_section(bg_gtk_plugin_widget_single_t * w,
-                                              const bg_cfg_section_t * s);
+                                              bg_cfg_section_t * s, int copy);
 
 void
 bg_gtk_plugin_widget_single_set_subtitle_text_section(bg_gtk_plugin_widget_single_t * w,
-                                                      const bg_cfg_section_t * s);
+                                                      bg_cfg_section_t * s, int copy);
 
 void
 bg_gtk_plugin_widget_single_set_subtitle_overlay_section(bg_gtk_plugin_widget_single_t * w,
-                                                         const bg_cfg_section_t * s);
+                                                         bg_cfg_section_t * s, int copy);
 
 
 

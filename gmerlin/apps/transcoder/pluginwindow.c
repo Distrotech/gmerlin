@@ -32,7 +32,7 @@
 
 #include "transcoder_window.h"
 #include "pluginwindow.h"
-#include "encoderwidget.h"
+//#include "encoderwidget.h"
 #include "ppwidget.h"
 
 struct plugin_window_s
@@ -47,8 +47,7 @@ struct plugin_window_s
 
   transcoder_window_t * tw;
   bg_plugin_registry_t * plugin_reg;
-
-
+  
   bg_gtk_encoder_widget_t * encoders;
   };
 
@@ -65,9 +64,10 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
 
   }
-                                                                               
+
 static gboolean delete_callback(GtkWidget * w, GdkEventAny * evt,
-                                gpointer data)  {
+                                gpointer data)
+  {
   button_callback(w, data);
   return TRUE;
   }

@@ -382,7 +382,6 @@ void bg_alsa_create_card_parameters(bg_parameter_info_t * ret,
   ret->type = BG_PARAMETER_STRINGLIST;
 
   snd_ctl_card_info_malloc(&info);
-  snd_pcm_info_malloc(&pcminfo);
 
   card = -1;
   if (snd_card_next(&card) < 0 || card < 0)
@@ -420,6 +419,7 @@ void bg_alsa_create_card_parameters(bg_parameter_info_t * ret,
     while (1)
       {
       char * name, *label;
+      snd_pcm_info_malloc(&pcminfo);
       if (snd_ctl_pcm_next_device(handle, &dev)<0)
         bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_ctl_pcm_next_device failed");
       if (dev < 0)
@@ -438,7 +438,7 @@ void bg_alsa_create_card_parameters(bg_parameter_info_t * ret,
       name = bg_sprintf("hw:%d,%d", card, dev);
       label = bg_strdup((char*)0, snd_pcm_info_get_name(pcminfo));
       append_card(ret, name, label);
-      
+      snd_pcm_info_free(pcminfo);
       }
     snd_ctl_close(handle);
     
@@ -447,7 +447,6 @@ void bg_alsa_create_card_parameters(bg_parameter_info_t * ret,
       break;
     }
   snd_ctl_card_info_free(info);
-  snd_pcm_info_free(pcminfo);
   
   }
 

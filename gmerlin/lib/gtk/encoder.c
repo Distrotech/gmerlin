@@ -51,15 +51,17 @@ struct bg_gtk_encoder_widget_s
   };
 
 
-void bg_gtk_encoder_widget_get(bg_gtk_encoder_widget_t * wid, const bg_encoder_info_t * info)
+static void encoder_widget_get(bg_gtk_encoder_widget_t * wid, const bg_encoder_info_t * info,
+                               int copy_sections)
   {
   bg_gtk_plugin_widget_single_set_plugin(wid->video_encoder,
                                          info->video_info);
+  
   bg_gtk_plugin_widget_single_set_section(wid->video_encoder,
-                                          info->video_encoder_section);
+                                          info->video_encoder_section, copy_sections);
   
   bg_gtk_plugin_widget_single_set_video_section(wid->video_encoder,
-                                                info->video_stream_section);
+                                                info->video_stream_section, copy_sections);
   
   if(info->audio_info)
     {
@@ -70,9 +72,9 @@ void bg_gtk_encoder_widget_get(bg_gtk_encoder_widget_t * wid, const bg_encoder_i
     bg_gtk_plugin_widget_single_set_plugin(wid->audio_encoder,
                                            info->audio_info);
     bg_gtk_plugin_widget_single_set_section(wid->audio_encoder,
-                                            info->audio_encoder_section);
+                                            info->audio_encoder_section, copy_sections);
     bg_gtk_plugin_widget_single_set_audio_section(wid->audio_encoder,
-                                                  info->audio_stream_section);
+                                                  info->audio_stream_section, copy_sections);
     }
   else
     {
@@ -81,7 +83,7 @@ void bg_gtk_encoder_widget_get(bg_gtk_encoder_widget_t * wid, const bg_encoder_i
     g_signal_handler_unblock(G_OBJECT(wid->audio_to_video), wid->audio_to_video_id);
 
     bg_gtk_plugin_widget_single_set_audio_section(wid->video_encoder,
-                                                  info->audio_stream_section);
+                                                  info->audio_stream_section, copy_sections);
     }
 
   if(info->subtitle_text_info)
@@ -93,9 +95,9 @@ void bg_gtk_encoder_widget_get(bg_gtk_encoder_widget_t * wid, const bg_encoder_i
     bg_gtk_plugin_widget_single_set_plugin(wid->subtitle_text_encoder,
                                            info->subtitle_text_info);
     bg_gtk_plugin_widget_single_set_section(wid->subtitle_text_encoder,
-                                            info->subtitle_text_encoder_section);
+                                            info->subtitle_text_encoder_section, copy_sections);
     bg_gtk_plugin_widget_single_set_subtitle_text_section(wid->subtitle_text_encoder,
-                                                          info->subtitle_text_stream_section);
+                                                          info->subtitle_text_stream_section, copy_sections);
     }
   else
     {
@@ -104,7 +106,7 @@ void bg_gtk_encoder_widget_get(bg_gtk_encoder_widget_t * wid, const bg_encoder_i
     g_signal_handler_unblock(G_OBJECT(wid->subtitle_text_to_video), wid->subtitle_text_to_video_id);
 
     bg_gtk_plugin_widget_single_set_subtitle_text_section(wid->video_encoder,
-                                                          info->subtitle_text_stream_section);
+                                                          info->subtitle_text_stream_section, copy_sections);
     }
 
   if(info->subtitle_overlay_info)
@@ -116,9 +118,9 @@ void bg_gtk_encoder_widget_get(bg_gtk_encoder_widget_t * wid, const bg_encoder_i
     bg_gtk_plugin_widget_single_set_plugin(wid->subtitle_overlay_encoder,
                                            info->subtitle_overlay_info);
     bg_gtk_plugin_widget_single_set_section(wid->subtitle_overlay_encoder,
-                                            info->subtitle_overlay_encoder_section);
+                                            info->subtitle_overlay_encoder_section, copy_sections);
     bg_gtk_plugin_widget_single_set_subtitle_overlay_section(wid->subtitle_overlay_encoder,
-                                                          info->subtitle_overlay_stream_section);
+                                                          info->subtitle_overlay_stream_section, copy_sections);
     }
   else
     {
@@ -127,8 +129,13 @@ void bg_gtk_encoder_widget_get(bg_gtk_encoder_widget_t * wid, const bg_encoder_i
     g_signal_handler_unblock(G_OBJECT(wid->subtitle_overlay_to_video), wid->subtitle_overlay_to_video_id);
 
     bg_gtk_plugin_widget_single_set_subtitle_overlay_section(wid->video_encoder,
-                                                             info->subtitle_overlay_stream_section);
+                                                             info->subtitle_overlay_stream_section, copy_sections);
     }
+  }
+
+void bg_gtk_encoder_widget_get(bg_gtk_encoder_widget_t * wid, const bg_encoder_info_t * info)
+  {
+  encoder_widget_get(wid, info, 1);
   }
 
 void bg_gtk_encoder_widget_set(bg_gtk_encoder_widget_t * wid, bg_encoder_info_t * info)
@@ -287,7 +294,6 @@ bg_gtk_encoder_widget_t * bg_gtk_encoder_widget_create(bg_plugin_registry_t * pl
   int row, num_columns;
   bg_gtk_encoder_widget_t * ret = calloc(1, sizeof(*ret));
   ret->plugin_reg = plugin_reg;
-  
 
   ret->audio_encoder =
     bg_gtk_plugin_widget_single_create("Audio", plugin_reg,
@@ -399,7 +405,7 @@ void bg_gtk_encoder_widget_set_from_registry(bg_gtk_encoder_widget_t * wid,
   {
   bg_encoder_info_t info;
   bg_encoder_info_get_from_registry(plugin_reg, &info);
-  bg_gtk_encoder_widget_get(wid, &info);
+  encoder_widget_get(wid, &info, 0);
   bg_gtk_encoder_widget_update_sensitive(wid);
   }
 
