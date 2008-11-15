@@ -96,7 +96,6 @@ int bgav_init(bgav_t * ret)
       else
         return 1;
       }
-    fprintf(stderr, "Got no redirector %p\n", ret->yml);
     /* Check for ID3V2 tags here, they can be prepended to
        many different file types */
     

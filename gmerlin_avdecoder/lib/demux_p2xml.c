@@ -98,7 +98,7 @@ static char * find_audio_file(const char * dir, const char * name_root, int stre
 
 static int probe_p2xml(bgav_yml_node_t * node)
   {
-  if(node->name && !strcasecmp(node->name, "P2Main"))
+  if(bgav_yml_find_by_name(node, "P2Main"))
     return 1;
   return 0;
   }
@@ -145,7 +145,9 @@ static int open_p2xml(bgav_demuxer_context_t * ctx, bgav_yml_node_t * yml)
     goto fail;
 
   directory_parent = bgav_strdup(ctx->input->filename);
-
+  
+  yml = bgav_yml_find_by_name(yml, "P2Main");
+  
   /* Strip off xml filename */
   ptr = strrchr(directory_parent, '/');
   if(!ptr)
