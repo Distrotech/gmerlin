@@ -66,8 +66,8 @@ const redir_t redirectors[] =
 
 const redir_t yml_redirectors[] =
   {
-    //    { &bgav_redirector_qtl, "qtl" },
-    { &bgav_redirector_rtsptext, "rtsptext" },
+    { &bgav_redirector_qtl, "qtl" },
+    //    { &bgav_redirector_rtsptext, "rtsptext" },
   };
 
 static const int num_redirectors = sizeof(redirectors)/sizeof(redirectors[0]);
@@ -95,14 +95,14 @@ const bgav_redirector_t * bgav_redirector_probe(bgav_input_context_t * input,
     if(!(*yml))
       return (bgav_redirector_t*)0;
 
-#if 0
+#if 1
     
     for(i = 0; i < num_yml_redirectors; i++)
       {
       if(yml_redirectors[i].r->probe_yml(*yml))
         {
         bgav_log(input->opt, BGAV_LOG_INFO, LOG_DOMAIN,
-                 "Detected %s redirectors",
+                 "Detected %s redirector",
                  yml_redirectors[i].format_name);
         return yml_redirectors[i].r;
         }

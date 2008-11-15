@@ -40,6 +40,8 @@ int bgav_yml_probe(bgav_input_context_t * input)
 
   probe_data[len] = '\0';
 
+  //  fprintf(stderr, "yml probe %d %s\n", len, probe_data);
+  
   ptr = probe_data;
 
   while(isspace(*ptr) && (*ptr != '\0'))
@@ -140,7 +142,7 @@ static char * parse_tag_name(parser_t * p)
   {
   char * pos;
   char  * ret;
-  pos = find_chars(p, "> /");
+  pos = find_chars(p, "> /?");
   if(!pos)
     return (char*)0;
   ret = bgav_strndup(p->buffer, pos);
@@ -303,7 +305,13 @@ static int parse_children(parser_t * p, bgav_yml_node_t * ret)
 static int parse_tag_node(parser_t * p, bgav_yml_node_t * ret)
   {
   char * pos;
-  advance(p, 1);
+
+  if(!skip_space(p))
+    return 0;
+  if(*(p->buffer) != '<')
+    return 0;
+
+  advance(p, 1); /* < */
 
   if(p->buffer_size < 4)
     {
@@ -311,15 +319,19 @@ static int parse_tag_node(parser_t * p, bgav_yml_node_t * ret)
       return 0;
     }
 
-  if(!strncasecmp(p->buffer, "?xml", 4))
+  //  if(!strncasecmp(p->buffer, "?xml", 4))
+  if(*p->buffer == '?')
     {
-    advance(p, 4);
+    advance(p, 1);
+
+    ret->pi = parse_tag_name(p);
+    
     if(!skip_space(p))
       return 0;
-
-    if(*(p->buffer) != '>')
+    
+    if(strncasecmp(p->buffer, "?>", 2))
       {
-      if(!parse_attributes(p, &ret->xml_attributes))
+      if(!parse_attributes(p, &ret->attributes))
         return 0;
       }
 
@@ -331,12 +343,7 @@ static int parse_tag_node(parser_t * p, bgav_yml_node_t * ret)
     if(strncasecmp(p->buffer, "?>", 2))
       return 0;
     advance(p, 2);
-
-    if(!skip_space(p))
-      return 0;
-    if(*(p->buffer) != '<')
-      return 0;
-    advance(p, 1);
+    return 1;
     }
   
   ret->name = parse_tag_name(p);
@@ -507,6 +514,7 @@ bgav_yml_node_t * bgav_yml_parse(bgav_input_context_t * input)
   parser_t parser;
   int is_comment = 1;
   bgav_yml_node_t * ret = (bgav_yml_node_t *)0;
+  bgav_yml_node_t * ret_end = (bgav_yml_node_t *)0;
   
   memset(&parser, 0, sizeof(parser));
   parser.input = input;
@@ -522,8 +530,26 @@ bgav_yml_node_t * bgav_yml_parse(bgav_input_context_t * input)
     else
       break;
     }
-  while(is_comment)
-    ret = parse_node(&parser, &is_comment);
+  while(1)
+    {
+    if(!ret)
+      {
+      ret = parse_node(&parser, &is_comment);
+
+      if(ret)
+        ret_end = ret;
+      else if(!is_comment)
+        break;
+      }
+    else
+      {
+      ret_end->next = parse_node(&parser, &is_comment);
+      if(ret_end->next)
+        ret_end = ret_end->next;
+      else if(!is_comment)
+        break;
+      }
+    }
   
   if(parser.buffer)
     free(parser.buffer);
@@ -549,24 +575,13 @@ static void dump_node(bgav_yml_node_t * n)
   {
   bgav_yml_attr_t * attr;
   bgav_yml_node_t * child;
-
-  if(n->xml_attributes)
-    {
-    bgav_dprintf( "<?xml ");
-
-    attr = n->xml_attributes;
-    while(attr)
-      {
-      dump_attribute(attr);
-      bgav_dprintf( " ");
-      attr = attr->next;
-      }
-    bgav_dprintf( "?>\n");
-    }
   
-  if(n->name)
+  if(n->name || n->pi)
     {
-    bgav_dprintf( "<%s", n->name);
+    if(n->name)
+      bgav_dprintf( "<%s", n->name);
+    else if(n->pi)
+      bgav_dprintf( "<?%s", n->pi);
     if(n->attributes)
       {
       bgav_dprintf( " ");
@@ -580,7 +595,12 @@ static void dump_node(bgav_yml_node_t * n)
         }
       }
     if(!n->children)
-      bgav_dprintf( "/>");
+      {
+      if(n->name)
+        bgav_dprintf( "/>");
+      else if(n->pi)
+        bgav_dprintf( "?>");
+      }
     else
       {
       bgav_dprintf( ">");
@@ -601,47 +621,43 @@ static void dump_node(bgav_yml_node_t * n)
 
 void bgav_yml_dump(bgav_yml_node_t * n)
   {
-  dump_node(n);
+  while(n)
+    {
+    dump_node(n);
+    bgav_dprintf( "\n");
+    n = n->next;
+    }
   }
-
+  
 #define FREE(p) if(p)free(p);
 
 void bgav_yml_free(bgav_yml_node_t * n)
   {
-  bgav_yml_node_t * child;
+  bgav_yml_node_t * tmp;
   bgav_yml_attr_t * attr;
-  if(!n)
-    return;
-  while(n->children)
+
+  while(n)
     {
-    child = n->children->next;
+    tmp = n->next;
+    
     bgav_yml_free(n->children);
-    n->children = child;
+    
+    while(n->attributes)
+      {
+      attr = n->attributes->next;
+      FREE(n->attributes->name);
+      FREE(n->attributes->value);
+      FREE(n->attributes);
+      n->attributes = attr;
+      }
+    
+    FREE(n->name);
+    FREE(n->str);
+    FREE(n->pi);
+    
+    free(n);
+    n = tmp;
     }
-
-  while(n->attributes)
-    {
-    attr = n->attributes->next;
-    FREE(n->attributes->name);
-    FREE(n->attributes->value);
-    FREE(n->attributes);
-    n->attributes = attr;
-    }
-
-  while(n->xml_attributes)
-    {
-    attr = n->xml_attributes->next;
-    FREE(n->xml_attributes->name);
-    FREE(n->xml_attributes->value);
-    FREE(n->xml_attributes);
-    n->xml_attributes = attr;
-    }
-  
-  FREE(n->name);
-  FREE(n->str);
-  
-  free(n);
-  
   }
 
 const char * bgav_yml_get_attribute(bgav_yml_node_t * n, const char * name)

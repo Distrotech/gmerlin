@@ -89,13 +89,14 @@ int bgav_init(bgav_t * ret)
       ret->redirector = calloc(1, sizeof(*(ret->redirector)));
       ret->redirector->input = ret->input;
       ret->redirector->opt = &(ret->opt);
+      ret->redirector->yml = ret->yml;
       
       if(!redirector->parse(ret->redirector))
         goto fail;
       else
         return 1;
       }
-
+    fprintf(stderr, "Got no redirector %p\n", ret->yml);
     /* Check for ID3V2 tags here, they can be prepended to
        many different file types */
     

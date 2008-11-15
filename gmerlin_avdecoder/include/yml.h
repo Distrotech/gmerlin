@@ -47,7 +47,7 @@ typedef struct bgav_yml_node_s
   char * str;    /* Text for text nodes              */
   
   bgav_yml_attr_t * attributes; /* Attributes of the node */
-  bgav_yml_attr_t * xml_attributes;  /* Attributes of the <?xml>-node */
+  // bgav_yml_attr_t * xml_attributes;  /* Attributes of the <?xml>-node */
   struct bgav_yml_node_s * next;
   struct bgav_yml_node_s * children;
   } bgav_yml_node_t;
