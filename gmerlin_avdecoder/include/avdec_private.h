@@ -30,7 +30,7 @@
 
 #define BGAV_MK_FOURCC(a, b, c, d) ((a<<24)|(b<<16)|(c<<8)|d)
 
-typedef struct bgav_edl_dec_s bgav_edl_dec_t;
+// typedef struct bgav_edl_dec_s bgav_edl_dec_t;
 
 typedef struct bgav_demuxer_s         bgav_demuxer_t;
 typedef struct bgav_demuxer_context_s bgav_demuxer_context_t;
@@ -1194,7 +1194,7 @@ bgav_demuxer_create(const bgav_options_t * opt,
                     bgav_input_context_t * input);
 
 const bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input,
-                                          bgav_yml_node_t ** yml);
+                                          bgav_yml_node_t * yml);
 
 void bgav_demuxer_create_buffers(bgav_demuxer_context_t * demuxer);
 void bgav_demuxer_destroy(bgav_demuxer_context_t * demuxer);
@@ -1243,7 +1243,10 @@ struct bgav_redirector_s
   {
   const char * name;
   int (*probe)(bgav_input_context_t*);
+  int (*probe_yml)(bgav_yml_node_t*);
+
   int (*parse)(bgav_redirector_context_t*);
+  
   };
 
 typedef struct
@@ -1256,7 +1259,8 @@ struct bgav_redirector_context_s
   {
   bgav_redirector_t * redirector;
   bgav_input_context_t * input;
-
+  bgav_yml_node_t * yml;
+  
   int parsed;
   int num_urls;
   bgav_url_info_t * urls;
@@ -1265,8 +1269,8 @@ struct bgav_redirector_context_s
   };
 
 void bgav_redirector_destroy(bgav_redirector_context_t*r);
-const bgav_redirector_t * bgav_redirector_probe(bgav_input_context_t * input);
-
+const bgav_redirector_t * bgav_redirector_probe(bgav_input_context_t * input,
+                                                bgav_yml_node_t ** yml);
 
 /* Actual decoder */
 
@@ -1291,8 +1295,8 @@ struct bgav_s
   /* Set by the seek function */
 
   int eof;
-
-  bgav_edl_dec_t * edl_dec;
+  bgav_yml_node_t * yml;
+  // bgav_edl_dec_t * edl_dec;
   
   };
 

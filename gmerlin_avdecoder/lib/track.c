@@ -591,6 +591,8 @@ void bgav_track_calc_duration(bgav_track_t * t)
     }
   for(i = 0; i < t->num_video_streams; i++)
     {
+    if(t->video_streams[i].data.video.format.framerate_mode == GAVL_FRAMERATE_STILL)
+      continue;
     test_duration =
       gavl_time_unscale(t->video_streams[i].data.video.format.timescale,
                         t->video_streams[i].duration);

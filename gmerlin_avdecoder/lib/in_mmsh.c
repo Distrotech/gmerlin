@@ -88,7 +88,7 @@ static int stream_chunk_read(bgav_input_context_t* ctx,
   ch->size_confirm    = BGAV_PTR_2_16LE(pos); pos+=2;
   return 1;
   }
-
+#if 0
 static void stream_chunk_dump(stream_chunck_t * ch)
   {
   bgav_dprintf("Type:        %c%c\n", ch->type >> 8, ch->type & 0xff);
@@ -97,7 +97,7 @@ static void stream_chunk_dump(stream_chunck_t * ch)
   bgav_dprintf("Unknown:     %d\n",   ch->unknown);
   bgav_dprintf("SizeConfirm: %d\n",   ch->size_confirm);
   }
-
+#endif
 static int open_mmsh(bgav_input_context_t * ctx, const char * url, char ** r)
   {
   const char * var;

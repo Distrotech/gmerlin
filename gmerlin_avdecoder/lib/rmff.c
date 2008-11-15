@@ -721,14 +721,14 @@ static int select_mlti_data(const uint8_t *mlti_chunk, int mlti_size, int select
     dst = i_tmp;
 
 #define GET_ATTR_LENGTH(attrs, num_attrs, name, dst) \
-  if(bgav_sdp_get_attr_string(attrs, num_attrs, name, &buffer)) \
+  if(bgav_sdp_get_attr_string(attrs, num_attrs, name, &str)) \
     { \
     double t; \
-    char ** rest; \
-    if(!strncmp(buffer, "npt=", 4)) \
+    char * rest; \
+    if(!strncmp(str, "npt=", 4)) \
       { \
-      t = strtod(buffer + 4, &rest); \
-      if(rest != buffer + 4) \
+      t = strtod(str+ 4, &rest); \
+      if(rest != str + 4) \
         dst = (int)(t * 1000.0+0.5); \
       } \
     }

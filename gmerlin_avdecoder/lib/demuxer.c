@@ -204,72 +204,59 @@ int bgav_demuxer_next_packet(bgav_demuxer_context_t * demuxer);
 #define SYNC_BYTES (32*1024)
 
 const bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input,
-                                          bgav_yml_node_t ** yml)
+                                          bgav_yml_node_t * yml)
   {
   int i;
   int bytes_skipped;
   uint8_t skip;
 
-#if 1
-  uint8_t header[32];
-  
-  if(bgav_input_get_data(input, header, 32) == 32)
+  if(!yml)
     {
-    fprintf(stderr, "Probe:\n");
-    bgav_hexdump(header, 32, 16);
-    }
-#endif
-  
 #ifdef HAVE_LIBAVFORMAT
-  if(input->opt->prefer_ffmpeg_demuxers)
-    {
-    if(bgav_demuxer_ffmpeg.probe(input))
-      return &bgav_demuxer_ffmpeg;
-    }
-#endif
-  //  uint8_t header[32];
-  if(input->mimetype)
-    {
-    for(i = 0; i < num_mimetypes; i++)
+    if(input->opt->prefer_ffmpeg_demuxers)
       {
-      if(!strcmp(mimetypes[i].mimetype, input->mimetype))
+      if(bgav_demuxer_ffmpeg.probe(input))
+        return &bgav_demuxer_ffmpeg;
+      }
+#endif
+    //  uint8_t header[32];
+    if(input->mimetype)
+      {
+      for(i = 0; i < num_mimetypes; i++)
         {
-        return mimetypes[i].demuxer;
+        if(!strcmp(mimetypes[i].mimetype, input->mimetype))
+          {
+          return mimetypes[i].demuxer;
+          }
+        }
+      }
+    
+    for(i = 0; i < num_demuxers; i++)
+      {
+      if(demuxers[i].demuxer->probe(input))
+        {
+        bgav_log(input->opt, BGAV_LOG_INFO, LOG_DOMAIN,
+                 "Detected %s format", demuxers[i].format_name);
+        return demuxers[i].demuxer;
+        }
+      }
+  
+    for(i = 0; i < num_sync_demuxers; i++)
+      {
+      if(sync_demuxers[i].demuxer->probe(input))
+        {
+        bgav_log(input->opt, BGAV_LOG_INFO, LOG_DOMAIN,
+                 "Detected %s format",
+                 sync_demuxers[i].format_name);
+        return sync_demuxers[i].demuxer;
         }
       }
     }
-    
-  for(i = 0; i < num_demuxers; i++)
+  else
     {
-    if(demuxers[i].demuxer->probe(input))
-      {
-      bgav_log(input->opt, BGAV_LOG_INFO, LOG_DOMAIN,
-               "Detected %s format", demuxers[i].format_name);
-      return demuxers[i].demuxer;
-      }
-    }
-  
-  for(i = 0; i < num_sync_demuxers; i++)
-    {
-    if(sync_demuxers[i].demuxer->probe(input))
-      {
-      bgav_log(input->opt, BGAV_LOG_INFO, LOG_DOMAIN,
-               "Detected %s format",
-               sync_demuxers[i].format_name);
-      return sync_demuxers[i].demuxer;
-      }
-    }
-
-  /* Check if this is an xml like file */
-  if(bgav_yml_probe(input))
-    {
-    *yml = bgav_yml_parse(input);
-    if(!(*yml))
-      return (bgav_demuxer_t *)0;
-
     for(i = 0; i < num_yml_demuxers; i++)
       {
-      if(yml_demuxers[i].demuxer->probe_yml(*yml))
+      if(yml_demuxers[i].demuxer->probe_yml(yml))
         {
         bgav_log(input->opt, BGAV_LOG_INFO, LOG_DOMAIN,
                  "Detected %s format",
@@ -277,8 +264,6 @@ const bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input,
         return yml_demuxers[i].demuxer;
         }
       }
-
-    
     }
   
   /* Try again with skipping initial bytes */

@@ -41,7 +41,6 @@ int bgav_udp_open(const bgav_options_t * opt, int port)
   int ret;
   size_t tmp = 0;
   //  struct sockaddr_in name;
-  socklen_t optlen;
   struct addrinfo * addr;
   addr = bgav_hostbyname(opt, (const char *)0, port, SOCK_DGRAM, AI_PASSIVE);
 

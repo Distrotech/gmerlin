@@ -31,6 +31,7 @@ extern const bgav_redirector_t bgav_redirector_pls;
 extern const bgav_redirector_t bgav_redirector_ref;
 extern const bgav_redirector_t bgav_redirector_smil;
 extern const bgav_redirector_t bgav_redirector_rtsptext;
+extern const bgav_redirector_t bgav_redirector_qtl;
 
 void bgav_redirectors_dump()
   {
@@ -42,15 +43,18 @@ void bgav_redirectors_dump()
   bgav_dprintf( "<li>%s\n", bgav_redirector_ref.name);
   bgav_dprintf( "<li>%s\n", bgav_redirector_smil.name);
   bgav_dprintf( "<li>%s\n", bgav_redirector_rtsptext.name);
+  bgav_dprintf( "<li>%s\n", bgav_redirector_qtl.name);
   bgav_dprintf( "</ul>\n");
   }
 
-static const struct
+typedef struct
   {
   const bgav_redirector_t * r;
   char * format_name;
-  }
-redirectors[] =
+  } redir_t;
+
+
+const redir_t redirectors[] =
   {
     { &bgav_redirector_asx, "asx" },
     { &bgav_redirector_pls, "pls" },
@@ -60,9 +64,18 @@ redirectors[] =
     { &bgav_redirector_rtsptext, "rtsptext" },
   };
 
+const redir_t yml_redirectors[] =
+  {
+    //    { &bgav_redirector_qtl, "qtl" },
+    { &bgav_redirector_rtsptext, "rtsptext" },
+  };
+
 static const int num_redirectors = sizeof(redirectors)/sizeof(redirectors[0]);
 
-const bgav_redirector_t * bgav_redirector_probe(bgav_input_context_t * input)
+static const int num_yml_redirectors = sizeof(yml_redirectors)/sizeof(yml_redirectors[0]);
+
+const bgav_redirector_t * bgav_redirector_probe(bgav_input_context_t * input,
+                                                bgav_yml_node_t ** yml)
   {
   int i;
 
@@ -74,6 +87,27 @@ const bgav_redirector_t * bgav_redirector_probe(bgav_input_context_t * input)
                "Detected %s redirector", redirectors[i].format_name);
       return redirectors[i].r;
       }
+    }
+  /* Check if this is an xml like file */
+  if(bgav_yml_probe(input))
+    {
+    *yml = bgav_yml_parse(input);
+    if(!(*yml))
+      return (bgav_redirector_t*)0;
+
+#if 0
+    
+    for(i = 0; i < num_yml_redirectors; i++)
+      {
+      if(yml_redirectors[i].r->probe_yml(*yml))
+        {
+        bgav_log(input->opt, BGAV_LOG_INFO, LOG_DOMAIN,
+                 "Detected %s redirectors",
+                 yml_redirectors[i].format_name);
+        return yml_redirectors[i].r;
+        }
+      }
+#endif
     }
   return (bgav_redirector_t*)0;
   }

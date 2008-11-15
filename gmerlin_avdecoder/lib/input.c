@@ -642,6 +642,7 @@ void bgav_inputs_dump()
   bgav_dprintf( "<li>%s\n", bgav_input_rtsp.name);
   bgav_dprintf( "<li>%s\n", bgav_input_pnm.name);
   bgav_dprintf( "<li>%s\n", bgav_input_mms.name);
+  bgav_dprintf( "<li>%s\n", bgav_input_mmsh.name);
   bgav_dprintf( "<li>%s\n", bgav_input_http.name);
   bgav_dprintf( "<li>%s\n", bgav_input_ftp.name);
 

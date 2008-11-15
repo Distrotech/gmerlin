@@ -48,7 +48,6 @@ create_demuxer(bgav_t * b, const bgav_demuxer_t * demuxer)
 
 int bgav_init(bgav_t * ret)
   {
-  bgav_yml_node_t * yml = (bgav_yml_node_t *)0;
   const bgav_demuxer_t * demuxer = (bgav_demuxer_t *)0;
   const bgav_redirector_t * redirector = (bgav_redirector_t*)0;
   
@@ -84,7 +83,7 @@ int bgav_init(bgav_t * ret)
     /* First, we try the redirector, because we never need to
        skip bytes for them. */
 
-    redirector = bgav_redirector_probe(ret->input);
+    redirector = bgav_redirector_probe(ret->input, &ret->yml);
     if(redirector)
       {
       ret->redirector = calloc(1, sizeof(*(ret->redirector)));
@@ -103,12 +102,12 @@ int bgav_init(bgav_t * ret)
     if(bgav_id3v2_probe(ret->input))
       ret->input->id3v2 = bgav_id3v2_read(ret->input);
     
-    demuxer = bgav_demuxer_probe(ret->input, &yml);
+    demuxer = bgav_demuxer_probe(ret->input, ret->yml);
     
     if(demuxer)
       {
       ret->demuxer = create_demuxer(ret, demuxer);
-      if(!bgav_demuxer_start(ret->demuxer, yml))
+      if(!bgav_demuxer_start(ret->demuxer, ret->yml))
         {
         goto fail;
         }
@@ -254,6 +253,10 @@ void bgav_close(bgav_t * b)
     bgav_track_table_unref(b->tt);
 
   bgav_options_free(&b->opt);
+
+  if(b->yml)
+    bgav_yml_free(b->yml);
+  
   
   free(b);
   }

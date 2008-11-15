@@ -670,3 +670,26 @@ const char * bgav_yml_get_attribute_i(bgav_yml_node_t * n, const char * name)
   return (const char*)0;
   
   }
+
+bgav_yml_node_t * bgav_yml_find_by_name(bgav_yml_node_t * yml, const char * name)
+  {
+  while(yml)
+    {
+    if(yml->name && !strcasecmp(yml->name, name))
+      return yml;
+    yml = yml->next;
+    }
+  return (bgav_yml_node_t *)0;
+  }
+
+bgav_yml_node_t * bgav_yml_find_by_pi(bgav_yml_node_t * yml, const char * pi)
+  {
+  while(yml)
+    {
+    if(yml->pi && !strcasecmp(yml->pi, pi))
+      return yml;
+    yml = yml->next;
+    }
+  return (bgav_yml_node_t *)0;
+  
+  }

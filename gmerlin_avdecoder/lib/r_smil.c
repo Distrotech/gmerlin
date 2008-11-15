@@ -298,9 +298,10 @@ static int xml_2_smil(bgav_redirector_context_t * r, bgav_yml_node_t * n)
   const char * title = (const char*)0;
   char * pos;
   r->num_urls = 0;
+
+  n = bgav_yml_find_by_name(n, "smil");
   
-  
-  if(sc(n->name, "smil"))
+  if(!n)
     return 0;
   
   node = n->children;

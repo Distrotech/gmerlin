@@ -123,9 +123,10 @@ static void init_stream(bgav_yml_node_t * node,
 
 static int open_p2xml(bgav_demuxer_context_t * ctx, bgav_yml_node_t * yml)
   {
-  char * audio_directory;
-  char * video_directory;
-  char * directory_parent;
+  int ret = 0;
+  char * audio_directory = (char *)0;
+  char * video_directory = (char *)0;
+  char * directory_parent = (char *)0;
   char * ptr;
   bgav_yml_node_t * node;
   bgav_edl_track_t * t = (bgav_edl_track_t *)0;
@@ -141,27 +142,27 @@ static int open_p2xml(bgav_demuxer_context_t * ctx, bgav_yml_node_t * yml)
   int have_audio = 1;
   
   if(!ctx->input || !ctx->input->filename)
-    return 0;
+    goto fail;
 
   directory_parent = bgav_strdup(ctx->input->filename);
 
   /* Strip off xml filename */
   ptr = strrchr(directory_parent, '/');
   if(!ptr)
-    return 0;
+    goto fail;
   *ptr = '\0';
   
   /* Strip off "CLIP" directory */
   ptr = strrchr(directory_parent, '/');
   if(!ptr)
-    return 0;
+    goto fail;
   *ptr = '\0';
 
   video_directory = find_file_nocase(directory_parent, "video");
   audio_directory = find_file_nocase(directory_parent, "audio");
 
   if(!audio_directory && !video_directory)
-    return 0;
+    goto fail;
   
   //  fprintf(stderr, "Got directories: %s %s\n", video_directory, audio_directory);
 
@@ -199,7 +200,7 @@ static int open_p2xml(bgav_demuxer_context_t * ctx, bgav_yml_node_t * yml)
     else if(!strcasecmp(node->name, "EssenceList"))
       {
       if(!duration || !edit_unit_num || !edit_unit_den)
-        return 0;
+        goto fail;
       
       node = node->children;
       continue;
@@ -242,8 +243,14 @@ static int open_p2xml(bgav_demuxer_context_t * ctx, bgav_yml_node_t * yml)
       }
     node = node->next;
     }
+
+  ret = 1;
+  fail:
+  if(directory_parent) free(directory_parent);
+  if(audio_directory) free(audio_directory);
+  if(video_directory) free(video_directory);
   
-  return 1;
+  return ret;
   }
 
 const bgav_demuxer_t bgav_demuxer_p2xml =

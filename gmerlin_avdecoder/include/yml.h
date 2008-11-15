@@ -43,7 +43,9 @@ typedef struct bgav_yml_attr_s
 typedef struct bgav_yml_node_s
   {
   char * name;   /* NULL if we have a pure text node */
+  char * pi;     /* Processing info */
   char * str;    /* Text for text nodes              */
+  
   bgav_yml_attr_t * attributes; /* Attributes of the node */
   bgav_yml_attr_t * xml_attributes;  /* Attributes of the <?xml>-node */
   struct bgav_yml_node_s * next;
@@ -62,4 +64,7 @@ const char * bgav_yml_get_attribute(bgav_yml_node_t *, const char * name);
 const char * bgav_yml_get_attribute_i(bgav_yml_node_t *, const char * name);
 
 int bgav_yml_probe(bgav_input_context_t * input);
+
+bgav_yml_node_t * bgav_yml_find_by_name(bgav_yml_node_t * yml, const char * name);
+bgav_yml_node_t * bgav_yml_find_by_pi(bgav_yml_node_t * yml, const char * pi);
 

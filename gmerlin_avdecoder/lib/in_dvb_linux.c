@@ -447,6 +447,7 @@ static int load_channel_cache(bgav_input_context_t * ctx)
   bgav_input_context_t * input;
   char * filename;
   bgav_yml_node_t * yml = (bgav_yml_node_t*)0;
+  bgav_yml_node_t * yml_root = (bgav_yml_node_t*)0;
   bgav_yml_node_t * channel_node;
   bgav_yml_node_t * channel_child;
   bgav_yml_node_t * stream_node;
@@ -481,11 +482,12 @@ static int load_channel_cache(bgav_input_context_t * ctx)
     goto fail;
     }
 
-  yml = bgav_yml_parse(input);
-
-  if(strcmp(yml->name, "channels"))
+  yml_root = bgav_yml_parse(input);
+  yml = bgav_yml_find_by_name(yml_root, "channels");
+  
+  if(!yml)
     goto fail;
-
+  
   attr = bgav_yml_get_attribute(yml, "num");
 
   if(!attr)
@@ -647,8 +649,8 @@ static int load_channel_cache(bgav_input_context_t * ctx)
   bgav_input_close(input);
   bgav_input_destroy(input);
   if(path) free(path);
-  if(yml)
-    bgav_yml_free(yml);
+  if(yml_root)
+    bgav_yml_free(yml_root);
   return ret;
   }
 

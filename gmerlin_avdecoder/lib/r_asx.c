@@ -135,15 +135,15 @@ static int xml_2_asx(bgav_redirector_context_t * r, bgav_yml_node_t * n)
   bgav_yml_node_t * node;
 
   /* Count the entries and get the global title */
+
+  n = bgav_yml_find_by_name(n, "ASX");
+  
+  if(!n)
+    return 0;
   
   node = n->children;
   r->num_urls = 0;
   
-  if(sc(n->name, "ASX"))
-    return 0;
-  
-  node = n->children;
-
   title = (char*)0;
 
   /* Try to fetch a title */

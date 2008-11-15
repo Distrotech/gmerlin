@@ -340,7 +340,7 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
   /* Check status code */
   status = bgav_http_header_status_code(ret->header);
 
-  bgav_http_header_dump(ret->header);
+  //  bgav_http_header_dump(ret->header);
     
   if(status == 401)
     {
