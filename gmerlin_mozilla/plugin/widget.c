@@ -60,7 +60,16 @@ void bg_mozilla_play(bg_mozilla_t * m)
 
 void bg_mozilla_stop(bg_mozilla_t * m)
   {
+  bg_msg_t * msg;
   bg_player_stop(m->player);
+  while((msg = bg_msg_queue_lock_read(m->msg_queue)))
+    {
+    bg_mozilla_handle_message(m, msg);
+    bg_msg_queue_unlock_read(m->msg_queue);
+    if(m->player_state == BG_PLAYER_STATE_STOPPED ||
+       m->player_state == BG_PLAYER_STATE_CHANGING)
+      break;
+    }
   }
 
 void bg_mozilla_pause(bg_mozilla_t * m)
@@ -127,6 +136,7 @@ static void resize_toolbar(bg_mozilla_widget_t * w)
   
   if(w->duration != GAVL_TIME_UNDEFINED)
     {
+    gtk_widget_show(bg_gtk_slider_get_widget(w->seek_slider));
     gtk_widget_set_size_request(bg_gtk_slider_get_widget(w->seek_slider),
                                 win->width, 20);
     w->toolbar_height = 40;
@@ -265,7 +275,13 @@ static gboolean popup_menu(void * data)
   return FALSE;
   }
      
-
+static gboolean open_link(void * data)
+  {
+  bg_mozilla_widget_t * w;
+  w = data;
+  w->m->open_url(w->m, w->m->ei.href);
+  return FALSE;
+  }
 
 
 static gboolean button_press_callback(GtkWidget * wid, GdkEventButton * evt,
@@ -274,26 +290,15 @@ static gboolean button_press_callback(GtkWidget * wid, GdkEventButton * evt,
   bg_mozilla_widget_t * w;
   w = data;
   w->idle_counter = 0;
-  //  fprintf(stderr, "button_press_callback %d\n", evt->button);
 
   GTK_WIDGET_SET_FLAGS(w->current_win->socket, GTK_CAN_FOCUS);
   gtk_widget_grab_focus(w->current_win->socket);
   
-#if 0
-  if(evt->button == 3)
-    {
-    gtk_menu_popup(GTK_MENU(w->menu.menu),
-                   (GtkWidget *)0,
-                   (GtkWidget *)0,
-                   (GtkMenuPositionFunc)0,
-                   (gpointer)0,
-                   3,
-                   // gtk_get_current_event_time()
-                   evt->time
-                   );
-    return TRUE;
-    }
-#endif
+  //   fprintf(stderr, "button_press_callback %d\n", evt->button);
+
+  //  fprintf(stderr, "button_press_callback %d %s %p\n", w->m->ei.mode,
+  //          w->m->ei.href, w->m->open_url);
+
   show_toolbar(w);
   return TRUE;
   }
@@ -313,6 +318,16 @@ static gboolean button_release_callback(GtkWidget * wid, GdkEventButton * evt,
     g_idle_add(popup_menu, w);
     return TRUE;
     }
+  if(evt->button == 1)
+    {
+    if((w->m->ei.href) &&
+       (w->m->open_url))
+      {
+      fprintf(stderr, "Opening url %s\n", w->m->ei.href);
+      g_idle_add(open_link, w);
+      }
+    }
+
 #endif
   return TRUE;
   }
@@ -425,8 +440,8 @@ bg_mozilla_widget_t * bg_mozilla_widget_create(bg_mozilla_t * m)
   return w;
   }
 
-static void handle_message(bg_mozilla_widget_t * w,
-                           bg_msg_t * msg)
+void bg_mozilla_handle_message(bg_mozilla_t * m,
+                               bg_msg_t * msg)
   {
   gavl_time_t time;
   int id;
@@ -435,6 +450,7 @@ static void handle_message(bg_mozilla_widget_t * w,
   char * tmp_string;
   char time_str[GAVL_TIME_STRING_LEN];
   char duration_str[GAVL_TIME_STRING_LEN];
+  bg_mozilla_widget_t * w = m->widget;
   
   id = bg_msg_get_id(msg);
   
@@ -506,7 +522,7 @@ static void handle_message(bg_mozilla_widget_t * w,
           
           gtk_widget_hide(bg_gtk_button_get_widget(w->play_button));
           resize_toolbar(w);
-          fprintf(stderr, "State: Playing %d\n", w->can_pause);
+          // fprintf(stderr, "State: Playing %d\n", w->can_pause);
           break;
         case BG_PLAYER_STATE_STOPPED:
         case BG_PLAYER_STATE_CHANGING:
@@ -580,7 +596,7 @@ static gboolean idle_callback(void * data)
     }
   while((msg = bg_msg_queue_try_lock_read(w->m->msg_queue)))
     {
-    handle_message(w, msg);
+    bg_mozilla_handle_message(w->m, msg);
     bg_msg_queue_unlock_read(w->m->msg_queue);
     }
   

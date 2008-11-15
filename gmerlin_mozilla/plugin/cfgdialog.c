@@ -77,5 +77,10 @@ void gmerlin_mozilla_create_dialog(bg_mozilla_t * g)
   bg_cfg_section_apply(g->general_section, parameters,
                        gmerlin_mozilla_set_parameter,
                        (void*)(g));
+
+  parameters = bg_player_get_input_parameters(g);
+  bg_cfg_section_apply(g->input_section, parameters,
+                       bg_player_set_input_parameter,
+                       (void*)(g->player));
   
   }

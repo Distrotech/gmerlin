@@ -38,6 +38,8 @@ void bg_mozilla_embed_info_set_parameter(bg_mozilla_embed_info_t * e,
     e->id = bg_strdup(e->id, value);
   else if(!strcmp(name, "controls"))
     e->controls = bg_strdup(e->controls, value);
+  if(!strcmp(name, "href"))
+    e->href = bg_strdup(e->href, value);
   }
 
 int bg_mozilla_embed_info_check(bg_mozilla_embed_info_t * e)
@@ -63,4 +65,5 @@ void bg_mozilla_embed_info_free(bg_mozilla_embed_info_t * e)
   if(e->type)   free(e->type);
   if(e->id)   free(e->id);
   if(e->controls)   free(e->controls);
+  if(e->href)   free(e->href);
   }

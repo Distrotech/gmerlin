@@ -70,6 +70,7 @@ typedef struct
   char * type;
   char * id;
   char * controls;
+  char * href;
   } bg_mozilla_embed_info_t;
 
 void bg_mozilla_embed_info_set_parameter(bg_mozilla_embed_info_t *,
@@ -147,13 +148,15 @@ struct bg_mozilla_s
   bg_cfg_section_t * infowindow_section;
   bg_cfg_section_t * visualization_section;
   bg_cfg_section_t * osd_section;
+  bg_cfg_section_t * input_section;
   
   /* Config dialog */
   bg_dialog_t * cfg_dialog;
   bg_gtk_info_window_t * info_window;
 
   void (*reload_url)(struct bg_mozilla_s*);
-
+  void (*open_url)(struct bg_mozilla_s*, const char * url);
+  
   /* Filled by browser interface (plugin.c) */
   void * instance;
   void * scriptable;
@@ -193,6 +196,10 @@ void gmerlin_mozilla_set_parameter(void * data, const char * name,
 int gmerlin_mozilla_get_parameter(void * data,
                                   const char * name,
                                   bg_parameter_value_t * val);
+
+void bg_mozilla_handle_message(bg_mozilla_t * m,
+                               bg_msg_t * msg);
+
 
 /* GUI */
 

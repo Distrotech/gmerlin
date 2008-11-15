@@ -92,6 +92,8 @@ bg_mozilla_t * gmerlin_mozilla_create()
 
   ret->general_section =
     bg_cfg_registry_find_section(ret->cfg_reg, "general");
+  ret->input_section =
+    bg_cfg_registry_find_section(ret->cfg_reg, "input");
   
   /* Create config dialog */
   gmerlin_mozilla_create_dialog(ret);
@@ -204,10 +206,15 @@ void gmerlin_mozilla_set_ov_plugin(bg_mozilla_t * m,
     }
   }
 
+
 int gmerlin_mozilla_set_stream(bg_mozilla_t * m,
                                const char * url,
                                const char * mimetype, int64_t total_bytes)
   {
+  if(m->player_state != BG_PLAYER_STATE_CHANGING &&
+     m->player_state != BG_PLAYER_STATE_STOPPED)
+    bg_mozilla_stop(m);
+  
   //  if(m->url && !strcmp(url, m->url))
   //    return 0;
   
@@ -215,7 +222,7 @@ int gmerlin_mozilla_set_stream(bg_mozilla_t * m,
   m->mimetype = bg_strdup(m->mimetype, mimetype);
   m->total_bytes = total_bytes;
   fprintf(stderr, "Set URL: %s %s\n", m->url, m->mimetype);
-
+  
   if(!strncmp(url, "file://", 7) || (url[0] == '/'))
     {
     m->url_mode = URL_MODE_LOCAL;
@@ -225,6 +232,10 @@ int gmerlin_mozilla_set_stream(bg_mozilla_t * m,
     m->url_mode = URL_MODE_STREAM;
     m->buffer = bg_mozilla_buffer_create();
     }
+
+  if(m->state == STATE_PLAYING)
+    m->state = STATE_IDLE; /* Ready to be started again */
+  
   return 1;
   }
 
@@ -370,6 +381,7 @@ static void * start_func(void * priv)
       //      fprintf(stderr, "Open callbacks failed\n");
       goto fail;
       }
+    h->location = bg_strdup(h->location, m->url);
     }
   else
     {

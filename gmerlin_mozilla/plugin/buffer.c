@@ -139,16 +139,17 @@ int bg_mozilla_buffer_read(void * b1,
   bg_mozilla_buffer_t * b = b1;
   int64_t last_pos;
 
-  last_pos = ftell(b->read_file);
-
-  //  fprintf(stderr, "Read %ld %d...", last_pos, len - bytes_read);
 
   while(bytes_read < len)
     {
+    last_pos = ftell(b->read_file);
     result = fread(data + bytes_read, 1,
                    len - bytes_read, b->read_file);
+
+    bytes_read += result;
+    last_pos += result;
     
-    if((result < len - bytes_read) && feof(b->read_file)) /* Hit end of file? */
+    if((bytes_read < len) && feof(b->read_file)) /* Hit end of file? */
       {
       if(b->inotify_fd >= 0)
         {
@@ -159,10 +160,7 @@ int bg_mozilla_buffer_read(void * b1,
       else
         break;
       }
-    else
-      bytes_read += result;
     }
-  //  fprintf(stderr, "done %d\n", bytes_read);
   /* Flush inotify events */
   if(b->inotify_fd >= 0)
     handle_inotify(b, 0);

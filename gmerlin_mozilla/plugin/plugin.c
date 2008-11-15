@@ -48,7 +48,8 @@ static const char * vlc_mime_description =
 "application/x-vlc-plugin:vlc:Videolan;";
 
 static const char * quicktime_mime_description =
-"video/quicktime:mov:Quicktime Video;";
+"video/quicktime:mov:Quicktime Video;" \
+"application/x-quicktime-media-link:qtl:Quicktime Link;";
 
 #if 1
 static const char * wmp_mime_description =
@@ -176,6 +177,12 @@ static void reload_url(bg_mozilla_t * m)
   bg_NPN_GetURL(m->instance, m->uri, (const char*)0);
   }
 
+static void open_url(bg_mozilla_t * m, const char * url)
+  {
+  //  bg_NPN_GetURL(m->instance, url, "_new");
+  bg_NPN_GetURL(m->instance, url, (char*)0);
+  }
+
 NPError NPP_New(NPMIMEType pluginType,
                 NPP instance, uint16 mode,
                 int16 argc, char *argn[],
@@ -200,10 +207,10 @@ NPError NPP_New(NPMIMEType pluginType,
   priv->instance = instance;
 
   gmerlin_mozilla_create_scriptable(priv);
-
+  
   priv->reload_url = reload_url;
-
-    
+  priv->open_url = open_url;
+  
   for(i = 0; i < argc; i++)
     {
     if(!strcmp(argn[i], "type"))
