@@ -1194,9 +1194,11 @@ static void init_transform(transform_t * vp)
     case MODE_LENS_EFFECT:
       init_lens_effect(vp);
       func = transform_func_lens_effect;
+      break;
     case MODE_WHIRL:
       init_whirl(vp);
       func = transform_func_whirl;
+      break;
     }
   if(!vp->do_transform)
     return;

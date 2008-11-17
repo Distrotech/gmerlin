@@ -29,11 +29,16 @@
 #include <gmerlin/utils.h>
 #include <gmerlin/plugin.h>
 #include <gmerlin/pluginregistry.h>
+#include <gmerlin/filters.h>
 
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "webcam"
 
 #include "webcam.h"
+
+#ifdef HAVE_V4L
+#include <vloopback.h>
+#endif
 
 #define FRAMERATE_INTERVAL 10
 
@@ -69,6 +74,8 @@ struct gmerlin_webcam_s
   uint32_t capture_frame_counter;
 
   uint32_t frame_counter;
+
+  gavl_video_format_t cam_format;
   
   gavl_video_format_t input_format;
   gavl_video_format_t monitor_format;
@@ -88,9 +95,40 @@ struct gmerlin_webcam_s
 
   char * capture_directory;
   char * capture_namebase;
+  
+  bg_video_filter_chain_t * fc;
 
+  bg_plugin_registry_t * plugin_reg;
+
+  bg_gavl_video_options_t opt;
+  
   int do_quit;
+
+  bg_read_video_func_t read_func;
+  void * read_data;
+  int read_stream;
+
+  int running;
+  int interrupted;
+
+#ifdef HAVE_V4L
+  bg_vloopback_t * vloopback;
+  int do_vloopback;
+#endif  
   };
+
+static int read_func(void * data, gavl_video_frame_t * f, int stream)
+  {
+  gmerlin_webcam_t * w = data;
+  bg_plugin_lock(w->input_handle);
+  
+  if(!w->input->read_video(w->input_handle->priv, f, 0))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "read_frame failed");
+    }
+  bg_plugin_unlock(w->input_handle);
+  return 1;
+  }
 
 void gmerlin_webcam_get_message_queues(gmerlin_webcam_t * cam,
                                        bg_msg_queue_t ** cmd_queue,
@@ -100,22 +138,31 @@ void gmerlin_webcam_get_message_queues(gmerlin_webcam_t * cam,
   *msg_queue = cam->msg_queue;
   }
 
-gmerlin_webcam_t * gmerlin_webcam_create()
+gmerlin_webcam_t * gmerlin_webcam_create(bg_plugin_registry_t * plugin_reg)
   {
   gmerlin_webcam_t * ret;
 
   ret = calloc(1, sizeof(*ret));
   pthread_mutex_init(&(ret->mutex),(pthread_mutexattr_t *)0);
 
+  ret->plugin_reg = plugin_reg;
+
+  bg_gavl_video_options_init(&(ret->opt));
+  
+  ret->fc = bg_video_filter_chain_create(&ret->opt, ret->plugin_reg);
+  
   ret->cmd_queue = bg_msg_queue_create();
   ret->msg_queue = bg_msg_queue_create();
-
+  
   ret->monitor_cnv = gavl_video_converter_create();
-
   ret->capture_cnv = gavl_video_converter_create();
 
   ret->timer = gavl_timer_create();
-    
+
+#ifdef HAVE_V4L
+  ret->vloopback = bg_vloopback_create();
+#endif  
+  
   return ret;
   }
 
@@ -158,6 +205,10 @@ void gmerlin_webcam_destroy(gmerlin_webcam_t * w)
     gavl_video_converter_destroy(w->monitor_cnv);
   
   gavl_timer_destroy(w->timer);
+  
+#ifdef HAVE_V4L
+  bg_vloopback_destroy(w->vloopback);
+#endif  
   
   free(w);
   }
@@ -343,6 +394,9 @@ static void open_monitor(gmerlin_webcam_t * cam)
     cam->monitor_frame = gavl_video_frame_create(&cam->monitor_format);
   cam->monitor_open = 1;
 
+  fprintf(stderr, "Monitor format:\n");
+  gavl_video_format_dump(&cam->monitor_format);
+  
   }
 
 static void close_monitor(gmerlin_webcam_t * cam)
@@ -362,10 +416,46 @@ static void close_monitor(gmerlin_webcam_t * cam)
   cam->monitor_open = 0;
   }
 
+static void build_pipeline(gmerlin_webcam_t * cam)
+  {
+  cam->read_func = read_func;
+  cam->read_data = cam;
+  cam->read_stream = 0;
+  
+  bg_video_filter_chain_connect_input(cam->fc, cam->read_func,cam->read_data,
+                                      cam->read_stream);
+
+  bg_video_filter_chain_reset(cam->fc);
+  
+  if(bg_video_filter_chain_init(cam->fc, &cam->cam_format, &cam->input_format))
+    {
+    bg_video_filter_chain_set_out_format(cam->fc, &cam->input_format);
+    cam->read_func = bg_video_filter_chain_read;
+    cam->read_data = cam->fc;
+    cam->read_stream = 0;
+    }
+
+  if(cam->input_frame)
+    gavl_video_frame_destroy(cam->input_frame);
+  
+  cam->input_frame = gavl_video_frame_create(&cam->input_format);
+  
+  fprintf(stderr, "Cam format:\n");
+  gavl_video_format_dump(&cam->cam_format);
+  
+  fprintf(stderr, "Input format:\n");
+  gavl_video_format_dump(&cam->input_format);
+
+#ifdef HAVE_V4L
+  bg_vloopback_set_format(cam->vloopback, &cam->input_format);
+#endif
+  
+  }
+
 static void open_input(gmerlin_webcam_t * cam)
   {
   bg_msg_t * msg;
-  if(!cam->input->open(cam->input_handle->priv, NULL, &cam->input_format))
+  if(!cam->input->open(cam->input_handle->priv, NULL, &cam->cam_format))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,
            "Initializing %s failed, check settings",
@@ -377,7 +467,8 @@ static void open_input(gmerlin_webcam_t * cam)
     cam->input_open = 0;
     return;
     }
-  cam->input_frame = gavl_video_frame_create(&cam->input_format);
+
+  build_pipeline(cam);
   cam->input_open = 1;
   }
 
@@ -386,7 +477,6 @@ static void close_input(gmerlin_webcam_t * cam)
   if(!cam->input_open)
     return;
   cam->input->close(cam->input_handle->priv);
-  gavl_video_frame_destroy(cam->input_frame);
   cam->input_open = 0;
   }
 
@@ -395,6 +485,7 @@ static void handle_cmd(gmerlin_webcam_t * cam, bg_msg_t * msg)
   bg_plugin_handle_t * h;
   int arg_i;
   float arg_f;
+  char * arg_str;
   
   switch(bg_msg_get_id(msg))
     {
@@ -491,6 +582,19 @@ static void handle_cmd(gmerlin_webcam_t * cam, bg_msg_t * msg)
       break;
     case CMD_DO_CAPTURE:
       do_capture(cam);
+      break;
+#ifdef HAVE_V4L
+    case CMD_SET_VLOOPBACK:
+      arg_i = bg_msg_get_arg_int(msg, 0);
+      arg_str = bg_msg_get_arg_string(msg, 1);
+      cam->do_vloopback = 0;
+      if(arg_i)
+        {
+        if(bg_vloopback_open(cam->vloopback, arg_str))
+          cam->do_vloopback = 1;
+        }
+      break;
+#endif
     }
   }
 
@@ -513,10 +617,8 @@ static void * thread_func(void * data)
     /* Get frame from camera */
     if(w->input_open)
       {
-      bg_plugin_lock(w->input_handle);
-      if(!w->input->read_video(w->input_handle->priv, w->input_frame, 0))
+      if(!w->read_func(w->read_data, w->input_frame, w->read_stream))
         bg_log(BG_LOG_ERROR, LOG_DOMAIN, "read_frame failed");
-      bg_plugin_unlock(w->input_handle);
       frame_time = gavl_timer_get(w->timer);
       
       /* Send to monitor plugin */
@@ -529,19 +631,23 @@ static void * thread_func(void * data)
                                 w->monitor_frame, w->input_frame);
         bg_plugin_lock(w->monitor_handle);
         w->monitor->put_video(w->monitor_handle->priv, w->monitor_frame);
+        if(w->monitor->handle_events)
+          w->monitor->handle_events(w->monitor_handle->priv);
         bg_plugin_unlock(w->monitor_handle);
         
         }
-      	
       /* Check if we have to do auto capture */
-
       if(w->capture && w->auto_capture &&
          (frame_time >= w->next_capture_time))
         {
         do_capture(w);
         w->next_capture_time += w->capture_interval;
         }
+#ifdef HAVE_V4L
+      if(w->do_vloopback)
+        bg_vloopback_put_frame(w->vloopback, w->input_frame);
       
+#endif      
       /* Caculate framerate */
       
       w->frame_counter++;
@@ -580,6 +686,7 @@ void gmerlin_webcam_run(gmerlin_webcam_t * w)
   {
   pthread_create(&(w->thread), (pthread_attr_t*)0,
                  thread_func, w);
+  w->running = 1;
   }
 
 void gmerlin_webcam_quit(gmerlin_webcam_t * w)
@@ -590,4 +697,57 @@ void gmerlin_webcam_quit(gmerlin_webcam_t * w)
   bg_msg_queue_unlock_write(w->cmd_queue);
   
   pthread_join(w->thread, NULL);
+  w->running = 0;
+  w->do_quit = 0;
+  }
+
+
+const bg_parameter_info_t * gmerlin_webcam_get_filter_parameters(gmerlin_webcam_t * w)
+  {
+  return bg_video_filter_chain_get_parameters(w->fc);
+  }
+
+void gmerlin_webcam_set_filter_parameter(void * data, const char * name,
+                                         const bg_parameter_value_t * val)
+  {
+  int need_rebuild = 0, need_restart = 0;
+  gmerlin_webcam_t * w = data;
+
+  fprintf(stderr, "Set filter parameter %s\n",
+          name);
+  
+  //  pthread_mutex_lock(&(p->video_stream.config_mutex));
+  //  is_interrupted = p->video_stream.interrupted;
+  //  pthread_mutex_unlock(&(p->video_stream.config_mutex));
+  
+  bg_video_filter_chain_lock(w->fc);
+  bg_video_filter_chain_set_parameter(w->fc, name, val);
+  
+  need_rebuild =
+    bg_video_filter_chain_need_rebuild(w->fc);
+  need_restart =
+    bg_video_filter_chain_need_restart(w->fc);
+  
+  bg_video_filter_chain_unlock(w->fc);
+  
+  if(w->running && (need_rebuild || need_restart))
+    {
+    bg_log(BG_LOG_INFO, LOG_DOMAIN,
+           "Restarting playback due to changed video filters");
+    gmerlin_webcam_quit(w);
+    w->interrupted = 1;
+    
+    if(w->do_monitor)
+      close_monitor(w);
+    }
+  if(!name && w->interrupted)
+    {
+    build_pipeline(w);
+    if(w->do_monitor)
+      open_monitor(w);
+    w->interrupted = 0;
+    gmerlin_webcam_run(w);
+    w->capture_initialized = 0;
+    fprintf(stderr, "Restarting\n");
+    }
   }

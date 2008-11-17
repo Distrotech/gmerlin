@@ -22,10 +22,17 @@ else
 tiff_subdirs =
 endif
 
+if HAVE_V4L2
+v4l2_subdirs = v4l2
+else
+v4l2_subdirs =
+
 if HAVE_V4L
 v4l_subdirs = v4l
 else
 v4l_subdirs =
+endif
+
 endif
 
 if HAVE_ESD
@@ -74,6 +81,7 @@ $(lqt_subdirs) \
 $(jpeg_subdirs) \
 $(esd_subdirs) \
 $(v4l_subdirs) \
+$(v4l2_subdirs) \
 $(oss_subdirs) \
 $(png_subdirs) \
 $(tiff_subdirs) \

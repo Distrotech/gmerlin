@@ -54,11 +54,11 @@ int main(int argc, char ** argv)
   
   bg_gtk_init(&argc, &argv, "camelot_icon.png");
   
-  w = gmerlin_webcam_create();
+  w = gmerlin_webcam_create(plugin_reg);
 
   section = bg_cfg_registry_find_section(cfg_reg, "general");
   
-  ww = gmerlin_webcam_window_create(w, plugin_reg, section);
+  ww = gmerlin_webcam_window_create(w, plugin_reg, cfg_reg);
 
   /* Get config values */
   

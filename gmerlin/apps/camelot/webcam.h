@@ -47,9 +47,12 @@
 
 #define CMD_QUIT                      12 /* No args */
 
+#define CMD_SET_VLOOPBACK             13 /* ARG 0: int */
+                                         /* ARG 1: string */
+
 typedef struct gmerlin_webcam_s gmerlin_webcam_t;
 
-gmerlin_webcam_t * gmerlin_webcam_create();
+gmerlin_webcam_t * gmerlin_webcam_create(bg_plugin_registry_t * plugin_reg);
 
 void gmerlin_webcam_get_message_queues(gmerlin_webcam_t *,
                                        bg_msg_queue_t ** cmd_queue,
@@ -61,4 +64,6 @@ void gmerlin_webcam_quit(gmerlin_webcam_t *);
 
 void gmerlin_webcam_destroy(gmerlin_webcam_t *);
 
-
+const bg_parameter_info_t * gmerlin_webcam_get_filter_parameters(gmerlin_webcam_t *);
+void gmerlin_webcam_set_filter_parameter(void * data, const char * name,
+                                         const bg_parameter_value_t * val);

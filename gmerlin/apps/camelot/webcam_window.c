@@ -28,6 +28,7 @@
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/pluginregistry.h>
+#include <gmerlin/cfg_dialog.h>
 
 #include "webcam.h"
 #include "webcam_window.h"
@@ -37,6 +38,7 @@
 #include <gui_gtk/message.h>
 #include <gui_gtk/gtkutils.h>
 #include <gui_gtk/aboutwindow.h>
+#include <gui_gtk/logwindow.h>
 
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "camelot"
@@ -64,10 +66,11 @@ struct gmerlin_webcam_window_s
   
   GtkWidget * statusbar;
   GtkWidget * about_button;
+  GtkWidget * log_button;
+  GtkWidget * filter_button;
 
   bg_msg_queue_t * cmd_queue;
   bg_msg_queue_t * msg_queue;
-  bg_msg_queue_t * log_queue;
       
   bg_gtk_file_entry_t * output_dir;
   GtkWidget * output_filename_base;
@@ -78,8 +81,15 @@ struct gmerlin_webcam_window_s
 
   int framerate_set;
 
-  bg_cfg_section_t * section;
+  bg_cfg_section_t * general_section;
+  bg_cfg_section_t * filter_section;
+  
+  bg_gtk_log_window_t * logwindow;
+  bg_dialog_t * filter_dialog;
 
+  GtkWidget * vloopback_device;
+  GtkWidget * vloopback_button;
+  
   };
 
 static void set_input_plugin(const bg_plugin_info_t * info, void * data)
@@ -135,6 +145,14 @@ static void about_window_close_callback(bg_gtk_about_window_t * w,
   gmerlin_webcam_window_t * win;
   win = (gmerlin_webcam_window_t *)data;
   gtk_widget_set_sensitive(win->about_button, 1);
+  }
+
+static void log_window_close_callback(bg_gtk_log_window_t * w,
+                                      void * data)
+  {
+  gmerlin_webcam_window_t * win;
+  win = (gmerlin_webcam_window_t *)data;
+  gtk_widget_set_sensitive(win->log_button, 1);
   }
 
 static void button_callback(GtkWidget * w, gpointer data)
@@ -213,31 +231,27 @@ static void button_callback(GtkWidget * w, gpointer data)
                                "camelot_icon.png", about_window_close_callback,
                                win);
     }
-  
-  }
-
-static void flush_log_queue(gmerlin_webcam_window_t * w)
-  {
-  bg_msg_t * msg;
-  char * tmp_string;
-  while((msg = bg_msg_queue_try_lock_read(w->log_queue)))
+  else if(w == win->log_button)
     {
-    switch(bg_msg_get_id(msg))
-      {
-      case BG_LOG_DEBUG:
-        break;
-      case BG_LOG_INFO:
-        break;
-      case BG_LOG_WARNING:
-        break;
-      case BG_LOG_ERROR:
-        tmp_string = bg_msg_get_arg_string(msg, 2);
-        bg_gtk_message(tmp_string, BG_GTK_MESSAGE_ERROR, w->win);
-        free(tmp_string);
-        break;
-      }
-    bg_msg_queue_unlock_read(w->log_queue);
+    gtk_widget_set_sensitive(win->log_button, 0);
+    bg_gtk_log_window_show(win->logwindow);
     }
+  else if(w == win->filter_button)
+    {
+    bg_dialog_show(win->filter_dialog, win->win);
+    }
+#ifdef HAVE_V4L
+  else if(w == win->vloopback_button)
+    {
+    msg = bg_msg_queue_lock_write(win->cmd_queue);
+    bg_msg_set_id(msg, CMD_SET_VLOOPBACK);
+    bg_msg_set_arg_int
+      (msg, 0, gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(win->vloopback_button)));
+    bg_msg_set_arg_string
+      (msg, 1, gtk_entry_get_text(GTK_ENTRY(win->vloopback_device)));
+    bg_msg_queue_unlock_write(win->cmd_queue);
+    }
+#endif
   }
 
 static gboolean timeout_func(gpointer data)
@@ -279,7 +293,6 @@ static gboolean timeout_func(gpointer data)
         break;
       }
     bg_msg_queue_unlock_read(w->msg_queue);
-    flush_log_queue(w);
     }
   return TRUE;
   }
@@ -303,7 +316,7 @@ static void delete_callback(GtkWidget * w, GdkEvent * evt, gpointer data)
   {
   gmerlin_webcam_window_t * win = (gmerlin_webcam_window_t *)data;
 
-  bg_cfg_section_get(win->section,
+  bg_cfg_section_get(win->general_section,
                      gmerlin_webcam_window_get_parameters(win),
                      gmerlin_webcam_window_get_parameter,
                      win);
@@ -345,7 +358,8 @@ static GtkWidget * create_pixmap_button(gmerlin_webcam_window_t * w,
 
 gmerlin_webcam_window_t *
 gmerlin_webcam_window_create(gmerlin_webcam_t * w,
-                             bg_plugin_registry_t * reg, bg_cfg_section_t * section)
+                             bg_plugin_registry_t * reg,
+                             bg_cfg_registry_t * cfg_reg)
   {
   GtkWidget * notebook;
   GtkWidget * mainbox;
@@ -359,10 +373,13 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   gmerlin_webcam_window_t * ret;
   
   ret = calloc(1, sizeof(*ret));
-
-    
+  
   ret->cam = w;
-
+  
+  ret->logwindow =
+    bg_gtk_log_window_create(log_window_close_callback,
+                             ret, "Camelot");
+  
   gmerlin_webcam_get_message_queues(ret->cam,
                                     &(ret->cmd_queue),
                                     &(ret->msg_queue));
@@ -391,7 +408,13 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   g_signal_connect(G_OBJECT(ret->input_reopen), "clicked",
                    G_CALLBACK(button_callback), ret);
   gtk_widget_show(ret->input_reopen);
-    
+
+  /* Create filter stuff */
+  ret->filter_button = gtk_button_new_with_label(TR("Setup filters"));
+  g_signal_connect(G_OBJECT(ret->filter_button), "clicked",
+                   G_CALLBACK(button_callback), ret);
+  gtk_widget_show(ret->filter_button);
+  
   /* Create capture stuff */
   
   ret->capture_plugin =
@@ -419,6 +442,19 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   g_signal_connect(G_OBJECT(ret->capture_interval), "value-changed",
                    G_CALLBACK(button_callback), ret);
   gtk_widget_show(ret->capture_interval);
+
+  /* Create vloopback stuff */
+#ifdef HAVE_V4L
+  ret->vloopback_device = gtk_entry_new();
+  gtk_widget_show(ret->vloopback_device);
+
+  ret->vloopback_button = gtk_check_button_new_with_label(TR("Enable vloopback"));
+  g_signal_connect(G_OBJECT(ret->vloopback_button), "toggled",
+                   G_CALLBACK(button_callback), ret);
+  
+  gtk_widget_show(ret->vloopback_button);
+  
+#endif
   
   /* Create monitor stuff */
   
@@ -464,6 +500,11 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   notebook = gtk_notebook_new();
 
   /* Pack input stuff */
+
+  frame = gtk_frame_new(TR("Input"));
+
+  box = gtk_vbox_new(0, 5);
+  gtk_container_set_border_width(GTK_CONTAINER(box), 5);
     
   table = gtk_table_new(1, 1, 0);
   gtk_table_set_row_spacings(GTK_TABLE(table), 5);
@@ -485,13 +526,33 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   
   gtk_widget_show(table);
   
-  label = gtk_label_new(TR("Input"));
   gtk_widget_show(label);
 
-  gtk_notebook_append_page(GTK_NOTEBOOK(notebook), table, label);
+  gtk_container_add(GTK_CONTAINER(frame), table);
+  gtk_widget_show(frame);
+  gtk_box_pack_start_defaults(GTK_BOX(box), frame);
 
+  /* Pack filter stuff */
+
+  frame = gtk_frame_new(TR("Filters"));
+
+  table = gtk_table_new(1, 1, 0);
+  gtk_container_set_border_width(GTK_CONTAINER(table), 5);
+
+  gtk_table_attach(GTK_TABLE(table),
+                   ret->filter_button, 
+                   0, 1, 0, 1, GTK_FILL | GTK_EXPAND, GTK_FILL, 0, 0);
+
+  gtk_widget_show(table);
+  
+  gtk_container_add(GTK_CONTAINER(frame), table);
+  gtk_widget_show(frame);
+  gtk_box_pack_start_defaults(GTK_BOX(box), frame);
+  
   /* Pack monitor stuff */
-    
+
+  frame = gtk_frame_new(TR("Monitor"));
+  
   table = gtk_table_new(1, 1, 0);
   gtk_table_set_row_spacings(GTK_TABLE(table), 5);
   gtk_table_set_col_spacings(GTK_TABLE(table), 5);
@@ -510,13 +571,46 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
                    0, num_columns, row, row+1, GTK_FILL | GTK_EXPAND, GTK_FILL, 0, 0);
   
   gtk_widget_show(table);
+
+  gtk_container_add(GTK_CONTAINER(frame), table);
+  gtk_widget_show(frame);
+  gtk_box_pack_start_defaults(GTK_BOX(box), frame);
   
-  label = gtk_label_new(TR("Monitor"));
+  gtk_widget_show(box);
+  
+  label = gtk_label_new(TR("Cam"));
+  gtk_notebook_append_page(GTK_NOTEBOOK(notebook), box, label);
+
+  /* Pack vloopback stuff */
+
+#ifdef HAVE_V4L
+  table = gtk_table_new(2, 1, 0);
+
+  label = gtk_label_new(TR("Device"));
   gtk_widget_show(label);
+
+  gtk_table_attach(GTK_TABLE(table),
+                   ret->vloopback_button, 
+                   0, 1, 0, 1, GTK_FILL, GTK_FILL, 0, 0);
+
+
+  gtk_table_attach(GTK_TABLE(table),
+                   label, 
+                   0, 1, 1, 2, GTK_FILL, GTK_FILL, 0, 0);
+  gtk_table_attach(GTK_TABLE(table),
+                   ret->vloopback_device, 
+                   1, 2, 1, 2, GTK_FILL | GTK_EXPAND, GTK_FILL, 0, 0);
+  gtk_widget_show(table);
   
+  label = gtk_label_new(TR("vloopback"));
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook), table, label);
 
+  
+#endif
+
+  
   /* Pack Capture stuff */
+
   
   table = gtk_table_new(1, 1, 0);
   gtk_table_set_row_spacings(GTK_TABLE(table), 5);
@@ -634,6 +728,7 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   gtk_widget_show(ret->statusbar);
 
   ret->about_button = create_pixmap_button(ret, "info_16.png", TRS("About"));
+  ret->log_button = create_pixmap_button(ret, "log_16.png", TRS("Log messages"));
   
   mainbox = gtk_vbox_new(0, 5);
   gtk_box_pack_start_defaults(GTK_BOX(mainbox), notebook);
@@ -641,7 +736,8 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   hbox = gtk_hbox_new(0, 0);
   gtk_box_pack_start_defaults(GTK_BOX(hbox), ret->statusbar);
   gtk_box_pack_start(GTK_BOX(hbox), ret->about_button, FALSE, FALSE, 0);
-
+  gtk_box_pack_start(GTK_BOX(hbox), ret->log_button, FALSE, FALSE, 0);
+  
   gtk_widget_show(hbox);
   gtk_box_pack_start(GTK_BOX(mainbox), hbox, FALSE, FALSE, 0);
   
@@ -652,14 +748,21 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
 
   g_timeout_add(DELAY_TIME, timeout_func, ret);
 
-  bg_cfg_section_apply(section,
+  ret->general_section = bg_cfg_registry_find_section(cfg_reg, "general");
+  
+  bg_cfg_section_apply(ret->general_section,
                        gmerlin_webcam_window_get_parameters(ret),
                        gmerlin_webcam_window_set_parameter,
                        ret);
-  ret->section = section;
-  
-  ret->log_queue = bg_msg_queue_create();
-  bg_log_set_dest(ret->log_queue);
+
+  ret->filter_section = bg_cfg_registry_find_section(cfg_reg, "filters");
+
+  /* Create config dialog */
+  ret->filter_dialog = bg_dialog_create(ret->filter_section,
+                                        gmerlin_webcam_set_filter_parameter,
+                                        ret->cam,
+                                        gmerlin_webcam_get_filter_parameters(ret->cam),
+                                        "Filters");
   
   return ret;
   }
