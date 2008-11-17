@@ -550,14 +550,8 @@ static int open_v4l(void * priv,
 
   fprintf(stderr, "Bytesperline: %d, sizeimage: %d\n",
           v4l->fmt.fmt.pix.bytesperline, v4l->fmt.fmt.pix.sizeimage);
-  
-  for(i = 0; i < v4l->num_planes; i++)
-    {
-    if(i)
-      v4l->frame->strides[i] = format->frame_width / v4l->sub_h;
-    else  
-      v4l->frame->strides[i] = format->frame_width;
-    }
+
+  gavl_video_frame_set_strides(v4l->frame, &v4l->format);
   
   switch (v4l->io)
     {
@@ -697,20 +691,7 @@ static void close_v4l(void * priv)
 static void process_image(v4l2_t * v4l, void * data,
                           gavl_video_frame_t * frame)
   {
-  int i;
-  uint8_t * ptr = data;
-  int advance;
-  for(i = 0; i < v4l->num_planes; i++)
-    {
-    v4l->frame->planes[i]    = ptr;
-
-    advance = v4l->frame->strides[i] * v4l->format.frame_height;
-    
-    if(i)
-      advance /= v4l->sub_v;
-    
-    ptr += advance;
-    }
+  gavl_video_frame_set_planes(v4l->frame, &v4l->format, data);
   gavl_video_frame_copy(&v4l->format, frame, v4l->frame);
   frame->timestamp = gavl_timer_get(v4l->timer) / TIME_DIV;
   }

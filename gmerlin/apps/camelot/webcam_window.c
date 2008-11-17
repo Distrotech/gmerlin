@@ -446,6 +446,7 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   /* Create vloopback stuff */
 #ifdef HAVE_V4L
   ret->vloopback_device = gtk_entry_new();
+  gtk_entry_set_text(GTK_ENTRY(ret->vloopback_device), "/dev/video1");
   gtk_widget_show(ret->vloopback_device);
 
   ret->vloopback_button = gtk_check_button_new_with_label(TR("Enable vloopback"));
