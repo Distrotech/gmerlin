@@ -2158,6 +2158,36 @@ void gavl_video_frame_get_field(gavl_pixelformat_t pixelformat,
 void gavl_video_frame_dump(gavl_video_frame_t * frame,
                            const gavl_video_format_t * format,
                            const char * namebase);
+
+/*!
+  \ingroup video_frame
+  \brief Set the strides according to the format
+  \param frame Video frame
+  \param format Format of the video data in the frame
+
+  This sets the strides array according to the format under the assumption,
+  that no padding is done.
+*/
+ 
+void gavl_video_frame_set_strides(gavl_video_frame_t * frame,
+                                  const gavl_video_format_t * format);
+
+/*!
+  \ingroup video_frame
+  \brief Set the frames according to the format
+  \param frame Video frame
+  \param format Format of the video data in the frame
+  \param buffer Start of the first scanline of the first plane
+
+  This sets the planes array from a raw buffer. If frame->strides[0] is
+  zero, \ref gavl_video_frame_set_strides is called before.
+*/
+
+  
+void gavl_video_frame_set_planes(gavl_video_frame_t * frame,
+                                 const gavl_video_format_t * format,
+                                 uint8_t * buffer);
+
   
 /*****************************
  Conversion options

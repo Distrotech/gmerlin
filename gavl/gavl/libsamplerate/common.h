@@ -33,6 +33,8 @@ typedef	int		int32_t ;
 typedef	long	int32_t ;
 #endif
 
+#include "float_cast.h"
+
 #define	SRC_MAX_RATIO			256
 #define	SRC_MIN_RATIO_DIFF		(1e-20)
 

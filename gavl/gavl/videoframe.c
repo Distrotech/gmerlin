@@ -1715,3 +1715,48 @@ void gavl_video_frame_copy_metadata(gavl_video_frame_t * dst,
   dst->timecode        = src->timecode;
   dst->interlace_mode  = src->interlace_mode;
   }
+
+void gavl_video_frame_set_strides(gavl_video_frame_t * frame,
+                                  const gavl_video_format_t * format)
+  {
+  int i;
+  int bytes_per_line;
+  int sub_h, sub_v;
+  int num_planes = gavl_pixelformat_num_planes(format->pixelformat);
+  bytes_per_line = gavl_pixelformat_is_planar(format->pixelformat) ?
+    format->frame_width * gavl_pixelformat_bytes_per_component(format->pixelformat) :
+    format->frame_width * gavl_pixelformat_bytes_per_pixel(format->pixelformat);
+
+  gavl_pixelformat_chroma_sub(format->pixelformat, &sub_h, &sub_v);
+
+  for(i = 0; i < num_planes; i++)
+    {
+    frame->strides[i] = bytes_per_line;
+    if(i)
+      frame->strides[i] /= sub_h;
+    }
+  }
+  
+void gavl_video_frame_set_planes(gavl_video_frame_t * frame,
+                                 const gavl_video_format_t * format,
+                                 uint8_t * buffer)
+  {
+  int i;
+  int sub_h, sub_v;
+  int advance;
+  int num_planes = gavl_pixelformat_num_planes(format->pixelformat);
+  if(!frame->strides[0])
+    gavl_video_frame_set_strides(frame, format);
+
+  gavl_pixelformat_chroma_sub(format->pixelformat, &sub_h, &sub_v);
+
+  for(i = 0; i < num_planes; i++)
+    {
+    frame->planes[i] = buffer;
+    advance = frame->strides[i] * format->frame_height;
+    if(i)
+      advance /= sub_v;
+    buffer += advance;
+    }
+  
+  }
