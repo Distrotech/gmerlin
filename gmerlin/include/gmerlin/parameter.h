@@ -71,7 +71,8 @@ typedef enum
     BG_PARAMETER_MULTI_LIST,  //!< List with config- and infobutton
     BG_PARAMETER_MULTI_CHAIN, //!< Several subitems (including suboptions) can be arranged in a chain
     BG_PARAMETER_TIME,        //!< Time
-    BG_PARAMETER_POSITION     //!< Position (x/y coordinates, scaled 0..1)
+    BG_PARAMETER_POSITION,    //!< Position (x/y coordinates, scaled 0..1)
+    BG_PARAMETER_BUTTON,      //!< Pressing the button causes set_parameter to be called with NULL value
   } bg_parameter_type_t;
 
 /** \ingroup parameter

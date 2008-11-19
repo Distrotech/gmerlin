@@ -34,6 +34,7 @@ typedef struct bg_dialog_s bg_dialog_t;
 
 bg_dialog_t * bg_dialog_create(bg_cfg_section_t * config,
                                bg_set_parameter_func_t set_param,
+                               bg_get_parameter_func_t get_param,
                                void * callback_data,
                                const bg_parameter_info_t * info,
                                const char * title);
@@ -48,6 +49,7 @@ void bg_dialog_add(bg_dialog_t *d,
                    const char * label,
                    bg_cfg_section_t * section,
                    bg_set_parameter_func_t set_param,
+                   bg_get_parameter_func_t get_param,
                    void * callback_data,
                    const bg_parameter_info_t * info);
 
@@ -60,6 +62,7 @@ void bg_dialog_add_child(bg_dialog_t *d, void * parent,
                          const char * label,
                          bg_cfg_section_t * section,
                          bg_set_parameter_func_t set_param,
+                         bg_get_parameter_func_t get_param,
                          void * callback_data,
                          const bg_parameter_info_t * info);
 

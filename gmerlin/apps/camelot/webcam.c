@@ -593,6 +593,11 @@ static void handle_cmd(gmerlin_webcam_t * cam, bg_msg_t * msg)
         if(bg_vloopback_open(cam->vloopback, arg_str))
           cam->do_vloopback = 1;
         }
+      else
+        {
+        bg_vloopback_close(cam->vloopback);
+        cam->do_vloopback = 0;
+        }
       break;
 #endif
     }
@@ -667,6 +672,11 @@ static void * thread_func(void * data)
 
         }
       }
+    else
+      {
+      gavl_time_t delay_time = GAVL_TIME_SCALE / 100;
+      gavl_time_delay(&delay_time);
+      }
     
     /* Check for commands */
     
@@ -713,8 +723,8 @@ void gmerlin_webcam_set_filter_parameter(void * data, const char * name,
   int need_rebuild = 0, need_restart = 0;
   gmerlin_webcam_t * w = data;
 
-  fprintf(stderr, "Set filter parameter %s\n",
-          name);
+  //  fprintf(stderr, "Set filter parameter %s\n",
+  //          name);
   
   //  pthread_mutex_lock(&(p->video_stream.config_mutex));
   //  is_interrupted = p->video_stream.interrupted;
@@ -748,6 +758,6 @@ void gmerlin_webcam_set_filter_parameter(void * data, const char * name,
     w->interrupted = 0;
     gmerlin_webcam_run(w);
     w->capture_initialized = 0;
-    fprintf(stderr, "Restarting\n");
+    //    fprintf(stderr, "Restarting\n");
     }
   }

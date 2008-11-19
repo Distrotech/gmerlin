@@ -108,25 +108,29 @@ static const struct
   {
   int               v4l;
   gavl_pixelformat_t gavl;
+  int depth;
   }
 pixelformats[] =
   {
-    // VIDEO_PALETTE_GREY /* Linear greyscale */
+    { VIDEO_PALETTE_GREY, GAVL_GRAY_8, 8 }, /* Linear greyscale */
     // VIDEO_PALETTE_HI240     2       /* High 240 cube (BT848) */
-    { VIDEO_PALETTE_RGB565, GAVL_RGB_16 },       /* 565 16 bit RGB */
-    { VIDEO_PALETTE_RGB24,  GAVL_RGB_24 },       /* 24bit RGB */
-    { VIDEO_PALETTE_RGB32,  GAVL_RGB_32 },       /* 32bit RGB */
-    { VIDEO_PALETTE_RGB555, GAVL_RGB_15 },       /* 555 15bit RGB */
-    //    VIDEO_PALETTE_YUV422    7       /* YUV422 capture */
-    { VIDEO_PALETTE_YUYV,   GAVL_YUY2 },
-    { VIDEO_PALETTE_UYVY,   GAVL_UYVY },  /* The great thing about standards is ... */
+    { VIDEO_PALETTE_RGB565, GAVL_RGB_16, 16 },       /* 565 16 bit RGB */
+    { VIDEO_PALETTE_RGB24,  GAVL_BGR_24, 24 },       /* 24bit RGB */
+    { VIDEO_PALETTE_RGB32,  GAVL_RGB_32, 32 },       /* 32bit RGB */
+    { VIDEO_PALETTE_RGB555, GAVL_RGB_15, 15 },       /* 555 15bit RGB */
+    { VIDEO_PALETTE_YUV422, GAVL_YUY2,   24 },  /* YUV422 capture */
+    { VIDEO_PALETTE_YUYV,   GAVL_YUY2,   24 },
+    { VIDEO_PALETTE_UYVY,   GAVL_UYVY,   24 },  /* The great thing about standards is ... */
     // VIDEO_PALETTE_YUV420    10
     // VIDEO_PALETTE_YUV411    11      /* YUV411 capture */
     // VIDEO_PALETTE_RAW       12      /* RAW capture (BT848) */
-    { VIDEO_PALETTE_YUV422P, GAVL_YUV_422_P },  /* YUV 4:2:2 Planar */
-    // VIDEO_PALETTE_YUV411P   14      /* YUV 4:1:1 Planar */
-    { VIDEO_PALETTE_YUV420P, GAVL_YUV_420_P },  /* YUV 4:2:0 Planar */
+    { VIDEO_PALETTE_YUV422P, GAVL_YUV_422_P, 24 },  /* YUV 4:2:2 Planar */
+    { VIDEO_PALETTE_YUV411P,  GAVL_YUV_411_P, 24 },  /* YUV 4:1:1 Planar */
+    //    { VIDEO_PALETTE_YUV420P, GAVL_YUV_420_P, 12 },  /* YUV 4:2:0 Planar */
+    { VIDEO_PALETTE_YUV420P, GAVL_YUV_420_P, 24 },  /* YUV 4:2:0 Planar */
+
     // VIDEO_PALETTE_YUV410P   16      /* YUV 4:1:0 Planar */
+
   };
 
 static const int
@@ -261,7 +265,8 @@ static int open_v4l(void * priv,
 
   v4l->win.width  = v4l->cfg_win.width;
   v4l->win.height = v4l->cfg_win.height;
-
+  v4l->win.flags = 0;
+  
   if(ioctl(v4l->fd, VIDIOCSWIN, &(v4l->win)))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOCSWIN failed: %s (invalaid picture dimensions?)",

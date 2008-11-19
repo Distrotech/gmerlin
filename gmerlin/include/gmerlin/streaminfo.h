@@ -335,8 +335,8 @@ void bg_chapter_list_save(bg_chapter_list_t * list, const char * filename);
 
 bg_chapter_list_t * bg_chapter_list_load(const char * filename);
 
-#define BG_TRACK_SEEKABLE (1<<0)
-#define BG_TRACK_PAUSABLE (1<<1)
+#define BG_TRACK_SEEKABLE (1<<0) //!< Track is seekable
+#define BG_TRACK_PAUSABLE (1<<1) //!< Track is pausable
 
 /** \brief Track info
  */

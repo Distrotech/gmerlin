@@ -134,7 +134,6 @@ realize_combo(GtkWidget *combo, gpointer   data)
   }
 
 void bg_gtk_create_stringlist(bg_gtk_widget_t * w,
-                              const bg_parameter_info_t * info,
                               const char * translation_domain)
   {
   int i;
@@ -148,27 +147,27 @@ void bg_gtk_create_stringlist(bg_gtk_widget_t * w,
   priv->combo = gtk_combo_box_new_text();
   i = 0;
 
-  if(info->help_string)
+  if(w->info->help_string)
     {
     g_signal_connect (priv->combo, "realize",
                       G_CALLBACK (realize_combo), w);
     }
   
-  if(info->multi_labels)
+  if(w->info->multi_labels)
     {
-    while(info->multi_labels[i])
+    while(w->info->multi_labels[i])
       {
       gtk_combo_box_append_text(GTK_COMBO_BOX(priv->combo),
-                                TR_DOM(info->multi_labels[i]));
+                                TR_DOM(w->info->multi_labels[i]));
       i++;
       }
     }
   else
     {
-    while(info->multi_names[i])
+    while(w->info->multi_names[i])
       {
       gtk_combo_box_append_text(GTK_COMBO_BOX(priv->combo),
-                                info->multi_names[i]);
+                                w->info->multi_names[i]);
       i++;
       }
     }
@@ -182,7 +181,7 @@ void bg_gtk_create_stringlist(bg_gtk_widget_t * w,
 
   gtk_widget_show(priv->combo);
 
-  priv->label = gtk_label_new(TR_DOM(info->long_name));
+  priv->label = gtk_label_new(TR_DOM(w->info->long_name));
   gtk_misc_set_alignment(GTK_MISC(priv->label), 0.0, 0.5);
 
   gtk_widget_show(priv->label);

@@ -102,13 +102,12 @@ static const gtk_widget_funcs_t pos_funcs =
 
 void 
 bg_gtk_create_position(bg_gtk_widget_t * w,
-                       const bg_parameter_info_t * info,
                        const char * translation_domain)
   {
   GtkWidget * label;
   spinbutton_t * s = calloc(1, sizeof(*s));
   w->funcs = &pos_funcs;
-  s->label = gtk_label_new(TR_DOM(info->long_name));
+  s->label = gtk_label_new(TR_DOM(w->info->long_name));
   
   gtk_widget_show(s->label);
   gtk_misc_set_alignment(GTK_MISC(s->label), 0.0, 0.5);
@@ -120,7 +119,7 @@ bg_gtk_create_position(bg_gtk_widget_t * w,
     gtk_spin_button_new(GTK_ADJUSTMENT(s->adj_x), 0.1, 0);
   s->spinbutton_y =
     gtk_spin_button_new(GTK_ADJUSTMENT(s->adj_y), 0.1, 0);
-  if(info->flags & BG_PARAMETER_SYNC)
+  if(w->info->flags & BG_PARAMETER_SYNC)
     {
     w->callback_id =
       g_signal_connect(G_OBJECT(s->spinbutton_x), "value-changed",
@@ -132,12 +131,12 @@ bg_gtk_create_position(bg_gtk_widget_t * w,
                        G_CALLBACK(bg_gtk_change_callback), (gpointer)w);
     w->callback_widget_2 = s->spinbutton_y;
     }
-  if(info->help_string)
+  if(w->info->help_string)
     {
     bg_gtk_tooltips_set_tip(s->spinbutton_x,
-                            info->help_string, translation_domain);
+                            w->info->help_string, translation_domain);
     bg_gtk_tooltips_set_tip(s->spinbutton_y,
-                            info->help_string, translation_domain);
+                            w->info->help_string, translation_domain);
     }
   
   gtk_widget_show(s->spinbutton_x);
@@ -162,9 +161,9 @@ bg_gtk_create_position(bg_gtk_widget_t * w,
   bg_gtk_change_callback_block(w, 1);
   
   gtk_spin_button_set_digits(GTK_SPIN_BUTTON(s->spinbutton_x),
-                             info->num_digits);
+                             w->info->num_digits);
   gtk_spin_button_set_digits(GTK_SPIN_BUTTON(s->spinbutton_y),
-                             info->num_digits);
+                             w->info->num_digits);
   bg_gtk_change_callback_block(w, 0);
   
   }

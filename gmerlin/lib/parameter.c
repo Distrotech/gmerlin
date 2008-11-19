@@ -74,6 +74,7 @@ void bg_parameter_value_copy(bg_parameter_value_t * dst,
       dst->val_time = src->val_time;
       break;
     case BG_PARAMETER_SECTION:
+    case BG_PARAMETER_BUTTON:
       break;
     }
   }
@@ -93,6 +94,7 @@ void bg_parameter_value_free(bg_parameter_value_t * val,
     case BG_PARAMETER_COLOR_RGB:
     case BG_PARAMETER_COLOR_RGBA:
     case BG_PARAMETER_POSITION:
+    case BG_PARAMETER_BUTTON:
       break;
     case BG_PARAMETER_STRING:
     case BG_PARAMETER_STRING_HIDDEN:
@@ -262,6 +264,7 @@ void bg_parameter_info_copy(bg_parameter_info_t * dst,
       dst->val_default.val_time = src->val_default.val_time;
       break;
     case BG_PARAMETER_SECTION:
+    case BG_PARAMETER_BUTTON:
       break;
     }
   bg_parameter_info_set_const_ptrs(dst);
@@ -323,6 +326,7 @@ void bg_parameter_info_destroy_array(bg_parameter_info_t * info)
           free(info[index].val_default.val_str);
         break;
       case BG_PARAMETER_SECTION:
+      case BG_PARAMETER_BUTTON:
       case BG_PARAMETER_CHECKBUTTON:
       case BG_PARAMETER_INT:
       case BG_PARAMETER_FLOAT:
@@ -337,13 +341,18 @@ void bg_parameter_info_destroy_array(bg_parameter_info_t * info)
       case BG_PARAMETER_MULTI_LIST:
       case BG_PARAMETER_MULTI_CHAIN:
         i = 0;
-        while(info[index].multi_names[i])
+
+        if(info[index].multi_parameters)
           {
-          if(info[index].multi_parameters[i])
-            bg_parameter_info_destroy_array(info[index].multi_parameters_nc[i]);
-          i++;
+          while(info[index].multi_names[i])
+            {
+            if(info[index].multi_parameters[i])
+              bg_parameter_info_destroy_array(info[index].multi_parameters_nc[i]);
+            i++;
+            }
+          free(info[index].multi_parameters_nc);
           }
-        free(info[index].multi_parameters_nc);
+        
         free_string_array(info[index].multi_names_nc);
         free_string_array(info[index].multi_labels_nc);
         free_string_array(info[index].multi_descriptions_nc);

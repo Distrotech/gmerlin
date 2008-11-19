@@ -314,6 +314,7 @@ static void plugin_menu_configure(plugin_menu_t * m)
     parameters = m->plugin_info->parameters;
   dialog = bg_dialog_create(m->section,
                             set_parameter,
+                            NULL,
                             (void*)m,
                             parameters,
                             TRD(m->plugin_info->long_name,

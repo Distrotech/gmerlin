@@ -877,6 +877,7 @@ static bg_dialog_t * create_cfg_dialog(visualizer_t * win)
                 TR("General"),
                 win->general_section,
                 set_general_parameter,
+                NULL,
                 (void*)(win),
                 parameters);
   
@@ -885,6 +886,7 @@ static bg_dialog_t * create_cfg_dialog(visualizer_t * win)
                 TR("Visualizer"),
                 win->visualizer_section,
                 set_vis_param,
+                NULL,
                 (void*)(win),
                 info);
 
@@ -893,6 +895,7 @@ static bg_dialog_t * create_cfg_dialog(visualizer_t * win)
                 TR("Log window"),
                 win->log_section,
                 bg_gtk_log_window_set_parameter,
+                NULL,
                 (void*)(win->log_window),
                 info);
   

@@ -36,6 +36,7 @@ type_names[] =
   {
     { "section",       BG_PARAMETER_SECTION },
     { "checkbutton",   BG_PARAMETER_CHECKBUTTON },
+    { "button",        BG_PARAMETER_BUTTON },
     { "int",           BG_PARAMETER_INT },
     { "float",         BG_PARAMETER_FLOAT },
     { "slider_int",    BG_PARAMETER_SLIDER_INT },
@@ -370,6 +371,7 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
             {
             case BG_PARAMETER_STRING_HIDDEN:
             case BG_PARAMETER_SECTION:
+            case BG_PARAMETER_BUTTON:
               break;
             case BG_PARAMETER_SLIDER_INT:
             case BG_PARAMETER_CHECKBUTTON:
@@ -437,6 +439,7 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
             case BG_PARAMETER_COLOR_RGB:
             case BG_PARAMETER_COLOR_RGBA:
             case BG_PARAMETER_POSITION:
+            case BG_PARAMETER_BUTTON:
               break;
             case BG_PARAMETER_SLIDER_INT:
             case BG_PARAMETER_INT:
@@ -630,6 +633,7 @@ void bg_parameters_2_xml(const bg_parameter_info_t * info, xmlNodePtr xml_parame
     switch(info[num_parameters].type)
       {
       case BG_PARAMETER_SECTION:
+      case BG_PARAMETER_BUTTON:
         break;
       case BG_PARAMETER_CHECKBUTTON:
         if(info[num_parameters].val_default.val_i)

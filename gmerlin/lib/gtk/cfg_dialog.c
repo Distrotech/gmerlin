@@ -41,7 +41,8 @@ enum
 typedef struct dialog_section_s
   {
   bg_set_parameter_func_t set_param;
-
+  bg_get_parameter_func_t get_param;
+  
   void * callback_data;
 
   bg_gtk_widget_t * widgets;
@@ -186,9 +187,12 @@ static void reset_section(dialog_section_t * s)
   
   for(i = 0; i < s->num_widgets; i++)
     {
+    if(!s->widgets[i].funcs->get_value)
+      continue;
+    
     bg_parameter_value_copy(&s->widgets[i].value, &s->widgets[i].last_value,
                             s->widgets[i].info);
-    
+
     s->widgets[i].funcs->get_value(&(s->widgets[i]));
     
     if(s->cfg_section)
@@ -247,6 +251,9 @@ static void apply_section(dialog_section_t * s)
   
   for(i = 0; i < s->num_widgets; i++)
     {
+    if(!s->widgets[i].funcs->set_value)
+      continue;
+    
     s->widgets[i].funcs->set_value(&(s->widgets[i]));
     bg_parameter_value_copy(&s->widgets[i].last_value, &s->widgets[i].value,
                             s->widgets[i].info);
@@ -485,6 +492,7 @@ static GtkWidget * create_section(dialog_section_t * section,
                                   const bg_parameter_info_t * info,
                                   bg_cfg_section_t * cfg_section,
                                   bg_set_parameter_func_t set_param,
+                                  bg_get_parameter_func_t get_param,
                                   void * data,
                                   const char * translation_domain)
   {
@@ -522,6 +530,7 @@ static GtkWidget * create_section(dialog_section_t * section,
   section->cfg_section = cfg_section;
   section->callback_data = data;
   section->set_param = set_param;
+  section->get_param = get_param;
     
   /* Now, create and place all widgets */
 
@@ -552,8 +561,15 @@ static GtkWidget * create_section(dialog_section_t * section,
       i++;
       continue;
       }
+    if((info[i].type == BG_PARAMETER_BUTTON) &&
+       !set_param)
+      {
+      i++;
+      continue;
+      }
       
-    if(info[i].flags & BG_PARAMETER_SYNC)
+    if((info[i].flags & BG_PARAMETER_SYNC) ||
+       (info[i].type == BG_PARAMETER_BUTTON))
       {
       section->widgets[count].change_callback = set_param;
       section->widgets[count].change_callback_data = data;
@@ -568,80 +584,84 @@ static GtkWidget * create_section(dialog_section_t * section,
       }
     switch(info[i].type)
       {
+      case BG_PARAMETER_BUTTON:
+        bg_gtk_create_button(&(section->widgets[count]),
+                             translation_domain);
+        break;
       case BG_PARAMETER_CHECKBUTTON:
-        bg_gtk_create_checkbutton(&(section->widgets[count]), &(info[i]),
+        bg_gtk_create_checkbutton(&(section->widgets[count]),
                                   translation_domain);
         break;
       case BG_PARAMETER_INT:
-        bg_gtk_create_int(&(section->widgets[count]), &(info[i]),
+        bg_gtk_create_int(&(section->widgets[count]),
                                   translation_domain);
         break;
       case BG_PARAMETER_FLOAT:
-        bg_gtk_create_float(&(section->widgets[count]), &(info[i]),
+        bg_gtk_create_float(&(section->widgets[count]),
                                   translation_domain);
         break;
       case BG_PARAMETER_SLIDER_INT:
-        bg_gtk_create_slider_int(&(section->widgets[count]), &(info[i]),
+        bg_gtk_create_slider_int(&(section->widgets[count]),
                                   translation_domain);
         break;
       case BG_PARAMETER_TIME:
-        bg_gtk_create_time(&(section->widgets[count]), &(info[i]),
+        bg_gtk_create_time(&(section->widgets[count]),
                                   translation_domain);
         break;
       case BG_PARAMETER_SLIDER_FLOAT:
-        bg_gtk_create_slider_float(&(section->widgets[count]), &(info[i]),
+        bg_gtk_create_slider_float(&(section->widgets[count]),
                                   translation_domain);
         break;
       case BG_PARAMETER_STRING:
       case BG_PARAMETER_STRING_HIDDEN:
-        bg_gtk_create_string(&(section->widgets[count]), &(info[i]),
+        bg_gtk_create_string(&(section->widgets[count]),
                                   translation_domain);
         break;
       case BG_PARAMETER_STRINGLIST:
-        bg_gtk_create_stringlist(&(section->widgets[count]), &(info[i]),
+        bg_gtk_create_stringlist(&(section->widgets[count]),
                                   translation_domain);
         break;
       case BG_PARAMETER_COLOR_RGB:
-        bg_gtk_create_color_rgb(&(section->widgets[count]), &(info[i]),
+        bg_gtk_create_color_rgb(&(section->widgets[count]),
                                   translation_domain);
         break;
       case BG_PARAMETER_COLOR_RGBA:
-        bg_gtk_create_color_rgba(&(section->widgets[count]), &(info[i]),
+        bg_gtk_create_color_rgba(&(section->widgets[count]),
                                   translation_domain);
         break;
       case BG_PARAMETER_FILE:
-        bg_gtk_create_file(&(section->widgets[count]), &(info[i]),
+        bg_gtk_create_file(&(section->widgets[count]),
                                   translation_domain);
         break;
       case BG_PARAMETER_DIRECTORY:
-        bg_gtk_create_directory(&(section->widgets[count]), &(info[i]),
+        bg_gtk_create_directory(&(section->widgets[count]),
                                   translation_domain);
         break;
       case BG_PARAMETER_FONT:
-        bg_gtk_create_font(&(section->widgets[count]), &(info[i]),
+        bg_gtk_create_font(&(section->widgets[count]),
                                   translation_domain);
         break;
       case BG_PARAMETER_DEVICE:
-        bg_gtk_create_device(&(section->widgets[count]), &(info[i]),
+        bg_gtk_create_device(&(section->widgets[count]),
                                   translation_domain);
         break;
       case BG_PARAMETER_MULTI_MENU:
-        bg_gtk_create_multi_menu(&(section->widgets[count]), &(info[i]),
-                                 set_param, data,
+        bg_gtk_create_multi_menu(&(section->widgets[count]),
+                                 set_param, get_param, data,
                                  translation_domain);
         break;
       case BG_PARAMETER_MULTI_LIST:
-        bg_gtk_create_multi_list(&(section->widgets[count]), &(info[i]),
+        bg_gtk_create_multi_list(&(section->widgets[count]),
                                  set_param, data,
                                  translation_domain);
         break;
       case BG_PARAMETER_MULTI_CHAIN:
-        bg_gtk_create_multi_chain(&(section->widgets[count]), &(info[i]),
+        bg_gtk_create_multi_chain(&(section->widgets[count]),
                                   set_param, data,
                                   translation_domain);
         break;
       case BG_PARAMETER_POSITION:
-        bg_gtk_create_position(&(section->widgets[count]), &(info[i]),
+        bg_gtk_create_position(&(section->widgets[count]),
                                translation_domain);
         break;
       case BG_PARAMETER_SECTION:
@@ -668,9 +688,12 @@ static GtkWidget * create_section(dialog_section_t * section,
     
     if(section->widgets[count].info->flags & BG_PARAMETER_SYNC)
       bg_gtk_change_callback_block(&section->widgets[count], 1);
-    section->widgets[count].funcs->get_value(&(section->widgets[count]));    
-    if(section->widgets[count].info->flags & BG_PARAMETER_SYNC)
-      bg_gtk_change_callback_block(&section->widgets[count], 0);
+    if(section->widgets[count].funcs->get_value)
+      {
+      section->widgets[count].funcs->get_value(&(section->widgets[count]));    
+      if(section->widgets[count].info->flags & BG_PARAMETER_SYNC)
+        bg_gtk_change_callback_block(&section->widgets[count], 0);
+      }
     i++;
     count++;
     }
@@ -701,6 +724,7 @@ static int count_sections(const bg_parameter_info_t * info)
 
 bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
                                bg_set_parameter_func_t set_param,
+                               bg_get_parameter_func_t get_param,
                                void * callback_data,
                                const bg_parameter_info_t * info,
                                const char * title)
@@ -745,7 +769,7 @@ bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
         index++;
       
       table = create_section(&(ret->root_section.children[i]), &(info[index]),
-                             section, set_param, callback_data,
+                             section, set_param, get_param, callback_data,
                              translation_domain);
       
       ret->root_section.children[i].notebook_index =
@@ -768,7 +792,7 @@ bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
     ret->root_section.children = calloc(1,
                            ret->root_section.num_children * sizeof(dialog_section_t));
     table =
-      create_section(ret->root_section.children, info, section, set_param,
+      create_section(ret->root_section.children, info, section, set_param, get_param,
                      callback_data, (const char *)0);
     gtk_notebook_append_page(GTK_NOTEBOOK(ret->notebook), table, label);
     gtk_notebook_set_current_page(GTK_NOTEBOOK(ret->notebook), 1);
@@ -787,6 +811,7 @@ void bg_dialog_add_child(bg_dialog_t *d, void * _parent,
                          const char * name,
                          bg_cfg_section_t * section,
                          bg_set_parameter_func_t set_param,
+                         bg_get_parameter_func_t get_param,
                          void * callback_data,
                          const bg_parameter_info_t * info)
   {
@@ -824,7 +849,7 @@ void bg_dialog_add_child(bg_dialog_t *d, void * _parent,
            sizeof(parent->children[parent->num_children]));
     
     table = create_section(&(parent->children[parent->num_children]),
-                           info, section, set_param, callback_data,
+                           info, section, set_param, get_param, callback_data,
                            (const char*)0);
     tab_label = gtk_label_new(name);
     gtk_widget_show(tab_label);
@@ -891,7 +916,7 @@ void bg_dialog_add_child(bg_dialog_t *d, void * _parent,
       
       table = create_section(&(parent->children[section_index]),
                              &(info[item_index]),
-                             section, set_param, callback_data,
+                             section, set_param, get_param, callback_data,
                              translation_domain);
       
       parent->children[section_index].parent = parent;
@@ -916,11 +941,12 @@ void bg_dialog_add(bg_dialog_t *d,
                    const char * name,
                    bg_cfg_section_t * section,
                    bg_set_parameter_func_t set_param,
+                   bg_get_parameter_func_t get_param,
                    void * callback_data,
                    const bg_parameter_info_t * info)
   {
   bg_dialog_add_child(d, &(d->root_section), name,
-                      section, set_param, callback_data, info);
+                      section, set_param, get_param, callback_data, info);
   }
 
 void bg_dialog_show(bg_dialog_t * d, void * parent)

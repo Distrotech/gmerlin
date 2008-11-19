@@ -109,16 +109,16 @@ static const gtk_widget_funcs_t funcs =
   };
 
 
-void bg_gtk_create_file(bg_gtk_widget_t * w, const bg_parameter_info_t * info,
+void bg_gtk_create_file(bg_gtk_widget_t * w,
                         const char * translation_domain)
   {
   file_t * priv = calloc(1, sizeof(*priv));
   
-  priv->fe = bg_gtk_file_entry_create((info->type == BG_PARAMETER_DIRECTORY) ? 1 : 0,
+  priv->fe = bg_gtk_file_entry_create((w->info->type == BG_PARAMETER_DIRECTORY) ? 1 : 0,
                                       NULL, NULL,
-                                      info->help_string, translation_domain);
+                                      w->info->help_string, translation_domain);
   
-  priv->label = gtk_label_new(TR_DOM(info->long_name));
+  priv->label = gtk_label_new(TR_DOM(w->info->long_name));
   gtk_misc_set_alignment(GTK_MISC(priv->label), 0.0, 0.5);
   gtk_widget_show(priv->label);
   
@@ -126,10 +126,7 @@ void bg_gtk_create_file(bg_gtk_widget_t * w, const bg_parameter_info_t * info,
   w->priv = priv;
   }
 
-void bg_gtk_create_directory(bg_gtk_widget_t * w, const bg_parameter_info_t * info,
-                             const char * translation_domain)
+void bg_gtk_create_directory(bg_gtk_widget_t * w, const char * translation_domain)
   {
-  file_t * f;
-  bg_gtk_create_file(w, info, translation_domain);
-  f = (file_t*)(w->priv);
+  bg_gtk_create_file(w, translation_domain);
   }

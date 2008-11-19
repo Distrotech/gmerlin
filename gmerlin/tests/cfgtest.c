@@ -178,6 +178,14 @@ static const bg_parameter_info_t info_1[] =
       .help_string = "Checkbutton help"
     },
     {
+      .name =        "button",
+      .long_name =   "Button",
+      .type =        BG_PARAMETER_BUTTON,
+      .flags =     PARAMETER_FLAGS,
+      .val_default = { .val_i = 1 },
+      .help_string = "Button help"
+    },
+    {
       .name =      "spinbutton_float",
       .long_name = "Floating point Spinbutton",
       .type =      BG_PARAMETER_FLOAT,
@@ -492,6 +500,9 @@ static void set_parameter(void * data, const char * name,
     case BG_PARAMETER_SECTION:
       fprintf(stderr, "Section\n");
       break;
+    case BG_PARAMETER_BUTTON:
+      fprintf(stderr, "Button\n");
+      break;
     default:
       fprintf(stderr, "Unknown type\n");
       break;
@@ -627,10 +638,10 @@ int main(int argc, char ** argv)
 
   test_dialog = bg_dialog_create_multi("Test dialog");
 
-  bg_dialog_add(test_dialog, "Section 1", section_1,set_parameter,(void *)0,info_1);
-  bg_dialog_add(test_dialog, "Section 2", section_2,set_parameter,(void *)0,info_2);
-  bg_dialog_add(test_dialog, "Section 3", section_3,set_parameter,(void *)0,info_3);
-  bg_dialog_add(test_dialog, "Section 4", section_4,set_parameter,(void *)0,info_4);
+  bg_dialog_add(test_dialog, "Section 1", section_1,set_parameter,NULL,(void *)0,info_1);
+  bg_dialog_add(test_dialog, "Section 2", section_2,set_parameter,NULL,(void *)0,info_2);
+  bg_dialog_add(test_dialog, "Section 3", section_3,set_parameter,NULL,(void *)0,info_3);
+  bg_dialog_add(test_dialog, "Section 4", section_4,set_parameter,NULL,(void *)0,info_4);
   
   bg_dialog_show(test_dialog, NULL);
 

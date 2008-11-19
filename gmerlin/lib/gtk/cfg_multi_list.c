@@ -731,11 +731,11 @@ static void button_callback(GtkWidget * wid, gpointer data)
       label = w->info->multi_names[priv->param_selected];
 
     if(priv->set_param)
-      dialog = bg_dialog_create(subsection, set_sub_param, w,
+      dialog = bg_dialog_create(subsection, set_sub_param, NULL, w,
                                 w->info->multi_parameters[priv->param_selected],
                                 label);
     else
-      dialog = bg_dialog_create(subsection, NULL, w,
+      dialog = bg_dialog_create(subsection, NULL, NULL, w,
                                 w->info->multi_parameters[priv->param_selected],
                                 label);
     bg_dialog_show(dialog, priv->treeview);
@@ -790,7 +790,7 @@ static void button_callback(GtkWidget * wid, gpointer data)
     tmp_string = bg_sprintf(TR("Add %s"),
                             TRD(w->info->long_name, priv->translation_domain));
     
-    dialog = bg_dialog_create(w->cfg_section, add_func,
+    dialog = bg_dialog_create(w->cfg_section, add_func, NULL,
                               w, params, tmp_string);
     
     free(params[0].gettext_domain);
@@ -965,17 +965,17 @@ static void create_list_common(bg_gtk_widget_t * w, const bg_parameter_info_t * 
   }
 
 void
-bg_gtk_create_multi_list(bg_gtk_widget_t * w, const bg_parameter_info_t * info,
+bg_gtk_create_multi_list(bg_gtk_widget_t * w,
                          bg_set_parameter_func_t set_param,
                          void * data, const char * translation_domain)
   {
-  create_list_common(w, info, set_param, data, translation_domain, 0);
+  create_list_common(w, w->info, set_param, data, translation_domain, 0);
   }
 
 void
-bg_gtk_create_multi_chain(bg_gtk_widget_t * w, const bg_parameter_info_t * info,
+bg_gtk_create_multi_chain(bg_gtk_widget_t * w,
                           bg_set_parameter_func_t set_param,
                           void * data, const char * translation_domain)
   {
-  create_list_common(w, info, set_param, data, translation_domain, 1);
+  create_list_common(w, w->info, set_param, data, translation_domain, 1);
   }

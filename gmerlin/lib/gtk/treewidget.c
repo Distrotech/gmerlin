@@ -961,6 +961,7 @@ static void rename_selected_album(bg_gtk_tree_widget_t * w)
 
   dialog = bg_dialog_create((bg_cfg_section_t*)0,
                             set_parameter_rename_album,
+                            NULL,
                             w,
                             info, TR("Rename album"));
   
@@ -1120,6 +1121,7 @@ static void add_device(bg_gtk_tree_widget_t * w)
 
   dialog = bg_dialog_create((bg_cfg_section_t*)0,
                             set_parameter_add_device,
+                            NULL,
                             &s,
                             info, TR("Add device"));
   

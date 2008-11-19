@@ -1214,6 +1214,7 @@ static void transcoder_window_preferences(transcoder_window_t * w)
                 cfg_section,
                 NULL,
                 NULL,
+                NULL,
                 bg_transcoder_get_parameters());
 
   cfg_section = bg_cfg_section_find_subsection(w->track_defaults_section,
@@ -1222,6 +1223,7 @@ static void transcoder_window_preferences(transcoder_window_t * w)
   bg_dialog_add(dlg,
                 TR("Track defaults"),
                 cfg_section,
+                NULL,
                 NULL,
                 NULL,
                 bg_transcoder_track_get_general_parameters());
@@ -1237,6 +1239,7 @@ static void transcoder_window_preferences(transcoder_window_t * w)
                 cfg_section,
                 NULL,
                 NULL,
+                NULL,
                 bg_transcoder_track_audio_get_general_parameters());
 
 
@@ -1245,6 +1248,7 @@ static void transcoder_window_preferences(transcoder_window_t * w)
   bg_dialog_add_child(dlg, parent,
                 TR("Filters"),
                 cfg_section,
+                NULL,
                 NULL,
                 NULL,
                 bg_audio_filter_chain_get_parameters(ac));
@@ -1262,6 +1266,7 @@ static void transcoder_window_preferences(transcoder_window_t * w)
                       cfg_section,
                       NULL,
                       NULL,
+                      NULL,
                       bg_transcoder_track_video_get_general_parameters());
 
   cfg_section = bg_cfg_section_find_subsection(w->track_defaults_section,
@@ -1269,6 +1274,7 @@ static void transcoder_window_preferences(transcoder_window_t * w)
   bg_dialog_add_child(dlg, parent,
                       TR("Filters"),
                       cfg_section,
+                      NULL,
                       NULL,
                       NULL,
                       bg_video_filter_chain_get_parameters(vc));
@@ -1283,6 +1289,7 @@ static void transcoder_window_preferences(transcoder_window_t * w)
                       cfg_section,
                       NULL,
                       NULL,
+                      NULL,
                       bg_transcoder_track_subtitle_text_get_general_parameters());
 
   cfg_section = bg_cfg_section_find_subsection(w->track_defaults_section,
@@ -1292,6 +1299,7 @@ static void transcoder_window_preferences(transcoder_window_t * w)
                       cfg_section,
                       NULL,
                       NULL,
+                      NULL,
                       bg_text_renderer_get_parameters());
   
   cfg_section = bg_cfg_registry_find_section(w->cfg_reg,
@@ -1299,6 +1307,7 @@ static void transcoder_window_preferences(transcoder_window_t * w)
   bg_dialog_add(dlg,
                 TR("Overlay subtitle defaults"),
                 cfg_section,
+                NULL,
                 NULL,
                 NULL,
                 bg_transcoder_track_subtitle_overlay_get_general_parameters());
@@ -1311,6 +1320,7 @@ static void transcoder_window_preferences(transcoder_window_t * w)
                 TR("Window"),
                 cfg_section,
                 set_transcoder_window_parameter,
+                NULL,
                 w,
                 transcoder_window_parameters);
 
@@ -1321,6 +1331,7 @@ static void transcoder_window_preferences(transcoder_window_t * w)
                 TR("Remote"),
                 cfg_section,
                 bg_remote_server_set_parameter,
+                NULL,
                 w->remote,
                 bg_remote_server_get_parameters(w->remote));
 
@@ -1331,6 +1342,7 @@ static void transcoder_window_preferences(transcoder_window_t * w)
                 TR("Log window"),
                 cfg_section,
                 bg_gtk_log_window_set_parameter,
+                NULL,
                 w->logwindow,
                 bg_gtk_log_window_get_parameters(w->logwindow));
 

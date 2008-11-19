@@ -13,6 +13,7 @@ albumwidget.c \
 albumwindow.c \
 auth.c \
 button.c \
+cfg_button.c \
 cfg_checkbutton.c \
 cfg_color.c \
 cfg_device.c \

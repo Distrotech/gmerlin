@@ -36,25 +36,24 @@ bg_cfg_item_t * bg_cfg_item_create_empty(const char * name)
 bg_cfg_item_t * bg_cfg_item_create(const bg_parameter_info_t * info,
                                    bg_parameter_value_t * value)
   {
-  bg_cfg_item_t * ret = calloc(1, sizeof(*ret));
-  ret->name = bg_strdup(ret->name, info->name);
-  
+  bg_cfg_type_t type;
+  bg_cfg_item_t * ret;
   switch(info->type)
     {
     case BG_PARAMETER_CHECKBUTTON:
     case BG_PARAMETER_INT:
     case BG_PARAMETER_SLIDER_INT:
-      ret->type = BG_CFG_INT;
+      type = BG_CFG_INT;
       break;
 
     case BG_PARAMETER_FLOAT:
     case BG_PARAMETER_SLIDER_FLOAT:
-      ret->type = BG_CFG_FLOAT;
+      type = BG_CFG_FLOAT;
       break;
       
     case BG_PARAMETER_COLOR_RGB:
     case BG_PARAMETER_COLOR_RGBA:
-      ret->type = BG_CFG_COLOR;
+      type = BG_CFG_COLOR;
       break;
     case BG_PARAMETER_STRING:
     case BG_PARAMETER_STRINGLIST:
@@ -65,21 +64,27 @@ bg_cfg_item_t * bg_cfg_item_create(const bg_parameter_info_t * info,
     case BG_PARAMETER_MULTI_MENU:
     case BG_PARAMETER_MULTI_LIST:
     case BG_PARAMETER_MULTI_CHAIN:
-      ret->type = BG_CFG_STRING;
+      type = BG_CFG_STRING;
       break;
     case BG_PARAMETER_STRING_HIDDEN:
-      ret->type = BG_CFG_STRING_HIDDEN;
+      type = BG_CFG_STRING_HIDDEN;
       break;
     case BG_PARAMETER_TIME:
-      ret->type = BG_CFG_TIME;
+      type = BG_CFG_TIME;
       break;
     case BG_PARAMETER_POSITION:
-      ret->type = BG_CFG_POSITION;
+      type = BG_CFG_POSITION;
       break;
     case BG_PARAMETER_SECTION:
+    case BG_PARAMETER_BUTTON:
+      return (bg_cfg_item_t *)0;
       break;
     }
-
+  
+  ret = calloc(1, sizeof(*ret));
+  ret->type = type;
+  ret->name = bg_strdup(ret->name, info->name);
+    
   switch(ret->type)
     {
     case BG_CFG_INT:

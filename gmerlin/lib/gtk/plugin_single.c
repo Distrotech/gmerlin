@@ -66,8 +66,8 @@ struct bg_gtk_plugin_widget_single_s
   void * set_plugin_data;
 
   bg_set_parameter_func_t set_parameter;
+  bg_get_parameter_func_t get_parameter;
   void * set_parameter_data;
-    
   };
 
 static void set_parameter(void * data, const char * name,
@@ -89,6 +89,22 @@ static void set_parameter(void * data, const char * name,
 
   }
 
+static int get_parameter(void * data, const char * name,
+                         bg_parameter_value_t * v)
+  {
+  int ret = 0;
+  bg_gtk_plugin_widget_single_t * widget;
+  widget = (bg_gtk_plugin_widget_single_t *)data;
+
+  if(widget->handle && widget->handle->plugin->get_parameter)
+    {
+    bg_plugin_lock(widget->handle);
+    ret = widget->handle->plugin->get_parameter(widget->handle->priv, name, v);
+    bg_plugin_unlock(widget->handle);
+    }
+  return ret;
+  }
+
 static void button_callback(GtkWidget * w, gpointer data)
   {
   const bg_parameter_info_t * parameters;
@@ -108,8 +124,15 @@ static void button_callback(GtkWidget * w, gpointer data)
       parameters = widget->handle->plugin->get_parameters(widget->handle->priv);
     else
       parameters = widget->info->parameters;
+
+    if(widget->handle && widget->handle->plugin->get_parameter)
+      bg_cfg_section_get(widget->section, parameters,
+                         widget->handle->plugin->get_parameter, 
+                         widget->handle->priv);
+
     dialog = bg_dialog_create(widget->section,
                               set_parameter,
+                              get_parameter,
                               (void*)widget,
                               parameters,
                               TRD(widget->info->long_name, widget->info->gettext_domain));
@@ -120,7 +143,7 @@ static void button_callback(GtkWidget * w, gpointer data)
   else if(w == widget->audio_button)
     {
     dialog = bg_dialog_create(widget->audio_section,
-                              NULL, NULL,
+                              NULL, NULL, NULL,
                               widget->info->audio_parameters,
                               TRD(widget->info->long_name, widget->info->gettext_domain));
     bg_dialog_show(dialog, widget->audio_button);
@@ -130,7 +153,7 @@ static void button_callback(GtkWidget * w, gpointer data)
   else if(w == widget->video_button)
     {
     dialog = bg_dialog_create(widget->video_section,
-                              NULL, NULL,
+                              NULL, NULL, NULL,
                               widget->info->video_parameters,
                               TRD(widget->info->long_name, widget->info->gettext_domain));
     bg_dialog_show(dialog, widget->video_button);

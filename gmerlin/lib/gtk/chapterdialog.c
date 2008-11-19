@@ -215,6 +215,7 @@ static int edit_chapter(bg_gtk_chapter_dialog_t * win)
 
   dialog = bg_dialog_create((bg_cfg_section_t*)0,
                             set_parameter,
+                            NULL,
                             win,
                             chapter_parameters,
                             TR("Edit chapter"));

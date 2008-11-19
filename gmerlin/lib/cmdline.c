@@ -773,6 +773,7 @@ static void print_help_parameters(int indent,
     switch(parameters[i].type)
       {
       case BG_PARAMETER_SECTION:
+      case BG_PARAMETER_BUTTON:
         break;
       case BG_PARAMETER_CHECKBUTTON:
         tmp_string = bg_sprintf(TR("[1|0] (default: %d)"), parameters[i].val_default.val_i);

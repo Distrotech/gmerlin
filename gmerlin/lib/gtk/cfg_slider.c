@@ -190,7 +190,6 @@ static void create_common(bg_gtk_widget_t * w,
 
 void 
 bg_gtk_create_slider_int(bg_gtk_widget_t * w,
-                         const bg_parameter_info_t * info,
                          const char * translation_domain)
   {
   float min_value;
@@ -198,8 +197,8 @@ bg_gtk_create_slider_int(bg_gtk_widget_t * w,
   
   slider_t * s;
 
-  min_value = (float)(info->val_min.val_i);
-  max_value = (float)(info->val_max.val_i);
+  min_value = (float)(w->info->val_min.val_i);
+  max_value = (float)(w->info->val_max.val_i);
 
   if(min_value >= max_value)
     {
@@ -207,7 +206,7 @@ bg_gtk_create_slider_int(bg_gtk_widget_t * w,
     max_value = 100000.0;
     }
   
-  create_common(w, info, min_value, max_value, translation_domain);
+  create_common(w, w->info, min_value, max_value, translation_domain);
   s = (slider_t *)(w->priv);
   w->funcs = &int_funcs;
   gtk_scale_set_digits(GTK_SCALE(s->slider), 0);
@@ -215,7 +214,6 @@ bg_gtk_create_slider_int(bg_gtk_widget_t * w,
 
 void 
 bg_gtk_create_slider_float(bg_gtk_widget_t * w,
-                           const bg_parameter_info_t * info,
                            const char * translation_domain)
   {
   float min_value;
@@ -223,8 +221,8 @@ bg_gtk_create_slider_float(bg_gtk_widget_t * w,
   
   slider_t * s;
 
-  min_value = (float)(info->val_min.val_f);
-  max_value = (float)(info->val_max.val_f);
+  min_value = (float)(w->info->val_min.val_f);
+  max_value = (float)(w->info->val_max.val_f);
 
   if(min_value >= max_value)
     {
@@ -232,11 +230,11 @@ bg_gtk_create_slider_float(bg_gtk_widget_t * w,
     max_value = 100000.0;
     }
   
-  create_common(w, info, min_value, max_value, translation_domain);
+  create_common(w, w->info, min_value, max_value, translation_domain);
   s = (slider_t *)(w->priv);
 
   gtk_scale_set_digits(GTK_SCALE(s->slider),
-                       info->num_digits);
+                       w->info->num_digits);
 
   w->funcs = &float_funcs;
   }

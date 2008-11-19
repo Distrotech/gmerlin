@@ -71,81 +71,70 @@ struct bg_gtk_widget_s
   };
 
 void 
-bg_gtk_create_checkbutton(bg_gtk_widget_t *,
-                          const bg_parameter_info_t * info, const char * translation_domain);
+bg_gtk_create_checkbutton(bg_gtk_widget_t *, const char * translation_domain);
 
 void 
-bg_gtk_create_int(bg_gtk_widget_t *,
-                  const bg_parameter_info_t * info, const char * translation_domain);
+bg_gtk_create_int(bg_gtk_widget_t *, const char * translation_domain);
 
 void 
-bg_gtk_create_float(bg_gtk_widget_t *,
-                    const bg_parameter_info_t * info, const char * translation_domain);
+bg_gtk_create_float(bg_gtk_widget_t *, const char * translation_domain);
 
 void 
-bg_gtk_create_slider_int(bg_gtk_widget_t *,
-                         const bg_parameter_info_t * info, const char * translation_domain);
+bg_gtk_create_slider_int(bg_gtk_widget_t *, const char * translation_domain);
 
 void 
-bg_gtk_create_slider_float(bg_gtk_widget_t *,
-                           const bg_parameter_info_t * info, const char * translation_domain);
+bg_gtk_create_slider_float(bg_gtk_widget_t *, const char * translation_domain);
 
 void 
-bg_gtk_create_string(bg_gtk_widget_t *,
-                     const bg_parameter_info_t * info, const char * translation_domain);
+bg_gtk_create_string(bg_gtk_widget_t *, const char * translation_domain);
 
 void 
-bg_gtk_create_stringlist(bg_gtk_widget_t *,
-                         const bg_parameter_info_t * info, const char * translation_domain);
+bg_gtk_create_stringlist(bg_gtk_widget_t *, const char * translation_domain);
 
 void 
-bg_gtk_create_color_rgb(bg_gtk_widget_t *,
-                        const bg_parameter_info_t * info, const char * translation_domain);
+bg_gtk_create_color_rgb(bg_gtk_widget_t *, const char * translation_domain);
 
 void 
-bg_gtk_create_color_rgba(bg_gtk_widget_t *,
-                         const bg_parameter_info_t * info, const char * translation_domain);
+bg_gtk_create_color_rgba(bg_gtk_widget_t *, const char * translation_domain);
 
 void 
-bg_gtk_create_font(bg_gtk_widget_t *,
-                   const bg_parameter_info_t * info, const char * translation_domain);
+bg_gtk_create_font(bg_gtk_widget_t *, const char * translation_domain);
 
 void 
-bg_gtk_create_device(bg_gtk_widget_t *,
-                     const bg_parameter_info_t * info, const char * translation_domain);
+bg_gtk_create_device(bg_gtk_widget_t *, const char * translation_domain);
 
 
 void 
-bg_gtk_create_time(bg_gtk_widget_t *,
-                   const bg_parameter_info_t * info, const char * translation_domain);
+bg_gtk_create_time(bg_gtk_widget_t *, const char * translation_domain);
 
 
 void
-bg_gtk_create_multi_list(bg_gtk_widget_t *, const bg_parameter_info_t * info,
+bg_gtk_create_multi_list(bg_gtk_widget_t *,
                          bg_set_parameter_func_t set_param,
                          void * data, const char * translation_domain);
 
 void
-bg_gtk_create_multi_chain(bg_gtk_widget_t *, const bg_parameter_info_t * info,
+bg_gtk_create_multi_chain(bg_gtk_widget_t *,
                           bg_set_parameter_func_t set_param,
                           void * data, const char * translation_domain);
 
 void
-bg_gtk_create_multi_menu(bg_gtk_widget_t *, const bg_parameter_info_t * info,
+bg_gtk_create_multi_menu(bg_gtk_widget_t *,
                          bg_set_parameter_func_t set_param,
+                         bg_get_parameter_func_t get_param,
                          void * data, const char * translation_domain);
 
 void 
-bg_gtk_create_position(bg_gtk_widget_t *,
-                       const bg_parameter_info_t * info, const char * translation_domain);
+bg_gtk_create_position(bg_gtk_widget_t *, const char * translation_domain);
 
 void 
-bg_gtk_create_directory(bg_gtk_widget_t *,
-                        const bg_parameter_info_t * info, const char * translation_domain);
+bg_gtk_create_directory(bg_gtk_widget_t *, const char * translation_domain);
 
 void 
-bg_gtk_create_file(bg_gtk_widget_t *,
-                   const bg_parameter_info_t * info, const char * translation_domain);
+bg_gtk_create_file(bg_gtk_widget_t *, const char * translation_domain);
+
+void 
+bg_gtk_create_button(bg_gtk_widget_t *, const char * translation_domain);
 
 void bg_gtk_change_callback(GtkWidget * gw, gpointer data);
 

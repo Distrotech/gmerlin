@@ -81,7 +81,7 @@ static void button_callback(GtkWidget * w, gpointer data)
   else if(w == win->config_button)
     {
     dialog = bg_dialog_create(win->section,
-                              NULL, NULL,
+                              NULL, NULL, NULL,
                               win->info->parameters,
                               TRD(win->info->long_name, win->info->gettext_domain));
     bg_dialog_show(dialog, win->config_button);

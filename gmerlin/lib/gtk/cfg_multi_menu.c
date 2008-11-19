@@ -35,6 +35,7 @@ typedef struct
   GtkWidget * info_button;
   
   bg_set_parameter_func_t  set_param;
+  bg_get_parameter_func_t  get_param;
   void * data;
   int selected;
   const char * translation_domain;
@@ -173,8 +174,12 @@ static void button_callback(GtkWidget * wid, gpointer data)
       label = TRD(w->info->multi_labels[priv->selected], priv->translation_domain);
     else
       label = w->info->multi_names[priv->selected];
+
+    if(priv->get_param)
+      bg_cfg_section_get(subsection, w->info->multi_parameters[priv->selected],
+                         priv->get_param, priv->data);
     
-    dialog = bg_dialog_create(subsection, priv->set_param,
+    dialog = bg_dialog_create(subsection, priv->set_param, priv->get_param,
                               priv->data,
                               w->info->multi_parameters[priv->selected],
                               label);
@@ -183,14 +188,15 @@ static void button_callback(GtkWidget * wid, gpointer data)
   }
 
 void bg_gtk_create_multi_menu(bg_gtk_widget_t * w,
-                              const bg_parameter_info_t * info,
                               bg_set_parameter_func_t set_param,
+                              bg_get_parameter_func_t get_param,
                               void * data, const char * translation_domain)
   {
   int i;
   multi_menu_t * priv = calloc(1, sizeof(*priv));
 
   priv->set_param   = set_param;
+  priv->get_param   = get_param;
   priv->data        = data;
   
   priv->translation_domain = translation_domain;
@@ -211,21 +217,21 @@ void bg_gtk_create_multi_menu(bg_gtk_widget_t * w,
 
   priv->combo = gtk_combo_box_new_text();
 
-  if(info->help_string)
+  if(w->info->help_string)
     {
     bg_gtk_tooltips_set_tip(priv->combo,
-                            info->help_string, translation_domain);
+                            w->info->help_string, translation_domain);
     }
   
   i = 0;
-  while(info->multi_names[i])
+  while(w->info->multi_names[i])
     {
-    if(info->multi_labels && info->multi_labels[i])
+    if(w->info->multi_labels && w->info->multi_labels[i])
       gtk_combo_box_append_text(GTK_COMBO_BOX(priv->combo),
-                                TR_DOM(info->multi_labels[i]));
+                                TR_DOM(w->info->multi_labels[i]));
     else
       gtk_combo_box_append_text(GTK_COMBO_BOX(priv->combo),
-                                info->multi_names[i]);
+                                w->info->multi_names[i]);
     i++;
     }
   g_signal_connect(G_OBJECT(priv->combo),
@@ -235,7 +241,7 @@ void bg_gtk_create_multi_menu(bg_gtk_widget_t * w,
 
   
   
-  priv->label = gtk_label_new(TR_DOM(info->long_name));
+  priv->label = gtk_label_new(TR_DOM(w->info->long_name));
   gtk_misc_set_alignment(GTK_MISC(priv->label), 0.0, 0.5);
 
   gtk_widget_show(priv->label);

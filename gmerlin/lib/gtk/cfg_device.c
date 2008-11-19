@@ -297,7 +297,7 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   }
 
-void bg_gtk_create_device(bg_gtk_widget_t * w, const bg_parameter_info_t * info,
+void bg_gtk_create_device(bg_gtk_widget_t * w,
                           const char * translation_domain)
   {
   GtkListStore *store;
@@ -313,10 +313,10 @@ void bg_gtk_create_device(bg_gtk_widget_t * w, const bg_parameter_info_t * info,
 
   priv->treeview = gtk_tree_view_new_with_model(GTK_TREE_MODEL(store));
   
-  if(info->help_string)
+  if(w->info->help_string)
     {
     bg_gtk_tooltips_set_tip(priv->treeview,
-                            info->help_string, translation_domain);
+                            w->info->help_string, translation_domain);
     }
 
   

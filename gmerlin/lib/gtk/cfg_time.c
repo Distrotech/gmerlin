@@ -187,12 +187,12 @@ static const gtk_widget_funcs_t funcs =
 
 void 
 bg_gtk_create_time(bg_gtk_widget_t * w,
-                   const bg_parameter_info_t * info, const char * translation_domain)
+                   const char * translation_domain)
   {
   char * tooltip;
   GtkWidget * label;
   spinbutton_t * s = calloc(1, sizeof(*s));
-  s->label = gtk_label_new(TR_DOM(info->long_name));
+  s->label = gtk_label_new(TR_DOM(w->info->long_name));
 
   gtk_widget_show(s->label);
   gtk_misc_set_alignment(GTK_MISC(s->label), 0.0, 0.5);
@@ -211,21 +211,21 @@ bg_gtk_create_time(bg_gtk_widget_t * w,
   gtk_spin_button_set_digits(GTK_SPIN_BUTTON(s->spinbutton_m), 0);
   gtk_spin_button_set_digits(GTK_SPIN_BUTTON(s->spinbutton_h), 0);
   
-  if(info->help_string)
+  if(w->info->help_string)
     {
-    tooltip = bg_sprintf(TR("%s (Hours)"), TR_DOM(info->help_string));
+    tooltip = bg_sprintf(TR("%s (Hours)"), TR_DOM(w->info->help_string));
     bg_gtk_tooltips_set_tip(s->spinbutton_h, tooltip, PACKAGE);
     free(tooltip);
 
-    tooltip = bg_sprintf(TR("%s (Minutes)"), TR_DOM(info->help_string));
+    tooltip = bg_sprintf(TR("%s (Minutes)"), TR_DOM(w->info->help_string));
     bg_gtk_tooltips_set_tip(s->spinbutton_m, tooltip, PACKAGE);
     free(tooltip);
 
-    tooltip = bg_sprintf(TR("%s (Seconds)"), TR_DOM(info->help_string));
+    tooltip = bg_sprintf(TR("%s (Seconds)"), TR_DOM(w->info->help_string));
     bg_gtk_tooltips_set_tip(s->spinbutton_s, tooltip, PACKAGE);
     free(tooltip);
 
-    tooltip = bg_sprintf(TR("%s (Milliseconds)"), TR_DOM(info->help_string));
+    tooltip = bg_sprintf(TR("%s (Milliseconds)"), TR_DOM(w->info->help_string));
     bg_gtk_tooltips_set_tip(s->spinbutton_ms, tooltip, PACKAGE);
     free(tooltip);
     }

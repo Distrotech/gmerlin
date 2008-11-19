@@ -1126,6 +1126,7 @@ static void rename_current_entry(bg_gtk_album_widget_t * w)
   
   dialog = bg_dialog_create((bg_cfg_section_t*)0,
                             set_name,
+                            NULL,
                             w,
                             info,
                             TR("Rename entry"));

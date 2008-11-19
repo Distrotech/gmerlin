@@ -175,21 +175,20 @@ static void button_callback(GtkWidget * w, gpointer data)
   
   }
 
-void bg_gtk_create_font(bg_gtk_widget_t * w, const bg_parameter_info_t * info,
-                        const char * translation_domain)
+void bg_gtk_create_font(bg_gtk_widget_t * w, const char * translation_domain)
   {
   font_t * priv = calloc(1, sizeof(*priv));
 
   priv->entry = gtk_entry_new();
 
-  if(info->help_string)
+  if(w->info->help_string)
     {
-    bg_gtk_tooltips_set_tip(priv->entry, info->help_string, translation_domain);
+    bg_gtk_tooltips_set_tip(priv->entry, w->info->help_string, translation_domain);
     }
   
   gtk_widget_show(priv->entry);
 
-  priv->label = gtk_label_new(TR_DOM(info->long_name));
+  priv->label = gtk_label_new(TR_DOM(w->info->long_name));
   gtk_misc_set_alignment(GTK_MISC(priv->label), 0.0, 0.5);
 
   gtk_widget_show(priv->label);

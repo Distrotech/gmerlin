@@ -102,25 +102,24 @@ static const gtk_widget_funcs_t funcs =
     .attach =    attach
   };
 
-void bg_gtk_create_string(bg_gtk_widget_t * w, const bg_parameter_info_t * info,
-                          const char * translation_domain)
+void bg_gtk_create_string(bg_gtk_widget_t * w, const char * translation_domain)
   {
   string_t * priv = calloc(1, sizeof(*priv));
 
   priv->entry = gtk_entry_new();
 
-  if(info->help_string)
+  if(w->info->help_string)
     {
     bg_gtk_tooltips_set_tip(priv->entry,
-                            info->help_string, translation_domain);
+                            w->info->help_string, translation_domain);
     }
 
-  if(info->type == BG_PARAMETER_STRING_HIDDEN)
+  if(w->info->type == BG_PARAMETER_STRING_HIDDEN)
     gtk_entry_set_visibility(GTK_ENTRY(priv->entry), FALSE);
   
   gtk_widget_show(priv->entry);
   
-  priv->label = gtk_label_new(TR_DOM(info->long_name));
+  priv->label = gtk_label_new(TR_DOM(w->info->long_name));
   gtk_misc_set_alignment(GTK_MISC(priv->label), 0.0, 0.5);
 
   gtk_widget_show(priv->label);

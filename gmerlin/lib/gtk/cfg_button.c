@@ -28,27 +28,11 @@
 typedef struct
   {
   GtkWidget * button;
-  } checkbutton_t;
-
-static void get_value(bg_gtk_widget_t * w)
-  {
-  checkbutton_t * priv;
-  priv = (checkbutton_t*)(w->priv);
-
-  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(priv->button), w->value.val_i);
-  }
-
-static void set_value(bg_gtk_widget_t * w)
-  {
-  checkbutton_t * priv;
-  priv = (checkbutton_t*)(w->priv);
-  w->value.val_i =
-    gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(priv->button));
-  }
+  } button_t;
 
 static void destroy(bg_gtk_widget_t * w)
   {
-  checkbutton_t * priv = (checkbutton_t *)w->priv;
+  button_t * priv = (button_t *)w->priv;
   free(priv);
   }
 
@@ -56,7 +40,7 @@ static void attach(void * priv, GtkWidget * table,
                    int * row,
                    int * num_columns)
   {
-  checkbutton_t * b = (checkbutton_t*)priv;
+  button_t * b = (button_t*)priv;
 
   if(*num_columns < 2)
     *num_columns = 2;
@@ -70,27 +54,27 @@ static void attach(void * priv, GtkWidget * table,
 
 static const gtk_widget_funcs_t funcs =
   {
-    .get_value = get_value,
-    .set_value = set_value,
     .destroy =   destroy,
     .attach =    attach
   };
 
-
-void bg_gtk_create_checkbutton(bg_gtk_widget_t * w,
-                               const char * translation_domain)
+static void callback(GtkWidget * w, gpointer data)
   {
-  checkbutton_t * priv = calloc(1, sizeof(*priv));
-  priv->button = gtk_check_button_new_with_label(TR_DOM(w->info->long_name));
+  bg_gtk_widget_t * wid = data;
+  if(wid->change_callback)
+    wid->change_callback(wid->change_callback_data,
+                         wid->info->name, (bg_parameter_value_t*)0);
+  }
 
-  if(w->info->flags & BG_PARAMETER_SYNC)
-    {
-    w->callback_id = 
-      g_signal_connect(G_OBJECT(priv->button), "toggled",
-                       G_CALLBACK(bg_gtk_change_callback), (gpointer)w);
-    w->callback_widget = priv->button;
-    }
+void bg_gtk_create_button(bg_gtk_widget_t * w,
+                          const char * translation_domain)
+  {
+  button_t * priv = calloc(1, sizeof(*priv));
+  priv->button = gtk_button_new_with_label(TR_DOM(w->info->long_name));
 
+  g_signal_connect(G_OBJECT(priv->button), "clicked",
+                   G_CALLBACK(callback), (gpointer)w);
+  
   if(w->info->help_string)
     {
     bg_gtk_tooltips_set_tip(priv->button,

@@ -307,18 +307,16 @@ static void button_callback(GtkWidget * w, gpointer data)
   }
 
 void bg_gtk_create_color_rgba(bg_gtk_widget_t * w,
-                              const bg_parameter_info_t * info,
                               const char * translation_domain)
   {
   color_t * priv;
-  bg_gtk_create_color_rgb(w, info, translation_domain);
+  bg_gtk_create_color_rgb(w, translation_domain);
   
   priv = (color_t*)(w->priv);
   priv->has_alpha = 1;
   }
 
 void bg_gtk_create_color_rgb(bg_gtk_widget_t * w,
-                             const bg_parameter_info_t * info,
                              const char * translation_domain)
   {
   color_t * priv = calloc(1, sizeof(*priv));
@@ -348,15 +346,15 @@ void bg_gtk_create_color_rgb(bg_gtk_widget_t * w,
   gtk_widget_show(priv->drawingarea);
   gtk_container_add(GTK_CONTAINER(priv->button), priv->drawingarea);
 
-  if(info->help_string)
+  if(w->info->help_string)
     {
-    bg_gtk_tooltips_set_tip(priv->button, info->help_string,
+    bg_gtk_tooltips_set_tip(priv->button, w->info->help_string,
                             translation_domain);
     }
   
   gtk_widget_show(priv->button);
 
-  priv->label = gtk_label_new(TR_DOM(info->long_name));
+  priv->label = gtk_label_new(TR_DOM(w->info->long_name));
   gtk_misc_set_alignment(GTK_MISC(priv->label), 0.0, 0.5);
 
   gtk_widget_show(priv->label);

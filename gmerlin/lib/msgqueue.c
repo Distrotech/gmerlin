@@ -781,6 +781,7 @@ void bg_msg_set_parameter(bg_msg_t * msg,
   switch(type)
     {
     case BG_PARAMETER_SECTION: //!< Dummy type. It contains no data but acts as a separator in notebook style configuration windows
+    case BG_PARAMETER_BUTTON: /* Button (just tell we are called) */
       break;
       
     case BG_PARAMETER_CHECKBUTTON: //!< Bool
@@ -833,6 +834,7 @@ void bg_msg_get_parameter(bg_msg_t * msg,
   switch(*type)
     {
     case BG_PARAMETER_SECTION: //!< Dummy type. It contains no data but acts as a separator in notebook style configuration windows
+    case BG_PARAMETER_BUTTON:
       break;
       
     case BG_PARAMETER_CHECKBUTTON: //!< Bool

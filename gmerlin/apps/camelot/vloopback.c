@@ -1,4 +1,5 @@
 
+#include <config.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
@@ -19,6 +20,10 @@
 
 #include "vloopback.h"
 
+#include <gmerlin/log.h>
+
+#define LOG_DOMAIN "vloopback"
+
 #define VIDIOCSINVALID _IO('v',BASE_VIDIOCPRIVATE+1)
 
 #define MAX_WIDTH 640
@@ -27,6 +32,11 @@
 #define MIN_HEIGHT 32
 
 #define MAXIOCTL 1024
+
+#define MAX_FRAMESIZE (MAX_WIDTH*MAX_HEIGHT*4)
+#define NUM_FRAMES 2
+
+// #define DUMP_IOCTLS
 
 struct bg_vloopback_s
   {
@@ -46,8 +56,11 @@ struct bg_vloopback_s
   int out_depth;
   
   int do_grab;
+  int grab_frame;
+  
   int format_changed;
-  gavl_video_frame_t * frame;
+  gavl_video_frame_t * frames[NUM_FRAMES];
+
   int do_convert;
   };
 
@@ -58,24 +71,27 @@ static const struct
   {
   int               v4l;
   gavl_pixelformat_t gavl;
+  int depth;
   }
 pixelformats[] =
   {
-    // VIDEO_PALETTE_GREY /* Linear greyscale */
+    { VIDEO_PALETTE_GREY, GAVL_GRAY_8, 8 }, /* Linear greyscale */
     // VIDEO_PALETTE_HI240     2       /* High 240 cube (BT848) */
-    { VIDEO_PALETTE_RGB565, GAVL_RGB_16 },       /* 565 16 bit RGB */
-    { VIDEO_PALETTE_RGB24,  GAVL_BGR_24 },       /* 24bit RGB */
-    { VIDEO_PALETTE_RGB32,  GAVL_RGB_32 },       /* 32bit RGB */
-    { VIDEO_PALETTE_RGB555, GAVL_RGB_15 },       /* 555 15bit RGB */
-    { VIDEO_PALETTE_YUV422, GAVL_YUY2 },  /* YUV422 capture */
-    { VIDEO_PALETTE_YUYV,   GAVL_YUY2 },
-    { VIDEO_PALETTE_UYVY,   GAVL_UYVY },  /* The great thing about standards is ... */
+    { VIDEO_PALETTE_RGB565, GAVL_RGB_16, 16 },       /* 565 16 bit RGB */
+    { VIDEO_PALETTE_RGB24,  GAVL_BGR_24, 24 },       /* 24bit RGB */
+    { VIDEO_PALETTE_RGB32,  GAVL_RGB_32, 32 },       /* 32bit RGB */
+    { VIDEO_PALETTE_RGB555, GAVL_RGB_15, 15 },       /* 555 15bit RGB */
+    { VIDEO_PALETTE_YUV422, GAVL_YUY2,   24 },  /* YUV422 capture */
+    { VIDEO_PALETTE_YUYV,   GAVL_YUY2,   24 },
+    { VIDEO_PALETTE_UYVY,   GAVL_UYVY,   24 },  /* The great thing about standards is ... */
     // VIDEO_PALETTE_YUV420    10
     // VIDEO_PALETTE_YUV411    11      /* YUV411 capture */
     // VIDEO_PALETTE_RAW       12      /* RAW capture (BT848) */
-    { VIDEO_PALETTE_YUV422P, GAVL_YUV_422_P },  /* YUV 4:2:2 Planar */
-    { VIDEO_PALETTE_YUV411P,  GAVL_YUV_411_P },  /* YUV 4:1:1 Planar */
-    { VIDEO_PALETTE_YUV420P, GAVL_YUV_420_P },  /* YUV 4:2:0 Planar */
+    { VIDEO_PALETTE_YUV422P, GAVL_YUV_422_P, 24 },  /* YUV 4:2:2 Planar */
+    { VIDEO_PALETTE_YUV411P,  GAVL_YUV_411_P, 24 },  /* YUV 4:1:1 Planar */
+    //    { VIDEO_PALETTE_YUV420P, GAVL_YUV_420_P, 12 },  /* YUV 4:2:0 Planar */
+    { VIDEO_PALETTE_YUV420P, GAVL_YUV_420_P, 24 },  /* YUV 4:2:0 Planar */
+
     // VIDEO_PALETTE_YUV410P   16      /* YUV 4:1:0 Planar */
   };
 
@@ -93,13 +109,17 @@ static gavl_pixelformat_t get_gavl_pixelformat(int csp)
   return GAVL_PIXELFORMAT_NONE;
   }
 
-static int get_v4l_pixelformat(gavl_pixelformat_t csp)
+static int get_v4l_pixelformat(gavl_pixelformat_t csp, int * depth)
   {
   int i;
   for(i = 0; i < num_pixelformats; i++)
     {
     if(pixelformats[i].gavl == csp)
+      {
+      if(depth)
+        *depth = pixelformats[i].depth;
       return pixelformats[i].v4l;
+      }
     }
   return -1;
   }
@@ -115,7 +135,9 @@ static int v4l_ioctlhandler(bg_vloopback_t * v,
     case VIDIOCGCAP:
       {
       struct video_capability *vidcap = arg;
-      
+#ifdef DUMP_IOCTLS
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "VIDIOCGCAP");
+#endif
       snprintf(vidcap->name, 32, "Camelot vloopback output");
       vidcap->type = VID_TYPE_CAPTURE;
       vidcap->channels = 1;
@@ -129,26 +151,40 @@ static int v4l_ioctlhandler(bg_vloopback_t * v,
     case VIDIOCGCHAN:
       {
       struct video_channel *vidchan = arg;
-
+#ifdef DUMP_IOCTLS
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "VIDIOCGCHAN");
+#endif
       if(vidchan->channel != 0)
         return EINVAL;
       vidchan->flags = 0;
       vidchan->tuners = 0;
       vidchan->type = VIDEO_TYPE_CAMERA;
       strncpy(vidchan->name, "Camelot", 32);
+      //      strncpy(vidchan->name, "Webcam", 32);
       return 0;
       }
     case VIDIOCSCHAN:
       {
       int *v = arg;
-
+#ifdef DUMP_IOCTLS
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "VIDIOCSCHAN");
+#endif
       if(v[0] != 0)
         return EINVAL;
       return 0;
       }
+    case VIDIOCCAPTURE:
+#ifdef DUMP_IOCTLS
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "VIDIOCCAPTURE");
+#endif
+      return 0;
+      
     case VIDIOCGPICT:
       {
       struct video_picture *vidpic = arg;
+#ifdef DUMP_IOCTLS
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "VIDIOCGPICT");
+#endif
       vidpic->colour = 0xffff;
       vidpic->hue = 0xffff;
       vidpic->brightness = 0xffff;
@@ -161,12 +197,17 @@ static int v4l_ioctlhandler(bg_vloopback_t * v,
     case VIDIOCSPICT:
       {
       struct video_picture *vidpic = arg;
+#ifdef DUMP_IOCTLS
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "VIDIOCSPICT");
+#endif
       if(vidpic->palette != v->out_palette)
         {
         pfmt = get_gavl_pixelformat(vidpic->palette);
         if(pfmt == GAVL_PIXELFORMAT_NONE)
           {
-          fprintf(stderr, "vloopback: unsupported pixel format(%d) is requested.\n",vidpic->palette);
+          bg_log(BG_LOG_WARNING, LOG_DOMAIN,
+                 "unsupported pixel format (%d) is requested in VIDIOCSPICT",
+                 vidpic->palette);
           return EINVAL;
           }
         v->out_palette = vidpic->palette;
@@ -179,26 +220,41 @@ static int v4l_ioctlhandler(bg_vloopback_t * v,
     case VIDIOCGWIN:
       {
       struct video_window *vidwin = arg;
-
+#ifdef DUMP_IOCTLS
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "VIDIOCGWIN");
+#endif
       vidwin->x = 0;
       vidwin->y = 0;
       vidwin->width = v->output_format.image_width;
       vidwin->height = v->output_format.image_height;
       vidwin->chromakey = 0;
-      vidwin->flags = 0;
+      vidwin->flags = 655360;
+      //      vidwin->flags = 0;
       vidwin->clipcount = 0;
+      return 0;
       }
-
+      
     case VIDIOCSWIN:
       {
       struct video_window *vidwin = arg;
-
+#ifdef DUMP_IOCTLS
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "VIDIOCSWIN");
+#endif
       if(vidwin->width > MAX_WIDTH || vidwin->height > MAX_HEIGHT)
+        {
+        bg_log(BG_LOG_WARNING, LOG_DOMAIN, "width %d out of range", vidwin->width);
         return EINVAL;
+        }
       if(vidwin->width < MIN_WIDTH || vidwin->height < MIN_HEIGHT)
+        {
+        bg_log(BG_LOG_WARNING, LOG_DOMAIN, "height %d out of range", vidwin->height);
         return EINVAL;
+        }
       if(vidwin->flags)
+        {
+        bg_log(BG_LOG_WARNING, LOG_DOMAIN, "invalid flags %08x in VIDIOCSWIN", vidwin->flags);
         return EINVAL;
+        }
       v->output_format.image_width = vidwin->width;
       v->output_format.image_height = vidwin->height;
       return 0;
@@ -208,9 +264,14 @@ static int v4l_ioctlhandler(bg_vloopback_t * v,
       {
       int frame = *(int *)arg;
       int ret = 0;
-
-      if(frame < 0 || frame > 0)
+#ifdef DUMP_IOCTLS
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "VIDIOCSYNC");
+#endif
+      if(frame < 0 || frame >= NUM_FRAMES)
+        {
+        bg_log(BG_LOG_WARNING, LOG_DOMAIN, "frame %d out of range in VIDIOCSYNC", frame);
         return EINVAL;
+        }
       v->do_grab = 0;
       return ret;
       }
@@ -218,55 +279,72 @@ static int v4l_ioctlhandler(bg_vloopback_t * v,
     case VIDIOCMCAPTURE:
       {
       struct video_mmap *vidmmap = arg;
-
+#ifdef DUMP_IOCTLS
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "VIDIOCMCAPTURE");
+#endif
       if((vidmmap->width  != v->output_format.image_width) ||
          (vidmmap->height != v->output_format.image_height))
         {
         if(vidmmap->width > MAX_WIDTH || vidmmap->height > MAX_HEIGHT)
           {
-          fprintf(stderr, "vloopback: requested capture size is too big(%dx%d).\n",vidmmap->width, vidmmap->height);
+          bg_log(BG_LOG_WARNING, LOG_DOMAIN, "requested capture size is too big: %dx%d",
+                 vidmmap->width, vidmmap->height);
           return EINVAL;
           }
         if(vidmmap->width < MIN_WIDTH || vidmmap->height < MIN_HEIGHT)
           {
-          fprintf(stderr, "vloopback: requested capture size is to small(%dx%d).\n",vidmmap->width, vidmmap->height);
+          bg_log(BG_LOG_WARNING, LOG_DOMAIN, "requested capture size is too small: %dx%d",
+                 vidmmap->width, vidmmap->height);
           return EINVAL;
           }
         v->output_format.image_width = vidmmap->width;
         v->output_format.image_height = vidmmap->height;
         v->format_changed = 1;
         }
-      
       if(vidmmap->format != v->out_palette)
         {
         pfmt = get_gavl_pixelformat(vidmmap->format);
         if(pfmt == GAVL_PIXELFORMAT_NONE)
           {
-          fprintf(stderr, "vloopback: unsupported pixel format(%d) is requested.\n",vidmmap->format);
+          bg_log(BG_LOG_WARNING, LOG_DOMAIN,
+                 "unsupported pixel format (%d) is requested in VIDIOCMCAPTURE",
+                 vidmmap->format);
           return EINVAL;
           }
         v->out_palette = vidmmap->format;
         v->output_format.pixelformat = pfmt;
         v->format_changed = 1;
         }
-      if(vidmmap->frame > 0 || vidmmap->frame < 0)
+      if(vidmmap->frame >= NUM_FRAMES || vidmmap->frame < 0)
+        {
+        bg_log(BG_LOG_WARNING, LOG_DOMAIN,
+               "Invalid frame (%d) in VIDIOCMCAPTURE",
+               vidmmap->frame);
         return EINVAL;
+        }
       v->do_grab = 1;
+      v->grab_frame = vidmmap->frame;
       return 0;
       }
       
     case VIDIOCGMBUF:
       {
       struct video_mbuf *vidmbuf = arg;
-
+#ifdef DUMP_IOCTLS
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "VIDIOCGMBUF");
+#endif
       vidmbuf->size = v->mmap_len;
-      vidmbuf->frames = 1;
+      vidmbuf->frames = NUM_FRAMES;
       vidmbuf->offsets[0] = 0;
+      vidmbuf->offsets[1] = MAX_FRAMESIZE;
       return 0;
       }
 
     default:
       {
+      bg_log(BG_LOG_WARNING, LOG_DOMAIN,
+             "Unknown ioctl %lx", cmd);
+          
       return EPERM;
       }
     }
@@ -274,17 +352,20 @@ static int v4l_ioctlhandler(bg_vloopback_t * v,
 
 static void init(bg_vloopback_t * v)
   {
+  int i;
   gavl_rectangle_i_t out_rect;
   gavl_rectangle_f_t in_rect;
   
-  v->frame->strides[0] = 0;
-
   v->output_format.frame_width = v->output_format.image_width;
   v->output_format.frame_height = v->output_format.image_height;
 
-  gavl_video_frame_set_planes(v->frame,
-                              &v->output_format, v->mmap);
-
+  for(i = 0; i < NUM_FRAMES; i++)
+    {
+    v->frames[i]->strides[0] = 0;
+    gavl_video_frame_set_planes(v->frames[i],
+                                &v->output_format, v->mmap + i * MAX_FRAMESIZE);
+    }
+  
   gavl_rectangle_i_set_all(&out_rect, &v->output_format);
   gavl_rectangle_f_set_all(&in_rect, &v->input_format);
 
@@ -304,59 +385,79 @@ static void init(bg_vloopback_t * v)
 
 bg_vloopback_t * bg_vloopback_create()
   {
+  int i;
   sigset_t newset;
   bg_vloopback_t * ret = calloc(1, sizeof(*ret));
-  
-  ret->cnv = gavl_video_converter_create();
-  ret->frame = gavl_video_frame_create(NULL);
-  
+
   /* Block SIGIO */
   sigemptyset(&newset);
   sigaddset(&newset, SIGIO);
   pthread_sigmask(SIG_BLOCK, &newset, &ret->oldset);
+  
+  ret->fd = -1;
+  for(i = 0; i < NUM_FRAMES; i++)
+    {
+    ret->frames[i] = gavl_video_frame_create(NULL);
+    }
+  ret->cnv = gavl_video_converter_create();
   
   return ret;
   }
 
 void bg_vloopback_destroy(bg_vloopback_t * v)
   {
-  /* Restore signal mask */
-  pthread_sigmask(SIG_SETMASK, &v->oldset, NULL);
+  int i;
+  if(v->fd >= 0)
+    bg_vloopback_close(v);
 
+  /* Restore signal mask */
+  //  pthread_sigmask(SIG_SETMASK, &v->oldset, NULL);
+  
   gavl_video_converter_destroy(v->cnv);
-  gavl_video_frame_null(v->frame);
-  gavl_video_frame_destroy(v->frame);
+
+  for(i = 0; i < NUM_FRAMES; i++)
+    {
+    gavl_video_frame_null(v->frames[i]);
+    gavl_video_frame_destroy(v->frames[i]);
+    }
   free(v);
   }
 
 int bg_vloopback_open(bg_vloopback_t * v, const char * device)
   {
+  
   v->fd = open(device, O_RDWR);
 
   if(v->fd < 0)
     {
-    fprintf(stderr, "vloopback open failed: %s\n", strerror(errno));
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "vloopback open failed: %s",
+           strerror(errno));
     return 0;
     }
-  v->mmap_len = MAX_WIDTH * MAX_HEIGHT * 4;
+  v->mmap_len = MAX_FRAMESIZE * NUM_FRAMES;
   
   v->mmap = mmap((void*)0, v->mmap_len, PROT_READ | PROT_WRITE /* required */,
                  MAP_SHARED /* recommended */, v->fd, 0);
   
   if(MAP_FAILED == v->mmap)
     {
-    fprintf(stderr, "vloopback mmap failed: %s\n", strerror(errno));
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "vloopback mmap failed: %s",
+           strerror(errno));
     return 0;
     }
-  fprintf(stderr, "Opened vloopback\n");
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Opened vloopback");
   return 1;
   }
 
 void bg_vloopback_close(bg_vloopback_t * v)
   {
+  munmap(v->mmap, v->mmap_len);
+  
   close(v->fd);
   v->fd = -1;
   v->output_open = 0;
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Closed vloopback");
+  
   }
 
 void bg_vloopback_set_format(bg_vloopback_t * v, const gavl_video_format_t * format)
@@ -365,20 +466,17 @@ void bg_vloopback_set_format(bg_vloopback_t * v, const gavl_video_format_t * for
   if(!v->output_open)
     {
     gavl_video_format_copy(&v->output_format, format);
-    v->out_palette = get_v4l_pixelformat(v->output_format.pixelformat);
+    v->out_palette = get_v4l_pixelformat(v->output_format.pixelformat, &v->out_depth);
 
     if(v->out_palette == -1)
       {
       /* Works for sure */
       v->out_palette = VIDEO_PALETTE_YUV420P;
-      v->output_format.pixelformat = get_v4l_pixelformat(v->out_palette);
+      v->output_format.pixelformat = get_v4l_pixelformat(v->out_palette, &v->out_depth);
       }
     }
   v->format_changed = 1;
   }
-
-
-
 
 void bg_vloopback_put_frame(bg_vloopback_t * v, gavl_video_frame_t * frame)
   {
@@ -398,7 +496,7 @@ void bg_vloopback_put_frame(bg_vloopback_t * v, gavl_video_frame_t * frame)
   while(poll(&pfd, 1, 0))
     {
     if(!v->output_open)
-      fprintf(stderr, "Client connected\n");
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Client connected");
     v->output_open = 1;
     len = read(v->fd, buffer, MAXIOCTL);
     if(len < 8)
@@ -413,7 +511,7 @@ void bg_vloopback_put_frame(bg_vloopback_t * v, gavl_video_frame_t * frame)
       {
       /* Client disconnected */
       v->output_open = 0;
-      fprintf(stderr, "Client disconnected\n");
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Client disconnected");
       break;
       }
     
@@ -423,11 +521,11 @@ void bg_vloopback_put_frame(bg_vloopback_t * v, gavl_video_frame_t * frame)
       /* new vloopback patch supports a way to return EINVAL to
        * a client. */
       memset(arg, 0xff, MAXIOCTL-sizeof(unsigned long int));
-      fprintf(stderr, "vloopback: ioctl %lx unsuccessfully handled.\n", ioctl_nr);
       ioctl(v->fd, VIDIOCSINVALID);
       }
     if(ioctl(v->fd, ioctl_nr, arg))
       {
+      bg_log(BG_LOG_WARNING, LOG_DOMAIN, "ioctl %lx unsuccessfull.", ioctl_nr);
       fprintf(stderr, "vloopback: ioctl %lx unsuccessfull.\n", ioctl_nr);
       }
     if(v->do_grab)
@@ -439,9 +537,9 @@ void bg_vloopback_put_frame(bg_vloopback_t * v, gavl_video_frame_t * frame)
         }
 
       if(v->do_convert)
-        gavl_video_convert(v->cnv, frame, v->frame);
+        gavl_video_convert(v->cnv, frame, v->frames[v->grab_frame]);
       else
-        gavl_video_frame_copy(&v->output_format, v->frame, frame);
+        gavl_video_frame_copy(&v->output_format, v->frames[v->grab_frame], frame);
       
       v->do_grab = 0;
       }

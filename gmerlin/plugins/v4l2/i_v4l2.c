@@ -115,12 +115,13 @@ static int append_param(bg_parameter_info_t ** ret, int * num,
     case V4L2_CTRL_TYPE_INTEGER:
     case V4L2_CTRL_TYPE_INTEGER64:
     case V4L2_CTRL_TYPE_BOOLEAN:
-    case V4L2_CTRL_TYPE_MENU:
+    case V4L2_CTRL_TYPE_BUTTON:
       break;
+    case V4L2_CTRL_TYPE_MENU:
     default:
       return 0;
     }
-
+  
   if(ctrl->flags & V4L2_CTRL_FLAG_DISABLED)
     return 0;
   
@@ -150,6 +151,9 @@ static int append_param(bg_parameter_info_t ** ret, int * num,
     case V4L2_CTRL_TYPE_BOOLEAN:
       info->type = BG_PARAMETER_CHECKBUTTON;
       info->val_default.val_i = ctrl->default_value;
+      break;
+    case V4L2_CTRL_TYPE_BUTTON:
+      info->type = BG_PARAMETER_BUTTON;
       break;
     case V4L2_CTRL_TYPE_MENU:
       info->type = BG_PARAMETER_STRINGLIST;
@@ -952,7 +956,7 @@ static void create_parameters(v4l2_t * v4l)
     {
     tmp_string = bg_sprintf("/dev/video%d", i);
     
-    fd = open(tmp_string, O_RDWR, 0);
+    fd = open(tmp_string, O_RDWR | O_NONBLOCK, 0);
     if(fd < 0)
       {
       free(tmp_string);
@@ -998,16 +1002,6 @@ static void create_parameters(v4l2_t * v4l)
     free(tmp_string);
     }
   
-#if 0  
-  if((v4l->fd < 0) &&
-     ((v4l->fd = open(v4l->device, O_RDWR, 0)) >= 0))
-    {
-    v4l->have_pwc = bg_pwc_probe(v4l->fd);
-    close(v4l->fd);
-    v4l->fd = -1;
-    }
-#endif
-  
   }
 
 static const bg_parameter_info_t * get_parameters_v4l(void * priv)
@@ -1017,6 +1011,42 @@ static const bg_parameter_info_t * get_parameters_v4l(void * priv)
   if(!v4l->parameters)
     create_parameters(v4l);
   return v4l->parameters;
+  }
+
+static int get_parameter_v4l(void * priv, const char * name,
+                             bg_parameter_value_t * val)
+  {
+  v4l2_t * v4l;
+  v4l = (v4l2_t*)priv;
+  if(v4l->controls && (v4l->fd >= 0))
+    {
+    int i;
+    struct v4l2_control ctrl;
+    
+    for(i = 0; i < v4l->num_controls; i++)
+      {
+      if(!strcmp(name, (char*)v4l->controls[i].name))
+        {
+        if(!val)
+          return 0;
+
+        ctrl.id = v4l->controls[i].id;
+        
+        fprintf(stderr, "Get parameter: %s \n", v4l->controls[i].name);
+        
+        if(!xioctl(v4l->fd, VIDIOC_G_CTRL, &ctrl))
+          {
+          fprintf(stderr, " Success %d\n", ctrl.value);
+          val->val_i = ctrl.value;
+          return 1;
+          }
+        else
+          fprintf(stderr, " Failure\n");
+        return 0;
+        }
+      }
+    }
+  return 0;
   }
 
 static void set_parameter_v4l(void * priv, const char * name,
@@ -1099,9 +1129,18 @@ static void set_parameter_v4l(void * priv, const char * name,
       {
       if(!strcmp(name, (char*)v4l->controls[i].name))
         {
-        fprintf(stderr, "Set parameter: %s %d", name, val->val_i);
+        if(!val)
+          {
+          fprintf(stderr, "Set button: %s", name);
+          ctrl.value = 0;
+          }
+        else
+          {
+          fprintf(stderr, "Set parameter: %s %d [%d]", name, val->val_i, v4l->controls[i].id);
+          ctrl.value = val->val_i;
+          }
         ctrl.id = v4l->controls[i].id;
-        ctrl.value = val->val_i;
+        
         if(!xioctl(v4l->fd, VIDIOC_S_CTRL, &ctrl))
           fprintf(stderr, " Success\n");
         else
@@ -1129,6 +1168,7 @@ const bg_recorder_plugin_t the_plugin =
 
       .get_parameters = get_parameters_v4l,
       .set_parameter =  set_parameter_v4l,
+      .get_parameter =  get_parameter_v4l,
     },
     
     .open =       open_v4l,

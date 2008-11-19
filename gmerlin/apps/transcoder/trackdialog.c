@@ -83,7 +83,7 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
   bg_dialog_add(ret->cfg_dialog,
                 TR("General"),
                 t->general_section,
-                set_parameter_general, ret,
+                set_parameter_general, NULL, ret,
                 t->general_parameters);
 
   
@@ -92,6 +92,7 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
   bg_dialog_add(ret->cfg_dialog,
                 TR("Metadata"),
                 t->metadata_section,
+                NULL,
                 NULL,
                 NULL,
                 t->metadata_parameters);
@@ -104,6 +105,7 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
     bg_dialog_add(ret->cfg_dialog,
                   label,
                   t->audio_encoder_section,
+                  NULL,
                   NULL,
                   NULL,
                   encoder_info.audio_encoder_parameters);
@@ -121,6 +123,7 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
                   t->video_encoder_section,
                   NULL,
                   NULL,
+                  NULL,
                   encoder_info.video_encoder_parameters);
     free(label);
     }
@@ -133,6 +136,7 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
     bg_dialog_add(ret->cfg_dialog,
                   label,
                   t->subtitle_text_encoder_section,
+                  NULL,
                   NULL,
                   NULL,
                   encoder_info.subtitle_text_encoder_parameters);
@@ -148,6 +152,7 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
     bg_dialog_add(ret->cfg_dialog,
                   label,
                   t->subtitle_overlay_encoder_section,
+                  NULL,
                   NULL,
                   NULL,
                   encoder_info.subtitle_overlay_encoder_parameters);
@@ -184,11 +189,13 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
                         t->audio_streams[i].general_section,
                         NULL,
                         NULL,
+                        NULL,
                         bg_transcoder_track_audio_get_general_parameters());
 
     bg_dialog_add_child(ret->cfg_dialog, parent,
                         TR("Filters"),
                         t->audio_streams[i].filter_section,
+                        NULL,
                         NULL,
                         NULL,
                         t->audio_streams[i].filter_parameters);
@@ -203,6 +210,7 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
                             t->audio_streams[i].encoder_section,
                             NULL,
                             NULL,
+                            NULL,
                             encoder_info.audio_stream_parameters);
         }
       else
@@ -211,6 +219,7 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
         bg_dialog_add_child(ret->cfg_dialog, child,
                             NULL,
                             t->audio_streams[i].encoder_section,
+                            NULL,
                             NULL,
                             NULL,
                             encoder_info.audio_stream_parameters);
@@ -248,11 +257,13 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
                         t->video_streams[i].general_section,
                         NULL,
                         NULL,
+                        NULL,
                         bg_transcoder_track_video_get_general_parameters());
 
     bg_dialog_add_child(ret->cfg_dialog, parent,
                         TR("Filters"),
                         t->video_streams[i].filter_section,
+                        NULL,
                         NULL,
                         NULL,
                         t->video_streams[i].filter_parameters);
@@ -268,6 +279,7 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
                             t->video_streams[i].encoder_section,
                             NULL,
                             NULL,
+                            NULL,
                             encoder_info.video_stream_parameters);
         }
       else
@@ -277,6 +289,7 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
         bg_dialog_add_child(ret->cfg_dialog, child,
                             NULL,
                             t->video_streams[i].encoder_section,
+                            NULL,
                             NULL,
                             NULL,
                             encoder_info.video_stream_parameters);
@@ -314,11 +327,13 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
                         t->subtitle_text_streams[i].general_section,
                         NULL,
                         NULL,
+                        NULL,
                         t->subtitle_text_streams[i].general_parameters);
 
     bg_dialog_add_child(ret->cfg_dialog, parent,
                         TR("Textrenderer"),
                         t->subtitle_text_streams[i].textrenderer_section,
+                        NULL,
                         NULL,
                         NULL,
                         bg_text_renderer_get_parameters());
@@ -329,6 +344,7 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
       bg_dialog_add_child(ret->cfg_dialog, parent,
                           label,
                           t->subtitle_text_streams[i].encoder_section_text,
+                          NULL,
                           NULL,
                           NULL,
                           encoder_info.subtitle_text_stream_parameters);
@@ -363,6 +379,7 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
                         t->subtitle_overlay_streams[i].general_section,
                         NULL,
                         NULL,
+                        NULL,
                         t->subtitle_overlay_streams[i].general_parameters);
 
     if(encoder_info.subtitle_overlay_stream_parameters)
@@ -371,6 +388,7 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
       bg_dialog_add_child(ret->cfg_dialog, parent,
                           label,
                           t->subtitle_overlay_streams[i].encoder_section,
+                          NULL,
                           NULL,
                           NULL,
                           encoder_info.subtitle_overlay_stream_parameters);

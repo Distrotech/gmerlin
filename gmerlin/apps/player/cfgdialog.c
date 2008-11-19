@@ -34,6 +34,7 @@ void gmerlin_create_dialog(gmerlin_t * g)
 
   g->audio_dialog = bg_dialog_create(g->audio_section,
                                      bg_player_set_audio_parameter,
+                                     NULL,
                                      (void*)(g->player),
                                      parameters, TR("Audio options"));
 
@@ -41,6 +42,7 @@ void gmerlin_create_dialog(gmerlin_t * g)
   parameters = bg_player_get_audio_filter_parameters(g->player);
   g->audio_filter_dialog = bg_dialog_create(g->audio_filter_section,
                                             bg_player_set_audio_filter_parameter,
+                                            NULL,
                                             (void*)(g->player),
                                             parameters, TR("Audio filters"));
 
@@ -49,6 +51,7 @@ void gmerlin_create_dialog(gmerlin_t * g)
 
   g->video_dialog = bg_dialog_create(g->video_section,
                                      bg_player_set_video_parameter,
+                                     NULL,
                                      (void*)(g->player),
                                      parameters, TR("Video options"));
 
@@ -56,6 +59,7 @@ void gmerlin_create_dialog(gmerlin_t * g)
   parameters = bg_player_get_video_filter_parameters(g->player);
   g->video_filter_dialog = bg_dialog_create(g->video_filter_section,
                                             bg_player_set_video_filter_parameter,
+                                            NULL,
                                             (void*)(g->player),
                                             parameters, TR("Video filters"));
 
@@ -65,6 +69,7 @@ void gmerlin_create_dialog(gmerlin_t * g)
   
   g->subtitle_dialog = bg_dialog_create(g->subtitle_section,
                                         bg_player_set_subtitle_parameter,
+                                        NULL,
                                         (void*)(g->player),
                                         parameters, TR("Subtitle options"));
 
@@ -72,6 +77,7 @@ void gmerlin_create_dialog(gmerlin_t * g)
   
   g->visualization_dialog = bg_dialog_create(g->visualization_section,
                                              bg_player_set_visualization_parameter,
+                                             NULL,
                                              (void*)(g->player),
                                              parameters,
                                              TR("Visualization"));
@@ -98,6 +104,7 @@ void gmerlin_create_dialog(gmerlin_t * g)
                 TR("General"),
                 g->general_section,
                 gmerlin_set_parameter,
+                NULL,
                 (void*)(g),
                 parameters);
   
@@ -107,6 +114,7 @@ void gmerlin_create_dialog(gmerlin_t * g)
                 TR("Input"),
                 g->input_section,
                 bg_player_set_input_parameter,
+                NULL,
                 (void*)(g->player),
                 parameters);
   
@@ -116,6 +124,7 @@ void gmerlin_create_dialog(gmerlin_t * g)
                 TR("OSD"),
                 g->osd_section,
                 bg_player_set_osd_parameter,
+                NULL,
                 (void*)(g->player),
                 parameters);
 
@@ -126,6 +135,7 @@ void gmerlin_create_dialog(gmerlin_t * g)
                 TR("Display"),
                 g->display_section,
                 display_set_parameter,
+                NULL,
                 (void*)(g->player_window->display),
                 parameters);
 
@@ -135,6 +145,7 @@ void gmerlin_create_dialog(gmerlin_t * g)
                 TR("Media Tree"),
                 g->tree_section,
                 bg_media_tree_set_parameter,
+                NULL,
                 (void*)(g->tree),
                 parameters);
 
@@ -144,6 +155,7 @@ void gmerlin_create_dialog(gmerlin_t * g)
                 TR("Remote control"),
                 g->remote_section,
                 bg_remote_server_set_parameter,
+                NULL,
                 (void*)(g->remote),
                 parameters);
   
@@ -153,6 +165,7 @@ void gmerlin_create_dialog(gmerlin_t * g)
                 TR("Log window"),
                 g->logwindow_section,
                 bg_gtk_log_window_set_parameter,
+                NULL,
                 (void*)(g->log_window),
                 parameters);
   
@@ -162,6 +175,7 @@ void gmerlin_create_dialog(gmerlin_t * g)
                 TR("LCDproc"),
                 g->lcdproc_section,
                 bg_lcdproc_set_parameter,
+                NULL,
                 (void*)(g->lcdproc),
                 parameters);
 

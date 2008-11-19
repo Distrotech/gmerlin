@@ -305,9 +305,13 @@ void bg_cfg_section_set_parameter(bg_cfg_section_t * section,
                                   const bg_parameter_value_t * value)
   {
   bg_cfg_item_t * item;
-  item = bg_cfg_section_find_item(section, info);
 
   if(!value)
+    return;
+
+  item = bg_cfg_section_find_item(section, info);
+
+  if(!item)
     return;
   
   switch(item->type)
@@ -470,7 +474,8 @@ int bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * section,
     
     info = find_parameter(parameters, str, &len);
 
-    if(!info || (info->type == BG_PARAMETER_SECTION))
+    if(!info || (info->type == BG_PARAMETER_SECTION) ||
+       (info->type == BG_PARAMETER_BUTTON))
       {
       fprintf(out, "Unsupported parameter ");
       fwrite(str, 1, len, out);
@@ -693,6 +698,7 @@ int bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * section,
         str = end;
         break;
       case BG_PARAMETER_SECTION:
+      case BG_PARAMETER_BUTTON:
         break;
       }
     if(*str == ':')
@@ -725,7 +731,7 @@ void bg_cfg_section_get_parameter(bg_cfg_section_t * section,
   bg_cfg_item_t * item;
   item = bg_cfg_section_find_item(section, info);
 
-  if(!value)
+  if(!value || !item)
     return;
   
   switch(item->type)
@@ -807,6 +813,11 @@ static void do_apply(bg_cfg_section_t * section,
     {
     item = bg_cfg_section_find_item(section, &(infos[num]));
 
+    if(!item)
+      {
+      num++;
+      continue;
+      }
     if(prefix)
       {
       tmp_string = bg_sprintf("%s.%s", prefix, item->name);
@@ -947,7 +958,8 @@ void bg_cfg_section_get(bg_cfg_section_t * section,
   while(infos[num].name)
     {
     item = bg_cfg_section_find_item(section, &(infos[num]));
-    func(callback_data, item->name, &(item->value));
+    if(item)
+      func(callback_data, item->name, &(item->value));
     num++;
     }
   }
