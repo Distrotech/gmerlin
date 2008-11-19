@@ -353,7 +353,7 @@ int gavl_video_converter_reinit(gavl_video_converter_t * cnv)
       {
       if(!gavl_pixelformat_can_scale(input_format->pixelformat, tmp_csp))
         csp_then_scale = 1;
-#ifdef DEBUG
+#if 0
       fprintf(stderr, "converting %s -> %s -> %s (%d, %d)\n",
               gavl_pixelformat_to_string(input_format->pixelformat),
               gavl_pixelformat_to_string(tmp_csp),
@@ -365,7 +365,7 @@ int gavl_video_converter_reinit(gavl_video_converter_t * cnv)
     
     if(csp_then_scale) /* csp then scale */
       {
-#ifdef DEBUG
+#if 0
       fprintf(stderr, "csp then scale\n");
 #endif
       /* csp (tmp_format -> tmp_format1) */
@@ -406,7 +406,7 @@ int gavl_video_converter_reinit(gavl_video_converter_t * cnv)
     /* scale then csp */
     else
       {
-#ifdef DEBUG
+#if 0
       fprintf(stderr, "scale then csp\n");
 #endif
       /* scale (tmp_format -> tmp_format1) */
