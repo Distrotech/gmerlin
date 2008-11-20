@@ -20,10 +20,10 @@
  * *****************************************************************/
 
 #include <avdec_private.h>
+#include <pthread.h>
 #include <rtp.h>
 #include <stdlib.h>
 #include <bgav_sem.h>
-#include <pthread.h>
 #define LOG_DOMAIN "rtpstack"
 
 // #define MAX_PACKETS 10

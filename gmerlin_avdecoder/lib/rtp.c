@@ -183,8 +183,10 @@ static const dynamic_payload_t dynamic_audio_payloads[] =
     { },
   };
 
-typedef struct
+struct rtp_priv_s
   {
+  pthread_mutex_t mutex;
+
   struct pollfd * pollfds;
   int num_pollfds;
 
@@ -192,11 +194,23 @@ typedef struct
   int tcp;
   
   pthread_t read_thread;
-  } rtp_priv_t;
+  };
+
+static void lock_rtp(rtp_priv_t*p)
+  {
+  pthread_mutex_lock(&p->mutex);
+  }
+
+static void unlock_rtp(rtp_priv_t* p)
+  {
+  pthread_mutex_unlock(&p->mutex);
+  }
+
 
 static void cleanup_stream_rtp(bgav_stream_t * s)
   {
   rtp_stream_priv_t * priv = s->priv;
+  
   
   if(s->ext_data)
     free(s->ext_data);
@@ -506,7 +520,9 @@ static void init_pollfds(bgav_demuxer_context_t * ctx)
 
   priv->num_pollfds = (ctx->tt->cur->num_audio_streams +
                        ctx->tt->cur->num_video_streams)*2;
-  priv->pollfds = calloc(priv->num_pollfds, sizeof(*priv->pollfds));
+
+  if(!priv->pollfds)
+    priv->pollfds = calloc(priv->num_pollfds, sizeof(*priv->pollfds));
   
   index = 0;
   for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
@@ -752,6 +768,8 @@ static void close_rtp(bgav_demuxer_context_t * ctx)
     }
   if(priv->pollfds)
     free(priv->pollfds);
+
+  pthread_mutex_destroy(&priv->mutex);
   
   free(priv);
   }
@@ -806,6 +824,8 @@ int bgav_demuxer_rtp_open(bgav_demuxer_context_t * ctx,
 
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;
+
+  pthread_mutex_init(&priv->mutex, NULL);
   
   priv->input_mem = bgav_input_open_memory(NULL, 0, ctx->opt);
   

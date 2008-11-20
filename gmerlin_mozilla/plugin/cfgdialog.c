@@ -37,6 +37,7 @@ void gmerlin_mozilla_create_dialog(bg_mozilla_t * g)
                 TR("GUI"),
                 g->gui_section,
                 bg_mozilla_widget_set_parameter,
+                NULL,
                 (void*)(g->widget),
                 parameters);
   
@@ -49,6 +50,7 @@ void gmerlin_mozilla_create_dialog(bg_mozilla_t * g)
                 TR("Visualization"),
                 g->visualization_section,
                 bg_player_set_visualization_parameter,
+                NULL,
                 (void*)(g->player),
                 parameters);
 
@@ -61,6 +63,7 @@ void gmerlin_mozilla_create_dialog(bg_mozilla_t * g)
                 TR("OSD"),
                 g->osd_section,
                 bg_player_set_osd_parameter,
+                NULL,
                 (void*)(g->player),
                 parameters);
 

@@ -882,7 +882,6 @@ void bg_mozilla_widget_set_window(bg_mozilla_widget_t * w,
     {
     tmp_string = bg_sprintf("%s/%s", w->skin_directory,
                            w->skin.logo);
-    fprintf(stderr, "Loading logo %s\n", tmp_string);
     w->logo_pixbuf = gdk_pixbuf_new_from_file(tmp_string, NULL);
     free(tmp_string);
     }

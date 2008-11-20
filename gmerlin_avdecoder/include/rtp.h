@@ -113,8 +113,12 @@ typedef struct
   int keyftrame;
   } mpeg4_au_t;
 
+typedef struct rtp_priv_s rtp_priv_t;
+
 typedef struct rtp_stream_priv_s
   {
+  pthread_mutex_t mutex;
+  
   char * control_url;
   int rtp_fd;
   int rtcp_fd;
@@ -138,6 +142,8 @@ typedef struct rtp_stream_priv_s
   void (*free_priv)(struct rtp_stream_priv_s*);
   
   rtp_stats_t stats;
+  
+  rtp_priv_t * rtp_priv;
   
   union
     {
