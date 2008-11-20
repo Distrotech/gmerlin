@@ -1542,3 +1542,48 @@ AH_TEMPLATE([HAVE_INOTIFY], [System supports inotify])
 AC_CHECK_FUNC(inotify_init,have_inotify="true";AC_DEFINE(HAVE_INOTIFY))
 
 ])
+
+dnl
+dnl Semaphores
+dnl
+
+AC_DEFUN([GMERLIN_CHECK_SEMAPHORES],[
+AH_TEMPLATE([HAVE_POSIX_SEMAPHORES], [System supports POSIX semaphores])
+
+have_posix_semaphores="false"
+
+OLD_LIBS=$LIBS
+LIBS="$LIBS -lpthread"
+
+AC_MSG_CHECKING([for POSIX unnamed semaphores]);
+
+  AC_TRY_RUN([
+    #include <semaphore.h>
+	  
+    #include <stdio.h>
+    main()
+    {
+    int result;
+    sem_t s;
+    result = sem_init(&s, 0, 0);
+    if(result)
+      return -1;
+    return 0;
+    }
+  ],
+  [
+    # program could be run
+    have_posix_semaphores="true"
+    AC_MSG_RESULT(yes)
+    AC_DEFINE(HAVE_POSIX_SEMAPHORES)
+  ],
+    # program could not be run
+    AC_MSG_RESULT(no)
+)
+
+LIBS=$OLD_LIBS
+
+
+AM_CONDITIONAL(HAVE_POSIX_SEMAPHORES, test x$have_posix_semaphores = xtrue)
+
+])
