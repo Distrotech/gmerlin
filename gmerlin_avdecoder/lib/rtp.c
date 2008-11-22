@@ -189,13 +189,34 @@ struct rtp_priv_s
 
   struct pollfd * pollfds;
   int num_pollfds;
+  
+  /* The core is not fully initialized at the time
+     the input thread is started. Especially unsupported
+     streams can be deleted. This must happen without
+     disturbing the input thread */
 
+  struct
+    {
+    bgav_rtp_packet_buffer_t * buf;
+    bgav_stream_t * s;
+    int interleave_base;
+    uint32_t lsr;
+    uint32_t server_ssrc;
+    uint32_t client_ssrc;
+    int sr_count;
+    
+    int rtp_fd;
+    int rtcp_fd;
+    } * streams;
+  int num_streams;
+  
   bgav_input_context_t * input_mem;
   int tcp;
   
   pthread_t read_thread;
   };
 
+#if 0
 static void lock_rtp(rtp_priv_t*p)
   {
   pthread_mutex_lock(&p->mutex);
@@ -205,28 +226,30 @@ static void unlock_rtp(rtp_priv_t* p)
   {
   pthread_mutex_unlock(&p->mutex);
   }
-
+#endif
 
 static void cleanup_stream_rtp(bgav_stream_t * s)
   {
   rtp_stream_priv_t * priv = s->priv;
+  int i;
   
+  for(i = 0; i < priv->rtp_priv->num_streams; i++)
+    {
+    if(priv->rtp_priv->streams[i].s == s)
+      {
+      priv->rtp_priv->streams[i].s = NULL;
+      bgav_rtp_packet_buffer_set_eof(priv->rtp_priv->streams[i].buf);
+      break;
+      }
+    }
   
   if(s->ext_data)
     free(s->ext_data);
   
   if(!priv) return;
-
-  if(priv->rtp_fd >= 0)
-    close(priv->rtp_fd);
-  if(priv->rtcp_fd >= 0)
-    close(priv->rtcp_fd);
   
   if(priv->control_url) free(priv->control_url);
   if(priv->fmtp) bgav_stringbreak_free(priv->fmtp);
-  if(priv->buf) bgav_rtp_packet_buffer_destroy(priv->buf);
-  if(priv->stats.timer) gavl_timer_destroy(priv->stats.timer);
-  if(priv->rtcp_addr) freeaddrinfo(priv->rtcp_addr);
   if(priv->free_priv)
     priv->free_priv(priv);
   free(priv);
@@ -356,16 +379,14 @@ init_stream(bgav_demuxer_context_t * ctx,
 
   sp = calloc(1, sizeof(*sp));
   s->priv = sp;
-  sp->stats.timer = gavl_timer_create();
   sp->client_ssrc = rand();
+  sp->rtp_priv = ctx->priv;
   if(!find_codec(s, md, format_index))
     return 0;
   
   //  fprintf(stderr, "fourcc: ");
   //  bgav_dump_fourcc(s->fourcc);
   //  fprintf(stderr, " timescale: %d\n", s->timescale);
-  
-  sp->buf = bgav_rtp_packet_buffer_create(s->opt, &sp->stats, s->timescale);
   
   /* Get control URL */
   if(!bgav_sdp_get_attr_string(md->attributes, md->num_attributes,
@@ -393,21 +414,24 @@ init_stream(bgav_demuxer_context_t * ctx,
   }
 
 static int read_rtp_packet(bgav_demuxer_context_t * ctx,
-                           bgav_stream_t * s, int len)
+                           int fd, int len, bgav_rtp_packet_buffer_t * b)
   {
   rtp_packet_t * p;
-  rtp_stream_priv_t * sp;
   int bytes_read;
   rtp_priv_t * priv;
   priv = ctx->priv;
-  
-  sp = s->priv;
-  /* Read packet */
-  p = bgav_rtp_packet_buffer_lock_write(sp->buf);
 
+  if(bgav_rtp_packet_buffer_get_eof(b))
+    {
+    fprintf(stderr, "RTP EOF\n");
+    return 0;
+    }
+  /* Read packet */
+  p = bgav_rtp_packet_buffer_lock_write(b);
+  
   if(!len)
     {
-    bytes_read = bgav_udp_read(sp->rtp_fd,
+    bytes_read = bgav_udp_read(fd,
                                p->buffer, RTP_MAX_PACKET_LENGTH);
     }
   else
@@ -419,14 +443,13 @@ static int read_rtp_packet(bgav_demuxer_context_t * ctx,
     bytes_read = len;
     }
   
-  if(s->action != BGAV_STREAM_DECODE)
-    return 1;
-  
   bgav_input_reopen_memory(priv->input_mem, p->buffer, bytes_read);
   
   if(!rtp_header_read(priv->input_mem, &p->h))
+    {
+    fprintf(stderr, "rtp_header_read failed\n");
     return 0;
-
+    }
   p->buf = p->buffer + priv->input_mem->position;
   p->len = bytes_read - priv->input_mem->position;
 
@@ -434,32 +457,31 @@ static int read_rtp_packet(bgav_demuxer_context_t * ctx,
   if(p->h.padding)
     p->len -= p->buf[p->len-1];
   
-  p->h.timestamp -= sp->first_rtptime;
-
   //  if(s->type == BGAV_STREAM_VIDEO)
-  //    fprintf(stderr, "Write: %d %08x\n", p->h.sequence_number, p->h.ssrc);
+  fprintf(stderr, "Write: %d\n", p->h.sequence_number);
   
-  bgav_rtp_packet_buffer_unlock_write(sp->buf);
+  bgav_rtp_packet_buffer_unlock_write(b);
   
   return 1;
   }
 
 static int read_rtcp_packet(bgav_demuxer_context_t * ctx,
-                             bgav_stream_t * s, int len)
+                            int fd, int len,
+                            bgav_rtp_packet_buffer_t * b, int * sr_count,
+                            uint32_t client_ssrc, uint32_t server_ssrc)
   {
   rtp_priv_t * priv;
-
-  rtp_stream_priv_t * sp;
+  
   int bytes_read;
   rtcp_sr_t rr;
   uint8_t buf[RTP_MAX_PACKET_LENGTH];
-  sp = s->priv;
+  uint32_t  lsr;
   priv = ctx->priv;
   /* Read packet */
 
   if(!len)
     {
-    bytes_read = bgav_udp_read(sp->rtcp_fd,
+    bytes_read = bgav_udp_read(fd,
                                buf, RTP_MAX_PACKET_LENGTH);
     }
   else
@@ -480,24 +502,25 @@ static int read_rtcp_packet(bgav_demuxer_context_t * ctx,
       return 0;
 
     //    bgav_rtcp_sr_dump(&rr);
-    sp->lsr = (rr.ntp_time >> 16) && 0xFFFFFFFF;
-    sp->sr_count++;
-
+    lsr = (rr.ntp_time >> 16) && 0xFFFFFFFF;
+    (*sr_count)++;
+    
     /* TODO: The standard has more sophisticated formulas
      * for calculating the interval for receiver reports.
      * Here we assume a constant fraction of the number
      * (not bandwidth!) of the sender reports
      */
     
-    if((sp->sr_count >= 5) && !len)
+    if((*sr_count >= 5) && !len)
       {
-      sp->sr_count = 0;
+      *sr_count = 0;
       memset(&rr, 0, sizeof(rr));
       /* Send seceiver report */
-      bgav_rtcp_rr_setup(s, &rr);
+      bgav_rtcp_rr_setup(&rr, bgav_rtp_packet_buffer_get_stats(b), lsr,
+                         client_ssrc, server_ssrc);
       bytes_read = bgav_rtcp_rr_write(&rr, buf);
-      if(sendto(sp->rtcp_fd, buf, bytes_read, 0,
-                sp->rtcp_addr->ai_addr, sp->rtcp_addr->ai_addrlen) < bytes_read)
+      if(sendto(fd, buf, bytes_read, 0,
+                NULL, 0) < bytes_read)
         fprintf(stderr, "Sending receiver report failed\n");
       //      else
       //        fprintf(stderr, "Sent receiver report\n");
@@ -518,11 +541,11 @@ static void init_pollfds(bgav_demuxer_context_t * ctx)
   rtp_stream_priv_t * sp;
   priv = ctx->priv;
 
-  priv->num_pollfds = (ctx->tt->cur->num_audio_streams +
-                       ctx->tt->cur->num_video_streams)*2;
-
   if(!priv->pollfds)
+    {
+    priv->num_pollfds = priv->num_streams*2;
     priv->pollfds = calloc(priv->num_pollfds, sizeof(*priv->pollfds));
+    }
   
   index = 0;
   for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
@@ -553,54 +576,31 @@ static int handle_pollfds(bgav_demuxer_context_t * ctx)
   //  int bytes_read;
   rtp_priv_t * priv;
   int i, index;
-  rtp_stream_priv_t * sp;
-  bgav_stream_t * s;
   int ret = 0;
   priv = ctx->priv;
 
   index = 0;
     
-  for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
+  for(i = 0; i < priv->num_streams; i++)
     {
-    s = &ctx->tt->cur->audio_streams[i];
-    sp = s->priv;
-
-    if(bgav_rtp_packet_buffer_get_eof(sp->buf))
-      continue;
-    
     if(priv->pollfds[index].revents & POLLIN)
       {
-      read_rtp_packet(ctx, s, 0);
+      if(read_rtp_packet(ctx, priv->pollfds[index].fd, 0, priv->streams[i].buf))
+        ret++;
+      else
+        fprintf(stderr, "read_rtp_packet failed\n");
       }
     index++;
     if(priv->pollfds[index].revents & POLLIN)
       {
-      /* Read Audio RTCP Data */
-      read_rtcp_packet(ctx, s, 0);
+      if(read_rtcp_packet(ctx, priv->pollfds[index].fd, 0, priv->streams[i].buf,
+                          &priv->streams[i].sr_count,
+                          priv->streams[i].client_ssrc, priv->streams[i].server_ssrc))
+        ret++;
+      else
+        fprintf(stderr, "read_rtcp_packet failed\n");
       }
     index++;
-    ret++;
-    }
-  for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
-    {
-    s = &ctx->tt->cur->video_streams[i];
-    sp = s->priv;
-
-    if(bgav_rtp_packet_buffer_get_eof(sp->buf))
-      continue;
-
-    if(priv->pollfds[index].revents & POLLIN)
-      {
-      read_rtp_packet(ctx, s, 0);
-      }
-    index++;
-    if(priv->pollfds[index].revents & POLLIN)
-      {
-      /* Read Video RTCP Data */
-      read_rtcp_packet(ctx, s, 0);
-      }
-    index++;
-    ret++;
     }
   return ret;
   }
@@ -610,31 +610,20 @@ static int read_tcp_packet(bgav_demuxer_context_t * ctx,
   {
   rtp_priv_t * priv;
   int i;
-  rtp_stream_priv_t * sp;
-  bgav_stream_t * s;
   priv = ctx->priv;
   
-  for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
+  for(i = 0; i < priv->num_streams; i++)
     {
-    s = &ctx->tt->cur->audio_streams[i];
-    sp = s->priv;
-    if(sp->interleave_base == channel)
-      return read_rtp_packet(ctx, s, len);
-    else if(sp->interleave_base+1 == channel)
-      return read_rtcp_packet(ctx, s, len);
+    if(priv->streams[i].interleave_base == channel)
+      return read_rtp_packet(ctx, -1, len, priv->streams[i].buf);
+    else if(priv->streams[i].interleave_base+1 == channel)
+      return read_rtcp_packet(ctx, -1, len, priv->streams[i].buf,
+                              &priv->streams[i].sr_count,
+                              priv->streams[i].client_ssrc,
+                              priv->streams[i].server_ssrc);
     }
-  for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
-    {
-    s = &ctx->tt->cur->video_streams[i];
-    sp = s->priv;
-    if(sp->interleave_base == channel)
-      return read_rtp_packet(ctx, s, len);
-    else if(sp->interleave_base+1 == channel)
-      return read_rtcp_packet(ctx, s, len);
-    }
-
-  /* No stream found: Skip and return 1 */
   
+  /* No stream found: Skip and return 1 */
   bgav_input_skip(ctx->input, len);
   return 1;
   }
@@ -644,21 +633,11 @@ static int read_tcp_packet(bgav_demuxer_context_t * ctx,
 static void set_eof(bgav_demuxer_context_t * ctx)
   {
   int i;
-  rtp_stream_priv_t * sp;
+  rtp_priv_t * priv = ctx->priv;
   
-  for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
-    {
-    sp = ctx->tt->cur->audio_streams[i].priv;
-    bgav_rtp_packet_buffer_set_eof(sp->buf);
-    }
-  for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
-    {
-    sp = ctx->tt->cur->video_streams[i].priv;
-    bgav_rtp_packet_buffer_set_eof(sp->buf);
-    }
+  for(i = 0; i < priv->num_streams; i++)
+    bgav_rtp_packet_buffer_set_eof(priv->streams[i].buf);
   }
-
-
 
 static void * tcp_thread(void * data)
   {
@@ -695,39 +674,71 @@ static void * udp_thread(void * data)
 
   while(1)
     {
-    if(!poll(priv->pollfds, priv->num_pollfds, ctx->opt->read_timeout) > 0)
+    if(poll(priv->pollfds, priv->num_pollfds, ctx->opt->read_timeout) <= 0)
+      {
+      fprintf(stderr, "poll failed\n");
       break;
-    
+      }
     if(!handle_pollfds(ctx))
+      {
+      fprintf(stderr, "handle_pollfds failed\n");
       break;
+      }
     while(poll(priv->pollfds, priv->num_pollfds, 0) > 0)
       {
       if(!handle_pollfds(ctx))
+        {
+        fprintf(stderr, "handle_pollfds failed 1\n");
         break;
+        }
       }
     }
   set_eof(ctx);
   return NULL;
   }
 
-static int flush_stream(bgav_stream_t * s)
+static int flush_stream(bgav_stream_t * s,
+                        bgav_rtp_packet_buffer_t * buf, int * processed)
   {
   rtp_stream_priv_t * sp;
   rtp_packet_t * p;
   int num = 0;
+
+  fprintf(stderr, "Flush stream: %p\n", buf);
+
+  if(!s || (s->action != BGAV_STREAM_DECODE))
+    {
+    //    fprintf(stderr, "Flush\n");
+    /* Just flush any packets */
+    while(bgav_rtp_packet_buffer_try_lock_read(buf))
+      {
+      bgav_rtp_packet_buffer_unlock_read(buf);
+      num++;
+      }
+    if(!num && bgav_rtp_packet_buffer_get_eof(buf))
+      return 0;
+    return 1;
+    }
   sp = s->priv;
   
   /* Flush packet buffer */
-  while((p = bgav_rtp_packet_buffer_try_lock_read(sp->buf)))
+  while((p = bgav_rtp_packet_buffer_try_lock_read(buf)))
     {
     // if(s->type == BGAV_STREAM_VIDEO)
-    //   fprintf(stderr, "Read: %d %08x\n", p->h.sequence_number, p->h.ssrc);
+    fprintf(stderr, "Read: %ld\n", p->h.sequence_number);
+    
+    /* We must do this in the output thread */
+    p->h.timestamp -= sp->first_rtptime;
+    
     if(sp->process)
+      {
       sp->process(s, &p->h, p->buf, p->len);
-    bgav_rtp_packet_buffer_unlock_read(sp->buf);
+      (*processed)++;
+      }
+    bgav_rtp_packet_buffer_unlock_read(buf);
     num++;
     }
-  if(!num && bgav_rtp_packet_buffer_get_eof(sp->buf))
+  if(!num && bgav_rtp_packet_buffer_get_eof(buf))
     return 0;
   return 1;
   }
@@ -737,29 +748,59 @@ static int next_packet_rtp(bgav_demuxer_context_t * ctx)
   int ret = 0;
   int i;
   rtp_priv_t * priv;
-
-  priv = (rtp_priv_t *)ctx->priv;
+  int processed = 0;
   
-  for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
+  priv = (rtp_priv_t *)ctx->priv;
+
+  //  fprintf(stderr, "next_packet_rtp\n");
+  
+  for(i = 0; i < priv->num_streams; i++)
     {
-    if(flush_stream(&ctx->tt->cur->audio_streams[i]))
+    fprintf(stderr, "Flush stream.. %p", priv->streams[i].s);
+    if(priv->streams[i].s && (priv->streams[i].s->action == BGAV_STREAM_DECODE))
+      fprintf(stderr, " dec ");
+    if(flush_stream(priv->streams[i].s, priv->streams[i].buf, &processed))
+      {
+      fprintf(stderr, "Sucess\n");
       ret = 1;
+      }
+    else
+      fprintf(stderr, "failed\n");
+
     }
-  for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
+
+  if(!processed)
     {
-    if(flush_stream(&ctx->tt->cur->video_streams[i]))
-      ret = 1;
+    /* HACK: Waiting a short time increases the chance for the
+       input thread to lock the mutexes and write new data */
+    gavl_time_t delay_time = GAVL_TIME_SCALE / 100;
+    gavl_time_delay(&delay_time);
     }
+  
   return ret;
   }
 
 static void close_rtp(bgav_demuxer_context_t * ctx)
   {
+  int i;
   rtp_priv_t * priv = ctx->priv;
   if(!priv)
     return;
   
   bgav_demuxer_rtp_stop(ctx);
+
+  for(i = 0; i < priv->num_streams; i++)
+    {
+    if(priv->streams[i].buf)
+      bgav_rtp_packet_buffer_destroy(priv->streams[i].buf);
+
+    if(priv->streams[i].rtp_fd >= 0)
+      close(priv->streams[i].rtp_fd);
+    if(priv->streams[i].rtcp_fd >= 0)
+      close(priv->streams[i].rtcp_fd);
+    }
+  if(priv->streams)
+    free(priv->streams);
   
   if(priv->input_mem)
     {
@@ -821,7 +862,8 @@ int bgav_demuxer_rtp_open(bgav_demuxer_context_t * ctx,
   int i, j;
   bgav_stream_t * s;
   rtp_priv_t * priv;
-
+  rtp_stream_priv_t * sp;
+  
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;
 
@@ -862,6 +904,29 @@ int bgav_demuxer_rtp_open(bgav_demuxer_context_t * ctx,
 
   /* Check for duration */
   ctx->tt->cur->duration = get_duration(sdp);
+
+  priv->num_streams = ctx->tt->cur->num_audio_streams +
+    ctx->tt->cur->num_video_streams;
+  /* Create the stream array */
+  
+  priv->streams = calloc(priv->num_streams, sizeof(*priv->streams));
+
+  j = 0;
+  for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
+    {
+    //    sp = ctx->tt->cur->audio_streams[i].priv;
+    priv->streams[j].buf = bgav_rtp_packet_buffer_create(s->opt, s->timescale);
+    priv->streams[j].s = &ctx->tt->cur->audio_streams[i];
+    j++;
+    }
+  for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
+    {
+    //    sp = ctx->tt->cur->video_streams[i].priv;
+    priv->streams[j].buf = bgav_rtp_packet_buffer_create(s->opt, s->timescale);
+    priv->streams[j].s = &ctx->tt->cur->video_streams[i];
+    j++;
+    }
+  
   
   return 1;
   }
@@ -869,8 +934,33 @@ int bgav_demuxer_rtp_open(bgav_demuxer_context_t * ctx,
 void bgav_demuxer_rtp_start(bgav_demuxer_context_t * ctx)
   {
   rtp_priv_t * priv;
+  int i, j = 0;
+  rtp_stream_priv_t * sp;
   priv = ctx->priv;
 
+  /* Copy stuff for the input thread */
+  for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
+    {
+    sp = ctx->tt->cur->audio_streams[i].priv;
+    priv->streams[j].interleave_base = sp->interleave_base;
+    priv->streams[j].client_ssrc = sp->client_ssrc;
+    priv->streams[j].server_ssrc = sp->server_ssrc;
+    priv->streams[j].rtp_fd = sp->rtp_fd;
+    priv->streams[j].rtcp_fd = sp->rtcp_fd;
+    j++;
+    }
+  for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
+    {
+    sp = ctx->tt->cur->video_streams[i].priv;
+    priv->streams[j].interleave_base = sp->interleave_base;
+    priv->streams[j].client_ssrc = sp->client_ssrc;
+    priv->streams[j].server_ssrc = sp->server_ssrc;
+    priv->streams[j].rtp_fd = sp->rtp_fd;
+    priv->streams[j].rtcp_fd = sp->rtcp_fd;
+    j++;
+    }
+  
+  
   if(priv->tcp)
     {
     pthread_create(&priv->read_thread, (pthread_attr_t*)0, tcp_thread, ctx);
@@ -1170,7 +1260,7 @@ static void append_nal(bgav_stream_t * s, uint8_t * nal, int len)
 static int process_h264(bgav_stream_t * s, rtp_header_t * h, uint8_t * data, int len)
   {
   uint8_t global_nal = (*data & 0x1f);
-
+  
   if(global_nal >= 1 && global_nal <= 23)
     {
     /* One packet one nal */

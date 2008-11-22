@@ -82,7 +82,7 @@ typedef struct bgav_rtp_packet_buffer_s bgav_rtp_packet_buffer_t;
 
 bgav_rtp_packet_buffer_t *
 bgav_rtp_packet_buffer_create(const bgav_options_t * opt,
-                              rtp_stats_t * stats, int timescale);
+                              int timescale);
 void bgav_rtp_packet_buffer_destroy(bgav_rtp_packet_buffer_t *);
 
 rtp_packet_t *
@@ -92,6 +92,8 @@ void bgav_rtp_packet_buffer_unlock_write(bgav_rtp_packet_buffer_t *);
 
 void bgav_rtp_packet_buffer_set_eof(bgav_rtp_packet_buffer_t *);
 int bgav_rtp_packet_buffer_get_eof(bgav_rtp_packet_buffer_t *);
+
+rtp_stats_t * bgav_rtp_packet_buffer_get_stats(bgav_rtp_packet_buffer_t *);
 
 #if 0
 rtp_packet_t *
@@ -130,18 +132,10 @@ typedef struct rtp_stream_priv_s
   
   uint32_t server_ssrc;
   uint32_t client_ssrc;
-  uint32_t lsr;
-  int sr_count;
   
-  struct addrinfo * rtcp_addr;
-    
   int (*process)(bgav_stream_t * s, rtp_header_t * h, uint8_t * data, int len);
   
-  bgav_rtp_packet_buffer_t * buf;
-  
   void (*free_priv)(struct rtp_stream_priv_s*);
-  
-  rtp_stats_t stats;
   
   rtp_priv_t * rtp_priv;
   
@@ -199,4 +193,5 @@ typedef struct
 int bgav_rtcp_sr_read(bgav_input_context_t * ctx, rtcp_sr_t * ret);
 int bgav_rtcp_rr_write(rtcp_sr_t * r, uint8_t * data);
 void bgav_rtcp_sr_dump(rtcp_sr_t * r);
-void bgav_rtcp_rr_setup(bgav_stream_t * s, rtcp_sr_t * r);
+void bgav_rtcp_rr_setup(rtcp_sr_t * r, rtp_stats_t * s,
+                        uint32_t lsr, uint32_t client_ssrc, uint32_t server_ssrc);

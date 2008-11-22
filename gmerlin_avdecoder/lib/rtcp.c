@@ -118,7 +118,8 @@ void bgav_rtcp_sr_dump(rtcp_sr_t * r)
     }
   }
 
-void bgav_rtcp_rr_setup(bgav_stream_t * st, rtcp_sr_t * r)
+void bgav_rtcp_rr_setup(rtcp_sr_t * r, rtp_stats_t * s,
+                        uint32_t lsr, uint32_t client_ssrc, uint32_t server_ssrc)
   {
   int extended_max;
   int expected;
@@ -128,9 +129,6 @@ void bgav_rtcp_rr_setup(bgav_stream_t * st, rtcp_sr_t * r)
   int received_interval;
   int expected_interval;
   
-  rtp_stream_priv_t * sp = st->priv;
-  rtp_stats_t * s = &sp->stats;
-
   extended_max = s->cycles + s->max_seq;
   expected = extended_max - s->base_seq + 1;
   lost = expected - s->received;
@@ -152,15 +150,15 @@ void bgav_rtcp_rr_setup(bgav_stream_t * st, rtcp_sr_t * r)
   
   r->length  = ((8+(r->rc*24)) / 4) - 1;
 
-  r->ssrc = sp->client_ssrc;
+  r->ssrc = client_ssrc;
   
-  r->reports[0].ssrc = sp->server_ssrc;
+  r->reports[0].ssrc = server_ssrc;
   
   r->reports[0].fraction_lost = fraction_lost;
   r->reports[0].cumulative_lost = lost;
   r->reports[0].highest_ext_seq = extended_max;
   
   r->reports[0].jitter = s->jitter;
-  r->reports[0].lsr = sp->lsr;
+  r->reports[0].lsr = lsr;
   // r->reports[0].dlsr = 
   }

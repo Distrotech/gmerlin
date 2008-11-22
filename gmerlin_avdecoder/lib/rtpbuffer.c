@@ -55,7 +55,7 @@ struct bgav_rtp_packet_buffer_s
   int64_t last_seq;
   const bgav_options_t * opt;
   int num;
-  rtp_stats_t * stats;
+  rtp_stats_t stats;
   int timescale;
   
   int timestamp_wrap;
@@ -178,12 +178,10 @@ static int update_stats(rtp_stats_t * s, uint16_t seq,
 /* */ 
 
 bgav_rtp_packet_buffer_t *
-bgav_rtp_packet_buffer_create(const bgav_options_t * opt,
-                              rtp_stats_t * stats, int timescale)
+bgav_rtp_packet_buffer_create(const bgav_options_t * opt, int timescale)
   {
   bgav_rtp_packet_buffer_t * ret;
   ret = calloc(1, sizeof(*ret));
-  ret->stats = stats;
   ret->last_seq = -1;
   ret->opt = opt;
   ret->timescale = timescale;
@@ -192,6 +190,8 @@ bgav_rtp_packet_buffer_create(const bgav_options_t * opt,
   pthread_mutex_init(&ret->write_mutex, NULL);
   pthread_mutex_init(&ret->eof_mutex, NULL);
   sem_init(&ret->read_sem, 0, 0);
+  ret->stats.timer = gavl_timer_create();
+  
   return ret;
   }
 
@@ -201,6 +201,7 @@ void bgav_rtp_packet_buffer_destroy(bgav_rtp_packet_buffer_t * b)
   pthread_mutex_destroy(&b->write_mutex);
   pthread_mutex_destroy(&b->eof_mutex);
   sem_destroy(&b->read_sem);
+  if(b->stats.timer) gavl_timer_destroy(b->stats.timer);
   free(b);
   }
 
@@ -227,7 +228,14 @@ void bgav_rtp_packet_buffer_unlock_write(bgav_rtp_packet_buffer_t * b)
   {
   int drop = 0;
   rtp_packet_t * p = b->write_packet;
-  
+
+  /* Push back and return */
+  if(!b->timescale)
+    {
+    b->write_packets = b->write_packet;
+    b->write_packet = NULL;
+    return;
+    }
   //  if(b->next_seq == -1)
   //    b->next_seq = p->h.sequence_number;
   
@@ -252,19 +260,19 @@ void bgav_rtp_packet_buffer_unlock_write(bgav_rtp_packet_buffer_t * b)
     p->h.timestamp += 0x100000000LL + b->timestamp_offset;
   else
     p->h.timestamp += b->timestamp_offset;
-
+  
   //  fprintf(stderr, "RTP Time 2: %ld\n", p->h.timestamp);
   
   /* Update statistics */
-  if(!b->stats->initialized)
-    init_stats(b->stats, p->h.sequence_number, p->h.timestamp,
+  if(!b->stats.initialized)
+    init_stats(&b->stats, p->h.sequence_number, p->h.timestamp,
                b->timescale);
   else
-    update_stats(b->stats, p->h.sequence_number, p->h.timestamp,
+    update_stats(&b->stats, p->h.sequence_number, p->h.timestamp,
                  b->timescale);
 
   /* Update sequence number */
-  p->h.sequence_number += b->stats->cycles;
+  p->h.sequence_number += b->stats.cycles;
   
   /* Insert into read buffer */
   pthread_mutex_lock(&b->read_mutex);
@@ -391,4 +399,9 @@ int bgav_rtp_packet_buffer_get_eof(bgav_rtp_packet_buffer_t * b)
   ret = b->eof;
   pthread_mutex_unlock(&b->eof_mutex);
   return ret;
+  }
+
+rtp_stats_t * bgav_rtp_packet_buffer_get_stats(bgav_rtp_packet_buffer_t * b)
+  {
+  return &b->stats;
   }

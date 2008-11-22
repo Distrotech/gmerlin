@@ -5,6 +5,7 @@ noinst_HEADERS = \
 a52_header.h \
 asmrp.h \
 avdec_private.h \
+bgav_sem.h \
 bswap.h \
 codecs.h \
 dvb_channels.h \

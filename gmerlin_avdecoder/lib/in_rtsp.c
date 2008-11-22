@@ -32,7 +32,7 @@
 #include <rtp.h>
 //#include <sys/types.h>
 #include <sys/socket.h>
-//#include <netdb.h>
+#include <netdb.h>
 
 
 
@@ -516,7 +516,7 @@ static int handle_stream_transport(bgav_stream_t * s,
   {
   const char * var;
   int var_len = 0;
-
+  struct addrinfo * addr;
   int server_ports[2] = { 0, 0 };
   int client_ports[2] = { 0, 0 };
   //  int i;
@@ -543,14 +543,34 @@ static int handle_stream_transport(bgav_stream_t * s,
     if((var = get_answer_var(transport, "source=", &var_len)))
       {
       char * ip = bgav_strndup(var, var + var_len);
-      sp->rtcp_addr =
-        bgav_hostbyname(s->opt,
-                        ip, server_ports[1], SOCK_DGRAM, 0);
-      if(!sp->rtcp_addr)
+      addr = bgav_hostbyname(s->opt, ip, server_ports[0], SOCK_DGRAM, 0);
+      if(!addr)
         {
         free(ip);
         return 0;
         }
+      if(connect(sp->rtp_fd, addr->ai_addr, addr->ai_addrlen)<0)
+        {
+        free(ip);
+        return 0;
+        }
+      freeaddrinfo(addr);
+      
+      addr = bgav_hostbyname(s->opt, ip, server_ports[1], SOCK_DGRAM, 0);
+      if(!addr)
+        {
+        free(ip);
+        return 0;
+        }
+
+      if(connect(sp->rtcp_fd, addr->ai_addr, addr->ai_addrlen)<0)
+        {
+        free(ip);
+        return 0;
+        }
+
+      freeaddrinfo(addr);
+      
       bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Server adress: %s\n", ip);
       free(ip);
       }
