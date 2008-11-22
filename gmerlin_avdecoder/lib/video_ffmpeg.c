@@ -53,9 +53,9 @@
    This seems always be true for H.264.
 */
 
-// #define DUMP_DECODE
+//#define DUMP_DECODE
 // #define DUMP_EXTRADATA
-// #define DUMP_PARSER
+//#define DUMP_PARSER
 
 /* Comes at the end */
 static int h264_is_keyframe(uint8_t * data, int len);
@@ -177,7 +177,7 @@ static int my_get_buffer(struct AVCodecContext *c, AVFrame *pic)
     if(!priv->packets[i].used)
       break;
     }
-  if(i == FF_MAX_B_FRAMES+1)
+  if(i >= FF_MAX_B_FRAMES+1)
     {
     bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "PTS cache full");
     return -1;
@@ -186,14 +186,20 @@ static int my_get_buffer(struct AVCodecContext *c, AVFrame *pic)
   //  *pts= global_video_pkt_pts;
   pic->opaque= &priv->packets[i];
 
+  for(i = 0; i < FF_MAX_B_FRAMES+1; i++)
+    {
+    if(priv->packets[i].used &&
+       (priv->packets[i].pts == priv->current_packet.pts))
+      return ret;
+    }
+  
   /* Set values  */
   priv->packets[i].pts      = priv->current_packet.pts;
   priv->packets[i].position = priv->current_packet.position;
   priv->packets[i].duration = priv->current_packet.duration;
   priv->packets[i].keyframe = priv->current_packet.keyframe;
   priv->packets[i].used     = 1;
-  //  fprintf(stderr, "my_get_buffer: pos: %ld, key: %d\n",
-  //          priv->packets[i].position, priv->packets[i].keyframe);
+  //  fprintf(stderr, "my_get_buffer: ref: %d\n", pic->reference);
   return ret;
   }
 

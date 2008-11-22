@@ -350,6 +350,7 @@ bgav_rtp_packet_buffer_try_lock_read(bgav_rtp_packet_buffer_t * b)
      (b->num < MAX_MISORDER))
     {
     pthread_mutex_unlock(&b->read_mutex);
+    //    fprintf(stderr, "Waiting for packet\n");
     return (rtp_packet_t *)0;
     }
   

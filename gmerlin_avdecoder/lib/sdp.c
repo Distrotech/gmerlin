@@ -563,7 +563,7 @@ static int parse_media(const bgav_options_t * opt,
         i_tmp = parse_attributes(&(lines[line_index]), &(ret->attributes),
                                  ret->num_attributes);
         line_index += i_tmp;
-        ret->num_attributes = i_tmp;
+        ret->num_attributes += i_tmp;
         break;
       default:
         line_index++;
@@ -938,6 +938,7 @@ static int get_format_attr(bgav_sdp_attr_t * attrs, int num_attrs, int format, c
 
 int bgav_sdp_get_attr_rtpmap(bgav_sdp_attr_t * attrs, int num_attrs, int format, char ** ret)
   {
+  
   return get_format_attr(attrs, num_attrs, format, ret, "rtpmap");
   }
 

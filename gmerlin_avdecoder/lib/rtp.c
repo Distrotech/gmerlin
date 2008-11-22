@@ -277,6 +277,7 @@ static void check_dynamic(bgav_stream_t * s,
       if(dynamic_payloads[i].init)
         if(!dynamic_payloads[i].init(s))
           {
+          // fprintf(stderr, "init failed\n");
           /* Make the stream undecodable */
           s->fourcc = 0;
           return;
@@ -306,14 +307,14 @@ static int find_codec(bgav_stream_t * s, bgav_sdp_media_desc_t * md,
     if(!bgav_sdp_get_attr_rtpmap(md->attributes, md->num_attributes,
                                  format, &rtpmap))
       {
-      fprintf(stderr, "Got no rtpmap\n");
+      fprintf(stderr, "Got no rtpmap for format %d\n", format);
       return 0;
       }
-    // fprintf(stderr, "rtpmap: %s\n", rtpmap);
-
-
+    
     if(s->type == BGAV_STREAM_AUDIO)
       {
+      fprintf(stderr, "check_dynamic: %s\n", rtpmap);
+
       check_dynamic(s, dynamic_audio_payloads, rtpmap);
       }
     else
@@ -381,6 +382,7 @@ init_stream(bgav_demuxer_context_t * ctx,
   s->priv = sp;
   sp->client_ssrc = rand();
   sp->rtp_priv = ctx->priv;
+  sp->interleave_base = -2;
   if(!find_codec(s, md, format_index))
     return 0;
   
@@ -447,7 +449,7 @@ static int read_rtp_packet(bgav_demuxer_context_t * ctx,
   
   if(!rtp_header_read(priv->input_mem, &p->h))
     {
-    fprintf(stderr, "rtp_header_read failed\n");
+    //    fprintf(stderr, "rtp_header_read failed\n");
     return 0;
     }
   p->buf = p->buffer + priv->input_mem->position;
@@ -458,7 +460,7 @@ static int read_rtp_packet(bgav_demuxer_context_t * ctx,
     p->len -= p->buf[p->len-1];
   
   //  if(s->type == BGAV_STREAM_VIDEO)
-  fprintf(stderr, "Write: %d\n", p->h.sequence_number);
+  //  fprintf(stderr, "Write: %ld\n", p->h.sequence_number);
   
   bgav_rtp_packet_buffer_unlock_write(b);
   
@@ -704,7 +706,7 @@ static int flush_stream(bgav_stream_t * s,
   rtp_packet_t * p;
   int num = 0;
 
-  fprintf(stderr, "Flush stream: %p\n", buf);
+  // fprintf(stderr, "Flush stream: %p\n", buf);
 
   if(!s || (s->action != BGAV_STREAM_DECODE))
     {
@@ -725,7 +727,7 @@ static int flush_stream(bgav_stream_t * s,
   while((p = bgav_rtp_packet_buffer_try_lock_read(buf)))
     {
     // if(s->type == BGAV_STREAM_VIDEO)
-    fprintf(stderr, "Read: %ld\n", p->h.sequence_number);
+    //    fprintf(stderr, "Read: %ld\n", p->h.sequence_number);
     
     /* We must do this in the output thread */
     p->h.timestamp -= sp->first_rtptime;
@@ -756,19 +758,10 @@ static int next_packet_rtp(bgav_demuxer_context_t * ctx)
   
   for(i = 0; i < priv->num_streams; i++)
     {
-    fprintf(stderr, "Flush stream.. %p", priv->streams[i].s);
-    if(priv->streams[i].s && (priv->streams[i].s->action == BGAV_STREAM_DECODE))
-      fprintf(stderr, " dec ");
     if(flush_stream(priv->streams[i].s, priv->streams[i].buf, &processed))
-      {
-      fprintf(stderr, "Sucess\n");
       ret = 1;
-      }
-    else
-      fprintf(stderr, "failed\n");
-
     }
-
+  
   if(!processed)
     {
     /* HACK: Waiting a short time increases the chance for the
@@ -862,7 +855,6 @@ int bgav_demuxer_rtp_open(bgav_demuxer_context_t * ctx,
   int i, j;
   bgav_stream_t * s;
   rtp_priv_t * priv;
-  rtp_stream_priv_t * sp;
   
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;
@@ -914,16 +906,18 @@ int bgav_demuxer_rtp_open(bgav_demuxer_context_t * ctx,
   j = 0;
   for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
     {
+    s = &ctx->tt->cur->audio_streams[i];
     //    sp = ctx->tt->cur->audio_streams[i].priv;
     priv->streams[j].buf = bgav_rtp_packet_buffer_create(s->opt, s->timescale);
-    priv->streams[j].s = &ctx->tt->cur->audio_streams[i];
+    priv->streams[j].s = s;
     j++;
     }
   for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
     {
+    s = &ctx->tt->cur->video_streams[i];
     //    sp = ctx->tt->cur->video_streams[i].priv;
     priv->streams[j].buf = bgav_rtp_packet_buffer_create(s->opt, s->timescale);
-    priv->streams[j].s = &ctx->tt->cur->video_streams[i];
+    priv->streams[j].s = s;
     j++;
     }
   
@@ -1225,11 +1219,31 @@ static void send_nal(bgav_stream_t * s, uint8_t * nal, int len,
                      int64_t time)
   {
   uint8_t start_sequence[]= { 0, 0, 1 };
+  rtp_stream_priv_t * sp;
+
+  sp = s->priv;
+  
   if(s->packet && (s->packet->pts != time))
     {
     bgav_packet_done_write(s->packet);
     s->packet = (bgav_packet_t*)0;
     }
+#if 0
+  fprintf(stderr, "Send nal %02x\n", *nal);
+  
+  if(((*nal & 0x1f) == 1))
+    {
+        
+    if(!sp->priv.h264.got_keyframe)
+      {
+      fprintf(stderr, "Skipping to first keyframe nal: %d, slice: %d\n",
+              (*nal) & 0x1f, nal[2]);
+      return;
+      }
+    }
+  else
+    sp->priv.h264.got_keyframe = 1;
+#endif
   
   if(!s->packet)
     {
@@ -1260,10 +1274,14 @@ static void append_nal(bgav_stream_t * s, uint8_t * nal, int len)
 static int process_h264(bgav_stream_t * s, rtp_header_t * h, uint8_t * data, int len)
   {
   uint8_t global_nal = (*data & 0x1f);
+
+  //  fprintf(stderr, "Process h264: \n");
+  //  bgav_hexdump(data, 16, 16);
   
   if(global_nal >= 1 && global_nal <= 23)
     {
     /* One packet one nal */
+    //    fprintf(stderr, "One packet one nal\n");
     send_nal(s, data, len, h->timestamp);
     return 1;
     }
@@ -1294,11 +1312,16 @@ static int process_h264(bgav_stream_t * s, rtp_header_t * h, uint8_t * data, int
       if(*data >> 7) /* Start bit set */
         {
         nal_header |= (*data & 0x1f);
-        send_nal(s, &nal_header, 1, h->timestamp);
+        /* Reconstruct */
+        *data = nal_header;
+        send_nal(s, data, len, h->timestamp);
         }
-      data++;
-      len--;                  // skip the fu_indicator
-      append_nal(s, data, len);
+      else
+        {
+        data++;
+        len--;                  // skip the fu_indicator
+        append_nal(s, data, len);
+        }
       }
       break;
     default:
@@ -1322,6 +1345,8 @@ static int init_h264(bgav_stream_t * s)
   if(!value)
     return 0;
 
+  // s->not_aligned = 1;
+  
   while(*value)
     {
     char base64packet[1024];
