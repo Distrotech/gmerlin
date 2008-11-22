@@ -19,4 +19,4 @@ camelot_LDADD = \
 $(top_builddir)/lib/gtk/libgmerlin_gtk.la \
 $(top_builddir)/lib/libgmerlin.la
 
-noinst_HEADERS = webcam.h webcam_window.h
+noinst_HEADERS = webcam.h webcam_window.h vloopback.h
