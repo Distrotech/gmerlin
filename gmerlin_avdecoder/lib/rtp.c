@@ -179,7 +179,10 @@ static const dynamic_payload_t dynamic_video_payloads[] =
 
 static const dynamic_payload_t dynamic_audio_payloads[] =
   {
-    { "mpeg4-generic", BGAV_MK_FOURCC('m', 'p', '4', 'a'), init_mpeg4_generic_audio },
+    { "mpeg4-generic",
+      BGAV_MK_FOURCC('m', 'p', '4', 'a'),
+      init_mpeg4_generic_audio
+    },
     { },
   };
 
@@ -726,8 +729,8 @@ static int flush_stream(bgav_stream_t * s,
   /* Flush packet buffer */
   while((p = bgav_rtp_packet_buffer_try_lock_read(buf)))
     {
-    // if(s->type == BGAV_STREAM_VIDEO)
-    //    fprintf(stderr, "Read: %ld\n", p->h.sequence_number);
+    //    if(s->type == BGAV_STREAM_AUDIO)
+    //      fprintf(stderr, "Read: %ld\n", p->h.sequence_number);
     
     /* We must do this in the output thread */
     p->h.timestamp -= sp->first_rtptime;
@@ -1058,16 +1061,20 @@ static int mpeg4_aus_read(bgav_stream_t * s,
   rtp_stream_priv_t * sp;
   int total_bits;
 
-  //  fprintf(stderr, "mpeg4_aus_read: ");
+  //  fprintf(stderr, "mpeg4_aus_read %d bytes: ", len);
   //  bgav_hexdump(data, 16, 16);
   
   total_bits = BGAV_PTR_2_16BE(data);data+=2;
+
+  //  fprintf(stderr, "Total bits: %d\n", total_bits);
   
   sp = s->priv;
   sp->priv.mpeg4_generic.num_aus = 0;
   bgav_bitstream_init(&bs, data, (total_bits+7)/8);
   while(bgav_bitstream_get_bits(&bs) >= 8)
     {
+    //    fprintf(stderr, "Bits left: %d\n", bgav_bitstream_get_bits(&bs));
+    
     if(sp->priv.mpeg4_generic.aus_alloc < sp->priv.mpeg4_generic.num_aus + 1)
       {
       sp->priv.mpeg4_generic.aus_alloc += 10;
@@ -1087,7 +1094,7 @@ static int mpeg4_aus_read(bgav_stream_t * s,
   return (total_bits+7)/8 + 2;
   }
 
-#if 0
+#if 1
 static void dump_aus(mpeg4_au_t * aus, int num)
   {
   int i;
@@ -1104,7 +1111,7 @@ process_aac(bgav_stream_t * s, rtp_header_t * h,
             uint8_t * data, int len)
   {
   rtp_stream_priv_t * sp;
-  int aus_len;
+  int aus_len, i;
   sp = s->priv;
 
   aus_len = mpeg4_aus_read(s, data, len);
@@ -1114,6 +1121,8 @@ process_aac(bgav_stream_t * s, rtp_header_t * h,
   data += aus_len;
   //  dump_aus(sp->priv.mpeg4_generic.aus,
   //           sp->priv.mpeg4_generic.num_aus);
+
+  //  fprintf(stderr, "aus: %d\n", sp->priv.mpeg4_generic.num_aus);
   
   if(sp->priv.mpeg4_generic.num_aus == 1)
     {
@@ -1135,7 +1144,37 @@ process_aac(bgav_stream_t * s, rtp_header_t * h,
            data, sp->priv.mpeg4_generic.aus[0].size);
     s->packet->data_size += sp->priv.mpeg4_generic.aus[0].size;
     }
-  return 0;
+  else /* Multiple AUs */
+    {
+    /* We send multiple AUs in one packet, because we don't
+       want to calculate the intermediate timestamps.
+       Doing so would be non-trivial if HE-AAC (with SBR) is used */
+    int packet_size = 0;
+    if(s->packet)
+      {
+      bgav_packet_done_write(s->packet);
+      s->packet = (bgav_packet_t*)0;
+      }
+    for(i = 0; i < sp->priv.mpeg4_generic.num_aus; i++)
+      {
+      if(sp->priv.mpeg4_generic.aus[i].delta)
+        {
+        bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                 "Interleaved MPEG-4 audio not supported yet");
+        return 0;
+        }
+      packet_size += sp->priv.mpeg4_generic.aus[i].size;
+      }
+    s->packet = bgav_stream_get_packet_write(s);
+    s->packet->pts = h->timestamp;
+    bgav_packet_alloc(s->packet, packet_size);
+    memcpy(s->packet->data, data, packet_size);
+    s->packet->data_size = packet_size;
+    bgav_packet_done_write(s->packet);
+    s->packet = (bgav_packet_t*)0;
+    }
+  
+  return 1;
   }
 
 static void cleanup_mpeg4_generic_audio(rtp_stream_priv_t * priv)
@@ -1185,17 +1224,29 @@ static int init_mpeg4_generic_audio(bgav_stream_t * s)
     }
   var = find_fmtp(sp->fmtp, "sizelength");
   if(!var)
+    {
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "No sizelength for mpeg4-generic");
     return 0;
+    }
   sp->priv.mpeg4_generic.sizelength = atoi(var);
   
   var = find_fmtp(sp->fmtp, "indexlength");
   if(!var)
+    {
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "No indexlength for mpeg4-generic");
     return 0;
+    }
   sp->priv.mpeg4_generic.indexlength = atoi(var);
   
   var = find_fmtp(sp->fmtp, "indexdeltalength");
   if(!var)
+    {
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "No indexdeltalength for mpeg4-generic");
     return 0;
+    }
   sp->priv.mpeg4_generic.indexdeltalength = atoi(var);
   
   var = find_fmtp(sp->fmtp, "config");
@@ -1212,8 +1263,16 @@ static int init_mpeg4_generic_audio(bgav_stream_t * s)
       i++;
       }
     }
+#if 0
+  fprintf(stderr, "mpeg4_init: %d %d %d\n",
+          sp->priv.mpeg4_generic.indexlength, 
+          sp->priv.mpeg4_generic.indexdeltalength,
+          sp->priv.mpeg4_generic.sizelength);
+#endif
   return 1;
   }
+
+/* H.264 */
 
 static void send_nal(bgav_stream_t * s, uint8_t * nal, int len,
                      int64_t time)
@@ -1228,22 +1287,6 @@ static void send_nal(bgav_stream_t * s, uint8_t * nal, int len,
     bgav_packet_done_write(s->packet);
     s->packet = (bgav_packet_t*)0;
     }
-#if 0
-  fprintf(stderr, "Send nal %02x\n", *nal);
-  
-  if(((*nal & 0x1f) == 1))
-    {
-        
-    if(!sp->priv.h264.got_keyframe)
-      {
-      fprintf(stderr, "Skipping to first keyframe nal: %d, slice: %d\n",
-              (*nal) & 0x1f, nal[2]);
-      return;
-      }
-    }
-  else
-    sp->priv.h264.got_keyframe = 1;
-#endif
   
   if(!s->packet)
     {

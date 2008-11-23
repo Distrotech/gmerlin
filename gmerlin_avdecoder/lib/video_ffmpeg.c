@@ -166,7 +166,7 @@ typedef struct
 
 static int my_get_buffer(struct AVCodecContext *c, AVFrame *pic)
   {
-  int ret, i;
+  int ret, i, index;
   ffmpeg_video_priv * priv;
   bgav_stream_t * s = (bgav_stream_t *)c->opaque;
   priv = (ffmpeg_video_priv*)(s->data.video.decoder->priv);
@@ -175,7 +175,10 @@ static int my_get_buffer(struct AVCodecContext *c, AVFrame *pic)
   for(i = 0; i < FF_MAX_B_FRAMES+1; i++)
     {
     if(!priv->packets[i].used)
+      {
+      index = i;
       break;
+      }
     }
   if(i >= FF_MAX_B_FRAMES+1)
     {
@@ -190,15 +193,18 @@ static int my_get_buffer(struct AVCodecContext *c, AVFrame *pic)
     {
     if(priv->packets[i].used &&
        (priv->packets[i].pts == priv->current_packet.pts))
+      {
       return ret;
+      }
     }
   
   /* Set values  */
-  priv->packets[i].pts      = priv->current_packet.pts;
-  priv->packets[i].position = priv->current_packet.position;
-  priv->packets[i].duration = priv->current_packet.duration;
-  priv->packets[i].keyframe = priv->current_packet.keyframe;
-  priv->packets[i].used     = 1;
+  priv->packets[index].pts      = priv->current_packet.pts;
+  priv->packets[index].position = priv->current_packet.position;
+  priv->packets[index].duration = priv->current_packet.duration;
+  priv->packets[index].keyframe = priv->current_packet.keyframe;
+  priv->packets[index].used     = 1;
+  
   //  fprintf(stderr, "my_get_buffer: ref: %d\n", pic->reference);
   return ret;
   }
