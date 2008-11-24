@@ -741,9 +741,6 @@ static int start_edl(void * priv)
     as->current_segment = 0;
     init_audio_segment(as);
 
-    //    fprintf(stderr, "Audio format:\n");
-    //    gavl_audio_format_dump(as->format);
-
     }
   
   for(i = 0; i < dec->edl->tracks[dec->current_track].num_video_streams; i++)

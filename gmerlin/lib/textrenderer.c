@@ -969,10 +969,6 @@ static cache_entry_t * get_glyph(bg_text_renderer_t * r, uint32_t unicode)
     entry->bbox.ymin = -r->face->size->metrics.ascender >> 6;
     entry->bbox.ymax = -r->face->size->metrics.descender >> 6;
 
-    //    fprintf(stderr, "ymin: %d (%d), ymax: %d (%d)\n",
-    //            entry->bbox.ymin, -bitmap_glyph->top,
-    //            entry->bbox.ymax,
-    //            -bitmap_glyph->top + bitmap_glyph->bitmap.rows);
     
     }
   else
@@ -1076,16 +1072,6 @@ static int load_font(bg_text_renderer_t * r)
     }
 
   r->fixed_width = FT_IS_FIXED_WIDTH(r->face);
-#if 0
-  fprintf(stderr, "Font bbox: %d %d %d %d\n",
-          r->face->bbox.xMin,
-          r->face->bbox.xMax,
-          r->face->bbox.yMin,
-          r->face->bbox.yMax);
-#endif
-  //  fprintf(stderr, "ascender: %d, descender: %d, height: %d\n",
-  //          r->face->ascender, r->face->descender,
-  //          r->face->height);
   
   if(r->font)
     {

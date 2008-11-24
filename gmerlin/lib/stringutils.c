@@ -570,7 +570,6 @@ char * bg_get_tumbnail_file(const char * gml)
     {
     tmp_string_2 = bg_string_to_uri(gml, -1);
     }
-  fprintf(stderr, "Uri: %s\n", tmp_string_2);
   bg_md5_buffer(tmp_string_2, strlen(tmp_string_2),
                 md5sum);
   sprintf(md5sum_s,

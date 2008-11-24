@@ -1607,15 +1607,11 @@ void bg_media_tree_check_sync(bg_media_tree_t * t)
              &read_fds, (fd_set*)0, (fd_set*)0,&timeout))
     return;
 
-    //  fprintf(stderr, "inotify read...\n");
   result = read(t->com.inotify_fd, buffer, BUF_LEN);
   
   if(result < 0)
-    {
-    //    fprintf(stderr, "inotify Read failed\n");
     return;
-    }
-
+  
   i = 0;
   while ( i < result )
     {

@@ -288,7 +288,8 @@ load_plugin_gmerlin(const char * filename)
   ret->dll_handle = dlopen(filename, RTLD_NOW | RTLD_GLOBAL);
   if(!(ret->dll_handle))
     {
-    fprintf(stderr, "Cannot dlopen plugin module %s: %s", filename,
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Cannot dlopen plugin module %s: %s", filename,
            dlerror());
     goto fail;
     }
@@ -296,21 +297,23 @@ load_plugin_gmerlin(const char * filename)
   get_plugin_api_version = dlsym(ret->dll_handle, "get_plugin_api_version");
   if(!get_plugin_api_version)
     {
-    fprintf(stderr, 
-            "cannot get API .version = %s", dlerror());
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "cannot get API version: %s", dlerror());
     goto fail;
     }
   if(get_plugin_api_version() != BG_PLUGIN_API_VERSION)
     {
-    fprintf(stderr, 
-            "Wrong API .version = %s", dlerror());
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Wrong API version: Got %d expected %d",
+           get_plugin_api_version(), BG_PLUGIN_API_VERSION);
     goto fail;
     }
   ret->plugin = dlsym(ret->dll_handle, "the_plugin");
   if(!ret)
     {
-    fprintf(stderr, 
-            "No symbol the_plugin: %s", dlerror());
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "No symbol the_plugin: %s",
+           dlerror());
     goto fail;
     }
   ret->priv = ret->plugin->create();
@@ -368,12 +371,12 @@ bg_visualizer_slave_create(int argc, char ** argv)
   /* Sanity checks */
   if(!window_id)
     {
-    fprintf(stderr, "No window ID given\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No window ID given");
     return (bg_visualizer_slave_t *)0;
     }
   if(!plugin_module)
     {
-    fprintf(stderr, "No plugin given\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No plugin given");
     return (bg_visualizer_slave_t *)0;
     }
   
@@ -741,7 +744,7 @@ int main(int argc, char ** argv)
   
   if(isatty(fileno(stdin)))
     {
-    fprintf(stderr, "This program is not meant to be started from the commandline.\nThe official frontend API for visualizatons is in " PREFIX "/include/gmerlin/visualize.h\n");
+    printf("This program is not meant to be started from the commandline.\nThe official frontend API for visualizatons is in " PREFIX "/include/gmerlin/visualize.h\n");
     return -1;
     }
 
