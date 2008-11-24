@@ -519,7 +519,7 @@ AC_DEFUN([GMERLIN_CHECK_OPENJPEG],[
 AH_TEMPLATE([HAVE_OPENJPEG], [Enable openjpeg codec])
  
 have_openjpeg=false
-OPENJPEG_REQUIRED="3.5.0"
+OPENJPEG_REQUIRED="1.3"
 
 AC_ARG_ENABLE(openjpeg,
 [AC_HELP_STRING([--disable-openjpeg],[Disable openjpeg (default: autodetect)])],
@@ -533,8 +533,8 @@ if test x$test_openjpeg = xtrue; then
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
 
-LIBS="$LIBS -lopenjpeg -lm"
-CFLAGS="$CFLAGS"
+LIBS="$GMERLIN_DEP_LIBS $LIBS -lopenjpeg -lm"
+CFLAGS="$CFLAGS $GMERLIN_DEP_CFLAGS"
    
 AC_MSG_CHECKING(for openjpeg)
 AC_TRY_LINK([#include <openjpeg.h>],

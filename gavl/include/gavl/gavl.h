@@ -832,6 +832,8 @@ int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
  *           will be added to the internal conversion chain. 
  *
  * This function can be called multiple times with one instance
+ *
+ * Since 1.1.0.
  */
 
 int gavl_audio_converter_init_resample(gavl_audio_converter_t * cnv,
@@ -885,6 +887,8 @@ void gavl_audio_convert(gavl_audio_converter_t * cnv,
  *	 function before gavl_audio_converter_resample libsamplerate will linearly ramp 
  *	 the previous src_ratio to the new ratio for the given output audio frame in 
  *	 gavl_audio_converter_resample.
+ *
+ * Since 1.1.0.
  */
  
 int gavl_audio_converter_set_resample_ratio(gavl_audio_converter_t * cnv, 
@@ -903,6 +907,7 @@ int gavl_audio_converter_set_resample_ratio(gavl_audio_converter_t * cnv,
  *  Minimum size for output_frame_size =
  *  input_frame_size * ratio  (where ratio can be max 256.0 as defined by libsamplerate)
  *
+ * Since 1.1.0.
  */
   
 void gavl_audio_converter_resample(gavl_audio_converter_t * cnv,
@@ -3027,12 +3032,15 @@ typedef void (*gavl_image_transform_func)(void * priv,
 
 /** \brief Create a transformation engine
  *  \returns A newly allocated transformation engine
+ *
+ * Since 1.1.0.
  */
   
 gavl_image_transform_t * gavl_image_transform_create();
 
 /** \brief Destroy a transformation engine
  *  \param t A transformation engine
+ * Since 1.1.0.
  */
 
 void gavl_image_transform_destroy(gavl_image_transform_t * t);
@@ -3042,6 +3050,7 @@ void gavl_image_transform_destroy(gavl_image_transform_t * t);
  *  \param Format (can be changed)
  *  \param func Coordinate transform function
  *  \param priv The priv argument for func
+ * Since 1.1.0.
  */
 
   
@@ -3053,11 +3062,22 @@ void gavl_image_transform_init(gavl_image_transform_t * t,
  *  \param t A transformation engine
  *  \param Input frame
  *  \param Output frame
+ * Since 1.1.0.
  */
   
 void gavl_image_transform_transform(gavl_image_transform_t * t,
                                     gavl_video_frame_t * in_frame,
                                     gavl_video_frame_t * out_frame);
+
+/** \brief Get transformation options
+ *  \param t A transformation engine
+ *  \returns Options
+ *
+ * After you called this, you can use the gavl_video_options_set_*() functions to change
+ * the options. Options will become valid with the next call to \ref gavl_image_transform_init.
+ *
+ * Since 1.1.0.
+ */
 
 gavl_video_options_t *
 gavl_image_transform_get_options(gavl_image_transform_t * t);
