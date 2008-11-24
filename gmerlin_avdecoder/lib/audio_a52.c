@@ -77,8 +77,6 @@ static int get_data(bgav_stream_t * s, int num_bytes)
       
       if(!priv->packet)
         return 0;
-      //      fprintf(stderr, "Got packet:\n");
-      //      bgav_hexdump(priv->packet->data, 16, 16);
       priv->packet_ptr = priv->packet->data;
       }
     else if(priv->packet_ptr - priv->packet->data >= priv->packet->data_size)
@@ -132,7 +130,6 @@ static void done_data(bgav_stream_t * s, int num_bytes)
 static int do_resync(bgav_stream_t * s)
   {
   a52_priv * priv;
-  //  int skipped = 0;
   priv = s->data.audio.decoder->priv;
   
   while(1)
@@ -142,10 +139,7 @@ static int do_resync(bgav_stream_t * s)
     if(bgav_a52_header_read(&(priv->header), priv->buffer))
       return 1;
     done_data(s, 1);
-    //    skipped++;
     }
-  //  if(skipped)
-  //    fprintf(stderr, "A52: Skipped %d bytes\n", skipped);
   return 0;
   }
 
@@ -406,9 +400,6 @@ static void parse_a52(bgav_stream_t * s)
     p = bgav_demuxer_get_packet_read(s->demuxer, s);
 
     
-    //    fprintf(stderr, "Got packet:\n");
-    //    bgav_hexdump(p->data, 16, 16);
-    
     old_buffer_size = priv->buffer_size;
 
     if(priv->buffer_size < 0)
@@ -439,9 +430,6 @@ static void parse_a52(bgav_stream_t * s)
     
     while(priv->buffer_size >= BGAV_A52_HEADER_BYTES)
       {
-      //      fprintf(stderr, "decode header: ");
-      //      bgav_hexdump(ptr, 16, 16);
-
       if(!bgav_a52_header_read(&(priv->header), ptr))
         {
         bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
@@ -454,7 +442,6 @@ static void parse_a52(bgav_stream_t * s)
          use the previous index */
       if(ptr - priv->buffer < old_buffer_size)
         {
-        //        fprintf(stderr, "Append packet (prev)\n");
         bgav_file_index_append_packet(s->file_index,
                                       priv->last_position,
                                       s->duration,
@@ -462,7 +449,6 @@ static void parse_a52(bgav_stream_t * s)
         }
       else
         {
-        //        fprintf(stderr, "Append packet (this)\n");
         bgav_file_index_append_packet(s->file_index,
                                       p->position,
                                       s->duration,
@@ -476,8 +462,6 @@ static void parse_a52(bgav_stream_t * s)
       memmove(priv->buffer, ptr, priv->buffer_size);
     priv->last_position = p->position;
     bgav_demuxer_done_packet_read(s->demuxer, p);
-    //    fprintf( stderr, "Done with packet, %d bytes\n",
-    //             priv->buffer_size);
     }
   
   }

@@ -170,7 +170,6 @@ static int my_get_buffer(struct AVCodecContext *c, AVFrame *pic)
   ffmpeg_video_priv * priv;
   bgav_stream_t * s = (bgav_stream_t *)c->opaque;
   priv = (ffmpeg_video_priv*)(s->data.video.decoder->priv);
-  //  fprintf(stderr, "get buffer: %d\n", priv->current_packet.keyframe);
   ret = avcodec_default_get_buffer(c, pic);
   for(i = 0; i < FF_MAX_B_FRAMES+1; i++)
     {
@@ -205,7 +204,6 @@ static int my_get_buffer(struct AVCodecContext *c, AVFrame *pic)
   priv->packets[index].keyframe = priv->current_packet.keyframe;
   priv->packets[index].used     = 1;
   
-  //  fprintf(stderr, "my_get_buffer: ref: %d\n", pic->reference);
   return ret;
   }
 
@@ -271,8 +269,6 @@ static bgav_packet_t * get_packet(bgav_stream_t * s)
       ret = bgav_demuxer_get_packet_read(s->demuxer, s);
       break;
     }
-  //  if(ret)
-  //    fprintf(stderr, "Packet position: %ld\n", ret->position);
   return ret;
   }
 
@@ -364,7 +360,6 @@ static int get_data_parser(bgav_stream_t * s, int64_t * pts,
     priv->parser_last_pos = priv->parser_pos;
     priv->parser_pos = p->position;
     
-    //    fprintf(stderr, "** Offset: %ld\n", p->position);
     priv->parser->cur_offset = p->position;
     if(!priv->parser_started)
 #if LIBAVCODEC_BUILD >= ((51<<16)+(57<<8)+1)
@@ -461,7 +456,6 @@ static int get_data(bgav_stream_t * s)
     if((s->action == BGAV_STREAM_PARSE) && (priv->info->ffmpeg_id == CODEC_ID_H264))
       {
       priv->current_packet.keyframe = h264_is_keyframe(priv->parsed_frame, priv->parsed_frame_size);
-      //      fprintf(stderr, "H.264 keyframe: %d\n", priv->current_packet.keyframe);
       }
     }
   return ret;
@@ -808,9 +802,6 @@ static void put_index(bgav_stream_t * s)
   else
     keyframe = 0;
   
-  //  fprintf(stderr, "parse_ffmpeg pos: %ld type: %d, key: %d\n",
-  //          pi->position, priv->frame->pict_type, keyframe);
-
   /* Hack for (possibly wrong encoded) h.264 streams */
   if((pi->pts != BGAV_TIMESTAMP_UNDEFINED) &&
      (priv->last_parse_pts != BGAV_TIMESTAMP_UNDEFINED) &&
@@ -818,7 +809,6 @@ static void put_index(bgav_stream_t * s)
     {
     duration = gavl_time_rescale(s->timescale, 4 * s->data.video.format.timescale,
                                  pi->pts - priv->last_parse_pts);
-    //    fprintf(stderr, "Frame duration: %d -> %d\n", pi->pts - priv->last_parse_pts, duration);
     if((duration > 0) && (duration < 3 * s->data.video.format.frame_duration))
       {
       s->data.video.format.timescale *= 2;
@@ -2535,12 +2525,10 @@ static int h264_is_keyframe(uint8_t * data, int len)
     {
     if((ptr[3] & 0x1f) == 5) // Coded slice of an IDR picture
       {
-      //      fprintf(stderr, "Got IDR slice\n");
       ret = 1;
       }
     else if((ptr[3] & 0x1f) == 9) // Access unit delimiter
       {
-      //      fprintf(stderr, "Got AUD 0x%02x\n", ptr[4] >> 5);
       if((ptr[4] >> 5) == 0)
         ret = 1;
       }
@@ -2548,10 +2536,7 @@ static int h264_is_keyframe(uint8_t * data, int len)
     if((ptr[3] & 0x1f) == 7)
       {
       ret = 1;
-      //      fprintf(stderr, "Got SPS\n");
       }
-    //    if((ptr[3] & 0x1f) == 8)
-    //      fprintf(stderr, "Got PPS\n");
 #endif
     //    
     ptr = avc_find_startcode(ptr+1, ptr_end);

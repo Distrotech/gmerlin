@@ -195,8 +195,6 @@ static int process_packet_frame_wrapped(bgav_demuxer_context_t * ctx)
     int num_samples;
     uint8_t * ptr;
 
-    //    fprintf(stderr, "Got AES3 packet\n");
-
     /* Skip  SMPTE 331M header */
     bgav_input_skip(ctx->input, 4);
 
@@ -495,14 +493,11 @@ handle_source_track_simple(bgav_demuxer_context_t * ctx,
     sd = get_source_descriptor(&priv->mxf, sp, t);
     if(!sd)
       {
-      fprintf(stderr, "Got no source descriptor\n");
       return;
       }
     
     if(ss->stream_type == BGAV_STREAM_AUDIO)
       {
-      //      fprintf(stderr, "Got audio stream %p\n", sd);
-      //      bgav_mxf_descriptor_dump(0, sd);
 
       fourcc = bgav_mxf_get_audio_fourcc(sd);
       if(!fourcc)
@@ -748,8 +743,6 @@ static int select_track_mxf(bgav_demuxer_context_t * ctx, int track)
   {
   int j;
   stream_priv_t * sp;
-  //  fprintf(stderr, "Select track: %d start pos: %ld\n", track,
-  //          ((partition_t*)(ctx->tt->cur->priv))->start_pos);
   bgav_input_seek(ctx->input, ((partition_t*)(ctx->tt->cur->priv))->start_pos, SEEK_SET);
   
   for(j = 0; j < ctx->tt->cur->num_audio_streams; j++)

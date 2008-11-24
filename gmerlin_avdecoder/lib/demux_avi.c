@@ -1463,7 +1463,6 @@ static void process_packet_iavs_stream(bgav_stream_t * s, bgav_packet_t * p)
 
     if(s->demuxer->flags & BGAV_DEMUXER_BUILD_INDEX)
       {
-      //      fprintf(stderr, "Build index %ld %d %ld\n", priv->iavs_sample_counter, p->duration, p->position);
       p->pts = priv->iavs_sample_counter;
       p->audio_frame->timestamp = p->pts;
       priv->iavs_sample_counter += p->duration;

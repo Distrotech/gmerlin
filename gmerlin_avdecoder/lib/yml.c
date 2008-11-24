@@ -40,8 +40,6 @@ int bgav_yml_probe(bgav_input_context_t * input)
 
   probe_data[len] = '\0';
 
-  //  fprintf(stderr, "yml probe %d %s\n", len, probe_data);
-  
   ptr = probe_data;
 
   while(isspace(*ptr) && (*ptr != '\0'))

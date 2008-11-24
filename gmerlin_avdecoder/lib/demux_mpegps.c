@@ -345,8 +345,6 @@ static int select_track_mpegps(bgav_demuxer_context_t * ctx, int track)
   /* If we didn't run yet, we do nothing.
      This prevents reopening of the input. */
 
-  // fprintf(stderr, "select_track_mpegps %d\n", priv->is_running);
-  
   if(!priv->is_running)
     return 1;
 
@@ -491,8 +489,6 @@ static int next_packet(bgav_demuxer_context_t * ctx,
     else /* PES Packet */
       {
       priv->position = ctx->input->position;
-      //      fprintf(stderr, "pes: %ld %ld\n",
-      //              ctx->next_packet_pos, priv->position);
 
       if(ctx->next_packet_pos &&
          (priv->position >= ctx->next_packet_pos))
@@ -1110,16 +1106,11 @@ static void seek_normal(bgav_demuxer_context_t * ctx, int64_t time,
   priv = (mpegps_priv_t*)(ctx->priv);
   
   //  file_position = (priv->pack_header.mux_rate*50*time)/GAVL_TIME_SCALE;
-  //  fprintf(stderr, "%ld %ld %d %ld %ld %ld\n",
-  //          ctx->data_start, priv->data_size, scale, time,
-  //          ctx->tt->cur->duration, gavl_time_unscale(scale, time));
   /* Using double is ugly, but in integer, this can overflow for large file (even in 64 bit).
      We do iterative seeking at this point anyway. */
   file_position = ctx->data_start +
     (int64_t)(priv->data_size * (double)gavl_time_unscale(scale, time)/(double)ctx->tt->cur->duration + 0.5);
 
-  //  fprintf(stderr, "File position: %ld\n", file_position);
-  
   if(file_position <= ctx->data_start)
     file_position = ctx->data_start+1;
   if(file_position >= ctx->input->total_bytes)

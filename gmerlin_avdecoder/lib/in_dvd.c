@@ -762,7 +762,6 @@ next_cell(pgc_t *pgc, int cell, int angle)
     ret += angle;
     }
 
-  //  fprintf(stderr, "Entering cell, still time: %d\n", pgc->cell_playback[ret].still_time);
     
   return ret;
   }
@@ -859,7 +858,6 @@ static int read_sector_dvd(bgav_input_context_t * ctx, uint8_t * data)
   dvd_t * d;
   int l;
   d = (dvd_t*)(ctx->priv);
-  //  fprintf(stderr, "read_sector_dvd: %d %d\n", d->npack, d->pack);
   switch(d->state)
     {
     case CELL_START:
@@ -976,8 +974,6 @@ static void select_track_dvd(bgav_input_context_t * ctx, int track)
 
   
   dvd->pgc = dvd->vts_ifo->vts_pgcit->pgci_srp[pgc_id - 1].pgc;
-
-  //  fprintf(stderr, "Entering pgc, still time: %d\n", dvd->pgc->still_time);
 
   
   dvd->next_cell = dvd->pgc->program_map[pgn - 1] - 1;

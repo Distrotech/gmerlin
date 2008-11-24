@@ -995,14 +995,11 @@ static void check_eit(bgav_input_context_t* ctx)
 
   tmp = BGAV_PTR_2_16BE(pos); pos+=2;
 
-  //  fprintf(stderr, "Service id %ld (%d)\n", tmp,
-  //          priv->service_id);
   
   if(tmp != priv->service_id)
     return;
 
   version = (*pos & 0x7F) >> 2;
-  //  fprintf(stderr, "version: %d [%d]\n", version, priv->eit_version);
 #if 1
   if(priv->eit_version == version)
     return;
@@ -1025,25 +1022,18 @@ static void check_eit(bgav_input_context_t* ctx)
   while(pos - start + 4 < len)
     {
     tmp = BGAV_PTR_2_16BE(pos); pos+=2;
-    //    fprintf(stderr, "Event ID: %ld\n", tmp);
 
-    //    fprintf(stderr, "Start time hex:\n");
-    //    bgav_hexdump(pos, 5, 5);
     
     dvb_mjdtime(pos, &start_time);
     pos += 5;
 
-    //    fprintf(stderr, "Start time: %s", asctime(&start_time));
     
     tmp = BGAV_PTR_2_24BE(pos); pos+=3;
-    //    fprintf(stderr, "Duration:   %06lx\n", tmp);
 
     tmp = BGAV_PTR_2_16BE(pos); pos+=2;
     
     descriptors_end = pos + (tmp & 0x0fff);
     
-    //    fprintf(stderr, "Running status:   %ld\n", tmp >> 13);
-    //    fprintf(stderr, "Descriptors loop length:   %ld\n", tmp & 0x0fff);
     
     if(tmp >> 13 == 0x04)
       {
@@ -1092,8 +1082,6 @@ static void check_eit(bgav_input_context_t* ctx)
               {
               m->title = decode_eit_string(ctx->opt, pos, tmp);
 
-              // fprintf(stderr, "Name: %s\n", tmp_string);
-              //            priv->eit_version = version;
               }
             pos += tmp;
             
@@ -1103,13 +1091,10 @@ static void check_eit(bgav_input_context_t* ctx)
               {
               m->comment = decode_eit_string(ctx->opt,
                                              pos, tmp);
-              //            fprintf(stderr, "Text: %s\n", m.comment);
               }
             pos += tmp;
             break;
           default:
-            fprintf(stderr, "Tag: %d, len: %d\n", desc_tag, desc_len);
-            bgav_hexdump(pos, desc_len, 16);
             break;
           }
         
@@ -1125,8 +1110,6 @@ static void check_eit(bgav_input_context_t* ctx)
         if(pos >= descriptors_end)
           break;
         }
-      //      fprintf(stderr, "Descriptor tag: 0x%02x\n", desc_tag);
-      //      fprintf(stderr, "Descriptor len: %d\n", desc_len);
       }
     else
       {

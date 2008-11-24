@@ -219,7 +219,7 @@ void bgav_options_set_defaults(bgav_options_t * b)
   b->cache_time = 500;
   b->cache_size = 20;
   // Test
-  b->rtp_try_tcp = 1;
+  //  b->rtp_try_tcp = 1;
   }
 
 bgav_options_t * bgav_options_create()

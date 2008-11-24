@@ -214,8 +214,6 @@ int bgav_file_index_read_header(const char * filename,
     {
     if(stat(filename, &stat_buf))
       goto fail;
-    //    fprintf(stderr, "File time stat: %d\n", stat_buf.st_mtime);
-    
     if(file_time != stat_buf.st_mtime)
       goto fail;
     }
@@ -400,8 +398,6 @@ int bgav_read_file_index(bgav_t * b)
         
     }
   bgav_input_destroy(input);
-  //  fprintf(stderr, "Read file index:\n");
-  //  dump_file_index(b);
   set_has_file_index(b);
   free(filename);
   return 1;

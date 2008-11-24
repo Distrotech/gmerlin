@@ -204,12 +204,6 @@ static void add_packet(bgav_demuxer_context_t * ctx,
       while(offset >= priv->mdats[priv->current_mdat].start +
             priv->mdats[priv->current_mdat].size)
         {
-#if 0
-        fprintf(stderr, "offset: %lld, cur: %d, .start = %lld, size: %lld\n",
-                offset, priv->current_mdat,
-                priv->mdats[priv->current_mdat].start,
-                priv->mdats[priv->current_mdat].size);
-#endif
         priv->current_mdat++;
         }
       }

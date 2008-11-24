@@ -420,7 +420,6 @@ static int get_page(bgav_demuxer_context_t * ctx)
   
   if(ogg_sync_pageout(&(priv->oy), &(priv->current_page)) != 1)
     {
-    //    fprintf(stderr, "Got no packet\n");
     return 0;
     }
   priv->page_valid = 1;

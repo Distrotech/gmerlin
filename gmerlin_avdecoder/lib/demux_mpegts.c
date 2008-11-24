@@ -145,7 +145,6 @@ static void check_pts_wrap(bgav_stream_t * s, int64_t * pts)
     bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN,
              "Detected pts wrap (%s < %s)",
              tmp_string1, tmp_string2);
-    //    fprintf(stderr, "** WRAP ***\n");
     priv->last_pts = *pts;
     *pts += priv->pts_offset;
     }
@@ -1103,14 +1102,6 @@ static int process_packet(bgav_demuxer_context_t * ctx)
       continue;
       }
     
-#if 0
-    if(priv->packet.adaption_field.pcr > 0)
-      {
-      fprintf(stderr, "PCR: %" PRId64 " (pid: %d)\n",
-              priv->packet.adaption_field.pcr,
-              priv->packet.pid);
-      }
-#endif
     
 #if 1
     //    bgav_transport_packet_dump(&priv->packet);
@@ -1147,7 +1138,6 @@ static int process_packet(bgav_demuxer_context_t * ctx)
       bgav_pat_section_dump(&pats);
 #endif
       next_packet(priv);
-      //      fprintf(stderr, "Unknown PID: %d\n", priv->packet.pid);
       position += priv->packet_size;
       continue;
       }
@@ -1162,7 +1152,6 @@ static int process_packet(bgav_demuxer_context_t * ctx)
       bgav_pmt_section_dump(&pmts);
 #endif
       next_packet(priv);
-      //      fprintf(stderr, "Unknown PID: %d\n", priv->packet.pid);
       position += priv->packet_size;
       continue;
       }
@@ -1172,19 +1161,10 @@ static int process_packet(bgav_demuxer_context_t * ctx)
     if(!s)
       {
       next_packet(priv);
-      //      fprintf(stderr, "Unknown PID: %d\n", priv->packet.pid);
       position += priv->packet_size;
       continue;
       }
-#if 0
-    if(s->type == BGAV_STREAM_AUDIO)
-      {
-      fprintf(stderr, "Got packet PID: %d, s->packet: %p, %d, type =",
-              priv->packet.pid, s->packet, priv->packet.payload_start);
-      bgav_dump_fourcc(s->fourcc);
-      fprintf(stderr, "\n");
-      }
-#endif
+
     if(priv->packet.payload_start) /* New packet starts here */
       {
       bgav_input_reopen_memory(priv->input_mem, priv->ptr,
@@ -1194,30 +1174,18 @@ static int process_packet(bgav_demuxer_context_t * ctx)
       
       if(!bgav_pes_header_read(priv->input_mem, &pes_header))
         {
-        fprintf(stderr, "next_packet_mpegts: Reading PES header failed\n");
         return !!i;
         }
       priv->ptr += priv->input_mem->position;
       
       if(s->packet)
         {
-#if 0
-        if(s->type == BGAV_STREAM_VIDEO)
-          {
-          fprintf(stderr, "Packet done: %d bytes, id: %d, fourcc: ",
-                  s->packet->data_size, s->stream_id);
-          bgav_dump_fourcc(s->fourcc);
-          fprintf(stderr, " pos: %ld pts: %lld\n", s->packet->position, s->packet->pts);
-          }
-#endif
-
         bgav_packet_done_write(s->packet);
         s->packet = (bgav_packet_t*)0;
         }
 
       /* Get start pts */
 
-      //      fprintf(stderr, "PTS: %" PRId64 "\n", pes_header.pts);
 #if 1
       if(!(ctx->flags & BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET) &&
          (priv->programs[priv->current_program].pcr_pid <= 0))
@@ -1286,9 +1254,6 @@ static int process_packet(bgav_demuxer_context_t * ctx)
         s->packet->pts = pes_header.pts;
         check_pts_wrap(s, &s->packet->pts);
         s->packet->pts += ctx->timestamp_offset;
-#if 0
-        fprintf(stderr, "** Stream %d, PTS: %lld\n", s->stream_id, s->packet->pts);
-#endif
         }
       }
     else if(s->packet)

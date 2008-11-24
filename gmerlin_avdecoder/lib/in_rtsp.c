@@ -725,12 +725,10 @@ static int handle_rtpinfo(bgav_input_context_t * ctx,
       var = get_answer_var(streams[i], "rtptime=", &var_len);
       if(!var)
         {
-        //        fprintf(stderr, "Got no first rtptime\n"); 
         return 0;
         }
       sp->first_rtptime = strtoul(var, (char**)0, 10);
 
-      //      fprintf(stderr, "First rtptime: %d\n", sp->first_rtptime); 
       
       var = get_answer_var(streams[i], "seq=", &var_len);
       if(!var)

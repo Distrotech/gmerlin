@@ -408,10 +408,6 @@ static const stream_entry_t mxf_data_definition_uls[] = {
 static const stream_entry_t * match_stream(const stream_entry_t * se, const mxf_ul_t u1)
   {
   int i = 0;
-
-  //  fprintf(stderr, "Match stream: ");
-  //  dump_ul(u1);
-  //  fprintf(stderr, "\n");
   
   while(se[i].type != BGAV_STREAM_UNKNOWN)
     {
@@ -490,9 +486,6 @@ static const codec_entry_t  mxf_sound_essence_container_uls[] = {
 static const codec_entry_t * match_codec(const codec_entry_t * ce, const mxf_ul_t u1)
   {
   int i = 0;
-  //  fprintf(stderr, "Match codec: ");
-  //  dump_ul(u1);
-  //  fprintf(stderr, "\n");
   while(ce[i].fourcc)
     {
     if(match_ul(ce[i].ul, u1, ce[i].match_len))
@@ -719,17 +712,11 @@ read_header_metadata(bgav_input_context_t * input,
       {
       if(bgav_input_read_data(input, m->uid, 16) < 16)
         return 0;
-      //      fprintf(stderr, "Got UID: ");dump_ul(m->uid);fprintf(stderr, "\n");
-      //      fprintf(stderr, "Skip UID:\n");
-      //      bgav_input_skip_dump(input, 16);
       }
     else if((tag == 0x0102) && m)
       {
       if(bgav_input_read_data(input, m->generation_ul, 16) < 16)
         return 0;
-      //      fprintf(stderr, "Got UID: ");dump_ul(m->uid);fprintf(stderr, "\n");
-      //      fprintf(stderr, "Skip UID:\n");
-      //      bgav_input_skip_dump(input, 16);
       }
     else if(!read_func(input, ret, m, tag, len, uid))
       return 0;
@@ -1876,9 +1863,6 @@ static int read_index_table_segment(bgav_input_context_t * input,
       {
       if(bgav_input_read_data(input, idx->uid, 16) < 16)
         return 0;
-      //      fprintf(stderr, "Got UID: ");dump_ul(m->uid);fprintf(stderr, "\n");
-      //      fprintf(stderr, "Skip UID:\n");
-      //      bgav_input_skip_dump(input, 16);
       }
     else if(tag == 0x3f0b) // IndexEditRate
       {
@@ -1955,9 +1939,7 @@ static int read_index_table_segment(bgav_input_context_t * input,
       }
     else
       {
-      fprintf(stderr, "Skipping unknown tag %04x (len %d) in index\n",
-              tag, len);
-      bgav_input_skip_dump(input, len);
+      bgav_input_skip(input, len);
       }
     if(input->position < end_pos)
       bgav_input_skip(input, end_pos - input->position);
@@ -2324,13 +2306,11 @@ static int read_partition(bgav_input_context_t * input,
       {
       if(!bgav_mxf_primer_pack_read(input, &p->primer_pack))
         return 0;
-      //      fprintf(stderr, "Got primer pack\n");
       header_start_pos = last_pos;
       break;
       }
     else if(UL_MATCH_MOD_REGVER(klv.key, mxf_filler_key))
       {
-      //      fprintf(stderr, "Filler key: %ld\n", klv.length);
       bgav_input_skip(input, klv.length);
       }
     else
@@ -2358,7 +2338,6 @@ static int read_partition(bgav_input_context_t * input,
     
     if(UL_MATCH_MOD_REGVER(klv.key, mxf_filler_key))
       {
-      //        fprintf(stderr, "Filler key: %ld\n", klv.length);
       bgav_input_skip(input, klv.length);
       }
     else if(UL_MATCH(klv.key, mxf_content_storage_key))
@@ -2372,8 +2351,6 @@ static int read_partition(bgav_input_context_t * input,
       }
     else if(UL_MATCH(klv.key, mxf_source_package_key))
       {
-      //        fprintf(stderr, "mxf_source_package_key\n");
-      // bgav_input_skip_dump(input, klv.length);
       if(!(m = read_header_metadata(input, p, &klv,
                                     read_source_package, sizeof(mxf_package_t),
                                     MXF_TYPE_SOURCE_PACKAGE)))
@@ -2381,8 +2358,6 @@ static int read_partition(bgav_input_context_t * input,
       }
     else if(UL_MATCH(klv.key, mxf_essence_container_data_key))
       {
-      //        fprintf(stderr, "mxf_essence_container_data_key\n");
-      // bgav_input_skip_dump(input, klv.length);
       if(!(m = read_header_metadata(input, p, &klv,
                                     read_essence_container_data, sizeof(mxf_essence_container_data_t),
                                     MXF_TYPE_ESSENCE_CONTAINER_DATA)))
@@ -2390,8 +2365,6 @@ static int read_partition(bgav_input_context_t * input,
       }
     else if(UL_MATCH(klv.key, mxf_material_package_key))
       {
-      //        fprintf(stderr, "mxf_material_package_key\n");
-      //        bgav_input_skip_dump(input, klv.length);
       if(!(m = read_header_metadata(input, p, &klv,
                                     read_material_package, sizeof(mxf_package_t),
                                     MXF_TYPE_MATERIAL_PACKAGE)))
@@ -2399,7 +2372,6 @@ static int read_partition(bgav_input_context_t * input,
       }
     else if(UL_MATCH(klv.key, mxf_sequence_key))
       {
-      //        fprintf(stderr, "mxf_sequence_key\n");
       if(!(m = read_header_metadata(input, p, &klv,
                                     read_sequence, sizeof(mxf_sequence_t),
                                     MXF_TYPE_SEQUENCE)))
@@ -2415,8 +2387,6 @@ static int read_partition(bgav_input_context_t * input,
       }
     else if(UL_MATCH(klv.key, mxf_timecode_component_key))
       {
-      //        fprintf(stderr, "mxf_timecode_component_key\n");
-      // bgav_input_skip_dump(input, klv.length);
       if(!(m = read_header_metadata(input, p, &klv,
                                     read_timecode_component, sizeof(mxf_timecode_component_t),
                                     MXF_TYPE_TIMECODE_COMPONENT)))
@@ -2424,8 +2394,6 @@ static int read_partition(bgav_input_context_t * input,
       }
     else if(UL_MATCH(klv.key, mxf_static_track_key))
       {
-      //  fprintf(stderr, "mxf_static_track_key\n");
-      //  bgav_input_skip_dump(input, klv.length);
 
       if(!(m = read_header_metadata(input, p, &klv,
                                     read_track, sizeof(mxf_track_t),
@@ -2434,9 +2402,6 @@ static int read_partition(bgav_input_context_t * input,
       }
     else if(UL_MATCH(klv.key, mxf_preface_key))
       {
-      //  fprintf(stderr, "mxf_static_track_key\n");
-      //  bgav_input_skip_dump(input, klv.length);
-
       if(!(m = read_header_metadata(input, p, &klv,
                                     read_preface, sizeof(mxf_preface_t),
                                     MXF_TYPE_PREFACE)))
@@ -2445,8 +2410,6 @@ static int read_partition(bgav_input_context_t * input,
       }
     else if(UL_MATCH(klv.key, mxf_generic_track_key))
       {
-      //        fprintf(stderr, "mxf_generic_track_key\n");
-      //        bgav_input_skip_dump(input, klv.length);
       if(!(m = read_header_metadata(input, p, &klv,
                                     read_source_clip, sizeof(mxf_track_t),
                                     MXF_TYPE_TRACK)))
@@ -2510,7 +2473,6 @@ int bgav_mxf_file_read(bgav_input_context_t * input,
   /* Read header partition pack */
   if(!bgav_mxf_sync(input))
     {
-    fprintf(stderr, "End of file reached\n");
     return 0;
     }
   pos = input->position;
@@ -2521,7 +2483,6 @@ int bgav_mxf_file_read(bgav_input_context_t * input,
     {
     bgav_log(input->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Could not find header partition");
     return 0;
-    //    fprintf(stderr, "Got header partition\n");
     }
   
   if(!read_partition(input, &ret->header, &klv, pos))
@@ -2529,12 +2490,9 @@ int bgav_mxf_file_read(bgav_input_context_t * input,
 
   if(!bgav_mxf_finalize_header(ret, input->opt))
     {
-    fprintf(stderr, "Finalizing failed");
     return 0;
     }
 
-  //  fprintf(stderr, "Header done\n");
-  
   ret->data_start = input->position;
   
   /* Read rest */
@@ -2547,7 +2505,6 @@ int bgav_mxf_file_read(bgav_input_context_t * input,
     
     if(UL_MATCH_MOD_REGVER(klv.key, mxf_filler_key))
       {
-      //      fprintf(stderr, "Filler key: %ld\n", klv.length);
       bgav_input_skip(input, klv.length);
       }
     else if(UL_MATCH(klv.key, mxf_index_table_segment_key))
@@ -2595,7 +2552,6 @@ int bgav_mxf_file_read(bgav_input_context_t * input,
 
   if(!bgav_mxf_finalize_body(ret, input->opt))
     {
-    fprintf(stderr, "Finalizing failed");
     return 0;
     }
 

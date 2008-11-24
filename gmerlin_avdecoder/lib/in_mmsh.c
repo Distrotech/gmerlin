@@ -151,7 +151,6 @@ static int open_mmsh(bgav_input_context_t * ctx, const char * url, char ** r)
              "Initializing asf demuxer failed");
     return 0;
     }
-  fprintf(stderr, "Got header\n");
   
   /* Close and reopen connection */
   bgav_http_close(p->h);
@@ -185,8 +184,6 @@ static int open_mmsh(bgav_input_context_t * ctx, const char * url, char ** r)
     free(p);
     return 0;
     }
-
-  fprintf(stderr, "Packet size: %d\n", ctx->demuxer->packet_size);
 
   if(p->buffer_alloc < ctx->demuxer->packet_size)
     {
@@ -274,9 +271,6 @@ static int do_read(bgav_input_context_t* ctx,
     if(bytes_to_copy > len - bytes_read)
       bytes_to_copy = len - bytes_read;
 
-    //    fprintf(stderr, "do_read: %d %d %d\n", bytes_read, bytes_to_copy,
-    //            (p->pos - p->buffer));
-    
     memcpy(buffer + bytes_read, p->pos, bytes_to_copy);
     p->pos += bytes_to_copy;
     bytes_read += bytes_to_copy;

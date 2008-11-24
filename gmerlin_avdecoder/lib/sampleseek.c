@@ -130,9 +130,7 @@ void bgav_seek_audio(bgav_t * bgav, int stream, int64_t sample)
     }
   
   bgav_stream_resync_decoder(s);
-  //  fprintf(stderr, "bgav_audio_skipto...");
   bgav_audio_skipto(s, &sample, s->data.audio.format.samplerate);
-  //  fprintf(stderr, "done\n");
     
   s->in_time += s->first_timestamp;
   s->out_time += s->first_timestamp;
@@ -142,7 +140,6 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
   {
   bgav_stream_t * s;
   int64_t frame_time;
-  //  fprintf(stderr, "bgav_seek_video %ld...", time);
   s = &bgav->tt->cur->video_streams[stream];
 
   bgav->demuxer->flags &= ~BGAV_DEMUXER_EOF;
@@ -159,9 +156,7 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
     }
   if((time > s->out_time) && (bgav_video_keyframe_after(bgav, stream, s->out_time) > time))
     {
-    //    fprintf(stderr, "bgav_video_skipto %ld %ld...", s->out_time, time);
     bgav_video_skipto(s, &time, s->timescale);
-    //    fprintf(stderr, "Seek by skip\n");
     return;
     }
 
@@ -175,7 +170,6 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
   else /* Fileindex */
     {
     s->index_position = file_index_seek(s->file_index, time);
-    //  fprintf(stderr, "Index pos: %d\n", s->index_position);
     /* Decrease until we have the keyframe before this frame */
     while(!s->file_index->entries[s->index_position].keyframe && s->index_position)
       s->index_position--;
@@ -195,16 +189,9 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
       bgav->demuxer->demuxer->resync(bgav->demuxer, s);
     }
 
-  //  fprintf(stderr, "bgav_stream_resync_decoder\n");
-  
   bgav_stream_resync_decoder(s);
 
-  //  fprintf(stderr, "bgav_video_skipto %ld %ld...", s->out_time, time);
   bgav_video_skipto(s, &time, s->timescale);
-  //  fprintf(stderr, "done\n");
-
-  //  fprintf(stderr, "bgav_seek_video done\n");
-  
   }
 
 int64_t bgav_video_keyframe_before(bgav_t * bgav, int stream, int64_t time)
@@ -273,7 +260,6 @@ int64_t bgav_video_keyframe_after(bgav_t * bgav, int stream, int64_t time)
       }
     if(pos > s->last_index_position)
       {
-      //      fprintf(stderr, "Keyframe after failed\n");
       return BGAV_TIMESTAMP_UNDEFINED;
       }
     }
@@ -281,7 +267,6 @@ int64_t bgav_video_keyframe_after(bgav_t * bgav, int stream, int64_t time)
     {
     if(time >= s->duration)
       {
-      //      fprintf(stderr, "Keyframe after failed\n");
       return BGAV_TIMESTAMP_UNDEFINED;
       }
     pos = file_index_seek(s->file_index, time);
@@ -294,10 +279,8 @@ int64_t bgav_video_keyframe_after(bgav_t * bgav, int stream, int64_t time)
     if((s->file_index->entries[pos].time <= time) ||
        !s->file_index->entries[pos].keyframe)
       {
-      //      fprintf(stderr, "Keyframe after failed\n");
       return BGAV_TIMESTAMP_UNDEFINED;
       }
-    //    fprintf(stderr, "Keyframe after %ld\n", s->file_index->entries[pos].time);
     return s->file_index->entries[pos].time;
     }
   /* Stupid gcc :( */
@@ -329,7 +312,6 @@ void bgav_seek_subtitle(bgav_t * bgav, int stream, int64_t time)
   else /* Fileindex */
     {
     s->index_position = file_index_seek(s->file_index, time);
-    //  fprintf(stderr, "Index pos: %d\n", s->index_position);
 
     /* Decrease until a real packet starts */
     while(s->index_position &&

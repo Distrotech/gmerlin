@@ -166,7 +166,6 @@ static int open_p2xml(bgav_demuxer_context_t * ctx, bgav_yml_node_t * yml)
   if(!audio_directory && !video_directory)
     goto fail;
   
-  //  fprintf(stderr, "Got directories: %s %s\n", video_directory, audio_directory);
 
   ctx->edl = bgav_edl_create();
   t = bgav_edl_add_track(ctx->edl);
@@ -218,8 +217,6 @@ static int open_p2xml(bgav_demuxer_context_t * ctx, bgav_yml_node_t * yml)
           init_stream(node, s, filename,
                       duration, edit_unit_num, edit_unit_den);
           }
-        else
-          fprintf(stderr, "Got no file for audio stream %d\n", t->num_audio_streams);
         }
       }
     else if(!strcasecmp(node->name, "Video"))
@@ -238,8 +235,6 @@ static int open_p2xml(bgav_demuxer_context_t * ctx, bgav_yml_node_t * yml)
           init_stream(node, s, filename,
                       duration, edit_unit_num, edit_unit_den);
           }
-        else
-          fprintf(stderr, "Got no file for video stream %d\n", t->num_video_streams);
         free(tmp_string);
         }
       }

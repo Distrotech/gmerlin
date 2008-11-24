@@ -128,8 +128,6 @@ static int get_data(bgav_stream_t*s)
     else
       return 0;
     }
-  //  fprintf(stderr, "pos: %ld, pts: %ld\n",
-  //          priv->p->position, priv->p->pts);
   priv->eof = 0;
   mpeg2_buffer(priv->dec, priv->p->data, priv->p->data + priv->p->data_size);
   
@@ -306,27 +304,10 @@ static int decode_picture(bgav_stream_t*s)
     {
     if(!parse(s, &state))
       return 0;
-#if 0    
-    if(state == STATE_SLICE_1ST)
-      {
-      fprintf(stderr, "SLICE 1ST\n");
-      }
-    if(state == STATE_PICTURE_2ND)
-      {
-      fprintf(stderr, "PICTURE_2ND\n");
-      }
-#endif
     
     if(((state == STATE_END) || (state == STATE_SLICE) ||
         (state == STATE_INVALID_END)))
       {
-#if 0
-      fprintf(stderr, "Got Picture: C: %c D: %c\n",
-              picture_types[priv->info->current_picture ? 
-              priv->info->current_picture->flags & PIC_MASK_CODING_TYPE : 0],
-              picture_types[priv->info->display_picture ? 
-              priv->info->display_picture->flags & PIC_MASK_CODING_TYPE : 0]);
-#endif
       if(state == STATE_END)
         {
         priv->eof = 1;
@@ -345,8 +326,6 @@ static int decode_picture(bgav_stream_t*s)
           case PIC_FLAG_CODING_TYPE_B:
             if(priv->non_b_count >= 2)
               done = 1;
-            //            else
-            //              fprintf(stderr, "Old B-Frame\n");
             break;
           }
         }      
@@ -466,11 +445,6 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
     s->data.video.next_frame_duration = priv->picture_duration;
     return 1;
     }
-#if 0
-  if(!f)
-    fprintf(stderr, "Skip: %d\n",
-            priv->info->current_picture->flags & PIC_MASK_CODING_TYPE);
-#endif
   if(f)
     {
     priv->frame->planes[0] = priv->info->display_fbuf->buf[0];
@@ -494,11 +468,6 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
   s->data.video.last_frame_time     = priv->picture_timestamp;
   s->data.video.last_frame_duration = priv->picture_duration;
   
-#if 0
-  fprintf(stderr, "PTS: %ld, T: %c\n", 
-          s->data.video.last_frame_time,
-          picture_types[priv->info->display_picture->flags & PIC_MASK_CODING_TYPE]);
-#endif
 
   if(((priv->info->display_picture->flags & PIC_MASK_CODING_TYPE) ==
       PIC_FLAG_CODING_TYPE_I) &&
@@ -658,8 +627,6 @@ static void resync_mpeg2(bgav_stream_t*s)
         if(state == STATE_PICTURE)
           break;
         }
-      //      fprintf(stderr, "Parse: %d\n",
-      //              priv->info->current_picture->flags & PIC_MASK_CODING_TYPE);
       
       /* Check if we can start decoding again */
       if((priv->intra_slice_refresh)  &&
@@ -809,8 +776,6 @@ static void parse_libmpeg2(bgav_stream_t * s, int flush)
           break;
         else if(result > 0)
           {
-          //          fprintf(stderr, "Got picture header %c\n",
-          //                  picture_types[ph.coding_type]);
           /* First frame after sequence header is a P-Frame */
           if(!s->duration && ph.coding_type == MPV_CODING_TYPE_P)
             priv->intra_slice_refresh = 1;
@@ -882,7 +847,6 @@ static void parse_libmpeg2(bgav_stream_t * s, int flush)
           break;
         else if(result > 0)
           {
-          //          fprintf(stderr, "Got picture coding extension\n");
           duration = 0;
           if(ph.ext.repeat_first_field)
             {

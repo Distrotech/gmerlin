@@ -482,52 +482,6 @@ static int open_r3d(bgav_demuxer_context_t * ctx)
 
   bgav_input_seek(ctx->input, 0, SEEK_SET);
   
-#if 0
-  
-  while(1)
-    {
-    // fprintf(stderr, "Offset: %ld ", ctx->input->position);
-    
-    if(!read_chunk_header(ctx->input, &ch))
-      {
-      fprintf(stderr, "EOF\n");
-      return 0;
-      }
-    fprintf(stderr, "Got chunk: ");
-    bgav_dump_fourcc(ch.fourcc);
-    fprintf(stderr, " len: %d\n", ch.len);
-#if 0
-    if((ch.fourcc == BGAV_MK_FOURCC('R','D','V','O')) ||
-       (ch.fourcc == BGAV_MK_FOURCC('R','D','V','S')) ||
-       (ch.fourcc == BGAV_MK_FOURCC('R','D','A','O')) ||
-       (ch.fourcc == BGAV_MK_FOURCC('R','D','A','S')))
-      {
-      bgav_input_skip_dump(ctx->input, ch.len - 8);
-      }
-    else
-#endif
-#if 0
-    if(ch.fourcc == BGAV_MK_FOURCC('R','E','D','A'))
-      {
-      audio_header_t h;
-      read_audio_header(ctx->input, &h);
-      dump_audio_header(&h);
-      bgav_input_skip(ctx->input, ch.len - 8 - 24);
-      }
-    else
-#endif
-      if(ch.fourcc == BGAV_MK_FOURCC('R','E','D','V'))
-      {
-      video_header_t h;
-      read_video_header(ctx->input, &h);
-      dump_video_header(&h);
-      bgav_input_skip(ctx->input, ch.len - 8 - 12);
-      }
-    else
-      bgav_input_skip(ctx->input, ch.len - 8);
-    }
-#endif
-
   build_superindex(ctx);
 
   ctx->flags |= BGAV_DEMUXER_CAN_SEEK;

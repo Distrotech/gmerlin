@@ -644,7 +644,7 @@ int bgav_sdp_parse(const bgav_options_t * opt,
   int line_index;
   int i_tmp;
 
-  fprintf(stderr, "sdp (raw): %s\n", data);
+  //  bgav_dprintf("sdp (raw): %s\n", data);
   
   memset(ret, 0, sizeof(*ret));
     

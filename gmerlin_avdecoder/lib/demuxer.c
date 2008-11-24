@@ -758,11 +758,6 @@ bgav_demuxer_get_packet_read(bgav_demuxer_context_t * demuxer,
     }
   
   demuxer->request_stream = (bgav_stream_t*)0;
-#if 0
-  if(s->type == BGAV_STREAM_VIDEO)
-    fprintf(stderr, "Got packet %ld %d\n",
-            ret->position, ret->data_size);
-#endif
   return ret;
   }
 

@@ -240,7 +240,6 @@ void bgav_rtp_packet_buffer_unlock_write(bgav_rtp_packet_buffer_t * b)
   //    b->next_seq = p->h.sequence_number;
   
   /* Correct timestamp */
-  //  fprintf(stderr, "RTP Time 1: %ld (%ld)", p->h.timestamp, b->last_timestamp);
   if((b->last_timestamp != BGAV_TIMESTAMP_UNDEFINED) &&
      (int64_t)b->last_timestamp - (int64_t)p->h.timestamp > 0x80000000LL)
     b->timestamp_wrap = 1;
@@ -251,8 +250,6 @@ void bgav_rtp_packet_buffer_unlock_write(bgav_rtp_packet_buffer_t * b)
     b->timestamp_offset += 0x100000000LL;
     }
 
-  //  fprintf(stderr, "Wrap: %d\n", b->timestamp_wrap);
-  
   b->last_timestamp = p->h.timestamp;
   
   if(b->timestamp_wrap && 
@@ -260,8 +257,6 @@ void bgav_rtp_packet_buffer_unlock_write(bgav_rtp_packet_buffer_t * b)
     p->h.timestamp += 0x100000000LL + b->timestamp_offset;
   else
     p->h.timestamp += b->timestamp_offset;
-  
-  //  fprintf(stderr, "RTP Time 2: %ld\n", p->h.timestamp);
   
   /* Update statistics */
   if(!b->stats.initialized)
@@ -350,7 +345,6 @@ bgav_rtp_packet_buffer_try_lock_read(bgav_rtp_packet_buffer_t * b)
      (b->num < MAX_MISORDER))
     {
     pthread_mutex_unlock(&b->read_mutex);
-    //    fprintf(stderr, "Waiting for packet\n");
     return (rtp_packet_t *)0;
     }
   

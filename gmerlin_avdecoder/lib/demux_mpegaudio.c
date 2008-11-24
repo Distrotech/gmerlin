@@ -678,9 +678,6 @@ static int select_track_mpegaudio(bgav_demuxer_context_t * ctx,
     priv->data_start = priv->albw->tracks[track].start_pos;
     priv->data_end   = priv->albw->tracks[track].end_pos;
     }
-  //  return;
-  //  fprintf(stderr, "select_track_mpegaudio %d %d\n",
-  //          ctx->input->position, priv->data_start);
   
   if(ctx->input->position != priv->data_start)
     {

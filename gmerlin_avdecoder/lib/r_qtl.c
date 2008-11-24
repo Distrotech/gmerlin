@@ -51,7 +51,6 @@ static int parse_qtl(bgav_redirector_context_t * r)
   add_url(r);
 
   url = bgav_yml_get_attribute(node, "src");
-  //  fprintf(stderr, "parse_qtl: %s\n", r->input->filename);
   
   if(r->input->filename &&
      !strstr(url, "://") &&
@@ -59,7 +58,6 @@ static int parse_qtl(bgav_redirector_context_t * r)
     {
     filename_base = bgav_strdup(r->input->filename);
     pos = strrchr(filename_base, '/');
-    //    fprintf(stderr, "parse_qtl 1: %s %s\n", filename_base, pos);
     if(pos)
       {
       *pos = '\0';

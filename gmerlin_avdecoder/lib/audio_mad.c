@@ -83,7 +83,6 @@ static int get_data(bgav_stream_t * s)
               priv->buffer +
               (int)(priv->stream.next_frame - priv->stream.buffer),
               bytes_in_buffer);
-      //      fprintf(stderr, "Decoding last frame %d\n", bytes_in_buffer);
       priv->partial = 1;
       if(priv->buffer_alloc < MAD_BUFFER_GUARD + bytes_in_buffer)
         {
@@ -161,15 +160,11 @@ static int decode_frame(bgav_stream_t * s)
         break;
       default:
         mad_frame_mute(&priv->frame);
-        //        fprintf(stderr, "Decode error %04x\n", priv->stream.error);
         break;
       }
     if(done)
       break;
     }
-  
-  //  fprintf(stderr, "Decoded frame %ld\n", priv->stream.next_frame -
-  //          priv->stream.this_frame);
   
   if(priv->do_init)
     {
@@ -341,8 +336,6 @@ static void parse_mad(bgav_stream_t * s)
     /* Get the packet and append data to the buffer */
     p = bgav_demuxer_get_packet_read(s->demuxer, s);
 
-    //    fprintf(stderr, "Parse mad pts: %ld duration: %ld\n", p->pts, s->duration); 
-    
     old_buffer_size = priv->buffer_size;
 
     if(priv->buffer_size < 0)
@@ -372,8 +365,6 @@ static void parse_mad(bgav_stream_t * s)
       }
     while(priv->buffer_size >= HEADER_SIZE)
       {
-      //      fprintf(stderr, "decode header: ");
-      //      bgav_hexdump(ptr, 8, 8);
       if(bgav_mpa_header_decode(&h, ptr))
         {
         s->data.audio.format.samplerate = h.samplerate;
@@ -399,14 +390,11 @@ static void parse_mad(bgav_stream_t * s)
         ptr++;
         priv->buffer_size--;
         }
-      //      fprintf(stderr, "Parse mad got packet %d bytes left\n", priv->buffer_size); 
       }
     if(priv->buffer_size > 0)
       memmove(priv->buffer, ptr, priv->buffer_size);
     priv->last_position = p->position;
     bgav_demuxer_done_packet_read(s->demuxer, p);
-    //    fprintf( stderr, "Done with packet, %d bytes\n",
-    //             priv->buffer_size);
     }
   }
 

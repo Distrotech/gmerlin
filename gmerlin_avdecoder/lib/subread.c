@@ -543,9 +543,6 @@ static int init_spumux(bgav_stream_t * s)
   if(!read_spumux(s))
     return 0;
   priv->need_header = 0;
-
-  //  fprintf(stderr, "spumux format\n");
-  //  gavl_video_format_dump(&s->data.subtitle.format);
   
   s->data.subtitle.format.pixelformat = priv->format.pixelformat;
   s->data.subtitle.format.timescale   = GAVL_TIME_SCALE;
