@@ -111,8 +111,13 @@ void gmerlin_mozilla_destroy(bg_mozilla_t* m)
   const bg_parameter_info_t * parameters;
   char * tmp_path;
   char * old_locale;
-  /* Save config data */
-  
+  /* If the start thread is running, wait until it exits */
+  if(m->state == STATE_STARTING)
+    {
+    fprintf(stderr, "Waiting for start thread...");
+    pthread_join(m->start_thread, (void**)0);
+    fprintf(stderr, "Waiting for start thread done\n");
+    }
   /* Shutdown player */
   bg_player_quit(m->player);
   bg_player_destroy(m->player);
