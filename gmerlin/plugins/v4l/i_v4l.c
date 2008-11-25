@@ -168,6 +168,8 @@ typedef struct
   int have_pwc_parameters; /* True is we have created parameters for
                               a Phillips webcam */
 
+  gavl_video_format_t format;
+  
   void * pwc_priv;
   
   int fd;
@@ -187,19 +189,13 @@ typedef struct
   uint8_t * mmap_buf;
 
   gavl_video_frame_t * frame;
-  gavl_video_format_t format;
-  int luma_size;
-  int chroma_size;
   char * device;
-  int flip;
   } v4l_t;
 
 static int open_v4l(void * priv,
                     gavl_audio_format_t * audio_format,
                     gavl_video_format_t * format)
   {
-  int sub_h, sub_v;
-  //  int i;
   v4l_t * v4l;
   v4l = (v4l_t*)priv;
 
@@ -288,16 +284,12 @@ static int open_v4l(void * priv,
   format->frame_duration = 1;
   format->timescale = 1;
 
+  gavl_video_format_copy(&v4l->format, format);
+  
+  
   /* Setup frame */
 
-  gavl_pixelformat_chroma_sub(format->pixelformat, &sub_h, &sub_v);
-  
-  v4l->frame->strides[0] = format->image_width;
-  v4l->frame->strides[1] = format->image_width / sub_h;
-  v4l->frame->strides[2] = format->image_width / sub_h;
-
-  v4l->luma_size   = format->image_width * format->image_height;
-  v4l->chroma_size = v4l->luma_size / (sub_h * sub_v);
+  gavl_video_frame_set_strides(v4l->frame, format);
   
   /* Setup mmap */
   
@@ -360,19 +352,11 @@ static int read_frame_v4l(void * priv, gavl_video_frame_t * frame, int stream)
   if(ioctl(v4l->fd,VIDIOCSYNC, &v4l->frame_index))
     return 0;
 
-  v4l->frame->planes[0] =
-    &(v4l->mmap_buf[v4l->mbuf.offsets[v4l->frame_index]]);
-  v4l->frame->planes[1] = v4l->frame->planes[0] + v4l->luma_size;
-  v4l->frame->planes[2] = v4l->frame->planes[0] + v4l->luma_size + v4l->chroma_size;
-
-  //  memset(v4l->frame->planes[0], 0, v4l->luma_size);
-  //  memset(v4l->frame->planes[1], 0, v4l->chroma_size);
-  //  memset(v4l->frame->planes[2], 0, v4l->chroma_size);
-
-  if(v4l->flip)
-    gavl_video_frame_copy_flip_x(&(v4l->format), frame, v4l->frame);
-  else
-    gavl_video_frame_copy(&(v4l->format), frame, v4l->frame);
+  gavl_video_frame_set_planes(v4l->frame,
+                              &v4l->format,
+                              &v4l->mmap_buf[v4l->mbuf.offsets[v4l->frame_index]]);
+  
+  gavl_video_frame_copy(&(v4l->format), frame, v4l->frame);
   //  if(ioctl(v4l->fd,VIDIOCSYNC, &(v4l->mmap[v4l->frame_index])))
   
   v4l->frame_index++;
@@ -521,13 +505,6 @@ static const bg_parameter_info_t parameters[] =
       .val_max =     { .val_i = 65535 },
       .val_default = { .val_i = 30000 },
     },
-    {
-      .name =        "flip",
-      .long_name =   TRS("Flip Image"),
-      .type =        BG_PARAMETER_CHECKBUTTON,
-      .flags =       BG_PARAMETER_SYNC,
-      .val_default = { .val_i = 0 },
-    },
     { /* End of parameters */ }
   };
 
@@ -632,10 +609,6 @@ static void set_parameter_v4l(void * priv, const char * name,
       {
       v4l->user_resolution = 1;
       }
-    }
-  else if(!strcmp(name, "flip"))
-    {
-    v4l->flip = val->val_i;
     }
   else if(!strcmp(name, "device"))
     {

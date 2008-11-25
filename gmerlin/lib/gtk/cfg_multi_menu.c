@@ -48,9 +48,13 @@ static void get_value(bg_gtk_widget_t * w)
   multi_menu_t * priv;
   priv = (multi_menu_t*)(w->priv);
 
-  i = bg_parameter_get_selected(w->info, 
-                                w->value.val_str);
-  gtk_combo_box_set_active(GTK_COMBO_BOX(priv->combo), i);
+  if(w->info->multi_names)
+    {
+    i = bg_parameter_get_selected(w->info, 
+                                  w->value.val_str);
+    gtk_combo_box_set_active(GTK_COMBO_BOX(priv->combo), i);
+    }
+  
   }
 
 static void set_value(bg_gtk_widget_t * w)
@@ -59,8 +63,15 @@ static void set_value(bg_gtk_widget_t * w)
   
   priv = (multi_menu_t*)(w->priv);
   
-  w->value.val_str = bg_strdup(w->value.val_str,
-                               w->info->multi_names[priv->selected]);
+  if(w->info->multi_names)
+    {
+    w->value.val_str = bg_strdup(w->value.val_str,
+                                 w->info->multi_names[priv->selected]);
+    }
+  else
+    w->value.val_str = bg_strdup(w->value.val_str,
+                                 NULL);
+    
   }
 
 static void destroy(bg_gtk_widget_t * w)
@@ -224,19 +235,29 @@ void bg_gtk_create_multi_menu(bg_gtk_widget_t * w,
     }
   
   i = 0;
-  while(w->info->multi_names[i])
+
+  if(w->info->multi_names)
     {
-    if(w->info->multi_labels && w->info->multi_labels[i])
-      gtk_combo_box_append_text(GTK_COMBO_BOX(priv->combo),
-                                TR_DOM(w->info->multi_labels[i]));
-    else
-      gtk_combo_box_append_text(GTK_COMBO_BOX(priv->combo),
-                                w->info->multi_names[i]);
-    i++;
+    while(w->info->multi_names[i])
+      {
+      if(w->info->multi_labels && w->info->multi_labels[i])
+        gtk_combo_box_append_text(GTK_COMBO_BOX(priv->combo),
+                                  TR_DOM(w->info->multi_labels[i]));
+      else
+        gtk_combo_box_append_text(GTK_COMBO_BOX(priv->combo),
+                                  w->info->multi_names[i]);
+      i++;
+      }
+    g_signal_connect(G_OBJECT(priv->combo),
+                     "changed", G_CALLBACK(combo_box_change_callback),
+                     (gpointer)w);
     }
-  g_signal_connect(G_OBJECT(priv->combo),
-                   "changed", G_CALLBACK(combo_box_change_callback),
-                   (gpointer)w);
+  else
+    {
+    gtk_widget_set_sensitive(priv->config_button, 0);
+    gtk_widget_set_sensitive(priv->info_button, 0);
+    }
+  
   gtk_widget_show(priv->combo);
 
   
