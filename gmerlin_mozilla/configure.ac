@@ -31,39 +31,33 @@ dnl Check for Mozilla
 dnl
 
 AC_MSG_NOTICE([Determining mozilla/firefox packages to build against])
-PKG_CHECK_MODULES(MOZPLUG,[mozilla-plugin mozilla-xpcom],[AC_SUBST(MOZPLUG_CFLAGS) MOZPLUG_CFLAGS="${MOZPLUG_CFLAGS} -I`$PKG_CONFIG --variable=includedir mozilla-plugin`"
+PKG_CHECK_MODULES(MOZPLUG,[mozilla-plugin],[AC_SUBST(MOZPLUG_CFLAGS) MOZPLUG_CFLAGS="${MOZPLUG_CFLAGS} -I`$PKG_CONFIG --variable=includedir mozilla-plugin`"
 MOZILLA_HOME=`$PKG_CONFIG --variable=libdir mozilla-plugin`
-GECKO_IDLDIR=`$PKG_CONFIG --variable=idldir mozilla-xpcom`
 ],[AC_MSG_WARN([mozilla-plugin not found])])
 
 if test "$MOZPLUG_CFLAGS" = ""; then
-    PKG_CHECK_MODULES(MOZPLUG,[firefox-plugin firefox-xpcom],[AC_SUBST(MOZPLUG_CFLAGS) MOZPLUG_CFLAGS="${MOZPLUG_CFLAGS} -I`$PKG_CONFIG --variable=includedir firefox-plugin`"
+    PKG_CHECK_MODULES(MOZPLUG,[firefox-plugin],[AC_SUBST(MOZPLUG_CFLAGS) MOZPLUG_CFLAGS="${MOZPLUG_CFLAGS} -I`$PKG_CONFIG --variable=includedir firefox-plugin`"
     MOZILLA_HOME=`$PKG_CONFIG --variable=libdir firefox-plugin`
-    GECKO_IDLDIR=`$PKG_CONFIG --variable=idldir firefox-xpcom`
 ],[AC_MSG_WARN([firefox-plugin not found])])
 fi
 if test "$MOZPLUG_CFLAGS" = ""; then
-    PKG_CHECK_MODULES(MOZPLUG,[seamonkey-plugin seamonkey-xpcom],[AC_SUBST(MOZPLUG_CFLAGS) MOZPLUG_CFLAGS="${MOZPLUG_CFLAGS} -I`$PKG_CONFIG --variable=includedir seamonkey-plugin`"
+    PKG_CHECK_MODULES(MOZPLUG,[seamonkey-plugin],[AC_SUBST(MOZPLUG_CFLAGS) MOZPLUG_CFLAGS="${MOZPLUG_CFLAGS} -I`$PKG_CONFIG --variable=includedir seamonkey-plugin`"
 	    MOZILLA_HOME=`$PKG_CONFIG --variable=libdir seamonkey-plugin`
-	    GECKO_IDLDIR=`$PKG_CONFIG --variable=idldir seamonkey-xpcom`
 ],[AC_MSG_WARN([seamonkey-plugin not found])])
 fi
 if test "$MOZPLUG_CFLAGS" = ""; then
-    PKG_CHECK_MODULES(MOZPLUG,[xulrunner-plugin xulrunner-xpcom],[AC_SUBST(MOZPLUG_CFLAGS) MOZPLUG_CFLAGS="${MOZPLUG_CFLAGS} -I`$PKG_CONFIG --variable=includedir xulrunner-plugin`"
+    PKG_CHECK_MODULES(MOZPLUG,[xulrunner-plugin],[AC_SUBST(MOZPLUG_CFLAGS) MOZPLUG_CFLAGS="${MOZPLUG_CFLAGS} -I`$PKG_CONFIG --variable=includedir xulrunner-plugin`"
 	    MOZILLA_HOME=`$PKG_CONFIG --variable=libdir xulrunner-plugin`
-	    GECKO_IDLDIR=`$PKG_CONFIG --variable=idldir xulrunner-xpcom`
 	    ],[AC_MSG_WARN([xulrunner-plugin not found])])
 fi
 if test "$MOZPLUG_CFLAGS" = ""; then
     PKG_CHECK_MODULES(MOZPLUG,[libxul],[AC_SUBST(MOZPLUG_CFLAGS) MOZPLUG_CFLAGS="${MOZPLUG_CFLAGS} -I`$PKG_CONFIG --variable=includedir libxul`"
 	    MOZILLA_HOME=`$PKG_CONFIG --variable=libdir libxul`
-	    GECKO_IDLDIR=`$PKG_CONFIG --variable=idldir libxul`
 	    ],[AC_MSG_WARN([libxul not found])])
 fi
 if test "$MOZPLUG_CFLAGS" = ""; then
     PKG_CHECK_MODULES(MOZPLUG,[iceape-plugin iceape-xpcom],[AC_SUBST(MOZPLUG_CFLAGS) MOZPLUG_CFLAGS="${MOZPLUG_CFLAGS} -I`$PKG_CONFIG --variable=includedir iceape-plugin`"
 	    MOZILLA_HOME=`$PKG_CONFIG --variable=libdir iceape-plugin`
-	    GECKO_IDLDIR=`$PKG_CONFIG --variable=idldir iceape-xpcom`
 	    ],[AC_MSG_WARN([iceape-plugin not found])])
 fi
 
@@ -75,12 +69,6 @@ AC_SUBST(MOZILLA_HOME)
 
 AC_SUBST(MOZPLUG_CFLAGS)
 
-AC_PATH_PROG([GECKO_XPIDL], [xpidl], [no], [$MOZILLA_HOME:$PATH])
-if test "x$GECKO_XPIDL" = "xno"; then
-        AC_MSG_ERROR([xpidl compiler not found])
-fi
-AC_SUBST(GECKO_XPIDL)
-AC_SUBST(GECKO_IDLDIR)
 
 CFLAGS="-g -Wmissing-declarations -Wall"
 
