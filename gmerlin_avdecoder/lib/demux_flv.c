@@ -43,6 +43,8 @@
 
 //#define DUMP_METADATA
 
+#define FOURCC_AAC BGAV_MK_FOURCC('m', 'p', '4', 'a')
+#define FOURCC_H264 BGAV_MK_FOURCC('h', '2', '6', '4')
 
 typedef struct meta_object_s meta_object_t;
 
@@ -84,6 +86,9 @@ typedef struct
   int have_metadata;
   meta_object_t metadata;
   int64_t audio_sample_counter;
+
+  int need_audio_extradata;
+  int need_video_extradata;
   } flv_priv_t;
 
 static int probe_flv(bgav_input_context_t * input)
@@ -130,12 +135,18 @@ static void flv_tag_dump(flv_tag * t)
   }
 #endif
 
+static void cleanup_stream_flv(bgav_stream_t * s)
+  {
+  if(s->ext_data) free(s->ext_data);
+  }
+
 static void init_audio_stream(bgav_demuxer_context_t * ctx)
   {
   bgav_stream_t * as = (bgav_stream_t*)0;
   as = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
   as->stream_id = AUDIO_ID;
   as->timescale = 1000;
+  as->cleanup = cleanup_stream_flv;
   }
 
 static void init_video_stream(bgav_demuxer_context_t * ctx)
@@ -146,6 +157,7 @@ static void init_video_stream(bgav_demuxer_context_t * ctx)
   
   vs->stream_id = VIDEO_ID;
   vs->timescale = 1000;
+  vs->cleanup = cleanup_stream_flv;
   }
 
 /* From libavutil */
@@ -492,17 +504,9 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
       {
       s->data.audio.bits_per_sample = (flags & 2) ? 16 : 8;
       
-      if((flags >> 4) == 5)
-        {
-        s->data.audio.format.samplerate = 8000;
-        s->data.audio.format.num_channels = 1;
-        }
-      else
-        {
-        s->data.audio.format.samplerate = (44100<<((flags>>2)&3))>>3;
-        s->data.audio.format.num_channels = (flags&1)+1;
-        }
-
+      s->data.audio.format.samplerate = (44100<<((flags>>2)&3))>>3;
+      s->data.audio.format.num_channels = (flags&1)+1;
+      
       switch(flags >> 4)
         {
         case 0: /* Uncompressed, Big endian */
@@ -533,12 +537,19 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
           break;
         case 5: /* NellyMoser */
           s->data.audio.format.samplerate = 8000;
+          s->data.audio.format.num_channels = 1;
+          
           s->fourcc = BGAV_MK_FOURCC('N', 'E', 'L', 'L');
           ctx->index_mode = 0;
           break;
         case 6: /* NellyMoser */
           s->fourcc = BGAV_MK_FOURCC('N', 'E', 'L', 'L');
           ctx->index_mode = 0;
+          break;
+        case 10:
+          s->fourcc = FOURCC_AAC;
+          ctx->index_mode = 0;
+          priv->need_audio_extradata = 1;
           break;
         default: /* Set some nonsense so we can finish initializing */
           s->fourcc = BGAV_MK_FOURCC('?', '?', '?', '?');
@@ -584,7 +595,11 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
           *s->ext_data = header[0];
           s->ext_size = 1;
           break;
-          
+        case 7:
+          s->fourcc = FOURCC_H264;
+          priv->need_video_extradata = 1;
+          s->data.video.wrong_b_timestamps = 1;
+          break;
         default: /* Set some nonsense so we can finish initializing */
           s->fourcc = BGAV_MK_FOURCC('?', '?', '?', '?');
           bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN, "Unknown video codec tag: %d",
@@ -616,9 +631,60 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
       keyframe = 0;
     }
 
-  if(!packet_size)
+  if((s->fourcc == FOURCC_AAC) ||
+     (s->fourcc == FOURCC_H264))
     {
-    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Got zero packet size (somethings wrong?)");
+    uint8_t type;
+    if(!bgav_input_read_8(ctx->input, &type))
+      return 0;
+    packet_size--;
+
+    if(packet_size <= 0)
+      {
+      bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Packet size is %d (somethings wrong?)",
+               packet_size);
+      return 0;
+      }
+
+    if(s->fourcc == FOURCC_H264)
+      {
+#if 0
+      int32_t cts;
+      if(!bgav_input_read_24_be(ctx->input, &cts))
+        return 0;
+      cts = (cts + 0xff800000)^0xff800000; // sign extension
+      t.timestamp += cts;
+      packet_size -= 3;
+      fprintf(stderr, "H264 CTS: %d, PTS: %d DTS: %d\n", cts, t.timestamp, t.timestamp - cts);
+#else
+      bgav_input_skip(ctx->input, 3);
+      packet_size -= 3;
+#endif
+      }
+    
+    if(type == 0)
+      {
+      if(!s->ext_size)
+        {
+        s->ext_size = packet_size;
+        s->ext_data = malloc(packet_size);
+        if(bgav_input_read_data(ctx->input, s->ext_data, packet_size) < packet_size)
+          return 0;
+        if(s->type == BGAV_STREAM_AUDIO)
+          priv->need_audio_extradata = 0;
+        else
+          priv->need_video_extradata = 0;
+        }
+      else
+        bgav_input_skip(ctx->input, packet_size);
+      return 1;
+      }
+    }
+  
+  if(packet_size <= 0)
+    {
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Packet size is %d (somethings wrong?)",
+             packet_size);
     return 0;
     }
   
@@ -694,6 +760,7 @@ static void handle_metadata(bgav_demuxer_context_t * ctx)
       ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
     }
   }
+
 
 static void seek_flv(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   {
@@ -822,7 +889,8 @@ static int open_flv(bgav_demuxer_context_t * ctx)
     if(!next_packet_flv(ctx))
       goto fail;
     if((!ctx->tt->cur->num_audio_streams || ctx->tt->cur->audio_streams[0].fourcc) &&
-       (!ctx->tt->cur->num_video_streams || ctx->tt->cur->video_streams[0].fourcc))
+       (!ctx->tt->cur->num_video_streams || ctx->tt->cur->video_streams[0].fourcc) &&
+       !priv->need_audio_extradata && !priv->need_video_extradata)
       break;
     }
   priv->init = 0;
@@ -906,12 +974,12 @@ static void close_flv(bgav_demuxer_context_t * ctx)
 
 const bgav_demuxer_t bgav_demuxer_flv =
   {
-    .probe =       probe_flv,
-    .open =        open_flv,
+    .probe       = probe_flv,
+    .open        = open_flv,
     .next_packet = next_packet_flv,
-    .seek =        seek_flv,
-    .resync =      resync_flv,
-    .close =       close_flv
+    .seek        = seek_flv,
+    .resync      = resync_flv,
+    .close       = close_flv
   };
 
 
