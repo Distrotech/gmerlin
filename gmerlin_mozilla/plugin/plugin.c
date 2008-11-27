@@ -22,8 +22,11 @@
 #include <string.h>
 
 #include <gmerlin/utils.h>
+#include <gmerlin/log.h>
+#define LOG_DOMAIN "plugin"
 
 #include <gmerlin_mozilla.h>
+
 
 static const char * general_mime_description =
 "application/x-ogg:ogg:Ogg-Multimedia;" \
@@ -142,8 +145,6 @@ char* NP_GetMIMEDescription(void)
                            general_mime_description,
                            quicktime_mime_description,
                            vlc_mime_description);
-  
-  //  fprintf(stderr, "GET MIME DESCRIPTION\n");
   return(mime_info);
   }
 
@@ -166,7 +167,6 @@ NPError NP_GetValue(void *instance,
       *((PRBool *) aValue) = PR_TRUE;
       break;
     default:
-      fprintf(stderr, "NP_GetValue %d\n", variable);
       return NPERR_GENERIC_ERROR;
     }
   return NPERR_NO_ERROR;
@@ -200,8 +200,6 @@ NPError NPP_New(NPMIMEType pluginType,
     }
   
   priv = gmerlin_mozilla_create();
-  //  fprintf(stderr, "NPP_New: %p\n", priv);
-
   instance->pdata = priv;
   
   priv->instance = instance;
@@ -228,13 +226,13 @@ NPError NPP_New(NPMIMEType pluginType,
       }
     bg_mozilla_embed_info_set_parameter(&priv->ei, argn[i], argv[i]);
 
-    fprintf(stderr, "Set parameter: %s %s\n", argn[i], argv[i]);
+    bg_log(BG_LOG_INFO, LOG_DOMAIN,
+           "Set parameter: %s %s", argn[i], argv[i]);
     }
   if(!bg_mozilla_embed_info_check(&priv->ei))
     {
     gmerlin_mozilla_destroy(priv);
     instance->pdata = NULL;
-    //    fprintf(stderr, "Bad embed info\n");
     return NPERR_INVALID_PLUGIN_ERROR;
     }
   if(((priv->ei.mode == MODE_VLC) && (priv->ei.target)) ||
@@ -258,7 +256,6 @@ NPError NPP_Destroy(NPP instance,
   {
   bg_mozilla_t * priv;
   priv = (bg_mozilla_t *)instance->pdata;
-  //  fprintf(stderr, "NPP_Destroy %p\n", priv);
   gmerlin_mozilla_destroy(priv);
   return NPERR_NO_ERROR;
   }
@@ -284,7 +281,6 @@ NPError NPP_GetValue(NPP instance,
       *((NPObject**) value) = priv->scriptable;
       break;
     default:
-      fprintf(stderr, "NPP_GetValue %d\n", variable);
       return NPERR_GENERIC_ERROR;
     }
   return NPERR_NO_ERROR;
@@ -295,7 +291,6 @@ NPError NPP_SetValue(NPP instance,
                      void *value)
   {
   bg_mozilla_t * priv;
-  fprintf(stderr, "NPP_SetValue\n");
   priv = (bg_mozilla_t *)instance->pdata;
   switch(variable)
     {
@@ -309,9 +304,6 @@ NPError NPP_SetValue(NPP instance,
 
 int32 NPP_WriteReady(NPP instance, NPStream* stream)
   {
-  //  bg_mozilla_t * priv;
-  //  fprintf(stderr, "NPP_WriteReady\n");
-  //  priv = (bg_mozilla_t *)instance->pdata;
   return BUFFER_SIZE;
   }
 
@@ -321,9 +313,6 @@ int32 NPP_Write(NPP instance, NPStream* stream, int32 offset,
   bg_mozilla_t * priv;
   int ret;
   priv = (bg_mozilla_t *)instance->pdata;
-  //  fprintf(stderr, "NPP_Write %d\n", priv->state);
-  //  bg_hexdump(buf, len, 16);
-
   if(priv->state == STATE_ERROR)
     {
     bg_mozilla_buffer_destroy(priv->buffer);
@@ -337,11 +326,8 @@ int32 NPP_Write(NPP instance, NPStream* stream, int32 offset,
   
   ret = bg_mozilla_buffer_write(priv->buffer, buf, len);
   
-  //  fprintf(stderr, "NPP_Write done\n");
   if(priv->state == STATE_IDLE)
     gmerlin_mozilla_start(priv);
-  
-  //  fprintf(stderr, "NPP_Write done\n");
   return ret;
   }
 
@@ -350,7 +336,6 @@ NPError NPP_DestroyStream(NPP instance,
   {
   bg_mozilla_t * priv;
   priv = (bg_mozilla_t *)instance->pdata;
-  fprintf(stderr, "NPP_DestroyStream\n");
   /* Signal EOF */
   if(priv->buffer)
     bg_mozilla_buffer_write(priv->buffer, (void*)0, 0);
@@ -370,9 +355,6 @@ NPError NPP_NewStream(NPP        instance,
   priv->uri = bg_strdup(priv->uri, stream->url);
     
   new_url = bg_uri_to_string(priv->uri, -1);
-  
-  fprintf(stderr, "NewStream %s (%s), size: %d\n",
-          new_url, type, stream->end);
   
   gmerlin_mozilla_set_stream(priv, new_url, type, stream->end);
   
@@ -397,8 +379,6 @@ NPError NPP_SetWindow(NPP instance, NPWindow *window)
   {
   bg_mozilla_t * priv;
   priv = (bg_mozilla_t *)instance->pdata;
-  //  fprintf(stderr, "SetWindow %08x (priv: %p)\n", (int64_t)window->window,
-  //          priv);
   gmerlin_mozilla_set_window(priv,
                              (GdkNativeWindow)(((int64_t)window->window)));
   return NPERR_NO_ERROR;
@@ -422,7 +402,6 @@ static void set_plugin_funcs(NPPluginFuncs *aNPPFuncs)
 NPError NP_Initialize(NPNetscapeFuncs *aNPNFuncs,
                       NPPluginFuncs *aNPPFuncs)
   {
-  // fprintf(stderr, "INITIALIZE %d %d\n", aNPPFuncs->version, aNPPFuncs->size);
 #if 0
   bg_log_set_verbose(BG_LOG_DEBUG |
                      BG_LOG_WARNING |
@@ -437,7 +416,6 @@ NPError NP_Initialize(NPNetscapeFuncs *aNPNFuncs,
 
 NPError NP_Shutdown(void)
   {
-  //  fprintf(stderr, "SHUTDOWN\n");
   return NPERR_NO_ERROR;
   }
 

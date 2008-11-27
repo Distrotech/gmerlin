@@ -65,8 +65,6 @@ static void set_visualization(const bg_plugin_info_t * info, void * data)
   bg_plugin_registry_set_default(m->plugin_reg,
                                  BG_PLUGIN_VISUALIZATION,
                                  info->name);
-  fprintf(stderr, "gmerlin_mozilla_set_vis_plugin %s\n",
-          info->long_name);
   gmerlin_mozilla_set_vis_plugin(m, info);
   }
 

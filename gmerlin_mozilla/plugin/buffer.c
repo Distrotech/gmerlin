@@ -49,7 +49,6 @@ bg_mozilla_buffer_t * bg_mozilla_buffer_create()
   ret->write_file = fopen(ret->filename, "w");
   ret->read_file = fopen(ret->filename, "r");
 
-  //  fprintf(stderr, "Tmp file: %s\n", ret->filename);
   
   ret->inotify_fd = inotify_init();
   ret->inotify_wd = inotify_add_watch(ret->inotify_fd,
@@ -95,35 +94,28 @@ static int handle_inotify(bg_mozilla_buffer_t * b, int to)
   FD_ZERO(&read_fds);
   FD_SET(b->inotify_fd, &read_fds);
   if(!select(b->inotify_fd+1, &read_fds, (fd_set*)0, (fd_set*)0,&timeout))
-    {
-    //        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Connection timed out");
     return 0;
-    }
-
-  //  fprintf(stderr, "inotify read...\n");
+  
   result = read(b->inotify_fd, buffer, BUF_LEN);
   
   if(result < 0)
-    {
-    //    fprintf(stderr, "inotify Read failed\n");
     return 0;
-    }
 
   i = 0;
   while ( i < result )
     {
     struct inotify_event *event =
       ( struct inotify_event * ) &buffer[ i ];
+#if 0
     if(event->mask & IN_MODIFY)
       {
-      //      fprintf(stderr, "inotify modified\n");
       }
+#endif
     if(event->mask & IN_CLOSE_WRITE)
       {
       inotify_rm_watch(b->inotify_fd, b->inotify_wd);
       close(b->inotify_fd);
       b->inotify_fd = -1;
-      //      fprintf(stderr, "inotify closed %08x %s\n", event->mask, event->name);
       }
     i += EVENT_SIZE + event->len;
     }
@@ -170,10 +162,7 @@ int bg_mozilla_buffer_read(void * b1,
 /* b is a bg_mozilla_buffer_t */
 int bg_mozilla_buffer_write(bg_mozilla_buffer_t * b,
                             void * data1, int len)
-     //int bg_mozilla_buffer_read(void * b1,
-     //                           uint8_t * data, int len)
   {
-  //  fprintf(stderr, "Write: %ld %d\n", ftell(b->write_file), len);
   if(!len)
     {
     fclose(b->write_file);

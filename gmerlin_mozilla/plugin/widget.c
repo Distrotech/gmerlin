@@ -26,6 +26,8 @@
 #include <gdk/gdkkeysyms.h>
 #include <string.h>
 
+#define LOG_DOMAIN "widget"
+
 #define TOOLBAR_VISIBLE 0
 #define TOOLBAR_HIDING  1
 #define TOOLBAR_HIDDEN  2
@@ -168,7 +170,6 @@ static void window_size_allocate(GtkWidget     *widget,
   bg_mozilla_widget_t * w;
   int pixbuf_width, pixbuf_height;
   w = user_data;
-  // fprintf(stderr, "window_size_allocate: %d x %d\n", a->width, a->height);
 
   if((a->width == w->fullscreen_win.width) && (a->height == w->fullscreen_win.height))
     return;
@@ -244,7 +245,6 @@ static void size_allocate(GtkWidget     *widget,
                    (win->height - pixbuf_height)/2);
     }
   
-  //  fprintf(stderr, "size_allocate: %d x %d\n", a->width, a->height);
 
   g_signal_handler_block(win->box, win->resize_id);
   if(win == w->current_win)
@@ -294,10 +294,6 @@ static gboolean button_press_callback(GtkWidget * wid, GdkEventButton * evt,
   GTK_WIDGET_SET_FLAGS(w->current_win->socket, GTK_CAN_FOCUS);
   gtk_widget_grab_focus(w->current_win->socket);
   
-  //   fprintf(stderr, "button_press_callback %d\n", evt->button);
-
-  //  fprintf(stderr, "button_press_callback %d %s %p\n", w->m->ei.mode,
-  //          w->m->ei.href, w->m->open_url);
 
   show_toolbar(w);
   return TRUE;
@@ -311,7 +307,6 @@ static gboolean button_release_callback(GtkWidget * wid, GdkEventButton * evt,
   w = data;
   //  show_toolbar(w);
   w->idle_counter = 0;
-  //  fprintf(stderr, "button_release_callback %d\n", evt->button);
   if(evt->button == 3)
     {
     w->popup_time = evt->time;
@@ -323,7 +318,6 @@ static gboolean button_release_callback(GtkWidget * wid, GdkEventButton * evt,
     if((w->m->ei.href) &&
        (w->m->open_url))
       {
-      fprintf(stderr, "Opening url %s\n", w->m->ei.href);
       g_idle_add(open_link, w);
       }
     }
@@ -337,7 +331,6 @@ static gboolean key_press_callback(GtkWidget * wid, GdkEventKey * evt,
   {
   bg_mozilla_widget_t * w;
   w = data;
-  // fprintf(stderr, "key_press_callback\n");
 
   switch(evt->keyval)
     {
@@ -485,19 +478,16 @@ void bg_mozilla_handle_message(bg_mozilla_t * m,
       switch(arg_i)
         {
         case BG_PLAYER_STATE_PAUSED:
-          //          fprintf(stderr, "State: Paused\n");
           gtk_widget_hide(bg_gtk_button_get_widget(w->pause_button));
           gtk_widget_show(bg_gtk_button_get_widget(w->play_button));
           break;
         case BG_PLAYER_STATE_SEEKING:
-          fprintf(stderr, "State: Seeking\n");
           break;
         case BG_PLAYER_STATE_ERROR:
           bg_mozilla_widget_set_error(w);
           break;
         case BG_PLAYER_STATE_BUFFERING:
           arg_f = bg_msg_get_arg_float(msg, 1);
-          // fprintf(stderr, "State: Buffering\n");
           tmp_string = bg_sprintf("Buffering: %d %%", (int)(100.0 * arg_f + 0.5));
           bg_gtk_scrolltext_set_text(w->scrolltext, tmp_string,
                                      w->fg_normal, w->bg);
@@ -522,7 +512,6 @@ void bg_mozilla_handle_message(bg_mozilla_t * m,
           
           gtk_widget_hide(bg_gtk_button_get_widget(w->play_button));
           resize_toolbar(w);
-          // fprintf(stderr, "State: Playing %d\n", w->can_pause);
           break;
         case BG_PLAYER_STATE_STOPPED:
         case BG_PLAYER_STATE_CHANGING:
@@ -539,9 +528,6 @@ void bg_mozilla_handle_message(bg_mozilla_t * m,
             gtk_widget_show(w->normal_win.logo_image);
             gtk_widget_show(w->fullscreen_win.logo_image);
             
-            // w->m->is_local = 0;
-            fprintf(stderr, "State: Stopped\n");
-
             if(w->can_pause)
               gtk_widget_hide(bg_gtk_button_get_widget(w->pause_button));
             else
@@ -584,9 +570,9 @@ static gboolean idle_callback(void * data)
     if(w->m->start_finished)
       {
       w->m->start_finished = 0;
-      fprintf(stderr, "Joining start thread...");
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Joining start thread...");
       pthread_join(w->m->start_thread, (void**)0);
-      fprintf(stderr, "done\n");
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Joining start thread done");
       if(!w->m->ti)
         w->m->state = STATE_ERROR;
       else
@@ -627,32 +613,6 @@ static void plug_added_callback(GtkWidget * w, gpointer data)
   gtk_widget_grab_focus(w);
   }
 
-#if 0
-static void grab_notify_callback(GtkWidget *widget,
-                                 gboolean   was_grabbed,
-                                 gpointer   data)
-  {
-  bg_mozilla_widget_t * w = data;
-  fprintf(stderr, "grab notify %d\n", was_grabbed);
-  if(!was_grabbed)
-    {
-    GTK_WIDGET_SET_FLAGS(w->current_win->socket, GTK_CAN_FOCUS);
-    gtk_widget_grab_focus(w->current_win->socket);
-    }
-  }
-
-
-static void focus_callback(GtkWidget *widget,
-                           GdkEventFocus *event,
-                           gpointer   data)
-  {
-  //  bg_mozilla_widget_t * w = data;
-  if(event->in)
-    fprintf(stderr, "Focus in\n");
-  else
-    fprintf(stderr, "Focus out\n");
-  }
-#endif
 
 static void volume_leave_notify_callback(GtkWidget * w, GdkEventCrossing *event,
                                          gpointer data)
@@ -913,8 +873,6 @@ void bg_mozilla_widget_set_window(bg_mozilla_widget_t * w,
                (long unsigned int)gtk_socket_get_id(GTK_SOCKET(w->normal_win.socket)),
                (long unsigned int)gtk_socket_get_id(GTK_SOCKET(w->fullscreen_win.socket)));
 
-  //  fprintf(stderr, "Got display string: %s\n",
-  //          w->m->display_string);
   
   if(w->m->ov_info)
     {
@@ -926,7 +884,6 @@ void bg_mozilla_widget_set_window(bg_mozilla_widget_t * w,
     
     w->m->ov_handle = bg_ov_plugin_load(w->m->plugin_reg, w->m->ov_info,
                                         w->m->display_string);
-    //    fprintf(stderr, "Loaded OV %s\n", w->m->ov_handle->info->name);
     bg_player_set_ov_plugin(w->m->player, w->m->ov_handle);
     }
   w->idle_id = g_timeout_add(50, idle_callback, (gpointer)w);

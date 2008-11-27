@@ -114,9 +114,11 @@ void gmerlin_mozilla_destroy(bg_mozilla_t* m)
   /* If the start thread is running, wait until it exits */
   if(m->state == STATE_STARTING)
     {
-    fprintf(stderr, "Waiting for start thread...");
+    bg_log(BG_LOG_INFO, LOG_DOMAIN,
+           "Waiting for start thread...");
     pthread_join(m->start_thread, (void**)0);
-    fprintf(stderr, "Waiting for start thread done\n");
+    bg_log(BG_LOG_INFO, LOG_DOMAIN,
+           "Waiting for start thread done");
     }
   /* Shutdown player */
   bg_player_quit(m->player);
@@ -226,7 +228,7 @@ int gmerlin_mozilla_set_stream(bg_mozilla_t * m,
   m->url      = bg_strdup(m->url, url); 
   m->mimetype = bg_strdup(m->mimetype, mimetype);
   m->total_bytes = total_bytes;
-  fprintf(stderr, "Set URL: %s %s\n", m->url, m->mimetype);
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Got URL: %s %s", m->url, m->mimetype);
   
   if(!strncmp(url, "file://", 7) || (url[0] == '/'))
     {
@@ -271,7 +273,7 @@ static int append_url(bg_mozilla_t * m, const char * url,
                            (const bg_plugin_info_t *)0,
                            &h, (bg_input_callbacks_t*)0, 0))
     {
-    fprintf(stderr, "Loading URL failed\n");
+    bg_log(BG_LOG_ERROR , LOG_DOMAIN, "Loading URL failed");
     return 0;
     }
   input = (bg_input_plugin_t *)h->plugin;
@@ -294,7 +296,9 @@ static int append_url(bg_mozilla_t * m, const char * url,
         return 0;
         }
       
-      fprintf(stderr, "%s is redirector to %s (depth: %d)\n", url, ti->url, depth);
+      bg_log(BG_LOG_ERROR , LOG_DOMAIN,
+             "%s is redirector to %s (depth: %d)",
+             url, ti->url, depth);
       if(!append_url(m, ti->url, depth+1))
         {
         bg_plugin_unref(h);
@@ -308,7 +312,6 @@ static int append_url(bg_mozilla_t * m, const char * url,
         m->url_mode = URL_MODE_REDIRECT;
         do_play(m, url, i, ti, h);
         }
-      //      fprintf(stderr, "%s is real stream\n", url);
       }
     }
   bg_plugin_unref(h);
@@ -325,7 +328,6 @@ static void * start_func(void * priv)
   bg_mozilla_t * m = priv;
   bg_plugin_handle_t * h = (bg_plugin_handle_t *)0;
   m->playing = 0;
-  //  fprintf(stderr, "gmerlin_mozilla_start\n");
 
   /* Cleanup earlier playback */
   if(m->input_handle)
@@ -344,7 +346,6 @@ static void * start_func(void * priv)
   
   if(!num)
     {
-    fprintf(stderr, "No plugin\n");
     goto fail;
     }
   info = bg_plugin_find_by_index(m->plugin_reg, 0,
@@ -359,7 +360,6 @@ static void * start_func(void * priv)
 
   if(!num)
     {
-    fprintf(stderr, "No plugin\n");
     goto fail;
     }
   
@@ -367,8 +367,6 @@ static void * start_func(void * priv)
   
   if(m->url_mode == URL_MODE_STREAM)
     {
-    //  fprintf(stderr, "Open stream\n");
-
     if(!input->open_callbacks)
       {
       bg_plugin_unref(h);
@@ -381,21 +379,15 @@ static void * start_func(void * priv)
                               m->buffer, m->url, m->mimetype, m->total_bytes))
       {
       bg_mozilla_widget_set_error(m->widget);
-      
-      //      bg_plugin_unref(h);
-      //      fprintf(stderr, "Open callbacks failed\n");
       goto fail;
       }
     h->location = bg_strdup(h->location, m->url);
     }
   else
     {
-    //    fprintf(stderr, "Open local\n");
     if(!input->open(h->priv, m->url))
       {
       bg_mozilla_widget_set_error(m->widget);
-      //      bg_plugin_unref(h);
-      //      fprintf(stderr, "Open failed\n");
       goto fail;
       }
     }

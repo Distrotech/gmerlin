@@ -101,7 +101,6 @@ static void clipboard_clear_func(GtkClipboard *clipboard,
   bg_mozilla_t * w = (bg_mozilla_t*)data;
   if(w->clipboard)
     {
-    fprintf(stderr, "Deleting clipboard...\n");
     bg_album_entries_destroy(w->clipboard);
     w->clipboard = (bg_album_entry_t*)0;
     }
@@ -125,14 +124,11 @@ static void do_copy(bg_mozilla_t * m)
   
   if(m->clipboard)
     {
-    fprintf(stderr, "Deleting clipboard...\n");
     bg_album_entries_destroy(m->clipboard);
     m->clipboard = (bg_album_entry_t*)0;
-    fprintf(stderr, "Deleting clipboard done\n");
     }
   if(m->ti && m->current_url)
     {
-    fprintf(stderr, "New clipboard\n");
     m->clipboard = bg_album_entry_create_from_track_info(m->ti,
                                                          m->current_url);
     }

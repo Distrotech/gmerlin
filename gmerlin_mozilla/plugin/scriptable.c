@@ -22,6 +22,9 @@
 #include <gmerlin_mozilla.h>
 #include <string.h>
 
+#include <gmerlin/log.h>
+#define LOG_DOMAIN "scriptable"
+
 #define SCRIPT_PLAY           0
 #define SCRIPT_STOP           1
 #define SCRIPT_PAUSE          2
@@ -99,7 +102,8 @@ static bool scriptable_hasMethod(NPObject * npobj, const NPIdentifier name)
   func = find_func(name);
   if(func < 0)
     {
-    fprintf(stderr, "Has method %s\n", bg_NPN_UTF8FromIdentifier(name));
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Has method %s",
+           bg_NPN_UTF8FromIdentifier(name));
     return false;
     }
   return true;
@@ -125,7 +129,6 @@ static bool scriptable_invoke(NPObject * npobj,
   switch(func)
     {
     case SCRIPT_PLAY:
-      fprintf(stderr, "Play\n");
       bg_mozilla_play(m);
       break;
     case SCRIPT_STOP:
@@ -146,7 +149,6 @@ static bool scriptable_invoke(NPObject * npobj,
       break;
     }
   
-  // fprintf(stderr, "Invoke %s\n", bg_NPN_UTF8FromIdentifier(name));
   return false;
   }
 
@@ -155,7 +157,6 @@ static bool scriptable_invokeDefault(NPObject * npobj,
                                      uint32_t argCount,
                                      NPVariant * result)
   {
-  fprintf(stderr, "Invoke default\n");
   return false;
   }
 
@@ -170,8 +171,9 @@ static bool scriptable_hasProperty(NPObject * npobj,
   
   if(!strcmp(bg_NPN_UTF8FromIdentifier(name), "id"))
     return m->ei.id ? true : false;
-  
-  fprintf(stderr, "Has property %s\n", bg_NPN_UTF8FromIdentifier(name));
+
+  bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Has property %s",
+         bg_NPN_UTF8FromIdentifier(name));
   return false;
   }
 
@@ -196,8 +198,6 @@ static bool scriptable_getProperty(NPObject * npobj,
   s = (Scriptable *)npobj;
   m = s->npp->pdata;
 
-  fprintf(stderr, "Get property %s\n", bg_NPN_UTF8FromIdentifier(name));
-
   if(!strcmp(bg_NPN_UTF8FromIdentifier(name), "id"))
     {
     set_variant_string(result, m->ei.id);
@@ -210,7 +210,6 @@ static bool scriptable_setProperty(NPObject * npobj,
                                    NPIdentifier name,
                                    const NPVariant * value)
   {
-  fprintf(stderr, "Set property %s\n", bg_NPN_UTF8FromIdentifier(name));
   return false;
   }
 

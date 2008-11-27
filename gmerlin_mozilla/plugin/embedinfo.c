@@ -44,8 +44,6 @@ void bg_mozilla_embed_info_set_parameter(bg_mozilla_embed_info_t * e,
 
 int bg_mozilla_embed_info_check(bg_mozilla_embed_info_t * e)
   {
-  //  fprintf(stderr, "Mode: %d, target: %s\n", 
-  //          e->mode, e->target);
   if(e->mode == MODE_REAL)
     {
     if((e->controls &&
