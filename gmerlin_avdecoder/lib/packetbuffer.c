@@ -88,8 +88,13 @@ bgav_packet_t * bgav_packet_buffer_peek_packet_read(bgav_packet_buffer_t * b, in
     {
     if(!b->read_packet->valid || !b->read_packet->next->valid)
       return (bgav_packet_t*)0; 
-    b->read_packet->duration =
-      b->read_packet->next->pts - b->read_packet->pts;
+    if((b->read_packet->dts != BGAV_TIMESTAMP_UNDEFINED) &&
+       (b->read_packet->next->dts != BGAV_TIMESTAMP_UNDEFINED))
+      b->read_packet->duration =
+        b->read_packet->next->dts - b->read_packet->dts;
+    else
+      b->read_packet->duration =
+        b->read_packet->next->dts - b->read_packet->dts;
     }
   else if(!b->read_packet->valid)
     return (bgav_packet_t*)0;

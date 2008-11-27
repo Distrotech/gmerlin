@@ -420,6 +420,9 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
   int keyframe = 1;
   int adpcm_bits;
   uint8_t tmp_8;
+  int32_t cts;
+  int has_cts = 0;
+
   priv = (flv_priv_t *)(ctx->priv);
 
   position = ctx->input->position;
@@ -598,7 +601,7 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
         case 7:
           s->fourcc = FOURCC_H264;
           priv->need_video_extradata = 1;
-          s->data.video.wrong_b_timestamps = 1;
+          //          s->data.video.wrong_b_timestamps = 1;
           break;
         default: /* Set some nonsense so we can finish initializing */
           s->fourcc = BGAV_MK_FOURCC('?', '?', '?', '?');
@@ -648,14 +651,13 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
 
     if(s->fourcc == FOURCC_H264)
       {
-#if 0
-      int32_t cts;
+#if 1
       if(!bgav_input_read_24_be(ctx->input, &cts))
         return 0;
-      cts = (cts + 0xff800000)^0xff800000; // sign extension
-      t.timestamp += cts;
+      //  cts = (cts + 0xff800000)^0xff800000; // sign extension
+      //      t.timestamp += cts;
       packet_size -= 3;
-      fprintf(stderr, "H264 CTS: %d, PTS: %d DTS: %d\n", cts, t.timestamp, t.timestamp - cts);
+      has_cts = 1;
 #else
       bgav_input_skip(ctx->input, 3);
       packet_size -= 3;
@@ -710,8 +712,15 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
         }
       }
     else
-      p->pts = t.timestamp;
-    
+      {
+      if(!has_cts)
+        p->pts = t.timestamp;
+      else
+        {
+        p->dts = t.timestamp;
+        p->pts = t.timestamp + cts;
+        }
+      }
     if(s->in_time < 0)
       s->in_time = p->pts;
     
