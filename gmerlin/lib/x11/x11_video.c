@@ -143,6 +143,9 @@ void bg_x11_window_cleanup_video(bg_x11_window_t * w)
 
 /* For Video output */
 
+#define PAD_SIZE 16
+#define PAD(sz) (((sz+PAD_SIZE-1) / PAD_SIZE) * PAD_SIZE)
+
 int bg_x11_window_open_video(bg_x11_window_t * w,
                              gavl_video_format_t * format)
   {
@@ -162,6 +165,11 @@ int bg_x11_window_open_video(bg_x11_window_t * w,
   
   gavl_video_format_copy(&w->video_format, format);
 
+  /* Pad sizes, which might screw up some drivers */
+
+  w->video_format.frame_width = PAD(w->video_format.frame_width);
+  w->video_format.frame_height = PAD(w->video_format.frame_height);
+  
   if(w->auto_resize)
     {
     bg_x11_window_resize(w,
