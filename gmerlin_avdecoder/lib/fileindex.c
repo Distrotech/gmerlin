@@ -608,11 +608,15 @@ static void flush_stream_pts(bgav_stream_t * s, int force)
   while(bgav_demuxer_peek_packet_read(s->demuxer, s, force))
     {
     p = bgav_demuxer_get_packet_read(s->demuxer, s);
-    
-    if(p->pts != BGAV_TIMESTAMP_UNDEFINED)
+    /* We don't output B-Frames */
+    if((p->pts != BGAV_TIMESTAMP_UNDEFINED) &&
+       (p->pts >= s->out_time))
       {
       bgav_file_index_append_packet(s->file_index,
                                     p->position, p->pts, p->keyframe);
+      s->out_time = p->pts;
+      if(p->pts > s->duration)
+        s->duration = p->pts;
       }
     bgav_demuxer_done_packet_read(s->demuxer, p);
     }

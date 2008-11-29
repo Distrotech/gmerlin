@@ -94,7 +94,7 @@ bgav_packet_t * bgav_packet_buffer_peek_packet_read(bgav_packet_buffer_t * b, in
         b->read_packet->next->dts - b->read_packet->dts;
     else
       b->read_packet->duration =
-        b->read_packet->next->dts - b->read_packet->dts;
+        b->read_packet->next->pts - b->read_packet->pts;
     }
   else if(!b->read_packet->valid)
     return (bgav_packet_t*)0;

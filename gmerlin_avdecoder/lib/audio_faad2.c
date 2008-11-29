@@ -71,8 +71,8 @@ typedef struct
   
   gavl_audio_frame_t * frame;
   int last_block_size;
-
-  int frame_start; /* Lower 3 bits */
+  
+  int64_t last_position; /* For parsing only */
   
   } faad_priv_t;
 
@@ -152,28 +152,18 @@ static int decode_frame(bgav_stream_t * s)
   {
   faacDecFrameInfo frame_info;
   faad_priv_t * priv;
-  
+  int parse = (s->action == BGAV_STREAM_PARSE);
+    
   priv = (faad_priv_t *)(s->data.audio.decoder->priv);
 
   memset(&frame_info, 0, sizeof(&frame_info));
   
   if(priv->buf.size < FAAD_MIN_STREAMSIZE)
-    if(!get_data(s))
+    if(parse || !get_data(s))
       return 0;
 
-  /*
-   * Dirty trick: Frames from some mp4 files are randomly padded with
-   * one byte, padding bits are (hopefully always) set to zero.
-   * This enables playback of BigBounc1960_256kb.mp4
-   */
-#if 0
-  if(priv->frame_start < 0)
-    priv->frame_start = priv->buf.buffer[0] & 0x0f;
-  else if((priv->buf.buffer[0] & 0x0f) != priv->frame_start)
-    {
-    bgav_bytebuffer_remove(&priv->buf, 1);
-    }
-#endif
+  priv->last_block_size = 0;
+  
   while(1)
     {
 #ifdef DUMP_DECODE
@@ -198,7 +188,7 @@ static int decode_frame(bgav_stream_t * s)
       {
       if(frame_info.error == 14) /* Too little data */
         {
-        if(!get_data(s))
+        if(parse || !get_data(s))
           return 0;
         }
       else
@@ -207,7 +197,7 @@ static int decode_frame(bgav_stream_t * s)
                  "faacDecDecode failed %s",
                  faacDecGetErrorMessage(frame_info.error));
         bgav_bytebuffer_flush(&priv->buf);
-        if(!get_data(s))
+        if(parse || !get_data(s))
           return 0;
         //    priv->data_size = 0;
         //    priv->frame->valid_samples = 0;
@@ -217,6 +207,16 @@ static int decode_frame(bgav_stream_t * s)
     else
       break;
     }
+
+  /* If decoding didn't fail, we might have some silent samples.
+     faad2 seems to be reporting 0 samples in this case :( */
+  
+  if(!frame_info.samples)
+    priv->frame->valid_samples = s->data.audio.format.samples_per_frame;
+  else
+    priv->frame->valid_samples = frame_info.samples  / s->data.audio.format.num_channels;
+  priv->last_block_size = priv->frame->valid_samples;
+  
   if(s->data.audio.format.channel_locations[0] == GAVL_CHID_NONE)
     {
     set_channel_setup(&frame_info,
@@ -250,14 +250,6 @@ static int decode_frame(bgav_stream_t * s)
       }
     }
 
-  /* If decoding didn't fail, we might have some silent samples.
-     faad2 seems to be reporting 0 samples in this case :( */
-  
-  if(!frame_info.samples)
-    priv->frame->valid_samples = s->data.audio.format.samples_per_frame;
-  else
-    priv->frame->valid_samples = frame_info.samples  / s->data.audio.format.num_channels;
-  priv->last_block_size = priv->frame->valid_samples;
     
   return 1;
   }
@@ -273,7 +265,6 @@ static int init_faad2(bgav_stream_t * s)
   priv = calloc(1, sizeof(*priv));
   priv->dec = faacDecOpen();
   priv->frame = gavl_audio_frame_create(NULL);
-  priv->frame_start = -1;
   s->data.audio.decoder->priv = priv;
   
   /* Init the library using a DecoderSpecificInfo */
@@ -318,10 +309,12 @@ static int init_faad2(bgav_stream_t * s)
   // cfg->outputFormat = FAAD_FMT_16BIT;
   faacDecSetConfiguration(priv->dec, cfg);
 
-  /* Decode a first frame to get the channel setup and the description */
-  if(!decode_frame(s))
-    return 0;
-    
+  if(s->action != BGAV_STREAM_PARSE)
+    {
+    /* Decode a first frame to get the channel setup and the description */
+    if(!decode_frame(s))
+      return 0;
+    }
   return 1;
   }
 
@@ -387,6 +380,55 @@ static void resync_faad2(bgav_stream_t * s)
   bgav_bytebuffer_flush(&priv->buf);
   }
 
+static void parse_faad2(bgav_stream_t * s)
+  {
+  bgav_packet_t * p;
+  faad_priv_t * priv;
+  int old_buffer_size;
+  int64_t position;
+
+  priv = s->data.audio.decoder->priv;
+  
+  while(bgav_demuxer_peek_packet_read(s->demuxer, s, 0))
+    {
+    /* Get the packet and append data to the buffer */
+    p = bgav_demuxer_get_packet_read(s->demuxer, s);
+
+    old_buffer_size = priv->buf.size;
+
+    bgav_bytebuffer_append(&priv->buf, p, 0);
+    position = p->position;
+    bgav_demuxer_done_packet_read(s->demuxer, p);
+    
+    
+    while(priv->buf.size >= FAAD_MIN_STREAMSIZE)
+      {
+      if(!decode_frame(s))
+        break;
+      
+      /* If frame starts in the previous packet,
+         use the previous index */
+      if(old_buffer_size)
+        {
+        bgav_file_index_append_packet(s->file_index,
+                                      priv->last_position,
+                                      s->duration,
+                                      1);
+        old_buffer_size = 0;
+        }
+      else
+        bgav_file_index_append_packet(s->file_index,
+                                      position,
+                                      s->duration,
+                                      1);
+      
+      s->duration += priv->last_block_size;
+      }
+    priv->last_position = position;
+    }
+  }
+
+
 static bgav_audio_decoder_t decoder =
   {
     .name =   "FAAD AAC audio decoder",
@@ -401,6 +443,7 @@ static bgav_audio_decoder_t decoder =
     
     .init =   init_faad2,
     .decode = decode_faad2,
+    .parse = parse_faad2,
     .close =  close_faad2,
     .resync =  resync_faad2
   };

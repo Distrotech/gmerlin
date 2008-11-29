@@ -551,7 +551,8 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
           break;
         case 10:
           s->fourcc = FOURCC_AAC;
-          ctx->index_mode = 0;
+          s->index_mode = INDEX_MODE_MPEG;
+          // ctx->index_mode = 0;
           priv->need_audio_extradata = 1;
           break;
         default: /* Set some nonsense so we can finish initializing */
@@ -922,7 +923,7 @@ static int open_flv(bgav_demuxer_context_t * ctx)
     if(ctx->tt->cur->duration != GAVL_TIME_UNDEFINED)
       {
       ctx->tt->cur->video_streams->index_mode = INDEX_MODE_PTS;
-      ctx->tt->cur->video_streams->duration = gavl_time_scale(1000, ctx->tt->cur->duration);
+      ctx->tt->cur->video_streams->duration = 0;
       }
     else
       ctx->index_mode = 0;
