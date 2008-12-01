@@ -44,6 +44,17 @@
 #define DEINTERLACE_AUTO   1
 #define DEINTERLACE_ALWAYS 2
 
+typedef enum
+  {
+    CHROMA_OUT_FROM_SOURCE,
+    CHROMA_OUT_444,
+    CHROMA_OUT_422,
+    CHROMA_OUT_420_MPEG1,
+    CHROMA_OUT_420_MPEG2,
+    CHROMA_OUT_420_PALDV,
+    CHROMA_OUT_411,
+  } chroma_out_mode_t;
+
 typedef struct
   {
   /* Parameters */
@@ -84,6 +95,7 @@ typedef struct
   
   float zoom, squeeze;
   
+  chroma_out_mode_t chroma_out_mode;
   } cropscale_priv_t;
 
 static void * create_cropscale()
@@ -381,6 +393,32 @@ static const bg_parameter_info_t parameters[] =
       .help_string = TRS("Lower quality means more speed. Values above 3 enable slow high quality calculations.")
     },
     {
+      .name =      "chroma_output",
+      .long_name = TRS("Chroma output"),
+      .type =      BG_PARAMETER_STRINGLIST,
+      .flags =     BG_PARAMETER_SYNC,
+      .multi_names =
+      (char const *[]){ "from_input",
+                        "444",
+                        "422",
+                        "420mpeg1",
+                        "420mpeg2",
+                        "420paldv",
+                        "411",
+                        (char*)0 },
+      .multi_labels =
+      (char const *[]){ TRS("From Source"),
+                        TRS("4:4:4"),
+                        TRS("4:2:2"),
+                        TRS("4:2:0 (MPEG-1)"),
+                        TRS("4:2:0 (MPEG-2)"),
+                        TRS("4:2:0 (DV PAL)"),
+                        TRS("4:1:1"),
+                        (char*)0 },
+      .val_default = { .val_str = "from_input" },
+      .help_string = TRS("Set the output chroma format to that of the destination. This can save one chroma scaling operation at a later stage. It only works if the input pixelformat is otherwise compatible to the output."),
+    },
+    {
       .name = "deinterlace_section",
       .long_name = TRS("Deinterlace"),
       .type = BG_PARAMETER_SECTION,
@@ -527,6 +565,7 @@ static void set_parameter_cropscale(void * priv, const char * name,
   gavl_deinterlace_drop_mode_t new_drop_mode;
   gavl_scale_mode_t new_scale_mode;
   gavl_downscale_filter_t new_downscale_filter;
+  chroma_out_mode_t new_chroma_out_mode;
   
   vp = (cropscale_priv_t *)priv;
 
@@ -689,6 +728,39 @@ static void set_parameter_cropscale(void * priv, const char * name,
       vp->need_reinit = 1;
       }
     }
+  else if(!strcmp(name, "chroma_output"))
+    {
+    new_chroma_out_mode = CHROMA_OUT_FROM_SOURCE;
+    if(!strcmp(val->val_str, "444"))
+      {
+      new_chroma_out_mode = CHROMA_OUT_444;
+      }
+    else if(!strcmp(val->val_str, "422"))
+      {
+      new_chroma_out_mode = CHROMA_OUT_422;
+      }
+    else if(!strcmp(val->val_str, "420mpeg1"))
+      {
+      new_chroma_out_mode = CHROMA_OUT_420_MPEG1;
+      }
+    else if(!strcmp(val->val_str, "420mpeg2"))
+      {
+      new_chroma_out_mode = CHROMA_OUT_420_MPEG2;
+      }
+    else if(!strcmp(val->val_str, "420paldv"))
+      {
+      new_chroma_out_mode = CHROMA_OUT_420_PALDV;
+      }
+    else if(!strcmp(val->val_str, "411"))
+      {
+      new_chroma_out_mode = CHROMA_OUT_411;
+      }
+    if(new_chroma_out_mode != vp->chroma_out_mode)
+      {
+      vp->chroma_out_mode = new_chroma_out_mode;
+      vp->need_restart = 1;
+      }
+    }
   else if(!strcmp(name, "deinterlace"))
     {
     new_deinterlace = DEINTERLACE_NEVER;
@@ -822,6 +894,291 @@ static void connect_input_port_cropscale(void * priv,
     }
   }
 
+static void set_out_format(cropscale_priv_t * vp)
+  {
+  vp->out_format.pixelformat = vp->in_format.pixelformat;
+  vp->out_format.chroma_placement = vp->in_format.chroma_placement;
+  switch(vp->in_format.pixelformat)
+    {
+    case GAVL_GRAY_8:
+    case GAVL_GRAYA_16:
+    case GAVL_GRAY_16:
+    case GAVL_GRAYA_32:
+    case GAVL_GRAY_FLOAT:
+    case GAVL_GRAYA_FLOAT:
+    case GAVL_RGB_15:
+    case GAVL_BGR_15:
+    case GAVL_RGB_16:
+    case GAVL_BGR_16:
+    case GAVL_RGB_24:
+    case GAVL_BGR_24:
+    case GAVL_RGB_32:
+    case GAVL_BGR_32:
+    case GAVL_RGBA_32:
+    case GAVL_RGB_48:
+    case GAVL_RGBA_64:
+    case GAVL_RGB_FLOAT:
+    case GAVL_RGBA_FLOAT:
+    case GAVL_PIXELFORMAT_NONE:
+    case GAVL_YUVA_32:
+    case GAVL_YUVA_64:
+    case GAVL_YUV_FLOAT:
+    case GAVL_YUVA_FLOAT:
+      break;
+    case GAVL_YUV_444_P:
+      switch(vp->chroma_out_mode)
+        {
+        case CHROMA_OUT_FROM_SOURCE:
+        case CHROMA_OUT_444:
+          break;
+        case CHROMA_OUT_422:
+          vp->out_format.pixelformat = GAVL_YUV_422_P;
+          break;
+        case CHROMA_OUT_420_MPEG1:
+          vp->out_format.pixelformat      = GAVL_YUV_420_P;
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_DEFAULT;
+          break;
+        case CHROMA_OUT_420_MPEG2:
+          vp->out_format.pixelformat      = GAVL_YUV_420_P;
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_MPEG2;
+          break;
+        case CHROMA_OUT_420_PALDV:
+          vp->out_format.pixelformat      = GAVL_YUV_420_P;
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_DVPAL;
+          break;
+        case CHROMA_OUT_411:
+          vp->out_format.pixelformat      = GAVL_YUV_411_P;
+          break;
+        }
+      break;
+    case GAVL_YUVJ_444_P:
+      switch(vp->chroma_out_mode)
+        {
+        case CHROMA_OUT_FROM_SOURCE:
+        case CHROMA_OUT_444:
+        case CHROMA_OUT_411:
+          break;
+        case CHROMA_OUT_422:
+          vp->out_format.pixelformat = GAVL_YUVJ_422_P;
+          break;
+        case CHROMA_OUT_420_MPEG1:
+          vp->out_format.pixelformat      = GAVL_YUVJ_420_P;
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_DEFAULT;
+          break;
+        case CHROMA_OUT_420_MPEG2:
+          vp->out_format.pixelformat      = GAVL_YUVJ_420_P;
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_MPEG2;
+          break;
+        case CHROMA_OUT_420_PALDV:
+          vp->out_format.pixelformat      = GAVL_YUVJ_420_P;
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_DVPAL;
+          break;
+        }
+      break;
+    case GAVL_YUV_420_P:
+      switch(vp->chroma_out_mode)
+        {
+        case CHROMA_OUT_FROM_SOURCE:
+          break;
+        case CHROMA_OUT_444:
+          vp->out_format.pixelformat = GAVL_YUV_444_P;
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_DEFAULT;
+          break;
+        case CHROMA_OUT_422:
+          vp->out_format.pixelformat = GAVL_YUV_422_P;
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_DEFAULT;
+          break;
+        case CHROMA_OUT_420_MPEG1:
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_DEFAULT;
+          break;
+        case CHROMA_OUT_420_MPEG2:
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_MPEG2;
+          break;
+        case CHROMA_OUT_420_PALDV:
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_DVPAL;
+          break;
+        case CHROMA_OUT_411:
+          vp->out_format.pixelformat      = GAVL_YUV_411_P;
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_DEFAULT;
+          break;
+        }
+      break;
+    case GAVL_YUVJ_420_P:
+      switch(vp->chroma_out_mode)
+        {
+        case CHROMA_OUT_FROM_SOURCE:
+        case CHROMA_OUT_411:
+          break;
+        case CHROMA_OUT_444:
+          vp->out_format.pixelformat = GAVL_YUVJ_444_P;
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_DEFAULT;
+          break;
+        case CHROMA_OUT_422:
+          vp->out_format.pixelformat = GAVL_YUVJ_422_P;
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_DEFAULT;
+          break;
+        case CHROMA_OUT_420_MPEG1:
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_DEFAULT;
+          break;
+        case CHROMA_OUT_420_MPEG2:
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_MPEG2;
+          break;
+        case CHROMA_OUT_420_PALDV:
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_DVPAL;
+          break;
+        }
+      break;
+    case GAVL_YUV_422_P:
+    case GAVL_YUY2:
+    case GAVL_UYVY:
+      switch(vp->chroma_out_mode)
+        {
+        case CHROMA_OUT_FROM_SOURCE:
+        case CHROMA_OUT_422:
+          break;
+        case CHROMA_OUT_444:
+          vp->out_format.pixelformat = GAVL_YUV_444_P;
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_DEFAULT;
+          break;
+        case CHROMA_OUT_420_MPEG1:
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_DEFAULT;
+          vp->out_format.pixelformat      = GAVL_YUV_420_P;
+          break;
+        case CHROMA_OUT_420_MPEG2:
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_MPEG2;
+          vp->out_format.pixelformat      = GAVL_YUV_420_P;
+          break;
+        case CHROMA_OUT_420_PALDV:
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_DVPAL;
+          vp->out_format.pixelformat      = GAVL_YUV_420_P;
+          break;
+        case CHROMA_OUT_411:
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_DEFAULT;
+          vp->out_format.pixelformat      = GAVL_YUV_411_P;
+          break;
+        }
+      break;
+    case GAVL_YUVJ_422_P:
+      switch(vp->chroma_out_mode)
+        {
+        case CHROMA_OUT_FROM_SOURCE:
+        case CHROMA_OUT_422:
+        case CHROMA_OUT_411:
+          break;
+        case CHROMA_OUT_444:
+          vp->out_format.pixelformat = GAVL_YUVJ_444_P;
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_DEFAULT;
+          break;
+        case CHROMA_OUT_420_MPEG1:
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_DEFAULT;
+          vp->out_format.pixelformat      = GAVL_YUVJ_420_P;
+          break;
+        case CHROMA_OUT_420_MPEG2:
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_MPEG2;
+          vp->out_format.pixelformat      = GAVL_YUVJ_420_P;
+          break;
+        case CHROMA_OUT_420_PALDV:
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_DVPAL;
+          vp->out_format.pixelformat      = GAVL_YUVJ_420_P;
+          break;
+        }
+      break;
+    case GAVL_YUV_410_P:
+      switch(vp->chroma_out_mode)
+        {
+        case CHROMA_OUT_FROM_SOURCE:
+          break;
+        case CHROMA_OUT_422:
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_DEFAULT;
+          vp->out_format.pixelformat = GAVL_YUV_422_P;
+          break;
+        case CHROMA_OUT_444:
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_DEFAULT;
+          vp->out_format.pixelformat = GAVL_YUV_444_P;
+          break;
+        case CHROMA_OUT_420_MPEG1:
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_DEFAULT;
+          vp->out_format.pixelformat      = GAVL_YUV_420_P;
+          break;
+        case CHROMA_OUT_420_MPEG2:
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_MPEG2;
+          vp->out_format.pixelformat      = GAVL_YUV_420_P;
+          break;
+        case CHROMA_OUT_420_PALDV:
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_DVPAL;
+          vp->out_format.pixelformat      = GAVL_YUV_420_P;
+          break;
+        case CHROMA_OUT_411:
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_DEFAULT;
+          vp->out_format.pixelformat      = GAVL_YUV_411_P;
+          break;
+        }
+      break;
+    case GAVL_YUV_411_P:
+      switch(vp->chroma_out_mode)
+        {
+        case CHROMA_OUT_FROM_SOURCE:
+        case CHROMA_OUT_411:
+          break;
+        case CHROMA_OUT_422:
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_DEFAULT;
+          vp->out_format.pixelformat = GAVL_YUV_422_P;
+          break;
+        case CHROMA_OUT_444:
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_DEFAULT;
+          vp->out_format.pixelformat = GAVL_YUV_444_P;
+          break;
+        case CHROMA_OUT_420_MPEG1:
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_DEFAULT;
+          vp->out_format.pixelformat      = GAVL_YUV_420_P;
+          break;
+        case CHROMA_OUT_420_MPEG2:
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_MPEG2;
+          vp->out_format.pixelformat      = GAVL_YUV_420_P;
+          break;
+        case CHROMA_OUT_420_PALDV:
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_DVPAL;
+          vp->out_format.pixelformat      = GAVL_YUV_420_P;
+          break;
+        }
+      break;
+    case GAVL_YUV_444_P_16:
+      switch(vp->chroma_out_mode)
+        {
+        case CHROMA_OUT_FROM_SOURCE:
+        case CHROMA_OUT_411:
+        case CHROMA_OUT_444:
+        case CHROMA_OUT_420_MPEG1:
+        case CHROMA_OUT_420_MPEG2:
+        case CHROMA_OUT_420_PALDV:
+          break;
+        case CHROMA_OUT_422:
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_DEFAULT;
+          vp->out_format.pixelformat = GAVL_YUV_422_P_16;
+          break;
+        }
+      break;
+    case GAVL_YUV_422_P_16:
+      switch(vp->chroma_out_mode)
+        {
+        case CHROMA_OUT_FROM_SOURCE:
+        case CHROMA_OUT_411:
+        case CHROMA_OUT_420_MPEG1:
+        case CHROMA_OUT_420_MPEG2:
+        case CHROMA_OUT_420_PALDV:
+        case CHROMA_OUT_422:
+          break;
+        case CHROMA_OUT_444:
+          vp->out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_DEFAULT;
+          vp->out_format.pixelformat = GAVL_YUV_444_P_16;
+          break;
+        }
+      break;
+    }
+  }
+
+
+
 static void set_input_format_cropscale(void * priv, gavl_video_format_t * format, int port)
   {
   cropscale_priv_t * vp;
@@ -832,7 +1189,8 @@ static void set_input_format_cropscale(void * priv, gavl_video_format_t * format
     gavl_video_format_copy(&vp->in_format, format);
     gavl_video_format_copy(&vp->out_format, format);
     set_framesize(vp);
-
+    set_out_format(vp);
+    
     if(vp->deinterlace != DEINTERLACE_NEVER)
       vp->out_format.interlace_mode = GAVL_INTERLACE_NONE;
     

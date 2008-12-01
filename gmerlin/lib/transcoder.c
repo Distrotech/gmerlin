@@ -1458,7 +1458,7 @@ static int decode_subtitle_text(subtitle_text_stream_t * s, bg_transcoder_t * t)
 
 
 static int check_video_blend(video_stream_t * vs,
-                             bg_transcoder_t * t, gavl_time_t time)
+                             bg_transcoder_t * t, int64_t time)
   {
   gavl_overlay_t * tmp_ovl;
   int i;
@@ -1580,6 +1580,10 @@ static int video_iteration(video_stream_t * s, bg_transcoder_t * t)
   if(!result)
     {
     s->com.status = STREAM_STATE_FINISHED;
+
+    /* Set this also for all attached subtitle streams */
+    for(i = 0; i < s->num_subtitle_streams; i++)
+      s->subtitle_streams[i]->com.status = STREAM_STATE_FINISHED;
     return ret;
     }
 
@@ -1587,7 +1591,8 @@ static int video_iteration(video_stream_t * s, bg_transcoder_t * t)
                                   s->frame->timestamp);
 
   
-  if(check_video_blend(s, t, s->com.time))
+  //  if(check_video_blend(s, t, s->com.time))
+  if(check_video_blend(s, t, s->frame->timestamp))
     {
     for(i = 0; i < s->num_subtitle_streams; i++)
       {
@@ -3090,6 +3095,7 @@ static void subtitle_init_blend(subtitle_stream_t * ss, video_stream_t * vs)
   
   gavl_overlay_blend_context_init(ss->blend_context,
                                   &(vs->out_format), &(ss->in_format));
+  gavl_video_format_copy(&ss->out_format, &vs->out_format);
   }
 
 static void subtitle_init_encode_text(subtitle_text_stream_t * ss)

@@ -60,6 +60,18 @@ void bg_lqt_create_codec_info(bg_parameter_info_t * info,
   
   for(i = 0; i < num_codecs; i++)
     {
+    /* Warning: Taking the first codec will break if external
+       libquicktime codecs appear. Unlikely to happen though */
+    if(!info->gettext_domain)
+      {
+      info->gettext_domain =
+        bg_strdup(info->gettext_domain,
+                  codec_info[i]->gettext_domain);
+      info->gettext_directory =
+        bg_strdup(info->gettext_directory,
+                  codec_info[i]->gettext_directory);
+      }
+    
     lqt_parameter_info = (encode) ? codec_info[i]->encoding_parameters :
       codec_info[i]->decoding_parameters;
     num_parameters = (encode) ? codec_info[i]->num_encoding_parameters :
@@ -100,6 +112,16 @@ void bg_lqt_create_codec_info(bg_parameter_info_t * info,
     
     for(j = 0; j < num_parameters; j++)
       {
+      if(!j)
+        {
+        info->multi_parameters_nc[i][j].gettext_domain =
+          bg_strdup(info->multi_parameters_nc[i][j].gettext_domain,
+                    codec_info[i]->gettext_domain);
+        info->multi_parameters_nc[i][j].gettext_directory =
+          bg_strdup(info->multi_parameters_nc[i][j].gettext_directory,
+                    codec_info[i]->gettext_directory);
+        }
+      
       //      if(encode)
         info->multi_parameters_nc[i][j].name = bg_strdup(info->multi_parameters_nc[i][j].name,
                                                       lqt_parameter_info[j].name);
