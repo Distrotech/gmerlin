@@ -546,7 +546,7 @@ static int decode_picture(bgav_stream_t * s)
         if(!s->data.video.format.timecode_format.int_framerate)
           {
           bgav_dv_dec_get_timecode_format(priv->dvdec,
-                                          &s->data.video.format.timecode_format);
+                                          &s->data.video.format.timecode_format, s->opt);
           }
         }
       /* Extract timecodes */
@@ -2266,7 +2266,9 @@ static void get_format(AVCodecContext * ctx, gavl_video_format_t * format)
       format->pixel_height = ctx->width;
       format->image_width = ctx->width;
       }
-    if((ctx->codec_id == CODEC_ID_MPEG4) && (format->pixelformat == GAVL_YUV_420_P))
+    if(((ctx->codec_id == CODEC_ID_MPEG4) ||
+        (ctx->codec_id == CODEC_ID_H264)) &&
+       (format->pixelformat == GAVL_YUV_420_P))
       format->chroma_placement = GAVL_CHROMA_PLACEMENT_MPEG2;
     }
   

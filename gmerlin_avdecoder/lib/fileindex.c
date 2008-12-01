@@ -608,7 +608,7 @@ static void flush_stream_pts(bgav_stream_t * s, int force)
   while(bgav_demuxer_peek_packet_read(s->demuxer, s, force))
     {
     p = bgav_demuxer_get_packet_read(s->demuxer, s);
-    /* We don't output B-Frames */
+    /* We don't output B-Frames (recognizable by non-mobotone PTSes) */
     if((p->pts != BGAV_TIMESTAMP_UNDEFINED) &&
        (p->pts >= s->out_time))
       {

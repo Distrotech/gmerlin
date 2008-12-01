@@ -141,7 +141,7 @@ static const DVprofile dv_profiles[] = {
       .audio_stride = 108,
       .audio_min_samples = { 1896, 1742, 1264 }, /* for 48, 44.1 and 32Khz */
       .audio_samples_dist = { 1920, 1920, 1920, 1920, 1920 },
-      //      .audio_shuffle = dv_audio_shuffle625,
+      .audio_shuffle = dv_audio_shuffle625,
     },
     { .dsf = 1,
       .video_stype = 0x0,
@@ -489,10 +489,16 @@ void bgav_dv_dec_get_pixel_aspect(bgav_dv_dec_t * d, int * pixel_width, int * pi
   }
 
 void bgav_dv_dec_get_timecode_format(bgav_dv_dec_t * d,
-                                     gavl_timecode_format_t * tf)
+                                     gavl_timecode_format_t * tf,
+                                     const bgav_options_t * opt)
   {
+  gavl_timecode_t dummy;
   if(d->profile)
     {
+    if(!opt->dv_datetime &&
+       !bgav_dv_dec_get_timecode(d, &dummy))
+      return;
+    
     tf->int_framerate = d->profile->ltc_divisor;
     if(d->profile->frame_rate_base == 1001)
       tf->flags = GAVL_TIMECODE_DROP_FRAME;
@@ -641,7 +647,7 @@ static int dv_extract_audio(uint8_t* frame, uint8_t* ppcm[4],
             break;
     }
 
-    return size;
+    return size / 4;
 }
 
 
@@ -651,13 +657,14 @@ int bgav_dv_dec_get_audio_packet(bgav_dv_dec_t * d, bgav_packet_t * p)
 
   uint8_t * pcm[4];
 
-  for(i = 0; i < d->ach; i++)
-    pcm[i] = p->audio_frame->channels.u_8[i*2];
   
   if(p)
     {
     if(!p->audio_frame)
       p->audio_frame = gavl_audio_frame_create(&(d->audio_format));
+
+    for(i = 0; i < d->ach; i++)
+      pcm[i] = p->audio_frame->channels.u_8[i*2];
     
     samples = dv_extract_audio(d->buffer,
                                pcm, d->profile);

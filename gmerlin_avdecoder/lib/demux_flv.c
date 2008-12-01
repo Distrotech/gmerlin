@@ -653,7 +653,7 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
     if(s->fourcc == FOURCC_H264)
       {
 #if 1
-      if(!bgav_input_read_24_be(ctx->input, &cts))
+      if(!bgav_input_read_24_be(ctx->input, (uint32_t*)(&cts)))
         return 0;
       //  cts = (cts + 0xff800000)^0xff800000; // sign extension
       //      t.timestamp += cts;

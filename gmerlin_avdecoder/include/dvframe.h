@@ -56,7 +56,8 @@ void bgav_dv_dec_get_pixel_aspect(bgav_dv_dec_t*, int * pixel_width, int * pixel
 
 
 void bgav_dv_dec_get_timecode_format(bgav_dv_dec_t * d,
-                                     gavl_timecode_format_t * tf);
+                                     gavl_timecode_format_t * tf,
+                                     const bgav_options_t * opt);
 
 
 /* Set up audio and video streams */

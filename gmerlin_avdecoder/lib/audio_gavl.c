@@ -79,7 +79,7 @@ static int decode_gavl(bgav_stream_t * s,
         }
       priv->last_frame_samples = priv->p->audio_frame->valid_samples;
       }
-
+    
     /* Decode */
     samples_copied =
       gavl_audio_frame_copy(&(s->data.audio.format),
