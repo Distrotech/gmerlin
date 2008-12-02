@@ -833,18 +833,22 @@ static void do_apply(bg_cfg_section_t * section,
       {
       if(infos[num].type == BG_PARAMETER_MULTI_MENU)
         {
-        selected = 0;
-        while(infos[num].multi_names[selected] &&
-              strcmp(infos[num].multi_names[selected], item->value.val_str))
-          selected++;
-        if(infos[num].multi_names[selected] && infos[num].multi_parameters[selected])
+        if(item->value.val_str)
           {
-          subsection    = bg_cfg_section_find_subsection(section, infos[num].name);
-          subsubsection = bg_cfg_section_find_subsection(subsection,
-                                                         item->value.val_str);
-          do_apply(subsubsection,
-                   infos[num].multi_parameters[selected],
-                   func, callback_data, (const char*)0, terminate);
+          selected = 0;
+          while(infos[num].multi_names[selected] &&
+                strcmp(infos[num].multi_names[selected], item->value.val_str))
+            selected++;
+          if(infos[num].multi_names[selected] && infos[num].multi_parameters[selected])
+            {
+            subsection    = bg_cfg_section_find_subsection(section, infos[num].name);
+            subsubsection = bg_cfg_section_find_subsection(subsection,
+                                                           item->value.val_str);
+            do_apply(subsubsection,
+                     infos[num].multi_parameters[selected],
+                     func, callback_data, (const char*)0, terminate);
+            }
+
           }
         }
       else if(infos[num].type == BG_PARAMETER_MULTI_LIST)
