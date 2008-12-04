@@ -401,13 +401,14 @@ int main(int argc, char ** argv)
       if(bgav_subtitle_is_text(file, i))
         {
         fprintf(stderr, "Reading text subtitle from stream %d...", i+1);
-
+        
         if(bgav_read_subtitle_text(file, &sub_text, &sub_text_alloc,
                                    &sub_time, &sub_duration, i))
           {
           fprintf(stderr, "Done\nstart: %f, duration: %f\n%s\n",
-                  gavl_time_to_seconds(sub_time),
-                  gavl_time_to_seconds(sub_duration),
+                  gavl_time_to_seconds(gavl_time_unscale(video_format->timescale,
+                                                         sub_time)),
+                  gavl_time_to_seconds(gavl_time_unscale(video_format->timescale,sub_duration)),
                                        sub_text);
           }
         else
