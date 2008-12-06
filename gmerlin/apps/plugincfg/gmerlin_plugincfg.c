@@ -371,7 +371,7 @@ static app_window * create_window(bg_plugin_registry_t * reg)
   ret->encoder_pp_plugins =
     bg_gtk_plugin_widget_single_create("Postprocessor", reg,
                                        BG_PLUGIN_ENCODER_PP,
-                                       0);
+                                       BG_PLUGIN_PP);
   bg_gtk_plugin_widget_single_set_change_callback(ret->encoder_pp_plugins, set_encoder_pp, ret);
 
   bg_gtk_plugin_widget_single_set_sensitive(ret->encoder_pp_plugins, 0);
