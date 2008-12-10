@@ -30,6 +30,11 @@
 
 #pragma GCC visibility push(default)
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** \ingroup edl
  *  \brief Forward declaration
  */
@@ -1905,5 +1910,11 @@ void bgav_redirectors_dump();
  */
 
 void bgav_subreaders_dump();
+
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #pragma GCC visibility pop
