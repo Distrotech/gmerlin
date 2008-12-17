@@ -139,8 +139,9 @@ static const bg_parameter_info_t parameters[] =
       .val_max =     { .val_f = 100.0 },
       .val_default = { .val_f =  10.0 },
       .num_digits =  2,
-      .help_string = TRS("Set framerate width which still images will be redisplayed periodically"),
+      .help_string = TRS("Set framerate with which still images will be redisplayed periodically"),
     },
+    BG_GAVL_PARAM_THREADS,
     { /* End of parameters */ }
   };
 

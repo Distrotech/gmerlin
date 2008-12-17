@@ -99,6 +99,7 @@ streaminfo.c \
 stringutils.c \
 subprocess.c \
 textrenderer.c \
+threadpool.c \
 transcoder.c \
 transcoder_enc.c \
 transcoder_pp.c \

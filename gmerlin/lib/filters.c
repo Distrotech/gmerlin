@@ -638,7 +638,7 @@ int bg_video_filter_chain_init(bg_video_filter_chain_t * ch,
                                gavl_video_format_t * out_format)
   {
   int i;
-  
+  gavl_video_options_t * opt;
   gavl_video_format_t format_1;
   gavl_video_format_t format_2;
   video_filter_t * f;
@@ -664,6 +664,12 @@ int bg_video_filter_chain_init(bg_video_filter_chain_t * ch,
   for(i = 0; i < ch->num_filters; i++)
     {
     gavl_video_format_copy(&format_2, &format_1);
+
+    if(f->plugin->get_options)
+      {
+      opt = f->plugin->get_options(f->handle->priv);
+      gavl_video_options_copy(opt, ch->opt->opt);
+      }
     
     f->plugin->set_input_format(f->handle->priv, &format_2, 0);
     

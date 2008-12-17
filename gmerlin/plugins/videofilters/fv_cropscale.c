@@ -90,7 +90,8 @@ typedef struct
   int need_restart;
 
   gavl_video_options_t * opt;
-
+  gavl_video_options_t * global_opt;
+  
   float border_color[4];
   
   float zoom, squeeze;
@@ -104,9 +105,16 @@ static void * create_cropscale()
   ret = calloc(1, sizeof(*ret));
   ret->scaler = gavl_video_scaler_create();
   ret->opt = gavl_video_scaler_get_options(ret->scaler);
+  ret->global_opt = gavl_video_options_create();
   
   ret->border_color[3] = 1.0;
   return ret;
+  }
+
+static gavl_video_options_t * get_options_cropscale(void * priv)
+  {
+  cropscale_priv_t * vp = priv;
+  return vp->global_opt;
   }
 
 static void destroy_cropscale(void * priv)
@@ -116,6 +124,7 @@ static void destroy_cropscale(void * priv)
   if(vp->frame)
     gavl_video_frame_destroy(vp->frame);
   gavl_video_scaler_destroy(vp->scaler);
+  gavl_video_options_destroy(vp->global_opt);
   free(vp);
   }
 
@@ -380,17 +389,6 @@ static const bg_parameter_info_t parameters[] =
       .num_digits  = 2,
       .help_string = TRS("Specifies how much blurring should be applied when downscaling. Smaller values can speed up scaling, but might result in strong aliasing."),
       
-    },
-    {
-      .name =        "quality",
-      .long_name =   TRS("Quality"),
-      .opt =         "q",
-      .type =        BG_PARAMETER_SLIDER_INT,
-      .flags =     BG_PARAMETER_SYNC,
-      .val_min =     { .val_i = GAVL_QUALITY_FASTEST },
-      .val_max =     { .val_i = GAVL_QUALITY_BEST    },
-      .val_default = { .val_i = GAVL_QUALITY_DEFAULT },
-      .help_string = TRS("Lower quality means more speed. Values above 3 enable slow high quality calculations.")
     },
     {
       .name =      "chroma_output",
@@ -683,14 +681,6 @@ static void set_parameter_cropscale(void * priv, const char * name,
     if(vp->zoom != val->val_f)
       {
       vp->zoom = val->val_f;
-      vp->need_reinit = 1;
-      }
-    }
-  else if(!strcmp(name, "quality"))
-    {
-    if(gavl_video_options_get_quality(vp->opt) != val->val_i)
-      {
-      gavl_video_options_set_quality(vp->opt, val->val_i);
       vp->need_reinit = 1;
       }
     }
@@ -1212,6 +1202,28 @@ static void get_output_format_cropscale(void * priv, gavl_video_format_t * forma
   gavl_video_format_copy(format, &vp->out_format);
   }
 
+static void transfer_global_options(gavl_video_options_t * opt,
+                                    gavl_video_options_t * global_opt)
+  {
+  void * client_data;
+  gavl_video_stop_func stop_func;
+  gavl_video_run_func  run_func;
+  fprintf(stderr, "transfer_global_options %d %d\n",
+          gavl_video_options_get_num_threads(global_opt),
+          gavl_video_options_get_quality(global_opt));
+  
+  gavl_video_options_set_quality(opt, gavl_video_options_get_quality(global_opt));
+  gavl_video_options_set_num_threads(opt, gavl_video_options_get_num_threads(global_opt));
+                                     
+  run_func = gavl_video_options_get_run_func(global_opt, &client_data);
+  gavl_video_options_set_run_func(opt, run_func, client_data);
+
+  stop_func = gavl_video_options_get_stop_func(global_opt, &client_data);
+  gavl_video_options_set_stop_func(opt, stop_func, client_data);
+  
+  }
+                                    
+
 static int read_video_cropscale(void * priv, gavl_video_frame_t * frame, int stream)
   {
   cropscale_priv_t * vp;
@@ -1240,6 +1252,7 @@ static int read_video_cropscale(void * priv, gavl_video_frame_t * frame, int str
         gavl_video_options_set_conversion_flags(vp->opt, conversion_flags);
         break;
       }
+    transfer_global_options(vp->opt, vp->global_opt);
     gavl_video_scaler_init(vp->scaler, &vp->in_format, &vp->out_format);
     vp->need_reinit = 0;
     }
@@ -1285,6 +1298,7 @@ const bg_fv_plugin_t the_plugin =
       .set_parameter =    set_parameter_cropscale,
       .priority =         1,
     },
+    .get_options = get_options_cropscale,
     
     .connect_input_port = connect_input_port_cropscale,
     

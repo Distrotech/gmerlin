@@ -133,7 +133,7 @@ typedef int (*bg_read_video_func_t)(void * priv, gavl_video_frame_t* frame, int 
 
 
 
-#define BG_PLUGIN_API_VERSION 16
+#define BG_PLUGIN_API_VERSION 17
 
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */
@@ -1911,6 +1911,16 @@ struct bg_fv_plugin_s
   {
   bg_plugin_common_t common; //!< Infos and functions common to all plugin types
 
+  /** \brief Get gavl options
+   *  \param priv The handle returned by the create() method
+   *  \returns Video conversion options
+   *
+   *  This optional function returns the gavl options. You can configure them
+   *  like you do it in plain gavl.
+   */
+  
+  gavl_video_options_t * (*get_options)(void * priv);
+  
   /** \brief Set input callback
    *  \param priv The handle returned by the create() method
    *  \param func The function to call

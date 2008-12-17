@@ -47,6 +47,7 @@ typedef struct
   int changed;
   gavl_video_options_t * opt;
   gavl_video_scaler_t * scaler;
+  gavl_video_options_t * global_opt;
 
   bg_read_video_func_t read_func;
   void * read_data;
@@ -69,8 +70,38 @@ static void * create_blur()
   gavl_video_options_set_conversion_flags(ret->opt,
                                           flags);
 
+  ret->global_opt = gavl_video_options_create();
   return ret;
   }
+
+static gavl_video_options_t * get_options_blur(void * priv)
+  {
+  blur_priv_t * vp = priv;
+  return vp->global_opt;
+  }
+
+
+static void transfer_global_options(gavl_video_options_t * opt,
+                                    gavl_video_options_t * global_opt)
+  {
+  void * client_data;
+  gavl_video_stop_func stop_func;
+  gavl_video_run_func  run_func;
+  fprintf(stderr, "transfer_global_options blur %d %d\n",
+          gavl_video_options_get_num_threads(global_opt),
+          gavl_video_options_get_quality(global_opt));
+  
+  gavl_video_options_set_quality(opt, gavl_video_options_get_quality(global_opt));
+  gavl_video_options_set_num_threads(opt, gavl_video_options_get_num_threads(global_opt));
+                                     
+  run_func = gavl_video_options_get_run_func(global_opt, &client_data);
+  gavl_video_options_set_run_func(opt, run_func, client_data);
+
+  stop_func = gavl_video_options_get_stop_func(global_opt, &client_data);
+  gavl_video_options_set_stop_func(opt, stop_func, client_data);
+  
+  }
+
 
 static void destroy_blur(void * priv)
   {
@@ -78,6 +109,7 @@ static void destroy_blur(void * priv)
   vp = (blur_priv_t *)priv;
   if(vp->frame) gavl_video_frame_destroy(vp->frame);
   if(vp->scaler) gavl_video_scaler_destroy(vp->scaler);
+  gavl_video_options_destroy(vp->global_opt);
   free(vp);
   }
 
@@ -182,6 +214,8 @@ static void init_scaler(blur_priv_t * vp)
   coeffs_h = get_coeffs(radius_h, &num_coeffs_h, vp->mode);
   coeffs_v = get_coeffs(radius_v, &num_coeffs_v, vp->mode);
 
+  transfer_global_options(vp->opt, vp->global_opt);
+  
   gavl_video_scaler_init_convolve(vp->scaler,
                                   &vp->format,
                                   num_coeffs_h, coeffs_h,
@@ -404,6 +438,7 @@ const bg_fv_plugin_t the_plugin =
       .priority =         1,
     },
     
+    .get_options = get_options_blur,
     .connect_input_port = connect_input_port_blur,
     
     .set_input_format = set_input_format_blur,

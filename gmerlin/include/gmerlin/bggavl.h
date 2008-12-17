@@ -23,6 +23,8 @@
 #ifndef __BG_GAVL_H_
 #define __BG_GAVL_H_
 
+/* Forward declaration */
+typedef struct bg_thread_pool_s bg_thread_pool_t;
 
 /* Struct for converting audio */
 
@@ -63,6 +65,8 @@ typedef struct
   int frame_duration;
   int timescale;
   
+  bg_thread_pool_t * thread_pool;
+  int num_threads;
   int options_changed;
   } bg_gavl_video_options_t;
 
@@ -430,10 +434,33 @@ but the source doesn't."), \
       .help_string = TRS("Resample mode. Auto means to use the quality level. Subsequent options are ordered by increasing quality (i.e. decreasing speed).") \
     }
 
+#define BG_GAVL_PARAM_THREADS         \
+    {                                 \
+      .name = "threads",              \
+      .long_name = TRS("Number of threads"), \
+      .type =      BG_PARAMETER_INT,\
+      .val_default = { .val_i = 1 },\
+      .val_min     = { .val_i = 1 },\
+      .val_max     = { .val_i = 1024 },\
+      .help_string = TRS("Threads to launch for processing operations. Changing this requires program restart"), \
+    }
+
 /* Subtitle display decisions */
 int bg_overlay_too_old(gavl_time_t time, gavl_time_t ovl_time,
                        gavl_time_t ovl_duration);
 
 int bg_overlay_too_new(gavl_time_t time, gavl_time_t ovl_time);
 
+/* Thread pool */
+
+bg_thread_pool_t * bg_thread_pool_create(int num_threads);
+void bg_thread_pool_destroy(bg_thread_pool_t *);
+
+void bg_thread_pool_run(void (*func)(void*,int start, int len),
+                        void * gavl_data,
+                        int start, int len,
+                        void * client_data, int thread);
+
+void bg_thread_pool_stop(void * client_data, int thread);
+  
 #endif // __BG_GAVL_H_

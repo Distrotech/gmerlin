@@ -489,6 +489,18 @@ int bg_gavl_video_set_parameter(void * data, const char * name,
     else if(!strcmp(val->val_str, "bottom"))
       gavl_video_options_set_deinterlace_drop_mode(opt->opt, GAVL_DEINTERLACE_DROP_BOTTOM);
     }
+  else if(!strcmp(name, "threads"))
+    {
+    opt->num_threads = val->val_i;
+    if(!opt->thread_pool)
+      {
+      opt->thread_pool = bg_thread_pool_create(opt->num_threads);
+      gavl_video_options_set_num_threads(opt->opt, opt->num_threads);
+      gavl_video_options_set_run_func(opt->opt, bg_thread_pool_run, opt->thread_pool);
+      gavl_video_options_set_stop_func(opt->opt, bg_thread_pool_stop, opt->thread_pool);
+      }
+    return 1;
+    }
   return 0;
   }
 
@@ -503,6 +515,8 @@ void bg_gavl_video_options_free(bg_gavl_video_options_t * opt)
   {
   if(opt->opt)
     gavl_video_options_destroy(opt->opt);
+  if(opt->thread_pool)
+    bg_thread_pool_destroy(opt->thread_pool);
   }
 
 
