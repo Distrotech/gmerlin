@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-static void (FUNC_NAME)(gavl_video_scale_context_t * ctx)
+static void (FUNC_NAME)(gavl_video_scale_context_t * ctx, int scanline, uint8_t * dst_start)
   {
   int i;
   uint8_t * src;
@@ -40,10 +40,10 @@ static void (FUNC_NAME)(gavl_video_scale_context_t * ctx)
   INIT
 #endif
   
-  src = ctx->src + ctx->scanline * ctx->src_stride;
+  src = ctx->src + scanline * ctx->src_stride;
   for(i = 0; i < ctx->dst_size; i++)
     {
-    dst = (TYPE*)(ctx->dst);
+    dst = (TYPE*)(dst_start);
     src_1 = (TYPE*)(src + ctx->offset->src_advance * ctx->table_h.pixels[i].index);
 #if NUM_TAPS > 1
     src_2 = (TYPE*)((uint8_t*)(src_1) + ctx->offset->src_advance);
@@ -57,7 +57,7 @@ static void (FUNC_NAME)(gavl_video_scale_context_t * ctx)
     
     SCALE
     
-    ctx->dst += ctx->offset->dst_advance;
+    dst += ctx->offset->dst_advance;
     }
   }
 

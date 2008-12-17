@@ -61,7 +61,7 @@ static mmx_t mm_tmp;
   movaps_m2r(*src,xmm1);\
   movaps_m2r(*(src+16),xmm2);\
   /* Load factor */ \
-  movss_m2r(ctx->table_v.pixels[ctx->scanline].factor_f[num], xmm0);\
+  movss_m2r(ctx->table_v.pixels[scanline].factor_f[num], xmm0);\
   shufps_r2ri(xmm0, xmm0, 0x00);\
   /* Accumulate xmm0 */ \
   mulps_r2r(xmm0, xmm1);\
@@ -89,7 +89,7 @@ static mmx_t mm_tmp;
 
 #define ACCUM_C_FLOAT(num) \
    movss_m2r(*src, xmm1);\
-   mulss_m2r(ctx->table_v.pixels[ctx->scanline].factor_f[num], xmm1);\
+   mulss_m2r(ctx->table_v.pixels[scanline].factor_f[num], xmm1);\
    addss_r2r(xmm1, xmm2);\
 
 

@@ -105,7 +105,7 @@ static const mmx_t factor_mask = { 0x000000000000FFFFLL };
 
 /* scale_uint8_x_1_x_bilinear_mmx */
 
-static void scale_uint8_x_1_x_bilinear_mmx(gavl_video_scale_context_t * ctx)
+static void scale_uint8_x_1_x_bilinear_mmx(gavl_video_scale_context_t * ctx, int scanline, uint8_t * dest_start)
   {
   int i, imax, index;
   uint8_t * src, * dst, *src_start;
@@ -124,10 +124,10 @@ static void scale_uint8_x_1_x_bilinear_mmx(gavl_video_scale_context_t * ctx)
  *  
  */
   
-  src_start = ctx->src + ctx->scanline * ctx->src_stride;
+  src_start = ctx->src + scanline * ctx->src_stride;
   
   pxor_r2r(mm6, mm6);
-  dst = ctx->dst;
+  dst = dest_start;
 
   imax = ctx->dst_size / 4;
   //  imax = 0;
@@ -200,7 +200,7 @@ static void scale_uint8_x_1_x_bilinear_mmx(gavl_video_scale_context_t * ctx)
   }
 
 
-static void scale_uint8_x_1_x_bicubic_mmx(gavl_video_scale_context_t * ctx)
+static void scale_uint8_x_1_x_bicubic_mmx(gavl_video_scale_context_t * ctx, int scanline, uint8_t * dest_start)
   {
   int i;
   uint8_t * src, * dst, *src_start;
@@ -210,10 +210,10 @@ static void scale_uint8_x_1_x_bicubic_mmx(gavl_video_scale_context_t * ctx)
   
   //  fprintf(stderr, "scale_uint8_x_1_x_bicubic_mmx\n");
 
-  src_start = ctx->src + ctx->scanline * ctx->src_stride;
+  src_start = ctx->src + scanline * ctx->src_stride;
   
   pxor_r2r(mm6, mm6);
-  dst = ctx->dst;
+  dst = dest_start;
   for(i = 0; i < ctx->dst_size; i++)
     {
     src = src_start + ctx->table_h.pixels[i].index;
@@ -237,7 +237,7 @@ static void scale_uint8_x_1_x_bicubic_mmx(gavl_video_scale_context_t * ctx)
   ctx->need_emms = 1;
   }
 
-static void scale_uint16_x_1_x_bicubic_mmx(gavl_video_scale_context_t * ctx)
+static void scale_uint16_x_1_x_bicubic_mmx(gavl_video_scale_context_t * ctx, int scanline, uint8_t * dest_start)
   {
   int i;
   uint16_t * dst;
@@ -248,10 +248,10 @@ static void scale_uint16_x_1_x_bicubic_mmx(gavl_video_scale_context_t * ctx)
   
   //  fprintf(stderr, "scale_uint8_x_1_x_bicubic_mmx\n");
 
-  src_start = ctx->src + ctx->scanline * ctx->src_stride;
+  src_start = ctx->src + scanline * ctx->src_stride;
   
   pxor_r2r(mm6, mm6);
-  dst = (uint16_t*)ctx->dst;
+  dst = (uint16_t*)dest_start;
   for(i = 0; i < ctx->dst_size; i++)
     {
     src = src_start + 2*ctx->table_h.pixels[i].index;
@@ -275,7 +275,7 @@ static void scale_uint16_x_1_x_bicubic_mmx(gavl_video_scale_context_t * ctx)
   ctx->need_emms = 1;
   }
 
-static void scale_uint16_x_1_x_bicubic_noclip_mmx(gavl_video_scale_context_t * ctx)
+static void scale_uint16_x_1_x_bicubic_noclip_mmx(gavl_video_scale_context_t * ctx, int scanline, uint8_t * dest_start)
   {
   int i;
   uint16_t * dst;
@@ -286,10 +286,10 @@ static void scale_uint16_x_1_x_bicubic_noclip_mmx(gavl_video_scale_context_t * c
   
   //  fprintf(stderr, "scale_uint8_x_1_x_bicubic_mmx\n");
 
-  src_start = ctx->src + ctx->scanline * ctx->src_stride;
+  src_start = ctx->src + scanline * ctx->src_stride;
   
   pxor_r2r(mm6, mm6);
-  dst = (uint16_t*)ctx->dst;
+  dst = (uint16_t*)dest_start;
   for(i = 0; i < ctx->dst_size; i++)
     {
     src = src_start + 2*ctx->table_h.pixels[i].index;
@@ -315,7 +315,7 @@ static void scale_uint16_x_1_x_bicubic_noclip_mmx(gavl_video_scale_context_t * c
 /* scale_uint8_x_1_x_bicubic_noclip_mmx */
 
 static void
-scale_uint8_x_1_x_bicubic_noclip_mmx(gavl_video_scale_context_t * ctx)
+scale_uint8_x_1_x_bicubic_noclip_mmx(gavl_video_scale_context_t * ctx, int scanline, uint8_t * dest_start)
   {
   int i;
   uint8_t * src, * dst, *src_start;
@@ -323,10 +323,10 @@ scale_uint8_x_1_x_bicubic_noclip_mmx(gavl_video_scale_context_t * ctx)
   mmx_t tmp_mm;
   
   //  fprintf(stderr, "scale_uint8_x_1_x_bicubic_noclip_mmx\n");
-  src_start = ctx->src + ctx->scanline * ctx->src_stride;
+  src_start = ctx->src + scanline * ctx->src_stride;
   
   pxor_r2r(mm6, mm6);
-  dst = ctx->dst;
+  dst = dest_start;
   for(i = 0; i < ctx->dst_size; i++)
     {
     src = src_start + ctx->table_h.pixels[i].index;
@@ -351,7 +351,7 @@ scale_uint8_x_1_x_bicubic_noclip_mmx(gavl_video_scale_context_t * ctx)
 
 /* scale_uint8_x_4_x_bicubic_mmx */
 
-static void scale_uint8_x_4_x_bicubic_mmx(gavl_video_scale_context_t * ctx)
+static void scale_uint8_x_4_x_bicubic_mmx(gavl_video_scale_context_t * ctx, int scanline, uint8_t * dest_start)
   {
   int i;
   uint8_t * src, * dst, *src_start;
@@ -371,11 +371,11 @@ static void scale_uint8_x_4_x_bicubic_mmx(gavl_video_scale_context_t * ctx)
  */
   
   //  fprintf(stderr, "scale_uint8_x_1_x_bicubic_noclip_mmx\n");
-  src_start = ctx->src + ctx->scanline * ctx->src_stride;
+  src_start = ctx->src + scanline * ctx->src_stride;
   
   pxor_r2r(mm6, mm6);
   movq_m2r(factor_mask, mm1);
-  dst = ctx->dst;
+  dst = dest_start;
   for(i = 0; i < ctx->dst_size; i++)
     {
     src = src_start + 4*ctx->table_h.pixels[i].index;
@@ -442,7 +442,7 @@ static void scale_uint8_x_4_x_bicubic_mmx(gavl_video_scale_context_t * ctx)
   }
 
 #ifdef MMXEXT 
-static void scale_uint16_x_4_x_bicubic_mmx(gavl_video_scale_context_t * ctx)
+static void scale_uint16_x_4_x_bicubic_mmx(gavl_video_scale_context_t * ctx, int scanline, uint8_t * dest_start)
   {
   int i;
   uint8_t * src, * dst, *src_start;
@@ -462,11 +462,11 @@ static void scale_uint16_x_4_x_bicubic_mmx(gavl_video_scale_context_t * ctx)
  */
   
   //  fprintf(stderr, "scale_uint8_x_1_x_bicubic_noclip_mmx\n");
-  src_start = ctx->src + ctx->scanline * ctx->src_stride;
+  src_start = ctx->src + scanline * ctx->src_stride;
   
   pxor_r2r(mm6, mm6);
   movq_m2r(factor_mask, mm1);
-  dst = ctx->dst;
+  dst = dest_start;
   for(i = 0; i < ctx->dst_size; i++)
     {
     src = src_start + 8*ctx->table_h.pixels[i].index;
@@ -537,7 +537,7 @@ static void scale_uint16_x_4_x_bicubic_mmx(gavl_video_scale_context_t * ctx)
 
 #endif // MMXEXT 
 
-static void scale_uint16_x_4_x_bicubic_noclip_mmx(gavl_video_scale_context_t * ctx)
+static void scale_uint16_x_4_x_bicubic_noclip_mmx(gavl_video_scale_context_t * ctx, int scanline, uint8_t * dest_start)
   {
   int i;
   uint8_t * src, * dst, *src_start;
@@ -557,11 +557,11 @@ static void scale_uint16_x_4_x_bicubic_noclip_mmx(gavl_video_scale_context_t * c
  */
   
   //  fprintf(stderr, "scale_uint8_x_1_x_bicubic_noclip_mmx\n");
-  src_start = ctx->src + ctx->scanline * ctx->src_stride;
+  src_start = ctx->src + scanline * ctx->src_stride;
   
   pxor_r2r(mm6, mm6);
   movq_m2r(factor_mask, mm1);
-  dst = ctx->dst;
+  dst = dest_start;
   for(i = 0; i < ctx->dst_size; i++)
     {
     src = src_start + 8*ctx->table_h.pixels[i].index;
@@ -628,7 +628,7 @@ static void scale_uint16_x_4_x_bicubic_noclip_mmx(gavl_video_scale_context_t * c
   }
 
 #ifdef MMXEXT
-static void scale_uint16_x_4_x_quadratic_mmx(gavl_video_scale_context_t * ctx)
+static void scale_uint16_x_4_x_quadratic_mmx(gavl_video_scale_context_t * ctx, int scanline, uint8_t * dest_start)
   {
   int i;
   uint8_t * src, * dst, *src_start;
@@ -648,11 +648,11 @@ static void scale_uint16_x_4_x_quadratic_mmx(gavl_video_scale_context_t * ctx)
  */
   
   //  fprintf(stderr, "scale_uint8_x_1_x_bicubic_noclip_mmx\n");
-  src_start = ctx->src + ctx->scanline * ctx->src_stride;
+  src_start = ctx->src + scanline * ctx->src_stride;
   
   pxor_r2r(mm6, mm6);
   movq_m2r(factor_mask, mm1);
-  dst = ctx->dst;
+  dst = dest_start;
   for(i = 0; i < ctx->dst_size; i++)
     {
     src = src_start + 8*ctx->table_h.pixels[i].index;
@@ -709,7 +709,7 @@ static void scale_uint16_x_4_x_quadratic_mmx(gavl_video_scale_context_t * ctx)
 
 /* scale_uint8_x_4_x_bicubic_mmx */
 
-static void scale_uint8_x_4_x_quadratic_mmx(gavl_video_scale_context_t * ctx)
+static void scale_uint8_x_4_x_quadratic_mmx(gavl_video_scale_context_t * ctx, int scanline, uint8_t * dest_start)
   {
   int i;
   uint8_t * src, * dst, *src_start;
@@ -729,11 +729,11 @@ static void scale_uint8_x_4_x_quadratic_mmx(gavl_video_scale_context_t * ctx)
  */
   
   //  fprintf(stderr, "scale_uint8_x_1_x_bicubic_noclip_mmx\n");
-  src_start = ctx->src + ctx->scanline * ctx->src_stride;
+  src_start = ctx->src + scanline * ctx->src_stride;
   
   pxor_r2r(mm6, mm6);
   movq_m2r(factor_mask, mm1);
-  dst = ctx->dst;
+  dst = dest_start;
   for(i = 0; i < ctx->dst_size; i++)
     {
     src = src_start + 4*ctx->table_h.pixels[i].index;
@@ -790,7 +790,7 @@ static void scale_uint8_x_4_x_quadratic_mmx(gavl_video_scale_context_t * ctx)
 
 /* scale_uint8_x_1_x_generic_mmx */
 #ifndef MMXEXT
-static void scale_uint8_x_1_x_generic_mmx(gavl_video_scale_context_t * ctx)
+static void scale_uint8_x_1_x_generic_mmx(gavl_video_scale_context_t * ctx, int scanline, uint8_t * dest_start)
   {
   int i, j, jmax;
   uint8_t * src, * dst, *src_start;
@@ -798,10 +798,10 @@ static void scale_uint8_x_1_x_generic_mmx(gavl_video_scale_context_t * ctx)
   mmx_t tmp_mm;
   int tmp;
   
-  src_start = ctx->src + ctx->scanline * ctx->src_stride;
+  src_start = ctx->src + scanline * ctx->src_stride;
   
   pxor_r2r(mm6, mm6);
-  dst = ctx->dst;
+  dst = dest_start;
   for(i = 0; i < ctx->dst_size; i++)
     {
     src = src_start + ctx->table_h.pixels[i].index;
@@ -855,7 +855,7 @@ static void scale_uint8_x_1_x_generic_mmx(gavl_video_scale_context_t * ctx)
   ctx->need_emms = 1;
   }
 
-static void scale_uint16_x_1_x_generic_mmx(gavl_video_scale_context_t * ctx)
+static void scale_uint16_x_1_x_generic_mmx(gavl_video_scale_context_t * ctx, int scanline, uint8_t * dest_start)
   {
   int i, j, jmax;
   uint16_t * src, * dst;
@@ -864,10 +864,10 @@ static void scale_uint16_x_1_x_generic_mmx(gavl_video_scale_context_t * ctx)
   mmx_t tmp_mm;
   int tmp;
   
-  src_start = ctx->src + ctx->scanline * ctx->src_stride;
+  src_start = ctx->src + scanline * ctx->src_stride;
   
   pxor_r2r(mm6, mm6);
-  dst = (uint16_t*)ctx->dst;
+  dst = (uint16_t*)dest_start;
   for(i = 0; i < ctx->dst_size; i++)
     {
     src = (uint16_t*)(src_start + 2*ctx->table_h.pixels[i].index);
@@ -926,7 +926,7 @@ static void scale_uint16_x_1_x_generic_mmx(gavl_video_scale_context_t * ctx)
 
 /* scale_uint8_x_4_x_generic_mmx */
 
-static void scale_uint8_x_4_x_generic_mmx(gavl_video_scale_context_t * ctx)
+static void scale_uint8_x_4_x_generic_mmx(gavl_video_scale_context_t * ctx, int scanline, uint8_t * dest_start)
   {
   int i, j;
   uint8_t * src, * dst, *src_start;
@@ -945,11 +945,11 @@ static void scale_uint8_x_4_x_generic_mmx(gavl_video_scale_context_t * ctx)
  *  
  */
   
-  src_start = ctx->src + ctx->scanline * ctx->src_stride;
+  src_start = ctx->src + scanline * ctx->src_stride;
   
   pxor_r2r(mm6, mm6);
   movq_m2r(factor_mask, mm1);
-  dst = ctx->dst;
+  dst = dest_start;
   for(i = 0; i < ctx->dst_size; i++)
     {
     src = src_start + 4*ctx->table_h.pixels[i].index;
@@ -984,7 +984,7 @@ static void scale_uint8_x_4_x_generic_mmx(gavl_video_scale_context_t * ctx)
   }
 
 #ifdef MMXEXT
-static void scale_uint16_x_4_x_generic_mmx(gavl_video_scale_context_t * ctx)
+static void scale_uint16_x_4_x_generic_mmx(gavl_video_scale_context_t * ctx, int scanline, uint8_t * dest_start)
   {
   int i, j;
   uint8_t * src, * dst, *src_start;
@@ -1003,11 +1003,11 @@ static void scale_uint16_x_4_x_generic_mmx(gavl_video_scale_context_t * ctx)
  *  
  */
   
-  src_start = ctx->src + ctx->scanline * ctx->src_stride;
+  src_start = ctx->src + scanline * ctx->src_stride;
   
   pxor_r2r(mm6, mm6);
   movq_m2r(factor_mask, mm1);
-  dst = ctx->dst;
+  dst = dest_start;
   for(i = 0; i < ctx->dst_size; i++)
     {
     src = src_start + 8*ctx->table_h.pixels[i].index;
@@ -1045,7 +1045,7 @@ static void scale_uint16_x_4_x_generic_mmx(gavl_video_scale_context_t * ctx)
 
 /* scale_uint8_x_4_x_bilinear_mmx */
 
-static void scale_uint8_x_4_x_bilinear_mmx(gavl_video_scale_context_t * ctx)
+static void scale_uint8_x_4_x_bilinear_mmx(gavl_video_scale_context_t * ctx, int scanline, uint8_t * dest_start)
   {
   int i;
   uint8_t * src, * dst, *src_start;
@@ -1066,11 +1066,11 @@ static void scale_uint8_x_4_x_bilinear_mmx(gavl_video_scale_context_t * ctx)
 
 //  fprintf(stderr, "scale_uint8_x_4_x_bilinear_mmx\n");
   
-  src_start = ctx->src + ctx->scanline * ctx->src_stride;
+  src_start = ctx->src + scanline * ctx->src_stride;
   
   pxor_r2r(mm6, mm6);
   movq_m2r(factor_mask, mm1);
-  dst = ctx->dst;
+  dst = dest_start;
   for(i = 0; i < ctx->dst_size; i++)
     {
     src = src_start + 4*ctx->table_h.pixels[i].index;

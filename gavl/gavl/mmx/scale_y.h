@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-static void (FUNC_NAME)(gavl_video_scale_context_t * ctx)
+static void (FUNC_NAME)(gavl_video_scale_context_t * ctx, int scanline, uint8_t * dest_start)
   {
   int i, imax;
   int64_t tmp;
@@ -37,9 +37,9 @@ static void (FUNC_NAME)(gavl_video_scale_context_t * ctx)
   //  imax = 0;
   
   src_start =
-    ctx->src + ctx->table_v.pixels[ctx->scanline].index * ctx->src_stride;
+    ctx->src + ctx->table_v.pixels[scanline].index * ctx->src_stride;
 
-  dst = ctx->dst;
+  dst = dest_start;
 
 #if BITS == 8
     INIT_8_GLOBAL;

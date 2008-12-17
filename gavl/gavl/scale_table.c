@@ -488,8 +488,8 @@ void gavl_video_scale_table_dump(gavl_video_scale_table_t * tab)
       //              tab->pixels[i].factor[j].fac_f,
       //              tab->pixels[i].factor[j].fac_i);
 
-      fprintf(stderr, ", fac[%d]: %f ", tab->pixels[i].index + j,
-              tab->pixels[i].factor_f[j]);
+      fprintf(stderr, ", fac[%d]: %f (%d) ", tab->pixels[i].index + j,
+              tab->pixels[i].factor_f[j], tab->pixels[i].factor_i[j]);
       
       sum += tab->pixels[i].factor_f[j];
       }

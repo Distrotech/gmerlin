@@ -21,7 +21,7 @@
 
 /* SSE2 Optimized scaling */
 
-static void (FUNC_NAME)(gavl_video_scale_context_t * ctx)
+static void (FUNC_NAME)(gavl_video_scale_context_t * ctx, int scanline, uint8_t * dest_start)
   {
   int i, imax;
   uint8_t * src, *src_start;
@@ -34,10 +34,10 @@ static void (FUNC_NAME)(gavl_video_scale_context_t * ctx)
   INIT_GLOBAL;
 #endif
 
-  dst = ctx->dst;
+  dst = dest_start;
 
   src_start =
-    ctx->src + ctx->table_v.pixels[ctx->scanline].index * ctx->src_stride;
+    ctx->src + ctx->table_v.pixels[scanline].index * ctx->src_stride;
   
   /* While destination is not aligned... */
   imax = (16 - (((long)(src_start)) % 16))/BYTES;
@@ -86,7 +86,7 @@ static void (FUNC_NAME)(gavl_video_scale_context_t * ctx)
     //    fprintf(stderr, "Src start: %p\n", src_start);
     }
   
-  imax = (ctx->dst_size * BYTES * WIDTH_MUL - (dst - ctx->dst)) / (16*BYTES);
+  imax = (ctx->dst_size * BYTES * WIDTH_MUL - (dst - dest_start)) / (16*BYTES);
   for(i = 0; i < imax; i++)
     {
     INIT;
@@ -130,7 +130,7 @@ static void (FUNC_NAME)(gavl_video_scale_context_t * ctx)
     
     }
 
-  imax = (ctx->dst_size * BYTES * WIDTH_MUL - (dst - ctx->dst)) / BYTES;
+  imax = (ctx->dst_size * BYTES * WIDTH_MUL - (dst - dest_start)) / BYTES;
   
   //  imax = (ctx->dst_size * WIDTH_MUL);
   

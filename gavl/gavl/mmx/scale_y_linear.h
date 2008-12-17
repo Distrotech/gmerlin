@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-static void (FUNC_NAME)(gavl_video_scale_context_t * ctx)
+static void (FUNC_NAME)(gavl_video_scale_context_t * ctx, int scanline, uint8_t * dest_start)
   {
   int i, imax;
   int32_t tmp;
@@ -37,10 +37,10 @@ static void (FUNC_NAME)(gavl_video_scale_context_t * ctx)
   //  imax = 0;
   
   src_1 =
-    ctx->src + ctx->table_v.pixels[ctx->scanline].index * ctx->src_stride;
+    ctx->src + ctx->table_v.pixels[scanline].index * ctx->src_stride;
   src_2 = src_1 + ctx->src_stride;
 
-  dst = ctx->dst;
+  dst = dest_start;
 
   /* Load factors */
 
@@ -58,7 +58,7 @@ static void (FUNC_NAME)(gavl_video_scale_context_t * ctx)
   pxor_r2r(mm7, mm7);
   
   /* Load factor1 */
-  movd_m2r(ctx->table_v.pixels[ctx->scanline].factor_i[0], mm2);
+  movd_m2r(ctx->table_v.pixels[scanline].factor_i[0], mm2);
   //  psllw_i2r(7, mm2);
 #ifdef MMXEXT
   pshufw_r2r(mm2,mm2,0x00);
@@ -72,7 +72,7 @@ static void (FUNC_NAME)(gavl_video_scale_context_t * ctx)
 #endif
 
   /* Load factor2 */
-  movd_m2r(ctx->table_v.pixels[ctx->scanline].factor_i[1], mm3);
+  movd_m2r(ctx->table_v.pixels[scanline].factor_i[1], mm3);
   //  psllw_i2r(7, mm3);
 #ifdef MMXEXT
   pshufw_r2r(mm3,mm3,0x00);
@@ -135,10 +135,10 @@ static void (FUNC_NAME)(gavl_video_scale_context_t * ctx)
   
   for(i = 0; i < imax; i++)
     {
-    tmp = (*src_1 * ctx->table_v.pixels[ctx->scanline].factor_i[0] +
-           *src_2 * ctx->table_v.pixels[ctx->scanline].factor_i[1]) >> 14;
-    //    tmp = (ctx->table_v.pixels[ctx->scanline].factor_i[0] +
-    //           ctx->table_v.pixels[ctx->scanline].factor_i[1]) >> 14;
+    tmp = (*src_1 * ctx->table_v.pixels[scanline].factor_i[0] +
+           *src_2 * ctx->table_v.pixels[scanline].factor_i[1]) >> 14;
+    //    tmp = (ctx->table_v.pixels[scanline].factor_i[0] +
+    //           ctx->table_v.pixels[scanline].factor_i[1]) >> 14;
     
 
     *dst = (uint8_t)((tmp & ~0xFF)?((-tmp) >> 31) : tmp);

@@ -65,6 +65,14 @@ struct gavl_video_options_s
   
   gavl_downscale_filter_t downscale_filter;
   float downscale_blur;
+
+  int num_threads;
+  void (*run_func)(void (*func)(void*, int start, int len),
+                   void * gavl_data, int start, int len, void * client_data, int thread);
+  void * run_data;
+  
+  void (*stop_func)(void * gavl_data, int thread);
+  void * stop_data;
   };
 
 typedef struct gavl_video_convert_context_s gavl_video_convert_context_t;

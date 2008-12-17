@@ -195,8 +195,8 @@
 #define FUNC_NAME scale_rgb_15_y_bilinear_c
 #define TYPE color_15
 #define INIT int fac_1, fac_2;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
+  fac_1 = ctx->table_v.pixels[scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[scanline].factor_i[1];
 
 #define NO_UINT8
 
@@ -210,8 +210,8 @@
 #define FUNC_NAME scale_rgb_16_y_bilinear_c
 #define TYPE color_16
 #define INIT int fac_1, fac_2;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
+  fac_1 = ctx->table_v.pixels[scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[scanline].factor_i[1];
 #define NO_UINT8
 
 #define SCALE                                           \
@@ -224,8 +224,8 @@
 #define FUNC_NAME scale_uint8_x_1_y_bilinear_c
 #define TYPE uint8_t
 #define INIT int fac_1, fac_2;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
+  fac_1 = ctx->table_v.pixels[scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[scanline].factor_i[1];
 #define SCALE \
   dst[0] = DOWNSHIFT(fac_1 * src_1[0] + fac_2 * src_2[0], 16);
 
@@ -234,8 +234,8 @@
 #define FUNC_NAME scale_uint8_x_2_y_bilinear_c
 #define TYPE uint8_t
 #define INIT int fac_1, fac_2;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
+  fac_1 = ctx->table_v.pixels[scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[scanline].factor_i[1];
 #define SCALE \
   dst[0] = DOWNSHIFT(fac_1 * src_1[0] + fac_2 * src_2[0], 16);\
   dst[1] = DOWNSHIFT(fac_1 * src_1[1] + fac_2 * src_2[1], 16);
@@ -245,8 +245,8 @@
 #define FUNC_NAME scale_uint8_x_3_y_bilinear_c
 #define TYPE uint8_t
 #define INIT int fac_1, fac_2;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
+  fac_1 = ctx->table_v.pixels[scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[scanline].factor_i[1];
 #define SCALE \
   dst[0] = DOWNSHIFT(fac_1 * src_1[0] + fac_2 * src_2[0], 16);\
   dst[1] = DOWNSHIFT(fac_1 * src_1[1] + fac_2 * src_2[1], 16);\
@@ -257,8 +257,8 @@
 #define FUNC_NAME scale_uint8_x_4_y_bilinear_c
 #define TYPE uint8_t
 #define INIT int fac_1, fac_2;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
+  fac_1 = ctx->table_v.pixels[scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[scanline].factor_i[1];
 #define SCALE \
   dst[0] = DOWNSHIFT(fac_1 * src_1[0] + fac_2 * src_2[0], 16);\
   dst[1] = DOWNSHIFT(fac_1 * src_1[1] + fac_2 * src_2[1], 16);\
@@ -272,13 +272,13 @@
 #ifdef HQ
 #define INIT int64_t tmp; \
   int fac_1, fac_2;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
+  fac_1 = ctx->table_v.pixels[scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[scanline].factor_i[1];
 #else
 #define INIT uint32_t tmp; \
   int fac_1, fac_2;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
+  fac_1 = ctx->table_v.pixels[scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[scanline].factor_i[1];
 #endif
 
 #define NO_UINT8
@@ -296,13 +296,13 @@
 #ifdef HQ
 #define INIT int64_t tmp; \
   int fac_1, fac_2;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
+  fac_1 = ctx->table_v.pixels[scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[scanline].factor_i[1];
 #else
 #define INIT uint32_t tmp; \
   int fac_1, fac_2;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
+  fac_1 = ctx->table_v.pixels[scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[scanline].factor_i[1];
 #endif
 
 #define NO_UINT8
@@ -322,13 +322,13 @@
 #ifdef HQ
 #define INIT int64_t tmp; \
   int fac_1, fac_2;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
+  fac_1 = ctx->table_v.pixels[scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[scanline].factor_i[1];
 #else
 #define INIT uint32_t tmp; \
   int fac_1, fac_2;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
+  fac_1 = ctx->table_v.pixels[scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[scanline].factor_i[1];
 #endif
 
 #define NO_UINT8
@@ -350,13 +350,13 @@
 #ifdef HQ
 #define INIT int64_t tmp; \
   int fac_1, fac_2;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
+  fac_1 = ctx->table_v.pixels[scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[scanline].factor_i[1];
 #else
 #define INIT uint32_t tmp; \
   int fac_1, fac_2;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];
+  fac_1 = ctx->table_v.pixels[scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[scanline].factor_i[1];
 #endif
 
 #define NO_UINT8
@@ -376,8 +376,8 @@
 #define FUNC_NAME scale_float_x_1_y_bilinear_c
 #define TYPE float
 #define INIT float fac_1, fac_2;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_f[0];\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_f[1];
+  fac_1 = ctx->table_v.pixels[scanline].factor_f[0];\
+  fac_2 = ctx->table_v.pixels[scanline].factor_f[1];
 #define NO_UINT8
   
 #define SCALE                                                           \
@@ -389,8 +389,8 @@
 #define FUNC_NAME scale_float_x_2_y_bilinear_c
 #define TYPE float
 #define INIT float fac_1, fac_2;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_f[0];\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_f[1];
+  fac_1 = ctx->table_v.pixels[scanline].factor_f[0];\
+  fac_2 = ctx->table_v.pixels[scanline].factor_f[1];
 #define NO_UINT8
   
 #define SCALE                                                           \
@@ -403,8 +403,8 @@
 #define FUNC_NAME scale_float_x_3_y_bilinear_c
 #define TYPE float
 #define INIT float fac_1, fac_2;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_f[0];\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_f[1];
+  fac_1 = ctx->table_v.pixels[scanline].factor_f[0];\
+  fac_2 = ctx->table_v.pixels[scanline].factor_f[1];
 #define NO_UINT8
   
 #define SCALE                                                           \
@@ -417,8 +417,8 @@
 #define FUNC_NAME scale_float_x_4_y_bilinear_c
 #define TYPE float
 #define INIT float fac_1, fac_2;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_f[0];\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_f[1];
+  fac_1 = ctx->table_v.pixels[scanline].factor_f[0];\
+  fac_2 = ctx->table_v.pixels[scanline].factor_f[1];
 #define NO_UINT8
 
 #define SCALE                                     \

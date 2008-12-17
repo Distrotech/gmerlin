@@ -32,7 +32,7 @@
 #include "../sse/sse.h"
 
 static void
-scale_float_x_1_x_bicubic_sse3(gavl_video_scale_context_t * ctx)
+scale_float_x_1_x_bicubic_sse3(gavl_video_scale_context_t * ctx, int scanline, uint8_t * dest_start)
   {
   int i, imax;
   uint8_t * src, * dst, *src_start;
@@ -41,8 +41,8 @@ scale_float_x_1_x_bicubic_sse3(gavl_video_scale_context_t * ctx)
   movss_m2r(ctx->max_values_f[ctx->plane], xmm7);
   imax = ctx->dst_size;
   
-  src_start = ctx->src + ctx->scanline * ctx->src_stride;
-  dst = ctx->dst;
+  src_start = ctx->src + scanline * ctx->src_stride;
+  dst = dest_start;
 
   for(i = 0; i < imax; i++)
     {
@@ -72,15 +72,15 @@ scale_float_x_1_x_bicubic_sse3(gavl_video_scale_context_t * ctx)
 
 #if 0
 static void
-scale_float_x_1_x_bicubic_noclip_sse3(gavl_video_scale_context_t * ctx)
+scale_float_x_1_x_bicubic_noclip_sse3(gavl_video_scale_context_t * ctx, int scanline, uint8_t * dest_start)
   {
   int i, imax;
   uint8_t * src, * dst, *src_start;
   
   imax = ctx->dst_size;
   
-  src_start = ctx->src + ctx->scanline * ctx->src_stride;
-  dst = ctx->dst;
+  src_start = ctx->src + scanline * ctx->src_stride;
+  dst = dest_start;
 
   for(i = 0; i < imax; i++)
     {
@@ -106,7 +106,7 @@ scale_float_x_1_x_bicubic_noclip_sse3(gavl_video_scale_context_t * ctx)
 #endif
 
 static void
-scale_float_x_1_x_generic_sse3(gavl_video_scale_context_t * ctx)
+scale_float_x_1_x_generic_sse3(gavl_video_scale_context_t * ctx, int scanline, uint8_t * dest_start)
   {
   int i, imax, j, jmax;
   float * factors;
@@ -116,8 +116,8 @@ scale_float_x_1_x_generic_sse3(gavl_video_scale_context_t * ctx)
   movss_m2r(ctx->max_values_f[ctx->plane], xmm7);
   imax = ctx->dst_size;
   
-  src_start = ctx->src + ctx->scanline * ctx->src_stride;
-  dst = ctx->dst;
+  src_start = ctx->src + scanline * ctx->src_stride;
+  dst = dest_start;
 
   for(i = 0; i < imax; i++)
     {

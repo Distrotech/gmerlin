@@ -320,9 +320,9 @@ ctx->tmp[3] = 0;
 #define SCALE_INIT ctx->tmp[0] = 0;ctx->tmp[1] = 0;ctx->tmp[2] = 0;
 
 #define SCALE_ACCUM                             \
-  ctx->tmp[0] += ctx->table_v.pixels[ctx->scanline].factor_i[j] * src->r;\
-  ctx->tmp[1] += ctx->table_v.pixels[ctx->scanline].factor_i[j] * src->g;\
-  ctx->tmp[2] += ctx->table_v.pixels[ctx->scanline].factor_i[j] * src->b;
+  ctx->tmp[0] += ctx->table_v.pixels[scanline].factor_i[j] * src->r;\
+  ctx->tmp[1] += ctx->table_v.pixels[scanline].factor_i[j] * src->g;\
+  ctx->tmp[2] += ctx->table_v.pixels[scanline].factor_i[j] * src->b;
 
 #define SCALE_FINISH                            \
   ctx->tmp[0] = DOWNSHIFT(ctx->tmp[0], 16); \
@@ -343,9 +343,9 @@ ctx->tmp[3] = 0;
 #define SCALE_INIT ctx->tmp[0] = 0;ctx->tmp[1] = 0;ctx->tmp[2] = 0;
 
 #define SCALE_ACCUM                             \
-  ctx->tmp[0] += ctx->table_v.pixels[ctx->scanline].factor_i[j] * src->r;\
-  ctx->tmp[1] += ctx->table_v.pixels[ctx->scanline].factor_i[j] * src->g;\
-  ctx->tmp[2] += ctx->table_v.pixels[ctx->scanline].factor_i[j] * src->b;
+  ctx->tmp[0] += ctx->table_v.pixels[scanline].factor_i[j] * src->r;\
+  ctx->tmp[1] += ctx->table_v.pixels[scanline].factor_i[j] * src->g;\
+  ctx->tmp[2] += ctx->table_v.pixels[scanline].factor_i[j] * src->b;
 
 #define SCALE_FINISH                            \
   ctx->tmp[0] = DOWNSHIFT(ctx->tmp[0], 16); \
@@ -366,7 +366,7 @@ ctx->tmp[3] = 0;
 #define SCALE_INIT ctx->tmp[0] = 0;
 
 #define SCALE_ACCUM \
-  ctx->tmp[0] += ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[0];
+  ctx->tmp[0] += ctx->table_v.pixels[scanline].factor_i[j] * src[0];
 
 #define SCALE_FINISH                            \
   ctx->tmp[0] = DOWNSHIFT(ctx->tmp[0], 16); \
@@ -381,8 +381,8 @@ ctx->tmp[3] = 0;
 #define SCALE_INIT ctx->tmp[0] = 0;ctx->tmp[1] = 0;
 
 #define SCALE_ACCUM \
-  ctx->tmp[0] += ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[0];\
-  ctx->tmp[1] += ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[1];
+  ctx->tmp[0] += ctx->table_v.pixels[scanline].factor_i[j] * src[0];\
+  ctx->tmp[1] += ctx->table_v.pixels[scanline].factor_i[j] * src[1];
 
 #define SCALE_FINISH                                    \
   ctx->tmp[0] = DOWNSHIFT(ctx->tmp[0], 16); \
@@ -400,9 +400,9 @@ ctx->tmp[3] = 0;
 #define SCALE_INIT ctx->tmp[0] = 0;ctx->tmp[1] = 0;ctx->tmp[2] = 0;
 
 #define SCALE_ACCUM \
-  ctx->tmp[0] += ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[0];\
-  ctx->tmp[1] += ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[1];\
-  ctx->tmp[2] += ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[2];
+  ctx->tmp[0] += ctx->table_v.pixels[scanline].factor_i[j] * src[0];\
+  ctx->tmp[1] += ctx->table_v.pixels[scanline].factor_i[j] * src[1];\
+  ctx->tmp[2] += ctx->table_v.pixels[scanline].factor_i[j] * src[2];
 
 #define SCALE_FINISH                                    \
   ctx->tmp[0] = DOWNSHIFT(ctx->tmp[0], 16); \
@@ -424,10 +424,10 @@ ctx->tmp[3] = 0;
 #define SCALE_INIT ctx->tmp[0] = 0;ctx->tmp[1] = 0;ctx->tmp[2] = 0;ctx->tmp[3] = 0;
 
 #define SCALE_ACCUM \
-  ctx->tmp[0] += ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[0];\
-  ctx->tmp[1] += ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[1];\
-  ctx->tmp[2] += ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[2];\
-  ctx->tmp[3] += ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[3];
+  ctx->tmp[0] += ctx->table_v.pixels[scanline].factor_i[j] * src[0];\
+  ctx->tmp[1] += ctx->table_v.pixels[scanline].factor_i[j] * src[1];\
+  ctx->tmp[2] += ctx->table_v.pixels[scanline].factor_i[j] * src[2];\
+  ctx->tmp[3] += ctx->table_v.pixels[scanline].factor_i[j] * src[3];
 
 #define SCALE_FINISH                                    \
   ctx->tmp[0] = DOWNSHIFT(ctx->tmp[0], 16); \
@@ -452,7 +452,7 @@ ctx->tmp[3] = 0;
 #define SCALE_INIT ctx->tmp[0] = 0;
 
 #define SCALE_ACCUM                             \
-  ctx->tmp[0] += (int64_t)ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[0];
+  ctx->tmp[0] += (int64_t)ctx->table_v.pixels[scanline].factor_i[j] * src[0];
 
 #define SCALE_FINISH \
   ctx->tmp[0] = DOWNSHIFT(ctx->tmp[0], 16); \
@@ -467,8 +467,8 @@ ctx->tmp[3] = 0;
 #define SCALE_INIT ctx->tmp[0] = 0;ctx->tmp[1] = 0;
 
 #define SCALE_ACCUM                             \
-  ctx->tmp[0] += (int64_t)ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[0];\
-  ctx->tmp[1] += (int64_t)ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[1];
+  ctx->tmp[0] += (int64_t)ctx->table_v.pixels[scanline].factor_i[j] * src[0];\
+  ctx->tmp[1] += (int64_t)ctx->table_v.pixels[scanline].factor_i[j] * src[1];
 
 #define SCALE_FINISH \
   ctx->tmp[0] = DOWNSHIFT(ctx->tmp[0], 16); \
@@ -486,9 +486,9 @@ ctx->tmp[3] = 0;
 #define SCALE_INIT ctx->tmp[0] = 0;ctx->tmp[1] = 0;ctx->tmp[2] = 0;
 
 #define SCALE_ACCUM                             \
-  ctx->tmp[0] += (int64_t)ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[0];\
-  ctx->tmp[1] += (int64_t)ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[1];\
-  ctx->tmp[2] += (int64_t)ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[2];
+  ctx->tmp[0] += (int64_t)ctx->table_v.pixels[scanline].factor_i[j] * src[0];\
+  ctx->tmp[1] += (int64_t)ctx->table_v.pixels[scanline].factor_i[j] * src[1];\
+  ctx->tmp[2] += (int64_t)ctx->table_v.pixels[scanline].factor_i[j] * src[2];
 
 #define SCALE_FINISH \
   ctx->tmp[0] = DOWNSHIFT(ctx->tmp[0], 16); \
@@ -510,10 +510,10 @@ ctx->tmp[3] = 0;
 #define SCALE_INIT ctx->tmp[0] = 0;ctx->tmp[1] = 0;ctx->tmp[2] = 0;ctx->tmp[3] = 0;
 
 #define SCALE_ACCUM                             \
-  ctx->tmp[0] += (int64_t)ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[0];\
-  ctx->tmp[1] += (int64_t)ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[1];\
-  ctx->tmp[2] += (int64_t)ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[2];\
-  ctx->tmp[3] += (int64_t)ctx->table_v.pixels[ctx->scanline].factor_i[j] * src[3];
+  ctx->tmp[0] += (int64_t)ctx->table_v.pixels[scanline].factor_i[j] * src[0];\
+  ctx->tmp[1] += (int64_t)ctx->table_v.pixels[scanline].factor_i[j] * src[1];\
+  ctx->tmp[2] += (int64_t)ctx->table_v.pixels[scanline].factor_i[j] * src[2];\
+  ctx->tmp[3] += (int64_t)ctx->table_v.pixels[scanline].factor_i[j] * src[3];
 
 #define SCALE_FINISH \
   ctx->tmp[0] = DOWNSHIFT(ctx->tmp[0], 16); \
@@ -537,7 +537,7 @@ ctx->tmp[3] = 0;
 #define SCALE_INIT dst[0] = 0.0;
 
 #define SCALE_ACCUM \
-  dst[0] += ctx->table_v.pixels[ctx->scanline].factor_f[j] * src[0];
+  dst[0] += ctx->table_v.pixels[scanline].factor_f[j] * src[0];
   
 #define SCALE_FINISH                  \
   RECLIP_FLOAT(dst[0], 0);
@@ -550,8 +550,8 @@ ctx->tmp[3] = 0;
 #define SCALE_INIT dst[0] = 0.0; dst[1] = 0.0;
 
 #define SCALE_ACCUM \
-  dst[0] += ctx->table_v.pixels[ctx->scanline].factor_f[j] * src[0];\
-  dst[1] += ctx->table_v.pixels[ctx->scanline].factor_f[j] * src[1];
+  dst[0] += ctx->table_v.pixels[scanline].factor_f[j] * src[0];\
+  dst[1] += ctx->table_v.pixels[scanline].factor_f[j] * src[1];
   
 #define SCALE_FINISH                  \
   RECLIP_FLOAT(dst[0], 0);        \
@@ -565,9 +565,9 @@ ctx->tmp[3] = 0;
 #define SCALE_INIT dst[0] = 0.0; dst[1] = 0.0; dst[2] = 0.0;
 
 #define SCALE_ACCUM \
-  dst[0] += ctx->table_v.pixels[ctx->scanline].factor_f[j] * src[0];\
-  dst[1] += ctx->table_v.pixels[ctx->scanline].factor_f[j] * src[1];\
-  dst[2] += ctx->table_v.pixels[ctx->scanline].factor_f[j] * src[2];\
+  dst[0] += ctx->table_v.pixels[scanline].factor_f[j] * src[0];\
+  dst[1] += ctx->table_v.pixels[scanline].factor_f[j] * src[1];\
+  dst[2] += ctx->table_v.pixels[scanline].factor_f[j] * src[2];\
   
 #define SCALE_FINISH                  \
   RECLIP_FLOAT(dst[0], 0);        \
@@ -582,10 +582,10 @@ ctx->tmp[3] = 0;
 #define SCALE_INIT dst[0] = 0.0; dst[1] = 0.0; dst[2] = 0.0;dst[3] = 0.0;
 
 #define SCALE_ACCUM \
-  dst[0] += ctx->table_v.pixels[ctx->scanline].factor_f[j] * src[0];\
-  dst[1] += ctx->table_v.pixels[ctx->scanline].factor_f[j] * src[1];\
-  dst[2] += ctx->table_v.pixels[ctx->scanline].factor_f[j] * src[2];\
-  dst[3] += ctx->table_v.pixels[ctx->scanline].factor_f[j] * src[3];
+  dst[0] += ctx->table_v.pixels[scanline].factor_f[j] * src[0];\
+  dst[1] += ctx->table_v.pixels[scanline].factor_f[j] * src[1];\
+  dst[2] += ctx->table_v.pixels[scanline].factor_f[j] * src[2];\
+  dst[3] += ctx->table_v.pixels[scanline].factor_f[j] * src[3];
   
 #define SCALE_FINISH                  \
   RECLIP_FLOAT(dst[0], 0);        \

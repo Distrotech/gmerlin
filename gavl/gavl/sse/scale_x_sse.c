@@ -32,15 +32,15 @@
 #include "../sse/sse.h"
 
 static void
-scale_float_x_4_x_bilinear_sse(gavl_video_scale_context_t * ctx)
+scale_float_x_4_x_bilinear_sse(gavl_video_scale_context_t * ctx, int scanline, uint8_t * dest_start)
   {
   int i, imax;
   uint8_t * src, * dst, *src_start;
   
   imax = ctx->dst_size;
   
-  src_start = ctx->src + ctx->scanline * ctx->src_stride;
-  dst = ctx->dst;
+  src_start = ctx->src + scanline * ctx->src_stride;
+  dst = dest_start;
 
   for(i = 0; i < imax; i++)
     {
@@ -73,15 +73,15 @@ scale_float_x_4_x_bilinear_sse(gavl_video_scale_context_t * ctx)
   }
 
 static void
-scale_float_x_4_x_quadratic_sse(gavl_video_scale_context_t * ctx)
+scale_float_x_4_x_quadratic_sse(gavl_video_scale_context_t * ctx, int scanline, uint8_t * dest_start)
   {
   int i, imax;
   uint8_t * src, * dst, *src_start;
   
   imax = ctx->dst_size;
   
-  src_start = ctx->src + ctx->scanline * ctx->src_stride;
-  dst = ctx->dst;
+  src_start = ctx->src + scanline * ctx->src_stride;
+  dst = dest_start;
   
   for(i = 0; i < imax; i++)
     {
@@ -136,15 +136,15 @@ scale_float_x_4_x_quadratic_sse(gavl_video_scale_context_t * ctx)
   }
 
 static void
-scale_float_x_4_x_bicubic_sse(gavl_video_scale_context_t * ctx)
+scale_float_x_4_x_bicubic_sse(gavl_video_scale_context_t * ctx, int scanline, uint8_t * dest_start)
   {
   int i, imax;
   uint8_t * src, * dst, *src_start;
   
   imax = ctx->dst_size;
   
-  src_start = ctx->src + ctx->scanline * ctx->src_stride;
-  dst = ctx->dst;
+  src_start = ctx->src + scanline * ctx->src_stride;
+  dst = dest_start;
 
   movups_m2r(ctx->min_values_f[0], xmm6);
   movups_m2r(ctx->max_values_f[0], xmm7);
@@ -219,15 +219,15 @@ scale_float_x_4_x_bicubic_sse(gavl_video_scale_context_t * ctx)
   }
 
 static void
-scale_float_x_4_x_bicubic_noclip_sse(gavl_video_scale_context_t * ctx)
+scale_float_x_4_x_bicubic_noclip_sse(gavl_video_scale_context_t * ctx, int scanline, uint8_t * dest_start)
   {
   int i, imax;
   uint8_t * src, * dst, *src_start;
   
   imax = ctx->dst_size;
   
-  src_start = ctx->src + ctx->scanline * ctx->src_stride;
-  dst = ctx->dst;
+  src_start = ctx->src + scanline * ctx->src_stride;
+  dst = dest_start;
 
 
   for(i = 0; i < imax; i++)
@@ -297,15 +297,15 @@ scale_float_x_4_x_bicubic_noclip_sse(gavl_video_scale_context_t * ctx)
   }
 
 static void
-scale_float_x_4_x_generic_sse(gavl_video_scale_context_t * ctx)
+scale_float_x_4_x_generic_sse(gavl_video_scale_context_t * ctx, int scanline, uint8_t * dest_start)
   {
   int i, imax, j;
   uint8_t * src, * dst, *src_start;
   
   imax = ctx->dst_size;
   
-  src_start = ctx->src + ctx->scanline * ctx->src_stride;
-  dst = ctx->dst;
+  src_start = ctx->src + scanline * ctx->src_stride;
+  dst = dest_start;
 
   movups_m2r(ctx->min_values_f[0], xmm6);
   movups_m2r(ctx->max_values_f[0], xmm7);
@@ -347,13 +347,13 @@ scale_float_x_4_x_generic_sse(gavl_video_scale_context_t * ctx)
 
 #if 0
 static void
-scale_float_x_1_x_bicubic_sse(gavl_video_scale_context_t * ctx)
+scale_float_x_1_x_bicubic_sse(gavl_video_scale_context_t * ctx, int scanline, uint8_t * dest_start)
   {
 
   }
 
 static void
-scale_float_x_1_x_bicubic_noclip_sse(gavl_video_scale_context_t * ctx)
+scale_float_x_1_x_bicubic_noclip_sse(gavl_video_scale_context_t * ctx, int scanline, uint8_t * dest_start)
   {
 
   }

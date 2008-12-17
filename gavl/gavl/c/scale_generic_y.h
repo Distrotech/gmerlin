@@ -18,7 +18,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
-static void (FUNC_NAME)(gavl_video_scale_context_t * ctx)
+static void (FUNC_NAME)(gavl_video_scale_context_t * ctx, int scanline, uint8_t * dest_start)
   {
   int i, j;
   uint8_t * _src;
@@ -31,11 +31,11 @@ static void (FUNC_NAME)(gavl_video_scale_context_t * ctx)
     
   for(i = 0; i < ctx->dst_size; i++)
     {
-    dst = (TYPE*)(ctx->dst);
+    dst = (TYPE*)(dest_start);
 
     SCALE_INIT
 
-    _src = ctx->src + ctx->src_stride * ctx->table_v.pixels[ctx->scanline].index +
+    _src = ctx->src + ctx->src_stride * ctx->table_v.pixels[scanline].index +
       i * ctx->offset->src_advance;
     for(j = 0; j < ctx->table_v.factors_per_pixel; j++)
       {
@@ -47,7 +47,7 @@ static void (FUNC_NAME)(gavl_video_scale_context_t * ctx)
     
     SCALE_FINISH
     
-    ctx->dst += ctx->offset->dst_advance;
+    dest_start += ctx->offset->dst_advance;
     }
   }
 

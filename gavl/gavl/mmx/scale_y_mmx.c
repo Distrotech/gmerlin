@@ -65,7 +65,7 @@ static mmx_t mm_tmp;
 #ifdef MMXEXT
 #define LOAD_FACTOR_8(num) \
   /* Load factor */ \
-  movd_m2r(ctx->table_v.pixels[ctx->scanline].factor_i[num], mm2);\
+  movd_m2r(ctx->table_v.pixels[scanline].factor_i[num], mm2);\
   pand_r2r(mm7, mm2);\
   pshufw_r2r(mm2,mm5,0x00)
 
@@ -73,7 +73,7 @@ static mmx_t mm_tmp;
 
 #define LOAD_FACTOR_8(num) \
   /* Load factor */ \
-  movd_m2r(ctx->table_v.pixels[ctx->scanline].factor_i[num], mm2);\
+  movd_m2r(ctx->table_v.pixels[scanline].factor_i[num], mm2);\
   pand_r2r(mm7, mm2);\
   movq_r2r(mm2, mm5);\
   psllq_i2r(16, mm5);\
@@ -106,7 +106,7 @@ static mmx_t mm_tmp;
   MOVQ_R2M(mm3, *dst)
 
 #define ACCUM_C_8(num) \
-   tmp += ctx->table_v.pixels[ctx->scanline].factor_i[num] * *src
+   tmp += ctx->table_v.pixels[scanline].factor_i[num] * *src
 
 #define OUTPUT_C_8 \
    tmp >>= 14; \

@@ -78,14 +78,14 @@ static mmx_t mm_tmp;
 
 #define LOAD_FACTOR_8(num) \
   /* Load factor */ \
-  movd_m2r(ctx->table_v.pixels[ctx->scanline].factor_i[num], xmm2);\
+  movd_m2r(ctx->table_v.pixels[scanline].factor_i[num], xmm2);\
   pand_r2r(xmm7, xmm2);\
   pshuflw_r2ri(xmm2,xmm5,0x00);\
   pshufd_r2ri(xmm5,xmm5,0x00);
 
 #define LOAD_FACTOR_16(num) \
   /* Load factor */ \
-  movd_m2r(ctx->table_v.pixels[ctx->scanline].factor_i[num], xmm2);\
+  movd_m2r(ctx->table_v.pixels[scanline].factor_i[num], xmm2);\
   pand_r2r(xmm7, xmm2);\
   pshuflw_r2ri(xmm2,xmm5,0x00);\
   pshufd_r2ri(xmm5,xmm5,0x00);
@@ -150,10 +150,10 @@ static mmx_t mm_tmp;
   tmp = 0;
 
 #define ACCUM_C_8(num) \
-   tmp += ctx->table_v.pixels[ctx->scanline].factor_i[num] * *src
+   tmp += ctx->table_v.pixels[scanline].factor_i[num] * *src
 
 #define ACCUM_C_16(num) \
-   tmp += ctx->table_v.pixels[ctx->scanline].factor_i[num] * *(uint16_t*)src
+   tmp += ctx->table_v.pixels[scanline].factor_i[num] * *(uint16_t*)src
 
 #define OUTPUT_C_8 \
    tmp >>= 14; \

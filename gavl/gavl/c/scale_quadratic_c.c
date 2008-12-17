@@ -343,9 +343,9 @@
 #define TYPE color_15
 #define INIT int64_t fac_1, fac_2, fac_3;        \
   int64_t tmp; \
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];\
-  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_i[2];
+  fac_1 = ctx->table_v.pixels[scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[scanline].factor_i[1];\
+  fac_3 = ctx->table_v.pixels[scanline].factor_i[2];
 
 #define NO_UINT8
 
@@ -376,9 +376,9 @@
 #define TYPE color_16
 #define INIT int64_t fac_1, fac_2, fac_3;\
   int64_t tmp;                                                  \
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];\
-  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_i[2];
+  fac_1 = ctx->table_v.pixels[scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[scanline].factor_i[1];\
+  fac_3 = ctx->table_v.pixels[scanline].factor_i[2];
 
 
 #define NO_UINT8
@@ -409,9 +409,9 @@
 #define FUNC_NAME scale_uint8_x_1_y_quadratic_c
 #define TYPE uint8_t
 #define INIT int64_t fac_1, fac_2, fac_3, tmp;               \
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];\
-  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_i[2];
+  fac_1 = ctx->table_v.pixels[scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[scanline].factor_i[1];\
+  fac_3 = ctx->table_v.pixels[scanline].factor_i[2];
 
 #define SCALE                  \
   tmp = (fac_1 * src_1[0] + \
@@ -427,9 +427,9 @@
 #define FUNC_NAME scale_uint8_x_2_y_quadratic_c
 #define TYPE uint8_t
 #define INIT int64_t fac_1, fac_2, fac_3, tmp;               \
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];\
-  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_i[2];
+  fac_1 = ctx->table_v.pixels[scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[scanline].factor_i[1];\
+  fac_3 = ctx->table_v.pixels[scanline].factor_i[2];
 
 #define SCALE                  \
   tmp = (fac_1 * src_1[0] + \
@@ -452,9 +452,9 @@
 #define FUNC_NAME scale_uint8_x_3_y_quadratic_c
 #define TYPE uint8_t
 #define INIT int64_t fac_1, fac_2, fac_3, tmp;               \
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];\
-  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_i[2];
+  fac_1 = ctx->table_v.pixels[scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[scanline].factor_i[1];\
+  fac_3 = ctx->table_v.pixels[scanline].factor_i[2];
 
 #define SCALE               \
   tmp = (fac_1 * src_1[0] +    \
@@ -482,9 +482,9 @@
 #define FUNC_NAME scale_uint8_x_4_y_quadratic_c
 #define TYPE uint8_t
 #define INIT int64_t fac_1, fac_2, fac_3, tmp;               \
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];\
-  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_i[2];
+  fac_1 = ctx->table_v.pixels[scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[scanline].factor_i[1];\
+  fac_3 = ctx->table_v.pixels[scanline].factor_i[2];
 
 #define SCALE               \
   tmp = (fac_1 * src_1[0] +    \
@@ -521,9 +521,9 @@
 #define TYPE uint16_t
 #define INIT int64_t tmp; \
   int64_t fac_1, fac_2, fac_3;                           \
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];   \
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];   \
-  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_i[2];
+  fac_1 = ctx->table_v.pixels[scanline].factor_i[0];   \
+  fac_2 = ctx->table_v.pixels[scanline].factor_i[1];   \
+  fac_3 = ctx->table_v.pixels[scanline].factor_i[2];
 
 #define NO_UINT8
 
@@ -542,9 +542,9 @@
 #define TYPE uint16_t
 #define INIT int64_t tmp; \
   int64_t fac_1, fac_2, fac_3;                           \
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];   \
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];   \
-  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_i[2];
+  fac_1 = ctx->table_v.pixels[scanline].factor_i[0];   \
+  fac_2 = ctx->table_v.pixels[scanline].factor_i[1];   \
+  fac_3 = ctx->table_v.pixels[scanline].factor_i[2];
 
 #define NO_UINT8
 
@@ -569,9 +569,9 @@
 #define TYPE uint16_t
 #define INIT int64_t tmp;                      \
   int64_t fac_1, fac_2, fac_3;                           \
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];\
-  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_i[2];
+  fac_1 = ctx->table_v.pixels[scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[scanline].factor_i[1];\
+  fac_3 = ctx->table_v.pixels[scanline].factor_i[2];
 
 #define NO_UINT8
 
@@ -602,9 +602,9 @@
 #define TYPE uint16_t
 #define INIT int64_t tmp;\
   int64_t fac_1, fac_2, fac_3;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_i[0];\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_i[1];\
-  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_i[2];
+  fac_1 = ctx->table_v.pixels[scanline].factor_i[0];\
+  fac_2 = ctx->table_v.pixels[scanline].factor_i[1];\
+  fac_3 = ctx->table_v.pixels[scanline].factor_i[2];
 
 #define NO_UINT8
 
@@ -640,9 +640,9 @@
 #define FUNC_NAME scale_float_x_1_y_quadratic_c
 #define TYPE float
 #define INIT float fac_1, fac_2, fac_3;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_f[0];\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_f[1];\
-  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_f[2];
+  fac_1 = ctx->table_v.pixels[scanline].factor_f[0];\
+  fac_2 = ctx->table_v.pixels[scanline].factor_f[1];\
+  fac_3 = ctx->table_v.pixels[scanline].factor_f[2];
 
 #define NO_UINT8
   
@@ -659,9 +659,9 @@
 #define FUNC_NAME scale_float_x_2_y_quadratic_c
 #define TYPE float
 #define INIT float fac_1, fac_2, fac_3;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_f[0];\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_f[1];\
-  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_f[2];
+  fac_1 = ctx->table_v.pixels[scanline].factor_f[0];\
+  fac_2 = ctx->table_v.pixels[scanline].factor_f[1];\
+  fac_3 = ctx->table_v.pixels[scanline].factor_f[2];
 
 #define NO_UINT8
   
@@ -681,9 +681,9 @@
 #define FUNC_NAME scale_float_x_3_y_quadratic_c
 #define TYPE float
 #define INIT float fac_1, fac_2, fac_3;\
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_f[0];\
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_f[1];\
-  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_f[2];
+  fac_1 = ctx->table_v.pixels[scanline].factor_f[0];\
+  fac_2 = ctx->table_v.pixels[scanline].factor_f[1];\
+  fac_3 = ctx->table_v.pixels[scanline].factor_f[2];
 
 #define NO_UINT8
   
@@ -707,9 +707,9 @@
 #define FUNC_NAME scale_float_x_4_y_quadratic_c
 #define TYPE float
 #define INIT float fac_1, fac_2, fac_3;                  \
-  fac_1 = ctx->table_v.pixels[ctx->scanline].factor_f[0];   \
-  fac_2 = ctx->table_v.pixels[ctx->scanline].factor_f[1];   \
-  fac_3 = ctx->table_v.pixels[ctx->scanline].factor_f[2];
+  fac_1 = ctx->table_v.pixels[scanline].factor_f[0];   \
+  fac_2 = ctx->table_v.pixels[scanline].factor_f[1];   \
+  fac_3 = ctx->table_v.pixels[scanline].factor_f[2];
 
 #define NO_UINT8
 

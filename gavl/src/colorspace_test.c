@@ -2662,7 +2662,7 @@ int main(int argc, char ** argv)
   const char * tmp1, * tmp2;
   char filename_buffer[128];
 
-  float background[3] = { 1.0, 0.0, 0.0 };
+  //  float background[3] = { 1.0, 0.0, 0.0 };
     
   gavl_video_format_t input_format;
   gavl_video_format_t output_format;

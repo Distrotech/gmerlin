@@ -51,7 +51,7 @@ typedef struct
   } gavl_video_scale_table_t;
 
 typedef void
-(*gavl_video_scale_scanline_func)(gavl_video_scale_context_t*);
+(*gavl_video_scale_scanline_func)(gavl_video_scale_context_t*, int scanline, uint8_t * dst);
 
 typedef float
 (*gavl_video_scale_get_weight)(gavl_video_options_t * opt, double t);
@@ -362,12 +362,15 @@ struct gavl_video_scale_context_s
   /* For copying */
   int bytes_per_line;
   
-  /* Data changed during scaling */
   uint8_t * src;
   int src_stride;
 
-  uint8_t * dst;
-  int scanline;
+  gavl_video_frame_t * dst_frame;
+  
+  const gavl_video_options_t * opt;
+  
+  //  uint8_t * dst;
+  //  int scanline;
   int dst_size;
 
   int first_scanline;

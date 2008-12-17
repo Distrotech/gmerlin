@@ -23,7 +23,7 @@
 
 
 
-static void (FUNC_NAME)(gavl_video_scale_context_t * ctx)
+static void (FUNC_NAME)(gavl_video_scale_context_t * ctx, int scanline, uint8_t * dest_start)
   {
   int i, imax;
   uint8_t * src;
@@ -31,13 +31,13 @@ static void (FUNC_NAME)(gavl_video_scale_context_t * ctx)
   uint8_t * dst;
     
   /* Load factor */
-  movss_m2r(ctx->table_v.pixels[ctx->scanline].factor_f[0], xmm0);
+  movss_m2r(ctx->table_v.pixels[scanline].factor_f[0], xmm0);
   shufps_r2ri(xmm0, xmm0, 0x00);
   
-  dst = ctx->dst;
+  dst = dest_start;
 
   src_start =
-    ctx->src + ctx->table_v.pixels[ctx->scanline].index * ctx->src_stride;
+    ctx->src + ctx->table_v.pixels[scanline].index * ctx->src_stride;
   
   /* While source is not aligned... */
   imax = (((long)(src_start)) % 16)/4;
@@ -57,7 +57,7 @@ static void (FUNC_NAME)(gavl_video_scale_context_t * ctx)
     }
 
   /* SSE routines scale 8 numbers (= 32 bytes) at once */
-  imax = (ctx->dst_size * 4 * WIDTH_MUL - (dst - ctx->dst)) / /* Bytes left */
+  imax = (ctx->dst_size * 4 * WIDTH_MUL - (dst - dest_start)) / /* Bytes left */
           (32); /* Bytes processed at once */
           
   for(i = 0; i < imax; i++)
@@ -84,7 +84,7 @@ static void (FUNC_NAME)(gavl_video_scale_context_t * ctx)
     src_start += 32;
     }
 
-  imax = (ctx->dst_size * 4 * WIDTH_MUL - (dst - ctx->dst)) / 4;
+  imax = (ctx->dst_size * 4 * WIDTH_MUL - (dst - dest_start)) / 4;
           
   //  imax = (ctx->dst_size * WIDTH_MUL);
   

@@ -61,12 +61,19 @@ void gavl_video_scaler_destroy(gavl_video_scaler_t * s)
 gavl_video_scaler_t * gavl_video_scaler_create()
   {
   gavl_video_scaler_t * ret;
+  int i, j;
   ret = calloc(1, sizeof(*ret));
 
   ret->src = gavl_video_frame_create((gavl_video_format_t*)0);
   ret->dst = gavl_video_frame_create((gavl_video_format_t*)0);
 
   gavl_video_options_set_defaults(&ret->opt);
+
+  for(i = 0; i < 3; i++)
+    {
+    for(j = 0; j < GAVL_MAX_PLANES; j++)
+      ret->contexts[i][j].opt = &ret->opt;
+    }
   
   return ret;
   }
