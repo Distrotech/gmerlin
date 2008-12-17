@@ -290,40 +290,44 @@ static int start_lqt(void * data)
                               i,
                               &(e->video_streams[i].format), 1);
     }
-  
-  /* Add the subtitle tracks */
-  for(i = 0; i < e->num_subtitle_text_streams; i++)
+
+  if(!(e->file_type & (LQT_FILE_AVI|LQT_FILE_AVI_ODML)))
     {
-    lqt_add_text_track(e->file, e->subtitle_text_streams[i].timescale);
-    lqt_set_text_language(e->file, i, e->subtitle_text_streams[i].language);
+    /* Add the subtitle tracks */
+    for(i = 0; i < e->num_subtitle_text_streams; i++)
+      {
+      lqt_add_text_track(e->file, e->subtitle_text_streams[i].timescale);
+      lqt_set_text_language(e->file, i, e->subtitle_text_streams[i].language);
     
-    lqt_set_text_box(e->file, i,
-                     e->subtitle_text_streams[i].text_box[0],
-                     e->subtitle_text_streams[i].text_box[1],
-                     e->subtitle_text_streams[i].text_box[2],
-                     e->subtitle_text_streams[i].text_box[3]);
+      lqt_set_text_box(e->file, i,
+                       e->subtitle_text_streams[i].text_box[0],
+                       e->subtitle_text_streams[i].text_box[1],
+                       e->subtitle_text_streams[i].text_box[2],
+                       e->subtitle_text_streams[i].text_box[3]);
 
-    lqt_set_text_fg_color(e->file, i,
-                          e->subtitle_text_streams[i].fg_color[0],
-                          e->subtitle_text_streams[i].fg_color[1],
-                          e->subtitle_text_streams[i].fg_color[2],
-                          e->subtitle_text_streams[i].fg_color[3]);
+      lqt_set_text_fg_color(e->file, i,
+                            e->subtitle_text_streams[i].fg_color[0],
+                            e->subtitle_text_streams[i].fg_color[1],
+                            e->subtitle_text_streams[i].fg_color[2],
+                            e->subtitle_text_streams[i].fg_color[3]);
 
-    lqt_set_text_bg_color(e->file, i,
-                          e->subtitle_text_streams[i].bg_color[0],
-                          e->subtitle_text_streams[i].bg_color[1],
-                          e->subtitle_text_streams[i].bg_color[2],
-                          e->subtitle_text_streams[i].bg_color[3]);
+      lqt_set_text_bg_color(e->file, i,
+                            e->subtitle_text_streams[i].bg_color[0],
+                            e->subtitle_text_streams[i].bg_color[1],
+                            e->subtitle_text_streams[i].bg_color[2],
+                            e->subtitle_text_streams[i].bg_color[3]);
     
+      }
+  
+    /* Add the chapter track */
+    if(e->chapter_list)
+      {
+      lqt_add_text_track(e->file, e->chapter_list->timescale);
+      e->chapter_track_id = e->num_subtitle_text_streams;
+      lqt_set_chapter_track(e->file, e->chapter_track_id);
+      }
     }
   
-  /* Add the chapter track */
-  if(e->chapter_list)
-    {
-    lqt_add_text_track(e->file, e->chapter_list->timescale);
-    e->chapter_track_id = e->num_subtitle_text_streams;
-    lqt_set_chapter_track(e->file, e->chapter_track_id);
-    }
   return 1;
   }
 
@@ -365,7 +369,12 @@ static int write_subtitle_text_lqt(void * data,const char * text,
                                    int64_t duration, int stream)
   {
   e_lqt_t * e = (e_lqt_t*)data;
-  
+
+  if(e->file_type & (LQT_FILE_AVI|LQT_FILE_AVI_ODML))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "AVI subtitles not supported");
+    return 0;
+    }
   /* Put empty subtitle if the last end time is not equal to
      this start time */
   if(e->subtitle_text_streams[stream].last_end_time < start)
@@ -391,9 +400,10 @@ static int close_lqt(void * data, int do_delete)
   if(!e->file)
     return 1;
 
-  /* Write chapter information */
-  if(e->chapter_list)
+  if(!(e->file_type & (LQT_FILE_AVI|LQT_FILE_AVI_ODML)) &&
+     e->chapter_list)
     {
+    /* Write chapter information */
     for(i = 0; i < e->chapter_list->num_chapters; i++)
       {
       if(e->chapter_list->chapters[i].time > e->duration)
