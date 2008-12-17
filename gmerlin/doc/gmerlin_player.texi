@@ -1,9 +1,9 @@
 @table @b
 @item Synopsis
-@b{gmerlin} @i{[options] [gmls ...]
+@b{gmerlin} @i{[Optionen] [gmls...]
 }@*
 @item Description
-Gmerlin GUI Player@*
+Gmerlin GUI Spieler@*
 @item Generic options
 The following generic options are available for all gmerlin applications@*
 @table @i
@@ -20,18 +20,18 @@ Print this help message in texinfo format and exit@*
 Print version info and exit@*
 
 @end table
-@item Environment variables
+@item Umgebungsvariablen
 @table @env
 @item GMERLIN_PLAYER_REMOTE_PORT
-Default port for the remote control@*
+Voreingestellter Port für die Fernbedienung@*
 @end table
-@item Files
+@item Dateien
 @table @file
 @item ~/.gmerlin/plugins.xml
-Cache of the plugin registry (shared by all applicatons)@*
+Zwischenspeicher für die Plugin-Registry (von allen Programmen gemeinsam benutzt)@*
 @item ~/.gmerlin/player/config.xml
-Used for configuration data. Delete this file if you think you goofed something up.@*
+Wird für Konfigurationsdaten benutzt. Lösche diese Datein, wenn Du meinst was zerschossen zu haben.@*
 @item ~/.gmerlin/player/tree/tree.xml
-Media tree is saved here. The albums are saved as separate files in the same directory.@*
+Mediatree wird hier gespeichert. Alben werden als separate Dateien im gleichen Verzeichnis gespeichert@*
 @end table
 @end table

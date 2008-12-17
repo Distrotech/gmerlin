@@ -1,4 +1,4 @@
-.TH GMERLIN_PLAYER 1 "July 2008" Gmerlin "User Manuals"
+.TH GMERLIN_PLAYER 1 "December 2008" Gmerlin "User Manuals"
 .SH NAME
 gmerlin_player
 .SH SYNOPSIS
@@ -176,7 +176,7 @@ Default: auto
 Scale mode
 .P
 Choose scaling method. Auto means to choose based on the conversion
-quality. Nearest is fastest, Sinc with Lanczos window is slowest
+quality. Nearest is fastest, Sinc with Lanczos window is slowest.
 
 .P
 .BR scale_order "=<number> (4..1000, default: 4)"
@@ -235,6 +235,14 @@ Set postprocessing (to remove compression artifacts). 0 means no
 postprocessing, 6 means maximum postprocessing.
 
 .P
+.BR shrink "=<number> (0..3, default: 0)"
+.P
+Shrink factor
+.P
+This enables downscaling of images while decoding. Currently only
+supported for JPEG-2000.
+
+.P
 .BR connect_timeout "=<number> (0..2000000, default: 5000)"
 .P
 Connect timeout (milliseconds)
@@ -282,6 +290,25 @@ Proxy username
 .BR http_proxy_pass "=<string>"
 .P
 Proxy password
+.P
+.BR rtp_try_tcp "=[1|0] (default: 0)"
+.P
+Try RTP over TCP
+.P
+Use this if your filewall blocks all UDP traffic. Not all servers
+support TCP
+
+.P
+.BR rtp_port_base "=<number> (0..65530, default: 0)"
+.P
+Port base for RTP
+.P
+Port base for RTP over UDP. Values of 1024 or smaller enable random
+ports (recommended for RTSP aware firewalls). Values larger than 1024
+define the base port. 2 consecutive ports are used for each A/V stream,
+these must be accessable through the firewall. Odd values are rounded to
+the next even value.
+
 .P
 .BR ftp_anonymous "=[1|0] (default: 1)"
 .P
@@ -342,12 +369,16 @@ Cache size (Megabytes)
 Set the maximum total size of the cache directory.
 
 .P
+.BR dv_datetime "=[1|0] (default: 0)"
+.P
+Export date and time as timecodes for DV
+.P
 .RE
 .B Suboptions for p=i_cdaudio
 
 .P
 .RS 2
-.BR trackname_template "=<string> (Default: 0x7f077540aa40 - %)"
+.BR trackname_template "=<string> (Default: 0x7f44bb52ca40 - %)"
 .P
 Trackname template
 .P
@@ -399,7 +430,7 @@ Proxy server (leave empty for direct connection)
 .P
 .BR musicbrainz_proxy_port "=<number> (1..65535, default: 80)"
 .P
-Proxy Port
+Proxy port
 .P
 Proxy port
 
@@ -429,7 +460,7 @@ Proxy server (leave empty for direct connection)
 .P
 .BR cddb_proxy_port "=<number> (1..65535, default: 80)"
 .P
-Proxy Port
+Proxy port
 .P
 Proxy port
 
@@ -533,12 +564,12 @@ Sort and configure audio codecs
 .P
 Supported options: rtjpeg raw v308 v408 v410 yuv2 yuv4 yv12 2vuy v210 
 png ffmpeg_mpg1 ffmpeg_mpg4 ffmpeg_msmpeg4v1 ffmpeg_msmpeg4v2 
-ffmpeg_msmpeg4v3 ffmpeg_h263 ffmpeg_h264 ffmpeg_i263 ffmpeg_svq1 
-ffmpeg_svq3 ffmpeg_mjpg ffmpeg_mjpegb ffmpeg_TGA ffmpeg_TIFF 
-ffmpeg_8BPS ffmpeg_indeo ffmpeg_rpza ffmpeg_smc ffmpeg_cinepak 
-ffmpeg_cyuv ffmpeg_rle ffmpeg_wrle ffmpeg_dv_ntsc ffmpeg_dv_pal 
-ffmpeg_dv_avi ffmpeg_dv50_pal ffmpeg_dv50_ntsc ffmpeg_ffvhuff jpeg 
-mjpa ffmpeg_msmpeg4v3_wmp ffmpeg_dnxhd
+ffmpeg_msmpeg4v3 ffmpeg_msmpeg4v3_wmp ffmpeg_h263 ffmpeg_h263 
+ffmpeg_h264 ffmpeg_i263 ffmpeg_svq1 ffmpeg_svq3 ffmpeg_mjpg 
+ffmpeg_mjpegb ffmpeg_TGA ffmpeg_TIFF ffmpeg_8BPS ffmpeg_indeo 
+ffmpeg_rpza ffmpeg_smc ffmpeg_cinepak ffmpeg_cyuv ffmpeg_rle 
+ffmpeg_wrle ffmpeg_dv_ntsc ffmpeg_dv_pal ffmpeg_dv_avi ffmpeg_dv50_pal 
+ffmpeg_dv50_ntsc ffmpeg_dvcprohd ffmpeg_ffvhuff ffmpeg_dnxhd jpeg mjpa
 
 Video Codecs
 .P
@@ -582,6 +613,24 @@ Grayscale mode
 .P
 .RE
 .B Suboptions for ffmpeg_msmpeg4v3
+
+.P
+.RS 2
+.BR ff_flag_gray "=[1|0] (default: 0)"
+.P
+Grayscale mode
+.P
+.RE
+.B Suboptions for ffmpeg_msmpeg4v3_wmp
+
+.P
+.RS 2
+.BR ff_flag_gray "=[1|0] (default: 0)"
+.P
+Grayscale mode
+.P
+.RE
+.B Suboptions for ffmpeg_h263
 
 .P
 .RS 2
@@ -716,7 +765,7 @@ Grayscale mode
 Grayscale mode
 .P
 .RE
-.B Suboptions for ffmpeg_ffvhuff
+.B Suboptions for ffmpeg_dvcprohd
 
 .P
 .RS 2
@@ -725,7 +774,7 @@ Grayscale mode
 Grayscale mode
 .P
 .RE
-.B Suboptions for ffmpeg_msmpeg4v3_wmp
+.B Suboptions for ffmpeg_ffvhuff
 
 .P
 .RS 2
@@ -848,7 +897,7 @@ Fixed output samplerate
 .P
 .BR resample_mode "=<string>"
 .P
-Supported strings: auto linear zoh sinc_fast sinc_medium sinc_best
+Supported strings: auto zoh linear sinc_fast sinc_medium sinc_best
 .P
 Default: auto
 .P
@@ -1042,7 +1091,7 @@ Distance from the left text border to the image border
 .P
 .BR border_right "=<number> (0..65535, default: 10)"
 .P
-Left border
+Right border
 .P
 Distance from the right text border to the image border
 

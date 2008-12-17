@@ -120,7 +120,7 @@ oa_alsa
 @item Module
 oa_alsa.so
 @item Description
-Alsa output plugin with support for channel configurations up to 5.1. Samples are sent to the soundcards in the nearest precision of the source format. Select "Force float" in the global audio options to enable 24, 32 or floating point playback even for 8 or 16 bit source formats.
+Alsa output plugin with support for channel configurations up to 5.1
 @end table
 @subsection PulseAudio
 @table @i
@@ -203,6 +203,15 @@ PulseAudio capture. You can specify the source, where we'll get the audio.
 @node plugin_rv
 @section Video recorder
 
+@subsection V4L2
+@table @i
+@item Internal name
+i_v4l2
+@item Module
+i_v4l2.so
+@item Description
+video4linux 2 recording plugin. Supports only video and no tuner decives.
+@end table
 @subsection V4L
 @table @i
 @item Internal name
@@ -692,6 +701,15 @@ fv_difftv.so
 @item Description
 DiffTV highlights interframe differences. Ported from EffecTV (http://effectv.sourceforge.net).
 @end table
+@subsection Display timecodes
+@table @i
+@item Internal name
+fv_tcdisplay
+@item Module
+fv_tcdisplay.so
+@item Description
+Burn timecodes into video frames
+@end table
 @subsection DisplaywallTV
 @table @i
 @item Internal name
@@ -762,7 +780,7 @@ fv_pixelformat
 @item Module
 fv_pixelformat.so
 @item Description
-This forces a pixelformat as input for the next filter. Its mainly used for testing.
+Forces a pixelformat as input for the next filter. Its mainly used for testing.
 @end table
 @subsection Invert RGBA
 @table @i
@@ -989,6 +1007,15 @@ fv_timedisttv.so
 @item Description
 Distorts moving objects in the sight. When it detects a moving part, it rollbacks to an old frame around that. Ported from EffecTV (http://effectv.sourceforge.net).
 @end table
+@subsection Transform
+@table @i
+@item Internal name
+fv_transform
+@item Module
+fv_transform.so
+@item Description
+Transform the image with different methods
+@end table
 @subsection TransformTV
 @table @i
 @item Internal name
@@ -997,6 +1024,15 @@ fv_transformtv
 fv_transformtv.so
 @item Description
 TransformTV does transform mark effect on the video input. The transform is caused by a motion or random rain drops. Ported from EffecTV (http://effectv.sourceforge.net).
+@end table
+@subsection Tweak timecodes
+@table @i
+@item Internal name
+fv_tctweak
+@item Module
+fv_tctweak.so
+@item Description
+Replace/remove/interpolate timecodes
 @end table
 @subsection VertigoTV
 @table @i

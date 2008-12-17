@@ -97,7 +97,7 @@ Supported strings: auto nearest bilinear quadratic cubic_bspline cubic_mitchell 
 Default: auto@*@*
 Scale mode@*@*
 Choose scaling method. Auto means to choose based on the conversion
-quality. Nearest is fastest, Sinc with Lanczos window is slowest
+quality. Nearest is fastest, Sinc with Lanczos window is slowest.
 @*@*
 @item @b{scale_order}=<number> (4..1000, default: 4)@*@*
 Scale order@*@*
@@ -132,6 +132,11 @@ Postprocessing level@*@*
 Set postprocessing (to remove compression artifacts). 0 means no
 postprocessing, 6 means maximum postprocessing.
 @*@*
+@item @b{shrink}=<number> (0..3, default: 0)@*@*
+Shrink factor@*@*
+This enables downscaling of images while decoding. Currently only
+supported for JPEG-2000.
+@*@*
 @item @b{connect_timeout}=<number> (0..2000000, default: 5000)@*@*
 Connect timeout (milliseconds)@*@*
 @item @b{read_timeout}=<number> (0..2000000, default: 5000)@*@*
@@ -156,6 +161,19 @@ Proxy needs authentication@*@*
 Proxy username@*@*
 @item @b{http_proxy_pass}=<string>@*@*
 Proxy password@*@*
+@item @b{rtp_try_tcp}=[1|0] (default: 0)@*@*
+Try RTP over TCP@*@*
+Use this if your filewall blocks all UDP traffic. Not all servers
+support TCP
+@*@*
+@item @b{rtp_port_base}=<number> (0..65530, default: 0)@*@*
+Port base for RTP@*@*
+Port base for RTP over UDP. Values of 1024 or smaller enable random
+ports (recommended for RTSP aware firewalls). Values larger than 1024
+define the base port. 2 consecutive ports are used for each A/V stream,
+these must be accessable through the firewall. Odd values are rounded to
+the next even value.
+@*@*
 @item @b{ftp_anonymous}=[1|0] (default: 1)@*@*
 Login as anonymous@*@*
 @item @b{ftp_anonymous_password}=<string> (Default: gates@@nanosoft.com)@*@*
@@ -194,6 +212,8 @@ cached.
 Cache size (Megabytes)@*@*
 Set the maximum total size of the cache directory.
 @*@*
+@item @b{dv_datetime}=[1|0] (default: 0)@*@*
+Export date and time as timecodes for DV@*@*
 @end table
 @b{Suboptions for p=i_cdaudio}@*@*
 @table @r
@@ -230,7 +250,7 @@ Proxy@*@*
 Proxy server (leave empty for direct connection)
 @*@*
 @item @b{musicbrainz_proxy_port}=<number> (1..65535, default: 80)@*@*
-Proxy Port@*@*
+Proxy port@*@*
 Proxy port
 @*@*
 @item @b{use_cddb}=[1|0] (default: 1)@*@*
@@ -246,7 +266,7 @@ Proxy@*@*
 Proxy server (leave empty for direct connection)
 @*@*
 @item @b{cddb_proxy_port}=<number> (1..65535, default: 80)@*@*
-Proxy Port@*@*
+Proxy port@*@*
 Proxy port
 @*@*
 @item @b{cddb_proxy_user}=<string>@*@*
@@ -310,12 +330,12 @@ Sort and configure audio codecs
 @item @b{vc}=@{option[@{suboptions@}][:option[@{suboptions@}]...]@}@*@*
 Supported options: rtjpeg raw v308 v408 v410 yuv2 yuv4 yv12 2vuy v210 
 png ffmpeg_mpg1 ffmpeg_mpg4 ffmpeg_msmpeg4v1 ffmpeg_msmpeg4v2 
-ffmpeg_msmpeg4v3 ffmpeg_h263 ffmpeg_h264 ffmpeg_i263 ffmpeg_svq1 
-ffmpeg_svq3 ffmpeg_mjpg ffmpeg_mjpegb ffmpeg_TGA ffmpeg_TIFF 
-ffmpeg_8BPS ffmpeg_indeo ffmpeg_rpza ffmpeg_smc ffmpeg_cinepak 
-ffmpeg_cyuv ffmpeg_rle ffmpeg_wrle ffmpeg_dv_ntsc ffmpeg_dv_pal 
-ffmpeg_dv_avi ffmpeg_dv50_pal ffmpeg_dv50_ntsc ffmpeg_ffvhuff jpeg 
-mjpa ffmpeg_msmpeg4v3_wmp ffmpeg_dnxhd
+ffmpeg_msmpeg4v3 ffmpeg_msmpeg4v3_wmp ffmpeg_h263 ffmpeg_h263 
+ffmpeg_h264 ffmpeg_i263 ffmpeg_svq1 ffmpeg_svq3 ffmpeg_mjpg 
+ffmpeg_mjpegb ffmpeg_TGA ffmpeg_TIFF ffmpeg_8BPS ffmpeg_indeo 
+ffmpeg_rpza ffmpeg_smc ffmpeg_cinepak ffmpeg_cyuv ffmpeg_rle 
+ffmpeg_wrle ffmpeg_dv_ntsc ffmpeg_dv_pal ffmpeg_dv_avi ffmpeg_dv50_pal 
+ffmpeg_dv50_ntsc ffmpeg_dvcprohd ffmpeg_ffvhuff ffmpeg_dnxhd jpeg mjpa
 
 Video Codecs@*@*
 Sort and configure video codecs
@@ -341,6 +361,16 @@ Grayscale mode@*@*
 Grayscale mode@*@*
 @end table
 @b{Suboptions for ffmpeg_msmpeg4v3}@*@*
+@table @r
+@item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
+Grayscale mode@*@*
+@end table
+@b{Suboptions for ffmpeg_msmpeg4v3_wmp}@*@*
+@table @r
+@item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
+Grayscale mode@*@*
+@end table
+@b{Suboptions for ffmpeg_h263}@*@*
 @table @r
 @item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
 Grayscale mode@*@*
@@ -415,12 +445,12 @@ Grayscale mode@*@*
 @item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
 Grayscale mode@*@*
 @end table
-@b{Suboptions for ffmpeg_ffvhuff}@*@*
+@b{Suboptions for ffmpeg_dvcprohd}@*@*
 @table @r
 @item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
 Grayscale mode@*@*
 @end table
-@b{Suboptions for ffmpeg_msmpeg4v3_wmp}@*@*
+@b{Suboptions for ffmpeg_ffvhuff}@*@*
 @table @r
 @item @b{ff_flag_gray}=[1|0] (default: 0)@*@*
 Grayscale mode@*@*
@@ -489,7 +519,7 @@ Samplerate@*@*
 Fixed output samplerate
 @*@*
 @item @b{resample_mode}=<string>@*@*
-Supported strings: auto linear zoh sinc_fast sinc_medium sinc_best@*@*
+Supported strings: auto zoh linear sinc_fast sinc_medium sinc_best@*@*
 Default: auto@*@*
 Resample mode@*@*
 Resample mode. Auto means to use the quality level. Subsequent options are
@@ -599,7 +629,7 @@ Left border@*@*
 Distance from the left text border to the image border
 @*@*
 @item @b{border_right}=<number> (0..65535, default: 10)@*@*
-Left border@*@*
+Right border@*@*
 Distance from the right text border to the image border
 @*@*
 @item @b{border_top}=<number> (0..65535, default: 10)@*@*
