@@ -78,7 +78,8 @@ gavl_video_scaler_t * gavl_video_scaler_create()
   return ret;
   }
 
-void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt,
+void gavl_init_scale_funcs(gavl_scale_funcs_t * tab,
+                           gavl_video_options_t * opt,
                            int src_advance, int dst_advance,
                            gavl_video_scale_table_t * tab_h,
                            gavl_video_scale_table_t * tab_v)

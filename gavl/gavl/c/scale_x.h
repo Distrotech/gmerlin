@@ -57,7 +57,7 @@ static void (FUNC_NAME)(gavl_video_scale_context_t * ctx, int scanline, uint8_t 
     
     SCALE
     
-    dst += ctx->offset->dst_advance;
+    dst_start += ctx->offset->dst_advance;
     }
   }
 

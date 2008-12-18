@@ -828,33 +828,7 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
           ctx->max_values_h[1],
           ctx->max_values_h[2]);
 #endif
-#if 0
-  for(i = 0; i < 4; i++)
-    {
-    ctx->min_values_h[i] <<= bits_h;
-    ctx->max_values_h[i] <<= bits_h;
-
-    ctx->min_values_v[i] <<= bits_v;
-    ctx->max_values_v[i] <<= bits_v;
-    }
-#endif
-#if 0
-  fprintf(stderr, "Min: %d %d %d, max: %d %d %d\n",
-          ctx->min_values_h[0],
-          ctx->min_values_h[1],
-          ctx->min_values_h[2],
-          ctx->max_values_h[0],
-          ctx->max_values_h[1],
-          ctx->max_values_h[2]);
-#endif
     
-#if 0
-  for(i = 0; i < 4; i++)
-    {
-    fprintf(stderr, "Channel %d: min: %08x, max: %08x\n", i,
-            ctx->min_values[i], ctx->max_values[i]);
-    }
-#endif
   return 1;
   }
 
@@ -1272,13 +1246,6 @@ gavl_video_scale_context_init_convolve(gavl_video_scale_context_t* ctx,
   
   get_minmax(format->pixelformat, ctx->min_values_h, ctx->max_values_h, ctx->min_values_f, ctx->max_values_f);
   get_minmax(format->pixelformat, ctx->min_values_v, ctx->max_values_v, ctx->min_values_f, ctx->max_values_f);
-  for(i = 0; i < 4; i++)
-    {
-    ctx->min_values_h[i] <<= bits_h;
-    ctx->max_values_h[i] <<= bits_h;
-    ctx->min_values_v[i] <<= bits_v;
-    ctx->max_values_v[i] <<= bits_v;
-    }
 
   if(h_c) free(h_c);
   if(v_c) free(v_c);
