@@ -55,7 +55,6 @@ typedef struct
 
   gavl_video_format_t format;
   gavl_video_frame_t * frame;
-  int quality;
   } blur_priv_t;
 
 static void * create_blur()
@@ -87,9 +86,6 @@ static void transfer_global_options(gavl_video_options_t * opt,
   void * client_data;
   gavl_video_stop_func stop_func;
   gavl_video_run_func  run_func;
-  fprintf(stderr, "transfer_global_options blur %d %d\n",
-          gavl_video_options_get_num_threads(global_opt),
-          gavl_video_options_get_quality(global_opt));
   
   gavl_video_options_set_quality(opt, gavl_video_options_get_quality(global_opt));
   gavl_video_options_set_num_threads(opt, gavl_video_options_get_num_threads(global_opt));
@@ -200,8 +196,6 @@ static void init_scaler(blur_priv_t * vp)
   gavl_video_options_set_conversion_flags(vp->opt,
                                           flags);
 
-  gavl_video_options_set_quality(vp->opt, vp->quality);
-  
   if(vp->correct_nonsquare)
     {
     pixel_aspect = 
@@ -277,15 +271,6 @@ static const bg_parameter_info_t parameters[] =
       .val_default = { .val_i = 0 },
       .flags = BG_PARAMETER_SYNC,
     },
-    {
-      .name = "quality",
-      .long_name = TRS("Quality"),
-      .type = BG_PARAMETER_SLIDER_INT,
-      .flags = BG_PARAMETER_SYNC,
-      .val_min =     { .val_i = GAVL_QUALITY_FASTEST },
-      .val_max =     { .val_i = GAVL_QUALITY_BEST },
-      .val_default = { .val_i = GAVL_QUALITY_DEFAULT },
-    },
     { /* End of parameters */ },
   };
 
@@ -344,14 +329,6 @@ static void set_parameter_blur(void * priv, const char * name,
     else if(!strcmp(val->val_str, "box"))
       vp->mode = MODE_BOX;
     vp->changed = 1;
-    }
-  else if(!strcmp(name, "quality"))
-    {
-    if(vp->quality != val->val_i)
-      {
-      vp->quality = val->val_i;
-      vp->changed = 1;
-      }
     }
   }
 

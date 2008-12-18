@@ -1208,9 +1208,6 @@ static void transfer_global_options(gavl_video_options_t * opt,
   void * client_data;
   gavl_video_stop_func stop_func;
   gavl_video_run_func  run_func;
-  fprintf(stderr, "transfer_global_options %d %d\n",
-          gavl_video_options_get_num_threads(global_opt),
-          gavl_video_options_get_quality(global_opt));
   
   gavl_video_options_set_quality(opt, gavl_video_options_get_quality(global_opt));
   gavl_video_options_set_num_threads(opt, gavl_video_options_get_num_threads(global_opt));
