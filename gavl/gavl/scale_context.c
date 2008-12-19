@@ -912,7 +912,7 @@ gavl_video_scale_context_init_convolve(gavl_video_scale_context_t* ctx,
                                        int h_radius, float * h_coeffs,
                                        int v_radius, float * v_coeffs)
   {
-  int bits_h = 1, bits_v = 1, i;
+  int bits_h = 1, bits_v = 1;
   int sub_h = 1, sub_v = 1;
   int scale_x, scale_y;
 

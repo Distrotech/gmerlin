@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-static void (FUNC_NAME)(gavl_transform_context_t * ctx)
+static void (FUNC_NAME)(gavl_transform_context_t * ctx, gavl_transform_pixel_t * pixels, uint8_t * dest_start)
   {
   int i;
 
@@ -41,11 +41,11 @@ static void (FUNC_NAME)(gavl_transform_context_t * ctx)
   
   for(i = 0; i < ctx->dst_width; i++)
     {
-    if(!ctx->pixels[i].outside)
+    if(!pixels[i].outside)
       {
-      dst = (TYPE*)(ctx->dst);
-      src_0 = (TYPE*)(ctx->src + ctx->advance * ctx->pixels[i].index_x +
-                      ctx->src_stride * ctx->pixels[i].index_y);
+      dst = (TYPE*)(dest_start);
+      src_0 = (TYPE*)(ctx->src + ctx->advance * pixels[i].index_x +
+                      ctx->src_stride * pixels[i].index_y);
 #if NUM_TAPS > 1
       src_1 = (TYPE*)((uint8_t*)(src_0) + ctx->src_stride);
 #endif
@@ -57,7 +57,7 @@ static void (FUNC_NAME)(gavl_transform_context_t * ctx)
 #endif
       TRANSFORM
       }
-    ctx->dst += ctx->advance;
+    dest_start += ctx->advance;
     }
   }
 

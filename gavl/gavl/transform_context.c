@@ -258,13 +258,37 @@ gavl_transform_context_init(gavl_image_transform_t * t,
   
   }
 
+static void func_1(void* p, int start, int end)
+  {
+  int i;
+  uint8_t * dst_save;
+  int dst_stride;
+  
+  gavl_transform_context_t * ctx = p;
+  dst_stride =
+    ctx->dst_frame->strides[ctx->plane] *
+    ctx->num_fields;
+  
+  dst_save = ctx->dst_frame->planes[ctx->plane] +
+    ctx->offset + ctx->field * ctx->dst_frame->strides[ctx->plane] +
+    start * dst_stride;
+  
+  for(i = start; i < end; i++)
+    {
+    ctx->func(ctx, ctx->tab.pixels[i], dst_save);
+    dst_save += dst_stride;
+    }
+  // #ifdef HAVE_MMX
+  //  __asm__ __volatile__ ("emms");
+  // #endif
+  }
+
+
 void gavl_transform_context_transform(gavl_transform_context_t * ctx,
                                  const gavl_video_frame_t * src,
                                  gavl_video_frame_t * dst)
   {
   int i;
-  int dst_stride;
-  uint8_t * dst_save;
   /* Things set while transforming */
   //  uint8_t * src; /* Beginning of plane */
   //  int src_stride;
@@ -276,20 +300,49 @@ void gavl_transform_context_transform(gavl_transform_context_t * ctx,
     ctx->offset + ctx->field * src->strides[ctx->plane];
   
   ctx->src_stride = src->strides[ctx->plane] * ctx->num_fields;
-
-  dst_save = dst->planes[ctx->plane] +
-    ctx->offset + ctx->field * dst->strides[ctx->plane];
   
-  dst_stride = dst->strides[ctx->plane] * ctx->num_fields;
-  
-  for(i = 0; i < ctx->dst_height; i++)
+  if(ctx->opt->num_threads > 1)
     {
-    ctx->dst = dst_save;
-    ctx->pixels = ctx->tab.pixels[i];
-    ctx->func(ctx);
+    int delta;
+    int scanline;
+    int nt;
     
-    dst_save += dst_stride;
+    ctx->dst_frame = dst;
+    nt = ctx->opt->num_threads;
+    if(nt > ctx->dst_height)
+      nt = ctx->dst_height;
+    
+    delta = ctx->dst_height / nt;
+    scanline = 0;
+    for(i = 0; i < nt - 1; i++)
+      {
+      ctx->opt->run_func(func_1, ctx, scanline,
+                         scanline+delta, ctx->opt->run_data, i);
+      scanline += delta;
+      }
+    ctx->opt->run_func(func_1, ctx, scanline, ctx->dst_height,
+                       ctx->opt->run_data, nt - 1);
+    
+    for(i = 0; i < nt; i++)
+      ctx->opt->stop_func(ctx->opt->stop_data, i);
     }
+  else
+    {
+    int dst_stride;
+    uint8_t * dst_save;
+
+    dst_save = dst->planes[ctx->plane] +
+      ctx->offset + ctx->field * dst->strides[ctx->plane];
+    
+    dst_stride = dst->strides[ctx->plane] * ctx->num_fields;
+    for(i = 0; i < ctx->dst_height; i++)
+      {
+      ctx->func(ctx, ctx->tab.pixels[i], dst_save);
+      dst_save += dst_stride;
+      }
+
+    }
+  
   }
 
 void

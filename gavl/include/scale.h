@@ -372,7 +372,7 @@ struct gavl_video_scale_context_s
   //  uint8_t * dst;
   //  int scanline;
   int dst_size;
-
+  
   int first_scanline;
 #ifdef HAVE_MMX
   int need_emms;

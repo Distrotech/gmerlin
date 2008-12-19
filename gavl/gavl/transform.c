@@ -27,9 +27,18 @@
 
 gavl_image_transform_t * gavl_image_transform_create()
   {
+  int i, j;
   gavl_image_transform_t * ret;
   ret = calloc(1, sizeof(*ret));
   gavl_video_options_set_defaults(&ret->opt);
+
+  for(i = 0; i < 3; i++)
+    {
+    for(j = 0; j < GAVL_MAX_PLANES; j++)
+      ret->contexts[i][j].opt = &ret->opt;
+    }
+
+
   return ret;
   }
 

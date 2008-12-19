@@ -34,7 +34,9 @@ typedef struct
 typedef struct gavl_transform_context_s gavl_transform_context_t;
 
 typedef void
-(*gavl_transform_scanline_func)(gavl_transform_context_t * ctx);
+(*gavl_transform_scanline_func)(gavl_transform_context_t * ctx,
+                                gavl_transform_pixel_t * pixels,
+                                uint8_t * dest_start);
 
 typedef struct
   {
@@ -110,9 +112,9 @@ struct gavl_transform_context_s
   /* Things set while transforming */
   uint8_t * src; /* Beginning of plane */
   int src_stride;
-  
-  uint8_t * dst; /* Current scanline */
-  gavl_transform_pixel_t * pixels;
+  gavl_video_options_t * opt;
+
+  gavl_video_frame_t * dst_frame;
   };
 
 void

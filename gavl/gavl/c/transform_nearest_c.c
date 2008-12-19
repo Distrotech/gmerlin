@@ -31,51 +31,51 @@
 #define TRANSFORM_FUNC_TAIL \
     }
 
-static void transform_rgb_16_nearest_c(gavl_transform_context_t * ctx)
+static void transform_rgb_16_nearest_c(gavl_transform_context_t * ctx, gavl_transform_pixel_t * pixels, uint8_t * dest_start)
   {
   int i;
   uint16_t * src, *dst;
-  dst = (uint16_t*)(ctx->dst);
+  dst = (uint16_t*)(dest_start);
   TRANSFORM_FUNC_HEAD
-    if(!ctx->pixels[i].outside)
+    if(!pixels[i].outside)
       {
       src = (uint16_t*)(ctx->src +
-                        ctx->pixels[i].index_y * ctx->src_stride) +
-        ctx->pixels[i].index_x;
+                        pixels[i].index_y * ctx->src_stride) +
+        pixels[i].index_x;
       *dst = *src;
       }
   dst++;
   TRANSFORM_FUNC_TAIL
   }
 
-static void transform_uint8_x_1_nearest_c(gavl_transform_context_t * ctx)
+static void transform_uint8_x_1_nearest_c(gavl_transform_context_t * ctx, gavl_transform_pixel_t * pixels, uint8_t * dest_start)
   {
   int i;
   uint8_t * src, *dst;
-  dst = (uint8_t*)(ctx->dst);
+  dst = (uint8_t*)(dest_start);
   TRANSFORM_FUNC_HEAD
-    if(!ctx->pixels[i].outside)
+    if(!pixels[i].outside)
       {
     src = (uint8_t*)(ctx->src +
-                      ctx->pixels[i].index_y * ctx->src_stride) +
-    ctx->pixels[i].index_x * ctx->advance;
+                      pixels[i].index_y * ctx->src_stride) +
+    pixels[i].index_x * ctx->advance;
   *dst = *src;
       }
   dst+=ctx->advance;
   TRANSFORM_FUNC_TAIL
   }
 
-static void transform_uint8_x_3_nearest_c(gavl_transform_context_t * ctx)
+static void transform_uint8_x_3_nearest_c(gavl_transform_context_t * ctx, gavl_transform_pixel_t * pixels, uint8_t * dest_start)
   {
   int i;
   uint8_t * src, *dst;
-  dst = (uint8_t*)(ctx->dst);
+  dst = (uint8_t*)(dest_start);
   TRANSFORM_FUNC_HEAD
-    if(!ctx->pixels[i].outside)
+    if(!pixels[i].outside)
       {
     src = (uint8_t*)(ctx->src +
-                      ctx->pixels[i].index_y * ctx->src_stride) +
-    ctx->pixels[i].index_x * ctx->advance;
+                      pixels[i].index_y * ctx->src_stride) +
+    pixels[i].index_x * ctx->advance;
   dst[0] = src[0];
   dst[1] = src[1];
   dst[2] = src[2];
@@ -84,34 +84,34 @@ static void transform_uint8_x_3_nearest_c(gavl_transform_context_t * ctx)
   TRANSFORM_FUNC_TAIL
   }
 
-static void transform_uint8_x_4_nearest_c(gavl_transform_context_t * ctx)
+static void transform_uint8_x_4_nearest_c(gavl_transform_context_t * ctx, gavl_transform_pixel_t * pixels, uint8_t * dest_start)
   {
   int i;
   uint32_t * src, *dst;
-  dst = (uint32_t*)(ctx->dst);
+  dst = (uint32_t*)(dest_start);
   TRANSFORM_FUNC_HEAD
-    if(!ctx->pixels[i].outside)
+    if(!pixels[i].outside)
       {
     src = (uint32_t*)(ctx->src +
-                      ctx->pixels[i].index_y * ctx->src_stride) +
-    ctx->pixels[i].index_x;
+                      pixels[i].index_y * ctx->src_stride) +
+    pixels[i].index_x;
      *dst = *src;
       }
   dst++;
   TRANSFORM_FUNC_TAIL
   }
 
-static void transform_uint16_x_3_nearest_c(gavl_transform_context_t * ctx)
+static void transform_uint16_x_3_nearest_c(gavl_transform_context_t * ctx, gavl_transform_pixel_t * pixels, uint8_t * dest_start)
   {
   int i;
   uint16_t * src, *dst;
-  dst = (uint16_t*)(ctx->dst);
+  dst = (uint16_t*)(dest_start);
   TRANSFORM_FUNC_HEAD
-    if(!ctx->pixels[i].outside)
+    if(!pixels[i].outside)
       {
     src = (uint16_t*)(ctx->src +
-                      ctx->pixels[i].index_y * ctx->src_stride) +
-    ctx->pixels[i].index_x * 3;
+                      pixels[i].index_y * ctx->src_stride) +
+    pixels[i].index_x * 3;
      dst[0] = src[0];
      dst[1] = src[1];
      dst[2] = src[2];
@@ -120,17 +120,17 @@ static void transform_uint16_x_3_nearest_c(gavl_transform_context_t * ctx)
   TRANSFORM_FUNC_TAIL
   }
 
-static void transform_uint16_x_4_nearest_c(gavl_transform_context_t * ctx)
+static void transform_uint16_x_4_nearest_c(gavl_transform_context_t * ctx, gavl_transform_pixel_t * pixels, uint8_t * dest_start)
   {
   int i;
   uint64_t * src, *dst;
-  dst = (uint64_t*)(ctx->dst);
+  dst = (uint64_t*)(dest_start);
   TRANSFORM_FUNC_HEAD
-    if(!ctx->pixels[i].outside)
+    if(!pixels[i].outside)
       {
     src = (uint64_t*)(ctx->src +
-                      ctx->pixels[i].index_y * ctx->src_stride) +
-    ctx->pixels[i].index_x;
+                      pixels[i].index_y * ctx->src_stride) +
+    pixels[i].index_x;
      *dst = *src;
       }
   dst++;
@@ -138,17 +138,17 @@ static void transform_uint16_x_4_nearest_c(gavl_transform_context_t * ctx)
   }
 
 static void
-transform_float_x_1_nearest_c(gavl_transform_context_t * ctx)
+transform_float_x_1_nearest_c(gavl_transform_context_t * ctx, gavl_transform_pixel_t * pixels, uint8_t * dest_start)
   {
   int i;
   float * src, *dst;
-  dst = (float*)(ctx->dst);
+  dst = (float*)(dest_start);
   TRANSFORM_FUNC_HEAD
-    if(!ctx->pixels[i].outside)
+    if(!pixels[i].outside)
       {
     src = (float*)(ctx->src +
-                      ctx->pixels[i].index_y * ctx->src_stride) +
-    ctx->pixels[i].index_x;
+                      pixels[i].index_y * ctx->src_stride) +
+    pixels[i].index_x;
      *dst = *src;
       }
   dst++;
@@ -156,17 +156,17 @@ transform_float_x_1_nearest_c(gavl_transform_context_t * ctx)
   }
 
 static void
-transform_float_x_2_nearest_c(gavl_transform_context_t * ctx)
+transform_float_x_2_nearest_c(gavl_transform_context_t * ctx, gavl_transform_pixel_t * pixels, uint8_t * dest_start)
   {
   int i;
   float * src, *dst;
-  dst = (float*)(ctx->dst);
+  dst = (float*)(dest_start);
   TRANSFORM_FUNC_HEAD
-    if(!ctx->pixels[i].outside)
+    if(!pixels[i].outside)
       {
     src = (float*)(ctx->src +
-                      ctx->pixels[i].index_y * ctx->src_stride) +
-    ctx->pixels[i].index_x * 2;
+                      pixels[i].index_y * ctx->src_stride) +
+    pixels[i].index_x * 2;
      dst[0] = src[0];
      dst[1] = src[1];
       }
@@ -175,17 +175,17 @@ transform_float_x_2_nearest_c(gavl_transform_context_t * ctx)
   }
 
 static void
-transform_float_x_3_nearest_c(gavl_transform_context_t * ctx)
+transform_float_x_3_nearest_c(gavl_transform_context_t * ctx, gavl_transform_pixel_t * pixels, uint8_t * dest_start)
   {
   int i;
   float * src, *dst;
-  dst = (float*)(ctx->dst);
+  dst = (float*)(dest_start);
   TRANSFORM_FUNC_HEAD
-    if(!ctx->pixels[i].outside)
+    if(!pixels[i].outside)
       {
     src = (float*)(ctx->src +
-                      ctx->pixels[i].index_y * ctx->src_stride) +
-    ctx->pixels[i].index_x * 3;
+                      pixels[i].index_y * ctx->src_stride) +
+    pixels[i].index_x * 3;
      dst[0] = src[0];
      dst[1] = src[1];
      dst[2] = src[2];
@@ -195,18 +195,18 @@ transform_float_x_3_nearest_c(gavl_transform_context_t * ctx)
   }
 
 static void
-transform_float_x_4_nearest_c(gavl_transform_context_t * ctx)
+transform_float_x_4_nearest_c(gavl_transform_context_t * ctx, gavl_transform_pixel_t * pixels, uint8_t * dest_start)
   {
   int i;
   float * src, *dst;
-  dst = (float*)(ctx->dst);
+  dst = (float*)(dest_start);
   TRANSFORM_FUNC_HEAD
-    if(!ctx->pixels[i].outside)
+    if(!pixels[i].outside)
       {
       
     src = (float*)(ctx->src +
-                      ctx->pixels[i].index_y * ctx->src_stride) +
-    ctx->pixels[i].index_x * 4;
+                      pixels[i].index_y * ctx->src_stride) +
+    pixels[i].index_x * 4;
      dst[0] = src[0];
      dst[1] = src[1];
      dst[2] = src[2];
