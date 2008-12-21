@@ -32,7 +32,8 @@ yuvdeinterlacer_t * yuvdeinterlacer_create();
 void yuvdeinterlacer_destroy(yuvdeinterlacer_t * d);
 
 void yuvdeinterlacer_init(yuvdeinterlacer_t * di,
-                          gavl_video_format_t * format);
+                          gavl_video_format_t * format,
+                          gavl_video_options_t * opt);
 
 void yuvdeinterlacer_get_output_format(yuvdeinterlacer_t * di,
                                        gavl_video_format_t * format);

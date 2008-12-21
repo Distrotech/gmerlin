@@ -52,6 +52,7 @@ typedef struct deinterlace_priv_s
   gavl_video_frame_t * frame;
 
   gavl_video_options_t * opt;
+  gavl_video_options_t * global_opt;
 
   gavl_video_deinterlacer_t * deint;
   
@@ -85,6 +86,7 @@ static void * create_deinterlace()
 #endif
   
   ret->src_field_1 = gavl_video_frame_create((gavl_video_format_t*)0);
+  ret->global_opt = gavl_video_options_create();
   return ret;
   }
 
@@ -97,6 +99,7 @@ static void destroy_deinterlace(void * priv)
 
   gavl_video_deinterlacer_destroy(vp->deint);
 
+  gavl_video_options_destroy(vp->global_opt);
   gavl_video_frame_null(vp->src_field_1);
   gavl_video_frame_destroy(vp->src_field_1);
 #ifdef HAVE_MJPEGTOOLS
@@ -106,6 +109,11 @@ static void destroy_deinterlace(void * priv)
   free(vp);
   }
 
+static gavl_video_options_t * get_options_deinterlace(void * priv)
+  {
+  deinterlace_priv_t * vp = priv;
+  return vp->global_opt;
+  }
 
 
 static const bg_parameter_info_t scale_parameters[] =
@@ -481,6 +489,25 @@ static void connect_input_port_deinterlace(void * priv,
     }
   }
 
+static void transfer_global_options(gavl_video_options_t * opt,
+                                    gavl_video_options_t * global_opt)
+  {
+  void * client_data;
+  gavl_video_stop_func stop_func;
+  gavl_video_run_func  run_func;
+  
+  gavl_video_options_set_quality(opt, gavl_video_options_get_quality(global_opt));
+  gavl_video_options_set_num_threads(opt, gavl_video_options_get_num_threads(global_opt));
+                                     
+  run_func = gavl_video_options_get_run_func(global_opt, &client_data);
+  gavl_video_options_set_run_func(opt, run_func, client_data);
+
+  stop_func = gavl_video_options_get_stop_func(global_opt, &client_data);
+  gavl_video_options_set_stop_func(opt, stop_func, client_data);
+  
+  }
+
+
 static void
 set_input_format_deinterlace(void * priv,
                              gavl_video_format_t * format,
@@ -499,6 +526,7 @@ set_input_format_deinterlace(void * priv,
     gavl_video_format_copy(&vp->in_format, format);
     gavl_video_format_copy(&vp->out_format, format);
     vp->out_format.interlace_mode = GAVL_INTERLACE_NONE;
+    transfer_global_options(vp->opt, vp->global_opt);
     
     vp->need_reinit = 1;
     
@@ -520,12 +548,9 @@ set_input_format_deinterlace(void * priv,
 #ifdef HAVE_MJPEGTOOLS
       case DEINTERLACE_MJPEGTOOLS:
         vp->deint_func = deinterlace_mjpegtools;
-        yuvdeinterlacer_init(vp->yuvd, &vp->in_format);
+        yuvdeinterlacer_init(vp->yuvd, &vp->in_format, vp->opt);
         gavl_video_format_copy(format, &vp->in_format);
         yuvdeinterlacer_get_output_format(vp->yuvd, &vp->out_format);
-
-        
-        
         break;
 #endif
       }
@@ -565,6 +590,7 @@ static int read_video_deinterlace(void * priv, gavl_video_frame_t * frame, int s
     switch(vp->method)
       {
       case DEINTERLACE_GAVL:
+        transfer_global_options(vp->opt, vp->global_opt);
         gavl_video_deinterlacer_init(vp->deint, &vp->in_format);
         break;
       default:
@@ -591,6 +617,7 @@ const const bg_fv_plugin_t the_plugin =
       .set_parameter =    set_parameter_deinterlace,
       .priority =         1,
     },
+    .get_options = get_options_deinterlace,
     
     .connect_input_port = connect_input_port_deinterlace,
     

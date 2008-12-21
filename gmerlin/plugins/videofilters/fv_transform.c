@@ -53,9 +53,9 @@ typedef struct
   gavl_video_frame_t * frame;
   gavl_image_transform_t * transform;
   gavl_video_options_t * opt;
+  gavl_video_options_t * global_opt;
   
   int changed;
-  int quality;
   int scale_order;
   gavl_scale_mode_t scale_mode;
 
@@ -109,14 +109,40 @@ typedef struct
   
   } transform_t;
 
+static void transfer_global_options(gavl_video_options_t * opt,
+                                    gavl_video_options_t * global_opt)
+  {
+  void * client_data;
+  gavl_video_stop_func stop_func;
+  gavl_video_run_func  run_func;
+  
+  gavl_video_options_set_quality(opt, gavl_video_options_get_quality(global_opt));
+  gavl_video_options_set_num_threads(opt, gavl_video_options_get_num_threads(global_opt));
+                                     
+  run_func = gavl_video_options_get_run_func(global_opt, &client_data);
+  gavl_video_options_set_run_func(opt, run_func, client_data);
+
+  stop_func = gavl_video_options_get_stop_func(global_opt, &client_data);
+  gavl_video_options_set_stop_func(opt, stop_func, client_data);
+  
+  }
+
 static void * create_transform()
   {
   transform_t * ret;
   ret = calloc(1, sizeof(*ret));
   ret->transform = gavl_image_transform_create();
   ret->opt = gavl_image_transform_get_options(ret->transform);
+  ret->global_opt = gavl_video_options_create();
   return ret;
   }
+
+static gavl_video_options_t * get_options_transform(void * priv)
+  {
+  transform_t * vp = priv;
+  return vp->global_opt;
+  }
+
 
 static void destroy_transform(void * priv)
   {
@@ -126,6 +152,7 @@ static void destroy_transform(void * priv)
     gavl_video_frame_destroy(vp->frame);
 
   gavl_image_transform_destroy(vp->transform);
+  gavl_video_options_destroy(vp->global_opt);
   
   free(vp);
   }
@@ -168,15 +195,6 @@ static const bg_parameter_info_t parameters[] =
     .multi_labels = BG_GAVL_TRANSFORM_MODE_LABELS,
     .val_default = { .val_str = "auto" },
     .help_string = TRS("Choose interpolation method. Auto means to choose based on the conversion quality. Nearest is fastest, Bicubic is slowest."),
-    },
-    {
-      .name = "quality",
-      .long_name = TRS("Quality"),
-      .type = BG_PARAMETER_SLIDER_INT,
-      .flags = BG_PARAMETER_SYNC,
-      .val_min =     { .val_i = GAVL_QUALITY_FASTEST },
-      .val_max =     { .val_i = GAVL_QUALITY_BEST },
-      .val_default = { .val_i = GAVL_QUALITY_DEFAULT },
     },
     {
       .name = "bg_color",
@@ -413,14 +431,6 @@ set_parameter_transform(void * priv, const char * name,
     if(vp->scale_mode != scale_mode)
       {
       vp->scale_mode = scale_mode;
-      vp->changed = 1;
-      }
-    }
-  else if(!strcmp(name, "quality"))
-    {
-    if(vp->quality != val->val_i)
-      {
-      vp->quality = val->val_i;
       vp->changed = 1;
       }
     }
@@ -1204,7 +1214,8 @@ static void init_transform(transform_t * vp)
     return;
   
   gavl_video_options_set_scale_mode(vp->opt, vp->scale_mode);
-  gavl_video_options_set_quality(vp->opt, vp->quality);
+
+  transfer_global_options(vp->opt, vp->global_opt);
   
   gavl_image_transform_init(vp->transform, &vp->format,
                             func, vp);
@@ -1261,6 +1272,7 @@ const bg_fv_plugin_t the_plugin =
     },
     
     .connect_input_port = connect_input_port_transform,
+    .get_options        = get_options_transform,
     
     .set_input_format = set_input_format_transform,
     .get_output_format = get_output_format_transform,

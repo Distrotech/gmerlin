@@ -14,11 +14,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/*
- *  Original file yuvdeinterlace.cc from mjpegtools (http://mjpeg.sourceforge.net),
- *  adapted to gmerlin
- */
-
 #include "config.h"
 #include <string.h>
 #include <math.h>
@@ -31,6 +26,13 @@
 
 #include <yuvdeinterlace.h>
 
+
+#ifdef __GNUC__
+#define RESTRICT __restrict__
+#else
+#define RESTRICT
+#endif
+
 struct yuvdeinterlacer_s
   {
   int width;
@@ -39,17 +41,27 @@ struct yuvdeinterlacer_s
   int cheight;
   int field_order;
   int both_fields;
-  
-  int current_field;
-  
   int verbose;
   int input_chroma_subsampling;
   int output_chroma_subsampling;
   int vertical_overshot_luma;
   int vertical_overshot_chroma;
-  int mark_moving_blocks;
   int just_anti_alias;
-  
+
+  //  y4mstream Y4MStream;
+
+  //  uint8_t *inframe[3];
+  //  uint8_t *inframe0[3];
+  //  uint8_t *inframe1[3];
+
+  //  uint8_t *outframe[3];
+
+  uint8_t * RESTRICT scratch;
+  uint8_t * RESTRICT mmap;
+
+  int (* RESTRICT motion[2])[2];
+
+  /* Added for gmerlin */
   gavl_video_frame_t * inframe;
   gavl_video_frame_t * inframe0;
   gavl_video_frame_t * inframe1;
@@ -59,13 +71,10 @@ struct yuvdeinterlacer_s
   gavl_video_frame_t * inframe0_real;
   gavl_video_frame_t * inframe1_real;
   gavl_video_frame_t * outframe_real;
-  
-  uint8_t *scratch;
-  uint8_t *mmap;
+
+  gavl_video_format_t format;
 
   int scratch_offset; // Added to the adress after malloc, substracted before free()
-  
-  gavl_video_format_t format;
   
   /* Where to get data */
   bg_read_video_func_t read_func;
@@ -73,8 +82,22 @@ struct yuvdeinterlacer_s
   int read_stream;
 
   int need_restart;
+  int current_field;
+  int64_t frame;
+  int eof;
+
+  /* Multithreading stuff */
+
+  gavl_video_run_func  run_func;
+  gavl_video_stop_func stop_func;
+  void * run_data;
+  void * stop_data;
+  int num_threads;
   
   };
+
+void antialias_plane (yuvdeinterlacer_t * di, uint8_t * RESTRICT out, int w, int h);
+
 
 void yuvdeinterlacer_connect_input(void * priv,
                                    bg_read_video_func_t func,
@@ -86,14 +109,61 @@ void yuvdeinterlacer_connect_input(void * priv,
   di->read_stream = stream;
   }
 
-static void antialias_plane (yuvdeinterlacer_t * di, uint8_t * out, int w, int h);
+#if 0 // Original 
+void initialize_memory (yuvdeinterlacer_t * di, int w, int h, int cw, int ch)
+  {
+    int luma_size;
+    int chroma_size;
+    int lmotion_size;
+    int cmotion_size;
 
+    // Some functions need some vertical overshoot area
+    // above and below the image. So we make the buffer
+    // a little bigger...
+      vertical_overshot_luma = 32 * w;
+      vertical_overshot_chroma = 32 * cw;
+      luma_size = (w * h) + 2 * vertical_overshot_luma;
+      chroma_size = (cw * ch) + 2 * vertical_overshot_chroma;
+      lmotion_size = ((w + 7) / 8) * ((h + 7) / 8);
+      cmotion_size = ((cw + 7) / 8) * ((ch + 7) / 8);
+
+      inframe[0] = (uint8_t *) calloc (luma_size, 1) + vertical_overshot_luma;
+      inframe[1] = (uint8_t *) calloc (chroma_size, 1) + vertical_overshot_chroma;
+      inframe[2] = (uint8_t *) calloc (chroma_size, 1) + vertical_overshot_chroma;
+
+      inframe0[0] = (uint8_t *) calloc (luma_size, 1) + vertical_overshot_luma;
+      inframe0[1] = (uint8_t *) calloc (chroma_size, 1) + vertical_overshot_chroma;
+      inframe0[2] = (uint8_t *) calloc (chroma_size, 1) + vertical_overshot_chroma;
+
+      inframe1[0] = (uint8_t *) calloc (luma_size, 1) + vertical_overshot_luma;
+      inframe1[1] = (uint8_t *) calloc (chroma_size, 1) + vertical_overshot_chroma;
+      inframe1[2] = (uint8_t *) calloc (chroma_size, 1) + vertical_overshot_chroma;
+
+      outframe[0] = (uint8_t *) calloc (luma_size, 1) + vertical_overshot_luma;
+      outframe[1] = (uint8_t *) calloc (chroma_size, 1) + vertical_overshot_chroma;
+      outframe[2] = (uint8_t *) calloc (chroma_size, 1) + vertical_overshot_chroma;
+
+      scratch = (uint8_t *) malloc (luma_size) + vertical_overshot_luma;
+      mmap = (uint8_t *) malloc (w * h);
+
+      motion[0] = (int_least16_t (*)[2]) calloc (lmotion_size, sizeof(motion[0][0]));
+      motion[1] = (int_least16_t (*)[2]) calloc (cmotion_size, sizeof(motion[0][0]));
+
+      width = w;
+      height = h;
+      cwidth = cw;
+      cheight = ch;
+  }
+#else
 #define OVERSHOOT 32
 
 static void initialize_memory(yuvdeinterlacer_t * d)
   {
   int luma_size;
   int chroma_size;
+  int lmotion_size;
+  int cmotion_size;
+  
   gavl_rectangle_i_t rect;
   int w, h, cw, ch, sub_h, sub_v;
 
@@ -124,7 +194,10 @@ static void initialize_memory(yuvdeinterlacer_t * d)
   vertical_overshot_chroma = OVERSHOOT * cw;
   luma_size = (w * h) + 2 * vertical_overshot_luma;
   chroma_size = (cw * ch) + 2 * vertical_overshot_chroma;
-
+  
+  lmotion_size = ((w + 7) / 8) * ((h + 7) / 8);
+  cmotion_size = ((cw + 7) / 8) * ((ch + 7) / 8);
+  
   d->inframe_real = gavl_video_frame_create_nopad(&frame_format);
   d->inframe0_real = gavl_video_frame_create_nopad(&frame_format);
   d->inframe1_real = gavl_video_frame_create_nopad(&frame_format);
@@ -150,11 +223,11 @@ static void initialize_memory(yuvdeinterlacer_t * d)
   gavl_video_frame_get_subframe(d->format.pixelformat, d->inframe1_real, d->inframe1, &rect);
   gavl_video_frame_get_subframe(d->format.pixelformat, d->outframe_real, d->outframe, &rect);
   
-  d->scratch = (uint8_t *) malloc (luma_size + vertical_overshot_luma);
-  memset(d->scratch, 0, luma_size + vertical_overshot_luma);
-  
-  d->mmap = (uint8_t *) malloc (luma_size + vertical_overshot_luma);
-  memset(d->mmap, 0, luma_size + vertical_overshot_luma);
+  d->scratch = (uint8_t *) calloc (1, luma_size + vertical_overshot_luma);
+  d->mmap = (uint8_t *) calloc (1, luma_size);
+
+  d->motion[0] = (int(*)[2]) calloc (lmotion_size, sizeof(d->motion[0][0]));
+  d->motion[1] = (int(*)[2]) calloc (cmotion_size, sizeof(d->motion[0][0]));
   
   d->scratch_offset = vertical_overshot_luma;
   d->scratch += d->scratch_offset;
@@ -163,7 +236,15 @@ static void initialize_memory(yuvdeinterlacer_t * d)
   d->cwidth = cw;
   d->cheight = ch;
   }
+#endif 
 
+#if 0 // Original
+  deinterlacer ()
+  {
+    both_fields = 0;
+    just_anti_alias = 0;
+  }
+#else
 yuvdeinterlacer_t * yuvdeinterlacer_create()
   {
   yuvdeinterlacer_t * ret;
@@ -181,7 +262,35 @@ yuvdeinterlacer_t * yuvdeinterlacer_create()
 
   return ret;
   }
+#endif
 
+#if 0
+  ~deinterlacer ()
+  {
+    free (inframe[0] - vertical_overshot_luma);
+    free (inframe[1] - vertical_overshot_chroma);
+    free (inframe[2] - vertical_overshot_chroma);
+
+    free (inframe0[0] - vertical_overshot_luma);
+    free (inframe0[1] - vertical_overshot_chroma);
+    free (inframe0[2] - vertical_overshot_chroma);
+
+    free (inframe1[0] - vertical_overshot_luma);
+    free (inframe1[1] - vertical_overshot_chroma);
+    free (inframe1[2] - vertical_overshot_chroma);
+
+    free (outframe[0] - vertical_overshot_luma);
+    free (outframe[1] - vertical_overshot_chroma);
+    free (outframe[2] - vertical_overshot_chroma);
+
+    free (scratch - vertical_overshot_luma);
+    free (mmap);
+
+    free (motion[0]);
+    free (motion[1]);
+    
+  }
+#else
 #define FREE_FRAME(f) \
 if(f) \
   { \
@@ -220,11 +329,949 @@ static void free_memory(yuvdeinterlacer_t * d)
     free (d->mmap);
     d->mmap = NULL;
     }
+  if(d->motion[0])
+    {
+    free (d->motion[0]);
+    d->motion[0] = NULL;
+    }
+  if(d->motion[1])
+    {
+    free (d->motion[1]);
+    d->motion[1] = NULL;
+    }
+  }
+#endif
+
+static void temporal_reconstruct_plane(yuvdeinterlacer_t * di, uint8_t * RESTRICT out, const uint8_t * const in, uint8_t * RESTRICT in0, const uint8_t * const in1, int w, int h, int field, int (* RESTRICT lvxy)[2])
+  {
+  int_fast16_t x, y;
+  int_fast16_t vx, vy, dx, dy, px, py;
+  uint_fast16_t min, sad;
+  int_fast16_t a, b, c, d, e, f, g, m, i;
+  const int iw = (w + 7) / 8;
+
+  // the ELA-algorithm overshots by one line above and below the
+  // frame-size, so fill the ELA-overshot-area in the inframe to
+  // ensure that no green or purple lines are generated...
+  memcpy (in0 - w, in + w, w);
+  memcpy (in0 + (w * h), in + (w * h) - 2 * w, w);
+
+  // create deinterlaced frame of the reference-field in scratch
+  for (y = (1 - field); y < h; y += 2)
+    for (x = 0; x < w; x++)
+      {
+
+      a  = abs( *(in +x+(y-1)*w)-*(in0+x+(y-1)*w) );
+      a += abs( *(in1+x+(y-1)*w)-*(in0+x+(y-1)*w) );
+
+      b  = abs( *(in +x+(y  )*w)-*(in0+x+(y  )*w) );
+      b += abs( *(in1+x+(y  )*w)-*(in0+x+(y  )*w) );
+
+      c  = abs( *(in +x+(y+1)*w)-*(in0+x+(y+1)*w) );
+      c += abs( *(in1+x+(y+1)*w)-*(in0+x+(y+1)*w) );
+
+      *(di->scratch+x+(y-1)*w) = *(in0+x+(y-1)*w);
+	
+      if( (a<16 || c<16) && b<16 ) // Pixel is static?
+	{
+	// Yes...
+	*(di->scratch+x+(y  )*w) = *(in0+x+(y  )*w);
+	*(di->mmap+x+y*w) = 255; // mark pixel as static in motion-map...
+	}
+      else
+	{
+	// No...
+	// Do an edge-directed-interpolation
+
+	m  = *(in0+(x-3)+(y-2)*w);
+	m += *(in0+(x-2)+(y-2)*w);
+	m += *(in0+(x-1)+(y-2)*w);
+	m += *(in0+(x-0)+(y-2)*w);
+	m += *(in0+(x+1)+(y-2)*w);
+	m += *(in0+(x+2)+(y-2)*w);
+	m += *(in0+(x+3)+(y-2)*w);
+	m += *(in0+(x-3)+(y-1)*w);
+	m += *(in0+(x-2)+(y-1)*w);
+	m += *(in0+(x-1)+(y-1)*w);
+	m += *(in0+(x-0)+(y-1)*w);
+	m += *(in0+(x+1)+(y-1)*w);
+	m += *(in0+(x+2)+(y-1)*w);
+	m += *(in0+(x+3)+(y-1)*w);
+	m += *(in0+(x-3)+(y+1)*w);
+	m += *(in0+(x-2)+(y+1)*w);
+	m += *(in0+(x-1)+(y+1)*w);
+	m += *(in0+(x-0)+(y+1)*w);
+	m += *(in0+(x+1)+(y+1)*w);
+	m += *(in0+(x+2)+(y+1)*w);
+	m += *(in0+(x+3)+(y+1)*w);
+	m += *(in0+(x-3)+(y+2)*w);
+	m += *(in0+(x-2)+(y+2)*w);
+	m += *(in0+(x-1)+(y+2)*w);
+	m += *(in0+(x-0)+(y+2)*w);
+	m += *(in0+(x+1)+(y+2)*w);
+	m += *(in0+(x+2)+(y+2)*w);
+	m += *(in0+(x+3)+(y+2)*w);
+	m /= 28;
+
+	a  = abs(  *(in0+(x-3)+(y-1)*w) - *(in0+(x+3)+(y+1)*w) );
+	i = ( *(in0+(x-3)+(y-1)*w) + *(in0+(x+3)+(y+1)*w) )/2;
+	a -= abs(m-i);
+
+	b  = abs(  *(in0+(x-2)+(y-1)*w) - *(in0+(x+2)+(y+1)*w) );
+	i = ( *(in0+(x-2)+(y-1)*w) + *(in0+(x+2)+(y+1)*w) )/2;
+	b -= abs(m-i);
+
+	c  = abs(  *(in0+(x-1)+(y-1)*w) - *(in0+(x+1)+(y+1)*w) );
+	i = ( *(in0+(x-1)+(y-1)*w) + *(in0+(x+1)+(y+1)*w) )/2;
+	c -= abs(m-i);
+
+	e  = abs(  *(in0+(x+1)+(y-1)*w) - *(in0+(x-1)+(y+1)*w) );
+	i = ( *(in0+(x+1)+(y-1)*w) + *(in0+(x-1)+(y+1)*w) )/2;
+	e -= abs(m-i);
+
+	f  = abs(  *(in0+(x+2)+(y-1)*w) - *(in0+(x-2)+(y+1)*w) );
+	i = ( *(in0+(x+2)+(y-1)*w) + *(in0+(x-2)+(y+1)*w) )/2;
+	f -= abs(m-i);
+
+	g  = abs(  *(in0+(x+3)+(y-1)*w) - *(in0+(x-3)+(y+1)*w) );
+	i = ( *(in0+(x+3)+(y-1)*w) + *(in0+(x-3)+(y+1)*w) )/2;
+	g -= abs(m-i);
+
+	d  = abs(  *(in0+(x  )+(y-1)*w) - *(in0+(x  )+(y+1)*w) );
+	i = ( *(in0+(x  )+(y-1)*w) + *(in0+(x  )+(y+1)*w) )/2;
+	d -= abs(m-i);
+	
+	if (a<b && a<c && a<d && a<e && a<f && a<g )
+          i = ( *(in0+(x-3)+(y-1)*w) + *(in0+(x+3)+(y+1)*w) )/2;
+	else
+          if (b<a && b<c && b<d && b<e && b<f && b<g )
+            i = ( *(in0+(x-2)+(y-1)*w) + *(in0+(x+2)+(y+1)*w) )/2;
+          else
+            if (c<a && c<b && c<d && c<e && c<f && c<g )
+              i = ( *(in0+(x-1)+(y-1)*w) + *(in0+(x+1)+(y+1)*w) )/2;
+            else
+              if (e<a && e<b && e<c && e<d && e<f && e<g )
+		i = ( *(in0+(x+1)+(y-1)*w) + *(in0+(x-1)+(y+1)*w) )/2;
+              else
+                if (f<a && f<b && f<c && f<d && f<e && f<g )
+                  i = ( *(in0+(x+2)+(y-1)*w) + *(in0+(x-2)+(y+1)*w) )/2;
+                else
+                  if (g<a && g<b && g<c && g<d && g<e && g<f )
+                    i = ( *(in0+(x+3)+(y-1)*w) + *(in0+(x-3)+(y+1)*w) )/2;
+
+	*(di->scratch+x+(y  )*w) = i;
+	*(di->mmap+x+y*w) = 0; // mark pixel as moving in motion-map...
+	}
+
+      }
+
+  if(y == h)
+    memcpy (di->scratch + w * (h - 1), in0 + w * (h - 1), w);
+
+  // As we now have a rather good interpolation of how the reference frame
+  // might have been looking for when it had been scanned progressively,
+  // we try to motion-compensate the former reconstructed frame (the reconstruction
+  // of the previous field) to the new frame
+  //
+  // The block-size may not be too large but to get halfway decent motion-vectors
+  // we need to have a matching-size of 16x16 at least as most of the material will
+  // be noisy...
+
+  // we need some overshot areas, again
+  memcpy (out - w, out, w);
+  memcpy (out - w * 2, out, w);
+  memcpy (out - w * 3, out, w);
+
+  memcpy (out + (w * h), out + (w * h) - w, w);
+  memcpy (out + (w * h) + w, out + (w * h) - w, w);
+  memcpy (out + (w * h) + w * 2, out + (w * h) - w, w);
+  memcpy (out + (w * h) + w * 3, out + (w * h) - w, w);
+
+  memcpy (di->scratch - w, di->scratch, w);
+  memcpy (di->scratch - w * 2, di->scratch, w);
+  memcpy (di->scratch - w * 3, di->scratch, w);
+  memcpy (di->scratch - w * 4, di->scratch, w);
+  memset (di->scratch - w * 4 - 4, di->scratch[0], 4);
+
+  memcpy (di->scratch + (w * h), di->scratch + (w * h) - w, w);
+  memcpy (di->scratch + (w * h) + w, di->scratch + (w * h) - w, w);
+  memcpy (di->scratch + (w * h) + w * 2, di->scratch + (w * h) - w, w);
+  memcpy (di->scratch + (w * h) + w * 3, di->scratch + (w * h) - w, w);
+  memset (di->scratch + (w * h) + w * 4, di->scratch[w * h - 1], 11);
+
+  for (y = 0; y < h; y += 8)
+    for (x = 0; x < w; x += 8)
+      {
+      uint_fast16_t ix = (unsigned)x / 8;
+      uint_fast16_t iy = (unsigned)y / 8;
+	  
+      // offset x+y so we get an overlapped search
+      x -= 4;
+      y -= 4;
+
+      // reset motion-search with the zero-motion-vector (0;0)
+      min = psad_00 (di->scratch + x + y * w, out + x + y * w, w, 16, 16*16*255);
+      vx = 0;
+      vy = 0;
+
+      // check some "hot" candidates first...
+
+      // if possible check all-neighbors-interpolation-vector
+      if (min > 512)
+        if (iy && ix && ix < (iw - 1))
+          {
+          dx  = lvxy[ix - 1 + (iy - 1) * iw][0];
+          dx += lvxy[ix     + (iy - 1) * iw][0];
+          dx += lvxy[ix + 1 + (iy - 1) * iw][0];
+          dx += lvxy[ix - 1 + (iy    ) * iw][0];
+          dx += lvxy[ix     + (iy    ) * iw][0];
+          dx /= 5;
+		
+          dy  = lvxy[ix - 1 + (iy - 1) * iw][1];
+          dy += lvxy[ix     + (iy - 1) * iw][1];
+          dy += lvxy[ix + 1 + (iy - 1) * iw][1];
+          dy += lvxy[ix - 1 + (iy    ) * iw][1];
+          dy += lvxy[ix     + (iy    ) * iw][1];
+          dy /= 10;
+          dy *= 2;
+
+          sad =
+            psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
+          if (sad < min)
+            {
+            min = sad;
+            vx = dx;
+            vy = dy;
+            }
+          }
+
+      // if possible check top-left-neighbor-vector
+      if (min > 512)
+        if (iy && ix)
+          {
+          dx = lvxy[ix - 1 + (iy - 1) * iw][0];
+          dy = lvxy[ix - 1 + (iy - 1) * iw][1];
+          sad =
+            psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
+          if (sad < min)
+            {
+            min = sad;
+            vx = dx;
+            vy = dy;
+            }
+          }
+
+      // if possible check top-neighbor-vector
+      if (min > 512)
+        if (iy)
+          {
+          dx = lvxy[ix + (iy - 1) * iw][0];
+          dy = lvxy[ix + (iy - 1) * iw][1];
+          sad =
+            psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
+          if (sad < min)
+            {
+            min = sad;
+            vx = dx;
+            vy = dy;
+            }
+          }
+
+      // if possible check top-right-neighbor-vector
+      if (min > 512)
+        if (iy && ix < (iw - 1))
+          {
+          dx = lvxy[ix + 1 + (iy - 1) * iw][0];
+          dy = lvxy[ix + 1 + (iy - 1) * iw][1];
+          sad =
+            psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
+          if (sad < min)
+            {
+            min = sad;
+            vx = dx;
+            vy = dy;
+            }
+          }
+
+      // if possible check left-neighbor-vector
+      if (min > 512)
+        if (ix)
+          {
+          dx = lvxy[ix - 1 + iy * iw][0];
+          dy = lvxy[ix - 1 + iy * iw][1];
+          sad =
+            psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
+          if (sad < min)
+            {
+            min = sad;
+            vx = dx;
+            vy = dy;
+            }
+          }
+
+      // check temporal-neighbor-vector
+      if (min > 512)
+        {
+        dx = lvxy[ix + iy * iw][0];
+        dy = lvxy[ix + iy * iw][1];
+        sad = psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
+        if (sad < min)
+          {
+          min = sad;
+          vx = dx;
+          vy = dy;
+          }
+        }
+
+      // search for a better one...
+      px = vx;
+      py = vy;
+
+      if( min>1024 ) // the found predicted location [px;py] is a bad match...
+        {
+        // Do a large but coarse diamond search arround the prediction-vector
+        //
+        //         X
+        //        ---
+        //       X-X-X
+        //      -------
+        //     -X-X-X-X-
+        //    -----------
+        //   X-X-X-O-X-X-X
+        //    -----------
+        //     -X-X-X-X-
+        //      -------
+        //       X-X-X
+        //        ---
+        //         X
+        // 
+        // The locations marked with an X are checked, only. The location marked with
+        // an O was already checked before...
+        //
+        dx = px-2;
+        dy = py;
+        sad =
+          psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
+        if (sad < min)
+          {
+          min = sad;
+          vx = dx;
+          vy = dy;
+          }
+
+        dx = px+2;
+        dy = py;
+        sad =
+          psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
+        if (sad < min)
+          {
+          min = sad;
+          vx = dx;
+          vy = dy;
+          }
+
+        dx = px-4;
+        dy = py;
+        sad =
+          psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
+        if (sad < min)
+          {
+          min = sad;
+          vx = dx;
+          vy = dy;
+          }
+
+        dx = px+4;
+        dy = py;
+        sad =
+          psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
+        if (sad < min)
+          {
+          min = sad;
+          vx = dx;
+          vy = dy;
+          }
+
+        dx = px;
+        dy = py-4;
+        sad =
+          psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
+        if (sad < min)
+          {
+          min = sad;
+          vx = dx;
+          vy = dy;
+          }
+
+        dx = px;
+        dy = py+4;
+        sad =
+          psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
+        if (sad < min)
+          {
+          min = sad;
+          vx = dx;
+          vy = dy;
+          }
+        }
+      // update prediction-vector
+      px = vx;
+      py = vy;
+
+        {
+        // only do a small diamond search here... Either we have passed the large
+        // diamond search or the predicted vector was good enough
+        //
+        //     X
+        //    ---
+        //   XXOXX
+        //    ---
+        //     X
+        // 
+        // The locations marked with an X are checked, only. The location marked with
+        // an O was already checked before...
+        //
+
+        dx = px-1;
+        dy = py;
+        sad =
+          psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
+        if (sad < min)
+          {
+          min = sad;
+          vx = dx;
+          vy = dy;
+          }
+
+        dx = px+1;
+        dy = py;
+        sad =
+          psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
+        if (sad < min)
+          {
+          min = sad;
+          vx = dx;
+          vy = dy;
+          }
+
+        dx = px-2;
+        dy = py;
+        sad =
+          psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
+        if (sad < min)
+          {
+          min = sad;
+          vx = dx;
+          vy = dy;
+          }
+
+        dx = px+2;
+        dy = py;
+        sad =
+          psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
+        if (sad < min)
+          {
+          min = sad;
+          vx = dx;
+          vy = dy;
+          }
+
+        dx = px;
+        dy = py-2;
+        sad =
+          psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
+        if (sad < min)
+          {
+          min = sad;
+          vx = dx;
+          vy = dy;
+          }
+
+        dx = px;
+        dy = py+2;
+        sad =
+          psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
+        if (sad < min)
+          {
+          min = sad;
+          vx = dx;
+          vy = dy;
+          }
+        }
+
+        // store the found vector, so we can do a candidates-check...
+        lvxy[ix + iy * iw][0] = vx;
+        lvxy[ix + iy * iw][1] = vy;
+
+        // remove x+y offset...
+        x += 4;
+        y += 4;
+
+        // reconstruct that block in scratch
+        // do so by using the lowpass (and alias-term) from the current field
+        // and the highpass (and phase-inverted alias-term) from the previous frame(!)
+#if 1
+        for (dy = (1 - field); dy < 8; dy += 2)
+          {
+          uint8_t * RESTRICT dest = di->scratch + x + (y + dy) * w;
+          uint8_t * RESTRICT src1 = di->scratch + x + (y + dy) * w;
+          uint8_t * RESTRICT src2 = out + (x + vx) + (y + dy + vy) * w;
+
+          for (dx = 0; dx < 8; dx++)
+            {
+            a =
+              src1[dx - 3 * w] * -1 +
+              src1[dx - 1 * w] * +17 +
+              src1[dx + 1 * w] * +17 +
+              src1[dx + 3 * w] * -1;
+
+            b =
+              src2[dx - 3 * w] * +1 +
+              src2[dx - 1 * w] * -17 +
+              src2[dx + 0 * w] * +32 +
+              src2[dx + 1 * w] * -17 +
+              src2[dx + 3 * w] * +1;
+
+            a = a + b;
+            a = a < 0 ? 0 : (a > 8160 ? 255 : (unsigned)a / 32);
+
+            dest[dx] = a;
+            }
+          }
+#else
+        for (dy = (1 - field); dy < 8; dy += 2)
+          for (dx = 0; dx < 8; dx++)
+            {
+            *(scratch + (x + dx) + (y + dy) * w) =
+              (
+               //*(scratch + (x + dx) + (y + dy) * w) +
+               *(out + (x + dx + vx) + (y + dy +vy) * w) 
+               )/1;
+            }
+#endif
+      }
+
+  for (y = (1 - field); y < h; y += 2)
+    for (x = 0; x < w; x++)
+      {
+      if ( *(di->mmap+x+y*w)==255 ) // if pixel is static
+        {
+        *(di->scratch + x + (y) * w) = *(in0+x+(y  )*w);
+        }
+      }
+
+#if 1
+  memcpy (out, di->scratch, w * h);
+#else
+  // copy a gauss-filtered variant of the reconstructed image to the out-buffer
+  // the reason why this must be filtered is not so easy to understand, so I leave
+  // some room for anyone who might try without... :-)
+  //
+  // If you want a starting point: remember an interlaced camera *must* *not* have
+  // more vertical resolution than approximatly 0.6 times the nominal vertical
+  // resolution... (So a progressive-scan camera will allways be better in this
+  // regard but will introduce severe defects when the movie is displayed on an
+  // interlaced screen...) Eitherways, who cares: this is better than a frame-mode
+  // were the missing information is generated via a pixel-shift... :-)
+
+  for (y = 0; y < h; y++)
+    for (x = 0; x < w; x++)
+      {
+      *(out + x + y * w) = (4 * *(scratch + x + (y) * w)+*(scratch + x + (y-1) * w)+*(scratch + x + (y+1) * w))/6;
+      }
+#endif
+
+  antialias_plane (di, out, w, h );
+  }
+
+static void scale_motion_vectors (yuvdeinterlacer_t * di, int nom, int rshift)
+  {
+  int i;
+
+  for (i = (di->width / 8) * (di->height / 8); i--; )
+    {
+    di->motion[0][i][0] = (di->motion[0][i][0] * nom) >> rshift;
+    di->motion[0][i][1] = (di->motion[0][i][1] * nom) >> rshift;
+    }
+	
+  for (i = (di->cwidth / 8) * (di->cheight / 8); i--; )
+    {
+    di->motion[1][i][0] = (di->motion[1][i][0] * nom) >> rshift;
+    di->motion[1][i][1] = (di->motion[1][i][1] * nom) >> rshift;
+    }
+  }
+
+static void temporal_reconstruct_frame(yuvdeinterlacer_t * di,
+                                       gavl_video_frame_t * in,
+                                       gavl_video_frame_t * in0,
+                                       gavl_video_frame_t * in1,
+                                       int field)
+  {
+  temporal_reconstruct_plane(di,
+                             di->outframe->planes[0],
+                             in->planes[0],
+                             in0->planes[0],
+                             in1->planes[0],
+                             di->width, di->height, field, di->motion[0]);
+  temporal_reconstruct_plane(di,
+                             di->outframe->planes[1],
+                             in->planes[1],
+                             in0->planes[1],
+                             in1->planes[1],
+                             di->cwidth, di->cheight, field, di->motion[1]);
+  temporal_reconstruct_plane(di,
+                             di->outframe->planes[2],
+                             in->planes[2],
+                             in0->planes[2],
+                             in1->planes[2],
+                             di->cwidth, di->cheight, field, di->motion[1]);
+  }
+
+void antialias_plane (yuvdeinterlacer_t * di,
+                      uint8_t * RESTRICT out, int w, int h)
+  {
+  int x, y;
+  int vx;
+  uint_fast16_t sad;
+  uint_fast16_t min;
+  int dx;
+
+  for (y = 2; y < (h - 2); y++)
+    for (x = 2; x < (w - 2); x++)
+      {
+      min = ~0;
+      vx = 0;
+      for (dx = -3; dx <= 3; dx++)
+        {
+        sad = 0;
+        //      sad  = abs( *(out+(x+dx-3)+(y-1)*w) - *(out+(x-3)+(y+0)*w) );
+        //      sad += abs( *(out+(x+dx-2)+(y-1)*w) - *(out+(x-2)+(y+0)*w) );
+        sad += abs (*(out + (x + dx - 1) + (y - 1) * w) - *(out + (x - 1) + (y + 0) * w));
+        sad += abs (*(out + (x + dx + 0) + (y - 1) * w) - *(out + (x + 0) + (y + 0) * w));
+        sad += abs (*(out + (x + dx + 1) + (y - 1) * w) - *(out + (x + 1) + (y + 0) * w));
+        //      sad += abs( *(out+(x+dx+2)+(y-1)*w) - *(out+(x+2)+(y+0)*w) );
+        //      sad += abs( *(out+(x+dx+3)+(y-1)*w) - *(out+(x+3)+(y+0)*w) );
+
+        //      sad += abs( *(out+(x-dx-3)+(y+1)*w) - *(out+(x-3)+(y+0)*w) );
+        //      sad += abs( *(out+(x-dx-2)+(y+1)*w) - *(out+(x-2)+(y+0)*w) );
+        sad += abs (*(out + (x - dx - 1) + (y + 1) * w) - *(out + (x - 1) + (y + 0) * w));
+        sad += abs (*(out + (x - dx + 0) + (y + 1) * w) - *(out + (x + 0) + (y + 0) * w));
+        sad += abs (*(out + (x - dx + 1) + (y + 1) * w) - *(out + (x + 1) + (y + 0) * w));
+        //      sad += abs( *(out+(x-dx+2)+(y+1)*w) - *(out+(x+2)+(y+0)*w) );
+        //      sad += abs( *(out+(x-dx+3)+(y+1)*w) - *(out+(x+3)+(y+0)*w) );
+
+        if (sad < min)
+          {
+          min = sad;
+          vx = dx;
+          }
+        }
+
+      if (abs (vx) <= 1)
+        *(di->scratch + x + y * w) =
+          (2**(out + (x) + (y) * w) + *(out + (x + vx) + (y - 1) * w) +
+           *(out + (x - vx) + (y + 1) * w)) / 4;
+      else if (abs (vx) <= 3)
+        *(di->scratch + x + y * w) =
+          (2 * *(out + (x - 1) + (y) * w) +
+           4 * *(out + (x + 0) + (y) * w) +
+           2 * *(out + (x + 1) + (y) * w) +
+           1 * *(out + (x + vx - 1) + (y - 1) * w) +
+           2 * *(out + (x + vx + 0) + (y - 1) * w) +
+           1 * *(out + (x + vx + 1) + (y - 1) * w) +
+           1 * *(out + (x - vx - 1) + (y + 1) * w) +
+           2 * *(out + (x - vx + 0) + (y + 1) * w) +
+           1 * *(out + (x - vx + 1) + (y + 1) * w)) / 16;
+      else
+        *(di->scratch + x + y * w) =
+          (2 * *(out + (x - 1) + (y) * w) +
+           4 * *(out + (x - 1) + (y) * w) +
+           8 * *(out + (x + 0) + (y) * w) +
+           4 * *(out + (x + 1) + (y) * w) +
+           2 * *(out + (x + 1) + (y) * w) +
+           1 * *(out + (x + vx - 1) + (y - 1) * w) +
+           2 * *(out + (x + vx - 1) + (y - 1) * w) +
+           4 * *(out + (x + vx + 0) + (y - 1) * w) +
+           2 * *(out + (x + vx + 1) + (y - 1) * w) +
+           1 * *(out + (x + vx + 1) + (y - 1) * w) +
+           1 * *(out + (x - vx - 1) + (y + 1) * w) +
+           2 * *(out + (x - vx - 1) + (y + 1) * w) +
+           4 * *(out + (x - vx + 0) + (y + 1) * w) +
+           2 * *(out + (x - vx + 1) + (y + 1) * w) +
+           1 * *(out + (x - vx + 1) + (y + 1) * w)) / 40;
+
+      }
+
+  for (y = 2; y < (h - 2); y++)
+    for (x = 2; x < (w - 2); x++)
+      {
+      *(out + (x) + (y) * w) = (*(out + (x) + (y) * w) + *(di->scratch + (x) + (y + 0) * w)) / 2;
+      }
+
+  }
+
+static int antialias_frame (yuvdeinterlacer_t * di, gavl_video_frame_t * frame)
+  {
+  if(!di->read_func(di->read_data, di->inframe, di->read_stream))
+    return 0;
+  
+  antialias_plane (di, di->inframe->planes[0], di->width, di->height);
+  antialias_plane (di, di->inframe->planes[1], di->cwidth, di->cheight);
+  antialias_plane (di, di->inframe->planes[2], di->cwidth, di->cheight);
+  
+  gavl_video_frame_copy(&di->format, frame, di->inframe);
+  gavl_video_frame_copy_metadata(frame, di->inframe);
+  
+  return 1;
+
+  //  y4m_write_frame (Y4MStream.fd_out, &Y4MStream.ostreaminfo, &Y4MStream.oframeinfo, inframe);
+  }
+
+#if 0 // Original
+  void deinterlace_motion_compensated (int frame)
+  {
+    uint8_t *tmpptr;
+
+    if(frame)
+      {
+      	uint8_t *saveptr[3] = {0, 0, 0};
+    
+        if(frame == 1)
+          {
+	    temporal_reconstruct_frame (outframe[0], inframe0[0], inframe[0],  inframe0[0], width, height, field_order, motion[0]);
+	    temporal_reconstruct_frame (outframe[1], inframe0[1], inframe[1],  inframe0[1], cwidth, cheight, field_order, motion[1]);
+	    temporal_reconstruct_frame (outframe[2], inframe0[2], inframe[2],  inframe0[2], cwidth, cheight, field_order, motion[1]);
+
+	    temporal_reconstruct_frame (outframe[0], inframe0[0], inframe[0],  inframe0[0], width, height, 1 - field_order, motion[0]);
+	    temporal_reconstruct_frame (outframe[1], inframe0[1], inframe[1],  inframe0[1], cwidth, cheight, 1 - field_order, motion[1]);
+	    temporal_reconstruct_frame (outframe[2], inframe0[2], inframe[2],  inframe0[2], cwidth, cheight, 1 - field_order, motion[1]);
+
+	    scale_motion_vectors (2, 0);
+
+	    saveptr[0] = inframe1[0];
+	    saveptr[1] = inframe1[1];
+	    saveptr[2] = inframe1[2];
+	    inframe1[0] = inframe[0];
+	    inframe1[1] = inframe[1];
+	    inframe1[2] = inframe[2];
+          }
+	else if(frame < 0)
+	  {
+	    saveptr[0] = inframe[0];
+	    saveptr[1] = inframe[1];
+	    saveptr[2] = inframe[2];
+	    inframe[0] = inframe1[0];
+	    inframe[1] = inframe1[1];
+	    inframe[2] = inframe1[2];
+	  }
+
+	if (field_order == 0)
+	  {
+	    temporal_reconstruct_frame (outframe[0], inframe[0], inframe0[0],  inframe1[0], width, height, 1, motion[0]);
+	    temporal_reconstruct_frame (outframe[1], inframe[1], inframe0[1],  inframe1[1], cwidth, cheight, 1, motion[1]);
+	    temporal_reconstruct_frame (outframe[2], inframe[2], inframe0[2],  inframe1[2], cwidth, cheight, 1, motion[1]);
+
+	    y4m_write_frame (Y4MStream.fd_out, &Y4MStream.ostreaminfo,
+	                     &Y4MStream.oframeinfo, outframe);
+
+	    if (frame == 1)
+	      scale_motion_vectors (-1, both_fields);
+
+	    if (both_fields == 1)
+	      {
+		temporal_reconstruct_frame (outframe[0], inframe[0], inframe0[0],  inframe1[0], width, height, 0, motion[0]);
+		temporal_reconstruct_frame (outframe[1], inframe[1], inframe0[1],  inframe1[1], cwidth, cheight, 0, motion[1]);
+		temporal_reconstruct_frame (outframe[2], inframe[2], inframe0[2],  inframe1[2], cwidth, cheight, 0, motion[1]);
+
+		y4m_write_frame (Y4MStream.fd_out, &Y4MStream.ostreaminfo,
+		                 &Y4MStream.oframeinfo, outframe);
+	      }
+	  }
+	else
+	  {
+	    temporal_reconstruct_frame (outframe[0], inframe[0], inframe0[0],  inframe1[0], width, height, 0, motion[0]);
+	    temporal_reconstruct_frame (outframe[1], inframe[1], inframe0[1],  inframe1[1], cwidth, cheight, 0, motion[1]);
+	    temporal_reconstruct_frame (outframe[2], inframe[2], inframe0[2],  inframe1[2], cwidth, cheight, 0, motion[1]);
+
+	    y4m_write_frame (Y4MStream.fd_out, &Y4MStream.ostreaminfo,
+	                     &Y4MStream.oframeinfo, outframe);
+
+	    if (frame == 1)
+	      scale_motion_vectors (-1, both_fields);
+
+	    if (both_fields == 1)
+	      {
+		temporal_reconstruct_frame (outframe[0], inframe[0], inframe0[0],  inframe1[0], width, height, 1, motion[0]);
+		temporal_reconstruct_frame (outframe[1], inframe[1], inframe0[1],  inframe1[1], cwidth, cheight, 1, motion[1]);
+		temporal_reconstruct_frame (outframe[2], inframe[2], inframe0[2],  inframe1[2], cwidth, cheight, 1, motion[1]);
+
+		y4m_write_frame (Y4MStream.fd_out, &Y4MStream.ostreaminfo,
+		                 &Y4MStream.oframeinfo, outframe);
+	      }
+	  }
+
+	if (frame < 2)
+	  {
+	    inframe1[0] = saveptr[0];
+	    inframe1[1] = saveptr[1];
+	    inframe1[2] = saveptr[2];
+	  }
+      }
+
+    tmpptr = inframe1[0];
+    inframe1[0] = inframe0[0];
+    inframe0[0] = inframe[0];
+    inframe[0] = tmpptr;
+
+    tmpptr = inframe1[1];
+    inframe1[1] = inframe0[1];
+    inframe0[1] = inframe[1];
+    inframe[1] = tmpptr;
+
+    tmpptr = inframe1[2];
+    inframe1[2] = inframe0[2];
+    inframe0[2] = inframe[2];
+    inframe[2] = tmpptr;
+  }
+
+
+#endif
+
+static int deinterlace_motion_compensated (yuvdeinterlacer_t * di, gavl_video_frame_t * frame)
+  {
+  gavl_video_frame_t *tmpptr;
+  int read_frame = 0;
+  gavl_video_frame_t *saveptr = (gavl_video_frame_t *)0;
+  
+  if(di->both_fields)
+    {
+    if(di->current_field >= 2)
+      di->current_field = 0;
+    }
+  else
+    di->current_field = 0;
+  
+  if(!di->current_field)
+    {
+    if(di->eof)
+      return 1;
+    
+    if(!di->read_func(di->read_data, di->inframe, di->read_stream))
+      {
+      saveptr = di->inframe;
+      di->inframe = di->inframe1;
+      di->eof = 1;
+      }
+    else
+      {
+      /* If we have no frame yet, we must read the second one and initialize */
+
+      if(!di->frame)
+        {
+        tmpptr = di->inframe1;
+        di->inframe1 = di->inframe0;
+        di->inframe0 = di->inframe;
+        di->inframe = tmpptr;
+        di->frame++;
+      
+        if(!di->read_func(di->read_data, di->inframe, di->read_stream))
+          return 0;
+
+        temporal_reconstruct_frame(di, di->inframe0, di->inframe, di->inframe0, di->field_order);
+        temporal_reconstruct_frame(di, di->inframe0, di->inframe, di->inframe0, 1 - di->field_order);
+      
+        scale_motion_vectors (di, 2, 0);
+
+        saveptr = di->inframe1;
+        di->inframe1 = di->inframe;
+        }
+      read_frame = 1;
+      }
+    }
+  
+  if(!di->current_field)
+    {
+    if(di->field_order == 0)
+      {
+      temporal_reconstruct_frame(di, di->inframe, di->inframe0, di->inframe1, 1);
+      if (di->frame == 1)
+        scale_motion_vectors(di, -1, di->both_fields);
+      }
+    else
+      {
+      temporal_reconstruct_frame(di, di->inframe, di->inframe0, di->inframe1, 0);
+      if (di->frame == 1)
+        scale_motion_vectors(di, -1, di->both_fields);
+      }
+    }
+  else
+    {
+    if(di->field_order == 0)
+      temporal_reconstruct_frame(di, di->inframe, di->inframe0, di->inframe1, 0);
+    else
+      temporal_reconstruct_frame(di, di->inframe, di->inframe0, di->inframe1, 1);
+    }
+  
+  if(saveptr)
+    di->inframe1 = saveptr;
+  
+  if(di->current_field || !di->both_fields)
+    {
+    tmpptr = di->inframe1;
+    di->inframe1 = di->inframe0;
+    di->inframe0 = di->inframe;
+    di->inframe = tmpptr;
+    di->frame++;
+    }
+  gavl_video_frame_copy(&di->format, frame, di->outframe);
+  
+  frame->timestamp = di->inframe->timestamp + di->current_field * di->format.frame_duration;
+  frame->duration  = di->inframe->duration;
+
+  di->current_field++;
+
+  return 1;
+  }
+
+
+void yuvdeinterlacer_set_mode(yuvdeinterlacer_t * di, int mode)
+  {
+  switch(mode)
+    {
+    case YUVD_MODE_ANTIALIAS:
+      if(!di->just_anti_alias || di->both_fields)
+        di->need_restart = 1;
+      
+      di->just_anti_alias = 1;
+      di->both_fields     = 0;
+      break;
+    case YUVD_MODE_DEINT_1:
+      if(di->just_anti_alias || di->both_fields)
+        di->need_restart = 1;
+      di->just_anti_alias = 0;
+      di->both_fields     = 0;
+      break;
+    case YUVD_MODE_DEINT_2:
+      if(di->just_anti_alias || !di->both_fields)
+        di->need_restart = 1;
+      di->just_anti_alias = 0;
+      di->both_fields     = 1;
+      break;
+    }
   }
 
 void yuvdeinterlacer_init(yuvdeinterlacer_t * ret,
-                          gavl_video_format_t * format)
+                          gavl_video_format_t * format,
+                          gavl_video_options_t * opt)
   {
+  ret->run_func =
+    gavl_video_options_get_run_func(opt, &ret->run_data);
+  ret->stop_func =
+    gavl_video_options_get_stop_func(opt, &ret->stop_data);
+                                                  
+  ret->num_threads = 
+    gavl_video_options_get_num_threads(opt);
+  
   free_memory(ret);
   switch(format->pixelformat)
     {
@@ -303,801 +1350,6 @@ void yuvdeinterlacer_get_output_format(yuvdeinterlacer_t * di,
   gavl_video_format_copy(format, &di->format);
   }
 
-void yuvdeinterlacer_reset(yuvdeinterlacer_t * di)
-  {
-  di->current_field = 0;
-
-  gavl_video_frame_clear(di->inframe_real, &di->format);
-  gavl_video_frame_clear(di->inframe0_real, &di->format);
-  gavl_video_frame_clear(di->inframe1_real, &di->format);
-  gavl_video_frame_clear(di->outframe_real, &di->format);
-  }
-     
-void yuvdeinterlacer_destroy(yuvdeinterlacer_t * d)
-  {
-  free_memory(d);
-  free(d);
-  }
-
-static void
-temporal_reconstruct_plane(yuvdeinterlacer_t * di, uint8_t * out, uint8_t * in,
-                           uint8_t * in0, uint8_t * in1, int w, int h, int field)
-  {
-
-  int x, y;
-  int vx, vy, dx, dy, px, py;
-  uint32_t min, sad;
-  int a, b, c, d, e, f, g, m, i;
-  static int lvx[256][256];	// this is sufficient for HDTV-signals or 2K cinema-resolution...
-  static int lvy[256][256];	// dito...
-
-  memset(lvx, 0, sizeof(lvx));
-  memset(lvy, 0, sizeof(lvy));
-  
-  // the ELA-algorithm overshots by one line above and below the
-  // frame-size, so fill the ELA-overshot-area in the inframe to
-  // ensure that no green or purple lines are generated...
-  //#ifdef notnow
-  // do NOT do this - the "in0 -w" computes an address 'w' bytes BEFORE the 
-  // start of the buffer.  On some systems this corrupts the malloc arena but
-  // the program keeps running.  On other systems an immediate segfault happens
-  // when the first memcpy is done.
-
-  memcpy (in0 - w, in + w, w);
-  memcpy (in0 + (w * h), in + (w * h) - 2 * w, w);
-  // #endif
-
-  // create deinterlaced frame of the reference-field in scratch
-  for (y = (1 - field); y <= h; y += 2)
-    {
-    for (x = 0; x < w; x++)
-      {
-
-      a  = abs( *(in +x+(y-1)*w)-*(in0+x+(y-1)*w) );
-      a += abs( *(in1+x+(y-1)*w)-*(in0+x+(y-1)*w) );
-      a /= 2;
-
-      b  = abs( *(in +x+(y  )*w)-*(in0+x+(y  )*w) );
-      b += abs( *(in1+x+(y  )*w)-*(in0+x+(y  )*w) );
-      b /= 2;
-
-      c  = abs( *(in +x+(y+1)*w)-*(in0+x+(y+1)*w) );
-      c += abs( *(in1+x+(y+1)*w)-*(in0+x+(y+1)*w) );
-      c /= 2;
-
-      if( (a<8 || c<8) && b<8 ) // Pixel is static?
-	{
-	// Yes...
-	*(di->scratch+x+(y-1)*w) = *(in0+x+(y-1)*w);
-	*(di->scratch+x+(y  )*w) = *(in0+x+(y  )*w);
-	*(di->mmap+x+y*w) = 255; // mark pixel as static in motion-map...
-	}
-      else
-	{
-	// No...
-	// Do an edge-directed-interpolation
-	*(di->scratch+x+(y-1)*w) = *(in0+x+(y-1)*w);
-
-	m  = *(in0+(x-3)+(y-2)*w);
-	m += *(in0+(x-2)+(y-2)*w);
-	m += *(in0+(x-1)+(y-2)*w);
-	m += *(in0+(x-0)+(y-2)*w);
-	m += *(in0+(x+1)+(y-2)*w);
-	m += *(in0+(x+2)+(y-2)*w);
-	m += *(in0+(x+3)+(y-2)*w);
-	m += *(in0+(x-3)+(y-1)*w);
-	m += *(in0+(x-2)+(y-1)*w);
-	m += *(in0+(x-1)+(y-1)*w);
-	m += *(in0+(x-0)+(y-1)*w);
-	m += *(in0+(x+1)+(y-1)*w);
-	m += *(in0+(x+2)+(y-1)*w);
-	m += *(in0+(x+3)+(y-1)*w);
-	m += *(in0+(x-3)+(y+1)*w);
-	m += *(in0+(x-2)+(y+1)*w);
-	m += *(in0+(x-1)+(y+1)*w);
-	m += *(in0+(x-0)+(y+1)*w);
-	m += *(in0+(x+1)+(y+1)*w);
-	m += *(in0+(x+2)+(y+1)*w);
-	m += *(in0+(x+3)+(y+1)*w);
-	m += *(in0+(x-3)+(y+3)*w);
-	m += *(in0+(x-2)+(y+3)*w);
-	m += *(in0+(x-1)+(y+3)*w);
-	m += *(in0+(x-0)+(y+3)*w);
-	m += *(in0+(x+1)+(y+3)*w);
-	m += *(in0+(x+2)+(y+3)*w);
-	m += *(in0+(x+3)+(y+3)*w);
-	m /= 28;
-
-	a  = abs(  *(in0+(x-3)+(y-1)*w) - *(in0+(x+3)+(y+1)*w) );
-	i = ( *(in0+(x-3)+(y-1)*w) + *(in0+(x+3)+(y+1)*w) )/2;
-	a += 255-abs(m-i);
-
-	b  = abs(  *(in0+(x-2)+(y-1)*w) - *(in0+(x+2)+(y+1)*w) );
-	i = ( *(in0+(x-2)+(y-1)*w) + *(in0+(x+2)+(y+1)*w) )/2;
-	b += 255-abs(m-i);
-
-	c  = abs(  *(in0+(x-1)+(y-1)*w) - *(in0+(x+1)+(y+1)*w) );
-	i = ( *(in0+(x-1)+(y-1)*w) + *(in0+(x+1)+(y+1)*w) )/2;
-	c += 255-abs(m-i);
-
-	d  = abs(  *(in0+(x  )+(y-1)*w) - *(in0+(x  )+(y+1)*w) );
-	i = ( *(in0+(x  )+(y-1)*w) + *(in0+(x  )+(y+1)*w) )/2;
-	d += 255-abs(m-i);
-
-	e  = abs(  *(in0+(x+1)+(y-1)*w) - *(in0+(x-1)+(y+1)*w) );
-	i = ( *(in0+(x+1)+(y-1)*w) + *(in0+(x+1)+(y-1)*w) )/2;
-	e += 255-abs(m-i);
-
-	f  = abs(  *(in0+(x+2)+(y-1)*w) - *(in0+(x-2)+(y+1)*w) );
-	i = ( *(in0+(x+2)+(y-1)*w) + *(in0+(x+2)+(y-1)*w) )/2;
-	f += 255-abs(m-i);
-
-	g  = abs(  *(in0+(x+3)+(y-1)*w) - *(in0+(x-3)+(y+1)*w) );
-	i = ( *(in0+(x+3)+(y-1)*w) + *(in0+(x+1)+(y-3)*w) )/2;
-	g += 255-abs(m-i);
-
-        i = ( *(in0+(x  )+(y-1)*w) + *(in0+(x  )+(y+1)*w) )/2;
-
-	if (a<b && a<c && a<d && a<e && a<f && a<g )
-          i = ( *(in0+(x-3)+(y-1)*w) + *(in0+(x+3)+(y+1)*w) )/2;
-	else if (b<a && b<c && b<d && b<e && b<f && b<g )
-          i = ( *(in0+(x-2)+(y-1)*w) + *(in0+(x+2)+(y+1)*w) )/2;
-        else if (c<a && c<b && c<d && c<e && c<f && c<g )
-          i = ( *(in0+(x-1)+(y-1)*w) + *(in0+(x+1)+(y+1)*w) )/2;
-        else if (d<a && d<b && d<c && d<e && d<f && d<g )
-          i = ( *(in0+(x  )+(y-1)*w) + *(in0+(x  )+(y+1)*w) )/2;
-        else if (e<a && e<b && e<c && e<d && e<f && e<g )
-          i = ( *(in0+(x+1)+(y-1)*w) + *(in0+(x-1)+(y+1)*w) )/2;
-        else if (f<a && f<b && f<c && f<d && f<e && f<g )
-          i = ( *(in0+(x+2)+(y-1)*w) + *(in0+(x-2)+(y+1)*w) )/2;
-        else if (g<a && g<b && g<c && g<d && g<e && g<f )
-          i = ( *(in0+(x+3)+(y-1)*w) + *(in0+(x-3)+(y+1)*w) )/2;
-        
-	*(di->scratch+x+(y  )*w) = i;
-	*(di->mmap+x+y*w) = 0; // mark pixel as moving in motion-map...
-	}
-
-      }
-    }
-  // As we now have a rather good interpolation of how the reference frame
-  // might have been looking for when it had been scanned progressively,
-  // we try to motion-compensate the former reconstructed frame (the reconstruction
-  // of the previous field) to the new frame
-  //
-  // The block-size may not be too large but to get halfway decent motion-vectors
-  // we need to have a matching-size of 16x16 at least as most of the material will
-  // be noisy...
-
-  // we need some overshot areas, again
-  memcpy (out - w, out, w);
-  memcpy (out - w * 2, out, w);
-  memcpy (out - w * 3, out, w);
-
-  memcpy (out + (w * h), out + (w * h) - w, w);
-  memcpy (out + (w * h) + w, out + (w * h) - w, w);
-  memcpy (out + (w * h) + w * 2, out + (w * h) - w, w);
-  memcpy (out + (w * h) + w * 3, out + (w * h) - w, w);
-
-  memcpy (di->scratch - w, di->scratch, w);
-  memcpy (di->scratch - w * 2, di->scratch, w);
-  memcpy (di->scratch - w * 3, di->scratch, w);
-
-  memcpy (di->scratch + (w * h), di->scratch + (w * h) - w, w);
-  memcpy (di->scratch + (w * h) + w, di->scratch + (w * h) - w, w);
-  memcpy (di->scratch + (w * h) + w * 2, di->scratch + (w * h) - w, w);
-  memcpy (di->scratch + (w * h) + w * 3, di->scratch + (w * h) - w, w);
-  if(1)
-    for (y = 0; y < h; y += 8)
-      for (x = 0; x < w; x += 8)
-	{
-        // offset x+y so we get an overlapped search
-        x -= 4;
-        y -= 4;
-
-        // reset motion-search with the zero-motion-vector (0;0)
-        min = psad_00 (di->scratch + x + y * w, out + x + y * w, w, 16, 0x00ffffff);
-        vx = 0;
-        vy = 0;
-
-        // check some "hot" candidates first...
-
-        // if possible check all-neighbors-interpolation-vector
-        if (min > 512)
-          if (x >= 8 && y >= 8)
-            {
-            dx  = lvx[x / 8 - 1][y / 8 - 1];
-            dx += lvx[x / 8    ][y / 8 - 1];
-            dx += lvx[x / 8 + 1][y / 8 - 1];
-            dx += lvx[x / 8 - 1][y / 8    ];
-            dx += lvx[x / 8    ][y / 8    ];
-            dx /= 5;
-		
-            dy  = lvy[x / 8 - 1][y / 8 - 1];
-            dy += lvy[x / 8    ][y / 8 - 1];
-            dy += lvy[x / 8 + 1][y / 8 - 1];
-            dy += lvy[x / 8 - 1][y / 8    ];
-            dy += lvy[x / 8    ][y / 8    ];
-            dy /= 10;
-            dy *= 2;
-
-            sad =
-              psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, 0x00ffffff);
-            if (sad < min)
-              {
-              min = sad;
-              vx = dx;
-              vy = dy;
-              }
-            }
-
-        // if possible check top-left-neighbor-vector
-        if (min > 512)
-          if (x >= 8 && y >= 8)
-            {
-            dx = lvx[x / 8 - 1][y / 8 - 1];
-            dy = lvy[x / 8 - 1][y / 8 - 1];
-            sad =
-              psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, 0x00ffffff);
-            if (sad < min)
-              {
-              min = sad;
-              vx = dx;
-              vy = dy;
-              }
-            }
-
-        // if possible check top-neighbor-vector
-        if (min > 512)
-          if (y >= 8)
-            {
-            dx = lvx[x / 8][y / 8 - 1];
-            dy = lvy[x / 8][y / 8 - 1];
-            sad =
-              psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, 0x00ffffff);
-            if (sad < min)
-              {
-              min = sad;
-              vx = dx;
-              vy = dy;
-              }
-            }
-
-        // if possible check top-right-neighbor-vector
-        if (min > 512)
-          if (x <= (w - 8) && y >= 8)
-            {
-            dx = lvx[x / 8 + 1][y / 8 - 1];
-            dy = lvy[x / 8 + 1][y / 8 - 1];
-            sad =
-              psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, 0x00ffffff);
-            if (sad < min)
-              {
-              min = sad;
-              vx = dx;
-              vy = dy;
-              }
-            }
-
-        // if possible check right-neighbor-vector
-        if (min > 512)
-          if (x >= 8)
-            {
-            dx = lvx[x / 8 - 1][y / 8];
-            dy = lvy[x / 8 - 1][y / 8];
-            sad =
-              psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, 0x00ffffff);
-            if (sad < min)
-              {
-              min = sad;
-              vx = dx;
-              vy = dy;
-              }
-            }
-
-        // check temporal-neighbor-vector
-        if (min > 512)
-          {
-          dx = lvx[x / 8][y / 8];
-          dy = lvy[x / 8][y / 8];
-          sad = psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, 0x00ffffff);
-          if (sad < min)
-            {
-            min = sad;
-            vx = dx;
-            vy = dy;
-            }
-          }
-
-        // search for a better one...
-        px = vx;
-        py = vy;
-
-        if( min>1024 ) // the found predicted location [px;py] is a bad match...
-          {
-          // Do a large but coarse diamond search arround the prediction-vector
-          //
-          //         X
-          //        ---
-          //       X-X-X
-          //      -------
-          //     -X-X-X-X-
-          //    -----------
-          //   X-X-X-O-X-X-X
-          //    -----------
-          //     -X-X-X-X-
-          //      -------
-          //       X-X-X
-          //        ---
-          //         X
-          // 
-          // The locations marked with an X are checked, only. The location marked with
-          // an O was already checked before...
-          //
-          dx = px-2;
-          dy = py;
-          sad =
-            psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, 0x00ffffff);
-          if (sad < min)
-            {
-            min = sad;
-            vx = dx;
-            vy = dy;
-            }
-
-          dx = px+2;
-          dy = py;
-          sad =
-            psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, 0x00ffffff);
-          if (sad < min)
-            {
-            min = sad;
-            vx = dx;
-            vy = dy;
-            }
-
-          dx = px-4;
-          dy = py;
-          sad =
-            psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, 0x00ffffff);
-          if (sad < min)
-            {
-            min = sad;
-            vx = dx;
-            vy = dy;
-            }
-
-          dx = px+4;
-          dy = py;
-          sad =
-            psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, 0x00ffffff);
-          if (sad < min)
-            {
-            min = sad;
-            vx = dx;
-            vy = dy;
-            }
-
-          dx = px;
-          dy = py-4;
-          sad =
-            psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, 0x00ffffff);
-          if (sad < min)
-            {
-            min = sad;
-            vx = dx;
-            vy = dy;
-            }
-
-          dx = px;
-          dy = py+4;
-          sad =
-            psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, 0x00ffffff);
-          if (sad < min)
-            {
-            min = sad;
-            vx = dx;
-            vy = dy;
-            }
-          }
-	// update prediction-vector
-        px = vx;
-        py = vy;
-
-          {
-          // only do a small diamond search here... Either we have passed the large
-          // diamond search or the predicted vector was good enough
-          //
-          //     X
-          //    ---
-          //   XXOXX
-          //    ---
-          //     X
-          // 
-          // The locations marked with an X are checked, only. The location marked with
-          // an O was already checked before...
-          //
-
-          dx = px-1;
-          dy = py;
-          sad =
-            psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, 0x00ffffff);
-          if (sad < min)
-            {
-            min = sad;
-            vx = dx;
-            vy = dy;
-            }
-
-          dx = px+1;
-          dy = py;
-          sad =
-            psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, 0x00ffffff);
-          if (sad < min)
-            {
-            min = sad;
-            vx = dx;
-            vy = dy;
-            }
-
-          dx = px-2;
-          dy = py;
-          sad =
-            psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, 0x00ffffff);
-          if (sad < min)
-            {
-            min = sad;
-            vx = dx;
-            vy = dy;
-            }
-
-          dx = px+2;
-          dy = py;
-          sad =
-            psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, 0x00ffffff);
-          if (sad < min)
-            {
-            min = sad;
-            vx = dx;
-            vy = dy;
-            }
-
-          dx = px;
-          dy = py-2;
-          sad =
-            psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, 0x00ffffff);
-          if (sad < min)
-            {
-            min = sad;
-            vx = dx;
-            vy = dy;
-            }
-
-          dx = px;
-          dy = py+2;
-          sad =
-            psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, 0x00ffffff);
-          if (sad < min)
-            {
-            min = sad;
-            vx = dx;
-            vy = dy;
-            }
-          }
-
-	  // store the found vector, so we can do a candidates-check...
-	  lvx[x / 8][y / 8] = vx;
-	  lvy[x / 8][y / 8] = vy;
-
-	  // remove x+y offset...
-	  x += 4;
-	  y += 4;
-
-	  // reconstruct that block in di->scratch
-	  // do so by using the lowpass (and alias-term) from the current field
-	  // and the highpass (and phase-inverted alias-term) from the previous frame(!)
-#if 1
-	  for (dy = (1 - field); dy < 8; dy += 2)
-	    for (dx = 0; dx < 8; dx++)
-	      {
-              a =
-                *(di->scratch + (x + dx) + (y + dy - 3) * w) * -26 +
-                *(di->scratch + (x + dx) + (y + dy - 1) * w) * +526 +
-                *(di->scratch + (x + dx) + (y + dy + 1) * w) * +526 +
-                *(di->scratch + (x + dx) + (y + dy + 3) * w) * -26;
-              a /= 1000;
-
-              b =
-                *(out + (x + dx + vx) + (y + dy + vy - 3) * w) * +26 +
-                *(out + (x + dx + vx) + (y + dy + vy - 1) * w) * -526 +
-                *(out + (x + dx + vx) + (y + dy + vy + 0) * w) * +1000 +
-                *(out + (x + dx + vx) + (y + dy + vy + 1) * w) * -526 +
-                *(out + (x + dx + vx) + (y + dy + vy + 3) * w) * +26;
-              b /= 1000;
-
-              a = a + b;
-              a = a < 0 ? 0 : a;
-              a = a > 255 ? 255 : a;
-
-              *(di->scratch + (x + dx) + (y + dy) * w) = a;
-	      }
-#else
-	  for (dy = (1 - field); dy < 8; dy += 2)
-	    for (dx = 0; dx < 8; dx++)
-	      {
-              *(di->scratch + (x + dx) + (y + dy) * w) =
-                (
-                 //*(di->scratch + (x + dx) + (y + dy) * w) +
-                 *(out + (x + dx + vx) + (y + dy +vy) * w) 
-                 )/1;
-	      }
-#endif
-	}
-
-  // copy a gauss-filtered variant of the reconstructed image to the out-buffer
-  // the reason why this must be filtered is not so easy to understand, so I leave
-  // some room for anyone who might try without... :-)
-  //
-  // If you want a starting point: remember an interlaced camera *must* *not* have
-  // more vertical resolution than approximatly 0.6 times the nominal vertical
-  // resolution... (So a progressive-scan camera will allways be better in this
-  // regard but will introduce severe defects when the movie is displayed on an
-  // interlaced screen...) Eitherways, who cares: this is better than a frame-mode
-  // were the missing information is generated via a pixel-shift... :-)
-
-
-  for (y = (1 - field); y <= h; y += 2)
-    for (x = 0; x < w; x++)
-      {
-      if ( *(di->mmap+x+y*w)==255 ) // if pixel is static
-        {
-        *(di->scratch + x + (y) * w) = *(in0+x+(y  )*w);
-        }
-      }
-
-  for (y = 0; y < h; y++)
-    for (x = 0; x < w; x++)
-      {
-      //*(out + x + y * w) = (4 * *(di->scratch + x + (y) * w)+*(di->scratch + x + (y-1) * w)+*(di->scratch + x + (y+1) * w))/6;
-      *(out + x + y * w) = *(di->scratch + x + (y) * w);
-      }
-
-  antialias_plane (di, out, w, h );
-  }
-
-static void temporal_reconstruct_frame(yuvdeinterlacer_t * di, int field)
-  {
-  temporal_reconstruct_plane(di,
-                             di->outframe->planes[0],
-                             di->inframe->planes[0],
-                             di->inframe0->planes[0],
-                             di->inframe1->planes[0],
-                             di->width, di->height, field);
-  temporal_reconstruct_plane(di,
-                             di->outframe->planes[1],
-                             di->inframe->planes[1],
-                             di->inframe0->planes[1],
-                             di->inframe1->planes[1],
-                             di->cwidth, di->cheight, field);
-  temporal_reconstruct_plane(di,
-                             di->outframe->planes[2],
-                             di->inframe->planes[2],
-                             di->inframe0->planes[2],
-                             di->inframe1->planes[2],
-                             di->cwidth, di->cheight, field);
-  }
-
-
-static int deinterlace_motion_compensated(yuvdeinterlacer_t * di, gavl_video_frame_t * frame)
-  {
-  gavl_video_frame_t * swap;
-
-
-  if(di->both_fields)
-    {
-    if(di->current_field >= 2)
-      di->current_field = 0;
-    }
-  else
-    di->current_field = 0;
-  
-  if(!di->current_field)
-    {
-    if(!di->read_func(di->read_data, di->inframe, di->read_stream))
-      return 0;
-    }
-  
-  if (di->field_order == 0)
-    {
-    if(!di->current_field)
-      temporal_reconstruct_frame(di, 1);
-    else
-      temporal_reconstruct_frame(di, 0);
-    }
-  else
-    {
-    if(!di->current_field)
-      temporal_reconstruct_frame(di, 0);
-    else
-      temporal_reconstruct_frame(di, 1);
-    }
-
-  /* Save older frame */
-
-  if(!di->both_fields || di->current_field)
-    {
-    swap = di->inframe1;
-    di->inframe1 = di->inframe0;
-    di->inframe0 = swap;
-    gavl_video_frame_copy(&di->format, di->inframe0, di->inframe);
-    }
-  
-  gavl_video_frame_copy(&di->format, frame, di->outframe);
-  
-  frame->timestamp = di->inframe->timestamp + di->current_field * di->format.frame_duration;
-  frame->duration  = di->inframe->duration;
-  
-  di->current_field++;
-  return 1;
-  }
-
-static void antialias_plane (yuvdeinterlacer_t * di, uint8_t * out, int w, int h)
-  {
-  int x, y;
-  int vx;
-  uint32_t sad;
-  uint32_t min;
-  int dx;
-
-  for (y = 0; y < h; y++)
-    for (x = 0; x < w; x++)
-      {
-      min = 0x00ffffff;
-      vx = 0;
-      for (dx = -3; dx <= 3; dx++)
-        {
-        sad = 0;
-        //      sad  = abs( *(out+(x+dx-3)+(y-1)*w) - *(out+(x-3)+(y+0)*w) );
-        //      sad += abs( *(out+(x+dx-2)+(y-1)*w) - *(out+(x-2)+(y+0)*w) );
-        sad += abs (*(out + (x + dx - 1) + (y - 1) * w) - *(out + (x - 1) + (y + 0) * w));
-        sad += abs (*(out + (x + dx + 0) + (y - 1) * w) - *(out + (x + 0) + (y + 0) * w));
-        sad += abs (*(out + (x + dx + 1) + (y - 1) * w) - *(out + (x + 1) + (y + 0) * w));
-        //      sad += abs( *(out+(x+dx+2)+(y-1)*w) - *(out+(x+2)+(y+0)*w) );
-        //      sad += abs( *(out+(x+dx+3)+(y-1)*w) - *(out+(x+3)+(y+0)*w) );
-
-        //      sad += abs( *(out+(x-dx-3)+(y+1)*w) - *(out+(x-3)+(y+0)*w) );
-        //      sad += abs( *(out+(x-dx-2)+(y+1)*w) - *(out+(x-2)+(y+0)*w) );
-        sad += abs (*(out + (x - dx - 1) + (y + 1) * w) - *(out + (x - 1) + (y + 0) * w));
-        sad += abs (*(out + (x - dx + 0) + (y + 1) * w) - *(out + (x + 0) + (y + 0) * w));
-        sad += abs (*(out + (x - dx + 1) + (y + 1) * w) - *(out + (x + 1) + (y + 0) * w));
-        //      sad += abs( *(out+(x-dx+2)+(y+1)*w) - *(out+(x+2)+(y+0)*w) );
-        //      sad += abs( *(out+(x-dx+3)+(y+1)*w) - *(out+(x+3)+(y+0)*w) );
-
-        if (sad < min)
-          {
-          min = sad;
-          vx = dx;
-          }
-        }
-
-      if (abs (vx) <= 1)
-        *(di->scratch + x + y * w) =
-          (2**(out + (x) + (y) * w) + *(out + (x + vx) + (y - 1) * w) +
-           *(out + (x - vx) + (y + 1) * w)) / 4;
-      else if (abs (vx) <= 3)
-        *(di->scratch + x + y * w) =
-          (2 * *(out + (x - 1) + (y) * w) +
-           4 * *(out + (x + 0) + (y) * w) +
-           2 * *(out + (x + 1) + (y) * w) +
-           1 * *(out + (x + vx - 1) + (y - 1) * w) +
-           2 * *(out + (x + vx + 0) + (y - 1) * w) +
-           1 * *(out + (x + vx + 1) + (y - 1) * w) +
-           1 * *(out + (x - vx - 1) + (y + 1) * w) +
-           2 * *(out + (x - vx + 0) + (y + 1) * w) +
-           1 * *(out + (x - vx + 1) + (y + 1) * w)) / 16;
-      else
-        *(di->scratch + x + y * w) =
-          (2 * *(out + (x - 1) + (y) * w) +
-           4 * *(out + (x - 1) + (y) * w) +
-           8 * *(out + (x + 0) + (y) * w) +
-           4 * *(out + (x + 1) + (y) * w) +
-           2 * *(out + (x + 1) + (y) * w) +
-           1 * *(out + (x + vx - 1) + (y - 1) * w) +
-           2 * *(out + (x + vx - 1) + (y - 1) * w) +
-           4 * *(out + (x + vx + 0) + (y - 1) * w) +
-           2 * *(out + (x + vx + 1) + (y - 1) * w) +
-           1 * *(out + (x + vx + 1) + (y - 1) * w) +
-           1 * *(out + (x - vx - 1) + (y + 1) * w) +
-           2 * *(out + (x - vx - 1) + (y + 1) * w) +
-           4 * *(out + (x - vx + 0) + (y + 1) * w) +
-           2 * *(out + (x - vx + 1) + (y + 1) * w) +
-           1 * *(out + (x - vx + 1) + (y + 1) * w)) / 40;
-
-      }
-
-  for (y = 2; y < (h - 2); y++)
-    for (x = 2; x < (w - 2); x++)
-      {
-      *(out + (x) + (y) * w) = (*(out + (x) + (y) * w) + *(di->scratch + (x) + (y + 0) * w)) / 2;
-      }
-
-  }
-
-static int antialias_frame (yuvdeinterlacer_t * di, gavl_video_frame_t * frame)
-  {
-  if(!di->read_func(di->read_data, di->inframe, di->read_stream))
-    return 0;
-
-  antialias_plane (di, di->inframe->planes[0], di->width, di->height);
-  antialias_plane (di, di->inframe->planes[1], di->cwidth, di->cheight);
-  antialias_plane (di, di->inframe->planes[2], di->cwidth, di->cheight);
-
-  gavl_video_frame_copy(&di->format, frame, di->inframe);
-  frame->timestamp = di->inframe->timestamp;
-  frame->duration  = di->inframe->duration;
-  return 1;
-  //  y4m_write_frame (Y4MStream.fd_out, &Y4MStream.ostreaminfo, &Y4MStream.oframeinfo, inframe);
-  }
-
-#if 0
-bg_parameter_info_t yuvdeinterlacer_parameters[] =
-  {
-    {
-      .name = "yuvdeinterlace_mode",
-      .long_name = "Mode",
-      .type = BG_PARAMETER_MULTI_LIST,
-    },
-    {
-      .name = "just_anti_alias",
-      .long_name = "Do only antialiasing",
-      .type = BG_PARAMETER_CHECKBUTTON,
-    },
-    { /* End */ }
-  };
-
-
-void yuvdeinterlacer_set_parameter(void * data, const char * name, const bg_parameter_value_t * val)
-  {
-  yuvdeinterlacer_t * di = (yuvdeinterlacer_t *)data;
-  if(!name)
-    return;
-  else if(!strcmp(name, "both_fields"))
-    {
-    if(di->both_fields != val->val_i)
-      {
-      di->need_restart = 1;
-      di->both_fields = val->val_i;
-      }
-    }
-  }
-#endif
-
-void yuvdeinterlacer_set_mode(yuvdeinterlacer_t * di, int mode)
-  {
-  switch(mode)
-    {
-    case YUVD_MODE_ANTIALIAS:
-      if(!di->just_anti_alias || di->both_fields)
-        di->need_restart = 1;
-      
-      di->just_anti_alias = 1;
-      di->both_fields     = 0;
-      break;
-    case YUVD_MODE_DEINT_1:
-      if(di->just_anti_alias || di->both_fields)
-        di->need_restart = 1;
-      di->just_anti_alias = 0;
-      di->both_fields     = 0;
-      break;
-    case YUVD_MODE_DEINT_2:
-      if(di->just_anti_alias || !di->both_fields)
-        di->need_restart = 1;
-      di->just_anti_alias = 0;
-      di->both_fields     = 1;
-      break;
-    }
-  }
-
-
 int yuvdeinterlacer_read(void * data, gavl_video_frame_t * frame, int stream)
   {
   yuvdeinterlacer_t * di = (yuvdeinterlacer_t *)data;
@@ -1107,7 +1359,25 @@ int yuvdeinterlacer_read(void * data, gavl_video_frame_t * frame, int stream)
     return deinterlace_motion_compensated(di, frame);
   }
 
-                                   
+void yuvdeinterlacer_reset(yuvdeinterlacer_t * di)
+  {
+  di->current_field = 0;
+  di->frame = 0;
+  di->eof = 0;
+  
+  gavl_video_frame_clear(di->inframe_real, &di->format);
+  gavl_video_frame_clear(di->inframe0_real, &di->format);
+  gavl_video_frame_clear(di->inframe1_real, &di->format);
+  gavl_video_frame_clear(di->outframe_real, &di->format);
+  }
+
+void yuvdeinterlacer_destroy(yuvdeinterlacer_t * d)
+  {
+  free_memory(d);
+  free(d);
+  }
+
+
 #if 0
 
 int
@@ -1127,7 +1397,7 @@ main (int argc, char *argv[])
   mjpeg_info( "       Motion-Compensating-Deinterlacer");
   mjpeg_info("-------------------------------------------------");
 
-  while ((c = getopt (argc, argv, "hvds:t:ma")) != -1)
+  while ((c = getopt (argc, argv, "hvds:t:a")) != -1)
     {
       switch (c)
 	{
@@ -1137,9 +1407,6 @@ main (int argc, char *argv[])
 	    mjpeg_info(" -------------------------");
 	    mjpeg_info(" -v be verbose");
 	    mjpeg_info(" -d output both fields");
-	    mjpeg_info(" -m mark moving blocks");
-	    mjpeg_info(" -t [nr] (default 4) motion threshold.");
-	    mjpeg_info("         0 -> every block is moving.");
 	    mjpeg_info(" -a just antialias the frames! This will");
 	    mjpeg_info("    assume progressive but aliased input.");
 	    mjpeg_info("    you can use this to improve badly deinterlaced");
@@ -1147,8 +1414,8 @@ main (int argc, char *argv[])
 	    mjpeg_info("    or worse...");
 
 	    mjpeg_info(" -s [n=0/1] forces field-order in case of misflagged streams");
-	    mjpeg_info("    -s0 is top-field-first");
-	    mjpeg_info("    -s1 is bottom-field-first");
+	    mjpeg_info("    -s0 is bottom-field-first");
+	    mjpeg_info("    -s1 is top-field-first");
 	    exit (0);
 	    break;
 	  }
@@ -1163,13 +1430,6 @@ main (int argc, char *argv[])
 	    mjpeg_info("Regenerating both fields. Please fix the Framerate.");
 	    break;
 	  }
-	case 'm':
-	  {
-	    YUVdeint.mark_moving_blocks = 1;
-	    mjpeg_info("I will mark detected moving blocks for you, so you can");
-	    mjpeg_info("fine-tune the motion-threshold (-t)...");
-	    break;
-	  }
 	case 'a':
 	  {
 	    YUVdeint.just_anti_alias = 1;
@@ -1179,8 +1439,7 @@ main (int argc, char *argv[])
 	  }
 	case 't':
 	  {
-	    YUVdeint.motion_threshold = atoi (optarg);
-	    mjpeg_info("motion-threshold set to : %i", YUVdeint.motion_threshold);
+	    mjpeg_info("motion-threshold not used");
 	    break;
 	  }
 	case 's':
@@ -1301,11 +1560,15 @@ main (int argc, char *argv[])
 					    &YUVdeint.Y4MStream.iframeinfo, YUVdeint.inframe)))
     {
       if (!YUVdeint.just_anti_alias)
-	YUVdeint.deinterlace_motion_compensated ();
+	YUVdeint.deinterlace_motion_compensated (frame);
       else
 	YUVdeint.antialias_frame ();
       frame++;
     }
+
+  if (!YUVdeint.just_anti_alias)
+    YUVdeint.deinterlace_motion_compensated (-frame);
+
   return 0;
 }
 

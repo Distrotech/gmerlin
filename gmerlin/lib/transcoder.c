@@ -445,6 +445,19 @@ struct bg_transcoder_s
   
   };
 
+static void log_transcoding_time(bg_transcoder_t * t)
+  {
+  gavl_time_t transcoding_time;
+  char time_str[GAVL_TIME_STRING_LEN];
+
+  transcoding_time = gavl_timer_get(t->timer);
+  gavl_time_prettyprint(transcoding_time, time_str);
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Transcoding took %s (%.2f %% of realtime duration)",
+         time_str,
+         100.0 * gavl_time_to_seconds(transcoding_time) /
+         gavl_time_to_seconds(t->duration));
+  }
+
 static const bg_parameter_info_t parameters[] =
   {
     {
@@ -700,10 +713,10 @@ static void set_message_finished(bg_msg_t * msg, const void * data)
   bg_msg_set_id(msg, BG_TRANSCODER_MSG_FINISHED);
   }
 
+
 void bg_transcoder_send_msg_finished(bg_msg_queue_list_t * l)
   {
-  bg_msg_queue_list_send(l,
-                         set_message_finished, NULL);
+  bg_msg_queue_list_send(l, set_message_finished, NULL);
   }
 
 static void set_message_start(bg_msg_t * msg, const void * data)
@@ -3509,6 +3522,7 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
     {
     t->state = TRANSCODER_STATE_FINISHED;
     bg_transcoder_send_msg_finished(t->message_queues);
+    log_transcoding_time(t);
     return 0;
     }
   
@@ -3559,6 +3573,7 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
     {
     if(t->pass < t->total_passes)
       {
+      log_transcoding_time(t);
       next_pass(t);
       return 1;
       }
@@ -3566,6 +3581,7 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
       {
       t->state = TRANSCODER_STATE_FINISHED;
       bg_transcoder_send_msg_finished(t->message_queues);
+      log_transcoding_time(t);
       return 0;
       }
     }
@@ -3612,10 +3628,10 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
   real_time = gavl_timer_get(t->timer);
   real_seconds = gavl_time_to_seconds(real_time);
 
-    t->percentage_done =
-      gavl_time_to_seconds(t->time) /
-      gavl_time_to_seconds(t->duration);
-    
+  t->percentage_done =
+    gavl_time_to_seconds(t->time) /
+    gavl_time_to_seconds(t->duration);
+  
   if(t->percentage_done < 0.0)
     t->percentage_done = 0.0;
   if(t->percentage_done > 1.0)
