@@ -342,7 +342,14 @@ static void free_memory(yuvdeinterlacer_t * d)
   }
 #endif
 
-static void temporal_reconstruct_plane(yuvdeinterlacer_t * di, uint8_t * RESTRICT out, const uint8_t * const in, uint8_t * RESTRICT in0, const uint8_t * const in1, int w, int h, int field, int (* RESTRICT lvxy)[2])
+
+static void temporal_reconstruct_plane(yuvdeinterlacer_t * di,
+                                       uint8_t * RESTRICT out,
+                                       const uint8_t * const in,
+                                       uint8_t * RESTRICT in0,
+                                       const uint8_t * const in1,
+                                       int w, int h, int field,
+                                       int (* RESTRICT lvxy)[2])
   {
   int_fast16_t x, y;
   int_fast16_t vx, vy, dx, dy, px, py;
@@ -358,6 +365,7 @@ static void temporal_reconstruct_plane(yuvdeinterlacer_t * di, uint8_t * RESTRIC
 
   // create deinterlaced frame of the reference-field in scratch
   for (y = (1 - field); y < h; y += 2)
+    {
     for (x = 0; x < w; x++)
       {
 
@@ -443,28 +451,23 @@ static void temporal_reconstruct_plane(yuvdeinterlacer_t * di, uint8_t * RESTRIC
 	
 	if (a<b && a<c && a<d && a<e && a<f && a<g )
           i = ( *(in0+(x-3)+(y-1)*w) + *(in0+(x+3)+(y+1)*w) )/2;
-	else
-          if (b<a && b<c && b<d && b<e && b<f && b<g )
-            i = ( *(in0+(x-2)+(y-1)*w) + *(in0+(x+2)+(y+1)*w) )/2;
-          else
-            if (c<a && c<b && c<d && c<e && c<f && c<g )
-              i = ( *(in0+(x-1)+(y-1)*w) + *(in0+(x+1)+(y+1)*w) )/2;
-            else
-              if (e<a && e<b && e<c && e<d && e<f && e<g )
-		i = ( *(in0+(x+1)+(y-1)*w) + *(in0+(x-1)+(y+1)*w) )/2;
-              else
-                if (f<a && f<b && f<c && f<d && f<e && f<g )
-                  i = ( *(in0+(x+2)+(y-1)*w) + *(in0+(x-2)+(y+1)*w) )/2;
-                else
-                  if (g<a && g<b && g<c && g<d && g<e && g<f )
-                    i = ( *(in0+(x+3)+(y-1)*w) + *(in0+(x-3)+(y+1)*w) )/2;
-
+	else if (b<a && b<c && b<d && b<e && b<f && b<g )
+          i = ( *(in0+(x-2)+(y-1)*w) + *(in0+(x+2)+(y+1)*w) )/2;
+        else if (c<a && c<b && c<d && c<e && c<f && c<g )
+          i = ( *(in0+(x-1)+(y-1)*w) + *(in0+(x+1)+(y+1)*w) )/2;
+        else if (e<a && e<b && e<c && e<d && e<f && e<g )
+          i = ( *(in0+(x+1)+(y-1)*w) + *(in0+(x-1)+(y+1)*w) )/2;
+        else if (f<a && f<b && f<c && f<d && f<e && f<g )
+          i = ( *(in0+(x+2)+(y-1)*w) + *(in0+(x-2)+(y+1)*w) )/2;
+        else if (g<a && g<b && g<c && g<d && g<e && g<f )
+          i = ( *(in0+(x+3)+(y-1)*w) + *(in0+(x-3)+(y+1)*w) )/2;
+        
 	*(di->scratch+x+(y  )*w) = i;
 	*(di->mmap+x+y*w) = 0; // mark pixel as moving in motion-map...
 	}
-
       }
-
+    }
+  
   if(y == h)
     memcpy (di->scratch + w * (h - 1), in0 + w * (h - 1), w);
 
