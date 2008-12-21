@@ -838,7 +838,7 @@ static int init_raw(bgav_demuxer_context_t * ctx, int input_can_seek)
       bgav_pes_header_read(priv->input_mem, &pes_header);
       priv->ptr += priv->input_mem->position;
       
-      bgav_pes_header_dump(&pes_header);
+      //      bgav_pes_header_dump(&pes_header);
       
       /* MPEG-2 Video */
       if((pes_header.stream_id >= 0xe0) && (pes_header.stream_id <= 0xef))
