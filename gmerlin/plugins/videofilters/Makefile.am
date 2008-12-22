@@ -26,6 +26,7 @@ fv_decimate.la \
 fv_deinterlace.la \
 fv_equalizer.la \
 fv_flip.la \
+fv_interlace.la \
 fv_invert_rgb.la \
 fv_oldcolor.la \
 fv_pixelformat.la \

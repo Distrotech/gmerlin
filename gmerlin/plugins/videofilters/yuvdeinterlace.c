@@ -59,7 +59,8 @@ struct yuvdeinterlacer_s
   uint8_t * RESTRICT scratch;
   uint8_t * RESTRICT mmap;
 
-  int (* RESTRICT motion[2])[2];
+  int (* RESTRICT motion_1[2])[2];
+  int (* RESTRICT motion_2[2])[2];
 
   /* Added for gmerlin */
   gavl_video_frame_t * inframe;
@@ -85,7 +86,7 @@ struct yuvdeinterlacer_s
   int current_field;
   int64_t frame;
   int eof;
-
+  
   /* Multithreading stuff */
 
   gavl_video_run_func  run_func;
@@ -93,6 +94,19 @@ struct yuvdeinterlacer_s
   void * run_data;
   void * stop_data;
   int num_threads;
+  
+  struct
+    {
+    int w, h;
+    uint8_t * out;
+    const uint8_t * in;
+    const uint8_t * in0;
+    const uint8_t * in1;
+    yuvdeinterlacer_t * di;
+    int (* RESTRICT lvxy_1)[2];
+    int (* RESTRICT lvxy_2)[2];
+    int field;
+    } cur;
   
   };
 
@@ -146,8 +160,8 @@ void initialize_memory (yuvdeinterlacer_t * di, int w, int h, int cw, int ch)
       scratch = (uint8_t *) malloc (luma_size) + vertical_overshot_luma;
       mmap = (uint8_t *) malloc (w * h);
 
-      motion[0] = (int_least16_t (*)[2]) calloc (lmotion_size, sizeof(motion[0][0]));
-      motion[1] = (int_least16_t (*)[2]) calloc (cmotion_size, sizeof(motion[0][0]));
+      motion[0] = calloc (lmotion_size, sizeof(motion[0][0]));
+      motion[1] = calloc (cmotion_size, sizeof(motion[0][0]));
 
       width = w;
       height = h;
@@ -226,8 +240,10 @@ static void initialize_memory(yuvdeinterlacer_t * d)
   d->scratch = (uint8_t *) calloc (1, luma_size + vertical_overshot_luma);
   d->mmap = (uint8_t *) calloc (1, luma_size);
 
-  d->motion[0] = (int(*)[2]) calloc (lmotion_size, sizeof(d->motion[0][0]));
-  d->motion[1] = (int(*)[2]) calloc (cmotion_size, sizeof(d->motion[0][0]));
+  d->motion_1[0] = calloc (lmotion_size, sizeof(d->motion_1[0][0]));
+  d->motion_1[1] = calloc (cmotion_size, sizeof(d->motion_1[0][0]));
+  d->motion_2[0] = calloc (lmotion_size, sizeof(d->motion_1[0][0]));
+  d->motion_2[1] = calloc (cmotion_size, sizeof(d->motion_1[0][0]));
   
   d->scratch_offset = vertical_overshot_luma;
   d->scratch += d->scratch_offset;
@@ -235,6 +251,8 @@ static void initialize_memory(yuvdeinterlacer_t * d)
   d->height = h;
   d->cwidth = cw;
   d->cheight = ch;
+
+  
   }
 #endif 
 
@@ -290,7 +308,8 @@ yuvdeinterlacer_t * yuvdeinterlacer_create()
     free (motion[1]);
     
   }
-#else
+#endif
+
 #define FREE_FRAME(f) \
 if(f) \
   { \
@@ -329,46 +348,42 @@ static void free_memory(yuvdeinterlacer_t * d)
     free (d->mmap);
     d->mmap = NULL;
     }
-  if(d->motion[0])
+  if(d->motion_1[0])
     {
-    free (d->motion[0]);
-    d->motion[0] = NULL;
+    free (d->motion_1[0]);
+    d->motion_1[0] = NULL;
     }
-  if(d->motion[1])
+  if(d->motion_1[1])
     {
-    free (d->motion[1]);
-    d->motion[1] = NULL;
+    free (d->motion_1[1]);
+    d->motion_1[1] = NULL;
+    }
+  if(d->motion_2[0])
+    {
+    free (d->motion_2[0]);
+    d->motion_2[0] = NULL;
+    }
+  if(d->motion_2[1])
+    {
+    free (d->motion_2[1]);
+    d->motion_2[1] = NULL;
     }
   }
-#endif
 
-
-static void temporal_reconstruct_plane(yuvdeinterlacer_t * di,
-                                       uint8_t * RESTRICT out,
-                                       const uint8_t * const in,
-                                       uint8_t * RESTRICT in0,
-                                       const uint8_t * const in1,
-                                       int w, int h, int field,
-                                       int (* RESTRICT lvxy)[2])
+static void temporal_reconstruct_slice_1(void * p, int start, int end)
   {
-  int_fast16_t x, y;
-  int_fast16_t vx, vy, dx, dy, px, py;
-  uint_fast16_t min, sad;
-  int_fast16_t a, b, c, d, e, f, g, m, i;
-  const int iw = (w + 7) / 8;
-
-  // the ELA-algorithm overshots by one line above and below the
-  // frame-size, so fill the ELA-overshot-area in the inframe to
-  // ensure that no green or purple lines are generated...
-  memcpy (in0 - w, in + w, w);
-  memcpy (in0 + (w * h), in + (w * h) - 2 * w, w);
-
-  // create deinterlaced frame of the reference-field in scratch
-  for (y = (1 - field); y < h; y += 2)
+  int x, y;
+  yuvdeinterlacer_t * di = p;
+  const uint8_t * const in = di->cur.in;
+  const uint8_t * RESTRICT in0  = di->cur.in0;
+  const uint8_t * const in1 = di->cur.in1;
+  int w = di->cur.w;
+  int_fast16_t a, b, c;
+  
+  for(y = start; y < end; y++)
     {
     for (x = 0; x < w; x++)
       {
-
       a  = abs( *(in +x+(y-1)*w)-*(in0+x+(y-1)*w) );
       a += abs( *(in1+x+(y-1)*w)-*(in0+x+(y-1)*w) );
 
@@ -378,98 +393,105 @@ static void temporal_reconstruct_plane(yuvdeinterlacer_t * di,
       c  = abs( *(in +x+(y+1)*w)-*(in0+x+(y+1)*w) );
       c += abs( *(in1+x+(y+1)*w)-*(in0+x+(y+1)*w) );
 
-      *(di->scratch+x+(y-1)*w) = *(in0+x+(y-1)*w);
-	
+      //      *(di->scratch+x+(y-1)*w) = *(in0+x+(y-1)*w);
+
+      *(di->scratch+x+(y)*w) = *(in0+x+(y)*w);
+      
       if( (a<16 || c<16) && b<16 ) // Pixel is static?
 	{
 	// Yes...
-	*(di->scratch+x+(y  )*w) = *(in0+x+(y  )*w);
+        //	*(di->scratch+x+(y  )*w) = *(in0+x+(y  )*w);
 	*(di->mmap+x+y*w) = 255; // mark pixel as static in motion-map...
 	}
       else
 	{
-	// No...
-	// Do an edge-directed-interpolation
-
-	m  = *(in0+(x-3)+(y-2)*w);
-	m += *(in0+(x-2)+(y-2)*w);
-	m += *(in0+(x-1)+(y-2)*w);
-	m += *(in0+(x-0)+(y-2)*w);
-	m += *(in0+(x+1)+(y-2)*w);
-	m += *(in0+(x+2)+(y-2)*w);
-	m += *(in0+(x+3)+(y-2)*w);
-	m += *(in0+(x-3)+(y-1)*w);
-	m += *(in0+(x-2)+(y-1)*w);
-	m += *(in0+(x-1)+(y-1)*w);
-	m += *(in0+(x-0)+(y-1)*w);
-	m += *(in0+(x+1)+(y-1)*w);
-	m += *(in0+(x+2)+(y-1)*w);
-	m += *(in0+(x+3)+(y-1)*w);
-	m += *(in0+(x-3)+(y+1)*w);
-	m += *(in0+(x-2)+(y+1)*w);
-	m += *(in0+(x-1)+(y+1)*w);
-	m += *(in0+(x-0)+(y+1)*w);
-	m += *(in0+(x+1)+(y+1)*w);
-	m += *(in0+(x+2)+(y+1)*w);
-	m += *(in0+(x+3)+(y+1)*w);
-	m += *(in0+(x-3)+(y+2)*w);
-	m += *(in0+(x-2)+(y+2)*w);
-	m += *(in0+(x-1)+(y+2)*w);
-	m += *(in0+(x-0)+(y+2)*w);
-	m += *(in0+(x+1)+(y+2)*w);
-	m += *(in0+(x+2)+(y+2)*w);
-	m += *(in0+(x+3)+(y+2)*w);
-	m /= 28;
-
-	a  = abs(  *(in0+(x-3)+(y-1)*w) - *(in0+(x+3)+(y+1)*w) );
-	i = ( *(in0+(x-3)+(y-1)*w) + *(in0+(x+3)+(y+1)*w) )/2;
-	a -= abs(m-i);
-
-	b  = abs(  *(in0+(x-2)+(y-1)*w) - *(in0+(x+2)+(y+1)*w) );
-	i = ( *(in0+(x-2)+(y-1)*w) + *(in0+(x+2)+(y+1)*w) )/2;
-	b -= abs(m-i);
-
-	c  = abs(  *(in0+(x-1)+(y-1)*w) - *(in0+(x+1)+(y+1)*w) );
-	i = ( *(in0+(x-1)+(y-1)*w) + *(in0+(x+1)+(y+1)*w) )/2;
-	c -= abs(m-i);
-
-	e  = abs(  *(in0+(x+1)+(y-1)*w) - *(in0+(x-1)+(y+1)*w) );
-	i = ( *(in0+(x+1)+(y-1)*w) + *(in0+(x-1)+(y+1)*w) )/2;
-	e -= abs(m-i);
-
-	f  = abs(  *(in0+(x+2)+(y-1)*w) - *(in0+(x-2)+(y+1)*w) );
-	i = ( *(in0+(x+2)+(y-1)*w) + *(in0+(x-2)+(y+1)*w) )/2;
-	f -= abs(m-i);
-
-	g  = abs(  *(in0+(x+3)+(y-1)*w) - *(in0+(x-3)+(y+1)*w) );
-	i = ( *(in0+(x+3)+(y-1)*w) + *(in0+(x-3)+(y+1)*w) )/2;
-	g -= abs(m-i);
-
-	d  = abs(  *(in0+(x  )+(y-1)*w) - *(in0+(x  )+(y+1)*w) );
-	i = ( *(in0+(x  )+(y-1)*w) + *(in0+(x  )+(y+1)*w) )/2;
-	d -= abs(m-i);
-	
-	if (a<b && a<c && a<d && a<e && a<f && a<g )
-          i = ( *(in0+(x-3)+(y-1)*w) + *(in0+(x+3)+(y+1)*w) )/2;
-	else if (b<a && b<c && b<d && b<e && b<f && b<g )
-          i = ( *(in0+(x-2)+(y-1)*w) + *(in0+(x+2)+(y+1)*w) )/2;
-        else if (c<a && c<b && c<d && c<e && c<f && c<g )
-          i = ( *(in0+(x-1)+(y-1)*w) + *(in0+(x+1)+(y+1)*w) )/2;
-        else if (e<a && e<b && e<c && e<d && e<f && e<g )
-          i = ( *(in0+(x+1)+(y-1)*w) + *(in0+(x-1)+(y+1)*w) )/2;
-        else if (f<a && f<b && f<c && f<d && f<e && f<g )
-          i = ( *(in0+(x+2)+(y-1)*w) + *(in0+(x-2)+(y+1)*w) )/2;
-        else if (g<a && g<b && g<c && g<d && g<e && g<f )
-          i = ( *(in0+(x+3)+(y-1)*w) + *(in0+(x-3)+(y+1)*w) )/2;
-        
-	*(di->scratch+x+(y  )*w) = i;
 	*(di->mmap+x+y*w) = 0; // mark pixel as moving in motion-map...
 	}
       }
     }
   
-  if(y == h)
-    memcpy (di->scratch + w * (h - 1), in0 + w * (h - 1), w);
+  }
+
+#define GET_SAD \
+  sad = psad_00 (scratch_ptr, out_ptr + dx + dy * w, w, 16, min); \
+  if (sad < min) \
+    { \
+    min = sad; \
+    vx = dx; \
+    vy = dy; \
+    } \
+
+
+static void temporal_reconstruct_plane(yuvdeinterlacer_t * di,
+                                       uint8_t * RESTRICT out,
+                                       const uint8_t * const in,
+                                       uint8_t * RESTRICT in0,
+                                       const uint8_t * const in1,
+                                       int w, int h, int field,
+                                       int (* RESTRICT lvxy)[2],
+                                       int (* RESTRICT lvxy_dst)[2])
+  {
+  int_fast16_t x, y;
+  int_fast16_t vx, vy, dx, dy, px, py;
+  uint_fast16_t min, sad;
+  int_fast16_t a, b;
+  const int iw = (w + 7) / 8;
+  int i, nt, delta, scanline;
+
+  uint8_t * scratch_ptr, * out_ptr;
+  
+  // the ELA-algorithm overshots by one line above and below the
+  // frame-size, so fill the ELA-overshot-area in the inframe to
+  // ensure that no green or purple lines are generated...
+  memcpy (in0 - w, in + w, w);
+  memcpy (in0 + (w * h), in + (w * h) - 2 * w, w);
+#if 0
+  int w, h;
+  uint8_t * out;
+  uint8_t * in;
+  uint8_t * in0;
+  uint8_t * in1;
+  yuvdeinterlacer_t * di;
+  int (* RESTRICT lvxy)[2];
+  int field;
+#endif
+  
+  di->cur.w = w;
+  di->cur.h = h;
+  di->cur.in = in;
+  di->cur.in0 = in0;
+  di->cur.in1 = in1;
+  di->cur.out = out;
+  di->cur.field = field;
+  
+  nt = di->num_threads;
+  if(nt > h/2)
+    nt = h/2;
+
+  //  nt = 1;
+  
+  delta = (h - (1 - field)) / nt;
+  if(delta & 1)
+    delta++;
+  scanline = 1 - field;
+  for(i = 0; i < nt - 1; i++)
+    {
+    di->run_func(temporal_reconstruct_slice_1,
+                       di, scanline, scanline+delta, di->run_data, i);
+    
+    //        fprintf(stderr, "scanline: %d (%d)\n", ctx->scanline, ctx->dst_rect.h);
+    scanline += delta;
+    }
+  di->run_func(temporal_reconstruct_slice_1,
+               di, scanline, h, di->run_data, nt - 1);
+      
+  for(i = 0; i < nt; i++)
+    di->stop_func(di->stop_data, i);
+  
+  //  temporal_reconstruct_slice_1(di, (1 - field), h);
+  
+  //  if(y == h)
+  //    memcpy (di->scratch + w * (h - 1), in0 + w * (h - 1), w);
 
   // As we now have a rather good interpolation of how the reference frame
   // might have been looking for when it had been scanned progressively,
@@ -502,16 +524,21 @@ static void temporal_reconstruct_plane(yuvdeinterlacer_t * di,
   memcpy (di->scratch + (w * h) + w * 3, di->scratch + (w * h) - w, w);
   memset (di->scratch + (w * h) + w * 4, di->scratch[w * h - 1], 11);
 
+  
   for (y = 0; y < h; y += 8)
+    {
     for (x = 0; x < w; x += 8)
       {
       uint_fast16_t ix = (unsigned)x / 8;
       uint_fast16_t iy = (unsigned)y / 8;
-	  
+      
       // offset x+y so we get an overlapped search
       x -= 4;
       y -= 4;
 
+      out_ptr = out + w * y + x;
+      scratch_ptr = di->scratch + w * y + x;
+      
       // reset motion-search with the zero-motion-vector (0;0)
       min = psad_00 (di->scratch + x + y * w, out + x + y * w, w, 16, 16*16*255);
       vx = 0;
@@ -538,14 +565,7 @@ static void temporal_reconstruct_plane(yuvdeinterlacer_t * di,
           dy /= 10;
           dy *= 2;
 
-          sad =
-            psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
-          if (sad < min)
-            {
-            min = sad;
-            vx = dx;
-            vy = dy;
-            }
+          GET_SAD;
           }
 
       // if possible check top-left-neighbor-vector
@@ -554,14 +574,7 @@ static void temporal_reconstruct_plane(yuvdeinterlacer_t * di,
           {
           dx = lvxy[ix - 1 + (iy - 1) * iw][0];
           dy = lvxy[ix - 1 + (iy - 1) * iw][1];
-          sad =
-            psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
-          if (sad < min)
-            {
-            min = sad;
-            vx = dx;
-            vy = dy;
-            }
+          GET_SAD;
           }
 
       // if possible check top-neighbor-vector
@@ -570,14 +583,7 @@ static void temporal_reconstruct_plane(yuvdeinterlacer_t * di,
           {
           dx = lvxy[ix + (iy - 1) * iw][0];
           dy = lvxy[ix + (iy - 1) * iw][1];
-          sad =
-            psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
-          if (sad < min)
-            {
-            min = sad;
-            vx = dx;
-            vy = dy;
-            }
+          GET_SAD;
           }
 
       // if possible check top-right-neighbor-vector
@@ -586,14 +592,7 @@ static void temporal_reconstruct_plane(yuvdeinterlacer_t * di,
           {
           dx = lvxy[ix + 1 + (iy - 1) * iw][0];
           dy = lvxy[ix + 1 + (iy - 1) * iw][1];
-          sad =
-            psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
-          if (sad < min)
-            {
-            min = sad;
-            vx = dx;
-            vy = dy;
-            }
+          GET_SAD;
           }
 
       // if possible check left-neighbor-vector
@@ -602,14 +601,7 @@ static void temporal_reconstruct_plane(yuvdeinterlacer_t * di,
           {
           dx = lvxy[ix - 1 + iy * iw][0];
           dy = lvxy[ix - 1 + iy * iw][1];
-          sad =
-            psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
-          if (sad < min)
-            {
-            min = sad;
-            vx = dx;
-            vy = dy;
-            }
+          GET_SAD;
           }
 
       // check temporal-neighbor-vector
@@ -617,13 +609,7 @@ static void temporal_reconstruct_plane(yuvdeinterlacer_t * di,
         {
         dx = lvxy[ix + iy * iw][0];
         dy = lvxy[ix + iy * iw][1];
-        sad = psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
-        if (sad < min)
-          {
-          min = sad;
-          vx = dx;
-          vy = dy;
-          }
+        GET_SAD;
         }
 
       // search for a better one...
@@ -653,69 +639,28 @@ static void temporal_reconstruct_plane(yuvdeinterlacer_t * di,
         //
         dx = px-2;
         dy = py;
-        sad =
-          psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
-        if (sad < min)
-          {
-          min = sad;
-          vx = dx;
-          vy = dy;
-          }
+        GET_SAD;
 
         dx = px+2;
         dy = py;
-        sad =
-          psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
-        if (sad < min)
-          {
-          min = sad;
-          vx = dx;
-          vy = dy;
-          }
 
+        GET_SAD;
+        
         dx = px-4;
         dy = py;
-        sad =
-          psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
-        if (sad < min)
-          {
-          min = sad;
-          vx = dx;
-          vy = dy;
-          }
+        GET_SAD;
 
         dx = px+4;
         dy = py;
-        sad =
-          psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
-        if (sad < min)
-          {
-          min = sad;
-          vx = dx;
-          vy = dy;
-          }
+        GET_SAD;
 
         dx = px;
         dy = py-4;
-        sad =
-          psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
-        if (sad < min)
-          {
-          min = sad;
-          vx = dx;
-          vy = dy;
-          }
+        GET_SAD;
 
         dx = px;
         dy = py+4;
-        sad =
-          psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
-        if (sad < min)
-          {
-          min = sad;
-          vx = dx;
-          vy = dy;
-          }
+        GET_SAD;
         }
       // update prediction-vector
       px = vx;
@@ -737,83 +682,40 @@ static void temporal_reconstruct_plane(yuvdeinterlacer_t * di,
 
         dx = px-1;
         dy = py;
-        sad =
-          psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
-        if (sad < min)
-          {
-          min = sad;
-          vx = dx;
-          vy = dy;
-          }
+        GET_SAD;
 
         dx = px+1;
         dy = py;
-        sad =
-          psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
-        if (sad < min)
-          {
-          min = sad;
-          vx = dx;
-          vy = dy;
-          }
+        GET_SAD;
 
         dx = px-2;
         dy = py;
-        sad =
-          psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
-        if (sad < min)
-          {
-          min = sad;
-          vx = dx;
-          vy = dy;
-          }
+        GET_SAD;
 
         dx = px+2;
         dy = py;
-        sad =
-          psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
-        if (sad < min)
-          {
-          min = sad;
-          vx = dx;
-          vy = dy;
-          }
+        GET_SAD;
 
         dx = px;
         dy = py-2;
-        sad =
-          psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
-        if (sad < min)
-          {
-          min = sad;
-          vx = dx;
-          vy = dy;
-          }
+        GET_SAD;
 
         dx = px;
         dy = py+2;
-        sad =
-          psad_00 (di->scratch + x + y * w, out + (x + dx) + (y + dy) * w, w, 16, min);
-        if (sad < min)
-          {
-          min = sad;
-          vx = dx;
-          vy = dy;
-          }
+        GET_SAD;
         }
 
         // store the found vector, so we can do a candidates-check...
-        lvxy[ix + iy * iw][0] = vx;
-        lvxy[ix + iy * iw][1] = vy;
-
+        lvxy_dst[ix + iy * iw][0] = vx;
+        lvxy_dst[ix + iy * iw][1] = vy;
+        
         // remove x+y offset...
         x += 4;
         y += 4;
-
+        
         // reconstruct that block in scratch
         // do so by using the lowpass (and alias-term) from the current field
         // and the highpass (and phase-inverted alias-term) from the previous frame(!)
-#if 1
         for (dy = (1 - field); dy < 8; dy += 2)
           {
           uint8_t * RESTRICT dest = di->scratch + x + (y + dy) * w;
@@ -841,19 +743,10 @@ static void temporal_reconstruct_plane(yuvdeinterlacer_t * di,
             dest[dx] = a;
             }
           }
-#else
-        for (dy = (1 - field); dy < 8; dy += 2)
-          for (dx = 0; dx < 8; dx++)
-            {
-            *(scratch + (x + dx) + (y + dy) * w) =
-              (
-               //*(scratch + (x + dx) + (y + dy) * w) +
-               *(out + (x + dx + vx) + (y + dy +vy) * w) 
-               )/1;
-            }
-#endif
+      
       }
-
+    }
+    
   for (y = (1 - field); y < h; y += 2)
     for (x = 0; x < w; x++)
       {
@@ -862,28 +755,8 @@ static void temporal_reconstruct_plane(yuvdeinterlacer_t * di,
         *(di->scratch + x + (y) * w) = *(in0+x+(y  )*w);
         }
       }
-
-#if 1
+  
   memcpy (out, di->scratch, w * h);
-#else
-  // copy a gauss-filtered variant of the reconstructed image to the out-buffer
-  // the reason why this must be filtered is not so easy to understand, so I leave
-  // some room for anyone who might try without... :-)
-  //
-  // If you want a starting point: remember an interlaced camera *must* *not* have
-  // more vertical resolution than approximatly 0.6 times the nominal vertical
-  // resolution... (So a progressive-scan camera will allways be better in this
-  // regard but will introduce severe defects when the movie is displayed on an
-  // interlaced screen...) Eitherways, who cares: this is better than a frame-mode
-  // were the missing information is generated via a pixel-shift... :-)
-
-  for (y = 0; y < h; y++)
-    for (x = 0; x < w; x++)
-      {
-      *(out + x + y * w) = (4 * *(scratch + x + (y) * w)+*(scratch + x + (y-1) * w)+*(scratch + x + (y+1) * w))/6;
-      }
-#endif
-
   antialias_plane (di, out, w, h );
   }
 
@@ -893,14 +766,14 @@ static void scale_motion_vectors (yuvdeinterlacer_t * di, int nom, int rshift)
 
   for (i = (di->width / 8) * (di->height / 8); i--; )
     {
-    di->motion[0][i][0] = (di->motion[0][i][0] * nom) >> rshift;
-    di->motion[0][i][1] = (di->motion[0][i][1] * nom) >> rshift;
+    di->motion_1[0][i][0] = (di->motion_1[0][i][0] * nom) >> rshift;
+    di->motion_1[0][i][1] = (di->motion_1[0][i][1] * nom) >> rshift;
     }
 	
   for (i = (di->cwidth / 8) * (di->cheight / 8); i--; )
     {
-    di->motion[1][i][0] = (di->motion[1][i][0] * nom) >> rshift;
-    di->motion[1][i][1] = (di->motion[1][i][1] * nom) >> rshift;
+    di->motion_1[1][i][0] = (di->motion_1[1][i][0] * nom) >> rshift;
+    di->motion_1[1][i][1] = (di->motion_1[1][i][1] * nom) >> rshift;
     }
   }
 
@@ -910,36 +783,60 @@ static void temporal_reconstruct_frame(yuvdeinterlacer_t * di,
                                        gavl_video_frame_t * in1,
                                        int field)
   {
+  int (* RESTRICT swp)[2];
+
+  //  int * swp;
   temporal_reconstruct_plane(di,
                              di->outframe->planes[0],
                              in->planes[0],
                              in0->planes[0],
                              in1->planes[0],
-                             di->width, di->height, field, di->motion[0]);
+                             di->width, di->height, field, di->motion_1[0], di->motion_2[0]);
   temporal_reconstruct_plane(di,
                              di->outframe->planes[1],
                              in->planes[1],
                              in0->planes[1],
                              in1->planes[1],
-                             di->cwidth, di->cheight, field, di->motion[1]);
+                             di->cwidth, di->cheight, field, di->motion_1[1], di->motion_2[1]);
   temporal_reconstruct_plane(di,
                              di->outframe->planes[2],
                              in->planes[2],
                              in0->planes[2],
                              in1->planes[2],
-                             di->cwidth, di->cheight, field, di->motion[1]);
+                             di->cwidth, di->cheight, field, di->motion_1[1], di->motion_2[1]);
+  swp = di->motion_1[0];
+  di->motion_1[0] = di->motion_2[0];
+  di->motion_2[0] = swp;
+
+  swp = di->motion_1[1];
+  di->motion_1[1] = di->motion_2[1];
+  di->motion_2[1] = swp;
   }
 
-void antialias_plane (yuvdeinterlacer_t * di,
-                      uint8_t * RESTRICT out, int w, int h)
+static void antialias_slice_1(void * p, int start, int end)
   {
   int x, y;
   int vx;
   uint_fast16_t sad;
   uint_fast16_t min;
   int dx;
+  yuvdeinterlacer_t * di = p;
+  
+  int w = di->cur.w;
 
-  for (y = 2; y < (h - 2); y++)
+  uint8_t * scratch_ptr = di->scratch + start * w;
+
+  uint8_t * out = di->cur.out + start * w;
+  uint8_t * out_p = out + w; /* out + width */
+  uint8_t * out_m = out - w; /* out - width */
+  
+  for (y = start; y < end; y++)
+    {
+    out = di->cur.out + y * w + 2;
+    out_p = out + w; /* out + width */
+    out_m = out - w; /* out - width */
+    scratch_ptr = di->scratch + y * w + 2;
+    
     for (x = 2; x < (w - 2); x++)
       {
       min = ~0;
@@ -949,17 +846,17 @@ void antialias_plane (yuvdeinterlacer_t * di,
         sad = 0;
         //      sad  = abs( *(out+(x+dx-3)+(y-1)*w) - *(out+(x-3)+(y+0)*w) );
         //      sad += abs( *(out+(x+dx-2)+(y-1)*w) - *(out+(x-2)+(y+0)*w) );
-        sad += abs (*(out + (x + dx - 1) + (y - 1) * w) - *(out + (x - 1) + (y + 0) * w));
-        sad += abs (*(out + (x + dx + 0) + (y - 1) * w) - *(out + (x + 0) + (y + 0) * w));
-        sad += abs (*(out + (x + dx + 1) + (y - 1) * w) - *(out + (x + 1) + (y + 0) * w));
+        sad += abs (*(out_m + (dx - 1)) - *(out + (- 1) ));
+        sad += abs (*(out_m + (dx + 0)) - *(out + (+ 0) ));
+        sad += abs (*(out_m + (dx + 1)) - *(out + (+ 1) ));
         //      sad += abs( *(out+(x+dx+2)+(y-1)*w) - *(out+(x+2)+(y+0)*w) );
         //      sad += abs( *(out+(x+dx+3)+(y-1)*w) - *(out+(x+3)+(y+0)*w) );
 
         //      sad += abs( *(out+(x-dx-3)+(y+1)*w) - *(out+(x-3)+(y+0)*w) );
         //      sad += abs( *(out+(x-dx-2)+(y+1)*w) - *(out+(x-2)+(y+0)*w) );
-        sad += abs (*(out + (x - dx - 1) + (y + 1) * w) - *(out + (x - 1) + (y + 0) * w));
-        sad += abs (*(out + (x - dx + 0) + (y + 1) * w) - *(out + (x + 0) + (y + 0) * w));
-        sad += abs (*(out + (x - dx + 1) + (y + 1) * w) - *(out + (x + 1) + (y + 0) * w));
+        sad += abs (*(out_p + (- dx - 1)) - *(out + (- 1)));
+        sad += abs (*(out_p + (- dx + 0)) - *(out + (+ 0)));
+        sad += abs (*(out_p + (- dx + 1)) - *(out + (+ 1)));
         //      sad += abs( *(out+(x-dx+2)+(y+1)*w) - *(out+(x+2)+(y+0)*w) );
         //      sad += abs( *(out+(x-dx+3)+(y+1)*w) - *(out+(x+3)+(y+0)*w) );
 
@@ -971,46 +868,119 @@ void antialias_plane (yuvdeinterlacer_t * di,
         }
 
       if (abs (vx) <= 1)
-        *(di->scratch + x + y * w) =
-          (2**(out + (x) + (y) * w) + *(out + (x + vx) + (y - 1) * w) +
-           *(out + (x - vx) + (y + 1) * w)) / 4;
+        *scratch_ptr =
+          ((2 * *(out)) + *(out_m + (vx)) +  *(out_p + (- vx))) / 4;
       else if (abs (vx) <= 3)
-        *(di->scratch + x + y * w) =
-          (2 * *(out + (x - 1) + (y) * w) +
-           4 * *(out + (x + 0) + (y) * w) +
-           2 * *(out + (x + 1) + (y) * w) +
-           1 * *(out + (x + vx - 1) + (y - 1) * w) +
-           2 * *(out + (x + vx + 0) + (y - 1) * w) +
-           1 * *(out + (x + vx + 1) + (y - 1) * w) +
-           1 * *(out + (x - vx - 1) + (y + 1) * w) +
-           2 * *(out + (x - vx + 0) + (y + 1) * w) +
-           1 * *(out + (x - vx + 1) + (y + 1) * w)) / 16;
+        *scratch_ptr =
+          (2 * *(out + (-1)) +
+           4 * *(out + ( 0)) +
+           2 * *(out + ( 1)) +
+           1 * *(out_m + (+ vx - 1)) +
+           2 * *(out_m + (+ vx + 0)) +
+           1 * *(out_m + (+ vx + 1)) +
+           1 * *(out_p + (- vx - 1)) +
+           2 * *(out_p + (- vx + 0)) +
+           1 * *(out_p + (- vx + 1))) / 16;
       else
-        *(di->scratch + x + y * w) =
-          (2 * *(out + (x - 1) + (y) * w) +
-           4 * *(out + (x - 1) + (y) * w) +
-           8 * *(out + (x + 0) + (y) * w) +
-           4 * *(out + (x + 1) + (y) * w) +
-           2 * *(out + (x + 1) + (y) * w) +
-           1 * *(out + (x + vx - 1) + (y - 1) * w) +
-           2 * *(out + (x + vx - 1) + (y - 1) * w) +
-           4 * *(out + (x + vx + 0) + (y - 1) * w) +
-           2 * *(out + (x + vx + 1) + (y - 1) * w) +
-           1 * *(out + (x + vx + 1) + (y - 1) * w) +
-           1 * *(out + (x - vx - 1) + (y + 1) * w) +
-           2 * *(out + (x - vx - 1) + (y + 1) * w) +
-           4 * *(out + (x - vx + 0) + (y + 1) * w) +
-           2 * *(out + (x - vx + 1) + (y + 1) * w) +
-           1 * *(out + (x - vx + 1) + (y + 1) * w)) / 40;
-
+        *scratch_ptr =
+          (2 * *(out + (- 1)) +
+           4 * *(out + (- 1)) +
+           8 * *(out + (+ 0)) +
+           4 * *(out + (+ 1)) +
+           2 * *(out + (+ 1)) +
+           1 * *(out_m + (+ vx - 1)) +
+           2 * *(out_m + (+ vx - 1)) +
+           4 * *(out_m + (+ vx + 0)) +
+           2 * *(out_m + (+ vx + 1)) +
+           1 * *(out_m + (+ vx + 1)) +
+           1 * *(out_p + (- vx - 1)) +
+           2 * *(out_p + (- vx - 1)) +
+           4 * *(out_p + (- vx + 0)) +
+           2 * *(out_p + (- vx + 1)) +
+           1 * *(out_p + (- vx + 1))) / 40;
+      
+      scratch_ptr++;
+      out++;
+      out_p++;
+      out_m++;
       }
+    }
+  }
 
-  for (y = 2; y < (h - 2); y++)
+static void antialias_slice_2(void * p, int start, int end)
+  {
+  int x, y;
+  yuvdeinterlacer_t * di = p;
+  
+  int w = di->cur.w;
+
+  uint8_t * scratch_ptr;
+  uint8_t * out_ptr;
+  
+  for (y = start; y < end; y++)
+    {
+    out_ptr = di->cur.out + y * w + 2;
+    scratch_ptr = di->scratch + y * w + 2;
+    
     for (x = 2; x < (w - 2); x++)
       {
-      *(out + (x) + (y) * w) = (*(out + (x) + (y) * w) + *(di->scratch + (x) + (y + 0) * w)) / 2;
+      *(out_ptr) = (*(out_ptr) + *(scratch_ptr)) >> 1;
+      out_ptr++;
+      scratch_ptr++;
       }
+    }
+  }
 
+void antialias_plane (yuvdeinterlacer_t * di,
+                      uint8_t * RESTRICT out, int w, int h)
+  {
+  int nt, scanline, delta;
+  int i;
+  
+  di->cur.w = w;
+  di->cur.h = h;
+  di->cur.out = out;
+  
+  nt = di->num_threads;
+  if(nt > h/2)
+    nt = h/2;
+
+  //  nt = 1;
+  
+  delta = (h - 4) / nt;
+
+  scanline = 2;
+
+  for(i = 0; i < nt - 1; i++)
+    {
+    di->run_func(antialias_slice_1,
+                 di, scanline, scanline+delta, di->run_data, i);
+    
+    //        fprintf(stderr, "scanline: %d (%d)\n", ctx->scanline, ctx->dst_rect.h);
+    scanline += delta;
+    }
+  di->run_func(antialias_slice_1,
+               di, scanline, h-2, di->run_data, nt - 1);
+      
+  for(i = 0; i < nt; i++)
+    di->stop_func(di->stop_data, i);
+
+
+  scanline = 2;
+
+  for(i = 0; i < nt - 1; i++)
+    {
+    di->run_func(antialias_slice_2,
+                 di, scanline, scanline+delta, di->run_data, i);
+    
+    //        fprintf(stderr, "scanline: %d (%d)\n", ctx->scanline, ctx->dst_rect.h);
+    scanline += delta;
+    }
+  di->run_func(antialias_slice_2,
+               di, scanline, h-2, di->run_data, nt - 1);
+      
+  for(i = 0; i < nt; i++)
+    di->stop_func(di->stop_data, i);
   }
 
 static int antialias_frame (yuvdeinterlacer_t * di, gavl_video_frame_t * frame)
