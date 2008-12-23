@@ -36,7 +36,7 @@ typedef int (*bg_serialize_read_callback_t)(void * priv, uint8_t * data, int len
  *  \returns The actual number of bytes write
  */
 
-typedef int (*bg_serialize_write_callback_t)(void * priv, uint8_t * data, int len);
+typedef int (*bg_serialize_write_callback_t)(void * priv, const uint8_t * data, int len);
 
 /* Formats */
 
@@ -94,12 +94,16 @@ bg_deserialize_video_frame_header(const gavl_video_format_t * format,
 
 
 int
-bg_deserialize_audio_frame(const gavl_audio_format_t * format,
-                           const gavl_audio_frame_t * frame,
-                           bg_serialize_read_callback_t func, void * data, int * big_endian);
+bg_deserialize_audio_frame(gavl_dsp_context_t * ctx,
+                           const gavl_audio_format_t * format,
+                           gavl_audio_frame_t * frame,
+                           bg_serialize_read_callback_t func,
+                           void * data, int big_endian);
 
 int
-bg_deserialize_video_frame(const gavl_video_format_t * format,
-                           const gavl_video_frame_t * frame,
-                           bg_serialize_read_callback_t func, void * data, int * big_endian);
+bg_deserialize_video_frame(gavl_dsp_context_t * ctx,
+                           const gavl_video_format_t * format,
+                           gavl_video_frame_t * frame,
+                           bg_serialize_read_callback_t func,
+                           void * data, int big_endian);
 

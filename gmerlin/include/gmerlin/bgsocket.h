@@ -67,7 +67,7 @@ int bg_listen_socket_accept(int);
 void bg_listen_socket_destroy(int);
 
 int bg_socket_read_data(int fd, uint8_t * data, int len, int milliseconds);
-int bg_socket_write_data(int fd, uint8_t * data, int len);
+int bg_socket_write_data(int fd, const uint8_t * data, int len);
 
 int bg_socket_read_line(int fd, char ** ret,
                         int * ret_alloc, int milliseconds);

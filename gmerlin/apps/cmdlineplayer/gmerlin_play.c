@@ -723,10 +723,10 @@ static int handle_message(bg_player_t * player,
     case BG_PLAYER_MSG_AUDIO_STREAM:
       arg_i1 = bg_msg_get_arg_int(message, 0);
 
-      bg_msg_get_arg_audio_format(message, 1, &audio_format);
+      bg_msg_get_arg_audio_format(message, 1, &audio_format, NULL);
       tmp_string_1 = bg_audio_format_to_string(&audio_format, 0);
 
-      bg_msg_get_arg_audio_format(message, 2, &audio_format);
+      bg_msg_get_arg_audio_format(message, 2, &audio_format, NULL);
       tmp_string_2 = bg_audio_format_to_string(&audio_format, 0);
   
       bg_log(BG_LOG_INFO, LOG_DOMAIN, "Playing audio stream %d\nInput format:\n%s\nOutput format:\n%s",
@@ -738,10 +738,10 @@ static int handle_message(bg_player_t * player,
     case BG_PLAYER_MSG_VIDEO_STREAM:
       arg_i1 = bg_msg_get_arg_int(message, 0);
 
-      bg_msg_get_arg_video_format(message, 1, &video_format);
+      bg_msg_get_arg_video_format(message, 1, &video_format, NULL);
       tmp_string_1 = bg_video_format_to_string(&video_format, 0);
 
-      bg_msg_get_arg_video_format(message, 2, &video_format);
+      bg_msg_get_arg_video_format(message, 2, &video_format, NULL);
       tmp_string_2 = bg_video_format_to_string(&video_format, 0);
   
       bg_log(BG_LOG_INFO, LOG_DOMAIN, "Playing video stream %d\nInput format:\n%s\nOutput format:\n%s",

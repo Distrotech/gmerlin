@@ -705,7 +705,7 @@ static int msg_read_callback(void * priv, uint8_t * data, int len)
   return read(STDIN_FILENO, data, len);
   }
 
-static int msg_write_callback(void * priv, uint8_t * data, int len)
+static int msg_write_callback(void * priv, const uint8_t * data, int len)
   {
   return write(STDOUT_FILENO, data, len);
   }
@@ -737,7 +737,7 @@ int main(int argc, char ** argv)
   int counter = 0.0;
   bg_parameter_type_t parameter_type;
   gavl_dsp_context_t * ctx;
-
+  int big_endian;
   ctx = gavl_dsp_context_create();
   
   memset(&parameter_value, 0, sizeof(parameter_value));
@@ -766,7 +766,7 @@ int main(int argc, char ** argv)
     switch(bg_msg_get_id(msg))
       {
       case BG_VIS_MSG_AUDIO_FORMAT:
-        bg_msg_get_arg_audio_format(msg, 0, &audio_format);
+        bg_msg_get_arg_audio_format(msg, 0, &audio_format, &big_endian);
         bg_visualizer_slave_set_audio_format(s, &audio_format);
         if(audio_frame)
           gavl_audio_frame_destroy(audio_frame);
@@ -778,7 +778,7 @@ int main(int argc, char ** argv)
                                 &audio_format,
                                 audio_frame,
                                 msg_read_callback,
-                                (void*)0);
+                                (void*)0, big_endian);
         audio_buffer_put(s->audio_buffer,
                          audio_frame);
         break;

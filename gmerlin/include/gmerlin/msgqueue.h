@@ -69,7 +69,7 @@ typedef int (*bg_msg_read_callback_t)(void * priv, uint8_t * data, int len);
  *  \returns The actual number of bytes write
  */
 
-typedef int (*bg_msg_write_callback_t)(void * priv, uint8_t * data, int len);
+typedef int (*bg_msg_write_callback_t)(void * priv, const uint8_t * data, int len);
 
 /** \brief Create a message
  *  \returns A newly allocated message
@@ -274,10 +274,11 @@ void bg_msg_set_arg_audio_format(bg_msg_t * msg, int arg,
  *  \param msg A message
  *  \param arg Argument index (starting with 0)
  *  \param format Returns the audio format
+ *  \param big_endian If non-null, returns 1 if multibyte numbers are in big endian
  */
 
 void bg_msg_get_arg_audio_format(bg_msg_t * msg, int arg,
-                                 gavl_audio_format_t * format);
+                                 gavl_audio_format_t * format, int * big_endian);
 
 
 /** \brief Set a video format argument
@@ -293,10 +294,11 @@ void bg_msg_set_arg_video_format(bg_msg_t * msg, int arg,
  *  \param msg A message
  *  \param arg Argument index (starting with 0)
  *  \param format Returns the video format
+ *  \param big_endian If non-null, returns 1 if multibyte numbers are in big endian
  */
 
 void bg_msg_get_arg_video_format(bg_msg_t * msg, int arg,
-                                 gavl_video_format_t * format);
+                                 gavl_video_format_t * format, int * big_endian);
 
 
 /** \brief Set a matadata argument
@@ -399,7 +401,7 @@ int bg_msg_read_audio_frame(gavl_dsp_context_t * ctx,
                             const gavl_audio_format_t * format,
                             gavl_audio_frame_t * frame,
                             bg_msg_read_callback_t cb,
-                            void * cb_data);
+                            void * cb_data, int big_endian);
 
 /** \brief Set a parameter
  *  \param msg A message

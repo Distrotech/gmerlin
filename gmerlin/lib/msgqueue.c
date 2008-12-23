@@ -44,6 +44,7 @@
 
 #include <gmerlin/utils.h>
 #include <gmerlin/bgsocket.h>
+#include <gmerlin/serialize.h>
 
 #define TYPE_INT            0
 #define TYPE_FLOAT          1
@@ -395,68 +396,23 @@ void bg_msg_set_arg_audio_format(bg_msg_t * msg, int arg,
                                  const gavl_audio_format_t * format)
   {
   uint8_t * ptr;
-  uint8_t * pos;
-  int i;
-    
-  ptr = bg_msg_set_arg_ptr(msg, arg, 24 + 8 * format->num_channels);
-  
-  pos = ptr;
-  
-  pos = set_32(pos, format->samples_per_frame);
-  pos = set_32(pos, format->samplerate);
-  pos = set_32(pos, format->num_channels);
-  pos = set_8(pos, format->sample_format);
-  pos = set_8(pos, format->interleave_mode);
-
-  pos = set_32(pos, (int32_t)(format->center_level*1.0e6));
-  pos = set_32(pos, (int32_t)(format->rear_level*1.0e6));
-  
-  for(i = 0; i < format->num_channels; i++)
-    pos = set_8(pos, format->channel_locations[i]);
-
-  //  msg->args[arg];
-  
+  int len;
+  len = bg_serialize_audio_format(format, NULL, 0);
+  ptr = bg_msg_set_arg_ptr(msg, arg, len);
+  bg_serialize_audio_format(format, ptr, len);
   }
 
 void bg_msg_get_arg_audio_format(bg_msg_t * msg, int arg,
-                                 gavl_audio_format_t * format)
+                                 gavl_audio_format_t * format, int * big_endian)
   {
   uint8_t * ptr;
-  uint8_t * pos;
-  int i;
-  uint32_t tmp;
+  int len, be;
   
-  
-  ptr = bg_msg_get_arg_ptr(msg, arg, NULL);
-  
-  pos = ptr;
-  
-  pos = get_32(pos, &(tmp));
-  format->samples_per_frame = tmp;
+  ptr = bg_msg_get_arg_ptr(msg, arg, &len);
+  bg_deserialize_audio_format(format, ptr, len, &be);
 
-  pos = get_32(pos, &(tmp));
-  format->samplerate = tmp;
-  
-  pos = get_32(pos, &(tmp));
-  format->num_channels = tmp;
-  
-  pos = get_8(pos,  &(tmp));
-  format->sample_format = tmp;
-  
-  pos = get_8(pos,  &(tmp));
-  format->interleave_mode = tmp;
-  
-  pos = get_32(pos, &tmp);
-  format->center_level = (float)(tmp)*1.0e-6;
-
-  pos = get_32(pos, &tmp);
-  format->rear_level = (float)(tmp)*1.0e-6;
-    
-  for(i = 0; i < format->num_channels; i++)
-    {
-    pos = get_8(pos, &(tmp));
-    format->channel_locations[i] = tmp;
-    }
+  if(big_endian)
+    *big_endian = be;
   
   free(ptr);
   }
@@ -481,53 +437,23 @@ void bg_msg_set_arg_video_format(bg_msg_t * msg, int arg,
                                  const gavl_video_format_t * format)
   {
   uint8_t * ptr;
-  uint8_t * pos;
-
-  ptr = bg_msg_set_arg_ptr(msg, arg, 47);
-  
-  pos = ptr;
-  
-  pos = set_32(pos, format->frame_width);
-  pos = set_32(pos, format->frame_height);
-  pos = set_32(pos, format->image_width);
-  pos = set_32(pos, format->image_height);
-  pos = set_32(pos, format->pixel_width);
-  pos = set_32(pos, format->pixel_height);
-  pos = set_32(pos, format->pixelformat);
-  pos = set_32(pos, format->timescale);
-  pos = set_32(pos, format->frame_duration);
-  pos = set_8(pos, format->framerate_mode);
-  pos = set_8(pos, format->interlace_mode);
-  pos = set_8(pos, format->chroma_placement);
-  pos = set_32(pos, format->timecode_format.int_framerate);
-  pos = set_32(pos, format->timecode_format.flags);
+  int len;
+  len = bg_serialize_video_format(format, NULL, 0);
+  ptr = bg_msg_set_arg_ptr(msg, arg, len);
+  bg_serialize_video_format(format, ptr, len);
   }
 
 void bg_msg_get_arg_video_format(bg_msg_t * msg, int arg,
-                                 gavl_video_format_t * format)
+                                 gavl_video_format_t * format, int * big_endian)
   {
-  uint32_t tmp;
   uint8_t * ptr;
-  uint8_t * pos;
-
-  ptr = bg_msg_get_arg_ptr(msg, arg, NULL);
+  int len, be;
   
-  pos = ptr;
-
-  pos = get_32(pos, &(tmp)); format->frame_width                   = tmp;
-  pos = get_32(pos, &(tmp)); format->frame_height                  = tmp;
-  pos = get_32(pos, &(tmp)); format->image_width                   = tmp;
-  pos = get_32(pos, &(tmp)); format->image_height                  = tmp;
-  pos = get_32(pos, &(tmp)); format->pixel_width                   = tmp;
-  pos = get_32(pos, &(tmp)); format->pixel_height                  = tmp;
-  pos = get_32(pos, &(tmp)); format->pixelformat                   = tmp;
-  pos = get_32(pos, &(tmp)); format->timescale                     = tmp;
-  pos = get_32(pos, &(tmp)); format->frame_duration                = tmp;
-  pos = get_8(pos,  &(tmp)); format->framerate_mode                = tmp;
-  pos = get_8(pos,  &(tmp)); format->interlace_mode                = tmp;
-  pos = get_8(pos,  &(tmp)); format->chroma_placement              = tmp;
-  pos = get_32(pos, &(tmp)); format->timecode_format.int_framerate = tmp;
-  pos = get_32(pos, &(tmp)); format->timecode_format.flags         = tmp;
+  ptr = bg_msg_get_arg_ptr(msg, arg, &len);
+  bg_deserialize_video_format(format, ptr, len, &be);
+  
+  if(big_endian)
+    *big_endian = be;
   
   free(ptr);
   }
@@ -645,52 +571,15 @@ int bg_msg_write_audio_frame(bg_msg_t * msg,
                              bg_msg_write_callback_t cb,
                              void * cb_data)
   {
-  int len, bytes_per_sample, i;
-  bg_msg_set_arg_int(msg, 0, frame->valid_samples);
-  bg_msg_set_arg_time(msg, 1, frame->timestamp);
-#ifndef WORDS_BIGENDIAN
-  bg_msg_set_arg_int(msg, 2, 0);
-#else
-  bg_msg_set_arg_int(msg, 2, 1);
-#endif
+  uint8_t * ptr;
+  int len;
+  len = bg_serialize_audio_frame_header(format, frame, NULL, 0);
+  ptr = bg_msg_set_arg_ptr(msg, 0, len);
+  bg_serialize_audio_frame_header(format, frame, ptr, len);
+  
   if(!bg_msg_write(msg, cb, cb_data))
     return 0;
-
-  bytes_per_sample = gavl_bytes_per_sample(format->sample_format);
-  
-  switch(format->interleave_mode)
-    {
-    case GAVL_INTERLEAVE_NONE:
-      len = bytes_per_sample * frame->valid_samples;
-      for(i = 0; i < format->num_channels; i++)
-        {
-        if(cb(cb_data, frame->channels.u_8[i], len) < len)
-          return 0;
-        }
-      break;
-    case GAVL_INTERLEAVE_2:
-      len = bytes_per_sample * frame->valid_samples * 2;
-      for(i = 0; i < format->num_channels/2; i++)
-        {
-        if(cb(cb_data, frame->channels.u_8[2*i], len) < len)
-          return 0;
-        }
-
-      if(format->num_channels % 2)
-        {
-        len = bytes_per_sample * frame->valid_samples;
-        if(cb(cb_data, frame->channels.u_8[format->num_channels-1], len) < len)
-          return 0;
-        }
-      
-      break;
-    case GAVL_INTERLEAVE_ALL:
-      len = bytes_per_sample * frame->valid_samples * format->num_channels;
-      if(cb(cb_data, frame->samples.u_8, len) < len)
-        return 0;
-      break;
-    }
-  return 1;
+  return bg_serialize_audio_frame(format, frame, cb, cb_data);
   }
 
 /** \brief Read an audio frame from a socket
@@ -709,56 +598,17 @@ int bg_msg_read_audio_frame(gavl_dsp_context_t * ctx,
                             const gavl_audio_format_t * format,
                             gavl_audio_frame_t * frame,
                             bg_msg_read_callback_t cb,
-                            void * cb_data)
+                            void * cb_data, int big_endian)
   {
-  int len, big_endian, bytes_per_sample, i;
-  frame->valid_samples = bg_msg_get_arg_int(msg, 0);
-  frame->timestamp = bg_msg_get_arg_time(msg, 1);
-  big_endian = bg_msg_get_arg_int(msg, 2);
+  uint8_t * ptr;
+  int len;
   
-  bytes_per_sample = gavl_bytes_per_sample(format->sample_format);
-  
-  switch(format->interleave_mode)
-    {
-    case GAVL_INTERLEAVE_NONE:
-      len = bytes_per_sample * frame->valid_samples;
-      for(i = 0; i < format->num_channels; i++)
-        {
-        if(cb(cb_data, frame->channels.u_8[i], len) < len)
-          return 0;
-        }
-      break;
-    case GAVL_INTERLEAVE_2:
-      len = bytes_per_sample * frame->valid_samples * 2;
-      for(i = 0; i < format->num_channels/2; i++)
-        {
-        if(cb(cb_data, frame->channels.u_8[2*i], len) < len)
-          return 0;
-        }
+  ptr = bg_msg_get_arg_ptr(msg, 0, &len);
+  bg_deserialize_audio_frame_header(format, frame, ptr, len);
+  free(ptr);
 
-      if(format->num_channels % 2)
-        {
-        len = bytes_per_sample * frame->valid_samples;
-        if(cb(cb_data, frame->channels.u_8[format->num_channels-1], len) < len)
-          return 0;
-        }
-      
-      break;
-    case GAVL_INTERLEAVE_ALL:
-      len = bytes_per_sample * frame->valid_samples * format->num_channels;
-      if(cb(cb_data, frame->samples.u_8, len) < len)
-        return 0;
-      break;
-    }
-
-#ifndef WORDS_BIGENDIAN
-  if(big_endian)
-    gavl_dsp_audio_frame_swap_endian(ctx, frame, format);
-#else
-  if(!big_endian)
-    gavl_dsp_audio_frame_swap_endian(ctx, frame, format);
-#endif
-  
+  bg_deserialize_audio_frame(ctx, format, frame,
+                             cb, cb_data, big_endian);
   return 1;
   }
 
@@ -1318,7 +1168,7 @@ float32_be_write (float in, unsigned char *out)
 } /* float32_be_write */
 
 
-static int write_float(float val, bg_msg_read_callback_t cb, void * cb_data)
+static int write_float(float val, bg_msg_write_callback_t cb, void * cb_data)
   {
   uint8_t buf[4];
   float32_be_write(val, buf);
@@ -1367,7 +1217,7 @@ double64_be_write (double in, unsigned char *out)
 } /* double64_be_write */
 
 
-static int write_double(double val, bg_msg_read_callback_t cb, void * cb_data)
+static int write_double(double val, bg_msg_write_callback_t cb, void * cb_data)
   {
   uint8_t buf[8];
   double64_be_write(val, buf);
@@ -1542,7 +1392,7 @@ static int socket_read_cb(void * data, uint8_t * ptr, int len)
   return result;
   }
 
-static int socket_write_cb(void * data, uint8_t * ptr, int len)
+static int socket_write_cb(void * data, const uint8_t * ptr, int len)
   {
   socket_data * cb_data = (socket_data *)data;
   return bg_socket_write_data(cb_data->fd, ptr, len);

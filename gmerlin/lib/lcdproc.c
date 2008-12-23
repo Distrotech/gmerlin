@@ -767,14 +767,14 @@ static void * thread_func(void * data)
         case BG_PLAYER_MSG_AUDIO_STREAM:
           if(l->have_formats)
             {
-            bg_msg_get_arg_audio_format(msg, 1, &(audio_format));
+            bg_msg_get_arg_audio_format(msg, 1, &(audio_format), NULL);
             result = set_audio_format(l, &(audio_format));
             }
           break;
         case BG_PLAYER_MSG_VIDEO_STREAM:
           if(l->have_formats)
             {
-            bg_msg_get_arg_video_format(msg, 1, &(video_format));
+            bg_msg_get_arg_video_format(msg, 1, &(video_format), NULL);
             result = set_video_format(l, &(video_format));
             }
           break;

@@ -104,8 +104,8 @@ static void set_parameter_interlace(void * priv, const char * name,
                                const bg_parameter_value_t * val)
   {
   interlace_priv_t * vp;
-  vp = (interlace_priv_t *)priv;
   gavl_interlace_mode_t new_interlace;
+  vp = (interlace_priv_t *)priv;
   if(!name)
     return;
 

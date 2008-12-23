@@ -436,7 +436,7 @@ int bg_socket_read_data(int fd, uint8_t * data, int len, int milliseconds)
   return result;
   }
 
-int bg_socket_write_data(int fd, uint8_t * data, int len)
+int bg_socket_write_data(int fd, const uint8_t * data, int len)
   {
   int result;
   result = send(fd, data, len, MSG_NOSIGNAL);

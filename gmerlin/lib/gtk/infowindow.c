@@ -596,10 +596,10 @@ static gboolean idle_callback(gpointer data)
         set_line_index(w, PATH_AUDIO, tmp_string, 1);
         free(tmp_string);
         
-        bg_msg_get_arg_audio_format(msg, 1, &arg_af);
+        bg_msg_get_arg_audio_format(msg, 1, &arg_af, NULL);
         set_audio_format(w, PATH_AUDIO_FORMAT_I, &arg_af);
 
-        bg_msg_get_arg_audio_format(msg, 2, &arg_af);
+        bg_msg_get_arg_audio_format(msg, 2, &arg_af, NULL);
         set_audio_format(w, PATH_AUDIO_FORMAT_O, &arg_af);
         
         break;
@@ -612,10 +612,10 @@ static gboolean idle_callback(gpointer data)
         set_line_index(w, PATH_SUBTITLE, tmp_string, 1);
         free(tmp_string);
         
-        bg_msg_get_arg_video_format(msg, 2, &arg_vf);
+        bg_msg_get_arg_video_format(msg, 2, &arg_vf, NULL);
         set_video_format(w, PATH_SUBTITLE_FORMAT_I, &arg_vf);
 
-        bg_msg_get_arg_video_format(msg, 3, &arg_vf);
+        bg_msg_get_arg_video_format(msg, 3, &arg_vf, NULL);
         set_video_format(w, PATH_SUBTITLE_FORMAT_O, &arg_vf);
         
         break;
@@ -626,10 +626,10 @@ static gboolean idle_callback(gpointer data)
         set_line_index(w, PATH_VIDEO, tmp_string, 1);
         free(tmp_string);
         
-        bg_msg_get_arg_video_format(msg, 1, &arg_vf);
+        bg_msg_get_arg_video_format(msg, 1, &arg_vf, NULL);
         set_video_format(w, PATH_VIDEO_FORMAT_I, &arg_vf);
 
-        bg_msg_get_arg_video_format(msg, 2, &arg_vf);
+        bg_msg_get_arg_video_format(msg, 2, &arg_vf, NULL);
         set_video_format(w, PATH_VIDEO_FORMAT_O, &arg_vf);
         
         break;
