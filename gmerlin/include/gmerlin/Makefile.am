@@ -25,6 +25,7 @@ playermsg.h \
 plugin.h \
 pluginregistry.h \
 remote.h \
+serialize.h \
 singlepic.h \
 streaminfo.h \
 subprocess.h \

@@ -93,6 +93,7 @@ pluginregistry.c \
 pluginreg_xml.c \
 remote.c \
 searchpath.c \
+serialize.c \
 singlepic.c \
 socket.c \
 streaminfo.c \
