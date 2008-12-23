@@ -224,6 +224,7 @@ const bg_image_writer_plugin_t the_plugin =
       .get_parameters = get_parameters_tiff,
       .set_parameter =  set_parameter_tiff
     },
+    .extensions = "tif",
     .get_extension = get_extension_tiff,
     .write_header =  write_header_tiff,
     .write_image =   write_image_tiff,

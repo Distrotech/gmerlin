@@ -73,6 +73,7 @@ endif
 SUBDIRS = \
 audiofilters \
 edl \
+gavl \
 videofilters \
 visualization \
 $(alsa_subdirs) \

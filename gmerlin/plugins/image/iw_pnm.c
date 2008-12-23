@@ -215,6 +215,7 @@ const bg_image_writer_plugin_t the_plugin =
       .get_parameters = get_parameters_pnm,
       .set_parameter =  set_parameter_pnm
     },
+    .extensions = "pnm",
     .get_extension = get_extension_pnm,
     .write_header =  write_header_pnm,
     .write_image =   write_image_pnm,

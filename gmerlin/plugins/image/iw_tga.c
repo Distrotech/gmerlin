@@ -192,6 +192,7 @@ const bg_image_writer_plugin_t the_plugin =
       .get_parameters = get_parameters_tga,
       .set_parameter =  set_parameter_tga
     },
+    .extensions = "tga",
     .write_header = write_header_tga,
     .get_extension = get_extension_tga,
     .write_image =  write_image_tga,

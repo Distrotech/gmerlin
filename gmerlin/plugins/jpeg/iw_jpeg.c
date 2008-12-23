@@ -313,6 +313,7 @@ const bg_image_writer_plugin_t the_plugin =
       .get_parameters = get_parameters_jpeg,
       .set_parameter =  set_parameter_jpeg
     },
+    .extensions = "jpg",
     .get_extension = get_extension_jpeg,
     .write_header = write_header_jpeg,
     .write_image =  write_image_jpeg,

@@ -179,12 +179,19 @@ bg_serialize_audio_format(const gavl_audio_format_t * format,
                           uint8_t * pos, int len)
   {
   int i;
-  int len_needed = 2 + 24 + 8 * format->num_channels;
+  int len_needed = 2 + 25 + 8 * format->num_channels;
   
   if(len_needed > len)
     return len_needed;
 
   pos = set_16(pos, SERIALIZE_VERSION);
+
+#ifdef WORDS_BIGENDIAN
+  pos = set_8(pos, 1);
+#else
+  pos = set_8(pos, 0);
+#endif
+
   pos = set_32(pos, format->samples_per_frame);
   pos = set_32(pos, format->samplerate);
   pos = set_32(pos, format->num_channels);
@@ -208,6 +215,7 @@ bg_deserialize_audio_format(gavl_audio_format_t * format,
   uint32_t tmp;
   uint32_t version;
   pos = get_16(pos, &version);
+  pos = get_8(pos,  &tmp);  *big_endian = tmp;
   pos = get_32(pos, &tmp);  format->samples_per_frame = tmp;
   pos = get_32(pos, &tmp);  format->samplerate = tmp;
   pos = get_32(pos, &tmp);  format->num_channels = tmp;
@@ -366,7 +374,7 @@ bg_serialize_audio_frame(const gavl_audio_format_t * format,
                          bg_serialize_write_callback_t cb, void * cb_data)
   {
   int len, bytes_per_sample, i;
-
+  bytes_per_sample = gavl_bytes_per_sample(format->sample_format);
   switch(format->interleave_mode)
     {
     case GAVL_INTERLEAVE_NONE:

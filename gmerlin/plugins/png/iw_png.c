@@ -104,6 +104,7 @@ const bg_image_writer_plugin_t the_plugin =
       .get_parameters = get_parameters_png,
       .set_parameter =  bg_pngwriter_set_parameter
     },
+    .extensions = "png",
     .get_extension = get_extension_png,
     .write_header =  bg_pngwriter_write_header,
     .write_image =   bg_pngwriter_write_image,

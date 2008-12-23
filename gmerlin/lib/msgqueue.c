@@ -573,6 +573,7 @@ int bg_msg_write_audio_frame(bg_msg_t * msg,
   {
   uint8_t * ptr;
   int len;
+
   len = bg_serialize_audio_frame_header(format, frame, NULL, 0);
   ptr = bg_msg_set_arg_ptr(msg, 0, len);
   bg_serialize_audio_frame_header(format, frame, ptr, len);
@@ -606,10 +607,9 @@ int bg_msg_read_audio_frame(gavl_dsp_context_t * ctx,
   ptr = bg_msg_get_arg_ptr(msg, 0, &len);
   bg_deserialize_audio_frame_header(format, frame, ptr, len);
   free(ptr);
-
-  bg_deserialize_audio_frame(ctx, format, frame,
-                             cb, cb_data, big_endian);
-  return 1;
+  
+  return bg_deserialize_audio_frame(ctx, format, frame,
+                                    cb, cb_data, big_endian);
   }
 
 /* .parameters =

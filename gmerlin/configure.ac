@@ -901,6 +901,7 @@ plugins/x11/Makefile \
 plugins/cdaudio/Makefile \
 plugins/edl/Makefile \
 plugins/esd/Makefile \
+plugins/gavl/Makefile \
 plugins/lqt/Makefile \
 plugins/oss/Makefile \
 plugins/jpeg/Makefile \

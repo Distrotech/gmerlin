@@ -767,6 +767,7 @@ int main(int argc, char ** argv)
       {
       case BG_VIS_MSG_AUDIO_FORMAT:
         bg_msg_get_arg_audio_format(msg, 0, &audio_format, &big_endian);
+
         bg_visualizer_slave_set_audio_format(s, &audio_format);
         if(audio_frame)
           gavl_audio_frame_destroy(audio_frame);

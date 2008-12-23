@@ -508,6 +508,13 @@ static bg_plugin_info_t * get_info(void * test_module, const char * filename)
     new_info->extensions = bg_strdup(new_info->extensions,
                                      ir->extensions);
     }
+  if(plugin->type & BG_PLUGIN_IMAGE_WRITER)
+    {
+    bg_image_writer_plugin_t  * iw;
+    iw = (bg_image_writer_plugin_t*)plugin;
+    new_info->extensions = bg_strdup(new_info->extensions,
+                                     iw->extensions);
+    }
   
   if(plugin->find_devices)
     new_info->devices = plugin->find_devices();

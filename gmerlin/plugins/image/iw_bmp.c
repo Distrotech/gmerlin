@@ -220,6 +220,7 @@ const bg_image_writer_plugin_t the_plugin =
       .create =         create_bmp,
       .destroy =        destroy_bmp,
     },
+    .extensions = "bmp",
     .write_header = write_header_bmp,
     .get_extension = get_extension_bmp,
     .write_image =  write_image_bmp,
