@@ -50,6 +50,7 @@ lib_LTLIBRARIES= libgavl.la
 #noinst_LTLIBRARIES = libgavl.la
 
 libgavl_la_SOURCES = \
+absdiff.c \
 arith128.c \
 audioconverter.c \
 audioformat.c \
@@ -68,6 +69,7 @@ interleave.c \
 memcpy.c \
 mix.c \
 peakdetector.c \
+psnr.c \
 rectangle.c \
 sampleformat.c \
 samplerate.c \

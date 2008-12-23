@@ -186,8 +186,8 @@
 
 #endif
 
-#define Y_16_TO_Y_FLOAT(val) (float)(RECLIP(val, 0x1000, 0xEB00)-0x1000) / (219.0*256.0);
-#define UV_16_TO_UV_FLOAT(val) (float)(RECLIP(val, 0x1000, 0xF000)-0x1000) / (256.0 * 224.0) - 0.5;
+#define Y_16_TO_Y_FLOAT(val) (float)(RECLIP(val, 0x1000, 0xEB00)-0x1000) / (219.0*256.0)
+#define UV_16_TO_UV_FLOAT(val) (float)(RECLIP(val, 0x1000, 0xF000)-0x1000) / (256.0 * 224.0) - 0.5
 
 
 /* Conversion from YUV 8 */

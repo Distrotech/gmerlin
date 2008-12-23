@@ -2066,6 +2066,40 @@ void gavl_video_frame_fill(gavl_video_frame_t * frame,
                            const gavl_video_format_t * format,
                            float * color);
 
+/*!
+  \ingroup video_frame
+  \brief Fill the frame with the absolute differene of 2 source frames
+  \param format Format of the data in the frame
+  \param dst A video frame
+  \param src1 First source frame
+  \param src2 Second source frame
+
+  Since 1.1.1
+
+*/
+  
+void gavl_video_frame_absdiff(gavl_video_frame_t * dst,
+                              const gavl_video_frame_t * src1,
+                              const gavl_video_frame_t * src2,
+                              const gavl_video_format_t * format);
+
+/*!
+  \ingroup video_frame
+  \brief Calculate the PSNR of 2 source frames
+  \param psnr Returns PSNR for all components (maximum 4)
+  \param src1 First source frame
+  \param src2 Second source frame
+  \param format Format of the data in the frame
+  
+  Since 1.1.1
+
+*/
+  
+void gavl_video_frame_psnr(double * psnr,
+                           const gavl_video_frame_t * src1,
+                           const gavl_video_frame_t * src2,
+                           const gavl_video_format_t * format);
+
   
 /*!
   \ingroup video_frame
