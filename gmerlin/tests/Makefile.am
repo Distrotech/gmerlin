@@ -36,7 +36,9 @@ visualization \
 $(v4l_programs) \
 $(gtk_programs)
 
-bin_PROGRAMS = gmerlin_imgconvert
+bin_PROGRAMS = gmerlin_imgconvert \
+gmerlin_imgdiff \
+gmerlin_psnr
 
 # noinst_HEADERS = player1.h
 
@@ -54,6 +56,12 @@ thumbnail_LDADD = ../lib/libgmerlin.la -ldl
 
 gmerlin_imgconvert_SOURCES = imgconvert.c
 gmerlin_imgconvert_LDADD = ../lib/libgmerlin.la -ldl
+
+gmerlin_psnr_SOURCES = gmerlin_psnr.c
+gmerlin_psnr_LDADD = ../lib/libgmerlin.la -ldl
+
+gmerlin_imgdiff_SOURCES = gmerlin_imgdiff.c
+gmerlin_imgdiff_LDADD = ../lib/libgmerlin.la -ldl
 
 msgtest_SOURCES = msgtest.c
 msgtest_LDADD = ../lib/libgmerlin.la -ldl

@@ -241,17 +241,31 @@ static int read_header_pnm(void *priv,const char *filename, gavl_video_format_t 
   p->buffer_ptr = (uint8_t*)ptr;
      
   /* set gavl_video_format */
-  
-  if(p->maxval > 255)
+
+  if((p->is_pnm == PGMbin) || (p->is_pnm == PGMascii))
     {
-    format->pixelformat = GAVL_RGB_48;
-    p->is_pnm |= Bits_16;
+    if(p->maxval > 255)
+      {
+      format->pixelformat = GAVL_GRAY_16;
+      p->is_pnm |= Bits_16;
+      }
+    else
+      {
+      format->pixelformat = GAVL_GRAY_8;
+      }
     }
   else
     {
-    format->pixelformat = GAVL_RGB_24;
+    if(p->maxval > 255)
+      {
+      format->pixelformat = GAVL_RGB_48;
+      p->is_pnm |= Bits_16;
+      }
+    else
+      {
+      format->pixelformat = GAVL_RGB_24;
+      }
     }
-
   format->frame_width  = p->width;
   format->frame_height = p->height;
   
@@ -368,9 +382,7 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
         byte = atoi((char*)p->buffer_ptr);
         byte = (byte * 255)/p->maxval;
         frame_ptr[0]= byte;
-        frame_ptr[1]= byte;
-        frame_ptr[2]= byte;
-        frame_ptr += 3;
+        frame_ptr++;
         INC_PTR;
         while(isdigit(*p->buffer_ptr))
           INC_PTR;
@@ -397,9 +409,7 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
         byte = atoi((char*)p->buffer_ptr);
         byte = (byte * 65535)/p->maxval;
         frame_ptr_16[0]= byte;
-        frame_ptr_16[1]= byte;
-        frame_ptr_16[2]= byte;
-        frame_ptr_16 += 3;
+        frame_ptr_16++;
         INC_PTR;
         while(isdigit(*p->buffer_ptr))
           INC_PTR;
@@ -426,9 +436,7 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
         byte = *(p->buffer_ptr);
         byte = (byte * 255)/p->maxval;
         frame_ptr[0]= byte;
-        frame_ptr[1]= byte;
-        frame_ptr[2]= byte;
-        frame_ptr += 3;
+        frame_ptr++;
         INC_PTR;
         }
       frame_ptr_start += frame->strides[0];
@@ -450,9 +458,7 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
         byte = (p->buffer_ptr[0] << 8) | p->buffer_ptr[1];
         byte = (byte * 65535)/p->maxval;
         frame_ptr_16[0]= byte;
-        frame_ptr_16[1]= byte;
-        frame_ptr_16[2]= byte;
-        frame_ptr_16 += 3;
+        frame_ptr_16++;
         INC_PTR;
         INC_PTR;
         }
