@@ -25,6 +25,7 @@ endif
 
 noinst_PROGRAMS = audioplayer1 \
 videoplayer1 \
+fvtest \
 msgtest \
 server \
 client \
@@ -72,6 +73,10 @@ textrenderer_LDADD = ../lib/libgmerlin.la -ldl
 
 videoplayer1_SOURCES = videoplayer1.c
 videoplayer1_LDADD = ../lib/libgmerlin.la -ldl
+
+fvtest_SOURCES = fvtest.c
+fvtest_LDADD = ../lib/libgmerlin.la -ldl
+
 
 cfgtest_SOURCES = cfgtest.c
 cfgtest_LDADD = ../lib/libgmerlin.la ../lib/gtk/libgmerlin_gtk.la

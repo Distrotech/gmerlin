@@ -6,16 +6,6 @@ AM_LDFLAGS = @GMERLIN_PLUGIN_LDFLAGS@ -avoid-version -module
 AM_CFLAGS = -DLOCALE_DIR=\"$(localedir)\"
 
 
-if HAVE_MJPEGTOOLS
-yuvdeinterlace_sources = yuvdeinterlace.c
-mjpeg_cflags = @MJPEGTOOLS_CFLAGS@
-mjpeg_libs   = @MJPEGTOOLS_LIBS@
-else
-yuvdeinterlace_sources =
-mjpeg_cflags = 
-mjpeg_libs   = 
-endif
-
 lib_LTLIBRARIES = \
 fv_blur.la \
 fv_cropscale.la \
@@ -80,9 +70,9 @@ fv_flip_la_LIBADD = @MODULE_LIBADD@
 fv_decimate_la_SOURCES  = fv_decimate.c
 fv_decimate_la_LIBADD = @MODULE_LIBADD@
 
-fv_deinterlace_la_CFLAGS   = $(mjpeg_cflags) -DLOCALE_DIR=\"$(localedir)\"
-fv_deinterlace_la_LIBADD   = $(mjpeg_libs) @MODULE_LIBADD@
-fv_deinterlace_la_SOURCES  = fv_deinterlace.c $(yuvdeinterlace_sources)
+fv_deinterlace_la_CFLAGS   =  -DLOCALE_DIR=\"$(localedir)\"
+fv_deinterlace_la_LIBADD   = @MODULE_LIBADD@
+fv_deinterlace_la_SOURCES  = fv_deinterlace.c bgyadif.c
 
 fv_equalizer_la_SOURCES  = fv_equalizer.c colormatrix.c
 fv_equalizer_la_LIBADD = @MODULE_LIBADD@
@@ -90,4 +80,4 @@ fv_equalizer_la_LIBADD = @MODULE_LIBADD@
 fv_zoom_la_SOURCES  = fv_zoom.c
 fv_zoom_la_LIBADD = @MODULE_LIBADD@
 
-noinst_HEADERS = motionsearch.h yuvdeinterlace.h colormatrix.h
+noinst_HEADERS = bgyadif.h colormatrix.h
