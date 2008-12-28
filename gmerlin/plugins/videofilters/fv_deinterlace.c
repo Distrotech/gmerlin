@@ -30,12 +30,16 @@
 #include <gmerlin/log.h>
 #include <gmerlin/bggavl.h>
 
+#include "deinterlace.h"
+#include "bgyadif.h"
+
 #define LOG_DOMAIN "fv_deinterlace"
 
-#define DEINTERLACE_NONE     0
-#define DEINTERLACE_GAVL     1
-#define DEINTERLACE_SCALE_HW 2
-#define DEINTERLACE_YADIF    3
+#define DEINTERLACE_NONE       0
+#define DEINTERLACE_GAVL       1
+#define DEINTERLACE_SCALE_HW   2
+#define DEINTERLACE_YADIF      3
+#define DEINTERLACE_YADIF_FAST 4
 
 #define DEINTERLACE_OUTPUT_TOP    0
 #define DEINTERLACE_OUTPUT_BOTTOM 1
@@ -70,6 +74,8 @@ typedef struct deinterlace_priv_s
   int need_reinit;
   
   int output_mode;
+
+  bg_yadif_t * yadif;
   
   int (*deint_func)(struct deinterlace_priv_s * p,
                    gavl_video_frame_t * frame);
@@ -82,7 +88,7 @@ static void * create_deinterlace()
   ret = calloc(1, sizeof(*ret));
   ret->deint = gavl_video_deinterlacer_create();
   ret->opt = gavl_video_deinterlacer_get_options(ret->deint);
-
+  ret->yadif = bg_yadif_create();
   
   ret->src_field_1 = gavl_video_frame_create((gavl_video_format_t*)0);
   ret->global_opt = gavl_video_options_create();
@@ -101,7 +107,7 @@ static void destroy_deinterlace(void * priv)
   gavl_video_options_destroy(vp->global_opt);
   gavl_video_frame_null(vp->src_field_1);
   gavl_video_frame_destroy(vp->src_field_1);
-  
+  bg_yadif_destroy(vp->yadif);
   free(vp);
   }
 
@@ -127,6 +133,7 @@ static const bg_parameter_info_t parameters[] =
                                "scale_sw",
                                "blend",
                                "yadif",
+                               "yadif_fast",
                                (char*)0 },
       
       .multi_labels = (char const *[]){ TRS("None"),
@@ -135,6 +142,7 @@ static const bg_parameter_info_t parameters[] =
                                TRS("Scaler (software)"),
                                TRS("Blend"),
                                TRS("Yadif"),
+                               TRS("Yadif (fast)"),
                                (char*)0 },
       .multi_descriptions = (char const *[]){ TRS("Do nothing"),
                                      TRS("Simply double all scanlines. Very fast but \
@@ -142,6 +150,7 @@ low image quality"),
                                      TRS("Drop one field and change the pixel aspect ratio such that a subsequent hardware scaler will scale the image to the original height"),
                                      TRS("Drop one field and scale the image to the original height"),
                                      TRS("yadif"),
+                                     TRS("yadif (fast mode)"),
                                      (char*)0 },
     },
     {
@@ -219,6 +228,11 @@ static void set_parameter_deinterlace(void * priv, const char * name,
       new_method = DEINTERLACE_YADIF;
       // new_sub_method = GAVL_DEINTERLACE_BLEND;
       }
+    else if(!strcmp(val->val_str, "yadif_fast"))
+      {
+      new_method = DEINTERLACE_YADIF_FAST;
+      // new_sub_method = GAVL_DEINTERLACE_BLEND;
+      }
     if((new_method != vp->method) || 
        (new_sub_method != vp->sub_method))
       {
@@ -277,14 +291,6 @@ static void set_parameter_deinterlace(void * priv, const char * name,
       vp->need_reinit = 1;
       }
     }
-  else if(!strcmp(name, "quality"))
-    {
-    if(gavl_video_options_get_quality(vp->opt) != val->val_i)
-      {
-      gavl_video_options_set_quality(vp->opt, val->val_i);
-      vp->need_reinit = 1;
-      }
-    }
   }
 
 /*
@@ -337,6 +343,11 @@ static int deinterlace_scale_hw(struct deinterlace_priv_s * vp,
   return 1;
   }
 
+static int deinterlace_yadif(struct deinterlace_priv_s * vp,
+                             gavl_video_frame_t * frame)
+  {
+  return bg_yadif_read(vp->yadif, frame, 0);
+  }
 
 static void connect_input_port_deinterlace(void * priv,
                                            bg_read_video_func_t func,
@@ -351,7 +362,7 @@ static void connect_input_port_deinterlace(void * priv,
     vp->read_func = func;
     vp->read_data = data;
     vp->read_stream = stream;
-
+    bg_yadif_connect_input(vp->yadif, func, data, stream);
     }
   }
 
@@ -380,8 +391,8 @@ set_input_format_deinterlace(void * priv,
                              int port)
   {
   deinterlace_priv_t * vp;
+  int yadif_mode;
   vp = (deinterlace_priv_t *)priv;
-  
   if(!port)
     {
     if(vp->frame)
@@ -389,9 +400,6 @@ set_input_format_deinterlace(void * priv,
       gavl_video_frame_destroy(vp->frame);
       vp->frame = (gavl_video_frame_t*)0;
       }
-    gavl_video_format_copy(&vp->in_format, format);
-    gavl_video_format_copy(&vp->out_format, format);
-    vp->out_format.interlace_mode = GAVL_INTERLACE_NONE;
     transfer_global_options(vp->opt, vp->global_opt);
     
     vp->need_reinit = 1;
@@ -400,9 +408,15 @@ set_input_format_deinterlace(void * priv,
       {
       case DEINTERLACE_NONE:
         vp->deint_func = deinterlace_none;
+        gavl_video_format_copy(&vp->in_format, format);
+        gavl_video_format_copy(&vp->out_format, format);
+        vp->out_format.interlace_mode = GAVL_INTERLACE_NONE;
         break;
       case DEINTERLACE_GAVL:
         vp->deint_func = deinterlace_gavl;
+        gavl_video_format_copy(&vp->in_format, format);
+        gavl_video_format_copy(&vp->out_format, format);
+        vp->out_format.interlace_mode = GAVL_INTERLACE_NONE;
         break;
       case DEINTERLACE_SCALE_HW:
         vp->deint_func = deinterlace_scale_hw;
@@ -410,6 +424,25 @@ set_input_format_deinterlace(void * priv,
         vp->out_format.image_height /= 2;
         vp->out_format.frame_height /= 2;
         vp->out_format.pixel_height *= 2;
+
+        gavl_video_format_copy(&vp->in_format, format);
+        gavl_video_format_copy(&vp->out_format, format);
+        vp->out_format.interlace_mode = GAVL_INTERLACE_NONE;
+        
+        break;
+      case DEINTERLACE_YADIF:
+      case DEINTERLACE_YADIF_FAST:
+        vp->deint_func = deinterlace_yadif;
+
+        yadif_mode = (vp->output_mode == DEINTERLACE_OUTPUT_BOTH) ?
+          1 : 0;
+
+        if(vp->method == DEINTERLACE_YADIF_FAST)
+          yadif_mode += 2;
+        
+        bg_yadif_init(vp->yadif, format, vp->opt, yadif_mode);
+        gavl_video_format_copy(&vp->in_format, format);
+        bg_yadif_get_output_format(vp->yadif, &vp->out_format);
         break;
       }
     
