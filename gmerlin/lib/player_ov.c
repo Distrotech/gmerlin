@@ -43,7 +43,8 @@ struct bg_player_ov_context_s
   bg_ov_callbacks_t callbacks;
   gavl_video_frame_t * frame;
   gavl_time_t frame_time;
-
+  gavl_time_t last_time; /* Last player time */
+  
   gavl_video_frame_t * still_frame;
   pthread_mutex_t     still_mutex;
   
@@ -436,7 +437,8 @@ int bg_player_ov_init(bg_player_ov_context_t * ctx)
   
   ctx->next_subtitle    = (gavl_overlay_t*)0;
   ctx->has_subtitle = 0;
-  
+  ctx->last_time = GAVL_TIME_UNDEFINED;
+
   bg_plugin_lock(ctx->plugin_handle);
   result = ctx->plugin->open(ctx->priv,
                              &(ctx->player->video_stream.output_format), 1);
@@ -534,7 +536,7 @@ void bg_player_ov_reset(bg_player_t * player)
   {
   bg_player_ov_context_t * ctx;
   ctx = player->ov_context;
-
+  ctx->last_time = GAVL_TIME_UNDEFINED;
   if(ctx->has_subtitle)
     {
     ctx->plugin->set_overlay(ctx->priv, ctx->subtitle_id, (gavl_overlay_t*)0);
@@ -734,7 +736,14 @@ void * bg_player_ov_thread(void * data)
     /* Check Timing */
     bg_player_time_get(ctx->player, 1, &current_time);
 
-    diff_time =  ctx->frame_time - current_time;
+    if((ctx->last_time == GAVL_TIME_UNDEFINED) ||
+       (ctx->last_time != current_time))
+      diff_time =  ctx->frame_time - current_time;
+    else
+      diff_time =  0;
+    
+    ctx->last_time = current_time;
+    
 #ifdef DUMP_TIMESTAMPS
     bg_debug("C: %"PRId64", F: %"PRId64", D: %"PRId64"\n",
              current_time, ctx->frame_time, diff_time);

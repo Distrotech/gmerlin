@@ -117,6 +117,13 @@ static gavl_video_options_t * get_options_deinterlace(void * priv)
   return vp->global_opt;
   }
 
+static void reset_deinterlace(void * priv)
+  {
+  deinterlace_priv_t * vp;
+  vp = (deinterlace_priv_t *)priv;
+  bg_yadif_reset(vp->yadif);
+  }
+
 static const bg_parameter_info_t parameters[] =
   {
     {
@@ -517,6 +524,7 @@ const const bg_fv_plugin_t the_plugin =
     
     .read_video = read_video_deinterlace,
     .need_restart = need_restart_deinterlace,
+    .reset = reset_deinterlace,
   };
 
 /* Include this into all plugin modules exactly once

@@ -33,6 +33,9 @@ bg_video_filter_chain_t * fc;
 
 const bg_parameter_info_t * fv_parameters;
 bg_cfg_section_t * fv_section = (bg_cfg_section_t*)0;
+bg_cfg_section_t * opt_section = (bg_cfg_section_t*)0;
+
+bg_gavl_video_options_t opt;
 
 int frameno = 0;
 int dump_format = 0;
@@ -92,6 +95,35 @@ static void opt_fv(void * data, int * argc, char *** _argv, int arg)
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
 
+static bg_parameter_info_t opt_parameters[] =
+  {
+    BG_GAVL_PARAM_THREADS,
+    { /* */ },
+  };
+
+static void opt_set_param(void * data, const char * name,
+                   const bg_parameter_value_t * val)
+  {
+  bg_gavl_video_set_parameter(data, name, val);
+  }
+
+
+static void opt_opt(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -opt requires an argument\n");
+    exit(-1);
+    }
+  if(!bg_cmdline_apply_options(opt_section,
+                               opt_set_param,
+                               &opt,
+                               opt_parameters,
+                               (*_argv)[arg]))
+    exit(-1);
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
 
 static bg_cmdline_arg_t global_options[] =
   {
@@ -100,6 +132,13 @@ static bg_cmdline_arg_t global_options[] =
       .help_arg =    "<filter options>",
       .help_string = "Set filter options",
       .callback =    opt_fv,
+    },
+    {
+      .arg =         "-opt",
+      .help_arg =    "<video options>",
+      .help_string = "Set video options",
+      .callback =    opt_opt,
+      .parameters =  opt_parameters,
     },
     {
       .arg =         "-v",
@@ -167,7 +206,6 @@ int main(int argc, char ** argv)
   gavl_video_format_t out_format;
   
   /* Filter chain */
-  bg_gavl_video_options_t opt;
   /* Create registries */
   
   char ** gmls = (char **)0;
@@ -175,6 +213,7 @@ int main(int argc, char ** argv)
   bg_read_video_func_t read_func;
   void * read_priv;
   int read_stream;
+  gavl_timer_t * timer = gavl_timer_create();
   
   cfg_reg = bg_cfg_registry_create();
   tmp_path =  bg_search_file_read("generic", "config.xml");
@@ -192,7 +231,8 @@ int main(int argc, char ** argv)
   fv_parameters = bg_video_filter_chain_get_parameters(fc);
   fv_section =
     bg_cfg_section_create_from_parameters("fv", fv_parameters);
-
+  opt_section =
+    bg_cfg_section_create_from_parameters("opt", opt_parameters);
   
   /* Get commandline options */
   bg_cmdline_init(&app_data);
@@ -272,15 +312,35 @@ int main(int argc, char ** argv)
     gavl_video_format_copy(&out_format, &in_format);
 
   frame = gavl_video_frame_create(&out_format);
-
-  for(i = 0; i < frameno+1; i++)
+  
+  if(frameno >= 0)
     {
-    if(!read_func(read_priv, frame, read_stream))
+    gavl_timer_start(timer);
+    for(i = 0; i < frameno+1; i++)
       {
-      fprintf(stderr, "Unexpected EOF\n");
-      return -1;
+      if(!read_func(read_priv, frame, read_stream))
+        {
+        fprintf(stderr, "Unexpected EOF\n");
+        return -1;
+        }
       }
+    gavl_timer_stop(timer);
     }
+  else
+    {
+    gavl_timer_start(timer);
+    while(1)
+      {
+      if(!read_func(read_priv, frame, read_stream))
+        {
+        break;
+        }
+      }
+    gavl_timer_stop(timer);
+    }
+
+  fprintf(stderr, "Processing took %f seconds\n", gavl_time_to_seconds(gavl_timer_get(timer)));
+  
   bg_plugin_registry_save_image(plugin_reg, gmls[1], frame, &out_format);
 
   /* Destroy everything */
@@ -290,4 +350,6 @@ int main(int argc, char ** argv)
   bg_plugin_registry_destroy(plugin_reg);
   bg_cfg_registry_destroy(cfg_reg);
   gavl_video_frame_destroy(frame);
+  gavl_timer_destroy(timer);
+  return 0;
   }

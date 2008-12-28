@@ -37,7 +37,16 @@
 
 #include <string.h>
 
-// #undef HAVE_MMX
+//#undef HAVE_MMX
+
+typedef struct
+  {
+  int w;
+  int h;
+  int plane;
+  int offset;
+  int advance;
+  } component_t;
 
 struct bg_yadif_s
   {
@@ -59,20 +68,18 @@ struct bg_yadif_s
                       const uint8_t *cur, const uint8_t *next,
                       int w, int src_stride, int parity, int advance);
 
-  struct
-    {
-    int w;
-    int h;
-    int plane;
-    int offset;
-    int advance;
-    } components[4];
+  component_t components[4];
+  component_t * comp;
+  int current_parity;
+  int tff;
   
   int num_components;
 
   gavl_video_frame_t * cur;
   gavl_video_frame_t * prev;
   gavl_video_frame_t * next;
+
+  gavl_video_frame_t * dst;
   
   int64_t frame;
   int64_t field;
@@ -82,7 +89,17 @@ struct bg_yadif_s
 
   int luma_shift;
   int chroma_shift;
-  
+#ifdef HAVE_MMX
+  int mmx;
+#endif
+
+  /* Multithreading stuff */
+
+  gavl_video_run_func run_func;
+  void * run_data;
+  gavl_video_stop_func stop_func;
+  void * stop_data;
+  int num_threads;
   };
 
 /* Line filter functions */
@@ -166,6 +183,9 @@ void bg_yadif_init(bg_yadif_t * di,
   di->field = 0;
   di->eof = 0;
 
+  di->run_func  = gavl_video_options_get_run_func(opt, &di->run_data);
+  di->stop_func = gavl_video_options_get_stop_func(opt, &di->stop_data);
+  di->num_threads = gavl_video_options_get_num_threads(opt);
   
   FREE_FRAME(di->cur);
   FREE_FRAME(di->prev);
@@ -174,6 +194,12 @@ void bg_yadif_init(bg_yadif_t * di,
   format->pixelformat = gavl_pixelformat_get_best(format->pixelformat,
                                                   pixelformats,
                                                   (int*)0);
+
+#ifdef HAVE_MMX
+  di->mmx = 0;
+#endif
+  
+  
   switch(format->pixelformat)
     {
     case GAVL_YUV_420_P:
@@ -190,7 +216,8 @@ void bg_yadif_init(bg_yadif_t * di,
          ((format->image_width / sub_h) % 4 == 0))
         {
         di->filter_line = filter_line_mmx2;
-        fprintf(stderr, "Using mmxext\n");
+        // fprintf(stderr, "Using mmxext\n");
+        di->mmx = 1;
         }
       else
         {
@@ -271,23 +298,38 @@ void bg_yadif_connect_input(void * priv,
   di->read_stream = stream;
   }
 
-static void filter_plane(bg_yadif_t * di,
-                         uint8_t *dst, int dst_stride,
-                         const uint8_t *prev0, const uint8_t *cur0,
-                         const uint8_t *next0, int src_stride, int w, int h,
-                         int parity, int tff, int mmx, int advance)
+static void filter_plane(void * priv, int start, int end)
   {
   int y;
+
+  uint8_t *dst;
+  int dst_stride;
+  const uint8_t *prev0;
+  const uint8_t *cur0;
+  const uint8_t *next0;
+  int src_stride;
+  int w;
+  bg_yadif_t * di = priv;
+  dst_stride = di->dst->strides[di->comp->plane];
+  src_stride = di->prev->strides[di->comp->plane];
+    
+  dst        = di->dst->planes[di->comp->plane] + di->comp->offset;
+  prev0 = di->prev->planes[di->comp->plane] + di->comp->offset;
+  cur0 = di->cur->planes[di->comp->plane] + di->comp->offset;
+  next0 = di->next->planes[di->comp->plane] + di->comp->offset;
   
-  for(y=0; y<h; y++)
+  w = di->comp->w;
+  
+  for(y=start; y<end; y++)
     {
-    if(((y ^ parity) & 1))
+    if(((y ^ di->current_parity) & 1))
       {
       const uint8_t *prev= prev0 + y*src_stride;
       const uint8_t *cur = cur0 + y*src_stride;
       const uint8_t *next= next0 + y*src_stride;
       uint8_t *dst2= dst + y*dst_stride;
-      di->filter_line(di->mode, dst2, prev, cur, next, w, src_stride, (parity ^ tff), advance);
+      di->filter_line(di->mode, dst2, prev, cur, next, w, src_stride, (di->current_parity ^ di->tff),
+                      di->comp->advance);
       }
     else
       {
@@ -295,41 +337,42 @@ static void filter_plane(bg_yadif_t * di,
       }
     }
   
-#ifdef __GNUC__
-  if (mmx)
+#ifdef HAVE_MMX
+  if (di->mmx)
     asm volatile("emms");
 #endif
   }
 
-static void filter_frame(bg_yadif_t * di,
-                         int parity, int mmx,
+static void filter_frame(bg_yadif_t * di, int parity, 
                          gavl_video_frame_t * out)
   {
   int i;
-  int tff;
-
+  
+  di->current_parity = parity;
+  
   switch(di->in_format.interlace_mode)
     {
     case GAVL_INTERLACE_NONE:
     case GAVL_INTERLACE_TOP_FIRST:
-      tff = 1;
+      di->tff = 1;
       break;
     case GAVL_INTERLACE_BOTTOM_FIRST:
-      tff = 0;
+      di->tff = 0;
       break;
     case GAVL_INTERLACE_MIXED:
 
       switch(di->cur->interlace_mode)
         {
         case GAVL_INTERLACE_NONE:
+          //          fprintf(stderr, "Progressive frame in mixed sequence\n");
           gavl_video_frame_copy(&di->out_format, out, di->cur);
           return;
           break;
         case GAVL_INTERLACE_TOP_FIRST:
-          tff = 1;
+          di->tff = 1;
           break;
         case GAVL_INTERLACE_BOTTOM_FIRST:
-          tff = 0;
+          di->tff = 0;
           break;
         default:
           return;
@@ -337,17 +380,41 @@ static void filter_frame(bg_yadif_t * di,
       break;
     }
   
-  for(i = 0; i < di->num_components; i++)
+  di->dst = out;
+
+  if(di->num_threads < 2)
     {
-    filter_plane(di,
-                 out->planes[di->components[i].plane] + di->components[i].offset,
-                 out->strides[di->components[i].plane],
-                 di->prev->planes[di->components[i].plane] + di->components[i].offset,
-                 di->cur->planes[di->components[i].plane] + di->components[i].offset,
-                 di->next->planes[di->components[i].plane] + di->components[i].offset,
-                 di->prev->strides[di->components[i].plane],
-                 di->components[i].w, di->components[i].h, parity, tff, mmx,
-                 di->components[i].advance);
+    for(i = 0; i < di->num_components; i++)
+      {
+      di->comp = &di->components[i];
+      filter_plane(di, 0, di->comp->h);
+      }
+    }
+  else
+    {
+    int j, nt, scanline, delta;
+    for(i = 0; i < di->num_components; i++)
+      {
+      di->comp = &di->components[i];
+      nt = di->num_threads;
+      if(nt > di->comp->h)
+        nt = di->comp->h;
+
+      delta = di->comp->h / nt;
+      scanline = 0;
+      for(j = 0; j < nt - 1; j++)
+        {
+        di->run_func(filter_plane, di, scanline, scanline+delta, di->run_data, j);
+        
+        //        fprintf(stderr, "scanline: %d (%d)\n", ctx->scanline, ctx->dst_rect.h);
+        scanline += delta;
+        }
+      di->run_func(filter_plane, di, scanline, di->comp->h, di->run_data, nt - 1);
+      
+      for(j = 0; j < nt; j++)
+        di->stop_func(di->stop_data, j);
+      }
+    
     }
   }
 
@@ -370,7 +437,7 @@ int bg_yadif_read(void * priv, gavl_video_frame_t * frame, int stream)
     {
     if(di->eof)
       return 0;
-    
+   
     if(!di->frame) /* Fill buffer */
       {
       di->read_func(di->read_data, di->cur, di->read_stream);
@@ -386,8 +453,7 @@ int bg_yadif_read(void * priv, gavl_video_frame_t * frame, int stream)
     di->frame++;
     
     /* Output first field */
-    filter_frame(di, di->parity, 0, // int mmx,
-                 frame);
+    filter_frame(di, di->parity, frame);
 
     if(di->mode & 1)
       di->field++;
@@ -403,9 +469,8 @@ int bg_yadif_read(void * priv, gavl_video_frame_t * frame, int stream)
   else
     {
     /* Output second field */
-    filter_frame(di, 1 - di->parity, 0, // int mmx,
-                 frame);
-
+    filter_frame(di, 1 - di->parity, frame);
+    
     frame->timestamp = gavl_time_rescale(di->in_format.timescale,
                                          di->out_format.timescale,
                                          di->cur->timestamp) + di->cur->duration;
@@ -414,6 +479,9 @@ int bg_yadif_read(void * priv, gavl_video_frame_t * frame, int stream)
     
     di->field = 0;
     }
+
+  //  fprintf(stderr, "PTS: %ld (%f)\n", frame->timestamp, gavl_time_to_seconds(gavl_time_unscale(di->out_format.timescale,
+  //                                                                                          frame->timestamp)));
   
   return 1;
   }

@@ -616,7 +616,9 @@ static int process_audio(bg_player_input_context_t * ctx, int preload)
   bg_player_audio_stream_t * s;
   bg_fifo_state_t state;
   s = &(ctx->player->audio_stream);
-
+  //  fprintf(stderr, "process_audio A: %f, V: %f\n",
+  //          gavl_time_to_seconds(ctx->audio_time),
+  //          gavl_time_to_seconds(ctx->video_time));
   if(ctx->send_silence)
     {
     if(preload)
@@ -757,7 +759,10 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
   gavl_video_frame_t * video_frame;
   bg_player_video_stream_t * s;
   s = &(ctx->player->video_stream);
-
+  //  fprintf(stderr, "process_video A: %f, V: %f\n",
+  //          gavl_time_to_seconds(ctx->audio_time),
+  //          gavl_time_to_seconds(ctx->video_time));
+  
   if(preload || DO_SUBTITLE_ONLY(ctx->player->flags))
     video_frame = (gavl_video_frame_t*)bg_fifo_try_lock_write(s->fifo,
                                                               &state);
@@ -777,8 +782,9 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
     ctx->video_frames_written++;
     }
   if(ctx->player->video_stream.input_format.framerate_mode != GAVL_FRAMERATE_STILL)
-    ctx->video_time = gavl_time_unscale(ctx->player->video_stream.input_format.timescale,
-                                        video_frame->timestamp);
+    ctx->video_time =
+      gavl_time_unscale(ctx->player->video_stream.output_format.timescale,
+                        video_frame->timestamp);
   
   bg_fifo_unlock_write(s->fifo, ctx->video_finished);
   
