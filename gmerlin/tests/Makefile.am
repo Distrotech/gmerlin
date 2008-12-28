@@ -39,7 +39,8 @@ $(gtk_programs)
 
 bin_PROGRAMS = gmerlin_imgconvert \
 gmerlin_imgdiff \
-gmerlin_psnr
+gmerlin_psnr \
+gmerlin_vpsnr
 
 # noinst_HEADERS = player1.h
 
@@ -60,6 +61,9 @@ gmerlin_imgconvert_LDADD = ../lib/libgmerlin.la -ldl
 
 gmerlin_psnr_SOURCES = gmerlin_psnr.c
 gmerlin_psnr_LDADD = ../lib/libgmerlin.la -ldl
+
+gmerlin_vpsnr_SOURCES = gmerlin_vpsnr.c
+gmerlin_vpsnr_LDADD = ../lib/libgmerlin.la -ldl
 
 gmerlin_imgdiff_SOURCES = gmerlin_imgdiff.c
 gmerlin_imgdiff_LDADD = ../lib/libgmerlin.la -ldl
