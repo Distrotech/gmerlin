@@ -12,6 +12,7 @@ converters.h \
 edl.h \
 encoderinfo.h \
 fifo.h \
+fileformat.h \
 filters.h \
 float_cast.h \
 keycodes.h \

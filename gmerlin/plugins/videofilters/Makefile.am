@@ -80,4 +80,4 @@ fv_equalizer_la_LIBADD = @MODULE_LIBADD@
 fv_zoom_la_SOURCES  = fv_zoom.c
 fv_zoom_la_LIBADD = @MODULE_LIBADD@
 
-noinst_HEADERS = bgyadif.h colormatrix.h
+noinst_HEADERS = bgyadif.h colormatrix.h deinterlace.h
