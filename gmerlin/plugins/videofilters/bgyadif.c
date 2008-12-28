@@ -30,11 +30,14 @@
  */
 
 
+#include <config.h>
 #include <gmerlin/plugin.h>
 #include <bgyadif.h>
 #include <gavl/gavldsp.h>
 
 #include <string.h>
+
+// #undef HAVE_MMX
 
 struct bg_yadif_s
   {
@@ -42,6 +45,7 @@ struct bg_yadif_s
   gavl_dsp_funcs_t   * dsp_funcs;
   
   int parity;
+  int accel_flags;
   
   /* Where to get data */
   bg_read_video_func_t read_func;
@@ -54,7 +58,6 @@ struct bg_yadif_s
   void (*filter_line)(int mode, uint8_t *dst, const uint8_t *prev,
                       const uint8_t *cur, const uint8_t *next,
                       int w, int src_stride, int parity, int advance);
-  void (*interpolate)(const uint8_t *src_1, const uint8_t *src_2, uint8_t *dst, int num);
 
   struct
     {
@@ -76,6 +79,10 @@ struct bg_yadif_s
   int eof;
   
   int mode;
+
+  int luma_shift;
+  int chroma_shift;
+  
   };
 
 /* Line filter functions */
@@ -84,6 +91,11 @@ static void filter_line_c(int mode, uint8_t *dst, const uint8_t *prev,
                           const uint8_t *cur, const uint8_t *next, int w, int src_stride, int parity,
                           int advance);
 
+#ifdef HAVE_MMX
+static void filter_line_mmx2(int mode, uint8_t *dst, const uint8_t *prev,
+                             const uint8_t *cur, const uint8_t *next, int w, int src_stride, int parity,
+                             int advance);
+#endif
 
 bg_yadif_t * bg_yadif_create()
   {
@@ -91,20 +103,42 @@ bg_yadif_t * bg_yadif_create()
   ret = calloc(1, sizeof(*ret));
   ret->dsp_ctx = gavl_dsp_context_create();
   ret->dsp_funcs = gavl_dsp_context_get_funcs(ret->dsp_ctx);
+  ret->accel_flags = gavl_accel_supported();
   return ret;
   }
 
-#define FREE_FRAME(f) if(f) { gavl_video_frame_destroy(f); f = NULL; }
+#define SHIFT_PLANES(f) \
+  { \
+  if(f->planes[0]) \
+    f->planes[0] += di->luma_shift; \
+  if(f->planes[1]) \
+    f->planes[1] += di->chroma_shift; \
+  if(f->planes[2]) \
+    f->planes[2] += di->chroma_shift; \
+  }
 
-void bg_yadif_destroy(bg_yadif_t * d)
+#define FREE_FRAME(f) \
+if(f) \
+  { \
+  if(f->planes[0]) \
+    f->planes[0] -= di->luma_shift; \
+  if(f->planes[1]) \
+    f->planes[1] -= di->chroma_shift; \
+  if(f->planes[2]) \
+    f->planes[2] -= di->chroma_shift; \
+  gavl_video_frame_destroy(f); \
+  f = NULL; \
+  }
+
+void bg_yadif_destroy(bg_yadif_t * di)
   {
-  gavl_dsp_context_destroy(d->dsp_ctx);
+  gavl_dsp_context_destroy(di->dsp_ctx);
 
-  FREE_FRAME(d->cur);
-  FREE_FRAME(d->prev);
-  FREE_FRAME(d->next);
+  FREE_FRAME(di->cur);
+  FREE_FRAME(di->prev);
+  FREE_FRAME(di->next);
   
-  free(d);
+  free(di);
   }
 
 static const gavl_pixelformat_t pixelformats[] =
@@ -125,8 +159,14 @@ void bg_yadif_init(bg_yadif_t * di,
                    gavl_video_format_t * format,
                    gavl_video_options_t * opt, int mode)
   {
-  int sub_h, sub_v;
+  int sub_h = 1, sub_v = 1;
+  gavl_video_format_t frame_format;
+  
+  di->frame = 0;
+  di->field = 0;
+  di->eof = 0;
 
+  
   FREE_FRAME(di->cur);
   FREE_FRAME(di->prev);
   FREE_FRAME(di->next);
@@ -145,10 +185,21 @@ void bg_yadif_init(bg_yadif_t * di,
     case GAVL_YUVJ_422_P:
     case GAVL_YUVJ_444_P:
       gavl_pixelformat_chroma_sub(format->pixelformat, &sub_h, &sub_v);
+#ifdef HAVE_MMX
+      if((di->accel_flags & GAVL_ACCEL_MMXEXT) &&
+         ((format->image_width / sub_h) % 4 == 0))
+        {
+        di->filter_line = filter_line_mmx2;
+        fprintf(stderr, "Using mmxext\n");
+        }
+      else
+        {
+#endif
+        di->filter_line = filter_line_c;
+#ifdef HAVE_MMX
+        }
+#endif
       
-      di->filter_line = filter_line_c;
-      di->interpolate = di->dsp_funcs->average_8;
-
       di->components[0].w = format->image_width;
       di->components[0].h = format->image_height;
       di->components[0].offset  = 0;
@@ -178,6 +229,27 @@ void bg_yadif_init(bg_yadif_t * di,
 
   if(mode & 1)
     di->out_format.timescale *= 2;
+
+  gavl_video_format_copy(&frame_format, &di->in_format);
+  
+  frame_format.frame_height = frame_format.image_height + 4 * sub_v;
+  
+  di->cur = gavl_video_frame_create(&frame_format);
+  di->prev = gavl_video_frame_create(&frame_format);
+  di->next = gavl_video_frame_create(&frame_format);
+  gavl_video_frame_clear(di->cur, &frame_format);
+  gavl_video_frame_clear(di->prev, &frame_format);
+  gavl_video_frame_clear(di->next, &frame_format);
+  
+  di->luma_shift   = di->cur->strides[0] * 2;
+  di->chroma_shift = di->cur->strides[1] * 2;
+  
+  SHIFT_PLANES(di->cur);  
+  SHIFT_PLANES(di->prev);  
+  SHIFT_PLANES(di->next);
+  
+  di->parity =
+    (di->in_format.interlace_mode == GAVL_INTERLACE_BOTTOM_FIRST) ? 1 : 0;
   
   di->mode = mode;
   }
@@ -200,38 +272,14 @@ void bg_yadif_connect_input(void * priv,
   }
 
 static void filter_plane(bg_yadif_t * di,
-                         int mode, uint8_t *dst, int dst_stride,
+                         uint8_t *dst, int dst_stride,
                          const uint8_t *prev0, const uint8_t *cur0,
                          const uint8_t *next0, int src_stride, int w, int h,
                          int parity, int tff, int mmx, int advance)
   {
   int y;
-#if 0
-  filter_line = filter_line_c;
-#ifdef __GNUC__
-  if (mmx)
-    filter_line = filter_line_mmx2;
-#endif
-#endif
-  y=0;
-  if(((y ^ parity) & 1))
-    {
-    memcpy(dst, cur0 + src_stride, w);// duplicate 1
-    }
-  else
-    {
-    memcpy(dst, cur0, w);
-    }
-  y=1;
-  if(((y ^ parity) & 1))
-    {
-    di->interpolate(cur0, cur0 + src_stride*2, dst + dst_stride, w);   // interpolate 0 and 2
-    }
-  else
-    {
-    memcpy(dst + dst_stride, cur0 + src_stride, w); // copy original
-    }
-  for(y=2; y<h-2; y++)
+  
+  for(y=0; y<h; y++)
     {
     if(((y ^ parity) & 1))
       {
@@ -239,30 +287,12 @@ static void filter_plane(bg_yadif_t * di,
       const uint8_t *cur = cur0 + y*src_stride;
       const uint8_t *next= next0 + y*src_stride;
       uint8_t *dst2= dst + y*dst_stride;
-      di->filter_line(mode, dst2, prev, cur, next, w, src_stride, (parity ^ tff), advance);
+      di->filter_line(di->mode, dst2, prev, cur, next, w, src_stride, (parity ^ tff), advance);
       }
     else
       {
       memcpy(dst + y*dst_stride, cur0 + y*src_stride, w); // copy original
       }
-    }
-  y=h-2;
-  if(((y ^ parity) & 1))
-    {
-    di->interpolate(cur0 + (h-3)*src_stride, cur0 + (h-1)*src_stride, dst + (h-2)*dst_stride, w);   // interpolate h-3 and h-1
-    }
-  else
-    {
-    memcpy(dst + (h-2)*dst_stride, cur0 + (h-2)*src_stride, w); // copy original
-    }
-  y=h-1;
-  if(((y ^ parity) & 1))
-    {
-    memcpy(dst + (h-1)*dst_stride, cur0 + (h-2)*src_stride, w); // duplicate h-2
-    }
-  else
-    {
-    memcpy(dst + (h-1)*dst_stride, cur0 + (h-1)*src_stride, w); // copy original
     }
   
 #ifdef __GNUC__
@@ -272,7 +302,7 @@ static void filter_plane(bg_yadif_t * di,
   }
 
 static void filter_frame(bg_yadif_t * di,
-                         int mode, int parity, int mmx,
+                         int parity, int mmx,
                          gavl_video_frame_t * out)
   {
   int i;
@@ -309,7 +339,7 @@ static void filter_frame(bg_yadif_t * di,
   
   for(i = 0; i < di->num_components; i++)
     {
-    filter_plane(di, mode,
+    filter_plane(di,
                  out->planes[di->components[i].plane] + di->components[i].offset,
                  out->strides[di->components[i].plane],
                  di->prev->planes[di->components[i].plane] + di->components[i].offset,
@@ -335,10 +365,12 @@ static int read_frame(bg_yadif_t * di)
 int bg_yadif_read(void * priv, gavl_video_frame_t * frame, int stream)
   {
   bg_yadif_t * di = priv;
-  int tff;
   
   if(!di->field)
     {
+    if(di->eof)
+      return 0;
+    
     if(!di->frame) /* Fill buffer */
       {
       di->read_func(di->read_data, di->cur, di->read_stream);
@@ -347,12 +379,14 @@ int bg_yadif_read(void * priv, gavl_video_frame_t * frame, int stream)
       gavl_video_frame_copy(&di->in_format, di->prev, di->next);
       }
     else if(!read_frame(di))
+      {
       di->eof = 1;
-    
+      gavl_video_frame_copy(&di->in_format, di->next, di->prev);
+      }
     di->frame++;
     
     /* Output first field */
-    filter_frame(di, di->mode, di->parity, 0, // int mmx,
+    filter_frame(di, di->parity, 0, // int mmx,
                  frame);
 
     if(di->mode & 1)
@@ -369,7 +403,7 @@ int bg_yadif_read(void * priv, gavl_video_frame_t * frame, int stream)
   else
     {
     /* Output second field */
-    filter_frame(di, di->mode, 1 - di->parity, 0, // int mmx,
+    filter_frame(di, 1 - di->parity, 0, // int mmx,
                  frame);
 
     frame->timestamp = gavl_time_rescale(di->in_format.timescale,
@@ -381,13 +415,14 @@ int bg_yadif_read(void * priv, gavl_video_frame_t * frame, int stream)
     di->field = 0;
     }
   
-  return 0;
+  return 1;
   }
 
 void bg_yadif_reset(bg_yadif_t * di)
   {
   di->frame = 0;
   di->field = 0;
+  di->eof = 0;
   }
 
 
@@ -461,3 +496,218 @@ static void filter_line_c(int mode, uint8_t *dst, const uint8_t *prev,
     next2++;
     }
   }
+#undef CHECK
+
+#ifdef HAVE_MMX
+
+#define LOAD4(mem,dst) \
+            "movd      "mem", "#dst" \n\t"\
+            "punpcklbw %%mm7, "#dst" \n\t"
+
+#define PABS(tmp,dst) \
+            "pxor     "#tmp", "#tmp" \n\t"\
+            "psubw    "#dst", "#tmp" \n\t"\
+            "pmaxsw   "#tmp", "#dst" \n\t"
+
+#define CHECK(pj,mj) \
+            "movq "#pj"(%[cur],%[mrefs]), %%mm2 \n\t" /* cur[x-refs-1+j] */\
+            "movq "#mj"(%[cur],%[prefs]), %%mm3 \n\t" /* cur[x+refs-1-j] */\
+            "movq      %%mm2, %%mm4 \n\t"\
+            "movq      %%mm2, %%mm5 \n\t"\
+            "pxor      %%mm3, %%mm4 \n\t"\
+            "pavgb     %%mm3, %%mm5 \n\t"\
+            "pand     %[pb1], %%mm4 \n\t"\
+            "psubusb   %%mm4, %%mm5 \n\t"\
+            "psrlq     $8,    %%mm5 \n\t"\
+            "punpcklbw %%mm7, %%mm5 \n\t" /* (cur[x-refs+j] + cur[x+refs-j])>>1 */\
+            "movq      %%mm2, %%mm4 \n\t"\
+            "psubusb   %%mm3, %%mm2 \n\t"\
+            "psubusb   %%mm4, %%mm3 \n\t"\
+            "pmaxub    %%mm3, %%mm2 \n\t"\
+            "movq      %%mm2, %%mm3 \n\t"\
+            "movq      %%mm2, %%mm4 \n\t" /* ABS(cur[x-refs-1+j] - cur[x+refs-1-j]) */\
+            "psrlq      $8,   %%mm3 \n\t" /* ABS(cur[x-refs  +j] - cur[x+refs  -j]) */\
+            "psrlq     $16,   %%mm4 \n\t" /* ABS(cur[x-refs+1+j] - cur[x+refs+1-j]) */\
+            "punpcklbw %%mm7, %%mm2 \n\t"\
+            "punpcklbw %%mm7, %%mm3 \n\t"\
+            "punpcklbw %%mm7, %%mm4 \n\t"\
+            "paddw     %%mm3, %%mm2 \n\t"\
+            "paddw     %%mm4, %%mm2 \n\t" /* score */
+
+#define CHECK1 \
+            "movq      %%mm0, %%mm3 \n\t"\
+            "pcmpgtw   %%mm2, %%mm3 \n\t" /* if(score < spatial_score) */\
+            "pminsw    %%mm2, %%mm0 \n\t" /* spatial_score= score; */\
+            "movq      %%mm3, %%mm6 \n\t"\
+            "pand      %%mm3, %%mm5 \n\t"\
+            "pandn     %%mm1, %%mm3 \n\t"\
+            "por       %%mm5, %%mm3 \n\t"\
+            "movq      %%mm3, %%mm1 \n\t" /* spatial_pred= (cur[x-refs+j] + cur[x+refs-j])>>1; */
+
+#define CHECK2 /* pretend not to have checked dir=2 if dir=1 was bad.\
+                  hurts both quality and speed, but matches the C version. */\
+            "paddw    %[pw1], %%mm6 \n\t"\
+            "psllw     $14,   %%mm6 \n\t"\
+            "paddsw    %%mm6, %%mm2 \n\t"\
+            "movq      %%mm0, %%mm3 \n\t"\
+            "pcmpgtw   %%mm2, %%mm3 \n\t"\
+            "pminsw    %%mm2, %%mm0 \n\t"\
+            "pand      %%mm3, %%mm5 \n\t"\
+            "pandn     %%mm1, %%mm3 \n\t"\
+            "por       %%mm5, %%mm3 \n\t"\
+            "movq      %%mm3, %%mm1 \n\t"
+
+static void filter_line_mmx2(int mode, uint8_t *dst, const uint8_t *prev, const uint8_t *cur, const uint8_t *next, int w, int refs, int parity, int advance){
+    static const uint64_t pw_1 = 0x0001000100010001ULL;
+    static const uint64_t pb_1 = 0x0101010101010101ULL;
+//    const int mode = p->mode;
+    uint64_t tmp0, tmp1, tmp2, tmp3;
+    int x;
+
+#define FILTER\
+    for(x=0; x<w; x+=4){\
+        asm volatile(\
+            "pxor      %%mm7, %%mm7 \n\t"\
+            LOAD4("(%[cur],%[mrefs])", %%mm0) /* c = cur[x-refs] */\
+            LOAD4("(%[cur],%[prefs])", %%mm1) /* e = cur[x+refs] */\
+            LOAD4("(%["prev2"])", %%mm2) /* prev2[x] */\
+            LOAD4("(%["next2"])", %%mm3) /* next2[x] */\
+            "movq      %%mm3, %%mm4 \n\t"\
+            "paddw     %%mm2, %%mm3 \n\t"\
+            "psraw     $1,    %%mm3 \n\t" /* d = (prev2[x] + next2[x])>>1 */\
+            "movq      %%mm0, %[tmp0] \n\t" /* c */\
+            "movq      %%mm3, %[tmp1] \n\t" /* d */\
+            "movq      %%mm1, %[tmp2] \n\t" /* e */\
+            "psubw     %%mm4, %%mm2 \n\t"\
+            PABS(      %%mm4, %%mm2) /* temporal_diff0 */\
+            LOAD4("(%[prev],%[mrefs])", %%mm3) /* prev[x-refs] */\
+            LOAD4("(%[prev],%[prefs])", %%mm4) /* prev[x+refs] */\
+            "psubw     %%mm0, %%mm3 \n\t"\
+            "psubw     %%mm1, %%mm4 \n\t"\
+            PABS(      %%mm5, %%mm3)\
+            PABS(      %%mm5, %%mm4)\
+            "paddw     %%mm4, %%mm3 \n\t" /* temporal_diff1 */\
+            "psrlw     $1,    %%mm2 \n\t"\
+            "psrlw     $1,    %%mm3 \n\t"\
+            "pmaxsw    %%mm3, %%mm2 \n\t"\
+            LOAD4("(%[next],%[mrefs])", %%mm3) /* next[x-refs] */\
+            LOAD4("(%[next],%[prefs])", %%mm4) /* next[x+refs] */\
+            "psubw     %%mm0, %%mm3 \n\t"\
+            "psubw     %%mm1, %%mm4 \n\t"\
+            PABS(      %%mm5, %%mm3)\
+            PABS(      %%mm5, %%mm4)\
+            "paddw     %%mm4, %%mm3 \n\t" /* temporal_diff2 */\
+            "psrlw     $1,    %%mm3 \n\t"\
+            "pmaxsw    %%mm3, %%mm2 \n\t"\
+            "movq      %%mm2, %[tmp3] \n\t" /* diff */\
+\
+            "paddw     %%mm0, %%mm1 \n\t"\
+            "paddw     %%mm0, %%mm0 \n\t"\
+            "psubw     %%mm1, %%mm0 \n\t"\
+            "psrlw     $1,    %%mm1 \n\t" /* spatial_pred */\
+            PABS(      %%mm2, %%mm0)      /* ABS(c-e) */\
+\
+            "movq -1(%[cur],%[mrefs]), %%mm2 \n\t" /* cur[x-refs-1] */\
+            "movq -1(%[cur],%[prefs]), %%mm3 \n\t" /* cur[x+refs-1] */\
+            "movq      %%mm2, %%mm4 \n\t"\
+            "psubusb   %%mm3, %%mm2 \n\t"\
+            "psubusb   %%mm4, %%mm3 \n\t"\
+            "pmaxub    %%mm3, %%mm2 \n\t"\
+            "pshufw $9,%%mm2, %%mm3 \n\t"\
+            "punpcklbw %%mm7, %%mm2 \n\t" /* ABS(cur[x-refs-1] - cur[x+refs-1]) */\
+            "punpcklbw %%mm7, %%mm3 \n\t" /* ABS(cur[x-refs+1] - cur[x+refs+1]) */\
+            "paddw     %%mm2, %%mm0 \n\t"\
+            "paddw     %%mm3, %%mm0 \n\t"\
+            "psubw    %[pw1], %%mm0 \n\t" /* spatial_score */\
+\
+            CHECK(-2,0)\
+            CHECK1\
+            CHECK(-3,1)\
+            CHECK2\
+            CHECK(0,-2)\
+            CHECK1\
+            CHECK(1,-3)\
+            CHECK2\
+\
+            /* if(p->mode<2) ... */\
+            "movq    %[tmp3], %%mm6 \n\t" /* diff */\
+            "cmp       $2, %[mode] \n\t"\
+            "jge       1f \n\t"\
+            LOAD4("(%["prev2"],%[mrefs],2)", %%mm2) /* prev2[x-2*refs] */\
+            LOAD4("(%["next2"],%[mrefs],2)", %%mm4) /* next2[x-2*refs] */\
+            LOAD4("(%["prev2"],%[prefs],2)", %%mm3) /* prev2[x+2*refs] */\
+            LOAD4("(%["next2"],%[prefs],2)", %%mm5) /* next2[x+2*refs] */\
+            "paddw     %%mm4, %%mm2 \n\t"\
+            "paddw     %%mm5, %%mm3 \n\t"\
+            "psrlw     $1,    %%mm2 \n\t" /* b */\
+            "psrlw     $1,    %%mm3 \n\t" /* f */\
+            "movq    %[tmp0], %%mm4 \n\t" /* c */\
+            "movq    %[tmp1], %%mm5 \n\t" /* d */\
+            "movq    %[tmp2], %%mm7 \n\t" /* e */\
+            "psubw     %%mm4, %%mm2 \n\t" /* b-c */\
+            "psubw     %%mm7, %%mm3 \n\t" /* f-e */\
+            "movq      %%mm5, %%mm0 \n\t"\
+            "psubw     %%mm4, %%mm5 \n\t" /* d-c */\
+            "psubw     %%mm7, %%mm0 \n\t" /* d-e */\
+            "movq      %%mm2, %%mm4 \n\t"\
+            "pminsw    %%mm3, %%mm2 \n\t"\
+            "pmaxsw    %%mm4, %%mm3 \n\t"\
+            "pmaxsw    %%mm5, %%mm2 \n\t"\
+            "pminsw    %%mm5, %%mm3 \n\t"\
+            "pmaxsw    %%mm0, %%mm2 \n\t" /* max */\
+            "pminsw    %%mm0, %%mm3 \n\t" /* min */\
+            "pxor      %%mm4, %%mm4 \n\t"\
+            "pmaxsw    %%mm3, %%mm6 \n\t"\
+            "psubw     %%mm2, %%mm4 \n\t" /* -max */\
+            "pmaxsw    %%mm4, %%mm6 \n\t" /* diff= MAX3(diff, min, -max); */\
+            "1: \n\t"\
+\
+            "movq    %[tmp1], %%mm2 \n\t" /* d */\
+            "movq      %%mm2, %%mm3 \n\t"\
+            "psubw     %%mm6, %%mm2 \n\t" /* d-diff */\
+            "paddw     %%mm6, %%mm3 \n\t" /* d+diff */\
+            "pmaxsw    %%mm2, %%mm1 \n\t"\
+            "pminsw    %%mm3, %%mm1 \n\t" /* d = clip(spatial_pred, d-diff, d+diff); */\
+            "packuswb  %%mm1, %%mm1 \n\t"\
+\
+            :[tmp0]"=m"(tmp0),\
+             [tmp1]"=m"(tmp1),\
+             [tmp2]"=m"(tmp2),\
+             [tmp3]"=m"(tmp3)\
+            :[prev] "r"(prev),\
+             [cur]  "r"(cur),\
+             [next] "r"(next),\
+             [prefs]"r"((long)refs),\
+             [mrefs]"r"((long)-refs),\
+             [pw1]  "m"(pw_1),\
+             [pb1]  "m"(pb_1),\
+             [mode] "g"(mode)\
+        );\
+        asm volatile("movd %%mm1, %0" :"=m"(*dst));\
+        dst += 4;\
+        prev+= 4;\
+        cur += 4;\
+        next+= 4;\
+    }
+
+    if(parity){
+#define prev2 "prev"
+#define next2 "cur"
+        FILTER
+#undef prev2
+#undef next2
+    }else{
+#define prev2 "cur"
+#define next2 "next"
+        FILTER
+#undef prev2
+#undef next2
+    }
+}
+#undef LOAD4
+#undef PABS
+#undef CHECK
+#undef CHECK1
+#undef CHECK2
+#undef FILTER
+#endif

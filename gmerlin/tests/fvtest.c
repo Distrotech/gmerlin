@@ -19,6 +19,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#include <string.h>
+
 #include <config.h>
 #include <gmerlin/pluginregistry.h>
 #include <gmerlin/utils.h>
@@ -33,6 +35,7 @@ const bg_parameter_info_t * fv_parameters;
 bg_cfg_section_t * fv_section = (bg_cfg_section_t*)0;
 
 int frameno = 0;
+int dump_format = 0;
 
 static void opt_frame(void * data, int * argc, char *** _argv, int arg)
   {
@@ -43,6 +46,11 @@ static void opt_frame(void * data, int * argc, char *** _argv, int arg)
     }
   frameno = atoi((*_argv)[arg]);  
   bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
+static void opt_df(void * data, int * argc, char *** _argv, int arg)
+  {
+  dump_format = 1;
   }
 
 static void opt_v(void * data, int * argc, char *** _argv, int arg)
@@ -104,6 +112,11 @@ static bg_cmdline_arg_t global_options[] =
       .help_arg =    "<number>",
       .help_string = "Output that frame (default 0)",
       .callback =    opt_frame,
+    },
+    {
+      .arg =         "-df",
+      .help_string = "Dump format",
+      .callback =    opt_df,
     },
     { /* End of options */ }
   };
@@ -173,7 +186,7 @@ int main(int argc, char ** argv)
   plugin_reg = bg_plugin_registry_create(cfg_section);
 
   /* Create filter chain */
-  
+  memset(&opt, 0, sizeof(opt));
   bg_gavl_video_options_init(&opt);
   fc = bg_video_filter_chain_create(&opt, plugin_reg);
   fv_parameters = bg_video_filter_chain_get_parameters(fc);
@@ -269,4 +282,12 @@ int main(int argc, char ** argv)
       }
     }
   bg_plugin_registry_save_image(plugin_reg, gmls[1], frame, &out_format);
+
+  /* Destroy everything */
+  bg_plugin_unref(input_handle);
+  bg_video_filter_chain_destroy(fc);
+  bg_gavl_video_options_free(&opt);
+  bg_plugin_registry_destroy(plugin_reg);
+  bg_cfg_registry_destroy(cfg_reg);
+  gavl_video_frame_destroy(frame);
   }

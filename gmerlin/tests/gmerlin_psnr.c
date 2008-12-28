@@ -83,36 +83,38 @@ int main(int argc, char ** argv)
     return -1;
     }
   
-  fprintf(stderr, "Format:\n\n");
-  gavl_video_format_dump(&format_1);
+  //  fprintf(stderr, "Format:\n\n");
+  //  gavl_video_format_dump(&format_1);
     
   gavl_video_frame_psnr(psnr, frame_1, frame_2, &format_1);
   index = 0;
-  fprintf(stderr, "\nPSNR:\n");
+  fprintf(stderr, "PSNR: ");
   
   if(gavl_pixelformat_is_gray(format_1.pixelformat))
     {
-    fprintf(stderr, "Gray: %.2f\n", psnr[index]);
+    fprintf(stderr, "Gray: %.2f dB", psnr[index]);
     index++;
     }
   else if(gavl_pixelformat_is_yuv(format_1.pixelformat))
     {
-    fprintf(stderr, "Y':   %.2f\n", psnr[index]);
-    fprintf(stderr, "Cb:   %.2f\n", psnr[index+1]);
-    fprintf(stderr, "Cr:   %.2f\n", psnr[index+2]);
+    fprintf(stderr, "Y': %.2f dB, ", psnr[index]);
+    fprintf(stderr, "Cb: %.2f dB, ", psnr[index+1]);
+    fprintf(stderr, "Cr: %.2f dB", psnr[index+2]);
     index+=3;
     }
   else if(gavl_pixelformat_is_rgb(format_1.pixelformat))
     {
-    fprintf(stderr, "R:    %.2f\n", psnr[index]);
-    fprintf(stderr, "G:    %.2f\n", psnr[index+1]);
-    fprintf(stderr, "B:    %.2f\n", psnr[index+2]);
+    fprintf(stderr, "R: %.2f dB, ", psnr[index]);
+    fprintf(stderr, "G: %.2f dB, ", psnr[index+1]);
+    fprintf(stderr, "B: %.2f dB", psnr[index+2]);
     index+=3;
     }
   if(gavl_pixelformat_has_alpha(format_1.pixelformat))
     {
-    fprintf(stderr, "A:    %.2f\n", psnr[index]);
+    fprintf(stderr, ", A: %.2f dB\n", psnr[index]);
     }
+  else
+    fprintf(stderr, "\n");
   
   return 0;
   }
