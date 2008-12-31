@@ -62,9 +62,18 @@ struct bg_colormatrix_s
   matrix_t rgba;
   matrix_t yuva;
   
-  void (*func)(bg_colormatrix_t * m,
-               gavl_video_frame_t * in);
+  void (*func)(void * priv, int start, int end);
   gavl_video_format_t format;
+
+  /* Multithreading stuff */
+
+  gavl_video_run_func run_func;
+  void * run_data;
+  gavl_video_stop_func stop_func;
+  void * stop_data;
+  int num_threads;
+
+  gavl_video_frame_t * frame;
   };
 
 static void matrixmult_cn(const float coeffs1[4][5],
@@ -194,13 +203,16 @@ void bg_colormatrix_destroy(bg_colormatrix_t * m)
 
 /* Gray */
 
-static void process_gray_8(bg_colormatrix_t * m,
-                           gavl_video_frame_t * in)
+static void process_gray_8(void * priv, int start, int end)
   {
   int g;
   int i, j;
   uint8_t * src;
-  for(i = 0; i < m->format.image_height; i++)
+
+  bg_colormatrix_t * m = priv;
+  gavl_video_frame_t * in = m->frame;
+  
+  for(i = start; i < end; i++)
     {
     src = in->planes[0]  + i * in->strides[0];
     
@@ -218,13 +230,14 @@ static void process_gray_8(bg_colormatrix_t * m,
   }
 
 
-static void process_graya_16(bg_colormatrix_t * m,
-                             gavl_video_frame_t * in)
+static void process_graya_16(void * priv, int start, int end)
   {
   int g, a;
   int i, j;
   uint8_t * src;
-  for(i = 0; i < m->format.image_height; i++)
+  bg_colormatrix_t * m = priv;
+  gavl_video_frame_t * in = m->frame;
+  for(i = start; i < end; i++)
     {
     src = in->planes[0]  + i * in->strides[0];
     
@@ -251,13 +264,14 @@ static void process_graya_16(bg_colormatrix_t * m,
 
 /* */
 
-static void process_gray_16(bg_colormatrix_t * m,
-                           gavl_video_frame_t * in)
+static void process_gray_16(void * priv, int start, int end)
   {
   int64_t g;
   int i, j;
   uint16_t * src;
-  for(i = 0; i < m->format.image_height; i++)
+  bg_colormatrix_t * m = priv;
+  gavl_video_frame_t * in = m->frame;
+  for(i = start; i < end; i++)
     {
     src = (uint16_t*)(in->planes[0]  + i * in->strides[0]);
     
@@ -275,13 +289,14 @@ static void process_gray_16(bg_colormatrix_t * m,
   }
 
 
-static void process_graya_32(bg_colormatrix_t * m,
-                             gavl_video_frame_t * in)
+static void process_graya_32(void * priv, int start, int end)
   {
   int64_t g, a;
   int i, j;
   uint16_t * src;
-  for(i = 0; i < m->format.image_height; i++)
+  bg_colormatrix_t * m = priv;
+  gavl_video_frame_t * in = m->frame;
+  for(i = start; i < end; i++)
     {
     src = (uint16_t*)(in->planes[0]  + i * in->strides[0]);
     
@@ -307,13 +322,14 @@ static void process_graya_32(bg_colormatrix_t * m,
   }
 
 
-static void process_gray_float(bg_colormatrix_t * m,
-                               gavl_video_frame_t * in)
+static void process_gray_float(void * priv, int start, int end)
   {
   float g;
   int i, j;
   float * src;
-  for(i = 0; i < m->format.image_height; i++)
+  bg_colormatrix_t * m = priv;
+  gavl_video_frame_t * in = m->frame;
+  for(i = start; i < end; i++)
     {
     src = (float*)(in->planes[0]  + i * in->strides[0]);
     
@@ -330,13 +346,14 @@ static void process_gray_float(bg_colormatrix_t * m,
   }
 
 
-static void process_graya_float(bg_colormatrix_t * m,
-                                gavl_video_frame_t * in)
+static void process_graya_float(void * priv, int start, int end)
   {
   float g, a;
   int i, j;
   float * src;
-  for(i = 0; i < m->format.image_height; i++)
+  bg_colormatrix_t * m = priv;
+  gavl_video_frame_t * in = m->frame;
+  for(i = start; i < end; i++)
     {
     src = (float*)(in->planes[0]  + i * in->strides[0]);
     
@@ -368,13 +385,14 @@ static void process_graya_float(bg_colormatrix_t * m,
 /* RGB(A) 8 bit */
 
 
-static void process_bgr_24(bg_colormatrix_t * m,
-                           gavl_video_frame_t * in)
+static void process_bgr_24(void * priv, int start, int end)
   {
   int i, j;
   int r, g, b;
   uint8_t * src;
-  for(i = 0; i < m->format.image_height; i++)
+  bg_colormatrix_t * m = priv;
+  gavl_video_frame_t * in = m->frame;
+  for(i = start; i < end; i++)
     {
     src = in->planes[0]  + i * in->strides[0];
     
@@ -407,13 +425,14 @@ static void process_bgr_24(bg_colormatrix_t * m,
     }
   }
 
-static void process_rgb_24(bg_colormatrix_t * m,
-                           gavl_video_frame_t * in)
+static void process_rgb_24(void * priv, int start, int end)
   {
   int i, j;
   int r, g, b;
   uint8_t * src;
-  for(i = 0; i < m->format.image_height; i++)
+  bg_colormatrix_t * m = priv;
+  gavl_video_frame_t * in = m->frame;
+  for(i = start; i < end; i++)
     {
     src = in->planes[0]  + i * in->strides[0];
     
@@ -447,13 +466,14 @@ static void process_rgb_24(bg_colormatrix_t * m,
   }
 
 
-static void process_bgr_32(bg_colormatrix_t * m,
-                           gavl_video_frame_t * in)
+static void process_bgr_32(void * priv, int start, int end)
   {
   int i, j;
   int r, g, b;
   uint8_t * src;
-  for(i = 0; i < m->format.image_height; i++)
+  bg_colormatrix_t * m = priv;
+  gavl_video_frame_t * in = m->frame;
+  for(i = start; i < end; i++)
     {
     src = in->planes[0]  + i * in->strides[0];
     
@@ -486,13 +506,14 @@ static void process_bgr_32(bg_colormatrix_t * m,
     }
   }
 
-static void process_rgb_32(bg_colormatrix_t * m,
-                           gavl_video_frame_t * in)
+static void process_rgb_32(void * priv, int start, int end)
   {
   int i, j;
   int r, g, b;
   uint8_t * src;
-  for(i = 0; i < m->format.image_height; i++)
+  bg_colormatrix_t * m = priv;
+  gavl_video_frame_t * in = m->frame;
+  for(i = start; i < end; i++)
     {
     src = in->planes[0]  + i * in->strides[0];
     
@@ -525,14 +546,15 @@ static void process_rgb_32(bg_colormatrix_t * m,
     }
   }
 
-static void process_rgba_32(bg_colormatrix_t * m,
-                            gavl_video_frame_t * in)
+static void process_rgba_32(void * priv, int start, int end)
   {
   int i, j;
   uint8_t * src;
   int r, g, b, a;
+  bg_colormatrix_t * m = priv;
+  gavl_video_frame_t * in = m->frame;
 
-  for(i = 0; i < m->format.image_height; i++)
+  for(i = start; i < end; i++)
     {
     src = in->planes[0]  + i * in->strides[0];
     
@@ -579,13 +601,15 @@ static void process_rgba_32(bg_colormatrix_t * m,
 
 /* RGB(A) 16 bit */
 
-static void process_rgb_48(bg_colormatrix_t * m,
-                           gavl_video_frame_t * in)
+static void process_rgb_48(void * priv, int start, int end)
   {
   int64_t r, g, b;
   int i, j;
   uint16_t * src;
-  for(i = 0; i < m->format.image_height; i++)
+  bg_colormatrix_t * m = priv;
+  gavl_video_frame_t * in = m->frame;
+
+  for(i = start; i < end; i++)
     {
     src = (uint16_t *)(in->planes[0]  + i * in->strides[0]);
     
@@ -618,13 +642,15 @@ static void process_rgb_48(bg_colormatrix_t * m,
     }
   }
 
-static void process_rgba_64(bg_colormatrix_t * m,
-                            gavl_video_frame_t * in)
+static void process_rgba_64(void * priv, int start, int end)
   {
   int64_t r, g, b, a;
   int i, j;
   uint16_t * src;
-  for(i = 0; i < m->format.image_height; i++)
+  bg_colormatrix_t * m = priv;
+  gavl_video_frame_t * in = m->frame;
+
+  for(i = start; i < end; i++)
     {
     src = (uint16_t *)(in->planes[0]  + i * in->strides[0]);
     
@@ -672,13 +698,15 @@ static void process_rgba_64(bg_colormatrix_t * m,
 
 /* Float */
 
-static void process_rgb_float(bg_colormatrix_t * m,
-                              gavl_video_frame_t * in)
+static void process_rgb_float(void * priv, int start, int end)
   {
   int i, j;
   float * src;
   float r, g, b;
-  for(i = 0; i < m->format.image_height; i++)
+  bg_colormatrix_t * m = priv;
+  gavl_video_frame_t * in = m->frame;
+
+  for(i = start; i < end; i++)
     {
     src = (float *)(in->planes[0]  + i * in->strides[0]);
     
@@ -708,13 +736,16 @@ static void process_rgb_float(bg_colormatrix_t * m,
   }
 
 
-static void process_rgba_float(bg_colormatrix_t * m,
-                               gavl_video_frame_t * in)
+static void process_rgba_float(void * priv, int start, int end)
   {
   int i, j;
   float * src;
   float r, g, b, a;
-  for(i = 0; i < m->format.image_height; i++)
+
+  bg_colormatrix_t * m = priv;
+  gavl_video_frame_t * in = m->frame;
+
+  for(i = start; i < end; i++)
     {
     src = (float *)(in->planes[0]  + i * in->strides[0]);
     
@@ -754,13 +785,14 @@ static void process_rgba_float(bg_colormatrix_t * m,
     }
   }
 
-static void process_yuv_float(bg_colormatrix_t * m,
-                              gavl_video_frame_t * in)
+static void process_yuv_float(void * priv, int start, int end)
   {
   int i, j;
   float * src;
   float y, u, v;
-  for(i = 0; i < m->format.image_height; i++)
+  bg_colormatrix_t * m = priv;
+  gavl_video_frame_t * in = m->frame;
+  for(i = start; i < end; i++)
     {
     src = (float *)(in->planes[0]  + i * in->strides[0]);
     
@@ -790,13 +822,14 @@ static void process_yuv_float(bg_colormatrix_t * m,
   }
 
 
-static void process_yuva_float(bg_colormatrix_t * m,
-                               gavl_video_frame_t * in)
+static void process_yuva_float(void * priv, int start, int end)
   {
   int i, j;
   float * src;
   float y, u, v, a;
-  for(i = 0; i < m->format.image_height; i++)
+  bg_colormatrix_t * m = priv;
+  gavl_video_frame_t * in = m->frame;
+  for(i = start; i < end; i++)
     {
     src = (float *)(in->planes[0]  + i * in->strides[0]);
     
@@ -836,13 +869,14 @@ static void process_yuva_float(bg_colormatrix_t * m,
     }
   }
 
-static void process_yuva_32(bg_colormatrix_t * m,
-                            gavl_video_frame_t * in)
+static void process_yuva_32(void * priv, int start, int end)
   {
   int y, u, v, a;
   int i, j;
   uint8_t * src;
-  for(i = 0; i < m->format.image_height; i++)
+  bg_colormatrix_t * m = priv;
+  gavl_video_frame_t * in = m->frame;
+  for(i = start; i < end; i++)
     {
     src = in->planes[0]  + i * in->strides[0];
     
@@ -890,13 +924,14 @@ static void process_yuva_32(bg_colormatrix_t * m,
   
   }
 
-static void process_yuva_64(bg_colormatrix_t * m,
-                            gavl_video_frame_t * in)
+static void process_yuva_64(void * priv, int start, int end)
   {
   int64_t y, u, v, a;
   int i, j;
   uint16_t * src;
-  for(i = 0; i < m->format.image_height; i++)
+  bg_colormatrix_t * m = priv;
+  gavl_video_frame_t * in = m->frame;
+  for(i = start; i < end; i++)
     {
     src = (uint16_t*)(in->planes[0]  + i * in->strides[0]);
     
@@ -946,14 +981,15 @@ static void process_yuva_64(bg_colormatrix_t * m,
 
 
 
-static void process_444j(bg_colormatrix_t * m,
-                         gavl_video_frame_t * in)
+static void process_444j(void * priv, int start, int end)
   {
   int y, u, v;
   int i, j;
   uint8_t * src_y, * src_u, *src_v;
+  bg_colormatrix_t * m = priv;
+  gavl_video_frame_t * in = m->frame;
   
-  for(i = 0; i < m->format.image_height; i++)
+  for(i = start; i < end; i++)
     {
     src_y = in->planes[0]  + i * in->strides[0];
     src_u = in->planes[1]  + i * in->strides[1];
@@ -994,14 +1030,15 @@ static void process_444j(bg_colormatrix_t * m,
     }
   }
 
-static void process_444(bg_colormatrix_t * m,
-                        gavl_video_frame_t * in)
+static void process_444(void * priv, int start, int end)
   {
   int y, u, v;
   int i, j;
   uint8_t * src_y, * src_u, *src_v;
+  bg_colormatrix_t * m = priv;
+  gavl_video_frame_t * in = m->frame;
   
-  for(i = 0; i < m->format.image_height; i++)
+  for(i = start; i < end; i++)
     {
     src_y = in->planes[0]  + i * in->strides[0];
     src_u = in->planes[1]  + i * in->strides[1];
@@ -1042,14 +1079,15 @@ static void process_444(bg_colormatrix_t * m,
     }
   }
 
-static void process_444_16(bg_colormatrix_t * m,
-                           gavl_video_frame_t * in)
+static void process_444_16(void * priv, int start, int end)
   {
   int64_t y, u, v;
   int i, j;
   uint16_t * src_y, * src_u, *src_v;
+  bg_colormatrix_t * m = priv;
+  gavl_video_frame_t * in = m->frame;
   
-  for(i = 0; i < m->format.image_height; i++)
+  for(i = start; i < end; i++)
     {
     src_y = (uint16_t*)(in->planes[0]  + i * in->strides[0]);
     src_u = (uint16_t*)(in->planes[1]  + i * in->strides[1]);
@@ -1347,6 +1385,8 @@ static const gavl_pixelformat_t pixelformats[] =
     GAVL_BGR_32,
     GAVL_RGBA_32,
     GAVL_RGBA_64,
+    GAVL_RGB_FLOAT,
+    GAVL_RGBA_FLOAT,
     GAVL_YUVJ_444_P,
     GAVL_YUV_444_P,
     GAVL_YUV_444_P_16,
@@ -1368,13 +1408,20 @@ static const gavl_pixelformat_t pixelformats_alpha[] =
     GAVL_RGBA_32,
     GAVL_RGBA_64,
     GAVL_YUVA_32,
+    GAVL_YUVA_FLOAT,
+    GAVL_RGBA_FLOAT,
     GAVL_PIXELFORMAT_NONE,
   };
 
 
 void bg_colormatrix_init(bg_colormatrix_t * m,
-                         gavl_video_format_t * format, int flags)
+                         gavl_video_format_t * format, int flags,
+                         gavl_video_options_t * opt)
   {
+  m->run_func  = gavl_video_options_get_run_func(opt, &m->run_data);
+  m->stop_func = gavl_video_options_get_stop_func(opt, &m->stop_data);
+  m->num_threads = gavl_video_options_get_num_threads(opt);
+  
   if(flags & BG_COLORMATRIX_FORCE_ALPHA)
     format->pixelformat = gavl_pixelformat_get_best(format->pixelformat,
                                                     pixelformats_alpha,
@@ -1395,6 +1442,26 @@ void bg_colormatrix_init(bg_colormatrix_t * m,
 void bg_colormatrix_process(bg_colormatrix_t * m,
                             gavl_video_frame_t * in_frame)
   {
-  m->func(m, in_frame);
+  int j, nt, scanline, delta;
+
+  m->frame = in_frame;
+  
+  nt = m->num_threads;
+  if(nt > m->format.image_height)
+    nt = m->format.image_height;
+
+  delta = m->format.image_height / nt;
+  scanline = 0;
+
+  for(j = 0; j < nt - 1; j++)
+    {
+    m->run_func(m->func, m, scanline, scanline+delta, m->run_data, j);
+    scanline += delta;
+    }
+  m->run_func(m->func, m, scanline, m->format.image_height,
+              m->run_data, nt - 1);
+  
+  for(j = 0; j < nt; j++)
+    m->stop_func(m->stop_data, j);
   }
 

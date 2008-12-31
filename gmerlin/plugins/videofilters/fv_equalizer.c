@@ -70,6 +70,7 @@ typedef struct equalizer_priv_s
   int use_matrix;
   
   gavl_video_format_t format;
+  gavl_video_options_t * global_opt;
 
   void (*process_bc)(unsigned char *dest, int dstride,
                      int w, int h, int brightness, int contrast, int advance);
@@ -397,7 +398,14 @@ static void * create_equalizer()
   equalizer_priv_t * ret;
   ret = calloc(1, sizeof(*ret));
   ret->mat = bg_colormatrix_create();
+  ret->global_opt = gavl_video_options_create();
   return ret;
+  }
+
+static gavl_video_options_t * get_options_equalizer(void * priv)
+  {
+  equalizer_priv_t * vp = priv;
+  return vp->global_opt;
   }
 
 static void destroy_equalizer(void * priv)
@@ -405,6 +413,7 @@ static void destroy_equalizer(void * priv)
   equalizer_priv_t * vp;
   vp = (equalizer_priv_t *)priv;
   bg_colormatrix_destroy(vp->mat);
+  gavl_video_options_destroy(vp->global_opt);
   free(vp);
   }
 
@@ -703,7 +712,7 @@ static void set_input_format_equalizer(void * priv, gavl_video_format_t * format
     {
     set_coeffs(vp);
     
-    bg_colormatrix_init(vp->mat, format, 0);
+    bg_colormatrix_init(vp->mat, format, 0, vp->global_opt);
     bg_colormatrix_set_yuv(vp->mat, vp->coeffs);
     vp->read_video = read_video_matrix;
     }
@@ -763,6 +772,7 @@ const bg_fv_plugin_t the_plugin =
     .get_output_format = get_output_format_equalizer,
 
     .read_video = read_video_equalizer,
+    .get_options = get_options_equalizer,
     
   };
 

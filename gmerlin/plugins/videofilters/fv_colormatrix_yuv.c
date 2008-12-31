@@ -46,6 +46,7 @@ typedef struct
   float coeffs[4][5];
   int force_alpha;
   int need_restart;
+  gavl_video_options_t * global_opt;
 
   } colormatrix_priv_t;
 
@@ -61,7 +62,14 @@ static void * create_colormatrix()
   colormatrix_priv_t * ret;
   ret = calloc(1, sizeof(*ret));
   ret->mat = bg_colormatrix_create();
+  ret->global_opt = gavl_video_options_create();
   return ret;
+  }
+
+static gavl_video_options_t * get_options_colormatrix(void * priv)
+  {
+  colormatrix_priv_t * vp = priv;
+  return vp->global_opt;
   }
 
 static void destroy_colormatrix(void * priv)
@@ -69,6 +77,7 @@ static void destroy_colormatrix(void * priv)
   colormatrix_priv_t * vp;
   vp = (colormatrix_priv_t *)priv;
   bg_colormatrix_destroy(vp->mat);
+  gavl_video_options_destroy(vp->global_opt);
   free(vp);
   }
 
@@ -409,7 +418,7 @@ set_input_format_colormatrix(void * priv,
 
   if(!port)
     {
-    bg_colormatrix_init(vp->mat, format, flags);
+    bg_colormatrix_init(vp->mat, format, flags, vp->global_opt);
     gavl_video_format_copy(&vp->format, format);
     }
   vp->need_restart = 0;
@@ -466,6 +475,7 @@ const const bg_fv_plugin_t the_plugin =
 
     .read_video = read_video_colormatrix,
     .need_restart = need_restart_colormatrix,
+    .get_options = get_options_colormatrix,
     
   };
 

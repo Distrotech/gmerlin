@@ -35,7 +35,8 @@ void bg_colormatrix_set_yuv(bg_colormatrix_t *, float coeffs[3][4]);
 #define BG_COLORMATRIX_FORCE_ALPHA (1<<0)
 
 void bg_colormatrix_init(bg_colormatrix_t *,
-                         gavl_video_format_t * format, int flags);
+                         gavl_video_format_t * format, int flags,
+                         gavl_video_options_t * opt);
 
 void bg_colormatrix_process(bg_colormatrix_t *,
                             gavl_video_frame_t * frame);

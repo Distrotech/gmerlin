@@ -47,6 +47,9 @@ typedef struct invert_priv_s
   int invert[4];
 
   void (*process)(struct invert_priv_s * p, gavl_video_frame_t * f);
+
+  gavl_video_options_t * global_opt;
+  
   
   } invert_priv_t;
 
@@ -71,6 +74,8 @@ static void * create_invert()
   invert_priv_t * ret;
   ret = calloc(1, sizeof(*ret));
   ret->mat = bg_colormatrix_create();
+  ret->global_opt = gavl_video_options_create();
+  
   return ret;
   }
 
@@ -79,7 +84,14 @@ static void destroy_invert(void * priv)
   invert_priv_t * vp;
   vp = (invert_priv_t *)priv;
   bg_colormatrix_destroy(vp->mat);
+  gavl_video_options_destroy(vp->global_opt);
   free(vp);
+  }
+
+static gavl_video_options_t * get_options_invert(void * priv)
+  {
+  invert_priv_t * vp = priv;
+  return vp->global_opt;
   }
 
 static const bg_parameter_info_t parameters[] =
@@ -513,7 +525,7 @@ static void set_input_format_invert(void * priv, gavl_video_format_t * format, i
         break;
       default:
         vp->process = process_matrix;
-        bg_colormatrix_init(vp->mat, format, 0);
+        bg_colormatrix_init(vp->mat, format, 0, vp->global_opt);
         break;
       }
     
@@ -565,6 +577,7 @@ const bg_fv_plugin_t the_plugin =
     .get_output_format = get_output_format_invert,
 
     .read_video = read_video_invert,
+    .get_options = get_options_invert,
     
   };
 

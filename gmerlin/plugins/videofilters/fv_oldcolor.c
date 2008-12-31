@@ -31,7 +31,7 @@
 
 #include "colormatrix.h"
 
-#define LOG_DOMAIN "fv_technicolor"
+#define LOG_DOMAIN "fv_oldcolor"
 
 typedef struct
   {
@@ -42,12 +42,13 @@ typedef struct
   int read_stream;
   
   gavl_video_format_t format;
-  
+  gavl_video_options_t * global_opt;
+
   float coeffs[3][4];
   int style;
   float strength;
   float gain[3];
-  } technicolor_priv_t;
+  } oldcolor_priv_t;
 
 #define STYLE_BW    0
 #define STYLE_TECH1 1
@@ -93,20 +94,29 @@ static void interpolate(const float coeffs[3][4], float result[3][4], float stre
     }
   }
 
-static void * create_technicolor()
+static void * create_oldcolor()
   {
-  technicolor_priv_t * ret;
+  oldcolor_priv_t * ret;
   ret = calloc(1, sizeof(*ret));
   ret->mat = bg_colormatrix_create();
+  ret->global_opt = gavl_video_options_create();
+
   return ret;
   }
 
-static void destroy_technicolor(void * priv)
+static void destroy_oldcolor(void * priv)
   {
-  technicolor_priv_t * vp;
-  vp = (technicolor_priv_t *)priv;
+  oldcolor_priv_t * vp;
+  vp = (oldcolor_priv_t *)priv;
   bg_colormatrix_destroy(vp->mat);
+  gavl_video_options_destroy(vp->global_opt);
   free(vp);
+  }
+
+static gavl_video_options_t * get_options_oldcolor(void * priv)
+  {
+  oldcolor_priv_t * vp = priv;
+  return vp->global_opt;
   }
 
 static const bg_parameter_info_t parameters[] =
@@ -180,12 +190,12 @@ static const bg_parameter_info_t parameters[] =
   };
 
 
-static const bg_parameter_info_t * get_parameters_technicolor(void * priv)
+static const bg_parameter_info_t * get_parameters_oldcolor(void * priv)
   {
   return parameters;
   }
 
-static void set_coeffs(technicolor_priv_t * vp)
+static void set_coeffs(oldcolor_priv_t * vp)
   {
   switch(vp->style)
     {
@@ -201,12 +211,12 @@ static void set_coeffs(technicolor_priv_t * vp)
     }
   }
 
-static void set_parameter_technicolor(void * priv, const char * name,
+static void set_parameter_oldcolor(void * priv, const char * name,
                                const bg_parameter_value_t * val)
   {
-  technicolor_priv_t * vp;
+  oldcolor_priv_t * vp;
   int changed = 0;
-  vp = (technicolor_priv_t *)priv;
+  vp = (oldcolor_priv_t *)priv;
   if(!name)
     return;
   
@@ -276,12 +286,12 @@ static void set_parameter_technicolor(void * priv, const char * name,
     }
   }
 
-static void connect_input_port_technicolor(void * priv,
+static void connect_input_port_oldcolor(void * priv,
                                     bg_read_video_func_t func,
                                     void * data, int stream, int port)
   {
-  technicolor_priv_t * vp;
-  vp = (technicolor_priv_t *)priv;
+  oldcolor_priv_t * vp;
+  vp = (oldcolor_priv_t *)priv;
   
   if(!port)
     {
@@ -291,32 +301,32 @@ static void connect_input_port_technicolor(void * priv,
     }
   }
 
-static void set_input_format_technicolor(void * priv, gavl_video_format_t * format, int port)
+static void set_input_format_oldcolor(void * priv, gavl_video_format_t * format, int port)
   {
-  technicolor_priv_t * vp;
-  vp = (technicolor_priv_t *)priv;
+  oldcolor_priv_t * vp;
+  vp = (oldcolor_priv_t *)priv;
 
   if(!port)
     {
-    bg_colormatrix_init(vp->mat, format, 0);
+    bg_colormatrix_init(vp->mat, format, 0, vp->global_opt);
     gavl_video_format_copy(&vp->format, format);
     }
   }
 
-static void get_output_format_technicolor(void * priv, gavl_video_format_t * format)
+static void get_output_format_oldcolor(void * priv, gavl_video_format_t * format)
   {
-  technicolor_priv_t * vp;
-  vp = (technicolor_priv_t *)priv;
+  oldcolor_priv_t * vp;
+  vp = (oldcolor_priv_t *)priv;
   gavl_video_format_copy(format, &vp->format);
   }
 
-static int read_video_technicolor(void * priv, gavl_video_frame_t * frame, int stream)
+static int read_video_oldcolor(void * priv, gavl_video_frame_t * frame, int stream)
   {
-  technicolor_priv_t * vp;
-  vp = (technicolor_priv_t *)priv;
+  oldcolor_priv_t * vp;
+  vp = (oldcolor_priv_t *)priv;
 
 #if 0  
-  if(!vp->technicolor_h && !vp->technicolor_v)
+  if(!vp->oldcolor_h && !vp->oldcolor_v)
     {
     return vp->read_func(vp->read_data, frame, vp->read_stream);
     }
@@ -338,19 +348,20 @@ const bg_fv_plugin_t the_plugin =
       .description = TRS("Simulate old color- and B/W movies"),
       .type =     BG_PLUGIN_FILTER_VIDEO,
       .flags =    BG_PLUGIN_FILTER_1,
-      .create =   create_technicolor,
-      .destroy =   destroy_technicolor,
-      .get_parameters =   get_parameters_technicolor,
-      .set_parameter =    set_parameter_technicolor,
+      .create =   create_oldcolor,
+      .destroy =   destroy_oldcolor,
+      .get_parameters =   get_parameters_oldcolor,
+      .set_parameter =    set_parameter_oldcolor,
       .priority =         1,
     },
     
-    .connect_input_port = connect_input_port_technicolor,
+    .connect_input_port = connect_input_port_oldcolor,
     
-    .set_input_format = set_input_format_technicolor,
-    .get_output_format = get_output_format_technicolor,
+    .set_input_format = set_input_format_oldcolor,
+    .get_output_format = get_output_format_oldcolor,
 
-    .read_video = read_video_technicolor,
+    .read_video = read_video_oldcolor,
+    .get_options = get_options_oldcolor,
     
   };
 
