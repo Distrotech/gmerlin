@@ -25,7 +25,6 @@
 
 #include <config.h>
 #include <bswap.h>
-#include <config.h>
 #include <avdec_private.h>
 #include <codecs.h>
 
@@ -55,7 +54,7 @@
 
 //#define DUMP_DECODE
 // #define DUMP_EXTRADATA
-//#define DUMP_PARSER
+#define DUMP_PARSER
 
 /* Comes at the end */
 static int h264_is_keyframe(uint8_t * data, int len);
@@ -171,6 +170,10 @@ static int my_get_buffer(struct AVCodecContext *c, AVFrame *pic)
   bgav_stream_t * s = (bgav_stream_t *)c->opaque;
   priv = (ffmpeg_video_priv*)(s->data.video.decoder->priv);
   ret = avcodec_default_get_buffer(c, pic);
+
+  fprintf(stderr, "Got packet 2 %ld %ld\n",
+          priv->current_packet.position, priv->current_packet.pts);
+  
   for(i = 0; i < FF_MAX_B_FRAMES+1; i++)
     {
     if(!priv->packets[i].used)
@@ -188,11 +191,15 @@ static int my_get_buffer(struct AVCodecContext *c, AVFrame *pic)
   //  *pts= global_video_pkt_pts;
   pic->opaque= &priv->packets[i];
 
+
+  
   for(i = 0; i < FF_MAX_B_FRAMES+1; i++)
     {
     if(priv->packets[i].used &&
        (priv->packets[i].pts == priv->current_packet.pts))
       {
+      fprintf(stderr, "Packet with PTS %ld (pos %ld) already there\n",
+              priv->current_packet.pts, priv->packets[i].position);
       return ret;
       }
     }
@@ -203,7 +210,8 @@ static int my_get_buffer(struct AVCodecContext *c, AVFrame *pic)
   priv->packets[index].duration = priv->current_packet.duration;
   priv->packets[index].keyframe = priv->current_packet.keyframe;
   priv->packets[index].used     = 1;
-  
+  //  fprintf(stderr, "Got packet 2 %ld %ld\n",
+  //          priv->current_packet.position, priv->current_packet.pts);
   return ret;
   }
 
@@ -269,6 +277,10 @@ static bgav_packet_t * get_packet(bgav_stream_t * s)
       ret = bgav_demuxer_get_packet_read(s->demuxer, s);
       break;
     }
+  
+  if(ret)
+    fprintf(stderr, "Got packet 1 pos: %ld pts: %ld\n", ret->position,
+            ret->pts);
   return ret;
   }
 
@@ -334,7 +346,7 @@ static int get_data_parser(bgav_stream_t * s, int64_t * pts,
           *position = priv->parser_last_pos;
 
 #ifdef DUMP_PARSER
-        bgav_dprintf("Parser Offset: %ld\n", *position);
+        bgav_dprintf("Parser Offset: %ld, PTS: %ld\n", *position, *pts);
 #endif
         break;
         }
@@ -455,7 +467,8 @@ static int get_data(bgav_stream_t * s)
     priv->current_packet.duration = duration;
     if((s->action == BGAV_STREAM_PARSE) && (priv->info->ffmpeg_id == CODEC_ID_H264))
       {
-      priv->current_packet.keyframe = h264_is_keyframe(priv->parsed_frame, priv->parsed_frame_size);
+      priv->current_packet.keyframe =
+        h264_is_keyframe(priv->parsed_frame, priv->parsed_frame_size);
       }
     }
   return ret;
@@ -2470,7 +2483,7 @@ static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f)
 
 /* H.264 keyframe detection. This is taken from the x264 plugin of
  * libquicktime, which was, in turn, takes from the mov encoder from
- * libquicktime
+ * ffmpeg
  */
 
 static uint8_t *avc_find_startcode( uint8_t *p, uint8_t *end )
@@ -2535,7 +2548,7 @@ static int h264_is_keyframe(uint8_t * data, int len)
         ret = 1;
       }
 #if 1
-    if((ptr[3] & 0x1f) == 7)
+    if((ptr[3] & 0x1f) == 7) // Sequence parameter set
       {
       ret = 1;
       }

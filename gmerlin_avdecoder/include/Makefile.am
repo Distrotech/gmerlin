@@ -29,6 +29,7 @@ rtp.h \
 rtsp.h \
 sdp.h \
 utils.h \
+videoparser.h \
 vorbis_comment.h \
 win32codec.h \
 xing.h \

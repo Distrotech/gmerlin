@@ -595,10 +595,15 @@ static void flush_stream_simple(bgav_stream_t * s)
   while(bgav_demuxer_peek_packet_read(s->demuxer, s, 0))
     {
     p = bgav_demuxer_get_packet_read(s->demuxer, s);
-    bgav_file_index_append_packet(s->file_index,
-                                  p->position, p->pts, p->keyframe);
+
+    /* This will omit B-frames */
+    if(p->pts >= s->duration)
+      {
+      bgav_file_index_append_packet(s->file_index,
+                                    p->position, p->pts, p->keyframe);
+      s->duration = p->pts + p->duration;
+      }
     bgav_demuxer_done_packet_read(s->demuxer, p);
-    s->duration = p->pts + p->duration;
     }
   }
 
@@ -1018,7 +1023,7 @@ int bgav_demuxer_next_packet_fileindex(bgav_demuxer_context_t * ctx)
   {
   bgav_stream_t * s = ctx->request_stream;
   int new_pos;
-  
+
   /* Check for EOS */
   if(s->index_position >= s->file_index->num_entries)
     return 0;
@@ -1047,7 +1052,7 @@ int bgav_demuxer_next_packet_fileindex(bgav_demuxer_context_t * ctx)
     ctx->next_packet_pos = 0x7FFFFFFFFFFFFFFFLL;
   else 
     ctx->next_packet_pos = s->file_index->entries[new_pos].position;
-  
+
   if(!ctx->demuxer->next_packet(ctx))
     return 0;
   

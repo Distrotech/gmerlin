@@ -362,7 +362,6 @@ static void resync_y4m(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
   y4m_t * priv;
   priv = (y4m_t *)(ctx->priv);
   priv->pts = ctx->tt->cur->video_streams[0].in_time;
-  
   }
 
 static void close_y4m(bgav_demuxer_context_t * ctx)

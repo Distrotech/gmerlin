@@ -67,6 +67,11 @@ typedef struct bgav_timecode_table_s bgav_timecode_table_t;
 #include <id3.h>
 #include <yml.h>
 
+#define BGAV_CODING_TYPE_I 'I'
+#define BGAV_CODING_TYPE_P 'P'
+#define BGAV_CODING_TYPE_B 'B'
+#define BGAV_CODING_TYPE_D 'D' /* Unsupported */
+
 struct bgav_metadata_s
   {
   char * author;
@@ -192,6 +197,7 @@ struct bgav_packet_s
 bgav_packet_t * bgav_packet_create();
 void bgav_packet_destroy(bgav_packet_t*);
 void bgav_packet_alloc(bgav_packet_t*, int size);
+void bgav_packet_dump(bgav_packet_t*);
 
 void bgav_packet_done_write(bgav_packet_t *);
 
@@ -1094,13 +1100,12 @@ struct bgav_demuxer_s
 #define BGAV_DEMUXER_SEEK_ITERATIVE       (1<<1) /* If 1, perform iterative seeking */
 #define BGAV_DEMUXER_PEEK_FORCES_READ     (1<<2) /* This is set if only subtitle streams are read */
 #define BGAV_DEMUXER_SI_SEEKING           (1<<3) /* Demuxer is seeking */
-//#define BGAV_DEMUXER_SI_NON_INTERLEAVED   (1<<4) /* Track is non-interleaved */
-#define BGAV_DEMUXER_SI_PRIVATE_FUNCS     (1<<5) /* We have a suprindex but use private seek/demux funcs */
-#define BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET (1<<6) /* Timestamp offset (from input) is valid */
-#define BGAV_DEMUXER_EOF                  (1<<7) /* Report EOF just once and not for each stream */
-#define BGAV_DEMUXER_HAS_DATA_START       (1<<8) /* Has data start */
+#define BGAV_DEMUXER_SI_PRIVATE_FUNCS     (1<<4) /* We have a suprindex but use private seek/demux funcs */
+#define BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET (1<<5) /* Timestamp offset (from input) is valid */
+#define BGAV_DEMUXER_EOF                  (1<<6) /* Report EOF just once and not for each stream */
+#define BGAV_DEMUXER_HAS_DATA_START       (1<<7) /* Has data start */
 
-#define BGAV_DEMUXER_BUILD_INDEX          (1<<9) /* We're just building
+#define BGAV_DEMUXER_BUILD_INDEX          (1<<8) /* We're just building
                                                     an index */
 
 #define INDEX_MODE_NONE   0 /* Default: No sample accuracy */
@@ -1676,6 +1681,7 @@ typedef struct
   } bgav_bytebuffer_t;
 
 void bgav_bytebuffer_append(bgav_bytebuffer_t * b, bgav_packet_t * p, int padding);
+void bgav_bytebuffer_append_data(bgav_bytebuffer_t * b, uint8_t * data, int len, int padding);
 void bgav_bytebuffer_remove(bgav_bytebuffer_t * b, int bytes);
 void bgav_bytebuffer_free(bgav_bytebuffer_t * b);
 void bgav_bytebuffer_flush(bgav_bytebuffer_t * b);

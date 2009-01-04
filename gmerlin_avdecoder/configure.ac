@@ -197,6 +197,12 @@ dnl
 GMERLIN_CHECK_THEORA
 
 dnl
+dnl Check for schroedinger
+dnl
+
+GMERLIN_CHECK_SCHROEDINGER
+
+dnl
 dnl Check for speex
 dnl
 
@@ -536,6 +542,15 @@ elif test "x$test_theora" = "xfalse"; then
 echo "Disabled"
 else
 echo "Missing (Go to http://www.theora.org/)"
+fi
+
+echo -n "schroedinger:           "
+if test "x$have_schroedinger" = "xtrue"; then
+echo "Found (CFLAGS=$SCHROEDINGER_CFLAGS LIBS=$SCHROEDINGER_LIBS)"
+elif test "x$test_schroedinger" = "xfalse"; then
+echo "Disabled"
+else
+echo "Missing (Go to http://www.diracvideo.org/)"
 fi
 
 echo -n "speex:                  "

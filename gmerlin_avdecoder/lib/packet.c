@@ -87,6 +87,22 @@ void bgav_packet_set_text_subtitle(bgav_packet_t * p,
   p->data[len+1] = '\0';
   }
 
+void bgav_packet_dump(bgav_packet_t * p)
+  {
+  bgav_dprintf("pos: %ld, K: %d, ", p->position, p->keyframe);
+  if(p->dts == GAVL_TIME_UNDEFINED)
+    bgav_dprintf("dts: (none), ");
+  else
+    bgav_dprintf("dts: %"PRId64", ", p->dts);
+
+  if(p->pts == GAVL_TIME_UNDEFINED)
+    bgav_dprintf("pts: (none), ");
+  else
+    bgav_dprintf("pts: %"PRId64", ", p->pts);
+  bgav_dprintf("Len: %d, dur: %"PRId64"\n", p->data_size, p->duration);
+  //  bgav_hexdump(p->data, p->data_size < 16 ? p->data_size : 16, 16);
+  }
+
 #if 0
 void bgav_packet_get_text_subtitle(bgav_packet_t * p,
                                    char ** text,

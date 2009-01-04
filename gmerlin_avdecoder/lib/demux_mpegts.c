@@ -1219,6 +1219,7 @@ static int process_packet(bgav_demuxer_context_t * ctx)
             {
             s->in_time = pes_header.pts + ctx->timestamp_offset;
             s->packet = bgav_stream_get_packet_write(s);
+            s->packet->position = position;
             }
           }
         else

@@ -263,6 +263,10 @@ void bgav_codecs_init(bgav_options_t * opt)
   bgav_init_video_decoders_theora();
 #endif
 
+#ifdef HAVE_SCHROEDINGER
+  bgav_init_video_decoders_schroedinger();
+#endif
+
 #ifdef HAVE_SPEEX
   bgav_init_audio_decoders_speex();
 #endif

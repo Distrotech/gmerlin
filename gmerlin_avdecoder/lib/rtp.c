@@ -1047,7 +1047,7 @@ static int mpeg4_aus_read(bgav_stream_t * s,
   return (total_bits+7)/8 + 2;
   }
 
-#if 1
+#if 0
 static void dump_aus(mpeg4_au_t * aus, int num)
   {
   int i;

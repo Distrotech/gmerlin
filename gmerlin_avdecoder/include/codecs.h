@@ -56,6 +56,10 @@ void bgav_init_video_decoders_tiff();
 void bgav_init_video_decoders_theora();
 #endif
 
+#ifdef HAVE_SCHROEDINGER
+void bgav_init_video_decoders_schroedinger();
+#endif
+
 #ifdef HAVE_SPEEX
 void bgav_init_audio_decoders_speex();
 #endif

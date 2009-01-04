@@ -460,10 +460,6 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
           (priv->info->display_picture->flags & PIC_FLAG_TOP_FIELD_FIRST) ?
           GAVL_INTERLACE_TOP_FIRST : GAVL_INTERLACE_BOTTOM_FIRST;
       }
-#if 0 // Don't set anything for progressive mode!!
-    else
-      f->interlace_mode = GAVL_INTERLACE_NONE;
-#endif
     }
   s->data.video.last_frame_time     = priv->picture_timestamp;
   s->data.video.last_frame_duration = priv->picture_duration;
@@ -777,7 +773,7 @@ static void parse_libmpeg2(bgav_stream_t * s, int flush)
         else if(result > 0)
           {
           /* First frame after sequence header is a P-Frame */
-          if(!s->duration && ph.coding_type == MPV_CODING_TYPE_P)
+          if(!s->duration && ph.coding_type == BGAV_CODING_TYPE_P)
             priv->intra_slice_refresh = 1;
 
           /*
@@ -788,12 +784,12 @@ static void parse_libmpeg2(bgav_stream_t * s, int flush)
            * afterwards.
            */
           
-          if(ph.coding_type != MPV_CODING_TYPE_B)
+          if(ph.coding_type != BGAV_CODING_TYPE_B)
             {
             if(priv->intra_slice_refresh)
-              keyframe = (ph.coding_type == MPV_CODING_TYPE_P);
+              keyframe = (ph.coding_type == BGAV_CODING_TYPE_P);
             else
-              keyframe = (ph.coding_type == MPV_CODING_TYPE_I);
+              keyframe = (ph.coding_type == BGAV_CODING_TYPE_I);
 
             /* Frame started in the last packet */
             if(ptr - priv->buffer < old_buffer_size)
@@ -860,7 +856,7 @@ static void parse_libmpeg2(bgav_stream_t * s, int flush)
             else if(ph.ext.progressive_frame)
               duration = s->data.video.format.frame_duration / 2;
             
-            if(priv->last_coding_type == MPV_CODING_TYPE_B)
+            if(priv->last_coding_type == BGAV_CODING_TYPE_B)
               {
               if(priv->non_b_count >= 2)
                 {

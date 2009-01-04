@@ -50,12 +50,13 @@ framerates[] =
     {    50,    1 }, // 50
     { 60000, 1001 }, // 60000:1001 (59,94...)
     {    60,    1 }, // 60
-    {    -1,   -1 }, // reserved
-    {    -1,   -1 }, // reserved 
-    {    -1,   -1 }, // reserved
-    {    -1,   -1 }, // reserved 
-    {    -1,   -1 }, // reserved
-    {    -1,   -1 }, // reserved
+  // Xing's 15fps: (9)
+    {   15,    1},
+  // libmpeg3's "Unofficial economy rates": (10-13)
+    {    5,    1},
+    {   10,    1},
+    {   12,    1},
+    {   15,    1},
     {    -1,   -1 }, // reserved
   };
 
@@ -151,13 +152,13 @@ int bgav_mpv_picture_header_parse(const bgav_options_t * opt,
   switch(type)
     {
     case 1:
-      ret->coding_type = MPV_CODING_TYPE_I;
+      ret->coding_type = BGAV_CODING_TYPE_I;
       break;
     case 2:
-      ret->coding_type = MPV_CODING_TYPE_P;
+      ret->coding_type = BGAV_CODING_TYPE_P;
       break;
     case 3:
-      ret->coding_type = MPV_CODING_TYPE_B;
+      ret->coding_type = BGAV_CODING_TYPE_B;
       break;
     default:
       return -1; // Error
@@ -192,4 +193,13 @@ int bgav_mpv_picture_extension_parse(const bgav_options_t * opt,
   ret->repeat_first_field = buffer[3] & (1 << 1);
   ret->progressive_frame  = buffer[4] & (1 << 7);
   return 5;
+  }
+
+int bgav_mpv_gop_header_probe(const uint8_t * buffer)
+  {
+  uint32_t code;
+  code = BGAV_PTR_2_32BE(buffer);
+  if(code != 0x000001B8)
+    return 0;
+  return 1;
   }
