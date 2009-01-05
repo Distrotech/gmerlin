@@ -239,7 +239,12 @@ static int check_output(bgav_video_parser_t * parser)
 
 void bgav_video_parser_destroy(bgav_video_parser_t * parser)
   {
-  
+  if(parser->cleanup)
+    parser->cleanup(parser);
+  if(parser->header)
+    free(parser->header);
+  bgav_bytebuffer_free(&parser->buf);
+  free(parser);
   }
 
 void bgav_video_parser_reset(bgav_video_parser_t * parser, int64_t pts)

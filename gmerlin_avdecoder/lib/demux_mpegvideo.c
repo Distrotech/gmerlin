@@ -120,7 +120,7 @@ static int parse(bgav_demuxer_context_t * ctx, int code)
   return 0;
   }
 
-static int next_packet_fi(bgav_demuxer_context_t * ctx)
+static void next_packet_fi(bgav_demuxer_context_t * ctx)
   {
   int bytes_to_read, state, bytes_read;
   mpegvideo_priv_t * priv;
@@ -160,7 +160,7 @@ static int next_packet_fi(bgav_demuxer_context_t * ctx)
       {
       p = bgav_stream_get_packet_write(s);
       bgav_video_parser_get_packet(priv->parser, p);
-      //      bgav_packet_dump(p);
+      bgav_packet_dump(p);
       bgav_packet_done_write(p);
       }
     else if(state == PARSER_NEED_DATA)
@@ -179,7 +179,7 @@ static int next_packet_fi(bgav_demuxer_context_t * ctx)
         {
         p = bgav_stream_get_packet_write(s);
         bgav_video_parser_get_packet(priv->parser, p);
-        //        bgav_packet_dump(p);
+        bgav_packet_dump(p);
         bgav_packet_done_write(p);
         }
       else if(state == PARSER_EOF)
@@ -291,6 +291,9 @@ static void close_mpegvideo(bgav_demuxer_context_t * ctx)
   {
   mpegvideo_priv_t * priv;
   priv = (mpegvideo_priv_t *)(ctx->priv);
+  if(priv->buffer)
+    free(priv->buffer);
+  bgav_video_parser_destroy(priv->parser);
   free(priv);
   }
 
@@ -299,6 +302,7 @@ static void resync_mpegvideo(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
   mpegvideo_priv_t * priv;
   priv = (mpegvideo_priv_t *)(ctx->priv);
   bgav_video_parser_reset(priv->parser, s->in_time);
+  fprintf(stderr, "resync: %ld\n", s->in_time);
   priv->eof = 0;
   }
 
