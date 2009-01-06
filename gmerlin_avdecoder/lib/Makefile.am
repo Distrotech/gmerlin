@@ -415,6 +415,7 @@ device.c \
 dvframe.c \
 edl.c \
 fileindex.c \
+h264_header.c \
 http.c \
 id3v1.c \
 id3v2.c \

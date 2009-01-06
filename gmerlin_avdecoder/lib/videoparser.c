@@ -43,6 +43,8 @@ typedef struct
   int64_t pts;
   int64_t dts;
   int64_t position;
+  
+  int skip;
   } cache_t;
 
 struct bgav_video_parser_s
@@ -84,6 +86,8 @@ struct bgav_video_parser_s
   int64_t dts;
 
   int eof;
+  
+  int non_b_count;
   };
 
 /* Parse functions (come below) */
@@ -152,6 +156,15 @@ static void update_previous_size(bgav_video_parser_t * parser)
     }
   }
 
+static void set_coding_type(bgav_video_parser_t * parser, int type)
+  {
+  parser->cache[parser->cache_size-1].coding_type = type;
+  if(type != BGAV_CODING_TYPE_B)
+    parser->non_b_count++;
+  else if(parser->non_b_count < 2)
+    parser->cache[parser->cache_size-1].skip = 1;
+  }
+
 static void set_picture_position(bgav_video_parser_t * parser)
   {
   if(parser->raw)
@@ -160,7 +173,8 @@ static void set_picture_position(bgav_video_parser_t * parser)
 
     for(i = 0; i < parser->cache_size-1; i++)
       offset += parser->cache[i].size;
-    parser->cache[parser->cache_size-1].position = parser->raw_position + offset;
+    parser->cache[parser->cache_size-1].position =
+      parser->raw_position + offset;
     }
   }
      
@@ -181,6 +195,15 @@ static void fix_timestamps(bgav_video_parser_t * parser)
   if(parser->cache_size < 2)
     return;
 
+  /* I B B P after seeking */
+
+  if((parser->cache[0].coding_type != BGAV_CODING_TYPE_B) && 
+     (parser->cache[1].coding_type == BGAV_CODING_TYPE_B) &&
+     (parser->cache[1].skip))
+    {
+    parser->cache[0].pts = parser->cache[0].dts;
+    }
+  
   /* P B B P */
   
   if((parser->cache[0].coding_type != BGAV_CODING_TYPE_B) && 
@@ -256,6 +279,7 @@ void bgav_video_parser_reset(bgav_video_parser_t * parser, int64_t pts)
   parser->eof = 0;
   parser->dts = pts;
   parser->pos = 0;
+  parser->non_b_count = 0;
   if(parser->reset)
     parser->reset(parser);
   }
@@ -340,46 +364,6 @@ void bgav_video_parser_get_packet(bgav_video_parser_t * parser,
 
 /* Parse functions */
 
-static uint8_t * find_startcode( uint8_t *p, uint8_t *end )
-  {
-  uint8_t *a = p + 4 - ((long)p & 3);
-  
-  for( end -= 3; p < a && p < end; p++ )
-    {
-    if( p[0] == 0 && p[1] == 0 && p[2] == 1 )
-      return p;
-    }
-  
-  for( end -= 3; p < end; p += 4 )
-    {
-    uint32_t x = *(uint32_t*)p;
-    if( (x - 0x01010101) & (~x) & 0x80808080 )
-      { // generic
-      if( p[1] == 0 )
-        {
-        if( p[0] == 0 && p[2] == 1 )
-          return p;
-        if( p[2] == 0 && p[3] == 1 )
-          return p+1;
-        }
-      if( p[3] == 0 )
-        {
-        if( p[2] == 0 && p[4] == 1 )
-          return p+2;
-        if( p[4] == 0 && p[5] == 1 )
-          return p+3;
-        }
-      }
-    }
-  
-  for( end += 3; p < end; p++ )
-    {
-    if( p[0] == 0 && p[1] == 0 && p[2] == 1 )
-      return p;
-    }
-  return NULL;
-  }
-
 /* MPEG-1/2 */
 
 #define MPEG_NEED_SYNC                   0
@@ -462,8 +446,8 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
     switch(priv->state)
       {
       case MPEG_NEED_SYNC:
-        sc = find_startcode(parser->buf.buffer + parser->pos,
-                            parser->buf.buffer + parser->buf.size);
+        sc = bgav_mpv_find_startcode(parser->buf.buffer + parser->pos,
+                                     parser->buf.buffer + parser->buf.size);
         if(!sc)
           return PARSER_NEED_DATA;
         parser_flush(parser, sc - parser->buf.buffer);
@@ -471,8 +455,8 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
         priv->state = MPEG_NEED_STARTCODE;
         break;
       case MPEG_NEED_STARTCODE:
-        sc = find_startcode(parser->buf.buffer + parser->pos,
-                            parser->buf.buffer + parser->buf.size);
+        sc = bgav_mpv_find_startcode(parser->buf.buffer + parser->pos,
+                                     parser->buf.buffer + parser->buf.size);
         if(!sc)
           return PARSER_NEED_DATA;
         
@@ -506,8 +490,9 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
 
             if(parser->cache_size)
               {
-              parser->dts +=
-                parser->cache[parser->cache_size-1].duration;
+              if(!parser->cache[parser->cache_size-1].skip)
+                parser->dts +=
+                  parser->cache[parser->cache_size-1].duration;
               }
             
             /* Reserve cache entry */
@@ -563,8 +548,9 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
                                             parser->buf.size - parser->pos);
         if(!len)
           return PARSER_NEED_DATA;
+
+        set_coding_type(parser, ph.coding_type);
         
-        parser->cache[parser->cache_size-1].coding_type = ph.coding_type;
         //        fprintf(stderr, "Pic type: %c\n", ph.coding_type);
         parser->pos += len;
         priv->state = MPEG_NEED_STARTCODE;
