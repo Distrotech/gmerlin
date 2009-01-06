@@ -41,7 +41,6 @@ typedef struct
   int size;
   int duration;
   int64_t pts;
-  int64_t dts;
   int64_t position;
   
   int skip;
@@ -83,7 +82,7 @@ struct bgav_video_parser_s
   
   int low_delay;
   
-  int64_t dts;
+  int64_t timestamp;
 
   int eof;
   
@@ -178,30 +177,34 @@ static void set_picture_position(bgav_video_parser_t * parser)
     }
   }
      
-static void fix_timestamps(bgav_video_parser_t * parser)
+static void calc_timestamps(bgav_video_parser_t * parser)
   {
-  int i, delta;
+  int i;
 
   if(!parser->cache_size ||
      parser->cache[0].pts != BGAV_TIMESTAMP_UNDEFINED)
     return;
-  
-  if(parser->low_delay)
-    {
-    for(i = 0; i < parser->cache_size; i++)
-      parser->cache[i].pts = parser->cache[i].dts;
-    }
 
-  if(parser->cache_size < 2)
+  /* Need at least 2 frames */
+  if((parser->cache_size < 2) && !(parser->eof))
     return;
 
-  /* I B B P after seeking */
-
-  if((parser->cache[0].coding_type != BGAV_CODING_TYPE_B) && 
-     (parser->cache[1].coding_type == BGAV_CODING_TYPE_B) &&
-     (parser->cache[1].skip))
+  /* Low delay or last frame */  
+  if(parser->low_delay || (parser->cache_size == 1))
     {
-    parser->cache[0].pts = parser->cache[0].dts;
+    parser->cache[0].pts = parser->timestamp;
+    parser->timestamp += parser->cache[0].duration;
+    return;
+    }
+
+  /* I P */
+  if((parser->cache[0].coding_type != BGAV_CODING_TYPE_B) && 
+     ((parser->cache[1].coding_type != BGAV_CODING_TYPE_B) ||
+      parser->cache[1].skip))
+    {
+    parser->cache[0].pts = parser->timestamp;
+    parser->timestamp += parser->cache[0].duration;
+    return;
     }
   
   /* P B B P */
@@ -211,30 +214,19 @@ static void fix_timestamps(bgav_video_parser_t * parser)
      ((parser->cache[parser->cache_size-1].coding_type !=
        BGAV_CODING_TYPE_B) || parser->eof))
     {
-    delta = 0;
     i = 1;
-
-    while(parser->cache[i].coding_type == BGAV_CODING_TYPE_B)
-      {
-      delta += parser->cache[i].duration;
-      i++;
-      }
-    parser->cache[0].pts = parser->cache[0].dts + delta;
-    //    fprintf(stderr, "** PTS: %ld\n", parser->cache[0].pts);
     
-    delta = parser->cache[0].duration;
-    i = 1;
     while(parser->cache[i].coding_type == BGAV_CODING_TYPE_B)
       {
-      parser->cache[i].pts = parser->cache[i].dts - delta;
-      //      fprintf(stderr, "** PTS: %ld\n", parser->cache[i].pts);
+      if(!parser->cache[i].skip)
+        {
+        parser->cache[i].pts = parser->timestamp;
+        parser->timestamp += parser->cache[i].duration;
+        }
       i++;
       }
-    }
-  else if((parser->cache[0].coding_type != BGAV_CODING_TYPE_B) && 
-          (parser->cache[1].coding_type != BGAV_CODING_TYPE_B))
-    {
-    parser->cache[0].pts = parser->cache[0].dts;
+    parser->cache[0].pts = parser->timestamp;
+    parser->timestamp += parser->cache[0].duration;
     //    fprintf(stderr, "** PTS: %ld\n", parser->cache[0].pts);
     }
   
@@ -242,22 +234,16 @@ static void fix_timestamps(bgav_video_parser_t * parser)
 
 static int check_output(bgav_video_parser_t * parser)
   {
-  fix_timestamps(parser);
-  if((parser->cache_size < 2) && !parser->eof)
+  if(!parser->cache_size)
     return 0;
 
-  if(parser->low_delay)
-    return 1;
-
-  if((parser->cache[0].coding_type != BGAV_CODING_TYPE_B) &&
-     (parser->cache[1].coding_type != BGAV_CODING_TYPE_B))
-    return 1;
-
-  if((parser->cache[parser->cache_size-1].coding_type != BGAV_CODING_TYPE_B) ||
-     (parser->eof))
-    return 1;
+  calc_timestamps(parser);
   
-  return 0;
+  if(((parser->cache[0].pts != BGAV_TIMESTAMP_UNDEFINED) ||
+      parser->cache[0].skip) && parser->cache[0].size)
+    return 1;
+  else
+    return 0;
   }
 
 void bgav_video_parser_destroy(bgav_video_parser_t * parser)
@@ -277,7 +263,7 @@ void bgav_video_parser_reset(bgav_video_parser_t * parser, int64_t pts)
   parser->raw_position = -1;
   parser->cache_size = 0;
   parser->eof = 0;
-  parser->dts = pts;
+  parser->timestamp = pts;
   parser->pos = 0;
   parser->non_b_count = 0;
   if(parser->reset)
@@ -349,7 +335,6 @@ void bgav_video_parser_get_packet(bgav_video_parser_t * parser,
   parser_flush(parser, c->size);
 
   p->pts = c->pts;
-  p->dts = c->dts;
   p->duration = c->duration;
   p->keyframe = (c->coding_type == BGAV_CODING_TYPE_I) ? 1 : 0;
   p->position = c->position;
@@ -393,7 +378,7 @@ typedef struct
 #define MPEG_CODE_PICTURE_EXT  4
 #define MPEG_CODE_GOP          5
 
-static int get_code_mpeg12(uint8_t * data)
+static int get_code_mpeg12(const uint8_t * data)
   {
   if(bgav_mpv_sequence_header_probe(data))
     {
@@ -432,7 +417,7 @@ static void reset_mpeg12(bgav_video_parser_t * parser)
 
 static int parse_mpeg12(bgav_video_parser_t * parser)
   {
-  uint8_t * sc;
+  const uint8_t * sc;
   int len;
   mpeg12_priv_t * priv = parser->priv;
   cache_t * c;
@@ -487,20 +472,12 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
             break;
           case MPEG_CODE_PICTURE:
             update_previous_size(parser);
-
-            if(parser->cache_size)
-              {
-              if(!parser->cache[parser->cache_size-1].skip)
-                parser->dts +=
-                  parser->cache[parser->cache_size-1].duration;
-              }
             
             /* Reserve cache entry */
             parser->cache_size++;
             c = &parser->cache[parser->cache_size-1];
             memset(c, 0, sizeof(*c));
             c->duration = parser->frame_duration;
-            c->dts = parser->dts;
             c->pts = BGAV_TIMESTAMP_UNDEFINED;
 
             set_picture_position(parser);
