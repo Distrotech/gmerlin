@@ -621,18 +621,35 @@ static void init_mpeg12(bgav_video_parser_t * parser)
 
 /* H.264 */
 
+typedef struct
+  {
+  /* Sequence header */
+  bgav_h264_sps_t sps;
+  int have_sps;
+  int have_pps;
+  
+  int state;
+  } h264_priv_t;
+
+
 static int parse_h264(bgav_video_parser_t * parser)
   {
+  h264_priv_t * priv = parser->priv;
   
   }
 
 static void cleanup_h264(bgav_video_parser_t * parser)
   {
-  
+  h264_priv_t * priv = parser->priv;
+  bgav_h264_sps_free(&priv->sps);
+  free(priv);
   }
 
 static void init_h264(bgav_video_parser_t * parser)
   {
+  h264_priv_t * priv;
+  priv = calloc(1, sizeof(priv));
+  parser->priv = priv;
   parser->parse = parse_h264;
   parser->cleanup = cleanup_h264;
   

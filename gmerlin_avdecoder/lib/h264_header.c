@@ -19,6 +19,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#include <stdlib.h>
+
 #include <avdec_private.h>
 #include <mpv_header.h>
 
@@ -41,6 +43,16 @@ static int get_golomb_ue(bgav_bitstream_t * b)
   bgav_bitstream_get(b, &bits, num);
   return (1 << num) - 1 + bits;
   }
+
+static int get_golomb_se(bgav_bitstream_t * b)
+  {
+  int ret = get_golomb_ue(b);
+  if(ret & 1)
+    return ret>>1;
+  else
+    return -(ret>>1);
+  }
+
 
 /* */
 
@@ -91,7 +103,7 @@ int bgav_h264_decode_nal_rpsp(const uint8_t * in_buffer, int len,
   const uint8_t * src = in_buffer;
   const uint8_t * end = in_buffer + len;
   uint8_t * dst = ret;
-  int i;
+  //  int i;
 
   while(src < end)
     {
@@ -117,11 +129,60 @@ int bgav_h264_decode_nal_rpsp(const uint8_t * in_buffer, int len,
   return dst - ret;
   }
 
+/* SPS stuff */
+
+static void vui_parse(bgav_bitstream_t * b, bgav_h264_vui_t * vui)
+  {
+  bgav_bitstream_get(&b, &vui->aspect_ratio_info_present_flag, 1);
+  if(vui->aspect_ratio_info_present_flag)
+    {
+    bgav_bitstream_get(&b, &vui->aspect_ratio_idc, 8);
+    if(vui->aspect_ratio_idc == 255) // Extended_SAR
+      {
+      bgav_bitstream_get(&b, &vui->sar_width, 16);
+      bgav_bitstream_get(&b, &vui->sar_height, 16);
+      }
+    }
+
+  bgav_bitstream_get(&b, &vui->overscan_info_present_flag, 1);
+  if(vui->overscan_info_present_flag)
+    bgav_bitstream_get(&b, &vui->overscan_appropriate_flag, 1);
+
+  bgav_bitstream_get(&b, &vui->video_signal_type_present_flag, 1);
+  if(vui->video_signal_type_present_flag)
+    {
+    bgav_bitstream_get(&b, &vui->video_format, 3);
+    bgav_bitstream_get(&b, &vui->video_full_range_flag, 1);
+    bgav_bitstream_get(&b, &vui->colour_description_present_flag, 1);
+    if(vui->colour_description_present_flag)
+      {
+      bgav_bitstream_get(&b, &vui->colour_primaries, 8);
+      bgav_bitstream_get(&b, &vui->transfer_characteristics, 8);
+      bgav_bitstream_get(&b, &vui->matrix_coefficients, 8);
+      }
+    }
+
+  bgav_bitstream_get(&b, &vui->chroma_loc_info_present_flag, 1);
+  if(vui->chroma_loc_info_present_flag)
+    {
+    vui->chroma_sample_loc_type_top_field    = get_golomb_ue(&b);
+    vui->chroma_sample_loc_type_bottom_field = get_golomb_ue(&b);
+    }
+
+  bgav_bitstream_get(&b, &vui->timing_info_present_flag, 1);
+  if(vui->timing_info_present_flag)
+    {
+    bgav_bitstream_get(&b, &vui->num_units_in_tick, 32);
+    bgav_bitstream_get(&b, &vui->time_scale, 32);
+    bgav_bitstream_get(&b, &vui->fixed_frame_rate_flag, 1);
+    }
+  }
 
 int bgav_h264_sps_parse(const bgav_options_t * opt,
                         bgav_h264_sps_t * sps,
                         const uint8_t * buffer, int len)
   {
+  int i;
   bgav_bitstream_t b;
   int dummy;
   bgav_bitstream_init(&b, buffer, len);
@@ -136,6 +197,58 @@ int bgav_h264_sps_parse(const bgav_options_t * opt,
 
   sps->seq_parameter_set_id      = get_golomb_ue(&b);
   sps->log2_max_frame_num_minus4 = get_golomb_ue(&b);
-    
+  sps->pic_order_cnt_type        = get_golomb_ue(&b);
+
+  if(!sps->pic_order_cnt_type)
+    {
+    sps->log2_max_pic_order_cnt_lsb_minus4 = get_golomb_ue(&b);
+    }
+  else if(sps->pic_order_cnt_type == 1)
+    {
+    bgav_bitstream_get(&b, &sps->delta_pic_order_always_zero_flag, 1);
+
+    sps->offset_for_non_ref_pic = get_golomb_se(&b);  
+    sps->offset_for_top_to_bottom_field = get_golomb_se(&b); 
+    sps->num_ref_frames_in_pic_order_cnt_cycle = get_golomb_ue(&b);
+
+    sps->offset_for_ref_frame =
+      malloc(sizeof(*sps->offset_for_ref_frame) *
+             sps->num_ref_frames_in_pic_order_cnt_cycle);
+    for(i = 0; i < sps->num_ref_frames_in_pic_order_cnt_cycle; i++)
+      {
+      sps->offset_for_ref_frame[i] = get_golomb_se(&b);
+      }
+    }
+  sps->num_ref_frames = get_golomb_ue(&b);
+  bgav_bitstream_get(&b, &sps->gaps_in_frame_num_value_allowed_flag, 1);
+
+  sps->pic_width_in_mbs_minus1 = get_golomb_ue(&b);
+  sps->pic_height_in_map_units_minus1 = get_golomb_ue(&b);
+
+  bgav_bitstream_get(&b, &sps->frame_mbs_only_flag, 1);
+
+  if(!sps->frame_mbs_only_flag)
+    bgav_bitstream_get(&b, &sps->mb_adaptive_frame_field_flag, 1);
+
+  bgav_bitstream_get(&b, &sps->direct_8x8_inference_flag, 1);
+  bgav_bitstream_get(&b, &sps->frame_cropping_flag, 1);
+  if(sps->frame_cropping_flag)
+    {
+    sps->frame_crop_left_offset   = get_golomb_ue(&b);
+    sps->frame_crop_right_offset  = get_golomb_ue(&b);
+    sps->frame_crop_top_offset    = get_golomb_ue(&b);
+    sps->frame_crop_bottom_offset = get_golomb_ue(&b);
+    }
+  bgav_bitstream_get(&b, &sps->vui_parameters_present_flag, 1);
+
+  if(sps->vui_parameters_present_flag)
+    vui_parse(&b, &sps->vui);
   
+  return 1;
+  }
+
+void bgav_h264_sps_free(bgav_h264_sps_t * sps)
+  {
+  if(sps->offset_for_ref_frame)
+    free(sps->offset_for_ref_frame);
   }

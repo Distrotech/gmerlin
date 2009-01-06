@@ -89,6 +89,8 @@ int bgav_mpv_gop_header_probe(const uint8_t * buffer);
 
 /* H.264 stuff */
 
+
+
 const uint8_t *
 bgav_h264_find_nal_start(const uint8_t * buffer, int len);
 
@@ -96,6 +98,22 @@ bgav_h264_find_nal_start(const uint8_t * buffer, int len);
    NAL */
 
 int bgav_h264_get_nal_size(const uint8_t * buffer, int len);
+
+/* NAL unit types */
+
+#define H264_NAL_NON_IDR_SLICE     1
+#define H264_NAL_SLICE_PARTITION_A 2
+#define H264_NAL_SLICE_PARTITION_B 3
+#define H264_NAL_SLICE_PARTITION_C 4
+#define H264_NAL_IDR_SLICE         5
+#define H264_NAL_SEI               6
+#define H264_NAL_SPS               7
+#define H264_NAL_PPS               8
+#define H264_NAL_ACCESS_UNIT_DEL   9
+#define H264_NAL_END_OF_SEQUENCE   10
+#define H264_NAL_END_OF_STREAM     11
+#define H264_NAL_FILLER_DATA       12
+
 
 typedef struct
   {
@@ -112,6 +130,47 @@ int bgav_h264_decode_nal_header(const uint8_t * in_buffer, int len,
 int bgav_h264_decode_nal_rpsp(const uint8_t * in_buffer, int len,
                               uint8_t * ret);
 
+/* VUI (Video Usability Information) */
+
+typedef struct
+  {
+  int aspect_ratio_info_present_flag;
+  // if( aspect_ratio_info_present_flag ) {
+  int aspect_ratio_idc;
+  // if( aspect_ratio_idc = = Extended_SAR ) {
+  int sar_width;
+  int sar_height;
+  // }
+  // }
+  int overscan_info_present_flag;
+  // if( overscan_info_present_flag )
+  int overscan_appropriate_flag;
+
+  int video_signal_type_present_flag;
+  // if( video_signal_type_present_flag ) {
+  int video_format;
+  int video_full_range_flag;
+  int colour_description_present_flag;
+  // if( colour_description_present_flag ) {
+  int colour_primaries;
+  int transfer_characteristics;
+  int matrix_coefficients;
+  // }
+  // }
+  int chroma_loc_info_present_flag;
+  // if( chroma_loc_info_present_flag ) {
+  int chroma_sample_loc_type_top_field;
+  int chroma_sample_loc_type_bottom_field;
+  // }
+  int timing_info_present_flag;
+  // if( timing_info_present_flag ) {
+  int num_units_in_tick;
+  int time_scale;
+  int fixed_frame_rate_flag;
+  // }
+  
+  } bgav_h264_vui_t;
+
 /* Sequence parameter set */
 
 typedef struct
@@ -124,16 +183,45 @@ typedef struct
   int seq_parameter_set_id;
   int log2_max_frame_num_minus4;
   int pic_order_cnt_type;
-  
+
+  /* if( pic_order_cnt_type == 0 ) */
+  int log2_max_pic_order_cnt_lsb_minus4;
+
+  /* else if(pic_order_cnt_type == 1) { */
+  int delta_pic_order_always_zero_flag;
+  int offset_for_non_ref_pic;
+  int offset_for_top_to_bottom_field;
+  int num_ref_frames_in_pic_order_cnt_cycle;
+  int * offset_for_ref_frame;
+  /* } */
+
+  int num_ref_frames;
+  int gaps_in_frame_num_value_allowed_flag;
+  int pic_width_in_mbs_minus1;
+  int pic_height_in_map_units_minus1;
   int frame_mbs_only_flag;
+  /* if( !frame_mbs_only_flag ) */
+  int mb_adaptive_frame_field_flag;
+  int direct_8x8_inference_flag;
+  int frame_cropping_flag;
+  /* if( frame_cropping_flag ) { */
+  int frame_crop_left_offset;
+  int frame_crop_right_offset;
+  int frame_crop_top_offset;
+  int frame_crop_bottom_offset;
+  /* } */
   int vui_parameters_present_flag;
 
+  bgav_h264_vui_t vui;
   
   } bgav_h264_sps_t;
 
 int bgav_h264_sps_parse(const bgav_options_t * opt,
                         bgav_h264_sps_t *,
                         const uint8_t * buffer, int len);
+
+void bgav_h264_sps_free(bgav_h264_sps_t *);
+
 
 typedef struct
   {
