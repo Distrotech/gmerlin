@@ -223,6 +223,8 @@ static int open_mpegvideo(bgav_demuxer_context_t * ctx)
   {
   mpegvideo_priv_t * priv;
   bgav_stream_t * s;
+  const uint8_t * header;
+  int header_len;
 
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;
@@ -248,14 +250,24 @@ static int open_mpegvideo(bgav_demuxer_context_t * ctx)
 
   //  if(!ctx->opt->sample_accurate)
   //    {
-    if(!parse(ctx, PARSER_HAVE_HEADER))
-      return 0;
-    s->timescale =
-      bgav_video_parser_get_out_scale(priv->parser);
-    s->data.video.format.timescale = s->timescale;
-    //    }
-    
-    
+  if(!parse(ctx, PARSER_HAVE_HEADER))
+    return 0;
+  s->timescale =
+    bgav_video_parser_get_out_scale(priv->parser);
+  s->data.video.format.timescale = s->timescale;
+  //    }
+
+  header = bgav_video_parser_get_header(priv->parser, &header_len);
+
+  fprintf(stderr, "Got extradata %d bytes\n", header_len);
+  bgav_hexdump(header, header_len, 16);
+
+  s->ext_size = header_len;
+  s->ext_data = malloc(s->ext_size);
+  memcpy(s->ext_data, header, s->ext_size);
+
+  
+  
   ctx->tt->cur->duration = GAVL_TIME_UNDEFINED;
   
   ctx->stream_description = bgav_sprintf("Elementary video stream");

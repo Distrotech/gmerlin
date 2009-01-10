@@ -139,8 +139,6 @@ static void extract_header(bgav_video_parser_t * parser)
   parser->header_len = parser->pos;
   parser->header = malloc(parser->header_len);
   memcpy(parser->header, parser->buf.buffer, parser->header_len);
-  fprintf(stderr, "Got extradata %d bytes\n", parser->header_len);
-  bgav_hexdump(parser->header, parser->header_len < 16 ? parser->header_len : 16, 16);
   }
 
 static void update_previous_size(bgav_video_parser_t * parser)
@@ -275,6 +273,11 @@ int bgav_video_parser_get_out_scale(bgav_video_parser_t * parser)
   return parser->timescale;
   }
 
+const uint8_t * bgav_video_parser_get_header(bgav_video_parser_t * parser, int * header_len)
+  {
+  *header_len = parser->header_len;
+  return parser->header;
+  }
 
 void bgav_video_parser_set_eof(bgav_video_parser_t * parser)
   {
@@ -630,8 +633,11 @@ typedef struct
   {
   /* Sequence header */
   bgav_h264_sps_t sps;
-  int have_sps;
-  int have_pps;
+  
+  uint8_t * sps_buffer;
+  int sps_len;
+  uint8_t * pps_buffer;
+  int pps_len;
   
   int state;
 
@@ -703,7 +709,7 @@ static int parse_h264(bgav_video_parser_t * parser)
           case H264_NAL_SEI:
             break;
           case H264_NAL_SPS:
-            if(!priv->have_sps)
+            if(!priv->sps_buffer)
               {
               fprintf(stderr, "Got SPS %d bytes\n", priv->nal_len);
               bgav_hexdump(parser->buf.buffer + parser->pos,
@@ -714,13 +720,22 @@ static int parse_h264(bgav_video_parser_t * parser)
                                   &priv->sps,
                                   priv->rbsp, priv->rbsp_len);
               bgav_h264_sps_dump(&priv->sps);
-              priv->have_sps = 1;
+              
+              priv->sps_len = priv->nal_len;
+              priv->sps_buffer = malloc(priv->sps_len);
+              memcpy(priv->sps_buffer, parser->buf.buffer + parser->pos, priv->sps_len);
               }
-            
             break;
           case H264_NAL_PPS:
+            if(!priv->pps_buffer)
+              {
+              priv->pps_len = priv->nal_len;
+              priv->pps_buffer = malloc(priv->sps_len);
+              memcpy(priv->pps_buffer, parser->buf.buffer + parser->pos, priv->pps_len);
+              }
             break;
           case H264_NAL_ACCESS_UNIT_DEL:
+            
             break;
           case H264_NAL_END_OF_SEQUENCE:
             break;
@@ -728,6 +743,15 @@ static int parse_h264(bgav_video_parser_t * parser)
             break;
           case H264_NAL_FILLER_DATA:
             break;
+          }
+        
+        if(!parser->header && priv->pps_buffer && priv->sps_buffer)
+          {
+          parser->header_len = priv->sps_len + priv->pps_len;
+          parser->header = malloc(parser->header_len);
+          memcpy(parser->header, priv->sps_buffer, priv->sps_len);
+          memcpy(parser->header + priv->sps_len, priv->pps_buffer, priv->pps_len);
+          return PARSER_HAVE_HEADER;
           }
         
         parser_flush(parser, priv->nal_len);
