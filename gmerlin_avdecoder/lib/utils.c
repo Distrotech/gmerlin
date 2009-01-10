@@ -55,7 +55,7 @@ void bgav_dump_fourcc(uint32_t fourcc)
     
   }
 
-void bgav_hexdump(uint8_t * data, int len, int linebreak)
+void bgav_hexdump(const uint8_t * data, int len, int linebreak)
   {
   int i;
   int bytes_written = 0;

@@ -127,7 +127,7 @@ int bgav_h264_decode_nal_header(const uint8_t * in_buffer, int len,
 
 /* Returns the number of bytes read */
 /* RBSP = raw byte sequence payload */
-int bgav_h264_decode_nal_rpsp(const uint8_t * in_buffer, int len,
+int bgav_h264_decode_nal_rbsp(const uint8_t * in_buffer, int len,
                               uint8_t * ret);
 
 /* VUI (Video Usability Information) */
@@ -168,6 +168,11 @@ typedef struct
   int time_scale;
   int fixed_frame_rate_flag;
   // }
+
+  int nal_hrd_parameters_present_flag;
+  int vcl_hrd_parameters_present_flag;
+  int low_delay_hrd_flag;
+  int pic_struct_present_flag;
   
   } bgav_h264_vui_t;
 
@@ -179,8 +184,19 @@ typedef struct
   int constraint_set0_flag;
   int constraint_set1_flag;
   int constraint_set2_flag;
+  int constraint_set3_flag;
   int level_idc;
   int seq_parameter_set_id;
+  
+  int chroma_format_idc;
+  // if( chroma_format_idc == 3 )
+  int separate_colour_plane_flag;
+  int bit_depth_luma_minus8;
+  int bit_depth_chroma_minus8;
+  int qpprime_y_zero_transform_bypass_flag;
+  int seq_scaling_matrix_present_flag;
+  
+  
   int log2_max_frame_num_minus4;
   int pic_order_cnt_type;
 
@@ -221,6 +237,8 @@ int bgav_h264_sps_parse(const bgav_options_t * opt,
                         const uint8_t * buffer, int len);
 
 void bgav_h264_sps_free(bgav_h264_sps_t *);
+
+void bgav_h264_sps_dump(bgav_h264_sps_t *);
 
 
 typedef struct

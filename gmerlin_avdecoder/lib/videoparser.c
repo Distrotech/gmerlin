@@ -608,7 +608,6 @@ static void cleanup_mpeg12(bgav_video_parser_t * parser)
   free(parser->priv);
   }
 
-
 static void init_mpeg12(bgav_video_parser_t * parser)
   {
   mpeg12_priv_t * priv;
@@ -621,6 +620,12 @@ static void init_mpeg12(bgav_video_parser_t * parser)
 
 /* H.264 */
 
+#define H264_NEED_NAL_START 0
+#define H264_NEED_NAL_END   1
+#define H264_HAVE_NAL       2
+#define H264_NEED_SPS       3
+#define H264_NEED_PPS       4
+
 typedef struct
   {
   /* Sequence header */
@@ -629,12 +634,108 @@ typedef struct
   int have_pps;
   
   int state;
+
+  int nal_len;
+
+  uint8_t * rbsp;
+  int rbsp_alloc;
+  int rbsp_len;
   } h264_priv_t;
 
+static void get_rbsp(bgav_video_parser_t * parser, uint8_t * pos, int len)
+  {
+  h264_priv_t * priv = parser->priv;
+  if(priv->rbsp_alloc < priv->nal_len)
+    {
+    priv->rbsp_alloc = priv->nal_len + 1024;
+    priv->rbsp = realloc(priv->rbsp, priv->rbsp_alloc);
+    }
+  priv->rbsp_len = bgav_h264_decode_nal_rbsp(pos, len, priv->rbsp);
+  }
 
 static int parse_h264(bgav_video_parser_t * parser)
   {
+  bgav_h264_nal_header_t nh;
+  const uint8_t * sc;
+  int header_len;
   h264_priv_t * priv = parser->priv;
+  
+  
+  while(1)
+    {
+    switch(priv->state)
+      {
+      case H264_NEED_NAL_START:
+        sc = bgav_h264_find_nal_start(parser->buf.buffer + parser->pos,
+                                      parser->buf.size - parser->pos);
+        if(!sc)
+          return PARSER_NEED_DATA;
+        parser_flush(parser, sc - parser->buf.buffer);
+        parser->pos = 0;
+        priv->state = H264_NEED_NAL_END;
+        break;
+      case H264_NEED_NAL_END:
+        sc = bgav_h264_find_nal_start(parser->buf.buffer + parser->pos + 5,
+                                      parser->buf.size - parser->pos - 5);
+        if(!sc)
+          return PARSER_NEED_DATA;
+        priv->nal_len = sc - (parser->buf.buffer + parser->pos);
+        // fprintf(stderr, "Got nal %d bytes\n", priv->nal_len);
+        priv->state = H264_HAVE_NAL;
+        break;
+      case H264_HAVE_NAL:
+        header_len =
+          bgav_h264_decode_nal_header(parser->buf.buffer + parser->pos,
+                                      priv->nal_len, &nh);
+        fprintf(stderr, "Got NAL: %d (%d bytes)\n", nh.unit_type,
+                priv->nal_len);
+        
+        switch(nh.unit_type)
+          {
+          case H264_NAL_NON_IDR_SLICE:
+            break;
+          case H264_NAL_SLICE_PARTITION_A:
+          case H264_NAL_SLICE_PARTITION_B:
+          case H264_NAL_SLICE_PARTITION_C:
+            break;
+          case H264_NAL_IDR_SLICE:
+            break;
+          case H264_NAL_SEI:
+            break;
+          case H264_NAL_SPS:
+            if(!priv->have_sps)
+              {
+              fprintf(stderr, "Got SPS %d bytes\n", priv->nal_len);
+              bgav_hexdump(parser->buf.buffer + parser->pos,
+                           priv->nal_len, 16);
+              
+              get_rbsp(parser, parser->buf.buffer + parser->pos + header_len, priv->nal_len - header_len);
+              bgav_h264_sps_parse(parser->opt,
+                                  &priv->sps,
+                                  priv->rbsp, priv->rbsp_len);
+              bgav_h264_sps_dump(&priv->sps);
+              priv->have_sps = 1;
+              }
+            
+            break;
+          case H264_NAL_PPS:
+            break;
+          case H264_NAL_ACCESS_UNIT_DEL:
+            break;
+          case H264_NAL_END_OF_SEQUENCE:
+            break;
+          case H264_NAL_END_OF_STREAM:
+            break;
+          case H264_NAL_FILLER_DATA:
+            break;
+          }
+        
+        parser_flush(parser, priv->nal_len);
+        parser->pos = 0;
+        priv->state = H264_NEED_NAL_END;
+        break;
+      }
+    }
   
   }
 
@@ -648,7 +749,7 @@ static void cleanup_h264(bgav_video_parser_t * parser)
 static void init_h264(bgav_video_parser_t * parser)
   {
   h264_priv_t * priv;
-  priv = calloc(1, sizeof(priv));
+  priv = calloc(1, sizeof(*priv));
   parser->priv = priv;
   parser->parse = parse_h264;
   parser->cleanup = cleanup_h264;

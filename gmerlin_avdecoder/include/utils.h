@@ -19,4 +19,4 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-void bgav_hexdump(uint8_t * data, int len, int linebreak);
+void bgav_hexdump(const uint8_t * data, int len, int linebreak);

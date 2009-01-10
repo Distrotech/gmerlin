@@ -1427,7 +1427,7 @@ int bgav_init(bgav_t * b);
 /* utils.c */
 
 void bgav_dump_fourcc(uint32_t fourcc);
-void bgav_hexdump(uint8_t * data, int len, int linebreak);
+void bgav_hexdump(const uint8_t * data, int len, int linebreak);
 char * bgav_sprintf(const char * format,...)   __attribute__ ((format (printf, 1, 2)));
 
 
