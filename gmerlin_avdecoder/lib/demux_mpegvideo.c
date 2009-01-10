@@ -28,10 +28,6 @@
 
 #define LOG_DOMAIN "mpegvideo"
 
-#define FORMAT_MPEG12 1
-#define FORMAT_H264   2
-#define FORMAT_MPEG4  3
-
 /* Trivial demuxer for MPEG-1/2 video streams */
 
 #define BUFFER_LEN 1024

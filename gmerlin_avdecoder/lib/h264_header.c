@@ -452,3 +452,29 @@ void bgav_h264_sps_dump(bgav_h264_sps_t * sps)
   
   }
 
+int bgav_h264_decode_sei_message_header(const uint8_t * data, int len,
+                                        int * sei_type, int * sei_size)
+  {
+  const uint8_t * ptr = data;
+  *sei_type = 0;
+  *sei_size = 0;
+
+  while(*ptr == 0xff)
+    {
+    *sei_type += 0xff;
+    ptr++;
+    }
+  *sei_type += *ptr;
+  ptr++;
+
+  while(*ptr == 0xff)
+    {
+    *sei_size += 0xff;
+    ptr++;
+    }
+  *sei_size += *ptr;
+  ptr++;
+
+  return ptr - data;
+  
+  }

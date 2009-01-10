@@ -240,6 +240,7 @@ void bgav_h264_sps_free(bgav_h264_sps_t *);
 
 void bgav_h264_sps_dump(bgav_h264_sps_t *);
 
+#if 0 /* Not needed */
 
 typedef struct
   {
@@ -249,3 +250,9 @@ typedef struct
 int bgav_h264_pps_parse(const bgav_options_t * opt,
                         bgav_h264_pps_t *,
                         const uint8_t * buffer, int len);
+
+#endif
+
+int bgav_h264_decode_sei_message_header(const uint8_t * data, int len,
+                                        int * sei_type, int * sei_size);
+
