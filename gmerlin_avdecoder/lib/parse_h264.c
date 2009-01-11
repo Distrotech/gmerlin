@@ -211,6 +211,7 @@ static int parse_h264(bgav_video_parser_t * parser)
   {
   int primary_pic_type;
   bgav_h264_nal_header_t nh;
+  bgav_h264_slice_header_t sh;
   const uint8_t * sc;
   const uint8_t * ptr;
   int header_len;
@@ -254,6 +255,21 @@ static int parse_h264(bgav_video_parser_t * parser)
           case H264_NAL_IDR_SLICE:
           case H264_NAL_SLICE_PARTITION_A:
             /* Decode slice header if necessary */
+            if(!priv->has_access_units)
+              {
+              if(priv->sps_buffer)
+                {
+                get_rbsp(parser, parser->buf.buffer + parser->pos + header_len,
+                         priv->nal_len - header_len);
+                
+                bgav_h264_slice_header_parse(priv->rbsp, priv->rbsp_len,
+                                             &priv->sps,
+                                             &sh);
+                bgav_h264_slice_header_dump(&priv->sps,
+                                            &sh);
+                }
+              }
+            
             break;
           case H264_NAL_SLICE_PARTITION_B:
           case H264_NAL_SLICE_PARTITION_C:
@@ -298,8 +314,8 @@ static int parse_h264(bgav_video_parser_t * parser)
               parser->buf.buffer[parser->pos + header_len] >> 5;
             fprintf(stderr, "Got access unit delimiter, pic_type: %d\n",
                     primary_pic_type);
-#if 0
             priv->has_access_units = 1;
+#if 0
             update_previous_size(parser);
             
             /* Reserve cache entry */

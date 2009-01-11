@@ -500,3 +500,46 @@ int bgav_h264_decode_sei_pic_timing(const uint8_t * data, int len,
     bgav_bitstream_get(&b, pic_struct, 4);
   return 1;
   }
+
+void bgav_h264_slice_header_parse(const uint8_t * data, int len,
+                                  const bgav_h264_sps_t * sps,
+                                  bgav_h264_slice_header_t * ret)
+  {
+  bgav_bitstream_t b;
+  bgav_bitstream_init(&b, data, len);
+  ret->first_mb_in_slice    = get_golomb_ue(&b);
+  ret->slice_type           = get_golomb_ue(&b);
+  ret->pic_parameter_set_id = get_golomb_ue(&b);
+
+  if(sps->separate_colour_plane_flag)
+    bgav_bitstream_get(&b, &ret->colour_plane_id, 2);
+
+  bgav_bitstream_get(&b, &ret->frame_num, sps->log2_max_frame_num_minus4+4);
+
+  if(!sps->frame_mbs_only_flag)
+    {
+    bgav_bitstream_get(&b, &ret->field_pic_flag, 1);
+    if(ret->field_pic_flag)
+      bgav_bitstream_get(&b, &ret->bottom_field_flag, 1);
+    }
+  }
+
+void bgav_h264_slice_header_dump(const bgav_h264_sps_t * sps,
+                                 const bgav_h264_slice_header_t * ret)
+  {
+  bgav_dprintf("Slice header\n");
+  bgav_dprintf("  first_mb_in_slice:    %d\n", ret->first_mb_in_slice);
+  bgav_dprintf("  slice_type:           %d\n", ret->slice_type);
+  bgav_dprintf("  pic_parameter_set_id: %d\n", ret->pic_parameter_set_id);
+  if(sps->separate_colour_plane_flag)
+    bgav_dprintf("  colour_plane_id:      %d\n", ret->colour_plane_id);
+  bgav_dprintf("  frame_num:            %d\n", ret->frame_num);
+
+  if(!sps->frame_mbs_only_flag)
+    {
+    bgav_dprintf("  field_pic_flag:       %d\n", ret->field_pic_flag);
+    if(ret->field_pic_flag)
+      bgav_dprintf("  bottom_field_flag:    %d\n", ret->bottom_field_flag);
+    }
+  }
+
