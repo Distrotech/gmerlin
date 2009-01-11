@@ -10,6 +10,7 @@ bswap.h \
 codecs.h \
 dvb_channels.h \
 dvframe.h \
+h264_header.h \
 http.h \
 id3.h \
 language_table.h \
