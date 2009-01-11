@@ -23,6 +23,7 @@
 
 #include <avdec_private.h>
 #include <mpv_header.h>
+#include <h264_header.h>
 
 /* golomb parsing */
 

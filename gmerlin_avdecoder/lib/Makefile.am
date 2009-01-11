@@ -446,6 +446,8 @@ nanosoft.c \
 options.c \
 packetbuffer.c \
 packet.c \
+parse_h264.c \
+parse_mpv.c \
 pes_header.c \
 pnm.c \
 qt_atom.c \

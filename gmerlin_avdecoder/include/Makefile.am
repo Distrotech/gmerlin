@@ -30,6 +30,7 @@ rtsp.h \
 sdp.h \
 utils.h \
 videoparser.h \
+videoparser_priv.h \
 vorbis_comment.h \
 win32codec.h \
 xing.h \

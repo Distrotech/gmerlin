@@ -49,5 +49,4 @@ void bgav_video_parser_get_packet(bgav_video_parser_t * parser,
 
 int bgav_video_parser_get_out_scale(bgav_video_parser_t * parser);
 
-
 void bgav_video_parser_set_eof(bgav_video_parser_t * parser);
