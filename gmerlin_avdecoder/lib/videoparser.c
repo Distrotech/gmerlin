@@ -666,6 +666,7 @@ static void handle_sei(bgav_video_parser_t * parser)
   int sei_type, sei_size;
   uint8_t * ptr;
   int header_len;
+  int pic_struct;
   h264_priv_t * priv = parser->priv;
   
   ptr = priv->rbsp;
@@ -680,112 +681,116 @@ static void handle_sei(bgav_video_parser_t * parser)
     switch(sei_type)
       {
       case 0:
-        fprintf(stderr, "Got SEI buffering_period\n");
+        //        fprintf(stderr, "Got SEI buffering_period\n");
         break;
       case 1:
-        fprintf(stderr, "Got SEI pic_timing\n");
+        bgav_h264_decode_sei_pic_timing(ptr, priv->rbsp_len -
+                                        (ptr - priv->rbsp),
+                                        &priv->sps,
+                                        &pic_struct);
+        fprintf(stderr, "Got SEI pic_timing, pic_struct: %d\n", pic_struct);
         break;
       case 2:
-        fprintf(stderr, "Got SEI pan_scan_rect\n");
+        //        fprintf(stderr, "Got SEI pan_scan_rect\n");
         break;
       case 3:
-        fprintf(stderr, "Got SEI filler_payload\n");
+        // fprintf(stderr, "Got SEI filler_payload\n");
         break;
       case 4:
-        fprintf(stderr, "Got SEI user_data_registered_itu_t_t35\n");
+        // fprintf(stderr, "Got SEI user_data_registered_itu_t_t35\n");
         break;
       case 5:
-        fprintf(stderr, "Got SEI user_data_unregistered\n");
+        // fprintf(stderr, "Got SEI user_data_unregistered\n");
         break;
       case 6:
-        fprintf(stderr, "Got SEI recovery_point\n");
+        // fprintf(stderr, "Got SEI recovery_point\n");
         break;
       case 7:
-        fprintf(stderr, "Got SEI dec_ref_pic_marking_repetition\n");
+        // fprintf(stderr, "Got SEI dec_ref_pic_marking_repetition\n");
         break;
       case 8:
-        fprintf(stderr, "Got SEI spare_pic\n");
+        // fprintf(stderr, "Got SEI spare_pic\n");
         break;
       case 9:
-        fprintf(stderr, "Got SEI scene_info\n");
+        // fprintf(stderr, "Got SEI scene_info\n");
         break;
       case 10:
-        fprintf(stderr, "Got SEI sub_seq_info\n");
+        // fprintf(stderr, "Got SEI sub_seq_info\n");
         break;
       case 11:
-        fprintf(stderr, "Got SEI sub_seq_layer_characteristics\n");
+        // fprintf(stderr, "Got SEI sub_seq_layer_characteristics\n");
         break;
       case 12:
-        fprintf(stderr, "Got SEI sub_seq_characteristics\n");
+        // fprintf(stderr, "Got SEI sub_seq_characteristics\n");
         break;
       case 13:
-        fprintf(stderr, "Got SEI full_frame_freeze\n");
+        // fprintf(stderr, "Got SEI full_frame_freeze\n");
         break;
       case 14:
-        fprintf(stderr, "Got SEI full_frame_freeze_release\n");
+        // fprintf(stderr, "Got SEI full_frame_freeze_release\n");
         break;
       case 15:
-        fprintf(stderr, "Got SEI full_frame_snapshot\n");
+        // fprintf(stderr, "Got SEI full_frame_snapshot\n");
         break;
       case 16:
-        fprintf(stderr, "Got SEI progressive_refinement_segment_start\n");
+        // fprintf(stderr, "Got SEI progressive_refinement_segment_start\n");
         break;
       case 17:
-        fprintf(stderr, "Got SEI progressive_refinement_segment_end\n");
+        // fprintf(stderr, "Got SEI progressive_refinement_segment_end\n");
         break;
       case 18:
-        fprintf(stderr, "Got SEI motion_constrained_slice_group_set\n");
+        // fprintf(stderr, "Got SEI motion_constrained_slice_group_set\n");
         break;
       case 19:
-        fprintf(stderr, "Got SEI film_grain_characteristics\n");
+        // fprintf(stderr, "Got SEI film_grain_characteristics\n");
         break;
       case 20:
-        fprintf(stderr, "Got SEI deblocking_filter_display_preference\n");
+        // fprintf(stderr, "Got SEI deblocking_filter_display_preference\n");
         break;
       case 21:
-        fprintf(stderr, "Got SEI stereo_video_info\n");
+        // fprintf(stderr, "Got SEI stereo_video_info\n");
         break;
       case 22:
-        fprintf(stderr, "Got SEI post_filter_hint\n");
+        // fprintf(stderr, "Got SEI post_filter_hint\n");
         break;
       case 23:
-        fprintf(stderr, "Got SEI tone_mapping_info\n");
+        // fprintf(stderr, "Got SEI tone_mapping_info\n");
         break;
       case 24:
-        fprintf(stderr, "Got SEI scalability_info\n"); /* specified in Annex G */
+        // fprintf(stderr, "Got SEI scalability_info\n"); /* specified in Annex G */
         break;
       case 25:
-        fprintf(stderr, "Got SEI sub_pic_scalable_layer\n"); /* specified in Annex G */
+        // fprintf(stderr, "Got SEI sub_pic_scalable_layer\n"); /* specified in Annex G */
         break;
       case 26:
-        fprintf(stderr, "Got SEI non_required_layer_rep\n"); /* specified in Annex G */
+        // fprintf(stderr, "Got SEI non_required_layer_rep\n"); /* specified in Annex G */
         break;
       case 27:
-        fprintf(stderr, "Got SEI priority_layer_info\n"); /* specified in Annex G */
+        // fprintf(stderr, "Got SEI priority_layer_info\n"); /* specified in Annex G */
         break;
       case 28:
-        fprintf(stderr, "Got SEI layers_not_present\n"); /* specified in Annex G */
+        // fprintf(stderr, "Got SEI layers_not_present\n"); /* specified in Annex G */
         break;
       case 29:
-        fprintf(stderr, "Got SEI layer_dependency_change\n"); /* specified in Annex G */
+        // fprintf(stderr, "Got SEI layer_dependency_change\n"); /* specified in Annex G */
         break;
       case 30:
-        fprintf(stderr, "Got SEI scalable_nesting\n"); /* specified in Annex G */
+        // fprintf(stderr, "Got SEI scalable_nesting\n"); /* specified in Annex G */
         break;
       case 31:
-        fprintf(stderr, "Got SEI base_layer_temporal_hrd\n"); /* specified in Annex G */
+        // fprintf(stderr, "Got SEI base_layer_temporal_hrd\n"); /* specified in Annex G */
         break;
       case 32:
-        fprintf(stderr, "Got SEI quality_layer_integrity_check\n"); /* specified in Annex G */
+        // fprintf(stderr, "Got SEI quality_layer_integrity_check\n"); /* specified in Annex G */
         break;
       case 33:
-        fprintf(stderr, "Got SEI redundant_pic_property\n"); /* specified in Annex G */
+        // fprintf(stderr, "Got SEI redundant_pic_property\n"); /* specified in Annex G */
         break;
       case 34:
-        fprintf(stderr, "Got SEI tl0_picture_index\n"); /* specified in Annex G */
+        // fprintf(stderr, "Got SEI tl0_picture_index\n"); /* specified in Annex G */
         break;
       case 35:
-        fprintf(stderr, "Got SEI tl_switching_point\n"); /* specified in Annex G */
+        // fprintf(stderr, "Got SEI tl_switching_point\n"); /* specified in Annex G */
         break;
 
       
@@ -838,12 +843,12 @@ static int parse_h264(bgav_video_parser_t * parser)
         switch(nh.unit_type)
           {
           case H264_NAL_NON_IDR_SLICE:
-            break;
+          case H264_NAL_IDR_SLICE:
           case H264_NAL_SLICE_PARTITION_A:
+            /* Decode slice header if necessary */
+            break;
           case H264_NAL_SLICE_PARTITION_B:
           case H264_NAL_SLICE_PARTITION_C:
-            break;
-          case H264_NAL_IDR_SLICE:
             break;
           case H264_NAL_SEI:
             get_rbsp(parser, parser->buf.buffer + parser->pos + header_len,
@@ -853,11 +858,13 @@ static int parse_h264(bgav_video_parser_t * parser)
           case H264_NAL_SPS:
             if(!priv->sps_buffer)
               {
-              fprintf(stderr, "Got SPS %d bytes\n", priv->nal_len);
-              bgav_hexdump(parser->buf.buffer + parser->pos,
-                           priv->nal_len, 16);
+              // fprintf(stderr, "Got SPS %d bytes\n", priv->nal_len);
+              // bgav_hexdump(parser->buf.buffer + parser->pos,
+              //              priv->nal_len, 16);
               
-              get_rbsp(parser, parser->buf.buffer + parser->pos + header_len, priv->nal_len - header_len);
+              get_rbsp(parser,
+                       parser->buf.buffer + parser->pos + header_len,
+                       priv->nal_len - header_len);
               bgav_h264_sps_parse(parser->opt,
                                   &priv->sps,
                                   priv->rbsp, priv->rbsp_len);
@@ -865,7 +872,8 @@ static int parse_h264(bgav_video_parser_t * parser)
               
               priv->sps_len = priv->nal_len;
               priv->sps_buffer = malloc(priv->sps_len);
-              memcpy(priv->sps_buffer, parser->buf.buffer + parser->pos, priv->sps_len);
+              memcpy(priv->sps_buffer,
+                     parser->buf.buffer + parser->pos, priv->sps_len);
               }
             break;
           case H264_NAL_PPS:
@@ -873,10 +881,15 @@ static int parse_h264(bgav_video_parser_t * parser)
               {
               priv->pps_len = priv->nal_len;
               priv->pps_buffer = malloc(priv->sps_len);
-              memcpy(priv->pps_buffer, parser->buf.buffer + parser->pos, priv->pps_len);
+              memcpy(priv->pps_buffer,
+                     parser->buf.buffer + parser->pos, priv->pps_len);
               }
             break;
           case H264_NAL_ACCESS_UNIT_DEL:
+            primary_pic_type =
+              parser->buf.buffer[parser->pos + header_len] >> 5;
+            fprintf(stderr, "Got access unit delimiter, pic_type: %d\n",
+                    primary_pic_type);
 #if 0
             priv->has_access_units = 1;
             update_previous_size(parser);
@@ -890,8 +903,6 @@ static int parse_h264(bgav_video_parser_t * parser)
             
             set_picture_position(parser);
 
-            primary_pic_type =
-              parser->buf.buffer[parser->pos + header_len] >> 5;
             
             switch(primary_pic_type)
               {
@@ -939,6 +950,10 @@ static void cleanup_h264(bgav_video_parser_t * parser)
   {
   h264_priv_t * priv = parser->priv;
   bgav_h264_sps_free(&priv->sps);
+  if(priv->sps_buffer)
+    free(priv->sps_buffer);
+  if(priv->pps_buffer)
+    free(priv->pps_buffer);
   free(priv);
   }
 

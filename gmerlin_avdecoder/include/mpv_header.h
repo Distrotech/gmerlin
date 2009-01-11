@@ -171,6 +171,10 @@ typedef struct
 
   int nal_hrd_parameters_present_flag;
   int vcl_hrd_parameters_present_flag;
+
+  int cpb_removal_delay_length_minus1;
+  int dpb_output_delay_length_minus1;
+  
   int low_delay_hrd_flag;
   int pic_struct_present_flag;
   
@@ -256,3 +260,6 @@ int bgav_h264_pps_parse(const bgav_options_t * opt,
 int bgav_h264_decode_sei_message_header(const uint8_t * data, int len,
                                         int * sei_type, int * sei_size);
 
+int bgav_h264_decode_sei_pic_timing(const uint8_t * data, int len,
+                                    bgav_h264_sps_t * sps,
+                                    int * pic_struct);

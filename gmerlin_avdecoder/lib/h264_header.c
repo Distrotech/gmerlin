@@ -133,7 +133,8 @@ int bgav_h264_decode_nal_rbsp(const uint8_t * in_buffer, int len,
 
 /* SPS stuff */
 
-static void skip_hrd_parameters(bgav_bitstream_t * b)
+static void get_hrd_parameters(bgav_bitstream_t * b,
+                               bgav_h264_vui_t * vui)
   {
   int dummy, i;
   int cpb_cnt_minus1 = get_golomb_ue(b);
@@ -148,8 +149,8 @@ static void skip_hrd_parameters(bgav_bitstream_t * b)
     bgav_bitstream_get(b, &dummy, 1); // cbr_flag[ SchedSelIdx ]
     }
   bgav_bitstream_get(b, &dummy, 5); // initial_cpb_removal_delay_length_minus1
-  bgav_bitstream_get(b, &dummy, 5); // cpb_removal_delay_length_minus1
-  bgav_bitstream_get(b, &dummy, 5); // dpb_output_delay_length_minus1
+  bgav_bitstream_get(b, &vui->cpb_removal_delay_length_minus1, 5); 
+  bgav_bitstream_get(b, &vui->dpb_output_delay_length_minus1, 5); 
   bgav_bitstream_get(b, &dummy, 5); // time_offset_length
   }
 
@@ -201,11 +202,11 @@ static void vui_parse(bgav_bitstream_t * b, bgav_h264_vui_t * vui)
 
   bgav_bitstream_get(b, &vui->nal_hrd_parameters_present_flag, 1);
   if(vui->nal_hrd_parameters_present_flag)
-    skip_hrd_parameters(b);
+    get_hrd_parameters(b, vui);
 
   bgav_bitstream_get(b, &vui->vcl_hrd_parameters_present_flag, 1);
   if(vui->vcl_hrd_parameters_present_flag)
-    skip_hrd_parameters(b);
+    get_hrd_parameters(b, vui);
 
   if(vui->nal_hrd_parameters_present_flag || vui->vcl_hrd_parameters_present_flag)
     bgav_bitstream_get(b, &vui->low_delay_hrd_flag, 1);
@@ -280,8 +281,8 @@ int bgav_h264_sps_parse(const bgav_options_t * opt,
   int i;
   bgav_bitstream_t b;
   int dummy;
-  fprintf(stderr, "Parsing SPS %d bytes\n", len);
-  bgav_hexdump(buffer, len, 16);
+  //  fprintf(stderr, "Parsing SPS %d bytes\n", len);
+  // bgav_hexdump(buffer, len, 16);
 
   bgav_bitstream_init(&b, buffer, len);
 
@@ -477,4 +478,24 @@ int bgav_h264_decode_sei_message_header(const uint8_t * data, int len,
 
   return ptr - data;
   
+  }
+
+int bgav_h264_decode_sei_pic_timing(const uint8_t * data, int len,
+                                    bgav_h264_sps_t * sps,
+                                    int * pic_struct)
+  {
+  int dummy;
+  bgav_bitstream_t b;
+  *pic_struct = -1;
+  bgav_bitstream_init(&b, data, len);
+  
+  if(sps->vui.nal_hrd_parameters_present_flag ||
+     sps->vui.vcl_hrd_parameters_present_flag)
+    {
+    bgav_bitstream_get(&b, &dummy, sps->vui.cpb_removal_delay_length_minus1+1);
+    bgav_bitstream_get(&b, &dummy, sps->vui.dpb_output_delay_length_minus1+1);
+    }
+  if(sps->vui.pic_struct_present_flag)
+    bgav_bitstream_get(&b, pic_struct, 4);
+  return 1;
   }
