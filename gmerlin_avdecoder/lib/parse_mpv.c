@@ -100,7 +100,7 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
   const uint8_t * sc;
   int len;
   mpeg12_priv_t * priv = parser->priv;
-  cache_t * c;
+  //  cache_t * c;
   bgav_mpv_picture_extension_t pe;
   bgav_mpv_picture_header_t    ph;
   int duration;
@@ -151,16 +151,7 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
               }
             break;
           case MPEG_CODE_PICTURE:
-            bgav_video_parser_update_previous_size(parser);
-            
-            /* Reserve cache entry */
-            parser->cache_size++;
-            c = &parser->cache[parser->cache_size-1];
-            memset(c, 0, sizeof(*c));
-            c->duration = parser->frame_duration;
-            c->pts = BGAV_TIMESTAMP_UNDEFINED;
-
-            bgav_video_parser_set_picture_position(parser);
+            bgav_video_parser_set_picture_start(parser);
             
             /* Need the picture header */
             priv->state = MPEG_HAS_PICTURE_CODE;
@@ -237,7 +228,8 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
             }
           else if(pe.progressive_frame)
             duration = parser->frame_duration / 2;
-          c->duration += duration;
+
+          parser->cache[parser->cache_size-1].duration += duration;
           }
         parser->pos += len;
         priv->state = MPEG_NEED_STARTCODE;
@@ -281,6 +273,7 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
         break;
       }
     }
+  return 0;
   }
 
 static void cleanup_mpeg12(bgav_video_parser_t * parser)

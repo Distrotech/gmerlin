@@ -36,6 +36,9 @@ typedef struct
   int64_t position;
   
   int skip;
+  
+  int field_pic;
+  int field2_offset;
   } cache_t;
 
 struct bgav_video_parser_s
@@ -90,4 +93,8 @@ void bgav_video_parser_set_picture_position(bgav_video_parser_t * parser);
 void bgav_video_parser_extract_header(bgav_video_parser_t * parser);
 void bgav_video_parser_set_coding_type(bgav_video_parser_t * parser, int type);
 int bgav_video_parser_check_output(bgav_video_parser_t * parser);
+
+/* Notify the parser of a new picture. This will set the pic member to the
+   current cache entry */
+void bgav_video_parser_set_picture_start(bgav_video_parser_t * parser);
 

@@ -20,6 +20,7 @@
  * *****************************************************************/
 
 #include <stdlib.h>
+#include <string.h>
 
 #include <avdec_private.h>
 #include <mpv_header.h>
@@ -92,6 +93,9 @@ int bgav_h264_decode_nal_header(const uint8_t * in_buffer, int len,
                                 bgav_h264_nal_header_t * header)
   {
   const uint8_t * pos = in_buffer;
+
+  memset(header, 0, sizeof(*header));
+  
   while(*pos == 0x00)
     pos++;
   pos++; // 0x01
@@ -507,6 +511,9 @@ void bgav_h264_slice_header_parse(const uint8_t * data, int len,
   {
   bgav_bitstream_t b;
   bgav_bitstream_init(&b, data, len);
+
+  memset(ret, 0, sizeof(*ret));
+
   ret->first_mb_in_slice    = get_golomb_ue(&b);
   ret->slice_type           = get_golomb_ue(&b);
   ret->pic_parameter_set_id = get_golomb_ue(&b);
@@ -535,11 +542,11 @@ void bgav_h264_slice_header_dump(const bgav_h264_sps_t * sps,
     bgav_dprintf("  colour_plane_id:      %d\n", ret->colour_plane_id);
   bgav_dprintf("  frame_num:            %d\n", ret->frame_num);
 
-  if(!sps->frame_mbs_only_flag)
-    {
+  //  if(!sps->frame_mbs_only_flag)
+  //    {
     bgav_dprintf("  field_pic_flag:       %d\n", ret->field_pic_flag);
     if(ret->field_pic_flag)
       bgav_dprintf("  bottom_field_flag:    %d\n", ret->bottom_field_flag);
-    }
+    //    }
   }
 

@@ -171,10 +171,13 @@ struct bgav_packet_s
   /* For superindex files, it's the index position, for all other files,
      it's the file position */
   int64_t position;
-  int valid;
+  int valid;    /* Used only inside the packetbuffer */
   int data_size;
   int data_alloc;
   uint8_t * data;
+
+  int field2_offset; /* Offset of 2nd field if 2 field pictures are in the
+                        packet (0 else) */
   
   int64_t pts; /* In stream timescale tics */
   int64_t dts; /* In stream timescale tics */

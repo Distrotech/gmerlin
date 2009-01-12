@@ -46,6 +46,8 @@ typedef struct
   int sps_len;
   uint8_t * pps_buffer;
   int pps_len;
+
+  int have_sps;
   
   int state;
 
@@ -54,8 +56,8 @@ typedef struct
   uint8_t * rbsp;
   int rbsp_alloc;
   int rbsp_len;
-
-  int has_access_units;
+  
+  int has_picture_start;
   } h264_priv_t;
 
 static void get_rbsp(bgav_video_parser_t * parser, uint8_t * pos, int len)
@@ -97,6 +99,29 @@ static void handle_sei(bgav_video_parser_t * parser)
                                         &priv->sps,
                                         &pic_struct);
         fprintf(stderr, "Got SEI pic_timing, pic_struct: %d\n", pic_struct);
+
+        switch(pic_struct)
+          {
+          case 0: // frame
+            break;
+          case 1: // top field
+            break;
+          case 2: // bottom field
+            break;
+          case 3: // top field, bottom field, in that order 
+            break;
+          case 4: // bottom field, top field, in that order 
+            break;
+          case 5: // top field, bottom field, top field repeated, in that order
+            break;
+          case 6: // bottom field, top field, bottom field 
+            break;
+          case 7: // frame doubling                         
+            break;
+          case 8: // frame tripling
+            break;
+          }
+
         break;
       case 2:
         //        fprintf(stderr, "Got SEI pan_scan_rect\n");
@@ -213,9 +238,7 @@ static int parse_h264(bgav_video_parser_t * parser)
   bgav_h264_nal_header_t nh;
   bgav_h264_slice_header_t sh;
   const uint8_t * sc;
-  const uint8_t * ptr;
   int header_len;
-  cache_t * c;
   
   h264_priv_t * priv = parser->priv;
   
@@ -255,9 +278,9 @@ static int parse_h264(bgav_video_parser_t * parser)
           case H264_NAL_IDR_SLICE:
           case H264_NAL_SLICE_PARTITION_A:
             /* Decode slice header if necessary */
-            if(!priv->has_access_units)
+            if(priv->have_sps)
               {
-              if(priv->sps_buffer)
+              if(!priv->has_picture_start)
                 {
                 get_rbsp(parser, parser->buf.buffer + parser->pos + header_len,
                          priv->nal_len - header_len);
@@ -267,7 +290,37 @@ static int parse_h264(bgav_video_parser_t * parser)
                                              &sh);
                 bgav_h264_slice_header_dump(&priv->sps,
                                             &sh);
+                bgav_video_parser_set_picture_start(parser);
+                priv->has_picture_start = 1;
+
+                switch(sh.slice_type)
+                  {
+                  case 2:
+                  case 7:
+                    bgav_video_parser_set_coding_type(parser, BGAV_CODING_TYPE_I);
+                    break;
+                  case 0:
+                  case 5:
+                    bgav_video_parser_set_coding_type(parser, BGAV_CODING_TYPE_P);
+                    break;
+                  case 1:
+                  case 6:
+                    bgav_video_parser_set_coding_type(parser, BGAV_CODING_TYPE_B);
+                    break;
+                  default: /* Assume the worst */
+                    fprintf(stderr, "Unknown slice type %d\n", sh.slice_type);
+                    
+                  }
+                
                 }
+              }
+            else
+              {
+              /* Skip slices before the first SPS */
+              fprintf(stderr, "Skipping slice before SPS %d\n", parser->pos);
+              bgav_video_parser_flush(parser, parser->pos + priv->nal_len);
+              priv->state = H264_NEED_NAL_END;
+              continue;
               }
             
             break;
@@ -275,6 +328,12 @@ static int parse_h264(bgav_video_parser_t * parser)
           case H264_NAL_SLICE_PARTITION_C:
             break;
           case H264_NAL_SEI:
+            if(!priv->has_picture_start)
+              {
+              bgav_video_parser_set_picture_start(parser);
+              priv->has_picture_start = 1;
+              }
+            
             get_rbsp(parser, parser->buf.buffer + parser->pos + header_len,
                      priv->nal_len - header_len);
             handle_sei(parser);
@@ -298,7 +357,24 @@ static int parse_h264(bgav_video_parser_t * parser)
               priv->sps_buffer = malloc(priv->sps_len);
               memcpy(priv->sps_buffer,
                      parser->buf.buffer + parser->pos, priv->sps_len);
+
+              parser->timescale = priv->sps.vui.time_scale;
+              parser->frame_duration = priv->sps.vui.num_units_in_tick;
+
+              /* If we have field pictures, half the framerate */
+              if(!priv->sps.frame_mbs_only_flag)
+                parser->frame_duration *= 2;
               }
+            priv->have_sps = 1;
+
+            /* Also set picture start if it didn't already happen */
+            if(!priv->has_picture_start)
+              {
+              bgav_video_parser_set_picture_start(parser);
+              priv->has_picture_start = 1;
+              }
+            
+
             break;
           case H264_NAL_PPS:
             if(!priv->pps_buffer)
@@ -314,34 +390,24 @@ static int parse_h264(bgav_video_parser_t * parser)
               parser->buf.buffer[parser->pos + header_len] >> 5;
             fprintf(stderr, "Got access unit delimiter, pic_type: %d\n",
                     primary_pic_type);
-            priv->has_access_units = 1;
-#if 0
-            update_previous_size(parser);
-            
-            /* Reserve cache entry */
-            parser->cache_size++;
-            c = &parser->cache[parser->cache_size-1];
-            memset(c, 0, sizeof(*c));
-            c->duration = parser->frame_duration;
-            c->pts = BGAV_TIMESTAMP_UNDEFINED;
-            
-            set_picture_position(parser);
-
+            if(!priv->has_picture_start)
+              {
+              bgav_video_parser_set_picture_start(parser);
+              priv->has_picture_start = 1;
+              }
             
             switch(primary_pic_type)
               {
               case 0:
-                set_coding_type(parser, BGAV_CODING_TYPE_I);
+                bgav_video_parser_set_coding_type(parser, BGAV_CODING_TYPE_I);
                 break;
               case 1:
-                set_coding_type(parser, BGAV_CODING_TYPE_P);
+                bgav_video_parser_set_coding_type(parser, BGAV_CODING_TYPE_P);
                 break;
               default: /* Assume the worst */
-                set_coding_type(parser, BGAV_CODING_TYPE_B);
+                bgav_video_parser_set_coding_type(parser, BGAV_CODING_TYPE_B);
                 break;
               }
-#endif
-            
             break;
           case H264_NAL_END_OF_SEQUENCE:
             break;
@@ -350,11 +416,11 @@ static int parse_h264(bgav_video_parser_t * parser)
           case H264_NAL_FILLER_DATA:
             break;
           }
-                
-        bgav_video_parser_flush(parser, priv->nal_len);
-        parser->pos = 0;
+        
+        //        bgav_video_parser_flush(parser, priv->nal_len);
+        parser->pos += priv->nal_len;
         priv->state = H264_NEED_NAL_END;
-#if 0
+#if 1
         if(!parser->header && priv->pps_buffer && priv->sps_buffer)
           {
           parser->header_len = priv->sps_len + priv->pps_len;
@@ -367,8 +433,16 @@ static int parse_h264(bgav_video_parser_t * parser)
         break;
       }
     }
-  
+  return 0;
   }
+
+static void reset_h264(bgav_video_parser_t * parser)
+  {
+  h264_priv_t * priv = parser->priv;
+  priv->state = H264_NEED_NAL_START;
+  priv->have_sps = 0;
+  }
+
 
 static void cleanup_h264(bgav_video_parser_t * parser)
   {
@@ -388,5 +462,6 @@ void bgav_video_parser_init_h264(bgav_video_parser_t * parser)
   parser->priv = priv;
   parser->parse = parse_h264;
   parser->cleanup = cleanup_h264;
+  parser->reset = reset_h264;
   
   }
