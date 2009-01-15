@@ -343,16 +343,19 @@ static int set_stream(bgav_demuxer_context_t * ctx)
   s->data.audio.format.samplerate = priv->header.samplerate;
   s->data.audio.format.samples_per_frame = priv->header.samples_per_frame;
   gavl_set_channel_setup(&(s->data.audio.format));
-  
-  if(priv->have_xing)
+
+  if(!s->container_bitrate)
     {
-    s->container_bitrate = BGAV_BITRATE_VBR;
-    s->codec_bitrate     = BGAV_BITRATE_VBR;
-    }
-  else
-    {
-    s->container_bitrate = priv->header.bitrate;
-    s->codec_bitrate     = priv->header.bitrate;
+    if(priv->have_xing)
+      {
+      s->container_bitrate = BGAV_BITRATE_VBR;
+      s->codec_bitrate     = BGAV_BITRATE_VBR;
+      }
+    else
+      {
+      s->container_bitrate = priv->header.bitrate;
+      s->codec_bitrate     = priv->header.bitrate;
+      }
     }
   
   if(s->description)
@@ -374,7 +377,7 @@ static int set_stream(bgav_demuxer_context_t * ctx)
       break;
     }
     
-  if(priv->have_xing)
+  if(s->container_bitrate == BGAV_BITRATE_VBR)
     bitrate_string = bgav_strdup("Variable");
   else
     bitrate_string =

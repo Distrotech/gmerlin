@@ -21,6 +21,9 @@
 
 #define MAX_B_FRAMES 16
 
+#define PARSER_CONTINUE     (PARSER_PRIV+0)
+#define PARSER_CHECK_OUTPUT (PARSER_PRIV+1)
+
 typedef void (*init_func)(bgav_video_parser_t*);
 
 typedef int (*parse_func)(bgav_video_parser_t*);
@@ -40,6 +43,12 @@ typedef struct
   int field_pic;
   int field2_offset;
   } cache_t;
+
+typedef struct
+  {
+  int64_t packet_position;
+  int     parser_position;
+  } packet_t;
 
 struct bgav_video_parser_s
   {
@@ -74,6 +83,11 @@ struct bgav_video_parser_s
   /* Cache */
   cache_t cache[MAX_B_FRAMES];
   int cache_size;
+
+  /* Packets */
+  packet_t * packets;
+  int packets_alloc;
+  int num_packets;
   
   int low_delay;
   

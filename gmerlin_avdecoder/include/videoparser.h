@@ -23,6 +23,12 @@
 #define PARSER_HAVE_HEADER    1
 #define PARSER_HAVE_PACKET    2
 #define PARSER_EOF            3
+#define PARSER_ERROR          4
+
+
+#define PARSER_PRIV           5 /* Offset for internally used codes */
+
+
 
 typedef struct bgav_video_parser_s bgav_video_parser_t;
 

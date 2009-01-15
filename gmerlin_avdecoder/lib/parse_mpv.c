@@ -106,174 +106,169 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
   int duration;
   int start_code;
   
-  while(1)
+  switch(priv->state)
     {
-    switch(priv->state)
-      {
-      case MPEG_NEED_SYNC:
-        sc = bgav_mpv_find_startcode(parser->buf.buffer + parser->pos,
+    case MPEG_NEED_SYNC:
+      sc = bgav_mpv_find_startcode(parser->buf.buffer + parser->pos,
+                                   parser->buf.buffer + parser->buf.size);
+      if(!sc)
+        return PARSER_NEED_DATA;
+      bgav_video_parser_flush(parser, sc - parser->buf.buffer);
+      parser->pos = 0;
+      priv->state = MPEG_NEED_STARTCODE;
+      break;
+    case MPEG_NEED_STARTCODE:
+      sc = bgav_mpv_find_startcode(parser->buf.buffer + parser->pos,
                                      parser->buf.buffer + parser->buf.size);
-        if(!sc)
-          return PARSER_NEED_DATA;
-        bgav_video_parser_flush(parser, sc - parser->buf.buffer);
-        parser->pos = 0;
-        priv->state = MPEG_NEED_STARTCODE;
-        break;
-      case MPEG_NEED_STARTCODE:
-        sc = bgav_mpv_find_startcode(parser->buf.buffer + parser->pos,
-                                     parser->buf.buffer + parser->buf.size);
-        if(!sc)
-          return PARSER_NEED_DATA;
-        
-        start_code = get_code_mpeg12(sc);
-        parser->pos = sc - parser->buf.buffer;
+      if(!sc)
+        return PARSER_NEED_DATA;
+      
+      start_code = get_code_mpeg12(sc);
+      parser->pos = sc - parser->buf.buffer;
 
-        switch(start_code)
-          {
-          case MPEG_CODE_SEQUENCE:
-            bgav_video_parser_update_previous_size(parser);
-
-            if(!priv->have_sh)
-              priv->state = MPEG_HAS_SEQUENCE_CODE;
-            else
-              {
-              priv->state = MPEG_NEED_STARTCODE;
-              parser->pos+=4;
-              }
-            break;
-          case MPEG_CODE_SEQUENCE_EXT:
-            if(priv->have_sh && !priv->sh.mpeg2)
-              priv->state = MPEG_HAS_SEQUENCE_EXT_CODE;
-            else
-              {
-              priv->state = MPEG_NEED_STARTCODE;
-              parser->pos+=4;
-              }
-            break;
-          case MPEG_CODE_PICTURE:
-            bgav_video_parser_set_picture_start(parser);
-            
-            /* Need the picture header */
-            priv->state = MPEG_HAS_PICTURE_CODE;
-
-            if(!parser->header)
-              {
-              bgav_video_parser_extract_header(parser);
-              return PARSER_HAVE_HEADER;
-              }
-            break;
-          case MPEG_CODE_PICTURE_EXT:
-            /* Need picture extension */
-            priv->state = MPEG_HAS_PICTURE_EXT_CODE;
-            break;
-          case MPEG_CODE_GOP:
-            bgav_video_parser_update_previous_size(parser);
-
-            if(!parser->header)
-              {
-              bgav_video_parser_extract_header(parser);
-              parser->pos += 4;
-              priv->state = MPEG_NEED_STARTCODE;
-              return PARSER_HAVE_HEADER;
-              }
-            
-            parser->pos += 4;
-            priv->state = MPEG_NEED_STARTCODE;
-            break;
-          default:
-            parser->pos += 4;
-            priv->state = MPEG_NEED_STARTCODE;
-            break;
-          }
-        
-        break;
-      case MPEG_HAS_PICTURE_CODE:
-        /* Try to get the picture header */
-
-        len = bgav_mpv_picture_header_parse(parser->opt,
-                                            &ph,
-                                            parser->buf.buffer + parser->pos,
-                                            parser->buf.size - parser->pos);
-        if(!len)
-          return PARSER_NEED_DATA;
-
-        bgav_video_parser_set_coding_type(parser, ph.coding_type);
-        
-        //        fprintf(stderr, "Pic type: %c\n", ph.coding_type);
-        parser->pos += len;
-        priv->state = MPEG_NEED_STARTCODE;
-        
-        /* Now we know the coding type, we can check for output */
-        if(bgav_video_parser_check_output(parser))
-          return PARSER_HAVE_PACKET;
-        
-        break;
-      case MPEG_HAS_PICTURE_EXT_CODE:
-        /* Try to get the picture extension */
-        len = bgav_mpv_picture_extension_parse(parser->opt,
-                                               &pe,
-                                               parser->buf.buffer + parser->pos,
-                                               parser->buf.size - parser->pos);
-        if(!len)
-          return PARSER_NEED_DATA;
-        if(pe.repeat_first_field)
-          {
-          duration = 0;
-          if(priv->sh.ext.progressive_sequence)
+      switch(start_code)
+        {
+        case MPEG_CODE_SEQUENCE:
+          bgav_video_parser_update_previous_size(parser);
+          
+          if(!priv->have_sh)
+            priv->state = MPEG_HAS_SEQUENCE_CODE;
+          else
             {
-            if(pe.top_field_first)
-              duration = parser->frame_duration * 2;
-            else
-              duration = parser->frame_duration;
+            priv->state = MPEG_NEED_STARTCODE;
+            parser->pos+=4;
             }
-          else if(pe.progressive_frame)
-            duration = parser->frame_duration / 2;
-
-          parser->cache[parser->cache_size-1].duration += duration;
-          }
-        parser->pos += len;
-        priv->state = MPEG_NEED_STARTCODE;
-        break;
-      case MPEG_GOP_CODE:
-        break;
-      case MPEG_HAS_SEQUENCE_CODE:
-        /* Try to get the sequence header */
-
-        len = bgav_mpv_sequence_header_parse(parser->opt,
-                                             &priv->sh,
+          break;
+        case MPEG_CODE_SEQUENCE_EXT:
+          if(priv->have_sh && !priv->sh.mpeg2)
+            priv->state = MPEG_HAS_SEQUENCE_EXT_CODE;
+          else
+            {
+            priv->state = MPEG_NEED_STARTCODE;
+            parser->pos+=4;
+            }
+          break;
+        case MPEG_CODE_PICTURE:
+          bgav_video_parser_set_picture_start(parser);
+          
+          /* Need the picture header */
+          priv->state = MPEG_HAS_PICTURE_CODE;
+          
+          if(!parser->header)
+            {
+            bgav_video_parser_extract_header(parser);
+            return PARSER_HAVE_HEADER;
+            }
+          break;
+        case MPEG_CODE_PICTURE_EXT:
+          /* Need picture extension */
+          priv->state = MPEG_HAS_PICTURE_EXT_CODE;
+          break;
+        case MPEG_CODE_GOP:
+          bgav_video_parser_update_previous_size(parser);
+          
+          if(!parser->header)
+            {
+            bgav_video_parser_extract_header(parser);
+            parser->pos += 4;
+            priv->state = MPEG_NEED_STARTCODE;
+            return PARSER_HAVE_HEADER;
+            }
+          
+          parser->pos += 4;
+          priv->state = MPEG_NEED_STARTCODE;
+          break;
+        default:
+          parser->pos += 4;
+          priv->state = MPEG_NEED_STARTCODE;
+          break;
+        }
+      
+      break;
+    case MPEG_HAS_PICTURE_CODE:
+      /* Try to get the picture header */
+      
+      len = bgav_mpv_picture_header_parse(parser->opt,
+                                          &ph,
+                                          parser->buf.buffer + parser->pos,
+                                          parser->buf.size - parser->pos);
+      if(!len)
+        return PARSER_NEED_DATA;
+      
+      bgav_video_parser_set_coding_type(parser, ph.coding_type);
+      
+      //        fprintf(stderr, "Pic type: %c\n", ph.coding_type);
+      parser->pos += len;
+      priv->state = MPEG_NEED_STARTCODE;
+      
+      return PARSER_CHECK_OUTPUT;
+      
+      break;
+    case MPEG_HAS_PICTURE_EXT_CODE:
+      /* Try to get the picture extension */
+      len = bgav_mpv_picture_extension_parse(parser->opt,
+                                             &pe,
                                              parser->buf.buffer + parser->pos,
                                              parser->buf.size - parser->pos);
-        if(!len)
-          return PARSER_NEED_DATA;
+      if(!len)
+        return PARSER_NEED_DATA;
+      if(pe.repeat_first_field)
+        {
+        duration = 0;
+        if(priv->sh.ext.progressive_sequence)
+          {
+          if(pe.top_field_first)
+            duration = parser->frame_duration * 2;
+          else
+            duration = parser->frame_duration;
+          }
+        else if(pe.progressive_frame)
+          duration = parser->frame_duration / 2;
+        
+        parser->cache[parser->cache_size-1].duration += duration;
+        }
+      parser->pos += len;
+      priv->state = MPEG_NEED_STARTCODE;
+      break;
+    case MPEG_GOP_CODE:
+      break;
+    case MPEG_HAS_SEQUENCE_CODE:
+      /* Try to get the sequence header */
 
-        parser->pos += len;
-        priv->have_sh = 1;
+      len = bgav_mpv_sequence_header_parse(parser->opt,
+                                           &priv->sh,
+                                           parser->buf.buffer + parser->pos,
+                                           parser->buf.size - parser->pos);
+      if(!len)
+        return PARSER_NEED_DATA;
+
+      parser->pos += len;
+      priv->have_sh = 1;
         
-        parser->timescale      = priv->sh.timescale;
-        parser->frame_duration = priv->sh.frame_duration;
-        priv->state = MPEG_NEED_STARTCODE;
-        break;
-      case MPEG_HAS_SEQUENCE_EXT_CODE:
-        /* Try to get the sequence extension */
-        len = bgav_mpv_sequence_extension_parse(parser->opt,
-                                                &priv->sh.ext,
-                                                parser->buf.buffer + parser->pos,
-                                                parser->buf.size - parser->pos);
-        if(!len)
-          return PARSER_NEED_DATA;
+      parser->timescale      = priv->sh.timescale;
+      parser->frame_duration = priv->sh.frame_duration;
+      priv->state = MPEG_NEED_STARTCODE;
+      break;
+    case MPEG_HAS_SEQUENCE_EXT_CODE:
+      /* Try to get the sequence extension */
+      len = bgav_mpv_sequence_extension_parse(parser->opt,
+                                              &priv->sh.ext,
+                                              parser->buf.buffer + parser->pos,
+                                              parser->buf.size - parser->pos);
+      if(!len)
+        return PARSER_NEED_DATA;
         
-        priv->sh.mpeg2 = 1;
+      priv->sh.mpeg2 = 1;
         
-        parser->timescale      *= (priv->sh.ext.timescale_ext+1);
-        parser->frame_duration *= (priv->sh.ext.frame_duration_ext+1);
-        parser->timescale      *= 2;
-        parser->frame_duration *= 2;
-        parser->pos += len;
-        priv->state = MPEG_NEED_STARTCODE;
-        break;
-      }
+      parser->timescale      *= (priv->sh.ext.timescale_ext+1);
+      parser->frame_duration *= (priv->sh.ext.frame_duration_ext+1);
+      parser->timescale      *= 2;
+      parser->frame_duration *= 2;
+      parser->pos += len;
+      priv->state = MPEG_NEED_STARTCODE;
+      break;
     }
-  return 0;
+  return PARSER_CONTINUE;
   }
 
 static void cleanup_mpeg12(bgav_video_parser_t * parser)

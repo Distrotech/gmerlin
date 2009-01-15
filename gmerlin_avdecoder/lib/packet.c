@@ -90,6 +90,9 @@ void bgav_packet_set_text_subtitle(bgav_packet_t * p,
 void bgav_packet_dump(bgav_packet_t * p)
   {
   bgav_dprintf("pos: %ld, K: %d, ", p->position, p->keyframe);
+  if(p->field2_offset)
+    bgav_dprintf("f2: %d, ", p->field2_offset);
+
   if(p->dts == GAVL_TIME_UNDEFINED)
     bgav_dprintf("dts: (none), ");
   else
@@ -100,6 +103,7 @@ void bgav_packet_dump(bgav_packet_t * p)
   else
     bgav_dprintf("pts: %"PRId64", ", p->pts);
   bgav_dprintf("Len: %d, dur: %"PRId64"\n", p->data_size, p->duration);
+  
   //  bgav_hexdump(p->data, p->data_size < 16 ? p->data_size : 16, 16);
   }
 
