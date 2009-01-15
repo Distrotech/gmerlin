@@ -118,8 +118,9 @@ static int draw(effect * e, RGB32 *src, RGB32 *dest)
 		q += 2;
 	}
 
-	q = priv->warptime[priv->warptimeFrame ^ 1] + e->video_width + 1;
-	for(i=0; i<e->video_area; i++) {
+        //	q = priv->warptime[priv->warptimeFrame ^ 1] + e->video_width + 1;
+        q = priv->warptime[priv->warptimeFrame ^ 1];
+        for(i=0; i<e->video_area; i++) {
 		if(*diff++) {
 			*q = PLANES - 1;
 		}
