@@ -20,6 +20,10 @@
  * *****************************************************************/
 
 #include <gavl/gavl.h>
+
+#include <sys/time.h>
+#include <time.h>
+
 #include <linux/videodev2.h>
 #include "v4l2_common.h"
 

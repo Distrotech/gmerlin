@@ -65,7 +65,7 @@ struct decimate_priv_s
   float (*diff_block)(struct decimate_priv_s*, 
                       int width, int height);
 
-  int (*sad_func)(uint8_t * src_1, uint8_t * src_2, 
+  int (*sad_func)(const uint8_t * src_1, const uint8_t * src_2, 
                   int stride_1, int stride_2, 
                   int w, int h);
   };

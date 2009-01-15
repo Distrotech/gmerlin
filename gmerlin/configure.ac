@@ -684,7 +684,7 @@ AC_ARG_ENABLE(camelot,
                esac],
 	       have_camelot=true)
 
-if test "x$have_gtk" = "xfalse" -o "x$have_v4l" = "xfalse"; then
+if test "x$have_gtk" != "xtrue" -o "x$have_v4l" = "xfalse"; then
 have_camelot=false
 fi
 AM_CONDITIONAL(HAVE_CAMELOT, test x$have_camelot = xtrue)
@@ -699,7 +699,7 @@ AC_ARG_ENABLE(plugincfg,
                esac],
 	       have_plugincfg=true)
 
-if test "x$have_gtk" = "xfalse"; then
+if test "x$have_gtk" != "xtrue"; then
 have_plugincfg=false
 fi
 
@@ -715,7 +715,7 @@ AC_ARG_ENABLE(alsamixer,
                esac],
 	       have_alsamixer=true)
 
-if test "x$have_gtk" = "xfalse" -o "x$have_alsa" = "xfalse"; then
+if test "x$have_gtk" != "xtrue" -o "x$have_alsa" = "xfalse"; then
 have_alsamixer=false
 fi
 
@@ -731,7 +731,7 @@ AC_ARG_ENABLE(player,
                esac],
 	       have_player=true)
 
-if test "x$have_gtk" = "xfalse"; then
+if test "x$have_gtk" != "xtrue"; then
 have_player=false
 fi
 
@@ -747,12 +747,12 @@ AC_ARG_ENABLE(kbd,
                esac],
 	       have_kbd=true)
 
-if test "x$have_gtk" = "xfalse"; then
-have_kdb=false
+if test "x$have_gtk" != "xtrue"; then
+have_kbd=false
 fi
 
-if test "x$have_x" = "xfalse"; then
-have_kdb=false
+if test "x$have_x" != "xtrue"; then
+have_kbd=false
 fi
 
 
