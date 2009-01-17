@@ -255,7 +255,9 @@ static int handle_nal(bgav_video_parser_t * parser)
       /* Decode slice header if necessary */
       if(priv->have_sps)
         {
-        if(!priv->has_picture_start)
+        /* has_picture_start is also set if the sps was found, so we must check for
+           coding_type as well */
+        if(!priv->has_picture_start || !parser->cache[parser->cache_size-1].coding_type)
           {
           get_rbsp(parser, parser->buf.buffer + parser->pos + header_len,
                    priv->nal_len - header_len);
@@ -266,7 +268,8 @@ static int handle_nal(bgav_video_parser_t * parser)
           bgav_h264_slice_header_dump(&priv->sps,
                                       &sh);
 
-          if(!bgav_video_parser_set_picture_start(parser))
+          if(!priv->has_picture_start &&
+             !bgav_video_parser_set_picture_start(parser))
             return PARSER_ERROR;
           
           switch(sh.slice_type)
@@ -290,7 +293,7 @@ static int handle_nal(bgav_video_parser_t * parser)
 
           if(sh.field_pic_flag)
             parser->cache[parser->cache_size-1].field_pic = 1;
-                
+          
           }
         priv->has_picture_start = 0;
         }
