@@ -48,7 +48,7 @@ typedef struct
   /* Sequence header */
   bgav_mpv_sequence_header_t sh;
   int have_sh;
-  
+  int has_picture_start;
   int state;
   } mpeg12_priv_t;
 
@@ -93,6 +93,7 @@ static void reset_mpeg12(bgav_video_parser_t * parser)
   {
   mpeg12_priv_t * priv = parser->priv;
   priv->state = MPEG_NEED_SYNC;
+  priv->has_picture_start = 0;
   }
 
 static int parse_mpeg12(bgav_video_parser_t * parser)
@@ -129,7 +130,12 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
       switch(start_code)
         {
         case MPEG_CODE_SEQUENCE:
-          bgav_video_parser_update_previous_size(parser);
+          if(!priv->has_picture_start)
+            {
+            if(!bgav_video_parser_set_picture_start(parser))
+              return PARSER_ERROR;
+            priv->has_picture_start = 1;
+            }
           
           if(!priv->have_sh)
             priv->state = MPEG_HAS_SEQUENCE_CODE;
@@ -149,7 +155,12 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
             }
           break;
         case MPEG_CODE_PICTURE:
-          bgav_video_parser_set_picture_start(parser);
+          if(!priv->has_picture_start)
+            {
+            if(!bgav_video_parser_set_picture_start(parser))
+              return PARSER_ERROR;
+            }
+          priv->has_picture_start = 0;
           
           /* Need the picture header */
           priv->state = MPEG_HAS_PICTURE_CODE;
@@ -165,7 +176,12 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
           priv->state = MPEG_HAS_PICTURE_EXT_CODE;
           break;
         case MPEG_CODE_GOP:
-          bgav_video_parser_update_previous_size(parser);
+          if(!priv->has_picture_start)
+            {
+            if(!bgav_video_parser_set_picture_start(parser))
+              return PARSER_ERROR;
+            priv->has_picture_start = 1;
+            }
           
           if(!parser->header)
             {
@@ -200,8 +216,6 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
       //        fprintf(stderr, "Pic type: %c\n", ph.coding_type);
       parser->pos += len;
       priv->state = MPEG_NEED_STARTCODE;
-      
-      return PARSER_CHECK_OUTPUT;
       
       break;
     case MPEG_HAS_PICTURE_EXT_CODE:

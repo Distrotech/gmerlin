@@ -237,12 +237,9 @@ static int handle_nal(bgav_video_parser_t * parser)
   bgav_h264_nal_header_t nh;
   bgav_h264_slice_header_t sh;
   int header_len;
-  int got_coding_type;
   int primary_pic_type;
   h264_priv_t * priv = parser->priv;
   
-  got_coding_type = 0;
-
   header_len =
     bgav_h264_decode_nal_header(parser->buf.buffer + parser->pos,
                                 priv->nal_len, &nh);
@@ -268,8 +265,10 @@ static int handle_nal(bgav_video_parser_t * parser)
                                        &sh);
           bgav_h264_slice_header_dump(&priv->sps,
                                       &sh);
-          bgav_video_parser_set_picture_start(parser);
 
+          if(!bgav_video_parser_set_picture_start(parser))
+            return PARSER_ERROR;
+          
           switch(sh.slice_type)
             {
             case 2:
@@ -292,7 +291,6 @@ static int handle_nal(bgav_video_parser_t * parser)
           if(sh.field_pic_flag)
             parser->cache[parser->cache_size-1].field_pic = 1;
                 
-          got_coding_type = 1;
           }
         priv->has_picture_start = 0;
         }
@@ -314,7 +312,8 @@ static int handle_nal(bgav_video_parser_t * parser)
       fprintf(stderr, "Got SEI\n");
       if(!priv->has_picture_start)
         {
-        bgav_video_parser_set_picture_start(parser);
+        if(!bgav_video_parser_set_picture_start(parser))
+          return PARSER_ERROR;
         priv->has_picture_start = 1;
         }
             
@@ -355,7 +354,8 @@ static int handle_nal(bgav_video_parser_t * parser)
       /* Also set picture start if it didn't already happen */
       if(!priv->has_picture_start)
         {
-        bgav_video_parser_set_picture_start(parser);
+        if(!bgav_video_parser_set_picture_start(parser))
+          return PARSER_ERROR;
         priv->has_picture_start = 1;
         }
       break;
@@ -376,7 +376,8 @@ static int handle_nal(bgav_video_parser_t * parser)
               primary_pic_type);
       if(!priv->has_picture_start)
         {
-        bgav_video_parser_set_picture_start(parser);
+        if(!bgav_video_parser_set_picture_start(parser))
+          return PARSER_ERROR;
         priv->has_picture_start = 1;
         }
       switch(primary_pic_type)
@@ -391,7 +392,6 @@ static int handle_nal(bgav_video_parser_t * parser)
           bgav_video_parser_set_coding_type(parser, BGAV_CODING_TYPE_B);
           break;
         }
-      got_coding_type = 1;
       break;
     case H264_NAL_END_OF_SEQUENCE:
       break;
@@ -413,15 +413,12 @@ static int handle_nal(bgav_video_parser_t * parser)
     memcpy(parser->header + priv->sps_len, priv->pps_buffer, priv->pps_len);
     return PARSER_HAVE_HEADER;
     }
-  else if(got_coding_type)
-    return PARSER_CHECK_OUTPUT;
   
   return PARSER_CONTINUE;
   }
 
 static int parse_h264(bgav_video_parser_t * parser)
   {
-  int primary_pic_type;
   const uint8_t * sc;
   h264_priv_t * priv = parser->priv;
   
@@ -457,6 +454,7 @@ static void reset_h264(bgav_video_parser_t * parser)
   h264_priv_t * priv = parser->priv;
   priv->state = H264_NEED_NAL_START;
   priv->have_sps = 0;
+  priv->has_picture_start = 0;
   }
 
 

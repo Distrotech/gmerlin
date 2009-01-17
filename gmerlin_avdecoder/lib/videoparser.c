@@ -79,7 +79,7 @@ void bgav_video_parser_extract_header(bgav_video_parser_t * parser)
   memcpy(parser->header, parser->buf.buffer, parser->header_len);
   }
 
-void bgav_video_parser_update_previous_size(bgav_video_parser_t * parser)
+static void update_previous_size(bgav_video_parser_t * parser)
   {
   int i, total;
   if(parser->cache_size && !parser->cache[parser->cache_size-1].size)
@@ -88,6 +88,20 @@ void bgav_video_parser_update_previous_size(bgav_video_parser_t * parser)
     for(i = 0; i < parser->cache_size-1; i++)
       total += parser->cache[i].size;
     parser->cache[parser->cache_size-1].size = parser->pos - total;
+    }
+
+  /* If 2 previous frames are field pictures, merge them */
+
+  if((parser->cache_size >= 2) &&
+     (parser->cache[parser->cache_size-1].field_pic) &&
+     (parser->cache[parser->cache_size-2].field_pic))
+    {
+    parser->cache[parser->cache_size-2].field2_offset =
+      parser->cache[parser->cache_size-2].size;
+    parser->cache[parser->cache_size-2].size +=
+      parser->cache[parser->cache_size-1].size;
+    parser->cache[parser->cache_size-2].field_pic = 0;
+    parser->cache_size--;
     }
   }
 
@@ -98,9 +112,32 @@ void bgav_video_parser_set_coding_type(bgav_video_parser_t * parser, int type)
     parser->non_b_count++;
   else if(parser->non_b_count < 2)
     parser->cache[parser->cache_size-1].skip = 1;
+  
+  /* Set previous timestamps */
+  if((parser->cache_size >= 2) && (type != BGAV_CODING_TYPE_B) &&
+     (parser->cache[parser->cache_size-2].pts == BGAV_TIMESTAMP_UNDEFINED) &&
+     (!parser->cache[parser->cache_size-2].field_pic))
+    {
+    if(parser->cache[parser->cache_size-2].coding_type != BGAV_CODING_TYPE_B)
+      {
+      parser->cache[parser->cache_size-2].pts = parser->timestamp;
+      parser->timestamp += parser->cache[parser->cache_size-2].duration;
+      }
+    else /*  P B B */
+      {
+      int i;
+      for(i = 1; i < parser->cache_size-1; i++)
+        {
+        parser->cache[i].pts = parser->timestamp;
+        parser->timestamp += parser->cache[i].duration;
+        }
+      parser->cache[0].pts = parser->timestamp;
+      parser->timestamp += parser->cache[0].duration;
+      }
+    }
   }
 
-     
+#if 0     
 static void calc_timestamps(bgav_video_parser_t * parser)
   {
   int i;
@@ -156,53 +193,16 @@ static void calc_timestamps(bgav_video_parser_t * parser)
   
   }
 
-static void merge_field_pics(bgav_video_parser_t * parser)
-  {
-  int i = 0;
-  
-  if(parser->cache_size < 2)
-    return;
-  
-  while(i < parser->cache_size-1)
-    {
-    if(!parser->cache[i].field_pic)
-      {
-      i++;
-      continue;
-      }
-    
-    if(!parser->cache[i+1].field_pic ||
-       !parser->cache[i].size || !parser->cache[i+1].size)
-      return;
-    
-    /* Merge pic 0 and 1 */
-    parser->cache[i].field2_offset = parser->cache[i].size;
-    parser->cache[i].size += parser->cache[i+1].size;
-    parser->cache[i].field_pic = 0;
-    
-    if(i < parser->cache_size-1)
-      memmove(&parser->cache[i], &parser->cache[i+1],
-              sizeof(parser->cache[i]) * (parser->cache_size-1));
-    parser->cache_size--;
-    i++;
-    }
-  }
+#endif
 
 int bgav_video_parser_check_output(bgav_video_parser_t * parser)
   {
-  if(!parser->cache_size)
-    return 0;
-  merge_field_pics(parser);
-  calc_timestamps(parser);
-
-  if(parser->cache[0].field_pic)
-    return 0;
-  
-  if(((parser->cache[0].pts != BGAV_TIMESTAMP_UNDEFINED) ||
-      parser->cache[0].skip) && parser->cache[0].size)
+  if(parser->cache_size && !parser->cache[0].field_pic &&
+     parser->cache[0].size &&
+     ((parser->cache[0].pts != BGAV_TIMESTAMP_UNDEFINED) ||
+      parser->cache[0].skip))
     return 1;
-  else
-    return 0;
+  return 0;
   }
 
 void bgav_video_parser_destroy(bgav_video_parser_t * parser)
@@ -243,18 +243,44 @@ bgav_video_parser_get_header(bgav_video_parser_t * parser, int * header_len)
 
 void bgav_video_parser_set_eof(bgav_video_parser_t * parser)
   {
+  int start = -1, i;
   fprintf(stderr, "EOF buf: %d %d %d\n", parser->buf.size, parser->pos,
           parser->cache_size);
   /* Set size of last frame */
   parser->pos = parser->buf.size;
-  bgav_video_parser_update_previous_size(parser);
+  update_previous_size(parser);
+
+  /* Set final timestamps */
+
+  for(i = 0; i < parser->cache_size; i++)
+    {
+    if(parser->cache[i].pts == BGAV_TIMESTAMP_UNDEFINED)
+      {
+      start = i;
+      break;
+      }
+    }
+  if(start >= 0)
+    {
+    if(parser->cache[parser->cache_size-1].coding_type == BGAV_CODING_TYPE_B)
+      {
+      for(i = start+1; i < parser->cache_size; i++)
+        {
+        parser->cache[i].pts = parser->timestamp;
+        parser->timestamp += parser->cache[i].duration;
+        }
+      parser->cache[start].pts = parser->timestamp;
+      parser->timestamp += parser->cache[start].duration;
+      }
+    }
+
   parser->eof = 1;
   }
 
 int bgav_video_parser_parse(bgav_video_parser_t * parser)
   {
   int result;
-
+  fprintf(stderr, "Parse %d\n", parser->cache_size);
   if(parser->eof && !parser->cache_size)
     return PARSER_EOF;
   
@@ -274,7 +300,7 @@ int bgav_video_parser_parse(bgav_video_parser_t * parser)
       case PARSER_HAVE_HEADER:
         return result;
         break;
-      case PARSER_CHECK_OUTPUT:
+      case PARSER_CONTINUE:
         if(bgav_video_parser_check_output(parser))
           return PARSER_HAVE_PACKET;
         break;
@@ -284,26 +310,6 @@ int bgav_video_parser_parse(bgav_video_parser_t * parser)
   return PARSER_ERROR;
   }
 
-void bgav_video_parser_set_picture_position(bgav_video_parser_t * parser)
-  {
-  int i;
-  if(parser->raw)
-    {
-    int offset = 0;
-
-    for(i = 0; i < parser->cache_size-1; i++)
-      offset += parser->cache[i].size;
-    parser->cache[parser->cache_size-1].position =
-      parser->raw_position + offset;
-    }
-  else
-    {
-    for(i = 0; i < parser->num_packets; i++)
-      {
-      
-      }
-    }
-  }
 
 void bgav_video_parser_add_packet(bgav_video_parser_t * parser,
                                   bgav_packet_t * p)
@@ -367,10 +373,15 @@ void bgav_video_parser_get_packet(bgav_video_parser_t * parser,
   
   }
 
-void bgav_video_parser_set_picture_start(bgav_video_parser_t * parser)
+int bgav_video_parser_set_picture_start(bgav_video_parser_t * parser)
   {
   cache_t * c;
-  bgav_video_parser_update_previous_size(parser);
+  int i;
+
+  if(parser->cache_size >= PARSER_CACHE_MAX)
+    return 0;
+  
+  update_previous_size(parser);
   
   /* Reserve cache entry */
   parser->cache_size++;
@@ -379,5 +390,23 @@ void bgav_video_parser_set_picture_start(bgav_video_parser_t * parser)
   c->duration = parser->frame_duration;
   c->pts = BGAV_TIMESTAMP_UNDEFINED;
   
-  bgav_video_parser_set_picture_position(parser);
+  /* Set picture position */
+  if(parser->raw)
+    {
+    int offset = 0;
+
+    for(i = 0; i < parser->cache_size-1; i++)
+      offset += parser->cache[i].size;
+    parser->cache[parser->cache_size-1].position =
+      parser->raw_position + offset;
+    }
+  else
+    {
+    for(i = 0; i < parser->num_packets; i++)
+      {
+      
+      }
+    }
+  
+  return 1;
   }

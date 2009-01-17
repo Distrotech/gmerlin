@@ -19,10 +19,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-#define MAX_B_FRAMES 16
+#define PARSER_CACHE_MAX 16
 
 #define PARSER_CONTINUE     (PARSER_PRIV+0)
-#define PARSER_CHECK_OUTPUT (PARSER_PRIV+1)
 
 typedef void (*init_func)(bgav_video_parser_t*);
 
@@ -81,7 +80,7 @@ struct bgav_video_parser_s
   int frame_duration;
 
   /* Cache */
-  cache_t cache[MAX_B_FRAMES];
+  cache_t cache[PARSER_CACHE_MAX];
   int cache_size;
 
   /* Packets */
@@ -96,19 +95,18 @@ struct bgav_video_parser_s
   int eof;
   
   int non_b_count;
+
+  int got_coding_type;
   };
 
 void bgav_video_parser_init_mpeg12(bgav_video_parser_t * parser);
 void bgav_video_parser_init_h264(bgav_video_parser_t * parser);
 
 void bgav_video_parser_flush(bgav_video_parser_t * parser, int bytes);
-void bgav_video_parser_update_previous_size(bgav_video_parser_t * parser);
-void bgav_video_parser_set_picture_position(bgav_video_parser_t * parser);
 void bgav_video_parser_extract_header(bgav_video_parser_t * parser);
 void bgav_video_parser_set_coding_type(bgav_video_parser_t * parser, int type);
 int bgav_video_parser_check_output(bgav_video_parser_t * parser);
 
-/* Notify the parser of a new picture. This will set the pic member to the
-   current cache entry */
-void bgav_video_parser_set_picture_start(bgav_video_parser_t * parser);
+/* Notify the parser of a new picture */
+int bgav_video_parser_set_picture_start(bgav_video_parser_t * parser);
 
