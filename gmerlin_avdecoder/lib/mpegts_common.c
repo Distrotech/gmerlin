@@ -427,6 +427,7 @@ int bgav_pmt_section_setup_track(pmt_section_t * pmts,
         (track->num_audio_streams < max_audio_streams)))
       {
       s = bgav_track_add_audio_stream(track, opt);
+      s->index_mode = INDEX_MODE_MPEG;
       s->fourcc = st->fourcc;
 
 
@@ -436,6 +437,7 @@ int bgav_pmt_section_setup_track(pmt_section_t * pmts,
         (track->num_video_streams < max_video_streams)))
       {
       s = bgav_track_add_video_stream(track, opt);
+      s->index_mode = INDEX_MODE_MPEG;
       s->fourcc = st->fourcc;
       s->data.video.frametime_mode = BGAV_FRAMETIME_CODEC;
       }
@@ -452,6 +454,7 @@ int bgav_pmt_section_setup_track(pmt_section_t * pmts,
         {
         s = bgav_track_add_audio_stream(track, opt);
         s->fourcc = BGAV_MK_FOURCC('.','a','c','3');
+        s->index_mode = INDEX_MODE_MPEG;
         ac3_streams++;
         }
       else

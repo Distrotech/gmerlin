@@ -24,6 +24,8 @@
 
 #include <avdec_private.h>
 
+#define PACKET_PADDING 32
+
 bgav_packet_t * bgav_packet_create()
   {
   bgav_packet_t * ret = calloc(1, sizeof(*ret));
@@ -44,9 +46,9 @@ void bgav_packet_destroy(bgav_packet_t * p)
 
 void bgav_packet_alloc(bgav_packet_t * p, int size)
   {
-  if(size > p->data_alloc)
+  if(size + PACKET_PADDING > p->data_alloc)
     {
-    p->data_alloc = size + 16;
+    p->data_alloc = size + PACKET_PADDING + 1024;
     p->data = realloc(p->data, p->data_alloc);
     }
   }
@@ -65,6 +67,10 @@ void bgav_packet_done_write(bgav_packet_t * p)
   if((p->stream->demuxer->demux_mode == DEMUX_MODE_FI) &&
      (p->stream->demuxer->index_mode == INDEX_MODE_MPEG))
     p->pts = BGAV_TIMESTAMP_UNDEFINED;
+
+  /* Padding */
+  memset(p->data + p->data_size, 0, PACKET_PADDING);
+
   }
 
 void bgav_packet_set_text_subtitle(bgav_packet_t * p,

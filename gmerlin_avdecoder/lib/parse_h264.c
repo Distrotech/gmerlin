@@ -251,7 +251,10 @@ static int handle_nal(bgav_video_parser_t * parser)
     case H264_NAL_NON_IDR_SLICE:
     case H264_NAL_IDR_SLICE:
     case H264_NAL_SLICE_PARTITION_A:
-      fprintf(stderr, "Got slice\n");
+      fprintf(stderr, "Got slice %d %d %d\n",
+              priv->have_sps, priv->has_picture_start,
+              parser->cache_size ?
+              parser->cache[parser->cache_size-1].coding_type : -1);
       /* Decode slice header if necessary */
       if(priv->have_sps)
         {
@@ -345,12 +348,12 @@ static int handle_nal(bgav_video_parser_t * parser)
         memcpy(priv->sps_buffer,
                parser->buf.buffer + parser->pos, priv->sps_len);
 
-        parser->timescale = priv->sps.vui.time_scale;
-        parser->frame_duration = priv->sps.vui.num_units_in_tick;
+        parser->format.timescale = priv->sps.vui.time_scale;
+        parser->format.frame_duration = priv->sps.vui.num_units_in_tick;
 
         /* If we have field pictures, half the framerate */
         if(!priv->sps.frame_mbs_only_flag)
-          parser->frame_duration *= 2;
+          parser->format.frame_duration *= 2;
         }
       priv->have_sps = 1;
 

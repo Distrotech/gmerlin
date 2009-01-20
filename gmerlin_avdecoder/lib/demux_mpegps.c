@@ -529,6 +529,7 @@ static int next_packet(bgav_demuxer_context_t * ctx,
             {
             stream = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
             stream->timescale = 90000;
+            stream->index_mode = INDEX_MODE_MPEG;
             stream->fourcc = BGAV_MK_FOURCC('.', 'a', 'c', '3');
             stream->stream_id = priv->pes_header.stream_id;
             /* Hack: This is set by the core later. We must set it here,
@@ -552,6 +553,7 @@ static int next_packet(bgav_demuxer_context_t * ctx,
           if(!stream && priv->find_streams)
             {
             stream = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
+            stream->index_mode = INDEX_MODE_MPEG;
             stream->timescale = 90000;
             stream->fourcc = BGAV_MK_FOURCC('d', 't', 's', ' ');
             stream->stream_id = priv->pes_header.stream_id;
@@ -575,6 +577,7 @@ static int next_packet(bgav_demuxer_context_t * ctx,
           if(!stream && priv->find_streams)
             {
             stream = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
+            stream->index_mode = INDEX_MODE_MPEG;
             stream->timescale = 90000;
             stream->fourcc = BGAV_MK_FOURCC('L', 'P', 'C', 'M');
             stream->stream_id = priv->pes_header.stream_id;
@@ -636,6 +639,7 @@ static int next_packet(bgav_demuxer_context_t * ctx,
           {
           stream = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
           stream->fourcc = BGAV_MK_FOURCC('.', 'm', 'p', '3');
+          stream->index_mode = INDEX_MODE_MPEG;
           stream->timescale = 90000;
           stream->stream_id = priv->pes_header.stream_id;
           /* Hack: This is set by the core later. We must set it here,
@@ -657,6 +661,7 @@ static int next_packet(bgav_demuxer_context_t * ctx,
           stream = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
           stream->stream_id = priv->pes_header.stream_id;
           stream->timescale = 90000;
+          stream->index_mode = INDEX_MODE_MPEG;
 
           if(!bgav_input_get_fourcc(ctx->input, &fourcc))
             return 0;
@@ -682,6 +687,7 @@ static int next_packet(bgav_demuxer_context_t * ctx,
         if(!stream && priv->find_streams)
           {
           stream = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
+          stream->index_mode = INDEX_MODE_MPEG;
           stream->stream_id = priv->pes_header.stream_id;
           stream->timescale = 90000;
           stream->fourcc = BGAV_MK_FOURCC('V', 'C', '-', '1');
@@ -967,11 +973,13 @@ static int init_cdxa(bgav_demuxer_context_t * ctx)
   
   stream =  bgav_track_add_audio_stream(track, ctx->opt);
   stream->fourcc = BGAV_MK_FOURCC('.', 'm', 'p', '2');
+  stream->index_mode = INDEX_MODE_MPEG;
   stream->stream_id = 0xc0;
   stream->timescale = 90000;
   
   stream =  bgav_track_add_video_stream(track, ctx->opt);
   stream->fourcc = BGAV_MK_FOURCC('m', 'p', 'g', 'v');
+  stream->index_mode = INDEX_MODE_MPEG;
   stream->stream_id = 0xe0;
   stream->timescale = 90000;
   
@@ -1091,7 +1099,7 @@ static int open_mpegps(bgav_demuxer_context_t * ctx)
       ctx->tt->tracks[i].subtitle_streams[j].not_aligned = 1;
     }
 
-  ctx->index_mode = INDEX_MODE_MPEG;
+  ctx->index_mode = INDEX_MODE_MIXED;
 
   return 1;
   }

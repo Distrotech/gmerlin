@@ -28,10 +28,6 @@
 
 #define PARSER_PRIV           5 /* Offset for internally used codes */
 
-
-
-typedef struct bgav_video_parser_s bgav_video_parser_t;
-
 bgav_video_parser_t * bgav_video_parser_create(uint32_t fourcc, int timescale,
                                                const bgav_options_t * opt);
 
@@ -53,6 +49,7 @@ const uint8_t * bgav_video_parser_get_header(bgav_video_parser_t * parser,
 void bgav_video_parser_get_packet(bgav_video_parser_t * parser,
                                   bgav_packet_t * p);
 
-int bgav_video_parser_get_out_scale(bgav_video_parser_t * parser);
+const gavl_video_format_t *
+bgav_video_parser_get_format(bgav_video_parser_t * parser);
 
 void bgav_video_parser_set_eof(bgav_video_parser_t * parser);

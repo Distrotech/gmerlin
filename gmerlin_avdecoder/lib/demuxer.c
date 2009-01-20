@@ -21,6 +21,7 @@
 
 // #define DUMP_SUPERINDEX    
 #include <avdec_private.h>
+#include <videoparser.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -720,12 +721,52 @@ bgav_demuxer_get_packet_read(bgav_demuxer_context_t * demuxer,
   bgav_packet_t * ret = (bgav_packet_t*)0;
   
   if(!s->packet_buffer)
-    return (bgav_packet_t*)0;
+    return NULL;
+
+  if((s->type == BGAV_STREAM_VIDEO) && s->data.video.parser)
+    {
+    int result;
+    if(s->data.video.parsed_packet->valid)
+      return s->data.video.parsed_packet;
+
+    while(1)
+      {
+      result = bgav_video_parser_parse(s->data.video.parser);
+
+      switch(result)
+        {
+        case PARSER_EOF:
+          return NULL;
+          break;
+        case PARSER_NEED_DATA:
+          demuxer->request_stream = s; 
+          while(!(ret = bgav_packet_buffer_get_packet_read(s->packet_buffer, 0)))
+            {
+            if(!bgav_demuxer_next_packet(demuxer))
+              {
+              bgav_video_parser_set_eof(s->data.video.parser);
+              break;
+              }
+            }
+          if(ret)
+            {
+            bgav_video_parser_add_packet(s->data.video.parser, ret);
+            ret->valid = 0;
+            }
+          break;
+        case PARSER_HAVE_PACKET:
+          bgav_video_parser_get_packet(s->data.video.parser,
+                                       s->data.video.parsed_packet);
+          return s->data.video.parsed_packet;
+          break;
+        }
+      }
+    }
+  
   if((s->type == BGAV_STREAM_VIDEO) &&
      ((s->data.video.frametime_mode == BGAV_FRAMETIME_PTS) ||
       (s->data.video.frametime_mode == BGAV_FRAMETIME_CODEC_PTS)))
     get_duration = 1;
-
   
   demuxer->request_stream = s; 
   while(!(ret = bgav_packet_buffer_get_packet_read(s->packet_buffer, get_duration)))
@@ -768,7 +809,63 @@ bgav_demuxer_peek_packet_read(bgav_demuxer_context_t * demuxer,
   bgav_packet_t * ret;
   int get_duration = 0;
   if(!s->packet_buffer)
-    return 0;
+    return NULL;
+
+  if((s->type == BGAV_STREAM_VIDEO) && s->data.video.parser)
+    {
+    int result;
+    if(s->data.video.parsed_packet->valid)
+      return s->data.video.parsed_packet;
+
+    while(1)
+      {
+      result = bgav_video_parser_parse(s->data.video.parser);
+      switch(result)
+        {
+        case PARSER_EOF:
+          return NULL;
+          break;
+        case PARSER_NEED_DATA:
+          if((demuxer->flags & BGAV_DEMUXER_PEEK_FORCES_READ) || force)
+            {
+            demuxer->request_stream = s; 
+            while(!(ret = bgav_packet_buffer_get_packet_read(s->packet_buffer, 0)))
+              {
+              if(!bgav_demuxer_next_packet(demuxer))
+                {
+                bgav_video_parser_set_eof(s->data.video.parser);
+                break;
+                }
+              }
+            if(ret)
+              {
+              bgav_video_parser_add_packet(s->data.video.parser, ret);
+              ret->valid = 0;
+              }
+            }
+          else
+            {
+            if((ret = bgav_packet_buffer_peek_packet_read(s->packet_buffer, 0)))
+              {
+              ret = bgav_packet_buffer_get_packet_read(s->packet_buffer, 0);
+              bgav_video_parser_add_packet(s->data.video.parser, ret);
+              ret->valid = 0;
+              }
+            else
+              return NULL;
+            }
+          break;
+        case PARSER_HAVE_PACKET:
+          bgav_video_parser_get_packet(s->data.video.parser,
+                                       s->data.video.parsed_packet);
+          return s->data.video.parsed_packet;
+          break;
+          
+        }
+      }
+
+    }
+  
   if((s->type == BGAV_STREAM_VIDEO) &&
      ((s->data.video.frametime_mode == BGAV_FRAMETIME_PTS) ||
       (s->data.video.frametime_mode == BGAV_FRAMETIME_CODEC_PTS)))
@@ -811,35 +908,6 @@ bgav_demuxer_done_packet_read(bgav_demuxer_context_t * demuxer,
                               bgav_packet_t * p)
   {
   p->valid = 0;
-#if 0
-  if((p->stream->type == BGAV_STREAM_VIDEO) &&
-     !(demuxer->flags & BGAV_DEMUXER_BUILD_INDEX))
-    {
-    p->stream->data.video.last_frame_time =
-      gavl_time_rescale(p->stream->timescale,
-                        p->stream->data.video.format.timescale,
-                        p->pts);
-
-    demuxer->request_stream = p->stream;
-    
-    while(!p->stream->packet_buffer->read_packet->valid)
-      {
-      if(!bgav_demuxer_next_packet(demuxer))
-        {
-        p->stream->data.video.last_frame_duration =
-          p->stream->data.video.format.frame_duration;
-        return;
-        }
-      }
-    demuxer->request_stream = (bgav_stream_t*)0;
-
-    p->stream->data.video.last_frame_duration =
-      gavl_time_rescale(p->stream->timescale,
-                        p->stream->data.video.format.timescale,
-                        p->pts) -
-      p->stream->data.video.last_frame_time;
-    }
-#endif
   }
 
 /* Seek functions with superindex */

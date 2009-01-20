@@ -21,7 +21,6 @@
 
 #include "config.h"
 
-
 #include <avdec.h>
 
 #include <stdio.h> /* Needed for fileindex stuff */
@@ -40,6 +39,7 @@ typedef struct bgav_redirector_context_s bgav_redirector_context_t;
 
 typedef struct bgav_packet_s          bgav_packet_t;
 typedef struct bgav_file_index_s          bgav_file_index_t;
+typedef struct bgav_video_parser_s         bgav_video_parser_t;
 
 typedef struct bgav_input_s                    bgav_input_t;
 typedef struct bgav_input_context_s            bgav_input_context_t;
@@ -454,6 +454,9 @@ struct bgav_stream_s
 #define BGAV_FRAMETIME_CODEC_PTS 4 /* Codec takes PTS and duration from demuxer but sets times itself  */
       int frametime_mode;
       int wrong_b_timestamps;
+      
+      bgav_video_parser_t * parser;
+      bgav_packet_t * parsed_packet;
       } video;
     struct
       {

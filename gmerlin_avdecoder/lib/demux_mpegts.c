@@ -772,6 +772,7 @@ test_streams_detect(test_streams_t * s, bgav_track_t * track,
     {
     ret = bgav_track_add_audio_stream(track, opt);
     ret->fourcc = BGAV_MK_FOURCC('.','a','c','3');
+    ret->index_mode = INDEX_MODE_MPEG;
     }
 
   if(ret)
@@ -846,12 +847,14 @@ static int init_raw(bgav_demuxer_context_t * ctx, int input_can_seek)
         s = bgav_track_add_video_stream(&ctx->tt->tracks[0], ctx->opt);
         s->fourcc = BGAV_MK_FOURCC('m', 'p', 'g', 'v');
         s->data.video.frametime_mode = BGAV_FRAMETIME_CODEC;
+        s->index_mode = INDEX_MODE_MPEG;
         }
       /* MPEG Audio */
       else if((pes_header.stream_id & 0xe0) == 0xc0)
         {
         s = bgav_track_add_audio_stream(&ctx->tt->tracks[0], ctx->opt);
         s->fourcc = BGAV_MK_FOURCC('.', 'm', 'p', '3');
+        s->index_mode = INDEX_MODE_MPEG;
         }
       else
         {
@@ -1034,7 +1037,8 @@ static int open_mpegts(bgav_demuxer_context_t * ctx)
       }
     }
   ctx->stream_description = bgav_sprintf("MPEG-2 transport stream");
-  ctx->index_mode = INDEX_MODE_MPEG;
+  
+  ctx->index_mode = INDEX_MODE_MIXED;
   return 1;
   }
 

@@ -232,12 +232,12 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
         if(priv->sh.ext.progressive_sequence)
           {
           if(pe.top_field_first)
-            duration = parser->frame_duration * 2;
+            duration = parser->format.frame_duration * 2;
           else
-            duration = parser->frame_duration;
+            duration = parser->format.frame_duration;
           }
         else if(pe.progressive_frame)
-          duration = parser->frame_duration / 2;
+          duration = parser->format.frame_duration / 2;
         
         parser->cache[parser->cache_size-1].duration += duration;
         }
@@ -259,8 +259,8 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
       parser->pos += len;
       priv->have_sh = 1;
         
-      parser->timescale      = priv->sh.timescale;
-      parser->frame_duration = priv->sh.frame_duration;
+      parser->format.timescale      = priv->sh.timescale;
+      parser->format.frame_duration = priv->sh.frame_duration;
       priv->state = MPEG_NEED_STARTCODE;
       break;
     case MPEG_HAS_SEQUENCE_EXT_CODE:
@@ -274,10 +274,10 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
         
       priv->sh.mpeg2 = 1;
         
-      parser->timescale      *= (priv->sh.ext.timescale_ext+1);
-      parser->frame_duration *= (priv->sh.ext.frame_duration_ext+1);
-      parser->timescale      *= 2;
-      parser->frame_duration *= 2;
+      parser->format.timescale      *= (priv->sh.ext.timescale_ext+1);
+      parser->format.frame_duration *= (priv->sh.ext.frame_duration_ext+1);
+      parser->format.timescale      *= 2;
+      parser->format.frame_duration *= 2;
       parser->pos += len;
       priv->state = MPEG_NEED_STARTCODE;
       break;

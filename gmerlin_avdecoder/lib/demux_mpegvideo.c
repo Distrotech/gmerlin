@@ -109,8 +109,6 @@ static int parse(bgav_demuxer_context_t * ctx, int code)
         bgav_video_parser_add_data(priv->parser,
                                    priv->buffer, bytes_read, pos);
       }
-    else if(state == PARSER_EOF)
-      return 0;
     }
   /* Never get here */
   return 0;
@@ -209,7 +207,7 @@ static int next_packet_mpegvideo(bgav_demuxer_context_t * ctx)
   
   p = bgav_stream_get_packet_write(s);
   bgav_video_parser_get_packet(priv->parser, p);
-  //  bgav_packet_dump(p);
+  bgav_packet_dump(p);
   bgav_packet_done_write(p);
   
   return 1;
@@ -221,7 +219,8 @@ static int open_mpegvideo(bgav_demuxer_context_t * ctx)
   bgav_stream_t * s;
   const uint8_t * header;
   int header_len;
-
+  const gavl_video_format_t * format;
+  
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;
   
@@ -231,7 +230,10 @@ static int open_mpegvideo(bgav_demuxer_context_t * ctx)
   
   s = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
   
-  /* We just set the fourcc, everything else will be set by the decoder */
+  /*
+   *  We just set the fourcc, everything else will
+   *  be set by the parser
+   */
 
   s->fourcc = detect_type(ctx->input);
   
@@ -248,9 +250,12 @@ static int open_mpegvideo(bgav_demuxer_context_t * ctx)
   //    {
   if(!parse(ctx, PARSER_HAVE_HEADER))
     return 0;
-  s->timescale =
-    bgav_video_parser_get_out_scale(priv->parser);
-  s->data.video.format.timescale = s->timescale;
+
+  format = bgav_video_parser_get_format(priv->parser);
+
+  gavl_video_format_copy(&s->data.video.format, format);
+                         
+  s->timescale = s->data.video.format.timescale;
   //    }
 
   header = bgav_video_parser_get_header(priv->parser, &header_len);

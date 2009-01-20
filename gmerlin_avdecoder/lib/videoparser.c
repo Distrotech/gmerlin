@@ -211,6 +211,9 @@ void bgav_video_parser_destroy(bgav_video_parser_t * parser)
     parser->cleanup(parser);
   if(parser->header)
     free(parser->header);
+  if(parser->packets)
+    free(parser->packets);
+
   bgav_bytebuffer_free(&parser->buf);
   free(parser);
   }
@@ -229,9 +232,10 @@ void bgav_video_parser_reset(bgav_video_parser_t * parser, int64_t pts)
     parser->reset(parser);
   }
 
-int bgav_video_parser_get_out_scale(bgav_video_parser_t * parser)
+const gavl_video_format_t *
+bgav_video_parser_get_format(bgav_video_parser_t * parser)
   {
-  return parser->timescale;
+  return &parser->format;
   }
 
 const uint8_t *
@@ -250,6 +254,16 @@ void bgav_video_parser_set_eof(bgav_video_parser_t * parser)
   parser->pos = parser->buf.size;
   update_previous_size(parser);
 
+  /* Remove incomplete cache entries */
+  for(i = 0; i < parser->cache_size; i++)
+    {
+    if(!parser->cache[i].coding_type)
+      {
+      parser->cache_size = i;
+      break;
+      }
+    }
+  
   /* Set final timestamps */
 
   for(i = 0; i < parser->cache_size; i++)
@@ -272,6 +286,14 @@ void bgav_video_parser_set_eof(bgav_video_parser_t * parser)
       parser->cache[start].pts = parser->timestamp;
       parser->timestamp += parser->cache[start].duration;
       }
+    else
+      {
+      for(i = start; i < parser->cache_size; i++)
+        {
+        parser->cache[i].pts = parser->timestamp;
+        parser->timestamp += parser->cache[i].duration;
+        }
+      }
     }
 
   parser->eof = 1;
@@ -280,7 +302,7 @@ void bgav_video_parser_set_eof(bgav_video_parser_t * parser)
 int bgav_video_parser_parse(bgav_video_parser_t * parser)
   {
   int result;
-  fprintf(stderr, "Parse %d\n", parser->cache_size);
+  //  fprintf(stderr, "Parse %d\n", parser->cache_size);
   if(parser->eof && !parser->cache_size)
     return PARSER_EOF;
   
@@ -321,10 +343,11 @@ void bgav_video_parser_add_packet(bgav_video_parser_t * parser,
     parser->packets_alloc = parser->num_packets + 10;
     parser->packets       = realloc(parser->packets,
                                     parser->packets_alloc *
-                                    sizeof(parser->packets));
+                                    sizeof(*parser->packets));
     }
   parser->packets[parser->num_packets].packet_position = p->position;
   parser->packets[parser->num_packets].parser_position = parser->buf.size;
+  parser->packets[parser->num_packets].size = p->data_size;
   parser->num_packets++;
   bgav_bytebuffer_append_data(&parser->buf, p->data, p->data_size, 0);
   }
@@ -346,6 +369,32 @@ void bgav_video_parser_flush(bgav_video_parser_t * parser, int bytes)
     parser->pos = 0;
   if(parser->raw)
     parser->raw_position += bytes;
+  else
+    {
+    int num_remove, i;
+    for(i = 0; i < parser->num_packets; i++)
+      parser->packets[i].parser_position -= bytes;
+
+    for(i = 0; i < parser->num_packets; i++)
+      parser->packets[i].parser_position -= bytes;
+
+    num_remove = 0;
+    for(i = 0; i < parser->num_packets; i++)
+      {
+      if(parser->packets[i].parser_position < 0)
+        num_remove++;
+      else
+        break;
+      }
+    num_remove--;
+
+    if(num_remove > 0)
+      {
+      memmove(parser->packets, parser->packets + num_remove,
+              sizeof(*parser->packets) * num_remove);
+      parser->num_packets -= num_remove;
+      }
+    }
   }
 
 void bgav_video_parser_get_packet(bgav_video_parser_t * parser,
@@ -365,6 +414,7 @@ void bgav_video_parser_get_packet(bgav_video_parser_t * parser,
   p->keyframe = (c->coding_type == BGAV_CODING_TYPE_I) ? 1 : 0;
   p->position = c->position;
   p->field2_offset = c->field2_offset;
+  p->valid = 1;
   
   parser->cache_size--;
   if(parser->cache_size)
@@ -387,7 +437,7 @@ int bgav_video_parser_set_picture_start(bgav_video_parser_t * parser)
   parser->cache_size++;
   c = &parser->cache[parser->cache_size-1];
   memset(c, 0, sizeof(*c));
-  c->duration = parser->frame_duration;
+  c->duration = parser->format.frame_duration;
   c->pts = BGAV_TIMESTAMP_UNDEFINED;
   
   /* Set picture position */
@@ -404,9 +454,16 @@ int bgav_video_parser_set_picture_start(bgav_video_parser_t * parser)
     {
     for(i = 0; i < parser->num_packets; i++)
       {
-      
+      if((parser->packets[i].parser_position <= parser->pos) &&
+         (parser->packets[i].parser_position + parser->packets[i].size > parser->pos))
+        {
+        parser->cache[parser->cache_size-1].position =
+          parser->packets[i].packet_position;
+        break;
+        }
       }
+    if(i == parser->num_packets)
+      return 0;
     }
-  
   return 1;
   }

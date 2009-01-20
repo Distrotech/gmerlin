@@ -33,6 +33,7 @@
 #include AVCODEC_HEADER
 
 #include <dvframe.h>
+#include <videoparser.h>
 
 #ifdef HAVE_LIBPOSTPROC
 #include POSTPROC_HEADER
@@ -55,9 +56,6 @@
 //#define DUMP_DECODE
 // #define DUMP_EXTRADATA
 #define DUMP_PARSER
-
-/* Comes at the end */
-static int h264_is_keyframe(uint8_t * data, int len);
 
 /* Map of ffmpeg codecs to fourccs (from ffmpeg's avienc.c) */
 
@@ -85,17 +83,7 @@ typedef struct
   //  enum CodecID ffmpeg_id;
   codec_info_t * info;
   gavl_video_frame_t * gavl_frame;
-
-  /* For buffering and parsing */
-  
-  bgav_bytebuffer_t buf;
-
-  /* Updated by get_data() */
-  
-  uint8_t * parsed_frame;
-  int parsed_frame_size;
-  int parsed_bytes_used;
-
+    
   /* Pixelformat */
   int do_convert;
   enum PixelFormat dst_format;
@@ -111,20 +99,12 @@ typedef struct
   uint8_t * extradata;
   int extradata_size;
   
-  int need_extradata; /* Get extradata from parser */
-
-  /* The following 2 are used as arguments for the parser */
-  int64_t parser_pts;
-  int64_t parser_dts;
-  int64_t parser_pos;
-  int64_t parser_last_pos;
-
   int demuxer_eof;
   int codec_eof;
   int parser_eof;
   
   packet_info_t packets[FF_MAX_B_FRAMES+1];
-  bgav_packet_t current_packet;
+  bgav_packet_t * packet;
   
   int has_delay;
 
@@ -147,9 +127,9 @@ typedef struct
   gavl_video_format_t field_format;
   
   /* */
-  AVCodecParserContext * parser;
-  int parser_started;
-
+  //  AVCodecParserContext * parser;
+  //  int parser_started;
+    
   int do_timing;
 #define READ_MODE_NORMAL      0
 #define READ_MODE_PARSE       1
@@ -160,6 +140,9 @@ typedef struct
   bgav_dv_dec_t * dvdec;
   
   gavl_timecode_t last_dv_timecode;
+
+  uint8_t * frame_buffer;
+  int frame_buffer_len;
   
   } ffmpeg_video_priv;
 
@@ -168,11 +151,11 @@ static int my_get_buffer(struct AVCodecContext *c, AVFrame *pic)
   int ret, i, index;
   ffmpeg_video_priv * priv;
   bgav_stream_t * s = (bgav_stream_t *)c->opaque;
-  priv = (ffmpeg_video_priv*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
   ret = avcodec_default_get_buffer(c, pic);
 
   fprintf(stderr, "Got packet 2 %ld %ld\n",
-          priv->current_packet.position, priv->current_packet.pts);
+          priv->packet->position, priv->packet->pts);
   
   for(i = 0; i < FF_MAX_B_FRAMES+1; i++)
     {
@@ -189,26 +172,24 @@ static int my_get_buffer(struct AVCodecContext *c, AVFrame *pic)
     }
   
   //  *pts= global_video_pkt_pts;
-  pic->opaque= &priv->packets[i];
-
-
+  pic->opaque= &priv->packets[index];
   
   for(i = 0; i < FF_MAX_B_FRAMES+1; i++)
     {
     if(priv->packets[i].used &&
-       (priv->packets[i].pts == priv->current_packet.pts))
+       (priv->packets[i].pts == priv->packet->pts))
       {
       fprintf(stderr, "Packet with PTS %ld (pos %ld) already there\n",
-              priv->current_packet.pts, priv->packets[i].position);
+              priv->packet->pts, priv->packets->position);
       return ret;
       }
     }
   
   /* Set values  */
-  priv->packets[index].pts      = priv->current_packet.pts;
-  priv->packets[index].position = priv->current_packet.position;
-  priv->packets[index].duration = priv->current_packet.duration;
-  priv->packets[index].keyframe = priv->current_packet.keyframe;
+  priv->packets[index].pts      = priv->packet->pts;
+  priv->packets[index].position = priv->packet->position;
+  priv->packets[index].duration = priv->packet->duration;
+  priv->packets[index].keyframe = priv->packet->keyframe;
   priv->packets[index].used     = 1;
   //  fprintf(stderr, "Got packet 2 %ld %ld\n",
   //          priv->current_packet.position, priv->current_packet.pts);
@@ -244,234 +225,21 @@ typedef struct dp_hdr_s {
     uint32_t chunktab;  // offset to chunk offset array
 } dp_hdr_t;
 
-// static int data_dumped = 0;
-
-#define TIME_BGAV_2_FFMPEG(t) ((t == BGAV_TIMESTAMP_UNDEFINED) ? AV_NOPTS_VALUE : t)
-#define TIME_FFMPEG_2_BGAV(t) ((t == AV_NOPTS_VALUE) ? BGAV_TIMESTAMP_UNDEFINED : t)
-
-static bgav_packet_t * get_packet(bgav_stream_t * s)
-  {
-  ffmpeg_video_priv * priv;
-  bgav_packet_t * ret = (bgav_packet_t *)0;
-  priv = (ffmpeg_video_priv*)(s->data.video.decoder->priv);
-
-  switch(priv->read_mode)
-    {
-    case READ_MODE_NORMAL:
-      ret = bgav_demuxer_get_packet_read(s->demuxer, s);
-      if(!ret)
-        priv->demuxer_eof = 1;
-      break;
-    case READ_MODE_PARSE:
-      if(!bgav_demuxer_peek_packet_read(s->demuxer, s, 0))
-        break;
-      ret = bgav_demuxer_get_packet_read(s->demuxer, s);
-      break;
-    case READ_MODE_PARSE_FLUSH:
-      if(!bgav_demuxer_peek_packet_read(s->demuxer, s, 0))
-        {
-        priv->demuxer_eof = 1;
-        break;
-        }
-      /* This should never happen */
-      ret = bgav_demuxer_get_packet_read(s->demuxer, s);
-      break;
-    }
-  
-  if(ret)
-    fprintf(stderr, "Got packet 1 pos: %ld pts: %ld\n", ret->position,
-            ret->pts);
-  return ret;
-  }
-
-static int get_data_parser(bgav_stream_t * s, int64_t * pts,
-                           int64_t * position, int64_t * duration)
-  {
-  int ext_len;
-  int bytes_to_parse;
-  int done = 0;
-  ffmpeg_video_priv * priv;
-  bgav_packet_t * p = (bgav_packet_t*)0;
-  
-  priv = (ffmpeg_video_priv*)(s->data.video.decoder->priv);
-
-  if(priv->parser_eof)
-    return 0;
-  
-  while(!done)
-    {
-    /* Try to parse the stream */
-    if(priv->parser_started)
-      {
-#ifdef DUMP_PARSER
-      bgav_dprintf("Parsing %d bytes ", priv->buf.size);
-      if(priv->parser_pts != BGAV_TIMESTAMP_UNDEFINED)
-        bgav_dprintf("PTS: %" PRId64 " ", priv->parser_pts);
-      if(priv->parser_dts != BGAV_TIMESTAMP_UNDEFINED)
-        bgav_dprintf("DTS: %" PRId64 "...", priv->parser_dts);
-#endif
-
-      if(priv->demuxer_eof) /* Try to get the last frame */
-        bytes_to_parse = 0;
-      else
-        bytes_to_parse = priv->buf.size - priv->parsed_bytes_used;
-      
-      priv->parsed_bytes_used +=
-        av_parser_parse(priv->parser,
-                        priv->ctx,
-                        &priv->parsed_frame,
-                        &priv->parsed_frame_size,
-                        priv->buf.buffer + priv->parsed_bytes_used,
-                        bytes_to_parse,
-                        TIME_BGAV_2_FFMPEG(priv->parser_pts),
-                        TIME_BGAV_2_FFMPEG(priv->parser_dts));
-#ifdef DUMP_PARSER
-      bgav_dprintf("done: bytes_used: %d frame_size: %d ",
-                   priv->parsed_bytes_used, priv->parsed_frame_size);
-
-      if(priv->parser->pts != AV_NOPTS_VALUE)
-        bgav_dprintf("PTS: %" PRId64 " ", priv->parser->pts);
-      if(priv->parser->dts != AV_NOPTS_VALUE)
-        bgav_dprintf("DTS: %" PRId64 " ", priv->parser->dts);
-      bgav_dprintf("Offset: %" PRId64 "\n", priv->parser->frame_offset);
-#endif
-      if(priv->parsed_frame_size)
-        {
-        *pts = TIME_FFMPEG_2_BGAV(priv->parser->pts);
-        done = 1;
-
-        if(priv->parser->frame_offset >= priv->parser_pos)
-          *position = priv->parser_pos;
-        else
-          *position = priv->parser_last_pos;
-
-#ifdef DUMP_PARSER
-        bgav_dprintf("Parser Offset: %ld, PTS: %ld\n", *position, *pts);
-#endif
-        break;
-        }
-      else if(priv->demuxer_eof) /* Sometimes, we don't get the last frame */
-        {
-        priv->parser_eof = 1;
-        return 0;
-        }
-      }
-
-    p = get_packet(s);
-
-    if(!p) 
-      {
-      if(priv->demuxer_eof) /* Parse once more to get the last frame */
-        continue;
-      else          /* We are just parsing the stream */
-        return 0;
-      }
-    priv->parser_pts = p->pts;
-    priv->parser_dts = p->dts;
-
-    priv->parser_last_pos = priv->parser_pos;
-    priv->parser_pos = p->position;
-    
-    priv->parser->cur_offset = p->position;
-    if(!priv->parser_started)
-#if LIBAVCODEC_BUILD >= ((51<<16)+(57<<8)+1)
-      priv->parser->next_frame_offset = p->position;
-#else
-      priv->parser->last_frame_offset = p->position;
-#endif    
-    bgav_bytebuffer_append(&priv->buf, p, FF_INPUT_BUFFER_PADDING_SIZE);
-
-    /* Extract extradata */
-    if(priv->need_extradata)
-      {
-      ext_len = priv->parser->parser->split(priv->ctx, priv->buf.buffer,
-                                            priv->buf.size);
-      if(ext_len)
-        {
-#ifdef DUMP_PARSER
-        bgav_dprintf("Got extradata from parser %d bytes\n", ext_len);
-        bgav_hexdump(priv->buf.buffer, ext_len, 16);
-#endif      
-        priv->extradata = calloc(1, ext_len + FF_INPUT_BUFFER_PADDING_SIZE);
-        memcpy(priv->extradata, priv->buf.buffer, ext_len);
-        priv->extradata_size = ext_len;
-        priv->need_extradata = 0;
-        
-        // ffplay doesn't remove these either
-        // bgav_bytebuffer_remove(&priv->buf, ext_len);
-        done = 1;
-        }
-      }
-    priv->parser_started = 1;
-    
-    bgav_demuxer_done_packet_read(s->demuxer, p);
-    }
-  return 1;
-  }
-
-static int get_data_normal(bgav_stream_t * s, int64_t * pts,
-                           int64_t * position, int64_t * duration)
-  {
-  ffmpeg_video_priv * priv;
-  bgav_packet_t * p = (bgav_packet_t*)0;
-  
-  priv = (ffmpeg_video_priv*)(s->data.video.decoder->priv);
-
-  if(priv->buf.size)
-    return 1;
-  
-  if((s->action == BGAV_STREAM_PARSE) &&
-     !bgav_demuxer_peek_packet_read(s->demuxer, s, 0))
-    return 0;
-  
-  /* Get packet from demuxer */
-  p = get_packet(s);
-  
-  if(!p)
-    return 0;
-  
-  bgav_bytebuffer_append(&priv->buf, p, FF_INPUT_BUFFER_PADDING_SIZE);
-  
-  priv->parsed_frame = priv->buf.buffer;
-  priv->parsed_frame_size = priv->buf.size;
-#ifdef DUMP_PARSER
-  bgav_dprintf("Got complete packet %d bytes ", priv->buf.size);
-#endif      
-
-  *pts = p->pts;
-  *position = p->position;
-  *duration = p->duration;
-  bgav_demuxer_done_packet_read(s->demuxer, p);
-  
-  return 1;
-  }
 
 static int get_data(bgav_stream_t * s)
   {
-  int64_t pts = 0, position = 0, duration = 0;
-  int ret;
-  ffmpeg_video_priv * priv;
-  priv = (ffmpeg_video_priv*)(s->data.video.decoder->priv);
-  if(priv->parser)
-    ret = get_data_parser(s, &pts, &position, &duration);
-  else
-    ret = get_data_normal(s, &pts, &position, &duration);
+  ffmpeg_video_priv * priv = s->data.video.decoder->priv;
   
-  if(!ret)
-    return 0;
-  
-  if(priv->do_timing && priv->parsed_frame) // priv->parsed_frame is NULL if we just got the extradata
+  if(priv->packet)
     {
-    priv->current_packet.position = position;
-    priv->current_packet.pts      = pts;
-    priv->current_packet.duration = duration;
-    if((s->action == BGAV_STREAM_PARSE) && (priv->info->ffmpeg_id == CODEC_ID_H264))
-      {
-      priv->current_packet.keyframe =
-        h264_is_keyframe(priv->parsed_frame, priv->parsed_frame_size);
-      }
+    bgav_demuxer_done_packet_read(s->demuxer, priv->packet);
+    priv->packet = NULL;
     }
-  return ret;
+
+  priv->packet = bgav_demuxer_get_packet_read(s->demuxer, s);
+  if(!priv->packet)
+    return 0;
+  return 1;
   }
 
 static void get_format(AVCodecContext * ctx, gavl_video_format_t * format);
@@ -481,10 +249,13 @@ static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f);
 static void init_pp(bgav_stream_t * s);
 #endif
 
+/* Codec specific hacks */
+
+static void handle_dv(bgav_stream_t * s);
+
 static int decode_picture(bgav_stream_t * s)
   {
   int done = 0;
-  int len; /* Changed for RealVideo */
   int i, imax;
   int bytes_used;
   dp_hdr_t *hdr;
@@ -494,7 +265,7 @@ static int decode_picture(bgav_stream_t * s)
   packet_info_t * pi;
   int min_pts_index;
   
-  priv = (ffmpeg_video_priv*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
   
   while(!done)
     {
@@ -505,8 +276,8 @@ static int decode_picture(bgav_stream_t * s)
         {
         if(priv->has_delay)
           {
-          priv->parsed_frame_size = 0;
-          priv->parsed_frame = (uint8_t*)0;
+          priv->frame_buffer_len = 0;
+          priv->frame_buffer = (uint8_t*)0;
           }
         else
           {
@@ -517,7 +288,14 @@ static int decode_picture(bgav_stream_t * s)
       else /* Just parsing */
         return 0;
       }
-    len = priv->parsed_frame_size;
+
+    priv->frame_buffer = priv->packet->data;
+
+    if(priv->packet->field2_offset)
+      priv->frame_buffer_len = priv->packet->field2_offset;
+    else
+      priv->frame_buffer_len = priv->packet->data_size;
+    
     /* Other Real Video oddities */
     if((s->fourcc == BGAV_MK_FOURCC('R', 'V', '1', '0')) ||
        (s->fourcc == BGAV_MK_FOURCC('R', 'V', '1', '3')) ||
@@ -527,81 +305,23 @@ static int decode_picture(bgav_stream_t * s)
       {
       if(priv->ctx->extradata_size == 8)
         {
-        hdr= (dp_hdr_t*)(priv->buf.buffer);
+        hdr= (dp_hdr_t*)(priv->frame_buffer);
         if(priv->ctx->slice_offset==NULL)
           priv->ctx->slice_offset= malloc(sizeof(int)*1000);
         priv->ctx->slice_count= hdr->chunks+1;
         for(i=0; i<priv->ctx->slice_count; i++)
           priv->ctx->slice_offset[i]=
-            ((uint32_t*)(priv->buf.buffer+hdr->chunktab))[2*i+1];
-        len=hdr->len;
-        bgav_bytebuffer_remove(&priv->buf, sizeof(dp_hdr_t));
+            ((uint32_t*)(priv->frame_buffer+hdr->chunktab))[2*i+1];
+        priv->frame_buffer_len=hdr->len;
+        priv->frame_buffer += sizeof(dp_hdr_t);
         }
       }
     
     /* DV Video ugliness */
     if(priv->info->ffmpeg_id == CODEC_ID_DVVIDEO)
       {
-      if(priv->need_format)
-        {
-        priv->dvdec = bgav_dv_dec_create();
-        bgav_dv_dec_set_header(priv->dvdec, priv->buf.buffer);
-        }
-      
-      bgav_dv_dec_set_frame(priv->dvdec, priv->buf.buffer);
-
-      if(priv->need_format)
-        {
-        bgav_dv_dec_get_pixel_aspect(priv->dvdec,
-                                     &s->data.video.format.pixel_width,
-                                     &s->data.video.format.pixel_height);
-        
-        if(!s->data.video.format.timecode_format.int_framerate)
-          {
-          bgav_dv_dec_get_timecode_format(priv->dvdec,
-                                          &s->data.video.format.timecode_format, s->opt);
-          }
-        }
-      /* Extract timecodes */
-      if(s->opt->dv_datetime)
-        {
-        int year, month, day;
-        int hour, minute, second;
-
-        gavl_timecode_t tc = 0;
-        
-        if(bgav_dv_dec_get_date(priv->dvdec, &year, &month, &day) &&
-           bgav_dv_dec_get_time(priv->dvdec, &hour, &minute, &second))
-          {
-          gavl_timecode_from_ymd(&tc,
-                                 year, month, day);
-          gavl_timecode_from_hmsf(&tc,
-                                 hour, minute, second, 0);
-          
-          if((priv->last_dv_timecode != GAVL_TIMECODE_UNDEFINED) &&
-             (tc != priv->last_dv_timecode))
-            {
-            if(s->data.video.format.timecode_format.flags & GAVL_TIMECODE_DROP_FRAME)
-              {
-              if(!second && (minute % 10))
-                gavl_timecode_from_hmsf(&tc,
-                                        hour, minute, second, 2);
-              }
-            s->codec_timecode = tc;
-            s->has_codec_timecode = 1;
-            }
-          priv->last_dv_timecode = tc;
-          }
-        }
-      else
-        {
-        if(bgav_dv_dec_get_timecode(priv->dvdec,
-                                    &s->codec_timecode))
-          s->has_codec_timecode = 1;
-        }
+      handle_dv(s);
       }
-    
-    
     
     /* Palette terror */
     if(s->data.video.palette_changed)
@@ -625,18 +345,31 @@ static int decode_picture(bgav_stream_t * s)
     
 #ifdef DUMP_DECODE
     bgav_dprintf("Decode: out_time: %" PRId64 " len: %d\n", s->out_time, len);
-    if(priv->parsed_frame)
-      bgav_hexdump(priv->parsed_frame, 16, 16);
+    if(priv->frame_buffer)
+      bgav_hexdump(priv->frame_buffer, 16, 16);
 #endif
     
     bytes_used = avcodec_decode_video(priv->ctx,
                                       priv->frame,
                                       &priv->have_picture,
-                                      priv->parsed_frame,
-                                      len);
+                                      priv->frame_buffer,
+                                      priv->frame_buffer_len);
 
+    /* Decode 2nd field for field pictures */
+    if(priv->packet->field2_offset && (bytes_used > 0))
+      {
+      priv->frame_buffer = priv->packet->data + priv->packet->field2_offset;
+      priv->frame_buffer_len = priv->packet->data_size - priv->packet->field2_offset;
+
+      bytes_used = avcodec_decode_video(priv->ctx,
+                                        priv->frame,
+                                        &priv->have_picture,
+                                        priv->frame_buffer,
+                                        priv->frame_buffer_len);
+      }
+    
     /* If we passed no data and got no picture, we are done here */
-    if(!len && !priv->have_picture)
+    if(!priv->frame_buffer_len && !priv->have_picture)
       {
       priv->codec_eof = 1;
       return 0;
@@ -671,38 +404,6 @@ static int decode_picture(bgav_stream_t * s)
       bgav_dprintf("\n");
       }
 #endif
-    
-    /* Advance packet buffer */
-    
-    if(priv->parsed_frame)
-      {
-      /* Check for error */
-      if(bytes_used < 0)
-        {
-        if(priv->parser)
-          {
-          bgav_bytebuffer_remove(&priv->buf, priv->parsed_bytes_used);
-          priv->parsed_bytes_used = 0;
-          }
-        else
-          bgav_bytebuffer_flush(&priv->buf);
-        }
-      else
-        {
-        if(priv->parser)
-          {
-          bgav_bytebuffer_remove(&priv->buf, priv->parsed_bytes_used);
-          priv->parsed_bytes_used = 0;
-          }
-        else if(!s->not_aligned)
-          {
-          bgav_bytebuffer_flush(&priv->buf);
-          }
-        else
-          bgav_bytebuffer_remove(&priv->buf, bytes_used);
-        
-        }
-      }
     
     if(priv->have_picture)
       done = 1;
@@ -758,7 +459,7 @@ static int decode_ffmpeg(bgav_stream_t * s, gavl_video_frame_t * f)
   ffmpeg_video_priv * priv;
   /* We get the DV format info ourselfes, since the values
      ffmpeg returns are not reliable */
-  priv = (ffmpeg_video_priv*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   if(!priv->do_timing && !f)
     {
@@ -798,83 +499,56 @@ static int decode_ffmpeg(bgav_stream_t * s, gavl_video_frame_t * f)
   return 1;
   }
 
-static void put_index(bgav_stream_t * s)
+#if 0
+static void parse_ffmpeg(bgav_stream_t * s, int flush)
   {
-  packet_info_t * pi;
-  int keyframe;
-  int duration;
+  int result, done = 0;
+  bgav_packet_t * p;
   ffmpeg_video_priv * priv;
-  priv = (ffmpeg_video_priv*)(s->data.video.decoder->priv);
+  
+  priv = s->data.video.decoder->priv;
 
-  pi = (packet_info_t *)priv->frame->opaque;
-    
-  if(priv->info->ffmpeg_id == CODEC_ID_H264)
-    keyframe = pi->keyframe;
-  else if(priv->frame->pict_type == FF_I_TYPE)
-    keyframe = 1;
-  else
-    keyframe = 0;
+  if(flush)
+    bgav_video_parser_set_eof(priv->vp);
   
-  /* Hack for (possibly wrong encoded) h.264 streams */
-  if((pi->pts != BGAV_TIMESTAMP_UNDEFINED) &&
-     (priv->last_parse_pts != BGAV_TIMESTAMP_UNDEFINED) &&
-     (priv->info->ffmpeg_id == CODEC_ID_H264))
+  while(!done)
     {
-    duration = gavl_time_rescale(s->timescale, 4 * s->data.video.format.timescale,
-                                 pi->pts - priv->last_parse_pts);
-    if((duration > 0) && (duration < 3 * s->data.video.format.frame_duration))
+    result = bgav_video_parser_parse(priv->vp);
+    switch(result)
       {
-      s->data.video.format.timescale *= 2;
-      }
-    }
-  priv->last_parse_pts = pi->pts;
-  
-  if(priv->frame->pict_type == FF_B_TYPE)
-    {
-    switch(s->data.video.frametime_mode)
-      {
-        case BGAV_FRAMETIME_CONSTANT:
-          if(s->file_index->num_entries)
-            {
-            s->file_index->entries[s->file_index->num_entries-1].time +=
-              s->data.video.format.frame_duration;
-            s->duration += s->data.video.format.frame_duration;
-            }
-          break;
-      }
-    }
-  else
-    {
-    
-    switch(s->data.video.frametime_mode)
-      {
-      case BGAV_FRAMETIME_CONSTANT:
-        if((pi->pts != BGAV_TIMESTAMP_UNDEFINED) && !s->duration)
-          s->first_timestamp = pi->pts;
-        bgav_file_index_append_packet(s->file_index,
-                                      pi->position,
-                                      s->duration,
-                                      keyframe);
-        s->duration += s->data.video.format.frame_duration;
+      case PARSER_NEED_DATA:
+        if(bgav_demuxer_peek_packet_read(s->demuxer, s, 0))
+          {
+          p = bgav_demuxer_get_packet_read(s->demuxer, s);
+          bgav_video_parser_add_packet(priv->vp, p);
+          bgav_demuxer_done_packet_read(s->demuxer, p);
+          }
+        else
+          done = 1;
+        break;
+      case PARSER_HAVE_HEADER:
+        break;
+      case PARSER_HAVE_PACKET:
+        bgav_video_parser_get_packet(priv->vp, priv->packet);
+
+        if(priv->packet->pts >= s->duration)
+          {
+          bgav_file_index_append_packet(s->file_index,
+                                        priv->packet->position,
+                                        priv->packet->pts,
+                                        priv->packet->keyframe);
+          s->duration = priv->packet->pts + priv->packet->duration;
+          }
+        
+        break;
+      case PARSER_EOF:
+      case PARSER_ERROR:
         break;
       }
     }
+  
   }
-
-static void parse_ffmpeg(bgav_stream_t * s, int flush)
-  {
-  ffmpeg_video_priv * priv;
-  priv = (ffmpeg_video_priv*)(s->data.video.decoder->priv);
-  if(flush)
-    priv->read_mode = READ_MODE_PARSE_FLUSH;
-  else
-    priv->read_mode = READ_MODE_PARSE;
-
-  while(decode_picture(s))
-    {
-    put_index(s);
-    }
-  }
+#endif
 
 static int init_ffmpeg(bgav_stream_t * s)
   {
@@ -913,12 +587,7 @@ static int init_ffmpeg(bgav_stream_t * s)
     ((s->fourcc & 0xff000000) >> 24);
 #endif
   priv->ctx->codec_id = codec->id;
- 
-  /* Initialize parser */
-  if(s->not_aligned)
-    priv->parser = av_parser_init(priv->ctx->codec_id);
-
-
+    
   /*
    *  We always assume, that we have complete frames only.
    *  For streams, where the packets are not aligned with frames,
@@ -984,21 +653,9 @@ static int init_ffmpeg(bgav_stream_t * s)
     bgav_hexdump(priv->ctx->extradata, priv->ctx->extradata_size, 16);
 #endif
     }
-  else if(priv->parser && priv->parser->parser->split)
-    {
-    priv->need_extradata = 1;
-    while(priv->need_extradata)
-      {
-      if(!get_data(s))
-        {
-        bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-                 "Ran out of data during extradata scanning");
-        return 0;
-        }
-      }
-    priv->ctx->extradata      = priv->extradata;
-    priv->ctx->extradata_size = priv->extradata_size;
-    }
+  
+  if(s->action == BGAV_STREAM_PARSE)
+    return 1;
   
   priv->ctx->codec_type = CODEC_TYPE_VIDEO;
   
@@ -1109,14 +766,7 @@ static int init_ffmpeg(bgav_stream_t * s)
     }
   
   priv->need_format = 0;
-
-  if(s->action == BGAV_STREAM_PARSE)
-    {
-    put_index(s);
-    priv->ctx->skip_idct        = AVDISCARD_ALL;
-    priv->ctx->skip_loop_filter = AVDISCARD_ALL;
-    }
-  
+    
 #ifdef HAVE_LIBPOSTPROC
   init_pp(s);
 #endif
@@ -1160,9 +810,11 @@ static void resync_ffmpeg(bgav_stream_t * s)
   {
   int i;
   ffmpeg_video_priv * priv;
-  priv = (ffmpeg_video_priv*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
   avcodec_flush_buffers(priv->ctx);
-  bgav_bytebuffer_flush(&priv->buf);
+
+  priv->packet = NULL;
+
   priv->have_picture = 0;
   priv->demuxer_eof = 0;
   priv->parser_eof = 0;
@@ -1174,30 +826,16 @@ static void resync_ffmpeg(bgav_stream_t * s)
       priv->packets[i].used = 0;
     }
   
-  if(priv->parser)
-    {
-    av_parser_close(priv->parser);
-    priv->parser = av_parser_init(priv->ctx->codec_id);
-    priv->parser_pts = BGAV_TIMESTAMP_UNDEFINED;
-    priv->parser_dts = BGAV_TIMESTAMP_UNDEFINED;
-    priv->parser_started = 0;
-    }
   decode_picture(s);
   }
 
 static void close_ffmpeg(bgav_stream_t * s)
   {
   ffmpeg_video_priv * priv;
-  priv= (ffmpeg_video_priv*)(s->data.video.decoder->priv);
+  priv= (s->data.video.decoder->priv);
 
   if(!priv)
     return;
-  
-  bgav_bytebuffer_free(&priv->buf);
-  
-  if(priv->parser)
-    av_parser_close(priv->parser);
-  
   
   if(priv->ctx)
     {
@@ -1887,7 +1525,7 @@ void bgav_init_video_decoders_ffmpeg(bgav_options_t * opt)
       codecs[real_num_codecs].decoder.fourccs = codecs[real_num_codecs].info->fourccs;
       codecs[real_num_codecs].decoder.init = init_ffmpeg;
       codecs[real_num_codecs].decoder.decode = decode_ffmpeg;
-      codecs[real_num_codecs].decoder.parse = parse_ffmpeg;
+      //      codecs[real_num_codecs].decoder.parse = parse_ffmpeg;
       codecs[real_num_codecs].decoder.close = close_ffmpeg;
       codecs[real_num_codecs].decoder.resync = resync_ffmpeg;
       bgav_video_decoder_register(&codecs[real_num_codecs].decoder);
@@ -2298,7 +1936,7 @@ static void init_pp(bgav_stream_t * s)
   int accel_flags;
   int pp_flags;
   ffmpeg_video_priv * priv;
-  priv = (ffmpeg_video_priv*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
 
   
   /* Initialize postprocessing */
@@ -2359,7 +1997,7 @@ static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f)
 #endif
   
   ffmpeg_video_priv * priv;
-  priv = (ffmpeg_video_priv*)(s->data.video.decoder->priv);
+  priv = s->data.video.decoder->priv;
   if(priv->ctx->pix_fmt == PIX_FMT_PAL8)
     {
     if(s->data.video.format.pixelformat == GAVL_RGBA_32)
@@ -2481,81 +2119,68 @@ static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f)
   
   }
 
-/* H.264 keyframe detection. This is taken from the x264 plugin of
- * libquicktime, which was, in turn, takes from the mov encoder from
- * ffmpeg
- */
+/* Extract format and get timecode */
 
-static uint8_t *avc_find_startcode( uint8_t *p, uint8_t *end )
+static void handle_dv(bgav_stream_t * s)
   {
-  uint8_t *a = p + 4 - ((long)p & 3);
+  ffmpeg_video_priv * priv = s->data.video.decoder->priv;
   
-  for( end -= 3; p < a && p < end; p++ )
+  if(priv->need_format)
     {
-    if( p[0] == 0 && p[1] == 0 && p[2] == 1 )
-      return p;
+    priv->dvdec = bgav_dv_dec_create();
+    bgav_dv_dec_set_header(priv->dvdec, priv->frame_buffer);
     }
+      
+  bgav_dv_dec_set_frame(priv->dvdec, priv->frame_buffer);
   
-  for( end -= 3; p < end; p += 4 )
+  if(priv->need_format)
     {
-    uint32_t x = *(uint32_t*)p;
-    //      if( (x - 0x01000100) & (~x) & 0x80008000 ) // little endian
-    //      if( (x - 0x00010001) & (~x) & 0x00800080 ) // big endian
-    if( (x - 0x01010101) & (~x) & 0x80808080 )
-      { // generic
-      if( p[1] == 0 )
-        {
-        if( p[0] == 0 && p[2] == 1 )
-          return p;
-        if( p[2] == 0 && p[3] == 1 )
-          return p+1;
-        }
-      if( p[3] == 0 )
-        {
-        if( p[2] == 0 && p[4] == 1 )
-          return p+2;
-        if( p[4] == 0 && p[5] == 1 )
-          return p+3;
-        }
+    bgav_dv_dec_get_pixel_aspect(priv->dvdec,
+                                 &s->data.video.format.pixel_width,
+                                 &s->data.video.format.pixel_height);
+        
+    if(!s->data.video.format.timecode_format.int_framerate)
+      {
+      bgav_dv_dec_get_timecode_format(priv->dvdec,
+                                      &s->data.video.format.timecode_format, s->opt);
       }
     }
-  
-  for( end += 3; p < end; p++ )
+  /* Extract timecodes */
+  if(s->opt->dv_datetime)
     {
-    if( p[0] == 0 && p[1] == 0 && p[2] == 1 )
-      return p;
-    }
-  return end + 3;
-  }
+    int year, month, day;
+    int hour, minute, second;
 
-static int h264_is_keyframe(uint8_t * data, int len)
-  {
-  uint8_t * ptr, *ptr_end;
-  int ret = 0;
-  ptr_end = data + len;
-  
-  ptr = avc_find_startcode(data, ptr_end);
-  
-  while(ptr < ptr_end)
-    {
-    if((ptr[3] & 0x1f) == 5) // Coded slice of an IDR picture
+    gavl_timecode_t tc = 0;
+        
+    if(bgav_dv_dec_get_date(priv->dvdec, &year, &month, &day) &&
+       bgav_dv_dec_get_time(priv->dvdec, &hour, &minute, &second))
       {
-      ret = 1;
+      gavl_timecode_from_ymd(&tc,
+                             year, month, day);
+      gavl_timecode_from_hmsf(&tc,
+                              hour, minute, second, 0);
+          
+      if((priv->last_dv_timecode != GAVL_TIMECODE_UNDEFINED) &&
+         (tc != priv->last_dv_timecode))
+        {
+        if(s->data.video.format.timecode_format.flags & GAVL_TIMECODE_DROP_FRAME)
+          {
+          if(!second && (minute % 10))
+            gavl_timecode_from_hmsf(&tc,
+                                    hour, minute, second, 2);
+          }
+        s->codec_timecode = tc;
+        s->has_codec_timecode = 1;
+        }
+      priv->last_dv_timecode = tc;
       }
-    else if((ptr[3] & 0x1f) == 9) // Access unit delimiter
-      {
-      if((ptr[4] >> 5) == 0)
-        ret = 1;
-      }
-#if 1
-    if((ptr[3] & 0x1f) == 7) // Sequence parameter set
-      {
-      ret = 1;
-      }
-#endif
-    //    
-    ptr = avc_find_startcode(ptr+1, ptr_end);
-    
     }
-  return ret;
+  else
+    {
+    if(bgav_dv_dec_get_timecode(priv->dvdec,
+                                &s->codec_timecode))
+      s->has_codec_timecode = 1;
+    }
+  
   }

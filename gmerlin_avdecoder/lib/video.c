@@ -20,8 +20,11 @@
  * *****************************************************************/
 
 #include <stdlib.h>
-#include <avdec_private.h>
 #include <stdio.h>
+#include <string.h>
+
+#include <avdec_private.h>
+#include <videoparser.h>
 
 #define LOG_DOMAIN "video"
 
@@ -44,48 +47,107 @@ int bgav_set_video_stream(bgav_t * b, int stream, bgav_stream_action_t action)
   return 1;
   }
 
-int bgav_video_start(bgav_stream_t * stream)
+int bgav_video_start(bgav_stream_t * s)
   {
   int result;
   bgav_video_decoder_t * dec;
   bgav_video_decoder_context_t * ctx;
   bgav_packet_t * p;
+
+  if(s->not_aligned)
+    {
+    int result, done = 0;
+    bgav_packet_t * p;
+    const gavl_video_format_t * format;
+    bgav_video_parser_t * parser;
+    const uint8_t * header;
+    int header_len;
+    
+    parser = bgav_video_parser_create(s->fourcc,
+                                                    s->timescale,
+                                                    s->opt);
+    if(!parser)
+      {
+      bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+               "No video parser found for fourcc %c%c%c%c (0x%08x)",
+               (s->fourcc & 0xFF000000) >> 24,
+               (s->fourcc & 0x00FF0000) >> 16,
+               (s->fourcc & 0x0000FF00) >> 8,
+               (s->fourcc & 0x000000FF),
+               s->fourcc);
+      return 0;
+      }
+
+    /* Start the parser and extract the header */
+
+    while(!done)
+      {
+      result = bgav_video_parser_parse(parser);
+      switch(result)
+        {
+        case PARSER_NEED_DATA:
+          p = bgav_demuxer_get_packet_read(s->demuxer, s);
+          bgav_video_parser_add_packet(parser, p);
+          bgav_demuxer_done_packet_read(s->demuxer, p);
+          break;
+        case PARSER_HAVE_HEADER:
+          done = 1;
+
+          format = bgav_video_parser_get_format(parser);
+          gavl_video_format_copy(&s->data.video.format, format);
+
+          header = bgav_video_parser_get_header(parser, &header_len);
+          
+          //          fprintf(stderr, "Got extradata %d bytes\n", header_len);
+          //          bgav_hexdump(header, header_len, 16);
+          
+          s->ext_size = header_len;
+          s->ext_data = malloc(s->ext_size);
+          memcpy(s->ext_data, header, s->ext_size);
+          
+          break;
+        }
+      }
+    s->data.video.parser = parser;
+    s->data.video.parsed_packet = bgav_packet_create();
+    s->index_mode = INDEX_MODE_SIMPLE;
+    }
   
-  dec = bgav_find_video_decoder(stream);
+  dec = bgav_find_video_decoder(s);
   if(!dec)
     {
-    bgav_log(stream->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+    bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
              "No video decoder found for fourcc %c%c%c%c (0x%08x)",
-             (stream->fourcc & 0xFF000000) >> 24,
-             (stream->fourcc & 0x00FF0000) >> 16,
-             (stream->fourcc & 0x0000FF00) >> 8,
-             (stream->fourcc & 0x000000FF),
-             stream->fourcc);
+             (s->fourcc & 0xFF000000) >> 24,
+             (s->fourcc & 0x00FF0000) >> 16,
+             (s->fourcc & 0x0000FF00) >> 8,
+             (s->fourcc & 0x000000FF),
+             s->fourcc);
     return 0;
     }
   ctx = calloc(1, sizeof(*ctx));
-  stream->data.video.decoder = ctx;
-  stream->data.video.decoder->decoder = dec;
+  s->data.video.decoder = ctx;
+  s->data.video.decoder->decoder = dec;
+  
+  s->out_time = 0;
+  s->in_position = 0;
+  s->in_time = 0;
 
-  stream->out_time = 0;
-  stream->in_position = 0;
-  stream->in_time = 0;
-
-  if(!stream->timescale)
+  if(!s->timescale)
     {
-    stream->timescale = stream->data.video.format.timescale;
+    s->timescale = s->data.video.format.timescale;
     }
 
-  switch(stream->data.video.frametime_mode)
+  switch(s->data.video.frametime_mode)
     {
     case BGAV_FRAMETIME_PACKET:
     case BGAV_FRAMETIME_PTS:
-      p = bgav_demuxer_peek_packet_read(stream->demuxer, stream, 1);
+      p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
       if(!p)
-        stream-> data.video.next_frame_duration = 0;
+        s-> data.video.next_frame_duration = 0;
       else
-        stream-> data.video.next_frame_duration =
-          gavl_time_rescale(stream-> timescale, stream-> data.video.format.timescale,
+        s-> data.video.next_frame_duration =
+          gavl_time_rescale(s-> timescale, s-> data.video.format.timescale,
                             p->duration);
       break;
     case BGAV_FRAMETIME_CODEC:
@@ -94,15 +156,15 @@ int bgav_video_start(bgav_stream_t * stream)
       break;
     }
   
-  result = dec->init(stream);
+  result = dec->init(s);
   if(!result)
     return 0;
   
-  switch(stream-> data.video.frametime_mode)
+  switch(s-> data.video.frametime_mode)
     {
     case BGAV_FRAMETIME_CONSTANT:
-      stream->data.video.last_frame_duration = stream->data.video.format.frame_duration;
-      stream->data.video.next_frame_duration = stream->data.video.format.frame_duration;
+      s->data.video.last_frame_duration = s->data.video.format.frame_duration;
+      s->data.video.next_frame_duration = s->data.video.format.frame_duration;
       break;
     case BGAV_FRAMETIME_PACKET:
     case BGAV_FRAMETIME_PTS:
@@ -121,44 +183,44 @@ const char * bgav_get_video_description(bgav_t * b, int s)
   }
 
 
-static int bgav_video_decode(bgav_stream_t * stream,
+static int bgav_video_decode(bgav_stream_t * s,
                              gavl_video_frame_t* frame)
   {
   int result;
   bgav_packet_t * p;
 
-  if(stream->eof)
+  if(s->eof)
     return 0;
   
-  result = stream->data.video.decoder->decoder->decode(stream, frame);
+  result = s->data.video.decoder->decoder->decode(s, frame);
   if(!result)
     {
-    stream->eof = 1;
+    s->eof = 1;
     return result;
     }
   
   /* Update time */
-  switch(stream->data.video.frametime_mode)
+  switch(s->data.video.frametime_mode)
     {
     case BGAV_FRAMETIME_CONSTANT:
-      stream->data.video.last_frame_time = stream->out_time;
-      stream->out_time += stream->data.video.format.frame_duration;
+      s->data.video.last_frame_time = s->out_time;
+      s->out_time += s->data.video.format.frame_duration;
       break;
     case BGAV_FRAMETIME_PACKET:
     case BGAV_FRAMETIME_PTS:
-      stream->data.video.last_frame_time = stream->out_time;
+      s->data.video.last_frame_time = s->out_time;
 
-      stream->data.video.last_frame_duration = stream->data.video.next_frame_duration;
+      s->data.video.last_frame_duration = s->data.video.next_frame_duration;
       
-      p = bgav_demuxer_peek_packet_read(stream->demuxer, stream, 1);
+      p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
       if(!p)
         break;
-      stream->out_time = gavl_time_rescale(stream->timescale,
-                                           stream->data.video.format.timescale, p->pts);
+      s->out_time = gavl_time_rescale(s->timescale,
+                                           s->data.video.format.timescale, p->pts);
 
-      stream->data.video.next_frame_duration =
-        gavl_time_rescale(stream->timescale,
-                          stream->data.video.format.timescale, p->duration);
+      s->data.video.next_frame_duration =
+        gavl_time_rescale(s->timescale,
+                          s->data.video.format.timescale, p->duration);
       break;
     case BGAV_FRAMETIME_CODEC:
     case BGAV_FRAMETIME_CODEC_PTS:
@@ -170,25 +232,25 @@ static int bgav_video_decode(bgav_stream_t * stream,
   
   if(frame)
     {
-    frame->timestamp = stream->data.video.last_frame_time;
+    frame->timestamp = s->data.video.last_frame_time;
 
     /* Set timecode */
-    if(stream->timecode_table)
+    if(s->timecode_table)
       frame->timecode =
-        bgav_timecode_table_get_timecode(stream->timecode_table,
+        bgav_timecode_table_get_timecode(s->timecode_table,
                                          frame->timestamp);
-    else if(stream->has_codec_timecode)
+    else if(s->has_codec_timecode)
       {
-      frame->timecode = stream->codec_timecode;
-      stream->has_codec_timecode = 0;
+      frame->timecode = s->codec_timecode;
+      s->has_codec_timecode = 0;
       }
     else
       frame->timecode = GAVL_TIMECODE_UNDEFINED;
     
-    if(stream->demuxer->demux_mode == DEMUX_MODE_FI)
-      frame->timestamp += stream->first_timestamp;
+    if(s->demuxer->demux_mode == DEMUX_MODE_FI)
+      frame->timestamp += s->first_timestamp;
     
-    frame->duration  = stream->data.video.last_frame_duration;
+    frame->duration  = s->data.video.last_frame_duration;
     
     /* Yes, this sometimes happens due to rounding errors */
     if(frame->timestamp < 0)
@@ -223,6 +285,12 @@ void bgav_video_stop(bgav_stream_t * s)
     }
   /* Clear still mode flag (it will be set during reinit */
   s->data.video.still_mode = 0;
+
+  if(s->data.video.parser)
+    bgav_video_parser_destroy(s->data.video.parser);
+  if(s->data.video.parsed_packet)
+    bgav_packet_destroy(s->data.video.parsed_packet);
+
   }
 
 void bgav_video_resync(bgav_stream_t * s)

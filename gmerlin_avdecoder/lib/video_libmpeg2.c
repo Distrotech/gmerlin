@@ -32,6 +32,7 @@
 #include <avdec_private.h>
 #include <codecs.h>
 #include <mpv_header.h>
+#include <videoparser.h>
 
 #define LOG_DOMAIN "video_libmpeg2"
 
@@ -97,6 +98,8 @@ typedef struct
 
   int has_gop_timecode;
   gavl_timecode_t gop_timecode;
+
+  bgav_video_parser_t * vp;
   } mpeg2_priv_t;
 
 static int get_data(bgav_stream_t*s)

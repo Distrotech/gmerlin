@@ -47,6 +47,7 @@ typedef struct
   {
   int64_t packet_position;
   int     parser_position;
+  int     size;
   } packet_t;
 
 struct bgav_video_parser_s
@@ -76,9 +77,8 @@ struct bgav_video_parser_s
   /* Timescales */
   int in_scale;
 
-  int timescale;
-  int frame_duration;
-
+  gavl_video_format_t format;
+  
   /* Cache */
   cache_t cache[PARSER_CACHE_MAX];
   int cache_size;
