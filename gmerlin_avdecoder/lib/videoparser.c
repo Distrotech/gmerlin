@@ -125,7 +125,8 @@ void bgav_video_parser_set_coding_type(bgav_video_parser_t * parser, int type)
   //  fprintf(stderr, "Set coding type %c %d\n", type,
   //          parser->cache[parser->cache_size-1].skip);
   
-  if(parser->cache_size >= 2)
+  if((parser->cache_size >= 2) &&
+     !parser->cache[parser->cache_size-2].field_pic)
     {
     //    fprintf(stderr, "Set pts %d %c\n",
     //            parser->cache[parser->cache_size-2].duration,
@@ -291,36 +292,15 @@ void bgav_video_parser_set_eof(bgav_video_parser_t * parser)
   
   /* Set final timestamps */
 
-  for(i = 0; i < parser->cache_size; i++)
+  if(parser->cache[parser->cache_size-1].coding_type == BGAV_CODING_TYPE_B)
     {
-    if(parser->cache[i].pts == BGAV_TIMESTAMP_UNDEFINED)
-      {
-      start = i;
-      break;
-      }
+    SET_PTS(parser->cache_size-1);
+    if(parser->last_non_b_frame >= 0)
+      SET_PTS(parser->last_non_b_frame);
     }
-  if(start >= 0)
-    {
-    if(parser->cache[parser->cache_size-1].coding_type == BGAV_CODING_TYPE_B)
-      {
-      for(i = start+1; i < parser->cache_size; i++)
-        {
-        parser->cache[i].pts = parser->timestamp;
-        parser->timestamp += parser->cache[i].duration;
-        }
-      parser->cache[start].pts = parser->timestamp;
-      parser->timestamp += parser->cache[start].duration;
-      }
-    else
-      {
-      for(i = start; i < parser->cache_size; i++)
-        {
-        parser->cache[i].pts = parser->timestamp;
-        parser->timestamp += parser->cache[i].duration;
-        }
-      }
-    }
-
+  else
+    SET_PTS(parser->cache_size-1);
+  
   parser->eof = 1;
   }
 
@@ -397,9 +377,6 @@ void bgav_video_parser_flush(bgav_video_parser_t * parser, int bytes)
   else
     {
     int num_remove, i;
-    for(i = 0; i < parser->num_packets; i++)
-      parser->packets[i].parser_position -= bytes;
-
     for(i = 0; i < parser->num_packets; i++)
       parser->packets[i].parser_position -= bytes;
 

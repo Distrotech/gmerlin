@@ -725,15 +725,15 @@ static int build_file_index_mpeg(bgav_t * b)
 
 static int build_file_index_mixed(bgav_t * b)
   {
-  int j;
+  int j, eof = 0;
   int64_t old_position;
   old_position = b->input->position;
   
-  while(1)
+  while(!eof)
     {
     /* Process one packet */
     if(!bgav_demuxer_next_packet(b->demuxer))
-      break;
+      eof = 1;
     
     for(j = 0; j < b->tt->cur->num_audio_streams; j++)
       {
