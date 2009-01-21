@@ -95,8 +95,7 @@ struct bgav_video_parser_s
   int eof;
   
   int non_b_count;
-
-  int got_coding_type;
+  int last_non_b_frame;
   };
 
 void bgav_video_parser_init_mpeg12(bgav_video_parser_t * parser);

@@ -62,12 +62,12 @@ static int get_code_mpeg12(const uint8_t * data)
   {
   if(bgav_mpv_sequence_header_probe(data))
     {
-    fprintf(stderr, "MPEG_SEQUENCE\n");
+    //    fprintf(stderr, "MPEG_SEQUENCE\n");
     return MPEG_CODE_SEQUENCE;
     }
   else if(bgav_mpv_sequence_extension_probe(data))
     {
-    fprintf(stderr, "MPEG_SEQUENCE_EXT\n");
+    //    fprintf(stderr, "MPEG_SEQUENCE_EXT\n");
     return MPEG_CODE_SEQUENCE_EXT;
     }
   else if(bgav_mpv_gop_header_probe(data))
@@ -262,6 +262,9 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
       parser->format.timescale      = priv->sh.timescale;
       parser->format.frame_duration = priv->sh.frame_duration;
       priv->state = MPEG_NEED_STARTCODE;
+
+      
+
       break;
     case MPEG_HAS_SEQUENCE_EXT_CODE:
       /* Try to get the sequence extension */

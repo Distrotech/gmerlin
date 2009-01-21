@@ -829,7 +829,8 @@ bgav_demuxer_peek_packet_read(bgav_demuxer_context_t * demuxer,
           if((demuxer->flags & BGAV_DEMUXER_PEEK_FORCES_READ) || force)
             {
             demuxer->request_stream = s; 
-            while(!(ret = bgav_packet_buffer_get_packet_read(s->packet_buffer, 0)))
+            while(!(ret =
+                    bgav_packet_buffer_get_packet_read(s->packet_buffer, 0)))
               {
               if(!bgav_demuxer_next_packet(demuxer))
                 {
@@ -845,11 +846,16 @@ bgav_demuxer_peek_packet_read(bgav_demuxer_context_t * demuxer,
             }
           else
             {
-            if((ret = bgav_packet_buffer_peek_packet_read(s->packet_buffer, 0)))
+            if((ret =
+                bgav_packet_buffer_peek_packet_read(s->packet_buffer, 0)))
               {
               ret = bgav_packet_buffer_get_packet_read(s->packet_buffer, 0);
               bgav_video_parser_add_packet(s->data.video.parser, ret);
               ret->valid = 0;
+              }
+            else if(s->demuxer->flags & BGAV_DEMUXER_EOF)
+              {
+              bgav_video_parser_set_eof(s->data.video.parser);
               }
             else
               return NULL;

@@ -66,6 +66,7 @@ bgav_video_parser_t * bgav_video_parser_create(uint32_t fourcc, int timescale,
   ret = calloc(1, sizeof(*ret));
   ret->in_scale = timescale;
   
+  ret->last_non_b_frame = -1;
   ret->raw_position = -1;
   func(ret);
   return ret;
@@ -103,38 +104,61 @@ static void update_previous_size(bgav_video_parser_t * parser)
     parser->cache[parser->cache_size-2].field_pic = 0;
     parser->cache_size--;
     }
+  
+  }
+
+#define SET_PTS(index) \
+  { \
+  parser->cache[index].pts = parser->timestamp; \
+  parser->timestamp += parser->cache[index].duration; \
+  }
+
+static void set_pts(bgav_video_parser_t * parser)
+  {
+  
   }
 
 void bgav_video_parser_set_coding_type(bgav_video_parser_t * parser, int type)
   {
+  //  int i, start, end;
+  
+  //  fprintf(stderr, "Set coding type %c %d\n", type,
+  //          parser->cache[parser->cache_size-1].skip);
+  
+  if(parser->cache_size >= 2)
+    {
+    //    fprintf(stderr, "Set pts %d %c\n",
+    //            parser->cache[parser->cache_size-2].duration,
+    //            parser->cache[parser->cache_size-2].coding_type);
+    /* Set timestamp of the previous frame */
+    if(parser->cache[parser->cache_size-2].coding_type != BGAV_CODING_TYPE_B)
+      {
+      if(parser->non_b_count == 1)
+        {
+        SET_PTS(parser->cache_size-2);
+        }
+      else
+        {
+        if(parser->last_non_b_frame >= 0)
+          SET_PTS(parser->last_non_b_frame);
+        parser->last_non_b_frame = parser->cache_size-2;
+        }
+      }
+    else if(!parser->cache[parser->cache_size-2].skip)
+      SET_PTS(parser->cache_size-2);
+    }
+  
   parser->cache[parser->cache_size-1].coding_type = type;
+  parser->cache[parser->cache_size-1].duration =
+    parser->format.frame_duration;
+
+
   if(type != BGAV_CODING_TYPE_B)
     parser->non_b_count++;
   else if(parser->non_b_count < 2)
     parser->cache[parser->cache_size-1].skip = 1;
   
-  /* Set previous timestamps */
-  if((parser->cache_size >= 2) && (type != BGAV_CODING_TYPE_B) &&
-     (parser->cache[parser->cache_size-2].pts == BGAV_TIMESTAMP_UNDEFINED) &&
-     (!parser->cache[parser->cache_size-2].field_pic))
-    {
-    if(parser->cache[parser->cache_size-2].coding_type != BGAV_CODING_TYPE_B)
-      {
-      parser->cache[parser->cache_size-2].pts = parser->timestamp;
-      parser->timestamp += parser->cache[parser->cache_size-2].duration;
-      }
-    else /*  P B B */
-      {
-      int i;
-      for(i = 1; i < parser->cache_size-1; i++)
-        {
-        parser->cache[i].pts = parser->timestamp;
-        parser->timestamp += parser->cache[i].duration;
-        }
-      parser->cache[0].pts = parser->timestamp;
-      parser->timestamp += parser->cache[0].duration;
-      }
-    }
+  
   }
 
 #if 0     
@@ -228,6 +252,7 @@ void bgav_video_parser_reset(bgav_video_parser_t * parser, int64_t pts)
   parser->timestamp = pts;
   parser->pos = 0;
   parser->non_b_count = 0;
+  parser->last_non_b_frame = -1;
   if(parser->reset)
     parser->reset(parser);
   }
@@ -415,12 +440,14 @@ void bgav_video_parser_get_packet(bgav_video_parser_t * parser,
   p->position = c->position;
   p->field2_offset = c->field2_offset;
   p->valid = 1;
+
+  //  fprintf(stderr, "Get packet %c %ld\n", c->coding_type, p->pts);
   
   parser->cache_size--;
   if(parser->cache_size)
     memmove(&parser->cache[0], &parser->cache[1],
             sizeof(parser->cache[0]) * parser->cache_size);
-  
+  parser->last_non_b_frame--;
   }
 
 int bgav_video_parser_set_picture_start(bgav_video_parser_t * parser)
@@ -437,7 +464,6 @@ int bgav_video_parser_set_picture_start(bgav_video_parser_t * parser)
   parser->cache_size++;
   c = &parser->cache[parser->cache_size-1];
   memset(c, 0, sizeof(*c));
-  c->duration = parser->format.frame_duration;
   c->pts = BGAV_TIMESTAMP_UNDEFINED;
   
   /* Set picture position */
