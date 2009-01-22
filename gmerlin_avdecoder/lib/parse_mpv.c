@@ -249,39 +249,70 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
     case MPEG_HAS_SEQUENCE_CODE:
       /* Try to get the sequence header */
 
-      len = bgav_mpv_sequence_header_parse(parser->opt,
-                                           &priv->sh,
-                                           parser->buf.buffer + parser->pos,
-                                           parser->buf.size - parser->pos);
-      if(!len)
-        return PARSER_NEED_DATA;
+      if(!priv->have_sh)
+        {
+        len = bgav_mpv_sequence_header_parse(parser->opt,
+                                             &priv->sh,
+                                             parser->buf.buffer + parser->pos,
+                                             parser->buf.size - parser->pos);
+        if(!len)
+          return PARSER_NEED_DATA;
+        parser->pos += len;
 
-      parser->pos += len;
-      priv->have_sh = 1;
+        bgav_video_parser_set_framerate(parser,
+                                        priv->sh.timescale, priv->sh.frame_duration);
         
-      parser->format.timescale      = priv->sh.timescale;
-      parser->format.frame_duration = priv->sh.frame_duration;
-      priv->state = MPEG_NEED_STARTCODE;
+        parser->format.timescale      = priv->sh.timescale;
+        parser->format.frame_duration = priv->sh.frame_duration;
 
+        parser->format.image_width  = priv->sh.horizontal_size_value;
+        parser->format.image_height = priv->sh.vertical_size_value;
+        parser->format.frame_width  =
+          (parser->format.image_width + 15) & ~15;
+        parser->format.frame_height  =
+          (parser->format.image_height + 15) & ~15;
+        
+        priv->have_sh = 1;
+        }
+      else
+        parser->pos += 4;
       
-
+      priv->state = MPEG_NEED_STARTCODE;
+      
       break;
     case MPEG_HAS_SEQUENCE_EXT_CODE:
-      /* Try to get the sequence extension */
-      len = bgav_mpv_sequence_extension_parse(parser->opt,
-                                              &priv->sh.ext,
-                                              parser->buf.buffer + parser->pos,
-                                              parser->buf.size - parser->pos);
-      if(!len)
-        return PARSER_NEED_DATA;
+      if(!priv->sh.mpeg2)
+        {
+        /* Try to get the sequence extension */
+        len =
+          bgav_mpv_sequence_extension_parse(parser->opt,
+                                            &priv->sh.ext,
+                                            parser->buf.buffer + parser->pos,
+                                            parser->buf.size - parser->pos);
+        if(!len)
+          return PARSER_NEED_DATA;
         
-      priv->sh.mpeg2 = 1;
+        priv->sh.mpeg2 = 1;
+
+        bgav_video_parser_set_framerate(parser,
+                                        parser->format.timescale * (priv->sh.ext.timescale_ext+1) * 2,
+                                        parser->format.frame_duration * (priv->sh.ext.frame_duration_ext+1) * 2);
         
-      parser->format.timescale      *= (priv->sh.ext.timescale_ext+1);
-      parser->format.frame_duration *= (priv->sh.ext.frame_duration_ext+1);
-      parser->format.timescale      *= 2;
-      parser->format.frame_duration *= 2;
-      parser->pos += len;
+        parser->format.image_width  += priv->sh.ext.horizontal_size_ext;
+        parser->format.image_height += priv->sh.ext.vertical_size_ext;
+        
+        parser->format.frame_width  =
+          (parser->format.image_width + 15) & ~15;
+        parser->format.frame_height  =
+          (parser->format.image_height + 15) & ~15;
+  
+
+        parser->pos += len;
+        
+        }
+      else
+        parser->pos += 4;
+      
       priv->state = MPEG_NEED_STARTCODE;
       break;
     }

@@ -109,3 +109,6 @@ int bgav_video_parser_check_output(bgav_video_parser_t * parser);
 /* Notify the parser of a new picture */
 int bgav_video_parser_set_picture_start(bgav_video_parser_t * parser);
 
+/* Set the framerate, can be called multiple times before the first picture start code */
+void bgav_video_parser_set_framerate(bgav_video_parser_t * parser,
+                                     int timescale, int frame_duration);

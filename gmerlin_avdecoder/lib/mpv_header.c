@@ -106,6 +106,7 @@ int bgav_mpv_sequence_header_parse(const bgav_options_t * opt,
                                    bgav_mpv_sequence_header_t * ret,
                                    const uint8_t * buffer, int len)
   {
+  int i;
   int frame_rate_index;
   buffer += 4;
   len -= 4;
@@ -128,7 +129,12 @@ int bgav_mpv_sequence_header_parse(const bgav_options_t * opt,
              "Cannot read sequence header: missing marker bit");
     return -1;        /* missing marker_bit */
     }
+
+  i = (buffer[0] << 16) | (buffer[1] << 8) | buffer[2];
   
+  ret->horizontal_size_value = i >> 12;
+  ret->vertical_size_value = i & 0xfff;
+    
   frame_rate_index = buffer[3] & 0xf;
   ret->timescale      = framerates[frame_rate_index].timescale;
   ret->frame_duration = framerates[frame_rate_index].frame_duration;
@@ -165,6 +171,10 @@ int bgav_mpv_sequence_extension_parse(const bgav_options_t * opt,
   if(len < 6)
     return 0;
   ret->progressive_sequence = buffer[1] & (1 << 3);
+  
+  ret->horizontal_size_ext = ((buffer[1] << 13) | (buffer[2] << 5)) & 0x3000;
+  ret->vertical_size_ext   = (buffer[2] << 7) & 0x3000;
+  
   ret->bitrate_ext          = ((buffer[2] & 0x1F)<<7) | (buffer[3]>>1);
   ret->timescale_ext        = (buffer[5] >> 5) & 3;
   ret->frame_duration_ext   = (buffer[5] & 0x1f);

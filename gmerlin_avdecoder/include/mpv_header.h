@@ -35,6 +35,10 @@ const uint8_t * bgav_mpv_find_startcode( const uint8_t *p,
 typedef struct
   {
   int progressive_sequence;
+
+  int horizontal_size_ext;
+  int vertical_size_ext;
+  
   uint32_t bitrate_ext;
   int timescale_ext;
   int frame_duration_ext;
@@ -45,6 +49,10 @@ typedef struct
   {
   int mpeg2;
   uint32_t bitrate; /* In 400 bits per second */
+
+  int horizontal_size_value;
+  int vertical_size_value;
+  
   int timescale;
   int frame_duration;
   bgav_mpv_sequence_extension_t ext;

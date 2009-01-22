@@ -438,6 +438,7 @@ log.c \
 md5.c \
 metadata.c \
 mpa_header.c \
+mpeg4_header.c \
 mpegts_common.c \
 mpv_header.c \
 mms.c \

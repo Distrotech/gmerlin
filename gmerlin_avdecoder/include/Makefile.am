@@ -17,6 +17,7 @@ language_table.h \
 md5.h \
 mms.h \
 mpa_header.h \
+mpeg4_header.h \
 mpegts_common.h \
 mpv_header.h \
 mxf.h \

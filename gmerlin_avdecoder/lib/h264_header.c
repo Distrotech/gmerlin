@@ -222,26 +222,26 @@ static void vui_parse(bgav_bitstream_t * b, bgav_h264_vui_t * vui)
 
 static void vui_dump(bgav_h264_vui_t * vui)
   {
-  bgav_dprintf("    aspect_ratio_info_present_flag:    %d\n", vui->aspect_ratio_info_present_flag);
+  bgav_dprintf("    aspect_ratio_info_present_flag:        %d\n", vui->aspect_ratio_info_present_flag);
   if(vui->aspect_ratio_info_present_flag )
     {
-    bgav_dprintf("    aspect_ratio_idc:                  %d\n", vui->aspect_ratio_idc );
+    bgav_dprintf("    aspect_ratio_idc:                      %d\n", vui->aspect_ratio_idc );
     if( vui->aspect_ratio_idc == 255 )
       {
-      bgav_dprintf("    sar_width:                         %d\n", vui->sar_width );
-      bgav_dprintf("    sar_height:                        %d\n", vui->sar_height );
+      bgav_dprintf("    sar_width:                             %d\n", vui->sar_width );
+      bgav_dprintf("    sar_height:                            %d\n", vui->sar_height );
       }
     }
-  bgav_dprintf("    overscan_info_present_flag:        %d\n", vui->overscan_info_present_flag );
+  bgav_dprintf("    overscan_info_present_flag:            %d\n", vui->overscan_info_present_flag );
   if( vui->overscan_info_present_flag )
-    bgav_dprintf("    overscan_appropriate_flag:       %d\n", vui->overscan_appropriate_flag );
+    bgav_dprintf("    overscan_appropriate_flag:           %d\n", vui->overscan_appropriate_flag );
 
-  bgav_dprintf("    video_signal_type_present_flag:    %d\n", vui->video_signal_type_present_flag );
+  bgav_dprintf("    video_signal_type_present_flag:        %d\n", vui->video_signal_type_present_flag );
   if( vui->video_signal_type_present_flag )
     {
-    bgav_dprintf("    video_format:                      %d\n", vui->video_format );
-    bgav_dprintf("    video_full_range_flag:             %d\n", vui->video_full_range_flag );
-    bgav_dprintf("    colour_description_present_flag:   %d\n", vui->colour_description_present_flag );
+    bgav_dprintf("    video_format:                          %d\n", vui->video_format );
+    bgav_dprintf("    video_full_range_flag:                 %d\n", vui->video_full_range_flag );
+    bgav_dprintf("    colour_description_present_flag:       %d\n", vui->colour_description_present_flag );
     if( vui->colour_description_present_flag )
       {
       bgav_dprintf("    colour_primaries:                  %d\n", vui->colour_primaries );
@@ -249,27 +249,27 @@ static void vui_dump(bgav_h264_vui_t * vui)
       bgav_dprintf("    matrix_coefficients:               %d\n", vui->matrix_coefficients );
       }
     }
-  bgav_dprintf("    chroma_loc_info_present_flag:        %d\n", vui->chroma_loc_info_present_flag );
+  bgav_dprintf("    chroma_loc_info_present_flag:          %d\n", vui->chroma_loc_info_present_flag );
   if( vui->chroma_loc_info_present_flag )
     {
     bgav_dprintf("    chroma_sample_loc_type_top_field:    %d\n", vui->chroma_sample_loc_type_top_field  );
     bgav_dprintf("    chroma_sample_loc_type_bottom_field: %d\n", vui->chroma_sample_loc_type_bottom_field );
     }
-  bgav_dprintf("    timing_info_present_flag:            %d\n", vui->timing_info_present_flag );
+  bgav_dprintf("    timing_info_present_flag:              %d\n", vui->timing_info_present_flag );
   if( vui->timing_info_present_flag )
     {
-    bgav_dprintf("    num_units_in_tick:                 %d\n", vui->num_units_in_tick );
-    bgav_dprintf("    time_scale:                        %d\n", vui->time_scale );
-    bgav_dprintf("    fixed_frame_rate_flag:             %d\n", vui->fixed_frame_rate_flag );
+    bgav_dprintf("    num_units_in_tick:                     %d\n", vui->num_units_in_tick );
+    bgav_dprintf("    time_scale:                            %d\n", vui->time_scale );
+    bgav_dprintf("    fixed_frame_rate_flag:                 %d\n", vui->fixed_frame_rate_flag );
     }
-  bgav_dprintf("    nal_hrd_present_flag:                %d\n", vui->nal_hrd_parameters_present_flag );
-  bgav_dprintf("    vcl_hrd_present_flag:                %d\n", vui->vcl_hrd_parameters_present_flag );
+  bgav_dprintf("    nal_hrd_present_flag:                  %d\n", vui->nal_hrd_parameters_present_flag );
+  bgav_dprintf("    vcl_hrd_present_flag:                  %d\n", vui->vcl_hrd_parameters_present_flag );
 
   if(vui->nal_hrd_parameters_present_flag || vui->vcl_hrd_parameters_present_flag)
     {
-    bgav_dprintf("    low_delay_hrd_flag:                  %d\n", vui->low_delay_hrd_flag);
+    bgav_dprintf("    low_delay_hrd_flag:                    %d\n", vui->low_delay_hrd_flag);
     }
-  bgav_dprintf("    pic_struct_present_flag:             %d\n", vui->pic_struct_present_flag );
+  bgav_dprintf("    pic_struct_present_flag:               %d\n", vui->pic_struct_present_flag );
   }
 
 static void skip_scaling_list(bgav_bitstream_t * b, int num)
