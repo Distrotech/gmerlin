@@ -868,8 +868,9 @@ gavl_audio_options_t * gavl_audio_converter_get_options(gavl_audio_converter_t*c
  *  \param input_format Input format
  *  \param output_format Output format
  *  \returns The number of single conversion steps necessary to perform the
- *           conversion. It may be 0, in this case you don't need the converter and
- *           can pass the audio frames directly. If something goes wrong (should never happen),
+ *           conversion. It may be 0, in this case you must not use the 
+ *           converter and have to pass the audio frames directly.
+ *           If something goes wrong (should never happen),
  *           -1 is returned.
  *
  * This function can be called multiple times with one instance
@@ -900,8 +901,9 @@ int gavl_audio_converter_init_resample(gavl_audio_converter_t * cnv,
  *  \brief Reinitialize an audio converter
  *  \param cnv An audio converter
  *  \returns The number of single conversion steps necessary to perform the
- *           conversion. It may be 0, in this case you don't need the converter and
- *           can pass the audio frames directly. If something goes wrong (should never happen),
+ *           conversion. It may be 0, in this case you must not use the
+ *           converter and have to pass the audio frames directly.
+ *           If something goes wrong (should never happen),
  *           -1 is returned.
  *
  * This function can be called if the input and output formats didn't
@@ -2817,8 +2819,8 @@ gavl_video_converter_get_options(gavl_video_converter_t*cnv);
  *  \param input_format Input format
  *  \param output_format Output format
  *  \returns The number of single conversion steps necessary to perform the
- *           conversion. It may be 0, in this case you don't need the converter and
- *           can pass the video frames directly. If something goes wrong (should never happen),
+ *           conversion. It may be 0, in this case you must not use the converter and have to 
+ *           pass the video frames directly. If something goes wrong (should never happen),
  *           -1 is returned.
  *
  * This function can be called multiple times with one instance
@@ -2832,8 +2834,8 @@ int gavl_video_converter_init(gavl_video_converter_t* cnv,
  *  \brief Reinitialize a video converter
  *  \param cnv A video converter
  *  \returns The number of single conversion steps necessary to perform the
- *           conversion. It may be 0, in this case you don't need the converter and
- *           can pass the video frames directly. If something goes wrong (should never happen),
+ *           conversion. It may be 0, in this case you must not use the converter and have to
+ *           pass the video frames directly. If something goes wrong (should never happen),
  *           -1 is returned.
  *
  * This function can be called if the input and output formats didn't
