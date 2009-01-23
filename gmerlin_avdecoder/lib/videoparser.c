@@ -102,6 +102,11 @@ static void update_previous_size(bgav_video_parser_t * parser)
     parser->cache[parser->cache_size-2].size +=
       parser->cache[parser->cache_size-1].size;
     parser->cache[parser->cache_size-2].field_pic = 0;
+
+    if(parser->cache[parser->cache_size-1].coding_type !=
+       BGAV_CODING_TYPE_B)
+      parser->non_b_count--;
+    
     parser->cache_size--;
     fprintf(stderr, "Merged field pics %d\n", parser->cache_size);
     }
@@ -242,6 +247,7 @@ void bgav_video_parser_reset(bgav_video_parser_t * parser, int64_t pts)
   parser->flags = 0;
   parser->raw_position = -1;
   parser->cache_size = 0;
+  parser->num_packets = 0;
   parser->eof = 0;
   parser->timestamp = pts;
   parser->pos = 0;
