@@ -137,7 +137,7 @@ static int next_packet_a52(bgav_demuxer_context_t * ctx)
 
   p->pts = FRAME_SAMPLES * priv->frame_count;
   p->duration = FRAME_SAMPLES;
-  p->keyframe = 1;
+  PACKET_SET_KEYFRAME(p);
   p->position = ctx->input->position;
   
   priv->frame_count++;

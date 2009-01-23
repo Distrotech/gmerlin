@@ -423,7 +423,7 @@ static int next_packet_aiff(bgav_demuxer_context_t * ctx)
   
   bytes_read = bgav_input_read_data(ctx->input, p->data, bytes_to_read);
   p->data_size = bytes_read;
-  p->keyframe = 1;
+  PACKET_SET_KEYFRAME(p);
   bgav_packet_done_write(p);
 
   if(!bytes_read)

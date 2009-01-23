@@ -94,7 +94,7 @@ static int next_packet_gsm(bgav_demuxer_context_t * ctx)
   bgav_packet_alloc(p, s->data.audio.block_align);
 
   p->pts = bytes_2_samples(ctx->input->position);
-  p->keyframe = 1;
+  PACKET_SET_KEYFRAME(p);
   bytes_read = bgav_input_read_data(ctx->input, p->data,
                                     s->data.audio.block_align);
   p->data_size = bytes_read;

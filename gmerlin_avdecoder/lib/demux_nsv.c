@@ -691,23 +691,21 @@ static int next_packet_nsv(bgav_demuxer_context_t * ctx)
       p->data_size = video_len;
       p->pts =
         s->in_position * s->data.video.format.frame_duration;
-
-      p->keyframe = 0;
       
       if(s->fourcc == BGAV_MK_FOURCC('V','P','6','1'))
         {
         if(p->data[1] == 0x36)
-          p->keyframe = 1;
+          PACKET_SET_KEYFRAME(p);
         }
       else if(s->fourcc == BGAV_MK_FOURCC('V','P','6','2'))
         {
         if(p->data[1] == 0x46)
-          p->keyframe = 1;
+          PACKET_SET_KEYFRAME(p);
         }
       else
         {
         if(have_sync_header)
-          p->keyframe = 1;
+          PACKET_SET_KEYFRAME(p);
         }
       
       bgav_packet_done_write(p);

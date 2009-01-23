@@ -288,7 +288,7 @@ static int next_packet_ra(bgav_demuxer_context_t * ctx)
   if(s->fourcc == BGAV_MK_FOURCC('d', 'n', 'e', 't'))
     swap_bytes_dnet(p->data, p->data_size);
   
-  p->keyframe = 1;
+  PACKET_SET_KEYFRAME(p);
   bgav_packet_done_write(p);
   return 1;
   }

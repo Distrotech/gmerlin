@@ -668,7 +668,7 @@ int bgav_dv_dec_get_audio_packet(bgav_dv_dec_t * d, bgav_packet_t * p)
     
     samples = dv_extract_audio(d->buffer,
                                pcm, d->profile);
-    p->keyframe = 1;
+    PACKET_SET_KEYFRAME(p);
     p->pts = d->sample_counter;
     p->audio_frame->valid_samples = samples;
     p->duration                   = samples;
@@ -681,8 +681,8 @@ void bgav_dv_dec_get_video_packet(bgav_dv_dec_t * d, bgav_packet_t * p)
   {
   if(p)
     {
-    p->keyframe = 1;
-
+    PACKET_SET_KEYFRAME(p);
+    
     if(p->pts == BGAV_TIMESTAMP_UNDEFINED)
       {
       p->pts = d->video_format.frame_duration * d->frame_counter;

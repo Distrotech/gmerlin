@@ -440,9 +440,9 @@ static int next_packet_adts(bgav_demuxer_context_t * ctx)
   p->pts = priv->sample_count;
   p->duration = adts.block_samples * adts.num_blocks;
   p->position = ctx->input->position;
-  
-  p->keyframe = 1;
 
+  PACKET_SET_KEYFRAME(p);
+  
   bgav_packet_alloc(p, adts.frame_bytes);
 
   p->data_size = bgav_input_read_data(ctx->input, p->data, adts.frame_bytes);

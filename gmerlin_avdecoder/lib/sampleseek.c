@@ -171,7 +171,7 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
     {
     s->index_position = file_index_seek(s->file_index, time);
     /* Decrease until we have the keyframe before this frame */
-    while(!s->file_index->entries[s->index_position].keyframe && s->index_position)
+    while(!(s->file_index->entries[s->index_position].flags & PACKET_FLAG_KEY) && s->index_position)
       s->index_position--;
     
     frame_time = s->file_index->entries[s->index_position].time;
@@ -227,11 +227,11 @@ int64_t bgav_video_keyframe_before(bgav_t * bgav, int stream, int64_t time)
 
     while(pos &&
           ((s->file_index->entries[pos].time >= time) ||
-           !s->file_index->entries[pos].keyframe))
+           !(s->file_index->entries[pos].flags & PACKET_FLAG_KEY)))
       pos--;
     
     if((s->file_index->entries[pos].time >= time) ||
-       !s->file_index->entries[pos].keyframe)
+       !(s->file_index->entries[pos].flags & PACKET_FLAG_KEY))
       return BGAV_TIMESTAMP_UNDEFINED;
     return s->file_index->entries[pos].time;
     }
@@ -273,11 +273,11 @@ int64_t bgav_video_keyframe_after(bgav_t * bgav, int stream, int64_t time)
 
     while((pos < s->file_index->num_entries - 1) &&
           ((s->file_index->entries[pos].time <= time) ||
-           !s->file_index->entries[pos].keyframe))
+           !(s->file_index->entries[pos].flags & PACKET_FLAG_KEY)))
       pos++;
 
     if((s->file_index->entries[pos].time <= time) ||
-       !s->file_index->entries[pos].keyframe)
+       !(s->file_index->entries[pos].flags & PACKET_FLAG_KEY))
       {
       return BGAV_TIMESTAMP_UNDEFINED;
       }

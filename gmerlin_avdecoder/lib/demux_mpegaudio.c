@@ -608,8 +608,7 @@ static int next_packet_mpegaudio(bgav_demuxer_context_t * ctx)
     return 0;
     }
   p->data_size = bytes_left;
-  
-  p->keyframe  = 1;
+  PACKET_SET_KEYFRAME(p);
   p->pts = priv->frames * (int64_t)priv->header.samples_per_frame;
   p->duration = priv->header.samples_per_frame;
   

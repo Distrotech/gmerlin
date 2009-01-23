@@ -724,8 +724,10 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
       }
     if(s->in_time < 0)
       s->in_time = p->pts;
+
+    if(keyframe)
+      PACKET_SET_KEYFRAME(p);
     
-    p->keyframe = keyframe;
     bgav_packet_done_write(p);
     }
   else

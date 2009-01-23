@@ -189,7 +189,7 @@ static int my_get_buffer(struct AVCodecContext *c, AVFrame *pic)
   priv->packets[index].pts      = priv->packet->pts;
   priv->packets[index].position = priv->packet->position;
   priv->packets[index].duration = priv->packet->duration;
-  priv->packets[index].keyframe = priv->packet->keyframe;
+  PACKET_SET_KEYFRAME(priv->packet);
   priv->packets[index].used     = 1;
   //  fprintf(stderr, "Got packet 2 %ld %ld\n",
   //          priv->current_packet.position, priv->current_packet.pts);
@@ -498,57 +498,6 @@ static int decode_ffmpeg(bgav_stream_t * s, gavl_video_frame_t * f)
   
   return 1;
   }
-
-#if 0
-static void parse_ffmpeg(bgav_stream_t * s, int flush)
-  {
-  int result, done = 0;
-  bgav_packet_t * p;
-  ffmpeg_video_priv * priv;
-  
-  priv = s->data.video.decoder->priv;
-
-  if(flush)
-    bgav_video_parser_set_eof(priv->vp);
-  
-  while(!done)
-    {
-    result = bgav_video_parser_parse(priv->vp);
-    switch(result)
-      {
-      case PARSER_NEED_DATA:
-        if(bgav_demuxer_peek_packet_read(s->demuxer, s, 0))
-          {
-          p = bgav_demuxer_get_packet_read(s->demuxer, s);
-          bgav_video_parser_add_packet(priv->vp, p);
-          bgav_demuxer_done_packet_read(s->demuxer, p);
-          }
-        else
-          done = 1;
-        break;
-      case PARSER_HAVE_HEADER:
-        break;
-      case PARSER_HAVE_PACKET:
-        bgav_video_parser_get_packet(priv->vp, priv->packet);
-
-        if(priv->packet->pts >= s->duration)
-          {
-          bgav_file_index_append_packet(s->file_index,
-                                        priv->packet->position,
-                                        priv->packet->pts,
-                                        priv->packet->keyframe);
-          s->duration = priv->packet->pts + priv->packet->duration;
-          }
-        
-        break;
-      case PARSER_EOF:
-      case PARSER_ERROR:
-        break;
-      }
-    }
-  
-  }
-#endif
 
 static int init_ffmpeg(bgav_stream_t * s)
   {

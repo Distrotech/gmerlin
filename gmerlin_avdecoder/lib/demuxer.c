@@ -546,7 +546,9 @@ static int next_packet_interleaved(bgav_demuxer_context_t * ctx)
   p = bgav_stream_get_packet_write(stream);
   bgav_packet_alloc(p, ctx->si->entries[ctx->si->current_position].size);
   p->data_size = ctx->si->entries[ctx->si->current_position].size;
-  p->keyframe = ctx->si->entries[ctx->si->current_position].keyframe;
+
+  if(ctx->si->entries[ctx->si->current_position].keyframe)
+    PACKET_SET_KEYFRAME(p);
   
   p->pts = ctx->si->entries[ctx->si->current_position].time;
   p->duration = ctx->si->entries[ctx->si->current_position].duration;
@@ -641,7 +643,9 @@ static int next_packet_noninterleaved(bgav_demuxer_context_t * ctx)
   
   p->pts = ctx->si->entries[s->index_position].time;
   p->duration = ctx->si->entries[s->index_position].duration;
-  p->keyframe = ctx->si->entries[s->index_position].keyframe;
+
+  if(ctx->si->entries[s->index_position].keyframe)
+    PACKET_SET_KEYFRAME(p);
   p->position = s->index_position;
   
   if(bgav_input_read_data(ctx->input, p->data, p->data_size) < p->data_size)

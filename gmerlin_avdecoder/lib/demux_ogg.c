@@ -1735,7 +1735,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
           p->data_size = sizeof(priv->op) + priv->op.bytes;
 
           if(!(priv->op.packet[0] & 0x40))
-            p->keyframe = 1;
+            PACKET_SET_KEYFRAME(p);
         
           p->pts = stream_priv->frame_counter *
             s->data.video.format.frame_duration;
@@ -1795,7 +1795,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
                  priv->op.bytes - 1 - len_bytes);
           p->data_size = priv->op.bytes - 1 - len_bytes;
           if(priv->op.packet[0] & 0x08)
-            p->keyframe = 1;
+            PACKET_SET_KEYFRAME(p);
           p->pts =
             s->data.video.format.frame_duration * stream_priv->frame_counter;
           stream_priv->frame_counter++;
@@ -1831,7 +1831,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
           if(stream_priv->prev_granulepos >= 0)
             {
             p->pts = stream_priv->prev_granulepos;
-            p->keyframe = 1;
+            PACKET_SET_KEYFRAME(p);
             }
           if((s->action == BGAV_STREAM_PARSE) && (priv->op.granulepos >= 0))
             s->duration = priv->op.granulepos;

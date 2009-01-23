@@ -1049,7 +1049,8 @@ static void add_packet(bgav_demuxer_context_t * ctx,
     {
     s->in_time = time;
     }
-  s->packet->keyframe = keyframe;
+  if(keyframe)
+    PACKET_SET_KEYFRAME(s->packet);
   s->packet_seq = seq;
   memcpy(s->packet->data,data,len);
   s->packet->data_size = len;

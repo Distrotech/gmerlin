@@ -1382,7 +1382,7 @@ process_mpa(bgav_stream_t * s, rtp_header_t * h, uint8_t * data, int len)
   p = bgav_stream_get_packet_write(s);
   bgav_packet_alloc(p, len - 4);
 
-  p->keyframe = 1;
+  PACKET_SET_KEYFRAME(p);
   p->pts      = h->timestamp;
   memcpy(p->data, data + 4, len - 4);
   p->data_size = len - 4;

@@ -775,7 +775,7 @@ typedef struct dp_hdr_s {
 #define SHOW_BITS(n) ((buffer)>>(32-(n)))
 
 static int64_t
-fix_timestamp(bgav_stream_t * stream, uint8_t * s, uint32_t timestamp, int * keyframe)
+fix_timestamp(bgav_stream_t * stream, uint8_t * s, uint32_t timestamp, bgav_packet_t * p)
   {
   uint32_t buffer= (s[0]<<24) + (s[1]<<16) + (s[2]<<8) + s[3];
   int kf=timestamp;
@@ -805,7 +805,7 @@ fix_timestamp(bgav_stream_t * stream, uint8_t * s, uint32_t timestamp, int * key
       // I frame, sync timestamps:
       priv->kf_base=timestamp-kf;
       kf=timestamp;
-      *keyframe = 1;
+      PACKET_SET_KEYFRAME(p);
       }
     else
       {
@@ -815,7 +815,6 @@ fix_timestamp(bgav_stream_t * stream, uint8_t * s, uint32_t timestamp, int * key
       if(kf<tmp-4096) kf+=8192; else // workaround wrap-around problems
       if(kf>tmp+4096) kf-=8192;
       kf+=priv->kf_base;
-      *keyframe = 0;
       }
     if(pict_type != 3)
       { // P || I  frame -> swap timestamps
@@ -925,7 +924,8 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
         {
         // this fragment is for new packet, close the old one
         p->pts=(dp_hdr->len<3)?0:
-          fix_timestamp(stream,dp_data,dp_hdr->timestamp, &p->keyframe);
+          fix_timestamp(stream,dp_data,dp_hdr->timestamp, p);
+        
         bgav_packet_done_write(p);
         // ds_add_packet(ds,dp);
         stream->packet = (bgav_packet_t*)0;
@@ -972,7 +972,7 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
           // we know that this is the last fragment -> we can close the packet!
 #if 1
           p->pts=(dp_hdr->len<3)?0:
-            fix_timestamp(stream,dp_data,dp_hdr->timestamp, &p->keyframe);
+            fix_timestamp(stream,dp_data,dp_hdr->timestamp, p);
 #endif
           bgav_packet_done_write(p);
           stream->packet = (bgav_packet_t*)0;
@@ -1040,7 +1040,7 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
 
     //    stream_read(demuxer->stream, dp_data, vpkg_length);
     p->pts=(dp_hdr->len<3)?0:
-      fix_timestamp(stream,dp_data,dp_hdr->timestamp, &p->keyframe);
+      fix_timestamp(stream,dp_data,dp_hdr->timestamp, p);
 
     bgav_packet_done_write(p);
     //    stream->packet = (bgav_packet_t*)0;
@@ -1158,9 +1158,7 @@ static int process_audio_chunk(bgav_demuxer_context_t * ctx,
         p->data_size = apk_usize;
         memcpy(p->data, as->audio_buf + x * apk_usize, apk_usize);
         if(!x)
-          p->keyframe = 1;
-        else
-          p->keyframe = 0;
+          PACKET_SET_KEYFRAME(p);
         bgav_packet_done_write(p);
         }
       }

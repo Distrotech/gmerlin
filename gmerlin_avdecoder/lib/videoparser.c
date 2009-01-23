@@ -264,7 +264,8 @@ bgav_video_parser_get_format(bgav_video_parser_t * parser)
   }
 
 const uint8_t *
-bgav_video_parser_get_header(bgav_video_parser_t * parser, int * header_len)
+bgav_video_parser_get_header(bgav_video_parser_t * parser,
+                             int * header_len)
   {
   *header_len = parser->header_len;
   return parser->header;
@@ -416,7 +417,12 @@ void bgav_video_parser_get_packet(bgav_video_parser_t * parser,
   p->dts = BGAV_TIMESTAMP_UNDEFINED;
 
   p->duration = c->duration;
-  p->keyframe = (c->coding_type == BGAV_CODING_TYPE_I) ? 1 : 0;
+
+  p->flags = 0;
+  
+  if(c->coding_type == BGAV_CODING_TYPE_I)
+    PACKET_SET_KEYFRAME(p);
+  
   p->position = c->position;
   p->field2_offset = c->field2_offset;
   p->valid = 1;

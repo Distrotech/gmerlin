@@ -166,6 +166,14 @@ struct bgav_subtitle_overlay_decoder_context_s
 
 /* Packet */
 
+#define PACKET_FLAG_KEY (1<<8)
+
+#define PACKET_SET_CODING_TYPE(p, t) p->flags |= t
+#define PACKET_SET_KEYFRAME(p)       p->flags |= PACKET_FLAG_KEY
+
+#define PACKET_GET_CODING_TYPE(p, t) (p->flags & 0xff)
+#define PACKET_GET_KEYFRAME(p)       (p->flags & PACKET_FLAG_KEY)
+
 struct bgav_packet_s
   {
   /* For superindex files, it's the index position, for all other files,
@@ -183,7 +191,6 @@ struct bgav_packet_s
   int64_t dts; /* In stream timescale tics */
   
   int64_t duration;  /* For text subtitles and VFR video only! */
-  int keyframe;
   bgav_stream_t * stream; /* The stream this packet belongs to */
 
   gavl_audio_frame_t * audio_frame; /* For demuxers, which deliver audio
@@ -193,6 +200,8 @@ struct bgav_packet_s
                                        frames directly */
   
   struct bgav_packet_s * next;
+
+  uint32_t flags;
   };
 
 /* packet.c */
@@ -1005,7 +1014,7 @@ void bgav_superindex_set_size(bgav_superindex_t * ret, int size);
 
 typedef struct
   {
-  int keyframe;     /* 1 if the frame is a keyframe   */
+  uint32_t flags;     /* Packet flags */
   /*
    * Seek positon:
    * 

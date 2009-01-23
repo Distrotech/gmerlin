@@ -85,7 +85,7 @@ void bgav_packet_set_text_subtitle(bgav_packet_t * p,
   bgav_packet_alloc(p, len+2);
   memcpy(p->data, text, len);
   p->data_size = len;
-  p->keyframe = 1;
+  PACKET_SET_KEYFRAME(p);
   p->pts = start;
   p->duration = duration;
   p->data_size = len + 1;
@@ -95,7 +95,7 @@ void bgav_packet_set_text_subtitle(bgav_packet_t * p,
 
 void bgav_packet_dump(bgav_packet_t * p)
   {
-  bgav_dprintf("pos: %ld, K: %d, ", p->position, p->keyframe);
+  bgav_dprintf("pos: %ld, K: %d, ", p->position, !!PACKET_GET_KEYFRAME(p));
   if(p->field2_offset)
     bgav_dprintf("f2: %d, ", p->field2_offset);
 

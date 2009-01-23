@@ -309,7 +309,7 @@ static int next_packet_y4m(bgav_demuxer_context_t * ctx)
   
   p->pts = priv->pts;
   p->video_frame->timestamp = p->pts;
-  p->keyframe = 1;
+  PACKET_SET_KEYFRAME(p);
   if(s->data.video.format.interlace_mode == GAVL_INTERLACE_MIXED)
     {
     switch(y4m_fi_get_presentation(&priv->fi))

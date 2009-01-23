@@ -445,14 +445,14 @@ static void parse_a52(bgav_stream_t * s)
         bgav_file_index_append_packet(s->file_index,
                                       priv->last_position,
                                       s->duration,
-                                      1);
+                                      PACKET_FLAG_KEY);
         }
       else
         {
         bgav_file_index_append_packet(s->file_index,
                                       p->position,
                                       s->duration,
-                                      1);
+                                      PACKET_FLAG_KEY);
         }
       s->duration += FRAME_SAMPLES;
       ptr += priv->header.total_bytes;

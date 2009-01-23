@@ -40,7 +40,7 @@
 
 /* Version must be increased each time the fileformat
    changes */
-#define INDEX_VERSION 1
+#define INDEX_VERSION 2
 
 static void dump_index(bgav_stream_t * s)
   {
@@ -48,7 +48,7 @@ static void dump_index(bgav_stream_t * s)
   for(i = 0; i < s->file_index->num_entries; i++)
     {
     bgav_dprintf("      K: %d, P: %"PRId64", T: %"PRId64" D: ",
-                 s->file_index->entries[i].keyframe,
+                 !!(s->file_index->entries[i].flags & PACKET_FLAG_KEY),
                  s->file_index->entries[i].position,
                  s->file_index->entries[i].time);
     
@@ -130,7 +130,7 @@ void
 bgav_file_index_append_packet(bgav_file_index_t * idx,
                               int64_t position,
                               int64_t time,
-                              int keyframe)
+                              int flags)
   {
   if(idx->num_entries >= idx->entries_alloc)
     {
@@ -140,11 +140,11 @@ bgav_file_index_append_packet(bgav_file_index_t * idx,
     }
   /* First frame is always a keyframe */
   if(!idx->num_entries)
-    keyframe = 1;
+    flags |= PACKET_FLAG_KEY;
     
   idx->entries[idx->num_entries].position = position;
   idx->entries[idx->num_entries].time     = time;
-  idx->entries[idx->num_entries].keyframe = keyframe;
+  idx->entries[idx->num_entries].flags    = flags;
   idx->num_entries++;
   }
 
@@ -241,12 +241,12 @@ static void write_32(FILE * out, uint32_t i)
   BGAV_32BE_2_PTR(i, buf);
   fwrite(buf, 4, 1, out);
   }
-
+#if 0
 static void write_8(FILE * out, uint8_t i)
   {
   fwrite(&i, 1, 1, out);
   }
-
+#endif
 void bgav_file_index_write_header(const char * filename,
                                   FILE * output,
                                   int num_tracks)
@@ -271,7 +271,7 @@ static bgav_file_index_t *
 file_index_read_stream(bgav_input_context_t * input, bgav_stream_t * s)
   {
   int i;
-  uint8_t tmp_8;
+
   bgav_file_index_t * ret = calloc(1, sizeof(*ret));
 
   if(!bgav_input_read_32_be(input, (uint32_t*)&s->timescale))
@@ -287,11 +287,10 @@ file_index_read_stream(bgav_input_context_t * input, bgav_stream_t * s)
 
   for(i = 0; i < ret->num_entries; i++)
     {
-    if(!bgav_input_read_8(input, &tmp_8) ||
+    if(!bgav_input_read_32_be(input, &ret->entries[i].flags) ||
        !bgav_input_read_64_be(input, &ret->entries[i].position) ||
        !bgav_input_read_64_be(input, &ret->entries[i].time))
       return NULL;
-    ret->entries[i].keyframe = tmp_8;
     }
   return ret;
   }
@@ -310,7 +309,7 @@ file_index_write_stream(FILE * output,
 
   for(i = 0; i < idx->num_entries; i++)
     {
-    write_8(output, idx->entries[i].keyframe);
+    write_32(output, idx->entries[i].flags);
     write_64(output, idx->entries[i].position);
     write_64(output, idx->entries[i].time);
     }
@@ -600,7 +599,7 @@ static void flush_stream_simple(bgav_stream_t * s)
     if(p->pts >= s->duration)
       {
       bgav_file_index_append_packet(s->file_index,
-                                    p->position, p->pts, p->keyframe);
+                                    p->position, p->pts, p->flags);
       s->duration = p->pts + p->duration;
       }
     bgav_demuxer_done_packet_read(s->demuxer, p);
@@ -618,7 +617,7 @@ static void flush_stream_pts(bgav_stream_t * s, int force)
        (p->pts >= s->out_time))
       {
       bgav_file_index_append_packet(s->file_index,
-                                    p->position, p->pts, p->keyframe);
+                                    p->position, p->pts, p->flags);
       s->out_time = p->pts;
       if(p->pts > s->duration)
         s->duration = p->pts;

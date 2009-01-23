@@ -162,7 +162,7 @@ static int decode_theora(bgav_stream_t * s, gavl_video_frame_t * frame)
     if(!p)
       return 0;
 
-    if(priv->do_resync && !p->keyframe)
+    if(priv->do_resync && !PACKET_GET_KEYFRAME(p))
       {
       bgav_demuxer_done_packet_read(s->demuxer, p);
       continue;

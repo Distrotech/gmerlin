@@ -2217,10 +2217,10 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
         if(s->action == BGAV_STREAM_PARSE)
           {
           s->duration = avi_vs->frame_counter * s->data.video.format.frame_duration;
-          if(avi_vs->is_keyframe) 
-            p->keyframe = avi_vs->is_keyframe(p->data);
+          if(avi_vs->is_keyframe && avi_vs->is_keyframe(p->data)) 
+            PACKET_SET_KEYFRAME(p);
           else
-            p->keyframe = 1;
+            PACKET_SET_KEYFRAME(p);
           }
         }
       else if(s->type == BGAV_STREAM_AUDIO)
@@ -2232,7 +2232,7 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
           avi_as->sample_counter += p->data_size / s->data.audio.block_align;
           if(s->action == BGAV_STREAM_PARSE)
             s->duration = avi_as->sample_counter;
-          p->keyframe = 1;
+          PACKET_SET_KEYFRAME(p);
           }
         }
       bgav_packet_done_write(p);
