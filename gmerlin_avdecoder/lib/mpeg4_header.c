@@ -70,6 +70,9 @@ int bgav_mpeg4_vol_header_read(const bgav_options_t * opt,
   bgav_bitstream_t b;
   int dummy;
 
+  buffer+=4;
+  len -= 4;
+  
   bgav_bitstream_init(&b, buffer, len);
 
   if(!bgav_bitstream_get(&b, &ret->random_accessible_vol, 1) ||
@@ -137,56 +140,124 @@ int bgav_mpeg4_vol_header_read(const bgav_options_t * opt,
      !bgav_bitstream_get(&b, &ret->fixed_vop_rate, 1))
     return 0;
 
+  ret->time_increment_bits = bgav_log2(ret->vop_time_increment_resolution - 1) + 1;
+  
   if(ret->fixed_vop_rate)
     {
-    int bits = bgav_log2(ret->vop_time_increment_resolution - 1) + 1;
-    if(!bgav_bitstream_get(&b, &ret->fixed_vop_time_increment, bits))
+    if(!bgav_bitstream_get(&b, &ret->fixed_vop_time_increment,
+                           ret->time_increment_bits))
       return 0;
     }
   
-  return 1;
+  return len - bgav_bitstream_get_bits(&b) / 8;
   }
 
 void bgav_mpeg4_vol_header_dump(bgav_mpeg4_vol_header_t * h)
   {
+  bgav_dprintf("VOL header\n");
   
-  bgav_dprintf("random_accessible_vol:              %d\n", h->random_accessible_vol);
-  bgav_dprintf("video_object_type_indication:       %d\n", h->video_object_type_indication);
-  bgav_dprintf("is_object_layer_identifier:         %d\n", h->is_object_layer_identifier);
+  bgav_dprintf("  random_accessible_vol:              %d\n", h->random_accessible_vol);
+  bgav_dprintf("  video_object_type_indication:       %d\n", h->video_object_type_indication);
+  bgav_dprintf("  is_object_layer_identifier:         %d\n", h->is_object_layer_identifier);
   if (h->is_object_layer_identifier) {
-  bgav_dprintf("video_object_layer_verid:           %d\n", h->video_object_layer_verid);
-  bgav_dprintf("video_object_layer_priority:        %d\n", h->video_object_layer_priority);
+  bgav_dprintf("  video_object_layer_verid:           %d\n", h->video_object_layer_verid);
+  bgav_dprintf("  video_object_layer_priority:        %d\n", h->video_object_layer_priority);
   }
-  bgav_dprintf("aspect_ratio_info:                  %d\n", h->aspect_ratio_info);
+  bgav_dprintf("  aspect_ratio_info:                  %d\n", h->aspect_ratio_info);
   if(h->aspect_ratio_info == 15) {
-  bgav_dprintf("par_width:                          %d\n", h->par_width);
-  bgav_dprintf("par_height:                         %d\n", h->par_height);
+  bgav_dprintf("  par_width:                          %d\n", h->par_width);
+  bgav_dprintf("  par_height:                         %d\n", h->par_height);
   }
-  bgav_dprintf("vol_control_parameters:             %d\n", h->vol_control_parameters);
+  bgav_dprintf("  vol_control_parameters:             %d\n", h->vol_control_parameters);
 
   if (h->vol_control_parameters) {
-  bgav_dprintf("chroma_format:                      %d\n", h->chroma_format);
-  bgav_dprintf("low_delay:                          %d\n", h->low_delay);
-  bgav_dprintf("vbv_parameters:                     %d\n", h->vbv_parameters);
+  bgav_dprintf("  chroma_format:                      %d\n", h->chroma_format);
+  bgav_dprintf("  low_delay:                          %d\n", h->low_delay);
+  bgav_dprintf("  vbv_parameters:                     %d\n", h->vbv_parameters);
   if (h->vbv_parameters) {
-  bgav_dprintf("first_half_bit_rate:                %d\n", h->first_half_bit_rate);
-  bgav_dprintf("latter_half_bit_rate:               %d\n", h->latter_half_bit_rate);
-  bgav_dprintf("first_half_vbv_buffer_size:         %d\n", h->first_half_vbv_buffer_size);
-  bgav_dprintf("latter_half_vbv_buffer_size:        %d\n", h->latter_half_vbv_buffer_size);
-  bgav_dprintf("first_half_vbv_occupancy:           %d\n", h->first_half_vbv_occupancy);
-  bgav_dprintf("latter_half_vbv_occupancy:          %d\n", h->latter_half_vbv_occupancy);
+  bgav_dprintf("  first_half_bit_rate:                %d\n", h->first_half_bit_rate);
+  bgav_dprintf("  latter_half_bit_rate:               %d\n", h->latter_half_bit_rate);
+  bgav_dprintf("  first_half_vbv_buffer_size:         %d\n", h->first_half_vbv_buffer_size);
+  bgav_dprintf("  latter_half_vbv_buffer_size:        %d\n", h->latter_half_vbv_buffer_size);
+  bgav_dprintf("  first_half_vbv_occupancy:           %d\n", h->first_half_vbv_occupancy);
+  bgav_dprintf("  latter_half_vbv_occupancy:          %d\n", h->latter_half_vbv_occupancy);
   }
   }
-  bgav_dprintf("video_object_layer_shape:           %d\n", h->video_object_layer_shape);
+  bgav_dprintf("  video_object_layer_shape:           %d\n", h->video_object_layer_shape);
   if ((h->video_object_layer_shape == 3) &&
       (h->video_object_layer_verid != 1)) {
-  bgav_dprintf("video_object_layer_shape_extension: %d\n", h->video_object_layer_shape_extension);
+  bgav_dprintf("  video_object_layer_shape_extension: %d\n", h->video_object_layer_shape_extension);
   }
-  bgav_dprintf("vop_time_increment_resolution:      %d\n", h->vop_time_increment_resolution);
-  bgav_dprintf("fixed_vop_rate:                     %d\n", h->fixed_vop_rate);
+  bgav_dprintf("  vop_time_increment_resolution:      %d\n", h->vop_time_increment_resolution);
+  bgav_dprintf("  fixed_vop_rate:                     %d\n", h->fixed_vop_rate);
   if (h->fixed_vop_rate) {
-  bgav_dprintf("fixed_vop_time_increment:           %d\n", h->fixed_vop_time_increment);
+  bgav_dprintf("  fixed_vop_time_increment:           %d\n", h->fixed_vop_time_increment);
   }
   
   }
                                
+int bgav_mpeg4_vop_header_read(const bgav_options_t * opt,
+                               bgav_mpeg4_vop_header_t * ret,
+                               const uint8_t * buffer, int len,
+                               const bgav_mpeg4_vol_header_t * vol)
+  {
+  int dummy;
+  bgav_bitstream_t b;
+  
+  buffer+=4;
+  len -= 4;
+  
+  bgav_bitstream_init(&b, buffer, len);
+
+  if(!bgav_bitstream_get(&b, &dummy, 2))
+    return 0;
+
+  switch(dummy)
+    {
+    case 0:
+      ret->coding_type = BGAV_CODING_TYPE_I;
+      break;
+    case 1:
+    case 3:
+      ret->coding_type = BGAV_CODING_TYPE_P;
+      break;
+    case 2:
+      ret->coding_type = BGAV_CODING_TYPE_B;
+      break;
+    }
+
+  while(1)
+    {
+    if(!bgav_bitstream_get(&b, &dummy, 1))
+      return 0;
+    if(dummy)
+      ret->modulo_time_base++;
+    else
+      break;
+    }
+  
+  if(!bgav_bitstream_get(&b, &dummy, 1)) /* Marker */
+    return 0;
+
+  if(!bgav_bitstream_get(&b, &ret->time_increment, vol->time_increment_bits))
+    return 0;
+
+  if(!bgav_bitstream_get(&b, &dummy, 1)) /* Marker */
+    return 0;
+
+  if(!bgav_bitstream_get(&b, &ret->vop_coded, 1))
+    return 0;
+
+  return len - bgav_bitstream_get_bits(&b) / 8;
+  }
+
+void bgav_mpeg4_vop_header_dump(bgav_mpeg4_vop_header_t * h)
+  {
+  bgav_dprintf("VOP header\n");
+
+  bgav_dprintf("  coding_type:      %c\n", h->coding_type);
+  bgav_dprintf("  modulo_time_base: %d\n", h->modulo_time_base); 
+  bgav_dprintf("  time_increment:   %d\n", h->time_increment);
+  bgav_dprintf("  vop_coded:        %d\n", h->vop_coded);
+  
+  }

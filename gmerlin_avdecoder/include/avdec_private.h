@@ -166,13 +166,16 @@ struct bgav_subtitle_overlay_decoder_context_s
 
 /* Packet */
 
-#define PACKET_FLAG_KEY (1<<8)
+#define PACKET_FLAG_KEY  (1<<8)
+#define PACKET_FLAG_SKIP (1<<9)
 
 #define PACKET_SET_CODING_TYPE(p, t) p->flags |= t
 #define PACKET_SET_KEYFRAME(p)       p->flags |= PACKET_FLAG_KEY
+#define PACKET_SET_SKIP(p)           p->flags |= PACKET_FLAG_SKIP
 
 #define PACKET_GET_CODING_TYPE(p, t) (p->flags & 0xff)
 #define PACKET_GET_KEYFRAME(p)       (p->flags & PACKET_FLAG_KEY)
+#define PACKET_GET_SKIP(p)           (p->flags & PACKET_FLAG_SKIP)
 
 struct bgav_packet_s
   {

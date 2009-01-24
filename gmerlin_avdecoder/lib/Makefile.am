@@ -359,6 +359,7 @@ bitstream.c \
 bytebuffer.c \
 chapterlist.c \
 charset.c \
+cavs_header.c \
 codecs.c \
 demuxer.c \
 demux_4xm.c \
@@ -448,6 +449,7 @@ options.c \
 packetbuffer.c \
 packet.c \
 parse_h264.c \
+parse_mpeg4.c \
 parse_mpv.c \
 pes_header.c \
 pnm.c \

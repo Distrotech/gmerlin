@@ -41,6 +41,7 @@ parsers[] =
   {
     { BGAV_MK_FOURCC('H', '2', '6', '4'), bgav_video_parser_init_h264 },
     { BGAV_MK_FOURCC('m', 'p', 'g', 'v'), bgav_video_parser_init_mpeg12 },
+    { BGAV_MK_FOURCC('m', 'p', '4', 'v'), bgav_video_parser_init_mpeg4 },
   };
 
 bgav_video_parser_t * bgav_video_parser_create(uint32_t fourcc, int timescale,
@@ -244,7 +245,7 @@ void bgav_video_parser_destroy(bgav_video_parser_t * parser)
 void bgav_video_parser_reset(bgav_video_parser_t * parser, int64_t pts)
   {
   bgav_bytebuffer_flush(&parser->buf);
-  parser->flags = 0;
+  
   parser->raw_position = -1;
   parser->cache_size = 0;
   parser->num_packets = 0;
@@ -422,6 +423,8 @@ void bgav_video_parser_get_packet(bgav_video_parser_t * parser,
   
   if(c->coding_type == BGAV_CODING_TYPE_I)
     PACKET_SET_KEYFRAME(p);
+
+  PACKET_SET_CODING_TYPE(p, c->coding_type);
   
   p->position = c->position;
   p->field2_offset = c->field2_offset;

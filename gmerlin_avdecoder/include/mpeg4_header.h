@@ -69,6 +69,9 @@ typedef struct
   int fixed_vop_rate;                     // 1
   // if (fixed_vop_rate)
   int fixed_vop_time_increment;           // 1-16
+
+  /* Calculated */
+  int time_increment_bits;
   
   } bgav_mpeg4_vol_header_t;
 
@@ -78,3 +81,17 @@ int bgav_mpeg4_vol_header_read(const bgav_options_t * opt,
 
 void bgav_mpeg4_vol_header_dump(bgav_mpeg4_vol_header_t * h);
                                
+typedef struct
+  {
+  int coding_type;
+  int modulo_time_base;
+  int time_increment;
+  int vop_coded;
+  } bgav_mpeg4_vop_header_t;
+
+int bgav_mpeg4_vop_header_read(const bgav_options_t * opt,
+                               bgav_mpeg4_vop_header_t * ret,
+                               const uint8_t * buffer, int len,
+                               const bgav_mpeg4_vol_header_t * vol);
+
+void bgav_mpeg4_vop_header_dump(bgav_mpeg4_vop_header_t * h);

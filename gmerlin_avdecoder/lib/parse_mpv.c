@@ -262,9 +262,6 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
         bgav_video_parser_set_framerate(parser,
                                         priv->sh.timescale, priv->sh.frame_duration);
         
-        parser->format.timescale      = priv->sh.timescale;
-        parser->format.frame_duration = priv->sh.frame_duration;
-
         parser->format.image_width  = priv->sh.horizontal_size_value;
         parser->format.image_height = priv->sh.vertical_size_value;
         parser->format.frame_width  =

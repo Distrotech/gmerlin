@@ -32,7 +32,7 @@
 
 #define BUFFER_LEN 1024
 
-#define MPEG12_SEQUENCE_HEADER 0x000001b3
+#define MPEG12_SEQUENCE_HEADER 
 
 typedef struct
   {
@@ -47,21 +47,38 @@ typedef struct
 static int detect_type(bgav_input_context_t * input)
   {
   char * pos;
-  uint32_t header;
-  if(!bgav_input_get_32_be(input, &header))
+  uint32_t header_32;
+  uint64_t header_64;
+  if(!bgav_input_get_32_be(input, &header_32))
     return 0;
-  
-  if(header == MPEG12_SEQUENCE_HEADER)
+
+  /* MPEG-1/2 Video */
+  if(header_32 == 0x000001b3)
     return BGAV_MK_FOURCC('m', 'p', 'g', 'v');
-  else
+  else if(header_32 == 0x000001b0)
+    return BGAV_MK_FOURCC('C', 'A', 'V', 'S');
+  
+  /* H.264 */
+  if(input->filename)
     {
-    if(input->filename)
-      {
-      pos = strrchr(input->filename, '.');
-      if(pos && !strcasecmp(pos, ".h264"))
-        return BGAV_MK_FOURCC('H', '2', '6', '4');
-      }
+    pos = strrchr(input->filename, '.');
+    if(pos && !strcasecmp(pos, ".h264"))
+      return BGAV_MK_FOURCC('H', '2', '6', '4');
     }
+
+  /* MPEG-4 */
+  if(!bgav_input_get_64_be(input, &header_64))
+    return 0;
+
+  /* Check for video_object_start_code followed by
+     video_object_layer_start_code */
+
+  fprintf(stderr, "Test header: %016lx %016lx\n",
+          header_64, header_64 & 0xFFFFFFE0FFFFFFF0LL);
+  
+  if((header_64 & 0xFFFFFFE0FFFFFFF0LL) == 0x0000010000000120LL)
+    return BGAV_MK_FOURCC('m', 'p', '4', 'v');
+  
   return 0;
   }
 
@@ -154,7 +171,6 @@ static void next_packet_fi(bgav_demuxer_context_t * ctx)
       {
       p = bgav_stream_get_packet_write(s);
       bgav_video_parser_get_packet(priv->parser, p);
-      bgav_packet_dump(p);
       bgav_packet_done_write(p);
       }
     else if(state == PARSER_NEED_DATA)
@@ -173,7 +189,6 @@ static void next_packet_fi(bgav_demuxer_context_t * ctx)
         {
         p = bgav_stream_get_packet_write(s);
         bgav_video_parser_get_packet(priv->parser, p);
-        bgav_packet_dump(p);
         bgav_packet_done_write(p);
         }
       else if(state == PARSER_EOF)
@@ -207,7 +222,6 @@ static int next_packet_mpegvideo(bgav_demuxer_context_t * ctx)
   
   p = bgav_stream_get_packet_write(s);
   bgav_video_parser_get_packet(priv->parser, p);
-  bgav_packet_dump(p);
   bgav_packet_done_write(p);
   
   return 1;

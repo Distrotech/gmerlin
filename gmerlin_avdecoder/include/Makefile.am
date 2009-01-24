@@ -7,6 +7,7 @@ asmrp.h \
 avdec_private.h \
 bgav_sem.h \
 bswap.h \
+cavs_header.h \
 codecs.h \
 dvb_channels.h \
 dvframe.h \

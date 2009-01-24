@@ -50,6 +50,9 @@ typedef struct
   int     size;
   } packet_t;
 
+/* MPEG-2 Intra slice refresh */
+#define PARSER_NO_I_FRAMES (1<<0)
+
 struct bgav_video_parser_s
   {
   int raw;
@@ -96,10 +99,12 @@ struct bgav_video_parser_s
   
   int non_b_count;
   int last_non_b_frame;
+  
   };
 
 void bgav_video_parser_init_mpeg12(bgav_video_parser_t * parser);
 void bgav_video_parser_init_h264(bgav_video_parser_t * parser);
+void bgav_video_parser_init_mpeg4(bgav_video_parser_t * parser);
 
 void bgav_video_parser_flush(bgav_video_parser_t * parser, int bytes);
 void bgav_video_parser_extract_header(bgav_video_parser_t * parser);
