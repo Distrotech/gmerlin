@@ -102,12 +102,17 @@ framerates[] =
     {    -1,   -1 }, // reserved
   };
 
+void bgav_mpv_get_framerate(int code, int * timescale, int *frame_duration)
+  {
+  *timescale      = framerates[code].timescale;
+  *frame_duration = framerates[code].frame_duration;
+  }
+
 int bgav_mpv_sequence_header_parse(const bgav_options_t * opt,
                                    bgav_mpv_sequence_header_t * ret,
                                    const uint8_t * buffer, int len)
   {
   int i;
-  int frame_rate_index;
   buffer += 4;
   len -= 4;
 
@@ -135,16 +140,10 @@ int bgav_mpv_sequence_header_parse(const bgav_options_t * opt,
   ret->horizontal_size_value = i >> 12;
   ret->vertical_size_value = i & 0xfff;
     
-  frame_rate_index = buffer[3] & 0xf;
-  ret->timescale      = framerates[frame_rate_index].timescale;
-  ret->frame_duration = framerates[frame_rate_index].frame_duration;
+  ret->frame_rate_index = buffer[3] & 0xf;
 
-  if(ret->timescale < 0)
-    {
-    bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-             "Cannot read sequence header: illegal framerate");
-    return -1;
-    }
+  //  ret->timescale      = framerates[frame_rate_index].timescale;
+  //  ret->frame_duration = framerates[frame_rate_index].frame_duration;
   
   
   ret->bitrate = (buffer[4]<<10)|(buffer[5]<<2)|(buffer[6]>>6);

@@ -25,6 +25,8 @@
 const uint8_t * bgav_mpv_find_startcode( const uint8_t *p,
                                          const uint8_t *end );
 
+void bgav_mpv_get_framerate(int code, int * timescale, int *frame_duration);
+
 /*
  *  Return values of the parse functions:
  *   0: Not enough data
@@ -52,9 +54,9 @@ typedef struct
 
   int horizontal_size_value;
   int vertical_size_value;
+
+  int frame_rate_index;
   
-  int timescale;
-  int frame_duration;
   bgav_mpv_sequence_extension_t ext;
   } bgav_mpv_sequence_header_t;
 

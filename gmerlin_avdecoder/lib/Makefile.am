@@ -448,6 +448,7 @@ nanosoft.c \
 options.c \
 packetbuffer.c \
 packet.c \
+parse_cavs.c \
 parse_h264.c \
 parse_mpeg4.c \
 parse_mpv.c \

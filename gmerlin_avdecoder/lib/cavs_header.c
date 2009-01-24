@@ -22,6 +22,9 @@
 #include <avdec_private.h>
 #include <cavs_header.h>
 
+#define FRAME_I  0xb3
+#define FRAME_PB 0xb6
+
 int bgav_cavs_get_start_code(const uint8_t * data)
   {
   switch(data[3])
@@ -29,10 +32,10 @@ int bgav_cavs_get_start_code(const uint8_t * data)
     case 0xb0:
       return CAVS_CODE_SEQUENCE;
       break;
-    case 0xb3:
+    case FRAME_I:
       return CAVS_CODE_PICTURE_I;
       break;
-    case 0xb6:
+    case FRAME_PB:
       return CAVS_CODE_PICTURE_PB;
       break;
     }
@@ -69,7 +72,7 @@ int bgav_cavs_sequence_header_read(const bgav_options_t * opt,
   return len - bgav_bitstream_get_bits(&b) / 8;
   }
 
-void bgav_cavs_sequence_header_dump(bgav_cavs_sequence_header_t * h)
+void bgav_cavs_sequence_header_dump(const bgav_cavs_sequence_header_t * h)
   {
   bgav_dprintf("CAVS Sequence header\n");
   bgav_dprintf("  profile_id:           %d\n", h->profile_id);
@@ -87,15 +90,97 @@ void bgav_cavs_sequence_header_dump(bgav_cavs_sequence_header_t * h)
   bgav_dprintf("  low_delay:            %d\n", h->low_delay);
   }
 
+
 int bgav_cavs_picture_header_read(const bgav_options_t * opt,
                                   bgav_cavs_picture_header_t * ret,
-                                  const uint8_t * buffer, int len)
+                                  const uint8_t * buffer, int len,
+                                  const bgav_cavs_sequence_header_t * seq)
   {
+  int sc = buffer[3];
+  bgav_bitstream_t b;
 
+  
+  buffer+=4;
+  len -= 4;
+  
+  bgav_bitstream_init(&b, buffer, len);
+
+  if(!bgav_bitstream_get(&b, &ret->bbv_delay, 16))
+    return 0;
+
+  if(sc == FRAME_I)
+    {
+    ret->coding_type = BGAV_CODING_TYPE_I;
+    if(!bgav_bitstream_get(&b, &ret->time_code_flag, 1))
+      return 0;
+    if(ret->time_code_flag &&
+       !bgav_bitstream_get(&b, &ret->time_code, 24))
+      return 0;
+    }
+  else
+    {
+    if(!bgav_bitstream_get(&b, &ret->picture_coding_type, 2))
+      return 0;
+    if(ret->picture_coding_type == 1)
+      ret->coding_type = BGAV_CODING_TYPE_P;
+    else
+      ret->coding_type = BGAV_CODING_TYPE_B;
+    }
+
+  if(!bgav_bitstream_get(&b, &ret->picture_distance, 8))
+    return 0;
+
+  if(seq->low_delay && 
+     !bgav_bitstream_get_golomb_ue(&b, &ret->bbv_check_times))
+    return 0; 
+
+  if(!bgav_bitstream_get(&b, &ret->progressive_frame, 1))
+    return 0;
+
+  if(!ret->progressive_frame)
+    {
+    if(!bgav_bitstream_get(&b, &ret->picture_structure, 1))
+      return 0;
+    if(!ret->picture_structure && (sc == FRAME_PB))
+      {
+      if(!bgav_bitstream_get(&b, &ret->advanced_pred_mode_disable, 1))
+        return 0;
+      
+      }
+    }
+
+  if(!bgav_bitstream_get(&b, &ret->top_field_first, 1) ||
+     !bgav_bitstream_get(&b, &ret->repeat_first_field, 1))
+    return 0;
+  
+  return len - bgav_bitstream_get_bits(&b) / 8;
   }
 
-void bgav_cavs_picture_header_dump(bgav_cavs_picture_header_t * h)
+void bgav_cavs_picture_header_dump(const bgav_cavs_picture_header_t * h,
+                                   const bgav_cavs_sequence_header_t * seq)
   {
+  bgav_dprintf("CAVS Picture header\n");
+  bgav_dprintf("  coding_type:                %c\n", h->coding_type);
+
+  bgav_dprintf("  bbv_delay:                  %d\n", h->bbv_delay);       /* I/PB, 16 */
+
+  if(h->coding_type == BGAV_CODING_TYPE_I) {
+  bgav_dprintf("  time_code_flag:             %d\n", h->time_code_flag);  /* I, 1 */
+  if(h->time_code_flag) {
+  bgav_dprintf("  time_code:                  %d\n", h->time_code);       /* I, 24 */
+  }} else {
+  bgav_dprintf("  picture_coding_type:        %d\n", h->picture_coding_type); /* PB, 2 */
+  }
+  bgav_dprintf("  picture_distance:           %d\n", h->picture_distance);    /* I/PB, 8 */
+  bgav_dprintf("  bbv_check_times:            %d\n", h->bbv_check_times);     /* I/PB, ue */
+  bgav_dprintf("  progressive_frame:          %d\n", h->progressive_frame);   /* I/PB, 1 */
+  if(!h->progressive_frame) {
+  bgav_dprintf("  picture_structure:          %d\n", h->picture_structure);
+  if(h->coding_type != BGAV_CODING_TYPE_I) {
+  bgav_dprintf("  advanced_pred_mode_disable: %d\n", h->advanced_pred_mode_disable );
+  }}
+  bgav_dprintf("  top_field_first:            %d\n", h->top_field_first);
+  bgav_dprintf("  repeat_first_field:         %d\n", h->repeat_first_field);
   
   }
 

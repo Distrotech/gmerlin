@@ -47,15 +47,36 @@ int bgav_cavs_sequence_header_read(const bgav_options_t * opt,
                                    bgav_cavs_sequence_header_t * ret,
                                    const uint8_t * buffer, int len);
 
-void bgav_cavs_sequence_header_dump(bgav_cavs_sequence_header_t * h);
+void bgav_cavs_sequence_header_dump(const bgav_cavs_sequence_header_t * h);
                                
 typedef struct
   {
   int coding_type;
+
+  int bbv_delay;       /* I/PB, 16 */
+  int time_code_flag;  /* I, 1 */
+  // if(time_code_flag) {
+  int time_code;       /* I, 24 */
+  // } else {
+  int picture_coding_type; /* PB, 2 */
+  // }
+  int picture_distance;    /* I/PB, 8 */
+  int bbv_check_times;     /* I/PB, ue */
+  int progressive_frame;   /* I/PB, 1 */
+  // if(!progressive_frame) {
+  int picture_structure;
+  // if(!coding_type != I) {
+  int advanced_pred_mode_disable;
+  // }}
+  int top_field_first;
+  int repeat_first_field;
+  
   } bgav_cavs_picture_header_t;
 
 int bgav_cavs_picture_header_read(const bgav_options_t * opt,
                                   bgav_cavs_picture_header_t * ret,
-                                  const uint8_t * buffer, int len);
+                                  const uint8_t * buffer, int len,
+                                  const bgav_cavs_sequence_header_t * seq);
 
-void bgav_cavs_picture_header_dump(bgav_cavs_picture_header_t * h);
+void bgav_cavs_picture_header_dump(const bgav_cavs_picture_header_t * h,
+                                   const bgav_cavs_sequence_header_t * seq);

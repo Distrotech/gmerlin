@@ -73,3 +73,40 @@ int bgav_bitstream_get_bits(bgav_bitstream_t * b)
   {
   return b->bit_cache + 8 * (b->end - b->pos);
   }
+
+/* golomb parsing */
+
+int bgav_bitstream_get_golomb_ue(bgav_bitstream_t * b, int * ret)
+  {
+  int bits, num = 0;
+  while(1)
+    {
+    if(!bgav_bitstream_get(b, &bits, 1))
+      return 0;
+    if(bits)
+      break;
+    else
+      num++;
+    }
+  /* The variable codeNum is then assigned as follows:
+     codeNum = 2^leadingZeroBits - 1 + read_bits( leadingZeroBits ) */
+  
+  if(!bgav_bitstream_get(b, &bits, num))
+    return 0;
+  
+  *ret = (1 << num) - 1 + bits;
+  return 1;
+  }
+
+int bgav_bitstream_get_golomb_se(bgav_bitstream_t * b, int * ret)
+  {
+  int ret1;
+  if(!bgav_bitstream_get_golomb_ue(b, &ret1))
+    return 0;
+
+  if(ret1 & 1)
+    *ret = ret1>>1;
+  else
+    *ret = -(ret1>>1);
+  return 1;
+  }

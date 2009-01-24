@@ -42,6 +42,7 @@ parsers[] =
     { BGAV_MK_FOURCC('H', '2', '6', '4'), bgav_video_parser_init_h264 },
     { BGAV_MK_FOURCC('m', 'p', 'g', 'v'), bgav_video_parser_init_mpeg12 },
     { BGAV_MK_FOURCC('m', 'p', '4', 'v'), bgav_video_parser_init_mpeg4 },
+    { BGAV_MK_FOURCC('C', 'A', 'V', 'S'), bgav_video_parser_init_cavs },
   };
 
 bgav_video_parser_t * bgav_video_parser_create(uint32_t fourcc, int timescale,

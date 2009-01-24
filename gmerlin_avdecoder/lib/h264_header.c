@@ -26,36 +26,6 @@
 #include <mpv_header.h>
 #include <h264_header.h>
 
-/* golomb parsing */
-
-static int get_golomb_ue(bgav_bitstream_t * b)
-  {
-  int bits, num = 0;
-  while(1)
-    {
-    bgav_bitstream_get(b, &bits, 1);
-    if(bits)
-      break;
-    else
-      num++;
-    }
-  /* The variable codeNum is then assigned as follows:
-     codeNum = 2^leadingZeroBits - 1 + read_bits( leadingZeroBits ) */
-  
-  bgav_bitstream_get(b, &bits, num);
-  return (1 << num) - 1 + bits;
-  }
-
-static int get_golomb_se(bgav_bitstream_t * b)
-  {
-  int ret = get_golomb_ue(b);
-  if(ret & 1)
-    return ret>>1;
-  else
-    return -(ret>>1);
-  }
-
-
 /* */
 
 const uint8_t *
@@ -142,15 +112,17 @@ static void get_hrd_parameters(bgav_bitstream_t * b,
                                bgav_h264_vui_t * vui)
   {
   int dummy, i;
-  int cpb_cnt_minus1 = get_golomb_ue(b);
+  int cpb_cnt_minus1;
+  
+  bgav_bitstream_get_golomb_ue(b, &cpb_cnt_minus1);
 
   bgav_bitstream_get(b, &dummy, 4); // bit_rate_scale
   bgav_bitstream_get(b, &dummy, 4); // cpb_size_scale
   
   for(i = 0; i <= cpb_cnt_minus1; i++ )
     {
-    get_golomb_ue(b); // bit_rate_value_minus1[ SchedSelIdx ]
-    get_golomb_ue(b); // cpb_size_value_minus1[ SchedSelIdx ]
+    bgav_bitstream_get_golomb_ue(b, &dummy); // bit_rate_value_minus1[ SchedSelIdx ]
+    bgav_bitstream_get_golomb_ue(b, &dummy); // cpb_size_value_minus1[ SchedSelIdx ]
     bgav_bitstream_get(b, &dummy, 1); // cbr_flag[ SchedSelIdx ]
     }
   bgav_bitstream_get(b, &dummy, 5); // initial_cpb_removal_delay_length_minus1
@@ -193,8 +165,8 @@ static void vui_parse(bgav_bitstream_t * b, bgav_h264_vui_t * vui)
   bgav_bitstream_get(b, &vui->chroma_loc_info_present_flag, 1);
   if(vui->chroma_loc_info_present_flag)
     {
-    vui->chroma_sample_loc_type_top_field    = get_golomb_ue(b);
-    vui->chroma_sample_loc_type_bottom_field = get_golomb_ue(b);
+    bgav_bitstream_get_golomb_ue(b, &vui->chroma_sample_loc_type_top_field);
+    bgav_bitstream_get_golomb_ue(b, &vui->chroma_sample_loc_type_bottom_field);
     }
 
   bgav_bitstream_get(b, &vui->timing_info_present_flag, 1);
@@ -274,9 +246,10 @@ static void vui_dump(bgav_h264_vui_t * vui)
 
 static void skip_scaling_list(bgav_bitstream_t * b, int num)
   {
-  int i;
+  int i, dummy;
+  
   for(i = 0; i < num; i++)
-    get_golomb_se(b);
+    bgav_bitstream_get_golomb_se(b, &dummy);
   }
 
 int bgav_h264_sps_parse(const bgav_options_t * opt,
@@ -300,7 +273,7 @@ int bgav_h264_sps_parse(const bgav_options_t * opt,
   bgav_bitstream_get(&b, &dummy, 4); /* reserved_zero_4bits */
   bgav_bitstream_get(&b, &sps->level_idc, 8); /* level_idc */
 
-  sps->seq_parameter_set_id      = get_golomb_ue(&b);
+  bgav_bitstream_get_golomb_ue(&b, &sps->seq_parameter_set_id);
 
   /* ffmpeg has just (sps->profile_idc >= 100) */
   if(sps->profile_idc == 100 ||
@@ -311,11 +284,11 @@ int bgav_h264_sps_parse(const bgav_options_t * opt,
      sps->profile_idc == 83 ||
      sps->profile_idc == 86 ) 
     {
-    sps->chroma_format_idc = get_golomb_ue(&b);
+    bgav_bitstream_get_golomb_ue(&b, &sps->chroma_format_idc);
     if(sps->chroma_format_idc == 3)
       bgav_bitstream_get(&b, &sps->separate_colour_plane_flag, 1);
-    sps->bit_depth_luma_minus8 = get_golomb_ue(&b);
-    sps->bit_depth_chroma_minus8 = get_golomb_ue(&b);
+    bgav_bitstream_get_golomb_ue(&b, &sps->bit_depth_luma_minus8);
+    bgav_bitstream_get_golomb_ue(&b, &sps->bit_depth_chroma_minus8);
 
     bgav_bitstream_get(&b, &sps->qpprime_y_zero_transform_bypass_flag, 1);
     bgav_bitstream_get(&b, &sps->seq_scaling_matrix_present_flag, 1);
@@ -332,32 +305,32 @@ int bgav_h264_sps_parse(const bgav_options_t * opt,
       }
     }
   
-  sps->log2_max_frame_num_minus4 = get_golomb_ue(&b);
-  sps->pic_order_cnt_type        = get_golomb_ue(&b);
+  bgav_bitstream_get_golomb_ue(&b, &sps->log2_max_frame_num_minus4);
+  bgav_bitstream_get_golomb_ue(&b, &sps->pic_order_cnt_type);
 
   if(!sps->pic_order_cnt_type)
-    sps->log2_max_pic_order_cnt_lsb_minus4 = get_golomb_ue(&b);
+    bgav_bitstream_get_golomb_ue(&b, &sps->log2_max_pic_order_cnt_lsb_minus4);
   else if(sps->pic_order_cnt_type == 1)
     {
     bgav_bitstream_get(&b, &sps->delta_pic_order_always_zero_flag, 1);
 
-    sps->offset_for_non_ref_pic = get_golomb_se(&b);  
-    sps->offset_for_top_to_bottom_field = get_golomb_se(&b); 
-    sps->num_ref_frames_in_pic_order_cnt_cycle = get_golomb_ue(&b);
+    bgav_bitstream_get_golomb_se(&b, &sps->offset_for_non_ref_pic);  
+    bgav_bitstream_get_golomb_se(&b, &sps->offset_for_top_to_bottom_field); 
+    bgav_bitstream_get_golomb_ue(&b, &sps->num_ref_frames_in_pic_order_cnt_cycle);
 
     sps->offset_for_ref_frame =
       malloc(sizeof(*sps->offset_for_ref_frame) *
              sps->num_ref_frames_in_pic_order_cnt_cycle);
     for(i = 0; i < sps->num_ref_frames_in_pic_order_cnt_cycle; i++)
       {
-      sps->offset_for_ref_frame[i] = get_golomb_se(&b);
+      bgav_bitstream_get_golomb_se(&b, &sps->offset_for_ref_frame[i]);
       }
     }
-  sps->num_ref_frames = get_golomb_ue(&b);
+  bgav_bitstream_get_golomb_ue(&b, &sps->num_ref_frames);
   bgav_bitstream_get(&b, &sps->gaps_in_frame_num_value_allowed_flag, 1);
 
-  sps->pic_width_in_mbs_minus1 = get_golomb_ue(&b);
-  sps->pic_height_in_map_units_minus1 = get_golomb_ue(&b);
+  bgav_bitstream_get_golomb_ue(&b, &sps->pic_width_in_mbs_minus1);
+  bgav_bitstream_get_golomb_ue(&b, &sps->pic_height_in_map_units_minus1);
 
   bgav_bitstream_get(&b, &sps->frame_mbs_only_flag, 1);
 
@@ -368,10 +341,10 @@ int bgav_h264_sps_parse(const bgav_options_t * opt,
   bgav_bitstream_get(&b, &sps->frame_cropping_flag, 1);
   if(sps->frame_cropping_flag)
     {
-    sps->frame_crop_left_offset   = get_golomb_ue(&b);
-    sps->frame_crop_right_offset  = get_golomb_ue(&b);
-    sps->frame_crop_top_offset    = get_golomb_ue(&b);
-    sps->frame_crop_bottom_offset = get_golomb_ue(&b);
+    bgav_bitstream_get_golomb_ue(&b, &sps->frame_crop_left_offset);
+    bgav_bitstream_get_golomb_ue(&b, &sps->frame_crop_right_offset);
+    bgav_bitstream_get_golomb_ue(&b, &sps->frame_crop_top_offset);
+    bgav_bitstream_get_golomb_ue(&b, &sps->frame_crop_bottom_offset);
     }
   bgav_bitstream_get(&b, &sps->vui_parameters_present_flag, 1);
 
@@ -514,9 +487,9 @@ void bgav_h264_slice_header_parse(const uint8_t * data, int len,
 
   memset(ret, 0, sizeof(*ret));
 
-  ret->first_mb_in_slice    = get_golomb_ue(&b);
-  ret->slice_type           = get_golomb_ue(&b);
-  ret->pic_parameter_set_id = get_golomb_ue(&b);
+  bgav_bitstream_get_golomb_ue(&b, &ret->first_mb_in_slice);
+  bgav_bitstream_get_golomb_ue(&b, &ret->slice_type);
+  bgav_bitstream_get_golomb_ue(&b, &ret->pic_parameter_set_id);
 
   if(sps->separate_colour_plane_flag)
     bgav_bitstream_get(&b, &ret->colour_plane_id, 2);
