@@ -32,6 +32,8 @@
 // #include <inttypes.h>
 #include <rtp.h>
 
+#include <bitstream.h>
+
 // #define FOURCC_UNKNOWN BGAV_MK_FOURCC('?','?','?','?')
 #define LOG_DOMAIN "rtp"
 

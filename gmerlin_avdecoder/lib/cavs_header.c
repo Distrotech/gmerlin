@@ -21,6 +21,7 @@
 
 #include <avdec_private.h>
 #include <cavs_header.h>
+#include <bitstream.h>
 
 #define FRAME_I  0xb3
 #define FRAME_PB 0xb6
@@ -102,6 +103,8 @@ int bgav_cavs_picture_header_read(const bgav_options_t * opt,
   
   buffer+=4;
   len -= 4;
+
+  memset(ret, 0, sizeof(*ret));
   
   bgav_bitstream_init(&b, buffer, len);
 

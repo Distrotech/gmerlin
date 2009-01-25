@@ -26,6 +26,8 @@
 #include <mpv_header.h>
 #include <h264_header.h>
 
+#include <bitstream.h>
+
 /* */
 
 const uint8_t *

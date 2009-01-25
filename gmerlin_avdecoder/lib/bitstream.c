@@ -20,6 +20,7 @@
  * *****************************************************************/
 
 #include <avdec_private.h>
+#include <bitstream.h>
 
 void bgav_bitstream_init(bgav_bitstream_t * b, const uint8_t * pos, 
                          int len)
@@ -108,5 +109,42 @@ int bgav_bitstream_get_golomb_se(bgav_bitstream_t * b, int * ret)
     *ret = ret1>>1;
   else
     *ret = -(ret1>>1);
+  return 1;
+  }
+
+int bgav_bitstream_decode012(bgav_bitstream_t * b, int * ret)
+  {
+  int n;
+
+  if(!bgav_bitstream_get(b, &n, 1))
+    return 0;
+
+  if(!n)
+    {
+    *ret = 0;
+    return 1;
+    }
+
+  if(!bgav_bitstream_get(b, &n, 1))
+    return 0;
+  *ret = n + 1;
+  return 1;
+  }
+
+int bgav_bitstream_get_unary(bgav_bitstream_t * b, int stop,
+                             int len, int * ret)
+  {
+  int i = 0;
+  int tmp;
+  
+  while(i < len)
+    {
+    if(!bgav_bitstream_get(b, &tmp, 1))
+      return 0;
+    if(tmp == stop)
+      break;
+    i++;
+    }
+  *ret = i;
   return 1;
   }

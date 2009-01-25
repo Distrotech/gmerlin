@@ -21,6 +21,7 @@
 
 #include <avdec_private.h>
 #include <mpeg4_header.h>
+#include <bitstream.h>
 
 /* log2 ripped from ffmpeg (maybe move to central place?) */
 
@@ -206,6 +207,8 @@ int bgav_mpeg4_vop_header_read(const bgav_options_t * opt,
   
   buffer+=4;
   len -= 4;
+
+  memset(ret, 0, sizeof(*ret));
   
   bgav_bitstream_init(&b, buffer, len);
 

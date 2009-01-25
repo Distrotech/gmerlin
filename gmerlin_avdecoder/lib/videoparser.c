@@ -43,10 +43,12 @@ parsers[] =
     { BGAV_MK_FOURCC('m', 'p', 'g', 'v'), bgav_video_parser_init_mpeg12 },
     { BGAV_MK_FOURCC('m', 'p', '4', 'v'), bgav_video_parser_init_mpeg4 },
     { BGAV_MK_FOURCC('C', 'A', 'V', 'S'), bgav_video_parser_init_cavs },
+    { BGAV_MK_FOURCC('V', 'C', '-', '1'), bgav_video_parser_init_vc1 },
   };
 
-bgav_video_parser_t * bgav_video_parser_create(uint32_t fourcc, int timescale,
-                                               const bgav_options_t * opt)
+bgav_video_parser_t *
+bgav_video_parser_create(uint32_t fourcc, int timescale,
+                         const bgav_options_t * opt)
   {
   int i;
   bgav_video_parser_t * ret;
@@ -110,7 +112,8 @@ static void update_previous_size(bgav_video_parser_t * parser)
       parser->non_b_count--;
     
     parser->cache_size--;
-    fprintf(stderr, "Merged field pics %d\n", parser->cache_size);
+    fprintf(stderr, "Merged field pics %d\n",
+            parser->cache_size);
     }
   
   }
@@ -294,6 +297,25 @@ void bgav_video_parser_set_eof(bgav_video_parser_t * parser)
   
   /* Set final timestamps */
 
+  for(i = 0; i < parser->cache_size; i++)
+    {
+    if((parser->cache[parser->cache_size-1].pts ==
+        BGAV_TIMESTAMP_UNDEFINED) &&
+       (parser->cache[parser->cache_size-1].coding_type ==
+        BGAV_CODING_TYPE_B))
+      SET_PTS(i);
+    }
+
+  if(parser->last_non_b_frame >= 0)
+    SET_PTS(parser->last_non_b_frame);
+  
+  for(i = 0; i < parser->cache_size; i++)
+    {
+    if(parser->cache[i].pts ==
+       BGAV_TIMESTAMP_UNDEFINED)
+      SET_PTS(i);
+    }
+#if 0  
   if(parser->cache[parser->cache_size-1].coding_type == BGAV_CODING_TYPE_B)
     {
     SET_PTS(parser->cache_size-1);
@@ -302,7 +324,7 @@ void bgav_video_parser_set_eof(bgav_video_parser_t * parser)
     }
   else
     SET_PTS(parser->cache_size-1);
-  
+#endif
   parser->eof = 1;
   }
 

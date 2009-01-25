@@ -57,6 +57,8 @@ static int detect_type(bgav_input_context_t * input)
     return BGAV_MK_FOURCC('m', 'p', 'g', 'v');
   else if(header_32 == 0x000001b0)
     return BGAV_MK_FOURCC('C', 'A', 'V', 'S');
+  else if(header_32 == 0x0000010f)
+    return BGAV_MK_FOURCC('V', 'C', '-', '1');
   
   /* H.264 */
   if(input->filename)

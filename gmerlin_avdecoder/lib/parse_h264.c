@@ -34,8 +34,6 @@
 #define H264_NEED_NAL_START 0
 #define H264_NEED_NAL_END   1
 #define H264_HAVE_NAL       2
-#define H264_NEED_SPS       3
-#define H264_NEED_PPS       4
 
 typedef struct
   {
@@ -460,7 +458,7 @@ static void reset_h264(bgav_video_parser_t * parser)
   {
   h264_priv_t * priv = parser->priv;
   priv->state = H264_NEED_NAL_START;
-  priv->have_sps = 0;
+  //  priv->have_sps = 0;
   priv->has_picture_start = 0;
   }
 
@@ -473,6 +471,9 @@ static void cleanup_h264(bgav_video_parser_t * parser)
     free(priv->sps_buffer);
   if(priv->pps_buffer)
     free(priv->pps_buffer);
+  if(priv->rbsp)
+    free(priv->rbsp);
+
   free(priv);
   }
 

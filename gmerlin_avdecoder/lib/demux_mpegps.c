@@ -674,10 +674,9 @@ static int next_packet(bgav_demuxer_context_t * ctx,
           stream->demuxer = ctx;
           }
         }
-      else if((priv->pes_header.stream_id >= 0xfd55) && (priv->pes_header.stream_id <= 0xfd5f))
+      else if((priv->pes_header.stream_id >= 0xfd55) &&
+              (priv->pes_header.stream_id <= 0xfd5f))
         {
-        
-
         if(priv->find_streams)
           stream = bgav_track_find_stream_all(ctx->tt->cur,
                                               priv->pes_header.stream_id);
@@ -717,40 +716,40 @@ static int next_packet(bgav_demuxer_context_t * ctx,
           }
 
         /* Create packet */
-        /* Fill packets even is we initialize. The packets won't have to be
+        /* Fill packets even if we initialize. The packets won't have to be
            re-read when we start decoding and we don't need to reopen the input
          */
         if(!priv->find_streams)
           {
-        p = bgav_stream_get_packet_write(stream);
-        p->position = priv->position;
-        bgav_packet_alloc(p, priv->pes_header.payload_size);
-        if(bgav_input_read_data(input, p->data, 
-                                priv->pes_header.payload_size) <
-           priv->pes_header.payload_size)
-          {
-          bgav_packet_done_write(p);
-          return 0;
-          }
-        p->data_size = priv->pes_header.payload_size;
-        
-        if(priv->pes_header.pts != BGAV_TIMESTAMP_UNDEFINED)
-          {
-          if(!(ctx->flags & BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET))
+          p = bgav_stream_get_packet_write(stream);
+          p->position = priv->position;
+          bgav_packet_alloc(p, priv->pes_header.payload_size);
+          if(bgav_input_read_data(input, p->data, 
+                                  priv->pes_header.payload_size) <
+             priv->pes_header.payload_size)
             {
-            ctx->timestamp_offset = -priv->pes_header.pts;
-            ctx->flags |= BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET;
+            bgav_packet_done_write(p);
+            return 0;
             }
+          p->data_size = priv->pes_header.payload_size;
+        
+          if(priv->pes_header.pts != BGAV_TIMESTAMP_UNDEFINED)
+            {
+            if(!(ctx->flags & BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET))
+              {
+              ctx->timestamp_offset = -priv->pes_header.pts;
+              ctx->flags |= BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET;
+              }
             
-          p->pts = priv->pes_header.pts + ctx->timestamp_offset;
-          // if(p->pts < 0)
-          //              p->pts = 0;
+            p->pts = priv->pes_header.pts + ctx->timestamp_offset;
+            // if(p->pts < 0)
+            //              p->pts = 0;
             
-          if(priv->do_sync &&
-             (stream->in_time == BGAV_TIMESTAMP_UNDEFINED))
-            stream->in_time = p->pts;
-          }
-        bgav_packet_done_write(p);
+            if(priv->do_sync &&
+               (stream->in_time == BGAV_TIMESTAMP_UNDEFINED))
+              stream->in_time = p->pts;
+            }
+          bgav_packet_done_write(p);
           }
         else
           {

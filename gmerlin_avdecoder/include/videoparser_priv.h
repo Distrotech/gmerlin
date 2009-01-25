@@ -106,6 +106,7 @@ void bgav_video_parser_init_mpeg12(bgav_video_parser_t * parser);
 void bgav_video_parser_init_h264(bgav_video_parser_t * parser);
 void bgav_video_parser_init_mpeg4(bgav_video_parser_t * parser);
 void bgav_video_parser_init_cavs(bgav_video_parser_t * parser);
+void bgav_video_parser_init_vc1(bgav_video_parser_t * parser);
 
 void bgav_video_parser_flush(bgav_video_parser_t * parser, int bytes);
 void bgav_video_parser_extract_header(bgav_video_parser_t * parser);

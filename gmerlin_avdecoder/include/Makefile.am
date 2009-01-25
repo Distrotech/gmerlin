@@ -6,6 +6,7 @@ a52_header.h \
 asmrp.h \
 avdec_private.h \
 bgav_sem.h \
+bitstream.h \
 bswap.h \
 cavs_header.h \
 codecs.h \
@@ -32,6 +33,7 @@ rtp.h \
 rtsp.h \
 sdp.h \
 utils.h \
+vc1_header.h \
 videoparser.h \
 videoparser_priv.h \
 vorbis_comment.h \

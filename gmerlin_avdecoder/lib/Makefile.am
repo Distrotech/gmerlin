@@ -452,6 +452,7 @@ parse_cavs.c \
 parse_h264.c \
 parse_mpeg4.c \
 parse_mpv.c \
+parse_vc1.c \
 pes_header.c \
 pnm.c \
 qt_atom.c \
@@ -526,6 +527,7 @@ tracktable.c \
 translation.c \
 udp.c \
 utils.c \
+vc1_header.c \
 video.c \
 videoparser.c \
 video_gavl.c \
