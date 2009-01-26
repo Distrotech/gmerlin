@@ -110,10 +110,14 @@ struct bgav_audio_decoder_s
   bgav_audio_decoder_t * next;
   };
 
+#define VCODEC_FLAG_DELAY (1<<0)
+
 struct bgav_video_decoder_s
   {
   uint32_t * fourccs;
   const char * name;
+  int flags;
+  
   int (*init)(bgav_stream_t*);
   /*
    *  Decodes one frame. If frame is NULL;
@@ -123,6 +127,12 @@ struct bgav_video_decoder_s
   void (*close)(bgav_stream_t*);
   void (*resync)(bgav_stream_t*);
   void (*parse)(bgav_stream_t*, int flush);
+  
+  /* Skip to a specified time. Only needed for
+     decoders which are not synchronous
+     (not one packet in, one frame out) */
+  void (*skipto)(bgav_stream_t*, int64_t dest);
+  
   bgav_video_decoder_t * next;
   };
 
@@ -213,6 +223,8 @@ bgav_packet_t * bgav_packet_create();
 void bgav_packet_destroy(bgav_packet_t*);
 void bgav_packet_alloc(bgav_packet_t*, int size);
 void bgav_packet_dump(bgav_packet_t*);
+void bgav_packet_pad(bgav_packet_t * p);
+
 
 void bgav_packet_done_write(bgav_packet_t *);
 
@@ -303,6 +315,9 @@ typedef enum
 #define BGAV_ENDIANESS_BIG    1
 #define BGAV_ENDIANESS_LITTLE 2
 
+#define STREAM_INTRA_ONLY  (1<<0)
+#define STREAM_PARSE_FULL  (1<<1)
+
 struct bgav_stream_s
   {
   void * priv;
@@ -378,7 +393,7 @@ struct bgav_stream_s
    *  which are identical to frames.
    */
 
-  int not_aligned;
+  int flags;
   
   int64_t first_timestamp;
 

@@ -157,6 +157,8 @@ static int decode_aviraw(bgav_stream_t * s, gavl_video_frame_t * f)
       src += priv->in_stride;
       dst -= f->strides[0];
       }
+    f->timestamp = p->pts;
+    f->duration = p->duration;
     }
   
   bgav_demuxer_done_packet_read(s->demuxer, p);
@@ -171,7 +173,8 @@ static int init_aviraw(bgav_stream_t * s)
   priv = calloc(1, sizeof(*priv));
 
   s->data.video.decoder->priv = priv;
-    
+  s->flags |= STREAM_INTRA_ONLY;
+  
   switch(s->data.video.depth)
     {
 #if 0

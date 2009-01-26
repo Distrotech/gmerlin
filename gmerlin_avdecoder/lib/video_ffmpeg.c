@@ -19,7 +19,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-
 #include <stdlib.h>
 #include <string.h>
 
@@ -53,7 +52,7 @@
    This seems always be true for H.264.
 */
 
-//#define DUMP_DECODE
+#define DUMP_DECODE
 // #define DUMP_EXTRADATA
 #define DUMP_PARSER
 
@@ -131,10 +130,6 @@ typedef struct
   //  int parser_started;
     
   int do_timing;
-#define READ_MODE_NORMAL      0
-#define READ_MODE_PARSE       1
-#define READ_MODE_PARSE_FLUSH 2
-  int read_mode;
 
   int64_t last_parse_pts;
   bgav_dv_dec_t * dvdec;
@@ -344,9 +339,10 @@ static int decode_picture(bgav_stream_t * s)
     /* Decode one frame */
     
 #ifdef DUMP_DECODE
-    bgav_dprintf("Decode: out_time: %" PRId64 " len: %d\n", s->out_time, len);
+    bgav_dprintf("Decode: out_time: %" PRId64 " len: %d\n", s->out_time,
+                 priv->frame_buffer_len);
     if(priv->frame_buffer)
-      bgav_hexdump(priv->frame_buffer, 16, 16);
+      bgav_hexdump(priv->frame_buffer, 64, 16);
 #endif
     
     bytes_used = avcodec_decode_video(priv->ctx,
@@ -354,13 +350,20 @@ static int decode_picture(bgav_stream_t * s)
                                       &priv->have_picture,
                                       priv->frame_buffer,
                                       priv->frame_buffer_len);
-
+    
     /* Decode 2nd field for field pictures */
     if(priv->packet->field2_offset && (bytes_used > 0))
       {
       priv->frame_buffer = priv->packet->data + priv->packet->field2_offset;
       priv->frame_buffer_len = priv->packet->data_size - priv->packet->field2_offset;
 
+#ifdef DUMP_DECODE
+    bgav_dprintf("Decode (f2): out_time: %" PRId64 " len: %d\n", s->out_time,
+                 priv->frame_buffer_len);
+    if(priv->frame_buffer)
+      bgav_hexdump(priv->frame_buffer, 16, 16);
+#endif
+      
       bytes_used = avcodec_decode_video(priv->ctx,
                                         priv->frame,
                                         &priv->have_picture,
@@ -376,7 +379,7 @@ static int decode_picture(bgav_stream_t * s)
       }
 #ifdef DUMP_DECODE
     bgav_dprintf("Used %d/%d bytes, got picture: %d ",
-                 bytes_used, len, priv->have_picture);
+                 bytes_used, priv->frame_buffer_len, priv->have_picture);
     if(!priv->have_picture)
       bgav_dprintf("\n");
     else
@@ -1464,13 +1467,21 @@ static codec_info_t * lookup_codec(bgav_stream_t * s)
 void bgav_init_video_decoders_ffmpeg(bgav_options_t * opt)
   {
   int i;
+  AVCodec * c;
+  
   real_num_codecs = 0;
   for(i = 0; i < NUM_CODECS; i++)
     {
-    if(avcodec_find_decoder(codec_infos[i].ffmpeg_id))
+    if((c = avcodec_find_decoder(codec_infos[i].ffmpeg_id)))
       {
       codecs[real_num_codecs].info = &(codec_infos[i]);
       codecs[real_num_codecs].decoder.name = codecs[real_num_codecs].info->decoder_name;
+      
+      if(c->capabilities & CODEC_CAP_DELAY) 
+        {
+        codecs[real_num_codecs].decoder.flags |= VCODEC_FLAG_DELAY;
+        // codecs[real_num_codecs].decoder.skipto = skipto_ffmpeg;
+        }
       codecs[real_num_codecs].decoder.fourccs = codecs[real_num_codecs].info->fourccs;
       codecs[real_num_codecs].decoder.init = init_ffmpeg;
       codecs[real_num_codecs].decoder.decode = decode_ffmpeg;

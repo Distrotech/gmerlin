@@ -418,6 +418,13 @@ static int decode_xadll(bgav_stream_t * s, gavl_video_frame_t * frame)
     
   priv->frame = frame;
   ret = priv->dec_func((uint8_t*)s, p->data, p->data_size, &(priv->decinfo));
+
+  if(frame)
+    {
+    frame->timestamp = p->pts;
+    frame->duration = p->duration;
+    }
+
   bgav_demuxer_done_packet_read(s->demuxer, p);
   return 1;
   }

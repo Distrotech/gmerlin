@@ -54,7 +54,7 @@ int bgav_video_start(bgav_stream_t * s)
   bgav_video_decoder_context_t * ctx;
   bgav_packet_t * p;
 
-  if(s->not_aligned)
+  if(s->flags & STREAM_PARSE_FULL)
     {
     int result, done = 0;
     bgav_packet_t * p;
@@ -64,8 +64,8 @@ int bgav_video_start(bgav_stream_t * s)
     int header_len;
     
     parser = bgav_video_parser_create(s->fourcc,
-                                                    s->timescale,
-                                                    s->opt);
+                                      s->timescale,
+                                      s->opt);
     if(!parser)
       {
       bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,

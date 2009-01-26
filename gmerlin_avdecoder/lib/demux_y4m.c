@@ -126,7 +126,8 @@ static int open_y4m(bgav_demuxer_context_t * ctx)
   r = y4m_si_get_framerate(&priv->si);
   s->data.video.format.timescale      = r.n;
   s->data.video.format.frame_duration = r.d;
-
+  
+  s->flags |= STREAM_INTRA_ONLY;
   
   result = y4m_si_get_interlace(&priv->si);
   switch(result)
@@ -309,7 +310,9 @@ static int next_packet_y4m(bgav_demuxer_context_t * ctx)
   
   p->pts = priv->pts;
   p->video_frame->timestamp = p->pts;
+
   PACKET_SET_KEYFRAME(p);
+
   if(s->data.video.format.interlace_mode == GAVL_INTERLACE_MIXED)
     {
     switch(y4m_fi_get_presentation(&priv->fi))

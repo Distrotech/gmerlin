@@ -1088,14 +1088,14 @@ static int open_mpegps(bgav_demuxer_context_t * ctx)
   for(i = 0; i < ctx->tt->num_tracks; i++)
     {
     for(j = 0; j < ctx->tt->tracks[i].num_audio_streams; j++)
-      ctx->tt->tracks[i].audio_streams[j].not_aligned = 1;
+      ctx->tt->tracks[i].audio_streams[j].flags |= STREAM_PARSE_FULL;
     for(j = 0; j < ctx->tt->tracks[i].num_video_streams; j++)
       {
-      ctx->tt->tracks[i].video_streams[j].not_aligned = 1;
+      ctx->tt->tracks[i].video_streams[j].flags |= STREAM_PARSE_FULL;
       ctx->tt->tracks[i].video_streams[j].data.video.frametime_mode = BGAV_FRAMETIME_CODEC;
       }
     for(j = 0; j < ctx->tt->tracks[i].num_subtitle_streams; j++)
-      ctx->tt->tracks[i].subtitle_streams[j].not_aligned = 1;
+      ctx->tt->tracks[i].subtitle_streams[j].flags |= STREAM_PARSE_FULL;
     }
 
   ctx->index_mode = INDEX_MODE_MIXED;

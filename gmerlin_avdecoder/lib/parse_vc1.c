@@ -77,10 +77,7 @@ static void handle_sequence(bgav_video_parser_t * parser)
     bgav_video_parser_set_framerate(parser,
                                     priv->sh.h.adv.timescale,
                                     priv->sh.h.adv.frame_duration);
-
     }
-
-
   priv->have_sh = 1;
   }
 
@@ -134,7 +131,6 @@ static int parse_vc1(bgav_video_parser_t * parser)
           
           break;
         case VC1_CODE_ENTRY_POINT:
-          /* Extract extradata */
           
           /* Set picture start */
           if(!priv->has_picture_start &&
@@ -144,12 +140,20 @@ static int parse_vc1(bgav_video_parser_t * parser)
           break;
         case VC1_CODE_PICTURE:
           /* Extract extradata */
-          
+          if(!parser->header)
+            {
+            bgav_video_parser_extract_header(parser);
+            //            bgav_video_parser_flush(parser, parser->header_len);
+            return PARSER_HAVE_HEADER;
+            }
+
           /* Set picture start */
           if(!priv->has_picture_start &&
              !bgav_video_parser_set_picture_start(parser))
             return PARSER_ERROR;
           priv->has_picture_start = 0;
+
+        
           break;
         }
       /* Need to find the end */

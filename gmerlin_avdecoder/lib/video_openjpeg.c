@@ -175,6 +175,9 @@ static int decode_openjpeg(bgav_stream_t * s, gavl_video_frame_t * f)
         redcode_ycbcr2rgb(planes, priv->img->comps[0].w,
                           priv->img->comps[0].h,
                           (uint16_t*)f->planes[0], f->strides[0]);
+
+        f->timestamp = p->pts;
+        f->duration = p->duration;
         }
       else
         {
@@ -196,7 +199,8 @@ static int init_openjpeg(bgav_stream_t * s)
   openjpeg_priv_t * priv;
   priv = calloc(1, sizeof(*priv));
   s->data.video.decoder->priv = priv;
-
+  s->flags |= STREAM_INTRA_ONLY;
+  
   priv->event_mgr.error_handler = error_callback;
   priv->event_mgr.warning_handler = warning_callback;
   priv->event_mgr.info_handler = info_callback;

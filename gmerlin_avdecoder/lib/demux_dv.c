@@ -93,6 +93,7 @@ static int open_dv(bgav_demuxer_context_t * ctx)
   vs = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
   bgav_dv_dec_init_video(priv->d, vs);
   vs->stream_id = VIDEO_ID;
+  vs->flags |= STREAM_INTRA_ONLY;
   
   /* Set duration */
 

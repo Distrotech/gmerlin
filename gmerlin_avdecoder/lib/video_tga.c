@@ -48,6 +48,9 @@ typedef struct
   int ctab_size;
   
   int is_mono;
+
+  int64_t pts;
+  int duration;
   } tga_priv_t;
 
 
@@ -115,11 +118,12 @@ static void gray_2_rgb(tga_image * tga, gavl_video_frame_t * f)
 static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
   {
   int result;
-  bgav_packet_t * p;
+  bgav_packet_t * p = (bgav_packet_t *)0;
   tga_priv_t * priv;
   
   priv = (tga_priv_t*)(s->data.video.decoder->priv);
-
+  s->flags |= STREAM_INTRA_ONLY;
+  
   if(!priv->have_frame)
     {
     /* Decode a frame */
@@ -128,6 +132,8 @@ static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
     if(!p)
       return 0;
 
+    priv->pts = p->pts;
+    priv->duration = p->duration;
     
     result = tga_read_from_memory(&(priv->tga), p->data, p->data_size, priv->ctab, priv->ctab_size);
     if(result != TGA_NOERR)
@@ -236,6 +242,8 @@ static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
         gavl_video_frame_copy_flip_y(&(s->data.video.format), frame, priv->frame);
         }
       }
+    frame->timestamp = priv->pts;
+    frame->duration = priv->duration;
     }
   /* Free anything */
 

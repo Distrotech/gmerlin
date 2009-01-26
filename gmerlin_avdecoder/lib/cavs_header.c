@@ -19,6 +19,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#include <string.h>
+
 #include <avdec_private.h>
 #include <cavs_header.h>
 #include <bitstream.h>

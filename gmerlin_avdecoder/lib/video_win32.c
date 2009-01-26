@@ -730,6 +730,12 @@ static int decode_win32(bgav_stream_t * s, gavl_video_frame_t * f)
   
   result = bgav_win32_codec_thread_decode_video(t, f, p->data, p->data_size,
                                                 p->keyframe);
+
+  if(f)
+    {
+    f->timestamp = p->pts;
+    f->duration = p->duration;
+    }
   
   bgav_demuxer_done_packet_read(s->demuxer, p);
   

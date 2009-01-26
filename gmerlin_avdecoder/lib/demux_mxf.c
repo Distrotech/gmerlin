@@ -391,7 +391,7 @@ static void init_video_stream(bgav_demuxer_context_t * ctx, bgav_stream_t * s,
     {
     s->data.video.frametime_mode = BGAV_FRAMETIME_CONSTANT;
     s->index_mode = INDEX_MODE_MPEG;
-    s->not_aligned = 1; 
+    s->flags |= STREAM_PARSE_FULL; 
     }
   else
     s->index_mode = INDEX_MODE_SIMPLE;

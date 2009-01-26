@@ -179,9 +179,7 @@ static int decode_theora(bgav_stream_t * s, gavl_video_frame_t * frame)
     }
   
   theora_decode_packetin(&priv->ts, &op);
-
-  bgav_demuxer_done_packet_read(s->demuxer, p);
-    
+  
   theora_decode_YUVout(&priv->ts, &yuv);
 
 #if 0
@@ -192,10 +190,15 @@ static int decode_theora(bgav_stream_t * s, gavl_video_frame_t * frame)
 
   if(frame)
     {
-    priv->frame->planes[0] = yuv.y + priv->offset_y * yuv.y_stride + priv->offset_x;
+    priv->frame->planes[0] =
+      yuv.y + priv->offset_y * yuv.y_stride + priv->offset_x;
     
-    priv->frame->planes[1] = yuv.u + priv->offset_y_uv * yuv.uv_stride + priv->offset_x_uv;
-    priv->frame->planes[2] = yuv.v + priv->offset_y_uv * yuv.uv_stride + priv->offset_x_uv;
+    priv->frame->planes[1] =
+
+      yuv.u + priv->offset_y_uv * yuv.uv_stride + priv->offset_x_uv;
+
+    priv->frame->planes[2] =
+      yuv.v + priv->offset_y_uv * yuv.uv_stride + priv->offset_x_uv;
 
     priv->frame->strides[0] = yuv.y_stride;
     priv->frame->strides[1] = yuv.uv_stride;
@@ -203,9 +206,16 @@ static int decode_theora(bgav_stream_t * s, gavl_video_frame_t * frame)
     
     gavl_video_frame_copy(&s->data.video.format,
                           frame, priv->frame);
-
+    
     //    s->time_scaled = (frame_counter++) * s->data.video.format.frame_duration;
+    if(frame)
+      {
+      frame->timestamp = p->pts;
+      frame->duration = p->duration;
+      }
     }
+
+  bgav_demuxer_done_packet_read(s->demuxer, p);
   
   return 1;
   }

@@ -19,48 +19,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-#include <avdec_private.h>
-#include <codecs.h>
+#define PTS_CACHE_SIZE 16
 
-static int init_gavl(bgav_stream_t * s)
+typedef struct
   {
-  s->flags |= STREAM_INTRA_ONLY;
-  return 1;
-  }
+  int64_t pts;
+  int used;
+  } bgav_pts_cache_entry_t;
 
-static int decode_gavl(bgav_stream_t * s, gavl_video_frame_t * frame)
+typedef struct
   {
-  bgav_packet_t * p;
+  bgav_pts_cache_entry_t entries[PTS_CACHE_SIZE];
+  } bgav_pts_cache_t;
 
-  p = bgav_demuxer_get_packet_read(s->demuxer, s);
-  if(!p || !(p->video_frame))
-    return 0;
-  
-  if(frame)
-    {
-    gavl_video_frame_copy(&(s->data.video.format), frame, p->video_frame);
-    gavl_video_frame_copy_metadata(frame, p->video_frame);
-    }
-  bgav_demuxer_done_packet_read(s->demuxer, p);
-  return 1;
-  }
+void bgav_pts_cache_push(bgav_pts_cache_t * c,
+                         int64_t pts,
+                         int * index,
+                         bgav_pts_cache_entry_t ** e);
 
-static void close_gavl(bgav_stream_t * s)
-  {
-  
-  }
+void bgav_pts_cache_clear(bgav_pts_cache_t * c);
 
-static bgav_video_decoder_t decoder =
-  {
-    .fourccs = (uint32_t[]){ BGAV_MK_FOURCC('g', 'a', 'v', 'l'),
-                           0x00 },
-    .name = "gavl video decoder",
-    .init = init_gavl,
-    .close = close_gavl,
-    .decode = decode_gavl
-  };
-
-void bgav_init_video_decoders_gavl()
-  {
-  bgav_video_decoder_register(&decoder);
-  }
+/* Get the smallest timestamp */
+int64_t bgav_pts_cache_get_first(bgav_pts_cache_t * c);

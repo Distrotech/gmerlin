@@ -228,7 +228,8 @@ static int init_qtraw(bgav_stream_t * s)
   int width;
   priv = calloc(1, sizeof(*priv));
   s->data.video.decoder->priv = priv;
-
+  s->flags |= STREAM_INTRA_ONLY;
+  
   width = s->data.video.format.image_width;
   
   switch(s->data.video.depth)
@@ -372,6 +373,8 @@ static int decode_qtraw(bgav_stream_t * s, gavl_video_frame_t * f)
                         s->data.video.palette);
     src += priv->bytes_per_line;
     dst += f->strides[0];
+    f->timestamp = p->pts;
+    f->duration = p->duration;
     }
   bgav_demuxer_done_packet_read(s->demuxer, p);
   return 1;

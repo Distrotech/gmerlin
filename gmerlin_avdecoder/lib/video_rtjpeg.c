@@ -79,6 +79,10 @@ static int decode_rtjpeg(bgav_stream_t * s, gavl_video_frame_t * f)
   RTjpeg_decompress(priv->rtjpeg, p->data, priv->frame->planes);  
   gavl_video_frame_copy(&(s->data.video.format),
                         f, priv->frame);
+
+  f->timestamp = p->pts;
+  f->duration = p->duration;
+
   bgav_demuxer_done_packet_read(s->demuxer, p);
   return 1;
   }

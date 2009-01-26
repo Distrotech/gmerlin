@@ -456,6 +456,7 @@ static int open_r3d(bgav_demuxer_context_t * ctx)
   if(priv->reob.video_packets)
     {
     s = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
+    s->flags |= STREAM_INTRA_ONLY;
     s->data.video.format.image_width = priv->red1.width;
     s->data.video.format.image_height = priv->red1.height;
     s->data.video.format.frame_width = priv->red1.width;

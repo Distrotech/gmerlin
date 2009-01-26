@@ -190,7 +190,7 @@ static int read_image_tiff(bgav_stream_t * s, gavl_video_frame_t * frame)
   if(!TIFFReadRGBAImage(p->tiff, p->Width, p->Height, (uint32*)p->raster, 0))
     return 0;
 
-    if(p->SampleSperPixel ==4)
+  if(p->SampleSperPixel ==4)
     {
     frame_ptr_start = frame->planes[0];
 
@@ -227,10 +227,14 @@ static int read_image_tiff(bgav_stream_t * s, gavl_video_frame_t * frame)
       }
     }
 
+  frame->timestamp = p->packet->pts;
+  frame->duration = p->packet->duration;
+  
   TIFFClose( p->tiff );
   p->tiff = (TIFF*)0;
   bgav_demuxer_done_packet_read(s->demuxer, p->packet);
   p->packet = (bgav_packet_t*)0;
+  
   return 1;
   
   }
@@ -240,7 +244,8 @@ static int init_tiff(bgav_stream_t * s)
   tiff_t * priv;
   priv = calloc(1, sizeof(*priv));
   s->data.video.decoder->priv = priv;
-
+  s->flags |= STREAM_INTRA_ONLY;
+  
   /* We support RGBA for streams with a depth of 32 */
 
   if(!read_header_tiff(s, &(s->data.video.format)))

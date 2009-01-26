@@ -74,10 +74,10 @@ static int detect_type(bgav_input_context_t * input)
 
   /* Check for video_object_start_code followed by
      video_object_layer_start_code */
-
+#if 0
   fprintf(stderr, "Test header: %016lx %016lx\n",
           header_64, header_64 & 0xFFFFFFE0FFFFFFF0LL);
-  
+#endif
   if((header_64 & 0xFFFFFFE0FFFFFFF0LL) == 0x0000010000000120LL)
     return BGAV_MK_FOURCC('m', 'p', '4', 'v');
   

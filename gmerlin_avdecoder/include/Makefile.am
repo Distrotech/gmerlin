@@ -26,6 +26,7 @@ mxf.h \
 nanosoft.h \
 pes_header.h \
 pngreader.h \
+ptscache.h \
 qt.h \
 rmff.h \
 RTjpeg.h \

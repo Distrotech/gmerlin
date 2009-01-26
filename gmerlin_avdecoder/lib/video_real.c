@@ -338,7 +338,11 @@ static int decode_real(bgav_stream_t * s, gavl_video_frame_t * f)
     bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN, "Decoding failed");
     }
   if(f)
+    {
     gavl_video_frame_copy(&(s->data.video.format), f, priv->gavl_frame);
+    f->timestamp = p->pts;
+    f->duration = p->duration;
+    }
   bgav_demuxer_done_packet_read(s->demuxer, p);
   
   return 1;  

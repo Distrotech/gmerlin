@@ -455,6 +455,7 @@ parse_mpv.c \
 parse_vc1.c \
 pes_header.c \
 pnm.c \
+ptscache.c \
 qt_atom.c \
 qt_chan.c \
 qt_cmov.c \

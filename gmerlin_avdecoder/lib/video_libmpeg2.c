@@ -141,10 +141,13 @@ static int get_data(bgav_stream_t*s)
                       priv->p->pts & 0xffffffff);
     if(priv->do_resync)
       {
+#if 0
       priv->picture_timestamp =
         gavl_time_rescale(s->timescale,
                           s->data.video.format.timescale,
                           priv->p->pts);
+#endif
+      priv->picture_timestamp = priv->p->pts;
       priv->stream_time = priv->p->pts;
       }
     }
@@ -508,10 +511,10 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
        (priv->info->display_picture->nb_fields > 2))
       {
       s->data.video.next_frame_duration =
-        (s->data.video.next_frame_duration * priv->info->current_picture->nb_fields) / 2;
+        (s->data.video.next_frame_duration *
+         priv->info->current_picture->nb_fields) / 2;
       }
     }
-  
   
   return 1;
   }

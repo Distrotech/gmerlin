@@ -86,6 +86,9 @@ static int decode_png(bgav_stream_t * s, gavl_video_frame_t * frame)
     if(!bgav_png_reader_read_image(priv->png_reader, frame))
       return 0;
     priv->have_header = 0;
+
+    frame->timestamp = priv->p->pts;
+    frame->duration = priv->p->duration;
     }
   bgav_demuxer_done_packet_read(s->demuxer, priv->p);
   priv->p = (bgav_packet_t*)0;
@@ -97,6 +100,7 @@ static int init_png(bgav_stream_t * s)
   png_priv_t * priv;
   priv = calloc(1, sizeof(*priv));
   s->data.video.decoder->priv = priv;
+  s->flags |= STREAM_INTRA_ONLY;
   
   priv->png_reader = bgav_png_reader_create(s->data.video.depth);
   priv->need_header = 1;

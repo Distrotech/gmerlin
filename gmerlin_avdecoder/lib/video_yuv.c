@@ -576,6 +576,7 @@ static int init_yuv4(bgav_stream_t * s)
   
   init_common(s);
   s->description = bgav_sprintf("YUV 4:2:0 packed (yuv4)");
+  s->flags |= STREAM_INTRA_ONLY;
   
   priv = (yuv_priv_t *)(s->data.video.decoder->priv);
 
@@ -611,6 +612,13 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
     }
 
   priv->decode_func(s, p, f);
+
+  if(f)
+    {
+    f->timestamp = p->pts;
+    f->duration = p->duration;
+    }
+
   bgav_demuxer_done_packet_read(s->demuxer, p);
   return 1;
   }

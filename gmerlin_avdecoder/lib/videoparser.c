@@ -464,7 +464,8 @@ void bgav_video_parser_get_packet(bgav_video_parser_t * parser,
   parser->last_non_b_frame--;
 
   bgav_packet_dump(p);
-
+  bgav_packet_pad(p);
+  
   }
 
 void bgav_video_parser_set_framerate(bgav_video_parser_t * parser,
