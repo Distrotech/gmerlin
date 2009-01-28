@@ -64,6 +64,14 @@ void bgav_packet_done_write(bgav_packet_t * p)
   p->valid = 1;
   p->stream->in_position++;
 
+  /* If the stream has a constant framerate, all packets have the same
+     duration */
+  if((p->stream->type == BGAV_STREAM_VIDEO) && 
+     (p->stream->data.video.format.frame_duration) &&
+     (p->stream->data.video.format.framerate_mode == GAVL_FRAMERATE_CONSTANT) &&
+     !p->duration)
+    p->duration = p->stream->data.video.format.frame_duration;
+    
   /*
    *  MPEG timestamps are wrong anyway so we make them invalid
    *  here. It's better than doing that in the demuxers, since
@@ -101,10 +109,17 @@ void bgav_packet_set_text_subtitle(bgav_packet_t * p,
 
 void bgav_packet_dump(bgav_packet_t * p)
   {
+  int type;
+  
   bgav_dprintf("pos: %ld, K: %d, ", p->position, !!PACKET_GET_KEYFRAME(p));
+
   if(p->field2_offset)
     bgav_dprintf("f2: %d, ", p->field2_offset);
 
+  type = PACKET_GET_CODING_TYPE(p);
+  if(type)
+    bgav_dprintf("T: %c ", type);
+  
   if(p->dts == GAVL_TIME_UNDEFINED)
     bgav_dprintf("dts: (none), ");
   else

@@ -131,7 +131,7 @@ struct bgav_video_decoder_s
   /* Skip to a specified time. Only needed for
      decoders which are not synchronous
      (not one packet in, one frame out) */
-  void (*skipto)(bgav_stream_t*, int64_t dest);
+  int (*skipto)(bgav_stream_t*, int64_t dest);
   
   bgav_video_decoder_t * next;
   };
@@ -183,7 +183,7 @@ struct bgav_subtitle_overlay_decoder_context_s
 #define PACKET_SET_KEYFRAME(p)       p->flags |= PACKET_FLAG_KEY
 #define PACKET_SET_SKIP(p)           p->flags |= PACKET_FLAG_SKIP
 
-#define PACKET_GET_CODING_TYPE(p, t) (p->flags & 0xff)
+#define PACKET_GET_CODING_TYPE(p)    (p->flags & 0xff)
 #define PACKET_GET_KEYFRAME(p)       (p->flags & PACKET_FLAG_KEY)
 #define PACKET_GET_SKIP(p)           (p->flags & PACKET_FLAG_SKIP)
 
@@ -455,21 +455,11 @@ struct bgav_stream_s
       int palette_size;
       bgav_palette_entry_t * palette;
       int palette_changed;
-      /*
-       *  Codecs should update this field, even if they are
-       *  skipping frames. Units are timescale tics from the CODEC timescale
-       *  By using these, we can do more accurate seeks
-       */
       
-      int64_t last_frame_time;
-      int     last_frame_duration;
-
       /* These are set by the demuxer during seeking (and optionally
          by the codec during resync. They are invalid except during the
          seek process */
-
-      int     next_frame_duration;
-
+      
       int still_mode; /* Don't always have the next picture
                          during seeking */
       

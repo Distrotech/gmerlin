@@ -26,6 +26,7 @@
 #include <bswap.h>
 #include <avdec_private.h>
 #include <codecs.h>
+#include <ptscache.h>
 
 #include <stdio.h>
 
@@ -66,6 +67,7 @@ typedef struct
   uint32_t * fourccs;
   } codec_info_t;
 
+#if 0
 typedef struct
   {
   int64_t pts;
@@ -74,6 +76,7 @@ typedef struct
   int keyframe;
   int used;
   } packet_info_t;
+#endif
 
 typedef struct
   {
@@ -100,9 +103,8 @@ typedef struct
   
   int demuxer_eof;
   int codec_eof;
-  int parser_eof;
   
-  packet_info_t packets[FF_MAX_B_FRAMES+1];
+  //  packet_info_t packets[FF_MAX_B_FRAMES+1];
   bgav_packet_t * packet;
   
   int has_delay;
@@ -138,58 +140,38 @@ typedef struct
 
   uint8_t * frame_buffer;
   int frame_buffer_len;
+
+  bgav_pts_cache_t pts_cache;
   
   } ffmpeg_video_priv;
 
 static int my_get_buffer(struct AVCodecContext *c, AVFrame *pic)
   {
-  int ret, i, index;
+  int ret;
   ffmpeg_video_priv * priv;
+  bgav_pts_cache_entry_t * e;
+  
   bgav_stream_t * s = (bgav_stream_t *)c->opaque;
   priv = s->data.video.decoder->priv;
   ret = avcodec_default_get_buffer(c, pic);
 
-  fprintf(stderr, "Got packet 2 %ld %ld\n",
-          priv->packet->position, priv->packet->pts);
-  
-  for(i = 0; i < FF_MAX_B_FRAMES+1; i++)
-    {
-    if(!priv->packets[i].used)
-      {
-      index = i;
-      break;
-      }
-    }
-  if(i >= FF_MAX_B_FRAMES+1)
-    {
-    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "PTS cache full");
-    return -1;
-    }
-  
-  //  *pts= global_video_pkt_pts;
-  pic->opaque= &priv->packets[index];
-  
-  for(i = 0; i < FF_MAX_B_FRAMES+1; i++)
-    {
-    if(priv->packets[i].used &&
-       (priv->packets[i].pts == priv->packet->pts))
-      {
-      fprintf(stderr, "Packet with PTS %ld (pos %ld) already there\n",
-              priv->packet->pts, priv->packets->position);
-      return ret;
-      }
-    }
-  
-  /* Set values  */
-  priv->packets[index].pts      = priv->packet->pts;
-  priv->packets[index].position = priv->packet->position;
-  priv->packets[index].duration = priv->packet->duration;
-  PACKET_SET_KEYFRAME(priv->packet);
-  priv->packets[index].used     = 1;
   //  fprintf(stderr, "Got packet 2 %ld %ld\n",
-  //          priv->current_packet.position, priv->current_packet.pts);
+  //          priv->packet->position, priv->packet->pts);
+
+  bgav_pts_cache_push(&priv->pts_cache,
+                      priv->packet->pts,
+                      priv->packet->duration,
+                      (int*)0, &e);
+
+  pic->opaque= e;
   return ret;
   }
+
+static int skipto_ffmpeg(bgav_stream_t * s, int64_t time)
+  {
+  return 1;
+  }
+
 
 #if 0
 static void
@@ -257,8 +239,6 @@ static int decode_picture(bgav_stream_t * s)
   ffmpeg_video_priv * priv;
   /* We get the DV format info ourselfes, since the values
      ffmpeg returns are not reliable */
-  packet_info_t * pi;
-  int min_pts_index;
   
   priv = s->data.video.decoder->priv;
   
@@ -412,47 +392,6 @@ static int decode_picture(bgav_stream_t * s)
       done = 1;
     
     }
-
-  if(priv->do_timing)
-    {
-    /* This is a dirty trick to work around AVI problems without
-       parsing the stream: We simply take the lowest available pts
-    */
-
-    if(s->data.video.wrong_b_timestamps)
-      {
-      s->out_time = BGAV_TIMESTAMP_UNDEFINED;
-      min_pts_index = -1;
-      for(i = 0; i < FF_MAX_B_FRAMES+1; i++)
-        {
-        if(priv->packets[i].used &&
-           ((s->out_time == BGAV_TIMESTAMP_UNDEFINED) ||
-            (s->out_time > priv->packets[i].pts)))
-          {
-          s->out_time                       = gavl_time_rescale(s->timescale,
-                                                                s->data.video.format.timescale,
-                                                                priv->packets[i].pts);
-          s->data.video.next_frame_duration = gavl_time_rescale(s->timescale,
-                                                                s->data.video.format.timescale,
-                                                                priv->packets[i].duration);
-          min_pts_index = i;
-          }
-        }
-      priv->packets[min_pts_index].used = 0;
-      }
-    else
-      {
-      /* This should be the case for most sane formats */
-      pi = priv->frame->opaque;
-      s->out_time                       = gavl_time_rescale(s->timescale,
-                                                            s->data.video.format.timescale,
-                                                            pi->pts);
-      s->data.video.next_frame_duration = gavl_time_rescale(s->timescale,
-                                                            s->data.video.format.timescale,
-                                                            pi->duration);
-      pi->used = 0;
-      }
-    }
   
   return 1;
   }
@@ -480,15 +419,8 @@ static int decode_ffmpeg(bgav_stream_t * s, gavl_video_frame_t * f)
   
   if(priv->have_picture)
     {
-    if(priv->do_timing)
-      {
-      s->data.video.last_frame_time = s->out_time;
-      s->data.video.last_frame_duration = s->data.video.next_frame_duration;
-      }
     if(f)
-      {
       put_frame(s, f);
-      }
     priv->have_picture = 0;
     }
   else if(!priv->need_format)
@@ -760,7 +692,6 @@ static int init_ffmpeg(bgav_stream_t * s)
 
 static void resync_ffmpeg(bgav_stream_t * s)
   {
-  int i;
   ffmpeg_video_priv * priv;
   priv = s->data.video.decoder->priv;
   avcodec_flush_buffers(priv->ctx);
@@ -769,15 +700,10 @@ static void resync_ffmpeg(bgav_stream_t * s)
 
   priv->have_picture = 0;
   priv->demuxer_eof = 0;
-  priv->parser_eof = 0;
   priv->codec_eof = 0;
   priv->last_dv_timecode = GAVL_TIMECODE_UNDEFINED;
-  if(priv->do_timing)
-    {
-    for(i = 0; i < FF_MAX_B_FRAMES+1; i++)
-      priv->packets[i].used = 0;
-    }
-  
+
+  bgav_pts_cache_clear(&priv->pts_cache);
   decode_picture(s);
   }
 
@@ -1480,7 +1406,7 @@ void bgav_init_video_decoders_ffmpeg(bgav_options_t * opt)
       if(c->capabilities & CODEC_CAP_DELAY) 
         {
         codecs[real_num_codecs].decoder.flags |= VCODEC_FLAG_DELAY;
-        // codecs[real_num_codecs].decoder.skipto = skipto_ffmpeg;
+        codecs[real_num_codecs].decoder.skipto = skipto_ffmpeg;
         }
       codecs[real_num_codecs].decoder.fourccs = codecs[real_num_codecs].info->fourccs;
       codecs[real_num_codecs].decoder.init = init_ffmpeg;

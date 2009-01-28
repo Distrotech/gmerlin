@@ -27,6 +27,9 @@
 #include <videoparser.h>
 #include <videoparser_priv.h>
 
+// #define DUMP_OUTPUT
+// #define DUMP_INPUT
+
 /* Init functions (come below) */
 
 // static void init_h264(bgav_video_parser_t*);
@@ -69,13 +72,12 @@ bgav_video_parser_create(uint32_t fourcc, int timescale,
   
   ret = calloc(1, sizeof(*ret));
   ret->in_scale = timescale;
-  
+  ret->timestamp = BGAV_TIMESTAMP_UNDEFINED;
   ret->last_non_b_frame = -1;
   ret->raw_position = -1;
   func(ret);
   return ret;
   }
-
 
 void bgav_video_parser_extract_header(bgav_video_parser_t * parser)
   {
@@ -95,6 +97,19 @@ static void update_previous_size(bgav_video_parser_t * parser)
     parser->cache[parser->cache_size-1].size = parser->pos - total;
     }
 
+  /* If we don't have a header yet, drop the cached pictures */
+  if(parser->cache_size && !parser->header)
+    {
+    i = parser->cache_size;
+    for(i = 0; i < parser->cache_size; i++)
+      bgav_video_parser_flush(parser,
+                              parser->cache[i].size);
+    parser->cache_size = 0;
+    parser->last_non_b_frame = -1;
+    parser->non_b_count = 0;
+    return;
+    }
+  
   /* If 2 previous frames are field pictures, merge them */
 
   if((parser->cache_size >= 2) &&
@@ -120,6 +135,15 @@ static void update_previous_size(bgav_video_parser_t * parser)
 
 #define SET_PTS(index) \
   { \
+  if(parser->timestamp == BGAV_TIMESTAMP_UNDEFINED) \
+    { \
+    if(parser->cache[index].in_pts != BGAV_TIMESTAMP_UNDEFINED) \
+      parser->timestamp = gavl_time_rescale(parser->in_scale, \
+                                            parser->format.timescale, \
+                                            parser->cache[index].in_pts); \
+    else \
+      parser->timestamp = 0; \
+    } \
   parser->cache[index].pts = parser->timestamp; \
   parser->timestamp += parser->cache[index].duration; \
   }
@@ -278,7 +302,7 @@ bgav_video_parser_get_header(bgav_video_parser_t * parser,
 
 void bgav_video_parser_set_eof(bgav_video_parser_t * parser)
   {
-  int start = -1, i;
+  int i;
   fprintf(stderr, "EOF buf: %d %d %d\n", parser->buf.size, parser->pos,
           parser->cache_size);
   /* Set size of last frame */
@@ -365,8 +389,10 @@ int bgav_video_parser_parse(bgav_video_parser_t * parser)
 void bgav_video_parser_add_packet(bgav_video_parser_t * parser,
                                   bgav_packet_t * p)
   {
-  fprintf(stderr, "Add packet ");
+#ifdef DUMP_INPUT  
+  bgav_dprintf("Add packet ");
   bgav_packet_dump(p);
+#endif
   /* Update cache */
   
   if(parser->num_packets >= parser->packets_alloc)
@@ -379,6 +405,7 @@ void bgav_video_parser_add_packet(bgav_video_parser_t * parser,
   parser->packets[parser->num_packets].packet_position = p->position;
   parser->packets[parser->num_packets].parser_position = parser->buf.size;
   parser->packets[parser->num_packets].size = p->data_size;
+  parser->packets[parser->num_packets].pts  = p->pts;
   parser->num_packets++;
   bgav_bytebuffer_append_data(&parser->buf, p->data, p->data_size, 0);
   }
@@ -453,8 +480,6 @@ void bgav_video_parser_get_packet(bgav_video_parser_t * parser,
   p->field2_offset = c->field2_offset;
   p->valid = 1;
 
-  fprintf(stderr, "Get packet %c ", c->coding_type);
-
   //  fprintf(stderr, "Get packet %c %ld\n", c->coding_type, p->pts);
   
   parser->cache_size--;
@@ -463,7 +488,10 @@ void bgav_video_parser_get_packet(bgav_video_parser_t * parser,
             sizeof(parser->cache[0]) * parser->cache_size);
   parser->last_non_b_frame--;
 
+#ifdef DUMP_OUTPUT
+  bgav_dprintf("Get packet ");
   bgav_packet_dump(p);
+#endif
   bgav_packet_pad(p);
   
   }
@@ -492,6 +520,7 @@ int bgav_video_parser_set_picture_start(bgav_video_parser_t * parser)
     fprintf(stderr, "Picture cache full\n");
     return 0;
     }
+  
   update_previous_size(parser);
   
   /* Reserve cache entry */
@@ -521,6 +550,8 @@ int bgav_video_parser_set_picture_start(bgav_video_parser_t * parser)
         {
         parser->cache[parser->cache_size-1].position =
           parser->packets[i].packet_position;
+        parser->cache[parser->cache_size-1].in_pts =
+          parser->packets[i].pts;
         break;
         }
       }

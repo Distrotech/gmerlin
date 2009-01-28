@@ -150,7 +150,7 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
     return;
     }
 
-  if((time >= s->out_time) && (time < s->out_time + s->data.video.next_frame_duration))
+  if(time == s->out_time)
     {
     return;
     }

@@ -31,8 +31,7 @@
 
 #include <avdec_private.h>
 #include <codecs.h>
-#include <mpv_header.h>
-#include <videoparser.h>
+#include <ptscache.h>
 
 #define LOG_DOMAIN "video_libmpeg2"
 
@@ -84,27 +83,17 @@ typedef struct
   int non_b_count;
   int eof;
   uint8_t sequence_end_code[4];
-
-  int64_t stream_time;
   
-  /* For parsing */
-  uint8_t * buffer;
-  int buffer_alloc;
-  int buffer_size;
-  bgav_mpv_sequence_header_t sh;
-  int64_t last_position;
-  int last_coding_type; /* Last picture type is saved here */
-  int64_t last_pts;
-
   int has_gop_timecode;
   gavl_timecode_t gop_timecode;
 
-  bgav_video_parser_t * vp;
+  bgav_pts_cache_t pts_cache;
   } mpeg2_priv_t;
 
 static int get_data(bgav_stream_t*s)
   {
   mpeg2_priv_t * priv;
+  int cache_index;
   priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
   
   if(priv->p)
@@ -133,24 +122,13 @@ static int get_data(bgav_stream_t*s)
     }
   priv->eof = 0;
   mpeg2_buffer(priv->dec, priv->p->data, priv->p->data + priv->p->data_size);
+
+  bgav_pts_cache_push(&priv->pts_cache,
+                      priv->p->pts, priv->p->duration,
+                      &cache_index,
+                      (bgav_pts_cache_entry_t**)0);
   
-  if(priv->p->pts != BGAV_TIMESTAMP_UNDEFINED)
-    {
-    mpeg2_tag_picture(priv->dec,
-                      (priv->p->pts) >> 32,
-                      priv->p->pts & 0xffffffff);
-    if(priv->do_resync)
-      {
-#if 0
-      priv->picture_timestamp =
-        gavl_time_rescale(s->timescale,
-                          s->data.video.format.timescale,
-                          priv->p->pts);
-#endif
-      priv->picture_timestamp = priv->p->pts;
-      priv->stream_time = priv->p->pts;
-      }
-    }
+  mpeg2_tag_picture(priv->dec, cache_index, 0);
   
   return 1;
   }
@@ -301,7 +279,7 @@ static int decode_picture(bgav_stream_t*s)
   {
   int done;
   gavl_video_format_t new_format;
-  int64_t tmp;
+  int cache_index;
   mpeg2_priv_t * priv;
   mpeg2_state_t state;
   priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
@@ -394,12 +372,13 @@ static int decode_picture(bgav_stream_t*s)
     
   if(priv->info->display_picture->flags & PIC_FLAG_TAGS)
     {
-    tmp = priv->info->display_picture->tag;
-    tmp <<= 32;
-    tmp |= priv->info->display_picture->tag2;
-    priv->picture_timestamp = gavl_time_rescale(s->timescale, s->data.video.format.timescale, tmp);
+    cache_index = priv->info->display_picture->tag;
+
+    priv->picture_timestamp = priv->pts_cache.entries[cache_index].pts;
+    priv->picture_duration  = priv->pts_cache.entries[cache_index].duration;
+    priv->pts_cache.entries[cache_index].used = 0;
     }
-  else
+  else /* Should never happen */
     {
     priv->picture_timestamp += priv->picture_duration;
     }
@@ -419,7 +398,7 @@ static int decode_picture(bgav_stream_t*s)
 static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
   {
   mpeg2_priv_t * priv;
-  mpeg2_state_t state;
+
   priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
   
   /* Decode frame */
@@ -447,8 +426,7 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
   
   if(priv->init)
     {
-    s->out_time                       = priv->picture_timestamp;
-    s->data.video.next_frame_duration = priv->picture_duration;
+    s->out_time = priv->picture_timestamp;
     return 1;
     }
   if(f)
@@ -466,10 +444,12 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
           (priv->info->display_picture->flags & PIC_FLAG_TOP_FIELD_FIRST) ?
           GAVL_INTERLACE_TOP_FIRST : GAVL_INTERLACE_BOTTOM_FIRST;
       }
+    f->timestamp = priv->picture_timestamp;
+    f->duration  = priv->picture_duration;
+
+    if(!s->data.video.still_mode)
+      priv->have_frame = 0;
     }
-  s->data.video.last_frame_time     = priv->picture_timestamp;
-  s->data.video.last_frame_duration = priv->picture_duration;
-  
 
   if(((priv->info->display_picture->flags & PIC_MASK_CODING_TYPE) ==
       PIC_FLAG_CODING_TYPE_I) &&
@@ -479,43 +459,6 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
     s->has_codec_timecode = 1;
     priv->has_gop_timecode = 0;
     }
-  
-  if(!s->data.video.still_mode)
-    {
-    priv->have_frame = 0;
-    }
-  else
-    priv->picture_timestamp += priv->picture_duration;
-
-  /* Get the duration of the next picture */
-
-  /* Get the next picture header */
-
-  s->out_time = s->data.video.last_frame_time + s->data.video.last_frame_duration;
-
-  if(!s->data.video.still_mode)
-    {
-    s->data.video.next_frame_duration = s->data.video.format.frame_duration;
-    while(1)
-      {
-      if(!parse(s, &state))
-        return 1;
-      if(state == STATE_PICTURE)
-        break;
-
-      }
-
-    /* priv->info->display_picture can be NULL at closed GOP boundaries */
-    if(priv->info->display_picture &&
-       (priv->info->display_picture->flags & PIC_FLAG_TOP_FIELD_FIRST) &&
-       (priv->info->display_picture->nb_fields > 2))
-      {
-      s->data.video.next_frame_duration =
-        (s->data.video.next_frame_duration *
-         priv->info->current_picture->nb_fields) / 2;
-      }
-    }
-  
   return 1;
   }
 
@@ -566,8 +509,6 @@ static int init_mpeg2(bgav_stream_t*s)
     {
     if(!parse(s, &state))
       return 0;
-    
-    
     if(state == STATE_PICTURE)
       break;
     }
@@ -590,9 +531,7 @@ static int init_mpeg2(bgav_stream_t*s)
   priv->init = 1;
   decode_mpeg2(s, (gavl_video_frame_t*)0);
   priv->init = 0;
-  s->data.video.frametime_mode = BGAV_FRAMETIME_CODEC;
   s->out_time = priv->picture_timestamp;
-  s->data.video.next_frame_duration = priv->picture_duration;
   return 1;
   }
 
@@ -604,12 +543,12 @@ static void resync_mpeg2(bgav_stream_t*s)
 
   priv->p = (bgav_packet_t*)0;
   priv->non_b_count = 0;
+
+  bgav_pts_cache_clear(&priv->pts_cache);
   
   if(s->data.video.still_mode)
     {
-    priv->picture_timestamp = gavl_time_rescale(s->timescale,
-                                                s->data.video.format.timescale,
-                                                priv->stream_time);
+    priv->picture_timestamp = priv->p->pts;
     }
   else
     {
@@ -649,28 +588,7 @@ static void resync_mpeg2(bgav_stream_t*s)
     priv->do_resync = 0;
     }
   //  mpeg2_skip(priv->dec, 0);
-
-  /* Set next timestamps */
-  if(s->demuxer->demux_mode == DEMUX_MODE_FI)
-    priv->picture_timestamp = s->out_time;
-  else
-    s->out_time = priv->picture_timestamp;
-
-  s->data.video.next_frame_duration = s->data.video.format.frame_duration;
-
-  if(!s->data.video.still_mode)
-    {
-    if((priv->info->current_picture->flags & PIC_FLAG_TOP_FIELD_FIRST) &&
-       (priv->info->current_picture->nb_fields > 2))
-      {
-      s->data.video.next_frame_duration =
-        (s->data.video.next_frame_duration * priv->info->current_picture->nb_fields) / 2;
-      }
-    }
-  
-  
   }
-
   
 static void close_mpeg2(bgav_stream_t*s)
   {
@@ -682,8 +600,6 @@ static void close_mpeg2(bgav_stream_t*s)
     gavl_video_frame_null(priv->frame);
     gavl_video_frame_destroy(priv->frame);
     }
-  if(priv->buffer)
-    free(priv->buffer);
   
   if(priv->dec)
     mpeg2_close(priv->dec);
@@ -692,9 +608,14 @@ static void close_mpeg2(bgav_stream_t*s)
 
   }
 
+static int skipto_mpeg2(bgav_stream_t * s, int64_t time)
+  {
+  return 1;
+  }
 
 static bgav_video_decoder_t decoder =
   {
+    .flags = VCODEC_FLAG_DELAY,
     .fourccs = (uint32_t[]){ /* Set by MPEG demuxers */
                              BGAV_MK_FOURCC('m','p','g','v'),
                              /* Quicktime fourccs */
@@ -726,6 +647,7 @@ static bgav_video_decoder_t decoder =
     .decode =  decode_mpeg2,
     .close =   close_mpeg2,
     .resync =  resync_mpeg2,
+    .skipto =  skipto_mpeg2,
   };
 
 void bgav_init_video_decoders_libmpeg2()

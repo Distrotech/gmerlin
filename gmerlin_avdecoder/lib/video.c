@@ -52,8 +52,7 @@ int bgav_video_start(bgav_stream_t * s)
   int result;
   bgav_video_decoder_t * dec;
   bgav_video_decoder_context_t * ctx;
-  bgav_packet_t * p;
-
+  
   if(s->flags & STREAM_PARSE_FULL)
     {
     int result, done = 0;
@@ -137,42 +136,10 @@ int bgav_video_start(bgav_stream_t * s)
     {
     s->timescale = s->data.video.format.timescale;
     }
-
-  switch(s->data.video.frametime_mode)
-    {
-    case BGAV_FRAMETIME_PACKET:
-    case BGAV_FRAMETIME_PTS:
-      p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
-      if(!p)
-        s-> data.video.next_frame_duration = 0;
-      else
-        s-> data.video.next_frame_duration =
-          gavl_time_rescale(s-> timescale, s-> data.video.format.timescale,
-                            p->duration);
-      break;
-    case BGAV_FRAMETIME_CODEC:
-    case BGAV_FRAMETIME_CONSTANT:
-      /* later */
-      break;
-    }
   
   result = dec->init(s);
   if(!result)
     return 0;
-  
-  switch(s-> data.video.frametime_mode)
-    {
-    case BGAV_FRAMETIME_CONSTANT:
-      s->data.video.last_frame_duration = s->data.video.format.frame_duration;
-      s->data.video.next_frame_duration = s->data.video.format.frame_duration;
-      break;
-    case BGAV_FRAMETIME_PACKET:
-    case BGAV_FRAMETIME_PTS:
-      break;
-    case BGAV_FRAMETIME_CODEC:
-      /* Codec will set everything */
-      break;
-    }
   
   return result;
   }
@@ -187,7 +154,6 @@ static int bgav_video_decode(bgav_stream_t * s,
                              gavl_video_frame_t* frame)
   {
   int result;
-  bgav_packet_t * p;
 
   if(s->eof)
     return 0;
@@ -198,42 +164,13 @@ static int bgav_video_decode(bgav_stream_t * s,
     s->eof = 1;
     return result;
     }
+
+  s->out_time = frame->timestamp + frame->duration;
   
-  /* Update time */
-  switch(s->data.video.frametime_mode)
-    {
-    case BGAV_FRAMETIME_CONSTANT:
-      s->data.video.last_frame_time = s->out_time;
-      s->out_time += s->data.video.format.frame_duration;
-      break;
-    case BGAV_FRAMETIME_PACKET:
-    case BGAV_FRAMETIME_PTS:
-      s->data.video.last_frame_time = s->out_time;
-
-      s->data.video.last_frame_duration = s->data.video.next_frame_duration;
-      
-      p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
-      if(!p)
-        break;
-      s->out_time = gavl_time_rescale(s->timescale,
-                                           s->data.video.format.timescale, p->pts);
-
-      s->data.video.next_frame_duration =
-        gavl_time_rescale(s->timescale,
-                          s->data.video.format.timescale, p->duration);
-      break;
-    case BGAV_FRAMETIME_CODEC:
-    case BGAV_FRAMETIME_CODEC_PTS:
-      /* Codec already set everything */
-      break;
-    }
-
   /* Set the final timestamp for the frame */
   
   if(frame)
     {
-    frame->timestamp = s->data.video.last_frame_time;
-
     /* Set timecode */
     if(s->timecode_table)
       frame->timecode =
@@ -249,13 +186,6 @@ static int bgav_video_decode(bgav_stream_t * s,
     
     if(s->demuxer->demux_mode == DEMUX_MODE_FI)
       frame->timestamp += s->first_timestamp;
-    
-    frame->duration  = s->data.video.last_frame_duration;
-    
-    /* Yes, this sometimes happens due to rounding errors */
-    if(frame->timestamp < 0)
-      frame->timestamp = 0;
-    
     }
   
   return result;
@@ -277,6 +207,12 @@ void bgav_video_dump(bgav_stream_t * s)
 
 void bgav_video_stop(bgav_stream_t * s)
   {
+  if(s->data.video.parser)
+    {
+    bgav_video_parser_destroy(s->data.video.parser);
+    s->data.video.parser = NULL;
+    }
+  
   if(s->data.video.decoder)
     {
     s->data.video.decoder->decoder->close(s);
@@ -295,39 +231,33 @@ void bgav_video_stop(bgav_stream_t * s)
 
 void bgav_video_resync(bgav_stream_t * s)
   {
-  bgav_packet_t * p;
-  switch(s->data.video.frametime_mode)
-    {
-    case BGAV_FRAMETIME_CONSTANT:
-      break;
-    case BGAV_FRAMETIME_PACKET:
-    case BGAV_FRAMETIME_PTS:
-      p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
-      if(!p)
-        s->data.video.next_frame_duration = 0;
-      else
-        s->data.video.next_frame_duration =
-          gavl_time_rescale(s->timescale, s->data.video.format.timescale,
-                            p->duration);
-      break;
-    case BGAV_FRAMETIME_CODEC:
-      /* Codec will set everything */
-      break;
-    }
-  
   if(s->data.video.decoder->decoder->resync)
     s->data.video.decoder->decoder->resync(s);
-  
   }
+
+/* Skipping to a specified time can happen in 3 ways:
+   
+   1. For intra-only streams, we can just skip the packets, completely
+      bypassing the codec.
+
+   2. For codecs with keyframes but without delay, we call the decode
+      method until the next packet (as seen by
+      bgav_demuxer_peek_packet_read()) is the right one.
+
+   3. Codecs with delay (i.e. with B-frames) must have a skipto method
+      we'll call
+*/
 
 int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale)
   {
+  bgav_packet_t * p; 
   //  gavl_time_t stream_time;
   int result;
   int64_t time_scaled;
   char tmp_string1[128];
   char tmp_string2[128];
   time_scaled = gavl_time_rescale(scale, s->data.video.format.timescale, *time);
+  
   if(s->out_time > time_scaled)
     {
     sprintf(tmp_string1, "%" PRId64, s->in_time);
@@ -337,23 +267,44 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale)
              tmp_string1, tmp_string2);
     return 1;
     }
-
-  else if(s->out_time + s->data.video.next_frame_duration >
-          time_scaled)
+  else if(s->flags & STREAM_INTRA_ONLY)
     {
-    /* Do nothing but update the time */
-    *time = gavl_time_rescale(s->data.video.format.timescale,
-                              scale,
-                              s->out_time);
-    //    s->in_time = gavl_time_rescale(scale, s->timescale, *time);
-    return 1;
+    while(1)
+      {
+      p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
+
+      if(!p)
+        return 0;
+      
+      if(p->pts + p->duration > time_scaled)
+        {
+        s->out_time = p->pts;
+        return 1;
+        }
+      p = bgav_demuxer_get_packet_read(s->demuxer, s);
+      bgav_demuxer_done_packet_read(s->demuxer, p);
+      }
     }
-  
-  do{
+  else if(s->data.video.decoder->decoder->skipto)
+    {
+    if(!s->data.video.decoder->decoder->skipto(s, time_scaled))
+      return 0;
+    }
+  else
+    {
+    p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
+    
+    if(!p)
+      return 0;
+    
+    if(p->pts + p->duration > time_scaled)
+      return 1;
+
     result = bgav_video_decode(s, (gavl_video_frame_t*)0);
     if(!result)
       return 0;
-    } while(s->out_time + s->data.video.next_frame_duration <= time_scaled);
+    }
+  
   *time = gavl_time_rescale(s->data.video.format.timescale, scale, s->out_time);
   s->in_time = gavl_time_rescale(scale, s->timescale, *time);
   

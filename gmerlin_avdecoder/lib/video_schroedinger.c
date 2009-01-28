@@ -369,11 +369,6 @@ static int decode_picture(bgav_stream_t * s)
           gavl_time_rescale(s->timescale,
                             s->data.video.format.timescale,
                             pts);
-
-        s->data.video.next_frame_duration =
-          gavl_time_rescale(s->timescale,
-                            s->data.video.format.timescale,
-                            duration);
         
         return 1;
           //          }
@@ -441,9 +436,6 @@ static int decode_schroedinger(bgav_stream_t * s, gavl_video_frame_t * frame)
   
   schro_frame_unref(priv->dec_frame);
   priv->dec_frame = NULL;
-  
-  s->data.video.last_frame_time = s->out_time;
-  s->data.video.last_frame_duration = s->data.video.next_frame_duration;
   
   return 1;
   }

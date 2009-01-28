@@ -36,6 +36,8 @@ typedef struct
   int duration;
   int64_t pts;
   int64_t position;
+
+  int64_t in_pts;
   
   int skip;
   
@@ -48,6 +50,7 @@ typedef struct
   int64_t packet_position;
   int     parser_position;
   int     size;
+  int64_t pts;
   } packet_t;
 
 /* MPEG-2 Intra slice refresh */

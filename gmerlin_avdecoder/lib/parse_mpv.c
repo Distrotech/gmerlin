@@ -168,7 +168,7 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
           /* Need the picture header */
           priv->state = MPEG_HAS_PICTURE_CODE;
           
-          if(!parser->header)
+          if(!parser->header && priv->have_sh)
             {
             bgav_video_parser_extract_header(parser);
             return PARSER_HAVE_HEADER;
