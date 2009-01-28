@@ -471,7 +471,9 @@ void bgav_video_parser_get_packet(bgav_video_parser_t * parser,
 
   p->flags = 0;
   
-  if(c->coding_type == BGAV_CODING_TYPE_I)
+  if((c->coding_type == BGAV_CODING_TYPE_I) ||
+     ((parser->flags & PARSER_NO_I_FRAMES) &&
+      (c->coding_type == BGAV_CODING_TYPE_P)))
     PACKET_SET_KEYFRAME(p);
 
   PACKET_SET_CODING_TYPE(p, c->coding_type);

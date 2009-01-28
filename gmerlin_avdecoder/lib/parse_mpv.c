@@ -50,6 +50,8 @@ typedef struct
   int have_sh;
   int has_picture_start;
   int state;
+
+  int frames_since_sh;
   } mpeg12_priv_t;
 
 #define MPEG_CODE_SEQUENCE     1
@@ -133,6 +135,7 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
       switch(start_code)
         {
         case MPEG_CODE_SEQUENCE:
+          priv->frames_since_sh = 0;
           if(!priv->has_picture_start)
             {
             if(!bgav_video_parser_set_picture_start(parser))
@@ -215,6 +218,14 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
         return PARSER_NEED_DATA;
       
       bgav_video_parser_set_coding_type(parser, ph.coding_type);
+
+      if(priv->have_sh)
+        {
+        if((ph.coding_type == BGAV_CODING_TYPE_P) &&
+           (!priv->frames_since_sh))
+          parser->flags |= PARSER_NO_I_FRAMES;
+        priv->frames_since_sh++;
+        }
       
       //        fprintf(stderr, "Pic type: %c\n", ph.coding_type);
       parser->pos += len;
