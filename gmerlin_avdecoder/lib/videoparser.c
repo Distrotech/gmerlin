@@ -27,13 +27,8 @@
 #include <videoparser.h>
 #include <videoparser_priv.h>
 
-// #define DUMP_OUTPUT
 // #define DUMP_INPUT
-
-/* Init functions (come below) */
-
-// static void init_h264(bgav_video_parser_t*);
-// static void init_mpeg12(bgav_video_parser_t*);
+// #define DUMP_OUTPUT
 
 static const struct
   {

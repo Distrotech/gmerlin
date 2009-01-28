@@ -134,7 +134,7 @@ static int parse_cavs(bgav_video_parser_t * parser)
       if(!len)
         return PARSER_NEED_DATA;
 
-      bgav_cavs_picture_header_dump(&ph, &priv->seq);
+      //      bgav_cavs_picture_header_dump(&ph, &priv->seq);
       
       bgav_video_parser_set_coding_type(parser, ph.coding_type);
       
@@ -157,7 +157,7 @@ static int parse_cavs(bgav_video_parser_t * parser)
         if(!len)
           return PARSER_NEED_DATA;
 
-        bgav_cavs_sequence_header_dump(&priv->seq);
+        //        bgav_cavs_sequence_header_dump(&priv->seq);
         
         parser->pos += len;
 
