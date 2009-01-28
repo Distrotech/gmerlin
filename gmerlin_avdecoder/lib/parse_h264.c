@@ -249,10 +249,12 @@ static int handle_nal(bgav_video_parser_t * parser)
     case H264_NAL_NON_IDR_SLICE:
     case H264_NAL_IDR_SLICE:
     case H264_NAL_SLICE_PARTITION_A:
+#if 0
       fprintf(stderr, "Got slice %d %d %c\n",
               priv->have_sps, priv->has_picture_start,
               parser->cache_size ?
               parser->cache[parser->cache_size-1].coding_type : '?');
+#endif
       /* Decode slice header if necessary */
       if(priv->have_sps)
         {
@@ -266,8 +268,8 @@ static int handle_nal(bgav_video_parser_t * parser)
           bgav_h264_slice_header_parse(priv->rbsp, priv->rbsp_len,
                                        &priv->sps,
                                        &sh);
-          bgav_h264_slice_header_dump(&priv->sps,
-                                      &sh);
+          //          bgav_h264_slice_header_dump(&priv->sps,
+          //                                      &sh);
 
           if(!priv->has_picture_start &&
              !bgav_video_parser_set_picture_start(parser))
@@ -326,7 +328,7 @@ static int handle_nal(bgav_video_parser_t * parser)
       handle_sei(parser);
       break;
     case H264_NAL_SPS:
-      fprintf(stderr, "Got SPS\n");
+      //      fprintf(stderr, "Got SPS\n");
       if(!priv->sps_buffer)
         {
         // fprintf(stderr, "Got SPS %d bytes\n", priv->nal_len);
@@ -339,7 +341,7 @@ static int handle_nal(bgav_video_parser_t * parser)
         bgav_h264_sps_parse(parser->opt,
                             &priv->sps,
                             priv->rbsp, priv->rbsp_len);
-        bgav_h264_sps_dump(&priv->sps);
+        //        bgav_h264_sps_dump(&priv->sps);
               
         priv->sps_len = priv->nal_len;
         priv->sps_buffer = malloc(priv->sps_len);
@@ -363,7 +365,7 @@ static int handle_nal(bgav_video_parser_t * parser)
         }
       break;
     case H264_NAL_PPS:
-      fprintf(stderr, "Got PPS\n");
+      //      fprintf(stderr, "Got PPS\n");
       if(!priv->pps_buffer)
         {
         priv->pps_len = priv->nal_len;
@@ -375,8 +377,8 @@ static int handle_nal(bgav_video_parser_t * parser)
     case H264_NAL_ACCESS_UNIT_DEL:
       primary_pic_type =
         parser->buf.buffer[parser->pos + header_len] >> 5;
-      fprintf(stderr, "Got access unit delimiter, pic_type: %d, cache_size: %d\n",
-              primary_pic_type, parser->cache_size);
+      //      fprintf(stderr, "Got access unit delimiter, pic_type: %d, cache_size: %d\n",
+      //              primary_pic_type, parser->cache_size);
       if(!priv->has_picture_start)
         {
         if(!bgav_video_parser_set_picture_start(parser))

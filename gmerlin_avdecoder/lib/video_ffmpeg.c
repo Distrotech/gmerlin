@@ -53,9 +53,8 @@
    This seems always be true for H.264.
 */
 
-#define DUMP_DECODE
+// #define DUMP_DECODE
 // #define DUMP_EXTRADATA
-#define DUMP_PARSER
 
 /* Map of ffmpeg codecs to fourccs (from ffmpeg's avienc.c) */
 
@@ -131,9 +130,6 @@ typedef struct
   //  AVCodecParserContext * parser;
   //  int parser_started;
     
-  int do_timing;
-
-  int64_t last_parse_pts;
   bgav_dv_dec_t * dvdec;
   
   gavl_timecode_t last_dv_timecode;
@@ -142,6 +138,9 @@ typedef struct
   int frame_buffer_len;
 
   bgav_pts_cache_t pts_cache;
+
+  int64_t picture_timestamp;
+  int     picture_duration;
   
   } ffmpeg_video_priv;
 
@@ -232,17 +231,15 @@ static void handle_dv(bgav_stream_t * s);
 
 static int decode_picture(bgav_stream_t * s)
   {
-  int done = 0;
   int i, imax;
   int bytes_used;
   dp_hdr_t *hdr;
   ffmpeg_video_priv * priv;
-  /* We get the DV format info ourselfes, since the values
-     ffmpeg returns are not reliable */
+  bgav_pts_cache_entry_t * e;
   
   priv = s->data.video.decoder->priv;
   
-  while(!done)
+  while(1)
     {
     /* Read data if necessary */
     if(!get_data(s))
@@ -293,6 +290,7 @@ static int decode_picture(bgav_stream_t * s)
       }
     
     /* DV Video ugliness */
+    
     if(priv->info->ffmpeg_id == CODEC_ID_DVVIDEO)
       {
       handle_dv(s);
@@ -389,9 +387,12 @@ static int decode_picture(bgav_stream_t * s)
 #endif
     
     if(priv->have_picture)
-      done = 1;
-    
+      break;
     }
+
+  e = priv->frame->opaque;
+  priv->picture_timestamp = e->pts;
+  priv->picture_duration  = e->duration;
   
   return 1;
   }
@@ -403,6 +404,7 @@ static int decode_ffmpeg(bgav_stream_t * s, gavl_video_frame_t * f)
      ffmpeg returns are not reliable */
   priv = s->data.video.decoder->priv;
 
+#if 0
   if(!priv->do_timing && !f)
     {
     priv->ctx->skip_idct        = AVDISCARD_NONREF;
@@ -413,6 +415,7 @@ static int decode_ffmpeg(bgav_stream_t * s, gavl_video_frame_t * f)
     priv->ctx->skip_idct        = AVDISCARD_DEFAULT;
     priv->ctx->skip_loop_filter = AVDISCARD_DEFAULT;
     }
+#endif
   
   if(!priv->have_picture)
     decode_picture(s);
@@ -428,8 +431,8 @@ static int decode_ffmpeg(bgav_stream_t * s, gavl_video_frame_t * f)
 
   /* If we do the timing ourselves, we must decode one frame in advance */
   
-  if(priv->do_timing)
-    decode_picture(s);
+  //  if(priv->do_timing)
+  //    decode_picture(s);
   
   return 1;
   }
@@ -481,46 +484,11 @@ static int init_ffmpeg(bgav_stream_t * s)
   
   if(codec->capabilities & CODEC_CAP_DELAY)
     priv->has_delay = 1;
-
-  /* All codecs, which come from multiplexed MPEG streams are
-     constant framerate. This must be fixed once we want to read
-     MPEG-2...
-  */
-  if(s->data.video.frametime_mode == BGAV_FRAMETIME_CODEC)
-    s->data.video.frametime_mode = BGAV_FRAMETIME_CONSTANT;
-
-  /* ... OTOH if the codec supports B-frames, we must do the timing ourselves */
   
-  if(codec->capabilities & CODEC_CAP_DELAY)
-    {
-    if(s->data.video.frametime_mode == BGAV_FRAMETIME_PACKET)
-      {
-      s->data.video.frametime_mode = BGAV_FRAMETIME_CODEC;
-      priv->do_timing = 1;
-      }
-    else if(s->data.video.frametime_mode == BGAV_FRAMETIME_PTS)
-      {
-      s->data.video.frametime_mode = BGAV_FRAMETIME_CODEC_PTS;
-      priv->do_timing = 1;
-      }
-    else if(s->data.video.frametime_mode == BGAV_FRAMETIME_CODEC_PTS)
-      {
-      priv->do_timing = 1;
-      }
-    }
-
-  if(s->action == BGAV_STREAM_PARSE)
-    {
-    priv->do_timing = 1;
-    priv->last_parse_pts = BGAV_TIMESTAMP_UNDEFINED;
-    }
   /* Set get_buffer and release_buffer */
-  if(priv->do_timing)
-    {
-    priv->ctx->get_buffer = my_get_buffer;
-    //    priv->ctx->release_buffer = my_release_buffer;
-    priv->ctx->opaque = s;
-    }
+  priv->ctx->get_buffer = my_get_buffer;
+  //    priv->ctx->release_buffer = my_release_buffer;
+  priv->ctx->opaque = s;
   
   if(s->ext_data)
     {
@@ -2002,10 +1970,15 @@ static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f)
                 s->data.video.format.image_height);
 #endif
     }
+  f->timestamp = priv->picture_timestamp;
+  f->duration = priv->picture_duration;
   
   }
 
 /* Extract format and get timecode */
+
+/* We get the DV format info ourselfes, since the values
+   ffmpeg returns are not reliable */
 
 static void handle_dv(bgav_stream_t * s)
   {

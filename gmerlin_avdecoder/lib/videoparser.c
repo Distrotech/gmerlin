@@ -127,8 +127,10 @@ static void update_previous_size(bgav_video_parser_t * parser)
       parser->non_b_count--;
     
     parser->cache_size--;
+#if 0
     fprintf(stderr, "Merged field pics %d\n",
             parser->cache_size);
+#endif
     }
   
   }
@@ -303,8 +305,8 @@ bgav_video_parser_get_header(bgav_video_parser_t * parser,
 void bgav_video_parser_set_eof(bgav_video_parser_t * parser)
   {
   int i;
-  fprintf(stderr, "EOF buf: %d %d %d\n", parser->buf.size, parser->pos,
-          parser->cache_size);
+  //  fprintf(stderr, "EOF buf: %d %d %d\n", parser->buf.size, parser->pos,
+  //          parser->cache_size);
   /* Set size of last frame */
   parser->pos = parser->buf.size;
   update_previous_size(parser);
