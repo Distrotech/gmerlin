@@ -173,8 +173,13 @@ int bgav_audio_skipto(bgav_stream_t * s, int64_t * t, int scale)
     char str1[128];
     char str2[128];
     char str3[128];
-    sprintf(str1, "%"PRId64, s->out_time);
-    sprintf(str2, "%"PRId64, skip_time);
+    //    sprintf(str1, "%"PRId64, s->out_time);
+    //    sprintf(str2, "%"PRId64, skip_time);
+    //    sprintf(str3, "%"PRId64, num_samples);
+    sprintf(str1, "%"PRId64,
+            gavl_time_unscale(s->data.audio.format.samplerate, s->out_time));
+    sprintf(str2, "%"PRId64,
+            gavl_time_unscale(s->data.audio.format.samplerate, skip_time));
     sprintf(str3, "%"PRId64, num_samples);
     
     bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,

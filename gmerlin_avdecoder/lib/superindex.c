@@ -82,7 +82,9 @@ void bgav_superindex_add_packet(bgav_superindex_t * idx,
   idx->entries[idx->num_entries].size      = size;
   idx->entries[idx->num_entries].stream_id = stream_id;
   idx->entries[idx->num_entries].time = timestamp;
-  idx->entries[idx->num_entries].keyframe  = keyframe;
+
+  if(keyframe)
+    idx->entries[idx->num_entries].flags = PACKET_FLAG_KEY;
   idx->entries[idx->num_entries].duration   = duration;
 
   /* Update indices */
@@ -124,6 +126,37 @@ void bgav_superindex_set_durations(bgav_superindex_t * idx,
     idx->entries[s->last_index_position].time;
   }
 
+void bgav_superindex_set_coding_types(bgav_superindex_t * idx,
+                                      bgav_stream_t * s)
+  {
+  int i;
+  int64_t max_time = BGAV_TIMESTAMP_UNDEFINED;
+  for(i = 0; i < idx->num_entries; i++)
+    {
+    if(idx->entries[i].stream_id == s->stream_id)
+      {
+      if(max_time == BGAV_TIMESTAMP_UNDEFINED)
+        {
+        if(idx->entries[i].flags & PACKET_FLAG_KEY)
+          idx->entries[i].flags |= BGAV_CODING_TYPE_I;
+        else
+          idx->entries[i].flags |= BGAV_CODING_TYPE_P;
+        max_time = idx->entries[i].time;
+        }
+      else if(idx->entries[i].time > max_time)
+        {
+        if(idx->entries[i].flags & PACKET_FLAG_KEY)
+          idx->entries[i].flags |= BGAV_CODING_TYPE_I;
+        else
+          idx->entries[i].flags |= BGAV_CODING_TYPE_P;
+        max_time = idx->entries[i].time;
+        }
+      else
+        idx->entries[i].flags |= BGAV_CODING_TYPE_B;
+      }
+    }
+  }
+
 void bgav_superindex_seek(bgav_superindex_t * idx,
                           bgav_stream_t * s,
                           int64_t time, int scale)
@@ -138,7 +171,7 @@ void bgav_superindex_seek(bgav_superindex_t * idx,
   while(i >= s->first_index_position)
     {
     if((idx->entries[i].stream_id == s->stream_id) &&
-       (idx->entries[i].keyframe) &&
+       (idx->entries[i].flags & PACKET_FLAG_KEY) &&
        (idx->entries[i].time <= time_scaled))
       {
       break;
@@ -156,7 +189,7 @@ void bgav_superindex_seek(bgav_superindex_t * idx,
     while(i >= s->first_index_position)
       {
       if((idx->entries[i].stream_id == s->stream_id) &&
-         (idx->entries[i].keyframe) &&
+         (idx->entries[i].flags & PACKET_FLAG_KEY) &&
          (s->in_time - idx->entries[i].time >= s->data.audio.preroll))
         {
         break;
@@ -188,13 +221,17 @@ void bgav_superindex_dump(bgav_superindex_t * idx)
             idx->entries[i].duration,
             idx->entries[i].size);
 #else
-    bgav_dprintf( "  ID: %d K: %d Offset: %" PRId64 " T: %" PRId64 " D: %d S: %d\n", 
-            idx->entries[i].stream_id,
-            idx->entries[i].keyframe,
-            idx->entries[i].offset,
-            idx->entries[i].time,
-            idx->entries[i].duration,
-            idx->entries[i].size);
+    bgav_dprintf( "  ID: %d K: %d O: %" PRId64 " T: %" PRId64 " D: %d S: %d", 
+                  idx->entries[i].stream_id,
+                  !!(idx->entries[i].flags & PACKET_FLAG_KEY),
+                  idx->entries[i].offset,
+                  idx->entries[i].time,
+                  idx->entries[i].duration,
+                  idx->entries[i].size);
+    if(idx->entries[i].flags & 0xff)
+      bgav_dprintf(" PT: %c\n", idx->entries[i].flags & 0xff);
+    else
+      bgav_dprintf("\n");
 #endif
     }
   }

@@ -89,6 +89,110 @@
 
 #define PADD(s) (((s)&1)?((s)+1):(s))
 
+/* Codec tags requiring special attention */
+
+static int check_codec(uint32_t wav_id, const uint32_t * list)
+  {
+  int index = 0;
+  while(list[index] != 0x00)
+    {
+    if(wav_id == list[index])
+      return 1;
+    index++;
+    }
+  return 0;
+  }
+
+static const uint32_t video_codecs_intra[] =
+  {
+    BGAV_MK_FOURCC('R', 'G', 'B', ' '),
+    BGAV_MK_FOURCC('Y', 'V', 'U', '9'),
+    BGAV_MK_FOURCC('V', 'Y', 'U', 'Y'),
+    BGAV_MK_FOURCC('Y', 'V', '1', '2'),
+    BGAV_MK_FOURCC('y', 'v', '1', '2'),
+    BGAV_MK_FOURCC('y', 'u', 'v', '2'),
+    BGAV_MK_FOURCC('L', 'J', 'P', 'G'),
+    BGAV_MK_FOURCC('A', 'V', 'R', 'n'),
+    BGAV_MK_FOURCC('j', 'p', 'e', 'g'),
+    BGAV_MK_FOURCC('m', 'j', 'p', 'a'),
+    BGAV_MK_FOURCC('A', 'V', 'D', 'J'),
+    BGAV_MK_FOURCC('M', 'J', 'P', 'G'),
+    BGAV_MK_FOURCC('I', 'J', 'P', 'G'),
+    BGAV_MK_FOURCC('J', 'P', 'G', 'L'),
+    BGAV_MK_FOURCC('L', 'J', 'P', 'G'),
+    BGAV_MK_FOURCC('M', 'J', 'L', 'S'),
+    BGAV_MK_FOURCC('d', 'm', 'b', '1'),
+    0x00,
+  };
+
+static const uint32_t video_codecs_msmpeg4v1[] =
+  {
+    
+    BGAV_MK_FOURCC('M', 'P', 'G', '4'),
+    BGAV_MK_FOURCC('m', 'p', 'g', '4'),
+    BGAV_MK_FOURCC('D', 'I', 'V', '1'),
+    0x00,
+  };
+
+static int is_keyframe_msmpeg4v1(uint8_t * data)
+  {
+  uint32_t c;
+  c = BGAV_PTR_2_32BE(data+4);
+  c <<= 5;
+  if(c&0x40000000)
+    return 0;
+  return 1;
+  }
+
+static const uint32_t video_codecs_msmpeg4v3[] =
+  {
+    BGAV_MK_FOURCC('D', 'I', 'V', '3'),
+    BGAV_MK_FOURCC('d', 'i', 'v', '3'),
+    BGAV_MK_FOURCC('D', 'I', 'V', '4'),
+    BGAV_MK_FOURCC('d', 'i', 'v', '4'),
+    BGAV_MK_FOURCC('D', 'I', 'V', '5'),
+    BGAV_MK_FOURCC('d', 'i', 'v', '5'),
+    BGAV_MK_FOURCC('D', 'I', 'V', '6'),
+    BGAV_MK_FOURCC('d', 'i', 'v', '6'),
+    BGAV_MK_FOURCC('M', 'P', '4', '3'),
+    BGAV_MK_FOURCC('m', 'p', '4', '3'),
+    BGAV_MK_FOURCC('M', 'P', '4', '2'),
+    BGAV_MK_FOURCC('m', 'p', '4', '2'),
+    BGAV_MK_FOURCC('D', 'I', 'V', '2'),
+    BGAV_MK_FOURCC('A', 'P', '4', '1'),
+    0x00,
+  };
+
+static int is_keyframe_msmpeg4v3(uint8_t * data)
+  {
+  uint32_t c;
+  c = BGAV_PTR_2_32BE(data);
+  if(c&0x40000000)
+    return 0;
+  return 1;
+  }
+
+static const uint32_t video_codecs_mpeg4[] =
+  {
+    BGAV_MK_FOURCC('D', 'I', 'V', 'X'),
+    BGAV_MK_FOURCC('d', 'i', 'v', 'x'),
+    BGAV_MK_FOURCC('D', 'X', '5', '0'),
+    BGAV_MK_FOURCC('X', 'V', 'I', 'D'),
+    BGAV_MK_FOURCC('x', 'v', 'i', 'd'),
+    BGAV_MK_FOURCC('F', 'M', 'P', '4'),
+    BGAV_MK_FOURCC('f', 'm', 'p', '4'),    
+    0x00,
+  };
+
+static int is_keyframe_mpeg4(uint8_t * data)
+  {
+  uint32_t c;
+  c = BGAV_PTR_2_32BE(data);
+  if(c==0x1B6)
+    return 0;
+  return 1;
+  }
+
 /* Hardwired stream IDs for DV avi. This prevents us from
    decoding AVIs with muiltiple DV streams if they exist */
 
@@ -1178,7 +1282,7 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
     
   
   bg_vs = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
-  bg_vs->data.video.wrong_b_timestamps = 1;
+  
   bg_vs->cleanup = cleanup_stream_avi;
 
   avi_vs = calloc(1, sizeof(*avi_vs));
@@ -1277,6 +1381,10 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
     
   bg_vs->stream_id = (ctx->tt->cur->num_audio_streams +
                       ctx->tt->cur->num_video_streams) - 1;
+
+  if(check_codec(bg_vs->fourcc, video_codecs_mpeg4))
+    bg_vs->flags |= (STREAM_WRONG_B_TIMESTAMPS | STREAM_B_FRAMES);
+  
   return 1;
   }
 
@@ -1684,107 +1792,6 @@ static const uint32_t audio_codecs_parse_simple[] =
     0x00,
   };
 
-static int check_codec(uint32_t wav_id, const uint32_t * list)
-  {
-  int index = 0;
-  while(list[index] != 0x00)
-    {
-    if(wav_id == list[index])
-      return 1;
-    index++;
-    }
-  return 0;
-  }
-
-static const uint32_t video_codecs_keyframe_all[] =
-  {
-    BGAV_MK_FOURCC('R', 'G', 'B', ' '),
-    BGAV_MK_FOURCC('Y', 'V', 'U', '9'),
-    BGAV_MK_FOURCC('V', 'Y', 'U', 'Y'),
-    BGAV_MK_FOURCC('Y', 'V', '1', '2'),
-    BGAV_MK_FOURCC('y', 'v', '1', '2'),
-    BGAV_MK_FOURCC('y', 'u', 'v', '2'),
-    BGAV_MK_FOURCC('L', 'J', 'P', 'G'),
-    BGAV_MK_FOURCC('A', 'V', 'R', 'n'),
-    BGAV_MK_FOURCC('j', 'p', 'e', 'g'),
-    BGAV_MK_FOURCC('m', 'j', 'p', 'a'),
-    BGAV_MK_FOURCC('A', 'V', 'D', 'J'),
-    BGAV_MK_FOURCC('M', 'J', 'P', 'G'),
-    BGAV_MK_FOURCC('I', 'J', 'P', 'G'),
-    BGAV_MK_FOURCC('J', 'P', 'G', 'L'),
-    BGAV_MK_FOURCC('L', 'J', 'P', 'G'),
-    BGAV_MK_FOURCC('M', 'J', 'L', 'S'),
-    BGAV_MK_FOURCC('d', 'm', 'b', '1'),
-    0x00,
-  };
-
-static const uint32_t video_codecs_keyframe_msmpeg4v1[] =
-  {
-    
-    BGAV_MK_FOURCC('M', 'P', 'G', '4'),
-    BGAV_MK_FOURCC('m', 'p', 'g', '4'),
-    BGAV_MK_FOURCC('D', 'I', 'V', '1'),
-    0x00,
-  };
-
-static int is_keyframe_msmpeg4v1(uint8_t * data)
-  {
-  uint32_t c;
-  c = BGAV_PTR_2_32BE(data+4);
-  c <<= 5;
-  if(c&0x40000000)
-    return 0;
-  return 1;
-  }
-
-static const uint32_t video_codecs_keyframe_msmpeg4v3[] =
-  {
-    BGAV_MK_FOURCC('D', 'I', 'V', '3'),
-    BGAV_MK_FOURCC('d', 'i', 'v', '3'),
-    BGAV_MK_FOURCC('D', 'I', 'V', '4'),
-    BGAV_MK_FOURCC('d', 'i', 'v', '4'),
-    BGAV_MK_FOURCC('D', 'I', 'V', '5'),
-    BGAV_MK_FOURCC('d', 'i', 'v', '5'),
-    BGAV_MK_FOURCC('D', 'I', 'V', '6'),
-    BGAV_MK_FOURCC('d', 'i', 'v', '6'),
-    BGAV_MK_FOURCC('M', 'P', '4', '3'),
-    BGAV_MK_FOURCC('m', 'p', '4', '3'),
-    BGAV_MK_FOURCC('M', 'P', '4', '2'),
-    BGAV_MK_FOURCC('m', 'p', '4', '2'),
-    BGAV_MK_FOURCC('D', 'I', 'V', '2'),
-    BGAV_MK_FOURCC('A', 'P', '4', '1'),
-    0x00,
-  };
-
-static int is_keyframe_msmpeg4v3(uint8_t * data)
-  {
-  uint32_t c;
-  c = BGAV_PTR_2_32BE(data);
-  if(c&0x40000000)
-    return 0;
-  return 1;
-  }
-
-static const uint32_t video_codecs_keyframe_mpeg4[] =
-  {
-    BGAV_MK_FOURCC('D', 'I', 'V', 'X'),
-    BGAV_MK_FOURCC('d', 'i', 'v', 'x'),
-    BGAV_MK_FOURCC('D', 'X', '5', '0'),
-    BGAV_MK_FOURCC('X', 'V', 'I', 'D'),
-    BGAV_MK_FOURCC('x', 'v', 'i', 'd'),
-    BGAV_MK_FOURCC('F', 'M', 'P', '4'),
-    BGAV_MK_FOURCC('f', 'm', 'p', '4'),    
-    0x00,
-  };
-
-static int is_keyframe_mpeg4(uint8_t * data)
-  {
-  uint32_t c;
-  c = BGAV_PTR_2_32BE(data);
-  if(c==0x1B6)
-    return 0;
-  return 1;
-  }
 
 static void duplicate_si(bgav_superindex_t * idx)
   {
@@ -1801,7 +1808,7 @@ static void duplicate_si(bgav_superindex_t * idx)
     idx->entries[2*i+1].stream_id = DV_AUDIO_ID;
     idx->entries[2*i+1].offset = idx->entries[2*i].offset;
     idx->entries[2*i+1].size   = idx->entries[2*i].size;
-    idx->entries[2*i+1].keyframe = 1;
+    idx->entries[2*i+1].flags  = PACKET_FLAG_KEY;
     idx->entries[2*i+1].time = 0;
     idx->entries[2*i+1].duration = 0;
     }
@@ -2058,13 +2065,13 @@ static int open_avi(bgav_demuxer_context_t * ctx)
     for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
       {
       avi_vs = (video_priv_t*)(ctx->tt->cur->video_streams[i].priv);
-      if(check_codec(ctx->tt->cur->video_streams[i].fourcc, video_codecs_keyframe_msmpeg4v1))
+      if(check_codec(ctx->tt->cur->video_streams[i].fourcc, video_codecs_msmpeg4v1))
         avi_vs->is_keyframe = is_keyframe_msmpeg4v1;
-      else if(check_codec(ctx->tt->cur->video_streams[i].fourcc, video_codecs_keyframe_msmpeg4v3))
+      else if(check_codec(ctx->tt->cur->video_streams[i].fourcc, video_codecs_msmpeg4v3))
         avi_vs->is_keyframe = is_keyframe_msmpeg4v3;
-      else if(check_codec(ctx->tt->cur->video_streams[i].fourcc, video_codecs_keyframe_mpeg4))
+      else if(check_codec(ctx->tt->cur->video_streams[i].fourcc, video_codecs_mpeg4))
         avi_vs->is_keyframe = is_keyframe_mpeg4;
-      else if(!check_codec(ctx->tt->cur->video_streams[i].fourcc, video_codecs_keyframe_all))
+      else if(!check_codec(ctx->tt->cur->video_streams[i].fourcc, video_codecs_intra))
         ctx->index_mode = 0;
       
       ctx->tt->cur->video_streams[i].index_mode = INDEX_MODE_PTS;

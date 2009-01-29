@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-// #define DUMP_SUPERINDEX    
+#define DUMP_SUPERINDEX    
 #include <avdec_private.h>
 #include <videoparser.h>
 
@@ -547,8 +547,7 @@ static int next_packet_interleaved(bgav_demuxer_context_t * ctx)
   bgav_packet_alloc(p, ctx->si->entries[ctx->si->current_position].size);
   p->data_size = ctx->si->entries[ctx->si->current_position].size;
 
-  if(ctx->si->entries[ctx->si->current_position].keyframe)
-    PACKET_SET_KEYFRAME(p);
+  p->flags = ctx->si->entries[ctx->si->current_position].flags;
   
   p->pts = ctx->si->entries[ctx->si->current_position].time;
   p->duration = ctx->si->entries[ctx->si->current_position].duration;
@@ -644,8 +643,7 @@ static int next_packet_noninterleaved(bgav_demuxer_context_t * ctx)
   p->pts = ctx->si->entries[s->index_position].time;
   p->duration = ctx->si->entries[s->index_position].duration;
 
-  if(ctx->si->entries[s->index_position].keyframe)
-    PACKET_SET_KEYFRAME(p);
+  p->flags = ctx->si->entries[s->index_position].flags;
   p->position = s->index_position;
   
   if(bgav_input_read_data(ctx->input, p->data, p->data_size) < p->data_size)
@@ -942,14 +940,18 @@ static void seek_si(bgav_demuxer_context_t * ctx, int64_t time, int scale)
     }
 
   /* Seek the start chunks indices of all streams */
-  
-  for(j = 0; j < track->num_audio_streams; j++)
-    {
-    bgav_superindex_seek(ctx->si, &(track->audio_streams[j]), time, scale);
-    }
+
   for(j = 0; j < track->num_video_streams; j++)
     {
     bgav_superindex_seek(ctx->si, &(track->video_streams[j]), time, scale);
+    /* Synchronize time to the video stream */
+    if(!j)
+      time = gavl_time_rescale(ctx->si->entries[track->video_streams[j].index_position].time,
+                               track->video_streams[j].data.video.format.timescale, time);
+    }
+  for(j = 0; j < track->num_audio_streams; j++)
+    {
+    bgav_superindex_seek(ctx->si, &(track->audio_streams[j]), time, scale);
     }
   for(j = 0; j < track->num_subtitle_streams; j++)
     {
@@ -1025,6 +1027,8 @@ bgav_seek_scaled(bgav_t * b, int64_t * time, int scale)
   bgav_track_t * track = b->tt->cur;
   int num_iterations = 0;
   seek_time = *time;
+
+  //  fprintf(stderr, "bgav_seek_scaled: %ld\n", gavl_time_unscale(scale, *time));
   
   b->demuxer->flags &= ~BGAV_DEMUXER_EOF;
 

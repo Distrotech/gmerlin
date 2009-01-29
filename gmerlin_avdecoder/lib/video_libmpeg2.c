@@ -382,14 +382,6 @@ static int decode_picture(bgav_stream_t*s)
     {
     priv->picture_timestamp += priv->picture_duration;
     }
-  /* Get this pictures duration */
-  
-  priv->picture_duration = s->data.video.format.frame_duration;
-  if(priv->info->display_picture->nb_fields > 2)
-    {
-    priv->picture_duration =
-      (priv->picture_duration * priv->info->display_picture->nb_fields) / 2;
-    }
   
   return 1;
   }
@@ -610,6 +602,15 @@ static void close_mpeg2(bgav_stream_t*s)
 
 static int skipto_mpeg2(bgav_stream_t * s, int64_t time)
   {
+  mpeg2_priv_t * priv = s->data.video.decoder->priv;
+  while(1)
+    {
+    /* TODO: Skip B-frames */
+    if(!decode_picture(s))
+      return 0;
+    if(priv->picture_timestamp + priv->picture_duration > time)
+      return 1;
+    }
   return 1;
   }
 

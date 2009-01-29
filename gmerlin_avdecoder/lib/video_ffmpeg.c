@@ -166,10 +166,6 @@ static int my_get_buffer(struct AVCodecContext *c, AVFrame *pic)
   return ret;
   }
 
-static int skipto_ffmpeg(bgav_stream_t * s, int64_t time)
-  {
-  return 1;
-  }
 
 
 #if 0
@@ -261,6 +257,12 @@ static int decode_picture(bgav_stream_t * s)
         return 0;
       }
 
+    if(s->flags & STREAM_WRONG_B_TIMESTAMPS)
+      bgav_pts_cache_push(&priv->pts_cache,
+                          priv->packet->pts,
+                          priv->packet->duration,
+                          (int*)0, &e);
+    
     priv->frame_buffer = priv->packet->data;
 
     if(priv->packet->field2_offset)
@@ -389,21 +391,28 @@ static int decode_picture(bgav_stream_t * s)
     if(priv->have_picture)
       break;
     }
-
-  e = priv->frame->opaque;
-  priv->picture_timestamp = e->pts;
-  priv->picture_duration  = e->duration;
   
+  e = priv->frame->opaque;
+
+  if(e)
+    {
+    priv->picture_timestamp = e->pts;
+    priv->picture_duration  = e->duration;
+    }
+  else
+    priv->picture_timestamp =
+      bgav_pts_cache_get_first(&priv->pts_cache,
+                               &priv->picture_duration);
   return 1;
   }
 
-static int decode_ffmpeg(bgav_stream_t * s, gavl_video_frame_t * f)
+static int skipto_ffmpeg(bgav_stream_t * s, int64_t time)
   {
   ffmpeg_video_priv * priv;
-  /* We get the DV format info ourselfes, since the values
-     ffmpeg returns are not reliable */
   priv = s->data.video.decoder->priv;
-
+  while(1)
+    {
+    /* TODO: Skip B-frames */
 #if 0
   if(!priv->do_timing && !f)
     {
@@ -416,6 +425,25 @@ static int decode_ffmpeg(bgav_stream_t * s, gavl_video_frame_t * f)
     priv->ctx->skip_loop_filter = AVDISCARD_DEFAULT;
     }
 #endif
+   
+    if(!decode_picture(s))
+      return 0;
+    if(priv->picture_timestamp + priv->picture_duration > time)
+      break;
+    }
+  fprintf(stderr, "Skipto ffmpeg %ld\n",
+          gavl_time_unscale(s->data.video.format.timescale,
+                            priv->picture_timestamp));
+  s->out_time = priv->picture_timestamp;
+  return 1;
+  }
+
+static int decode_ffmpeg(bgav_stream_t * s, gavl_video_frame_t * f)
+  {
+  ffmpeg_video_priv * priv;
+  /* We get the DV format info ourselfes, since the values
+     ffmpeg returns are not reliable */
+  priv = s->data.video.decoder->priv;
   
   if(!priv->have_picture)
     decode_picture(s);
@@ -443,7 +471,8 @@ static int init_ffmpeg(bgav_stream_t * s)
   
   ffmpeg_video_priv * priv;
 
-  if((s->action == BGAV_STREAM_PARSE) && (s->demuxer->index_mode != INDEX_MODE_MPEG) &&
+  if((s->action == BGAV_STREAM_PARSE) &&
+     (s->demuxer->index_mode != INDEX_MODE_MPEG) &&
      (s->index_mode != INDEX_MODE_MPEG))
     return 1;
 
@@ -486,9 +515,13 @@ static int init_ffmpeg(bgav_stream_t * s)
     priv->has_delay = 1;
   
   /* Set get_buffer and release_buffer */
-  priv->ctx->get_buffer = my_get_buffer;
-  //    priv->ctx->release_buffer = my_release_buffer;
-  priv->ctx->opaque = s;
+
+  if(!(s->flags & STREAM_WRONG_B_TIMESTAMPS))
+    {
+    priv->ctx->get_buffer = my_get_buffer;
+    //    priv->ctx->release_buffer = my_release_buffer;
+    priv->ctx->opaque = s;
+    }
   
   if(s->ext_data)
     {

@@ -206,7 +206,7 @@ int64_t bgav_video_keyframe_before(bgav_t * bgav, int stream, int64_t time)
     while(pos >= s->first_index_position)
       {
       if((bgav->demuxer->si->entries[pos].stream_id == s->stream_id) &&
-         (bgav->demuxer->si->entries[pos].keyframe) &&
+         (bgav->demuxer->si->entries[pos].flags & PACKET_FLAG_KEY) &&
          (bgav->demuxer->si->entries[pos].time < time))
         {
         break;
@@ -251,7 +251,7 @@ int64_t bgav_video_keyframe_after(bgav_t * bgav, int stream, int64_t time)
     while(pos <= s->last_index_position)
       {
       if((bgav->demuxer->si->entries[pos].stream_id == s->stream_id) &&
-         (bgav->demuxer->si->entries[pos].keyframe) &&
+         (bgav->demuxer->si->entries[pos].flags & PACKET_FLAG_KEY) &&
          (bgav->demuxer->si->entries[pos].time > time))
         {
         break;

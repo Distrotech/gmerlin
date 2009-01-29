@@ -41,12 +41,14 @@ typedef struct
   int duration;
   } pts_cache_t;
 
+#if 0
 static void pts_cache_clear(pts_cache_t * p)
   {
   int i;
   for(i = 0; i < MAX_PTS; i++)
     p[i].used = 0;
   }
+#endif
 
 static void pts_cache_put(pts_cache_t * p,
                           int64_t pts, int duration,

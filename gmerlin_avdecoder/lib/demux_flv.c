@@ -602,6 +602,7 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
         case 7:
           s->fourcc = FOURCC_H264;
           priv->need_video_extradata = 1;
+          
           //          s->data.video.wrong_b_timestamps = 1;
           break;
         default: /* Set some nonsense so we can finish initializing */

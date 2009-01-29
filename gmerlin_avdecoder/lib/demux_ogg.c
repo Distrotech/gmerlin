@@ -681,7 +681,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         s->stream_id = serialno;
         s->index_mode = INDEX_MODE_PTS;
         s->data.video.frametime_mode = BGAV_FRAMETIME_PTS;
-        s->data.video.wrong_b_timestamps = 1;
+        s->flags |= (STREAM_B_FRAMES | STREAM_WRONG_B_TIMESTAMPS);
         input_mem = bgav_input_open_memory(priv->op.packet + 1, priv->op.bytes - 1, s->opt);
 
         if(!ogm_header_read(input_mem, &ogm_header))
