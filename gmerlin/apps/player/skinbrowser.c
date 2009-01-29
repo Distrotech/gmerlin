@@ -457,7 +457,7 @@ gmerlin_skin_browser_t * gmerlin_skin_browser_create(gmerlin_t * g)
   mainbox = gtk_vbox_new(0, 5);
   gtk_container_set_border_width(GTK_CONTAINER(mainbox), 5);
 
-  gtk_box_pack_start_defaults(GTK_BOX(mainbox), scrolledwin);
+  bg_gtk_box_pack_start_defaults(GTK_BOX(mainbox), scrolledwin);
 
   buttonbox = gtk_hbutton_box_new();
   gtk_box_set_spacing(GTK_BOX(buttonbox), 5);

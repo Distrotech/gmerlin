@@ -139,7 +139,7 @@ static userpass_win * userpass_win_create(const char * resource)
   gtk_table_attach_defaults(GTK_TABLE(table), ret->save_auth, 1, 3, 4, 5);
     
   gtk_widget_show(table);
-  gtk_box_pack_start_defaults(GTK_BOX(mainbox), table);
+  bg_gtk_box_pack_start_defaults(GTK_BOX(mainbox), table);
   
   
   box = gtk_hbutton_box_new();

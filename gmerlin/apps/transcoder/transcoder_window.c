@@ -1036,7 +1036,7 @@ transcoder_window_t * transcoder_window_create()
   gtk_box_pack_end(GTK_BOX(box),
                    bg_gtk_time_display_get_widget(ret->time_remaining),
                    FALSE, FALSE, 0);
-  gtk_box_pack_start_defaults(GTK_BOX(box),
+  bg_gtk_box_pack_start_defaults(GTK_BOX(box),
                               bg_gtk_scrolltext_get_widget(ret->scrolltext));
 
   gtk_widget_show(box);

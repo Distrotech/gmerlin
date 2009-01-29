@@ -178,12 +178,12 @@ bg_gtk_urlsel_create(const char * title,
   gtk_widget_show(label);
   
   gtk_box_pack_start(GTK_BOX(box), label, FALSE, FALSE, 0);
-  gtk_box_pack_start_defaults(GTK_BOX(box), ret->entry);
+  bg_gtk_box_pack_start_defaults(GTK_BOX(box), ret->entry);
   gtk_widget_show(box);
-  gtk_box_pack_start_defaults(GTK_BOX(mainbox), box);
+  bg_gtk_box_pack_start_defaults(GTK_BOX(mainbox), box);
 
   if(ret->plugins)
-    gtk_box_pack_start_defaults(GTK_BOX(mainbox),
+    bg_gtk_box_pack_start_defaults(GTK_BOX(mainbox),
                                 bg_gtk_plugin_menu_get_widget(ret->plugins));
 
   box = gtk_hbutton_box_new();
@@ -193,7 +193,7 @@ bg_gtk_urlsel_create(const char * title,
   gtk_container_add(GTK_CONTAINER(box), ret->close_button);
   gtk_container_add(GTK_CONTAINER(box), ret->add_button);
   gtk_widget_show(box);
-  gtk_box_pack_start_defaults(GTK_BOX(mainbox), box);
+  bg_gtk_box_pack_start_defaults(GTK_BOX(mainbox), box);
   
   gtk_widget_show(mainbox);
   gtk_container_add(GTK_CONTAINER(ret->window), mainbox);

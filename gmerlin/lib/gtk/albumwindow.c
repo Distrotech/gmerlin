@@ -331,7 +331,7 @@ void bg_gtk_album_window_attach(bg_gtk_album_window_t * w, GtkWidget * notebook)
   
   w->tab_close_button = create_close_button(w);
   w->tab_widget = gtk_hbox_new(0, 2);
-  gtk_box_pack_start_defaults(GTK_BOX(w->tab_widget), w->tab_label);
+  bg_gtk_box_pack_start_defaults(GTK_BOX(w->tab_widget), w->tab_label);
   gtk_box_pack_start(GTK_BOX(w->tab_widget), w->tab_close_button, FALSE, FALSE, 0);
   gtk_widget_show(w->tab_widget);
 

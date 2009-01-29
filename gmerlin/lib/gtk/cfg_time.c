@@ -265,7 +265,7 @@ bg_gtk_create_time(bg_gtk_widget_t * w,
   label = gtk_label_new(TR("ms:"));
   gtk_widget_show(label);
   gtk_box_pack_start(GTK_BOX(s->box), label, FALSE, FALSE, 0);
-  gtk_box_pack_start_defaults(GTK_BOX(s->box), s->spinbutton_ms);
+  bg_gtk_box_pack_start_defaults(GTK_BOX(s->box), s->spinbutton_ms);
   
   gtk_widget_show(s->box);
   gtk_widget_show(s->label);

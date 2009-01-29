@@ -228,14 +228,14 @@ bg_gtk_drivesel_create(const char * title,
   gtk_table_attach_defaults(GTK_TABLE(table), ret->drive_menu, 1, 2, 1, 2);
   
   gtk_widget_show(table);
-  gtk_box_pack_start_defaults(GTK_BOX(mainbox), table);
+  bg_gtk_box_pack_start_defaults(GTK_BOX(mainbox), table);
   
   box = gtk_hbutton_box_new();
 
   gtk_container_add(GTK_CONTAINER(box), ret->close_button);
   gtk_container_add(GTK_CONTAINER(box), ret->add_button);
   gtk_widget_show(box);
-  gtk_box_pack_start_defaults(GTK_BOX(mainbox), box);
+  bg_gtk_box_pack_start_defaults(GTK_BOX(mainbox), box);
   
   gtk_widget_show(mainbox);
   gtk_container_add(GTK_CONTAINER(ret->window), mainbox);

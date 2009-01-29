@@ -2054,7 +2054,7 @@ bg_gtk_tree_widget_create(bg_media_tree_t * tree,
   gtk_widget_show(buttonbox);
 
   mainbox = gtk_vbox_new(0, 0);
-  gtk_box_pack_start_defaults(GTK_BOX(mainbox), scrolledwindow);
+  bg_gtk_box_pack_start_defaults(GTK_BOX(mainbox), scrolledwindow);
   gtk_box_pack_start(GTK_BOX(mainbox), buttonbox, FALSE, FALSE, 0);
   
   gtk_widget_show(mainbox);

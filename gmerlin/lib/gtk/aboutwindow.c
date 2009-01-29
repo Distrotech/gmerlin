@@ -190,8 +190,8 @@ There is NO WARRANTY."));
   gtk_table_attach_defaults(GTK_TABLE(table), label1, 0, 2, 0, 1);
 
   box = gtk_hbox_new(0, 5);
-  gtk_box_pack_start_defaults(GTK_BOX(box), label2);
-  gtk_box_pack_start_defaults(GTK_BOX(box),
+  bg_gtk_box_pack_start_defaults(GTK_BOX(box), label2);
+  bg_gtk_box_pack_start_defaults(GTK_BOX(box),
                               bg_gtk_urllink_get_widget(ret->link));
   gtk_widget_show(box);
   gtk_table_attach_defaults(GTK_TABLE(table), box, 0, 2, 1, 2);

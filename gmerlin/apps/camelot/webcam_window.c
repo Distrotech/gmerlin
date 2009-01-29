@@ -536,7 +536,7 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   
   gtk_container_add(GTK_CONTAINER(frame), table);
   gtk_widget_show(frame);
-  gtk_box_pack_start_defaults(GTK_BOX(box), frame);
+  bg_gtk_box_pack_start_defaults(GTK_BOX(box), frame);
 
   /* Pack filter stuff */
 
@@ -553,7 +553,7 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   
   gtk_container_add(GTK_CONTAINER(frame), table);
   gtk_widget_show(frame);
-  gtk_box_pack_start_defaults(GTK_BOX(box), frame);
+  bg_gtk_box_pack_start_defaults(GTK_BOX(box), frame);
   
   /* Pack monitor stuff */
 
@@ -580,7 +580,7 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
 
   gtk_container_add(GTK_CONTAINER(frame), table);
   gtk_widget_show(frame);
-  gtk_box_pack_start_defaults(GTK_BOX(box), frame);
+  bg_gtk_box_pack_start_defaults(GTK_BOX(box), frame);
   
   gtk_widget_show(box);
   
@@ -686,8 +686,8 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
 %<i>n Inserts Frame number with <i> digits"));
   gtk_widget_show(label);
   
-  gtk_box_pack_start_defaults(GTK_BOX(box), label);
-  gtk_box_pack_start_defaults(GTK_BOX(box), ret->output_filename_base);
+  bg_gtk_box_pack_start_defaults(GTK_BOX(box), label);
+  bg_gtk_box_pack_start_defaults(GTK_BOX(box), ret->output_filename_base);
 
   gtk_widget_show(box);
   
@@ -738,10 +738,10 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   ret->config_button = create_pixmap_button(ret, "config_16.png", TRS("Preferences"));
   
   mainbox = gtk_vbox_new(0, 5);
-  gtk_box_pack_start_defaults(GTK_BOX(mainbox), notebook);
+  bg_gtk_box_pack_start_defaults(GTK_BOX(mainbox), notebook);
   
   hbox = gtk_hbox_new(0, 0);
-  gtk_box_pack_start_defaults(GTK_BOX(hbox), ret->statusbar);
+  bg_gtk_box_pack_start_defaults(GTK_BOX(hbox), ret->statusbar);
   gtk_box_pack_start(GTK_BOX(hbox), ret->about_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(hbox), ret->log_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(hbox), ret->config_button, FALSE, FALSE, 0);

@@ -147,12 +147,12 @@ bg_gtk_create_position(bg_gtk_widget_t * w,
   label = gtk_label_new(TR("X"));
   gtk_widget_show(label);
   gtk_box_pack_start(GTK_BOX(s->box), label, FALSE, FALSE, 0);
-  gtk_box_pack_start_defaults(GTK_BOX(s->box), s->spinbutton_x);
+  bg_gtk_box_pack_start_defaults(GTK_BOX(s->box), s->spinbutton_x);
     
   label = gtk_label_new(TR("Y"));
   gtk_widget_show(label);
   gtk_box_pack_start(GTK_BOX(s->box), label, FALSE, FALSE, 0);
-  gtk_box_pack_start_defaults(GTK_BOX(s->box), s->spinbutton_y);
+  bg_gtk_box_pack_start_defaults(GTK_BOX(s->box), s->spinbutton_y);
 
   gtk_widget_show(s->box);
   

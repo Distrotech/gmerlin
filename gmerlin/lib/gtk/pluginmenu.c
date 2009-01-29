@@ -146,7 +146,7 @@ GtkWidget * bg_gtk_plugin_menu_get_widget(bg_gtk_plugin_menu_t * m)
   ret = gtk_hbox_new(0, 5);
   
   gtk_box_pack_start(GTK_BOX(ret), m->label, FALSE, FALSE, 0);
-  gtk_box_pack_start_defaults(GTK_BOX(ret), m->combo);
+  bg_gtk_box_pack_start_defaults(GTK_BOX(ret), m->combo);
   gtk_widget_show(ret);
   return ret;
   }

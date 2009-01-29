@@ -212,7 +212,7 @@ card_widget_t * card_widget_create(alsa_card_t * c, bg_cfg_section_t * section)
                                           ret->upper_table);
 
     gtk_widget_show(scrolledwin);
-    gtk_box_pack_start_defaults(GTK_BOX(ret->w), scrolledwin);
+    bg_gtk_box_pack_start_defaults(GTK_BOX(ret->w), scrolledwin);
     }
 
   if(ret->num_lower_controls)
@@ -665,7 +665,7 @@ void card_widget_configure(card_widget_t * c)
     g_signal_connect(G_OBJECT(win->control_buttons[i]), "toggled",
                      G_CALLBACK(config_toggle_callback), win);
     gtk_widget_show(win->control_buttons[i]);
-    gtk_box_pack_start_defaults(GTK_BOX(buttonbox), win->control_buttons[i]);
+    bg_gtk_box_pack_start_defaults(GTK_BOX(buttonbox), win->control_buttons[i]);
     }
   gtk_widget_show(buttonbox);
 
@@ -685,7 +685,7 @@ void card_widget_configure(card_widget_t * c)
   gtk_widget_show(scrolledwindow);
 
   mainbox = gtk_vbox_new(0, 5);
-  gtk_box_pack_start_defaults(GTK_BOX(mainbox), scrolledwindow);
+  bg_gtk_box_pack_start_defaults(GTK_BOX(mainbox), scrolledwindow);
   gtk_box_pack_start(GTK_BOX(mainbox), win->close_button, FALSE, FALSE, 0);
   gtk_widget_show(mainbox);
   gtk_container_add(GTK_CONTAINER(win->window), mainbox);

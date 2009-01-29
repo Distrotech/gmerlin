@@ -125,10 +125,10 @@ int bg_gtk_question(const char * question, GtkWidget * parent)
     
   gtk_container_set_border_width(GTK_CONTAINER(mainbox), 5);
   
-  gtk_box_pack_start_defaults(GTK_BOX(hbox), image);
-  gtk_box_pack_start_defaults(GTK_BOX(hbox), label);
+  bg_gtk_box_pack_start_defaults(GTK_BOX(hbox), image);
+  bg_gtk_box_pack_start_defaults(GTK_BOX(hbox), label);
   gtk_widget_show(hbox);
-  gtk_box_pack_start_defaults(GTK_BOX(mainbox), hbox);
+  bg_gtk_box_pack_start_defaults(GTK_BOX(mainbox), hbox);
   
   buttonbox = gtk_hbutton_box_new();
 
@@ -139,7 +139,7 @@ int bg_gtk_question(const char * question, GtkWidget * parent)
 
   gtk_widget_show(buttonbox);
 
-  gtk_box_pack_start_defaults(GTK_BOX(mainbox), buttonbox);
+  bg_gtk_box_pack_start_defaults(GTK_BOX(mainbox), buttonbox);
   
   gtk_widget_show(mainbox);
   gtk_container_add(GTK_CONTAINER(q->window), mainbox);

@@ -226,7 +226,7 @@ filesel_create(const char * title,
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(ret->recursive), 1);
 
     gtk_widget_show(ret->recursive);
-    gtk_box_pack_start_defaults(GTK_BOX(extra),
+    bg_gtk_box_pack_start_defaults(GTK_BOX(extra),
                                 ret->recursive);
     
     ret->subdirs_as_subalbums =
@@ -238,9 +238,9 @@ filesel_create(const char * title,
       gtk_check_button_new_with_label(TR("Watch directories"));
     gtk_widget_show(ret->watch);
     
-    gtk_box_pack_start_defaults(GTK_BOX(extra),
+    bg_gtk_box_pack_start_defaults(GTK_BOX(extra),
                                 ret->subdirs_as_subalbums);
-    gtk_box_pack_start_defaults(GTK_BOX(extra),
+    bg_gtk_box_pack_start_defaults(GTK_BOX(extra),
                                 ret->watch);
     }
   
@@ -254,7 +254,7 @@ filesel_create(const char * title,
     ret->plugins = bg_gtk_plugin_menu_create(1, plugin_reg, type_mask,
                                              flag_mask);
     
-    gtk_box_pack_start_defaults(GTK_BOX(extra),
+    bg_gtk_box_pack_start_defaults(GTK_BOX(extra),
                                 bg_gtk_plugin_menu_get_widget(ret->plugins));
     }
 

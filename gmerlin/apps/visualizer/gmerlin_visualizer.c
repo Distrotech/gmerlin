@@ -1052,7 +1052,7 @@ static visualizer_t * visualizer_create()
   
   gtk_widget_hide(ret->nofullscreen_button);
   
-  //  gtk_box_pack_start_defaults(GTK_BOX(mainbox),
+  //  bg_gtk_box_pack_start_defaults(GTK_BOX(mainbox),
   //                              bg_gtk_vumeter_get_widget(ret->vumeter));
   
   ret->toolbar = gtk_event_box_new();

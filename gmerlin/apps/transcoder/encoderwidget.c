@@ -214,8 +214,8 @@ encoder_window_t * encoder_window_create(bg_plugin_registry_t * plugin_reg)
   gtk_widget_show(buttonbox);
 
   mainbox = gtk_vbox_new(0, 5);
-  gtk_box_pack_start_defaults(GTK_BOX(mainbox), bg_gtk_encoder_widget_get_widget(ret->encoder_widget));
-  gtk_box_pack_start_defaults(GTK_BOX(mainbox), buttonbox);
+  bg_gtk_box_pack_start_defaults(GTK_BOX(mainbox), bg_gtk_encoder_widget_get_widget(ret->encoder_widget));
+  bg_gtk_box_pack_start_defaults(GTK_BOX(mainbox), buttonbox);
   gtk_widget_show(mainbox);
   gtk_container_add(GTK_CONTAINER(ret->window), mainbox);
 

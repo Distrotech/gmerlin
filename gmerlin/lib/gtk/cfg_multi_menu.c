@@ -101,8 +101,8 @@ static void attach(void * priv, GtkWidget * table,
   gtk_table_attach(GTK_TABLE(table), s->combo,
                    1, 2, *row, *row+1, GTK_FILL|GTK_EXPAND, GTK_SHRINK, 0, 0);
 
-  gtk_box_pack_start_defaults(GTK_BOX(box), s->config_button);
-  gtk_box_pack_start_defaults(GTK_BOX(box), s->info_button);
+  bg_gtk_box_pack_start_defaults(GTK_BOX(box), s->config_button);
+  bg_gtk_box_pack_start_defaults(GTK_BOX(box), s->info_button);
   gtk_widget_show(box);
     
   gtk_table_attach(GTK_TABLE(table), box,

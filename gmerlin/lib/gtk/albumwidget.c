@@ -2945,7 +2945,7 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
   
   ret->widget = gtk_vbox_new(0, 0);
 
-  gtk_box_pack_start_defaults(GTK_BOX(ret->widget), scrolledwin);
+  bg_gtk_box_pack_start_defaults(GTK_BOX(ret->widget), scrolledwin);
   gtk_box_pack_start(GTK_BOX(ret->widget), ret->find_widget.box, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(ret->widget), ret->toolbar, FALSE, FALSE, 0);
   
@@ -3280,7 +3280,7 @@ static void find_widget_run(bg_gtk_album_widget_t * w)
     gtk_box_pack_start(GTK_BOX(w->find_widget.box), w->find_widget.close_button,
                        FALSE, FALSE, 0);
 
-    gtk_box_pack_start_defaults(GTK_BOX(w->find_widget.box), w->find_widget.entry);
+    bg_gtk_box_pack_start_defaults(GTK_BOX(w->find_widget.box), w->find_widget.entry);
     
     gtk_box_pack_start(GTK_BOX(w->find_widget.box), w->find_widget.down_button,
                        FALSE, FALSE, 0);
