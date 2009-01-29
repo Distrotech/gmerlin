@@ -367,6 +367,11 @@ static void init_superindex(bgav_demuxer_context_t * ctx)
       {
       bgav_superindex_set_durations(ctx->si, &ctx->tt->cur->video_streams[i]);
       ctx->tt->cur->video_streams[i].first_timestamp = 0;
+
+      if((ctx->tt->cur->video_streams[i].flags & (STREAM_B_FRAMES|STREAM_WRONG_B_TIMESTAMPS)) ==
+         STREAM_B_FRAMES)
+        bgav_superindex_set_coding_types(ctx->si, &ctx->tt->cur->video_streams[i]);
+      
       i++;
       }
     }

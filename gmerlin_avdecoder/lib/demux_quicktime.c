@@ -673,8 +673,6 @@ static void process_packet_subtitle_qt(bgav_stream_t * s, bgav_packet_t * p)
   {
   int i;
   uint16_t len;
-
-
   len = BGAV_PTR_2_16BE(p->data);
 
   if(!len)
@@ -1061,6 +1059,9 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       bg_vs->data.video.format.frame_width = desc->format.video.width;
       bg_vs->data.video.format.frame_height = desc->format.video.height;
 
+      if(trak->mdia.minf.stbl.has_ctts)
+        bg_vs->flags |= STREAM_B_FRAMES;
+      
       if(desc->format.video.has_pasp)
         {
         bg_vs->data.video.format.pixel_width = desc->format.video.pasp.hSpacing;

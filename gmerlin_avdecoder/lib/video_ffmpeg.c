@@ -142,6 +142,8 @@ typedef struct
   int64_t picture_timestamp;
   int     picture_duration;
   
+  int64_t skip_time;
+  
   } ffmpeg_video_priv;
 
 static int my_get_buffer(struct AVCodecContext *c, AVFrame *pic)
@@ -257,11 +259,28 @@ static int decode_picture(bgav_stream_t * s)
         return 0;
       }
 
-    if(s->flags & STREAM_WRONG_B_TIMESTAMPS)
-      bgav_pts_cache_push(&priv->pts_cache,
-                          priv->packet->pts,
-                          priv->packet->duration,
-                          (int*)0, &e);
+    /* Skip non-reference frames */
+    if(priv->skip_time != BGAV_TIMESTAMP_UNDEFINED)
+      {
+      if(priv->packet->pts + priv->packet->duration < priv->skip_time)
+        {
+        priv->ctx->skip_frame = AVDISCARD_NONREF;
+        // fprintf(stderr, "Skip frame %c\n", priv->packet->flags & 0xff);
+        }
+      else
+        priv->ctx->skip_frame = AVDISCARD_NONE;
+      }
+    else
+      {
+      priv->ctx->skip_frame = AVDISCARD_NONE;
+      if(s->flags & STREAM_WRONG_B_TIMESTAMPS)
+        bgav_pts_cache_push(&priv->pts_cache,
+                            priv->packet->pts,
+                            priv->packet->duration,
+                            (int*)0, &e);
+      
+      }
+    
     
     priv->frame_buffer = priv->packet->data;
 
@@ -398,6 +417,7 @@ static int decode_picture(bgav_stream_t * s)
     {
     priv->picture_timestamp = e->pts;
     priv->picture_duration  = e->duration;
+    e->used = 0;
     }
   else
     priv->picture_timestamp =
@@ -410,6 +430,7 @@ static int skipto_ffmpeg(bgav_stream_t * s, int64_t time)
   {
   ffmpeg_video_priv * priv;
   priv = s->data.video.decoder->priv;
+  priv->skip_time = time;
   while(1)
     {
     /* TODO: Skip B-frames */
@@ -431,9 +452,12 @@ static int skipto_ffmpeg(bgav_stream_t * s, int64_t time)
     if(priv->picture_timestamp + priv->picture_duration > time)
       break;
     }
+#if 0
   fprintf(stderr, "Skipto ffmpeg %ld\n",
           gavl_time_unscale(s->data.video.format.timescale,
                             priv->picture_timestamp));
+#endif
+  priv->skip_time = BGAV_TIMESTAMP_UNDEFINED;
   s->out_time = priv->picture_timestamp;
   return 1;
   }
@@ -477,6 +501,8 @@ static int init_ffmpeg(bgav_stream_t * s)
     return 1;
 
   priv = calloc(1, sizeof(*priv));
+  priv->skip_time = BGAV_TIMESTAMP_UNDEFINED;
+  
   s->data.video.decoder->priv = priv;
   
   /* Set up coded specific details */
