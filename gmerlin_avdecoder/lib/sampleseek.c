@@ -184,6 +184,9 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
     
     s->in_time = s->file_index->entries[s->index_position].time;
     s->out_time = frame_time;
+
+    if(s->data.video.parser)
+      bgav_video_parser_reset(s->data.video.parser, frame_time);
     
     if(bgav->demuxer->demuxer->resync)
       bgav->demuxer->demuxer->resync(bgav->demuxer, s);

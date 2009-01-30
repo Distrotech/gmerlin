@@ -187,7 +187,7 @@ static int bgav_video_decode(bgav_stream_t * s,
     if(s->demuxer->demux_mode == DEMUX_MODE_FI)
       frame->timestamp += s->first_timestamp;
     }
-  
+  //  fprintf(stderr, "Decode %ld %d\n", s->out_time, result);
   return result;
   }
 
@@ -228,6 +228,14 @@ void bgav_video_stop(bgav_stream_t * s)
     bgav_packet_destroy(s->data.video.parsed_packet);
 
   }
+
+void bgav_video_clear(bgav_stream_t * s)
+  {
+  if(s->data.video.parser)
+    bgav_video_parser_reset(s->data.video.parser,
+                            BGAV_TIMESTAMP_UNDEFINED);
+  }
+
 
 void bgav_video_resync(bgav_stream_t * s)
   {

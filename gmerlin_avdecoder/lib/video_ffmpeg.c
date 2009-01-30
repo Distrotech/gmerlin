@@ -268,7 +268,14 @@ static int decode_picture(bgav_stream_t * s)
         // fprintf(stderr, "Skip frame %c\n", priv->packet->flags & 0xff);
         }
       else
+        {
         priv->ctx->skip_frame = AVDISCARD_NONE;
+        if(s->flags & STREAM_WRONG_B_TIMESTAMPS)
+          bgav_pts_cache_push(&priv->pts_cache,
+                              priv->packet->pts,
+                              priv->packet->duration,
+                            (int*)0, &e);
+        }
       }
     else
       {
@@ -449,13 +456,17 @@ static int skipto_ffmpeg(bgav_stream_t * s, int64_t time)
    
     if(!decode_picture(s))
       return 0;
+
+    //    fprintf(stderr, "Skipto ffmpeg %ld %ld\n",
+    //            priv->picture_timestamp, time);
+    
     if(priv->picture_timestamp + priv->picture_duration > time)
       break;
+
     }
 #if 0
-  fprintf(stderr, "Skipto ffmpeg %ld\n",
-          gavl_time_unscale(s->data.video.format.timescale,
-                            priv->picture_timestamp));
+  fprintf(stderr, "Skipto ffmpeg %ld %ld\n",
+          priv->picture_timestamp, time);
 #endif
   priv->skip_time = BGAV_TIMESTAMP_UNDEFINED;
   s->out_time = priv->picture_timestamp;

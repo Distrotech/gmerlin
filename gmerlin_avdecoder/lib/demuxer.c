@@ -951,8 +951,8 @@ static void seek_si(bgav_demuxer_context_t * ctx, int64_t time, int scale)
     bgav_superindex_seek(ctx->si, &(track->video_streams[j]), time, scale);
     /* Synchronize time to the video stream */
     if(!j)
-      time = gavl_time_rescale(ctx->si->entries[track->video_streams[j].index_position].time,
-                               track->video_streams[j].data.video.format.timescale, time);
+      time = gavl_time_rescale(track->video_streams[j].data.video.format.timescale, scale,
+                               ctx->si->entries[track->video_streams[j].index_position].time);
     }
   for(j = 0; j < track->num_audio_streams; j++)
     {
