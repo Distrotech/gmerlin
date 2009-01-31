@@ -39,6 +39,7 @@ parsers[] =
   {
     { BGAV_WAVID_2_FOURCC(0x0050), bgav_audio_parser_init_mpeg },
     { BGAV_WAVID_2_FOURCC(0x0055), bgav_audio_parser_init_mpeg },
+    { BGAV_MK_FOURCC('.','m','p','3'), bgav_audio_parser_init_mpeg },
     { BGAV_WAVID_2_FOURCC(0x2000), bgav_audio_parser_init_a52 },
   };
 
