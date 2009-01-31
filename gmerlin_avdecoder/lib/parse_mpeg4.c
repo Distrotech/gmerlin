@@ -24,7 +24,7 @@
 
 
 #include <avdec_private.h>
-#include <videoparser.h>
+#include <parser.h>
 #include <videoparser_priv.h>
 
 #include <mpeg4_header.h>

@@ -65,10 +65,6 @@ typedef struct
   gavl_time_t picture_duration;
   gavl_time_t picture_timestamp;
 
-  int intra_slice_refresh;
-  
-  int do_resync;
-  
   int extern_aspect; /* Container sent us the aspect ratio already */
   
   int init;
@@ -504,20 +500,7 @@ static int init_mpeg2(bgav_stream_t*s)
     if(state == STATE_PICTURE)
       break;
     }
-  /*
-   *  If the first frame after a sequence header is a P-Frame,
-   *  we have most likely an
-   *  intra slice refresh stream
-   */
-
-  if((priv->info->current_picture->flags & PIC_MASK_CODING_TYPE) ==
-     PIC_FLAG_CODING_TYPE_P)
-    {
-    bgav_log(s->opt, BGAV_LOG_DEBUG, LOG_DOMAIN,
-             "Detected Intra slice refresh");
-    priv->intra_slice_refresh = 1;
-    }
-
+  
   /* Decode first frame to check for still mode */
   
   priv->init = 1;
@@ -529,8 +512,8 @@ static int init_mpeg2(bgav_stream_t*s)
 
 static void resync_mpeg2(bgav_stream_t*s)
   {
-  mpeg2_state_t state;
   mpeg2_priv_t * priv;
+  bgav_packet_t * p;
   priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
 
   priv->p = (bgav_packet_t*)0;
@@ -549,35 +532,16 @@ static void resync_mpeg2(bgav_stream_t*s)
     //  mpeg2_skip(priv->dec, 1);
     
     priv->have_frame = 0;
-    priv->do_resync = 1;
     while(1)
       {
-      /* Get the next picture header */
-      while(1)
-        {
-        if(!parse(s, &state))
-          return;
-        if(state == STATE_PICTURE)
-          break;
-        }
-      
-      /* Check if we can start decoding again */
-      if((priv->intra_slice_refresh)  &&
-         ((priv->info->current_picture->flags & PIC_MASK_CODING_TYPE) ==
-          PIC_FLAG_CODING_TYPE_P))
-        {
-        //        priv->non_b_count++;
+      /* Skip pictures until we have the next keyframe */
+      p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
+      if(PACKET_GET_KEYFRAME(p))
         break;
-        }
-      else if(priv->info->current_picture &&
-              ((priv->info->current_picture->flags & PIC_MASK_CODING_TYPE) ==
-               PIC_FLAG_CODING_TYPE_I))
-        {
-        //        priv->non_b_count++;
-        break;
-        }
+      /* Skip this packet */
+      p = bgav_demuxer_get_packet_read(s->demuxer, s);
+      bgav_demuxer_done_packet_read(s->demuxer, p);
       }
-    priv->do_resync = 0;
     }
   //  mpeg2_skip(priv->dec, 0);
   }

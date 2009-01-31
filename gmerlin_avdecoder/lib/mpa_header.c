@@ -277,3 +277,23 @@ int bgav_mpa_header_decode(bgav_mpa_header_t * h, uint8_t * ptr)
   //  dump_header(h);
   return 1;
   }
+
+void bgav_mpa_header_get_format(const bgav_mpa_header_t * h,
+                                gavl_audio_format_t * format)
+  {
+  format->samplerate        = h->samplerate;
+  format->samples_per_frame = h->samples_per_frame;
+
+  switch(h->channel_mode)
+    {
+    case CHANNEL_STEREO:
+    case CHANNEL_JSTEREO:
+    case CHANNEL_DUAL:
+      format->num_channels = 2;
+      break;
+    case CHANNEL_MONO:
+      format->num_channels = 1;
+      break;
+    }
+  gavl_set_channel_setup(format);
+  }

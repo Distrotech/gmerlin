@@ -24,7 +24,7 @@
 
 #include <config.h>
 #include <avdec_private.h>
-#include <videoparser.h>
+#include <parser.h>
 #include <videoparser_priv.h>
 
 // #define DUMP_INPUT

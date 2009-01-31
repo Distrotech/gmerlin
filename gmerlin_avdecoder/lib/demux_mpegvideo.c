@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <videoparser.h>
+#include <parser.h>
 
 #define LOG_DOMAIN "mpegvideo"
 

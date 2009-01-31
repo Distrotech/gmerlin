@@ -40,6 +40,7 @@ typedef struct bgav_redirector_context_s bgav_redirector_context_t;
 typedef struct bgav_packet_s          bgav_packet_t;
 typedef struct bgav_file_index_s          bgav_file_index_t;
 typedef struct bgav_video_parser_s         bgav_video_parser_t;
+typedef struct bgav_audio_parser_s         bgav_audio_parser_t;
 
 typedef struct bgav_input_s                    bgav_input_t;
 typedef struct bgav_input_context_s            bgav_input_context_t;
@@ -420,6 +421,8 @@ struct bgav_stream_s
   
   int has_codec_timecode;
   gavl_timecode_t codec_timecode;
+
+  bgav_packet_t * parsed_packet;
   
   union
     {
@@ -446,6 +449,7 @@ struct bgav_stream_s
          can honour it when seeking. */
       
       int preroll;
+      bgav_audio_parser_t * parser;
       
       } audio;
     struct
@@ -477,7 +481,6 @@ struct bgav_stream_s
       int frametime_mode;
       
       bgav_video_parser_t * parser;
-      bgav_packet_t * parsed_packet;
       } video;
     struct
       {

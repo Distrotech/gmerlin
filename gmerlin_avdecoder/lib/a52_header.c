@@ -22,9 +22,23 @@
 #include <avdec_private.h>
 #include <a52_header.h>
 
+#define BGAV_A52_CHANNEL 0
+#define BGAV_A52_MONO 1
+#define BGAV_A52_STEREO 2
+#define BGAV_A52_3F 3
+#define BGAV_A52_2F1R 4
+#define BGAV_A52_3F1R 5
+#define BGAV_A52_2F2R 6
+#define BGAV_A52_3F2R 7
+#define BGAV_A52_CHANNEL1 8
+#define BGAV_A52_CHANNEL2 9
+#define BGAV_A52_DOLBY 10
+
 #define LEVEL_3DB 0.7071067811865476
 #define LEVEL_45DB 0.5946035575013605
 #define LEVEL_6DB 0.5
+
+#define FRAME_SAMPLES 1536
 
 static const uint8_t halfrate[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3};
 static const int rate[] = { 32,  40,  48,  56,  64,  80,  96, 112,
@@ -125,4 +139,98 @@ void bgav_a52_header_dump(bgav_a52_header_t * h)
     bgav_dprintf("  smixlev: %f\n", h->smixlev);
   if(h->cmixlev >= 0.0)
     bgav_dprintf("  cmixlev: %f\n", h->cmixlev);
+  }
+
+void bgav_a52_header_get_format(const bgav_a52_header_t * h,
+                                gavl_audio_format_t * format)
+  {
+  format->samplerate = h->samplerate;
+  format->samples_per_frame = FRAME_SAMPLES;
+  
+  if(h->lfe)
+    {
+    format->num_channels = 1;
+    format->channel_locations[0] = GAVL_CHID_LFE;
+    }
+  else
+    format->num_channels = 0;
+
+
+  switch(h->acmod)
+    {
+    case BGAV_A52_CHANNEL:
+    case BGAV_A52_STEREO:
+      
+      format->channel_locations[format->num_channels] = 
+        GAVL_CHID_FRONT_LEFT;
+      format->channel_locations[format->num_channels+1] = 
+        GAVL_CHID_FRONT_RIGHT;
+      format->num_channels += 2;
+      break;
+    case BGAV_A52_MONO:
+      format->channel_locations[format->num_channels] = 
+        GAVL_CHID_FRONT_CENTER;
+      format->num_channels += 1;
+      break;
+    case BGAV_A52_3F:
+      format->channel_locations[format->num_channels] = 
+        GAVL_CHID_FRONT_LEFT;
+      format->channel_locations[format->num_channels+1] = 
+        GAVL_CHID_FRONT_CENTER;
+      format->channel_locations[format->num_channels+2] = 
+        GAVL_CHID_FRONT_RIGHT;
+      format->num_channels += 3;
+      break;
+    case BGAV_A52_2F1R:
+      format->channel_locations[format->num_channels] = 
+        GAVL_CHID_FRONT_LEFT;
+      format->channel_locations[format->num_channels+1] = 
+        GAVL_CHID_FRONT_RIGHT;
+      format->channel_locations[format->num_channels+2] = 
+        GAVL_CHID_REAR_CENTER;
+      format->num_channels += 3;
+      break;
+    case BGAV_A52_3F1R:
+      format->channel_locations[format->num_channels] = 
+        GAVL_CHID_FRONT_LEFT;
+      format->channel_locations[format->num_channels+1] = 
+        GAVL_CHID_FRONT_CENTER;
+      format->channel_locations[format->num_channels+2] = 
+        GAVL_CHID_FRONT_RIGHT;
+      format->channel_locations[format->num_channels+3] = 
+        GAVL_CHID_REAR_CENTER;
+      format->num_channels += 4;
+
+      break;
+    case BGAV_A52_2F2R:
+      format->channel_locations[format->num_channels] = 
+        GAVL_CHID_FRONT_LEFT;
+      format->channel_locations[format->num_channels+1] = 
+        GAVL_CHID_FRONT_RIGHT;
+      format->channel_locations[format->num_channels+2] = 
+        GAVL_CHID_REAR_LEFT;
+      format->channel_locations[format->num_channels+3] = 
+        GAVL_CHID_REAR_RIGHT;
+      format->num_channels += 4;
+      break;
+    case BGAV_A52_3F2R:
+      format->channel_locations[format->num_channels] = 
+        GAVL_CHID_FRONT_LEFT;
+      format->channel_locations[format->num_channels+1] = 
+        GAVL_CHID_FRONT_CENTER;
+      format->channel_locations[format->num_channels+2] = 
+        GAVL_CHID_FRONT_RIGHT;
+      format->channel_locations[format->num_channels+3] = 
+        GAVL_CHID_REAR_LEFT;
+      format->channel_locations[format->num_channels+4] = 
+        GAVL_CHID_REAR_RIGHT;
+      format->num_channels += 5;
+      break;
+    }
+
+  if(gavl_front_channels(format) == 3)
+    format->center_level = h->cmixlev;
+  if(gavl_rear_channels(format))
+    format->rear_level = h->smixlev;
+  
   }

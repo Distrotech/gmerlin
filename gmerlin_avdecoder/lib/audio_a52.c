@@ -177,96 +177,13 @@ static int init_a52(bgav_stream_t * s)
     
   /* Get format */
 
-  s->data.audio.format.samplerate = priv->header.samplerate;
   s->codec_bitrate = priv->header.bitrate;
-  s->data.audio.format.samples_per_frame = FRAME_SAMPLES;
+
   s->data.audio.format.sample_format = GAVL_SAMPLE_FLOAT;
   s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_NONE; 
-  if(priv->header.lfe)
-    {
-    s->data.audio.format.num_channels = 1;
-    s->data.audio.format.channel_locations[0] = GAVL_CHID_LFE;
-    }
-  else
-    s->data.audio.format.num_channels = 0;
+
+  bgav_a52_header_get_format(&priv->header, &s->data.audio.format);
   
-  switch(priv->header.acmod)
-    {
-    case A52_CHANNEL:
-    case A52_STEREO:
-      
-      s->data.audio.format.channel_locations[s->data.audio.format.num_channels] = 
-        GAVL_CHID_FRONT_LEFT;
-      s->data.audio.format.channel_locations[s->data.audio.format.num_channels+1] = 
-        GAVL_CHID_FRONT_RIGHT;
-      s->data.audio.format.num_channels += 2;
-      break;
-    case A52_MONO:
-      s->data.audio.format.channel_locations[s->data.audio.format.num_channels] = 
-        GAVL_CHID_FRONT_CENTER;
-      s->data.audio.format.num_channels += 1;
-      break;
-    case A52_3F:
-      s->data.audio.format.channel_locations[s->data.audio.format.num_channels] = 
-        GAVL_CHID_FRONT_LEFT;
-      s->data.audio.format.channel_locations[s->data.audio.format.num_channels+1] = 
-        GAVL_CHID_FRONT_CENTER;
-      s->data.audio.format.channel_locations[s->data.audio.format.num_channels+2] = 
-        GAVL_CHID_FRONT_RIGHT;
-      s->data.audio.format.num_channels += 3;
-      break;
-    case A52_2F1R:
-      s->data.audio.format.channel_locations[s->data.audio.format.num_channels] = 
-        GAVL_CHID_FRONT_LEFT;
-      s->data.audio.format.channel_locations[s->data.audio.format.num_channels+1] = 
-        GAVL_CHID_FRONT_RIGHT;
-      s->data.audio.format.channel_locations[s->data.audio.format.num_channels+2] = 
-        GAVL_CHID_REAR_CENTER;
-      s->data.audio.format.num_channels += 3;
-      break;
-    case A52_3F1R:
-      s->data.audio.format.channel_locations[s->data.audio.format.num_channels] = 
-        GAVL_CHID_FRONT_LEFT;
-      s->data.audio.format.channel_locations[s->data.audio.format.num_channels+1] = 
-        GAVL_CHID_FRONT_CENTER;
-      s->data.audio.format.channel_locations[s->data.audio.format.num_channels+2] = 
-        GAVL_CHID_FRONT_RIGHT;
-      s->data.audio.format.channel_locations[s->data.audio.format.num_channels+3] = 
-        GAVL_CHID_REAR_CENTER;
-      s->data.audio.format.num_channels += 4;
-
-      break;
-    case A52_2F2R:
-      s->data.audio.format.channel_locations[s->data.audio.format.num_channels] = 
-        GAVL_CHID_FRONT_LEFT;
-      s->data.audio.format.channel_locations[s->data.audio.format.num_channels+1] = 
-        GAVL_CHID_FRONT_RIGHT;
-      s->data.audio.format.channel_locations[s->data.audio.format.num_channels+2] = 
-        GAVL_CHID_REAR_LEFT;
-      s->data.audio.format.channel_locations[s->data.audio.format.num_channels+3] = 
-        GAVL_CHID_REAR_RIGHT;
-      s->data.audio.format.num_channels += 4;
-      break;
-    case A52_3F2R:
-      s->data.audio.format.channel_locations[s->data.audio.format.num_channels] = 
-        GAVL_CHID_FRONT_LEFT;
-      s->data.audio.format.channel_locations[s->data.audio.format.num_channels+1] = 
-        GAVL_CHID_FRONT_CENTER;
-      s->data.audio.format.channel_locations[s->data.audio.format.num_channels+2] = 
-        GAVL_CHID_FRONT_RIGHT;
-      s->data.audio.format.channel_locations[s->data.audio.format.num_channels+3] = 
-        GAVL_CHID_REAR_LEFT;
-      s->data.audio.format.channel_locations[s->data.audio.format.num_channels+4] = 
-        GAVL_CHID_REAR_RIGHT;
-      s->data.audio.format.num_channels += 5;
-      break;
-    }
-
-  if(gavl_front_channels(&(s->data.audio.format)) == 3)
-    s->data.audio.format.center_level = priv->header.cmixlev;
-  if(gavl_rear_channels(&(s->data.audio.format)))
-    s->data.audio.format.rear_level = priv->header.smixlev;
-
   priv->frame = gavl_audio_frame_create(&(s->data.audio.format));
   priv->state = a52_init(0);
   priv->samples = a52_samples(priv->state);

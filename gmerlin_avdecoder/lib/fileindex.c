@@ -876,7 +876,6 @@ static int bgav_build_file_index_parseall(bgav_t * b)
         break;
       case INDEX_MODE_MPEG:
         ret = build_file_index_mpeg(b);
-
         break;
       }
     b->demuxer->flags &= ~BGAV_DEMUXER_BUILD_INDEX;
@@ -912,7 +911,9 @@ static int bgav_build_file_index_parseall(bgav_t * b)
     
       s->timescale = s->data.video.format.timescale;
       }
-
+    
+    bgav_stop(b);
+    
     /* Switch off streams again */
     for(j = 0; j < b->tt->cur->num_audio_streams; j++)
       {

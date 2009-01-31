@@ -24,7 +24,7 @@
 #include <avdec_private.h>
 #include <vc1_header.h>
 #include <mpv_header.h>
-#include <videoparser.h>
+#include <parser.h>
 #include <videoparser_priv.h>
 
 

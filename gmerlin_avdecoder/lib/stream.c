@@ -57,36 +57,40 @@ int bgav_stream_start(bgav_stream_t * stream)
   return result;
   }
 
-void bgav_stream_stop(bgav_stream_t * stream)
+void bgav_stream_stop(bgav_stream_t * s)
   {
-  if((stream->action == BGAV_STREAM_DECODE) ||
-     (stream->action == BGAV_STREAM_PARSE))
+  if((s->action == BGAV_STREAM_DECODE) ||
+     (s->action == BGAV_STREAM_PARSE))
     {
-    switch(stream->type)
+    switch(s->type)
       {
       case BGAV_STREAM_VIDEO:
-        bgav_video_stop(stream);
+        bgav_video_stop(s);
         break;
       case BGAV_STREAM_AUDIO:
-        bgav_audio_stop(stream);
+        bgav_audio_stop(s);
         break;
       case BGAV_STREAM_SUBTITLE_TEXT:
       case BGAV_STREAM_SUBTITLE_OVERLAY:
-        bgav_subtitle_stop(stream);
+        bgav_subtitle_stop(s);
       default:
         break;
       }
     }
-  if(stream->packet_buffer)
-    bgav_packet_buffer_clear(stream->packet_buffer);
+  if(s->packet_buffer)
+    bgav_packet_buffer_clear(s->packet_buffer);
 
   /* Clear eventually stored packets */
-  stream->packet = (bgav_packet_t*)0;
-  stream->index_position = stream->first_index_position;
-  stream->in_position = 0;
-  stream->out_time = 0;
-  stream->packet_seq = 0;
-  stream->in_time = BGAV_TIMESTAMP_UNDEFINED;
+  s->packet = (bgav_packet_t*)0;
+  s->index_position = s->first_index_position;
+  s->in_position = 0;
+  s->out_time = 0;
+  s->packet_seq = 0;
+  s->in_time = BGAV_TIMESTAMP_UNDEFINED;
+
+  if(s->parsed_packet)
+    bgav_packet_destroy(s->parsed_packet);
+  
   //  stream->first_timestamp = BGAV_TIMESTAMP_UNDEFINED;
   }
 

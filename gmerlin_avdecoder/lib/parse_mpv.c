@@ -24,10 +24,12 @@
 
 
 #include <avdec_private.h>
-#include <videoparser.h>
+#include <parser.h>
 #include <videoparser_priv.h>
 
 #include <mpv_header.h>
+
+#define LOG_DOMAIN "parse_mpv"
 
 /* MPEG-1/2 */
 
@@ -221,9 +223,14 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
 
       if(priv->have_sh)
         {
-        if((ph.coding_type == BGAV_CODING_TYPE_P) &&
+        if(!(parser->flags & PARSER_NO_I_FRAMES) &&
+           (ph.coding_type == BGAV_CODING_TYPE_P) &&
            (!priv->frames_since_sh))
+          {
           parser->flags |= PARSER_NO_I_FRAMES;
+          bgav_log(parser->opt, BGAV_LOG_DEBUG, LOG_DOMAIN,
+                   "Detected Intra slice refresh");
+          }
         priv->frames_since_sh++;
         }
       

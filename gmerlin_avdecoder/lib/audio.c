@@ -19,11 +19,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-#include <avdec_private.h>
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <avdec_private.h>
+#include <parser.h>
+
 #define LOG_DOMAIN "audio"
+
+#define DUMP_INPUT
+#define DUMP_OUTPUT
 
 int bgav_num_audio_streams(bgav_t * bgav, int track)
   {
@@ -43,50 +48,105 @@ int bgav_set_audio_stream(bgav_t * b, int stream, bgav_stream_action_t action)
   return 1;
   }
 
-int bgav_audio_start(bgav_stream_t * stream)
+int bgav_audio_start(bgav_stream_t * s)
   {
   bgav_audio_decoder_t * dec;
   bgav_audio_decoder_context_t * ctx;
   char tmp_string[128];
+
+  if(s->flags & STREAM_PARSE_FULL)
+    {
+    int result, done = 0;
+    bgav_packet_t * p;
+    const gavl_audio_format_t * format;
+    bgav_audio_parser_t * parser;
+    
+    parser = bgav_audio_parser_create(s->fourcc,
+                                      s->timescale,
+                                      s->opt);
+    if(!parser)
+      {
+      bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+               "No audio parser found for fourcc %c%c%c%c (0x%08x)",
+               (s->fourcc & 0xFF000000) >> 24,
+               (s->fourcc & 0x00FF0000) >> 16,
+               (s->fourcc & 0x0000FF00) >> 8,
+               (s->fourcc & 0x000000FF),
+               s->fourcc);
+      return 0;
+      }
+
+    /* Start the parser and extract the header */
+
+    while(!done)
+      {
+      result = bgav_audio_parser_parse(parser);
+      switch(result)
+        {
+        case PARSER_NEED_DATA:
+          p = bgav_demuxer_get_packet_read(s->demuxer, s);
+
+          if(!p)
+            {
+            bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                     "EOF while initializing audio parser");
+            return 0;
+            }
+          bgav_audio_parser_add_packet(parser, p);
+          bgav_demuxer_done_packet_read(s->demuxer, p);
+          break;
+        case PARSER_HAVE_FORMAT:
+          done = 1;
+
+          format = bgav_audio_parser_get_format(parser);
+          gavl_audio_format_copy(&s->data.audio.format, format);
+          
+          break;
+        }
+      }
+    s->data.audio.parser = parser;
+    s->parsed_packet = bgav_packet_create();
+    s->index_mode = INDEX_MODE_SIMPLE;
+    }
   
-  dec = bgav_find_audio_decoder(stream);
+  dec = bgav_find_audio_decoder(s);
   if(!dec)
     {
-    if(!(stream->fourcc & 0xffff0000))
-      bgav_log(stream->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-               "No audio decoder found for WAV ID 0x%04x", stream->fourcc);
+    if(!(s->fourcc & 0xffff0000))
+      bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+               "No audio decoder found for WAV ID 0x%04x", s->fourcc);
     else
-      bgav_log(stream->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+      bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
                "No audio decoder found for fourcc %c%c%c%c (0x%08x)",
-               (stream->fourcc & 0xFF000000) >> 24,
-               (stream->fourcc & 0x00FF0000) >> 16,
-               (stream->fourcc & 0x0000FF00) >> 8,
-               (stream->fourcc & 0x000000FF),
-               stream->fourcc);
+               (s->fourcc & 0xFF000000) >> 24,
+               (s->fourcc & 0x00FF0000) >> 16,
+               (s->fourcc & 0x0000FF00) >> 8,
+               (s->fourcc & 0x000000FF),
+               s->fourcc);
     return 0;
     }
   ctx = calloc(1, sizeof(*ctx));
-  stream->data.audio.decoder = ctx;
-  stream->data.audio.decoder->decoder = dec;
+  s->data.audio.decoder = ctx;
+  s->data.audio.decoder->decoder = dec;
 
-  if(!stream->timescale && stream->data.audio.format.samplerate)
-    stream->timescale = stream->data.audio.format.samplerate;
+  if(!s->timescale && s->data.audio.format.samplerate)
+    s->timescale = s->data.audio.format.samplerate;
   
-  if(!dec->init(stream))
+  if(!dec->init(s))
     return 0;
 
-  if(!stream->timescale)
-    stream->timescale = stream->data.audio.format.samplerate;
+  if(!s->timescale)
+    s->timescale = s->data.audio.format.samplerate;
   
-  if(stream->first_timestamp != BGAV_TIMESTAMP_UNDEFINED)
+  if(s->first_timestamp != BGAV_TIMESTAMP_UNDEFINED)
     {
-    stream->out_time =
-      gavl_time_rescale(stream->timescale, stream->data.audio.format.samplerate,
-                        stream->first_timestamp);
-    //    if(stream->out_position < 0)
-    //      stream->out_position = 0;
-    sprintf(tmp_string, "%" PRId64, stream->out_time);
-    bgav_log(stream->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Got initial audio timestamp: %s",
+    s->out_time =
+      gavl_time_rescale(s->timescale, s->data.audio.format.samplerate,
+                        s->first_timestamp);
+    //    if(s->out_position < 0)
+    //      s->out_position = 0;
+    sprintf(tmp_string, "%" PRId64, s->out_time);
+    bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Got initial audio timestamp: %s",
              tmp_string);
     }
   
@@ -100,6 +160,11 @@ void bgav_audio_stop(bgav_stream_t * s)
     s->data.audio.decoder->decoder->close(s);
     free(s->data.audio.decoder);
     s->data.audio.decoder = (bgav_audio_decoder_context_t*)0;
+    }
+  if(s->data.audio.parser)
+    {
+    bgav_audio_parser_destroy(s->data.audio.parser);
+    s->data.audio.parser = NULL;
     }
   }
 

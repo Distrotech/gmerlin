@@ -280,6 +280,8 @@ const char * bgav_get_track_name(bgav_t * b, int track)
 
 void bgav_stop(bgav_t * b)
   {
+  bgav_track_stop(b->tt->cur);
+  b->is_running = 0;
   }
 
 int bgav_select_track(bgav_t * b, int track)

@@ -24,7 +24,7 @@
 #include <string.h>
 
 #include <avdec_private.h>
-#include <videoparser.h>
+#include <parser.h>
 
 #define LOG_DOMAIN "video"
 
@@ -86,6 +86,13 @@ int bgav_video_start(bgav_stream_t * s)
         {
         case PARSER_NEED_DATA:
           p = bgav_demuxer_get_packet_read(s->demuxer, s);
+
+          if(!p)
+            {
+            bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                     "EOF while initializing video parser");
+            return 0;
+            }
           bgav_video_parser_add_packet(parser, p);
           bgav_demuxer_done_packet_read(s->demuxer, p);
           break;
@@ -108,7 +115,7 @@ int bgav_video_start(bgav_stream_t * s)
         }
       }
     s->data.video.parser = parser;
-    s->data.video.parsed_packet = bgav_packet_create();
+    s->parsed_packet = bgav_packet_create();
     s->index_mode = INDEX_MODE_SIMPLE;
     }
   
@@ -187,7 +194,7 @@ static int bgav_video_decode(bgav_stream_t * s,
     if(s->demuxer->demux_mode == DEMUX_MODE_FI)
       frame->timestamp += s->first_timestamp;
     }
-  //  fprintf(stderr, "Decode %ld %d\n", s->out_time, result);
+  fprintf(stderr, "Decode %ld %d\n", s->out_time, result);
   return result;
   }
 
@@ -224,9 +231,6 @@ void bgav_video_stop(bgav_stream_t * s)
 
   if(s->data.video.parser)
     bgav_video_parser_destroy(s->data.video.parser);
-  if(s->data.video.parsed_packet)
-    bgav_packet_destroy(s->data.video.parsed_packet);
-
   }
 
 void bgav_video_clear(bgav_stream_t * s)

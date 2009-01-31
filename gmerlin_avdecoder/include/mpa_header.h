@@ -48,4 +48,5 @@ int bgav_mpa_header_equal(bgav_mpa_header_t * h1, bgav_mpa_header_t * h2);
 void bgav_mpa_header_dump(bgav_mpa_header_t * h);
 int bgav_mpa_header_decode(bgav_mpa_header_t * h, uint8_t * ptr);
 
-
+void bgav_mpa_header_get_format(const bgav_mpa_header_t * h,
+                                gavl_audio_format_t * format);

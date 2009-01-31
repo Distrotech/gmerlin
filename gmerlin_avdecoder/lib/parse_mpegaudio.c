@@ -19,25 +19,53 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-typedef struct
+#include <stdlib.h>
+#include <string.h>
+
+#include <config.h>
+#include <avdec_private.h>
+#include <parser.h>
+#include <audioparser_priv.h>
+#include <mpa_header.h>
+
+#define HEADER_BYTES 4
+
+static int parse_mpa(bgav_audio_parser_t * parser)
   {
-  int total_bytes;
-  int samplerate;
-  int bitrate;
-
-  int acmod;
-  int lfe;
-  int dolby;
-
-  float cmixlev;
-  float smixlev;
+  int i;
+  bgav_mpa_header_t h;
   
-  } bgav_a52_header_t;
+  for(i = 0; i < parser->buf.size - HEADER_BYTES; i++)
+    {
+    if(bgav_mpa_header_decode(&h, parser->buf.buffer + i))
+      {
+      if(!parser->have_format)
+        {
+        bgav_mpa_header_get_format(&h, &parser->format);
+        parser->have_format = 1;
+        return PARSER_HAVE_FORMAT;
+        }
+      bgav_audio_parser_set_frame(parser,
+                                  i, h.frame_bytes, h.samples_per_frame);
+      return PARSER_HAVE_FRAME;
+      }
+    }
+  return PARSER_NEED_DATA;
+  }
 
-#define BGAV_A52_HEADER_BYTES 7
+#if 0
+void cleanup_mpa(bgav_audio_parser_t * parser)
+  {
+  
+  }
 
-int bgav_a52_header_read(bgav_a52_header_t * ret, uint8_t * buf);
+void reset_mpa(bgav_audio_parser_t * parser)
+  {
+  
+  }
+#endif
 
-void bgav_a52_header_dump(bgav_a52_header_t * h);
-void bgav_a52_header_get_format(const bgav_a52_header_t * h,
-                                gavl_audio_format_t * format);
+void bgav_audio_parser_init_mpeg(bgav_audio_parser_t * parser)
+  {
+  parser->parse = parse_mpa;
+  }

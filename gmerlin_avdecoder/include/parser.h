@@ -20,13 +20,18 @@
  * *****************************************************************/
 
 #define PARSER_NEED_DATA      0
-#define PARSER_HAVE_HEADER    1
+#define PARSER_HAVE_HEADER    1 /* Video parsers */
+
+#define PARSER_HAVE_FORMAT    1 /* Audio parsers */
+
 #define PARSER_HAVE_PACKET    2
 #define PARSER_EOF            3
 #define PARSER_ERROR          4
 
 
 #define PARSER_PRIV           5 /* Offset for internally used codes */
+
+/* Video parser */
 
 bgav_video_parser_t * bgav_video_parser_create(uint32_t fourcc, int timescale,
                                                const bgav_options_t * opt);
@@ -53,3 +58,28 @@ const gavl_video_format_t *
 bgav_video_parser_get_format(bgav_video_parser_t * parser);
 
 void bgav_video_parser_set_eof(bgav_video_parser_t * parser);
+
+/* Audio parser */
+
+bgav_audio_parser_t * bgav_audio_parser_create(uint32_t fourcc, int timescale,
+                                               const bgav_options_t * opt);
+
+void bgav_audio_parser_destroy(bgav_audio_parser_t *);
+
+void bgav_audio_parser_reset(bgav_audio_parser_t *, int64_t pts);
+
+int bgav_audio_parser_parse(bgav_audio_parser_t * parser);
+
+void bgav_audio_parser_add_packet(bgav_audio_parser_t * parser,
+                                  bgav_packet_t * p);
+
+void bgav_audio_parser_add_data(bgav_audio_parser_t * parser,
+                                uint8_t * data, int len, int64_t position);
+
+void bgav_audio_parser_get_packet(bgav_audio_parser_t * parser,
+                                  bgav_packet_t * p);
+
+const gavl_audio_format_t *
+bgav_audio_parser_get_format(bgav_audio_parser_t * parser);
+
+void bgav_audio_parser_set_eof(bgav_audio_parser_t * parser);

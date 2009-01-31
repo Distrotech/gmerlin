@@ -120,9 +120,7 @@ void bgav_packet_dump(bgav_packet_t * p)
   if(type)
     bgav_dprintf("T: %c ", type);
   
-  if(p->dts == GAVL_TIME_UNDEFINED)
-    bgav_dprintf("dts: (none), ");
-  else
+  if(p->dts != GAVL_TIME_UNDEFINED)
     bgav_dprintf("dts: %"PRId64", ", p->dts);
 
   if(p->pts == GAVL_TIME_UNDEFINED)

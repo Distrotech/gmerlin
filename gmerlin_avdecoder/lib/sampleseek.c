@@ -25,6 +25,7 @@
 #include <string.h>
 
 #include <avdec_private.h>
+#include <parser.h>
 
 static int file_index_seek(bgav_file_index_t * idx, int64_t time)
   {

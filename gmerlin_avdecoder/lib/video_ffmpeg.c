@@ -33,7 +33,6 @@
 #include AVCODEC_HEADER
 
 #include <dvframe.h>
-#include <videoparser.h>
 
 #ifdef HAVE_LIBPOSTPROC
 #include POSTPROC_HEADER
@@ -730,6 +729,7 @@ static int init_ffmpeg(bgav_stream_t * s)
 
 static void resync_ffmpeg(bgav_stream_t * s)
   {
+  bgav_packet_t * p;
   ffmpeg_video_priv * priv;
   priv = s->data.video.decoder->priv;
   avcodec_flush_buffers(priv->ctx);
@@ -742,7 +742,21 @@ static void resync_ffmpeg(bgav_stream_t * s)
   priv->last_dv_timecode = GAVL_TIMECODE_UNDEFINED;
 
   bgav_pts_cache_clear(&priv->pts_cache);
-  decode_picture(s);
+
+  /* get pictures until we have a keyframe */
+
+  while(1)
+    {
+    /* Skip pictures until we have the next keyframe */
+    p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
+    if(PACKET_GET_KEYFRAME(p))
+      break;
+    /* Skip this packet */
+    fprintf(stderr, "Skipping packet %c\n", PACKET_GET_CODING_TYPE(p));
+    p = bgav_demuxer_get_packet_read(s->demuxer, s);
+    bgav_demuxer_done_packet_read(s->demuxer, p);
+    }
+  // decode_picture(s);
   }
 
 static void close_ffmpeg(bgav_stream_t * s)

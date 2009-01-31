@@ -352,6 +352,7 @@ audio.c \
 audio_gavl.c \
 audio_gsm.c \
 audio_pcm.c \
+audioparser.c \
 asmrp.c \
 base64.c \
 bgav.c \
@@ -448,10 +449,12 @@ nanosoft.c \
 options.c \
 packetbuffer.c \
 packet.c \
+parse_a52.c \
 parse_cavs.c \
 parse_h264.c \
 parse_mpeg4.c \
 parse_mpv.c \
+parse_mpegaudio.c \
 parse_vc1.c \
 pes_header.c \
 pnm.c \

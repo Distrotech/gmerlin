@@ -331,19 +331,9 @@ static int set_stream(bgav_demuxer_context_t * ctx)
   s = ctx->tt->cur->audio_streams;
 
   /* Get audio format */
+  bgav_mpa_header_get_format(&priv->header,
+                             &s->data.audio.format);
   
-  if(priv->header.channel_mode == CHANNEL_MONO)
-    {
-    s->data.audio.format.num_channels = 1;
-    }
-  else
-    {
-    s->data.audio.format.num_channels = 2;
-    }
-  s->data.audio.format.samplerate = priv->header.samplerate;
-  s->data.audio.format.samples_per_frame = priv->header.samples_per_frame;
-  gavl_set_channel_setup(&(s->data.audio.format));
-
   if(!s->container_bitrate)
     {
     if(priv->have_xing)
