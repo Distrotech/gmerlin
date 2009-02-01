@@ -176,9 +176,7 @@ typedef struct
   uint8_t * buffer;
   int buffer_size;
   int buffer_alloc;
-
-  int last_frame_size;
-
+  
   /* Decode function */
 
   int (*decode_frame)(bgav_stream_t*);
@@ -270,13 +268,12 @@ static int decode_frame_DS(bgav_stream_t * s)
       {
       priv->frame->valid_samples =
         size_written / (s->data.audio.format.num_channels*priv->bytes_per_sample);
-      priv->last_frame_size = priv->frame->valid_samples;
       }
     if(size_read)
       buffer_done(priv, size_read);
     
     }
-  return priv->last_frame_size;
+  return 1;
   }
 
 static int decode_frame_std(bgav_stream_t * s)
@@ -322,15 +319,14 @@ static int decode_frame_std(bgav_stream_t * s)
     buffer_done(priv, ash.cbSrcLengthUsed);
   priv->frame->valid_samples = ash.cbDstLengthUsed /
     (s->data.audio.format.num_channels*priv->bytes_per_sample);
-  priv->last_frame_size = priv->frame->valid_samples;
-
+  
   hr=acmStreamUnprepareHeader(priv->acmstream,&ash,0);
   if(hr)
     {
     bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "acmStreamUnprepareHeader failed %d",(int)hr);
     }
   
-  return priv->last_frame_size;
+  return 1;
   }
 
 static int init_w32(bgav_stream_t * s)
@@ -490,7 +486,7 @@ static int init_w32(bgav_stream_t * s)
   return 0;
   }
 
-static int decode_w32(bgav_stream_t * s, gavl_audio_frame_t * f, int num_samples)
+static int decode_frame_w32(bgav_stream_t * s)
   {
   win32_priv_t * priv;
   int samples_copied;
@@ -499,32 +495,12 @@ static int decode_w32(bgav_stream_t * s, gavl_audio_frame_t * f, int num_samples
   
   priv = (win32_priv_t *)(s->data.audio.decoder->priv);
 
-  while(samples_decoded < num_samples)
-    {
-    if(!priv->frame->valid_samples)
-      {
-      if(!priv->decode_frame(s))
-        {
-        if(f)
-          f->valid_samples = samples_decoded;
-        return samples_decoded;
-        }
-      }
-    
-    samples_copied = gavl_audio_frame_copy(&(s->data.audio.format),
-                                           f,
-                                           priv->frame,
-                                           samples_decoded, /* out_pos */
-                                           priv->last_frame_size - priv->frame->valid_samples,  /* in_pos */
-                                           num_samples - samples_decoded, /* out_size, */
-                                           priv->frame->valid_samples /* in_size */);
-    priv->frame->valid_samples -= samples_copied;
-    samples_decoded += samples_copied;
-    }
-  if(f)
-    f->valid_samples = samples_decoded;
+  if(!priv->decode_frame(s))
+    return 0;
 
-  return samples_decoded;
+  gavl_audio_frame_copy_ptrs(&s->data.audio.format,
+                             s->data.audio.frame, priv->frame);
+  return 1;
   }
 
 static void resync_w32(bgav_stream_t * s)
@@ -576,7 +552,7 @@ int bgav_init_audio_decoders_win32(bgav_options_t * opt)
       codecs[i].fourccs = codec_infos[i].fourccs;
 
       codecs[i].init   = init_w32;
-      codecs[i].decode = decode_w32;
+      codecs[i].decode_frame = decode_frame_w32;
       codecs[i].close  = close_w32;
       codecs[i].resync = resync_w32;
       bgav_audio_decoder_register(&codecs[i]);

@@ -128,7 +128,7 @@ typedef struct
   
   int16_t * out_buffer;
   gavl_audio_frame_t * frame;
-  int last_block_size;
+
   } qta_priv_t;
 
 static int init_qtaudio(bgav_stream_t * s)
@@ -342,7 +342,7 @@ static int read_data(bgav_stream_t * s)
   return 1;
   }
 
-static int decode(bgav_stream_t * s)
+static int decode_frame_qtaudio(bgav_stream_t * s)
   {
   int num_frames;
   unsigned long out_frames, out_bytes;
@@ -370,47 +370,17 @@ static int decode(bgav_stream_t * s)
     return 0;
     }
   priv->frame->valid_samples = out_bytes / (2 * s->data.audio.format.num_channels);
-  priv->last_block_size = priv->frame->valid_samples;
-
-
+  
   priv->in_buffer_size -= priv->InFrameSize * num_frames;
   if(priv->in_buffer_size > 0)
     memmove(priv->in_buffer, priv->in_buffer + num_frames * priv->InFrameSize, priv->in_buffer_size);
   //  Restore_LDT_Keeper(priv->ldt_fs);
   bgav_windll_unlock();
-  return 1;
-  }
 
-static int decode_qtaudio(bgav_stream_t * s,
-                          gavl_audio_frame_t * frame,
-                          int num_samples)
-  {
-  int samples_decoded = 0;
-  int samples_copied;
-  qta_priv_t * priv = (qta_priv_t*)s->data.audio.decoder->priv;
-  while(samples_decoded < num_samples)
-    {
-    if(!priv->frame->valid_samples)
-      {
-      if(!decode(s))
-        break;
-      }
-    
-    samples_copied = gavl_audio_frame_copy(&(s->data.audio.format),
-                                           frame,
-                                           priv->frame,
-                                           samples_decoded, /* out_pos */
-                                           priv->last_block_size - priv->frame->valid_samples,  /* in_pos */
-                                           num_samples - samples_decoded, /* out_size, */
-                                           priv->frame->valid_samples /* in_size */);
-    
-    priv->frame->valid_samples -= samples_copied;
-    samples_decoded += samples_copied;
-    }
+  gavl_audio_frame_copy_ptrs(&s->data.audio.format,
+                             s->data.audio.frame, priv->frame);
   
-  if(frame)
-    frame->valid_samples = samples_decoded;
-  return samples_decoded;
+  return 1;
   }
 
 static void close_qtaudio(bgav_stream_t * s)
@@ -457,7 +427,7 @@ static bgav_audio_decoder_t decoder =
                       0x0 },
     
     .init =    init_qtaudio,
-    .decode =  decode_qtaudio,
+    .decode_frame =  decode_frame_qtaudio,
     .close =   close_qtaudio,
     .resync =  resync_qtaudio
   };
