@@ -126,7 +126,7 @@ static int get_data(bgav_stream_t * s)
   }
 
 
-static int decode_frame(bgav_stream_t * s)
+static int decode_frame_mad(bgav_stream_t * s)
   {
   mad_priv_t * priv;
   const char * version_string;
@@ -242,9 +242,9 @@ static int decode_frame(bgav_stream_t * s)
         (float)MAD_F_ONE;
       }
     }
-  priv->audio_frame->valid_samples = s->data.audio.format.samples_per_frame;
-
-    
+  priv->audio_frame->valid_samples   = s->data.audio.format.samples_per_frame;
+  gavl_audio_frame_copy_ptrs(&s->data.audio.format, s->data.audio.frame, priv->audio_frame);
+  
   return 1;
   }
 
@@ -265,61 +265,18 @@ static int init_mad(bgav_stream_t * s)
   mad_stream_init(&priv->stream);
   
   /* Now, decode the first header to get the format */
-
   
   get_data(s);
 
   priv->do_init = 1;
 
-  if(!decode_frame(s))
+  if(!decode_frame_mad(s))
     return 0;
 
   priv->do_init = 0;
   
   return 1;
   }
-
-static int decode_mad(bgav_stream_t * s, gavl_audio_frame_t * f,
-                      int num_samples)
-  {
-  int samples_decoded = 0;
-  int samples_copied;
-
-  mad_priv_t * priv;
-  priv = s->data.audio.decoder->priv;
-  
-  while(samples_decoded < num_samples)
-    {
-    if(!priv->audio_frame->valid_samples)
-      {
-      if(!decode_frame(s))
-        {
-        if(f)
-          f->valid_samples = samples_decoded;
-        return samples_decoded;
-        }
-      }
-
-    
-    samples_copied =
-      gavl_audio_frame_copy(&(s->data.audio.format),
-                            f,
-                            priv->audio_frame,
-                            samples_decoded, /* out_pos */
-                            s->data.audio.format.samples_per_frame -
-                            priv->audio_frame->valid_samples,  /* in_pos */
-                            num_samples - samples_decoded, /* out_size, */
-                            priv->audio_frame->valid_samples /* in_size */);
-    priv->audio_frame->valid_samples -= samples_copied;
-    samples_decoded += samples_copied;
-    }
-  if(f)
-    {
-    f->valid_samples = samples_decoded;
-    }
-  return samples_decoded;
-  }
-
 
 static void parse_mad(bgav_stream_t * s)
   {
@@ -439,11 +396,11 @@ static bgav_audio_decoder_t decoder =
                            BGAV_MK_FOURCC('L','A','M','E'), /* NUV */
                            0x00 },
     .name   = "MPEG audio decoder (mad)",
-    .init   = init_mad,
-    .close  = close_mad,
-    .resync = resync_mad,
-    .decode = decode_mad,
-    .parse  = parse_mad,
+    .init         = init_mad,
+    .close        = close_mad,
+    .resync       = resync_mad,
+    .decode_frame = decode_frame_mad,
+    .parse        = parse_mad,
   };
 
 void bgav_init_audio_decoders_mad()

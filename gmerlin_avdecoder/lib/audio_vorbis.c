@@ -48,11 +48,7 @@ typedef struct
   vorbis_comment   dec_vc; /* struct that stores all the bitstream user comments */
   vorbis_dsp_state dec_vd; /* central working state for the packet->PCM decoder */
   vorbis_block     dec_vb; /* local working space for packet->PCM decode */
-  int last_block_size;     /* Last block size in SAMPLES */
-  gavl_audio_frame_t * frame;
   int stream_initialized;
-
-
   } vorbis_audio_priv;
 
 /*
@@ -432,64 +428,41 @@ static int init_vorbis(bgav_stream_t * s)
       break;
     }
   
-  priv->frame = gavl_audio_frame_create(NULL);
-    
   gavl_set_channel_setup(&(s->data.audio.format));
   s->description = bgav_sprintf("Ogg Vorbis");
   return 1;
   }
 
-static int decode_vorbis(bgav_stream_t * s, gavl_audio_frame_t * f, int num_samples)
+static int decode_frame_vorbis(bgav_stream_t * s)
   {
   vorbis_audio_priv * priv;
-  int samples_copied;
   float ** channels;
   int i;
   int samples_decoded = 0;
   
   priv = (vorbis_audio_priv*)(s->data.audio.decoder->priv);
     
-  while(samples_decoded < num_samples)
+  /* Decode stuff */
+  
+  while((samples_decoded = vorbis_synthesis_pcmout(&priv->dec_vd, &(channels))) < 1)
     {
-    if(!priv->frame->valid_samples)
+    if(!next_packet(s))
+      return 0;
+
+    if(vorbis_synthesis(&priv->dec_vb, &priv->dec_op) == 0)
       {
-      /* Decode stuff */
-      
-      while((priv->last_block_size =
-             vorbis_synthesis_pcmout(&priv->dec_vd, &(channels))) < 1)
-        {
-        if(!next_packet(s))
-          {
-          if(f)
-            f->valid_samples = samples_decoded;
-          return samples_decoded;
-          }
-        if(vorbis_synthesis(&priv->dec_vb, &priv->dec_op) == 0)
-          {
-          vorbis_synthesis_blockin(&priv->dec_vd,
-                                   &priv->dec_vb);
-          }
-        }
-      for(i = 0; i < s->data.audio.format.num_channels; i++)
-        {
-        priv->frame->channels.f[i] = channels[i];
-        }
-      priv->frame->valid_samples = priv->last_block_size;
-      vorbis_synthesis_read(&priv->dec_vd,priv->last_block_size);
+      vorbis_synthesis_blockin(&priv->dec_vd,
+                               &priv->dec_vb);
       }
-    samples_copied = gavl_audio_frame_copy(&(s->data.audio.format),
-                                           f,
-                                           priv->frame,
-                                           samples_decoded, /* out_pos */
-                                           priv->last_block_size - priv->frame->valid_samples,  /* in_pos */
-                                           num_samples - samples_decoded, /* out_size, */
-                                           priv->frame->valid_samples /* in_size */);
-    priv->frame->valid_samples -= samples_copied;
-    samples_decoded += samples_copied;
     }
-  if(f)
-    f->valid_samples = samples_decoded;
-  return samples_decoded;
+  
+  for(i = 0; i < s->data.audio.format.num_channels; i++)
+    s->data.audio.frame->channels.f[i] = channels[i];
+  
+  s->data.audio.frame->valid_samples = samples_decoded;
+  vorbis_synthesis_read(&priv->dec_vd, samples_decoded);
+  
+  return 1;
   }
 
 static void resync_vorbis(bgav_stream_t * s)
@@ -515,8 +488,6 @@ static void resync_vorbis(bgav_stream_t * s)
   vorbis_synthesis_init(&priv->dec_vd, &priv->dec_vi);
   vorbis_block_init(&priv->dec_vd, &priv->dec_vb);
 #endif  
-  priv->last_block_size = 0;
-  priv->frame->valid_samples = 0;
   }
 
 static void close_vorbis(bgav_stream_t * s)
@@ -530,8 +501,6 @@ static void close_vorbis(bgav_stream_t * s)
   vorbis_dsp_clear(&priv->dec_vd);
   vorbis_comment_clear(&priv->dec_vc);
   vorbis_info_clear(&priv->dec_vi);
-  gavl_audio_frame_null(priv->frame);
-  gavl_audio_frame_destroy(priv->frame);
   
   free(priv);
   }
@@ -553,7 +522,7 @@ static bgav_audio_decoder_t decoder =
     .init =   init_vorbis,
     .close =  close_vorbis,
     .resync = resync_vorbis,
-    .decode = decode_vorbis
+    .decode_frame = decode_frame_vorbis
   };
 
 void bgav_init_audio_decoders_vorbis()

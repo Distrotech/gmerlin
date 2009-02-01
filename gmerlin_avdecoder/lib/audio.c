@@ -108,6 +108,23 @@ int bgav_audio_start(bgav_stream_t * s)
     s->parsed_packet = bgav_packet_create();
     s->index_mode = INDEX_MODE_SIMPLE;
     }
+
+  if(s->flags & STREAM_START_TIME)
+    {
+    bgav_packet_t * p;
+    p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
+    if(!p)
+      {
+      bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+               "EOF while getting start time");
+      }
+    s->start_time = p->pts;
+    s->out_time = s->start_time;
+
+    sprintf(tmp_string, "%" PRId64, s->out_time);
+    bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Got initial audio timestamp: %s",
+             tmp_string);
+    }
   
   dec = bgav_find_audio_decoder(s);
   if(!dec)
@@ -128,7 +145,8 @@ int bgav_audio_start(bgav_stream_t * s)
   ctx = calloc(1, sizeof(*ctx));
   s->data.audio.decoder = ctx;
   s->data.audio.decoder->decoder = dec;
-
+  s->data.audio.frame = gavl_audio_frame_create(NULL);
+  
   if(!s->timescale && s->data.audio.format.samplerate)
     s->timescale = s->data.audio.format.samplerate;
   
@@ -137,18 +155,6 @@ int bgav_audio_start(bgav_stream_t * s)
 
   if(!s->timescale)
     s->timescale = s->data.audio.format.samplerate;
-  
-  if(s->first_timestamp != BGAV_TIMESTAMP_UNDEFINED)
-    {
-    s->out_time =
-      gavl_time_rescale(s->timescale, s->data.audio.format.samplerate,
-                        s->first_timestamp);
-    //    if(s->out_position < 0)
-    //      s->out_position = 0;
-    sprintf(tmp_string, "%" PRId64, s->out_time);
-    bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Got initial audio timestamp: %s",
-             tmp_string);
-    }
   
   return 1;
   }
@@ -165,6 +171,12 @@ void bgav_audio_stop(bgav_stream_t * s)
     {
     bgav_audio_parser_destroy(s->data.audio.parser);
     s->data.audio.parser = NULL;
+    }
+  if(s->data.audio.frame)
+    {
+    gavl_audio_frame_null(s->data.audio.frame);
+    gavl_audio_frame_destroy(s->data.audio.frame);
+    s->data.audio.frame = NULL;
     }
   }
 
@@ -185,24 +197,55 @@ const char * bgav_get_audio_language(bgav_t * b, int s)
     b->tt->cur->audio_streams[s].language : (char*)0;
   }
 
+static int read_audio(bgav_stream_t * s, gavl_audio_frame_t * frame,
+                      int num_samples)
+  {
+  int samples_decoded = 0;
+  int samples_copied;
+  if(s->eof)
+    return 0;
+
+  while(samples_decoded < num_samples)
+    {
+    if(!s->data.audio.frame->valid_samples)
+      {
+      if(!s->data.audio.decoder->decoder->decode_frame(s))
+        {
+        s->eof = 1;
+        return samples_decoded;
+        }
+      s->data.audio.frame_samples = s->data.audio.frame->valid_samples;
+      }
+    samples_copied = gavl_audio_frame_copy(&(s->data.audio.format),
+                                           frame,
+                                           s->data.audio.frame,
+                                           samples_decoded, /* out_pos */
+                                           s->data.audio.frame_samples - s->data.audio.frame->valid_samples,  /* in_pos */
+                                           num_samples - samples_decoded, /* out_size, */
+                                           s->data.audio.frame->valid_samples /* in_size */);
+    s->data.audio.frame->valid_samples -= samples_copied;
+    samples_decoded += samples_copied;
+    }
+
+  if(frame)
+    {
+    frame->timestamp = s->out_time;
+    frame->valid_samples = samples_decoded;
+    }
+  s->out_time += samples_decoded;
+  return samples_decoded;
+  
+  }
+
 int bgav_read_audio(bgav_t * b, gavl_audio_frame_t * frame,
                     int stream, int num_samples)
   {
-  int result;
   bgav_stream_t * s = &(b->tt->cur->audio_streams[stream]);
-  
-  if(b->eof || s->eof)
+
+  if(b->eof)
     return 0;
 
-  if(frame)
-    frame->timestamp = s->out_time;
-
-  result = s->data.audio.decoder->decoder->decode(s, frame, num_samples);
-  
-  s->out_time += result;
-  if(!result)
-    s->eof = 1;
-  return result;
+  return read_audio(s, frame, num_samples);
   }
 
 void bgav_audio_dump(bgav_stream_t * s)
@@ -216,6 +259,7 @@ void bgav_audio_dump(bgav_stream_t * s)
 
 void bgav_audio_resync(bgav_stream_t * s)
   {
+  s->data.audio.frame->valid_samples = 0;
   if(s->data.audio.decoder &&
      s->data.audio.decoder->decoder->resync)
     s->data.audio.decoder->decoder->resync(s);
@@ -260,10 +304,7 @@ int bgav_audio_skipto(bgav_stream_t * s, int64_t * t, int scale)
       bgav_log(s->opt, BGAV_LOG_DEBUG, LOG_DOMAIN,
                "Skipping %s samples", str1);
       
-      samples_skipped =
-        s->data.audio.decoder->decoder->decode(s, (gavl_audio_frame_t*)0,
-                                               num_samples);
-      s->out_time += samples_skipped;
+      samples_skipped = read_audio(s, (gavl_audio_frame_t*)0, num_samples);
       }
   if(samples_skipped < num_samples)
     {

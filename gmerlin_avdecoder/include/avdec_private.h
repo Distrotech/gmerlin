@@ -104,7 +104,7 @@ struct bgav_audio_decoder_s
   uint32_t * fourccs;
   const char * name;
   int (*init)(bgav_stream_t*);
-  int (*decode)(bgav_stream_t*, gavl_audio_frame_t*, int num_samples);
+  int (*decode_frame)(bgav_stream_t*);
   void (*close)(bgav_stream_t*);
   void (*resync)(bgav_stream_t*);
   void (*parse)(bgav_stream_t*);
@@ -324,6 +324,9 @@ typedef enum
 #define STREAM_B_FRAMES           (1<<2)
 #define STREAM_WRONG_B_TIMESTAMPS (1<<3)
 
+/* Stream can have a nonzero start time */
+#define STREAM_START_TIME         (1<<4)
+
 struct bgav_stream_s
   {
   void * priv;
@@ -400,15 +403,20 @@ struct bgav_stream_s
    */
 
   int flags;
-  
-  int64_t first_timestamp;
 
+  /*
+   *  Timestamp of the first frame in *output* timescale
+   *  must be set by bgav_start()
+   */
+  
+  int64_t start_time;
+  int64_t duration;
+  
   /* The track, where this stream belongs */
   bgav_track_t * track;
   bgav_file_index_t * file_index;
 
   void (*process_packet)(bgav_stream_t * s, bgav_packet_t * p);
-  int64_t duration;
 
   /* Cleanup function (can be set by demuxers) */
   void (*cleanup)(bgav_stream_t * s);
@@ -450,6 +458,9 @@ struct bgav_stream_s
       
       int preroll;
       bgav_audio_parser_t * parser;
+
+      gavl_audio_frame_t * frame;
+      int frame_samples;
       
       } audio;
     struct

@@ -353,7 +353,6 @@ static void init_superindex(bgav_demuxer_context_t * ctx)
     else
       {
       bgav_superindex_set_durations(ctx->si, &ctx->tt->cur->audio_streams[i]);
-      ctx->tt->cur->audio_streams[i].first_timestamp = 0;
       i++;
       }
     }
@@ -366,8 +365,7 @@ static void init_superindex(bgav_demuxer_context_t * ctx)
     else
       {
       bgav_superindex_set_durations(ctx->si, &ctx->tt->cur->video_streams[i]);
-      ctx->tt->cur->video_streams[i].first_timestamp = 0;
-
+      
       if((ctx->tt->cur->video_streams[i].flags & (STREAM_B_FRAMES|STREAM_WRONG_B_TIMESTAMPS)) ==
          STREAM_B_FRAMES)
         bgav_superindex_set_coding_types(ctx->si, &ctx->tt->cur->video_streams[i]);
@@ -384,7 +382,7 @@ static void init_superindex(bgav_demuxer_context_t * ctx)
     else
       {
       bgav_superindex_set_durations(ctx->si, &ctx->tt->cur->subtitle_streams[i]);
-      ctx->tt->cur->subtitle_streams[i].first_timestamp =
+      ctx->tt->cur->subtitle_streams[i].start_time =
         ctx->si->entries[ctx->tt->cur->subtitle_streams[i].first_index_position].time;
       i++;
       }
@@ -818,45 +816,48 @@ bgav_demuxer_get_packet_read(bgav_demuxer_context_t * demuxer,
     return NULL;
 
   if((s->type == BGAV_STREAM_VIDEO) && s->data.video.parser)
-    return get_packet_read_vparse(demuxer, s);
-  if((s->type == BGAV_STREAM_AUDIO) && s->data.audio.parser)
-    return get_packet_read_aparse(demuxer, s);
-  
-  
-  if((s->type == BGAV_STREAM_VIDEO) &&
-     ((s->data.video.frametime_mode == BGAV_FRAMETIME_PTS) ||
-      (s->data.video.frametime_mode == BGAV_FRAMETIME_CODEC_PTS)))
-    get_duration = 1;
-  
-  demuxer->request_stream = s; 
-  while(!(ret = bgav_packet_buffer_get_packet_read(s->packet_buffer, get_duration)))
     {
-    if(!bgav_demuxer_next_packet(demuxer))
+    if(!(ret = get_packet_read_vparse(demuxer, s)))
+      return NULL;
+    }
+  else if((s->type == BGAV_STREAM_AUDIO) && s->data.audio.parser)
+    {
+    if(!(ret = get_packet_read_aparse(demuxer, s)))
+      return NULL;
+    }
+  else
+    {
+    if((s->type == BGAV_STREAM_VIDEO) &&
+       ((s->data.video.frametime_mode == BGAV_FRAMETIME_PTS) ||
+        (s->data.video.frametime_mode == BGAV_FRAMETIME_CODEC_PTS)))
+      get_duration = 1;
+  
+    demuxer->request_stream = s; 
+    while(!(ret = bgav_packet_buffer_get_packet_read(s->packet_buffer, get_duration)))
       {
-      if(get_duration)
+      if(!bgav_demuxer_next_packet(demuxer))
         {
-        ret = bgav_packet_buffer_get_packet_read(s->packet_buffer, 0);
-        if(!ret)
-          return (bgav_packet_t*)0;
+        if(get_duration)
+          {
+          ret = bgav_packet_buffer_get_packet_read(s->packet_buffer, 0);
+          if(!ret)
+            return (bgav_packet_t*)0;
 
-        if(s->duration)
-          ret->duration = s->duration - ret->pts;
+          if(s->duration)
+            ret->duration = s->duration - ret->pts;
+          else
+            ret->duration = 0;
+          break;
+          }
         else
-          ret->duration = 0;
-        break;
+          return (bgav_packet_t*)0;
         }
-      else
-        return (bgav_packet_t*)0;
       }
-    }
-  
-  s->in_time = ret->pts;
 
-  if(s->first_timestamp == BGAV_TIMESTAMP_UNDEFINED)
-    {
-    if(ret->pts != BGAV_TIMESTAMP_UNDEFINED)
-      s->first_timestamp = ret->pts;
     }
+
+  // ??
+  s->in_time = ret->pts;
   
   demuxer->request_stream = (bgav_stream_t*)0;
   return ret;
@@ -1000,7 +1001,7 @@ bgav_demuxer_peek_packet_read(bgav_demuxer_context_t * demuxer,
 
   if((s->type == BGAV_STREAM_VIDEO) && s->data.video.parser)
     return peek_packet_vparse(demuxer, s, force);
-  if((s->type == BGAV_STREAM_AUDIO) && s->data.audio.parser)
+  else if((s->type == BGAV_STREAM_AUDIO) && s->data.audio.parser)
     return peek_packet_aparse(demuxer, s, force);
   
   if((s->type == BGAV_STREAM_VIDEO) &&
@@ -1171,7 +1172,7 @@ bgav_seek_scaled(bgav_t * b, int64_t * time, int scale)
         s = &b->tt->cur->video_streams[i];
         bgav_seek_video(b, i,
                         gavl_time_rescale(scale, s->data.video.format.timescale,
-                                          *time) - s->first_timestamp);
+                                          *time) - s->start_time);
         /*
          *  We align seeking at the first frame of the last video stream
          *  Note, that in 99.9 % of all cases, the last stream will be the
@@ -1181,7 +1182,7 @@ bgav_seek_scaled(bgav_t * b, int64_t * time, int scale)
         *time =
           gavl_time_rescale(s->data.video.format.timescale,
                             scale,
-                            s->out_time + s->first_timestamp);
+                            s->out_time + s->start_time);
         }
       }
     
@@ -1192,7 +1193,7 @@ bgav_seek_scaled(bgav_t * b, int64_t * time, int scale)
         s = &b->tt->cur->audio_streams[i];
         bgav_seek_audio(b, i,
                         gavl_time_rescale(scale, s->data.audio.format.samplerate,
-                                          *time) - s->first_timestamp);
+                                          *time) - s->start_time);
         }
       }
     for(i = 0; i < b->tt->cur->num_subtitle_streams; i++)

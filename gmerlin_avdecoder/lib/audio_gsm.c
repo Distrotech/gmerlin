@@ -99,7 +99,7 @@ static void close_gsm(bgav_stream_t * s)
   free(priv);
   }
 
-static int decode_frame(bgav_stream_t * s)
+static int decode_frame_gsm(bgav_stream_t * s)
   {
   gsm_priv * priv;
 
@@ -136,45 +136,10 @@ static int decode_frame(bgav_stream_t * s)
     }
   else
     priv->packet_ptr += GSM_BLOCK_SIZE;
+
+  gavl_audio_frame_copy_ptrs(&s->data.audio.format, s->data.audio.frame, priv->frame);
+  
   return 1;
-  }
-
-static int decode_gsm(bgav_stream_t * s,
-                      gavl_audio_frame_t * f, int num_samples)
-  {
-  int samples_decoded = 0;
-  int samples_copied;
-  gsm_priv * priv;
-  priv = (gsm_priv*)s->data.audio.decoder->priv;
-
-  while(samples_decoded < num_samples)
-    {
-    if(!priv->frame->valid_samples)
-      {
-      if(!decode_frame(s))
-        {
-        if(f)
-          f->valid_samples = samples_decoded;
-        return samples_decoded;
-        }
-      }
-    samples_copied =
-      gavl_audio_frame_copy(&(s->data.audio.format),
-                            f,
-                            priv->frame,
-                            samples_decoded, /* out_pos */
-                            GSM_FRAME_SAMPLES * (priv->ms + 1) -
-                            priv->frame->valid_samples,  /* in_pos */
-                            num_samples - samples_decoded, /* out_size, */
-                            priv->frame->valid_samples /* in_size */);
-    priv->frame->valid_samples -= samples_copied;
-    samples_decoded += samples_copied;
-    }
-  if(f)
-    {
-    f->valid_samples = samples_decoded;
-    }
-  return samples_decoded;
   }
 
 static void resync_gsm(bgav_stream_t * s)
@@ -198,7 +163,7 @@ static bgav_audio_decoder_t decoder =
     .name = "libgsm based decoder",
 
     .init =   init_gsm,
-    .decode = decode_gsm,
+    .decode_frame = decode_frame_gsm,
     .resync = resync_gsm,
     .close =  close_gsm,
   };

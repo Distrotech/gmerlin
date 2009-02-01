@@ -35,7 +35,6 @@ typedef struct
   {
   void (*decode_func)(bgav_stream_t * s);
   gavl_audio_frame_t * frame;
-  int last_frame_samples;
 
   bgav_packet_t * p;
   int             bytes_in_packet;
@@ -1085,55 +1084,27 @@ static int init_pcm(bgav_stream_t * s)
   return 1;
   }
 
-static int decode_pcm(bgav_stream_t * s,
-                      gavl_audio_frame_t * frame,
-                      int num_samples)
+static int decode_frame_pcm(bgav_stream_t * s)
   {
   pcm_t * priv;
-  int samples_decoded;
-  int samples_copied;
   
   priv = (pcm_t*)(s->data.audio.decoder->priv);
-  samples_decoded = 0;
-  while(samples_decoded <  num_samples)
+
+  if(!priv->p && !get_packet(s))     
+    return 0;
+
+  /* Decode stuff */
+  
+  priv->decode_func(s);
+
+  gavl_audio_frame_copy_ptrs(&s->data.audio.format, s->data.audio.frame, priv->frame);
+  
+  if(!priv->bytes_in_packet)
     {
-    if(!priv->frame->valid_samples)
-      {
-      if(!priv->p && !get_packet(s))     
-        {
-        break;
-        }
-      
-      /* Decode stuff */
-
-      priv->decode_func(s);
-
-            
-      
-      priv->last_frame_samples = priv->frame->valid_samples;
-      
-      if(!priv->bytes_in_packet)
-        {
-        bgav_demuxer_done_packet_read(s->demuxer, priv->p);
-        priv->p = (bgav_packet_t*)0;
-        }
-      if(!priv->last_frame_samples)
-        break;
-      }
-    samples_copied =
-      gavl_audio_frame_copy(&(s->data.audio.format),
-                            frame,       /* dst */
-                            priv->frame, /* src */
-                            samples_decoded, /* int dst_pos */
-                            priv->last_frame_samples - priv->frame->valid_samples, /* int src_pos */
-                            num_samples - samples_decoded, /* int dst_size, */
-                            priv->frame->valid_samples /* int src_size*/ );
-    priv->frame->valid_samples -= samples_copied;
-    samples_decoded += samples_copied;
+    bgav_demuxer_done_packet_read(s->demuxer, priv->p);
+    priv->p = (bgav_packet_t*)0;
     }
-  if(frame)
-    frame->valid_samples = samples_decoded;
-  return samples_decoded;
+  return 1;
   }
 
 static void close_pcm(bgav_stream_t * s)
@@ -1180,7 +1151,7 @@ static bgav_audio_decoder_t decoder =
     .init = init_pcm,
     .close = close_pcm,
     .resync = resync_pcm,
-    .decode = decode_pcm
+    .decode_frame = decode_frame_pcm
   };
 
 void bgav_init_audio_decoders_pcm()

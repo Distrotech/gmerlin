@@ -67,10 +67,6 @@ typedef struct
   bgav_bytebuffer_t buf;
   faacDecHandle dec;
   float * sample_buffer;
-  int sample_buffer_size;
-  
-  gavl_audio_frame_t * frame;
-  int last_block_size;
   
   int64_t last_position; /* For parsing only */
   
@@ -148,7 +144,7 @@ static void set_channel_setup(faacDecFrameInfo * frame_info,
   
   }
 
-static int decode_frame(bgav_stream_t * s)
+static int decode_frame_faad2(bgav_stream_t * s)
   {
   faacDecFrameInfo frame_info;
   faad_priv_t * priv;
@@ -161,8 +157,6 @@ static int decode_frame(bgav_stream_t * s)
   if(priv->buf.size < FAAD_MIN_STREAMSIZE)
     if(parse || !get_data(s))
       return 0;
-
-  priv->last_block_size = 0;
   
   while(1)
     {
@@ -171,11 +165,11 @@ static int decode_frame(bgav_stream_t * s)
     bgav_hexdump(priv->buf.buffer, 7, 7);
 #endif
    
-    priv->frame->samples.f = faacDecDecode(priv->dec,
-                                           &frame_info,
-                                           priv->buf.buffer,
-                                           priv->buf.size);
-
+    s->data.audio.frame->samples.f = faacDecDecode(priv->dec,
+                                                   &frame_info,
+                                                   priv->buf.buffer,
+                                                   priv->buf.size);
+    
 #ifdef DUMP_DECODE
     bgav_dprintf("Used %d bytes, ptr: %p, samples: %d\n",
                  frame_info.bytesconsumed, priv->frame->samples.f,
@@ -184,7 +178,7 @@ static int decode_frame(bgav_stream_t * s)
    
     bgav_bytebuffer_remove(&priv->buf, frame_info.bytesconsumed);
     
-    if(!priv->frame->samples.f)
+    if(!s->data.audio.frame->samples.f)
       {
       if(frame_info.error == 14) /* Too little data */
         {
@@ -212,10 +206,9 @@ static int decode_frame(bgav_stream_t * s)
      faad2 seems to be reporting 0 samples in this case :( */
   
   if(!frame_info.samples)
-    priv->frame->valid_samples = s->data.audio.format.samples_per_frame;
+    s->data.audio.frame->valid_samples = s->data.audio.format.samples_per_frame;
   else
-    priv->frame->valid_samples = frame_info.samples  / s->data.audio.format.num_channels;
-  priv->last_block_size = priv->frame->valid_samples;
+    s->data.audio.frame->valid_samples = frame_info.samples  / s->data.audio.format.num_channels;
   
   if(s->data.audio.format.channel_locations[0] == GAVL_CHID_NONE)
     {
@@ -264,7 +257,6 @@ static int init_faad2(bgav_stream_t * s)
   
   priv = calloc(1, sizeof(*priv));
   priv->dec = faacDecOpen();
-  priv->frame = gavl_audio_frame_create(NULL);
   s->data.audio.decoder->priv = priv;
   
   /* Init the library using a DecoderSpecificInfo */
@@ -312,7 +304,7 @@ static int init_faad2(bgav_stream_t * s)
   if(s->action != BGAV_STREAM_PARSE)
     {
     /* Decode a first frame to get the channel setup and the description */
-    if(!decode_frame(s))
+    if(!decode_frame_faad2(s))
       return 0;
     }
   return 1;
@@ -322,41 +314,6 @@ static int init_faad2(bgav_stream_t * s)
 // static int frame_number = 0;
 
 
-static int decode_faad2(bgav_stream_t * s, gavl_audio_frame_t * f,
-                        int num_samples)
-  {
-  faad_priv_t * priv;
-  int samples_copied;
-  int samples_decoded = 0;
-
-  priv = (faad_priv_t *)(s->data.audio.decoder->priv);
-  
-  while(samples_decoded < num_samples)
-    {
-    if(!priv->frame->valid_samples)
-      {
-      if(!decode_frame(s))
-        {
-        if(f)
-          f->valid_samples = samples_decoded;
-        return samples_decoded;
-        }
-      }
-    samples_copied = gavl_audio_frame_copy(&(s->data.audio.format),
-                                           f,
-                                           priv->frame,
-                                           samples_decoded, /* out_pos */
-                                           priv->last_block_size - priv->frame->valid_samples,  /* in_pos */
-                                           num_samples - samples_decoded, /* out_size, */
-                                           priv->frame->valid_samples /* in_size */);
-    priv->frame->valid_samples -= samples_copied;
-    samples_decoded += samples_copied;
-    }
-  if(f)
-    f->valid_samples = samples_decoded;
-  return samples_decoded;
-  }
-
 static void close_faad2(bgav_stream_t * s)
   {
   faad_priv_t * priv;
@@ -365,8 +322,6 @@ static void close_faad2(bgav_stream_t * s)
     faacDecClose(priv->dec);
 
   bgav_bytebuffer_free(&priv->buf);
-  gavl_audio_frame_null(priv->frame);
-  gavl_audio_frame_destroy(priv->frame);
   free(priv);
   }
 
@@ -374,8 +329,6 @@ static void resync_faad2(bgav_stream_t * s)
   {
   faad_priv_t * priv;
   priv = (faad_priv_t *)(s->data.audio.decoder->priv);
-  priv->frame->valid_samples = 0;
-  priv->sample_buffer_size = 0;
 
   bgav_bytebuffer_flush(&priv->buf);
   }
@@ -403,7 +356,7 @@ static void parse_faad2(bgav_stream_t * s)
     
     while(priv->buf.size >= FAAD_MIN_STREAMSIZE)
       {
-      if(!decode_frame(s))
+      if(!decode_frame_faad2(s))
         break;
       
       /* If frame starts in the previous packet,
@@ -422,7 +375,7 @@ static void parse_faad2(bgav_stream_t * s)
                                       s->duration,
                                       PACKET_FLAG_KEY);
       
-      s->duration += priv->last_block_size;
+      s->duration += s->data.audio.frame->valid_samples;
       }
     priv->last_position = position;
     }
@@ -442,7 +395,7 @@ static bgav_audio_decoder_t decoder =
                       0x0 },
     
     .init =   init_faad2,
-    .decode = decode_faad2,
+    .decode_frame = decode_frame_faad2,
     .parse = parse_faad2,
     .close =  close_faad2,
     .resync =  resync_faad2

@@ -562,7 +562,7 @@ static int load_channel_cache(bgav_input_context_t * ctx)
               s =
                 bgav_track_add_audio_stream(&ctx->tt->tracks[channel_index], ctx->opt);
               s->timescale = 90000;
-              s->flags |= STREAM_PARSE_FULL;
+              s->flags |= (STREAM_PARSE_FULL|STREAM_START_TIME);
               
               stream_child = stream_node->children;
 
@@ -608,7 +608,7 @@ static int load_channel_cache(bgav_input_context_t * ctx)
                 bgav_track_add_video_stream(&ctx->tt->tracks[channel_index], ctx->opt);
 
               s->timescale = 90000;
-              s->flags |= STREAM_PARSE_FULL;
+              s->flags |= (STREAM_PARSE_FULL|STREAM_START_TIME);
               s->data.video.frametime_mode = BGAV_FRAMETIME_CODEC;
               stream_child = stream_node->children;
 

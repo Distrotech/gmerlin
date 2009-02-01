@@ -488,7 +488,7 @@ int bgav_pmt_section_setup_track(pmt_section_t * pmts,
           bgav_correct_language(s->language);
           }
         }
-      s->flags |= STREAM_PARSE_FULL;
+      s->flags |= (STREAM_PARSE_FULL|STREAM_START_TIME);
       s->timescale = 90000;
       s->stream_id = pmts->streams[i].pid;
       ret++;

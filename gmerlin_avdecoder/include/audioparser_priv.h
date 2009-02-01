@@ -46,8 +46,6 @@ struct bgav_audio_parser_s
   int raw;
   bgav_bytebuffer_t buf;
   
-  int pos;
-  
   parse_func parse;
   cleanup_func cleanup;
   reset_func reset;

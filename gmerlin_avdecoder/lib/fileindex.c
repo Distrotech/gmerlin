@@ -84,7 +84,7 @@ void bgav_file_index_dump(bgav_t * b)
         continue;
       bgav_dprintf("   Audio stream %d [ID: %08x, Timescale: %d, PTS offset: %"PRId64"]\n", j+1,
                    s->stream_id, s->timescale,
-                   s->first_timestamp);
+                   s->start_time);
       bgav_dprintf("   Duration: %ld\n", b->tt->tracks[i].audio_streams[j].duration);
       dump_index(&b->tt->tracks[i].audio_streams[j]);
       }
@@ -95,7 +95,7 @@ void bgav_file_index_dump(bgav_t * b)
         continue;
       bgav_dprintf("   Video stream %d [ID: %08x, Timescale: %d, PTS offset: %"PRId64"]\n", j+1,
                    s->stream_id, s->timescale,
-                   s->first_timestamp);
+                   s->start_time);
       bgav_dprintf("   Duration: %ld\n", b->tt->tracks[i].video_streams[j].duration);
       dump_index(&b->tt->tracks[i].video_streams[j]);
       }
@@ -106,7 +106,7 @@ void bgav_file_index_dump(bgav_t * b)
         continue;
       bgav_dprintf("   Subtitle stream %d [ID: %08x, Timescale: %d, PTS offset: %"PRId64"]\n", j+1,
                    s->stream_id, s->timescale,
-                   s->first_timestamp);
+                   s->start_time);
       bgav_dprintf("   Duration: %ld\n", b->tt->tracks[i].subtitle_streams[j].duration);
       dump_index(&b->tt->tracks[i].subtitle_streams[j]);
       }
@@ -276,7 +276,7 @@ file_index_read_stream(bgav_input_context_t * input, bgav_stream_t * s)
 
   if(!bgav_input_read_32_be(input, (uint32_t*)&s->timescale))
     return NULL;
-  if(!bgav_input_read_64_be(input, (uint64_t*)&s->first_timestamp))
+  if(!bgav_input_read_64_be(input, (uint64_t*)&s->start_time))
     return NULL;
   if(!bgav_input_read_64_be(input, (uint64_t*)&s->duration))
     return NULL;
@@ -303,7 +303,7 @@ file_index_write_stream(FILE * output,
   
   write_32(output, s->stream_id);
   write_32(output, s->timescale);
-  write_64(output, s->first_timestamp);
+  write_64(output, s->start_time);
   write_64(output, s->duration);
   write_32(output, idx->num_entries);
 
@@ -591,16 +591,19 @@ void bgav_write_file_index(bgav_t * b)
 static void flush_stream_simple(bgav_stream_t * s)
   {
   bgav_packet_t * p;
+  int64_t t;
   while(bgav_demuxer_peek_packet_read(s->demuxer, s, 0))
     {
     p = bgav_demuxer_get_packet_read(s->demuxer, s);
 
+    t = p->pts - s->start_time;
+    
     /* This will omit B-frames */
-    if(p->pts >= s->duration)
+    if(t >= s->duration)
       {
       bgav_file_index_append_packet(s->file_index,
-                                    p->position, p->pts, p->flags);
-      s->duration = p->pts + p->duration;
+                                    p->position, t, p->flags);
+      s->duration = t + p->duration;
       }
     bgav_demuxer_done_packet_read(s->demuxer, p);
     }
@@ -612,7 +615,7 @@ static void flush_stream_pts(bgav_stream_t * s, int force)
   while(bgav_demuxer_peek_packet_read(s->demuxer, s, force))
     {
     p = bgav_demuxer_get_packet_read(s->demuxer, s);
-    /* We don't output B-Frames (recognizable by non-mobotone PTSes) */
+    /* We don't output B-Frames (recognizable by non-monotone PTSes) */
     if((p->pts != BGAV_TIMESTAMP_UNDEFINED) &&
        (p->pts >= s->out_time))
       {
@@ -862,7 +865,8 @@ static int bgav_build_file_index_parseall(bgav_t * b)
         }
       }
 
-    bgav_start(b);
+    if(!bgav_start(b))
+      return 0;
     
     switch(b->demuxer->index_mode)
       {
@@ -886,29 +890,13 @@ static int bgav_build_file_index_parseall(bgav_t * b)
     for(j = 0; j < b->tt->cur->num_audio_streams; j++)
       {
       s = &b->tt->cur->audio_streams[j];
-      if(s->timescale && (s->first_timestamp != BGAV_TIMESTAMP_UNDEFINED))
-        {
-        s->first_timestamp =
-          gavl_time_rescale(s->timescale, s->data.audio.format.samplerate,
-                            s->first_timestamp);
-        }
-      else
-        s->first_timestamp = 0;
-    
+      
       s->timescale = s->data.audio.format.samplerate;
       }
     for(j = 0; j < b->tt->cur->num_video_streams; j++)
       {
       s = &b->tt->cur->video_streams[j];
-      if(s->timescale && (s->first_timestamp != BGAV_TIMESTAMP_UNDEFINED))
-        {
-        s->first_timestamp =
-          gavl_time_rescale(s->timescale, s->data.video.format.timescale,
-                            s->first_timestamp);
-        }
-      else
-        s->first_timestamp = 0;
-    
+      
       s->timescale = s->data.video.format.timescale;
       }
     
@@ -1062,10 +1050,10 @@ int bgav_demuxer_next_packet_fileindex(bgav_demuxer_context_t * ctx)
 
 int64_t bgav_audio_start_time(bgav_t * bgav, int stream)
   {
-  return bgav->tt->cur->audio_streams[stream].first_timestamp;
+  return bgav->tt->cur->audio_streams[stream].start_time;
   }
 
 int64_t bgav_video_start_time(bgav_t * bgav, int stream)
   {
-  return bgav->tt->cur->video_streams[stream].first_timestamp;
+  return bgav->tt->cur->video_streams[stream].start_time;
   }

@@ -39,7 +39,7 @@
 // #define DUMP_EXTRADATA
 
 static int init_real(bgav_stream_t * s);
-static int decode_real(bgav_stream_t * s, gavl_audio_frame_t * f, int num_samples);
+static int decode_frame_real(bgav_stream_t * s);
 static void close_real(bgav_stream_t * s);
 static void resync_real(bgav_stream_t * s);
 // static void skip_real(bgav_stream_t * s,int);
@@ -63,7 +63,7 @@ static codec_info_t real_codecs[] =
         .name =   "Real audio sipr DLL decoder",
         .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('s', 'i', 'p', 'r'), 0x00  },
         .init =   init_real,
-        .decode = decode_real,
+        .decode_frame = decode_frame_real,
         .close =  close_real,
         .resync = resync_real,
       },
@@ -77,7 +77,7 @@ static codec_info_t real_codecs[] =
         .name =   "Real audio cook DLL decoder",
         .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('c', 'o', 'o', 'k'), 0x00  },
         .init =   init_real,
-        .decode = decode_real,
+        .decode_frame = decode_frame_real,
         .close =  close_real,
         .resync = resync_real,
       },
@@ -92,7 +92,7 @@ static codec_info_t real_codecs[] =
         .fourccs =  (uint32_t[]){ BGAV_MK_FOURCC('a', 't', 'r', 'c'),
                                 0x00  },
         .init =   init_real,
-        .decode = decode_real,
+        .decode_frame = decode_frame_real,
         .close =  close_real,
         .resync = resync_real,
       },
@@ -172,14 +172,9 @@ typedef struct
   uint8_t * read_buffer_ptr;
   int read_buffer_alloc;
   int read_buffer_size;
-
-  //  int16_t * sample_buffer;
-  //  int16_t * sample_buffer_ptr;
-  //  int sample_buffer_size;
-
+  
   gavl_audio_frame_t * frame;
-  int last_frame_size;
-    } real_priv_t;
+  } real_priv_t;
 
 
 static int init_real(bgav_stream_t * s)
@@ -456,7 +451,7 @@ static int fill_buffer(bgav_stream_t * s)
   return 1;
   }
 
-static int decode_frame(bgav_stream_t * s)
+static int decode_frame_real(bgav_stream_t * s)
   {
   unsigned int len;
 
@@ -482,84 +477,11 @@ static int decode_frame(bgav_stream_t * s)
   priv->read_buffer_size -= s->data.audio.block_align;
   
   priv->frame->valid_samples = len / (2 * s->data.audio.format.num_channels);
-  priv->last_frame_size = priv->frame->valid_samples;
+
+  gavl_audio_frame_copy_ptrs(&s->data.audio.format, s->data.audio.frame, priv->frame);
+
   return 1;
   }
-
-static int decode_real(bgav_stream_t * s, gavl_audio_frame_t * f, int num_samples)
-  {
-  int samples_copied;
-  int samples_decoded = 0;
-  real_priv_t * priv;
-  priv = (real_priv_t*)(s->data.audio.decoder->priv);
-  
-  while(samples_decoded < num_samples)
-    {
-    if(!priv->frame->valid_samples)
-      {
-      if(!decode_frame(s))
-        {
-        if(f)
-          f->valid_samples = samples_decoded;
-        return samples_decoded;
-        }
-      }
-    samples_copied = gavl_audio_frame_copy(&(s->data.audio.format),
-                                           f,
-                                           priv->frame,
-                                           samples_decoded, /* out_pos */
-                                           priv->last_frame_size - priv->frame->valid_samples,  /* in_pos */
-                                           num_samples - samples_decoded, /* out_size, */
-                                           priv->frame->valid_samples /* in_size */);
-    priv->frame->valid_samples -= samples_copied;
-    samples_decoded += samples_copied;
-    }
-  if(f)
-    f->valid_samples = samples_decoded;
-  return samples_decoded;
-
-
-  }
-#if 0
-
-static void skip_real(bgav_stream_t * s, int num_samples)
-  {
-  real_priv_t * p = (real_priv_t*)s->data.audio.decoder->priv;
-  if(p->sample_buffer_size)
-    {
-    
-    }
-  }
-
-typedef struct
-  {
-  unsigned long (*raCloseCodec)(void*);
-  unsigned long (*raDecode)(void*, char*,unsigned long,char*,unsigned int*,long);
-  unsigned long (*raFlush)(unsigned long,unsigned long,unsigned long);
-  unsigned long (*raFreeDecoder)(void*);
-  void*         (*raGetFlavorProperty)(void*,unsigned long,unsigned long,int*);
-  //unsigned long (*raGetNumberOfFlavors2)(void);
-  unsigned long (*raInitDecoder)(void*, void*);
-  unsigned long (*raOpenCodec)(void*);
-  unsigned long (*raOpenCodec2)(void*, void*);
-  unsigned long (*raSetFlavor)(void*,unsigned long);
-  void  (*raSetDLLAccessPath)(char*);
-  void  (*raSetPwd)(char*,char*);
-
-  void * module;
-  void * real_handle;
-
-  uint8_t * read_buffer;
-  uint8_t * read_buffer_ptr;
-  int read_buffer_alloc;
-  int read_buffer_size;
-
-  int16_t * sample_buffer;
-  int16_t * sample_buffer_ptr;
-  int sample_buffer_size;
-  
-  } real_priv_t;
-#endif
 
 static void close_real(bgav_stream_t * s)
   {

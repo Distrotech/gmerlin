@@ -191,10 +191,8 @@ static int bgav_video_decode(bgav_stream_t * s,
     else
       frame->timecode = GAVL_TIMECODE_UNDEFINED;
     
-    if(s->demuxer->demux_mode == DEMUX_MODE_FI)
-      frame->timestamp += s->first_timestamp;
     }
-  fprintf(stderr, "Decode %ld %d\n", s->out_time, result);
+  //  fprintf(stderr, "Decode %ld %d\n", s->out_time, result);
   return result;
   }
 

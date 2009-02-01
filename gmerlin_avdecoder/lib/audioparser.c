@@ -41,8 +41,8 @@ parsers[] =
     { BGAV_WAVID_2_FOURCC(0x0055), bgav_audio_parser_init_mpeg },
     { BGAV_MK_FOURCC('.','m','p','3'), bgav_audio_parser_init_mpeg },
     { BGAV_WAVID_2_FOURCC(0x2000), bgav_audio_parser_init_a52 },
+    { BGAV_MK_FOURCC('.','a','c','3'), bgav_audio_parser_init_a52 },
   };
-
 
 bgav_audio_parser_t * bgav_audio_parser_create(uint32_t fourcc, int timescale,
                                                const bgav_options_t * opt)
@@ -100,10 +100,12 @@ static int check_output(bgav_audio_parser_t * parser)
 int bgav_audio_parser_parse(bgav_audio_parser_t * parser)
   {
   int result;
-
+  
   if(check_output(parser))
     return PARSER_HAVE_PACKET;
-  
+  else if(parser->eof)
+    return PARSER_EOF;
+    
   result = parser->parse(parser);
   switch(result)
     {
@@ -202,15 +204,17 @@ bgav_audio_parser_get_format(bgav_audio_parser_t * parser)
 
 void bgav_audio_parser_set_eof(bgav_audio_parser_t * parser)
   {
-  
+  fprintf(stderr, "Audio parser EOF\n");
+  parser->eof = 1;
+
+  /* Output the last packet */
+  if(parser->frame_bytes > parser->buf.size)
+    parser->frame_bytes = parser->buf.size;
   }
 
 void bgav_audio_parser_flush(bgav_audio_parser_t * parser, int bytes)
   {
   bgav_bytebuffer_remove(&parser->buf, bytes);
-  parser->pos -= bytes;
-  if(parser->pos < 0)
-    parser->pos = 0;
   if(parser->raw)
     parser->raw_position += bytes;
   else

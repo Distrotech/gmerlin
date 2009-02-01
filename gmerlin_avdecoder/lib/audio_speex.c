@@ -99,7 +99,7 @@ static int init_speex(bgav_stream_t * s)
   return 1;
   }
 
-static int decode_packet(bgav_stream_t * s)
+static int decode_frame_speex(bgav_stream_t * s)
   {
   int i;
   bgav_packet_t * p;
@@ -123,8 +123,7 @@ static int decode_packet(bgav_stream_t * s)
                           priv->frame_size, &(priv->stereo));
       }
     }
-  priv->frame->valid_samples = priv->frame_size * priv->header->frames_per_packet;
-
+  
   /* Speex output is scaled like int16_t */
   
   for(i = 0;
@@ -133,47 +132,14 @@ static int decode_packet(bgav_stream_t * s)
     {
     priv->frame->samples.f[i] /= 32768.0;
     }
-  
-
   bgav_demuxer_done_packet_read(s->demuxer, p);
+
+  priv->frame->valid_samples = priv->frame_size * priv->header->frames_per_packet;
+  gavl_audio_frame_copy_ptrs(&s->data.audio.format, s->data.audio.frame, priv->frame);
+  
   return 1;
   }
 
-static int decode_speex(bgav_stream_t * s,
-                        gavl_audio_frame_t * f, int num_samples)
-  {
-  speex_priv_t * priv;
-  int samples_copied;
-  int samples_decoded = 0;
-
-  priv = (speex_priv_t *)(s->data.audio.decoder->priv);
-  
-  while(samples_decoded < num_samples)
-    {
-    if(!priv->frame->valid_samples)
-      {
-      if(!decode_packet(s))
-        {
-        if(f)
-          f->valid_samples = samples_decoded;
-        return samples_decoded;
-        }
-      }
-    samples_copied = gavl_audio_frame_copy(&(s->data.audio.format),
-                                           f,
-                                           priv->frame,
-                                           samples_decoded, /* out_pos */
-                                           priv->frame_size * priv->header->frames_per_packet -
-                                           priv->frame->valid_samples,  /* in_pos */
-                                           num_samples - samples_decoded, /* out_size, */
-                                           priv->frame->valid_samples /* in_size */);
-    priv->frame->valid_samples -= samples_copied;
-    samples_decoded += samples_copied;
-    }
-  if(f)
-    f->valid_samples = samples_decoded;
-  return samples_decoded;
-  }
 
 static void close_speex(bgav_stream_t * s)
   {
@@ -195,7 +161,7 @@ static bgav_audio_decoder_t decoder =
     .name = "Speex decoder",
 
     .init =   init_speex,
-    .decode = decode_speex,
+    .decode_frame = decode_frame_speex,
     .close =  close_speex,
     //    .resync = resync_speex,
   };

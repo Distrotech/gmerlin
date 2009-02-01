@@ -27,9 +27,26 @@
 
 typedef struct
   {
-  int last_frame_samples;
   bgav_packet_t * p;
   } gavl_t;
+
+static int decode_frame_gavl(bgav_stream_t * s)
+  {
+  gavl_t * priv;
+  priv = (gavl_t*)(s->data.audio.decoder->priv);
+
+  if(priv->p)
+    {
+    bgav_demuxer_done_packet_read(s->demuxer, priv->p);
+    priv->p = (bgav_packet_t*)0;
+    }
+  priv->p = bgav_demuxer_get_packet_read(s->demuxer, s);
+  if(!priv->p || !priv->p->audio_frame)
+    return 0;
+  
+  gavl_audio_frame_copy_ptrs(&s->data.audio.format, s->data.audio.frame, priv->p->audio_frame);
+  return 1;
+  }
 
 static int init_gavl(bgav_stream_t * s)
   {
@@ -47,60 +64,9 @@ static int init_gavl(bgav_stream_t * s)
   priv->p = bgav_demuxer_get_packet_read(s->demuxer, s);
   if(!priv->p || !priv->p->audio_frame)
     return 0;
-  priv->last_frame_samples = priv->p->audio_frame->valid_samples;
-
 #endif
 
   return 1;
-  }
-
-static int decode_gavl(bgav_stream_t * s,
-                      gavl_audio_frame_t * frame,
-                      int num_samples)
-  {
-  gavl_t * priv;
-  int samples_decoded;
-  int samples_copied;
-  
-  priv = (gavl_t*)(s->data.audio.decoder->priv);
-  samples_decoded = 0;
-  while(samples_decoded <  num_samples)
-    {
-    /* Get new frame */
-    if(!priv->p)      
-      {
-      priv->p = bgav_demuxer_get_packet_read(s->demuxer, s);
-      
-      /* EOF */
-      
-      if(!priv->p || !priv->p->audio_frame)
-        {
-        break;
-        }
-      priv->last_frame_samples = priv->p->audio_frame->valid_samples;
-      }
-    
-    /* Decode */
-    samples_copied =
-      gavl_audio_frame_copy(&(s->data.audio.format),
-                            frame,       /* dst */
-                            priv->p->audio_frame, /* src */
-                            samples_decoded, /* int dst_pos */
-                            priv->last_frame_samples - priv->p->audio_frame->valid_samples, /* int src_pos */
-                            num_samples - samples_decoded, /* int dst_size, */
-                            priv->p->audio_frame->valid_samples /* int src_size*/ );
-    priv->p->audio_frame->valid_samples -= samples_copied;
-    samples_decoded += samples_copied;
-    
-    if(!priv->p->audio_frame->valid_samples)
-      {
-      bgav_demuxer_done_packet_read(s->demuxer, priv->p);
-      priv->p = (bgav_packet_t*)0;
-      }
-    }
-  if(frame)
-    frame->valid_samples = samples_decoded;
-  return samples_decoded;
   }
 
 static void close_gavl(bgav_stream_t * s)
@@ -115,8 +81,6 @@ static void resync_gavl(bgav_stream_t * s)
   {
   gavl_t * priv;
   priv = (gavl_t*)(s->data.audio.decoder->priv);
-  if(priv->p && priv->p->audio_frame)
-    priv->p->audio_frame->valid_samples = 0;
   priv->p = (bgav_packet_t*)0;
   }
 
@@ -128,7 +92,7 @@ static bgav_audio_decoder_t decoder =
     .init = init_gavl,
     .close = close_gavl,
     .resync = resync_gavl,
-    .decode = decode_gavl
+    .decode_frame = decode_frame_gavl
   };
 
 void bgav_init_audio_decoders_gavl()

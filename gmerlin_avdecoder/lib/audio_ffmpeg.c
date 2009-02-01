@@ -397,7 +397,6 @@ typedef struct
   codec_info_t * info;
   
   gavl_audio_frame_t * frame;
-  int last_frame_size;
   int frame_alloc;
   
   uint8_t * packet_buffer;
@@ -422,7 +421,7 @@ static codec_info_t * lookup_codec(bgav_stream_t * s)
   return (codec_info_t*)0;
   }
 
-static int decode_frame(bgav_stream_t * s)
+static int decode_frame_ffmpeg(bgav_stream_t * s)
   {
   int frame_size;
   int bytes_used;
@@ -554,9 +553,10 @@ static int decode_frame(bgav_stream_t * s)
     }
   
   frame_size /= (2 * s->data.audio.format.num_channels);
-  priv->last_frame_size = frame_size;
   priv->frame->valid_samples = frame_size;
-
+  
+  gavl_audio_frame_copy_ptrs(&s->data.audio.format, s->data.audio.frame, priv->frame);
+    
   return 1;
   }
 
@@ -631,46 +631,12 @@ static int init(bgav_stream_t * s)
     }
   else /* Let ffmpeg find out the format */
     {
-    if(!decode_frame(s))
+    if(!decode_frame_ffmpeg(s))
       return 0;
     }
     
   s->description = bgav_sprintf(priv->info->format_name);
   return 1;
-  }
-
-
-static int decode(bgav_stream_t * s, gavl_audio_frame_t * f, int num_samples)
-  {
-  ffmpeg_audio_priv * priv;
-  int samples_decoded = 0;
-  int samples_copied;
-  priv= (ffmpeg_audio_priv*)(s->data.audio.decoder->priv);
-
-  while(samples_decoded < num_samples)
-    {
-    if(!priv->frame->valid_samples)
-      {
-      if(!decode_frame(s))
-        {
-        if(f)
-          f->valid_samples = samples_decoded;
-        return samples_decoded;
-        }
-      }
-    samples_copied = gavl_audio_frame_copy(&(s->data.audio.format),
-                                           f,
-                                           priv->frame,
-                                           samples_decoded, /* out_pos */
-                                           priv->last_frame_size - priv->frame->valid_samples,  /* in_pos */
-                                           num_samples - samples_decoded, /* out_size, */
-                                           priv->frame->valid_samples /* in_size */);
-    priv->frame->valid_samples -= samples_copied;
-    samples_decoded += samples_copied;
-    }
-  if(f)
-    f->valid_samples = samples_decoded;
-  return samples_decoded;
   }
 
 static void resync_ffmpeg(bgav_stream_t * s)
@@ -725,7 +691,7 @@ bgav_init_audio_decoders_ffmpeg(bgav_options_t * opt)
       codecs[real_num_codecs].decoder.fourccs =
         codecs[real_num_codecs].info->fourccs;
       codecs[real_num_codecs].decoder.init = init;
-      codecs[real_num_codecs].decoder.decode = decode;
+      codecs[real_num_codecs].decoder.decode_frame = decode_frame_ffmpeg;
       codecs[real_num_codecs].decoder.close = close_ffmpeg;
       codecs[real_num_codecs].decoder.resync = resync_ffmpeg;
       bgav_audio_decoder_register(&codecs[real_num_codecs].decoder);

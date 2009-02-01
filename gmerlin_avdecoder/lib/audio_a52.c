@@ -193,7 +193,7 @@ static int init_a52(bgav_stream_t * s)
   return 1;
   }
 
-static int decode_frame(bgav_stream_t * s)
+static int decode_frame_a52(bgav_stream_t * s)
   {
   int flags;
   int sample_rate;
@@ -244,47 +244,11 @@ static int decode_frame(bgav_stream_t * s)
       }
     }
   done_data(s, priv->header.total_bytes);
-  
+
   priv->frame->valid_samples = FRAME_SAMPLES;
+  gavl_audio_frame_copy_ptrs(&s->data.audio.format, s->data.audio.frame, priv->frame);
+  
   return 1;
-  }
-
-static int decode_a52(bgav_stream_t * s,
-                      gavl_audio_frame_t * f, int num_samples)
-  {
-  int samples_decoded = 0;
-  int samples_copied;
-  a52_priv * priv;
-  priv = s->data.audio.decoder->priv;
-
-  while(samples_decoded < num_samples)
-    {
-    if(!priv->frame->valid_samples)
-      {
-      if(!decode_frame(s))
-        {
-        if(f)
-          f->valid_samples = samples_decoded;
-        return samples_decoded;
-        }
-      }
-    samples_copied =
-      gavl_audio_frame_copy(&(s->data.audio.format),
-                            f,
-                            priv->frame,
-                            samples_decoded, /* out_pos */
-                            FRAME_SAMPLES -
-                            priv->frame->valid_samples,  /* in_pos */
-                            num_samples - samples_decoded, /* out_size, */
-                            priv->frame->valid_samples /* in_size */);
-    priv->frame->valid_samples -= samples_copied;
-    samples_decoded += samples_copied;
-    }
-  if(f)
-    {
-    f->valid_samples = samples_decoded;
-    }
-  return samples_decoded;
   }
 
 static void close_a52(bgav_stream_t * s)
@@ -394,7 +358,7 @@ static bgav_audio_decoder_t decoder =
     .name = "liba52 based decoder",
 
     .init   = init_a52,
-    .decode = decode_a52,
+    .decode_frame = decode_frame_a52,
     .parse  = parse_a52,
     .close  = close_a52,
     .resync = resync_a52,

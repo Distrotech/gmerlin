@@ -255,7 +255,7 @@ static int init_dts(bgav_stream_t * s)
   return 1;
   }
 
-static int decode_block(bgav_stream_t * s)
+static int decode_frame_dts(bgav_stream_t * s)
   {
   int flags;
   int sample_rate;
@@ -305,47 +305,13 @@ static int decode_block(bgav_stream_t * s)
   priv->blocks_left--;
   if(!priv->blocks_left)
     done_data(s, priv->frame_length);
+
+  for(j = 0; j < s->data.audio.format.num_channels; j++)
+    s->data.audio.frame->channels.f[j] = priv->frame->channels.f[j];
   
   priv->frame->valid_samples = BLOCK_SAMPLES;
+  s->data.audio.frame->valid_samples = BLOCK_SAMPLES;
   return 1;
-  }
-
-static int decode_dts(bgav_stream_t * s,
-                      gavl_audio_frame_t * f, int num_samples)
-  {
-  int samples_decoded = 0;
-  int samples_copied;
-  dts_priv * priv;
-  priv = (dts_priv*)s->data.audio.decoder->priv;
-
-  while(samples_decoded < num_samples)
-    {
-    if(!priv->frame->valid_samples)
-      {
-      if(!decode_block(s))
-        {
-        if(f)
-          f->valid_samples = samples_decoded;
-        return samples_decoded;
-        }
-      }
-    samples_copied =
-      gavl_audio_frame_copy(&(s->data.audio.format),
-                            f,
-                            priv->frame,
-                            samples_decoded, /* out_pos */
-                            BLOCK_SAMPLES -
-                            priv->frame->valid_samples,  /* in_pos */
-                            num_samples - samples_decoded, /* out_size, */
-                            priv->frame->valid_samples /* in_size */);
-    priv->frame->valid_samples -= samples_copied;
-    samples_decoded += samples_copied;
-    }
-  if(f)
-    {
-    f->valid_samples = samples_decoded;
-    }
-  return samples_decoded;
   }
 
 static void close_dts(bgav_stream_t * s)
@@ -369,7 +335,7 @@ static bgav_audio_decoder_t decoder =
     .name = "libdca based decoder",
 
     .init =   init_dts,
-    .decode = decode_dts,
+    .decode_frame = decode_frame_dts,
     .close =  close_dts,
     .resync = resync_dts,
   };

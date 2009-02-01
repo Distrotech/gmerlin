@@ -44,8 +44,6 @@ typedef struct
   uint8_t * data_ptr;
   uint8_t * header_ptr;
   
-  int last_frame_samples;
-
   gavl_audio_frame_t * frame;
 
   void (*copy_samples)(gavl_audio_frame_t * f,
@@ -182,7 +180,6 @@ write_callback(const FLAC__StreamDecoder *decoder,
   priv->copy_samples(priv->frame, buffer, s->data.audio.format.num_channels,
                      priv->shift_bits);
   
-  priv->last_frame_samples = priv->frame->valid_samples;
   return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
   }
 
@@ -292,46 +289,26 @@ static int init_flac(bgav_stream_t * s)
   return 1;
   }
 
-static int decode_flac(bgav_stream_t * s,
-                       gavl_audio_frame_t * frame,
-                       int num_samples)
+static int decode_frame_flac(bgav_stream_t * s)
   {
-  int samples_decoded = 0;
-  int samples_copied;
   flac_priv_t * priv;
   priv = (flac_priv_t*)(s->data.audio.decoder->priv);
-  
-  while(samples_decoded <  num_samples)
-    {
-    /* Decode another frame */
-    while(!priv->frame->valid_samples)
-      {
-      FLAC__stream_decoder_process_single(priv->dec);
 
-      if(FLAC__stream_decoder_get_state(priv->dec) ==
-         FLAC__STREAM_DECODER_END_OF_STREAM)
-        {
-        if(frame)
-          frame->valid_samples = samples_decoded;
-        return samples_decoded;
-        }
-        
-      }
-    samples_copied =
-      gavl_audio_frame_copy(&(s->data.audio.format),
-                            frame,       /* dst */
-                            priv->frame, /* src */
-                            samples_decoded, /* int dst_pos */
-                            priv->last_frame_samples -
-                            priv->frame->valid_samples, /* int src_pos */
-                            num_samples - samples_decoded, /* int dst_size, */
-                            priv->frame->valid_samples /* int src_size*/ );
-    priv->frame->valid_samples -= samples_copied;
-    samples_decoded += samples_copied;
+  priv->frame->valid_samples = 0;
+  
+  /* Decode another frame */
+  while(1)
+    {
+    FLAC__stream_decoder_process_single(priv->dec);
+
+    if(FLAC__stream_decoder_get_state(priv->dec) ==
+       FLAC__STREAM_DECODER_END_OF_STREAM)
+      return 0;
+    if(priv->frame->valid_samples)
+      return 1;
     }
-  if(frame)
-    frame->valid_samples = samples_decoded;
-  return samples_decoded;
+  gavl_audio_frame_copy_ptrs(&s->data.audio.format, s->data.audio.frame, priv->frame);
+  return 0;
   }
 
 static void close_flac(bgav_stream_t * s)
@@ -364,7 +341,7 @@ static bgav_audio_decoder_t decoder =
     .init = init_flac,
     .close = close_flac,
     .resync = resync_flac,
-    .decode = decode_flac
+    .decode_frame = decode_frame_flac
   };
 
 void bgav_init_audio_decoders_flac()
