@@ -56,7 +56,7 @@ struct bg_transcoder_pp_s
   gavl_time_t last_time;
 
   char * output_directory;
-  int cleanup;
+  int cleanup_pp;
   int num_tracks;
   };
 
@@ -144,7 +144,7 @@ bg_transcoder_pp_set_parameter(void * data, const char * name,
 #endif
   else if(!strcmp(name, "cleanup_pp"))
     {
-    w->cleanup = val->val_i;
+    w->cleanup_pp = val->val_i;
     }
 
   }
@@ -239,7 +239,7 @@ static void * thread_func(void * data)
   bg_transcoder_pp_t * p;
   p = (bg_transcoder_pp_t *)data;
   if(p->num_tracks)
-    p->pp_plugin->run(p->plugin->priv, p->output_directory, p->cleanup);
+    p->pp_plugin->run(p->plugin->priv, p->output_directory, p->cleanup_pp);
   else
     bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Skipping postprocessing (no suitable files found)");
   bg_transcoder_send_msg_finished(p->msg_out);
