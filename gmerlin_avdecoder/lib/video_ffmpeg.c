@@ -678,14 +678,8 @@ static int init_ffmpeg(bgav_stream_t * s)
              "Could not get initial frame");
     return 0;
     }
-
-  get_format(priv->ctx, &s->data.video.format);
-
-  if(s->demuxer->demux_mode == DEMUX_MODE_FI)
-    {
-    s->data.video.format.timescale = s->timescale;
-    }
   
+  get_format(priv->ctx, &s->data.video.format);
   priv->need_format = 0;
     
 #ifdef HAVE_LIBPOSTPROC

@@ -159,7 +159,6 @@ void bgav_audio_parser_add_data(bgav_audio_parser_t * parser,
 void bgav_audio_parser_get_packet(bgav_audio_parser_t * parser,
                                   bgav_packet_t * p)
   {
-  
   bgav_packet_alloc(p, parser->frame_bytes);
   memcpy(p->data, parser->buf.buffer, parser->frame_bytes);
   p->data_size = parser->frame_bytes;
@@ -188,6 +187,9 @@ void bgav_audio_parser_get_packet(bgav_audio_parser_t * parser,
   p->valid = 1;
 
   //  fprintf(stderr, "Get packet %c %ld\n", c->coding_type, p->pts);
+
+  /* Clear frame bytes */
+  parser->frame_bytes = 0;
   
 #ifdef DUMP_OUTPUT
   bgav_dprintf("Get packet ");

@@ -49,6 +49,13 @@ static int64_t video_seek = 0;
 #define BGAV_FSEEK ftell
 #endif
 
+static void index_callback(void * data, float perc)
+  {
+  fprintf(stdout, "Building index %.2f %% completed\r",
+          perc * 100.0);
+  fflush(stdout);
+  }
+
 static int read_callback(void * priv, uint8_t * data, int len)
   {
   FILE * f = (FILE*)priv;
@@ -181,6 +188,7 @@ int main(int argc, char ** argv)
     if(!strcmp(argv[arg_index], "-s"))
       {
       sample_accurate = 1;
+      bgav_options_set_index_callback(opt, index_callback, NULL);
       arg_index++;
       }
     else if(!strcmp(argv[arg_index], "-aseek"))
@@ -371,7 +379,7 @@ int main(int argc, char ** argv)
         if(bgav_read_video(file, vf, i))
           {
           fprintf(stderr, "Done, timestamp: %"PRId64", Duration: %"PRId64", Timecode: ",
-                  vf->timestamp - start_time, vf->duration);
+                  vf->timestamp, vf->duration);
           if(vf->timecode != GAVL_TIMECODE_UNDEFINED)
             gavl_timecode_dump(&video_format->timecode_format,
                                vf->timecode);

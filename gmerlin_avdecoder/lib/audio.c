@@ -52,7 +52,6 @@ int bgav_audio_start(bgav_stream_t * s)
   {
   bgav_audio_decoder_t * dec;
   bgav_audio_decoder_context_t * ctx;
-  char tmp_string[128];
 
   if(s->flags & STREAM_PARSE_FULL)
     {
@@ -112,6 +111,7 @@ int bgav_audio_start(bgav_stream_t * s)
   if(s->flags & STREAM_START_TIME)
     {
     bgav_packet_t * p;
+    char tmp_string[128];
     p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
     if(!p)
       {
@@ -125,36 +125,39 @@ int bgav_audio_start(bgav_stream_t * s)
     bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Got initial audio timestamp: %s",
              tmp_string);
     }
-  
-  dec = bgav_find_audio_decoder(s);
-  if(!dec)
-    {
-    if(!(s->fourcc & 0xffff0000))
-      bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-               "No audio decoder found for WAV ID 0x%04x", s->fourcc);
-    else
-      bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-               "No audio decoder found for fourcc %c%c%c%c (0x%08x)",
-               (s->fourcc & 0xFF000000) >> 24,
-               (s->fourcc & 0x00FF0000) >> 16,
-               (s->fourcc & 0x0000FF00) >> 8,
-               (s->fourcc & 0x000000FF),
-               s->fourcc);
-    return 0;
-    }
-  ctx = calloc(1, sizeof(*ctx));
-  s->data.audio.decoder = ctx;
-  s->data.audio.decoder->decoder = dec;
-  s->data.audio.frame = gavl_audio_frame_create(NULL);
-  
+
   if(!s->timescale && s->data.audio.format.samplerate)
     s->timescale = s->data.audio.format.samplerate;
   
-  if(!dec->init(s))
-    return 0;
+  if(s->action == BGAV_STREAM_DECODE)
+    {
+    dec = bgav_find_audio_decoder(s);
+    if(!dec)
+      {
+      if(!(s->fourcc & 0xffff0000))
+        bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                 "No audio decoder found for WAV ID 0x%04x", s->fourcc);
+      else
+        bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                 "No audio decoder found for fourcc %c%c%c%c (0x%08x)",
+                 (s->fourcc & 0xFF000000) >> 24,
+                 (s->fourcc & 0x00FF0000) >> 16,
+                 (s->fourcc & 0x0000FF00) >> 8,
+                 (s->fourcc & 0x000000FF),
+                 s->fourcc);
+      return 0;
+      }
+    ctx = calloc(1, sizeof(*ctx));
+    s->data.audio.decoder = ctx;
+    s->data.audio.decoder->decoder = dec;
+    s->data.audio.frame = gavl_audio_frame_create(NULL);
+    
+    if(!dec->init(s))
+      return 0;
 
-  if(!s->timescale)
-    s->timescale = s->data.audio.format.samplerate;
+    if(!s->timescale)
+      s->timescale = s->data.audio.format.samplerate;
+    }
   
   return 1;
   }

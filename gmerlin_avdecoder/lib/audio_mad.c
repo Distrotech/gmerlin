@@ -49,7 +49,7 @@ typedef struct
   gavl_audio_frame_t * audio_frame;
   
   int do_init;
-  int64_t last_position;
+  
   int eof; /* For decoding the very last frame */
   
   int partial; /* Partial frame is left in the buffer.
@@ -255,11 +255,6 @@ static int init_mad(bgav_stream_t * s)
   priv = calloc(1, sizeof(*priv));
   s->data.audio.decoder->priv = priv;
 
-  if(s->action == BGAV_STREAM_PARSE)
-    {
-    priv->last_position = -1;
-    return 1;
-    }
   mad_frame_init(&priv->frame);
   mad_synth_init(&priv->synth);
   mad_stream_init(&priv->stream);
@@ -276,83 +271,6 @@ static int init_mad(bgav_stream_t * s)
   priv->do_init = 0;
   
   return 1;
-  }
-
-static void parse_mad(bgav_stream_t * s)
-  {
-  bgav_packet_t * p;
-  mad_priv_t * priv;
-  uint8_t * ptr;
-  bgav_mpa_header_t h;
-  int old_buffer_size;
-  int size_needed;
-  priv = s->data.audio.decoder->priv;
-  
-  while(bgav_demuxer_peek_packet_read(s->demuxer, s, 0))
-    {
-    /* Get the packet and append data to the buffer */
-    p = bgav_demuxer_get_packet_read(s->demuxer, s);
-
-    old_buffer_size = priv->buffer_size;
-
-    if(priv->buffer_size < 0)
-      size_needed = priv->buffer_size;
-    else
-      size_needed = priv->buffer_size + p->data_size;
-        
-    if(priv->buffer_alloc < priv->buffer_size + p->data_size)
-      {
-      priv->buffer_alloc = priv->buffer_size + p->data_size + 1024;
-      priv->buffer = realloc(priv->buffer, priv->buffer_alloc);
-      }
-
-    if(old_buffer_size < 0)
-      {
-      memcpy(priv->buffer, p->data, p->data_size);
-      priv->buffer_size += p->data_size;
-      
-      ptr = priv->buffer - old_buffer_size;
-      }
-    else
-      {
-      memcpy(priv->buffer + priv->buffer_size, p->data, p->data_size);
-      priv->buffer_size += p->data_size;
-      
-      ptr = priv->buffer;
-      }
-    while(priv->buffer_size >= HEADER_SIZE)
-      {
-      if(bgav_mpa_header_decode(&h, ptr))
-        {
-        s->data.audio.format.samplerate = h.samplerate;
-        /* If frame starts in the previous packet,
-           use the previous index */
-        if(ptr - priv->buffer < old_buffer_size)
-          bgav_file_index_append_packet(s->file_index,
-                                        priv->last_position,
-                                        s->duration,
-                                        PACKET_FLAG_KEY);
-        else
-          bgav_file_index_append_packet(s->file_index,
-                                        p->position,
-                                        s->duration,
-                                        PACKET_FLAG_KEY);
-      
-        s->duration += h.samples_per_frame;
-        ptr += h.frame_bytes;
-        priv->buffer_size -= h.frame_bytes;
-        }
-      else
-        {
-        ptr++;
-        priv->buffer_size--;
-        }
-      }
-    if(priv->buffer_size > 0)
-      memmove(priv->buffer, ptr, priv->buffer_size);
-    priv->last_position = p->position;
-    bgav_demuxer_done_packet_read(s->demuxer, p);
-    }
   }
 
 static void resync_mad(bgav_stream_t * s)
@@ -400,7 +318,6 @@ static bgav_audio_decoder_t decoder =
     .close        = close_mad,
     .resync       = resync_mad,
     .decode_frame = decode_frame_mad,
-    .parse        = parse_mad,
   };
 
 void bgav_init_audio_decoders_mad()

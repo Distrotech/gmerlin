@@ -118,37 +118,55 @@ int bgav_video_start(bgav_stream_t * s)
     s->parsed_packet = bgav_packet_create();
     s->index_mode = INDEX_MODE_SIMPLE;
     }
-  
-  dec = bgav_find_video_decoder(s);
-  if(!dec)
+
+  if(s->flags & STREAM_START_TIME)
     {
-    bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
-             "No video decoder found for fourcc %c%c%c%c (0x%08x)",
-             (s->fourcc & 0xFF000000) >> 24,
-             (s->fourcc & 0x00FF0000) >> 16,
-             (s->fourcc & 0x0000FF00) >> 8,
-             (s->fourcc & 0x000000FF),
-             s->fourcc);
-    return 0;
+    bgav_packet_t * p;
+    char tmp_string[128];
+    p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
+    if(!p)
+      {
+      bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+               "EOF while getting start time");
+      }
+    s->start_time = p->pts;
+    s->out_time = s->start_time;
+
+    sprintf(tmp_string, "%" PRId64, s->out_time);
+    bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Got initial video timestamp: %s",
+             tmp_string);
     }
-  ctx = calloc(1, sizeof(*ctx));
-  s->data.video.decoder = ctx;
-  s->data.video.decoder->decoder = dec;
-  
-  s->out_time = 0;
+
+  if(!s->timescale && s->data.video.format.timescale)
+    s->timescale = s->data.video.format.timescale;
+
   s->in_position = 0;
   s->in_time = 0;
-
-  if(!s->timescale)
+  
+  if(s->action == BGAV_STREAM_DECODE)
     {
-    s->timescale = s->data.video.format.timescale;
+    dec = bgav_find_video_decoder(s);
+    if(!dec)
+      {
+      bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+               "No video decoder found for fourcc %c%c%c%c (0x%08x)",
+               (s->fourcc & 0xFF000000) >> 24,
+               (s->fourcc & 0x00FF0000) >> 16,
+               (s->fourcc & 0x0000FF00) >> 8,
+               (s->fourcc & 0x000000FF),
+               s->fourcc);
+      return 0;
+      }
+    ctx = calloc(1, sizeof(*ctx));
+    s->data.video.decoder = ctx;
+    s->data.video.decoder->decoder = dec;
+
+    result = dec->init(s);
+    if(!result)
+      return 0;
     }
   
-  result = dec->init(s);
-  if(!result)
-    return 0;
-  
-  return result;
+  return 1;
   }
 
 const char * bgav_get_video_description(bgav_t * b, int s)

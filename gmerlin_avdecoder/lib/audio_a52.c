@@ -50,10 +50,6 @@ typedef struct
   uint8_t       * packet_ptr;
   gavl_audio_frame_t * frame;
 
-  /* For parsing only */
-  int64_t last_position;
-  int buffer_size;
-  int buffer_alloc;
   
   } a52_priv;
 
@@ -161,14 +157,7 @@ static int init_a52(bgav_stream_t * s)
   priv = calloc(1, sizeof(*priv));
   priv->buffer = calloc(MAX_FRAME_SIZE, 1);
   s->data.audio.decoder->priv = priv;
-
-  if(s->action == BGAV_STREAM_PARSE)
-    {
-    priv->last_position = -1;
-    return 1;
-    }
-
-
+  
   if(!do_resync(s))
     {
     return 0;
@@ -264,89 +253,6 @@ static void close_a52(bgav_stream_t * s)
     a52_free(priv->state);
   free(priv);
   }
-#if 1
-static void parse_a52(bgav_stream_t * s)
-  {
-  bgav_packet_t * p;
-  uint8_t * ptr;
-  int old_buffer_size;
-  int size_needed;
-
-  a52_priv * priv;
-  priv = s->data.audio.decoder->priv;
-  
-  while(bgav_demuxer_peek_packet_read(s->demuxer, s, 0))
-    {
-    /* Get the packet and append data to the buffer */
-    p = bgav_demuxer_get_packet_read(s->demuxer, s);
-
-    
-    old_buffer_size = priv->buffer_size;
-
-    if(priv->buffer_size < 0)
-      size_needed = priv->buffer_size;
-    else
-      size_needed = priv->buffer_size + p->data_size;
-        
-    if(priv->buffer_alloc < priv->buffer_size + p->data_size)
-      {
-      priv->buffer_alloc = priv->buffer_size + p->data_size + 1024;
-      priv->buffer = realloc(priv->buffer, priv->buffer_alloc);
-      }
-
-    if(old_buffer_size < 0)
-      {
-      memcpy(priv->buffer, p->data, p->data_size);
-      priv->buffer_size += p->data_size;
-      
-      ptr = priv->buffer - old_buffer_size;
-      }
-    else
-      {
-      memcpy(priv->buffer + priv->buffer_size, p->data, p->data_size);
-      priv->buffer_size += p->data_size;
-      
-      ptr = priv->buffer;
-      }
-    
-    while(priv->buffer_size >= BGAV_A52_HEADER_BYTES)
-      {
-      if(!bgav_a52_header_read(&(priv->header), ptr))
-        {
-        bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-                 "Lost sync during parsing");
-        return;
-        }
-      s->data.audio.format.samplerate = priv->header.samplerate;
-      
-      /* If frame starts in the previous packet,
-         use the previous index */
-      if(ptr - priv->buffer < old_buffer_size)
-        {
-        bgav_file_index_append_packet(s->file_index,
-                                      priv->last_position,
-                                      s->duration,
-                                      PACKET_FLAG_KEY);
-        }
-      else
-        {
-        bgav_file_index_append_packet(s->file_index,
-                                      p->position,
-                                      s->duration,
-                                      PACKET_FLAG_KEY);
-        }
-      s->duration += FRAME_SAMPLES;
-      ptr += priv->header.total_bytes;
-      priv->buffer_size -= priv->header.total_bytes;
-      }
-    if(priv->buffer_size > 0)
-      memmove(priv->buffer, ptr, priv->buffer_size);
-    priv->last_position = p->position;
-    bgav_demuxer_done_packet_read(s->demuxer, p);
-    }
-  
-  }
-#endif
 
 static bgav_audio_decoder_t decoder =
   {
@@ -359,7 +265,6 @@ static bgav_audio_decoder_t decoder =
 
     .init   = init_a52,
     .decode_frame = decode_frame_a52,
-    .parse  = parse_a52,
     .close  = close_a52,
     .resync = resync_a52,
   };

@@ -1319,6 +1319,14 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
   return 0;
   }
 
+static void resync_mpegts(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
+  {
+  stream_priv_t * priv;
+  priv = (stream_priv_t*)(s->priv);
+  priv->last_pts = BGAV_TIMESTAMP_UNDEFINED;
+  priv->pts_offset = 0;
+  }
+
 static void seek_mpegts(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   {
   int64_t total_packets;
@@ -1393,6 +1401,8 @@ static int select_track_mpegts(bgav_demuxer_context_t * ctx,
     }
   else
     ctx->flags &= ~BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET;
+
+  reset_streams_priv(ctx->tt->cur);
   
   if(ctx->input->input->seek_byte)
     {
@@ -1411,6 +1421,7 @@ const bgav_demuxer_t bgav_demuxer_mpegts =
     .open =         open_mpegts,
     .next_packet =  next_packet_mpegts,
     .seek =         seek_mpegts,
+    .resync =       resync_mpegts,
     .close =        close_mpegts,
     .select_track = select_track_mpegts
   };

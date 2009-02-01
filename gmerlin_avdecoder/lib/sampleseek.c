@@ -155,7 +155,7 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
     }
   if((time > s->out_time) && (bgav_video_keyframe_after(bgav, stream, s->out_time) > time))
     {
-    bgav_video_skipto(s, &time, s->timescale);
+    bgav_video_skipto(s, &time, s->data.video.format.timescale);
     return;
     }
 
@@ -193,7 +193,7 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
 
   bgav_stream_resync_decoder(s);
 
-  bgav_video_skipto(s, &time, s->timescale);
+  bgav_video_skipto(s, &time, s->data.video.format.timescale);
   }
 
 int64_t bgav_video_keyframe_before(bgav_t * bgav, int stream, int64_t time)
