@@ -30,7 +30,7 @@
 #include "colorspace_macros.h"
 
 /* Sum of absolute differences */
-static int sad_rgb15_c(uint8_t * src_1, uint8_t * src_2, 
+static int sad_rgb15_c(const uint8_t * src_1, const uint8_t * src_2, 
                        int stride_1, int stride_2, 
                        int w, int h)
   {
@@ -56,7 +56,7 @@ static int sad_rgb15_c(uint8_t * src_1, uint8_t * src_2,
   return ret;
   }
 
-static int sad_rgb16_c(uint8_t * src_1, uint8_t * src_2, 
+static int sad_rgb16_c(const uint8_t * src_1, const uint8_t * src_2, 
                    int stride_1, int stride_2, 
                    int w, int h)
   {
@@ -82,12 +82,12 @@ static int sad_rgb16_c(uint8_t * src_1, uint8_t * src_2,
   return ret;
   }
 
-static int sad_8_c(uint8_t * src_1, uint8_t * src_2, 
+static int sad_8_c(const uint8_t * src_1, const uint8_t * src_2, 
                    int stride_1, int stride_2, 
                    int w, int h)
   {
   int ret = 0, i, j;
-  uint8_t * s1, *s2;
+  const uint8_t * s1, *s2;
   for(i = 0; i < h; i++)
     {
     s1 = src_1;
@@ -105,16 +105,16 @@ static int sad_8_c(uint8_t * src_1, uint8_t * src_2,
   return ret;
   }
 
-static int sad_16_c(uint8_t * src_1, uint8_t * src_2, 
+static int sad_16_c(const uint8_t * src_1, const uint8_t * src_2, 
                     int stride_1, int stride_2, 
                     int w, int h)
   {
   int ret = 0, i, j;
-  uint16_t * s1, *s2;
+  const uint16_t * s1, *s2;
   for(i = 0; i < h; i++)
     {
-    s1 = (uint16_t*)src_1;
-    s2 = (uint16_t*)src_2;
+    s1 = (const uint16_t*)src_1;
+    s2 = (const uint16_t*)src_2;
 
     for(j = 0; j < w; j++)
       {
@@ -128,17 +128,17 @@ static int sad_16_c(uint8_t * src_1, uint8_t * src_2,
   return ret;
   }
 
-static float sad_f_c(uint8_t * src_1, uint8_t * src_2, 
+static float sad_f_c(const uint8_t * src_1, const uint8_t * src_2, 
                      int stride_1, int stride_2, 
                      int w, int h)
   {
   float ret = 0.0;
   int i, j;
-  float * s1, *s2;
+  const float * s1, *s2;
   for(i = 0; i < h; i++)
     {
-    s1 = (float*)src_1;
-    s2 = (float*)src_2;
+    s1 = (const float*)src_1;
+    s2 = (const float*)src_2;
 
     for(j = 0; j < w; j++)
       {
@@ -153,14 +153,15 @@ static float sad_f_c(uint8_t * src_1, uint8_t * src_2,
   }
 
 /* Averaging */
-static void average_rgb15_c(uint8_t * src_1, uint8_t * src_2, 
+static void average_rgb15_c(const uint8_t * src_1, const uint8_t * src_2, 
                         uint8_t * dst, int num)
   {
   int i;
-  uint16_t * s1, *s2, *d;
+  const uint16_t * s1, *s2;
+  uint16_t *d;
 
-  s1 = (uint16_t*)src_1;
-  s2 = (uint16_t*)src_2;
+  s1 = (const uint16_t*)src_1;
+  s2 = (const uint16_t*)src_2;
   d = (uint16_t*)dst;
 
   for(i = 0; i < num; i++)
@@ -181,14 +182,15 @@ static void average_rgb15_c(uint8_t * src_1, uint8_t * src_2,
   
   }
 
-static void average_rgb16_c(uint8_t * src_1, uint8_t * src_2, 
+static void average_rgb16_c(const uint8_t * src_1, const uint8_t * src_2, 
                         uint8_t * dst, int num)
   {
   int i;
-  uint16_t * s1, *s2, *d;
+  const uint16_t * s1, *s2;
+  uint16_t *d;
 
-  s1 = (uint16_t*)src_1;
-  s2 = (uint16_t*)src_2;
+  s1 = (const uint16_t*)src_1;
+  s2 = (const uint16_t*)src_2;
   d = (uint16_t*)dst;
 
   for(i = 0; i < num; i++)
@@ -209,32 +211,33 @@ static void average_rgb16_c(uint8_t * src_1, uint8_t * src_2,
   
   }
 
-static void average_8_c(uint8_t * src_1, uint8_t * src_2, 
+static void average_8_c(const uint8_t * src_1, const uint8_t * src_2, 
                     uint8_t * dst, int num)
   {
   int i;
   for(i = 0; i < num; i++)
     {
-    *dst = (*src_1 + *src_2) >> 1;
+    *dst = (*src_1 + *src_2 + 1) >> 1;
     src_1++;
     src_2++;
     dst++;
     }
   }
 
-static void average_16_c(uint8_t * src_1, uint8_t * src_2, 
+static void average_16_c(const uint8_t * src_1, const uint8_t * src_2, 
                      uint8_t * dst, int num)
   {
   int i;
-  uint16_t * s1, *s2, *d;
+  const uint16_t * s1, *s2;
+  uint16_t *d;
 
-  s1 = (uint16_t*)src_1;
-  s2 = (uint16_t*)src_2;
+  s1 = (const uint16_t*)src_1;
+  s2 = (const uint16_t*)src_2;
   d = (uint16_t*)dst;
 
   for(i = 0; i < num; i++)
     {
-    *d = (*s1 + *s2) >> 1;
+    *d = (*s1 + *s2 + 1) >> 1;
     s1++;
     s2++;
     d++;
@@ -242,14 +245,15 @@ static void average_16_c(uint8_t * src_1, uint8_t * src_2,
 
   }
 
-static void average_f_c(uint8_t * src_1, uint8_t * src_2, 
+static void average_f_c(const uint8_t * src_1, const uint8_t * src_2, 
                         uint8_t * dst, int num)
   {
   int i;
-  float * s1, *s2, *d;
+  const float * s1, *s2;
+  float *d;
 
-  s1 = (float*)src_1;
-  s2 = (float*)src_2;
+  s1 = (const float*)src_1;
+  s2 = (const float*)src_2;
   d = (float*)dst;
 
   for(i = 0; i < num; i++)
@@ -266,16 +270,17 @@ static void average_f_c(uint8_t * src_1, uint8_t * src_2,
 
 /* Interpolating */
 
-static void interpolate_rgb15_c(uint8_t * src_1, uint8_t * src_2, 
+static void interpolate_rgb15_c(const uint8_t * src_1, const uint8_t * src_2, 
                             uint8_t * dst, int num, float fac)
   {
   int i;
-  uint16_t * s1, *s2, *d;
+  const uint16_t * s1, *s2;
+  uint16_t *d;
   int fac_i = (int)(fac * 0x10000 + 0.5);
   int anti_fac = 0x10000 - fac_i;
   
-  s1 = (uint16_t*)src_1;
-  s2 = (uint16_t*)src_2;
+  s1 = (const uint16_t*)src_1;
+  s2 = (const uint16_t*)src_2;
   d = (uint16_t*)dst;
 
   for(i = 0; i < num; i++)
@@ -296,16 +301,17 @@ static void interpolate_rgb15_c(uint8_t * src_1, uint8_t * src_2,
   
   }
 
-static void interpolate_rgb16_c(uint8_t * src_1, uint8_t * src_2, 
+static void interpolate_rgb16_c(const uint8_t * src_1, const uint8_t * src_2, 
                         uint8_t * dst, int num, float fac)
   {
   int i;
-  uint16_t * s1, *s2, *d;
+  const uint16_t * s1, *s2;
+  uint16_t *d;
   int fac_i = (int)(fac * 0x10000 + 0.5);
   int anti_fac = 0x10000 - fac_i;
 
-  s1 = (uint16_t*)src_1;
-  s2 = (uint16_t*)src_2;
+  s1 = (const uint16_t*)src_1;
+  s2 = (const uint16_t*)src_2;
   d = (uint16_t*)dst;
 
   for(i = 0; i < num; i++)
@@ -326,7 +332,7 @@ static void interpolate_rgb16_c(uint8_t * src_1, uint8_t * src_2,
   
   }
 
-static void interpolate_8_c(uint8_t * src_1, uint8_t * src_2, 
+static void interpolate_8_c(const uint8_t * src_1, const uint8_t * src_2, 
                     uint8_t * dst, int num, float fac)
   {
   int i;
@@ -341,16 +347,17 @@ static void interpolate_8_c(uint8_t * src_1, uint8_t * src_2,
     }
   }
 
-static void interpolate_16_c(uint8_t * src_1, uint8_t * src_2, 
+static void interpolate_16_c(const uint8_t * src_1, const uint8_t * src_2, 
                              uint8_t * dst, int num, float fac)
   {
   int i;
-  uint16_t * s1, *s2, *d;
+  const uint16_t * s1, *s2;
+  uint16_t *d;
   int fac_i = (int)(fac * 0x8000 + 0.5);
   int anti_fac = 0x8000 - fac_i;
 
-  s1 = (uint16_t*)src_1;
-  s2 = (uint16_t*)src_2;
+  s1 = (const uint16_t*)src_1;
+  s2 = (const uint16_t*)src_2;
   d = (uint16_t*)dst;
 
   for(i = 0; i < num; i++)
@@ -363,14 +370,15 @@ static void interpolate_16_c(uint8_t * src_1, uint8_t * src_2,
 
   }
 
-static void interpolate_f_c(uint8_t * src_1, uint8_t * src_2, 
+static void interpolate_f_c(const uint8_t * src_1, const uint8_t * src_2, 
                             uint8_t * dst, int num, float fac)
   {
   int i;
-  float * s1, *s2, *d;
+  const float * s1, *s2;
+  float *d;
   float anti_fac = 1.0 - fac;
-  s1 = (float*)src_1;
-  s2 = (float*)src_2;
+  s1 = (const float*)src_1;
+  s2 = (const float*)src_2;
   d = (float*)dst;
 
   for(i = 0; i < num; i++)

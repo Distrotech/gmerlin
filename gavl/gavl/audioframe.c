@@ -128,6 +128,19 @@ gavl_audio_frame_create(const gavl_audio_format_t * format)
   return ret;
   }
 
+void gavl_audio_frame_copy_ptrs(const gavl_audio_format_t * format,
+                                gavl_audio_frame_t * dst,
+                                const gavl_audio_frame_t * src)
+  {
+  int i;
+  dst->samples.s_8 = src->samples.s_8;
+  for(i = 0; i < format->num_channels; i++)
+    dst->channels.s_8[i] = src->channels.s_8[i];
+  dst->timestamp = src->timestamp;
+  dst->valid_samples = src->valid_samples;
+  }
+
+
 void gavl_audio_frame_destroy(gavl_audio_frame_t * frame)
   {
   if(frame->samples.s_8)

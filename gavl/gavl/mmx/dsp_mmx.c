@@ -42,7 +42,7 @@ static mmx_t mm_tmp;
 
 
 
-static void interpolate_8_mmx(uint8_t * src_1, uint8_t * src_2, 
+static void interpolate_8_mmx(const uint8_t * src_1, const uint8_t * src_2, 
                               uint8_t * dst, int num, float fac)
   {
   int i, imax;

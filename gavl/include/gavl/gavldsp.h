@@ -65,7 +65,7 @@ typedef struct
    *  differences are calculated.
    */
   
-  int (*sad_rgb15)(uint8_t * src_1, uint8_t * src_2, 
+  int (*sad_rgb15)(const uint8_t * src_1, const uint8_t * src_2, 
                    int stride_1, int stride_2, 
                    int w, int h);
 
@@ -82,7 +82,7 @@ typedef struct
    *  differences are calculated.
    */
 
-  int (*sad_rgb16)(uint8_t * src_1, uint8_t * src_2, 
+  int (*sad_rgb16)(const uint8_t * src_1, const uint8_t * src_2, 
                    int stride_1, int stride_2, 
                    int w, int h);
 
@@ -96,7 +96,7 @@ typedef struct
    *  \returns The sum of absolute differences
    */
 
-  int (*sad_8)(uint8_t * src_1, uint8_t * src_2, 
+  int (*sad_8)(const uint8_t * src_1, const uint8_t * src_2, 
                int stride_1, int stride_2, 
                int w, int h);
 
@@ -110,7 +110,7 @@ typedef struct
    *  \returns The sum of absolute differences
    */
 
-  int (*sad_16)(uint8_t * src_1, uint8_t * src_2, 
+  int (*sad_16)(const uint8_t * src_1, const uint8_t * src_2, 
                int stride_1, int stride_2, 
                int w, int h);
 
@@ -123,7 +123,7 @@ typedef struct
    *  \param h Height
    *  \returns The sum of absolute differences
    */
-  float (*sad_f)(uint8_t * src_1, uint8_t * src_2, 
+  float (*sad_f)(const uint8_t * src_1, const uint8_t * src_2, 
                  int stride_1, int stride_2, 
                  int w, int h);
 
@@ -134,7 +134,7 @@ typedef struct
    *  \param num Number of pixels
    */
   
-  void (*average_rgb15)(uint8_t * src_1, uint8_t * src_2, 
+  void (*average_rgb15)(const uint8_t * src_1, const uint8_t * src_2, 
                         uint8_t * dst, int num);
 
   /** \brief Average 2 scanlines (RGB/BGR16)
@@ -143,7 +143,7 @@ typedef struct
    *  \param dst Destination
    *  \param num Number of pixels
    */
-  void (*average_rgb16)(uint8_t * src_1, uint8_t * src_2, 
+  void (*average_rgb16)(const uint8_t * src_1, const uint8_t * src_2, 
                         uint8_t * dst, int num);
 
   /** \brief Average 2 scanlines (8 bit)
@@ -152,7 +152,7 @@ typedef struct
    *  \param dst Destination
    *  \param num Number of bytes
    */
-  void (*average_8)(uint8_t * src_1, uint8_t * src_2, 
+  void (*average_8)(const uint8_t * src_1, const uint8_t * src_2, 
                     uint8_t * dst, int num);
 
   /** \brief Average 2 scanlines (16 bit)
@@ -161,7 +161,7 @@ typedef struct
    *  \param dst Destination
    *  \param num Number of shorts
    */
-  void (*average_16)(uint8_t * src_1, uint8_t * src_2, 
+  void (*average_16)(const uint8_t * src_1, const uint8_t * src_2, 
                      uint8_t * dst, int num);
 
   /** \brief Average 2 scanlines (float)
@@ -171,7 +171,7 @@ typedef struct
    *  \param num Number of floats
    */
   
-  void (*average_f)(uint8_t * src_1, uint8_t * src_2, 
+  void (*average_f)(const uint8_t * src_1, const uint8_t * src_2, 
                     uint8_t * dst, int num);
 
 
@@ -185,7 +185,7 @@ typedef struct
    *  Sets the destination to src_1 * fac + src_2 * (1.0-fac)
    */
   
-  void (*interpolate_rgb15)(uint8_t * src_1, uint8_t * src_2, 
+  void (*interpolate_rgb15)(const uint8_t * src_1, const uint8_t * src_2, 
                             uint8_t * dst, int num, float);
 
   /** \brief Interpolate 2 scanlines (RGB/BGR16)
@@ -197,7 +197,7 @@ typedef struct
    *
    *  Sets the destination to src_1 * fac + src_2 * (1.0-fac)
    */
-  void (*interpolate_rgb16)(uint8_t * src_1, uint8_t * src_2, 
+  void (*interpolate_rgb16)(const uint8_t * src_1, const uint8_t * src_2, 
                             uint8_t * dst, int num, float fac);
 
   /** \brief Interpolate 2 scanlines (8 bit)
@@ -209,7 +209,7 @@ typedef struct
    *
    *  Sets the destination to src_1 * fac + src_2 * (1.0-fac)
    */
-  void (*interpolate_8)(uint8_t * src_1, uint8_t * src_2, 
+  void (*interpolate_8)(const uint8_t * src_1, const uint8_t * src_2, 
                         uint8_t * dst, int num, float fac);
 
   /** \brief Interpolate 2 scanlines (16 bit)
@@ -221,7 +221,7 @@ typedef struct
    *
    *  Sets the destination to src_1 * fac + src_2 * (1.0-fac)
    */
-  void (*interpolate_16)(uint8_t * src_1, uint8_t * src_2, 
+  void (*interpolate_16)(const uint8_t * src_1, const uint8_t * src_2, 
                          uint8_t * dst, int num, float fac);
 
   /** \brief Interpolate 2 scanlines (float)
@@ -234,7 +234,7 @@ typedef struct
    *  Sets the destination to src_1 * fac + src_2 * (1.0-fac)
    */
   
-  void (*interpolate_f)(uint8_t * src_1, uint8_t * src_2, 
+  void (*interpolate_f)(const uint8_t * src_1, const uint8_t * src_2, 
                         uint8_t * dst, int num, float fac);
 
   /** \brief Do 16 bit endian swapping

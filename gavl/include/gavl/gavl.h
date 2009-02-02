@@ -610,6 +610,23 @@ int gavl_audio_frame_copy(const gavl_audio_format_t * format,
                           int dst_size,
                           int src_size);
 
+/*!
+  \ingroup audio_frame
+  \brief Copy audio data from one frame to another.
+  \param format Format, must be equal for source and destination frames
+  \param dst Destination frame
+  \param src Source frame
+
+  This function copies the pointers of the frame, not the actual data
+
+  Since 1.1.1
+*/
+
+void gavl_audio_frame_copy_ptrs(const gavl_audio_format_t * format,
+                                gavl_audio_frame_t * dst,
+                                const gavl_audio_frame_t * src);
+
+  
 /** \defgroup audio_options Audio conversion options
     \ingroup audio
     
