@@ -729,7 +729,7 @@ static int decode_win32(bgav_stream_t * s, gavl_video_frame_t * f)
     return 0;
   
   result = bgav_win32_codec_thread_decode_video(t, f, p->data, p->data_size,
-                                                p->keyframe);
+                                                !!PACKET_GET_KEYFRAME(p));
 
   if(f)
     {
