@@ -80,13 +80,19 @@ void bgav_audio_parser_destroy(bgav_audio_parser_t * parser)
   free(parser);
   }
 
-void bgav_audio_parser_reset(bgav_audio_parser_t * parser, int64_t pts)
+void bgav_audio_parser_reset(bgav_audio_parser_t * parser, int64_t in_pts, int64_t out_pts)
   {
   parser->num_packets = 0;
   parser->frame_samples = 0;
   parser->frame_bytes = 0;
   parser->raw_position = -1;
-  parser->timestamp = pts;
+
+  if(in_pts != BGAV_TIMESTAMP_UNDEFINED)
+    parser->timestamp = gavl_time_rescale(parser->in_scale, parser->format.samplerate, in_pts);
+  else if(out_pts != BGAV_TIMESTAMP_UNDEFINED)
+    parser->timestamp = out_pts;
+  else
+    parser->timestamp = BGAV_TIMESTAMP_UNDEFINED;
   }
 
 static int check_output(bgav_audio_parser_t * parser)

@@ -744,7 +744,10 @@ static void resync_ffmpeg(bgav_stream_t * s)
     /* Skip pictures until we have the next keyframe */
     p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
     if(PACKET_GET_KEYFRAME(p))
+      {
+      s->out_time = p->pts;
       break;
+      }
     /* Skip this packet */
     fprintf(stderr, "Skipping packet %c\n", PACKET_GET_CODING_TYPE(p));
     p = bgav_demuxer_get_packet_read(s->demuxer, s);

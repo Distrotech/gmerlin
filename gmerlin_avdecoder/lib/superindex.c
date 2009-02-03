@@ -181,7 +181,7 @@ void bgav_superindex_seek(bgav_superindex_t * idx,
   
   if(i < s->first_index_position)
     i = s->first_index_position;
-  s->in_time = idx->entries[i].time;
+  STREAM_SET_SYNC(s, idx->entries[i].time);
 
   /* Handle audio preroll */
   if((s->type == BGAV_STREAM_AUDIO) && s->data.audio.preroll)
@@ -190,7 +190,7 @@ void bgav_superindex_seek(bgav_superindex_t * idx,
       {
       if((idx->entries[i].stream_id == s->stream_id) &&
          (idx->entries[i].flags & PACKET_FLAG_KEY) &&
-         (s->in_time - idx->entries[i].time >= s->data.audio.preroll))
+         (STREAM_GET_SYNC(s) - idx->entries[i].time >= s->data.audio.preroll))
         {
         break;
         }
@@ -202,7 +202,7 @@ void bgav_superindex_seek(bgav_superindex_t * idx,
     i = s->first_index_position;
 
   s->index_position = i;
-  s->in_time = idx->entries[i].time;
+  STREAM_SET_SYNC(s, idx->entries[i].time);
   }
 
 void bgav_superindex_dump(bgav_superindex_t * idx)

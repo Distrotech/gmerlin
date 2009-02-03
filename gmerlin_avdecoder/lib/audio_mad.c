@@ -220,12 +220,9 @@ static int decode_frame_mad(bgav_stream_t * s)
       bgav_sprintf("MPEG-%s layer %d, %s",
                    version_string, priv->frame.header.layer, bitrate_string);
     free(bitrate_string);
-
-    
     priv->audio_frame = gavl_audio_frame_create(&(s->data.audio.format));
     }
-
-  
+ 
   mad_synth_frame(&priv->synth, &priv->frame);
 
   for(i = 0; i < s->data.audio.format.num_channels; i++)

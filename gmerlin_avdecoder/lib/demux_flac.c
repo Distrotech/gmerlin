@@ -337,7 +337,7 @@ static void seek_flac(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   int i;
   flac_priv_t * priv;
   int64_t sample_pos;
-  
+  bgav_stream_t * s = &ctx->tt->cur->audio_streams[0];
   
   priv = (flac_priv_t*)(ctx->priv);
   
@@ -360,8 +360,8 @@ static void seek_flac(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   bgav_input_seek(ctx->input,
                   priv->seektable.entries[i].offset + ctx->data_start,
                   SEEK_SET);
-  
-  ctx->tt->cur->audio_streams[0].in_time = priv->seektable.entries[i].sample_number;
+
+  STREAM_SET_SYNC(s, priv->seektable.entries[i].sample_number);
   }
 
 static void close_flac(bgav_demuxer_context_t * ctx)

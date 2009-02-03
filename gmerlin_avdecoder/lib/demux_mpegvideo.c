@@ -296,26 +296,6 @@ static int open_mpegvideo(bgav_demuxer_context_t * ctx)
 
   }
 
-#if 0
-static void seek_mpegvideo(bgav_demuxer_context_t * ctx, int64_t time,
-                           int scale)
-  {
-  int64_t file_position;
-  mpegvideo_priv_t * priv;
-  bgav_stream_t * s;
-
-  priv = (mpegvideo_priv_t *)(ctx->priv);
-  
-  s = ctx->tt->cur->video_streams;
-    
-  file_position = (time * (priv->byte_rate)) / scale;
-  
-  s->in_time = gavl_time_scale(s->data.video.format.timescale, time);
-  priv->next_packet_time = s->in_time;
-  bgav_input_seek(ctx->input, file_position, SEEK_SET);
-  }
-#endif
-
 static void close_mpegvideo(bgav_demuxer_context_t * ctx)
   {
   mpegvideo_priv_t * priv;
@@ -330,8 +310,8 @@ static void resync_mpegvideo(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
   {
   mpegvideo_priv_t * priv;
   priv = (mpegvideo_priv_t *)(ctx->priv);
-  bgav_video_parser_reset(priv->parser, s->in_time);
-  fprintf(stderr, "resync: %ld\n", s->in_time);
+  bgav_video_parser_reset(priv->parser, BGAV_TIMESTAMP_UNDEFINED, STREAM_GET_SYNC(s));
+  //  fprintf(stderr, "resync: %ld\n", s->in_time);
   priv->eof = 0;
   }
 
@@ -339,7 +319,7 @@ static int select_track_mpegvideo(bgav_demuxer_context_t * ctx, int track)
   {
   mpegvideo_priv_t * priv;
   priv = (mpegvideo_priv_t *)(ctx->priv);
-  bgav_video_parser_reset(priv->parser, 0);
+  bgav_video_parser_reset(priv->parser, 0, 0);
   priv->eof = 0;
   return 1;
   }

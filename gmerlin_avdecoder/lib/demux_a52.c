@@ -173,8 +173,8 @@ static void seek_a52(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   t = ((int64_t)file_position * scale) /
     (s->container_bitrate / 8);
 
-  s->in_time = gavl_time_rescale(scale, priv->samplerate, t);
-  priv->frame_count = s->in_time / FRAME_SAMPLES;
+  STREAM_SET_SYNC(s, gavl_time_rescale(scale, priv->samplerate, t));
+  priv->frame_count = STREAM_GET_SYNC(s) / FRAME_SAMPLES;
   
   file_position += ctx->data_start;
   bgav_input_seek(ctx->input, file_position, SEEK_SET);

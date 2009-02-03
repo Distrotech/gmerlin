@@ -141,7 +141,6 @@ int bgav_video_start(bgav_stream_t * s)
     s->timescale = s->data.video.format.timescale;
 
   s->in_position = 0;
-  s->in_time = 0;
   
   if(s->action == BGAV_STREAM_DECODE)
     {
@@ -189,13 +188,13 @@ static int bgav_video_decode(bgav_stream_t * s,
     s->eof = 1;
     return result;
     }
-
-  s->out_time = frame->timestamp + frame->duration;
   
   /* Set the final timestamp for the frame */
   
   if(frame)
     {
+    s->out_time = frame->timestamp + frame->duration;
+    
     /* Set timecode */
     if(s->timecode_table)
       frame->timecode =
@@ -249,16 +248,19 @@ void bgav_video_stop(bgav_stream_t * s)
     bgav_video_parser_destroy(s->data.video.parser);
   }
 
-void bgav_video_clear(bgav_stream_t * s)
-  {
-  if(s->data.video.parser)
-    bgav_video_parser_reset(s->data.video.parser,
-                            BGAV_TIMESTAMP_UNDEFINED);
-  }
-
-
 void bgav_video_resync(bgav_stream_t * s)
   {
+  if(s->out_time == BGAV_TIMESTAMP_UNDEFINED)
+    {
+    s->out_time =
+      gavl_time_rescale(s->timescale,
+                        s->data.audio.format.samplerate,
+                        STREAM_GET_SYNC(s));
+    }
+  
+  if(s->data.video.parser)
+    bgav_video_parser_reset(s->data.video.parser, BGAV_TIMESTAMP_UNDEFINED, s->out_time);
+  
   if(s->data.video.decoder->decoder->resync)
     s->data.video.decoder->decoder->resync(s);
   }
@@ -288,7 +290,7 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale)
   
   if(s->out_time > time_scaled)
     {
-    sprintf(tmp_string1, "%" PRId64, s->in_time);
+    sprintf(tmp_string1, "%" PRId64, s->out_time);
     sprintf(tmp_string2, "%" PRId64, time_scaled);
     bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN, 
              "Cannot skip backwards, stream_time: %s, sync_time: %s",
@@ -326,16 +328,16 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale)
       return 0;
     
     if(p->pts + p->duration > time_scaled)
+      {
+      s->out_time = p->pts;
       return 1;
-
+      }
     result = bgav_video_decode(s, (gavl_video_frame_t*)0);
     if(!result)
       return 0;
     }
   
   *time = gavl_time_rescale(s->data.video.format.timescale, scale, s->out_time);
-  //  s->in_time = gavl_time_rescale(scale, s->timescale, *time);
-  
   return 1;
   }
 

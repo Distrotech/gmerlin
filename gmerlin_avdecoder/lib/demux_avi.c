@@ -1478,10 +1478,10 @@ static void seek_iavs(bgav_demuxer_context_t * ctx, gavl_time_t time,
                        ctx->tt->cur->video_streams,
                        time, scale);
           
-  ctx->tt->cur->audio_streams->in_time =
-    gavl_time_rescale(ctx->tt->cur->video_streams->timescale,
-                      ctx->tt->cur->audio_streams->timescale,
-                      ctx->tt->cur->video_streams->in_time);
+  STREAM_SET_SYNC(ctx->tt->cur->audio_streams, 
+                  gavl_time_rescale(ctx->tt->cur->video_streams->timescale,
+                                    ctx->tt->cur->audio_streams->timescale,
+                                    STREAM_GET_SYNC(ctx->tt->cur->video_streams)));
   
   ctx->si->current_position = ctx->tt->cur->video_streams->index_position;
   bgav_input_seek(ctx->input, ctx->si->entries[ctx->si->current_position].offset,
@@ -1490,7 +1490,7 @@ static void seek_iavs(bgav_demuxer_context_t * ctx, gavl_time_t time,
     ctx->tt->cur->video_streams->index_position;
 
   bgav_dv_dec_set_frame_counter(priv->dv_dec, ctx->tt->cur->video_streams->in_position);
-  bgav_dv_dec_set_sample_counter(priv->dv_dec, ctx->tt->cur->audio_streams->in_time);
+  bgav_dv_dec_set_sample_counter(priv->dv_dec, STREAM_GET_SYNC(ctx->tt->cur->audio_streams));
   }
 
 static int next_packet_iavs_si(bgav_demuxer_context_t * ctx)
@@ -2270,11 +2270,11 @@ static void resync_avi(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
     {
     case BGAV_STREAM_AUDIO:
       avi_as = (audio_priv_t*)(s->priv);
-      avi_as->sample_counter = s->in_time;
+      avi_as->sample_counter = STREAM_GET_SYNC(s);
       break;
     case BGAV_STREAM_VIDEO:
       avi_vs = (video_priv_t*)(s->priv);
-      avi_vs->frame_counter = s->in_time /
+      avi_vs->frame_counter = STREAM_GET_SYNC(s) /
         s->data.video.format.frame_duration;
       break;
     case BGAV_STREAM_SUBTITLE_OVERLAY:

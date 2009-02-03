@@ -267,7 +267,7 @@ void bgav_video_parser_destroy(bgav_video_parser_t * parser)
   free(parser);
   }
 
-void bgav_video_parser_reset(bgav_video_parser_t * parser, int64_t pts)
+void bgav_video_parser_reset(bgav_video_parser_t * parser, int64_t in_pts, int64_t out_pts)
   {
   bgav_bytebuffer_flush(&parser->buf);
   
@@ -275,10 +275,18 @@ void bgav_video_parser_reset(bgav_video_parser_t * parser, int64_t pts)
   parser->cache_size = 0;
   parser->num_packets = 0;
   parser->eof = 0;
-  parser->timestamp = pts;
+
+  if(in_pts != BGAV_TIMESTAMP_UNDEFINED)
+    parser->timestamp = gavl_time_rescale(parser->in_scale, parser->format.timescale, in_pts);
+  else if(out_pts != BGAV_TIMESTAMP_UNDEFINED)
+    parser->timestamp = out_pts;
+  else
+    parser->timestamp = BGAV_TIMESTAMP_UNDEFINED;
+  
   parser->pos = 0;
   parser->non_b_count = 0;
   parser->last_non_b_frame = -1;
+  
   if(parser->reset)
     parser->reset(parser);
   }

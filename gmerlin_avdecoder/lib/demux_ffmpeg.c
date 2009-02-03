@@ -700,8 +700,8 @@ static int next_packet_ffmpeg(bgav_demuxer_context_t * ctx)
   if(pkt.pts != AV_NOPTS_VALUE)
     {
     p->pts=pkt.pts * priv->avfc->streams[pkt.stream_index]->time_base.num;
-    if(s->in_time == BGAV_TIMESTAMP_UNDEFINED)
-      s->in_time = p->pts;
+    if(!STREAM_HAS_SYNC(s))
+      STREAM_SET_SYNC(s, p->pts);
     
     if((s->type == BGAV_STREAM_VIDEO) && pkt.duration)
       p->duration = pkt.duration * avs->time_base.num;

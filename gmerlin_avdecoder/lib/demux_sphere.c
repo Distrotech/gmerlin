@@ -349,7 +349,7 @@ static void seek_sphere(bgav_demuxer_context_t * ctx,
     
   position =  s->data.audio.block_align * sample + HEADERSIZE;
   bgav_input_seek(ctx->input, position, SEEK_SET);
-  s->in_time = sample;
+  STREAM_SET_SYNC(s, sample);
   }
 
 static void close_sphere(bgav_demuxer_context_t * ctx)

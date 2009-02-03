@@ -121,7 +121,7 @@ static void seek_gsm(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   
   bgav_input_seek(ctx->input, position, SEEK_SET);
 
-  s->in_time = sample;
+  STREAM_SET_SYNC(s, sample);
   }
 
 static void close_gsm(bgav_demuxer_context_t * ctx)

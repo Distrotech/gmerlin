@@ -990,10 +990,10 @@ static void add_packet(bgav_demuxer_context_t * ctx,
   if(asf->do_sync)
     {
     if((s->type == BGAV_STREAM_VIDEO) &&
-       (s->in_time < 0) && (!keyframe || (offs > 0)))
+       !STREAM_HAS_SYNC(s) && (!keyframe || (offs > 0)))
       return;
     else if((s->type == BGAV_STREAM_AUDIO) &&
-            (s->in_time < 0) && (offs > 0))
+            !STREAM_HAS_SYNC(s) && (offs > 0))
       return;
     }
   
@@ -1009,6 +1009,18 @@ static void add_packet(bgav_demuxer_context_t * ctx,
                          s->packet->data,
                          s->packet->data_size);
         }
+#if 0
+      if(s->type == BGAV_STREAM_AUDIO)
+        {
+        fprintf(stderr, "Got audio packet: ");
+        bgav_packet_dump(s->packet);
+        }
+      else
+        {
+        fprintf(stderr, "Got video packet: ");
+        bgav_packet_dump(s->packet);
+        }
+#endif
       bgav_packet_done_write(s->packet);
       s->packet = (bgav_packet_t*)0;
       }
@@ -1045,9 +1057,9 @@ static void add_packet(bgav_demuxer_context_t * ctx,
   
   // s->packet->timestamp -= ((gavl_time_t)(asf->hdr.preroll) * GAVL_TIME_SCALE) / 1000;
   
-  if(asf->do_sync && (s->in_time < 0))
+  if(asf->do_sync && !STREAM_HAS_SYNC(s))
     {
-    s->in_time = time;
+    STREAM_SET_SYNC(s, time);
     }
   if(keyframe)
     PACKET_SET_KEYFRAME(s->packet);

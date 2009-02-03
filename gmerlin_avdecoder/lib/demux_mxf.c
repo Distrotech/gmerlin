@@ -789,7 +789,7 @@ static void close_mxf(bgav_demuxer_context_t * ctx)
 static void resync_mxf(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
   {
   stream_priv_t * sp = s->priv;
-  sp->pts_counter = s->in_time;
+  sp->pts_counter = STREAM_GET_SYNC(s);
   
   if(s->file_index)
     sp->pos = s->file_index->entries[s->index_position].position;

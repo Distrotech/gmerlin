@@ -54,8 +54,9 @@
 typedef struct
   {
   int64_t video_pts;
-  int32_t pts_inc;
   uint32_t movi_end;
+  
+  uint8_t video_tag[4];
   } fourxm_priv_t;
 
 typedef struct
@@ -100,14 +101,14 @@ static void skip_chunk(bgav_input_context_t * input,
 static void dump_chunk_header(fourxm_chunk_t * ch)
   {
   bgav_dprintf("4xm chunk header\n");
-  bgav_dprintf("  .fourcc = ");
+  bgav_dprintf("  fourcc: ");
   bgav_dump_fourcc(ch->fourcc);
   bgav_dprintf("\n");
 
   bgav_dprintf("  size:   %d\n", ch->size);
   if(ch->fourcc == ID_LIST)
     {
-    bgav_dprintf("  .type =   ");
+    bgav_dprintf("  type:   ");
     bgav_dump_fourcc(ch->type);
     bgav_dprintf("\n");
     }
@@ -212,8 +213,16 @@ static int setup_video_stream(bgav_demuxer_context_t * ctx,
       {
       case ID_vtrk:
         s = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
+
+        bgav_input_skip(ctx->input, 8); // 
         
-        bgav_input_skip(ctx->input, 35-8+1); // bytes 8-35   unknown
+        if(bgav_input_read_data(ctx->input, priv->video_tag, 4) < 4)
+          return 0;
+
+        s->ext_data = priv->video_tag;
+        s->ext_size = 4;
+        
+        bgav_input_skip(ctx->input, 16); // bytes 8-35   unknown
 
         if(!bgav_input_read_32_le(ctx->input, &width) ||
            !bgav_input_read_32_le(ctx->input, &height))
@@ -230,11 +239,9 @@ static int setup_video_stream(bgav_demuxer_context_t * ctx,
 
         s->data.video.format.timescale      = 1000000;
         s->data.video.format.frame_duration = 1000000.0/framerate;
-
-        priv->pts_inc = s->data.video.format.frame_duration;
         
         /* Will be increased before the first frame is read */
-        priv->video_pts = - priv->pts_inc;
+        priv->video_pts = - s->data.video.format.frame_duration;
         s->fourcc = BGAV_MK_FOURCC('4','X','M','V');
 
         //        skip_chunk(ctx->input, &chunk);
@@ -369,7 +376,8 @@ static int select_track_4xm(bgav_demuxer_context_t * ctx, int track)
   {
   fourxm_priv_t * priv;
   priv = (fourxm_priv_t*)(ctx->priv);
-  priv->video_pts = 0;
+  priv->video_pts =
+    - ctx->tt->cur->video_streams[0].data.video.format.frame_duration;
   return 1;
   }
 
@@ -404,7 +412,8 @@ static int next_packet_4xm(bgav_demuxer_context_t * ctx)
       {
       case ID_LIST:
         bgav_input_skip(ctx->input, 4); // FRAM
-        priv->video_pts += priv->pts_inc;
+        priv->video_pts +=
+          ctx->tt->cur->video_streams[0].data.video.format.frame_duration;
         break;
       case ID_ifrm:
       case ID_pfrm:

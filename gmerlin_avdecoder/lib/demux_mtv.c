@@ -238,7 +238,7 @@ static void seek_mtv(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   {
   uint32_t file_position;
   uint32_t frame_number;
-  
+  bgav_stream_t * s;
   mtv_priv_t * priv;
   priv = (mtv_priv_t*)(ctx->priv);
 
@@ -249,14 +249,16 @@ static void seek_mtv(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   
   if(ctx->tt->cur->num_audio_streams)
     {
-    ctx->tt->cur->audio_streams[0].in_time =
-      gavl_time_rescale(priv->video_fps,
-                        ctx->tt->cur->audio_streams[0].data.audio.format.samplerate,
-                        frame_number);
+    s = &ctx->tt->cur->audio_streams[0];
+
+    STREAM_SET_SYNC(s, gavl_time_rescale(priv->video_fps,
+                                         s->data.audio.format.samplerate,
+                                         frame_number));
     }
   if(ctx->tt->cur->num_video_streams)
     {
-    ctx->tt->cur->video_streams[0].in_time = frame_number;
+    s = &ctx->tt->cur->video_streams[0];
+    STREAM_SET_SYNC(s, frame_number);
     ctx->tt->cur->video_streams[0].in_position = frame_number;
     }
   priv->do_audio = 1;

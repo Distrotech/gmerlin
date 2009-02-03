@@ -486,12 +486,9 @@ void bgav_track_clear(bgav_track_t * track)
     bgav_stream_clear(&(track->subtitle_streams[i]));
   }
 
-gavl_time_t bgav_track_resync_decoders(bgav_track_t * track, int scale)
+void bgav_track_resync(bgav_track_t * track)
   {
   int i;
-  gavl_time_t ret = 0;
-  gavl_time_t test_time;
-  
   bgav_stream_t * s;
   
   for(i = 0; i < track->num_audio_streams; i++)
@@ -500,22 +497,7 @@ gavl_time_t bgav_track_resync_decoders(bgav_track_t * track, int scale)
 
     if(s->action != BGAV_STREAM_DECODE)
       continue;
-    
-    bgav_stream_resync_decoder(s);
-
-    if(s->in_time == BGAV_TIMESTAMP_UNDEFINED)
-      {
-      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-               "Couldn't resync audio stream after seeking, maybe EOF");
-      return GAVL_TIME_UNDEFINED;
-      }
-    test_time = gavl_time_rescale(s->timescale, scale, s->in_time);
-    s->out_time =
-      gavl_time_rescale(s->timescale,
-                        s->data.audio.format.samplerate,
-                        s->in_time);
-    if(test_time > ret)
-      ret = test_time;
+    bgav_audio_resync(s);
     }
   for(i = 0; i < track->num_video_streams; i++)
     {
@@ -523,27 +505,10 @@ gavl_time_t bgav_track_resync_decoders(bgav_track_t * track, int scale)
 
     if(s->action != BGAV_STREAM_DECODE)
       continue;
-
-    s->out_time =
-      gavl_time_rescale(s->timescale, s->data.video.format.timescale,
-                        s->in_time);
     
-    bgav_stream_resync_decoder(s);
+    bgav_video_resync(s);
     
-    if(s->in_time == BGAV_TIMESTAMP_UNDEFINED)
-      {
-      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-               "Couldn't resync video stream after seeking, maybe EOF");
-      return GAVL_TIME_UNDEFINED;
-      }
-    test_time = gavl_time_rescale(s->timescale, scale, s->in_time);
-    s->out_time = gavl_time_rescale(s->timescale,
-                                    s->data.video.format.timescale,
-                                    s->in_time);
-    if(test_time > ret)
-      ret = test_time;
     }
-  return ret;
   }
 
 int bgav_track_skipto(bgav_track_t * track, int64_t * time, int scale)
@@ -613,17 +578,20 @@ void bgav_track_calc_duration(bgav_track_t * t)
 int bgav_track_has_sync(bgav_track_t * t)
   {
   int i;
-
+  bgav_stream_t * s;
+  
   for(i = 0; i < t->num_audio_streams; i++)
     {
-    if((t->audio_streams[i].action == BGAV_STREAM_DECODE) &&
-       (t->audio_streams[i].in_time == BGAV_TIMESTAMP_UNDEFINED))
+    s = &t->audio_streams[i];
+    if((s->action == BGAV_STREAM_DECODE) &&
+       (STREAM_HAS_SYNC(s)))
       return 0;
     }
   for(i = 0; i < t->num_video_streams; i++)
     {
-    if((t->video_streams[i].action == BGAV_STREAM_DECODE) &&
-       (t->video_streams[i].in_time == BGAV_TIMESTAMP_UNDEFINED))
+    s = &t->video_streams[i];
+    if((s->action == BGAV_STREAM_DECODE) &&
+       (STREAM_HAS_SYNC(s)))
       return 0;
     }
   return 1;
@@ -638,4 +606,78 @@ void bgav_track_mute(bgav_track_t * t)
     t->video_streams[i].action = BGAV_STREAM_MUTE;
   for(i = 0; i < t->num_subtitle_streams; i++)
     t->subtitle_streams[i].action = BGAV_STREAM_MUTE;
+  }
+
+static int check_sync_time(bgav_stream_t * s, int64_t * t, int scale)
+  {
+  int64_t tt;
+  if(s->action == BGAV_STREAM_MUTE)
+    return 1;
+  
+  if(!STREAM_HAS_SYNC(s))
+    return 0;
+
+  tt = gavl_time_rescale(s->timescale, scale, STREAM_GET_SYNC(s));
+  if(tt > *t)
+    *t = tt;
+  return 1;
+  }
+
+int64_t bgav_track_sync_time(bgav_track_t * t, int scale)
+  {
+  int64_t ret = BGAV_TIMESTAMP_UNDEFINED;
+  bgav_stream_t * s;
+  int i;
+  
+  for(i = 0; i < t->num_audio_streams; i++)
+    {
+    s = &t->audio_streams[i];
+
+    if(!check_sync_time(s, &ret, scale))
+      return BGAV_TIMESTAMP_UNDEFINED;
+    }
+  for(i = 0; i < t->num_video_streams; i++)
+    {
+    s = &t->video_streams[i];
+    if(!check_sync_time(s, &ret, scale))
+      return BGAV_TIMESTAMP_UNDEFINED;
+    }
+  return ret;
+  }
+
+static int check_out_time(bgav_stream_t * s, int64_t * t, int scale, int stream_scale)
+  {
+  int64_t tt;
+  if(s->action == BGAV_STREAM_MUTE)
+    return 1;
+  
+  if(!STREAM_HAS_SYNC(s))
+    return 0;
+
+  tt = gavl_time_rescale(s->timescale, scale, STREAM_GET_SYNC(s));
+  if(tt > *t)
+    *t = tt;
+  return 1;
+  }
+
+
+int64_t bgav_track_out_time(bgav_track_t * t, int scale)
+  {
+  int64_t ret = BGAV_TIMESTAMP_UNDEFINED;
+  bgav_stream_t * s;
+  int i;
+  
+  for(i = 0; i < t->num_audio_streams; i++)
+    {
+    s = &t->audio_streams[i];
+    if(!check_out_time(s, &ret, scale, s->data.audio.format.samplerate))
+      return BGAV_TIMESTAMP_UNDEFINED;
+    }
+  for(i = 0; i < t->num_video_streams; i++)
+    {
+    s = &t->video_streams[i];
+    if(!check_out_time(s, &ret, scale, s->data.video.format.timescale))
+      return BGAV_TIMESTAMP_UNDEFINED;
+    }
+  return ret;
   }

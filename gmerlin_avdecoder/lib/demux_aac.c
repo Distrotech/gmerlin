@@ -526,7 +526,7 @@ static void resync_aac(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
   {
   aac_priv_t * priv;
   priv = (aac_priv_t *)(ctx->priv);
-  priv->sample_count = ctx->tt->cur->audio_streams->in_time;
+  priv->sample_count = STREAM_GET_SYNC(ctx->tt->cur->audio_streams);
   }
 
 static int select_track_aac(bgav_demuxer_context_t * ctx, int track)

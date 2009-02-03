@@ -327,6 +327,13 @@ typedef enum
 /* Stream can have a nonzero start time */
 #define STREAM_START_TIME         (1<<4)
 
+#define STREAM_SET_SYNC(s, t)  s->sync_time = t
+#define STREAM_GET_SYNC(s)     s->sync_time
+
+#define STREAM_UNSET_SYNC(s)   s->sync_time = BGAV_TIMESTAMP_UNDEFINED
+
+#define STREAM_HAS_SYNC(s)     (s->sync_time != BGAV_TIMESTAMP_UNDEFINED)
+
 struct bgav_stream_s
   {
   void * priv;
@@ -356,7 +363,20 @@ struct bgav_stream_s
    *  Demuxers can, however, define other timescales.
    */
   int timescale;
-  int64_t in_time; /* Demuxer time in demuxer timescale */
+
+   /*
+    * Sync time:
+    * 
+    * - *Only* valid for resynchronization during seeking
+    *
+    * - If the demuxer seeks, it sets the sync_time in
+    *   *stream* timescale
+    *
+    * - If we seek sample accurately, it's the output time
+    *   in *codec* timescale
+    */
+  
+  int64_t sync_time;
 
   int64_t out_time; /* In codec timescale */
   
@@ -534,12 +554,6 @@ gavl_time_t bgav_stream_next_timestamp(bgav_stream_t *);
 
 void bgav_stream_clear(bgav_stream_t * s);
 
-/* Resynchronize the stream to the next point
-   where decoding can start again (this is a nop for
-   many decoders) Called AFTER seeking */
-
-void bgav_stream_resync_decoder(bgav_stream_t * s);
-
 /*
  * Skip to a specific point which must be larger than the current stream time
  */
@@ -625,9 +639,9 @@ void bgav_track_clear(bgav_track_t * track);
 /* Call after the track becomes current */
 void bgav_track_mute(bgav_track_t * t);
 
-/* Resync the decoders, return the latest time, where we can start decoding again */
+/* Resync the decoders, update output times */
 
-gavl_time_t bgav_track_resync_decoders(bgav_track_t*, int scale);
+void bgav_track_resync(bgav_track_t*);
 
 /* Skip to a specific point */
 
@@ -640,6 +654,10 @@ bgav_track_find_stream_all(bgav_track_t * t, int stream_id);
 
 int bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer);
 void bgav_track_stop(bgav_track_t * t);
+
+int64_t bgav_track_sync_time(bgav_track_t * t, int scale);
+int64_t bgav_track_out_time(bgav_track_t * t, int scale);
+
 
 /* Remove unsupported streams */
 
@@ -1569,6 +1587,11 @@ void bgav_audio_dump(bgav_stream_t * s);
 int bgav_audio_start(bgav_stream_t * s);
 void bgav_audio_stop(bgav_stream_t * s);
 
+/* Resynchronize the stream to the next point
+ * where decoding can start again.
+ * After calling this, the out_time *must* be valid
+ * Called AFTER seeking
+ */
 
 void bgav_audio_resync(bgav_stream_t * stream);
 
@@ -1583,8 +1606,14 @@ void bgav_video_dump(bgav_stream_t * s);
 int bgav_video_start(bgav_stream_t * s);
 void bgav_video_stop(bgav_stream_t * s);
 
+/* Resynchronize the stream to the next point
+ * where decoding can start again.
+ * After calling this, the out_time *must* be valid
+ * Called AFTER seeking
+ */
+
 void bgav_video_resync(bgav_stream_t * s);
-void bgav_video_clear(bgav_stream_t * s);
+// void bgav_video_clear(bgav_stream_t * s);
 
 int bgav_video_skipto(bgav_stream_t * stream, int64_t * t, int scale);
 

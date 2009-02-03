@@ -1705,9 +1705,9 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
                   priv->op.granulepos-(iframes<<stream_priv->keyframe_granule_shift);
 
                 stream_priv->frame_counter = pframes + iframes;
-              
-                s->in_time = stream_priv->frame_counter *
-                  s->data.video.format.frame_duration;
+
+                STREAM_SET_SYNC(s, stream_priv->frame_counter *
+                                s->data.video.format.frame_duration);
                 }
             
               if(stream_priv->frame_counter >= 0)
@@ -1771,9 +1771,10 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
               else
                 {
                 stream_priv->do_sync = 0;
-                s->in_time =
-                  (int64_t)s->data.video.format.frame_duration *
-                  stream_priv->frame_counter;
+
+                STREAM_SET_SYNC(s, (int64_t)s->data.video.format.frame_duration *
+                                stream_priv->frame_counter);
+                
                 }
               }
             }
@@ -1815,7 +1816,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
             else
               {
               stream_priv->do_sync = 0;
-              s->in_time = stream_priv->prev_granulepos;
+              STREAM_SET_SYNC(s, stream_priv->prev_granulepos);
               }
             }
 
@@ -1852,7 +1853,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
             else
               {
               stream_priv->do_sync = 0;
-              s->in_time = stream_priv->prev_granulepos;
+              STREAM_SET_SYNC(s, stream_priv->prev_granulepos);
               }
             }
         
@@ -1975,11 +1976,11 @@ static void resync_ogg(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
   switch(s->type)
     {
     case BGAV_STREAM_AUDIO:
-      stream_priv->prev_granulepos = s->in_time;
+      stream_priv->prev_granulepos = STREAM_GET_SYNC(s);
       ogg_stream_reset(&stream_priv->os);
       break;
     case BGAV_STREAM_VIDEO:
-      stream_priv->frame_counter = s->in_time /
+      stream_priv->frame_counter = STREAM_GET_SYNC(s) /
         s->data.video.format.frame_duration;
       ogg_stream_reset(&stream_priv->os);
       break;

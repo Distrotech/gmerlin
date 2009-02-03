@@ -537,7 +537,10 @@ static void resync_mpeg2(bgav_stream_t*s)
       /* Skip pictures until we have the next keyframe */
       p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
       if(PACKET_GET_KEYFRAME(p))
+        {
+        s->out_time = p->pts;
         break;
+        }
       /* Skip this packet */
       p = bgav_demuxer_get_packet_read(s->demuxer, s);
       bgav_demuxer_done_packet_read(s->demuxer, p);

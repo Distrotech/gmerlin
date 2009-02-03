@@ -723,8 +723,8 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
         p->pts = t.timestamp + cts;
         }
       }
-    if(s->in_time < 0)
-      s->in_time = p->pts;
+    if(!STREAM_HAS_SYNC(s) < 0)
+      STREAM_SET_SYNC(s, p->pts);
 
     if(keyframe)
       PACKET_SET_KEYFRAME(p);

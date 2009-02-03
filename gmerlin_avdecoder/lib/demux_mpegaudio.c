@@ -612,7 +612,7 @@ static void resync_mpegaudio(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
   {
   mpegaudio_priv_t * priv;
   priv = (mpegaudio_priv_t*)(ctx->priv);
-  priv->frames = s->in_time / s->data.audio.format.samples_per_frame;
+  priv->frames = STREAM_GET_SYNC(s) / s->data.audio.format.samples_per_frame;
   }
 
 static void seek_mpegaudio(bgav_demuxer_context_t * ctx, int64_t time,
@@ -638,9 +638,9 @@ static void seek_mpegaudio(bgav_demuxer_context_t * ctx, int64_t time,
     pos = ((priv->data_end - priv->data_start) * gavl_time_unscale(scale, time)) / ctx->tt->cur->duration;
     }
   
-  s->in_time =
-    gavl_time_rescale(scale,
-                      ctx->tt->cur->audio_streams[0].data.audio.format.samplerate, time);
+  STREAM_SET_SYNC(s,
+                  gavl_time_rescale(scale,
+                                    ctx->tt->cur->audio_streams[0].data.audio.format.samplerate, time));
   
   pos += priv->data_start;
   bgav_input_seek(ctx->input, pos, SEEK_SET);

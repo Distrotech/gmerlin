@@ -86,8 +86,9 @@ void bgav_stream_stop(bgav_stream_t * s)
   s->in_position = 0;
   s->out_time = 0;
   s->packet_seq = 0;
-  s->in_time = BGAV_TIMESTAMP_UNDEFINED;
 
+  STREAM_UNSET_SYNC(s);
+  
   if(s->parsed_packet)
     bgav_packet_destroy(s->parsed_packet);
   
@@ -101,7 +102,7 @@ void bgav_stream_create_packet_buffer(bgav_stream_t * stream)
 void bgav_stream_init(bgav_stream_t * stream, const bgav_options_t * opt)
   {
   memset(stream, 0, sizeof(*stream));
-  stream->in_time = BGAV_TIMESTAMP_UNDEFINED;
+  STREAM_UNSET_SYNC(stream);
   stream->first_index_position = INT_MAX;
 
   /* need to set this to -1 so we know, if this stream has packets at all */
@@ -195,10 +196,11 @@ void bgav_stream_clear(bgav_stream_t * s)
     bgav_packet_buffer_clear(s->packet_buffer);
   s->packet = (bgav_packet_t*)0;
   s->in_position  = 0;
-  s->out_time = 0;
-  s->in_time = BGAV_TIMESTAMP_UNDEFINED;
+  s->out_time = BGAV_TIMESTAMP_UNDEFINED;
+  STREAM_UNSET_SYNC(s);
   s->eof = 0;
 
+#if 0  
   switch(s->type)
     {
     case BGAV_STREAM_AUDIO:
@@ -214,29 +216,9 @@ void bgav_stream_clear(bgav_stream_t * s)
     case BGAV_STREAM_UNKNOWN:
       break;
     }
+#endif
   }
 
-void bgav_stream_resync_decoder(bgav_stream_t * s)
-  {
-  if(s->action != BGAV_STREAM_DECODE)
-    return;
-  
-  switch(s->type)
-    {
-    case BGAV_STREAM_AUDIO:
-      bgav_audio_resync(s);
-      break;
-    case BGAV_STREAM_VIDEO:
-      bgav_video_resync(s);
-      break;
-    case BGAV_STREAM_SUBTITLE_TEXT:
-    case BGAV_STREAM_SUBTITLE_OVERLAY:
-      bgav_subtitle_resync(s);
-      break;
-    case BGAV_STREAM_UNKNOWN:
-      break;
-    }
-  }
 
 int bgav_stream_skipto(bgav_stream_t * s, gavl_time_t * time, int scale)
   {

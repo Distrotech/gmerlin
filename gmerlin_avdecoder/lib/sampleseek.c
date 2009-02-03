@@ -103,10 +103,9 @@ void bgav_seek_audio(bgav_t * bgav, int stream, int64_t sample)
                          gavl_time_rescale(s->data.audio.format.samplerate,
                                            s->timescale, sample),
                          s->timescale);
-
-    s->out_time = gavl_time_rescale(s->timescale, s->data.audio.format.samplerate,
-                                    s->in_time);
     
+    s->out_time = gavl_time_rescale(s->timescale, s->data.audio.format.samplerate,
+                                    STREAM_GET_SYNC(s));
     }
   else /* Fileindex */
     {
@@ -129,7 +128,7 @@ void bgav_seek_audio(bgav_t * bgav, int stream, int64_t sample)
       bgav->demuxer->demuxer->resync(bgav->demuxer, s);
     }
   
-  bgav_stream_resync_decoder(s);
+  bgav_audio_resync(s);
   bgav_audio_skipto(s, &sample, s->data.audio.format.samplerate);
     
   s->out_time += s->start_time;
@@ -181,17 +180,17 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
            s->file_index->entries[s->index_position].position))
       s->index_position--;
     
-    s->in_time = s->file_index->entries[s->index_position].time;
+    STREAM_SET_SYNC(s, s->file_index->entries[s->index_position].time);
     s->out_time = frame_time;
 
     if(s->data.video.parser)
-      bgav_video_parser_reset(s->data.video.parser, frame_time);
+      bgav_video_parser_reset(s->data.video.parser, BGAV_TIMESTAMP_UNDEFINED, frame_time);
     
     if(bgav->demuxer->demuxer->resync)
       bgav->demuxer->demuxer->resync(bgav->demuxer, s);
     }
 
-  bgav_stream_resync_decoder(s);
+  bgav_video_resync(s);
 
   bgav_video_skipto(s, &time, s->data.video.format.timescale);
   }
@@ -321,8 +320,8 @@ void bgav_seek_subtitle(bgav_t * bgav, int stream, int64_t time)
            s->file_index->entries[s->index_position].position))
       s->index_position--;
     
-    s->in_time = s->file_index->entries[s->index_position].time;
-    s->out_time = s->in_time;
+    STREAM_SET_SYNC(s, s->file_index->entries[s->index_position].time);
+    s->out_time = STREAM_GET_SYNC(s);
     
     if(bgav->demuxer->demuxer->resync)
       bgav->demuxer->demuxer->resync(bgav->demuxer, s);

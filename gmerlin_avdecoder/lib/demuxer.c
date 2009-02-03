@@ -856,9 +856,6 @@ bgav_demuxer_get_packet_read(bgav_demuxer_context_t * demuxer,
 
     }
 
-  // ??
-  s->in_time = ret->pts;
-  
   demuxer->request_stream = (bgav_stream_t*)0;
   return ret;
   }
@@ -1048,27 +1045,32 @@ bgav_demuxer_done_packet_read(bgav_demuxer_context_t * demuxer,
   p->valid = 0;
   }
 
+static void skip_to(bgav_t * b, bgav_track_t * track, int64_t * time, int scale)
+  {
+  if(!bgav_track_skipto(track, time, scale))
+    b->eof = 1;
+  }
+
 /* Seek functions with superindex */
 
-static void seek_si(bgav_demuxer_context_t * ctx, int64_t time, int scale)
+static void seek_si(bgav_t * b, bgav_demuxer_context_t * ctx, int64_t time, int scale)
   {
   uint32_t i, j;
   int32_t start_packet;
   int32_t end_packet;
   bgav_track_t * track;
-    
+  
   track = ctx->tt->cur;
+  bgav_track_clear(track);
   
   /* Set the packet indices of the streams to -1 */
   for(j = 0; j < track->num_audio_streams; j++)
-    {
     track->audio_streams[j].index_position = -1;
-    }
   for(j = 0; j < track->num_video_streams; j++)
-    {
     track->video_streams[j].index_position = -1;
-    }
-
+  for(j = 0; j < track->num_subtitle_streams; j++)
+    track->subtitle_streams[j].index_position = -1;
+  
   /* Seek the start chunks indices of all streams */
 
   for(j = 0; j < track->num_video_streams; j++)
@@ -1076,8 +1078,9 @@ static void seek_si(bgav_demuxer_context_t * ctx, int64_t time, int scale)
     bgav_superindex_seek(ctx->si, &(track->video_streams[j]), time, scale);
     /* Synchronize time to the video stream */
     if(!j)
-      time = gavl_time_rescale(track->video_streams[j].data.video.format.timescale, scale,
-                               ctx->si->entries[track->video_streams[j].index_position].time);
+      time =
+        gavl_time_rescale(track->video_streams[j].data.video.format.timescale, scale,
+                          ctx->si->entries[track->video_streams[j].index_position].time);
     }
   for(j = 0; j < track->num_audio_streams; j++)
     {
@@ -1122,7 +1125,8 @@ static void seek_si(bgav_demuxer_context_t * ctx, int64_t time, int scale)
 
     ctx->flags &= ~BGAV_DEMUXER_SI_SEEKING;
     }
-
+  bgav_track_resync(track);
+  skip_to(b, track, &time, scale);
   }
 
 /* Maximum allowed seek tolerance, decrease if you want it more exact */
@@ -1134,79 +1138,141 @@ static void seek_si(bgav_demuxer_context_t * ctx, int64_t time, int scale)
 
 #define MAX_SKIP_TIME  (GAVL_TIME_SCALE*5)
 
-static void skip_to(bgav_t * b, bgav_track_t * track, int64_t * time, int scale)
-  {
-  if(!bgav_track_skipto(track, time, scale))
-    b->eof = 1;
-  }
 
-void
-bgav_seek_scaled(bgav_t * b, int64_t * time, int scale)
+static void seek_sa(bgav_t * b, int64_t * time, int scale)
   {
   int i;
-  gavl_time_t diff_time;
-  gavl_time_t sync_time;
-  gavl_time_t seek_time;
-
-  gavl_time_t last_seek_time = GAVL_TIME_UNDEFINED;
-  gavl_time_t last_seek_time_2nd = GAVL_TIME_UNDEFINED;
-
-  gavl_time_t last_sync_time = GAVL_TIME_UNDEFINED;
-  gavl_time_t last_sync_time_2nd = GAVL_TIME_UNDEFINED;
-    
-  bgav_track_t * track = b->tt->cur;
-  int num_iterations = 0;
-  seek_time = *time;
-
-  //  fprintf(stderr, "bgav_seek_scaled: %ld\n", gavl_time_unscale(scale, *time));
-  
-  b->demuxer->flags &= ~BGAV_DEMUXER_EOF;
-
-  if(b->tt->cur->sample_accurate)
+  bgav_stream_t * s;
+  for(i = 0; i < b->tt->cur->num_video_streams; i++)
     {
-    bgav_stream_t * s;
-    for(i = 0; i < b->tt->cur->num_video_streams; i++)
+    if(b->tt->cur->video_streams[i].action != BGAV_STREAM_MUTE)
       {
-      if(b->tt->cur->video_streams[i].action != BGAV_STREAM_MUTE)
+      s = &b->tt->cur->video_streams[i];
+      bgav_seek_video(b, i,
+                      gavl_time_rescale(scale, s->data.video.format.timescale,
+                                        *time) - s->start_time);
+      /*
+       *  We align seeking at the first frame of the first video stream
+       */
+
+      if(!i)
         {
-        s = &b->tt->cur->video_streams[i];
-        bgav_seek_video(b, i,
-                        gavl_time_rescale(scale, s->data.video.format.timescale,
-                                          *time) - s->start_time);
-        /*
-         *  We align seeking at the first frame of the last video stream
-         *  Note, that in 99.9 % of all cases, the last stream will be the
-         *  first one as well
-         */
-        
         *time =
           gavl_time_rescale(s->data.video.format.timescale,
                             scale,
                             s->out_time + s->start_time);
         }
       }
+    }
     
-    for(i = 0; i < b->tt->cur->num_audio_streams; i++)
+  for(i = 0; i < b->tt->cur->num_audio_streams; i++)
+    {
+    if(b->tt->cur->audio_streams[i].action != BGAV_STREAM_MUTE)
       {
-      if(b->tt->cur->audio_streams[i].action != BGAV_STREAM_MUTE)
-        {
-        s = &b->tt->cur->audio_streams[i];
-        bgav_seek_audio(b, i,
-                        gavl_time_rescale(scale, s->data.audio.format.samplerate,
-                                          *time) - s->start_time);
-        }
+      s = &b->tt->cur->audio_streams[i];
+      bgav_seek_audio(b, i,
+                      gavl_time_rescale(scale, s->data.audio.format.samplerate,
+                                        *time) - s->start_time);
       }
-    for(i = 0; i < b->tt->cur->num_subtitle_streams; i++)
+    }
+  for(i = 0; i < b->tt->cur->num_subtitle_streams; i++)
+    {
+    if(b->tt->cur->subtitle_streams[i].action != BGAV_STREAM_MUTE)
       {
-      if(b->tt->cur->subtitle_streams[i].action != BGAV_STREAM_MUTE)
-        {
-        s = &b->tt->cur->subtitle_streams[i];
-        bgav_seek_subtitle(b, i, gavl_time_rescale(scale, s->timescale, *time));
-        }
+      s = &b->tt->cur->subtitle_streams[i];
+      bgav_seek_subtitle(b, i, gavl_time_rescale(scale, s->timescale, *time));
       }
+    }
+  return;
+  
+  }
+
+static int64_t seek_once(bgav_t * b, int64_t time, int scale)
+  {
+  bgav_track_t * track = b->tt->cur;
+  int64_t sync_time;
+
+  bgav_track_clear(track);
+  b->demuxer->demuxer->seek(b->demuxer, time, scale);
+  bgav_track_resync(track);
+  sync_time = bgav_track_sync_time(track, scale);
+  return sync_time;
+  }
+
+static int64_t seek_iterative(bgav_t * b, int64_t time, int scale)
+  {
+  int num_iterations = 0;
+
+  
+  
+  }
+
+void
+bgav_seek_scaled(bgav_t * b, int64_t * time, int scale)
+  {
+  int i;
+  int64_t sync_time;
+  
+  bgav_track_t * track = b->tt->cur;
+  int num_iterations = 0;
+  //  seek_time = *time;
+
+  //  fprintf(stderr, "bgav_seek_scaled: %ld\n", gavl_time_unscale(scale, *time));
+
+  /* Clear EOF */
+  b->demuxer->flags &= ~BGAV_DEMUXER_EOF;
+
+  /* Seek with sample accuracy */
+  if(b->tt->cur->sample_accurate)
+    {
+    seek_sa(b, time, scale);    
     return;
     }
-  
+  /* Seek with superindex */
+  else if(b->demuxer->si && !(b->demuxer->flags & BGAV_DEMUXER_SI_PRIVATE_FUNCS))
+    {
+    seek_si(b, b->demuxer, *time, scale);
+    return;
+    }
+  /* Seek once */
+  else if(!(b->demuxer->flags & BGAV_DEMUXER_SEEK_ITERATIVE))
+    {
+    sync_time = seek_once(b, *time, scale);
+
+    if(*time > sync_time)
+      skip_to(b, track, time, scale);
+    else
+      {
+      skip_to(b, track, &sync_time, scale);
+      *time = sync_time;
+      }
+    }
+  /* Seek iterative */
+  else
+    {
+    gavl_time_t seek_time;
+    gavl_time_t diff_time;
+    
+    gavl_time_t last_seek_time     = BGAV_TIMESTAMP_UNDEFINED;
+    gavl_time_t last_seek_time_2nd = BGAV_TIMESTAMP_UNDEFINED;
+    
+    gavl_time_t last_sync_time     = BGAV_TIMESTAMP_UNDEFINED;
+    gavl_time_t last_sync_time_2nd = BGAV_TIMESTAMP_UNDEFINED;
+    
+    seek_time = *time;
+    
+    while(1)
+      {
+      sync_time = seek_once(b, seek_time, scale);
+
+      diff_time = *time - sync_time;
+
+      
+      
+      }
+    
+    }
+#if 0  
   while(1)
     {
     num_iterations++;
@@ -1217,10 +1283,7 @@ bgav_seek_scaled(bgav_t * b, int64_t * time, int scale)
     /* Second step: Let the demuxer seek */
     /* This will set the "time" members of all streams */
     
-    if(b->demuxer->si && !(b->demuxer->flags & BGAV_DEMUXER_SI_PRIVATE_FUNCS))
-      seek_si(b->demuxer, seek_time, scale);
-    else
-      b->demuxer->demuxer->seek(b->demuxer, seek_time, scale);
+    b->demuxer->demuxer->seek(b->demuxer, seek_time, scale);
     sync_time = bgav_track_resync_decoders(track, scale);
     if(sync_time == GAVL_TIME_UNDEFINED)
       {
@@ -1230,18 +1293,7 @@ bgav_seek_scaled(bgav_t * b, int64_t * time, int scale)
       }
     
     /* If demuxer already seeked perfectly, break here */
-
-    if(!(b->demuxer->flags & BGAV_DEMUXER_SEEK_ITERATIVE))
-      {
-      if(*time > sync_time)
-        skip_to(b, track, time, scale);
-      else
-        {
-        skip_to(b, track, &sync_time, scale);
-        *time = sync_time;
-        }
-      break;
-      }
+    
     /* Check if we should end this */
     
     if((last_sync_time != GAVL_TIME_UNDEFINED) &&
@@ -1256,10 +1308,7 @@ bgav_seek_scaled(bgav_t * b, int64_t * time, int scale)
           {
           if(last_sync_time != sync_time)
             {
-            if(b->demuxer->si)
-              seek_si(b->demuxer, seek_time, scale);
-            else
-              b->demuxer->demuxer->seek(b->demuxer, seek_time, scale);
+            b->demuxer->demuxer->seek(b->demuxer, seek_time, scale);
             sync_time = bgav_track_resync_decoders(track, scale);
             }
           }
@@ -1271,7 +1320,6 @@ bgav_seek_scaled(bgav_t * b, int64_t * time, int scale)
             sync_time = bgav_track_resync_decoders(track, scale);
             }
           }
-
         
         if(*time > sync_time)
           skip_to(b, track, time, scale);
@@ -1282,9 +1330,8 @@ bgav_seek_scaled(bgav_t * b, int64_t * time, int scale)
           }
         break;
         }
-      
       }
-
+    
     last_seek_time_2nd = last_seek_time;
     last_sync_time_2nd = last_sync_time;
 
@@ -1317,6 +1364,7 @@ bgav_seek_scaled(bgav_t * b, int64_t * time, int scale)
       break;
       }
     }
+#endif
 
   /* Let the subtitle readers seek */
   for(i = 0; i < track->num_subtitle_streams; i++)

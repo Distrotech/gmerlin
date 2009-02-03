@@ -461,6 +461,8 @@ static void resync_schroedinger(bgav_stream_t * s)
   schroedinger_priv_t * priv;
   priv = (schroedinger_priv_t*)(s->data.video.decoder->priv);
 
+  /* TODO: Skip non-keyframes and update out_time */
+  
   schro_decoder_reset(priv->dec);
   
   if(priv->dec_frame)

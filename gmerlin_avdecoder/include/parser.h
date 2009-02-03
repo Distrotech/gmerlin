@@ -38,7 +38,8 @@ bgav_video_parser_t * bgav_video_parser_create(uint32_t fourcc, int timescale,
 
 void bgav_video_parser_destroy(bgav_video_parser_t *);
 
-void bgav_video_parser_reset(bgav_video_parser_t *, int64_t pts);
+/* Either in_pts or out_pts can (should) be undefined */
+void bgav_video_parser_reset(bgav_video_parser_t *, int64_t in_pts, int64_t out_pts);
 
 int bgav_video_parser_parse(bgav_video_parser_t * parser);
 
@@ -66,7 +67,7 @@ bgav_audio_parser_t * bgav_audio_parser_create(uint32_t fourcc, int timescale,
 
 void bgav_audio_parser_destroy(bgav_audio_parser_t *);
 
-void bgav_audio_parser_reset(bgav_audio_parser_t *, int64_t pts);
+void bgav_audio_parser_reset(bgav_audio_parser_t *, int64_t in_pts, int64_t out_pts);
 
 int bgav_audio_parser_parse(bgav_audio_parser_t * parser);
 

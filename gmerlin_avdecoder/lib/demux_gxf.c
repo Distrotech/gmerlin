@@ -561,11 +561,10 @@ static int next_packet_gxf(bgav_demuxer_context_t * ctx)
           bgav_input_skip(ctx->input, length);
           return 1;
           }
-        else if(s->in_time == BGAV_TIMESTAMP_UNDEFINED)
+        else if(!STREAM_HAS_SYNC(s))
           {
-          s->in_time =
-            (mh.field_nr - priv->first_field) / priv->num_fields *
-            priv->frame_duration ;
+          STREAM_SET_SYNC(s, (mh.field_nr - priv->first_field) / priv->num_fields *
+                          priv->frame_duration);
           }
         }
       

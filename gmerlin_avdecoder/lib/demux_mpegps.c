@@ -708,7 +708,7 @@ static int next_packet(bgav_demuxer_context_t * ctx,
       if(stream)
         {
         if((priv->do_sync) &&
-           (stream->in_time < 0) &&
+           !STREAM_HAS_SYNC(stream) &&
            (priv->pes_header.pts < 0))
           {
           bgav_input_skip(input, priv->pes_header.payload_size);
@@ -746,8 +746,8 @@ static int next_packet(bgav_demuxer_context_t * ctx,
             //              p->pts = 0;
             
             if(priv->do_sync &&
-               (stream->in_time == BGAV_TIMESTAMP_UNDEFINED))
-              stream->in_time = p->pts;
+               !STREAM_HAS_SYNC(stream))
+              STREAM_SET_SYNC(stream, p->pts);
             }
           bgav_packet_done_write(p);
           }

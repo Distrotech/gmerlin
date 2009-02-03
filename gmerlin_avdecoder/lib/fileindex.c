@@ -882,7 +882,6 @@ static int bgav_build_file_index_parseall(bgav_t * b)
   {
   int i, j;
   int ret = 0;
-  bgav_stream_t * s;
   
   for(i = 0; i < b->tt->num_tracks; i++)
     {
