@@ -135,11 +135,10 @@ static int decode_frame_mad(bgav_stream_t * s)
   priv = s->data.audio.decoder->priv;
   
   /* Check if we need new data */
-  if(priv->stream.bufend - priv->stream.next_frame <= MAD_BUFFER_GUARD)
-    if(!get_data(s))
-      {
-      return 0;
-      }
+  if((priv->stream.bufend - priv->stream.next_frame <= MAD_BUFFER_GUARD) &&
+     !get_data(s))
+    return 0;
+
   done = 0;
   while(mad_frame_decode(&(priv->frame), &(priv->stream)) == -1)
     {
@@ -240,7 +239,8 @@ static int decode_frame_mad(bgav_stream_t * s)
       }
     }
   priv->audio_frame->valid_samples   = s->data.audio.format.samples_per_frame;
-  gavl_audio_frame_copy_ptrs(&s->data.audio.format, s->data.audio.frame, priv->audio_frame);
+  gavl_audio_frame_copy_ptrs(&s->data.audio.format,
+                             s->data.audio.frame, priv->audio_frame);
   
   return 1;
   }

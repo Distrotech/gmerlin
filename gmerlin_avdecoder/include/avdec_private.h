@@ -1097,6 +1097,7 @@ bgav_file_index_t * bgav_file_index_create();
 void bgav_file_index_destroy(bgav_file_index_t *);
 
 int bgav_demuxer_next_packet_fileindex(bgav_demuxer_context_t * ctx);
+int bgav_demuxer_next_packet_interleaved(bgav_demuxer_context_t * ctx);
 
 void bgav_file_index_dump(bgav_t * b) __attribute__ ((visibility("default")));
 

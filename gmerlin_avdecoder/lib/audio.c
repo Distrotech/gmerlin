@@ -155,6 +155,9 @@ int bgav_audio_start(bgav_stream_t * s)
     if(!dec->init(s))
       return 0;
 
+    /* Some decoders get a first frame during decoding */
+    s->data.audio.frame_samples = s->data.audio.frame->valid_samples;
+    
     if(!s->timescale)
       s->timescale = s->data.audio.format.samplerate;
     }
@@ -219,13 +222,15 @@ static int read_audio(bgav_stream_t * s, gavl_audio_frame_t * frame,
         }
       s->data.audio.frame_samples = s->data.audio.frame->valid_samples;
       }
-    samples_copied = gavl_audio_frame_copy(&(s->data.audio.format),
-                                           frame,
-                                           s->data.audio.frame,
-                                           samples_decoded, /* out_pos */
-                                           s->data.audio.frame_samples - s->data.audio.frame->valid_samples,  /* in_pos */
-                                           num_samples - samples_decoded, /* out_size, */
-                                           s->data.audio.frame->valid_samples /* in_size */);
+    samples_copied =
+      gavl_audio_frame_copy(&(s->data.audio.format),
+                            frame,
+                            s->data.audio.frame,
+                            samples_decoded, /* out_pos */
+                            s->data.audio.frame_samples -
+                            s->data.audio.frame->valid_samples,  /* in_pos */
+                            num_samples - samples_decoded, /* out_size, */
+                            s->data.audio.frame->valid_samples /* in_size */);
     s->data.audio.frame->valid_samples -= samples_copied;
     samples_decoded += samples_copied;
     }

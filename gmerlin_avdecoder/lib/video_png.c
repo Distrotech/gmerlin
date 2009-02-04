@@ -64,7 +64,7 @@ static int decode_png(bgav_stream_t * s, gavl_video_frame_t * frame)
       {
       if(error_msg)
         {
-        bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, error_msg);
+        bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "%s", error_msg);
         free(error_msg);
         }
       else

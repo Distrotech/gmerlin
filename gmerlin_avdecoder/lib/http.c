@@ -378,7 +378,7 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
   if(status >= 400) /* Error */
     {
     if(bgav_http_header_status_line(ret->header))
-      bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, bgav_http_header_status_line(ret->header));
+      bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "%s", bgav_http_header_status_line(ret->header));
     goto fail;
     }
   else if(status >= 300) /* Redirection */
@@ -404,7 +404,7 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
   else if(status < 200)  /* Error */
     {
     if(bgav_http_header_status_line(ret->header))
-      bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, bgav_http_header_status_line(ret->header));
+      bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "%s", bgav_http_header_status_line(ret->header));
     goto fail;
     }
   

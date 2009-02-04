@@ -1557,10 +1557,14 @@ dnl Change to true to match other macros
 have_GL=true
 fi
 
+if test "x$have_GL" = "xtrue"; then
+
 if test "x$have_GLX" = "xyes"; then
 AC_DEFINE(HAVE_GLX)
 dnl Change to true to match other macros
 have_GLX=true
+fi
+
 fi
 
 AM_CONDITIONAL(HAVE_GL, test x$have_GL = xtrue)

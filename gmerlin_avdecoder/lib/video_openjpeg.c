@@ -39,19 +39,19 @@
 static void error_callback(const char *msg, void *client_data)
   {
   bgav_options_t * opt = (bgav_options_t*)client_data;
-  bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN_OJP, msg);
+  bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN_OJP, "%s", msg);
   }
 
 static void warning_callback(const char *msg, void *client_data)
   {
   bgav_options_t * opt = (bgav_options_t*)client_data;
-  bgav_log(opt, BGAV_LOG_WARNING, LOG_DOMAIN_OJP, msg);
+  bgav_log(opt, BGAV_LOG_WARNING, LOG_DOMAIN_OJP, "%s", msg);
   }
 
 static void info_callback(const char *msg, void *client_data)
   {
   bgav_options_t * opt = (bgav_options_t*)client_data;
-  bgav_log(opt, BGAV_LOG_INFO, LOG_DOMAIN_OJP, msg);
+  bgav_log(opt, BGAV_LOG_INFO, LOG_DOMAIN_OJP, "%s", msg);
   }
 
 typedef struct

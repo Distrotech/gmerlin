@@ -635,7 +635,7 @@ static int init(bgav_stream_t * s)
       return 0;
     }
     
-  s->description = bgav_sprintf(priv->info->format_name);
+  s->description = bgav_sprintf("%s", priv->info->format_name);
   return 1;
   }
 

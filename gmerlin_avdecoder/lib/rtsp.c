@@ -150,7 +150,7 @@ static int rtsp_send_request(bgav_rtsp_t * rtsp,
   if(status != 200)
     {
     bgav_log(rtsp->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-             bgav_http_header_status_line(rtsp->answers));
+             "%s", bgav_http_header_status_line(rtsp->answers));
     goto fail;
     }
   var = bgav_http_header_get_var(rtsp->answers, "Session");

@@ -517,6 +517,7 @@ rtp.c \
 rtpbuffer.c \
 rtsp.c \
 sampleseek.c \
+seek.c \
 sdp.c \
 stream.c \
 subovl_dvd.c \
