@@ -39,8 +39,10 @@
 
 #include <x11/x11.h>
 #include <x11/x11_window_private.h>
-#include <GL/glx.h>
 
+#ifdef HAVE_GLX
+#include <GL/glx.h>
+#endif
 
 #define _NET_WM_STATE_REMOVE        0    /* remove/unset property */
 #define _NET_WM_STATE_ADD           1    /* add/set property */
@@ -1424,6 +1426,7 @@ void bg_x11_window_set_size(bg_x11_window_t * win, int width, int height)
   win->window_height = height;
   }
 
+#ifdef HAVE_GLX
 static const struct
   {
   int glx_attribute;
@@ -1448,15 +1451,18 @@ gl_attribute_map[BG_GL_ATTRIBUTE_NUM] =
     [BG_GL_ATTRIBUTE_ACCUM_BLUE_SIZE]   = { GLX_ACCUM_BLUE_SIZE,  0 },
     [BG_GL_ATTRIBUTE_ACCUM_ALPHA_SIZE]  = { GLX_ACCUM_ALPHA_SIZE, 0 },
   };
+#endif
 
 int bg_x11_window_realize(bg_x11_window_t * win)
   {
   int ret;
+  int screen;
+
+#ifdef HAVE_GLX
   int attr_index = 0, i;
   /* Attributes we need for video playback */
 
   int attr_list[64];
-  int screen;
   for(i = 0; i < BG_GL_ATTRIBUTE_NUM; i++)
     {
     if(!win->gl_attributes[i].changed)
@@ -1468,25 +1474,12 @@ int bg_x11_window_realize(bg_x11_window_t * win)
     }
 
   attr_list[attr_index] = None;
-
-#if 0  
-  int attr_list[] =
-    {
-      // GLX_RGBA
-      //    If present, only TrueColor and DirectColor visuals are considered.
-      //    Otherwise, only PseudoColor and StaticColor visuals are considered.
-      GLX_RGBA,
-      GLX_RED_SIZE, 8,
-      GLX_GREEN_SIZE, 8,
-      GLX_BLUE_SIZE, 8,
-      //      GLX_DEPTH_SIZE, 8,
-      GLX_DOUBLEBUFFER,
-      None };
 #endif
-  
+
   if(!win->dpy && !open_display(win))
     return 0;
   
+#ifdef HAVE_GLX
   win->gl_vi = glXChooseVisual(win->dpy, win->screen, attr_list);
   
   if(!win->gl_vi)
@@ -1501,6 +1494,12 @@ int bg_x11_window_realize(bg_x11_window_t * win)
     win->visual = win->gl_vi->visual;
     win->depth  = win->gl_vi->depth;
     }
+
+#else
+  screen = DefaultScreen(win->dpy);
+  win->visual = DefaultVisual(win->dpy, screen);
+  win->depth = DefaultDepth(win->dpy, screen);
+#endif
   
   ret = create_window(win, win->window_width, win->window_height);
   bg_x11_window_init_gl(win);

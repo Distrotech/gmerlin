@@ -29,7 +29,9 @@ static video_driver_t const * const drivers[] =
 #ifdef HAVE_LIBXV
     &xv_driver,
 #endif
+#ifdef HAVE_GLX
     &gl_driver,
+#endif
   };
 
 static int set_brightness(bg_x11_window_t * w)

@@ -4,8 +4,18 @@ AM_CFLAGS = @X_CFLAGS@ -DLOCALE_DIR=\"$(localedir)\"
 
 if HAVE_XV
 xv_sources = xvideo.c
+xv_libs = @XV_LIBS@
 else
 xv_sources =
+xv_libs =
+endif
+
+if HAVE_GLX
+glx_sources = glvideo.c
+glx_libs = @GL_LIBS@
+else
+glx_sources =
+glx_libs =
 endif
 
 noinst_LTLIBRARIES = \
@@ -17,11 +27,9 @@ x11_event.c \
 x11_gl.c \
 x11_video.c \
 x11_window.c \
-glvideo.c \
 overlay.c \
 ximage.c \
+$(glx_sources) \
 $(xv_sources)
 
-libx11_la_LIBADD =  @GMERLIN_DEP_LIBS@ @X_LIBS@ @XINERAMA_LIBS@ @XV_LIBS@ @GL_LIBS@
-
-
+libx11_la_LIBADD =  @GMERLIN_DEP_LIBS@ @X_LIBS@ @XINERAMA_LIBS@ $(xv_libs) $(glx_libs)

@@ -229,9 +229,9 @@ dnl
 
 GMERLIN_CHECK_OPENGL
 
-if test "x$have_GL" != "xtrue" -o "x$have_GLX" != "xtrue"; then
-  AC_MSG_ERROR([Gmerlin needs OpenGL and GLX])
-fi
+dnl if test "x$have_GL" != "xtrue" -o "x$have_GLX" != "xtrue"; then
+dnl   AC_MSG_ERROR([Gmerlin needs OpenGL and GLX])
+dnl fi
 
 dnl
 dnl Pulseaudio
@@ -1057,7 +1057,7 @@ fi
 
 echo -n "Video4Linux2:        "
 if test "x$have_v4l2" = "xtrue"; then
-echo "Yes (disabling video4linux1)"
+echo "Yes"
 else
 if test "x$test_v4l2" = "xtrue"; then
 echo "Missing (Probably unsupported architecture)"
