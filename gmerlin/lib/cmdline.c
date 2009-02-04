@@ -156,7 +156,7 @@ static void print_string(FILE * out, const char * str, bg_help_format_t format)
       }
       break;
     default:
-      fprintf(out, str);
+      fprintf(out, "%s", str);
       break;
     }
   }
@@ -724,12 +724,12 @@ static void print_help_parameters(int indent,
       
       if(parameters[i].opt)
         {
-        fprintf(out, parameters[i].opt);
+        fprintf(out, "%s", parameters[i].opt);
         pos += strlen(parameters[i].opt);
         }
       else
         {
-        fprintf(out, parameters[i].name);
+        fprintf(out, "%s", parameters[i].name);
         pos += strlen(parameters[i].name);
         }
       fprintf(out, " \"=");
@@ -871,7 +871,7 @@ static void print_help_parameters(int indent,
             pos += indent+2;
             }
           
-          pos += fprintf(out, parameters[i].multi_names[j]);
+          pos += fprintf(out, "%s", parameters[i].multi_names[j]);
           j++;
           }
         print_linebreak(out, format);
@@ -945,7 +945,7 @@ static void print_help_parameters(int indent,
             do_indent(out, indent+2, format);
             pos += indent+2;
             }
-          pos += fprintf(out, parameters[i].multi_names[j]);
+          pos += fprintf(out, "%s", parameters[i].multi_names[j]);
           j++;
           }
 
@@ -984,7 +984,7 @@ static void print_help_parameters(int indent,
             do_indent(out, indent+4, format);
             pos += indent+4;
             }
-          pos += fprintf(out, parameters[i].multi_names[j]);
+          pos += fprintf(out, "%s", parameters[i].multi_names[j]);
           j++;
           }
         fprintf(out, "\n\n");

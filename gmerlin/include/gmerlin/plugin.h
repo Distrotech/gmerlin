@@ -767,7 +767,7 @@ struct bg_input_plugin_s
   /** \brief Seek within a media track
    *  \param priv The handle returned by the create() method
    *  \param time Time to seek to
-   *  \param scale Scale in which time is given
+   *  \param scale Timescale
    *  
    *  Media streams are supposed to be seekable, if this
    *  function is non-NULL AND the duration field of the track info

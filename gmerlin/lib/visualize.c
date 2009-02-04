@@ -76,7 +76,7 @@ struct bg_visualizer_s
   const char * display_string;
   };
 
-static int proc_write_func(void * data, uint8_t * ptr, int len)
+static int proc_write_func(void * data, const uint8_t * ptr, int len)
   {
   bg_visualizer_t * v = (bg_visualizer_t *)data;
   return write(v->proc->stdin_fd, ptr, len);
@@ -518,7 +518,7 @@ static int handle_slave_message(bg_visualizer_t * v)
     case BG_LOG_DEBUG:
       domain = bg_msg_get_arg_string(v->msg, 0);
       msg    = bg_msg_get_arg_string(v->msg, 1);
-      bg_log_notranslate(id, domain, msg);
+      bg_log_notranslate(id, domain, "%s", msg);
       free(domain);
       free(msg);
       break;

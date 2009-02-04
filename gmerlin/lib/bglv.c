@@ -70,7 +70,7 @@ static void log_error(const char *message,
   {
   char * domain;
   domain = bg_sprintf("lv.%s", funcname);
-  bg_log_notranslate(BG_LOG_ERROR, domain, message);
+  bg_log_notranslate(BG_LOG_ERROR, domain, "%s", message);
   free(domain);
   }
 
@@ -79,7 +79,7 @@ static void log_info(const char *message,
   {
   char * domain;
   domain = bg_sprintf("lv.%s", funcname);
-  bg_log_notranslate(BG_LOG_INFO, domain, message);
+  bg_log_notranslate(BG_LOG_INFO, domain, "%s", message);
   free(domain);
   }
 
@@ -88,7 +88,7 @@ static void log_warning(const char *message,
   {
   char * domain;
   domain = bg_sprintf("lv.%s", funcname);
-  bg_log_notranslate(BG_LOG_WARNING, domain, message);
+  bg_log_notranslate(BG_LOG_WARNING, domain, "%s", message);
   free(domain);
   }
 
