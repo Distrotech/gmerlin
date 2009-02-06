@@ -316,6 +316,7 @@ int bgav_audio_skipto(bgav_stream_t * s, int64_t * t, int scale)
              str1, str2, str3);
     }
   else
+    {
     if(num_samples > 0)
       {
       char str1[128];
@@ -326,6 +327,7 @@ int bgav_audio_skipto(bgav_stream_t * s, int64_t * t, int scale)
       
       samples_skipped = read_audio(s, (gavl_audio_frame_t*)0, num_samples);
       }
+    }
   if(samples_skipped < num_samples)
     {
     return 0;

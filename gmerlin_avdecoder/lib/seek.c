@@ -29,8 +29,10 @@
 
 static void skip_to(bgav_t * b, bgav_track_t * track, int64_t * time, int scale)
   {
+  //  fprintf(stderr, "Skip to: %ld\n", *time);
   if(!bgav_track_skipto(track, time, scale))
     b->eof = 1;
+  //  fprintf(stderr, "Skipped to: %ld\n", *time);
   }
 
 /* Seek functions with superindex */
@@ -133,6 +135,11 @@ static void seek_sa(bgav_t * b, int64_t * time, int scale)
       bgav_seek_video(b, i,
                       gavl_time_rescale(scale, s->data.video.format.timescale,
                                         *time) - s->start_time);
+      if(s->eof)
+        {
+        b->eof = 1;
+        return;
+        }
       /*
        *  We align seeking at the first frame of the first video stream
        */
@@ -155,6 +162,11 @@ static void seek_sa(bgav_t * b, int64_t * time, int scale)
       bgav_seek_audio(b, i,
                       gavl_time_rescale(scale, s->data.audio.format.samplerate,
                                         *time) - s->start_time);
+      if(s->eof)
+        {
+        b->eof = 1;
+        return;
+        }
       }
     }
   for(i = 0; i < b->tt->cur->num_subtitle_streams; i++)
@@ -192,7 +204,8 @@ static void seek_once(bgav_t * b, int64_t * time, int scale)
 
 static void seek_iterative(bgav_t * b, int64_t * time, int scale)
   {
-  int num_iterations = 0;
+  int num_seek = 0;
+  int num_resync = 0;
   bgav_track_t * track = b->tt->cur;
   
   int64_t seek_time;
@@ -206,54 +219,130 @@ static void seek_iterative(bgav_t * b, int64_t * time, int scale)
   int64_t sync_time_upper    = BGAV_TIMESTAMP_UNDEFINED;
   int64_t sync_time_lower    = BGAV_TIMESTAMP_UNDEFINED;
 
-  int64_t out_time_upper    = BGAV_TIMESTAMP_UNDEFINED;
   int64_t out_time_lower    = BGAV_TIMESTAMP_UNDEFINED;
   
   int64_t one_second = gavl_time_scale(scale, GAVL_TIME_SCALE);
+  int final_seek = 0;
   
   seek_time = *time;
+
+  //  fprintf(stderr, "****** Seek iterative ***********\n");
   
   while(1)
     {
+    //    fprintf(stderr, "Seek time: %ld\n", seek_time);
+    
     bgav_track_clear(track);
     b->demuxer->demuxer->seek(b->demuxer, seek_time, scale);
+    num_seek++;
     
     sync_time = bgav_track_sync_time(track, scale);
+
+    if(sync_time == BGAV_TIMESTAMP_UNDEFINED)
+      {
+      b->eof = 1;
+      return;
+      }
+    
+    //    fprintf(stderr, "Sync time: %ld\n", sync_time);
     
     diff_time = *time - sync_time;
 
-    if(sync_time > *time)
+    if(sync_time > *time) /* Sync time too late */
       {
+      //      fprintf(stderr, "Sync time too late\n");
+
+      if((sync_time_upper == BGAV_TIMESTAMP_UNDEFINED) ||
+         (sync_time_upper > sync_time))
+        {
+        seek_time_upper = seek_time;
+        sync_time_upper = sync_time;
+        }
+      /* If we were too early before, exit here */
+      if(sync_time_lower != BGAV_TIMESTAMP_UNDEFINED)
+        {
+        seek_time = seek_time_lower;
+        out_time = out_time_lower;
+        final_seek = 1;
+        break;
+        }
+      
       /* Go backward */
-      seek_time_upper = seek_time;
-      sync_time_upper = sync_time;
       seek_time -= ((3*(sync_time - *time))/2 + one_second);
       continue;
       }
-    else
+    /* Sync time too early, but already been there: Exit */
+    else if((sync_time_lower != BGAV_TIMESTAMP_UNDEFINED) &&
+            (sync_time == sync_time_lower))
       {
-      sync_time = bgav_track_sync_time(track, scale);
-      if(sync_time == sync_time_lower)
-        {
-        
-        }
-
       bgav_track_resync(track);
+      num_resync++;
+      break;
+      }
+    else /* Sync time too early, get out time */
+      {
+      bgav_track_resync(track);
+      num_resync++;
+
       out_time = bgav_track_out_time(track, scale);
 
-      diff_time = *time - sync_time;
+      //      fprintf(stderr, "Out time: %ld\n", out_time);
 
-      if(diff_time < 0)
+      if(out_time > *time) /* Out time too late */
         {
-        seek_time += (3*diff_time)/2;
-        
-        if(seek_time < 0)
-          seek_time = 0;
+        //        fprintf(stderr, "Out time too late\n");
+        seek_time -= ((3*(out_time - *time))/2 + one_second);
         continue;
         }
+      else
+        {
+        //        fprintf(stderr, "Out time too early\n");
+        /* If difference is less than half a second, exit here */
+        if(*time - out_time < one_second / 2)
+          break;
+        
+        /* Remember position and go a bit forward */
+        if((out_time_lower == BGAV_TIMESTAMP_UNDEFINED) ||
+           (out_time_lower < out_time))
+          {
+          seek_time_lower = seek_time;
+          out_time_lower  = out_time;
+          sync_time_lower = sync_time;
+          
+          seek_time += (*time - out_time)/2;
+          continue;
+          }
+        /* Have been better before */
+        else if(out_time <= out_time_lower)
+          {
+          seek_time = seek_time_lower;
+          out_time = out_time_lower;
+          final_seek = 1;
+          break;
+          }
+        }
       }
-    
     }
+
+  if(final_seek)
+    {
+    bgav_track_clear(track);
+    //    fprintf(stderr, "Final seek %ld\n", seek_time);
+    b->demuxer->demuxer->seek(b->demuxer, seek_time, scale);
+    num_seek++;
+    bgav_track_resync(track);
+    num_resync++;
+    }
+
+  if(*time > out_time)
+    skip_to(b, track, time, scale);
+  else
+    {
+    skip_to(b, track, &out_time, scale);
+    *time = out_time;
+    }
+
+  //  fprintf(stderr, "Seeks: %d, resyncs: %d\n", num_seek, num_resync);
   
   }
 
@@ -261,12 +350,8 @@ void
 bgav_seek_scaled(bgav_t * b, int64_t * time, int scale)
   {
   int i;
-  int64_t sync_time;
-  
   bgav_track_t * track = b->tt->cur;
-  int num_iterations = 0;
-  //  seek_time = *time;
-
+  
   //  fprintf(stderr, "bgav_seek_scaled: %ld\n", gavl_time_unscale(scale, *time));
 
   /* Clear EOF */

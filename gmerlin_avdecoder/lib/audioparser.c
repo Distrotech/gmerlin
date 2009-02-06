@@ -212,7 +212,7 @@ bgav_audio_parser_get_format(bgav_audio_parser_t * parser)
 
 void bgav_audio_parser_set_eof(bgav_audio_parser_t * parser)
   {
-  fprintf(stderr, "Audio parser EOF\n");
+  //  fprintf(stderr, "Audio parser EOF\n");
   parser->eof = 1;
 
   /* Output the last packet */

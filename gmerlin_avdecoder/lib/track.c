@@ -584,14 +584,14 @@ int bgav_track_has_sync(bgav_track_t * t)
     {
     s = &t->audio_streams[i];
     if((s->action == BGAV_STREAM_DECODE) &&
-       (STREAM_HAS_SYNC(s)))
+       (!STREAM_HAS_SYNC(s)))
       return 0;
     }
   for(i = 0; i < t->num_video_streams; i++)
     {
     s = &t->video_streams[i];
     if((s->action == BGAV_STREAM_DECODE) &&
-       (STREAM_HAS_SYNC(s)))
+       (!STREAM_HAS_SYNC(s)))
       return 0;
     }
   return 1;

@@ -743,6 +743,10 @@ static void resync_ffmpeg(bgav_stream_t * s)
     {
     /* Skip pictures until we have the next keyframe */
     p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
+
+    if(!p)
+      return;
+
     if(PACKET_GET_KEYFRAME(p))
       {
       s->out_time = p->pts;

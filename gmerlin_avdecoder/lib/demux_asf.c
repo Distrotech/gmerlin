@@ -1158,7 +1158,8 @@ static void seek_asf(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   asf->do_sync = 1;
   while(!bgav_track_has_sync(ctx->tt->cur))
     {
-    next_packet_asf(ctx);
+    if(!next_packet_asf(ctx))
+      return;
     }
   asf->do_sync = 0;
   

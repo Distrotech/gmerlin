@@ -80,6 +80,8 @@ void bgav_seek_audio(bgav_t * bgav, int stream, int64_t sample)
   int64_t frame_time;
   bgav_stream_t * s;
   s = &bgav->tt->cur->audio_streams[stream];
+
+  //  fprintf(stderr, "Seek audio: %ld\n", sample);
   
   if(sample >= s->duration) /* EOF */
     {
@@ -128,7 +130,7 @@ void bgav_seek_audio(bgav_t * bgav, int stream, int64_t sample)
       bgav->demuxer->demuxer->resync(bgav->demuxer, s);
     }
   
-  bgav_audio_resync(s);
+  //  bgav_audio_resync(s);
   bgav_audio_skipto(s, &sample, s->data.audio.format.samplerate);
     
   s->out_time += s->start_time;
@@ -139,6 +141,8 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
   bgav_stream_t * s;
   int64_t frame_time;
   s = &bgav->tt->cur->video_streams[stream];
+
+  //  fprintf(stderr, "Seek video: %ld\n", time);
 
   bgav->demuxer->flags &= ~BGAV_DEMUXER_EOF;
   
@@ -183,8 +187,8 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
     STREAM_SET_SYNC(s, s->file_index->entries[s->index_position].time);
     s->out_time = frame_time;
 
-    if(s->data.video.parser)
-      bgav_video_parser_reset(s->data.video.parser, BGAV_TIMESTAMP_UNDEFINED, frame_time);
+    // if(s->data.video.parser)
+    //   bgav_video_parser_reset(s->data.video.parser, BGAV_TIMESTAMP_UNDEFINED, frame_time);
     
     if(bgav->demuxer->demuxer->resync)
       bgav->demuxer->demuxer->resync(bgav->demuxer, s);
@@ -192,7 +196,10 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
 
   bgav_video_resync(s);
 
+  //  fprintf(stderr, "Skip to: %ld\n", time);
+  
   bgav_video_skipto(s, &time, s->data.video.format.timescale);
+  //  fprintf(stderr, "Skipped to: %ld\n", time);
   }
 
 int64_t bgav_video_keyframe_before(bgav_t * bgav, int stream, int64_t time)

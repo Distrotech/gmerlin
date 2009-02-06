@@ -254,7 +254,7 @@ void bgav_video_resync(bgav_stream_t * s)
     {
     s->out_time =
       gavl_time_rescale(s->timescale,
-                        s->data.audio.format.samplerate,
+                        s->data.video.format.timescale,
                         STREAM_GET_SYNC(s));
     }
   
@@ -322,19 +322,27 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale)
     }
   else
     {
-    p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
-    
-    if(!p)
-      return 0;
-    
-    if(p->pts + p->duration > time_scaled)
+    while(1)
       {
-      s->out_time = p->pts;
-      return 1;
+      p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
+      
+      if(!p)
+        {
+        s->out_time = BGAV_TIMESTAMP_UNDEFINED;
+        return 0;
+        }
+      if(p->pts + p->duration > time_scaled)
+        {
+        s->out_time = p->pts;
+        return 1;
+        }
+      result = bgav_video_decode(s, (gavl_video_frame_t*)0);
+      if(!result)
+        {
+        s->out_time = BGAV_TIMESTAMP_UNDEFINED;
+        return 0;
+        }
       }
-    result = bgav_video_decode(s, (gavl_video_frame_t*)0);
-    if(!result)
-      return 0;
     }
   
   *time = gavl_time_rescale(s->data.video.format.timescale, scale, s->out_time);
