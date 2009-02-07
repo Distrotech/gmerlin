@@ -103,17 +103,16 @@ static int read_media_header(bgav_input_context_t * input,
          bgav_input_read_data(input, &ret->reserved, 1));
   }
 
-#if 0
+#if 1
 static void dump_media_header(media_header_t * h)
   {
-  bgav_dprintf("Packet header\n");
-
-  bgav_dprintf("  .type =              %d\n", h->type);
+  bgav_dprintf("GXF media header\n");
+  bgav_dprintf("  type:              %d\n", h->type);
   bgav_dprintf("  id:                %d\n", h->id);
   bgav_dprintf("  field_nr:          %d\n", h->field_nr);
   bgav_dprintf("  field_information: %08x\n", h->field_information);
   bgav_dprintf("  timeline_field_nr: %d\n", h->timeline_field_nr);
-  bgav_dprintf("  .flags =             %d\n", h->flags);
+  bgav_dprintf("  flags:             %d\n", h->flags);
   bgav_dprintf("  reserved:          %d\n", h->reserved);
   
   }
@@ -235,6 +234,7 @@ static int parse_track(bgav_input_context_t * input,
     case 5:
       vs = bgav_track_add_video_stream(t, opt);
       vs->fourcc = BGAV_MK_FOURCC('M','J','P','G');
+      vs->flags |= STREAM_INTRA_ONLY;
       break;
     case 13:
     case 14:
@@ -245,6 +245,7 @@ static int parse_track(bgav_input_context_t * input,
         vs->fourcc = BGAV_MK_FOURCC('d','v','c',' ');
       else
         vs->fourcc = BGAV_MK_FOURCC('d','v','c','p');
+      vs->flags |= STREAM_INTRA_ONLY;
       break;
     case 11:
     case 12:
@@ -253,6 +254,7 @@ static int parse_track(bgav_input_context_t * input,
     case 20:
       vs = bgav_track_add_video_stream(t, opt);
       vs->fourcc = BGAV_MK_FOURCC('m','p','g','v');
+      vs->flags |= STREAM_PARSE_FULL;
       break;
     case 9:
       as = bgav_track_add_audio_stream(t, opt);
@@ -545,7 +547,6 @@ static int next_packet_gxf(bgav_demuxer_context_t * ctx)
       return 0;
     length -= 16;
 
-    //    dump_media_header(&mh);
     s = bgav_track_find_stream(ctx, mh.id);
     
     if(!s)
@@ -554,6 +555,8 @@ static int next_packet_gxf(bgav_demuxer_context_t * ctx)
       }
     else
       {
+      //      if(s->type == BGAV_STREAM_VIDEO)
+      //        dump_media_header(&mh);
       if(priv->do_sync)
         {
         if(mh.field_nr - priv->first_field < priv->sync_field)
@@ -577,7 +580,13 @@ static int next_packet_gxf(bgav_demuxer_context_t * ctx)
       if(bgav_input_read_data(ctx->input, p->data, length) < length)
         return 0;
       p->data_size = length;
-      
+#if 0
+      if(s->type == BGAV_STREAM_VIDEO)
+        {
+        fprintf(stderr, "Got video packet %d:\n", priv->num_fields);
+        bgav_packet_dump(p);
+        }
+#endif
       bgav_packet_done_write(p);
       }
     

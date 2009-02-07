@@ -52,7 +52,10 @@ int bgav_video_start(bgav_stream_t * s)
   int result;
   bgav_video_decoder_t * dec;
   bgav_video_decoder_context_t * ctx;
-  
+
+  if(!s->timescale && s->data.video.format.timescale)
+    s->timescale = s->data.video.format.timescale;
+    
   if(s->flags & STREAM_PARSE_FULL)
     {
     int result, done = 0;
@@ -136,10 +139,7 @@ int bgav_video_start(bgav_stream_t * s)
     bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Got initial video timestamp: %s",
              tmp_string);
     }
-
-  if(!s->timescale && s->data.video.format.timescale)
-    s->timescale = s->data.video.format.timescale;
-
+  
   s->in_position = 0;
   
   if(s->action == BGAV_STREAM_DECODE)
