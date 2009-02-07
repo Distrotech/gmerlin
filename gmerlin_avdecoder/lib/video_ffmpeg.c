@@ -57,6 +57,9 @@
 
 /* Map of ffmpeg codecs to fourccs (from ffmpeg's avienc.c) */
 
+#define HAS_DELAY      (1<<0)
+#define HAS_GET_BUFFER (1<<1)
+
 typedef struct
   {
   const char * decoder_name;
@@ -64,17 +67,6 @@ typedef struct
   enum CodecID ffmpeg_id;
   uint32_t * fourccs;
   } codec_info_t;
-
-#if 0
-typedef struct
-  {
-  int64_t pts;
-  int64_t position;
-  int64_t duration;
-  int keyframe;
-  int used;
-  } packet_info_t;
-#endif
 
 typedef struct
   {
@@ -105,7 +97,7 @@ typedef struct
   //  packet_info_t packets[FF_MAX_B_FRAMES+1];
   bgav_packet_t * packet;
   
-  int has_delay;
+  int flags;
 
 #ifdef HAVE_LIBPOSTPROC
   int do_pp;
@@ -167,26 +159,6 @@ static int my_get_buffer(struct AVCodecContext *c, AVFrame *pic)
   return ret;
   }
 
-
-
-#if 0
-static void
-my_release_buffer(struct AVCodecContext *c, AVFrame *pic)
-  {
-  packet_info_t * pi;
-  bgav_stream_t * s = (bgav_stream_t *)c->opaque;
-
-  if(pic)
-    {
-    pi = (packet_info_t *)pic->opaque;
-
-    if(s->data.video.frametime_mode != BGAV_FRAMETIME_CODEC)
-      pi->used = 0;
-    }
-  avcodec_default_release_buffer(c, pic);
-  }
-#endif
-
 static codec_info_t * lookup_codec(bgav_stream_t * s);
 
 /* This MUST match demux_rm.c!! */
@@ -197,7 +169,6 @@ typedef struct dp_hdr_s {
     uint32_t len;       // length of actual data
     uint32_t chunktab;  // offset to chunk offset array
 } dp_hdr_t;
-
 
 static int get_data(bgav_stream_t * s)
   {
@@ -243,7 +214,7 @@ static int decode_picture(bgav_stream_t * s)
       {
       if(priv->demuxer_eof)
         {
-        if(priv->has_delay)
+        if(priv->flags & HAS_DELAY)
           {
           priv->frame_buffer_len = 0;
           priv->frame_buffer = (uint8_t*)0;
@@ -269,7 +240,7 @@ static int decode_picture(bgav_stream_t * s)
       else
         {
         priv->ctx->skip_frame = AVDISCARD_NONE;
-        if(s->flags & STREAM_WRONG_B_TIMESTAMPS)
+        if(!(priv->flags & HAS_GET_BUFFER))
           bgav_pts_cache_push(&priv->pts_cache,
                               priv->packet->pts,
                               priv->packet->duration,
@@ -279,14 +250,13 @@ static int decode_picture(bgav_stream_t * s)
     else
       {
       priv->ctx->skip_frame = AVDISCARD_NONE;
-      if(s->flags & STREAM_WRONG_B_TIMESTAMPS)
+      if(!(priv->flags & HAS_GET_BUFFER))
         bgav_pts_cache_push(&priv->pts_cache,
                             priv->packet->pts,
                             priv->packet->duration,
                             (int*)0, &e);
       
       }
-    
     
     priv->frame_buffer = priv->packet->data;
 
@@ -416,19 +386,20 @@ static int decode_picture(bgav_stream_t * s)
     if(priv->have_picture)
       break;
     }
-  
-  e = priv->frame->opaque;
 
-  if(e)
+  if(priv->flags & HAS_GET_BUFFER)
     {
+    e = priv->frame->opaque;
     priv->picture_timestamp = e->pts;
     priv->picture_duration  = e->duration;
     e->used = 0;
     }
   else
+    {
     priv->picture_timestamp =
       bgav_pts_cache_get_first(&priv->pts_cache,
                                &priv->picture_duration);
+    }
   return 1;
   }
 
@@ -548,16 +519,20 @@ static int init_ffmpeg(bgav_stream_t * s)
   priv->ctx->flags &= ~CODEC_FLAG_TRUNCATED;
   
   if(codec->capabilities & CODEC_CAP_DELAY)
-    priv->has_delay = 1;
+    {
+    priv->flags |= HAS_DELAY;
+
+    if(!(s->flags & STREAM_WRONG_B_TIMESTAMPS))
+      {
+      priv->ctx->get_buffer = my_get_buffer;
+      //    priv->ctx->release_buffer = my_release_buffer;
+      priv->ctx->opaque = s;
+      priv->flags |= HAS_GET_BUFFER;
+      }
+    }
   
   /* Set get_buffer and release_buffer */
 
-  if(!(s->flags & STREAM_WRONG_B_TIMESTAMPS))
-    {
-    priv->ctx->get_buffer = my_get_buffer;
-    //    priv->ctx->release_buffer = my_release_buffer;
-    priv->ctx->opaque = s;
-    }
   
   if(s->ext_data)
     {
