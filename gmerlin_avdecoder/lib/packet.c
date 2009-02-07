@@ -72,8 +72,9 @@ void bgav_packet_done_write(bgav_packet_t * p)
      !p->duration)
     p->duration = p->stream->data.video.format.frame_duration;
 
-  /* Padding */
-  memset(p->data + p->data_size, 0, PACKET_PADDING);
+  /* Padding (if fourcc != gavl) */
+  if(p->data)
+    memset(p->data + p->data_size, 0, PACKET_PADDING);
 
   }
 

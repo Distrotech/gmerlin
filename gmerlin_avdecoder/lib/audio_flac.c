@@ -305,9 +305,11 @@ static int decode_frame_flac(bgav_stream_t * s)
        FLAC__STREAM_DECODER_END_OF_STREAM)
       return 0;
     if(priv->frame->valid_samples)
+      {
+      gavl_audio_frame_copy_ptrs(&s->data.audio.format, s->data.audio.frame, priv->frame);
       return 1;
+      }
     }
-  gavl_audio_frame_copy_ptrs(&s->data.audio.format, s->data.audio.frame, priv->frame);
   return 0;
   }
 
