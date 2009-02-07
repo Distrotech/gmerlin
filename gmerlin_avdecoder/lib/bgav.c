@@ -321,6 +321,9 @@ int bgav_select_track(bgav_t * b, int track)
       {
       if(b->demuxer->data_start < b->input->position)
         {
+        /* Some demuxers produce packets during initialization */
+        // bgav_track_clear(b->tt->cur);
+        
         if(b->input->input->seek_byte)
           bgav_input_seek(b->input, b->demuxer->data_start, SEEK_SET);
         else

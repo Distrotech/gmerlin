@@ -199,26 +199,7 @@ void bgav_stream_clear(bgav_stream_t * s)
   s->out_time = BGAV_TIMESTAMP_UNDEFINED;
   STREAM_UNSET_SYNC(s);
   s->eof = 0;
-
-#if 0  
-  switch(s->type)
-    {
-    case BGAV_STREAM_AUDIO:
-      //      bgav_audio_clear(s);
-      break;
-    case BGAV_STREAM_VIDEO:
-      bgav_video_clear(s);
-      break;
-    case BGAV_STREAM_SUBTITLE_TEXT:
-    case BGAV_STREAM_SUBTITLE_OVERLAY:
-      //      bgav_subtitle_clear(s);
-      break;
-    case BGAV_STREAM_UNKNOWN:
-      break;
-    }
-#endif
   }
-
 
 int bgav_stream_skipto(bgav_stream_t * s, gavl_time_t * time, int scale)
   {

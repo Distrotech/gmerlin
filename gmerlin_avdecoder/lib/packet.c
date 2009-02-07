@@ -71,16 +71,6 @@ void bgav_packet_done_write(bgav_packet_t * p)
      (p->stream->data.video.format.framerate_mode == GAVL_FRAMERATE_CONSTANT) &&
      !p->duration)
     p->duration = p->stream->data.video.format.frame_duration;
-    
-  /*
-   *  MPEG timestamps are wrong anyway so we make them invalid
-   *  here. It's better than doing that in the demuxers, since
-   *  they are complicated enough already.
-   */
-  
-  if((p->stream->demuxer->demux_mode == DEMUX_MODE_FI) &&
-     (p->stream->demuxer->index_mode == INDEX_MODE_MPEG))
-    p->pts = BGAV_TIMESTAMP_UNDEFINED;
 
   /* Padding */
   memset(p->data + p->data_size, 0, PACKET_PADDING);

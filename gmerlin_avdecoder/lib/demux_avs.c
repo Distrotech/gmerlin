@@ -131,7 +131,7 @@ static int next_packet_avs(bgav_demuxer_context_t * ctx)
       {
       case 0x01: /* Video data */
 
-        if(!vs)
+        if(!vs || priv->need_audio_format)
           {
           bgav_input_skip(ctx->input, block_size - 4);
           break;
@@ -159,7 +159,7 @@ static int next_packet_avs(bgav_demuxer_context_t * ctx)
         break;
       case 0x03: /* Palette data */
 
-        if(!vs)
+        if(!vs || priv->need_audio_format)
           {
           bgav_input_skip(ctx->input, block_size - 4);
           break;
@@ -187,7 +187,6 @@ static int next_packet_avs(bgav_demuxer_context_t * ctx)
         break;
       case 0x02: /* Audio data */
 
-#if 1
         if(priv->need_audio_format)
           {
           /* Initialize audio stream */
@@ -220,11 +219,13 @@ static int next_packet_avs(bgav_demuxer_context_t * ctx)
             if(!as->data.audio.format.samplerate)
               as->data.audio.format.samplerate =
                 1000000 / (256 - ah.frequency_divisor);
-            
+            else
+              {
+              as->packet =
+                bgav_stream_get_packet_write(as);
+              as->packet->data_size = 0;
+              }
             //            dump_audio_header(&ah);
-            as->packet =
-              bgav_stream_get_packet_write(as);
-            as->packet->data_size = 0;
             priv->audio_bytes_remaining = ah.size - 2;
             }
           /* Read data */
@@ -232,29 +233,29 @@ static int next_packet_avs(bgav_demuxer_context_t * ctx)
           if(bytes_to_read > block_size)
             bytes_to_read = block_size;
 
-          bgav_packet_alloc(as->packet,
-                            as->packet->data_size + bytes_to_read);
-          if(bgav_input_read_data(ctx->input,
-                                  as->packet->data + as->packet->data_size,
-                                  bytes_to_read) < bytes_to_read)
-            return 0;
+          if(as->packet)
+            {
+            bgav_packet_alloc(as->packet,
+                              as->packet->data_size + bytes_to_read);
+            if(bgav_input_read_data(ctx->input,
+                                    as->packet->data + as->packet->data_size,
+                                    bytes_to_read) < bytes_to_read)
+              return 0;
+            
+            as->packet->data_size += bytes_to_read;
+            }
+          else
+            bgav_input_skip(ctx->input, bytes_to_read);
           
           priv->audio_bytes_remaining -= bytes_to_read;
-          as->packet->data_size += bytes_to_read;
           block_size -= bytes_to_read;
-
-                  
-          if(!priv->audio_bytes_remaining)
+          
+          if(!priv->audio_bytes_remaining && as->packet)
             {
             bgav_packet_done_write(as->packet);
             as->packet = (bgav_packet_t*)0;
             }
           }
-#else
-        read_audio_header(ctx->input, &ah);
-        dump_audio_header(&ah);
-        bgav_input_skip(ctx->input, block_size - 4 - 6);
-#endif
         break;
       case 0x04: /* Game data */
         bgav_input_skip(ctx->input, block_size - 4);
@@ -264,9 +265,6 @@ static int next_packet_avs(bgav_demuxer_context_t * ctx)
         break;
       }
     }
-
-  ctx->data_start = ctx->input->position;
-  ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
   
   return 1;
   }
@@ -306,6 +304,9 @@ static int open_avs(bgav_demuxer_context_t * ctx)
     gavl_time_unscale(s->data.video.format.timescale,
                       BGAV_PTR_2_32LE(&header[12]));
 
+  ctx->data_start = ctx->input->position;
+  ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
+  
 #if 1
   priv->need_audio_format = 1;
   if(!next_packet_avs(ctx))
