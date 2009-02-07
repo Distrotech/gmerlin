@@ -418,8 +418,7 @@ struct bgav_stream_s
   int eof;
   
   /*
-   *  This indicates, that the demuxer doesn't produce packets,
-   *  which are identical to frames.
+   *  See STREAM_ defines above
    */
 
   int flags;

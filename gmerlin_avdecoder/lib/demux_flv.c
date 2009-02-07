@@ -24,7 +24,6 @@
 #include <stdio.h>
 #include <math.h>
 
-
 #include <avdec_private.h>
 
 #define AUDIO_ID 8
@@ -140,7 +139,7 @@ static void cleanup_stream_flv(bgav_stream_t * s)
   if(s->ext_data) free(s->ext_data);
   }
 
-static void init_audio_stream(bgav_demuxer_context_t * ctx)
+static void add_audio_stream(bgav_demuxer_context_t * ctx)
   {
   bgav_stream_t * as = (bgav_stream_t*)0;
   as = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
@@ -149,7 +148,7 @@ static void init_audio_stream(bgav_demuxer_context_t * ctx)
   as->cleanup = cleanup_stream_flv;
   }
 
-static void init_video_stream(bgav_demuxer_context_t * ctx)
+static void add_video_stream(bgav_demuxer_context_t * ctx)
   {
   bgav_stream_t * vs = (bgav_stream_t*)0;
   vs = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
@@ -159,6 +158,140 @@ static void init_video_stream(bgav_demuxer_context_t * ctx)
   vs->timescale = 1000;
   vs->cleanup = cleanup_stream_flv;
   }
+
+static int init_audio_stream(bgav_demuxer_context_t * ctx, bgav_stream_t * s, 
+                              uint8_t flags)
+  {
+  uint8_t tmp_8;
+  int adpcm_bits;
+  flv_priv_t * priv;
+
+  priv = (flv_priv_t*)(ctx->priv);
+  
+  if(!s->fourcc) /* Initialize */
+    {
+    s->data.audio.bits_per_sample = (flags & 2) ? 16 : 8;
+      
+    s->data.audio.format.samplerate = (44100<<((flags>>2)&3))>>3;
+    s->data.audio.format.num_channels = (flags&1)+1;
+      
+    switch(flags >> 4)
+      {
+      case 0: /* Uncompressed, Big endian */
+        s->fourcc = BGAV_MK_FOURCC('t', 'w', 'o', 's');
+        s->index_mode = INDEX_MODE_SIMPLE;
+        s->data.audio.block_align = s->data.audio.format.num_channels *
+          (s->data.audio.bits_per_sample / 8);
+        break;
+      case 1: /* Flash ADPCM */
+        s->fourcc = BGAV_MK_FOURCC('F', 'L', 'A', '1');
+        ctx->index_mode = 0;
+        /* Set block align for the case, adpcm frames are split over
+           several packets */
+        if(!bgav_input_get_data(ctx->input, &tmp_8, 1))
+          return 0;
+        adpcm_bits = 2 +
+          s->data.audio.format.num_channels * (((tmp_8 >> 6) + 2) * 4096 + 16 + 6);
+        break;
+      case 2: /* MP3 */
+        s->fourcc = BGAV_MK_FOURCC('.', 'm', 'p', '3');
+        s->index_mode = INDEX_MODE_MPEG;
+        s->flags |= STREAM_PARSE_FULL;
+        break;
+      case 3: /* Uncompressed, Little endian */
+        s->fourcc = BGAV_MK_FOURCC('s', 'o', 'w', 't');
+        s->index_mode = INDEX_MODE_SIMPLE;
+        s->data.audio.block_align = s->data.audio.format.num_channels *
+          (s->data.audio.bits_per_sample / 8);
+        break;
+      case 5: /* NellyMoser */
+        s->data.audio.format.samplerate = 8000;
+        s->data.audio.format.num_channels = 1;
+          
+        s->fourcc = BGAV_MK_FOURCC('N', 'E', 'L', 'L');
+        ctx->index_mode = 0;
+        break;
+      case 6: /* NellyMoser */
+        s->fourcc = BGAV_MK_FOURCC('N', 'E', 'L', 'L');
+        ctx->index_mode = 0;
+        break;
+      case 10:
+        s->fourcc = FOURCC_AAC;
+        s->index_mode = INDEX_MODE_MPEG;
+        // ctx->index_mode = 0;
+        priv->need_audio_extradata = 1;
+        break;
+      default: /* Set some nonsense so we can finish initializing */
+        s->fourcc = BGAV_MK_FOURCC('?', '?', '?', '?');
+        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN, "Unknown audio codec tag: %d",
+                 flags >> 4);
+        ctx->index_mode = 0;
+        break;
+      }
+    }
+  return 1;
+  }
+
+static int init_video_stream(bgav_demuxer_context_t * ctx, bgav_stream_t * s, 
+                              uint8_t flags)
+  {
+  flv_priv_t * priv;
+  uint8_t header[1];
+  priv = (flv_priv_t*)(ctx->priv);
+  
+  switch(flags & 0xF)
+    {
+    case 2: /* H263 based */
+      s->fourcc = BGAV_MK_FOURCC('F', 'L', 'V', '1');
+      break;
+    case 3: /* Screen video (unsupported) */
+      s->fourcc = BGAV_MK_FOURCC('F', 'L', 'V', 'S');
+      break;
+    case 4: /* VP6 (Flash 8?) */
+      s->fourcc = BGAV_MK_FOURCC('V', 'P', '6', 'F');
+
+      if(bgav_input_get_data(ctx->input, header, 1) < 1)
+        return 0;
+      /* ffmpeg needs that as extrdata */
+      s->ext_data = malloc(1);
+      *s->ext_data = header[0];
+      s->ext_size = 1;
+      break;
+    case 5: /* VP6A */
+      s->fourcc = BGAV_MK_FOURCC('V', 'P', '6', 'A');
+      if(bgav_input_get_data(ctx->input, header, 1) < 1)
+        return 0;
+      /* ffmpeg needs that as extrdata */
+      s->ext_data = malloc(1);
+      *s->ext_data = header[0];
+      s->ext_size = 1;
+      break;
+    case 7:
+      s->fourcc = FOURCC_H264;
+      priv->need_video_extradata = 1;
+      s->flags |= STREAM_B_FRAMES;
+      //          s->data.video.wrong_b_timestamps = 1;
+      break;
+    default: /* Set some nonsense so we can finish initializing */
+      s->fourcc = BGAV_MK_FOURCC('?', '?', '?', '?');
+      bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN, "Unknown video codec tag: %d",
+               flags & 0x0f);
+      break;
+    }
+      
+  /* Set the framerate */
+  s->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
+  s->data.video.format.timescale = 1000;
+  /* Set some nonsense values (TODO: Remove this) */
+  s->data.video.format.frame_duration = 40;
+
+  /* Hopefully, FLV supports square pixels only */
+  s->data.video.format.pixel_width = 1;
+  s->data.video.format.pixel_height = 1;
+
+  return 1;
+  }
+
 
 /* From libavutil */
 static double int2dbl(int64_t v){
@@ -403,6 +536,7 @@ static int read_metadata(bgav_demuxer_context_t * ctx, flv_tag * t)
   return ret;
   }
 
+                              
 static int next_packet_flv(bgav_demuxer_context_t * ctx)
   {
   meta_object_t * obj;
@@ -505,63 +639,8 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
     
     if(!s->fourcc) /* Initialize */
       {
-      s->data.audio.bits_per_sample = (flags & 2) ? 16 : 8;
-      
-      s->data.audio.format.samplerate = (44100<<((flags>>2)&3))>>3;
-      s->data.audio.format.num_channels = (flags&1)+1;
-      
-      switch(flags >> 4)
-        {
-        case 0: /* Uncompressed, Big endian */
-          s->fourcc = BGAV_MK_FOURCC('t', 'w', 'o', 's');
-          s->index_mode = INDEX_MODE_SIMPLE;
-          s->data.audio.block_align = s->data.audio.format.num_channels *
-            (s->data.audio.bits_per_sample / 8);
-          break;
-        case 1: /* Flash ADPCM */
-          s->fourcc = BGAV_MK_FOURCC('F', 'L', 'A', '1');
-          ctx->index_mode = 0;
-          /* Set block align for the case, adpcm frames are split over
-             several packets */
-          if(!bgav_input_get_data(ctx->input, &tmp_8, 1))
-            return 0;
-          adpcm_bits = 2 +
-            s->data.audio.format.num_channels * (((tmp_8 >> 6) + 2) * 4096 + 16 + 6);
-          break;
-        case 2: /* MP3 */
-          s->fourcc = BGAV_MK_FOURCC('.', 'm', 'p', '3');
-          s->index_mode = INDEX_MODE_MPEG;
-          break;
-        case 3: /* Uncompressed, Little endian */
-          s->fourcc = BGAV_MK_FOURCC('s', 'o', 'w', 't');
-          s->index_mode = INDEX_MODE_SIMPLE;
-          s->data.audio.block_align = s->data.audio.format.num_channels *
-            (s->data.audio.bits_per_sample / 8);
-          break;
-        case 5: /* NellyMoser */
-          s->data.audio.format.samplerate = 8000;
-          s->data.audio.format.num_channels = 1;
-          
-          s->fourcc = BGAV_MK_FOURCC('N', 'E', 'L', 'L');
-          ctx->index_mode = 0;
-          break;
-        case 6: /* NellyMoser */
-          s->fourcc = BGAV_MK_FOURCC('N', 'E', 'L', 'L');
-          ctx->index_mode = 0;
-          break;
-        case 10:
-          s->fourcc = FOURCC_AAC;
-          s->index_mode = INDEX_MODE_MPEG;
-          // ctx->index_mode = 0;
-          priv->need_audio_extradata = 1;
-          break;
-        default: /* Set some nonsense so we can finish initializing */
-          s->fourcc = BGAV_MK_FOURCC('?', '?', '?', '?');
-          bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN, "Unknown audio codec tag: %d",
-                   flags >> 4);
-          ctx->index_mode = 0;
-          break;
-        }
+      if(!init_audio_stream(ctx, s, flags))
+        return 0;
       }
     packet_size = t.data_size - 1;
     }
@@ -572,56 +651,8 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
     
     if(!s->fourcc) /* Initialize */
       {
-      switch(flags & 0xF)
-        {
-        case 2: /* H263 based */
-          s->fourcc = BGAV_MK_FOURCC('F', 'L', 'V', '1');
-          break;
-        case 3: /* Screen video (unsupported) */
-          s->fourcc = BGAV_MK_FOURCC('F', 'L', 'V', 'S');
-          break;
-        case 4: /* VP6 (Flash 8?) */
-          s->fourcc = BGAV_MK_FOURCC('V', 'P', '6', 'F');
-
-          if(bgav_input_get_data(ctx->input, header, 1) < 1)
-            return 0;
-          /* ffmpeg needs that as extrdata */
-          s->ext_data = malloc(1);
-          *s->ext_data = header[0];
-          s->ext_size = 1;
-          break;
-        case 5: /* VP6A */
-          s->fourcc = BGAV_MK_FOURCC('V', 'P', '6', 'A');
-          if(bgav_input_get_data(ctx->input, header, 1) < 1)
-            return 0;
-          /* ffmpeg needs that as extrdata */
-          s->ext_data = malloc(1);
-          *s->ext_data = header[0];
-          s->ext_size = 1;
-          break;
-        case 7:
-          s->fourcc = FOURCC_H264;
-          priv->need_video_extradata = 1;
-          s->flags |= STREAM_B_FRAMES;
-          //          s->data.video.wrong_b_timestamps = 1;
-          break;
-        default: /* Set some nonsense so we can finish initializing */
-          s->fourcc = BGAV_MK_FOURCC('?', '?', '?', '?');
-          bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN, "Unknown video codec tag: %d",
-                   flags & 0x0f);
-          break;
-        }
-      
-      /* Set the framerate */
-      s->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
-      s->data.video.format.timescale = 1000;
-      /* Set some nonsense values (TODO: Remove this) */
-      s->data.video.format.frame_duration = 40;
-
-      /* Hopefully, FLV supports square pixels only */
-      s->data.video.format.pixel_width = 1;
-      s->data.video.format.pixel_height = 1;
-      
+      if(!init_video_stream(ctx, s, flags))
+        return 0;
       }
 
     if((s->fourcc == BGAV_MK_FOURCC('V', 'P', '6', 'F')) ||
@@ -702,13 +733,13 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
       return 0;
     if(s->type == BGAV_STREAM_AUDIO)
       {
-      if(s->index_mode == INDEX_MODE_SIMPLE)
+      if(s->data.audio.block_align)
         {
         p->pts = priv->audio_sample_counter;
         p->duration = p->data_size / s->data.audio.block_align;
         priv->audio_sample_counter += p->duration;
         }
-      else if(!s->index_mode)
+      else
         {
         p->pts = t.timestamp;
         }
@@ -864,9 +895,9 @@ static int open_flv(bgav_demuxer_context_t * ctx)
     }
   
   if(flags & 0x04)
-    init_audio_stream(ctx);
+    add_audio_stream(ctx);
   if(flags & 0x01)
-    init_video_stream(ctx);
+    add_video_stream(ctx);
 
   
   if(!bgav_input_read_32_be(ctx->input, &data_offset))

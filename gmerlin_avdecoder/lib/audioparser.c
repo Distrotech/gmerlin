@@ -271,9 +271,13 @@ void bgav_audio_parser_set_frame(bgav_audio_parser_t * parser,
       if(parser->packets[i].parser_position + parser->packets[i].size > 0)
         {
         parser->frame_position = parser->packets[i].packet_position;
-        parser->frame_pts      = gavl_time_rescale(parser->in_scale,
-                                                   parser->format.samplerate,
-                                                   parser->packets[i].pts);
+
+        if(parser->packets[i].pts != BGAV_TIMESTAMP_UNDEFINED) 
+          parser->frame_pts      = gavl_time_rescale(parser->in_scale,
+                                                     parser->format.samplerate,
+                                                     parser->packets[i].pts);
+        else
+          parser->frame_pts      = BGAV_TIMESTAMP_UNDEFINED;
         }
       }
     }

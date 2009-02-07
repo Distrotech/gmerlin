@@ -90,8 +90,10 @@ void bgav_stream_stop(bgav_stream_t * s)
   STREAM_UNSET_SYNC(s);
   
   if(s->parsed_packet)
+    {
     bgav_packet_destroy(s->parsed_packet);
-  
+    s->parsed_packet = (bgav_packet_t*)0;
+    }
   }
 
 void bgav_stream_create_packet_buffer(bgav_stream_t * stream)
