@@ -336,6 +336,7 @@ static int next_packet_gif(bgav_demuxer_context_t * ctx)
   p->data_size++;
   
   p->pts = priv->video_pts;
+  p->duration = frame_duration;
   priv->video_pts += frame_duration;
   
   bgav_packet_done_write(p);
