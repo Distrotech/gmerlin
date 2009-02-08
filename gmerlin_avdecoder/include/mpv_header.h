@@ -22,8 +22,18 @@
 
 #define MPV_PROBE_SIZE 5 /* Sync code + extension type */
 
+#define MPEG_CODE_SEQUENCE     1
+#define MPEG_CODE_SEQUENCE_EXT 2
+#define MPEG_CODE_PICTURE      3
+#define MPEG_CODE_PICTURE_EXT  4
+#define MPEG_CODE_GOP          5
+#define MPEG_CODE_SLICE        6
+
 const uint8_t * bgav_mpv_find_startcode( const uint8_t *p,
                                          const uint8_t *end );
+
+int bgav_mpv_get_start_code(const uint8_t * data);
+
 
 void bgav_mpv_get_framerate(int code, int * timescale, int *frame_duration);
 
@@ -60,12 +70,10 @@ typedef struct
   bgav_mpv_sequence_extension_t ext;
   } bgav_mpv_sequence_header_t;
 
-int bgav_mpv_sequence_header_probe(const uint8_t * buffer);
 int bgav_mpv_sequence_header_parse(const bgav_options_t * opt,
                                    bgav_mpv_sequence_header_t *,
                                    const uint8_t * buffer, int len);
 
-int bgav_mpv_sequence_extension_probe(const uint8_t * buffer);
 int bgav_mpv_sequence_extension_parse(const bgav_options_t * opt,
                                       bgav_mpv_sequence_extension_t *,
                                       const uint8_t * buffer, int len);
@@ -83,17 +91,12 @@ typedef struct
   bgav_mpv_picture_extension_t ext;
   } bgav_mpv_picture_header_t;
 
-int bgav_mpv_picture_header_probe(const uint8_t * buffer);
 int bgav_mpv_picture_header_parse(const bgav_options_t * opt,
                                   bgav_mpv_picture_header_t *,
                                   const uint8_t * buffer, int len);
 
 
 
-int bgav_mpv_picture_extension_probe(const uint8_t * buffer);
 int bgav_mpv_picture_extension_parse(const bgav_options_t * opt,
                                      bgav_mpv_picture_extension_t *,
                                      const uint8_t * buffer, int len);
-
-int bgav_mpv_gop_header_probe(const uint8_t * buffer);
-

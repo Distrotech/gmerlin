@@ -46,11 +46,56 @@ typedef struct
   int state;
   } mpeg4_priv_t;
 
+static void set_format(bgav_video_parser_t * parser)
+  {
+  mpeg4_priv_t * priv = parser->priv;
+  bgav_video_parser_set_framerate(parser,
+                                  priv->vol.vop_time_increment_resolution,
+                                  priv->vol.fixed_vop_time_increment);
+  
+#if 0        
+  parser->format.image_width  = priv->sh.horizontal_size_value;
+  parser->format.image_height = priv->sh.vertical_size_value;
+  parser->format.frame_width  =
+    (parser->format.image_width + 15) & ~15;
+  parser->format.frame_height  =
+    (parser->format.image_height + 15) & ~15;
+#endif        
+  }
+
 static void reset_mpeg4(bgav_video_parser_t * parser)
   {
   mpeg4_priv_t * priv = parser->priv;
   priv->state = MPEG4_NEED_SYNC;
   priv->has_picture_start = 0;
+  }
+
+static int parse_header_mpeg4(bgav_video_parser_t * parser)
+  {
+  mpeg4_priv_t * priv = parser->priv;
+  const uint8_t * pos = parser->header;
+  while(1)
+    {
+    switch(bgav_mpeg4_get_start_code(pos))
+      {
+      case MPEG4_CODE_VOL_START:
+        if(!bgav_mpeg4_vol_header_read(parser->opt, &priv->vol, pos,
+                                       parser->header_len - (pos - parser->header)))
+          return 0;
+        priv->have_vol = 1;
+        //        bgav_mpeg4_vol_header_dump(&priv->vol);
+        set_format(parser);
+        return 1;
+        break;
+      default:
+        pos += 4;
+        pos = bgav_mpv_find_startcode(pos, parser->header + parser->header_len);
+        if(!pos)
+          return 0;
+        break;
+      }
+    }
+  return 0;
   }
 
 static int parse_mpeg4(bgav_video_parser_t * parser)
@@ -141,7 +186,7 @@ static int parse_mpeg4(bgav_video_parser_t * parser)
       if(!len)
         return PARSER_NEED_DATA;
 
-      bgav_mpeg4_vop_header_dump(&vh);
+      //      bgav_mpeg4_vop_header_dump(&vh);
       
       bgav_video_parser_set_coding_type(parser, vh.coding_type);
       
@@ -167,19 +212,9 @@ static int parse_mpeg4(bgav_video_parser_t * parser)
         bgav_mpeg4_vol_header_dump(&priv->vol);
         
         parser->pos += len;
-        
-        bgav_video_parser_set_framerate(parser,
-                                        priv->vol.vop_time_increment_resolution,
-                                        priv->vol.fixed_vop_time_increment);
 
-#if 0        
-        parser->format.image_width  = priv->sh.horizontal_size_value;
-        parser->format.image_height = priv->sh.vertical_size_value;
-        parser->format.frame_width  =
-          (parser->format.image_width + 15) & ~15;
-        parser->format.frame_height  =
-          (parser->format.image_height + 15) & ~15;
-#endif        
+        set_format(parser);
+        
         priv->have_vol = 1;
         }
       else
@@ -204,6 +239,7 @@ void bgav_video_parser_init_mpeg4(bgav_video_parser_t * parser)
   priv = calloc(1, sizeof(*priv));
   parser->priv = priv;
   parser->parse = parse_mpeg4;
+  parser->parse_header = parse_header_mpeg4;
   parser->cleanup = cleanup_mpeg4;
   parser->reset = reset_mpeg4;
 

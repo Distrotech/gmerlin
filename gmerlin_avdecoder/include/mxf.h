@@ -40,6 +40,14 @@ typedef struct mxf_partition_s mxf_partition_t;
 /* Move to the next startcode */
 int bgav_mxf_sync(bgav_input_context_t * input);
 
+typedef enum
+  {
+    WRAP_UNKNOWN = 0,
+    WRAP_FRAME   = 1,
+    WRAP_CLIP    = 2,
+    WRAP_CUSTOM  = 3,
+  } mxf_wrapping_type_t;
+
 #if 1
 typedef enum
   {
@@ -210,7 +218,8 @@ struct  mxf_descriptor_s
   /* Secondary */
   mxf_metadata_t ** subdescriptors;
   
-  int clip_wrapped;
+  mxf_wrapping_type_t wrapping_type;
+  uint32_t            fourcc;
   };
 
 void bgav_mxf_descriptor_dump(int indent, mxf_descriptor_t * d);
@@ -514,3 +523,5 @@ bgav_stream_t * bgav_mxf_find_stream(mxf_file_t * f,
                                      bgav_demuxer_context_t * t,
                                      mxf_ul_t ul);
 
+mxf_descriptor_t * bgav_mxf_get_source_descriptor(mxf_file_t * file,
+                                                  mxf_package_t * p, mxf_track_t * st);

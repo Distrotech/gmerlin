@@ -320,9 +320,10 @@ typedef enum
 #define BGAV_ENDIANESS_LITTLE 2
 
 #define STREAM_INTRA_ONLY         (1<<0)
-#define STREAM_PARSE_FULL         (1<<1)
-#define STREAM_B_FRAMES           (1<<2)
-#define STREAM_WRONG_B_TIMESTAMPS (1<<3)
+#define STREAM_PARSE_FULL         (1<<1) /* Not frame aligned */
+#define STREAM_PARSE_FRAME        (1<<2) /* Frame aligned but no keyframes */
+#define STREAM_B_FRAMES           (1<<3)
+#define STREAM_WRONG_B_TIMESTAMPS (1<<4)
 
 /* Stream can have a nonzero start time */
 #define STREAM_START_TIME         (1<<4)

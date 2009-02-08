@@ -28,6 +28,9 @@ typedef void (*init_func)(bgav_video_parser_t*);
 typedef int (*parse_func)(bgav_video_parser_t*);
 typedef void (*cleanup_func)(bgav_video_parser_t*);
 typedef void (*reset_func)(bgav_video_parser_t*);
+typedef int (*parse_header_func)(bgav_video_parser_t*);
+
+typedef int (*parse_frame_func)(bgav_video_parser_t*, int * coding_type, int * duration);
 
 typedef struct
   {
@@ -62,12 +65,15 @@ struct bgav_video_parser_s
   bgav_bytebuffer_t buf;
   
   int flags;
+  int stream_flags;
   int pos;
   
-  parse_func parse;
-  cleanup_func cleanup;
-  reset_func reset;
-
+  parse_func        parse;
+  parse_header_func parse_header;
+  cleanup_func      cleanup;
+  reset_func        reset;
+  parse_frame_func  parse_frame;
+  
   const bgav_options_t * opt;
   
   /* Extradata */

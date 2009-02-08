@@ -552,8 +552,8 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
   int64_t position;
   int packet_size = 0;
   int keyframe = 1;
-  int adpcm_bits;
-  uint8_t tmp_8;
+  //  int adpcm_bits;
+  //  uint8_t tmp_8;
   int32_t cts;
   int has_cts = 0;
 

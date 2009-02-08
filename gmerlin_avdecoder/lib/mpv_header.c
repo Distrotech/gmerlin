@@ -66,15 +66,26 @@ const uint8_t * bgav_mpv_find_startcode( const uint8_t *p,
   return NULL;
   }
 
-
-int bgav_mpv_sequence_header_probe(const uint8_t * buffer)
+int bgav_mpv_get_start_code(const uint8_t * data)
   {
-  uint32_t code;
-  code = BGAV_PTR_2_32BE(buffer);
-  if(code == 0x000001B3)
-    return 1;
+  if(data[3] == 0xb3)
+    return MPEG_CODE_SEQUENCE;
+  else if(data[3] == 0xb5)
+    {
+    if(data[4] >> 4 == 0x01)
+      return MPEG_CODE_SEQUENCE_EXT;
+    else if(data[4] >> 4 == 0x08)
+      return MPEG_CODE_PICTURE_EXT;
+    }
+  else if(data[3] == 0x00)
+    return MPEG_CODE_PICTURE;
+  else if(data[3] == 0xb8)
+    return MPEG_CODE_GOP;
+  else if((data[3] >= 0x01) && (data[3] <= 0xaf))
+    return MPEG_CODE_SLICE;
   return 0;
   }
+
 
 static const struct
   {
@@ -150,16 +161,6 @@ int bgav_mpv_sequence_header_parse(const bgav_options_t * opt,
   return 7;
   }
 
-int bgav_mpv_sequence_extension_probe(const uint8_t * buffer)
-  {
-  uint32_t code;
-  code = BGAV_PTR_2_32BE(buffer);
-  if(code != 0x000001B5)
-    return 0;
-  if(buffer[4] >> 4 == 0x01)
-    return 1;
-  return 0;
-  }
 
 int bgav_mpv_sequence_extension_parse(const bgav_options_t * opt,
                                       bgav_mpv_sequence_extension_t * ret,
@@ -178,15 +179,6 @@ int bgav_mpv_sequence_extension_parse(const bgav_options_t * opt,
   ret->timescale_ext        = (buffer[5] >> 5) & 3;
   ret->frame_duration_ext   = (buffer[5] & 0x1f);
   return 6;
-  }
-
-int bgav_mpv_picture_header_probe(const uint8_t * buffer)
-  {
-  uint32_t code;
-  code = BGAV_PTR_2_32BE(buffer);
-  if(code == 0x00000100)
-    return 1;
-  return 0;
   }
 
 int bgav_mpv_picture_header_parse(const bgav_options_t * opt,
@@ -217,19 +209,6 @@ int bgav_mpv_picture_header_parse(const bgav_options_t * opt,
   return 2;
   }
 
-
-
-int bgav_mpv_picture_extension_probe(const uint8_t * buffer)
-  {
-  uint32_t code;
-  code = BGAV_PTR_2_32BE(buffer);
-  if(code != 0x000001B5)
-    return 0;
-  if(buffer[4] >> 4 == 0x08)
-    return 1;
-  return 0;
-  }
-
 int bgav_mpv_picture_extension_parse(const bgav_options_t * opt,
                                      bgav_mpv_picture_extension_t * ret,
                                      const uint8_t * buffer, int len)
@@ -246,11 +225,3 @@ int bgav_mpv_picture_extension_parse(const bgav_options_t * opt,
   return 5;
   }
 
-int bgav_mpv_gop_header_probe(const uint8_t * buffer)
-  {
-  uint32_t code;
-  code = BGAV_PTR_2_32BE(buffer);
-  if(code != 0x000001B8)
-    return 0;
-  return 1;
-  }

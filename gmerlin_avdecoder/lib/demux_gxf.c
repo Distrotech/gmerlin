@@ -103,7 +103,7 @@ static int read_media_header(bgav_input_context_t * input,
          bgav_input_read_data(input, &ret->reserved, 1));
   }
 
-#if 1
+#if 0
 static void dump_media_header(media_header_t * h)
   {
   bgav_dprintf("GXF media header\n");

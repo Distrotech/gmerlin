@@ -964,6 +964,8 @@ static codec_info_t codec_infos[] =
                     BGAV_MK_FOURCC('d', 'v', 'h', 'd'), 
                     BGAV_MK_FOURCC('d', 'v', 's', 'l'), 
                     BGAV_MK_FOURCC('d', 'v', '2', '5'),
+                    /* Generic DV */
+                    BGAV_MK_FOURCC('D', 'V', ' ', ' '),
 
                     BGAV_MK_FOURCC('d', 'v', 'c', 'p') , /* DV PAL */
                     BGAV_MK_FOURCC('d', 'v', 'c', ' ') , /* DV NTSC */

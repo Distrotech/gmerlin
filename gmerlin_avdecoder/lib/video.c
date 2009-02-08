@@ -55,8 +55,8 @@ int bgav_video_start(bgav_stream_t * s)
 
   if(!s->timescale && s->data.video.format.timescale)
     s->timescale = s->data.video.format.timescale;
-    
-  if(s->flags & STREAM_PARSE_FULL)
+  
+  if(s->flags & (STREAM_PARSE_FULL|STREAM_PARSE_FRAME))
     {
     int result, done = 0;
     bgav_packet_t * p;
@@ -65,9 +65,8 @@ int bgav_video_start(bgav_stream_t * s)
     const uint8_t * header;
     int header_len;
     
-    parser = bgav_video_parser_create(s->fourcc,
-                                      s->timescale,
-                                      s->opt);
+    parser = bgav_video_parser_create(s->fourcc, s->timescale,
+                                      s->opt, s->flags);
     if(!parser)
       {
       bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
@@ -80,9 +79,24 @@ int bgav_video_start(bgav_stream_t * s)
       return 0;
       }
 
+    /* Set the format, as far as known by the demuxer */
+    bgav_video_parser_set_format(parser, &s->data.video.format);
+    
+    /* Very few formats pass the extradata out-of-band, but still need
+       parsing */
+    if(s->ext_data)
+      {
+      if(!bgav_video_parser_set_header(parser, s->ext_data, s->ext_size))
+        {
+        bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                 "Video parser doesn't support out-of-band header");
+        return 0;
+        }
+      }
+    
     /* Start the parser and extract the header */
-
-    while(!done)
+    
+    while(!s->ext_data)
       {
       result = bgav_video_parser_parse(parser);
       switch(result)
@@ -101,10 +115,7 @@ int bgav_video_start(bgav_stream_t * s)
           break;
         case PARSER_HAVE_HEADER:
           done = 1;
-
-          format = bgav_video_parser_get_format(parser);
-          gavl_video_format_copy(&s->data.video.format, format);
-
+          
           header = bgav_video_parser_get_header(parser, &header_len);
           
           //          fprintf(stderr, "Got extradata %d bytes\n", header_len);
@@ -117,6 +128,10 @@ int bgav_video_start(bgav_stream_t * s)
           break;
         }
       }
+
+    format = bgav_video_parser_get_format(parser);
+    gavl_video_format_copy(&s->data.video.format, format);
+    
     s->data.video.parser = parser;
     s->parsed_packet = bgav_packet_create();
     s->index_mode = INDEX_MODE_SIMPLE;

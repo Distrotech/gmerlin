@@ -31,7 +31,7 @@
 #define CLIP_WRAPPED_CBR   1
 #define CLIP_WRAPPED_PARSE 2 /* Unsupported for now */
 
-// #define DUMP_MXF
+#define DUMP_MXF
 
 static void build_edl_mxf(bgav_demuxer_context_t * ctx);
 
@@ -241,6 +241,9 @@ static int process_packet_frame_wrapped(bgav_demuxer_context_t * ctx)
   
   if(p)
     {
+    fprintf(stderr, "Got %s packet\n",
+            (s->type == BGAV_STREAM_AUDIO ? "Audio" : "Video") );
+    bgav_packet_dump(p);
     bgav_packet_done_write(p);
     }
   return 1;
@@ -289,25 +292,35 @@ static void init_stream_common(bgav_demuxer_context_t * ctx, bgav_stream_t * s,
      priv->mxf.index_segments[0]->edit_unit_byte_count)
     sp->frame_size = priv->mxf.index_segments[0]->edit_unit_byte_count;
 
+#if 0  
   /* Hack: This makes P2 audio files clip wrapped */
   if(!sd->clip_wrapped &&
      (((mxf_preface_t*)(priv->mxf.header.preface))->operational_pattern == MXF_OP_ATOM) &&
      sp->frame_size &&
      (sp->frame_size < st->max_packet_size) &&
-     (st->num_packets == 1))
+     (st->num_packets == 1) && (s->type == BGAV_STREAM_AUDIO))
     sd->clip_wrapped = 1;
-
-  if(sd->clip_wrapped)
+#endif
+  
+  switch(sd->wrapping_type)
     {
-    if(sp->frame_size)
-      sp->next_packet = next_packet_clip_wrapped_const;
-    else
-      bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-               "Clip wrapped tracks with nonconstant framesize not supported");
+    case WRAP_FRAME:
+      sp->next_packet = next_packet_frame_wrapped;
+      break;
+    case WRAP_CLIP:
+      if(sp->frame_size)
+        sp->next_packet = next_packet_clip_wrapped_const;
+      else
+        bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                 "Clip wrapped tracks with nonconstant framesize not supported");
+      break;
+    case WRAP_CUSTOM:
+      bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Custom wrapping not supported");
+      break;
+    case WRAP_UNKNOWN:
+      bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Unknown wrapping");
     }
-  else
-    sp->next_packet = next_packet_frame_wrapped;
-    
+  
   }
 
 static const uint32_t pcm_fourccs[] =
@@ -414,38 +427,6 @@ static void init_video_stream(bgav_demuxer_context_t * ctx, bgav_stream_t * s,
   s->data.video.format.pixel_height   = 1;
   }
 
-static mxf_descriptor_t * get_source_descriptor(mxf_file_t * file, mxf_package_t * p, mxf_track_t * st)
-  {
-  int i;
-  mxf_descriptor_t * desc;
-  mxf_descriptor_t * sub_desc;
-  if(!p->descriptor)
-    {
-    if((((mxf_preface_t *)(file->header.preface))->operational_pattern == MXF_OP_ATOM) &&
-       (file->header.num_descriptors == 1))
-      {
-      for(i = 0; i < file->header.num_metadata; i++)
-        {
-        if(file->header.metadata[i]->type == MXF_TYPE_DESCRIPTOR)
-          return (mxf_descriptor_t *)(file->header.metadata[i]);
-        }
-      }
-    return (mxf_descriptor_t *)0;
-    }
-  if(p->descriptor->type == MXF_TYPE_DESCRIPTOR)
-    return (mxf_descriptor_t *)p->descriptor;
-  else if(p->descriptor->type == MXF_TYPE_MULTIPLE_DESCRIPTOR)
-    {
-    desc = (mxf_descriptor_t*)(p->descriptor);
-    for(i = 0; i < desc->num_subdescriptor_refs; i++)
-      {
-      sub_desc = (mxf_descriptor_t *)(desc->subdescriptors[i]);
-      if(sub_desc && (sub_desc->linked_track_id == st->track_id))
-        return sub_desc;
-      } 
-    }
-  return (mxf_descriptor_t*)0;
-  }
 
 static void cleanup_stream_mxf(bgav_stream_t * s)
   {
@@ -490,7 +471,7 @@ handle_source_track_simple(bgav_demuxer_context_t * ctx,
     
     sc = (mxf_source_clip_t*)(ss->structural_components[0]);
     
-    sd = get_source_descriptor(&priv->mxf, sp, t);
+    sd = bgav_mxf_get_source_descriptor(&priv->mxf, sp, t);
     if(!sd)
       {
       return;
