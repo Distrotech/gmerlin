@@ -56,7 +56,7 @@ typedef struct
   int eof;
   /* Constant frame size for clip-wrapped streams, which are TRUE CBR */
   int frame_size;
-  int wrap_mode;
+  //  int wrap_mode;
   
   int64_t start;
   int64_t length;
@@ -202,7 +202,7 @@ static int process_packet_frame_wrapped(bgav_demuxer_context_t * ctx)
     
     bgav_packet_alloc(p, num_samples * s->data.audio.block_align);
     ptr = p->data;
-    
+    p->data_size = 0;
     for(i = 0; i < num_samples; i++)
       {
       for(j = 0; j < s->data.audio.format.num_channels; j++)
@@ -241,9 +241,15 @@ static int process_packet_frame_wrapped(bgav_demuxer_context_t * ctx)
   
   if(p)
     {
-    fprintf(stderr, "Got %s packet\n",
-            (s->type == BGAV_STREAM_AUDIO ? "Audio" : "Video") );
-    bgav_packet_dump(p);
+#if 0
+    if(s->type == BGAV_STREAM_AUDIO)
+      {
+      fprintf(stderr, "Got audio packet\n");
+      bgav_packet_dump(p);
+      }
+    //    if(s->type == BGAV_STREAM_VIDEO)
+    //      fprintf(stderr, "Got video packet\n");
+#endif
     bgav_packet_done_write(p);
     }
   return 1;
@@ -399,6 +405,7 @@ static void init_video_stream(bgav_demuxer_context_t * ctx, bgav_stream_t * s,
     {
     s->data.video.frametime_mode = BGAV_FRAMETIME_CODEC;
     s->index_mode = INDEX_MODE_MPEG;
+    s->flags |= STREAM_PARSE_FRAME;
     }
   else if(s->fourcc == BGAV_MK_FOURCC('m','p','4','v'))
     {
@@ -733,6 +740,7 @@ static int select_track_mxf(bgav_demuxer_context_t * ctx, int track)
       {
       sp->pos = sp->start;
       sp->eof = 0;
+      sp->pts_counter = 0;
       }
     }
   for(j = 0; j < ctx->tt->cur->num_video_streams; j++)
@@ -742,6 +750,7 @@ static int select_track_mxf(bgav_demuxer_context_t * ctx, int track)
       {
       sp->pos = sp->start;
       sp->eof = 0;
+      sp->pts_counter = 0;
       }
     }
   /* Not supported yet but well.. */
@@ -752,6 +761,7 @@ static int select_track_mxf(bgav_demuxer_context_t * ctx, int track)
       {
       sp->pos = sp->start;
       sp->eof = 0;
+      sp->pts_counter = 0;
       }
     }
   return 1;
@@ -871,6 +881,9 @@ static void handle_material_track(bgav_demuxer_context_t * ctx, mxf_package_t * 
   bgav_edl_segment_t * seg;
   int64_t duration = 0;
   priv = (mxf_t*)ctx->priv;
+
+  if(!mt)
+    return;
   
   ss = (mxf_sequence_t*)(mt->sequence);
   

@@ -324,6 +324,7 @@ typedef enum
 #define STREAM_PARSE_FRAME        (1<<2) /* Frame aligned but no keyframes */
 #define STREAM_B_FRAMES           (1<<3)
 #define STREAM_WRONG_B_TIMESTAMPS (1<<4)
+#define STREAM_HEADER_FROM_PARSER (1<<5)
 
 /* Stream can have a nonzero start time */
 #define STREAM_START_TIME         (1<<4)

@@ -27,8 +27,8 @@
 #include <parser.h>
 #include <videoparser_priv.h>
 
-#define DUMP_INPUT
-#define DUMP_OUTPUT
+// #define DUMP_INPUT
+// #define DUMP_OUTPUT
 
 static const struct
   {
@@ -358,7 +358,23 @@ int bgav_video_parser_parse(bgav_video_parser_t * parser)
     }
   else if(parser->stream_flags & STREAM_PARSE_FRAME)
     {
+    int type;
+    /* Need a picture in cache without the coding type set */
+    if(parser->cache[parser->cache_size-1].coding_type)
+      return PARSER_NEED_DATA;
+
+    result =
+      parser->parse_frame(parser, &type,
+                          &parser->cache[parser->cache_size-1].duration);
     
+    bgav_video_parser_set_coding_type(parser, type);
+
+    if(result == PARSER_HAVE_HEADER)
+      return result;
+    else if(bgav_video_parser_check_output(parser))
+      return PARSER_HAVE_PACKET;
+    else
+      return PARSER_NEED_DATA;
     }
   
   /* Never get here */
@@ -406,6 +422,8 @@ void bgav_video_parser_add_packet(bgav_video_parser_t * parser,
     c->duration = parser->format.frame_duration;
     c->size = p->data_size;
     c->position = p->position;
+    /* Set position to the start of the frame */
+    parser->pos = parser->buf.size;
     }
   bgav_bytebuffer_append_data(&parser->buf, p->data, p->data_size, 0);
   }

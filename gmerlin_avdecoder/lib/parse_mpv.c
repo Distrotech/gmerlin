@@ -311,9 +311,11 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, int * coding_type, i
   bgav_mpv_picture_header_t    ph;
   int start_code;
   int len;
-
+  int delta_d;
   int timescale;
   int frame_duration;
+
+  int ret = PARSER_CONTINUE;
   
   while(1)
     {
@@ -344,6 +346,7 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, int * coding_type, i
           
           bgav_video_parser_set_framerate(parser,
                                           timescale, frame_duration);
+          parser->pos += len;
           }
         else
           parser->pos += 4;
@@ -363,15 +366,22 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, int * coding_type, i
           bgav_video_parser_set_framerate(parser,
                                           parser->format.timescale * (priv->sh.ext.timescale_ext+1) * 2,
                                           parser->format.frame_duration * (priv->sh.ext.frame_duration_ext+1) * 2);
+          parser->pos += len;
           }
         else
           parser->pos += 4;
         break;
       case MPEG_CODE_PICTURE:
+        if(!parser->header && priv->have_sh)
+          {
+          bgav_video_parser_extract_header(parser);
+          ret = PARSER_HAVE_HEADER;
+          }
         len = bgav_mpv_picture_header_parse(parser->opt,
                                             &ph,
                                             parser->buf.buffer + parser->pos,
                                             parser->buf.size - parser->pos);
+        *duration = parser->format.frame_duration;
         if(!len)
           return PARSER_ERROR;
         
@@ -385,13 +395,39 @@ static int parse_frame_mpeg12(bgav_video_parser_t * parser, int * coding_type, i
                                                parser->buf.size - parser->pos);
         if(!len)
           return PARSER_ERROR;
+
+        if(pe.repeat_first_field)
+          {
+          delta_d = 0;
+          if(priv->sh.ext.progressive_sequence)
+            {
+            if(pe.top_field_first)
+              delta_d = parser->format.frame_duration * 2;
+            else
+              delta_d = parser->format.frame_duration;
+            }
+          else if(pe.progressive_frame)
+            delta_d = parser->format.frame_duration / 2;
+          
+          *duration += delta_d;
+          }
+        
         parser->pos += len;
         break;
       case MPEG_CODE_GOP:
+        if(!parser->header && priv->have_sh)
+          {
+          bgav_video_parser_extract_header(parser);
+          ret = PARSER_HAVE_HEADER;
+          }
+        
         parser->pos += 4;
         break;
       case MPEG_CODE_SLICE:
-        return PARSER_CONTINUE;
+        return ret;
+      default:
+        parser->pos += 4;
+        
       }
     }
   }

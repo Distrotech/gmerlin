@@ -123,7 +123,10 @@ int bgav_video_start(bgav_stream_t * s)
           
           s->ext_size = header_len;
           s->ext_data = malloc(s->ext_size);
+          
           memcpy(s->ext_data, header, s->ext_size);
+
+          s->flags |= STREAM_HEADER_FROM_PARSER;
           
           break;
         }
@@ -248,6 +251,12 @@ void bgav_video_stop(bgav_stream_t * s)
     {
     bgav_video_parser_destroy(s->data.video.parser);
     s->data.video.parser = NULL;
+
+    if(s->flags & STREAM_HEADER_FROM_PARSER)
+      {
+      free(s->ext_data);
+      s->ext_data = NULL;
+      }
     }
   
   if(s->data.video.decoder)
