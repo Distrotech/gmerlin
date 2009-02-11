@@ -99,7 +99,7 @@ endif
 if HAVE_DCA
 dca_cflags =  @DCA_CFLAGS@
 dca_libs =    @DCA_LIBS@
-dca_sources = audio_dca.c
+dca_sources = audio_dca.c parse_dca.c
 else
 dca_cflags =
 dca_libs =

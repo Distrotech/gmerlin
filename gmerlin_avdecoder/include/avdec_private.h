@@ -1820,6 +1820,10 @@ gavl_timecode_t
 bgav_timecode_table_get_timecode(bgav_timecode_table_t * table,
                                  int64_t pts);
 
+/* parse_dca.c */
+#ifdef HAVE_DCA
+void bgav_dca_flags_2_channel_setup(int flags, gavl_audio_format_t * format);
+#endif
 
 
 #if __GNUC__ >= 3

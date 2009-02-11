@@ -87,6 +87,11 @@ struct bgav_audio_parser_s
 
 void bgav_audio_parser_init_mpeg(bgav_audio_parser_t * parser);
 void bgav_audio_parser_init_a52(bgav_audio_parser_t * parser);
+
+#ifdef HAVE_DCA
+void bgav_audio_parser_init_dca(bgav_audio_parser_t * parser);
+#endif
+
 // void bgav_audio_parser_init_adts(bgav_audio_parser_t * parser);
 
 void bgav_audio_parser_flush(bgav_audio_parser_t * parser, int bytes);

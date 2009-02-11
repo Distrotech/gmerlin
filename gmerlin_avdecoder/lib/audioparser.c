@@ -42,6 +42,10 @@ parsers[] =
     { BGAV_MK_FOURCC('.','m','p','3'), bgav_audio_parser_init_mpeg },
     { BGAV_WAVID_2_FOURCC(0x2000), bgav_audio_parser_init_a52 },
     { BGAV_MK_FOURCC('.','a','c','3'), bgav_audio_parser_init_a52 },
+#ifdef HAVE_DCA
+    { BGAV_MK_FOURCC('d','t','s',' '), bgav_audio_parser_init_dca },
+#endif
+
   };
 
 bgav_audio_parser_t * bgav_audio_parser_create(uint32_t fourcc, int timescale,

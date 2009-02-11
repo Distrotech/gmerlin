@@ -182,65 +182,8 @@ static int init_dts(bgav_stream_t * s)
   s->codec_bitrate = bit_rate;
   s->data.audio.format.sample_format = GAVL_SAMPLE_FLOAT;
   
-  switch(flags & DTS_CHANNEL_MASK)
-    {
-    case DTS_CHANNEL: // Dual mono. Two independant mono channels.
-      s->data.audio.format.num_channels = 2;
-      s->data.audio.format.channel_locations[0] = GAVL_CHID_FRONT_LEFT;
-      s->data.audio.format.channel_locations[1] = GAVL_CHID_FRONT_RIGHT;
-      break;
-    case DTS_MONO: // Mono.
-      s->data.audio.format.num_channels = 1;
-      s->data.audio.format.channel_locations[0] = GAVL_CHID_FRONT_CENTER;
-      break;
-    case DTS_STEREO: // Stereo.
-    case DTS_DOLBY: // Dolby surround compatible stereo.
-      s->data.audio.format.num_channels = 2;
-      s->data.audio.format.channel_locations[0] = GAVL_CHID_FRONT_LEFT;
-      s->data.audio.format.channel_locations[1] = GAVL_CHID_FRONT_RIGHT;
-      break;
-    case DTS_3F: // 3 front channels (left, center, right)
-      s->data.audio.format.num_channels = 3;
-      s->data.audio.format.channel_locations[0] = GAVL_CHID_FRONT_CENTER;
-      s->data.audio.format.channel_locations[1] = GAVL_CHID_FRONT_LEFT;
-      s->data.audio.format.channel_locations[2] = GAVL_CHID_FRONT_RIGHT;
-      break;
-    case DTS_2F1R: // 2 front, 1 rear surround channel (L, R, S)
-      s->data.audio.format.num_channels = 3;
-      s->data.audio.format.channel_locations[0] = GAVL_CHID_FRONT_LEFT;
-      s->data.audio.format.channel_locations[1] = GAVL_CHID_FRONT_RIGHT;
-      s->data.audio.format.channel_locations[2] = GAVL_CHID_REAR_CENTER;
-      break;
-    case DTS_3F1R: // 3 front, 1 rear surround channel (L, C, R, S)
-      s->data.audio.format.num_channels = 4;
-      s->data.audio.format.channel_locations[0] = GAVL_CHID_FRONT_CENTER;
-      s->data.audio.format.channel_locations[1] = GAVL_CHID_FRONT_LEFT;
-      s->data.audio.format.channel_locations[2] = GAVL_CHID_FRONT_RIGHT;
-      s->data.audio.format.channel_locations[3] = GAVL_CHID_REAR_CENTER;
-      break;
-    case DTS_2F2R: // 2 front, 2 rear surround channels (L, R, LS, RS)
-      s->data.audio.format.num_channels = 4;
-      s->data.audio.format.channel_locations[0] = GAVL_CHID_FRONT_LEFT;
-      s->data.audio.format.channel_locations[1] = GAVL_CHID_FRONT_RIGHT;
-      s->data.audio.format.channel_locations[2] = GAVL_CHID_REAR_LEFT;
-      s->data.audio.format.channel_locations[3] = GAVL_CHID_REAR_RIGHT;
-      break;
-    case DTS_3F2R: // 3 front, 2 rear surround channels (L, C, R, LS, RS)
-      s->data.audio.format.num_channels = 5;
-      s->data.audio.format.channel_locations[0] = GAVL_CHID_FRONT_CENTER;
-      s->data.audio.format.channel_locations[1] = GAVL_CHID_FRONT_LEFT;
-      s->data.audio.format.channel_locations[2] = GAVL_CHID_FRONT_RIGHT;
-      s->data.audio.format.channel_locations[3] = GAVL_CHID_REAR_LEFT;
-      s->data.audio.format.channel_locations[4] = GAVL_CHID_REAR_RIGHT;
-      break;
-    }
-
-  if(flags & DTS_LFE)
-    {
-    s->data.audio.format.channel_locations[s->data.audio.format.num_channels] =
-      GAVL_CHID_LFE;
-    s->data.audio.format.num_channels++;
-    }
+  bgav_dca_flags_2_channel_setup(flags, &(s->data.audio.format));
+  
 #if 0  
   if(gavl_front_channels(&(s->data.audio.format)) == 3)
     s->data.audio.format.center_level = priv->header.cmixlev;
