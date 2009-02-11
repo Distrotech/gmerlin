@@ -40,6 +40,13 @@
 
 //#define NDEBUG
 
+/* LPCM stuff */
+
+typedef struct
+  {
+  int64_t out_pts;
+  } lpcm_t;
+
 /* We scan at most one megabyte */
 
 #define SYNC_SIZE (1024*1024)
@@ -155,10 +162,10 @@ static int pack_header_read(bgav_input_context_t * input,
     
     bgav_input_read_8(input, &c);
     ret->mux_rate = (c & 0x7F) << 15;
-                                                                               
+                                                                              
     bgav_input_read_8(input, &c);
     ret->mux_rate |= ((c & 0x7F) << 7);
-                                                                               
+                                                                              
     bgav_input_read_8(input, &c);
     ret->mux_rate |= (((c & 0xFE)) >> 1);
     ret->version = 1;
@@ -339,6 +346,7 @@ static int read_sector_input(bgav_demuxer_context_t * ctx)
 
 static int select_track_mpegps(bgav_demuxer_context_t * ctx, int track)
   {
+  int i;
   mpegps_priv_t * priv;
   priv = (mpegps_priv_t*)(ctx->priv);
 
@@ -357,6 +365,17 @@ static int select_track_mpegps(bgav_demuxer_context_t * ctx, int track)
     else
       return 0;
     }
+
+  for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
+    {
+    if(ctx->tt->cur->audio_streams[i].fourcc ==
+       BGAV_MK_FOURCC('L','P','C','M'))
+      {
+      lpcm_t * lp = ctx->tt->cur->audio_streams[i].priv;
+      lp->out_pts = BGAV_TIMESTAMP_UNDEFINED;
+      }
+    }
+
   return 1;
   }
 
@@ -449,6 +468,13 @@ static void init_sector_mode(bgav_demuxer_context_t * ctx)
     }
   else
     return;
+  }
+
+/* LPCM stuff */
+
+static void cleanup_lpcm(bgav_stream_t * s)
+  {
+  free(s->priv);
   }
 
 /* Get one packet */
@@ -577,19 +603,26 @@ static int next_packet(bgav_demuxer_context_t * ctx,
           if(!stream && priv->find_streams)
             {
             stream = bgav_track_add_audio_stream(ctx->tt->cur, ctx->opt);
-            stream->index_mode = INDEX_MODE_MPEG;
-            stream->timescale = 90000;
+            stream->index_mode = INDEX_MODE_SIMPLE;
+            // stream->timescale = 90000;
             stream->fourcc = BGAV_MK_FOURCC('L', 'P', 'C', 'M');
             stream->stream_id = priv->pes_header.stream_id;
             /* Hack: This is set by the core later. We must set it here,
                because we buffer packets during initialization */
             stream->demuxer = ctx;
             }
-
+          
           /* Set stream format */
 
           if(stream && !stream->data.audio.format.samplerate)
             {
+            if(!stream->priv)
+              {
+              lpcm_t * lp = calloc(1, sizeof(*lp));
+              lp->out_pts = BGAV_TIMESTAMP_UNDEFINED;
+              stream->priv = lp;
+              }
+            
             /* emphasis (1), muse(1), reserved(1), frame number(5) */
             bgav_input_skip(input, 1);
             /* quant (2), freq(2), reserved(1), channels(3) */
@@ -599,6 +632,7 @@ static int next_packet(bgav_demuxer_context_t * ctx,
             stream->data.audio.format.samplerate = lpcm_freq_tab[(c >> 4) & 0x03];
             stream->data.audio.format.num_channels = 1 + (c & 7);
             stream->data.audio.bits_per_sample = 16;
+            stream->timescale = stream->data.audio.format.samplerate;
             
             switch ((c>>6) & 3)
               {
@@ -607,6 +641,25 @@ static int next_packet(bgav_demuxer_context_t * ctx,
               case 2: stream->data.audio.bits_per_sample = 24; break;
               }
 
+            switch(stream->data.audio.format.num_channels)
+              {
+              case 1:
+                stream->data.audio.format.channel_locations[0] = GAVL_CHID_FRONT_CENTER;
+                break;
+              case 2:
+                stream->data.audio.format.channel_locations[0] = GAVL_CHID_FRONT_LEFT;
+                stream->data.audio.format.channel_locations[1] = GAVL_CHID_FRONT_RIGHT;
+                break;
+              case 6:
+                stream->data.audio.format.channel_locations[0] = GAVL_CHID_FRONT_LEFT;
+                stream->data.audio.format.channel_locations[1] = GAVL_CHID_FRONT_CENTER;
+                stream->data.audio.format.channel_locations[2] = GAVL_CHID_FRONT_RIGHT;
+                stream->data.audio.format.channel_locations[3] = GAVL_CHID_REAR_LEFT;
+                stream->data.audio.format.channel_locations[4] = GAVL_CHID_REAR_RIGHT;
+                stream->data.audio.format.channel_locations[5] = GAVL_CHID_LFE;
+                break;
+              }
+            
             /* Dynamic range control */
             bgav_input_skip(input, 1);
             
@@ -740,14 +793,53 @@ static int next_packet(bgav_demuxer_context_t * ctx,
               ctx->timestamp_offset = -priv->pes_header.pts;
               ctx->flags |= BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET;
               }
-            
-            p->pts = priv->pes_header.pts + ctx->timestamp_offset;
-            // if(p->pts < 0)
+
+            if(stream->fourcc != BGAV_MK_FOURCC('L', 'P', 'C', 'M'))
+              {
+              p->pts = priv->pes_header.pts + ctx->timestamp_offset;
+              
+              // if(p->pts < 0)
             //              p->pts = 0;
+              
+              if(priv->do_sync && !STREAM_HAS_SYNC(stream))
+                STREAM_SET_SYNC(stream, p->pts);
+              }
+            }
+          /* Get LPCM PTS and duration */
+          if(stream->fourcc == BGAV_MK_FOURCC('L', 'P', 'C', 'M'))
+            {
+            lpcm_t * lp = stream->priv;
             
-            if(priv->do_sync &&
-               !STREAM_HAS_SYNC(stream))
-              STREAM_SET_SYNC(stream, p->pts);
+            switch(stream->data.audio.bits_per_sample)
+              {
+              case 16:
+                /* 4 bytes -> 2 samples */
+                p->duration = p->data_size / (stream->data.audio.format.num_channels*2);
+                break;
+              case 20:
+                /* 5 bytes -> 2 samples */
+                /* http://lists.mplayerhq.hu/pipermail/ffmpeg-devel/2006-September/016319.html */
+                p->duration = (2 * p->data_size) /
+                  (stream->data.audio.format.num_channels*5);
+                break;
+              case 24:
+                /* 6 bytes -> 2 samples */
+                p->duration = p->data_size / (stream->data.audio.format.num_channels*3);
+                break;
+              }
+            if(lp->out_pts == BGAV_TIMESTAMP_UNDEFINED)
+              {
+              if(priv->pes_header.pts != BGAV_TIMESTAMP_UNDEFINED)
+                {
+                lp->out_pts =
+                  gavl_time_rescale(90000, stream->data.audio.format.samplerate,
+                                    priv->pes_header.pts + ctx->timestamp_offset);
+                }
+              else
+                lp->out_pts = 0;
+              }
+            p->pts = lp->out_pts;
+            lp->out_pts += p->duration;
             }
           bgav_packet_done_write(p);
           }
@@ -1088,7 +1180,12 @@ static int open_mpegps(bgav_demuxer_context_t * ctx)
   for(i = 0; i < ctx->tt->num_tracks; i++)
     {
     for(j = 0; j < ctx->tt->tracks[i].num_audio_streams; j++)
-      ctx->tt->tracks[i].audio_streams[j].flags |= (STREAM_PARSE_FULL|STREAM_START_TIME);
+      {
+      if(ctx->tt->tracks[i].audio_streams[j].fourcc != BGAV_MK_FOURCC('L', 'P', 'C', 'M'))
+        ctx->tt->tracks[i].audio_streams[j].flags |= STREAM_PARSE_FULL;
+
+      ctx->tt->tracks[i].audio_streams[j].flags |= STREAM_START_TIME;
+      }
     for(j = 0; j < ctx->tt->tracks[i].num_video_streams; j++)
       {
       ctx->tt->tracks[i].video_streams[j].flags |= (STREAM_PARSE_FULL|STREAM_START_TIME);

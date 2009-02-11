@@ -19,6 +19,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+/* Based on the ffmpeg MXF demuxer with lots of changes */
+
 typedef uint8_t mxf_ul_t[16];
 
 typedef struct mxf_metadata_s mxf_metadata_t;

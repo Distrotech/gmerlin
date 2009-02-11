@@ -25,6 +25,8 @@
 #include <avdec_private.h>
 #include <mxf.h>
 
+/* Based on the ffmpeg MXF demuxer with lots of changes */
+
 #define LOG_DOMAIN "mxf"
 
 #define FRAME_WRAPPED      0

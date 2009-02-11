@@ -254,7 +254,7 @@ static int parse_track(bgav_input_context_t * input,
     case 20:
       vs = bgav_track_add_video_stream(t, opt);
       vs->fourcc = BGAV_MK_FOURCC('m','p','g','v');
-      vs->flags |= STREAM_PARSE_FULL;
+      vs->flags |= STREAM_PARSE_FRAME;
       break;
     case 9:
       as = bgav_track_add_audio_stream(t, opt);
@@ -532,8 +532,12 @@ static int next_packet_gxf(bgav_demuxer_context_t * ctx)
   bgav_packet_t * p;
   bgav_stream_t * s;
   gxf_priv_t * priv;
+  int64_t position;
+  
   priv = (gxf_priv_t*)(ctx->priv);
 
+  position = ctx->input->position;
+  
   if(!read_packet_header(ctx->input, &type, &length))
     return 0;
 
@@ -576,6 +580,8 @@ static int next_packet_gxf(bgav_demuxer_context_t * ctx)
       
       p->pts = (mh.field_nr - priv->first_field) / priv->num_fields *
             priv->frame_duration ;
+
+      p->position = position;
       
       if(bgav_input_read_data(ctx->input, p->data, length) < length)
         return 0;
