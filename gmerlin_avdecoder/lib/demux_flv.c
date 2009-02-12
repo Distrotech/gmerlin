@@ -88,6 +88,7 @@ typedef struct
 
   int need_audio_extradata;
   int need_video_extradata;
+  int resync;
   } flv_priv_t;
 
 static int probe_flv(bgav_input_context_t * input)
@@ -735,6 +736,14 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
       {
       if(s->data.audio.block_align)
         {
+        if(priv->resync && !STREAM_HAS_SYNC(s))
+          {
+          priv->audio_sample_counter =
+            gavl_time_rescale(1000, s->data.audio.format.samplerate,
+                              p->pts);
+          STREAM_SET_SYNC(s, priv->audio_sample_counter);
+          }
+        
         p->pts = priv->audio_sample_counter;
         p->duration = p->data_size / s->data.audio.block_align;
         priv->audio_sample_counter += p->duration;
@@ -754,7 +763,7 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
         p->pts = t.timestamp + cts;
         }
       }
-    if(!STREAM_HAS_SYNC(s) < 0)
+    if(!STREAM_HAS_SYNC(s))
       STREAM_SET_SYNC(s, p->pts);
 
     if(keyframe)
@@ -805,7 +814,6 @@ static void handle_metadata(bgav_demuxer_context_t * ctx)
     }
   }
 
-
 static void seek_flv(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   {
   double time_float;
@@ -854,12 +862,15 @@ static void seek_flv(bgav_demuxer_context_t * ctx, int64_t time, int scale)
 
   /* Resync */
 
+  priv->resync = 1;
+  
   while(1)
     {
     if(!next_packet_flv(ctx) ||
        bgav_track_has_sync(ctx->tt->cur))
       break;
     }
+  priv->resync = 0;
   }
      
 

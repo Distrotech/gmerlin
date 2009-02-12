@@ -360,8 +360,11 @@ static int decode_picture(bgav_stream_t*s)
     /* If we have a sequence end code after the first frame,
        force still mode */
     bgav_log(s->opt, BGAV_LOG_DEBUG, LOG_DOMAIN, "Detected MPEG still image");
-    s->data.video.still_mode = 1;
+    s->flags |= STREAM_STILL_MODE;
     // s->data.video.format.framerate_mode = GAVL_FRAMERATE_STILL;
+    if(priv->p)
+      bgav_demuxer_done_packet_read(s->demuxer, priv->p);
+
     }
 
   /* Calculate timestamp */
@@ -400,11 +403,13 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
 
   /* Return EOF if we are in still mode and the demuxer ran out of
      data */
-  if(s->data.video.still_mode && (s->demuxer->flags & BGAV_DEMUXER_EOF))
+  if((s->flags & STREAM_STILL_MODE) &&
+     (s->flags & STREAM_STILL_SHOWN) &&
+     (s->demuxer->flags & BGAV_DEMUXER_EOF))
     return 0;
   
-  if((!s->data.video.still_mode && !priv->have_frame) ||
-     (s->data.video.still_mode &&
+  if((!(s->flags & STREAM_STILL_MODE) && !priv->have_frame) ||
+     ((s->flags & STREAM_STILL_MODE) &&
       bgav_demuxer_peek_packet_read(s->demuxer, s, 0)))
     {
     if(!decode_picture(s))
@@ -435,8 +440,13 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
     f->timestamp = priv->picture_timestamp;
     f->duration  = priv->picture_duration;
 
-    if(!s->data.video.still_mode)
+    if(!(s->flags & STREAM_STILL_MODE))
       priv->have_frame = 0;
+    else
+      {
+      priv->picture_timestamp += priv->picture_duration;
+      s->flags |= STREAM_STILL_SHOWN;
+      }
     }
 
   if(((priv->info->display_picture->flags & PIC_MASK_CODING_TYPE) ==
@@ -521,7 +531,7 @@ static void resync_mpeg2(bgav_stream_t*s)
 
   bgav_pts_cache_clear(&priv->pts_cache);
   
-  if(s->data.video.still_mode)
+  if(s->flags & STREAM_STILL_MODE)
     {
     priv->picture_timestamp = priv->p->pts;
     }

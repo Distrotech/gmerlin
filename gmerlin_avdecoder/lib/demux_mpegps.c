@@ -621,6 +621,7 @@ static int next_packet(bgav_demuxer_context_t * ctx,
               lpcm_t * lp = calloc(1, sizeof(*lp));
               lp->out_pts = BGAV_TIMESTAMP_UNDEFINED;
               stream->priv = lp;
+              stream->cleanup = cleanup_lpcm;
               }
             
             /* emphasis (1), muse(1), reserved(1), frame number(5) */

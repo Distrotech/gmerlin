@@ -325,6 +325,8 @@ typedef enum
 #define STREAM_B_FRAMES           (1<<3)
 #define STREAM_WRONG_B_TIMESTAMPS (1<<4)
 #define STREAM_HEADER_FROM_PARSER (1<<5)
+#define STREAM_STILL_MODE         (1<<6) /* Still image mode */
+#define STREAM_STILL_SHOWN        (1<<7) /* Still image already shown */
 
 /* Stream can have a nonzero start time */
 #define STREAM_START_TIME         (1<<4)
@@ -496,13 +498,6 @@ struct bgav_stream_s
       int palette_size;
       bgav_palette_entry_t * palette;
       int palette_changed;
-      
-      /* These are set by the demuxer during seeking (and optionally
-         by the codec during resync. They are invalid except during the
-         seek process */
-      
-      int still_mode; /* Don't always have the next picture
-                         during seeking */
       
 /* How to get frame times and durations */
 #define BGAV_FRAMETIME_CONSTANT  0 /* Strictly constant framerate */

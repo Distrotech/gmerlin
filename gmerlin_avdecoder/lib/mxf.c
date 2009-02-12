@@ -2138,7 +2138,7 @@ void bgav_mxf_index_table_segment_free(mxf_index_table_segment_t * idx)
 
 /* File */
 
-static int resolve_refs(partition_t * ret, const bgav_options_t * opt)
+static int resolve_refs(mxf_file_t * file, partition_t * ret, const bgav_options_t * opt)
   {
   int i;
 
@@ -2244,7 +2244,7 @@ static int resolve_refs(partition_t * ret, const bgav_options_t * opt)
       case MXF_TYPE_SOURCE_PACKAGE:
         if(!bgav_mxf_package_resolve_refs_2(ret, (mxf_package_t*)(ret->metadata[i])))
           return 0;
-        bgav_mxf_package_finalize_descriptors(ret, (mxf_package_t*)(ret->metadata[i]));
+        bgav_mxf_package_finalize_descriptors(file, (mxf_package_t*)(ret->metadata[i]));
 
         break;
       default:
@@ -2343,7 +2343,7 @@ uint32_t bgav_mxf_get_video_fourcc(mxf_descriptor_t * d)
 
 static int bgav_mxf_finalize_header(mxf_file_t * ret, const bgav_options_t * opt)
   {
-  if(!resolve_refs(&ret->header, opt))
+  if(!resolve_refs(ret, &ret->header, opt))
     return 0;
   
   if(!ret->header.preface || !((mxf_preface_t*)(ret->header.preface))->content_storage)
@@ -2360,7 +2360,7 @@ static int bgav_mxf_finalize_body(mxf_file_t * ret, const bgav_options_t * opt)
   
   for(i = 0; i < ret->num_body_partitions; i++)
     {
-    if(!resolve_refs(&ret->body_partitions[i], opt))
+    if(!resolve_refs(ret, &ret->body_partitions[i], opt))
       return 0;
 
     get_max_segments(&ret->body_partitions[i], opt);

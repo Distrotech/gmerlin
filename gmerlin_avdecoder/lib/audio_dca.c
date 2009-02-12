@@ -38,16 +38,14 @@ typedef struct
   {
   dts_state_t * state;
   sample_t    * samples;
-
-  uint8_t * buffer;
-  int bytes_in_buffer;
-  int buffer_alloc;
-
+  
   bgav_packet_t * packet;
-  uint8_t       * packet_ptr;
   gavl_audio_frame_t * frame;
+
   int blocks_left;
   int frame_length;
+
+  int need_format;
   } dts_priv;
 
 #define MAX_FRAME_SIZE 3840
@@ -57,74 +55,7 @@ typedef struct
  *  (also does resync)
  */
 
-static int get_data(bgav_stream_t * s, int num_bytes)
-  {
-  int bytes_to_copy;
-  dts_priv * priv;
-  priv = s->data.audio.decoder->priv;
-
-  if(priv->buffer_alloc < num_bytes)
-    {
-    priv->buffer_alloc = num_bytes + 1024;
-    priv->buffer = realloc(priv->buffer, priv->buffer_alloc);
-    }
-  
-  while(priv->bytes_in_buffer < num_bytes)
-    {
-    if(!priv->packet)
-      {
-      priv->packet = bgav_demuxer_get_packet_read(s->demuxer, s);
-      if(!priv->packet)
-        return 0;
-      priv->packet_ptr = priv->packet->data;
-      }
-    else if(priv->packet_ptr - priv->packet->data >= priv->packet->data_size)
-      {
-      bgav_demuxer_done_packet_read(s->demuxer, priv->packet);
-      priv->packet = bgav_demuxer_get_packet_read(s->demuxer, s);
-      if(!priv->packet)
-        return 0;
-      priv->packet_ptr = priv->packet->data;
-      }
-    bytes_to_copy = num_bytes - priv->bytes_in_buffer;
-    
-    if(bytes_to_copy >
-       priv->packet->data_size - (priv->packet_ptr - priv->packet->data))
-      {
-      bytes_to_copy =
-        priv->packet->data_size - (priv->packet_ptr - priv->packet->data);
-      }
-    memcpy(priv->buffer + priv->bytes_in_buffer,
-           priv->packet_ptr, bytes_to_copy);
-    priv->bytes_in_buffer += bytes_to_copy;
-    priv->packet_ptr      += bytes_to_copy;
-    }
-
-  return 1;
-  }
-
-static void done_data(bgav_stream_t * s, int num_bytes)
-  {
-  dts_priv * priv;
-  int bytes_left;
-  
-  priv = (dts_priv*)(s->data.audio.decoder->priv);
-
-  bytes_left = priv->bytes_in_buffer - num_bytes;
-  
-  if(bytes_left < 0)
-    {
-    return;
-    }
-  else if(bytes_left > 0)
-    {
-    memmove(priv->buffer,
-            priv->buffer + num_bytes,
-            bytes_left);
-    }
-  priv->bytes_in_buffer -= num_bytes;
-  }
-
+#if 0
 static int do_resync(bgav_stream_t * s, int * flags,
                      int * sample_rate, int * bit_rate, int * frame_length)
   {
@@ -145,57 +76,13 @@ static int do_resync(bgav_stream_t * s, int * flags,
     }
   return 0;
   }
+#endif
 
 static void resync_dts(bgav_stream_t * s)
   {
-  int flags, sample_rate, bit_rate, frame_length;
-  dts_priv * priv;
-  priv = (dts_priv*)(s->data.audio.decoder->priv);
-
-  priv->packet = (bgav_packet_t*)0;
-  priv->packet_ptr = (uint8_t*)0;
-  priv->bytes_in_buffer = 0;
+  dts_priv * priv = s->data.audio.decoder->priv;
   priv->blocks_left = 0;
-  do_resync(s, &flags, &sample_rate, &bit_rate, &frame_length);
-  }
-
-static int init_dts(bgav_stream_t * s)
-  {
-  int flags, sample_rate, bit_rate, frame_length;
-  dts_priv * priv;
-  
-  priv = calloc(1, sizeof(*priv));
-  priv->buffer = calloc(MAX_FRAME_SIZE, 1);
-  priv->state = dts_init(0);
-  
-  s->data.audio.decoder->priv = priv;
-  if(!do_resync(s, &flags, &sample_rate, &bit_rate, &frame_length))
-    {
-    return 0;
-    }
-  //  dts_header_dump(&(priv->header));
-    
-  /* Get format */
-
-  s->data.audio.format.samplerate = sample_rate;
-  s->data.audio.format.samples_per_frame = BLOCK_SAMPLES;
-  s->codec_bitrate = bit_rate;
-  s->data.audio.format.sample_format = GAVL_SAMPLE_FLOAT;
-  
-  bgav_dca_flags_2_channel_setup(flags, &(s->data.audio.format));
-  
-#if 0  
-  if(gavl_front_channels(&(s->data.audio.format)) == 3)
-    s->data.audio.format.center_level = priv->header.cmixlev;
-  if(gavl_rear_channels(&(s->data.audio.format)))
-    s->data.audio.format.rear_level = priv->header.smixlev;
-#endif
-  priv->frame = gavl_audio_frame_create(&(s->data.audio.format));
-  priv->samples = dts_samples(priv->state);
-  s->description =
-    bgav_sprintf("DTS %d kb/sec", bit_rate/1000);
-  
-  return 1;
+  priv->packet = NULL;
   }
 
 static int decode_frame_dts(bgav_stream_t * s)
@@ -204,10 +91,11 @@ static int decode_frame_dts(bgav_stream_t * s)
   int sample_rate;
   int bit_rate;
   int j;
+  int frame_bytes;
 #ifdef LIBDTS_DOUBLE
   int k;
 #endif
-  
+  int dummy;
   sample_t level = 1.0;
   
   dts_priv * priv;
@@ -215,20 +103,45 @@ static int decode_frame_dts(bgav_stream_t * s)
 
   if(!priv->blocks_left)
     {
-    if(!do_resync(s, &flags,
-                  &sample_rate, &bit_rate, &priv->frame_length))
-      return 0;
-    if(!get_data(s, priv->frame_length))
+    if(priv->packet)
+      bgav_demuxer_done_packet_read(s->demuxer, priv->packet);
+    
+    priv->packet = bgav_demuxer_get_packet_read(s->demuxer, s);
+
+    if(!priv->packet)
       return 0;
     
     /* Now, decode this */
+
+    frame_bytes = dts_syncinfo(priv->state, priv->packet->data, &flags,
+                               &sample_rate, &bit_rate, &dummy);
     
-    dts_frame(priv->state, priv->buffer, &flags,
-              &level, 0.0);
+    if(!frame_bytes)
+      return 0;
+    
+    if(frame_bytes < priv->packet->data_size)
+      return 0;
+
+    if(priv->need_format)
+      {
+      s->data.audio.format.samplerate = sample_rate;
+      s->data.audio.format.samples_per_frame = BLOCK_SAMPLES;
+      s->codec_bitrate = bit_rate;
+      s->data.audio.format.sample_format = GAVL_SAMPLE_FLOAT;
+  
+      bgav_dca_flags_2_channel_setup(flags, &(s->data.audio.format));
+  
+      priv->frame = gavl_audio_frame_create(&(s->data.audio.format));
+      s->description =
+        bgav_sprintf("DTS %d kb/sec", bit_rate/1000);
+      }
+    
+    dts_frame(priv->state, priv->packet->data, &flags, &level, 0.0);
     
     if(!s->opt->audio_dynrange)
       dts_dynrng(priv->state, NULL, NULL);
     priv->blocks_left = dts_blocks_num(priv->state);
+    //    fprintf(stderr, "DTS samples: %d\n", priv->blocks_left * 256);
     }
   
   dts_block (priv->state);
@@ -247,8 +160,11 @@ static int decode_frame_dts(bgav_stream_t * s)
     }
   priv->blocks_left--;
   if(!priv->blocks_left)
-    done_data(s, priv->frame_length);
-
+    {
+    bgav_demuxer_done_packet_read(s->demuxer, priv->packet);
+    priv->packet = NULL;
+    }
+  
   for(j = 0; j < s->data.audio.format.num_channels; j++)
     s->data.audio.frame->channels.f[j] = priv->frame->channels.f[j];
   
@@ -257,6 +173,30 @@ static int decode_frame_dts(bgav_stream_t * s)
   return 1;
   }
 
+
+static int init_dts(bgav_stream_t * s)
+  {
+  dts_priv * priv;
+  
+  priv = calloc(1, sizeof(*priv));
+  priv->state = dts_init(0);
+  priv->samples = dts_samples(priv->state);
+  
+  s->data.audio.decoder->priv = priv;
+
+  //  dts_header_dump(&(priv->header));
+    
+  /* Get format */
+
+  priv->need_format = 1;
+  if(!decode_frame_dts(s))
+    return 0;
+  priv->need_format = 0;
+  
+  return 1;
+  }
+
+
 static void close_dts(bgav_stream_t * s)
   {
   dts_priv * priv;
@@ -264,8 +204,6 @@ static void close_dts(bgav_stream_t * s)
 
   if(priv->frame)
     gavl_audio_frame_destroy(priv->frame);
-  if(priv->buffer)
-    free(priv->buffer);
   if(priv->state)
     dts_free(priv->state);
   free(priv);

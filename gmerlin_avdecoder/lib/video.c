@@ -266,7 +266,7 @@ void bgav_video_stop(bgav_stream_t * s)
     s->data.video.decoder = (bgav_video_decoder_context_t*)0;
     }
   /* Clear still mode flag (it will be set during reinit */
-  s->data.video.still_mode = 0;
+  s->flags &= ~(STREAM_STILL_MODE | STREAM_STILL_SHOWN);
 
   if(s->data.video.parser)
     bgav_video_parser_destroy(s->data.video.parser);

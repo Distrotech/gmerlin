@@ -32,113 +32,19 @@
 #include <a52dec/a52.h>
 
 #define FRAME_SAMPLES 1536
-#define MAX_FRAME_SIZE 3840
 
 #define LOG_DOMAIN "audio_a52"
 
 typedef struct
   {
-  bgav_a52_header_t header;
-  
   a52_state_t * state;
   sample_t    * samples;
 
-  uint8_t * buffer;
-  int bytes_in_buffer;
-  
-  bgav_packet_t * packet;
-  uint8_t       * packet_ptr;
   gavl_audio_frame_t * frame;
-
-  
+  int need_format;
   } a52_priv;
 
-
-/*
- *  Parse header and read data bytes for that frame
- *  (also does resync)
- */
-
-static int get_data(bgav_stream_t * s, int num_bytes)
-  {
-  int bytes_to_copy;
-  a52_priv * priv;
-  priv = s->data.audio.decoder->priv;
-  
-  while(priv->bytes_in_buffer < num_bytes)
-    {
-    if(!priv->packet)
-      {
-      priv->packet = bgav_demuxer_get_packet_read(s->demuxer, s);
-      
-      if(!priv->packet)
-        return 0;
-      priv->packet_ptr = priv->packet->data;
-      }
-    else if(priv->packet_ptr - priv->packet->data >= priv->packet->data_size)
-      {
-      bgav_demuxer_done_packet_read(s->demuxer, priv->packet);
-      priv->packet = bgav_demuxer_get_packet_read(s->demuxer, s);
-      if(!priv->packet)
-        return 0;
-
-      priv->packet_ptr = priv->packet->data;
-      }
-    bytes_to_copy = num_bytes - priv->bytes_in_buffer;
-    
-    if(bytes_to_copy >
-       priv->packet->data_size - (priv->packet_ptr - priv->packet->data))
-      {
-      bytes_to_copy =
-        priv->packet->data_size - (priv->packet_ptr - priv->packet->data);
-      }
-    memcpy(priv->buffer + priv->bytes_in_buffer,
-           priv->packet_ptr, bytes_to_copy);
-    priv->bytes_in_buffer += bytes_to_copy;
-    priv->packet_ptr      += bytes_to_copy;
-    }
-
-  return 1;
-  }
-
-static void done_data(bgav_stream_t * s, int num_bytes)
-  {
-  a52_priv * priv;
-  int bytes_left;
-  
-  priv = s->data.audio.decoder->priv;
-
-  bytes_left = priv->bytes_in_buffer - num_bytes;
-  
-  if(bytes_left < 0)
-    {
-    return;
-    }
-  else if(bytes_left > 0)
-    {
-    memmove(priv->buffer,
-            priv->buffer + num_bytes,
-            bytes_left);
-    }
-  priv->bytes_in_buffer -= num_bytes;
-  }
-
-static int do_resync(bgav_stream_t * s)
-  {
-  a52_priv * priv;
-  priv = s->data.audio.decoder->priv;
-  
-  while(1)
-    {
-    if(!get_data(s, BGAV_A52_HEADER_BYTES))
-      return 0;
-    if(bgav_a52_header_read(&(priv->header), priv->buffer))
-      return 1;
-    done_data(s, 1);
-    }
-  return 0;
-  }
-
+#if 0
 static void resync_a52(bgav_stream_t * s)
   {
   a52_priv * priv;
@@ -149,38 +55,7 @@ static void resync_a52(bgav_stream_t * s)
   priv->bytes_in_buffer = 0;
   do_resync(s);
   }
-
-static int init_a52(bgav_stream_t * s)
-  {
-  a52_priv * priv;
-  
-  priv = calloc(1, sizeof(*priv));
-  priv->buffer = calloc(MAX_FRAME_SIZE, 1);
-  s->data.audio.decoder->priv = priv;
-  
-  if(!do_resync(s))
-    {
-    return 0;
-    }
-  //  a52_header_dump(&(priv->header));
-    
-  /* Get format */
-
-  s->codec_bitrate = priv->header.bitrate;
-
-  s->data.audio.format.sample_format = GAVL_SAMPLE_FLOAT;
-  s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_NONE; 
-
-  bgav_a52_header_get_format(&priv->header, &s->data.audio.format);
-  
-  priv->frame = gavl_audio_frame_create(&(s->data.audio.format));
-  priv->state = a52_init(0);
-  priv->samples = a52_samples(priv->state);
-  s->description =
-    bgav_sprintf("AC3 %d kb/sec", priv->header.bitrate/1000);
-  
-  return 1;
-  }
+#endif
 
 static int decode_frame_a52(bgav_stream_t * s)
   {
@@ -191,25 +66,50 @@ static int decode_frame_a52(bgav_stream_t * s)
 #ifdef LIBA52_DOUBLE
   int k;
 #endif
+  int frame_bytes;
+  bgav_packet_t * p;
   
   sample_t level = 1.0;
   
   a52_priv * priv;
   priv = s->data.audio.decoder->priv;
 
-  if(!do_resync(s))
+  p = bgav_demuxer_get_packet_read(s->demuxer, s);
+  if(!p)
     return 0;
-  if(!get_data(s, priv->header.total_bytes))
-    return 0;
+  
+  if(priv->need_format)
+    {
+    bgav_a52_header_t h;
+    
+    if(!bgav_a52_header_read(&h, p->data))
+      return 0;
 
+    bgav_a52_header_dump(&h);
+
+    s->codec_bitrate = h.bitrate;
+
+    s->description =
+      bgav_sprintf("AC3 %d kb/sec", h.bitrate/1000);
+    
+    s->data.audio.format.sample_format = GAVL_SAMPLE_FLOAT;
+    s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_NONE; 
+    bgav_a52_header_get_format(&h, &s->data.audio.format);
+    priv->frame = gavl_audio_frame_create(&(s->data.audio.format));
+    }
+  
   /* Now, decode this */
   
-  if(!a52_syncinfo(priv->buffer, &flags,
-                   &sample_rate, &bit_rate))
+  frame_bytes = a52_syncinfo(p->data, &flags,
+                             &sample_rate, &bit_rate);
+
+  if(!frame_bytes)
     return 0;
 
-  a52_frame(priv->state, priv->buffer, &flags,
-            &level, 0.0);
+  if(frame_bytes < p->data_size)
+    return 0;
+  
+  a52_frame(priv->state, p->data, &flags, &level, 0.0);
   if(!s->opt->audio_dynrange)
     {
     a52_dynrng(priv->state, NULL, NULL);
@@ -232,10 +132,34 @@ static int decode_frame_a52(bgav_stream_t * s)
 #endif
       }
     }
-  done_data(s, priv->header.total_bytes);
-
+  
   priv->frame->valid_samples = FRAME_SAMPLES;
   gavl_audio_frame_copy_ptrs(&s->data.audio.format, s->data.audio.frame, priv->frame);
+
+  bgav_demuxer_done_packet_read(s->demuxer, p);
+
+  return 1;
+  }
+
+static int init_a52(bgav_stream_t * s)
+  {
+  a52_priv * priv;
+  
+  priv = calloc(1, sizeof(*priv));
+  s->data.audio.decoder->priv = priv;
+  
+  //  a52_header_dump(&(priv->header));
+    
+  /* Get format */
+
+
+  priv->state = a52_init(0);
+  priv->samples = a52_samples(priv->state);
+
+  priv->need_format = 1;
+  decode_frame_a52(s);
+  priv->need_format = 0;
+  
   
   return 1;
   }
@@ -247,8 +171,6 @@ static void close_a52(bgav_stream_t * s)
 
   if(priv->frame)
     gavl_audio_frame_destroy(priv->frame);
-  if(priv->buffer)
-    free(priv->buffer);
   if(priv->state)
     a52_free(priv->state);
   free(priv);
@@ -266,7 +188,7 @@ static bgav_audio_decoder_t decoder =
     .init   = init_a52,
     .decode_frame = decode_frame_a52,
     .close  = close_a52,
-    .resync = resync_a52,
+    //    .resync = resync_a52,
   };
 
 void bgav_init_audio_decoders_a52()
