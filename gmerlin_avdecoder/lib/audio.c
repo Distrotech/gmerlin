@@ -209,8 +209,12 @@ static int read_audio(bgav_stream_t * s, gavl_audio_frame_t * frame,
   int samples_decoded = 0;
   int samples_copied;
   if(s->eof)
+    {
+    if(frame)
+      frame->valid_samples = 0;
     return 0;
-
+    }
+  
   while(samples_decoded < num_samples)
     {
     if(!s->data.audio.frame->valid_samples)
@@ -218,7 +222,7 @@ static int read_audio(bgav_stream_t * s, gavl_audio_frame_t * frame,
       if(!s->data.audio.decoder->decoder->decode_frame(s))
         {
         s->eof = 1;
-        return samples_decoded;
+        break;
         }
       s->data.audio.frame_samples = s->data.audio.frame->valid_samples;
       }
@@ -241,6 +245,8 @@ static int read_audio(bgav_stream_t * s, gavl_audio_frame_t * frame,
     frame->valid_samples = samples_decoded;
     }
   s->out_time += samples_decoded;
+  //  fprintf(stderr, "Decode audio: %d / %d, time: %ld\n",
+  //          num_samples, samples_decoded, s->out_time);
   return samples_decoded;
   
   }
