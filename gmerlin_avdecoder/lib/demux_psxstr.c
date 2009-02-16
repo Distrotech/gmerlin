@@ -25,6 +25,8 @@
 #include <stdio.h>
 #include <string.h>
 
+/* Ported from psxstr.c from libavformat */
+
 #define LOG_DOMAIN "psxstr"
 
 #define RIFF_TAG BGAV_MK_FOURCC('R', 'I', 'F', 'F')
@@ -207,8 +209,6 @@ static int next_packet_psxstr(bgav_demuxer_context_t * ctx)
         s->packet = bgav_stream_get_packet_write(s);
         bgav_packet_alloc(s->packet, frame_size);
         }
-      bytes_to_copy = frame_size - current_sector*VIDEO_DATA_CHUNK_SIZE;
-
       bytes_to_copy = frame_size - current_sector*VIDEO_DATA_CHUNK_SIZE;
       
       if(bytes_to_copy > 0)
