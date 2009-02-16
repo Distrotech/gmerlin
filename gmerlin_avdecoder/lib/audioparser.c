@@ -27,7 +27,7 @@
 #include <parser.h>
 #include <audioparser_priv.h>
 
-// #define DUMP_INPUT
+#define DUMP_INPUT
 // #define DUMP_OUTPUT
 
 static const struct
@@ -40,6 +40,7 @@ parsers[] =
     { BGAV_WAVID_2_FOURCC(0x0050), bgav_audio_parser_init_mpeg },
     { BGAV_WAVID_2_FOURCC(0x0055), bgav_audio_parser_init_mpeg },
     { BGAV_MK_FOURCC('.','m','p','3'), bgav_audio_parser_init_mpeg },
+    { BGAV_MK_FOURCC('L','A','M','E'), bgav_audio_parser_init_mpeg },
     { BGAV_WAVID_2_FOURCC(0x2000), bgav_audio_parser_init_a52 },
     { BGAV_MK_FOURCC('.','a','c','3'), bgav_audio_parser_init_a52 },
 #ifdef HAVE_DCA

@@ -896,6 +896,7 @@ static int init_pcm(bgav_stream_t * s)
       break;
     case BGAV_MK_FOURCC('r', 'a', 'w', ' '):
     case BGAV_MK_FOURCC('s', 'o', 'w', 't'):
+    case BGAV_MK_FOURCC('R', 'A', 'W', 'A'):
       switch(s->data.audio.bits_per_sample)
         {
         case 8:
@@ -1237,25 +1238,26 @@ static void resync_pcm(bgav_stream_t * s)
 static bgav_audio_decoder_t decoder =
   {
     .fourccs = (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x0001),
-                           BGAV_WAVID_2_FOURCC(0x0003),
-                           BGAV_MK_FOURCC('a', 'i', 'f', 'f'),
-                           BGAV_MK_FOURCC('t', 'w', 'o', 's'),
-                           BGAV_MK_FOURCC('s', 'o', 'w', 't'),
-                           BGAV_MK_FOURCC('r', 'a', 'w', ' '),
-                           BGAV_MK_FOURCC('l', 'p', 'c', 'm'),
-                           BGAV_MK_FOURCC('L', 'P', 'C', 'M'),
-                           BGAV_MK_FOURCC('f', 'l', '3', '2'),
-                           BGAV_MK_FOURCC('f', 'l', '6', '4'),
-                           BGAV_MK_FOURCC('i', 'n', '2', '4'),
-                           BGAV_MK_FOURCC('i', 'n', '3', '2'),
-                           BGAV_MK_FOURCC('u', 'l', 'a', 'w'),
-                           BGAV_MK_FOURCC('U', 'L', 'A', 'W'),
-                           BGAV_WAVID_2_FOURCC(0x07),
-                           BGAV_MK_FOURCC('a', 'l', 'a', 'w'),
-                           BGAV_MK_FOURCC('A', 'L', 'A', 'W'),
-                           BGAV_WAVID_2_FOURCC(0x06),
-                           BGAV_MK_FOURCC('P','C','M',' '), /* Used by NSV */
-                           0x00 },
+                             BGAV_WAVID_2_FOURCC(0x0003),
+                             BGAV_MK_FOURCC('a', 'i', 'f', 'f'),
+                             BGAV_MK_FOURCC('t', 'w', 'o', 's'),
+                             BGAV_MK_FOURCC('s', 'o', 'w', 't'),
+                             BGAV_MK_FOURCC('r', 'a', 'w', ' '),
+                             BGAV_MK_FOURCC('l', 'p', 'c', 'm'),
+                             BGAV_MK_FOURCC('L', 'P', 'C', 'M'),
+                             BGAV_MK_FOURCC('f', 'l', '3', '2'),
+                             BGAV_MK_FOURCC('f', 'l', '6', '4'),
+                             BGAV_MK_FOURCC('i', 'n', '2', '4'),
+                             BGAV_MK_FOURCC('i', 'n', '3', '2'),
+                             BGAV_MK_FOURCC('u', 'l', 'a', 'w'),
+                             BGAV_MK_FOURCC('U', 'L', 'A', 'W'),
+                             BGAV_WAVID_2_FOURCC(0x07),
+                             BGAV_MK_FOURCC('a', 'l', 'a', 'w'),
+                             BGAV_MK_FOURCC('A', 'L', 'A', 'W'),
+                             BGAV_WAVID_2_FOURCC(0x06),
+                             BGAV_MK_FOURCC('P','C','M',' '), /* Used by NSV */
+                             BGAV_MK_FOURCC('R','A','W','A'), /* Used by MythTVVideo */
+                             0x00 },
     .name = "PCM audio decoder",
     .init = init_pcm,
     .close = close_pcm,

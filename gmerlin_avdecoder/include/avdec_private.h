@@ -329,7 +329,7 @@ typedef enum
 #define STREAM_STILL_SHOWN        (1<<7) /* Still image already shown */
 
 /* Stream can have a nonzero start time */
-#define STREAM_START_TIME         (1<<4)
+#define STREAM_START_TIME         (1<<8)
 
 #define STREAM_SET_SYNC(s, t)  s->sync_time = t
 #define STREAM_GET_SYNC(s)     s->sync_time

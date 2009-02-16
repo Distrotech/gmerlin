@@ -115,7 +115,7 @@ static int open_nuv(bgav_demuxer_context_t * ctx)
     vs = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
     vs->cleanup = cleanup_stream_nuv;
     vs->stream_id = VIDEO_ID;
-    vs->fourcc = BGAV_MK_FOURCC('R', 'J', 'P', 'G');
+    vs->fourcc = BGAV_MK_FOURCC('N', 'U', 'V', ' ');
     vs->timescale = 1000;
     vs->data.video.format.image_width = width;
     vs->data.video.format.frame_width = width;
@@ -123,8 +123,8 @@ static int open_nuv(bgav_demuxer_context_t * ctx)
     vs->data.video.format.frame_height = height;
     vs->data.video.format.pixel_width  = aspect * 10000;
     vs->data.video.format.pixel_height = 10000;
-    vs->data.video.format.timescale      = 10000;
-    vs->data.video.format.frame_duration = 10000.0 / fps;
+    vs->data.video.format.timescale      = 1000;
+    vs->data.video.format.frame_duration = 1000.0 / fps;
     vs->data.video.frametime_mode = BGAV_FRAMETIME_PTS;
     
     if(interlaced)
@@ -200,6 +200,9 @@ static int open_nuv(bgav_demuxer_context_t * ctx)
           if(!bgav_input_read_fourcc(ctx->input, &as->fourcc))
             return 0;
 
+          if(as->fourcc == BGAV_MK_FOURCC('L','A','M','E'))
+            as->flags |= STREAM_PARSE_FULL;
+          
           if(!bgav_input_read_32_le(ctx->input, &tmp_32))
             return 0;
           as->data.audio.format.samplerate = tmp_32;
@@ -249,11 +252,11 @@ static int open_nuv(bgav_demuxer_context_t * ctx)
 static int next_packet_nuv(bgav_demuxer_context_t * ctx)
   {
   uint8_t hdr[HDRSIZE];
-  uint32_t size, pts;
+  uint32_t size;
+  int32_t pts;
   bgav_stream_t * s;
   bgav_packet_t * p;
-    
-
+  
   if(bgav_input_read_data(ctx->input, hdr, HDRSIZE) < HDRSIZE)
     return 0;
 

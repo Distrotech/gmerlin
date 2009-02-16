@@ -325,6 +325,11 @@ static int decode_picture(bgav_stream_t * s)
                                       &priv->have_picture,
                                       priv->frame_buffer,
                                       priv->frame_buffer_len);
+
+#ifdef DUMP_DECODE
+    bgav_dprintf("Used %d/%d bytes, got picture: %d\n",
+                 bytes_used, priv->frame_buffer_len, priv->have_picture);
+#endif
     
     /* Decode 2nd field for field pictures */
     if(priv->packet->field2_offset && (bytes_used > 0))
@@ -502,13 +507,16 @@ static int init_ffmpeg(bgav_stream_t * s)
   priv->ctx->bits_per_coded_sample = s->data.video.depth;
 #endif  
 
-#if 1
-  priv->ctx->codec_tag   =
-    ((s->fourcc & 0x000000ff) << 24) |
-    ((s->fourcc & 0x0000ff00) << 8) |
-    ((s->fourcc & 0x00ff0000) >> 8) |
-    ((s->fourcc & 0xff000000) >> 24);
-#endif
+  /* Setting codec tag with Nuppelvideo crashes */
+  //  if(s->fourcc != BGAV_MK_FOURCC('R', 'J', 'P', 'G'))
+    {
+    priv->ctx->codec_tag   =
+      ((s->fourcc & 0x000000ff) << 24) |
+      ((s->fourcc & 0x0000ff00) << 8) |
+      ((s->fourcc & 0x00ff0000) >> 8) |
+      ((s->fourcc & 0xff000000) >> 24);
+    }
+  
   priv->ctx->codec_id = codec->id;
     
   /*
@@ -1278,6 +1286,7 @@ static codec_info_t codec_infos[] =
     /*     CODEC_ID_NUV, */
     { "FFmpeg NuppelVideo decoder", "NuppelVideo (rtjpeg)", CODEC_ID_NUV,
       (uint32_t[]){ BGAV_MK_FOURCC('R', 'J', 'P', 'G'),
+                    BGAV_MK_FOURCC('N', 'U', 'V', ' '),
                0x00 } },
     /*     CODEC_ID_KMVC, */
     { "FFmpeg KMVC decoder", "Karl Morton's video codec", CODEC_ID_KMVC,
