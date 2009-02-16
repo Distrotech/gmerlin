@@ -208,6 +208,7 @@ static int next_packet_psxstr(bgav_demuxer_context_t * ctx)
         {
         s->packet = bgav_stream_get_packet_write(s);
         bgav_packet_alloc(s->packet, frame_size);
+        s->packet->data_size = 0;
         }
       bytes_to_copy = frame_size - current_sector*VIDEO_DATA_CHUNK_SIZE;
       
