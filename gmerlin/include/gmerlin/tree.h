@@ -275,10 +275,6 @@ bg_album_entry_create_from_track_info(bg_track_info_t * track_info,
 
 void bg_album_entries_destroy(bg_album_entry_t*);
 
-
-
-char * bg_album_entries_save_to_memory(bg_album_entry_t * e);
-
 /* Check, how many they are */
 int bg_album_entries_count(bg_album_entry_t*);
 

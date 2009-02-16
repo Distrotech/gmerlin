@@ -78,7 +78,8 @@ static GtkTargetList * target_list_r = (GtkTargetList *)0;
 static const GtkTargetEntry dnd_src_entries[] = 
   {
     { bg_gtk_atom_entries_name, 0, DND_GMERLIN_TRACKS },
-    { "STRING",          0, DND_TEXT_PLAIN     },
+    { "STRING",          0, DND_TEXT_PLAIN            },
+    { "text/plain",      0, DND_TEXT_PLAIN            },
   };
 
 static const GtkTargetEntry dnd_src_entries_r[] = 
@@ -2051,6 +2052,15 @@ static void drag_get_callback(GtkWidget *widget,
     return;
     }
   target_atom = gdk_atom_intern("STRING", FALSE);
+  if(target_atom == data->target)
+    {
+    str = bg_album_selected_to_string(w->album);
+    gtk_selection_data_set(data, type_atom, 8, (uint8_t*)str, strlen(str));
+    free(str);
+    w->drag_delete = 0; 
+    return;
+    }
+  target_atom = gdk_atom_intern("text/plain", FALSE);
   if(target_atom == data->target)
     {
     str = bg_album_selected_to_string(w->album);
