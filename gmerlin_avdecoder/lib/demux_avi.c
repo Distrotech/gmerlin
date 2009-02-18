@@ -1476,7 +1476,7 @@ static void seek_iavs(bgav_demuxer_context_t * ctx, gavl_time_t time,
   
   bgav_superindex_seek(ctx->si,
                        ctx->tt->cur->video_streams,
-                       time, scale);
+                       &time, scale);
           
   STREAM_SET_SYNC(ctx->tt->cur->audio_streams, 
                   gavl_time_rescale(ctx->tt->cur->video_streams->timescale,

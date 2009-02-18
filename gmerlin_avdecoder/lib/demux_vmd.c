@@ -24,6 +24,8 @@
 #include <string.h>
 #include <stdio.h>
 
+/* Ported from ffmpeg */
+
 #define VMD_HEADER_SIZE 0x0330
 #define BYTES_PER_FRAME_RECORD 16
 
@@ -51,8 +53,7 @@ typedef struct
   int current_frame;
   uint32_t frame_count;
   uint32_t frames_per_block;
-  
-  
+ 
   } vmd_priv_t;
 
 static int probe_vmd(bgav_input_context_t * input)
@@ -257,7 +258,14 @@ static int next_packet_vmd(bgav_demuxer_context_t * ctx)
                             frame->frame_size) < frame->frame_size)
       return 0;
     if(s->type == BGAV_STREAM_VIDEO)
+      {
       p->pts = frame->pts;
+      fprintf(stderr, "Got video frame\n");
+      }
+    else
+      {
+      fprintf(stderr, "Got audio frame\n");
+      }
     p->data_size = frame->frame_size + BYTES_PER_FRAME_RECORD;
     bgav_packet_done_write(p);
     }

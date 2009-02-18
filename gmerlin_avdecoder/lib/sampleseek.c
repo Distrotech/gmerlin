@@ -101,9 +101,10 @@ void bgav_seek_audio(bgav_t * bgav, int stream, int64_t sample)
     }
   else if(bgav->demuxer->index_mode == INDEX_MODE_SI_SA)
     {
+    frame_time = sample;
     bgav_superindex_seek(bgav->demuxer->si, s,
                          gavl_time_rescale(s->data.audio.format.samplerate,
-                                           s->timescale, sample),
+                                           s->timescale, &frame_time),
                          s->timescale);
     
     s->out_time = gavl_time_rescale(s->timescale, s->data.audio.format.samplerate,
@@ -166,7 +167,8 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
 
   if(bgav->demuxer->index_mode == INDEX_MODE_SI_SA)
     {
-    bgav_superindex_seek(bgav->demuxer->si, s, time, s->timescale);
+    frame_time = time;
+    bgav_superindex_seek(bgav->demuxer->si, s, &frame_time, s->timescale);
     s->out_time = bgav->demuxer->si->entries[s->index_position].time;
     }
   else /* Fileindex */
@@ -314,7 +316,7 @@ void bgav_seek_subtitle(bgav_t * bgav, int stream, int64_t time)
 
   if(bgav->demuxer->index_mode == INDEX_MODE_SI_SA)
     {
-    bgav_superindex_seek(bgav->demuxer->si, s, time, s->timescale);
+    bgav_superindex_seek(bgav->demuxer->si, s, &time, s->timescale);
     s->out_time = bgav->demuxer->si->entries[s->index_position].time;
     }
   else /* Fileindex */

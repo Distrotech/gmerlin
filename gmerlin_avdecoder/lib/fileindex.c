@@ -984,6 +984,7 @@ static int bgav_build_file_index_si_parse(bgav_t * b)
           b->demuxer->request_stream = &b->tt->cur->audio_streams[j];
           }
         }
+      bgav_stop(b);
       bgav_set_audio_stream(b, j, BGAV_STREAM_MUTE);
       }
     b->demuxer->flags &= ~BGAV_DEMUXER_BUILD_INDEX;

@@ -159,19 +159,19 @@ void bgav_superindex_set_coding_types(bgav_superindex_t * idx,
 
 void bgav_superindex_seek(bgav_superindex_t * idx,
                           bgav_stream_t * s,
-                          int64_t time, int scale)
+                          int64_t * time, int scale)
   {
   int i;
   int64_t time_scaled;
   
-  time_scaled = gavl_time_rescale(scale, s->timescale, time);
+  time_scaled = gavl_time_rescale(scale, s->timescale, *time);
   
   i = s->last_index_position;
 
+  /* Go to frame before */
   while(i >= s->first_index_position)
     {
     if((idx->entries[i].stream_id == s->stream_id) &&
-       (idx->entries[i].flags & PACKET_FLAG_KEY) &&
        (idx->entries[i].time <= time_scaled))
       {
       break;
@@ -181,8 +181,25 @@ void bgav_superindex_seek(bgav_superindex_t * idx,
   
   if(i < s->first_index_position)
     i = s->first_index_position;
-  STREAM_SET_SYNC(s, idx->entries[i].time);
 
+  *time = gavl_time_rescale(s->timescale, scale, idx->entries[i].time);
+  
+  /* Go to keyframe before */
+  while(i >= s->first_index_position)
+    {
+    if((idx->entries[i].stream_id == s->stream_id) &&
+       (idx->entries[i].flags & PACKET_FLAG_KEY))
+      {
+      break;
+      }
+    i--;
+    }
+  
+  if(i < s->first_index_position)
+    i = s->first_index_position;
+
+  STREAM_SET_SYNC(s, idx->entries[i].time);
+  
   /* Handle audio preroll */
   if((s->type == BGAV_STREAM_AUDIO) && s->data.audio.preroll)
     {

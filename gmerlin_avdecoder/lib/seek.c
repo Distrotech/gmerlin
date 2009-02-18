@@ -37,8 +37,10 @@ static void skip_to(bgav_t * b, bgav_track_t * track, int64_t * time, int scale)
 
 /* Seek functions with superindex */
 
-static void seek_si(bgav_t * b, bgav_demuxer_context_t * ctx, int64_t time, int scale)
+static void seek_si(bgav_t * b, bgav_demuxer_context_t * ctx,
+                    int64_t time, int scale)
   {
+  int64_t seek_time;
   uint32_t i, j;
   int32_t start_packet;
   int32_t end_packet;
@@ -59,21 +61,24 @@ static void seek_si(bgav_t * b, bgav_demuxer_context_t * ctx, int64_t time, int 
 
   for(j = 0; j < track->num_video_streams; j++)
     {
-    bgav_superindex_seek(ctx->si, &(track->video_streams[j]), time, scale);
+    seek_time = time;
+    bgav_superindex_seek(ctx->si, &(track->video_streams[j]), &seek_time, scale);
     /* Synchronize time to the video stream */
     if(!j)
-      time =
-        gavl_time_rescale(track->video_streams[j].data.video.format.timescale, scale,
-                          ctx->si->entries[track->video_streams[j].index_position].time);
+      {
+      time = seek_time;
+      }
     }
   for(j = 0; j < track->num_audio_streams; j++)
     {
-    bgav_superindex_seek(ctx->si, &(track->audio_streams[j]), time, scale);
+    seek_time = time;
+    bgav_superindex_seek(ctx->si, &(track->audio_streams[j]), &seek_time, scale);
     }
   for(j = 0; j < track->num_subtitle_streams; j++)
     {
+    seek_time = time;
     if(!track->subtitle_streams[j].data.subtitle.subreader)
-      bgav_superindex_seek(ctx->si, &(track->subtitle_streams[j]), time, scale);
+      bgav_superindex_seek(ctx->si, &(track->subtitle_streams[j]), &seek_time, scale);
     }
   
   /* Find the start and end packet */

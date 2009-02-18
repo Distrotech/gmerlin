@@ -520,9 +520,7 @@ int bgav_demuxer_next_packet_interleaved(bgav_demuxer_context_t * ctx)
   
   if(!stream) /* Skip unused stream */
     {
-    bgav_input_skip(ctx->input,
-                    ctx->si->entries[ctx->si->current_position].size);
-
+    
     //    bgav_input_skip_dump(ctx->input,
     //                         ctx->si->entries[ctx->si->current_position].size);
     
@@ -532,8 +530,6 @@ int bgav_demuxer_next_packet_interleaved(bgav_demuxer_context_t * ctx)
   
   if((ctx->flags & BGAV_DEMUXER_SI_SEEKING) && (stream->index_position > ctx->si->current_position))
     {
-    bgav_input_skip(ctx->input,
-                    ctx->si->entries[ctx->si->current_position].size);
     ctx->si->current_position++;
     return 1;
     }
