@@ -39,11 +39,25 @@ typedef struct
   int stream_index;
   uint32_t frame_offset;
   unsigned int frame_size;
-  unsigned int frames_per_block;
   int64_t pts;
-  int keyframe;
   unsigned char frame_record[BYTES_PER_FRAME_RECORD];
   } vmd_frame_t;
+
+#if 0
+static void dump_frames(vmd_frame_t * f, int num)
+  {
+  int i;
+  for(i = 0; i < num; i++)
+    {
+    bgav_dprintf("ID: %d, O: %d, S: %d, PTS: %ld, rec: ",
+                 f[i].stream_index,
+                 f[i].frame_offset,
+                 f[i].frame_size,
+                 f[i].pts);
+    bgav_hexdump(f[i].frame_record, 16, 16);
+    }
+  }
+#endif
 
 typedef struct
   {
@@ -91,7 +105,6 @@ static int open_vmd(bgav_demuxer_context_t * ctx)
   uint8_t type;
   uint32_t size;
 
-  int64_t video_pts_inc = 0;
   int64_t current_video_pts = 0;
   int frame_index = 0;
    
@@ -146,20 +159,18 @@ static int open_vmd(bgav_demuxer_context_t * ctx)
       }
     else
       as->data.audio.bits_per_sample = 8;
-
-    video_pts_inc = 90000;
-    video_pts_inc *= as->data.audio.block_align;
-    video_pts_inc /= as->data.audio.format.samplerate;
-    video_pts_inc /= as->data.audio.format.num_channels;
+    
+    vs->data.video.format.frame_duration = as->data.audio.block_align;
+    vs->data.video.format.timescale =
+      as->data.audio.format.num_channels * as->data.audio.format.samplerate;
     }
   else
     {
     /* Assume 10 fps */
-    video_pts_inc = 90000 / 10;
+    vs->data.video.format.frame_duration = 1;
+    vs->data.video.format.timescale = 10;
     }
 
-  vs->data.video.format.frame_duration = video_pts_inc;
-  vs->data.video.format.timescale = 90000;
 
   /* Get table of contents */
 
@@ -194,6 +205,9 @@ static int open_vmd(bgav_demuxer_context_t * ctx)
       type = chunk[0];
       size = BGAV_PTR_2_32LE(&chunk[2]);
 
+      if(!size && type != 1)
+        continue;
+      
       /* Common fields */
       priv->frame_table[frame_index].frame_offset = current_offset;
       priv->frame_table[frame_index].frame_size = size;
@@ -213,10 +227,13 @@ static int open_vmd(bgav_demuxer_context_t * ctx)
       current_offset += size;
       frame_index++;
       }
-    current_video_pts += video_pts_inc;
+    current_video_pts += vs->data.video.format.frame_duration;
     }
 
   priv->frame_count = frame_index;
+
+  //  dump_frames(priv->frame_table, priv->frame_count);
+  
   /* */
   ctx->stream_description = bgav_sprintf("Sierra VMD");
   ret = 1;
@@ -257,16 +274,21 @@ static int next_packet_vmd(bgav_demuxer_context_t * ctx)
     if(bgav_input_read_data(ctx->input, p->data + BYTES_PER_FRAME_RECORD,
                             frame->frame_size) < frame->frame_size)
       return 0;
+
+    p->data_size = frame->frame_size + BYTES_PER_FRAME_RECORD;
     if(s->type == BGAV_STREAM_VIDEO)
       {
       p->pts = frame->pts;
-      fprintf(stderr, "Got video frame\n");
+      //      fprintf(stderr, "Got video frame\n");
+      //      bgav_packet_dump(p);
       }
+#if 0
     else
       {
       fprintf(stderr, "Got audio frame\n");
+      bgav_packet_dump(p);
       }
-    p->data_size = frame->frame_size + BYTES_PER_FRAME_RECORD;
+#endif
     bgav_packet_done_write(p);
     }
   priv->current_frame++;

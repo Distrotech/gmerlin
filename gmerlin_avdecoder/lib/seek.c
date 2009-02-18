@@ -121,16 +121,6 @@ static void seek_si(bgav_t * b, bgav_demuxer_context_t * ctx,
   skip_to(b, track, &orig_time, scale);
   }
 
-/* Maximum allowed seek tolerance, decrease if you want it more exact */
-
-// #define SEEK_TOLERANCE (GAVL_TIME_SCALE/2)
-
-#define SEEK_TOLERANCE 0
-/* We skip at most this time */
-
-#define MAX_SKIP_TIME  (GAVL_TIME_SCALE*5)
-
-
 static void seek_sa(bgav_t * b, int64_t * time, int scale)
   {
   int i;
