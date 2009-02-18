@@ -41,6 +41,7 @@ static void seek_si(bgav_t * b, bgav_demuxer_context_t * ctx,
                     int64_t time, int scale)
   {
   int64_t seek_time;
+  int64_t orig_time;
   uint32_t i, j;
   int32_t start_packet;
   int32_t end_packet;
@@ -58,7 +59,9 @@ static void seek_si(bgav_t * b, bgav_demuxer_context_t * ctx,
     track->subtitle_streams[j].index_position = -1;
   
   /* Seek the start chunks indices of all streams */
-
+  
+  orig_time = time;
+  
   for(j = 0; j < track->num_video_streams; j++)
     {
     seek_time = time;
@@ -115,7 +118,7 @@ static void seek_si(bgav_t * b, bgav_demuxer_context_t * ctx,
     ctx->flags &= ~BGAV_DEMUXER_SI_SEEKING;
     }
   bgav_track_resync(track);
-  skip_to(b, track, &time, scale);
+  skip_to(b, track, &orig_time, scale);
   }
 
 /* Maximum allowed seek tolerance, decrease if you want it more exact */
