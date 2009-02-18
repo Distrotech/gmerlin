@@ -111,18 +111,18 @@ typedef struct
 
 static const demuxer_t demuxers[] =
   {
-    { &bgav_demuxer_asf,       "Microsoft ASF/WMV/WMA" },
-    { &bgav_demuxer_avi,       "Microsoft AVI" },
+    { &bgav_demuxer_asf,       "ASF/WMV/WMA" },
+    { &bgav_demuxer_avi,       "AVI" },
     { &bgav_demuxer_rmff,      "Real Media" },
     { &bgav_demuxer_ra,        "Real Audio" },
     { &bgav_demuxer_quicktime, "Quicktime/mp4/m4a" },
-    { &bgav_demuxer_wav,       "Microsoft WAV" },
+    { &bgav_demuxer_wav,       "WAV" },
     { &bgav_demuxer_au,        "Sun AU" },
     { &bgav_demuxer_aiff,      "AIFF(C)" },
     { &bgav_demuxer_flac,      "FLAC" },
     { &bgav_demuxer_aac,       "AAC" },
     { &bgav_demuxer_vivo,      "Vivo" },
-    { &bgav_demuxer_mpegvideo, "Mpeg Video" },
+    { &bgav_demuxer_mpegvideo, "Elementary video" },
     { &bgav_demuxer_fli,       "FLI/FLC Animation" },
     { &bgav_demuxer_flv,       "Flash video (FLV)" },
     { &bgav_demuxer_nsv,       "NullSoft Video" },
@@ -174,8 +174,8 @@ static const demuxer_t demuxers[] =
 static const demuxer_t sync_demuxers[] =
   {
     { &bgav_demuxer_mpegts,    "MPEG-2 transport stream" },
-    { &bgav_demuxer_mpegaudio, "Mpeg Audio" },
-    { &bgav_demuxer_mpegps, "Mpeg System" },
+    { &bgav_demuxer_mpegaudio, "MPEG Audio" },
+    { &bgav_demuxer_mpegps, "MPEG System" },
   };
 
 static const demuxer_t yml_demuxers[] =
