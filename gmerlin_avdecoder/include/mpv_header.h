@@ -28,6 +28,7 @@
 #define MPEG_CODE_PICTURE_EXT  4
 #define MPEG_CODE_GOP          5
 #define MPEG_CODE_SLICE        6
+#define MPEG_CODE_END          7
 
 const uint8_t * bgav_mpv_find_startcode( const uint8_t *p,
                                          const uint8_t *end );

@@ -81,6 +81,8 @@ int bgav_mpv_get_start_code(const uint8_t * data)
     return MPEG_CODE_PICTURE;
   else if(data[3] == 0xb8)
     return MPEG_CODE_GOP;
+  else if(data[3] == 0xb7)
+    return MPEG_CODE_END;
   else if((data[3] >= 0x01) && (data[3] <= 0xaf))
     return MPEG_CODE_SLICE;
   return 0;
