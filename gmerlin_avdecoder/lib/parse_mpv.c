@@ -165,6 +165,11 @@ static int parse_mpeg12(bgav_video_parser_t * parser)
           parser->pos += 4;
           priv->state = MPEG_NEED_STARTCODE;
           break;
+        case MPEG_CODE_END:
+          parser->pos += 4;
+          bgav_video_parser_set_sequence_end(parser);
+          //          fprintf(stderr, "Detected sequence end\n");
+          break;
         default:
           parser->pos += 4;
           priv->state = MPEG_NEED_STARTCODE;

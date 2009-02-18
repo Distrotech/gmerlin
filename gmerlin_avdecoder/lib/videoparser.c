@@ -27,8 +27,8 @@
 #include <parser.h>
 #include <videoparser_priv.h>
 
-#define DUMP_INPUT
-#define DUMP_OUTPUT
+// #define DUMP_INPUT
+// #define DUMP_OUTPUT
 
 static const struct
   {
@@ -274,11 +274,17 @@ bgav_video_parser_set_format(bgav_video_parser_t * parser,
 
 void bgav_video_parser_set_eof(bgav_video_parser_t * parser)
   {
-  int i;
   //  fprintf(stderr, "EOF buf: %d %d %d\n", parser->buf.size, parser->pos,
   //          parser->cache_size);
   /* Set size of last frame */
   parser->pos = parser->buf.size;
+  bgav_video_parser_set_sequence_end(parser);
+  parser->eof = 1;
+  }
+
+void bgav_video_parser_set_sequence_end(bgav_video_parser_t * parser)
+  {
+  int i;
   update_previous_size(parser);
 
   /* Remove incomplete cache entries */
@@ -311,18 +317,9 @@ void bgav_video_parser_set_eof(bgav_video_parser_t * parser)
        BGAV_TIMESTAMP_UNDEFINED)
       SET_PTS(i);
     }
-#if 0  
-  if(parser->cache[parser->cache_size-1].coding_type == BGAV_CODING_TYPE_B)
-    {
-    SET_PTS(parser->cache_size-1);
-    if(parser->last_non_b_frame >= 0)
-      SET_PTS(parser->last_non_b_frame);
-    }
-  else
-    SET_PTS(parser->cache_size-1);
-#endif
-  parser->eof = 1;
+  parser->timestamp = BGAV_TIMESTAMP_UNDEFINED;
   }
+
 
 int bgav_video_parser_parse(bgav_video_parser_t * parser)
   {

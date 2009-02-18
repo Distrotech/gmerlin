@@ -120,6 +120,8 @@ void bgav_video_parser_init_vc1(bgav_video_parser_t * parser);
 void bgav_video_parser_flush(bgav_video_parser_t * parser, int bytes);
 void bgav_video_parser_extract_header(bgav_video_parser_t * parser);
 void bgav_video_parser_set_coding_type(bgav_video_parser_t * parser, int type);
+void bgav_video_parser_set_sequence_end(bgav_video_parser_t * parser);
+
 int bgav_video_parser_check_output(bgav_video_parser_t * parser);
 
 /* Notify the parser of a new picture */
