@@ -133,7 +133,7 @@ typedef int (*bg_read_video_func_t)(void * priv, gavl_video_frame_t* frame, int 
 
 
 
-#define BG_PLUGIN_API_VERSION 17
+#define BG_PLUGIN_API_VERSION 18
 
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */
@@ -680,6 +680,17 @@ struct bg_input_plugin_s
 
   bg_read_audio_func_t read_audio;
 
+  /** \brief Check is a still image is available
+   *  \param priv The handle returned by the create() method
+   *  \param stream Stream index starting with 0
+   *  \returns 1 if a still frame can be decoded, 0 else.
+   *
+   *  If EOF occurs in still streams, this function will return
+   *  1, but the subsequent call to read_video returns 0
+   */
+
+  int (*has_still)(void * priv, int stream);
+  
   /** \brief Read a video frame
    *  \param priv The handle returned by the create() method
    *  \param frame The frame, where the image will be copied

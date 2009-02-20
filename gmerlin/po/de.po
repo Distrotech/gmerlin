@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: gmerlin 0.3.6\n"
 "Report-Msgid-Bugs-To: gmerlin-general@lists.sourceforge.net\n"
 "POT-Creation-Date: 2008-12-12 00:01+0100\n"
-"PO-Revision-Date: 2008-12-04 20:36+0100\n"
+"PO-Revision-Date: 2009-02-18 21:31+0100\n"
 "Last-Translator: Burkhard Plaum <gmerlin@users.sourceforge.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -4440,7 +4440,7 @@ msgstr "Löschen"
 
 #: apps/transcoder/tracklist.c:944
 msgid "Configure..."
-msgstr "Konfiguereren..."
+msgstr "Konfigurieren..."
 
 #: apps/transcoder/tracklist.c:946
 msgid "Edit chapters..."
