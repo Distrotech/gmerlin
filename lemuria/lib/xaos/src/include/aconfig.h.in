@@ -82,9 +82,6 @@
 /* Define to 1 if you have the `aa' library (-laa). */
 #undef HAVE_LIBAA
 
-/* Define to 1 if you have the `be' library (-lbe). */
-#undef HAVE_LIBBE
-
 /* Define to 1 if you have the `curses' library (-lcurses). */
 #undef HAVE_LIBCURSES
 
@@ -238,6 +235,10 @@
 
 /* Define to 1 if you have the `__fabsl' function. */
 #undef HAVE___FABSL
+
+/* Define to the sub-directory in which libtool stores uninstalled libraries.
+   */
+#undef LT_OBJDIR
 
 /* */
 #undef MITSHM

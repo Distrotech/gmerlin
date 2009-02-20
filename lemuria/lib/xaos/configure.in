@@ -396,26 +396,6 @@ if test  "$win32_driver_test" = yes; then
 			;;
 	   esac
 fi
-if test  "$BeOS_driver_test" = yes; then
-           AC_CHECK_LIB(be,be_app)
-           if test "x$ac_cv_lib_be_be_app" = xyes; then
-	      AC_PROG_CXX
-	      LIBS="$LIBS -lgame -lmedia -ltracker -ltranslation -Xlinker -soname=_APP_"
-              #PROG_CC_SWITCH2(Wno-multichar,nowarnopt1)
-              #PROG_CC_SWITCH2(Wno-ctor-dtor-privacy,nowarnopt2)
-	      if test "$CXXFLAGS1" == "" ; then
-                if test x$GCC = xyes; then
-		  CXXFLAGS="$CFLAGS2"
-		  CXXFLAGS="$CXXFLAGS -Wno-multichar -Wno-ctor-dtor-privacy"
-		fi
-	      fi
-	      POSTCOMPILE="strip ../bin/xaos ; xres -o ../bin/xaos ui/ui-drv/BeOS/XaoS.rsrc ; mimeset -f ../bin/xaos"
-              BeOS_driver=yes
-	   else
-              BeOS_driver=no
-	   fi
-fi
-
 
 if test x$pthread = xtest; then
   AC_CHECK_FUNCS(pthread_create)
