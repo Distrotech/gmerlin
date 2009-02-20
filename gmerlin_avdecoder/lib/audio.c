@@ -208,7 +208,7 @@ static int read_audio(bgav_stream_t * s, gavl_audio_frame_t * frame,
   {
   int samples_decoded = 0;
   int samples_copied;
-  if(s->eof)
+  if(s->flags & STREAM_EOF)
     {
     if(frame)
       frame->valid_samples = 0;
@@ -221,7 +221,7 @@ static int read_audio(bgav_stream_t * s, gavl_audio_frame_t * frame,
       {
       if(!s->data.audio.decoder->decoder->decode_frame(s))
         {
-        s->eof = 1;
+        s->flags |= STREAM_EOF;
         break;
         }
       s->data.audio.frame_samples = s->data.audio.frame->valid_samples;

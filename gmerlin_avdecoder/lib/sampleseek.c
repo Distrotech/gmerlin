@@ -85,11 +85,11 @@ void bgav_seek_audio(bgav_t * bgav, int stream, int64_t sample)
   
   if(sample >= s->duration) /* EOF */
     {
-    s->eof = 1;
+    s->flags |= STREAM_EOF;
     return;
     }
 
-  bgav->demuxer->flags &= ~BGAV_DEMUXER_EOF;
+  s->flags &= ~STREAM_EOF;
   
   bgav_stream_clear(s);
 
@@ -101,10 +101,10 @@ void bgav_seek_audio(bgav_t * bgav, int stream, int64_t sample)
     }
   else if(bgav->demuxer->index_mode == INDEX_MODE_SI_SA)
     {
-    frame_time = sample;
+    frame_time = gavl_time_rescale(s->data.audio.format.samplerate,
+                                   s->timescale, frame_time);
     bgav_superindex_seek(bgav->demuxer->si, s,
-                         gavl_time_rescale(s->data.audio.format.samplerate,
-                                           s->timescale, &frame_time),
+                         &frame_time,
                          s->timescale);
     
     s->out_time = gavl_time_rescale(s->timescale, s->data.audio.format.samplerate,
@@ -145,14 +145,16 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
 
   //  fprintf(stderr, "Seek video: %ld\n", time);
 
-  bgav->demuxer->flags &= ~BGAV_DEMUXER_EOF;
   
   if(time >= s->duration) /* EOF */
     {
-    s->eof = 1;
+    s->flags |= STREAM_EOF;
     return;
     }
+  
+  s->flags &= ~STREAM_EOF;
 
+  
   if(time == s->out_time)
     {
     return;
@@ -302,16 +304,17 @@ void bgav_seek_subtitle(bgav_t * bgav, int stream, int64_t time)
   bgav_stream_t * s;
   s = &bgav->tt->cur->subtitle_streams[stream];
   bgav_stream_clear(s);
-  bgav->demuxer->flags &= ~BGAV_DEMUXER_EOF;
-  
+
+  s->flags &= ~STREAM_EOF;
+
   if(s->data.subtitle.subreader)
     {
-    /* Clear EOF state */
-    s->eof = 0;
     bgav_subtitle_reader_seek(s, time, s->timescale);
     return;
     }
 
+  
+  
   bgav_stream_clear(s);
 
   if(bgav->demuxer->index_mode == INDEX_MODE_SI_SA)

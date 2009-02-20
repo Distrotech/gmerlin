@@ -197,15 +197,9 @@ static int bgav_video_decode(bgav_stream_t * s,
   {
   int result;
 
-  if(s->eof)
-    return 0;
-  
   result = s->data.video.decoder->decoder->decode(s, frame);
   if(!result)
-    {
-    s->eof = 1;
     return result;
-    }
   
   /* Set the final timestamp for the frame */
   
@@ -373,3 +367,15 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale)
   return 1;
   }
 
+int bgav_video_has_still(bgav_t * bgav, int stream)
+  {
+  bgav_stream_t * s;
+  s = &bgav->tt->cur->video_streams[stream];
+
+  if(bgav_packet_buffer_peek_packet_read(s->packet_buffer, 0))
+    return 1;
+  else if(s->flags & STREAM_EOF)
+    return 1;
+  
+  return 0;
+  }

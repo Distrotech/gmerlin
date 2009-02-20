@@ -105,7 +105,7 @@ static void log_callback(void*data, bgav_log_level_t level,
     }
 
   domain = bg_sprintf("avdecoder.%s", log_domain);
-  bg_log(l, domain, message);
+  bg_log(l, domain, "%s", message);
   free(domain);
   }
      
@@ -179,6 +179,14 @@ int bg_avdec_read_video(void * priv,
   avdec = (avdec_priv*)(priv);
   return bgav_read_video(avdec->dec, frame, stream);
   }
+
+int bg_avdec_has_still(void * priv,
+                       int stream)
+  {
+  avdec_priv * avdec = priv;
+  return bgav_video_has_still(avdec->dec, stream);
+  }
+
 
 int bg_avdec_read_audio(void * priv,
                             gavl_audio_frame_t * frame,

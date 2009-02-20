@@ -48,6 +48,9 @@ int bg_avdec_read_video(void * priv,
                         gavl_video_frame_t * frame,
                         int stream);
 
+int bg_avdec_has_still(void * priv,
+                       int stream);
+
 int bg_avdec_read_audio(void * priv,
                         gavl_audio_frame_t * frame,
                         int stream,

@@ -445,8 +445,6 @@ static void check_interleave(bgav_demuxer_context_t * ctx)
 int bgav_demuxer_start(bgav_demuxer_context_t * ctx,
                        bgav_yml_node_t * yml)
   {
-  /* eof flag might be present from last track */
-  ctx->flags &= ~BGAV_DEMUXER_EOF;
 
   if(yml)
     {
@@ -486,8 +484,7 @@ void bgav_demuxer_stop(bgav_demuxer_context_t * ctx)
   
   /* Reset global variables */
   ctx->flags &= ~(BGAV_DEMUXER_SI_SEEKING |
-                  BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET |
-                  BGAV_DEMUXER_EOF);
+                  BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET);
   
   ctx->timestamp_offset = 0;
   if(ctx->si)
@@ -566,63 +563,13 @@ int bgav_demuxer_next_packet_interleaved(bgav_demuxer_context_t * ctx)
 
 static int next_packet_noninterleaved(bgav_demuxer_context_t * ctx)
   {
-  int i;
   bgav_packet_t * p;
   bgav_stream_t * s = (bgav_stream_t*)0;
-  bgav_stream_t * ts;
-  
-  if(ctx->request_stream->index_position > ctx->request_stream->last_index_position)
-    {
-    if(ctx->tt->cur->sample_accurate)
-      return 0;
-    
-    /* Requested stream is finished, read data from another stream
-       before returning 0 */
 
-    for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
-      {
-      ts = &ctx->tt->cur->audio_streams[i];
-      if((ts->action != BGAV_STREAM_MUTE) &&
-         (ts->index_position < ts->last_index_position))
-        {
-        s = ts;
-        break;
-        }
-      }
+  s = ctx->request_stream;
 
-    if(!s)
-      {
-      for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
-        {
-        ts = &ctx->tt->cur->video_streams[i];
-        if((ts->action != BGAV_STREAM_MUTE) &&
-           (ts->index_position < ts->last_index_position))
-          {
-          s = ts;
-          break;
-          }
-        }
-      }
-
-    if(!s)
-      {
-      for(i = 0; i < ctx->tt->cur->num_subtitle_streams; i++)
-        {
-        ts = &ctx->tt->cur->subtitle_streams[i];
-        if((ts->action != BGAV_STREAM_MUTE) &&
-           (ts->index_position < ts->last_index_position))
-          {
-          s = ts;
-          break;
-          }
-        }
-      }
-
-    if(!s)
-      return 0;
-    }
-  else
-    s = ctx->request_stream;
+  if(s->index_position > s->last_index_position)
+    return 0;
   
   /* If the file is truely noninterleaved, this isn't neccessary, but who knows? */
   while(ctx->si->entries[s->index_position].stream_id !=
@@ -661,24 +608,29 @@ static int next_packet_noninterleaved(bgav_demuxer_context_t * ctx)
 int bgav_demuxer_next_packet(bgav_demuxer_context_t * demuxer)
   {
   int ret = 0, i;
-
-  if(demuxer->flags & BGAV_DEMUXER_EOF)
-    return 0;
-
+  
   switch(demuxer->demux_mode)
     {
     case DEMUX_MODE_SI_I:
+      if(bgav_track_eof(demuxer->tt->cur))
+        return 0;
+      
       ret = bgav_demuxer_next_packet_interleaved(demuxer);
       if(!ret)
-        demuxer->flags |= BGAV_DEMUXER_EOF;
+        bgav_track_set_eof(demuxer->tt->cur);
+      
       break;
     case DEMUX_MODE_SI_NI:
+      if(demuxer->request_stream->flags & STREAM_EOF)
+        return 0;
       ret = next_packet_noninterleaved(demuxer);
       if(!ret)
-        demuxer->flags |= BGAV_DEMUXER_EOF;
+        demuxer->request_stream->flags |= STREAM_EOF;
       break;
     case DEMUX_MODE_FI:
       ret = bgav_demuxer_next_packet_fileindex(demuxer);
+      if(!ret)
+        demuxer->request_stream->flags |= STREAM_EOF;
       break;
     case DEMUX_MODE_STREAM:
       ret = demuxer->demuxer->next_packet(demuxer);
@@ -706,7 +658,7 @@ int bgav_demuxer_next_packet(bgav_demuxer_context_t * demuxer)
             ret = 1;
             }
           }
-        demuxer->flags |= BGAV_DEMUXER_EOF;
+        bgav_track_set_eof(demuxer->tt->cur);
         }
       break;
     }
@@ -900,7 +852,7 @@ static bgav_packet_t * peek_packet_vparse(bgav_demuxer_context_t * demuxer,
             bgav_video_parser_add_packet(s->data.video.parser, p);
             p->valid = 0;
             }
-          else if(s->demuxer->flags & BGAV_DEMUXER_EOF)
+          else if(s->flags & STREAM_EOF)
             {
             bgav_video_parser_set_eof(s->data.video.parser);
             }
@@ -963,7 +915,7 @@ static bgav_packet_t * peek_packet_aparse(bgav_demuxer_context_t * demuxer,
             bgav_audio_parser_add_packet(s->data.audio.parser, p);
             p->valid = 0;
             }
-          else if(s->demuxer->flags & BGAV_DEMUXER_EOF)
+          else if(s->flags & STREAM_EOF)
             {
             bgav_audio_parser_set_eof(s->data.audio.parser);
             }

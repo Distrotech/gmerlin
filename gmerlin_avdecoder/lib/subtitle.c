@@ -66,7 +66,7 @@ int bgav_read_subtitle_overlay(bgav_t * b, gavl_overlay_t * ovl, int stream)
 
   if(bgav_has_subtitle(b, stream))
     {
-    if(s->eof)
+    if(s->flags & STREAM_EOF)
       return 0;
     }
   else
@@ -106,7 +106,7 @@ int bgav_read_subtitle_text(bgav_t * b, char ** ret, int *ret_alloc,
 
   if(bgav_has_subtitle(b, stream))
     {
-    if(s->eof)
+    if(s->flags & STREAM_EOF)
       return 0;
     }
   else
@@ -163,9 +163,6 @@ int bgav_read_subtitle_text(bgav_t * b, char ** ret, int *ret_alloc,
 int bgav_has_subtitle(bgav_t * b, int stream)
   {
   bgav_stream_t * s = &(b->tt->cur->subtitle_streams[stream]);
-
-  if(s->eof)
-    return 1;
   
   if(s->packet_buffer)
     {
@@ -175,11 +172,8 @@ int bgav_has_subtitle(bgav_t * b, int stream)
         return 1;
       else
         {
-        if(s->demuxer->flags & BGAV_DEMUXER_EOF)
-          {
-          s->eof = 1;
+        if(s->flags & STREAM_EOF)
           return 1;
-          }
         else
           return 0;
         }
@@ -188,11 +182,8 @@ int bgav_has_subtitle(bgav_t * b, int stream)
       {
       if(s->data.subtitle.decoder->decoder->has_subtitle(s))
         return 1;
-      else if(s->demuxer->flags & BGAV_DEMUXER_EOF)
-        {
-        s->eof = 1;
+      else if(s->flags & STREAM_EOF)
         return 1;
-        }
       else
         return 0;
       }
@@ -203,7 +194,7 @@ int bgav_has_subtitle(bgav_t * b, int stream)
       return 1;
     else
       {
-      s->eof = 1;
+      s->flags |= STREAM_EOF;
       return 1;
       }
     }
@@ -227,7 +218,7 @@ int bgav_subtitle_start(bgav_stream_t * s)
   bgav_subtitle_overlay_decoder_t * dec;
   bgav_subtitle_overlay_decoder_context_t * ctx;
 
-  s->eof = 0;
+  s->flags &= ~STREAM_EOF;
   
   if(s->type == BGAV_STREAM_SUBTITLE_TEXT)
     {

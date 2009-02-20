@@ -200,7 +200,7 @@ void bgav_stream_clear(bgav_stream_t * s)
   s->in_position  = 0;
   s->out_time = BGAV_TIMESTAMP_UNDEFINED;
   STREAM_UNSET_SYNC(s);
-  s->eof = 0;
+  s->flags &= ~STREAM_EOF;
   }
 
 int bgav_stream_skipto(bgav_stream_t * s, gavl_time_t * time, int scale)

@@ -1397,9 +1397,14 @@ const gavl_audio_format_t * bgav_get_audio_format(bgav_t * bgav, int stream);
  *  \param stream Stream index (starting with 0)
  *  \returns The format
  *
- *  Note, that you can trust the return value of this function only, if you enabled
- *  the stream (see \ref bgav_set_video_stream) and started the decoders
- *  (see \ref bgav_start).
+ *  Note, that you can trust the return value of this function only, if
+ *  you enabled the stream (see \ref bgav_set_video_stream) and started
+ *  the decoders (see \ref bgav_start).
+ *
+ *  Special care has to be taken, if the video stream consists of (a)
+ *  still image(s). This is the case, when the framerate_mode member
+ *  of the format is \ref GAVL_FRAMERATE_STILL. See
+ *  \ref bgav_video_has_still.
  */
 
 const gavl_video_format_t * bgav_get_video_format(bgav_t * bgav, int stream);
@@ -1526,6 +1531,25 @@ int bgav_can_pause(bgav_t * bgav);
  *  \ingroup decoding
  */
 
+/** \ingroup decode
+ *  \brief Determine if a still image is available for reading
+ *  \param bgav A decoder instance
+ *  \param stream Stream index (starting with 0)
+ *  \returns 1 if a still image is available, 0 else
+ *
+ *  This should be used, if the framerate_mode of the video format
+ *  is \ref GAVL_FRAMERATE_STILL. In earlier versions, streams
+ *  consisting of one or more still images outputted the same image
+ *  repeatedly as if it was a video stream. Since 1.0.1 each image
+ *  is decoded exactly once. The end-of-file detection happens in a
+ *  similar way as for subtitles: \ref bgav_video_has_still returns
+ *  1 and the following \ref bgav_read_video returns 0.
+ *
+ *  Since 1.0.1
+ */
+  
+int bgav_video_has_still(bgav_t * bgav, int stream);
+  
 /** \ingroup decode
     \brief Decode a video frame
     \param bgav A decoder instance

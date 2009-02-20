@@ -327,6 +327,7 @@ typedef enum
 #define STREAM_HEADER_FROM_PARSER (1<<5)
 #define STREAM_STILL_MODE         (1<<6) /* Still image mode */
 #define STREAM_STILL_SHOWN        (1<<7) /* Still image already shown */
+#define STREAM_EOF                (1<<8) /* End of file */
 
 /* Stream can have a nonzero start time */
 #define STREAM_START_TIME         (1<<8)
@@ -414,12 +415,6 @@ struct bgav_stream_s
   
   int container_bitrate;
   int codec_bitrate;
-
-  /*
-   *  EOF reached
-   *  This is *only* used by the core, never by demuxers or codecs
-   */ 
-  int eof;
   
   /*
    *  See STREAM_ defines above
@@ -654,6 +649,9 @@ void bgav_track_stop(bgav_track_t * t);
 int64_t bgav_track_sync_time(bgav_track_t * t, int scale);
 int64_t bgav_track_out_time(bgav_track_t * t, int scale);
 
+void bgav_track_set_eof(bgav_track_t * t);
+void bgav_track_clear_eof(bgav_track_t * t);
+int bgav_track_eof(bgav_track_t * t);
 
 /* Remove unsupported streams */
 
@@ -1161,7 +1159,6 @@ struct bgav_demuxer_s
 #define BGAV_DEMUXER_SI_SEEKING           (1<<3) /* Demuxer is seeking */
 #define BGAV_DEMUXER_SI_PRIVATE_FUNCS     (1<<4) /* We have a suprindex but use private seek/demux funcs */
 #define BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET (1<<5) /* Timestamp offset (from input) is valid */
-#define BGAV_DEMUXER_EOF                  (1<<6) /* Report EOF just once and not for each stream */
 #define BGAV_DEMUXER_HAS_DATA_START       (1<<7) /* Has data start */
 
 #define BGAV_DEMUXER_BUILD_INDEX          (1<<8) /* We're just building

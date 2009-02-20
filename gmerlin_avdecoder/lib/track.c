@@ -681,3 +681,70 @@ int64_t bgav_track_out_time(bgav_track_t * t, int scale)
     }
   return ret;
   }
+
+void bgav_track_set_eof(bgav_track_t * t)
+  {
+  int i;
+  bgav_stream_t * s;
+  for(i = 0; i < t->num_audio_streams; i++)
+    {
+    s = &t->audio_streams[i];
+    s->flags |= STREAM_EOF;
+    }
+  for(i = 0; i < t->num_video_streams; i++)
+    {
+    s = &t->video_streams[i];
+    s->flags |= STREAM_EOF;
+    }
+  for(i = 0; i < t->num_subtitle_streams; i++)
+    {
+    s = &t->subtitle_streams[i];
+    s->flags |= STREAM_EOF;
+    }
+  }
+
+void bgav_track_clear_eof(bgav_track_t * t)
+  {
+  int i;
+  bgav_stream_t * s;
+  for(i = 0; i < t->num_audio_streams; i++)
+    {
+    s = &t->audio_streams[i];
+    s->flags &= ~STREAM_EOF;
+    }
+  for(i = 0; i < t->num_video_streams; i++)
+    {
+    s = &t->video_streams[i];
+    s->flags &= ~STREAM_EOF;
+    }
+  for(i = 0; i < t->num_subtitle_streams; i++)
+    {
+    s = &t->subtitle_streams[i];
+    s->flags &= ~STREAM_EOF;
+    }
+  }
+
+int bgav_track_eof(bgav_track_t * t)
+  {
+  int i;
+  bgav_stream_t * s;
+  for(i = 0; i < t->num_audio_streams; i++)
+    {
+    s = &t->audio_streams[i];
+    if((s->action != BGAV_STREAM_MUTE) && !(s->flags & STREAM_EOF))
+      return 0;
+    }
+  for(i = 0; i < t->num_video_streams; i++)
+    {
+    s = &t->video_streams[i];
+    if((s->action != BGAV_STREAM_MUTE) && !(s->flags & STREAM_EOF))
+      return 0;
+    }
+  for(i = 0; i < t->num_subtitle_streams; i++)
+    {
+    s = &t->subtitle_streams[i];
+    if((s->action != BGAV_STREAM_MUTE) && !(s->flags & STREAM_EOF))
+      return 0;
+    }
+  return 1;
+  }

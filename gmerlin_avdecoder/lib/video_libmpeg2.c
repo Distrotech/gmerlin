@@ -405,7 +405,7 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
      data */
   if((s->flags & STREAM_STILL_MODE) &&
      (s->flags & STREAM_STILL_SHOWN) &&
-     (s->demuxer->flags & BGAV_DEMUXER_EOF))
+     (s->flags & STREAM_EOF))
     return 0;
   
   if((!(s->flags & STREAM_STILL_MODE) && !priv->have_frame) ||
