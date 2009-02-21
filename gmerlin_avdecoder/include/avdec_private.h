@@ -330,7 +330,10 @@ typedef enum
 #define STREAM_EOF                (1<<8) /* End of file */
 
 /* Stream can have a nonzero start time */
-#define STREAM_START_TIME         (1<<8)
+#define STREAM_START_TIME         (1<<9)
+
+/* Picture is available for immediate output */
+#define STREAM_HAVE_PICTURE       (1<<10)
 
 #define STREAM_SET_SYNC(s, t)  s->sync_time = t
 #define STREAM_GET_SYNC(s)     s->sync_time

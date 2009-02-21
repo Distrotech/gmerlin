@@ -41,8 +41,7 @@ typedef struct
 
   /* Read the first frame during initialization to get the format */
   int do_init;
-  int have_frame;
-
+  
   /* Colormap */
   uint8_t * ctab;
   int ctab_size;
@@ -124,7 +123,7 @@ static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
   priv = (tga_priv_t*)(s->data.video.decoder->priv);
   s->flags |= STREAM_INTRA_ONLY;
   
-  if(!priv->have_frame)
+  if(!(s->flags & STREAM_HAVE_PICTURE))
     {
     /* Decode a frame */
     
@@ -144,13 +143,13 @@ static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
       //      dump_packet(p->data, p->data_size);
       return 0;
       }
+
+    s->flags |= STREAM_HAVE_PICTURE;
     
     bgav_demuxer_done_packet_read(s->demuxer, p);
     }
   if(priv->do_init)
     {
-    priv->have_frame = 1;
-
     /* Figure out the format */
 
     s->data.video.format.frame_width = priv->tga.width;
@@ -249,8 +248,6 @@ static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
 
   tga_free_buffers(&priv->tga);
   memset(&priv->tga, 0, sizeof(priv->tga));
-  
-  priv->have_frame = 0;
   return 1;
   }
 

@@ -152,6 +152,7 @@ void bg_player_input_create(bg_player_t * player)
   {
   bg_player_input_context_t * ctx;
   ctx = calloc(1, sizeof(*ctx));
+  player->input_context = ctx;
 
   /* Set up callbacks */
 
@@ -166,7 +167,6 @@ void bg_player_input_create(bg_player_t * player)
   
   ctx->player = player;
   
-  player->input_context = ctx;
   pthread_mutex_init(&(player->input_context->config_mutex),(pthread_mutexattr_t *)0);
   }
 
@@ -558,19 +558,37 @@ bg_player_input_read_video(void * priv, gavl_video_frame_t * frame, int stream)
     if(!ctx->still_frame)
       {
       ctx->still_frame = gavl_video_frame_create(format);
-      bg_plugin_lock(ctx->plugin_handle);
-      result = ctx->plugin->read_video(ctx->priv, ctx->still_frame,
-                                             stream);
-      bg_plugin_unlock(ctx->plugin_handle);
       ctx->still_frame->timestamp = 0;
-      if(!result)
-        return 0;
       }
+
+    bg_plugin_lock(ctx->plugin_handle);
+
+    if(ctx->plugin->has_still(ctx->priv, stream))
+      result = ctx->plugin->read_video(ctx->priv, frame,
+                                       stream);
     
-    gavl_video_frame_copy(format, frame, ctx->still_frame);
-    frame->timestamp = ctx->still_frame->timestamp;
+    else
+      result = 0;
+    
+    bg_plugin_unlock(ctx->plugin_handle);
+    
+    if(result)
+      gavl_video_frame_copy(format, ctx->still_frame, frame);
+    else
+      {
+      gavl_video_frame_copy(format, frame, ctx->still_frame);
+      frame->timestamp = ctx->still_frame->timestamp;
+      }
     ctx->still_frame->timestamp += format->frame_duration;
     result = 1;
+#ifdef DUMP_TIMESTAMPS
+    bg_debug("Input timestamp: %"PRId64"\n",
+             gavl_time_unscale(ctx->player->video_stream.input_format.timescale,
+                               frame->timestamp));
+#endif
+
+    
+
     }
   else
     {
@@ -616,9 +634,11 @@ static int process_audio(bg_player_input_context_t * ctx, int preload)
   bg_player_audio_stream_t * s;
   bg_fifo_state_t state;
   s = &(ctx->player->audio_stream);
-  //  fprintf(stderr, "process_audio A: %f, V: %f\n",
-  //          gavl_time_to_seconds(ctx->audio_time),
-  //          gavl_time_to_seconds(ctx->video_time));
+#if 0
+  fprintf(stderr, "process_audio A: %f, V: %f\n",
+          gavl_time_to_seconds(ctx->audio_time),
+          gavl_time_to_seconds(ctx->video_time));
+#endif
   if(ctx->send_silence)
     {
     if(preload)
@@ -759,10 +779,11 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
   gavl_video_frame_t * video_frame;
   bg_player_video_stream_t * s;
   s = &(ctx->player->video_stream);
-  //  fprintf(stderr, "process_video A: %f, V: %f\n",
-  //          gavl_time_to_seconds(ctx->audio_time),
-  //          gavl_time_to_seconds(ctx->video_time));
-  
+#if 0
+  fprintf(stderr, "process_video A: %f, V: %f\n",
+          gavl_time_to_seconds(ctx->audio_time),
+          gavl_time_to_seconds(ctx->video_time));
+#endif  
   if(preload || DO_SUBTITLE_ONLY(ctx->player->flags))
     video_frame = (gavl_video_frame_t*)bg_fifo_try_lock_write(s->fifo,
                                                               &state);
@@ -781,7 +802,7 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
     {
     ctx->video_frames_written++;
     }
-  if(ctx->player->video_stream.input_format.framerate_mode != GAVL_FRAMERATE_STILL)
+  //  if(ctx->player->video_stream.input_format.framerate_mode != GAVL_FRAMERATE_STILL)
     ctx->video_time =
       gavl_time_unscale(ctx->player->video_stream.output_format.timescale,
                         video_frame->timestamp);
@@ -976,11 +997,16 @@ void bg_player_input_seek(bg_player_input_context_t * ctx,
                           ctx->player->video_stream.output_format.frame_duration,
                           ctx->video_time);
   else
+    {
     ctx->video_frames_written =
       gavl_time_to_frames(ctx->player->video_stream.input_format.timescale,
                           ctx->player->video_stream.input_format.frame_duration,
                           ctx->video_time);
-  
+    if(ctx->still_frame)
+      ctx->still_frame->timestamp =
+        gavl_time_scale(ctx->player->video_stream.input_format.timescale,
+                        *time);
+    }
   // Clear EOF states
   do_audio = DO_AUDIO(ctx->player->flags);
   do_video = DO_VIDEO(ctx->player->flags);

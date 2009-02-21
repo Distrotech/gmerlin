@@ -86,7 +86,6 @@ typedef struct
 
   /* State variables */
   int need_format;
-  int have_picture;
 
   uint8_t * extradata;
   int extradata_size;
@@ -204,6 +203,7 @@ static int decode_picture(bgav_stream_t * s)
   dp_hdr_t *hdr;
   ffmpeg_video_priv * priv;
   bgav_pts_cache_entry_t * e;
+  int have_picture = 0;
   
   priv = s->data.video.decoder->priv;
   
@@ -322,7 +322,7 @@ static int decode_picture(bgav_stream_t * s)
     
     bytes_used = avcodec_decode_video(priv->ctx,
                                       priv->frame,
-                                      &priv->have_picture,
+                                      &have_picture,
                                       priv->frame_buffer,
                                       priv->frame_buffer_len);
 
@@ -346,13 +346,13 @@ static int decode_picture(bgav_stream_t * s)
       
       bytes_used = avcodec_decode_video(priv->ctx,
                                         priv->frame,
-                                        &priv->have_picture,
+                                        &have_picture,
                                         priv->frame_buffer,
                                         priv->frame_buffer_len);
       }
     
     /* If we passed no data and got no picture, we are done here */
-    if(!priv->frame_buffer_len && !priv->have_picture)
+    if(!priv->frame_buffer_len && !have_picture)
       {
       priv->codec_eof = 1;
       return 0;
@@ -388,8 +388,11 @@ static int decode_picture(bgav_stream_t * s)
       }
 #endif
     
-    if(priv->have_picture)
+    if(have_picture)
+      {
+      s->flags |= STREAM_HAVE_PICTURE; 
       break;
+      }
     }
 
   if(priv->flags & HAS_GET_BUFFER)
@@ -455,14 +458,13 @@ static int decode_ffmpeg(bgav_stream_t * s, gavl_video_frame_t * f)
      ffmpeg returns are not reliable */
   priv = s->data.video.decoder->priv;
   
-  if(!priv->have_picture)
+  if(!(s->flags & STREAM_HAVE_PICTURE))
     decode_picture(s);
   
-  if(priv->have_picture)
+  if(s->flags & STREAM_HAVE_PICTURE)
     {
     if(f)
       put_frame(s, f);
-    priv->have_picture = 0;
     }
   else if(!priv->need_format)
     return 0; /* EOF */
@@ -653,7 +655,6 @@ static int init_ffmpeg(bgav_stream_t * s)
   priv->last_dv_timecode = GAVL_TIMECODE_UNDEFINED;
   
   priv->need_format = 1;
-  priv->have_picture = 0;
   
   if(!decode_picture(s))
     {
@@ -713,7 +714,6 @@ static void resync_ffmpeg(bgav_stream_t * s)
 
   priv->packet = NULL;
 
-  priv->have_picture = 0;
   priv->demuxer_eof = 0;
   priv->codec_eof = 0;
   priv->last_dv_timecode = GAVL_TIMECODE_UNDEFINED;

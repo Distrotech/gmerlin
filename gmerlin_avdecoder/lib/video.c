@@ -221,6 +221,9 @@ static int bgav_video_decode(bgav_stream_t * s,
       frame->timecode = GAVL_TIMECODE_UNDEFINED;
     
     }
+
+  s->flags &= ~STREAM_HAVE_PICTURE;
+  
   //  fprintf(stderr, "Decode %ld %d\n", s->out_time, result);
   return result;
   }
@@ -260,7 +263,7 @@ void bgav_video_stop(bgav_stream_t * s)
     s->data.video.decoder = (bgav_video_decoder_context_t*)0;
     }
   /* Clear still mode flag (it will be set during reinit */
-  s->flags &= ~(STREAM_STILL_MODE | STREAM_STILL_SHOWN);
+  s->flags &= ~(STREAM_STILL_MODE | STREAM_STILL_SHOWN  | STREAM_HAVE_PICTURE);
 
   if(s->data.video.parser)
     bgav_video_parser_destroy(s->data.video.parser);
@@ -275,6 +278,8 @@ void bgav_video_resync(bgav_stream_t * s)
                         s->data.video.format.timescale,
                         STREAM_GET_SYNC(s));
     }
+
+  s->flags &= ~STREAM_HAVE_PICTURE;
   
   if(s->data.video.parser)
     bgav_video_parser_reset(s->data.video.parser, BGAV_TIMESTAMP_UNDEFINED, s->out_time);
@@ -306,7 +311,12 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale)
   char tmp_string2[128];
   time_scaled = gavl_time_rescale(scale, s->data.video.format.timescale, *time);
   
-  if(s->out_time > time_scaled)
+  if(s->flags & STREAM_STILL_MODE)
+    {
+    /* Nothing to do */
+    return 1;
+    }
+  else if(s->out_time > time_scaled)
     {
     sprintf(tmp_string1, "%" PRId64, s->out_time);
     sprintf(tmp_string2, "%" PRId64, time_scaled);
@@ -372,6 +382,8 @@ int bgav_video_has_still(bgav_t * bgav, int stream)
   bgav_stream_t * s;
   s = &bgav->tt->cur->video_streams[stream];
 
+  if(s->flags & STREAM_HAVE_PICTURE)
+    return 1;
   if(bgav_packet_buffer_peek_packet_read(s->packet_buffer, 0))
     return 1;
   else if(s->flags & STREAM_EOF)

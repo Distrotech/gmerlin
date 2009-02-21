@@ -68,7 +68,6 @@ typedef struct
   int extern_aspect; /* Container sent us the aspect ratio already */
   
   int init;
-  int have_frame;
 
   /*
    *  Specify how many non-B frames we saw since the
@@ -363,8 +362,11 @@ static int decode_picture(bgav_stream_t*s)
     s->flags |= STREAM_STILL_MODE;
     // s->data.video.format.framerate_mode = GAVL_FRAMERATE_STILL;
     if(priv->p)
+      {
       bgav_demuxer_done_packet_read(s->demuxer, priv->p);
-
+      priv->p = NULL;
+      }
+    s->data.video.format.framerate_mode = GAVL_FRAMERATE_STILL;
     }
 
   /* Calculate timestamp */
@@ -401,20 +403,12 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
     mpeg2_skip(priv->dec, 1);
 #endif
 
-  /* Return EOF if we are in still mode and the demuxer ran out of
-     data */
-  if((s->flags & STREAM_STILL_MODE) &&
-     (s->flags & STREAM_STILL_SHOWN) &&
-     (s->flags & STREAM_EOF))
-    return 0;
-  
-  if((!(s->flags & STREAM_STILL_MODE) && !priv->have_frame) ||
-     ((s->flags & STREAM_STILL_MODE) &&
-      bgav_demuxer_peek_packet_read(s->demuxer, s, 0)))
+  if(!(s->flags & STREAM_HAVE_PICTURE))
     {
     if(!decode_picture(s))
       return 0;
-    priv->have_frame = 1;
+
+    s->flags |= STREAM_HAVE_PICTURE;
     }
   
   if(priv->init)
@@ -439,16 +433,9 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
       }
     f->timestamp = priv->picture_timestamp;
     f->duration  = priv->picture_duration;
-
-    if(!(s->flags & STREAM_STILL_MODE))
-      priv->have_frame = 0;
-    else
-      {
-      priv->picture_timestamp += priv->picture_duration;
-      s->flags |= STREAM_STILL_SHOWN;
-      }
     }
 
+  /* Set timecodes */  
   if(((priv->info->display_picture->flags & PIC_MASK_CODING_TYPE) ==
       PIC_FLAG_CODING_TYPE_I) &&
      priv->has_gop_timecode)
@@ -530,18 +517,14 @@ static void resync_mpeg2(bgav_stream_t*s)
   priv->non_b_count = 0;
 
   bgav_pts_cache_clear(&priv->pts_cache);
+
+  mpeg2_reset(priv->dec, 0);
+  mpeg2_buffer(priv->dec, NULL, NULL);
   
-  if(s->flags & STREAM_STILL_MODE)
+  if(!(s->flags & STREAM_STILL_MODE))
     {
-    priv->picture_timestamp = priv->p->pts;
-    }
-  else
-    {
-    mpeg2_reset(priv->dec, 0);
-    mpeg2_buffer(priv->dec, NULL, NULL);
     //  mpeg2_skip(priv->dec, 1);
     
-    priv->have_frame = 0;
     while(1)
       {
       /* Skip pictures until we have the next keyframe */

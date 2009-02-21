@@ -524,6 +524,9 @@ static int next_packet(bgav_demuxer_context_t * ctx,
         {
         return 0;
         }
+
+      //      bgav_pes_header_dump(&(priv->pes_header));
+      
       /* Private stream 1 (non MPEG audio, subpictures) */
       if(priv->pes_header.stream_id == 0xbd)
         {
@@ -840,6 +843,10 @@ static int next_packet(bgav_demuxer_context_t * ctx,
                 lp->out_pts = 0;
               }
             p->pts = lp->out_pts;
+
+            if(priv->do_sync && !STREAM_HAS_SYNC(stream))
+              STREAM_SET_SYNC(stream, p->pts);
+            
             lp->out_pts += p->duration;
             }
           bgav_packet_done_write(p);
@@ -1278,9 +1285,22 @@ static void seek_sector(bgav_demuxer_context_t * ctx, gavl_time_t time,
 
 static void seek_mpegps(bgav_demuxer_context_t * ctx, int64_t time, int scale)
   {
+  int i;
   mpegps_priv_t * priv;
   priv = (mpegps_priv_t*)(ctx->priv);
 
+  /* Reset lpcm timestamps */
+  for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
+    {
+    if(ctx->tt->cur->audio_streams[i].fourcc ==
+       BGAV_MK_FOURCC('L','P','C','M'))
+      {
+      lpcm_t * lp = ctx->tt->cur->audio_streams[i].priv;
+      lp->out_pts = BGAV_TIMESTAMP_UNDEFINED;
+      }
+    }
+
+  
   if(ctx->input->input->seek_time)
     {
     ctx->input->input->seek_time(ctx->input, time, scale);

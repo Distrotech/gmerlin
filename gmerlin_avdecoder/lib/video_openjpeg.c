@@ -56,7 +56,6 @@ static void info_callback(const char *msg, void *client_data)
 
 typedef struct
   {
-  int have_frame;
   int need_format;
 
   opj_dparameters_t parameters;	/* decompression parameters */
@@ -122,7 +121,7 @@ static int decode_openjpeg(bgav_stream_t * s, gavl_video_frame_t * f)
 
   priv = (openjpeg_priv_t*)(s->data.video.decoder->priv);
 
-  if(!priv->have_frame)
+  if(!(s->flags & STREAM_HAVE_PICTURE))
     {
     p = bgav_demuxer_get_packet_read(s->demuxer, s);
     if(!p)
@@ -133,7 +132,7 @@ static int decode_openjpeg(bgav_stream_t * s, gavl_video_frame_t * f)
   
   if(f || priv->need_format)
     {
-    if(!priv->have_frame)
+    if(!(s->flags & STREAM_HAVE_PICTURE))
       {
       /* open a byte stream */
       cio = opj_cio_open((opj_common_ptr)priv->dinfo, 
@@ -160,7 +159,7 @@ static int decode_openjpeg(bgav_stream_t * s, gavl_video_frame_t * f)
           s->data.video.format.pixelformat = GAVL_RGB_48;
           }
         }
-      priv->have_frame = 1;
+      s->flags |= STREAM_HAVE_PICTURE;
       }
     if(f)
       {
@@ -183,7 +182,6 @@ static int decode_openjpeg(bgav_stream_t * s, gavl_video_frame_t * f)
         {
         
         }
-      priv->have_frame = 0;
       opj_image_destroy(priv->img);
       }
     
@@ -256,12 +254,13 @@ static void close_openjpeg(bgav_stream_t * s)
   free(priv);
   }
 
+#if 0
 static void resync_openjpeg(bgav_stream_t * s)
   {
   openjpeg_priv_t * priv;
   priv = (openjpeg_priv_t*)(s->data.video.decoder->priv);
-  priv->have_frame = 0;
   }
+#endif
 
 static bgav_video_decoder_t decoder =
   {
@@ -270,7 +269,7 @@ static bgav_video_decoder_t decoder =
                               0x00  },
     .init =   init_openjpeg,
     .decode = decode_openjpeg,
-    .resync = resync_openjpeg,
+    //    .resync = resync_openjpeg,
     .close =  close_openjpeg,
     .resync = NULL,
   };

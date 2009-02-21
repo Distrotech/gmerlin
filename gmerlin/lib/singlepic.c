@@ -348,7 +348,7 @@ static int start_input(void * priv)
                                        inp->filename_buffer,
                                        &(inp->track_info.video_streams[0].format)))
       return 0;
-    inp->track_info.video_streams[0].format.timescale = 0;
+    inp->track_info.video_streams[0].format.timescale = GAVL_TIME_SCALE;
     inp->track_info.video_streams[0].format.frame_duration = 0;
     inp->track_info.video_streams[0].format.framerate_mode = GAVL_FRAMERATE_STILL;
     }
@@ -369,6 +369,11 @@ static int start_input(void * priv)
   return 1;
   }
 
+static int has_frame_input(void * priv, int stream)
+  {
+  return 1;
+  }
+                           
 static int read_video_frame_input(void * priv, gavl_video_frame_t* f,
                                   int stream)
   {
@@ -544,6 +549,9 @@ static const bg_input_plugin_t input_plugin_stills =
      *  in the stream infos to check out, which streams are to be decoded
      */
     .start =                 start_input,
+
+    .has_still =             has_frame_input,
+    
     /* Read one video frame (returns FALSE on EOF) */
     .read_video =      read_video_frame_input,
     /*

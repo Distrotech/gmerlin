@@ -590,7 +590,7 @@ int bgav_track_has_sync(bgav_track_t * t)
   for(i = 0; i < t->num_video_streams; i++)
     {
     s = &t->video_streams[i];
-    if((s->action == BGAV_STREAM_DECODE) &&
+    if(!(s->flags & STREAM_STILL_MODE) && (s->action == BGAV_STREAM_DECODE) &&
        (!STREAM_HAS_SYNC(s)))
       return 0;
     }
@@ -611,7 +611,8 @@ void bgav_track_mute(bgav_track_t * t)
 static int check_sync_time(bgav_stream_t * s, int64_t * t, int scale)
   {
   int64_t tt;
-  if(s->action == BGAV_STREAM_MUTE)
+  if((s->action == BGAV_STREAM_MUTE) ||
+     (s->flags & STREAM_STILL_MODE))
     return 1;
   
   if(!STREAM_HAS_SYNC(s))
@@ -648,7 +649,8 @@ int64_t bgav_track_sync_time(bgav_track_t * t, int scale)
 static int check_out_time(bgav_stream_t * s, int64_t * t, int scale, int stream_scale)
   {
   int64_t tt;
-  if(s->action == BGAV_STREAM_MUTE)
+  if((s->action == BGAV_STREAM_MUTE) ||
+     (s->flags & STREAM_STILL_MODE))
     return 1;
   
   if(!STREAM_HAS_SYNC(s))
