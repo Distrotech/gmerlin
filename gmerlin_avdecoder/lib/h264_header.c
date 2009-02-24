@@ -294,15 +294,19 @@ int bgav_h264_sps_parse(const bgav_options_t * opt,
 
     bgav_bitstream_get(&b, &sps->qpprime_y_zero_transform_bypass_flag, 1);
     bgav_bitstream_get(&b, &sps->seq_scaling_matrix_present_flag, 1);
-    for(i = 0; i < ((sps->chroma_format_idc != 3 ) ? 8 : 12 ); i++)
+
+    if(sps->seq_scaling_matrix_present_flag)
       {
-      bgav_bitstream_get(&b, &dummy, 1);
-      if(dummy)
+      for(i = 0; i < ((sps->chroma_format_idc != 3 ) ? 8 : 12 ); i++)
         {
-        if(i < 6)
-          skip_scaling_list(&b, 16);
-        else
-          skip_scaling_list(&b, 64);
+        bgav_bitstream_get(&b, &dummy, 1);
+        if(dummy)
+          {
+          if(i < 6)
+            skip_scaling_list(&b, 16);
+          else
+            skip_scaling_list(&b, 64);
+          }
         }
       }
     }
@@ -370,6 +374,7 @@ void bgav_h264_sps_dump(bgav_h264_sps_t * sps)
   bgav_dprintf("  constraint_set0_flag:                    %d\n", sps->constraint_set0_flag);
   bgav_dprintf("  constraint_set1_flag:                    %d\n", sps->constraint_set1_flag);
   bgav_dprintf("  constraint_set2_flag:                    %d\n", sps->constraint_set2_flag);
+  bgav_dprintf("  constraint_set3_flag:                    %d\n", sps->constraint_set3_flag);
   bgav_dprintf("  level_idc:                               %d\n", sps->level_idc);
   bgav_dprintf("  seq_parameter_set_id:                    %d\n", sps->seq_parameter_set_id);
 

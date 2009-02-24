@@ -85,7 +85,7 @@ static int decode_frame_a52(bgav_stream_t * s)
     if(!bgav_a52_header_read(&h, p->data))
       return 0;
 
-    bgav_a52_header_dump(&h);
+    //    bgav_a52_header_dump(&h);
 
     s->codec_bitrate = h.bitrate;
 

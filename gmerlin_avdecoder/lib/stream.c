@@ -87,6 +87,8 @@ void bgav_stream_stop(bgav_stream_t * s)
   s->out_time = 0;
   s->packet_seq = 0;
 
+  s->flags &= ~STREAM_EOF;
+  
   STREAM_UNSET_SYNC(s);
   
   if(s->parsed_packet)
@@ -149,29 +151,26 @@ void bgav_stream_dump(bgav_stream_t * s)
     case BGAV_STREAM_VIDEO:
       bgav_dprintf("============ Video stream ============\n");
       break;
-
     case BGAV_STREAM_SUBTITLE_TEXT:
       bgav_dprintf("=========== Text subtitles ===========\n");
       break;
     case BGAV_STREAM_SUBTITLE_OVERLAY:
       bgav_dprintf("========= Overlay subtitles ===========\n");
       break;
-      
     case BGAV_STREAM_UNKNOWN:
       return;
     }
-
   if(s->language[0] != '\0')
     bgav_dprintf("  Language:          %s\n", bgav_lang_name(s->language));
   if(s->info)
     bgav_dprintf("  Info:              %s\n", s->info);
-  
+
   bgav_dprintf("  Type:              %s\n",
           (s->description ? s->description : "Not specified"));
   bgav_dprintf("  Fourcc:            ");
   bgav_dump_fourcc(s->fourcc);
   bgav_dprintf("\n");
-  
+ 
   bgav_dprintf("  Stream ID:         %d (0x%x)\n",
           s->stream_id,
           s->stream_id);

@@ -369,7 +369,7 @@ static int handle_nal(bgav_video_parser_t * parser)
       if(!priv->pps_buffer)
         {
         priv->pps_len = priv->nal_len;
-        priv->pps_buffer = malloc(priv->sps_len);
+        priv->pps_buffer = malloc(priv->pps_len);
         memcpy(priv->pps_buffer,
                parser->buf.buffer + parser->pos, priv->pps_len);
         }

@@ -26,6 +26,8 @@
 #include <avdec_private.h>
 #include <parser.h>
 
+// #define DUMP_TIMESTAMPS
+
 #define LOG_DOMAIN "video"
 
 int bgav_num_video_streams(bgav_t *  bgav, int track)
@@ -205,6 +207,9 @@ static int bgav_video_decode(bgav_stream_t * s,
   
   if(frame)
     {
+#ifdef DUMP_TIMESTAMPS
+    bgav_dprintf("Video timestamp: %"PRId64"\n", frame->timestamp);
+#endif    
     s->out_time = frame->timestamp + frame->duration;
     
     /* Set timecode */
@@ -224,7 +229,6 @@ static int bgav_video_decode(bgav_stream_t * s,
 
   s->flags &= ~STREAM_HAVE_PICTURE;
   
-  //  fprintf(stderr, "Decode %ld %d\n", s->out_time, result);
   return result;
   }
 
