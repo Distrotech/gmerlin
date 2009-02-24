@@ -1079,7 +1079,7 @@ typedef struct
    *  stream timescale)
    */
 
-  uint64_t time;
+  int64_t time;
   
   } bgav_file_index_entry_t;
 
