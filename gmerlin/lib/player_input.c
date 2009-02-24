@@ -609,7 +609,9 @@ bg_player_input_read_video(void * priv, gavl_video_frame_t * frame, int stream)
   }
 
 int
-bg_player_input_read_video_subtitle_only(void * priv, gavl_video_frame_t * frame, int stream)
+bg_player_input_read_video_subtitle_only(void * priv,
+                                         gavl_video_frame_t * frame,
+                                         int stream)
   {
   bg_player_input_context_t * ctx;
   bg_player_video_stream_t * s;

@@ -540,8 +540,8 @@ void bg_player_ov_reset(bg_player_t * player)
     ctx->plugin->set_overlay(ctx->priv, ctx->subtitle_id, (gavl_overlay_t*)0);
     ctx->has_subtitle = 0;
     }
-  
   ctx->next_subtitle = (gavl_overlay_t*)0;
+  ctx->frame = NULL;
   }
 
 void bg_player_ov_update_aspect(bg_player_ov_context_t * ctx,
@@ -607,6 +607,7 @@ static void ping_func(void * data)
   pthread_mutex_unlock(&ctx->still_mutex);
   }
 
+
 void * bg_player_ov_thread(void * data)
   {
   gavl_overlay_t tmp_overlay;
@@ -632,7 +633,6 @@ void * bg_player_ov_thread(void * data)
     if(ctx->frame)
       {
       bg_fifo_unlock_read(ctx->player->video_stream.fifo);
-      
       ctx->frame = (gavl_video_frame_t*)0;
       }
 
