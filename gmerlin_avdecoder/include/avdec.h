@@ -463,12 +463,14 @@ void bgav_options_set_seamless(bgav_options_t* opt,
 /** \ingroup options
  *  \brief Try to be sample accurate
  *  \param opt Option container
- *  \param enable 1 is sample accurate mode is requested
+ *  \param enable Specifies how sample accurate mode should be enabled (see below)
+ *
+ *  If enable is 0, sample accuracy will never be enabled. If enable is 1,
+ *  sample accuracy will always (whenever possible) be enabled. If enable is 2,
+ *  sample accuracy will only be enabled, if the file would not be seekable otherwise.
  *
  *  When switching to sample accurate mode, other demultiplexing
  *  methods are enabled, which might slow things down a bit.
- *  Use this only when the application relies on sample accurate
- *  positioning of streams.
  */
 
 void bgav_options_set_sample_accurate(bgav_options_t*opt, int enable);

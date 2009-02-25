@@ -531,9 +531,14 @@ bg_avdec_set_parameter(void * p, const char * name,
     {
     bgav_options_set_dvb_channels_file(avdec->opt, val->val_str);
     }
-  else if(!strcmp(name, "sample_accurate"))
+  else if(!strcmp(name, "sample_accuracy"))
     {
-    bgav_options_set_sample_accurate(avdec->opt, val->val_i);
+    if(!strcmp(val->val_str, "never"))
+      bgav_options_set_sample_accurate(avdec->opt, 0);
+    else if(!strcmp(val->val_str, "always"))
+      bgav_options_set_sample_accurate(avdec->opt, 1);
+    else if(!strcmp(val->val_str, "when_necessary"))
+      bgav_options_set_sample_accurate(avdec->opt, 2);
     }
   else if(!strcmp(name, "cache_size"))
     {

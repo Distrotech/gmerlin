@@ -416,7 +416,7 @@ static void check_interleave(bgav_demuxer_context_t * ctx)
     streams[index++] = &(ctx->tt->cur->subtitle_streams[i]);
   
   /* If sample accurate decoding was requested, use non-interleaved mode */
-  if(ctx->opt->sample_accurate || (ctx->flags & BGAV_DEMUXER_BUILD_INDEX))
+  if((ctx->opt->sample_accurate == 1) || (ctx->flags & BGAV_DEMUXER_BUILD_INDEX))
     {
     ctx->demux_mode = DEMUX_MODE_SI_NI;
     }

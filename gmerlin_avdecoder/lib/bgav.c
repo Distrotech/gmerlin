@@ -202,7 +202,9 @@ int bgav_open(bgav_t * ret, const char * location)
   ret->location = bgav_strdup(location);
   
   /* Check for file index */
-  if(ret->opt.sample_accurate)
+  if((ret->opt.sample_accurate == 1) ||
+     ((ret->opt.sample_accurate == 2) &&
+      !(ret->demuxer->flags & BGAV_DEMUXER_CAN_SEEK)))
     bgav_set_sample_accurate(ret);
   
   return 1;

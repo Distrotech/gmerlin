@@ -262,8 +262,6 @@ static int open_mpegvideo(bgav_demuxer_context_t * ctx)
 
   s->data.video.frametime_mode = BGAV_FRAMETIME_CODEC;
 
-  //  if(!ctx->opt->sample_accurate)
-  //    {
   if(!parse(ctx, PARSER_HAVE_HEADER))
     return 0;
 
@@ -272,7 +270,6 @@ static int open_mpegvideo(bgav_demuxer_context_t * ctx)
   gavl_video_format_copy(&s->data.video.format, format);
                          
   s->timescale = s->data.video.format.timescale;
-  //    }
 
   header = bgav_video_parser_get_header(priv->parser, &header_len);
 
