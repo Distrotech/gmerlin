@@ -1347,6 +1347,12 @@ static void seek_mpegts(bgav_demuxer_context_t * ctx, int64_t time, int scale)
               (double)(ctx->tt->cur->duration)+0.5);
   
   position = priv->first_packet_pos + packet * priv->packet_size;
+
+  if(position < priv->first_packet_pos)
+    position = priv->first_packet_pos;
+  if(position >= ctx->input->total_bytes)
+    position = ctx->input->total_bytes-1;
+  
   bgav_input_seek(ctx->input, position, SEEK_SET);
 
   priv->do_sync = 1;

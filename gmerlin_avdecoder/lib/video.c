@@ -286,8 +286,12 @@ void bgav_video_resync(bgav_stream_t * s)
   s->flags &= ~STREAM_HAVE_PICTURE;
   
   if(s->data.video.parser)
-    bgav_video_parser_reset(s->data.video.parser, BGAV_TIMESTAMP_UNDEFINED, s->out_time);
-  
+    {
+    if(s->parsed_packet)
+      s->parsed_packet->valid = 0;
+    bgav_video_parser_reset(s->data.video.parser,
+                            BGAV_TIMESTAMP_UNDEFINED, s->out_time);
+    }
   if(s->data.video.decoder->decoder->resync)
     s->data.video.decoder->decoder->resync(s);
   }

@@ -242,7 +242,7 @@ static void seek_iterative(bgav_t * b, int64_t * time, int scale)
       return;
       }
     
-    //    fprintf(stderr, "Sync time: %ld\n", sync_time);
+    fprintf(stderr, "Sync time: %ld\n", sync_time);
     
     diff_time = *time - sync_time;
 
@@ -262,6 +262,15 @@ static void seek_iterative(bgav_t * b, int64_t * time, int scale)
         seek_time = seek_time_lower;
         out_time = out_time_lower;
         final_seek = 1;
+        break;
+        }
+
+      /* If we cannot go before the target time, exit as well */
+      if((sync_time_lower == BGAV_TIMESTAMP_UNDEFINED) &&
+         (sync_time == sync_time_upper))
+        {
+        bgav_track_resync(track);
+        num_resync++;
         break;
         }
       

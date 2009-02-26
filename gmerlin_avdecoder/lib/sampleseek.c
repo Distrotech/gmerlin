@@ -125,7 +125,7 @@ void bgav_seek_audio(bgav_t * bgav, int stream, int64_t sample)
            s->file_index->entries[s->index_position].position))
       s->index_position--;
     
-    s->out_time = s->file_index->entries[s->index_position].time;
+    s->out_time = s->file_index->entries[s->index_position].time + s->start_time;
     
     if(bgav->demuxer->demuxer->resync)
       bgav->demuxer->demuxer->resync(bgav->demuxer, s);
@@ -189,7 +189,7 @@ void bgav_seek_video(bgav_t * bgav, int stream, int64_t time)
       s->index_position--;
     
     STREAM_SET_SYNC(s, s->file_index->entries[s->index_position].time);
-    s->out_time = frame_time;
+    s->out_time = frame_time + s->start_time;
 
     // if(s->data.video.parser)
     //   bgav_video_parser_reset(s->data.video.parser, BGAV_TIMESTAMP_UNDEFINED, frame_time);

@@ -230,7 +230,12 @@ static int decode_picture(bgav_stream_t * s)
       }
 
     /* Skip non-reference frames */
-    if(priv->skip_time != BGAV_TIMESTAMP_UNDEFINED)
+
+    if(priv->packet->pts == BGAV_TIMESTAMP_UNDEFINED)
+      {
+      priv->ctx->skip_frame = AVDISCARD_NONREF;
+      }
+    else if(priv->skip_time != BGAV_TIMESTAMP_UNDEFINED)
       {
       if(priv->packet->pts + priv->packet->duration < priv->skip_time)
         {
