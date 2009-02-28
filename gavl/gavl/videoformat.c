@@ -42,18 +42,25 @@ void gavl_video_format_dump(const gavl_video_format_t * format)
 
   if(format->framerate_mode != GAVL_FRAMERATE_STILL)
     {
-    fprintf(stderr, "  Framerate:        %f",
-            (float)(format->timescale)/((float)format->frame_duration));
-    if(format->frame_duration != 1)
+    if((!format->frame_duration) &&
+       (format->framerate_mode == GAVL_FRAMERATE_VARIABLE))
+      {
+      fprintf(stderr, "  Framerate:        Variable (timescale: %d)\n",
+              format->timescale);
+      }
+    else
+      {
+      fprintf(stderr, "  Framerate:        %f",
+              (float)(format->timescale)/((float)format->frame_duration));
       fprintf(stderr, " [%d / %d]", format->timescale,
               format->frame_duration);
-    fprintf(stderr, " fps");
+      fprintf(stderr, " fps");
     
-    if(format->framerate_mode == GAVL_FRAMERATE_CONSTANT)
-      fprintf(stderr, " (Constant)\n");
-    else
-      fprintf(stderr, " (Not constant)\n");
-    
+      if(format->framerate_mode == GAVL_FRAMERATE_CONSTANT)
+        fprintf(stderr, " (Constant)\n");
+      else
+        fprintf(stderr, " (Not constant)\n");
+      }
     }
   else
     {

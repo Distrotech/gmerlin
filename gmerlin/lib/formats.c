@@ -97,6 +97,18 @@ char * bg_video_format_to_string(gavl_video_format_t * format, int use_tabs)
     {
     ret = bg_strcat(ret, TR("Still image\n"));
     }
+  else if(!format->frame_duration &&
+          (format->framerate_mode == GAVL_FRAMERATE_VARIABLE))
+    {
+    if(!use_tabs)
+      s = TR("Framerate:    Variable (timescale: %d)\n");
+    else
+      s = TR("Framerate:\tVariable (timescale: %d)\n");
+
+    str = bg_sprintf(s, format->timescale);
+    ret = bg_strcat(ret, str);
+    free(str);
+    }
   else
     {
     if(!use_tabs)
