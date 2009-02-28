@@ -37,7 +37,8 @@ int gavl_dsp_interpolate_video_frame(gavl_dsp_context_t * ctx,
   uint8_t * s1, *s2, *d;
   int i, j;
   
-  void (*interpolate)(uint8_t * src_1, uint8_t * src_2, 
+  void (*interpolate)(const uint8_t * src_1,
+                      const uint8_t * src_2, 
                       uint8_t * dst, int num, float fac) =
     (void (*)(uint8_t *, uint8_t *, uint8_t *, int, float))0;
   
