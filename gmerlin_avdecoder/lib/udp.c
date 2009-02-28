@@ -40,7 +40,6 @@ int bgav_udp_open(const bgav_options_t * opt, int port)
   {
   int ret;
   size_t tmp = 0;
-  //  struct sockaddr_in name;
   struct addrinfo * addr;
   addr = bgav_hostbyname(opt, (const char *)0, port, SOCK_DGRAM, AI_PASSIVE);
 
@@ -52,12 +51,7 @@ int bgav_udp_open(const bgav_options_t * opt, int port)
     }
   
   /* Give the socket a name. */
-  //  name.sin_family = AF_INET;
-  //  name.sin_port = htons (port);
-  //  name.sin_addr.s_addr = htonl (INADDR_ANY);
   
-  //  if (bind(ret, (struct sockaddr *) &name, sizeof (name)) < 0)
-
   if(bind(ret, addr->ai_addr, addr->ai_addrlen) < 0)
     {
     bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
@@ -68,12 +62,11 @@ int bgav_udp_open(const bgav_options_t * opt, int port)
   //  getsockopt(ret, SOL_SOCKET, SO_RCVBUF, &tmp, &optlen);
   tmp = 65536;
   setsockopt(ret, SOL_SOCKET, SO_RCVBUF, &tmp, sizeof(tmp));
-
   
   bgav_log(opt, BGAV_LOG_INFO, LOG_DOMAIN,
            "UDP Socket bound on port %d\n", port);
-
-  //  freeaddrinfo(addr);
+  
+  freeaddrinfo(addr);
   return ret;
   }
 

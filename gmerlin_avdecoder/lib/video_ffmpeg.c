@@ -1854,10 +1854,10 @@ static void get_format(AVCodecContext * ctx, gavl_video_format_t * format)
     }
   
   if(!format->timescale)
+    {
     format->timescale = ctx->time_base.den;
-  if(!format->frame_duration)
     format->frame_duration = ctx->time_base.num;
-  
+    }
   }
 
 #ifdef HAVE_LIBPOSTPROC

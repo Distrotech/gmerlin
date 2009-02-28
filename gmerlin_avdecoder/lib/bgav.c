@@ -240,7 +240,9 @@ void bgav_close(bgav_t * b)
     bgav_track_stop(b->tt->cur);
     b->is_running = 0;
     }
-
+  if(b->tt)
+    bgav_track_table_unref(b->tt);
+  
   if(b->demuxer)
     bgav_demuxer_destroy(b->demuxer);
   if(b->redirector)
@@ -251,8 +253,6 @@ void bgav_close(bgav_t * b)
     bgav_input_close(b->input);
     free(b->input);
     }
-  if(b->tt)
-    bgav_track_table_unref(b->tt);
 
   bgav_options_free(&b->opt);
 

@@ -32,11 +32,13 @@
 #define MAX_MISORDER 100
 #define MIN_SEQUENTIAL 2
 
+#if 0
 typedef struct packet_s
   {
   rtp_packet_t p;
   struct packet_s * next;
   } packet_t;
+#endif
 
 struct bgav_rtp_packet_buffer_s
   {
@@ -44,7 +46,6 @@ struct bgav_rtp_packet_buffer_s
   rtp_packet_t * read_packet;
   
   rtp_packet_t * write_packets;
-  rtp_packet_t * write_packets_end;
   rtp_packet_t * write_packet;
 
   sem_t read_sem;
@@ -195,6 +196,18 @@ bgav_rtp_packet_buffer_create(const bgav_options_t * opt, int timescale)
   return ret;
   }
 
+static void free_packets(rtp_packet_t * p)
+  {
+  rtp_packet_t * tmp;
+  while(p)
+    {
+    tmp = p->next;
+    free(p);
+    //    fprintf(stderr, "Destroy packet\n");
+    p = tmp;
+    }
+  }
+
 void bgav_rtp_packet_buffer_destroy(bgav_rtp_packet_buffer_t * b)
   {
   pthread_mutex_destroy(&b->read_mutex);
@@ -202,23 +215,28 @@ void bgav_rtp_packet_buffer_destroy(bgav_rtp_packet_buffer_t * b)
   pthread_mutex_destroy(&b->eof_mutex);
   sem_destroy(&b->read_sem);
   if(b->stats.timer) gavl_timer_destroy(b->stats.timer);
+  free_packets(b->read_packets);
+  free_packets(b->write_packets);
+  free_packets(b->read_packet);
+  free_packets(b->write_packet);
   free(b);
   }
 
 rtp_packet_t *
 bgav_rtp_packet_buffer_lock_write(bgav_rtp_packet_buffer_t * b)
   {
+  //  fprintf(stderr, "Lock Write\n");
   pthread_mutex_lock(&b->write_mutex);
   if(!b->write_packets)
     {
     b->write_packet = calloc(1, sizeof(*b->write_packet));
+    //    fprintf(stderr, "Create packet\n");
     }
   else
     {
     b->write_packet = b->write_packets;
     b->write_packets = b->write_packets->next;
-    if(!b->write_packets)
-      b->write_packets_end = NULL;
+    b->write_packet->next = NULL;
     }
   pthread_mutex_unlock(&b->write_mutex);
   return b->write_packet;
@@ -229,11 +247,15 @@ void bgav_rtp_packet_buffer_unlock_write(bgav_rtp_packet_buffer_t * b)
   int drop = 0;
   rtp_packet_t * p = b->write_packet;
 
+  b->write_packet = NULL;
+
+  //  fprintf(stderr, "Unlock Write\n");
+
   /* Push back and return */
   if(!b->timescale)
     {
-    b->write_packets = b->write_packet;
-    b->write_packet = NULL;
+    p->next = b->write_packets;
+    b->write_packets = p;
     return;
     }
   //  if(b->next_seq == -1)
@@ -273,11 +295,11 @@ void bgav_rtp_packet_buffer_unlock_write(bgav_rtp_packet_buffer_t * b)
   pthread_mutex_lock(&b->read_mutex);
   if(!b->read_packets)
     {
-    b->read_packets = b->write_packet;
+    b->read_packets = p;
     b->read_packets->next = NULL;
     }
   else if((b->last_seq >= 0) &&
-          (b->last_seq > b->write_packet->h.sequence_number))
+          (b->last_seq > p->h.sequence_number))
     {
     drop = 1;
     bgav_log(b->opt, BGAV_LOG_WARNING, LOG_DOMAIN, "Dropping obsolete packet");
@@ -285,33 +307,33 @@ void bgav_rtp_packet_buffer_unlock_write(bgav_rtp_packet_buffer_t * b)
   else
     {
     rtp_packet_t * tmp;
-    p = b->read_packets;
+    rtp_packet_t * p_iter;
+    p_iter = b->read_packets;
     
     if(b->read_packets->h.sequence_number ==
-       b->write_packet->h.sequence_number)
+       p->h.sequence_number)
       {
       bgav_log(b->opt, BGAV_LOG_WARNING, LOG_DOMAIN, "Dropping duplicate packet");
       drop = 1;
       }
     else if(b->read_packets->h.sequence_number >
-            b->write_packet->h.sequence_number)
+            p->h.sequence_number)
       {
-      b->write_packet->next = b->read_packets;
-      b->read_packets       = b->write_packet;
-      b->write_packet = NULL;
+      p->next = b->read_packets;
+      b->read_packets = p;
       }
     else
       {
-      while(p->next)
+      p_iter = b->read_packets;
+      while(p_iter->next)
         {
-        if(p->next->h.sequence_number > b->write_packet->h.sequence_number)
+        if(p_iter->next->h.sequence_number > p->h.sequence_number)
           break;
-        p = p->next;
+        p_iter = p_iter->next;
         }
-      tmp = p->next;
-      p->next = b->write_packet;
-      p->next->next = tmp;
-      b->write_packet = NULL;
+      tmp = p_iter->next;
+      p_iter->next = p;
+      p_iter->next->next = tmp;
       }
     }
   if(!drop)
@@ -323,11 +345,10 @@ void bgav_rtp_packet_buffer_unlock_write(bgav_rtp_packet_buffer_t * b)
     {
     /* Push back */
     pthread_mutex_lock(&b->write_mutex);
-    b->write_packet->next = b->write_packets;
-    b->write_packets = b->write_packet;
+    p->next = b->write_packets;
+    b->write_packets = p;
     pthread_mutex_unlock(&b->write_mutex);
     }
-  b->write_packet = NULL;
   }
 
 rtp_packet_t *
@@ -349,6 +370,8 @@ bgav_rtp_packet_buffer_try_lock_read(bgav_rtp_packet_buffer_t * b)
     }
   
   b->read_packet = b->read_packets;
+  b->read_packets = b->read_packets->next;
+  b->read_packet->next = NULL;
 
   if((b->last_seq >= 0) && 
      (b->read_packet->h.sequence_number != b->last_seq+1))
@@ -363,9 +386,9 @@ bgav_rtp_packet_buffer_try_lock_read(bgav_rtp_packet_buffer_t * b)
 
   b->last_seq = b->read_packet->h.sequence_number;
   
-  b->read_packets = b->read_packets->next;
   b->num--;
   pthread_mutex_unlock(&b->read_mutex);
+  //  fprintf(stderr, "Lock read\n");
   return b->read_packet;
   }
 
@@ -376,6 +399,7 @@ void bgav_rtp_packet_buffer_unlock_read(bgav_rtp_packet_buffer_t * b)
   b->read_packet->next = b->write_packets;
   b->write_packets = b->read_packet;
   pthread_mutex_unlock(&b->write_mutex);
+  //  fprintf(stderr, "Unlock read\n");
   
   b->read_packet = NULL;
   }

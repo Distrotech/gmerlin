@@ -313,18 +313,6 @@ static int find_codec(bgav_stream_t * s, bgav_sdp_media_desc_t * md,
       {
       return 0;
       }
-    
-    if(s->type == BGAV_STREAM_AUDIO)
-      {
-      check_dynamic(s, dynamic_audio_payloads, rtpmap);
-      }
-    else
-      {
-      check_dynamic(s, dynamic_video_payloads, rtpmap);
-      }
-    
-    if(!s->fourcc)
-      return 0;
 
     pos = strchr(rtpmap, '/');
 
@@ -343,7 +331,19 @@ static int find_codec(bgav_stream_t * s, bgav_sdp_media_desc_t * md,
         s->data.audio.format.num_channels = atoi(pos);
         }
       }
-
+    
+    if(s->type == BGAV_STREAM_AUDIO)
+      {
+      check_dynamic(s, dynamic_audio_payloads, rtpmap);
+      }
+    else
+      {
+      check_dynamic(s, dynamic_video_payloads, rtpmap);
+      }
+    
+    if(!s->fourcc)
+      return 0;
+    
     return 1;
     }
   else
@@ -449,7 +449,6 @@ static int read_rtp_packet(bgav_demuxer_context_t * ctx,
   /* Handle padding */
   if(p->h.padding)
     p->len -= p->buf[p->len-1];
-  
   
   bgav_rtp_packet_buffer_unlock_write(b);
   
@@ -1261,7 +1260,6 @@ static void append_nal(bgav_stream_t * s, uint8_t * nal, int len)
   s->packet->data_size += len;
   }
 
-
 static int process_h264(bgav_stream_t * s, rtp_header_t * h, uint8_t * data, int len)
   {
   uint8_t global_nal = (*data & 0x1f);
@@ -1368,6 +1366,7 @@ static int init_h264(bgav_stream_t * s)
   /* TODO: Get packetization-mode */
   s->data.video.frametime_mode = BGAV_FRAMETIME_PTS;
   s->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
+  s->data.video.format.timescale = s->timescale;
   sp->process = process_h264;
   return 1;
   }
@@ -1400,7 +1399,7 @@ static int init_mpa(bgav_stream_t * s)
   return 1;
   }
 
-/* MPEG Video */
+/* MPEG Video (rfc 2250) */
 
 static int
 process_mpv(bgav_stream_t * s, rtp_header_t * h, uint8_t * data, int len)
@@ -1438,6 +1437,7 @@ static int init_mpv(bgav_stream_t * s)
   rtp_stream_priv_t * sp;
   sp = s->priv;
   sp->process = process_mpv;
+  s->flags |= STREAM_PARSE_FULL;
   return 1;
   }
 
@@ -1584,4 +1584,6 @@ static int init_h263_1998(bgav_stream_t * s)
   sp->process = process_h263_1998;
   return 1;
   }
+
+/* Theora (draft-barbato-avt-rtp-theora-01) */
 
