@@ -119,90 +119,197 @@ static void shift_up(gavl_transform_pixel_t * p, int factors_per_pixel,
   }
 
 static void shift_borders(gavl_transform_table_t * tab,
-                          int width, int height)
+                          int width, int i, int height)
   {
-  int i, j;
+  int j;
 
-  for(i = 0; i < height; i++)
+  for(j = 0; j < width; j++)
     {
-    for(j = 0; j < width; j++)
-      {
-      /* Check left overshot */
-      if(tab->pixels[i][j].index_x < 0)
-        shift_right(&tab->pixels[i][j], tab->factors_per_pixel,
-                    -tab->pixels[i][j].index_x);
+    /* Check left overshot */
+    if(tab->pixels[i][j].index_x < 0)
+      shift_right(&tab->pixels[i][j], tab->factors_per_pixel,
+                  -tab->pixels[i][j].index_x);
       
-      /* Check right overshot */
-      if(tab->pixels[i][j].index_x + tab->factors_per_pixel > width)
-        shift_left(&tab->pixels[i][j], tab->factors_per_pixel,
-                   tab->pixels[i][j].index_x +
-                   tab->factors_per_pixel - width);
+    /* Check right overshot */
+    if(tab->pixels[i][j].index_x + tab->factors_per_pixel > width)
+      shift_left(&tab->pixels[i][j], tab->factors_per_pixel,
+                 tab->pixels[i][j].index_x +
+                 tab->factors_per_pixel - width);
       
-      /* Check top overshot */
-      if(tab->pixels[i][j].index_y < 0)
-        shift_down(&tab->pixels[i][j], tab->factors_per_pixel,
-                   -tab->pixels[i][j].index_y);
+    /* Check top overshot */
+    if(tab->pixels[i][j].index_y < 0)
+      shift_down(&tab->pixels[i][j], tab->factors_per_pixel,
+                 -tab->pixels[i][j].index_y);
       
-      /* Check bottom overshot */
-      if(tab->pixels[i][j].index_y + tab->factors_per_pixel > height)
-        shift_up(&tab->pixels[i][j], tab->factors_per_pixel,
-                 tab->pixels[i][j].index_y +
-                 tab->factors_per_pixel - height);
-      }
+    /* Check bottom overshot */
+    if(tab->pixels[i][j].index_y + tab->factors_per_pixel > height)
+      shift_up(&tab->pixels[i][j], tab->factors_per_pixel,
+               tab->pixels[i][j].index_y +
+               tab->factors_per_pixel - height);
     }
   }
 
 static void normalize(gavl_transform_table_t * tab,
-                      int width, int height)
+                      int width, int i)
   {
-  int i, j, k, l;
+  int j, k, l;
   float sum;
   
-  for(i = 0; i < height; i++)
+  for(j = 0; j < width; j++)
     {
-    for(j = 0; j < width; j++)
+    sum = 0.0;
+    for(k = 0; k < tab->factors_per_pixel; k++)
       {
-      sum = 0.0;
-      for(k = 0; k < tab->factors_per_pixel; k++)
+      for(l = 0; l < tab->factors_per_pixel; l++)
         {
-        for(l = 0; l < tab->factors_per_pixel; l++)
-          {
-          sum += tab->pixels[i][j].factors[k][l];
-          }
+        sum += tab->pixels[i][j].factors[k][l];
         }
-      for(k = 0; k < tab->factors_per_pixel; k++)
-        {
-        for(l = 0; l < tab->factors_per_pixel; l++)
-          tab->pixels[i][j].factors[k][l] /= sum;
-        }
+      }
+    for(k = 0; k < tab->factors_per_pixel; k++)
+      {
+      for(l = 0; l < tab->factors_per_pixel; l++)
+        tab->pixels[i][j].factors[k][l] /= sum;
       }
     }
   }
 
-void gavl_transform_table_init(gavl_transform_table_t * tab,
-                               gavl_video_options_t * opt,
-                               gavl_image_transform_func func, void * priv,
-                               float off_x, float off_y, float scale_x,
-                               float scale_y, int width, int height)
+typedef struct
+  {
+  float off_x;
+  float off_y;
+  float scale_x, scale_y;
+  int width;
+  int height;
+  gavl_image_transform_func func;
+  gavl_video_scale_get_weight weight_func;
+  gavl_transform_table_t * tab;
+  void * func_priv;
+  gavl_video_options_t * opt;
+  } slice_data_t;
+
+static void init_slice(void* p, int start, int end)
   {
   int i, j, k, l;
+  slice_data_t * sd = p;
+
   double x_src_f, y_src_f, x_dst_f, y_dst_f;
   int x_src_nearest, y_src_nearest;
   double t;
   double w_x[MAX_TRANSFORM_FILTER];
   double w_y;
   
-  gavl_video_scale_get_weight weight_func;
+  for(i = start; i < end; i++)
+    {
+    y_dst_f = sd->scale_y * (double)i + sd->off_y;
+    for(j = 0; j < sd->width; j++)
+      {
+      x_dst_f = sd->scale_x * (double)j + sd->off_x;
+      
+      sd->func(sd->func_priv, x_dst_f, y_dst_f, &x_src_f, &y_src_f);
 
+      //      fprintf(stderr, "Transform: %f %f -> %f %f\n",
+      //              x_src_f, y_src_f, x_dst_f, y_dst_f);
+
+      x_src_f = (x_src_f - sd->off_x) / sd->scale_x;
+      y_src_f = (y_src_f - sd->off_y) / sd->scale_y;
+      
+      if((x_src_f < 0.0) || (x_src_f > (double)sd->width) || 
+         (y_src_f < 0.0) || (y_src_f > (double)sd->height))
+        {
+        sd->tab->pixels[i][j].outside = 1;
+        //        fprintf(stderr, "Outside\n");
+        continue;
+        }
+
+      /* ... */
+      x_src_nearest = ROUND(x_src_f);
+      y_src_nearest = ROUND(y_src_f);
+
+      sd->tab->pixels[i][j].index_x =
+        x_src_nearest - sd->tab->factors_per_pixel/2;
+      sd->tab->pixels[i][j].index_y =
+        y_src_nearest - sd->tab->factors_per_pixel/2;
+      
+      if(sd->tab->factors_per_pixel == 1)
+        {
+        if(sd->tab->pixels[i][j].index_x < 0)
+          sd->tab->pixels[i][j].index_x = 0;
+        if(sd->tab->pixels[i][j].index_x > sd->width - 1)
+          sd->tab->pixels[i][j].index_x = sd->width - 1;
+        if(sd->tab->pixels[i][j].index_y < 0)
+          sd->tab->pixels[i][j].index_y = 0;
+        if(sd->tab->pixels[i][j].index_y > sd->height - 1)
+          sd->tab->pixels[i][j].index_y = sd->height - 1;
+        continue;
+        }
+      
+      /* x weights */
+      t = (x_src_f - 0.5 - sd->tab->pixels[i][j].index_x);
+      
+      for(k = 0; k < sd->tab->factors_per_pixel; k++)
+        {
+        //        fprintf(stderr, "%d w_x(%f)\n", k, t);
+        
+        w_x[k] = sd->weight_func(sd->opt, t);
+
+
+        t -= 1.0;
+        }
+
+      t = (y_src_f - 0.5 - sd->tab->pixels[i][j].index_y);
+      
+      for(k = 0; k < sd->tab->factors_per_pixel; k++)
+        {
+        /* Y-weight */
+        w_y = sd->weight_func(sd->opt, t);
+        
+        //        fprintf(stderr, "%d w_y(%f)\n", k, t);
+        
+        for(l = 0; l < sd->tab->factors_per_pixel; l++)
+          sd->tab->pixels[i][j].factors[k][l] = w_y * w_x[l];
+        t -= 1.0;
+        }
+      
+      }
+    shift_borders(sd->tab, sd->width, i, sd->height);
+    normalize(sd->tab, sd->width, i);
+    }
+  
+  }
+     
+void gavl_transform_table_init(gavl_transform_table_t * tab,
+                               gavl_video_options_t * opt,
+                               gavl_image_transform_func func, void * priv,
+                               float off_x, float off_y, float scale_x,
+                               float scale_y, int width, int height)
+  {
+  int delta;
+  int scanline;
+  int nt;
+  int i;
+  
+  slice_data_t sd;
+
+  sd.off_x = off_x;
+  sd.off_y = off_y;
+  sd.scale_x = scale_x;
+  sd.scale_y = scale_y;
+  sd.width = width;
+  sd.height = height;
+  sd.tab = tab;
+  sd.func = func;
+  sd.func_priv = priv;
+  sd.opt = opt;
+  
   /* (re)alloc */
-
+  
   gavl_transform_table_free(tab);
   
   
   /* Get factors per pixel and filter_func */
-  weight_func =
+  sd.weight_func =
     gavl_video_scale_get_weight_func(opt, &(tab->factors_per_pixel));
-
+  
   if(tab->factors_per_pixel > MAX_TRANSFORM_FILTER)
     {
     fprintf(stderr, "BUG: tab->factors_per_pixel > MAX_TRANSFORM_FILTER\n");
@@ -214,83 +321,28 @@ void gavl_transform_table_init(gavl_transform_table_t * tab,
   
   for(i = 1; i < height; i++)
     tab->pixels[i] = tab->pixels[0] + i * width;
+
+  nt = opt->num_threads;
+  if(nt > height)
+    nt = height;
+  if(nt < 1)
+    nt = 1;
   
-  for(i = 0; i < height; i++)
+  delta = height / nt;
+  scanline = 0;
+
+  for(i = 0; i < nt - 1; i++)
     {
-    y_dst_f = scale_y * (double)i + off_y;
-    for(j = 0; j < width; j++)
-      {
-      x_dst_f = scale_x * (double)j + off_x;
-      
-      func(priv, x_dst_f, y_dst_f, &x_src_f, &y_src_f);
-
-      //      fprintf(stderr, "Transform: %f %f -> %f %f\n",
-      //              x_src_f, y_src_f, x_dst_f, y_dst_f);
-
-      x_src_f = (x_src_f - off_x) / scale_x;
-      y_src_f = (y_src_f - off_y) / scale_y;
-      
-      if((x_src_f < 0.0) || (x_src_f > (double)width) || 
-         (y_src_f < 0.0) || (y_src_f > (double)height))
-        {
-        tab->pixels[i][j].outside = 1;
-        //        fprintf(stderr, "Outside\n");
-        continue;
-        }
-
-      /* ... */
-      x_src_nearest = ROUND(x_src_f);
-      y_src_nearest = ROUND(y_src_f);
-
-      tab->pixels[i][j].index_x = x_src_nearest - tab->factors_per_pixel/2;
-      tab->pixels[i][j].index_y = y_src_nearest - tab->factors_per_pixel/2;
-
-      if(tab->factors_per_pixel == 1)
-        {
-        if(tab->pixels[i][j].index_x < 0)
-          tab->pixels[i][j].index_x = 0;
-        if(tab->pixels[i][j].index_x > width - 1)
-          tab->pixels[i][j].index_x = width - 1;
-        if(tab->pixels[i][j].index_y < 0)
-          tab->pixels[i][j].index_y = 0;
-        if(tab->pixels[i][j].index_y > height - 1)
-          tab->pixels[i][j].index_y = height - 1;
-        continue;
-        }
-      
-      /* x weights */
-      t = (x_src_f - 0.5 - tab->pixels[i][j].index_x);
-      
-      for(k = 0; k < tab->factors_per_pixel; k++)
-        {
-        //        fprintf(stderr, "%d w_x(%f)\n", k, t);
+    opt->run_func(init_slice, &sd, scanline, scanline+delta,
+                  opt->run_data, i);
         
-        w_x[k] = weight_func(opt, t);
-
-
-        t -= 1.0;
-        }
-
-      t = (y_src_f - 0.5 - tab->pixels[i][j].index_y);
-      
-      for(k = 0; k < tab->factors_per_pixel; k++)
-        {
-        /* Y-weight */
-        w_y = weight_func(opt, t);
-        
-        //        fprintf(stderr, "%d w_y(%f)\n", k, t);
-        
-        for(l = 0; l < tab->factors_per_pixel; l++)
-          tab->pixels[i][j].factors[k][l] = w_y * w_x[l];
-        t -= 1.0;
-        }
-      
-      }
+    scanline += delta;
     }
-
-  shift_borders(tab, width, height);
-  normalize(tab, width, height);
+  opt->run_func(init_slice, &sd, scanline, height,
+                opt->run_data, nt - 1);
   
+  for(i = 0; i < nt; i++)
+    opt->stop_func(opt->stop_data, i);
   }
 
 void gavl_transform_table_init_int(gavl_transform_table_t * tab,

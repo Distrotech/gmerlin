@@ -150,8 +150,6 @@ static void init_func_tab(gavl_video_options_t * opt,
     }
   }
 
-
-
 void
 gavl_transform_context_init(gavl_image_transform_t * t,
                             gavl_video_options_t * opt,

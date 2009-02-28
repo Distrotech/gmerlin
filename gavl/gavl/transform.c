@@ -87,9 +87,9 @@ void gavl_image_transform_init(gavl_image_transform_t * t,
   if(opt.scale_mode > GAVL_SCALE_CUBIC_BSPLINE)
     opt.scale_mode = GAVL_SCALE_CUBIC_BSPLINE;
   
-  /* Count fields */
   gavl_video_format_copy(&t->format, format);
   
+  /* Count fields */
   switch(format->interlace_mode)
     {
     case GAVL_INTERLACE_NONE:
