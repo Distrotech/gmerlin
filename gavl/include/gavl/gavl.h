@@ -3227,11 +3227,16 @@ gavl_image_transform_t * gavl_image_transform_create();
 
 void gavl_image_transform_destroy(gavl_image_transform_t * t);
 
-/** \brief Destroy a transformation engine
+/** \brief Initialize a transformation engine
  *  \param t A transformation engine
  *  \param Format (can be changed)
  *  \param func Coordinate transform function
  *  \param priv The priv argument for func
+ *
+ * If you enabled multithreading support, func will be called
+ * from multiple threads at the same time. Make sure, that it
+ * doesn't access any global data.
+ *
  * Since 1.1.0.
  */
 
