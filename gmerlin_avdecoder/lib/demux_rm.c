@@ -405,7 +405,6 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
   data+=2; /* Skip framerate */
 
   bg_vs->data.video.format.timescale = 1000;
-  bg_vs->data.video.format.frame_duration = 40;
   bg_vs->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
 #if 1
   data += 4;

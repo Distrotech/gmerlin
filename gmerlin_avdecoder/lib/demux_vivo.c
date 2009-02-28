@@ -485,7 +485,7 @@ static int open_vivo(bgav_demuxer_context_t * ctx)
   video_stream->data.video.format.timescale = 1000;
   video_stream->timescale = 1000;
   
-  video_stream->data.video.format.frame_duration = 1000.0;
+  //  video_stream->data.video.format.frame_duration = 1000;
   video_stream->data.video.depth = 24;
   video_stream->data.video.image_size = video_stream->data.video.format.image_width *
     video_stream->data.video.format.image_height * 3;

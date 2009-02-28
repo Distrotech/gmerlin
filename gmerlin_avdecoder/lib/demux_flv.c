@@ -283,9 +283,7 @@ static int init_video_stream(bgav_demuxer_context_t * ctx, bgav_stream_t * s,
   /* Set the framerate */
   s->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
   s->data.video.format.timescale = 1000;
-  /* Set some nonsense values (TODO: Remove this) */
-  s->data.video.format.frame_duration = 40;
-
+  
   /* Hopefully, FLV supports square pixels only */
   s->data.video.format.pixel_width = 1;
   s->data.video.format.pixel_height = 1;

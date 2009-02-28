@@ -665,7 +665,6 @@ static int open_asf(bgav_demuxer_context_t * ctx)
         /* Fill in the remeaining values */
         
         bgav_vs->data.video.format.timescale = 1000;
-        bgav_vs->data.video.format.frame_duration = 40; /* 25.0 fps, but we don't care about this */
         bgav_vs->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
         
         //        gavl_video_format_dump(&(bgav_vs->format));
