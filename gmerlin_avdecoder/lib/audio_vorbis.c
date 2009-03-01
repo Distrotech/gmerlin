@@ -63,8 +63,8 @@ static uint8_t * parse_packet(ogg_packet * op, uint8_t * str)
   {
   memcpy(op, str, sizeof(*op));
   op->packet = str + sizeof(*op);
-  fprintf(stderr, "Parse packet\n");
-  bgav_hexdump(str, 64, 64);
+//  fprintf(stderr, "Parse packet\n");
+//  bgav_hexdump(str, 64, 64);
   return str + sizeof(*op) + op->bytes;
   }
 
